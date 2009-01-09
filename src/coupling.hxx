@@ -1,0 +1,137 @@
+#ifndef __COUPLING_PROPERTIES_H__
+#define __COUPLING_PROPERTIES_H__
+
+#include <string>
+#include <vector>
+
+#include <fvm_locator.h>
+#include <fvm_writer.h>
+#include <fvm_nodal.h>
+#include "couplings.h"
+
+namespace couplings {
+
+//   typedef couplings_interpolation_fct_t;
+//   enum couplings_not_located_point_treatment_fct_t;
+//   enum couplings_interpolation_t;
+//   enum couplings_not_located_point_treatment_t;
+//   enum couplings_solver_type_t ;
+//   enum couplings_field_type_t;
+//   enum couplings_field_dimension_t;
+//   enum couplings_mesh_type_t;
+
+  class ApplicationProperties;
+  
+  class Mesh;
+  
+  class Coupling {
+    
+  public:
+    
+    Coupling(const std::string& name,
+             const ApplicationProperties& localApplicationProperties,
+             const ApplicationProperties& coupledApplicationProperties,
+             const int entitiesDim,
+             const int tolerance,
+             const couplings_solver_type_t solverType,
+             const int    outputFrequency,
+             const char  *outputFormat,
+             const char  *outputFormatOption);
+
+    virtual ~Coupling();
+
+    void defineMesh(const int nVertex,
+                    const int nElement,
+                    const double coordinates[],
+                    int connectivity_index[],
+                    int connectivity[]);
+
+    void defineMeshAddPolyhedra(const int n_element,
+                                int face_index[],
+                                int cell_to_face_connectivity[],
+                                int face_connectivity_index[],
+                                int face_connectivity[]);
+
+    int exchange(const char                          *exchange_name,
+                 const couplings_field_dimension_t    fieldDimension, 
+                 const int                            time_step, 
+                 const double                         time_value,
+                 const char                          *sending_field_name,
+                 const double                        *sending_field, 
+                 char                                *receiving_field_name,
+                 double                              *receiving_field);
+
+    void updateLocation();
+
+    void setPointsToLocate(const int n_points,
+                           double coordinate[]);
+
+    inline void set_interpolation_function(couplings_interpolation_fct_t *fct);
+
+    //inline void set_not_located_point_treatment_function_t(couplings_not_located_point_treatment_fct_t *fct); 
+
+    const int & getNNotlocatedPoint() const;
+
+    const int *getNotlocatedPoint() const;
+
+
+  private:
+
+    Coupling();
+
+    Coupling &operator=(const Coupling &other);
+
+     std::vector<double> & _extrapolate(double *cellCenterField);
+
+    // Dans l'avenir créer une fabrique abstraite qui permet de definir differentes
+    // methodes d'interpolation 
+
+    void _interpolate(double *vertexField, std::vector<double>& interpolatedField);
+
+    void _interpolate1D(double *vertexField, std::vector<double>& interpolatedField);
+
+    void _interpolate2D(double *vertexField, std::vector<double>& interpolatedField);
+
+    void _interpolate3D(double *vertexField, std::vector<double>& interpolatedField);
+
+    void _locate();
+
+    void _visualization(const char *exchangeName,
+                        const couplings_field_dimension_t fieldDimension, 
+                        const int timeStep, 
+                        const double timeValue,
+                        const char  *sendingFieldName,
+                        const void *sendingField,
+                        const char  *receivingFieldName,
+                        const void *receivingField);
+
+  private:
+    const std::string   _name;
+    const ApplicationProperties& _localApplicationProperties;
+    const ApplicationProperties& _coupledApplicationProperties;
+    const int            _entitiesDim;
+    const int            _tolerance;
+    const couplings_solver_type_t  _solverType;
+    const std::string   _outputFormat;
+    const std::string   _outputFormatOption;
+    const int           _outputFrequency;
+  private:
+    int                  _nPointsToLocate;
+    Mesh                *_supportMesh;
+    double              *_coordsPointsToLocate; 
+    fvm_locator_t       *_fvmLocator;
+    fvm_writer_t        *_fvmWriter;
+    couplings_interpolation_fct_t *_interpolationFct;
+    bool                 _toLocate;
+    int                 *_barycentricCoordinatesIndex;
+    double              *_barycentricCoordinates;
+    int                  _nNotLocatedPoint;
+    int                 *_notLocatedPoint;
+  private:
+    std::vector<double> *_tmpVertexField; //Evite une allocation a chaque extrapolation
+    std::vector<double> *_tmpDistantField;
+  };
+
+}
+
+#endif //__COUPLING_PROPERTIES_H__

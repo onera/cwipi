@@ -1,0 +1,52 @@
+#!/bin/sh
+
+# ____________________________________________________________________
+# aclocal creates the aclocal.m4 file from the standard macro and the
+# custom macro embedded in the directory /config
+# and KERNEL config_files directory.
+# output:
+#   aclocal.m4
+#   autom4te.cache (directory)
+echo "====================================================== aclocal"
+
+  aclocal -I config || exit 1
+
+# ____________________________________________________________________
+# libtoolize creates some configuration files (ltmain.sh,
+# config.guess and config.sub). It only depends on the libtool
+# version. The files are created in the directory specified with the
+# AC_CONFIG_AUX_DIR(<mydir>) tag (see configure.ac).
+# output:
+#   config/config.guess
+#   config/config.sub
+#   config/ltmain.sh
+#
+echo "====================================================== libtoolize"
+
+libtoolize --force --copy --automake || exit 1
+
+# ____________________________________________________________________
+# autoconf creates the configure script from the file configure.ac (or
+# configure.in if configure.ac doesn't exist)
+# output:
+#   configure
+echo "====================================================== autoconf"
+
+autoconf
+
+# ____________________________________________________________________
+# automake creates some scripts used in building process
+# (install-sh, missing, ...). It only depends on the automake
+# version. The files are created in the directory specified with the
+# AC_CONFIG_AUX_DIR(<mydir>) tag (see configure.ac). This step also
+# creates the Makefile.in files from the Makefile.am files.
+# output:
+#   config/compile
+#   config/depcomp
+#   config/install-sh
+#   config/missing
+#   config/py-compile
+#   Makefile.in (from Makefile.am)
+echo "====================================================== automake"
+
+automake --copy --gnu --add-missing

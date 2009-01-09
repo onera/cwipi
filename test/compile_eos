@@ -1,0 +1,6 @@
+
+mpif90 -c -g test1_f.f -I. -I../src
+mpif90 -o test1_f test1_f.o ../src/couplings_cf.o -lstdc++ -L/home/equemera/opt/bft-1.0.8/Linux_x86_64_icc/lib -lbft -L/home/equemera/opt/fvm-0.12.0/Linux_x86_64_icc/lib -lfvm -L../src -lcouplings -lcouplings_f -Wl,-rpath -Wl,../src -Wl,-rpath -Wl,/home/equemera/opt/bft-1.0.8/Linux_x86_64_icc/lib -Wl,-rpath -Wl,/home/equemera/opt/fvm-0.12.0/Linux_x86_64_icc/lib
+
+mpicc -c -g test1_c.c -I. -I../src -I/home/equemera/opt/bft-1.0.8/Linux_x86_64_icc/include
+mpicc -o test1_c test1_c.o  -lstdc++ -L/home/equemera/opt/bft-1.0.8/Linux_x86_64_icc/lib -lbft -L/home/equemera/opt/fvm-0.12.0/Linux_x86_64_icc/lib -lfvm -L../src -lcouplings -Wl,-rpath -Wl,../src -Wl,-rpath -Wl,/home/equemera/opt/bft-1.0.8/Linux_x86_64_icc/lib -Wl,-rpath -Wl,/home/equemera/opt/fvm-0.12.0/Linux_x86_64_icc/lib

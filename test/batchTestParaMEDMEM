@@ -1,0 +1,13 @@
+#!/bin/bash
+#BSUB -J TestParaMEDMEM
+#BSUB -P I210105G 
+###BSUB -P 13756D1F
+#BSUB -o output.%J
+#BSUB -e error.%J
+#BSUB -W 00:02
+#BSUB -n 2
+
+## . /opt/mpi/mpibull2-1.2.4-2.t/share/mpibull2.sh
+##prun -sv -pbatch -n 2 TestParaMEDMEM
+#mpiexec -n 1 test1_c : -n 1 test1_f
+prun -sv -pbatch -n 2 lance_galibier.sh
