@@ -69,11 +69,11 @@ libcouplings_la_DEPENDENCIES =
 am_libcouplings_la_OBJECTS = applicationProperties.lo \
 	applicationPropertiesDataBase.lo couplings.lo quickSort.lo \
 	solve_ax_b_4.lo coo_baryc.lo mesh.lo coupling.lo \
-	couplingDataBase.lo
+	couplingDataBase.lo callfortinterpfct.lo
 libcouplings_la_OBJECTS = $(am_libcouplings_la_OBJECTS)
 libcouplings_f_la_DEPENDENCIES = libcouplings.la
-am_libcouplings_f_la_OBJECTS = couplings_cf.lo printfort.lo \
-	couplings_f.lo
+am_libcouplings_f_la_OBJECTS = couplings_cf.lo couplings_f.lo \
+	printfort.lo
 libcouplings_f_la_OBJECTS = $(am_libcouplings_f_la_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
@@ -94,12 +94,9 @@ LTCXXCOMPILE = $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) \
 CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --tag=CXX --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-F77COMPILE = $(F77) $(AM_FFLAGS) $(FFLAGS)
-LTF77COMPILE = $(LIBTOOL) --tag=F77 --mode=compile $(F77) $(AM_FFLAGS) \
-	$(FFLAGS)
-F77LD = $(F77)
-F77LINK = $(LIBTOOL) --tag=F77 --mode=link $(F77LD) $(AM_FFLAGS) \
-	$(FFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+FCLD = $(FC)
+FCLINK = $(LIBTOOL) --mode=link $(FCLD) $(AM_FCFLAGS) $(FCFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 SOURCES = $(libcouplings_la_SOURCES) $(libcouplings_f_la_SOURCES)
 DIST_SOURCES = $(libcouplings_la_SOURCES) $(libcouplings_f_la_SOURCES)
 couplingsincludeHEADERS_INSTALL = $(INSTALL_HEADER)
@@ -241,12 +238,13 @@ target_vendor = @target_vendor@
 AM_CPPFLAGS = $(DEBUG_CPPFLAGS) @BFT_CPPFLAGS@ @FVM_CPPFLAGS@ @MPI_CPPFLAGS@
 AM_CFLAGS = 
 AM_LDFLAGS = @BFT_LDFLAGS@ @FVM_LDFLAGS@ @MPI_LDFLAGS@
-
+LTFCCOMPILE = $(LIBTOOL) --mode=compile --tag=FC $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_FCFLAGS) $(FCFLAGS) $(FCFLAGS_f90)
+FCCOMPILE = $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_FCFLAGS) $(FCFLAGS) $(FCFLAGS_f90)
 # Public header files (to be installed)
 couplingsincludedir = $(includedir)
 couplingsinclude_HEADERS = \
-couplings_f.h \
-couplings.h
+couplings.mod \
+couplings.h 
 
 noinst_HEADERS = \
 coo_baryc.h \
@@ -268,18 +266,19 @@ solve_ax_b_4.c \
 coo_baryc.c \
 mesh.cxx \
 coupling.cxx \
-couplingDataBase.cxx
+couplingDataBase.cxx \
+callfortinterpfct.f90
 
 libcouplings_f_la_LIBADD = libcouplings.la
 libcouplings_f_la_SOURCES = \
 couplings_cf.cxx \
-printfort.f \
-couplings_f.f
+couplings_f.f90 \
+printfort.f90
 
 all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .c .cxx .f .lo .o .obj
+.SUFFIXES: .c .cxx .f90 .lo .o .obj
 $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -409,14 +408,14 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
 
-.f.o:
-	$(F77COMPILE) -c -o $@ $<
+.f90.o:
+	$(FCCOMPILE) -c -o $@ $<
 
-.f.obj:
-	$(F77COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+.f90.obj:
+	$(FCCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
-.f.lo:
-	$(LTF77COMPILE) -c -o $@ $<
+.f90.lo:
+	$(LTFCCOMPILE) -c -o $@ $<
 
 mostlyclean-libtool:
 	-rm -f *.lo

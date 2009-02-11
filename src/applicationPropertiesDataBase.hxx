@@ -28,7 +28,7 @@ namespace couplings {
     virtual ~ApplicationPropertiesDataBase();
 
   public:
-    void init(const char* name, const MPI_Comm &globalComm, MPI_Comm &localComm);
+    void init(const char* name, const MPI_Comm globalComm, MPI_Comm &localComm);
 
     inline void setPrintfProxy(bft_printf_proxy_t *const callBackPrintf);
 

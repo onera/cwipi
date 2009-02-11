@@ -25,7 +25,11 @@
 
 #include "couplings_cf.h"
 #include "applicationPropertiesDataBase.hxx"
+#include "couplingDataBase.hxx"
+#include "couplingDataBase_i.hxx"
 #include "couplings.h"
+#include "coupling.hxx"
+#include "coupling_i.hxx"
 
 /*----------------------------------------------------------------------------*/
 
@@ -214,6 +218,7 @@ void PROCF(couplings_init_cf, COUPLINGS_INIT_CF)
    properties.init(application_name_c, 
                    static_cast <const MPI_Comm&> (*common_comm), 
                    static_cast <MPI_Comm&> (*application_comm));
+   delete[] application_name_c;
 }
 
 
@@ -236,7 +241,7 @@ void PROCF(couplings_add_local_int_control_parameter_cf,
 {
   char* nameC = _couplings_fortran_to_c_string(name, *l_name);
   couplings_add_local_int_control_parameter(nameC, *initial_value);
-  delete nameC;
+  delete[] nameC;
 }
 
 /*----------------------------------------------------------------------------
@@ -258,7 +263,7 @@ void PROCF(couplings_add_local_double_control_parameter_cf,
 {
   char* nameC = _couplings_fortran_to_c_string(name, *l_name);
   couplings_add_local_double_control_parameter(nameC, *initial_value);
-  delete nameC;
+  delete[] nameC;
 }
 
 /*----------------------------------------------------------------------------
@@ -280,7 +285,7 @@ void PROCF(couplings_set_local_int_control_parameter_cf,
 {
   char* nameC = _couplings_fortran_to_c_string(name, *l_name);
   couplings_set_local_int_control_parameter(nameC, *value);
-  delete nameC;
+  delete[] nameC;
 }
 
 /*----------------------------------------------------------------------------
@@ -302,7 +307,7 @@ void PROCF(couplings_set_local_double_control_parameter_cf,
 {
   char* nameC = _couplings_fortran_to_c_string(name, *l_name);
   couplings_set_local_double_control_parameter(nameC, *value);
-  delete nameC;
+  delete[] nameC;
 }
 
 /*----------------------------------------------------------------------------
@@ -323,7 +328,7 @@ void PROCF(couplings_get_local_int_control_parameter_cf,
 {
   char* nameC = _couplings_fortran_to_c_string(name, *l_name);
   *value = couplings_get_local_int_control_parameter(nameC);
-  delete nameC;
+  delete[] nameC;
 }
 
 /*----------------------------------------------------------------------------
@@ -344,7 +349,7 @@ void PROCF(couplings_get_local_double_control_parameter_cf,
 {
   char* nameC = _couplings_fortran_to_c_string(name, *l_name);
   *value = couplings_get_local_double_control_parameter(nameC);
-  delete nameC;
+  delete[] nameC;
 }
 
 /*----------------------------------------------------------------------------
@@ -364,7 +369,7 @@ void PROCF(couplings_delete_local_int_control_parameter_cf,
 {
   char* nameC = _couplings_fortran_to_c_string(name, *l_name);
   couplings_delete_local_int_control_parameter(nameC);
-  delete nameC;
+  delete[] nameC;
 }
 
 /*----------------------------------------------------------------------------
@@ -384,7 +389,7 @@ void PROCF(couplings_delete_local_double_control_parameter_cf,
 {
   char* nameC = _couplings_fortran_to_c_string(name, *l_name);
   couplings_delete_local_double_control_parameter(nameC);
-  delete nameC;
+  delete[] nameC;
 }
 
 /*----------------------------------------------------------------------------
@@ -413,8 +418,8 @@ void PROCF(couplings_get_distant_int_control_parameter_cf,
   *value = couplings_get_distant_int_control_parameter(application_nameC, 
                                                        nameC);
 
-  delete nameC;
-  delete application_nameC;
+  delete[] nameC;
+  delete[] application_nameC;
 }
 
 /*----------------------------------------------------------------------------
@@ -443,8 +448,8 @@ void PROCF(couplings_get_distant_double_control_parameter_cf,
   *value = couplings_get_distant_double_control_parameter(application_nameC, 
                                                           nameC);
 
-  delete nameC;
-  delete application_nameC;
+  delete[] nameC;
+  delete[] application_nameC;
 }
 
 /*----------------------------------------------------------------------------
@@ -469,7 +474,7 @@ void PROCF(couplings_synchronise_control_parameter_cf,
 
   couplings_synchronise_control_parameter(application_nameC);
 
-  delete application_nameC;
+  delete[] application_nameC;
 }
 
 /*----------------------------------------------------------------------------
@@ -507,17 +512,48 @@ void PROCF(couplings_synchronise_control_parameter_cf,
 
 void PROCF(couplings_create_coupling_cf, 
            COUPLINGS_CREATE_COUPLING_CF)
-  (const char *coupled_application,
-   const int  *l_coupled_application,
-   const int  *field_nature, 
-   const char *output_format,
-   const int  *l_output_format,
-   const char *output_format_option,
-   const int  *l_output_format_option,
-   char  *coupling_id
-   ARGF_SUPP_CHAINE)
+( const char *coupling_name,
+  const int  *l_coupling_name,
+  const char *coupled_application,
+  const int  *l_coupled_application,
+  const int  *entities_dim,
+  const double *tolerance,
+  const int *mesh_type,
+  const int *solver_type, 
+  const int  * output_frequency,
+  const char  *output_format,
+  const int  *l_output_format,
+  const char  *output_format_option,
+  const int  *l_output_format_option
+  ARGF_SUPP_CHAINE)
+
 {
-  std::cout << " couplings_create_coupling not yet implemented" << std::endl;
+  char *coupling_nameC = 
+    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+  
+  char *coupled_applicationC = 
+    _couplings_fortran_to_c_string(coupled_application, *l_coupled_application);
+
+  char *output_formatC = 
+    _couplings_fortran_to_c_string(output_format, *l_output_format);
+
+  char *output_format_optionC = 
+    _couplings_fortran_to_c_string(output_format_option, *l_output_format_option);
+
+  couplings_create_coupling(coupling_nameC,
+                            coupled_applicationC,
+                            *entities_dim,
+                            *tolerance,
+                            (couplings_mesh_type_t) *mesh_type,
+                            (couplings_solver_type_t) *solver_type, 
+                            *output_frequency,
+                            output_formatC,
+                            output_format_optionC);
+
+  delete[] coupling_nameC;
+  delete[] coupled_applicationC;
+  delete[] output_formatC;
+  delete[] output_format_optionC;
 }
 
 /*----------------------------------------------------------------------------
@@ -536,13 +572,19 @@ void PROCF(couplings_create_coupling_cf,
 
 void PROCF(couplings_set_points_to_locate_cf, 
            COUPLINGS_SET_POINTS_TO_LOCATE_CF)
-  (const char   *coupling_id,
-   const int  *l_coupling_id,
+  (const char   *coupling_name,
+   const int  *l_coupling_name,
    const int    *n_points,
-   const double *coordinate
+   double *coordinate
    ARGF_SUPP_CHAINE)
 {
-  std::cout << " couplings_set_points_to_locate_f not yet implemented" << std::endl;
+  char *coupling_nameC = 
+    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+
+  couplings_set_points_to_locate(coupling_nameC,
+                                 *n_points,
+                                 coordinate); 
+  delete[] coupling_nameC; 
 }
                                           
 /*----------------------------------------------------------------------------
@@ -567,39 +609,51 @@ void PROCF(couplings_set_points_to_locate_cf,
  * 
  *----------------------------------------------------------------------------*/
 
-// Add couplings_update_mesh
-
 void PROCF(couplings_define_mesh_cf,
            COUPLINGS_DEFINE_MESH_CF)
-  (const char *coupling_id,
-   const int  *l_coupling_id,
-   const int *dim,
+  (const char *coupling_name,
+   const int  *l_coupling_name,
    const int *n_vertex,
    const int *n_element,
    const double *coordinates,
-   const int *shared_coordinates_status,
-   int *parent_vertex_num,
    int *connectivity_index,
    int *connectivity
    ARGF_SUPP_CHAINE)
 {
-  std::cout << " couplings_defne_mesh_f not yet implemented" << std::endl;
+  char *coupling_nameC = 
+    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+
+  couplings_define_mesh(coupling_name, 
+                        *n_vertex,
+                        *n_element,
+                        coordinates,
+                        connectivity_index,
+                        connectivity);
+  delete[] coupling_nameC;
 }
 
-/*----------------------------------------------------------------------------
- *
- *  Locate points. This is a synchronization point with the coupled application 
- *
- *   coupling_id        <-- coupling identificator
- *
- *----------------------------------------------------------------------------*/
+void PROCF(couplings_add_polyhedra_cf,
+           COUPLINGS_ADD_POLYHEDRA_CF)
+  (const char *coupling_name, 
+   const int  *l_coupling_name,
+   const int *n_element,
+   int *face_index,
+   int *cell_to_face_connectivity,
+   int *face_connectivity_index,
+   int *face_connectivity
+   ARGF_SUPP_CHAINE)
 
-void PROCF(couplings_locate_cf, 
-           COUPLINGS_LOCATE_CF) 
-(const char *coupling_id
- ARGF_SUPP_CHAINE) 
 {
-  std::cout << " couplings_locate_f not yet implemented" << std::endl;
+  char *coupling_nameC = 
+    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+
+  couplings_add_polyhedra(coupling_name, 
+                          *n_element,
+                          face_index,
+                          cell_to_face_connectivity,
+                          face_connectivity_index,
+                          face_connectivity);
+  delete[] coupling_nameC;
 }
 
 /*----------------------------------------------------------------------------
@@ -627,48 +681,248 @@ void PROCF(couplings_locate_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_exchange_float_cf, 
-           COUPLINGS_EXCHANGE_FLOAT_CF)
-  (const char      *coupling_id,
-   const int       *l_coupling_id,
+void PROCF(couplings_exchange_with_user_interpolation_cf, 
+           COUPLINGS_EXCHANGE_WITH_USER_INTERPOLATION_CF)
+  (const char      *coupling_name,
+   const int       *l_coupling_name,
    const char      *exchange_name,
    const int       *l_exchange_name,
-   const int       *exchange_type, 
    const int       *exchange_dimension, 
-   const int       *interpolation_type, 
-   const int       *time_step, 
-   const double    *time_value,
-   const char      *sending_field_name,
-   const int       *l_sending_field_name,
-   const float     *sending_field, 
-   const int       *l_receiving_field_name,
-   char            *receiving_field_name,
-   float           *receiving_field
-   ARGF_SUPP_CHAINE)
-{
-  std::cout << " couplings_exchange_float_f not yet implemented" << std::endl;
-}
-
-void PROCF(couplings_exchange_double_cf, 
-           COUPLINGS_EXCHANGE_DOUBLE_CF)
-  (const char      *coupling_id,
-   const int       *l_coupling_id,
-   const char      *exchange_name,
-   const int       *l_exchange_name,
-   const int       *exchange_type, 
-   const int       *exchange_dimension, 
-   const int       *interpolation_type, 
-   const int       *time_step, 
+   const int       *n_step, 
    const double    *time_value,
    const char      *sending_field_name,
    const int       *l_sending_field_name,
    const double    *sending_field, 
-   const int       *l_receiving_field_name,
    char            *receiving_field_name,
-   double          *receiving_field 
+   const int       *l_receiving_field_name,
+   double          *receiving_field,
+   void            *ptFortranInterpolationFct,
+   int             *exchange_status
    ARGF_SUPP_CHAINE)
 {
-  std::cout << " couplings_exchange_double_f not yet implemented" << std::endl;
+  char *coupling_nameC = 
+    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+
+  char *exchange_nameC = 
+    _couplings_fortran_to_c_string(exchange_name, *l_exchange_name);
+
+  char *sending_field_nameC = 
+    _couplings_fortran_to_c_string(sending_field_name, *l_sending_field_name);
+
+  char *receiving_field_nameC = 
+    _couplings_fortran_to_c_string(receiving_field_name, *l_receiving_field_name);
+
+
+  couplings::CouplingDataBase & couplingDataBase = 
+    couplings::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  *exchange_status =  coupling.exchange(exchange_nameC,
+                                        (couplings_field_dimension_t) *exchange_dimension, 
+                                        *n_step, 
+                                        *time_value,
+                                        sending_field_nameC,
+                                        sending_field, 
+                                        receiving_field_nameC,
+                                        receiving_field,
+                                        ptFortranInterpolationFct);
+  delete[] coupling_nameC;
+  delete[] exchange_nameC;
+  delete[] sending_field_nameC;
+  delete[] receiving_field_nameC;
+}
+
+void PROCF(couplings_exchange_cf, 
+           COUPLINGS_EXCHANGE_CF)
+  (const char      *coupling_name,
+   const int       *l_coupling_name,
+   const char      *exchange_name,
+   const int       *l_exchange_name,
+   const int       *exchange_dimension, 
+   const int       *n_step, 
+   const double    *time_value,
+   const char      *sending_field_name,
+   const int       *l_sending_field_name,
+   const double    *sending_field, 
+   char            *receiving_field_name,
+   const int       *l_receiving_field_name,
+   double          *receiving_field,
+   int             *exchange_status
+   ARGF_SUPP_CHAINE)
+{
+  char *coupling_nameC = 
+    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+
+  char *exchange_nameC = 
+    _couplings_fortran_to_c_string(exchange_name, *l_exchange_name);
+
+  char *sending_field_nameC = 
+    _couplings_fortran_to_c_string(sending_field_name, *l_sending_field_name);
+
+  char *receiving_field_nameC = 
+    _couplings_fortran_to_c_string(receiving_field_name, *l_receiving_field_name);
+
+
+  couplings::CouplingDataBase & couplingDataBase = 
+    couplings::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  *exchange_status =  coupling.exchange(exchange_nameC,
+                                        (couplings_field_dimension_t) *exchange_dimension, 
+                                        *n_step, 
+                                        *time_value,
+                                        sending_field_nameC,
+                                        sending_field, 
+                                        receiving_field_nameC,
+                                        receiving_field,
+                                        NULL);
+  delete[] coupling_nameC;
+  delete[] exchange_nameC;
+  delete[] sending_field_nameC;
+  delete[] receiving_field_nameC;
+}
+
+void PROCF(couplings_receive_cf, 
+           COUPLINGS_RECEIVE_CF)
+  (const char      *coupling_name,
+   const int       *l_coupling_name,
+   const char      *exchange_name,
+   const int       *l_exchange_name,
+   const int       *exchange_dimension, 
+   const int       *n_step, 
+   const double    *time_value,
+   char            *receiving_field_name,
+   const int       *l_receiving_field_name,
+   double          *receiving_field,
+   int             *exchange_status
+   ARGF_SUPP_CHAINE)
+{
+  char *coupling_nameC = 
+    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+
+  char *exchange_nameC = 
+    _couplings_fortran_to_c_string(exchange_name, *l_exchange_name);
+
+  char *receiving_field_nameC = 
+    _couplings_fortran_to_c_string(receiving_field_name, *l_receiving_field_name);
+
+
+  couplings::CouplingDataBase & couplingDataBase = 
+    couplings::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  *exchange_status =  coupling.exchange(exchange_nameC,
+                                        (couplings_field_dimension_t) *exchange_dimension, 
+                                        *n_step, 
+                                        *time_value,
+                                        NULL,
+                                        NULL, 
+                                        receiving_field_nameC,
+                                        receiving_field,
+                                        NULL);
+  delete[] coupling_nameC;
+  delete[] exchange_nameC;
+  delete[] receiving_field_nameC;
+}
+
+void PROCF(couplings_send_with_user_interpolation_cf, 
+           COUPLINGS_SEND_WITH_USER_INTERPOLATION_CF)
+  (const char      *coupling_name,
+   const int       *l_coupling_name,
+   const char      *exchange_name,
+   const int       *l_exchange_name,
+   const int       *exchange_dimension, 
+   const int       *n_step, 
+   const double    *time_value,
+   const char      *sending_field_name,
+   const int       *l_sending_field_name,
+   const double    *sending_field, 
+   void            *ptFortranInterpolationFct,
+   int             *exchange_status
+   ARGF_SUPP_CHAINE)
+{
+  char *coupling_nameC = 
+    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+
+  char *exchange_nameC = 
+    _couplings_fortran_to_c_string(exchange_name, *l_exchange_name);
+
+  char *sending_field_nameC = 
+    _couplings_fortran_to_c_string(sending_field_name, *l_sending_field_name);
+
+  couplings::CouplingDataBase & couplingDataBase = 
+    couplings::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  *exchange_status =  coupling.exchange(exchange_nameC,
+                                        (couplings_field_dimension_t) *exchange_dimension, 
+                                        *n_step, 
+                                        *time_value,
+                                        sending_field_nameC,
+                                        sending_field, 
+                                        NULL,
+                                        NULL,
+                                        ptFortranInterpolationFct);
+  delete[] coupling_nameC;
+  delete[] exchange_nameC;
+  delete[] sending_field_nameC;
+}
+
+void PROCF(couplings_send_cf, 
+           COUPLINGS_SEND_CF)
+  (const char      *coupling_name,
+   const int       *l_coupling_name,
+   const char      *exchange_name,
+   const int       *l_exchange_name,
+   const int       *exchange_dimension, 
+   const int       *n_step, 
+   const double    *time_value,
+   const char      *sending_field_name,
+   const int       *l_sending_field_name,
+   const double    *sending_field, 
+   int             *exchange_status
+   ARGF_SUPP_CHAINE)
+{
+  char *coupling_nameC = 
+    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+
+  char *exchange_nameC = 
+    _couplings_fortran_to_c_string(exchange_name, *l_exchange_name);
+
+  char *sending_field_nameC = 
+    _couplings_fortran_to_c_string(sending_field_name, *l_sending_field_name);
+
+  couplings::CouplingDataBase & couplingDataBase = 
+    couplings::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  *exchange_status =  coupling.exchange(exchange_nameC,
+                                        (couplings_field_dimension_t) *exchange_dimension, 
+                                        *n_step, 
+                                        *time_value,
+                                        sending_field_nameC,
+                                        sending_field, 
+                                        NULL,
+                                        NULL,
+                                        NULL);
+  delete[] coupling_nameC;
+  delete[] exchange_nameC;
+  delete[] sending_field_nameC;
 }
 
 /*----------------------------------------------------------------------------
@@ -682,10 +936,15 @@ void PROCF(couplings_exchange_double_cf,
 
 void PROCF(couplings_delete_coupling_cf, 
            COUPLINGS_DELETE_COUPLING_CF)
-  (const char *coupling_id
+  (const char *coupling_name,
+   const int       *l_coupling_name
    ARGF_SUPP_CHAINE)
 {
-  std::cout << "  couplings_delete_coupling_f not yet implemented" << std::endl;
+  char *coupling_nameC = 
+    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+
+  couplings_delete_coupling(coupling_nameC);
+  delete[] coupling_nameC; 
 }
 
 /*----------------------------------------------------------------------------
@@ -695,10 +954,10 @@ void PROCF(couplings_delete_coupling_cf,
  *----------------------------------------------------------------------------*/
 
 
-void PROCF(couplings_finalize_cf, 
-           COUPLINGS_FINALIZE_CF) ()
+void PROCF(couplings_finalize_f, 
+           COUPLINGS_FINALIZE_F) ()
 {
-  std::cout << "  couplings_finalize not yet implemented" << std::endl;
+  couplings_finalize();
 }
 
 /*----------------------------------------------------------------------------

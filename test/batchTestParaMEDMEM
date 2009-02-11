@@ -10,4 +10,4 @@
 ## . /opt/mpi/mpibull2-1.2.4-2.t/share/mpibull2.sh
 ##prun -sv -pbatch -n 2 TestParaMEDMEM
 #mpiexec -n 1 test1_c : -n 1 test1_f
-prun -sv -pbatch -n 2 lance_galibier.sh
+prun -sv -pbatch -n 7 lance_galibier.sh

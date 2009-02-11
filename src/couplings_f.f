@@ -295,5 +295,278 @@ C
      &(APPLINAME, L)
 
       END
-
  
+C
+C***********************************************************************
+C
+C COUPLINGS_CREATE_COUPLING_F
+C
+C***********************************************************************
+C
+
+      SUBROUTINE COUPLINGS_CREATE_COUPLING_F
+     &(COUPLINGNAME,
+     & CPLAPPLI,
+     & DIM,
+     & TOLERANCE,
+     & MESHT,
+     & SOLVERT,
+     & OUTPUTFREQ,
+     & OUTPUTFMT,
+     & OUTPUTFMTOPT)
+
+      IMPLICIT NONE
+
+      CHARACTER*(*) COUPLINGNAME, CPLAPPLI
+      INTEGER DIM, MESHT, SOLVERT
+      DOUBLE PRECISION TOLERANCE, OUTPUTFREQ
+      CHARACTER*(*) OUTPUTFMT, OUTPUTFMTOPT
+
+      INTEGER LCOUPLINGNAME, LCPLAPPLI
+      INTEGER LOUTPUTFMT, LOUTPUTFMTOPT
+
+      LCOUPLINGNAME = LEN(COUPLINGNAME)
+      LCPLAPPLI     = LEN(CPLAPPLI)
+      LOUTPUTFMT    = LEN(OUTPUTFMT)
+      LOUTPUTFMTOPT = LEN(OUTPUTFMTOPT)
+
+      CALL COUPLINGS_CREATE_COUPLING_CF(COUPLINGNAME,
+     &                                  LCOUPLINGNAME,
+     &                                  CPLAPPLI,
+     &                                  LCPLAPPLI,
+     &                                  DIM,
+     &                                  TOLERANCE,
+     &                                  MESHT,
+     &                                  SOLVERT,
+     &                                  OUTPUTFREQ,
+     &                                  OUTPUTFMT,
+     &                                  LOUTPUTFMT,
+     &                                  OUTPUTFMTOPT,
+     &                                  LOUTPUTFMTOPT)
+
+      END
+C
+C***********************************************************************
+C
+C COUPLINGS_SET_POINTS_TO_LOCATE_F
+C
+C***********************************************************************
+C
+
+      SUBROUTINE COUPLINGS_SET_POINTS_TO_LOCATE_F
+     &(COUPLINGNAME,
+     & NPTS,
+     & COORDS)
+
+      IMPLICIT NONE
+
+      CHARACTER*(*) COUPLINGNAME
+      INTEGER LCOUPLINGNAME
+      
+      INTEGER NPTS
+      DOUBLE PRECISION COORDS(3*NPTS)
+      
+      LCOUPLINGNAME    = LEN(COUPLINGNAME)
+      
+      CALL COUPLINGS_SET_POINTS_TO_LOCATE_CF(COUPLINGNAME, 
+     &                                       LCOUPLINGNAME, 
+     &                                       NPTS,
+     &                                       COORDS)
+
+      END
+C
+C***********************************************************************
+C
+C COUPLINGS_DEFINE_MESH_F
+C
+C***********************************************************************
+C
+
+      SUBROUTINE COUPLINGS_DEFINE_MESH_F
+     &(COUPLINGNAME,
+     & NVERTEX,
+     & NELTS,
+     & COORDS,
+     & CONNECINDEX,
+     & CONNEC)
+
+      IMPLICIT NONE
+
+      CHARACTER*(*) COUPLINGNAME
+      INTEGER LCOUPLINGNAME
+
+      INTEGER NELTS, NVERTEX, CONNECINDEX(NELTS+1), CONNEC(*)
+      DOUBLE PRECISION COORDS(3*NVERTEX)
+
+      LCOUPLINGNAME    = LEN(COUPLINGNAME)
+
+      CALL COUPLINGS_DEFINE_MESH_CF(COUPLINGNAME,
+     &                              LCOUPLINGNAME,
+     &                              NVERTEX,
+     &                              NELTS,
+     &                              COORDS,
+     &                              CONNECINDEX,
+     &                              CONNEC) 
+
+      END
+
+C
+C***********************************************************************
+C
+C COUPLINGS_ADD_POLYHEDRA_F
+C
+C***********************************************************************
+C
+
+      SUBROUTINE COUPLINGS_ADD_POLYHEDRA_F
+     &(COUPLINGNAME,
+     & NELTS,
+     & FACEIDX,
+     & CELLTOFACE,
+     & FACECONNECIDX,
+     & FACECONNEC)
+
+      IMPLICIT NONE
+
+      CHARACTER*(*) COUPLINGNAME
+      INTEGER LCOUPLINGNAME, NELTS
+      INTEGER FACEIDX(NELTS), CELLTOFACE(*)
+      INTEGER FACECONNECIDX(*), FACECONNEC(*)
+
+      LCOUPLINGNAME = LEN(COUPLINGNAME)
+
+      CALL COUPLINGS_ADD_POLYHEDRA_CF (COUPLINGNAME,
+     &                                 LCOUPLINGNAME,
+     &                                 NELTS,
+     &                                 FACEIDX,
+     &                                 CELLTOFACE,
+     &                                 FACECONNECIDX,
+     &                                 FACECONNEC)
+
+      END
+
+C
+C***********************************************************************
+C
+C COUPLINGS_EXCHANGE_F
+C
+C***********************************************************************
+C
+
+      SUBROUTINE COUPLINGS_EXCHANGE_F
+     &(COUPLINGNAME,
+     & EXCHANGENAME,
+     & EXCHANGEDIM, 
+     & NSTEP, 
+     & TIMEVALUE,
+     & SENDINGFIELDNAME,
+     & SENDINGFIELD,
+     & RECEIVINGFIELDNAME,
+     & RECEIVINGFIELD,
+     & STATUS)
+
+      IMPLICIT NONE
+
+      CHARACTER*(*) COUPLINGNAME, EXCHANGENAME, SENDINGFIELDNAME
+      CHARACTER*(*) RECEIVINGFIELDNAME
+      INTEGER LCOUPLINGNAME, LEXCHANGENAME, LSENDINGFIELDNAME
+      INTEGER LRECEIVINGFIELDNAME
+      INTEGER EXCHANGEDIM, NSTEP, STATUS
+      DOUBLE PRECISION TIMEVALUE
+      DOUBLE PRECISION SENDINGFIELD(*), RECEIVINGFIELD(*)
+
+      LCOUPLINGNAME       = LEN(COUPLINGNAME)
+      LEXCHANGENAME       = LEN(EXCHANGENAME)
+      LSENDINGFIELDNAME   = LEN(SENDINGFIELDNAME)
+      LRECEIVINGFIELDNAME = LEN(RECEIVINGFIELDNAME)
+      
+      CALL COUPLINGS_EXCHANGE_CF(COUPLINGNAME,
+     &                           LCOUPLINGNAME,
+     &                           EXCHANGENAME,
+     &                           LEXCHANGENAME,
+     &                           EXCHANGEDIM, 
+     &                           NSTEP, 
+     &                           TIMEVALUE,
+     &                           SENDINGFIELDNAME,
+     &                           LSENDINGFIELDNAME,
+     &                           SENDINGFIELD,
+     &                           RECEIVINGFIELDNAME,
+     &                           LRECEIVINGFIELDNAME,
+     &                           RECEIVINGFIELD,
+     &                           STATUS)
+
+      END
+
+C
+C***********************************************************************
+C
+C COUPLINGS_EXCHANGE_F
+C
+C***********************************************************************
+C
+
+      SUBROUTINE COUPLINGS_EXCHANGE_F
+     &(COUPLINGNAME,
+     & EXCHANGENAME,
+     & EXCHANGEDIM, 
+     & NSTEP, 
+     & TIMEVALUE,
+     & SENDINGFIELDNAME,
+     & SENDINGFIELD,
+     & RECEIVINGFIELDNAME,
+     & RECEIVINGFIELD,
+     & PTINTERPOLATIONFCT,
+     & STATUS)
+
+      IMPLICIT NONE
+
+      CHARACTER*(*) COUPLINGNAME, EXCHANGENAME, SENDINGFIELDNAME
+      CHARACTER*(*) RECEIVINGFIELDNAME
+      INTEGER LCOUPLINGNAME, LEXCHANGENAME, LSENDINGFIELDNAME
+      INTEGER LRECEIVINGFIELDNAME
+      INTEGER EXCHANGEDIM, NSTEP, STATUS
+      DOUBLE PRECISION TIMEVALUE
+      DOUBLE PRECISION SENDINGFIELD(*), RECEIVINGFIELD(*)
+
+      LCOUPLINGNAME       = LEN(COUPLINGNAME)
+      LEXCHANGENAME       = LEN(EXCHANGENAME)
+      LSENDINGFIELDNAME   = LEN(SENDINGFIELDNAME)
+      LRECEIVINGFIELDNAME = LEN(RECEIVINGFIELDNAME)
+      
+      CALL COUPLINGS_EXCHANGE_CF(COUPLINGNAME,
+     &                           LCOUPLINGNAME,
+     &                           EXCHANGENAME,
+     &                           LEXCHANGENAME,
+     &                           EXCHANGEDIM, 
+     &                           NSTEP, 
+     &                           TIMEVALUE,
+     &                           SENDINGFIELDNAME,
+     &                           LSENDINGFIELDNAME,
+     &                           SENDINGFIELD,
+     &                           RECEIVINGFIELDNAME,
+     &                           LRECEIVINGFIELDNAME,
+     &                           RECEIVINGFIELD,
+     &                           STATUS)
+
+      END
+
+C
+C***********************************************************************
+C
+C COUPLINGS_DELETE_COUPLING_F
+C
+C***********************************************************************
+C
+
+      SUBROUTINE COUPLINGS_DELETE_COUPLING_F(COUPLINGNAME)
+
+      IMPLICIT NONE
+
+      CHARACTER*(*) COUPLINGNAME 
+      INTEGER LCOUPLINGNAME
+
+      LCOUPLINGNAME       = LEN(COUPLINGNAME)
+
+      CALL COUPLINGS_DELETE_COUPLING_CF(COUPLINGNAME, LCOUPLINGNAME)
+
+      END

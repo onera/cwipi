@@ -36,7 +36,7 @@ namespace couplings {
   }
 
   void ApplicationPropertiesDataBase::init(const char* applicationName, 
-                                           const MPI_Comm &globalComm,
+                                           const MPI_Comm globalComm,
                                            MPI_Comm &localComm)
   {
 
@@ -102,8 +102,8 @@ namespace couplings {
                      MPI_CHAR, 
                      globalComm);
 
-      delete iproc;
-      delete namesLength;
+      delete[] iproc;
+      delete[] namesLength;
     
       for (int irank = 0; irank < globalCommSize; irank++) {
         
@@ -245,7 +245,7 @@ namespace couplings {
             if (strcmp(distantParamName, paramName))
               bft_error(__FILE__, __LINE__, 0, 
                         "Inconsistency between local parameters\n");
-            delete distantParamName;
+            delete[] distantParamName;
             
             MPI_Recv(&distantValue, 1, MPI_INT, irank, 0, localComm, &status);
             if (distantValue != value)
@@ -304,7 +304,7 @@ namespace couplings {
           
           distantControlParameters[std::string(distantParamName)] = distantValue;
 
-          delete distantParamName;
+          delete[] distantParamName;
 
         }
         
@@ -334,7 +334,7 @@ namespace couplings {
           
           distantControlParameters[std::string(distantParamName)] = distantValue;
 
-          delete distantParamName;
+          delete[] distantParamName;
         }
         
         if (p != localControlParameters.end())
@@ -382,7 +382,7 @@ namespace couplings {
         
         if (currentRank != 0) {
           distantControlParameters[std::string(paramName)] = value;
-          delete paramName;
+          delete[] paramName;
         }
       }
     }
@@ -456,7 +456,7 @@ namespace couplings {
             if (strcmp(distantParamName, paramName))
               bft_error(__FILE__, __LINE__, 0, 
                         "Inconsistency between local parameters\n");
-            delete distantParamName;
+            delete[] distantParamName;
             
             MPI_Recv(&distantValue, 1, MPI_DOUBLE, irank, 0, localComm, &status);
             if (distantValue != value)
@@ -514,7 +514,7 @@ namespace couplings {
           MPI_Recv(&distantValue, 1, MPI_DOUBLE, distantBeginningRank, 0, globalComm, &status);
           
           distantControlParameters[std::string(distantParamName)] = distantValue;
-          delete distantParamName;
+          delete[] distantParamName;
 
         }
         
@@ -542,7 +542,7 @@ namespace couplings {
                        globalComm, &status);
           
           distantControlParameters[std::string(distantParamName)] = distantValue;
-          delete distantParamName;
+          delete[] distantParamName;
           
         }
         
@@ -590,7 +590,7 @@ namespace couplings {
         
         if (currentRank != 0) {
           distantControlParameters[std::string(paramName)] = value;
-          delete paramName;
+          delete[] paramName;
         }
       }
     }

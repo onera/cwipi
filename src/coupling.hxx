@@ -11,15 +11,6 @@
 
 namespace couplings {
 
-//   typedef couplings_interpolation_fct_t;
-//   enum couplings_not_located_point_treatment_fct_t;
-//   enum couplings_interpolation_t;
-//   enum couplings_not_located_point_treatment_t;
-//   enum couplings_solver_type_t ;
-//   enum couplings_field_type_t;
-//   enum couplings_field_dimension_t;
-//   enum couplings_mesh_type_t;
-
   class ApplicationProperties;
   
   class Mesh;
@@ -32,7 +23,7 @@ namespace couplings {
              const ApplicationProperties& localApplicationProperties,
              const ApplicationProperties& coupledApplicationProperties,
              const int entitiesDim,
-             const int tolerance,
+             const double tolerance,
              const couplings_solver_type_t solverType,
              const int    outputFrequency,
              const char  *outputFormat,
@@ -59,7 +50,8 @@ namespace couplings {
                  const char                          *sending_field_name,
                  const double                        *sending_field, 
                  char                                *receiving_field_name,
-                 double                              *receiving_field);
+                 double                              *receiving_field,
+                 void                                *ptFortranInterpolationFct);
 
     void updateLocation();
 
@@ -70,9 +62,9 @@ namespace couplings {
 
     //inline void set_not_located_point_treatment_function_t(couplings_not_located_point_treatment_fct_t *fct); 
 
-    const int & getNNotlocatedPoint() const;
+    inline const int & getNNotlocatedPoint() const;
 
-    const int *getNotlocatedPoint() const;
+    inline const int *getNotlocatedPoint() const;
 
 
   private:
@@ -86,13 +78,21 @@ namespace couplings {
     // Dans l'avenir créer une fabrique abstraite qui permet de definir differentes
     // methodes d'interpolation 
 
-    void _interpolate(double *vertexField, std::vector<double>& interpolatedField);
+    void _interpolate(double *vertexField, 
+                      std::vector<double>& interpolatedField,
+                      const couplings_field_dimension_t fieldDimension);
 
-    void _interpolate1D(double *vertexField, std::vector<double>& interpolatedField);
+    void _interpolate1D(double *vertexField, 
+                        std::vector<double>& interpolatedField,
+                        const couplings_field_dimension_t fieldDimension);
 
-    void _interpolate2D(double *vertexField, std::vector<double>& interpolatedField);
+    void _interpolate2D(double *vertexField, 
+                        std::vector<double>& interpolatedField,
+                        const couplings_field_dimension_t fieldDimension);
 
-    void _interpolate3D(double *vertexField, std::vector<double>& interpolatedField);
+    void _interpolate3D(double *vertexField, 
+                        std::vector<double>& interpolatedField,
+                        const couplings_field_dimension_t fieldDimension);
 
     void _locate();
 
@@ -110,7 +110,7 @@ namespace couplings {
     const ApplicationProperties& _localApplicationProperties;
     const ApplicationProperties& _coupledApplicationProperties;
     const int            _entitiesDim;
-    const int            _tolerance;
+    const double            _tolerance;
     const couplings_solver_type_t  _solverType;
     const std::string   _outputFormat;
     const std::string   _outputFormatOption;

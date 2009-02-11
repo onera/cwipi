@@ -11,12 +11,14 @@ AM_CPPFLAGS = $(DEBUG_CPPFLAGS) @BFT_CPPFLAGS@ @FVM_CPPFLAGS@ @MPI_CPPFLAGS@
 AM_CFLAGS =
 AM_LDFLAGS = @BFT_LDFLAGS@ @FVM_LDFLAGS@ @MPI_LDFLAGS@
 
+LTFCCOMPILE = $(LIBTOOL) --mode=compile --tag=FC $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_FCFLAGS) $(FCFLAGS) $(FCFLAGS_f90)
+FCCOMPILE = $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_FCFLAGS) $(FCFLAGS) $(FCFLAGS_f90)
 # Public header files (to be installed)
 
 couplingsincludedir = $(includedir)
 couplingsinclude_HEADERS = \
-couplings_f.h \
-couplings.h
+couplings.mod \
+couplings.h 
 
 noinst_HEADERS = \
 coo_baryc.h \
@@ -39,13 +41,14 @@ solve_ax_b_4.c \
 coo_baryc.c \
 mesh.cxx \
 coupling.cxx \
-couplingDataBase.cxx
+couplingDataBase.cxx \
+callfortinterpfct.f90
 
 libcouplings_f_la_LIBADD = libcouplings.la
 
 libcouplings_f_la_SOURCES = \
 couplings_cf.cxx \
-printfort.f \
-couplings_f.f
+couplings_f.f90 \
+printfort.f90
 
 

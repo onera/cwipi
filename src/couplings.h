@@ -133,7 +133,6 @@ typedef void (couplings_interpolation_fct_t)
    const int distant_points_location[],
    const int distant_points_barycentric_coordinates_index[],
    const double distant_points_barycentric_coordinates[],
-   /*const couplings_field_type_t data_type,*/
    const couplings_field_dimension_t data_dimension,
    const couplings_solver_type_t  solver_type,
    const void *local_field,
@@ -397,7 +396,7 @@ void couplings_create_coupling
 ( const char  *coupling_name,
   const char  *coupled_application,
   const int entitiesDim,
-  const int tolerance,
+  const double tolerance,
   const couplings_mesh_type_t mesh_type,
   const couplings_solver_type_t solver_type, 
   const int    output_frequency,
@@ -557,14 +556,13 @@ void couplings_add_polyhedra(const char *coupling_id,
 int couplings_exchange
 (const char                          *coupling_id,
  const char                          *exchange_name,
- const couplings_field_dimension_t          exchange_dimension, 
- const couplings_interpolation_t      interpolation_type, 
+ const couplings_field_dimension_t    exchange_dimension, 
  const int                            time_step, 
  const double                         time_value,
  const char                          *sending_field_name,
- const void                          *sending_field, 
+ const double                        *sending_field, 
  char                                *receiving_field_name,
- void                                *receiving_field);
+ double                              *receiving_field);
 
 /*----------------------------------------------------------------------------
  *
@@ -578,7 +576,7 @@ int couplings_exchange
 
 void couplings_set_interpolation_function
 (const char *coupling_id,
- couplings_interpolation_fct_t *const fct); 
+ couplings_interpolation_fct_t * fct); 
 
 /*----------------------------------------------------------------------------
  *
@@ -590,9 +588,9 @@ void couplings_set_interpolation_function
  *
  *----------------------------------------------------------------------------*/
 
-void couplings_set_not_located_point_treatment_function
+/*void couplings_set_not_located_point_treatment_function
 (const char *coupling_id,
- couplings_not_located_point_treatment_fct_t *const fct); 
+ couplings_not_located_point_treatment_fct_t *const fct); */
 
 /*----------------------------------------------------------------------------
  *

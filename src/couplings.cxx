@@ -13,6 +13,8 @@
  * FVM library headers
  *----------------------------------------------------------------------------*/
 
+#include <fvm_parall.h>
+
 /*----------------------------------------------------------------------------
  *  Local headers
  *----------------------------------------------------------------------------*/
@@ -27,6 +29,7 @@
 #include "couplingDataBase.hxx"
 #include "couplingDataBase_i.hxx"
 #include "coupling.hxx"
+#include "coupling_i.hxx"
 
 /*----------------------------------------------------------------------------*/
 
@@ -99,7 +102,7 @@ int _couplings_print_with_c
  *   application_comm    --> Internal MPI communicator for the current 
  *                           application
  *
- * This is a synchronization between all applications 
+ * This is a synchronization point between all applications 
  *----------------------------------------------------------------------------*/
 
 void couplings_init
@@ -114,10 +117,11 @@ void couplings_init
 
   couplings::ApplicationPropertiesDataBase & properties = 
     couplings::ApplicationPropertiesDataBase::getInstance();
-  MPI_Comm *global_comm = new MPI_Comm[1];
-  *global_comm = common_comm;
+  // MPI_Comm *global_comm = new MPI_Comm[1];
+  //*global_comm = common_comm;
   properties.init(application_name,
-                  *global_comm,
+                  common_comm,
+                  //*global_comm,
                   *application_comm);
 }
 
@@ -373,7 +377,7 @@ void couplings_create_coupling
 ( const char  *coupling_name,
   const char  *coupled_application,
   const int entities_dim,
-  const int tolerance,
+  const double tolerance,
   const couplings_mesh_type_t mesh_type,
   const couplings_solver_type_t solver_type, 
   const int    output_frequency,
@@ -522,14 +526,14 @@ void couplings_add_polyhedra(const char *coupling_name,
 int couplings_exchange
 (const char                          *coupling_name,
  const char                          *exchange_name,
- const couplings_field_dimension_t          exchange_dimension, 
- const couplings_interpolation_t      interpolation_type, 
+ const couplings_field_dimension_t    exchange_dimension, 
+ /*const couplings_interpolation_t      interpolation_type,*/ 
  const int                            time_step, 
  const double                         time_value,
  const char                          *sending_field_name,
- const void                          *sending_field, 
+ const double                        *sending_field, 
  char                                *receiving_field_name,
- void                                *receiving_field)
+ double                              *receiving_field)
 
 {
   couplings::CouplingDataBase & couplingDataBase = 
@@ -539,8 +543,15 @@ int couplings_exchange
 
   couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
-  //return coupling.exchange();
-  return 1;
+  return coupling.exchange(exchange_name,
+                           exchange_dimension, 
+                           time_step, 
+                           time_value,
+                           sending_field_name,
+                           sending_field, 
+                           receiving_field_name,
+                           receiving_field,
+                           NULL);
 }
 
 /*----------------------------------------------------------------------------
@@ -554,10 +565,17 @@ int couplings_exchange
  *----------------------------------------------------------------------------*/
 
 void couplings_set_interpolation_function
-(const char *coupling_id,
- couplings_interpolation_fct_t *const fct)
+(const char *coupling_name,
+ couplings_interpolation_fct_t * fct)
 {
-  std::cout << " couplings_set_interpolation_function not yet implemented" << std::endl;
+  couplings::CouplingDataBase & couplingDataBase = 
+    couplings::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.set_interpolation_function(fct);
 }
 
 /*----------------------------------------------------------------------------
@@ -570,12 +588,12 @@ void couplings_set_interpolation_function
  *
  *----------------------------------------------------------------------------*/
 
-void couplings_set_not_located_point_treatment_function
+/*void couplings_set_not_located_point_treatment_function
 (const char *coupling_id,
  couplings_not_located_point_treatment_fct_t *const fct) 
 {
   std::cout << "  couplings_set_not_located_point_treatment_function not yet implemented" << std::endl;
-}
+  }*/
 
 /*----------------------------------------------------------------------------
  *
@@ -586,9 +604,14 @@ void couplings_set_not_located_point_treatment_function
  *
  *----------------------------------------------------------------------------*/
 
-void couplings_delete_coupling(const char *coupling_id)
+void couplings_delete_coupling(const char *coupling_name)
 {
-  std::cout << "  couplings_delete_coupling not yet implemented" << std::endl;
+  couplings::CouplingDataBase & couplingDataBase = 
+    couplings::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  couplingDataBase.deleteCoupling(coupling_name_str);
 }
 
 /*----------------------------------------------------------------------------
@@ -599,7 +622,30 @@ void couplings_delete_coupling(const char *coupling_id)
 
 void couplings_finalize() 
 {
-  std::cout << "  couplings_finalize not yet implemented" << std::endl;
+  couplings::CouplingDataBase & couplingDataBase = 
+    couplings::CouplingDataBase::getInstance();
+
+  couplings::ApplicationPropertiesDataBase & properties = 
+    couplings::ApplicationPropertiesDataBase::getInstance();
+
+  const MPI_Comm globalComm = properties.getGlobalComm();
+
+
+  bft_printf("Finalize couplings\n");
+  couplingDataBase.kill();
+  properties.kill();
+
+  int flag = 0;
+  MPI_Initialized(&flag);
+
+  if (flag != 0) {
+    bft_printf_flush();
+    MPI_Barrier(globalComm);
+    fvm_parall_set_mpi_comm(MPI_COMM_NULL);
+    MPI_Finalize();
+  }
+  bft_printf("Finalize MPI\n");
+
 }
 
 /*----------------------------------------------------------------------------

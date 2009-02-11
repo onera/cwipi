@@ -21,7 +21,7 @@ namespace couplings {
 
   public:
     ApplicationProperties(std::string &name, 
-                          const MPI_Comm &globalComm);
+                          const MPI_Comm globalComm);
 
     ApplicationProperties(const ApplicationProperties& name); 
     
@@ -67,7 +67,7 @@ namespace couplings {
 
   private:
     std::string  _name;
-    const MPI_Comm & _globalComm;
+    MPI_Comm  _globalComm;
     MPI_Comm * _localComm;
     int _beginningRank;
     int _endRank;

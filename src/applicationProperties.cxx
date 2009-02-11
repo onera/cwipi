@@ -5,7 +5,7 @@ namespace couplings
 {
 
   ApplicationProperties::ApplicationProperties(std::string &name, 
-                                               const MPI_Comm &globalComm)
+                                               const MPI_Comm globalComm)
 
     : _name(name), _globalComm(globalComm),
     _intControlParameters(*(new std::map <std::string, int>())),
@@ -44,13 +44,13 @@ namespace couplings
 
   ApplicationProperties::~ApplicationProperties()
   {
-    delete &_name;
     if (!_intControlParameters.empty())
       _intControlParameters.clear();
     delete &_intControlParameters;
     if (!_doubleControlParameters.empty())
       _doubleControlParameters.clear();
     delete &_doubleControlParameters;
-    MPI_Comm_free(_localComm);
+    if (_localComm != NULL)
+      MPI_Comm_free(_localComm);
   }
 }

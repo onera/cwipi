@@ -80,7 +80,6 @@ namespace couplings {
 
     void _computeMeshProperties();
 
-
   private:
     const int    _nDim;
     const int    _nVertex;
@@ -88,6 +87,7 @@ namespace couplings {
     int          _nPolyhedra;
     const double      *_coords;
     int   *_eltConnectivityIndex;
+    int   *_polygonIndex;
     int   *_eltConnectivity;
     std::vector<int>  *_parentNum;
     int         *_polyhedraFaceIndex;

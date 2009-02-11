@@ -413,6 +413,7 @@ void coo_baryc(const fvm_locator_t* locator,
     BFT_FREE(coo_som_fac);
     BFT_FREE(s) ;
     BFT_FREE(aire) ;
+    BFT_FREE(dist) ;
     BFT_FREE(proScal) ;
   }
   BFT_REALLOC(*distBarCoords, (*nDistBarCoords)[*n_dist_points], double) ;

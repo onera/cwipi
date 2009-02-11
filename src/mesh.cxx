@@ -2,6 +2,7 @@
 #include <cmath>
 
 #include <bft_error.h>
+#include <bft_printf.h>
 
 #include <fvm_nodal_append.h>
 
@@ -22,7 +23,7 @@ namespace couplings {
       _eltConnectivityIndex(eltConnectivityIndex), _eltConnectivity(eltConnectivity),
       _parentNum(NULL), _polyhedraFaceIndex(NULL), _polyhedraCellToFaceConnectivity(NULL),
       _polyhedraFaceConnectivityIndex(NULL), _polyhedraFaceConnectivity(NULL), _cellCenterCoords(NULL),
-      _cellVolume(NULL), _fvmNodal(NULL)
+      _cellVolume(NULL), _fvmNodal(NULL), _polygonIndex(NULL)
 
   {
     //
@@ -157,7 +158,7 @@ namespace couplings {
 
     _fvmNodal = fvm_nodal_create("Mesh", 3);
 
-    if (_nDim > 1) {
+    if (_nDim == 1) {
       fvm_nodal_append_shared(_fvmNodal,
                               _nElts,
                               FVM_EDGE,
@@ -212,7 +213,12 @@ namespace couplings {
                                   _eltConnectivity + 3*nbTriangle,
                                   NULL);
 
-      if (nbPoly != 0)
+      if (nbPoly != 0) {
+        _polygonIndex = new int[nbPoly+1];
+        for(int i = 0; i < nbPoly+1; i++) {
+          _polygonIndex[i] = _eltConnectivityIndex[nbTriangle+nbQuadrangle+i]-_eltConnectivityIndex[nbTriangle+nbQuadrangle];
+        }
+
         if (_parentNum != NULL) {
           std::vector<int> & parentNum = *_parentNum;
           fvm_nodal_append_shared(_fvmNodal,
@@ -220,7 +226,7 @@ namespace couplings {
                                   FVM_FACE_POLY,
                                   NULL,
                                   NULL,
-                                  _eltConnectivityIndex + nbTriangle + nbQuadrangle,
+                                  _polygonIndex,
                                   _eltConnectivity + 3*nbTriangle + 4*nbQuadrangle,
                                   &parentNum[0] + nbTriangle + nbQuadrangle);
         }
@@ -230,10 +236,10 @@ namespace couplings {
                                   FVM_FACE_POLY,
                                   NULL,
                                   NULL,
-                                  _eltConnectivityIndex + nbTriangle + nbQuadrangle,
+                                  _polygonIndex,
                                   _eltConnectivity + 3*nbTriangle + 4*nbQuadrangle,
                                   NULL);
-          
+      }
     }
     else if (_nDim == 3) {
       if (nbTetra != 0)
@@ -329,7 +335,12 @@ namespace couplings {
     // shared vertices
 
     fvm_nodal_set_shared_vertices(_fvmNodal, _coords);
-    
+
+#if defined(DEBUG) && !defined(NDEBUG)
+
+    fvm_nodal_dump(_fvmNodal);
+
+#endif
   }
 
 
@@ -337,6 +348,7 @@ namespace couplings {
   {
     delete _cellCenterCoords;
     delete _cellVolume;
+    delete[] _polygonIndex;
     fvm_nodal_destroy(_fvmNodal);
   }
 
@@ -398,10 +410,10 @@ namespace couplings {
 
 
   void Mesh::_computeCellCenterCoordsWithVertex(const int i, 
-                                           const int nCurrentEltVertex,
-                                           const int index,
-                                           const int *eltConnectivity,
-                                           std::vector<double> *cellCenterCoords)
+                                                const int nCurrentEltVertex,
+                                                const int index,
+                                                const int *eltConnectivity,
+                                                std::vector<double> *cellCenterCoords)
   {
     assert (_cellCenterCoords != NULL);
 
@@ -419,7 +431,7 @@ namespace couplings {
     }
     refCellCenterCoords[3*i]   /= nCurrentEltVertex;
     refCellCenterCoords[3*i+1] /= nCurrentEltVertex;
-    refCellCenterCoords[3*i+1] /= nCurrentEltVertex;
+    refCellCenterCoords[3*i+2] /= nCurrentEltVertex;
   }
 
 
@@ -444,11 +456,11 @@ namespace couplings {
   }
 
   void Mesh::_computeMeshProperties2D(const int  nElts,
-                                 const int *faceConnectivityIndex,
-                                 const int *faceConnectivity,
-                                 std::vector<double> *faceNormal,
-                                 std::vector<double> *faceSurface,
-                                 std::vector<double> *faceCenter)
+                                      const int *faceConnectivityIndex,
+                                      const int *faceConnectivity,
+                                      std::vector<double> *faceNormal,
+                                      std::vector<double> *faceSurface,
+                                      std::vector<double> *faceCenter)
                                  
   {
     int nCurrentEltVertex;
@@ -462,6 +474,10 @@ namespace couplings {
     std::vector<double> &refFaceNormal  = *faceNormal;
 
     int maxCurrentEltVertex  = 0;
+    double surftot = 0.;
+    bft_printf("_computeMeshProperties2D\n");
+    bft_printf("nx, ny, nz, surf, cx, cy, cz\n");
+
     for (int i = 0; i < nElts ; i++) {
       nCurrentEltVertex = faceConnectivityIndex[i+1] - faceConnectivityIndex[i];
       if (nCurrentEltVertex > maxCurrentEltVertex)
@@ -510,6 +526,10 @@ namespace couplings {
         refFaceNormal[3*i+1] = 0;
         refFaceNormal[3*i+2] = 0;
 
+        refFaceCenter[3*i] = 0.;
+        refFaceCenter[3*i+1] = 0.;
+        refFaceCenter[3*i+2] = 0.;
+
         for (int k = 0; k < nCurrentEltVertex ; k++) {
           int pt1 = faceConnectivity[index + k] - 1;
           int pt2 = faceConnectivity[index + (k+1)%nCurrentEltVertex] - 1;
@@ -555,11 +575,20 @@ namespace couplings {
         }
 
         refFaceCenter[3*i]   /= refFaceSurface[i];
-        refFaceCenter[3*i+1] /= refFaceSurface[i+1];
-        refFaceCenter[3*i+2] /= refFaceSurface[i+2];
+        refFaceCenter[3*i+1] /= refFaceSurface[i];
+        refFaceCenter[3*i+2] /= refFaceSurface[i];
 
       }
+      bft_printf("%f %f %f %f %f %f %f\n", refFaceNormal[3*i], 
+                                           refFaceNormal[3*i+1], 
+                                           refFaceNormal[3*i+2],
+                                           refFaceSurface[i],
+                                           (*faceCenter)[3*i],
+                                           (*faceCenter)[3*i+1],
+                                           (*faceCenter)[3*i+2]);
+      surftot += refFaceSurface[i];
     }
+    bft_printf("Surface totale : %f \n", surftot);
   }
 
   void Mesh::_computeMeshProperties3D()

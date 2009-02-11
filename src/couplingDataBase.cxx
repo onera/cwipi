@@ -27,7 +27,7 @@ namespace couplings {
                                          const ApplicationProperties& localApplicationProperties,
                                          const ApplicationProperties& coupledApplicationProperties,
                                          const int entitiesDim,
-                                         const int tolerance,
+                                         const double tolerance,
                                          const couplings_solver_type_t solverType,
                                          const int    outputFrequency,
                                          const char  *outputFormat,
