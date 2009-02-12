@@ -11,7 +11,7 @@ namespace couplings
     _intControlParameters(*(new std::map <std::string, int>())),
     _doubleControlParameters(*(new std::map <std::string, double>()))
   {
-    _localComm = NULL;
+    _localComm = MPI_COMM_NULL;
     _beginningRank = -999;
     _endRank = -999;
   }
@@ -50,7 +50,5 @@ namespace couplings
     if (!_doubleControlParameters.empty())
       _doubleControlParameters.clear();
     delete &_doubleControlParameters;
-    if (_localComm != NULL)
-      MPI_Comm_free(_localComm);
   }
 }

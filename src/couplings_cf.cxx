@@ -201,24 +201,31 @@ int _couplings_print_with_fortran
  *----------------------------------------------------------------------------*/
 
 void PROCF(couplings_init_cf, COUPLINGS_INIT_CF)
-  (const int  *common_comm,
+  (MPI_Fint  *common_fcomm,
    const int  *output_logical_unit,
    const char *application_name_f,
    const int  *l_application_name,
-   int        *application_comm
+   MPI_Fint   *application_fcomm
    ARGF_SUPP_CHAINE)
 {
-   char *application_name_c = _couplings_fortran_to_c_string(application_name_f, 
-                                                             *l_application_name); 
+  MPI_Comm common_comm = MPI_Comm_f2c(*common_fcomm);
+  
+  MPI_Comm application_comm = MPI_COMM_NULL;
 
-   bft_printf_proxy_set(_couplings_print_with_fortran);
+  char *application_name_c = _couplings_fortran_to_c_string(application_name_f, 
+                                                            *l_application_name); 
 
-   couplings::ApplicationPropertiesDataBase & properties = 
-     couplings::ApplicationPropertiesDataBase::getInstance();
-   properties.init(application_name_c, 
-                   static_cast <const MPI_Comm&> (*common_comm), 
-                   static_cast <MPI_Comm&> (*application_comm));
-   delete[] application_name_c;
+  bft_printf_proxy_set(_couplings_print_with_fortran);
+  
+  couplings::ApplicationPropertiesDataBase & properties = 
+    couplings::ApplicationPropertiesDataBase::getInstance();
+
+  application_comm = properties.init(application_name_c, 
+                                     common_comm); 
+
+  *application_fcomm = MPI_Comm_c2f(application_comm);
+
+  delete[] application_name_c;
 }
 
 

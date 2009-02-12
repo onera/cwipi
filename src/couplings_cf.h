@@ -71,11 +71,11 @@ extern "C" {
  *----------------------------------------------------------------------------*/
 
 void PROCF(couplings_init_cf, COUPLINGS_INIT_CF)
-  (const int  *common_comm,
+  (MPI_Fint  *common_fcomm,
    const int  *output_logical_unit,
-   const char *application_name,
+   const char *application_name_f,
    const int  *l_application_name,
-   int        *application_comm
+   MPI_Fint   *application_fcomm
    ARGF_SUPP_CHAINE);
 
 /*----------------------------------------------------------------------------

@@ -117,12 +117,9 @@ void couplings_init
 
   couplings::ApplicationPropertiesDataBase & properties = 
     couplings::ApplicationPropertiesDataBase::getInstance();
-  // MPI_Comm *global_comm = new MPI_Comm[1];
-  //*global_comm = common_comm;
-  properties.init(application_name,
-                  common_comm,
-                  //*global_comm,
-                  *application_comm);
+
+  *application_comm = properties.init(application_name,
+                                      common_comm);
 }
 
 /*----------------------------------------------------------------------------

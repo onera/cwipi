@@ -28,13 +28,13 @@ namespace couplings {
     virtual ~ApplicationPropertiesDataBase();
 
   public:
-    void init(const char* name, const MPI_Comm globalComm, MPI_Comm &localComm);
+    MPI_Comm  init(const char* name, const MPI_Comm globalComm);
 
     inline void setPrintfProxy(bft_printf_proxy_t *const callBackPrintf);
 
     // Access to local MPI properties (synchronisation with a second application)
 
-    inline MPI_Comm &getLocalComm() const;
+    inline const MPI_Comm &getLocalComm() const;
 
     inline const MPI_Comm &getGlobalComm() const;
 

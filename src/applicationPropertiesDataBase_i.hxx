@@ -16,7 +16,7 @@ namespace couplings {
   
   // Access to local MPI properties (synchronisation with a second application)
   
-  inline MPI_Comm &ApplicationPropertiesDataBase::getLocalComm() const
+  inline const MPI_Comm &ApplicationPropertiesDataBase::getLocalComm() const
   {
     return _localApplicationProperties->getLocalComm();
   }

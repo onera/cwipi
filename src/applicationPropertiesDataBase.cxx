@@ -35,9 +35,8 @@ namespace couplings {
     delete &_distantApplicationPropertiesDataBase;
   }
 
-  void ApplicationPropertiesDataBase::init(const char* applicationName, 
-                                           const MPI_Comm globalComm,
-                                           MPI_Comm &localComm)
+  MPI_Comm  ApplicationPropertiesDataBase::init(const char* applicationName, 
+                                                const MPI_Comm globalComm)
   {
 
     // Initialize MPI 
@@ -163,11 +162,12 @@ namespace couplings {
       // Create current application communicator 
       // --------------------------------------- 
       
-      _localApplicationProperties->setLocalComm(&localComm);
+      MPI_Comm localComm = MPI_COMM_NULL;
       MPI_Comm_split(MPI_COMM_WORLD, color, currentRank, &localComm);
+      _localApplicationProperties->setLocalComm(localComm);
   
       fvm_parall_set_mpi_comm(localComm);
-
+      return localComm;
     }
   }
 

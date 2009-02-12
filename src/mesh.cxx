@@ -336,9 +336,9 @@ namespace couplings {
 
     fvm_nodal_set_shared_vertices(_fvmNodal, _coords);
 
-#if defined(DEBUG) && !defined(NDEBUG)
+#if defined(DEBUG) && 0
 
-    fvm_nodal_dump(_fvmNodal);
+    //fvm_nodal_dump(_fvmNodal);
 
 #endif
   }
@@ -475,8 +475,6 @@ namespace couplings {
 
     int maxCurrentEltVertex  = 0;
     double surftot = 0.;
-    bft_printf("_computeMeshProperties2D\n");
-    bft_printf("nx, ny, nz, surf, cx, cy, cz\n");
 
     for (int i = 0; i < nElts ; i++) {
       nCurrentEltVertex = faceConnectivityIndex[i+1] - faceConnectivityIndex[i];
@@ -579,16 +577,8 @@ namespace couplings {
         refFaceCenter[3*i+2] /= refFaceSurface[i];
 
       }
-      bft_printf("%f %f %f %f %f %f %f\n", refFaceNormal[3*i], 
-                                           refFaceNormal[3*i+1], 
-                                           refFaceNormal[3*i+2],
-                                           refFaceSurface[i],
-                                           (*faceCenter)[3*i],
-                                           (*faceCenter)[3*i+1],
-                                           (*faceCenter)[3*i+2]);
       surftot += refFaceSurface[i];
     }
-    bft_printf("Surface totale : %f \n", surftot);
   }
 
   void Mesh::_computeMeshProperties3D()

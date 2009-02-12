@@ -1109,7 +1109,7 @@ namespace couplings {
 
         } 
 
-#if defined(DEBUG) && !defined(NDEBUG)
+#if defined(DEBUG) && 0
 
         fvm_nodal_dump(&(_supportMesh->getFvmNodal()));
 

@@ -31,9 +31,9 @@ namespace couplings {
 
     inline const MPI_Comm &getGlobalComm() const;
 
-    inline MPI_Comm &getLocalComm() const;
+    inline const MPI_Comm &getLocalComm() const;
 
-    inline void setLocalComm(MPI_Comm *localComm);
+    inline void setLocalComm(MPI_Comm localComm);
 
     inline const int &getBeginningRank() const;
  
@@ -68,7 +68,7 @@ namespace couplings {
   private:
     std::string  _name;
     MPI_Comm  _globalComm;
-    MPI_Comm * _localComm;
+    MPI_Comm  _localComm;
     int _beginningRank;
     int _endRank;
     std::map <std::string, int> & _intControlParameters;
@@ -85,12 +85,12 @@ namespace couplings {
     return _globalComm;
   }
   
-  MPI_Comm & ApplicationProperties::getLocalComm() const 
+  const MPI_Comm &ApplicationProperties::getLocalComm() const 
   {
-    return *_localComm;
+    return _localComm;
   }
   
-  void ApplicationProperties::setLocalComm(MPI_Comm *localComm)
+  void ApplicationProperties::setLocalComm(MPI_Comm localComm)
   {
     _localComm = localComm;
   }
