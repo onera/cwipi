@@ -43,15 +43,15 @@ namespace couplings {
                                 int face_connectivity_index[],
                                 int face_connectivity[]);
 
-    int exchange(const char                          *exchange_name,
-                 const couplings_field_dimension_t    fieldDimension, 
-                 const int                            time_step, 
-                 const double                         time_value,
-                 const char                          *sending_field_name,
-                 const double                        *sending_field, 
-                 char                                *receiving_field_name,
-                 double                              *receiving_field,
-                 void                                *ptFortranInterpolationFct);
+    couplings_exchange_status_t exchange(const char                          *exchange_name,
+                                         const couplings_field_dimension_t    fieldDimension, 
+                                         const int                            time_step, 
+                                         const double                         time_value,
+                                         const char                          *sending_field_name,
+                                         const double                        *sending_field, 
+                                         char                                *receiving_field_name,
+                                         double                              *receiving_field,
+                                         void                                *ptFortranInterpolationFct);
 
     void updateLocation();
 
@@ -65,6 +65,10 @@ namespace couplings {
     inline const int & getNNotlocatedPoint() const;
 
     inline const int *getNotlocatedPoint() const;
+
+    inline int getNLocatedPoint() const;
+
+    inline const int *getLocatedPoint() const;
 
 
   private:
@@ -105,6 +109,8 @@ namespace couplings {
                         const char  *receivingFieldName,
                         const void *receivingField);
 
+    double _createNan(); 
+
   private:
     const std::string   _name;
     const ApplicationProperties& _localApplicationProperties;
@@ -127,6 +133,7 @@ namespace couplings {
     double              *_barycentricCoordinates;
     int                  _nNotLocatedPoint;
     int                 *_notLocatedPoint;
+    int                 *_locatedPoint;
   private:
     std::vector<double> *_tmpVertexField; //Evite une allocation a chaque extrapolation
     std::vector<double> *_tmpDistantField;

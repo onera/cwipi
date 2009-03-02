@@ -24,6 +24,16 @@ namespace couplings {
         return _notLocatedPoint;
   }
 
+  int Coupling::getNLocatedPoint() const
+  {
+    return _nPointsToLocate - _nNotLocatedPoint;
+  }
+
+  const int *Coupling::getLocatedPoint() const
+  {
+    return _locatedPoint;
+  }
+
 } // namespace couplings
 
 

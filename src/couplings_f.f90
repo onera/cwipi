@@ -32,7 +32,11 @@ module couplings
   ! solver type
   integer, parameter :: couplings_solver_cell_center = 0
   integer, parameter :: couplings_solver_cell_vertex = 1 
-
+  !
+  ! exchange status
+  integer, parameter :: couplings_exchange_ok = 0
+  integer, parameter :: couplings_exchange_bad_receiving = 1           
+  
   !
   ! Commons
   ! -------
@@ -502,21 +506,23 @@ contains
 !
 
   subroutine couplings_exchange_without_user_interpolation_f (couplingname, &
-                                   exchangename, &
-                                   exchangedim, &
-                                   nstep, &
-                                   timevalue, &
-                                   sendingfieldname, &
-                                   sendingfield, &
-                                   receivingfieldname, &
-                                   receivingfield, &
-                                   status)
+                                                              exchangename, &
+                                                              exchangedim, &
+                                                              nstep, &
+                                                              timevalue, &
+                                                              sendingfieldname, &
+                                                              sendingfield, &
+                                                              receivingfieldname, &
+                                                              receivingfield, &
+                                                              nnotlocatedpoints, &
+                                                              status)
     
     implicit none
 
     character (len = *) :: couplingname, exchangename, sendingfieldname
     character (len = *) :: receivingfieldname
     integer :: exchangedim, nstep, status
+    integer :: nnotlocatedpoints
     double precision :: timevalue
     double precision, dimension(*) :: sendingfield, receivingfield
     
@@ -541,6 +547,7 @@ contains
                                receivingfieldname, &
                                lreceivingfieldname, &
                                receivingfield, &
+                               nnotlocatedpoints, &
                                status)
     
   end subroutine couplings_exchange_without_user_interpolation_f
@@ -554,13 +561,13 @@ contains
 !
 
   subroutine couplings_send_without_user_interpolation_f (couplingname, &
-                               exchangename, &
-                               exchangedim, &
-                               nstep, &
-                               timevalue, &
-                               sendingfieldname, &
-                               sendingfield, &
-                               status)
+                                                          exchangename, &
+                                                          exchangedim, &
+                                                          nstep, &
+                                                          timevalue, &
+                                                          sendingfieldname, &
+                                                          sendingfield, &
+                                                          status)
     
     implicit none
 
@@ -599,14 +606,14 @@ contains
 !
 
   subroutine couplings_send_with_user_interpolation_f (couplingname, &
-                               exchangename, &
-                               exchangedim, &
-                               nstep, &
-                               timevalue, &
-                               sendingfieldname, &
-                               sendingfield, &
-                               ptInterpolationFct, &
-                               status)
+                                                       exchangename, &
+                                                       exchangedim, &
+                                                       nstep, &
+                                                       timevalue, &
+                                                       sendingfieldname, &
+                                                       sendingfield, &
+                                                       ptInterpolationFct, &
+                                                       status)
     
     implicit none
 
@@ -659,6 +666,7 @@ contains
     end interface
     character (len = *) :: couplingname, exchangename, sendingfieldname
     integer :: exchangedim, nstep, status
+    integer :: nnotlocatedpoints
     double precision :: timevalue
     double precision, dimension(*) :: sendingfield
     
@@ -698,12 +706,14 @@ contains
                                   timevalue, &
                                   receivingfieldname, &
                                   receivingfield, &
+                                  nnotlocatedpoints, &
                                   status)
     
     implicit none
 
     character (len = *) :: couplingname, exchangename, receivingfieldname
     integer :: exchangedim, nstep, status
+    integer :: nnotlocatedpoints
     double precision :: timevalue
     double precision, dimension(*) :: receivingfield
     
@@ -711,7 +721,7 @@ contains
  
     lcouplingname       = len(couplingname)
     lexchangename       = len(exchangename)
-    lreceivingfieldname   = len(receivingfieldname)
+    lreceivingfieldname = len(receivingfieldname)
      
     call couplings_receive_cf(couplingname, &
                               lcouplingname, &
@@ -723,6 +733,7 @@ contains
                               receivingfieldname, &
                               lreceivingfieldname, &
                               receivingfield, &
+                              nnotlocatedpoints, &
                               status)
     
   end subroutine couplings_receive_f
@@ -745,6 +756,7 @@ contains
                                                            receivingFieldName, &
                                                            receivingField, &
                                                            ptInterpolationFct, &
+                                                           nnotlocatedpoints, &
                                                            status)
 
     implicit none
@@ -800,6 +812,7 @@ contains
     character (len = *) :: couplingName, exchangeName, sendingFieldName
     character (len = *) :: receivingFieldName
     integer :: exchangeDim, nStep, status
+    integer :: nnotlocatedpoints
     double precision :: timeValue
     double precision, dimension(*) ::  sendingField, receivingField
     
@@ -825,7 +838,8 @@ contains
                                                        lReceivingFieldName, &
                                                        receivingField, &
                                                        ptInterpolationFct, &
-                                                       status)
+                                                       nnotlocatedpoints, &
+                                                      status)
 
   end subroutine couplings_exchange_with_user_interpolation_f
 
@@ -849,5 +863,25 @@ contains
     call couplings_delete_coupling_cf(couplingName, lCouplingName)
     
   end subroutine couplings_delete_coupling_f
+
+!
+!********************************************************************************
+!
+! (couplings_get_not_located_points_f
+!
+!********************************************************************************
+!
+  subroutine couplings_get_not_located_points_f(couplingName, notLocatedPoints)
+
+    implicit none
+
+    character (len = *) :: couplingName 
+    integer, dimension(*) :: notLocatedPoints
+    integer :: lCouplingName
+
+    lCouplingName       = len(couplingName)
+    
+    call couplings_get_not_located_points_cf(couplingName, lCouplingName, notLocatedPoints)
+  end subroutine couplings_get_not_located_points_f
 
 end module couplings

@@ -1,6 +1,8 @@
 #include <cassert>
 #include <cmath>
 
+#include <iostream>
+
 #include <bft_error.h>
 #include <bft_printf.h>
 
@@ -131,27 +133,29 @@ namespace couplings {
       _parentNum = new std::vector<int>(_nElts,0);
       std::vector<int> & parentNum = *_parentNum;
       
+      for (int i = 0; i < _nElts; i++)
+        parentNum[i] = i+1;
+
       quickSort(&eltType[0], 0, _nElts-1, &parentNum[0]);      
-  
+
       std::vector<int> cpEltConnectivityIndex(_nElts+1);
       std::vector<int> cpEltConnectivity(_eltConnectivityIndex[_nElts]);
- 
+      
       for (int i = 0; i < _nElts+1; i++)
         cpEltConnectivityIndex[i] = _eltConnectivityIndex[i];
-
+      
       for (int i = 0; i < _eltConnectivityIndex[_nElts]; i++)
         cpEltConnectivity[i] = _eltConnectivity[i];
       
       _eltConnectivityIndex[0] = 0;
       for (int i = 0; i < _nElts; i++) {
-        int nCurrentEltVertex = cpEltConnectivityIndex[parentNum[i]+1] - cpEltConnectivityIndex[parentNum[i]];
+        int nCurrentEltVertex = cpEltConnectivityIndex[parentNum[i]+1-1] - cpEltConnectivityIndex[parentNum[i]-1];
         int index = _eltConnectivityIndex[i];
         _eltConnectivityIndex[i+1] = index + nCurrentEltVertex;
         for (int j = 0; j < nCurrentEltVertex; j++) {
-          _eltConnectivity[index+j] = cpEltConnectivity[cpEltConnectivityIndex[parentNum[i]]+j];
+          _eltConnectivity[index+j] = cpEltConnectivity[cpEltConnectivityIndex[parentNum[i]-1]+j];
         }
       }
-
     }
 
     //  fvm_nodal building
@@ -397,7 +401,7 @@ namespace couplings {
                               NULL);
 
     if (_cellCenterCoords != NULL || _cellVolume != NULL)
-      _computeMeshProperties;
+      _computeMeshProperties();
 
   }
 
@@ -405,7 +409,7 @@ namespace couplings {
   void Mesh::update() 
   {
     if (_cellCenterCoords != NULL || _cellVolume != NULL)
-      _computeMeshProperties;
+      _computeMeshProperties();
   }
 
 

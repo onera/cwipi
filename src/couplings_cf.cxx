@@ -704,6 +704,7 @@ void PROCF(couplings_exchange_with_user_interpolation_cf,
    const int       *l_receiving_field_name,
    double          *receiving_field,
    void            *ptFortranInterpolationFct,
+   int             *n_not_located_points,
    int             *exchange_status
    ARGF_SUPP_CHAINE)
 {
@@ -723,7 +724,7 @@ void PROCF(couplings_exchange_with_user_interpolation_cf,
   couplings::CouplingDataBase & couplingDataBase = 
     couplings::CouplingDataBase::getInstance();
 
-  const std::string &coupling_name_str = coupling_name;
+  const std::string &coupling_name_str = coupling_nameC;
 
   couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
@@ -736,6 +737,9 @@ void PROCF(couplings_exchange_with_user_interpolation_cf,
                                         receiving_field_nameC,
                                         receiving_field,
                                         ptFortranInterpolationFct);
+
+  *n_not_located_points = coupling.getNNotlocatedPoint();
+
   delete[] coupling_nameC;
   delete[] exchange_nameC;
   delete[] sending_field_nameC;
@@ -757,6 +761,7 @@ void PROCF(couplings_exchange_cf,
    char            *receiving_field_name,
    const int       *l_receiving_field_name,
    double          *receiving_field,
+   int             *n_not_located_points,
    int             *exchange_status
    ARGF_SUPP_CHAINE)
 {
@@ -776,7 +781,7 @@ void PROCF(couplings_exchange_cf,
   couplings::CouplingDataBase & couplingDataBase = 
     couplings::CouplingDataBase::getInstance();
 
-  const std::string &coupling_name_str = coupling_name;
+  const std::string &coupling_name_str = coupling_nameC;
 
   couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
@@ -789,6 +794,9 @@ void PROCF(couplings_exchange_cf,
                                         receiving_field_nameC,
                                         receiving_field,
                                         NULL);
+
+  *n_not_located_points = coupling.getNNotlocatedPoint();
+
   delete[] coupling_nameC;
   delete[] exchange_nameC;
   delete[] sending_field_nameC;
@@ -807,6 +815,7 @@ void PROCF(couplings_receive_cf,
    char            *receiving_field_name,
    const int       *l_receiving_field_name,
    double          *receiving_field,
+   int             *n_not_located_points,
    int             *exchange_status
    ARGF_SUPP_CHAINE)
 {
@@ -823,7 +832,7 @@ void PROCF(couplings_receive_cf,
   couplings::CouplingDataBase & couplingDataBase = 
     couplings::CouplingDataBase::getInstance();
 
-  const std::string &coupling_name_str = coupling_name;
+  const std::string &coupling_name_str = coupling_nameC;
 
   couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
@@ -836,6 +845,8 @@ void PROCF(couplings_receive_cf,
                                         receiving_field_nameC,
                                         receiving_field,
                                         NULL);
+  *n_not_located_points = coupling.getNNotlocatedPoint();
+
   delete[] coupling_nameC;
   delete[] exchange_nameC;
   delete[] receiving_field_nameC;
@@ -869,7 +880,7 @@ void PROCF(couplings_send_with_user_interpolation_cf,
   couplings::CouplingDataBase & couplingDataBase = 
     couplings::CouplingDataBase::getInstance();
 
-  const std::string &coupling_name_str = coupling_name;
+  const std::string &coupling_name_str = coupling_nameC;
 
   couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
@@ -914,7 +925,7 @@ void PROCF(couplings_send_cf,
   couplings::CouplingDataBase & couplingDataBase = 
     couplings::CouplingDataBase::getInstance();
 
-  const std::string &coupling_name_str = coupling_name;
+  const std::string &coupling_name_str = coupling_nameC;
 
   couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
@@ -979,6 +990,71 @@ void PROCF(couplings_dump_application_properties_f,
   couplings_dump_application_properties();
 }
 
+/*----------------------------------------------------------------------------
+ *
+ * Get not located points
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identificator
+ *   notLocatedPoints     --> Not located points
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(couplings_get_not_located_points_cf,
+           COUPLINGS_GET_NOT_LOCATED_POINTS_CF) 
+  (const char *coupling_name,
+   const int  *l_coupling_name,
+   int *notLocatedPoints) 
+{
+  couplings::CouplingDataBase & couplingDataBase = 
+    couplings::CouplingDataBase::getInstance();
+
+  char *coupling_nameC = 
+    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+
+  const std::string &coupling_name_str = coupling_nameC;
+
+  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  const int n_not_located_points = coupling.getNNotlocatedPoint();  
+  const int *notLocatedPointsC = coupling.getNotlocatedPoint();
+
+  for( int i = 0; i <  n_not_located_points; i++)
+    notLocatedPoints[i] = notLocatedPointsC[i];
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get located points
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identificator
+ *   notLocatedPoints     --> Not located points
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(couplings_get_located_points_cf,
+           COUPLINGS_GET_LOCATED_POINTS_CF) 
+  (const char *coupling_name,
+   const int  *l_coupling_name,
+   int *locatedPoints) 
+{
+  couplings::CouplingDataBase & couplingDataBase = 
+    couplings::CouplingDataBase::getInstance();
+
+  char *coupling_nameC = 
+    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+
+  const std::string &coupling_name_str = coupling_nameC;
+
+  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  const int n_located_points = coupling.getNLocatedPoint();  
+  const int *locatedPointsC = coupling.getLocatedPoint();
+
+  for( int i = 0; i < n_located_points; i++)
+    locatedPoints[i] = locatedPointsC[i];
+}
 /*----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus

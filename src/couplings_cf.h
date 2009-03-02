@@ -420,6 +420,7 @@ void PROCF(couplings_exchange_cf,
    char            *receiving_field_name,
    const int       *l_receiving_field_name,
    double          *receiving_field,
+   int             *n_not_located_points,
    int             *exchange_status
    ARGF_SUPP_CHAINE);
 
@@ -439,6 +440,7 @@ void PROCF(couplings_exchange_with_user_interpolation_cf,
    const int       *l_receiving_field_name,
    double          *receiving_field,
    void            *ptFortranInterpolationFct,
+   int             *n_not_located_points,
    int             *exchange_status
    ARGF_SUPP_CHAINE);
 
@@ -454,6 +456,7 @@ void PROCF(couplings_receive_cf,
    char            *receiving_field_name,
    const int       *l_receiving_field_name,
    double          *receiving_field,
+   int             *n_not_located_points,
    int             *exchange_status
    ARGF_SUPP_CHAINE);
 

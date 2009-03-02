@@ -520,17 +520,17 @@ void couplings_add_polyhedra(const char *coupling_name,
  *
  *----------------------------------------------------------------------------*/
 
-int couplings_exchange
+couplings_exchange_status_t couplings_exchange
 (const char                          *coupling_name,
  const char                          *exchange_name,
  const couplings_field_dimension_t    exchange_dimension, 
- /*const couplings_interpolation_t      interpolation_type,*/ 
  const int                            time_step, 
  const double                         time_value,
  const char                          *sending_field_name,
  const double                        *sending_field, 
  char                                *receiving_field_name,
- double                              *receiving_field)
+ double                              *receiving_field,
+ int                                 *nNotLocatedPoints)
 
 {
   couplings::CouplingDataBase & couplingDataBase = 
@@ -540,15 +540,21 @@ int couplings_exchange
 
   couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
-  return coupling.exchange(exchange_name,
-                           exchange_dimension, 
-                           time_step, 
-                           time_value,
-                           sending_field_name,
-                           sending_field, 
-                           receiving_field_name,
-                           receiving_field,
-                           NULL);
+  couplings_exchange_status_t status;
+
+  status = coupling.exchange(exchange_name,
+                             exchange_dimension, 
+                             time_step, 
+                             time_value,
+                             sending_field_name,
+                             sending_field, 
+                             receiving_field_name,
+                             receiving_field,
+                             NULL);
+
+  *nNotLocatedPoints = coupling.getNNotlocatedPoint();
+
+  return status;
 }
 
 /*----------------------------------------------------------------------------
@@ -656,6 +662,55 @@ void couplings_dump_application_properties()
   couplings::ApplicationPropertiesDataBase & properties = 
     couplings::ApplicationPropertiesDataBase::getInstance();
   properties.dump();
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get not located points
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identificator
+ *   
+ * return
+ *   notLocatedPoints     <-- Not located points    
+ *
+ *----------------------------------------------------------------------------*/
+
+const int * couplings_get_not_located_points(const char *coupling_id)
+{
+  couplings::CouplingDataBase & couplingDataBase = 
+    couplings::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_id;
+
+  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  return coupling.getNotlocatedPoint();
+}
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Get not located points
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identificator
+ *   
+ * return
+ *   locatedPoints        <-- Located points    
+ *
+ *----------------------------------------------------------------------------*/
+
+const int * couplings_get_located_points(const char *coupling_id)
+{
+  couplings::CouplingDataBase & couplingDataBase = 
+    couplings::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_id;
+
+  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  return coupling.getLocatedPoint();
 }
 
 /*----------------------------------------------------------------------------*/

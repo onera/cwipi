@@ -89,6 +89,17 @@ typedef enum {
 } couplings_not_located_point_treatment_t;
 
 /*----------------------------------------------------------------------------
+ * Coupling exchange status
+ *----------------------------------------------------------------------------*/
+
+typedef enum {
+  
+  COUPLINGS_EXCHANGE_OK,
+  COUPLINGS_EXCHANGE_BAD_RECEIVING,           
+  
+} couplings_exchange_status_t;
+
+/*----------------------------------------------------------------------------
  * Function pointer to define an user interpolation method (callback)
  *
  * parameters:
@@ -553,7 +564,7 @@ void couplings_add_polyhedra(const char *coupling_id,
  *
  *----------------------------------------------------------------------------*/
 
-int couplings_exchange
+couplings_exchange_status_t couplings_exchange
 (const char                          *coupling_id,
  const char                          *exchange_name,
  const couplings_field_dimension_t    exchange_dimension, 
@@ -562,7 +573,8 @@ int couplings_exchange
  const char                          *sending_field_name,
  const double                        *sending_field, 
  char                                *receiving_field_name,
- double                              *receiving_field);
+ double                              *receiving_field,
+ int                                 *nNotLocatedPoints);
 
 /*----------------------------------------------------------------------------
  *
@@ -610,6 +622,32 @@ void couplings_delete_coupling(const char *coupling_id);
  *----------------------------------------------------------------------------*/
 
 void couplings_finalize(); 
+
+/*----------------------------------------------------------------------------
+ *
+ * Get not located points
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identificator
+ *
+ *----------------------------------------------------------------------------*/
+
+const int * couplings_get_not_located_points(const char *coupling_id);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get not located points
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identificator
+ *   
+ * return
+ *   locatedPoints        <-- Located points    
+ *
+ *----------------------------------------------------------------------------*/
+
+const int * couplings_get_located_points(const char *coupling_id);
+
 
 /*----------------------------------------------------------------------------*/
 

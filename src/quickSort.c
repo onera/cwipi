@@ -44,10 +44,6 @@ void quickSort(int tableau[], int p, int r, int* index) {
   int q;
   int i;
 
-  if (index != NULL) {
-    for (i= 0; i <r+1; i++)
-      index[i] = i+1;
-  }
 
   if(p<r) {
     q = partitionner(tableau, p, r, index);
