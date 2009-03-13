@@ -234,7 +234,7 @@ namespace couplings {
     const int *eltsConnec        = _supportMesh->getEltConnectivity();
     const double *coords         = _supportMesh->getVertexCoords();
 
-    if (_barycentricCoordinatesIndex == NULL) {
+    /*    if (_barycentricCoordinatesIndex == NULL) {
       _barycentricCoordinatesIndex = new int[nDistantPoint+1];
       _barycentricCoordinates = new double[2*nDistantPoint];
       _barycentricCoordinatesIndex[0] = 0;
@@ -255,7 +255,7 @@ namespace couplings {
         _barycentricCoordinates[_barycentricCoordinatesIndex[ipoint]] = coef1/(coef1+coef2); 
         _barycentricCoordinates[_barycentricCoordinatesIndex[ipoint]+1] = coef2/(coef1+coef2);
       }
-    }
+      } */
 
     for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
       int iel = distantLocation[ipoint] - 1;
@@ -278,7 +278,7 @@ namespace couplings {
                                 std::vector<double>& interpolatedField,
                                 const couplings_field_dimension_t fieldDimension)
   {
-    if (_barycentricCoordinatesIndex == NULL) {
+    /*  if (_barycentricCoordinatesIndex == NULL) {
       int nPoints;
       coo_baryc(_fvmLocator, 
                 _supportMesh->getNVertex(), 
@@ -289,7 +289,7 @@ namespace couplings {
                 &nPoints, 
                 &_barycentricCoordinatesIndex, 
                 &_barycentricCoordinates);
-    }
+                }*/
     
     const int nDistantPoint      = fvm_locator_get_n_dist_points(_fvmLocator);
     const int *distantLocation   = fvm_locator_get_dist_locations(_fvmLocator);
@@ -1448,39 +1448,67 @@ namespace couplings {
       const int nExterior = fvm_locator_get_n_exterior(_fvmLocator);
       assert(nNotLocatedPoint == nExterior);
 
-      //
-      // Renumbering located points and not locatd points
-
-//       if (_supportMesh->getParentNum() != NULL && 
-//           _solverType == COUPLINGS_SOLVER_CELL_CENTER &&
-//           _coordsPointsToLocate == NULL){
-
-//         const std::vector<int>& parentNum = *_supportMesh->getParentNum();
-//         const int nOldLocatedPoint = _nPointsToLocate - _nNotLocatedPoint;
-
-//         if (_notLocatedPoint != NULL && nNotLocatedPoint > _nNotLocatedPoint)
-//           delete[] _notLocatedPoint;
-        
-//         if (_locatedPoint != NULL && nLocatedPoint > nOldLocatedPoint)
-//           delete[] _locatedPoint;
-
-//         if (_notLocatedPoint == NULL && nNotLocatedPoint > 0)
-//           _notLocatedPoint = new int[nNotLocatedPoint];
-
-//         for (int i = 0; i < nNotLocatedPoint; i++) 
-//           _notLocatedPoint[i] = parentNum[exteriorList[i]-1];
-
-//         if (_locatedPoint == NULL && nLocatedPoint > 0)
-//           _locatedPoint = new int[nLocatedPoint];
-
-//         for (int i = 0; i < nNotLocatedPoint; i++) 
-//           _locatedPoint[i] = parentNum[interiorList[i]-1];
-//       }
-//       else {
       _notLocatedPoint = const_cast<int *> (exteriorList);
       _locatedPoint = const_cast<int *> (interiorList);
-//       }
       _nNotLocatedPoint = nNotLocatedPoint;
+
+
+      if (_barycentricCoordinatesIndex != NULL) {
+        if (_entitiesDim != 2) {
+          delete[] _barycentricCoordinatesIndex;
+          delete[] _barycentricCoordinates;
+        }
+        
+        else {
+          BFT_FREE(_barycentricCoordinatesIndex);
+          BFT_FREE(_barycentricCoordinates);
+        }
+      }
+
+      if (_barycentricCoordinatesIndex == NULL) {
+        if (_entitiesDim == 1) {
+          const int nDistantPoint      = fvm_locator_get_n_dist_points(_fvmLocator);
+          const int *distantLocation   = fvm_locator_get_dist_locations(_fvmLocator);
+          const double *distantCoords   = fvm_locator_get_dist_coords(_fvmLocator);
+
+          const int *eltsConnecPointer = _supportMesh->getEltConnectivityIndex();
+          const double *localCoords         = _supportMesh->getVertexCoords();
+          
+          _barycentricCoordinatesIndex = new int[nDistantPoint+1];
+          _barycentricCoordinates = new double[2*nDistantPoint];
+          _barycentricCoordinatesIndex[0] = 0;
+          for (int ipoint = 0; ipoint < nDistantPoint ; ipoint++) {
+            int iel = distantLocation[ipoint] - 1;
+            _barycentricCoordinatesIndex[ipoint+1] = _barycentricCoordinatesIndex[ipoint] + 2;
+            int index = eltsConnecPointer[iel];
+            int nVertex = eltsConnecPointer[iel+1] - eltsConnecPointer[iel];
+            assert(nVertex == 2);
+            int pt1 = eltsConnecPointer[iel] - 1;
+            int pt2 = eltsConnecPointer[iel+1] - 1;
+            double coef1 = sqrt((localCoords[3*pt1]-distantCoords[3*ipoint])*(localCoords[3*pt1]-distantCoords[3*ipoint])+
+                                (localCoords[3*pt1+1]-distantCoords[3*ipoint+1])*(localCoords[3*pt1+1]-distantCoords[3*ipoint+1])+
+                            (localCoords[3*pt1+2]-distantCoords[3*ipoint+2])*(localCoords[3*pt1+2]-distantCoords[3*ipoint+2]));
+            double coef2 = sqrt((localCoords[3*pt2]-distantCoords[3*ipoint])*(localCoords[3*pt2]-distantCoords[3*ipoint])+
+                                (localCoords[3*pt2+1]-distantCoords[3*ipoint+1])*(localCoords[3*pt2+1]-distantCoords[3*ipoint+1])+
+                                (localCoords[3*pt2+2]-distantCoords[3*ipoint+2])*(localCoords[3*pt2+2]-distantCoords[3*ipoint+2]));
+            _barycentricCoordinates[_barycentricCoordinatesIndex[ipoint]] = coef1/(coef1+coef2); 
+            _barycentricCoordinates[_barycentricCoordinatesIndex[ipoint]+1] = coef2/(coef1+coef2);
+          }
+        }
+
+        else if (_entitiesDim == 2) {
+          int nPoints;
+          coo_baryc(_fvmLocator, 
+                    _supportMesh->getNVertex(), 
+                    _supportMesh->getVertexCoords(),
+                    _supportMesh->getNElts(),                
+                    _supportMesh->getEltConnectivityIndex(), 
+                    _supportMesh->getEltConnectivity(), 
+                    &nPoints, 
+                    &_barycentricCoordinatesIndex, 
+                    &_barycentricCoordinates);
+        }
+      }
     }
   }
 
