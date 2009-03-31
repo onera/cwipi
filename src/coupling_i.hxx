@@ -8,13 +8,24 @@ namespace couplings {
     _interpolationFct = fct;
   }
 
+  const int * Coupling::getDistantLocation() const
+  {
+    if (_toLocate)
+      bft_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
+    return _location;
+  }
+
   const int & Coupling::getNNotlocatedPoint() const
   {
+    if (_toLocate)
+      bft_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
     return _nNotLocatedPoint;
   }
 
   const int *Coupling::getNotlocatedPoint() const
   {
+    if (_toLocate)
+      bft_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
     if (_nNotLocatedPoint == 0)
       return NULL;
     else
@@ -26,13 +37,39 @@ namespace couplings {
 
   int Coupling::getNLocatedPoint() const
   {
+    if (_toLocate)
+      bft_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
     return _nPointsToLocate - _nNotLocatedPoint;
   }
 
   const int *Coupling::getLocatedPoint() const
   {
+    if (_toLocate)
+      bft_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
     return _locatedPoint;
   }
+
+  const int *Coupling::getDistantBarycentricCoordinatesIndex() const
+  {
+    if (_toLocate)
+      bft_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
+    return _barycentricCoordinatesIndex;
+  }
+
+  const double *Coupling::getDistantBarycentricCoordinates() const
+  {
+    if (_toLocate)
+      bft_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
+    return _barycentricCoordinates;
+  }
+
+  inline int Coupling::getNDistantPoint() const
+  {
+    if (_toLocate)
+      bft_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
+    return _nDistantpoint;
+  }
+
 
 } // namespace couplings
 

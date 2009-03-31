@@ -21,7 +21,7 @@ namespace couplings {
              int *eltConnectivityIndex,
              int *eltConnectivity
              )
-    : _nDim(nDim), _nVertex(nVertex), _nElts(nElts), _nPolyhedra(0), _coords(coords), 
+    : _nDim(nDim), _nVertex(nVertex), _nElts(nElts), _nPolyhedra(0), _coords(coords),
       _eltConnectivityIndex(eltConnectivityIndex), _eltConnectivity(eltConnectivity),
       _parentNum(NULL), _polyhedraFaceIndex(NULL), _polyhedraCellToFaceConnectivity(NULL),
       _polyhedraFaceConnectivityIndex(NULL), _polyhedraFaceConnectivity(NULL), _cellCenterCoords(NULL),
@@ -55,22 +55,22 @@ namespace couplings {
         for (int i = 0; i < _nElts; i++) {
           int nCurrentEltVertex = eltConnectivityIndex[i+1] - eltConnectivityIndex[i];
           if (nCurrentEltVertex == 3) {
-            if (nbQuadrangle != 0 || 
+            if (nbQuadrangle != 0 ||
                 nbPoly       != 0)
               sorted = false;
             ++nbTriangle;
           }
-          
+
           else if (nCurrentEltVertex == 4) {
-            if (nbPoly != 0) 
+            if (nbPoly != 0)
               sorted = false;
             ++nbQuadrangle;
           }
-          
+
           else if (nCurrentEltVertex > 4) {
             ++nbPoly;
           }
-          
+
           else
             bft_error(__FILE__, __LINE__, 0, "Erreur dans l'index de connectivite\n");
         }
@@ -88,24 +88,24 @@ namespace couplings {
               sorted = false;
             ++nbTetra;
           }
-          
+
           else if (nCurrentEltVertex == 5) {
             if (nbPrism    != 0  ||
                 nbHexaedra != 0  ||
-                nbPoly     != 0) 
+                nbPoly     != 0)
               sorted = false;
             ++nbPyramid;
           }
-          
+
           else if (nCurrentEltVertex == 6) {
             if (nbHexaedra != 0  ||
-                nbPoly     != 0) 
+                nbPoly     != 0)
               sorted = false;
             ++nbPrism;
           }
 
           else if (nCurrentEltVertex == 8) {
-            if (nbPoly     != 0) 
+            if (nbPoly     != 0)
               sorted = false;
             ++nbHexaedra;
           }
@@ -114,7 +114,7 @@ namespace couplings {
             bft_error(__FILE__, __LINE__, 0, "Erreur dans l'index de connectivite\n");
             ++nbPoly;
           }
-          
+
           else
             bft_error(__FILE__, __LINE__, 0, "Erreur dans l'index de connectivite\n");
         }
@@ -132,21 +132,21 @@ namespace couplings {
 
       _parentNum = new std::vector<int>(_nElts,0);
       std::vector<int> & parentNum = *_parentNum;
-      
+
       for (int i = 0; i < _nElts; i++)
         parentNum[i] = i+1;
 
-      quickSort(&eltType[0], 0, _nElts-1, &parentNum[0]);      
+      quickSort(&eltType[0], 0, _nElts-1, &parentNum[0]);
 
       std::vector<int> cpEltConnectivityIndex(_nElts+1);
       std::vector<int> cpEltConnectivity(_eltConnectivityIndex[_nElts]);
-      
+
       for (int i = 0; i < _nElts+1; i++)
         cpEltConnectivityIndex[i] = _eltConnectivityIndex[i];
-      
+
       for (int i = 0; i < _eltConnectivityIndex[_nElts]; i++)
         cpEltConnectivity[i] = _eltConnectivity[i];
-      
+
       _eltConnectivityIndex[0] = 0;
       for (int i = 0; i < _nElts; i++) {
         int nCurrentEltVertex = cpEltConnectivityIndex[parentNum[i]+1-1] - cpEltConnectivityIndex[parentNum[i]-1];
@@ -173,7 +173,7 @@ namespace couplings {
                               NULL);
     }
     else if (_nDim == 2) {
-      if (nbTriangle != 0) 
+      if (nbTriangle != 0)
         if (_parentNum != NULL) {
           std::vector<int> & parentNum = *_parentNum;
           fvm_nodal_append_shared(_fvmNodal,
@@ -194,7 +194,7 @@ namespace couplings {
                                   NULL,
                                   _eltConnectivity,
                                   NULL);
-  
+
       if (nbQuadrangle != 0)
         if (_parentNum != NULL) {
           std::vector<int> & parentNum = *_parentNum;
@@ -267,7 +267,7 @@ namespace couplings {
                                   NULL,
                                   _eltConnectivity,
                                   NULL);
-  
+
       if (nbPyramid != 0)
         if (_parentNum != NULL) {
           std::vector<int> & parentNum = *_parentNum;
@@ -333,7 +333,7 @@ namespace couplings {
                                   NULL,
                                   _eltConnectivity +  4*nbTetra + 5*nbPyramid + 6*nbPrism,
                                   NULL);
-          
+
     }
 
     // shared vertices
@@ -353,6 +353,7 @@ namespace couplings {
     delete _cellCenterCoords;
     delete _cellVolume;
     delete[] _polygonIndex;
+    delete _parentNum;
     fvm_nodal_destroy(_fvmNodal);
   }
 
@@ -363,8 +364,8 @@ namespace couplings {
                           int *faceConnectivityIndex,
                           int *faceConnectivity)
   {
-    
-    if (_fvmNodal == NULL) 
+
+    if (_fvmNodal == NULL)
       bft_error(__FILE__, __LINE__, 0, "No mesh to add element\n");
 
     _nPolyhedra += nElt;
@@ -406,14 +407,14 @@ namespace couplings {
   }
 
 
-  void Mesh::update() 
+  void Mesh::update()
   {
     if (_cellCenterCoords != NULL || _cellVolume != NULL)
       _computeMeshProperties();
   }
 
 
-  void Mesh::_computeCellCenterCoordsWithVertex(const int i, 
+  void Mesh::_computeCellCenterCoordsWithVertex(const int i,
                                                 const int nCurrentEltVertex,
                                                 const int index,
                                                 const int *eltConnectivity,
@@ -448,7 +449,7 @@ namespace couplings {
       nCurrentEltVertex = _eltConnectivityIndex[i+1] - _eltConnectivityIndex[i];
       assert(nCurrentEltVertex == 2);
       index = _eltConnectivityIndex[i];
-      _computeCellCenterCoordsWithVertex(i, nCurrentEltVertex, index, 
+      _computeCellCenterCoordsWithVertex(i, nCurrentEltVertex, index,
                                          _eltConnectivity, _cellCenterCoords);
       int index = _eltConnectivityIndex[i];
       int pt1 = _eltConnectivity[index]   - 1;
@@ -465,7 +466,7 @@ namespace couplings {
                                       std::vector<double> *faceNormal,
                                       std::vector<double> *faceSurface,
                                       std::vector<double> *faceCenter)
-                                 
+
   {
     int nCurrentEltVertex;
     double v1[3];
@@ -485,16 +486,16 @@ namespace couplings {
       if (nCurrentEltVertex > maxCurrentEltVertex)
         maxCurrentEltVertex = nCurrentEltVertex;
     }
-     
+
     if (maxCurrentEltVertex > 3) {
       triNormal.resize(3*maxCurrentEltVertex, 0.);
       triBarycentre.resize(3*maxCurrentEltVertex, 0.);
     }
-    
+
     for (int i = 0; i < nElts ; i++) {
       nCurrentEltVertex = faceConnectivityIndex[i+1] - faceConnectivityIndex[i];
       index = faceConnectivityIndex[i];
-      _computeCellCenterCoordsWithVertex(i, nCurrentEltVertex, index, 
+      _computeCellCenterCoordsWithVertex(i, nCurrentEltVertex, index,
                                          faceConnectivity,  faceCenter);
       if (nCurrentEltVertex == 3) {
         int pt1 = faceConnectivity[index]   - 1;
@@ -504,7 +505,7 @@ namespace couplings {
         v1[0] = _coords[3*pt2]   - _coords[3*pt1];
         v1[1] = _coords[3*pt2+1] - _coords[3*pt1+1];
         v1[2] = _coords[3*pt2+2] - _coords[3*pt1+2];
-        
+
         v2[0] = _coords[3*pt3]   - _coords[3*pt1];
         v2[1] = _coords[3*pt3+1] - _coords[3*pt1+1];
         v2[2] = _coords[3*pt3+2] - _coords[3*pt1+2];
@@ -551,8 +552,8 @@ namespace couplings {
           triNormal[3*k+1] = 0.5 * (v1[2]*v2[0]-v1[0]*v2[2]);
           triNormal[3*k+2] = 0.5 * (v1[0]*v2[1]-v1[1]*v2[0]);
 
-          refFaceNormal[3*i]   += triNormal[3*k]; 
-          refFaceNormal[3*i+1] += triNormal[3*k+1]; 
+          refFaceNormal[3*i]   += triNormal[3*k];
+          refFaceNormal[3*i+1] += triNormal[3*k+1];
           refFaceNormal[3*i+2] += triNormal[3*k+2];
         }
 
@@ -591,7 +592,7 @@ namespace couplings {
     std::vector<double> refCellVolume = *_cellVolume;
     std::vector<double> tetraCenterCoords(3,0.);
 
-          
+
     int nStandardElement = _nElts - _nPolyhedra;
     if (nStandardElement > 0) {
       std::vector<int>  faceConnectivityIndex(4,0);
@@ -603,16 +604,16 @@ namespace couplings {
       std::vector<double> faceNormal(3*4,0.);
 
       int nFace;
- 
+
       for (int i = 0; i < nStandardElement ; i++) {
         int nCurrentEltVertex = _eltConnectivityIndex[i+1] - _eltConnectivityIndex[i];
         int index = _eltConnectivityIndex[i];
-        
+
         //
         // Element spliting
-        
+
         switch(nCurrentEltVertex) {
-          
+
         case 4 :
           ntetra = 1;
           tetraConnec[0] = _eltConnectivity[index];
@@ -620,9 +621,9 @@ namespace couplings {
           tetraConnec[2] = _eltConnectivity[index+2];
           tetraConnec[3] = _eltConnectivity[index+3];
           break;
-          
+
         case 5 :
-          
+
           ntetra = 2;
           tetraConnec[0] = _eltConnectivity[index];
           tetraConnec[1] = _eltConnectivity[index+1];
@@ -633,54 +634,54 @@ namespace couplings {
           tetraConnec[6] = _eltConnectivity[index+3];
           tetraConnec[7] = _eltConnectivity[index+4];
           break;
-          
+
         case 6 :
-          
+
           ntetra = 3;
           tetraConnec[0] = _eltConnectivity[index];
           tetraConnec[1] = _eltConnectivity[index+1];
           tetraConnec[2] = _eltConnectivity[index+2];
           tetraConnec[3] = _eltConnectivity[index+3];
-          
+
           tetraConnec[4] = _eltConnectivity[index+3];
           tetraConnec[5] = _eltConnectivity[index+5];
           tetraConnec[6] = _eltConnectivity[index+4];
           tetraConnec[7] = _eltConnectivity[index+1];
-          
+
           tetraConnec[8] = _eltConnectivity[index+2];
           tetraConnec[9] = _eltConnectivity[index+5];
           tetraConnec[10] = _eltConnectivity[index+3];
           tetraConnec[11] = _eltConnectivity[index+1];
           break;
-          
+
         case 8 :
-          
+
           ntetra = 6;
           tetraConnec[0] = _eltConnectivity[index];
           tetraConnec[1] = _eltConnectivity[index+1];
           tetraConnec[2] = _eltConnectivity[index+3];
           tetraConnec[3] = _eltConnectivity[index+4];
-          
+
           tetraConnec[4] = _eltConnectivity[index+5];
           tetraConnec[5] = _eltConnectivity[index+4];
           tetraConnec[6] = _eltConnectivity[index+7];
           tetraConnec[7] = _eltConnectivity[index+1];
-          
+
           tetraConnec[8] = _eltConnectivity[index+4];
           tetraConnec[9] = _eltConnectivity[index+3];
           tetraConnec[10] = _eltConnectivity[index+7];
           tetraConnec[11] = _eltConnectivity[index+1];
-          
+
           tetraConnec[12] = _eltConnectivity[index+1];
           tetraConnec[13] = _eltConnectivity[index+2];
           tetraConnec[14] = _eltConnectivity[index+3];
           tetraConnec[15] = _eltConnectivity[index+6];
-          
+
           tetraConnec[16] = _eltConnectivity[index+5];
           tetraConnec[17] = _eltConnectivity[index+7];
           tetraConnec[18] = _eltConnectivity[index+6];
           tetraConnec[19] = _eltConnectivity[index+1];
-          
+
           tetraConnec[20] = _eltConnectivity[index+1];
           tetraConnec[21] = _eltConnectivity[index+3];
           tetraConnec[22] = _eltConnectivity[index+7];
@@ -695,17 +696,17 @@ namespace couplings {
 
         for (int j = 0; j < ntetra; j++) {
           double tetraVolume = 0.;
-          
+
           // Tetraedre case
           // local faces : 1, 3, 2,
           //               1, 2, 4
           //               1, 4, 3
-          //               2, 3, 4 
-          
+          //               2, 3, 4
+
           nFace = 4;
-          faceConnectivityIndex[1] = 3; 
-          faceConnectivityIndex[2] = 6; 
-          faceConnectivityIndex[3] = 9; 
+          faceConnectivityIndex[1] = 3;
+          faceConnectivityIndex[2] = 6;
+          faceConnectivityIndex[3] = 9;
           faceConnectivityIndex[4] = 12;
           faceConnectivity[0]      = tetraConnec[4*j+0];
           faceConnectivity[1]      = tetraConnec[4*j+2];
@@ -719,21 +720,21 @@ namespace couplings {
           faceConnectivity[9]      = tetraConnec[4*j+1];
           faceConnectivity[10]     = tetraConnec[4*j+2];
           faceConnectivity[11]     = tetraConnec[4*j+3];
-          
+
           _computeMeshProperties2D(nFace,
                                    &faceConnectivityIndex[0],
                                    &faceConnectivity[0],
                                    &faceNormal,
                                    &faceSurface,
                                    &faceCenter);
-      
+
           double cellSurface = 0.;
           for (int k = 0; k < nFace; k++) {
             cellSurface += faceSurface[k];
             tetraCenterCoords[0] += faceNormal[k]   * faceCenter[3*k];
             tetraCenterCoords[1] += faceNormal[k+1] * faceCenter[3*k+1];
             tetraCenterCoords[2] += faceNormal[k+2] * faceCenter[3*k+2];
-            tetraVolume += faceNormal[k] * faceCenter[3*k] + 
+            tetraVolume += faceNormal[k] * faceCenter[3*k] +
               faceNormal[k+1] * faceCenter[3*k+1] +
                          faceNormal[k+2] * faceCenter[3*k+2];
           }
@@ -741,7 +742,7 @@ namespace couplings {
           tetraCenterCoords[0] /= cellSurface;
           tetraCenterCoords[1] /= cellSurface;
           tetraCenterCoords[2] /= cellSurface;
-          
+
           refCellCenterCoords[3*i]   += tetraVolume*tetraCenterCoords[0] ;
           refCellCenterCoords[3*i+1] += tetraVolume*tetraCenterCoords[1];
           refCellCenterCoords[3*i+2] += tetraVolume*tetraCenterCoords[2];
@@ -752,7 +753,7 @@ namespace couplings {
         refCellCenterCoords[3*i+2] /= refCellVolume[i];
       }
     }
-  
+
     if (_nPolyhedra > 0) {
 
       //
@@ -760,7 +761,7 @@ namespace couplings {
 
       // Not yet implemented
       bft_error(__FILE__, __LINE__, 0, "Not implemented yet\n");
-      
+
 //       fvm_tesselation_t *fvm_tesselation = fvm_tesselation_create(FVM_CELL_POLY,
 //                                                                   _nPolyhedra,
 //                                                                   _polyhedraFaceIndex,
@@ -785,11 +786,11 @@ namespace couplings {
 
 //       int maxFacePolyhedra = 0;
 //       int maxVertexFace = 0;
-      
+
 //       for (int i = 0; i < _nPolyhedra; i++) {
 
 //         int nFacePolyhedra = _polyhedraFaceIndex[i+1] - _polyhedraFaceIndex[i];
-//         if (maxFacePolyhedra < nFacePolyhedra) 
+//         if (maxFacePolyhedra < nFacePolyhedra)
 //           maxFacePolyhedra = nFacePolyhedra;
 //         int faceIndex = _polyhedraCellToFaceConnectivity[i];
 //         for (int j = 0; j < nFacePolyhedra; j++) {
@@ -825,16 +826,16 @@ namespace couplings {
 //         faceNormal.resize(3*maxFacePolyhedra,0.);
 //         faceConnectivityIndex.resize(maxFacePolyhedra+1);
 //       }
-    
+
 //       if  (maxVertexFace > faceConnectivity.size())
 //         faceConnectivity.resize(maxVertexFace);
 
 
 //       fvm_triangulate_state_t* state = fvm_triangulate_state_create(maxVertexFace);
-      
+
 //       std::vector<int> triangulateConnectivityIndex = NULL;
 //       std::vector<int> triangulateConnectivity = NULL;
-      
+
 //       for (int i = 0; i < _nPolyhedra; i++) {
 //         int nFacePolyhedra = _polyhedraFaceIndex[i+1] - _polyhedraFaceIndex[i];
 //         int faceIndex = _polyhedraCellToFaceConnectivity[i];
@@ -847,7 +848,7 @@ namespace couplings {
 //             iface = -iface;
 //             reorient = true;
 //           }
-            
+
 //           nVertexFace += _polyhedraFaceConnectivityIndex[iface+1] - _polyhedraFaceConnectivityIndex[iface];
 //           int vertexIndex = _polyhedraFaceConnectivityIndex[iface];
 //           faceConnectivityIndex[j+1] = faceConnectivityIndex[j] + nVertexFace;
@@ -866,7 +867,7 @@ namespace couplings {
 //                                   FVM_TRIANGULATE_MESH_DEF,
 //                                   triangulateConnectivity[triangulateConnectivityIndex[j]],
 //                                   state);
-          
+
 //         }
 
 //         _computeMeshProperties2D(nFacePolyhedra,
@@ -875,20 +876,20 @@ namespace couplings {
 //                                  &faceNormal,
 //                                  &faceSurface,
 //                                  &faceCenter);
-      
+
 //         double cellSurface = 0.;
-      
+
 //         refCellCenterCoords[3*(nStandardElement+i)]   = 0.;
 //         refCellCenterCoords[3*(nStandardElement+i)+1] = 0.;
 //         refCellCenterCoords[3*(nStandardElement+i)+2] = 0.;
 //         refCellVolume[nStandardElement+i] = 0.;
-      
+
 //         for (int j = 0; j < nFace; j++) {
 //           cellSurface += faceNormal[i];
 //           refCellCenterCoords[3*(nStandardElement+i)]   += faceNormal[i] * faceCenter[3*i];
 //           refCellCenterCoords[3*(nStandardElement+i)+1] += faceNormal[i+1] * faceCenter[3*i+1];
 //           refCellCenterCoords[3*(nStandardElement+i)+2] += faceNormal[i+2] * faceCenter[3*i+2];
-//           refCellVolume[(nStandardElement+i)] += faceNormal[i] * faceCenter[3*i] + 
+//           refCellVolume[(nStandardElement+i)] += faceNormal[i] * faceCenter[3*i] +
 //                                                faceNormal[i+1] * faceCenter[3*i+1] +
 //                                                faceNormal[i+2] * faceCenter[3*i+2];
 //         }
@@ -907,12 +908,12 @@ namespace couplings {
       _cellCenterCoords = new std::vector<double>(3*_nElts);
     else if (_cellCenterCoords->size() < 3*_nElts)
       _cellCenterCoords->resize(3*_nElts);
-    
+
     if (_cellVolume == NULL)
       _cellVolume = new std::vector<double>(_nElts);
     else if (_cellVolume->size() < _nElts)
       _cellVolume->resize(_nElts);
-    
+
     if (_nDim == 1)
         _computeMeshProperties1D();
     else if (_nDim == 2) {
@@ -926,7 +927,7 @@ namespace couplings {
     }
     else if (_nDim == 3)
       _computeMeshProperties3D();
-    
+
   }
 
 }

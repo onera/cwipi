@@ -16,7 +16,7 @@ subroutine callfortinterpfct(entities_dim, &
                              distant_points_location, &
                              distant_points_barycentric_coordinates_index, &
                              distant_points_barycentric_coordinates, &
-                             data_dimension, &
+                             stride, &
                              solver_type, &
                              local_field, &
                              distant_field, &
@@ -43,7 +43,7 @@ subroutine callfortinterpfct(entities_dim, &
                                     distant_points_location, &
                                     distant_points_barycentric_coordinates_index, &
                                     distant_points_barycentric_coordinates, &
-                                    data_dimension, &
+                                    stride, &
                                     solver_type, &
                                     local_field, &
                                     distant_field)
@@ -65,7 +65,7 @@ subroutine callfortinterpfct(entities_dim, &
        integer, dimension(*) :: distant_points_location
        integer, dimension(*) :: distant_points_barycentric_coordinates_index
        double precision, dimension(*) :: distant_points_barycentric_coordinates
-       integer :: data_dimension
+       integer :: stride
        integer :: solver_type
        double precision, dimension(*) :: local_field
        double precision, dimension(*) :: distant_field
@@ -90,7 +90,7 @@ subroutine callfortinterpfct(entities_dim, &
   integer, dimension(*) :: distant_points_location
   integer, dimension(*) :: distant_points_barycentric_coordinates_index
   double precision, dimension(*) :: distant_points_barycentric_coordinates
-  integer :: data_dimension
+  integer :: stride
   integer :: solver_type
   double precision, dimension(*) :: local_field
   double precision, dimension(*) :: distant_field
@@ -114,7 +114,7 @@ subroutine callfortinterpfct(entities_dim, &
                            distant_points_location, &
                            distant_points_barycentric_coordinates_index, &
                            distant_points_barycentric_coordinates, &
-                           data_dimension, &
+                           stride, &
                            solver_type, &
                            local_field, &
                            distant_field)

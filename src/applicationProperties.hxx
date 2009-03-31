@@ -1,5 +1,16 @@
 #ifndef __APPLICATION_PROPERTIES_H__
 #define __APPLICATION_PROPERTIES_H__
+///////////////////////////////////////////////////////////////////////////////
+//
+// Copyright (C) 2009  ONERA
+//
+// Description :
+//    This class describes application properties :
+//        - intra mpi communicator (localComm)
+//        - beginning and end rank in the inter mpi communicator (globalComm)
+//        - control parameters storage
+//
+///////////////////////////////////////////////////////////////////////////////
 
 #include <cassert>
 
@@ -15,16 +26,16 @@
 namespace couplings {
 
   class ApplicationProperties {
-    
+
     friend void ApplicationPropertiesDataBase::_mergeIntParameters(const std::string &applicationName);
     friend void ApplicationPropertiesDataBase::_mergeDoubleParameters(const std::string &applicationName);
 
   public:
-    ApplicationProperties(std::string &name, 
+    ApplicationProperties(std::string &name,
                           const MPI_Comm globalComm);
 
-    ApplicationProperties(const ApplicationProperties& name); 
-    
+    ApplicationProperties(const ApplicationProperties& name);
+
     virtual ~ApplicationProperties();
 
     inline const std::string &getName() const;
@@ -36,11 +47,11 @@ namespace couplings {
     inline void setLocalComm(MPI_Comm localComm);
 
     inline const int &getBeginningRank() const;
- 
+
     inline const int &getEndRank() const;
-    
+
     inline void setBeginningRank(const int value);
-    
+
     inline void setEndRank(const int value);
 
     inline const int &getIntControlParameter(const std::string &name) const;
@@ -79,17 +90,17 @@ namespace couplings {
   {
     return _name;
   }
-  
+
   const MPI_Comm &ApplicationProperties::getGlobalComm() const
   {
     return _globalComm;
   }
-  
-  const MPI_Comm &ApplicationProperties::getLocalComm() const 
+
+  const MPI_Comm &ApplicationProperties::getLocalComm() const
   {
     return _localComm;
   }
-  
+
   void ApplicationProperties::setLocalComm(MPI_Comm localComm)
   {
     _localComm = localComm;
@@ -100,18 +111,18 @@ namespace couplings {
     //assert(_beginningRank != -1);
     return _beginningRank;
   }
-  
+
   const int &ApplicationProperties::getEndRank() const
   {
     //assert(_endRank != -1);
     return _endRank;
   }
-  
+
   void ApplicationProperties::setBeginningRank(const int value)
   {
     _beginningRank = value;
   }
-  
+
   void ApplicationProperties::setEndRank(const int value)
   {
     _endRank = value;
@@ -121,54 +132,54 @@ namespace couplings {
   {
     const std::map <std::string, int>::iterator p = _intControlParameters.find(name);
     if (p == _intControlParameters.end())
-      bft_error(__FILE__, __LINE__, 0, 
+      bft_error(__FILE__, __LINE__, 0,
                 "'%s' int control parameter not found \n", name.c_str());
     return p->second;
   }
-  
+
   const double &ApplicationProperties::getDoubleControlParameter(const std::string &name) const
   {
     const std::map <std::string, double>::iterator p = _doubleControlParameters.find(name);
     if (p == _doubleControlParameters.end())
-      bft_error(__FILE__, __LINE__, 0, 
+      bft_error(__FILE__, __LINE__, 0,
                 "'%s' double control parameter not found \n", name.c_str());
     return p->second;
   }
-  
+
   void ApplicationProperties::setIntControlParameter(const std::string &name, const int value)
   {
     std::map <std::string, int>::iterator p = _intControlParameters.find(name);
     if (p == _intControlParameters.end())
-      bft_error(__FILE__, __LINE__, 0, 
+      bft_error(__FILE__, __LINE__, 0,
                 "'%s' int control parameter not found \n", name.c_str());
     p->second = value;
   }
-  
+
   void ApplicationProperties::setDoubleControlParameter(const std::string &name, const double value)
   {
     std::map <std::string, double>::iterator p = _doubleControlParameters.find(name);
     if (p != _doubleControlParameters.end())
       p->second = value;
     else
-      bft_error(__FILE__, __LINE__, 0, 
+      bft_error(__FILE__, __LINE__, 0,
                 "'%s' int control parameter not found \n", name.c_str());
   }
-  
+
   void ApplicationProperties::addIntControlParameter(const std::string &name, const int initialValue)
   {
     std::pair<std::string, int> parameter(name, initialValue);
     std::pair<std::map<std::string, int>::iterator, bool> p = _intControlParameters.insert(parameter);
     if (!p.second)
-      bft_error(__FILE__, __LINE__, 0, 
+      bft_error(__FILE__, __LINE__, 0,
                 "'%s' existing int control parameter \n", name.c_str());
   }
-  
+
   void ApplicationProperties::addDoubleControlParameter(const std::string &name, const double initialValue)
   {
     std::pair<std::string, double> parameter(name, initialValue);
     std::pair<std::map<std::string, double>::iterator, bool> p = _doubleControlParameters.insert(parameter);
     if (!p.second)
-      bft_error(__FILE__, __LINE__, 0, 
+      bft_error(__FILE__, __LINE__, 0,
                 "'%s' existing double control parameter \n", name.c_str());
   }
 
@@ -178,7 +189,7 @@ namespace couplings {
     if (p != _intControlParameters.end())
       _intControlParameters.erase(p);
     else
-      bft_error(__FILE__, __LINE__, 0, 
+      bft_error(__FILE__, __LINE__, 0,
                 "'%s' int control parameter not found \n", name.c_str());
   }
 
@@ -188,7 +199,7 @@ namespace couplings {
     if (p != _doubleControlParameters.end())
       _doubleControlParameters.erase(p);
     else
-      bft_error(__FILE__, __LINE__, 0, 
+      bft_error(__FILE__, __LINE__, 0,
                 "'%s' double control parameter not found \n", name.c_str());
   }
 }

@@ -68,7 +68,7 @@ static FILE* _couplings_output_listing;
 
 /*----------------------------------------------------------------------------
  *
- * bft_printf proxy setting for C interface 
+ * bft_printf proxy setting for C interface
  *
  *----------------------------------------------------------------------------*/
 
@@ -90,7 +90,7 @@ int _couplings_print_with_c
 /*----------------------------------------------------------------------------
  *
  * Initialize the couplings library.
- * Redirect outputs in a file (Standard output with output_listing = NULL or 
+ * Redirect outputs in a file (Standard output with output_listing = NULL or
  * output_logical_unit = -1)
  * Create the current communicator application from 'common_comm'.
  *
@@ -98,24 +98,24 @@ int _couplings_print_with_c
  *   common_comm         <-- Common MPI communicator
  *   output_listing      <-- Output listing file (C function)
  *   output_logical_unit <-- Output listing logical unit (Fortran function)
- *   application_name    <-- Current application name 
- *   application_comm    --> Internal MPI communicator for the current 
+ *   application_name    <-- Current application name
+ *   application_comm    --> Internal MPI communicator for the current
  *                           application
  *
- * This is a synchronization point between all applications 
+ * This is a synchronization point between all applications
  *----------------------------------------------------------------------------*/
 
 void couplings_init
 (const MPI_Comm common_comm,
- FILE           *output_listing, 
- const char     *application_name, 
+ FILE           *output_listing,
+ const char     *application_name,
  MPI_Comm       *application_comm)
 
 {
-  _couplings_output_listing = output_listing; 
+  _couplings_output_listing = output_listing;
   bft_printf_proxy_set(_couplings_print_with_c);
 
-  couplings::ApplicationPropertiesDataBase & properties = 
+  couplings::ApplicationPropertiesDataBase & properties =
     couplings::ApplicationPropertiesDataBase::getInstance();
 
   *application_comm = properties.init(application_name,
@@ -125,7 +125,7 @@ void couplings_init
 /*----------------------------------------------------------------------------
  *
  * Add a integer control parameter
- * 
+ *
  * parameters
  *    name           <-- parameter name
  *    initial_value  <-- initial value
@@ -134,17 +134,17 @@ void couplings_init
 
 void couplings_add_local_int_control_parameter(const char *name, int initial_value)
 {
-  couplings::ApplicationPropertiesDataBase & properties = 
+  couplings::ApplicationPropertiesDataBase & properties =
     couplings::ApplicationPropertiesDataBase::getInstance();
 
-  const std::string & nameStr = name; 
+  const std::string & nameStr = name;
   properties.addLocalIntControlParameter(name, initial_value);
 }
 
 /*----------------------------------------------------------------------------
  *
  * Add a double control parameter
- * 
+ *
  * parameters
  *    name           <-- parameter name
  *    initial_value  <-- initial value
@@ -152,20 +152,20 @@ void couplings_add_local_int_control_parameter(const char *name, int initial_val
  *----------------------------------------------------------------------------*/
 
 void couplings_add_local_double_control_parameter
-(const char *name, 
+(const char *name,
  double initial_value)
 {
-  couplings::ApplicationPropertiesDataBase & properties = 
+  couplings::ApplicationPropertiesDataBase & properties =
     couplings::ApplicationPropertiesDataBase::getInstance();
 
-  const std::string & nameStr = name; 
+  const std::string & nameStr = name;
   properties.addLocalDoubleControlParameter(name, initial_value);
 }
 
 /*----------------------------------------------------------------------------
  *
  * Set a integer control parameter
- * 
+ *
  * parameters
  *    name           <-- parameter name
  *    value          <-- value
@@ -174,17 +174,17 @@ void couplings_add_local_double_control_parameter
 
 void couplings_set_local_int_control_parameter(const char *name, int value)
 {
-  couplings::ApplicationPropertiesDataBase & properties = 
+  couplings::ApplicationPropertiesDataBase & properties =
     couplings::ApplicationPropertiesDataBase::getInstance();
 
-  const std::string & nameStr = name; 
+  const std::string & nameStr = name;
   properties.setLocalIntControlParameter(name, value);
 }
 
 /*----------------------------------------------------------------------------
  *
  * Set a double control parameter
- * 
+ *
  * parameters
  *    name           <-- parameter name
  *    value          <-- value
@@ -193,17 +193,17 @@ void couplings_set_local_int_control_parameter(const char *name, int value)
 
 void couplings_set_local_double_control_parameter(const char *name, double value)
 {
-  couplings::ApplicationPropertiesDataBase & properties = 
+  couplings::ApplicationPropertiesDataBase & properties =
     couplings::ApplicationPropertiesDataBase::getInstance();
 
-  const std::string & nameStr = name; 
+  const std::string & nameStr = name;
   properties.setLocalDoubleControlParameter(name, value);
 }
 
 /*----------------------------------------------------------------------------
  *
  * Get a integer control parameter of the current application
- * 
+ *
  * parameters
  *    name           <-- parameter name
  *
@@ -211,17 +211,17 @@ void couplings_set_local_double_control_parameter(const char *name, double value
 
 int couplings_get_local_int_control_parameter(const char *name)
 {
-  couplings::ApplicationPropertiesDataBase & properties = 
+  couplings::ApplicationPropertiesDataBase & properties =
     couplings::ApplicationPropertiesDataBase::getInstance();
 
-  const std::string & nameStr = name; 
+  const std::string & nameStr = name;
   return properties.getLocalIntControlParameter(name);
 }
 
 /*----------------------------------------------------------------------------
  *
  * Get a double control parameter of the current application
- * 
+ *
  * parameters
  *    name           <-- parameter name
  *
@@ -229,17 +229,17 @@ int couplings_get_local_int_control_parameter(const char *name)
 
 double couplings_get_local_double_control_parameter(const char *name)
 {
-  couplings::ApplicationPropertiesDataBase & properties = 
+  couplings::ApplicationPropertiesDataBase & properties =
     couplings::ApplicationPropertiesDataBase::getInstance();
 
-  const std::string & nameStr = name; 
+  const std::string & nameStr = name;
   return properties.getLocalDoubleControlParameter(name);
 }
 
 /*----------------------------------------------------------------------------
  *
  * Delete a current application Int parameter
- * 
+ *
  * parameters
  *    name           <-- parameter name
  *
@@ -247,17 +247,17 @@ double couplings_get_local_double_control_parameter(const char *name)
 
 void couplings_delete_local_int_control_parameter(const char *name)
 {
-  couplings::ApplicationPropertiesDataBase & properties = 
+  couplings::ApplicationPropertiesDataBase & properties =
     couplings::ApplicationPropertiesDataBase::getInstance();
 
-  const std::string & nameStr = name; 
+  const std::string & nameStr = name;
   properties.eraseLocalIntControlParameter(name);
 }
 
 /*----------------------------------------------------------------------------
  *
  * Delete a current application Int parameter
- * 
+ *
  * parameters
  *    name           <-- parameter name
  *
@@ -265,17 +265,17 @@ void couplings_delete_local_int_control_parameter(const char *name)
 
 void couplings_delete_local_double_control_parameter(const char *name)
 {
-  couplings::ApplicationPropertiesDataBase & properties = 
+  couplings::ApplicationPropertiesDataBase & properties =
     couplings::ApplicationPropertiesDataBase::getInstance();
 
-  const std::string & nameStr = name; 
+  const std::string & nameStr = name;
   properties.eraseLocalDoubleControlParameter(name);
 }
 
 /*----------------------------------------------------------------------------
  *
  * Get a integer control parameter of a other application
- * 
+ *
  * parameters
  *    application_name       <-- application name
  *    name                   <-- parameter name
@@ -283,10 +283,10 @@ void couplings_delete_local_double_control_parameter(const char *name)
  *----------------------------------------------------------------------------*/
 
 int couplings_get_distant_int_control_parameter
-(const char *application_name, 
+(const char *application_name,
  const char *name)
 {
-  couplings::ApplicationPropertiesDataBase & properties = 
+  couplings::ApplicationPropertiesDataBase & properties =
     couplings::ApplicationPropertiesDataBase::getInstance();
 
   const std::string &application_nameStr = application_name;
@@ -297,7 +297,7 @@ int couplings_get_distant_int_control_parameter
 /*----------------------------------------------------------------------------
  *
  * Get a double control parameter of a other application
- * 
+ *
  * parameters
  *    application_name    <-- application name
  *    name                <-- parameter name
@@ -305,10 +305,10 @@ int couplings_get_distant_int_control_parameter
  *----------------------------------------------------------------------------*/
 
 double couplings_get_distant_double_control_parameter
-(const char *application_name, 
+(const char *application_name,
  const char *name)
 {
-  couplings::ApplicationPropertiesDataBase & properties = 
+  couplings::ApplicationPropertiesDataBase & properties =
     couplings::ApplicationPropertiesDataBase::getInstance();
 
   const std::string &application_nameStr = application_name;
@@ -318,18 +318,18 @@ double couplings_get_distant_double_control_parameter
 
 /*----------------------------------------------------------------------------
  *
- * Synchronise local control parameters with an other application.
- *  This is a synchornisation point with this second application
- * 
+ * Synchronize local control parameters with an other application.
+ *  This is a synchronization point with this second application
+ *
  * parameters
  *    application_name    <-- application name
  *    name                <-- parameter name
  *
  *----------------------------------------------------------------------------*/
 
-void couplings_synchronise_control_parameter(const char *application_name)
+void couplings_synchronize_control_parameter(const char *application_name)
 {
-  couplings::ApplicationPropertiesDataBase & properties = 
+  couplings::ApplicationPropertiesDataBase & properties =
     couplings::ApplicationPropertiesDataBase::getInstance();
 
   const std::string &application_nameStr = application_name;
@@ -338,35 +338,39 @@ void couplings_synchronise_control_parameter(const char *application_name)
 
 /*----------------------------------------------------------------------------
  *
- * Create a coupling object 
+ * Create a coupling object
  *
  * parameters:
+ *   coupling_id             <-- Coupling identifier
  *   coupled_application     <-- Coupled application name
- *   field_nature            <-- Nature of the current application fields
- *   output_format           <-- Output format to visualize exchanged fields 
+ *   entitiesDim             <-- Mesh entities dimension (1, 2 or 3)
+ *   tolerance               <-- Geometric tolerance to locate
+ *   mesh_type               <-- COUPLINGS_STATIC_MESH
+ *                               COUPLINGS_MOBILE_MESH (not implemented yet)
+ *   solver_type             <-- COUPLINGS_SOLVER_CELL_CENTER
+ *                               COUPLINGS_SOLVER_CELL_VERTEX
+ *   output_frequency        <-- Output frequency
+ *   output_format           <-- Output format to visualize exchanged fields
  *                               on the coupled mesh. Choice between :
  *                                 - "EnSight Gold"
  *                                 - "MED_ficher"
  *                                 - "CGNS"
- *                                 - "None"
- *   output_format_option    <-- Outpout options
+ *   output_format_option    <-- Output options
  *                             text                output text files
  *                             binary              output binary files (default)
- *                             big_endian          force binary files 
+ *                             big_endian          force binary files
  *                                                 to big-endian
- *                             discard_polygons    do not output polygons 
+ *                             discard_polygons    do not output polygons
  *                                                 or related values
- *                             discard_polyhedra   do not output polyhedra 
+ *                             discard_polyhedra   do not output polyhedra
  *                                                 or related values
- *                             divide_polygons     tesselate polygons 
+ *                             divide_polygons     tesselate polygons
  *                                                 with triangles
- *                             divide_polyhedra    tesselate polyhedra 
- *                                                 with tetrahedra and pyramids 
- *                                                 (adding a vertex near 
+ *                             divide_polyhedra    tesselate polyhedra
+ *                                                 with tetrahedra and pyramids
+ *                                                 (adding a vertex near
  *                                                 each polyhedron's center)
  *
- * returns:
- *   The coupling id  
  *
  *----------------------------------------------------------------------------*/
 
@@ -376,21 +380,21 @@ void couplings_create_coupling
   const int entities_dim,
   const double tolerance,
   const couplings_mesh_type_t mesh_type,
-  const couplings_solver_type_t solver_type, 
+  const couplings_solver_type_t solver_type,
   const int    output_frequency,
   const char  *output_format,
   const char  *output_format_option)
 {
-  couplings::CouplingDataBase & couplingDataBase = 
+  couplings::CouplingDataBase & couplingDataBase =
     couplings::CouplingDataBase::getInstance();
 
-  couplings::ApplicationPropertiesDataBase & properties = 
+  couplings::ApplicationPropertiesDataBase & properties =
     couplings::ApplicationPropertiesDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
   const std::string &coupled_application_str = coupled_application;
 
-  couplingDataBase.createCoupling(coupling_name, 
+  couplingDataBase.createCoupling(coupling_name,
                                   properties.getLocalApplicationProperties(),
                                   properties.getDistantApplicationProperties(coupled_application_str),
                                   entities_dim,
@@ -403,13 +407,13 @@ void couplings_create_coupling
 
 /*----------------------------------------------------------------------------
  *
- * Set points to locate. This function must be called if the points to locate 
+ * Set points to locate. This function must be called if the points to locate
  * do not correspond to :
  *        - vertices for NATURE_NODE nature
  *        - cell center for NATURE_CELL_CENTER nature
- * 
+ *
  * parameters:
- *   coupling_id        <-- coupling identificator
+ *   coupling_id        <-- coupling identifier
  *   n_points           <-- number of points to locate
  *   coordinates        <-- coordinates of points to locate (enterlaced)
  *
@@ -418,9 +422,9 @@ void couplings_create_coupling
 void couplings_set_points_to_locate
 (const char  *coupling_name,
  const int    n_points,
- double coordinate[]) 
+ double coordinate[])
 {
-  couplings::CouplingDataBase & couplingDataBase = 
+  couplings::CouplingDataBase & couplingDataBase =
     couplings::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
@@ -429,58 +433,133 @@ void couplings_set_points_to_locate
 
   coupling.setPointsToLocate(n_points, coordinate);
 }
-                                          
+
 /*----------------------------------------------------------------------------
  *
- * Define the support mesh for a coupling. The connectivity is ordered if 
- * necessary. The connectivity order is :
- *        - 1D : edges
- *        - 2D : triangles, quadrangles, polygons
- *        - 3D : tetrahedra, pyramids, prism, hexaedra, polyhedra
+ * Define the support mesh for a coupling. The connectivity is sorted if
+ * necessary.
+ *
+ *
+ * Order definition :
+ *    1D : edges
+ *    2D : triangles, quadrangles, polygons
+ *    3D : tetrahedra, pyramids, prism, hexaedra
+ *
+ * Local connectivity for the following element type :
+ *
+ *  - edge :
+ *
+ *   1 x-------x 2
+ *
+ *  - triangle :
+ *
+ *   1 x-------x 3
+ *      \     /
+ *       \   /
+ *        \ /
+ *         x 2
+ *
+ *  - quadrangle :
+ *
+ *      4 x-------x 3
+ *       /       /
+ *      /       /
+ *   1 x-------x2
+ *
+ *   - tetrahedra :
+ *
+ *         x 4
+ *        /|\
+ *       / | \
+ *      /  |  \
+ *   1 x- -|- -x 3
+ *      \  |  /
+ *       \ | /
+ *        \|/
+ *         x 2
+ *
+ *   - pyramid :
+ *
+ *          5 x
+ *           /|\
+ *          //| \
+ *         // |  \
+ *      4 x/--|---x 3
+ *       //   |  /
+ *      //    | /
+ *   1 x-------x 2
+ *
+ *  - prism :
+ *
+ *   4 x-------x 6
+ *     |\     /|
+ *     | \   / |
+ *   1 x- \-/ -x 3
+ *      \ 5x  /
+ *       \ | /
+ *        \|/
+ *         x 2
+ *
+ *  -  hexaedra :
+ *
+ *      8 x-------x 7
+ *       /|      /|
+ *      / |     / |
+ *   5 x-------x6 |
+ *     | 4x----|--x 3
+ *     | /     | /
+ *     |/      |/
+ *   1 x-------x 2
+ *
+ * Order definition :
+ *    1D : edges
+ *    2D : triangles, quadrangles, polygons
+ *    3D : tetrahedra, pyramids, prism, hexaedra
+ *
  *
  * parameters:
- *   coupling_id        <-- coupling identificator
- *   dim                <-- space dimension (1, 2 or 3)
- *   n_vertex           <-- number of vertex
+ *   coupling_id        <-- coupling name
+ *   n_vertex           <-- number of vertices
  *   n_elements         <-- number of elements
- *   coordinates        <-- vertex enterlaced coordinates
- *   parent_vertex_num  <-- pointer to parent vertex numbers (or NULL)
- *   connectivity_index <-> polygon face -> vertices index (O to n-1)
+ *   coordinates        <-- vertex interlaced coordinates
+ *   connectivity_index <-> element -> vertices index (O to n-1)
  *                          size: n_elements + 1
+ *                          (out : ordered connectivity_index)
  *   connectivity       <-> element -> vertex connectivity
- *                          size: connectivity_index[n_elements] 
- * 
+ *                          size: connectivity_index[n_elements]
+ *                          (out : ordered connectivity)
+ *
  *----------------------------------------------------------------------------*/
 
-void couplings_define_mesh(const char *coupling_name, 
+void couplings_define_mesh(const char *coupling_name,
                            const int n_vertex,
                            const int n_element,
                            const double coordinates[],
                            int connectivity_index[],
                            int connectivity[])
 {
-  couplings::CouplingDataBase & couplingDataBase = 
+  couplings::CouplingDataBase & couplingDataBase =
     couplings::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
 
   couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
-  coupling.defineMesh(n_vertex, 
-                      n_element, 
-                      coordinates, 
-                      connectivity_index, 
+  coupling.defineMesh(n_vertex,
+                      n_element,
+                      coordinates,
+                      connectivity_index,
                       connectivity);
 }
 
-void couplings_add_polyhedra(const char *coupling_name, 
+void couplings_add_polyhedra(const char *coupling_name,
                              const int n_element,
                              int face_index[],
                              int cell_to_face_connectivity[],
                              int face_connectivity_index[],
                              int face_connectivity[])
 {
-  couplings::CouplingDataBase & couplingDataBase = 
+  couplings::CouplingDataBase & couplingDataBase =
     couplings::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
@@ -494,46 +573,178 @@ void couplings_add_polyhedra(const char *coupling_name,
                                   face_connectivity);
 }
 
+/*----------------------------------------------------------------------------
+ *
+ * Location completion.
+ * This is a synchronization point with the coupled application
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *----------------------------------------------------------------------------*/
+
+void couplings_locate (const char *coupling_name)
+{
+  couplings::CouplingDataBase & couplingDataBase =
+    couplings::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.locate();
+}
 
 /*----------------------------------------------------------------------------
  *
- * Exchange data with the coupled application. This is a synchronization point 
- * with the coupled application 
+ * Get located points location
  *
  * parameters
- *   coupling_id          <-- Coupling identificator
+ *   coupling_id          <-- Coupling identifier
+ * return
+ *   located points location
+ *----------------------------------------------------------------------------*/
+
+const int *couplings_get_distant_location (const char *coupling_id)
+{
+  couplings::CouplingDataBase & couplingDataBase =
+    couplings::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_id;
+
+  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  return coupling.getDistantLocation();
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get barycentric coordinates index
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ * return
+ *   barycentric coordinates index
+ *----------------------------------------------------------------------------*/
+
+const int *couplings_get_distant_barycentric_coordinates_index (const char *coupling_id)
+{
+  couplings::CouplingDataBase & couplingDataBase =
+    couplings::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_id;
+
+  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  return coupling.getDistantBarycentricCoordinatesIndex();
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get barycentric coordinates
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ * return
+ *   barycentric coordinates
+ *----------------------------------------------------------------------------*/
+
+const double *couplings_get_distant_barycentric_coordinates (const char *coupling_id)
+{
+  couplings::CouplingDataBase & couplingDataBase =
+    couplings::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_id;
+
+  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  return coupling.getDistantBarycentricCoordinates();
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of located points
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *
+ * return
+ *                        --> Number of located points
+ *
+ *----------------------------------------------------------------------------*/
+
+int couplings_get_n_located_points(const char *coupling_id)
+{
+  couplings::CouplingDataBase & couplingDataBase =
+    couplings::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_id;
+
+  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  return coupling.getNLocatedPoint();
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of not located points
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *
+ * return
+ *                        --> Number of not located points
+ *
+ *----------------------------------------------------------------------------*/
+
+int couplings_get_n_not_located_points(const char *coupling_id)
+{
+  couplings::CouplingDataBase & couplingDataBase =
+    couplings::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_id;
+
+  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  return coupling.getNNotlocatedPoint();
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Exchange data with the coupled application. This is a synchronization point
+ * with the coupled application
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
  *   exchange_name        <-- Exchange name
  *   exchange_type        <-- Exchange type
- *   exchange_dimension   <-- Dimension of exchanged data : 
- *                            - COUPLINGS_DIMENSION_SCALAR
- *                            - COUPLINGS_DIMENSION_INTERLACED_VECTOR 
- *   time_step            <-- Time step  (only for visualization) 
+ *   stride               <-- Number of interlaced field
+ *   time_step            <-- Time step  (only for visualization)
  *   time_value           <-- Time value (only for visualization)
- *   sending_field_name   <-- Sending field name 
+ *   sending_field_name   <-- Sending field name
  *   sending_field        <-- Sending field (NULL -> no sending)
- *   receiving_field_name <-- Receiving field name 
+ *   receiving_field_name <-- Receiving field name
  *   receiving_field      --> Receiving field
  *
  * returns :
- *   1 if data were received 
- *   0 else 
+ *   1 if data were received
+ *   0 else
  *
  *----------------------------------------------------------------------------*/
 
 couplings_exchange_status_t couplings_exchange
 (const char                          *coupling_name,
  const char                          *exchange_name,
- const couplings_field_dimension_t    exchange_dimension, 
- const int                            time_step, 
+ const int                            stride,
+ const int                            time_step,
  const double                         time_value,
  const char                          *sending_field_name,
- const double                        *sending_field, 
+ const double                        *sending_field,
  char                                *receiving_field_name,
  double                              *receiving_field,
  int                                 *nNotLocatedPoints)
 
 {
-  couplings::CouplingDataBase & couplingDataBase = 
+  couplings::CouplingDataBase & couplingDataBase =
     couplings::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
@@ -543,11 +754,11 @@ couplings_exchange_status_t couplings_exchange
   couplings_exchange_status_t status;
 
   status = coupling.exchange(exchange_name,
-                             exchange_dimension, 
-                             time_step, 
+                             stride,
+                             time_step,
                              time_value,
                              sending_field_name,
-                             sending_field, 
+                             sending_field,
                              receiving_field_name,
                              receiving_field,
                              NULL);
@@ -559,10 +770,10 @@ couplings_exchange_status_t couplings_exchange
 
 /*----------------------------------------------------------------------------
  *
- * Define the interpolation function 
+ * Define the interpolation function
  *
  * parameters
- *   coupling_id          <-- Coupling identificator
+ *   coupling_id          <-- Coupling identifier
  *   fct                  <-- Interpolation function
  *
  *----------------------------------------------------------------------------*/
@@ -571,7 +782,7 @@ void couplings_set_interpolation_function
 (const char *coupling_name,
  couplings_interpolation_fct_t * fct)
 {
-  couplings::CouplingDataBase & couplingDataBase = 
+  couplings::CouplingDataBase & couplingDataBase =
     couplings::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
@@ -583,33 +794,16 @@ void couplings_set_interpolation_function
 
 /*----------------------------------------------------------------------------
  *
- * Define the non located point treatment function
- *
- * parameters
- *   coupling_id          <-- Coupling identificator
- *   fct                  <-- Non located point treatment function
- *
- *----------------------------------------------------------------------------*/
-
-/*void couplings_set_not_located_point_treatment_function
-(const char *coupling_id,
- couplings_not_located_point_treatment_fct_t *const fct) 
-{
-  std::cout << "  couplings_set_not_located_point_treatment_function not yet implemented" << std::endl;
-  }*/
-
-/*----------------------------------------------------------------------------
- *
  * Delete a coupling
  *
  * parameters
- *   coupling_id          <-- Coupling identificator
+ *   coupling_id          <-- Coupling identifier
  *
  *----------------------------------------------------------------------------*/
 
 void couplings_delete_coupling(const char *coupling_name)
 {
-  couplings::CouplingDataBase & couplingDataBase = 
+  couplings::CouplingDataBase & couplingDataBase =
     couplings::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
@@ -619,16 +813,16 @@ void couplings_delete_coupling(const char *coupling_name)
 
 /*----------------------------------------------------------------------------
  *
- * Finalize couplings. This is a synchronization point between all applications 
+ * Finalize couplings. This is a synchronization point between all applications
  *
  *----------------------------------------------------------------------------*/
 
-void couplings_finalize() 
+void couplings_finalize()
 {
-  couplings::CouplingDataBase & couplingDataBase = 
+  couplings::CouplingDataBase & couplingDataBase =
     couplings::CouplingDataBase::getInstance();
 
-  couplings::ApplicationPropertiesDataBase & properties = 
+  couplings::ApplicationPropertiesDataBase & properties =
     couplings::ApplicationPropertiesDataBase::getInstance();
 
   const MPI_Comm globalComm = properties.getGlobalComm();
@@ -659,7 +853,7 @@ void couplings_finalize()
 
 void couplings_dump_application_properties()
 {
-  couplings::ApplicationPropertiesDataBase & properties = 
+  couplings::ApplicationPropertiesDataBase & properties =
     couplings::ApplicationPropertiesDataBase::getInstance();
   properties.dump();
 }
@@ -669,16 +863,16 @@ void couplings_dump_application_properties()
  * Get not located points
  *
  * parameters
- *   coupling_id          <-- Coupling identificator
- *   
+ *   coupling_id          <-- Coupling identifier
+ *
  * return
- *   notLocatedPoints     <-- Not located points    
+ *   notLocatedPoints     <-- Not located points
  *
  *----------------------------------------------------------------------------*/
 
 const int * couplings_get_not_located_points(const char *coupling_id)
 {
-  couplings::CouplingDataBase & couplingDataBase = 
+  couplings::CouplingDataBase & couplingDataBase =
     couplings::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_id;
@@ -688,22 +882,21 @@ const int * couplings_get_not_located_points(const char *coupling_id)
   return coupling.getNotlocatedPoint();
 }
 
-
 /*----------------------------------------------------------------------------
  *
  * Get not located points
  *
  * parameters
- *   coupling_id          <-- Coupling identificator
- *   
+ *   coupling_id          <-- Coupling identifier
+ *
  * return
- *   locatedPoints        <-- Located points    
+ *   locatedPoints        <-- Located points
  *
  *----------------------------------------------------------------------------*/
 
 const int * couplings_get_located_points(const char *coupling_id)
 {
-  couplings::CouplingDataBase & couplingDataBase = 
+  couplings::CouplingDataBase & couplingDataBase =
     couplings::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_id;
@@ -711,6 +904,30 @@ const int * couplings_get_located_points(const char *coupling_id)
   couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   return coupling.getLocatedPoint();
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of located distant point
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *
+ * return
+ *                        --> Number of located distant points
+ *
+ *----------------------------------------------------------------------------*/
+
+int couplings_get_n_located_distant_points(const char *coupling_id)
+{
+  couplings::CouplingDataBase & couplingDataBase =
+    couplings::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_id;
+
+  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  return coupling.getNDistantPoint();
 }
 
 /*----------------------------------------------------------------------------*/

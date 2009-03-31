@@ -12,13 +12,13 @@
 namespace couplings {
 
   class ApplicationProperties;
-  
+
   class Mesh;
-  
+
   class Coupling {
-    
+
   public:
-    
+
     Coupling(const std::string& name,
              const ApplicationProperties& localApplicationProperties,
              const ApplicationProperties& coupledApplicationProperties,
@@ -44,11 +44,11 @@ namespace couplings {
                                 int face_connectivity[]);
 
     couplings_exchange_status_t exchange(const char                          *exchange_name,
-                                         const couplings_field_dimension_t    fieldDimension, 
-                                         const int                            time_step, 
+                                         const int                            stride,
+                                         const int                            time_step,
                                          const double                         time_value,
                                          const char                          *sending_field_name,
-                                         const double                        *sending_field, 
+                                         const double                        *sending_field,
                                          char                                *receiving_field_name,
                                          double                              *receiving_field,
                                          void                                *ptFortranInterpolationFct);
@@ -60,8 +60,6 @@ namespace couplings {
 
     inline void set_interpolation_function(couplings_interpolation_fct_t *fct);
 
-    //inline void set_not_located_point_treatment_function_t(couplings_not_located_point_treatment_fct_t *fct); 
-
     inline const int & getNNotlocatedPoint() const;
 
     inline const int *getNotlocatedPoint() const;
@@ -70,6 +68,15 @@ namespace couplings {
 
     inline const int *getLocatedPoint() const;
 
+    inline const int *getDistantLocation() const;
+
+    inline int getNDistantPoint() const;
+
+    inline const int *getDistantBarycentricCoordinatesIndex() const;
+
+    inline const double *getDistantBarycentricCoordinates() const;
+
+    void locate();
 
   private:
 
@@ -79,37 +86,34 @@ namespace couplings {
 
      std::vector<double> & _extrapolate(double *cellCenterField);
 
-    // Dans l'avenir créer une fabrique abstraite qui permet de definir differentes
-    // methodes d'interpolation 
+    // TODO :Dans l'avenir créer une fabrique abstraite qui permet de definir differentes methodes d'interpolation
 
-    void _interpolate(double *vertexField, 
+    void _interpolate(double *vertexField,
                       std::vector<double>& interpolatedField,
-                      const couplings_field_dimension_t fieldDimension);
+                      const int stride);
 
-    void _interpolate1D(double *vertexField, 
+    void _interpolate1D(double *vertexField,
                         std::vector<double>& interpolatedField,
-                        const couplings_field_dimension_t fieldDimension);
+                        const int stride);
 
-    void _interpolate2D(double *vertexField, 
+    void _interpolate2D(double *vertexField,
                         std::vector<double>& interpolatedField,
-                        const couplings_field_dimension_t fieldDimension);
+                        const int stride);
 
-    void _interpolate3D(double *vertexField, 
+    void _interpolate3D(double *vertexField,
                         std::vector<double>& interpolatedField,
-                        const couplings_field_dimension_t fieldDimension);
-
-    void _locate();
+                        const int stride);
 
     void _visualization(const char *exchangeName,
-                        const couplings_field_dimension_t fieldDimension, 
-                        const int timeStep, 
+                        const int stride,
+                        const int timeStep,
                         const double timeValue,
                         const char  *sendingFieldName,
                         const void *sendingField,
                         const char  *receivingFieldName,
                         const void *receivingField);
 
-    double _createNan(); 
+    double _createNan();
 
   private:
     const std::string   _name;
@@ -124,7 +128,7 @@ namespace couplings {
   private:
     int                  _nPointsToLocate;
     Mesh                *_supportMesh;
-    double              *_coordsPointsToLocate; 
+    double              *_coordsPointsToLocate;
     fvm_locator_t       *_fvmLocator;
     fvm_writer_t        *_fvmWriter;
     couplings_interpolation_fct_t *_interpolationFct;
@@ -133,7 +137,9 @@ namespace couplings {
     double              *_barycentricCoordinates;
     int                  _nNotLocatedPoint;
     int                 *_notLocatedPoint;
+    int                  _nDistantpoint;
     int                 *_locatedPoint;
+    int                 *_location;
   private:
     std::vector<double> *_tmpVertexField; //Evite une allocation a chaque extrapolation
     std::vector<double> *_tmpDistantField;

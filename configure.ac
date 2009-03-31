@@ -31,8 +31,8 @@ m4_define([licence_c_comment],
 */])
 
 m4_define([couplings_major_version], [0])
-m4_define([couplings_minor_version], [12])
-m4_define([couplings_release_version], [0])
+m4_define([couplings_minor_version], [0])
+m4_define([couplings_release_version], [1])
 m4_define([couplings_version_extra], [])
 m4_define([couplings_version_string],
           [couplings_major_version.couplings_minor_version.couplings_release_version@&t@couplings_version_extra])
