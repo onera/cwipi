@@ -630,7 +630,7 @@ void PROCF(couplings_define_mesh_cf,
   char *coupling_nameC =
     _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
 
-  couplings_define_mesh(coupling_name,
+  couplings_define_mesh(coupling_nameC,
                         *n_vertex,
                         *n_element,
                         coordinates,
