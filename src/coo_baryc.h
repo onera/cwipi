@@ -22,14 +22,14 @@ extern "C" {
 #endif
 #endif /* __cplusplus */
 
-void coo_baryc(const fvm_locator_t* locator, 
-               const int   nMeshCoords, 
+void coo_baryc(const fvm_locator_t* locator,
+               const int   nMeshCoords,
                const double *meshCoords,
-               const int   nElts,                
-               const int  *nMeshElts, 
-               const int  *meshElts, 
-               int  *n_dist_points, 
-               int  **nDistBarCoords, 
+               const int   nElts,
+               const int  *nMeshElts,
+               const int  *meshElts,
+               int  *n_dist_points,
+               int  **nDistBarCoords,
                double **distBarCoords);
 
 #ifdef __cplusplus

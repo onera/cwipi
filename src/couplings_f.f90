@@ -1079,8 +1079,6 @@ contains
                                       nLocalPolyhedra, &
                                       nDistantPoint, &
                                       localCoordinates, &
-                                      stored, &
-                                      localParentEltNum, &
                                       localConnectivityIndex, &
                                       localConnectivity, &
                                       localPolyhedraFaceIndex, &
@@ -1100,9 +1098,7 @@ contains
          integer :: nLocalElement
          integer :: nLocalPolyhedra
          integer :: nDistantPoint
-         integer :: stored
          double precision, dimension(*) :: localCoordinates
-         integer, dimension(*) :: localParentEltNum
          integer, dimension(*) :: localConnectivityIndex
          integer, dimension(*) :: localConnectivity
          integer, dimension(*) :: localPolyhedraFaceIndex
@@ -1254,8 +1250,6 @@ contains
                                       nLocalPolyhedra, &
                                       nDistantPoint, &
                                       localCoordinates, &
-                                      stored, &
-                                      localParentEltNum, &
                                       localConnectivityIndex, &
                                       localConnectivity, &
                                       localPolyhedraFaceIndex, &
@@ -1276,9 +1270,7 @@ contains
          integer :: nLocalElement
          integer :: nLocalPolyhedra
          integer :: nDistantPoint
-         integer :: stored
          double precision, dimension(*) :: localCoordinates
-         integer, dimension(*) :: localParentEltNum
          integer, dimension(*) :: localConnectivityIndex
          integer, dimension(*) :: localConnectivity
          integer, dimension(*) :: localPolyhedraFaceIndex

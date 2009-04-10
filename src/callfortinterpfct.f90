@@ -4,8 +4,6 @@ subroutine callfortinterpfct(entities_dim, &
                              n_local_polhyedra, &
                              n_distant_point, &
                              local_coordinates, &
-                             stored, &
-                             local_parent_vertex_num, &
                              local_connectivity_index, &
                              local_connectivity, &
                              local_polyhedra_face_index, &
@@ -31,8 +29,6 @@ subroutine callfortinterpfct(entities_dim, &
                                     n_local_polhyedra, &
                                     n_distant_point, &
                                     local_coordinates, &
-                                    stored, &
-                                    local_parent_vertex_num, &
                                     local_connectivity_index, &
                                     local_connectivity, &
                                     local_polyhedra_face_index, &
@@ -52,9 +48,7 @@ subroutine callfortinterpfct(entities_dim, &
        integer :: n_local_element
        integer :: n_local_polhyedra
        integer :: n_distant_point
-       integer :: stored
        double precision, dimension(*) :: local_coordinates
-       integer, dimension(*) :: local_parent_vertex_num
        integer, dimension(*) :: local_connectivity_index
        integer, dimension(*) :: local_connectivity
        integer, dimension(*) :: local_polyhedra_face_index
@@ -71,15 +65,13 @@ subroutine callfortinterpfct(entities_dim, &
        double precision, dimension(*) :: distant_field
      end subroutine ptInterpolationFct
   end interface
-  
+
   integer :: entities_dim
   integer :: n_local_vertex
   integer :: n_local_element
   integer :: n_local_polhyedra
   integer :: n_distant_point
-  integer :: stored
   double precision, dimension(*) :: local_coordinates
-  integer, dimension(*) :: local_parent_vertex_num
   integer, dimension(*) :: local_connectivity_index
   integer, dimension(*) :: local_connectivity
   integer, dimension(*) :: local_polyhedra_face_index
@@ -94,7 +86,7 @@ subroutine callfortinterpfct(entities_dim, &
   integer :: solver_type
   double precision, dimension(*) :: local_field
   double precision, dimension(*) :: distant_field
-  
+
 
   call ptInterpolationFct (entities_dim, &
                            n_local_vertex, &
@@ -102,8 +94,6 @@ subroutine callfortinterpfct(entities_dim, &
                            n_local_polhyedra, &
                            n_distant_point, &
                            local_coordinates, &
-                           stored, &
-                           local_parent_vertex_num, &
                            local_connectivity_index, &
                            local_connectivity, &
                            local_polyhedra_face_index, &
@@ -118,6 +108,6 @@ subroutine callfortinterpfct(entities_dim, &
                            solver_type, &
                            local_field, &
                            distant_field)
-  
+
 end subroutine callfortinterpfct
 

@@ -31,13 +31,15 @@ namespace couplings {
 
     virtual ~Coupling();
 
-    void defineMesh(const int nVertex,
+    void defineMesh(const MPI_Comm &localComm,
+                    const int nVertex,
                     const int nElement,
                     const double coordinates[],
                     int connectivity_index[],
                     int connectivity[]);
 
-    void defineMeshAddPolyhedra(const int n_element,
+    void defineMeshAddPolyhedra(const MPI_Comm &localComm,
+                                const int n_element,
                                 int face_index[],
                                 int cell_to_face_connectivity[],
                                 int face_connectivity_index[],
@@ -104,14 +106,16 @@ namespace couplings {
                         std::vector<double>& interpolatedField,
                         const int stride);
 
-    void _visualization(const char *exchangeName,
-                        const int stride,
-                        const int timeStep,
-                        const double timeValue,
-                        const char  *sendingFieldName,
-                        const void *sendingField,
-                        const char  *receivingFieldName,
-                        const void *receivingField);
+    void _fieldsVisualization(const char *exchangeName,
+                              const int stride,
+                              const int timeStep,
+                              const double timeValue,
+                              const char  *sendingFieldName,
+                              const void *sendingField,
+                              const char  *receivingFieldName,
+                              const void *receivingField);
+
+    void _initVisualization();
 
     double _createNan();
 

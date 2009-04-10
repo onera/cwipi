@@ -36,8 +36,6 @@ extern "C" {
       int *n_local_polhyedra,
       int *n_distant_point,
       double *local_coordinates,
-      int *stored,
-      int *global_num,
       int *local_connectivity_index,
       int *local_connectivity,
       int *local_polyhedra_face_index,
@@ -118,10 +116,7 @@ std::vector<double> &  Coupling::_extrapolate(double *cellCenterField)
       for (int j = 0; j < nEltVertex; j++) {
         int vertex = eltConnectivity[index+j] - 1;
         volumeVertex[vertex] += cellVolume[i];
-        if (_supportMesh->getParentNum() != NULL)
-          vertexField[vertex]  += cellCenterField[(*_supportMesh->getParentNum())[i]-1] * cellVolume[i];
-        else
-          vertexField[vertex]  += cellCenterField[i] * cellVolume[i];
+        vertexField[vertex]  += cellCenterField[i] * cellVolume[i];
       }
     }
 
@@ -159,10 +154,7 @@ std::vector<double> &  Coupling::_extrapolate(double *cellCenterField)
             if (ivertex < vertexPoly[j]) {
               ivertex = vertexPoly[j];
               volumeVertex[ivertex - 1] += cellVolume[i];
-              if (_supportMesh->getParentNum() != NULL)
-                vertexField[ivertex - 1]  += cellCenterField[(*_supportMesh->getParentNum())[i]-1] * cellVolume[i];
-              else
-                vertexField[ivertex - 1]  += cellCenterField[i] * cellVolume[i];
+              vertexField[ivertex - 1]  += cellCenterField[i] * cellVolume[i];
             }
           }
         }
@@ -444,7 +436,8 @@ void Coupling::_interpolate3D(double *vertexField,
 }
 
 
-void Coupling::defineMesh(const int nVertex,
+void Coupling::defineMesh(const MPI_Comm &localComm,
+                          const int nVertex,
                           const int nElement,
                           const double coordinates[],
                           int connectivity_index[],
@@ -453,7 +446,8 @@ void Coupling::defineMesh(const int nVertex,
   if (_supportMesh  != NULL)
     bft_error(__FILE__, __LINE__, 0, "mesh is already created\n");
 
-  _supportMesh = new Mesh(_entitiesDim,
+  _supportMesh = new Mesh(localComm,
+                          _entitiesDim,
                           nVertex,
                           nElement,
                           coordinates,
@@ -471,7 +465,8 @@ void Coupling::setPointsToLocate(const int    n_points,
 }
 
 
-void Coupling::defineMeshAddPolyhedra(const int n_element,
+void Coupling::defineMeshAddPolyhedra(const MPI_Comm &localComm,
+                                      const int n_element,
                                       int face_index[],
                                       int cell_to_face_connectivity[],
                                       int face_connectivity_index[],
@@ -496,7 +491,6 @@ void Coupling::updateLocation()
 
 couplings_exchange_status_t Coupling::exchange(const char                          *exchangeName,
                                                const int                            stride,
-                                               //const couplings_field_dimension_t    fieldDimension,
                                                const int                            timeStep,
                                                const double                         timeValue,
                                                const char                          *sendingFieldName,
@@ -611,118 +605,57 @@ couplings_exchange_status_t Coupling::exchange(const char                       
 
       assert(!(_interpolationFct != NULL && ptFortranInterpolationFct != NULL));
 
+      //
       // Callback Fortran
 
-      if (ptFortranInterpolationFct != NULL) {
-
-        if (_supportMesh->getParentNum() == NULL) {
-
-          int stored = 1;
-          PROCF(callfortinterpfct, CALLFORTINTERPFCT) (const_cast <int *> (&_entitiesDim),
-              const_cast <int *> (&nVertex),
-              const_cast <int *> (&nElts),
-              const_cast <int *> (&nPoly),
-              const_cast <int *> (&nDistantPoint),
-              const_cast <double *> (_supportMesh->getVertexCoords()),
-              const_cast <int *> (&stored),
-              const_cast <int *> (&stored),
-              const_cast <int *> (localConnectivityIndex),
-              const_cast <int *> (localConnectivity),
-              const_cast <int *> (localPolyhedraFaceIndex),
-              const_cast <int *> (localPolyhedraCellToFaceConnectivity),
-              const_cast <int *> (localPolyhedraFaceConnectivity_index),
-              const_cast <int *> (localPolyhedraFaceConnectivity),
-              const_cast <double *> (distantCoords),
-              const_cast <int *> (distantLocation),
-              const_cast <int *> (_barycentricCoordinatesIndex),
-              const_cast <double *> (_barycentricCoordinates),
-              const_cast <int *> (&stride),
-              const_cast <int *> ((const int *) &_solverType),
-              const_cast <double *> (sendingField),
-              const_cast <double *> (&tmpDistantField[0]),
-              ptFortranInterpolationFct
+      if (ptFortranInterpolationFct != NULL)
+        PROCF(callfortinterpfct, CALLFORTINTERPFCT) (const_cast <int *> (&_entitiesDim),
+            const_cast <int *> (&nVertex),
+            const_cast <int *> (&nElts),
+            const_cast <int *> (&nPoly),
+            const_cast <int *> (&nDistantPoint),
+            const_cast <double *> (_supportMesh->getVertexCoords()),
+            const_cast <int *> (localConnectivityIndex),
+            const_cast <int *> (localConnectivity),
+            const_cast <int *> (localPolyhedraFaceIndex),
+            const_cast <int *> (localPolyhedraCellToFaceConnectivity),
+            const_cast <int *> (localPolyhedraFaceConnectivity_index),
+            const_cast <int *> (localPolyhedraFaceConnectivity),
+            const_cast <double *> (distantCoords),
+            const_cast <int *> (distantLocation),
+            const_cast <int *> (_barycentricCoordinatesIndex),
+            const_cast <double *> (_barycentricCoordinates),
+            const_cast <int *> (&stride),
+            const_cast <int *> ((const int *) &_solverType),
+            const_cast <double *> (sendingField),
+            const_cast <double *> (&tmpDistantField[0]),
+            ptFortranInterpolationFct
           );
-        }
 
-        else {
-
-          int stored = 0;
-          PROCF(callfortinterpfct, CALLFORTINTERPFCT) (const_cast <int *> (&_entitiesDim),
-              const_cast <int *> (&nVertex),
-              const_cast <int *> (&nElts),
-              const_cast <int *> (&nPoly),
-              const_cast <int *> (&nDistantPoint),
-              const_cast <double *> (_supportMesh->getVertexCoords()),
-              const_cast <int *> (&stored),
-              const_cast <int *> (&(*_supportMesh->getParentNum())[0]),
-              const_cast <int *> (localConnectivityIndex),
-              const_cast <int *> (localConnectivity),
-              const_cast <int *> (localPolyhedraFaceIndex),
-              const_cast <int *> (localPolyhedraCellToFaceConnectivity),
-              const_cast <int *> (localPolyhedraFaceConnectivity_index),
-              const_cast <int *> (localPolyhedraFaceConnectivity),
-              const_cast <double *> (distantCoords),
-              const_cast <int *> (distantLocation),
-              const_cast <int *> (_barycentricCoordinatesIndex),
-              const_cast <double *> (_barycentricCoordinates),
-              const_cast <int *> (&stride),
-              const_cast <int *> ((const int *) &_solverType),
-              const_cast <double *> (sendingField),
-              const_cast <double *> (&tmpDistantField[0]),
-              ptFortranInterpolationFct
-          );
-        }
-      }
-
+      //
       // Callback C
 
-      else if (_interpolationFct != NULL) {
-
-        if (_supportMesh->getParentNum() == NULL)
-          _interpolationFct(_entitiesDim,
-                            nVertex,
-                            nElts,
-                            nPoly,
-                            nDistantPoint,
-                            _supportMesh->getVertexCoords(),
-                            NULL,
-                            localConnectivityIndex,
-                            localConnectivity,
-                            localPolyhedraFaceIndex,
-                            localPolyhedraCellToFaceConnectivity,
-                            localPolyhedraFaceConnectivity_index,
-                            localPolyhedraFaceConnectivity,
-                            distantCoords,
-                            distantLocation,
-                            _barycentricCoordinatesIndex,
-                            _barycentricCoordinates,
-                            stride,
-                            _solverType,
-                            sendingField,
-                            &tmpDistantField[0]);
-        else
-          _interpolationFct(_entitiesDim,
-                            nVertex,
-                            nElts,
-                            nPoly,
-                            nDistantPoint,
-                            _supportMesh->getVertexCoords(),
-                            &(*_supportMesh->getParentNum())[0],
-                            localConnectivityIndex,
-                            localConnectivity,
-                            localPolyhedraFaceIndex,
-                            localPolyhedraCellToFaceConnectivity,
-                            localPolyhedraFaceConnectivity_index,
-                            localPolyhedraFaceConnectivity,
-                            distantCoords,
-                            distantLocation,
-                            _barycentricCoordinatesIndex,
-                            _barycentricCoordinates,
-                            stride,
-                            _solverType,
-                            sendingField,
-                            &tmpDistantField[0]);
-      }
+      else if (_interpolationFct != NULL)
+        _interpolationFct(_entitiesDim,
+                          nVertex,
+                          nElts,
+                          nPoly,
+                          nDistantPoint,
+                          _supportMesh->getVertexCoords(),
+                          localConnectivityIndex,
+                          localConnectivity,
+                          localPolyhedraFaceIndex,
+                          localPolyhedraCellToFaceConnectivity,
+                          localPolyhedraFaceConnectivity_index,
+                          localPolyhedraFaceConnectivity,
+                          distantCoords,
+                          distantLocation,
+                          _barycentricCoordinatesIndex,
+                          _barycentricCoordinates,
+                          stride,
+                          _solverType,
+                          sendingField,
+                          &tmpDistantField[0]);
       else
         _interpolate((double* )sendingField,
                      tmpDistantField,
@@ -787,20 +720,126 @@ couplings_exchange_status_t Coupling::exchange(const char                       
     //
     // Visualization
 
-    _visualization(exchangeName,
-                   stride,
-                   timeStep,
-                   timeValue,
-                   sendingFieldName,
-                   sendingField,
-                   receivingFieldName,
-                   receivingField);
+    _fieldsVisualization(exchangeName,
+                         stride,
+                         timeStep,
+                         timeValue,
+                         sendingFieldName,
+                         sendingField,
+                         receivingFieldName,
+                         receivingField);
 
     return status;
 }
 
+void Coupling::_initVisualization()
+{
+  if (_fvmWriter == NULL) {
 
-void Coupling::_visualization(const char *exchangeName,
+    bft_file_mkdir_default("couplings");
+
+    std::string pathString = "couplings/"+_name + "_" +
+    _localApplicationProperties.getName()+"_"+
+    _coupledApplicationProperties.getName();
+
+    _fvmWriter = fvm_writer_init("Chr",
+                                 pathString.c_str(),
+                                 _outputFormat.c_str(),
+                                 _outputFormatOption.c_str(),
+                                 FVM_WRITER_FIXED_MESH);
+
+    int localCommSize = 0;
+    const MPI_Comm &localComm = _localApplicationProperties.getLocalComm();
+    MPI_Comm_size(localComm, &localCommSize);
+    int localRank = 0;
+    MPI_Comm_rank(localComm, &localRank);
+
+    fvm_writer_export_nodal(_fvmWriter, &(_supportMesh->getFvmNodal()));
+
+    // Export sub domain
+
+    if (localCommSize > 1) {
+
+      const int nElts  = _supportMesh->getNElts();
+
+      int *domLoc = new int [nElts];
+
+      for (int i = 0; i < nElts; i++)
+        domLoc[i] = localRank+1;
+
+      fvm_writer_export_field(_fvmWriter,
+                              const_cast<fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
+                              "partitioning",
+                              FVM_WRITER_PER_ELEMENT,
+                              1,
+                              FVM_NO_INTERLACE,
+                              0,
+                              NULL,
+                              FVM_INT32,
+                              1,
+                              1.,
+                              (const void *const *)  &domLoc);
+      delete[] domLoc;
+    }
+
+    // TODO: A deplacer et a recreer en cas de maillage mobile
+
+    if (_notLocatedPoint != NULL && _coordsPointsToLocate == NULL) {
+      if (_solverType == COUPLINGS_SOLVER_CELL_CENTER) {
+        const int nElts  = _supportMesh->getNElts();
+
+        int *domLoc = new int [nElts];
+
+        for (int i = 0; i < nElts; i++)
+          domLoc[i] = 1;
+
+        for (int i = 0; i < _nNotLocatedPoint; i++)
+          domLoc[_notLocatedPoint[i]-1] = 0;
+
+        fvm_writer_export_field(_fvmWriter,
+                                const_cast<fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
+                                "location",
+                                FVM_WRITER_PER_ELEMENT,
+                                1,
+                                FVM_NO_INTERLACE,
+                                0,
+                                NULL,
+                                FVM_INT32,
+                                1,
+                                1.,
+                                (const void *const *)  &domLoc);
+      }
+      else {
+        const int nVertex = _supportMesh->getNVertex();
+
+        int *domLoc = new int [nVertex];
+
+        for (int i = 0; i < nVertex; i++)
+          domLoc[i] = 0;
+
+        for (int i = 0; i < _nNotLocatedPoint; i++)
+          domLoc[_notLocatedPoint[i]-1] = 1;
+
+        fvm_writer_export_field(_fvmWriter,
+                                const_cast<fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
+                                "location",
+                                FVM_WRITER_PER_NODE,
+                                1,
+                                FVM_NO_INTERLACE,
+                                0,
+                                NULL,
+                                FVM_INT32,
+                                1,
+                                1.,
+                                (const void *const *)  &domLoc);
+        delete [] domLoc;
+      }
+    }
+  }
+}
+
+
+void Coupling::_fieldsVisualization(const char *exchangeName,
                               const int stride,
                               const int timeStep,
                               const double timeValue,
@@ -814,171 +853,8 @@ void Coupling::_visualization(const char *exchangeName,
 
   if ((_outputFrequency > 0) && (timeStep % _outputFrequency == 0)) {
 
-    bft_file_mkdir_default("couplings");
+    assert(_fvmWriter != NULL);
 
-    std::string pathString = "couplings/"+_name + "_" +
-    _localApplicationProperties.getName()+"_"+
-    _coupledApplicationProperties.getName();
-
-    if (_fvmWriter == NULL) {
-      _fvmWriter = fvm_writer_init("Chr",
-                                   pathString.c_str(),
-                                   _outputFormat.c_str(),
-                                   _outputFormatOption.c_str(),
-                                   FVM_WRITER_FIXED_MESH);
-
-      int localCommSize = 0;
-      const MPI_Comm &localComm = _localApplicationProperties.getLocalComm();
-      MPI_Comm_size(localComm, &localCommSize);
-      int localRank = 0;
-      MPI_Comm_rank(localComm, &localRank);
-
-      if (localCommSize > 1) {
-
-        int *allNElts     = new int[localCommSize];
-
-        //
-        // global element num
-
-        int nElts = _supportMesh->getNElts();
-        unsigned int *globalEltNum = new unsigned int[nElts];
-
-        MPI_Allgather(&nElts,
-                      1,
-                      MPI_INT,
-                      allNElts,
-                      1,
-                      MPI_INT,
-                      localComm);
-
-        int nGlobal = 0;
-        for(int i = 0; i < localRank; i++)
-          nGlobal += allNElts[i];
-
-        for(int i = 0; i < nElts; i++)
-          globalEltNum[i] = nGlobal + i + 1;
-
-        fvm_nodal_order_faces(&(_supportMesh->getFvmNodal()), globalEltNum);
-        fvm_nodal_init_io_num(&(_supportMesh->getFvmNodal()), globalEltNum, 2);
-
-        delete[] globalEltNum;
-
-        //
-        // global vertex num
-
-        int nVertex = _supportMesh->getNVertex();
-        unsigned int *globalVertexNum = new unsigned int[nVertex];
-
-        MPI_Allgather(&nVertex,
-                      1,
-                      MPI_INT,
-                      allNElts,
-                      1,
-                      MPI_INT,
-                      localComm);
-
-        nGlobal = 0;
-        for(int i = 0; i < localRank; i++)
-          nGlobal += allNElts[i];
-
-        for(int i = 0; i < nVertex; i++)
-          globalVertexNum[i] = nGlobal + i + 1;
-
-        fvm_nodal_order_vertices(&(_supportMesh->getFvmNodal()), globalVertexNum);
-        fvm_nodal_init_io_num(&(_supportMesh->getFvmNodal()), globalVertexNum, 0);
-
-        delete[] globalVertexNum;
-        delete[] allNElts;
-
-      }
-
-#if defined(DEBUG) && 0
-
-      fvm_nodal_dump(&(_supportMesh->getFvmNodal()));
-
-#endif
-      fvm_writer_export_nodal(_fvmWriter, &(_supportMesh->getFvmNodal()));
-
-      // Export sub domain
-
-      if (localCommSize > 1) {
-
-        const int nElts  = _supportMesh->getNElts();
-
-        int *domLoc = new int [nElts];
-
-        for (int i = 0; i < nElts; i++)
-          domLoc[i] = localRank+1;
-
-        fvm_writer_export_field(_fvmWriter,
-                                const_cast<fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
-                                "partitioning",
-                                FVM_WRITER_PER_ELEMENT,
-                                1,
-                                FVM_NO_INTERLACE,
-                                0,
-                                NULL,
-                                FVM_INT32,
-                                1,
-                                1.,
-                                (const void *const *)  &domLoc);
-        delete[] domLoc;
-      }
-
-      // TODO: A deplacer et a recreer en cas de maillage mobile
-
-      if (_notLocatedPoint != NULL && _coordsPointsToLocate == NULL) {
-        if (_solverType == COUPLINGS_SOLVER_CELL_CENTER) {
-          const int nElts  = _supportMesh->getNElts();
-
-          int *domLoc = new int [nElts];
-
-          for (int i = 0; i < nElts; i++)
-            domLoc[i] = 1;
-
-          for (int i = 0; i < _nNotLocatedPoint; i++)
-            domLoc[_notLocatedPoint[i]-1] = 0;
-
-          fvm_writer_export_field(_fvmWriter,
-                                  const_cast<fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
-                                  "location",
-                                  FVM_WRITER_PER_ELEMENT,
-                                  1,
-                                  FVM_NO_INTERLACE,
-                                  0,
-                                  NULL,
-                                  FVM_INT32,
-                                  1,
-                                  1.,
-                                  (const void *const *)  &domLoc);
-        }
-        else {
-          const int nVertex = _supportMesh->getNVertex();
-
-          int *domLoc = new int [nVertex];
-
-          for (int i = 0; i < nVertex; i++)
-            domLoc[i] = 0;
-
-          for (int i = 0; i < _nNotLocatedPoint; i++)
-            domLoc[_notLocatedPoint[i]-1] = 1;
-
-          fvm_writer_export_field(_fvmWriter,
-                                  const_cast<fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
-                                  "location",
-                                  FVM_WRITER_PER_NODE,
-                                  1,
-                                  FVM_NO_INTERLACE,
-                                  0,
-                                  NULL,
-                                  FVM_INT32,
-                                  1,
-                                  1.,
-                                  (const void *const *)  &domLoc);
-          delete [] domLoc;
-        }
-      }
-    }
 
     fvm_writer_var_loc_t fvm_writer_var_loc;
     fvm_interlace_t fvm_interlace;
@@ -1009,45 +885,18 @@ void Coupling::_visualization(const char *exchangeName,
 
           std::vector<double> *cpSendingField = NULL;
 
-          if (_supportMesh->getParentNum() != NULL && _solverType == COUPLINGS_SOLVER_CELL_CENTER) {
-            int lSendingField = 0;
-            lSendingField = stride * _nPointsToLocate;
-
-            cpSendingField = new std::vector<double>(lSendingField);
-            std::vector<double> &refCpSendingField = *cpSendingField;
-
-            for (int i = 0; i < _nPointsToLocate; i++) {
-              for (int j = 0; j < stride; j++)
-                refCpSendingField[stride*i+j] = ((double*)sendingField)[stride*((*_supportMesh->getParentNum())[i]-1)+j];
-            }
-
-            fvm_writer_export_field(_fvmWriter,
-                                    const_cast<fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
-                                    localName.c_str(),
-                                    fvm_writer_var_loc,
-                                    dim,
-                                    fvm_interlace,
-                                    0,
-                                    NULL,
-                                    FVM_DOUBLE,
-                                    timeStep,
-                                    timeValue,
-                                    (const void *const *) &refCpSendingField);
-            delete cpSendingField;
-          }
-          else
-            fvm_writer_export_field(_fvmWriter,
-                                    const_cast<fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
-                                    localName.c_str(),
-                                    fvm_writer_var_loc,
-                                    dim,
-                                    fvm_interlace,
-                                    0,
-                                    NULL,
-                                    FVM_DOUBLE,
-                                    timeStep,
-                                    timeValue,
-                                    (const void *const *) &sendingField);
+          fvm_writer_export_field(_fvmWriter,
+                                  const_cast<fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
+                                  localName.c_str(),
+                                  fvm_writer_var_loc,
+                                  dim,
+                                  fvm_interlace,
+                                  0,
+                                  NULL,
+                                  FVM_DOUBLE,
+                                  timeStep,
+                                  timeValue,
+                                  (const void *const *) &sendingField);
         }
       }
 
@@ -1058,46 +907,18 @@ void Coupling::_visualization(const char *exchangeName,
           localName = "R_" + std::string(exchangeName) +
           "_" + std::string(receivingFieldName);
 
-          if (_supportMesh->getParentNum() != NULL && _solverType == COUPLINGS_SOLVER_CELL_CENTER) {
-            int lReceivingField = 0;
-            lReceivingField = stride * _nPointsToLocate;
-
-            cpReceivingField = new std::vector<double>(lReceivingField);
-            std::vector<double> &refCpReceivingField = *cpReceivingField;
-
-            for (int i = 0; i < _nPointsToLocate; i++) {
-              for (int j = 0; j < stride; j++)
-                refCpReceivingField[stride*i+j] =
-                  ((double*)receivingField)[stride*((*_supportMesh->getParentNum())[i]-1)+j];
-            }
-
-            fvm_writer_export_field(_fvmWriter,
-                                    const_cast<fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
-                                    localName.c_str(),
-                                    fvm_writer_var_loc,
-                                    dim,
-                                    fvm_interlace,
-                                    0,
-                                    NULL,
-                                    FVM_DOUBLE,
-                                    timeStep,
-                                    timeValue,
-                                    (const void *const *) &cpReceivingField[0]);
-            delete cpReceivingField;
-          }
-          else
-            fvm_writer_export_field(_fvmWriter,
-                                    const_cast<fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
-                                    localName.c_str(),
-                                    fvm_writer_var_loc,
-                                    dim,
-                                    fvm_interlace,
-                                    0,
-                                    NULL,
-                                    FVM_DOUBLE,
-                                    timeStep,
-                                    timeValue,
-                                    (const void *const *) &receivingField);
+          fvm_writer_export_field(_fvmWriter,
+                                  const_cast<fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
+                                  localName.c_str(),
+                                  fvm_writer_var_loc,
+                                  dim,
+                                  fvm_interlace,
+                                  0,
+                                  NULL,
+                                  FVM_DOUBLE,
+                                  timeStep,
+                                  timeValue,
+                                  (const void *const *) &receivingField);
         }
       }
     }
@@ -1107,6 +928,7 @@ void Coupling::_visualization(const char *exchangeName,
 
 void Coupling::locate()
 {
+
   if (_fvmLocator == NULL || _toLocate) {
 
     if (_fvmLocator == NULL) {
@@ -1122,18 +944,7 @@ void Coupling::locate()
 
     else if(_solverType == COUPLINGS_SOLVER_CELL_CENTER) {
       _nPointsToLocate = _supportMesh->getNElts();
-      if (_supportMesh->getParentNum() != NULL) {
-        const std::vector<int> & parentNum = *_supportMesh->getParentNum();
-        const std::vector<double> & couplingCellCoords = _supportMesh->getCellCenterCoords();
-        coords = new double[3*_nPointsToLocate];
-        for (int i = 0; i < _nPointsToLocate; i++) {
-          coords[3*(parentNum[i]-1)]   = couplingCellCoords[3*i];
-          coords[3*(parentNum[i]-1)+1] = couplingCellCoords[3*i+1];
-          coords[3*(parentNum[i]-1)+2] = couplingCellCoords[3*i+2];
-        }
-      }
-      else
-        coords = const_cast <double*> (&(_supportMesh->getCellCenterCoords()[0]));
+      coords = const_cast <double*> (&(_supportMesh->getCellCenterCoords()[0]));
     }
 
     else if(_solverType == COUPLINGS_SOLVER_CELL_VERTEX) {
@@ -1148,9 +959,6 @@ void Coupling::locate()
                           _nPointsToLocate,
                           NULL,
                           coords);
-
-    if(_solverType == COUPLINGS_SOLVER_CELL_CENTER && _supportMesh->getParentNum() != NULL)
-      delete[] coords;
 
     _toLocate = false;
     const int nLocatedPoint = fvm_locator_get_n_interior(_fvmLocator);
@@ -1178,6 +986,9 @@ void Coupling::locate()
         BFT_FREE(_barycentricCoordinates);
       }
     }
+
+    //TODO: Prevoir une fabrique pour supprimer les tests if sur _entitiesDim
+    //      Le calcul des coordonnees barycentriques se fera dans cette fabrique
 
     if (_barycentricCoordinatesIndex == NULL) {
       if (_entitiesDim == 1) {
@@ -1222,7 +1033,22 @@ void Coupling::locate()
                   &_barycentricCoordinatesIndex,
                   &_barycentricCoordinates);
       }
+
+      else if (_entitiesDim == 3) {
+        int nPoints;
+        coo_baryc(_fvmLocator,
+                  _supportMesh->getNVertex(),
+                  _supportMesh->getVertexCoords(),
+                  _supportMesh->getNElts(),
+                  _supportMesh->getEltConnectivityIndex(),
+                  _supportMesh->getEltConnectivity(),
+                  &nPoints,
+                  &_barycentricCoordinatesIndex,
+                  &_barycentricCoordinates);
+      }
+
     }
+    _initVisualization();
   }
 }
 

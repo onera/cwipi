@@ -972,7 +972,6 @@ void PROCF(couplings_exchange_with_user_interpolation_cf,
 }
 
 
-
 void PROCF(couplings_exchange_cf,
            COUPLINGS_EXCHANGE_CF)
   (const char      *coupling_name,

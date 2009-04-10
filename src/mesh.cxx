@@ -3,10 +3,13 @@
 
 #include <iostream>
 
+#include <mpi.h>
+
 #include <bft_error.h>
 #include <bft_printf.h>
 
 #include <fvm_nodal_append.h>
+#include <fvm_nodal_order.h>
 
 #include "mesh.hxx"
 #include "quickSort.h"
@@ -14,16 +17,18 @@
 namespace couplings {
 
 
-  Mesh::Mesh(const int nDim,
+  Mesh::Mesh(const MPI_Comm &localComm,
+             const int nDim,
              const int nVertex,
              const int nElts,
              const double* coords,
              int *eltConnectivityIndex,
              int *eltConnectivity
              )
-    : _nDim(nDim), _nVertex(nVertex), _nElts(nElts), _nPolyhedra(0), _coords(coords),
+    : _localComm(localComm),
+      _nDim(nDim), _nVertex(nVertex), _nElts(nElts), _nPolyhedra(0), _coords(coords),
       _eltConnectivityIndex(eltConnectivityIndex), _eltConnectivity(eltConnectivity),
-      _parentNum(NULL), _polyhedraFaceIndex(NULL), _polyhedraCellToFaceConnectivity(NULL),
+      _polyhedraFaceIndex(NULL), _polyhedraCellToFaceConnectivity(NULL),
       _polyhedraFaceConnectivityIndex(NULL), _polyhedraFaceConnectivity(NULL), _cellCenterCoords(NULL),
       _cellVolume(NULL), _fvmNodal(NULL), _polygonIndex(NULL)
 
@@ -121,48 +126,43 @@ namespace couplings {
       }
     }
 
+    //
     // Sorting
 
     if (!sorted) {
 
-      std::vector<int> eltType(_nElts);
+      switch (_nDim) {
 
-      for (int i = 0; i < _nElts; i++)
-        eltType[i] =  _eltConnectivityIndex[i+1] - _eltConnectivityIndex[i];
+      case 1 :
+        bft_error(__FILE__, __LINE__, 0, "Connectivity is not ordered\n"
+                  "Bug for edges\n");
+        break;
 
-      _parentNum = new std::vector<int>(_nElts,0);
-      std::vector<int> & parentNum = *_parentNum;
+      case 2 :
+        bft_error(__FILE__, __LINE__, 0, "Connectivity is not ordered\n"
+                  "Specified order : triangle, quadrangle\n");
+        break;
 
-      for (int i = 0; i < _nElts; i++)
-        parentNum[i] = i+1;
+      case 3 :
+        bft_error(__FILE__, __LINE__, 0, "Connectivity is not ordered\n"
+                  "Specified order : tetraedra, pyramid, prism, hexaedra\n");
+        break;
 
-      quickSort(&eltType[0], 0, _nElts-1, &parentNum[0]);
-
-      std::vector<int> cpEltConnectivityIndex(_nElts+1);
-      std::vector<int> cpEltConnectivity(_eltConnectivityIndex[_nElts]);
-
-      for (int i = 0; i < _nElts+1; i++)
-        cpEltConnectivityIndex[i] = _eltConnectivityIndex[i];
-
-      for (int i = 0; i < _eltConnectivityIndex[_nElts]; i++)
-        cpEltConnectivity[i] = _eltConnectivity[i];
-
-      _eltConnectivityIndex[0] = 0;
-      for (int i = 0; i < _nElts; i++) {
-        int nCurrentEltVertex = cpEltConnectivityIndex[parentNum[i]+1-1] - cpEltConnectivityIndex[parentNum[i]-1];
-        int index = _eltConnectivityIndex[i];
-        _eltConnectivityIndex[i+1] = index + nCurrentEltVertex;
-        for (int j = 0; j < nCurrentEltVertex; j++) {
-          _eltConnectivity[index+j] = cpEltConnectivity[cpEltConnectivityIndex[parentNum[i]-1]+j];
-        }
+      default :
+        bft_error(__FILE__, __LINE__, 0, "Connectivity is not ordered\n"
+                  "unknown dimension : %i\n", _nDim);
+        break;
       }
     }
 
+    //
     //  fvm_nodal building
 
     _fvmNodal = fvm_nodal_create("Mesh", 3);
 
-    if (_nDim == 1) {
+    switch (_nDim) {
+
+    case 1 :
       fvm_nodal_append_shared(_fvmNodal,
                               _nElts,
                               FVM_EDGE,
@@ -171,51 +171,28 @@ namespace couplings {
                               NULL,
                               _eltConnectivity,
                               NULL);
-    }
-    else if (_nDim == 2) {
+      break;
+
+    case 2 :
       if (nbTriangle != 0)
-        if (_parentNum != NULL) {
-          std::vector<int> & parentNum = *_parentNum;
-          fvm_nodal_append_shared(_fvmNodal,
-                                  nbTriangle,
-                                  FVM_FACE_TRIA,
-                                  NULL,
-                                  NULL,
-                                  NULL,
-                                  _eltConnectivity,
-                                  &parentNum[0]);
-        }
-        else
-          fvm_nodal_append_shared(_fvmNodal,
-                                  nbTriangle,
-                                  FVM_FACE_TRIA,
-                                  NULL,
-                                  NULL,
-                                  NULL,
-                                  _eltConnectivity,
-                                  NULL);
+        fvm_nodal_append_shared(_fvmNodal,
+                                nbTriangle,
+                                FVM_FACE_TRIA,
+                                NULL,
+                                NULL,
+                                NULL,
+                                _eltConnectivity,
+                                NULL);
 
       if (nbQuadrangle != 0)
-        if (_parentNum != NULL) {
-          std::vector<int> & parentNum = *_parentNum;
-          fvm_nodal_append_shared(_fvmNodal,
-                                  nbQuadrangle,
-                                  FVM_FACE_QUAD,
-                                  NULL,
-                                  NULL,
-                                  NULL,
-                                  _eltConnectivity + 3*nbTriangle,
-                                  &parentNum[0] + nbTriangle);
-        }
-        else
-          fvm_nodal_append_shared(_fvmNodal,
-                                  nbQuadrangle,
-                                  FVM_FACE_QUAD,
-                                  NULL,
-                                  NULL,
-                                  NULL,
-                                  _eltConnectivity + 3*nbTriangle,
-                                  NULL);
+        fvm_nodal_append_shared(_fvmNodal,
+                                nbQuadrangle,
+                                FVM_FACE_QUAD,
+                                NULL,
+                                NULL,
+                                NULL,
+                                _eltConnectivity + 3*nbTriangle,
+                                NULL);
 
       if (nbPoly != 0) {
         _polygonIndex = new int[nbPoly+1];
@@ -223,128 +200,132 @@ namespace couplings {
           _polygonIndex[i] = _eltConnectivityIndex[nbTriangle+nbQuadrangle+i]-_eltConnectivityIndex[nbTriangle+nbQuadrangle];
         }
 
-        if (_parentNum != NULL) {
-          std::vector<int> & parentNum = *_parentNum;
-          fvm_nodal_append_shared(_fvmNodal,
-                                  nbPoly,
-                                  FVM_FACE_POLY,
-                                  NULL,
-                                  NULL,
-                                  _polygonIndex,
-                                  _eltConnectivity + 3*nbTriangle + 4*nbQuadrangle,
-                                  &parentNum[0] + nbTriangle + nbQuadrangle);
-        }
-        else
-          fvm_nodal_append_shared(_fvmNodal,
-                                  nbPoly,
-                                  FVM_FACE_POLY,
-                                  NULL,
-                                  NULL,
-                                  _polygonIndex,
-                                  _eltConnectivity + 3*nbTriangle + 4*nbQuadrangle,
-                                  NULL);
+        fvm_nodal_append_shared(_fvmNodal,
+                                nbPoly,
+                                FVM_FACE_POLY,
+                                NULL,
+                                NULL,
+                                _polygonIndex,
+                                _eltConnectivity + 3*nbTriangle + 4*nbQuadrangle,
+                                NULL);
       }
-    }
-    else if (_nDim == 3) {
+      break;
+
+    case 3 :
       if (nbTetra != 0)
-        if (_parentNum != NULL) {
-          std::vector<int> & parentNum = *_parentNum;
-          fvm_nodal_append_shared(_fvmNodal,
-                                  nbTetra,
-                                  FVM_CELL_TETRA,
-                                  NULL,
-                                  NULL,
-                                  NULL,
-                                  _eltConnectivity,
-                                  &parentNum[0]);
-        }
-        else
-          fvm_nodal_append_shared(_fvmNodal,
-                                  nbTetra,
-                                  FVM_CELL_TETRA,
-                                  NULL,
-                                  NULL,
-                                  NULL,
-                                  _eltConnectivity,
-                                  NULL);
+        fvm_nodal_append_shared(_fvmNodal,
+                                nbTetra,
+                                FVM_CELL_TETRA,
+                                NULL,
+                                NULL,
+                                NULL,
+                                _eltConnectivity,
+                                NULL);
 
       if (nbPyramid != 0)
-        if (_parentNum != NULL) {
-          std::vector<int> & parentNum = *_parentNum;
-          fvm_nodal_append_shared(_fvmNodal,
-                                  nbPyramid,
-                                  FVM_CELL_PYRAM,
-                                  NULL,
-                                  NULL,
-                                  NULL,
-                                  _eltConnectivity + 4*nbTetra,
-                                  &parentNum[0] + nbTetra);
-        }
-        else
-          fvm_nodal_append_shared(_fvmNodal,
-                                  nbPyramid,
-                                  FVM_CELL_PYRAM,
-                                  NULL,
-                                  NULL,
-                                  NULL,
-                                  _eltConnectivity + 4*nbTetra,
-                                  NULL);
+        fvm_nodal_append_shared(_fvmNodal,
+                                nbPyramid,
+                                FVM_CELL_PYRAM,
+                                NULL,
+                                NULL,
+                                NULL,
+                                _eltConnectivity + 4*nbTetra,
+                                NULL);
 
       if (nbPrism != 0)
-        if (_parentNum != NULL) {
-          std::vector<int> & parentNum = *_parentNum;
-          fvm_nodal_append_shared(_fvmNodal,
-                                  nbPrism,
-                                  FVM_CELL_PRISM,
-                                  NULL,
-                                  NULL,
-                                  NULL,
-                                  _eltConnectivity + 4*nbTetra + 5*nbPyramid,
-                                  &parentNum[0] + nbTetra + nbPyramid);
-        }
-        else
-          fvm_nodal_append_shared(_fvmNodal,
-                                  nbPrism,
-                                  FVM_CELL_PRISM,
-                                  NULL,
-                                  NULL,
-                                  NULL,
-                                  _eltConnectivity + 4*nbTetra + 5*nbPyramid,
-                                  NULL);
+        fvm_nodal_append_shared(_fvmNodal,
+                                nbPrism,
+                                FVM_CELL_PRISM,
+                                NULL,
+                                NULL,
+                                NULL,
+                                _eltConnectivity + 4*nbTetra + 5*nbPyramid,
+                                NULL);
 
       if (nbHexaedra != 0)
-        if (_parentNum != NULL) {
-          std::vector<int> & parentNum = *_parentNum;
-          fvm_nodal_append_shared(_fvmNodal,
-                                  nbHexaedra,
-                                  FVM_CELL_HEXA,
-                                  NULL,
-                                  NULL,
-                                  NULL,
-                                  _eltConnectivity +  4*nbTetra + 5*nbPyramid + 6*nbPrism,
-                                  &parentNum[0] + nbTetra + nbPyramid + nbPrism);
-        }
-        else
-          fvm_nodal_append_shared(_fvmNodal,
-                                  nbHexaedra,
-                                  FVM_CELL_HEXA,
-                                  NULL,
-                                  NULL,
-                                  NULL,
-                                  _eltConnectivity +  4*nbTetra + 5*nbPyramid + 6*nbPrism,
-                                  NULL);
-
+        fvm_nodal_append_shared(_fvmNodal,
+                                nbHexaedra,
+                                FVM_CELL_HEXA,
+                                NULL,
+                                NULL,
+                                NULL,
+                                _eltConnectivity +  4*nbTetra + 5*nbPyramid + 6*nbPrism,
+                                NULL);
+      break;
     }
 
-    // shared vertices
+    //
+    // Shared vertices
 
     fvm_nodal_set_shared_vertices(_fvmNodal, _coords);
 
+    //
+    // Order Fvm_nodal
+
+    int localCommSize = 0;
+    int *allNElts     = new int[localCommSize];
+    int localRank = 0;
+    unsigned int *globalEltNum = new unsigned int[_nElts];
+
+    MPI_Comm_size(_localComm, &localCommSize);
+    MPI_Comm_rank(_localComm, &localRank);
+
+    MPI_Allgather((void *) const_cast<int*> (&_nElts),
+                  1,
+                  MPI_INT,
+                  allNElts,
+                  1,
+                  MPI_INT,
+                  localComm);
+
+    int nGlobal = 0;
+    for(int i = 0; i < localRank; i++)
+      nGlobal += allNElts[i];
+
+    for(int i = 0; i < nElts; i++)
+      globalEltNum[i] = nGlobal + i + 1;
+
+    switch (_nDim) {
+      case 2 :
+        fvm_nodal_order_faces(_fvmNodal, globalEltNum);
+        break;
+      case 3 :
+        fvm_nodal_order_cells(_fvmNodal, globalEltNum);
+        break;
+    }
+
+    fvm_nodal_init_io_num(_fvmNodal, globalEltNum, _nDim);
+
+    //
+    // global vertex num
+
+    unsigned int *globalVertexNum = new unsigned int[_nVertex];
+
+    MPI_Allgather((void *) const_cast<int*> (&_nVertex),
+                  1,
+                  MPI_INT,
+                  allNElts,
+                  1,
+                  MPI_INT,
+                  _localComm);
+
+    nGlobal = 0;
+    for(int i = 0; i < localRank; i++)
+      nGlobal += allNElts[i];
+
+    for(int i = 0; i < _nVertex; i++)
+      globalVertexNum[i] = nGlobal + i + 1;
+
+    fvm_nodal_order_vertices(_fvmNodal, globalVertexNum);
+    fvm_nodal_init_io_num(_fvmNodal, globalVertexNum, 0);
+
+    delete[] globalVertexNum;
+    delete[] allNElts;
+
 #if defined(DEBUG) && 0
-
-    //fvm_nodal_dump(_fvmNodal);
-
+    fvm_nodal_dump(_fvmNodal);
 #endif
+
   }
 
 
@@ -353,7 +334,6 @@ namespace couplings {
     delete _cellCenterCoords;
     delete _cellVolume;
     delete[] _polygonIndex;
-    delete _parentNum;
     fvm_nodal_destroy(_fvmNodal);
   }
 
@@ -376,23 +356,7 @@ namespace couplings {
     _polyhedraFaceConnectivityIndex  = faceConnectivityIndex;
     _polyhedraFaceConnectivity       = faceConnectivity;
 
-    if (_parentNum != NULL) {
-      std::vector<int> &parentNum = *_parentNum;
-      parentNum.resize(_nElts);
-      for (int i = _nElts - nElt ; i < _nElts  ; i++)
-        parentNum[i] = i+1;
-
-      fvm_nodal_append_shared(_fvmNodal,
-                              nElt,
-                              FVM_CELL_POLY,
-                              faceIndex,
-                              cellToFaceConnectivity,
-                              faceConnectivityIndex,
-                              faceConnectivity,
-                              &parentNum[0] + (_nElts - nElt));
-    }
-    else
-      fvm_nodal_append_shared(_fvmNodal,
+    fvm_nodal_append_shared(_fvmNodal,
                               nElt,
                               FVM_CELL_POLY,
                               faceIndex,
@@ -403,6 +367,44 @@ namespace couplings {
 
     if (_cellCenterCoords != NULL || _cellVolume != NULL)
       _computeMeshProperties();
+
+    int localCommSize = 0;
+    int *allNElts     = new int[localCommSize];
+    int localRank = 0;
+    unsigned int *globalEltNum = new unsigned int[_nElts];
+
+    MPI_Comm_size(_localComm, &localCommSize);
+    MPI_Comm_rank(_localComm, &localRank);
+
+    MPI_Allgather((void *) const_cast<int*> (&_nElts),
+                  1,
+                  MPI_INT,
+                  allNElts,
+                  1,
+                  MPI_INT,
+                  _localComm);
+
+    int nGlobal = 0;
+    for(int i = 0; i < localRank; i++)
+      nGlobal += allNElts[i];
+
+    for(int i = 0; i < _nElts; i++)
+      globalEltNum[i] = nGlobal + i + 1;
+
+    switch (_nDim) {
+      case 3 :
+        fvm_nodal_order_cells(_fvmNodal, globalEltNum);
+        break;
+      default :
+        bft_error(__FILE__, __LINE__,0, "Polyhedra is 3D a element !\n");
+        break;
+    }
+
+    fvm_nodal_init_io_num(_fvmNodal, globalEltNum, _nDim);
+
+#if defined(DEBUG) && 0
+    fvm_nodal_dump(_fvmNodal);
+#endif
 
   }
 

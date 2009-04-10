@@ -541,11 +541,17 @@ void couplings_define_mesh(const char *coupling_name,
   couplings::CouplingDataBase & couplingDataBase =
     couplings::CouplingDataBase::getInstance();
 
+  couplings::ApplicationPropertiesDataBase & properties =
+    couplings::ApplicationPropertiesDataBase::getInstance();
+
+  const MPI_Comm &localComm = properties.getLocalApplicationProperties().getLocalComm();
+
   const std::string &coupling_name_str = coupling_name;
 
   couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
-  coupling.defineMesh(n_vertex,
+  coupling.defineMesh(localComm,
+                      n_vertex,
                       n_element,
                       coordinates,
                       connectivity_index,
@@ -562,11 +568,17 @@ void couplings_add_polyhedra(const char *coupling_name,
   couplings::CouplingDataBase & couplingDataBase =
     couplings::CouplingDataBase::getInstance();
 
+  couplings::ApplicationPropertiesDataBase & properties =
+    couplings::ApplicationPropertiesDataBase::getInstance();
+
+  const MPI_Comm &localComm = properties.getLocalApplicationProperties().getLocalComm();
+
   const std::string &coupling_name_str = coupling_name;
 
   couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
-  coupling.defineMeshAddPolyhedra(n_element,
+  coupling.defineMeshAddPolyhedra(localComm,
+                                  n_element,
                                   face_index,
                                   cell_to_face_connectivity,
                                   face_connectivity_index,

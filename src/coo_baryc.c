@@ -1,7 +1,7 @@
 #include "coo_baryc.h"
 #include <assert.h>
 #include <stdio.h>
-#define ABS(a)     ((a) <  0  ? -(a) : (a)) 
+#define ABS(a)     ((a) <  0  ? -(a) : (a))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 enum {
@@ -124,8 +124,8 @@ static void projection_plan_moyen
     for (icoo = 0 ; icoo < 3 ; icoo++)
       coo_som_fac[3*isom+icoo] -= barycentre_fac[icoo] ;
 
-  for (icoo = 0 ; icoo < 3 ; icoo++) 
-    coo_point_dist[icoo] -= barycentre_fac[icoo] ; 
+  for (icoo = 0 ; icoo < 3 ; icoo++)
+    coo_point_dist[icoo] -= barycentre_fac[icoo] ;
 
   if (ABS(normale_fac[0]) > 1.e-12 || ABS(normale_fac[1]) > 1.e-12) {
 
@@ -230,34 +230,33 @@ static void projection_plan_moyen
 }
 
 
-void coo_baryc(const fvm_locator_t* locator, 
-               const int   nMeshCoords, 
+void coo_baryc(const fvm_locator_t* locator,
+               const int   nMeshCoords,
                const double *meshCoords,
-               const int   nElts,                
-               const int  *nMeshElts, 
-               const int  *meshElts, 
-               int  *n_dist_points, 
-               int    **nDistBarCoords, 
+               const int   nElts,
+               const int  *nMeshElts,
+               const int  *meshElts,
+               int  *n_dist_points,
+               int    **nDistBarCoords,
                double **distBarCoords)
 {
   /* Boucle sur les points distants */
-
   *n_dist_points = fvm_locator_get_n_dist_points(locator);
   const fvm_lnum_t *dist_locations = fvm_locator_get_dist_locations(locator);
   const fvm_coord_t *dist_coords = fvm_locator_get_dist_coords(locator);
   fvm_coord_t coo_point_dist[3];
-  
+
   /* Tableaux locaux */
-  
+
   const double eps = 1e-5;
   double *coo_som_fac = NULL;
   double *s           = NULL;
-  double *dist        = NULL;     
-  double *aire        = NULL;     
-  double *proScal     = NULL;  
+  double *dist        = NULL;
+  double *aire        = NULL;
+  double *proScal     = NULL;
   int tailleDistBarCoords;
   int taille_coo_som_fac;
-    
+
   BFT_MALLOC(*nDistBarCoords, (*n_dist_points)+1, int ) ;
   //bft_printf("nDistBarCoords %d\n",(*n_dist_points)+1);
 
@@ -268,9 +267,9 @@ void coo_baryc(const fvm_locator_t* locator,
 
   for (int ipoint =  0; ipoint < *n_dist_points; ipoint++ ) {
     //bft_printf("-- Etude du point : %d \n", ipoint);
-    
+
     /* Initialisation - Copie locale */
-    
+
     int isOnEdge = 0;
     int isVertex = 0;
     int ielt = dist_locations[ipoint] - 1;
@@ -278,7 +277,7 @@ void coo_baryc(const fvm_locator_t* locator,
     coo_point_dist[0] = dist_coords[3*ipoint];
     coo_point_dist[1] = dist_coords[3*ipoint + 1];
     coo_point_dist[2] = dist_coords[3*ipoint + 2];
-    
+
     if (ipoint == 0) {
       taille_coo_som_fac = 3*nbr_som_fac;
       BFT_MALLOC(coo_som_fac, taille_coo_som_fac, double) ;
@@ -287,7 +286,7 @@ void coo_baryc(const fvm_locator_t* locator,
       BFT_MALLOC(aire, nbr_som_fac, double) ;
       BFT_MALLOC(proScal, nbr_som_fac, double) ;
     }
-    else 
+    else
       if (taille_coo_som_fac < 3*nbr_som_fac) {
         taille_coo_som_fac = 3*nbr_som_fac;
         BFT_REALLOC(coo_som_fac, taille_coo_som_fac, double);
@@ -296,41 +295,41 @@ void coo_baryc(const fvm_locator_t* locator,
         BFT_REALLOC(aire, nbr_som_fac, double) ;
         BFT_REALLOC(proScal, nbr_som_fac, double) ;
       }
-    
+
     for (int isom = 0; isom < nbr_som_fac; isom++) {
-      coo_som_fac[3*isom]   = meshCoords[3*(meshElts[nMeshElts[ielt]+isom]-1)]; 
-      coo_som_fac[3*isom+1] = meshCoords[3*(meshElts[nMeshElts[ielt]+isom]-1)+1]; 
-      coo_som_fac[3*isom+2] = meshCoords[3*(meshElts[nMeshElts[ielt]+isom]-1)+2]; 
+      coo_som_fac[3*isom]   = meshCoords[3*(meshElts[nMeshElts[ielt]+isom]-1)];
+      coo_som_fac[3*isom+1] = meshCoords[3*(meshElts[nMeshElts[ielt]+isom]-1)+1];
+      coo_som_fac[3*isom+2] = meshCoords[3*(meshElts[nMeshElts[ielt]+isom]-1)+2];
     }
-    
+
     /* Projection sur un plan moyen */
-    
+
     projection_plan_moyen (nbr_som_fac, coo_som_fac, coo_point_dist);
-    
-    /* Calcul des coordonnnees barycentriques */ 
+
+    /* Calcul des coordonnnees barycentriques */
 
     for (int isom = 0; isom < nbr_som_fac; isom++) {
 
       s[3*isom]   = coo_som_fac[3*isom]   - coo_point_dist[0];
       s[3*isom+1] = coo_som_fac[3*isom+1] - coo_point_dist[1];
       s[3*isom+2] = coo_som_fac[3*isom+2] - coo_point_dist[2];
-      dist[isom] = sqrt(s[3*isom]*s[3*isom] + 
+      dist[isom] = sqrt(s[3*isom]*s[3*isom] +
                         s[3*isom+1]*s[3*isom+1] +
-                        s[3*isom+2]*s[3*isom+2]); 
+                        s[3*isom+2]*s[3*isom+2]);
     }
 
     int currentVertex;
     for (int isom = 0; isom < nbr_som_fac; isom++) {
       if (isom != (nbr_som_fac - 1)) {
         aire[isom] = s[3*isom]*s[3*(isom+1)+1] - s[3*(isom+1)]*s[3*isom+1];
-        proScal[isom] = s[3*isom] * s[3*(isom+1)] + 
-                        s[3*isom+1] * s[3*(isom+1)+1] +  
+        proScal[isom] = s[3*isom] * s[3*(isom+1)] +
+                        s[3*isom+1] * s[3*(isom+1)+1] +
                         s[3*isom+2] * s[3*(isom+1)+2];
       }
       else {
         aire[isom] = s[3*isom]*s[1] - s[0]*s[3*isom+1];
-        proScal[isom] = s[3*isom] * s[0] + 
-                        s[3*isom+1] * s[1] +  
+        proScal[isom] = s[3*isom] * s[0] +
+                        s[3*isom+1] * s[1] +
                         s[3*isom+2] * s[2];
       }
       if (dist[isom] <= eps) {
@@ -344,37 +343,37 @@ void coo_baryc(const fvm_locator_t* locator,
         break;
       }
     }
-    
+
     /* Mise a jour de la taille du tableau de stockage des coordonnees barycentriques */
-    
-    (*nDistBarCoords)[ipoint+1] = (*nDistBarCoords)[ipoint] + nbr_som_fac; 
-    
+
+    (*nDistBarCoords)[ipoint+1] = (*nDistBarCoords)[ipoint] + nbr_som_fac;
+
     if (tailleDistBarCoords <= (*nDistBarCoords)[ipoint+1]) {
       tailleDistBarCoords *= 2;
       BFT_REALLOC(*distBarCoords, tailleDistBarCoords, double) ;
     }
 
     /* Le point distant est un sommet */
-    
+
     if (isVertex) {
 
-      for (int isom = 0; isom < nbr_som_fac; isom++) 
+      for (int isom = 0; isom < nbr_som_fac; isom++)
         (*distBarCoords)[(*nDistBarCoords)[ipoint]+isom] = 0.;
       (*distBarCoords)[(*nDistBarCoords)[ipoint]+currentVertex] = 1.;
     }
-    
+
     /* Le point distant est sur arete */
-  
+
     else if (isOnEdge) {
-      for (int isom = 0; isom < nbr_som_fac; isom++) 
+      for (int isom = 0; isom < nbr_som_fac; isom++)
         (*distBarCoords)[(*nDistBarCoords)[ipoint]+isom] = 0.;
-      
+
       int nextPoint;
       if (currentVertex == (nbr_som_fac - 1))
         nextPoint = 0;
       else
         nextPoint = currentVertex + 1;
-      
+
       (*distBarCoords)[(*nDistBarCoords)[ipoint]+currentVertex] = dist[nextPoint]     / (dist[nextPoint]+dist[currentVertex]);
       (*distBarCoords)[(*nDistBarCoords)[ipoint]+nextPoint]     = dist[currentVertex] / (dist[nextPoint]+dist[currentVertex]);
 
@@ -388,23 +387,23 @@ void coo_baryc(const fvm_locator_t* locator,
         double coef = 0.;
         int previousVertex;
         int nextVertex;
-        if (isom != 0) 
+        if (isom != 0)
           previousVertex = isom - 1;
         else
           previousVertex = nbr_som_fac - 1;
-        if (isom < nbr_som_fac - 1) 
+        if (isom < nbr_som_fac - 1)
           nextVertex = isom + 1;
         else
           nextVertex = 0;
-        if (ABS(aire[previousVertex]) > eps) 
+        if (ABS(aire[previousVertex]) > eps)
           coef += (dist[previousVertex] - proScal[previousVertex]/dist[isom]) / aire[previousVertex];
-        if (ABS(aire[previousVertex]) > eps) 
+        if (ABS(aire[previousVertex]) > eps)
           coef += (dist[nextVertex] - proScal[isom]/dist[isom]) / aire[isom];
         sigma += coef;
         (*distBarCoords)[(*nDistBarCoords)[ipoint]+isom] = coef;
-      } 
+      }
       assert(ABS(sigma) >= eps );
-      for (int isom = 0; isom < nbr_som_fac; isom++) 
+      for (int isom = 0; isom < nbr_som_fac; isom++)
         (*distBarCoords)[(*nDistBarCoords)[ipoint]+isom] /= sigma;
     }
   }
@@ -417,7 +416,7 @@ void coo_baryc(const fvm_locator_t* locator,
     BFT_FREE(proScal) ;
   }
   BFT_REALLOC(*distBarCoords, (*nDistBarCoords)[*n_dist_points], double) ;
-} 
+}
 
 #ifdef __cplusplus
 }

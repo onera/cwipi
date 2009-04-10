@@ -125,7 +125,6 @@ typedef void (couplings_interpolation_fct_t)
    const int n_local_polhyedra,
    const int n_distant_point,
    const double local_coordinates[],
-   const int *local_parent_vertex_num,
    const int local_connectivity_index[],
    const int local_connectivity[],
    const int local_polyhedra_face_index[],
