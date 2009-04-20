@@ -14,6 +14,7 @@ chr*
 .project
 .settings/org.eclipse.cdt.core.prefs
 .settings/org.eclipse.cdt.ui.prefs
+logmem.txt
 
 syntax: regexp
 .*\#.*\#$

@@ -585,11 +585,8 @@ couplings_exchange_status_t Coupling::exchange(const char                       
   const int* interiorList     = fvm_locator_get_interior_list(_fvmLocator);
   const int nInteriorList     = fvm_locator_get_n_interior(_fvmLocator);
 
-  int lDistantField = 0;
-  int lReceivingField = 0;
-
-  lDistantField = stride * nDistantPoint;
-  lReceivingField = stride * _nPointsToLocate;
+  int lDistantField = stride * nDistantPoint;
+  int lReceivingField = stride * _nPointsToLocate;
 
   if (_tmpDistantField == NULL)
     _tmpDistantField = new std::vector<double> (lDistantField);
@@ -694,40 +691,20 @@ couplings_exchange_status_t Coupling::exchange(const char                       
         status = COUPLINGS_EXCHANGE_BAD_RECEIVING;
     }
 
-    //
-    // Not located point treatment
-    // TODO: A supprimer si on ne définit les champs qu'aux points localises
-
-    if (receivingField != NULL) {
-
-      if (_nNotLocatedPoint != 0 && status == COUPLINGS_EXCHANGE_OK) {
-        std::vector<double> cpReceivingField(lReceivingField);
-        for (int i = 0; i < lReceivingField; i++)
-          cpReceivingField[i] = receivingField[i];
-
-        const int nLocatedPoint = _nPointsToLocate - _nNotLocatedPoint;
-        for (int i = 0; i < nLocatedPoint; i++) {
-          for (int j = 0; j < stride; j++)
-            receivingField[stride*(_locatedPoint[i]-1)+j] = cpReceivingField[stride*i+j];
-        }
-        for (int i = 0; i < _nNotLocatedPoint; i++) {
-          for (int j = 0; j < stride; j++)
-            receivingField[stride*(_notLocatedPoint[i]-1)+j] = _createNan();
-        }
-      }
-    }
 
     //
     // Visualization
 
-    _fieldsVisualization(exchangeName,
-                         stride,
-                         timeStep,
-                         timeValue,
-                         sendingFieldName,
-                         sendingField,
-                         receivingFieldName,
-                         receivingField);
+    if (status == COUPLINGS_EXCHANGE_OK)
+
+      _fieldsVisualization(exchangeName,
+                           stride,
+                           timeStep,
+                           timeValue,
+                           sendingFieldName,
+                           sendingField,
+                           receivingFieldName,
+                           receivingField);
 
     return status;
 }
@@ -849,6 +826,8 @@ void Coupling::_fieldsVisualization(const char *exchangeName,
                               const void *receivingField)
 {
 
+  const double couplingDoubleMax = 1e33;
+
   std::string localName;
 
   if ((_outputFrequency > 0) && (timeStep % _outputFrequency == 0)) {
@@ -901,24 +880,53 @@ void Coupling::_fieldsVisualization(const char *exchangeName,
       }
 
       if (receivingFieldName != NULL) {
+
+        //
+        // Not located point treatment
+
         if (receivingField != NULL && _coordsPointsToLocate == NULL) {
-          std::vector<double> *cpReceivingField = NULL;
 
           localName = "R_" + std::string(exchangeName) +
           "_" + std::string(receivingFieldName);
 
-          fvm_writer_export_field(_fvmWriter,
-                                  const_cast<fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
-                                  localName.c_str(),
-                                  fvm_writer_var_loc,
-                                  dim,
-                                  fvm_interlace,
-                                  0,
-                                  NULL,
-                                  FVM_DOUBLE,
-                                  timeStep,
-                                  timeValue,
-                                  (const void *const *) &receivingField);
+          if (_nNotLocatedPoint != 0) {
+            int lReceivingField = stride * _nPointsToLocate;
+            std::vector<double> *cpReceivingField = new std::vector<double> (lReceivingField, couplingDoubleMax);
+
+            const int nLocatedPoint = _nPointsToLocate - _nNotLocatedPoint;
+            for (int i = 0; i < nLocatedPoint; i++) {
+              for (int j = 0; j < stride; j++)
+                (*cpReceivingField)[stride*(_locatedPoint[i]-1)+j] = ((double*) receivingField)[stride*i+j];
+            }
+
+            fvm_writer_export_field(_fvmWriter,
+                                    const_cast<fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
+                                    localName.c_str(),
+                                    fvm_writer_var_loc,
+                                    dim,
+                                    fvm_interlace,
+                                    0,
+                                    NULL,
+                                    FVM_DOUBLE,
+                                    timeStep,
+                                    timeValue,
+                                    (const void *const *) cpReceivingField);
+            delete cpReceivingField;
+          }
+
+          else
+            fvm_writer_export_field(_fvmWriter,
+                                    const_cast<fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
+                                    localName.c_str(),
+                                    fvm_writer_var_loc,
+                                    dim,
+                                    fvm_interlace,
+                                    0,
+                                    NULL,
+                                    FVM_DOUBLE,
+                                    timeStep,
+                                    timeValue,
+                                    (const void *const *) &receivingField);
         }
       }
     }
@@ -1035,6 +1043,7 @@ void Coupling::locate()
       }
 
       else if (_entitiesDim == 3) {
+        //TODO: calcul des coord 3D
         int nPoints;
         coo_baryc(_fvmLocator,
                   _supportMesh->getNVertex(),
