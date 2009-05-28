@@ -23,7 +23,7 @@ namespace couplings {
                       int *cellToFaceConnectivity,
                       int *faceConnectivityIndex,
                       int *faceConnectivity);
-    
+
     inline const int& getNVertex();
 
     inline const double* getVertexCoords();
@@ -43,11 +43,11 @@ namespace couplings {
     inline const std::vector<double>& getCellCenterCoords();
 
     inline const int *getPolyhedraFaceIndex();
-    
+
     inline const int *getPolyhedraCellToFaceConnectivity();
-    
+
     inline const int *getPolyhedraFaceConnectivityIndex();
-    
+
     inline const int *getPolyhedraFaceConnectivity();
 
     inline const std::vector<int>  *getParentNum();
@@ -61,7 +61,7 @@ namespace couplings {
 
     Mesh& operator=(const Mesh&);
 
-    void _computeCellCenterCoordsWithVertex(const int i, 
+    void _computeCellCenterCoordsWithVertex(const int i,
                                             const int nCurrentEltVertex,
                                             const int index,
                                             const int *eltConnectivity,
@@ -113,39 +113,39 @@ namespace couplings {
   {
     return *_fvmNodal;
   }
-  
+
   const int& Mesh::getNElts()
   {
     return _nElts;
   }
-  
+
   const int& Mesh::getNPolyhedra()
   {
     return _nPolyhedra;
   }
-  
+
   const int* Mesh::getEltConnectivityIndex()
   {
     return _eltConnectivityIndex;
   }
-  
+
   const int* Mesh::getEltConnectivity()
   {
     return _eltConnectivity;
   }
-  
+
   const std::vector<double>& Mesh::getVolume()
   {
     if (_cellVolume == NULL)
       _computeMeshProperties();
     return *_cellVolume;
   }
-  
+
   const std::vector<double>& Mesh::getCellCenterCoords()
   {
     if (_cellCenterCoords == NULL)
       _computeMeshProperties();
-      
+
     return *_cellCenterCoords;
   }
 
@@ -153,17 +153,17 @@ namespace couplings {
   {
     return _polyhedraFaceIndex;
   }
-    
+
   const int *Mesh::getPolyhedraCellToFaceConnectivity()
   {
     return _polyhedraCellToFaceConnectivity;
   }
-   
+
   const int *Mesh::getPolyhedraFaceConnectivityIndex()
   {
     return _polyhedraFaceConnectivityIndex;
   }
-    
+
   const int *Mesh::getPolyhedraFaceConnectivity()
   {
     return _polyhedraFaceConnectivity;

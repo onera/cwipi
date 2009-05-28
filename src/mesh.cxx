@@ -514,6 +514,13 @@ namespace couplings {
         refFaceNormal[3*i+1] = 0.5 * (v1[2]*v2[0]-v1[0]*v2[2]);
         refFaceNormal[3*i+2] = 0.5 * (v1[0]*v2[1]-v1[1]*v2[0]);
 
+//        std::cout << "p1(" << i << ")="; for(int kf=0;kf<3;kf++) std::cout << _coords[3*pt1+kf] << " "; std::cout << std::endl;
+//        std::cout << "p2(" << i << ")="; for(int kf=0;kf<3;kf++) std::cout << _coords[3*pt2+kf] << " "; std::cout << std::endl;
+//        std::cout << "p3(" << i << ")="; for(int kf=0;kf<3;kf++) std::cout << _coords[3*pt3+kf] << " "; std::cout << std::endl;
+//        std::cout << "v1(" << i << ")="; for(int kf=0;kf<3;kf++) std::cout << v1[kf] << " "; std::cout << std::endl;
+//        std::cout << "v2(" << i << ")="; for(int kf=0;kf<3;kf++) std::cout << v2[kf] << " "; std::cout << std::endl;
+//        std::cout << "normale(" << i << ")="; for(int kf=0;kf<3;kf++) std::cout << refFaceNormal[3*i+kf] << " "; std::cout << std::endl;
+
         refFaceSurface[i] = sqrt(refFaceNormal[3*i]*refFaceNormal[3*i]+
                                  refFaceNormal[3*i+1]*refFaceNormal[3*i+1]+
                                  refFaceNormal[3*i+2]*refFaceNormal[3*i+2]);
@@ -588,10 +595,9 @@ namespace couplings {
 
   void Mesh::_computeMeshProperties3D()
   {
-    std::vector<double> refCellCenterCoords = *_cellCenterCoords;
-    std::vector<double> refCellVolume = *_cellVolume;
-    std::vector<double> tetraCenterCoords(3,0.);
-
+    std::vector<double> & refCellCenterCoords = *_cellCenterCoords;
+    std::vector<double> & refCellVolume = *_cellVolume;
+    // BUG resolu : ajouter les &
 
     int nStandardElement = _nElts - _nPolyhedra;
     if (nStandardElement > 0) {
@@ -608,6 +614,7 @@ namespace couplings {
       for (int i = 0; i < nStandardElement ; i++) {
         int nCurrentEltVertex = _eltConnectivityIndex[i+1] - _eltConnectivityIndex[i];
         int index = _eltConnectivityIndex[i];
+//        std::cout << _eltConnectivityIndex[i] << _eltConnectivityIndex[i+1] << std::endl;
 
         //
         // Element spliting
@@ -695,6 +702,7 @@ namespace couplings {
         refCellVolume[i] = 0.;
 
         for (int j = 0; j < ntetra; j++) {
+          std::vector<double> tetraCenterCoords(3,0.);
           double tetraVolume = 0.;
 
           // Tetraedre case
@@ -728,29 +736,51 @@ namespace couplings {
                                    &faceSurface,
                                    &faceCenter);
 
+          for (int k = 0; k < 4; k++) {
+	        tetraCenterCoords[0] += _coords[3*(tetraConnec[4*j+k]-1)];
+            tetraCenterCoords[1] += _coords[3*(tetraConnec[4*j+k]-1)+1];
+            tetraCenterCoords[2] += _coords[3*(tetraConnec[4*j+k]-1)+2];
+          }
+          tetraCenterCoords[0] /= 4;
+          tetraCenterCoords[1] /= 4;
+          tetraCenterCoords[2] /= 4;
+          // BUG resolu : changer la methode de calcul des centres de tetra
+
           double cellSurface = 0.;
           for (int k = 0; k < nFace; k++) {
             cellSurface += faceSurface[k];
-            tetraCenterCoords[0] += faceNormal[k]   * faceCenter[3*k];
-            tetraCenterCoords[1] += faceNormal[k+1] * faceCenter[3*k+1];
-            tetraCenterCoords[2] += faceNormal[k+2] * faceCenter[3*k+2];
-            tetraVolume += faceNormal[k] * faceCenter[3*k] +
-              faceNormal[k+1] * faceCenter[3*k+1] +
-                         faceNormal[k+2] * faceCenter[3*k+2];
+//            tetraCenterCoords[0] += faceSurface[k] * faceCenter[3*k];
+//            tetraCenterCoords[1] += faceSurface[k]* faceCenter[3*k+1];
+//            tetraCenterCoords[2] += faceSurface[k]* faceCenter[3*k+2];
+            tetraVolume +=  faceNormal[3*k]   * faceCenter[3*k] +
+              				faceNormal[3*k+1] * faceCenter[3*k+1] +
+                            faceNormal[3*k+2] * faceCenter[3*k+2];
+//            std::cout << "Surf face" << faceSurface[k] << std::endl;
+//            std::cout << "Normale face " << k << ":" << faceNormal[3*k] << " "<< faceNormal[3*k+1] << " "<< faceNormal[3*k+2] << std::endl;
+//            std::cout << "Centre face " << k << ":"  << faceCenter[3*k] << " "<< faceCenter[3*k+1] << " "<< faceCenter[3*k+2] << std::endl;
           }
-          tetraVolume *= 1./3.;
-          tetraCenterCoords[0] /= cellSurface;
-          tetraCenterCoords[1] /= cellSurface;
-          tetraCenterCoords[2] /= cellSurface;
 
+//          for( int df=0; df<12; df++ ) std::cout << faceConnectivity[df] << " "; std::cout << std::endl;
+          tetraVolume *= 1./3.;
+//          tetraCenterCoords[0] /= cellSurface;
+//          tetraCenterCoords[1] /= cellSurface;
+//          tetraCenterCoords[2] /= cellSurface;
+
+          // BUG resolu : ajouter les 3*
           refCellCenterCoords[3*i]   += tetraVolume*tetraCenterCoords[0] ;
           refCellCenterCoords[3*i+1] += tetraVolume*tetraCenterCoords[1];
           refCellCenterCoords[3*i+2] += tetraVolume*tetraCenterCoords[2];
           refCellVolume[i] += tetraVolume;
+//          std::cout << "tetra volume : " << refCellVolume[i] << " " <<tetraVolume << std::endl;
+//          std::cout << "tetra surfac : " << cellSurface << std::endl;
+//          std::cout << "tetra centre : " << tetraCenterCoords[0] << " "  << tetraCenterCoords[1] << " " << tetraCenterCoords[2] << std::endl;
+//          std::cout << std::endl;
         }
         refCellCenterCoords[3*i] /= refCellVolume[i];
         refCellCenterCoords[3*i+1] /= refCellVolume[i];
         refCellCenterCoords[3*i+2] /= refCellVolume[i];
+//        std::cout << "hexa " << i << " volume : " << refCellVolume[i] << std::endl;
+//        std::cout << "hexa " << i << " centre : " << refCellCenterCoords[3*i] << " " << refCellCenterCoords[3*i+1]<< " "  << refCellCenterCoords[3*i+2] << std::endl;
       }
     }
 

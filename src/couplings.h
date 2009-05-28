@@ -473,7 +473,7 @@ void couplings_set_points_to_locate
  *   connectivity_index <-> element -> vertices index (O to n-1)
  *                          size: n_elements + 1
  *                          (out : ordered connectivity_index)
- *   connectivity       <-> element -> vertex connectivity
+ *   connectivity       <-> element -> vertex connectivity (1 to n)
  *                          size: connectivity_index[n_elements]
  *                          (out : ordered connectivity)
  *

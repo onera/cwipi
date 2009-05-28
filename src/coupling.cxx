@@ -5,6 +5,7 @@
 
 #include <bft_error.h>
 #include <bft_file.h>
+#include <bft_printf.h>
 
 #include "coupling.hxx"
 #include "coupling_i.hxx"
@@ -179,7 +180,10 @@ std::vector<double> &  Coupling::_extrapolate(double *cellCenterField)
 
 Coupling::~Coupling()
 {
-  std::cout << "destroying '" << _name << "' coupling" << std::endl;
+  // BUG pas bug : mis ca dans bft au lieu de std::cout
+  bft_printf( "destroying '" );
+  bft_printf( _name.c_str() );
+  bft_printf( "' coupling\n" );
   delete _tmpVertexField;
   delete _tmpDistantField;
   delete _supportMesh;
@@ -508,6 +512,7 @@ couplings_exchange_status_t Coupling::exchange(const char                       
 
 {
 
+//  std::cout << "couplings_exchange" << std::endl;
   couplings_exchange_status_t status = COUPLINGS_EXCHANGE_OK;
 
   //
@@ -569,9 +574,9 @@ couplings_exchange_status_t Coupling::exchange(const char                       
 
   //
   // Locate
-
+//  std::cout << "avant locate" << std::endl;
   locate();
-
+//  std::cout << "apres locate" << std::endl;
   //
   // Prepare data (interpolate, extrapolate...)
 
@@ -607,6 +612,7 @@ couplings_exchange_status_t Coupling::exchange(const char                       
     //
     // Interpolation
 
+//    std::cout << "avant interpolation" << std::endl;
     if (sendingField != NULL) {
 
       assert(!(_interpolationFct != NULL && ptFortranInterpolationFct != NULL));
@@ -729,6 +735,7 @@ couplings_exchange_status_t Coupling::exchange(const char                       
                      stride);
     }
 
+//    std::cout << "apres interpolation" << std::endl;
     //
     // Exchange
 
@@ -737,11 +744,14 @@ couplings_exchange_status_t Coupling::exchange(const char                       
     if (sendingField != NULL)
       ptSending = &tmpDistantField[0];
 
+//    std::cout << "avant createNaN" << std::endl;
     if (receivingField != NULL && nInteriorList > 0){
       const int idx = 0;
       receivingField[idx] = _createNan();
     }
 
+//    fvm_locator_dump( _fvmLocator );
+//    std::cout << "avant fvm_locator_exchange_point_var" << std::endl;
     fvm_locator_exchange_point_var(_fvmLocator,
                                    (void *) ptSending,
                                    (void *) receivingField,
@@ -753,6 +763,7 @@ couplings_exchange_status_t Coupling::exchange(const char                       
     //
     // Check receiving
 
+//    std::cout << "apres echange" << std::endl;
     if (receivingField != NULL && nInteriorList > 0) {
       std::ostringstream os;
       const int idx = 0;
@@ -761,6 +772,7 @@ couplings_exchange_status_t Coupling::exchange(const char                       
         status = COUPLINGS_EXCHANGE_BAD_RECEIVING;
     }
 
+//    std::cout << "avant check" << std::endl;
     //
     // Not located point treatment
     // TODO: A supprimer si on ne définit les champs qu'aux points localises
@@ -787,6 +799,7 @@ couplings_exchange_status_t Coupling::exchange(const char                       
     //
     // Visualization
 
+//    std::cout << "avant visualization" << std::endl;
     _visualization(exchangeName,
                    stride,
                    timeStep,
@@ -796,6 +809,7 @@ couplings_exchange_status_t Coupling::exchange(const char                       
                    receivingFieldName,
                    receivingField);
 
+//    std::cout << "fin fonction exchange" << std::endl;
     return status;
 }
 
@@ -1141,6 +1155,12 @@ void Coupling::locate()
       coords = const_cast <double*> (_supportMesh->getVertexCoords());
     }
 
+    //fvm_nodal_dump(&(_supportMesh->getFvmNodal()));
+    //std::cout << "toto" <<std::endl;
+    //std::cout << "nPointsToLocate=" << _nPointsToLocate << std::endl;
+    //std::cout << "coords(" << coords << ")="; for( int l=0; l<_nPointsToLocate; l++) std::cout << coords[3*l+0] << " " << coords[3*l+1] << " "<< coords[3*l+2] << std::endl;
+    //for(int l=0; l<_nPointsToLocate; l++) std::cout << _supportMesh->getCellCenterCoords()[l] << " "; std::cout << std::endl;
+
     fvm_locator_set_nodal(_fvmLocator,
                           &_supportMesh->getFvmNodal(),
                           0,
@@ -1148,7 +1168,7 @@ void Coupling::locate()
                           _nPointsToLocate,
                           NULL,
                           coords);
-
+    //std::cout << "milieu locate" << std::endl;
     if(_solverType == COUPLINGS_SOLVER_CELL_CENTER && _supportMesh->getParentNum() != NULL)
       delete[] coords;
 
@@ -1228,14 +1248,15 @@ void Coupling::locate()
 
 double  Coupling::_createNan()
 {
-  // Creation artificielle d'un Nan
-  double big = 3e99999999;
-  double userNan = big/big;
-  std::ostringstream os;
-  os << userNan;
-  if ((os.str()[0] != 'n') && (os.str()[0] != 'N'))
-    bft_error(__FILE__, __LINE__, 0, "'%f' %s bad nan detection\n", userNan, os.str().c_str());
-  return userNan;
+// Creation artificielle d'un Nan
+//  double big = 3e99999999;
+//  double userNan = big/big;
+//  std::ostringstream os;
+//  os << userNan;
+//  if ((os.str()[0] != 'n') && (os.str()[0] != 'N'))
+//    bft_error(__FILE__, __LINE__, 0, "'%f' %s bad nan detection\n", userNan, os.str().c_str());
+//  return userNan;
+  return 0;
 }
 
 
