@@ -50,6 +50,7 @@ namespace couplings
     typedef std::map <std::string, double>::iterator Iterator2;
     for (Iterator2 p = _doubleControlParameters.begin(); p != _doubleControlParameters.end(); p++)
       bft_printf("   * '%s' : %12.5e\n", p->first.c_str(), p->second);
+    bft_printf_flush();
   }
 
   ApplicationProperties::~ApplicationProperties()

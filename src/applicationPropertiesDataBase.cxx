@@ -18,7 +18,7 @@ namespace couplings {
 
   ApplicationPropertiesDataBase::~ApplicationPropertiesDataBase()
   {
-    // BUG pas bug : j'ai change le std::cout en bft_printf
+    // BUG SB: pas bug : j'ai change le std::cout en bft_printf
     bft_printf( "destroying ApplicationPropertiesDataBase.\n" );
     if (_localApplicationProperties != NULL)
       delete _localApplicationProperties;
@@ -37,6 +37,7 @@ namespace couplings {
   }
 
   MPI_Comm  ApplicationPropertiesDataBase::init(const char* applicationName,
+                                                const couplings_mpi_ranks_for_coupling_t mpi_rank,
                                                 const MPI_Comm globalComm)
   {
 
@@ -65,10 +66,11 @@ namespace couplings {
       int j = 0;
       int index = 0;
       int totalLength = 0;
-      int nameLength = 0;;
+      int nameLength = 0;
 
       std::string currentString = "";
       char *mergeNames = NULL;
+      int currentMpiRanks = 0;
 
       nameLength = strlen(applicationName) + 1;
       MPI_Allreduce (&nameLength, &totalLength, 1, MPI_INT, MPI_SUM,
@@ -102,6 +104,18 @@ namespace couplings {
                      MPI_CHAR,
                      globalComm);
 
+      // Exchange of the status "one master"
+      int *mpi_ranks = new int[globalCommSize];
+      MPI_Allgather( (void*)&mpi_rank,
+                     1,
+                     MPI_INT,
+                     mpi_ranks,
+                     1,
+                     MPI_INT,
+                     globalComm );
+      std::cout << "rangs echanges" << std::flush;
+      for( int i=0; i<globalCommSize; i++) std::cout << mpi_ranks[i]<<" " << std::flush; std::cout << std::endl << std::flush;
+
       delete[] iproc;
       delete[] namesLength;
 
@@ -111,6 +125,7 @@ namespace couplings {
 
         const char *ptCurrentName = mergeNames + index;
         std::string currentName(ptCurrentName);
+        std::cout << irank << currentName.c_str() << " " << currentString.c_str() << std::endl << std::flush;
 
         if (currentString != currentName) {
 
@@ -135,27 +150,60 @@ namespace couplings {
           }
 
           currentApplicationProperties->setBeginningRank(irank);
-          if (currentString != "") {
-            if (!strcmp(currentString.c_str(), applicationName))
+          std::cout << currentName.c_str() << "added" << irank << mpi_ranks[irank] << std::endl << std::flush;
+          if( mpi_ranks[irank] == COUPLINGS_MPI_RANKS_ONLY_MASTER ) {
+            if( ! strcmp( currentName.c_str(), applicationName ) ){
+              _localApplicationProperties->setEndRank(irank);
+              std::cout << currentName.c_str() << ":master:local:1:" <<irank <<std::endl<< std::flush;}
+            else{
+              _distantApplicationPropertiesDataBase[currentName]->setEndRank(irank);
+              std::cout << currentName.c_str() << ":master:distant:1:" <<irank <<std::endl<< std::flush;}
+
+          }
+          if (currentString != "" && currentMpiRanks == COUPLINGS_MPI_RANKS_ALL_RANKS) {
+            if (!strcmp(currentString.c_str(), applicationName)){
               _localApplicationProperties->setEndRank(irank-1);
-            else
+              std::cout << currentString.c_str() << ":all:local:1:" <<irank-1 <<std::endl<< std::flush;}
+            else{
               _distantApplicationPropertiesDataBase[currentString]->setEndRank(irank-1);
+              std::cout << currentString.c_str() << ":all:distant:1:" <<irank-1 <<std::endl<< std::flush;}
           }
           currentString = currentName;
+          currentMpiRanks = mpi_ranks[irank];
 
           j += 1;
         }
 
-        if (currentString != "") {
-          if (!strcmp(currentString.c_str(), applicationName))
+        if (currentString != "") { // BUG: toujours vrai... n'est-il-pas ? pourrait aussi etre sorti de la boucle ?
+        if(currentMpiRanks == COUPLINGS_MPI_RANKS_ALL_RANKS) {
+          if (!strcmp(currentString.c_str(), applicationName)) {
             _localApplicationProperties->setEndRank(globalCommSize-1);
-          else
+            std::cout << currentString.c_str() << ":all:local:2:" <<globalCommSize-1 <<std::endl<< std::flush;
+        }
+          else{
             _distantApplicationPropertiesDataBase[currentString]->setEndRank(globalCommSize-1);
+            std::cout << currentString.c_str() << ":all:distant:2:" <<globalCommSize-1 <<std::endl<< std::flush;
+          }
+        }
         }
 
         index += currentName.size() + 1;
         assert(index <= totalLength);
       }
+std::cout << "fin" << std::endl << std::flush;
+//      for (int irank = 0; irank < globalCommSize; irank++) {
+//        const char *ptCurrentName = mergeNames + index;
+//                std::string currentName(ptCurrentName);
+//int a;
+//           if (currentString != currentName) {
+//           if (!strcmp(currentString.c_str(), applicationName))
+//                    a = _localApplicationProperties->getEndRank();
+//                  else
+//                    a = _distantApplicationPropertiesDataBase[currentString]->getEndRank();
+//           std::cout << a << std::flush;
+//           currentString = currentName;
+//         }
+//      }
 
       if (mergeNames != NULL)
         BFT_FREE (mergeNames);
@@ -164,10 +212,19 @@ namespace couplings {
       // ---------------------------------------
 
       MPI_Comm localComm = MPI_COMM_NULL;
-      MPI_Comm_split(MPI_COMM_WORLD, color, currentRank, &localComm);
+      MPI_Comm_split(globalComm, color, currentRank, &localComm); // BUG: was MPI_COMM_WORLD
       _localApplicationProperties->setLocalComm(localComm);
+      std::cout << "commsplit effectue." << std::endl << std::flush;
 
-      fvm_parall_set_mpi_comm(localComm);
+      MPI_Comm restrictedLocalComm = localComm;
+      if( mpi_rank == COUPLINGS_MPI_RANKS_ONLY_MASTER ) {
+        int color = MPI_UNDEFINED, localCurrentRank;
+        MPI_Comm_rank( localComm, &localCurrentRank );
+        if( localCurrentRank == 0 ) color = 0;
+        MPI_Comm_split(localComm, color, localCurrentRank, &restrictedLocalComm);
+      }
+      fvm_parall_set_mpi_comm(restrictedLocalComm);
+      std::cout << "fvm set mpi comm effectue : " << fvm_parall_get_rank() << " " << fvm_parall_get_size() << std::endl << std::flush;
       return localComm;
     }
   }
@@ -208,7 +265,7 @@ namespace couplings {
 
     //
     // Clear distant parameters copy
-
+    // BUG SB: en double ??
     distantControlParameters.clear();
     distantControlParameters.clear();
 
@@ -609,6 +666,7 @@ namespace couplings {
       p->second->dump();
       bft_printf("\n");
     }
+    bft_printf_flush();
   }
 
 }

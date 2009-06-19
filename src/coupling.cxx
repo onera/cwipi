@@ -80,12 +80,14 @@ _nDistantpoint(0)
   _supportMesh = NULL;
   _coordsPointsToLocate = NULL;
   _fvmLocator = NULL;
+  _couplingComm = MPI_COMM_NULL;
   _interpolationFct = NULL;
   _toLocate = true;
   _barycentricCoordinatesIndex = NULL;
   _barycentricCoordinates = NULL;
   _nNotLocatedPoint = 0;
   _nPointsToLocate = 0;
+  _location = NULL; // BUG SB: oubli
 }
 
 std::vector<double> &  Coupling::_extrapolate(double *cellCenterField)
@@ -526,6 +528,22 @@ couplings_exchange_status_t Coupling::exchange(const char                       
   int currentRank;
   MPI_Comm_rank(globalComm, &currentRank);
 
+//  if( _couplingComm == MPI_COMM_NULL ) {
+//    int color = 1;
+//    int restrictedLocalBeginningRank;
+//    if(    (localBeginningRank <= currentRank && currentRank <= localEndRank)
+//        || (distantBeginningRank <= currentRank && currentRank <= distantEndRank) )
+//      color = 0;
+//    std::cout << currentRank << " " << localBeginningRank << " " << localEndRank << " " << distantBeginningRank << " " << distantEndRank << " " << color << std::endl << std::flush;
+//    MPI_Comm_split(globalComm, color, currentRank, &_couplingComm);
+//    if( currentRank == localBeginningRank ) MPI_Comm_rank( _couplingComm, &restrictedLocalBeginningRank );
+//    MPI_Bcast( &restrictedLocalBeginningRank, 1, MPI_INT, 0, localComm );
+//  }
+
+  // Test if we are root for the case COUPLINGS_MPI_RANKS_ONLY_MASTER
+  if (currentRank <= localEndRank) {
+    std::cout << "i'm the master" << currentRank << std::endl << std::flush;
+
   int lLocalName = _name.size() + 1;
   int lDistantName = 0;
   MPI_Status MPIStatus;
@@ -800,14 +818,57 @@ couplings_exchange_status_t Coupling::exchange(const char                       
     // Visualization
 
 //    std::cout << "avant visualization" << std::endl;
-    _visualization(exchangeName,
-                   stride,
-                   timeStep,
-                   timeValue,
-                   sendingFieldName,
-                   sendingField,
-                   receivingFieldName,
-                   receivingField);
+//      _visualization(exchangeName,
+//                     stride,
+//                     timeStep,
+//                     timeValue,
+//                     sendingFieldName,
+//                     sendingField,
+//                     receivingFieldName,
+//                     receivingField);
+    }
+    else if( receivingField != NULL ) {
+      std::cout << "i'm a slave" << currentRank << std::endl << std::flush;
+
+      // TODO WARNING ACHTUNG: this locate shouldn't be here because a slave shouldn't be part of the FVM exchange
+      // but it is mandatory because of some MPI_All(COMM_WORLD) in fvm_nodal and perhaps fvm_exchange_var_point_distant
+      // I'm in favour to give a subset of COMM_WORLD to FVM, so that he don't see anything outdoor
+      locate();
+      //const int begRank = _coupledApplicationProperties.getBeginningRank();
+      //const int nRank = _coupledApplicationProperties.getEndRank() - begRank + 1;
+      //_fvmLocator = fvm_locator_create(_tolerance, globalComm, nRank, begRank);
+      //if( _solverType == COUPLINGS_SOLVER_CELL_CENTER ) _nPointsToLocate = _supportMesh->getNElts();
+      //else if(_solverType == COUPLINGS_SOLVER_CELL_VERTEX) _nPointsToLocate = _supportMesh->getNVertex();
+      _toLocate = false;
+      //_nNotLocatedPoint = 0;
+    }
+
+    if( receivingField != NULL ) {
+      MPI_Bcast( &_nDistantpoint, 1, MPI_INT, 0, localComm );
+      MPI_Bcast( &_nPointsToLocate, 1, MPI_INT, 0, localComm );
+      MPI_Bcast( &_nNotLocatedPoint, 1, MPI_INT, 0, localComm );
+      MPI_Bcast( &status, 1, MPI_INT, 0, localComm );
+
+      _locatedPoint = new int[_nPointsToLocate-_nNotLocatedPoint];
+      _notLocatedPoint = new int[_nNotLocatedPoint];
+      _location = new int[_nPointsToLocate];
+
+      MPI_Bcast( _locatedPoint, _nPointsToLocate-_nNotLocatedPoint, MPI_INT, 0, localComm );
+      MPI_Bcast( _notLocatedPoint, _nNotLocatedPoint, MPI_INT, 0, localComm );
+      MPI_Bcast( _location, _nPointsToLocate, MPI_INT, 0, localComm );
+      MPI_Bcast( receivingField, stride*_nPointsToLocate, MPI_DOUBLE, 0, localComm );
+
+      if( _entitiesDim == 1 || _entitiesDim == 2 ) {
+        int sizeBary = 2*_nDistantpoint;
+        if( _entitiesDim == 2 ) sizeBary = 4*_nDistantpoint;
+        _barycentricCoordinatesIndex = new int[_nDistantpoint];
+        _barycentricCoordinates = new double[sizeBary];
+        MPI_Bcast( _barycentricCoordinatesIndex, _nDistantpoint+1, MPI_INT, 0, localComm );
+        MPI_Bcast( _barycentricCoordinates, sizeBary, MPI_DOUBLE, 0, localComm );
+      }
+      std::cout << stride*_nPointsToLocate << " " << _nNotLocatedPoint << std::endl << std::flush;
+      for( int i=0; i<stride*_nPointsToLocate; i++ ) std::cout << receivingField[i] << " " << std::flush;
+    }
 
 //    std::cout << "fin fonction exchange" << std::endl;
     return status;
@@ -1121,14 +1182,43 @@ void Coupling::_visualization(const char *exchangeName,
 
 void Coupling::locate()
 {
-  if (_fvmLocator == NULL || _toLocate) {
+  const int localBeginningRank = _localApplicationProperties.getBeginningRank();
+  const MPI_Comm& globalComm = _localApplicationProperties.getGlobalComm();
+  int currentRank, restrictedLocalBeginningRank, restrictedDistantBeginningRank;
+  MPI_Comm_rank(globalComm, &currentRank);
 
-    if (_fvmLocator == NULL) {
-      const MPI_Comm& globalComm = _localApplicationProperties.getGlobalComm();
-      const int begRank = _coupledApplicationProperties.getBeginningRank();
-      const int nRank = _coupledApplicationProperties.getEndRank() - begRank + 1;
-      _fvmLocator = fvm_locator_create(_tolerance, globalComm, nRank, begRank);
+  if( _couplingComm == MPI_COMM_NULL ) {
+
+    int color = 1;
+    MPI_Status MPIStatus;
+    const int localEndRank = _localApplicationProperties.getEndRank();
+    const int distantBeginningRank = _coupledApplicationProperties.getBeginningRank();
+    const int distantEndRank = _coupledApplicationProperties.getEndRank();
+    const MPI_Comm& localComm = _localApplicationProperties.getLocalComm();
+
+    if(    (localBeginningRank <= currentRank && currentRank <= localEndRank)
+        || (distantBeginningRank <= currentRank && currentRank <= distantEndRank) )
+      color = 0;
+    std::cout << currentRank << " " << localBeginningRank << " " << localEndRank << " " << distantBeginningRank << " " << distantEndRank << " " << color << std::endl << std::flush;
+    MPI_Comm_split(globalComm, color, currentRank, &_couplingComm);
+    if( currentRank == localBeginningRank ) {
+      MPI_Comm_rank( _couplingComm, &restrictedLocalBeginningRank );
+      MPI_Sendrecv(&restrictedLocalBeginningRank, 1, MPI_INT, distantBeginningRank, 0, &restrictedDistantBeginningRank, 1, MPI_INT, distantBeginningRank, 0, globalComm, &MPIStatus);
     }
+    MPI_Bcast( &restrictedDistantBeginningRank, 1, MPI_INT, 0, localComm );
+    std::cout << "restrictedDistantBeginningRank" << restrictedDistantBeginningRank << std::endl << std::flush;
+  }
+
+  // TODO: pb si appel couplings_set_points_to_locate, puis couplings_locate dans le cas COUPLINGS_MPI_RANKS_ONLY_MASTER
+  if ((_fvmLocator == NULL || _toLocate) && (currentRank <= localBeginningRank)) {
+
+    // TODO: gerer le begRank, le plus propre serait de rajouter une prop MPI_RANKS dans AppProp
+    if (_fvmLocator == NULL) {
+      const int nRank = _coupledApplicationProperties.getEndRank() - _coupledApplicationProperties.getEndRank() + 1;
+      _fvmLocator = fvm_locator_create(_tolerance, _couplingComm, nRank, restrictedDistantBeginningRank);
+      fvm_locator_dump( _fvmLocator );
+    }
+    std::cout << "fvm locator cree" << std::endl << std::flush;
 
     double* coords = NULL;
     if (_coordsPointsToLocate != NULL)

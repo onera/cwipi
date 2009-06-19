@@ -17,6 +17,10 @@ module couplings
   integer, parameter :: couplings_interpolation_standard = 0
   integer, parameter :: couplings_interpolation_user = 1
   !
+  ! couplings_mpi_ranks_for_coupling
+  integer, parameter :: couplings_mpi_ranks_all_ranks = 0
+  integer, parameter :: couplings_mpi_ranks_only_master = 1
+  !
   ! mesh type
   integer, parameter :: couplings_static_mesh = 0
   integer, parameter :: couplings_mobile_mesh = 1
@@ -161,11 +165,11 @@ contains
 !*******************************************************************************
 !
 
-  subroutine couplings_init_f_ (globalComm, outputUnit, appliName, appliComm)
+  subroutine couplings_init_f_ (globalComm, outputUnit, appliName, mpiRanks, appliComm)
 
     implicit none
 
-    integer :: globalcomm, outputUnit, applicomm
+    integer :: globalcomm, outputUnit, mpiRanks, applicomm
     character (len = *) :: appliname
 
     integer :: l1
@@ -174,7 +178,7 @@ contains
     l1 = len(appliname)
     ifile =  outputUnit
 
-    call couplings_init_cf (globalcomm, outputunit, appliname, l1,  applicomm)
+    call couplings_init_cf (globalcomm, outputunit, appliname, l1, mpiRanks,  applicomm)
 
   end subroutine couplings_init_f_
 

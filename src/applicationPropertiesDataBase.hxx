@@ -11,6 +11,7 @@
 #include <bft_printf.h>
 
 #include "singleton.hpp"
+#include "couplings.h"
 
 namespace couplings {
   
@@ -28,7 +29,7 @@ namespace couplings {
     virtual ~ApplicationPropertiesDataBase();
 
   public:
-    MPI_Comm  init(const char* name, const MPI_Comm globalComm);
+    MPI_Comm  init(const char* name, const couplings_mpi_ranks_for_coupling_t mpi_rank, const MPI_Comm globalComm);
 
     inline void setPrintfProxy(bft_printf_proxy_t *const callBackPrintf);
 

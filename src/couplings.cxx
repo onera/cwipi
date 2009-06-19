@@ -106,10 +106,11 @@ int _couplings_print_with_c
  *----------------------------------------------------------------------------*/
 
 void couplings_init
-(const MPI_Comm common_comm,
- FILE           *output_listing,
- const char     *application_name,
- MPI_Comm       *application_comm)
+(const MPI_Comm                           common_comm       ,
+ FILE                                     *output_listing   ,
+ const char                               *application_name ,
+ const couplings_mpi_ranks_for_coupling_t mpi_ranks         ,
+ MPI_Comm                                 *application_comm )
 
 {
   _couplings_output_listing = output_listing;
@@ -119,6 +120,7 @@ void couplings_init
     couplings::ApplicationPropertiesDataBase::getInstance();
 
   *application_comm = properties.init(application_name,
+                                      mpi_ranks,
                                       common_comm);
 }
 

@@ -22,6 +22,16 @@ extern "C" {
  *============================================================================*/
 
 /*----------------------------------------------------------------------------
+ * MPI ranks used for the coupling
+ *----------------------------------------------------------------------------*/
+
+typedef enum {
+
+  COUPLINGS_MPI_RANKS_ALL_RANKS,
+  COUPLINGS_MPI_RANKS_ONLY_MASTER,
+} couplings_mpi_ranks_for_coupling_t;
+
+/*----------------------------------------------------------------------------
  * Mesh type
  *----------------------------------------------------------------------------*/
 
@@ -161,6 +171,7 @@ typedef void (couplings_interpolation_fct_t)
  *   common_comm       <-- Common MPI communicator
  *   output_listing    <-- Output listing file
  *   application_name  <-- Current application name
+ *   mpi_ranks         <-- Only one master for the entire domain or geometrical parallelization
  *   application_comm  --> Internal MPI communicator for the current
  *                         application
  *
@@ -168,10 +179,11 @@ typedef void (couplings_interpolation_fct_t)
  *----------------------------------------------------------------------------*/
 
 void couplings_init
-(const          MPI_Comm common_comm,
- FILE           *output_listing,
- const char     *application_name,
- MPI_Comm       *application_comm);
+(const MPI_Comm                           common_comm,
+ FILE                                     *output_listing,
+ const char                               *application_name,
+ const couplings_mpi_ranks_for_coupling_t mpi_ranks,
+ MPI_Comm                                 *application_comm);
 
 /*----------------------------------------------------------------------------
  *

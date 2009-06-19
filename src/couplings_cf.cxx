@@ -205,6 +205,7 @@ void PROCF(couplings_init_cf, COUPLINGS_INIT_CF)
    const int  *output_logical_unit,
    const char *application_name_f,
    const int  *l_application_name,
+   const int  *mpi_ranks,
    MPI_Fint   *application_fcomm
    ARGF_SUPP_CHAINE)
 {
@@ -221,6 +222,7 @@ void PROCF(couplings_init_cf, COUPLINGS_INIT_CF)
     couplings::ApplicationPropertiesDataBase::getInstance();
 
   application_comm = properties.init(application_name_c,
+                                     (couplings_mpi_ranks_for_coupling_t) *mpi_ranks,
                                      common_comm);
 
   *application_fcomm = MPI_Comm_c2f(application_comm);

@@ -131,6 +131,7 @@ namespace couplings {
     double              *_coordsPointsToLocate;
     fvm_locator_t       *_fvmLocator;
     fvm_writer_t        *_fvmWriter;
+    MPI_Comm             _couplingComm;
     couplings_interpolation_fct_t *_interpolationFct;
     bool                 _toLocate;
     int                 *_barycentricCoordinatesIndex;
