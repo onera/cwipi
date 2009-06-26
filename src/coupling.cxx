@@ -521,6 +521,7 @@ couplings_exchange_status_t Coupling::exchange(const char                       
   // Check exchange_name
 
   const int localBeginningRank = _localApplicationProperties.getBeginningRank();
+  const int localEndRank = _localApplicationProperties.getEndRank();
   const int distantBeginningRank = _coupledApplicationProperties.getBeginningRank();
   const MPI_Comm& globalComm = _localApplicationProperties.getGlobalComm();
   const MPI_Comm& localComm = _localApplicationProperties.getLocalComm();

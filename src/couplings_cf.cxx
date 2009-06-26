@@ -230,6 +230,19 @@ void PROCF(couplings_init_cf, COUPLINGS_INIT_CF)
   delete[] application_name_c;
 }
 
+/*----------------------------------------------------------------------------
+ *
+ * Set up the file used for the output listing
+ *
+ * parameters:
+ *   output_listing      <-- Output listing file (C function)
+ *----------------------------------------------------------------------------*/
+
+void PROCF(couplings_set_output_listing_cf, COUPLINGS_SET_OUTPUT_LISTING_CF)
+  (const int *output_listing)
+{
+  bft_printf_proxy_set(_couplings_print_with_fortran);
+}
 
 /*----------------------------------------------------------------------------
  *

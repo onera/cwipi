@@ -126,6 +126,21 @@ void couplings_init
 
 /*----------------------------------------------------------------------------
  *
+ * Set up the file used for the output listing
+ *
+ * parameters:
+ *   output_listing      <-- Output listing file (C function)
+ *----------------------------------------------------------------------------*/
+
+void couplings_set_output_listing
+(FILE *output_listing)
+{
+  _couplings_output_listing = output_listing;
+  bft_printf_proxy_set(_couplings_print_with_c);
+}
+
+/*----------------------------------------------------------------------------
+ *
  * Add a integer control parameter
  *
  * parameters

@@ -50,6 +50,10 @@ module couplings
 
   interface couplings_init_f ; module procedure couplings_init_f_ ; end interface
 
+  interface couplings_set_output_listing_f ; module procedure &
+    couplings_set_output_listing_f_
+  end interface
+
   interface couplings_add_local_int_control_parameter_f ; module procedure &
     couplings_add_local_int_control_parameter_f_
   end interface
@@ -114,9 +118,10 @@ module couplings
     couplings_get_n_located_points_f_
   end interface
   !
-  ! Pivate
+  ! Private
 
   private :: couplings_init_f_,                                 &
+             couplings_set_output_listing_f_,                   &
              couplings_exchange_without_user_interpolation_f_,  &
              couplings_exchange_with_user_interpolation_f_,     &
              couplings_send_without_user_interpolation_f_,      &
@@ -181,6 +186,29 @@ contains
     call couplings_init_cf (globalcomm, outputunit, appliname, l1, mpiRanks,  applicomm)
 
   end subroutine couplings_init_f_
+
+!
+!*******************************************************************************
+!
+!  Set up the file used for the output listing
+!
+!  parameters:
+!    output_listing      <-- Output listing file (C function)
+!
+!*******************************************************************************
+!
+
+  subroutine couplings_set_output_listing_f_ (outputUnit)
+
+  implicit none
+
+  integer :: outputUnit
+
+  ifile =  outputUnit
+
+  call couplings_set_output_listing_cf (outputUnit)
+
+  end subroutine couplings_set_output_listing_f_
 
 !
 !********************************************************************************

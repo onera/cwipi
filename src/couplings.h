@@ -187,6 +187,17 @@ void couplings_init
 
 /*----------------------------------------------------------------------------
  *
+ * Set up the file used for the output listing
+ *
+ * parameters:
+ *   output_listing      <-- Output listing file (C function)
+ *----------------------------------------------------------------------------*/
+
+void couplings_set_output_listing
+(FILE *output_listing);
+
+/*----------------------------------------------------------------------------
+ *
  * Add a integer control parameter
  *
  * parameters
