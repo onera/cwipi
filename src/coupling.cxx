@@ -535,7 +535,7 @@ couplings_exchange_status_t Coupling::exchange(const char                       
                  globalComm, &MPIStatus);
 
     if (strcmp(_name.c_str(), distantCouplingName))
-      bft_error(__FILE__, __LINE__, 0, "'%s' '%s' bad synchronisation point\n",
+      bft_error(__FILE__, __LINE__, 0, "'%s' '%s' bad synchronization point\n",
                 _name.c_str(),
                 distantCouplingName);
     delete[] distantCouplingName;
@@ -555,9 +555,10 @@ couplings_exchange_status_t Coupling::exchange(const char                       
                  globalComm, &MPIStatus);
 
     if (strcmp(exchangeName, distantExchangeName))
-      bft_error(__FILE__, __LINE__, 0, "'%s' '%s' bad synchronisation point\n",
+      bft_error(__FILE__, __LINE__, 0, "'%s' '%s' bad synchronization point\n",
                 exchangeName,
                 distantExchangeName);
+
     delete[] distantExchangeName;
   }
 

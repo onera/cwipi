@@ -192,7 +192,7 @@ int main
     const double ymax =  100;
     const int    nx   = 16;
     const int    ny   = 16;
-    const int   order = 1;
+    const int   order = 0;
     
     creeMaillagePolygone2D(order,
                            localComm,
@@ -639,7 +639,7 @@ int main
     const double ymax =  100;
     const int    nx   = 16;
     const int    ny   = 16;
-    const int   order = 1;
+    const int   order = 0;
     
     creeMaillagePolygone2D(order,
                            localComm,

@@ -337,6 +337,7 @@ void coo_baryc(const fvm_locator_t* locator,
         currentVertex = isom;
         break;
       }
+      /* faire un test avec eps pour proScal */
       else if (aire[isom] <= eps && proScal[isom] < 0.) {
         isOnEdge = 1;
         currentVertex = isom;

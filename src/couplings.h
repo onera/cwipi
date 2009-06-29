@@ -354,7 +354,7 @@ void couplings_dump_application_properties();
 void couplings_create_coupling
 ( const char  *coupling_id,
   const char  *coupled_application,
-  const int entitiesDim,
+  const int    entitiesDim,
   const double tolerance,
   const couplings_mesh_type_t mesh_type,
   const couplings_solver_type_t solver_type,
