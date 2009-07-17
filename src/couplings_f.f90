@@ -6,8 +6,14 @@ module couplings
   ! ----------
   !
   ! couplings_nature_t
+  ! TODO:  couplings_nature a supprimer ?
   integer, parameter :: couplings_nature_element_center = 0
   integer, parameter :: couplings_nature_node = 1
+  !
+  ! couplings_coupling_type_t
+  integer, parameter :: couplings_cpl_parallel_with_part = 0
+  integer, parameter :: couplings_cpl_parallel_without_part = 1
+  integer, parameter :: couplings_cpl_sequential = 2
   !
   ! couplings_type_t
   integer, parameter :: couplings_type_float = 0
@@ -45,6 +51,10 @@ module couplings
   end interface
 
   interface couplings_init_f ; module procedure couplings_init_f_ ; end interface
+
+  interface couplings_set_output_listing_f ; module procedure &
+    couplings_set_output_listing_f_
+  end interface
 
   interface couplings_add_local_int_control_parameter_f ; module procedure &
     couplings_add_local_int_control_parameter_f_
@@ -110,9 +120,10 @@ module couplings
     couplings_get_n_located_points_f_
   end interface
   !
-  ! Pivate
+  ! Private
 
   private :: couplings_init_f_,                                 &
+             couplings_set_output_listing_f_,                   &
              couplings_exchange_without_user_interpolation_f_,  &
              couplings_exchange_with_user_interpolation_f_,     &
              couplings_send_without_user_interpolation_f_,      &
@@ -151,7 +162,6 @@ contains
 !
 !  parameters:
 !    globalComm    <-- Common MPI communicator
-!    outputunit    <-- Output listing logical unit
 !    appliName     <-- Current application name
 !    appliComm     --> Internal MPI communicator for the current
 !                      application
@@ -161,22 +171,43 @@ contains
 !*******************************************************************************
 !
 
-  subroutine couplings_init_f_ (globalComm, outputUnit, appliName, appliComm)
+  subroutine couplings_init_f_ (globalComm, appliName, appliComm)
 
     implicit none
 
-    integer :: globalcomm, outputUnit, applicomm
+    integer :: globalcomm, applicomm
     character (len = *) :: appliname
 
     integer :: l1
-    integer :: i
-
+ 
     l1 = len(appliname)
-    ifile =  outputUnit
-
-    call couplings_init_cf (globalcomm, outputunit, appliname, l1,  applicomm)
+ 
+    call couplings_init_cf (globalcomm, appliname, l1, applicomm)
 
   end subroutine couplings_init_f_
+
+!
+!*******************************************************************************
+!
+!  Set up the file used for the output listing
+!
+!  parameters:
+!    output_listing      <-- Output listing file 
+!
+!*******************************************************************************
+!
+
+  subroutine couplings_set_output_listing_f_ (outputUnit)
+
+  implicit none
+
+  integer :: outputUnit
+
+  ifile =  outputUnit
+
+  call couplings_set_output_listing_cf 
+
+  end subroutine couplings_set_output_listing_f_
 
 !
 !********************************************************************************
@@ -522,6 +553,7 @@ contains
 !
 ! parameters:
 !   couplingName            <-- Coupling identifier
+!   couplingType            <-- Coupling type
 !   cplAppli                <-- Coupled application name
 !   entitiesDim             <-- Mesh entities dimension (1, 2 or 3)
 !   tolerance               <-- Geometric tolerance to locate
@@ -555,6 +587,7 @@ contains
 !
 
   subroutine couplings_create_coupling_f_ (couplingName, &
+                                           couplingType, &
                                            cplAppli, &
                                            entitiesDim, &
                                            tolerance, &
@@ -567,7 +600,7 @@ contains
     implicit none
 
     character (len = *) :: couplingName, cplAppli
-    integer :: entitiesDim, meshT, solverT
+    integer :: entitiesDim, meshT, solverT, couplingType
     double precision :: tolerance
     integer :: outputFreq
     character (len = *) :: outputFmt, outputFmtOpt
@@ -582,6 +615,7 @@ contains
 
     call couplings_create_coupling_cf(couplingName, &
                                       lCouplingName, &
+                                      couplingType, &
                                       cplAppli, &
                                       lCplAppli, &
                                       entitiesDim, &

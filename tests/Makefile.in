@@ -14,8 +14,15 @@
 
 @SET_MAKE@
 
-# Add any debug flags
+#-------------------------------------------------------------------------------
+#   This file is part of the "Finite Volume Mesh" library, intended to provide
+#   finite volume mesh and associated fields I/O and manipulation services.
+#
+#   Copyright (C) 2004-2008  EDF
+#
 
+# To disable dependency tracking
+# AUTOMAKE_OPTIONS = no-dependencies
 
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
@@ -40,9 +47,10 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-subdir = src
-DIST_COMMON = $(couplingsinclude_HEADERS) $(noinst_HEADERS) \
-	$(srcdir)/Makefile.am $(srcdir)/Makefile.in
+tests_PROGRAMS = test2D_1_c1$(EXEEXT) test2D_1_c2$(EXEEXT) \
+	test3D_1_c1$(EXEEXT) test3D_1_c2$(EXEEXT)
+subdir = tests
+DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/config/check_bft.m4 \
 	$(top_srcdir)/config/check_fvm.m4 \
@@ -56,26 +64,24 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config_priv.h
 CONFIG_CLEAN_FILES =
-am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
-am__vpath_adj = case $$p in \
-    $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
-    *) f=$$p;; \
-  esac;
-am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
-am__installdirs = "$(DESTDIR)$(libdir)" \
-	"$(DESTDIR)$(couplingsincludedir)"
-libLTLIBRARIES_INSTALL = $(INSTALL)
-LTLIBRARIES = $(lib_LTLIBRARIES) $(noinst_LTLIBRARIES)
-libcouplings_la_DEPENDENCIES =
-am_libcouplings_la_OBJECTS = applicationProperties.lo \
-	applicationPropertiesDataBase.lo couplings.lo quickSort.lo \
-	solve_ax_b_4.lo coo_baryc.lo mesh.lo coupling.lo \
-	couplingDataBase.lo callfortinterpfct.lo
-libcouplings_la_OBJECTS = $(am_libcouplings_la_OBJECTS)
-libcouplings_f_la_DEPENDENCIES = libcouplings.la
-am_libcouplings_f_la_OBJECTS = couplings_cf.lo couplings_f.lo \
-	printfort.lo
-libcouplings_f_la_OBJECTS = $(am_libcouplings_f_la_OBJECTS)
+am__installdirs = "$(DESTDIR)$(testsdir)"
+testsPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
+PROGRAMS = $(tests_PROGRAMS)
+am_test2D_1_c1_OBJECTS = creeMaillagePolygone2D.$(OBJEXT) \
+	test2D_1_c1.$(OBJEXT)
+test2D_1_c1_OBJECTS = $(am_test2D_1_c1_OBJECTS)
+test2D_1_c1_DEPENDENCIES = $(top_builddir)/src/libcouplings.la
+am_test2D_1_c2_OBJECTS = creeMaillagePolygone2D.$(OBJEXT) \
+	test2D_1_c2.$(OBJEXT)
+test2D_1_c2_OBJECTS = $(am_test2D_1_c2_OBJECTS)
+test2D_1_c2_DEPENDENCIES = $(top_builddir)/src/libcouplings.la \
+	$(top_builddir)/src/libcouplings_f.la
+am_test3D_1_c1_OBJECTS = test3D_1_c1.$(OBJEXT)
+test3D_1_c1_OBJECTS = $(am_test3D_1_c1_OBJECTS)
+test3D_1_c1_DEPENDENCIES = $(top_builddir)/src/libcouplings.la
+am_test3D_1_c2_OBJECTS = test3D_1_c2.$(OBJEXT)
+test3D_1_c2_OBJECTS = $(am_test3D_1_c2_OBJECTS)
+test3D_1_c2_DEPENDENCIES = $(top_builddir)/src/libcouplings.la
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__depfiles_maybe = depfiles
@@ -87,21 +93,13 @@ LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
-LTCXXCOMPILE = $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) \
-	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
-	$(AM_CXXFLAGS) $(CXXFLAGS)
-CXXLD = $(CXX)
-CXXLINK = $(LIBTOOL) --tag=CXX --mode=link $(CXXLD) $(AM_CXXFLAGS) \
-	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 FCLD = $(FC)
 FCLINK = $(LIBTOOL) --mode=link $(FCLD) $(AM_FCFLAGS) $(FCFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(libcouplings_la_SOURCES) $(libcouplings_f_la_SOURCES)
-DIST_SOURCES = $(libcouplings_la_SOURCES) $(libcouplings_f_la_SOURCES)
-couplingsincludeHEADERS_INSTALL = $(INSTALL_HEADER)
-HEADERS = $(couplingsinclude_HEADERS) $(noinst_HEADERS)
+SOURCES = $(test2D_1_c1_SOURCES) $(test2D_1_c2_SOURCES) \
+	$(test3D_1_c1_SOURCES) $(test3D_1_c2_SOURCES)
+DIST_SOURCES = $(test2D_1_c1_SOURCES) $(test2D_1_c2_SOURCES) \
+	$(test3D_1_c1_SOURCES) $(test3D_1_c2_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -237,52 +235,53 @@ target_alias = @target_alias@
 target_cpu = @target_cpu@
 target_os = @target_os@
 target_vendor = @target_vendor@
+AUTOMAKE_OPTIONS = foreign
+
+#include directories
+
+#INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/src 
+INCLUDES = -I$(includedir)
 @DEBUG_FALSE@DEBUG_CPPFLAGS = -DNDEBUG
+
+# Add any debug flags
 @DEBUG_TRUE@DEBUG_CPPFLAGS = -DDEBUG
-AM_CPPFLAGS = $(DEBUG_CPPFLAGS) @BFT_CPPFLAGS@ @FVM_CPPFLAGS@ @MPI_CPPFLAGS@
+
+# Main part
+AM_CPPFLAGS = $(DEBUG_CPPFLAGS) @BFT_CPPFLAGS@ @FVM_CPPFLAGS@ @MPI_CPPFLAGS@ @METIS_CPPFLAGS@
 AM_CFLAGS = 
-AM_LDFLAGS = @BFT_LDFLAGS@ @FVM_LDFLAGS@ @MPI_LDFLAGS@
+AM_LDFLAGS = @BFT_LDFLAGS@ @FVM_LDFLAGS@ @MPI_LDFLAGS@ @METIS_LDFLAGS@
 LTFCCOMPILE = $(LIBTOOL) --mode=compile --tag=FC $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_FCFLAGS) $(FCFLAGS) $(FCFLAGS_f90)
 FCCOMPILE = $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_FCFLAGS) $(FCFLAGS) $(FCFLAGS_f90)
-# Public header files (to be installed)
-couplingsincludedir = $(includedir)
-couplingsinclude_HEADERS = \
-couplings.mod \
-couplings.h 
+LDADD = $(top_builddir)/src/libcouplings.la \
+        @BFT_LIBS@ @FVM_LIBS@ @MPI_LIBS@ \
+	-lm
 
-noinst_HEADERS = \
-coo_baryc.h \
-couplings_cf.h \
-quickSort.h \
-solve_ax_b_4.h
+testsdir = $(bindir)/cwipi_tests
+test2D_1_c1_SOURCES = creeMaillagePolygone2D.c test2D_1_c1.c
+test2D_1_c2_SOURCES = creeMaillagePolygone2D.c test2D_1_c2.f90
+test3D_1_c1_SOURCES = test3D_1_c1.c
+test3D_1_c2_SOURCES = test3D_1_c2.c
+test2D_1_c1_LDADD = $(top_builddir)/src/libcouplings.la \
+        @BFT_LIBS@ @FVM_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
+	-lm
 
+test2D_1_c2_LDADD = $(top_builddir)/src/libcouplings.la \
+        $(top_builddir)/src/libcouplings_f.la \
+        @BFT_LIBS@ @FVM_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
+	-lm
 
-# Library source files
-lib_LTLIBRARIES = libcouplings.la libcouplings_f.la
-noinst_LTLIBRARIES = 
-libcouplings_la_LIBADD = 
-libcouplings_la_SOURCES = \
-applicationProperties.cxx \
-applicationPropertiesDataBase.cxx \
-couplings.cxx \
-quickSort.c \
-solve_ax_b_4.c \
-coo_baryc.c \
-mesh.cxx \
-coupling.cxx \
-couplingDataBase.cxx \
-callfortinterpfct.f90
+test3D_1_c1_LDADD = $(top_builddir)/src/libcouplings.la \
+        @BFT_LIBS@ @FVM_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
+	-lm
 
-libcouplings_f_la_LIBADD = libcouplings.la
-libcouplings_f_la_SOURCES = \
-couplings_cf.cxx \
-couplings_f.f90 \
-printfort.f90
+test3D_1_c2_LDADD = $(top_builddir)/src/libcouplings.la \
+        @BFT_LIBS@ @FVM_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
+	-lm
 
 all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .c .cxx .f90 .lo .o .obj
+.SUFFIXES: .c .f90 .lo .o .obj
 $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -292,9 +291,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__confi
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  src/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  tests/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  src/Makefile
+	  $(AUTOMAKE) --foreign  tests/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -312,46 +311,46 @@ $(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
-install-libLTLIBRARIES: $(lib_LTLIBRARIES)
+install-testsPROGRAMS: $(tests_PROGRAMS)
 	@$(NORMAL_INSTALL)
-	test -z "$(libdir)" || $(mkdir_p) "$(DESTDIR)$(libdir)"
-	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
-	  if test -f $$p; then \
-	    f=$(am__strip_dir) \
-	    echo " $(LIBTOOL) --mode=install $(libLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) '$$p' '$(DESTDIR)$(libdir)/$$f'"; \
-	    $(LIBTOOL) --mode=install $(libLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) "$$p" "$(DESTDIR)$(libdir)/$$f"; \
+	test -z "$(testsdir)" || $(mkdir_p) "$(DESTDIR)$(testsdir)"
+	@list='$(tests_PROGRAMS)'; for p in $$list; do \
+	  p1=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
+	  if test -f $$p \
+	     || test -f $$p1 \
+	  ; then \
+	    f=`echo "$$p1" | sed 's,^.*/,,;$(transform);s/$$/$(EXEEXT)/'`; \
+	   echo " $(INSTALL_PROGRAM_ENV) $(LIBTOOL) --mode=install $(testsPROGRAMS_INSTALL) '$$p' '$(DESTDIR)$(testsdir)/$$f'"; \
+	   $(INSTALL_PROGRAM_ENV) $(LIBTOOL) --mode=install $(testsPROGRAMS_INSTALL) "$$p" "$(DESTDIR)$(testsdir)/$$f" || exit 1; \
 	  else :; fi; \
 	done
 
-uninstall-libLTLIBRARIES:
+uninstall-testsPROGRAMS:
 	@$(NORMAL_UNINSTALL)
-	@set -x; list='$(lib_LTLIBRARIES)'; for p in $$list; do \
-	  p=$(am__strip_dir) \
-	  echo " $(LIBTOOL) --mode=uninstall rm -f '$(DESTDIR)$(libdir)/$$p'"; \
-	  $(LIBTOOL) --mode=uninstall rm -f "$(DESTDIR)$(libdir)/$$p"; \
+	@list='$(tests_PROGRAMS)'; for p in $$list; do \
+	  f=`echo "$$p" | sed 's,^.*/,,;s/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/'`; \
+	  echo " rm -f '$(DESTDIR)$(testsdir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(testsdir)/$$f"; \
 	done
 
-clean-libLTLIBRARIES:
-	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
-	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
-	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
-	  test "$$dir" != "$$p" || dir=.; \
-	  echo "rm -f \"$${dir}/so_locations\""; \
-	  rm -f "$${dir}/so_locations"; \
+clean-testsPROGRAMS:
+	@list='$(tests_PROGRAMS)'; for p in $$list; do \
+	  f=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
+	  echo " rm -f $$p $$f"; \
+	  rm -f $$p $$f ; \
 	done
-
-clean-noinstLTLIBRARIES:
-	-test -z "$(noinst_LTLIBRARIES)" || rm -f $(noinst_LTLIBRARIES)
-	@list='$(noinst_LTLIBRARIES)'; for p in $$list; do \
-	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
-	  test "$$dir" != "$$p" || dir=.; \
-	  echo "rm -f \"$${dir}/so_locations\""; \
-	  rm -f "$${dir}/so_locations"; \
-	done
-libcouplings.la: $(libcouplings_la_OBJECTS) $(libcouplings_la_DEPENDENCIES) 
-	$(CXXLINK) -rpath $(libdir) $(libcouplings_la_LDFLAGS) $(libcouplings_la_OBJECTS) $(libcouplings_la_LIBADD) $(LIBS)
-libcouplings_f.la: $(libcouplings_f_la_OBJECTS) $(libcouplings_f_la_DEPENDENCIES) 
-	$(CXXLINK) -rpath $(libdir) $(libcouplings_f_la_LDFLAGS) $(libcouplings_f_la_OBJECTS) $(libcouplings_f_la_LIBADD) $(LIBS)
+test2D_1_c1$(EXEEXT): $(test2D_1_c1_OBJECTS) $(test2D_1_c1_DEPENDENCIES) 
+	@rm -f test2D_1_c1$(EXEEXT)
+	$(LINK) $(test2D_1_c1_LDFLAGS) $(test2D_1_c1_OBJECTS) $(test2D_1_c1_LDADD) $(LIBS)
+test2D_1_c2$(EXEEXT): $(test2D_1_c2_OBJECTS) $(test2D_1_c2_DEPENDENCIES) 
+	@rm -f test2D_1_c2$(EXEEXT)
+	$(FCLINK) $(test2D_1_c2_LDFLAGS) $(test2D_1_c2_OBJECTS) $(test2D_1_c2_LDADD) $(LIBS)
+test3D_1_c1$(EXEEXT): $(test3D_1_c1_OBJECTS) $(test3D_1_c1_DEPENDENCIES) 
+	@rm -f test3D_1_c1$(EXEEXT)
+	$(LINK) $(test3D_1_c1_LDFLAGS) $(test3D_1_c1_OBJECTS) $(test3D_1_c1_LDADD) $(LIBS)
+test3D_1_c2$(EXEEXT): $(test3D_1_c2_OBJECTS) $(test3D_1_c2_DEPENDENCIES) 
+	@rm -f test3D_1_c2$(EXEEXT)
+	$(LINK) $(test3D_1_c2_LDFLAGS) $(test3D_1_c2_OBJECTS) $(test3D_1_c2_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -359,16 +358,10 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/applicationProperties.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/applicationPropertiesDataBase.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/coo_baryc.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/coupling.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/couplingDataBase.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/couplings.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/couplings_cf.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mesh.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/quickSort.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/solve_ax_b_4.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/creeMaillagePolygone2D.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2D_1_c1.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3D_1_c1.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3D_1_c2.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
@@ -391,27 +384,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
 
-.cxx.o:
-@am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ $<
-
-.cxx.obj:
-@am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ `$(CYGPATH_W) '$<'`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
-
-.cxx.lo:
-@am__fastdepCXX_TRUE@	if $(LTCXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Plo"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
-
 .f90.o:
 	$(FCCOMPILE) -c -o $@ $<
 
@@ -430,23 +402,6 @@ clean-libtool:
 distclean-libtool:
 	-rm -f libtool
 uninstall-info-am:
-install-couplingsincludeHEADERS: $(couplingsinclude_HEADERS)
-	@$(NORMAL_INSTALL)
-	test -z "$(couplingsincludedir)" || $(mkdir_p) "$(DESTDIR)$(couplingsincludedir)"
-	@list='$(couplingsinclude_HEADERS)'; for p in $$list; do \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  f=$(am__strip_dir) \
-	  echo " $(couplingsincludeHEADERS_INSTALL) '$$d$$p' '$(DESTDIR)$(couplingsincludedir)/$$f'"; \
-	  $(couplingsincludeHEADERS_INSTALL) "$$d$$p" "$(DESTDIR)$(couplingsincludedir)/$$f"; \
-	done
-
-uninstall-couplingsincludeHEADERS:
-	@$(NORMAL_UNINSTALL)
-	@list='$(couplingsinclude_HEADERS)'; for p in $$list; do \
-	  f=$(am__strip_dir) \
-	  echo " rm -f '$(DESTDIR)$(couplingsincludedir)/$$f'"; \
-	  rm -f "$(DESTDIR)$(couplingsincludedir)/$$f"; \
-	done
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
@@ -525,12 +480,11 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LTLIBRARIES) $(HEADERS)
+all-am: Makefile $(PROGRAMS)
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(couplingsincludedir)"; do \
+	for dir in "$(DESTDIR)$(testsdir)"; do \
 	  test -z "$$dir" || $(mkdir_p) "$$dir"; \
 	done
-install: install-am
 install-exec: install-exec-am
 install-data: install-data-am
 uninstall: uninstall-am
@@ -556,8 +510,8 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
-	clean-noinstLTLIBRARIES mostlyclean-am
+clean-am: clean-generic clean-libtool clean-testsPROGRAMS \
+	mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -575,9 +529,9 @@ info: info-am
 
 info-am:
 
-install-data-am: install-couplingsincludeHEADERS
+install-data-am: install-testsPROGRAMS
 
-install-exec-am: install-libLTLIBRARIES
+install-exec-am:
 
 install-info: install-info-am
 
@@ -603,23 +557,35 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-couplingsincludeHEADERS uninstall-info-am \
-	uninstall-libLTLIBRARIES
+uninstall-am: uninstall-info-am uninstall-testsPROGRAMS
 
 .PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
-	clean-libLTLIBRARIES clean-libtool clean-noinstLTLIBRARIES \
-	ctags distclean distclean-compile distclean-generic \
-	distclean-libtool distclean-tags distdir dvi dvi-am html \
-	html-am info info-am install install-am \
-	install-couplingsincludeHEADERS install-data install-data-am \
-	install-exec install-exec-am install-info install-info-am \
-	install-libLTLIBRARIES install-man install-strip installcheck \
+	clean-libtool clean-testsPROGRAMS ctags distclean \
+	distclean-compile distclean-generic distclean-libtool \
+	distclean-tags distdir dvi dvi-am html html-am info info-am \
+	install install-am install-data install-data-am install-exec \
+	install-exec-am install-info install-info-am install-man \
+	install-strip install-testsPROGRAMS installcheck \
 	installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	tags uninstall uninstall-am uninstall-couplingsincludeHEADERS \
-	uninstall-info-am uninstall-libLTLIBRARIES
+	tags uninstall uninstall-am uninstall-info-am \
+	uninstall-testsPROGRAMS
 
+
+# To link without libtool, replace libfvm.la above by .libs/libfvm.so
+# and uncomment the following line:
+# fvm_test_LINK    = $(CC) -o $@
+
+install:
+	@echo "Test programs not installed by default;" \
+	 echo "use make install-test if preferred."
+
+install-tests: install-testsPROGRAMS
+	@cp $(top_srcdir)/tests/Readme $(testsdir)/
+	@cp -r $(top_srcdir)/tests/meshes $(testsdir)/
+
+uninstall-tests: uninstall-testsPROGRAMS
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

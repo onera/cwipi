@@ -61,22 +61,29 @@ extern "C" {
  * Create the current communicator application from 'common_comm'.
  *
  * parameters:
- *   common_comm       <-- Common MPI communicator
- *   output_listing    <-- Output listing file
- *   application_name  <-- Current application name
- *   application_comm  --> Internal MPI communicator for the current
- *                         application
+ *   common_comm         <-- Common MPI communicator
+ *   application_name    <-- Current application name
+ *   application_comm    --> Internal MPI communicator for the current
+ *                           application
  *
  * This is a synchronization between all applications
  *----------------------------------------------------------------------------*/
 
 void PROCF(couplings_init_cf, COUPLINGS_INIT_CF)
   (MPI_Fint  *common_fcomm,
-   const int  *output_logical_unit,
    const char *application_name_f,
    const int  *l_application_name,
    MPI_Fint   *application_fcomm
    ARGF_SUPP_CHAINE);
+
+/*----------------------------------------------------------------------------
+ *
+ * Set up the file used for the output listing
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(couplings_set_output_listing_cf, COUPLINGS_SET_OUTPUT_LISTING_CF)
+     ();
 
 /*----------------------------------------------------------------------------
  *
@@ -269,14 +276,22 @@ void PROCF(couplings_synchronize_control_parameter_cf,
  * Create a coupling object
  *
  * parameters:
- *   coupled_application     <-- Coupled application name
- *   field_nature            <-- Nature of the current application fields
- *   output_format           <-- Output format to visualize exchanged fields
+ *   couplingName            <-- Coupling identifier
+ *   couplingType            <-- Coupling type
+ *   cplAppli                <-- Coupled application name
+ *   entitiesDim             <-- Mesh entities dimension (1, 2 or 3)
+ *   tolerance               <-- Geometric tolerance to locate
+ *   meshT                   <-- COUPLINGS_STATIC_MESH
+ *                               COUPLINGS_MOBILE_MESH (not implemented yet)
+ *   solverT                 <-- COUPLINGS_SOLVER_CELL_CENTER
+ *                               COUPLINGS_SOLVER_CELL_VERTEX
+ *   outputFreq              <-- Output frequency
+ *   outputFmt               <-- Output format to visualize exchanged fields
  *                               on the coupled mesh. Choice between :
  *                                 - "EnSight Gold"
  *                                 - "MED_ficher"
  *                                 - "CGNS"
- *   output_format_option    <-- Outpout options
+ *   outputFmtOpt            <-- Output options
  *                             text                output text files
  *                             binary              output binary files (default)
  *                             big_endian          force binary files
@@ -292,15 +307,13 @@ void PROCF(couplings_synchronize_control_parameter_cf,
  *                                                 (adding a vertex near
  *                                                 each polyhedron's center)
  *
- * returns:
- *   The coupling id
- *
  *----------------------------------------------------------------------------*/
 
 void PROCF(couplings_create_coupling_cf,
            COUPLINGS_CREATE_COUPLING_CF)
 ( const char *coupling_name,
   const int  *l_coupling_name,
+  const int  *coupling_type,
   const char *coupled_application,
   const int  *l_coupled_application,
   const int  *entities_dim,

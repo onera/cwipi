@@ -1,6 +1,8 @@
+#include <fvm_parall.h>
 
 #include "couplingDataBase.hxx"
 #include "couplingDataBase_i.hxx"
+#include "applicationProperties.hxx"
 #include "coupling.hxx"
 
 namespace couplings {
@@ -8,6 +10,7 @@ namespace couplings {
   CouplingDataBase::CouplingDataBase()
     :  _couplingDataBase(*new std::map <std::string, Coupling * > ())
   {
+    _fvmComm = MPI_COMM_NULL;
   }
 
   CouplingDataBase::~CouplingDataBase()
@@ -24,6 +27,7 @@ namespace couplings {
   }
 
   void  CouplingDataBase::createCoupling(const std::string &name, 
+                                         const couplings_coupling_type_t couplingType,
                                          const ApplicationProperties& localApplicationProperties,
                                          const ApplicationProperties& coupledApplicationProperties,
                                          const int entitiesDim,
@@ -34,13 +38,77 @@ namespace couplings {
                                          const char  *outputFormatOption)
   {
 
-    Coupling *newCoupling = new Coupling(name, 
+    //
+    // deactivate postProcessing if postprocessing is activated 
+    // for an other coupling with a different coupling type !!!
+    // (fvm restriction)
+
+    int newOutputFrequency = outputFrequency;
+    int localCommSize;
+ 
+    MPI_Comm_size(localApplicationProperties.getLocalComm(), &localCommSize);
+
+    //
+    // Set fvm parall comm
+
+//     if (_fvmComm != MPI_COMM_NULL) {
+
+//       int fvmCommSize;
+//       MPI_Comm_size(_fvmComm, &fvmCommSize);
+
+//       if ( localCommSize != 1) {
+
+//         if ((couplingType != COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING && fvmCommSize > 1) ||
+//             (couplingType == COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING && fvmCommSize == 1)) {
+
+//           bft_printf("Warning : Post-processing deactivation for '%s' coupling", name.c_str());
+//           bft_printf("          Post-processing is activated for an other coupling type\n");
+//           bft_printf("          To activate this Post-processing, deactivate the other\n");
+           
+//           newOutputFrequency = -1;
+//         }
+//       }
+//     }
+
+//     else {
+
+//       if (couplingType != COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING) {
+
+//         int list = 0;
+//         MPI_Group localGroup;
+//         MPI_Group fvmGroup;
+
+//         MPI_Comm_group(localApplicationProperties.getLocalComm(), &localGroup);
+//         MPI_Group_incl(localGroup, 1, &list, &fvmGroup);
+//         MPI_Comm_create(localApplicationProperties.getLocalComm(),
+//                         fvmGroup,
+//                         &_fvmComm);
+//       }
+
+//       else 
+
+//         MPI_Comm_dup(localApplicationProperties.getLocalComm(), &_fvmComm);
+ 
+//       int titi;
+//       int tutu;
+//       MPI_Comm_size(_fvmComm, &tutu);
+//       MPI_Comm_rank(_fvmComm, &titi);
+//       std::cout << "fvmComm : " << tutu << " " << titi << std::endl;
+//       fvm_parall_set_mpi_comm(_fvmComm);
+
+//     }
+
+    //
+    // Create the new coupling
+
+    Coupling *newCoupling = new Coupling(name,
+                                         couplingType,
                                          localApplicationProperties,
                                          coupledApplicationProperties,
                                          entitiesDim,
                                          tolerance,
                                          solverType,
-                                         outputFrequency,
+                                         newOutputFrequency,
                                          outputFormat,
                                          outputFormatOption);
 
@@ -52,7 +120,9 @@ namespace couplings {
 
     if (!p.second)
       bft_error(__FILE__, __LINE__, 0, 
-                "'%s' coupling existing\n", name.c_str());
+                "'%s' existing coupling\n", name.c_str());
+
+
   }
 
   void  CouplingDataBase::deleteCoupling(const std::string &name)

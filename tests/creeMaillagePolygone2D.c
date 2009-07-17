@@ -24,11 +24,13 @@ extern "C" {
   minimum nécessaire issu de <metis.h> (correspondant à METIS 4.0)
 */
 
+#ifdef HAVE_METIS
 typedef int idxtype;
 void METIS_PartGraphRecursive(int *, idxtype *, idxtype *, idxtype *, idxtype *,
                               int *, int *, int *, int *, int *, idxtype *);
 void METIS_PartGraphKway(int *, idxtype *, idxtype *, idxtype *, idxtype *,
                          int *, int *, int *, int *, int *, idxtype *);
+#endif
 
 #ifdef __cplusplus
 }
@@ -125,7 +127,8 @@ void creeMaillagePolygone2D(int order,
   int *neighbour = NULL;
 
   if (localRank == 0) {
-    const double coefRand = .3;
+    const double coefRand = 0;
+    //const double coefRand = .3;
     //const double coefRand = 0.45;
     srand(initRandom);
     
@@ -397,12 +400,15 @@ void creeMaillagePolygone2D(int order,
   /* ------------------------------- */
   
   if (nRank > 1) {
+
+#ifdef HAVE_METIS
+
     if (localRank == 0) {
       
       int localNVertex = 0;
       int localNElts = 0;
       double *localCoords = NULL;
-
+      
       /* Connectivite descendante */
       /* ------------------------ */
       
@@ -502,8 +508,8 @@ void creeMaillagePolygone2D(int order,
       
       if (nAreVertex != NULL)
         BFT_FREE(nAreVertex);
-
-
+      
+      
       /* - Renumerotation connectivite descendante - Boucle sur la connectivite des éléments */
       
       for (int i = 0; i < (*eltsConnecPointer)[*nElts]; i++) 
@@ -547,7 +553,7 @@ void creeMaillagePolygone2D(int order,
       
       if (downConnectivity != NULL)
         BFT_FREE(downConnectivity);
-
+      
       /* - Creation de la table des voisins (Numerotation de 1 a n)
          Le voisin d'une face de bord est temporairement marque a -1 */
       
@@ -573,7 +579,7 @@ void creeMaillagePolygone2D(int order,
       }
       
       BFT_FREE(edgeToFace);
-
+      
       /* - Filtrage des faces de bords */
       
       neighbour = NULL;
@@ -598,7 +604,7 @@ void creeMaillagePolygone2D(int order,
       
       /* Decoupage du maillage par Metis */
       /* ------------------------------- */
-        
+      
       int     wgtflag    = 0 ; /* Pas de pondération pour les faces ou cellules */
       int     numflag    = 0 ; /* Numérotation de 1 à n (type Fortran) */
       int     options[5] = {0, 3, 1, 1, 0} ; /* Par défaut si options[0] = 0 */
@@ -634,13 +640,13 @@ void creeMaillagePolygone2D(int order,
                             options,
                             &edgecut,
                             numDomElt) ;
-
+      
       if (neighbour != NULL)
         BFT_FREE(neighbour);
       
       if (neighbourPointer != NULL)
         BFT_FREE(neighbourPointer);
-
+      
       int  localEltsSize              = (*nElts)/nRank;   /* Estimation du nombre d'elements locaux 
                                                              pour allocation memoire */
       int  localEltsConnecSize        = 6*(*nElts)/nRank; /* Estimation de la taille 
@@ -649,7 +655,7 @@ void creeMaillagePolygone2D(int order,
       
       
       int *localEltsConnecPointer = NULL;
-        
+      
       BFT_MALLOC(localEltsConnecPointer, localEltsSize+1, int);
       BFT_MALLOC(globalEltNum, localEltsSize, int);
       
@@ -698,11 +704,6 @@ void creeMaillagePolygone2D(int order,
         int val = globalVertexNum[i];
         localNVertex  = 1;
 
-        bft_printf("Avant tri : \n");
-        for (int i = 0; i < tmpSize; i++)
-          bft_printf(" %i",globalVertexNum[i]);
-        bft_printf("\n");
-
         do {
           i++;
           while (( i < tmpSize && (val == globalVertexNum[i])))
@@ -713,12 +714,6 @@ void creeMaillagePolygone2D(int order,
           } 
         } while (i < tmpSize);
         
-
-        bft_printf("Apres tri : \n");
-        for (int i = 0; i <localNVertex ; i++)
-          bft_printf(" %i",globalVertexNum[i]);
-        bft_printf("\n");
-
         /* Renumerotation de la connectivite */
         
         int *tmpRenum = NULL;
@@ -786,13 +781,14 @@ void creeMaillagePolygone2D(int order,
           if (ierror != MPI_SUCCESS)
             bft_error(__FILE__, __LINE__, 0, "Erreur MPI\n");
         }
-      }
       
+      }
+
       /* Suppression des donnees globales du maillage */
       
       if (numDomElt != NULL)
         BFT_FREE(numDomElt);
-
+      
       if ((*meshCoords) != NULL)
         BFT_FREE(*meshCoords);
       
@@ -801,9 +797,9 @@ void creeMaillagePolygone2D(int order,
       
       if ((*eltsConnec) != NULL)
         BFT_FREE(*eltsConnec);
-      
+        
       /* Contenu du maillage local sur proc 0 */
-      
+        
       BFT_REALLOC(localCoords, 3*localNVertex, double);
       BFT_REALLOC(localEltsConnec, localEltsConnecPointer[localNElts], int);
       BFT_REALLOC(localEltsConnecPointer, localNElts+1, int);
@@ -817,13 +813,13 @@ void creeMaillagePolygone2D(int order,
       *eltsConnecPointer = localEltsConnecPointer;
       
     } 
-  
+    
     /* Reception des donnees maillage si different du proc 0 */
     
     if (localRank != 0) {
-    
+      
       /* Reception des infos concernant les sommets */
-    
+      
       int ierror = MPI_SUCCESS;
       ierror = MPI_Recv(nVertex, 1, MPI_INT, 0, MPI_ANY_TAG, localComm, &status);
       if (ierror != MPI_SUCCESS)
@@ -846,7 +842,7 @@ void creeMaillagePolygone2D(int order,
       ierror = MPI_Recv(nElts, 1, MPI_INT, 0, MPI_ANY_TAG, localComm, &status);
       if (ierror != MPI_SUCCESS)
         bft_error(__FILE__, __LINE__, 0, "Erreur MPI\n");
-    
+      
       BFT_MALLOC(globalEltNum, *nElts, int);
       
       ierror = MPI_Recv(globalEltNum, *nElts, MPI_INT, 0, MPI_ANY_TAG, localComm, &status);
@@ -860,57 +856,22 @@ void creeMaillagePolygone2D(int order,
         bft_error(__FILE__, __LINE__, 0, "Erreur MPI\n");
     
       BFT_MALLOC(*eltsConnec, (*eltsConnecPointer)[(*nElts)], int);
-      
+        
       ierror = MPI_Recv(*eltsConnec, (*eltsConnecPointer)[(*nElts)], MPI_INT, 0, MPI_ANY_TAG, localComm, &status);
       if (ierror != MPI_SUCCESS)
         bft_error(__FILE__, __LINE__, 0, "Erreur MPI\n");
     }
+#else
+    bft_error(__FILE__, __LINE__, 0, "To make parallel test : Build cwipi with metis \n");
+#endif
   }
-
-  bft_printf("connectivite : \n");
-  for (int i = 0; i < *nElts ; i++) {
-    for (int j = (*eltsConnecPointer)[i]; j < (*eltsConnecPointer)[i+1] ; j++)
-      bft_printf(" %i", (*eltsConnec)[j]);
-    bft_printf("\n");
-  }
-
-
-
+  
   if (globalEltNum != NULL)
     BFT_FREE(globalEltNum);
-
+  
   if (globalVertexNum != NULL)
     BFT_FREE(globalVertexNum);
-
-  /* Construction de la structure nodale */
-  /* ----------------------------------- */
-  
-/*   int nbTriangle   = 0; */
-/*   int nbQuadrangle = 0; */
-/*   int nbPoly       = 0; */
-
-/*   for (int i = 0; i < *nElts; i++) { */
-/*     int nCurrentEltVertex = (*eltsConnecPointer)[i+1] - (*eltsConnecPointer)[i]; */
-/*     if (nCurrentEltVertex == 3) { */
-/*       if ((nbQuadrangle != 0) || (nbPoly != 0))  */
-/*         bft_error(__FILE__, __LINE__, 0, "Les elements ne sont pas ordonnes\n"); */
-/*       ++nbTriangle; */
-/*     } */
-    
-/*     else if (nCurrentEltVertex == 4) { */
-/*       if (nbPoly != 0)  */
-/*         bft_printf("Les elements ne sont pas ordonnes\n"); */
-/*       ++nbQuadrangle; */
-/*     } */
-    
-/*     else if (nCurrentEltVertex > 4) { */
-/*       ++nbPoly; */
-/*     } */
-    
-/*     else */
-/*       bft_error(__FILE__, __LINE__, 0, "Erreur dans l'index de connectivite\n"); */
-    
-/*   } */
+   
 }
 
 

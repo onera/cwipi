@@ -48,6 +48,7 @@ subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/config/check_bft.m4 \
 	$(top_srcdir)/config/check_fvm.m4 \
+	$(top_srcdir)/config/check_metis.m4 \
 	$(top_srcdir)/config/check_mpi.m4 \
 	$(top_srcdir)/config/couplings_config_info.m4 \
 	$(top_srcdir)/config/couplings_config_publ.m4 \
@@ -156,6 +157,9 @@ MAINT = @MAINT@
 MAINTAINER_MODE_FALSE = @MAINTAINER_MODE_FALSE@
 MAINTAINER_MODE_TRUE = @MAINTAINER_MODE_TRUE@
 MAKEINFO = @MAKEINFO@
+METIS_CPPFLAGS = @METIS_CPPFLAGS@
+METIS_LDFLAGS = @METIS_LDFLAGS@
+METIS_LIBS = @METIS_LIBS@
 MPI_CPPFLAGS = @MPI_CPPFLAGS@
 MPI_LDFLAGS = @MPI_LDFLAGS@
 MPI_LIBS = @MPI_LIBS@
@@ -233,7 +237,7 @@ AUX_DIST = $(ac_aux_dir)/config.guess \
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 configure config-h.in stamp-h.in $(AUX_DIST)
 
 #SUBDIRS = src tests doc
-SUBDIRS = src 
+SUBDIRS = src tests 
 EXTRA_DIST = $(ac_aux_dir)/couplings_auto_flags.sh \
              $(ac_aux_dir)/check_bft.m4 \
              $(ac_aux_dir)/check_fvm.m4 \
@@ -732,11 +736,11 @@ uninstall-info: uninstall-info-recursive
 uninstall-local:
 	rmdir $(includedir)/couplings
 
-#install-tests:
-#	@cd tests ; $(MAKE) install-tests
+install-tests:
+	@cd tests ; $(MAKE) install-tests
 
-#uninstall-tests:
-#	@cd tests ; $(MAKE) uninstall-tests
+uninstall-tests:
+	@cd tests ; $(MAKE) uninstall-tests
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

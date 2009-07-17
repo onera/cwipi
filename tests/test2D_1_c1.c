@@ -84,34 +84,37 @@ int main
 
   FILE *outputFile;
 
-  bft_mem_init("logmem.txt");
+  /*bft_mem_init("logmem.txt");*/
 
   MPI_Init(&argc, &argv);
 
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-
-  char* fileName = NULL;
-  BFT_MALLOC(fileName, 21, char); 
-  sprintf(fileName,"listing_code_C_%4.4d",rank); 
-
-  outputFile = fopen(fileName,"w");
-  BFT_FREE(fileName);
-
-  MPI_Comm localComm;
+  MPI_Comm localComm = MPI_COMM_NULL;
 
   /* Initialisation
    * -------------- */
 
   couplings_init(MPI_COMM_WORLD, 
-                 outputFile,
                  "CodeC",
                  &localComm);
   
+  /* Redirection des sorties ecran
+   * ----------------------------- */
+
   int currentRank;
+
   MPI_Comm_rank(localComm, &currentRank);
 
+  char* fileName = NULL;
+  BFT_MALLOC(fileName, 21, char); 
+  sprintf(fileName,"listing_test2D_1_c1_%4.4d",currentRank); 
+
+  outputFile = fopen(fileName,"w");
+  BFT_FREE(fileName);
+
+  couplings_set_output_listing(outputFile);
 
   bft_printf("\nDump apres initialisation\n");
   bft_printf("-------------------------\n");
@@ -165,10 +168,17 @@ int main
   {
 
     /* Initialisation du couplage */
-    bft_printf("Test 1 :  Test couplage P1 <-> P1\n");
+    bft_printf("Test 1 : Test couplage P1 <-> P1\n");
     bft_printf("\n");
-    
+
+    if  (currentRank == 0)
+      printf("Test 1 : Test couplage P1 <-> P1\n");
+
+    if  (currentRank == 0)
+      printf("         Create coupling\n");
+
     couplings_create_coupling("test2D_1",         // Nom du couplage
+                              COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING,
                               "CodeFortran",                      // Code couplé
                               2,                            // Dimension des entités géométriques
                               0.1,                          // Tolérance géométrique
@@ -190,10 +200,13 @@ int main
     const double xmax =  100;
     const double ymin = -100;
     const double ymax =  100;
-    const int    nx   = 16;
-    const int    ny   = 16;
-    const int   order = 0;
+    const int    nx   = 68;
+    const int    ny   = 68;
+    const int   order = 1;
     
+    if  (currentRank == 0)
+      printf("         Create mesh\n");
+
     creeMaillagePolygone2D(order,
                            localComm,
                            xmin,
@@ -212,6 +225,9 @@ int main
     bft_printf("   nombre de sommets : %i\n", nVertex);
     bft_printf("   nombre d'elements : %i\n", nElts);
     
+    if  (currentRank == 0)
+      printf("         Define mesh\n");
+
     couplings_define_mesh("test2D_1",
                           nVertex,
                           nElts,
@@ -232,6 +248,9 @@ int main
 
     int nNotLocatedPoints;
     
+    if  (currentRank == 0)
+      printf("         Exchange\n");
+
     couplings_exchange_status_t status = couplings_exchange("test2D_1",
                                                             "echange1",
                                                             1,
@@ -242,10 +261,16 @@ int main
                                                             "cooY",
                                                             localValues,
                                                             &nNotLocatedPoints);
+
     _dumpStatus(status);
+
     _dumpNotLocatedPoints("test2D_1", nNotLocatedPoints);
+
     /* Suppression de l'objet de couplage */
     
+    if  (currentRank == 0)
+      printf("         Delete coupling\n");
+
     couplings_delete_coupling("test2D_1");
     
     /* Liberation de la memoire */
@@ -276,7 +301,15 @@ int main
     
     bft_printf("Test 2 : Test couplage P1 -> P0 puis P0 -> P1\n");
     bft_printf("\n");
+
+    if  (currentRank == 0)
+      printf("Test 2 : Test couplage P1 -> P0 puis P0 -> P1\n");
+
+    if  (currentRank == 0)
+      printf("         Create coupling\n");
+
     couplings_create_coupling("test2D_2",         // Nom du couplage
+                              COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING,
                               "CodeFortran",                      // Code couplé
                               2,                            // Dimension des entités géométriques
                               0.1,                          // Tolérance géométrique 
@@ -298,10 +331,13 @@ int main
     const double xmax =  100;
     const double ymin = -100;
     const double ymax =  100;
-    const int    nx   = 16;    
-    const int    ny   = 16;    
+    const int    nx   = 68;    
+    const int    ny   = 68;    
     const int   order = 1;
     
+    if  (currentRank == 0)
+      printf("         Create mesh\n");
+
     creeMaillagePolygone2D(order,
                            localComm,
                            xmin, 
@@ -320,6 +356,9 @@ int main
     bft_printf("   nombre de sommets : %i\n", nVertex);
     bft_printf("   nombre d'elements : %i\n", nElts);
     
+    if  (currentRank == 0)
+      printf("         Define mesh\n");
+
     couplings_define_mesh("test2D_2", 
                           nVertex,
                           nElts,
@@ -337,6 +376,9 @@ int main
     
     int nNotLocatedPoints;
     
+    if  (currentRank == 0)
+      printf("         Exchange 1\n");
+
     couplings_exchange_status_t status = couplings_exchange("test2D_2",
                                                             "echange1",
                                                             1,     // stride
@@ -348,10 +390,14 @@ int main
                                                             localValues,
                                                             &nNotLocatedPoints);
     bft_printf("Send\n");
+
     _dumpStatus(status);
     _dumpNotLocatedPoints("test2D_2", nNotLocatedPoints);
 
     /* Send */
+
+    if  (currentRank == 0)
+      printf("         Exchange 2\n");
 
     status = couplings_exchange("test2D_2",
                                 "echange2",
@@ -364,11 +410,15 @@ int main
                                 NULL,
                                 &nNotLocatedPoints);
     bft_printf("Receive\n");
+
     _dumpStatus(status);
     _dumpNotLocatedPoints("test2D_2", nNotLocatedPoints);
 
     /* Suppression de l'objet de couplage */
     
+    if  (currentRank == 0)
+      printf("         Delete coupling\n");
+
     couplings_delete_coupling("test2D_2");
     
     /* Liberation de la memoire */
@@ -396,10 +446,17 @@ int main
 
   {
     /* Initialisation du couplage */
-    bft_printf(" Test 3 : Test de definition des points d'interpolation\n");
+    bft_printf("Test 3 : Test de definition des points d'interpolation\n");
     bft_printf("\n");
 
+    if  (currentRank == 0)
+      printf("Test 3 : Test de definition des points d'interpolation\n");
+
+    if  (currentRank == 0)
+      printf("         Create coupling\n");
+
     couplings_create_coupling("test2D_3",         // Nom du couplage
+                              COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING,
                               "CodeFortran",                      // Code couplé
                               2,                            // Dimension des entités géométriques
                               0.1,                          // Tolérance géométrique
@@ -421,10 +478,13 @@ int main
     const double xmax =  100;
     const double ymin = -100;
     const double ymax =  100;
-    const int    nx   = 16;
-    const int    ny   = 16;
+    const int    nx   = 68;
+    const int    ny   = 68;
     const int   order = 1;
    
+    if  (currentRank == 0)
+      printf("         Create mesh\n");
+
     creeMaillagePolygone2D(order,
                            localComm,
                            xmin,
@@ -443,6 +503,9 @@ int main
     bft_printf("   nombre de sommets : %i\n", nVertex);
     bft_printf("   nombre d'elements : %i\n", nElts);
     
+    if  (currentRank == 0)
+      printf("         Define mesh\n");
+ 
     couplings_define_mesh("test2D_3",
                           nVertex,
                           nElts,
@@ -555,6 +618,9 @@ int main
     
     int nNotLocatedPoints;
     
+    if  (currentRank == 0)
+      printf("         Exchange\n");
+
     couplings_exchange_status_t status = couplings_exchange("test2D_3",
                                                             "echange1",
                                                             1,   //stride
@@ -575,6 +641,9 @@ int main
 
     /* Suppression de l'objet de couplage */
     
+    if  (currentRank == 0)
+      printf("         Delete coupling\n");
+
     couplings_delete_coupling("test2D_3");
     
     /* Liberation de la memoire */
@@ -611,7 +680,14 @@ int main
     bft_printf("Test 4 : Test de definition d'une fonction d'interpolation\n");
     bft_printf("\n");
 
+    if (currentRank == 0)
+      printf("Test 4 : Test de definition d'une fonction d'interpolation\n");
+      
+    if  (currentRank == 0)
+      printf("         Create coupling\n");
+
     couplings_create_coupling("test2D_4",                   // Nom du couplage
+                              COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING,
                               "CodeFortran",                // Code couplé
                               2,                            // Dimension des entités géométriques
                               0.1,                          // Tolérance géométrique
@@ -637,10 +713,13 @@ int main
     const double xmax =  100;
     const double ymin = -100;
     const double ymax =  100;
-    const int    nx   = 16;
-    const int    ny   = 16;
-    const int   order = 0;
+    const int    nx   = 68;
+    const int    ny   = 68;
+    const int   order = 1;
     
+    if  (currentRank == 0)
+      printf("         Create mesh\n");
+
     creeMaillagePolygone2D(order,
                            localComm,
                            xmin,
@@ -656,6 +735,9 @@ int main
                            &eltsConnecPointer,
                            &eltsConnec);
     
+    if  (currentRank == 0)
+      printf("         Define mesh\n");
+
      couplings_define_mesh("test2D_4",
                           nVertex,
                           nElts,
@@ -676,6 +758,9 @@ int main
     
     int nNotLocatedPoints;
     
+    if  (currentRank == 0)
+      printf("         Exchange\n");
+
     couplings_exchange_status_t status = couplings_exchange("test2D_4",
                                                             "echange1",
                                                             1, // stride
@@ -691,6 +776,9 @@ int main
 
     /* Suppression de l'objet de couplage */
     
+    if  (currentRank == 0)
+      printf("         Delete coupling\n");
+
     couplings_delete_coupling("test2D_4");
     
     /* Liberation de la memoire */
@@ -722,7 +810,14 @@ int main
     bft_printf("Test 5 : test de la transmission d'un vecteur\n");
     bft_printf("\n");
 
+    if (currentRank == 0)
+      printf("Test 5 : test de la transmission d'un vecteur\n");
+
+    if  (currentRank == 0)
+      printf("         Create coupling\n");
+
     couplings_create_coupling("test2D_5",         // Nom du couplage
+                              COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING,
                               "CodeFortran",                      // Code couplé
                               2,                            // Dimension des entités géométriques
                               0.1,                          // Tolérance géométrique
@@ -746,10 +841,13 @@ int main
     const double xmax =  100;
     const double ymin = -100;
     const double ymax =  100;
-    const int    nx   = 16;
-    const int    ny   = 16;
+    const int    nx   = 68;
+    const int    ny   = 68;
     const int   order = 1;
     
+    if  (currentRank == 0)
+      printf("         Create mesh\n");
+
     creeMaillagePolygone2D(order,
                            localComm,
                            xmin,
@@ -768,6 +866,9 @@ int main
     bft_printf("   nombre de sommets : %i\n", nVertex);
     bft_printf("   nombre d'elements : %i\n", nElts);
     
+    if  (currentRank == 0)
+      printf("         Define mesh\n");
+
     couplings_define_mesh("test2D_5",
                           nVertex,
                           nElts,
@@ -788,6 +889,9 @@ int main
     
     int nNotLocatedPoints;
     
+    if  (currentRank == 0)
+      printf("         Exchange\n");
+
     couplings_exchange_status_t status = couplings_exchange("test2D_5",
                                                             "echange1",
                                                             3, //stride
@@ -803,6 +907,9 @@ int main
 
     /* Suppression de l'objet de couplage */
     
+    if  (currentRank == 0)
+      printf("         Delete coupling\n");
+
     couplings_delete_coupling("test2D_5");
     
     /* Liberation de la memoire */
@@ -833,8 +940,15 @@ int main
     /* Initialisation du couplage */
     bft_printf("Test 6 : Test des sorties d'erreur\n");
     bft_printf("\n");
-    
+
+    if (currentRank == 0)
+      printf("Test 6 : Test des sorties d'erreur\n");
+
+    if (currentRank == 0)
+      printf("         Create coupling\n");
+
     couplings_create_coupling("test2D_6",         // Nom du couplage
+                              COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING,
                               "CodeFortran",                      // Code couplé
                               2,                            // Dimension des entités géométriques
                               0.1,                          // Tolérance géométrique
@@ -844,6 +958,7 @@ int main
                               "EnSight Gold",               // Format du post-traitement
                               "text");                      // Options de post-traitements
     
+
     /* Construction du maillage local (Decoupage par Metis si plusieurs procs) */
     
     bft_printf("CodeA : construction du maillage\n");
@@ -858,10 +973,13 @@ int main
     const double xmax =  150;
     const double ymin = -150;
     const double ymax =  150;
-    const int    nx   =  20;
-    const int    ny   =  20;
+    const int    nx   =  64;
+    const int    ny   =  64;
     const int   order =  1;
     
+    if (currentRank == 0)
+      printf("         Create mesh\n");
+
     creeMaillagePolygone2D(order,
                            localComm,
                            xmin,
@@ -880,6 +998,9 @@ int main
     bft_printf("   nombre de sommets : %i\n", nVertex);
     bft_printf("   nombre d'elements : %i\n", nElts);
     
+    if (currentRank == 0)
+      printf("         Define mesh\n");
+
     couplings_define_mesh("test2D_6",
                           nVertex,
                           nElts,
@@ -900,6 +1021,9 @@ int main
     
     int nNotLocatedPoints;
     
+    if (currentRank == 0)
+      printf("         Exchange 1\n");
+
     couplings_exchange_status_t status = couplings_exchange("test2D_6",
                                                             "echange1",
                                                             1, // stride
@@ -917,6 +1041,9 @@ int main
     // Reception mais aucun envoi par code fortran
     // Controle de status
 
+    if (currentRank == 0)
+      printf("         Exchange 2\n");
+
     status = couplings_exchange("test2D_6",
                                 "echange2",
                                 1,  // stride
@@ -930,8 +1057,12 @@ int main
 
     _dumpStatus(status);
     _dumpNotLocatedPoints("test2D_6", nNotLocatedPoints);
+
     /* Suppression de l'objet de couplage */
     
+    if (currentRank == 0)
+      printf("         delete coupling\n");
+
     couplings_delete_coupling("test2D_6");
     
     /* Liberation de la memoire */
@@ -953,16 +1084,24 @@ int main
     bft_printf("--------------------------------------------------------\n");
   }
 
-  /* -------------------------
-   * Test avec tri des elements
-   * ----------------------- */
+  /* ------------------------
+   * Test simple localisation
+   * ------------------------ */
     
   {
+
     /* Initialisation du couplage */
-    bft_printf("Test 7 :  Test tri du maillage\n");
+    bft_printf("Test 7 : Test simple localisation\n");
     bft_printf("\n");
+
+    if (currentRank == 0)
+      printf("Test 7 : Test simple localisation\n");
     
+    if  (currentRank == 0)
+      printf("         Create coupling\n");
+
     couplings_create_coupling("test2D_7",         // Nom du couplage
+                              COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING,
                               "CodeFortran",                      // Code couplé
                               2,                            // Dimension des entités géométriques
                               0.1,                          // Tolérance géométrique
@@ -984,10 +1123,13 @@ int main
     const double xmax =  100;
     const double ymin = -100;
     const double ymax =  100;
-    const int    nx   = 20;
-    const int    ny   = 20;
+    const int    nx   = 68;
+    const int    ny   = 68;
     const int   order = 1;
     
+    if  (currentRank == 0)
+      printf("         Create mesh\n");
+
     creeMaillagePolygone2D(order,
                            localComm,
                            xmin,
@@ -1006,6 +1148,9 @@ int main
     bft_printf("   nombre de sommets : %i\n", nVertex);
     bft_printf("   nombre d'elements : %i\n", nElts);
     
+    if  (currentRank == 0)
+      printf("         Define mesh\n");
+
     couplings_define_mesh("test2D_7",
                           nVertex,
                           nElts,
@@ -1013,22 +1158,158 @@ int main
                           eltsConnecPointer,
                           eltsConnec);
     
+    couplings_locate("test2D_7");
+
+    const int n_located_distant_point = couplings_get_n_located_distant_points("test2D_7");
+
+    const int *distant_location = couplings_get_distant_location("test2D_7");
+
+    const int *distant_barycentric_coordinates_index = couplings_get_distant_barycentric_coordinates_index("test2D_7");
+
+    const double* distant_barycentric_coordinates = couplings_get_distant_barycentric_coordinates("test2D_7");
+
+    /* Suppression de l'objet de couplage */
+    
+    if  (currentRank == 0)
+      printf("         Delete coupling\n");
+
+    couplings_delete_coupling("test2D_7");
+    
+    /* Liberation de la memoire */
+    
+    if (coords != NULL)
+      BFT_FREE(coords);
+    
+    if (eltsConnec != NULL)
+      BFT_FREE(eltsConnec);
+    
+    if (eltsConnecPointer != NULL)
+      BFT_FREE(eltsConnecPointer);
+    
+    bft_printf("--------------------------------------------------------\n");
+  }
+
+  /* ---------------------------------------------------------
+   * Test couplage 
+   * COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING/
+   * COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING
+   * --------------------------------------------------------- */
+    
+  {
+
+    /* Initialisation du couplage */
+    bft_printf("Test 8 : Test couplage :\n"
+               "         COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING/"
+               "COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING\n");
+    bft_printf("\n");
+
+    if  (currentRank == 0)
+      printf("Test 8 : Test couplage :\n"
+               "         COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING/"
+               "COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING\n");
+
+    if  (currentRank == 0)
+      printf("         Create coupling\n");
+
+    couplings_create_coupling("test2D_8",         // Nom du couplage
+                              COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING,
+                              //                              COUPLINGS_COUPLING_SEQUENTIAL,
+                              "CodeFortran",                      // Code couplé
+                              2,                            // Dimension des entités géométriques
+                              0.1,                          // Tolérance géométrique
+                              COUPLINGS_STATIC_MESH,        // Maillage statique
+                              COUPLINGS_SOLVER_CELL_VERTEX, // Type de champs
+                              1,                            // Frequence des post-traitement
+                              "EnSight Gold",               // Format du post-traitement
+                              "text");                      // Options de post-traitements
+    
+
+    /* Construction du maillage local (Decoupage par Metis si plusieurs procs) */
+    
+    int nVertex = 0;               // Nombre de sommets
+    double *coords = NULL;         // Coordonnees des sommets
+    int nElts = 0;                 // Nombre d'elements
+    int *eltsConnecPointer = NULL; // Index par element dans la connectivite
+    int *eltsConnec = NULL;        // Description de la connectivite
+    
+    const double xmin = -100;
+    const double xmax =  100;
+    const double ymin = -100;
+    const double ymax =  100;
+    const int    nx   = 68;
+    const int    ny   = 68;
+    const int   order = 1;
+    
+    if  (currentRank == 0)
+      printf("         Create mesh\n");
+
+    MPI_Group localGroup = MPI_GROUP_NULL;
+    MPI_Group p1Group = MPI_GROUP_NULL;
+    MPI_Comm p1Comm = MPI_COMM_NULL;
+    
+    MPI_Comm_group(localComm, &localGroup);
+    int rl = 0;
+    
+    MPI_Group_incl(localGroup, 1, &rl, &p1Group);
+    MPI_Comm_create(localComm, p1Group, &p1Comm);
+
+    if  (currentRank == 0) {
+      creeMaillagePolygone2D(order,
+                             p1Comm,
+                             xmin,
+                             xmax,
+                             ymin,
+                             ymax,
+                             1,
+                             nx,
+                             ny,
+                             &nVertex,
+                             &coords,
+                             &nElts,
+                             &eltsConnecPointer,
+                             &eltsConnec);
+    }
+    
+    bft_printf("   nombre de sommets : %i\n", nVertex);
+    bft_printf("   nombre d'elements : %i\n", nElts);
+    
+    if  (currentRank == 0)
+      printf("         Define mesh\n");
+
+    if  (currentRank == 0)
+      couplings_define_mesh("test2D_8",
+                            nVertex,
+                            nElts,
+                            coords,
+                            eltsConnecPointer,
+                            eltsConnec);
+    
     /* Envoi de la coordonnee X
        Reception de la coordonnee Y*/
     
     double* values = NULL;
-    BFT_MALLOC(values, nVertex, double);
-    for (int i = 0; i < nVertex; i++)
-      values[i] = coords[3*i];
-    
+    if  (currentRank == 0) {
+      BFT_MALLOC(values, nVertex, double);
+      for (int i = 0; i < nVertex; i++)
+        values[i] = coords[3*i];
+    }
+
     double* localValues = NULL;
+
+    MPI_Bcast(&nVertex, 1, MPI_INT, 0, localComm);
+
     BFT_MALLOC(localValues, nVertex, double);
 
     int nNotLocatedPoints;
     
-    couplings_exchange_status_t status = couplings_exchange("test2D_7",
+    if  (currentRank == 0)
+      printf("         Exchange\n");
+
+ 
+
+    couplings_exchange_status_t status = couplings_exchange("test2D_8",
                                                             "echange1",
-                                                            1, // stride
+                                                            1,
                                                             1,     // n_step
                                                             0.1,   // physical_time
                                                             "cooX",
@@ -1036,11 +1317,19 @@ int main
                                                             "cooY",
                                                             localValues,
                                                             &nNotLocatedPoints);
+
+
+
     _dumpStatus(status);
-    _dumpNotLocatedPoints("test2D_7", nNotLocatedPoints);
+
+    _dumpNotLocatedPoints("test2D_8", nNotLocatedPoints);
+
     /* Suppression de l'objet de couplage */
     
-    couplings_delete_coupling("test2D_7");
+    if  (currentRank == 0)
+      printf("         Delete coupling\n");
+
+    /*couplings_delete_coupling("test2D_8"); */
     
     /* Liberation de la memoire */
     
@@ -1061,138 +1350,32 @@ int main
     bft_printf("--------------------------------------------------------\n");
   }
 
-  /* -------------------------------------------------------
-   * Test avec tri des elements pour un maillage cell-center
-   * ------------------------------------------------------- */
 
-  {   
-    /* Initialisation du couplage */
-    
-    bft_printf("Test 8 : Test avec tri des elements pour un maillage cell-center");
-    bft_printf("\n");
-    couplings_create_coupling("test2D_8",         // Nom du couplage
-                              "CodeFortran",                      // Code couplé
-                              2,                            // Dimension des entités géométriques
-                              0.1,                          // Tolérance géométrique 
-                              COUPLINGS_STATIC_MESH,        // Maillage statique
-                              COUPLINGS_SOLVER_CELL_CENTER, // Type de champs
-                              1,                            // Frequence des post-traitement
-                              "EnSight Gold",               // Format du post-traitement
-                              "text");                      // Options de post-traitements
-    
-    /* Construction du maillage local (Decoupage par Metis si plusieurs procs) */
-    
-    int nVertex = 0;               // Nombre de sommets
-    double *coords = NULL;         // Coordonnees des sommets
-    int nElts = 0;                 // Nombre d'elements
-    int *eltsConnecPointer = NULL; // Index par element dans la connectivite
-    int *eltsConnec = NULL;        // Description de la connectivite
-    
-    const double xmin = -100;
-    const double xmax =  100;
-    const double ymin = -100;
-    const double ymax =  100;
-    const int    nx   = 16;
-    const int    ny   = 16;
-    const int   order = 1;
-    
-    creeMaillagePolygone2D(order,
-                           localComm,
-                           xmin, 
-                           xmax, 
-                           ymin, 
-                           ymax,
-                           1,
-                           nx,
-                           ny,
-                           &nVertex,
-                           &coords,
-                           &nElts,
-                           &eltsConnecPointer,
-                           &eltsConnec);
-    
-    bft_printf("   nombre de sommets : %i\n", nVertex);
-    bft_printf("   nombre d'elements : %i\n", nElts);
-    
-    couplings_define_mesh("test2D_8", 
-                          nVertex,
-                          nElts,
-                          coords,
-                          eltsConnecPointer,
-                          eltsConnec);
-    
-    /* Reception de la coordonnee Y
-       Envoi de la coordonnee Y */
-    
-    double* localValues = NULL;
-    BFT_MALLOC(localValues, nElts, double);
 
-    /* Receive */
-    
-    int nNotLocatedPoints;
-    
-    couplings_exchange_status_t status = couplings_exchange("test2D_8",
-                                                            "echange1",
-                                                            1, // stride
-                                                            1,     // n_step
-                                                            0.1,   // physical_time
-                                                            NULL,
-                                                            NULL,
-                                                            "cooY",
-                                                            localValues,
-                                                            &nNotLocatedPoints);
-    bft_printf("Send\n");
-    _dumpStatus(status);
-    _dumpNotLocatedPoints("test2D_8", nNotLocatedPoints);
-
-    /* Send */
-
-    status = couplings_exchange("test2D_8",
-                                "echange2",
-                                1, // stride
-                                1,     // n_step
-                                0.1,   // physical_time
-                                "cooYY",
-                                localValues,
-                                NULL,
-                                NULL,
-                                &nNotLocatedPoints);
-    bft_printf("Receive\n");
-    _dumpStatus(status);
-    _dumpNotLocatedPoints("test2D_8", nNotLocatedPoints);
-
-    /* Suppression de l'objet de couplage */
-    
-    couplings_delete_coupling("test2D_8");
-    
-    /* Liberation de la memoire */
-    
-    if (coords != NULL)
-      BFT_FREE(coords);
-    
-    if (eltsConnec != NULL)
-      BFT_FREE(eltsConnec);
-    
-    if (eltsConnecPointer != NULL)
-      BFT_FREE(eltsConnecPointer);
-    
-    if (localValues != NULL)
-      BFT_FREE(localValues);
-    bft_printf("--------------------------------------------------------\n");
-    
-  }
-
-  /* ------------------------
-   * Test simple localisation
-   * ------------------------ */
+  /* ---------------------------------------------------------
+   * Test couplage avec code C 
+   * de type COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING/
+   * COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING
+   * --------------------------------------------------------- */
     
   {
 
     /* Initialisation du couplage */
-    bft_printf("Test 9 :  Test simple localisation\n");
+    bft_printf("Test 9 : Test couplage :\n"
+               "         COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING/"
+               "COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING\n");
     bft_printf("\n");
-    
+
+    if  (currentRank == 0)
+      printf("Test 9 : Test couplage :\n"
+               "         COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING/"
+               "COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING\n");
+
+    if  (currentRank == 0)
+      printf("         Create coupling\n");
+
     couplings_create_coupling("test2D_9",         // Nom du couplage
+                              COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING,
                               "CodeFortran",                      // Code couplé
                               2,                            // Dimension des entités géométriques
                               0.1,                          // Tolérance géométrique
@@ -1214,48 +1397,256 @@ int main
     const double xmax =  100;
     const double ymin = -100;
     const double ymax =  100;
-    const int    nx   = 16;
-    const int    ny   = 16;
+    const int    nx   = 68;
+    const int    ny   = 68;
     const int   order = 1;
     
-    creeMaillagePolygone2D(order,
-                           localComm,
-                           xmin,
-                           xmax,
-                           ymin,
-                           ymax,
-                           1,
-                           nx,
-                           ny,
-                           &nVertex,
-                           &coords,
-                           &nElts,
-                           &eltsConnecPointer,
-                           &eltsConnec);
+    if  (currentRank == 0)
+      printf("         Create mesh\n");
+
+    MPI_Group localGroup = MPI_GROUP_NULL;
+    MPI_Group p1Group = MPI_GROUP_NULL;
+    MPI_Comm p1Comm = MPI_COMM_NULL;
+    
+    MPI_Comm_group(localComm, &localGroup);
+    int rl = 0;
+    
+    MPI_Group_incl(localGroup, 1, &rl, &p1Group);
+    MPI_Comm_create(localComm, p1Group, &p1Comm);
+
+    if  (currentRank == 0) {
+      creeMaillagePolygone2D(order,
+                             p1Comm,
+                             xmin,
+                             xmax,
+                             ymin,
+                             ymax,
+                             1,
+                             nx,
+                             ny,
+                             &nVertex,
+                             &coords,
+                             &nElts,
+                             &eltsConnecPointer,
+                             &eltsConnec);
+    }
     
     bft_printf("   nombre de sommets : %i\n", nVertex);
     bft_printf("   nombre d'elements : %i\n", nElts);
     
-    couplings_define_mesh("test2D_9",
-                          nVertex,
-                          nElts,
-                          coords,
-                          eltsConnecPointer,
-                          eltsConnec);
+
+    if  (currentRank == 0)
+      printf("         Define mesh\n");
+
+    if  (currentRank == 0)
+      couplings_define_mesh("test2D_9",
+                            nVertex,
+                            nElts,
+                            coords,
+                            eltsConnecPointer,
+                            eltsConnec);
     
-    couplings_locate("test2D_9");
+    /* Envoi de la coordonnee X
+       Reception de la coordonnee Y*/
+    
+    double* values = NULL;
+    if  (currentRank == 0) {
+      BFT_MALLOC(values, nVertex, double);
+      for (int i = 0; i < nVertex; i++)
+        values[i] = coords[3*i];
+    }
+    
+    MPI_Bcast(&nVertex, 1, MPI_INT, 0, localComm);
 
-    const int n_located_distant_point = couplings_get_n_located_distant_points("test2D_9");
+    double* localValues = NULL;
+    BFT_MALLOC(localValues, nVertex, double);
 
-    const int *distant_location = couplings_get_distant_location("test2D_9");
+    int nNotLocatedPoints;
+    
+    if  (currentRank == 0)
+      printf("         Exchange\n");
 
-    const int *distant_barycentric_coordinates_index = couplings_get_distant_barycentric_coordinates_index("test2D_9");
+    couplings_exchange_status_t status = couplings_exchange("test2D_9",
+                                                            "echange1",
+                                                            1,
+                                                            1,     // n_step
+                                                            0.1,   // physical_time
+                                                            "cooX",
+                                                            values,
+                                                            "cooY",
+                                                            localValues,
+                                                            &nNotLocatedPoints);
 
-    const double* distant_barycentric_coordinates = couplings_get_distant_barycentric_coordinates("test2D_9");
+    _dumpStatus(status);
+
+    _dumpNotLocatedPoints("test2D_9", nNotLocatedPoints);
 
     /* Suppression de l'objet de couplage */
     
+    if  (currentRank == 0)
+      printf("         Delete coupling\n");
+
     couplings_delete_coupling("test2D_9");
+    
+    /* Liberation de la memoire */
+    
+    if (coords != NULL)
+      BFT_FREE(coords);
+    
+    if (eltsConnec != NULL)
+      BFT_FREE(eltsConnec);
+    
+    if (eltsConnecPointer != NULL)
+      BFT_FREE(eltsConnecPointer);
+    
+    if (values != NULL)
+      BFT_FREE(values);
+    
+    if (localValues != NULL)
+      BFT_FREE(localValues);
+    bft_printf("--------------------------------------------------------\n");
+  }
+
+
+  /* ---------------------------------------------------------
+   * Test couplage avec code C 
+   * de type COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING/
+   * COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING
+   * --------------------------------------------------------- */
+    
+  {
+
+    /* Initialisation du couplage */
+    bft_printf("Test 10: Test couplage :\n"
+               "         COUPLINGS_COUPLING_SEQUENTIAL/"
+               "COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING\n");
+    bft_printf("\n");
+
+    if  (currentRank == 0)
+      printf("Test 10: Test couplage :\n"
+               "         COUPLINGS_COUPLING_SEQUENTIAL/"
+               "COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING\n");
+
+    if  (currentRank == 0)
+      printf("         Create coupling\n");
+
+    couplings_create_coupling("test2D_10",         // Nom du couplage
+                              COUPLINGS_COUPLING_SEQUENTIAL,
+                              "CodeFortran",                      // Code couplé
+                              2,                            // Dimension des entités géométriques
+                              0.1,                          // Tolérance géométrique
+                              COUPLINGS_STATIC_MESH,        // Maillage statique
+                              COUPLINGS_SOLVER_CELL_VERTEX, // Type de champs
+                              1,                            // Frequence des post-traitement
+                              "EnSight Gold",               // Format du post-traitement
+                              "text");                      // Options de post-traitements
+    
+    /* Construction du maillage local (Decoupage par Metis si plusieurs procs) */
+    
+    int nVertex = 0;               // Nombre de sommets
+    double *coords = NULL;         // Coordonnees des sommets
+    int nElts = 0;                 // Nombre d'elements
+    int *eltsConnecPointer = NULL; // Index par element dans la connectivite
+    int *eltsConnec = NULL;        // Description de la connectivite
+    
+    const double xmin = -100;
+    const double xmax =  100;
+    const double ymin = -100;
+    const double ymax =  100;
+    const int    nx   = 68;
+    const int    ny   = 68;
+    const int   order = 1;
+    
+    if  (currentRank == 0)
+      printf("         Create mesh\n");
+
+    MPI_Group localGroup = MPI_GROUP_NULL;
+    MPI_Group p1Group = MPI_GROUP_NULL;
+    MPI_Comm p1Comm = MPI_COMM_NULL;
+    
+    MPI_Comm_group(localComm, &localGroup);
+    int rl = 0;
+    
+    MPI_Group_incl(localGroup, 1, &rl, &p1Group);
+    MPI_Comm_create(localComm, p1Group, &p1Comm);
+
+    if  (currentRank == 0) {
+      creeMaillagePolygone2D(order,
+                             p1Comm,
+                             xmin,
+                             xmax,
+                             ymin,
+                             ymax,
+                             1,
+                             nx,
+                             ny,
+                             &nVertex,
+                             &coords,
+                             &nElts,
+                             &eltsConnecPointer,
+                             &eltsConnec);
+    }
+    
+    bft_printf("   nombre de sommets : %i\n", nVertex);
+    bft_printf("   nombre d'elements : %i\n", nElts);
+    
+    if  (currentRank == 0)
+      printf("         Define mesh\n");
+
+    if  (currentRank == 0)
+      couplings_define_mesh("test2D_10",
+                            nVertex,
+                            nElts,
+                            coords,
+                            eltsConnecPointer,
+                            eltsConnec);
+    
+    /* Envoi de la coordonnee X
+       Reception de la coordonnee Y*/
+    
+    if  (currentRank == 0)
+      printf("         Exchange\n");
+
+    if  (currentRank == 0) {
+      
+      double* values = NULL;
+      BFT_MALLOC(values, nVertex, double);
+      for (int i = 0; i < nVertex; i++)
+        values[i] = coords[3*i];
+      
+      double* localValues = NULL;
+      BFT_MALLOC(localValues, nVertex, double);
+      
+      int nNotLocatedPoints;
+    
+      couplings_exchange_status_t status = couplings_exchange("test2D_10",
+                                                              "echange1",
+                                                              1,
+                                                              1,     // n_step
+                                                              0.1,   // physical_time
+                                                              "cooX",
+                                                              values,
+                                                              "cooY",
+                                                              localValues,
+                                                              &nNotLocatedPoints);
+
+      if (values != NULL)
+        BFT_FREE(values);
+      
+      if (localValues != NULL)
+        BFT_FREE(localValues);
+
+      _dumpStatus(status);
+
+      _dumpNotLocatedPoints("test2D_10", nNotLocatedPoints);
+    }
+
+    /* Suppression de l'objet de couplage */
+    
+    if  (currentRank == 0)
+      printf("         Delete coupling\n");
+
+    couplings_delete_coupling("test2D_10");
     
     /* Liberation de la memoire */
     
@@ -1275,8 +1666,8 @@ int main
   /* -------------------------- */
   
   couplings_finalize();
-  
-  bft_mem_end();
+
+  /*bft_mem_end();*/
   fclose(outputFile);
   return 0;
 }

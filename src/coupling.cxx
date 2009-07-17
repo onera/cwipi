@@ -55,7 +55,10 @@ extern "C" {
 }
 namespace couplings {
 
+  //TODO: Faire une factory sur le type de couplage
+
 Coupling::Coupling(const std::string& name,
+                   const couplings_coupling_type_t couplingType,
                    const ApplicationProperties& localApplicationProperties,
                    const ApplicationProperties& coupledApplicationProperties,
                    const int entitiesDim,
@@ -65,11 +68,11 @@ Coupling::Coupling(const std::string& name,
                    const char  *outputFormat,
                    const char  *outputFormatOption)
 :_localApplicationProperties(localApplicationProperties),
-_coupledApplicationProperties(coupledApplicationProperties),
-_entitiesDim(entitiesDim),_tolerance(tolerance), _solverType(solverType),
-_outputFormat(outputFormat), _outputFormatOption(outputFormatOption),
-_fvmWriter(NULL), _outputFrequency(outputFrequency), _name(name),
-_nDistantpoint(0)
+ _coupledApplicationProperties(coupledApplicationProperties),
+ _entitiesDim(entitiesDim),_tolerance(tolerance), _solverType(solverType),
+ _outputFormat(outputFormat), _outputFormatOption(outputFormatOption),
+ _fvmWriter(NULL), _outputFrequency(outputFrequency), _name(name),
+ _nDistantpoint(0), _couplingType(couplingType)
 
 {
   _tmpVertexField = NULL;
@@ -77,12 +80,32 @@ _nDistantpoint(0)
   _supportMesh = NULL;
   _coordsPointsToLocate = NULL;
   _fvmLocator = NULL;
+  _couplingComm = MPI_COMM_NULL;
+  _coupledApplicationNRankCouplingComm = -1;
+  _coupledApplicationBeginningRankCouplingComm = -1;
+  _mergeComm = MPI_COMM_NULL;
+  _fvmComm = MPI_COMM_NULL;
   _interpolationFct = NULL;
   _toLocate = true;
   _barycentricCoordinatesIndex = NULL;
   _barycentricCoordinates = NULL;
   _nNotLocatedPoint = 0;
   _nPointsToLocate = 0;
+  _location = NULL; 
+  _notLocatedPoint = NULL;
+  _locatedPoint = NULL;
+  _isCoupledRank = false;
+
+  //
+  // Create coupling comm
+  
+  _createCouplingComm ();
+
+
+#ifndef NAN
+  bft_printf("Warning : NAN macro is undefined -> receiving checking deactivation\n");
+#endif
+  
 }
 
 std::vector<double> &  Coupling::_extrapolate(double *cellCenterField)
@@ -171,25 +194,62 @@ std::vector<double> &  Coupling::_extrapolate(double *cellCenterField)
 
 Coupling::~Coupling()
 {
+#if defined(DEBUG) && 0
   std::cout << "destroying '" << _name << "' coupling" << std::endl;
-  delete _tmpVertexField;
-  delete _tmpDistantField;
-  delete _supportMesh;
+#endif  
 
-  if (_entitiesDim != 2) {
-    delete[] _barycentricCoordinatesIndex;
-    delete[] _barycentricCoordinates;
+  if (_isCoupledRank ) {
+
+    delete _tmpVertexField;
+
+    delete _tmpDistantField;
+
+    delete _supportMesh;
+
+
+  //
+  // TODO: Recoder les coord bary 2D en c++
+    if (_entitiesDim != 2) {
+      delete[] _barycentricCoordinatesIndex;
+      delete[] _barycentricCoordinates;
+    }
+
+    else {
+      BFT_FREE(_barycentricCoordinatesIndex);
+      BFT_FREE(_barycentricCoordinates);
+    }
+    
+    fvm_parall_set_mpi_comm(_fvmComm);
+
+    if (_fvmLocator != NULL)
+      fvm_locator_destroy(_fvmLocator);
+
+    if (_fvmWriter != NULL)
+      fvm_writer_finalize(_fvmWriter);
+
+    fvm_parall_set_mpi_comm(MPI_COMM_NULL);
+
+  }
+   
+  if (_mergeComm != MPI_COMM_NULL)
+    MPI_Comm_free(&_mergeComm); 
+
+  if (_couplingComm != MPI_COMM_NULL)
+    MPI_Comm_free(&_couplingComm); 
+  
+  if (_fvmComm != MPI_COMM_NULL)
+    MPI_Comm_free(&_fvmComm);
+
+  if (_couplingType == COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING && 
+      !_isCoupledRank) {
+
+    if (_locatedPoint != NULL) 
+      delete []  _locatedPoint;
+    
+    if (_notLocatedPoint != NULL) 
+      delete []  _notLocatedPoint ;
   }
 
-  else {
-    BFT_FREE(_barycentricCoordinatesIndex);
-    BFT_FREE(_barycentricCoordinates);
-  }
-
-  if (_fvmLocator != NULL)
-    fvm_locator_destroy(_fvmLocator);
-  if (_fvmWriter != NULL)
-    fvm_writer_finalize(_fvmWriter);
 }
 
 void Coupling::_interpolate(double *referenceField,
@@ -275,7 +335,7 @@ void Coupling::_interpolate3D(double *vertexField,
 {
 
   // TODO: Faire le calcul des coordonnees barycentriques pour les polyedres
-  // TODO: Dans un premier temps faire le calcul pour les tÃ©traÃ¨dres
+  // TODO: Dans un premier temps faire le calcul pour les tétraèdres
 
   const int nDistantPoint      = fvm_locator_get_n_dist_points(_fvmLocator);
   const int *distantLocation   = fvm_locator_get_dist_locations(_fvmLocator);
@@ -436,198 +496,233 @@ void Coupling::_interpolate3D(double *vertexField,
 }
 
 
-void Coupling::defineMesh(const MPI_Comm &localComm,
-                          const int nVertex,
+void Coupling::defineMesh(const int nVertex,
                           const int nElement,
                           const double coordinates[],
                           int connectivity_index[],
                           int connectivity[])
 {
   if (_supportMesh  != NULL)
-    bft_error(__FILE__, __LINE__, 0, "mesh is already created\n");
+    bft_error(__FILE__, __LINE__, 0, "coupling mesh is already created\n");
 
-  _supportMesh = new Mesh(localComm,
-                          _entitiesDim,
-                          nVertex,
-                          nElement,
-                          coordinates,
-                          connectivity_index,
-                          connectivity);
+  if (_isCoupledRank)
+    _supportMesh = new Mesh(_fvmComm,
+                            _entitiesDim,
+                            nVertex,
+                            nElement,
+                            coordinates,
+                            connectivity_index,
+                            connectivity);
+  else
+    bft_error(__FILE__, __LINE__, 0, "for a coupling without parallel partitionning," 
+              " the coupling mesh must be defined only by the root rank\n");
 
 }
 
 void Coupling::setPointsToLocate(const int    n_points,
                                  double coordinate[])
 {
-  _nPointsToLocate = n_points;
-  _coordsPointsToLocate = coordinate;
-  _toLocate = true;
+  if (_isCoupledRank) {
+    _nPointsToLocate = n_points;
+    _coordsPointsToLocate = coordinate;
+    _toLocate = true;
+  }
+  else
+    bft_error(__FILE__, __LINE__, 0, "for a coupling without parallel partitionning," 
+              " the points to locate must be defined only by the root rank\n");
 }
 
 
-void Coupling::defineMeshAddPolyhedra(const MPI_Comm &localComm,
-                                      const int n_element,
+void Coupling::defineMeshAddPolyhedra(const int n_element,
                                       int face_index[],
                                       int cell_to_face_connectivity[],
                                       int face_connectivity_index[],
                                       int face_connectivity[])
 
 {
-  if (_supportMesh  == NULL)
-    bft_error(__FILE__, __LINE__, 0, "No mesh to add elements\n");
+  if (_isCoupledRank) {
+    if (_supportMesh  == NULL)
+      bft_error(__FILE__, __LINE__, 0, "No mesh to add elements\n");
 
-  _supportMesh->addPolyhedra(n_element,
-                             face_index,
-                             cell_to_face_connectivity,
-                             face_connectivity_index,
-                             face_connectivity);
+    _supportMesh->addPolyhedra(n_element,
+                               face_index,
+                               cell_to_face_connectivity,
+                               face_connectivity_index,
+                               face_connectivity);
+  }
+  bft_error(__FILE__, __LINE__, 0, "for a coupling without parallel partitionning," 
+            " the coupling mesh must be defined only by the root rank\n");
+
 }
 
 
 void Coupling::updateLocation()
 {
-  _toLocate = true;
+  if (_isCoupledRank)
+    _toLocate = true;
+  else
+    bft_error(__FILE__, __LINE__, 0, "for a coupling without parallel partitionning," 
+              " updateLocation must be called only by the root rank\n");
 }
 
-couplings_exchange_status_t Coupling::exchange(const char                          *exchangeName,
-                                               const int                            stride,
-                                               const int                            timeStep,
-                                               const double                         timeValue,
-                                               const char                          *sendingFieldName,
-                                               const double                        *sendingField,
-                                               char                                *receivingFieldName,
-                                               double                              *receivingField,
-                                               void                                *ptFortranInterpolationFct)
+couplings_exchange_status_t Coupling::exchange(const char    *exchangeName,
+                                               const int     stride,
+                                               const int     timeStep,
+                                               const double  timeValue,
+                                               const char    *sendingFieldName,
+                                               const double  *sendingField,
+                                               char          *receivingFieldName,
+                                               double        *receivingField,
+                                               void          *ptFortranInterpolationFct)
 
 
 {
-
   couplings_exchange_status_t status = COUPLINGS_EXCHANGE_OK;
-
-  //
-  // Check exchange_name
-
-  const int localBeginningRank = _localApplicationProperties.getBeginningRank();
-  const int distantBeginningRank = _coupledApplicationProperties.getBeginningRank();
-  const MPI_Comm& globalComm = _localApplicationProperties.getGlobalComm();
+  
   const MPI_Comm& localComm = _localApplicationProperties.getLocalComm();
+  
+  int rootRank;
 
-  int currentRank;
-  MPI_Comm_rank(globalComm, &currentRank);
+  if (!_isCoupledRank && sendingField != NULL )
+    bft_printf("Warning : sendingField != NULL, " 
+              " only field defined by the root rank is sent\n");
 
-  int lLocalName = _name.size() + 1;
-  int lDistantName = 0;
-  MPI_Status MPIStatus;
+  if (_isCoupledRank) {
+    
+    int currentRank;
+    MPI_Comm_rank(_couplingComm, &currentRank);
+    
+    int lLocalName = _name.size() + 1;
+    int lDistantName = 0;
+    MPI_Status MPIStatus;
 
-  if (currentRank == localBeginningRank) {
+    if (currentRank == 0 || 
+        currentRank == _coupledApplicationBeginningRankCouplingComm +
+                       _coupledApplicationNRankCouplingComm) {
 
-    //
-    // Check coupling name
+      //
+      // Check coupling name
 
-    MPI_Sendrecv(&lLocalName,   1, MPI_INT, distantBeginningRank, 0,
-                 &lDistantName, 1, MPI_INT, distantBeginningRank, 0,
-                 globalComm, &MPIStatus);
+      MPI_Sendrecv(&lLocalName,   1, MPI_INT, 
+                   _coupledApplicationBeginningRankCouplingComm, 0,
+		   &lDistantName, 1, MPI_INT, 
+                   _coupledApplicationBeginningRankCouplingComm, 0,
+		   _couplingComm, &MPIStatus);
 
-    char *distantCouplingName = new char[lDistantName];
+      char *distantCouplingName = new char[lDistantName];
 
-    MPI_Sendrecv(const_cast <char*>(_name.c_str()),        lLocalName, MPI_CHAR, distantBeginningRank, 0,
-                 distantCouplingName, lDistantName, MPI_CHAR, distantBeginningRank, 0,
-                 globalComm, &MPIStatus);
+      MPI_Sendrecv(const_cast <char*>(_name.c_str()), 
+                   lLocalName, MPI_CHAR, 
+                   _coupledApplicationBeginningRankCouplingComm, 0,
+		   distantCouplingName, lDistantName, MPI_CHAR,
+                   _coupledApplicationBeginningRankCouplingComm, 0,
+		   _couplingComm, &MPIStatus);
 
-    if (strcmp(_name.c_str(), distantCouplingName))
-      bft_error(__FILE__, __LINE__, 0, "'%s' '%s' bad synchronization point\n",
-                _name.c_str(),
-                distantCouplingName);
-    delete[] distantCouplingName;
+      if (strcmp(_name.c_str(), distantCouplingName))
+	bft_error(__FILE__, __LINE__, 0, "'%s' '%s' bad synchronization point\n",
+		  _name.c_str(),
+		  distantCouplingName);
+      delete[] distantCouplingName;
 
-    //
-    // Check exchange name
+      //
+      // Check exchange name
 
-    lLocalName = strlen(exchangeName)+1;
-    MPI_Sendrecv(&lLocalName,   1, MPI_INT, distantBeginningRank, 0,
-                 &lDistantName, 1, MPI_INT, distantBeginningRank, 0,
-                 globalComm, &MPIStatus);
+      lLocalName = strlen(exchangeName)+1;
+      MPI_Sendrecv(&lLocalName,   1, MPI_INT, 
+                   _coupledApplicationBeginningRankCouplingComm, 0,
+		   &lDistantName, 1, MPI_INT, 
+                   _coupledApplicationBeginningRankCouplingComm, 0,
+		   _couplingComm, &MPIStatus);
 
-    char *distantExchangeName = new char[lDistantName];
+      char *distantExchangeName = new char[lDistantName];
 
-    MPI_Sendrecv(const_cast <char*>(exchangeName),        lLocalName, MPI_CHAR, distantBeginningRank, 0,
-                 distantExchangeName, lDistantName, MPI_CHAR, distantBeginningRank, 0,
-                 globalComm, &MPIStatus);
-
-    if (strcmp(exchangeName, distantExchangeName))
-      bft_error(__FILE__, __LINE__, 0, "'%s' '%s' bad synchronization point\n",
-                exchangeName,
-                distantExchangeName);
-
-    delete[] distantExchangeName;
+      MPI_Sendrecv(const_cast <char*>(exchangeName),        
+                   lLocalName, MPI_CHAR, 
+                   _coupledApplicationBeginningRankCouplingComm, 0,
+		   distantExchangeName, lDistantName, MPI_CHAR, 
+                   _coupledApplicationBeginningRankCouplingComm, 0,
+		   _couplingComm, &MPIStatus);
+      
+      if (strcmp(exchangeName, distantExchangeName))
+	bft_error(__FILE__, __LINE__, 0, "'%s' '%s' bad synchronization point\n",
+		  exchangeName,
+		  distantExchangeName);
+      
+      delete[] distantExchangeName;
+    }
   }
-
+    
   //
   // Locate
-
+  
   locate();
-
+  
   //
   // Prepare data (interpolate, extrapolate...)
-
-  const int nVertex                 = _supportMesh->getNVertex();
-  const int nElts                   = _supportMesh->getNElts();
-  const int nPoly                   = _supportMesh->getNPolyhedra();
-  const int *localConnectivityIndex = _supportMesh->getEltConnectivityIndex();
-  const int *localConnectivity      = _supportMesh->getEltConnectivity();
-  const int *localPolyhedraFaceIndex = _supportMesh->getPolyhedraFaceIndex() ;
-  const int *localPolyhedraCellToFaceConnectivity = _supportMesh->getPolyhedraCellToFaceConnectivity();
-  const int *localPolyhedraFaceConnectivity_index = _supportMesh->getPolyhedraFaceConnectivityIndex();
-  const int *localPolyhedraFaceConnectivity       = _supportMesh->getPolyhedraFaceConnectivity();
-
-  const int nDistantPoint     = fvm_locator_get_n_dist_points(_fvmLocator);
-  const int *distantLocation  = fvm_locator_get_dist_locations(_fvmLocator);
-  const double *distantCoords = fvm_locator_get_dist_coords(_fvmLocator);
-  const int* interiorList     = fvm_locator_get_interior_list(_fvmLocator);
-  const int nInteriorList     = fvm_locator_get_n_interior(_fvmLocator);
-
-  int lDistantField = stride * nDistantPoint;
-  int lReceivingField = stride * _nPointsToLocate;
-
-  if (_tmpDistantField == NULL)
-    _tmpDistantField = new std::vector<double> (lDistantField);
-
+  
+  if (_isCoupledRank) {
+    
+    assert (_fvmLocator != NULL);
+    
+    const int nVertex                 = _supportMesh->getNVertex();
+    const int nElts                   = _supportMesh->getNElts();
+    const int nPoly                   = _supportMesh->getNPolyhedra();
+    const int *localConnectivityIndex = _supportMesh->getEltConnectivityIndex();
+    const int *localConnectivity      = _supportMesh->getEltConnectivity();
+    const int *localPolyhedraFaceIndex = _supportMesh->getPolyhedraFaceIndex() ;
+    const int *localPolyhedraCellToFaceConnectivity = _supportMesh->getPolyhedraCellToFaceConnectivity();
+    const int *localPolyhedraFaceConnectivity_index = _supportMesh->getPolyhedraFaceConnectivityIndex();
+    const int *localPolyhedraFaceConnectivity       = _supportMesh->getPolyhedraFaceConnectivity();
+    
+    const int nDistantPoint     = fvm_locator_get_n_dist_points(_fvmLocator);
+    const int *distantLocation  = fvm_locator_get_dist_locations(_fvmLocator);
+    const double *distantCoords = fvm_locator_get_dist_coords(_fvmLocator);
+    const int* interiorList     = fvm_locator_get_interior_list(_fvmLocator);
+    const int nInteriorList     = fvm_locator_get_n_interior(_fvmLocator);
+    
+    int lDistantField = stride * nDistantPoint;
+    int lReceivingField = stride * _nPointsToLocate;
+    
+    if (_tmpDistantField == NULL)
+      _tmpDistantField = new std::vector<double> (lDistantField);
+    
     std::vector<double>& tmpDistantField = *_tmpDistantField;
     if (tmpDistantField.size() < lDistantField)
       tmpDistantField.resize(lDistantField);
-
+    
     //
     // Interpolation
-
+    
     if (sendingField != NULL) {
-
+      
       assert(!(_interpolationFct != NULL && ptFortranInterpolationFct != NULL));
-
+      
       //
       // Callback Fortran
-
+      
       if (ptFortranInterpolationFct != NULL)
-        PROCF(callfortinterpfct, CALLFORTINTERPFCT) (const_cast <int *> (&_entitiesDim),
-            const_cast <int *> (&nVertex),
-            const_cast <int *> (&nElts),
-            const_cast <int *> (&nPoly),
-            const_cast <int *> (&nDistantPoint),
-            const_cast <double *> (_supportMesh->getVertexCoords()),
-            const_cast <int *> (localConnectivityIndex),
-            const_cast <int *> (localConnectivity),
-            const_cast <int *> (localPolyhedraFaceIndex),
-            const_cast <int *> (localPolyhedraCellToFaceConnectivity),
-            const_cast <int *> (localPolyhedraFaceConnectivity_index),
-            const_cast <int *> (localPolyhedraFaceConnectivity),
-            const_cast <double *> (distantCoords),
-            const_cast <int *> (distantLocation),
-            const_cast <int *> (_barycentricCoordinatesIndex),
-            const_cast <double *> (_barycentricCoordinates),
-            const_cast <int *> (&stride),
-            const_cast <int *> ((const int *) &_solverType),
-            const_cast <double *> (sendingField),
-            const_cast <double *> (&tmpDistantField[0]),
-            ptFortranInterpolationFct
+        PROCF(callfortinterpfct, CALLFORTINTERPFCT) (
+           const_cast <int *> (&_entitiesDim),
+           const_cast <int *> (&nVertex),
+           const_cast <int *> (&nElts),
+           const_cast <int *> (&nPoly),
+           const_cast <int *> (&nDistantPoint),
+           const_cast <double *> (_supportMesh->getVertexCoords()),
+           const_cast <int *> (localConnectivityIndex),
+           const_cast <int *> (localConnectivity),
+           const_cast <int *> (localPolyhedraFaceIndex),
+           const_cast <int *> (localPolyhedraCellToFaceConnectivity),
+           const_cast <int *> (localPolyhedraFaceConnectivity_index),
+           const_cast <int *> (localPolyhedraFaceConnectivity),
+           const_cast <double *> (distantCoords),
+           const_cast <int *> (distantLocation),
+           const_cast <int *> (_barycentricCoordinatesIndex),
+           const_cast <double *> (_barycentricCoordinates),
+           const_cast <int *> (&stride),
+           const_cast <int *> ((const int *) &_solverType),
+           const_cast <double *> (sendingField),
+           const_cast <double *> (&tmpDistantField[0]),
+           ptFortranInterpolationFct
           );
 
       //
@@ -668,10 +763,14 @@ couplings_exchange_status_t Coupling::exchange(const char                       
     if (sendingField != NULL)
       ptSending = &tmpDistantField[0];
 
+#ifdef NAN
     if (receivingField != NULL && nInteriorList > 0){
       const int idx = 0;
-      receivingField[idx] = _createNan();
+      receivingField[idx] = NAN;
     }
+#endif
+
+    fvm_parall_set_mpi_comm(_fvmComm);
 
     fvm_locator_exchange_point_var(_fvmLocator,
                                    (void *) ptSending,
@@ -681,17 +780,18 @@ couplings_exchange_status_t Coupling::exchange(const char                       
                                    stride,
                                    0);
 
+    fvm_parall_set_mpi_comm(MPI_COMM_NULL);
+
     //
     // Check receiving
 
+#ifdef NAN
     if (receivingField != NULL && nInteriorList > 0) {
-      std::ostringstream os;
       const int idx = 0;
-      os << receivingField[idx];
-      if ((os.str()[0] == 'n') || (os.str()[0] == 'N'))
+      if (isnan(receivingField[idx]))
         status = COUPLINGS_EXCHANGE_BAD_RECEIVING;
     }
-
+#endif
 
     //
     // Visualization
@@ -706,13 +806,54 @@ couplings_exchange_status_t Coupling::exchange(const char                       
                            sendingField,
                            receivingFieldName,
                            receivingField);
+ 
+    if (_couplingType == COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING) {
 
-    return status;
+      
+      MPI_Comm_rank(localComm, &rootRank);
+      
+      assert(rootRank == 0);
+      
+      MPI_Bcast( &status, 
+                 1,
+                 MPI_INT, 
+                 0, 
+                 localComm );
+
+      if( receivingField != NULL ) 
+        
+        MPI_Bcast( receivingField, 
+                   stride* (_nPointsToLocate-_nNotLocatedPoint),
+                   MPI_DOUBLE, 
+                   0, 
+                   localComm );
+      
+    }
+  }
+
+  else if (_couplingType == COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING) {
+    
+    MPI_Bcast( &status, 
+               1,
+               MPI_INT, 
+               0, 
+               localComm );
+    
+    if ( receivingField != NULL ) 
+      
+      MPI_Bcast( receivingField, 
+                 stride* (_nPointsToLocate-_nNotLocatedPoint),
+                 MPI_DOUBLE, 
+                 0, 
+                 localComm );
+  }
+
+  return status;
 }
 
 void Coupling::_initVisualization()
 {
-  if (_fvmWriter == NULL) {
+  if (_fvmWriter == NULL && _outputFrequency > 0) {
 
     bft_file_mkdir_default("couplings");
 
@@ -720,17 +861,18 @@ void Coupling::_initVisualization()
     _localApplicationProperties.getName()+"_"+
     _coupledApplicationProperties.getName();
 
+    fvm_parall_set_mpi_comm(_fvmComm);
+
     _fvmWriter = fvm_writer_init("Chr",
                                  pathString.c_str(),
                                  _outputFormat.c_str(),
                                  _outputFormatOption.c_str(),
                                  FVM_WRITER_FIXED_MESH);
 
-    int localCommSize = 0;
-    const MPI_Comm &localComm = _localApplicationProperties.getLocalComm();
-    MPI_Comm_size(localComm, &localCommSize);
+    int localCommSize;
+    MPI_Comm_size(_fvmComm, &localCommSize);
     int localRank = 0;
-    MPI_Comm_rank(localComm, &localRank);
+    MPI_Comm_rank(_fvmComm, &localRank);
 
     fvm_writer_export_nodal(_fvmWriter, &(_supportMesh->getFvmNodal()));
 
@@ -762,7 +904,12 @@ void Coupling::_initVisualization()
 
     // TODO: A deplacer et a recreer en cas de maillage mobile
 
-    if (_notLocatedPoint != NULL && _coordsPointsToLocate == NULL) {
+    int nNotLocatedPointSum;
+    MPI_Allreduce (&_nNotLocatedPoint, &nNotLocatedPointSum, 
+                   1, MPI_INT, MPI_SUM,
+                   _fvmComm);
+
+    if (nNotLocatedPointSum != 0 && _coordsPointsToLocate == NULL) {
       if (_solverType == COUPLINGS_SOLVER_CELL_CENTER) {
         const int nElts  = _supportMesh->getNElts();
 
@@ -813,6 +960,9 @@ void Coupling::_initVisualization()
         delete [] domLoc;
       }
     }
+
+    fvm_parall_set_mpi_comm(MPI_COMM_NULL);
+
   }
 }
 
@@ -835,6 +985,7 @@ void Coupling::_fieldsVisualization(const char *exchangeName,
 
     assert(_fvmWriter != NULL);
 
+    fvm_parall_set_mpi_comm(_fvmComm);
 
     fvm_writer_var_loc_t fvm_writer_var_loc;
     fvm_interlace_t fvm_interlace;
@@ -931,147 +1082,425 @@ void Coupling::_fieldsVisualization(const char *exchangeName,
         }
       }
     }
+    fvm_parall_set_mpi_comm(MPI_COMM_NULL);
   }
+  
 }
 
 
 void Coupling::locate()
 {
 
-  if (_fvmLocator == NULL || _toLocate) {
+  const MPI_Comm& localComm = _localApplicationProperties.getLocalComm();
+  
+  
+  if ( _toLocate ) {
+    
+    int rootRank = -1;
 
-    if (_fvmLocator == NULL) {
-      const MPI_Comm& globalComm = _localApplicationProperties.getGlobalComm();
-      const int begRank = _coupledApplicationProperties.getBeginningRank();
-      const int nRank = _coupledApplicationProperties.getEndRank() - begRank + 1;
-      _fvmLocator = fvm_locator_create(_tolerance, globalComm, nRank, begRank);
-    }
+    if ( _isCoupledRank ) {
+      
+      fvm_parall_set_mpi_comm(_fvmComm);
 
-    double* coords = NULL;
-    if (_coordsPointsToLocate != NULL)
-      coords = _coordsPointsToLocate;
+      //
+      // Create locator
+      
+      if (_fvmLocator == NULL)
+        _fvmLocator = fvm_locator_create(_tolerance, 
+                                         _couplingComm, 
+                                         _coupledApplicationNRankCouplingComm, 
+                                         _coupledApplicationBeginningRankCouplingComm);
 
-    else if(_solverType == COUPLINGS_SOLVER_CELL_CENTER) {
-      _nPointsToLocate = _supportMesh->getNElts();
-      coords = const_cast <double*> (&(_supportMesh->getCellCenterCoords()[0]));
-    }
-
-    else if(_solverType == COUPLINGS_SOLVER_CELL_VERTEX) {
-      _nPointsToLocate = _supportMesh->getNVertex();
-      coords = const_cast <double*> (_supportMesh->getVertexCoords());
-    }
-
-    fvm_locator_set_nodal(_fvmLocator,
-                          &_supportMesh->getFvmNodal(),
-                          0,
-                          3,
-                          _nPointsToLocate,
-                          NULL,
-                          coords);
-
-    _toLocate = false;
-    const int nLocatedPoint = fvm_locator_get_n_interior(_fvmLocator);
-    const int nNotLocatedPoint = _nPointsToLocate - nLocatedPoint;
-    const int* exteriorList = fvm_locator_get_exterior_list(_fvmLocator);
-    const int* interiorList = fvm_locator_get_interior_list(_fvmLocator);
-    const int* locationList = fvm_locator_get_dist_locations(_fvmLocator);
-    const int nExterior = fvm_locator_get_n_exterior(_fvmLocator);
-    assert(nNotLocatedPoint == nExterior);
-
-    _notLocatedPoint = const_cast<int *> (exteriorList);
-    _locatedPoint = const_cast<int *> (interiorList);
-    _nNotLocatedPoint = nNotLocatedPoint;
-    _location = const_cast<int *> (locationList);
-    _nDistantpoint = fvm_locator_get_n_dist_points(_fvmLocator);
-
-    if (_barycentricCoordinatesIndex != NULL) {
-      if (_entitiesDim != 2) {
-        delete[] _barycentricCoordinatesIndex;
-        delete[] _barycentricCoordinates;
+      // TODO: Revoir les coordonnees des points a localiser (cas centres sommets + centres faces + autres points)
+      // TODO: Ajouter un locator pour les sommets pour les centres faces,...
+      
+      double* coords = NULL;
+      if (_coordsPointsToLocate != NULL)
+        coords = _coordsPointsToLocate;
+      
+      else if(_solverType == COUPLINGS_SOLVER_CELL_CENTER) {
+        _nPointsToLocate = _supportMesh->getNElts();
+        coords = const_cast <double*> (&(_supportMesh->getCellCenterCoords()[0]));
       }
-
-      else {
-        BFT_FREE(_barycentricCoordinatesIndex);
-        BFT_FREE(_barycentricCoordinates);
+      
+      else if(_solverType == COUPLINGS_SOLVER_CELL_VERTEX) {
+        _nPointsToLocate = _supportMesh->getNVertex();
+        coords = const_cast <double*> (_supportMesh->getVertexCoords());
       }
-    }
+      
+      fvm_locator_set_nodal(_fvmLocator,
+                            &_supportMesh->getFvmNodal(),
+                            0,
+                            3,
+                            _nPointsToLocate,
+                            NULL,
+                            coords);
 
-    //TODO: Prevoir une fabrique pour supprimer les tests if sur _entitiesDim
-    //      Le calcul des coordonnees barycentriques se fera dans cette fabrique
-
-    if (_barycentricCoordinatesIndex == NULL) {
-      if (_entitiesDim == 1) {
-        const int nDistantPoint      = fvm_locator_get_n_dist_points(_fvmLocator);
-        const int *distantLocation   = fvm_locator_get_dist_locations(_fvmLocator);
-        const double *distantCoords   = fvm_locator_get_dist_coords(_fvmLocator);
-
-        const int *eltsConnecPointer = _supportMesh->getEltConnectivityIndex();
-        const double *localCoords         = _supportMesh->getVertexCoords();
-
-        _barycentricCoordinatesIndex = new int[nDistantPoint+1];
-        _barycentricCoordinates = new double[2*nDistantPoint];
-        _barycentricCoordinatesIndex[0] = 0;
-        for (int ipoint = 0; ipoint < nDistantPoint ; ipoint++) {
-          int iel = distantLocation[ipoint] - 1;
-          _barycentricCoordinatesIndex[ipoint+1] = _barycentricCoordinatesIndex[ipoint] + 2;
-          int index = eltsConnecPointer[iel];
-          int nVertex = eltsConnecPointer[iel+1] - eltsConnecPointer[iel];
-          assert(nVertex == 2);
-          int pt1 = eltsConnecPointer[iel] - 1;
-          int pt2 = eltsConnecPointer[iel+1] - 1;
-          double coef1 = sqrt((localCoords[3*pt1]-distantCoords[3*ipoint])*(localCoords[3*pt1]-distantCoords[3*ipoint])+
-                              (localCoords[3*pt1+1]-distantCoords[3*ipoint+1])*(localCoords[3*pt1+1]-distantCoords[3*ipoint+1])+
-                              (localCoords[3*pt1+2]-distantCoords[3*ipoint+2])*(localCoords[3*pt1+2]-distantCoords[3*ipoint+2]));
-          double coef2 = sqrt((localCoords[3*pt2]-distantCoords[3*ipoint])*(localCoords[3*pt2]-distantCoords[3*ipoint])+
-                              (localCoords[3*pt2+1]-distantCoords[3*ipoint+1])*(localCoords[3*pt2+1]-distantCoords[3*ipoint+1])+
-                              (localCoords[3*pt2+2]-distantCoords[3*ipoint+2])*(localCoords[3*pt2+2]-distantCoords[3*ipoint+2]));
-          _barycentricCoordinates[_barycentricCoordinatesIndex[ipoint]] = coef1/(coef1+coef2);
-          _barycentricCoordinates[_barycentricCoordinatesIndex[ipoint]+1] = coef2/(coef1+coef2);
+      _toLocate = false;
+      const int nLocatedPoint = fvm_locator_get_n_interior(_fvmLocator);
+      const int nNotLocatedPoint = _nPointsToLocate - nLocatedPoint;
+      const int* exteriorList = fvm_locator_get_exterior_list(_fvmLocator);
+      const int* interiorList = fvm_locator_get_interior_list(_fvmLocator);
+      const int* locationList = fvm_locator_get_dist_locations(_fvmLocator);
+      const int nExterior = fvm_locator_get_n_exterior(_fvmLocator);
+      assert(nNotLocatedPoint == nExterior);
+      
+      _notLocatedPoint = const_cast<int *> (exteriorList);
+      _locatedPoint = const_cast<int *> (interiorList);
+      _nNotLocatedPoint = nNotLocatedPoint;
+      _location = const_cast<int *> (locationList);
+      _nDistantpoint = fvm_locator_get_n_dist_points(_fvmLocator);
+      
+      if (_barycentricCoordinatesIndex != NULL) {
+        if (_entitiesDim != 2) {
+          delete[] _barycentricCoordinatesIndex;
+          delete[] _barycentricCoordinates;
+        }
+        
+        else {
+          BFT_FREE(_barycentricCoordinatesIndex);
+          BFT_FREE(_barycentricCoordinates);
         }
       }
+      
+      //
+      // TODO: Prevoir une fabrique pour supprimer les tests if sur _entitiesDim
+      //       Le calcul des coordonnees barycentriques se fera dans cette fabrique
+      
+      if (_barycentricCoordinatesIndex == NULL) {
+        if (_entitiesDim == 1) {
+          const int nDistantPoint      = fvm_locator_get_n_dist_points(_fvmLocator);
+          const int *distantLocation   = fvm_locator_get_dist_locations(_fvmLocator);
+          const double *distantCoords   = fvm_locator_get_dist_coords(_fvmLocator);
+          
+          const int *eltsConnecPointer = _supportMesh->getEltConnectivityIndex();
+          const double *localCoords    = _supportMesh->getVertexCoords();
+          
+          _barycentricCoordinatesIndex = new int[nDistantPoint+1];
+          _barycentricCoordinates = new double[2*nDistantPoint];
+          _barycentricCoordinatesIndex[0] = 0;
+          
+          for (int ipoint = 0; ipoint < nDistantPoint ; ipoint++) {
+            int iel = distantLocation[ipoint] - 1;
+            _barycentricCoordinatesIndex[ipoint+1] = _barycentricCoordinatesIndex[ipoint] + 2;
+            int index = eltsConnecPointer[iel];
+            int nVertex = eltsConnecPointer[iel+1] - eltsConnecPointer[iel];
+            assert(nVertex == 2);
+            int pt1 = eltsConnecPointer[iel] - 1;
+            int pt2 = eltsConnecPointer[iel+1] - 1;
+            double coef1 = sqrt((localCoords[3*pt1]-distantCoords[3*ipoint])*(localCoords[3*pt1]-distantCoords[3*ipoint])+
+                                (localCoords[3*pt1+1]-distantCoords[3*ipoint+1])*(localCoords[3*pt1+1]-distantCoords[3*ipoint+1])+
+                                (localCoords[3*pt1+2]-distantCoords[3*ipoint+2])*(localCoords[3*pt1+2]-distantCoords[3*ipoint+2]));
+            double coef2 = sqrt((localCoords[3*pt2]-distantCoords[3*ipoint])*(localCoords[3*pt2]-distantCoords[3*ipoint])+
+                                (localCoords[3*pt2+1]-distantCoords[3*ipoint+1])*(localCoords[3*pt2+1]-distantCoords[3*ipoint+1])+
+                                (localCoords[3*pt2+2]-distantCoords[3*ipoint+2])*(localCoords[3*pt2+2]-distantCoords[3*ipoint+2]));
+            _barycentricCoordinates[_barycentricCoordinatesIndex[ipoint]] = coef1/(coef1+coef2);
+            _barycentricCoordinates[_barycentricCoordinatesIndex[ipoint]+1] = coef2/(coef1+coef2);
+          }
+        }
+        
+        else if (_entitiesDim == 2) {
+          int nPoints;
+          coo_baryc(_fvmLocator,
+                    _supportMesh->getNVertex(),
+                    _supportMesh->getVertexCoords(),
+                    _supportMesh->getNElts(),
+                    _supportMesh->getEltConnectivityIndex(),
+                    _supportMesh->getEltConnectivity(),
+                    &nPoints,
+                    &_barycentricCoordinatesIndex,
+                    &_barycentricCoordinates);
+        }
+        
+        else if (_entitiesDim == 3) {
+          //TODO: calcul des coord barycentriques 3D
+          int nPoints;
+          //         coo_baryc(_fvmLocator,
+          //                   _supportMesh->getNVertex(),
+          //                   _supportMesh->getVertexCoords(),
+          //                   _supportMesh->getNElts(),
+          //                   _supportMesh->getEltConnectivityIndex(),
+          //                   _supportMesh->getEltConnectivity(),
+          //                   &nPoints,
+          //                   &_barycentricCoordinatesIndex,
+          //                   &_barycentricCoordinates);
+        }
+        
+      }
+      
+      _initVisualization();
+      
+      //
+      // Send to local proc  
+      
+      if (_couplingType == COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING) {
+        
+        MPI_Comm_rank(localComm, &rootRank);
+        
+        assert(rootRank == 0);
+        
+        MPI_Bcast( &_nPointsToLocate, 1, MPI_INT, rootRank, localComm );
+        MPI_Bcast( &_nNotLocatedPoint, 1, MPI_INT, rootRank, localComm );
+        
+        MPI_Bcast( _locatedPoint,
+                   _nPointsToLocate-_nNotLocatedPoint,
+                   MPI_INT, 
+                   rootRank, 
+                   localComm );
 
-      else if (_entitiesDim == 2) {
-        int nPoints;
-        coo_baryc(_fvmLocator,
-                  _supportMesh->getNVertex(),
-                  _supportMesh->getVertexCoords(),
-                  _supportMesh->getNElts(),
-                  _supportMesh->getEltConnectivityIndex(),
-                  _supportMesh->getEltConnectivity(),
-                  &nPoints,
-                  &_barycentricCoordinatesIndex,
-                  &_barycentricCoordinates);
+        MPI_Bcast( _notLocatedPoint, _nNotLocatedPoint, MPI_INT, rootRank, localComm );
+        
       }
 
-      else if (_entitiesDim == 3) {
-        //TODO: calcul des coord 3D
-        int nPoints;
-        coo_baryc(_fvmLocator,
-                  _supportMesh->getNVertex(),
-                  _supportMesh->getVertexCoords(),
-                  _supportMesh->getNElts(),
-                  _supportMesh->getEltConnectivityIndex(),
-                  _supportMesh->getEltConnectivity(),
-                  &nPoints,
-                  &_barycentricCoordinatesIndex,
-                  &_barycentricCoordinates);
-      }
+      fvm_parall_set_mpi_comm(MPI_COMM_NULL);
 
     }
-    _initVisualization();
+
+    //
+    // Receive location  
+    
+    else if (_couplingType == COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING) {
+      
+      rootRank = 0;
+      _toLocate = false;
+     
+      MPI_Bcast( &_nPointsToLocate, 1, MPI_INT, rootRank, localComm );
+      MPI_Bcast( &_nNotLocatedPoint, 1, MPI_INT, rootRank, localComm );
+
+      if (_locatedPoint != NULL) 
+        delete []  _locatedPoint;
+      
+      if (_notLocatedPoint != NULL) 
+        delete []  _notLocatedPoint ;
+      
+      _locatedPoint = new int[_nPointsToLocate-_nNotLocatedPoint];
+      _notLocatedPoint = new int[_nNotLocatedPoint];
+      
+      MPI_Bcast( _locatedPoint,
+                 _nPointsToLocate-_nNotLocatedPoint,
+                 MPI_INT, 
+                 rootRank, 
+                 localComm );
+      MPI_Bcast( _notLocatedPoint, _nNotLocatedPoint, MPI_INT, rootRank, localComm );
+    
+    }
+
   }
 }
 
-double  Coupling::_createNan()
+void Coupling::_createCouplingComm()
 {
-  // Creation artificielle d'un Nan
-  double big = 3e99999999;
-  double userNan = big/big;
-  std::ostringstream os;
-  os << userNan;
-  if ((os.str()[0] != 'n') && (os.str()[0] != 'N'))
-    bft_error(__FILE__, __LINE__, 0, "'%f' %s bad nan detection\n", userNan, os.str().c_str());
-  return userNan;
+
+  const MPI_Comm& localComm = _localApplicationProperties.getLocalComm();
+
+  if( _couplingComm == MPI_COMM_NULL ) {
+
+    const int localBeginningRank = _localApplicationProperties.getBeginningRank();
+    const int localEndRank       = _localApplicationProperties.getEndRank();
+
+    const MPI_Comm& globalComm = _localApplicationProperties.getGlobalComm();
+    int currentRank;
+    MPI_Comm_rank(globalComm, &currentRank);
+
+    const int distantBeginningRank = _coupledApplicationProperties.getBeginningRank();
+    const int distantEndRank = _coupledApplicationProperties.getEndRank();
+
+    //
+    // Define coupledApplicationComm
+
+    int nLocalRank = localEndRank - localBeginningRank + 1;
+    int nDistantRank = distantEndRank - distantBeginningRank + 1;
+    
+    assert(localBeginningRank != distantBeginningRank);
+
+    //
+    // TODO: Trouver un tag unique pour une paire de codes (Risque de pb dans MPI_Intercomm_create)
+    //       Lors de la creation de 2 objets couplages de maniere simultanee
+ 
+    const int tag = 1;
+
+    MPI_Comm tmpInterComm;
+
+    MPI_Intercomm_create(localComm, 0, globalComm, distantBeginningRank, tag, &tmpInterComm);
+
+    int order;
+    if (localBeginningRank < distantBeginningRank) {
+      order = 0;
+     _coupledApplicationBeginningRankCouplingComm = nLocalRank ;
+    }
+    else {
+      order = 1;
+     _coupledApplicationBeginningRankCouplingComm = 0 ;
+    }
+
+    MPI_Intercomm_merge(tmpInterComm, order, &_mergeComm);
+
+    MPI_Comm_free(&tmpInterComm);
+
+    int coupledApplicationCommSize;
+
+    MPI_Comm_size(_mergeComm, &coupledApplicationCommSize);
+
+    assert(coupledApplicationCommSize == nLocalRank + nDistantRank);
+
+    //
+    // Exchange coupling type
+
+    couplings_coupling_type_t* couplingTypes = 
+      new couplings_coupling_type_t[coupledApplicationCommSize];
+
+    MPI_Allgather((void*)& _couplingType,
+                  1, 
+                  MPI_INT,
+                  couplingTypes,
+                  1,
+                  MPI_INT,
+                  _mergeComm);
+
+    //
+    // Check coupling type
+
+    int begRank = 0;
+    int endRank = 0;
+    
+    if (localBeginningRank < distantBeginningRank) {
+      begRank = 0;
+      endRank = nLocalRank;
+    }
+    else {
+      begRank = nDistantRank;
+      endRank = nLocalRank + nDistantRank;
+    }
+
+    for (int i = begRank; i < endRank; i ++) 
+      if (couplingTypes[i] != _couplingType)
+        bft_error(__FILE__, __LINE__, 0, 
+                  "Two different coupling types for the '%s' application\n",
+                  _localApplicationProperties.getName().c_str());
+
+
+    _coupledApplicationNRankCouplingComm = nDistantRank;
+
+    _isCoupledRank = _localApplicationProperties.getBeginningRank() == currentRank ||
+       _couplingType == COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING;
+      
+    couplings_coupling_type_t distantCouplingType;
+
+    if (localBeginningRank < distantBeginningRank) 
+      distantCouplingType = couplingTypes[nLocalRank];
+    else
+      distantCouplingType = couplingTypes[0];
+
+    delete [] couplingTypes;
+
+    //
+    // Build coupling communicator
+
+    if (_couplingType != COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING || 
+        distantCouplingType != COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING) {
+
+      int *rankList = new int[coupledApplicationCommSize];
+      int nRankList;
+
+      if (_couplingType != COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING && 
+          distantCouplingType != COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING) {
+
+        nRankList = 2;
+        rankList[0] = 0;
+
+        _coupledApplicationNRankCouplingComm = 1; 
+        if (localBeginningRank < distantBeginningRank) { 
+          rankList[1] = nLocalRank;
+          _coupledApplicationBeginningRankCouplingComm = 1;
+        }
+        else { 
+          rankList[1] = nDistantRank;
+          _coupledApplicationBeginningRankCouplingComm = 0;
+        }
+      }
+      
+      else if (distantCouplingType == COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING) {
+        nRankList = 1 + nDistantRank;
+        _coupledApplicationNRankCouplingComm = nDistantRank; 
+        if (localBeginningRank < distantBeginningRank) {
+          rankList[0] = 0;
+          _coupledApplicationBeginningRankCouplingComm = 1;
+          for (int i = 0; i < nDistantRank; i++) 
+            rankList[i+1] = nLocalRank + i;
+        }
+        else {
+          _coupledApplicationBeginningRankCouplingComm = 0;
+          for (int i = 0; i < nDistantRank; i++) 
+            rankList[i] = i;
+          rankList[nDistantRank] = nDistantRank;
+        }
+      }
+
+      else if (_couplingType == COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING) {
+        nRankList = 1 + nLocalRank;
+        _coupledApplicationNRankCouplingComm = 1; 
+        if (localBeginningRank < distantBeginningRank) {
+          _coupledApplicationBeginningRankCouplingComm = nLocalRank;
+          for (int i = 0; i < nLocalRank; i++) 
+            rankList[i] = i;
+          rankList[nLocalRank] = nLocalRank;
+        }
+       
+        else {
+          rankList[0] = 0;
+          _coupledApplicationBeginningRankCouplingComm = 0;
+          for (int i = 0; i < nLocalRank; i++) 
+            rankList[i+1] = nDistantRank + i;
+        }
+      }
+
+      else {
+        
+        bft_error(__FILE__, __LINE__, 0, 
+                  "Error in 'build coupling communicator'\n");
+      }
+
+      MPI_Group mergeGroup = MPI_GROUP_NULL;
+      MPI_Group couplingGroup = MPI_GROUP_NULL;
+
+      MPI_Comm_group(_mergeComm, &mergeGroup);
+
+      MPI_Group_incl(mergeGroup, nRankList, rankList, &couplingGroup);
+
+      MPI_Comm_create(_mergeComm, couplingGroup, &_couplingComm);
+
+      delete [] rankList;
+
+    }
+    else
+      MPI_Comm_dup(_mergeComm, &_couplingComm);
+  }
+
+
+  if (_fvmComm == MPI_COMM_NULL) {
+    
+    if (_couplingType != COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING) {
+      
+      int list1 = 0;
+      MPI_Group localGroup = MPI_GROUP_NULL;
+      MPI_Group fvmGroup = MPI_GROUP_NULL;
+      
+      MPI_Comm dupLocalComm = MPI_COMM_NULL;
+      MPI_Comm_dup(localComm, &dupLocalComm);
+
+      MPI_Comm_group(dupLocalComm, &localGroup);
+      MPI_Group_incl(localGroup, 1, &list1, &fvmGroup);
+      MPI_Comm_create(localComm,
+                      fvmGroup,
+                      &_fvmComm);
+      MPI_Comm_free(&dupLocalComm);
+    }
+    
+    else 
+      
+      MPI_Comm_dup(localComm, &_fvmComm);
+ 
+  }
 }
 
 

@@ -208,6 +208,10 @@ if test "x$mpi" = "xtrue" -a "x$have_mpi" = "xno" ; then
 
 fi
 
+if test "x$have_mpi" = "xno"; then
+ AC_MSG_FAILURE([No MPI library])
+fi
+
 AM_CONDITIONAL(HAVE_MPI, test x$have_mpi = xyes)
 AM_CONDITIONAL(HAVE_MPI_IO, test x$have_mpi_io = xyes)
 AM_CONDITIONAL(HAVE_MPI_ONE_SIDED, test x$have_mpi_one_sided = xyes)

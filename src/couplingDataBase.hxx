@@ -4,6 +4,8 @@
 #include <map>
 #include <string>
 
+#include <mpi.h>
+
 #include <bft_printf.h>
 
 #include "singleton.hpp"
@@ -20,6 +22,7 @@ namespace couplings {
     
   public:
     void createCoupling(const std::string &name, 
+                        const couplings_coupling_type_t couplingType,
                         const ApplicationProperties& localApplicationProperties,
                         const ApplicationProperties& coupledApplicationProperties,
                         const int entitiesDim,
@@ -42,6 +45,7 @@ namespace couplings {
     
   private:
     std::map <std::string, Coupling * > & _couplingDataBase;
+    MPI_Comm  _fvmComm;
 
   };
 }

@@ -7278,6 +7278,7 @@ AC_SUBST([am__untar])
 
 m4_include([config/check_bft.m4])
 m4_include([config/check_fvm.m4])
+m4_include([config/check_metis.m4])
 m4_include([config/check_mpi.m4])
 m4_include([config/couplings_config_info.m4])
 m4_include([config/couplings_config_publ.m4])

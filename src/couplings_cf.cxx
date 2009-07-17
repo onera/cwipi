@@ -191,8 +191,6 @@ int _couplings_print_with_fortran
  *
  * parameters:
  *   common_comm         <-- Common MPI communicator
- *   output_listing      <-- Output listing file (C function)
- *   output_logical_unit <-- Output listing logical unit (Fortran function)
  *   application_name    <-- Current application name
  *   application_comm    --> Internal MPI communicator for the current
  *                           application
@@ -202,7 +200,6 @@ int _couplings_print_with_fortran
 
 void PROCF(couplings_init_cf, COUPLINGS_INIT_CF)
   (MPI_Fint  *common_fcomm,
-   const int  *output_logical_unit,
    const char *application_name_f,
    const int  *l_application_name,
    MPI_Fint   *application_fcomm
@@ -215,8 +212,6 @@ void PROCF(couplings_init_cf, COUPLINGS_INIT_CF)
   char *application_name_c = _couplings_fortran_to_c_string(application_name_f,
                                                             *l_application_name);
 
-  bft_printf_proxy_set(_couplings_print_with_fortran);
-
   couplings::ApplicationPropertiesDataBase & properties =
     couplings::ApplicationPropertiesDataBase::getInstance();
 
@@ -225,9 +220,20 @@ void PROCF(couplings_init_cf, COUPLINGS_INIT_CF)
 
   *application_fcomm = MPI_Comm_c2f(application_comm);
 
+
   delete[] application_name_c;
 }
 
+/*----------------------------------------------------------------------------
+ *
+ * Set up the file used for the output listing
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(couplings_set_output_listing_cf, COUPLINGS_SET_OUTPUT_LISTING_CF)()
+{
+  bft_printf_proxy_set(_couplings_print_with_fortran);
+}
 
 /*----------------------------------------------------------------------------
  *
@@ -489,14 +495,22 @@ void PROCF(couplings_synchronize_control_parameter_cf,
  * Create a coupling object
  *
  * parameters:
- *   coupled_application     <-- Coupled application name
- *   field_nature            <-- Nature of the current application fields
- *   output_format           <-- Output format to visualize exchanged fields
+ *   couplingName            <-- Coupling identifier
+ *   couplingType            <-- Coupling type
+ *   cplAppli                <-- Coupled application name
+ *   entitiesDim             <-- Mesh entities dimension (1, 2 or 3)
+ *   tolerance               <-- Geometric tolerance to locate
+ *   meshT                   <-- COUPLINGS_STATIC_MESH
+ *                               COUPLINGS_MOBILE_MESH (not implemented yet)
+ *   solverT                 <-- COUPLINGS_SOLVER_CELL_CENTER
+ *                               COUPLINGS_SOLVER_CELL_VERTEX
+ *   outputFreq              <-- Output frequency
+ *   outputFmt               <-- Output format to visualize exchanged fields
  *                               on the coupled mesh. Choice between :
  *                                 - "EnSight Gold"
  *                                 - "MED_ficher"
  *                                 - "CGNS"
- *   output_format_option    <-- Outpout options
+ *   outputFmtOpt            <-- Output options
  *                             text                output text files
  *                             binary              output binary files (default)
  *                             big_endian          force binary files
@@ -512,15 +526,13 @@ void PROCF(couplings_synchronize_control_parameter_cf,
  *                                                 (adding a vertex near
  *                                                 each polyhedron's center)
  *
- * returns:
- *   The coupling id
- *
  *----------------------------------------------------------------------------*/
 
 void PROCF(couplings_create_coupling_cf,
            COUPLINGS_CREATE_COUPLING_CF)
 ( const char *coupling_name,
   const int  *l_coupling_name,
+  const int  *coupling_type,
   const char *coupled_application,
   const int  *l_coupled_application,
   const int  *entities_dim,
@@ -548,6 +560,7 @@ void PROCF(couplings_create_coupling_cf,
     _couplings_fortran_to_c_string(output_format_option, *l_output_format_option);
 
   couplings_create_coupling(coupling_nameC,
+                            (couplings_coupling_type_t) *coupling_type,
                             coupled_applicationC,
                             *entities_dim,
                             *tolerance,

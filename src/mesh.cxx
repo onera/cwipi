@@ -10,6 +10,7 @@
 
 #include <fvm_nodal_append.h>
 #include <fvm_nodal_order.h>
+#include <fvm_parall.h>
 
 #include "mesh.hxx"
 #include "quickSort.h"
@@ -33,6 +34,9 @@ namespace couplings {
       _cellVolume(NULL), _fvmNodal(NULL), _polygonIndex(NULL)
 
   {
+
+    fvm_parall_set_mpi_comm(localComm);
+
     //
     // Check dim
 
@@ -156,13 +160,18 @@ namespace couplings {
     }
 
     //
-    //  fvm_nodal building
+    // fvm_nodal building
 
     _fvmNodal = fvm_nodal_create("Mesh", 3);
+
+    //
+    // Sections building
 
     switch (_nDim) {
 
     case 1 :
+
+
       fvm_nodal_append_shared(_fvmNodal,
                               _nElts,
                               FVM_EDGE,
@@ -174,6 +183,23 @@ namespace couplings {
       break;
 
     case 2 :
+
+      int nTriangleSum;
+      int nQuadrangleSum;
+      int nPolySum;
+      
+      MPI_Allreduce (&nbTriangle, &nTriangleSum, 
+                     1, MPI_INT, MPI_SUM,
+                     localComm);
+      
+      MPI_Allreduce (&nbQuadrangle, &nQuadrangleSum, 
+                     1, MPI_INT, MPI_SUM,
+                     localComm);
+      
+      MPI_Allreduce (&nbPoly, &nPolySum, 
+                     1, MPI_INT, MPI_SUM,
+                     localComm);
+      
       if (nbTriangle != 0)
         fvm_nodal_append_shared(_fvmNodal,
                                 nbTriangle,
@@ -183,7 +209,17 @@ namespace couplings {
                                 NULL,
                                 _eltConnectivity,
                                 NULL);
-
+      
+      else if (nTriangleSum != 0)
+        fvm_nodal_append_shared(_fvmNodal,
+                                0,
+                                FVM_FACE_TRIA,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL);
+      
       if (nbQuadrangle != 0)
         fvm_nodal_append_shared(_fvmNodal,
                                 nbQuadrangle,
@@ -193,13 +229,24 @@ namespace couplings {
                                 NULL,
                                 _eltConnectivity + 3*nbTriangle,
                                 NULL);
-
+      
+      
+      else if (nQuadrangleSum != 0)
+        fvm_nodal_append_shared(_fvmNodal,
+                                0,
+                                FVM_FACE_QUAD,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL);
+      
       if (nbPoly != 0) {
         _polygonIndex = new int[nbPoly+1];
         for(int i = 0; i < nbPoly+1; i++) {
           _polygonIndex[i] = _eltConnectivityIndex[nbTriangle+nbQuadrangle+i]-_eltConnectivityIndex[nbTriangle+nbQuadrangle];
         }
-
+        
         fvm_nodal_append_shared(_fvmNodal,
                                 nbPoly,
                                 FVM_FACE_POLY,
@@ -209,9 +256,42 @@ namespace couplings {
                                 _eltConnectivity + 3*nbTriangle + 4*nbQuadrangle,
                                 NULL);
       }
-      break;
-
+      
+      else if (nPolySum != 0) 
+        
+        fvm_nodal_append_shared(_fvmNodal,
+                                0,
+                                FVM_FACE_POLY,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL);
+      
+    break;
+    
     case 3 :
+      int nTetraSum;
+      int nPyramidSum;
+      int nPrismSum;
+      int nHexaedraSum;
+
+      MPI_Allreduce (&nbTetra, &nTetraSum, 
+                     1, MPI_INT, MPI_SUM,
+                     localComm);
+
+      MPI_Allreduce (&nbPyramid, &nPyramidSum, 
+                     1, MPI_INT, MPI_SUM,
+                     localComm);
+
+      MPI_Allreduce (&nbPrism, &nPrismSum, 
+                     1, MPI_INT, MPI_SUM,
+                     localComm);
+
+      MPI_Allreduce (&nbHexaedra, &nHexaedraSum, 
+                     1, MPI_INT, MPI_SUM,
+                     localComm);
+
       if (nbTetra != 0)
         fvm_nodal_append_shared(_fvmNodal,
                                 nbTetra,
@@ -220,6 +300,16 @@ namespace couplings {
                                 NULL,
                                 NULL,
                                 _eltConnectivity,
+                                NULL);
+
+      else if (nTetraSum != 0)
+        fvm_nodal_append_shared(_fvmNodal,
+                                0,
+                                FVM_CELL_TETRA,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
                                 NULL);
 
       if (nbPyramid != 0)
@@ -232,6 +322,16 @@ namespace couplings {
                                 _eltConnectivity + 4*nbTetra,
                                 NULL);
 
+      else if (nPyramidSum != 0)
+        fvm_nodal_append_shared(_fvmNodal,
+                                0,
+                                FVM_CELL_PYRAM,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL);
+
       if (nbPrism != 0)
         fvm_nodal_append_shared(_fvmNodal,
                                 nbPrism,
@@ -240,6 +340,16 @@ namespace couplings {
                                 NULL,
                                 NULL,
                                 _eltConnectivity + 4*nbTetra + 5*nbPyramid,
+                                NULL);
+
+      else if (nPrismSum != 0)
+        fvm_nodal_append_shared(_fvmNodal,
+                                0,
+                                FVM_CELL_PRISM,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
                                 NULL);
 
       if (nbHexaedra != 0)
@@ -251,6 +361,18 @@ namespace couplings {
                                 NULL,
                                 _eltConnectivity +  4*nbTetra + 5*nbPyramid + 6*nbPrism,
                                 NULL);
+
+      else if (nbHexaedra != 0)
+        fvm_nodal_append_shared(_fvmNodal,
+                                0,
+                                FVM_CELL_HEXA,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL);
+
+
       break;
     }
 
@@ -263,12 +385,13 @@ namespace couplings {
     // Order Fvm_nodal
 
     int localCommSize = 0;
-    int *allNElts     = new int[localCommSize];
     int localRank = 0;
-    unsigned int *globalEltNum = new unsigned int[_nElts];
 
     MPI_Comm_size(_localComm, &localCommSize);
     MPI_Comm_rank(_localComm, &localRank);
+
+    int *allNElts     = new int[localCommSize];
+    unsigned int *globalEltNum = new unsigned int[_nElts];
 
     MPI_Allgather((void *) const_cast<int*> (&_nElts),
                   1,
@@ -276,7 +399,7 @@ namespace couplings {
                   allNElts,
                   1,
                   MPI_INT,
-                  localComm);
+                  _localComm);
 
     int nGlobal = 0;
     for(int i = 0; i < localRank; i++)
@@ -295,6 +418,8 @@ namespace couplings {
     }
 
     fvm_nodal_init_io_num(_fvmNodal, globalEltNum, _nDim);
+
+    delete [] globalEltNum;
 
     //
     // global vertex num
@@ -316,6 +441,7 @@ namespace couplings {
     for(int i = 0; i < _nVertex; i++)
       globalVertexNum[i] = nGlobal + i + 1;
 
+
     fvm_nodal_order_vertices(_fvmNodal, globalVertexNum);
     fvm_nodal_init_io_num(_fvmNodal, globalVertexNum, 0);
 
@@ -326,6 +452,8 @@ namespace couplings {
     fvm_nodal_dump(_fvmNodal);
 #endif
 
+    fvm_parall_set_mpi_comm(MPI_COMM_NULL);
+  
   }
 
 
@@ -344,6 +472,7 @@ namespace couplings {
                           int *faceConnectivityIndex,
                           int *faceConnectivity)
   {
+    fvm_parall_set_mpi_comm(_localComm);
 
     if (_fvmNodal == NULL)
       bft_error(__FILE__, __LINE__, 0, "No mesh to add element\n");
@@ -402,10 +531,13 @@ namespace couplings {
 
     fvm_nodal_init_io_num(_fvmNodal, globalEltNum, _nDim);
 
+    delete [] globalEltNum;
+
 #if defined(DEBUG) && 0
     fvm_nodal_dump(_fvmNodal);
 #endif
 
+    fvm_parall_set_mpi_comm(MPI_COMM_NULL);
   }
 
 
@@ -590,10 +722,8 @@ namespace couplings {
 
   void Mesh::_computeMeshProperties3D()
   {
-    std::vector<double> refCellCenterCoords = *_cellCenterCoords;
-    std::vector<double> refCellVolume = *_cellVolume;
-    std::vector<double> tetraCenterCoords(3,0.);
-
+    std::vector<double> & refCellCenterCoords = *_cellCenterCoords;
+    std::vector<double> & refCellVolume = *_cellVolume;
 
     int nStandardElement = _nElts - _nPolyhedra;
     if (nStandardElement > 0) {
@@ -697,6 +827,7 @@ namespace couplings {
         refCellVolume[i] = 0.;
 
         for (int j = 0; j < ntetra; j++) {
+          std::vector<double> tetraCenterCoords(3,0.);
           double tetraVolume = 0.;
 
           // Tetraedre case
@@ -730,20 +861,24 @@ namespace couplings {
                                    &faceSurface,
                                    &faceCenter);
 
+          for (int k = 0; k < 4; k++) {
+	        tetraCenterCoords[0] += _coords[3*(tetraConnec[4*j+k]-1)];
+            tetraCenterCoords[1] += _coords[3*(tetraConnec[4*j+k]-1)+1];
+            tetraCenterCoords[2] += _coords[3*(tetraConnec[4*j+k]-1)+2];
+          }
+          tetraCenterCoords[0] /= 4;
+          tetraCenterCoords[1] /= 4;
+          tetraCenterCoords[2] /= 4;
+
           double cellSurface = 0.;
           for (int k = 0; k < nFace; k++) {
             cellSurface += faceSurface[k];
-            tetraCenterCoords[0] += faceNormal[k]   * faceCenter[3*k];
-            tetraCenterCoords[1] += faceNormal[k+1] * faceCenter[3*k+1];
-            tetraCenterCoords[2] += faceNormal[k+2] * faceCenter[3*k+2];
-            tetraVolume += faceNormal[k] * faceCenter[3*k] +
-              faceNormal[k+1] * faceCenter[3*k+1] +
-                         faceNormal[k+2] * faceCenter[3*k+2];
+            tetraVolume +=  faceNormal[3*k]   * faceCenter[3*k] +
+                            faceNormal[3*k+1] * faceCenter[3*k+1] +
+                            faceNormal[3*k+2] * faceCenter[3*k+2];
           }
+
           tetraVolume *= 1./3.;
-          tetraCenterCoords[0] /= cellSurface;
-          tetraCenterCoords[1] /= cellSurface;
-          tetraCenterCoords[2] /= cellSurface;
 
           refCellCenterCoords[3*i]   += tetraVolume*tetraCenterCoords[0] ;
           refCellCenterCoords[3*i+1] += tetraVolume*tetraCenterCoords[1];

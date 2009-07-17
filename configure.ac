@@ -1,27 +1,6 @@
 # Process this file with autoconf to produce a configure script.
 
 #------------------------------------------------------------------------------
-#   This file is part of the "Finite Volume Mesh" library, intended to provide
-#   finite volume mesh and associated fields I/O and manipulation services.
-#
-#   Copyright (C) 2004-2008  EDF
-#
-#   This library is free software; you can redistribute it and/or
-#   modify it under the terms of the GNU Lesser General Public
-#   License as published by the Free Software Foundation; either
-#   version 2.1 of the License, or (at your option) any later version.
-#
-#   This library is distributed in the hope that it will be useful,
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#   Lesser General Public License for more details.
-#
-#   You should have received a copy of the GNU Lesser General Public
-#   License along with this library; if not, write to the Free Software
-#   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-#------------------------------------------------------------------------------
-
-#------------------------------------------------------------------------------
 # Initialization
 #------------------------------------------------------------------------------
 
@@ -63,7 +42,7 @@ AH_BOTTOM([#endif /* __CONFIG_PRIV_H__ */])
 #Define public configuration file
 
 COUPLINGS_AC_CONFIG_PUBL_INIT([couplings_config.h])
-COUPLINGS_AC_CONFIG_PUBL_VERBATIM([couplings_licence_c_comment])
+#COUPLINGS_AC_CONFIG_PUBL_VERBATIM([couplings_licence_c_comment])
 
 AM_MAINTAINER_MODE
 
@@ -299,6 +278,18 @@ if test "x$have_mpi" = "xyes" ; then
                          [couplings library configured with MPI One-sided support ?])
 fi
 
+#-----------------------------------------------------
+# Check for METIS (modifies CPPFLAGS, LDFLAGS, and LIBS)
+#-----------------------------------------------------
+
+CHECK_METIS
+
+#
+# Finir le check metis
+
+COUPLINGS_AC_CONFIG_PUBL_SET(HAVE_METIS, $have_metis,
+                       [couplings library configured with METIS support ?])
+
 #------------------------------------------------------------------------------
 # Internationalization
 #------------------------------------------------------------------------------
@@ -386,7 +377,7 @@ COUPLINGS_AC_CONFIG_INFO_FINALIZE
 #                  intl/Makefile po/Makefile.in m4/Makefile])
 
 #AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile doc/Makefile])
-AC_CONFIG_FILES([Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile])
 
 #------------------------------------------------------------------------------
 

@@ -21,7 +21,7 @@ namespace couplings
     _intControlParameters(*(new std::map <std::string, int>())),
     _doubleControlParameters(*(new std::map <std::string, double>()))
   {
-    _localComm = MPI_COMM_NULL;
+    _localComm = NULL;
     _beginningRank = -999;
     _endRank = -999;
   }
@@ -50,15 +50,20 @@ namespace couplings
     typedef std::map <std::string, double>::iterator Iterator2;
     for (Iterator2 p = _doubleControlParameters.begin(); p != _doubleControlParameters.end(); p++)
       bft_printf("   * '%s' : %12.5e\n", p->first.c_str(), p->second);
+    bft_printf_flush();
   }
 
   ApplicationProperties::~ApplicationProperties()
   {
+
     if (!_intControlParameters.empty())
       _intControlParameters.clear();
     delete &_intControlParameters;
     if (!_doubleControlParameters.empty())
       _doubleControlParameters.clear();
     delete &_doubleControlParameters;
+    if (_localComm != NULL) 
+      MPI_Comm_free(&_localComm);
+
   }
 }

@@ -22,6 +22,18 @@ extern "C" {
  *============================================================================*/
 
 /*----------------------------------------------------------------------------
+ * MPI ranks used for the coupling
+ *----------------------------------------------------------------------------*/
+
+typedef enum {
+
+  COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING,
+  COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING,
+  COUPLINGS_COUPLING_SEQUENTIAL,
+
+} couplings_coupling_type_t;
+
+/*----------------------------------------------------------------------------
  * Mesh type
  *----------------------------------------------------------------------------*/
 
@@ -158,7 +170,6 @@ typedef void (couplings_interpolation_fct_t)
  *
  * parameters:
  *   common_comm       <-- Common MPI communicator
- *   output_listing    <-- Output listing file
  *   application_name  <-- Current application name
  *   application_comm  --> Internal MPI communicator for the current
  *                         application
@@ -167,10 +178,20 @@ typedef void (couplings_interpolation_fct_t)
  *----------------------------------------------------------------------------*/
 
 void couplings_init
-(const          MPI_Comm common_comm,
- FILE           *output_listing,
- const char     *application_name,
- MPI_Comm       *application_comm);
+(const MPI_Comm                           common_comm,
+ const char                               *application_name,
+ MPI_Comm                                 *application_comm);
+
+/*----------------------------------------------------------------------------
+ *
+ * Set up the file used for the output listing
+ *
+ * parameters:
+ *   output_listing      <-- Output listing file (C function)
+ *----------------------------------------------------------------------------*/
+
+void couplings_set_output_listing
+(FILE *output_listing);
 
 /*----------------------------------------------------------------------------
  *
@@ -318,7 +339,8 @@ void couplings_dump_application_properties();
  * Create a coupling object
  *
  * parameters:
- *   coupling_id             <-- Coupling identifier
+ *   coupling_name           <-- Coupling identifier
+ *   coupling_type           <-- Coupling type
  *   coupled_application     <-- Coupled application name
  *   entitiesDim             <-- Mesh entities dimension (1, 2 or 3)
  *   tolerance               <-- Geometric tolerance to locate
@@ -352,7 +374,8 @@ void couplings_dump_application_properties();
  *----------------------------------------------------------------------------*/
 
 void couplings_create_coupling
-( const char  *coupling_id,
+( const char  *coupling_name,
+  const couplings_coupling_type_t coupling_type,
   const char  *coupled_application,
   const int    entitiesDim,
   const double tolerance,
@@ -472,7 +495,7 @@ void couplings_set_points_to_locate
  *   connectivity_index <-> element -> vertices index (O to n-1)
  *                          size: n_elements + 1
  *                          (out : ordered connectivity_index)
- *   connectivity       <-> element -> vertex connectivity
+ *   connectivity       <-> element -> vertex connectivity (1 to n)
  *                          size: connectivity_index[n_elements]
  *                          (out : ordered connectivity)
  *

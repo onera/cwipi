@@ -20,6 +20,7 @@ namespace couplings {
   public:
 
     Coupling(const std::string& name,
+             const couplings_coupling_type_t couplingType,
              const ApplicationProperties& localApplicationProperties,
              const ApplicationProperties& coupledApplicationProperties,
              const int entitiesDim,
@@ -31,15 +32,13 @@ namespace couplings {
 
     virtual ~Coupling();
 
-    void defineMesh(const MPI_Comm &localComm,
-                    const int nVertex,
+    void defineMesh(const int nVertex,
                     const int nElement,
                     const double coordinates[],
                     int connectivity_index[],
                     int connectivity[]);
 
-    void defineMeshAddPolyhedra(const MPI_Comm &localComm,
-                                const int n_element,
+    void defineMeshAddPolyhedra(const int n_element,
                                 int face_index[],
                                 int cell_to_face_connectivity[],
                                 int face_connectivity_index[],
@@ -88,7 +87,8 @@ namespace couplings {
 
      std::vector<double> & _extrapolate(double *cellCenterField);
 
-    // TODO :Dans l'avenir créer une fabrique abstraite qui permet de definir differentes methodes d'interpolation
+    //
+    // TODO: Dans l'avenir créer une fabrique abstraite qui permet de definir differentes methodes d'interpolation
 
     void _interpolate(double *vertexField,
                       std::vector<double>& interpolatedField,
@@ -117,10 +117,11 @@ namespace couplings {
 
     void _initVisualization();
 
-    double _createNan();
+    void _createCouplingComm();
 
   private:
     const std::string   _name;
+    const couplings_coupling_type_t _couplingType;
     const ApplicationProperties& _localApplicationProperties;
     const ApplicationProperties& _coupledApplicationProperties;
     const int            _entitiesDim;
@@ -135,6 +136,12 @@ namespace couplings {
     double              *_coordsPointsToLocate;
     fvm_locator_t       *_fvmLocator;
     fvm_writer_t        *_fvmWriter;
+    MPI_Comm             _couplingComm;
+    int                  _coupledApplicationNRankCouplingComm;
+    int                  _coupledApplicationBeginningRankCouplingComm;
+    bool                 _isCoupledRank;
+    MPI_Comm             _mergeComm;
+    MPI_Comm             _fvmComm;
     couplings_interpolation_fct_t *_interpolationFct;
     bool                 _toLocate;
     int                 *_barycentricCoordinatesIndex;

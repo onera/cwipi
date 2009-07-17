@@ -9,7 +9,7 @@ subroutine printStatus(iiunit, status)
      case(couplings_exchange_ok)
         write(iiunit,*) "Exchange ok"
      case(couplings_exchange_bad_receiving)
-        write(iiunit,*) "bad receiving"
+        write(iiunit,*) "no or bad receiving"
      case default
         write(iiunit,*) "Unknown receiving status"
         stop
@@ -137,8 +137,8 @@ program testf
   integer :: nNotLocatedPoints
   integer :: nDistantPoints
 
-  integer :: localcom
-  integer :: irank
+  integer :: localcom, localGroup, p1Group, p1Comm
+  integer :: irank, currentRank
   character (len = 4) :: proc
   integer :: code
   integer :: iiunit
@@ -155,9 +155,9 @@ program testf
 
   integer nvertex, nelts, lconnecindex
 
-  integer, parameter :: nvertexm = 1000 
-  integer, parameter :: neltsm = 1000
-  integer, parameter :: lconnecindexm = 6000
+  integer, parameter :: nvertexm = 4000 
+  integer, parameter :: neltsm = 4000
+  integer, parameter :: lconnecindexm = 12000
   integer, parameter :: nptstolocate = 21
   double precision, dimension(3*nptstolocate) :: coordstolocate
     
@@ -175,20 +175,11 @@ program testf
   character (len = 6) :: cpar = "niterf"
 
   integer :: stride = 1
+  integer, dimension(1) :: rl
+
   call mpi_init(code)
   call mpi_comm_rank(mpi_comm_world, irank, code)
 
-!
-! ------------------------------------------------
-! Creation du fichier de sortie listing
-! (en parallele, un fichier listing par processus)
-! ------------------------------------------------ 
-!
-
-  write(proc,'(i4.4)') irank
-  iiunit = 9
-  open(unit=iiunit, file='listing_code_fortran_'//proc, &
-       form='formatted', status='unknown')
 
 !
 ! -----------------------------------------
@@ -197,14 +188,32 @@ program testf
 !
   
   call couplings_init_f (mpi_comm_world, & 
-                         iiunit, &
                          "CodeFortran", & 
                          localcom)
+
+
+!
+! ------------------------------------------------
+! Creation du fichier de sortie listing
+! (en parallele, un fichier listing par processus)
+! ------------------------------------------------ 
+!
+
+  call mpi_comm_rank(localcom, currentRank, code)
+
+
+  write(proc,'(i4.4)') currentRank
+  iiunit = 9
+  open(unit=iiunit, file='listing_test2D_1_c2_'//proc, &
+       form='formatted', status='unknown')
+
+  call couplings_set_output_listing_f(iiunit)
 
   write(iiunit,*)
   write(iiunit,*) "dump apres initialisation"
   write(iiunit,*) "-------------------------"
   write(iiunit,*)
+
   call couplings_dump_application_properties_f
 
 !
@@ -247,7 +256,9 @@ program testf
   call couplings_dump_application_properties_f
 !
 ! Echange des parametres de controle
+
   call couplings_synchronize_control_parameter_f("CodeC")
+
   write(iiunit,*)
   write(iiunit,*) "dump apres synchronisation"
   write(iiunit,*) "--------------------------"
@@ -277,6 +288,7 @@ program testf
   write(iiunit, *)
 
   call couplings_create_coupling_f("test2D_1", & 
+                                   couplings_cpl_parallel_with_part,&
                                    "CodeC", &          
                                    2,     & ! Dimension des entites geometriques                 
                                    0.1d0, & ! Tolerance geometrique                        
@@ -359,6 +371,7 @@ program testf
   write(iiunit, *)
 
   call couplings_create_coupling_f("test2D_2", & 
+                                   couplings_cpl_parallel_with_part,&
                                    "CodeC", &          
                                    2,     & ! Dimension des entites geometriques                 
                                    0.1d0, & ! Tolerance geometrique                        
@@ -451,6 +464,7 @@ program testf
   write(iiunit, *)
 
   call couplings_create_coupling_f("test2D_3", & 
+                                   couplings_cpl_parallel_with_part,&
                                    "CodeC", &          
                                    2,     & ! Dimension des entites geometriques                 
                                    0.1d0, & ! Tolerance geometrique                        
@@ -627,6 +641,7 @@ program testf
   write(iiunit, *)
 
   call couplings_create_coupling_f("test2D_4", & 
+                                   couplings_cpl_parallel_with_part,&
                                    "CodeC", &          
                                    2,     & ! Dimension des entites geometriques                 
                                    0.1d0, & ! Tolerance geometrique                        
@@ -715,6 +730,7 @@ program testf
   write(iiunit, *)
 
   call couplings_create_coupling_f("test2D_5", & 
+                                   couplings_cpl_parallel_with_part,&
                                    "CodeC", &          
                                    2,     & ! Dimension des entites geometriques                 
                                    0.1d0, & ! Tolerance geometrique                        
@@ -796,6 +812,7 @@ program testf
   write(iiunit, *)
 
   call couplings_create_coupling_f("test2D_6", & 
+                                   couplings_cpl_parallel_with_part,&
                                    "CodeC", &          
                                    2,     & ! Dimension des entites geometriques                 
                                    0.1d0, & ! Tolerance geometrique                        
@@ -881,19 +898,12 @@ program testf
   write(iiunit, *)
   write(iiunit, *) "--------------------------------------------------------"
   write(iiunit, *)
-! 
-! -------------------------------------
-! test de la manipulation simultanee
-! de 2 objets coupling
-! -------------------------------------
-!
 
 ! 
-! ------------------------
-! Test couplage p1 <-> p1
-! ------------------------
-! 
-! Construction de "l'objet" couplage
+! -------------------------------------
+! Test simple localisation
+! -------------------------------------
+!
 
   write(iiunit, *)
   write(iiunit, *) "--------------------------------------------------------"
@@ -902,6 +912,7 @@ program testf
   write(iiunit, *)
 
   call couplings_create_coupling_f("test2D_7", & 
+                                   couplings_cpl_parallel_with_part,&
                                    "CodeC", &          
                                    2,     & ! Dimension des entites geometriques                 
                                    0.1d0, & ! Tolerance geometrique                        
@@ -942,27 +953,26 @@ program testf
                                connecindex, &
                                connec)
 
-! 
-! Envoi de la coory a codec
-! Reception de la coorx provenant de codec
+  call couplings_locate_f("test2D_7")
 
-  do i = 1, nvertex
-     values(i) = coords(3*(i-1) + 2)
-  enddo
-  
-  stride = 1
-  call couplings_exchange_f ("test2D_7", &
-                             "echange1", &
-                             stride, & 
-                             1, &
-                             0.1d0, &
-                             "cooy", &
-                             values, &
-                             "coox", &
-                             localvalues, &
-                             nNotLocatedPoints, &
-                             status)
-  call printStatus(iiunit, status)
+  call couplings_get_n_located_distant_points_f("test2D_7", nDistantPoints)
+
+  allocate(location(nDistantPoints))
+  allocate(baryCooIdx(nDistantPoints+1))
+
+  call couplings_get_location_f("test2D_7", location)
+
+  write(iiunit,*) "location",(location(i),i=1,nDistantPoints)
+
+  call couplings_get_barycentric_coordinates_index_f("test2D_7", baryCooIdx)
+
+  allocate(baryCoo(baryCooIdx(nDistantPoints+1)))
+
+  call couplings_get_barycentric_coordinates_f("test2D_7", baryCoo)
+
+  deallocate(location)
+  deallocate(baryCooIdx)
+  deallocate(baryCoo)
 
 !
 ! Suppression de l'objet couplage "couplingcellvertex"
@@ -973,10 +983,12 @@ program testf
   write(iiunit, *)
 
 ! 
-! -------------------------------------
-! Test couplage P1 -> P0 puis P0 -> P1 
-! -------------------------------------
-!
+! ------------------------
+! Test couplage p1 <-> p1
+! ------------------------
+! 
+! Construction de "l'objet" couplage
+
   write(iiunit, *)
   write(iiunit, *) "--------------------------------------------------------"
   write(iiunit, *)
@@ -984,6 +996,7 @@ program testf
   write(iiunit, *)
 
   call couplings_create_coupling_f("test2D_8", & 
+                                   couplings_cpl_parallel_with_part,&
                                    "CodeC", &          
                                    2,     & ! Dimension des entites geometriques                 
                                    0.1d0, & ! Tolerance geometrique                        
@@ -992,6 +1005,7 @@ program testf
                                    1, &                          
                                    "Ensight Gold",&              
                                    "text")                     
+
 
 ! 
 ! Construction du maillage
@@ -1024,6 +1038,8 @@ program testf
                                connecindex, &
                                connec)
 
+
+
 ! 
 ! Envoi de la coory a codec
 ! Reception de la coorx provenant de codec
@@ -1033,35 +1049,46 @@ program testf
   enddo
   
   stride = 1
-  call couplings_send_f ("test2D_8", &
-                         "echange1", &
-                         stride, & 
-                         1, &
-                         0.1d0, &
-                         "cooY", &
-                         values, &
-                         status)
-  call printStatus(iiunit, status)
+  call couplings_exchange_f ("test2D_8", &
+                             "echange1", &
+                             stride, & 
+                             1, &
+                             0.1d0, &
+                             "cooy", &
+                             values, &
+                             "coox", &
+                             localvalues, &
+                             nNotLocatedPoints, &
+                             status)
 
-  call couplings_receive_f ("test2D_8", &
-                            "echange2", &
-                            stride, & 
-                            1, &
-                            0.1d0, &
-                            "cooYY", &
-                            values, &
-                            nNotLocatedPoints, &
-                            status)
-  call printStatus(iiunit, status)
 
+!!$  call couplings_create_coupling_f("test2D_9", & 
+!!$                                   couplings_cpl_parallel_without_part,&
+!!$                                   "CodeC", &          
+!!$                                   2,     & ! Dimension des entites geometriques                 
+!!$                                   0.1d0, & ! Tolerance geometrique                        
+!!$                                   couplings_static_mesh, &       
+!!$                                   couplings_solver_cell_vertex, &
+!!$                                   1, &                          
+!!$                                   "Ensight Gold",&              
+!!$                                   "text")                     
+
+  call printStatus(iiunit, status)
 
 !
 ! Suppression de l'objet couplage "couplingcellvertex"
 
-  call couplings_delete_coupling_f("test2D_8");
+ ! call couplings_delete_coupling_f("test2D_8")
   write(iiunit, *)
   write(iiunit, *) "--------------------------------------------------------"
   write(iiunit, *)
+
+! 
+! ------------------------
+! Test couplage p1 <-> p1
+! ------------------------
+! 
+! Construction de "l'objet" couplage
 
   write(iiunit, *)
   write(iiunit, *) "--------------------------------------------------------"
@@ -1070,6 +1097,7 @@ program testf
   write(iiunit, *)
 
   call couplings_create_coupling_f("test2D_9", & 
+                                   couplings_cpl_parallel_without_part,&
                                    "CodeC", &          
                                    2,     & ! Dimension des entites geometriques                 
                                    0.1d0, & ! Tolerance geometrique                        
@@ -1087,54 +1115,188 @@ program testf
   lconnecindex = lconnecindexm
   order = 1
 
-  call creemaillagepolygone2d_f (order, &
-                                 localcom, &
-                                 xmin, &
-                                 xmax, &
-                                 ymin, &
-                                 ymax, &
-                                 initrandom, &
-                                 nx, &
-                                 ny, &
-                                 nvertex, &
-                                 coords, &
-                                 nelts, &
-                                 lconnecindex, &
-                                 connecindex, &
-                                 connec)
+  call mpi_comm_group(localcom, localGroup, code)
+    
+  rl(1) = 0
+  call mpi_group_incl(localGroup, 1, rl, p1Group, code)
+  call mpi_comm_create(localcom, p1Group, p1Comm, code)
 
-  call couplings_define_mesh_f("test2D_9", &
-                               nvertex, &
-                               nelts, &
-                               coords, &
-                               connecindex, &
-                               connec)
+  if (currentRank == 0) then
 
-  call couplings_locate_f("test2D_9")
+     call creemaillagepolygone2d_f (order, &
+          p1Comm, &
+          xmin, &
+          xmax, &
+          ymin, &
+          ymax, &
+          initrandom, &
+          nx, &
+          ny, &
+          nvertex, &
+          coords, &
+          nelts, &
+          lconnecindex, &
+          connecindex, &
+          connec)
 
-  call couplings_get_n_located_distant_points_f("test2D_9", nDistantPoints)
+     call couplings_define_mesh_f("test2D_9", &
+                                  nvertex, &
+                                  nelts, &
+                                  coords, &
+                                  connecindex, &
+                                  connec)
+  endif
 
-  allocate(location(nDistantPoints))
-  allocate(baryCooIdx(nDistantPoints+1))
+! 
+! Envoi de la coory a codec
+! Reception de la coorx provenant de codec
+  stride = 1
 
-  call couplings_get_location_f("test2D_9", location)
+  if (currentRank == 0) then
+     do i = 1, nvertex
+        values(i) = coords(3*(i-1) + 2)
+     enddo
+  
+     call couplings_exchange_f ("test2D_9", &
+                                "echange1", &
+                                stride, & 
+                                1, &
+                                0.1d0, &
+                                "cooy", &
+                                values, &
+                                "coox", &
+                                localvalues, &
+                                nNotLocatedPoints, &
+                                status)
+  else
 
-  write(*,*) "location",(location(i),i=1,nDistantPoints)
+     call couplings_receive_f ("test2D_9", &
+                               "echange1", &
+                               stride, & 
+                               1, &
+                               0.1d0, &
+                               "coox", &
+                               values, &
+                               nNotLocatedPoints, &
+                               status)
 
-  call couplings_get_barycentric_coordinates_index_f("test2D_9", baryCooIdx)
+  endif
 
-  allocate(baryCoo(baryCooIdx(nDistantPoints+1)))
-
-  call couplings_get_barycentric_coordinates_f("test2D_9", baryCoo)
-
-  deallocate(location)
-  deallocate(baryCooIdx)
-  deallocate(baryCoo)
+  call printStatus(iiunit, status)
 
 !
 ! Suppression de l'objet couplage "couplingcellvertex"
 
   call couplings_delete_coupling_f("test2D_9")
+  write(iiunit, *)
+  write(iiunit, *) "--------------------------------------------------------"
+  write(iiunit, *)
+
+! 
+! ------------------------
+! Test couplage p1 <-> p1
+! ------------------------
+! 
+! Construction de "l'objet" couplage
+
+  write(iiunit, *)
+  write(iiunit, *) "--------------------------------------------------------"
+  write(iiunit, *)
+  write(iiunit, *) " Test 10"
+  write(iiunit, *)
+
+  call couplings_create_coupling_f("test2D_10", & 
+                                   couplings_cpl_parallel_without_part,&
+                                   "CodeC", &          
+                                   2,     & ! Dimension des entites geometriques                 
+                                   0.1d0, & ! Tolerance geometrique                        
+                                   couplings_static_mesh, &       
+                                   couplings_solver_cell_vertex, &
+                                   1, &                          
+                                   "Ensight Gold",&              
+                                   "text")                     
+
+! 
+! Construction du maillage
+
+  nvertex      = nvertexm
+  nelts        = neltsm  
+  lconnecindex = lconnecindexm
+  order = 1
+
+  call mpi_comm_group(localcom, localGroup, code)
+    
+  rl(1) = 0
+  call mpi_group_incl(localGroup, 1, rl, p1Group, code)
+  call mpi_comm_create(localcom, p1Group, p1Comm, code)
+
+  if (currentRank == 0) then
+
+     call creemaillagepolygone2d_f (order, &
+          p1Comm, &
+          xmin, &
+          xmax, &
+          ymin, &
+          ymax, &
+          initrandom, &
+          nx, &
+          ny, &
+          nvertex, &
+          coords, &
+          nelts, &
+          lconnecindex, &
+          connecindex, &
+          connec)
+
+     call couplings_define_mesh_f("test2D_10", &
+                                  nvertex, &
+                                  nelts, &
+                                  coords, &
+                                  connecindex, &
+                                  connec)
+  endif
+
+! 
+! Envoi de la coory a codec
+! Reception de la coorx provenant de codec
+  stride = 1
+
+  if (currentRank == 0) then
+     do i = 1, nvertex
+        values(i) = coords(3*(i-1) + 2)
+     enddo
+  
+     call couplings_exchange_f ("test2D_10", &
+                                "echange1", &
+                                stride, & 
+                                1, &
+                                0.1d0, &
+                                "cooy", &
+                                values, &
+                                "coox", &
+                                localvalues, &
+                                nNotLocatedPoints, &
+                                status)
+  else
+
+     call couplings_receive_f ("test2D_10", &
+                               "echange1", &
+                               stride, & 
+                               1, &
+                               0.1d0, &
+                               "coox", &
+                               values, &
+                               nNotLocatedPoints, &
+                               status)
+
+  endif
+
+  call printStatus(iiunit, status)
+
+!
+! Suppression de l'objet couplage "couplingcellvertex"
+
+  call couplings_delete_coupling_f("test2D_10")
   write(iiunit, *)
   write(iiunit, *) "--------------------------------------------------------"
   write(iiunit, *)

@@ -108,13 +108,11 @@ namespace couplings {
 
   const int &ApplicationProperties::getBeginningRank() const
   {
-    //assert(_beginningRank != -1);
     return _beginningRank;
   }
 
   const int &ApplicationProperties::getEndRank() const
   {
-    //assert(_endRank != -1);
     return _endRank;
   }
 

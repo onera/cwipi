@@ -465,7 +465,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS ac_aux_dir build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE FC FCFLAGS ac_ct_FC LN_S SED EGREP ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CPP CXXCPP F77 FFLAGS ac_ct_F77 LIBTOOL DEBUG_TRUE DEBUG_FALSE CPP_ADD CC_ADD LD_ADD LIBS_ADD BFT_CPPFLAGS BFT_LDFLAGS BFT_LIBS FVM_CPPFLAGS FVM_LDFLAGS FVM_LIBS HAVE_MPI_TRUE HAVE_MPI_FALSE HAVE_MPI_IO_TRUE HAVE_MPI_IO_FALSE HAVE_MPI_ONE_SIDED_TRUE HAVE_MPI_ONE_SIDED_FALSE MPI_CPPFLAGS MPI_LDFLAGS MPI_LIBS LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS ac_aux_dir build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE FC FCFLAGS ac_ct_FC LN_S SED EGREP ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CPP CXXCPP F77 FFLAGS ac_ct_F77 LIBTOOL DEBUG_TRUE DEBUG_FALSE CPP_ADD CC_ADD LD_ADD LIBS_ADD BFT_CPPFLAGS BFT_LDFLAGS BFT_LIBS FVM_CPPFLAGS FVM_LDFLAGS FVM_LIBS HAVE_MPI_TRUE HAVE_MPI_FALSE HAVE_MPI_IO_TRUE HAVE_MPI_IO_FALSE HAVE_MPI_ONE_SIDED_TRUE HAVE_MPI_ONE_SIDED_FALSE MPI_CPPFLAGS MPI_LDFLAGS MPI_LIBS METIS_CPPFLAGS METIS_LDFLAGS METIS_LIBS LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -1097,6 +1097,12 @@ Optional Packages:
   --with-mpi-include=PATH specify directory for MPI include files
 
   --with-mpi-lib=PATH     specify directory for MPI library
+
+  --with-metis=PATH          specify prefix directory for METIS
+
+  --with-metis-include=PATH  specify directory for METIS include files
+
+  --with-metis-lib=PATH      specify directory for METIS library
 
 
 Some influential environment variables:
@@ -2137,13 +2143,7 @@ echo >> "$couplings_ac_config_publ_h"-tmp
 { echo "$as_me:$LINENO: initializing $couplings_ac_config_publ_h" >&5
 echo "$as_me: initializing $couplings_ac_config_publ_h" >&6;}
 
-
-
-
-echo "couplings_licence_c_comment" >> "$couplings_ac_config_publ_h"-tmp
-echo ""   >> "$couplings_ac_config_publ_h"-tmp
-
-
+#COUPLINGS_AC_CONFIG_PUBL_VERBATIM([couplings_licence_c_comment])
 
 echo "$as_me:$LINENO: checking whether to enable maintainer-specific portions of Makefiles" >&5
 echo $ECHO_N "checking whether to enable maintainer-specific portions of Makefiles... $ECHO_C" >&6
@@ -21716,6 +21716,14 @@ echo "${ECHO_T}$have_mpi_one_sided" >&6
 
 fi
 
+if test "x$have_mpi" = "xno"; then
+ { { echo "$as_me:$LINENO: error: No MPI library
+See \`config.log' for more details." >&5
+echo "$as_me: error: No MPI library
+See \`config.log' for more details." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+
 
 
 if test x$have_mpi = xyes; then
@@ -21818,6 +21826,301 @@ echo >> "$couplings_ac_config_publ_h"-tmp
 
 
 fi
+
+#-----------------------------------------------------
+# Check for METIS (modifies CPPFLAGS, LDFLAGS, and LIBS)
+#-----------------------------------------------------
+
+
+
+{ echo "$as_me:$LINENO: checking for METIS Library..." >&5
+echo "$as_me: checking for METIS Library..." >&6;}
+
+
+
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
+METIS_CPPFLAGS=""
+METIS_LDFLAGS=""
+METIS_LIBS=""
+
+have_metis=no
+metis_include_dir=""
+metis_lib_dir=""
+
+{ echo "$as_me:$LINENO: checking for METIS location..." >&5
+echo "$as_me: checking for METIS location..." >&6;}
+
+# Check whether --with-metis or --without-metis was given.
+if test "${with_metis+set}" = set; then
+  withval="$with_metis"
+
+fi;
+
+
+# Check whether --with-metis-include or --without-metis-include was given.
+if test "${with_metis_include+set}" = set; then
+  withval="$with_metis_include"
+
+fi;
+
+
+# Check whether --with-metis-lib or --without-metis-lib was given.
+if test "${with_metis_lib+set}" = set; then
+  withval="$with_metis_lib"
+
+fi;
+
+if test "x$with_metis_include" != "x" ; then
+  METIS_CPPFLAGS="-I$with_metis_include"
+  metis_include_dir=$with_metis_include
+elif test "x$with_metis" != "x" ; then
+  METIS_CPPFLAGS="-I$with_metis/Lib"
+  metis_include_dir=$with_metis/Lib
+fi
+
+if test "x$with_metis_lib" != "x" ; then
+  METIS_LDFLAGS="-L$with_metis_lib"
+  metis_lib_dir=$with_metis_lib
+elif test "x$with_metis" != "x" ; then
+  METIS_LDFLAGS="-L$with_metis"
+  metis_lib_dir=$with_metis
+fi
+
+METIS_LIBS="-lmetis"
+
+saved_CPPFLAGS="$CPPFLAGS"
+saved_LDFLAGS="$LDFLAGS"
+saved_LIBS="$LIBS"
+
+CPPFLAGS="${CPPFLAGS} ${METIS_CPPFLAGS}"
+LDFLAGS="${LDFLAGS} ${METIS_LDFLAGS}"
+LIBS="${LIBS} ${METIS_LIBS}"
+
+{ echo "$as_me:$LINENO: checking for METIS headers..." >&5
+echo "$as_me: checking for METIS headers..." >&6;}
+
+as_ac_File=`echo "ac_cv_file_${metis_include_dir}/metis.h" | $as_tr_sh`
+echo "$as_me:$LINENO: checking for ${metis_include_dir}/metis.h" >&5
+echo $ECHO_N "checking for ${metis_include_dir}/metis.h... $ECHO_C" >&6
+if eval "test \"\${$as_ac_File+set}\" = set"; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
+echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "${metis_include_dir}/metis.h"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_File'}'`" >&5
+echo "${ECHO_T}`eval echo '${'$as_ac_File'}'`" >&6
+if test `eval echo '${'$as_ac_File'}'` = yes; then
+  have_metis=yes
+else
+  have_metis=no
+fi
+
+
+if test "x${have_metis}" = "xyes" ; then
+
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <metis.h>
+int
+main ()
+{
+Change2CNumbering(0,0,0)
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  have_metis=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+have_metis=no
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+
+echo "$as_me:$LINENO: result: for metis headers: $have_metis" >&5
+echo "${ECHO_T}for metis headers: $have_metis" >&6
+
+{ echo "$as_me:$LINENO: checking for METIS binaries..." >&5
+echo "$as_me: checking for METIS binaries..." >&6;}
+
+if test "x$have_metis" = "xyes" ; then
+
+  as_ac_File=`echo "ac_cv_file_${metis_lib_dir}/libmetis.a" | $as_tr_sh`
+echo "$as_me:$LINENO: checking for ${metis_lib_dir}/libmetis.a" >&5
+echo $ECHO_N "checking for ${metis_lib_dir}/libmetis.a... $ECHO_C" >&6
+if eval "test \"\${$as_ac_File+set}\" = set"; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
+echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "${metis_lib_dir}/libmetis.a"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_File'}'`" >&5
+echo "${ECHO_T}`eval echo '${'$as_ac_File'}'`" >&6
+if test `eval echo '${'$as_ac_File'}'` = yes; then
+  have_metis=yes
+else
+  have_metis=no
+fi
+
+fi
+
+if test "x$have_metis" = "xyes" ; then
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <metis.h>
+int
+main ()
+{
+Change2CNumbering(0,0,0)
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  have_metis=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+have_metis=no
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+fi
+
+echo "$as_me:$LINENO: result: for metis binaries: $have_metis" >&5
+echo "${ECHO_T}for metis binaries: $have_metis" >&6
+
+
+
+if test x$have_metis = xyes; then
+  HAVE_MPI_TRUE=
+  HAVE_MPI_FALSE='#'
+else
+  HAVE_MPI_TRUE='#'
+  HAVE_MPI_FALSE=
+fi
+
+
+echo "$as_me:$LINENO: result: for metis: $have_metis" >&5
+echo "${ECHO_T}for metis: $have_metis" >&6
+
+CPPFLAGS="$saved_CPPFLAGS"
+LDFLAGS="$saved_LDFLAGS"
+LIBS="$saved_LIBS"
+
+unset saved_CPPFLAGS
+unset saved_LDFLAGS
+unset saved_LIBS
+
+
+
+
+
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
+
+
+#
+# Finir le check metis
+
+
+
+# First arg is variable name, second arg is value, optional third arg is comment
+
+
+unset couplings_ac_lower
+unset couplings_ac_upper
+if test "couplings library configured with METIS support ?" != "" ; then
+  echo "/* couplings library configured with METIS support ? */" >> "$couplings_ac_config_publ_h"-tmp
+fi
+if test "$have_metis" = "yes" ; then
+  echo "#define HAVE_METIS 1" >> "$couplings_ac_config_publ_h"-tmp
+else
+  echo "#undef HAVE_METIS" >> "$couplings_ac_config_publ_h"-tmp
+fi
+echo >> "$couplings_ac_config_publ_h"-tmp
+
+
 
 #------------------------------------------------------------------------------
 # Internationalization
@@ -22234,7 +22537,7 @@ fi
 #                  intl/Makefile po/Makefile.in m4/Makefile])
 
 #AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile doc/Makefile])
-                    ac_config_files="$ac_config_files Makefile src/Makefile"
+                              ac_config_files="$ac_config_files Makefile src/Makefile tests/Makefile"
 
 
 #------------------------------------------------------------------------------
@@ -22405,6 +22708,13 @@ if test -z "${HAVE_MPI_ONE_SIDED_TRUE}" && test -z "${HAVE_MPI_ONE_SIDED_FALSE}"
   { { echo "$as_me:$LINENO: error: conditional \"HAVE_MPI_ONE_SIDED\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
 echo "$as_me: error: conditional \"HAVE_MPI_ONE_SIDED\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${HAVE_MPI_TRUE}" && test -z "${HAVE_MPI_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"HAVE_MPI\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"HAVE_MPI\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
@@ -22854,6 +23164,7 @@ do
   # Handling of arguments.
   "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
   "src/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
+  "tests/Makefile" ) CONFIG_FILES="$CONFIG_FILES tests/Makefile" ;;
   "depfiles" ) CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
   "config_priv.h" ) CONFIG_HEADERS="$CONFIG_HEADERS config_priv.h:config_priv.h.in" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
@@ -23039,6 +23350,9 @@ s,@HAVE_MPI_ONE_SIDED_FALSE@,$HAVE_MPI_ONE_SIDED_FALSE,;t t
 s,@MPI_CPPFLAGS@,$MPI_CPPFLAGS,;t t
 s,@MPI_LDFLAGS@,$MPI_LDFLAGS,;t t
 s,@MPI_LIBS@,$MPI_LIBS,;t t
+s,@METIS_CPPFLAGS@,$METIS_CPPFLAGS,;t t
+s,@METIS_LDFLAGS@,$METIS_LDFLAGS,;t t
+s,@METIS_LIBS@,$METIS_LIBS,;t t
 s,@LIBOBJS@,$LIBOBJS,;t t
 s,@LTLIBOBJS@,$LTLIBOBJS,;t t
 CEOF

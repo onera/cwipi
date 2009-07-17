@@ -96,8 +96,6 @@ int _couplings_print_with_c
  *
  * parameters:
  *   common_comm         <-- Common MPI communicator
- *   output_listing      <-- Output listing file (C function)
- *   output_logical_unit <-- Output listing logical unit (Fortran function)
  *   application_name    <-- Current application name
  *   application_comm    --> Internal MPI communicator for the current
  *                           application
@@ -106,20 +104,33 @@ int _couplings_print_with_c
  *----------------------------------------------------------------------------*/
 
 void couplings_init
-(const MPI_Comm common_comm,
- FILE           *output_listing,
- const char     *application_name,
- MPI_Comm       *application_comm)
+(const MPI_Comm                           common_comm       ,
+ const char                               *application_name ,
+ MPI_Comm                                 *application_comm )
 
 {
-  _couplings_output_listing = output_listing;
-  bft_printf_proxy_set(_couplings_print_with_c);
 
   couplings::ApplicationPropertiesDataBase & properties =
     couplings::ApplicationPropertiesDataBase::getInstance();
 
   *application_comm = properties.init(application_name,
                                       common_comm);
+  
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Set up the file used for the output listing
+ *
+ * parameters:
+ *   output_listing      <-- Output listing file (C function)
+ *----------------------------------------------------------------------------*/
+
+void couplings_set_output_listing
+(FILE *output_listing)
+{
+  _couplings_output_listing = output_listing;
+  bft_printf_proxy_set(_couplings_print_with_c);
 }
 
 /*----------------------------------------------------------------------------
@@ -341,7 +352,8 @@ void couplings_synchronize_control_parameter(const char *application_name)
  * Create a coupling object
  *
  * parameters:
- *   coupling_id             <-- Coupling identifier
+ *   coupling_name           <-- Coupling identifier
+ *   coupling_type           <-- Coupling type
  *   coupled_application     <-- Coupled application name
  *   entitiesDim             <-- Mesh entities dimension (1, 2 or 3)
  *   tolerance               <-- Geometric tolerance to locate
@@ -376,6 +388,7 @@ void couplings_synchronize_control_parameter(const char *application_name)
 
 void couplings_create_coupling
 ( const char  *coupling_name,
+  const couplings_coupling_type_t coupling_type,
   const char  *coupled_application,
   const int entities_dim,
   const double tolerance,
@@ -395,6 +408,7 @@ void couplings_create_coupling
   const std::string &coupled_application_str = coupled_application;
 
   couplingDataBase.createCoupling(coupling_name,
+                                  coupling_type,
                                   properties.getLocalApplicationProperties(),
                                   properties.getDistantApplicationProperties(coupled_application_str),
                                   entities_dim,
@@ -550,8 +564,7 @@ void couplings_define_mesh(const char *coupling_name,
 
   couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
-  coupling.defineMesh(localComm,
-                      n_vertex,
+  coupling.defineMesh(n_vertex,
                       n_element,
                       coordinates,
                       connectivity_index,
@@ -571,14 +584,11 @@ void couplings_add_polyhedra(const char *coupling_name,
   couplings::ApplicationPropertiesDataBase & properties =
     couplings::ApplicationPropertiesDataBase::getInstance();
 
-  const MPI_Comm &localComm = properties.getLocalApplicationProperties().getLocalComm();
-
   const std::string &coupling_name_str = coupling_name;
 
   couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
-  coupling.defineMeshAddPolyhedra(localComm,
-                                  n_element,
+  coupling.defineMeshAddPolyhedra(n_element,
                                   face_index,
                                   cell_to_face_connectivity,
                                   face_connectivity_index,
@@ -744,16 +754,16 @@ int couplings_get_n_not_located_points(const char *coupling_id)
  *----------------------------------------------------------------------------*/
 
 couplings_exchange_status_t couplings_exchange
-(const char                          *coupling_name,
- const char                          *exchange_name,
- const int                            stride,
- const int                            time_step,
- const double                         time_value,
- const char                          *sending_field_name,
- const double                        *sending_field,
- char                                *receiving_field_name,
- double                              *receiving_field,
- int                                 *nNotLocatedPoints)
+(const char                *coupling_name,
+ const char                *exchange_name,
+ const int                  stride,
+ const int                  time_step,
+ const double               time_value,
+ const char                *sending_field_name,
+ const double              *sending_field,
+ char                      *receiving_field_name,
+ double                    *receiving_field,
+ int                       *nNotLocatedPoints)
 
 {
   couplings::CouplingDataBase & couplingDataBase =
@@ -838,7 +848,6 @@ void couplings_finalize()
     couplings::ApplicationPropertiesDataBase::getInstance();
 
   const MPI_Comm globalComm = properties.getGlobalComm();
-
 
   bft_printf("Finalize couplings\n");
   couplingDataBase.kill();

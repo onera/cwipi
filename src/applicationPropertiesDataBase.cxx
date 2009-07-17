@@ -18,7 +18,9 @@ namespace couplings {
 
   ApplicationPropertiesDataBase::~ApplicationPropertiesDataBase()
   {
+#if defined(DEBUG) && 0
     std::cout << "destroying ApplicationPropertiesDataBase." << std::endl;
+#endif
     if (_localApplicationProperties != NULL)
       delete _localApplicationProperties;
 
@@ -36,7 +38,7 @@ namespace couplings {
   }
 
   MPI_Comm  ApplicationPropertiesDataBase::init(const char* applicationName, 
-                                                const MPI_Comm globalComm)
+                                                 const MPI_Comm globalComm)
   {
 
     // Initialize MPI 
@@ -64,7 +66,7 @@ namespace couplings {
       int j = 0;
       int index = 0;
       int totalLength = 0;
-      int nameLength = 0;;
+      int nameLength = 0;
      
       std::string currentString = "";
       char *mergeNames = NULL;
@@ -75,10 +77,8 @@ namespace couplings {
       
       BFT_MALLOC(mergeNames, totalLength, char) ;
       
-
       int *namesLength = new int[globalCommSize];
       int *iproc = new int[globalCommSize];
-
 
       MPI_Allgather(&nameLength, 
                     1, 
@@ -161,12 +161,11 @@ namespace couplings {
       
       // Create current application communicator 
       // --------------------------------------- 
-      
-      MPI_Comm localComm = MPI_COMM_NULL;
-      MPI_Comm_split(MPI_COMM_WORLD, color, currentRank, &localComm);
+
+      MPI_Comm localComm = MPI_COMM_NULL ;
+      MPI_Comm_split(globalComm, color, currentRank, &localComm);
       _localApplicationProperties->setLocalComm(localComm);
   
-      fvm_parall_set_mpi_comm(localComm);
       return localComm;
     }
   }
@@ -208,7 +207,6 @@ namespace couplings {
     //
     // Clear distant parameters copy
 
-    distantControlParameters.clear();
     distantControlParameters.clear();
 
     //
@@ -608,6 +606,7 @@ namespace couplings {
       p->second->dump();
       bft_printf("\n"); 
     }
+    bft_printf_flush();
   }
 
 }

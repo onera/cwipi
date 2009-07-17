@@ -9,7 +9,11 @@ namespace couplings {
   {
   protected:
     Singleton () { }
-    virtual ~Singleton () { std::cout << "destroying singleton." << std::endl; }
+    virtual ~Singleton () {
+#if defined(DEBUG) && 0
+      std::cout << "destroying singleton." << std::endl;
+#endif
+ }
     Singleton (const Singleton & other) { }
     Singleton & operator=(const Singleton & other) { }
     

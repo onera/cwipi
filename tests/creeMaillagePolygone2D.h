@@ -5,6 +5,8 @@
 #include <fvm_nodal.h>
 #include <mpi.h>
 
+#include "couplings_config.h"
+
 /*----------------------------------------------------------------------------
  * Macro for handling of different symbol names (underscored or not,
  * lowercase or uppercase) between C and Fortran, for link resolution.

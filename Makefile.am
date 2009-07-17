@@ -10,7 +10,7 @@ MAINTAINERCLEANFILES = Makefile.in aclocal.m4 configure config-h.in stamp-h.in $
 
 #SUBDIRS = src tests doc
 
-SUBDIRS = src 
+SUBDIRS = src tests 
 
 EXTRA_DIST = $(ac_aux_dir)/couplings_auto_flags.sh \
              $(ac_aux_dir)/check_bft.m4 \
@@ -32,8 +32,8 @@ DISTCLEANFILES = couplings-config couplings_config.h couplings_config_priv.h
 
 ACLOCAL_AMFLAGS = -I config
 
-#install-tests:
-#	@cd tests ; $(MAKE) install-tests
+install-tests:
+	@cd tests ; $(MAKE) install-tests
 
-#uninstall-tests:
-#	@cd tests ; $(MAKE) uninstall-tests
+uninstall-tests:
+	@cd tests ; $(MAKE) uninstall-tests
