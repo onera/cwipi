@@ -16,19 +16,19 @@
 
 // Pour le couplage
 
-#include "couplings.h"
+#include "cwipi.h"
 
 //
 // Fonction d'interpolation bidon, juste pour voir si c'est bien pris
 // en compte 
 
-static void _dumpStatus(couplings_exchange_status_t status )
+static void _dumpStatus(cwipi_exchange_status_t status )
 {
   switch(status) {
-  case COUPLINGS_EXCHANGE_OK :
+  case CWIPI_EXCHANGE_OK :
     bft_printf("Exchange Ok\n");
     break;
-  case COUPLINGS_EXCHANGE_BAD_RECEIVING :
+  case CWIPI_EXCHANGE_BAD_RECEIVING :
     bft_printf("Bad receiving\n");
     break;
   default :
@@ -41,7 +41,7 @@ static void _dumpNotLocatedPoints(const char *coupling_id,
 {
   if ( nNotLocatedPoints > 0) {
     bft_printf("Points non localises :\n");
-    const int* notLocatedPoints = couplings_get_not_located_points(coupling_id);
+    const int* notLocatedPoints = cwipi_get_not_located_points(coupling_id);
     for(int i = 0; i < nNotLocatedPoints; i++)
       bft_printf("%i ", notLocatedPoints[i]);
     bft_printf("\n");
@@ -65,7 +65,7 @@ static void _interpolationBidon(const int entities_dim,
                                 const int distant_points_barycentric_coordinates_index[],
                                 const double distant_points_barycentric_coordinates[],
                                 const int stride,
-                                const couplings_solver_type_t  solver_type,
+                                const cwipi_solver_type_t  solver_type,
                                 const void *local_field,
                                 void *distant_field)
 {
@@ -96,7 +96,7 @@ int main
   /* Initialisation
    * -------------- */
 
-  couplings_init(MPI_COMM_WORLD, 
+  cwipi_init(MPI_COMM_WORLD, 
                  "CodeC",
                  &localComm);
   
@@ -108,46 +108,46 @@ int main
   MPI_Comm_rank(localComm, &currentRank);
 
   char* fileName = NULL;
-  BFT_MALLOC(fileName, 21, char); 
+  BFT_MALLOC(fileName, 25, char); 
   sprintf(fileName,"listing_test2D_1_c1_%4.4d",currentRank); 
 
   outputFile = fopen(fileName,"w");
   BFT_FREE(fileName);
 
-  couplings_set_output_listing(outputFile);
+  cwipi_set_output_listing(outputFile);
 
   bft_printf("\nDump apres initialisation\n");
   bft_printf("-------------------------\n");
-  couplings_dump_application_properties();
+  cwipi_dump_application_properties();
 
   /* Test sur la transmission des parametres de controle
    * --------------------------------------------------- */
 
   /* Ajout de parametres */
-  couplings_add_local_int_control_parameter("niterC", 0);
-  couplings_add_local_double_control_parameter("physicalTimeC", 0.1);
+  cwipi_add_local_int_control_parameter("niterC", 0);
+  cwipi_add_local_double_control_parameter("physicalTimeC", 0.1);
 
   bft_printf("\nDump apres ajout de parametres\n");
   bft_printf("------------------------------\n");
-  couplings_dump_application_properties();
+  cwipi_dump_application_properties();
 
   /* Modification des parametres */
-  couplings_set_local_double_control_parameter("physicalTimeC", 0.2);
-  couplings_set_local_int_control_parameter("niterC", 2);
+  cwipi_set_local_double_control_parameter("physicalTimeC", 0.2);
+  cwipi_set_local_int_control_parameter("niterC", 2);
 
   bft_printf("\nDump apres modification des parametres\n");
   bft_printf("--------------------------------------\n");
-  couplings_dump_application_properties();
+  cwipi_dump_application_properties();
 
   /* Mise a jour des parametres de controle avec une autre application */
-  couplings_synchronize_control_parameter("CodeFortran"); 
+  cwipi_synchronize_control_parameter("CodeFortran"); 
   bft_printf("\nDump apres synchronisation des parametres\n");
   bft_printf("-----------------------------------------\n");
-  couplings_dump_application_properties();
+  cwipi_dump_application_properties();
 
   /* Recuperation des parametres */
-  double physicalTime = couplings_get_local_double_control_parameter("physicalTimeC");
-  int niter = couplings_get_local_int_control_parameter("niterC");
+  double physicalTime = cwipi_get_local_double_control_parameter("physicalTimeC");
+  int niter = cwipi_get_local_int_control_parameter("niterC");
 
   bft_printf("\nAffichage apres recuperation des parametres\n");
   bft_printf("-------------------------------------------\n");
@@ -157,9 +157,9 @@ int main
   /* Supression des parametres */
   bft_printf("\nDump apres suppresion des parametres\n");
   bft_printf("------------------------------------\n");
-  couplings_delete_local_double_control_parameter("physicalTimeC");
-  couplings_delete_local_int_control_parameter("niterC");
-  couplings_dump_application_properties();
+  cwipi_delete_local_double_control_parameter("physicalTimeC");
+  cwipi_delete_local_int_control_parameter("niterC");
+  cwipi_dump_application_properties();
 
   /* -----------------------
    * Test couplage P1 <-> P1
@@ -177,13 +177,13 @@ int main
     if  (currentRank == 0)
       printf("         Create coupling\n");
 
-    couplings_create_coupling("test2D_1",         // Nom du couplage
-                              COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING,
+    cwipi_create_coupling("test2D_1",         // Nom du couplage
+                              CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
                               "CodeFortran",                      // Code couplé
                               2,                            // Dimension des entités géométriques
                               0.1,                          // Tolérance géométrique
-                              COUPLINGS_STATIC_MESH,        // Maillage statique
-                              COUPLINGS_SOLVER_CELL_VERTEX, // Type de champs
+                              CWIPI_STATIC_MESH,        // Maillage statique
+                              CWIPI_SOLVER_CELL_VERTEX, // Type de champs
                               1,                            // Frequence des post-traitement
                               "EnSight Gold",               // Format du post-traitement
                               "text");                      // Options de post-traitements
@@ -228,7 +228,7 @@ int main
     if  (currentRank == 0)
       printf("         Define mesh\n");
 
-    couplings_define_mesh("test2D_1",
+    cwipi_define_mesh("test2D_1",
                           nVertex,
                           nElts,
                           coords,
@@ -251,7 +251,7 @@ int main
     if  (currentRank == 0)
       printf("         Exchange\n");
 
-    couplings_exchange_status_t status = couplings_exchange("test2D_1",
+    cwipi_exchange_status_t status = cwipi_exchange("test2D_1",
                                                             "echange1",
                                                             1,
                                                             1,     // n_step
@@ -271,7 +271,7 @@ int main
     if  (currentRank == 0)
       printf("         Delete coupling\n");
 
-    couplings_delete_coupling("test2D_1");
+    cwipi_delete_coupling("test2D_1");
     
     /* Liberation de la memoire */
     
@@ -308,13 +308,13 @@ int main
     if  (currentRank == 0)
       printf("         Create coupling\n");
 
-    couplings_create_coupling("test2D_2",         // Nom du couplage
-                              COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING,
+    cwipi_create_coupling("test2D_2",         // Nom du couplage
+                              CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
                               "CodeFortran",                      // Code couplé
                               2,                            // Dimension des entités géométriques
                               0.1,                          // Tolérance géométrique 
-                              COUPLINGS_STATIC_MESH,        // Maillage statique
-                              COUPLINGS_SOLVER_CELL_CENTER, // Type de champs
+                              CWIPI_STATIC_MESH,        // Maillage statique
+                              CWIPI_SOLVER_CELL_CENTER, // Type de champs
                               1,                            // Frequence des post-traitement
                               "EnSight Gold",               // Format du post-traitement
                               "text");                      // Options de post-traitements
@@ -359,7 +359,7 @@ int main
     if  (currentRank == 0)
       printf("         Define mesh\n");
 
-    couplings_define_mesh("test2D_2", 
+    cwipi_define_mesh("test2D_2", 
                           nVertex,
                           nElts,
                           coords,
@@ -379,7 +379,7 @@ int main
     if  (currentRank == 0)
       printf("         Exchange 1\n");
 
-    couplings_exchange_status_t status = couplings_exchange("test2D_2",
+    cwipi_exchange_status_t status = cwipi_exchange("test2D_2",
                                                             "echange1",
                                                             1,     // stride
                                                             1,     // n_step
@@ -399,7 +399,7 @@ int main
     if  (currentRank == 0)
       printf("         Exchange 2\n");
 
-    status = couplings_exchange("test2D_2",
+    status = cwipi_exchange("test2D_2",
                                 "echange2",
                                 1, // stride
                                 1,     // n_step
@@ -419,7 +419,7 @@ int main
     if  (currentRank == 0)
       printf("         Delete coupling\n");
 
-    couplings_delete_coupling("test2D_2");
+    cwipi_delete_coupling("test2D_2");
     
     /* Liberation de la memoire */
     
@@ -455,13 +455,13 @@ int main
     if  (currentRank == 0)
       printf("         Create coupling\n");
 
-    couplings_create_coupling("test2D_3",         // Nom du couplage
-                              COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING,
+    cwipi_create_coupling("test2D_3",         // Nom du couplage
+                              CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
                               "CodeFortran",                      // Code couplé
                               2,                            // Dimension des entités géométriques
                               0.1,                          // Tolérance géométrique
-                              COUPLINGS_STATIC_MESH,        // Maillage statique
-                              COUPLINGS_SOLVER_CELL_VERTEX, // Type de champs
+                              CWIPI_STATIC_MESH,        // Maillage statique
+                              CWIPI_SOLVER_CELL_VERTEX, // Type de champs
                               1,                            // Frequence des post-traitement
                               "EnSight Gold",               // Format du post-traitement
                               "text");                      // Options de post-traitements
@@ -506,7 +506,7 @@ int main
     if  (currentRank == 0)
       printf("         Define mesh\n");
  
-    couplings_define_mesh("test2D_3",
+    cwipi_define_mesh("test2D_3",
                           nVertex,
                           nElts,
                           coords,
@@ -603,7 +603,7 @@ int main
     coordstolocate[61] = 50.;
     coordstolocate[62] = 0.;
 
-    couplings_set_points_to_locate ("test2D_3", nptstolocate, coordstolocate);
+    cwipi_set_points_to_locate ("test2D_3", nptstolocate, coordstolocate);
 
     /* Envoi de la coordonnee X
        Reception de la coordonnee Y*/
@@ -621,7 +621,7 @@ int main
     if  (currentRank == 0)
       printf("         Exchange\n");
 
-    couplings_exchange_status_t status = couplings_exchange("test2D_3",
+    cwipi_exchange_status_t status = cwipi_exchange("test2D_3",
                                                             "echange1",
                                                             1,   //stride
                                                             1,     // n_step
@@ -644,7 +644,7 @@ int main
     if  (currentRank == 0)
       printf("         Delete coupling\n");
 
-    couplings_delete_coupling("test2D_3");
+    cwipi_delete_coupling("test2D_3");
     
     /* Liberation de la memoire */
     
@@ -686,20 +686,20 @@ int main
     if  (currentRank == 0)
       printf("         Create coupling\n");
 
-    couplings_create_coupling("test2D_4",                   // Nom du couplage
-                              COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING,
+    cwipi_create_coupling("test2D_4",                   // Nom du couplage
+                              CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
                               "CodeFortran",                // Code couplé
                               2,                            // Dimension des entités géométriques
                               0.1,                          // Tolérance géométrique
-                              COUPLINGS_STATIC_MESH,        // Maillage statique
-                              COUPLINGS_SOLVER_CELL_VERTEX, // Type de champs
+                              CWIPI_STATIC_MESH,        // Maillage statique
+                              CWIPI_SOLVER_CELL_VERTEX, // Type de champs
                               1,                            // Frequence des post-traitement
                               "EnSight Gold",               // Format du post-traitement
                               "text");                      // Options de post-traitements
     
     /* Definition d'une interpolation bidon, pour tester la fonctionnalité */
 
-    couplings_set_interpolation_function("test2D_4", _interpolationBidon); 
+    cwipi_set_interpolation_function("test2D_4", _interpolationBidon); 
 
     /* Construction du maillage local (Decoupage par Metis si plusieurs procs) */
      
@@ -738,7 +738,7 @@ int main
     if  (currentRank == 0)
       printf("         Define mesh\n");
 
-     couplings_define_mesh("test2D_4",
+     cwipi_define_mesh("test2D_4",
                           nVertex,
                           nElts,
                           coords,
@@ -761,7 +761,7 @@ int main
     if  (currentRank == 0)
       printf("         Exchange\n");
 
-    couplings_exchange_status_t status = couplings_exchange("test2D_4",
+    cwipi_exchange_status_t status = cwipi_exchange("test2D_4",
                                                             "echange1",
                                                             1, // stride
                                                             1,     // n_step
@@ -779,7 +779,7 @@ int main
     if  (currentRank == 0)
       printf("         Delete coupling\n");
 
-    couplings_delete_coupling("test2D_4");
+    cwipi_delete_coupling("test2D_4");
     
     /* Liberation de la memoire */
     
@@ -816,13 +816,13 @@ int main
     if  (currentRank == 0)
       printf("         Create coupling\n");
 
-    couplings_create_coupling("test2D_5",         // Nom du couplage
-                              COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING,
+    cwipi_create_coupling("test2D_5",         // Nom du couplage
+                              CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
                               "CodeFortran",                      // Code couplé
                               2,                            // Dimension des entités géométriques
                               0.1,                          // Tolérance géométrique
-                              COUPLINGS_STATIC_MESH,        // Maillage statique
-                              COUPLINGS_SOLVER_CELL_VERTEX, // Type de champs
+                              CWIPI_STATIC_MESH,        // Maillage statique
+                              CWIPI_SOLVER_CELL_VERTEX, // Type de champs
                               1,                            // Frequence des post-traitement
                               "EnSight Gold",               // Format du post-traitement
                               "text");                      // Options de post-traitements
@@ -869,7 +869,7 @@ int main
     if  (currentRank == 0)
       printf("         Define mesh\n");
 
-    couplings_define_mesh("test2D_5",
+    cwipi_define_mesh("test2D_5",
                           nVertex,
                           nElts,
                           coords,
@@ -892,7 +892,7 @@ int main
     if  (currentRank == 0)
       printf("         Exchange\n");
 
-    couplings_exchange_status_t status = couplings_exchange("test2D_5",
+    cwipi_exchange_status_t status = cwipi_exchange("test2D_5",
                                                             "echange1",
                                                             3, //stride
                                                             1,     // n_step
@@ -910,7 +910,7 @@ int main
     if  (currentRank == 0)
       printf("         Delete coupling\n");
 
-    couplings_delete_coupling("test2D_5");
+    cwipi_delete_coupling("test2D_5");
     
     /* Liberation de la memoire */
     
@@ -947,13 +947,13 @@ int main
     if (currentRank == 0)
       printf("         Create coupling\n");
 
-    couplings_create_coupling("test2D_6",         // Nom du couplage
-                              COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING,
+    cwipi_create_coupling("test2D_6",         // Nom du couplage
+                              CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
                               "CodeFortran",                      // Code couplé
                               2,                            // Dimension des entités géométriques
                               0.1,                          // Tolérance géométrique
-                              COUPLINGS_STATIC_MESH,        // Maillage statique
-                              COUPLINGS_SOLVER_CELL_VERTEX, // Type de champs
+                              CWIPI_STATIC_MESH,        // Maillage statique
+                              CWIPI_SOLVER_CELL_VERTEX, // Type de champs
                               1,                            // Frequence des post-traitement
                               "EnSight Gold",               // Format du post-traitement
                               "text");                      // Options de post-traitements
@@ -1001,7 +1001,7 @@ int main
     if (currentRank == 0)
       printf("         Define mesh\n");
 
-    couplings_define_mesh("test2D_6",
+    cwipi_define_mesh("test2D_6",
                           nVertex,
                           nElts,
                           coords,
@@ -1024,7 +1024,7 @@ int main
     if (currentRank == 0)
       printf("         Exchange 1\n");
 
-    couplings_exchange_status_t status = couplings_exchange("test2D_6",
+    cwipi_exchange_status_t status = cwipi_exchange("test2D_6",
                                                             "echange1",
                                                             1, // stride
                                                             1,     // n_step
@@ -1044,7 +1044,7 @@ int main
     if (currentRank == 0)
       printf("         Exchange 2\n");
 
-    status = couplings_exchange("test2D_6",
+    status = cwipi_exchange("test2D_6",
                                 "echange2",
                                 1,  // stride
                                 1,     // n_step
@@ -1063,7 +1063,7 @@ int main
     if (currentRank == 0)
       printf("         delete coupling\n");
 
-    couplings_delete_coupling("test2D_6");
+    cwipi_delete_coupling("test2D_6");
     
     /* Liberation de la memoire */
     
@@ -1100,13 +1100,13 @@ int main
     if  (currentRank == 0)
       printf("         Create coupling\n");
 
-    couplings_create_coupling("test2D_7",         // Nom du couplage
-                              COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING,
+    cwipi_create_coupling("test2D_7",         // Nom du couplage
+                              CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
                               "CodeFortran",                      // Code couplé
                               2,                            // Dimension des entités géométriques
                               0.1,                          // Tolérance géométrique
-                              COUPLINGS_STATIC_MESH,        // Maillage statique
-                              COUPLINGS_SOLVER_CELL_VERTEX, // Type de champs
+                              CWIPI_STATIC_MESH,        // Maillage statique
+                              CWIPI_SOLVER_CELL_VERTEX, // Type de champs
                               1,                            // Frequence des post-traitement
                               "EnSight Gold",               // Format du post-traitement
                               "text");                      // Options de post-traitements
@@ -1151,29 +1151,29 @@ int main
     if  (currentRank == 0)
       printf("         Define mesh\n");
 
-    couplings_define_mesh("test2D_7",
+    cwipi_define_mesh("test2D_7",
                           nVertex,
                           nElts,
                           coords,
                           eltsConnecPointer,
                           eltsConnec);
     
-    couplings_locate("test2D_7");
+    cwipi_locate("test2D_7");
 
-    const int n_located_distant_point = couplings_get_n_located_distant_points("test2D_7");
+    const int n_located_distant_point = cwipi_get_n_located_distant_points("test2D_7");
 
-    const int *distant_location = couplings_get_distant_location("test2D_7");
+    const int *distant_location = cwipi_get_distant_location("test2D_7");
 
-    const int *distant_barycentric_coordinates_index = couplings_get_distant_barycentric_coordinates_index("test2D_7");
+    const int *distant_barycentric_coordinates_index = cwipi_get_distant_barycentric_coordinates_index("test2D_7");
 
-    const double* distant_barycentric_coordinates = couplings_get_distant_barycentric_coordinates("test2D_7");
+    const double* distant_barycentric_coordinates = cwipi_get_distant_barycentric_coordinates("test2D_7");
 
     /* Suppression de l'objet de couplage */
     
     if  (currentRank == 0)
       printf("         Delete coupling\n");
 
-    couplings_delete_coupling("test2D_7");
+    cwipi_delete_coupling("test2D_7");
     
     /* Liberation de la memoire */
     
@@ -1191,34 +1191,34 @@ int main
 
   /* ---------------------------------------------------------
    * Test couplage 
-   * COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING/
-   * COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING
+   * CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING/
+   * CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING
    * --------------------------------------------------------- */
     
   {
 
     /* Initialisation du couplage */
     bft_printf("Test 8 : Test couplage :\n"
-               "         COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING/"
-               "COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING\n");
+               "         CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING/"
+               "CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING\n");
     bft_printf("\n");
 
     if  (currentRank == 0)
       printf("Test 8 : Test couplage :\n"
-               "         COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING/"
-               "COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING\n");
+               "         CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING/"
+               "CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING\n");
 
     if  (currentRank == 0)
       printf("         Create coupling\n");
 
-    couplings_create_coupling("test2D_8",         // Nom du couplage
-                              COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING,
-                              //                              COUPLINGS_COUPLING_SEQUENTIAL,
+    cwipi_create_coupling("test2D_8",         // Nom du couplage
+                              CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING,
+                              //                              CWIPI_COUPLING_SEQUENTIAL,
                               "CodeFortran",                      // Code couplé
                               2,                            // Dimension des entités géométriques
                               0.1,                          // Tolérance géométrique
-                              COUPLINGS_STATIC_MESH,        // Maillage statique
-                              COUPLINGS_SOLVER_CELL_VERTEX, // Type de champs
+                              CWIPI_STATIC_MESH,        // Maillage statique
+                              CWIPI_SOLVER_CELL_VERTEX, // Type de champs
                               1,                            // Frequence des post-traitement
                               "EnSight Gold",               // Format du post-traitement
                               "text");                      // Options de post-traitements
@@ -1277,7 +1277,7 @@ int main
       printf("         Define mesh\n");
 
     if  (currentRank == 0)
-      couplings_define_mesh("test2D_8",
+      cwipi_define_mesh("test2D_8",
                             nVertex,
                             nElts,
                             coords,
@@ -1307,7 +1307,7 @@ int main
 
  
 
-    couplings_exchange_status_t status = couplings_exchange("test2D_8",
+    cwipi_exchange_status_t status = cwipi_exchange("test2D_8",
                                                             "echange1",
                                                             1,
                                                             1,     // n_step
@@ -1329,7 +1329,7 @@ int main
     if  (currentRank == 0)
       printf("         Delete coupling\n");
 
-    /*couplings_delete_coupling("test2D_8"); */
+    /*cwipi_delete_coupling("test2D_8"); */
     
     /* Liberation de la memoire */
     
@@ -1354,33 +1354,33 @@ int main
 
   /* ---------------------------------------------------------
    * Test couplage avec code C 
-   * de type COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING/
-   * COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING
+   * de type CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING/
+   * CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING
    * --------------------------------------------------------- */
     
   {
 
     /* Initialisation du couplage */
     bft_printf("Test 9 : Test couplage :\n"
-               "         COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING/"
-               "COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING\n");
+               "         CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING/"
+               "CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING\n");
     bft_printf("\n");
 
     if  (currentRank == 0)
       printf("Test 9 : Test couplage :\n"
-               "         COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING/"
-               "COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING\n");
+               "         CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING/"
+               "CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING\n");
 
     if  (currentRank == 0)
       printf("         Create coupling\n");
 
-    couplings_create_coupling("test2D_9",         // Nom du couplage
-                              COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING,
+    cwipi_create_coupling("test2D_9",         // Nom du couplage
+                              CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING,
                               "CodeFortran",                      // Code couplé
                               2,                            // Dimension des entités géométriques
                               0.1,                          // Tolérance géométrique
-                              COUPLINGS_STATIC_MESH,        // Maillage statique
-                              COUPLINGS_SOLVER_CELL_VERTEX, // Type de champs
+                              CWIPI_STATIC_MESH,        // Maillage statique
+                              CWIPI_SOLVER_CELL_VERTEX, // Type de champs
                               1,                            // Frequence des post-traitement
                               "EnSight Gold",               // Format du post-traitement
                               "text");                      // Options de post-traitements
@@ -1439,7 +1439,7 @@ int main
       printf("         Define mesh\n");
 
     if  (currentRank == 0)
-      couplings_define_mesh("test2D_9",
+      cwipi_define_mesh("test2D_9",
                             nVertex,
                             nElts,
                             coords,
@@ -1466,7 +1466,7 @@ int main
     if  (currentRank == 0)
       printf("         Exchange\n");
 
-    couplings_exchange_status_t status = couplings_exchange("test2D_9",
+    cwipi_exchange_status_t status = cwipi_exchange("test2D_9",
                                                             "echange1",
                                                             1,
                                                             1,     // n_step
@@ -1486,7 +1486,7 @@ int main
     if  (currentRank == 0)
       printf("         Delete coupling\n");
 
-    couplings_delete_coupling("test2D_9");
+    cwipi_delete_coupling("test2D_9");
     
     /* Liberation de la memoire */
     
@@ -1510,33 +1510,33 @@ int main
 
   /* ---------------------------------------------------------
    * Test couplage avec code C 
-   * de type COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING/
-   * COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING
+   * de type CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING/
+   * CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING
    * --------------------------------------------------------- */
     
   {
 
     /* Initialisation du couplage */
     bft_printf("Test 10: Test couplage :\n"
-               "         COUPLINGS_COUPLING_SEQUENTIAL/"
-               "COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING\n");
+               "         CWIPI_COUPLING_SEQUENTIAL/"
+               "CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING\n");
     bft_printf("\n");
 
     if  (currentRank == 0)
       printf("Test 10: Test couplage :\n"
-               "         COUPLINGS_COUPLING_SEQUENTIAL/"
-               "COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING\n");
+               "         CWIPI_COUPLING_SEQUENTIAL/"
+               "CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING\n");
 
     if  (currentRank == 0)
       printf("         Create coupling\n");
 
-    couplings_create_coupling("test2D_10",         // Nom du couplage
-                              COUPLINGS_COUPLING_SEQUENTIAL,
+    cwipi_create_coupling("test2D_10",         // Nom du couplage
+                              CWIPI_COUPLING_SEQUENTIAL,
                               "CodeFortran",                      // Code couplé
                               2,                            // Dimension des entités géométriques
                               0.1,                          // Tolérance géométrique
-                              COUPLINGS_STATIC_MESH,        // Maillage statique
-                              COUPLINGS_SOLVER_CELL_VERTEX, // Type de champs
+                              CWIPI_STATIC_MESH,        // Maillage statique
+                              CWIPI_SOLVER_CELL_VERTEX, // Type de champs
                               1,                            // Frequence des post-traitement
                               "EnSight Gold",               // Format du post-traitement
                               "text");                      // Options de post-traitements
@@ -1594,7 +1594,7 @@ int main
       printf("         Define mesh\n");
 
     if  (currentRank == 0)
-      couplings_define_mesh("test2D_10",
+      cwipi_define_mesh("test2D_10",
                             nVertex,
                             nElts,
                             coords,
@@ -1619,7 +1619,7 @@ int main
       
       int nNotLocatedPoints;
     
-      couplings_exchange_status_t status = couplings_exchange("test2D_10",
+      cwipi_exchange_status_t status = cwipi_exchange("test2D_10",
                                                               "echange1",
                                                               1,
                                                               1,     // n_step
@@ -1646,7 +1646,7 @@ int main
     if  (currentRank == 0)
       printf("         Delete coupling\n");
 
-    couplings_delete_coupling("test2D_10");
+    cwipi_delete_coupling("test2D_10");
     
     /* Liberation de la memoire */
     
@@ -1665,7 +1665,7 @@ int main
   /* Fin des communications MPI */
   /* -------------------------- */
   
-  couplings_finalize();
+  cwipi_finalize();
 
   /*bft_mem_end();*/
   fclose(outputFile);

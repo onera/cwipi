@@ -1,9 +1,9 @@
 #ifndef __COUPLING_PROPERTIES_I_H__
 #define __COUPLING_PROPERTIES_I_H__
 
-namespace couplings {
+namespace cwipi {
 
-  void  Coupling::set_interpolation_function(couplings_interpolation_fct_t *fct)
+  void  Coupling::set_interpolation_function(cwipi_interpolation_fct_t *fct)
   {
     _interpolationFct = fct;
   }
@@ -71,7 +71,7 @@ namespace couplings {
   }
 
 
-} // namespace couplings
+} // namespace cwipi
 
 
 #endif //__COUPLING_PROPERTIES_I_H__

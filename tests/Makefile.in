@@ -56,8 +56,8 @@ am__aclocal_m4_deps = $(top_srcdir)/config/check_bft.m4 \
 	$(top_srcdir)/config/check_fvm.m4 \
 	$(top_srcdir)/config/check_metis.m4 \
 	$(top_srcdir)/config/check_mpi.m4 \
-	$(top_srcdir)/config/couplings_config_info.m4 \
-	$(top_srcdir)/config/couplings_config_publ.m4 \
+	$(top_srcdir)/config/cwipi_config_info.m4 \
+	$(top_srcdir)/config/cwipi_config_publ.m4 \
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
@@ -70,18 +70,18 @@ PROGRAMS = $(tests_PROGRAMS)
 am_test2D_1_c1_OBJECTS = creeMaillagePolygone2D.$(OBJEXT) \
 	test2D_1_c1.$(OBJEXT)
 test2D_1_c1_OBJECTS = $(am_test2D_1_c1_OBJECTS)
-test2D_1_c1_DEPENDENCIES = $(top_builddir)/src/libcouplings.la
+test2D_1_c1_DEPENDENCIES = $(top_builddir)/src/libcwipi.la
 am_test2D_1_c2_OBJECTS = creeMaillagePolygone2D.$(OBJEXT) \
 	test2D_1_c2.$(OBJEXT)
 test2D_1_c2_OBJECTS = $(am_test2D_1_c2_OBJECTS)
-test2D_1_c2_DEPENDENCIES = $(top_builddir)/src/libcouplings.la \
-	$(top_builddir)/src/libcouplings_f.la
+test2D_1_c2_DEPENDENCIES = $(top_builddir)/src/libcwipi.la \
+	$(top_builddir)/src/libcwipi_f.la
 am_test3D_1_c1_OBJECTS = test3D_1_c1.$(OBJEXT)
 test3D_1_c1_OBJECTS = $(am_test3D_1_c1_OBJECTS)
-test3D_1_c1_DEPENDENCIES = $(top_builddir)/src/libcouplings.la
+test3D_1_c1_DEPENDENCIES = $(top_builddir)/src/libcwipi.la
 am_test3D_1_c2_OBJECTS = test3D_1_c2.$(OBJEXT)
 test3D_1_c2_OBJECTS = $(am_test3D_1_c2_OBJECTS)
-test3D_1_c2_DEPENDENCIES = $(top_builddir)/src/libcouplings.la
+test3D_1_c2_DEPENDENCIES = $(top_builddir)/src/libcwipi.la
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__depfiles_maybe = depfiles
@@ -240,7 +240,7 @@ AUTOMAKE_OPTIONS = foreign
 #include directories
 
 #INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/src 
-INCLUDES = -I$(includedir)
+INCLUDES = -I$(top_builddir)/src -I$(top_srcdir)/src
 @DEBUG_FALSE@DEBUG_CPPFLAGS = -DNDEBUG
 
 # Add any debug flags
@@ -252,7 +252,7 @@ AM_CFLAGS =
 AM_LDFLAGS = @BFT_LDFLAGS@ @FVM_LDFLAGS@ @MPI_LDFLAGS@ @METIS_LDFLAGS@
 LTFCCOMPILE = $(LIBTOOL) --mode=compile --tag=FC $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_FCFLAGS) $(FCFLAGS) $(FCFLAGS_f90)
 FCCOMPILE = $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_FCFLAGS) $(FCFLAGS) $(FCFLAGS_f90)
-LDADD = $(top_builddir)/src/libcouplings.la \
+LDADD = $(top_builddir)/src/libcwipi.la \
         @BFT_LIBS@ @FVM_LIBS@ @MPI_LIBS@ \
 	-lm
 
@@ -261,20 +261,20 @@ test2D_1_c1_SOURCES = creeMaillagePolygone2D.c test2D_1_c1.c
 test2D_1_c2_SOURCES = creeMaillagePolygone2D.c test2D_1_c2.f90
 test3D_1_c1_SOURCES = test3D_1_c1.c
 test3D_1_c2_SOURCES = test3D_1_c2.c
-test2D_1_c1_LDADD = $(top_builddir)/src/libcouplings.la \
+test2D_1_c1_LDADD = $(top_builddir)/src/libcwipi.la \
         @BFT_LIBS@ @FVM_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
 	-lm
 
-test2D_1_c2_LDADD = $(top_builddir)/src/libcouplings.la \
-        $(top_builddir)/src/libcouplings_f.la \
+test2D_1_c2_LDADD = $(top_builddir)/src/libcwipi.la \
+        $(top_builddir)/src/libcwipi_f.la \
         @BFT_LIBS@ @FVM_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
 	-lm
 
-test3D_1_c1_LDADD = $(top_builddir)/src/libcouplings.la \
+test3D_1_c1_LDADD = $(top_builddir)/src/libcwipi.la \
         @BFT_LIBS@ @FVM_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
 	-lm
 
-test3D_1_c2_LDADD = $(top_builddir)/src/libcouplings.la \
+test3D_1_c2_LDADD = $(top_builddir)/src/libcwipi.la \
         @BFT_LIBS@ @FVM_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
 	-lm
 

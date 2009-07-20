@@ -6,10 +6,8 @@ subroutine printfort (chaine, taille )
 !      impression d'une chaine de caracteres (issue d'une fonction c)
 !
 !-----------------------------------------------------------------------
-  use couplings
+  use cwipi
   implicit none
-  
-  !use couplings
   
   character, dimension(*) :: chaine
   integer   ::    taille

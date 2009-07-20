@@ -2,9 +2,8 @@ syntax: glob
 *.orig
 *.rej
 *~
+*/*~
 *.o
-*.jpg
-*.tif
 *.cmd
 listing*
 CHR*

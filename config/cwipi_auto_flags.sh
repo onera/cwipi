@@ -16,13 +16,13 @@
 # ldflags_default_opt    # Added to $LDFLAGS for optimization (default: "-O")
 # ldflags_default_prf    # Added to $LDFLAGS for profiling    (default: "")
 #
-# couplings_disable_shared     # Disable shared librairies          (default: "")
+# cwipi_disable_shared     # Disable shared librairies          (default: "")
 
 # Two other environment variable strings are defined, containing possibly
 # more detailed compiler information:
 #
-# couplings_ac_cc_version      # Compiler version string, 1 line max.
-# couplings_ac_cc_version_full # Compiler version string, 10 lines max.
+# cwipi_ac_cc_version      # Compiler version string, 1 line max.
+# cwipi_ac_cc_version_full # Compiler version string, 10 lines max.
 
 # The sourcing approach and some tests are borrowed from the HDF5 configure
 # environment.
@@ -36,9 +36,9 @@
 # Initialize local variables
 #---------------------------
 
-outfile=couplings_ac_cc_env-tmp
+outfile=cwipi_ac_cc_env-tmp
 
-couplings_ac_cc_version=unknown
+cwipi_ac_cc_version=unknown
 
 # Some compilers require a file to compile even for version info.
 
@@ -66,46 +66,46 @@ esac
 # Are we using gcc ?
 #-------------------
 
-couplings_gcc=no
+cwipi_gcc=no
 
 if test "x$GCC" = "xyes"; then
 
   # Intel compiler passes as GCC but may be recognized by version string
   if test -n "`$CC --version | grep icc`" ; then
-    couplings_gcc=icc
+    cwipi_gcc=icc
   else
-    couplings_gcc=gcc
+    cwipi_gcc=gcc
   fi
 
 fi
 
-if test "x$couplings_gcc" = "xgcc"; then
+if test "x$cwipi_gcc" = "xgcc"; then
 
   # Version strings for logging purposes and known compiler flag
   $CC -v > $outfile 2>&1
-  couplings_ac_cc_version=`$CC --version 2>&1 | head -1`
-  couplings_compiler_known=yes
+  cwipi_ac_cc_version=`$CC --version 2>&1 | head -1`
+  cwipi_compiler_known=yes
 
   # Practical version info for option setting
-  couplings_cc_version="`$CC -v 2>&1 |grep 'gcc version' |\
+  cwipi_cc_version="`$CC -v 2>&1 |grep 'gcc version' |\
                   sed 's/.*gcc version \([-a-z0-9\.]*\).*/\1/'`"
-  couplings_cc_vendor=`echo $couplings_cc_version |sed 's/\([a-z]*\).*/\1/'`
-  couplings_cc_version=`echo $couplings_cc_version |sed 's/[-a-z]//g'`
+  cwipi_cc_vendor=`echo $cwipi_cc_version |sed 's/\([a-z]*\).*/\1/'`
+  cwipi_cc_version=`echo $cwipi_cc_version |sed 's/[-a-z]//g'`
 
-  if test "x" = "x$couplings_cc_vendor" -a "x" != "x$couplings_cc_version"; then
-    couplings_cc_vendor=gcc
+  if test "x" = "x$cwipi_cc_vendor" -a "x" != "x$cwipi_cc_version"; then
+    cwipi_cc_vendor=gcc
   fi
-  if test "-" != "$couplings_cc_vendor-$couplings_cc_version"; then
-    echo "compiler '$CC' is GNU $couplings_cc_vendor-$couplings_cc_version"
+  if test "-" != "$cwipi_cc_vendor-$cwipi_cc_version"; then
+    echo "compiler '$CC' is GNU $cwipi_cc_vendor-$cwipi_cc_version"
   fi
 
   # Some version numbers
-  couplings_cc_vers_major=`echo $couplings_cc_version | cut -f1 -d.`
-  couplings_cc_vers_minor=`echo $couplings_cc_version | cut -f2 -d.`
-  couplings_cc_vers_patch=`echo $couplings_cc_version | cut -f3 -d.`
-  test -n "$couplings_cc_vers_major" || couplings_cc_vers_major=0
-  test -n "$couplings_cc_vers_minor" || couplings_cc_vers_minor=0
-  test -n "$couplings_cc_vers_patch" || couplings_cc_vers_patch=0
+  cwipi_cc_vers_major=`echo $cwipi_cc_version | cut -f1 -d.`
+  cwipi_cc_vers_minor=`echo $cwipi_cc_version | cut -f2 -d.`
+  cwipi_cc_vers_patch=`echo $cwipi_cc_version | cut -f3 -d.`
+  test -n "$cwipi_cc_vers_major" || cwipi_cc_vers_major=0
+  test -n "$cwipi_cc_vers_minor" || cwipi_cc_vers_minor=0
+  test -n "$cwipi_cc_vers_patch" || cwipi_cc_vers_patch=0
 
   # Default compiler flags
   cflags_default="-ansi -funsigned-char -pedantic -W -Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wunused"
@@ -121,7 +121,7 @@ if test "x$couplings_gcc" = "xgcc"; then
       cflags_default_opt="-funroll-loops -O2 -Wuninitialized"
       case "$host_cpu" in
         i686)
-          case "$couplings_cc_vendor-$couplings_cc_version" in
+          case "$cwipi_cc_vendor-$cwipi_cc_version" in
             gcc-2.9[56]*|gcc-3*|gcc-4*)
               cflags_default_opt="$cflags_default_opt -march=i686"
             ;;
@@ -138,7 +138,7 @@ if test "x$couplings_gcc" = "xgcc"; then
   # Modify default flags depending on gcc version (as older versions
   # may not handle all flags)
 
-  case "$couplings_cc_vendor-$couplings_cc_version" in
+  case "$cwipi_cc_vendor-$cwipi_cc_version" in
 
     gcc-2.9[56]*)
       cflags_default="$cflags_default -Wno-long-long"
@@ -154,16 +154,16 @@ if test "x$couplings_gcc" = "xgcc"; then
 # Otherwise, are we using icc ?
 #------------------------------
 
-elif test "x$couplings_gcc" = "xicc"; then
+elif test "x$cwipi_gcc" = "xicc"; then
 
-  couplings_cc_version=`echo $CC --version | grep icc |sed 's/[a-zA-Z()]//g'`
+  cwipi_cc_version=`echo $CC --version | grep icc |sed 's/[a-zA-Z()]//g'`
 
   echo "compiler '$CC' is Intel ICC"
 
   # Version strings for logging purposes and known compiler flag
   $CC -V conftest.c > $outfile 2>&1
-  couplings_ac_cc_version=`$CC --version 2>&1 | head -1`
-  couplings_compiler_known=yes
+  cwipi_ac_cc_version=`$CC --version 2>&1 | head -1`
+  cwipi_compiler_known=yes
 
   # Default compiler flags
   cflags_default="-strict-ansi -std=c99 -funsigned-char -Wall -Wcheck -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused"
@@ -191,8 +191,8 @@ else
 
     # Version strings for logging purposes and known compiler flag
     $CC -V conftest.c > $outfile 2>&1
-    couplings_ac_cc_version=`grep -i pgcc $outfile`
-    couplings_compiler_known=yes
+    cwipi_ac_cc_version=`grep -i pgcc $outfile`
+    cwipi_compiler_known=yes
 
     # Default compiler flags
     cflags_default="-Xa -fPIC"
@@ -207,7 +207,7 @@ fi
 # Compiler still not identified
 #------------------------------
 
-if test "x$couplings_compiler_known" != "xyes" ; then
+if test "x$cwipi_compiler_known" != "xyes" ; then
 
   case "$host_os" in
 
@@ -223,8 +223,8 @@ if test "x$couplings_compiler_known" != "xyes" ; then
 
         # Version strings for logging purposes and known compiler flag
         $CC -qversion > $outfile 2>&1
-        couplings_ac_cc_version=`grep 'XL C' $outfile`
-        couplings_compiler_known=yes
+        cwipi_ac_cc_version=`grep 'XL C' $outfile`
+        cwipi_compiler_known=yes
 
         # Default compiler flags
         if test -d /bgl/BlueLight/ppcfloor/bglsys/include ; then
@@ -250,10 +250,10 @@ if test "x$couplings_compiler_known" != "xyes" ; then
         ldflags_default_opt="-g -O3"
         ldflags_default_dbg="-g"
         ldflags_default_prf="-pg"
-        couplings_linker_set=yes
+        cwipi_linker_set=yes
 
         # Disable shared libraries in all cases
-        couplings_disable_shared=yes
+        cwipi_disable_shared=yes
 
       fi
       ;;
@@ -270,8 +270,8 @@ if test "x$couplings_compiler_known" != "xyes" ; then
 
         # Version strings for logging purposes and known compiler flag
         $CC -V conftest.c > $outfile 2>&1
-        couplings_ac_cc_version=`grep 'Compaq C' $outfile`
-        couplings_compiler_known=yes
+        cwipi_ac_cc_version=`grep 'Compaq C' $outfile`
+        cwipi_compiler_known=yes
 
         # Default compiler flags
         case "$host_cpu" in
@@ -298,9 +298,9 @@ if test "x$couplings_compiler_known" != "xyes" ; then
 
         # Version strings for logging purposes and known compiler flag
         $CC -V conftest.c > $outfile 2>&1
-        couplings_ac_cc_version=`grep ccom $outfile`
-        couplings_compiler_known=yes
-        couplings_linker_set=yes
+        cwipi_ac_cc_version=`grep ccom $outfile`
+        cwipi_compiler_known=yes
+        cwipi_linker_set=yes
 
         # Default compiler flags
         cflags_default="-KA64 -Kvp"
@@ -313,7 +313,7 @@ if test "x$couplings_compiler_known" != "xyes" ; then
         ldflags_default_opt="-O"
         ldflags_default_dbg="-g"
         ldflags_default_prf="-pg"
-        couplings_linker_set=yes
+        cwipi_linker_set=yes
 
       fi
       ;;
@@ -330,8 +330,8 @@ if test "x$couplings_compiler_known" != "xyes" ; then
 
         # Version strings for logging purposes and known compiler flag
         $CC -version > $outfile 2>&1
-        couplings_ac_cc_version=`grep MIPSpro $outfile`
-        couplings_compiler_known=yes
+        cwipi_ac_cc_version=`grep MIPSpro $outfile`
+        cwipi_compiler_known=yes
 
         # Default compiler flags
         cflags_default="-c99 -64"
@@ -354,9 +354,9 @@ if test "x$couplings_compiler_known" != "xyes" ; then
 
         # Version strings for logging purposes and known compiler flag
         $CC -V conftest.c > $outfile 2>&1
-        couplings_ac_cc_version=`grep ccom $outfile`
-        couplings_compiler_known=yes
-        couplings_linker_set=yes
+        cwipi_ac_cc_version=`grep ccom $outfile`
+        cwipi_compiler_known=yes
+        cwipi_linker_set=yes
 
         # Default compiler flags
         cflags_default="-Aa +e +DA2.0W"
@@ -385,8 +385,8 @@ if test "x$couplings_compiler_known" != "xyes" ; then
 
         # Version strings for logging purposes and known compiler flag
         $CC -V conftest.c > $outfile 2>&1
-        couplings_ac_cc_version=`grep cc $outfile`
-        couplings_compiler_known=yes
+        cwipi_ac_cc_version=`grep cc $outfile`
+        cwipi_compiler_known=yes
 
         # Default compiler flags
         cflags_default="-Xa"
@@ -416,7 +416,7 @@ fi
 # Default linker flags
 #---------------------
 
-if test "x$couplings_linker_set" != "xyes" ; then
+if test "x$cwipi_linker_set" != "xyes" ; then
 
   case "$host_os" in
 
@@ -463,7 +463,7 @@ fi
 export LANG=$save_LANG
 
 if test -f $outfile ; then 
-  couplings_ac_cc_version_full=`sed -e '11,$d' $outfile`
+  cwipi_ac_cc_version_full=`sed -e '11,$d' $outfile`
 fi
 
 # Clean temporary files

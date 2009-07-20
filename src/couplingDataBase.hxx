@@ -9,9 +9,9 @@
 #include <bft_printf.h>
 
 #include "singleton.hpp"
-#include "couplings.h"
+#include "cwipi.h"
 
-namespace couplings {
+namespace cwipi {
   class Coupling;
   class ApplicationProperties;
   
@@ -22,12 +22,12 @@ namespace couplings {
     
   public:
     void createCoupling(const std::string &name, 
-                        const couplings_coupling_type_t couplingType,
+                        const cwipi_coupling_type_t couplingType,
                         const ApplicationProperties& localApplicationProperties,
                         const ApplicationProperties& coupledApplicationProperties,
                         const int entitiesDim,
                         const double tolerance,
-                        const couplings_solver_type_t solverType,
+                        const cwipi_solver_type_t solverType,
                         const int    outputFrequency,
                         const char  *outputFormat,
                         const char  *outputFormatOption);

@@ -1,5 +1,5 @@
-#ifndef __COUPLINGS_H__
-#define __COUPLINGS_H__
+#ifndef __CWIPI_H__
+#define __CWIPI_H__
 
 #include <stdio.h>
 //Bug mpich2
@@ -27,11 +27,11 @@ extern "C" {
 
 typedef enum {
 
-  COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING,
-  COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING,
-  COUPLINGS_COUPLING_SEQUENTIAL,
+  CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
+  CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING,
+  CWIPI_COUPLING_SEQUENTIAL,
 
-} couplings_coupling_type_t;
+} cwipi_coupling_type_t;
 
 /*----------------------------------------------------------------------------
  * Mesh type
@@ -39,10 +39,10 @@ typedef enum {
 
 typedef enum {
 
-  COUPLINGS_STATIC_MESH,
-  COUPLINGS_MOBILE_MESH,
+  CWIPI_STATIC_MESH,
+  CWIPI_MOBILE_MESH,
 
-} couplings_mesh_type_t;
+} cwipi_mesh_type_t;
 
 /*----------------------------------------------------------------------------
  * Solver type
@@ -50,10 +50,10 @@ typedef enum {
 
 typedef enum {
 
-  COUPLINGS_SOLVER_CELL_CENTER,
-  COUPLINGS_SOLVER_CELL_VERTEX,
+  CWIPI_SOLVER_CELL_CENTER,
+  CWIPI_SOLVER_CELL_VERTEX,
 
-} couplings_solver_type_t;
+} cwipi_solver_type_t;
 
 /*----------------------------------------------------------------------------
  * Coupling type
@@ -61,10 +61,10 @@ typedef enum {
 
 typedef enum {
 
-  COUPLINGS_FIELD_TYPE_FLOAT,
-  COUPLINGS_FIELD_TYPE_DOUBLE,
+  CWIPI_FIELD_TYPE_FLOAT,
+  CWIPI_FIELD_TYPE_DOUBLE,
 
-} couplings_field_type_t;
+} cwipi_field_type_t;
 
 /*----------------------------------------------------------------------------
  * Coupling interpolation type
@@ -72,10 +72,10 @@ typedef enum {
 
 typedef enum {
 
-  COUPLINGS_INTERPOLATION_DEFAULT,
-  COUPLINGS_INTERPOLATION_USER,
+  CWIPI_INTERPOLATION_DEFAULT,
+  CWIPI_INTERPOLATION_USER,
 
-} couplings_interpolation_t;
+} cwipi_interpolation_t;
 
 /*----------------------------------------------------------------------------
  * Coupling exchange status
@@ -83,10 +83,10 @@ typedef enum {
 
 typedef enum {
 
-  COUPLINGS_EXCHANGE_OK,
-  COUPLINGS_EXCHANGE_BAD_RECEIVING,
+  CWIPI_EXCHANGE_OK,
+  CWIPI_EXCHANGE_BAD_RECEIVING,
 
-} couplings_exchange_status_t;
+} cwipi_exchange_status_t;
 
 /*----------------------------------------------------------------------------
  * Function pointer to define an user interpolation method (callback)
@@ -130,7 +130,7 @@ typedef enum {
  *
  *----------------------------------------------------------------------------*/
 
-typedef void (couplings_interpolation_fct_t)
+typedef void (cwipi_interpolation_fct_t)
   (const int entities_dim,
    const int n_local_vertex,
    const int n_local_element,
@@ -148,7 +148,7 @@ typedef void (couplings_interpolation_fct_t)
    const int distant_points_barycentric_coordinates_index[],
    const double distant_points_barycentric_coordinates[],
    const int stride,
-   const couplings_solver_type_t  solver_type,
+   const cwipi_solver_type_t  solver_type,
    const void *local_field,
    void *distant_field
    );
@@ -163,7 +163,7 @@ typedef void (couplings_interpolation_fct_t)
 
 /*----------------------------------------------------------------------------
  *
- * Initialize the couplings library.
+ * Initialize the cwipi library.
  * Redirect outputs in a file (Standard output with output_listing = NULL or
  * output_logical_unit = -1)
  * Create the current communicator application from 'common_comm'.
@@ -177,7 +177,7 @@ typedef void (couplings_interpolation_fct_t)
  * It is a synchronization point between all applications
  *----------------------------------------------------------------------------*/
 
-void couplings_init
+void cwipi_init
 (const MPI_Comm                           common_comm,
  const char                               *application_name,
  MPI_Comm                                 *application_comm);
@@ -190,7 +190,7 @@ void couplings_init
  *   output_listing      <-- Output listing file (C function)
  *----------------------------------------------------------------------------*/
 
-void couplings_set_output_listing
+void cwipi_set_output_listing
 (FILE *output_listing);
 
 /*----------------------------------------------------------------------------
@@ -203,7 +203,7 @@ void couplings_set_output_listing
  *
  *----------------------------------------------------------------------------*/
 
-void couplings_add_local_int_control_parameter(const char *name, int initial_value);
+void cwipi_add_local_int_control_parameter(const char *name, int initial_value);
 
 /*----------------------------------------------------------------------------
  *
@@ -215,7 +215,7 @@ void couplings_add_local_int_control_parameter(const char *name, int initial_val
  *
  *----------------------------------------------------------------------------*/
 
-void couplings_add_local_double_control_parameter(const char *name, double initial_value);
+void cwipi_add_local_double_control_parameter(const char *name, double initial_value);
 
 /*----------------------------------------------------------------------------
  *
@@ -227,7 +227,7 @@ void couplings_add_local_double_control_parameter(const char *name, double initi
  *
  *----------------------------------------------------------------------------*/
 
-void couplings_set_local_int_control_parameter(const char *name, int value);
+void cwipi_set_local_int_control_parameter(const char *name, int value);
 
 /*----------------------------------------------------------------------------
  *
@@ -239,7 +239,7 @@ void couplings_set_local_int_control_parameter(const char *name, int value);
  *
  *----------------------------------------------------------------------------*/
 
-void couplings_set_local_double_control_parameter(const char *name, double value);
+void cwipi_set_local_double_control_parameter(const char *name, double value);
 
 /*----------------------------------------------------------------------------
  *
@@ -250,7 +250,7 @@ void couplings_set_local_double_control_parameter(const char *name, double value
  *
  *----------------------------------------------------------------------------*/
 
-int couplings_get_local_int_control_parameter(const char *name);
+int cwipi_get_local_int_control_parameter(const char *name);
 
 /*----------------------------------------------------------------------------
  *
@@ -261,7 +261,7 @@ int couplings_get_local_int_control_parameter(const char *name);
  *
  *----------------------------------------------------------------------------*/
 
-double couplings_get_local_double_control_parameter(const char *name);
+double cwipi_get_local_double_control_parameter(const char *name);
 
 /*----------------------------------------------------------------------------
  *
@@ -272,7 +272,7 @@ double couplings_get_local_double_control_parameter(const char *name);
  *
  *----------------------------------------------------------------------------*/
 
-void couplings_delete_local_int_control_parameter(const char *name);
+void cwipi_delete_local_int_control_parameter(const char *name);
 
 /*----------------------------------------------------------------------------
  *
@@ -283,7 +283,7 @@ void couplings_delete_local_int_control_parameter(const char *name);
  *
  *----------------------------------------------------------------------------*/
 
-void couplings_delete_local_double_control_parameter(const char *name);
+void cwipi_delete_local_double_control_parameter(const char *name);
 
 /*----------------------------------------------------------------------------
  *
@@ -295,7 +295,7 @@ void couplings_delete_local_double_control_parameter(const char *name);
  *
  *----------------------------------------------------------------------------*/
 
-int couplings_get_distant_int_control_parameter
+int cwipi_get_distant_int_control_parameter
 (const char *application_name,
  const char *name);
 
@@ -309,7 +309,7 @@ int couplings_get_distant_int_control_parameter
  *
  *----------------------------------------------------------------------------*/
 
-double couplings_get_distant_double_control_parameter
+double cwipi_get_distant_double_control_parameter
 (const char *application_name,
  const char *name);
 
@@ -324,7 +324,7 @@ double couplings_get_distant_double_control_parameter
  *
  *----------------------------------------------------------------------------*/
 
-void couplings_synchronize_control_parameter(const char *application_name);
+void cwipi_synchronize_control_parameter(const char *application_name);
 
 /*----------------------------------------------------------------------------
  *
@@ -332,7 +332,7 @@ void couplings_synchronize_control_parameter(const char *application_name);
  *
  *----------------------------------------------------------------------------*/
 
-void couplings_dump_application_properties();
+void cwipi_dump_application_properties();
 
 /*----------------------------------------------------------------------------
  *
@@ -344,10 +344,10 @@ void couplings_dump_application_properties();
  *   coupled_application     <-- Coupled application name
  *   entitiesDim             <-- Mesh entities dimension (1, 2 or 3)
  *   tolerance               <-- Geometric tolerance to locate
- *   mesh_type               <-- COUPLINGS_STATIC_MESH
- *                               COUPLINGS_MOBILE_MESH (not implemented yet)
- *   solver_type             <-- COUPLINGS_SOLVER_CELL_CENTER
- *                               COUPLINGS_SOLVER_CELL_VERTEX
+ *   mesh_type               <-- CWIPI_STATIC_MESH
+ *                               CWIPI_MOBILE_MESH (not implemented yet)
+ *   solver_type             <-- CWIPI_SOLVER_CELL_CENTER
+ *                               CWIPI_SOLVER_CELL_VERTEX
  *   output_frequency        <-- Output frequency
  *   output_format           <-- Output format to visualize exchanged fields
  *                               on the coupled mesh. Choice between :
@@ -373,14 +373,14 @@ void couplings_dump_application_properties();
  *
  *----------------------------------------------------------------------------*/
 
-void couplings_create_coupling
+void cwipi_create_coupling
 ( const char  *coupling_name,
-  const couplings_coupling_type_t coupling_type,
+  const cwipi_coupling_type_t coupling_type,
   const char  *coupled_application,
   const int    entitiesDim,
   const double tolerance,
-  const couplings_mesh_type_t mesh_type,
-  const couplings_solver_type_t solver_type,
+  const cwipi_mesh_type_t mesh_type,
+  const cwipi_solver_type_t solver_type,
   const int    output_frequency,
   const char  *output_format,
   const char  *output_format_option);
@@ -399,7 +399,7 @@ void couplings_create_coupling
  *
  *----------------------------------------------------------------------------*/
 
-void couplings_set_points_to_locate
+void cwipi_set_points_to_locate
 (const char  *coupling_id,
  const int    n_points,
  double       coordinate[]);
@@ -501,7 +501,7 @@ void couplings_set_points_to_locate
  *
  *----------------------------------------------------------------------------*/
 
-void couplings_define_mesh(const char *coupling_id,
+void cwipi_define_mesh(const char *coupling_id,
                            const int n_vertex,
                            const int n_element,
                            const double coordinates[],
@@ -526,7 +526,7 @@ void couplings_define_mesh(const char *coupling_id,
  *
  *----------------------------------------------------------------------------*/
 
-void couplings_add_polyhedra(const char *coupling_id,
+void cwipi_add_polyhedra(const char *coupling_id,
                              const int n_element,
                              int face_index[],
                              int cell_to_face_connectivity[],
@@ -542,7 +542,7 @@ void couplings_add_polyhedra(const char *coupling_id,
  *   coupling_id          <-- Coupling identifier
  *----------------------------------------------------------------------------*/
 
-void couplings_locate (const char *coupling_id);
+void cwipi_locate (const char *coupling_id);
 
 /*----------------------------------------------------------------------------
  *
@@ -554,7 +554,7 @@ void couplings_locate (const char *coupling_id);
  *   located points location
  *----------------------------------------------------------------------------*/
 
-const int *couplings_get_distant_location (const char *coupling_id);
+const int *cwipi_get_distant_location (const char *coupling_id);
 
 /*----------------------------------------------------------------------------
  *
@@ -566,7 +566,7 @@ const int *couplings_get_distant_location (const char *coupling_id);
  *   barycentric coordinates index
  *----------------------------------------------------------------------------*/
 
-const int *couplings_get_distant_barycentric_coordinates_index (const char *coupling_id);
+const int *cwipi_get_distant_barycentric_coordinates_index (const char *coupling_id);
 
 /*----------------------------------------------------------------------------
  *
@@ -578,7 +578,7 @@ const int *couplings_get_distant_barycentric_coordinates_index (const char *coup
  *   barycentric coordinates
  *----------------------------------------------------------------------------*/
 
-const double *couplings_get_distant_barycentric_coordinates (const char *coupling_id);
+const double *cwipi_get_distant_barycentric_coordinates (const char *coupling_id);
 
 /*----------------------------------------------------------------------------
  *
@@ -599,11 +599,11 @@ const double *couplings_get_distant_barycentric_coordinates (const char *couplin
  *   n_not_located_points --> Number of not located points
  *
  * returns :
- *   couplings_exchange_status
+ *   cwipi_exchange_status
  *
  *----------------------------------------------------------------------------*/
 
-couplings_exchange_status_t couplings_exchange
+cwipi_exchange_status_t cwipi_exchange
 (const char                          *coupling_id,
  const char                          *exchange_name,
  const int                            stride,
@@ -625,9 +625,9 @@ couplings_exchange_status_t couplings_exchange
  *
  *----------------------------------------------------------------------------*/
 
-void couplings_set_interpolation_function
+void cwipi_set_interpolation_function
 (const char *coupling_id,
- couplings_interpolation_fct_t * fct);
+ cwipi_interpolation_fct_t * fct);
 
 /*----------------------------------------------------------------------------
  *
@@ -638,15 +638,15 @@ void couplings_set_interpolation_function
  *
  *----------------------------------------------------------------------------*/
 
-void couplings_delete_coupling(const char *coupling_id);
+void cwipi_delete_coupling(const char *coupling_id);
 
 /*----------------------------------------------------------------------------
  *
- * Finalize couplings. This is a synchronization point between all applications
+ * Finalize cwipi. This is a synchronization point between all applications
  *
  *----------------------------------------------------------------------------*/
 
-void couplings_finalize();
+void cwipi_finalize();
 
 /*----------------------------------------------------------------------------
  *
@@ -659,7 +659,7 @@ void couplings_finalize();
  *                        --> Not located points
  *----------------------------------------------------------------------------*/
 
-const int * couplings_get_not_located_points(const char *coupling_id);
+const int * cwipi_get_not_located_points(const char *coupling_id);
 
 /*----------------------------------------------------------------------------
  *
@@ -673,7 +673,7 @@ const int * couplings_get_not_located_points(const char *coupling_id);
  *
  *----------------------------------------------------------------------------*/
 
-int couplings_get_n_located_points(const char *coupling_id);
+int cwipi_get_n_located_points(const char *coupling_id);
 
 /*----------------------------------------------------------------------------
  *
@@ -687,7 +687,7 @@ int couplings_get_n_located_points(const char *coupling_id);
  *
  *----------------------------------------------------------------------------*/
 
-int couplings_get_n_not_located_points(const char *coupling_id);
+int cwipi_get_n_not_located_points(const char *coupling_id);
 
 
 /*----------------------------------------------------------------------------
@@ -702,7 +702,7 @@ int couplings_get_n_not_located_points(const char *coupling_id);
  *
  *----------------------------------------------------------------------------*/
 
-int couplings_get_n_located_distant_points(const char *coupling_id);
+int cwipi_get_n_located_distant_points(const char *coupling_id);
 
 
 /*----------------------------------------------------------------------------*/
@@ -711,4 +711,4 @@ int couplings_get_n_located_distant_points(const char *coupling_id);
 }
 #endif /* __cplusplus */
 
-#endif /* __COUPLINGS_H__ */
+#endif /* __CWIPI_H__ */

@@ -22,20 +22,20 @@
 #include <bft_printf.h>
 
 // The CWIPI
-#include "couplings.h"
+#include "cwipi.h"
 
 
 // *************************
 // ** Auxiliary functions **
 // *************************
 
-static void _dumpStatus(couplings_exchange_status_t status)
+static void _dumpStatus(cwipi_exchange_status_t status)
 {
   switch(status) {
-  case COUPLINGS_EXCHANGE_OK :
+  case CWIPI_EXCHANGE_OK :
     bft_printf("Exchange Ok\n");
     break;
-  case COUPLINGS_EXCHANGE_BAD_RECEIVING :
+  case CWIPI_EXCHANGE_BAD_RECEIVING :
     bft_printf("Bad receiving\n");
     break;
   default :
@@ -48,7 +48,7 @@ static void _dumpNotLocatedPoints(const char *coupling_id,
 {
   if ( nNotLocatedPoints > 0) {
     bft_printf("Points non localises :\n");
-    const int* notLocatedPoints = couplings_get_not_located_points(coupling_id);
+    const int* notLocatedPoints = cwipi_get_not_located_points(coupling_id);
     for(int i = 0; i < nNotLocatedPoints; i++)
       bft_printf("%i ", notLocatedPoints[i]);
     bft_printf("\n");
@@ -125,7 +125,7 @@ int main( int argc, char* argv[] ) {
   /* Initializations
    * --------------- */
 
-  couplings_init( MPI_COMM_WORLD,
+  cwipi_init( MPI_COMM_WORLD,
                   "codeC1",
                   &localComm    );
 
@@ -141,11 +141,11 @@ int main( int argc, char* argv[] ) {
   outputFile = fopen( fileOutput, "w" );
   BFT_FREE( fileOutput );
 
-  couplings_set_output_listing( outputFile );
+  cwipi_set_output_listing( outputFile );
 
   bft_printf("\nDump after initialization\n");
   bft_printf("---------------------------\n");
-  couplings_dump_application_properties();
+  cwipi_dump_application_properties();
 
   /* -----------------------
    * Test coupling P1 <-> P1
@@ -163,13 +163,13 @@ int main( int argc, char* argv[] ) {
     if  (localRank == 0)
       printf("         Create coupling\n");
 
-    couplings_create_coupling("test3D_1",                   // Name of the coupling
-                              COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING,
+    cwipi_create_coupling("test3D_1",                   // Name of the coupling
+                              CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
                               "codeC2",              // Coupled code
                               3,                            // Dimension of the geometry
                               0.1,                          // Geometrical epsilon
-                              COUPLINGS_STATIC_MESH,        // Static mesh
-                              COUPLINGS_SOLVER_CELL_VERTEX, // Type of the fields
+                              CWIPI_STATIC_MESH,        // Static mesh
+                              CWIPI_SOLVER_CELL_VERTEX, // Type of the fields
                               1,                            // Post-processing frequency
                               "EnSight Gold",               // Post-processing format
                               "text");                      // Post-processing options
@@ -201,7 +201,7 @@ int main( int argc, char* argv[] ) {
     if  (localRank == 0)
       printf("         Define mesh\n");
 
-    couplings_define_mesh("test3D_1",
+    cwipi_define_mesh("test3D_1",
                           nVertex,
                           nElements,
                           coords,
@@ -218,7 +218,7 @@ int main( int argc, char* argv[] ) {
     if  (localRank == 0)
       printf("         Exchange\n");
 
-   couplings_exchange_status_t status = couplings_exchange("test3D_1",
+   cwipi_exchange_status_t status = cwipi_exchange("test3D_1",
                                                             "echange1",
                                                             1,
                                                             1,     // n_step
@@ -236,7 +236,7 @@ int main( int argc, char* argv[] ) {
     if  (localRank == 0)
       printf("         Delete coupling\n");
 
-    couplings_delete_coupling("test3D_1");
+    cwipi_delete_coupling("test3D_1");
 
     /* Rest in peace */
 
@@ -261,7 +261,7 @@ int main( int argc, char* argv[] ) {
   /* End of the MPI communications */
   /* ----------------------------- */
 
-  couplings_finalize();
+  cwipi_finalize();
 
   bft_mem_end();
   fclose(outputFile);

@@ -1,39 +1,39 @@
-module couplings
+module cwipi
   implicit none
 
   !
   ! Parameters
   ! ----------
   !
-  ! couplings_nature_t
-  ! TODO:  couplings_nature a supprimer ?
-  integer, parameter :: couplings_nature_element_center = 0
-  integer, parameter :: couplings_nature_node = 1
+  ! cwipi_nature_t
+  ! TODO:  cwipi_nature a supprimer ?
+  integer, parameter :: cwipi_nature_element_center = 0
+  integer, parameter :: cwipi_nature_node = 1
   !
-  ! couplings_coupling_type_t
-  integer, parameter :: couplings_cpl_parallel_with_part = 0
-  integer, parameter :: couplings_cpl_parallel_without_part = 1
-  integer, parameter :: couplings_cpl_sequential = 2
+  ! cwipi_coupling_type_t
+  integer, parameter :: cwipi_cpl_parallel_with_part = 0
+  integer, parameter :: cwipi_cpl_parallel_without_part = 1
+  integer, parameter :: cwipi_cpl_sequential = 2
   !
-  ! couplings_type_t
-  integer, parameter :: couplings_type_float = 0
-  integer, parameter :: couplings_type_double = 1
+  ! cwipi_type_t
+  integer, parameter :: cwipi_type_float = 0
+  integer, parameter :: cwipi_type_double = 1
   !
-  ! couplings_interpolation_t
-  integer, parameter :: couplings_interpolation_standard = 0
-  integer, parameter :: couplings_interpolation_user = 1
+  ! cwipi_interpolation_t
+  integer, parameter :: cwipi_interpolation_standard = 0
+  integer, parameter :: cwipi_interpolation_user = 1
   !
   ! mesh type
-  integer, parameter :: couplings_static_mesh = 0
-  integer, parameter :: couplings_mobile_mesh = 1
+  integer, parameter :: cwipi_static_mesh = 0
+  integer, parameter :: cwipi_mobile_mesh = 1
   !
   ! solver type
-  integer, parameter :: couplings_solver_cell_center = 0
-  integer, parameter :: couplings_solver_cell_vertex = 1
+  integer, parameter :: cwipi_solver_cell_center = 0
+  integer, parameter :: cwipi_solver_cell_vertex = 1
   !
   ! exchange status
-  integer, parameter :: couplings_exchange_ok = 0
-  integer, parameter :: couplings_exchange_bad_receiving = 1
+  integer, parameter :: cwipi_exchange_ok = 0
+  integer, parameter :: cwipi_exchange_bad_receiving = 1
 
   !
   ! Logical unit for listing
@@ -41,121 +41,121 @@ module couplings
 
   !
   ! Public interfaces
-  interface couplings_exchange_f ; module procedure &
-    couplings_exchange_without_user_interpolation_f_, &
-    couplings_exchange_with_user_interpolation_f_
+  interface cwipi_exchange_f ; module procedure &
+    cwipi_exchange_without_user_interpolation_f_, &
+    cwipi_exchange_with_user_interpolation_f_
   end interface
-  interface couplings_send_f     ; module procedure  &
-    couplings_send_without_user_interpolation_f_, &
-    couplings_send_with_user_interpolation_f_
-  end interface
-
-  interface couplings_init_f ; module procedure couplings_init_f_ ; end interface
-
-  interface couplings_set_output_listing_f ; module procedure &
-    couplings_set_output_listing_f_
+  interface cwipi_send_f     ; module procedure  &
+    cwipi_send_without_user_interpolation_f_, &
+    cwipi_send_with_user_interpolation_f_
   end interface
 
-  interface couplings_add_local_int_control_parameter_f ; module procedure &
-    couplings_add_local_int_control_parameter_f_
+  interface cwipi_init_f ; module procedure cwipi_init_f_ ; end interface
+
+  interface cwipi_set_output_listing_f ; module procedure &
+    cwipi_set_output_listing_f_
   end interface
 
-  interface couplings_add_local_double_control_parameter_f ; module procedure &
-    couplings_add_local_double_control_parameter_f_
+  interface cwipi_add_local_int_control_parameter_f ; module procedure &
+    cwipi_add_local_int_control_parameter_f_
   end interface
 
-  interface couplings_set_local_int_control_parameter_f ; module procedure &
-    couplings_set_local_int_control_parameter_f_
+  interface cwipi_add_local_double_control_parameter_f ; module procedure &
+    cwipi_add_local_double_control_parameter_f_
   end interface
 
-  interface couplings_set_local_double_control_parameter_f ; module procedure &
-    couplings_set_local_double_control_parameter_f_
+  interface cwipi_set_local_int_control_parameter_f ; module procedure &
+    cwipi_set_local_int_control_parameter_f_
   end interface
 
-  interface couplings_get_local_int_control_parameter_f ; module procedure &
-    couplings_get_local_int_control_parameter_f_
+  interface cwipi_set_local_double_control_parameter_f ; module procedure &
+    cwipi_set_local_double_control_parameter_f_
   end interface
 
-  interface couplings_get_local_double_control_parameter_f ; module procedure &
-    couplings_get_local_double_control_parameter_f_
+  interface cwipi_get_local_int_control_parameter_f ; module procedure &
+    cwipi_get_local_int_control_parameter_f_
   end interface
 
-  interface couplings_delete_local_int_control_parameter_f ; module procedure &
-    couplings_delete_local_int_control_parameter_f_
+  interface cwipi_get_local_double_control_parameter_f ; module procedure &
+    cwipi_get_local_double_control_parameter_f_
   end interface
 
-  interface couplings_delete_local_double_control_parameter_f ; module procedure &
-    couplings_delete_local_double_control_parameter_f_
+  interface cwipi_delete_local_int_control_parameter_f ; module procedure &
+    cwipi_delete_local_int_control_parameter_f_
   end interface
 
-  interface couplings_get_distant_int_control_parameter_f ; module procedure &
-    couplings_get_distant_int_control_parameter_f_
+  interface cwipi_delete_local_double_control_parameter_f ; module procedure &
+    cwipi_delete_local_double_control_parameter_f_
   end interface
 
-  interface couplings_get_distant_double_control_parameter_f ; module procedure &
-    couplings_get_distant_double_control_parameter_f_
+  interface cwipi_get_distant_int_control_parameter_f ; module procedure &
+    cwipi_get_distant_int_control_parameter_f_
   end interface
 
-  interface couplings_get_n_located_distant_points_f ; module procedure &
-    couplings_get_n_located_distant_points_f_
+  interface cwipi_get_distant_double_control_parameter_f ; module procedure &
+    cwipi_get_distant_double_control_parameter_f_
   end interface
-  interface couplings_synchronize_control_parameter_f ; module procedure couplings_synchronize_control_parameter_f_ ; end interface
-  interface couplings_create_coupling_f               ; module procedure couplings_create_coupling_f_               ; end interface
-  interface couplings_set_points_to_locate_f          ; module procedure couplings_set_points_to_locate_f_          ; end interface
-  interface couplings_define_mesh_f                   ; module procedure couplings_define_mesh_f_                   ; end interface
-  interface couplings_add_polyhedra_f                 ; module procedure couplings_add_polyhedra_f_                 ; end interface
-  interface couplings_locate_f                        ; module procedure couplings_locate_f_                        ; end interface
-  interface couplings_get_barycentric_coordinates_f   ; module procedure couplings_get_barycentric_coordinates_f_   ; end interface
-  interface couplings_get_barycentric_coordinates_index_f; module procedure &
-    couplings_get_barycentric_coordinates_index_f_
+
+  interface cwipi_get_n_located_distant_points_f ; module procedure &
+    cwipi_get_n_located_distant_points_f_
   end interface
-  interface couplings_get_location_f                  ; module procedure couplings_get_location_f_                  ; end interface
-  interface couplings_receive_f                       ; module procedure couplings_receive_f_                       ; end interface
-  interface couplings_delete_coupling_f               ; module procedure couplings_delete_coupling_f_               ; end interface
-  interface couplings_get_not_located_points_f        ; module procedure couplings_get_not_located_points_f_        ; end interface
-  interface couplings_get_n_not_located_points_f ; module procedure &
-    couplings_get_n_not_located_points_f_
+  interface cwipi_synchronize_control_parameter_f ; module procedure cwipi_synchronize_control_parameter_f_ ; end interface
+  interface cwipi_create_coupling_f               ; module procedure cwipi_create_coupling_f_               ; end interface
+  interface cwipi_set_points_to_locate_f          ; module procedure cwipi_set_points_to_locate_f_          ; end interface
+  interface cwipi_define_mesh_f                   ; module procedure cwipi_define_mesh_f_                   ; end interface
+  interface cwipi_add_polyhedra_f                 ; module procedure cwipi_add_polyhedra_f_                 ; end interface
+  interface cwipi_locate_f                        ; module procedure cwipi_locate_f_                        ; end interface
+  interface cwipi_get_barycentric_coordinates_f   ; module procedure cwipi_get_barycentric_coordinates_f_   ; end interface
+  interface cwipi_get_barycentric_coordinates_index_f; module procedure &
+    cwipi_get_barycentric_coordinates_index_f_
   end interface
-  interface couplings_get_n_located_points_f ; module procedure &
-    couplings_get_n_located_points_f_
+  interface cwipi_get_location_f                  ; module procedure cwipi_get_location_f_                  ; end interface
+  interface cwipi_receive_f                       ; module procedure cwipi_receive_f_                       ; end interface
+  interface cwipi_delete_coupling_f               ; module procedure cwipi_delete_coupling_f_               ; end interface
+  interface cwipi_get_not_located_points_f        ; module procedure cwipi_get_not_located_points_f_        ; end interface
+  interface cwipi_get_n_not_located_points_f ; module procedure &
+    cwipi_get_n_not_located_points_f_
+  end interface
+  interface cwipi_get_n_located_points_f ; module procedure &
+    cwipi_get_n_located_points_f_
   end interface
   !
   ! Private
 
-  private :: couplings_init_f_,                                 &
-             couplings_set_output_listing_f_,                   &
-             couplings_exchange_without_user_interpolation_f_,  &
-             couplings_exchange_with_user_interpolation_f_,     &
-             couplings_send_without_user_interpolation_f_,      &
-             couplings_send_with_user_interpolation_f_,         &
-             couplings_add_local_int_control_parameter_f_,      &
-             couplings_add_local_double_control_parameter_f_,   &
-             couplings_set_local_int_control_parameter_f_,      &
-             couplings_set_local_double_control_parameter_f_,   &
-             couplings_get_local_int_control_parameter_f_,      &
-             couplings_get_local_double_control_parameter_f_,   &
-             couplings_delete_local_int_control_parameter_f_,   &
-             couplings_delete_local_double_control_parameter_f_,&
-             couplings_get_distant_int_control_parameter_f_,    &
-             couplings_get_distant_double_control_parameter_f_, &
-             couplings_synchronize_control_parameter_f_,        &
-             couplings_create_coupling_f_,                      &
-             couplings_set_points_to_locate_f_,                 &
-             couplings_define_mesh_f_,                          &
-             couplings_add_polyhedra_f_,                        &
-             couplings_locate_f_,                               &
-             couplings_receive_f_,                              &
-             couplings_delete_coupling_f_,                      &
-             couplings_get_not_located_points_f_
+  private :: cwipi_init_f_,                                 &
+             cwipi_set_output_listing_f_,                   &
+             cwipi_exchange_without_user_interpolation_f_,  &
+             cwipi_exchange_with_user_interpolation_f_,     &
+             cwipi_send_without_user_interpolation_f_,      &
+             cwipi_send_with_user_interpolation_f_,         &
+             cwipi_add_local_int_control_parameter_f_,      &
+             cwipi_add_local_double_control_parameter_f_,   &
+             cwipi_set_local_int_control_parameter_f_,      &
+             cwipi_set_local_double_control_parameter_f_,   &
+             cwipi_get_local_int_control_parameter_f_,      &
+             cwipi_get_local_double_control_parameter_f_,   &
+             cwipi_delete_local_int_control_parameter_f_,   &
+             cwipi_delete_local_double_control_parameter_f_,&
+             cwipi_get_distant_int_control_parameter_f_,    &
+             cwipi_get_distant_double_control_parameter_f_, &
+             cwipi_synchronize_control_parameter_f_,        &
+             cwipi_create_coupling_f_,                      &
+             cwipi_set_points_to_locate_f_,                 &
+             cwipi_define_mesh_f_,                          &
+             cwipi_add_polyhedra_f_,                        &
+             cwipi_locate_f_,                               &
+             cwipi_receive_f_,                              &
+             cwipi_delete_coupling_f_,                      &
+             cwipi_get_not_located_points_f_
 
 contains
 
 !
 !*******************************************************************************
 !
-! couplings_init_f_
+! cwipi_init_f_
 !
-!  Initialize the couplings library.
+!  Initialize the cwipi library.
 !  Redirect outputs in a file (Standard output with output_listing = NULL or
 !  output_logical_unit = -1)
 !  Create the current communicator application from 'common_comm'.
@@ -171,7 +171,7 @@ contains
 !*******************************************************************************
 !
 
-  subroutine couplings_init_f_ (globalComm, appliName, appliComm)
+  subroutine cwipi_init_f_ (globalComm, appliName, appliComm)
 
     implicit none
 
@@ -182,9 +182,9 @@ contains
  
     l1 = len(appliname)
  
-    call couplings_init_cf (globalcomm, appliname, l1, applicomm)
+    call cwipi_init_cf (globalcomm, appliname, l1, applicomm)
 
-  end subroutine couplings_init_f_
+  end subroutine cwipi_init_f_
 
 !
 !*******************************************************************************
@@ -197,7 +197,7 @@ contains
 !*******************************************************************************
 !
 
-  subroutine couplings_set_output_listing_f_ (outputUnit)
+  subroutine cwipi_set_output_listing_f_ (outputUnit)
 
   implicit none
 
@@ -205,13 +205,13 @@ contains
 
   ifile =  outputUnit
 
-  call couplings_set_output_listing_cf 
+  call cwipi_set_output_listing_cf 
 
-  end subroutine couplings_set_output_listing_f_
+  end subroutine cwipi_set_output_listing_f_
 
 !
 !********************************************************************************
-! couplings_add_local_int_control_parameter_f
+! cwipi_add_local_int_control_parameter_f
 !
 ! Add a integer control parameter
 !
@@ -222,7 +222,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine couplings_add_local_int_control_parameter_f_ (name, initialvalue)
+  subroutine cwipi_add_local_int_control_parameter_f_ (name, initialvalue)
 
     implicit none
 
@@ -233,14 +233,14 @@ contains
 
     l = len(name)
 
-    call couplings_add_local_int_control_parameter_cf (name, l, initialvalue)
+    call cwipi_add_local_int_control_parameter_cf (name, l, initialvalue)
 
-  end subroutine couplings_add_local_int_control_parameter_f_
+  end subroutine cwipi_add_local_int_control_parameter_f_
 
 !
 !********************************************************************************
 !
-! couplings_add_local_double_control_parameter_f
+! cwipi_add_local_double_control_parameter_f
 !
 ! Add a double control parameter
 !
@@ -250,7 +250,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine couplings_add_local_double_control_parameter_f_ (name, initialvalue)
+  subroutine cwipi_add_local_double_control_parameter_f_ (name, initialvalue)
 
     implicit none
 
@@ -261,14 +261,14 @@ contains
 
     l = len(name)
 
-    call couplings_add_local_double_control_parameter_cf (name, l, initialvalue)
+    call cwipi_add_local_double_control_parameter_cf (name, l, initialvalue)
 
-  end subroutine couplings_add_local_double_control_parameter_f_
+  end subroutine cwipi_add_local_double_control_parameter_f_
 
 !
 !********************************************************************************
 !
-! couplings_set_local_int_control_parameter_f
+! cwipi_set_local_int_control_parameter_f
 !
 !  Set a integer control parameter
 !
@@ -279,7 +279,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine couplings_set_local_int_control_parameter_f_(name, initialvalue)
+  subroutine cwipi_set_local_int_control_parameter_f_(name, initialvalue)
 
     implicit none
 
@@ -290,14 +290,14 @@ contains
 
     l = len(name)
 
-    call couplings_set_local_int_control_parameter_cf (name, l, initialvalue)
+    call cwipi_set_local_int_control_parameter_cf (name, l, initialvalue)
 
-  end subroutine couplings_set_local_int_control_parameter_f_
+  end subroutine cwipi_set_local_int_control_parameter_f_
 
 !
 !********************************************************************************
 !
-! couplings_set_local_double_control_parameter_f
+! cwipi_set_local_double_control_parameter_f
 !
 ! Set a double control parameter
 !
@@ -309,7 +309,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine couplings_set_local_double_control_parameter_f_ (name, initialvalue)
+  subroutine cwipi_set_local_double_control_parameter_f_ (name, initialvalue)
 
     implicit none
 
@@ -320,14 +320,14 @@ contains
 
     l = len(name)
 
-    call couplings_set_local_double_control_parameter_cf (name, l, initialvalue)
+    call cwipi_set_local_double_control_parameter_cf (name, l, initialvalue)
 
-  end subroutine couplings_set_local_double_control_parameter_f_
+  end subroutine cwipi_set_local_double_control_parameter_f_
 
 !
 !********************************************************************************
 !
-! couplings_get_local_int_control_parameter_f
+! cwipi_get_local_int_control_parameter_f
 !
 ! Get a integer control parameter of the current application
 !
@@ -337,7 +337,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine couplings_get_local_int_control_parameter_f_ (name, value)
+  subroutine cwipi_get_local_int_control_parameter_f_ (name, value)
 
     implicit none
 
@@ -348,14 +348,14 @@ contains
 
     l = len(name)
 
-    call couplings_get_local_int_control_parameter_cf (name, l, value)
+    call cwipi_get_local_int_control_parameter_cf (name, l, value)
 
-  end subroutine couplings_get_local_int_control_parameter_f_
+  end subroutine cwipi_get_local_int_control_parameter_f_
 
 !
 !********************************************************************************
 !
-! couplings_get_local_double_control_parameter_f
+! cwipi_get_local_double_control_parameter_f
 !
 ! Get a double control parameter of the current application
 !
@@ -365,7 +365,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine couplings_get_local_double_control_parameter_f_ (name, value)
+  subroutine cwipi_get_local_double_control_parameter_f_ (name, value)
 
     implicit none
 
@@ -376,14 +376,14 @@ contains
 
     l = len(name)
 
-    call couplings_get_local_double_control_parameter_cf (name, l, value)
+    call cwipi_get_local_double_control_parameter_cf (name, l, value)
 
-  end subroutine couplings_get_local_double_control_parameter_f_
+  end subroutine cwipi_get_local_double_control_parameter_f_
 
 !
 !********************************************************************************
 !
-! couplings_delete_local_int_control_parameter_f
+! cwipi_delete_local_int_control_parameter_f
 !
 ! Delete a current application int parameter
 !
@@ -393,7 +393,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine couplings_delete_local_int_control_parameter_f_ (name)
+  subroutine cwipi_delete_local_int_control_parameter_f_ (name)
 
     implicit none
 
@@ -402,14 +402,14 @@ contains
 
     l = len(name)
 
-    call couplings_delete_local_int_control_parameter_cf (name, l)
+    call cwipi_delete_local_int_control_parameter_cf (name, l)
 
-  end subroutine couplings_delete_local_int_control_parameter_f_
+  end subroutine cwipi_delete_local_int_control_parameter_f_
 
 !
 !********************************************************************************
 !
-! couplings_delete_local_double_control_parameter_f
+! cwipi_delete_local_double_control_parameter_f
 !
 ! Delete a current application double parameter
 !
@@ -419,7 +419,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine couplings_delete_local_double_control_parameter_f_ (name)
+  subroutine cwipi_delete_local_double_control_parameter_f_ (name)
 
     implicit none
 
@@ -428,14 +428,14 @@ contains
 
     l = len(name)
 
-    call couplings_delete_local_double_control_parameter_cf (name, l)
+    call cwipi_delete_local_double_control_parameter_cf (name, l)
 
-  end subroutine couplings_delete_local_double_control_parameter_f_
+  end subroutine cwipi_delete_local_double_control_parameter_f_
 
 !
 !********************************************************************************
 !
-! couplings_get_distant_int_control_parameter_f
+! cwipi_get_distant_int_control_parameter_f
 !
 ! Get a integer control parameter of a other application
 !
@@ -446,7 +446,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine couplings_get_distant_int_control_parameter_f_ (appliName, &
+  subroutine cwipi_get_distant_int_control_parameter_f_ (appliName, &
                                                              paramName, &
                                                              value)
 
@@ -461,18 +461,18 @@ contains
     l1 = len(appliName)
     l2 = len(paramName)
 
-    call couplings_get_distant_int_control_parameter_cf (appliName, &
+    call cwipi_get_distant_int_control_parameter_cf (appliName, &
                                                          l1, &
                                                          paramName, &
                                                          l2, &
                                                          value)
 
-  end subroutine couplings_get_distant_int_control_parameter_f_
+  end subroutine cwipi_get_distant_int_control_parameter_f_
 
 !
 !********************************************************************************
 !
-! couplings_get_distant_double_control_parameter_f
+! cwipi_get_distant_double_control_parameter_f
 !
 ! Get a double control parameter of a other application
 !
@@ -483,7 +483,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine couplings_get_distant_double_control_parameter_f_  (appliName, &
+  subroutine cwipi_get_distant_double_control_parameter_f_  (appliName, &
                                                                paramName, &
                                                                value)
 
@@ -498,18 +498,18 @@ contains
     l1 = len(appliName)
     l2 = len(paramName)
 
-    call couplings_get_distant_double_control_parameter_cf (appliName, &
+    call cwipi_get_distant_double_control_parameter_cf (appliName, &
                                                             l1, &
                                                             paramName, &
                                                             l2, &
                                                             value)
 
-  end subroutine couplings_get_distant_double_control_parameter_f_
+  end subroutine cwipi_get_distant_double_control_parameter_f_
 
 !
 !********************************************************************************
 !
-! couplings_synchronize_control_parameter_f
+! cwipi_synchronize_control_parameter_f
 !
 ! Synchronize local control parameters with an other application.
 !  It is a synchronization point with this second application
@@ -520,7 +520,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine couplings_synchronize_control_parameter_f_ (appliName)
+  subroutine cwipi_synchronize_control_parameter_f_ (appliName)
 
     implicit none
 
@@ -530,14 +530,14 @@ contains
 
     l = len(appliName)
 
-    call couplings_synchronize_control_parameter_cf (appliName, l)
+    call cwipi_synchronize_control_parameter_cf (appliName, l)
 
-  end subroutine couplings_synchronize_control_parameter_f_
+  end subroutine cwipi_synchronize_control_parameter_f_
 
 !
 !********************************************************************************
 !
-! couplings_dump_application_properties_f (define into couplings_cf.hxx)
+! cwipi_dump_application_properties_f (define into cwipi_cf.hxx)
 !
 ! Dump application properties
 !
@@ -547,7 +547,7 @@ contains
 !
 !********************************************************************************
 !
-! couplings_create_coupling_f
+! cwipi_create_coupling_f
 !
 ! Create a coupling object
 !
@@ -557,10 +557,10 @@ contains
 !   cplAppli                <-- Coupled application name
 !   entitiesDim             <-- Mesh entities dimension (1, 2 or 3)
 !   tolerance               <-- Geometric tolerance to locate
-!   meshT                   <-- COUPLINGS_STATIC_MESH
-!                               COUPLINGS_MOBILE_MESH (not implemented yet)
-!   solverT                 <-- COUPLINGS_SOLVER_CELL_CENTER
-!                               COUPLINGS_SOLVER_CELL_VERTEX
+!   meshT                   <-- CWIPI_STATIC_MESH
+!                               CWIPI_MOBILE_MESH (not implemented yet)
+!   solverT                 <-- CWIPI_SOLVER_CELL_CENTER
+!                               CWIPI_SOLVER_CELL_VERTEX
 !   outputFreq              <-- Output frequency
 !   outputFmt               <-- Output format to visualize exchanged fields
 !                               on the coupled mesh. Choice between :
@@ -586,7 +586,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine couplings_create_coupling_f_ (couplingName, &
+  subroutine cwipi_create_coupling_f_ (couplingName, &
                                            couplingType, &
                                            cplAppli, &
                                            entitiesDim, &
@@ -613,7 +613,7 @@ contains
     lOutputFmt    = len(outputFmt)
     lOutputFmtOpt = len(outputFmtOpt)
 
-    call couplings_create_coupling_cf(couplingName, &
+    call cwipi_create_coupling_cf(couplingName, &
                                       lCouplingName, &
                                       couplingType, &
                                       cplAppli, &
@@ -628,12 +628,12 @@ contains
                                       outputFmtOpt, &
                                       lOutputFmtOpt)
 
-  end subroutine couplings_create_coupling_f_
+  end subroutine cwipi_create_coupling_f_
 
 !
 !********************************************************************************
 !
-! couplings_set_points_to_locate_f
+! cwipi_set_points_to_locate_f
 !
 ! Set points to locate. This function must be called if the points to locate
 ! do not correspond to :
@@ -648,7 +648,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine couplings_set_points_to_locate_f_ (couplingName, &
+  subroutine cwipi_set_points_to_locate_f_ (couplingName, &
                                                 nPts, &
                                                 coords)
 
@@ -663,17 +663,17 @@ contains
 
     lCouplingName  = len(couplingName)
 
-    call couplings_set_points_to_locate_cf(couplingName, &
+    call cwipi_set_points_to_locate_cf(couplingName, &
                                            lCouplingName, &
                                            nPts, &
                                            coords)
 
-  end subroutine couplings_set_points_to_locate_f_
+  end subroutine cwipi_set_points_to_locate_f_
 
 !
 !********************************************************************************
 !
-! couplings_define_mesh_f
+! cwipi_define_mesh_f
 !
 !
 ! Define the support mesh for a coupling. The connectivity is sorted if
@@ -767,7 +767,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine couplings_define_mesh_f_ (couplingName, &
+  subroutine cwipi_define_mesh_f_ (couplingName, &
                                        nVertex, &
                                        nElts, &
                                        coords, &
@@ -787,7 +787,7 @@ contains
 
     lCouplingName    = len(couplingName)
 
-    call couplings_define_mesh_cf(couplingName, &
+    call cwipi_define_mesh_cf(couplingName, &
                                   lCouplingName, &
                                   nVertex, &
                                   nElts, &
@@ -795,17 +795,17 @@ contains
                                   connecindex, &
                                   connec)
 
-  end subroutine couplings_define_mesh_f_
+  end subroutine cwipi_define_mesh_f_
 
 !
 !********************************************************************************
 !
-! couplings_add_polyhedra_f
+! cwipi_add_polyhedra_f
 !
 !*******************************************************************************
 !
 
-  subroutine couplings_add_polyhedra_f_ (couplingName, &
+  subroutine cwipi_add_polyhedra_f_ (couplingName, &
                                          nElts, &
                                          faceIdx, &
                                          cellToFace, &
@@ -821,7 +821,7 @@ contains
 
     lCouplingName = len(couplingName)
 
-    call couplings_add_polyhedra_cf (couplingName, &
+    call cwipi_add_polyhedra_cf (couplingName, &
                                      lCouplingName, &
                                      nElts, &
                                      faceIdx, &
@@ -829,12 +829,12 @@ contains
                                      faceConnecIdx, &
                                      faceConnec)
 
-  end subroutine couplings_add_polyhedra_f_
+  end subroutine cwipi_add_polyhedra_f_
 
 !
 !********************************************************************************
 !
-! couplings_locate_f
+! cwipi_locate_f
 !
 ! Location completion.
 ! It is a synchronization point with the coupled application
@@ -845,7 +845,7 @@ contains
 !*******************************************************************************
 !
 
-  subroutine couplings_locate_f_(couplingName)
+  subroutine cwipi_locate_f_(couplingName)
 
     implicit none
 
@@ -854,13 +854,13 @@ contains
 
     lCouplingName = len(couplingName)
 
-    call couplings_locate_cf(couplingName, lCouplingName)
-  end subroutine couplings_locate_f_
+    call cwipi_locate_cf(couplingName, lCouplingName)
+  end subroutine cwipi_locate_f_
 
 !
 !********************************************************************************
 !
-! couplings_get_location_f
+! cwipi_get_location_f
 !
 ! Get located points location
 !
@@ -871,7 +871,7 @@ contains
 !*******************************************************************************
 !
 
-  subroutine couplings_get_location_f_(couplingName, location)
+  subroutine cwipi_get_location_f_(couplingName, location)
 
     implicit none
 
@@ -881,13 +881,13 @@ contains
 
     lCouplingName = len(couplingName)
 
-    call couplings_get_distant_location_cf (couplingName, lCouplingName, location)
-  end subroutine couplings_get_location_f_
+    call cwipi_get_distant_location_cf (couplingName, lCouplingName, location)
+  end subroutine cwipi_get_location_f_
 
 !
 !********************************************************************************
 !
-! couplings_get_barycentric_coordinates_index_f
+! cwipi_get_barycentric_coordinates_index_f
 !
 ! Get located points barycentric coordinates index
 !
@@ -898,7 +898,7 @@ contains
 !*******************************************************************************
 !
 
-  subroutine couplings_get_barycentric_coordinates_index_f_(couplingName, &
+  subroutine cwipi_get_barycentric_coordinates_index_f_(couplingName, &
                                                             barycentricCoordinatesIndex)
 
     implicit none
@@ -909,15 +909,15 @@ contains
 
     lCouplingName = len(couplingName)
 
-    call couplings_get_distant_barycentric_coordinates_index_cf (couplingName, &
+    call cwipi_get_distant_barycentric_coordinates_index_cf (couplingName, &
                                                          lCouplingName, &
                                                          barycentricCoordinatesIndex)
-  end subroutine couplings_get_barycentric_coordinates_index_f_
+  end subroutine cwipi_get_barycentric_coordinates_index_f_
 
 !
 !********************************************************************************
 !
-! couplings_get_barycentric_coordinates_f
+! cwipi_get_barycentric_coordinates_f
 !
 ! Get located points barycentric coordinates
 !
@@ -928,7 +928,7 @@ contains
 !*******************************************************************************
 !
 
-  subroutine couplings_get_barycentric_coordinates_f_(couplingName, &
+  subroutine cwipi_get_barycentric_coordinates_f_(couplingName, &
                                                       barycentricCoordinates)
 
     implicit none
@@ -939,15 +939,15 @@ contains
 
     lCouplingName = len(couplingName)
 
-    call couplings_get_distant_barycentric_coordinates_cf (couplingName, &
+    call cwipi_get_distant_barycentric_coordinates_cf (couplingName, &
                                                    lCouplingName, &
                                                    barycentricCoordinates)
-  end subroutine couplings_get_barycentric_coordinates_f_
+  end subroutine cwipi_get_barycentric_coordinates_f_
 
 !
 !********************************************************************************
 !
-! couplings_exchange_without_user_interpolation_f_
+! cwipi_exchange_without_user_interpolation_f_
 !
 ! Exchange data with the coupled application.
 ! It is a synchronization point with the coupled application
@@ -963,12 +963,12 @@ contains
 !   receivingFieldName   <-- Receiving field name
 !   receivingField       --> Receiving field
 !   nNotLocatedPoints    --> Number of not located points
-!   status               --> Couplings exchange status
+!   status               --> Cwipi exchange status
 !
 !********************************************************************************
 !
 
-  subroutine couplings_exchange_without_user_interpolation_f_ (couplingName, &
+  subroutine cwipi_exchange_without_user_interpolation_f_ (couplingName, &
                                                                exchangeName, &
                                                                stride, &
                                                                nStep, &
@@ -997,7 +997,7 @@ contains
     lSendingFieldName   = len(sendingFieldName)
     lReceivingFieldName = len(receivingFieldName)
 
-    call couplings_exchange_cf(couplingName, &
+    call cwipi_exchange_cf(couplingName, &
                                lCouplingName, &
                                exchangeName, &
                                lExchangeName, &
@@ -1013,12 +1013,12 @@ contains
                                nNotLocatedPoints, &
                                status)
 
-  end subroutine couplings_exchange_without_user_interpolation_f_
+  end subroutine cwipi_exchange_without_user_interpolation_f_
 
 !
 !********************************************************************************
 !
-! couplings_send_without_user_interpolation_f
+! cwipi_send_without_user_interpolation_f
 !
 ! Exchange data with the coupled application (only send)
 ! It is a synchronization point with the coupled application
@@ -1031,12 +1031,12 @@ contains
 !   timeValue            <-- Time value (only for visualization)
 !   sendingFieldName     <-- Sending field name
 !   sendingField         <-- Sending field (NULL -> no sending)
-!   status               --> Couplings exchange status
+!   status               --> Cwipi exchange status
 !
 !********************************************************************************
 !
 
-  subroutine couplings_send_without_user_interpolation_f_ (couplingName, &
+  subroutine cwipi_send_without_user_interpolation_f_ (couplingName, &
                                                            exchangeName, &
                                                            stride, &
                                                            nStep, &
@@ -1058,7 +1058,7 @@ contains
     lExchangeName       = len(exchangeName)
     lSendingFieldName   = len(sendingFieldName)
 
-    call couplings_send_cf(couplingName, &
+    call cwipi_send_cf(couplingName, &
                            lCouplingName, &
                            exchangeName, &
                            lExchangeName, &
@@ -1070,12 +1070,12 @@ contains
                            sendingField, &
                            status)
 
-  end subroutine couplings_send_without_user_interpolation_f_
+  end subroutine cwipi_send_without_user_interpolation_f_
 
 !
 !********************************************************************************
 !
-! couplings_send_with_user_interpolation_f
+! cwipi_send_with_user_interpolation_f
 !
 ! Exchange data with the coupled application (only send)
 ! It is a synchronization point with the coupled application
@@ -1089,12 +1089,12 @@ contains
 !   sendingFieldName     <-- Sending field name
 !   sendingField         <-- Sending field (NULL -> no sending)
 !   ptInterpolationFct   <-- Callback for interpolation
-!   status               --> Couplings exchange status
+!   status               --> Cwipi exchange status
 !
 !********************************************************************************
 !
 
-  subroutine couplings_send_with_user_interpolation_f_ (couplingName, &
+  subroutine cwipi_send_with_user_interpolation_f_ (couplingName, &
                                                         exchangeName, &
                                                         stride, &
                                                         nStep, &
@@ -1161,7 +1161,7 @@ contains
     lExchangeName       = len(exchangeName)
     lSendingFieldName   = len(sendingFieldName)
 
-    call couplings_send_with_user_interpolation_cf(couplingName, &
+    call cwipi_send_with_user_interpolation_cf(couplingName, &
                                                    lCouplingName, &
                                                    exchangeName, &
                                                    lExchangeName, &
@@ -1174,12 +1174,12 @@ contains
                                                    ptInterpolationFct, &
                                                    status)
 
-  end subroutine couplings_send_with_user_interpolation_f_
+  end subroutine cwipi_send_with_user_interpolation_f_
 
 !
 !********************************************************************************
 !
-! couplings_receive_f
+! cwipi_receive_f
 !
 ! Exchange data with the coupled application. (only receive)
 ! It is a synchronization point with the coupled application
@@ -1193,12 +1193,12 @@ contains
 !   receivingFieldName   <-- Receiving field name
 !   receivingField       --> Receiving field
 !   nNotLocatedPoints    --> Number of not located points
-!   status               --> Couplings exchange status
+!   status               --> Cwipi exchange status
 !
 !********************************************************************************
 !
 
-  subroutine couplings_receive_f_ (couplingName, &
+  subroutine cwipi_receive_f_ (couplingName, &
                                    exchangeName, &
                                    stride, &
                                    nStep, &
@@ -1222,7 +1222,7 @@ contains
     lExchangeName       = len(exchangeName)
     lReceivingFieldName = len(receivingFieldName)
 
-    call couplings_receive_cf(couplingName, &
+    call cwipi_receive_cf(couplingName, &
                               lCouplingName, &
                               exchangeName, &
                               lExchangeName, &
@@ -1235,12 +1235,12 @@ contains
                               nNotLocatedPoints, &
                               status)
 
-  end subroutine couplings_receive_f_
+  end subroutine cwipi_receive_f_
 
 !
 !********************************************************************************
 !
-! couplings_exchange_f_with_user_interpolation_f
+! cwipi_exchange_f_with_user_interpolation_f
 !
 ! Exchange data with the coupled application.
 ! It is a synchronization point with the coupled application
@@ -1257,12 +1257,12 @@ contains
 !   receivingField       --> Receiving field
 !   ptInterpolationFct   <-- Callback for interpolation
 !   nNotLocatedPoints    --> Number of not located points
-!   status               --> Couplings exchange status
+!   status               --> Cwipi exchange status
 !
 !********************************************************************************
 !
 
-  subroutine couplings_exchange_with_user_interpolation_f_ (couplingName, &
+  subroutine cwipi_exchange_with_user_interpolation_f_ (couplingName, &
                                                             exchangeName, &
                                                             exchangeDim, &
                                                             nStep, &
@@ -1337,7 +1337,7 @@ contains
     lSendingFieldName   = len(sendingFieldName)
     lReceivingFieldName = len(receivingFieldName)
 
-    call couplings_exchange_with_user_interpolation_cf(couplingName, &
+    call cwipi_exchange_with_user_interpolation_cf(couplingName, &
                                                        lCouplingName, &
                                                        exchangeName, &
                                                        lExchangeName, &
@@ -1354,12 +1354,12 @@ contains
                                                        nnotlocatedpoints, &
                                                       status)
 
-  end subroutine couplings_exchange_with_user_interpolation_f_
+  end subroutine cwipi_exchange_with_user_interpolation_f_
 
 !
 !********************************************************************************
 !
-! couplings_delete_coupling_f
+! cwipi_delete_coupling_f
 !
 ! Delete a coupling
 !
@@ -1370,7 +1370,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine couplings_delete_coupling_f_(couplingName)
+  subroutine cwipi_delete_coupling_f_(couplingName)
 
     implicit none
 
@@ -1379,24 +1379,24 @@ contains
 
     lCouplingName       = len(couplingName)
 
-    call couplings_delete_coupling_cf(couplingName, lCouplingName)
+    call cwipi_delete_coupling_cf(couplingName, lCouplingName)
 
-  end subroutine couplings_delete_coupling_f_
-
-!
-!********************************************************************************
-!
-! couplings_finalize()  (define into couplings_cf.hxx)
-!
-! Finalize couplings. This is a synchronization point between all applications
-!
-!********************************************************************************
-!
+  end subroutine cwipi_delete_coupling_f_
 
 !
 !********************************************************************************
 !
-! couplings_get_not_located_points_f
+! cwipi_finalize()  (define into cwipi_cf.hxx)
+!
+! Finalize cwipi. This is a synchronization point between all applications
+!
+!********************************************************************************
+!
+
+!
+!********************************************************************************
+!
+! cwipi_get_not_located_points_f
 !
 ! Get located points
 !
@@ -1406,7 +1406,7 @@ contains
 !
 !********************************************************************************
 !
-  subroutine couplings_get_not_located_points_f_(couplingName, notLocatedPoints)
+  subroutine cwipi_get_not_located_points_f_(couplingName, notLocatedPoints)
 
     implicit none
 
@@ -1416,13 +1416,13 @@ contains
 
     lCouplingName       = len(couplingName)
 
-    call couplings_get_not_located_points_cf(couplingName, lCouplingName, notLocatedPoints)
-  end subroutine couplings_get_not_located_points_f_
+    call cwipi_get_not_located_points_cf(couplingName, lCouplingName, notLocatedPoints)
+  end subroutine cwipi_get_not_located_points_f_
 
 !
 !********************************************************************************
 !
-! couplings_get_n_located_distant_points_f
+! cwipi_get_n_located_distant_points_f
 !
 ! Get located points
 !
@@ -1432,7 +1432,7 @@ contains
 !
 !********************************************************************************
 !
-  subroutine couplings_get_n_located_distant_points_f_(couplingName, nLocatedDistantPoints)
+  subroutine cwipi_get_n_located_distant_points_f_(couplingName, nLocatedDistantPoints)
 
     implicit none
 
@@ -1442,10 +1442,10 @@ contains
 
     lCouplingName       = len(couplingName)
 
-    call couplings_get_n_located_distant_points_cf(couplingName, &
+    call cwipi_get_n_located_distant_points_cf(couplingName, &
                                                    lCouplingName, &
                                                    nLocatedDistantPoints)
-  end subroutine couplings_get_n_located_distant_points_f_
+  end subroutine cwipi_get_n_located_distant_points_f_
 
 
 
@@ -1461,7 +1461,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine couplings_get_located_points_f_(couplingName, locatedPoints)
+  subroutine cwipi_get_located_points_f_(couplingName, locatedPoints)
 
     implicit none
 
@@ -1471,8 +1471,8 @@ contains
 
     lCouplingName       = len(couplingName)
 
-    call couplings_get_located_points_cf(couplingName, lCouplingName, locatedPoints)
-  end subroutine couplings_get_located_points_f_
+    call cwipi_get_located_points_cf(couplingName, lCouplingName, locatedPoints)
+  end subroutine cwipi_get_located_points_f_
 
 !
 !********************************************************************************
@@ -1486,7 +1486,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine couplings_get_n_located_points_f_(couplingName, nLocatedPoints)
+  subroutine cwipi_get_n_located_points_f_(couplingName, nLocatedPoints)
 
     implicit none
 
@@ -1496,11 +1496,11 @@ contains
 
     lCouplingName       = len(couplingName)
 
-    call couplings_get_n_located_points_cf(couplingName, &
+    call cwipi_get_n_located_points_cf(couplingName, &
                                          lCouplingName, &
                                          nLocatedPoints)
 
-  end subroutine couplings_get_n_located_points_f_
+  end subroutine cwipi_get_n_located_points_f_
 
 !
 !********************************************************************************
@@ -1514,7 +1514,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine couplings_get_n_not_located_points_f_(couplingName, nNotLocatedPoints)
+  subroutine cwipi_get_n_not_located_points_f_(couplingName, nNotLocatedPoints)
 
     implicit none
 
@@ -1524,10 +1524,10 @@ contains
 
     lCouplingName       = len(couplingName)
 
-    call couplings_get_n_not_located_points_cf(couplingName, &
+    call cwipi_get_n_not_located_points_cf(couplingName, &
                                                lCouplingName, &
                                                nNotLocatedPoints)
 
-  end subroutine couplings_get_n_not_located_points_f_
+  end subroutine cwipi_get_n_not_located_points_f_
 
-end module couplings
+end module cwipi

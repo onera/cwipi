@@ -4,7 +4,7 @@
 #include <fvm_nodal.h>
 #include <vector>
 
-namespace couplings {
+namespace cwipi {
 
   class Mesh {
 

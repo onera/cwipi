@@ -8,7 +8,7 @@
 #include "applicationPropertiesDataBase.hxx"
 #include "applicationPropertiesDataBase_i.hxx"
 
-namespace couplings {
+namespace cwipi {
 
   ApplicationPropertiesDataBase::ApplicationPropertiesDataBase()
     : _distantApplicationPropertiesDataBase(*(new std::map <std::string, ApplicationProperties * > ())),

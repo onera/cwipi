@@ -11,7 +11,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include "applicationProperties.hxx"
 
-namespace couplings
+namespace cwipi
 {
 
   ApplicationProperties::ApplicationProperties(std::string &name,

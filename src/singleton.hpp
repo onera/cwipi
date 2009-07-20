@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-namespace couplings {
+namespace cwipi {
   template <typename T>
   class Singleton
   {
@@ -40,6 +40,6 @@ namespace couplings {
   
   template <typename T>
   T *Singleton<T>::_singleton = NULL;
-} // namespace couplings
+} // namespace cwipi
 
 #endif

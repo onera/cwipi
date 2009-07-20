@@ -23,7 +23,7 @@
 #include <bft_error.h>
 #include "applicationPropertiesDataBase.hxx"
 
-namespace couplings {
+namespace cwipi {
 
   class ApplicationProperties {
 

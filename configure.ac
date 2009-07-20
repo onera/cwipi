@@ -9,15 +9,15 @@ m4_define([licence_c_comment],
 
 */])
 
-m4_define([couplings_major_version], [0])
-m4_define([couplings_minor_version], [0])
-m4_define([couplings_release_version], [1])
-m4_define([couplings_version_extra], [])
-m4_define([couplings_version_string],
-          [couplings_major_version.couplings_minor_version.couplings_release_version@&t@couplings_version_extra])
+m4_define([cwipi_major_version], [0])
+m4_define([cwipi_minor_version], [0])
+m4_define([cwipi_release_version], [1])
+m4_define([cwipi_version_extra], [])
+m4_define([cwipi_version_string],
+          [cwipi_major_version.cwipi_minor_version.cwipi_release_version@&t@cwipi_version_extra])
 
-AC_INIT([fvm],[couplings_version_string],[eric.quemerais@onera.fr])
-AC_CONFIG_SRCDIR([src/couplings.h])
+AC_INIT([fvm],[cwipi_version_string],[eric.quemerais@onera.fr])
+AC_CONFIG_SRCDIR([src/cwipi.h])
 
 # Use the config directory for libtool stuff ... 
 AC_CONFIG_AUX_DIR(config)
@@ -41,21 +41,21 @@ AH_BOTTOM([#endif /* __CONFIG_PRIV_H__ */])
 
 #Define public configuration file
 
-COUPLINGS_AC_CONFIG_PUBL_INIT([couplings_config.h])
-#COUPLINGS_AC_CONFIG_PUBL_VERBATIM([couplings_licence_c_comment])
+CWIPI_AC_CONFIG_PUBL_INIT([cwipi_config.h])
+#CWIPI_AC_CONFIG_PUBL_VERBATIM([cwipi_licence_c_comment])
 
 AM_MAINTAINER_MODE
 
 # Version information
 
-COUPLINGS_AC_CONFIG_PUBL_DEFINE_STRING(COUPLINGS_VERSION, couplings_version_string,
+CWIPI_AC_CONFIG_PUBL_DEFINE_STRING(CWIPI_VERSION, cwipi_version_string,
                                  [Complete version number])
 
-COUPLINGS_AC_CONFIG_PUBL_DEFINE(COUPLINGS_MAJOR_VERSION, couplings_major_version,
+CWIPI_AC_CONFIG_PUBL_DEFINE(CWIPI_MAJOR_VERSION, cwipi_major_version,
                           [Major version number])
-COUPLINGS_AC_CONFIG_PUBL_DEFINE(COUPLINGS_MINOR_VERSION, couplings_minor_version,
+CWIPI_AC_CONFIG_PUBL_DEFINE(CWIPI_MINOR_VERSION, cwipi_minor_version,
                           [Minor version number])
-COUPLINGS_AC_CONFIG_PUBL_DEFINE(COUPLINGS_RELEASE_VERSION, couplings_release_version,
+CWIPI_AC_CONFIG_PUBL_DEFINE(CWIPI_RELEASE_VERSION, cwipi_release_version,
                           [Release version number])
 
 #------------------------------------------------------------------------------
@@ -112,11 +112,11 @@ if test "x$auto_flags" = "xtrue" ; then
 
   # Source associated recommended compiler options
 
-  if test -f "$srcdir/config/couplings_auto_flags.sh" ; then
-    AC_MSG_NOTICE([sourcing config/couplings_auto_flags.sh (test for known compilers)])
-    . "$srcdir/config/couplings_auto_flags.sh"
+  if test -f "$srcdir/config/cwipi_auto_flags.sh" ; then
+    AC_MSG_NOTICE([sourcing config/cwipi_auto_flags.sh (test for known compilers)])
+    . "$srcdir/config/cwipi_auto_flags.sh"
   else
-    AC_MSG_WARN([config/couplings_auto_flags.sh default configuration file not found])
+    AC_MSG_WARN([config/cwipi_auto_flags.sh default configuration file not found])
   fi
 
   if test "x$user_CPPFLAGS" = "x"; then
@@ -194,7 +194,7 @@ fi
 # take effect whether the result is true or not (maybe due to a bug),
 # so we directly use autoconf's enable_shared variable.
 
-if test "x$couplings_disable_shared" = "xyes" ; then
+if test "x$cwipi_disable_shared" = "xyes" ; then
   enable_shared=no
 fi
 
@@ -269,13 +269,13 @@ MPI_LIBS=""
 CHECK_MPI
 
 # Whether we used mpicc or $CC, we now know if we have MPI support
-COUPLINGS_AC_CONFIG_PUBL_SET(HAVE_MPI, $have_mpi,
-                       [couplings library configured with MPI support ?])
+CWIPI_AC_CONFIG_PUBL_SET(HAVE_MPI, $have_mpi,
+                       [cwipi library configured with MPI support ?])
 if test "x$have_mpi" = "xyes" ; then
-  COUPLINGS_AC_CONFIG_PUBL_SET(HAVE_MPI_IO, $have_mpi_io,
-                         [couplings library configured with MPI IO support ?])
-  COUPLINGS_AC_CONFIG_PUBL_SET(HAVE_MPI_ONE_SIDED, $have_mpi_one_sided,
-                         [couplings library configured with MPI One-sided support ?])
+  CWIPI_AC_CONFIG_PUBL_SET(HAVE_MPI_IO, $have_mpi_io,
+                         [cwipi library configured with MPI IO support ?])
+  CWIPI_AC_CONFIG_PUBL_SET(HAVE_MPI_ONE_SIDED, $have_mpi_one_sided,
+                         [cwipi library configured with MPI One-sided support ?])
 fi
 
 #-----------------------------------------------------
@@ -287,8 +287,8 @@ CHECK_METIS
 #
 # Finir le check metis
 
-COUPLINGS_AC_CONFIG_PUBL_SET(HAVE_METIS, $have_metis,
-                       [couplings library configured with METIS support ?])
+CWIPI_AC_CONFIG_PUBL_SET(HAVE_METIS, $have_metis,
+                       [cwipi library configured with METIS support ?])
 
 #------------------------------------------------------------------------------
 # Internationalization
@@ -340,34 +340,34 @@ done
 # Output configuration info script
 #---------------------------------
 
-COUPLINGS_AC_CONFIG_INFO_INIT([couplings-config])
+CWIPI_AC_CONFIG_INFO_INIT([cwipi-config])
 
-COUPLINGS_AC_CONFIG_INFO_EXTRA([
+CWIPI_AC_CONFIG_INFO_EXTRA([
 # use debugging code:                         "$debug"
 # MPI (Message Passing Interface) support:    "$have_mpi"
 ])
 
-COUPLINGS_AC_CONFIG_INFO_CC([${CC}], [${couplings_ac_cc_version}], [${couplings_ac_cc_version_full}])
+CWIPI_AC_CONFIG_INFO_CC([${CC}], [${cwipi_ac_cc_version}], [${cwipi_ac_cc_version_full}])
 
-COUPLINGS_AC_CONFIG_INFO_VERSION([couplings_version_string])
+CWIPI_AC_CONFIG_INFO_VERSION([cwipi_version_string])
 
-COUPLINGS_AC_CONFIG_INFO_DIRS([$prefix], [$exec_prefix], [$includedir], [$libdir])
+CWIPI_AC_CONFIG_INFO_DIRS([$prefix], [$exec_prefix], [$includedir], [$libdir])
 
-COUPLINGS_AC_CONFIG_INFO_FLAGS([$user_cppflags], [], [$user_ldflags], [$LIBS])
+CWIPI_AC_CONFIG_INFO_FLAGS([$user_cppflags], [], [$user_ldflags], [$LIBS])
 
-COUPLINGS_AC_CONFIG_INFO_FLAGS([$CPPFLAGS], [$CFLAGS], [$LDFLAGS], [$LIBS],
+CWIPI_AC_CONFIG_INFO_FLAGS([$CPPFLAGS], [$CFLAGS], [$LDFLAGS], [$LIBS],
                          [build])
 
-COUPLINGS_AC_CONFIG_INFO_FLAGS([$BFT_CPPFLAGS], [], [$BFT_LDFLAGS], [$BFT_LIBS],
+CWIPI_AC_CONFIG_INFO_FLAGS([$BFT_CPPFLAGS], [], [$BFT_LDFLAGS], [$BFT_LIBS],
                          [bft])
 
-COUPLINGS_AC_CONFIG_INFO_FLAGS([$FVM_CPPFLAGS], [], [$FVM_LDFLAGS], [$FVM_LIBS],
+CWIPI_AC_CONFIG_INFO_FLAGS([$FVM_CPPFLAGS], [], [$FVM_LDFLAGS], [$FVM_LIBS],
                          [fvm])
 
-COUPLINGS_AC_CONFIG_INFO_FLAGS([$MPI_CPPFLAGS], [], [$MPI_LDFLAGS], [$MPI_LIBS],
+CWIPI_AC_CONFIG_INFO_FLAGS([$MPI_CPPFLAGS], [], [$MPI_LDFLAGS], [$MPI_LIBS],
                          [mpi])
 
-COUPLINGS_AC_CONFIG_INFO_FINALIZE
+CWIPI_AC_CONFIG_INFO_FINALIZE
 
 #------------------------------------------------------------------------------
 
@@ -381,7 +381,7 @@ AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile])
 
 #------------------------------------------------------------------------------
 
-COUPLINGS_AC_CONFIG_PUBL_FINALIZE
+CWIPI_AC_CONFIG_PUBL_FINALIZE
 
 AC_OUTPUT
 
@@ -417,6 +417,6 @@ echo "The package has been configured. Type:"
 echo " make"
 echo " make install"
 echo
-echo "To generate and install the COUPLINGS package"
+echo "To generate and install the CWIPI package"
 echo
 

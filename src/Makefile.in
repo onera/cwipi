@@ -41,15 +41,15 @@ build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
 subdir = src
-DIST_COMMON = $(couplingsinclude_HEADERS) $(noinst_HEADERS) \
+DIST_COMMON = $(cwipiinclude_HEADERS) $(noinst_HEADERS) \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/config/check_bft.m4 \
 	$(top_srcdir)/config/check_fvm.m4 \
 	$(top_srcdir)/config/check_metis.m4 \
 	$(top_srcdir)/config/check_mpi.m4 \
-	$(top_srcdir)/config/couplings_config_info.m4 \
-	$(top_srcdir)/config/couplings_config_publ.m4 \
+	$(top_srcdir)/config/cwipi_config_info.m4 \
+	$(top_srcdir)/config/cwipi_config_publ.m4 \
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
@@ -62,20 +62,18 @@ am__vpath_adj = case $$p in \
     *) f=$$p;; \
   esac;
 am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
-am__installdirs = "$(DESTDIR)$(libdir)" \
-	"$(DESTDIR)$(couplingsincludedir)"
+am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(cwipiincludedir)"
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES) $(noinst_LTLIBRARIES)
-libcouplings_la_DEPENDENCIES =
-am_libcouplings_la_OBJECTS = applicationProperties.lo \
-	applicationPropertiesDataBase.lo couplings.lo quickSort.lo \
+libcwipi_la_DEPENDENCIES =
+am_libcwipi_la_OBJECTS = applicationProperties.lo \
+	applicationPropertiesDataBase.lo cwipi.lo quickSort.lo \
 	solve_ax_b_4.lo coo_baryc.lo mesh.lo coupling.lo \
 	couplingDataBase.lo callfortinterpfct.lo
-libcouplings_la_OBJECTS = $(am_libcouplings_la_OBJECTS)
-libcouplings_f_la_DEPENDENCIES = libcouplings.la
-am_libcouplings_f_la_OBJECTS = couplings_cf.lo couplings_f.lo \
-	printfort.lo
-libcouplings_f_la_OBJECTS = $(am_libcouplings_f_la_OBJECTS)
+libcwipi_la_OBJECTS = $(am_libcwipi_la_OBJECTS)
+libcwipi_f_la_DEPENDENCIES = libcwipi.la
+am_libcwipi_f_la_OBJECTS = cwipi_cf.lo cwipi_f.lo printfort.lo
+libcwipi_f_la_OBJECTS = $(am_libcwipi_f_la_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__depfiles_maybe = depfiles
@@ -98,10 +96,10 @@ CXXLINK = $(LIBTOOL) --tag=CXX --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 FCLD = $(FC)
 FCLINK = $(LIBTOOL) --mode=link $(FCLD) $(AM_FCFLAGS) $(FCFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(libcouplings_la_SOURCES) $(libcouplings_f_la_SOURCES)
-DIST_SOURCES = $(libcouplings_la_SOURCES) $(libcouplings_f_la_SOURCES)
-couplingsincludeHEADERS_INSTALL = $(INSTALL_HEADER)
-HEADERS = $(couplingsinclude_HEADERS) $(noinst_HEADERS)
+SOURCES = $(libcwipi_la_SOURCES) $(libcwipi_f_la_SOURCES)
+DIST_SOURCES = $(libcwipi_la_SOURCES) $(libcwipi_f_la_SOURCES)
+cwipiincludeHEADERS_INSTALL = $(INSTALL_HEADER)
+HEADERS = $(cwipiinclude_HEADERS) $(noinst_HEADERS)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -245,26 +243,26 @@ AM_LDFLAGS = @BFT_LDFLAGS@ @FVM_LDFLAGS@ @MPI_LDFLAGS@
 LTFCCOMPILE = $(LIBTOOL) --mode=compile --tag=FC $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_FCFLAGS) $(FCFLAGS) $(FCFLAGS_f90)
 FCCOMPILE = $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_FCFLAGS) $(FCFLAGS) $(FCFLAGS_f90)
 # Public header files (to be installed)
-couplingsincludedir = $(includedir)
-couplingsinclude_HEADERS = \
-couplings.mod \
-couplings.h 
+cwipiincludedir = $(includedir)
+cwipiinclude_HEADERS = \
+cwipi.mod \
+cwipi.h 
 
 noinst_HEADERS = \
 coo_baryc.h \
-couplings_cf.h \
+cwipi_cf.h \
 quickSort.h \
 solve_ax_b_4.h
 
 
 # Library source files
-lib_LTLIBRARIES = libcouplings.la libcouplings_f.la
+lib_LTLIBRARIES = libcwipi.la libcwipi_f.la
 noinst_LTLIBRARIES = 
-libcouplings_la_LIBADD = 
-libcouplings_la_SOURCES = \
+libcwipi_la_LIBADD = 
+libcwipi_la_SOURCES = \
 applicationProperties.cxx \
 applicationPropertiesDataBase.cxx \
-couplings.cxx \
+cwipi.cxx \
 quickSort.c \
 solve_ax_b_4.c \
 coo_baryc.c \
@@ -273,10 +271,10 @@ coupling.cxx \
 couplingDataBase.cxx \
 callfortinterpfct.f90
 
-libcouplings_f_la_LIBADD = libcouplings.la
-libcouplings_f_la_SOURCES = \
-couplings_cf.cxx \
-couplings_f.f90 \
+libcwipi_f_la_LIBADD = libcwipi.la
+libcwipi_f_la_SOURCES = \
+cwipi_cf.cxx \
+cwipi_f.f90 \
 printfort.f90
 
 all: all-am
@@ -348,10 +346,10 @@ clean-noinstLTLIBRARIES:
 	  echo "rm -f \"$${dir}/so_locations\""; \
 	  rm -f "$${dir}/so_locations"; \
 	done
-libcouplings.la: $(libcouplings_la_OBJECTS) $(libcouplings_la_DEPENDENCIES) 
-	$(CXXLINK) -rpath $(libdir) $(libcouplings_la_LDFLAGS) $(libcouplings_la_OBJECTS) $(libcouplings_la_LIBADD) $(LIBS)
-libcouplings_f.la: $(libcouplings_f_la_OBJECTS) $(libcouplings_f_la_DEPENDENCIES) 
-	$(CXXLINK) -rpath $(libdir) $(libcouplings_f_la_LDFLAGS) $(libcouplings_f_la_OBJECTS) $(libcouplings_f_la_LIBADD) $(LIBS)
+libcwipi.la: $(libcwipi_la_OBJECTS) $(libcwipi_la_DEPENDENCIES) 
+	$(CXXLINK) -rpath $(libdir) $(libcwipi_la_LDFLAGS) $(libcwipi_la_OBJECTS) $(libcwipi_la_LIBADD) $(LIBS)
+libcwipi_f.la: $(libcwipi_f_la_OBJECTS) $(libcwipi_f_la_DEPENDENCIES) 
+	$(CXXLINK) -rpath $(libdir) $(libcwipi_f_la_LDFLAGS) $(libcwipi_f_la_OBJECTS) $(libcwipi_f_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -364,8 +362,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/coo_baryc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/coupling.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/couplingDataBase.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/couplings.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/couplings_cf.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwipi.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwipi_cf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mesh.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/quickSort.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/solve_ax_b_4.Plo@am__quote@
@@ -430,22 +428,22 @@ clean-libtool:
 distclean-libtool:
 	-rm -f libtool
 uninstall-info-am:
-install-couplingsincludeHEADERS: $(couplingsinclude_HEADERS)
+install-cwipiincludeHEADERS: $(cwipiinclude_HEADERS)
 	@$(NORMAL_INSTALL)
-	test -z "$(couplingsincludedir)" || $(mkdir_p) "$(DESTDIR)$(couplingsincludedir)"
-	@list='$(couplingsinclude_HEADERS)'; for p in $$list; do \
+	test -z "$(cwipiincludedir)" || $(mkdir_p) "$(DESTDIR)$(cwipiincludedir)"
+	@list='$(cwipiinclude_HEADERS)'; for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
 	  f=$(am__strip_dir) \
-	  echo " $(couplingsincludeHEADERS_INSTALL) '$$d$$p' '$(DESTDIR)$(couplingsincludedir)/$$f'"; \
-	  $(couplingsincludeHEADERS_INSTALL) "$$d$$p" "$(DESTDIR)$(couplingsincludedir)/$$f"; \
+	  echo " $(cwipiincludeHEADERS_INSTALL) '$$d$$p' '$(DESTDIR)$(cwipiincludedir)/$$f'"; \
+	  $(cwipiincludeHEADERS_INSTALL) "$$d$$p" "$(DESTDIR)$(cwipiincludedir)/$$f"; \
 	done
 
-uninstall-couplingsincludeHEADERS:
+uninstall-cwipiincludeHEADERS:
 	@$(NORMAL_UNINSTALL)
-	@list='$(couplingsinclude_HEADERS)'; for p in $$list; do \
+	@list='$(cwipiinclude_HEADERS)'; for p in $$list; do \
 	  f=$(am__strip_dir) \
-	  echo " rm -f '$(DESTDIR)$(couplingsincludedir)/$$f'"; \
-	  rm -f "$(DESTDIR)$(couplingsincludedir)/$$f"; \
+	  echo " rm -f '$(DESTDIR)$(cwipiincludedir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(cwipiincludedir)/$$f"; \
 	done
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
@@ -527,7 +525,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(LTLIBRARIES) $(HEADERS)
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(couplingsincludedir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(cwipiincludedir)"; do \
 	  test -z "$$dir" || $(mkdir_p) "$$dir"; \
 	done
 install: install-am
@@ -575,7 +573,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-couplingsincludeHEADERS
+install-data-am: install-cwipiincludeHEADERS
 
 install-exec-am: install-libLTLIBRARIES
 
@@ -603,7 +601,7 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-couplingsincludeHEADERS uninstall-info-am \
+uninstall-am: uninstall-cwipiincludeHEADERS uninstall-info-am \
 	uninstall-libLTLIBRARIES
 
 .PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
@@ -611,13 +609,13 @@ uninstall-am: uninstall-couplingsincludeHEADERS uninstall-info-am \
 	ctags distclean distclean-compile distclean-generic \
 	distclean-libtool distclean-tags distdir dvi dvi-am html \
 	html-am info info-am install install-am \
-	install-couplingsincludeHEADERS install-data install-data-am \
+	install-cwipiincludeHEADERS install-data install-data-am \
 	install-exec install-exec-am install-info install-info-am \
 	install-libLTLIBRARIES install-man install-strip installcheck \
 	installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	tags uninstall uninstall-am uninstall-couplingsincludeHEADERS \
+	tags uninstall uninstall-am uninstall-cwipiincludeHEADERS \
 	uninstall-info-am uninstall-libLTLIBRARIES
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

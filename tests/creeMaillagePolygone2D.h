@@ -5,7 +5,7 @@
 #include <fvm_nodal.h>
 #include <mpi.h>
 
-#include "couplings_config.h"
+#include "cwipi_config.h"
 
 /*----------------------------------------------------------------------------
  * Macro for handling of different symbol names (underscored or not,

@@ -12,23 +12,23 @@ MAINTAINERCLEANFILES = Makefile.in aclocal.m4 configure config-h.in stamp-h.in $
 
 SUBDIRS = src tests 
 
-EXTRA_DIST = $(ac_aux_dir)/couplings_auto_flags.sh \
+EXTRA_DIST = $(ac_aux_dir)/cwipi_auto_flags.sh \
              $(ac_aux_dir)/check_bft.m4 \
              $(ac_aux_dir)/check_fvm.m4 \
-             $(ac_aux_dir)/couplings_config_info.m4 \
-             $(ac_aux_dir)/couplings_config_publ.m4 \
+             $(ac_aux_dir)/cwipi_config_info.m4 \
+             $(ac_aux_dir)/cwipi_config_publ.m4 \
              $(ac_aux_dir)/check_mpi.m4
 
-bin_SCRIPTS = couplings-config
+bin_SCRIPTS = cwipi-config
 
 configincludedir = $(includedir)
-configinclude_HEADERS = couplings_config.h 
-#Avoir configinclude_HEADERS = couplings_config_priv.h couplings_config.h ???
+configinclude_HEADERS = cwipi_config.h 
+#Avoir configinclude_HEADERS = cwipi_config_priv.h cwipi_config.h ???
 
 uninstall-local:
-	rmdir $(includedir)/couplings
+	rmdir $(includedir)/cwipi
 
-DISTCLEANFILES = couplings-config couplings_config.h couplings_config_priv.h
+DISTCLEANFILES = cwipi-config cwipi_config.h cwipi_config_priv.h
 
 ACLOCAL_AMFLAGS = -I config
 

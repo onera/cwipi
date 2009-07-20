@@ -15,7 +15,7 @@
 #include "mesh.hxx"
 #include "quickSort.h"
 
-namespace couplings {
+namespace cwipi {
 
 
   Mesh::Mesh(const MPI_Comm &localComm,

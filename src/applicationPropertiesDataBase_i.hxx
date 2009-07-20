@@ -6,7 +6,7 @@
 #include "applicationProperties.hxx"
 
 
-namespace couplings {
+namespace cwipi {
 
   inline void ApplicationPropertiesDataBase::setPrintfProxy(bft_printf_proxy_t *const callBackPrintf)
   {
@@ -144,6 +144,6 @@ namespace couplings {
     return p->second->getDoubleControlParameter(name);
   }
 
-} // namespace couplings
+} // namespace cwipi
 
 #endif /* __APPLICATION_PROPERTIES_DATA_BASE_H__ */

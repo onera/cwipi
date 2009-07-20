@@ -7,9 +7,9 @@
 #include <fvm_locator.h>
 #include <fvm_writer.h>
 #include <fvm_nodal.h>
-#include "couplings.h"
+#include "cwipi.h"
 
-namespace couplings {
+namespace cwipi {
 
   class ApplicationProperties;
 
@@ -20,12 +20,12 @@ namespace couplings {
   public:
 
     Coupling(const std::string& name,
-             const couplings_coupling_type_t couplingType,
+             const cwipi_coupling_type_t couplingType,
              const ApplicationProperties& localApplicationProperties,
              const ApplicationProperties& coupledApplicationProperties,
              const int entitiesDim,
              const double tolerance,
-             const couplings_solver_type_t solverType,
+             const cwipi_solver_type_t solverType,
              const int    outputFrequency,
              const char  *outputFormat,
              const char  *outputFormatOption);
@@ -44,7 +44,7 @@ namespace couplings {
                                 int face_connectivity_index[],
                                 int face_connectivity[]);
 
-    couplings_exchange_status_t exchange(const char                          *exchange_name,
+    cwipi_exchange_status_t exchange(const char                          *exchange_name,
                                          const int                            stride,
                                          const int                            time_step,
                                          const double                         time_value,
@@ -59,7 +59,7 @@ namespace couplings {
     void setPointsToLocate(const int n_points,
                            double coordinate[]);
 
-    inline void set_interpolation_function(couplings_interpolation_fct_t *fct);
+    inline void set_interpolation_function(cwipi_interpolation_fct_t *fct);
 
     inline const int & getNNotlocatedPoint() const;
 
@@ -121,12 +121,12 @@ namespace couplings {
 
   private:
     const std::string   _name;
-    const couplings_coupling_type_t _couplingType;
+    const cwipi_coupling_type_t _couplingType;
     const ApplicationProperties& _localApplicationProperties;
     const ApplicationProperties& _coupledApplicationProperties;
     const int            _entitiesDim;
     const double            _tolerance;
-    const couplings_solver_type_t  _solverType;
+    const cwipi_solver_type_t  _solverType;
     const std::string   _outputFormat;
     const std::string   _outputFormatOption;
     const int           _outputFrequency;
@@ -142,7 +142,7 @@ namespace couplings {
     bool                 _isCoupledRank;
     MPI_Comm             _mergeComm;
     MPI_Comm             _fvmComm;
-    couplings_interpolation_fct_t *_interpolationFct;
+    cwipi_interpolation_fct_t *_interpolationFct;
     bool                 _toLocate;
     int                 *_barycentricCoordinatesIndex;
     double              *_barycentricCoordinates;

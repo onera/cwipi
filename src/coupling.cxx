@@ -15,7 +15,7 @@
 #include "solve_ax_b_4.h"
 #include "quickSort.h"
 #include "coo_baryc.h"
-#include "couplings.h"
+#include "cwipi.h"
 
 /*----------------------------------------------------------------------------
  * Macro for handling of different symbol names (underscored or not,
@@ -53,17 +53,17 @@ extern "C" {
       void *ptFortranInterpolationFct
   );
 }
-namespace couplings {
+namespace cwipi {
 
   //TODO: Faire une factory sur le type de couplage
 
 Coupling::Coupling(const std::string& name,
-                   const couplings_coupling_type_t couplingType,
+                   const cwipi_coupling_type_t couplingType,
                    const ApplicationProperties& localApplicationProperties,
                    const ApplicationProperties& coupledApplicationProperties,
                    const int entitiesDim,
                    const double tolerance,
-                   const couplings_solver_type_t solverType,
+                   const cwipi_solver_type_t solverType,
                    const int    outputFrequency,
                    const char  *outputFormat,
                    const char  *outputFormatOption)
@@ -240,7 +240,7 @@ Coupling::~Coupling()
   if (_fvmComm != MPI_COMM_NULL)
     MPI_Comm_free(&_fvmComm);
 
-  if (_couplingType == COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING && 
+  if (_couplingType == CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING && 
       !_isCoupledRank) {
 
     if (_locatedPoint != NULL) 
@@ -256,7 +256,7 @@ void Coupling::_interpolate(double *referenceField,
                             std::vector<double>& interpolatedField,
                             const int stride)
 {
-  if (_solverType == COUPLINGS_SOLVER_CELL_CENTER)
+  if (_solverType == CWIPI_SOLVER_CELL_CENTER)
     referenceField = &_extrapolate(referenceField)[0];
 
   switch(_entitiesDim) {
@@ -565,7 +565,7 @@ void Coupling::updateLocation()
               " updateLocation must be called only by the root rank\n");
 }
 
-couplings_exchange_status_t Coupling::exchange(const char    *exchangeName,
+cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
                                                const int     stride,
                                                const int     timeStep,
                                                const double  timeValue,
@@ -577,7 +577,7 @@ couplings_exchange_status_t Coupling::exchange(const char    *exchangeName,
 
 
 {
-  couplings_exchange_status_t status = COUPLINGS_EXCHANGE_OK;
+  cwipi_exchange_status_t status = CWIPI_EXCHANGE_OK;
   
   const MPI_Comm& localComm = _localApplicationProperties.getLocalComm();
   
@@ -789,14 +789,14 @@ couplings_exchange_status_t Coupling::exchange(const char    *exchangeName,
     if (receivingField != NULL && nInteriorList > 0) {
       const int idx = 0;
       if (isnan(receivingField[idx]))
-        status = COUPLINGS_EXCHANGE_BAD_RECEIVING;
+        status = CWIPI_EXCHANGE_BAD_RECEIVING;
     }
 #endif
 
     //
     // Visualization
 
-    if (status == COUPLINGS_EXCHANGE_OK)
+    if (status == CWIPI_EXCHANGE_OK)
 
       _fieldsVisualization(exchangeName,
                            stride,
@@ -807,7 +807,7 @@ couplings_exchange_status_t Coupling::exchange(const char    *exchangeName,
                            receivingFieldName,
                            receivingField);
  
-    if (_couplingType == COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING) {
+    if (_couplingType == CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING) {
 
       
       MPI_Comm_rank(localComm, &rootRank);
@@ -831,7 +831,7 @@ couplings_exchange_status_t Coupling::exchange(const char    *exchangeName,
     }
   }
 
-  else if (_couplingType == COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING) {
+  else if (_couplingType == CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING) {
     
     MPI_Bcast( &status, 
                1,
@@ -855,9 +855,9 @@ void Coupling::_initVisualization()
 {
   if (_fvmWriter == NULL && _outputFrequency > 0) {
 
-    bft_file_mkdir_default("couplings");
+    bft_file_mkdir_default("cwipi");
 
-    std::string pathString = "couplings/"+_name + "_" +
+    std::string pathString = "cwipi/"+_name + "_" +
     _localApplicationProperties.getName()+"_"+
     _coupledApplicationProperties.getName();
 
@@ -910,7 +910,7 @@ void Coupling::_initVisualization()
                    _fvmComm);
 
     if (nNotLocatedPointSum != 0 && _coordsPointsToLocate == NULL) {
-      if (_solverType == COUPLINGS_SOLVER_CELL_CENTER) {
+      if (_solverType == CWIPI_SOLVER_CELL_CENTER) {
         const int nElts  = _supportMesh->getNElts();
 
         int *domLoc = new int [nElts];
@@ -991,7 +991,7 @@ void Coupling::_fieldsVisualization(const char *exchangeName,
     fvm_interlace_t fvm_interlace;
     int dim;
 
-    if (_solverType == COUPLINGS_SOLVER_CELL_CENTER)
+    if (_solverType == CWIPI_SOLVER_CELL_CENTER)
       fvm_writer_var_loc = FVM_WRITER_PER_ELEMENT;
     else
       fvm_writer_var_loc = FVM_WRITER_PER_NODE;
@@ -1118,12 +1118,12 @@ void Coupling::locate()
       if (_coordsPointsToLocate != NULL)
         coords = _coordsPointsToLocate;
       
-      else if(_solverType == COUPLINGS_SOLVER_CELL_CENTER) {
+      else if(_solverType == CWIPI_SOLVER_CELL_CENTER) {
         _nPointsToLocate = _supportMesh->getNElts();
         coords = const_cast <double*> (&(_supportMesh->getCellCenterCoords()[0]));
       }
       
-      else if(_solverType == COUPLINGS_SOLVER_CELL_VERTEX) {
+      else if(_solverType == CWIPI_SOLVER_CELL_VERTEX) {
         _nPointsToLocate = _supportMesh->getNVertex();
         coords = const_cast <double*> (_supportMesh->getVertexCoords());
       }
@@ -1233,7 +1233,7 @@ void Coupling::locate()
       //
       // Send to local proc  
       
-      if (_couplingType == COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING) {
+      if (_couplingType == CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING) {
         
         MPI_Comm_rank(localComm, &rootRank);
         
@@ -1259,7 +1259,7 @@ void Coupling::locate()
     //
     // Receive location  
     
-    else if (_couplingType == COUPLINGS_COUPLING_PARALLEL_WITHOUT_PARTITIONING) {
+    else if (_couplingType == CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING) {
       
       rootRank = 0;
       _toLocate = false;
@@ -1346,8 +1346,8 @@ void Coupling::_createCouplingComm()
     //
     // Exchange coupling type
 
-    couplings_coupling_type_t* couplingTypes = 
-      new couplings_coupling_type_t[coupledApplicationCommSize];
+    cwipi_coupling_type_t* couplingTypes = 
+      new cwipi_coupling_type_t[coupledApplicationCommSize];
 
     MPI_Allgather((void*)& _couplingType,
                   1, 
@@ -1382,9 +1382,9 @@ void Coupling::_createCouplingComm()
     _coupledApplicationNRankCouplingComm = nDistantRank;
 
     _isCoupledRank = _localApplicationProperties.getBeginningRank() == currentRank ||
-       _couplingType == COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING;
+       _couplingType == CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING;
       
-    couplings_coupling_type_t distantCouplingType;
+    cwipi_coupling_type_t distantCouplingType;
 
     if (localBeginningRank < distantBeginningRank) 
       distantCouplingType = couplingTypes[nLocalRank];
@@ -1396,14 +1396,14 @@ void Coupling::_createCouplingComm()
     //
     // Build coupling communicator
 
-    if (_couplingType != COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING || 
-        distantCouplingType != COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING) {
+    if (_couplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING || 
+        distantCouplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING) {
 
       int *rankList = new int[coupledApplicationCommSize];
       int nRankList;
 
-      if (_couplingType != COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING && 
-          distantCouplingType != COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING) {
+      if (_couplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING && 
+          distantCouplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING) {
 
         nRankList = 2;
         rankList[0] = 0;
@@ -1419,7 +1419,7 @@ void Coupling::_createCouplingComm()
         }
       }
       
-      else if (distantCouplingType == COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING) {
+      else if (distantCouplingType == CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING) {
         nRankList = 1 + nDistantRank;
         _coupledApplicationNRankCouplingComm = nDistantRank; 
         if (localBeginningRank < distantBeginningRank) {
@@ -1436,7 +1436,7 @@ void Coupling::_createCouplingComm()
         }
       }
 
-      else if (_couplingType == COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING) {
+      else if (_couplingType == CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING) {
         nRankList = 1 + nLocalRank;
         _coupledApplicationNRankCouplingComm = 1; 
         if (localBeginningRank < distantBeginningRank) {
@@ -1479,7 +1479,7 @@ void Coupling::_createCouplingComm()
 
   if (_fvmComm == MPI_COMM_NULL) {
     
-    if (_couplingType != COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING) {
+    if (_couplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING) {
       
       int list1 = 0;
       MPI_Group localGroup = MPI_GROUP_NULL;
@@ -1504,5 +1504,5 @@ void Coupling::_createCouplingComm()
 }
 
 
-} // namespace couplings
+} // namespace cwipi
 

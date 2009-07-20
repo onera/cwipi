@@ -5,7 +5,7 @@
 
 #include <bft_error.h>
 
-namespace couplings {
+namespace cwipi {
 
   Coupling& CouplingDataBase::getCoupling(const std::string &name) 
   {

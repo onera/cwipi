@@ -1,5 +1,5 @@
-#ifndef __COUPLINGS_CF_H__
-#define __COUPLINGS_CF_H__
+#ifndef __CWIPI_CF_H__
+#define __CWIPI_CF_H__
 
 #include <stdio.h>
 //Bug mpich2
@@ -55,7 +55,7 @@ extern "C" {
 
 /*----------------------------------------------------------------------------
  *
- * Initialize the couplings library.
+ * Initialize the cwipi library.
  * Redirect outputs in a file (Standard output with output_listing = NULL or
  * output_logical_unit = -1)
  * Create the current communicator application from 'common_comm'.
@@ -69,7 +69,7 @@ extern "C" {
  * This is a synchronization between all applications
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_init_cf, COUPLINGS_INIT_CF)
+void PROCF(cwipi_init_cf, CWIPI_INIT_CF)
   (MPI_Fint  *common_fcomm,
    const char *application_name_f,
    const int  *l_application_name,
@@ -82,7 +82,7 @@ void PROCF(couplings_init_cf, COUPLINGS_INIT_CF)
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_set_output_listing_cf, COUPLINGS_SET_OUTPUT_LISTING_CF)
+void PROCF(cwipi_set_output_listing_cf, CWIPI_SET_OUTPUT_LISTING_CF)
      ();
 
 /*----------------------------------------------------------------------------
@@ -95,8 +95,8 @@ void PROCF(couplings_set_output_listing_cf, COUPLINGS_SET_OUTPUT_LISTING_CF)
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_add_local_int_control_parameter_cf,
-           COUPLINGS_ADD_LOCAL_INT_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_add_local_int_control_parameter_cf,
+           CWIPI_ADD_LOCAL_INT_CONTROL_PARAMETER_CF)
   (const char *name,
    const int  *l_name,
    int *initial_value
@@ -112,8 +112,8 @@ void PROCF(couplings_add_local_int_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_add_local_double_control_parameter_cf,
-           COUPLINGS_ADD_LOCAL_DOUBLE_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_add_local_double_control_parameter_cf,
+           CWIPI_ADD_LOCAL_DOUBLE_CONTROL_PARAMETER_CF)
   (const char *name,
    const int  *l_name,
    double *initial_value
@@ -129,8 +129,8 @@ void PROCF(couplings_add_local_double_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_set_local_int_control_parameter_cf,
-           COUPLINGS_SET_LOCAL_INT_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_set_local_int_control_parameter_cf,
+           CWIPI_SET_LOCAL_INT_CONTROL_PARAMETER_CF)
   (const char *name,
    const int  *l_name,
    int *initial_value
@@ -146,8 +146,8 @@ void PROCF(couplings_set_local_int_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_set_local_double_control_parameter_cf,
-           COUPLINGS_SET_LOCAL_DOUBLE_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_set_local_double_control_parameter_cf,
+           CWIPI_SET_LOCAL_DOUBLE_CONTROL_PARAMETER_CF)
   (const char *name,
    const int  *l_name,
    double *initial_value
@@ -162,8 +162,8 @@ void PROCF(couplings_set_local_double_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_get_local_int_control_parameter_cf,
-           COUPLINGS_GET_LOCAL_INT_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_get_local_int_control_parameter_cf,
+           CWIPI_GET_LOCAL_INT_CONTROL_PARAMETER_CF)
   (const char *name,
    const int  *l_name,
    int *value
@@ -178,8 +178,8 @@ void PROCF(couplings_get_local_int_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_get_local_double_control_parameter_cf,
-           COUPLINGS_GET_LOCAL_DOUBLE_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_get_local_double_control_parameter_cf,
+           CWIPI_GET_LOCAL_DOUBLE_CONTROL_PARAMETER_CF)
   (const char *name,
    const int  *l_name,
    double *value
@@ -194,8 +194,8 @@ void PROCF(couplings_get_local_double_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_delete_local_int_control_parameter_cf,
-           COUPLINGS_DELETE_LOCAL_INT_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_delete_local_int_control_parameter_cf,
+           CWIPI_DELETE_LOCAL_INT_CONTROL_PARAMETER_CF)
   (const char *name,
    const int  *l_name
    ARGF_SUPP_CHAINE);
@@ -210,8 +210,8 @@ void PROCF(couplings_delete_local_int_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_delete_local_double_control_parameter_cf,
-           COUPLINGS_DELETE_LOCAL_DOUBLE_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_delete_local_double_control_parameter_cf,
+           CWIPI_DELETE_LOCAL_DOUBLE_CONTROL_PARAMETER_CF)
   (const char *name,
    const int  *l_name
    ARGF_SUPP_CHAINE);
@@ -226,8 +226,8 @@ void PROCF(couplings_delete_local_double_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_get_distant_int_control_parameter_cf,
-           COUPLINGS_GET_DISTANT_INT_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_get_distant_int_control_parameter_cf,
+           CWIPI_GET_DISTANT_INT_CONTROL_PARAMETER_CF)
   (const char *application_name,
    const int  *l_application_name,
    const char *name,
@@ -245,8 +245,8 @@ void PROCF(couplings_get_distant_int_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_get_distant_double_control_parameter_cf,
-           COUPLINGS_GET_DISTANT_DOUBLE_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_get_distant_double_control_parameter_cf,
+           CWIPI_GET_DISTANT_DOUBLE_CONTROL_PARAMETER_CF)
   (const char *application_name,
    const int  *l_application_name,
    const char *name,
@@ -265,8 +265,8 @@ void PROCF(couplings_get_distant_double_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_synchronize_control_parameter_cf,
-           COUPLINGS_SYNCHRONIZE_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_synchronize_control_parameter_cf,
+           CWIPI_SYNCHRONIZE_CONTROL_PARAMETER_CF)
   (const char *application_name,
    const int  *l_application_name
    ARGF_SUPP_CHAINE);
@@ -281,10 +281,10 @@ void PROCF(couplings_synchronize_control_parameter_cf,
  *   cplAppli                <-- Coupled application name
  *   entitiesDim             <-- Mesh entities dimension (1, 2 or 3)
  *   tolerance               <-- Geometric tolerance to locate
- *   meshT                   <-- COUPLINGS_STATIC_MESH
- *                               COUPLINGS_MOBILE_MESH (not implemented yet)
- *   solverT                 <-- COUPLINGS_SOLVER_CELL_CENTER
- *                               COUPLINGS_SOLVER_CELL_VERTEX
+ *   meshT                   <-- CWIPI_STATIC_MESH
+ *                               CWIPI_MOBILE_MESH (not implemented yet)
+ *   solverT                 <-- CWIPI_SOLVER_CELL_CENTER
+ *                               CWIPI_SOLVER_CELL_VERTEX
  *   outputFreq              <-- Output frequency
  *   outputFmt               <-- Output format to visualize exchanged fields
  *                               on the coupled mesh. Choice between :
@@ -309,8 +309,8 @@ void PROCF(couplings_synchronize_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_create_coupling_cf,
-           COUPLINGS_CREATE_COUPLING_CF)
+void PROCF(cwipi_create_coupling_cf,
+           CWIPI_CREATE_COUPLING_CF)
 ( const char *coupling_name,
   const int  *l_coupling_name,
   const int  *coupling_type,
@@ -341,8 +341,8 @@ void PROCF(couplings_create_coupling_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_set_points_to_locate_cf,
-           COUPLINGS_SET_POINTS_TO_LOCATE_CF)
+void PROCF(cwipi_set_points_to_locate_cf,
+           CWIPI_SET_POINTS_TO_LOCATE_CF)
   (const char   *coupling_id,
    const int  *l_coupling_id,
    const int    *n_points,
@@ -371,8 +371,8 @@ void PROCF(couplings_set_points_to_locate_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_define_mesh_cf,
-           COUPLINGS_DEFINE_MESH_CF)
+void PROCF(cwipi_define_mesh_cf,
+           CWIPI_DEFINE_MESH_CF)
   (const char *coupling_name,
    const int  *l_coupling_name,
    const int *n_vertex,
@@ -382,8 +382,8 @@ void PROCF(couplings_define_mesh_cf,
    int *connectivity
    ARGF_SUPP_CHAINE);
 
-void PROCF(couplings_add_polyhedra_cf,
-           COUPLINGS_ADD_POLYHEDRA_CF)
+void PROCF(cwipi_add_polyhedra_cf,
+           CWIPI_ADD_POLYHEDRA_CF)
   (const char *coupling_name,
    const int  *l_coupling_name,
    const int *n_element,
@@ -402,7 +402,7 @@ void PROCF(couplings_add_polyhedra_cf,
  *   coupling_name        <-- Coupling identifier
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_locate_cf, COUPLINGS_LOCATE_CF) (const char *coupling_name,
+void PROCF(cwipi_locate_cf, CWIPI_LOCATE_CF) (const char *coupling_name,
                                                       const int  *l_coupling_name
                                                       ARGF_SUPP_CHAINE);
 
@@ -415,8 +415,8 @@ void PROCF(couplings_locate_cf, COUPLINGS_LOCATE_CF) (const char *coupling_name,
  *   location             --> located points location
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_get_distant_location_cf,
-           COUPLINGS_GET_DISTANT_LOCATION_CF) (const char *coupling_name,
+void PROCF(cwipi_get_distant_location_cf,
+           CWIPI_GET_DISTANT_LOCATION_CF) (const char *coupling_name,
                                        const int  *l_coupling_name,
                                        int *location
                                        ARGF_SUPP_CHAINE);
@@ -430,8 +430,8 @@ void PROCF(couplings_get_distant_location_cf,
  *   n_located_Points     --> Number of located points
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_get_n_located_points_cf,
-           COUPLINGS_GET_N_LOCATED_POINTS_CF) (const char *coupling_name,
+void PROCF(cwipi_get_n_located_points_cf,
+           CWIPI_GET_N_LOCATED_POINTS_CF) (const char *coupling_name,
                                                const int  *l_coupling_name,
                                                int *n_located_points
                                                ARGF_SUPP_CHAINE);
@@ -445,8 +445,8 @@ void PROCF(couplings_get_n_located_points_cf,
  *   n_not_located_Points --> Number of not located points
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_get_n_not_located_points_cf,
-           COUPLINGS_GET_N_NOT_LOCATED_POINTS_CF) (const char *coupling_name,
+void PROCF(cwipi_get_n_not_located_points_cf,
+           CWIPI_GET_N_NOT_LOCATED_POINTS_CF) (const char *coupling_name,
                                                    const int  *l_coupling_name,
                                                    int *n_not_located_points
                                                    ARGF_SUPP_CHAINE);
@@ -461,8 +461,8 @@ void PROCF(couplings_get_n_not_located_points_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_get_n_located_distant_points_cf,
-           COUPLINGS_GET_N_LOCATED_DISTANT_POINTS_CF) (const char *coupling_name,
+void PROCF(cwipi_get_n_located_distant_points_cf,
+           CWIPI_GET_N_LOCATED_DISTANT_POINTS_CF) (const char *coupling_name,
                                                        const int  *l_coupling_name,
                                                        int *n_located_distant_Points
                                                        ARGF_SUPP_CHAINE);
@@ -477,8 +477,8 @@ void PROCF(couplings_get_n_located_distant_points_cf,
  *                                    coordinates index
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_get_distant_barycentric_coordinates_index_cf,
-           COUPLINGS_GET_DISTANT_BARYCENTRIC_COORDINATES_INDEX_CF) (const char *coupling_name,
+void PROCF(cwipi_get_distant_barycentric_coordinates_index_cf,
+           CWIPI_GET_DISTANT_BARYCENTRIC_COORDINATES_INDEX_CF) (const char *coupling_name,
                                        const int  *l_coupling_name,
                                        int *barycentricCoordinatesIndex
                                        ARGF_SUPP_CHAINE);
@@ -493,8 +493,8 @@ void PROCF(couplings_get_distant_barycentric_coordinates_index_cf,
  *                                    coordinates
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_get_distant_barycentric_coordinates_cf,
-           COUPLINGS_GET_DISTANT_BARYCENTRIC_COORDINATES_CF) (const char *coupling_name,
+void PROCF(cwipi_get_distant_barycentric_coordinates_cf,
+           CWIPI_GET_DISTANT_BARYCENTRIC_COORDINATES_CF) (const char *coupling_name,
                                        const int  *l_coupling_name,
                                        double *barycentricCoordinates
                                        ARGF_SUPP_CHAINE);
@@ -509,8 +509,8 @@ void PROCF(couplings_get_distant_barycentric_coordinates_cf,
  *   exchange_name        <-- Exchange name
  *   exchange_type        <-- Exchange type
  *   exchange_dimension   <-- Dimension of exchanged data :
- *                            - COUPLINGS_DIMENSION_SCALAR
- *                            - COUPLINGS_DIMENSION_INTERLACED_VECTOR
+ *                            - CWIPI_DIMENSION_SCALAR
+ *                            - CWIPI_DIMENSION_INTERLACED_VECTOR
  *   time_step            <-- Time step  (only for visualization)
  *   time_value           <-- Time value (only for visualization)
  *   sending_field_name   <-- Sending field name
@@ -524,8 +524,8 @@ void PROCF(couplings_get_distant_barycentric_coordinates_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_exchange_cf,
-           COUPLINGS_EXCHANGE_CF)
+void PROCF(cwipi_exchange_cf,
+           CWIPI_EXCHANGE_CF)
   (const char      *coupling_name,
    const int       *l_coupling_name,
    const char      *exchange_name,
@@ -543,8 +543,8 @@ void PROCF(couplings_exchange_cf,
    int             *exchange_status
    ARGF_SUPP_CHAINE);
 
-void PROCF(couplings_exchange_with_user_interpolation_cf,
-           COUPLINGS_EXCHANGE_WITH_USER_INTERPOLATION_CF)
+void PROCF(cwipi_exchange_with_user_interpolation_cf,
+           CWIPI_EXCHANGE_WITH_USER_INTERPOLATION_CF)
   (const char      *coupling_name,
    const int       *l_coupling_name,
    const char      *exchange_name,
@@ -563,8 +563,8 @@ void PROCF(couplings_exchange_with_user_interpolation_cf,
    int             *exchange_status
    ARGF_SUPP_CHAINE);
 
-void PROCF(couplings_receive_cf,
-           COUPLINGS_RECEIVE_CF)
+void PROCF(cwipi_receive_cf,
+           CWIPI_RECEIVE_CF)
   (const char      *coupling_name,
    const int       *l_coupling_name,
    const char      *exchange_name,
@@ -580,8 +580,8 @@ void PROCF(couplings_receive_cf,
    ARGF_SUPP_CHAINE);
 
 
-void PROCF(couplings_send_with_user_interpolation_cf,
-           COUPLINGS_SEND_WITH_USER_INTERPOLATION_CF)
+void PROCF(cwipi_send_with_user_interpolation_cf,
+           CWIPI_SEND_WITH_USER_INTERPOLATION_CF)
   (const char      *coupling_name,
    const int       *l_coupling_name,
    const char      *exchange_name,
@@ -597,8 +597,8 @@ void PROCF(couplings_send_with_user_interpolation_cf,
    ARGF_SUPP_CHAINE);
 
 
-void PROCF(couplings_send_cf,
-           COUPLINGS_SEND_CF)
+void PROCF(cwipi_send_cf,
+           CWIPI_SEND_CF)
   (const char      *coupling_name,
    const int       *l_coupling_name,
    const char      *exchange_name,
@@ -621,8 +621,8 @@ void PROCF(couplings_send_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_delete_coupling_cf,
-           COUPLINGS_DELETE_COUPLING_CF)
+void PROCF(cwipi_delete_coupling_cf,
+           CWIPI_DELETE_COUPLING_CF)
   (const char *coupling_name,
    const int  *l_coupling_name
    ARGF_SUPP_CHAINE);
@@ -637,8 +637,8 @@ void PROCF(couplings_delete_coupling_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_get_not_located_points_cf,
-           COUPLINGS_GET_NOT_LOCATED_POINTS_CF)
+void PROCF(cwipi_get_not_located_points_cf,
+           CWIPI_GET_NOT_LOCATED_POINTS_CF)
   (const char *coupling_name,
    const int  *l_coupling_name,
    int *notLocatedPoints);
@@ -653,20 +653,20 @@ void PROCF(couplings_get_not_located_points_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_get_located_points_cf,
-           COUPLINGS_GET_LOCATED_POINTS_CF)
+void PROCF(cwipi_get_located_points_cf,
+           CWIPI_GET_LOCATED_POINTS_CF)
   (const char *coupling_name,
    const int  *l_coupling_name,
    int *locatedPoints);
 
 /*----------------------------------------------------------------------------
  *
- * Finalize couplings. This is a synchronization point between all applications
+ * Finalize cwipi. This is a synchronization point between all applications
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_finalize_f,
-           COUPLINGS_FINALIZE_F) ();
+void PROCF(cwipi_finalize_f,
+           CWIPI_FINALIZE_F) ();
 
 /*----------------------------------------------------------------------------
  *
@@ -674,8 +674,8 @@ void PROCF(couplings_finalize_f,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_dump_application_properties_f,
-           COUPLINGS_DUMP_APPLICATION_PROPERTIES_F) ();
+void PROCF(cwipi_dump_application_properties_f,
+           CWIPI_DUMP_APPLICATION_PROPERTIES_F) ();
 
 /*----------------------------------------------------------------------------*/
 
@@ -683,4 +683,4 @@ void PROCF(couplings_dump_application_properties_f,
 }
 #endif /* __cplusplus */
 
-#endif /* __COUPLINGS_H__ */
+#endif /* __CWIPI_H__ */

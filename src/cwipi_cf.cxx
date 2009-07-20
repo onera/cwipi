@@ -23,11 +23,11 @@
  *  Header for the current file
  *----------------------------------------------------------------------------*/
 
-#include "couplings_cf.h"
+#include "cwipi_cf.h"
 #include "applicationPropertiesDataBase.hxx"
 #include "couplingDataBase.hxx"
 #include "couplingDataBase_i.hxx"
-#include "couplings.h"
+#include "cwipi.h"
 #include "coupling.hxx"
 #include "coupling_i.hxx"
 
@@ -83,7 +83,7 @@ extern "C" {
  *
  *----------------------------------------------------------------------------*/
 
-static char *_couplings_fortran_to_c_string(const char *application_name_f,
+static char *_cwipi_fortran_to_c_string(const char *application_name_f,
                                   const int l_application_name_f)
 {
   char *application_name_c = NULL;
@@ -124,7 +124,7 @@ static char *_couplings_fortran_to_c_string(const char *application_name_f,
  *
  *----------------------------------------------------------------------------*/
 
-int _couplings_print_with_fortran
+int _cwipi_print_with_fortran
 (
  const char     *const format,
        va_list         arg_ptr
@@ -184,7 +184,7 @@ int _couplings_print_with_fortran
 
 /*----------------------------------------------------------------------------
  *
- * Initialize the couplings library.
+ * Initialize the cwipi library.
  * Redirect outputs in a file (Standard output with output_listing = NULL or
  * output_logical_unit = -1)
  * Create the current communicator application from 'common_comm'.
@@ -198,7 +198,7 @@ int _couplings_print_with_fortran
  * This is a synchronization between all applications
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_init_cf, COUPLINGS_INIT_CF)
+void PROCF(cwipi_init_cf, CWIPI_INIT_CF)
   (MPI_Fint  *common_fcomm,
    const char *application_name_f,
    const int  *l_application_name,
@@ -209,11 +209,11 @@ void PROCF(couplings_init_cf, COUPLINGS_INIT_CF)
 
   MPI_Comm application_comm = MPI_COMM_NULL;
 
-  char *application_name_c = _couplings_fortran_to_c_string(application_name_f,
+  char *application_name_c = _cwipi_fortran_to_c_string(application_name_f,
                                                             *l_application_name);
 
-  couplings::ApplicationPropertiesDataBase & properties =
-    couplings::ApplicationPropertiesDataBase::getInstance();
+  cwipi::ApplicationPropertiesDataBase & properties =
+    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   application_comm = properties.init(application_name_c,
                                      common_comm);
@@ -230,9 +230,9 @@ void PROCF(couplings_init_cf, COUPLINGS_INIT_CF)
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_set_output_listing_cf, COUPLINGS_SET_OUTPUT_LISTING_CF)()
+void PROCF(cwipi_set_output_listing_cf, CWIPI_SET_OUTPUT_LISTING_CF)()
 {
-  bft_printf_proxy_set(_couplings_print_with_fortran);
+  bft_printf_proxy_set(_cwipi_print_with_fortran);
 }
 
 /*----------------------------------------------------------------------------
@@ -245,15 +245,15 @@ void PROCF(couplings_set_output_listing_cf, COUPLINGS_SET_OUTPUT_LISTING_CF)()
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_add_local_int_control_parameter_cf,
-           COUPLINGS_ADD_LOCAL_INT_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_add_local_int_control_parameter_cf,
+           CWIPI_ADD_LOCAL_INT_CONTROL_PARAMETER_CF)
   (const char *name,
    const int  *l_name,
    int *initial_value
    ARGF_SUPP_CHAINE)
 {
-  char* nameC = _couplings_fortran_to_c_string(name, *l_name);
-  couplings_add_local_int_control_parameter(nameC, *initial_value);
+  char* nameC = _cwipi_fortran_to_c_string(name, *l_name);
+  cwipi_add_local_int_control_parameter(nameC, *initial_value);
   delete[] nameC;
 }
 
@@ -267,15 +267,15 @@ void PROCF(couplings_add_local_int_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_add_local_double_control_parameter_cf,
-           COUPLINGS_ADD_LOCAL_DOUBLE_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_add_local_double_control_parameter_cf,
+           CWIPI_ADD_LOCAL_DOUBLE_CONTROL_PARAMETER_CF)
   (const char *name,
    const int  *l_name,
    double *initial_value
    ARGF_SUPP_CHAINE)
 {
-  char* nameC = _couplings_fortran_to_c_string(name, *l_name);
-  couplings_add_local_double_control_parameter(nameC, *initial_value);
+  char* nameC = _cwipi_fortran_to_c_string(name, *l_name);
+  cwipi_add_local_double_control_parameter(nameC, *initial_value);
   delete[] nameC;
 }
 
@@ -289,15 +289,15 @@ void PROCF(couplings_add_local_double_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_set_local_int_control_parameter_cf,
-           COUPLINGS_SET_LOCAL_INT_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_set_local_int_control_parameter_cf,
+           CWIPI_SET_LOCAL_INT_CONTROL_PARAMETER_CF)
   (const char *name,
    const int  *l_name,
    int *value
    ARGF_SUPP_CHAINE)
 {
-  char* nameC = _couplings_fortran_to_c_string(name, *l_name);
-  couplings_set_local_int_control_parameter(nameC, *value);
+  char* nameC = _cwipi_fortran_to_c_string(name, *l_name);
+  cwipi_set_local_int_control_parameter(nameC, *value);
   delete[] nameC;
 }
 
@@ -311,15 +311,15 @@ void PROCF(couplings_set_local_int_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_set_local_double_control_parameter_cf,
-           COUPLINGS_SET_LOCAL_DOUBLE_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_set_local_double_control_parameter_cf,
+           CWIPI_SET_LOCAL_DOUBLE_CONTROL_PARAMETER_CF)
   (const char *name,
    const int  *l_name,
    double *value
    ARGF_SUPP_CHAINE)
 {
-  char* nameC = _couplings_fortran_to_c_string(name, *l_name);
-  couplings_set_local_double_control_parameter(nameC, *value);
+  char* nameC = _cwipi_fortran_to_c_string(name, *l_name);
+  cwipi_set_local_double_control_parameter(nameC, *value);
   delete[] nameC;
 }
 
@@ -332,15 +332,15 @@ void PROCF(couplings_set_local_double_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_get_local_int_control_parameter_cf,
-           COUPLINGS_GET_LOCAL_INT_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_get_local_int_control_parameter_cf,
+           CWIPI_GET_LOCAL_INT_CONTROL_PARAMETER_CF)
   (const char *name,
    const int  *l_name,
    int *value
    ARGF_SUPP_CHAINE)
 {
-  char* nameC = _couplings_fortran_to_c_string(name, *l_name);
-  *value = couplings_get_local_int_control_parameter(nameC);
+  char* nameC = _cwipi_fortran_to_c_string(name, *l_name);
+  *value = cwipi_get_local_int_control_parameter(nameC);
   delete[] nameC;
 }
 
@@ -353,15 +353,15 @@ void PROCF(couplings_get_local_int_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_get_local_double_control_parameter_cf,
-           COUPLINGS_GET_LOCAL_DOUBLE_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_get_local_double_control_parameter_cf,
+           CWIPI_GET_LOCAL_DOUBLE_CONTROL_PARAMETER_CF)
   (const char *name,
    const int  *l_name,
    double *value
    ARGF_SUPP_CHAINE)
 {
-  char* nameC = _couplings_fortran_to_c_string(name, *l_name);
-  *value = couplings_get_local_double_control_parameter(nameC);
+  char* nameC = _cwipi_fortran_to_c_string(name, *l_name);
+  *value = cwipi_get_local_double_control_parameter(nameC);
   delete[] nameC;
 }
 
@@ -374,14 +374,14 @@ void PROCF(couplings_get_local_double_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_delete_local_int_control_parameter_cf,
-           COUPLINGS_DELETE_LOCAL_INT_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_delete_local_int_control_parameter_cf,
+           CWIPI_DELETE_LOCAL_INT_CONTROL_PARAMETER_CF)
   (const char *name,
    const int  *l_name
    ARGF_SUPP_CHAINE)
 {
-  char* nameC = _couplings_fortran_to_c_string(name, *l_name);
-  couplings_delete_local_int_control_parameter(nameC);
+  char* nameC = _cwipi_fortran_to_c_string(name, *l_name);
+  cwipi_delete_local_int_control_parameter(nameC);
   delete[] nameC;
 }
 
@@ -394,14 +394,14 @@ void PROCF(couplings_delete_local_int_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_delete_local_double_control_parameter_cf,
-           COUPLINGS_DELETE_LOCAL_DOUBLE_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_delete_local_double_control_parameter_cf,
+           CWIPI_DELETE_LOCAL_DOUBLE_CONTROL_PARAMETER_CF)
   (const char *name,
    const int  *l_name
    ARGF_SUPP_CHAINE)
 {
-  char* nameC = _couplings_fortran_to_c_string(name, *l_name);
-  couplings_delete_local_double_control_parameter(nameC);
+  char* nameC = _cwipi_fortran_to_c_string(name, *l_name);
+  cwipi_delete_local_double_control_parameter(nameC);
   delete[] nameC;
 }
 
@@ -415,8 +415,8 @@ void PROCF(couplings_delete_local_double_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_get_distant_int_control_parameter_cf,
-           COUPLINGS_GET_DISTANT_INT_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_get_distant_int_control_parameter_cf,
+           CWIPI_GET_DISTANT_INT_CONTROL_PARAMETER_CF)
   (const char *application_name,
    const int  *l_application_name,
    const char *name,
@@ -425,10 +425,10 @@ void PROCF(couplings_get_distant_int_control_parameter_cf,
    ARGF_SUPP_CHAINE)
 {
   char *application_nameC =
-    _couplings_fortran_to_c_string(application_name, *l_application_name);
-  char *nameC = _couplings_fortran_to_c_string(name, *l_name);
+    _cwipi_fortran_to_c_string(application_name, *l_application_name);
+  char *nameC = _cwipi_fortran_to_c_string(name, *l_name);
 
-  *value = couplings_get_distant_int_control_parameter(application_nameC,
+  *value = cwipi_get_distant_int_control_parameter(application_nameC,
                                                        nameC);
 
   delete[] nameC;
@@ -445,8 +445,8 @@ void PROCF(couplings_get_distant_int_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_get_distant_double_control_parameter_cf,
-           COUPLINGS_GET_DISTANT_DOUBLE_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_get_distant_double_control_parameter_cf,
+           CWIPI_GET_DISTANT_DOUBLE_CONTROL_PARAMETER_CF)
   (const char *application_name,
    const int  *l_application_name,
    const char *name,
@@ -455,10 +455,10 @@ void PROCF(couplings_get_distant_double_control_parameter_cf,
    ARGF_SUPP_CHAINE)
 {
   char *application_nameC =
-    _couplings_fortran_to_c_string(application_name, *l_application_name);
-  char *nameC = _couplings_fortran_to_c_string(name, *l_name);
+    _cwipi_fortran_to_c_string(application_name, *l_application_name);
+  char *nameC = _cwipi_fortran_to_c_string(name, *l_name);
 
-  *value = couplings_get_distant_double_control_parameter(application_nameC,
+  *value = cwipi_get_distant_double_control_parameter(application_nameC,
                                                           nameC);
 
   delete[] nameC;
@@ -476,16 +476,16 @@ void PROCF(couplings_get_distant_double_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_synchronize_control_parameter_cf,
-           COUPLINGS_SYNCHRONIZE_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_synchronize_control_parameter_cf,
+           CWIPI_SYNCHRONIZE_CONTROL_PARAMETER_CF)
   (const char *application_name,
    const int  *l_application_name
    ARGF_SUPP_CHAINE)
 {
   char *application_nameC =
-    _couplings_fortran_to_c_string(application_name, *l_application_name);
+    _cwipi_fortran_to_c_string(application_name, *l_application_name);
 
-  couplings_synchronize_control_parameter(application_nameC);
+  cwipi_synchronize_control_parameter(application_nameC);
 
   delete[] application_nameC;
 }
@@ -500,10 +500,10 @@ void PROCF(couplings_synchronize_control_parameter_cf,
  *   cplAppli                <-- Coupled application name
  *   entitiesDim             <-- Mesh entities dimension (1, 2 or 3)
  *   tolerance               <-- Geometric tolerance to locate
- *   meshT                   <-- COUPLINGS_STATIC_MESH
- *                               COUPLINGS_MOBILE_MESH (not implemented yet)
- *   solverT                 <-- COUPLINGS_SOLVER_CELL_CENTER
- *                               COUPLINGS_SOLVER_CELL_VERTEX
+ *   meshT                   <-- CWIPI_STATIC_MESH
+ *                               CWIPI_MOBILE_MESH (not implemented yet)
+ *   solverT                 <-- CWIPI_SOLVER_CELL_CENTER
+ *                               CWIPI_SOLVER_CELL_VERTEX
  *   outputFreq              <-- Output frequency
  *   outputFmt               <-- Output format to visualize exchanged fields
  *                               on the coupled mesh. Choice between :
@@ -528,8 +528,8 @@ void PROCF(couplings_synchronize_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_create_coupling_cf,
-           COUPLINGS_CREATE_COUPLING_CF)
+void PROCF(cwipi_create_coupling_cf,
+           CWIPI_CREATE_COUPLING_CF)
 ( const char *coupling_name,
   const int  *l_coupling_name,
   const int  *coupling_type,
@@ -548,24 +548,24 @@ void PROCF(couplings_create_coupling_cf,
 
 {
   char *coupling_nameC =
-    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
 
   char *coupled_applicationC =
-    _couplings_fortran_to_c_string(coupled_application, *l_coupled_application);
+    _cwipi_fortran_to_c_string(coupled_application, *l_coupled_application);
 
   char *output_formatC =
-    _couplings_fortran_to_c_string(output_format, *l_output_format);
+    _cwipi_fortran_to_c_string(output_format, *l_output_format);
 
   char *output_format_optionC =
-    _couplings_fortran_to_c_string(output_format_option, *l_output_format_option);
+    _cwipi_fortran_to_c_string(output_format_option, *l_output_format_option);
 
-  couplings_create_coupling(coupling_nameC,
-                            (couplings_coupling_type_t) *coupling_type,
+  cwipi_create_coupling(coupling_nameC,
+                            (cwipi_coupling_type_t) *coupling_type,
                             coupled_applicationC,
                             *entities_dim,
                             *tolerance,
-                            (couplings_mesh_type_t) *mesh_type,
-                            (couplings_solver_type_t) *solver_type,
+                            (cwipi_mesh_type_t) *mesh_type,
+                            (cwipi_solver_type_t) *solver_type,
                             *output_frequency,
                             output_formatC,
                             output_format_optionC);
@@ -590,8 +590,8 @@ void PROCF(couplings_create_coupling_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_set_points_to_locate_cf,
-           COUPLINGS_SET_POINTS_TO_LOCATE_CF)
+void PROCF(cwipi_set_points_to_locate_cf,
+           CWIPI_SET_POINTS_TO_LOCATE_CF)
   (const char   *coupling_name,
    const int  *l_coupling_name,
    const int    *n_points,
@@ -599,9 +599,9 @@ void PROCF(couplings_set_points_to_locate_cf,
    ARGF_SUPP_CHAINE)
 {
   char *coupling_nameC =
-    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
 
-  couplings_set_points_to_locate(coupling_nameC,
+  cwipi_set_points_to_locate(coupling_nameC,
                                  *n_points,
                                  coordinate);
   delete[] coupling_nameC;
@@ -629,8 +629,8 @@ void PROCF(couplings_set_points_to_locate_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_define_mesh_cf,
-           COUPLINGS_DEFINE_MESH_CF)
+void PROCF(cwipi_define_mesh_cf,
+           CWIPI_DEFINE_MESH_CF)
   (const char *coupling_name,
    const int  *l_coupling_name,
    const int *n_vertex,
@@ -641,9 +641,9 @@ void PROCF(couplings_define_mesh_cf,
    ARGF_SUPP_CHAINE)
 {
   char *coupling_nameC =
-    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
 
-  couplings_define_mesh(coupling_nameC,
+  cwipi_define_mesh(coupling_nameC,
                         *n_vertex,
                         *n_element,
                         coordinates,
@@ -652,8 +652,8 @@ void PROCF(couplings_define_mesh_cf,
   delete[] coupling_nameC;
 }
 
-void PROCF(couplings_add_polyhedra_cf,
-           COUPLINGS_ADD_POLYHEDRA_CF)
+void PROCF(cwipi_add_polyhedra_cf,
+           CWIPI_ADD_POLYHEDRA_CF)
   (const char *coupling_name,
    const int  *l_coupling_name,
    const int *n_element,
@@ -665,9 +665,9 @@ void PROCF(couplings_add_polyhedra_cf,
 
 {
   char *coupling_nameC =
-    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
 
-  couplings_add_polyhedra(coupling_name,
+  cwipi_add_polyhedra(coupling_name,
                           *n_element,
                           face_index,
                           cell_to_face_connectivity,
@@ -685,19 +685,19 @@ void PROCF(couplings_add_polyhedra_cf,
  *   coupling_name        <-- Coupling identifier
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_locate_cf, COUPLINGS_LOCATE_CF) (const char *coupling_name,
+void PROCF(cwipi_locate_cf, CWIPI_LOCATE_CF) (const char *coupling_name,
                                                       const int  *l_coupling_name
                                                       ARGF_SUPP_CHAINE)
 {
   char *coupling_nameC =
-    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
 
-  couplings::CouplingDataBase & couplingDataBase =
-    couplings::CouplingDataBase::getInstance();
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.locate();
 
@@ -713,21 +713,21 @@ void PROCF(couplings_locate_cf, COUPLINGS_LOCATE_CF) (const char *coupling_name,
  *   location             --> located points location
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_get_distant_location_cf,
-           COUPLINGS_GET_DISTANT_LOCATION_CF) (const char *coupling_name,
+void PROCF(cwipi_get_distant_location_cf,
+           CWIPI_GET_DISTANT_LOCATION_CF) (const char *coupling_name,
                                        const int  *l_coupling_name,
                                        int *location
                                        ARGF_SUPP_CHAINE)
 {
   char *coupling_nameC =
-    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
 
-  couplings::CouplingDataBase & couplingDataBase =
-    couplings::CouplingDataBase::getInstance();
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   const unsigned int *locationC = (const unsigned int *) coupling.getDistantLocation();
   const int nDistantPoint = coupling.getNDistantPoint();
@@ -747,21 +747,21 @@ void PROCF(couplings_get_distant_location_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_get_n_located_distant_points_cf,
-           COUPLINGS_GET_N_LOCATED_DISTANT_POINTS_CF) (const char *coupling_name,
+void PROCF(cwipi_get_n_located_distant_points_cf,
+           CWIPI_GET_N_LOCATED_DISTANT_POINTS_CF) (const char *coupling_name,
                                                        const int  *l_coupling_name,
                                                        int *n_located_distant_Points
                                                        ARGF_SUPP_CHAINE)
 {
   char *coupling_nameC =
-    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
 
-  couplings::CouplingDataBase & couplingDataBase =
-    couplings::CouplingDataBase::getInstance();
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   *n_located_distant_Points = coupling.getNDistantPoint();
 
@@ -779,21 +779,21 @@ void PROCF(couplings_get_n_located_distant_points_cf,
  *                                    coordinates index
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_get_distant_barycentric_coordinates_index_cf,
-           COUPLINGS_GET_DISTANT_BARYCENTRIC_COORDINATES_INDEX_CF) (const char *coupling_name,
+void PROCF(cwipi_get_distant_barycentric_coordinates_index_cf,
+           CWIPI_GET_DISTANT_BARYCENTRIC_COORDINATES_INDEX_CF) (const char *coupling_name,
                                        const int  *l_coupling_name,
                                        int *barycentricCoordinatesIndex
                                        ARGF_SUPP_CHAINE)
 {
   char *coupling_nameC =
-    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
 
-  couplings::CouplingDataBase & couplingDataBase =
-    couplings::CouplingDataBase::getInstance();
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   const int* barycentricCoordinatesIndexC = coupling.getDistantBarycentricCoordinatesIndex();
   const int nDistantPoint = coupling.getNDistantPoint();
@@ -813,21 +813,21 @@ void PROCF(couplings_get_distant_barycentric_coordinates_index_cf,
  *   n_located_Points     --> Number of located points
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_get_n_located_points_cf,
-           COUPLINGS_GET_N_LOCATED_POINTS_CF) (const char *coupling_name,
+void PROCF(cwipi_get_n_located_points_cf,
+           CWIPI_GET_N_LOCATED_POINTS_CF) (const char *coupling_name,
                                                const int  *l_coupling_name,
                                                int *n_located_points
                                                ARGF_SUPP_CHAINE)
 {
   char *coupling_nameC =
-    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
 
-  couplings::CouplingDataBase & couplingDataBase =
-    couplings::CouplingDataBase::getInstance();
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   *n_located_points = coupling.getNLocatedPoint();
 
@@ -843,21 +843,21 @@ void PROCF(couplings_get_n_located_points_cf,
  *   n_not_located_Points --> Number of not located points
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_get_n_not_located_points_cf,
-           COUPLINGS_GET_N_NOT_LOCATED_POINTS_CF) (const char *coupling_name,
+void PROCF(cwipi_get_n_not_located_points_cf,
+           CWIPI_GET_N_NOT_LOCATED_POINTS_CF) (const char *coupling_name,
                                                    const int  *l_coupling_name,
                                                    int *n_not_located_points
                                                    ARGF_SUPP_CHAINE)
 {
   char *coupling_nameC =
-    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
 
-  couplings::CouplingDataBase & couplingDataBase =
-    couplings::CouplingDataBase::getInstance();
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   *n_not_located_points = coupling.getNNotlocatedPoint();
 
@@ -874,21 +874,21 @@ void PROCF(couplings_get_n_not_located_points_cf,
  *                                    coordinates
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_get_distant_barycentric_coordinates_cf,
-           COUPLINGS_GET_DISTANT_BARYCENTRIC_COORDINATES_CF) (const char *coupling_name,
+void PROCF(cwipi_get_distant_barycentric_coordinates_cf,
+           CWIPI_GET_DISTANT_BARYCENTRIC_COORDINATES_CF) (const char *coupling_name,
                                        const int  *l_coupling_name,
                                        double *barycentricCoordinates
                                        ARGF_SUPP_CHAINE)
 {
   char *coupling_nameC =
-    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
 
-  couplings::CouplingDataBase & couplingDataBase =
-    couplings::CouplingDataBase::getInstance();
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  couplings::Coupling& coupling =
+  cwipi::Coupling& coupling =
     couplingDataBase.getCoupling(coupling_name_str);
 
   const int* barycentricCoordinatesIndexC = coupling.getDistantBarycentricCoordinatesIndex();
@@ -911,8 +911,8 @@ void PROCF(couplings_get_distant_barycentric_coordinates_cf,
  *   exchange_name        <-- Exchange name
  *   exchange_type        <-- Exchange type
  *   exchange_dimension   <-- Dimension of exchanged data :
- *                            - COUPLINGS_DIMENSION_SCALAR
- *                            - COUPLINGS_DIMENSION_INTERLACED_VECTOR
+ *                            - CWIPI_DIMENSION_SCALAR
+ *                            - CWIPI_DIMENSION_INTERLACED_VECTOR
  *   time_step            <-- Time step  (only for visualization)
  *   time_value           <-- Time value (only for visualization)
  *   sending_field_name   <-- Sending field name
@@ -926,8 +926,8 @@ void PROCF(couplings_get_distant_barycentric_coordinates_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_exchange_with_user_interpolation_cf,
-           COUPLINGS_EXCHANGE_WITH_USER_INTERPOLATION_CF)
+void PROCF(cwipi_exchange_with_user_interpolation_cf,
+           CWIPI_EXCHANGE_WITH_USER_INTERPOLATION_CF)
   (const char      *coupling_name,
    const int       *l_coupling_name,
    const char      *exchange_name,
@@ -947,24 +947,24 @@ void PROCF(couplings_exchange_with_user_interpolation_cf,
    ARGF_SUPP_CHAINE)
 {
   char *coupling_nameC =
-    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
 
   char *exchange_nameC =
-    _couplings_fortran_to_c_string(exchange_name, *l_exchange_name);
+    _cwipi_fortran_to_c_string(exchange_name, *l_exchange_name);
 
   char *sending_field_nameC =
-    _couplings_fortran_to_c_string(sending_field_name, *l_sending_field_name);
+    _cwipi_fortran_to_c_string(sending_field_name, *l_sending_field_name);
 
   char *receiving_field_nameC =
-    _couplings_fortran_to_c_string(receiving_field_name, *l_receiving_field_name);
+    _cwipi_fortran_to_c_string(receiving_field_name, *l_receiving_field_name);
 
 
-  couplings::CouplingDataBase & couplingDataBase =
-    couplings::CouplingDataBase::getInstance();
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   *exchange_status =  coupling.exchange(exchange_nameC,
                                         *stride,
@@ -985,8 +985,8 @@ void PROCF(couplings_exchange_with_user_interpolation_cf,
 }
 
 
-void PROCF(couplings_exchange_cf,
-           COUPLINGS_EXCHANGE_CF)
+void PROCF(cwipi_exchange_cf,
+           CWIPI_EXCHANGE_CF)
   (const char      *coupling_name,
    const int       *l_coupling_name,
    const char      *exchange_name,
@@ -1005,24 +1005,24 @@ void PROCF(couplings_exchange_cf,
    ARGF_SUPP_CHAINE)
 {
   char *coupling_nameC =
-    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
 
   char *exchange_nameC =
-    _couplings_fortran_to_c_string(exchange_name, *l_exchange_name);
+    _cwipi_fortran_to_c_string(exchange_name, *l_exchange_name);
 
   char *sending_field_nameC =
-    _couplings_fortran_to_c_string(sending_field_name, *l_sending_field_name);
+    _cwipi_fortran_to_c_string(sending_field_name, *l_sending_field_name);
 
   char *receiving_field_nameC =
-    _couplings_fortran_to_c_string(receiving_field_name, *l_receiving_field_name);
+    _cwipi_fortran_to_c_string(receiving_field_name, *l_receiving_field_name);
 
 
-  couplings::CouplingDataBase & couplingDataBase =
-    couplings::CouplingDataBase::getInstance();
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   *exchange_status =  coupling.exchange(exchange_nameC,
                                         *stride,
@@ -1042,8 +1042,8 @@ void PROCF(couplings_exchange_cf,
   delete[] receiving_field_nameC;
 }
 
-void PROCF(couplings_receive_cf,
-           COUPLINGS_RECEIVE_CF)
+void PROCF(cwipi_receive_cf,
+           CWIPI_RECEIVE_CF)
   (const char      *coupling_name,
    const int       *l_coupling_name,
    const char      *exchange_name,
@@ -1059,21 +1059,21 @@ void PROCF(couplings_receive_cf,
    ARGF_SUPP_CHAINE)
 {
   char *coupling_nameC =
-    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
 
   char *exchange_nameC =
-    _couplings_fortran_to_c_string(exchange_name, *l_exchange_name);
+    _cwipi_fortran_to_c_string(exchange_name, *l_exchange_name);
 
   char *receiving_field_nameC =
-    _couplings_fortran_to_c_string(receiving_field_name, *l_receiving_field_name);
+    _cwipi_fortran_to_c_string(receiving_field_name, *l_receiving_field_name);
 
 
-  couplings::CouplingDataBase & couplingDataBase =
-    couplings::CouplingDataBase::getInstance();
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   *exchange_status =  coupling.exchange(exchange_nameC,
                                         *stride,
@@ -1091,8 +1091,8 @@ void PROCF(couplings_receive_cf,
   delete[] receiving_field_nameC;
 }
 
-void PROCF(couplings_send_with_user_interpolation_cf,
-           COUPLINGS_SEND_WITH_USER_INTERPOLATION_CF)
+void PROCF(cwipi_send_with_user_interpolation_cf,
+           CWIPI_SEND_WITH_USER_INTERPOLATION_CF)
   (const char      *coupling_name,
    const int       *l_coupling_name,
    const char      *exchange_name,
@@ -1108,20 +1108,20 @@ void PROCF(couplings_send_with_user_interpolation_cf,
    ARGF_SUPP_CHAINE)
 {
   char *coupling_nameC =
-    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
 
   char *exchange_nameC =
-    _couplings_fortran_to_c_string(exchange_name, *l_exchange_name);
+    _cwipi_fortran_to_c_string(exchange_name, *l_exchange_name);
 
   char *sending_field_nameC =
-    _couplings_fortran_to_c_string(sending_field_name, *l_sending_field_name);
+    _cwipi_fortran_to_c_string(sending_field_name, *l_sending_field_name);
 
-  couplings::CouplingDataBase & couplingDataBase =
-    couplings::CouplingDataBase::getInstance();
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   *exchange_status =  coupling.exchange(exchange_nameC,
                                         *stride,
@@ -1137,8 +1137,8 @@ void PROCF(couplings_send_with_user_interpolation_cf,
   delete[] sending_field_nameC;
 }
 
-void PROCF(couplings_send_cf,
-           COUPLINGS_SEND_CF)
+void PROCF(cwipi_send_cf,
+           CWIPI_SEND_CF)
   (const char      *coupling_name,
    const int       *l_coupling_name,
    const char      *exchange_name,
@@ -1153,20 +1153,20 @@ void PROCF(couplings_send_cf,
    ARGF_SUPP_CHAINE)
 {
   char *coupling_nameC =
-    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
 
   char *exchange_nameC =
-    _couplings_fortran_to_c_string(exchange_name, *l_exchange_name);
+    _cwipi_fortran_to_c_string(exchange_name, *l_exchange_name);
 
   char *sending_field_nameC =
-    _couplings_fortran_to_c_string(sending_field_name, *l_sending_field_name);
+    _cwipi_fortran_to_c_string(sending_field_name, *l_sending_field_name);
 
-  couplings::CouplingDataBase & couplingDataBase =
-    couplings::CouplingDataBase::getInstance();
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   *exchange_status =  coupling.exchange(exchange_nameC,
                                         *stride,
@@ -1191,30 +1191,30 @@ void PROCF(couplings_send_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_delete_coupling_cf,
-           COUPLINGS_DELETE_COUPLING_CF)
+void PROCF(cwipi_delete_coupling_cf,
+           CWIPI_DELETE_COUPLING_CF)
   (const char *coupling_name,
    const int       *l_coupling_name
    ARGF_SUPP_CHAINE)
 {
   char *coupling_nameC =
-    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
 
-  couplings_delete_coupling(coupling_nameC);
+  cwipi_delete_coupling(coupling_nameC);
   delete[] coupling_nameC;
 }
 
 /*----------------------------------------------------------------------------
  *
- * Finalize couplings. This is a synchronization point between all applications
+ * Finalize cwipi. This is a synchronization point between all applications
  *
  *----------------------------------------------------------------------------*/
 
 
-void PROCF(couplings_finalize_f,
-           COUPLINGS_FINALIZE_F) ()
+void PROCF(cwipi_finalize_f,
+           CWIPI_FINALIZE_F) ()
 {
-  couplings_finalize();
+  cwipi_finalize();
 }
 
 /*----------------------------------------------------------------------------
@@ -1223,10 +1223,10 @@ void PROCF(couplings_finalize_f,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_dump_application_properties_f,
-           COUPLINGS_DUMP_APPLICATION_PROPERTIES_F) ()
+void PROCF(cwipi_dump_application_properties_f,
+           CWIPI_DUMP_APPLICATION_PROPERTIES_F) ()
 {
-  couplings_dump_application_properties();
+  cwipi_dump_application_properties();
 }
 
 /*----------------------------------------------------------------------------
@@ -1239,21 +1239,21 @@ void PROCF(couplings_dump_application_properties_f,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_get_not_located_points_cf,
-           COUPLINGS_GET_NOT_LOCATED_POINTS_CF)
+void PROCF(cwipi_get_not_located_points_cf,
+           CWIPI_GET_NOT_LOCATED_POINTS_CF)
   (const char *coupling_name,
    const int  *l_coupling_name,
    int *notLocatedPoints)
 {
-  couplings::CouplingDataBase & couplingDataBase =
-    couplings::CouplingDataBase::getInstance();
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
 
   char *coupling_nameC =
-    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   const int n_not_located_points = coupling.getNNotlocatedPoint();
   const int *notLocatedPointsC = coupling.getNotlocatedPoint();
@@ -1275,21 +1275,21 @@ void PROCF(couplings_get_not_located_points_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(couplings_get_located_points_cf,
-           COUPLINGS_GET_LOCATED_POINTS_CF)
+void PROCF(cwipi_get_located_points_cf,
+           CWIPI_GET_LOCATED_POINTS_CF)
   (const char *coupling_name,
    const int  *l_coupling_name,
    int *locatedPoints)
 {
-  couplings::CouplingDataBase & couplingDataBase =
-    couplings::CouplingDataBase::getInstance();
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
 
   char *coupling_nameC =
-    _couplings_fortran_to_c_string(coupling_name, *l_coupling_name);
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  couplings::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   const int n_located_points = coupling.getNLocatedPoint();
   const int *locatedPointsC = coupling.getLocatedPoint();

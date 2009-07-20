@@ -15,27 +15,27 @@ LTFCCOMPILE = $(LIBTOOL) --mode=compile --tag=FC $(FC) $(DEFS) $(DEFAULT_INCLUDE
 FCCOMPILE = $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_FCFLAGS) $(FCFLAGS) $(FCFLAGS_f90)
 # Public header files (to be installed)
 
-couplingsincludedir = $(includedir)
-couplingsinclude_HEADERS = \
-couplings.mod \
-couplings.h 
+cwipiincludedir = $(includedir)
+cwipiinclude_HEADERS = \
+cwipi.mod \
+cwipi.h 
 
 noinst_HEADERS = \
 coo_baryc.h \
-couplings_cf.h \
+cwipi_cf.h \
 quickSort.h \
 solve_ax_b_4.h
 
 # Library source files
 
-lib_LTLIBRARIES = libcouplings.la libcouplings_f.la
+lib_LTLIBRARIES = libcwipi.la libcwipi_f.la
 noinst_LTLIBRARIES =
-libcouplings_la_LIBADD =
+libcwipi_la_LIBADD =
 
-libcouplings_la_SOURCES = \
+libcwipi_la_SOURCES = \
 applicationProperties.cxx \
 applicationPropertiesDataBase.cxx \
-couplings.cxx \
+cwipi.cxx \
 quickSort.c \
 solve_ax_b_4.c \
 coo_baryc.c \
@@ -44,11 +44,11 @@ coupling.cxx \
 couplingDataBase.cxx \
 callfortinterpfct.f90
 
-libcouplings_f_la_LIBADD = libcouplings.la
+libcwipi_f_la_LIBADD = libcwipi.la
 
-libcouplings_f_la_SOURCES = \
-couplings_cf.cxx \
-couplings_f.f90 \
+libcwipi_f_la_SOURCES = \
+cwipi_cf.cxx \
+cwipi_f.f90 \
 printfort.f90
 
 

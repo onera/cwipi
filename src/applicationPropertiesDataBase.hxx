@@ -12,7 +12,7 @@
 
 #include "singleton.hpp"
 
-namespace couplings {
+namespace cwipi {
   
   class ApplicationProperties;
 

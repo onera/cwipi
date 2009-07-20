@@ -5,7 +5,7 @@
 #include "applicationProperties.hxx"
 #include "coupling.hxx"
 
-namespace couplings {
+namespace cwipi {
   
   CouplingDataBase::CouplingDataBase()
     :  _couplingDataBase(*new std::map <std::string, Coupling * > ())
@@ -27,12 +27,12 @@ namespace couplings {
   }
 
   void  CouplingDataBase::createCoupling(const std::string &name, 
-                                         const couplings_coupling_type_t couplingType,
+                                         const cwipi_coupling_type_t couplingType,
                                          const ApplicationProperties& localApplicationProperties,
                                          const ApplicationProperties& coupledApplicationProperties,
                                          const int entitiesDim,
                                          const double tolerance,
-                                         const couplings_solver_type_t solverType,
+                                         const cwipi_solver_type_t solverType,
                                          const int    outputFrequency,
                                          const char  *outputFormat,
                                          const char  *outputFormatOption)
@@ -58,8 +58,8 @@ namespace couplings {
 
 //       if ( localCommSize != 1) {
 
-//         if ((couplingType != COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING && fvmCommSize > 1) ||
-//             (couplingType == COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING && fvmCommSize == 1)) {
+//         if ((couplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING && fvmCommSize > 1) ||
+//             (couplingType == CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING && fvmCommSize == 1)) {
 
 //           bft_printf("Warning : Post-processing deactivation for '%s' coupling", name.c_str());
 //           bft_printf("          Post-processing is activated for an other coupling type\n");
@@ -72,7 +72,7 @@ namespace couplings {
 
 //     else {
 
-//       if (couplingType != COUPLINGS_COUPLING_PARALLEL_WITH_PARTITIONING) {
+//       if (couplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING) {
 
 //         int list = 0;
 //         MPI_Group localGroup;

@@ -13,7 +13,7 @@ AUTOMAKE_OPTIONS = foreign
 #include directories
 
 #INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/src 
-INCLUDES = -I$(includedir)
+INCLUDES = -I$(top_builddir)/src -I$(top_srcdir)/src
 
 # Add any debug flags
 
@@ -32,7 +32,7 @@ AM_LDFLAGS  = @BFT_LDFLAGS@ @FVM_LDFLAGS@ @MPI_LDFLAGS@ @METIS_LDFLAGS@
 LTFCCOMPILE = $(LIBTOOL) --mode=compile --tag=FC $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_FCFLAGS) $(FCFLAGS) $(FCFLAGS_f90)
 FCCOMPILE = $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_FCFLAGS) $(FCFLAGS) $(FCFLAGS_f90)
 
-LDADD = $(top_builddir)/src/libcouplings.la \
+LDADD = $(top_builddir)/src/libcwipi.la \
         @BFT_LIBS@ @FVM_LIBS@ @MPI_LIBS@ \
 	-lm
 
@@ -51,17 +51,17 @@ test3D_1_c1_SOURCES = test3D_1_c1.c
 test3D_1_c2_SOURCES = test3D_1_c2.c
 
 
-test2D_1_c1_LDADD = $(top_builddir)/src/libcouplings.la \
+test2D_1_c1_LDADD = $(top_builddir)/src/libcwipi.la \
         @BFT_LIBS@ @FVM_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
 	-lm
-test2D_1_c2_LDADD = $(top_builddir)/src/libcouplings.la \
-        $(top_builddir)/src/libcouplings_f.la \
+test2D_1_c2_LDADD = $(top_builddir)/src/libcwipi.la \
+        $(top_builddir)/src/libcwipi_f.la \
         @BFT_LIBS@ @FVM_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
 	-lm
-test3D_1_c1_LDADD = $(top_builddir)/src/libcouplings.la \
+test3D_1_c1_LDADD = $(top_builddir)/src/libcwipi.la \
         @BFT_LIBS@ @FVM_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
 	-lm
-test3D_1_c2_LDADD = $(top_builddir)/src/libcouplings.la \
+test3D_1_c2_LDADD = $(top_builddir)/src/libcwipi.la \
         @BFT_LIBS@ @FVM_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
 	-lm
 

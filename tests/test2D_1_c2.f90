@@ -1,14 +1,14 @@
 
 subroutine printStatus(iiunit, status)
-  use couplings
+  use cwipi
   implicit none
   integer :: status
   integer :: iiunit
 
   select case (status)
-     case(couplings_exchange_ok)
+     case(cwipi_exchange_ok)
         write(iiunit,*) "Exchange ok"
-     case(couplings_exchange_bad_receiving)
+     case(cwipi_exchange_bad_receiving)
         write(iiunit,*) "no or bad receiving"
      case default
         write(iiunit,*) "Unknown receiving status"
@@ -81,7 +81,7 @@ end subroutine interpolationbidon_f
 program testf
  
   use mpi
-  use couplings
+  use cwipi
  
   implicit none
 
@@ -187,7 +187,7 @@ program testf
 ! -----------------------------------------
 !
   
-  call couplings_init_f (mpi_comm_world, & 
+  call cwipi_init_f (mpi_comm_world, & 
                          "CodeFortran", & 
                          localcom)
 
@@ -207,14 +207,14 @@ program testf
   open(unit=iiunit, file='listing_test2D_1_c2_'//proc, &
        form='formatted', status='unknown')
 
-  call couplings_set_output_listing_f(iiunit)
+  call cwipi_set_output_listing_f(iiunit)
 
   write(iiunit,*)
   write(iiunit,*) "dump apres initialisation"
   write(iiunit,*) "-------------------------"
   write(iiunit,*)
 
-  call couplings_dump_application_properties_f
+  call cwipi_dump_application_properties_f
 
 !
 ! -------------------------------
@@ -225,55 +225,55 @@ program testf
 !
 ! Ajout de parametres de controle
 
-!  call couplings_add_local_int_control_parameter_f("niterf", 10)
-  call couplings_add_local_int_control_parameter_f(cpar, vpar)
+!  call cwipi_add_local_int_control_parameter_f("niterf", 10)
+  call cwipi_add_local_int_control_parameter_f(cpar, vpar)
 
-  call couplings_add_local_double_control_parameter_f("physicaltimef", 1.123d0)
+  call cwipi_add_local_double_control_parameter_f("physicaltimef", 1.123d0)
 
   write(iiunit,*)
   write(iiunit,*) "dump apres ajout de parametres"
   write(iiunit,*) "------------------------------"
   write(iiunit,*)
-  call couplings_dump_application_properties_f
+  call cwipi_dump_application_properties_f
 !
 ! Modification des parametres de controle
-  call couplings_get_local_int_control_parameter_f("niterf", ivalue)
+  call cwipi_get_local_int_control_parameter_f("niterf", ivalue)
 
   ivalue = ivalue + 1
 
-  call couplings_set_local_int_control_parameter_f("niterf", ivalue)
+  call cwipi_set_local_int_control_parameter_f("niterf", ivalue)
 
-  call couplings_get_local_double_control_parameter_f("physicaltimef", dvalue)
+  call cwipi_get_local_double_control_parameter_f("physicaltimef", dvalue)
 
   dvalue = dvalue + 0.1d0
 
-  call couplings_set_local_double_control_parameter_f("physicaltimef", dvalue)
+  call cwipi_set_local_double_control_parameter_f("physicaltimef", dvalue)
 
   write(iiunit,*)
   write(iiunit,*) "dump apres modification de parametres"
   write(iiunit,*) "-------------------------------------"
   write(iiunit,*)
-  call couplings_dump_application_properties_f
+  call cwipi_dump_application_properties_f
 !
 ! Echange des parametres de controle
 
-  call couplings_synchronize_control_parameter_f("CodeC")
+  call cwipi_synchronize_control_parameter_f("CodeC")
 
   write(iiunit,*)
   write(iiunit,*) "dump apres synchronisation"
   write(iiunit,*) "--------------------------"
   write(iiunit,*)
-  call couplings_dump_application_properties_f
+  call cwipi_dump_application_properties_f
 !
 ! Suppression des parametres de controle
-  call couplings_delete_local_int_control_parameter_f("niterf")
-  call couplings_delete_local_double_control_parameter_f("physicaltimef")
+  call cwipi_delete_local_int_control_parameter_f("niterf")
+  call cwipi_delete_local_double_control_parameter_f("physicaltimef")
 
   write(iiunit,*)
   write(iiunit,*) "dump apres suppression des parametres"
   write(iiunit,*) "-------------------------------------"
   write(iiunit,*)
-  call couplings_dump_application_properties_f
+  call cwipi_dump_application_properties_f
 ! 
 ! ------------------------
 ! Test couplage p1 <-> p1
@@ -287,13 +287,13 @@ program testf
   write(iiunit, *) " Test 1"
   write(iiunit, *)
 
-  call couplings_create_coupling_f("test2D_1", & 
-                                   couplings_cpl_parallel_with_part,&
+  call cwipi_create_coupling_f("test2D_1", & 
+                                   cwipi_cpl_parallel_with_part,&
                                    "CodeC", &          
                                    2,     & ! Dimension des entites geometriques                 
                                    0.1d0, & ! Tolerance geometrique                        
-                                   couplings_static_mesh, &       
-                                   couplings_solver_cell_vertex, &
+                                   cwipi_static_mesh, &       
+                                   cwipi_solver_cell_vertex, &
                                    1, &                          
                                    "Ensight Gold",&              
                                    "text")                     
@@ -322,7 +322,7 @@ program testf
                                  connecindex, &
                                  connec)
 
-  call couplings_define_mesh_f("test2D_1", &
+  call cwipi_define_mesh_f("test2D_1", &
                                nvertex, &
                                nelts, &
                                coords, &
@@ -338,7 +338,7 @@ program testf
   enddo
   
   stride = 1
-  call couplings_exchange_f ("test2D_1", &
+  call cwipi_exchange_f ("test2D_1", &
                              "echange1", &
                              stride, & 
                              1, &
@@ -354,7 +354,7 @@ program testf
 !
 ! Suppression de l'objet couplage "couplingcellvertex"
 
-  call couplings_delete_coupling_f("test2D_1")
+  call cwipi_delete_coupling_f("test2D_1")
   write(iiunit, *)
   write(iiunit, *) "--------------------------------------------------------"
   write(iiunit, *)
@@ -370,13 +370,13 @@ program testf
   write(iiunit, *) " Test 2"
   write(iiunit, *)
 
-  call couplings_create_coupling_f("test2D_2", & 
-                                   couplings_cpl_parallel_with_part,&
+  call cwipi_create_coupling_f("test2D_2", & 
+                                   cwipi_cpl_parallel_with_part,&
                                    "CodeC", &          
                                    2,     & ! Dimension des entites geometriques                 
                                    0.1d0, & ! Tolerance geometrique                        
-                                   couplings_static_mesh, &       
-                                   couplings_solver_cell_vertex, &
+                                   cwipi_static_mesh, &       
+                                   cwipi_solver_cell_vertex, &
                                    1, &                          
                                    "Ensight Gold",&              
                                    "text")                     
@@ -405,7 +405,7 @@ program testf
                                  connecindex, &
                                  connec)
 
-  call couplings_define_mesh_f("test2D_2", &
+  call cwipi_define_mesh_f("test2D_2", &
                                nvertex, &
                                nelts, &
                                coords, &
@@ -421,7 +421,7 @@ program testf
   enddo
   
   stride = 1
-  call couplings_send_f ("test2D_2", &
+  call cwipi_send_f ("test2D_2", &
                          "echange1", &
                          stride, & 
                          1, &
@@ -431,7 +431,7 @@ program testf
                          status)
   call printStatus(iiunit, status)
 
-  call couplings_receive_f ("test2D_2", &
+  call cwipi_receive_f ("test2D_2", &
                             "echange2", &
                             stride, & 
                             1, &
@@ -446,7 +446,7 @@ program testf
 !
 ! Suppression de l'objet couplage "couplingcellvertex"
 
-  call couplings_delete_coupling_f("test2D_2");
+  call cwipi_delete_coupling_f("test2D_2");
   write(iiunit, *)
   write(iiunit, *) "--------------------------------------------------------"
   write(iiunit, *)
@@ -463,13 +463,13 @@ program testf
   write(iiunit, *) " Test 3"
   write(iiunit, *)
 
-  call couplings_create_coupling_f("test2D_3", & 
-                                   couplings_cpl_parallel_with_part,&
+  call cwipi_create_coupling_f("test2D_3", & 
+                                   cwipi_cpl_parallel_with_part,&
                                    "CodeC", &          
                                    2,     & ! Dimension des entites geometriques                 
                                    0.1d0, & ! Tolerance geometrique                        
-                                   couplings_static_mesh, &       
-                                   couplings_solver_cell_vertex, &
+                                   cwipi_static_mesh, &       
+                                   cwipi_solver_cell_vertex, &
                                    1, &                          
                                    "Ensight Gold",&              
                                    "text")                     
@@ -498,7 +498,7 @@ program testf
                                  connecindex, &
                                  connec)
 
-  call couplings_define_mesh_f("test2D_3", &
+  call cwipi_define_mesh_f("test2D_3", &
                                nvertex, &
                                nelts, &
                                coords, &
@@ -592,7 +592,7 @@ program testf
   coordstolocate(62) = 75.d0
   coordstolocate(63) = 0.d0
 
-  call couplings_set_points_to_locate_f ("test2D_3", &
+  call cwipi_set_points_to_locate_f ("test2D_3", &
                                          nptstolocate, &
                                          coordstolocate)
 
@@ -605,7 +605,7 @@ program testf
   enddo
   
   stride = 1
-  call couplings_exchange_f ("test2D_3", &
+  call cwipi_exchange_f ("test2D_3", &
                              "echange1", &
                              stride, & 
                              1, &
@@ -623,7 +623,7 @@ program testf
 !
 ! Suppression de l'objet couplage 
 
-  call couplings_delete_coupling_f("test2D_3");
+  call cwipi_delete_coupling_f("test2D_3");
   write(iiunit, *)
   write(iiunit, *) "--------------------------------------------------------"
   write(iiunit, *)
@@ -640,13 +640,13 @@ program testf
   write(iiunit, *) " Test 4"
   write(iiunit, *)
 
-  call couplings_create_coupling_f("test2D_4", & 
-                                   couplings_cpl_parallel_with_part,&
+  call cwipi_create_coupling_f("test2D_4", & 
+                                   cwipi_cpl_parallel_with_part,&
                                    "CodeC", &          
                                    2,     & ! Dimension des entites geometriques                 
                                    0.1d0, & ! Tolerance geometrique                        
-                                   couplings_static_mesh, &       
-                                   couplings_solver_cell_vertex, &
+                                   cwipi_static_mesh, &       
+                                   cwipi_solver_cell_vertex, &
                                    1, &                          
                                    "Ensight Gold",&              
                                    "text")                     
@@ -678,7 +678,7 @@ program testf
                                  connecindex, &
                                  connec)
 
-  call couplings_define_mesh_f("test2D_4", &
+  call cwipi_define_mesh_f("test2D_4", &
                                nvertex, &
                                nelts, &
                                coords, &
@@ -694,7 +694,7 @@ program testf
   enddo
   
   stride = 1
-  call couplings_exchange_f ("test2D_4", &
+  call cwipi_exchange_f ("test2D_4", &
                              "echange1", &
                              stride, & 
                              1, &
@@ -711,7 +711,7 @@ program testf
 !
 ! Suppression de l'objet couplage "couplingcellvertex"
 
-  call couplings_delete_coupling_f("test2D_4")
+  call cwipi_delete_coupling_f("test2D_4")
   write(iiunit, *)
   write(iiunit, *) "--------------------------------------------------------"
   write(iiunit, *)
@@ -729,13 +729,13 @@ program testf
   write(iiunit, *) " Test 5"
   write(iiunit, *)
 
-  call couplings_create_coupling_f("test2D_5", & 
-                                   couplings_cpl_parallel_with_part,&
+  call cwipi_create_coupling_f("test2D_5", & 
+                                   cwipi_cpl_parallel_with_part,&
                                    "CodeC", &          
                                    2,     & ! Dimension des entites geometriques                 
                                    0.1d0, & ! Tolerance geometrique                        
-                                   couplings_static_mesh, &       
-                                   couplings_solver_cell_vertex, &
+                                   cwipi_static_mesh, &       
+                                   cwipi_solver_cell_vertex, &
                                    1, &                          
                                    "Ensight Gold",&              
                                    "text")                     
@@ -764,7 +764,7 @@ program testf
                                  connecindex, &
                                  connec)
 
-  call couplings_define_mesh_f("test2D_5", &
+  call cwipi_define_mesh_f("test2D_5", &
                                nvertex, &
                                nelts, &
                                coords, &
@@ -776,7 +776,7 @@ program testf
 ! Reception de la coorx provenant de codec
   
   stride = 3
-  call couplings_exchange_f ("test2D_5", &
+  call cwipi_exchange_f ("test2D_5", &
                              "echange1", &
                              stride, & 
                              1, &
@@ -792,7 +792,7 @@ program testf
 !
 ! Suppression de l'objet couplage "couplingcellvertex"
 
-  call couplings_delete_coupling_f("test2D_5")
+  call cwipi_delete_coupling_f("test2D_5")
   write(iiunit, *)
   write(iiunit, *) "--------------------------------------------------------"
   write(iiunit, *)
@@ -811,13 +811,13 @@ program testf
   write(iiunit, *) " Test 6"
   write(iiunit, *)
 
-  call couplings_create_coupling_f("test2D_6", & 
-                                   couplings_cpl_parallel_with_part,&
+  call cwipi_create_coupling_f("test2D_6", & 
+                                   cwipi_cpl_parallel_with_part,&
                                    "CodeC", &          
                                    2,     & ! Dimension des entites geometriques                 
                                    0.1d0, & ! Tolerance geometrique                        
-                                   couplings_static_mesh, &       
-                                   couplings_solver_cell_vertex, &
+                                   cwipi_static_mesh, &       
+                                   cwipi_solver_cell_vertex, &
                                    1, &                          
                                    "Ensight Gold",&              
                                    "text")                     
@@ -846,7 +846,7 @@ program testf
                                  connecindex, &
                                  connec)
 
-  call couplings_define_mesh_f("test2D_6", &
+  call cwipi_define_mesh_f("test2D_6", &
                                nvertex, &
                                nelts, &
                                coords, &
@@ -862,7 +862,7 @@ program testf
   enddo
   
   stride = 1
-  call couplings_exchange_f ("test2D_6", &
+  call cwipi_exchange_f ("test2D_6", &
                              "echange1", &
                              stride, & 
                              1, &
@@ -880,7 +880,7 @@ program testf
   !
 
   stride = 1
-  call couplings_receive_f ("test2D_6", &
+  call cwipi_receive_f ("test2D_6", &
                             "echange2", &
                             stride, & 
                             1, &
@@ -894,7 +894,7 @@ program testf
 !
 ! Suppression de l'objet couplage "couplingcellvertex"
 
-  call couplings_delete_coupling_f("test2D_6")
+  call cwipi_delete_coupling_f("test2D_6")
   write(iiunit, *)
   write(iiunit, *) "--------------------------------------------------------"
   write(iiunit, *)
@@ -911,13 +911,13 @@ program testf
   write(iiunit, *) " Test 7"
   write(iiunit, *)
 
-  call couplings_create_coupling_f("test2D_7", & 
-                                   couplings_cpl_parallel_with_part,&
+  call cwipi_create_coupling_f("test2D_7", & 
+                                   cwipi_cpl_parallel_with_part,&
                                    "CodeC", &          
                                    2,     & ! Dimension des entites geometriques                 
                                    0.1d0, & ! Tolerance geometrique                        
-                                   couplings_static_mesh, &       
-                                   couplings_solver_cell_vertex, &
+                                   cwipi_static_mesh, &       
+                                   cwipi_solver_cell_vertex, &
                                    1, &                          
                                    "Ensight Gold",&              
                                    "text")                     
@@ -946,29 +946,29 @@ program testf
                                  connecindex, &
                                  connec)
 
-  call couplings_define_mesh_f("test2D_7", &
+  call cwipi_define_mesh_f("test2D_7", &
                                nvertex, &
                                nelts, &
                                coords, &
                                connecindex, &
                                connec)
 
-  call couplings_locate_f("test2D_7")
+  call cwipi_locate_f("test2D_7")
 
-  call couplings_get_n_located_distant_points_f("test2D_7", nDistantPoints)
+  call cwipi_get_n_located_distant_points_f("test2D_7", nDistantPoints)
 
   allocate(location(nDistantPoints))
   allocate(baryCooIdx(nDistantPoints+1))
 
-  call couplings_get_location_f("test2D_7", location)
+  call cwipi_get_location_f("test2D_7", location)
 
   write(iiunit,*) "location",(location(i),i=1,nDistantPoints)
 
-  call couplings_get_barycentric_coordinates_index_f("test2D_7", baryCooIdx)
+  call cwipi_get_barycentric_coordinates_index_f("test2D_7", baryCooIdx)
 
   allocate(baryCoo(baryCooIdx(nDistantPoints+1)))
 
-  call couplings_get_barycentric_coordinates_f("test2D_7", baryCoo)
+  call cwipi_get_barycentric_coordinates_f("test2D_7", baryCoo)
 
   deallocate(location)
   deallocate(baryCooIdx)
@@ -977,7 +977,7 @@ program testf
 !
 ! Suppression de l'objet couplage "couplingcellvertex"
 
-  call couplings_delete_coupling_f("test2D_7")
+  call cwipi_delete_coupling_f("test2D_7")
   write(iiunit, *)
   write(iiunit, *) "--------------------------------------------------------"
   write(iiunit, *)
@@ -995,13 +995,13 @@ program testf
   write(iiunit, *) " Test 8"
   write(iiunit, *)
 
-  call couplings_create_coupling_f("test2D_8", & 
-                                   couplings_cpl_parallel_with_part,&
+  call cwipi_create_coupling_f("test2D_8", & 
+                                   cwipi_cpl_parallel_with_part,&
                                    "CodeC", &          
                                    2,     & ! Dimension des entites geometriques                 
                                    0.1d0, & ! Tolerance geometrique                        
-                                   couplings_static_mesh, &       
-                                   couplings_solver_cell_vertex, &
+                                   cwipi_static_mesh, &       
+                                   cwipi_solver_cell_vertex, &
                                    1, &                          
                                    "Ensight Gold",&              
                                    "text")                     
@@ -1031,7 +1031,7 @@ program testf
                                  connecindex, &
                                  connec)
 
-  call couplings_define_mesh_f("test2D_8", &
+  call cwipi_define_mesh_f("test2D_8", &
                                nvertex, &
                                nelts, &
                                coords, &
@@ -1049,7 +1049,7 @@ program testf
   enddo
   
   stride = 1
-  call couplings_exchange_f ("test2D_8", &
+  call cwipi_exchange_f ("test2D_8", &
                              "echange1", &
                              stride, & 
                              1, &
@@ -1062,13 +1062,13 @@ program testf
                              status)
 
 
-!!$  call couplings_create_coupling_f("test2D_9", & 
-!!$                                   couplings_cpl_parallel_without_part,&
+!!$  call cwipi_create_coupling_f("test2D_9", & 
+!!$                                   cwipi_cpl_parallel_without_part,&
 !!$                                   "CodeC", &          
 !!$                                   2,     & ! Dimension des entites geometriques                 
 !!$                                   0.1d0, & ! Tolerance geometrique                        
-!!$                                   couplings_static_mesh, &       
-!!$                                   couplings_solver_cell_vertex, &
+!!$                                   cwipi_static_mesh, &       
+!!$                                   cwipi_solver_cell_vertex, &
 !!$                                   1, &                          
 !!$                                   "Ensight Gold",&              
 !!$                                   "text")                     
@@ -1078,7 +1078,7 @@ program testf
 !
 ! Suppression de l'objet couplage "couplingcellvertex"
 
- ! call couplings_delete_coupling_f("test2D_8")
+ ! call cwipi_delete_coupling_f("test2D_8")
   write(iiunit, *)
   write(iiunit, *) "--------------------------------------------------------"
   write(iiunit, *)
@@ -1096,13 +1096,13 @@ program testf
   write(iiunit, *) " Test 9"
   write(iiunit, *)
 
-  call couplings_create_coupling_f("test2D_9", & 
-                                   couplings_cpl_parallel_without_part,&
+  call cwipi_create_coupling_f("test2D_9", & 
+                                   cwipi_cpl_parallel_without_part,&
                                    "CodeC", &          
                                    2,     & ! Dimension des entites geometriques                 
                                    0.1d0, & ! Tolerance geometrique                        
-                                   couplings_static_mesh, &       
-                                   couplings_solver_cell_vertex, &
+                                   cwipi_static_mesh, &       
+                                   cwipi_solver_cell_vertex, &
                                    1, &                          
                                    "Ensight Gold",&              
                                    "text")                     
@@ -1139,7 +1139,7 @@ program testf
           connecindex, &
           connec)
 
-     call couplings_define_mesh_f("test2D_9", &
+     call cwipi_define_mesh_f("test2D_9", &
                                   nvertex, &
                                   nelts, &
                                   coords, &
@@ -1157,7 +1157,7 @@ program testf
         values(i) = coords(3*(i-1) + 2)
      enddo
   
-     call couplings_exchange_f ("test2D_9", &
+     call cwipi_exchange_f ("test2D_9", &
                                 "echange1", &
                                 stride, & 
                                 1, &
@@ -1170,7 +1170,7 @@ program testf
                                 status)
   else
 
-     call couplings_receive_f ("test2D_9", &
+     call cwipi_receive_f ("test2D_9", &
                                "echange1", &
                                stride, & 
                                1, &
@@ -1187,7 +1187,7 @@ program testf
 !
 ! Suppression de l'objet couplage "couplingcellvertex"
 
-  call couplings_delete_coupling_f("test2D_9")
+  call cwipi_delete_coupling_f("test2D_9")
   write(iiunit, *)
   write(iiunit, *) "--------------------------------------------------------"
   write(iiunit, *)
@@ -1205,13 +1205,13 @@ program testf
   write(iiunit, *) " Test 10"
   write(iiunit, *)
 
-  call couplings_create_coupling_f("test2D_10", & 
-                                   couplings_cpl_parallel_without_part,&
+  call cwipi_create_coupling_f("test2D_10", & 
+                                   cwipi_cpl_parallel_without_part,&
                                    "CodeC", &          
                                    2,     & ! Dimension des entites geometriques                 
                                    0.1d0, & ! Tolerance geometrique                        
-                                   couplings_static_mesh, &       
-                                   couplings_solver_cell_vertex, &
+                                   cwipi_static_mesh, &       
+                                   cwipi_solver_cell_vertex, &
                                    1, &                          
                                    "Ensight Gold",&              
                                    "text")                     
@@ -1248,7 +1248,7 @@ program testf
           connecindex, &
           connec)
 
-     call couplings_define_mesh_f("test2D_10", &
+     call cwipi_define_mesh_f("test2D_10", &
                                   nvertex, &
                                   nelts, &
                                   coords, &
@@ -1266,7 +1266,7 @@ program testf
         values(i) = coords(3*(i-1) + 2)
      enddo
   
-     call couplings_exchange_f ("test2D_10", &
+     call cwipi_exchange_f ("test2D_10", &
                                 "echange1", &
                                 stride, & 
                                 1, &
@@ -1279,7 +1279,7 @@ program testf
                                 status)
   else
 
-     call couplings_receive_f ("test2D_10", &
+     call cwipi_receive_f ("test2D_10", &
                                "echange1", &
                                stride, & 
                                1, &
@@ -1296,11 +1296,11 @@ program testf
 !
 ! Suppression de l'objet couplage "couplingcellvertex"
 
-  call couplings_delete_coupling_f("test2D_10")
+  call cwipi_delete_coupling_f("test2D_10")
   write(iiunit, *)
   write(iiunit, *) "--------------------------------------------------------"
   write(iiunit, *)
 
-  call couplings_finalize_f()
+  call cwipi_finalize_f()
       
 end program testf
