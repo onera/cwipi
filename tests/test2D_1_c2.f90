@@ -23,51 +23,51 @@ end subroutine printStatus
 ! ------------------------------------------------------------------------------
 !
 
-subroutine  interpolationbidon_f(entities_dim, &
-                                 n_local_vertex, &
-                                 n_local_element, &
-                                 n_local_polhyedra, &
-                                 n_distant_point, &
-                                 local_coordinates, &
-                                 local_connectivity_index, &
-                                 local_connectivity, &
-                                 local_polyhedra_face_index, &
-                                 local_polyhedra_cell_to_face_connectivity, &
-                                 local_polyhedra_face_connectivity_index, &
-                                 local_polyhedra_face_connectivity, &
-                                 distant_points_coordinates, &
-                                 distant_points_location, &
-                                 distant_points_barycentric_coordinates_index, &
-                                 distant_points_barycentric_coordinates, &
-                                 data_dimension, &
-                                 solver_type, &
-                                 local_field, &
-                                 distant_field)
-  integer :: entities_dim
-  integer :: n_local_vertex
-  integer :: n_local_element
-  integer :: n_local_polhyedra
-  integer :: n_distant_point
-  double precision, dimension(*) :: local_coordinates
-  integer, dimension(*) :: local_connectivity_index
-  integer, dimension(*) :: local_connectivity
-  integer, dimension(*) :: local_polyhedra_face_index
-  integer, dimension(*) :: local_polyhedra_cell_to_face_connectivity
-  integer, dimension(*) :: local_polyhedra_face_connectivity_index
-  integer, dimension(*) :: local_polyhedra_face_connectivity
-  double precision, dimension(*) :: distant_points_coordinates
-  integer, dimension(*) :: distant_points_location
-  integer, dimension(*) :: distant_points_barycentric_coordinates_index
-  double precision, dimension(*) :: distant_points_barycentric_coordinates
-  integer :: data_dimension
-  integer :: solver_type
-  double precision, dimension(*) :: local_field
-  double precision, dimension(*) :: distant_field
+subroutine  interpolationbidon_f(entitiesDim, &
+                                 nLocalVertex, &
+                                 nLocalElement, &
+                                 nLocalPolyhedra, &
+                                 nDistantPoint, &
+                                 localCoordinates, &
+                                 localConnectivityIndex, &
+                                 localConnectivity, &
+                                 localPolyFaceIndex, &
+                                 localPolyCellToFaceConnec, &
+                                 localPolyFaceConnecIdx, &
+                                 localPolyFaceConnec, &
+                                 disPtsCoordinates, &
+                                 disPtsLocation, &
+                                 disPtsBaryCoordIdx, &
+                                 disPtsBaryCoord, &
+                                 stride, &
+                                 solverType, &
+                                 localField, &
+                                 distantField)
+  integer :: entitiesDim
+  integer :: nLocalVertex
+  integer :: nLocalElement
+  integer :: nLocalPolyhedra
+  integer :: nDistantPoint
+  double precision, dimension(*) :: localCoordinates
+  integer, dimension(*) :: localConnectivityIndex
+  integer, dimension(*) :: localConnectivity
+  integer, dimension(*) :: localPolyFaceIndex
+  integer, dimension(*) :: localPolyCellToFaceConnec
+  integer, dimension(*) :: localPolyFaceConnecIdx
+  integer, dimension(*) :: localPolyFaceConnec
+  double precision, dimension(*) :: disPtsCoordinates
+  integer, dimension(*) :: disPtsLocation
+  integer, dimension(*) :: disPtsBaryCoordIdx
+  double precision, dimension(*) :: disPtsBaryCoord
+  integer :: stride
+  integer :: solverType
+  double precision, dimension(*) :: localField
+  double precision, dimension(*) :: distantField
 
   integer :: i
 
   do i = 1, n_distant_point
-     distant_field(i) = i
+     distantField(i) = i
   enddo
 
 end subroutine interpolationbidon_f
@@ -79,56 +79,55 @@ end subroutine interpolationbidon_f
 !
 
 program testf
- 
+
   use mpi
   use cwipi
- 
+
   implicit none
 
   interface
-     subroutine interpolationbidon_f(entities_dim, &
-                                     n_local_vertex, &
-                                     n_local_element, &
-                                     n_local_polhyedra, &
-                                     n_distant_point, &
-                                     local_coordinates, &
-                                     local_connectivity_index, &
-                                     local_connectivity, &
-                                     local_polyhedra_face_index, &
-                                     local_polyhedra_cell_to_face_connectivity, &
-                                     local_polyhedra_face_connectivity_index, &
-                                     local_polyhedra_face_connectivity, &
-                                     distant_points_coordinates, &
-                                     distant_points_location, &
-                                     distant_points_barycentric_coordinates_index, &
-                                     distant_points_barycentric_coordinates, &
-                                     data_dimension, &
-                                     solver_type, &
-                                     local_field, &
-                                     distant_field)
-       integer :: entities_dim
-       integer :: n_local_vertex
-       integer :: n_local_element
-       integer :: n_local_polhyedra
-       integer :: n_distant_point
-       double precision, dimension(*) :: local_coordinates
-       integer, dimension(*) :: local_connectivity_index
-       integer, dimension(*) :: local_connectivity
-       integer, dimension(*) :: local_polyhedra_face_index
-       integer, dimension(*) :: local_polyhedra_cell_to_face_connectivity
-       integer, dimension(*) :: local_polyhedra_face_connectivity_index
-       integer, dimension(*) :: local_polyhedra_face_connectivity
-       double precision, dimension(*) :: distant_points_coordinates
-       integer, dimension(*) :: distant_points_location
-       integer, dimension(*) :: distant_points_barycentric_coordinates_index
-       double precision, dimension(*) :: distant_points_barycentric_coordinates
-       integer :: data_dimension
-       integer :: solver_type
-       double precision, dimension(*) :: local_field
-       double precision, dimension(*) :: distant_field
-     end subroutine interpolationbidon_f
-
-  end interface
+       subroutine  interpolationbidon_f(entitiesDim, &
+                                      nLocalVertex, &
+                                      nLocalElement, &
+                                      nLocalPolyhedra, &
+                                      nDistantPoint, &
+                                      localCoordinates, &
+                                      localConnectivityIndex, &
+                                      localConnectivity, &
+                                      localPolyFaceIndex, &
+                                      localPolyCellToFaceConnec, &
+                                      localPolyFaceConnecIdx, &
+                                      localPolyFaceConnec, &
+                                      disPtsCoordinates, &
+                                      disPtsLocation, &
+                                      disPtsBaryCoordIdx, &
+                                      disPtsBaryCoord, &
+                                      stride, &
+                                      solverType, &
+                                      localField, &
+                                      distantField)
+         integer :: entitiesDim
+         integer :: nLocalVertex
+         integer :: nLocalElement
+         integer :: nLocalPolyhedra
+         integer :: nDistantPoint
+         double precision, dimension(*) :: localCoordinates
+         integer, dimension(*) :: localConnectivityIndex
+         integer, dimension(*) :: localConnectivity
+         integer, dimension(*) :: localPolyFaceIndex
+         integer, dimension(*) :: localPolyCellToFaceConnec
+         integer, dimension(*) :: localPolyFaceConnecIdx
+         integer, dimension(*) :: localPolyFaceConnec
+         double precision, dimension(*) :: disPtsCoordinates
+         integer, dimension(*) :: disPtsLocation
+         integer, dimension(*) :: disPtsBaryCoordIdx
+         double precision, dimension(*) :: disPtsBaryCoord
+         integer :: stride
+         integer :: solverType
+         double precision, dimension(*) :: localField
+         double precision, dimension(*) :: distantField
+       end subroutine interpolationbidon_f
+    end interface
 
   integer, allocatable, dimension(:) :: location
   integer, allocatable, dimension(:) :: baryCooIdx
@@ -144,33 +143,33 @@ program testf
   integer :: iiunit
   integer :: ivalue
   double precision :: dvalue
-      
+
   double precision, parameter :: xmin = -100.d0
   double precision, parameter :: xmax =  100.d0
   double precision, parameter :: ymin = -100.d0
   double precision, parameter :: ymax =  100.d0
-  integer, parameter  :: nx   = 24    
+  integer, parameter  :: nx   = 24
   integer, parameter  :: ny   = 24
   integer, parameter  :: initrandom = 2
 
   integer nvertex, nelts, lconnecindex
 
-  integer, parameter :: nvertexm = 4000 
+  integer, parameter :: nvertexm = 4000
   integer, parameter :: neltsm = 4000
   integer, parameter :: lconnecindexm = 12000
   integer, parameter :: nptstolocate = 21
   double precision, dimension(3*nptstolocate) :: coordstolocate
-    
+
   double precision, dimension(3*nvertexm) :: coords
   integer, dimension(neltsm+1) :: connecindex
   integer, dimension(lconnecindexm) :: connec
-  
+
   double precision, dimension(3*nvertexm) :: values, localvalues
 
   integer status
-  
+
   integer i, order
-  
+
   integer :: vpar = 10
   character (len = 6) :: cpar = "niterf"
 
@@ -186,9 +185,9 @@ program testf
 ! Initialisation de l'interface de couplage
 ! -----------------------------------------
 !
-  
-  call cwipi_init_f (mpi_comm_world, & 
-                         "CodeFortran", & 
+
+  call cwipi_init_f (mpi_comm_world, &
+                         "CodeFortran", &
                          localcom)
 
 
@@ -196,7 +195,7 @@ program testf
 ! ------------------------------------------------
 ! Creation du fichier de sortie listing
 ! (en parallele, un fichier listing par processus)
-! ------------------------------------------------ 
+! ------------------------------------------------
 !
 
   call mpi_comm_rank(localcom, currentRank, code)
@@ -214,7 +213,7 @@ program testf
   write(iiunit,*) "-------------------------"
   write(iiunit,*)
 
-  call cwipi_dump_application_properties_f
+  call cwipi_dump_appli_properties_f
 
 !
 ! -------------------------------
@@ -226,59 +225,59 @@ program testf
 ! Ajout de parametres de controle
 
 !  call cwipi_add_local_int_control_parameter_f("niterf", 10)
-  call cwipi_add_local_int_control_parameter_f(cpar, vpar)
+  call cwipi_add_loc_int_ctrl_param_f(cpar, vpar)
 
-  call cwipi_add_local_double_control_parameter_f("physicaltimef", 1.123d0)
+  call cwipi_add_loc_dbl_ctrl_param_f("physicaltimef", 1.123d0)
 
   write(iiunit,*)
   write(iiunit,*) "dump apres ajout de parametres"
   write(iiunit,*) "------------------------------"
   write(iiunit,*)
-  call cwipi_dump_application_properties_f
+  call cwipi_dump_appli_properties_f
 !
 ! Modification des parametres de controle
-  call cwipi_get_local_int_control_parameter_f("niterf", ivalue)
+  call cwipi_get_loc_int_ctrl_param_f("niterf", ivalue)
 
   ivalue = ivalue + 1
 
-  call cwipi_set_local_int_control_parameter_f("niterf", ivalue)
+  call cwipi_set_loc_int_ctrl_param_f("niterf", ivalue)
 
-  call cwipi_get_local_double_control_parameter_f("physicaltimef", dvalue)
+  call cwipi_get_loc_dbl_ctrl_param_f("physicaltimef", dvalue)
 
   dvalue = dvalue + 0.1d0
 
-  call cwipi_set_local_double_control_parameter_f("physicaltimef", dvalue)
+  call cwipi_set_loc_dbl_ctrl_param_f("physicaltimef", dvalue)
 
   write(iiunit,*)
   write(iiunit,*) "dump apres modification de parametres"
   write(iiunit,*) "-------------------------------------"
   write(iiunit,*)
-  call cwipi_dump_application_properties_f
+  call cwipi_dump_appli_properties_f
 !
 ! Echange des parametres de controle
 
-  call cwipi_synchronize_control_parameter_f("CodeC")
+  call cwipi_synch_ctrl_param_f("CodeC")
 
   write(iiunit,*)
   write(iiunit,*) "dump apres synchronisation"
   write(iiunit,*) "--------------------------"
   write(iiunit,*)
-  call cwipi_dump_application_properties_f
+  call cwipi_dump_appli_properties_f
 !
 ! Suppression des parametres de controle
-  call cwipi_delete_local_int_control_parameter_f("niterf")
-  call cwipi_delete_local_double_control_parameter_f("physicaltimef")
+  call cwipi_del_loc_int_ctrl_param_f("niterf")
+  call cwipi_del_loc_dbl_ctrl_param_f("physicaltimef")
 
   write(iiunit,*)
   write(iiunit,*) "dump apres suppression des parametres"
   write(iiunit,*) "-------------------------------------"
   write(iiunit,*)
-  call cwipi_dump_application_properties_f
-! 
+  call cwipi_dump_appli_properties_f
+!
 ! ------------------------
 ! Test couplage p1 <-> p1
 ! ------------------------
-! 
+!
 ! Construction de "l'objet" couplage
 
   write(iiunit, *)
@@ -287,22 +286,22 @@ program testf
   write(iiunit, *) " Test 1"
   write(iiunit, *)
 
-  call cwipi_create_coupling_f("test2D_1", & 
+  call cwipi_create_coupling_f("test2D_1", &
                                    cwipi_cpl_parallel_with_part,&
-                                   "CodeC", &          
-                                   2,     & ! Dimension des entites geometriques                 
-                                   0.1d0, & ! Tolerance geometrique                        
-                                   cwipi_static_mesh, &       
+                                   "CodeC", &
+                                   2,     & ! Dimension des entites geometriques
+                                   0.1d0, & ! Tolerance geometrique
+                                   cwipi_static_mesh, &
                                    cwipi_solver_cell_vertex, &
-                                   1, &                          
-                                   "Ensight Gold",&              
-                                   "text")                     
+                                   1, &
+                                   "Ensight Gold",&
+                                   "text")
 
-! 
+!
 ! Construction du maillage
 
   nvertex      = nvertexm
-  nelts        = neltsm  
+  nelts        = neltsm
   lconnecindex = lconnecindexm
   order = 1
 
@@ -329,18 +328,18 @@ program testf
                                connecindex, &
                                connec)
 
-! 
+!
 ! Envoi de la coory a codec
 ! Reception de la coorx provenant de codec
 
   do i = 1, nvertex
      values(i) = coords(3*(i-1) + 2)
   enddo
-  
+
   stride = 1
   call cwipi_exchange_f ("test2D_1", &
                              "echange1", &
-                             stride, & 
+                             stride, &
                              1, &
                              0.1d0, &
                              "cooy", &
@@ -359,9 +358,9 @@ program testf
   write(iiunit, *) "--------------------------------------------------------"
   write(iiunit, *)
 
-! 
+!
 ! -------------------------------------
-! Test couplage P1 -> P0 puis P0 -> P1 
+! Test couplage P1 -> P0 puis P0 -> P1
 ! -------------------------------------
 !
   write(iiunit, *)
@@ -370,22 +369,22 @@ program testf
   write(iiunit, *) " Test 2"
   write(iiunit, *)
 
-  call cwipi_create_coupling_f("test2D_2", & 
+  call cwipi_create_coupling_f("test2D_2", &
                                    cwipi_cpl_parallel_with_part,&
-                                   "CodeC", &          
-                                   2,     & ! Dimension des entites geometriques                 
-                                   0.1d0, & ! Tolerance geometrique                        
-                                   cwipi_static_mesh, &       
+                                   "CodeC", &
+                                   2,     & ! Dimension des entites geometriques
+                                   0.1d0, & ! Tolerance geometrique
+                                   cwipi_static_mesh, &
                                    cwipi_solver_cell_vertex, &
-                                   1, &                          
-                                   "Ensight Gold",&              
-                                   "text")                     
+                                   1, &
+                                   "Ensight Gold",&
+                                   "text")
 
-! 
+!
 ! Construction du maillage
 
   nvertex      = nvertexm
-  nelts        = neltsm  
+  nelts        = neltsm
   lconnecindex = lconnecindexm
   order = 1
 
@@ -412,18 +411,18 @@ program testf
                                connecindex, &
                                connec)
 
-! 
+!
 ! Envoi de la coory a codec
 ! Reception de la coorx provenant de codec
 
   do i = 1, nvertex
      values(i) = coords(3*(i-1) + 2)
   enddo
-  
+
   stride = 1
   call cwipi_send_f ("test2D_2", &
                          "echange1", &
-                         stride, & 
+                         stride, &
                          1, &
                          0.1d0, &
                          "cooY", &
@@ -433,7 +432,7 @@ program testf
 
   call cwipi_receive_f ("test2D_2", &
                             "echange2", &
-                            stride, & 
+                            stride, &
                             1, &
                             0.1d0, &
                             "cooYY", &
@@ -451,9 +450,9 @@ program testf
   write(iiunit, *) "--------------------------------------------------------"
   write(iiunit, *)
 
-! 
+!
 ! -------------------------------------
-! Test de definition des points 
+! Test de definition des points
 ! a interpoler
 ! -------------------------------------
 !
@@ -463,22 +462,22 @@ program testf
   write(iiunit, *) " Test 3"
   write(iiunit, *)
 
-  call cwipi_create_coupling_f("test2D_3", & 
+  call cwipi_create_coupling_f("test2D_3", &
                                    cwipi_cpl_parallel_with_part,&
-                                   "CodeC", &          
-                                   2,     & ! Dimension des entites geometriques                 
-                                   0.1d0, & ! Tolerance geometrique                        
-                                   cwipi_static_mesh, &       
+                                   "CodeC", &
+                                   2,     & ! Dimension des entites geometriques
+                                   0.1d0, & ! Tolerance geometrique
+                                   cwipi_static_mesh, &
                                    cwipi_solver_cell_vertex, &
-                                   1, &                          
-                                   "Ensight Gold",&              
-                                   "text")                     
+                                   1, &
+                                   "Ensight Gold",&
+                                   "text")
 
-! 
+!
 ! Construction du maillage
 
   nvertex      = nvertexm
-  nelts        = neltsm  
+  nelts        = neltsm
   lconnecindex = lconnecindexm
   order = 1
 
@@ -505,7 +504,7 @@ program testf
                                connecindex, &
                                connec)
 
-! 
+!
 ! Definition des points a localiser
 
   coordstolocate(1) = -75.d0
@@ -596,18 +595,18 @@ program testf
                                          nptstolocate, &
                                          coordstolocate)
 
-! 
+!
 ! Envoi de la coordonnee Y a codeC
 ! Reception de la coordonnee Y provenant de codec
 
   do i = 1, nvertex
      values(i) = coords(3*(i-1) + 2)
   enddo
-  
+
   stride = 1
   call cwipi_exchange_f ("test2D_3", &
                              "echange1", &
-                             stride, & 
+                             stride, &
                              1, &
                              0.1d0, &
                              "cooy", &
@@ -621,16 +620,16 @@ program testf
   write(iiunit,*) (localvalues(i),i=1,nptstolocate)
 
 !
-! Suppression de l'objet couplage 
+! Suppression de l'objet couplage
 
   call cwipi_delete_coupling_f("test2D_3");
   write(iiunit, *)
   write(iiunit, *) "--------------------------------------------------------"
   write(iiunit, *)
 
-! 
+!
 ! -------------------------------------
-! Test de definition d'une fonction 
+! Test de definition d'une fonction
 ! d'interpolation en fortran (callback)
 ! -------------------------------------
 !
@@ -640,25 +639,25 @@ program testf
   write(iiunit, *) " Test 4"
   write(iiunit, *)
 
-  call cwipi_create_coupling_f("test2D_4", & 
+  call cwipi_create_coupling_f("test2D_4", &
                                    cwipi_cpl_parallel_with_part,&
-                                   "CodeC", &          
-                                   2,     & ! Dimension des entites geometriques                 
-                                   0.1d0, & ! Tolerance geometrique                        
-                                   cwipi_static_mesh, &       
+                                   "CodeC", &
+                                   2,     & ! Dimension des entites geometriques
+                                   0.1d0, & ! Tolerance geometrique
+                                   cwipi_static_mesh, &
                                    cwipi_solver_cell_vertex, &
-                                   1, &                          
-                                   "Ensight Gold",&              
-                                   "text")                     
-
-  
+                                   1, &
+                                   "Ensight Gold",&
+                                   "text")
 
 
-! 
+
+
+!
 ! Construction du maillage
 
   nvertex      = nvertexm
-  nelts        = neltsm  
+  nelts        = neltsm
   lconnecindex = lconnecindexm
   order = 1
 
@@ -685,18 +684,18 @@ program testf
                                connecindex, &
                                connec)
 
-! 
+!
 ! Envoi de la coory a codec
 ! Reception de la coorx provenant de codec
 
   do i = 1, nvertex
      values(i) = coords(3*(i-1) + 2)
   enddo
-  
+
   stride = 1
   call cwipi_exchange_f ("test2D_4", &
                              "echange1", &
-                             stride, & 
+                             stride, &
                              1, &
                              0.1d0, &
                              "cooy", &
@@ -716,12 +715,12 @@ program testf
   write(iiunit, *) "--------------------------------------------------------"
   write(iiunit, *)
 
-! 
+!
 ! -------------------------------------
 ! test de la transmission d'un vecteur
 ! -------------------------------------
 !
-! 
+!
 ! Construction de "l'objet" couplage
   write(iiunit, *)
   write(iiunit, *) "--------------------------------------------------------"
@@ -729,22 +728,22 @@ program testf
   write(iiunit, *) " Test 5"
   write(iiunit, *)
 
-  call cwipi_create_coupling_f("test2D_5", & 
+  call cwipi_create_coupling_f("test2D_5", &
                                    cwipi_cpl_parallel_with_part,&
-                                   "CodeC", &          
-                                   2,     & ! Dimension des entites geometriques                 
-                                   0.1d0, & ! Tolerance geometrique                        
-                                   cwipi_static_mesh, &       
+                                   "CodeC", &
+                                   2,     & ! Dimension des entites geometriques
+                                   0.1d0, & ! Tolerance geometrique
+                                   cwipi_static_mesh, &
                                    cwipi_solver_cell_vertex, &
-                                   1, &                          
-                                   "Ensight Gold",&              
-                                   "text")                     
+                                   1, &
+                                   "Ensight Gold",&
+                                   "text")
 
-! 
+!
 ! Construction du maillage
 
   nvertex      = nvertexm
-  nelts        = neltsm  
+  nelts        = neltsm
   lconnecindex = lconnecindexm
   order = 1
 
@@ -771,14 +770,14 @@ program testf
                                connecindex, &
                                connec)
 
-! 
+!
 ! Envoi de la coory a codec
 ! Reception de la coorx provenant de codec
-  
+
   stride = 3
   call cwipi_exchange_f ("test2D_5", &
                              "echange1", &
-                             stride, & 
+                             stride, &
                              1, &
                              0.1d0, &
                              "cooy", &
@@ -800,10 +799,10 @@ program testf
 !
 ! -------------------------------------
 ! test des sorties d'erreur
-! ------------------------------------- 
+! -------------------------------------
 !
 
-! 
+!
 ! Construction de "l'objet" couplage
   write(iiunit, *)
   write(iiunit, *) "--------------------------------------------------------"
@@ -811,22 +810,22 @@ program testf
   write(iiunit, *) " Test 6"
   write(iiunit, *)
 
-  call cwipi_create_coupling_f("test2D_6", & 
+  call cwipi_create_coupling_f("test2D_6", &
                                    cwipi_cpl_parallel_with_part,&
-                                   "CodeC", &          
-                                   2,     & ! Dimension des entites geometriques                 
-                                   0.1d0, & ! Tolerance geometrique                        
-                                   cwipi_static_mesh, &       
+                                   "CodeC", &
+                                   2,     & ! Dimension des entites geometriques
+                                   0.1d0, & ! Tolerance geometrique
+                                   cwipi_static_mesh, &
                                    cwipi_solver_cell_vertex, &
-                                   1, &                          
-                                   "Ensight Gold",&              
-                                   "text")                     
+                                   1, &
+                                   "Ensight Gold",&
+                                   "text")
 
-! 
+!
 ! Construction du maillage
 
   nvertex      = nvertexm
-  nelts        = neltsm  
+  nelts        = neltsm
   lconnecindex = lconnecindexm
   order = 1
 
@@ -853,18 +852,18 @@ program testf
                                connecindex, &
                                connec)
 
-! 
+!
 ! Envoi de la coory a codec
 ! Reception de la coorx provenant de codec
 
   do i = 1, nvertex
      values(i) = coords(3*(i-1) + 2)
   enddo
-  
+
   stride = 1
   call cwipi_exchange_f ("test2D_6", &
                              "echange1", &
-                             stride, & 
+                             stride, &
                              1, &
                              0.1d0, &
                              "cooy", &
@@ -882,7 +881,7 @@ program testf
   stride = 1
   call cwipi_receive_f ("test2D_6", &
                             "echange2", &
-                            stride, & 
+                            stride, &
                             1, &
                             0.1d0, &
                             "cooYY", &
@@ -899,7 +898,7 @@ program testf
   write(iiunit, *) "--------------------------------------------------------"
   write(iiunit, *)
 
-! 
+!
 ! -------------------------------------
 ! Test simple localisation
 ! -------------------------------------
@@ -911,22 +910,22 @@ program testf
   write(iiunit, *) " Test 7"
   write(iiunit, *)
 
-  call cwipi_create_coupling_f("test2D_7", & 
+  call cwipi_create_coupling_f("test2D_7", &
                                    cwipi_cpl_parallel_with_part,&
-                                   "CodeC", &          
-                                   2,     & ! Dimension des entites geometriques                 
-                                   0.1d0, & ! Tolerance geometrique                        
-                                   cwipi_static_mesh, &       
+                                   "CodeC", &
+                                   2,     & ! Dimension des entites geometriques
+                                   0.1d0, & ! Tolerance geometrique
+                                   cwipi_static_mesh, &
                                    cwipi_solver_cell_vertex, &
-                                   1, &                          
-                                   "Ensight Gold",&              
-                                   "text")                     
+                                   1, &
+                                   "Ensight Gold",&
+                                   "text")
 
-! 
+!
 ! Construction du maillage
 
   nvertex      = nvertexm
-  nelts        = neltsm  
+  nelts        = neltsm
   lconnecindex = lconnecindexm
   order = 1
 
@@ -955,7 +954,7 @@ program testf
 
   call cwipi_locate_f("test2D_7")
 
-  call cwipi_get_n_located_distant_points_f("test2D_7", nDistantPoints)
+  call cwipi_get_n_located_dist_pts_f("test2D_7", nDistantPoints)
 
   allocate(location(nDistantPoints))
   allocate(baryCooIdx(nDistantPoints+1))
@@ -964,11 +963,11 @@ program testf
 
   write(iiunit,*) "location",(location(i),i=1,nDistantPoints)
 
-  call cwipi_get_barycentric_coordinates_index_f("test2D_7", baryCooIdx)
+  call cwipi_get_bary_coord_idx_f("test2D_7", baryCooIdx)
 
   allocate(baryCoo(baryCooIdx(nDistantPoints+1)))
 
-  call cwipi_get_barycentric_coordinates_f("test2D_7", baryCoo)
+  call cwipi_get_bary_coord_f("test2D_7", baryCoo)
 
   deallocate(location)
   deallocate(baryCooIdx)
@@ -982,11 +981,11 @@ program testf
   write(iiunit, *) "--------------------------------------------------------"
   write(iiunit, *)
 
-! 
+!
 ! ------------------------
 ! Test couplage p1 <-> p1
 ! ------------------------
-! 
+!
 ! Construction de "l'objet" couplage
 
   write(iiunit, *)
@@ -995,23 +994,23 @@ program testf
   write(iiunit, *) " Test 8"
   write(iiunit, *)
 
-  call cwipi_create_coupling_f("test2D_8", & 
+  call cwipi_create_coupling_f("test2D_8", &
                                    cwipi_cpl_parallel_with_part,&
-                                   "CodeC", &          
-                                   2,     & ! Dimension des entites geometriques                 
-                                   0.1d0, & ! Tolerance geometrique                        
-                                   cwipi_static_mesh, &       
+                                   "CodeC", &
+                                   2,     & ! Dimension des entites geometriques
+                                   0.1d0, & ! Tolerance geometrique
+                                   cwipi_static_mesh, &
                                    cwipi_solver_cell_vertex, &
-                                   1, &                          
-                                   "Ensight Gold",&              
-                                   "text")                     
+                                   1, &
+                                   "Ensight Gold",&
+                                   "text")
 
 
-! 
+!
 ! Construction du maillage
 
   nvertex      = nvertexm
-  nelts        = neltsm  
+  nelts        = neltsm
   lconnecindex = lconnecindexm
   order = 1
 
@@ -1040,18 +1039,18 @@ program testf
 
 
 
-! 
+!
 ! Envoi de la coory a codec
 ! Reception de la coorx provenant de codec
 
   do i = 1, nvertex
      values(i) = coords(3*(i-1) + 2)
   enddo
-  
+
   stride = 1
   call cwipi_exchange_f ("test2D_8", &
                              "echange1", &
-                             stride, & 
+                             stride, &
                              1, &
                              0.1d0, &
                              "cooy", &
@@ -1062,16 +1061,16 @@ program testf
                              status)
 
 
-!!$  call cwipi_create_coupling_f("test2D_9", & 
+!!$  call cwipi_create_coupling_f("test2D_9", &
 !!$                                   cwipi_cpl_parallel_without_part,&
-!!$                                   "CodeC", &          
-!!$                                   2,     & ! Dimension des entites geometriques                 
-!!$                                   0.1d0, & ! Tolerance geometrique                        
-!!$                                   cwipi_static_mesh, &       
+!!$                                   "CodeC", &
+!!$                                   2,     & ! Dimension des entites geometriques
+!!$                                   0.1d0, & ! Tolerance geometrique
+!!$                                   cwipi_static_mesh, &
 !!$                                   cwipi_solver_cell_vertex, &
-!!$                                   1, &                          
-!!$                                   "Ensight Gold",&              
-!!$                                   "text")                     
+!!$                                   1, &
+!!$                                   "Ensight Gold",&
+!!$                                   "text")
 
   call printStatus(iiunit, status)
 
@@ -1083,11 +1082,11 @@ program testf
   write(iiunit, *) "--------------------------------------------------------"
   write(iiunit, *)
 
-! 
+!
 ! ------------------------
 ! Test couplage p1 <-> p1
 ! ------------------------
-! 
+!
 ! Construction de "l'objet" couplage
 
   write(iiunit, *)
@@ -1096,27 +1095,27 @@ program testf
   write(iiunit, *) " Test 9"
   write(iiunit, *)
 
-  call cwipi_create_coupling_f("test2D_9", & 
+  call cwipi_create_coupling_f("test2D_9", &
                                    cwipi_cpl_parallel_without_part,&
-                                   "CodeC", &          
-                                   2,     & ! Dimension des entites geometriques                 
-                                   0.1d0, & ! Tolerance geometrique                        
-                                   cwipi_static_mesh, &       
+                                   "CodeC", &
+                                   2,     & ! Dimension des entites geometriques
+                                   0.1d0, & ! Tolerance geometrique
+                                   cwipi_static_mesh, &
                                    cwipi_solver_cell_vertex, &
-                                   1, &                          
-                                   "Ensight Gold",&              
-                                   "text")                     
+                                   1, &
+                                   "Ensight Gold",&
+                                   "text")
 
-! 
+!
 ! Construction du maillage
 
   nvertex      = nvertexm
-  nelts        = neltsm  
+  nelts        = neltsm
   lconnecindex = lconnecindexm
   order = 1
 
   call mpi_comm_group(localcom, localGroup, code)
-    
+
   rl(1) = 0
   call mpi_group_incl(localGroup, 1, rl, p1Group, code)
   call mpi_comm_create(localcom, p1Group, p1Comm, code)
@@ -1147,7 +1146,7 @@ program testf
                                   connec)
   endif
 
-! 
+!
 ! Envoi de la coory a codec
 ! Reception de la coorx provenant de codec
   stride = 1
@@ -1156,10 +1155,10 @@ program testf
      do i = 1, nvertex
         values(i) = coords(3*(i-1) + 2)
      enddo
-  
+
      call cwipi_exchange_f ("test2D_9", &
                                 "echange1", &
-                                stride, & 
+                                stride, &
                                 1, &
                                 0.1d0, &
                                 "cooy", &
@@ -1172,7 +1171,7 @@ program testf
 
      call cwipi_receive_f ("test2D_9", &
                                "echange1", &
-                               stride, & 
+                               stride, &
                                1, &
                                0.1d0, &
                                "coox", &
@@ -1192,11 +1191,11 @@ program testf
   write(iiunit, *) "--------------------------------------------------------"
   write(iiunit, *)
 
-! 
+!
 ! ------------------------
 ! Test couplage p1 <-> p1
 ! ------------------------
-! 
+!
 ! Construction de "l'objet" couplage
 
   write(iiunit, *)
@@ -1205,27 +1204,27 @@ program testf
   write(iiunit, *) " Test 10"
   write(iiunit, *)
 
-  call cwipi_create_coupling_f("test2D_10", & 
+  call cwipi_create_coupling_f("test2D_10", &
                                    cwipi_cpl_parallel_without_part,&
-                                   "CodeC", &          
-                                   2,     & ! Dimension des entites geometriques                 
-                                   0.1d0, & ! Tolerance geometrique                        
-                                   cwipi_static_mesh, &       
+                                   "CodeC", &
+                                   2,     & ! Dimension des entites geometriques
+                                   0.1d0, & ! Tolerance geometrique
+                                   cwipi_static_mesh, &
                                    cwipi_solver_cell_vertex, &
-                                   1, &                          
-                                   "Ensight Gold",&              
-                                   "text")                     
+                                   1, &
+                                   "Ensight Gold",&
+                                   "text")
 
-! 
+!
 ! Construction du maillage
 
   nvertex      = nvertexm
-  nelts        = neltsm  
+  nelts        = neltsm
   lconnecindex = lconnecindexm
   order = 1
 
   call mpi_comm_group(localcom, localGroup, code)
-    
+
   rl(1) = 0
   call mpi_group_incl(localGroup, 1, rl, p1Group, code)
   call mpi_comm_create(localcom, p1Group, p1Comm, code)
@@ -1256,7 +1255,7 @@ program testf
                                   connec)
   endif
 
-! 
+!
 ! Envoi de la coory a codec
 ! Reception de la coorx provenant de codec
   stride = 1
@@ -1265,10 +1264,10 @@ program testf
      do i = 1, nvertex
         values(i) = coords(3*(i-1) + 2)
      enddo
-  
+
      call cwipi_exchange_f ("test2D_10", &
                                 "echange1", &
-                                stride, & 
+                                stride, &
                                 1, &
                                 0.1d0, &
                                 "cooy", &
@@ -1281,7 +1280,7 @@ program testf
 
      call cwipi_receive_f ("test2D_10", &
                                "echange1", &
-                               stride, & 
+                               stride, &
                                1, &
                                0.1d0, &
                                "coox", &
@@ -1302,5 +1301,5 @@ program testf
   write(iiunit, *)
 
   call cwipi_finalize_f()
-      
+
 end program testf

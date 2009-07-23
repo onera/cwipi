@@ -53,18 +53,18 @@ test3D_1_c1_SOURCES = test3D_1_c1.c
 test3D_1_c2_SOURCES = test3D_1_c2.c
 
 
-test2D_1_c1_LDADD = $(top_builddir)/src/libcwipi.la \
-        @BFT_LIBS@ @FVM_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
-	-lm
-test2D_1_c2_LDADD = $(top_builddir)/src/libcwipi.la \
-        $(top_builddir)/src/libcwipi_f.la \
-        @BFT_LIBS@ @FVM_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
-	-lm
 test3D_1_c1_LDADD = $(top_builddir)/src/libcwipi.la \
-        @BFT_LIBS@ @FVM_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
-	-lm
+        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
+  -lm
 test3D_1_c2_LDADD = $(top_builddir)/src/libcwipi.la \
-        @BFT_LIBS@ @FVM_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
+        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
+  -lm
+test2D_1_c1_LDADD =  $(top_builddir)/src/libcwipi.la \
+        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
+	-lm
+test2D_1_c2_LDADD =  $(top_builddir)/src/libcwipi.la \
+        $(top_builddir)/src/libcwipi_f.la \
+        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
 	-lm
 
 # To link without libtool, replace libfvm.la above by .libs/libfvm.so

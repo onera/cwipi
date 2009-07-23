@@ -42,103 +42,141 @@ module cwipi
   !
   ! Public interfaces
   interface cwipi_exchange_f ; module procedure &
-    cwipi_exchange_without_user_interpolation_f_, &
-    cwipi_exchange_with_user_interpolation_f_
+    cwipi_exch_without_user_itp_f_, &
+    cwipi_exch_with_user_itp_f_
   end interface
   interface cwipi_send_f     ; module procedure  &
-    cwipi_send_without_user_interpolation_f_, &
-    cwipi_send_with_user_interpolation_f_
+    cwipi_send_without_user_itp_f_, &
+    cwipi_send_with_user_itp_f_
   end interface
 
-  interface cwipi_init_f ; module procedure cwipi_init_f_ ; end interface
+  interface cwipi_init_f                  ; module procedure &
+    cwipi_init_f_
+  end interface
 
-  interface cwipi_set_output_listing_f ; module procedure &
+  interface cwipi_set_output_listing_f    ; module procedure &
     cwipi_set_output_listing_f_
   end interface
 
-  interface cwipi_add_local_int_control_parameter_f ; module procedure &
-    cwipi_add_local_int_control_parameter_f_
+  interface cwipi_add_loc_int_ctrl_param_f ; module procedure &
+    cwipi_add_loc_int_ctrl_param_f_
   end interface
 
-  interface cwipi_add_local_double_control_parameter_f ; module procedure &
-    cwipi_add_local_double_control_parameter_f_
+  interface cwipi_add_loc_dbl_ctrl_param_f ; module procedure &
+    cwipi_add_loc_dbl_ctrl_param_f_
   end interface
 
-  interface cwipi_set_local_int_control_parameter_f ; module procedure &
-    cwipi_set_local_int_control_parameter_f_
+  interface cwipi_set_loc_int_ctrl_param_f ; module procedure &
+    cwipi_set_loc_int_ctrl_param_f_
   end interface
 
-  interface cwipi_set_local_double_control_parameter_f ; module procedure &
-    cwipi_set_local_double_control_parameter_f_
+  interface cwipi_set_loc_dbl_ctrl_param_f ; module procedure &
+    cwipi_set_loc_dbl_ctrl_param_f_
   end interface
 
-  interface cwipi_get_local_int_control_parameter_f ; module procedure &
-    cwipi_get_local_int_control_parameter_f_
+  interface cwipi_get_loc_int_ctrl_param_f ; module procedure &
+    cwipi_get_loc_int_ctrl_param_f_
   end interface
 
-  interface cwipi_get_local_double_control_parameter_f ; module procedure &
-    cwipi_get_local_double_control_parameter_f_
+  interface cwipi_get_loc_dbl_ctrl_param_f ; module procedure &
+    cwipi_get_loc_dbl_ctrl_param_f_
   end interface
 
-  interface cwipi_delete_local_int_control_parameter_f ; module procedure &
-    cwipi_delete_local_int_control_parameter_f_
+  interface cwipi_del_loc_int_ctrl_param_f ; module procedure &
+    cwipi_del_loc_int_ctrl_param_f_
   end interface
 
-  interface cwipi_delete_local_double_control_parameter_f ; module procedure &
-    cwipi_delete_local_double_control_parameter_f_
+  interface cwipi_del_loc_dbl_ctrl_param_f ; module procedure &
+    cwipi_del_loc_dbl_ctrl_param_f_
   end interface
 
-  interface cwipi_get_distant_int_control_parameter_f ; module procedure &
-    cwipi_get_distant_int_control_parameter_f_
+  interface cwipi_get_dis_int_ctrl_param_f ; module procedure &
+    cwipi_get_dis_int_ctrl_param_f_
   end interface
 
-  interface cwipi_get_distant_double_control_parameter_f ; module procedure &
-    cwipi_get_distant_double_control_parameter_f_
+  interface cwipi_get_dis_dbl_ctrl_param_f ; module procedure &
+    cwipi_get_dis_dbl_ctrl_param_f_
   end interface
 
-  interface cwipi_get_n_located_distant_points_f ; module procedure &
-    cwipi_get_n_located_distant_points_f_
+  interface cwipi_get_n_located_dist_pts_f ; module procedure &
+    cwipi_get_n_located_dist_pts_f_
   end interface
-  interface cwipi_synchronize_control_parameter_f ; module procedure cwipi_synchronize_control_parameter_f_ ; end interface
-  interface cwipi_create_coupling_f               ; module procedure cwipi_create_coupling_f_               ; end interface
-  interface cwipi_set_points_to_locate_f          ; module procedure cwipi_set_points_to_locate_f_          ; end interface
-  interface cwipi_define_mesh_f                   ; module procedure cwipi_define_mesh_f_                   ; end interface
-  interface cwipi_add_polyhedra_f                 ; module procedure cwipi_add_polyhedra_f_                 ; end interface
-  interface cwipi_locate_f                        ; module procedure cwipi_locate_f_                        ; end interface
-  interface cwipi_get_barycentric_coordinates_f   ; module procedure cwipi_get_barycentric_coordinates_f_   ; end interface
-  interface cwipi_get_barycentric_coordinates_index_f; module procedure &
-    cwipi_get_barycentric_coordinates_index_f_
+
+  interface cwipi_synch_ctrl_param_f       ; module procedure &
+    cwipi_synch_ctrl_param_f_
   end interface
-  interface cwipi_get_location_f                  ; module procedure cwipi_get_location_f_                  ; end interface
-  interface cwipi_receive_f                       ; module procedure cwipi_receive_f_                       ; end interface
-  interface cwipi_delete_coupling_f               ; module procedure cwipi_delete_coupling_f_               ; end interface
-  interface cwipi_get_not_located_points_f        ; module procedure cwipi_get_not_located_points_f_        ; end interface
-  interface cwipi_get_n_not_located_points_f ; module procedure &
-    cwipi_get_n_not_located_points_f_
+
+  interface cwipi_create_coupling_f        ; module procedure &
+   cwipi_create_coupling_f_
   end interface
-  interface cwipi_get_n_located_points_f ; module procedure &
-    cwipi_get_n_located_points_f_
+
+  interface cwipi_set_points_to_locate_f   ; module procedure &
+   cwipi_set_points_to_locate_f_
+  end interface
+
+  interface cwipi_define_mesh_f            ; module procedure &
+   cwipi_define_mesh_f_
+  end interface
+
+  interface cwipi_add_polyhedra_f          ; module procedure &
+    cwipi_add_polyhedra_f_
+  end interface
+
+  interface cwipi_locate_f                 ; module procedure &
+    cwipi_locate_f_
+  end interface
+
+  interface cwipi_get_bary_coord_f         ; module procedure &
+    cwipi_get_bary_coord_f_
+  end interface
+
+  interface cwipi_get_bary_coord_idx_f     ; module procedure &
+    cwipi_get_bary_coord_idx_f_
+  end interface
+
+  interface cwipi_get_location_f           ; module procedure &
+    cwipi_get_location_f_
+  end interface
+
+  interface cwipi_receive_f                ; module procedure &
+    cwipi_receive_f_
+  end interface
+
+  interface cwipi_delete_coupling_f        ; module procedure &
+    cwipi_delete_coupling_f_
+  end interface
+
+  interface cwipi_get_not_located_pts_f ; module procedure &
+    cwipi_get_not_located_pts_f_
+  end interface
+
+  interface cwipi_get_n_not_located_pts_f ; module procedure &
+    cwipi_get_n_not_located_pts_f_
+  end interface
+
+  interface cwipi_get_n_located_pts_f ; module procedure &
+    cwipi_get_n_located_pts_f_
   end interface
   !
   ! Private
 
   private :: cwipi_init_f_,                                 &
              cwipi_set_output_listing_f_,                   &
-             cwipi_exchange_without_user_interpolation_f_,  &
-             cwipi_exchange_with_user_interpolation_f_,     &
-             cwipi_send_without_user_interpolation_f_,      &
-             cwipi_send_with_user_interpolation_f_,         &
-             cwipi_add_local_int_control_parameter_f_,      &
-             cwipi_add_local_double_control_parameter_f_,   &
-             cwipi_set_local_int_control_parameter_f_,      &
-             cwipi_set_local_double_control_parameter_f_,   &
-             cwipi_get_local_int_control_parameter_f_,      &
-             cwipi_get_local_double_control_parameter_f_,   &
-             cwipi_delete_local_int_control_parameter_f_,   &
-             cwipi_delete_local_double_control_parameter_f_,&
-             cwipi_get_distant_int_control_parameter_f_,    &
-             cwipi_get_distant_double_control_parameter_f_, &
-             cwipi_synchronize_control_parameter_f_,        &
+             cwipi_exch_without_user_itp_f_,  &
+             cwipi_exch_with_user_itp_f_,     &
+             cwipi_send_without_user_itp_f_,      &
+             cwipi_send_with_user_itp_f_,         &
+             cwipi_add_loc_int_ctrl_param_f_,      &
+             cwipi_add_loc_dbl_ctrl_param_f_,   &
+             cwipi_set_loc_int_ctrl_param_f_,      &
+             cwipi_set_loc_dbl_ctrl_param_f_,   &
+             cwipi_get_loc_int_ctrl_param_f_,      &
+             cwipi_get_loc_dbl_ctrl_param_f_,   &
+             cwipi_del_loc_int_ctrl_param_f_,   &
+             cwipi_del_loc_dbl_ctrl_param_f_,&
+             cwipi_get_dis_int_ctrl_param_f_,    &
+             cwipi_get_dis_dbl_ctrl_param_f_, &
+             cwipi_synch_ctrl_param_f_,        &
              cwipi_create_coupling_f_,                      &
              cwipi_set_points_to_locate_f_,                 &
              cwipi_define_mesh_f_,                          &
@@ -146,7 +184,7 @@ module cwipi
              cwipi_locate_f_,                               &
              cwipi_receive_f_,                              &
              cwipi_delete_coupling_f_,                      &
-             cwipi_get_not_located_points_f_
+             cwipi_get_not_located_pts_f_
 
 contains
 
@@ -179,9 +217,9 @@ contains
     character (len = *) :: appliname
 
     integer :: l1
- 
+
     l1 = len(appliname)
- 
+
     call cwipi_init_cf (globalcomm, appliname, l1, applicomm)
 
   end subroutine cwipi_init_f_
@@ -192,7 +230,7 @@ contains
 !  Set up the file used for the output listing
 !
 !  parameters:
-!    output_listing      <-- Output listing file 
+!    output_listing      <-- Output listing file
 !
 !*******************************************************************************
 !
@@ -205,13 +243,13 @@ contains
 
   ifile =  outputUnit
 
-  call cwipi_set_output_listing_cf 
+  call cwipi_set_output_listing_cf
 
   end subroutine cwipi_set_output_listing_f_
 
 !
 !********************************************************************************
-! cwipi_add_local_int_control_parameter_f
+! cwipi_add_loc_int_ctrl_param_f
 !
 ! Add a integer control parameter
 !
@@ -222,7 +260,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine cwipi_add_local_int_control_parameter_f_ (name, initialvalue)
+  subroutine cwipi_add_loc_int_ctrl_param_f_ (name, initialvalue)
 
     implicit none
 
@@ -233,14 +271,14 @@ contains
 
     l = len(name)
 
-    call cwipi_add_local_int_control_parameter_cf (name, l, initialvalue)
+    call cwipi_add_loc_int_ctrl_param_cf (name, l, initialvalue)
 
-  end subroutine cwipi_add_local_int_control_parameter_f_
+  end subroutine cwipi_add_loc_int_ctrl_param_f_
 
 !
 !********************************************************************************
 !
-! cwipi_add_local_double_control_parameter_f
+! cwipi_add_loc_dbl_ctrl_param_f
 !
 ! Add a double control parameter
 !
@@ -250,7 +288,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine cwipi_add_local_double_control_parameter_f_ (name, initialvalue)
+  subroutine cwipi_add_loc_dbl_ctrl_param_f_ (name, initialvalue)
 
     implicit none
 
@@ -261,14 +299,14 @@ contains
 
     l = len(name)
 
-    call cwipi_add_local_double_control_parameter_cf (name, l, initialvalue)
+    call cwipi_add_loc_dbl_ctrl_param_cf (name, l, initialvalue)
 
-  end subroutine cwipi_add_local_double_control_parameter_f_
+  end subroutine cwipi_add_loc_dbl_ctrl_param_f_
 
 !
 !********************************************************************************
 !
-! cwipi_set_local_int_control_parameter_f
+! cwipi_set_loc_int_ctrl_param_f
 !
 !  Set a integer control parameter
 !
@@ -279,7 +317,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine cwipi_set_local_int_control_parameter_f_(name, initialvalue)
+  subroutine cwipi_set_loc_int_ctrl_param_f_(name, initialvalue)
 
     implicit none
 
@@ -290,14 +328,14 @@ contains
 
     l = len(name)
 
-    call cwipi_set_local_int_control_parameter_cf (name, l, initialvalue)
+    call cwipi_set_loc_int_ctrl_param_cf (name, l, initialvalue)
 
-  end subroutine cwipi_set_local_int_control_parameter_f_
+  end subroutine cwipi_set_loc_int_ctrl_param_f_
 
 !
 !********************************************************************************
 !
-! cwipi_set_local_double_control_parameter_f
+! cwipi_set_loc_dbl_ctrl_param_f
 !
 ! Set a double control parameter
 !
@@ -309,7 +347,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine cwipi_set_local_double_control_parameter_f_ (name, initialvalue)
+  subroutine cwipi_set_loc_dbl_ctrl_param_f_ (name, initialvalue)
 
     implicit none
 
@@ -320,14 +358,14 @@ contains
 
     l = len(name)
 
-    call cwipi_set_local_double_control_parameter_cf (name, l, initialvalue)
+    call cwipi_set_loc_dbl_ctrl_param_cf (name, l, initialvalue)
 
-  end subroutine cwipi_set_local_double_control_parameter_f_
+  end subroutine cwipi_set_loc_dbl_ctrl_param_f_
 
 !
 !********************************************************************************
 !
-! cwipi_get_local_int_control_parameter_f
+! cwipi_get_loc_int_ctrl_param_f
 !
 ! Get a integer control parameter of the current application
 !
@@ -337,7 +375,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine cwipi_get_local_int_control_parameter_f_ (name, value)
+  subroutine cwipi_get_loc_int_ctrl_param_f_ (name, value)
 
     implicit none
 
@@ -348,14 +386,14 @@ contains
 
     l = len(name)
 
-    call cwipi_get_local_int_control_parameter_cf (name, l, value)
+    call cwipi_get_loc_int_ctrl_param_cf (name, l, value)
 
-  end subroutine cwipi_get_local_int_control_parameter_f_
+  end subroutine cwipi_get_loc_int_ctrl_param_f_
 
 !
 !********************************************************************************
 !
-! cwipi_get_local_double_control_parameter_f
+! cwipi_get_loc_dbl_ctrl_param_f
 !
 ! Get a double control parameter of the current application
 !
@@ -365,7 +403,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine cwipi_get_local_double_control_parameter_f_ (name, value)
+  subroutine cwipi_get_loc_dbl_ctrl_param_f_ (name, value)
 
     implicit none
 
@@ -376,14 +414,14 @@ contains
 
     l = len(name)
 
-    call cwipi_get_local_double_control_parameter_cf (name, l, value)
+    call cwipi_get_loc_dbl_ctrl_param_cf (name, l, value)
 
-  end subroutine cwipi_get_local_double_control_parameter_f_
+  end subroutine cwipi_get_loc_dbl_ctrl_param_f_
 
 !
 !********************************************************************************
 !
-! cwipi_delete_local_int_control_parameter_f
+! cwipi_del_loc_int_ctrl_param_f
 !
 ! Delete a current application int parameter
 !
@@ -393,7 +431,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine cwipi_delete_local_int_control_parameter_f_ (name)
+  subroutine cwipi_del_loc_int_ctrl_param_f_ (name)
 
     implicit none
 
@@ -402,14 +440,14 @@ contains
 
     l = len(name)
 
-    call cwipi_delete_local_int_control_parameter_cf (name, l)
+    call cwipi_del_loc_int_ctrl_param_cf (name, l)
 
-  end subroutine cwipi_delete_local_int_control_parameter_f_
+  end subroutine cwipi_del_loc_int_ctrl_param_f_
 
 !
 !********************************************************************************
 !
-! cwipi_delete_local_double_control_parameter_f
+! cwipi_del_loc_dbl_ctrl_param_f
 !
 ! Delete a current application double parameter
 !
@@ -419,7 +457,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine cwipi_delete_local_double_control_parameter_f_ (name)
+  subroutine cwipi_del_loc_dbl_ctrl_param_f_ (name)
 
     implicit none
 
@@ -428,14 +466,14 @@ contains
 
     l = len(name)
 
-    call cwipi_delete_local_double_control_parameter_cf (name, l)
+    call cwipi_del_loc_dbl_ctrl_param_cf (name, l)
 
-  end subroutine cwipi_delete_local_double_control_parameter_f_
+  end subroutine cwipi_del_loc_dbl_ctrl_param_f_
 
 !
 !********************************************************************************
 !
-! cwipi_get_distant_int_control_parameter_f
+! cwipi_get_dis_int_ctrl_param_f
 !
 ! Get a integer control parameter of a other application
 !
@@ -446,7 +484,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine cwipi_get_distant_int_control_parameter_f_ (appliName, &
+  subroutine cwipi_get_dis_int_ctrl_param_f_ (appliName, &
                                                              paramName, &
                                                              value)
 
@@ -461,18 +499,18 @@ contains
     l1 = len(appliName)
     l2 = len(paramName)
 
-    call cwipi_get_distant_int_control_parameter_cf (appliName, &
+    call cwipi_get_dis_int_ctrl_param_cf (appliName, &
                                                          l1, &
                                                          paramName, &
                                                          l2, &
                                                          value)
 
-  end subroutine cwipi_get_distant_int_control_parameter_f_
+  end subroutine cwipi_get_dis_int_ctrl_param_f_
 
 !
 !********************************************************************************
 !
-! cwipi_get_distant_double_control_parameter_f
+! cwipi_get_dis_dbl_ctrl_param_f
 !
 ! Get a double control parameter of a other application
 !
@@ -483,7 +521,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine cwipi_get_distant_double_control_parameter_f_  (appliName, &
+  subroutine cwipi_get_dis_dbl_ctrl_param_f_  (appliName, &
                                                                paramName, &
                                                                value)
 
@@ -498,13 +536,13 @@ contains
     l1 = len(appliName)
     l2 = len(paramName)
 
-    call cwipi_get_distant_double_control_parameter_cf (appliName, &
+    call cwipi_get_dis_dbl_ctrl_param_cf (appliName, &
                                                             l1, &
                                                             paramName, &
                                                             l2, &
                                                             value)
 
-  end subroutine cwipi_get_distant_double_control_parameter_f_
+  end subroutine cwipi_get_dis_dbl_ctrl_param_f_
 
 !
 !********************************************************************************
@@ -520,7 +558,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine cwipi_synchronize_control_parameter_f_ (appliName)
+  subroutine cwipi_synch_ctrl_param_f_ (appliName)
 
     implicit none
 
@@ -530,9 +568,9 @@ contains
 
     l = len(appliName)
 
-    call cwipi_synchronize_control_parameter_cf (appliName, l)
+    call cwipi_synch_ctrl_param_cf (appliName, l)
 
-  end subroutine cwipi_synchronize_control_parameter_f_
+  end subroutine cwipi_synch_ctrl_param_f_
 
 !
 !********************************************************************************
@@ -887,7 +925,7 @@ contains
 !
 !********************************************************************************
 !
-! cwipi_get_barycentric_coordinates_index_f
+! cwipi_get_bary_coord_idx_f
 !
 ! Get located points barycentric coordinates index
 !
@@ -898,7 +936,7 @@ contains
 !*******************************************************************************
 !
 
-  subroutine cwipi_get_barycentric_coordinates_index_f_(couplingName, &
+  subroutine cwipi_get_bary_coord_idx_f_(couplingName, &
                                                             barycentricCoordinatesIndex)
 
     implicit none
@@ -909,15 +947,15 @@ contains
 
     lCouplingName = len(couplingName)
 
-    call cwipi_get_distant_barycentric_coordinates_index_cf (couplingName, &
-                                                         lCouplingName, &
-                                                         barycentricCoordinatesIndex)
-  end subroutine cwipi_get_barycentric_coordinates_index_f_
+    call cwipi_get_dis_bary_coord_idx_cf (couplingName, &
+                                          lCouplingName, &
+                                          barycentricCoordinatesIndex)
+  end subroutine cwipi_get_bary_coord_idx_f_
 
 !
 !********************************************************************************
 !
-! cwipi_get_barycentric_coordinates_f
+! cwipi_get_bary_coord_f
 !
 ! Get located points barycentric coordinates
 !
@@ -928,7 +966,7 @@ contains
 !*******************************************************************************
 !
 
-  subroutine cwipi_get_barycentric_coordinates_f_(couplingName, &
+  subroutine cwipi_get_bary_coord_f_(couplingName, &
                                                       barycentricCoordinates)
 
     implicit none
@@ -939,15 +977,15 @@ contains
 
     lCouplingName = len(couplingName)
 
-    call cwipi_get_distant_barycentric_coordinates_cf (couplingName, &
-                                                   lCouplingName, &
-                                                   barycentricCoordinates)
-  end subroutine cwipi_get_barycentric_coordinates_f_
+    call cwipi_get_dis_bary_coord_cf (couplingName, &
+                                      lCouplingName, &
+                                      barycentricCoordinates)
+  end subroutine cwipi_get_bary_coord_f_
 
 !
 !********************************************************************************
 !
-! cwipi_exchange_without_user_interpolation_f_
+! cwipi_exch_without_user_itp_f_
 !
 ! Exchange data with the coupled application.
 ! It is a synchronization point with the coupled application
@@ -968,17 +1006,17 @@ contains
 !********************************************************************************
 !
 
-  subroutine cwipi_exchange_without_user_interpolation_f_ (couplingName, &
-                                                               exchangeName, &
-                                                               stride, &
-                                                               nStep, &
-                                                               timeValue, &
-                                                               sendingFieldName, &
-                                                               sendingField, &
-                                                               receivingFieldName, &
-                                                               receivingField, &
-                                                               nNotLocatedPoints, &
-                                                               status)
+  subroutine cwipi_exch_without_user_itp_f_ (couplingName, &
+                                             exchangeName, &
+                                             stride, &
+                                             nStep, &
+                                             timeValue, &
+                                             sendingFieldName, &
+                                             sendingField, &
+                                             receivingFieldName, &
+                                             receivingField, &
+                                             nNotLocatedPoints, &
+                                             status)
 
     implicit none
 
@@ -998,27 +1036,27 @@ contains
     lReceivingFieldName = len(receivingFieldName)
 
     call cwipi_exchange_cf(couplingName, &
-                               lCouplingName, &
-                               exchangeName, &
-                               lExchangeName, &
-                               stride, &
-                               nStep, &
-                               timeValue, &
-                               sendingFieldName, &
-                               lSendingFieldName, &
-                               sendingField, &
-                               receivingFieldName, &
-                               lReceivingFieldName, &
-                               receivingField, &
-                               nNotLocatedPoints, &
-                               status)
+                           lCouplingName, &
+                           exchangeName, &
+                           lExchangeName, &
+                           stride, &
+                           nStep, &
+                           timeValue, &
+                           sendingFieldName, &
+                           lSendingFieldName, &
+                           sendingField, &
+                           receivingFieldName, &
+                           lReceivingFieldName, &
+                           receivingField, &
+                           nNotLocatedPoints, &
+                           status)
 
-  end subroutine cwipi_exchange_without_user_interpolation_f_
+  end subroutine cwipi_exch_without_user_itp_f_
 
 !
 !********************************************************************************
 !
-! cwipi_send_without_user_interpolation_f
+! cwipi_send_without_user_itp_f
 !
 ! Exchange data with the coupled application (only send)
 ! It is a synchronization point with the coupled application
@@ -1036,14 +1074,14 @@ contains
 !********************************************************************************
 !
 
-  subroutine cwipi_send_without_user_interpolation_f_ (couplingName, &
-                                                           exchangeName, &
-                                                           stride, &
-                                                           nStep, &
-                                                           timeValue, &
-                                                           sendingFieldName, &
-                                                           sendingField, &
-                                                           status)
+  subroutine cwipi_send_without_user_itp_f_ (couplingName, &
+                                             exchangeName, &
+                                             stride, &
+                                             nStep, &
+                                             timeValue, &
+                                             sendingFieldName, &
+                                             sendingField, &
+                                             status)
 
     implicit none
 
@@ -1070,12 +1108,12 @@ contains
                            sendingField, &
                            status)
 
-  end subroutine cwipi_send_without_user_interpolation_f_
+  end subroutine cwipi_send_without_user_itp_f_
 
 !
 !********************************************************************************
 !
-! cwipi_send_with_user_interpolation_f
+! cwipi_send_with_user_itp_f
 !
 ! Exchange data with the coupled application (only send)
 ! It is a synchronization point with the coupled application
@@ -1093,16 +1131,15 @@ contains
 !
 !********************************************************************************
 !
-
-  subroutine cwipi_send_with_user_interpolation_f_ (couplingName, &
-                                                        exchangeName, &
-                                                        stride, &
-                                                        nStep, &
-                                                        timeValue, &
-                                                        sendingFieldName, &
-                                                        sendingField, &
-                                                        ptInterpolationFct, &
-                                                        status)
+  subroutine cwipi_send_with_user_itp_f_ (couplingName, &
+                                          exchangeName, &
+                                          stride, &
+                                          nStep, &
+                                          timeValue, &
+                                          sendingFieldName, &
+                                          sendingField, &
+                                          ptInterpolationFct, &
+                                          status)
 
     implicit none
 
@@ -1115,14 +1152,14 @@ contains
                                       localCoordinates, &
                                       localConnectivityIndex, &
                                       localConnectivity, &
-                                      localPolyhedraFaceIndex, &
-                                      localPolyhedraCellToFaceConnectivity, &
-                                      localPolyhedraFaceConnectivityIndex, &
-                                      localPolyhedraFaceConnectivity, &
-                                      distantPointsCoordinates, &
-                                      distantPointsLocation, &
-                                      distantPointsBarycentricCoordinatesIndex, &
-                                      distantPointsBarycentricCoordinates, &
+                                      localPolyFaceIndex, &
+                                      localPolyCellToFaceConnec, &
+                                      localPolyFaceConnecIdx, &
+                                      localPolyFaceConnec, &
+                                      disPtsCoordinates, &
+                                      disPtsLocation, &
+                                      disPtsBaryCoordIdx, &
+                                      disPtsBaryCoord, &
                                       stride, &
                                       solverType, &
                                       localField, &
@@ -1135,14 +1172,14 @@ contains
          double precision, dimension(*) :: localCoordinates
          integer, dimension(*) :: localConnectivityIndex
          integer, dimension(*) :: localConnectivity
-         integer, dimension(*) :: localPolyhedraFaceIndex
-         integer, dimension(*) :: localPolyhedraCellToFaceConnectivity
-         integer, dimension(*) :: localPolyhedraFaceConnectivityIndex
-         integer, dimension(*) :: localPolyhedraFaceConnectivity
-         double precision, dimension(*) :: distantPointsCoordinates
-         integer, dimension(*) :: distantPointsLocation
-         integer, dimension(*) :: distantPointsBarycentricCoordinatesIndex
-         double precision, dimension(*) :: distantPointsBarycentricCoordinates
+         integer, dimension(*) :: localPolyFaceIndex
+         integer, dimension(*) :: localPolyCellToFaceConnec
+         integer, dimension(*) :: localPolyFaceConnecIdx
+         integer, dimension(*) :: localPolyFaceConnec
+         double precision, dimension(*) :: disPtsCoordinates
+         integer, dimension(*) :: disPtsLocation
+         integer, dimension(*) :: disPtsBaryCoordIdx
+         double precision, dimension(*) :: disPtsBaryCoord
          integer :: stride
          integer :: solverType
          double precision, dimension(*) :: localField
@@ -1151,7 +1188,6 @@ contains
     end interface
     character (len = *) :: couplingName, exchangeName, sendingFieldName
     integer :: stride, nStep, status
-    integer :: nNotLocatedPoints
     double precision :: timeValue
     double precision, dimension(*) :: sendingField
 
@@ -1161,20 +1197,20 @@ contains
     lExchangeName       = len(exchangeName)
     lSendingFieldName   = len(sendingFieldName)
 
-    call cwipi_send_with_user_interpolation_cf(couplingName, &
-                                                   lCouplingName, &
-                                                   exchangeName, &
-                                                   lExchangeName, &
-                                                   stride, &
-                                                   nStep, &
-                                                   timeValue, &
-                                                   sendingFieldName, &
-                                                   lSendingFieldName, &
-                                                   sendingField, &
-                                                   ptInterpolationFct, &
-                                                   status)
+    call cwipi_send_with_user_itp_cf(couplingName, &
+                                        lCouplingName, &
+                                        exchangeName, &
+                                        lExchangeName, &
+                                        stride, &
+                                        nStep, &
+                                        timeValue, &
+                                        sendingFieldName, &
+                                        lSendingFieldName, &
+                                        sendingField, &
+                                        ptInterpolationFct, &
+                                        status)
 
-  end subroutine cwipi_send_with_user_interpolation_f_
+  end subroutine cwipi_send_with_user_itp_f_
 
 !
 !********************************************************************************
@@ -1240,7 +1276,7 @@ contains
 !
 !********************************************************************************
 !
-! cwipi_exchange_f_with_user_interpolation_f
+! cwipi_exchange_f_with_user_itp_f
 !
 ! Exchange data with the coupled application.
 ! It is a synchronization point with the coupled application
@@ -1262,18 +1298,18 @@ contains
 !********************************************************************************
 !
 
-  subroutine cwipi_exchange_with_user_interpolation_f_ (couplingName, &
-                                                            exchangeName, &
-                                                            exchangeDim, &
-                                                            nStep, &
-                                                            timeValue, &
-                                                            sendingFieldName, &
-                                                            sendingField, &
-                                                            receivingFieldName, &
-                                                            receivingField, &
-                                                            ptInterpolationFct, &
-                                                            nNotLocatedPoints, &
-                                                            status)
+  subroutine cwipi_exch_with_user_itp_f_ (couplingName, &
+                                          exchangeName, &
+                                          exchangeDim, &
+                                          nStep, &
+                                          timeValue, &
+                                          sendingFieldName, &
+                                          sendingField, &
+                                          receivingFieldName, &
+                                          receivingField, &
+                                          ptInterpolationFct, &
+                                          nNotLocatedPoints, &
+                                          status)
 
     implicit none
 
@@ -1286,19 +1322,18 @@ contains
                                       localCoordinates, &
                                       localConnectivityIndex, &
                                       localConnectivity, &
-                                      localPolyhedraFaceIndex, &
-                                      localPolyhedraCellToFaceConnectivity, &
-                                      localPolyhedraFaceConnectivityIndex, &
-                                      localPolyhedraFaceConnectivity, &
-                                      distantPointsCoordinates, &
-                                      distantPointsLocation, &
-                                      distantPointsBarycentricCoordinatesIndex, &
-                                      distantPointsBarycentricCoordinates, &
+                                      localPolyFaceIndex, &
+                                      localPolyCellToFaceConnec, &
+                                      localPolyFaceConnecIdx, &
+                                      localPolyFaceConnec, &
+                                      disPtsCoordinates, &
+                                      disPtsLocation, &
+                                      disPtsBaryCoordIdx, &
+                                      disPtsBaryCoord, &
                                       stride, &
                                       solverType, &
                                       localField, &
                                       distantField)
-
          integer :: entitiesDim
          integer :: nLocalVertex
          integer :: nLocalElement
@@ -1307,14 +1342,14 @@ contains
          double precision, dimension(*) :: localCoordinates
          integer, dimension(*) :: localConnectivityIndex
          integer, dimension(*) :: localConnectivity
-         integer, dimension(*) :: localPolyhedraFaceIndex
-         integer, dimension(*) :: localPolyhedraCellToFaceConnectivity
-         integer, dimension(*) :: localPolyhedraFaceConnectivityIndex
-         integer, dimension(*) :: localPolyhedraFaceConnectivity
-         double precision, dimension(*) :: distantPointsCoordinates
-         integer, dimension(*) :: distantPointsLocation
-         integer, dimension(*) :: distantPointsBarycentricCoordinatesIndex
-         double precision, dimension(*) :: distantPointsBarycentricCoordinates
+         integer, dimension(*) :: localPolyFaceIndex
+         integer, dimension(*) :: localPolyCellToFaceConnec
+         integer, dimension(*) :: localPolyFaceConnecIdx
+         integer, dimension(*) :: localPolyFaceConnec
+         double precision, dimension(*) :: disPtsCoordinates
+         integer, dimension(*) :: disPtsLocation
+         integer, dimension(*) :: disPtsBaryCoordIdx
+         double precision, dimension(*) :: disPtsBaryCoord
          integer :: stride
          integer :: solverType
          double precision, dimension(*) :: localField
@@ -1337,24 +1372,24 @@ contains
     lSendingFieldName   = len(sendingFieldName)
     lReceivingFieldName = len(receivingFieldName)
 
-    call cwipi_exchange_with_user_interpolation_cf(couplingName, &
-                                                       lCouplingName, &
-                                                       exchangeName, &
-                                                       lExchangeName, &
-                                                       exchangeDim, &
-                                                       nStep, &
-                                                       timeValue, &
-                                                       sendingFieldName, &
-                                                       lSendingFieldName, &
-                                                       sendingField, &
-                                                       receivingFieldName, &
-                                                       lReceivingFieldName, &
-                                                       receivingField, &
-                                                       ptInterpolationFct, &
-                                                       nnotlocatedpoints, &
-                                                      status)
+    call cwipi_exch_with_user_itp_cf(couplingName, &
+                                     lCouplingName, &
+                                     exchangeName, &
+                                     lExchangeName, &
+                                     exchangeDim, &
+                                     nStep, &
+                                     timeValue, &
+                                     sendingFieldName, &
+                                     lSendingFieldName, &
+                                     sendingField, &
+                                     receivingFieldName, &
+                                     lReceivingFieldName, &
+                                     receivingField, &
+                                     ptInterpolationFct, &
+                                     nnotlocatedpoints, &
+                                     status)
 
-  end subroutine cwipi_exchange_with_user_interpolation_f_
+  end subroutine cwipi_exch_with_user_itp_f_
 
 !
 !********************************************************************************
@@ -1396,7 +1431,7 @@ contains
 !
 !********************************************************************************
 !
-! cwipi_get_not_located_points_f
+! cwipi_get_not_located_pts_f
 !
 ! Get located points
 !
@@ -1406,7 +1441,7 @@ contains
 !
 !********************************************************************************
 !
-  subroutine cwipi_get_not_located_points_f_(couplingName, notLocatedPoints)
+  subroutine cwipi_get_not_located_pts_f_(couplingName, notLocatedPoints)
 
     implicit none
 
@@ -1416,13 +1451,13 @@ contains
 
     lCouplingName       = len(couplingName)
 
-    call cwipi_get_not_located_points_cf(couplingName, lCouplingName, notLocatedPoints)
-  end subroutine cwipi_get_not_located_points_f_
+    call cwipi_get_not_located_pts_cf(couplingName, lCouplingName, notLocatedPoints)
+  end subroutine cwipi_get_not_located_pts_f_
 
 !
 !********************************************************************************
 !
-! cwipi_get_n_located_distant_points_f
+! cwipi_get_n_located_dist_pts_f
 !
 ! Get located points
 !
@@ -1432,7 +1467,7 @@ contains
 !
 !********************************************************************************
 !
-  subroutine cwipi_get_n_located_distant_points_f_(couplingName, nLocatedDistantPoints)
+  subroutine cwipi_get_n_located_dist_pts_f_(couplingName, nLocatedDistantPoints)
 
     implicit none
 
@@ -1442,10 +1477,10 @@ contains
 
     lCouplingName       = len(couplingName)
 
-    call cwipi_get_n_located_distant_points_cf(couplingName, &
+    call cwipi_get_n_located_dist_pts_cf(couplingName, &
                                                    lCouplingName, &
                                                    nLocatedDistantPoints)
-  end subroutine cwipi_get_n_located_distant_points_f_
+  end subroutine cwipi_get_n_located_dist_pts_f_
 
 
 
@@ -1461,7 +1496,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine cwipi_get_located_points_f_(couplingName, locatedPoints)
+  subroutine cwipi_get_located_pts_f_(couplingName, locatedPoints)
 
     implicit none
 
@@ -1471,8 +1506,8 @@ contains
 
     lCouplingName       = len(couplingName)
 
-    call cwipi_get_located_points_cf(couplingName, lCouplingName, locatedPoints)
-  end subroutine cwipi_get_located_points_f_
+    call cwipi_get_located_pts_cf(couplingName, lCouplingName, locatedPoints)
+  end subroutine cwipi_get_located_pts_f_
 
 !
 !********************************************************************************
@@ -1486,7 +1521,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine cwipi_get_n_located_points_f_(couplingName, nLocatedPoints)
+  subroutine cwipi_get_n_located_pts_f_(couplingName, nLocatedPoints)
 
     implicit none
 
@@ -1496,11 +1531,11 @@ contains
 
     lCouplingName       = len(couplingName)
 
-    call cwipi_get_n_located_points_cf(couplingName, &
+    call cwipi_get_n_located_pts_cf(couplingName, &
                                          lCouplingName, &
                                          nLocatedPoints)
 
-  end subroutine cwipi_get_n_located_points_f_
+  end subroutine cwipi_get_n_located_pts_f_
 
 !
 !********************************************************************************
@@ -1514,7 +1549,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine cwipi_get_n_not_located_points_f_(couplingName, nNotLocatedPoints)
+  subroutine cwipi_get_n_not_located_pts_f_(couplingName, nNotLocatedPoints)
 
     implicit none
 
@@ -1524,10 +1559,10 @@ contains
 
     lCouplingName       = len(couplingName)
 
-    call cwipi_get_n_not_located_points_cf(couplingName, &
+    call cwipi_get_n_not_located_pts_cf(couplingName, &
                                                lCouplingName, &
                                                nNotLocatedPoints)
 
-  end subroutine cwipi_get_n_not_located_points_f_
+  end subroutine cwipi_get_n_not_located_pts_f_
 
 end module cwipi

@@ -245,8 +245,8 @@ void PROCF(cwipi_set_output_listing_cf, CWIPI_SET_OUTPUT_LISTING_CF)()
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_add_local_int_control_parameter_cf,
-           CWIPI_ADD_LOCAL_INT_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_add_loc_int_ctrl_param_cf,
+           CWIPI_ADD_LOC_INT_CTRL_PARAM_CF)
   (const char *name,
    const int  *l_name,
    int *initial_value
@@ -267,8 +267,8 @@ void PROCF(cwipi_add_local_int_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_add_local_double_control_parameter_cf,
-           CWIPI_ADD_LOCAL_DOUBLE_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_add_loc_dbl_ctrl_param_cf,
+           CWIPI_ADD_LOC_DBL_CTRL_PARAM_CF)
   (const char *name,
    const int  *l_name,
    double *initial_value
@@ -289,8 +289,8 @@ void PROCF(cwipi_add_local_double_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_set_local_int_control_parameter_cf,
-           CWIPI_SET_LOCAL_INT_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_set_loc_int_ctrl_param_cf,
+           CWIPI_SET_LOC_INT_CTRL_PARAM_CF)
   (const char *name,
    const int  *l_name,
    int *value
@@ -311,8 +311,8 @@ void PROCF(cwipi_set_local_int_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_set_local_double_control_parameter_cf,
-           CWIPI_SET_LOCAL_DOUBLE_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_set_loc_dbl_ctrl_param_cf,
+           CWIPI_SET_LOC_DBL_CTRL_PARAM_CF)
   (const char *name,
    const int  *l_name,
    double *value
@@ -332,8 +332,8 @@ void PROCF(cwipi_set_local_double_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_get_local_int_control_parameter_cf,
-           CWIPI_GET_LOCAL_INT_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_get_loc_int_ctrl_param_cf,
+           CWIPI_GET_LOC_INT_CRTL_PARAM_CF)
   (const char *name,
    const int  *l_name,
    int *value
@@ -353,8 +353,8 @@ void PROCF(cwipi_get_local_int_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_get_local_double_control_parameter_cf,
-           CWIPI_GET_LOCAL_DOUBLE_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_get_loc_dbl_ctrl_param_cf,
+           CWIPI_GET_LOC_DBL_CTRL_PARAM_CF)
   (const char *name,
    const int  *l_name,
    double *value
@@ -374,8 +374,8 @@ void PROCF(cwipi_get_local_double_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_delete_local_int_control_parameter_cf,
-           CWIPI_DELETE_LOCAL_INT_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_del_loc_int_ctrl_param_cf,
+           CWIPI_DEL_LOC_INT_CTRL_PARAM_CF)
   (const char *name,
    const int  *l_name
    ARGF_SUPP_CHAINE)
@@ -394,8 +394,8 @@ void PROCF(cwipi_delete_local_int_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_delete_local_double_control_parameter_cf,
-           CWIPI_DELETE_LOCAL_DOUBLE_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_del_loc_dbl_ctrl_param_cf,
+           CWIPI_DEL_LOC_DBL_CTRL_PARAM_CF)
   (const char *name,
    const int  *l_name
    ARGF_SUPP_CHAINE)
@@ -415,8 +415,8 @@ void PROCF(cwipi_delete_local_double_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_get_distant_int_control_parameter_cf,
-           CWIPI_GET_DISTANT_INT_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_get_dis_int_ctrl_param_cf,
+           CWIPI_GET_DIS_INT_CTRL_PARAM_CF)
   (const char *application_name,
    const int  *l_application_name,
    const char *name,
@@ -445,8 +445,8 @@ void PROCF(cwipi_get_distant_int_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_get_distant_double_control_parameter_cf,
-           CWIPI_GET_DISTANT_DOUBLE_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_get_dis_dbl_ctrl_param_cf,
+           CWIPI_GET_DIS_DBL_CTRL_PARAM_CF)
   (const char *application_name,
    const int  *l_application_name,
    const char *name,
@@ -476,8 +476,8 @@ void PROCF(cwipi_get_distant_double_control_parameter_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_synchronize_control_parameter_cf,
-           CWIPI_SYNCHRONIZE_CONTROL_PARAMETER_CF)
+void PROCF(cwipi_synch_ctrl_param_cf,
+           CWIPI_SYNCH_CTRL_PARAM_CF)
   (const char *application_name,
    const int  *l_application_name
    ARGF_SUPP_CHAINE)
@@ -747,8 +747,8 @@ void PROCF(cwipi_get_distant_location_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_get_n_located_distant_points_cf,
-           CWIPI_GET_N_LOCATED_DISTANT_POINTS_CF) (const char *coupling_name,
+void PROCF(cwipi_get_n_located_dist_pts_cf,
+           CWIPI_GET_N_LOCATED_DIST_PTS_CF) (const char *coupling_name,
                                                        const int  *l_coupling_name,
                                                        int *n_located_distant_Points
                                                        ARGF_SUPP_CHAINE)
@@ -779,8 +779,8 @@ void PROCF(cwipi_get_n_located_distant_points_cf,
  *                                    coordinates index
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_get_distant_barycentric_coordinates_index_cf,
-           CWIPI_GET_DISTANT_BARYCENTRIC_COORDINATES_INDEX_CF) (const char *coupling_name,
+void PROCF(cwipi_get_dis_bary_coord_idx_cf,
+           CWIPI_GET_DIS_BARY_COORD_IDX_CF) (const char *coupling_name,
                                        const int  *l_coupling_name,
                                        int *barycentricCoordinatesIndex
                                        ARGF_SUPP_CHAINE)
@@ -813,8 +813,8 @@ void PROCF(cwipi_get_distant_barycentric_coordinates_index_cf,
  *   n_located_Points     --> Number of located points
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_get_n_located_points_cf,
-           CWIPI_GET_N_LOCATED_POINTS_CF) (const char *coupling_name,
+void PROCF(cwipi_get_n_located_pts_cf,
+           CWIPI_GET_N_LOCATED_PTS_CF) (const char *coupling_name,
                                                const int  *l_coupling_name,
                                                int *n_located_points
                                                ARGF_SUPP_CHAINE)
@@ -843,8 +843,8 @@ void PROCF(cwipi_get_n_located_points_cf,
  *   n_not_located_Points --> Number of not located points
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_get_n_not_located_points_cf,
-           CWIPI_GET_N_NOT_LOCATED_POINTS_CF) (const char *coupling_name,
+void PROCF(cwipi_get_n_not_located_pts_cf,
+           CWIPI_GET_N_NOT_LOCATED_PTS_CF) (const char *coupling_name,
                                                    const int  *l_coupling_name,
                                                    int *n_not_located_points
                                                    ARGF_SUPP_CHAINE)
@@ -874,8 +874,8 @@ void PROCF(cwipi_get_n_not_located_points_cf,
  *                                    coordinates
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_get_distant_barycentric_coordinates_cf,
-           CWIPI_GET_DISTANT_BARYCENTRIC_COORDINATES_CF) (const char *coupling_name,
+void PROCF(cwipi_get_dis_bary_coord_cf,
+           CWIPI_GET_DIS_BARY_COORD_CF) (const char *coupling_name,
                                        const int  *l_coupling_name,
                                        double *barycentricCoordinates
                                        ARGF_SUPP_CHAINE)
@@ -926,8 +926,8 @@ void PROCF(cwipi_get_distant_barycentric_coordinates_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_exchange_with_user_interpolation_cf,
-           CWIPI_EXCHANGE_WITH_USER_INTERPOLATION_CF)
+void PROCF(cwipi_exch_with_user_itp_cf,
+           CWIPI_EXCH_WITH_USER_ITP_CF)
   (const char      *coupling_name,
    const int       *l_coupling_name,
    const char      *exchange_name,
@@ -1091,8 +1091,8 @@ void PROCF(cwipi_receive_cf,
   delete[] receiving_field_nameC;
 }
 
-void PROCF(cwipi_send_with_user_interpolation_cf,
-           CWIPI_SEND_WITH_USER_INTERPOLATION_CF)
+void PROCF(cwipi_send_with_user_itp_cf,
+           CWIPI_SEND_WITH_USER_ITP_CF)
   (const char      *coupling_name,
    const int       *l_coupling_name,
    const char      *exchange_name,
@@ -1223,8 +1223,8 @@ void PROCF(cwipi_finalize_f,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_dump_application_properties_f,
-           CWIPI_DUMP_APPLICATION_PROPERTIES_F) ()
+void PROCF(cwipi_dump_appli_properties_f,
+           CWIPI_DUMP_APPLI_PROPERTIES_F) ()
 {
   cwipi_dump_application_properties();
 }
@@ -1239,8 +1239,8 @@ void PROCF(cwipi_dump_application_properties_f,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_get_not_located_points_cf,
-           CWIPI_GET_NOT_LOCATED_POINTS_CF)
+void PROCF(cwipi_get_not_located_pts_cf,
+           CWIPI_GET_NOT_LOCATED_PTS_CF)
   (const char *coupling_name,
    const int  *l_coupling_name,
    int *notLocatedPoints)
@@ -1275,8 +1275,8 @@ void PROCF(cwipi_get_not_located_points_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_get_located_points_cf,
-           CWIPI_GET_LOCATED_POINTS_CF)
+void PROCF(cwipi_get_located_pts_cf,
+           CWIPI_GET_LOCATED_PTS_CF)
   (const char *coupling_name,
    const int  *l_coupling_name,
    int *locatedPoints)

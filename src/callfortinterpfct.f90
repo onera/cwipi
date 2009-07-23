@@ -6,14 +6,14 @@ subroutine callfortinterpfct(entities_dim, &
                              local_coordinates, &
                              local_connectivity_index, &
                              local_connectivity, &
-                             local_polyhedra_face_index, &
-                             local_polyhedra_cell_to_face_connectivity, &
-                             local_polyhedra_face_connectivity_index, &
-                             local_polyhedra_face_connectivity, &
-                             distant_points_coordinates, &
-                             distant_points_location, &
-                             distant_points_barycentric_coordinates_index, &
-                             distant_points_barycentric_coordinates, &
+                             local_poly_face_index, &
+                             local_poly_cell2face_connec, &
+                             local_poly_face_connec_idx, &
+                             local_poly_face_connec, &
+                             dist_pts_coord, &
+                             dist_pts_location, &
+                             dist_pts_barycentric_coord_idx, &
+                             dist_pts_barycentric_coord, &
                              stride, &
                              solver_type, &
                              local_field, &
@@ -31,14 +31,14 @@ subroutine callfortinterpfct(entities_dim, &
                                     local_coordinates, &
                                     local_connectivity_index, &
                                     local_connectivity, &
-                                    local_polyhedra_face_index, &
-                                    local_polyhedra_cell_to_face_connectivity, &
-                                    local_polyhedra_face_connectivity_index, &
-                                    local_polyhedra_face_connectivity, &
-                                    distant_points_coordinates, &
-                                    distant_points_location, &
-                                    distant_points_barycentric_coordinates_index, &
-                                    distant_points_barycentric_coordinates, &
+                                    local_poly_face_index, &
+                                    local_poly_cell2face_connec, &
+                                    local_poly_face_connec_idx, &
+                                    local_poly_face_connec, &
+                                    dist_pts_coord, &
+                                    dist_pts_location, &
+                                    dist_pts_barycentric_coord_idx, &
+                                    dist_pts_barycentric_coord, &
                                     stride, &
                                     solver_type, &
                                     local_field, &
@@ -51,14 +51,14 @@ subroutine callfortinterpfct(entities_dim, &
        double precision, dimension(*) :: local_coordinates
        integer, dimension(*) :: local_connectivity_index
        integer, dimension(*) :: local_connectivity
-       integer, dimension(*) :: local_polyhedra_face_index
-       integer, dimension(*) :: local_polyhedra_cell_to_face_connectivity
-       integer, dimension(*) :: local_polyhedra_face_connectivity_index
-       integer, dimension(*) :: local_polyhedra_face_connectivity
-       double precision, dimension(*) :: distant_points_coordinates
-       integer, dimension(*) :: distant_points_location
-       integer, dimension(*) :: distant_points_barycentric_coordinates_index
-       double precision, dimension(*) :: distant_points_barycentric_coordinates
+       integer, dimension(*) :: local_poly_face_index
+       integer, dimension(*) :: local_poly_cell2face_connec
+       integer, dimension(*) :: local_poly_face_connec_idx
+       integer, dimension(*) :: local_poly_face_connec
+       double precision, dimension(*) :: dist_pts_coord
+       integer, dimension(*) :: dist_pts_location
+       integer, dimension(*) :: dist_pts_barycentric_coord_idx
+       double precision, dimension(*) :: dist_pts_barycentric_coord
        integer :: stride
        integer :: solver_type
        double precision, dimension(*) :: local_field
@@ -74,14 +74,14 @@ subroutine callfortinterpfct(entities_dim, &
   double precision, dimension(*) :: local_coordinates
   integer, dimension(*) :: local_connectivity_index
   integer, dimension(*) :: local_connectivity
-  integer, dimension(*) :: local_polyhedra_face_index
-  integer, dimension(*) :: local_polyhedra_cell_to_face_connectivity
-  integer, dimension(*) :: local_polyhedra_face_connectivity_index
-  integer, dimension(*) :: local_polyhedra_face_connectivity
-  double precision, dimension(*) :: distant_points_coordinates
-  integer, dimension(*) :: distant_points_location
-  integer, dimension(*) :: distant_points_barycentric_coordinates_index
-  double precision, dimension(*) :: distant_points_barycentric_coordinates
+  integer, dimension(*) :: local_poly_face_index
+  integer, dimension(*) :: local_poly_cell2face_connec
+  integer, dimension(*) :: local_poly_face_connec_idx
+  integer, dimension(*) :: local_poly_face_connec
+  double precision, dimension(*) :: dist_pts_coord
+  integer, dimension(*) :: dist_pts_location
+  integer, dimension(*) :: dist_pts_barycentric_coord_idx
+  double precision, dimension(*) :: dist_pts_barycentric_coord
   integer :: stride
   integer :: solver_type
   double precision, dimension(*) :: local_field
@@ -96,14 +96,14 @@ subroutine callfortinterpfct(entities_dim, &
                            local_coordinates, &
                            local_connectivity_index, &
                            local_connectivity, &
-                           local_polyhedra_face_index, &
-                           local_polyhedra_cell_to_face_connectivity, &
-                           local_polyhedra_face_connectivity_index, &
-                           local_polyhedra_face_connectivity, &
-                           distant_points_coordinates, &
-                           distant_points_location, &
-                           distant_points_barycentric_coordinates_index, &
-                           distant_points_barycentric_coordinates, &
+                           local_poly_face_index, &
+                           local_poly_cell2face_connec, &
+                           local_poly_face_connec_idx, &
+                           local_poly_face_connec, &
+                           dist_pts_coord, &
+                           dist_pts_location, &
+                           dist_pts_barycentric_coord_idx, &
+                           dist_pts_barycentric_coord, &
                            stride, &
                            solver_type, &
                            local_field, &

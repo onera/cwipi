@@ -110,7 +110,7 @@ int main( int argc, char* argv[] ) {
   MPI_Comm localComm;
 
   // System initializations
-  bft_mem_init( "logmem.txt" );
+  //bft_mem_init( "logmem.txt" );
   MPI_Init( &argc, &argv );
 
   // Initialisation of the variables
@@ -240,19 +240,19 @@ int main( int argc, char* argv[] ) {
 
     /* Rest in peace */
 
-    if (coords != NULL)            
+    if (coords != NULL)
       BFT_FREE(coords);
 
-    if (eltsConnec != NULL)        
+    if (eltsConnec != NULL)
       BFT_FREE(eltsConnec);
 
     if (eltsConnecPointer != NULL)
       BFT_FREE(eltsConnecPointer);
 
-    if (values != NULL)           
+    if (values != NULL)
       BFT_FREE(values);
 
-    if (localValues != NULL)      
+    if (localValues != NULL)
       BFT_FREE(localValues);
 
     bft_printf("--------------------------------------------------------\n");
@@ -263,7 +263,7 @@ int main( int argc, char* argv[] ) {
 
   cwipi_finalize();
 
-  bft_mem_end();
+  //bft_mem_end();
   fclose(outputFile);
   return 0;
 }

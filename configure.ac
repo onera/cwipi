@@ -69,6 +69,7 @@ user_LDFLAGS=$LDFLAGS
 AC_PROG_CC(cc gcc)
 AC_PROG_CXX(g++)
 AC_PROG_FC(gfortran)
+AC_PROG_LD(g++)
 AC_PROG_INSTALL
 AC_PROG_LN_S
 

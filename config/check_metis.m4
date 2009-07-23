@@ -57,9 +57,11 @@ LIBS="${LIBS} ${METIS_LIBS}"
 dnl METIS headers
 AC_CHECKING(for METIS headers)
 
-AC_CHECK_FILE(${metis_include_dir}/metis.h,
+if test "x${cross_compiling}" = "xno" ; then
+ AC_CHECK_FILE(${metis_include_dir}/metis.h,
                 have_metis=yes,
                 have_metis=no)
+fi
 
 if test "x${have_metis}" = "xyes" ; then
 
@@ -74,11 +76,13 @@ AC_MSG_RESULT(for metis headers: $have_metis)
 dnl METIS binaries
 AC_CHECKING(for METIS binaries)
 
+if test "x${cross_compiling}" = "xno" ; then
 if test "x$have_metis" = "xyes" ; then
 
   AC_CHECK_FILE(${metis_lib_dir}/libmetis.a,
                   have_metis=yes,
                   have_metis=no)
+fi
 fi
 
 if test "x$have_metis" = "xyes" ; then
@@ -86,6 +90,10 @@ if test "x$have_metis" = "xyes" ; then
               [Change2CNumbering(0,0,0)],
               have_metis=yes,
               have_metis=no)
+fi
+
+if test "x$have_metis" = "xno" ; then
+  METIS_LIBS=""
 fi
 
 AC_MSG_RESULT(for metis binaries: $have_metis)

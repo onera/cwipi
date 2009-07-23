@@ -14,18 +14,18 @@ namespace cwipi {
       std::cout << "destroying singleton." << std::endl;
 #endif
  }
-    Singleton (const Singleton & other) { }
-    Singleton & operator=(const Singleton & other) { }
-    
+    Singleton (const Singleton & other);
+    Singleton & operator=(const Singleton & other);
+
   public:
-    static T &getInstance () 
+    static T &getInstance ()
     {
       if (NULL == _singleton)
         _singleton = new T;
-      
+
       return *(static_cast<T*> (_singleton));
     }
-    
+
     static void kill ()
     {
       if (NULL != _singleton) {
@@ -33,11 +33,11 @@ namespace cwipi {
         _singleton = NULL;
       }
     }
-    
+
   private:
     static T *_singleton;
   };
-  
+
   template <typename T>
   T *Singleton<T>::_singleton = NULL;
 } // namespace cwipi
