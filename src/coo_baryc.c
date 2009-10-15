@@ -248,7 +248,7 @@ void coo_baryc(const fvm_locator_t* locator,
 
   /* Tableaux locaux */
 
-  const double eps = 1e-5;
+  const double eps = 1e-8;
   double *coo_som_fac = NULL;
   double *s           = NULL;
   double *dist        = NULL;
@@ -403,9 +403,24 @@ void coo_baryc(const fvm_locator_t* locator,
         sigma += coef;
         (*distBarCoords)[(*nDistBarCoords)[ipoint]+isom] = coef;
       }
-      assert(ABS(sigma) >= eps );
-      for (int isom = 0; isom < nbr_som_fac; isom++)
-        (*distBarCoords)[(*nDistBarCoords)[ipoint]+isom] /= sigma;
+      if (ABS(sigma) >= eps ) {
+        for (int isom = 0; isom < nbr_som_fac; isom++) {
+          (*distBarCoords)[(*nDistBarCoords)[ipoint]+isom] /= sigma;
+        }
+      }
+      else {
+        for (int isom = 0; isom < nbr_som_fac; isom++) {
+          (*distBarCoords)[(*nDistBarCoords)[ipoint]+isom] = NAN;
+        }
+      }
+    }
+
+    if (0 == 1) {
+      bft_printf("coo b %i :", ipoint);
+      for (int isom = 0; isom < nbr_som_fac; isom++) {
+        bft_printf(" %f", (*distBarCoords)[(*nDistBarCoords)[ipoint]+isom]);
+      }
+      bft_printf("\n");
     }
   }
 

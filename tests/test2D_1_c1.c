@@ -20,7 +20,7 @@
 
 //
 // Fonction d'interpolation bidon, juste pour voir si c'est bien pris
-// en compte 
+// en compte
 
 static void _dumpStatus(cwipi_exchange_status_t status )
 {
@@ -75,8 +75,8 @@ static void _interpolationBidon(const int entities_dim,
 
 
 
-int main 
-( 
+int main
+(
  int    argc,    /* Nombre d'arguments dans la ligne de commandes */
  char  *argv[]   /* Tableau des arguments de la ligne de commandes */
  )
@@ -96,10 +96,10 @@ int main
   /* Initialisation
    * -------------- */
 
-  cwipi_init(MPI_COMM_WORLD, 
+  cwipi_init(MPI_COMM_WORLD,
                  "CodeC",
                  &localComm);
-  
+
   /* Redirection des sorties ecran
    * ----------------------------- */
 
@@ -108,8 +108,8 @@ int main
   MPI_Comm_rank(localComm, &currentRank);
 
   char* fileName = NULL;
-  BFT_MALLOC(fileName, 25, char); 
-  sprintf(fileName,"listing_test2D_1_c1_%4.4d",currentRank); 
+  BFT_MALLOC(fileName, 25, char);
+  sprintf(fileName,"listing_test2D_1_c1_%4.4d",currentRank);
 
   outputFile = fopen(fileName,"w");
   BFT_FREE(fileName);
@@ -140,7 +140,7 @@ int main
   cwipi_dump_application_properties();
 
   /* Mise a jour des parametres de controle avec une autre application */
-  cwipi_synchronize_control_parameter("CodeFortran"); 
+  cwipi_synchronize_control_parameter("CodeFortran");
   bft_printf("\nDump apres synchronisation des parametres\n");
   bft_printf("-----------------------------------------\n");
   cwipi_dump_application_properties();
@@ -164,7 +164,7 @@ int main
   /* -----------------------
    * Test couplage P1 <-> P1
    * ----------------------- */
-    
+
   {
 
     /* Initialisation du couplage */
@@ -187,15 +187,15 @@ int main
                               1,                            // Frequence des post-traitement
                               "EnSight Gold",               // Format du post-traitement
                               "text");                      // Options de post-traitements
-    
+
     /* Construction du maillage local (Decoupage par Metis si plusieurs procs) */
-    
+
     int nVertex = 0;               // Nombre de sommets
     double *coords = NULL;         // Coordonnees des sommets
     int nElts = 0;                 // Nombre d'elements
     int *eltsConnecPointer = NULL; // Index par element dans la connectivite
     int *eltsConnec = NULL;        // Description de la connectivite
-    
+
     const double xmin = -100;
     const double xmax =  100;
     const double ymin = -100;
@@ -221,10 +221,10 @@ int main
                            &nElts,
                            &eltsConnecPointer,
                            &eltsConnec);
-    
+
     bft_printf("   nombre de sommets : %i\n", nVertex);
     bft_printf("   nombre d'elements : %i\n", nElts);
-    
+
     if  (currentRank == 0)
       printf("         Define mesh\n");
 
@@ -234,20 +234,20 @@ int main
                           coords,
                           eltsConnecPointer,
                           eltsConnec);
-    
+
     /* Envoi de la coordonnee X
        Reception de la coordonnee Y*/
-    
+
     double* values = NULL;
     BFT_MALLOC(values, nVertex, double);
     for (int i = 0; i < nVertex; i++)
       values[i] = coords[3*i];
-    
+
     double* localValues = NULL;
     BFT_MALLOC(localValues, nVertex, double);
 
     int nNotLocatedPoints;
-    
+
     if  (currentRank == 0)
       printf("         Exchange\n");
 
@@ -267,26 +267,26 @@ int main
     _dumpNotLocatedPoints("test2D_1", nNotLocatedPoints);
 
     /* Suppression de l'objet de couplage */
-    
+
     if  (currentRank == 0)
       printf("         Delete coupling\n");
 
     cwipi_delete_coupling("test2D_1");
-    
+
     /* Liberation de la memoire */
-    
+
     if (coords != NULL)
       BFT_FREE(coords);
-    
+
     if (eltsConnec != NULL)
       BFT_FREE(eltsConnec);
-    
+
     if (eltsConnecPointer != NULL)
       BFT_FREE(eltsConnecPointer);
-    
+
     if (values != NULL)
       BFT_FREE(values);
-    
+
     if (localValues != NULL)
       BFT_FREE(localValues);
     bft_printf("--------------------------------------------------------\n");
@@ -296,9 +296,9 @@ int main
    * Test couplage P1 -> P0 puis P0 -> P1
    * ------------------------------------ */
 
-  {   
+  {
     /* Initialisation du couplage */
-    
+
     bft_printf("Test 2 : Test couplage P1 -> P0 puis P0 -> P1\n");
     bft_printf("\n");
 
@@ -312,37 +312,37 @@ int main
                               CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
                               "CodeFortran",                      // Code couplé
                               2,                            // Dimension des entités géométriques
-                              0.1,                          // Tolérance géométrique 
+                              0.1,                          // Tolérance géométrique
                               CWIPI_STATIC_MESH,        // Maillage statique
                               CWIPI_SOLVER_CELL_CENTER, // Type de champs
                               1,                            // Frequence des post-traitement
                               "EnSight Gold",               // Format du post-traitement
                               "text");                      // Options de post-traitements
-    
+
     /* Construction du maillage local (Decoupage par Metis si plusieurs procs) */
-    
+
     int nVertex = 0;               // Nombre de sommets
     double *coords = NULL;         // Coordonnees des sommets
     int nElts = 0;                 // Nombre d'elements
     int *eltsConnecPointer = NULL; // Index par element dans la connectivite
     int *eltsConnec = NULL;        // Description de la connectivite
-    
+
     const double xmin = -100;
     const double xmax =  100;
     const double ymin = -100;
     const double ymax =  100;
-    const int    nx   = 68;    
-    const int    ny   = 68;    
+    const int    nx   = 68;
+    const int    ny   = 68;
     const int   order = 1;
-    
+
     if  (currentRank == 0)
       printf("         Create mesh\n");
 
     creeMaillagePolygone2D(order,
                            localComm,
-                           xmin, 
-                           xmax, 
-                           ymin, 
+                           xmin,
+                           xmax,
+                           ymin,
                            ymax,
                            1,
                            nx,
@@ -352,30 +352,30 @@ int main
                            &nElts,
                            &eltsConnecPointer,
                            &eltsConnec);
-    
+
     bft_printf("   nombre de sommets : %i\n", nVertex);
     bft_printf("   nombre d'elements : %i\n", nElts);
-    
+
     if  (currentRank == 0)
       printf("         Define mesh\n");
 
-    cwipi_define_mesh("test2D_2", 
+    cwipi_define_mesh("test2D_2",
                           nVertex,
                           nElts,
                           coords,
                           eltsConnecPointer,
                           eltsConnec);
-    
+
     /* Reception de la coordonnee Y
        Envoi de la coordonnee Y */
-    
+
     double* localValues = NULL;
     BFT_MALLOC(localValues, nElts, double);
 
     /* Receive */
-    
+
     int nNotLocatedPoints;
-    
+
     if  (currentRank == 0)
       printf("         Exchange 1\n");
 
@@ -415,32 +415,32 @@ int main
     _dumpNotLocatedPoints("test2D_2", nNotLocatedPoints);
 
     /* Suppression de l'objet de couplage */
-    
+
     if  (currentRank == 0)
       printf("         Delete coupling\n");
 
     cwipi_delete_coupling("test2D_2");
-    
+
     /* Liberation de la memoire */
-    
+
     if (coords != NULL)
       BFT_FREE(coords);
-    
+
     if (eltsConnec != NULL)
       BFT_FREE(eltsConnec);
-    
+
     if (eltsConnecPointer != NULL)
       BFT_FREE(eltsConnecPointer);
-    
+
     if (localValues != NULL)
       BFT_FREE(localValues);
     bft_printf("--------------------------------------------------------\n");
-    
+
   }
 
 
   /* -------------------------------------
-   * Test de definition des points 
+   * Test de definition des points
    * d'interpolation
    * ------------------------------------- */
 
@@ -465,15 +465,15 @@ int main
                               1,                            // Frequence des post-traitement
                               "EnSight Gold",               // Format du post-traitement
                               "text");                      // Options de post-traitements
-    
+
     /* Construction du maillage local (Decoupage par Metis si plusieurs procs) */
-    
+
     int nVertex = 0;               // Nombre de sommets
     double *coords = NULL;         // Coordonnees des sommets
     int nElts = 0;                 // Nombre d'elements
     int *eltsConnecPointer = NULL; // Index par element dans la connectivite
     int *eltsConnec = NULL;        // Description de la connectivite
-    
+
     const double xmin = -100;
     const double xmax =  100;
     const double ymin = -100;
@@ -481,7 +481,7 @@ int main
     const int    nx   = 68;
     const int    ny   = 68;
     const int   order = 1;
-   
+
     if  (currentRank == 0)
       printf("         Create mesh\n");
 
@@ -502,22 +502,22 @@ int main
 
     bft_printf("   nombre de sommets : %i\n", nVertex);
     bft_printf("   nombre d'elements : %i\n", nElts);
-    
+
     if  (currentRank == 0)
       printf("         Define mesh\n");
- 
+
     cwipi_define_mesh("test2D_3",
                           nVertex,
                           nElts,
                           coords,
                           eltsConnecPointer,
                           eltsConnec);
-    
+
     /* Definition des points a localiser */
 
     const int nptstolocate = 21;
     double *coordstolocate = NULL;
-    BFT_MALLOC(coordstolocate, 3*nptstolocate, double); 
+    BFT_MALLOC(coordstolocate, 3*nptstolocate, double);
 
     coordstolocate[0] = -75.;
     coordstolocate[1] = -75.;
@@ -607,17 +607,17 @@ int main
 
     /* Envoi de la coordonnee X
        Reception de la coordonnee Y*/
-    
+
     double* values = NULL;
     BFT_MALLOC(values, nVertex, double);
     for (int i = 0; i < nVertex; i++)
       values[i] = coords[3*i];
-    
+
     double* localValues = NULL;
     BFT_MALLOC(localValues, nptstolocate, double);
-    
+
     int nNotLocatedPoints;
-    
+
     if  (currentRank == 0)
       printf("         Exchange\n");
 
@@ -640,26 +640,26 @@ int main
     bft_printf("\n");
 
     /* Suppression de l'objet de couplage */
-    
+
     if  (currentRank == 0)
       printf("         Delete coupling\n");
 
     cwipi_delete_coupling("test2D_3");
-    
+
     /* Liberation de la memoire */
-    
+
     if (coords != NULL)
       BFT_FREE(coords);
-    
+
     if (eltsConnec != NULL)
       BFT_FREE(eltsConnec);
-    
+
     if (eltsConnecPointer != NULL)
       BFT_FREE(eltsConnecPointer);
-    
+
     if (values != NULL)
       BFT_FREE(values);
-    
+
     if (localValues != NULL)
       BFT_FREE(localValues);
 
@@ -670,7 +670,7 @@ int main
   }
 
   /* -------------------------------------
-   * Test de definition d'une fonction 
+   * Test de definition d'une fonction
    * d'interpolation (callback)
    * ------------------------------------- */
 
@@ -682,7 +682,7 @@ int main
 
     if (currentRank == 0)
       printf("Test 4 : Test de definition d'une fonction d'interpolation\n");
-      
+
     if  (currentRank == 0)
       printf("         Create coupling\n");
 
@@ -696,19 +696,19 @@ int main
                               1,                            // Frequence des post-traitement
                               "EnSight Gold",               // Format du post-traitement
                               "text");                      // Options de post-traitements
-    
+
     /* Definition d'une interpolation bidon, pour tester la fonctionnalité */
 
-    cwipi_set_interpolation_function("test2D_4", _interpolationBidon); 
+    cwipi_set_interpolation_function("test2D_4", _interpolationBidon);
 
     /* Construction du maillage local (Decoupage par Metis si plusieurs procs) */
-     
+
     int nVertex = 0;               // Nombre de sommets
     double *coords = NULL;         // Coordonnees des sommets
     int nElts = 0;                 // Nombre d'elements
     int *eltsConnecPointer = NULL; // Index par element dans la connectivite
     int *eltsConnec = NULL;        // Description de la connectivite
-    
+
     const double xmin = -100;
     const double xmax =  100;
     const double ymin = -100;
@@ -716,7 +716,7 @@ int main
     const int    nx   = 68;
     const int    ny   = 68;
     const int   order = 1;
-    
+
     if  (currentRank == 0)
       printf("         Create mesh\n");
 
@@ -734,7 +734,7 @@ int main
                            &nElts,
                            &eltsConnecPointer,
                            &eltsConnec);
-    
+
     if  (currentRank == 0)
       printf("         Define mesh\n");
 
@@ -744,20 +744,20 @@ int main
                           coords,
                           eltsConnecPointer,
                           eltsConnec);
-    
+
     /* Envoi de la coordonnee X
        Reception de la coordonnee Y*/
-    
+
     double* values = NULL;
     BFT_MALLOC(values, nVertex, double);
     for (int i = 0; i < nVertex; i++)
       values[i] = coords[3*i];
-    
+
     double* localValues = NULL;
     BFT_MALLOC(localValues, nVertex, double);
-    
+
     int nNotLocatedPoints;
-    
+
     if  (currentRank == 0)
       printf("         Exchange\n");
 
@@ -775,32 +775,32 @@ int main
     _dumpNotLocatedPoints("test2D_4", nNotLocatedPoints);
 
     /* Suppression de l'objet de couplage */
-    
+
     if  (currentRank == 0)
       printf("         Delete coupling\n");
 
     cwipi_delete_coupling("test2D_4");
-    
+
     /* Liberation de la memoire */
-    
+
     if (coords != NULL)
       BFT_FREE(coords);
-    
+
     if (eltsConnec != NULL)
       BFT_FREE(eltsConnec);
-    
+
     if (eltsConnecPointer != NULL)
       BFT_FREE(eltsConnecPointer);
-    
+
     if (values != NULL)
       BFT_FREE(values);
-    
+
     if (localValues != NULL)
       BFT_FREE(localValues);
     bft_printf("--------------------------------------------------------\n");
   }
 
- 
+
   /* -------------------------------------
    * test de la transmission d'un vecteur
    * ------------------------------------- */
@@ -826,17 +826,17 @@ int main
                               1,                            // Frequence des post-traitement
                               "EnSight Gold",               // Format du post-traitement
                               "text");                      // Options de post-traitements
-    
+
     /* Construction du maillage local (Decoupage par Metis si plusieurs procs) */
-    
+
     bft_printf("CodeA : construction du maillage\n");
-    
+
     int nVertex = 0;               // Nombre de sommets
     double *coords = NULL;         // Coordonnees des sommets
     int nElts = 0;                 // Nombre d'elements
     int *eltsConnecPointer = NULL; // Index par element dans la connectivite
     int *eltsConnec = NULL;        // Description de la connectivite
-    
+
     const double xmin = -100;
     const double xmax =  100;
     const double ymin = -100;
@@ -844,7 +844,7 @@ int main
     const int    nx   = 68;
     const int    ny   = 68;
     const int   order = 1;
-    
+
     if  (currentRank == 0)
       printf("         Create mesh\n");
 
@@ -862,10 +862,10 @@ int main
                            &nElts,
                            &eltsConnecPointer,
                            &eltsConnec);
-    
+
     bft_printf("   nombre de sommets : %i\n", nVertex);
     bft_printf("   nombre d'elements : %i\n", nElts);
-    
+
     if  (currentRank == 0)
       printf("         Define mesh\n");
 
@@ -875,20 +875,20 @@ int main
                           coords,
                           eltsConnecPointer,
                           eltsConnec);
-    
+
     /* Envoi de la coordonnee X
        Reception de la coordonnee Y*/
-    
+
     double* values = NULL;
     BFT_MALLOC(values, nVertex, double);
     for (int i = 0; i < nVertex; i++)
       values[i] = coords[3*i];
-    
+
     double* localValues = NULL;
     BFT_MALLOC(localValues, 3*nVertex, double);
-    
+
     int nNotLocatedPoints;
-    
+
     if  (currentRank == 0)
       printf("         Exchange\n");
 
@@ -906,26 +906,26 @@ int main
     _dumpNotLocatedPoints("test2D_5", nNotLocatedPoints);
 
     /* Suppression de l'objet de couplage */
-    
+
     if  (currentRank == 0)
       printf("         Delete coupling\n");
 
     cwipi_delete_coupling("test2D_5");
-    
+
     /* Liberation de la memoire */
-    
+
     if (coords != NULL)
       BFT_FREE(coords);
-    
+
     if (eltsConnec != NULL)
       BFT_FREE(eltsConnec);
-    
+
     if (eltsConnecPointer != NULL)
       BFT_FREE(eltsConnecPointer);
-    
+
     if (values != NULL)
       BFT_FREE(values);
-    
+
     if (localValues != NULL)
       BFT_FREE(localValues);
     bft_printf("--------------------------------------------------------\n");
@@ -936,7 +936,7 @@ int main
    * ------------------------------------- */
 
   {
-   
+
     /* Initialisation du couplage */
     bft_printf("Test 6 : Test des sorties d'erreur\n");
     bft_printf("\n");
@@ -957,18 +957,18 @@ int main
                               1,                            // Frequence des post-traitement
                               "EnSight Gold",               // Format du post-traitement
                               "text");                      // Options de post-traitements
-    
+
 
     /* Construction du maillage local (Decoupage par Metis si plusieurs procs) */
-    
+
     bft_printf("CodeA : construction du maillage\n");
-    
+
     int nVertex = 0;               // Nombre de sommets
     double *coords = NULL;         // Coordonnees des sommets
     int nElts = 0;                 // Nombre d'elements
     int *eltsConnecPointer = NULL; // Index par element dans la connectivite
     int *eltsConnec = NULL;        // Description de la connectivite
-    
+
     const double xmin = -150;
     const double xmax =  150;
     const double ymin = -150;
@@ -976,7 +976,7 @@ int main
     const int    nx   =  64;
     const int    ny   =  64;
     const int   order =  1;
-    
+
     if (currentRank == 0)
       printf("         Create mesh\n");
 
@@ -994,10 +994,10 @@ int main
                            &nElts,
                            &eltsConnecPointer,
                            &eltsConnec);
-    
+
     bft_printf("   nombre de sommets : %i\n", nVertex);
     bft_printf("   nombre d'elements : %i\n", nElts);
-    
+
     if (currentRank == 0)
       printf("         Define mesh\n");
 
@@ -1007,20 +1007,20 @@ int main
                           coords,
                           eltsConnecPointer,
                           eltsConnec);
-    
+
     /* Envoi de la coordonnee X
        Reception de la coordonnee Y*/
-    
+
     double* values = NULL;
     BFT_MALLOC(values, nVertex, double);
     for (int i = 0; i < nVertex; i++)
       values[i] = coords[3*i];
-    
+
     double* localValues = NULL;
     BFT_MALLOC(localValues, nVertex, double);
-    
+
     int nNotLocatedPoints;
-    
+
     if (currentRank == 0)
       printf("         Exchange 1\n");
 
@@ -1059,26 +1059,26 @@ int main
     _dumpNotLocatedPoints("test2D_6", nNotLocatedPoints);
 
     /* Suppression de l'objet de couplage */
-    
+
     if (currentRank == 0)
       printf("         delete coupling\n");
 
     cwipi_delete_coupling("test2D_6");
-    
+
     /* Liberation de la memoire */
-    
+
     if (coords != NULL)
       BFT_FREE(coords);
-    
+
     if (eltsConnec != NULL)
       BFT_FREE(eltsConnec);
-    
+
     if (eltsConnecPointer != NULL)
       BFT_FREE(eltsConnecPointer);
-    
+
     if (values != NULL)
       BFT_FREE(values);
-    
+
     if (localValues != NULL)
       BFT_FREE(localValues);
     bft_printf("--------------------------------------------------------\n");
@@ -1087,7 +1087,7 @@ int main
   /* ------------------------
    * Test simple localisation
    * ------------------------ */
-    
+
   {
 
     /* Initialisation du couplage */
@@ -1096,7 +1096,7 @@ int main
 
     if (currentRank == 0)
       printf("Test 7 : Test simple localisation\n");
-    
+
     if  (currentRank == 0)
       printf("         Create coupling\n");
 
@@ -1110,15 +1110,15 @@ int main
                               1,                            // Frequence des post-traitement
                               "EnSight Gold",               // Format du post-traitement
                               "text");                      // Options de post-traitements
-    
+
     /* Construction du maillage local (Decoupage par Metis si plusieurs procs) */
-    
+
     int nVertex = 0;               // Nombre de sommets
     double *coords = NULL;         // Coordonnees des sommets
     int nElts = 0;                 // Nombre d'elements
     int *eltsConnecPointer = NULL; // Index par element dans la connectivite
     int *eltsConnec = NULL;        // Description de la connectivite
-    
+
     const double xmin = -100;
     const double xmax =  100;
     const double ymin = -100;
@@ -1126,7 +1126,7 @@ int main
     const int    nx   = 68;
     const int    ny   = 68;
     const int   order = 1;
-    
+
     if  (currentRank == 0)
       printf("         Create mesh\n");
 
@@ -1144,10 +1144,10 @@ int main
                            &nElts,
                            &eltsConnecPointer,
                            &eltsConnec);
-    
+
     bft_printf("   nombre de sommets : %i\n", nVertex);
     bft_printf("   nombre d'elements : %i\n", nElts);
-    
+
     if  (currentRank == 0)
       printf("         Define mesh\n");
 
@@ -1157,7 +1157,7 @@ int main
                           coords,
                           eltsConnecPointer,
                           eltsConnec);
-    
+
     cwipi_locate("test2D_7");
 
     const int n_located_distant_point = cwipi_get_n_located_distant_points("test2D_7");
@@ -1169,32 +1169,32 @@ int main
     const double* distant_barycentric_coordinates = cwipi_get_distant_barycentric_coordinates("test2D_7");
 
     /* Suppression de l'objet de couplage */
-    
+
     if  (currentRank == 0)
       printf("         Delete coupling\n");
 
     cwipi_delete_coupling("test2D_7");
-    
+
     /* Liberation de la memoire */
-    
+
     if (coords != NULL)
       BFT_FREE(coords);
-    
+
     if (eltsConnec != NULL)
       BFT_FREE(eltsConnec);
-    
+
     if (eltsConnecPointer != NULL)
       BFT_FREE(eltsConnecPointer);
-    
+
     bft_printf("--------------------------------------------------------\n");
   }
 
   /* ---------------------------------------------------------
-   * Test couplage 
+   * Test couplage
    * CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING/
    * CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING
    * --------------------------------------------------------- */
-    
+
   {
 
     /* Initialisation du couplage */
@@ -1222,16 +1222,16 @@ int main
                               1,                            // Frequence des post-traitement
                               "EnSight Gold",               // Format du post-traitement
                               "text");                      // Options de post-traitements
-    
+
 
     /* Construction du maillage local (Decoupage par Metis si plusieurs procs) */
-    
+
     int nVertex = 0;               // Nombre de sommets
     double *coords = NULL;         // Coordonnees des sommets
     int nElts = 0;                 // Nombre d'elements
     int *eltsConnecPointer = NULL; // Index par element dans la connectivite
     int *eltsConnec = NULL;        // Description de la connectivite
-    
+
     const double xmin = -100;
     const double xmax =  100;
     const double ymin = -100;
@@ -1239,17 +1239,17 @@ int main
     const int    nx   = 68;
     const int    ny   = 68;
     const int   order = 1;
-    
+
     if  (currentRank == 0)
       printf("         Create mesh\n");
 
     MPI_Group localGroup = MPI_GROUP_NULL;
     MPI_Group p1Group = MPI_GROUP_NULL;
     MPI_Comm p1Comm = MPI_COMM_NULL;
-    
+
     MPI_Comm_group(localComm, &localGroup);
     int rl = 0;
-    
+
     MPI_Group_incl(localGroup, 1, &rl, &p1Group);
     MPI_Comm_create(localComm, p1Group, &p1Comm);
 
@@ -1269,10 +1269,10 @@ int main
                              &eltsConnecPointer,
                              &eltsConnec);
     }
-    
+
     bft_printf("   nombre de sommets : %i\n", nVertex);
     bft_printf("   nombre d'elements : %i\n", nElts);
-    
+
     if  (currentRank == 0)
       printf("         Define mesh\n");
 
@@ -1283,10 +1283,10 @@ int main
                             coords,
                             eltsConnecPointer,
                             eltsConnec);
-    
+
     /* Envoi de la coordonnee X
        Reception de la coordonnee Y*/
-    
+
     double* values = NULL;
     if  (currentRank == 0) {
       BFT_MALLOC(values, nVertex, double);
@@ -1301,11 +1301,11 @@ int main
     BFT_MALLOC(localValues, nVertex, double);
 
     int nNotLocatedPoints;
-    
+
     if  (currentRank == 0)
       printf("         Exchange\n");
 
- 
+
 
     cwipi_exchange_status_t status = cwipi_exchange("test2D_8",
                                                             "echange1",
@@ -1325,26 +1325,26 @@ int main
     _dumpNotLocatedPoints("test2D_8", nNotLocatedPoints);
 
     /* Suppression de l'objet de couplage */
-    
+
     if  (currentRank == 0)
       printf("         Delete coupling\n");
 
     /*cwipi_delete_coupling("test2D_8"); */
-    
+
     /* Liberation de la memoire */
-    
+
     if (coords != NULL)
       BFT_FREE(coords);
-    
+
     if (eltsConnec != NULL)
       BFT_FREE(eltsConnec);
-    
+
     if (eltsConnecPointer != NULL)
       BFT_FREE(eltsConnecPointer);
-    
+
     if (values != NULL)
       BFT_FREE(values);
-    
+
     if (localValues != NULL)
       BFT_FREE(localValues);
     bft_printf("--------------------------------------------------------\n");
@@ -1353,11 +1353,11 @@ int main
 
 
   /* ---------------------------------------------------------
-   * Test couplage avec code C 
+   * Test couplage avec code C
    * de type CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING/
    * CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING
    * --------------------------------------------------------- */
-    
+
   {
 
     /* Initialisation du couplage */
@@ -1384,15 +1384,15 @@ int main
                               1,                            // Frequence des post-traitement
                               "EnSight Gold",               // Format du post-traitement
                               "text");                      // Options de post-traitements
-    
+
     /* Construction du maillage local (Decoupage par Metis si plusieurs procs) */
-    
+
     int nVertex = 0;               // Nombre de sommets
     double *coords = NULL;         // Coordonnees des sommets
     int nElts = 0;                 // Nombre d'elements
     int *eltsConnecPointer = NULL; // Index par element dans la connectivite
     int *eltsConnec = NULL;        // Description de la connectivite
-    
+
     const double xmin = -100;
     const double xmax =  100;
     const double ymin = -100;
@@ -1400,17 +1400,17 @@ int main
     const int    nx   = 68;
     const int    ny   = 68;
     const int   order = 1;
-    
+
     if  (currentRank == 0)
       printf("         Create mesh\n");
 
     MPI_Group localGroup = MPI_GROUP_NULL;
     MPI_Group p1Group = MPI_GROUP_NULL;
     MPI_Comm p1Comm = MPI_COMM_NULL;
-    
+
     MPI_Comm_group(localComm, &localGroup);
     int rl = 0;
-    
+
     MPI_Group_incl(localGroup, 1, &rl, &p1Group);
     MPI_Comm_create(localComm, p1Group, &p1Comm);
 
@@ -1430,10 +1430,10 @@ int main
                              &eltsConnecPointer,
                              &eltsConnec);
     }
-    
+
     bft_printf("   nombre de sommets : %i\n", nVertex);
     bft_printf("   nombre d'elements : %i\n", nElts);
-    
+
 
     if  (currentRank == 0)
       printf("         Define mesh\n");
@@ -1445,24 +1445,24 @@ int main
                             coords,
                             eltsConnecPointer,
                             eltsConnec);
-    
+
     /* Envoi de la coordonnee X
        Reception de la coordonnee Y*/
-    
+
     double* values = NULL;
     if  (currentRank == 0) {
       BFT_MALLOC(values, nVertex, double);
       for (int i = 0; i < nVertex; i++)
         values[i] = coords[3*i];
     }
-    
+
     MPI_Bcast(&nVertex, 1, MPI_INT, 0, localComm);
 
     double* localValues = NULL;
     BFT_MALLOC(localValues, nVertex, double);
 
     int nNotLocatedPoints;
-    
+
     if  (currentRank == 0)
       printf("         Exchange\n");
 
@@ -1482,26 +1482,26 @@ int main
     _dumpNotLocatedPoints("test2D_9", nNotLocatedPoints);
 
     /* Suppression de l'objet de couplage */
-    
+
     if  (currentRank == 0)
       printf("         Delete coupling\n");
 
     cwipi_delete_coupling("test2D_9");
-    
+
     /* Liberation de la memoire */
-    
+
     if (coords != NULL)
       BFT_FREE(coords);
-    
+
     if (eltsConnec != NULL)
       BFT_FREE(eltsConnec);
-    
+
     if (eltsConnecPointer != NULL)
       BFT_FREE(eltsConnecPointer);
-    
+
     if (values != NULL)
       BFT_FREE(values);
-    
+
     if (localValues != NULL)
       BFT_FREE(localValues);
     bft_printf("--------------------------------------------------------\n");
@@ -1509,11 +1509,11 @@ int main
 
 
   /* ---------------------------------------------------------
-   * Test couplage avec code C 
+   * Test couplage avec code C
    * de type CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING/
    * CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING
    * --------------------------------------------------------- */
-    
+
   {
 
     /* Initialisation du couplage */
@@ -1540,15 +1540,15 @@ int main
                               1,                            // Frequence des post-traitement
                               "EnSight Gold",               // Format du post-traitement
                               "text");                      // Options de post-traitements
-    
+
     /* Construction du maillage local (Decoupage par Metis si plusieurs procs) */
-    
+
     int nVertex = 0;               // Nombre de sommets
     double *coords = NULL;         // Coordonnees des sommets
     int nElts = 0;                 // Nombre d'elements
     int *eltsConnecPointer = NULL; // Index par element dans la connectivite
     int *eltsConnec = NULL;        // Description de la connectivite
-    
+
     const double xmin = -100;
     const double xmax =  100;
     const double ymin = -100;
@@ -1556,17 +1556,17 @@ int main
     const int    nx   = 68;
     const int    ny   = 68;
     const int   order = 1;
-    
+
     if  (currentRank == 0)
       printf("         Create mesh\n");
 
     MPI_Group localGroup = MPI_GROUP_NULL;
     MPI_Group p1Group = MPI_GROUP_NULL;
     MPI_Comm p1Comm = MPI_COMM_NULL;
-    
+
     MPI_Comm_group(localComm, &localGroup);
     int rl = 0;
-    
+
     MPI_Group_incl(localGroup, 1, &rl, &p1Group);
     MPI_Comm_create(localComm, p1Group, &p1Comm);
 
@@ -1586,10 +1586,10 @@ int main
                              &eltsConnecPointer,
                              &eltsConnec);
     }
-    
+
     bft_printf("   nombre de sommets : %i\n", nVertex);
     bft_printf("   nombre d'elements : %i\n", nElts);
-    
+
     if  (currentRank == 0)
       printf("         Define mesh\n");
 
@@ -1600,25 +1600,25 @@ int main
                             coords,
                             eltsConnecPointer,
                             eltsConnec);
-    
+
     /* Envoi de la coordonnee X
        Reception de la coordonnee Y*/
-    
+
     if  (currentRank == 0)
       printf("         Exchange\n");
 
     if  (currentRank == 0) {
-      
+
       double* values = NULL;
       BFT_MALLOC(values, nVertex, double);
       for (int i = 0; i < nVertex; i++)
         values[i] = coords[3*i];
-      
+
       double* localValues = NULL;
       BFT_MALLOC(localValues, nVertex, double);
-      
+
       int nNotLocatedPoints;
-    
+
       cwipi_exchange_status_t status = cwipi_exchange("test2D_10",
                                                               "echange1",
                                                               1,
@@ -1632,7 +1632,7 @@ int main
 
       if (values != NULL)
         BFT_FREE(values);
-      
+
       if (localValues != NULL)
         BFT_FREE(localValues);
 
@@ -1642,29 +1642,29 @@ int main
     }
 
     /* Suppression de l'objet de couplage */
-    
+
     if  (currentRank == 0)
       printf("         Delete coupling\n");
 
     cwipi_delete_coupling("test2D_10");
-    
+
     /* Liberation de la memoire */
-    
+
     if (coords != NULL)
       BFT_FREE(coords);
-    
+
     if (eltsConnec != NULL)
       BFT_FREE(eltsConnec);
-    
+
     if (eltsConnecPointer != NULL)
       BFT_FREE(eltsConnecPointer);
-    
+
     bft_printf("--------------------------------------------------------\n");
   }
 
   /* Fin des communications MPI */
   /* -------------------------- */
-  
+
   cwipi_finalize();
 
   /*bft_mem_end();*/

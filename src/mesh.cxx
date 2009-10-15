@@ -15,6 +15,8 @@
 #include "mesh.hxx"
 #include "quickSort.h"
 
+#define ABS(a)     ((a) <  0  ? -(a) : (a))
+//TODO: Remplacer les #define MAX, ABS... par des fonctions inline
 namespace cwipi {
 
 
@@ -187,19 +189,19 @@ namespace cwipi {
       int nTriangleSum;
       int nQuadrangleSum;
       int nPolySum;
-      
-      MPI_Allreduce (&nbTriangle, &nTriangleSum, 
+
+      MPI_Allreduce (&nbTriangle, &nTriangleSum,
                      1, MPI_INT, MPI_SUM,
                      localComm);
-      
-      MPI_Allreduce (&nbQuadrangle, &nQuadrangleSum, 
+
+      MPI_Allreduce (&nbQuadrangle, &nQuadrangleSum,
                      1, MPI_INT, MPI_SUM,
                      localComm);
-      
-      MPI_Allreduce (&nbPoly, &nPolySum, 
+
+      MPI_Allreduce (&nbPoly, &nPolySum,
                      1, MPI_INT, MPI_SUM,
                      localComm);
-      
+
       if (nbTriangle != 0)
         fvm_nodal_append_shared(_fvmNodal,
                                 nbTriangle,
@@ -209,7 +211,7 @@ namespace cwipi {
                                 NULL,
                                 _eltConnectivity,
                                 NULL);
-      
+
       else if (nTriangleSum != 0)
         fvm_nodal_append_shared(_fvmNodal,
                                 0,
@@ -219,7 +221,7 @@ namespace cwipi {
                                 NULL,
                                 NULL,
                                 NULL);
-      
+
       if (nbQuadrangle != 0)
         fvm_nodal_append_shared(_fvmNodal,
                                 nbQuadrangle,
@@ -229,8 +231,8 @@ namespace cwipi {
                                 NULL,
                                 _eltConnectivity + 3*nbTriangle,
                                 NULL);
-      
-      
+
+
       else if (nQuadrangleSum != 0)
         fvm_nodal_append_shared(_fvmNodal,
                                 0,
@@ -240,13 +242,13 @@ namespace cwipi {
                                 NULL,
                                 NULL,
                                 NULL);
-      
+
       if (nbPoly != 0) {
         _polygonIndex = new int[nbPoly+1];
         for(int i = 0; i < nbPoly+1; i++) {
           _polygonIndex[i] = _eltConnectivityIndex[nbTriangle+nbQuadrangle+i]-_eltConnectivityIndex[nbTriangle+nbQuadrangle];
         }
-        
+
         fvm_nodal_append_shared(_fvmNodal,
                                 nbPoly,
                                 FVM_FACE_POLY,
@@ -256,9 +258,9 @@ namespace cwipi {
                                 _eltConnectivity + 3*nbTriangle + 4*nbQuadrangle,
                                 NULL);
       }
-      
-      else if (nPolySum != 0) 
-        
+
+      else if (nPolySum != 0)
+
         fvm_nodal_append_shared(_fvmNodal,
                                 0,
                                 FVM_FACE_POLY,
@@ -267,28 +269,28 @@ namespace cwipi {
                                 NULL,
                                 NULL,
                                 NULL);
-      
+
     break;
-    
+
     case 3 :
       int nTetraSum;
       int nPyramidSum;
       int nPrismSum;
       int nHexaedraSum;
 
-      MPI_Allreduce (&nbTetra, &nTetraSum, 
+      MPI_Allreduce (&nbTetra, &nTetraSum,
                      1, MPI_INT, MPI_SUM,
                      localComm);
 
-      MPI_Allreduce (&nbPyramid, &nPyramidSum, 
+      MPI_Allreduce (&nbPyramid, &nPyramidSum,
                      1, MPI_INT, MPI_SUM,
                      localComm);
 
-      MPI_Allreduce (&nbPrism, &nPrismSum, 
+      MPI_Allreduce (&nbPrism, &nPrismSum,
                      1, MPI_INT, MPI_SUM,
                      localComm);
 
-      MPI_Allreduce (&nbHexaedra, &nHexaedraSum, 
+      MPI_Allreduce (&nbHexaedra, &nHexaedraSum,
                      1, MPI_INT, MPI_SUM,
                      localComm);
 
@@ -453,7 +455,7 @@ namespace cwipi {
 #endif
 
     fvm_parall_set_mpi_comm(MPI_COMM_NULL);
-  
+
   }
 
 
@@ -714,8 +716,31 @@ namespace cwipi {
         refFaceCenter[3*i]   /= refFaceSurface[i];
         refFaceCenter[3*i+1] /= refFaceSurface[i];
         refFaceCenter[3*i+2] /= refFaceSurface[i];
+#ifdef NAN
+        if (isnan(refFaceCenter[3*i]) ||
+            isnan(refFaceCenter[3*i]+1) ||
+            isnan(refFaceCenter[3*i]+2)) {
+          std::cout << "degenerated element (nan):" << i << std::endl;
+          refFaceCenter[3*i] = barycentre[0];
+          refFaceCenter[3*i+1] = barycentre[1];
+          refFaceCenter[3*i+2] = barycentre[2];
+        }
+#endif
+
+
+#ifdef INFINITY
+        if (isinf(ABS(refFaceCenter[3*i])) ||
+            isinf(ABS(refFaceCenter[3*i]+1)) ||
+            isinf(ABS(refFaceCenter[3*i]+2))) {
+          std::cout << "degenerated element (inf) :" << i << std::endl;
+          refFaceCenter[3*i] = barycentre[0];
+          refFaceCenter[3*i+1] = barycentre[1];
+          refFaceCenter[3*i+2] = barycentre[2];
+        }
+#endif
 
       }
+      refFaceSurface[i] = ABS(refFaceSurface[i]);
       surftot += refFaceSurface[i];
     }
   }

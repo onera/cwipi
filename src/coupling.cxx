@@ -91,21 +91,21 @@ Coupling::Coupling(const std::string& name,
   _barycentricCoordinates = NULL;
   _nNotLocatedPoint = 0;
   _nPointsToLocate = 0;
-  _location = NULL; 
+  _location = NULL;
   _notLocatedPoint = NULL;
   _locatedPoint = NULL;
   _isCoupledRank = false;
 
   //
   // Create coupling comm
-  
+
   _createCouplingComm ();
 
 
 #ifndef NAN
   bft_printf("Warning : NAN macro is undefined -> receiving checking deactivation\n");
 #endif
-  
+
 }
 
 std::vector<double> &  Coupling::_extrapolate(double *cellCenterField)
@@ -122,6 +122,7 @@ std::vector<double> &  Coupling::_extrapolate(double *cellCenterField)
     // TODO: Faire l'allocation qu'une fois comme _tmpVertexField
 
     std::vector<double> volumeVertex(_supportMesh->getNVertex(),0.);
+    std::vector<bool> orphanVertex(_supportMesh->getNVertex(),true);
 
     assert(_supportMesh != NULL);
 
@@ -139,7 +140,10 @@ std::vector<double> &  Coupling::_extrapolate(double *cellCenterField)
       for (int j = 0; j < nEltVertex; j++) {
         int vertex = eltConnectivity[index+j] - 1;
         volumeVertex[vertex] += cellVolume[i];
+        if (volumeVertex[vertex] < 0.)
+            std::cout << "Volume : " << i << " " << cellVolume[i] << " " << volumeVertex[vertex] << std::endl;
         vertexField[vertex]  += cellCenterField[i] * cellVolume[i];
+        orphanVertex[vertex] = false;
       }
     }
 
@@ -177,7 +181,10 @@ std::vector<double> &  Coupling::_extrapolate(double *cellCenterField)
             if (ivertex < vertexPoly[j]) {
               ivertex = vertexPoly[j];
               volumeVertex[ivertex - 1] += cellVolume[i];
+              if (volumeVertex[ivertex - 1] < 0.)
+                  std::cout << "Volume : " << i << " " << cellVolume[i] << " " << volumeVertex[ivertex - 1] << std::endl;
               vertexField[ivertex - 1]  += cellCenterField[i] * cellVolume[i];
+              orphanVertex[ivertex - 1] = false;
             }
           }
         }
@@ -185,8 +192,12 @@ std::vector<double> &  Coupling::_extrapolate(double *cellCenterField)
     }
 
     for (int i = 0; i < _supportMesh->getNVertex(); i++) {
-      assert(volumeVertex[i] > 0.);
-      vertexField[i] /= volumeVertex[i];
+      if (orphanVertex[i] == true) {
+        std::cout << "Vertex : " << i+1 << " is not connected to the connectivity !" << std::endl;
+        vertexField[i] = 0.;
+      }
+      else
+        vertexField[i] /= volumeVertex[i];
     }
 
     return vertexField;
@@ -196,7 +207,7 @@ Coupling::~Coupling()
 {
 #if defined(DEBUG) && 0
   std::cout << "destroying '" << _name << "' coupling" << std::endl;
-#endif  
+#endif
 
   if (_isCoupledRank ) {
 
@@ -218,7 +229,7 @@ Coupling::~Coupling()
       BFT_FREE(_barycentricCoordinatesIndex);
       BFT_FREE(_barycentricCoordinates);
     }
-    
+
     fvm_parall_set_mpi_comm(_fvmComm);
 
     if (_fvmLocator != NULL)
@@ -230,23 +241,23 @@ Coupling::~Coupling()
     fvm_parall_set_mpi_comm(MPI_COMM_NULL);
 
   }
-   
+
   if (_mergeComm != MPI_COMM_NULL)
-    MPI_Comm_free(&_mergeComm); 
+    MPI_Comm_free(&_mergeComm);
 
   if (_couplingComm != MPI_COMM_NULL)
-    MPI_Comm_free(&_couplingComm); 
-  
+    MPI_Comm_free(&_couplingComm);
+
   if (_fvmComm != MPI_COMM_NULL)
     MPI_Comm_free(&_fvmComm);
 
-  if (_couplingType == CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING && 
+  if (_couplingType == CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING &&
       !_isCoupledRank) {
 
-    if (_locatedPoint != NULL) 
+    if (_locatedPoint != NULL)
       delete []  _locatedPoint;
-    
-    if (_notLocatedPoint != NULL) 
+
+    if (_notLocatedPoint != NULL)
       delete []  _notLocatedPoint ;
   }
 
@@ -256,26 +267,46 @@ void Coupling::_interpolate(double *referenceField,
                             std::vector<double>& interpolatedField,
                             const int stride)
 {
-  if (_solverType == CWIPI_SOLVER_CELL_CENTER)
-    referenceField = &_extrapolate(referenceField)[0];
+
+  // Methode d'interplation temporaire identique a MPCCI pour contrat SPS
+////  if (_solverType == CWIPI_SOLVER_CELL_CENTER) {
+////    const int nDistantPoint      = fvm_locator_get_n_dist_points(_fvmLocator);
+////    const int *distantLocation   = fvm_locator_get_dist_locations(_fvmLocator);
+////    const int *eltsConnecPointer = _supportMesh->getEltConnectivityIndex();
+////    const int *eltsConnec        = _supportMesh->getEltConnectivity();
+////    for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
+////      int iel = distantLocation[ipoint] - 1;
+////      interpolatedField[ipoint] = referenceField[iel];
+////    }
+////  }
+//
+//  else {
+
+  double *cellField = NULL;
+  double *dataField = referenceField;
+  if (_solverType == CWIPI_SOLVER_CELL_CENTER) {
+    cellField = dataField;
+    dataField = &_extrapolate(referenceField)[0];
+  }
 
   switch(_entitiesDim) {
 
   case 1 :
-    _interpolate1D(referenceField, interpolatedField, stride);
+    _interpolate1D(dataField, interpolatedField, stride);
     break;
 
   case 2 :
-    _interpolate2D(referenceField, interpolatedField, stride);
+    _interpolate2D(dataField, cellField, interpolatedField, stride);
     break;
 
   case 3 :
-    _interpolate3D(referenceField, interpolatedField, stride);
+    _interpolate3D(dataField, interpolatedField, stride);
     break;
 
   default:
     bft_error(__FILE__, __LINE__, 0, "'%i' bad entities dimension\n",_entitiesDim);
   }
+//  }
 }
 
 void Coupling::_interpolate1D(double *referenceVertexField,
@@ -302,13 +333,16 @@ void Coupling::_interpolate1D(double *referenceVertexField,
   }
 }
 
-void Coupling::_interpolate2D(double *vertexField,
-                              std::vector<double>& interpolatedField,
-                              const int stride)
+void Coupling::_interpolate2D (double *vertexField,
+                               double *cellField,
+                               std::vector<double>& interpolatedField,
+                               const int stride)
 {
 
   const int nDistantPoint      = fvm_locator_get_n_dist_points(_fvmLocator);
   const int *distantLocation   = fvm_locator_get_dist_locations(_fvmLocator);
+  const double *distantcoords     = fvm_locator_get_dist_coords(_fvmLocator);
+
   const int *eltsConnecPointer = _supportMesh->getEltConnectivityIndex();
   const int *eltsConnec        = _supportMesh->getEltConnectivity();
 
@@ -317,16 +351,64 @@ void Coupling::_interpolate2D(double *vertexField,
     int index = _barycentricCoordinatesIndex[ipoint];
     int nSom = _barycentricCoordinatesIndex[ipoint+1] - index;
 
-    for (int k = 0; k < stride; k++)
-      interpolatedField[stride*ipoint + k] = 0;
+    //TODO: Stocker le resultat de la verification dans un tableau en Npoints pour ne le faire qu'une fois
+
+    bool barycentricCoordValidation = true;
     for (int isom = 0; isom <  nSom; isom++) {
+      if ( _barycentricCoordinates[index+isom] != _barycentricCoordinates[index+isom] ||
+          _barycentricCoordinates[index+isom] < 0. ||
+          _barycentricCoordinates[index+isom] > 1. )
+        barycentricCoordValidation = false;
+    }
+
+    if (barycentricCoordValidation) {
       for (int k = 0; k < stride; k++)
-        interpolatedField[stride*ipoint+k] += vertexField[stride*(eltsConnec[eltsConnecPointer[iel]+isom]-1)+k]
+        interpolatedField[stride*ipoint + k] = 0;
+      for (int isom = 0; isom <  nSom; isom++) {
+        for (int k = 0; k < stride; k++) {
+          interpolatedField[stride*ipoint+k] += vertexField[stride*(eltsConnec[eltsConnecPointer[iel]+isom]-1)+k]
                                                           *_barycentricCoordinates[index+isom];
+        }
+      }
+    }
+    else {
+      bft_printf("Warning interpolate2D : barycentric coordinates of the number point '%i' are degenerated :\n", ipoint+1);
+      if (cellField != NULL) {
+        bft_printf("                         The interpolated value is located cell value ('%i') \n", iel+1);
+        for (int k = 0; k < stride; k++) {
+          interpolatedField[stride*ipoint+k] = cellField[stride*iel+k];
+        }
+      }
+      else {
+        //TODO: Determination du sommet le proche a calculer
+        const int firstElementVertex = eltsConnecPointer[iel];
+        const int nElementVertex    = eltsConnecPointer[iel+1] - firstElementVertex;
+
+        double dist = 1e33;
+        int neighborVertex = -1;
+        const double &pointCoordX = distantcoords[3*ipoint];
+        const double &pointCoordY = distantcoords[3*ipoint + 1];
+        const double &pointCoordZ = distantcoords[3*ipoint + 2];
+        for(int ivertex = firstElementVertex;  ivertex < firstElementVertex+nElementVertex; ivertex++ ) {
+          const double &vertexCoordX = _supportMesh->getVertexCoords()[3*(eltsConnec[ivertex]-1)];
+          const double &vertexCoordY = _supportMesh->getVertexCoords()[3*(eltsConnec[ivertex]-1)+1];
+          const double &vertexCoordZ = _supportMesh->getVertexCoords()[3*(eltsConnec[ivertex]-1)+2];
+          const double localDist = std::sqrt((pointCoordX-vertexCoordX)*(pointCoordX-vertexCoordX)+
+                                             (pointCoordY-vertexCoordY)*(pointCoordY-vertexCoordY)+
+                                             (pointCoordZ-vertexCoordZ)*(pointCoordZ-vertexCoordZ));
+          if (localDist < dist) {
+            neighborVertex = eltsConnec[ivertex]-1;
+            dist = localDist;
+          }
+        }
+        bft_printf("                       the interpolated value is defined by the closest vertex ('%i') of the located cell\n", neighborVertex+1);
+        for (int k = 0; k < stride; k++) {
+          interpolatedField[stride*ipoint+k] = vertexField[stride*neighborVertex+k];
+        }
+      }
     }
   }
 }
-
 
 
 void Coupling::_interpolate3D(double *vertexField,
@@ -335,7 +417,7 @@ void Coupling::_interpolate3D(double *vertexField,
 {
 
   // TODO: Faire le calcul des coordonnees barycentriques pour les polyedres
-  // TODO: Dans un premier temps faire le calcul pour les tétraèdres
+  // TODO: Dans un premier temps faire le calcul pour les tetraedres
 
   const int nDistantPoint      = fvm_locator_get_n_dist_points(_fvmLocator);
   const int *distantLocation   = fvm_locator_get_dist_locations(_fvmLocator);
@@ -514,7 +596,7 @@ void Coupling::defineMesh(const int nVertex,
                             connectivity_index,
                             connectivity);
   else
-    bft_error(__FILE__, __LINE__, 0, "for a coupling without parallel partitionning," 
+    bft_error(__FILE__, __LINE__, 0, "for a coupling without parallel partitionning,"
               " the coupling mesh must be defined only by the root rank\n");
 
 }
@@ -528,7 +610,7 @@ void Coupling::setPointsToLocate(const int    n_points,
     _toLocate = true;
   }
   else
-    bft_error(__FILE__, __LINE__, 0, "for a coupling without parallel partitionning," 
+    bft_error(__FILE__, __LINE__, 0, "for a coupling without parallel partitionning,"
               " the points to locate must be defined only by the root rank\n");
 }
 
@@ -550,7 +632,7 @@ void Coupling::defineMeshAddPolyhedra(const int n_element,
                                face_connectivity_index,
                                face_connectivity);
   }
-  bft_error(__FILE__, __LINE__, 0, "for a coupling without parallel partitionning," 
+  bft_error(__FILE__, __LINE__, 0, "for a coupling without parallel partitionning,"
             " the coupling mesh must be defined only by the root rank\n");
 
 }
@@ -561,7 +643,7 @@ void Coupling::updateLocation()
   if (_isCoupledRank)
     _toLocate = true;
   else
-    bft_error(__FILE__, __LINE__, 0, "for a coupling without parallel partitionning," 
+    bft_error(__FILE__, __LINE__, 0, "for a coupling without parallel partitionning,"
               " updateLocation must be called only by the root rank\n");
 }
 
@@ -578,41 +660,41 @@ cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
 
 {
   cwipi_exchange_status_t status = CWIPI_EXCHANGE_OK;
-  
+
   const MPI_Comm& localComm = _localApplicationProperties.getLocalComm();
-  
+
   int rootRank;
 
   if (!_isCoupledRank && sendingField != NULL )
-    bft_printf("Warning : sendingField != NULL, " 
+    bft_printf("Warning : sendingField != NULL, "
               " only field defined by the root rank is sent\n");
 
   if (_isCoupledRank) {
-    
+
     int currentRank;
     MPI_Comm_rank(_couplingComm, &currentRank);
-    
+
     int lLocalName = _name.size() + 1;
     int lDistantName = 0;
     MPI_Status MPIStatus;
 
-    if (currentRank == 0 || 
+    if (currentRank == 0 ||
         currentRank == _coupledApplicationBeginningRankCouplingComm +
                        _coupledApplicationNRankCouplingComm) {
 
       //
       // Check coupling name
 
-      MPI_Sendrecv(&lLocalName,   1, MPI_INT, 
+      MPI_Sendrecv(&lLocalName,   1, MPI_INT,
                    _coupledApplicationBeginningRankCouplingComm, 0,
-		   &lDistantName, 1, MPI_INT, 
+		   &lDistantName, 1, MPI_INT,
                    _coupledApplicationBeginningRankCouplingComm, 0,
 		   _couplingComm, &MPIStatus);
 
       char *distantCouplingName = new char[lDistantName];
 
-      MPI_Sendrecv(const_cast <char*>(_name.c_str()), 
-                   lLocalName, MPI_CHAR, 
+      MPI_Sendrecv(const_cast <char*>(_name.c_str()),
+                   lLocalName, MPI_CHAR,
                    _coupledApplicationBeginningRankCouplingComm, 0,
 		   distantCouplingName, lDistantName, MPI_CHAR,
                    _coupledApplicationBeginningRankCouplingComm, 0,
@@ -628,42 +710,42 @@ cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
       // Check exchange name
 
       lLocalName = strlen(exchangeName)+1;
-      MPI_Sendrecv(&lLocalName,   1, MPI_INT, 
+      MPI_Sendrecv(&lLocalName,   1, MPI_INT,
                    _coupledApplicationBeginningRankCouplingComm, 0,
-		   &lDistantName, 1, MPI_INT, 
+		   &lDistantName, 1, MPI_INT,
                    _coupledApplicationBeginningRankCouplingComm, 0,
 		   _couplingComm, &MPIStatus);
 
       char *distantExchangeName = new char[lDistantName];
 
-      MPI_Sendrecv(const_cast <char*>(exchangeName),        
-                   lLocalName, MPI_CHAR, 
+      MPI_Sendrecv(const_cast <char*>(exchangeName),
+                   lLocalName, MPI_CHAR,
                    _coupledApplicationBeginningRankCouplingComm, 0,
-		   distantExchangeName, lDistantName, MPI_CHAR, 
+		   distantExchangeName, lDistantName, MPI_CHAR,
                    _coupledApplicationBeginningRankCouplingComm, 0,
 		   _couplingComm, &MPIStatus);
-      
+
       if (strcmp(exchangeName, distantExchangeName))
 	bft_error(__FILE__, __LINE__, 0, "'%s' '%s' bad synchronization point\n",
 		  exchangeName,
 		  distantExchangeName);
-      
+
       delete[] distantExchangeName;
     }
   }
-    
+
   //
   // Locate
-  
+
   locate();
-  
+
   //
   // Prepare data (interpolate, extrapolate...)
-  
+
   if (_isCoupledRank) {
-    
+
     assert (_fvmLocator != NULL);
-    
+
     const int nVertex                 = _supportMesh->getNVertex();
     const int nElts                   = _supportMesh->getNElts();
     const int nPoly                   = _supportMesh->getNPolyhedra();
@@ -673,33 +755,33 @@ cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
     const int *localPolyhedraCellToFaceConnectivity = _supportMesh->getPolyhedraCellToFaceConnectivity();
     const int *localPolyhedraFaceConnectivity_index = _supportMesh->getPolyhedraFaceConnectivityIndex();
     const int *localPolyhedraFaceConnectivity       = _supportMesh->getPolyhedraFaceConnectivity();
-    
+
     const int nDistantPoint     = fvm_locator_get_n_dist_points(_fvmLocator);
     const int *distantLocation  = fvm_locator_get_dist_locations(_fvmLocator);
     const double *distantCoords = fvm_locator_get_dist_coords(_fvmLocator);
     const int* interiorList     = fvm_locator_get_interior_list(_fvmLocator);
     const int nInteriorList     = fvm_locator_get_n_interior(_fvmLocator);
-    
+
     int lDistantField = stride * nDistantPoint;
     int lReceivingField = stride * _nPointsToLocate;
-    
+
     if (_tmpDistantField == NULL)
       _tmpDistantField = new std::vector<double> (lDistantField);
-    
+
     std::vector<double>& tmpDistantField = *_tmpDistantField;
     if (tmpDistantField.size() < lDistantField)
       tmpDistantField.resize(lDistantField);
-    
+
     //
     // Interpolation
-    
+
     if (sendingField != NULL) {
-      
+
       assert(!(_interpolationFct != NULL && ptFortranInterpolationFct != NULL));
-      
+
       //
       // Callback Fortran
-      
+
       if (ptFortranInterpolationFct != NULL)
         PROCF(callfortinterpfct, CALLFORTINTERPFCT) (
            const_cast <int *> (&_entitiesDim),
@@ -806,45 +888,45 @@ cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
                            sendingField,
                            receivingFieldName,
                            receivingField);
- 
+
     if (_couplingType == CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING) {
 
-      
+
       MPI_Comm_rank(localComm, &rootRank);
-      
+
       assert(rootRank == 0);
-      
-      MPI_Bcast( &status, 
+
+      MPI_Bcast( &status,
                  1,
-                 MPI_INT, 
-                 0, 
+                 MPI_INT,
+                 0,
                  localComm );
 
-      if( receivingField != NULL ) 
-        
-        MPI_Bcast( receivingField, 
+      if( receivingField != NULL )
+
+        MPI_Bcast( receivingField,
                    stride* (_nPointsToLocate-_nNotLocatedPoint),
-                   MPI_DOUBLE, 
-                   0, 
+                   MPI_DOUBLE,
+                   0,
                    localComm );
-      
+
     }
   }
 
   else if (_couplingType == CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING) {
-    
-    MPI_Bcast( &status, 
+
+    MPI_Bcast( &status,
                1,
-               MPI_INT, 
-               0, 
+               MPI_INT,
+               0,
                localComm );
-    
-    if ( receivingField != NULL ) 
-      
-      MPI_Bcast( receivingField, 
+
+    if ( receivingField != NULL )
+
+      MPI_Bcast( receivingField,
                  stride* (_nPointsToLocate-_nNotLocatedPoint),
-                 MPI_DOUBLE, 
-                 0, 
+                 MPI_DOUBLE,
+                 0,
                  localComm );
   }
 
@@ -905,7 +987,7 @@ void Coupling::_initVisualization()
     // TODO: A deplacer et a recreer en cas de maillage mobile
 
     int nNotLocatedPointSum;
-    MPI_Allreduce (&_nNotLocatedPoint, &nNotLocatedPointSum, 
+    MPI_Allreduce (&_nNotLocatedPoint, &nNotLocatedPointSum,
                    1, MPI_INT, MPI_SUM,
                    _fvmComm);
 
@@ -977,7 +1059,8 @@ void Coupling::_fieldsVisualization(const char *exchangeName,
                               const void *receivingField)
 {
 
-  const double couplingDoubleMax = 1e33;
+  const double couplingDoubleMax = 0.0;
+  //const double couplingDoubleMax = NAN;
 
   std::string localName;
 
@@ -1084,7 +1167,7 @@ void Coupling::_fieldsVisualization(const char *exchangeName,
     }
     fvm_parall_set_mpi_comm(MPI_COMM_NULL);
   }
-  
+
 }
 
 
@@ -1092,42 +1175,43 @@ void Coupling::locate()
 {
 
   const MPI_Comm& localComm = _localApplicationProperties.getLocalComm();
-  
-  
+
+
   if ( _toLocate ) {
-    
+
     int rootRank = -1;
 
     if ( _isCoupledRank ) {
-      
+
       fvm_parall_set_mpi_comm(_fvmComm);
 
       //
       // Create locator
-      
+
       if (_fvmLocator == NULL)
-        _fvmLocator = fvm_locator_create(_tolerance, 
-                                         _couplingComm, 
-                                         _coupledApplicationNRankCouplingComm, 
+        _fvmLocator = fvm_locator_create(_tolerance,
+                                         _couplingComm,
+                                         _coupledApplicationNRankCouplingComm,
                                          _coupledApplicationBeginningRankCouplingComm);
 
       // TODO: Revoir les coordonnees des points a localiser (cas centres sommets + centres faces + autres points)
       // TODO: Ajouter un locator pour les sommets pour les centres faces,...
-      
+
       double* coords = NULL;
       if (_coordsPointsToLocate != NULL)
         coords = _coordsPointsToLocate;
-      
+
       else if(_solverType == CWIPI_SOLVER_CELL_CENTER) {
         _nPointsToLocate = _supportMesh->getNElts();
         coords = const_cast <double*> (&(_supportMesh->getCellCenterCoords()[0]));
       }
-      
+
       else if(_solverType == CWIPI_SOLVER_CELL_VERTEX) {
         _nPointsToLocate = _supportMesh->getNVertex();
         coords = const_cast <double*> (_supportMesh->getVertexCoords());
       }
-      
+
+
       fvm_locator_set_nodal(_fvmLocator,
                             &_supportMesh->getFvmNodal(),
                             0,
@@ -1144,42 +1228,42 @@ void Coupling::locate()
       const int* locationList = fvm_locator_get_dist_locations(_fvmLocator);
       const int nExterior = fvm_locator_get_n_exterior(_fvmLocator);
       assert(nNotLocatedPoint == nExterior);
-      
+
       _notLocatedPoint = const_cast<int *> (exteriorList);
       _locatedPoint = const_cast<int *> (interiorList);
       _nNotLocatedPoint = nNotLocatedPoint;
       _location = const_cast<int *> (locationList);
       _nDistantpoint = fvm_locator_get_n_dist_points(_fvmLocator);
-      
+
       if (_barycentricCoordinatesIndex != NULL) {
         if (_entitiesDim != 2) {
           delete[] _barycentricCoordinatesIndex;
           delete[] _barycentricCoordinates;
         }
-        
+
         else {
           BFT_FREE(_barycentricCoordinatesIndex);
           BFT_FREE(_barycentricCoordinates);
         }
       }
-      
+
       //
       // TODO: Prevoir une fabrique pour supprimer les tests if sur _entitiesDim
       //       Le calcul des coordonnees barycentriques se fera dans cette fabrique
-      
+
       if (_barycentricCoordinatesIndex == NULL) {
         if (_entitiesDim == 1) {
           const int nDistantPoint      = fvm_locator_get_n_dist_points(_fvmLocator);
           const int *distantLocation   = fvm_locator_get_dist_locations(_fvmLocator);
           const double *distantCoords   = fvm_locator_get_dist_coords(_fvmLocator);
-          
+
           const int *eltsConnecPointer = _supportMesh->getEltConnectivityIndex();
           const double *localCoords    = _supportMesh->getVertexCoords();
-          
+
           _barycentricCoordinatesIndex = new int[nDistantPoint+1];
           _barycentricCoordinates = new double[2*nDistantPoint];
           _barycentricCoordinatesIndex[0] = 0;
-          
+
           for (int ipoint = 0; ipoint < nDistantPoint ; ipoint++) {
             int iel = distantLocation[ipoint] - 1;
             _barycentricCoordinatesIndex[ipoint+1] = _barycentricCoordinatesIndex[ipoint] + 2;
@@ -1198,7 +1282,7 @@ void Coupling::locate()
             _barycentricCoordinates[_barycentricCoordinatesIndex[ipoint]+1] = coef2/(coef1+coef2);
           }
         }
-        
+
         else if (_entitiesDim == 2) {
           int nPoints;
           coo_baryc(_fvmLocator,
@@ -1211,7 +1295,7 @@ void Coupling::locate()
                     &_barycentricCoordinatesIndex,
                     &_barycentricCoordinates);
         }
-        
+
         else if (_entitiesDim == 3) {
           //TODO: calcul des coord barycentriques 3D
           int nPoints;
@@ -1225,31 +1309,31 @@ void Coupling::locate()
           //                   &_barycentricCoordinatesIndex,
           //                   &_barycentricCoordinates);
         }
-        
+
       }
-      
+
       _initVisualization();
-      
+
       //
-      // Send to local proc  
-      
+      // Send to local proc
+
       if (_couplingType == CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING) {
-        
+
         MPI_Comm_rank(localComm, &rootRank);
-        
+
         assert(rootRank == 0);
-        
+
         MPI_Bcast( &_nPointsToLocate, 1, MPI_INT, rootRank, localComm );
         MPI_Bcast( &_nNotLocatedPoint, 1, MPI_INT, rootRank, localComm );
-        
+
         MPI_Bcast( _locatedPoint,
                    _nPointsToLocate-_nNotLocatedPoint,
-                   MPI_INT, 
-                   rootRank, 
+                   MPI_INT,
+                   rootRank,
                    localComm );
 
         MPI_Bcast( _notLocatedPoint, _nNotLocatedPoint, MPI_INT, rootRank, localComm );
-        
+
       }
 
       fvm_parall_set_mpi_comm(MPI_COMM_NULL);
@@ -1257,32 +1341,32 @@ void Coupling::locate()
     }
 
     //
-    // Receive location  
-    
+    // Receive location
+
     else if (_couplingType == CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING) {
-      
+
       rootRank = 0;
       _toLocate = false;
-     
+
       MPI_Bcast( &_nPointsToLocate, 1, MPI_INT, rootRank, localComm );
       MPI_Bcast( &_nNotLocatedPoint, 1, MPI_INT, rootRank, localComm );
 
-      if (_locatedPoint != NULL) 
+      if (_locatedPoint != NULL)
         delete []  _locatedPoint;
-      
-      if (_notLocatedPoint != NULL) 
+
+      if (_notLocatedPoint != NULL)
         delete []  _notLocatedPoint ;
-      
+
       _locatedPoint = new int[_nPointsToLocate-_nNotLocatedPoint];
       _notLocatedPoint = new int[_nNotLocatedPoint];
-      
+
       MPI_Bcast( _locatedPoint,
                  _nPointsToLocate-_nNotLocatedPoint,
-                 MPI_INT, 
-                 rootRank, 
+                 MPI_INT,
+                 rootRank,
                  localComm );
       MPI_Bcast( _notLocatedPoint, _nNotLocatedPoint, MPI_INT, rootRank, localComm );
-    
+
     }
 
   }
@@ -1310,13 +1394,13 @@ void Coupling::_createCouplingComm()
 
     int nLocalRank = localEndRank - localBeginningRank + 1;
     int nDistantRank = distantEndRank - distantBeginningRank + 1;
-    
+
     assert(localBeginningRank != distantBeginningRank);
 
     //
     // TODO: Trouver un tag unique pour une paire de codes (Risque de pb dans MPI_Intercomm_create)
     //       Lors de la creation de 2 objets couplages de maniere simultanee
- 
+
     const int tag = 1;
 
     MPI_Comm tmpInterComm;
@@ -1346,11 +1430,11 @@ void Coupling::_createCouplingComm()
     //
     // Exchange coupling type
 
-    cwipi_coupling_type_t* couplingTypes = 
+    cwipi_coupling_type_t* couplingTypes =
       new cwipi_coupling_type_t[coupledApplicationCommSize];
 
     MPI_Allgather((void*)& _couplingType,
-                  1, 
+                  1,
                   MPI_INT,
                   couplingTypes,
                   1,
@@ -1362,7 +1446,7 @@ void Coupling::_createCouplingComm()
 
     int begRank = 0;
     int endRank = 0;
-    
+
     if (localBeginningRank < distantBeginningRank) {
       begRank = 0;
       endRank = nLocalRank;
@@ -1372,9 +1456,9 @@ void Coupling::_createCouplingComm()
       endRank = nLocalRank + nDistantRank;
     }
 
-    for (int i = begRank; i < endRank; i ++) 
+    for (int i = begRank; i < endRank; i ++)
       if (couplingTypes[i] != _couplingType)
-        bft_error(__FILE__, __LINE__, 0, 
+        bft_error(__FILE__, __LINE__, 0,
                   "Two different coupling types for the '%s' application\n",
                   _localApplicationProperties.getName().c_str());
 
@@ -1383,10 +1467,10 @@ void Coupling::_createCouplingComm()
 
     _isCoupledRank = _localApplicationProperties.getBeginningRank() == currentRank ||
        _couplingType == CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING;
-      
+
     cwipi_coupling_type_t distantCouplingType;
 
-    if (localBeginningRank < distantBeginningRank) 
+    if (localBeginningRank < distantBeginningRank)
       distantCouplingType = couplingTypes[nLocalRank];
     else
       distantCouplingType = couplingTypes[0];
@@ -1396,41 +1480,41 @@ void Coupling::_createCouplingComm()
     //
     // Build coupling communicator
 
-    if (_couplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING || 
+    if (_couplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING ||
         distantCouplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING) {
 
       int *rankList = new int[coupledApplicationCommSize];
       int nRankList;
 
-      if (_couplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING && 
+      if (_couplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING &&
           distantCouplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING) {
 
         nRankList = 2;
         rankList[0] = 0;
 
-        _coupledApplicationNRankCouplingComm = 1; 
-        if (localBeginningRank < distantBeginningRank) { 
+        _coupledApplicationNRankCouplingComm = 1;
+        if (localBeginningRank < distantBeginningRank) {
           rankList[1] = nLocalRank;
           _coupledApplicationBeginningRankCouplingComm = 1;
         }
-        else { 
+        else {
           rankList[1] = nDistantRank;
           _coupledApplicationBeginningRankCouplingComm = 0;
         }
       }
-      
+
       else if (distantCouplingType == CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING) {
         nRankList = 1 + nDistantRank;
-        _coupledApplicationNRankCouplingComm = nDistantRank; 
+        _coupledApplicationNRankCouplingComm = nDistantRank;
         if (localBeginningRank < distantBeginningRank) {
           rankList[0] = 0;
           _coupledApplicationBeginningRankCouplingComm = 1;
-          for (int i = 0; i < nDistantRank; i++) 
+          for (int i = 0; i < nDistantRank; i++)
             rankList[i+1] = nLocalRank + i;
         }
         else {
           _coupledApplicationBeginningRankCouplingComm = 0;
-          for (int i = 0; i < nDistantRank; i++) 
+          for (int i = 0; i < nDistantRank; i++)
             rankList[i] = i;
           rankList[nDistantRank] = nDistantRank;
         }
@@ -1438,25 +1522,25 @@ void Coupling::_createCouplingComm()
 
       else if (_couplingType == CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING) {
         nRankList = 1 + nLocalRank;
-        _coupledApplicationNRankCouplingComm = 1; 
+        _coupledApplicationNRankCouplingComm = 1;
         if (localBeginningRank < distantBeginningRank) {
           _coupledApplicationBeginningRankCouplingComm = nLocalRank;
-          for (int i = 0; i < nLocalRank; i++) 
+          for (int i = 0; i < nLocalRank; i++)
             rankList[i] = i;
           rankList[nLocalRank] = nLocalRank;
         }
-       
+
         else {
           rankList[0] = 0;
           _coupledApplicationBeginningRankCouplingComm = 0;
-          for (int i = 0; i < nLocalRank; i++) 
+          for (int i = 0; i < nLocalRank; i++)
             rankList[i+1] = nDistantRank + i;
         }
       }
 
       else {
-        
-        bft_error(__FILE__, __LINE__, 0, 
+
+        bft_error(__FILE__, __LINE__, 0,
                   "Error in 'build coupling communicator'\n");
       }
 
@@ -1478,13 +1562,13 @@ void Coupling::_createCouplingComm()
 
 
   if (_fvmComm == MPI_COMM_NULL) {
-    
+
     if (_couplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING) {
-      
+
       int list1 = 0;
       MPI_Group localGroup = MPI_GROUP_NULL;
       MPI_Group fvmGroup = MPI_GROUP_NULL;
-      
+
       MPI_Comm dupLocalComm = MPI_COMM_NULL;
       MPI_Comm_dup(localComm, &dupLocalComm);
 
@@ -1495,11 +1579,11 @@ void Coupling::_createCouplingComm()
                       &_fvmComm);
       MPI_Comm_free(&dupLocalComm);
     }
-    
-    else 
-      
+
+    else
+
       MPI_Comm_dup(localComm, &_fvmComm);
- 
+
   }
 }
 
