@@ -665,8 +665,8 @@ void PROCF(cwipi_get_located_pts_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_finalize_f,
-           CWIPI_FINALIZE_F) ();
+void PROCF(cwipi_finalize_cf,
+           CWIPI_FINALIZE_CF) ();
 
 /*----------------------------------------------------------------------------
  *
@@ -674,8 +674,8 @@ void PROCF(cwipi_finalize_f,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_dump_appli_properties_f,
-           CWIPI_DUMP_APPLI_PROPERTIES_F) ();
+void PROCF(cwipi_dump_appli_properties_cf,
+           CWIPI_DUMP_APPLI_PROPERTIES_CF) ();
 
 /*----------------------------------------------------------------------------*/
 

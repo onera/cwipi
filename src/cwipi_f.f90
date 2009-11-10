@@ -157,6 +157,16 @@ module cwipi
   interface cwipi_get_n_located_pts_f ; module procedure &
     cwipi_get_n_located_pts_f_
   end interface
+
+  interface  cwipi_dump_appli_properties_f ; module procedure &
+      cwipi_dump_appli_properties_f_
+  end interface
+  interface  cwipi_finalize_f; module procedure &
+             cwipi_finalize_f_
+  end interface
+
+
+
   !
   ! Private
 
@@ -184,9 +194,29 @@ module cwipi
              cwipi_locate_f_,                               &
              cwipi_receive_f_,                              &
              cwipi_delete_coupling_f_,                      &
+             cwipi_dump_appli_properties_f_,          &
+             cwipi_finalize_f_,                             &
              cwipi_get_not_located_pts_f_
 
 contains
+
+ subroutine cwipi_finalize_f_
+
+    implicit none
+
+    call cwipi_finalize_cf
+
+  end subroutine cwipi_finalize_f_
+
+
+  subroutine cwipi_dump_appli_properties_f_
+
+    implicit none
+
+    call cwipi_dump_appli_properties_cf
+
+  end subroutine cwipi_dump_appli_properties_f_
+
 
 !
 !*******************************************************************************

@@ -1211,8 +1211,8 @@ void PROCF(cwipi_delete_coupling_cf,
  *----------------------------------------------------------------------------*/
 
 
-void PROCF(cwipi_finalize_f,
-           CWIPI_FINALIZE_F) ()
+void PROCF(cwipi_finalize_cf,
+           CWIPI_FINALIZE_CF) ()
 {
   cwipi_finalize();
 }
@@ -1223,8 +1223,8 @@ void PROCF(cwipi_finalize_f,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_dump_appli_properties_f,
-           CWIPI_DUMP_APPLI_PROPERTIES_F) ()
+void PROCF(cwipi_dump_appli_properties_cf,
+           CWIPI_DUMP_APPLI_PROPERTIES_CF) ()
 {
   cwipi_dump_application_properties();
 }

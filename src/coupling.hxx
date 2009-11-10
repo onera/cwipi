@@ -132,9 +132,7 @@ namespace cwipi {
     const std::string   _outputFormatOption;
     const int           _outputFrequency;
   private:
-    int                  _nPointsToLocate;
     Mesh                *_supportMesh;
-    double              *_coordsPointsToLocate;
     fvm_locator_t       *_fvmLocator;
     fvm_writer_t        *_fvmWriter;
     MPI_Comm             _couplingComm;
@@ -145,13 +143,22 @@ namespace cwipi {
     MPI_Comm             _fvmComm;
     cwipi_interpolation_fct_t *_interpolationFct;
     bool                 _toLocate;
+    //
+    // Distant points properties
+    // TODO: Regrouper les proprietes des points distants et des points locaux dans des clase
     int                 *_barycentricCoordinatesIndex;
     double              *_barycentricCoordinates;
+    int                  _nDistantpoint;
+    int                 *_location;
+    // LocalLocation localLocation
+    //
+    // Local points properties
+    int                  _nPointsToLocate;
+    double              *_coordsPointsToLocate;
     int                  _nNotLocatedPoint;
     int                 *_notLocatedPoint;
-    int                  _nDistantpoint;
     int                 *_locatedPoint;
-    int                 *_location;
+    // DistantLocation distantLocation
   private:
     std::vector<double> *_tmpVertexField; //Evite une allocation a chaque extrapolation
     std::vector<double> *_tmpDistantField;

@@ -66,11 +66,26 @@ user_CPPFLAGS=$CPPFLAGS
 user_CFLAGS=$CFLAGS
 user_LDFLAGS=$LDFLAGS
 
-AC_PROG_CC(cc gcc)
-AC_PROG_CXX(g++)
-AC_PROG_FC(gfortran)
+
+
+AC_PROG_CC(cc gcc icc)
+
+#LT_INIT
+#LT_LANG([C++])
+
+#LT_INIT
+AC_PROG_CXX(g++ icpc)
+
+#LT_INIT
+#LT_LANG([Fortran])
+
+#LT_INIT
+AC_PROG_FC(gfortran ifort)
+
 AC_PROG_LD(g++)
+
 AC_PROG_INSTALL
+
 AC_PROG_LN_S
 
 AC_LIBTOOL_DLOPEN
@@ -200,6 +215,7 @@ if test "x$cwipi_disable_shared" = "xyes" ; then
 fi
 
 LT_INIT
+
 
 #------------------------------------------------------------------------------
 # Checks for libraries.
@@ -394,14 +410,27 @@ AC_OUTPUT
 # the problem, and so does this workaround borrowed from
 # the HDF5 configure.in, which does it automatically).
 
-if test "x$GCC" != "xyes"; then
-  echo 'fixing $wl in libtool'
-ed - libtool <<EOF 2> /dev/null
+case $host_os in
+  linux* | freebsd* )
+    # If gcc is not used, need to set $wl to use "-Wl,"
+    if $CC -v 2>&1 | grep '^gcc' > /dev/null ; then
+      : using gcc
+    else
+      echo 'fixing $wl in' $ofile
+ed - $ofile <<EOF 2> /dev/null
 /^wl=""/s//wl="-Wl,"/
 w
 q
 EOF
-fi
+    fi
+    ;;
+esac
+
+#case "$INSTALL" in
+#  *install-sh*)
+#    INSTALL='\${top_srcdir}/bin/install-sh -c'
+#    ;;
+#esac
 
 #------------------------------------------------------------------------------
 

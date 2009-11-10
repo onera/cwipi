@@ -29,10 +29,12 @@ AM_CPPFLAGS = $(DEBUG_CPPFLAGS) @BFT_CPPFLAGS@ @FVM_CPPFLAGS@ @MPI_CPPFLAGS@ @ME
 AM_CFLAGS   =
 AM_LDFLAGS  = @BFT_LDFLAGS@ @FVM_LDFLAGS@ @MPI_LDFLAGS@ @METIS_LDFLAGS@
 
-LTFCCOMPILE = $(LIBTOOL) --mode=compile --tag=FC $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_FCFLAGS) $(FCFLAGS) $(FCFLAGS_f90)
-FCCOMPILE = $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_FCFLAGS) $(FCFLAGS) $(FCFLAGS_f90)
-FCLINK = $(LIBTOOL) --mode=link --tag=FC $(FCLD) $(AM_FCFLAGS) $(FCFLAGS) \
-  $(AM_LDFLAGS) $(LDFLAGS) -o $@
+AM_FCFLAGS = $(INCLUDES)
+
+#LTFCCOMPILE = $(LIBTOOL) --mode=compile --tag=FC $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES)  $(AM_FCFLAGS) $(FCFLAGS) $(FCFLAGS_f90)
+#FCCOMPILE = $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_FCFLAGS) $(FCFLAGS) $(FCFLAGS_f90)
+#FCLINK = $(LIBTOOL) --mode=link --tag=FC $(FCLD) $(AM_FCFLAGS) $(FCFLAGS) \
+#  $(AM_LDFLAGS) $(LDFLAGS) -o $@
 
 LDADD = $(top_builddir)/src/libcwipi.la \
         @BFT_LIBS@ @FVM_LIBS@ @MPI_LIBS@ \
@@ -62,7 +64,7 @@ test3D_1_c2_LDADD = $(top_builddir)/src/libcwipi.la \
 test2D_1_c1_LDADD =  $(top_builddir)/src/libcwipi.la \
         @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
 	-lm
-test2D_1_c2_LDADD =  $(top_builddir)/src/libcwipi.la \
+test2D_1_c2_LDADD = creeMaillagePolygone2D.o $(top_builddir)/src/libcwipi.la \
         $(top_builddir)/src/libcwipi_f.la \
         @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
 	-lm

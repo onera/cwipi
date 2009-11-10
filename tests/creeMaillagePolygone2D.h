@@ -12,17 +12,18 @@
  * lowercase or uppercase) between C and Fortran, for link resolution.
  *----------------------------------------------------------------------------*/
 
-#if !defined (__hpux)
+//#define PROCF(x, y) x
+#if !defined (__hpux) && !defined (_AIX)
 #define PROCF(x, y) x##_
 #else
 #define PROCF(x, y) x
 #endif
 
-void creeMaillagePolygone2D(int order, 
+void creeMaillagePolygone2D(int order,
                             MPI_Comm localComm,
-                            double xmin, 
-                            double xmax, 
-                            double ymin, 
+                            double xmin,
+                            double xmax,
+                            double ymin,
                             double ymax,
                             int initRandom,
                             int nx,
@@ -34,11 +35,11 @@ void creeMaillagePolygone2D(int order,
                             int **eltsConnec
                             );
 
-void PROCF(creeMaillagePolygone2D_f, CREEMAILLAGEPOLYGONE2D_F)(int *order,
+void PROCF(creeMaillagePolygone2D_cf, CREEMAILLAGEPOLYGONE2D_CF)(int *order,
                                                                MPI_Comm *localComm,
-                                                               double *xmin, 
-                                                               double *xmax, 
-                                                               double *ymin, 
+                                                               double *xmin,
+                                                               double *xmax,
+                                                               double *ymin,
                                                                double *ymax,
                                                                int *initRandom,
                                                                int *nx,
