@@ -11,7 +11,7 @@ m4_define([licence_c_comment],
 
 m4_define([cwipi_major_version], [0])
 m4_define([cwipi_minor_version], [2])
-m4_define([cwipi_release_version], [1])
+m4_define([cwipi_release_version], [3])
 m4_define([cwipi_version_extra], [])
 m4_define([cwipi_version_string],
           [cwipi_major_version.cwipi_minor_version.cwipi_release_version@&t@cwipi_version_extra])
