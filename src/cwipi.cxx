@@ -115,7 +115,7 @@ void cwipi_init
 
   *application_comm = properties.init(application_name,
                                       common_comm);
-  
+
 }
 
 /*----------------------------------------------------------------------------
@@ -950,6 +950,231 @@ int cwipi_get_n_located_distant_points(const char *coupling_id)
 
   return coupling.getNDistantPoint();
 }
+
+/*----------------------------------------------------------------------------
+ *
+ * Set coupling info
+ *
+ * parameters
+ *   info         <-- Coupling info
+ *----------------------------------------------------------------------------*/
+
+void cwipi_set_info(const char *coupling_id, const cwipi_located_point_info_t info)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_id;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.setInfo(info);
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get distant elements that contain located points
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *
+ * return
+ *                        --> Number of vertices
+ *
+ *----------------------------------------------------------------------------*/
+
+const int *cwipi_get_element_containing(const char *coupling_id)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_id;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  return coupling.getElementContaining();
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of vertices of distant elements that contain located points
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *
+ * return
+ *                        --> Number of vertices
+ *
+ *----------------------------------------------------------------------------*/
+
+const int *cwipi_get_element_containing_n_vertex(const char *coupling_id)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_id;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  return coupling.getElementContainingNVertex();
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get vertices id of distant elements that contain located points
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *
+ * return
+ *                        --> vertices id
+ *
+ *----------------------------------------------------------------------------*/
+
+const int *cwipi_get_element_containing_vertex(const char *coupling_id)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_id;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  return coupling.getElementContainingVertex();
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get vertices coordinates of distant elements that contain located points
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *
+ * return
+ *                        --> Vertices coordinates
+ *
+ *----------------------------------------------------------------------------*/
+
+const double *cwipi_get_element_containing_vertex_coords(const char *coupling_id)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_id;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  return coupling.getElementContainingVertexCoords();
+
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get barycentric coords in distant elements for located points
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *
+ * return
+ *                        --> Barycentric coordinates
+ *
+ *----------------------------------------------------------------------------*/
+
+const double *cwipi_get_element_containing_barycentric_coordinates(const char *coupling_id)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_id;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  return coupling.getElementContainingBarycentricCoordinates();
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * For each located point get the MPI rank of distant element
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *
+ * return
+ *                        --> MPI ranks
+ *
+ *----------------------------------------------------------------------------*/
+
+const int *cwipi_get_element_containing_MPI_rank(const char *coupling_id)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_id;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  return coupling.getElementContainingMPIrank();
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Exchange Fields on vertices of element containing each located point
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   sendingField         <-- Field defined on local mesh vertices
+ *   receivingField       --> Field defined on vertices of distant
+ *                            elements that contain each located point
+ *   stride               <-- Number of field component
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_exchange_cell_vertex_field_of_element_containing (const char *coupling_id,
+                                                             double *sendingField,
+                                                             double *receivingField,
+                                                             const int stride)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_id;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  coupling.exchangeCellVertexFieldOfElementContaining(sendingField,
+                                                      receivingField,
+                                                      stride);
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Exchange field on cells that contain each located points
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   sendingField         <-- Field defined on local mesh vertices
+ *   receivingField       --> Field defined on vertices of distant
+ *                            elements that contain each located point
+ *   stride               <-- Number of field component
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_exchange_cell_center_field_of_element_containing (const char *coupling_id,
+                                                       double *sendingField,
+                                                       double *receivingField,
+                                                       const int stride)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_id;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.exchangeCellCenterFieldOfElementContaining(sendingField,
+                                                      receivingField,
+                                                      stride);
+}
+
 
 /*----------------------------------------------------------------------------*/
 

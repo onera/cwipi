@@ -35,7 +35,8 @@ libcwipi_la_LIBADD =
 libcwipi_la_SOURCES = \
 applicationProperties.cxx \
 applicationPropertiesDataBase.cxx \
-localLocation.cxx \
+locationToLocalMesh.cxx \
+locationToDistantMesh.cxx \
 cwipi.cxx \
 quickSort.c \
 solve_ax_b_4.c \

@@ -43,6 +43,9 @@ subroutine  interpolationbidon_f(entitiesDim, &
                                  solverType, &
                                  localField, &
                                  distantField)
+
+  implicit none
+
   integer :: entitiesDim
   integer :: nLocalVertex
   integer :: nLocalElement
@@ -66,7 +69,7 @@ subroutine  interpolationbidon_f(entitiesDim, &
 
   integer :: i
 
-  do i = 1, n_distant_point
+  do i = 1, nDistantPoint
      distantField(i) = i
   enddo
 
@@ -131,7 +134,7 @@ program testf
 
   integer, allocatable, dimension(:) :: location
   integer, allocatable, dimension(:) :: baryCooIdx
-  double precision, allocatable, dimension(:) :: baryCoo
+  double precision, allocatable, dimension(:) :: baryCoo, tmpDbl
   integer :: nLocatedPoints
   integer :: nNotLocatedPoints
   integer :: nDistantPoints
@@ -187,8 +190,8 @@ program testf
 !
 
   call cwipi_init_f (mpi_comm_world, &
-                         "CodeFortran", &
-                         localcom)
+                     "CodeFortran", &
+                     localcom)
 
 
 !
@@ -879,15 +882,16 @@ program testf
   !
 
   stride = 1
+
   call cwipi_receive_f ("test2D_6", &
-                            "echange2", &
-                            stride, &
-                            1, &
-                            0.1d0, &
-                            "cooYY", &
-                            values, &
-                            nNotLocatedPoints, &
-                            status)
+                        "echange2", &
+                         stride, &
+                         1, &
+                         0.1d0, &
+                         "cooYY", &
+                         values, &
+                         nNotLocatedPoints, &
+                         status)
   call printStatus(iiunit, status)
 
 !
@@ -969,9 +973,16 @@ program testf
 
   call cwipi_get_bary_coord_f("test2D_7", baryCoo)
 
+  allocate(tmpDbl(nDistantPoints))
+
+  call cwipi_send_cellcenfd_eltcont_f("test2D_7" ,tmpDbl ,1)
+  !call cwipi_send_cellvtxfd_eltcon_f("test2D_7" ,tmpDbl ,1)
+
   deallocate(location)
   deallocate(baryCooIdx)
   deallocate(baryCoo)
+  deallocate(tmpDbl)
+
 
 !
 ! Suppression de l'objet couplage "couplingcellvertex"

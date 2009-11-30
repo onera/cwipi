@@ -15,6 +15,10 @@ namespace cwipi {
 
   class Mesh;
 
+  class LocationToDistantMesh;
+
+  class LocationToLocalMesh;
+
   class Coupling {
 
   public:
@@ -45,14 +49,14 @@ namespace cwipi {
                                 int face_connectivity[]);
 
     cwipi_exchange_status_t exchange(const char                          *exchange_name,
-                                         const int                            stride,
-                                         const int                            time_step,
-                                         const double                         time_value,
-                                         const char                          *sending_field_name,
-                                         const double                        *sending_field,
-                                         char                                *receiving_field_name,
-                                         double                              *receiving_field,
-                                         void                                *ptFortranInterpolationFct);
+                                     const int                            stride,
+                                     const int                            time_step,
+                                     const double                         time_value,
+                                     const char                          *sending_field_name,
+                                     const double                        *sending_field,
+                                     char                                *receiving_field_name,
+                                     double                              *receiving_field,
+                                     void                                *ptFortranInterpolationFct);
 
     void updateLocation();
 
@@ -61,7 +65,7 @@ namespace cwipi {
 
     inline void set_interpolation_function(cwipi_interpolation_fct_t *fct);
 
-    inline const int & getNNotlocatedPoint() const;
+    inline int getNNotlocatedPoint() const;
 
     inline const int *getNotlocatedPoint() const;
 
@@ -77,7 +81,63 @@ namespace cwipi {
 
     inline const double *getDistantBarycentricCoordinates() const;
 
+    ///
+    /// \brief Set the type of information to be exchanged at the location
+    ///
+    ///   @param [in] information
+    ///
+
+    inline void setInfo(cwipi_located_point_info_t info);
+
     void locate();
+
+    ///
+    /// \brief Get distant element that contain located point
+    ///
+
+    inline const int *getElementContaining() const;
+
+    ///
+    /// \brief Get list of number of vertices of containing element
+    ///
+
+    inline const int *getElementContainingNVertex() const;
+
+    ///
+    /// \brief Get connectivity of element that contains each located point
+    ///
+
+    inline const int *getElementContainingVertex() const;
+
+    ///
+    /// \brief Get vertices coordinates of the element that contains each located point
+    ///
+
+    inline const double *getElementContainingVertexCoords() const;
+
+    ///
+    /// \brief Get barycentric coordinates for the element that contains each located point
+    ///
+
+    inline const double *getElementContainingBarycentricCoordinates() const;
+
+    ///
+    /// \brief Get MPI rank that contains each located point
+    ///
+
+    inline const int *getElementContainingMPIrank() const;
+
+    ///
+    /// \brief Exchange field on vertices of cells that contain each located points
+    ///
+
+    void exchangeCellVertexFieldOfElementContaining (double *sendingField,  double *receivingField, const int stride);
+
+    ///
+    /// \brief Exchange field on cells that contain each located points
+    ///
+
+    void exchangeCellCenterFieldOfElementContaining (double *sendingField,  double *receivingField, const int stride);
 
   private:
 
@@ -121,44 +181,32 @@ namespace cwipi {
     void _createCouplingComm();
 
   private:
-    const std::string   _name;
-    const cwipi_coupling_type_t _couplingType;
-    const ApplicationProperties& _localApplicationProperties;
-    const ApplicationProperties& _coupledApplicationProperties;
-    const int            _entitiesDim;
-    const double            _tolerance;
-    const cwipi_solver_type_t  _solverType;
-    const std::string   _outputFormat;
-    const std::string   _outputFormatOption;
-    const int           _outputFrequency;
+    const std::string               _name;
+    const cwipi_coupling_type_t     _couplingType;
+    const ApplicationProperties&    _localApplicationProperties;
+    const ApplicationProperties&    _coupledApplicationProperties;
+    const int                       _entitiesDim;
+    const double                    _tolerance;
+    const cwipi_solver_type_t       _solverType;
+    const std::string               _outputFormat;
+    const std::string               _outputFormatOption;
+    const int                       _outputFrequency;
   private:
-    Mesh                *_supportMesh;
-    fvm_locator_t       *_fvmLocator;
     fvm_writer_t        *_fvmWriter;
     MPI_Comm             _couplingComm;
+    MPI_Comm             _mergeComm;
+    MPI_Comm             _fvmComm;
     int                  _coupledApplicationNRankCouplingComm;
     int                  _coupledApplicationBeginningRankCouplingComm;
     bool                 _isCoupledRank;
-    MPI_Comm             _mergeComm;
-    MPI_Comm             _fvmComm;
+
     cwipi_interpolation_fct_t *_interpolationFct;
     bool                 _toLocate;
-    //
-    // Distant points properties
-    // TODO: Regrouper les proprietes des points distants et des points locaux dans des clase
-    int                 *_barycentricCoordinatesIndex;
-    double              *_barycentricCoordinates;
-    int                  _nDistantpoint;
-    int                 *_location;
-    // LocalLocation localLocation
-    //
-    // Local points properties
-    int                  _nPointsToLocate;
-    double              *_coordsPointsToLocate;
-    int                  _nNotLocatedPoint;
-    int                 *_notLocatedPoint;
-    int                 *_locatedPoint;
-    // DistantLocation distantLocation
+    Mesh                *_supportMesh;
+
+    LocationToDistantMesh *_locationToDistantMesh;
+    LocationToLocalMesh *_locationToLocalMesh;
+
   private:
     std::vector<double> *_tmpVertexField; //Evite une allocation a chaque extrapolation
     std::vector<double> *_tmpDistantField;

@@ -203,7 +203,7 @@ int main
     const int    nx   = 68;
     const int    ny   = 68;
     const int   order = 1;
-    
+
     if  (currentRank == 0)
       printf("         Create mesh\n");
 
@@ -1158,6 +1158,8 @@ int main
                           eltsConnecPointer,
                           eltsConnec);
 
+    cwipi_set_info("test2D_7", CWIPI_DISTANT_MESH_INFO);
+
     cwipi_locate("test2D_7");
 
     const int n_located_distant_point = cwipi_get_n_located_distant_points("test2D_7");
@@ -1167,6 +1169,36 @@ int main
     const int *distant_barycentric_coordinates_index = cwipi_get_distant_barycentric_coordinates_index("test2D_7");
 
     const double* distant_barycentric_coordinates = cwipi_get_distant_barycentric_coordinates("test2D_7");
+
+    // distant mesh
+
+    const int *cwipi_element_containing = cwipi_get_element_containing("test2D_7");
+
+    const int *cwipi_element_containing_n_vertex = cwipi_get_element_containing_n_vertex("test2D_7");
+
+    const int *cwipi_element_containing_vertex = cwipi_get_element_containing_vertex("test2D_7");
+
+    const double *cwipi_element_containing_vertex_coords = cwipi_get_element_containing_vertex_coords("test2D_7");
+
+    const double *cwipi_element_containing_barycentric_coordinates = cwipi_get_element_containing_barycentric_coordinates("test2D_7");
+
+    const int *cwipi_element_containing_MPI_rank = cwipi_get_element_containing_MPI_rank("test2D_7");
+
+    int nLocatedPoint = cwipi_get_n_located_points("test2D_7");
+
+    double *testDbl = NULL;
+    BFT_MALLOC(testDbl, nLocatedPoint, double);
+
+    double *testDbl1 = NULL;
+    BFT_MALLOC(testDbl, cwipi_element_containing_n_vertex[nLocatedPoint], double);
+
+    int stride = 1 ;
+    cwipi_exchange_cell_center_field_of_element_containing("test2D_7", NULL, testDbl, stride);
+
+    /*cwipi_exchange_cell_vertex_field_of_element_containing("test2D_7", NULL, testDbl,1); */
+
+    BFT_FREE(testDbl);
+    BFT_FREE(testDbl1);
 
     /* Suppression de l'objet de couplage */
 
@@ -1329,7 +1361,7 @@ int main
     if  (currentRank == 0)
       printf("         Delete coupling\n");
 
-    /*cwipi_delete_coupling("test2D_8"); */
+    cwipi_delete_coupling("test2D_8");
 
     /* Liberation de la memoire */
 

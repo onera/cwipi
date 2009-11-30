@@ -72,14 +72,12 @@ Coupling::Coupling(const std::string& name,
  _entitiesDim(entitiesDim),_tolerance(tolerance), _solverType(solverType),
  _outputFormat(outputFormat), _outputFormatOption(outputFormatOption),
  _fvmWriter(NULL), _outputFrequency(outputFrequency), _name(name),
- _nDistantpoint(0), _couplingType(couplingType)
+ _couplingType(couplingType)
 
 {
   _tmpVertexField = NULL;
   _tmpDistantField = NULL;
   _supportMesh = NULL;
-  _coordsPointsToLocate = NULL;
-  _fvmLocator = NULL;
   _couplingComm = MPI_COMM_NULL;
   _coupledApplicationNRankCouplingComm = -1;
   _coupledApplicationBeginningRankCouplingComm = -1;
@@ -87,19 +85,30 @@ Coupling::Coupling(const std::string& name,
   _fvmComm = MPI_COMM_NULL;
   _interpolationFct = NULL;
   _toLocate = true;
-  _barycentricCoordinatesIndex = NULL;
-  _barycentricCoordinates = NULL;
-  _nNotLocatedPoint = 0;
-  _nPointsToLocate = 0;
-  _location = NULL;
-  _notLocatedPoint = NULL;
-  _locatedPoint = NULL;
   _isCoupledRank = false;
 
   //
   // Create coupling comm
 
-  _createCouplingComm ();
+  _createCouplingComm();
+
+  //
+  //
+
+  _locationToDistantMesh = new LocationToDistantMesh(_isCoupledRank,
+                                                     _couplingType,
+                                                     _localApplicationProperties);
+
+  _locationToLocalMesh = new LocationToLocalMesh(_solverType,
+                                                 _tolerance,
+                                                 _couplingComm,
+                                                 _coupledApplicationNRankCouplingComm,
+                                                 _coupledApplicationBeginningRankCouplingComm,
+                                                 _isCoupledRank,
+                                                 _entitiesDim,
+                                                 _localApplicationProperties,
+                                                 *_locationToDistantMesh);
+
 
 
 #ifndef NAN
@@ -217,23 +226,11 @@ Coupling::~Coupling()
 
     delete _supportMesh;
 
+    delete _locationToDistantMesh;
 
-  //
-  // TODO: Recoder les coord bary 2D en c++
-    if (_entitiesDim != 2) {
-      delete[] _barycentricCoordinatesIndex;
-      delete[] _barycentricCoordinates;
-    }
-
-    else {
-      BFT_FREE(_barycentricCoordinatesIndex);
-      BFT_FREE(_barycentricCoordinates);
-    }
+    delete _locationToLocalMesh;
 
     fvm_parall_set_mpi_comm(_fvmComm);
-
-    if (_fvmLocator != NULL)
-      fvm_locator_destroy(_fvmLocator);
 
     if (_fvmWriter != NULL)
       fvm_writer_finalize(_fvmWriter);
@@ -250,16 +247,6 @@ Coupling::~Coupling()
 
   if (_fvmComm != MPI_COMM_NULL)
     MPI_Comm_free(&_fvmComm);
-
-  if (_couplingType == CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING &&
-      !_isCoupledRank) {
-
-    if (_locatedPoint != NULL)
-      delete []  _locatedPoint;
-
-    if (_notLocatedPoint != NULL)
-      delete []  _notLocatedPoint ;
-  }
 
 }
 
@@ -313,17 +300,19 @@ void Coupling::_interpolate1D(double *referenceVertexField,
                               std::vector<double>& interpolatedField,
                               const int stride)
 {
-  const int nDistantPoint      = fvm_locator_get_n_dist_points(_fvmLocator);
-  const int *distantLocation   = fvm_locator_get_dist_locations(_fvmLocator);
-  const double *distantCoords   = fvm_locator_get_dist_coords(_fvmLocator);
+  const int nDistantPoint      =  _locationToLocalMesh->getNLocatedDistantPoint() ;
+  const int *distantLocation   = _locationToLocalMesh->getLocation();
+  const double *distantCoords   = _locationToLocalMesh->getPointCoordinates();
   const int *eltsConnecPointer = _supportMesh->getEltConnectivityIndex();
   const int *eltsConnec        = _supportMesh->getEltConnectivity();
   const double *coords         = _supportMesh->getVertexCoords();
+  const double *barycentricCoordinates = _locationToLocalMesh->getBarycentricCoordinates();
+  const int *barycentricCoordinatesIndex = _locationToLocalMesh->getBarycentricCoordinatesIndex();
 
   for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
     int iel = distantLocation[ipoint] - 1;
-    double coef1 = _barycentricCoordinates[_barycentricCoordinatesIndex[ipoint]];
-    double coef2 = _barycentricCoordinates[_barycentricCoordinatesIndex[ipoint]+1];
+    double coef1 = barycentricCoordinates[barycentricCoordinatesIndex[ipoint]];
+    double coef2 = barycentricCoordinates[barycentricCoordinatesIndex[ipoint]+1];
     int pt1 = eltsConnecPointer[iel] - 1;
     int pt2 = eltsConnecPointer[iel+1] - 1;
 
@@ -339,25 +328,28 @@ void Coupling::_interpolate2D (double *vertexField,
                                const int stride)
 {
 
-  const int nDistantPoint      = fvm_locator_get_n_dist_points(_fvmLocator);
-  const int *distantLocation   = fvm_locator_get_dist_locations(_fvmLocator);
-  const double *distantcoords     = fvm_locator_get_dist_coords(_fvmLocator);
+  const int nDistantPoint      =  _locationToLocalMesh->getNLocatedDistantPoint() ;
+  const int *distantLocation   = _locationToLocalMesh->getLocation();
+  const double *distantCoords   = _locationToLocalMesh->getPointCoordinates();
 
   const int *eltsConnecPointer = _supportMesh->getEltConnectivityIndex();
   const int *eltsConnec        = _supportMesh->getEltConnectivity();
 
+  const double *barycentricCoordinates = _locationToLocalMesh->getBarycentricCoordinates();
+  const int *barycentricCoordinatesIndex = _locationToLocalMesh->getBarycentricCoordinatesIndex();
+
   for (int ipoint = 0; ipoint <nDistantPoint; ipoint++) {
     int iel = distantLocation[ipoint] - 1;
-    int index = _barycentricCoordinatesIndex[ipoint];
-    int nSom = _barycentricCoordinatesIndex[ipoint+1] - index;
+    int index = barycentricCoordinatesIndex[ipoint];
+    int nSom = barycentricCoordinatesIndex[ipoint+1] - index;
 
     //TODO: Stocker le resultat de la verification dans un tableau en Npoints pour ne le faire qu'une fois
 
     bool barycentricCoordValidation = true;
     for (int isom = 0; isom <  nSom; isom++) {
-      if ( _barycentricCoordinates[index+isom] != _barycentricCoordinates[index+isom] ||
-          _barycentricCoordinates[index+isom] < 0. ||
-          _barycentricCoordinates[index+isom] > 1. )
+      if ( barycentricCoordinates[index+isom] != barycentricCoordinates[index+isom] ||
+          barycentricCoordinates[index+isom] < 0. ||
+          barycentricCoordinates[index+isom] > 1. )
         barycentricCoordValidation = false;
     }
 
@@ -367,7 +359,7 @@ void Coupling::_interpolate2D (double *vertexField,
       for (int isom = 0; isom <  nSom; isom++) {
         for (int k = 0; k < stride; k++) {
           interpolatedField[stride*ipoint+k] += vertexField[stride*(eltsConnec[eltsConnecPointer[iel]+isom]-1)+k]
-                                                          *_barycentricCoordinates[index+isom];
+                                                          *barycentricCoordinates[index+isom];
         }
       }
     }
@@ -386,9 +378,9 @@ void Coupling::_interpolate2D (double *vertexField,
 
         double dist = 1e33;
         int neighborVertex = -1;
-        const double &pointCoordX = distantcoords[3*ipoint];
-        const double &pointCoordY = distantcoords[3*ipoint + 1];
-        const double &pointCoordZ = distantcoords[3*ipoint + 2];
+        const double &pointCoordX = distantCoords[3*ipoint];
+        const double &pointCoordY = distantCoords[3*ipoint + 1];
+        const double &pointCoordZ = distantCoords[3*ipoint + 2];
         for(int ivertex = firstElementVertex;  ivertex < firstElementVertex+nElementVertex; ivertex++ ) {
           const double &vertexCoordX = _supportMesh->getVertexCoords()[3*(eltsConnec[ivertex]-1)];
           const double &vertexCoordY = _supportMesh->getVertexCoords()[3*(eltsConnec[ivertex]-1)+1];
@@ -419,9 +411,10 @@ void Coupling::_interpolate3D(double *vertexField,
   // TODO: Faire le calcul des coordonnees barycentriques pour les polyedres
   // TODO: Dans un premier temps faire le calcul pour les tetraedres
 
-  const int nDistantPoint      = fvm_locator_get_n_dist_points(_fvmLocator);
-  const int *distantLocation   = fvm_locator_get_dist_locations(_fvmLocator);
-  const double *distantCoords   = fvm_locator_get_dist_coords(_fvmLocator);
+  const int nDistantPoint      =  _locationToLocalMesh->getNLocatedDistantPoint() ;
+  const int *distantLocation   = _locationToLocalMesh->getLocation();
+  const double *distantCoords   = _locationToLocalMesh->getPointCoordinates();
+
   const int *eltsConnecPointer = _supportMesh->getEltConnectivityIndex();
   const int *eltsConnec        = _supportMesh->getEltConnectivity();
   const int nStandardElt       = _supportMesh->getNElts() - _supportMesh->getNPolyhedra();
@@ -604,14 +597,8 @@ void Coupling::defineMesh(const int nVertex,
 void Coupling::setPointsToLocate(const int    n_points,
                                  double coordinate[])
 {
-  if (_isCoupledRank) {
-    _nPointsToLocate = n_points;
-    _coordsPointsToLocate = coordinate;
-    _toLocate = true;
-  }
-  else
-    bft_error(__FILE__, __LINE__, 0, "for a coupling without parallel partitionning,"
-              " the points to locate must be defined only by the root rank\n");
+  _toLocate = true;
+  _locationToDistantMesh->setpointsToLocate(n_points, coordinate);
 }
 
 
@@ -687,23 +674,23 @@ cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
 
       MPI_Sendrecv(&lLocalName,   1, MPI_INT,
                    _coupledApplicationBeginningRankCouplingComm, 0,
-		   &lDistantName, 1, MPI_INT,
+                   &lDistantName, 1, MPI_INT,
                    _coupledApplicationBeginningRankCouplingComm, 0,
-		   _couplingComm, &MPIStatus);
+                   _couplingComm, &MPIStatus);
 
       char *distantCouplingName = new char[lDistantName];
 
       MPI_Sendrecv(const_cast <char*>(_name.c_str()),
                    lLocalName, MPI_CHAR,
                    _coupledApplicationBeginningRankCouplingComm, 0,
-		   distantCouplingName, lDistantName, MPI_CHAR,
+                   distantCouplingName, lDistantName, MPI_CHAR,
                    _coupledApplicationBeginningRankCouplingComm, 0,
-		   _couplingComm, &MPIStatus);
+                   _couplingComm, &MPIStatus);
 
       if (strcmp(_name.c_str(), distantCouplingName))
-	bft_error(__FILE__, __LINE__, 0, "'%s' '%s' bad synchronization point\n",
-		  _name.c_str(),
-		  distantCouplingName);
+        bft_error(__FILE__, __LINE__, 0, "'%s' '%s' bad synchronization point\n",
+                  _name.c_str(),
+                  distantCouplingName);
       delete[] distantCouplingName;
 
       //
@@ -726,9 +713,9 @@ cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
 		   _couplingComm, &MPIStatus);
 
       if (strcmp(exchangeName, distantExchangeName))
-	bft_error(__FILE__, __LINE__, 0, "'%s' '%s' bad synchronization point\n",
-		  exchangeName,
-		  distantExchangeName);
+        bft_error(__FILE__, __LINE__, 0, "'%s' '%s' bad synchronization point\n",
+                  exchangeName,
+                  distantExchangeName);
 
       delete[] distantExchangeName;
     }
@@ -744,8 +731,6 @@ cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
 
   if (_isCoupledRank) {
 
-    assert (_fvmLocator != NULL);
-
     const int nVertex                 = _supportMesh->getNVertex();
     const int nElts                   = _supportMesh->getNElts();
     const int nPoly                   = _supportMesh->getNPolyhedra();
@@ -756,14 +741,17 @@ cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
     const int *localPolyhedraFaceConnectivity_index = _supportMesh->getPolyhedraFaceConnectivityIndex();
     const int *localPolyhedraFaceConnectivity       = _supportMesh->getPolyhedraFaceConnectivity();
 
-    const int nDistantPoint     = fvm_locator_get_n_dist_points(_fvmLocator);
-    const int *distantLocation  = fvm_locator_get_dist_locations(_fvmLocator);
-    const double *distantCoords = fvm_locator_get_dist_coords(_fvmLocator);
-    const int* interiorList     = fvm_locator_get_interior_list(_fvmLocator);
-    const int nInteriorList     = fvm_locator_get_n_interior(_fvmLocator);
+    const int nDistantPoint      =  _locationToLocalMesh->getNLocatedDistantPoint() ;
+    const int *distantLocation   = _locationToLocalMesh->getLocation();
+    const double *distantCoords   = _locationToLocalMesh->getPointCoordinates();
+
+    const int* interiorList     = _locationToDistantMesh->getLocatedPoint();
+    const int nInteriorList     = _locationToDistantMesh->getNLocatedPoint();
+    const double *barycentricCoordinates = _locationToLocalMesh->getBarycentricCoordinates();
+    const int *barycentricCoordinatesIndex = _locationToLocalMesh->getBarycentricCoordinatesIndex();
 
     int lDistantField = stride * nDistantPoint;
-    int lReceivingField = stride * _nPointsToLocate;
+    int lReceivingField = stride * _locationToDistantMesh->getNpointsToLocate();
 
     if (_tmpDistantField == NULL)
       _tmpDistantField = new std::vector<double> (lDistantField);
@@ -798,8 +786,8 @@ cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
            const_cast <int *> (localPolyhedraFaceConnectivity),
            const_cast <double *> (distantCoords),
            const_cast <int *> (distantLocation),
-           const_cast <int *> (_barycentricCoordinatesIndex),
-           const_cast <double *> (_barycentricCoordinates),
+           const_cast <int *> (barycentricCoordinatesIndex),
+           const_cast <double *> (barycentricCoordinates),
            const_cast <int *> (&stride),
            const_cast <int *> ((const int *) &_solverType),
            const_cast <double *> (sendingField),
@@ -825,8 +813,8 @@ cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
                           localPolyhedraFaceConnectivity,
                           distantCoords,
                           distantLocation,
-                          _barycentricCoordinatesIndex,
-                          _barycentricCoordinates,
+                          barycentricCoordinatesIndex,
+                          barycentricCoordinates,
                           stride,
                           _solverType,
                           sendingField,
@@ -854,7 +842,7 @@ cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
 
     fvm_parall_set_mpi_comm(_fvmComm);
 
-    fvm_locator_exchange_point_var(_fvmLocator,
+    fvm_locator_exchange_point_var(_locationToLocalMesh->getFVMLocator(),
                                    (void *) ptSending,
                                    (void *) receivingField,
                                    NULL,
@@ -896,38 +884,38 @@ cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
 
       assert(rootRank == 0);
 
-      MPI_Bcast( &status,
-                 1,
-                 MPI_INT,
-                 0,
-                 localComm );
+      MPI_Bcast(&status,
+                1,
+                MPI_INT,
+                0,
+                localComm);
 
       if( receivingField != NULL )
 
-        MPI_Bcast( receivingField,
-                   stride* (_nPointsToLocate-_nNotLocatedPoint),
-                   MPI_DOUBLE,
-                   0,
-                   localComm );
+        MPI_Bcast(receivingField,
+                  stride* _locationToDistantMesh->getNLocatedPoint(),
+                  MPI_DOUBLE,
+                  0,
+                  localComm);
 
     }
   }
 
   else if (_couplingType == CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING) {
 
-    MPI_Bcast( &status,
-               1,
-               MPI_INT,
-               0,
-               localComm );
+    MPI_Bcast(&status,
+              1,
+              MPI_INT,
+              0,
+              localComm);
 
-    if ( receivingField != NULL )
+    if (receivingField != NULL)
 
-      MPI_Bcast( receivingField,
-                 stride* (_nPointsToLocate-_nNotLocatedPoint),
-                 MPI_DOUBLE,
-                 0,
-                 localComm );
+      MPI_Bcast(receivingField,
+                stride* _locationToDistantMesh->getNLocatedPoint(),
+                MPI_DOUBLE,
+                0,
+                localComm );
   }
 
   return status;
@@ -987,11 +975,12 @@ void Coupling::_initVisualization()
     // TODO: A deplacer et a recreer en cas de maillage mobile
 
     int nNotLocatedPointSum;
-    MPI_Allreduce (&_nNotLocatedPoint, &nNotLocatedPointSum,
+    int nUnlocatedPoint = _locationToDistantMesh->getNUnlocatedPoint();
+    MPI_Allreduce (&nUnlocatedPoint, &nNotLocatedPointSum,
                    1, MPI_INT, MPI_SUM,
                    _fvmComm);
 
-    if (nNotLocatedPointSum != 0 && _coordsPointsToLocate == NULL) {
+    if (nNotLocatedPointSum != 0 && _locationToDistantMesh->getCoordsPointsToLocate() == NULL) {
       if (_solverType == CWIPI_SOLVER_CELL_CENTER) {
         const int nElts  = _supportMesh->getNElts();
 
@@ -1000,8 +989,8 @@ void Coupling::_initVisualization()
         for (int i = 0; i < nElts; i++)
           domLoc[i] = 1;
 
-        for (int i = 0; i < _nNotLocatedPoint; i++)
-          domLoc[_notLocatedPoint[i]-1] = 0;
+        for (int i = 0; i < _locationToDistantMesh->getNUnlocatedPoint(); i++)
+          domLoc[_locationToDistantMesh->getUnlocatedPoint()[i]-1] = 0;
 
         fvm_writer_export_field(_fvmWriter,
                                 const_cast<fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
@@ -1024,8 +1013,8 @@ void Coupling::_initVisualization()
         for (int i = 0; i < nVertex; i++)
           domLoc[i] = 0;
 
-        for (int i = 0; i < _nNotLocatedPoint; i++)
-          domLoc[_notLocatedPoint[i]-1] = 1;
+        for (int i = 0; i < _locationToDistantMesh->getNUnlocatedPoint(); i++)
+          domLoc[_locationToDistantMesh->getUnlocatedPoint()[i]-1] = 1;
 
         fvm_writer_export_field(_fvmWriter,
                                 const_cast<fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
@@ -1050,13 +1039,13 @@ void Coupling::_initVisualization()
 
 
 void Coupling::_fieldsVisualization(const char *exchangeName,
-                              const int stride,
-                              const int timeStep,
-                              const double timeValue,
-                              const char  *sendingFieldName,
-                              const void *sendingField,
-                              const char  *receivingFieldName,
-                              const void *receivingField)
+                                    const int stride,
+                                    const int timeStep,
+                                    const double timeValue,
+                                    const char  *sendingFieldName,
+                                    const void *sendingField,
+                                    const char  *receivingFieldName,
+                                    const void *receivingField)
 {
 
   const double couplingDoubleMax = 0.0;
@@ -1119,19 +1108,19 @@ void Coupling::_fieldsVisualization(const char *exchangeName,
         //
         // Not located point treatment
 
-        if (receivingField != NULL && _coordsPointsToLocate == NULL) {
+        if (receivingField != NULL && _locationToDistantMesh->getCoordsPointsToLocate() == NULL) {
 
           localName = "R_" + std::string(exchangeName) +
           "_" + std::string(receivingFieldName);
 
-          if (_nNotLocatedPoint != 0) {
-            int lReceivingField = stride * _nPointsToLocate;
+          if (_locationToDistantMesh->getNUnlocatedPoint() != 0) {
+            int lReceivingField = stride * _locationToDistantMesh->getNpointsToLocate();
             std::vector<double> *cpReceivingField = new std::vector<double> (lReceivingField, couplingDoubleMax);
 
-            const int nLocatedPoint = _nPointsToLocate - _nNotLocatedPoint;
+            const int nLocatedPoint = _locationToDistantMesh->getNpointsToLocate() - _locationToDistantMesh->getNUnlocatedPoint();
             for (int i = 0; i < nLocatedPoint; i++) {
               for (int j = 0; j < stride; j++)
-                (*cpReceivingField)[stride*(_locatedPoint[i]-1)+j] = ((double*) receivingField)[stride*i+j];
+                (*cpReceivingField)[stride*(_locationToDistantMesh->getLocatedPoint()[i]-1)+j] = ((double*) receivingField)[stride*i+j];
             }
 
             fvm_writer_export_field(_fvmWriter,
@@ -1176,201 +1165,28 @@ void Coupling::locate()
 
   const MPI_Comm& localComm = _localApplicationProperties.getLocalComm();
 
+  if (_isCoupledRank) {
 
-  if ( _toLocate ) {
+    MPI_Comm oldFVMComm = fvm_parall_get_mpi_comm();
 
-    int rootRank = -1;
-
-    if ( _isCoupledRank ) {
-
+    if (oldFVMComm != _fvmComm)
       fvm_parall_set_mpi_comm(_fvmComm);
 
-      //
-      // Create locator
-
-      if (_fvmLocator == NULL)
-        _fvmLocator = fvm_locator_create(_tolerance,
-                                         _couplingComm,
-                                         _coupledApplicationNRankCouplingComm,
-                                         _coupledApplicationBeginningRankCouplingComm);
-
-      // TODO: Revoir les coordonnees des points a localiser (cas centres sommets + centres faces + autres points)
-      // TODO: Ajouter un locator pour les sommets pour les centres faces,...
-
-      double* coords = NULL;
-      if (_coordsPointsToLocate != NULL)
-        coords = _coordsPointsToLocate;
-
-      else if(_solverType == CWIPI_SOLVER_CELL_CENTER) {
-        _nPointsToLocate = _supportMesh->getNElts();
-        coords = const_cast <double*> (&(_supportMesh->getCellCenterCoords()[0]));
-      }
-
-      else if(_solverType == CWIPI_SOLVER_CELL_VERTEX) {
-        _nPointsToLocate = _supportMesh->getNVertex();
-        coords = const_cast <double*> (_supportMesh->getVertexCoords());
-      }
-
-
-      fvm_locator_set_nodal(_fvmLocator,
-                            &_supportMesh->getFvmNodal(),
-                            0,
-                            3,
-                            _nPointsToLocate,
-                            NULL,
-                            coords);
-
-      _toLocate = false;
-      const int nLocatedPoint = fvm_locator_get_n_interior(_fvmLocator);
-      const int nNotLocatedPoint = _nPointsToLocate - nLocatedPoint;
-      const int* exteriorList = fvm_locator_get_exterior_list(_fvmLocator);
-      const int* interiorList = fvm_locator_get_interior_list(_fvmLocator);
-      const int* locationList = fvm_locator_get_dist_locations(_fvmLocator);
-      const int nExterior = fvm_locator_get_n_exterior(_fvmLocator);
-      assert(nNotLocatedPoint == nExterior);
-
-      _notLocatedPoint = const_cast<int *> (exteriorList);
-      _locatedPoint = const_cast<int *> (interiorList);
-      _nNotLocatedPoint = nNotLocatedPoint;
-      _location = const_cast<int *> (locationList);
-      _nDistantpoint = fvm_locator_get_n_dist_points(_fvmLocator);
-
-      if (_barycentricCoordinatesIndex != NULL) {
-        if (_entitiesDim != 2) {
-          delete[] _barycentricCoordinatesIndex;
-          delete[] _barycentricCoordinates;
-        }
-
-        else {
-          BFT_FREE(_barycentricCoordinatesIndex);
-          BFT_FREE(_barycentricCoordinates);
-        }
-      }
-
-      //
-      // TODO: Prevoir une fabrique pour supprimer les tests if sur _entitiesDim
-      //       Le calcul des coordonnees barycentriques se fera dans cette fabrique
-
-      if (_barycentricCoordinatesIndex == NULL) {
-        if (_entitiesDim == 1) {
-          const int nDistantPoint      = fvm_locator_get_n_dist_points(_fvmLocator);
-          const int *distantLocation   = fvm_locator_get_dist_locations(_fvmLocator);
-          const double *distantCoords   = fvm_locator_get_dist_coords(_fvmLocator);
-
-          const int *eltsConnecPointer = _supportMesh->getEltConnectivityIndex();
-          const double *localCoords    = _supportMesh->getVertexCoords();
-
-          _barycentricCoordinatesIndex = new int[nDistantPoint+1];
-          _barycentricCoordinates = new double[2*nDistantPoint];
-          _barycentricCoordinatesIndex[0] = 0;
-
-          for (int ipoint = 0; ipoint < nDistantPoint ; ipoint++) {
-            int iel = distantLocation[ipoint] - 1;
-            _barycentricCoordinatesIndex[ipoint+1] = _barycentricCoordinatesIndex[ipoint] + 2;
-            int index = eltsConnecPointer[iel];
-            int nVertex = eltsConnecPointer[iel+1] - eltsConnecPointer[iel];
-            assert(nVertex == 2);
-            int pt1 = eltsConnecPointer[iel] - 1;
-            int pt2 = eltsConnecPointer[iel+1] - 1;
-            double coef1 = sqrt((localCoords[3*pt1]-distantCoords[3*ipoint])*(localCoords[3*pt1]-distantCoords[3*ipoint])+
-                                (localCoords[3*pt1+1]-distantCoords[3*ipoint+1])*(localCoords[3*pt1+1]-distantCoords[3*ipoint+1])+
-                                (localCoords[3*pt1+2]-distantCoords[3*ipoint+2])*(localCoords[3*pt1+2]-distantCoords[3*ipoint+2]));
-            double coef2 = sqrt((localCoords[3*pt2]-distantCoords[3*ipoint])*(localCoords[3*pt2]-distantCoords[3*ipoint])+
-                                (localCoords[3*pt2+1]-distantCoords[3*ipoint+1])*(localCoords[3*pt2+1]-distantCoords[3*ipoint+1])+
-                                (localCoords[3*pt2+2]-distantCoords[3*ipoint+2])*(localCoords[3*pt2+2]-distantCoords[3*ipoint+2]));
-            _barycentricCoordinates[_barycentricCoordinatesIndex[ipoint]] = coef1/(coef1+coef2);
-            _barycentricCoordinates[_barycentricCoordinatesIndex[ipoint]+1] = coef2/(coef1+coef2);
-          }
-        }
-
-        else if (_entitiesDim == 2) {
-          int nPoints;
-          coo_baryc(_fvmLocator,
-                    _supportMesh->getNVertex(),
-                    _supportMesh->getVertexCoords(),
-                    _supportMesh->getNElts(),
-                    _supportMesh->getEltConnectivityIndex(),
-                    _supportMesh->getEltConnectivity(),
-                    &nPoints,
-                    &_barycentricCoordinatesIndex,
-                    &_barycentricCoordinates);
-        }
-
-        else if (_entitiesDim == 3) {
-          //TODO: calcul des coord barycentriques 3D
-          int nPoints;
-          //         coo_baryc(_fvmLocator,
-          //                   _supportMesh->getNVertex(),
-          //                   _supportMesh->getVertexCoords(),
-          //                   _supportMesh->getNElts(),
-          //                   _supportMesh->getEltConnectivityIndex(),
-          //                   _supportMesh->getEltConnectivity(),
-          //                   &nPoints,
-          //                   &_barycentricCoordinatesIndex,
-          //                   &_barycentricCoordinates);
-        }
-
-      }
-
-      _initVisualization();
-
-      //
-      // Send to local proc
-
-      if (_couplingType == CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING) {
-
-        MPI_Comm_rank(localComm, &rootRank);
-
-        assert(rootRank == 0);
-
-        MPI_Bcast( &_nPointsToLocate, 1, MPI_INT, rootRank, localComm );
-        MPI_Bcast( &_nNotLocatedPoint, 1, MPI_INT, rootRank, localComm );
-
-        MPI_Bcast( _locatedPoint,
-                   _nPointsToLocate-_nNotLocatedPoint,
-                   MPI_INT,
-                   rootRank,
-                   localComm );
-
-        MPI_Bcast( _notLocatedPoint, _nNotLocatedPoint, MPI_INT, rootRank, localComm );
-
-      }
-
-      fvm_parall_set_mpi_comm(MPI_COMM_NULL);
-
-    }
-
-    //
-    // Receive location
-
-    else if (_couplingType == CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING) {
-
-      rootRank = 0;
-      _toLocate = false;
-
-      MPI_Bcast( &_nPointsToLocate, 1, MPI_INT, rootRank, localComm );
-      MPI_Bcast( &_nNotLocatedPoint, 1, MPI_INT, rootRank, localComm );
-
-      if (_locatedPoint != NULL)
-        delete []  _locatedPoint;
-
-      if (_notLocatedPoint != NULL)
-        delete []  _notLocatedPoint ;
-
-      _locatedPoint = new int[_nPointsToLocate-_nNotLocatedPoint];
-      _notLocatedPoint = new int[_nNotLocatedPoint];
-
-      MPI_Bcast( _locatedPoint,
-                 _nPointsToLocate-_nNotLocatedPoint,
-                 MPI_INT,
-                 rootRank,
-                 localComm );
-      MPI_Bcast( _notLocatedPoint, _nNotLocatedPoint, MPI_INT, rootRank, localComm );
-
-    }
-
   }
+
+  if (_toLocate) {
+    _locationToLocalMesh->setSupportMesh(_supportMesh);
+  }
+
+  _locationToLocalMesh->locate();
+
+  if (_isCoupledRank)
+    _initVisualization();
+
+  fvm_parall_set_mpi_comm(MPI_COMM_NULL);
+
 }
+
 
 void Coupling::_createCouplingComm()
 {
@@ -1466,7 +1282,7 @@ void Coupling::_createCouplingComm()
     _coupledApplicationNRankCouplingComm = nDistantRank;
 
     _isCoupledRank = _localApplicationProperties.getBeginningRank() == currentRank ||
-       _couplingType == CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING;
+    _couplingType == CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING;
 
     cwipi_coupling_type_t distantCouplingType;
 
@@ -1553,6 +1369,9 @@ void Coupling::_createCouplingComm()
 
       MPI_Comm_create(_mergeComm, couplingGroup, &_couplingComm);
 
+      MPI_Group_free(&couplingGroup);
+      MPI_Group_free(&mergeGroup);
+
       delete [] rankList;
 
     }
@@ -1577,6 +1396,8 @@ void Coupling::_createCouplingComm()
       MPI_Comm_create(localComm,
                       fvmGroup,
                       &_fvmComm);
+      MPI_Group_free(&localGroup);
+      MPI_Group_free(&fvmGroup);
       MPI_Comm_free(&dupLocalComm);
     }
 
@@ -1585,6 +1406,24 @@ void Coupling::_createCouplingComm()
       MPI_Comm_dup(localComm, &_fvmComm);
 
   }
+}
+
+///
+/// \brief Exchange field on vertices of cells that contain each located points
+///
+
+void Coupling::exchangeCellVertexFieldOfElementContaining (double *sendingField,  double *receivingField, const int stride)
+{
+  _locationToLocalMesh->exchangeCellVertexFieldOfElementContaining(sendingField, receivingField, stride);
+}
+
+///
+/// \brief Exchange field on cells that contain each located points
+///
+
+void Coupling::exchangeCellCenterFieldOfElementContaining (double *sendingField,  double *receivingField, const int stride)
+{
+  _locationToLocalMesh->exchangeCellCenterFieldOfElementContaining(sendingField, receivingField, stride);
 }
 
 

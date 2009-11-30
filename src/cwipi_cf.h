@@ -495,9 +495,9 @@ void PROCF(cwipi_get_dis_bary_coord_idx_cf,
 
 void PROCF(cwipi_get_distant_bary_coord_cf,
            CWIPI_GET_DISTANT_BARY_COORD_CF) (const char *coupling_name,
-                                       const int  *l_coupling_name,
-                                       double *barycentricCoordinates
-                                       ARGF_SUPP_CHAINE);
+                                             const int  *l_coupling_name,
+                                             double *barycentricCoordinates
+                                             ARGF_SUPP_CHAINE);
 
 /*----------------------------------------------------------------------------
  *
@@ -676,6 +676,188 @@ void PROCF(cwipi_finalize_cf,
 
 void PROCF(cwipi_dump_appli_properties_cf,
            CWIPI_DUMP_APPLI_PROPERTIES_CF) ();
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Get distant elements that contain located points
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   elements             --> Element that contain located points
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_elt_cont_cf,
+           CWIPI_GET_ELT_CONT_CF)
+(const char *coupling_id,
+ const int  *l_coupling_id,
+ int *elements);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of vertices of distant elements that contain located points
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   n_vertices           --> Number of vertices of element that contain
+ *                            located point
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_elt_cont_n_vtx_cf,
+           CWIPI_GET_ELT_CONT_N_VTX_CF)
+(const char *coupling_id,
+ const int  *l_coupling_id,
+ int *n_vertices);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get vertices id of distant elements that contain located points
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   vertices             --> Vertices id
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_elt_cont_vtx_cf,
+           CWIPI_GET_ELT_CONT_VTX_CF)
+(const char *coupling_id,
+ const int  *l_coupling_id,
+ int *vertices);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get vertices coordinates of distant elements that contain located points
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   coordinates          --> Vertices coordinates
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_elt_cont_vtx_coo_cf,
+           CWIPI_GET_ELT_CONT_VTX_COO_CF)
+(const char *coupling_id,
+ const int  *l_coupling_id,
+ double* coordinates);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get barycentric coords in distant elements for located points
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   coordinates          --> Barycentric coordinates
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_elt_cont_bar_coo_cf,
+           CWIPI_GET_ELT_CONT_BAR_COO_CF)
+(const char *coupling_id,
+ const int  *l_coupling_id,
+ double *coordinates);
+
+/*----------------------------------------------------------------------------
+ *
+ * For each located point get the MPI rank of distant element
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   MPIranks             --> MPI ranks that contains located point
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_elt_cont_mpi_rank_cf,
+           CWIPI_GET_ELT_CONT_MPI_RANK_CF)
+(const char *coupling_id,
+ const int  *l_coupling_id,
+ int *MPIrank);
+
+/*----------------------------------------------------------------------------
+ *
+ * Exchange Fields on vertices of element containing each located point
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   sendingField         <-- Field defined on local mesh vertices
+ *   receivingField       --> Field defined on vertices of distant
+ *                            elements that contain each located point
+ *   stride               <-- Number of field component
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_exch_cellvtxfd_eltcont_cf,
+           CWIPI_EXCH_CELLVTXFD_ELTCONT_CF)
+(const char *coupling_id,
+ const int  *l_coupling_id,
+ double *sendingField,
+ double *receivingField,
+ const int *stride);
+
+void PROCF(cwipi_send_cellvtxfd_eltcont_cf,
+           CWIPI_SEND_CELLVTXFD_ELTCONT_CF)
+(const char *coupling_id,
+ const int  *l_coupling_id,
+ double *sendingField,
+ const int *stride);
+
+void PROCF(cwipi_recv_cellvtxfd_eltcont_cf,
+           CWIPI_RECV_CELLVTXFD_ELTCONT_CF)
+(const char *coupling_id,
+ const int  *l_coupling_id,
+ double *receivingField,
+ const int *stride);
+/*----------------------------------------------------------------------------
+ *
+ * Exchange field on cells that contain each located points
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   sendingField         <-- Field defined on local mesh vertices
+ *   receivingField       --> Field defined on vertices of distant
+ *                            elements that contain each located point
+ *   stride               <-- Number of field component
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_exch_cellcenfd_eltcont_cf,
+           CWIPI_EXCH_CELLCENFD_ELTCONT_CF)
+(const char *coupling_id,
+ const int  *l_coupling_id,
+ double *sendingField,
+ double *receivingField,
+ const int *stride);
+
+void PROCF(cwipi_send_cellcenfd_eltcont_cf,
+           CWIPI_SEND_CELLCENFD_ELTCONT_CF)
+(const char *coupling_id,
+ const int  *l_coupling_id,
+ double *sendingField,
+ const int *stride);
+
+void PROCF(cwipi_recv_cellcenfd_eltcont_cf,
+           CWIPI_RECV_CELLCENFD_ELTCONT_CF)
+(const char *coupling_id,
+ const int  *l_coupling_id,
+ double *receivingField,
+ const int *stride);
+
+/*----------------------------------------------------------------------------
+ *
+ * Set coupling info
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   info                 <-- Coupling info
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_set_info_cf,
+           CWIPI_SET_INFO_CF)
+(const char *coupling_id,
+ const int  *l_coupling_id,
+ const int *info);
 
 /*----------------------------------------------------------------------------*/
 

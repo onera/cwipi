@@ -3,6 +3,7 @@
 
 #include <fvm_nodal.h>
 #include <vector>
+#include <mpi.h>
 
 namespace cwipi {
 
@@ -25,31 +26,31 @@ namespace cwipi {
                       int *faceConnectivityIndex,
                       int *faceConnectivity);
 
-    inline const int& getNVertex();
+    inline const int& getNVertex() const;
 
-    inline const double* getVertexCoords();
+    inline const double* getVertexCoords() const;
 
-    inline fvm_nodal_t& getFvmNodal();
+    inline fvm_nodal_t& getFvmNodal() const;
 
-    inline const int& getNElts();
+    inline const int& getNElts() const;
 
-    inline const int& getNPolyhedra();
+    inline const int& getNPolyhedra() const;
 
-    inline const int* getEltConnectivityIndex();
+    inline const int* getEltConnectivityIndex() const;
 
-    inline const int* getEltConnectivity();
+    inline const int* getEltConnectivity() const;
 
     inline const std::vector<double>& getVolume();
 
     inline const std::vector<double>& getCellCenterCoords();
 
-    inline const int *getPolyhedraFaceIndex();
+    inline const int *getPolyhedraFaceIndex() const;
 
-    inline const int *getPolyhedraCellToFaceConnectivity();
+    inline const int *getPolyhedraCellToFaceConnectivity() const;
 
-    inline const int *getPolyhedraFaceConnectivityIndex();
+    inline const int *getPolyhedraFaceConnectivityIndex() const;
 
-    inline const int *getPolyhedraFaceConnectivity();
+    inline const int *getPolyhedraFaceConnectivity() const;
 
     void update();
 
@@ -64,9 +65,9 @@ namespace cwipi {
                                             const int nCurrentEltVertex,
                                             const int index,
                                             const int *eltConnectivity,
-                                            std::vector<double> *cellCenterCoords);
+                                            std::vector<double> *cellCenterCoords) ;
 
-    void _computeMeshProperties1D();
+    void _computeMeshProperties1D() ;
 
     void _computeMeshProperties2D(const int  nElts,
                                   const int *faceConnectivityIndex,
@@ -99,37 +100,37 @@ namespace cwipi {
     fvm_nodal_t *_fvmNodal;
   };
 
-  const int& Mesh::getNVertex()
+  const int& Mesh::getNVertex()  const
   {
     return _nVertex;
   }
 
-  const double* Mesh::getVertexCoords()
+  const double* Mesh::getVertexCoords()  const
   {
     return _coords;
   }
 
-  fvm_nodal_t& Mesh::getFvmNodal()
+  fvm_nodal_t& Mesh::getFvmNodal() const
   {
     return *_fvmNodal;
   }
 
-  const int& Mesh::getNElts()
+  const int& Mesh::getNElts() const
   {
     return _nElts;
   }
 
-  const int& Mesh::getNPolyhedra()
+  const int& Mesh::getNPolyhedra() const
   {
     return _nPolyhedra;
   }
 
-  const int* Mesh::getEltConnectivityIndex()
+  const int* Mesh::getEltConnectivityIndex() const
   {
     return _eltConnectivityIndex;
   }
 
-  const int* Mesh::getEltConnectivity()
+  const int* Mesh::getEltConnectivity() const
   {
     return _eltConnectivity;
   }
@@ -149,22 +150,22 @@ namespace cwipi {
     return *_cellCenterCoords;
   }
 
-  const int *Mesh::getPolyhedraFaceIndex()
+  const int *Mesh::getPolyhedraFaceIndex() const
   {
     return _polyhedraFaceIndex;
   }
 
-  const int *Mesh::getPolyhedraCellToFaceConnectivity()
+  const int *Mesh::getPolyhedraCellToFaceConnectivity() const
   {
     return _polyhedraCellToFaceConnectivity;
   }
 
-  const int *Mesh::getPolyhedraFaceConnectivityIndex()
+  const int *Mesh::getPolyhedraFaceConnectivityIndex() const
   {
     return _polyhedraFaceConnectivityIndex;
   }
 
-  const int *Mesh::getPolyhedraFaceConnectivity()
+  const int *Mesh::getPolyhedraFaceConnectivity() const
   {
     return _polyhedraFaceConnectivity;
   }
