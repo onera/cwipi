@@ -19,7 +19,8 @@ namespace cwipi
 
     : _name(name), _globalComm(globalComm),
     _intControlParameters(*(new std::map <std::string, int>())),
-    _doubleControlParameters(*(new std::map <std::string, double>()))
+    _doubleControlParameters(*(new std::map <std::string, double>())),
+    _stringControlParameters(*(new std::map <std::string, std::string>()))
   {
     _localComm = NULL;
     _beginningRank = -999;
@@ -30,7 +31,8 @@ namespace cwipi
     : _name(other._name), _globalComm(other._globalComm), _localComm(other._localComm),
       _beginningRank(other._beginningRank), _endRank(other._endRank),
       _intControlParameters(other._intControlParameters),
-      _doubleControlParameters(other._doubleControlParameters)
+      _doubleControlParameters(other._doubleControlParameters),
+      _stringControlParameters(other._stringControlParameters)
   {
   }
 
@@ -50,6 +52,13 @@ namespace cwipi
     typedef std::map <std::string, double>::iterator Iterator2;
     for (Iterator2 p = _doubleControlParameters.begin(); p != _doubleControlParameters.end(); p++)
       bft_printf("   * '%s' : %12.5e\n", p->first.c_str(), p->second);
+
+    bft_printf("  - String Control Parameter :\n");
+
+    typedef std::map <std::string, std::string>::iterator Iterator3;
+    for (Iterator3 p = _stringControlParameters.begin(); p != _stringControlParameters.end(); p++)
+      bft_printf("   * '%s' : '%s'\n", p->first.c_str(), p->second.c_str());
+
     bft_printf_flush();
   }
 
@@ -62,7 +71,10 @@ namespace cwipi
     if (!_doubleControlParameters.empty())
       _doubleControlParameters.clear();
     delete &_doubleControlParameters;
-    if (_localComm != NULL) 
+    if (!_stringControlParameters.empty())
+      _stringControlParameters.clear();
+    delete &_stringControlParameters;
+    if (_localComm != NULL)
       MPI_Comm_free(&_localComm);
 
   }

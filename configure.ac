@@ -11,7 +11,7 @@ m4_define([licence_c_comment],
 
 m4_define([cwipi_major_version], [0])
 m4_define([cwipi_minor_version], [2])
-m4_define([cwipi_release_version], [4])
+m4_define([cwipi_release_version], [5])
 m4_define([cwipi_version_extra], [])
 m4_define([cwipi_version_string],
           [cwipi_major_version.cwipi_minor_version.cwipi_release_version@&t@cwipi_version_extra])
@@ -105,6 +105,23 @@ AC_ARG_ENABLE(debug,
   [ debug=false ]
 )
 AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
+
+# Debug or production compilation mode (debug by default) ?
+
+AC_ARG_ENABLE(protect,
+  [  --enable-protect          enable use limitation (december 31, 2010)],
+  [
+    case "${enableval}" in
+      yes) protect=yes ;;
+      no)  protect=no ;;
+      *)   AC_MSG_ERROR([bad value ${enableval} for --enable-protect]) ;;
+    esac
+  ],
+  [ protect=no ]
+)
+
+CWIPI_AC_CONFIG_PUBL_SET(PROTECT, $protect,
+                       [cwipi library protected ?])
 
 # Optionally deactivate automatic determination of flags on known systems
 
@@ -224,12 +241,12 @@ LT_INIT
 # Check for BFT (modifies CPPFLAGS, LDFLAGS, and LIBS)
 #-----------------------------------------------------
 
-CHECK_BFT(["1.0.0"])
+CHECK_BFT(["1.1.1"])
 
 # Check for FVM (modifies CPPFLAGS, LDFLAGS, and LIBS)
 #-----------------------------------------------------
 
-CHECK_FVM(["0.12.0"])
+CHECK_FVM(["0.15.1"])
 
 #------------------------------------------------------------------------------
 # Checks for header files.

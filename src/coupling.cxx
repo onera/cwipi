@@ -117,11 +117,10 @@ Coupling::Coupling(const std::string& name,
 
 }
 
-std::vector<double> &  Coupling::_extrapolate(double *cellCenterField)
+std::vector<double> &  Coupling::_extrapolate(double *cellCenterField, const int stride)
 {
-
   if (_tmpVertexField == NULL)
-    _tmpVertexField = new  std::vector<double>(_supportMesh->getNVertex(),0.);
+    _tmpVertexField = new  std::vector<double>(_supportMesh->getNVertex()*stride,0.);
 
     std::vector<double> &vertexField = *_tmpVertexField;
 
@@ -130,8 +129,8 @@ std::vector<double> &  Coupling::_extrapolate(double *cellCenterField)
 
     // TODO: Faire l'allocation qu'une fois comme _tmpVertexField
 
-    std::vector<double> volumeVertex(_supportMesh->getNVertex(),0.);
-    std::vector<bool> orphanVertex(_supportMesh->getNVertex(),true);
+    std::vector<double> volumeVertex(_supportMesh->getNVertex(), 0.);
+    std::vector<bool> orphanVertex(_supportMesh->getNVertex(), true);
 
     assert(_supportMesh != NULL);
 
@@ -151,7 +150,9 @@ std::vector<double> &  Coupling::_extrapolate(double *cellCenterField)
         volumeVertex[vertex] += cellVolume[i];
         if (volumeVertex[vertex] < 0.)
             std::cout << "Volume : " << i << " " << cellVolume[i] << " " << volumeVertex[vertex] << std::endl;
-        vertexField[vertex]  += cellCenterField[i] * cellVolume[i];
+        for (int k = 0; k < stride; k++)
+          vertexField[stride*vertex+k]  += cellCenterField[stride*i+k] * cellVolume[i];
+
         orphanVertex[vertex] = false;
       }
     }
@@ -192,7 +193,8 @@ std::vector<double> &  Coupling::_extrapolate(double *cellCenterField)
               volumeVertex[ivertex - 1] += cellVolume[i];
               if (volumeVertex[ivertex - 1] < 0.)
                   std::cout << "Volume : " << i << " " << cellVolume[i] << " " << volumeVertex[ivertex - 1] << std::endl;
-              vertexField[ivertex - 1]  += cellCenterField[i] * cellVolume[i];
+              for (int k = 0; k < stride; k++)
+                vertexField[stride*(ivertex - 1)+k]  += cellCenterField[stride*i+k] * cellVolume[i];
               orphanVertex[ivertex - 1] = false;
             }
           }
@@ -206,7 +208,8 @@ std::vector<double> &  Coupling::_extrapolate(double *cellCenterField)
         vertexField[i] = 0.;
       }
       else
-        vertexField[i] /= volumeVertex[i];
+        for (int k = 0; k < stride; k++)
+          vertexField[stride*i+k] /= volumeVertex[i];
     }
 
     return vertexField;
@@ -273,7 +276,7 @@ void Coupling::_interpolate(double *referenceField,
   double *dataField = referenceField;
   if (_solverType == CWIPI_SOLVER_CELL_CENTER) {
     cellField = dataField;
-    dataField = &_extrapolate(referenceField)[0];
+    dataField = &_extrapolate(referenceField, stride)[0];
   }
 
   switch(_entitiesDim) {
@@ -313,8 +316,9 @@ void Coupling::_interpolate1D(double *referenceVertexField,
     int iel = distantLocation[ipoint] - 1;
     double coef1 = barycentricCoordinates[barycentricCoordinatesIndex[ipoint]];
     double coef2 = barycentricCoordinates[barycentricCoordinatesIndex[ipoint]+1];
-    int pt1 = eltsConnecPointer[iel] - 1;
-    int pt2 = eltsConnecPointer[iel+1] - 1;
+    int index = eltsConnecPointer[iel];
+    int pt1 = eltsConnec[index] - 1;
+    int pt2 = eltsConnec[index+1] - 1;
 
     for (int k = 0; k < stride; k++)
       interpolatedField[stride*ipoint+k] = coef1 * referenceVertexField[stride*pt1+k] +
@@ -1011,10 +1015,10 @@ void Coupling::_initVisualization()
         int *domLoc = new int [nVertex];
 
         for (int i = 0; i < nVertex; i++)
-          domLoc[i] = 0;
+          domLoc[i] = 1;
 
         for (int i = 0; i < _locationToDistantMesh->getNUnlocatedPoint(); i++)
-          domLoc[_locationToDistantMesh->getUnlocatedPoint()[i]-1] = 1;
+          domLoc[_locationToDistantMesh->getUnlocatedPoint()[i]-1] = 0;
 
         fvm_writer_export_field(_fvmWriter,
                                 const_cast<fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
@@ -1062,31 +1066,58 @@ void Coupling::_fieldsVisualization(const char *exchangeName,
     fvm_writer_var_loc_t fvm_writer_var_loc;
     fvm_interlace_t fvm_interlace;
     int dim;
+    int fieldSize;
 
-    if (_solverType == CWIPI_SOLVER_CELL_CENTER)
+    if (_solverType == CWIPI_SOLVER_CELL_CENTER) {
+      fieldSize = _supportMesh->getNElts() + _supportMesh->getNPolyhedra();
       fvm_writer_var_loc = FVM_WRITER_PER_ELEMENT;
-    else
+    }
+    else{
+      fieldSize = _supportMesh->getNVertex();
       fvm_writer_var_loc = FVM_WRITER_PER_NODE;
-
+    }
     //
     // Visualization if stride is scalar or vector
 
-    if (stride == 1 || stride == 3) {
+    //if (stride == 1 || stride == 3) {
 
-      dim = stride;
-      if (stride == 1)
-        fvm_interlace = FVM_NO_INTERLACE;
-      else
-        fvm_interlace = FVM_INTERLACE;
+//     dim = stride;
+//     if (stride == 1)
+//       fvm_interlace = FVM_NO_INTERLACE;
+//     else
+//       fvm_interlace = FVM_INTERLACE;
 
-      if (sendingFieldName != NULL) {
+    dim = 1;
+    fvm_interlace = FVM_NO_INTERLACE;
 
-        localName = "S_" + std::string(exchangeName) +
-        "_" + std::string(sendingFieldName);
+    //TODO : revoir les types correspondance void / double
+
+    if (sendingFieldName != NULL) {
+
+
+      double *cpSendingField = NULL;
+      void **ptField = NULL;
+
+      for (int kk = 0; kk < stride; kk++) {
+
+        std::ostringstream num;
+        num << kk;
+
+        localName = "S_c" +num.str()+ "_" + std::string(exchangeName) +
+          "_" + std::string(sendingFieldName)+"_c"+num.str();
 
         if (sendingField != NULL) {
 
-          std::vector<double> *cpSendingField = NULL;
+          ptField = const_cast <void **> (&sendingField);
+          if (stride > 1) {
+            if (cpSendingField == NULL)
+              cpSendingField = new double [fieldSize];
+            for (int jj =0; jj < fieldSize; jj++) {
+              cpSendingField[jj] = ((double *) sendingField)[jj*stride+kk];
+            }
+            ptField = (void **) &cpSendingField;
+          }
+
 
           fvm_writer_export_field(_fvmWriter,
                                   const_cast<fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
@@ -1099,63 +1130,59 @@ void Coupling::_fieldsVisualization(const char *exchangeName,
                                   FVM_DOUBLE,
                                   timeStep,
                                   timeValue,
-                                  (const void *const *) &sendingField);
+                                  (const void *const *) ptField);
         }
       }
 
-      if (receivingFieldName != NULL) {
+      if (stride > 1 && cpSendingField != NULL)
+        delete [] cpSendingField;
 
-        //
-        // Not located point treatment
+    }
 
-        if (receivingField != NULL && _locationToDistantMesh->getCoordsPointsToLocate() == NULL) {
+    if (receivingFieldName != NULL) {
 
-          localName = "R_" + std::string(exchangeName) +
+      //
+      // Not located point treatment
+
+      if (receivingField != NULL && _locationToDistantMesh->getCoordsPointsToLocate() == NULL) {
+
+        int lReceivingField = _locationToDistantMesh->getNpointsToLocate();
+        double *cpReceivingField = new double [lReceivingField];
+        const int nLocatedPoint = _locationToDistantMesh->getNpointsToLocate() - _locationToDistantMesh->getNUnlocatedPoint();
+
+        for (int j = 0; j < stride; j++) {
+
+          for (int i = 0; i < lReceivingField; i++)
+            cpReceivingField[i] = couplingDoubleMax;
+
+          std::ostringstream num;
+          num << j;
+
+          localName = "R_c" + num.str() + "_" + std::string(exchangeName) +
           "_" + std::string(receivingFieldName);
 
-          if (_locationToDistantMesh->getNUnlocatedPoint() != 0) {
-            int lReceivingField = stride * _locationToDistantMesh->getNpointsToLocate();
-            std::vector<double> *cpReceivingField = new std::vector<double> (lReceivingField, couplingDoubleMax);
+          for (int i = 0; i < nLocatedPoint; i++)
+            cpReceivingField[(_locationToDistantMesh->getLocatedPoint()[i]-1)] = ((double*) receivingField)[i*stride+j];
 
-            const int nLocatedPoint = _locationToDistantMesh->getNpointsToLocate() - _locationToDistantMesh->getNUnlocatedPoint();
-            for (int i = 0; i < nLocatedPoint; i++) {
-              for (int j = 0; j < stride; j++)
-                (*cpReceivingField)[stride*(_locationToDistantMesh->getLocatedPoint()[i]-1)+j] = ((double*) receivingField)[stride*i+j];
-            }
-
-            fvm_writer_export_field(_fvmWriter,
-                                    const_cast<fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
-                                    localName.c_str(),
-                                    fvm_writer_var_loc,
-                                    dim,
-                                    fvm_interlace,
-                                    0,
-                                    NULL,
-                                    FVM_DOUBLE,
-                                    timeStep,
-                                    timeValue,
-                                    (const void *const *) cpReceivingField);
-            delete cpReceivingField;
-          }
-
-          else
-            fvm_writer_export_field(_fvmWriter,
-                                    const_cast<fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
-                                    localName.c_str(),
-                                    fvm_writer_var_loc,
-                                    dim,
-                                    fvm_interlace,
-                                    0,
-                                    NULL,
-                                    FVM_DOUBLE,
-                                    timeStep,
-                                    timeValue,
-                                    (const void *const *) &receivingField);
+          fvm_writer_export_field(_fvmWriter,
+                                  const_cast<fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
+                                  localName.c_str(),
+                                  fvm_writer_var_loc,
+                                  dim,
+                                  fvm_interlace,
+                                  0,
+                                  NULL,
+                                  FVM_DOUBLE,
+                                  timeStep,
+                                  timeValue,
+                                  (const void *const *) &cpReceivingField);
         }
+        delete [] cpReceivingField;
       }
     }
-    fvm_parall_set_mpi_comm(MPI_COMM_NULL);
   }
+  fvm_parall_set_mpi_comm(MPI_COMM_NULL);
+ // } //if stride
 
 }
 

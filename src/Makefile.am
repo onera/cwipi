@@ -18,6 +18,7 @@ AM_LDFLAGS = @BFT_LDFLAGS@ @FVM_LDFLAGS@ @MPI_LDFLAGS@
 cwipiincludedir = $(includedir)
 cwipiinclude_HEADERS = \
 cwipi.mod \
+cwipi_f.f90 \
 cwipi.h 
 
 noinst_HEADERS = \

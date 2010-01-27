@@ -13,7 +13,7 @@
 #include "singleton.hpp"
 
 namespace cwipi {
-  
+
   class ApplicationProperties;
 
   class ApplicationPropertiesDataBase : public Singleton <ApplicationPropertiesDataBase>
@@ -39,7 +39,7 @@ namespace cwipi {
     inline const MPI_Comm &getGlobalComm() const;
 
     inline const int &getBeginningRank() const;
- 
+
     inline const int &getEndRank() const;
 
     // Access to distant MPI properties (synchronisation with a second application)
@@ -47,7 +47,7 @@ namespace cwipi {
     //inline const MPI_Comm &getDistantLocalComm(const std::string &applicationName);
 
     inline const int &getDistantBeginningRank(const std::string &applicationName)const;
- 
+
     inline const int &getDistantEndRank(const std::string &applicationName) const;
 
     inline const ApplicationProperties &getDistantApplicationProperties(const std::string &applicationName) const;
@@ -60,17 +60,25 @@ namespace cwipi {
 
     inline void addLocalDoubleControlParameter(const std::string &name, const double value);
 
+    inline void addLocalStringControlParameter(const std::string &name, const std::string value);
+
     inline void setLocalIntControlParameter(const std::string &name, const int value);
 
     inline void setLocalDoubleControlParameter(const std::string &name, const double value);
+
+    inline void setLocalStringControlParameter(const std::string &name, const std::string value);
 
     inline const int &getLocalIntControlParameter(const std::string &name);
 
     inline const double &getLocalDoubleControlParameter(const std::string &name);
 
+    inline const std::string &getLocalStringControlParameter(const std::string &name);
+
     inline void eraseLocalIntControlParameter(const std::string &name);
 
     inline void eraseLocalDoubleControlParameter(const std::string &name);
+
+    inline void eraseLocalStringControlParameter(const std::string &name);
 
     // Merge local parameters with distant parameters (synchronisation with a second application)
 
@@ -82,11 +90,14 @@ namespace cwipi {
 
     inline const double &getDistantDoubleControlParameter(const std::string &applicationName, const std::string &name) const;
 
+    inline const std::string &getDistantStringControlParameter(const std::string &applicationName, const std::string &name) const;
+
     void dump();
 
   private:
-    void _mergeIntParameters(const std::string &applicationName); 
-    void _mergeDoubleParameters(const std::string &applicationName); 
+    void _mergeIntParameters(const std::string &applicationName);
+    void _mergeDoubleParameters(const std::string &applicationName);
+    void _mergeStringParameters(const std::string &applicationName);
 
   private:
     std::map <std::string, ApplicationProperties * > & _distantApplicationPropertiesDataBase;

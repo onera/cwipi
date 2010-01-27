@@ -98,7 +98,7 @@ fi
 
 AC_MSG_RESULT(for metis binaries: $have_metis)
 
-AM_CONDITIONAL(HAVE_MPI, test x$have_metis = xyes)
+AM_CONDITIONAL(HAVE_METIS, test x$have_metis = xyes)
 
 AC_MSG_RESULT(for metis: $have_metis)
 

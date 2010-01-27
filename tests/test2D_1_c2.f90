@@ -140,20 +140,20 @@ program testf
   integer :: nDistantPoints
 
   integer :: localcom, localGroup, p1Group, p1Comm
-  integer :: irank, currentRank
+  integer :: irank, currentRank, localcommsize
   character (len = 4) :: proc
   integer :: code
   integer :: iiunit
   integer :: ivalue
   double precision :: dvalue
 
-  double precision, parameter :: xmin = -100.d0
-  double precision, parameter :: xmax =  100.d0
-  double precision, parameter :: ymin = -100.d0
-  double precision, parameter :: ymax =  100.d0
-  integer, parameter  :: nx   = 24
-  integer, parameter  :: ny   = 24
-  integer, parameter  :: initrandom = 2
+ double precision :: xmin = -100.d0
+  double precision :: xmax =  100.d0
+  double precision :: ymin = -100.d0
+  double precision :: ymax =  100.d0
+  integer :: nx   = 24
+  integer  :: ny   = 28
+  integer  :: initrandom = 2
 
   integer nvertex, nelts, lconnecindex
 
@@ -171,13 +171,15 @@ program testf
 
   integer status
 
-  integer i, order
+  integer i, order, k
 
   integer :: vpar = 10
   character (len = 6) :: cpar = "niterf"
+  character (len = 30) :: disstr = ""
 
   integer :: stride = 1
   integer, dimension(1) :: rl
+  integer :: dislocalcommsize
 
   call mpi_init(code)
   call mpi_comm_rank(mpi_comm_world, irank, code)
@@ -202,7 +204,7 @@ program testf
 !
 
   call mpi_comm_rank(localcom, currentRank, code)
-
+  call mpi_comm_size(localcom, localcommsize, code)
 
   write(proc,'(i4.4)') currentRank
   iiunit = 9
@@ -260,6 +262,11 @@ program testf
 ! Echange des parametres de controle
 
   call cwipi_synch_ctrl_param_f("CodeC")
+  disstr = ""
+  call cwipi_get_dis_str_ctrl_param_f("CodeC","varname", disstr)
+
+  write(iiunit,*) "disstr =",disstr
+
 
   write(iiunit,*)
   write(iiunit,*) "dump apres synchronisation"
@@ -276,6 +283,81 @@ program testf
   write(iiunit,*) "-------------------------------------"
   write(iiunit,*)
   call cwipi_dump_appli_properties_f
+
+  call cwipi_add_loc_int_ctrl_param_f("localcommsize", localcommsize)
+  call cwipi_synch_ctrl_param_f("CodeC")
+  call cwipi_get_dis_int_ctrl_param_f("CodeC","localcommsize", dislocalcommsize)
+  call cwipi_dump_appli_properties_f
+
+  if ((localcommsize .eq. 1) .and. (dislocalcommsize .eq. 1)) then
+     write(iiunit, *)
+     write(iiunit, *) "--------------------------------------------------------"
+     write(iiunit, *)
+     write(iiunit, *) " Test 0"
+     write(iiunit, *)
+
+     call cwipi_create_coupling_f("test2D_0", &
+          cwipi_cpl_parallel_with_part,&
+          "CodeC", &
+          1,     & ! Dimension des entites geometriques
+          100.d0, & ! Tolerance geometrique
+          cwipi_static_mesh, &
+          cwipi_solver_cell_vertex, &
+          1, &
+          "Ensight Gold",&
+          "text")
+
+     coords(1) = 0.d0
+     coords(2) = 0.d0
+     coords(3) = 0.d0
+
+     coords(4) = 0.5d0
+     coords(5) = 0.d0
+     coords(6) = 0.d0
+
+     coords(7) = 2.d0
+     coords(8) = 0.d0
+     coords(9) = 0.d0
+
+     nvertex = 3
+     nelts = 2
+
+     connecindex(1) = 0
+     connecindex(2) = 2
+     connecindex(3) = 4
+
+     connec(1) = 1
+     connec(2) = 2
+
+     connec(3) = 2
+     connec(4) = 3
+
+     call cwipi_define_mesh_f("test2D_0", &
+          nvertex, &
+          nelts, &
+          coords, &
+          connecindex, &
+          connec)
+
+
+     values(1) = coords(1)
+     values(2) = coords(4)
+     values(3) = coords(7)
+
+     stride = 1
+     call cwipi_exchange_f ("test2D_0", &
+                             "echange1", &
+                             stride, &
+                             1, &
+                             0.1d0, &
+                             "coox", &
+                             values, &
+                             "coox", &
+                             localvalues, &
+                             nNotLocatedPoints, &
+                             status)
+
+  endif
 !
 ! ------------------------
 ! Test couplage p1 <-> p1
@@ -307,6 +389,13 @@ program testf
   nelts        = neltsm
   lconnecindex = lconnecindexm
   order = 1
+
+  xmin = -1.d-4
+  xmax =  1.d-4
+  ymin = -1.d-4
+  ymax =  1.d-4
+  nx = 24
+  ny = 28
 
   call creemaillagepolygone2d_f (order, &
                                  localcom, &
@@ -361,11 +450,97 @@ program testf
   write(iiunit, *) "--------------------------------------------------------"
   write(iiunit, *)
 
+  write(iiunit, *)
+  write(iiunit, *) "--------------------------------------------------------"
+  write(iiunit, *)
+  write(iiunit, *) " Test 1 bis"
+  write(iiunit, *)
+
+  call cwipi_create_coupling_f("test2D_01", &
+                                   cwipi_cpl_parallel_with_part,&
+                                   "CodeC", &
+                                   2,     & ! Dimension des entites geometriques
+                                   0.1d0, & ! Tolerance geometrique
+                                   cwipi_static_mesh, &
+                                   cwipi_solver_cell_vertex, &
+                                   1, &
+                                   "Ensight Gold",&
+                                   "text")
+
+!
+! Construction du maillage
+
+  nvertex      = nvertexm
+  nelts        = neltsm
+  lconnecindex = lconnecindexm
+  order = 1
+
+  xmin = -100.d0
+  xmax =  100.d0
+  ymin = -100.d0
+  ymax =  100.d0
+  nx = 24
+  ny = 28
+
+
+  call creemaillagepolygone2d_f (order, &
+                                 localcom, &
+                                 xmin, &
+                                 xmax, &
+                                 ymin, &
+                                 ymax, &
+                                 initrandom, &
+                                 nx, &
+                                 ny, &
+                                 nvertex, &
+                                 coords, &
+                                 nelts, &
+                                 lconnecindex, &
+                                 connecindex, &
+                                 connec)
+
+  call cwipi_define_mesh_f("test2D_01", &
+                               nvertex, &
+                               nelts, &
+                               coords, &
+                               connecindex, &
+                               connec)
+
+!
+! Envoi de la coory a codec
+! Reception de la coorx provenant de codec
+
+  do i = 1, nvertex
+     values(i) = coords(3*(i-1) + 2)
+  enddo
+
+  stride = 1
+  call cwipi_exchange_f ("test2D_01", &
+                             "echange1", &
+                             stride, &
+                             1, &
+                             0.1d0, &
+                             "cooy", &
+                             values, &
+                             "coox", &
+                             localvalues, &
+                             nNotLocatedPoints, &
+                             status)
+  call printStatus(iiunit, status)
+
+!
+! Suppression de l'objet couplage "couplingcellvertex"
+
+  call cwipi_delete_coupling_f("test2D_01")
+  write(iiunit, *)
+  write(iiunit, *) "--------------------------------------------------------"
+  write(iiunit, *)
 !
 ! -------------------------------------
 ! Test couplage P1 -> P0 puis P0 -> P1
 ! -------------------------------------
 !
+
   write(iiunit, *)
   write(iiunit, *) "--------------------------------------------------------"
   write(iiunit, *)
@@ -390,6 +565,13 @@ program testf
   nelts        = neltsm
   lconnecindex = lconnecindexm
   order = 1
+
+  xmin = -100.d0
+  xmax =  100.d0
+  ymin = -100.d0
+  ymax =  100.d0
+  nx = 24
+  ny = 28
 
   call creemaillagepolygone2d_f (order, &
                                  localcom, &
@@ -777,7 +959,21 @@ program testf
 ! Envoi de la coory a codec
 ! Reception de la coorx provenant de codec
 
-  stride = 3
+  stride = 6
+
+!
+! Finir
+
+  do i = 1, nVertex
+     do k = 1, stride
+        if (k < 3) then
+          values(stride*(i-1)+k) = coords(3*(i-1)+k);
+        else if (k < 6) then
+          values(stride*(i-1)+k) = coords(3*(i-1)+k-3);
+       endif
+     enddo
+  enddo
+
   call cwipi_exchange_f ("test2D_5", &
                              "echange1", &
                              stride, &

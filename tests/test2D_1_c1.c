@@ -104,8 +104,11 @@ int main
    * ----------------------------- */
 
   int currentRank;
+  int localCommSize;
 
   MPI_Comm_rank(localComm, &currentRank);
+  MPI_Comm_size(localComm, &localCommSize);
+
 
   char* fileName = NULL;
   BFT_MALLOC(fileName, 25, char);
@@ -126,6 +129,7 @@ int main
   /* Ajout de parametres */
   cwipi_add_local_int_control_parameter("niterC", 0);
   cwipi_add_local_double_control_parameter("physicalTimeC", 0.1);
+  cwipi_add_local_string_control_parameter("varname", "temp");
 
   bft_printf("\nDump apres ajout de parametres\n");
   bft_printf("------------------------------\n");
@@ -165,28 +169,140 @@ int main
    * Test couplage P1 <-> P1
    * ----------------------- */
 
-  {
+  cwipi_add_local_int_control_parameter("localcommsize", localCommSize);
+  cwipi_synchronize_control_parameter("CodeFortran");
+  int distLocalCommSize = cwipi_get_distant_int_control_parameter("CodeFortran", "localcommsize");
+  cwipi_dump_application_properties();
 
-    /* Initialisation du couplage */
-    bft_printf("Test 1 : Test couplage P1 <-> P1\n");
+  if (localCommSize == 1 && distLocalCommSize == 1) {
+    bft_printf("Test 0 : Test couplage lineique P0 <-> P1\n");
     bft_printf("\n");
 
     if  (currentRank == 0)
-      printf("Test 1 : Test couplage P1 <-> P1\n");
+      printf("Test 0 : Test couplage lineique P0 <-> P1\n");
+
+    if  (currentRank == 0)
+      printf("         Create coupling\n");
+
+    cwipi_create_coupling("test2D_0",         // Nom du couplage
+                          CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
+                          "CodeFortran",                      // Code couplé
+                          1,                            // Dimension des entités géométriques
+                          100,                          // Tolérance géométrique
+                          CWIPI_STATIC_MESH,        // Maillage statique
+                          CWIPI_SOLVER_CELL_CENTER, // Type de champs
+                          1,                            // Frequence des post-traitement
+                          "EnSight Gold",               // Format du post-traitement
+                          "text");                      // Options de post-traitements
+
+
+    if  (currentRank == 0)
+      printf("         Create mesh\n");
+
+    int nVertex = 3;
+    int nElts = 2;
+
+    double *coords = NULL;
+    BFT_MALLOC(coords, nVertex*3, double);
+    coords[0] = 0.;
+    coords[1] = 0.;
+    coords[2] = 0.;
+
+    coords[3] = 1.;
+    coords[4] = 0.;
+    coords[5] = 0.;
+
+    coords[6] = 2.;
+    coords[7] = 0.;
+    coords[8] = 0.;
+
+    int *connecIdx = NULL;
+    int *connec = NULL;
+
+    BFT_MALLOC(connecIdx, nElts+1, int);
+    connecIdx[0] = 0;
+    connecIdx[1] = 2;
+    connecIdx[2] = 4;
+
+    BFT_MALLOC(connec, connecIdx[nElts], int);
+    connec[0] = 1;
+    connec[1] = 2;
+
+    connec[2] = 2;
+    connec[3] = 3;
+
+    cwipi_define_mesh("test2D_0",
+                      nVertex,
+                      nElts,
+                      coords,
+                      connecIdx,
+                      connec);
+
+    double *values = NULL;
+    double *values1 = NULL;
+
+    BFT_MALLOC(values, nElts, double);
+
+    BFT_MALLOC(values1, nElts, double);
+
+    values[0] = (coords[0]+coords[3])/2.;
+    values[1] = (coords[3]+coords[6])/2.;
+
+    values1[0] = 0.;
+    values1[1] = 0.;
+
+    if  (currentRank == 0)
+      printf("         Exchange\n");
+
+    int nNotLocatedPoints = 0;
+    cwipi_exchange_status_t status = cwipi_exchange("test2D_0",
+                                                    "echange1",
+                                                    1,
+                                                    1,     // n_step
+                                                    0.1,   // physical_time
+                                                    "cooX",
+                                                    values,
+                                                    "cooX",
+                                                    values1,
+                                                    &nNotLocatedPoints);
+
+    _dumpStatus(status);
+
+    _dumpNotLocatedPoints("test2D_0", nNotLocatedPoints);
+
+    if  (currentRank == 0)
+      printf("         Delete coupling\n");
+
+    cwipi_delete_coupling("test2D_0");
+
+    BFT_FREE(coords);
+    BFT_FREE(connecIdx);
+    BFT_FREE(connec);
+    BFT_FREE(values);
+    BFT_FREE(values1);
+  }
+  {
+
+    /* Initialisation du couplage */
+    bft_printf("Test 1 : Test couplage P1 <-> P1 sur petites mailles\n");
+    bft_printf("\n");
+
+    if  (currentRank == 0)
+      printf("Test 1 : Test couplage P1 <-> P1 sur petites mailles\n");
 
     if  (currentRank == 0)
       printf("         Create coupling\n");
 
     cwipi_create_coupling("test2D_1",         // Nom du couplage
-                              CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
-                              "CodeFortran",                      // Code couplé
-                              2,                            // Dimension des entités géométriques
-                              0.1,                          // Tolérance géométrique
-                              CWIPI_STATIC_MESH,        // Maillage statique
-                              CWIPI_SOLVER_CELL_VERTEX, // Type de champs
-                              1,                            // Frequence des post-traitement
-                              "EnSight Gold",               // Format du post-traitement
-                              "text");                      // Options de post-traitements
+                          CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
+                          "CodeFortran",                      // Code couplé
+                          2,                            // Dimension des entités géométriques
+                          0.1,                          // Tolérance géométrique
+                          CWIPI_STATIC_MESH,        // Maillage statique
+                          CWIPI_SOLVER_CELL_VERTEX, // Type de champs
+                          1,                            // Frequence des post-traitement
+                          "EnSight Gold",               // Format du post-traitement
+                          "text");                      // Options de post-traitements
 
     /* Construction du maillage local (Decoupage par Metis si plusieurs procs) */
 
@@ -196,10 +312,12 @@ int main
     int *eltsConnecPointer = NULL; // Index par element dans la connectivite
     int *eltsConnec = NULL;        // Description de la connectivite
 
-    const double xmin = -100;
-    const double xmax =  100;
-    const double ymin = -100;
-    const double ymax =  100;
+
+    //TODO : probleme sur des tailles d'ordre 1e-5 dans la tesselation FVM a voir
+    const double xmin = -1e-4;
+    const double xmax =  1e-4;
+    const double ymin = -1e-4;
+    const double ymax =  1e-4;
     const int    nx   = 68;
     const int    ny   = 68;
     const int   order = 1;
@@ -292,6 +410,132 @@ int main
     bft_printf("--------------------------------------------------------\n");
   }
 
+  {
+
+    /* Initialisation du couplage */
+    bft_printf("Test 1 bis : Test couplage P1 <-> P1\n");
+    bft_printf("\n");
+
+    if  (currentRank == 0)
+      printf("Test 1 bis : Test couplage P1 <-> P1\n");
+
+    if  (currentRank == 0)
+      printf("         Create coupling\n");
+
+    cwipi_create_coupling("test2D_01",         // Nom du couplage
+                          CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
+                          "CodeFortran",                      // Code couplé
+                          2,                            // Dimension des entités géométriques
+                          0.1,                          // Tolérance géométrique
+                          CWIPI_STATIC_MESH,        // Maillage statique
+                          CWIPI_SOLVER_CELL_VERTEX, // Type de champs
+                          1,                            // Frequence des post-traitement
+                          "EnSight Gold",               // Format du post-traitement
+                          "text");                      // Options de post-traitements
+
+    /* Construction du maillage local (Decoupage par Metis si plusieurs procs) */
+
+    int nVertex = 0;               // Nombre de sommets
+    double *coords = NULL;         // Coordonnees des sommets
+    int nElts = 0;                 // Nombre d'elements
+    int *eltsConnecPointer = NULL; // Index par element dans la connectivite
+    int *eltsConnec = NULL;        // Description de la connectivite
+
+    const double xmin = -100;
+    const double xmax =  100;
+    const double ymin = -100;
+    const double ymax =  100;
+    const int    nx   = 68;
+    const int    ny   = 68;
+    const int   order = 1;
+
+    if  (currentRank == 0)
+      printf("         Create mesh\n");
+
+    creeMaillagePolygone2D(order,
+                           localComm,
+                           xmin,
+                           xmax,
+                           ymin,
+                           ymax,
+                           1,
+                           nx,
+                           ny,
+                           &nVertex,
+                           &coords,
+                           &nElts,
+                           &eltsConnecPointer,
+                           &eltsConnec);
+
+    bft_printf("   nombre de sommets : %i\n", nVertex);
+    bft_printf("   nombre d'elements : %i\n", nElts);
+
+    if  (currentRank == 0)
+      printf("         Define mesh\n");
+
+    cwipi_define_mesh("test2D_01",
+                          nVertex,
+                          nElts,
+                          coords,
+                          eltsConnecPointer,
+                          eltsConnec);
+
+    /* Envoi de la coordonnee X
+       Reception de la coordonnee Y*/
+
+    double* values = NULL;
+    BFT_MALLOC(values, nVertex, double);
+    for (int i = 0; i < nVertex; i++)
+      values[i] = coords[3*i];
+
+    double* localValues = NULL;
+    BFT_MALLOC(localValues, nVertex, double);
+
+    int nNotLocatedPoints;
+
+    if  (currentRank == 0)
+      printf("         Exchange\n");
+
+    cwipi_exchange_status_t status = cwipi_exchange("test2D_01",
+                                                            "echange1",
+                                                            1,
+                                                            1,     // n_step
+                                                            0.1,   // physical_time
+                                                            "cooX",
+                                                            values,
+                                                            "cooY",
+                                                            localValues,
+                                                            &nNotLocatedPoints);
+
+    _dumpStatus(status);
+
+    _dumpNotLocatedPoints("test2D_01", nNotLocatedPoints);
+
+    /* Suppression de l'objet de couplage */
+
+    if  (currentRank == 0)
+      printf("         Delete coupling\n");
+
+    cwipi_delete_coupling("test2D_01");
+
+    /* Liberation de la memoire */
+
+    if (coords != NULL)
+      BFT_FREE(coords);
+
+    if (eltsConnec != NULL)
+      BFT_FREE(eltsConnec);
+
+    if (eltsConnecPointer != NULL)
+      BFT_FREE(eltsConnecPointer);
+
+    if (values != NULL)
+      BFT_FREE(values);
+
+    if (localValues != NULL)
+      BFT_FREE(localValues);
+    bft_printf("--------------------------------------------------------\n");
+  }
   /* ------------------------------------
    * Test couplage P1 -> P0 puis P0 -> P1
    * ------------------------------------ */
@@ -879,13 +1123,19 @@ int main
     /* Envoi de la coordonnee X
        Reception de la coordonnee Y*/
 
-    double* values = NULL;
-    BFT_MALLOC(values, nVertex, double);
-    for (int i = 0; i < nVertex; i++)
-      values[i] = coords[3*i];
+    int stride = 6;
 
+    double* values = NULL;
+    BFT_MALLOC(values, stride*nVertex, double);
+    for (int i = 0; i < nVertex; i++)
+      for (int k = 0; k < stride; k++) {
+        if (k < 3)
+          values[stride*i+k] = coords[3*i+k];
+        else if (k < 6)
+          values[stride*i+k] = coords[3*i+k-3];
+      }
     double* localValues = NULL;
-    BFT_MALLOC(localValues, 3*nVertex, double);
+    BFT_MALLOC(localValues, stride*nVertex, double);
 
     int nNotLocatedPoints;
 
@@ -893,15 +1143,15 @@ int main
       printf("         Exchange\n");
 
     cwipi_exchange_status_t status = cwipi_exchange("test2D_5",
-                                                            "echange1",
-                                                            3, //stride
-                                                            1,     // n_step
-                                                            0.1,   // physical_time
-                                                            "cooX",
-                                                            coords,
-                                                            "cooY",
-                                                            localValues,
-                                                            &nNotLocatedPoints);
+                                                    "echange1",
+                                                    stride, //stride
+                                                    1,     // n_step
+                                                    0.1,   // physical_time
+                                                    "cooXYZ",
+                                                    values,
+                                                    "cooXYZ",
+                                                    localValues,
+                                                    &nNotLocatedPoints);
     _dumpStatus(status);
     _dumpNotLocatedPoints("test2D_5", nNotLocatedPoints);
 
@@ -1190,7 +1440,7 @@ int main
     BFT_MALLOC(testDbl, nLocatedPoint, double);
 
     double *testDbl1 = NULL;
-    BFT_MALLOC(testDbl, cwipi_element_containing_n_vertex[nLocatedPoint], double);
+    BFT_MALLOC(testDbl1, cwipi_element_containing_n_vertex[nLocatedPoint], double);
 
     int stride = 1 ;
     cwipi_exchange_cell_center_field_of_element_containing("test2D_7", NULL, testDbl, stride);

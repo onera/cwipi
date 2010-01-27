@@ -148,7 +148,6 @@ void cwipi_add_local_int_control_parameter(const char *name, int initial_value)
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
-  const std::string & nameStr = name;
   properties.addLocalIntControlParameter(name, initial_value);
 }
 
@@ -169,8 +168,27 @@ void cwipi_add_local_double_control_parameter
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
-  const std::string & nameStr = name;
   properties.addLocalDoubleControlParameter(name, initial_value);
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Add a string control parameter
+ *
+ * parameters
+ *    name           <-- parameter name
+ *    initial_value  <-- initial value
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_add_local_string_control_parameter
+(const char *name,
+ const char *initial_value)
+{
+  cwipi::ApplicationPropertiesDataBase & properties =
+    cwipi::ApplicationPropertiesDataBase::getInstance();
+
+  properties.addLocalStringControlParameter(name, initial_value);
 }
 
 /*----------------------------------------------------------------------------
@@ -188,7 +206,6 @@ void cwipi_set_local_int_control_parameter(const char *name, int value)
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
-  const std::string & nameStr = name;
   properties.setLocalIntControlParameter(name, value);
 }
 
@@ -207,8 +224,26 @@ void cwipi_set_local_double_control_parameter(const char *name, double value)
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
-  const std::string & nameStr = name;
   properties.setLocalDoubleControlParameter(name, value);
+}
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Set a double control parameter
+ *
+ * parameters
+ *    name           <-- parameter name
+ *    value          <-- value
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_set_local_string_control_parameter(const char *name, const char *value)
+{
+  cwipi::ApplicationPropertiesDataBase & properties =
+    cwipi::ApplicationPropertiesDataBase::getInstance();
+
+  properties.setLocalStringControlParameter(name, value);
 }
 
 /*----------------------------------------------------------------------------
@@ -225,7 +260,6 @@ int cwipi_get_local_int_control_parameter(const char *name)
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
-  const std::string & nameStr = name;
   return properties.getLocalIntControlParameter(name);
 }
 
@@ -243,8 +277,24 @@ double cwipi_get_local_double_control_parameter(const char *name)
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
-  const std::string & nameStr = name;
   return properties.getLocalDoubleControlParameter(name);
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get a string control parameter of the current application
+ *
+ * parameters
+ *    name           <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+const char* cwipi_get_local_string_control_parameter(const char *name)
+{
+  cwipi::ApplicationPropertiesDataBase & properties =
+    cwipi::ApplicationPropertiesDataBase::getInstance();
+
+  return (properties.getLocalStringControlParameter(name).c_str());
 }
 
 /*----------------------------------------------------------------------------
@@ -261,13 +311,12 @@ void cwipi_delete_local_int_control_parameter(const char *name)
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
-  const std::string & nameStr = name;
   properties.eraseLocalIntControlParameter(name);
 }
 
 /*----------------------------------------------------------------------------
  *
- * Delete a current application Int parameter
+ * Delete a current application double parameter
  *
  * parameters
  *    name           <-- parameter name
@@ -279,7 +328,24 @@ void cwipi_delete_local_double_control_parameter(const char *name)
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
-  const std::string & nameStr = name;
+  properties.eraseLocalDoubleControlParameter(name);
+}
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Delete a current application string parameter
+ *
+ * parameters
+ *    name           <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_delete_local_string_control_parameter(const char *name)
+{
+  cwipi::ApplicationPropertiesDataBase & properties =
+    cwipi::ApplicationPropertiesDataBase::getInstance();
+
   properties.eraseLocalDoubleControlParameter(name);
 }
 
@@ -300,9 +366,7 @@ int cwipi_get_distant_int_control_parameter
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
-  const std::string &application_nameStr = application_name;
-  const std::string &nameStr = name;
-  return properties.getDistantIntControlParameter(application_nameStr, nameStr);
+  return properties.getDistantIntControlParameter(application_name, name);
 }
 
 /*----------------------------------------------------------------------------
@@ -322,9 +386,27 @@ double cwipi_get_distant_double_control_parameter
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
-  const std::string &application_nameStr = application_name;
-  const std::string &nameStr = name;
-  return properties.getDistantDoubleControlParameter(application_nameStr, nameStr);
+  return properties.getDistantDoubleControlParameter(application_name, name);
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get a string control parameter of a other application
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+const char *cwipi_get_distant_string_control_parameter
+(const char *application_name,
+ const char *name)
+{
+  cwipi::ApplicationPropertiesDataBase & properties =
+    cwipi::ApplicationPropertiesDataBase::getInstance();
+
+  return properties.getDistantStringControlParameter(application_name, name).c_str();
 }
 
 /*----------------------------------------------------------------------------

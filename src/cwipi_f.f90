@@ -66,12 +66,20 @@ module cwipi
     cwipi_add_loc_dbl_ctrl_param_f_
   end interface
 
+  interface cwipi_add_loc_str_ctrl_param_f ; module procedure &
+    cwipi_add_loc_str_ctrl_param_f_
+  end interface
+
   interface cwipi_set_loc_int_ctrl_param_f ; module procedure &
     cwipi_set_loc_int_ctrl_param_f_
   end interface
 
   interface cwipi_set_loc_dbl_ctrl_param_f ; module procedure &
     cwipi_set_loc_dbl_ctrl_param_f_
+  end interface
+
+  interface cwipi_set_loc_str_ctrl_param_f ; module procedure &
+    cwipi_set_loc_str_ctrl_param_f_
   end interface
 
   interface cwipi_get_loc_int_ctrl_param_f ; module procedure &
@@ -82,6 +90,10 @@ module cwipi
     cwipi_get_loc_dbl_ctrl_param_f_
   end interface
 
+  interface cwipi_get_loc_str_ctrl_param_f ; module procedure &
+    cwipi_get_loc_str_ctrl_param_f_
+  end interface
+
   interface cwipi_del_loc_int_ctrl_param_f ; module procedure &
     cwipi_del_loc_int_ctrl_param_f_
   end interface
@@ -90,12 +102,20 @@ module cwipi
     cwipi_del_loc_dbl_ctrl_param_f_
   end interface
 
+  interface cwipi_del_loc_str_ctrl_param_f ; module procedure &
+    cwipi_del_loc_str_ctrl_param_f_
+  end interface
+
   interface cwipi_get_dis_int_ctrl_param_f ; module procedure &
     cwipi_get_dis_int_ctrl_param_f_
   end interface
 
   interface cwipi_get_dis_dbl_ctrl_param_f ; module procedure &
     cwipi_get_dis_dbl_ctrl_param_f_
+  end interface
+
+  interface cwipi_get_dis_str_ctrl_param_f ; module procedure &
+    cwipi_get_dis_str_ctrl_param_f_
   end interface
 
   interface cwipi_get_n_located_dist_pts_f ; module procedure &
@@ -221,41 +241,46 @@ module cwipi
   !
   ! Private
 
-  private :: cwipi_init_f_,                                 &
-             cwipi_set_output_listing_f_,                   &
+  private :: cwipi_init_f_,                   &
+             cwipi_set_output_listing_f_,     &
              cwipi_exch_without_user_itp_f_,  &
              cwipi_exch_with_user_itp_f_,     &
-             cwipi_send_without_user_itp_f_,      &
-             cwipi_send_with_user_itp_f_,         &
-             cwipi_add_loc_int_ctrl_param_f_,      &
-             cwipi_add_loc_dbl_ctrl_param_f_,   &
-             cwipi_set_loc_int_ctrl_param_f_,      &
-             cwipi_set_loc_dbl_ctrl_param_f_,   &
-             cwipi_get_loc_int_ctrl_param_f_,      &
-             cwipi_get_loc_dbl_ctrl_param_f_,   &
-             cwipi_del_loc_int_ctrl_param_f_,   &
-             cwipi_del_loc_dbl_ctrl_param_f_,&
-             cwipi_get_dis_int_ctrl_param_f_,    &
+             cwipi_send_without_user_itp_f_,  &
+             cwipi_send_with_user_itp_f_,     &
+             cwipi_add_loc_int_ctrl_param_f_, &
+             cwipi_add_loc_dbl_ctrl_param_f_, &
+             cwipi_add_loc_str_ctrl_param_f_, &
+             cwipi_set_loc_int_ctrl_param_f_, &
+             cwipi_set_loc_dbl_ctrl_param_f_, &
+             cwipi_set_loc_str_ctrl_param_f_, &
+             cwipi_get_loc_int_ctrl_param_f_, &
+             cwipi_get_loc_dbl_ctrl_param_f_, &
+             cwipi_get_loc_str_ctrl_param_f_, &
+             cwipi_del_loc_int_ctrl_param_f_, &
+             cwipi_del_loc_dbl_ctrl_param_f_, &
+             cwipi_del_loc_str_ctrl_param_f_, &
+             cwipi_get_dis_int_ctrl_param_f_, &
              cwipi_get_dis_dbl_ctrl_param_f_, &
-             cwipi_synch_ctrl_param_f_,        &
-             cwipi_create_coupling_f_,                      &
-             cwipi_set_points_to_locate_f_,                 &
-             cwipi_define_mesh_f_,                          &
-             cwipi_add_polyhedra_f_,                        &
-             cwipi_locate_f_,                               &
-             cwipi_receive_f_,                              &
-             cwipi_delete_coupling_f_,                      &
-             cwipi_dump_appli_properties_f_,                &
-             cwipi_finalize_f_,                             &
-             cwipi_get_not_located_pts_f_,                  &
-             cwipi_get_elt_cont_f_,                         &
-             cwipi_get_elt_cont_n_vtx_f_,                   &
-             cwipi_get_elt_cont_vtx_f_,                     &
-             cwipi_get_elt_cont_vtx_coo_f_,                 &
-             cwipi_get_elt_cont_bar_coo_f_,                 &
-             cwipi_get_elt_cont_MPI_rank_f_,                &
-             cwipi_exch_cellvtxfd_eltcont_f_,               &
-             cwipi_exch_cellcenfd_eltcont_f_,               &
+             cwipi_get_dis_str_ctrl_param_f_, &
+             cwipi_synch_ctrl_param_f_,       &
+             cwipi_create_coupling_f_,        &
+             cwipi_set_points_to_locate_f_,   &
+             cwipi_define_mesh_f_,            &
+             cwipi_add_polyhedra_f_,          &
+             cwipi_locate_f_,                 &
+             cwipi_receive_f_,                &
+             cwipi_delete_coupling_f_,        &
+             cwipi_dump_appli_properties_f_,  &
+             cwipi_finalize_f_,               &
+             cwipi_get_not_located_pts_f_,    &
+             cwipi_get_elt_cont_f_,           &
+             cwipi_get_elt_cont_n_vtx_f_,     &
+             cwipi_get_elt_cont_vtx_f_,       &
+             cwipi_get_elt_cont_vtx_coo_f_,   &
+             cwipi_get_elt_cont_bar_coo_f_,   &
+             cwipi_get_elt_cont_MPI_rank_f_,  &
+             cwipi_exch_cellvtxfd_eltcont_f_, &
+             cwipi_exch_cellcenfd_eltcont_f_, &
              cwipi_set_info_f_
 
 contains
@@ -396,6 +421,35 @@ contains
 !
 !********************************************************************************
 !
+! cwipi_add_loc_str_ctrl_param_f
+!
+! Add a double control parameter
+!
+! parameters
+!    name           <-- parameter name
+!    initial_value  <-- initial value
+!********************************************************************************
+!
+
+  subroutine cwipi_add_loc_str_ctrl_param_f_ (name, initialvalue)
+
+    implicit none
+
+    character (len = *) :: name
+    character (len = *) :: initialvalue
+
+    integer :: l1, l2
+
+    l1 = len(name)
+    l2 = len(initialvalue)
+
+    call cwipi_add_loc_str_ctrl_param_cf (name, l1, initialvalue, l2)
+
+  end subroutine cwipi_add_loc_str_ctrl_param_f_
+
+!
+!********************************************************************************
+!
 ! cwipi_set_loc_int_ctrl_param_f
 !
 !  Set a integer control parameter
@@ -451,6 +505,37 @@ contains
     call cwipi_set_loc_dbl_ctrl_param_cf (name, l, initialvalue)
 
   end subroutine cwipi_set_loc_dbl_ctrl_param_f_
+
+!
+!********************************************************************************
+!
+! cwipi_set_loc_str_ctrl_param_f
+!
+! Set a double control parameter
+!
+! parameters
+!    name           <-- parameter name
+!    value          <-- value
+!
+!
+!********************************************************************************
+!
+
+  subroutine cwipi_set_loc_str_ctrl_param_f_ (name, initialvalue)
+
+    implicit none
+
+    character (len = *) :: name
+    character (len = *) :: initialvalue
+
+    integer :: l1, l2
+
+    l1 = len(name)
+    l2 = len(initialvalue)
+
+    call cwipi_set_loc_str_ctrl_param_cf (name, l1, initialvalue, l2)
+
+  end subroutine cwipi_set_loc_str_ctrl_param_f_
 
 !
 !********************************************************************************
@@ -511,6 +596,35 @@ contains
 !
 !********************************************************************************
 !
+! cwipi_get_loc_str_ctrl_param_f
+!
+! Get a double control parameter of the current application
+!
+! parameters
+!    name           <-- parameter name
+!
+!********************************************************************************
+!
+
+  subroutine cwipi_get_loc_str_ctrl_param_f_ (name, value_str_f)
+
+    implicit none
+
+    character (len = *) :: name
+    character (len = *) :: value_str_f
+
+    integer :: l1, l2
+
+    l1 = len(name)
+    l2 = len(value_str_f)
+
+    call cwipi_get_loc_str_ctrl_param_cf (name, l1, value_str_f, l2)
+
+  end subroutine cwipi_get_loc_str_ctrl_param_f_
+
+!
+!********************************************************************************
+!
 ! cwipi_del_loc_int_ctrl_param_f
 !
 ! Delete a current application int parameter
@@ -559,6 +673,32 @@ contains
     call cwipi_del_loc_dbl_ctrl_param_cf (name, l)
 
   end subroutine cwipi_del_loc_dbl_ctrl_param_f_
+
+!
+!********************************************************************************
+!
+! cwipi_del_loc_str_ctrl_param_f
+!
+! Delete a current application double parameter
+!
+! parameters
+!    name           <-- parameter name
+!
+!********************************************************************************
+!
+
+  subroutine cwipi_del_loc_str_ctrl_param_f_ (name)
+
+    implicit none
+
+    character (len = *) :: name
+    integer :: l
+
+    l = len(name)
+
+    call cwipi_del_loc_str_ctrl_param_cf (name, l)
+
+  end subroutine cwipi_del_loc_str_ctrl_param_f_
 
 !
 !********************************************************************************
@@ -633,6 +773,46 @@ contains
                                                             value)
 
   end subroutine cwipi_get_dis_dbl_ctrl_param_f_
+
+
+!
+!********************************************************************************
+!
+! cwipi_get_dis_dbl_ctrl_param_f
+!
+! Get a double control parameter of a other application
+!
+! parameters
+!    application_name    <-- application name
+!    name                <-- parameter name
+!
+!********************************************************************************
+!
+
+  subroutine cwipi_get_dis_str_ctrl_param_f_(appliName, &
+                                             paramName, &
+                                             value_str_f)
+
+    implicit none
+
+    character (len = *) :: appliName
+    character (len = *) :: paramName
+    character (len = *) :: value_str_f
+
+    integer :: l1, l2, l3
+
+    l1 = len(appliName)
+    l2 = len(paramName)
+    l3 = len(value_str_f)
+
+    call cwipi_get_dis_str_ctrl_param_cf (appliName, &
+                                          l1, &
+                                          paramName, &
+                                          l2, &
+                                          value_str_f, &
+                                          l3)
+
+  end subroutine cwipi_get_dis_str_ctrl_param_f_
 
 !
 !********************************************************************************

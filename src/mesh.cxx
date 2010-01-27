@@ -259,7 +259,9 @@ namespace cwipi {
                                 NULL);
       }
 
-      else if (nPolySum != 0)
+      else if (nPolySum != 0) {
+
+        //bft_error(__FILE__, __LINE__, 0, "define Mesh : unresolved bug in fvm for a empty polygon section\n");
 
         fvm_nodal_append_shared(_fvmNodal,
                                 0,
@@ -269,7 +271,7 @@ namespace cwipi {
                                 NULL,
                                 NULL,
                                 NULL);
-
+      }
     break;
 
     case 3 :
@@ -450,9 +452,9 @@ namespace cwipi {
     delete[] globalVertexNum;
     delete[] allNElts;
 
-#if defined(DEBUG) && 0
+    #if defined(DEBUG) && 0
     fvm_nodal_dump(_fvmNodal);
-#endif
+    #endif
 
     fvm_parall_set_mpi_comm(MPI_COMM_NULL);
 
@@ -487,7 +489,9 @@ namespace cwipi {
     _polyhedraFaceConnectivityIndex  = faceConnectivityIndex;
     _polyhedraFaceConnectivity       = faceConnectivity;
 
-    fvm_nodal_append_shared(_fvmNodal,
+    if (nElt > 0)
+
+      fvm_nodal_append_shared(_fvmNodal,
                               nElt,
                               FVM_CELL_POLY,
                               faceIndex,
@@ -495,7 +499,19 @@ namespace cwipi {
                               faceConnectivityIndex,
                               faceConnectivity,
                               NULL);
+    else {
+      //bft_error(__FILE__, __LINE__, 0, "define Mesh : unresolved bug in fvm for an empty polyedron section\n");
 
+
+      fvm_nodal_append_shared(_fvmNodal,
+                                 0,
+                                 FVM_CELL_POLY,
+                                 NULL,
+                                 NULL,
+                                 NULL,
+                                 NULL,
+                                 NULL);
+    }
     if (_cellCenterCoords != NULL || _cellVolume != NULL)
       _computeMeshProperties();
 

@@ -230,6 +230,18 @@ void cwipi_add_local_double_control_parameter(const char *name, double initial_v
 
 /*----------------------------------------------------------------------------
  *
+ * Add a string control parameter
+ *
+ * parameters
+ *    name           <-- parameter name
+ *    initial_value  <-- initial value
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_add_local_string_control_parameter(const char *name, const char *initial_value);
+
+/*----------------------------------------------------------------------------
+ *
  * Set a integer control parameter
  *
  * parameters
@@ -251,6 +263,18 @@ void cwipi_set_local_int_control_parameter(const char *name, int value);
  *----------------------------------------------------------------------------*/
 
 void cwipi_set_local_double_control_parameter(const char *name, double value);
+
+/*----------------------------------------------------------------------------
+ *
+ * Set a string control parameter
+ *
+ * parameters
+ *    name           <-- parameter name
+ *    value          <-- value
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_set_local_string_control_parameter(const char *name, const char *value);
 
 /*----------------------------------------------------------------------------
  *
@@ -276,6 +300,17 @@ double cwipi_get_local_double_control_parameter(const char *name);
 
 /*----------------------------------------------------------------------------
  *
+ * Get a string control parameter of the current application
+ *
+ * parameters
+ *    name           <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+const char* cwipi_get_local_string_control_parameter(const char *name);
+
+/*----------------------------------------------------------------------------
+ *
  * Delete a current application int parameter
  *
  * parameters
@@ -295,6 +330,17 @@ void cwipi_delete_local_int_control_parameter(const char *name);
  *----------------------------------------------------------------------------*/
 
 void cwipi_delete_local_double_control_parameter(const char *name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Delete a current application string parameter
+ *
+ * parameters
+ *    name           <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_delete_local_string_control_parameter(const char *name);
 
 /*----------------------------------------------------------------------------
  *
@@ -321,6 +367,20 @@ int cwipi_get_distant_int_control_parameter
  *----------------------------------------------------------------------------*/
 
 double cwipi_get_distant_double_control_parameter
+(const char *application_name,
+ const char *name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get a string control parameter of a other application
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+const char* cwipi_get_distant_string_control_parameter
 (const char *application_name,
  const char *name);
 
@@ -365,8 +425,8 @@ void cwipi_dump_application_properties();
  *                                 - "EnSight Gold"
  *                                 - "MED_ficher"
  *                                 - "CGNS"
- *   output_format_option    <-- Output options
- *                             text                output text files
+ *   output_format_option    <-- Output options "opt1, opt2,
+ *                             text             output text files
  *                             binary              output binary files (default)
  *                             big_endian          force binary files
  *                                                 to big-endian

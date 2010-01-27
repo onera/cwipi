@@ -71,6 +71,8 @@ static void projection_plan_moyen
   double *coo_som_fac_tmp = NULL;
   double  coo_point_dist_tmp[3] ;
 
+  const double eps = 1e-15;
+
 
   /*xxxxxxxxxxxxxxxxxxxxxxxxxxx Instructions xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
 
@@ -127,7 +129,7 @@ static void projection_plan_moyen
   for (icoo = 0 ; icoo < 3 ; icoo++)
     coo_point_dist[icoo] -= barycentre_fac[icoo] ;
 
-  if (ABS(normale_fac[0]) > 1.e-12 || ABS(normale_fac[1]) > 1.e-12) {
+  if (ABS(normale_fac[0]) > eps || ABS(normale_fac[1]) > eps) {
 
     /* Première rotation d'axe (Oz) et d'angle (Ox, proj normale sur Oxy) */
 
@@ -248,7 +250,7 @@ void coo_baryc(const fvm_locator_t* locator,
 
   /* Tableaux locaux */
 
-  const double eps = 1e-8;
+  const double eps = 1e-15;
   double *coo_som_fac = NULL;
   double *s           = NULL;
   double *dist        = NULL;
@@ -398,7 +400,8 @@ void coo_baryc(const fvm_locator_t* locator,
           nextVertex = 0;
         if (ABS(aire[previousVertex]) > eps)
           coef += (dist[previousVertex] - proScal[previousVertex]/dist[isom]) / aire[previousVertex];
-        if (ABS(aire[previousVertex]) > eps)
+        // BUG: verifier le test de calcul du coeff
+        if (ABS(aire[isom]) > eps)
           coef += (dist[nextVertex] - proScal[isom]/dist[isom]) / aire[isom];
         sigma += coef;
         (*distBarCoords)[(*nDistBarCoords)[ipoint]+isom] = coef;
@@ -409,6 +412,7 @@ void coo_baryc(const fvm_locator_t* locator,
         }
       }
       else {
+        printf("Warning : mise à NAN %f %f", ABS(sigma), eps);
         for (int isom = 0; isom < nbr_som_fac; isom++) {
           (*distBarCoords)[(*nDistBarCoords)[ipoint]+isom] = NAN;
         }

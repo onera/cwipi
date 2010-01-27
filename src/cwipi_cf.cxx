@@ -3,6 +3,7 @@
  *----------------------------------------------------------------------------*/
 
 #include <cassert>
+#include <cstring>
 
 /*----------------------------------------------------------------------------
  * BFT library headers
@@ -281,6 +282,31 @@ void PROCF(cwipi_add_loc_dbl_ctrl_param_cf,
 
 /*----------------------------------------------------------------------------
  *
+ * Add a string control parameter
+ *
+ * parameters
+ *    name           <-- parameter name
+ *    initial_value  <-- initial value
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_add_loc_str_ctrl_param_cf,
+           CWIPI_ADD_LOC_STR_CTRL_PARAM_CF)
+  (const char *name,
+   const int  *l_name,
+   char *initial_value,
+   int *l_value
+   ARGF_SUPP_CHAINE)
+{
+  char* nameC = _cwipi_fortran_to_c_string(name, *l_name);
+  char* valueC = _cwipi_fortran_to_c_string(initial_value, *l_value);
+  cwipi_add_local_string_control_parameter(nameC, valueC);
+  delete[] nameC;
+  delete[] valueC;
+}
+
+/*----------------------------------------------------------------------------
+ *
  * Set a integer control parameter
  *
  * parameters
@@ -321,6 +347,31 @@ void PROCF(cwipi_set_loc_dbl_ctrl_param_cf,
   char* nameC = _cwipi_fortran_to_c_string(name, *l_name);
   cwipi_set_local_double_control_parameter(nameC, *value);
   delete[] nameC;
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Set a string control parameter
+ *
+ * parameters
+ *    name           <-- parameter name
+ *    value          <-- value
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_set_loc_str_ctrl_param_cf,
+           CWIPI_SET_LOC_STR_CTRL_PARAM_CF)
+  (const char *name,
+   const int  *l_name,
+   char *initial_value,
+   int *l_value
+   ARGF_SUPP_CHAINE)
+{
+  char* nameC = _cwipi_fortran_to_c_string(name, *l_name);
+  char* valueC = _cwipi_fortran_to_c_string(initial_value, *l_value);
+  cwipi_set_local_string_control_parameter(nameC, valueC);
+  delete[] nameC;
+  delete[] valueC;
 }
 
 /*----------------------------------------------------------------------------
@@ -367,6 +418,40 @@ void PROCF(cwipi_get_loc_dbl_ctrl_param_cf,
 
 /*----------------------------------------------------------------------------
  *
+ * Get a string control parameter of the current application
+ *
+ * parameters
+ *    name           <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_loc_str_ctrl_param_cf,
+           CWIPI_GET_LOC_STR_CTRL_PARAM_CF)
+  (const char *name,
+   const int  *l_name,
+   char *value_str_f,
+   int *l_value_str_f
+   ARGF_SUPP_CHAINE)
+{
+  char* nameC = _cwipi_fortran_to_c_string(name, *l_name);
+  const char* value_str_c = cwipi_get_local_string_control_parameter(nameC);
+  const int l_value_str_c = strlen(value_str_c);
+
+  int i = 0;
+  while (i < l_value_str_c && i < *l_value_str_f) {
+    value_str_f[i] = value_str_c[i];
+    i+=1;
+  }
+
+  while (i < *l_value_str_f) {
+    value_str_f[i] = ' ';
+    i+=1;
+  }
+  delete[] nameC;
+}
+
+/*----------------------------------------------------------------------------
+ *
  * Delete a current application parameter
  *
  * parameters
@@ -402,6 +487,26 @@ void PROCF(cwipi_del_loc_dbl_ctrl_param_cf,
 {
   char* nameC = _cwipi_fortran_to_c_string(name, *l_name);
   cwipi_delete_local_double_control_parameter(nameC);
+  delete[] nameC;
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Delete a current application parameter
+ *
+ * parameters
+ *    name           <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_del_loc_str_ctrl_param_cf,
+           CWIPI_DEL_LOC_STR_CTRL_PARAM_CF)
+  (const char *name,
+   const int  *l_name
+   ARGF_SUPP_CHAINE)
+{
+  char* nameC = _cwipi_fortran_to_c_string(name, *l_name);
+  cwipi_delete_local_string_control_parameter(nameC);
   delete[] nameC;
 }
 
@@ -460,6 +565,48 @@ void PROCF(cwipi_get_dis_dbl_ctrl_param_cf,
 
   *value = cwipi_get_distant_double_control_parameter(application_nameC,
                                                           nameC);
+
+  delete[] nameC;
+  delete[] application_nameC;
+}
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * Get a string control parameter of a other application
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_dis_str_ctrl_param_cf,
+           CWIPI_GET_DIS_STR_CTRL_PARAM_CF)
+  (const char *application_name,
+   const int  *l_application_name,
+   const char *name,
+   const int  *l_name,
+   char *value_str_f,
+   int  *l_value_str_f
+   ARGF_SUPP_CHAINE)
+
+{
+  char *application_nameC = _cwipi_fortran_to_c_string(application_name, *l_application_name);
+  char *nameC = _cwipi_fortran_to_c_string(name, *l_name);
+
+  const char *value_str_c = cwipi_get_distant_string_control_parameter(application_nameC, nameC);
+  const int l_value_str_c = strlen(value_str_c);
+
+  int i = 0;
+  while (i < l_value_str_c && i < *l_value_str_f) {
+    value_str_f[i] = value_str_c[i];
+    i+=1;
+  }
+
+  while (i < *l_value_str_f) {
+    value_str_f[i] = ' ';
+    i+=1;
+  }
 
   delete[] nameC;
   delete[] application_nameC;
@@ -689,6 +836,7 @@ void PROCF(cwipi_locate_cf, CWIPI_LOCATE_CF) (const char *coupling_name,
                                                       const int  *l_coupling_name
                                                       ARGF_SUPP_CHAINE)
 {
+
   char *coupling_nameC =
     _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
 

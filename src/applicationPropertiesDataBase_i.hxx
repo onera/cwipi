@@ -78,6 +78,11 @@ namespace cwipi {
     _localApplicationProperties->addDoubleControlParameter(name, initialValue);
   }
 
+  inline void ApplicationPropertiesDataBase::addLocalStringControlParameter(const std::string &name, const std::string initialValue)
+  {
+    _localApplicationProperties->addStringControlParameter(name, initialValue);
+  }
+
   inline void ApplicationPropertiesDataBase::setLocalIntControlParameter(const std::string &name, const int value)
   {
     _localApplicationProperties->setIntControlParameter(name, value);
@@ -86,6 +91,11 @@ namespace cwipi {
   inline void ApplicationPropertiesDataBase::setLocalDoubleControlParameter(const std::string &name, const double value)
   {
     _localApplicationProperties->setDoubleControlParameter(name, value);
+  }
+
+  inline void ApplicationPropertiesDataBase::setLocalStringControlParameter(const std::string &name, const std::string value)
+  {
+    _localApplicationProperties->setStringControlParameter(name, value);
   }
 
   inline const int &ApplicationPropertiesDataBase::getLocalIntControlParameter(const std::string &name)
@@ -98,6 +108,11 @@ namespace cwipi {
     return _localApplicationProperties->getDoubleControlParameter(name);
   }
 
+  inline const std::string &ApplicationPropertiesDataBase::getLocalStringControlParameter(const std::string &name)
+  {
+    return _localApplicationProperties->getStringControlParameter(name);
+  }
+
   inline void ApplicationPropertiesDataBase::eraseLocalIntControlParameter(const std::string &name)
   {
     _localApplicationProperties->eraseIntControlParameter(name);
@@ -106,6 +121,11 @@ namespace cwipi {
   inline void ApplicationPropertiesDataBase::eraseLocalDoubleControlParameter(const std::string &name)
   {
     _localApplicationProperties->eraseDoubleControlParameter(name);
+  }
+
+  inline void ApplicationPropertiesDataBase::eraseLocalStringControlParameter(const std::string &name)
+  {
+    _localApplicationProperties->eraseStringControlParameter(name);
   }
 
   // Access to distant control parameters
@@ -142,6 +162,15 @@ namespace cwipi {
       bft_error(__FILE__, __LINE__, 0,
                 "'%s' application not found \n", applicationName.c_str());
     return p->second->getDoubleControlParameter(name);
+  }
+
+  inline const std::string &ApplicationPropertiesDataBase::getDistantStringControlParameter(const std::string &applicationName, const std::string &name) const
+  {
+    const std::map <std::string, ApplicationProperties * >::iterator p = _distantApplicationPropertiesDataBase.find(applicationName);
+    if (p == _distantApplicationPropertiesDataBase.end())
+      bft_error(__FILE__, __LINE__, 0,
+                "'%s' application not found \n", applicationName.c_str());
+    return p->second->getStringControlParameter(name);
   }
 
 } // namespace cwipi

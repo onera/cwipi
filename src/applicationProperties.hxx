@@ -29,6 +29,7 @@ namespace cwipi {
 
     friend void ApplicationPropertiesDataBase::_mergeIntParameters(const std::string &applicationName);
     friend void ApplicationPropertiesDataBase::_mergeDoubleParameters(const std::string &applicationName);
+    friend void ApplicationPropertiesDataBase::_mergeStringParameters(const std::string &applicationName);
 
   public:
     ApplicationProperties(std::string &name,
@@ -58,17 +59,25 @@ namespace cwipi {
 
     inline const double &getDoubleControlParameter(const std::string &name) const;
 
+    inline const std::string &getStringControlParameter(const std::string &name) const;
+
     inline void setIntControlParameter(const std::string &name, const int value);
 
     inline void setDoubleControlParameter(const std::string &name, const double value);
+
+    inline void setStringControlParameter(const std::string &name, const std::string value);
 
     inline void addIntControlParameter(const std::string &name, const int initialValue);
 
     inline void addDoubleControlParameter(const std::string &name, const double initialValue);
 
+    inline void addStringControlParameter(const std::string &name, const std::string initialValue);
+
     inline void eraseIntControlParameter(const std::string &name);
 
     inline void eraseDoubleControlParameter(const std::string &name);
+
+    inline void eraseStringControlParameter(const std::string &name);
 
     void dump();
 
@@ -84,6 +93,7 @@ namespace cwipi {
     int _endRank;
     std::map <std::string, int> & _intControlParameters;
     std::map <std::string, double> & _doubleControlParameters;
+    std::map <std::string, std::string> &_stringControlParameters;
   };
 
   const std::string &ApplicationProperties::getName() const
@@ -144,6 +154,15 @@ namespace cwipi {
     return p->second;
   }
 
+  const std::string &ApplicationProperties::getStringControlParameter(const std::string &name) const
+  {
+    const std::map <std::string, std::string>::iterator p = _stringControlParameters.find(name);
+    if (p == _stringControlParameters.end())
+      bft_error(__FILE__, __LINE__, 0,
+                "'%s' string control parameter not found \n", name.c_str());
+    return p->second;
+  }
+
   void ApplicationProperties::setIntControlParameter(const std::string &name, const int value)
   {
     std::map <std::string, int>::iterator p = _intControlParameters.find(name);
@@ -160,7 +179,17 @@ namespace cwipi {
       p->second = value;
     else
       bft_error(__FILE__, __LINE__, 0,
-                "'%s' int control parameter not found \n", name.c_str());
+                "'%s' double control parameter not found \n", name.c_str());
+  }
+
+  void ApplicationProperties::setStringControlParameter(const std::string &name, const std::string value)
+  {
+    std::map <std::string, std::string>::iterator p = _stringControlParameters.find(name);
+    if (p != _stringControlParameters.end())
+      p->second = value;
+    else
+      bft_error(__FILE__, __LINE__, 0,
+                "'%s' string control parameter not found \n", name.c_str());
   }
 
   void ApplicationProperties::addIntControlParameter(const std::string &name, const int initialValue)
@@ -181,6 +210,14 @@ namespace cwipi {
                 "'%s' existing double control parameter \n", name.c_str());
   }
 
+  void ApplicationProperties::addStringControlParameter(const std::string &name, const std::string initialValue)
+  {
+    std::pair<std::string, std::string> parameter(name, initialValue);
+    std::pair<std::map<std::string, std::string>::iterator, bool> p = _stringControlParameters.insert(parameter);
+    if (!p.second)
+      bft_error(__FILE__, __LINE__, 0,
+                "'%s' existing string control parameter \n", name.c_str());
+  }
   void ApplicationProperties::eraseIntControlParameter(const std::string &name)
   {
     std::map <std::string, int>::iterator p = _intControlParameters.find(name);
@@ -200,9 +237,17 @@ namespace cwipi {
       bft_error(__FILE__, __LINE__, 0,
                 "'%s' double control parameter not found \n", name.c_str());
   }
+
+  void ApplicationProperties::eraseStringControlParameter(const std::string &name)
+  {
+    std::map <std::string, std::string>::iterator p = _stringControlParameters.find(name);
+    if (p != _stringControlParameters.end())
+      _stringControlParameters.erase(p);
+    else
+      bft_error(__FILE__, __LINE__, 0,
+                "'%s' string control parameter not found \n", name.c_str());
+  }
 }
-
-
 
 #endif /* __APPLICATION_PROPERTIES_H__ */
 

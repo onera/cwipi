@@ -8,6 +8,7 @@
 #include "locationToLocalMesh.hxx"
 #include "locationToDistantMesh.hxx"
 #include "coo_baryc.h"
+#include <bft_printf.h>
 #include "applicationProperties.hxx"
 
 #include <algorithm>
@@ -77,6 +78,7 @@ void LocationToLocalMesh::locate()
 
   // TODO: Exchange MPI of _toLocate param between master rank !!!
 
+
   _locationToDistantMesh.clear();
 
   if ( _isCoupledRank && (_toLocate || _locationToDistantMesh.getToLocateStatus())) {
@@ -106,7 +108,6 @@ void LocationToLocalMesh::locate()
       _locationToDistantMesh._nPointsToLocate = _supportMesh->getNVertex();
       coords = const_cast <double*> (_supportMesh->getVertexCoords());
     }
-
 
     fvm_locator_set_nodal(_fvmLocator,
                           &_supportMesh->getFvmNodal(),
@@ -157,28 +158,31 @@ void LocationToLocalMesh::locate()
         const double *distantCoords   = fvm_locator_get_dist_coords(_fvmLocator);
 
         const int *eltsConnecPointer = _supportMesh->getEltConnectivityIndex();
+        const int *eltsConnec = _supportMesh->getEltConnectivity();
         const double *localCoords    = _supportMesh->getVertexCoords();
 
-        _barycentricCoordinatesIndex = new int[nDistantPoint+1];
-        _barycentricCoordinates = new double[2*nDistantPoint];
-        _barycentricCoordinatesIndex[0] = 0;
+        if ( nDistantPoint > 0 ) {
+          _barycentricCoordinatesIndex = new int[nDistantPoint+1];
+          _barycentricCoordinates = new double[2*nDistantPoint];
+          _barycentricCoordinatesIndex[0] = 0;
 
-        for (int ipoint = 0; ipoint < nDistantPoint ; ipoint++) {
-          int iel = distantLocation[ipoint] - 1;
-          _barycentricCoordinatesIndex[ipoint+1] = _barycentricCoordinatesIndex[ipoint] + 2;
-          int index = eltsConnecPointer[iel];
-          int nVertex = eltsConnecPointer[iel+1] - eltsConnecPointer[iel];
-          assert(nVertex == 2);
-          int pt1 = eltsConnecPointer[iel] - 1;
-          int pt2 = eltsConnecPointer[iel+1] - 1;
-          double coef1 = sqrt((localCoords[3*pt1]-distantCoords[3*ipoint])*(localCoords[3*pt1]-distantCoords[3*ipoint])+
-                              (localCoords[3*pt1+1]-distantCoords[3*ipoint+1])*(localCoords[3*pt1+1]-distantCoords[3*ipoint+1])+
+          for (int ipoint = 0; ipoint < nDistantPoint ; ipoint++) {
+            int iel = distantLocation[ipoint] - 1;
+            _barycentricCoordinatesIndex[ipoint+1] = _barycentricCoordinatesIndex[ipoint] + 2;
+            int index = eltsConnecPointer[iel];
+            int nVertex = eltsConnecPointer[iel+1] - eltsConnecPointer[iel];
+            assert(nVertex == 2);
+            int pt1 = eltsConnec[index] - 1;
+            int pt2 = eltsConnec[index+1] - 1;
+             double coef1 = sqrt((localCoords[3*pt1]-distantCoords[3*ipoint])*(localCoords[3*pt1]-distantCoords[3*ipoint])+
+                                (localCoords[3*pt1+1]-distantCoords[3*ipoint+1])*(localCoords[3*pt1+1]-distantCoords[3*ipoint+1])+
                               (localCoords[3*pt1+2]-distantCoords[3*ipoint+2])*(localCoords[3*pt1+2]-distantCoords[3*ipoint+2]));
-          double coef2 = sqrt((localCoords[3*pt2]-distantCoords[3*ipoint])*(localCoords[3*pt2]-distantCoords[3*ipoint])+
-                              (localCoords[3*pt2+1]-distantCoords[3*ipoint+1])*(localCoords[3*pt2+1]-distantCoords[3*ipoint+1])+
-                              (localCoords[3*pt2+2]-distantCoords[3*ipoint+2])*(localCoords[3*pt2+2]-distantCoords[3*ipoint+2]));
-          _barycentricCoordinates[_barycentricCoordinatesIndex[ipoint]] = coef1/(coef1+coef2);
-          _barycentricCoordinates[_barycentricCoordinatesIndex[ipoint]+1] = coef2/(coef1+coef2);
+            double coef2 = sqrt((localCoords[3*pt2]-distantCoords[3*ipoint])*(localCoords[3*pt2]-distantCoords[3*ipoint])+
+                                (localCoords[3*pt2+1]-distantCoords[3*ipoint+1])*(localCoords[3*pt2+1]-distantCoords[3*ipoint+1])+
+                                (localCoords[3*pt2+2]-distantCoords[3*ipoint+2])*(localCoords[3*pt2+2]-distantCoords[3*ipoint+2]));
+            _barycentricCoordinates[_barycentricCoordinatesIndex[ipoint]] = coef2/(coef1+coef2);
+            _barycentricCoordinates[_barycentricCoordinatesIndex[ipoint]+1] = coef1/(coef1+coef2);
+          }
         }
       }
 

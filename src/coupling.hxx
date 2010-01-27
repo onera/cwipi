@@ -145,7 +145,7 @@ namespace cwipi {
 
     Coupling &operator=(const Coupling &other);
 
-     std::vector<double> & _extrapolate(double *cellCenterField);
+    std::vector<double> &  _extrapolate(double *cellCenterField, const int stride);
 
     //
     // TODO: Dans l'avenir créer une fabrique abstraite qui permet de definir differentes methodes d'interpolation

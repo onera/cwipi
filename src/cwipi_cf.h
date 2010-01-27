@@ -119,6 +119,25 @@ void PROCF(cwipi_add_loc_dbl_ctrl_param_cf,
    double *initial_value
    ARGF_SUPP_CHAINE);
 
+
+/*----------------------------------------------------------------------------
+ *
+ * Add a string control parameter
+ *
+ * parameters
+ *    name           <-- parameter name
+ *    initial_value  <-- initial value
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_add_loc_str_ctrl_param_cf,
+           CWIPI_ADD_LOC_STR_CTRL_PARAM_CF)
+  (const char *name,
+   const int  *l_name,
+   char *initial_value,
+   int *l_value
+   ARGF_SUPP_CHAINE);
+
 /*----------------------------------------------------------------------------
  *
  * Set a integer control parameter
@@ -155,6 +174,24 @@ void PROCF(cwipi_set_loc_dbl_ctrl_param_cf,
 
 /*----------------------------------------------------------------------------
  *
+ * Set a string control parameter
+ *
+ * parameters
+ *    name           <-- parameter name
+ *    value          <-- value
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_set_loc_str_ctrl_param_cf,
+           CWIPI_SET_LOC_STR_CTRL_PARAM_CF)
+  (const char *name,
+   const int  *l_name,
+   char *initial_value,
+   int *l_value
+   ARGF_SUPP_CHAINE);
+
+/*----------------------------------------------------------------------------
+ *
  * Get a integer control parameter of the current application
  *
  * parameters
@@ -185,6 +222,24 @@ void PROCF(cwipi_get_loc_dbl_ctrl_param_cf,
    double *value
    ARGF_SUPP_CHAINE);
 
+
+/*----------------------------------------------------------------------------
+ *
+ * Get a string control parameter of the current application
+ *
+ * parameters
+ *    name           <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_loc_str_ctrl_param_cf,
+           CWIPI_GET_LOC_STR_CTRL_PARAM_CF)
+  (const char *name,
+   const int  *l_name,
+   char *value,
+   int *l_value
+   ARGF_SUPP_CHAINE);
+
 /*----------------------------------------------------------------------------
  *
  * Delete a current application parameter
@@ -200,7 +255,6 @@ void PROCF(cwipi_del_loc_int_ctrl_param_cf,
    const int  *l_name
    ARGF_SUPP_CHAINE);
 
-
 /*----------------------------------------------------------------------------
  *
  * Delete a current application parameter
@@ -212,6 +266,23 @@ void PROCF(cwipi_del_loc_int_ctrl_param_cf,
 
 void PROCF(cwipi_del_loc_dbl_ctrl_param_cf,
            CWIPI_DEL_LOC_DBL_CTRL_PARAM_CF)
+  (const char *name,
+   const int  *l_name
+   ARGF_SUPP_CHAINE);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get a integer control parameter of a other application
+ *
+ * parameters
+ *    application_name       <-- application name
+ *    name                   <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+
+void PROCF(cwipi_del_loc_str_ctrl_param_cf,
+           CWIPI_DEL_LOC_STR_CTRL_PARAM_CF)
   (const char *name,
    const int  *l_name
    ARGF_SUPP_CHAINE);
@@ -253,6 +324,27 @@ void PROCF(cwipi_get_dis_dbl_ctrl_param_cf,
    const int  *l_name,
    double *value
    ARGF_SUPP_CHAINE);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get a string control parameter of a other application
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_dis_str_ctrl_param_cf,
+           CWIPI_GET_DIS_STR_CTRL_PARAM_CF)
+  (const char *application_name,
+   const int  *l_application_name,
+   const char *name,
+   const int  *l_name,
+   char *value,
+   int *l_value
+   ARGF_SUPP_CHAINE);
+
 
 /*----------------------------------------------------------------------------
  *
