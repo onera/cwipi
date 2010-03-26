@@ -113,6 +113,16 @@ if test "x$cwipi_gcc" = "xgcc"; then
   cflags_default_opt="-O2"
   cflags_default_prf="-pg"
 
+  fcflags_default=""
+  fcflags_default_dbg="-g"
+  fcflags_default_opt="-O2"
+  fcflags_default_prf="-pg"
+
+  cxxflags_default=""
+  cxxflags_default_dbg="-g"
+  cxxflags_default_opt="-O2"
+  cxxflags_default_prf="-pg"
+
   # Modify default flags on certain systems
 
   case "$host-os-$host_cpu" in
@@ -170,6 +180,16 @@ elif test "x$cwipi_gcc" = "xicc"; then
   cflags_default_dbg="-g -O0 -traceback"
   cflags_default_opt="-O2"
   cflags_default_prf="-p"
+
+  fcflags_default="-fPIC"
+  fcflags_default_dbg="-g"
+  fcflags_default_opt="-O2"
+  fcflags_default_prf="-pg"
+
+  cxxflags_default=""
+  cxxflags_default_dbg="-g"
+  cxxflags_default_opt="-O2"
+  cxxflags_default_prf="-pg"
 
   # Modify default flags on certain systems
 

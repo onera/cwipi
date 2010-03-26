@@ -12,7 +12,6 @@
 /*----------------------------------------------------------------------------
  * FVM library headers
  *----------------------------------------------------------------------------*/
-
 #include <fvm_parall.h>
 
 /*----------------------------------------------------------------------------
@@ -24,6 +23,7 @@
  *----------------------------------------------------------------------------*/
 
 #include "cwipi.h"
+#include "cwipi_config.h"
 #include "applicationPropertiesDataBase.hxx"
 #include "applicationPropertiesDataBase_i.hxx"
 #include "couplingDataBase.hxx"
@@ -113,9 +113,11 @@ void cwipi_init
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
+  bft_printf("\ncwipi "CWIPI_VERSION" initializing\n");
+  bft_printf("------------------------\n\n");
+
   *application_comm = properties.init(application_name,
                                       common_comm);
-
 }
 
 /*----------------------------------------------------------------------------

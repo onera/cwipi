@@ -452,17 +452,18 @@ void creeMaillagePolygone2D(int order,
           downConnectivity[j] = iare+1;
 
           int minVertex = MIN(aretes[2*iare], aretes[2*iare+1]) - 1;
-          int k = 0;
-          while ((k++ < nAreVertex[minVertex]) && (triAre[minVertex][k-1] > -1));
-          k--;
+          int k = 1;
+          while ((k < nAreVertex[minVertex]) && (triAre[minVertex][k-1] > -1))
+            k++;
           if (k ==  nAreVertex[minVertex]){
             nAreVertex[minVertex] *= 2;
             BFT_REALLOC(triAre[minVertex], nAreVertex[minVertex], int) ;
-            triAre[minVertex][k] = iare+1;
+            triAre[minVertex][k-1] = iare+1;
+            for(int k1 = k ; k1 <nFacVertex[minVertex];k1++ )
+              triFac[minVertex][k1] = -1;
           }
-          else if (triAre[minVertex][k] == -1)
-            triAre[minVertex][k] = iare+1;
-
+          else if (triAre[minVertex][k-1] == -1)
+            triAre[minVertex][k-1] = iare+1;
           iare++;
         }
       }

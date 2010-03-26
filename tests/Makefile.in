@@ -14,13 +14,6 @@
 
 @SET_MAKE@
 
-#-------------------------------------------------------------------------------
-#   This file is part of the "Finite Volume Mesh" library, intended to provide
-#   finite volume mesh and associated fields I/O and manipulation services.
-#
-#   Copyright (C) 2004-2008  EDF
-#
-
 # To disable dependency tracking
 # AUTOMAKE_OPTIONS = no-dependencies
 
@@ -78,8 +71,7 @@ test2D_1_c1_DEPENDENCIES = $(top_builddir)/src/libcwipi.la
 am_test2D_1_c2_OBJECTS = creeMaillagePolygone2D.$(OBJEXT) \
 	test2D_1_c2.$(OBJEXT)
 test2D_1_c2_OBJECTS = $(am_test2D_1_c2_OBJECTS)
-test2D_1_c2_DEPENDENCIES = creeMaillagePolygone2D.o \
-	$(top_builddir)/src/libcwipi.la \
+test2D_1_c2_DEPENDENCIES = $(top_builddir)/src/libcwipi.la \
 	$(top_builddir)/src/libcwipi_f.la
 am_test3D_1_c1_OBJECTS = test3D_1_c1.$(OBJEXT)
 test3D_1_c1_OBJECTS = $(am_test3D_1_c1_OBJECTS)
@@ -301,7 +293,7 @@ test2D_1_c1_LDADD = $(top_builddir)/src/libcwipi.la \
         @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
 	-lm
 
-test2D_1_c2_LDADD = creeMaillagePolygone2D.o $(top_builddir)/src/libcwipi.la \
+test2D_1_c2_LDADD = $(top_builddir)/src/libcwipi.la \
         $(top_builddir)/src/libcwipi_f.la \
         @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
 	-lm

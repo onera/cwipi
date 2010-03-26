@@ -1,9 +1,10 @@
 #ifndef __CWIPI_CF_H__
 #define __CWIPI_CF_H__
 
-#include <stdio.h>
 //Bug mpich2
 #define MPICH_IGNORE_CXX_SEEK 1
+
+#include <stdio.h>
 #include <mpi.h>
 
 /*=============================================================================
@@ -15,7 +16,7 @@
  * lowercase or uppercase) between C and Fortran, for link resolution.
  *----------------------------------------------------------------------------*/
 
-#if !defined (__hpux)
+#if !defined (__hpux) && !defined (_AIX)
 #define PROCF(x, y) x##_
 #else
 #define PROCF(x, y) x

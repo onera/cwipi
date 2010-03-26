@@ -11,7 +11,7 @@ m4_define([licence_c_comment],
 
 m4_define([cwipi_major_version], [0])
 m4_define([cwipi_minor_version], [2])
-m4_define([cwipi_release_version], [5])
+m4_define([cwipi_release_version], [6])
 m4_define([cwipi_version_extra], [])
 m4_define([cwipi_version_string],
           [cwipi_major_version.cwipi_minor_version.cwipi_release_version@&t@cwipi_version_extra])
@@ -156,6 +156,39 @@ if test "x$auto_flags" = "xtrue" ; then
     CPPFLAGS="$cppflags_default"
   else
     AC_MSG_NOTICE([default CPPFLAGS overridden by user definition])
+  fi
+
+
+  if test "x$user_CXXFLAGS" = "x"; then
+
+    CXXFLAGS="$cxxflags_default"
+
+    if test "x$debug" = xtrue; then
+      CXXFLAGS="${CXXFLAGS} $cxxflags_default_dbg"
+    else
+      CXXFLAGS="${CXXFLAGS} $cxxflags_default_opt"
+    fi
+
+  else
+
+    AC_MSG_NOTICE([default CXXFLAGS overridden by user definition])
+
+  fi
+
+  if test "x$user_FCFLAGS" = "x"; then
+
+    FCFLAGS="$fcflags_default"
+
+    if test "x$debug" = xtrue; then
+      FCFLAGS="${FCFLAGS} $fcflags_default_dbg"
+    else
+      FCFLAGS="${FCFLAGS} $fcflags_default_opt"
+    fi
+
+  else
+
+    AC_MSG_NOTICE([default FCFLAGS overridden by user definition])
+
   fi
 
   if test "x$user_CFLAGS" = "x"; then

@@ -1,9 +1,12 @@
+//Bug mpich2
+#define MPICH_IGNORE_CXX_SEEK 1
+
+#include <mpi.h>
+
 #include <cassert>
 #include <cmath>
 
 #include <iostream>
-
-#include <mpi.h>
 
 #include <bft_error.h>
 #include <bft_printf.h>

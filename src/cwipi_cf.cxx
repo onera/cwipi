@@ -29,6 +29,7 @@
 #include "couplingDataBase.hxx"
 #include "couplingDataBase_i.hxx"
 #include "cwipi.h"
+#include "cwipi_config.h"
 #include "coupling.hxx"
 #include "coupling_i.hxx"
 
@@ -212,6 +213,9 @@ void PROCF(cwipi_init_cf, CWIPI_INIT_CF)
 
   char *application_name_c = _cwipi_fortran_to_c_string(application_name_f,
                                                             *l_application_name);
+
+  bft_printf("\ncwipi "CWIPI_VERSION" initializing\n");
+  bft_printf("------------------------\n\n");
 
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();

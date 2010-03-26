@@ -1,0 +1,45 @@
+
+Installation AIX (phobos ONERA)
+------------------------------- 
+
+Options des configure :
+
+bft   : configure --prefix='rep' CC="mpcc_r -qlanglvl=stdc99 -q64" AR="ar -X 64"
+fvm   : configure --prefix='rep' --with-bft='rep1' CC="mpcc_r -q64" AR="ar -X 64"
+cwipi : configure --prefix='rep' --with-bft='rep1' --with-fvm='rep2' CC="mpcc_r -qlanglvl=stdc99 -q64 -g" CXX="mpCC_r -q64 -g" FC="mpxlf95_r -qsuffix=f=f90 -q64 -g" F77="mpxlf95_r -qsuffix=f=f90 -q64 -g" LDFLAGS="-lxlf90 -lC" AR="ar -X 64" --disable-shared
+
+mettre disable-shared pour cwipi sinon les appels de bft dans cwipi provoquent des segmentation fault
+mettre a jour la variable d'enviornnemnt LIBPATH.
+
+Installation x86_64
+-------------------
+
+Options des configure : Pas de particularité
+
+Installation ia64 (galibier ONERA)
+----------------------------------
+
+Options des configure :
+
+bft   : configure --prefix='rep' CC="mpcc_r -qlanglvl=stdc99 -q64" AR="ar -X 64"
+fvm   : configure --prefix='rep' --with-bft='rep1' CC="mpcc_r -q64" AR="ar -X 64"
+cwipi : configure --prefix='rep' --with-bft='rep1' --with-fvm='rep2' CC="mpcc_r -qlanglvl=stdc99 -q64 -g" CXX="mpCC_r -q64 -g" FC="mpxlf95_r -qsuffix=f=f90 -q64 -g" F77="mpxlf95_r -qsuffix=f=f90 -q64 -g" LDFLAGS="-lxlf90 -lC" AR="ar -X 64" --disable-shared
+
+Installation Nec (iseran ONERA)
+-------------------------------
+
+Options des configure :
+
+bft   : configure --prefix='rep' --host=sx8-nec-superux  CC=sxcc  AR="sxar" AR_FLAGS="-r" RANLIB="touch"
+fvm   : configure --prefix='rep' --with-bft='rep' --host=sx8-nec-superux CC=sxmpicc AR="sxar" AR_FLAGS="-r" RANLIB="touch"
+cwipi : configure --prefix='rep' --with-bft='rep' --with-fvm='rep' --host=sx8-nec-superux CC=sxmpic++ AR="sxar" AR_FLAGS="-r" RANLIB="touch" CXX=sxmpic++ FC="sxmpif90" F77=sxmpif90 CFLAGS="-Kc99" CXXFLAGS="-T local" LDFLAGS="-f90lib" 
+
+Une erreur se produit lors de la compilation de test2D_1_c2. Il faut la traiter de la manière suivante :
+            - cd tests
+            - reprendre la derniere commande affichee en remplacant sxmpif90 par sxmpic++
+            - cd ..
+            - relancer make
+            - make install
+            - make install-tests
+
+ 

@@ -1,9 +1,10 @@
 #ifndef __CWIPI_H__
 #define __CWIPI_H__
 
-#include <stdio.h>
 //Bug mpich2
 #define MPICH_IGNORE_CXX_SEEK 1
+
+#include <stdio.h>
 #include <mpi.h>
 
 /*=============================================================================

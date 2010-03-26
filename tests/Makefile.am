@@ -1,10 +1,3 @@
-#-------------------------------------------------------------------------------
-#   This file is part of the "Finite Volume Mesh" library, intended to provide
-#   finite volume mesh and associated fields I/O and manipulation services.
-#
-#   Copyright (C) 2004-2008  EDF
-#
-
 # To disable dependency tracking
 # AUTOMAKE_OPTIONS = no-dependencies
 
@@ -64,7 +57,7 @@ test3D_1_c2_LDADD = $(top_builddir)/src/libcwipi.la \
 test2D_1_c1_LDADD =  $(top_builddir)/src/libcwipi.la \
         @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
 	-lm
-test2D_1_c2_LDADD = creeMaillagePolygone2D.o $(top_builddir)/src/libcwipi.la \
+test2D_1_c2_LDADD =  $(top_builddir)/src/libcwipi.la \
         $(top_builddir)/src/libcwipi_f.la \
         @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
 	-lm

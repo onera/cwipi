@@ -22,7 +22,7 @@
  * lowercase or uppercase) between C and Fortran, for link resolution.
  *----------------------------------------------------------------------------*/
 
-#if !defined (__hpux)
+#if !defined (__hpux) &&  !defined (_AIX)
 #define PROCF(x, y) x##_
 #else
 #define PROCF(x, y) x

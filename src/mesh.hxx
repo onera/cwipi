@@ -1,6 +1,9 @@
 #ifndef __COUPLING_MESH_H__
 #define __COUPLING_MESH_H__
 
+//Bug mpich2
+#define MPICH_IGNORE_CXX_SEEK 1
+
 #include <fvm_nodal.h>
 #include <vector>
 #include <mpi.h>

@@ -1,6 +1,9 @@
 #ifndef __COUPLING_PROPERTIES_H__
 #define __COUPLING_PROPERTIES_H__
 
+//Bug mpich2
+#define MPICH_IGNORE_CXX_SEEK 1
+
 #include <string>
 #include <vector>
 

@@ -5,16 +5,22 @@
  *      Author: equemera
  */
 
+//Bug mpich2
+#define MPICH_IGNORE_CXX_SEEK 1
+
+#include <mpi.h>
+
+#include <algorithm>
+#include <cmath>
+#include <cassert>
+
+#include <bft_printf.h>
+
 #include "locationToLocalMesh.hxx"
 #include "locationToDistantMesh.hxx"
 #include "coo_baryc.h"
-#include <bft_printf.h>
 #include "applicationProperties.hxx"
 
-#include <algorithm>
-#include <mpi.h>
-#include <cmath>
-#include <cassert>
 
 namespace cwipi
 {

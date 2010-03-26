@@ -8,8 +8,8 @@
 #ifndef LOCATIONTOLOCALMESH_HXX_
 #define LOCATIONTOLOCALMESH_HXX_
 
-#include "mesh.hxx"
-#include "cwipi.h"
+//Bug mpich2
+#define MPICH_IGNORE_CXX_SEEK 1
 
 #include <string>
 #include <vector>
@@ -17,6 +17,9 @@
 #include <fvm_locator.h>
 #include <fvm_nodal.h>
 #include <bft_error.h>
+
+#include "mesh.hxx"
+#include "cwipi.h"
 
 namespace cwipi
 {

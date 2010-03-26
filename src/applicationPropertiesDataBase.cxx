@@ -52,6 +52,8 @@ namespace cwipi {
     delete &_distantApplicationPropertiesDataBase;
   }
 
+
+
   MPI_Comm  ApplicationPropertiesDataBase::init(const char* applicationName,
                                                  const MPI_Comm globalComm)
   {
@@ -72,7 +74,9 @@ namespace cwipi {
 
       MPI_Comm_rank(globalComm, &currentRank);
       MPI_Comm_size(globalComm, &globalCommSize);
+
     }
+
 
     // Search applications
     // -------------------
@@ -84,13 +88,14 @@ namespace cwipi {
       int nameLength = 0;
 
       std::string currentString = "";
-      char *mergeNames = NULL;
 
       nameLength = strlen(applicationName) + 1;
+
       MPI_Allreduce (&nameLength, &totalLength, 1, MPI_INT, MPI_SUM,
                      globalComm);
 
-      BFT_MALLOC(mergeNames, totalLength, char) ;
+//       BFT_MALLOC(mergeNames, totalLength, char) ;
+      char *mergeNames = new char[totalLength];
 
       int *namesLength = new int[globalCommSize];
       int *iproc = new int[globalCommSize];
@@ -171,8 +176,7 @@ namespace cwipi {
         assert(index <= totalLength);
       }
 
-      if (mergeNames != NULL)
-        BFT_FREE (mergeNames);
+      delete [] mergeNames;
 
       // Create current application communicator
       // ---------------------------------------
