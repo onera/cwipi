@@ -37,7 +37,6 @@ int partitionner(int tableau[], int p, int r, int* index) {
   return j;
 }
 
-
 /* Fonctions publiques */
 
 void quickSort(int tableau[], int p, int r, int* index) {
@@ -52,7 +51,6 @@ void quickSort(int tableau[], int p, int r, int* index) {
   }
   return;
 }
- 
 
 #ifdef __cplusplus
 }

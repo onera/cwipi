@@ -631,8 +631,9 @@ void Coupling::defineMeshAddPolyhedra(const int n_element,
 
 void Coupling::updateLocation()
 {
-  if (_isCoupledRank)
+  if (_isCoupledRank) {
     _toLocate = true;
+  }
   else
     bft_error(__FILE__, __LINE__, 0, "for a coupling without parallel partitionning,"
               " updateLocation must be called only by the root rank\n");
@@ -1212,6 +1213,7 @@ void Coupling::locate()
 
   fvm_parall_set_mpi_comm(MPI_COMM_NULL);
 
+  _toLocate = false;
 }
 
 

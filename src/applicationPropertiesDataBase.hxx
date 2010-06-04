@@ -102,7 +102,6 @@ namespace cwipi {
   private:
     std::map <std::string, ApplicationProperties * > & _distantApplicationPropertiesDataBase;
     ApplicationProperties * _localApplicationProperties;
-
   };
 }
 

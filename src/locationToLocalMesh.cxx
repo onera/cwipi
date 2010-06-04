@@ -83,7 +83,7 @@ void LocationToLocalMesh::locate()
   // Create locator
 
   // TODO: Exchange MPI of _toLocate param between master rank !!!
-
+  // TODO: Attention la fonction clear ne devrait-elle pas etre dans le if suivant !
 
   _locationToDistantMesh.clear();
 
@@ -544,7 +544,11 @@ void LocationToLocalMesh::locate()
         delete [] tmpLocal1;
     }
   }
+
+  // TODO: Attention la fonction synchronise ne devrait-elle pas etre dans le if precedent !
+
   _locationToDistantMesh.synchronize();
+
 }
 
 ///
