@@ -29,6 +29,7 @@ namespace cwipi {
       exit(1);
     }
 #endif
+
   }
 
   ApplicationPropertiesDataBase::~ApplicationPropertiesDataBase()

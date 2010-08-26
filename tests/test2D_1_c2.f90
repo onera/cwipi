@@ -356,6 +356,7 @@ program testf
                              localvalues, &
                              nNotLocatedPoints, &
                              status)
+     call cwipi_delete_coupling_f("test2D_0");
 
   endif
 !
@@ -1267,24 +1268,13 @@ program testf
                              nNotLocatedPoints, &
                              status)
 
-
-!!$  call cwipi_create_coupling_f("test2D_9", &
-!!$                                   cwipi_cpl_parallel_without_part,&
-!!$                                   "CodeC", &
-!!$                                   2,     & ! Dimension des entites geometriques
-!!$                                   0.1d0, & ! Tolerance geometrique
-!!$                                   cwipi_static_mesh, &
-!!$                                   cwipi_solver_cell_vertex, &
-!!$                                   1, &
-!!$                                   "Ensight Gold",&
-!!$                                   "text")
-
+ 
   call printStatus(iiunit, status)
 
 !
 ! Suppression de l'objet couplage "couplingcellvertex"
 
- ! call cwipi_delete_coupling_f("test2D_8")
+  call cwipi_delete_coupling_f("test2D_8")
   write(iiunit, *)
   write(iiunit, *) "--------------------------------------------------------"
   write(iiunit, *)
