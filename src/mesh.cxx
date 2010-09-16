@@ -642,10 +642,8 @@ namespace cwipi {
         maxCurrentEltVertex = nCurrentEltVertex;
     }
 
-    if (maxCurrentEltVertex > 3) {
-      triNormal.resize(3*maxCurrentEltVertex, 0.);
-      triBarycentre.resize(3*maxCurrentEltVertex, 0.);
-    }
+    triNormal.resize(3*maxCurrentEltVertex, 0.);
+    triBarycentre.resize(3*maxCurrentEltVertex, 0.);
 
     for (int i = 0; i < nElts ; i++) {
       nCurrentEltVertex = faceConnectivityIndex[i+1] - faceConnectivityIndex[i];
@@ -719,9 +717,9 @@ namespace cwipi {
                                    triNormal[3*k+1] * triNormal[3*k+1]+
                                    triNormal[3*k+2] * triNormal[3*k+2]);
 
-          if (triNormal[3*k]   * refFaceNormal[0] +
-              triNormal[3*k+1] * refFaceNormal[1] +
-              triNormal[3*k+2] * refFaceNormal[2] < 0.)
+          if (triNormal[3*k]   * refFaceNormal[3*i] +
+              triNormal[3*k+1] * refFaceNormal[3*i+1] +
+              triNormal[3*k+2] * refFaceNormal[3*i+2] < 0.)
 
             triSurface *= -1;
           refFaceSurface[i] += triSurface;
