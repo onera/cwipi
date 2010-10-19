@@ -922,20 +922,20 @@ contains
     lOutputFmtOpt = len(outputFmtOpt)
 
     call cwipi_create_coupling_cf(couplingName, &
-                                      lCouplingName, &
-                                      couplingType, &
-                                      cplAppli, &
-                                      lCplAppli, &
-                                      entitiesDim, &
-                                      tolerance, &
-                                      meshT, &
-                                      solverT, &
-                                      outputFreq, &
-                                      outputFmt, &
-                                      lOutputFmt, &
-                                      outputFmtOpt, &
-                                      lOutputFmtOpt)
-
+                                  lCouplingName, &
+                                  couplingType, &
+                                  cplAppli, &
+                                  lCplAppli, &
+                                  entitiesDim, &
+                                  tolerance, &
+                                  meshT, &
+                                  solverT, &
+                                  outputFreq, &
+                                  outputFmt, &
+                                  lOutputFmt, &
+                                  outputFmtOpt, &
+                                  lOutputFmtOpt)
+    
   end subroutine cwipi_create_coupling_f_
 
 !

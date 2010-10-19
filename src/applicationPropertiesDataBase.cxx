@@ -646,11 +646,14 @@ namespace cwipi {
     //
     // Check that all local pocesses are the same parameter values
 
+
     int localCommSize = -1;
     int currentRank = -1;
 
     MPI_Comm_rank(localComm, &currentRank);
     MPI_Comm_size(localComm, &localCommSize);
+
+    std::cout << "check " << applicationName.c_str() << " " << currentRank << std::endl;
 
     if (localCommSize > 1) {
 
@@ -709,8 +712,10 @@ namespace cwipi {
     //
     // parameters exchange between beginning ranks
 
+
     if (currentRank == 0 ) {
 
+    std::cout << "exchange master " << applicationName.c_str() << " " << currentRank << std::endl;
       MPI_Sendrecv(&NLocalControlParameters,   1, MPI_INT, distantBeginningRank, 0,
                    &NDistantControlParameters, 1, MPI_INT, distantBeginningRank, 0,
                    globalComm, &status);
@@ -764,8 +769,8 @@ namespace cwipi {
 
           const char *paramName = p->first.c_str();
           int nameSize          = p->first.size();
-          int   valueSize;
-          const char *valueCStr = NULL;
+          const char *valueCStr  = p->second.c_str();
+          int valueSize = p->second.size();
 
           int   distantNameSize = 0;
           char *distantParamName = NULL;
@@ -786,7 +791,7 @@ namespace cwipi {
                        globalComm, &status);
 
           distantValueCStr = new char[distantValueSize+1];
-          MPI_Sendrecv(const_cast <char*> (paramName), valueSize+1,        MPI_CHAR, distantBeginningRank, 0,
+          MPI_Sendrecv(const_cast <char*> (valueCStr), valueSize+1,        MPI_CHAR, distantBeginningRank, 0,
                        distantValueCStr              , distantValueSize+1, MPI_CHAR, distantBeginningRank, 0,
                        globalComm, &status);
 
@@ -804,6 +809,8 @@ namespace cwipi {
 
     //
     // Local beginning rank send parameters to other local ranks
+
+    std::cout << "propogation de l'info " << applicationName.c_str() << " " << currentRank << std::endl;
 
     if (localCommSize > 1) {
 

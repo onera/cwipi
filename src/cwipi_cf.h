@@ -24,7 +24,7 @@
 
 /*----------------------------------------------------------------------------
  * Macro used to handle automatic "Fortran string length" arguments
- * (not used by Code_Saturne calls, but set by many compilers).
+ * (not used by CWIPI, but set by many compilers).
  * Some compilers, like the Fujitsu VPP 5000 compiler, may not
  * support the variable length lists in mixed C/Fortran calls.
  *----------------------------------------------------------------------------*/
