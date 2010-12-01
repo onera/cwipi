@@ -27,7 +27,7 @@ namespace cwipi {
              const int nDim,
              const int nVertex,
              const int nElts,
-             const double* coords,
+             double* coords,
              int *eltConnectivityIndex,
              int *eltConnectivity
              )
@@ -40,6 +40,9 @@ namespace cwipi {
 
   {
 
+    MPI_Comm oldFVMComm = fvm_parall_get_mpi_comm();
+    if (oldFVMComm != MPI_COMM_NULL)
+      MPI_Barrier(oldFVMComm);
     fvm_parall_set_mpi_comm(localComm);
 
     //
@@ -459,9 +462,485 @@ namespace cwipi {
     fvm_nodal_dump(_fvmNodal);
     #endif
 
-    fvm_parall_set_mpi_comm(MPI_COMM_NULL);
+    MPI_Barrier(localComm);
+    fvm_parall_set_mpi_comm(oldFVMComm);
 
   }
+
+
+
+  /////////
+  /////////////
+  ///////////
+  /////////
+
+  Mesh::Mesh(const MPI_Comm &localComm,
+             fvm_nodal_t* fvm_nodal)
+    : _localComm(localComm),
+      _nDim(fvm_nodal_get_dim(fvm_nodal)), _nVertex(0),
+      _nElts(0), _nPolyhedra(0), _coords(NULL),
+      _eltConnectivityIndex(NULL), _eltConnectivity(NULL),
+      _polyhedraFaceIndex(NULL), _polyhedraCellToFaceConnectivity(NULL),
+      _polyhedraFaceConnectivityIndex(NULL), _polyhedraFaceConnectivity(NULL), _cellCenterCoords(NULL),
+      _cellVolume(NULL), _fvmNodal(NULL), _polygonIndex(NULL)
+
+  {
+    //
+    // Copy
+    
+    // TODO: Attention dans ce cas on alloue les vecteurs en interne sans les liberer
+    //       Restructurer en creant des const * pour les valeurs partagees et détruite les valeurs 
+    //       creees dans le destructeur
+
+
+
+    fvm_nodal_get_vertex(fvm_nodal,
+                         &_nElts,
+                         &_eltConnectivityIndex,
+                         &_eltConnectivity);
+
+
+    fvm_nodal_get_coords(fvm_nodal,
+                         &_nVertex,
+                         &_coords);
+
+
+    MPI_Comm oldFVMComm = fvm_parall_get_mpi_comm();
+    if (oldFVMComm != MPI_COMM_NULL)
+      MPI_Barrier(oldFVMComm);
+    fvm_nodal_destroy(fvm_nodal); 
+
+    fvm_parall_set_mpi_comm(localComm);
+
+    //
+    // Check dim
+
+    if (_nDim > 3 || _nDim < 1)
+      bft_error(__FILE__, __LINE__, 0, "'%i' bad dimension\n", _nDim);
+
+    //
+    // Check order
+
+    bool sorted = true;
+
+    int nbTriangle   = 0;
+    int nbQuadrangle = 0;
+    int nbPoly       = 0;
+
+    int nbTetra    = 0;
+    int nbPyramid  = 0;
+    int nbPrism    = 0;
+    int nbHexaedra = 0;
+
+    if (_nDim > 1) {
+
+      if (_nDim == 2) {
+
+
+        for (int i = 0; i < _nElts; i++) {
+          int nCurrentEltVertex = _eltConnectivityIndex[i+1] - _eltConnectivityIndex[i];
+          if (nCurrentEltVertex == 3) {
+            if (nbQuadrangle != 0 ||
+                nbPoly       != 0)
+              sorted = false;
+            ++nbTriangle;
+          }
+
+          else if (nCurrentEltVertex == 4) {
+            if (nbPoly != 0)
+              sorted = false;
+            ++nbQuadrangle;
+          }
+
+          else if (nCurrentEltVertex > 4) {
+            ++nbPoly;
+          }
+
+          else
+            bft_error(__FILE__, __LINE__, 0, "Erreur dans l'index de connectivite\n");
+        }
+      }
+
+      else if (_nDim == 3) {
+
+        for (int i = 0; i < _nElts; i++) {
+          int nCurrentEltVertex = _eltConnectivityIndex[i+1] - _eltConnectivityIndex[i];
+          if (nCurrentEltVertex == 4) {
+            if (nbPyramid  != 0  ||
+                nbPrism    != 0  ||
+                nbHexaedra != 0  ||
+                nbPoly     != 0)
+              sorted = false;
+            ++nbTetra;
+          }
+
+          else if (nCurrentEltVertex == 5) {
+            if (nbPrism    != 0  ||
+                nbHexaedra != 0  ||
+                nbPoly     != 0)
+              sorted = false;
+            ++nbPyramid;
+          }
+
+          else if (nCurrentEltVertex == 6) {
+            if (nbHexaedra != 0  ||
+                nbPoly     != 0)
+              sorted = false;
+            ++nbPrism;
+          }
+
+          else if (nCurrentEltVertex == 8) {
+            if (nbPoly     != 0)
+              sorted = false;
+            ++nbHexaedra;
+          }
+
+          else if (nCurrentEltVertex > 8) {
+            bft_error(__FILE__, __LINE__, 0, "Erreur dans l'index de connectivite\n");
+            ++nbPoly;
+          }
+
+          else
+            bft_error(__FILE__, __LINE__, 0, "Erreur dans l'index de connectivite\n");
+        }
+
+      }
+    }
+
+    //
+    // Sorting
+
+    if (!sorted) {
+
+      switch (_nDim) {
+
+      case 1 :
+        bft_error(__FILE__, __LINE__, 0, "Connectivity is not ordered\n"
+                  "Bug for edges\n");
+        break;
+
+      case 2 :
+        bft_error(__FILE__, __LINE__, 0, "Connectivity is not ordered\n"
+                  "Specified order : triangle, quadrangle\n");
+        break;
+
+      case 3 :
+        bft_error(__FILE__, __LINE__, 0, "Connectivity is not ordered\n"
+                  "Specified order : tetraedra, pyramid, prism, hexaedra\n");
+        break;
+
+      default :
+        bft_error(__FILE__, __LINE__, 0, "Connectivity is not ordered\n"
+                  "unknown dimension : %i\n", _nDim);
+        break;
+      }
+    }
+
+    //
+    // fvm_nodal building
+
+    _fvmNodal = fvm_nodal_create("Mesh", 3);
+
+    //
+    // Sections building
+
+    switch (_nDim) {
+
+    case 1 :
+
+
+      fvm_nodal_append_shared(_fvmNodal,
+                              _nElts,
+                              FVM_EDGE,
+                              NULL,
+                              NULL,
+                              NULL,
+                              _eltConnectivity,
+                              NULL);
+      break;
+
+    case 2 :
+
+      int nTriangleSum;
+      int nQuadrangleSum;
+      int nPolySum;
+
+      MPI_Allreduce (&nbTriangle, &nTriangleSum,
+                     1, MPI_INT, MPI_SUM,
+                     localComm);
+
+      MPI_Allreduce (&nbQuadrangle, &nQuadrangleSum,
+                     1, MPI_INT, MPI_SUM,
+                     localComm);
+
+      MPI_Allreduce (&nbPoly, &nPolySum,
+                     1, MPI_INT, MPI_SUM,
+                     localComm);
+
+      if (nbTriangle != 0)
+        fvm_nodal_append_shared(_fvmNodal,
+                                nbTriangle,
+                                FVM_FACE_TRIA,
+                                NULL,
+                                NULL,
+                                NULL,
+                                _eltConnectivity,
+                                NULL);
+
+      else if (nTriangleSum != 0)
+        fvm_nodal_append_shared(_fvmNodal,
+                                0,
+                                FVM_FACE_TRIA,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL);
+
+      if (nbQuadrangle != 0)
+        fvm_nodal_append_shared(_fvmNodal,
+                                nbQuadrangle,
+                                FVM_FACE_QUAD,
+                                NULL,
+                                NULL,
+                                NULL,
+                                _eltConnectivity + 3*nbTriangle,
+                                NULL);
+
+
+      else if (nQuadrangleSum != 0)
+        fvm_nodal_append_shared(_fvmNodal,
+                                0,
+                                FVM_FACE_QUAD,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL);
+
+      if (nbPoly != 0) {
+        _polygonIndex = new int[nbPoly+1];
+        for(int i = 0; i < nbPoly+1; i++) {
+          _polygonIndex[i] = _eltConnectivityIndex[nbTriangle+nbQuadrangle+i]-_eltConnectivityIndex[nbTriangle+nbQuadrangle];
+        }
+
+        fvm_nodal_append_shared(_fvmNodal,
+                                nbPoly,
+                                FVM_FACE_POLY,
+                                NULL,
+                                NULL,
+                                _polygonIndex,
+                                _eltConnectivity + 3*nbTriangle + 4*nbQuadrangle,
+                                NULL);
+      }
+
+      else if (nPolySum != 0) {
+
+        //bft_error(__FILE__, __LINE__, 0, "define Mesh : unresolved bug in fvm for a empty polygon section\n");
+
+        fvm_nodal_append_shared(_fvmNodal,
+                                0,
+                                FVM_FACE_POLY,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL);
+      }
+    break;
+
+    case 3 :
+      int nTetraSum;
+      int nPyramidSum;
+      int nPrismSum;
+      int nHexaedraSum;
+
+      MPI_Allreduce (&nbTetra, &nTetraSum,
+                     1, MPI_INT, MPI_SUM,
+                     localComm);
+
+      MPI_Allreduce (&nbPyramid, &nPyramidSum,
+                     1, MPI_INT, MPI_SUM,
+                     localComm);
+
+      MPI_Allreduce (&nbPrism, &nPrismSum,
+                     1, MPI_INT, MPI_SUM,
+                     localComm);
+
+      MPI_Allreduce (&nbHexaedra, &nHexaedraSum,
+                     1, MPI_INT, MPI_SUM,
+                     localComm);
+
+      if (nbTetra != 0)
+        fvm_nodal_append_shared(_fvmNodal,
+                                nbTetra,
+                                FVM_CELL_TETRA,
+                                NULL,
+                                NULL,
+                                NULL,
+                                _eltConnectivity,
+                                NULL);
+
+      else if (nTetraSum != 0)
+        fvm_nodal_append_shared(_fvmNodal,
+                                0,
+                                FVM_CELL_TETRA,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL);
+
+      if (nbPyramid != 0)
+        fvm_nodal_append_shared(_fvmNodal,
+                                nbPyramid,
+                                FVM_CELL_PYRAM,
+                                NULL,
+                                NULL,
+                                NULL,
+                                _eltConnectivity + 4*nbTetra,
+                                NULL);
+
+      else if (nPyramidSum != 0)
+        fvm_nodal_append_shared(_fvmNodal,
+                                0,
+                                FVM_CELL_PYRAM,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL);
+
+      if (nbPrism != 0)
+        fvm_nodal_append_shared(_fvmNodal,
+                                nbPrism,
+                                FVM_CELL_PRISM,
+                                NULL,
+                                NULL,
+                                NULL,
+                                _eltConnectivity + 4*nbTetra + 5*nbPyramid,
+                                NULL);
+
+      else if (nPrismSum != 0)
+        fvm_nodal_append_shared(_fvmNodal,
+                                0,
+                                FVM_CELL_PRISM,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL);
+
+      if (nbHexaedra != 0)
+        fvm_nodal_append_shared(_fvmNodal,
+                                nbHexaedra,
+                                FVM_CELL_HEXA,
+                                NULL,
+                                NULL,
+                                NULL,
+                                _eltConnectivity +  4*nbTetra + 5*nbPyramid + 6*nbPrism,
+                                NULL);
+
+      else if (nbHexaedra != 0)
+        fvm_nodal_append_shared(_fvmNodal,
+                                0,
+                                FVM_CELL_HEXA,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL);
+
+
+      break;
+    }
+
+    //
+    // Shared vertices
+
+    fvm_nodal_set_shared_vertices(_fvmNodal, _coords);
+
+    //
+    // Order Fvm_nodal
+
+    int localCommSize = 0;
+    int localRank = 0;
+
+    MPI_Comm_size(_localComm, &localCommSize);
+    MPI_Comm_rank(_localComm, &localRank);
+
+    int *allNElts     = new int[localCommSize];
+    unsigned int *globalEltNum = new unsigned int[_nElts];
+
+    MPI_Allgather((void *) const_cast<int*> (&_nElts),
+                  1,
+                  MPI_INT,
+                  allNElts,
+                  1,
+                  MPI_INT,
+                  _localComm);
+
+    int nGlobal = 0;
+    for(int i = 0; i < localRank; i++)
+      nGlobal += allNElts[i];
+
+    for(int i = 0; i < _nElts; i++)
+      globalEltNum[i] = nGlobal + i + 1;
+
+    switch (_nDim) {
+      case 2 :
+        fvm_nodal_order_faces(_fvmNodal, globalEltNum);
+        break;
+      case 3 :
+        fvm_nodal_order_cells(_fvmNodal, globalEltNum);
+        break;
+    }
+
+    fvm_nodal_init_io_num(_fvmNodal, globalEltNum, _nDim);
+
+    delete [] globalEltNum;
+
+    //
+    // global vertex num
+
+    unsigned int *globalVertexNum = new unsigned int[_nVertex];
+
+    MPI_Allgather((void *) const_cast<int*> (&_nVertex),
+                  1,
+                  MPI_INT,
+                  allNElts,
+                  1,
+                  MPI_INT,
+                  _localComm);
+
+    nGlobal = 0;
+    for(int i = 0; i < localRank; i++)
+      nGlobal += allNElts[i];
+
+    for(int i = 0; i < _nVertex; i++)
+      globalVertexNum[i] = nGlobal + i + 1;
+
+
+    fvm_nodal_order_vertices(_fvmNodal, globalVertexNum);
+    fvm_nodal_init_io_num(_fvmNodal, globalVertexNum, 0);
+
+    delete[] globalVertexNum;
+    delete[] allNElts;
+
+    #if defined(DEBUG) && 0
+    fvm_nodal_dump(_fvmNodal);
+    #endif
+
+    MPI_Barrier(localComm);
+    fvm_parall_set_mpi_comm(oldFVMComm);
+
+  }
+
+
+
+
+
+
 
 
   Mesh::~Mesh()
@@ -479,6 +958,9 @@ namespace cwipi {
                           int *faceConnectivityIndex,
                           int *faceConnectivity)
   {
+    MPI_Comm oldFVMComm = fvm_parall_get_mpi_comm();
+    if (oldFVMComm != MPI_COMM_NULL)
+      MPI_Barrier(oldFVMComm);
     fvm_parall_set_mpi_comm(_localComm);
 
     if (_fvmNodal == NULL)
@@ -558,7 +1040,8 @@ namespace cwipi {
     fvm_nodal_dump(_fvmNodal);
 #endif
 
-    fvm_parall_set_mpi_comm(MPI_COMM_NULL);
+    MPI_Barrier(_localComm);
+    fvm_parall_set_mpi_comm(oldFVMComm);
   }
 
 
@@ -769,7 +1252,7 @@ namespace cwipi {
 
     int nStandardElement = _nElts - _nPolyhedra;
     if (nStandardElement > 0) {
-      std::vector<int>  faceConnectivityIndex(4,0);
+      std::vector<int>  faceConnectivityIndex(5,0);
       std::vector<int>  faceConnectivity(12,0);
       std::vector<int>  tetraConnec(24,0);
       int ntetra =0;

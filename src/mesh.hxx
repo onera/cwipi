@@ -17,9 +17,12 @@ namespace cwipi {
          const int nDim,
          const int nVertex,
          const int nElts,
-         const double* coords,
+         double* coords,
          int *eltConnectivityIndex,
          int *eltConnectivity);
+
+    Mesh(const MPI_Comm &localComm,
+         fvm_nodal_t* fvm_nodal);
 
     virtual ~Mesh();
 
@@ -86,11 +89,11 @@ namespace cwipi {
   private:
     // TODO: renommer _nDim par entitesDim
     const MPI_Comm & _localComm;
-    const int     _nDim;
-    const int     _nVertex;
+    int     _nDim;
+    int     _nVertex;
     int           _nElts;
     int           _nPolyhedra;
-    const double *_coords;
+    double       *_coords;
     int          *_eltConnectivityIndex;
     int          *_polygonIndex;
     int          *_eltConnectivity;

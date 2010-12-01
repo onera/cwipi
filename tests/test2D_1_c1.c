@@ -1949,6 +1949,8 @@ int main
 
   cwipi_finalize();
 
+  MPI_Finalize();
+  
   /*bft_mem_end();*/
   fclose(outputFile);
   return 0;

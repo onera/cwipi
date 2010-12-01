@@ -630,11 +630,11 @@ void cwipi_set_points_to_locate
  *----------------------------------------------------------------------------*/
 
 void cwipi_define_mesh(const char *coupling_name,
-                           const int n_vertex,
-                           const int n_element,
-                           const double coordinates[],
-                           int connectivity_index[],
-                           int connectivity[])
+                       const int n_vertex,
+                       const int n_element,
+                       double coordinates[],
+                       int connectivity_index[],
+                       int connectivity[])
 {
   cwipi::CouplingDataBase & couplingDataBase =
     cwipi::CouplingDataBase::getInstance();
@@ -653,6 +653,26 @@ void cwipi_define_mesh(const char *coupling_name,
                       coordinates,
                       connectivity_index,
                       connectivity);
+}
+
+
+void cwipi_shared_fvm_nodal(const char *coupling_name,
+                            fvm_nodal_t* fvm_nodal)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  cwipi::ApplicationPropertiesDataBase & properties =
+    cwipi::ApplicationPropertiesDataBase::getInstance();
+
+  const MPI_Comm &localComm = properties.getLocalApplicationProperties().getLocalComm();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.defineMesh(fvm_nodal);
+
 }
 
 void cwipi_add_polyhedra(const char *coupling_name,
@@ -943,8 +963,7 @@ void cwipi_finalize()
   if (flag != 0) {
     bft_printf_flush();
     MPI_Barrier(globalComm);
-    fvm_parall_set_mpi_comm(MPI_COMM_NULL);
-    MPI_Finalize();
+    MPI_Comm oldFVMComm = fvm_parall_get_mpi_comm();
   }
   bft_printf("Finalize MPI\n");
 

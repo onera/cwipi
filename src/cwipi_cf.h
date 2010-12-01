@@ -470,7 +470,7 @@ void PROCF(cwipi_define_mesh_cf,
    const int  *l_coupling_name,
    const int *n_vertex,
    const int *n_element,
-   const double *coordinates,
+   double *coordinates,
    int *connectivity_index,
    int *connectivity
    ARGF_SUPP_CHAINE);

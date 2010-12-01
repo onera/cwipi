@@ -1,6 +1,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <cstring>
 #include <sstream>
 
 #include <bft_error.h>
@@ -56,7 +57,7 @@ extern "C" {
 namespace cwipi {
 
   //TODO: Faire une factory sur le type de couplage
-
+  //TODO: Voir l'utilite de _fvmComm (Asupprimer ?)
 Coupling::Coupling(const std::string& name,
                    const cwipi_coupling_type_t couplingType,
                    const ApplicationProperties& localApplicationProperties,
@@ -233,12 +234,17 @@ Coupling::~Coupling()
 
     delete _locationToLocalMesh;
 
+    MPI_Comm oldFVMComm = fvm_parall_get_mpi_comm();
+    if (oldFVMComm != MPI_COMM_NULL)
+      MPI_Barrier(oldFVMComm);
     fvm_parall_set_mpi_comm(_fvmComm);
 
     if (_fvmWriter != NULL)
       fvm_writer_finalize(_fvmWriter);
 
-    fvm_parall_set_mpi_comm(MPI_COMM_NULL);
+    if (_fvmComm != MPI_COMM_NULL)
+      MPI_Barrier(_fvmComm);
+    fvm_parall_set_mpi_comm(oldFVMComm);
 
   }
 
@@ -577,7 +583,7 @@ void Coupling::_interpolate3D(double *vertexField,
 
 void Coupling::defineMesh(const int nVertex,
                           const int nElement,
-                          const double coordinates[],
+                          double coordinates[],
                           int connectivity_index[],
                           int connectivity[])
 {
@@ -592,6 +598,21 @@ void Coupling::defineMesh(const int nVertex,
                             coordinates,
                             connectivity_index,
                             connectivity);
+  else
+    bft_error(__FILE__, __LINE__, 0, "for a coupling without parallel partitionning,"
+              " the coupling mesh must be defined only by the root rank\n");
+
+}
+
+
+void Coupling::defineMesh(fvm_nodal_t* fvm_nodal)
+{
+  if (_supportMesh  != NULL)
+    bft_error(__FILE__, __LINE__, 0, "coupling mesh is already created\n");
+
+  if (_isCoupledRank)
+    _supportMesh = new Mesh(_fvmComm,
+                            fvm_nodal);
   else
     bft_error(__FILE__, __LINE__, 0, "for a coupling without parallel partitionning,"
               " the coupling mesh must be defined only by the root rank\n");
@@ -845,6 +866,9 @@ cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
     }
 #endif
 
+    MPI_Comm oldFVMComm = fvm_parall_get_mpi_comm();
+    if (oldFVMComm != MPI_COMM_NULL)
+      MPI_Barrier(oldFVMComm);
     fvm_parall_set_mpi_comm(_fvmComm);
 
     fvm_locator_exchange_point_var(_locationToLocalMesh->getFVMLocator(),
@@ -854,8 +878,9 @@ cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
                                    sizeof(double),
                                    stride,
                                    0);
-
-    fvm_parall_set_mpi_comm(MPI_COMM_NULL);
+    if (_fvmComm != MPI_COMM_NULL)
+      MPI_Barrier(_fvmComm);
+    fvm_parall_set_mpi_comm(oldFVMComm);
 
     //
     // Check receiving
@@ -936,6 +961,9 @@ void Coupling::_initVisualization()
     _localApplicationProperties.getName()+"_"+
     _coupledApplicationProperties.getName();
 
+    MPI_Comm oldFVMComm = fvm_parall_get_mpi_comm();
+    if (oldFVMComm != MPI_COMM_NULL)
+      MPI_Barrier(oldFVMComm);
     fvm_parall_set_mpi_comm(_fvmComm);
 
     _fvmWriter = fvm_writer_init("Chr",
@@ -971,8 +999,8 @@ void Coupling::_initVisualization()
                               0,
                               NULL,
                               FVM_INT32,
-                              1,
-                              1.,
+                              -1,
+                              0.0,
                               (const void *const *)  &domLoc);
       delete[] domLoc;
     }
@@ -1006,8 +1034,8 @@ void Coupling::_initVisualization()
                                 0,
                                 NULL,
                                 FVM_INT32,
-                                1,
-                                1.,
+                                -1,
+                                0.0,
                                 (const void *const *)  &domLoc);
       }
       else {
@@ -1030,14 +1058,17 @@ void Coupling::_initVisualization()
                                 0,
                                 NULL,
                                 FVM_INT32,
-                                1,
-                                1.,
+                                -1,
+                                0.0,
                                 (const void *const *)  &domLoc);
         delete [] domLoc;
       }
     }
 
-    fvm_parall_set_mpi_comm(MPI_COMM_NULL);
+
+    if (_fvmComm != MPI_COMM_NULL)
+      MPI_Barrier(_fvmComm);
+    fvm_parall_set_mpi_comm(oldFVMComm);
 
   }
 }
@@ -1058,10 +1089,14 @@ void Coupling::_fieldsVisualization(const char *exchangeName,
 
   std::string localName;
 
+  MPI_Comm oldFVMComm = fvm_parall_get_mpi_comm();
+
   if ((_outputFrequency > 0) && (timeStep % _outputFrequency == 0)) {
 
     assert(_fvmWriter != NULL);
 
+    if (oldFVMComm != MPI_COMM_NULL)
+      MPI_Barrier(oldFVMComm);
     fvm_parall_set_mpi_comm(_fvmComm);
 
     fvm_writer_var_loc_t fvm_writer_var_loc;
@@ -1182,7 +1217,10 @@ void Coupling::_fieldsVisualization(const char *exchangeName,
       }
     }
   }
-  fvm_parall_set_mpi_comm(MPI_COMM_NULL);
+
+  if (_fvmComm != MPI_COMM_NULL)
+    MPI_Barrier(_fvmComm);
+  fvm_parall_set_mpi_comm(oldFVMComm);
  // } //if stride
 
 }
@@ -1193,13 +1231,14 @@ void Coupling::locate()
 
   const MPI_Comm& localComm = _localApplicationProperties.getLocalComm();
 
+  MPI_Comm oldFVMComm = fvm_parall_get_mpi_comm();
   if (_isCoupledRank) {
 
-    MPI_Comm oldFVMComm = fvm_parall_get_mpi_comm();
-
-    if (oldFVMComm != _fvmComm)
+    if (oldFVMComm != _fvmComm) {
+      if (oldFVMComm != MPI_COMM_NULL)
+        MPI_Barrier(oldFVMComm);
       fvm_parall_set_mpi_comm(_fvmComm);
-
+    }
   }
 
   if (_toLocate) {
@@ -1211,7 +1250,9 @@ void Coupling::locate()
   if (_isCoupledRank)
     _initVisualization();
 
-  fvm_parall_set_mpi_comm(MPI_COMM_NULL);
+  if (_fvmComm != MPI_COMM_NULL)
+      MPI_Barrier(_fvmComm);
+  fvm_parall_set_mpi_comm(oldFVMComm);
 
   _toLocate = false;
 }

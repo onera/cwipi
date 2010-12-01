@@ -178,6 +178,10 @@ module cwipi
     cwipi_get_n_located_pts_f_
   end interface
 
+  interface cwipi_get_located_pts_f ; module procedure &
+    cwipi_get_located_pts_f_
+  end interface
+
   interface  cwipi_dump_appli_properties_f ; module procedure &
       cwipi_dump_appli_properties_f_
   end interface

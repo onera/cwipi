@@ -1499,4 +1499,6 @@ program testf
 
   call cwipi_finalize_f()
 
+  call mpi_finalize(code)
+
 end program testf

@@ -41,9 +41,12 @@ namespace cwipi {
 
     void defineMesh(const int nVertex,
                     const int nElement,
-                    const double coordinates[],
+                    double coordinates[],
                     int connectivity_index[],
                     int connectivity[]);
+
+    void defineMesh(fvm_nodal_t* fvm_nodal); 
+
 
     void defineMeshAddPolyhedra(const int n_element,
                                 int face_index[],
