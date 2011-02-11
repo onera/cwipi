@@ -6,7 +6,7 @@
 
 namespace cwipi {
 
-  void  Coupling::set_interpolation_function(cwipi_interpolation_fct_t *fct)
+  void  Coupling::set_interpolation_function(cwipi_interpolation_fct_t fct)
   {
     _interpolationFct = fct;
   }

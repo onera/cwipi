@@ -84,20 +84,50 @@ int main
 
   FILE *outputFile;
 
-  /*bft_mem_init("logmem.txt");*/
-
   MPI_Init(&argc, &argv);
 
   int rank;
+  int comm_world_size;
+
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &comm_world_size);
+
+  if (comm_world_size != 2) {
+    if (rank == 0)
+      printf("\n  c_api.c : only available for 2 processus");
+    MPI_Finalize();
+    return 0;
+  }
 
   MPI_Comm localComm = MPI_COMM_NULL;
 
   /* Initialisation
    * -------------- */
 
+  char *codeName;
+  char *codeCoupledName;
+
+  if (rank == 0) {
+    codeName="code1";
+    codeCoupledName="code2";
+  }
+  else {
+    codeName="code2";
+    codeCoupledName="code1";
+  }
+
+  char* fileName = NULL;
+  if (rank == 0) 
+    fileName="listing_test2D_1_c1.0";
+  else
+    fileName="listing_test2D_1_c1.1";
+
+  outputFile = fopen(fileName,"w");
+
+  cwipi_set_output_listing(outputFile);
+
   cwipi_init(MPI_COMM_WORLD,
-                 "CodeC",
+                 codeName ,
                  &localComm);
 
   /* Redirection des sorties ecran
@@ -108,16 +138,6 @@ int main
 
   MPI_Comm_rank(localComm, &currentRank);
   MPI_Comm_size(localComm, &localCommSize);
-
-
-  char* fileName = NULL;
-  BFT_MALLOC(fileName, 25, char);
-  sprintf(fileName,"listing_test2D_1_c1_%4.4d",currentRank);
-
-  outputFile = fopen(fileName,"w");
-  BFT_FREE(fileName);
-
-  cwipi_set_output_listing(outputFile);
 
   bft_printf("\nDump apres initialisation\n");
   bft_printf("-------------------------\n");
@@ -144,7 +164,7 @@ int main
   cwipi_dump_application_properties();
 
   /* Mise a jour des parametres de controle avec une autre application */
-  cwipi_synchronize_control_parameter("CodeFortran");
+  cwipi_synchronize_control_parameter(codeCoupledName);
   bft_printf("\nDump apres synchronisation des parametres\n");
   bft_printf("-----------------------------------------\n");
   cwipi_dump_application_properties();
@@ -165,38 +185,45 @@ int main
   cwipi_delete_local_int_control_parameter("niterC");
   cwipi_dump_application_properties();
 
-  /* -----------------------
-   * Test couplage P1 <-> P1
+   /* -----------------------
+   * Test couplage lineique
    * ----------------------- */
 
   cwipi_add_local_int_control_parameter("localcommsize", localCommSize);
-  cwipi_synchronize_control_parameter("CodeFortran");
-  int distLocalCommSize = cwipi_get_distant_int_control_parameter("CodeFortran", "localcommsize");
+  cwipi_synchronize_control_parameter(codeCoupledName);
+  int distLocalCommSize = cwipi_get_distant_int_control_parameter(codeCoupledName, "localcommsize");
   cwipi_dump_application_properties();
 
   if (localCommSize == 1 && distLocalCommSize == 1) {
     bft_printf("Test 0 : Test couplage lineique P0 <-> P1\n");
     bft_printf("\n");
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("Test 0 : Test couplage lineique P0 <-> P1\n");
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Create coupling\n");
+
+    cwipi_solver_type_t solver_type;
+
+    if (rank == 0)
+      solver_type = CWIPI_SOLVER_CELL_CENTER;
+    else
+      solver_type = CWIPI_SOLVER_CELL_VERTEX;
 
     cwipi_create_coupling("test2D_0",         // Nom du couplage
                           CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
-                          "CodeFortran",                      // Code couplé
+                          codeCoupledName,                      // Code couplé
                           1,                            // Dimension des entités géométriques
                           100,                          // Tolérance géométrique
                           CWIPI_STATIC_MESH,        // Maillage statique
-                          CWIPI_SOLVER_CELL_CENTER, // Type de champs
+                          solver_type, // Type de champs
                           1,                            // Frequence des post-traitement
                           "EnSight Gold",               // Format du post-traitement
                           "text");                      // Options de post-traitements
 
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Create mesh\n");
 
     int nVertex = 3;
@@ -208,7 +235,10 @@ int main
     coords[1] = 0.;
     coords[2] = 0.;
 
-    coords[3] = 1.;
+    if (rank == 0)
+      coords[3] = 1.;
+    else
+      coords[3] = 0.5;
     coords[4] = 0.;
     coords[5] = 0.;
 
@@ -241,17 +271,28 @@ int main
     double *values = NULL;
     double *values1 = NULL;
 
-    BFT_MALLOC(values, nElts, double);
+    if (rank == 0) {
+      BFT_MALLOC(values, nElts, double);
+      BFT_MALLOC(values1, nElts, double);
+      values[0] = (coords[0]+coords[3])/2.;
+      values[1] = (coords[3]+coords[6])/2.;
 
-    BFT_MALLOC(values1, nElts, double);
+      values1[0] = 0.;
+      values1[1] = 0.;
+    }
+    else {
+      BFT_MALLOC(values, nVertex, double);
+      BFT_MALLOC(values1, nVertex, double);
+      values[0] = coords[0];
+      values[1] = coords[3];
+      values[2] = coords[6];
 
-    values[0] = (coords[0]+coords[3])/2.;
-    values[1] = (coords[3]+coords[6])/2.;
+      values1[0] = 0.;
+      values1[1] = 0.;
+      values1[2] = 0.;
+    }
 
-    values1[0] = 0.;
-    values1[1] = 0.;
-
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Exchange\n");
 
     int nNotLocatedPoints = 0;
@@ -270,7 +311,7 @@ int main
 
     _dumpNotLocatedPoints("test2D_0", nNotLocatedPoints);
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Delete coupling\n");
 
     cwipi_delete_coupling("test2D_0");
@@ -287,15 +328,15 @@ int main
     bft_printf("Test 1 : Test couplage P1 <-> P1 sur petites mailles\n");
     bft_printf("\n");
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("Test 1 : Test couplage P1 <-> P1 sur petites mailles\n");
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Create coupling\n");
 
     cwipi_create_coupling("test2D_1",         // Nom du couplage
                           CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
-                          "CodeFortran",                      // Code couplé
+                          codeCoupledName,                      // Code couplé
                           2,                            // Dimension des entités géométriques
                           0.1,                          // Tolérance géométrique
                           CWIPI_STATIC_MESH,        // Maillage statique
@@ -318,11 +359,21 @@ int main
     const double xmax =  1e-4;
     const double ymin = -1e-4;
     const double ymax =  1e-4;
-    const int    nx   = 68;
-    const int    ny   = 68;
+    int    nx;
+    int    ny;
+
+    if (rank == 0) {
+      nx = 68;
+      ny = 68;
+    }
+    else{
+      nx = 24;
+      ny = 28;
+    } 
+
     const int   order = 1;
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Create mesh\n");
 
     creeMaillagePolygone2D(order,
@@ -343,7 +394,7 @@ int main
     bft_printf("   nombre de sommets : %i\n", nVertex);
     bft_printf("   nombre d'elements : %i\n", nElts);
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Define mesh\n");
 
     cwipi_define_mesh("test2D_1",
@@ -366,19 +417,19 @@ int main
 
     int nNotLocatedPoints;
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Exchange\n");
 
     cwipi_exchange_status_t status = cwipi_exchange("test2D_1",
-                                                            "echange1",
-                                                            1,
-                                                            1,     // n_step
-                                                            0.1,   // physical_time
-                                                            "cooX",
-                                                            values,
-                                                            "cooY",
-                                                            localValues,
-                                                            &nNotLocatedPoints);
+                                                    "echange1",
+                                                    1,
+                                                    1,     // n_step
+                                                    0.1,   // physical_time
+                                                    "cooX",
+                                                    values,
+                                                    "cooY",
+                                                    localValues,
+                                                    &nNotLocatedPoints);
 
     _dumpStatus(status);
 
@@ -386,7 +437,7 @@ int main
 
     /* Suppression de l'objet de couplage */
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Delete coupling\n");
 
     cwipi_delete_coupling("test2D_1");
@@ -413,18 +464,19 @@ int main
   {
 
     /* Initialisation du couplage */
-    bft_printf("Test 1 bis : Test couplage P1 <-> P1\n");
-    bft_printf("\n");
+ 
+   bft_printf("Test 1 bis : Test couplage P1 <-> P1\n");
+   bft_printf("\n");
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("Test 1 bis : Test couplage P1 <-> P1\n");
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Create coupling\n");
 
     cwipi_create_coupling("test2D_01",         // Nom du couplage
                           CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
-                          "CodeFortran",                      // Code couplé
+                          codeCoupledName,                      // Code couplé
                           2,                            // Dimension des entités géométriques
                           0.1,                          // Tolérance géométrique
                           CWIPI_STATIC_MESH,        // Maillage statique
@@ -445,11 +497,21 @@ int main
     const double xmax =  100;
     const double ymin = -100;
     const double ymax =  100;
-    const int    nx   = 68;
-    const int    ny   = 68;
     const int   order = 1;
 
-    if  (currentRank == 0)
+    int    nx;
+    int    ny;
+
+    if (rank == 0) {
+      nx = 68;
+      ny = 68;
+    }
+    else{
+      nx = 24;
+      ny = 28;
+    } 
+
+    if  (rank == 0)
       printf("         Create mesh\n");
 
     creeMaillagePolygone2D(order,
@@ -470,7 +532,7 @@ int main
     bft_printf("   nombre de sommets : %i\n", nVertex);
     bft_printf("   nombre d'elements : %i\n", nElts);
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Define mesh\n");
 
     cwipi_define_mesh("test2D_01",
@@ -493,19 +555,19 @@ int main
 
     int nNotLocatedPoints;
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Exchange\n");
 
     cwipi_exchange_status_t status = cwipi_exchange("test2D_01",
-                                                            "echange1",
-                                                            1,
-                                                            1,     // n_step
-                                                            0.1,   // physical_time
-                                                            "cooX",
-                                                            values,
-                                                            "cooY",
-                                                            localValues,
-                                                            &nNotLocatedPoints);
+                                                    "echange1",
+                                                    1,
+                                                    1,     // n_step
+                                                    0.1,   // physical_time
+                                                    "cooX",
+                                                    values,
+                                                    "cooY",
+                                                    localValues,
+                                                    &nNotLocatedPoints);
 
     _dumpStatus(status);
 
@@ -513,7 +575,7 @@ int main
 
     /* Suppression de l'objet de couplage */
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Delete coupling\n");
 
     cwipi_delete_coupling("test2D_01");
@@ -546,19 +608,26 @@ int main
     bft_printf("Test 2 : Test couplage P1 -> P0 puis P0 -> P1\n");
     bft_printf("\n");
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("Test 2 : Test couplage P1 -> P0 puis P0 -> P1\n");
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Create coupling\n");
+
+    cwipi_solver_type_t solver_type;
+
+    if (rank == 0)
+      solver_type = CWIPI_SOLVER_CELL_CENTER;
+    else
+      solver_type = CWIPI_SOLVER_CELL_VERTEX;
 
     cwipi_create_coupling("test2D_2",         // Nom du couplage
                               CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
-                              "CodeFortran",                      // Code couplé
+                              codeCoupledName,                      // Code couplé
                               2,                            // Dimension des entités géométriques
                               0.1,                          // Tolérance géométrique
                               CWIPI_STATIC_MESH,        // Maillage statique
-                              CWIPI_SOLVER_CELL_CENTER, // Type de champs
+                              solver_type, // Type de champs
                               1,                            // Frequence des post-traitement
                               "EnSight Gold",               // Format du post-traitement
                               "text");                      // Options de post-traitements
@@ -575,11 +644,21 @@ int main
     const double xmax =  100;
     const double ymin = -100;
     const double ymax =  100;
-    const int    nx   = 68;
-    const int    ny   = 68;
+    int    nx;
+    int    ny;
+
+    if (rank == 0) {
+      nx = 68;
+      ny = 68;
+    }
+    else{
+      nx = 24;
+      ny = 28;
+    } 
+
     const int   order = 1;
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Create mesh\n");
 
     creeMaillagePolygone2D(order,
@@ -600,7 +679,7 @@ int main
     bft_printf("   nombre de sommets : %i\n", nVertex);
     bft_printf("   nombre d'elements : %i\n", nElts);
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Define mesh\n");
 
     cwipi_define_mesh("test2D_2",
@@ -614,53 +693,96 @@ int main
        Envoi de la coordonnee Y */
 
     double* localValues = NULL;
-    BFT_MALLOC(localValues, nElts, double);
+    if (rank == 0) 
+      BFT_MALLOC(localValues, nElts, double);
+    else {
+      BFT_MALLOC(localValues, nVertex, double);
+      for(int i = 0; i < nVertex; i++)
+        localValues[i] = coords[3 * i + 1];
+    }
 
-    /* Receive */
+    /* rank 0 Receive : rank 1 send */
 
     int nNotLocatedPoints;
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Exchange 1\n");
 
-    cwipi_exchange_status_t status = cwipi_exchange("test2D_2",
-                                                            "echange1",
-                                                            1,     // stride
-                                                            1,     // n_step
-                                                            0.1,   // physical_time
-                                                            NULL,
-                                                            NULL,
-                                                            "cooY",
-                                                            localValues,
-                                                            &nNotLocatedPoints);
-    bft_printf("Send\n");
+    cwipi_exchange_status_t status;
 
-    _dumpStatus(status);
-    _dumpNotLocatedPoints("test2D_2", nNotLocatedPoints);
+    if (rank == 0) {
+      status = cwipi_exchange("test2D_2",
+                              "echange1",
+                              1,     // stride
+                              1,     // n_step
+                              0.1,   // physical_time
+                              NULL,
+                              NULL,
+                              "cooY",
+                              localValues,
+                              &nNotLocatedPoints);
+          bft_printf("Send\n");
+          _dumpStatus(status);
+          _dumpNotLocatedPoints("test2D_2", nNotLocatedPoints);
+    }
+    else {
+      status = cwipi_exchange("test2D_2",
+                              "echange1",
+                              1,     // stride
+                              1,     // n_step
+                              0.1,   // physical_time
+                              "cooY",
+                              localValues,
+                              NULL,
+                              NULL,
+                              &nNotLocatedPoints);
 
-    /* Send */
+      bft_printf("Receive\n");
+      _dumpStatus(status);
+      _dumpNotLocatedPoints("test2D_2", nNotLocatedPoints);
+    }
 
-    if  (currentRank == 0)
+    /* rank 0 send : rank 1 receive */
+
+    if  (rank == 0)
       printf("         Exchange 2\n");
 
-    status = cwipi_exchange("test2D_2",
-                                "echange2",
-                                1, // stride
-                                1,     // n_step
+    if (rank == 0) {
+      status = cwipi_exchange("test2D_2",
+                              "echange2",
+                              1, // stride
+                              1,     // n_step
                                 0.1,   // physical_time
-                                "cooYY",
-                                localValues,
-                                NULL,
-                                NULL,
-                                &nNotLocatedPoints);
-    bft_printf("Receive\n");
+                              "cooYY",
+                              localValues,
+                              NULL,
+                              NULL,
+                              &nNotLocatedPoints);
+      bft_printf("Receive\n");
 
-    _dumpStatus(status);
-    _dumpNotLocatedPoints("test2D_2", nNotLocatedPoints);
+      _dumpStatus(status);
+      _dumpNotLocatedPoints("test2D_2", nNotLocatedPoints);
+     
+    }
+    else {
+      status = cwipi_exchange("test2D_2",
+                              "echange2",
+                              1, // stride
+                              1,     // n_step
+                              0.1,   // physical_time
+                              NULL,
+                              NULL,
+                              "cooYY",
+                              localValues,
+                              &nNotLocatedPoints);
+      bft_printf("Send\n");
 
+      _dumpStatus(status);
+    }
+ 
     /* Suppression de l'objet de couplage */
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Delete coupling\n");
 
     cwipi_delete_coupling("test2D_2");
@@ -693,15 +815,15 @@ int main
     bft_printf("Test 3 : Test de definition des points d'interpolation\n");
     bft_printf("\n");
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("Test 3 : Test de definition des points d'interpolation\n");
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Create coupling\n");
 
     cwipi_create_coupling("test2D_3",         // Nom du couplage
                               CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
-                              "CodeFortran",                      // Code couplé
+                             codeCoupledName ,                      // Code couplé
                               2,                            // Dimension des entités géométriques
                               0.1,                          // Tolérance géométrique
                               CWIPI_STATIC_MESH,        // Maillage statique
@@ -726,7 +848,7 @@ int main
     const int    ny   = 68;
     const int   order = 1;
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Create mesh\n");
 
     creeMaillagePolygone2D(order,
@@ -747,7 +869,7 @@ int main
     bft_printf("   nombre de sommets : %i\n", nVertex);
     bft_printf("   nombre d'elements : %i\n", nElts);
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Define mesh\n");
 
     cwipi_define_mesh("test2D_3",
@@ -862,7 +984,7 @@ int main
 
     int nNotLocatedPoints;
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Exchange\n");
 
     cwipi_exchange_status_t status = cwipi_exchange("test2D_3",
@@ -885,7 +1007,7 @@ int main
 
     /* Suppression de l'objet de couplage */
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Delete coupling\n");
 
     cwipi_delete_coupling("test2D_3");
@@ -924,15 +1046,15 @@ int main
     bft_printf("Test 4 : Test de definition d'une fonction d'interpolation\n");
     bft_printf("\n");
 
-    if (currentRank == 0)
+    if (rank == 0)
       printf("Test 4 : Test de definition d'une fonction d'interpolation\n");
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Create coupling\n");
 
     cwipi_create_coupling("test2D_4",                   // Nom du couplage
                               CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
-                              "CodeFortran",                // Code couplé
+                              codeCoupledName,                // Code couplé
                               2,                            // Dimension des entités géométriques
                               0.1,                          // Tolérance géométrique
                               CWIPI_STATIC_MESH,        // Maillage statique
@@ -961,7 +1083,7 @@ int main
     const int    ny   = 68;
     const int   order = 1;
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Create mesh\n");
 
     creeMaillagePolygone2D(order,
@@ -979,15 +1101,15 @@ int main
                            &eltsConnecPointer,
                            &eltsConnec);
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Define mesh\n");
 
      cwipi_define_mesh("test2D_4",
-                          nVertex,
-                          nElts,
-                          coords,
-                          eltsConnecPointer,
-                          eltsConnec);
+                       nVertex,
+                       nElts,
+                       coords,
+                       eltsConnecPointer,
+                       eltsConnec);
 
     /* Envoi de la coordonnee X
        Reception de la coordonnee Y*/
@@ -1002,25 +1124,25 @@ int main
 
     int nNotLocatedPoints;
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Exchange\n");
 
     cwipi_exchange_status_t status = cwipi_exchange("test2D_4",
-                                                            "echange1",
-                                                            1, // stride
-                                                            1,     // n_step
-                                                            0.1,   // physical_time
-                                                            "cooX",
-                                                            values,
-                                                            "cooY",
-                                                            localValues,
-                                                            &nNotLocatedPoints);
+                                                    "echange1",
+                                                    1, // stride
+                                                    1,     // n_step
+                                                    0.1,   // physical_time
+                                                    "cooX",
+                                                    values,
+                                                    "cooY",
+                                                    localValues,
+                                                    &nNotLocatedPoints);
     _dumpStatus(status);
     _dumpNotLocatedPoints("test2D_4", nNotLocatedPoints);
 
     /* Suppression de l'objet de couplage */
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Delete coupling\n");
 
     cwipi_delete_coupling("test2D_4");
@@ -1054,15 +1176,15 @@ int main
     bft_printf("Test 5 : test de la transmission d'un vecteur\n");
     bft_printf("\n");
 
-    if (currentRank == 0)
+    if (rank == 0)
       printf("Test 5 : test de la transmission d'un vecteur\n");
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Create coupling\n");
 
     cwipi_create_coupling("test2D_5",         // Nom du couplage
                               CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
-                              "CodeFortran",                      // Code couplé
+                              codeCoupledName,                      // Code couplé
                               2,                            // Dimension des entités géométriques
                               0.1,                          // Tolérance géométrique
                               CWIPI_STATIC_MESH,        // Maillage statique
@@ -1089,7 +1211,7 @@ int main
     const int    ny   = 68;
     const int   order = 1;
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Create mesh\n");
 
     creeMaillagePolygone2D(order,
@@ -1110,7 +1232,7 @@ int main
     bft_printf("   nombre de sommets : %i\n", nVertex);
     bft_printf("   nombre d'elements : %i\n", nElts);
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Define mesh\n");
 
     cwipi_define_mesh("test2D_5",
@@ -1139,7 +1261,7 @@ int main
 
     int nNotLocatedPoints;
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Exchange\n");
 
     cwipi_exchange_status_t status = cwipi_exchange("test2D_5",
@@ -1157,7 +1279,7 @@ int main
 
     /* Suppression de l'objet de couplage */
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Delete coupling\n");
 
     cwipi_delete_coupling("test2D_5");
@@ -1191,15 +1313,15 @@ int main
     bft_printf("Test 6 : Test des sorties d'erreur\n");
     bft_printf("\n");
 
-    if (currentRank == 0)
+    if (rank == 0)
       printf("Test 6 : Test des sorties d'erreur\n");
 
-    if (currentRank == 0)
+    if (rank == 0)
       printf("         Create coupling\n");
 
     cwipi_create_coupling("test2D_6",         // Nom du couplage
                               CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
-                              "CodeFortran",                      // Code couplé
+                              codeCoupledName,                      // Code couplé
                               2,                            // Dimension des entités géométriques
                               0.1,                          // Tolérance géométrique
                               CWIPI_STATIC_MESH,        // Maillage statique
@@ -1227,7 +1349,7 @@ int main
     const int    ny   =  64;
     const int   order =  1;
 
-    if (currentRank == 0)
+    if (rank == 0)
       printf("         Create mesh\n");
 
     creeMaillagePolygone2D(order,
@@ -1248,7 +1370,7 @@ int main
     bft_printf("   nombre de sommets : %i\n", nVertex);
     bft_printf("   nombre d'elements : %i\n", nElts);
 
-    if (currentRank == 0)
+    if (rank == 0)
       printf("         Define mesh\n");
 
     cwipi_define_mesh("test2D_6",
@@ -1271,7 +1393,7 @@ int main
 
     int nNotLocatedPoints;
 
-    if (currentRank == 0)
+    if (rank == 0)
       printf("         Exchange 1\n");
 
     cwipi_exchange_status_t status = cwipi_exchange("test2D_6",
@@ -1291,7 +1413,7 @@ int main
     // Reception mais aucun envoi par code fortran
     // Controle de status
 
-    if (currentRank == 0)
+    if (rank == 0)
       printf("         Exchange 2\n");
 
     status = cwipi_exchange("test2D_6",
@@ -1310,7 +1432,7 @@ int main
 
     /* Suppression de l'objet de couplage */
 
-    if (currentRank == 0)
+    if (rank == 0)
       printf("         delete coupling\n");
 
     cwipi_delete_coupling("test2D_6");
@@ -1344,15 +1466,15 @@ int main
     bft_printf("Test 7 : Test simple localisation\n");
     bft_printf("\n");
 
-    if (currentRank == 0)
+    if (rank == 0)
       printf("Test 7 : Test simple localisation\n");
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Create coupling\n");
 
     cwipi_create_coupling("test2D_7",         // Nom du couplage
                               CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
-                              "CodeFortran",                      // Code couplé
+                              codeCoupledName,                      // Code couplé
                               2,                            // Dimension des entités géométriques
                               0.1,                          // Tolérance géométrique
                               CWIPI_STATIC_MESH,        // Maillage statique
@@ -1377,7 +1499,7 @@ int main
     const int    ny   = 68;
     const int   order = 1;
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Create mesh\n");
 
     creeMaillagePolygone2D(order,
@@ -1398,7 +1520,7 @@ int main
     bft_printf("   nombre de sommets : %i\n", nVertex);
     bft_printf("   nombre d'elements : %i\n", nElts);
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Define mesh\n");
 
     cwipi_define_mesh("test2D_7",
@@ -1452,7 +1574,7 @@ int main
 
     /* Suppression de l'objet de couplage */
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Delete coupling\n");
 
     cwipi_delete_coupling("test2D_7");
@@ -1485,18 +1607,18 @@ int main
                "CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING\n");
     bft_printf("\n");
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("Test 8 : Test couplage :\n"
                "         CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING/"
                "CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING\n");
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Create coupling\n");
 
     cwipi_create_coupling("test2D_8",         // Nom du couplage
                               CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING,
                               //                              CWIPI_COUPLING_SEQUENTIAL,
-                              "CodeFortran",                      // Code couplé
+                              codeCoupledName,                      // Code couplé
                               2,                            // Dimension des entités géométriques
                               0.1,                          // Tolérance géométrique
                               CWIPI_STATIC_MESH,        // Maillage statique
@@ -1522,7 +1644,7 @@ int main
     const int    ny   = 68;
     const int   order = 1;
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Create mesh\n");
 
     MPI_Group localGroup = MPI_GROUP_NULL;
@@ -1555,7 +1677,7 @@ int main
     bft_printf("   nombre de sommets : %i\n", nVertex);
     bft_printf("   nombre d'elements : %i\n", nElts);
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Define mesh\n");
 
     if  (currentRank == 0)
@@ -1584,7 +1706,7 @@ int main
 
     int nNotLocatedPoints;
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Exchange\n");
 
 
@@ -1608,7 +1730,7 @@ int main
 
     /* Suppression de l'objet de couplage */
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Delete coupling\n");
 
     cwipi_delete_coupling("test2D_8");
@@ -1632,8 +1754,6 @@ int main
     bft_printf("--------------------------------------------------------\n");
   }
 
-
-
   /* ---------------------------------------------------------
    * Test couplage avec code C
    * de type CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING/
@@ -1648,17 +1768,17 @@ int main
                "CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING\n");
     bft_printf("\n");
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("Test 9 : Test couplage :\n"
                "         CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING/"
                "CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING\n");
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Create coupling\n");
 
     cwipi_create_coupling("test2D_9",         // Nom du couplage
                               CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING,
-                              "CodeFortran",                      // Code couplé
+                              codeCoupledName,                      // Code couplé
                               2,                            // Dimension des entités géométriques
                               0.1,                          // Tolérance géométrique
                               CWIPI_STATIC_MESH,        // Maillage statique
@@ -1683,7 +1803,7 @@ int main
     const int    ny   = 68;
     const int   order = 1;
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Create mesh\n");
 
     MPI_Group localGroup = MPI_GROUP_NULL;
@@ -1717,7 +1837,7 @@ int main
     bft_printf("   nombre d'elements : %i\n", nElts);
 
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Define mesh\n");
 
     if  (currentRank == 0)
@@ -1732,7 +1852,7 @@ int main
        Reception de la coordonnee Y*/
 
     double* values = NULL;
-    if  (currentRank == 0) {
+    if  (rank == 0) {
       BFT_MALLOC(values, nVertex, double);
       for (int i = 0; i < nVertex; i++)
         values[i] = coords[3*i];
@@ -1745,7 +1865,7 @@ int main
 
     int nNotLocatedPoints;
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Exchange\n");
 
     cwipi_exchange_status_t status = cwipi_exchange("test2D_9",
@@ -1765,7 +1885,7 @@ int main
 
     /* Suppression de l'objet de couplage */
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Delete coupling\n");
 
     cwipi_delete_coupling("test2D_9");
@@ -1804,17 +1924,17 @@ int main
                "CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING\n");
     bft_printf("\n");
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("Test 10: Test couplage :\n"
                "         CWIPI_COUPLING_SEQUENTIAL/"
                "CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING\n");
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Create coupling\n");
 
     cwipi_create_coupling("test2D_10",         // Nom du couplage
                               CWIPI_COUPLING_SEQUENTIAL,
-                              "CodeFortran",                      // Code couplé
+                              codeCoupledName,                      // Code couplé
                               2,                            // Dimension des entités géométriques
                               0.1,                          // Tolérance géométrique
                               CWIPI_STATIC_MESH,        // Maillage statique
@@ -1839,7 +1959,7 @@ int main
     const int    ny   = 68;
     const int   order = 1;
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Create mesh\n");
 
     MPI_Group localGroup = MPI_GROUP_NULL;
@@ -1872,7 +1992,7 @@ int main
     bft_printf("   nombre de sommets : %i\n", nVertex);
     bft_printf("   nombre d'elements : %i\n", nElts);
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Define mesh\n");
 
     if  (currentRank == 0)
@@ -1886,7 +2006,7 @@ int main
     /* Envoi de la coordonnee X
        Reception de la coordonnee Y*/
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Exchange\n");
 
     if  (currentRank == 0) {
@@ -1925,7 +2045,7 @@ int main
 
     /* Suppression de l'objet de couplage */
 
-    if  (currentRank == 0)
+    if  (rank == 0)
       printf("         Delete coupling\n");
 
     cwipi_delete_coupling("test2D_10");

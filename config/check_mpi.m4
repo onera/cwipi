@@ -51,6 +51,10 @@ AC_ARG_WITH(mpi-lib,
   [  --with-mpi-lib=PATH     specify directory for MPI library]
 )
 
+AC_ARG_WITH(mpi-bin,
+  [  --with-mpi-bin=PATH     specify directory for MPI binary (mpiexec, ...)]
+)
+
 if test "x$mpi" = "xtrue" ; then
   if test "x$with_mpi_include" != "x" ; then
     MPI_CPPFLAGS="$MPI_CPPFLAGS -I$with_mpi_include"
@@ -61,6 +65,11 @@ if test "x$mpi" = "xtrue" ; then
     MPI_LDFLAGS="$MPI_LDFLAGS -L$with_mpi_lib"
   elif test "x$with_mpi" != "x" ; then
     MPI_LDFLAGS="$MPI_LDFLAGS -L$with_mpi/lib"
+  fi
+  if test "x$with_mpi_bin" != "x" ; then
+    MPI_BIN_PATH="$with_mpi_bin"
+  elif test "x$with_mpi" != "x" ; then
+    MPI_BIN_PATH="$with_mpi/bin"
   fi
 fi
 
@@ -83,11 +92,13 @@ if test "x$mpi" = "xtrue" -a "x$CC" != "x" ; then
   # Test for standard wrappers
   if test "$CCNAME" = "mpicc" -o "$CCNAME" = "mpiCC" \
                               -o "$CCNAME" = "mpic++" ; then
+    AC_PATH_PROG(MPI_BIN_PATH,$CCNAME)
     have_mpi=yes
   # Else test for other known wrappers
   elif test "$CCNAME" = "mpcc" -o "$CCNAME" = "mpCC" \
                                -o "$CCNAME" = "mpixlc" ; then
     have_mpi=yes
+    AC_PATH_PROG(MPI_BIN_PATH,$CCNAME)
   fi
   if test "x$have_mpi" = "xyes"; then
     if test "x$mpi_io" = "xtrue"; then
@@ -227,6 +238,7 @@ unset saved_LIBS
 AC_SUBST(MPI_CPPFLAGS)
 AC_SUBST(MPI_LDFLAGS)
 AC_SUBST(MPI_LIBS)
+AC_SUBST(MPI_BIN_PATH)
 
 ])dnl
 

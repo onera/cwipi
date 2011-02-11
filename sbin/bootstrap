@@ -1,5 +1,12 @@
 #!/bin/sh
 
+PWD1=`pwd`
+
+if [ ! -d sbin ]; then
+  echo "$0 must be called from top directory (../$0)"
+  exit 1
+fi
+
 # ____________________________________________________________________
 # aclocal creates the aclocal.m4 file from the standard macro and the
 # custom macro embedded in the directory /config
@@ -49,4 +56,24 @@ autoconf
 #   Makefile.in (from Makefile.am)
 echo "====================================================== automake"
 
-automake --copy --gnu --add-missing
+automake --copy --add-missing
+
+\rm -rf autom4te.cache
+
+# ____________________________________________________________________
+# cython create the Python API of CWIPI 
+# output:
+#   cython/CWIPI.c
+echo "====================================================== cython"
+
+cd cython
+PYTHON=python
+CYTHON=cython
+PYTHON_INCLUDE=`${PYTHON} -c 'from distutils import sysconfig; print( sysconfig.get_python_inc() )'`
+MPI4PY_INCLUDE=`${PYTHON} -c 'import mpi4py; print( mpi4py.get_include() )'`
+NUMPY_INCLUDE=`${PYTHON} -c 'import numpy; print( numpy.get_include() )'`
+CWIPI_INCLUDE=${PWD1}/src
+
+${CYTHON} -a  -I${MPI4PY_INCLUDE} -I{CWIPI_INCLUDE} -I{NUMPY_INCLUDE} CWIPI.pyx
+
+cd ${PWD1}

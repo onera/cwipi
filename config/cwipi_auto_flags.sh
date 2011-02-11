@@ -193,16 +193,18 @@ elif test "x$cwipi_gcc" = "xicc"; then
 
   # Modify default flags on certain systems
 
-  case "$host-os-$host_cpu" in
-    *ia64)
-      cflags_default_opt="-O2 -mcpu=itanium2-p9000"
-      ;;
-  esac
+  #case "$host-os-$host_cpu" in
+  #  *ia64)
+  #    cflags_default_opt="-O2 -mcpu=itanium2-p9000"
+  #    ;;
+  #esac
+
+fi
 
 # Otherwise, are we using pgcc ?
 #-------------------------------
 
-else
+if test "x$fvm_compiler_known" != "xyes" ; then
 
   $CC -V 2>&1 | grep 'The Portland Group' > /dev/null
   if test "$?" = "0" ; then
@@ -224,59 +226,67 @@ else
 
 fi
 
+# Otherwise, are we using xlc ?
+#------------------------------
+
+if test "x$cwipi_compiler_known" != "xyes" ; then
+
+  $CC -qversion 2>&1 | grep 'XL C' > /dev/null
+  if test "$?" = "0" ; then
+
+    echo "compiler '$CC' is IBM XL C compiler"
+
+    # Version strings for logging purposes and known compiler flag
+    $CC -qversion > $outfile 2>&1
+    cwipi_ac_cc_version=`grep 'XL C' $outfile`
+    cwipi_compiler_known=yes
+    cwipi_linker_set=yes
+
+    # Default compiler flags
+    cflags_default="-q64"
+    cflags_default_opt="-O2"
+    cflags_default_dbg="-g"
+    cflags_default_prf="-pg"
+
+    # Default  linker flags
+    ldflags_default=""
+    ldflags_default_opt="-g -O2"
+    ldflags_default_dbg="-g"
+    ldflags_default_prf="-pg"
+
+    # Disable shared libraries in all cases
+    cwipi_disable_shared=yes
+
+    # Adjust options for IBM Blue Gene cross-compiler
+
+    grep 'Blue Gene' $outfile > /dev/null
+    if test "$?" = "0" ; then
+      # Default compiler flags
+      cwipi_ibm_bg_type=`grep 'Blue Gene' $outfile | sed -e 's/.*Blue Gene\/\([A-Z]\).*/\1/'`
+      if test "$cwipi_ibm_bg_type" = "L" ; then
+        cppflags_default="-I/bgl/BlueLight/ppcfloor/bglsys/include"
+        cflags_default="-g -qmaxmem=-1 -qarch=440d -qtune=440"
+        cflags_default_opt="-O2"
+        cflags_default_dbg=""
+        ldflags_default="-Wl,-allow-multiple-definition -L/bgl/BlueLight/ppcfloor/bglsys/lib -lmpich.rts -lmsglayer.rts -lrts.rts -ldevices.rts -lnss_files -lnss_dns -lresolv"
+      elif test "$cwipi_ibm_bg_type" = "P" ; then
+        cppflags_default="-I/bgsys/drivers/ppcfloor/comm/include"
+        cflags_default="-g -qmaxmem=-1 -qarch=450d -qtune=450"
+        cflags_default_opt="-O2"
+        cflags_default_dbg=""
+        ldflags_default="-Wl,-allow-multiple-definition -L/bgsys/drivers/ppcfloor/comm/lib -lmpich.cnk -ldcmfcoll.cnk -ldcmf.cnk"
+      fi
+    fi
+
+  fi
+fi
+
 # Compiler still not identified
 #------------------------------
 
 if test "x$cwipi_compiler_known" != "xyes" ; then
 
   case "$host_os" in
-
-    linux* | none)
-
-      # IBM Blue Gene
-      #--------------
-
-      $CC -qversion 2>&1 | grep 'XL C' | grep 'Blue Gene' > /dev/null
-      if test "$?" = "0" ; then
-
-        echo "compiler '$CC' is IBM XL C compiler for Blue Gene"
-
-        # Version strings for logging purposes and known compiler flag
-        $CC -qversion > $outfile 2>&1
-        cwipi_ac_cc_version=`grep 'XL C' $outfile`
-        cwipi_compiler_known=yes
-
-        # Default compiler flags
-        if test -d /bgl/BlueLight/ppcfloor/bglsys/include ; then
-          cppflags_default="-I/bgl/BlueLight/ppcfloor/bglsys/include"
-          cflags_default="-qmaxmem=-1 -qarch=440d -qtune=440"
-        elif test -d /bgsys/drivers/ppcfloor/comm/include ; then
-          cppflags_default="-I/bgsys/drivers/ppcfloor/comm/include"
-          cflags_default="-qmaxmem=-1 -qarch=450d -qtune=450"
-        else
-          cppflags_default=""
-        fi
-        cflags_default_opt="-g -O3"
-        cflags_default_prf="-pg"
-
-        # Default linker flags
-        if test -d /bgl/BlueLight/ppcfloor/bglsys ; then
-          ldflags_default="-Wl,-allow-multiple-definition -L/bgl/BlueLight/ppcfloor/bglsys/lib -lmpich.rts -lmsglayer.rts -lrts.rts -ldevices.rts -lnss_files -lnss_dns -lresolv"
-        elif test -d /bgsys/drivers/ppcfloor/comm/include ; then
-          ldflags_default="-Wl,-allow-multiple-definition -L/bgsys/drivers/ppcfloor/comm/lib -lmpich.cnk -ldcmfcoll.cnk -ldcmf.cnk"
-        else
-          ldflags_default=""
-        fi
-        ldflags_default_opt="-g -O3"
-        ldflags_default_dbg="-g"
-        ldflags_default_prf="-pg"
-        cwipi_linker_set=yes
-
-        # Disable shared libraries in all cases
-        cwipi_disable_shared=yes
-
-      fi
-      ;;
 
     osf*)
 

@@ -13,6 +13,12 @@
  * Macro definitions
  *============================================================================*/
 
+#if !defined (__hpux) && !defined (_AIX)
+#define PROCF(x, y) x##_
+#else
+#define PROCF(x, y) x
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #if 0
@@ -144,7 +150,7 @@ typedef enum {
  *
  *----------------------------------------------------------------------------*/
 
-typedef void (cwipi_interpolation_fct_t)
+typedef void (*cwipi_interpolation_fct_t)
   (const int entities_dim,
    const int n_local_vertex,
    const int n_local_element,
@@ -204,8 +210,9 @@ void cwipi_init
  *   output_listing      <-- Output listing file (C function)
  *----------------------------------------------------------------------------*/
 
-void cwipi_set_output_listing
-(FILE *output_listing);
+void PROCF (cwipi_set_output_listing_f, CWIPI_SET_OUTPUT_LISTING_F) (int iunit);
+
+void cwipi_set_output_listing(FILE *output_listing);
 
 /*----------------------------------------------------------------------------
  *
@@ -394,7 +401,6 @@ const char* cwipi_get_distant_string_control_parameter
  *
  * parameters
  *    application_name    <-- application name
- *    name                <-- parameter name
  *
  *----------------------------------------------------------------------------*/
 
@@ -706,6 +712,89 @@ cwipi_exchange_status_t cwipi_exchange
 
 /*----------------------------------------------------------------------------
  *
+ * Send interpolated data to the coupled application. 
+ * Non blocking comunication.
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   exchange_name        <-- Exchange name
+ *   stride               <-- Number of interlaced field
+ *   time_step            <-- Time step  (only for visualization)
+ *   time_value           <-- Time value (only for visualization)
+ *   sending_field_name   <-- Sending field name
+ *   sending_field        <-- Sending field 
+ *   request              --> Request
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_issend
+(const char                *coupling_name,
+ const char                *exchange_name,
+ const int                 tag,
+ const int                 stride,
+ const int                 time_step,
+ const double              time_value,
+ const char                *sending_field_name,
+ const double              *sending_field,
+ int                       *request);
+
+/*----------------------------------------------------------------------------
+ *
+ * Receive interpolated data from the coupled application. 
+ * Non blocking comunication. receiving_field is fully updated after 
+ * cwipi_wait_irecv calling
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   exchange_name        <-- Exchange name
+ *   stride               <-- Number of interlaced field
+ *   time_step            <-- Time step  (only for visualization)
+ *   time_value           <-- Time value (only for visualization)
+ *   receiving_field_name <-- Receiving field name
+ *   receiving_field      <-- Receiving field 
+ *   request              --> Request
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_irecv
+(const char                *coupling_name,
+ const char                *exchange_name,
+ const int                 tag,
+ const int                 stride,
+ const int                 time_step,
+ const double              time_value,
+ char                *receiving_field_name,
+ double                    *receiving_field,
+ int                       *request);
+
+/*----------------------------------------------------------------------------
+ *
+ * Wait for cwipi_issend. 
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   request              <-- Request
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_wait_issend(const char  *coupling_name,
+                       int          request);
+
+/*----------------------------------------------------------------------------
+ *
+ * Wait for cwipi_irecv. 
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   request              <-- Request
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_wait_irecv(const char  *coupling_name,
+                      int          request);
+
+/*----------------------------------------------------------------------------
+ *
  * Define the interpolation function
  *
  * parameters
@@ -716,7 +805,7 @@ cwipi_exchange_status_t cwipi_exchange
 
 void cwipi_set_interpolation_function
 (const char *coupling_id,
- cwipi_interpolation_fct_t * fct);
+ cwipi_interpolation_fct_t fct);
 
 /*----------------------------------------------------------------------------
  *

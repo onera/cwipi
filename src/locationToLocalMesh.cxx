@@ -346,7 +346,7 @@ void LocationToLocalMesh::locate()
 
         p_nVertex = &(*_nVertex)[0];
 
-        int localMaxElementContainingNVertex = *max_element(_nVertexRef.begin(), _nVertexRef.end());
+        int localMaxElementContainingNVertex = *std::max_element(_nVertexRef.begin(), _nVertexRef.end());
         MPI_Allreduce (&localMaxElementContainingNVertex,
                        &_maxElementContainingNVertex,
                        1, MPI_INT, MPI_MAX,

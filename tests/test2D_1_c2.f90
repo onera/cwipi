@@ -229,8 +229,8 @@ program testf
 !
 ! Ajout de parametres de controle
 
-!  call cwipi_add_local_int_control_parameter_f("niterf", 10)
-  call cwipi_add_loc_int_ctrl_param_f(cpar, vpar)
+  call cwipi_add_loc_int_ctrl_param_f("niterf", 10)
+!  call cwipi_add_loc_int_ctrl_param_f(cpar, vpar)
 
   call cwipi_add_loc_dbl_ctrl_param_f("physicaltimef", 1.123d0)
 

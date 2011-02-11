@@ -705,6 +705,67 @@ void PROCF(cwipi_send_cf,
    int             *exchange_status
    ARGF_SUPP_CHAINE);
 
+void PROCF(cwipi_wait_issend_cf, CWIPI_WAIT_ISSEND_CF)
+  (const char      *coupling_name,
+   const int       *l_coupling_name,
+   const int       *request
+   ARGF_SUPP_CHAINE);
+
+void PROCF(cwipi_wait_irecv_cf, CWIPI_WAIT_IRECV_CF)
+  (const char      *coupling_name,
+   const int       *l_coupling_name,
+   const int       *request
+   ARGF_SUPP_CHAINE);
+
+void PROCF(cwipi_issend_with_user_itp_cf,
+           CWIPI_ISSEND_WITH_USER_ITP_CF)
+  (const char      *coupling_name,
+   const int       *l_coupling_name,
+   const char      *exchange_name,
+   const int       *l_exchange_name,
+   const int       *tag,
+   const int       *stride,
+   const int       *n_step,
+   const double    *time_value,
+   const char      *sending_field_name,
+   const int       *l_sending_field_name,
+   const double    *sending_field,
+   void            *ptFortranInterpolationFct,
+   int             *request
+   ARGF_SUPP_CHAINE);
+
+void PROCF(cwipi_issend_cf,
+           CWIPI_ISSEND_CF)
+  (const char      *coupling_name,
+   const int       *l_coupling_name,
+   const char      *exchange_name,
+   const int       *l_exchange_name,
+   const int       *tag,
+   const int       *stride,
+   const int       *n_step,
+   const double    *time_value,
+   const char      *sending_field_name,
+   const int       *l_sending_field_name,
+   const double    *sending_field,
+   int             *request
+   ARGF_SUPP_CHAINE);
+
+void PROCF(cwipi_ireceive_cf, 
+           CWIPI_IRECEIVE_CF)
+  (const char      *coupling_name,
+   const int       *l_coupling_name,
+   const char      *exchange_name,
+   const int       *l_exchange_name,
+   const int       *tag,
+   const int       *stride,
+   const int       *n_step,
+   const double    *time_value,
+   char            *receiving_field_name,
+   const int       *l_receiving_field_name,
+   double          *receiving_field,
+   int             *request
+   ARGF_SUPP_CHAINE);
+
 /*----------------------------------------------------------------------------
  *
  * Delete a coupling

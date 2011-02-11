@@ -5,6 +5,7 @@
 #define MPICH_IGNORE_CXX_SEEK 1
 
 #include <string>
+#include <map>
 #include <vector>
 
 #include <fvm_locator.h>
@@ -64,12 +65,35 @@ namespace cwipi {
                                      double                              *receiving_field,
                                      void                                *ptFortranInterpolationFct);
 
+    void issend(const char    *exchangeName,
+                const int     tag,
+                const int     stride,
+                const int     timeStep,
+                const double  timeValue,
+                const char    *sendingFieldName,
+                const double  *sendingField,
+                void          *ptFortranInterpolationFct,
+                int           *request);
+
+    void waitIssend(int request);
+
+    void irecv(const char    *exchangeName,
+               const int     tag,
+               const int     stride,
+               const int     timeStep,
+               const double  timeValue,
+               const char    *receivingFieldName,
+               const double  *receivingField,
+               int           *request);
+
+    void waitIrecv(int request);    
+
     void updateLocation();
 
     void setPointsToLocate(const int n_points,
                            double coordinate[]);
 
-    inline void set_interpolation_function(cwipi_interpolation_fct_t *fct);
+    inline void set_interpolation_function(cwipi_interpolation_fct_t fct);
 
     inline int getNNotlocatedPoint() const;
 
@@ -197,6 +221,7 @@ namespace cwipi {
     const std::string               _outputFormat;
     const std::string               _outputFormatOption;
     const int                       _outputFrequency;
+
   private:
     fvm_writer_t        *_fvmWriter;
     MPI_Comm             _couplingComm;
@@ -206,7 +231,7 @@ namespace cwipi {
     int                  _coupledApplicationBeginningRankCouplingComm;
     bool                 _isCoupledRank;
 
-    cwipi_interpolation_fct_t *_interpolationFct;
+    cwipi_interpolation_fct_t _interpolationFct;
     bool                 _toLocate;
     Mesh                *_supportMesh;
 
@@ -214,8 +239,17 @@ namespace cwipi {
     LocationToLocalMesh *_locationToLocalMesh;
 
   private:
-    std::vector<double> *_tmpVertexField; //Evite une allocation a chaque extrapolation
-    std::vector<double> *_tmpDistantField;
+    std::vector<double> *_tmpVertexField;  // Evite une allocation a chaque extrapolation
+    std::vector<double> *_tmpDistantField; //TODO: Fusionner _tmpDistantField utiliser pour exchange
+                                           // et les comm asynchrones
+    std::map<int, std::vector<double> * > &_tmpDistantFieldsIssend; //TODO: temporaire : A revoir lors
+                                                                    // de la restructuration
+    std::map<int, const double * > &_tmpLocalFieldsIrecv;
+    std::map<int, const char * > &_tmpExchangeNameIrecv;
+    std::map<int, int > &_tmpStrideIrecv;
+    std::map<int, int > &_tmpTimeStepIrecv;
+    std::map<int, double > &_tmpTimeValueIrecv;
+    std::map<int, const char * > &_tmpFieldNameIrecv;
   };
 
 }

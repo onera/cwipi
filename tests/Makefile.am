@@ -3,11 +3,6 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-#include directories
-
-#INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/src 
-INCLUDES = -I$(top_builddir)/src -I$(top_srcdir)/src
-
 # Add any debug flags
 
 if DEBUG
@@ -18,61 +13,75 @@ endif
 
 # Main part
 
-AM_CPPFLAGS = $(DEBUG_CPPFLAGS) @BFT_CPPFLAGS@ @FVM_CPPFLAGS@ @MPI_CPPFLAGS@ @METIS_CPPFLAGS@
+AM_CPPFLAGS = -I$(top_builddir)/src -I$(top_srcdir)/src $(DEBUG_CPPFLAGS) @BFT_CPPFLAGS@ @FVM_CPPFLAGS@ @MPI_CPPFLAGS@
 AM_CFLAGS   =
-AM_LDFLAGS  = @BFT_LDFLAGS@ @FVM_LDFLAGS@ @MPI_LDFLAGS@ @METIS_LDFLAGS@
+AM_LDFLAGS  = @BFT_LDFLAGS@ @FVM_LDFLAGS@ @MPI_LDFLAGS@
 
-AM_FCFLAGS = $(INCLUDES)
-
-#LTFCCOMPILE = $(LIBTOOL) --mode=compile --tag=FC $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES)  $(AM_FCFLAGS) $(FCFLAGS) $(FCFLAGS_f90)
-#FCCOMPILE = $(FC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_FCFLAGS) $(FCFLAGS) $(FCFLAGS_f90)
-#FCLINK = $(LIBTOOL) --mode=link --tag=FC $(FCLD) $(AM_FCFLAGS) $(FCFLAGS) \
-#  $(AM_LDFLAGS) $(LDFLAGS) -o $@
+AM_FCFLAGS = -I$(top_builddir)/src -I$(top_srcdir)/src
 
 LDADD = $(top_builddir)/src/libcwipi.la \
         @BFT_LIBS@ @FVM_LIBS@ @MPI_LIBS@ \
 	-lm
 
-testsdir = $(bindir)/cwipi_tests
-
-tests_PROGRAMS = \
-test2D_1_c1 \
-test2D_1_c2 \
+check_PROGRAMS = \
+c_linear_coupling \
+c_surf_coupling_P1P1_micron_polygon \
+c_surf_coupling_P1P1_polygon \
+c_surf_coupling_P1P1 \
+c_surf_coupling_P1P1_asynchronous \
 test3D_1_c1 \
 test3D_1_c2 
 
+#test2D_1_c1 
+#test2D_1_c2 
 
-test2D_1_c1_SOURCES = creeMaillagePolygone2D.c test2D_1_c1.c
-test2D_1_c2_SOURCES = creeMaillagePolygone2D.c test2D_1_c2.f90
+c_linear_coupling_SOURCES = c_linear_coupling.c
+c_surf_coupling_P1P1_micron_polygon_SOURCES = creeMaillagePolygone2D.c c_surf_coupling_P1P1_micron_polygon.c
+c_surf_coupling_P1P1_polygon_SOURCES = creeMaillagePolygone2D.c c_surf_coupling_P1P1_polygon.c
+c_surf_coupling_P1P1_SOURCES = grid_mesh.c c_surf_coupling_P1P1.c
+c_surf_coupling_P1P1_asynchronous_SOURCES = grid_mesh.c c_surf_coupling_P1P1_asynchronous.c
+#test2D_1_c1_SOURCES = creeMaillagePolygone2D.c test2D_1_c1.c
+#test2D_1_c2_SOURCES = creeMaillagePolygone2D.c test2D_1_c2.f90
 test3D_1_c1_SOURCES = test3D_1_c1.c
 test3D_1_c2_SOURCES = test3D_1_c2.c
 
-
+c_linear_coupling_LDADD = $(top_builddir)/src/libcwipi.la \
+        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
+        -lm
+c_surf_coupling_P1P1_micron_polygon_LDADD = $(top_builddir)/src/libcwipi.la \
+        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
+        -lm
+c_surf_coupling_P1P1_polygon_LDADD = $(top_builddir)/src/libcwipi.la \
+        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
+        -lm
+c_surf_coupling_P1P1_LDADD = $(top_builddir)/src/libcwipi.la \
+        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
+        -lm
 test3D_1_c1_LDADD = $(top_builddir)/src/libcwipi.la \
-        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
-  -lm
+        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
+        -lm
 test3D_1_c2_LDADD = $(top_builddir)/src/libcwipi.la \
-        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
-  -lm
-test2D_1_c1_LDADD =  $(top_builddir)/src/libcwipi.la \
-        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
-	-lm
-test2D_1_c2_LDADD =  $(top_builddir)/src/libcwipi.la \
-        $(top_builddir)/src/libcwipi_f.la \
-        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ @METIS_LIBS@\
-	-lm
+        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
+        -lm
+#test2D_1_c1_LDADD =  $(top_builddir)/src/libcwipi.la \
+#        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
+#	-lm
+#test2D_1_c2_LDADD =  $(top_builddir)/src/libcwipi.la \
+#        $(top_builddir)/src/libcwipi_f.la \
+#        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
+#	-lm
 
-# To link without libtool, replace libfvm.la above by .libs/libfvm.so
-# and uncomment the following line:
-# fvm_test_LINK    = $(CC) -o $@
+VALGRIND =
+MPI_EXEC = mpiexec
+MPI_NP = -np
+NP = 2
 
-install:
-	@echo "Test programs not installed by default;" \
-	 echo "use make install-test if preferred."
+TESTS_ENVIRONMENT = ${MPI_EXEC} ${MPI_NP} ${NP} ${VALGRIND}
+TESTS = c_linear_coupling \
+	c_surf_coupling_P1P1_micron_polygon \
+	c_surf_coupling_P1P1_polygon \
+	c_surf_coupling_P1P1 \
+	c_surf_coupling_P1P1_asynchronous \
+	python_api.py
 
-install-tests: install-testsPROGRAMS
-	@cp $(top_srcdir)/tests/Readme $(testsdir)/
-	@cp -r $(top_srcdir)/tests/meshes $(testsdir)/
-
-uninstall-tests: uninstall-testsPROGRAMS
 

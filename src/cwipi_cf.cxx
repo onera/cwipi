@@ -158,7 +158,7 @@ int _cwipi_print_with_fortran
 
   if (msgsize == -1 || msgsize > BUF_PRINT_F_SIZE - 1) {
     fprintf(stderr,
-            "Fatal error: bft_printf() called on a message of size %d\n"
+            "Fatal error: printf() called on a message of size %d\n"
             "whereas the print buffer is of size %d.",
             msgsize, BUF_PRINT_F_SIZE);
 
@@ -1333,6 +1333,193 @@ void PROCF(cwipi_send_cf,
   delete[] exchange_nameC;
   delete[] sending_field_nameC;
 }
+
+
+void PROCF(cwipi_issend_cf,
+           CWIPI_ISSEND_CF)
+  (const char      *coupling_name,
+   const int       *l_coupling_name,
+   const char      *exchange_name,
+   const int       *l_exchange_name,
+   const int       *tag,
+   const int       *stride,
+   const int       *n_step,
+   const double    *time_value,
+   const char      *sending_field_name,
+   const int       *l_sending_field_name,
+   const double    *sending_field,
+   int             *request
+   ARGF_SUPP_CHAINE)
+{
+  char *coupling_nameC =
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
+
+  char *exchange_nameC =
+    _cwipi_fortran_to_c_string(exchange_name, *l_exchange_name);
+
+  char *sending_field_nameC =
+    _cwipi_fortran_to_c_string(sending_field_name, *l_sending_field_name);
+
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_nameC;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.issend(exchange_nameC,
+                  *tag,
+                  *stride,
+                  *n_step,
+                  *time_value,
+                  sending_field_nameC,
+                  sending_field,
+                  NULL,
+                  request);
+
+  delete[] coupling_nameC;
+  delete[] exchange_nameC;
+  delete[] sending_field_nameC;
+}
+
+void PROCF(cwipi_issend_with_user_itp_cf,
+           CWIPI_ISSEND_WITH_USER_ITP_CF)
+  (const char      *coupling_name,
+   const int       *l_coupling_name,
+   const char      *exchange_name,
+   const int       *l_exchange_name,
+   const int       *tag,
+   const int       *stride,
+   const int       *n_step,
+   const double    *time_value,
+   const char      *sending_field_name,
+   const int       *l_sending_field_name,
+   const double    *sending_field,
+   void            *ptFortranInterpolationFct,
+   int             *request
+   ARGF_SUPP_CHAINE)
+{
+  char *coupling_nameC =
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
+
+  char *exchange_nameC =
+    _cwipi_fortran_to_c_string(exchange_name, *l_exchange_name);
+
+  char *sending_field_nameC =
+    _cwipi_fortran_to_c_string(sending_field_name, *l_sending_field_name);
+
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_nameC;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.issend(exchange_nameC,
+                  *tag,
+                  *stride,
+                  *n_step,
+                  *time_value,
+                  sending_field_nameC,
+                  sending_field,
+                  ptFortranInterpolationFct,
+                  request);
+
+  delete[] coupling_nameC;
+  delete[] exchange_nameC;
+  delete[] sending_field_nameC;
+}
+
+void PROCF(cwipi_ireceive_cf, 
+           CWIPI_IRECEIVE_CF)
+  (const char      *coupling_name,
+   const int       *l_coupling_name,
+   const char      *exchange_name,
+   const int       *l_exchange_name,
+   const int       *tag,
+   const int       *stride,
+   const int       *n_step,
+   const double    *time_value,
+   char            *receiving_field_name,
+   const int       *l_receiving_field_name,
+   double          *receiving_field,
+   int             *request
+   ARGF_SUPP_CHAINE)
+{
+  char *coupling_nameC =
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
+
+  char *exchange_nameC =
+    _cwipi_fortran_to_c_string(exchange_name, *l_exchange_name);
+
+  char *receiving_field_nameC =
+    _cwipi_fortran_to_c_string(receiving_field_name, *l_receiving_field_name);
+
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_nameC;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.irecv(exchange_nameC,
+                 *tag,
+                 *stride,
+                 *n_step,
+                 *time_value,
+                 receiving_field_nameC,
+                 receiving_field,
+                 request);
+
+  delete[] coupling_nameC;
+  delete[] exchange_nameC;
+  delete[] receiving_field_nameC;
+}
+
+
+void PROCF(cwipi_wait_irecv_cf, CWIPI_WAIT_IRECV_CF)
+  (const char      *coupling_name,
+   const int       *l_coupling_name,
+   const int       *request
+   ARGF_SUPP_CHAINE)
+{
+  char *coupling_nameC =
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
+
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_nameC;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.waitIrecv(*request);
+
+  delete[] coupling_nameC;
+}
+
+void PROCF(cwipi_wait_issend_cf, CWIPI_WAIT_ISSEND_CF)
+  (const char      *coupling_name,
+   const int       *l_coupling_name,
+   const int       *request
+   ARGF_SUPP_CHAINE)
+{
+  char *coupling_nameC =
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
+
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_nameC;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.waitIssend(*request);
+
+  delete[] coupling_nameC;
+}
+
+
 
 /*----------------------------------------------------------------------------
  *

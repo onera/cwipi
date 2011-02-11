@@ -45,9 +45,23 @@ module cwipi
     cwipi_exch_without_user_itp_f_, &
     cwipi_exch_with_user_itp_f_
   end interface
+
   interface cwipi_send_f     ; module procedure  &
     cwipi_send_without_user_itp_f_, &
     cwipi_send_with_user_itp_f_
+  end interface
+
+  interface cwipi_issend_f     ; module procedure  &
+    cwipi_issend_without_user_itp_f_, &
+    cwipi_issend_with_user_itp_f_
+  end interface
+
+  interface cwipi_wait_issend_f     ; module procedure  &
+    cwipi_wait_issend_f_
+  end interface
+
+  interface cwipi_wait_irecv_f     ; module procedure  &
+    cwipi_wait_irecv_f_
   end interface
 
   interface cwipi_init_f                  ; module procedure &
@@ -160,6 +174,10 @@ module cwipi
 
   interface cwipi_receive_f                ; module procedure &
     cwipi_receive_f_
+  end interface
+
+  interface cwipi_ireceive_f                ; module procedure &
+    cwipi_ireceive_f_
   end interface
 
   interface cwipi_delete_coupling_f        ; module procedure &
@@ -610,7 +628,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine cwipi_get_loc_str_ctrl_param_f_ (name, value_str_f)
+  subroutine cwipi_get_loc_str_ctrl_param_f_(name, value_str_f)
 
     implicit none
 
@@ -622,7 +640,7 @@ contains
     l1 = len(name)
     l2 = len(value_str_f)
 
-    call cwipi_get_loc_str_ctrl_param_cf (name, l1, value_str_f, l2)
+    call cwipi_get_loc_str_ctrl_param_cf(name, l1, value_str_f, l2)
 
   end subroutine cwipi_get_loc_str_ctrl_param_f_
 
@@ -639,7 +657,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine cwipi_del_loc_int_ctrl_param_f_ (name)
+  subroutine cwipi_del_loc_int_ctrl_param_f_(name)
 
     implicit none
 
@@ -648,7 +666,7 @@ contains
 
     l = len(name)
 
-    call cwipi_del_loc_int_ctrl_param_cf (name, l)
+    call cwipi_del_loc_int_ctrl_param_cf(name, l)
 
   end subroutine cwipi_del_loc_int_ctrl_param_f_
 
@@ -1330,6 +1348,170 @@ contains
 !
 !********************************************************************************
 !
+! cwipi_issend_without_user_itp_f
+!
+! Send data to the coupled application (only send)
+! Non-blocking communication 
+!
+! parameters
+!   couplingName         <-- Coupling identifier
+!   exchangeName         <-- Exchange name
+!   tag                  <-- Exchange tag
+!   stride               <-- Number of interlaced fields
+!   timeStep             <-- Time step  (only for visualization)
+!   timeValue            <-- Time value (only for visualization)
+!   sendingFieldName     <-- Sending field name
+!   sendingField         <-- Sending field
+!   request              -->Sending request
+!
+!********************************************************************************
+!
+
+  subroutine cwipi_issend_without_user_itp_f_(couplingName, &
+                                              exchangeName, &
+                                              tag, &
+                                              stride, &
+                                              nStep, &
+                                              timeValue, &
+                                              sendingFieldName, &
+                                              sendingField, &
+                                              request)
+
+    implicit none
+
+    character (len = *) :: couplingName, exchangeName, sendingFieldName
+    integer :: stride, nStep, status, tag, request
+    double precision :: timeValue
+    double precision, dimension(*) :: sendingField
+
+    integer :: lCouplingName, lExchangeName, lSendingFieldName
+
+    lCouplingName       = len(couplingName)
+    lExchangeName       = len(exchangeName)
+    lSendingFieldName   = len(sendingFieldName)
+
+    call cwipi_issend_cf(couplingName, &
+                         lCouplingName, &
+                         exchangeName, &
+                         lExchangeName, &
+                         tag, &
+                         stride, &
+                         nStep, &
+                         timeValue, &
+                         sendingFieldName, &
+                         lSendingFieldName, &
+                         sendingField, &
+                         request)
+
+  end subroutine cwipi_issend_without_user_itp_f_
+
+ 
+!********************************************************************************
+!
+! cwipi_issend_with_user_itp_f
+!
+! Exchange data with the coupled application (only send)
+! It is a synchronization point with the coupled application
+!
+! parameters
+!   couplingName         <-- Coupling identifier
+!   exchangeName         <-- Exchange name
+!   stride               <-- Number of interlaced fields
+!   timeStep             <-- Time step  (only for visualization)
+!   timeValue            <-- Time value (only for visualization)
+!   sendingFieldName     <-- Sending field name
+!   sendingField         <-- Sending field (NULL -> no sending)
+!   ptInterpolationFct   <-- Callback for interpolation
+!   request              --> Exchange request
+!
+!********************************************************************************
+!
+  subroutine cwipi_issend_with_user_itp_f_ (couplingName, &
+                                            exchangeName, &
+                                            stride, &
+                                            nStep, &
+                                            timeValue, &
+                                            sendingFieldName, &
+                                            sendingField, &
+                                            ptInterpolationFct, &
+                                            request)
+
+    implicit none
+
+    interface
+       subroutine  ptInterpolationFct(entitiesDim, &
+                                      nLocalVertex, &
+                                      nLocalElement, &
+                                      nLocalPolyhedra, &
+                                      nDistantPoint, &
+                                      localCoordinates, &
+                                      localConnectivityIndex, &
+                                      localConnectivity, &
+                                      localPolyFaceIndex, &
+                                      localPolyCellToFaceConnec, &
+                                      localPolyFaceConnecIdx, &
+                                      localPolyFaceConnec, &
+                                      disPtsCoordinates, &
+                                      disPtsLocation, &
+                                      disPtsBaryCoordIdx, &
+                                      disPtsBaryCoord, &
+                                      stride, &
+                                      solverType, &
+                                      localField, &
+                                      distantField)
+         integer :: entitiesDim
+         integer :: nLocalVertex
+         integer :: nLocalElement
+         integer :: nLocalPolyhedra
+         integer :: nDistantPoint
+         double precision, dimension(*) :: localCoordinates
+         integer, dimension(*) :: localConnectivityIndex
+         integer, dimension(*) :: localConnectivity
+         integer, dimension(*) :: localPolyFaceIndex
+         integer, dimension(*) :: localPolyCellToFaceConnec
+         integer, dimension(*) :: localPolyFaceConnecIdx
+         integer, dimension(*) :: localPolyFaceConnec
+         double precision, dimension(*) :: disPtsCoordinates
+         integer, dimension(*) :: disPtsLocation
+         integer, dimension(*) :: disPtsBaryCoordIdx
+         double precision, dimension(*) :: disPtsBaryCoord
+         integer :: stride
+         integer :: solverType
+         double precision, dimension(*) :: localField
+         double precision, dimension(*) :: distantField
+       end subroutine ptInterpolationFct
+    end interface
+    character (len = *) :: couplingName, exchangeName, sendingFieldName
+    integer :: stride, nStep, tag, request
+    double precision :: timeValue
+    double precision, dimension(*) :: sendingField
+
+    integer :: lCouplingName, lExchangeName, lSendingFieldName
+
+    lCouplingName       = len(couplingName)
+    lExchangeName       = len(exchangeName)
+    lSendingFieldName   = len(sendingFieldName)
+
+    call cwipi_issend_with_user_itp_cf(couplingName, &
+                                       lCouplingName, &
+                                       exchangeName, &
+                                       lExchangeName, &
+                                       tag, &
+                                       stride, &
+                                       nStep, &
+                                       timeValue, &
+                                       sendingFieldName, &
+                                       lSendingFieldName, &
+                                       sendingField, &
+                                       ptInterpolationFct, &
+                                       request)
+
+  end subroutine cwipi_issend_with_user_itp_f_
+
+
+!
+!********************************************************************************
+!
 ! cwipi_send_without_user_itp_f
 !
 ! Exchange data with the coupled application (only send)
@@ -1371,20 +1553,20 @@ contains
     lSendingFieldName   = len(sendingFieldName)
 
     call cwipi_send_cf(couplingName, &
-                           lCouplingName, &
-                           exchangeName, &
-                           lExchangeName, &
-                           stride, &
-                           nStep, &
-                           timeValue, &
-                           sendingFieldName, &
-                           lSendingFieldName, &
-                           sendingField, &
-                           status)
+                       lCouplingName, &
+                       exchangeName, &
+                       lExchangeName, &
+                       stride, &
+                       nStep, &
+                       timeValue, &
+                       sendingFieldName, &
+                       lSendingFieldName, &
+                       sendingField, &
+                       status)
 
   end subroutine cwipi_send_without_user_itp_f_
 
-!
+ 
 !********************************************************************************
 !
 ! cwipi_send_with_user_itp_f
@@ -1546,6 +1728,129 @@ contains
                               status)
 
   end subroutine cwipi_receive_f_
+
+
+!
+!********************************************************************************
+!
+! cwipi_ireceive_f
+!
+! Receive data from the coupled application.
+! Non-blocking communication. receivingField is fuly updated 
+! after cwipi_wait_irecv calling
+!
+! parameters
+!   couplingName         <-- Coupling identifier
+!   exchangeName         <-- Exchange name
+!   tag                  <-- Exchange tag
+!   stride               <-- Number of interlaced fields
+!   timeStep             <-- Time step  (only for visualization)
+!   timeValue            <-- Time value (only for visualization)
+!   receivingFieldName   <-- Receiving field name
+!   receivingField       <-- Receiving field
+!   request              --> Exchange request
+!
+!********************************************************************************
+!
+
+  subroutine cwipi_ireceive_f_ (couplingName, &
+                                exchangeName, &
+                                tag, &
+                                stride, &
+                                nStep, &
+                                timeValue, &
+                                receivingFieldName, &
+                                receivingField, &
+                                request)
+
+    implicit none
+
+    character (len = *) :: couplingName, exchangeName, receivingFieldName
+    integer :: stride, nStep, status, tag, request
+    double precision :: timeValue
+    double precision, dimension(*) :: receivingField
+
+    integer :: lCouplingName, lExchangeName, lReceivingFieldName
+
+    lCouplingName       = len(couplingName)
+    lExchangeName       = len(exchangeName)
+    lReceivingFieldName = len(receivingFieldName)
+
+    call cwipi_ireceive_cf(couplingName, &
+                           lCouplingName, &
+                           exchangeName, &
+                           lExchangeName, &
+                           tag, &
+                           stride, &
+                           nStep, &
+                           timeValue, &
+                           receivingFieldName, &
+                           lReceivingFieldName, &
+                           receivingField, &
+                           request)
+
+  end subroutine cwipi_ireceive_f_
+
+
+!
+!********************************************************************************
+!
+! cwipi_wait_issend
+!
+! Wait for cwipi_issend
+!
+! parameters
+!   couplingName         <-- Coupling identifier
+!   request              <-- Exchange request
+!
+!********************************************************************************
+!
+
+  subroutine cwipi_wait_issend_f_(couplingName, &
+                                  request)
+
+    implicit none
+
+    character (len = *) :: couplingName
+    integer :: request
+    integer :: lCouplingName
+
+    lCouplingName       = len(couplingName)
+
+    call cwipi_wait_isend_cf(couplingName, lCouplingName, request)
+
+  end subroutine cwipi_wait_issend_f_
+
+
+!
+!********************************************************************************
+!
+! cwipi_wait_irecv
+!
+! Wait for cwipi_irecv
+!
+! parameters
+!   couplingName         <-- Coupling identifier
+!   request              <-- Exchange request
+!
+!********************************************************************************
+!
+
+  subroutine cwipi_wait_irecv_f_(couplingName, &
+                                 request)
+
+    implicit none
+
+    character (len = *) :: couplingName
+    integer :: request
+    integer :: lCouplingName
+
+    lCouplingName       = len(couplingName)
+
+    call cwipi_wait_irecv_cf(couplingName, lCouplingName, request)
+
+  end subroutine cwipi_wait_irecv_f_
+
 
 !
 !********************************************************************************

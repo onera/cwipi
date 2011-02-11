@@ -896,6 +896,145 @@ cwipi_exchange_status_t cwipi_exchange
 
 /*----------------------------------------------------------------------------
  *
+ * Send interpolated data to the coupled application. 
+ * Non blocking comunication.
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   exchange_name        <-- Exchange name
+ *   stride               <-- Number of interlaced field
+ *   time_step            <-- Time step  (only for visualization)
+ *   time_value           <-- Time value (only for visualization)
+ *   sending_field_name   <-- Sending field name
+ *   sending_field        <-- Sending field 
+ *   request              --> Request
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_issend
+(const char                *coupling_name,
+ const char                *exchange_name,
+ const int                 tag,
+ const int                 stride,
+ const int                 time_step,
+ const double              time_value,
+ const char                *sending_field_name,
+ const double              *sending_field,
+ int                       *request)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.issend(exchange_name,
+                  tag,
+                  stride,
+                  time_step,
+                  time_value,
+                  sending_field_name,
+                  sending_field,
+                  NULL,
+                  request);
+
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Receive interpolated data from the coupled application. 
+ * Non blocking comunication. receiving_field is fully updated after 
+ * cwipi_wait_irecv calling
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   exchange_name        <-- Exchange name
+ *   stride               <-- Number of interlaced field
+ *   time_step            <-- Time step  (only for visualization)
+ *   time_value           <-- Time value (only for visualization)
+ *   receiving_field_name <-- Receiving field name
+ *   receiving_field      <-- Receiving field 
+ *   request              --> Request
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_irecv
+(const char                *coupling_name,
+ const char                *exchange_name,
+ const int                 tag,
+ const int                 stride,
+ const int                 time_step,
+ const double              time_value,
+ char                *receiving_field_name,
+ double              *receiving_field,
+ int                       *request)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.irecv(exchange_name,
+                 tag,
+                 stride,
+                 time_step,
+                 time_value,
+                 receiving_field_name,
+                 receiving_field,
+                 request);
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Wait for cwipi_issend. 
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   request              <-- Request
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_wait_issend(const char  *coupling_name,
+                       int          request)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.waitIssend(request);
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Wait for cwipi_irecv. 
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   request              <-- Request
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_wait_irecv(const char  *coupling_name,
+                     int          request)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.waitIrecv(request);
+}
+
+/*----------------------------------------------------------------------------
+ *
  * Define the interpolation function
  *
  * parameters
@@ -906,7 +1045,7 @@ cwipi_exchange_status_t cwipi_exchange
 
 void cwipi_set_interpolation_function
 (const char *coupling_name,
- cwipi_interpolation_fct_t * fct)
+ cwipi_interpolation_fct_t fct)
 {
   cwipi::CouplingDataBase & couplingDataBase =
     cwipi::CouplingDataBase::getInstance();

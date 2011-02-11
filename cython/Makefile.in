@@ -14,8 +14,29 @@
 
 @SET_MAKE@
 
-# To disable dependency tracking
-# AUTOMAKE_OPTIONS = no-dependencies
+#------------------------------------------------------------------------------
+#   This file is part of the "Mathematical Expression Interpreter" library.
+#
+#   Copyright (C) 2010-2011  ONERA
+#
+#   This library is free software; you can redistribute it and/or
+#   modify it under the terms of the GNU Lesser General Public
+#   License as published by the Free Software Foundation; either
+#   version 2.1 of the License, or (at your option) any later version.
+#
+#   This library is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#   Lesser General Public License for more details.
+#
+#   You should have received a copy of the GNU Lesser General Public
+#   License along with this library; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#	$(PYTHON) setup.py build_ext --include-dirs=/opt/intel/impi/3.2.1.009/include64:/home/equemera/opt/bft-1.1.3/Linux_x86_64/include:/home/equemera/opt/fvm-0.15.1-onera-5/Linux_x86_64/include:/home/equemera/opt/cwipi-0.2.10/Linux_x86_64/include \
+#	--library-dirs=/opt/intel/impi/3.2.1.009/lib64:/home/equemera/opt/bft-1.1.3/Linux_x86_64/lib:/home/equemera/opt/fvm-0.15.1-onera-5/Linux_x86_64/lib:/home/equemera/opt/cwipi-0.2.10/Linux_x86_64/lib \
+#	--rpath=/opt/intel/impi/3.2.1.009/lib64:/home/equemera/opt/bft-1.1.3/Linux_x86_64/lib:/home/equemera/opt/fvm-0.15.1-onera-5/Linux_x86_64/lib:/home/equemera/opt/cwipi-0.2.10/Linux_x86_64/lib ;\
+#------------------------------------------------------------------------------
+
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkglibdir = $(libdir)/@PACKAGE@
@@ -35,19 +56,9 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-check_PROGRAMS = c_linear_coupling$(EXEEXT) \
-	c_surf_coupling_P1P1_micron_polygon$(EXEEXT) \
-	c_surf_coupling_P1P1_polygon$(EXEEXT) \
-	c_surf_coupling_P1P1$(EXEEXT) \
-	c_surf_coupling_P1P1_asynchronous$(EXEEXT) \
-	test3D_1_c1$(EXEEXT) test3D_1_c2$(EXEEXT)
-TESTS = c_linear_coupling$(EXEEXT) \
-	c_surf_coupling_P1P1_micron_polygon$(EXEEXT) \
-	c_surf_coupling_P1P1_polygon$(EXEEXT) \
-	c_surf_coupling_P1P1$(EXEEXT) \
-	c_surf_coupling_P1P1_asynchronous$(EXEEXT) python_api.py
-subdir = tests
-DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
+subdir = cython
+DIST_COMMON = $(pkgpython_PYTHON) $(srcdir)/Makefile.am \
+	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/config/check_bft.m4 \
 	$(top_srcdir)/config/check_fvm.m4 \
@@ -64,40 +75,22 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config_priv.h
 CONFIG_CLEAN_FILES =
-am_c_linear_coupling_OBJECTS = c_linear_coupling.$(OBJEXT)
-c_linear_coupling_OBJECTS = $(am_c_linear_coupling_OBJECTS)
-c_linear_coupling_DEPENDENCIES = $(top_builddir)/src/libcwipi.la
-am_c_surf_coupling_P1P1_OBJECTS = grid_mesh.$(OBJEXT) \
-	c_surf_coupling_P1P1.$(OBJEXT)
-c_surf_coupling_P1P1_OBJECTS = $(am_c_surf_coupling_P1P1_OBJECTS)
-c_surf_coupling_P1P1_DEPENDENCIES = $(top_builddir)/src/libcwipi.la
-am_c_surf_coupling_P1P1_asynchronous_OBJECTS = grid_mesh.$(OBJEXT) \
-	c_surf_coupling_P1P1_asynchronous.$(OBJEXT)
-c_surf_coupling_P1P1_asynchronous_OBJECTS =  \
-	$(am_c_surf_coupling_P1P1_asynchronous_OBJECTS)
-c_surf_coupling_P1P1_asynchronous_LDADD = $(LDADD)
-c_surf_coupling_P1P1_asynchronous_DEPENDENCIES =  \
-	$(top_builddir)/src/libcwipi.la
-am_c_surf_coupling_P1P1_micron_polygon_OBJECTS =  \
-	creeMaillagePolygone2D.$(OBJEXT) \
-	c_surf_coupling_P1P1_micron_polygon.$(OBJEXT)
-c_surf_coupling_P1P1_micron_polygon_OBJECTS =  \
-	$(am_c_surf_coupling_P1P1_micron_polygon_OBJECTS)
-c_surf_coupling_P1P1_micron_polygon_DEPENDENCIES =  \
-	$(top_builddir)/src/libcwipi.la
-am_c_surf_coupling_P1P1_polygon_OBJECTS =  \
-	creeMaillagePolygone2D.$(OBJEXT) \
-	c_surf_coupling_P1P1_polygon.$(OBJEXT)
-c_surf_coupling_P1P1_polygon_OBJECTS =  \
-	$(am_c_surf_coupling_P1P1_polygon_OBJECTS)
-c_surf_coupling_P1P1_polygon_DEPENDENCIES =  \
-	$(top_builddir)/src/libcwipi.la
-am_test3D_1_c1_OBJECTS = test3D_1_c1.$(OBJEXT)
-test3D_1_c1_OBJECTS = $(am_test3D_1_c1_OBJECTS)
-test3D_1_c1_DEPENDENCIES = $(top_builddir)/src/libcwipi.la
-am_test3D_1_c2_OBJECTS = test3D_1_c2.$(OBJEXT)
-test3D_1_c2_OBJECTS = $(am_test3D_1_c2_OBJECTS)
-test3D_1_c2_DEPENDENCIES = $(top_builddir)/src/libcwipi.la
+am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
+am__vpath_adj = case $$p in \
+    $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
+    *) f=$$p;; \
+  esac;
+am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
+am__installdirs = "$(DESTDIR)$(pkgpyexecdir)" \
+	"$(DESTDIR)$(pkgpythondir)"
+pkgpyexecLTLIBRARIES_INSTALL = $(INSTALL)
+LTLIBRARIES = $(pkgpyexec_LTLIBRARIES)
+CWIPI_la_DEPENDENCIES = $(top_builddir)/src/libcwipi.la
+am_CWIPI_la_OBJECTS = CWIPI.lo
+CWIPI_la_OBJECTS = $(am_CWIPI_la_OBJECTS)
+CWIPI_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(CWIPI_la_LDFLAGS) \
+	$(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__depfiles_maybe = depfiles
@@ -110,17 +103,10 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(c_linear_coupling_SOURCES) $(c_surf_coupling_P1P1_SOURCES) \
-	$(c_surf_coupling_P1P1_asynchronous_SOURCES) \
-	$(c_surf_coupling_P1P1_micron_polygon_SOURCES) \
-	$(c_surf_coupling_P1P1_polygon_SOURCES) $(test3D_1_c1_SOURCES) \
-	$(test3D_1_c2_SOURCES)
-DIST_SOURCES = $(c_linear_coupling_SOURCES) \
-	$(c_surf_coupling_P1P1_SOURCES) \
-	$(c_surf_coupling_P1P1_asynchronous_SOURCES) \
-	$(c_surf_coupling_P1P1_micron_polygon_SOURCES) \
-	$(c_surf_coupling_P1P1_polygon_SOURCES) $(test3D_1_c1_SOURCES) \
-	$(test3D_1_c2_SOURCES)
+SOURCES = $(CWIPI_la_SOURCES)
+DIST_SOURCES = $(CWIPI_la_SOURCES)
+pkgpythonPYTHON_INSTALL = $(INSTALL_DATA)
+py_compile = $(top_srcdir)/config/py-compile
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -275,69 +261,14 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-AUTOMAKE_OPTIONS = foreign
-@DEBUG_FALSE@DEBUG_CPPFLAGS = -DNDEBUG
-
-# Add any debug flags
-@DEBUG_TRUE@DEBUG_CPPFLAGS = -DDEBUG
-
-# Main part
-AM_CPPFLAGS = -I$(top_builddir)/src -I$(top_srcdir)/src $(DEBUG_CPPFLAGS) @BFT_CPPFLAGS@ @FVM_CPPFLAGS@ @MPI_CPPFLAGS@
-AM_CFLAGS = 
+AM_CPPFLAGS = -I@PYTHON_INCLUDE@ -I@NUMPY_INCLUDE@ -I$(top_srcdir)/src $(DEBUG_CPPFLAGS) @BFT_CPPFLAGS@ @FVM_CPPFLAGS@ @MPI_CPPFLAGS@
+AM_CFLAGS = -fno-strict-aliasing 
 AM_LDFLAGS = @BFT_LDFLAGS@ @FVM_LDFLAGS@ @MPI_LDFLAGS@
-AM_FCFLAGS = -I$(top_builddir)/src -I$(top_srcdir)/src
-LDADD = $(top_builddir)/src/libcwipi.la \
-        @BFT_LIBS@ @FVM_LIBS@ @MPI_LIBS@ \
-	-lm
-
-
-#test2D_1_c1 
-#test2D_1_c2 
-c_linear_coupling_SOURCES = c_linear_coupling.c
-c_surf_coupling_P1P1_micron_polygon_SOURCES = creeMaillagePolygone2D.c c_surf_coupling_P1P1_micron_polygon.c
-c_surf_coupling_P1P1_polygon_SOURCES = creeMaillagePolygone2D.c c_surf_coupling_P1P1_polygon.c
-c_surf_coupling_P1P1_SOURCES = grid_mesh.c c_surf_coupling_P1P1.c
-c_surf_coupling_P1P1_asynchronous_SOURCES = grid_mesh.c c_surf_coupling_P1P1_asynchronous.c
-#test2D_1_c1_SOURCES = creeMaillagePolygone2D.c test2D_1_c1.c
-#test2D_1_c2_SOURCES = creeMaillagePolygone2D.c test2D_1_c2.f90
-test3D_1_c1_SOURCES = test3D_1_c1.c
-test3D_1_c2_SOURCES = test3D_1_c2.c
-c_linear_coupling_LDADD = $(top_builddir)/src/libcwipi.la \
-        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
-        -lm
-
-c_surf_coupling_P1P1_micron_polygon_LDADD = $(top_builddir)/src/libcwipi.la \
-        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
-        -lm
-
-c_surf_coupling_P1P1_polygon_LDADD = $(top_builddir)/src/libcwipi.la \
-        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
-        -lm
-
-c_surf_coupling_P1P1_LDADD = $(top_builddir)/src/libcwipi.la \
-        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
-        -lm
-
-test3D_1_c1_LDADD = $(top_builddir)/src/libcwipi.la \
-        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
-        -lm
-
-test3D_1_c2_LDADD = $(top_builddir)/src/libcwipi.la \
-        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
-        -lm
-
-#test2D_1_c1_LDADD =  $(top_builddir)/src/libcwipi.la \
-#        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
-#	-lm
-#test2D_1_c2_LDADD =  $(top_builddir)/src/libcwipi.la \
-#        $(top_builddir)/src/libcwipi_f.la \
-#        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
-#	-lm
-VALGRIND = 
-MPI_EXEC = mpiexec
-MPI_NP = -np
-NP = 2
-TESTS_ENVIRONMENT = ${MPI_EXEC} ${MPI_NP} ${NP} ${VALGRIND}
+pkgpython_PYTHON = __init__.py
+pkgpyexec_LTLIBRARIES = CWIPI.la
+CWIPI_la_SOURCES = CWIPI.c
+CWIPI_la_LIBADD = $(top_builddir)/src/libcwipi.la @BFT_LIBS@ @FVM_LIBS@
+CWIPI_la_LDFLAGS = @BFT_LDFLAGS@ @FVM_LDFLAGS@ _avoid_version -module
 all: all-am
 
 .SUFFIXES:
@@ -351,9 +282,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__confi
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  tests/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  cython/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign  tests/Makefile
+	  $(AUTOMAKE) --gnu  cython/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -371,34 +302,35 @@ $(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
-
-clean-checkPROGRAMS:
-	@list='$(check_PROGRAMS)'; for p in $$list; do \
-	  f=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
-	  echo " rm -f $$p $$f"; \
-	  rm -f $$p $$f ; \
+install-pkgpyexecLTLIBRARIES: $(pkgpyexec_LTLIBRARIES)
+	@$(NORMAL_INSTALL)
+	test -z "$(pkgpyexecdir)" || $(MKDIR_P) "$(DESTDIR)$(pkgpyexecdir)"
+	@list='$(pkgpyexec_LTLIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    f=$(am__strip_dir) \
+	    echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(pkgpyexecLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) '$$p' '$(DESTDIR)$(pkgpyexecdir)/$$f'"; \
+	    $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(pkgpyexecLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) "$$p" "$(DESTDIR)$(pkgpyexecdir)/$$f"; \
+	  else :; fi; \
 	done
-c_linear_coupling$(EXEEXT): $(c_linear_coupling_OBJECTS) $(c_linear_coupling_DEPENDENCIES) 
-	@rm -f c_linear_coupling$(EXEEXT)
-	$(LINK) $(c_linear_coupling_OBJECTS) $(c_linear_coupling_LDADD) $(LIBS)
-c_surf_coupling_P1P1$(EXEEXT): $(c_surf_coupling_P1P1_OBJECTS) $(c_surf_coupling_P1P1_DEPENDENCIES) 
-	@rm -f c_surf_coupling_P1P1$(EXEEXT)
-	$(LINK) $(c_surf_coupling_P1P1_OBJECTS) $(c_surf_coupling_P1P1_LDADD) $(LIBS)
-c_surf_coupling_P1P1_asynchronous$(EXEEXT): $(c_surf_coupling_P1P1_asynchronous_OBJECTS) $(c_surf_coupling_P1P1_asynchronous_DEPENDENCIES) 
-	@rm -f c_surf_coupling_P1P1_asynchronous$(EXEEXT)
-	$(LINK) $(c_surf_coupling_P1P1_asynchronous_OBJECTS) $(c_surf_coupling_P1P1_asynchronous_LDADD) $(LIBS)
-c_surf_coupling_P1P1_micron_polygon$(EXEEXT): $(c_surf_coupling_P1P1_micron_polygon_OBJECTS) $(c_surf_coupling_P1P1_micron_polygon_DEPENDENCIES) 
-	@rm -f c_surf_coupling_P1P1_micron_polygon$(EXEEXT)
-	$(LINK) $(c_surf_coupling_P1P1_micron_polygon_OBJECTS) $(c_surf_coupling_P1P1_micron_polygon_LDADD) $(LIBS)
-c_surf_coupling_P1P1_polygon$(EXEEXT): $(c_surf_coupling_P1P1_polygon_OBJECTS) $(c_surf_coupling_P1P1_polygon_DEPENDENCIES) 
-	@rm -f c_surf_coupling_P1P1_polygon$(EXEEXT)
-	$(LINK) $(c_surf_coupling_P1P1_polygon_OBJECTS) $(c_surf_coupling_P1P1_polygon_LDADD) $(LIBS)
-test3D_1_c1$(EXEEXT): $(test3D_1_c1_OBJECTS) $(test3D_1_c1_DEPENDENCIES) 
-	@rm -f test3D_1_c1$(EXEEXT)
-	$(LINK) $(test3D_1_c1_OBJECTS) $(test3D_1_c1_LDADD) $(LIBS)
-test3D_1_c2$(EXEEXT): $(test3D_1_c2_OBJECTS) $(test3D_1_c2_DEPENDENCIES) 
-	@rm -f test3D_1_c2$(EXEEXT)
-	$(LINK) $(test3D_1_c2_OBJECTS) $(test3D_1_c2_LDADD) $(LIBS)
+
+uninstall-pkgpyexecLTLIBRARIES:
+	@$(NORMAL_UNINSTALL)
+	@list='$(pkgpyexec_LTLIBRARIES)'; for p in $$list; do \
+	  p=$(am__strip_dir) \
+	  echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f '$(DESTDIR)$(pkgpyexecdir)/$$p'"; \
+	  $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f "$(DESTDIR)$(pkgpyexecdir)/$$p"; \
+	done
+
+clean-pkgpyexecLTLIBRARIES:
+	-test -z "$(pkgpyexec_LTLIBRARIES)" || rm -f $(pkgpyexec_LTLIBRARIES)
+	@list='$(pkgpyexec_LTLIBRARIES)'; for p in $$list; do \
+	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
+	  test "$$dir" != "$$p" || dir=.; \
+	  echo "rm -f \"$${dir}/so_locations\""; \
+	  rm -f "$${dir}/so_locations"; \
+	done
+CWIPI.la: $(CWIPI_la_OBJECTS) $(CWIPI_la_DEPENDENCIES) 
+	$(CWIPI_la_LINK) -rpath $(pkgpyexecdir) $(CWIPI_la_OBJECTS) $(CWIPI_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -406,15 +338,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_linear_coupling.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_surf_coupling_P1P1.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_surf_coupling_P1P1_asynchronous.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_surf_coupling_P1P1_micron_polygon.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_surf_coupling_P1P1_polygon.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/creeMaillagePolygone2D.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/grid_mesh.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3D_1_c1.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3D_1_c2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CWIPI.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -442,6 +366,34 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
+install-pkgpythonPYTHON: $(pkgpython_PYTHON)
+	@$(NORMAL_INSTALL)
+	test -z "$(pkgpythondir)" || $(MKDIR_P) "$(DESTDIR)$(pkgpythondir)"
+	@list='$(pkgpython_PYTHON)'; dlist=''; for p in $$list; do\
+	  if test -f "$$p"; then b=; else b="$(srcdir)/"; fi; \
+	  if test -f $$b$$p; then \
+	    f=$(am__strip_dir) \
+	    dlist="$$dlist $$f"; \
+	    echo " $(pkgpythonPYTHON_INSTALL) '$$b$$p' '$(DESTDIR)$(pkgpythondir)/$$f'"; \
+	    $(pkgpythonPYTHON_INSTALL) "$$b$$p" "$(DESTDIR)$(pkgpythondir)/$$f"; \
+	  else :; fi; \
+	done; \
+	if test -n "$$dlist"; then \
+	  if test -z "$(DESTDIR)"; then \
+	    PYTHON=$(PYTHON) $(py_compile) --basedir "$(pkgpythondir)" $$dlist; \
+	  else \
+	    PYTHON=$(PYTHON) $(py_compile) --destdir "$(DESTDIR)" --basedir "$(pkgpythondir)" $$dlist; \
+	  fi; \
+	else :; fi
+
+uninstall-pkgpythonPYTHON:
+	@$(NORMAL_UNINSTALL)
+	@list='$(pkgpython_PYTHON)'; dlist=''; for p in $$list; do\
+	  f=$(am__strip_dir) \
+	  rm -f "$(DESTDIR)$(pkgpythondir)/$$f"; \
+	  rm -f "$(DESTDIR)$(pkgpythondir)/$${f}c"; \
+	  rm -f "$(DESTDIR)$(pkgpythondir)/$${f}o"; \
+	done
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
@@ -490,79 +442,6 @@ GTAGS:
 distclean-tags:
 	-rm -f TAGS ID GTAGS GRTAGS GSYMS GPATH tags
 
-check-TESTS: $(TESTS)
-	@failed=0; all=0; xfail=0; xpass=0; skip=0; ws='[	 ]'; \
-	srcdir=$(srcdir); export srcdir; \
-	list=' $(TESTS) '; \
-	if test -n "$$list"; then \
-	  for tst in $$list; do \
-	    if test -f ./$$tst; then dir=./; \
-	    elif test -f $$tst; then dir=; \
-	    else dir="$(srcdir)/"; fi; \
-	    if $(TESTS_ENVIRONMENT) $${dir}$$tst; then \
-	      all=`expr $$all + 1`; \
-	      case " $(XFAIL_TESTS) " in \
-	      *$$ws$$tst$$ws*) \
-		xpass=`expr $$xpass + 1`; \
-		failed=`expr $$failed + 1`; \
-		echo "XPASS: $$tst"; \
-	      ;; \
-	      *) \
-		echo "PASS: $$tst"; \
-	      ;; \
-	      esac; \
-	    elif test $$? -ne 77; then \
-	      all=`expr $$all + 1`; \
-	      case " $(XFAIL_TESTS) " in \
-	      *$$ws$$tst$$ws*) \
-		xfail=`expr $$xfail + 1`; \
-		echo "XFAIL: $$tst"; \
-	      ;; \
-	      *) \
-		failed=`expr $$failed + 1`; \
-		echo "FAIL: $$tst"; \
-	      ;; \
-	      esac; \
-	    else \
-	      skip=`expr $$skip + 1`; \
-	      echo "SKIP: $$tst"; \
-	    fi; \
-	  done; \
-	  if test "$$failed" -eq 0; then \
-	    if test "$$xfail" -eq 0; then \
-	      banner="All $$all tests passed"; \
-	    else \
-	      banner="All $$all tests behaved as expected ($$xfail expected failures)"; \
-	    fi; \
-	  else \
-	    if test "$$xpass" -eq 0; then \
-	      banner="$$failed of $$all tests failed"; \
-	    else \
-	      banner="$$failed of $$all tests did not behave as expected ($$xpass unexpected passes)"; \
-	    fi; \
-	  fi; \
-	  dashes="$$banner"; \
-	  skipped=""; \
-	  if test "$$skip" -ne 0; then \
-	    skipped="($$skip tests were not run)"; \
-	    test `echo "$$skipped" | wc -c` -le `echo "$$banner" | wc -c` || \
-	      dashes="$$skipped"; \
-	  fi; \
-	  report=""; \
-	  if test "$$failed" -ne 0 && test -n "$(PACKAGE_BUGREPORT)"; then \
-	    report="Please report to $(PACKAGE_BUGREPORT)"; \
-	    test `echo "$$report" | wc -c` -le `echo "$$banner" | wc -c` || \
-	      dashes="$$report"; \
-	  fi; \
-	  dashes=`echo "$$dashes" | sed s/./=/g`; \
-	  echo "$$dashes"; \
-	  echo "$$banner"; \
-	  test -z "$$skipped" || echo "$$skipped"; \
-	  test -z "$$report" || echo "$$report"; \
-	  echo "$$dashes"; \
-	  test "$$failed" -eq 0; \
-	else :; fi
-
 distdir: $(DISTFILES)
 	@srcdirstrip=`echo "$(srcdir)" | sed 's/[].[^$$\\*]/\\\\&/g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's/[].[^$$\\*]/\\\\&/g'`; \
@@ -590,11 +469,12 @@ distdir: $(DISTFILES)
 	  fi; \
 	done
 check-am: all-am
-	$(MAKE) $(AM_MAKEFLAGS) $(check_PROGRAMS)
-	$(MAKE) $(AM_MAKEFLAGS) check-TESTS
 check: check-am
-all-am: Makefile
+all-am: Makefile $(LTLIBRARIES)
 installdirs:
+	for dir in "$(DESTDIR)$(pkgpyexecdir)" "$(DESTDIR)$(pkgpythondir)"; do \
+	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
+	done
 install: install-am
 install-exec: install-exec-am
 install-data: install-data-am
@@ -621,8 +501,8 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-checkPROGRAMS clean-generic clean-libtool \
-	mostlyclean-am
+clean-am: clean-generic clean-libtool clean-local \
+	clean-pkgpyexecLTLIBRARIES mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -640,11 +520,11 @@ info: info-am
 
 info-am:
 
-install-data-am:
+install-data-am: install-pkgpythonPYTHON
 
 install-dvi: install-dvi-am
 
-install-exec-am:
+install-exec-am: install-pkgpyexecLTLIBRARIES
 
 install-html: install-html-am
 
@@ -676,24 +556,29 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am:
+uninstall-am: uninstall-pkgpyexecLTLIBRARIES uninstall-pkgpythonPYTHON
 
 .MAKE: install-am install-strip
 
-.PHONY: CTAGS GTAGS all all-am check check-TESTS check-am clean \
-	clean-checkPROGRAMS clean-generic clean-libtool ctags \
+.PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
+	clean-libtool clean-local clean-pkgpyexecLTLIBRARIES ctags \
 	distclean distclean-compile distclean-generic \
 	distclean-libtool distclean-tags distdir dvi dvi-am html \
 	html-am info info-am install install-am install-data \
 	install-data-am install-dvi install-dvi-am install-exec \
 	install-exec-am install-html install-html-am install-info \
 	install-info-am install-man install-pdf install-pdf-am \
+	install-pkgpyexecLTLIBRARIES install-pkgpythonPYTHON \
 	install-ps install-ps-am install-strip installcheck \
 	installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	tags uninstall uninstall-am
+	tags uninstall uninstall-am uninstall-pkgpyexecLTLIBRARIES \
+	uninstall-pkgpythonPYTHON
 
+
+clean-local:
+	rm -f core *.o *.bak *~ *.pyc *.pyo
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

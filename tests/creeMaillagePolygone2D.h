@@ -6,6 +6,7 @@
 #include <mpi.h>
 
 #include "cwipi_config.h"
+#include "grid_mesh.h"
 
 /*----------------------------------------------------------------------------
  * Macro for handling of different symbol names (underscored or not,

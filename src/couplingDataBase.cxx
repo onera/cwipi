@@ -123,7 +123,6 @@ namespace cwipi {
       bft_error(__FILE__, __LINE__, 0,
                 "'%s' existing coupling\n", name.c_str());
 
-
   }
 
   void  CouplingDataBase::deleteCoupling(const std::string &name)

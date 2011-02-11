@@ -9,7 +9,6 @@
 #include <fvm_nodal_triangulate.h>
 #include <mpi.h>
 
-//#include "quickSort.h"
 #include "creeMaillagePolygone2D.h"
 
 #ifdef __cplusplus

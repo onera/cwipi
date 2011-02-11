@@ -40,11 +40,10 @@ DIST_COMMON = README $(am__configure_deps) $(configinclude_HEADERS) \
 	$(srcdir)/config_priv.h.in $(top_srcdir)/configure AUTHORS \
 	COPYING ChangeLog INSTALL NEWS config/config.guess \
 	config/config.sub config/depcomp config/install-sh \
-	config/ltmain.sh config/missing
+	config/ltmain.sh config/missing config/py-compile
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/config/check_bft.m4 \
 	$(top_srcdir)/config/check_fvm.m4 \
-	$(top_srcdir)/config/check_metis.m4 \
 	$(top_srcdir)/config/check_mpi.m4 \
 	$(top_srcdir)/config/cwipi_config_info.m4 \
 	$(top_srcdir)/config/cwipi_config_publ.m4 \
@@ -85,7 +84,7 @@ RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
   distclean-recursive maintainer-clean-recursive
 ETAGS = etags
 CTAGS = ctags
-DIST_SUBDIRS = $(SUBDIRS)
+DIST_SUBDIRS = src tests cython
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -152,15 +151,15 @@ LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
-METIS_CPPFLAGS = @METIS_CPPFLAGS@
-METIS_LDFLAGS = @METIS_LDFLAGS@
-METIS_LIBS = @METIS_LIBS@
 MKDIR_P = @MKDIR_P@
+MPI4PY_INCLUDE = @MPI4PY_INCLUDE@
+MPI_BIN_PATH = @MPI_BIN_PATH@
 MPI_CPPFLAGS = @MPI_CPPFLAGS@
 MPI_LDFLAGS = @MPI_LDFLAGS@
 MPI_LIBS = @MPI_LIBS@
 NM = @NM@
 NMEDIT = @NMEDIT@
+NUMPY_INCLUDE = @NUMPY_INCLUDE@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
 OTOOL = @OTOOL@
@@ -172,6 +171,13 @@ PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PYEXE = @PYEXE@
+PYTHON = @PYTHON@
+PYTHON_EXEC_PREFIX = @PYTHON_EXEC_PREFIX@
+PYTHON_INCLUDE = @PYTHON_INCLUDE@
+PYTHON_PLATFORM = @PYTHON_PLATFORM@
+PYTHON_PREFIX = @PYTHON_PREFIX@
+PYTHON_VERSION = @PYTHON_VERSION@
 RANLIB = @RANLIB@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
@@ -222,9 +228,13 @@ mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
 pdfdir = @pdfdir@
+pkgpyexecdir = @pkgpyexecdir@
+pkgpythondir = @pkgpythondir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
+pyexecdir = @pyexecdir@
+pythondir = @pythondir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -246,9 +256,10 @@ AUX_DIST = $(ac_aux_dir)/config.guess \
            $(ac_aux_dir)/ltmain.sh
 
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 configure config-h.in stamp-h.in $(AUX_DIST)
+@ENABLE_PYTHON_FALSE@SUBDIRS = src tests
 
 #SUBDIRS = src tests doc
-SUBDIRS = src tests 
+@ENABLE_PYTHON_TRUE@SUBDIRS = src cython tests
 EXTRA_DIST = $(ac_aux_dir)/cwipi_auto_flags.sh \
              $(ac_aux_dir)/check_bft.m4 \
              $(ac_aux_dir)/check_fvm.m4 \

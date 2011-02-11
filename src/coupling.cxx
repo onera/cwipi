@@ -1,4 +1,3 @@
-
 #include <cassert>
 #include <cmath>
 #include <cstring>
@@ -54,10 +53,12 @@ extern "C" {
       void *ptFortranInterpolationFct
   );
 }
+
 namespace cwipi {
 
   //TODO: Faire une factory sur le type de couplage
-  //TODO: Voir l'utilite de _fvmComm (Asupprimer ?)
+  //TODO: Voir l'utilite de _fvmComm (A supprimer ?)
+
 Coupling::Coupling(const std::string& name,
                    const cwipi_coupling_type_t couplingType,
                    const ApplicationProperties& localApplicationProperties,
@@ -73,7 +74,14 @@ Coupling::Coupling(const std::string& name,
  _entitiesDim(entitiesDim),_tolerance(tolerance), _solverType(solverType),
  _outputFormat(outputFormat), _outputFormatOption(outputFormatOption),
  _fvmWriter(NULL), _outputFrequency(outputFrequency), _name(name),
- _couplingType(couplingType)
+ _couplingType(couplingType),
+ _tmpDistantFieldsIssend(*new std::map<int, std::vector<double> * > ()),
+ _tmpLocalFieldsIrecv(*new std::map<int, const double * > ()),
+ _tmpExchangeNameIrecv(*new  std::map<int, const char * > ()),
+ _tmpStrideIrecv(*new  std::map<int, int > ()),
+ _tmpTimeStepIrecv(*new  std::map<int, int > ()),
+ _tmpTimeValueIrecv(*new  std::map<int, double > ()),
+ _tmpFieldNameIrecv(*new  std::map<int, const char * > ())
 
 {
   _tmpVertexField = NULL;
@@ -87,6 +95,7 @@ Coupling::Coupling(const std::string& name,
   _interpolationFct = NULL;
   _toLocate = true;
   _isCoupledRank = false;
+  
 
   //
   // Create coupling comm
@@ -152,7 +161,7 @@ std::vector<double> &  Coupling::_extrapolate(double *cellCenterField, const int
         if (volumeVertex[vertex] < 0.)
             std::cout << "Volume : " << i << " " << cellVolume[i] << " " << volumeVertex[vertex] << std::endl;
         for (int k = 0; k < stride; k++)
-          vertexField[stride*vertex+k]  += cellCenterField[stride*i+k] * cellVolume[i];
+          vertexField[stride*vertex+k] += cellCenterField[stride*i+k] * cellVolume[i];
 
         orphanVertex[vertex] = false;
       }
@@ -221,6 +230,34 @@ Coupling::~Coupling()
 #if defined(DEBUG) && 0
   std::cout << "destroying '" << _name << "' coupling" << std::endl;
 #endif
+
+  typedef std::map <int, std::vector<double> * >::iterator Iterator1;
+  for (Iterator1 p = _tmpDistantFieldsIssend.begin();
+       p != _tmpDistantFieldsIssend.end(); p++) {
+    if (p->second != NULL)
+      delete p->second;
+  }
+
+  _tmpDistantFieldsIssend.clear();
+  delete &_tmpDistantFieldsIssend;
+
+  _tmpLocalFieldsIrecv.clear();
+  delete &_tmpLocalFieldsIrecv;
+
+  _tmpExchangeNameIrecv.clear();
+  delete &_tmpExchangeNameIrecv;
+
+  _tmpFieldNameIrecv.clear();
+  delete &_tmpFieldNameIrecv;
+
+  _tmpStrideIrecv.clear();
+  delete &_tmpStrideIrecv;
+
+  _tmpTimeStepIrecv.clear();
+  delete &_tmpTimeStepIrecv;
+
+  _tmpTimeValueIrecv.clear();
+  delete &_tmpTimeValueIrecv;
 
   if (_isCoupledRank ) {
 
@@ -660,15 +697,16 @@ void Coupling::updateLocation()
               " updateLocation must be called only by the root rank\n");
 }
 
+
 cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
-                                               const int     stride,
-                                               const int     timeStep,
-                                               const double  timeValue,
-                                               const char    *sendingFieldName,
-                                               const double  *sendingField,
-                                               char          *receivingFieldName,
-                                               double        *receivingField,
-                                               void          *ptFortranInterpolationFct)
+                                           const int     stride,
+                                           const int     timeStep,
+                                           const double  timeValue,
+                                           const char    *sendingFieldName,
+                                           const double  *sendingField,
+                                           char          *receivingFieldName,
+                                           double        *receivingField,
+                                           void          *ptFortranInterpolationFct)
 
 
 {
@@ -950,6 +988,280 @@ cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
 
   return status;
 }
+
+
+void Coupling::issend(const char    *exchangeName,
+                      const int     tag,
+                      const int     stride,
+                      const int     timeStep,
+                      const double  timeValue,
+                      const char    *sendingFieldName,
+                      const double  *sendingField,
+                      void          *ptFortranInterpolationFct,
+                      int           *request)
+
+
+{
+  cwipi_exchange_status_t status = CWIPI_EXCHANGE_OK;
+
+  const MPI_Comm& localComm = _localApplicationProperties.getLocalComm();
+
+  int rootRank;
+
+  if (!_isCoupledRank && sendingField != NULL )
+    bft_printf("Warning : sendingField != NULL, "
+              " only field defined by the root rank is sent\n");
+
+  //
+  // Locate
+
+  if (_toLocate)
+    bft_error(__FILE__, __LINE__, 0,
+              "Call cwipi_locate before cwipi_isend\n");
+
+  //
+  // Prepare data (interpolate, extrapolate...)
+
+  if (_isCoupledRank) {
+
+    const int nVertex                 = _supportMesh->getNVertex();
+    const int nElts                   = _supportMesh->getNElts();
+    const int nPoly                   = _supportMesh->getNPolyhedra();
+    const int *localConnectivityIndex = _supportMesh->getEltConnectivityIndex();
+    const int *localConnectivity      = _supportMesh->getEltConnectivity();
+    const int *localPolyhedraFaceIndex = _supportMesh->getPolyhedraFaceIndex() ;
+    const int *localPolyhedraCellToFaceConnectivity = _supportMesh->getPolyhedraCellToFaceConnectivity();
+    const int *localPolyhedraFaceConnectivity_index = _supportMesh->getPolyhedraFaceConnectivityIndex();
+    const int *localPolyhedraFaceConnectivity       = _supportMesh->getPolyhedraFaceConnectivity();
+
+    const int nDistantPoint      =  _locationToLocalMesh->getNLocatedDistantPoint() ;
+    const int *distantLocation   = _locationToLocalMesh->getLocation();
+    const double *distantCoords   = _locationToLocalMesh->getPointCoordinates();
+
+    const int* interiorList     = _locationToDistantMesh->getLocatedPoint();
+    const int nInteriorList     = _locationToDistantMesh->getNLocatedPoint();
+    const double *barycentricCoordinates = _locationToLocalMesh->getBarycentricCoordinates();
+    const int *barycentricCoordinatesIndex = _locationToLocalMesh->getBarycentricCoordinatesIndex();
+
+    int lDistantField = stride * nDistantPoint;
+    int lReceivingField = stride * _locationToDistantMesh->getNpointsToLocate();
+    
+
+    // plutot mettre request comme clé du map
+
+    std::vector<double>& tmpDistantField = *new std::vector<double> (lDistantField, 0);
+    
+    //
+    // Interpolation
+
+    if (sendingField != NULL) {
+
+      assert(!(_interpolationFct != NULL && ptFortranInterpolationFct != NULL));
+
+      //
+      // Callback Fortran
+
+      if (ptFortranInterpolationFct != NULL)
+        PROCF(callfortinterpfct, CALLFORTINTERPFCT) (
+           const_cast <int *> (&_entitiesDim),
+           const_cast <int *> (&nVertex),
+           const_cast <int *> (&nElts),
+           const_cast <int *> (&nPoly),
+           const_cast <int *> (&nDistantPoint),
+           const_cast <double *> (_supportMesh->getVertexCoords()),
+           const_cast <int *> (localConnectivityIndex),
+           const_cast <int *> (localConnectivity),
+           const_cast <int *> (localPolyhedraFaceIndex),
+           const_cast <int *> (localPolyhedraCellToFaceConnectivity),
+           const_cast <int *> (localPolyhedraFaceConnectivity_index),
+           const_cast <int *> (localPolyhedraFaceConnectivity),
+           const_cast <double *> (distantCoords),
+           const_cast <int *> (distantLocation),
+           const_cast <int *> (barycentricCoordinatesIndex),
+           const_cast <double *> (barycentricCoordinates),
+           const_cast <int *> (&stride),
+           const_cast <int *> ((const int *) &_solverType),
+           const_cast <double *> (sendingField),
+           const_cast <double *> (&tmpDistantField[0]),
+           ptFortranInterpolationFct
+          );
+
+      //
+      // Callback C
+
+      else if (_interpolationFct != NULL)
+        _interpolationFct(_entitiesDim,
+                          nVertex,
+                          nElts,
+                          nPoly,
+                          nDistantPoint,
+                          _supportMesh->getVertexCoords(),
+                          localConnectivityIndex,
+                          localConnectivity,
+                          localPolyhedraFaceIndex,
+                          localPolyhedraCellToFaceConnectivity,
+                          localPolyhedraFaceConnectivity_index,
+                          localPolyhedraFaceConnectivity,
+                          distantCoords,
+                          distantLocation,
+                          barycentricCoordinatesIndex,
+                          barycentricCoordinates,
+                          stride,
+                          _solverType,
+                          sendingField,
+                          &tmpDistantField[0]);
+      else
+        _interpolate((double* )sendingField,
+                     tmpDistantField,
+                     stride);
+    }
+
+    //
+    // Send
+
+    double *ptSending = NULL;
+
+    if (sendingField != NULL)
+      ptSending = &tmpDistantField[0];
+
+
+    MPI_Comm oldFVMComm = fvm_parall_get_mpi_comm();
+    if (oldFVMComm != MPI_COMM_NULL)
+      MPI_Barrier(oldFVMComm);
+    fvm_parall_set_mpi_comm(_fvmComm);
+
+    fvm_locator_issend_point_var(_locationToLocalMesh->getFVMLocator(),
+                                 (void *) ptSending,
+                                 NULL,
+                                 sizeof(double),
+                                 stride,
+                                 0,
+                                 tag,
+                                 request);
+
+    _tmpDistantFieldsIssend[*request] = &tmpDistantField; 
+
+    if (_fvmComm != MPI_COMM_NULL)
+      MPI_Barrier(_fvmComm);
+    fvm_parall_set_mpi_comm(oldFVMComm);
+
+    //
+    // Visualization
+
+    _fieldsVisualization(exchangeName,
+                         stride,
+                         timeStep,
+                         timeValue,
+                         sendingFieldName,
+                         sendingField,
+                         "",
+                         NULL);
+
+  } 
+}
+
+
+void Coupling::waitIssend(int request)
+{
+  if (_isCoupledRank) {
+    fvm_locator_issend_wait(_locationToLocalMesh->getFVMLocator(), request);
+
+    delete _tmpDistantFieldsIssend[request];
+    _tmpDistantFieldsIssend[request] = NULL;
+  }
+}
+
+
+void Coupling::irecv(const char    *exchangeName,
+                     const int     tag,
+                     const int     stride,
+                     const int     timeStep,
+                     const double  timeValue,
+                     const char    *receivingFieldName,
+                     const double  *receivingField,
+                     int           *request)
+{
+  
+  if (_isCoupledRank) {
+    
+    //
+    // irecv
+    
+    fvm_locator_irecv_point_var(_locationToLocalMesh->getFVMLocator(),
+                                (void*) receivingField,
+                                NULL,
+                                sizeof(double),
+                                stride,
+                                0,
+                                tag,
+                                request);
+
+    
+  }
+
+  if (_couplingType == CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING) {
+
+    const MPI_Comm& localComm = _localApplicationProperties.getLocalComm();
+
+      MPI_Bcast(request,
+                1,
+                MPI_INT,
+                0,
+                localComm);
+
+  }
+
+  _tmpLocalFieldsIrecv[*request] = receivingField;
+  _tmpExchangeNameIrecv[*request] = exchangeName;
+  _tmpStrideIrecv[*request] = stride;
+  _tmpTimeStepIrecv[*request] = timeStep;
+  _tmpTimeValueIrecv[*request] = timeValue;
+  _tmpFieldNameIrecv[*request] = receivingFieldName;
+
+}
+
+
+void Coupling::waitIrecv(int request)    
+{
+
+  if (_isCoupledRank) {
+    fvm_locator_irecv_wait(_locationToLocalMesh->getFVMLocator(), request);
+
+    //
+    // Visualization
+
+    _fieldsVisualization(_tmpExchangeNameIrecv[request],
+                         _tmpStrideIrecv[request],      
+                         _tmpTimeStepIrecv[request],  
+                         _tmpTimeValueIrecv[request],
+                         "",
+                         NULL,
+                         _tmpFieldNameIrecv[request], 
+                         _tmpLocalFieldsIrecv[request]);  
+  }
+
+  if (_couplingType == CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING) {
+
+    if(_tmpStrideIrecv[request] != NULL ) {
+
+      const MPI_Comm& localComm = _localApplicationProperties.getLocalComm();
+
+      MPI_Bcast((void *)_tmpLocalFieldsIrecv[request],
+                _tmpStrideIrecv[request] * _locationToDistantMesh->getNLocatedPoint(),
+                MPI_DOUBLE,
+                0,
+                localComm);
+    }
+  }
+
+  _tmpLocalFieldsIrecv[request] = NULL;
+  _tmpExchangeNameIrecv[request] = NULL;
+  _tmpStrideIrecv[request] = 0;
+  _tmpTimeStepIrecv[request] = 1;
+  _tmpTimeValueIrecv[request] = 0;
+  _tmpFieldNameIrecv[request] = NULL;
+}
+
 
 void Coupling::_initVisualization()
 {

@@ -10,8 +10,8 @@ m4_define([licence_c_comment],
 */])
 
 m4_define([cwipi_major_version], [0])
-m4_define([cwipi_minor_version], [2])
-m4_define([cwipi_release_version], [10])
+m4_define([cwipi_minor_version], [3])
+m4_define([cwipi_release_version], [0])
 m4_define([cwipi_version_extra], [])
 m4_define([cwipi_version_string],
           [cwipi_major_version.cwipi_minor_version.cwipi_release_version@&t@cwipi_version_extra])
@@ -33,8 +33,7 @@ AH_TOP([#ifndef __CONFIG_PRIV_H__
 #define __CONFIG_PRIV_H__
 
 /*
-  This file is part of the "Finite Volume Mesh" library, intended to provide
-  finite volume mesh and associated fields I/O and manipulation services.
+  This file is part of the CWIPI library, intended to interpolate and exchange fields between meshes distributed on many processus 
 */])
 
 AH_BOTTOM([#endif /* __CONFIG_PRIV_H__ */])
@@ -225,6 +224,94 @@ if test "x$auto_flags" = "xtrue" ; then
 
 fi
 
+#------------------------------------------------------------------------------
+# Checks for optional Python bindings with SWIG support
+#------------------------------------------------------------------------------
+
+# Check for optional Python bindings with SWIG support
+
+AC_ARG_ENABLE(python-bindings,
+  [AS_HELP_STRING([--disable-python-bindings],[build without Python interface])],
+  [
+    case "${enableval}" in
+      yes) python_bindings=true ;;
+      no)  python_bindings=false ;;
+      *)   AC_MSG_ERROR([bad value ${enableval} for --enable-python-bindings]) ;;
+    esac
+  ],
+  [ python_bindings=true ]
+)
+AM_CONDITIONAL(ENABLE_PYTHON, test x$python_bindings = xtrue)
+
+
+AC_ARG_WITH(python-exec, [AS_HELP_STRING([--with-python-exec=PATH],
+                                         [specify prefix directory for a Python interpreter])],
+                         [PYTHON_EXE=${withval}],
+                         [PYTHON_EXE=none])dnl
+
+if test "x${python_bindings}" != "xfalse"; then
+
+    #------------------
+    # Checks for Python
+    #------------------
+
+    if test "x${PYTHON_EXE}" = "xnone" ; then
+        AC_PATH_PROG([PYEXE], [python], ["no"])
+    else
+        AC_PATH_PROG([PYEXE], [python], ["no"], [${PYTHON_EXE}])
+    fi
+
+    PYTHON=${PYEXE}
+    AM_PATH_PYTHON([2.6],, PYTHON="no")
+
+    if test "x${PYTHON}" = "xno" ; then
+        AC_MSG_WARN([])
+        AC_MSG_WARN([Python interpreter not found])
+        AC_MSG_WARN([Please install Python from http://www.python.org])
+        AC_MSG_WARN([])
+        AC_MSG_ERROR([Sorry, we can't continue without Python interpreter])
+    fi
+
+    PYTHON_INCLUDE=`${PYTHON} -c 'from distutils import sysconfig; print( sysconfig.get_python_inc() )'`
+
+    if test "x${PYTHON_INCLUDE}" = "x" ; then
+        AC_MSG_WARN([])
+        AC_MSG_WARN([Python include not found])
+        AC_MSG_WARN([Please install Python from http://www.python.org])
+        AC_MSG_WARN([])
+        AC_MSG_ERROR([Sorry, we can't continue without Python include])
+    fi
+
+    MPI4PY_INCLUDE=`${PYTHON} -c 'import mpi4py; print( mpi4py.get_include() )'`
+
+    if test "x${MPI4PY_INCLUDE}" = "x" ; then
+        AC_MSG_WARN([])
+        AC_MSG_WARN([mpi4py package not found])
+        AC_MSG_WARN([Please install mpi4py from http://code.google.com/p/mpi4py])
+        AC_MSG_WARN([])
+        AC_MSG_ERROR([Sorry, we can't continue without mpi4py])
+    fi
+
+    NUMPY_INCLUDE=`${PYTHON} -c 'import numpy; print( numpy.get_include() )'`
+
+    if test "x${NUMPY_INCLUDE}" = "x" ; then
+        AC_MSG_WARN([])
+        AC_MSG_WARN([numpy package not found])
+        AC_MSG_WARN([Please install mpi4py from http://numpy.scipy.org])
+        AC_MSG_WARN([])
+        AC_MSG_ERROR([Sorry, we can't continue without numpy])
+    fi
+
+    AC_SUBST(PYTHON_INCLUDE)
+
+    AC_SUBST(MPI4PY_INCLUDE)
+
+    AC_SUBST(NUMPY_INCLUDE)
+
+else
+    AM_CONDITIONAL(ENABLE_PYTHON, false)
+fi
+
 # Optional additional user flags
 #-------------------------------
 
@@ -349,13 +436,14 @@ fi
 # Check for METIS (modifies CPPFLAGS, LDFLAGS, and LIBS)
 #-----------------------------------------------------
 
-CHECK_METIS
-
 #
-# Finir le check metis
+# A supprimer définitivement
 
-CWIPI_AC_CONFIG_PUBL_SET(HAVE_METIS, $have_metis,
-                       [cwipi library configured with METIS support ?])
+#CHECK_METIS
+
+
+#CWIPI_AC_CONFIG_PUBL_SET(HAVE_METIS, $have_metis,
+#                       [cwipi library configured with METIS support ?])
 
 #------------------------------------------------------------------------------
 # Internationalization
@@ -444,7 +532,7 @@ CWIPI_AC_CONFIG_INFO_FINALIZE
 #                  intl/Makefile po/Makefile.in m4/Makefile])
 
 #AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile doc/Makefile])
-AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile cython/Makefile tests/Makefile])
 
 #------------------------------------------------------------------------------
 
