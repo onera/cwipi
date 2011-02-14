@@ -1447,6 +1447,7 @@ contains
 !
   subroutine cwipi_issend_with_user_itp_f_ (couplingName, &
                                             exchangeName, &
+                                            tag, &
                                             stride, &
                                             nStep, &
                                             timeValue, &
