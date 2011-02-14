@@ -2885,8 +2885,6 @@ user_CPPFLAGS=$CPPFLAGS
 user_CFLAGS=$CFLAGS
 user_LDFLAGS=$LDFLAGS
 
-
-
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -5280,13 +5278,13 @@ if test "${lt_cv_nm_interface+set}" = set; then
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:5283: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:5281: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5286: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:5284: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5289: output\"" >&5)
+  (eval echo "\"\$as_me:5287: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -6481,7 +6479,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 6484 "configure"' > conftest.$ac_ext
+  echo '#line 6482 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -9324,11 +9322,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9327: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9325: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:9331: \$? = $ac_status" >&5
+   echo "$as_me:9329: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -9663,11 +9661,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9666: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9664: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:9670: \$? = $ac_status" >&5
+   echo "$as_me:9668: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -9768,11 +9766,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9771: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9769: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:9775: \$? = $ac_status" >&5
+   echo "$as_me:9773: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -9823,11 +9821,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9826: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9824: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:9830: \$? = $ac_status" >&5
+   echo "$as_me:9828: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -12623,7 +12621,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 12626 "configure"
+#line 12624 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12719,7 +12717,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 12722 "configure"
+#line 12720 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -14739,11 +14737,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14742: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14740: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:14746: \$? = $ac_status" >&5
+   echo "$as_me:14744: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -14838,11 +14836,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14841: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14839: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14845: \$? = $ac_status" >&5
+   echo "$as_me:14843: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -14890,11 +14888,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14893: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14891: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14897: \$? = $ac_status" >&5
+   echo "$as_me:14895: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -16431,11 +16429,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16434: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16432: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16438: \$? = $ac_status" >&5
+   echo "$as_me:16436: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16530,11 +16528,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16533: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16531: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:16537: \$? = $ac_status" >&5
+   echo "$as_me:16535: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -16582,11 +16580,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16585: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16583: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:16589: \$? = $ac_status" >&5
+   echo "$as_me:16587: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -19080,65 +19078,81 @@ $as_echo "$as_me: WARNING: Python interpreter not found" >&2;}
 $as_echo "$as_me: WARNING: Please install Python from http://www.python.org" >&2;}
         { $as_echo "$as_me:$LINENO: WARNING: " >&5
 $as_echo "$as_me: WARNING: " >&2;}
-        { { $as_echo "$as_me:$LINENO: error: Sorry, we can't continue without Python interpreter" >&5
-$as_echo "$as_me: error: Sorry, we can't continue without Python interpreter" >&2;}
-   { (exit 1); exit 1; }; }
-    fi
+        { $as_echo "$as_me:$LINENO: WARNING: Sorry, we can't continue without Python interpreter" >&5
+$as_echo "$as_me: WARNING: Sorry, we can't continue without Python interpreter" >&2;}
+         if false; then
+  ENABLE_PYTHON_TRUE=
+  ENABLE_PYTHON_FALSE='#'
+else
+  ENABLE_PYTHON_TRUE='#'
+  ENABLE_PYTHON_FALSE=
+fi
 
-    PYTHON_INCLUDE=`${PYTHON} -c 'from distutils import sysconfig; print( sysconfig.get_python_inc() )'`
 
-    if test "x${PYTHON_INCLUDE}" = "x" ; then
-        { $as_echo "$as_me:$LINENO: WARNING: " >&5
+    else
+
+        PYTHON_INCLUDE=`${PYTHON} -c 'from distutils import sysconfig; print( sysconfig.get_python_inc() )'`
+
+        if test "x${PYTHON_INCLUDE}" = "x" ; then
+            { $as_echo "$as_me:$LINENO: WARNING: " >&5
 $as_echo "$as_me: WARNING: " >&2;}
-        { $as_echo "$as_me:$LINENO: WARNING: Python include not found" >&5
+            { $as_echo "$as_me:$LINENO: WARNING: Python include not found" >&5
 $as_echo "$as_me: WARNING: Python include not found" >&2;}
-        { $as_echo "$as_me:$LINENO: WARNING: Please install Python from http://www.python.org" >&5
+            { $as_echo "$as_me:$LINENO: WARNING: Please install Python from http://www.python.org" >&5
 $as_echo "$as_me: WARNING: Please install Python from http://www.python.org" >&2;}
-        { $as_echo "$as_me:$LINENO: WARNING: " >&5
+            { $as_echo "$as_me:$LINENO: WARNING: " >&5
 $as_echo "$as_me: WARNING: " >&2;}
-        { { $as_echo "$as_me:$LINENO: error: Sorry, we can't continue without Python include" >&5
-$as_echo "$as_me: error: Sorry, we can't continue without Python include" >&2;}
-   { (exit 1); exit 1; }; }
-    fi
+            { $as_echo "$as_me:$LINENO: WARNING: Sorry, we can't continue without Python include" >&5
+$as_echo "$as_me: WARNING: Sorry, we can't continue without Python include" >&2;}
+            PYTHON="no"
+        fi
 
-    MPI4PY_INCLUDE=`${PYTHON} -c 'import mpi4py; print( mpi4py.get_include() )'`
+        MPI4PY_INCLUDE=`${PYTHON} -c 'import mpi4py; print( mpi4py.get_include() )'`
 
-    if test "x${MPI4PY_INCLUDE}" = "x" ; then
-        { $as_echo "$as_me:$LINENO: WARNING: " >&5
+        if test "x${MPI4PY_INCLUDE}" = "x" ; then
+            { $as_echo "$as_me:$LINENO: WARNING: " >&5
 $as_echo "$as_me: WARNING: " >&2;}
-        { $as_echo "$as_me:$LINENO: WARNING: mpi4py package not found" >&5
+            { $as_echo "$as_me:$LINENO: WARNING: mpi4py package not found" >&5
 $as_echo "$as_me: WARNING: mpi4py package not found" >&2;}
-        { $as_echo "$as_me:$LINENO: WARNING: Please install mpi4py from http://code.google.com/p/mpi4py" >&5
+            { $as_echo "$as_me:$LINENO: WARNING: Please install mpi4py from http://code.google.com/p/mpi4py" >&5
 $as_echo "$as_me: WARNING: Please install mpi4py from http://code.google.com/p/mpi4py" >&2;}
-        { $as_echo "$as_me:$LINENO: WARNING: " >&5
+            { $as_echo "$as_me:$LINENO: WARNING: " >&5
 $as_echo "$as_me: WARNING: " >&2;}
-        { { $as_echo "$as_me:$LINENO: error: Sorry, we can't continue without mpi4py" >&5
-$as_echo "$as_me: error: Sorry, we can't continue without mpi4py" >&2;}
-   { (exit 1); exit 1; }; }
-    fi
+            { $as_echo "$as_me:$LINENO: WARNING: Sorry, we can't continue without mpi4py" >&5
+$as_echo "$as_me: WARNING: Sorry, we can't continue without mpi4py" >&2;}
+            PYTHON="no"
+        fi
 
-    NUMPY_INCLUDE=`${PYTHON} -c 'import numpy; print( numpy.get_include() )'`
+        NUMPY_INCLUDE=`${PYTHON} -c 'import numpy; print( numpy.get_include() )'`
 
-    if test "x${NUMPY_INCLUDE}" = "x" ; then
-        { $as_echo "$as_me:$LINENO: WARNING: " >&5
+        if test "x${NUMPY_INCLUDE}" = "x" ; then
+            { $as_echo "$as_me:$LINENO: WARNING: " >&5
 $as_echo "$as_me: WARNING: " >&2;}
-        { $as_echo "$as_me:$LINENO: WARNING: numpy package not found" >&5
+            { $as_echo "$as_me:$LINENO: WARNING: numpy package not found" >&5
 $as_echo "$as_me: WARNING: numpy package not found" >&2;}
-        { $as_echo "$as_me:$LINENO: WARNING: Please install mpi4py from http://numpy.scipy.org" >&5
+            { $as_echo "$as_me:$LINENO: WARNING: Please install mpi4py from http://numpy.scipy.org" >&5
 $as_echo "$as_me: WARNING: Please install mpi4py from http://numpy.scipy.org" >&2;}
-        { $as_echo "$as_me:$LINENO: WARNING: " >&5
+            { $as_echo "$as_me:$LINENO: WARNING: " >&5
 $as_echo "$as_me: WARNING: " >&2;}
-        { { $as_echo "$as_me:$LINENO: error: Sorry, we can't continue without numpy" >&5
-$as_echo "$as_me: error: Sorry, we can't continue without numpy" >&2;}
-   { (exit 1); exit 1; }; }
+            { $as_echo "$as_me:$LINENO: WARNING: Sorry, we can't continue without numpy" >&5
+$as_echo "$as_me: WARNING: Sorry, we can't continue without numpy" >&2;}
+            PYTHON="no"
+        fi
+
+        if test "x${PYTHON}" = "xno" ; then
+             if false; then
+  ENABLE_PYTHON_TRUE=
+  ENABLE_PYTHON_FALSE='#'
+else
+  ENABLE_PYTHON_TRUE='#'
+  ENABLE_PYTHON_FALSE=
+fi
+
+        fi
+
+
+
     fi
-
-
-
-
-
-
-
 else
      if false; then
   ENABLE_PYTHON_TRUE=
@@ -23053,6 +23067,20 @@ if test -z "${DEBUG_TRUE}" && test -z "${DEBUG_FALSE}"; then
   { { $as_echo "$as_me:$LINENO: error: conditional \"DEBUG\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
 $as_echo "$as_me: error: conditional \"DEBUG\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${ENABLE_PYTHON_TRUE}" && test -z "${ENABLE_PYTHON_FALSE}"; then
+  { { $as_echo "$as_me:$LINENO: error: conditional \"ENABLE_PYTHON\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+$as_echo "$as_me: error: conditional \"ENABLE_PYTHON\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${ENABLE_PYTHON_TRUE}" && test -z "${ENABLE_PYTHON_FALSE}"; then
+  { { $as_echo "$as_me:$LINENO: error: conditional \"ENABLE_PYTHON\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+$as_echo "$as_me: error: conditional \"ENABLE_PYTHON\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi

@@ -1,3 +1,22 @@
+#-----------------------------------------------------------------------------
+# This file is part of the CWIPI library. 
+#
+# Copyright (C) 2011  ONERA
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library. If not, see <http://www.gnu.org/licenses/>.
+#-----------------------------------------------------------------------------
+
 # Process this file with autoconf to produce a configure script.
 
 #------------------------------------------------------------------------------
@@ -64,8 +83,6 @@ CWIPI_AC_CONFIG_PUBL_DEFINE(CWIPI_RELEASE_VERSION, cwipi_release_version,
 user_CPPFLAGS=$CPPFLAGS
 user_CFLAGS=$CFLAGS
 user_LDFLAGS=$LDFLAGS
-
-
 
 AC_PROG_CC(cc gcc icc)
 
@@ -269,45 +286,51 @@ if test "x${python_bindings}" != "xfalse"; then
         AC_MSG_WARN([Python interpreter not found])
         AC_MSG_WARN([Please install Python from http://www.python.org])
         AC_MSG_WARN([])
-        AC_MSG_ERROR([Sorry, we can't continue without Python interpreter])
+        AC_MSG_WARN([Sorry, we can't continue without Python interpreter])
+        AM_CONDITIONAL(ENABLE_PYTHON, false)
+
+    else
+    
+        PYTHON_INCLUDE=`${PYTHON} -c 'from distutils import sysconfig; print( sysconfig.get_python_inc() )'`
+
+        if test "x${PYTHON_INCLUDE}" = "x" ; then
+            AC_MSG_WARN([])
+            AC_MSG_WARN([Python include not found])
+            AC_MSG_WARN([Please install Python from http://www.python.org])
+            AC_MSG_WARN([])
+            AC_MSG_WARN([Sorry, we can't continue without Python include])
+            PYTHON="no"        
+        fi
+
+        MPI4PY_INCLUDE=`${PYTHON} -c 'import mpi4py; print( mpi4py.get_include() )'`
+
+        if test "x${MPI4PY_INCLUDE}" = "x" ; then
+            AC_MSG_WARN([])
+            AC_MSG_WARN([mpi4py package not found])
+            AC_MSG_WARN([Please install mpi4py from http://code.google.com/p/mpi4py])
+            AC_MSG_WARN([])
+            AC_MSG_WARN([Sorry, we can't continue without mpi4py])
+            PYTHON="no"        
+        fi
+
+        NUMPY_INCLUDE=`${PYTHON} -c 'import numpy; print( numpy.get_include() )'`
+
+        if test "x${NUMPY_INCLUDE}" = "x" ; then
+            AC_MSG_WARN([])
+            AC_MSG_WARN([numpy package not found])
+            AC_MSG_WARN([Please install mpi4py from http://numpy.scipy.org])
+            AC_MSG_WARN([])
+            AC_MSG_WARN([Sorry, we can't continue without numpy])
+            PYTHON="no"        
+        fi
+
+        if test "x${PYTHON}" = "xno" ; then
+            AM_CONDITIONAL(ENABLE_PYTHON, false)
+        fi
+        AC_SUBST(PYTHON_INCLUDE)
+        AC_SUBST(MPI4PY_INCLUDE)
+        AC_SUBST(NUMPY_INCLUDE)
     fi
-
-    PYTHON_INCLUDE=`${PYTHON} -c 'from distutils import sysconfig; print( sysconfig.get_python_inc() )'`
-
-    if test "x${PYTHON_INCLUDE}" = "x" ; then
-        AC_MSG_WARN([])
-        AC_MSG_WARN([Python include not found])
-        AC_MSG_WARN([Please install Python from http://www.python.org])
-        AC_MSG_WARN([])
-        AC_MSG_ERROR([Sorry, we can't continue without Python include])
-    fi
-
-    MPI4PY_INCLUDE=`${PYTHON} -c 'import mpi4py; print( mpi4py.get_include() )'`
-
-    if test "x${MPI4PY_INCLUDE}" = "x" ; then
-        AC_MSG_WARN([])
-        AC_MSG_WARN([mpi4py package not found])
-        AC_MSG_WARN([Please install mpi4py from http://code.google.com/p/mpi4py])
-        AC_MSG_WARN([])
-        AC_MSG_ERROR([Sorry, we can't continue without mpi4py])
-    fi
-
-    NUMPY_INCLUDE=`${PYTHON} -c 'import numpy; print( numpy.get_include() )'`
-
-    if test "x${NUMPY_INCLUDE}" = "x" ; then
-        AC_MSG_WARN([])
-        AC_MSG_WARN([numpy package not found])
-        AC_MSG_WARN([Please install mpi4py from http://numpy.scipy.org])
-        AC_MSG_WARN([])
-        AC_MSG_ERROR([Sorry, we can't continue without numpy])
-    fi
-
-    AC_SUBST(PYTHON_INCLUDE)
-
-    AC_SUBST(MPI4PY_INCLUDE)
-
-    AC_SUBST(NUMPY_INCLUDE)
-
 else
     AM_CONDITIONAL(ENABLE_PYTHON, false)
 fi

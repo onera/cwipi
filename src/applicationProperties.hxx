@@ -1,18 +1,24 @@
 #ifndef __APPLICATION_PROPERTIES_H__
 #define __APPLICATION_PROPERTIES_H__
-///////////////////////////////////////////////////////////////////////////////
-//
-// Copyright (C) 2009  ONERA
-//
-// Description :
-//    This class describes application properties :
-//        - intra mpi communicator (localComm)
-//        - beginning and end rank in the inter mpi communicator (globalComm)
-//        - control parameters storage
-//
-///////////////////////////////////////////////////////////////////////////////
+/*
+  This file is part of the CWIPI library. 
 
-//Bug mpich2
+  Copyright (C) 2011  ONERA
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 3 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library. If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #define MPICH_IGNORE_CXX_SEEK 1
 
 #include <cassert>

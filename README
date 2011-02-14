@@ -1,45 +1,21 @@
 
-Installation AIX (phobos ONERA)
-------------------------------- 
 
-Options des configure :
+For a standard install, execute : 
+    - configure --prefix=<install rep> --with-bft=<bft rep> --with-fvm=<fvm rep> --with-mpi=<rep mpi> CC=<C ompiler>  CXX=<C++ compiler> FC=<fortran compiler> F77=<fortran77 compiler> 
+    - make
+    - make install
 
-bft   : configure --prefix='rep' CC="mpcc_r -qlanglvl=stdc99 -q64" AR="ar -X 64"
-fvm   : configure --prefix='rep' --with-bft='rep1' CC="mpcc_r -q64" AR="ar -X 64"
-cwipi : configure --prefix='rep' --with-bft='rep1' --with-fvm='rep2' CC="mpcc_r -qlanglvl=stdc99 -q64 -g" CXX="mpCC_r -q64 -g" FC="mpxlf95_r -qsuffix=f=f90 -q64 -g" F77="mpxlf95_r -qsuffix=f=f90 -q64 -g" LDFLAGS="-lxlf90 -lC" AR="ar -X 64" --disable-shared
+CC, CCX, F77 or FC accept MPI compiler wrapper (mpicc, ...). In this case, do not use '--with-mpi' option.
 
-mettre disable-shared pour cwipi sinon les appels de bft dans cwipi provoquent des segmentation fault
-mettre a jour la variable d'enviornnemnt LIBPATH.
+To see all configure options, execute 'configure --help'
 
-Installation x86_64
--------------------
+To compile and execute tests, execute :
+    - make check NP=<number of processus (default 2)> MPI_EXEC=<mpi launcher (default mpiexec)> MPI_NP=<argument before the number of processus (default -np)>
 
-Options des configure : Pas de particularité
+To use valgrind, add VALGRIND=<path> option
+To use execute only of few tests, define TESTS option
 
-Installation ia64 (galibier ONERA)
-----------------------------------
 
-Options des configure :
 
-bft   : configure --prefix='rep' CC="mpcc_r -qlanglvl=stdc99 -q64" AR="ar -X 64"
-fvm   : configure --prefix='rep' --with-bft='rep1' CC="mpcc_r -q64" AR="ar -X 64"
-cwipi : configure --prefix='rep' --with-bft='rep1' --with-fvm='rep2' CC="mpcc_r -qlanglvl=stdc99 -q64 -g" CXX="mpCC_r -q64 -g" FC="mpxlf95_r -qsuffix=f=f90 -q64 -g" F77="mpxlf95_r -qsuffix=f=f90 -q64 -g" LDFLAGS="-lxlf90 -lC" AR="ar -X 64" --disable-shared
-
-Installation Nec (iseran ONERA)
--------------------------------
-
-Options des configure :
-
-bft   : configure --prefix='rep' --host=sx8-nec-superux  CC=sxcc  AR="sxar" AR_FLAGS="-r" RANLIB="touch"
-fvm   : configure --prefix='rep' --with-bft='rep' --host=sx8-nec-superux CC=sxmpicc AR="sxar" AR_FLAGS="-r" RANLIB="touch"
-cwipi : configure --prefix='rep' --with-bft='rep' --with-fvm='rep' --host=sx8-nec-superux CC=sxmpic++ AR="sxar" AR_FLAGS="-r" RANLIB="touch" CXX=sxmpic++ FC="sxmpif90" F77=sxmpif90 CFLAGS="-Kc99" CXXFLAGS="-T local" LDFLAGS="-f90lib" 
-
-Une erreur se produit lors de la compilation de test2D_1_c2. Il faut la traiter de la manière suivante :
-            - cd tests
-            - reprendre la derniere commande affichee en remplacant sxmpif90 par sxmpic++
-            - cd ..
-            - relancer make
-            - make install
-            - make install-tests
 
  

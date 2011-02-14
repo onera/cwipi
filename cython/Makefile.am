@@ -1,25 +1,21 @@
-#------------------------------------------------------------------------------
-#   This file is part of the "Mathematical Expression Interpreter" library.
+#-----------------------------------------------------------------------------
+# This file is part of the CWIPI library. 
 #
-#   Copyright (C) 2010-2011  ONERA
+# Copyright (C) 2011  ONERA
 #
-#   This library is free software; you can redistribute it and/or
-#   modify it under the terms of the GNU Lesser General Public
-#   License as published by the Free Software Foundation; either
-#   version 2.1 of the License, or (at your option) any later version.
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
 #
-#   This library is distributed in the hope that it will be useful,
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#   Lesser General Public License for more details.
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
 #
-#   You should have received a copy of the GNU Lesser General Public
-#   License along with this library; if not, write to the Free Software
-#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#	$(PYTHON) setup.py build_ext --include-dirs=/opt/intel/impi/3.2.1.009/include64:/home/equemera/opt/bft-1.1.3/Linux_x86_64/include:/home/equemera/opt/fvm-0.15.1-onera-5/Linux_x86_64/include:/home/equemera/opt/cwipi-0.2.10/Linux_x86_64/include \
-#	--library-dirs=/opt/intel/impi/3.2.1.009/lib64:/home/equemera/opt/bft-1.1.3/Linux_x86_64/lib:/home/equemera/opt/fvm-0.15.1-onera-5/Linux_x86_64/lib:/home/equemera/opt/cwipi-0.2.10/Linux_x86_64/lib \
-#	--rpath=/opt/intel/impi/3.2.1.009/lib64:/home/equemera/opt/bft-1.1.3/Linux_x86_64/lib:/home/equemera/opt/fvm-0.15.1-onera-5/Linux_x86_64/lib:/home/equemera/opt/cwipi-0.2.10/Linux_x86_64/lib ;\
-#------------------------------------------------------------------------------
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library. If not, see <http://www.gnu.org/licenses/>.
+#-----------------------------------------------------------------------------
 
 AM_CPPFLAGS = -I@PYTHON_INCLUDE@ -I@NUMPY_INCLUDE@ -I$(top_srcdir)/src $(DEBUG_CPPFLAGS) @BFT_CPPFLAGS@ @FVM_CPPFLAGS@ @MPI_CPPFLAGS@
 AM_CFLAGS = -fno-strict-aliasing 
