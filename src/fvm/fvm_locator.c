@@ -1,0 +1,3209 @@
+/*============================================================================
+ * Locate points in a nodal representation associated with a mesh
+ *============================================================================*/
+
+/*
+  This file is part of the "Finite Volume Mesh" library, intended to provide
+  finite volume mesh and associated fields I/O and manipulation services.
+
+  Copyright (C) 2005-2008  EDF
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+/*----------------------------------------------------------------------------*/
+
+#include "fvm_config.h"
+
+/*----------------------------------------------------------------------------
+ * Standard C library headers
+ *----------------------------------------------------------------------------*/
+
+#include <assert.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#if defined(FVM_HAVE_MPI)
+#include <mpi.h>
+#endif
+
+/*----------------------------------------------------------------------------
+ * BFT library headers
+ *----------------------------------------------------------------------------*/
+
+#include <bft_error.h>
+#include <bft_mem.h>
+#include <bft_printf.h>
+#include <bft_timer.h>
+
+/*----------------------------------------------------------------------------
+ *  Local headers
+ *----------------------------------------------------------------------------*/
+
+#include "fvm_config_defs.h"
+#include "fvm_defs.h"
+#include "fvm_nodal.h"
+#include "fvm_nodal_priv.h"
+#include "fvm_parall.h"
+#include "fvm_point_location.h"
+
+/*----------------------------------------------------------------------------
+ *  Header for the current file
+ *----------------------------------------------------------------------------*/
+
+#include "fvm_locator.h"
+
+/*----------------------------------------------------------------------------*/
+
+#ifdef __cplusplus
+extern "C" {
+#if 0
+} /* Fake brace to force back Emacs auto-indentation back to column 0 */
+#endif
+#endif /* __cplusplus */
+
+/*============================================================================
+ * Local macro definitions
+ *============================================================================*/
+
+/* In case <math.h> does not define HUGE_VAL, use a "safe" value */
+#if !defined(HUGE_VAL)
+#define HUGE_VAL 1.0e+17
+#endif
+
+/*============================================================================
+ * Type definitions
+ *============================================================================*/
+
+/*----------------------------------------------------------------------------
+ * Structure defining a non blocking communication
+ *----------------------------------------------------------------------------*/
+
+#if defined(FVM_HAVE_MPI)
+typedef struct  {
+  void       **buffer;       /* tmp buffers for nonblocking */
+  MPI_Request *MPI_request;  /* MPI requests for nonblocking */
+  void        *var;          /* buffers updated in wait */ 
+  const int   *local_list;   /* optional indirection list for
+                                tmp_buffer -> buffer */
+  int          stride;       /* dimension (1 for scalar, 
+                                3 for interlaced vector) */
+  int          size;         /* size of type*/
+  _Bool        reverse;      /* reverse mod for exchange */
+} _fvm_locator_nblocking_t;
+#endif
+
+/*----------------------------------------------------------------------------
+ * Structure defining a locator
+ *----------------------------------------------------------------------------*/
+
+struct _fvm_locator_t {
+
+  /* Basic information */
+  /*-------------------*/
+
+  double    tolerance;         /* Associated tolerance */
+
+  _Bool     locate_on_parents; /* Locate relative to parent element numbers
+                                  if true, element_id + 1 in concatenated
+                                  sections of same element dimension if false */
+
+  int       dim;               /* Spatial dimension */
+
+#if defined(FVM_HAVE_MPI)
+  MPI_Comm  comm;              /* Associated MPI communicator */
+#endif
+
+  int       n_ranks;           /* Number of MPI ranks of distant location */
+  int       start_rank;        /* First MPI rank of distant location */
+
+  int       n_intersects;      /* Number of intersecting distant ranks */
+  int      *intersect_rank;    /* List of intersecting distant ranks */
+#if defined(FVM_HAVE_MPI)
+  _fvm_locator_nblocking_t *nblockings_send; /*    */
+  _fvm_locator_nblocking_t *nblockings_recv; /*    */
+  int                    max_nblockings_send;  
+  int                    max_nblockings_recv;  
+#endif
+  double   *intersect_extents; /* List of intersecting distant extents */
+
+  fvm_lnum_t   *local_points_idx;   /* Start index of local points per rank
+                                       (size: n_intersects + 1)*/
+  fvm_lnum_t   *distant_points_idx; /* Start index of distant points per rank
+                                       (size: n_intersects + 1)*/
+
+  fvm_lnum_t   *local_point_ids;        /* Local point index for data received
+                                           (with blocs starting at
+                                           local_points_idx[] indexes,
+                                           0 to n-1 numbering) */
+
+  fvm_lnum_t   *distant_point_location; /* Location of distant points by parent
+                                           element number (with blocs starting
+                                           at distant_points_idx[] indexes) */
+  fvm_coord_t  *distant_point_coords;   /* Coordinates of distant points
+                                           (with blocs starting at
+                                           distant_points_idx[]*dim indexes) */
+
+  fvm_lnum_t    n_interior;         /* Number of local points located */
+  fvm_lnum_t   *interior_list;      /* List (1 to n numbering) of points
+                                       located */
+  fvm_lnum_t    n_exterior;         /* Number of local points not located */
+  fvm_lnum_t   *exterior_list;      /* List (1 to n numbering) of points
+                                       not located */
+
+  /* Timing information (2 fields/time; 0: total; 1: communication) */
+
+  double  location_wtime[2];       /* Location Wall-clock time */
+  double  location_cpu_time[2];    /* Location CPU time */
+  double  exchange_wtime[2];       /* Variable exchange Wall-clock time */
+  double  exchange_cpu_time[2];    /* Variable exchange CPU time */
+  double  issend_wtime[2];       /* Variable exchange Wall-clock time */
+  double  issend_cpu_time[2];    /* Variable exchange CPU time */
+  double  irecv_wtime[2];       /* Variable exchange Wall-clock time */
+  double  irecv_cpu_time[2];    /* Variable exchange CPU time */
+
+};
+
+/*============================================================================
+ * Static global variables
+ *============================================================================*/
+
+#if defined(FVM_HAVE_MPI)
+
+static fvm_locator_log_t   *_fvm_locator_log_func = NULL;
+
+/* global variables associated with communication logging */
+
+static int  _fvm_locator_log_start_p_comm = 0;
+static int  _fvm_locator_log_end_p_comm = 0;
+static int  _fvm_locator_log_start_g_comm = 0;
+static int  _fvm_locator_log_end_g_comm = 0;
+
+#endif
+
+/*============================================================================
+ * Private function definitions
+ *============================================================================*/
+
+#if defined(FVM_HAVE_MPI)
+
+/*----------------------------------------------------------------------------
+ * Log communication start.
+ *
+ * parameters:
+ *   start_p_comm  <-- event number for the start of the "send/recv" or
+ *                     "global send/recv" state
+ *   timing        <-> 0: wall-clock total; 1 CPU total;
+ *                     2: wall-clock timer start; 3: CPU timer start
+ *----------------------------------------------------------------------------*/
+
+inline static void
+_locator_trace_start_comm(int      start_p_comm,
+                          double   timing[4])
+{
+  timing[2] = bft_timer_wtime();
+  timing[3] = bft_timer_cpu_time();
+
+  if(_fvm_locator_log_func != NULL)
+    _fvm_locator_log_func(start_p_comm, 0, NULL);
+}
+
+/*----------------------------------------------------------------------------
+ * Log communication end.
+ *
+ * parameters:
+ *   end_p_comm  <-- event number for the end of the "send/recv" or
+ *                   "global send/recv" state
+ *   timing      <-> 0: wall-clock total; 1 CPU total;
+ *                   2: wall-clock timer start; 3: CPU timer start
+ *----------------------------------------------------------------------------*/
+
+inline static void
+_locator_trace_end_comm(int      end_p_comm,
+                        double   timing[4])
+{
+  if(_fvm_locator_log_func != NULL)
+    _fvm_locator_log_func(end_p_comm, 0, NULL);
+
+  timing[0] += bft_timer_wtime() - timing[2];
+  timing[1] += bft_timer_cpu_time() - timing[3];
+}
+
+#endif /* defined(FVM_HAVE_MPI) */
+
+/*----------------------------------------------------------------------------
+ * Test if two extents intersect
+ *
+ * parameters:
+ *   dim             <-- spatial (coordinates) dimension
+ *   extents_1       <-- extents: x_min, y_min, ..., x_max, y_max, ...
+ *                       size: dim*2
+ *   extents_2       <-- extents: x_min, y_min, ..., x_max, y_max, ...
+ *                       size: dim*2
+ *
+ * returns:
+ *   true if extents intersect, false otherwise
+ *----------------------------------------------------------------------------*/
+
+inline static _Bool
+_intersect_extents(int           dim,
+                   const double  extents_1[],
+                   const double  extents_2[])
+{
+  int i;
+  _Bool retval = true;
+
+  for (i = 0; i < dim; i++) {
+    if (   (extents_1[i] > extents_2[i + dim])
+        || (extents_2[i] > extents_1[i + dim])) {
+      retval = false;
+      break;
+    }
+  }
+
+  return retval;
+}
+
+/*----------------------------------------------------------------------------
+ * Test if a point is within given extents
+ *
+ * parameters:
+ *   dim             <-- spatial (coordinates) dimension
+ *   coords          <-- coordinates: x, y, ...
+ *                       size: dim
+ *   extents         <-- extents: x_min, y_min, ..., x_max, y_max, ...
+ *                       size: dim*2
+ *
+ * returns:
+ *   true if point lies within extents, false otherwise
+ *----------------------------------------------------------------------------*/
+
+inline static _Bool
+_within_extents(int                dim,
+                const fvm_coord_t  coords[],
+                const double       extents[])
+{
+  int i;
+  _Bool retval = true;
+
+  for (i = 0; i < dim; i++) {
+    if (   (coords[i] < extents[i])
+        || (coords[i] > extents[i + dim])) {
+      retval = false;
+      break;
+    }
+  }
+
+  return retval;
+}
+
+/*----------------------------------------------------------------------------
+ * Update element extents with a given vertex
+ *
+ * parameters:
+ *   dim               <-- spatial (coordinates) dimension
+ *   vertex_id         <-- vertex index (0 to n-1)
+ *   parent_vertex_num <-- pointer to parent vertex numbers (or NULL)
+ *   vertex_coords     <-- pointer to vertex coordinates
+ *   elt_extents       <-> extents associated with element:
+ *                         x_min, y_min, ..., x_max, y_max, ... (size: 2*dim)
+ *   elt_initialized   <-> are extents already initialized for this vertex
+ *                         (for all element vertices except the first) ?
+ *----------------------------------------------------------------------------*/
+
+inline static void
+_update_elt_extents(int                 dim,
+                    fvm_lnum_t          vertex_id,
+                    const fvm_lnum_t   *parent_vertex_num,
+                    const fvm_coord_t   vertex_coords[],
+                    double              elt_extents[],
+                    _Bool              *elt_initialized)
+{
+  fvm_lnum_t  i, coord_idx;
+
+  if (parent_vertex_num == NULL)
+    coord_idx = vertex_id;
+  else
+    coord_idx = parent_vertex_num[vertex_id] - 1;
+
+  if (*elt_initialized == false) {
+    for (i = 0; i < dim; i++) {
+      elt_extents[i]       = vertex_coords[(coord_idx * dim) + i];
+      elt_extents[i + dim] = vertex_coords[(coord_idx * dim) + i];
+    }
+    *elt_initialized = true;
+  }
+  else {
+    for (i = 0; i < dim; i++) {
+      if (elt_extents[i]       > vertex_coords[(coord_idx * dim) + i])
+        elt_extents[i]       = vertex_coords[(coord_idx * dim) + i];
+      if (elt_extents[i + dim] < vertex_coords[(coord_idx * dim) + i])
+        elt_extents[i + dim] = vertex_coords[(coord_idx * dim) + i];
+    }
+
+  }
+
+}
+
+/*----------------------------------------------------------------------------
+ * Adjust element extents with search tolerance and update global extents
+ *
+ * parameters:
+ *   dim         <-- spatial (coordinates) dimension
+ *   elt_dim     <-- element dimension
+ *   tolerance   <-- addition to local extents of each element:
+ *                   extent = base_extent * (1 + tolerance)
+ *   elt_extents <-> extents associated with element:
+ *                   x_min, y_min, ..., x_max, y_max, ... (size: 2*dim)
+ *----------------------------------------------------------------------------*/
+
+inline static void
+_elt_extents_finalize(int               dim,
+                      int               elt_dim,
+                      double            tolerance,
+                      double  *restrict elt_extents)
+{
+  int i;
+  double delta[3];
+
+  for (i = 0; i < dim; i++)
+    delta[i] = (elt_extents[i+dim] - elt_extents[i]) * tolerance;
+
+  if (elt_dim < dim) {
+    double delta_max = delta[0];  /* for 1d or 2d elements, ensure */
+    for (i = 0; i < dim; i++) {   /* search extent "thickness" */
+      if (delta[i] > delta_max)
+        delta_max = delta[i];
+    }
+    for (i = 0; i < dim; i++)
+      delta[i] = delta_max;
+  }
+
+  for (i = 0; i < dim; i++) {
+    elt_extents[i]     = elt_extents[i]     - delta[i];
+    elt_extents[i+dim] = elt_extents[i+dim] + delta[i];
+  }
+
+}
+
+/*----------------------------------------------------------------------------
+ * Adjust extents with sub-extents
+ *
+ * parameters:
+ *   dim         <-- spatial (coordinates) dimension
+ *   sub_extents <-> extents associated with element or section:
+ *                   x_min, y_min, ..., x_max, y_max, ... (size: 2*dim)
+ *   extents     <-> optional section or mesh extents, to be updated:
+ *                   x_min, y_min, ..., x_max, y_max, ... (size: 2*dim);
+ *                   NULL if unused
+ *----------------------------------------------------------------------------*/
+
+inline static void
+_update_extents(int               dim,
+                double  *restrict sub_extents,
+                double  *restrict extents)
+{
+  int i;
+
+  for (i = 0; i < dim; i++) {
+    if (sub_extents[i] < extents[i])
+      extents[i] = sub_extents[i];
+    if (sub_extents[i+dim] > extents[i+dim])
+      extents[i+dim] = sub_extents[i+dim];
+  }
+}
+
+/*----------------------------------------------------------------------------
+ * Compute extents of a nodal mesh representation section
+ *
+ * parameters:
+ *   this_section      <-- pointer to section structure
+ *   dim               <-- spatial (coordinates) dimension
+ *   parent_vertex_num <-- pointer to parent vertex numbers (or NULL)
+ *   vertex_coords     <-- pointer to vertex coordinates
+ *   tolerance         <-- addition to local extents of each element:
+ *                         extent = base_extent * (1 + tolerance)
+ *   extents           <-> extents associated with section:
+ *                         x_min, y_min, ..., x_max, y_max, ... (size: 2*dim)
+ *----------------------------------------------------------------------------*/
+
+static void
+_nodal_section_extents(const fvm_nodal_section_t  *this_section,
+                       int                         dim,
+                       const fvm_lnum_t           *parent_vertex_num,
+                       const fvm_coord_t           vertex_coords[],
+                       double                      tolerance,
+                       double                      extents[])
+{
+  fvm_lnum_t  i, j, k, face_id, vertex_id;
+  double elt_extents[6];
+
+  /* initialize extents in case section is empty */
+  for (i = 0; i < dim; i++) {
+    extents[i]       =  HUGE_VAL;
+    extents[i + dim] = -HUGE_VAL;
+  }
+
+  /* Extents for polyhedra */
+
+  if (this_section->face_index != NULL) {
+
+    for (i = 0; i < this_section->n_elements; i++) {
+
+      _Bool elt_initialized = false;
+
+      for (j = this_section->face_index[i];
+           j < this_section->face_index[i + 1];
+           j++) {
+        face_id = FVM_ABS(this_section->face_num[j]) - 1;
+        for (k = this_section->vertex_index[face_id];
+             k < this_section->vertex_index[face_id + 1];
+             k++) {
+          vertex_id = this_section->vertex_num[k] - 1;
+
+          _update_elt_extents(dim,
+                              vertex_id,
+                              parent_vertex_num,
+                              vertex_coords,
+                              elt_extents,
+                              &elt_initialized);
+
+        }
+      }
+
+      _elt_extents_finalize(dim, 3, tolerance, elt_extents);
+      _update_extents(dim, elt_extents, extents);
+
+    }
+
+  }
+
+  /* Extents for polygons */
+
+  else if (this_section->vertex_index != NULL) {
+
+    fvm_lnum_t  n_faces = (this_section->n_faces > 0) ?
+                          this_section->n_faces : this_section->n_elements;
+
+    for (i = 0; i < n_faces; i++) {
+
+      _Bool elt_initialized = false;
+
+      for (j = this_section->vertex_index[i];
+           j < this_section->vertex_index[i + 1];
+           j++) {
+        vertex_id = this_section->vertex_num[j] - 1;
+
+        _update_elt_extents(dim,
+                            vertex_id,
+                            parent_vertex_num,
+                            vertex_coords,
+                            elt_extents,
+                            &elt_initialized);
+
+      }
+
+      _elt_extents_finalize(dim, 2, tolerance, elt_extents);
+      _update_extents(dim, elt_extents, extents);
+
+    }
+
+  }
+
+  /* Extents for regular elements */
+
+  else {
+
+    for (i = 0; i < this_section->n_elements; i++) {
+
+      _Bool elt_initialized = false;
+
+      for (j = 0; j < this_section->stride; j++) {
+
+        vertex_id = this_section->vertex_num[i*this_section->stride + j] - 1;
+
+        _update_elt_extents(dim,
+                            vertex_id,
+                            parent_vertex_num,
+                            vertex_coords,
+                            elt_extents,
+                            &elt_initialized);
+
+      }
+
+      _elt_extents_finalize(dim,
+                            this_section->entity_dim,
+                            tolerance,
+                            elt_extents);
+      _update_extents(dim, elt_extents, extents);
+
+    }
+  }
+
+}
+
+/*----------------------------------------------------------------------------
+ * Compute extents of a nodal mesh representation
+ *
+ * parameters:
+ *   this_nodal   <-- pointer to mesh representation structure
+ *   tolerance    <-- addition to local extents of each element:
+ *                    extent = base_extent * (1 + tolerance)
+ *   extents      <-> extents associated with mesh:
+ *                    x_min, y_min, ..., x_max, y_max, ... (size: 2*dim)
+ *----------------------------------------------------------------------------*/
+
+static void
+_nodal_extents(const fvm_nodal_t  *this_nodal,
+               double              tolerance,
+               double              extents[])
+{
+  int i, j;
+  int dim;
+  double section_extents[6];
+
+  if (this_nodal == NULL)
+    return;
+
+  dim = this_nodal->dim;
+
+  /* initialize extents in case mesh is empty or dim < 3 */
+  for (i = 0; i < dim; i++) {
+    extents[i]       =  HUGE_VAL;
+    extents[i + dim] = -HUGE_VAL;
+  }
+
+  /* Compute extents */
+
+  for (i = 0; i < this_nodal->n_sections; i++) {
+
+    _nodal_section_extents(this_nodal->sections[i],
+                           this_nodal->dim,
+                           this_nodal->parent_vertex_num,
+                           this_nodal->vertex_coords,
+                           tolerance,
+                           section_extents);
+
+    for (j = 0; j < this_nodal->dim; j++) {
+      if (section_extents[j] < extents[j])
+        extents[j] = section_extents[j];
+      if (section_extents[j+dim] > extents[j+dim])
+        extents[j+dim] = section_extents[j+dim];
+    }
+
+  }
+
+}
+
+/*----------------------------------------------------------------------------
+ * Compute extents of a point set
+ *
+ * parameters:
+ *   dim          <-- space dimension of points to locate
+ *   n_points     <-- number of points to locate
+ *   point_list   <-- optional indirection array to point_coords
+ *                    (1 to n_points numbering)
+ *   point_coords <-- coordinates of points to locate
+ *                    (dimension: dim * n_points)
+ *   extents      --> extents associated with mesh:
+ *                    x_min, y_min, ..., x_max, y_max, ... (size: 2*dim)
+ *----------------------------------------------------------------------------*/
+
+static void
+_point_extents(int                  dim,
+               fvm_lnum_t           n_points,
+               const fvm_lnum_t     point_list[],
+               const fvm_coord_t    point_coords[],
+               double               extents[])
+{
+  int i;
+  fvm_lnum_t j, coord_idx;
+
+  /* initialize extents in case mesh is empty or dim < 3 */
+  for (i = 0; i < dim; i++) {
+    extents[i]       =  HUGE_VAL;
+    extents[i + dim] = -HUGE_VAL;
+  }
+
+  /* Compute extents */
+
+  if (point_list != NULL) {
+
+    for (j = 0; j < n_points; j++) {
+      coord_idx = point_list[j] - 1;
+      for (i = 0; i < dim; i++) {
+        if (extents[i]       > point_coords[(coord_idx * dim) + i])
+          extents[i]       = point_coords[(coord_idx * dim) + i];
+        if (extents[i + dim] < point_coords[(coord_idx * dim) + i])
+          extents[i + dim] = point_coords[(coord_idx * dim) + i];
+      }
+    }
+  }
+
+  else {
+
+    for (coord_idx = 0; coord_idx < n_points; coord_idx++) {
+      for (i = 0; i < dim; i++) {
+        if (extents[i]       > point_coords[(coord_idx * dim) + i])
+          extents[i]       = point_coords[(coord_idx * dim) + i];
+        if (extents[i + dim] < point_coords[(coord_idx * dim) + i])
+          extents[i + dim] = point_coords[(coord_idx * dim) + i];
+      }
+    }
+  }
+
+}
+
+#if defined(FVM_HAVE_MPI)
+
+/*----------------------------------------------------------------------------
+ * Prepare locator for use with a given nodal mesh representation and
+ * point set.
+ *
+ * parameters:
+ *   this_locator      <-> pointer to locator structure
+ *   this_nodal        <-- pointer to mesh representation structure
+ *   dim               <-- spatial dimension
+ *   n_points          <-- number of points to locate
+ *   point_list        <-- optional indirection array to point_coords
+ *                         (1 to n_points numbering)
+ *   point_coords      <-- coordinates of points to locate
+ *                         (dimension: dim * n_points)
+ *----------------------------------------------------------------------------*/
+
+static void
+_locate_all_distant(fvm_locator_t       *this_locator,
+                    const fvm_nodal_t   *this_nodal,
+                    int                  dim,
+                    fvm_lnum_t           n_points,
+                    const fvm_lnum_t     point_list[],
+                    const fvm_coord_t    point_coords[])
+{
+  int i, k, stride;
+  int dist_rank, dist_index;
+  fvm_lnum_t j;
+  fvm_lnum_t n_coords_loc, n_coords_dist, n_interior, n_exterior;
+  fvm_lnum_t coord_idx, start_idx;
+  fvm_lnum_t *location_loc, *location_dist;
+  fvm_lnum_t *location, *location_rank_id;
+  fvm_lnum_t *send_index, *send_location;
+  fvm_lnum_t *location_count, *location_shift;
+  fvm_coord_t *coords_dist, *send_coords;
+  float *distance;
+  float *distance_dist, *distance_loc;
+  double extents[6];
+
+  MPI_Status status;
+
+  double comm_timing[4] = {0., 0., 0., 0.};
+
+  /* Initialization */
+
+  stride = dim * 2;
+
+  BFT_MALLOC(send_coords, n_points * dim, fvm_coord_t);
+  BFT_MALLOC(send_index, n_points, fvm_lnum_t);
+
+  BFT_MALLOC(location, n_points, fvm_lnum_t);
+  BFT_MALLOC(location_rank_id, n_points, fvm_lnum_t);
+  BFT_MALLOC(distance, n_points, float);
+
+  for (j = 0; j < n_points; j++) {
+    location[j] = -1;
+    location_rank_id[j] = -1;
+    distance[j] = -1.0;
+  }
+
+  /* First loop on possibly intersecting distant ranks */
+  /*---------------------------------------------------*/
+
+  for (i = 0; i < this_locator->n_intersects; i++) {
+
+    dist_index = i; /* Ordering (communication schema) not yet optimized */
+    dist_rank  = this_locator->intersect_rank[dist_index];
+
+    /* Prepare and send coords that should fit in each send buffer */
+    /* Reset buffers for current intersect rank */
+
+    n_coords_loc = 0;
+
+    for (k = 0; k < stride; k++)
+      extents[k] = this_locator->intersect_extents[dist_index*stride + k];
+
+    /* Build partial buffer */
+
+    for (j = 0; j < n_points; j++) {
+
+      if (point_list != NULL)
+        coord_idx = point_list[j] - 1;
+      else
+        coord_idx = j;
+
+      if (_within_extents(dim,
+                          &(point_coords[dim*coord_idx]),
+                          extents) == true) {
+
+        send_index[n_coords_loc] = j;
+        for (k = 0; k < dim; k++)
+          send_coords[n_coords_loc*dim + k]
+            = point_coords[dim*coord_idx + k];
+
+        n_coords_loc += 1;
+      }
+
+    }
+
+    /* Send then receive partial buffer */
+
+    dist_rank = this_locator->intersect_rank[dist_index];
+
+    _locator_trace_start_comm(_fvm_locator_log_start_p_comm, comm_timing);
+
+    MPI_Sendrecv(&n_coords_loc, 1, FVM_MPI_LNUM, dist_rank, FVM_MPI_TAG,
+                 &n_coords_dist, 1, FVM_MPI_LNUM, dist_rank,
+                 FVM_MPI_TAG, this_locator->comm, &status);
+
+    _locator_trace_end_comm(_fvm_locator_log_end_p_comm, comm_timing);
+
+    BFT_MALLOC(coords_dist, n_coords_dist*dim, fvm_coord_t);
+
+    _locator_trace_start_comm(_fvm_locator_log_start_p_comm, comm_timing);
+
+    MPI_Sendrecv(send_coords, (int)(n_coords_loc*dim),
+                 FVM_MPI_COORD, dist_rank, FVM_MPI_TAG,
+                 coords_dist, (int)(n_coords_dist*dim),
+                 FVM_MPI_COORD, dist_rank, FVM_MPI_TAG,
+                 this_locator->comm, &status);
+
+    _locator_trace_end_comm(_fvm_locator_log_end_p_comm, comm_timing);
+
+    /* Now locate received coords on local rank */
+
+    BFT_MALLOC(location_dist, n_coords_dist, fvm_lnum_t);
+    BFT_MALLOC(distance_dist, n_coords_dist, float);
+
+    for (j = 0; j < n_coords_dist; j++) {
+      location_dist[j] = -1;
+      distance_dist[j] = -1.0;
+    }
+
+    fvm_point_location_nodal(this_nodal,
+                             this_locator->tolerance,
+                             this_locator->locate_on_parents,
+                             n_coords_dist,
+                             coords_dist,
+                             location_dist,
+                             distance_dist);
+
+    BFT_FREE(coords_dist);
+
+    /* Exchange location return information with distant rank */
+
+    BFT_MALLOC(location_loc, n_coords_loc, fvm_lnum_t);
+    BFT_MALLOC(distance_loc, n_coords_loc, float);
+
+    _locator_trace_start_comm(_fvm_locator_log_start_p_comm, comm_timing);
+
+    MPI_Sendrecv(location_dist, (int)n_coords_dist,
+                 FVM_MPI_LNUM, dist_rank, FVM_MPI_TAG,
+                 location_loc, (int)n_coords_loc,
+                 FVM_MPI_LNUM, dist_rank, FVM_MPI_TAG,
+                 this_locator->comm, &status);
+
+    MPI_Sendrecv(distance_dist, (int)n_coords_dist,
+                 MPI_FLOAT, dist_rank, FVM_MPI_TAG,
+                 distance_loc, (int)n_coords_loc,
+                 MPI_FLOAT, dist_rank, FVM_MPI_TAG,
+                 this_locator->comm, &status);
+
+    _locator_trace_end_comm(_fvm_locator_log_end_p_comm, comm_timing);
+
+    BFT_FREE(location_dist);
+    BFT_FREE(distance_dist);
+
+    /* Now update location information */
+
+    for (j = 0; j < n_coords_loc; j++) {
+
+      fvm_lnum_t l = send_index[j];
+
+      if (   (distance_loc[j] > -0.1)
+          && (distance_loc[j] < distance[l] || distance[l] < -0.1)) {
+        location_rank_id[l] = i;
+        location[l] = location_loc[j];
+        distance[l] = distance_loc[j];
+      }
+
+    }
+
+    BFT_FREE(location_loc);
+    BFT_FREE(distance_loc);
+
+  }
+
+  /* Reorganize localization information */
+  /*-------------------------------------*/
+
+  /* Now that localization is done, the location[] array contains
+     either -1 if a point was not localized, or a local index
+     (associated with the corresponding rank); the distance[] array
+     is not needed anymore now that all comparisons have been done */
+
+  BFT_FREE(distance);
+
+  BFT_MALLOC(location_shift, this_locator->n_intersects, fvm_lnum_t);
+  BFT_MALLOC(location_count, this_locator->n_intersects, fvm_lnum_t);
+
+  for (i = 0; i < this_locator->n_intersects; i++)
+    location_count[i] = 0;
+
+  n_exterior = 0;
+  for (j = 0; j < n_points; j++) {
+    if (location_rank_id[j] > -1)
+      location_count[location_rank_id[j]] += 1;
+    else
+      n_exterior += 1;
+  }
+
+  this_locator->n_interior = n_points - n_exterior;
+  BFT_MALLOC(this_locator->interior_list, this_locator->n_interior, fvm_lnum_t);
+
+  this_locator->n_exterior = n_exterior;
+  BFT_MALLOC(this_locator->exterior_list, this_locator->n_exterior, fvm_lnum_t);
+
+  if (this_locator->n_intersects > 0)
+    location_shift[0] = 0;
+  for (i = 1; i < this_locator->n_intersects; i++)
+    location_shift[i] = location_shift[i-1] + location_count[i-1];
+
+  for (i = 0; i < this_locator->n_intersects; i++)
+    location_count[i] = 0;
+
+  /* send_index[] will now contain information for all blocks */
+  for (j = 0; j < n_points; j++)
+    send_index[j] = -1;
+
+  BFT_MALLOC(send_location, n_points, fvm_lnum_t);
+
+  n_interior = 0;
+  n_exterior = 0;
+  for (j = 0; j < n_points; j++) {
+    const int l_rank = location_rank_id[j];
+    if (l_rank > -1) {
+      send_index[location_shift[l_rank] + location_count[l_rank]] = j;
+      location_count[l_rank] += 1;
+      this_locator->interior_list[n_interior] = j + 1;
+      n_interior += 1;
+    }
+    else {
+      this_locator->exterior_list[n_exterior] = j + 1;
+      n_exterior += 1;
+    }
+  }
+
+  /* Second loop on possibly intersecting distant ranks */
+  /*----------------------------------------------------*/
+
+  /* Count and organize total number of local and distant points */
+
+  BFT_MALLOC(this_locator->local_points_idx,
+             this_locator->n_intersects + 1,
+             fvm_lnum_t);
+
+  BFT_MALLOC(this_locator->distant_points_idx,
+             this_locator->n_intersects + 1,
+             fvm_lnum_t);
+
+  this_locator->local_points_idx[0] = 0;
+  this_locator->distant_points_idx[0] = 0;
+
+  for (i = 0; i < this_locator->n_intersects; i++) {
+
+    dist_index = i; /* Ordering (communication schema) not yet optimized */
+    dist_rank = this_locator->intersect_rank[dist_index];
+
+    n_coords_loc = location_count[i];
+
+    this_locator->local_points_idx[i+1]
+      = this_locator->local_points_idx[i] + n_coords_loc;
+
+    _locator_trace_start_comm(_fvm_locator_log_start_p_comm, comm_timing);
+
+    MPI_Sendrecv(&n_coords_loc, 1, FVM_MPI_LNUM, dist_rank, FVM_MPI_TAG,
+                 &n_coords_dist, 1, FVM_MPI_LNUM, dist_rank,
+                 FVM_MPI_TAG, this_locator->comm, &status);
+
+    _locator_trace_end_comm(_fvm_locator_log_end_p_comm, comm_timing);
+
+    this_locator->distant_points_idx[i+1]
+      = this_locator->distant_points_idx[i] + n_coords_dist;
+
+  }
+
+  /* Third loop on possibly intersecting distant ranks */
+  /*----------------------------------------------------*/
+
+  BFT_MALLOC(this_locator->local_point_ids,
+             this_locator->local_points_idx[this_locator->n_intersects],
+             fvm_lnum_t);
+
+  BFT_MALLOC(this_locator->distant_point_location,
+             this_locator->distant_points_idx[this_locator->n_intersects],
+             fvm_lnum_t);
+
+  BFT_MALLOC(this_locator->distant_point_coords,
+             this_locator->distant_points_idx[this_locator->n_intersects] * dim,
+             fvm_coord_t);
+
+  for (i = 0; i < this_locator->n_intersects; i++) {
+
+    dist_index = i; /* Ordering (communication schema) not yet optimized */
+    dist_rank = this_locator->intersect_rank[dist_index];
+
+    n_coords_loc =    this_locator->local_points_idx[i+1]
+                    - this_locator->local_points_idx[i];
+
+    n_coords_dist =   this_locator->distant_points_idx[i+1]
+                    - this_locator->distant_points_idx[i];
+
+    start_idx = this_locator->local_points_idx[i];
+
+    for (j = 0; j < n_coords_loc; j++) {
+
+      coord_idx = send_index[location_shift[i] + j];
+      this_locator->local_point_ids[start_idx + j] = coord_idx;
+      send_location[j] = location[coord_idx];
+      if (point_list != NULL) {
+        for (k = 0; k < dim; k++)
+          send_coords[j*dim + k]
+            = point_coords[dim*(point_list[coord_idx] - 1) + k];
+      }
+      else {
+        for (k = 0; k < dim; k++)
+          send_coords[j*dim + k]
+            = point_coords[dim*coord_idx + k];
+      }
+    }
+
+    _locator_trace_start_comm(_fvm_locator_log_start_p_comm, comm_timing);
+
+    MPI_Sendrecv(send_location, (int)n_coords_loc,
+                 FVM_MPI_LNUM, dist_rank, FVM_MPI_TAG,
+                 (this_locator->distant_point_location
+                  + this_locator->distant_points_idx[i]), (int)n_coords_dist,
+                 FVM_MPI_LNUM, dist_rank, FVM_MPI_TAG,
+                 this_locator->comm, &status);
+
+    MPI_Sendrecv(send_coords, (int)(n_coords_loc*dim),
+                 FVM_MPI_COORD, dist_rank, FVM_MPI_TAG,
+                 (this_locator->distant_point_coords
+                  + (this_locator->distant_points_idx[i]*dim)),
+                 (int)(n_coords_dist*dim),
+                 FVM_MPI_COORD, dist_rank, FVM_MPI_TAG,
+                 this_locator->comm, &status);
+
+    _locator_trace_end_comm(_fvm_locator_log_end_p_comm, comm_timing);
+
+  }
+
+  BFT_FREE(location_count);
+  BFT_FREE(location_shift);
+
+  BFT_FREE(send_index);
+  BFT_FREE(send_location);
+  BFT_FREE(send_coords);
+
+  BFT_FREE(location_rank_id);
+
+  BFT_FREE(location);
+
+  this_locator->location_wtime[1] += comm_timing[0];
+  this_locator->location_cpu_time[1] += comm_timing[1];
+}
+
+#endif /* defined(FVM_HAVE_MPI) */
+
+/*----------------------------------------------------------------------------
+ * Prepare locator for use with a given nodal mesh representation and
+ * point set.
+ *
+ * parameters:
+ *   this_locator      <-> pointer to locator structure
+ *   this_nodal        <-- pointer to mesh representation structure
+ *   dim               <-- spatial dimension
+ *   n_points          <-- number of points to locate
+ *   point_list        <-- optional indirection array to point_coords
+ *                         (1 to n_points numbering)
+ *   point_coords      <-- coordinates of points to locate
+ *                         (dimension: dim * n_points)
+ *----------------------------------------------------------------------------*/
+
+static void
+_locate_all_local(fvm_locator_t       *this_locator,
+                  const fvm_nodal_t   *this_nodal,
+                  int                  dim,
+                  fvm_lnum_t           n_points,
+                  const fvm_lnum_t     point_list[],
+                  const fvm_coord_t    point_coords[])
+{
+  int l, stride;
+  fvm_lnum_t j, k;
+  fvm_lnum_t n_coords, n_interior, n_exterior, coord_idx;
+  fvm_lnum_t *location;
+  fvm_lnum_t location_count;
+  fvm_coord_t *coords;
+  float *distance;
+  double extents[6];
+
+  /* Initialization */
+
+  stride = this_nodal->dim * 2;
+
+  BFT_MALLOC(coords, n_points * this_nodal->dim, fvm_coord_t);
+
+  /* Initialize localization information */
+  /*-------------------------------------*/
+
+  n_coords = 0;
+
+  for (k = 0; k < stride; k++)
+    extents[k] = this_locator->intersect_extents[k];
+
+  /* Build partial buffer */
+
+  for (j = 0; j < n_points; j++) {
+
+    if (point_list != NULL)
+      coord_idx = point_list[j] - 1;
+    else
+      coord_idx = j;
+
+    if (_within_extents(dim,
+                        &(point_coords[dim*coord_idx]),
+                        extents) == true) {
+
+      for (k = 0; k < dim; k++)
+        coords[n_coords*dim + k]
+          = point_coords[dim*coord_idx + k];
+
+      n_coords += 1;
+    }
+
+  }
+
+  BFT_REALLOC(coords, n_coords * this_nodal->dim, fvm_coord_t);
+
+ /*  Now locate coords */
+
+  BFT_MALLOC(location, n_coords, fvm_lnum_t);
+  BFT_MALLOC(distance, n_coords, float);
+
+  for (j = 0; j < n_coords; j++) {
+    location[j] = -1;
+    distance[j] = -1.0;
+  }
+
+  fvm_point_location_nodal(this_nodal,
+                           this_locator->tolerance,
+                           this_locator->locate_on_parents,
+                           n_coords,
+                           coords,
+                           location,
+                           distance);
+
+  /* Reorganize localization information */
+  /*-------------------------------------*/
+
+  /* Now that localization is done, the location[] array contains
+     either -1 if a point was not localized, or a local index;
+     the distance[] array is not needed anymore now that all comparisons have
+     been done */
+
+  BFT_FREE(distance);
+
+  location_count = 0;
+
+  n_exterior = 0;
+  for (j = 0; j < n_coords; j++) {
+    if (location[j] > -1)
+      location_count += 1;
+    else
+      n_exterior += 1;
+  }
+
+  this_locator->n_interior = n_coords - n_exterior;
+  BFT_MALLOC(this_locator->interior_list, this_locator->n_interior, fvm_lnum_t);
+
+  this_locator->n_exterior = (n_points - n_coords) + n_exterior;
+  BFT_MALLOC(this_locator->exterior_list, this_locator->n_exterior, fvm_lnum_t);
+
+  /* Organize total number of "local" and "distant" points */
+
+  BFT_MALLOC(this_locator->local_points_idx, 2, fvm_lnum_t);
+  BFT_MALLOC(this_locator->distant_points_idx, 2, fvm_lnum_t);
+
+  this_locator->local_points_idx[0] = 0;
+  this_locator->local_points_idx[1] = location_count;
+
+  this_locator->distant_points_idx[0] = 0;
+  this_locator->distant_points_idx[1] = location_count;
+
+  this_locator->local_point_ids = NULL; /* Not needed for single-process */
+
+  BFT_MALLOC(this_locator->distant_point_location, location_count, fvm_lnum_t);
+  BFT_MALLOC(this_locator->distant_point_coords, n_coords * dim, fvm_coord_t);
+
+  location_count = 0;
+  n_interior = 0;
+  n_exterior = 0;
+
+  for (j = 0, k = 0; j < n_points; j++) {
+
+    if (point_list != NULL)
+      coord_idx = point_list[j] - 1;
+    else
+      coord_idx = j;
+
+    if (_within_extents(dim,
+                        &(point_coords[dim*coord_idx]),
+                        extents) == true) {
+
+      if (location[k] > -1) {
+        this_locator->distant_point_location[location_count] = location[k];
+        for (l = 0; l < dim; l++) {
+          this_locator->distant_point_coords[location_count*dim + l]
+            = point_coords[coord_idx*dim + l];
+        }
+        location_count += 1;
+        this_locator->interior_list[n_interior] = j + 1;
+        n_interior += 1;
+
+      }
+      else {
+        this_locator->exterior_list[n_exterior] = j + 1;
+        n_exterior += 1;
+      }
+
+      k += 1;
+
+    }
+    else {
+      this_locator->exterior_list[n_exterior] = j + 1;
+      n_exterior += 1;
+    }
+
+  }
+
+  BFT_FREE(location);
+  BFT_FREE(coords);
+}
+
+#if defined(FVM_HAVE_MPI)
+
+/*----------------------------------------------------------------------------
+ * Get a free request
+ *
+ * parameters:
+ *   this_locator  <-- pointer to locator structure
+ *   request       --> free request
+ *----------------------------------------------------------------------------*/
+
+static int 
+_get_free_request(_fvm_locator_nblocking_t **nblockings,
+                  int *max_nblockings)
+{
+  
+  int request = 0;
+  if (*nblockings == NULL) {
+    
+    *max_nblockings = 4;
+    BFT_MALLOC(*nblockings, 
+               *max_nblockings, 
+               _fvm_locator_nblocking_t);
+    for (int i = 0; i < *max_nblockings; i++) {
+      (*nblockings)[i].buffer = NULL;
+      (*nblockings)[i].MPI_request = NULL;
+      (*nblockings)[i].var = NULL;
+      (*nblockings)[i].local_list = NULL;
+      (*nblockings)[i].reverse = false;
+      (*nblockings)[i].stride = 0;
+      (*nblockings)[i].size = 0;
+    }
+  }
+
+  else {
+    for (request = 0; request < *max_nblockings; request++) {
+      if ((*nblockings)[request].MPI_request == NULL) {
+        break;
+      }
+    }
+    if (request == *max_nblockings) {
+      *max_nblockings = 2 * (*max_nblockings);
+      BFT_REALLOC(*nblockings, 
+                  *max_nblockings, 
+                  _fvm_locator_nblocking_t);
+      for (int i = request; i < *max_nblockings; i++) {
+        (*nblockings)[i].buffer = NULL;
+        (*nblockings)[i].MPI_request = NULL;
+        (*nblockings)[i].var = NULL;
+        (*nblockings)[i].local_list = NULL;
+        (*nblockings)[i].reverse = false;
+        (*nblockings)[i].stride = 0;
+        (*nblockings)[i].size = 0;
+      }
+    }
+  }
+
+  return request;
+}
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Non blocking send
+ *
+ * parameters:
+ *   this_locator  <-- pointer to locator structure
+ *   var           <-- variable defined on distant points (distant_var) 
+ *                     or on local points (local_var) if reverse
+ *   local_var     <-- variable defined on local points 
+ *   local_list    <-- optional indirection list (1 to n) for local_var
+ *   datatype      <-- variable type
+ *   stride        <-- dimension (1 for scalar, 3 for interlaced vector)
+ *   reverse       <-- if true, send is reversed
+ *                     (send variable defined on local points)
+ *   tag           <-- tag for MPI_issend
+ *   request       <-> communication request
+ *----------------------------------------------------------------------------*/
+
+static void
+_issend_point_var_distant(fvm_locator_t     *this_locator,
+                          void              *var,
+                          const fvm_lnum_t  *local_list,
+                          MPI_Datatype       datatype,
+                          size_t             stride,
+                          _Bool              reverse,
+                          int                tag,
+                          int               *request)
+{
+  int i, dist_v_count, loc_v_count, size;
+  int dist_rank, dist_index;
+  fvm_lnum_t n_points_loc,  n_points_dist;
+  size_t dist_v_idx;
+  void *dist_v_ptr;
+
+  double comm_timing[4] = {0., 0., 0., 0.};
+
+  MPI_Aint extent;
+
+  /* Get a free  request */
+
+  *request = _get_free_request(&(this_locator->nblockings_send), 
+                               &(this_locator->max_nblockings_send));
+
+  _fvm_locator_nblocking_t *nblocking_send = this_locator->nblockings_send + *request;
+
+  BFT_MALLOC(nblocking_send->MPI_request, this_locator->n_intersects, MPI_Request);
+  if (reverse)
+    BFT_MALLOC(nblocking_send->buffer, this_locator->n_intersects, void *);
+  nblocking_send->reverse = reverse;
+
+  /* Check extent of datatype */
+
+  MPI_Type_extent(datatype, &extent);
+  MPI_Type_size(datatype, &size);
+
+  if (extent != size)
+    bft_error(__FILE__, __LINE__, 0,
+              _("_exchange_point_var() is not implemented for use with\n"
+                "MPI datatypes associated with structures using padding\n"
+                "(for which size != extent)."));
+
+  /* Loop on possibly intersecting distant ranks */
+  /*---------------------------------------------*/
+
+  for (i = 0; i < this_locator->n_intersects; i++) {
+
+    dist_index = i; /* Ordering (communication schema) not yet optimized */
+    dist_rank = this_locator->intersect_rank[dist_index];
+
+    /* Exchange information */
+
+    if (reverse == false) {
+      
+      void *distant_var = var;
+
+      n_points_dist =   this_locator->distant_points_idx[i+1]
+                      - this_locator->distant_points_idx[i];
+      
+      dist_v_idx = this_locator->distant_points_idx[i] * stride*size;
+      dist_v_count = n_points_dist * stride;
+
+      if (distant_var != NULL)
+        dist_v_ptr = (void *)(((char *)distant_var) + dist_v_idx);
+      else
+        dist_v_ptr = NULL;
+
+      _locator_trace_start_comm(_fvm_locator_log_start_p_comm, comm_timing);
+
+      MPI_Issend(dist_v_ptr, dist_v_count, datatype, dist_rank, tag,
+                this_locator->comm, nblocking_send->MPI_request + i);
+
+      _locator_trace_end_comm(_fvm_locator_log_end_p_comm, comm_timing);
+
+    }
+
+    else { /* if (reverse == true) */
+
+      /* Initialization */
+
+      void *local_var = var;
+
+      const fvm_lnum_t *_local_point_ids
+        = this_locator->local_point_ids + this_locator->local_points_idx[i];
+
+      n_points_loc =    this_locator->local_points_idx[i+1]
+                       - this_locator->local_points_idx[i];
+      
+      BFT_MALLOC(nblocking_send->buffer[i], n_points_loc*size*stride, char);
+
+      loc_v_count = n_points_loc*stride;
+
+      if (local_list == NULL) {
+        int k;
+        size_t l;
+        const size_t nbytes = stride*size;
+        for (k = 0; k < n_points_loc; k++) {
+          const char *local_v_p
+            = (const char *)local_var + _local_point_ids[k]*nbytes;
+          char *loc_v_buf_p = (char *)nblocking_send->buffer[i] + k*nbytes;
+          for (l = 0; l < nbytes; l++)
+            loc_v_buf_p[l] = local_v_p[l];
+        }
+      }
+      else {
+        int k;
+        size_t l;
+        const size_t nbytes = stride*size;
+        for (k = 0; k < n_points_loc; k++) {
+          const char *local_v_p
+            = (const char *)local_var
+            + (local_list[_local_point_ids[k]] - 1)*nbytes;
+          char *loc_v_buf_p = (char *)nblocking_send->buffer[i] + k*nbytes;
+          for (l = 0; l < nbytes; l++)
+              loc_v_buf_p[l] = local_v_p[l];
+        }
+      }
+
+      _locator_trace_start_comm(_fvm_locator_log_start_p_comm, comm_timing);
+
+      MPI_Issend(nblocking_send->buffer[i], loc_v_count, datatype, dist_rank, tag,
+                this_locator->comm, nblocking_send->MPI_request + i);
+
+      _locator_trace_end_comm(_fvm_locator_log_end_p_comm, comm_timing);
+
+    }
+
+  } /* End of loop on possibly intersecting ranks */
+
+  this_locator->issend_wtime[1] += comm_timing[0];
+  this_locator->issend_cpu_time[1] += comm_timing[1];
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Non blocking receive
+ *
+ * parameters:
+ *   this_locator  <-- pointer to locator structure
+ *   var           --> variable defined on distant points (distant_var)
+ *                     or on local points (local_var) if reverse
+ *   local_list    <-- optional indirection list (1 to n) for local_var
+ *   datatype      <-- variable type
+ *   stride        <-- dimension (1 for scalar, 3 for interlaced vector)
+ *   reverse       <-- if true, exchange is reversed
+ *                     (receive values associated with distant points
+ *                     from the processes owning the original points)
+ *   tag           <-- tag for MPI_irecv
+ *   request       <-> communication request
+ *----------------------------------------------------------------------------*/
+
+static void
+_irecv_point_var_distant(fvm_locator_t     *this_locator,
+                         void              *var,
+                         const fvm_lnum_t  *local_list,
+                         MPI_Datatype       datatype,
+                         size_t             stride,
+                         _Bool              reverse,
+                         int                tag,
+                         int                *request)
+{
+  int i, dist_v_count, loc_v_count, size;
+  int dist_rank, dist_index;
+  fvm_lnum_t n_points_loc, n_points_dist;
+  size_t dist_v_idx;
+  void *dist_v_ptr;
+
+  double comm_timing[4] = {0., 0., 0., 0.};
+
+  MPI_Aint extent;
+
+  /* Get a free  request */
+
+  *request = _get_free_request(&(this_locator->nblockings_recv), 
+                               &(this_locator->max_nblockings_recv));
+
+  _fvm_locator_nblocking_t *nblocking_recv = this_locator->nblockings_recv + *request;
+
+  BFT_MALLOC(nblocking_recv->MPI_request, this_locator->n_intersects, MPI_Request);
+  BFT_MALLOC(nblocking_recv->buffer, this_locator->n_intersects, void *);
+  nblocking_recv->var = var;
+  nblocking_recv->local_list = local_list;
+  nblocking_recv->reverse = reverse;
+  nblocking_recv->stride = stride;
+
+  /* Check extent of datatype */
+
+  MPI_Type_extent(datatype, &extent);
+  MPI_Type_size(datatype, &size);
+
+  nblocking_recv->size = size;
+
+  if (extent != size)
+    bft_error(__FILE__, __LINE__, 0,
+              _("_exchange_point_var() is not implemented for use with\n"
+                "MPI datatypes associated with structures using padding\n"
+                "(for which size != extent)."));
+
+  /* Loop on possibly intersecting distant ranks */
+  /*---------------------------------------------*/
+
+  for (i = 0; i < this_locator->n_intersects; i++) {
+    
+    dist_index = i; /* Ordering (communication schema) not yet optimized */
+    dist_rank = this_locator->intersect_rank[dist_index];
+    
+    if (reverse == false) {
+      
+      /* Initialization */
+
+      
+      n_points_loc =    this_locator->local_points_idx[i+1]
+                      - this_locator->local_points_idx[i];
+      
+      loc_v_count = n_points_loc*stride;
+
+      BFT_MALLOC(nblocking_recv->buffer[i], n_points_loc*size*stride, char);
+      
+      _locator_trace_start_comm(_fvm_locator_log_start_p_comm, comm_timing);
+      
+      MPI_Irecv(nblocking_recv->buffer[i], loc_v_count, datatype, dist_rank, tag,
+                this_locator->comm, nblocking_recv->MPI_request + i);
+                
+      _locator_trace_end_comm(_fvm_locator_log_end_p_comm, comm_timing);
+
+    }
+
+    else { /* if (reverse == true) */
+
+      void *distant_var = var;
+
+      dist_v_idx = this_locator->distant_points_idx[i] * stride*size;
+      dist_v_count = n_points_dist * stride;
+      
+      loc_v_count = n_points_loc*stride;
+      
+      /* Exchange information */
+      
+      if (distant_var != NULL)
+        dist_v_ptr = (void *)(((char *)distant_var) + dist_v_idx);
+      else
+        dist_v_ptr = NULL;
+
+      _locator_trace_start_comm(_fvm_locator_log_start_p_comm, comm_timing);
+
+      MPI_Irecv(dist_v_ptr, dist_v_count, datatype, dist_rank, tag,
+                this_locator->comm, nblocking_recv->MPI_request + i);
+
+      _locator_trace_end_comm(_fvm_locator_log_end_p_comm, comm_timing);
+
+    }
+
+  } /* End of loop on possibly intersecting ranks */
+
+  this_locator->irecv_wtime[1] += comm_timing[0];
+  this_locator->irecv_cpu_time[1] += comm_timing[1];
+}
+
+
+/*----------------------------------------------------------------------------
+ * Distribute variable defined on distant points to processes owning
+ * the original points (i.e. distant processes).
+ *
+ * The exchange is symmetric if both variables are defined, receive
+ * only if distant_var is NULL, or send only if local_var is NULL.
+ *
+ * parameters:
+ *   this_locator  <-- pointer to locator structure
+ *   distant_var   <-> variable defined on distant points (ready to send)
+ *   local_var     <-> variable defined on local points (received)
+ *   local_list    <-- optional indirection list (1 to n) for local_var
+ *   datatype      <-- variable type
+ *   stride        <-- dimension (1 for scalar, 3 for interlaced vector)
+ *   reverse       <-- if true, exchange is reversed
+ *                     (receive values associated with distant points
+ *                     from the processes owning the original points)
+ *----------------------------------------------------------------------------*/
+
+static void
+_exchange_point_var_distant(fvm_locator_t     *this_locator,
+                            void              *distant_var,
+                            void              *local_var,
+                            const fvm_lnum_t  *local_list,
+                            MPI_Datatype       datatype,
+                            size_t             stride,
+                            _Bool              reverse)
+{
+  int i, dist_v_count, loc_v_count, size;
+  int dist_rank, dist_index;
+  int dist_v_flag, loc_v_flag;
+  fvm_lnum_t n_points_loc, n_points_loc_max, n_points_dist;
+  size_t dist_v_idx;
+  void *dist_v_ptr;
+  void *loc_v_buf;
+
+  double comm_timing[4] = {0., 0., 0., 0.};
+
+  MPI_Aint extent;
+  MPI_Status status;
+
+  /* Check extent of datatype */
+
+  MPI_Type_extent(datatype, &extent);
+  MPI_Type_size(datatype, &size);
+
+  if (extent != size)
+    bft_error(__FILE__, __LINE__, 0,
+              _("_exchange_point_var() is not implemented for use with\n"
+                "MPI datatypes associated with structures using padding\n"
+                "(for which size != extent)."));
+
+  /* Initialization */
+
+  n_points_loc_max = 0;
+
+  for (i = 0; i < this_locator->n_intersects; i++) {
+    n_points_loc =    this_locator->local_points_idx[i+1]
+                    - this_locator->local_points_idx[i];
+    if (n_points_loc > n_points_loc_max)
+      n_points_loc_max = n_points_loc;
+  }
+
+  BFT_MALLOC(loc_v_buf, n_points_loc_max*size*stride, char);
+
+  /* Loop on possibly intersecting distant ranks */
+  /*---------------------------------------------*/
+
+  for (i = 0; i < this_locator->n_intersects; i++) {
+
+    const fvm_lnum_t *_local_point_ids
+      = this_locator->local_point_ids + this_locator->local_points_idx[i];
+
+    dist_index = i; /* Ordering (communication schema) not yet optimized */
+    dist_rank = this_locator->intersect_rank[dist_index];
+
+    n_points_loc =    this_locator->local_points_idx[i+1]
+                    - this_locator->local_points_idx[i];
+
+    n_points_dist =   this_locator->distant_points_idx[i+1]
+                    - this_locator->distant_points_idx[i];
+
+    if (distant_var != NULL && n_points_dist > 0)
+      dist_v_flag = 1;
+    else
+      dist_v_flag = 0;
+
+    _locator_trace_start_comm(_fvm_locator_log_start_p_comm, comm_timing);
+
+    MPI_Sendrecv(&dist_v_flag, 1, MPI_INT, dist_rank, FVM_MPI_TAG,
+                 &loc_v_flag, 1, MPI_INT, dist_rank, FVM_MPI_TAG,
+                 this_locator->comm, &status);
+
+    _locator_trace_end_comm(_fvm_locator_log_end_p_comm, comm_timing);
+
+    if (loc_v_flag == 1 && (local_var == NULL || n_points_loc == 0))
+      bft_error(__FILE__, __LINE__, 0,
+                _("Incoherent arguments to different instances in "
+                  "_exchange_point_var().\n"
+                  "Send and receive operations do not match "
+                  "(dist_rank = %d\n)\n"), dist_rank);
+
+    dist_v_idx = this_locator->distant_points_idx[i] * stride*size;
+    dist_v_count = n_points_dist * stride * dist_v_flag;
+
+    if (loc_v_flag > 0)
+      loc_v_count = n_points_loc*stride;
+    else
+      loc_v_count = 0;
+
+    /* Exchange information */
+
+    if (distant_var != NULL)
+      dist_v_ptr = (void *)(((char *)distant_var) + dist_v_idx);
+    else
+      dist_v_ptr = NULL;
+
+    if (reverse == false) {
+
+      _locator_trace_start_comm(_fvm_locator_log_start_p_comm, comm_timing);
+
+      MPI_Sendrecv(dist_v_ptr, dist_v_count, datatype, dist_rank, FVM_MPI_TAG,
+                   loc_v_buf, loc_v_count, datatype, dist_rank, FVM_MPI_TAG,
+                   this_locator->comm, &status);
+
+      _locator_trace_end_comm(_fvm_locator_log_end_p_comm, comm_timing);
+
+      if (loc_v_flag > 0) {
+        if (local_list == NULL) {
+          int k;
+          size_t l;
+          const size_t nbytes = stride*size;
+          for (k = 0; k < n_points_loc; k++) {
+            char *local_v_p = (char *)local_var + _local_point_ids[k]*nbytes;
+            const char *loc_v_buf_p = (const char *)loc_v_buf + k*nbytes;
+            for (l = 0; l < nbytes; l++)
+              local_v_p[l] = loc_v_buf_p[l];
+          }
+        }
+        else {
+          int k;
+          size_t l;
+          const size_t nbytes = stride*size;
+          for (k = 0; k < n_points_loc; k++) {
+            char *local_v_p =   (char *)local_var
+                              + (local_list[_local_point_ids[k]] - 1)*nbytes;
+            const char *loc_v_buf_p = (const char *)loc_v_buf + k*nbytes;
+            for (l = 0; l < nbytes; l++)
+              local_v_p[l] = loc_v_buf_p[l];
+          }
+        }
+      }
+
+    }
+    else { /* if (reverse == true) */
+
+      if (loc_v_flag > 0) {
+        if (local_list == NULL) {
+          int k;
+          size_t l;
+          const size_t nbytes = stride*size;
+          for (k = 0; k < n_points_loc; k++) {
+            const char *local_v_p
+              = (const char *)local_var + _local_point_ids[k]*nbytes;
+            char *loc_v_buf_p = (char *)loc_v_buf + k*nbytes;
+            for (l = 0; l < nbytes; l++)
+              loc_v_buf_p[l] = local_v_p[l];
+          }
+        }
+        else {
+          int k;
+          size_t l;
+          const size_t nbytes = stride*size;
+          for (k = 0; k < n_points_loc; k++) {
+            const char *local_v_p
+              = (const char *)local_var
+                + (local_list[_local_point_ids[k]] - 1)*nbytes;
+            char *loc_v_buf_p = (char *)loc_v_buf + k*nbytes;
+            for (l = 0; l < nbytes; l++)
+              loc_v_buf_p[l] = local_v_p[l];
+          }
+        }
+      }
+
+      _locator_trace_start_comm(_fvm_locator_log_start_p_comm, comm_timing);
+
+      MPI_Sendrecv(loc_v_buf, loc_v_count, datatype, dist_rank, FVM_MPI_TAG,
+                   dist_v_ptr, dist_v_count, datatype, dist_rank, FVM_MPI_TAG,
+                   this_locator->comm, &status);
+
+      _locator_trace_end_comm(_fvm_locator_log_end_p_comm, comm_timing);
+
+    }
+
+  } /* End of loop on possibly intersecting ranks */
+
+  BFT_FREE(loc_v_buf);
+
+  this_locator->exchange_wtime[1] += comm_timing[0];
+  this_locator->exchange_cpu_time[1] += comm_timing[1];
+}
+
+#endif /* defined(FVM_HAVE_MPI) */
+
+/*----------------------------------------------------------------------------
+ * Distribute variable defined on "distant points" to the original ("local")
+ * points.
+ *
+ * The exchange is symmetric if both variables are defined, receive
+ * only if distant_var is NULL, or send only if local_var is NULL.
+ *
+ * parameters:
+ *   this_locator  <-- pointer to locator structure
+ *   distant_var   <-> variable defined on distant points (ready to send)
+ *   local_var     <-> variable defined on local points (received)
+ *   local_list    <-- optional indirection list (1 to n) for local_var
+ *   type_size     <-- sizeof (float or double) variable type
+ *   stride        <-- dimension (1 for scalar, 3 for interlaced vector)
+ *   reverse       <-- if true, exchange is reversed
+ *                     (receive values associated with distant points
+ *                     from the processes owning the original points)
+ *----------------------------------------------------------------------------*/
+
+static void
+_exchange_point_var_local(fvm_locator_t     *this_locator,
+                          void              *distant_var,
+                          void              *local_var,
+                          const fvm_lnum_t  *local_list,
+                          size_t             type_size,
+                          size_t             stride,
+                          _Bool              reverse)
+{
+  fvm_lnum_t i;
+  size_t j;
+  fvm_lnum_t n_points_loc;
+
+  const size_t nbytes = stride*type_size;
+
+  /* Initialization */
+
+  if (this_locator->n_interior == 0)
+    return;
+
+  n_points_loc =   this_locator->local_points_idx[1]
+                 - this_locator->local_points_idx[0];
+
+  assert(n_points_loc == (  this_locator->distant_points_idx[1]
+                          - this_locator->distant_points_idx[0]));
+
+  /* Exchange information */
+
+  if (reverse == false) {
+
+    if (local_list == NULL)
+      memcpy(local_var, distant_var, n_points_loc*nbytes);
+
+    else {
+      for (i = 0; i < n_points_loc; i++) {
+        char *local_var_p = (char *)local_var + (local_list[i] - 1)*nbytes;
+        const char *distant_var_p = (const char *)distant_var + i*nbytes;
+        for (j = 0; j < nbytes; j++)
+          local_var_p[j] = distant_var_p[j];
+      }
+    }
+
+  }
+  else { /* if (reverse == true) */
+
+    if (local_list == NULL)
+      memcpy(distant_var, local_var, n_points_loc*nbytes);
+
+    else {
+      for (i = 0; i < n_points_loc; i++) {
+        const char *local_var_p
+          = (const char *)local_var + (local_list[i] - 1)*nbytes;
+        char *distant_var_p = (char *)distant_var + i*nbytes;
+        for (j = 0; j < nbytes; j++)
+          distant_var_p[j] = local_var_p[j];
+      }
+    }
+
+  }
+}
+
+/*----------------------------------------------------------------------------
+ * Return timing information.
+ *
+ * parameters:
+ *   this_locator      <-- pointer to locator structure
+ *   time_type         <-- 0 for total times, 1 for communication times
+ *   location_wtime    --> Location Wall-clock time (or NULL)
+ *   location_cpu_time --> Location CPU time (or NULL)
+ *   exchange_wtime    --> Variable exchange Wall-clock time (or NULL)
+ *   exchange_cpu_time --> Variable exchange CPU time (or NULL)
+ *   issend_wtime    --> Variable issend Wall-clock time (or NULL)
+ *   issend_cpu_time --> Variable issend CPU time (or NULL)
+ *   irecv_wtime    --> Variable irecv Wall-clock time (or NULL)
+ *   irecv_cpu_time --> Variable irecv CPU time (or NULL)
+ *----------------------------------------------------------------------------*/
+
+static void
+_get_times(const fvm_locator_t  *this_locator,
+           int                   time_type,
+           double               *location_wtime,
+           double               *location_cpu_time,
+           double               *exchange_wtime,
+           double               *exchange_cpu_time,
+           double               *issend_wtime,
+           double               *issend_cpu_time,
+           double               *irecv_wtime,
+           double               *irecv_cpu_time)
+
+{
+  const fvm_locator_t  *_locator = this_locator;
+
+  if (this_locator != NULL) {
+
+    if (location_wtime != NULL)
+      *location_wtime = _locator->location_wtime[time_type];
+    if (location_cpu_time != NULL)
+      *location_cpu_time = _locator->location_cpu_time[time_type];
+
+    if (exchange_wtime != NULL)
+      *exchange_wtime = _locator->exchange_wtime[time_type];
+    if (exchange_cpu_time != NULL)
+      *exchange_cpu_time = _locator->exchange_cpu_time[time_type];
+
+    if (issend_wtime != NULL)
+      *issend_wtime = _locator->issend_wtime[time_type];
+    if (issend_cpu_time != NULL)
+      *issend_cpu_time = _locator->issend_cpu_time[time_type];
+
+    if (irecv_wtime != NULL)
+      *irecv_wtime = _locator->irecv_wtime[time_type];
+    if (irecv_cpu_time != NULL)
+      *irecv_cpu_time = _locator->irecv_cpu_time[time_type];
+
+  }
+  else {
+
+    if (location_wtime != NULL)
+      *location_wtime = 0.;
+    if (location_cpu_time != NULL)
+      *location_cpu_time = 0.;
+
+    if (exchange_wtime != NULL)
+      *exchange_wtime = 0.;
+    if (exchange_cpu_time != NULL)
+      *exchange_cpu_time = 0.;
+
+    if (issend_wtime != NULL)
+      *issend_wtime = 0.;
+    if (issend_cpu_time != NULL)
+      *issend_cpu_time = 0.;
+
+    if (irecv_wtime != NULL)
+      *irecv_wtime = 0.;
+    if (irecv_cpu_time != NULL)
+      *irecv_cpu_time = 0.;
+
+  }
+
+}
+
+/*============================================================================
+ * Public function definitions
+ *============================================================================*/
+
+/*----------------------------------------------------------------------------
+ * Creation of a locator structure.
+ *
+ * Note that depending on the choice of ranks of the associated communicator,
+ * distant ranks may in fact be truly distant or not. If n_ranks = 1 and
+ * start_rank is equal to the current rank in the communicator, the locator
+ * will work only locally.
+ *
+ * parameters:
+ *   tolerance  <-- addition to local extents of each element:
+ *                  extent = base_extent * (1 + tolerance)
+ *   comm       <-- associated MPI communicator
+ *   n_ranks    <-- number of MPI ranks associated with distant location
+ *   start_rank <-- first MPI rank associated with distant location
+ *
+ * returns:
+ *   pointer to locator
+ *----------------------------------------------------------------------------*/
+
+#if defined(FVM_HAVE_MPI)
+fvm_locator_t *
+fvm_locator_create(double    tolerance,
+                   MPI_Comm  comm,
+                   int       n_ranks,
+                   int       start_rank)
+#else
+fvm_locator_t *
+fvm_locator_create(double  tolerance)
+#endif
+{
+  int  i;
+  fvm_locator_t  *this_locator;
+
+  BFT_MALLOC(this_locator, 1, fvm_locator_t);
+
+  this_locator->tolerance = tolerance;
+  this_locator->dim = 0;
+
+#if defined(FVM_HAVE_MPI)
+  this_locator->comm = comm;
+  this_locator->n_ranks = n_ranks;
+  this_locator->start_rank = start_rank;
+  this_locator->nblockings_send = NULL;
+  this_locator->nblockings_recv = NULL;
+  this_locator->max_nblockings_send = 0;
+  this_locator->max_nblockings_recv = 0;
+#else
+  this_locator->n_ranks = 1;
+  this_locator->start_rank = 0;
+#endif
+
+  this_locator->n_intersects = 0;
+  this_locator->intersect_rank = NULL;
+  this_locator->intersect_extents = NULL;
+
+  this_locator->local_points_idx = NULL;
+  this_locator->distant_points_idx = NULL;
+
+  this_locator->local_point_ids = NULL;
+
+  this_locator->distant_point_location = NULL;
+  this_locator->distant_point_coords = NULL;
+
+  this_locator->n_interior = 0;
+  this_locator->interior_list = NULL;
+
+  this_locator->n_exterior = 0;
+  this_locator->exterior_list = NULL;
+
+  for (i = 0; i < 2; i++) {
+    this_locator->location_wtime[i] = 0.;
+    this_locator->location_cpu_time[i] = 0.;
+    this_locator->exchange_wtime[i] = 0.;
+    this_locator->exchange_cpu_time[i] = 0.;
+    this_locator->issend_wtime[i] = 0.;
+    this_locator->issend_cpu_time[i] = 0.;
+    this_locator->irecv_wtime[i] = 0.;
+    this_locator->irecv_cpu_time[i] = 0.;
+  }
+
+  return this_locator;
+}
+
+/*----------------------------------------------------------------------------
+ * Destruction of a locator structure.
+ *
+ * parameters:
+ *   this_locator <-> locator to destroy
+ *
+ * returns:
+ *   NULL pointer
+ *----------------------------------------------------------------------------*/
+
+fvm_locator_t *
+fvm_locator_destroy(fvm_locator_t  * this_locator)
+{
+  if (this_locator != NULL) {
+
+    BFT_FREE(this_locator->local_points_idx);
+    BFT_FREE(this_locator->distant_points_idx);
+
+    if (this_locator->local_point_ids != NULL)
+      BFT_FREE(this_locator->local_point_ids);
+
+    BFT_FREE(this_locator->distant_point_location);
+    BFT_FREE(this_locator->distant_point_coords);
+
+    BFT_FREE(this_locator->intersect_rank);
+    BFT_FREE(this_locator->intersect_extents);
+
+    BFT_FREE(this_locator->interior_list);
+    BFT_FREE(this_locator->exterior_list);
+
+    if (this_locator->nblockings_send != NULL)
+      BFT_FREE(this_locator->nblockings_send);
+
+    if (this_locator->nblockings_recv != NULL)
+      BFT_FREE(this_locator->nblockings_recv);
+
+    BFT_FREE(this_locator);
+  }
+
+  return NULL;
+}
+
+/*----------------------------------------------------------------------------
+ * Prepare locator for use with a given nodal mesh representation.
+ *
+ * parameters:
+ *   this_locator      <-> pointer to locator structure
+ *   this_nodal        <-- pointer to mesh representation structure
+ *   locate_on_parents <-- location relative to parent element numbers if
+ *                         1, id of element + 1 in concatenated sections
+ *                         of same element dimension if 0
+ *   dim               <-- space dimension of points to locate
+ *   n_points          <-- number of points to locate
+ *   point_list        <-- optional indirection array to point_coords
+ *                         (1 to n_points numbering)
+ *   point_coords      <-- coordinates of points to locate
+ *                         (dimension: dim * n_points)
+ *----------------------------------------------------------------------------*/
+
+void
+fvm_locator_set_nodal(fvm_locator_t       *this_locator,
+                      const fvm_nodal_t   *this_nodal,
+                      int                  locate_on_parents,
+                      int                  dim,
+                      fvm_lnum_t           n_points,
+                      const fvm_lnum_t     point_list[],
+                      const fvm_coord_t    point_coords[])
+{
+  int i;
+  int stride2;
+  double tolerance;
+  double w_start, w_end, cpu_start, cpu_end;
+  double extents[12];
+
+#if defined(FVM_HAVE_MPI)
+  int j;
+  int stride4;
+  int comm_rank, comm_size;
+  int locdim[2], globdim[2];
+  int n_intersects;
+  int  *intersect_rank;
+  double *recvbuf;
+#endif
+
+  double comm_timing[4] = {0., 0., 0., 0.};
+  int mpi_flag = 0;
+
+  /* Initialize timing */
+
+  w_start = bft_timer_wtime();
+  cpu_start = bft_timer_cpu_time();
+
+  /* Other intializations */
+
+  this_locator->locate_on_parents = (_Bool)locate_on_parents;
+
+  this_locator->dim = dim;
+
+  tolerance = FVM_MAX(this_locator->tolerance, 0.1);
+
+  _nodal_extents(this_nodal,
+                 tolerance,
+                 extents);
+
+  _point_extents(dim,
+                 n_points,
+                 point_list,
+                 point_coords,
+                 extents + 2*dim);
+
+  /* Release information if previously present */
+
+  if (this_locator->intersect_rank != NULL)
+    BFT_FREE(this_locator->intersect_rank);
+  if (this_locator->intersect_extents != NULL)
+    BFT_FREE(this_locator->intersect_extents);
+
+  if (this_locator->local_points_idx != NULL)
+    BFT_FREE(this_locator->local_points_idx);
+  if (this_locator->distant_points_idx != NULL)
+    BFT_FREE(this_locator->distant_points_idx);
+
+  if (this_locator->local_point_ids != NULL)
+    BFT_FREE(this_locator->local_point_ids);
+
+  if (this_locator->distant_point_location != NULL)
+    BFT_FREE(this_locator->distant_point_location);
+  if (this_locator->distant_point_coords != NULL)
+    BFT_FREE(this_locator->distant_point_coords);
+
+  if (this_locator->interior_list != NULL)
+    BFT_FREE(this_locator->interior_list);
+  if (this_locator->exterior_list != NULL)
+    BFT_FREE(this_locator->exterior_list);
+
+  /* Prepare locator (MPI version) */
+  /*-------------------------------*/
+
+#if defined(FVM_HAVE_MPI)
+
+  MPI_Initialized(&mpi_flag);
+
+  if (mpi_flag && this_locator->comm == MPI_COMM_NULL)
+    mpi_flag = 0;
+
+  if (mpi_flag) {
+
+    /* Check that at least one of the local or distant nodal meshes
+       is non-NULL, and at least one of the local or distant
+       point sets is non null */
+
+    if (this_nodal != NULL)
+      locdim[0] = this_nodal->dim;
+    else
+      locdim[0] = -1;
+    if (n_points > 0)
+      locdim[1] = dim;
+    else
+      locdim[1] = -1;
+
+    _locator_trace_start_comm(_fvm_locator_log_start_g_comm, comm_timing);
+
+    MPI_Allreduce(locdim, globdim, 2, MPI_INT, MPI_MAX,
+                  this_locator->comm);
+
+    _locator_trace_end_comm(_fvm_locator_log_end_g_comm, comm_timing);
+
+
+    if (globdim[0] < 0 || globdim[1] < 0)
+      return;
+    else if (this_nodal != NULL && globdim[1] != this_nodal->dim)
+      bft_error(__FILE__, __LINE__, 0,
+                _("Locator trying to use distant space dimension %d\n"
+                  "with local mesh dimension %d\n"),
+                globdim[1], this_nodal->dim);
+    else if (this_nodal == NULL && globdim[0] != dim)
+      bft_error(__FILE__, __LINE__, 0,
+                _("Locator trying to use local space dimension %d\n"
+                  "with distant mesh dimension %d\n"),
+                dim, globdim[0]);
+
+    /* Exchange extent information */
+
+    MPI_Comm_rank(this_locator->comm, &comm_rank);
+    MPI_Comm_size(this_locator->comm, &comm_size);
+
+    stride2 = dim * 2; /* Stride for one type of extent */
+    stride4 = dim * 4; /* Stride for element and vertex
+                          extents, end-to-end */
+
+    BFT_MALLOC(recvbuf, stride4*comm_size, double);
+
+    _locator_trace_start_comm(_fvm_locator_log_start_g_comm, comm_timing);
+
+    MPI_Allgather(extents, stride4, MPI_DOUBLE, recvbuf, stride4, MPI_DOUBLE,
+                  this_locator->comm);
+
+    _locator_trace_end_comm(_fvm_locator_log_end_g_comm, comm_timing);
+
+    /* Count and mark possible overlaps */
+
+    n_intersects = 0;
+    BFT_MALLOC(intersect_rank, this_locator->n_ranks, int);
+
+    for (i = 0; i < this_locator->n_ranks; i++) {
+      j = this_locator->start_rank + i;
+      if (  (_intersect_extents(dim,
+                                 extents + (2*dim),
+                                 recvbuf + (j*stride4)) == true)
+          || (_intersect_extents(dim,
+                                 extents,
+                                 recvbuf + (j*stride4) + (2*dim)) == true)) {
+        intersect_rank[n_intersects] = j;
+        n_intersects += 1;
+      }
+
+    }
+
+    this_locator->n_intersects = n_intersects;
+    BFT_MALLOC(this_locator->intersect_rank,
+               this_locator->n_intersects,
+               int);
+    BFT_MALLOC(this_locator->intersect_extents,
+               this_locator->n_intersects * stride2,
+               double);
+
+    for (i = 0; i < this_locator->n_intersects; i++) {
+
+      this_locator->intersect_rank[i] = intersect_rank[i];
+
+      /* Copy only distant element (and not point) extents */
+
+      for (j = 0; j < stride2; j++)
+        this_locator->intersect_extents[i*stride2 + j]
+          = recvbuf[intersect_rank[i]*stride4 + j];
+
+    }
+
+    /* Free temporary memory */
+
+    BFT_FREE(intersect_rank);
+    BFT_FREE(recvbuf);
+
+    _locate_all_distant(this_locator,
+                        this_nodal,
+                        dim,
+                        n_points,
+                        point_list,
+                        point_coords);
+
+  }
+
+#endif
+
+  /* Prepare locator (local version) */
+  /*---------------------------------*/
+
+  if (!mpi_flag) {
+
+    if (this_nodal == NULL || n_points == 0)
+      return;
+
+    stride2 = this_nodal->dim * 2;
+
+    /* Count and mark possible overlaps */
+
+    if (_intersect_extents(this_nodal->dim,
+                           extents,
+                           extents + (2*dim)) == true) {
+
+      this_locator->n_intersects = 1;
+
+      BFT_MALLOC(this_locator->intersect_rank, 1, int);
+      BFT_MALLOC(this_locator->intersect_extents, stride2, double);
+
+      this_locator->intersect_rank[0] = 0;
+
+      for (i = 0; i < stride2; i++)
+        this_locator->intersect_extents[i] = extents[i];
+
+      _locate_all_local(this_locator,
+                        this_nodal,
+                        dim,
+                        n_points,
+                        point_list,
+                        point_coords);
+    }
+
+    else {
+
+      this_locator->n_exterior = n_points;
+      BFT_MALLOC(this_locator->exterior_list,
+                 this_locator->n_exterior,
+                 fvm_lnum_t);
+      for (i = 0; i < this_locator->n_exterior; i++)
+        this_locator->exterior_list[i] = i + 1;
+
+    }
+
+  }
+
+  /* Update local_point_ids values */
+  /*-------------------------------*/
+
+  if (   this_locator->n_interior > 0
+      && this_locator->local_point_ids != NULL) {
+
+    fvm_lnum_t  *reduced_index;
+
+    BFT_MALLOC(reduced_index, n_points, fvm_lnum_t);
+
+    for (i = 0; i < n_points; i++)
+      reduced_index[i] = -1;
+
+    assert(  this_locator->local_points_idx[this_locator->n_intersects]
+           == this_locator->n_interior);
+
+    for (i = 0; i < this_locator->n_interior; i++)
+      reduced_index[this_locator->interior_list[i] - 1] = i;
+
+    /* Update this_locator->local_point_ids[] so that it refers
+       to an index in a dense [0, this_locator->n_interior] subset
+       of the local points */
+
+    for (i = 0; i < this_locator->n_interior; i++)
+      this_locator->local_point_ids[i]
+        = reduced_index[this_locator->local_point_ids[i]];
+
+    BFT_FREE(reduced_index);
+
+  }
+
+  /* If an initial point list was given, update
+     this_locator->interior_list and this_locator->exterior_list
+     so that they refer to the same point set as that initial
+     list (and not to an index within the selected point set) */
+
+  if (point_list != NULL) {
+
+    for (i = 0; i < this_locator->n_interior; i++)
+      this_locator->interior_list[i]
+        = point_list[this_locator->interior_list[i] - 1];
+
+    for (i = 0; i < this_locator->n_exterior; i++)
+      this_locator->exterior_list[i]
+        = point_list[this_locator->exterior_list[i] - 1];
+
+  }
+
+  /* Finalize timing */
+
+  w_end = bft_timer_wtime();
+  cpu_end = bft_timer_cpu_time();
+
+  this_locator->location_wtime[0] += (w_end - w_start);
+  this_locator->location_cpu_time[0] += (cpu_end - cpu_start);
+
+  this_locator->location_wtime[1] += comm_timing[0];
+  this_locator->location_cpu_time[1] += comm_timing[1];
+}
+
+/*----------------------------------------------------------------------------
+ * Return number of distant points after locator initialization.
+ *
+ * parameters:
+ *   this_locator <-- pointer to locator structure
+ *
+ * returns:
+ *   number of distant points.
+ *----------------------------------------------------------------------------*/
+
+fvm_lnum_t
+fvm_locator_get_n_dist_points(const fvm_locator_t  *this_locator)
+{
+  fvm_lnum_t retval = 0;
+
+  if (this_locator != NULL) {
+    if (this_locator->n_intersects != 0)
+      retval = this_locator->distant_points_idx[this_locator->n_intersects];
+  }
+
+  return retval;
+}
+
+/*----------------------------------------------------------------------------
+ * Return an array of local element numbers containing (or nearest to)
+ * each distant point after locator initialization.
+ *
+ * parameters:
+ *   this_locator <-- pointer to locator structure
+ *
+ * returns:
+ *   local element numbers associated with distant points (1 to n numbering).
+ *----------------------------------------------------------------------------*/
+
+const fvm_lnum_t *
+fvm_locator_get_dist_locations(const fvm_locator_t  *this_locator)
+{
+  const fvm_lnum_t * retval = NULL;
+
+  if (this_locator != NULL) {
+    if (this_locator->n_ranks != 0)
+      retval = this_locator->distant_point_location;
+  }
+
+  return retval;
+}
+
+/*----------------------------------------------------------------------------
+ * Return an array of coordinates of each distant point after
+ * locator initialization.
+ *
+ * parameters:
+ *   this_locator <-- pointer to locator structure
+ *
+ * returns:
+ *   coordinate array associated with distant points (interlaced).
+ *----------------------------------------------------------------------------*/
+
+const fvm_coord_t *
+fvm_locator_get_dist_coords(const fvm_locator_t  *this_locator)
+{
+  const fvm_coord_t * retval = NULL;
+
+  if (this_locator != NULL) {
+    if (this_locator->n_intersects != 0)
+      retval = this_locator->distant_point_coords;
+  }
+
+  return retval;
+}
+
+/*----------------------------------------------------------------------------
+ * Return number of points located after locator initialization.
+ *
+ * parameters:
+ *   this_locator <-- pointer to locator structure
+ *
+ * returns:
+ *   number of points located.
+ *----------------------------------------------------------------------------*/
+
+fvm_lnum_t
+fvm_locator_get_n_interior(const fvm_locator_t  *this_locator)
+{
+  fvm_lnum_t retval = 0;
+
+  if (this_locator != NULL)
+    retval = this_locator->n_interior;
+
+  return retval;
+}
+
+/*----------------------------------------------------------------------------
+ * Return list of points located after locator initialization.
+ * This list defines a subset of the point set used at initialization.
+ *
+ * parameters:
+ *   this_locator <-- pointer to locator structure
+ *
+ * returns:
+ *   list of points located (1 to n numbering).
+ *----------------------------------------------------------------------------*/
+
+const fvm_lnum_t *
+fvm_locator_get_interior_list(const fvm_locator_t  *this_locator)
+{
+  return this_locator->interior_list;
+}
+
+/*----------------------------------------------------------------------------
+ * Return number of points not located after locator initialization.
+ *
+ * parameters:
+ *   this_locator <-- pointer to locator structure
+ *
+ * returns:
+ *   number of points not located.
+ *----------------------------------------------------------------------------*/
+
+fvm_lnum_t
+fvm_locator_get_n_exterior(const fvm_locator_t  *this_locator)
+{
+  return this_locator->n_exterior;
+}
+
+/*----------------------------------------------------------------------------
+ * Return list of points not located after locator initialization.
+ * This list defines a subset of the point set used at initialization.
+ *
+ * parameters:
+ *   this_locator <-- pointer to locator structure
+ *
+ * returns:
+ *   list of points not located (1 to n numbering).
+ *----------------------------------------------------------------------------*/
+
+const fvm_lnum_t *
+fvm_locator_get_exterior_list(const fvm_locator_t  *this_locator)
+{
+  return this_locator->exterior_list;
+}
+
+/*----------------------------------------------------------------------------
+ * Discard list of points not located after locator initialization.
+ * This list defines a subset of the point set used at initialization.
+ *
+ * parameters:
+ *   this_locator <-- pointer to locator structure
+ *
+ * returns:
+ *   list of points not located (1 to n numbering).
+ *----------------------------------------------------------------------------*/
+
+void
+fvm_locator_discard_exterior(fvm_locator_t  *this_locator)
+{
+  this_locator->n_exterior = 0;
+  BFT_FREE(this_locator->exterior_list);
+}
+
+
+#if defined(FVM_HAVE_MPI)
+
+/*----------------------------------------------------------------------------
+ * Non blocking send dist_var or (local_var if reverse == true)
+ *
+ * parameters:
+ *   this_locator  <-- pointer to locator structure
+ *   var           <-- variable defined on distant points (distant_var)
+ *                     or variable defined on local points (local_var)
+ *                     size: n_dist_points*stride
+ *   local_list    <-- optional indirection list (1 to n) for local_var
+ *   type_size     <-- sizeof (float or double) variable type
+ *   stride        <-- dimension (1 for scalar, 3 for interlaced vector)
+ *   reverse       <-- if nonzero, exchange is reversed
+ *   tag           <-- tag for MPI_issend
+ *   request       <-> communication request
+ *----------------------------------------------------------------------------*/
+
+void
+fvm_locator_issend_point_var(fvm_locator_t     *this_locator,
+                             void              *var,
+                             const fvm_lnum_t  *local_list,
+                             size_t             type_size,
+                             size_t             stride,
+                             int                reverse,
+                             int                tag,
+                             int               *request)
+{
+  double w_start, w_end, cpu_start, cpu_end;
+  
+  _Bool _reverse = reverse;
+  
+  /* Initialize timing */
+  
+  w_start = bft_timer_wtime();
+  cpu_start = bft_timer_cpu_time();
+  
+  MPI_Datatype datatype = MPI_DATATYPE_NULL;
+  
+  if (type_size == sizeof(double))
+    datatype = MPI_DOUBLE;
+  else if (type_size == sizeof(float))
+    datatype = MPI_FLOAT;
+  else
+    bft_error(__FILE__, __LINE__, 0,
+              _("type_size passed to fvm_locator_issend_point_var() does\n"
+                "not correspond to double or float."));
+  
+  assert (datatype != MPI_DATATYPE_NULL);
+  
+  _issend_point_var_distant(this_locator,
+                            var,
+                            local_list,
+                            datatype,
+                            stride,
+                            _reverse,
+                            tag,
+                            request);
+
+  /* Finalize timing */
+
+  w_end = bft_timer_wtime();
+  cpu_end = bft_timer_cpu_time();
+  
+  this_locator->issend_wtime[0] += (w_end - w_start);
+  this_locator->issend_cpu_time[0] += (cpu_end - cpu_start);
+}
+
+
+/*----------------------------------------------------------------------------
+ * Wait for fvm_locator_iisend
+ *
+ * parameters:
+ *   this_locator  <-- pointer to locator structure
+ *   request       <-> communication request
+ *----------------------------------------------------------------------------*/
+
+void
+fvm_locator_issend_wait(fvm_locator_t     *this_locator,
+                        int               request)
+{
+
+  MPI_Status status;
+
+  double w_start, w_end, cpu_start, cpu_end;
+  
+  /* Initialize timing */
+  
+  w_start = bft_timer_wtime();
+  cpu_start = bft_timer_cpu_time();
+
+  _fvm_locator_nblocking_t *nblocking_send = this_locator->nblockings_send + request;
+
+  /* MPI_Wait for MPI_issend requests */
+
+  for (int i = 0; i < this_locator->n_intersects; i++) {
+    MPI_Wait(nblocking_send->MPI_request + i, &status);
+    if (nblocking_send->reverse) 
+      BFT_FREE(nblocking_send->buffer[i]);
+  }
+
+  /* Free request */
+
+  BFT_FREE(nblocking_send->MPI_request);
+
+  if (nblocking_send->reverse)
+    BFT_FREE(nblocking_send->buffer);
+
+  nblocking_send->MPI_request = NULL;
+  nblocking_send->buffer = NULL;
+  nblocking_send->local_list = NULL;
+  nblocking_send->var = NULL;
+  nblocking_send->reverse = false;
+  nblocking_send->size = 0;
+  nblocking_send->stride = 0;
+
+  /* Finalize timing */
+
+  w_end = bft_timer_wtime();
+  cpu_end = bft_timer_cpu_time();
+  
+  this_locator->issend_wtime[0] += (w_end - w_start);
+  this_locator->issend_cpu_time[0] += (cpu_end - cpu_start);
+
+}
+
+
+/*----------------------------------------------------------------------------
+ * Non blocking receive dist_var or (local_var if reverse == true)
+ *
+ * parameters:
+ *   this_locator  <-- pointer to locator structure
+ *   var           --> variable defined on distant points (distant_var)
+ *                     or variable defined on local points (local_var)
+ *                     size: n_dist_points*stride
+ *   local_list    <-- optional indirection list (1 to n) for local_var
+ *   type_size     <-- sizeof (float or double) variable type
+ *   stride        <-- dimension (1 for scalar, 3 for interlaced vector)
+ *   reverse       <-- if nonzero, exchange is reversed
+ *   tag           <-- tag for MPI_irecv
+ *   request       <-> communication request
+ *----------------------------------------------------------------------------*/
+
+void
+fvm_locator_irecv_point_var(fvm_locator_t     *this_locator,
+                            void              *var,
+                            const fvm_lnum_t  *local_list,
+                            size_t             type_size,
+                            size_t             stride,
+                            int                reverse,
+                            int                tag,
+                            int*               request)
+{
+  double w_start, w_end, cpu_start, cpu_end;
+
+  _Bool _reverse = reverse;
+
+  /* Initialize timing */
+
+  w_start = bft_timer_wtime();
+  cpu_start = bft_timer_cpu_time();
+
+  MPI_Datatype datatype = MPI_DATATYPE_NULL;
+  
+  if (type_size == sizeof(double))
+    datatype = MPI_DOUBLE;
+  else if (type_size == sizeof(float))
+    datatype = MPI_FLOAT;
+  else
+    bft_error(__FILE__, __LINE__, 0,
+              _("type_size passed to fvm_locator_issend_point_var() does\n"
+                "not correspond to double or float."));
+
+  assert (datatype != MPI_DATATYPE_NULL);
+  
+  _irecv_point_var_distant(this_locator,
+                           var,
+                           local_list,
+                           datatype,
+                           stride,
+                           _reverse,
+                           tag,
+                           request);
+
+
+
+  /* Finalize timing */
+
+  w_end = bft_timer_wtime();
+  cpu_end = bft_timer_cpu_time();
+
+  this_locator->irecv_wtime[0] += (w_end - w_start);
+  this_locator->irecv_cpu_time[0] += (cpu_end - cpu_start);
+  }
+
+
+/*----------------------------------------------------------------------------
+ * Wait for fvm_locator_irecv
+ *
+ * parameters:
+ *   this_locator  <-- pointer to locator structure
+ *   request       <-> communication request
+ *----------------------------------------------------------------------------*/
+
+void
+fvm_locator_irecv_wait(fvm_locator_t     *this_locator,
+                        int               request)
+{
+
+  MPI_Status status;
+  
+  double w_start, w_end, cpu_start, cpu_end;
+  fvm_lnum_t n_points_loc;
+  
+  /* Initialize timing */
+  
+  w_start = bft_timer_wtime();
+  cpu_start = bft_timer_cpu_time();
+  
+  _fvm_locator_nblocking_t *nblocking_recv = this_locator->nblockings_recv + request;
+  
+
+  /* MPI_Wait for MPI_irecv requests */
+  
+  for (int i = 0; i < this_locator->n_intersects; i++) {
+    MPI_Wait(nblocking_recv->MPI_request + i, &status);
+
+    const fvm_lnum_t *_local_point_ids
+      = this_locator->local_point_ids + this_locator->local_points_idx[i];
+
+    n_points_loc =    this_locator->local_points_idx[i+1]
+                     - this_locator->local_points_idx[i];
+ 
+    int size = nblocking_recv->size;
+    int stride = nblocking_recv->stride;
+
+    if (!nblocking_recv->reverse) {
+      if (nblocking_recv->local_list == NULL) {
+        int k;
+        size_t l;
+        const size_t nbytes = stride*size;
+        for (k = 0; k < n_points_loc; k++) {
+          char *local_v_p = (char *)nblocking_recv->var + _local_point_ids[k]*nbytes;
+          const char *loc_v_buf_p = (const char *)nblocking_recv->buffer[i] + k*nbytes;
+          for (l = 0; l < nbytes; l++)
+            local_v_p[l] = loc_v_buf_p[l];
+        }
+      }
+      else {
+        int k;
+        size_t l;
+        const size_t nbytes = stride*size;
+        for (k = 0; k < n_points_loc; k++) {
+          char *local_v_p =   (char *)nblocking_recv->var
+            + (nblocking_recv->local_list[_local_point_ids[k]] - 1)*nbytes;
+          const char *loc_v_buf_p = (const char *)nblocking_recv->buffer[i] + k*nbytes;
+          for (l = 0; l < nbytes; l++)
+            local_v_p[l] = loc_v_buf_p[l];
+        }
+      }
+      BFT_FREE(nblocking_recv->buffer[i]);
+    }
+  }
+
+  /* Free request */
+  
+  BFT_FREE(nblocking_recv->MPI_request);
+  BFT_FREE(nblocking_recv->buffer);
+
+  nblocking_recv->buffer = NULL;
+  nblocking_recv->MPI_request = NULL;
+  nblocking_recv->var = NULL;
+  nblocking_recv->local_list = NULL;
+  nblocking_recv->reverse = false;
+  nblocking_recv->size = 0;
+  nblocking_recv->stride = 0;
+  
+  /* Finalize timing */
+  
+  w_end = bft_timer_wtime();
+  cpu_end = bft_timer_cpu_time();
+  
+  this_locator->irecv_wtime[0] += (w_end - w_start);
+  this_locator->irecv_cpu_time[0] += (cpu_end - cpu_start);
+
+}
+
+#endif
+
+/*----------------------------------------------------------------------------
+ * Distribute variable defined on distant points to processes owning
+ * the original points (i.e. distant processes).
+ *
+ * The exchange is symmetric if both variables are defined, receive
+ * only if distant_var is NULL, or send only if local_var is NULL.
+ *
+ * The caller should have defined the values of distant_var[] for the
+ * distant points, whose coordinates are given by
+ * fvm_locator_get_dist_coords(), and which are located in the elements
+ * whose numbers are given by fvm_locator_get_dist_locations().
+ *
+ * The local_var[] is defined at the located points (those whose
+ * numbers are returned by fvm_locator_get_interior_list().
+ *
+ * parameters:
+ *   this_locator  <-- pointer to locator structure
+ *   distant_var   <-> variable defined on distant points (ready to send)
+ *                     size: n_dist_points*stride
+ *   local_var     <-> variable defined on located local points (received)
+ *                     size: n_interior*stride
+ *   local_list    <-- optional indirection list (1 to n) for local_var
+ *   type_size     <-- sizeof (float or double) variable type
+ *   stride        <-- dimension (1 for scalar, 3 for interlaced vector)
+ *   reverse       <-- if nonzero, exchange is reversed
+ *                     (receive values associated with distant points
+ *                     from the processes owning the original points)
+ *----------------------------------------------------------------------------*/
+
+void
+fvm_locator_exchange_point_var(fvm_locator_t     *this_locator,
+                               void              *distant_var,
+                               void              *local_var,
+                               const fvm_lnum_t  *local_list,
+                               size_t             type_size,
+                               size_t             stride,
+                               int                reverse)
+{
+  double w_start, w_end, cpu_start, cpu_end;
+
+  int mpi_flag = 0;
+  _Bool _reverse = reverse;
+
+  /* Initialize timing */
+
+  w_start = bft_timer_wtime();
+  cpu_start = bft_timer_cpu_time();
+
+#if defined(FVM_HAVE_MPI)
+
+  MPI_Initialized(&mpi_flag);
+
+  if (mpi_flag && this_locator->comm == MPI_COMM_NULL)
+    mpi_flag = 0;
+
+  if (mpi_flag) {
+
+    MPI_Datatype datatype = MPI_DATATYPE_NULL;
+
+    if (type_size == sizeof(double))
+      datatype = MPI_DOUBLE;
+    else if (type_size == sizeof(float))
+      datatype = MPI_FLOAT;
+    else
+      bft_error(__FILE__, __LINE__, 0,
+                _("type_size passed to fvm_locator_exchange_point_var() does\n"
+                  "not correspond to double or float."));
+
+    assert (datatype != MPI_DATATYPE_NULL);
+
+    _exchange_point_var_distant(this_locator,
+                                distant_var,
+                                local_var,
+                                local_list,
+                                datatype,
+                                stride,
+                                _reverse);
+
+  }
+
+#endif /* defined(FVM_HAVE_MPI) */
+
+  if (!mpi_flag)
+    _exchange_point_var_local(this_locator,
+                              distant_var,
+                              local_var,
+                              local_list,
+                              type_size,
+                              stride,
+                              _reverse);
+
+  /* Finalize timing */
+
+  w_end = bft_timer_wtime();
+  cpu_end = bft_timer_cpu_time();
+
+  this_locator->exchange_wtime[0] += (w_end - w_start);
+  this_locator->exchange_cpu_time[0] += (cpu_end - cpu_start);
+}
+
+/*----------------------------------------------------------------------------
+ * Return timing information.
+ *
+ * In parallel mode, this includes communication time.
+ *
+ * parameters:
+ *   this_locator      <-- pointer to locator structure
+ *   location_wtime    --> Location Wall-clock time (or NULL)
+ *   location_cpu_time --> Location CPU time (or NULL)
+ *   exchange_wtime    --> Variable exchange Wall-clock time (or NULL)
+ *   exchange_cpu_time --> Variable exchange CPU time (or NULL)
+ *   issend_wtime      --> Variable exchange Wall-clock time (or NULL)
+ *   issend_cpu_time   --> Variable exchange CPU time (or NULL)
+ *   irecv_wtime       --> Variable exchange Wall-clock time (or NULL)
+ *   irecv_cpu_time    --> Variable exchange CPU time (or NULL)
+ *----------------------------------------------------------------------------*/
+
+void
+fvm_locator_get_times(const fvm_locator_t  *this_locator,
+                      double               *location_wtime,
+                      double               *location_cpu_time,
+                      double               *exchange_wtime,
+                      double               *exchange_cpu_time,
+                      double               *issend_wtime,
+                      double               *issend_cpu_time,
+                      double               *irecv_wtime,
+                      double               *irecv_cpu_time)
+{
+  _get_times(this_locator,
+             0,
+             location_wtime, location_cpu_time,
+             exchange_wtime, exchange_cpu_time,
+             issend_wtime, issend_cpu_time,
+             irecv_wtime, irecv_cpu_time);
+}
+
+/*----------------------------------------------------------------------------
+ * Return communication timing information.
+ *
+ * In serial mode, returned times are always zero..
+ *
+ * parameters:
+ *   this_locator      <-- pointer to locator structure
+ *   location_wtime    --> Location Wall-clock time (or NULL)
+ *   location_cpu_time --> Location CPU time (or NULL)
+ *   exchange_wtime    --> Variable exchange Wall-clock time (or NULL)
+ *   exchange_cpu_time --> Variable exchange CPU time (or NULL)
+ *   issend_wtime      --> Variable exchange Wall-clock time (or NULL)
+ *   issend_cpu_time   --> Variable exchange CPU time (or NULL)
+ *   irecv_wtime       --> Variable exchange Wall-clock time (or NULL)
+ *   irecv_cpu_time    --> Variable exchange CPU time (or NULL)
+ *----------------------------------------------------------------------------*/
+
+void
+fvm_locator_get_comm_times(const fvm_locator_t  *this_locator,
+                           double               *location_wtime,
+                           double               *location_cpu_time,
+                           double               *exchange_wtime,
+                           double               *exchange_cpu_time,
+                           double               *issend_wtime,
+                           double               *issend_cpu_time,
+                           double               *irecv_wtime,
+                           double               *irecv_cpu_time)
+{
+  _get_times(this_locator,
+             1,
+             location_wtime, location_cpu_time,
+             exchange_wtime, exchange_cpu_time,
+             issend_wtime, issend_cpu_time,
+             irecv_wtime, irecv_cpu_time);
+}
+
+/*----------------------------------------------------------------------------
+ * Dump printout of a locator structure.
+ *
+ * parameters:
+ *   this_locator  <-- pointer to structure that should be dumped
+ *----------------------------------------------------------------------------*/
+
+void
+fvm_locator_dump(const fvm_locator_t  *this_locator)
+{
+  int  i;
+  fvm_lnum_t  j, k;
+  const fvm_lnum_t  *idx, *index, *loc;
+  const fvm_coord_t  *coords;
+
+  const fvm_locator_t  *_locator = this_locator;
+
+  if (this_locator == NULL)
+    return;
+
+  /* Basic information */
+  /*-------------------*/
+
+  bft_printf("\n"
+             "Locator:\n\n"
+             "Tolerance:                             %f\n"
+             "Locate on parents:                     %d\n"
+             "Spatial dimension:                     %d\n"
+             "Number of ranks of distant location:   %d\n"
+             "First rank of distant location:        %d\n"
+             "Number of intersecting distant ranks:  %d\n",
+             _locator->tolerance,
+             (int)_locator->locate_on_parents, _locator->dim,
+             _locator->n_ranks, _locator->start_rank,
+             _locator->n_intersects);
+
+#if defined(FVM_HAVE_MPI)
+  if (_locator->comm != MPI_COMM_NULL)
+    bft_printf("\n"
+               "Associated MPI communicator:           %ld\n",
+               (long)(_locator->comm));
+#endif
+
+  /* Arrays indexed by rank */
+  /*------------------------*/
+
+  for (i = 0; i < _locator->n_intersects; i++) {
+
+    bft_printf("\n"
+               "  Intersection %d with distant rank %d\n\n",
+               i+1, _locator->intersect_rank[i]);
+
+    bft_printf("    Distant rank extents:\n");
+
+    k = i * (_locator->dim) * 2;
+    for (j = 0; j < _locator->dim; j++)
+      bft_printf("    [%12.5e, %12.5e]\n",
+                 _locator->intersect_extents[k + j],
+                 _locator->intersect_extents[k + _locator->dim + j]);
+
+  }
+
+  if (_locator->n_interior > 0) {
+
+    if (_locator->local_point_ids != NULL) {
+
+      bft_printf("\n  Local point ids (for receiving):\n\n");
+      idx = _locator->local_points_idx;
+      index = _locator->local_point_ids;
+      for (i = 0; i < _locator->n_intersects; i++) {
+        if (idx[i+1] > idx[i]) {
+          bft_printf("%6d (idx = %10d) %10d\n",
+                     i + 1, idx[i], index[idx[i]]);
+          for (j = idx[i] + 1; j < idx[i + 1]; j++)
+            bft_printf("                          %10d\n", index[j]);
+        }
+        else {
+          bft_printf("%6d (idx = %10d)\n", i + 1, idx[i]);
+        }
+        bft_printf("   end (idx = %10d)\n", idx[_locator->n_intersects]);
+      }
+
+    }
+
+  }
+
+  if (_locator->distant_points_idx != NULL) {
+
+    idx = _locator->distant_points_idx;
+    loc = _locator->distant_point_location;
+    coords = _locator->distant_point_coords;
+
+    if (idx[_locator->n_intersects] > 0)
+      bft_printf("\n  Distant point location:\n\n");
+
+    for (i = 0; i < _locator->n_intersects; i++) {
+
+      if (idx[i+1] > idx[i]) {
+
+        if (_locator->dim == 1) {
+          bft_printf("%6d (idx = %10d) %10d [%12.5e]\n",
+                     i + 1, _locator->intersect_rank[i], idx[i],
+                     loc[idx[i]], coords[idx[i]]);
+          for (j = idx[i] + 1; j < idx[i + 1]; j++)
+            bft_printf("                          %10d [%12.5e]\n",
+                       loc[j], coords[j]);
+        }
+        else if (_locator->dim == 2) {
+          bft_printf("%6d (idx = %10d) %10d [%12.5e, %12.5e]\n",
+                     i + 1, idx[i], loc[idx[i]],
+                     coords[2*idx[i]], coords[2*idx[i]+1]);
+          for (j = idx[i] + 1; j < idx[i + 1]; j++)
+            bft_printf("                          %10d [%12.5e, %12.5e]\n",
+                       loc[j], coords[2*j], coords[2*j+1]);
+        }
+        else if (_locator->dim == 3) {
+          bft_printf("%6d (idx = %10d) %10d [%12.5e, %12.5e, %12.5e]\n",
+                     i + 1, idx[i], loc[idx[i]],
+                     coords[3*idx[i]], coords[3*idx[i]+1], coords[3*idx[i]+2]);
+          for (j = idx[i] + 1; j < idx[i + 1]; j++)
+            bft_printf("                          "
+                       "%10d [%12.5e, %12.5e, %12.5e]\n",
+                       loc[j], coords[3*j], coords[3*j+1], coords[3*j+2]);
+        }
+
+      } /* if (idx[i+1] > idx[i]) */
+
+    }
+
+    if (idx[_locator->n_intersects] > 0)
+      bft_printf("   end (idx = %10d)\n", idx[_locator->n_intersects]);
+  }
+
+  /* Local arrays */
+  /*--------------*/
+
+  bft_printf("\n"
+             "  Number of local points successfully located:  %d\n\n",
+             _locator->n_interior);
+
+  for (j = 0; j < _locator->n_interior; j++)
+    bft_printf("    %10d\n", _locator->interior_list[j]);
+
+  if  (_locator->n_interior > 0)
+    bft_printf("\n");
+
+  bft_printf("  Number of local points not located:  %d\n",
+             _locator->n_exterior);
+
+  for (j = 0; j < _locator->n_exterior; j++)
+    bft_printf("    %10d\n", _locator->exterior_list[j]);
+
+  if  (_locator->n_exterior > 0)
+    bft_printf("\n");
+
+  /* Timing information */
+  /*--------------------*/
+
+  bft_printf("  Location Wall-clock time: %12.5f (comm: %12.5f)\n",
+             _locator->location_wtime[0], _locator->location_wtime[0]);
+
+  bft_printf("  Location CPU time:        %12.5f (comm: %12.5f)\n",
+             _locator->location_cpu_time[0], _locator->location_cpu_time[0]);
+
+  bft_printf("  Exchange Wall-clock time: %12.5f (comm: %12.5f)\n",
+             _locator->exchange_wtime[0], _locator->exchange_wtime[0]);
+
+  bft_printf("  Exchange CPU time:        %12.5f (comm: %12.5f)\n",
+             _locator->exchange_cpu_time[0], _locator->exchange_cpu_time[0]);
+
+  bft_printf("  Issend Wall-clock time: %12.5f (comm: %12.5f)\n",
+             _locator->issend_wtime[0], _locator->issend_wtime[0]);
+
+  bft_printf("  Issend CPU time:        %12.5f (comm: %12.5f)\n",
+             _locator->issend_cpu_time[0], _locator->issend_cpu_time[0]);
+
+  bft_printf("  Irecv Wall-clock time: %12.5f (comm: %12.5f)\n",
+             _locator->irecv_wtime[0], _locator->irecv_wtime[0]);
+
+  bft_printf("  Irecv CPU time:        %12.5f (comm: %12.5f)\n",
+             _locator->irecv_cpu_time[0], _locator->irecv_cpu_time[0]);
+}
+
+#if defined(FVM_HAVE_MPI)
+
+/*----------------------------------------------------------------------------
+ * Register communication logging functions for locator instrumentation.
+ *
+ * By default, locators are not instrumented.
+ *
+ * Functions using MPE may be defined and used, but other similar systems
+ * may be used.
+ *
+ * parameters:
+ *   fct           <-- pointer to logging function
+ *   start_p_comm  <-- point to point communication start event number
+ *   end_p_comm    <-- point to point communication end event number
+ *   start_g_comm  <-- global communication start event number
+ *   end_g_comm    <-- global communication end event number
+ *----------------------------------------------------------------------------*/
+
+void
+fvm_locator_set_comm_log(fvm_locator_log_t  *log_function,
+                         int                 start_p_comm,
+                         int                 end_p_comm,
+                         int                 start_g_comm,
+                         int                 end_g_comm)
+{
+  _fvm_locator_log_func = log_function;
+
+  _fvm_locator_log_start_p_comm = start_p_comm;
+  _fvm_locator_log_end_p_comm = end_p_comm;
+  _fvm_locator_log_start_g_comm = start_g_comm;
+  _fvm_locator_log_end_g_comm = end_g_comm;
+}
+
+#endif /* defined(FVM_HAVE_MPI) */
+
+/*----------------------------------------------------------------------------*/
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */

@@ -17,15 +17,28 @@
 # License along with this library. If not, see <http://www.gnu.org/licenses/>.
 #-----------------------------------------------------------------------------
 
-AM_CPPFLAGS = -I@PYTHON_INCLUDE@ -I@NUMPY_INCLUDE@ -I$(top_srcdir)/src $(DEBUG_CPPFLAGS) @BFT_CPPFLAGS@ @FVM_CPPFLAGS@ @MPI_CPPFLAGS@
+AM_CPPFLAGS = \
+-I@PYTHON_INCLUDE@ \
+-I@NUMPY_INCLUDE@ \
+-I$(top_srcdir)/src \
+-I$(top_srcdir)/src/bft \
+-I$(top_srcdir)/src/fvm \
+$(DEBUG_CPPFLAGS) \
+@MPI_CPPFLAGS@
+
 AM_CFLAGS = -fno-strict-aliasing 
-AM_LDFLAGS = @BFT_LDFLAGS@ @FVM_LDFLAGS@ @MPI_LDFLAGS@
+AM_LDFLAGS = @MPI_LDFLAGS@
 
 pkgpython_PYTHON = __init__.py
 pkgpyexec_LTLIBRARIES = CWIPI.la
 CWIPI_la_SOURCES = CWIPI.c
-CWIPI_la_LIBADD = $(top_builddir)/src/libcwipi.la @BFT_LIBS@ @FVM_LIBS@
-CWIPI_la_LDFLAGS = @BFT_LDFLAGS@ @FVM_LDFLAGS@ _avoid_version -module
+
+CWIPI_la_LIBADD = \
+$(top_builddir)/src/bft/libbft.la \
+$(top_builddir)/src/fvm/libfvm.la \
+$(top_builddir)/src/libcwipi.la 
+
+CWIPI_la_LDFLAGS = _avoid_version -module
 
 clean-local:
 	rm -f core *.o *.bak *~ *.pyc *.pyo

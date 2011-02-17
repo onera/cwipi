@@ -31,14 +31,23 @@ endif
 
 # Main part
 
-AM_CPPFLAGS = -I$(top_builddir)/src -I$(top_srcdir)/src $(DEBUG_CPPFLAGS) @BFT_CPPFLAGS@ @FVM_CPPFLAGS@ @MPI_CPPFLAGS@
+AM_CPPFLAGS = \
+-I$(top_builddir)/src \
+-I$(top_srcdir)/src \
+-I$(top_srcdir)/src/bft \
+-I$(top_srcdir)/src/fvm \
+$(DEBUG_CPPFLAGS) \
+@MPI_CPPFLAGS@
+
 AM_CFLAGS   =
-AM_LDFLAGS  = @BFT_LDFLAGS@ @FVM_LDFLAGS@ @MPI_LDFLAGS@
+AM_LDFLAGS  = @MPI_LDFLAGS@
 
 AM_FCFLAGS = -I$(top_builddir)/src -I$(top_srcdir)/src
 
-LDADD = $(top_builddir)/src/libcwipi.la \
-        @BFT_LIBS@ @FVM_LIBS@ @MPI_LIBS@ \
+LDADD = $(top_builddir)/src/bft/libbft.la \
+	$(top_builddir)/src/fvm/libfvm.la \
+	$(top_builddir)/src/libcwipi.la \
+        @MPI_LIBS@ \
 	-lm
 
 check_PROGRAMS = \
@@ -63,24 +72,48 @@ c_surf_coupling_P1P1_asynchronous_SOURCES = grid_mesh.c c_surf_coupling_P1P1_asy
 test3D_1_c1_SOURCES = test3D_1_c1.c
 test3D_1_c2_SOURCES = test3D_1_c2.c
 
-c_linear_coupling_LDADD = $(top_builddir)/src/libcwipi.la \
-        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
-        -lm
-c_surf_coupling_P1P1_micron_polygon_LDADD = $(top_builddir)/src/libcwipi.la \
-        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
-        -lm
-c_surf_coupling_P1P1_polygon_LDADD = $(top_builddir)/src/libcwipi.la \
-        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
-        -lm
-c_surf_coupling_P1P1_LDADD = $(top_builddir)/src/libcwipi.la \
-        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
-        -lm
-test3D_1_c1_LDADD = $(top_builddir)/src/libcwipi.la \
-        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
-        -lm
-test3D_1_c2_LDADD = $(top_builddir)/src/libcwipi.la \
-        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
-        -lm
+c_linear_coupling_LDADD = \
+$(top_builddir)/src/bft/libbft.la \
+$(top_builddir)/src/fvm/libfvm.la \
+$(top_builddir)/src/libcwipi.la \
+@MPI_LIBS@ \
+-lm
+
+c_surf_coupling_P1P1_micron_polygon_LDADD = \
+$(top_builddir)/src/bft/libbft.la \
+$(top_builddir)/src/fvm/libfvm.la \
+$(top_builddir)/src/libcwipi.la \
+@MPI_LIBS@ \
+-lm
+
+c_surf_coupling_P1P1_polygon_LDADD = \
+$(top_builddir)/src/bft/libbft.la \
+$(top_builddir)/src/fvm/libfvm.la \
+$(top_builddir)/src/libcwipi.la \
+@MPI_LIBS@ \
+-lm
+
+c_surf_coupling_P1P1_LDADD = \
+$(top_builddir)/src/bft/libbft.la \
+$(top_builddir)/src/fvm/libfvm.la \
+$(top_builddir)/src/libcwipi.la \
+@MPI_LIBS@ \
+-lm
+
+test3D_1_c1_LDADD = \
+$(top_builddir)/src/bft/libbft.la \
+$(top_builddir)/src/fvm/libfvm.la \
+$(top_builddir)/src/libcwipi.la \
+@MPI_LIBS@ \
+-lm
+
+test3D_1_c2_LDADD = \
+$(top_builddir)/src/bft/libbft.la \
+$(top_builddir)/src/fvm/libfvm.la \
+$(top_builddir)/src/libcwipi.la \
+@MPI_LIBS@ \
+-lm
+
 #test2D_1_c1_LDADD =  $(top_builddir)/src/libcwipi.la \
 #        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
 #	-lm

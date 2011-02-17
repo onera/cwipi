@@ -67,11 +67,19 @@ TESTS = c_linear_coupling$(EXEEXT) \
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/config/check_bft.m4 \
-	$(top_srcdir)/config/check_fvm.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/config/bft_config_info.m4 \
+	$(top_srcdir)/config/bft_config_publ.m4 \
+	$(top_srcdir)/config/bft_types.m4 \
+	$(top_srcdir)/config/bft_zlib.m4 \
 	$(top_srcdir)/config/check_mpi.m4 \
 	$(top_srcdir)/config/cwipi_config_info.m4 \
 	$(top_srcdir)/config/cwipi_config_publ.m4 \
+	$(top_srcdir)/config/fvm_cgns.m4 \
+	$(top_srcdir)/config/fvm_config_info.m4 \
+	$(top_srcdir)/config/fvm_config_publ.m4 \
+	$(top_srcdir)/config/fvm_hdf5.m4 \
+	$(top_srcdir)/config/fvm_med.m4 \
+	$(top_srcdir)/config/fvm_types.m4 \
 	$(top_srcdir)/config/libtool.m4 \
 	$(top_srcdir)/config/ltoptions.m4 \
 	$(top_srcdir)/config/ltsugar.m4 \
@@ -80,21 +88,29 @@ am__aclocal_m4_deps = $(top_srcdir)/config/check_bft.m4 \
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
-CONFIG_HEADER = $(top_builddir)/config_priv.h
+CONFIG_HEADER = $(top_builddir)/config_priv.h \
+	$(top_builddir)/fvm_config_priv.h \
+	$(top_builddir)/bft_config_priv.h
 CONFIG_CLEAN_FILES =
 am_c_linear_coupling_OBJECTS = c_linear_coupling.$(OBJEXT)
 c_linear_coupling_OBJECTS = $(am_c_linear_coupling_OBJECTS)
-c_linear_coupling_DEPENDENCIES = $(top_builddir)/src/libcwipi.la
+c_linear_coupling_DEPENDENCIES = $(top_builddir)/src/bft/libbft.la \
+	$(top_builddir)/src/fvm/libfvm.la \
+	$(top_builddir)/src/libcwipi.la
 am_c_surf_coupling_P1P1_OBJECTS = grid_mesh.$(OBJEXT) \
 	c_surf_coupling_P1P1.$(OBJEXT)
 c_surf_coupling_P1P1_OBJECTS = $(am_c_surf_coupling_P1P1_OBJECTS)
-c_surf_coupling_P1P1_DEPENDENCIES = $(top_builddir)/src/libcwipi.la
+c_surf_coupling_P1P1_DEPENDENCIES = $(top_builddir)/src/bft/libbft.la \
+	$(top_builddir)/src/fvm/libfvm.la \
+	$(top_builddir)/src/libcwipi.la
 am_c_surf_coupling_P1P1_asynchronous_OBJECTS = grid_mesh.$(OBJEXT) \
 	c_surf_coupling_P1P1_asynchronous.$(OBJEXT)
 c_surf_coupling_P1P1_asynchronous_OBJECTS =  \
 	$(am_c_surf_coupling_P1P1_asynchronous_OBJECTS)
 c_surf_coupling_P1P1_asynchronous_LDADD = $(LDADD)
 c_surf_coupling_P1P1_asynchronous_DEPENDENCIES =  \
+	$(top_builddir)/src/bft/libbft.la \
+	$(top_builddir)/src/fvm/libfvm.la \
 	$(top_builddir)/src/libcwipi.la
 am_c_surf_coupling_P1P1_micron_polygon_OBJECTS =  \
 	creeMaillagePolygone2D.$(OBJEXT) \
@@ -102,6 +118,8 @@ am_c_surf_coupling_P1P1_micron_polygon_OBJECTS =  \
 c_surf_coupling_P1P1_micron_polygon_OBJECTS =  \
 	$(am_c_surf_coupling_P1P1_micron_polygon_OBJECTS)
 c_surf_coupling_P1P1_micron_polygon_DEPENDENCIES =  \
+	$(top_builddir)/src/bft/libbft.la \
+	$(top_builddir)/src/fvm/libfvm.la \
 	$(top_builddir)/src/libcwipi.la
 am_c_surf_coupling_P1P1_polygon_OBJECTS =  \
 	creeMaillagePolygone2D.$(OBJEXT) \
@@ -109,13 +127,19 @@ am_c_surf_coupling_P1P1_polygon_OBJECTS =  \
 c_surf_coupling_P1P1_polygon_OBJECTS =  \
 	$(am_c_surf_coupling_P1P1_polygon_OBJECTS)
 c_surf_coupling_P1P1_polygon_DEPENDENCIES =  \
+	$(top_builddir)/src/bft/libbft.la \
+	$(top_builddir)/src/fvm/libfvm.la \
 	$(top_builddir)/src/libcwipi.la
 am_test3D_1_c1_OBJECTS = test3D_1_c1.$(OBJEXT)
 test3D_1_c1_OBJECTS = $(am_test3D_1_c1_OBJECTS)
-test3D_1_c1_DEPENDENCIES = $(top_builddir)/src/libcwipi.la
+test3D_1_c1_DEPENDENCIES = $(top_builddir)/src/bft/libbft.la \
+	$(top_builddir)/src/fvm/libfvm.la \
+	$(top_builddir)/src/libcwipi.la
 am_test3D_1_c2_OBJECTS = test3D_1_c2.$(OBJEXT)
 test3D_1_c2_OBJECTS = $(am_test3D_1_c2_OBJECTS)
-test3D_1_c2_DEPENDENCIES = $(top_builddir)/src/libcwipi.la
+test3D_1_c2_DEPENDENCIES = $(top_builddir)/src/bft/libbft.la \
+	$(top_builddir)/src/fvm/libfvm.la \
+	$(top_builddir)/src/libcwipi.la
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__depfiles_maybe = depfiles
@@ -149,13 +173,13 @@ AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
-BFT_CPPFLAGS = @BFT_CPPFLAGS@
-BFT_LDFLAGS = @BFT_LDFLAGS@
-BFT_LIBS = @BFT_LIBS@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CC_ADD = @CC_ADD@
 CFLAGS = @CFLAGS@
+CGNS_CPPFLAGS = @CGNS_CPPFLAGS@
+CGNS_LDFLAGS = @CGNS_LDFLAGS@
+CGNS_LIBS = @CGNS_LIBS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CPP_ADD = @CPP_ADD@
@@ -176,10 +200,10 @@ EXEEXT = @EXEEXT@
 FC = @FC@
 FCFLAGS = @FCFLAGS@
 FGREP = @FGREP@
-FVM_CPPFLAGS = @FVM_CPPFLAGS@
-FVM_LDFLAGS = @FVM_LDFLAGS@
-FVM_LIBS = @FVM_LIBS@
 GREP = @GREP@
+HDF5_CPPFLAGS = @HDF5_CPPFLAGS@
+HDF5_LDFLAGS = @HDF5_LDFLAGS@
+HDF5_LIBS = @HDF5_LIBS@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -197,6 +221,9 @@ LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
+MED_CPPFLAGS = @MED_CPPFLAGS@
+MED_LDFLAGS = @MED_LDFLAGS@
+MED_LIBS = @MED_LIBS@
 MKDIR_P = @MKDIR_P@
 MPI4PY_INCLUDE = @MPI4PY_INCLUDE@
 MPI_BIN_PATH = @MPI_BIN_PATH@
@@ -300,12 +327,21 @@ AUTOMAKE_OPTIONS = foreign
 @DEBUG_TRUE@DEBUG_CPPFLAGS = -DDEBUG
 
 # Main part
-AM_CPPFLAGS = -I$(top_builddir)/src -I$(top_srcdir)/src $(DEBUG_CPPFLAGS) @BFT_CPPFLAGS@ @FVM_CPPFLAGS@ @MPI_CPPFLAGS@
+AM_CPPFLAGS = \
+-I$(top_builddir)/src \
+-I$(top_srcdir)/src \
+-I$(top_srcdir)/src/bft \
+-I$(top_srcdir)/src/fvm \
+$(DEBUG_CPPFLAGS) \
+@MPI_CPPFLAGS@
+
 AM_CFLAGS = 
-AM_LDFLAGS = @BFT_LDFLAGS@ @FVM_LDFLAGS@ @MPI_LDFLAGS@
+AM_LDFLAGS = @MPI_LDFLAGS@
 AM_FCFLAGS = -I$(top_builddir)/src -I$(top_srcdir)/src
-LDADD = $(top_builddir)/src/libcwipi.la \
-        @BFT_LIBS@ @FVM_LIBS@ @MPI_LIBS@ \
+LDADD = $(top_builddir)/src/bft/libbft.la \
+	$(top_builddir)/src/fvm/libfvm.la \
+	$(top_builddir)/src/libcwipi.la \
+        @MPI_LIBS@ \
 	-lm
 
 
@@ -320,29 +356,48 @@ c_surf_coupling_P1P1_asynchronous_SOURCES = grid_mesh.c c_surf_coupling_P1P1_asy
 #test2D_1_c2_SOURCES = creeMaillagePolygone2D.c test2D_1_c2.f90
 test3D_1_c1_SOURCES = test3D_1_c1.c
 test3D_1_c2_SOURCES = test3D_1_c2.c
-c_linear_coupling_LDADD = $(top_builddir)/src/libcwipi.la \
-        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
-        -lm
+c_linear_coupling_LDADD = \
+$(top_builddir)/src/bft/libbft.la \
+$(top_builddir)/src/fvm/libfvm.la \
+$(top_builddir)/src/libcwipi.la \
+@MPI_LIBS@ \
+-lm
 
-c_surf_coupling_P1P1_micron_polygon_LDADD = $(top_builddir)/src/libcwipi.la \
-        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
-        -lm
+c_surf_coupling_P1P1_micron_polygon_LDADD = \
+$(top_builddir)/src/bft/libbft.la \
+$(top_builddir)/src/fvm/libfvm.la \
+$(top_builddir)/src/libcwipi.la \
+@MPI_LIBS@ \
+-lm
 
-c_surf_coupling_P1P1_polygon_LDADD = $(top_builddir)/src/libcwipi.la \
-        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
-        -lm
+c_surf_coupling_P1P1_polygon_LDADD = \
+$(top_builddir)/src/bft/libbft.la \
+$(top_builddir)/src/fvm/libfvm.la \
+$(top_builddir)/src/libcwipi.la \
+@MPI_LIBS@ \
+-lm
 
-c_surf_coupling_P1P1_LDADD = $(top_builddir)/src/libcwipi.la \
-        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
-        -lm
+c_surf_coupling_P1P1_LDADD = \
+$(top_builddir)/src/bft/libbft.la \
+$(top_builddir)/src/fvm/libfvm.la \
+$(top_builddir)/src/libcwipi.la \
+@MPI_LIBS@ \
+-lm
 
-test3D_1_c1_LDADD = $(top_builddir)/src/libcwipi.la \
-        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
-        -lm
+test3D_1_c1_LDADD = \
+$(top_builddir)/src/bft/libbft.la \
+$(top_builddir)/src/fvm/libfvm.la \
+$(top_builddir)/src/libcwipi.la \
+@MPI_LIBS@ \
+-lm
 
-test3D_1_c2_LDADD = $(top_builddir)/src/libcwipi.la \
-        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
-        -lm
+test3D_1_c2_LDADD = \
+$(top_builddir)/src/bft/libbft.la \
+$(top_builddir)/src/fvm/libfvm.la \
+$(top_builddir)/src/libcwipi.la \
+@MPI_LIBS@ \
+-lm
+
 
 #test2D_1_c1_LDADD =  $(top_builddir)/src/libcwipi.la \
 #        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \

@@ -23,17 +23,93 @@
 # Initialization
 #------------------------------------------------------------------------------
 
-m4_define([licence_c_comment],
+m4_define([cwipi_licence_c_comment],
 [/*
+  This file is part of the CWIPI library. 
 
+  Copyright (C) 2011  ONERA
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 3 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library. If not, see <http://www.gnu.org/licenses/>.
+*/])
+
+m4_define([bft_licence_c_comment],
+[/*
+  This file is part of the CWIPI library, derived from "Base Functions and Types"
+  library, intended to simplify and enhance portability, memory 
+  and I/O use for scientific codes.
+
+  Copyright (C) 2011  ONERA
+
+  Copyright (C) 2004-2010  EDF   
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 3 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library. If not, see <http://www.gnu.org/licenses/>.
+*/])
+
+m4_define([fvm_licence_c_comment],
+[/*
+  This file is part of the CWIPI library, derived from the "Finite Volume Mesh" 
+  library, intended to provide finite volume mesh and associated 
+  fields I/O and manipulation services.
+
+  Copyright (C) 2011  ONERA
+
+  Copyright (C) 2004-2010  EDF   
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 3 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */])
 
 m4_define([cwipi_major_version], [0])
-m4_define([cwipi_minor_version], [3])
-m4_define([cwipi_release_version], [1])
+m4_define([cwipi_minor_version], [4])
+m4_define([cwipi_release_version], [0])
 m4_define([cwipi_version_extra], [])
 m4_define([cwipi_version_string],
           [cwipi_major_version.cwipi_minor_version.cwipi_release_version@&t@cwipi_version_extra])
+
+m4_define([fvm_major_version], [0])
+m4_define([fvm_minor_version], [15])
+m4_define([fvm_release_version], [1])
+m4_define([fvm_version_extra], [-onera-6])
+m4_define([fvm_version_string],
+          [fvm_major_version.fvm_minor_version.fvm_release_version@&t@fvm_version_extra])
+
+m4_define([bft_major_version], [1])
+m4_define([bft_minor_version], [1])
+m4_define([bft_release_version], [3])
+m4_define([bft_version_string],
+          [bft_major_version.bft_minor_version.bft_release_version])
 
 AC_INIT([cwipi],[cwipi_version_string],[eric.quemerais@onera.fr])
 AC_CONFIG_SRCDIR([src/cwipi.h])
@@ -45,6 +121,8 @@ AC_SUBST(ac_aux_dir)
 
 AC_CANONICAL_TARGET
 AC_CONFIG_HEADERS([config_priv.h:config_priv.h.in])
+AC_CONFIG_HEADERS([fvm_config_priv.h:fvm_config_priv.h.in])
+AC_CONFIG_HEADERS([bft_config_priv.h:bft_config_priv.h.in])
 
 AM_INIT_AUTOMAKE
 
@@ -60,7 +138,14 @@ AH_BOTTOM([#endif /* __CONFIG_PRIV_H__ */])
 #Define public configuration file
 
 CWIPI_AC_CONFIG_PUBL_INIT([cwipi_config.h])
-#CWIPI_AC_CONFIG_PUBL_VERBATIM([cwipi_licence_c_comment])
+CWIPI_AC_CONFIG_PUBL_VERBATIM([cwipi_licence_c_comment])
+
+FVM_AC_CONFIG_PUBL_INIT([fvm_config.h])
+FVM_AC_CONFIG_PUBL_VERBATIM([fvm_licence_c_comment])
+
+BFT_AC_CONFIG_PUBL_INIT([bft_config.h])
+BFT_AC_CONFIG_PUBL_VERBATIM([bft_licence_c_comment])
+
 
 AM_MAINTAINER_MODE
 
@@ -76,6 +161,26 @@ CWIPI_AC_CONFIG_PUBL_DEFINE(CWIPI_MINOR_VERSION, cwipi_minor_version,
 CWIPI_AC_CONFIG_PUBL_DEFINE(CWIPI_RELEASE_VERSION, cwipi_release_version,
                           [Release version number])
 
+FVM_AC_CONFIG_PUBL_DEFINE_STRING(FVM_VERSION, fvm_version_string,
+                                 [Complete version number])
+
+FVM_AC_CONFIG_PUBL_DEFINE(FVM_MAJOR_VERSION, fvm_major_version,
+                          [Major version number])
+FVM_AC_CONFIG_PUBL_DEFINE(FVM_MINOR_VERSION, fvm_minor_version,
+                          [Minor version number])
+FVM_AC_CONFIG_PUBL_DEFINE(FVM_RELEASE_VERSION, fvm_release_version,
+                          [Release version number])
+
+BFT_AC_CONFIG_PUBL_DEFINE_STRING(BFT_VERSION, bft_version_string,
+                                 [Complete version number])
+
+BFT_AC_CONFIG_PUBL_DEFINE(BFT_MAJOR_VERSION, bft_major_version,
+                          [Major version number])
+BFT_AC_CONFIG_PUBL_DEFINE(BFT_MINOR_VERSION, bft_minor_version,
+                          [Minor version number])
+BFT_AC_CONFIG_PUBL_DEFINE(BFT_RELEASE_VERSION, bft_release_version,
+                          [Release version number])
+
 #------------------------------------------------------------------------------
 # Checks for programs.
 #------------------------------------------------------------------------------
@@ -86,19 +191,11 @@ user_LDFLAGS=$LDFLAGS
 
 AC_PROG_CC(cc gcc icc)
 
-#LT_INIT
-#LT_LANG([C++])
-
-#LT_INIT
 AC_PROG_CXX(g++ icpc)
 
-#LT_INIT
-#LT_LANG([Fortran])
-
-#LT_INIT
 AC_PROG_FC(gfortran ifort)
 
-AC_PROG_LD(g++)
+AC_PROG_LD(g++ icpc)
 
 AC_PROG_INSTALL
 
@@ -121,23 +218,6 @@ AC_ARG_ENABLE(debug,
   [ debug=false ]
 )
 AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
-
-# Debug or production compilation mode (debug by default) ?
-
-AC_ARG_ENABLE(protect,
-  [  --enable-protect          enable use limitation (december 31, 2010)],
-  [
-    case "${enableval}" in
-      yes) protect=yes ;;
-      no)  protect=no ;;
-      *)   AC_MSG_ERROR([bad value ${enableval} for --enable-protect]) ;;
-    esac
-  ],
-  [ protect=no ]
-)
-
-CWIPI_AC_CONFIG_PUBL_SET(PROTECT, $protect,
-                       [cwipi library protected ?])
 
 # Optionally deactivate automatic determination of flags on known systems
 
@@ -359,6 +439,28 @@ if test "x$LIBS_ADD" != x ; then
   LIBS="${LIBS} $LIBS_ADD"
 fi
 
+# Add some preprocessor flags to include additional system features
+#------------------------------------------------------------------
+
+case "$host_os" in
+  linux*)
+    CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE"
+    ;;
+  *bsd* | solaris2.* | aix*)
+    ;;
+  darwin*)
+    CPPFLAGS="${CPPFLAGS} -D_DARWIN_C_SOURCE"
+    ;;
+  osf*)
+    CPPFLAGS="${CPPFLAGS} -D_OSF_SOURCE"
+    ;;
+  hpux*)
+    CPPFLAGS="${CPPFLAGS} -D_HPUX_SOURCE"
+    ;;
+  *)
+    ;;
+esac
+
 #------------------------------------------------------------------------------
 
 # We may only turn on processing for libtool now that the basic compiler
@@ -376,27 +478,62 @@ fi
 
 LT_INIT
 
+#--------------------------------------------------------------------------
+# If the system is of a known type, declare it in the configuration header.
+#--------------------------------------------------------------------------
+
+case "$host_os" in
+  linux*)
+    AC_DEFINE(bft_OS_Linux, 1, bft_OS_Linux)
+    ;;
+  solaris2.*)
+    AC_DEFINE(bft_OS_Solaris, 1, bft_OS_SunOS)
+    ;;
+  aix*)
+    AC_DEFINE(bft_OS_AIX, 1, bft_OS_AIX)
+    ;;
+  osf*)
+    AC_DEFINE(bft_OS_OSF1, 1, bft_OS_OSF1)
+    ;;
+  irix5.*|irix6.*)
+    AC_DEFINE(bft_OS_IRIX64, 1, bft_OS_IRIX64)
+    ;;
+  hpux*)
+    AC_DEFINE(bft_OS_HP_UX, 1, bft_OS_HP_UX)
+    ;;
+  uxpv*)
+    AC_DEFINE(bft_OS_UXPV, 1, bft_OS_UNIX_System_V)
+    ;;
+esac
 
 #------------------------------------------------------------------------------
 # Checks for libraries.
 #------------------------------------------------------------------------------
 
-# Check for BFT (modifies CPPFLAGS, LDFLAGS, and LIBS)
-#-----------------------------------------------------
+# Check for optionnal HDF support
 
-CHECK_BFT(["1.1.1"])
+FVM_AC_TEST_HDF5
 
-# Check for FVM (modifies CPPFLAGS, LDFLAGS, and LIBS)
-#-----------------------------------------------------
+# Check for optionnal CGNS support
 
-CHECK_FVM(["0.15.1"])
+FVM_AC_TEST_CGNS
+
+# Check for optionnal MED support
+
+FVM_AC_TEST_MED
+
+# Optional Zlib Support
+
+BFT_AC_ZLIB
 
 #------------------------------------------------------------------------------
 # Checks for header files.
 #------------------------------------------------------------------------------
 
 AC_HEADER_STDC
-AC_CHECK_HEADERS([sys/types.h stddef.h])
+AC_CHECK_HEADERS([malloc.h unistd.h fcntl.h sys/types.h sys/signal.h])
+AC_CHECK_HEADERS([sys/stat.h sys/procfs.h sys/sysinfo.h sys/utsname.h])
+AC_CHECK_HEADERS([sys/resource.h stddef.h])
 
 #------------------------------------------------------------------------------
 # Checks for typedefs, structures, and compiler characteristics.
@@ -416,24 +553,115 @@ AC_CHECK_TYPES([uint32_t])
 AC_CHECK_TYPES([uint64_t])
 AC_CHECK_TYPES([ptrdiff_t])
 
-#FVM_AC_CHECK_SIZEOF([void *], [fvm])
-#FVM_AC_CHECK_SIZEOF([short], [fvm])
-#FVM_AC_CHECK_SIZEOF([int], [fvm])
-#FVM_AC_CHECK_SIZEOF([long], [fvm])
-#FVM_AC_CHECK_SIZEOF([long long], [fvm])
-#FVM_AC_CHECK_SIZEOF([float], [fvm])
-#FVM_AC_CHECK_SIZEOF([double], [fvm])
+FVM_AC_CHECK_SIZEOF([void *], [fvm])
+FVM_AC_CHECK_SIZEOF([short], [fvm])
+FVM_AC_CHECK_SIZEOF([int], [fvm])
+FVM_AC_CHECK_SIZEOF([long], [fvm])
+FVM_AC_CHECK_SIZEOF([long long], [fvm])
+FVM_AC_CHECK_SIZEOF([float], [fvm])
+FVM_AC_CHECK_SIZEOF([double], [fvm])
+
+BFT_AC_CHECK_SIZEOF([void *],    [bft])
+BFT_AC_CHECK_SIZEOF([short],     [bft])
+BFT_AC_CHECK_SIZEOF([int],       [bft])
+BFT_AC_CHECK_SIZEOF([long],      [bft])
+BFT_AC_CHECK_SIZEOF([long long], [bft])
+BFT_AC_CHECK_SIZEOF([float],     [bft])
+BFT_AC_CHECK_SIZEOF([double],    [bft])
 
 #------------------------------------------------------------------------------
 # Checks for library functions.
 #------------------------------------------------------------------------------
 
+AC_CHECK_FUNCS([getrusage gettimeofday sbrk sysinfo])
 AC_CHECK_FUNCS([mkdir])
 AC_CHECK_FUNCS([snprintf])
+AC_CHECK_FUNCS([posix_memalign])
 
 #------------------------------------------------------------------------------
 # Checks for system services.
 #------------------------------------------------------------------------------
+
+# Largefile support (may be disabled in case of conflicts)
+
+AC_SYS_LARGEFILE
+AC_FUNC_FSEEKO
+
+# Test for size of off_t once largefile support is activated
+
+BFT_AC_CHECK_SIZEOF([off_t], [bft])
+
+#------------------------------
+# optional malloc hooks support (for glibc)
+#------------------------------
+
+have_malloc_hooks=no
+
+AC_ARG_ENABLE(malloc_hooks,
+  [  --disable-malloc-hooks  Do not use malloc hooks when available],
+  [
+    case "${enableval}" in
+      yes) malloc_hooks=true ;;
+      no)  malloc_hooks=false ;;
+      *)   AC_MSG_ERROR([bad value ${enableval} for --enable-malloc-hooks]) ;;
+    esac
+  ],
+  [ malloc_hooks=true ]
+)
+
+saved_LIBS="$LIBS"
+
+# If we use malloc hooks, we may need to add a -lmalloc link flag.
+
+if test "x$malloc_hooks" = "xtrue" ; then
+
+  # Basic test
+  AC_MSG_CHECKING([for malloc hooks])
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[]],
+                 [[ int __malloc_hook(); __malloc_hook(); ]])],
+                 [have_malloc_hooks=yes],
+                 [have_malloc_hooks=no])
+  AC_MSG_RESULT($have_malloc_hooks)
+
+fi
+
+if test "x$have_malloc_hooks" = "xyes"; then
+  AC_DEFINE(HAVE_MALLOC_HOOKS, 1, HAVE_MALLOC_HOOKS)
+fi
+
+# Basic backtrace functionnality
+
+have_glibc_backtrace=no
+
+AC_MSG_CHECKING([for glibc backtrace])
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#if defined(__GNUC__)
+#define _GNU_SOURCE
+#include <memory.h>
+#include <execinfo.h>
+#endif]],
+               [[ void *tr_array[10]; backtrace(tr_array, 10); ]])],
+               [have_glibc_backtrace=yes],
+               [have_glibc_backtrace=no])
+AC_MSG_RESULT($have_glibc_backtrace)
+
+if test "x$have_glibc_backtrace" = "xyes"; then
+  AC_DEFINE(HAVE_GLIBC_BACKTRACE, 1, HAVE_GLIBC_BACKTRACE)
+fi
+
+# C++ demangling
+
+have_cplus_demangle=no
+
+AC_MSG_CHECKING([for glibc cplus_demangle])
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <demangle.h>]],
+               [[ const char *s; cplus_demangle(s, auto_demangling); ]])],
+               [have_cplus_demangle=yes],
+               [have_cplus_demangle=no])
+AC_MSG_RESULT($have_cplus_demangle)
+
+if test "x$have_cplus_demangle" = "xyes"; then
+  AC_DEFINE(HAVE_CPLUS_DEMANGLE, 1, HAVE_CPLUS_DEMANGLE)
+fi
 
 #---------------------
 # MPI support (use CC=mpicc with configure if necessary)
@@ -455,18 +683,14 @@ if test "x$have_mpi" = "xyes" ; then
                          [cwipi library configured with MPI One-sided support ?])
 fi
 
-#-----------------------------------------------------
-# Check for METIS (modifies CPPFLAGS, LDFLAGS, and LIBS)
-#-----------------------------------------------------
-
-#
-# A supprimer définitivement
-
-#CHECK_METIS
-
-
-#CWIPI_AC_CONFIG_PUBL_SET(HAVE_METIS, $have_metis,
-#                       [cwipi library configured with METIS support ?])
+FVM_AC_CONFIG_PUBL_SET(FVM_HAVE_MPI, $have_mpi,
+                       [FVM library configured with MPI support ?])
+if test "x$have_mpi" = "xyes" ; then
+  FVM_AC_CONFIG_PUBL_SET(FVM_HAVE_MPI_IO, $have_mpi_io,
+                         [FVM library configured with MPI IO support ?])
+  FVM_AC_CONFIG_PUBL_SET(FVM_HAVE_MPI_ONE_SIDED, $have_mpi_one_sided,
+                         [FVM library configured with MPI One-sided support ?])
+fi
 
 #------------------------------------------------------------------------------
 # Internationalization
@@ -486,6 +710,14 @@ AC_DEFINE_UNQUOTED(LOCALEDIR, "${localedir}", LOCALEDIR)
 #------------------------------------------------------------------------------
 # Compiler options and system characteristics
 #------------------------------------------------------------------------------
+
+#
+# A voir si ca ne pose pas de probleme
+
+AC_ARG_VAR(CPP_ADD,  [Additional user C compiler flags])
+AC_ARG_VAR(CC_ADD,   [Additional user C compiler flags])
+AC_ARG_VAR(LD_ADD,   [Additional user linker flags, e.g. -L<libdir>])
+AC_ARG_VAR(LIBS_ADD, [Additional user librairies, e.g. -l<lib>])
 
 AC_SUBST(CPPFLAGS)
 AC_SUBST(CFLAGS)
@@ -528,6 +760,8 @@ CWIPI_AC_CONFIG_INFO_EXTRA([
 CWIPI_AC_CONFIG_INFO_CC([${CC}], [${cwipi_ac_cc_version}], [${cwipi_ac_cc_version_full}])
 
 CWIPI_AC_CONFIG_INFO_VERSION([cwipi_version_string])
+BFT_AC_CONFIG_INFO_VERSION([bft_version_string])
+FVM_AC_CONFIG_INFO_VERSION([fvm_version_string])
 
 CWIPI_AC_CONFIG_INFO_DIRS([$prefix], [$exec_prefix], [$includedir], [$libdir])
 
@@ -555,11 +789,13 @@ CWIPI_AC_CONFIG_INFO_FINALIZE
 #                  intl/Makefile po/Makefile.in m4/Makefile])
 
 #AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile doc/Makefile])
-AC_CONFIG_FILES([Makefile src/Makefile cython/Makefile tests/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile src/bft/Makefile src/fvm/Makefile cython/Makefile tests/Makefile])
 
 #------------------------------------------------------------------------------
 
 CWIPI_AC_CONFIG_PUBL_FINALIZE
+FVM_AC_CONFIG_PUBL_FINALIZE
+BFT_AC_CONFIG_PUBL_FINALIZE
 
 AC_OUTPUT
 
@@ -587,12 +823,6 @@ EOF
     ;;
 esac
 
-#case "$INSTALL" in
-#  *install-sh*)
-#    INSTALL='\${top_srcdir}/bin/install-sh -c'
-#    ;;
-#esac
-
 #------------------------------------------------------------------------------
 
 echo
@@ -600,8 +830,8 @@ echo "Configuration options:"
 echo " use debugging code: "$debug""
 echo " MPI (Message Passing Interface) support: "$have_mpi""
 if (test x$have_mpi = xyes) ; then
-  echo "   MPI I/O support: "$fvm_have_mpi_io""
-  echo "   MPI2 one-sided communication support: "$have_mpi_one_sided""
+  echo "   MPI I/O support: "$have_mpi_io""
+  echo "   MPI2 one-sided communication support: "$mpi_one_sided""
 fi
 echo
 echo "The package has been configured. Type:"

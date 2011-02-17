@@ -56,11 +56,19 @@ subdir = cython
 DIST_COMMON = $(pkgpython_PYTHON) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/config/check_bft.m4 \
-	$(top_srcdir)/config/check_fvm.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/config/bft_config_info.m4 \
+	$(top_srcdir)/config/bft_config_publ.m4 \
+	$(top_srcdir)/config/bft_types.m4 \
+	$(top_srcdir)/config/bft_zlib.m4 \
 	$(top_srcdir)/config/check_mpi.m4 \
 	$(top_srcdir)/config/cwipi_config_info.m4 \
 	$(top_srcdir)/config/cwipi_config_publ.m4 \
+	$(top_srcdir)/config/fvm_cgns.m4 \
+	$(top_srcdir)/config/fvm_config_info.m4 \
+	$(top_srcdir)/config/fvm_config_publ.m4 \
+	$(top_srcdir)/config/fvm_hdf5.m4 \
+	$(top_srcdir)/config/fvm_med.m4 \
+	$(top_srcdir)/config/fvm_types.m4 \
 	$(top_srcdir)/config/libtool.m4 \
 	$(top_srcdir)/config/ltoptions.m4 \
 	$(top_srcdir)/config/ltsugar.m4 \
@@ -69,7 +77,9 @@ am__aclocal_m4_deps = $(top_srcdir)/config/check_bft.m4 \
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
-CONFIG_HEADER = $(top_builddir)/config_priv.h
+CONFIG_HEADER = $(top_builddir)/config_priv.h \
+	$(top_builddir)/fvm_config_priv.h \
+	$(top_builddir)/bft_config_priv.h
 CONFIG_CLEAN_FILES =
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
@@ -81,7 +91,9 @@ am__installdirs = "$(DESTDIR)$(pkgpyexecdir)" \
 	"$(DESTDIR)$(pkgpythondir)"
 pkgpyexecLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(pkgpyexec_LTLIBRARIES)
-CWIPI_la_DEPENDENCIES = $(top_builddir)/src/libcwipi.la
+CWIPI_la_DEPENDENCIES = $(top_builddir)/src/bft/libbft.la \
+	$(top_builddir)/src/fvm/libfvm.la \
+	$(top_builddir)/src/libcwipi.la
 am_CWIPI_la_OBJECTS = CWIPI.lo
 CWIPI_la_OBJECTS = $(am_CWIPI_la_OBJECTS)
 CWIPI_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
@@ -113,13 +125,13 @@ AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
-BFT_CPPFLAGS = @BFT_CPPFLAGS@
-BFT_LDFLAGS = @BFT_LDFLAGS@
-BFT_LIBS = @BFT_LIBS@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CC_ADD = @CC_ADD@
 CFLAGS = @CFLAGS@
+CGNS_CPPFLAGS = @CGNS_CPPFLAGS@
+CGNS_LDFLAGS = @CGNS_LDFLAGS@
+CGNS_LIBS = @CGNS_LIBS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CPP_ADD = @CPP_ADD@
@@ -140,10 +152,10 @@ EXEEXT = @EXEEXT@
 FC = @FC@
 FCFLAGS = @FCFLAGS@
 FGREP = @FGREP@
-FVM_CPPFLAGS = @FVM_CPPFLAGS@
-FVM_LDFLAGS = @FVM_LDFLAGS@
-FVM_LIBS = @FVM_LIBS@
 GREP = @GREP@
+HDF5_CPPFLAGS = @HDF5_CPPFLAGS@
+HDF5_LDFLAGS = @HDF5_LDFLAGS@
+HDF5_LIBS = @HDF5_LIBS@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -161,6 +173,9 @@ LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
+MED_CPPFLAGS = @MED_CPPFLAGS@
+MED_LDFLAGS = @MED_LDFLAGS@
+MED_LIBS = @MED_LIBS@
 MKDIR_P = @MKDIR_P@
 MPI4PY_INCLUDE = @MPI4PY_INCLUDE@
 MPI_BIN_PATH = @MPI_BIN_PATH@
@@ -257,14 +272,26 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-AM_CPPFLAGS = -I@PYTHON_INCLUDE@ -I@NUMPY_INCLUDE@ -I$(top_srcdir)/src $(DEBUG_CPPFLAGS) @BFT_CPPFLAGS@ @FVM_CPPFLAGS@ @MPI_CPPFLAGS@
+AM_CPPFLAGS = \
+-I@PYTHON_INCLUDE@ \
+-I@NUMPY_INCLUDE@ \
+-I$(top_srcdir)/src \
+-I$(top_srcdir)/src/bft \
+-I$(top_srcdir)/src/fvm \
+$(DEBUG_CPPFLAGS) \
+@MPI_CPPFLAGS@
+
 AM_CFLAGS = -fno-strict-aliasing 
-AM_LDFLAGS = @BFT_LDFLAGS@ @FVM_LDFLAGS@ @MPI_LDFLAGS@
+AM_LDFLAGS = @MPI_LDFLAGS@
 pkgpython_PYTHON = __init__.py
 pkgpyexec_LTLIBRARIES = CWIPI.la
 CWIPI_la_SOURCES = CWIPI.c
-CWIPI_la_LIBADD = $(top_builddir)/src/libcwipi.la @BFT_LIBS@ @FVM_LIBS@
-CWIPI_la_LDFLAGS = @BFT_LDFLAGS@ @FVM_LDFLAGS@ _avoid_version -module
+CWIPI_la_LIBADD = \
+$(top_builddir)/src/bft/libbft.la \
+$(top_builddir)/src/fvm/libfvm.la \
+$(top_builddir)/src/libcwipi.la 
+
+CWIPI_la_LDFLAGS = _avoid_version -module
 all: all-am
 
 .SUFFIXES:
