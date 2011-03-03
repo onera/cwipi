@@ -132,7 +132,7 @@ bft_backtrace_create(void)
 
   /* Create backtrace structure */
 
-  bt = malloc(sizeof(bft_backtrace_t));
+  bt = (bft_backtrace_t  *) malloc(sizeof(bft_backtrace_t));
 
   if (bt != NULL) {
 
@@ -151,9 +151,9 @@ bft_backtrace_create(void)
 
     bt->size = tr_size - 1;
 
-    bt->s_file = malloc(tr_size * sizeof(char *));
-    bt->s_func = malloc(tr_size * sizeof(char *));
-    bt->s_addr = malloc(tr_size * sizeof(char *));
+    bt->s_file = (char **) malloc(tr_size * sizeof(char *));
+    bt->s_func = (char **) malloc(tr_size * sizeof(char *));
+    bt->s_addr = (char **) malloc(tr_size * sizeof(char *));
 
     /* If allocation has failed, free other allocated arrays, and return NULL */
 
@@ -197,7 +197,7 @@ bft_backtrace_create(void)
         for (j = l-1; j > 0 && s[j] !='['; j--);
         if (s[j] == '[') {
           s_addr = s+j+1;
-          bt->s_addr[i] = malloc((strlen(s_addr)+1) * sizeof(char));
+          bt->s_addr[i] = (char *) malloc((strlen(s_addr)+1) * sizeof(char));
           if (bt->s_addr[i] != NULL)
             strcpy(bt->s_addr[i], s_addr);
         }
@@ -216,7 +216,7 @@ bft_backtrace_create(void)
           s_func = s+j+1;
           while (j > 0 && (s[j] == '(' || s[j] == ' '))
             s[j--] = '\0';
-          bt->s_func[i] = malloc((strlen(s_func)+1) * sizeof(char));
+          bt->s_func[i] = (char *) malloc((strlen(s_func)+1) * sizeof(char));
           if (bt->s_func[i] != NULL)
             strcpy(bt->s_func[i], s_func);
         }
@@ -236,7 +236,7 @@ bft_backtrace_create(void)
         j--;
       if (j < l) {
         s_file = s+j+1;
-        bt->s_file[i] = malloc((strlen(s_file)+1) * sizeof(char));
+        bt->s_file[i] = (char *) malloc((strlen(s_file)+1) * sizeof(char));
         if (bt->s_file[i] != NULL)
           strcpy(bt->s_file[i], s_file);
       }

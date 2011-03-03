@@ -174,7 +174,7 @@ typedef struct {
   int     n_tokens;               /* Number of tokens in expression */
   int    *infix_id;               /* Starting id in infix for each token */
   int    *token_id;               /* Starting id for each token */
-  _Bool  *protected;              /* Indicates if a token was protected
+  _Bool  *_protected;              /* Indicates if a token was protected
                                      by quotes or a backslash character
                                      (and thus cannot be a keyword) */
 
@@ -560,7 +560,7 @@ static _tokenized_t
 _tokenize(const char  *infix)
 {
   int i, l, tok_len, start_quote_id;
-  int  protected; /* 0 for unprotected, 1 for protected char, 2 for substring,
+  int  _protected; /* 0 for unprotected, 1 for protected char, 2 for substring,
                      3 for protected char in substring */
 
   _tokenized_t te;
@@ -570,7 +570,7 @@ _tokenize(const char  *infix)
   te.n_tokens = 0;
   te.infix_id = NULL;
   te.token_id = NULL;
-  te.protected = NULL;
+  te._protected = NULL;
 
   te.size = 0;
   te.max_size = 0;
@@ -589,17 +589,17 @@ _tokenize(const char  *infix)
 
   BFT_MALLOC(te.infix_id, l, int);
   BFT_MALLOC(te.token_id, l, int);
-  BFT_MALLOC(te.protected, l, _Bool);
+  BFT_MALLOC(te._protected, l, _Bool);
   BFT_MALLOC(te.tokens, te.max_size, char);
 
   for (i = 0; i < l; i++)
-    te.protected[i] = false;
+    te._protected[i] = false;
 
   i = 0;                 /* String position marker */
   start_quote_id = l;    /* Start position marker for quoted strings
                             (unset if j == j, set if j < l) */
 
-  protected = 0;
+  _protected = 0;
   tok_len = 0;
 
   while (i < l) {
@@ -608,21 +608,21 @@ _tokenize(const char  *infix)
 
     /* Regular case, where previous character was not protected */
 
-    if (protected == 0) {
+    if (_protected == 0) {
 
       /* Protection character */
 
       if (c == '\\') {
-        protected = 1;
-        te.protected[te.n_tokens] = true;
+        _protected = 1;
+        te._protected[te.n_tokens] = true;
       }
 
       /* Fully protected string */
 
       else if (c == '"' || c == '\'') {
-        protected = 2;
+        _protected = 2;
         start_quote_id = i;
-        te.protected[te.n_tokens] = true;
+        te._protected[te.n_tokens] = true;
       }
 
       /* Whitespace */
@@ -694,9 +694,9 @@ _tokenize(const char  *infix)
 
     /* Cases where previous character was protected */
 
-    else if (protected == 1) {
+    else if (_protected == 1) {
 
-      protected = 0;
+      _protected = 0;
       te.tokens[te.size + tok_len] = infix[i];
       if (tok_len == 0)
         te.infix_id[te.n_tokens] = i;
@@ -704,17 +704,17 @@ _tokenize(const char  *infix)
 
     }
 
-    else if (protected == 2) {
+    else if (_protected == 2) {
 
       /* Single protection character */
 
       if (c == '\\')
-        protected = 3;
+        _protected = 3;
 
       /* End of string protection */
 
       else if (c == infix[start_quote_id]) {
-        protected = 0;
+        _protected = 0;
         start_quote_id = l;
       }
 
@@ -733,7 +733,7 @@ _tokenize(const char  *infix)
       if (tok_len == 0)
         te.infix_id[te.n_tokens] = i;
       tok_len++;
-      protected = 2;
+      _protected = 2;
 
     }
 
@@ -749,13 +749,13 @@ _tokenize(const char  *infix)
     tok_len = 0;
   }
 
-  if (protected == 1)
+  if (_protected == 1)
     bft_error(__FILE__, __LINE__, 0,
               _("Error tokenizing expression:\n"
                 "%s\n"
                 "Missing character after \\\n"),
               infix);
-  else if (protected >= 2)
+  else if (_protected >= 2)
     bft_error(__FILE__, __LINE__, 0,
               _("Error tokenizing expression:\n"
                 "%s\n"
@@ -767,7 +767,7 @@ _tokenize(const char  *infix)
 
   BFT_REALLOC(te.infix_id, te.n_tokens, int);
   BFT_REALLOC(te.token_id, te.n_tokens, int);
-  BFT_REALLOC(te.protected, te.n_tokens, _Bool);
+  BFT_REALLOC(te._protected, te.n_tokens, _Bool);
   BFT_REALLOC(te.tokens, te.size, char);
 
   /* Return tokenization structure */
@@ -790,7 +790,7 @@ _empty_tokenized(_tokenized_t  *te)
   te->max_size = 0;
   BFT_FREE(te->infix_id);
   BFT_FREE(te->token_id);
-  BFT_FREE(te->protected);
+  BFT_FREE(te->_protected);
   BFT_FREE(te->tokens);
 }
 
@@ -817,7 +817,7 @@ _dump_tokenized(const char          *infix,
   for (i = 0; i < te.n_tokens; i++) {
     bft_printf("  %3d: %-20s", i, te.tokens + te.token_id[i]);
     bft_printf(" (%d bytes from infix start", te.infix_id[i]);
-    if (te.protected[i] != 0)
+    if (te._protected[i] != 0)
       bft_printf(", protected)\n");
     else
       bft_printf(")\n");
@@ -1341,7 +1341,7 @@ _check_left_right(const char               *infix,
   i = token_id+1;
 
   if (   i == te->n_tokens
-      || (   te->protected[i] == false
+      || (   te->_protected[i] == false
           && te->tokens[te->token_id[i]] == ')'))
     _parse_error(_("Operator needs a right operand."),
                  NULL, infix, te, token_id, os, postfix);
@@ -1363,7 +1363,7 @@ _check_left_right(const char               *infix,
  *   group_name   <-- array group names (sorted)
  *   attribute    <-- array of attribute numbers (sorted)
  *   token        <-- token (string) to associated with group or attribute
- *   protected    <-- is token protected (i.e. not interpretable) ?
+ *   _protected    <-- is token protected (i.e. not interpretable) ?
  *   group_id     --> -1, or id of group corresponding to token
  *   attribute_id --> -1, or id of attribute corresponding to token
  *----------------------------------------------------------------------------*/
@@ -1374,7 +1374,7 @@ _find_group_or_attribute(int          n_groups,
                          const char  *group_name[],
                          const int    attribute[],
                          const char  *token,
-                         _Bool        protected,
+                         _Bool        _protected,
                          int         *group_id,
                          int         *attribute_id)
 {
@@ -1387,7 +1387,7 @@ _find_group_or_attribute(int          n_groups,
 
   /* Test for attributes first */
 
-  if (protected == false) {
+  if (_protected == false) {
 
     int val;
 
@@ -1856,7 +1856,7 @@ _parse_for_function(const _parser_t          *this_parser,
 
   /* Pre-check syntax */
 
-  if (te->protected[i] == true || strlen(tok) != 1)
+  if (te->_protected[i] == true || strlen(tok) != 1)
     return;
 
   if (tok[0] != '[')
@@ -1867,7 +1867,7 @@ _parse_for_function(const _parser_t          *this_parser,
   k = 1;
   for (j = i + 1; j < te->n_tokens; j++) {
     tok = te->tokens + te->token_id[j];
-    if (te->protected[j] == false && strlen(tok) == 1) {
+    if (te->_protected[j] == false && strlen(tok) == 1) {
       if (tok[0] == '[')
         k++;
       else if (tok[0] == ']')
@@ -1886,7 +1886,7 @@ _parse_for_function(const _parser_t          *this_parser,
 
   tok = te->tokens + te->token_id[*token_id];
 
-  if (te->protected[i] == false) {
+  if (te->_protected[i] == false) {
     for (k = 0; k < this_parser->n_keywords; k++) {
       if (strcmp(tok, this_parser->keyword[k]) == 0) {
         op = this_parser->operators + this_parser->keyword_op_id[k];
@@ -2027,7 +2027,7 @@ _parse_for_coord_conditions(const char               *infix,
 
   /* Pre-check syntax */
 
-  if (te->protected[i] == true || t1_len == 0 || t1_len > 2)
+  if (te->_protected[i] == true || t1_len == 0 || t1_len > 2)
     return;
 
   if ((t1[0] != '<' && t1[0] != '>') || (t1_len == 2 && t1[1] != '='))
@@ -2118,7 +2118,7 @@ _parse_for_coord_conditions(const char               *infix,
     const char *t3 = te->tokens + te->token_id[i];
     size_t      t3_len = strlen(t3);
 
-    if (te->protected[i] == true || t3_len == 0 || t3_len > 2)
+    if (te->_protected[i] == true || t3_len == 0 || t3_len > 2)
       return;
 
     if (   (t3[0] != '<' && t3[0] != '>')
@@ -2245,7 +2245,7 @@ _parse_tokenized(const _parser_t     *this_parser,
 
     tok = te->tokens + te->token_id[i];
 
-    if (te->protected[i] == false) {
+    if (te->_protected[i] == false) {
       for (j = 0; j < this_parser->n_keywords; j++) {
         if (strcmp(tok, this_parser->keyword[j]) == 0) {
           op_1 = this_parser->operators + this_parser->keyword_op_id[j];
@@ -2278,7 +2278,7 @@ _parse_tokenized(const _parser_t     *this_parser,
                                group_name,
                                attribute,
                                tok,
-                               te->protected[i],
+                               te->_protected[i],
                                &group_id,
                                &attribute_id);
 

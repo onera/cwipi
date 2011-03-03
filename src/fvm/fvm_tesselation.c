@@ -74,6 +74,18 @@
  * some tools which do not support these types of elements.
  */
 
+/*-----------------------------------------------------------------------------  
+ *  mpi.h must be include before stdio.h to not define SEE_SET for C++ 
+ *  binding of MPI
+ *----------------------------------------------------------------------------*/
+
+#ifdef __cplusplus
+#include "fvm_config.h"
+#if defined(FVM_HAVE_MPI)
+#include <mpi.h>
+#endif
+#endif
+
 /*----------------------------------------------------------------------------
  * Standard C library headers
  *----------------------------------------------------------------------------*/

@@ -23,6 +23,18 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+/*-----------------------------------------------------------------------------  
+ *  mpi.h must be include before stdio.h to not define SEE_SET for C++ 
+ *  binding of MPI
+ *----------------------------------------------------------------------------*/
+
+#ifdef __cplusplus
+#include "fvm_config.h"
+#if defined(FVM_HAVE_MPI)
+#include <mpi.h>
+#endif
+#endif
+
 /*----------------------------------------------------------------------------
  * Standard C library headers
  *----------------------------------------------------------------------------*/
@@ -202,8 +214,8 @@ static int
 _compare_sections(const void *s1_p,
                   const void *s2_p)
 {
-  const fvm_writer_section_t *s1 = s1_p;
-  const fvm_writer_section_t *s2 = s2_p;
+  const fvm_writer_section_t *s1 = (const fvm_writer_section_t *) s1_p;
+  const fvm_writer_section_t *s2 = (const fvm_writer_section_t *) s2_p;
 
   return ((int)(s1->type) - (int)(s2->type));
 }
@@ -933,7 +945,7 @@ _field_helper_step_ng(fvm_writer_field_helper_t   *helper,
 
     else {
 
-      unsigned char *output_buffer_v = output_buffer;
+      unsigned char *output_buffer_v = (unsigned char *) output_buffer;
 
       end_num_g = h->start_num_g + output_buffer_size / stride;
       if (end_num_g > n_g_vertices_section + 1)
@@ -1128,7 +1140,7 @@ _field_helper_step_nl(fvm_writer_field_helper_t   *helper,
 
     }
     else {
-      unsigned char *output_buffer_v = output_buffer;
+      unsigned char *output_buffer_v = (unsigned char *) output_buffer;
       slice_output_size_c *= fvm_datatype_size[datatype];
       for (ii = 0; ii < slice_output_size_c; ii++)
         output_buffer_v[ii] = 0.;

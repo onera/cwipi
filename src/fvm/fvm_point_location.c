@@ -23,6 +23,18 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+/*-----------------------------------------------------------------------------  
+ *  mpi.h must be include before stdio.h to not define SEE_SET for C++ 
+ *  binding of MPI
+ *----------------------------------------------------------------------------*/
+
+#ifdef __cplusplus
+#include "fvm_config.h"
+#if defined(FVM_HAVE_MPI)
+#include <mpi.h>
+#endif
+#endif
+
 /*----------------------------------------------------------------------------*/
 
 #include "fvm_config.h"

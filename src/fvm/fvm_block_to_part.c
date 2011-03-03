@@ -23,6 +23,17 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+/*-----------------------------------------------------------------------------  
+ *  mpi.h must be include before stdio.h to not define SEE_SET for C++ 
+ *  binding of MPI
+ *----------------------------------------------------------------------------*/
+
+#ifdef __cplusplus
+#include "fvm_config.h"
+#if defined(FVM_HAVE_MPI)
+#include <mpi.h>
+#endif
+#endif
 
 /*----------------------------------------------------------------------------
  * Standard C library headers
@@ -976,15 +987,14 @@ fvm_block_to_part_copy_array(fvm_block_to_part_t   *d,
   size_t stride_size = fvm_datatype_size[datatype]*stride;
   MPI_Datatype mpi_type = fvm_datatype_to_mpi[datatype];
 
-  const unsigned char *_block_values = block_values;
-  unsigned char *_part_values = part_values;
+  const unsigned char *_block_values = (const unsigned char *) block_values;
+  unsigned char *_part_values = (unsigned char *) part_values;
 
   const int n_ranks = d->n_ranks;
   const size_t _send_size = d->send_size;
   const size_t _n_recv_ents = d->n_part_ents;
 
   /* Adjust send and receive dimensions */
-
   if (stride > 1) {
     for (i = 0; i < n_ranks; i++) {
       d->send_count[i] *= stride;
@@ -1139,8 +1149,8 @@ fvm_block_to_part_copy_indexed(fvm_block_to_part_t   *d,
   unsigned char *send_buf = NULL;
   unsigned char *recv_buf = NULL;
 
-  const unsigned char *_send_val = send_val;
-  unsigned char *_recv_val = recv_val;
+  const unsigned char *_send_val = (const unsigned char *) send_val;
+  unsigned char *_recv_val = (unsigned char *) recv_val;
 
   size_t type_size = fvm_datatype_size[datatype];
   MPI_Datatype mpi_type = fvm_datatype_to_mpi[datatype];

@@ -23,6 +23,18 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+/*-----------------------------------------------------------------------------  
+ *  mpi.h must be include before stdio.h to not define SEE_SET for C++ 
+ *  binding of MPI
+ *----------------------------------------------------------------------------*/
+
+#ifdef __cplusplus
+#include "fvm_config.h"
+#if defined(FVM_HAVE_MPI)
+#include <mpi.h>
+#endif
+#endif
+
 /*----------------------------------------------------------------------------
  * Standard C library headers
  *----------------------------------------------------------------------------*/
@@ -872,7 +884,8 @@ fvm_writer_needs_tesselation(fvm_writer_t       *this_writer,
 
   needs_tesselation_func = this_writer->format->needs_tesselation_func;
   if (needs_tesselation_func != NULL)
-    retval = needs_tesselation_func(this_writer->format_writer,
+    /*retval = needs_tesselation_func(this_writer->format_writer, */
+    retval = needs_tesselation_func(this_writer,
                                     mesh,
                                     element_type);
   return retval;
@@ -1003,7 +1016,8 @@ fvm_writer_flush(fvm_writer_t  *this_writer)
   flush_func = this_writer->format->flush_func;
 
   if (flush_func != NULL)
-    flush_func(this_writer->format_writer);
+    /* flush_func(this_writer->format_writer); */
+    flush_func(this_writer);
 }
 
 /*----------------------------------------------------------------------------

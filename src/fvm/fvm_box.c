@@ -693,7 +693,7 @@ fvm_box_set_dump(const fvm_box_set_t  *boxes,
 {
   fvm_lnum_t  i;
 
-  const char  XYZ[3] = "XYZ";
+  const char  XYZ[4] = "XYZ";
 
   if (boxes == NULL)
     return;

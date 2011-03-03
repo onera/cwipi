@@ -85,7 +85,7 @@ struct _fvm_group_class_set_t {
 
   int size;                             /* Number of group classes */
 
-  fvm_group_class_t   *class;           /* Array of group classes */
+  fvm_group_class_t   *a_class;           /* Array of group classes */
 };
 
 /*============================================================================
@@ -241,7 +241,7 @@ fvm_group_class_set_create(void)
 
   class_set->size = 0;
 
-  class_set->class = NULL;
+  class_set->a_class = NULL;
 
   return class_set;
 }
@@ -272,11 +272,11 @@ fvm_group_class_set_add(fvm_group_class_set_t   *this_group_class_set,
 
   /* Resize array of group class descriptors */
 
-  BFT_REALLOC(class_set->class, class_set->size + 1, fvm_group_class_t);
+  BFT_REALLOC(class_set->a_class, class_set->size + 1, fvm_group_class_t);
 
   /* Initialize new descriptor */
 
-  _class = class_set->class + class_set->size;
+  _class = class_set->a_class + class_set->size;
 
   _class->n_groups = n_groups;
   _class->n_attributes = n_attributes;
@@ -318,7 +318,7 @@ fvm_group_class_set_destroy(fvm_group_class_set_t  *this_group_class_set)
 
   for (i = 0; i < this_group_class_set->size; i++) {
 
-    fvm_group_class_t *_class = this_group_class_set->class + i;
+    fvm_group_class_t *_class = this_group_class_set->a_class + i;
 
     for (j = 0; j < _class->n_groups; j++)
       BFT_FREE(_class->group_name[j]);
@@ -331,7 +331,7 @@ fvm_group_class_set_destroy(fvm_group_class_set_t  *this_group_class_set)
 
   }
 
-  BFT_FREE(this_group_class_set->class);
+  BFT_FREE(this_group_class_set->a_class);
   BFT_FREE(this_group_class_set);
 
   return NULL;
@@ -377,7 +377,7 @@ fvm_group_class_set_get(const fvm_group_class_set_t  *this_group_class_set,
 
   if (this_group_class_set != NULL) {
     if (group_class_id > -1 && group_class_id < this_group_class_set->size)
-      retval = this_group_class_set->class + group_class_id;
+      retval = this_group_class_set->a_class + group_class_id;
   }
 
   return retval;
@@ -409,7 +409,7 @@ fvm_group_class_set_dump(const fvm_group_class_set_t  *this_group_class_set)
   if (class_set->size > 0) {
     bft_printf("\n  group_classes:");
     for (i = 0; i < class_set->size; i++)
-      _group_class_dump(class_set->class + i, i);
+      _group_class_dump(class_set->a_class + i, i);
   }
 
   bft_printf("\n");

@@ -35,6 +35,8 @@
 
 # Add any debug flags
 
+CC = $(CXX)
+
 if DEBUG
   DEBUG_CPPFLAGS = -DDEBUG
 else

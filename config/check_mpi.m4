@@ -134,7 +134,7 @@ if test "x$mpi" = "xtrue" -a "x$have_mpi" = "xno" ; then
   LDFLAGS="$saved_LDFLAGS $MPI_LDFLAGS"
   LIBS="$saved_LIBS $MPI_LIBS"
   AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <mpi.h>]],
-                 [[ MPI_Init(0, (void *)0); ]])],
+                 [[ MPI_Init(0, 0); ]])],
                  [have_mpi=yes],
                  [have_mpi=no])
   AC_MSG_RESULT($have_mpi)
@@ -146,7 +146,7 @@ if test "x$mpi" = "xtrue" -a "x$have_mpi" = "xno" ; then
     MPI_LIBS="-lmpich $PTHREAD_LIBS"
     LIBS="$saved_LIBS $MPI_LIBS"
     AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <mpi.h>]],
-                   [[ MPI_Init(0, (void *)0); ]])],
+                   [[ MPI_Init(0, 0); ]])],
                    [have_mpi=yes],
                    [have_mpi=no])
     if test "x$have_mpi" = "xno"; then
@@ -154,7 +154,7 @@ if test "x$mpi" = "xtrue" -a "x$have_mpi" = "xno" ; then
       MPI_LIBS="-Wl,-lpmpich -Wl,-lmpich -Wl,-lpmpich -Wl,-lmpich"
       LIBS="$saved_LIBS $MPI_LIBS"
       AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <mpi.h>]],
-                     [[ MPI_Init(0, (void *)0); ]])],
+                     [[ MPI_Init(0, 0); ]])],
                      [have_mpi=yes],
                      [have_mpi=no])
     fi
@@ -173,7 +173,7 @@ if test "x$mpi" = "xtrue" -a "x$have_mpi" = "xno" ; then
     esac
     LIBS="$saved_LIBS $MPI_LIBS"
     AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <mpi.h>]],
-                   [[ MPI_Init(0, (void *)0); ]])],
+                   [[ MPI_Init(0, 0); ]])],
                    [have_mpi=yes],
                    [have_mpi=no])
     if test "x$have_mpi" = "xno"; then
@@ -186,7 +186,7 @@ if test "x$mpi" = "xtrue" -a "x$have_mpi" = "xno" ; then
       esac
       LIBS="$saved_LIBS $MPI_LIBS"
       AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <mpi.h>]],
-                     [[ MPI_Init(0, (void *)0); ]])],
+                     [[ MPI_Init(0, 0); ]])],
                      [have_mpi=yes],
                      [have_mpi=no])
     fi

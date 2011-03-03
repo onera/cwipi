@@ -23,6 +23,17 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+/*-----------------------------------------------------------------------------  
+ *  mpi.h must be include before stdio.h to not define SEE_SET for C++ 
+ *  binding of MPI
+ *----------------------------------------------------------------------------*/
+
+#ifdef __cplusplus
+#include "fvm_config.h"
+#if defined(FVM_HAVE_MPI)
+#include <mpi.h>
+#endif
+#endif
 
 /*----------------------------------------------------------------------------
  * Standard C library headers
@@ -353,8 +364,8 @@ _copy_array_alltoallv(fvm_part_to_block_t   *d,
   size_t stride_size = fvm_datatype_size[datatype]*stride;
   MPI_Datatype mpi_type = fvm_datatype_to_mpi[datatype];
 
-  unsigned char *_block_values = block_values;
-  const unsigned char *_part_values = part_values;
+  unsigned char *_block_values = (unsigned char *) block_values;
+  const unsigned char *_part_values = (const unsigned char *) part_values;
 
   const int n_ranks = d->n_ranks;
   const int rank_step = d->bi.rank_step;
@@ -470,8 +481,8 @@ _copy_data_alltoallv(fvm_part_to_block_t   *d,
   size_t type_size = fvm_datatype_size[datatype];
   MPI_Datatype mpi_type = fvm_datatype_to_mpi[datatype];
 
-  unsigned char *_block_values = block_values;
-  const unsigned char *_part_values = part_values;
+  unsigned char *_block_values = (unsigned char *) block_values;
+  const unsigned char *_part_values = (const unsigned char *) part_values;
 
   const int n_ranks = d->n_ranks;
   const int rank_step = d->bi.rank_step;
@@ -671,7 +682,7 @@ _copy_array_gather(fvm_part_to_block_t   *d,
   size_t stride_size = fvm_datatype_size[datatype]*stride;
   MPI_Datatype mpi_type = fvm_datatype_to_mpi[datatype];
 
-  unsigned char *_block_values = block_values;
+  unsigned char *_block_values = (unsigned char *) block_values;
 
   const int n_ranks = d->n_ranks;
   const size_t n_recv_ents = d->recv_size;
@@ -758,7 +769,7 @@ _copy_data_gather(fvm_part_to_block_t   *d,
   size_t type_size = fvm_datatype_size[datatype];
   MPI_Datatype mpi_type = fvm_datatype_to_mpi[datatype];
 
-  unsigned char *_block_values = block_values;
+  unsigned char *_block_values = (unsigned char *) block_values;
 
   const int n_ranks = d->n_ranks;
   const size_t n_recv_ents = d->recv_size;

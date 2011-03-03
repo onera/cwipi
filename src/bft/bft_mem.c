@@ -564,7 +564,7 @@ bft_mem_init(const char *log_file_name)
   alloc_size = sizeof(struct _bft_mem_block_t) * _bft_mem_global_block_max;
 
   _bft_mem_global_block_array
-    = malloc(sizeof(struct _bft_mem_block_t) * _bft_mem_global_block_max);
+    =  (struct _bft_mem_block_t  *) malloc(sizeof(struct _bft_mem_block_t) * _bft_mem_global_block_max);
 
   if (_bft_mem_global_block_array == NULL) {
     _bft_mem_error(__FILE__, __LINE__, errno,

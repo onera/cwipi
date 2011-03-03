@@ -30407,7 +30407,7 @@ cat >>conftest.$ac_ext <<_ACEOF
 int
 main ()
 {
- MPI_Init(0, (void *)0);
+ MPI_Init(0, 0);
   ;
   return 0;
 }
@@ -30464,7 +30464,7 @@ cat >>conftest.$ac_ext <<_ACEOF
 int
 main ()
 {
- MPI_Init(0, (void *)0);
+ MPI_Init(0, 0);
   ;
   return 0;
 }
@@ -30515,7 +30515,7 @@ cat >>conftest.$ac_ext <<_ACEOF
 int
 main ()
 {
- MPI_Init(0, (void *)0);
+ MPI_Init(0, 0);
   ;
   return 0;
 }
@@ -30579,7 +30579,7 @@ cat >>conftest.$ac_ext <<_ACEOF
 int
 main ()
 {
- MPI_Init(0, (void *)0);
+ MPI_Init(0, 0);
   ;
   return 0;
 }
@@ -30635,7 +30635,7 @@ cat >>conftest.$ac_ext <<_ACEOF
 int
 main ()
 {
- MPI_Init(0, (void *)0);
+ MPI_Init(0, 0);
   ;
   return 0;
 }

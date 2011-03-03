@@ -24,6 +24,18 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+/*-----------------------------------------------------------------------------  
+ *  mpi.h must be include before stdio.h to not define SEE_SET for C++ 
+ *  binding of MPI
+ *----------------------------------------------------------------------------*/
+
+#ifdef __cplusplus
+#include "fvm_config.h"
+#if defined(FVM_HAVE_MPI)
+#include <mpi.h>
+#endif
+#endif
+
 /*----------------------------------------------------------------------------
  * Standard C library headers
  *----------------------------------------------------------------------------*/
@@ -1363,15 +1375,19 @@ fvm_nodal_from_desc_add_cells(fvm_nodal_t        *this_nodal,
 
   fvm_parall_counter(n_g_elements_type, FVM_N_ELEMENT_TYPES);
 
-  for (cell_type = FVM_CELL_TETRA ;
-       cell_type <= FVM_CELL_POLY ;
-       cell_type++) {
-    if (n_g_elements_type[cell_type] > 0) {
-      sections[cell_type] = fvm_nodal_section_create(cell_type);
-      sections[cell_type]->n_elements = n_elements_type[cell_type];
-      this_nodal->n_cells += n_elements_type[cell_type];
+  int cell_type_i_d = (int) FVM_CELL_TETRA;
+  int cell_type_i_f = (int) FVM_CELL_POLY;
+  int cell_type_i;
+
+  for (cell_type_i = cell_type_i_d;
+       cell_type_i <= cell_type_i_f;
+       cell_type_i++) {
+    if (n_g_elements_type[cell_type_i] > 0) {
+      sections[cell_type_i] = fvm_nodal_section_create((fvm_element_t) cell_type_i);
+      sections[cell_type_i]->n_elements = n_elements_type[cell_type_i];
+      this_nodal->n_cells += n_elements_type[cell_type_i];
     }
-    n_elements_type[cell_type] = 0;
+    n_elements_type[cell_type_i] = 0;
   }
 
   /* Main memory allocations */
@@ -1613,15 +1629,19 @@ fvm_nodal_from_desc_add_faces(fvm_nodal_t        *this_nodal,
 
   fvm_parall_counter(n_g_elements_type, FVM_N_ELEMENT_TYPES);
 
-  for (face_type = FVM_FACE_TRIA ;
-       face_type <= FVM_FACE_POLY ;
-       face_type++) {
-    if (n_g_elements_type[face_type] > 0) {
-      sections[face_type] = fvm_nodal_section_create(face_type);
-      sections[face_type]->n_elements = n_elements_type[face_type];
-      this_nodal->n_faces += n_elements_type[face_type];
+  int face_type_i_d = (int) FVM_FACE_TRIA;
+  int face_type_i_f = (int) FVM_FACE_POLY;
+  int face_type_i;
+
+  for (face_type_i = face_type_i_d;
+       face_type_i <= face_type_i_f;
+       face_type_i++) {
+    if (n_g_elements_type[face_type_i] > 0) {
+      sections[face_type_i] = fvm_nodal_section_create((fvm_element_t) face_type_i);
+      sections[face_type_i]->n_elements = n_elements_type[face_type_i];
+      this_nodal->n_faces += n_elements_type[face_type_i];
     }
-    n_elements_type[face_type] = 0;
+    n_elements_type[face_type_i] = 0;
   }
 
   /* Main memory allocations */

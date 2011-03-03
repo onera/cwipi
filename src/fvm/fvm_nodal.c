@@ -23,6 +23,18 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+/*-----------------------------------------------------------------------------  
+ *  mpi.h must be include before stdio.h to not define SEE_SET for C++ 
+ *  binding of MPI
+ *----------------------------------------------------------------------------*/
+
+#ifdef __cplusplus
+#include "fvm_config.h"
+#if defined(FVM_HAVE_MPI)
+#include <mpi.h>
+#endif
+#endif
+
 /*----------------------------------------------------------------------------
  * Standard C library headers
  *----------------------------------------------------------------------------*/
@@ -112,8 +124,8 @@ static int _compare_edges(const void *x, const void *y)
 {
   int retval = 1;
 
-  const fvm_lnum_t *e0 = x;
-  const fvm_lnum_t *e1 = y;
+  const fvm_lnum_t *e0 = (const fvm_lnum_t *) x;
+  const fvm_lnum_t *e1 = (const fvm_lnum_t *) y;
 
   if (e0[0] < e1[0])
     retval = -1;

@@ -635,7 +635,7 @@ fvm_gather_slice_index(const fvm_lnum_t     local_index[],
           _slice_recv_buf_size_array(this_slice, n_distant_entities,
                                      1, sizeof(fvm_gnum_t));
 
-          recv_buf = this_slice->recv_buf;
+          recv_buf = (fvm_gnum_t *) this_slice->recv_buf;
 
           MPI_Recv(this_slice->recv_buf, n_distant_entities,
                    FVM_MPI_GNUM, distant_rank, FVM_MPI_TAG, comm, &status);
@@ -840,8 +840,8 @@ fvm_gather_array(const void          *local_array,
   size_t  size_mult;
   fvm_lnum_t  local_index_start, local_index_stop;
 
-  const char *local_array_val = local_array;
-  char *global_array_s_val = global_array_s;
+  const char *local_array_val = (const char *) local_array;
+  char *global_array_s_val = (char *) global_array_s;
 
   /* MPI related variables */
   MPI_Status  status;
@@ -940,7 +940,7 @@ fvm_gather_array(const void          *local_array,
           _slice_recv_buf_size_array(this_slice, n_distant_entities,
                                      stride, size);
 
-          _recv_buf = this_slice->recv_buf;
+          _recv_buf = (char *) this_slice->recv_buf;
 
           MPI_Recv(this_slice->recv_buf, n_distant_entities*stride, datatype,
                    distant_rank, FVM_MPI_TAG, comm, &status);
@@ -1047,8 +1047,8 @@ fvm_gather_indexed(const void          *local_array,
   int  n_values_send = 0;
   fvm_lnum_t  local_index_start, local_index_stop;
 
-  const char *local_array_val = local_array;
-  char *global_array_s_val = global_array_s;
+  const char *local_array_val = (const char *) local_array;
+  char *global_array_s_val = (char *) global_array_s;
 
   /* MPI related variables */
   MPI_Status status;
@@ -1175,7 +1175,7 @@ fvm_gather_indexed(const void          *local_array,
           MPI_Recv(this_slice->recv_buf, (int)recv_size, datatype,
                    distant_rank, FVM_MPI_TAG, comm, &status);
 
-          _recv_buf = this_slice->recv_buf;
+          _recv_buf = (char *) this_slice->recv_buf;
 
           for (i = 0, recv_id = 0 ; i < n_distant_entities ; i++) {
             for (j = 0 ; j < blocklengths[i] ; j++) {
@@ -1364,7 +1364,7 @@ fvm_gather_strided_connect(const fvm_lnum_t    local_connect[],
           _slice_recv_buf_size_array(this_slice, n_distant_entities,
                                      stride, sizeof(fvm_gnum_t));
 
-          _recv_buf = this_slice->recv_buf;
+          _recv_buf = (fvm_gnum_t *) this_slice->recv_buf;
 
           MPI_Recv(this_slice->recv_buf, (int)(n_distant_entities*stride),
                    FVM_MPI_GNUM, distant_rank, FVM_MPI_TAG, comm, &status);
@@ -1629,7 +1629,7 @@ fvm_gather_indexed_numbers(const fvm_lnum_t     local_index[],
           MPI_Recv(this_slice->recv_buf, recv_size, FVM_MPI_GNUM,
                    distant_rank, FVM_MPI_TAG, comm, &status);
 
-          _recv_buf = this_slice->recv_buf;
+          _recv_buf = (fvm_gnum_t *) this_slice->recv_buf;
 
           for (i = 0, recv_id = 0 ; i < n_distant_entities ; i++) {
             for (j = 0 ; j < blocklengths[i] ; j++)
