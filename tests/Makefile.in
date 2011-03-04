@@ -62,7 +62,8 @@ TESTS = c_linear_coupling$(EXEEXT) \
 	c_surf_coupling_P1P1_micron_polygon$(EXEEXT) \
 	c_surf_coupling_P1P1_polygon$(EXEEXT) \
 	c_surf_coupling_P1P1$(EXEEXT) \
-	c_surf_coupling_P1P1_asynchronous$(EXEEXT) python_api.py
+	c_surf_coupling_P1P1_asynchronous$(EXEEXT) $(am__append_1)
+@ENABLE_PYTHON_TRUE@am__append_1 = python_api.py
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -93,14 +94,15 @@ CONFIG_HEADER = $(top_builddir)/config_priv.h \
 CONFIG_CLEAN_FILES =
 am_c_linear_coupling_OBJECTS = c_linear_coupling.$(OBJEXT)
 c_linear_coupling_OBJECTS = $(am_c_linear_coupling_OBJECTS)
-c_linear_coupling_DEPENDENCIES = $(top_builddir)/src/bft/libbft.la \
-	$(top_builddir)/src/fvm/libfvm.la \
+c_linear_coupling_DEPENDENCIES = $(top_builddir)/src/bft/libbfto.la \
+	$(top_builddir)/src/fvm/libfvmo.la \
 	$(top_builddir)/src/libcwipi.la
 am_c_surf_coupling_P1P1_OBJECTS = grid_mesh.$(OBJEXT) \
 	c_surf_coupling_P1P1.$(OBJEXT)
 c_surf_coupling_P1P1_OBJECTS = $(am_c_surf_coupling_P1P1_OBJECTS)
-c_surf_coupling_P1P1_DEPENDENCIES = $(top_builddir)/src/bft/libbft.la \
-	$(top_builddir)/src/fvm/libfvm.la \
+c_surf_coupling_P1P1_DEPENDENCIES =  \
+	$(top_builddir)/src/bft/libbfto.la \
+	$(top_builddir)/src/fvm/libfvmo.la \
 	$(top_builddir)/src/libcwipi.la
 am_c_surf_coupling_P1P1_asynchronous_OBJECTS = grid_mesh.$(OBJEXT) \
 	c_surf_coupling_P1P1_asynchronous.$(OBJEXT)
@@ -108,8 +110,8 @@ c_surf_coupling_P1P1_asynchronous_OBJECTS =  \
 	$(am_c_surf_coupling_P1P1_asynchronous_OBJECTS)
 c_surf_coupling_P1P1_asynchronous_LDADD = $(LDADD)
 c_surf_coupling_P1P1_asynchronous_DEPENDENCIES =  \
-	$(top_builddir)/src/bft/libbft.la \
-	$(top_builddir)/src/fvm/libfvm.la \
+	$(top_builddir)/src/bft/libbfto.la \
+	$(top_builddir)/src/fvm/libfvmo.la \
 	$(top_builddir)/src/libcwipi.la
 am_c_surf_coupling_P1P1_micron_polygon_OBJECTS =  \
 	creeMaillagePolygone2D.$(OBJEXT) \
@@ -117,8 +119,8 @@ am_c_surf_coupling_P1P1_micron_polygon_OBJECTS =  \
 c_surf_coupling_P1P1_micron_polygon_OBJECTS =  \
 	$(am_c_surf_coupling_P1P1_micron_polygon_OBJECTS)
 c_surf_coupling_P1P1_micron_polygon_DEPENDENCIES =  \
-	$(top_builddir)/src/bft/libbft.la \
-	$(top_builddir)/src/fvm/libfvm.la \
+	$(top_builddir)/src/bft/libbfto.la \
+	$(top_builddir)/src/fvm/libfvmo.la \
 	$(top_builddir)/src/libcwipi.la
 am_c_surf_coupling_P1P1_polygon_OBJECTS =  \
 	creeMaillagePolygone2D.$(OBJEXT) \
@@ -126,8 +128,8 @@ am_c_surf_coupling_P1P1_polygon_OBJECTS =  \
 c_surf_coupling_P1P1_polygon_OBJECTS =  \
 	$(am_c_surf_coupling_P1P1_polygon_OBJECTS)
 c_surf_coupling_P1P1_polygon_DEPENDENCIES =  \
-	$(top_builddir)/src/bft/libbft.la \
-	$(top_builddir)/src/fvm/libfvm.la \
+	$(top_builddir)/src/bft/libbfto.la \
+	$(top_builddir)/src/fvm/libfvmo.la \
 	$(top_builddir)/src/libcwipi.la
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
@@ -325,8 +327,8 @@ $(DEBUG_CPPFLAGS) \
 AM_CFLAGS = 
 AM_LDFLAGS = @MPI_LDFLAGS@
 AM_FCFLAGS = -I$(top_builddir)/src -I$(top_srcdir)/src
-LDADD = $(top_builddir)/src/bft/libbft.la \
-	$(top_builddir)/src/fvm/libfvm.la \
+LDADD = $(top_builddir)/src/bft/libbfto.la \
+	$(top_builddir)/src/fvm/libfvmo.la \
 	$(top_builddir)/src/libcwipi.la \
         @MPI_LIBS@ \
 	-lm
@@ -346,29 +348,29 @@ c_surf_coupling_P1P1_asynchronous_SOURCES = grid_mesh.c c_surf_coupling_P1P1_asy
 #test3D_1_c1_SOURCES = test3D_1_c1.c
 #test3D_1_c2_SOURCES = test3D_1_c2.c
 c_linear_coupling_LDADD = \
-$(top_builddir)/src/bft/libbft.la \
-$(top_builddir)/src/fvm/libfvm.la \
+$(top_builddir)/src/bft/libbfto.la \
+$(top_builddir)/src/fvm/libfvmo.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_coupling_P1P1_micron_polygon_LDADD = \
-$(top_builddir)/src/bft/libbft.la \
-$(top_builddir)/src/fvm/libfvm.la \
+$(top_builddir)/src/bft/libbfto.la \
+$(top_builddir)/src/fvm/libfvmo.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_coupling_P1P1_polygon_LDADD = \
-$(top_builddir)/src/bft/libbft.la \
-$(top_builddir)/src/fvm/libfvm.la \
+$(top_builddir)/src/bft/libbfto.la \
+$(top_builddir)/src/fvm/libfvmo.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_coupling_P1P1_LDADD = \
-$(top_builddir)/src/bft/libbft.la \
-$(top_builddir)/src/fvm/libfvm.la \
+$(top_builddir)/src/bft/libbfto.la \
+$(top_builddir)/src/fvm/libfvmo.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
@@ -748,6 +750,7 @@ uninstall-am:
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags uninstall uninstall-am
 
+	python_api.py
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

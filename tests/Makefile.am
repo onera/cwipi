@@ -44,8 +44,8 @@ AM_LDFLAGS  = @MPI_LDFLAGS@
 
 AM_FCFLAGS = -I$(top_builddir)/src -I$(top_srcdir)/src
 
-LDADD = $(top_builddir)/src/bft/libbft.la \
-	$(top_builddir)/src/fvm/libfvm.la \
+LDADD = $(top_builddir)/src/bft/libbfto.la \
+	$(top_builddir)/src/fvm/libfvmo.la \
 	$(top_builddir)/src/libcwipi.la \
         @MPI_LIBS@ \
 	-lm
@@ -73,29 +73,29 @@ c_surf_coupling_P1P1_asynchronous_SOURCES = grid_mesh.c c_surf_coupling_P1P1_asy
 #test3D_1_c2_SOURCES = test3D_1_c2.c
 
 c_linear_coupling_LDADD = \
-$(top_builddir)/src/bft/libbft.la \
-$(top_builddir)/src/fvm/libfvm.la \
+$(top_builddir)/src/bft/libbfto.la \
+$(top_builddir)/src/fvm/libfvmo.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_coupling_P1P1_micron_polygon_LDADD = \
-$(top_builddir)/src/bft/libbft.la \
-$(top_builddir)/src/fvm/libfvm.la \
+$(top_builddir)/src/bft/libbfto.la \
+$(top_builddir)/src/fvm/libfvmo.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_coupling_P1P1_polygon_LDADD = \
-$(top_builddir)/src/bft/libbft.la \
-$(top_builddir)/src/fvm/libfvm.la \
+$(top_builddir)/src/bft/libbfto.la \
+$(top_builddir)/src/fvm/libfvmo.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_coupling_P1P1_LDADD = \
-$(top_builddir)/src/bft/libbft.la \
-$(top_builddir)/src/fvm/libfvm.la \
+$(top_builddir)/src/bft/libbfto.la \
+$(top_builddir)/src/fvm/libfvmo.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
@@ -132,7 +132,9 @@ TESTS = c_linear_coupling \
 	c_surf_coupling_P1P1_micron_polygon \
 	c_surf_coupling_P1P1_polygon \
 	c_surf_coupling_P1P1 \
-	c_surf_coupling_P1P1_asynchronous \
+	c_surf_coupling_P1P1_asynchronous
 	python_api.py
-
+if ENABLE_PYTHON 
+  TESTS += python_api.py
+endif
 

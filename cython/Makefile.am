@@ -34,8 +34,8 @@ pkgpyexec_LTLIBRARIES = CWIPI.la
 CWIPI_la_SOURCES = CWIPI.c
 
 CWIPI_la_LIBADD = \
-$(top_builddir)/src/bft/libbft.la \
-$(top_builddir)/src/fvm/libfvm.la \
+$(top_builddir)/src/bft/libbfto.la \
+$(top_builddir)/src/fvm/libfvmo.la \
 $(top_builddir)/src/libcwipi.la 
 
 CWIPI_la_LDFLAGS = _avoid_version -module

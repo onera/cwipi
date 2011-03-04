@@ -45,9 +45,9 @@ AM_LDFLAGS = @HDF5_LDFLAGS@ @MED_LDFLAGS@ @CGNS_LDFLAGS@ \
 
 # Conditionally compiled extensions
 
-libfvm_cgns_la_CPPFLAGS = $(DEBUG_CPPFLAGS) @MPI_CPPFLAGS@ \
+libfvmo_cgns_la_CPPFLAGS = $(DEBUG_CPPFLAGS) @MPI_CPPFLAGS@ \
                          @CGNS_CPPFLAGS@
-libfvm_med_la_CPPFLAGS = $(DEBUG_CPPFLAGS)  @MPI_CPPFLAGS@ \
+libfvmo_med_la_CPPFLAGS = $(DEBUG_CPPFLAGS)  @MPI_CPPFLAGS@ \
                          @HDF5_CPPFLAGS@ @MED_CPPFLAGS@ 
 
 # Public header files (to be installed)
@@ -103,21 +103,21 @@ fvm_writer_priv.h
 # Library source files
 
 if HAVE_MPI
-lib_LTLIBRARIES = libfvm.la
+lib_LTLIBRARIES = libfvmo.la
 else
-lib_LTLIBRARIES = libfvm_scal.la
+lib_LTLIBRARIES = libfvmo_scal.la
 endif
 
 noinst_LTLIBRARIES =
 
 if HAVE_MPI
-libfvm_la_LIBADD = $(top_builddir)/src/bft/libbft.la
+libfvmo_la_LIBADD = $(top_builddir)/src/bft/libbfto.la
 else
-libfvm_scal_la_LIBADD = $(top_builddir)/src/bft/libbft.la
+libfvmo_scal_la_LIBADD = $(top_builddir)/src/bft/libbfto.la
 endif
 
 if HAVE_MPI
-libfvm_la_SOURCES = \
+libfvmo_la_SOURCES = \
 fvm_block_dist.c \
 fvm_block_to_part.c \
 fvm_box.c \
@@ -155,7 +155,7 @@ fvm_triangulate.c \
 fvm_writer.c \
 fvm_writer_helper.c
 else
-libfvm_scal_la_SOURCES = \
+libfvmo_scal_la_SOURCES = \
 fvm_block_dist.c \
 fvm_block_to_part.c \
 fvm_box.c \
@@ -195,34 +195,34 @@ fvm_writer_helper.c
 endif
 
 if HAVE_MPI
-lib_LTLIBRARIES += libfvm_coupl.la
-libfvm_coupl_la_SOURCES = fvm_coupling.c
+lib_LTLIBRARIES += libfvmo_coupl.la
+libfvmo_coupl_la_SOURCES = fvm_coupling.c
 endif
 
 if HAVE_CGNS
-noinst_LTLIBRARIES += libfvm_cgns.la
+noinst_LTLIBRARIES += libfvmo_cgns.la
 if HAVE_MPI
-libfvm_la_LIBADD += libfvm_cgns.la $(top_builddir)/src/bft/libbft.la
+libfvmo_la_LIBADD += libfvmo_cgns.la $(top_builddir)/src/bft/libbfto.la
 else
-libfvm_scal_la_LIBADD += libfvm_cgns.la $(top_builddir)/src/bft/libbft.la
+libfvmo_scal_la_LIBADD += libfvmo_cgns.la $(top_builddir)/src/bft/libbfto.la
 endif
-libfvm_cgns_la_SOURCES = fvm_to_cgns.c
+libfvmo_cgns_la_SOURCES = fvm_to_cgns.c
 endif
 
 if HAVE_MED
-noinst_LTLIBRARIES += libfvm_med.la
+noinst_LTLIBRARIES += libfvmo_med.la
 if HAVE_MPI
-libfvm_la_LIBADD += libfvm_med.la $(top_builddir)/src/bft/libbft.la
+libfvmo_la_LIBADD += libfvmo_med.la $(top_builddir)/src/bft/libbfto.la
 else
-libfvm_scal_la_LIBADD += libfvm_med.la $(top_builddir)/src/bft/libbft.la
+libfvmo_scal_la_LIBADD += libfvmo_med.la $(top_builddir)/src/bft/libbfto.la
 endif
-libfvm_med_la_SOURCES = fvm_to_med.c
+libfvmo_med_la_SOURCES = fvm_to_med.c
 endif
 
 if HAVE_MPI
-libfvm_la_LDFLAGS = -no-undefined -version-info 0:0:0
+libfvmo_la_LDFLAGS = -no-undefined -version-info 0:0:0
 else
-libfvm_scal_la_LDFLAGS = -no-undefined -version-info 0:0:0
+libfvmo_scal_la_LDFLAGS = -no-undefined -version-info 0:0:0
 endif
-libfvm_coupl_la_LDFLAGS = -no-undefined -version-info 0:0:0
+libfvmo_coupl_la_LDFLAGS = -no-undefined -version-info 0:0:0
 

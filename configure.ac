@@ -836,7 +836,7 @@ echo " use debugging code: "$debug""
 echo " MPI (Message Passing Interface) support: "$have_mpi""
 if (test x$have_mpi = xyes) ; then
   echo "   MPI I/O support: "$have_mpi_io""
-  echo "   MPI2 one-sided communication support: "$mpi_one_sided""
+  echo "   MPI2 one-sided communication support: "$have_mpi_one_sided""
 fi
 echo
 echo "The package has been configured. Type:"

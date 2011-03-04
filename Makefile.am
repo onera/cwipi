@@ -29,13 +29,11 @@ MAINTAINERCLEANFILES = Makefile.in aclocal.m4 configure config-h.in stamp-h.in $
 
 #SUBDIRS = src tests doc
 
-
 if ENABLE_PYTHON 
  SUBDIRS = src cython tests
 else
  SUBDIRS = src tests
 endif
-
 
 EXTRA_DIST = $(ac_aux_dir)/cwipi_auto_flags.sh \
              $(ac_aux_dir)/check_bft.m4 \

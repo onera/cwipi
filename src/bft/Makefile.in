@@ -109,14 +109,14 @@ am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bftincludedir)"
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
-libbft_la_LIBADD =
-am_libbft_la_OBJECTS = bft_backtrace.lo bft_error.lo bft_file.lo \
+libbfto_la_LIBADD =
+am_libbfto_la_OBJECTS = bft_backtrace.lo bft_error.lo bft_file.lo \
 	bft_fp_trap.lo bft_mem.lo bft_mem_usage.lo bft_printf.lo \
 	bft_sys_info.lo bft_timer.lo bft_version.lo
-libbft_la_OBJECTS = $(am_libbft_la_OBJECTS)
-libbft_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+libbfto_la_OBJECTS = $(am_libbfto_la_OBJECTS)
+libbfto_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(libbft_la_LDFLAGS) $(LDFLAGS) -o $@
+	$(libbfto_la_LDFLAGS) $(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__depfiles_maybe = depfiles
@@ -129,8 +129,8 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(libbft_la_SOURCES)
-DIST_SOURCES = $(libbft_la_SOURCES)
+SOURCES = $(libbfto_la_SOURCES)
+DIST_SOURCES = $(libbfto_la_SOURCES)
 bftincludeHEADERS_INSTALL = $(INSTALL_HEADER)
 HEADERS = $(bftinclude_HEADERS) $(noinst_HEADERS)
 ETAGS = etags
@@ -317,8 +317,8 @@ bft_config_defs.h
 
 
 # Library source files
-lib_LTLIBRARIES = libbft.la
-libbft_la_SOURCES = \
+lib_LTLIBRARIES = libbfto.la
+libbfto_la_SOURCES = \
 bft_backtrace.c \
 bft_error.c \
 bft_file.c \
@@ -330,7 +330,7 @@ bft_sys_info.c \
 bft_timer.c \
 bft_version.c
 
-libbft_la_LDFLAGS = -no-undefined -version-info 1:0:0
+libbfto_la_LDFLAGS = -no-undefined -version-info 1:0:0
 all: all-am
 
 .SUFFIXES:
@@ -391,8 +391,8 @@ clean-libLTLIBRARIES:
 	  echo "rm -f \"$${dir}/so_locations\""; \
 	  rm -f "$${dir}/so_locations"; \
 	done
-libbft.la: $(libbft_la_OBJECTS) $(libbft_la_DEPENDENCIES) 
-	$(libbft_la_LINK) -rpath $(libdir) $(libbft_la_OBJECTS) $(libbft_la_LIBADD) $(LIBS)
+libbfto.la: $(libbfto_la_OBJECTS) $(libbfto_la_DEPENDENCIES) 
+	$(libbfto_la_LINK) -rpath $(libdir) $(libbfto_la_OBJECTS) $(libbfto_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)

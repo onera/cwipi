@@ -69,8 +69,8 @@ bft_config_defs.h
 
 # Library source files
 
-lib_LTLIBRARIES = libbft.la
-libbft_la_SOURCES   = \
+lib_LTLIBRARIES = libbfto.la
+libbfto_la_SOURCES   = \
 bft_backtrace.c \
 bft_error.c \
 bft_file.c \
@@ -82,5 +82,5 @@ bft_sys_info.c \
 bft_timer.c \
 bft_version.c
 
-libbft_la_LDFLAGS = -no-undefined -version-info 1:0:0
+libbfto_la_LDFLAGS = -no-undefined -version-info 1:0:0
 
