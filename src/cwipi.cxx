@@ -131,8 +131,8 @@ void cwipi_init
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
-  bft_printf("\ncwipi "CWIPI_VERSION" initializing\n");
-  bft_printf("------------------------\n\n");
+  bft::bft_printf("\ncwipi "CWIPI_VERSION" initializing\n");
+  bft::bft_printf("------------------------\n\n");
 
   *application_comm = properties.init(application_name,
                                       common_comm);
@@ -150,7 +150,7 @@ void cwipi_set_output_listing
 (FILE *output_listing)
 {
   _cwipi_output_listing = output_listing;
-  bft_printf_proxy_set(_cwipi_print_with_c);
+  bft::bft_printf_proxy_set(_cwipi_print_with_c);
 }
 
 /*----------------------------------------------------------------------------
@@ -366,7 +366,7 @@ void cwipi_delete_local_string_control_parameter(const char *name)
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
-  properties.eraseLocalDoubleControlParameter(name);
+  properties.eraseLocalStringControlParameter(name);
 }
 
 /*----------------------------------------------------------------------------
@@ -675,7 +675,7 @@ void cwipi_define_mesh(const char *coupling_name,
 
 
 void cwipi_shared_fvm_nodal(const char *coupling_name,
-                            fvm_nodal_t* fvm_nodal)
+                            void* fvm_nodal)
 {
   cwipi::CouplingDataBase & couplingDataBase =
     cwipi::CouplingDataBase::getInstance();
@@ -689,7 +689,7 @@ void cwipi_shared_fvm_nodal(const char *coupling_name,
 
   cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
-  coupling.defineMesh(fvm_nodal);
+  coupling.defineMesh((fvm::fvm_nodal_t *) fvm_nodal);
 
 }
 
@@ -1110,7 +1110,7 @@ void cwipi_finalize()
 
   const MPI_Comm globalComm = properties.getGlobalComm();
 
-  bft_printf("Finalize cwipi\n");
+  bft::bft_printf("Finalize cwipi\n");
   couplingDataBase.kill();
   properties.kill();
 
@@ -1118,11 +1118,11 @@ void cwipi_finalize()
   MPI_Initialized(&flag);
 
   if (flag != 0) {
-    bft_printf_flush();
+    bft::bft_printf_flush();
     MPI_Barrier(globalComm);
-    MPI_Comm oldFVMComm = fvm_parall_get_mpi_comm();
+    MPI_Comm oldFVMComm = fvm::fvm_parall_get_mpi_comm();
   }
-  bft_printf("Finalize MPI\n");
+  bft::bft_printf("Finalize MPI\n");
 
 }
 

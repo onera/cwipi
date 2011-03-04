@@ -140,7 +140,7 @@ Coupling::Coupling(const std::string& name,
 
 
 #ifndef NAN
-  bft_printf("Warning : NAN macro is undefined -> receiving checking deactivation\n");
+  bft::bft_printf("Warning : NAN macro is undefined -> receiving checking deactivation\n");
 #endif
 
 }
@@ -289,17 +289,17 @@ Coupling::~Coupling()
 
     delete _locationToLocalMesh;
 
-    MPI_Comm oldFVMComm = fvm_parall_get_mpi_comm();
+    MPI_Comm oldFVMComm = fvm::fvm_parall_get_mpi_comm();
     if (oldFVMComm != MPI_COMM_NULL)
       MPI_Barrier(oldFVMComm);
-    fvm_parall_set_mpi_comm(_fvmComm);
+    fvm::fvm_parall_set_mpi_comm(_fvmComm);
 
     if (_fvmWriter != NULL)
-      fvm_writer_finalize(_fvmWriter);
+      fvm::fvm_writer_finalize(_fvmWriter);
 
     if (_fvmComm != MPI_COMM_NULL)
       MPI_Barrier(_fvmComm);
-    fvm_parall_set_mpi_comm(oldFVMComm);
+    fvm::fvm_parall_set_mpi_comm(oldFVMComm);
 
   }
 
@@ -321,8 +321,8 @@ void Coupling::_interpolate(double *referenceField,
 
   // Methode d'interplation temporaire identique a MPCCI pour contrat SPS
 ////  if (_solverType == CWIPI_SOLVER_CELL_CENTER) {
-////    const int nDistantPoint      = fvm_locator_get_n_dist_points(_fvmLocator);
-////    const int *distantLocation   = fvm_locator_get_dist_locations(_fvmLocator);
+////    const int nDistantPoint      = fvm::fvm_locator_get_n_dist_points(_fvmLocator);
+////    const int *distantLocation   = fvm::fvm_locator_get_dist_locations(_fvmLocator);
 ////    const int *eltsConnecPointer = _supportMesh->getEltConnectivityIndex();
 ////    const int *eltsConnec        = _supportMesh->getEltConnectivity();
 ////    for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
@@ -355,7 +355,7 @@ void Coupling::_interpolate(double *referenceField,
     break;
 
   default:
-    bft_error(__FILE__, __LINE__, 0, "'%i' bad entities dimension\n",_entitiesDim);
+    bft::bft_error(__FILE__, __LINE__, 0, "'%i' bad entities dimension\n",_entitiesDim);
   }
 //  }
 }
@@ -429,9 +429,9 @@ void Coupling::_interpolate2D (double *vertexField,
       }
     }
     else {
-      bft_printf("Warning interpolate2D : barycentric coordinates of the number point '%i' are degenerated :\n", ipoint+1);
+      bft::bft_printf("Warning interpolate2D : barycentric coordinates of the number point '%i' are degenerated :\n", ipoint+1);
       if (cellField != NULL) {
-        bft_printf("                         The interpolated value is located cell value ('%i') \n", iel+1);
+        bft::bft_printf("                         The interpolated value is located cell value ('%i') \n", iel+1);
         for (int k = 0; k < stride; k++) {
           interpolatedField[stride*ipoint+k] = cellField[stride*iel+k];
         }
@@ -458,7 +458,7 @@ void Coupling::_interpolate2D (double *vertexField,
             dist = localDist;
           }
         }
-        bft_printf("                       the interpolated value is defined by the closest vertex ('%i') of the located cell\n", neighborVertex+1);
+        bft::bft_printf("                       the interpolated value is defined by the closest vertex ('%i') of the located cell\n", neighborVertex+1);
         for (int k = 0; k < stride; k++) {
           interpolatedField[stride*ipoint+k] = vertexField[stride*neighborVertex+k];
         }
@@ -643,7 +643,7 @@ void Coupling::defineMesh(const int nVertex,
                           int connectivity[])
 {
   if (_supportMesh  != NULL)
-    bft_error(__FILE__, __LINE__, 0, "coupling mesh is already created\n");
+    bft::bft_error(__FILE__, __LINE__, 0, "coupling mesh is already created\n");
 
   if (_isCoupledRank)
     _supportMesh = new Mesh(_fvmComm,
@@ -654,22 +654,22 @@ void Coupling::defineMesh(const int nVertex,
                             connectivity_index,
                             connectivity);
   else
-    bft_error(__FILE__, __LINE__, 0, "for a coupling without parallel partitionning,"
+    bft::bft_error(__FILE__, __LINE__, 0, "for a coupling without parallel partitionning,"
               " the coupling mesh must be defined only by the root rank\n");
 
 }
 
 
-void Coupling::defineMesh(fvm_nodal_t* fvm_nodal)
+void Coupling::defineMesh(fvm::fvm_nodal_t* fvm_nodal)
 {
   if (_supportMesh  != NULL)
-    bft_error(__FILE__, __LINE__, 0, "coupling mesh is already created\n");
+    bft::bft_error(__FILE__, __LINE__, 0, "coupling mesh is already created\n");
 
   if (_isCoupledRank)
     _supportMesh = new Mesh(_fvmComm,
                             fvm_nodal);
   else
-    bft_error(__FILE__, __LINE__, 0, "for a coupling without parallel partitionning,"
+    bft::bft_error(__FILE__, __LINE__, 0, "for a coupling without parallel partitionning,"
               " the coupling mesh must be defined only by the root rank\n");
 
 }
@@ -691,7 +691,7 @@ void Coupling::defineMeshAddPolyhedra(const int n_element,
 {
   if (_isCoupledRank) {
     if (_supportMesh  == NULL)
-      bft_error(__FILE__, __LINE__, 0, "No mesh to add elements\n");
+      bft::bft_error(__FILE__, __LINE__, 0, "No mesh to add elements\n");
 
     _supportMesh->addPolyhedra(n_element,
                                face_index,
@@ -699,7 +699,7 @@ void Coupling::defineMeshAddPolyhedra(const int n_element,
                                face_connectivity_index,
                                face_connectivity);
   }
-  bft_error(__FILE__, __LINE__, 0, "for a coupling without parallel partitionning,"
+  bft::bft_error(__FILE__, __LINE__, 0, "for a coupling without parallel partitionning,"
             " the coupling mesh must be defined only by the root rank\n");
 
 }
@@ -711,7 +711,7 @@ void Coupling::updateLocation()
     _toLocate = true;
   }
   else
-    bft_error(__FILE__, __LINE__, 0, "for a coupling without parallel partitionning,"
+    bft::bft_error(__FILE__, __LINE__, 0, "for a coupling without parallel partitionning,"
               " updateLocation must be called only by the root rank\n");
 }
 
@@ -735,7 +735,7 @@ cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
   int rootRank;
 
   if (!_isCoupledRank && sendingField != NULL )
-    bft_printf("Warning : sendingField != NULL, "
+    bft::bft_printf("Warning : sendingField != NULL, "
               " only field defined by the root rank is sent\n");
 
   if (_isCoupledRank) {
@@ -770,7 +770,7 @@ cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
                    _couplingComm, &MPIStatus);
 
       if (strcmp(_name.c_str(), distantCouplingName))
-        bft_error(__FILE__, __LINE__, 0, "'%s' '%s' bad synchronization point\n",
+        bft::bft_error(__FILE__, __LINE__, 0, "'%s' '%s' bad synchronization point\n",
                   _name.c_str(),
                   distantCouplingName);
       delete[] distantCouplingName;
@@ -795,7 +795,7 @@ cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
 		   _couplingComm, &MPIStatus);
 
       if (strcmp(exchangeName, distantExchangeName))
-        bft_error(__FILE__, __LINE__, 0, "'%s' '%s' bad synchronization point\n",
+        bft::bft_error(__FILE__, __LINE__, 0, "'%s' '%s' bad synchronization point\n",
                   exchangeName,
                   distantExchangeName);
 
@@ -922,12 +922,12 @@ cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
     }
 #endif
 
-    MPI_Comm oldFVMComm = fvm_parall_get_mpi_comm();
+    MPI_Comm oldFVMComm = fvm::fvm_parall_get_mpi_comm();
     if (oldFVMComm != MPI_COMM_NULL)
       MPI_Barrier(oldFVMComm);
-    fvm_parall_set_mpi_comm(_fvmComm);
+    fvm::fvm_parall_set_mpi_comm(_fvmComm);
 
-    fvm_locator_exchange_point_var(_locationToLocalMesh->getFVMLocator(),
+    fvm::fvm_locator_exchange_point_var(_locationToLocalMesh->getFVMLocator(),
                                    (void *) ptSending,
                                    (void *) receivingField,
                                    NULL,
@@ -936,7 +936,7 @@ cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
                                    0);
     if (_fvmComm != MPI_COMM_NULL)
       MPI_Barrier(_fvmComm);
-    fvm_parall_set_mpi_comm(oldFVMComm);
+    fvm::fvm_parall_set_mpi_comm(oldFVMComm);
 
     //
     // Check receiving
@@ -1027,14 +1027,14 @@ void Coupling::issend(const char    *exchangeName,
   int rootRank;
 
   if (!_isCoupledRank && sendingField != NULL )
-    bft_printf("Warning : sendingField != NULL, "
+    bft::bft_printf("Warning : sendingField != NULL, "
               " only field defined by the root rank is sent\n");
 
   //
   // Locate
 
   if (_toLocate)
-    bft_error(__FILE__, __LINE__, 0,
+    bft::bft_error(__FILE__, __LINE__, 0,
               "Call cwipi_locate before cwipi_isend\n");
 
   //
@@ -1143,12 +1143,12 @@ void Coupling::issend(const char    *exchangeName,
       ptSending = &tmpDistantField[0];
 
 
-    MPI_Comm oldFVMComm = fvm_parall_get_mpi_comm();
+    MPI_Comm oldFVMComm = fvm::fvm_parall_get_mpi_comm();
     if (oldFVMComm != MPI_COMM_NULL)
       MPI_Barrier(oldFVMComm);
-    fvm_parall_set_mpi_comm(_fvmComm);
+    fvm::fvm_parall_set_mpi_comm(_fvmComm);
 
-    fvm_locator_issend_point_var(_locationToLocalMesh->getFVMLocator(),
+    fvm::fvm_locator_issend_point_var(_locationToLocalMesh->getFVMLocator(),
                                  (void *) ptSending,
                                  NULL,
                                  sizeof(double),
@@ -1161,7 +1161,7 @@ void Coupling::issend(const char    *exchangeName,
 
     if (_fvmComm != MPI_COMM_NULL)
       MPI_Barrier(_fvmComm);
-    fvm_parall_set_mpi_comm(oldFVMComm);
+    fvm::fvm_parall_set_mpi_comm(oldFVMComm);
 
     //
     // Visualization
@@ -1182,7 +1182,7 @@ void Coupling::issend(const char    *exchangeName,
 void Coupling::waitIssend(int request)
 {
   if (_isCoupledRank) {
-    fvm_locator_issend_wait(_locationToLocalMesh->getFVMLocator(), request);
+    fvm::fvm_locator_issend_wait(_locationToLocalMesh->getFVMLocator(), request);
 
     delete _tmpDistantFieldsIssend[request];
     _tmpDistantFieldsIssend[request] = NULL;
@@ -1205,7 +1205,7 @@ void Coupling::irecv(const char    *exchangeName,
     //
     // irecv
     
-    fvm_locator_irecv_point_var(_locationToLocalMesh->getFVMLocator(),
+    fvm::fvm_locator_irecv_point_var(_locationToLocalMesh->getFVMLocator(),
                                 (void*) receivingField,
                                 NULL,
                                 sizeof(double),
@@ -1243,7 +1243,7 @@ void Coupling::waitIrecv(int request)
 {
 
   if (_isCoupledRank) {
-    fvm_locator_irecv_wait(_locationToLocalMesh->getFVMLocator(), request);
+    fvm::fvm_locator_irecv_wait(_locationToLocalMesh->getFVMLocator(), request);
 
     //
     // Visualization
@@ -1285,29 +1285,29 @@ void Coupling::_initVisualization()
 {
   if (_fvmWriter == NULL && _outputFrequency > 0) {
 
-    bft_file_mkdir_default("cwipi");
+    bft::bft_file_mkdir_default("cwipi");
 
     std::string pathString = "cwipi/"+_name + "_" +
     _localApplicationProperties.getName()+"_"+
     _coupledApplicationProperties.getName();
 
-    MPI_Comm oldFVMComm = fvm_parall_get_mpi_comm();
+    MPI_Comm oldFVMComm = fvm::fvm_parall_get_mpi_comm();
     if (oldFVMComm != MPI_COMM_NULL)
       MPI_Barrier(oldFVMComm);
-    fvm_parall_set_mpi_comm(_fvmComm);
+    fvm::fvm_parall_set_mpi_comm(_fvmComm);
 
-    _fvmWriter = fvm_writer_init("Chr",
+    _fvmWriter = fvm::fvm_writer_init("Chr",
                                  pathString.c_str(),
                                  _outputFormat.c_str(),
                                  _outputFormatOption.c_str(),
-                                 FVM_WRITER_FIXED_MESH);
+                                 fvm::FVM_WRITER_FIXED_MESH);
 
     int localCommSize;
     MPI_Comm_size(_fvmComm, &localCommSize);
     int localRank = 0;
     MPI_Comm_rank(_fvmComm, &localRank);
 
-    fvm_writer_export_nodal(_fvmWriter, &(_supportMesh->getFvmNodal()));
+    fvm::fvm_writer_export_nodal(_fvmWriter, &(_supportMesh->getFvmNodal()));
 
     // Export sub domain
 
@@ -1320,15 +1320,15 @@ void Coupling::_initVisualization()
       for (int i = 0; i < nElts; i++)
         domLoc[i] = localRank+1;
 
-      fvm_writer_export_field(_fvmWriter,
-                              const_cast<fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
+      fvm::fvm_writer_export_field(_fvmWriter,
+                              const_cast<fvm::fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
                               "partitioning",
-                              FVM_WRITER_PER_ELEMENT,
+                              fvm::FVM_WRITER_PER_ELEMENT,
                               1,
-                              FVM_NO_INTERLACE,
+                              fvm::FVM_NO_INTERLACE,
                               0,
                               NULL,
-                              FVM_INT32,
+                              fvm::FVM_INT32,
                               -1,
                               0.0,
                               (const void *const *)  &domLoc);
@@ -1355,15 +1355,15 @@ void Coupling::_initVisualization()
         for (int i = 0; i < _locationToDistantMesh->getNUnlocatedPoint(); i++)
           domLoc[_locationToDistantMesh->getUnlocatedPoint()[i]-1] = 0;
 
-        fvm_writer_export_field(_fvmWriter,
-                                const_cast<fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
+        fvm::fvm_writer_export_field(_fvmWriter,
+                                const_cast<fvm::fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
                                 "location",
-                                FVM_WRITER_PER_ELEMENT,
+                                fvm::FVM_WRITER_PER_ELEMENT,
                                 1,
-                                FVM_NO_INTERLACE,
+                                fvm::FVM_NO_INTERLACE,
                                 0,
                                 NULL,
-                                FVM_INT32,
+                                fvm::FVM_INT32,
                                 -1,
                                 0.0,
                                 (const void *const *)  &domLoc);
@@ -1379,15 +1379,15 @@ void Coupling::_initVisualization()
         for (int i = 0; i < _locationToDistantMesh->getNUnlocatedPoint(); i++)
           domLoc[_locationToDistantMesh->getUnlocatedPoint()[i]-1] = 0;
 
-        fvm_writer_export_field(_fvmWriter,
-                                const_cast<fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
+        fvm::fvm_writer_export_field(_fvmWriter,
+                                const_cast<fvm::fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
                                 "location",
-                                FVM_WRITER_PER_NODE,
+                                fvm::FVM_WRITER_PER_NODE,
                                 1,
-                                FVM_NO_INTERLACE,
+                                fvm::FVM_NO_INTERLACE,
                                 0,
                                 NULL,
-                                FVM_INT32,
+                                fvm::FVM_INT32,
                                 -1,
                                 0.0,
                                 (const void *const *)  &domLoc);
@@ -1398,7 +1398,7 @@ void Coupling::_initVisualization()
 
     if (_fvmComm != MPI_COMM_NULL)
       MPI_Barrier(_fvmComm);
-    fvm_parall_set_mpi_comm(oldFVMComm);
+    fvm::fvm_parall_set_mpi_comm(oldFVMComm);
 
   }
 }
@@ -1419,7 +1419,7 @@ void Coupling::_fieldsVisualization(const char *exchangeName,
 
   std::string localName;
 
-  MPI_Comm oldFVMComm = fvm_parall_get_mpi_comm();
+  MPI_Comm oldFVMComm = fvm::fvm_parall_get_mpi_comm();
 
   if ((_outputFrequency > 0) && (timeStep % _outputFrequency == 0)) {
 
@@ -1427,20 +1427,20 @@ void Coupling::_fieldsVisualization(const char *exchangeName,
 
     if (oldFVMComm != MPI_COMM_NULL)
       MPI_Barrier(oldFVMComm);
-    fvm_parall_set_mpi_comm(_fvmComm);
+    fvm::fvm_parall_set_mpi_comm(_fvmComm);
 
-    fvm_writer_var_loc_t fvm_writer_var_loc;
-    fvm_interlace_t fvm_interlace;
+    fvm::fvm_writer_var_loc_t fvm_writer_var_loc;
+    fvm::fvm_interlace_t fvm_interlace;
     int dim;
     int fieldSize;
 
     if (_solverType == CWIPI_SOLVER_CELL_CENTER) {
       fieldSize = _supportMesh->getNElts() + _supportMesh->getNPolyhedra();
-      fvm_writer_var_loc = FVM_WRITER_PER_ELEMENT;
+      fvm_writer_var_loc = fvm::FVM_WRITER_PER_ELEMENT;
     }
     else{
       fieldSize = _supportMesh->getNVertex();
-      fvm_writer_var_loc = FVM_WRITER_PER_NODE;
+      fvm_writer_var_loc = fvm::FVM_WRITER_PER_NODE;
     }
     //
     // Visualization if stride is scalar or vector
@@ -1449,12 +1449,12 @@ void Coupling::_fieldsVisualization(const char *exchangeName,
 
 //     dim = stride;
 //     if (stride == 1)
-//       fvm_interlace = FVM_NO_INTERLACE;
+//       fvm_interlace = fvm::FVM_NO_INTERLACE;
 //     else
-//       fvm_interlace = FVM_INTERLACE;
+//       fvm_interlace = fvm::FVM_INTERLACE;
 
     dim = 1;
-    fvm_interlace = FVM_NO_INTERLACE;
+    fvm_interlace = fvm::FVM_NO_INTERLACE;
 
     //TODO : revoir les types correspondance void / double
 
@@ -1485,15 +1485,15 @@ void Coupling::_fieldsVisualization(const char *exchangeName,
           }
 
 
-          fvm_writer_export_field(_fvmWriter,
-                                  const_cast<fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
+          fvm::fvm_writer_export_field(_fvmWriter,
+                                  const_cast<fvm::fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
                                   localName.c_str(),
                                   fvm_writer_var_loc,
                                   dim,
                                   fvm_interlace,
                                   0,
                                   NULL,
-                                  FVM_DOUBLE,
+                                  fvm::FVM_DOUBLE,
                                   timeStep,
                                   timeValue,
                                   (const void *const *) ptField);
@@ -1530,15 +1530,15 @@ void Coupling::_fieldsVisualization(const char *exchangeName,
           for (int i = 0; i < nLocatedPoint; i++)
             cpReceivingField[(_locationToDistantMesh->getLocatedPoint()[i]-1)] = ((double*) receivingField)[i*stride+j];
 
-          fvm_writer_export_field(_fvmWriter,
-                                  const_cast<fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
+          fvm::fvm_writer_export_field(_fvmWriter,
+                                  const_cast<fvm::fvm_nodal_t *> (&_supportMesh->getFvmNodal()),
                                   localName.c_str(),
                                   fvm_writer_var_loc,
                                   dim,
                                   fvm_interlace,
                                   0,
                                   NULL,
-                                  FVM_DOUBLE,
+                                  fvm::FVM_DOUBLE,
                                   timeStep,
                                   timeValue,
                                   (const void *const *) &cpReceivingField);
@@ -1550,7 +1550,7 @@ void Coupling::_fieldsVisualization(const char *exchangeName,
 
   if (_fvmComm != MPI_COMM_NULL)
     MPI_Barrier(_fvmComm);
-  fvm_parall_set_mpi_comm(oldFVMComm);
+  fvm::fvm_parall_set_mpi_comm(oldFVMComm);
  // } //if stride
 
 }
@@ -1561,13 +1561,13 @@ void Coupling::locate()
 
   const MPI_Comm& localComm = _localApplicationProperties.getLocalComm();
 
-  MPI_Comm oldFVMComm = fvm_parall_get_mpi_comm();
+  MPI_Comm oldFVMComm = fvm::fvm_parall_get_mpi_comm();
   if (_isCoupledRank) {
 
     if (oldFVMComm != _fvmComm) {
       if (oldFVMComm != MPI_COMM_NULL)
         MPI_Barrier(oldFVMComm);
-      fvm_parall_set_mpi_comm(_fvmComm);
+      fvm::fvm_parall_set_mpi_comm(_fvmComm);
     }
   }
 
@@ -1582,7 +1582,7 @@ void Coupling::locate()
 
   if (_fvmComm != MPI_COMM_NULL)
       MPI_Barrier(_fvmComm);
-  fvm_parall_set_mpi_comm(oldFVMComm);
+  fvm::fvm_parall_set_mpi_comm(oldFVMComm);
 
   _toLocate = false;
 }
@@ -1674,7 +1674,7 @@ void Coupling::_createCouplingComm()
 
     for (int i = begRank; i < endRank; i ++)
       if (couplingTypes[i] != _couplingType)
-        bft_error(__FILE__, __LINE__, 0,
+        bft::bft_error(__FILE__, __LINE__, 0,
                   "Two different coupling types for the '%s' application\n",
                   _localApplicationProperties.getName().c_str());
 
@@ -1756,7 +1756,7 @@ void Coupling::_createCouplingComm()
 
       else {
 
-        bft_error(__FILE__, __LINE__, 0,
+        bft::bft_error(__FILE__, __LINE__, 0,
                   "Error in 'build coupling communicator'\n");
       }
 

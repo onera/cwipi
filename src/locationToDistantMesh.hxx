@@ -264,7 +264,7 @@ const int *LocationToDistantMesh::getLocatedPoint() const
 const int *LocationToDistantMesh::getElementContainingNVertex() const
 {
   if (_locationInfo != CWIPI_DISTANT_MESH_INFO)
-    bft_error(__FILE__, __LINE__, 0, "This field is unavailable : Activate with setInfo method" );
+    bft::bft_error(__FILE__, __LINE__, 0, "This field is unavailable : Activate with setInfo method" );
   return _elementContainingNVertex;
 }
 
@@ -275,7 +275,7 @@ const int *LocationToDistantMesh::getElementContainingNVertex() const
 const int *LocationToDistantMesh::getElementContainingVertex() const
 {
   if (_locationInfo != CWIPI_DISTANT_MESH_INFO)
-    bft_error(__FILE__, __LINE__, 0, "This field is unavailable : Activate with setInfo method" );
+    bft::bft_error(__FILE__, __LINE__, 0, "This field is unavailable : Activate with setInfo method" );
   return _elementContainingVertex;
 }
 
@@ -286,7 +286,7 @@ const int *LocationToDistantMesh::getElementContainingVertex() const
 const double *LocationToDistantMesh::getElementContainingVertexCoords() const
 {
   if (_locationInfo != CWIPI_DISTANT_MESH_INFO)
-    bft_error(__FILE__, __LINE__, 0, "This field is unavailable : Activate with setInfo method" );
+    bft::bft_error(__FILE__, __LINE__, 0, "This field is unavailable : Activate with setInfo method" );
   return _elementContainingVertexCoords;
 }
 
@@ -297,7 +297,7 @@ const double *LocationToDistantMesh::getElementContainingVertexCoords() const
 const double *LocationToDistantMesh::getElementContainingBarycentricCoordinates() const
 {
   if (_locationInfo != CWIPI_DISTANT_MESH_INFO)
-    bft_error(__FILE__, __LINE__, 0, "This field is unavailable : Activate with setInfo method" );
+    bft::bft_error(__FILE__, __LINE__, 0, "This field is unavailable : Activate with setInfo method" );
   return _elementContainingBarycentricCoordinates;
 }
 
@@ -308,7 +308,7 @@ const double *LocationToDistantMesh::getElementContainingBarycentricCoordinates(
 const int *LocationToDistantMesh::getElementContainingMPIrank() const
 {
   if (_locationInfo != CWIPI_DISTANT_MESH_INFO)
-    bft_error(__FILE__, __LINE__, 0, "This field is unavailable : Activate with setInfo method" );
+    bft::bft_error(__FILE__, __LINE__, 0, "This field is unavailable : Activate with setInfo method" );
   return _elementContainingMPIrankContaining;
 }
 
@@ -339,7 +339,7 @@ void LocationToDistantMesh::setInfo(cwipi_located_point_info_t info)
 inline const int *LocationToDistantMesh::getElementContaining() const
 {
   if (_locationInfo != CWIPI_DISTANT_MESH_INFO)
-    bft_error(__FILE__, __LINE__, 0, "This field is unavailable : Activate with setInfo method" );
+    bft::bft_error(__FILE__, __LINE__, 0, "This field is unavailable : Activate with setInfo method" );
   return _elementContaining;
 }
 

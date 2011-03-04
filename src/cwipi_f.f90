@@ -472,7 +472,7 @@ contains
 !********************************************************************************
 !
 
-  subroutine cwipi_add_loc_str_ctrl_param_f_ (name, initialvalue)
+  subroutine cwipi_add_loc_str_ctrl_param_f_(name, initialvalue)
 
     implicit none
 
@@ -484,7 +484,7 @@ contains
     l1 = len(name)
     l2 = len(initialvalue)
 
-    call cwipi_add_loc_str_ctrl_param_cf (name, l1, initialvalue, l2)
+    call cwipi_add_loc_str_ctrl_param_cf(name, l1, initialvalue, l2)
 
   end subroutine cwipi_add_loc_str_ctrl_param_f_
 

@@ -20,7 +20,7 @@
 */
 
 //Bug mpich2
-#define MPICH_IGNORE_CXX_SEEK 1
+//#define MPICH_IGNORE_CXX_SEEK 1
 
 #include <fvm_nodal.h>
 #include <vector>
@@ -40,7 +40,7 @@ namespace cwipi {
          int *eltConnectivity);
 
     Mesh(const MPI_Comm &localComm,
-         fvm_nodal_t* fvm_nodal);
+         fvm::fvm_nodal_t* fvm_nodal);
 
     virtual ~Mesh();
 
@@ -54,7 +54,7 @@ namespace cwipi {
 
     inline const double* getVertexCoords() const;
 
-    inline fvm_nodal_t& getFvmNodal() const;
+    inline fvm::fvm_nodal_t& getFvmNodal() const;
 
     inline const int& getNElts() const;
 
@@ -121,7 +121,7 @@ namespace cwipi {
     int          *_polyhedraFaceConnectivity;
     std::vector<double>  *_cellCenterCoords;
     std::vector<double>  *_cellVolume;
-    fvm_nodal_t *_fvmNodal;
+    fvm::fvm_nodal_t *_fvmNodal;
   };
 
   const int& Mesh::getNVertex()  const
@@ -134,7 +134,7 @@ namespace cwipi {
     return _coords;
   }
 
-  fvm_nodal_t& Mesh::getFvmNodal() const
+  fvm::fvm_nodal_t& Mesh::getFvmNodal() const
   {
     return *_fvmNodal;
   }

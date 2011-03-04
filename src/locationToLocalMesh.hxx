@@ -113,7 +113,7 @@ public:
   /// \brief Return fvm locator
   ///
 
-  inline fvm_locator_t *getFVMLocator() const;
+  inline fvm::fvm_locator_t *getFVMLocator() const;
 
   ///
   /// \brief Exchange field on vertices of cells that contain each located points
@@ -158,7 +158,7 @@ private :
   const ApplicationProperties&_localApplicationProperties;                  ///< Application properties
   LocationToDistantMesh      &_locationToDistantMesh;                       ///< Information about local points location in the distant mesh
 
-  fvm_locator_t              *_fvmLocator;                                  ///< fvm structure that build the location
+  fvm::fvm_locator_t              *_fvmLocator;                                  ///< fvm structure that build the location
   int                        *_barycentricCoordinatesIndex;                 ///< Barycentric coordinates for each
   double                     *_barycentricCoordinates;                      ///< Barycentric coordinates associated to the element that contains each located distant point
   int                         _nDistantPoint;                               ///< Number of distant points located in the local mesh
@@ -175,7 +175,7 @@ private :
 const int *LocationToLocalMesh::getBarycentricCoordinatesIndex() const
 {
   if (_toLocate)
-    bft_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
+    bft::bft_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
   return _barycentricCoordinatesIndex;
 }
 
@@ -186,7 +186,7 @@ const int *LocationToLocalMesh::getBarycentricCoordinatesIndex() const
 const double *LocationToLocalMesh::getBarycentricCoordinates() const
 {
   if (_toLocate)
-    bft_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
+    bft::bft_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
   return _barycentricCoordinates;
 }
 
@@ -197,7 +197,7 @@ const double *LocationToLocalMesh::getBarycentricCoordinates() const
 const int *LocationToLocalMesh::getLocation() const
 {
   if (_toLocate)
-    bft_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
+    bft::bft_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
   return _location;
 }
 
@@ -208,7 +208,7 @@ const int *LocationToLocalMesh::getLocation() const
 int LocationToLocalMesh::getNLocatedDistantPoint() const
 {
   if (_toLocate)
-    bft_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
+    bft::bft_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
   return _nDistantPoint;
 }
 
@@ -219,18 +219,18 @@ int LocationToLocalMesh::getNLocatedDistantPoint() const
 const double *LocationToLocalMesh::getPointCoordinates() const
 {
   if (_toLocate)
-    bft_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
-  return fvm_locator_get_dist_coords(_fvmLocator);
+    bft::bft_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
+  return fvm::fvm_locator_get_dist_coords(_fvmLocator);
 }
 
 ///
 /// \brief Return fvm locator
 ///
 
-fvm_locator_t *LocationToLocalMesh::getFVMLocator() const
+fvm::fvm_locator_t *LocationToLocalMesh::getFVMLocator() const
 {
   if (_toLocate)
-    bft_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
+    bft::bft_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
   return _fvmLocator;
 }
 

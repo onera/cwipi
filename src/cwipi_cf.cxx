@@ -232,8 +232,8 @@ void PROCF(cwipi_init_cf, CWIPI_INIT_CF)
   char *application_name_c = _cwipi_fortran_to_c_string(application_name_f,
                                                             *l_application_name);
 
-  bft_printf("\ncwipi "CWIPI_VERSION" initializing\n");
-  bft_printf("------------------------\n\n");
+  bft::bft_printf("\ncwipi "CWIPI_VERSION" initializing\n");
+  bft::bft_printf("------------------------\n\n");
 
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
@@ -255,7 +255,7 @@ void PROCF(cwipi_init_cf, CWIPI_INIT_CF)
 
 void PROCF(cwipi_set_output_listing_cf, CWIPI_SET_OUTPUT_LISTING_CF)()
 {
-  bft_printf_proxy_set(_cwipi_print_with_fortran);
+  bft::bft_printf_proxy_set(_cwipi_print_with_fortran);
 }
 
 /*----------------------------------------------------------------------------

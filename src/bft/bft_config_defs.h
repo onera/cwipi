@@ -34,7 +34,9 @@
 /*----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus
+#ifndef BFT_CPPCALLER
 extern "C" {
+#endif
 #if 0
 } /* Fake brace to force Emacs auto-indentation back to column 0 */
 #endif
@@ -147,7 +149,9 @@ typedef short int32_t;
 /*----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus
-}
+#ifndef BFT_CPPCALLER
+} 
+#endif
 #endif /* __cplusplus */
 
 #endif /* __BFT_CONFIG_DEFS_H__ */

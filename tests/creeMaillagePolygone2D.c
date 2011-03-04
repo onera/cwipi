@@ -16,16 +16,11 @@
   You should have received a copy of the GNU Lesser General Public
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
+#include <mpi.h>
+
 #include <stdlib.h>
 #include <assert.h>
 #include <math.h>
-#include <bft_mem.h>
-#include <bft_printf.h>
-#include <fvm_writer.h>
-#include <fvm_nodal_append.h>
-#include <fvm_nodal_order.h>
-#include <fvm_nodal_triangulate.h>
-#include <mpi.h>
 
 #include "creeMaillagePolygone2D.h"
 
@@ -187,7 +182,7 @@ void creeMaillagePolygone2D(int order,
 
     /* Allocation temporaire (surdimensionnee) */
 
-    BFT_MALLOC(*meshCoords, 3*(nx1*ny1), double );
+    *meshCoords = (double*) malloc (sizeof(double) * 3 * (nx1 * ny1));
 
     int cpt = 0;
     int cptMax;
@@ -244,7 +239,7 @@ void creeMaillagePolygone2D(int order,
         ycourant += cote2;
     }
 
-    BFT_REALLOC(*meshCoords, 3*(*nVertex), double );
+    *meshCoords = (double *) realloc(*meshCoords,3*(*nVertex) * sizeof(double)); 
     for (int ix = 0; ix <(*nVertex) ; ix++) {
       if (ABS(xmin-(*meshCoords)[3*ix]) > eps &&
         ABS(xmax-(*meshCoords)[3*ix]) > eps &&
@@ -267,8 +262,10 @@ void creeMaillagePolygone2D(int order,
     /* Allocation avec surestimation de la taille */
     /* Optimisation : Peut-etre reajuste */
 
-    BFT_MALLOC(*eltsConnecPointer, nx1*ny1+1, int);
-    BFT_MALLOC(*eltsConnec, 8*nx1*ny1, int);
+    *eltsConnecPointer = (int*) malloc(sizeof(int) * (nx1 * ny1 + 1));
+
+    *eltsConnec = (int*) malloc(sizeof(int) * 8 * nx1 * ny1);
+
     (*eltsConnecPointer)[0] = 0;
 
     for(int itype = 0; itype < 3; itype++) {
@@ -435,22 +432,18 @@ void creeMaillagePolygone2D(int order,
       /* Numerotation de 1 a n */
       /* tri des aretes par le min des sommets */
 
-      int *aretes = NULL;
-      BFT_MALLOC(aretes, (*eltsConnecPointer)[*nElts]*2, int) ;
+      int *aretes = (int*) malloc(sizeof(int) * (*eltsConnecPointer)[*nElts]*2);
 
-      downConnectivity = NULL;
-      BFT_MALLOC(downConnectivity, (*eltsConnecPointer)[*nElts], int) ;
+      downConnectivity =  (int) malloc(sizeof(int) * (*eltsConnecPointer)[*nElts]);
 
-      int **triAre = NULL;
-      BFT_MALLOC(triAre, *nVertex, int*) ;
+      int **triAre = (int**) malloc(sizeof(int*) * (*nVertex));
 
-      int *nAreVertex = NULL;
       int nDefaultAreVertex = 8;
-      BFT_MALLOC(nAreVertex, *nVertex, int) ;
+      int *nAreVertex = (int*) malloc(sizeof(int) * (*nVertex));
 
       for (int i = 0; i < *nVertex; i++) {
         nAreVertex[i] = nDefaultAreVertex;
-        BFT_MALLOC(triAre[i], nAreVertex[i], int) ;
+        triAre[i] = (int*) malloc(sizeof(int) * nAreVertex[i]);
         for (int j = 0; j < nAreVertex[i]; j++) {
           triAre[i][j] = -1;
         }
@@ -474,7 +467,7 @@ void creeMaillagePolygone2D(int order,
             k++;
           if (k ==  nAreVertex[minVertex]){
             nAreVertex[minVertex] *= 2;
-            BFT_REALLOC(triAre[minVertex], nAreVertex[minVertex], int) ;
+            triAre[minVertex] = (int*) realloc(triAre[minVertex], nAreVertex[minVertex] * sizeof(int));
             triAre[minVertex][k-1] = iare+1;
             for(int k1 = k ; k1 <nFacVertex[minVertex];k1++ )
               triFac[minVertex][k1] = -1;
@@ -487,8 +480,8 @@ void creeMaillagePolygone2D(int order,
 
       /* - Elimination des doublons - Boucle sur les sommets  */
 
-      int *ptAretesCompactees = NULL;
-      BFT_MALLOC(ptAretesCompactees, (*eltsConnecPointer)[*nElts], int) ;
+      int *ptAretesCompactees = (int*) malloc(sizeof(int) * (*eltsConnecPointer)[*nElts]);
+
       for (int i = 0; i < (*eltsConnecPointer)[*nElts]; i++)
         ptAretesCompactees[i] = -1;
 
@@ -516,15 +509,15 @@ void creeMaillagePolygone2D(int order,
           j +=1;
         }
         if (triAre[i] != NULL)
-          BFT_FREE(triAre[i]);
+          free(triAre[i]);
       }
 
       nEdges = iareCompactee-1;
       if (triAre != NULL)
-        BFT_FREE(triAre);
+        free(triAre);
 
       if (nAreVertex != NULL)
-        BFT_FREE(nAreVertex);
+        free(nAreVertex);
 
 
       /* - Renumerotation connectivite descendante - Boucle sur la connectivite des éléments */
@@ -544,15 +537,14 @@ void creeMaillagePolygone2D(int order,
       // }
 
       if (aretes != NULL)
-        BFT_FREE(aretes);
+        free(aretes);
 
       if (ptAretesCompactees != NULL)
-        BFT_FREE(ptAretesCompactees);
+        free(ptAretesCompactees);
 
       /* - Rangement des elements par couple suivant l'arete commune */
 
-      edgeToFace = NULL;
-      BFT_MALLOC(edgeToFace, nEdges*2, int);
+      edgeToFace = (int*) malloc(sizeof(int) * nEdges*2);  
 
       for (int i = 0; i < nEdges*2; i++)
         edgeToFace[i] = -1;
@@ -563,19 +555,20 @@ void creeMaillagePolygone2D(int order,
             edgeToFace[2*(downConnectivity[j]-1)] = i;
           else if (edgeToFace[2*(downConnectivity[j]-1)+1] == -1 )
             edgeToFace[2*(downConnectivity[j]-1)+1] = i;
-          else
-            bft_error(__FILE__, __LINE__, 0, "Arete a plus de 2 facettes !!!!\n");
+          else {
+            printf("Arete a plus de 2 facettes !!!!\n");
+            exit(1);
+          }
         }
       }
 
       if (downConnectivity != NULL)
-        BFT_FREE(downConnectivity);
+        free(downConnectivity);
 
       /* - Creation de la table des voisins (Numerotation de 1 a n)
          Le voisin d'une face de bord est temporairement marque a -1 */
 
-      int *tmpVoisins = NULL;
-      BFT_MALLOC(tmpVoisins, (*eltsConnecPointer)[*nElts], int) ;
+      int *tmpVoisins = (int*) malloc(sizeof(int) *  (*eltsConnecPointer)[*nElts]);
 
       for (int i = 0; i < (*eltsConnecPointer)[*nElts]; i++)
         tmpVoisins[i] = -2;
@@ -595,15 +588,13 @@ void creeMaillagePolygone2D(int order,
         }
       }
 
-      BFT_FREE(edgeToFace);
+      free(edgeToFace);
 
       /* - Filtrage des faces de bords */
 
-      neighbour = NULL;
-      BFT_MALLOC(neighbour, (*eltsConnecPointer)[*nElts], int) ;
+      neighbour = (int) malloc(sizeof(int) * (*eltsConnecPointer)[*nElts]);;
 
-      neighbourPointer = NULL;
-      BFT_MALLOC(neighbourPointer, *nElts+1, int) ;
+      neighbourPointer = (int) malloc(sizeof(int) *  (*nElts + 1));
 
       int nVoisin = 0;
       neighbourPointer[0] = nVoisin;
@@ -614,10 +605,11 @@ void creeMaillagePolygone2D(int order,
         }
         neighbourPointer[i+1] = nVoisin;
       }
-      BFT_REALLOC(neighbour, nVoisin, int) ;
+      
+      neighbour = (int*) realloc((void *) neighbour, nVoisin * sizeof(int));
 
       if (tmpVoisins != NULL)
-        BFT_FREE(tmpVoisins);
+        free(tmpVoisins);
 
       /* Decoupage du maillage par Metis */
       /* ------------------------------- */
@@ -627,8 +619,8 @@ void creeMaillagePolygone2D(int order,
       int     options[5] = {0, 3, 1, 1, 0} ; /* Par défaut si options[0] = 0 */
       int     edgecut    = 0 ; /* <-- nombre de faces sur la partition */
 
-      int *numDomElt = NULL;
-      BFT_MALLOC(numDomElt, (*nElts), int);
+      int *numDomElt = (int*) malloc(sizeof(int) * (*nElts));
+
       assert(sizeof(idxtype) == sizeof(int));
       if (nRank < 8)
 
@@ -659,27 +651,25 @@ void creeMaillagePolygone2D(int order,
                             numDomElt) ;
 
       if (neighbour != NULL)
-        BFT_FREE(neighbour);
+        free(neighbour);
 
       if (neighbourPointer != NULL)
-        BFT_FREE(neighbourPointer);
+        free(neighbourPointer);
 
       int  localEltsSize              = (*nElts)/nRank;   /* Estimation du nombre d'elements locaux
                                                              pour allocation memoire */
-      int  localEltsConnecSize        = 6*(*nElts)/nRank; /* Estimation de la taille
+      int  localEltsConnecSize        = 6 * (*nElts)/nRank; /* Estimation de la taille
                                                              de la connectivite locale
-                                                             pour allocation memoire*/
+                                                             pour allocation memoire */
 
 
       int *localEltsConnecPointer = NULL;
 
-      BFT_MALLOC(localEltsConnecPointer, localEltsSize+1, int);
-      BFT_MALLOC(globalEltNum, localEltsSize, int);
-
-      int *localEltsConnec = NULL;
-
-      BFT_MALLOC(localEltsConnec, localEltsConnecSize, int);
-      BFT_MALLOC(globalVertexNum, localEltsConnecSize, int);
+      localEltsConnecPointer = (int *) malloc(sizeof(int) * (localEltsSize+1));
+      globalEltNum = (int *) malloc(sizeof(int) * localEltsSize);
+      
+      int *localEltsConnec = (int *) malloc(sizeof(int) * localEltsConnecSize);
+      int *globalVertexNum = (int *) malloc(sizeof(int) * localEltsConnecSize);
 
       /* Pour chaque proc construction du maillage local envoi des donnees
          On finit par le proc 0 */
@@ -691,8 +681,10 @@ void creeMaillagePolygone2D(int order,
           if (numDomElt[ielt] == idom) {
             if (localEltsSize <= localNElts) {
               localEltsSize *= 2;
-              BFT_REALLOC(localEltsConnecPointer, localEltsSize+1, int );
-              BFT_REALLOC(globalEltNum, localEltsSize, int );
+              localEltsConnecPointer = (int *) realloc((void *) localEltsConnecPointer, 
+                                                       sizeof(int) * (localEltsSize+1)); 
+              globalEltNum = (int *) realloc((void *) globalEltNum, 
+                                                       sizeof(int) * localEltsSize); 
             }
             globalEltNum[localNElts++] = ielt+1;
           }
@@ -704,8 +696,10 @@ void creeMaillagePolygone2D(int order,
           for (int i = (*eltsConnecPointer)[globalEltNum[ielt]-1]; i < (*eltsConnecPointer)[globalEltNum[ielt]]; i++) {
             if (localEltsConnecSize <= tmpSize) {
               localEltsConnecSize *= 2;
-              BFT_REALLOC(localEltsConnec, localEltsConnecSize, int );
-              BFT_REALLOC(globalVertexNum, localEltsConnecSize, int );
+              localEltsConnec = (int *) realloc((void *) localEltsConnec, 
+                                                       sizeof(int) * localEltsConnecSize); 
+              globalVertexNum = (int *) realloc((void *) globalVertexNum, 
+                                                       sizeof(int) * localEltsConnecSize); 
             }
             globalVertexNum[tmpSize]   = (*eltsConnec)[i];
             localEltsConnec[tmpSize++] = (*eltsConnec)[i];
@@ -733,8 +727,7 @@ void creeMaillagePolygone2D(int order,
 
         /* Renumerotation de la connectivite */
 
-        int *tmpRenum = NULL;
-        BFT_MALLOC(tmpRenum, val, int);
+        int *tmpRenum = (int *) malloc (sizeof(int) * val);
 
         for (int i = 0; i < val; i++)
           tmpRenum[i] = -1;
@@ -746,14 +739,14 @@ void creeMaillagePolygone2D(int order,
           localEltsConnec[i] = tmpRenum[localEltsConnec[i]-1]+1;
 
         if (tmpRenum != NULL)
-          BFT_FREE(tmpRenum);
+          free(tmpRenum);
 
         /* Coordonnees des sommets locaux */
 
         if (irank == nRank-1)
-          BFT_MALLOC(localCoords, 3*localNVertex, double);
+          localCoords  = (double *) malloc(sizeof(double) * 3 * localNVertex);
         else
-          BFT_REALLOC(localCoords, 3*localNVertex, double);
+          localCoords  = (double *) realloc(localCoords, sizeof(double) * 3 * localNVertex);
 
         for (int i = 0; i < localNVertex; i++) {
           localCoords[3*i]   = (*meshCoords)[3*(globalVertexNum[i]-1)];
@@ -765,38 +758,51 @@ void creeMaillagePolygone2D(int order,
 
         if (irank != 0) {
 
-          bft_printf_flush();
           /* Envoi les infos concernant les sommets */
           int ierror = MPI_SUCCESS;
           ierror = MPI_Send(&localNVertex, 1, MPI_INT, irank, 0, localComm);
-          if (ierror != MPI_SUCCESS)
-            bft_error(__FILE__, __LINE__, 0, "Erreur MPI\n");
+          if (ierror != MPI_SUCCESS) {
+            printf("Erreur MPI\n");
+            exit(1);
+          }
 
           ierror = MPI_Send(localCoords, 3*localNVertex, MPI_DOUBLE, irank, 0, localComm);
-          if (ierror != MPI_SUCCESS)
-            bft_error(__FILE__, __LINE__, 0, "Erreur MPI\n");
+          if (ierror != MPI_SUCCESS){
+            printf("Erreur MPI\n");
+            exit(1);
+          }
 
           ierror = MPI_Send(globalVertexNum, localNVertex, MPI_INT, irank, 0, localComm);
-          if (ierror != MPI_SUCCESS)
-            bft_error(__FILE__, __LINE__, 0, "Erreur MPI\n");
+          if (ierror != MPI_SUCCESS){
+            printf("Erreur MPI\n");
+            exit(1);
+          }
 
           /* Envoi les infos concernant les elements */
 
           ierror = MPI_Send(&localNElts, 1, MPI_INT, irank, 0, localComm);
-          if (ierror != MPI_SUCCESS)
-            bft_error(__FILE__, __LINE__, 0, "Erreur MPI\n");
+          if (ierror != MPI_SUCCESS){
+            printf("Erreur MPI\n");
+            exit(1);
+          }
 
           ierror = MPI_Send(globalEltNum, localNElts, MPI_INT, irank, 0, localComm);
-          if (ierror != MPI_SUCCESS)
-            bft_error(__FILE__, __LINE__, 0, "Erreur MPI\n");
+          if (ierror != MPI_SUCCESS){
+            printf("Erreur MPI\n");
+            exit(1);
+          }
 
           ierror = MPI_Send(localEltsConnecPointer, localNElts+1, MPI_INT, irank, 0, localComm);
-          if (ierror != MPI_SUCCESS)
-            bft_error(__FILE__, __LINE__, 0, "Erreur MPI\n");
+          if (ierror != MPI_SUCCESS){
+            printf("Erreur MPI\n");
+            exit(1);
+          }
 
           ierror = MPI_Send(localEltsConnec, localEltsConnecPointer[localNElts], MPI_INT, irank, 0, localComm);
-          if (ierror != MPI_SUCCESS)
-            bft_error(__FILE__, __LINE__, 0, "Erreur MPI\n");
+          if (ierror != MPI_SUCCESS){
+            printf("Erreur MPI\n");
+            exit(1);
+          }
         }
 
       }
@@ -804,24 +810,25 @@ void creeMaillagePolygone2D(int order,
       /* Suppression des donnees globales du maillage */
 
       if (numDomElt != NULL)
-        BFT_FREE(numDomElt);
+        free(numDomElt);
 
       if ((*meshCoords) != NULL)
-        BFT_FREE(*meshCoords);
+        free(*meshCoords);
 
       if ((*eltsConnecPointer) != NULL)
-        BFT_FREE(*eltsConnecPointer);
+        free(*eltsConnecPointer);
 
       if ((*eltsConnec) != NULL)
-        BFT_FREE(*eltsConnec);
+        free(*eltsConnec);
 
       /* Contenu du maillage local sur proc 0 */
 
-      BFT_REALLOC(localCoords, 3*localNVertex, double);
-      BFT_REALLOC(localEltsConnec, localEltsConnecPointer[localNElts], int);
-      BFT_REALLOC(localEltsConnecPointer, localNElts+1, int);
-      BFT_REALLOC(globalVertexNum, localNVertex, int);
-      BFT_REALLOC(globalEltNum, localNElts, int);
+
+      localCoords = (double *) realloc(localCoords, sizeof(double) * 3 * localNVertex);
+      localEltsConnec = (int *) realloc(localEltsConnec, sizeof(int) * localEltsConnecPointer[localNElts]);
+      localEltsConnecPointer = (int *) realloc(localEltsConnecPointer, sizeof(int) * (localNElts + 1));
+      globalVertexNum = (int *) realloc(globalVertexNum, sizeof(int) * localNVertex);
+      globalEltNum = (int *) realloc(globalEltNum, sizeof(int) * localNElts);
 
       *nVertex = localNVertex;
       *nElts = localNElts;
@@ -839,55 +846,70 @@ void creeMaillagePolygone2D(int order,
 
       int ierror = MPI_SUCCESS;
       ierror = MPI_Recv(nVertex, 1, MPI_INT, 0, MPI_ANY_TAG, localComm, &status);
-      if (ierror != MPI_SUCCESS)
-        bft_error(__FILE__, __LINE__, 0, "Erreur MPI\n");
+      if (ierror != MPI_SUCCESS){
+            printf("Erreur MPI\n");
+            exit(1);
+      }
 
-      BFT_MALLOC(*meshCoords, 3*(*nVertex), double);
+      *meshCoords = (double *) malloc(sizeof(double) * 3*(*nVertex));
 
       ierror = MPI_Recv(*meshCoords, 3*(*nVertex), MPI_DOUBLE, 0, MPI_ANY_TAG, localComm, &status);
-      if (ierror != MPI_SUCCESS)
-        bft_error(__FILE__, __LINE__, 0, "Erreur MPI\n");
+      if (ierror != MPI_SUCCESS){
+            printf("Erreur MPI\n");
+            exit(1);
+      }
 
-      BFT_MALLOC(globalVertexNum, *nVertex, int);
+      globalVertexNum = (int *) malloc(sizeof(int) * (*nVertex));
 
       ierror = MPI_Recv(globalVertexNum, *nVertex, MPI_INT, 0, MPI_ANY_TAG, localComm, &status);
-      if (ierror != MPI_SUCCESS)
-        bft_error(__FILE__, __LINE__, 0, "Erreur MPI\n");
+      if (ierror != MPI_SUCCESS){
+            printf("Erreur MPI\n");
+            exit(1);
+      }
 
       /* Reception des infos concernant les elements */
 
       ierror = MPI_Recv(nElts, 1, MPI_INT, 0, MPI_ANY_TAG, localComm, &status);
-      if (ierror != MPI_SUCCESS)
-        bft_error(__FILE__, __LINE__, 0, "Erreur MPI\n");
+      if (ierror != MPI_SUCCESS){
+            printf("Erreur MPI\n");
+            exit(1);
+      }
 
-      BFT_MALLOC(globalEltNum, *nElts, int);
+      globalEltNum = (int *) malloc(sizeof(int) * (*nElts));
 
       ierror = MPI_Recv(globalEltNum, *nElts, MPI_INT, 0, MPI_ANY_TAG, localComm, &status);
-      if (ierror != MPI_SUCCESS)
-        bft_error(__FILE__, __LINE__, 0, "Erreur MPI\n");
+      if (ierror != MPI_SUCCESS){
+            printf("Erreur MPI\n");
+            exit(1);
+      }
 
-      BFT_MALLOC(*eltsConnecPointer, (*nElts)+1, int);
+      *eltsConnecPointer = (int *) malloc(sizeof(int) * ((*nElts)+1));
 
       ierror = MPI_Recv(*eltsConnecPointer, (*nElts)+1, MPI_INT, 0, MPI_ANY_TAG, localComm, &status);
-      if (ierror != MPI_SUCCESS)
-        bft_error(__FILE__, __LINE__, 0, "Erreur MPI\n");
+      if (ierror != MPI_SUCCESS){
+            printf("Erreur MPI\n");
+            exit(1);
+      }
 
-      BFT_MALLOC(*eltsConnec, (*eltsConnecPointer)[(*nElts)], int);
+      *eltsConnec = (int *) malloc(sizeof(int) * (*nElts));
 
       ierror = MPI_Recv(*eltsConnec, (*eltsConnecPointer)[(*nElts)], MPI_INT, 0, MPI_ANY_TAG, localComm, &status);
-      if (ierror != MPI_SUCCESS)
-        bft_error(__FILE__, __LINE__, 0, "Erreur MPI\n");
+      if (ierror != MPI_SUCCESS){
+            printf("Erreur MPI\n");
+            exit(1);
+      }
     }
 #else
-    bft_error(__FILE__, __LINE__, 0, "To make parallel test : Build cwipi with metis \n");
+    printf("To make parallel test : Build cwipi with metis \n");
+    exit(1);
 #endif
   }
 
   if (globalEltNum != NULL)
-    BFT_FREE(globalEltNum);
+    free(globalEltNum);
 
   if (globalVertexNum != NULL)
-    BFT_FREE(globalVertexNum);
+    free(globalVertexNum);
 
 }
 
@@ -933,14 +955,20 @@ void PROCF(creemaillagepolygone2d_f, CREEMAILLAGEPOLYGONE2D_F)(int *order,
                          &eltsConnecPointer,
                          &eltsConnec);
 
-  if (nVertex_f < *nVertex)
-    bft_error(__FILE__, __LINE__, 0, "Augmenter le nombre de sommets Fortran a : %i \n", *nVertex);
+  if (nVertex_f < *nVertex) {
+    printf("Augmenter le nombre de sommets Fortran a : %i \n", *nVertex);
+    exit(1);
+  }
 
-  if (nElts_f < *nElts)
-    bft_error(__FILE__, __LINE__, 0, "Augmenter le nombre d'elements a : %i \n", *nElts);
+  if (nElts_f < *nElts) {
+    printf("Augmenter le nombre d'elements a : %i \n", *nElts);
+    exit(1);
+  }
 
-  if (*lEltsConnecPointer_f < eltsConnecPointer[*nElts])
-    bft_error(__FILE__, __LINE__, 0, "Augmenter la taille du tableau de connectivite a : %i \n", eltsConnecPointer[*nElts]);
+  if (*lEltsConnecPointer_f < eltsConnecPointer[*nElts]) {
+    printf("Augmenter la taille du tableau de connectivite a : %i \n", eltsConnecPointer[*nElts]);
+    exit(1);
+  }
 
   for(int i = 0; i < 3*(*nVertex); i++)
     meshCoords_f[i] = meshCoords[i];
@@ -951,9 +979,9 @@ void PROCF(creemaillagepolygone2d_f, CREEMAILLAGEPOLYGONE2D_F)(int *order,
   for(int i = 0; i < eltsConnecPointer[*nElts]; i++)
     eltsConnec_f[i] = eltsConnec[i];
 
-  BFT_FREE(meshCoords);
-  BFT_FREE(eltsConnecPointer);
-  BFT_FREE(eltsConnec);
+  free(meshCoords);
+  free(eltsConnecPointer);
+  free(eltsConnec);
 }
 
 

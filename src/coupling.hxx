@@ -64,7 +64,7 @@ namespace cwipi {
                     int connectivity_index[],
                     int connectivity[]);
 
-    void defineMesh(fvm_nodal_t* fvm_nodal); 
+    void defineMesh(fvm::fvm_nodal_t* fvm_nodal); 
 
 
     void defineMeshAddPolyhedra(const int n_element,
@@ -241,7 +241,7 @@ namespace cwipi {
     const int                       _outputFrequency;
 
   private:
-    fvm_writer_t        *_fvmWriter;
+    fvm::fvm_writer_t        *_fvmWriter;
     MPI_Comm             _couplingComm;
     MPI_Comm             _mergeComm;
     MPI_Comm             _fvmComm;

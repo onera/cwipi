@@ -55,9 +55,9 @@ c_linear_coupling \
 c_surf_coupling_P1P1_micron_polygon \
 c_surf_coupling_P1P1_polygon \
 c_surf_coupling_P1P1 \
-c_surf_coupling_P1P1_asynchronous \
-test3D_1_c1 \
-test3D_1_c2 
+c_surf_coupling_P1P1_asynchronous
+#test3D_1_c1 \
+#test3D_1_c2 
 
 #test2D_1_c1 
 #test2D_1_c2 
@@ -69,8 +69,8 @@ c_surf_coupling_P1P1_SOURCES = grid_mesh.c c_surf_coupling_P1P1.c
 c_surf_coupling_P1P1_asynchronous_SOURCES = grid_mesh.c c_surf_coupling_P1P1_asynchronous.c
 #test2D_1_c1_SOURCES = creeMaillagePolygone2D.c test2D_1_c1.c
 #test2D_1_c2_SOURCES = creeMaillagePolygone2D.c test2D_1_c2.f90
-test3D_1_c1_SOURCES = test3D_1_c1.c
-test3D_1_c2_SOURCES = test3D_1_c2.c
+#test3D_1_c1_SOURCES = test3D_1_c1.c
+#test3D_1_c2_SOURCES = test3D_1_c2.c
 
 c_linear_coupling_LDADD = \
 $(top_builddir)/src/bft/libbft.la \
@@ -100,19 +100,19 @@ $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
-test3D_1_c1_LDADD = \
-$(top_builddir)/src/bft/libbft.la \
-$(top_builddir)/src/fvm/libfvm.la \
-$(top_builddir)/src/libcwipi.la \
-@MPI_LIBS@ \
--lm
+# test3D_1_c1_LDADD = \
+# $(top_builddir)/src/bft/libbft.la \
+# $(top_builddir)/src/fvm/libfvm.la \
+# $(top_builddir)/src/libcwipi.la \
+# @MPI_LIBS@ \
+# -lm
 
-test3D_1_c2_LDADD = \
-$(top_builddir)/src/bft/libbft.la \
-$(top_builddir)/src/fvm/libfvm.la \
-$(top_builddir)/src/libcwipi.la \
-@MPI_LIBS@ \
--lm
+# test3D_1_c2_LDADD = \
+# $(top_builddir)/src/bft/libbft.la \
+# $(top_builddir)/src/fvm/libfvm.la \
+# $(top_builddir)/src/libcwipi.la \
+# @MPI_LIBS@ \
+# -lm
 
 #test2D_1_c1_LDADD =  $(top_builddir)/src/libcwipi.la \
 #        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \

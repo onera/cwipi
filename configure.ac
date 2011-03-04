@@ -181,6 +181,11 @@ BFT_AC_CONFIG_PUBL_DEFINE(BFT_MINOR_VERSION, bft_minor_version,
 BFT_AC_CONFIG_PUBL_DEFINE(BFT_RELEASE_VERSION, bft_release_version,
                           [Release version number])
 
+BFT_AC_CONFIG_PUBL_DEFINE(BFT_CPPCALLER, 1,
+                          [Active namespace bft for cwipi])
+FVM_AC_CONFIG_PUBL_DEFINE(FVM_CPPCALLER, 1,
+                          [Active namespace fvm for cwipi])
+
 #------------------------------------------------------------------------------
 # Checks for programs.
 #------------------------------------------------------------------------------

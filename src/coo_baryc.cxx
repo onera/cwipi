@@ -16,9 +16,18 @@
   You should have received a copy of the GNU Lesser General Public
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
+
+#include <mpi.h>
+#include <cassert>
+#include <cstdio>
+
+#include <bft_mem.h>
+
 #include "coo_baryc.h"
-#include <assert.h>
-#include <stdio.h>
+
+using namespace bft;
+namespace cwipi {
+
 #define ABS(a)     ((a) <  0  ? -(a) : (a))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
@@ -48,12 +57,6 @@ prod_vect[Z] = vect1[X] * vect2[Y] - vect2[X] * vect1[Y]   )
  + ((vect2[X] * vect1[Z] - vect1[X] * vect2[Z]) * vect3[Y]) \
  + ((vect1[X] * vect2[Y] - vect2[X] * vect1[Y]) * vect3[Z]) )
 
-#ifdef __cplusplus
-extern "C" {
-#if 0
-} /* Fake brace to force back Emacs auto-indentation back to column 0 */
-#endif
-#endif /* __cplusplus */
 
 
 /*----------------------------------------------------------------------------
@@ -250,7 +253,7 @@ static void projection_plan_moyen
 }
 
 
-void coo_baryc(const fvm_locator_t* locator,
+void coo_baryc(const fvm::fvm_locator_t* locator,
                const int   nMeshCoords,
                const double *meshCoords,
                const int   nElts,
@@ -261,10 +264,10 @@ void coo_baryc(const fvm_locator_t* locator,
                double **distBarCoords)
 {
   /* Boucle sur les points distants */
-  *n_dist_points = fvm_locator_get_n_dist_points(locator);
-  const fvm_lnum_t *dist_locations = fvm_locator_get_dist_locations(locator);
-  const fvm_coord_t *dist_coords = fvm_locator_get_dist_coords(locator);
-  fvm_coord_t coo_point_dist[3];
+  *n_dist_points = fvm::fvm_locator_get_n_dist_points(locator);
+  const fvm::fvm_lnum_t *dist_locations = fvm::fvm_locator_get_dist_locations(locator);
+  const fvm::fvm_coord_t *dist_coords = fvm::fvm_locator_get_dist_coords(locator);
+  fvm::fvm_coord_t coo_point_dist[3];
 
   /* Tableaux locaux */
 
@@ -456,6 +459,5 @@ void coo_baryc(const fvm_locator_t* locator,
   BFT_REALLOC(*distBarCoords, (*nDistBarCoords)[*n_dist_points], double) ;
 }
 
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
+} // Namespace
+

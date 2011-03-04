@@ -57,8 +57,7 @@ check_PROGRAMS = c_linear_coupling$(EXEEXT) \
 	c_surf_coupling_P1P1_micron_polygon$(EXEEXT) \
 	c_surf_coupling_P1P1_polygon$(EXEEXT) \
 	c_surf_coupling_P1P1$(EXEEXT) \
-	c_surf_coupling_P1P1_asynchronous$(EXEEXT) \
-	test3D_1_c1$(EXEEXT) test3D_1_c2$(EXEEXT)
+	c_surf_coupling_P1P1_asynchronous$(EXEEXT)
 TESTS = c_linear_coupling$(EXEEXT) \
 	c_surf_coupling_P1P1_micron_polygon$(EXEEXT) \
 	c_surf_coupling_P1P1_polygon$(EXEEXT) \
@@ -130,16 +129,6 @@ c_surf_coupling_P1P1_polygon_DEPENDENCIES =  \
 	$(top_builddir)/src/bft/libbft.la \
 	$(top_builddir)/src/fvm/libfvm.la \
 	$(top_builddir)/src/libcwipi.la
-am_test3D_1_c1_OBJECTS = test3D_1_c1.$(OBJEXT)
-test3D_1_c1_OBJECTS = $(am_test3D_1_c1_OBJECTS)
-test3D_1_c1_DEPENDENCIES = $(top_builddir)/src/bft/libbft.la \
-	$(top_builddir)/src/fvm/libfvm.la \
-	$(top_builddir)/src/libcwipi.la
-am_test3D_1_c2_OBJECTS = test3D_1_c2.$(OBJEXT)
-test3D_1_c2_OBJECTS = $(am_test3D_1_c2_OBJECTS)
-test3D_1_c2_DEPENDENCIES = $(top_builddir)/src/bft/libbft.la \
-	$(top_builddir)/src/fvm/libfvm.la \
-	$(top_builddir)/src/libcwipi.la
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__depfiles_maybe = depfiles
@@ -155,14 +144,12 @@ LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 SOURCES = $(c_linear_coupling_SOURCES) $(c_surf_coupling_P1P1_SOURCES) \
 	$(c_surf_coupling_P1P1_asynchronous_SOURCES) \
 	$(c_surf_coupling_P1P1_micron_polygon_SOURCES) \
-	$(c_surf_coupling_P1P1_polygon_SOURCES) $(test3D_1_c1_SOURCES) \
-	$(test3D_1_c2_SOURCES)
+	$(c_surf_coupling_P1P1_polygon_SOURCES)
 DIST_SOURCES = $(c_linear_coupling_SOURCES) \
 	$(c_surf_coupling_P1P1_SOURCES) \
 	$(c_surf_coupling_P1P1_asynchronous_SOURCES) \
 	$(c_surf_coupling_P1P1_micron_polygon_SOURCES) \
-	$(c_surf_coupling_P1P1_polygon_SOURCES) $(test3D_1_c1_SOURCES) \
-	$(test3D_1_c2_SOURCES)
+	$(c_surf_coupling_P1P1_polygon_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -344,6 +331,8 @@ LDADD = $(top_builddir)/src/bft/libbft.la \
         @MPI_LIBS@ \
 	-lm
 
+#test3D_1_c1 \
+#test3D_1_c2 
 
 #test2D_1_c1 
 #test2D_1_c2 
@@ -354,8 +343,8 @@ c_surf_coupling_P1P1_SOURCES = grid_mesh.c c_surf_coupling_P1P1.c
 c_surf_coupling_P1P1_asynchronous_SOURCES = grid_mesh.c c_surf_coupling_P1P1_asynchronous.c
 #test2D_1_c1_SOURCES = creeMaillagePolygone2D.c test2D_1_c1.c
 #test2D_1_c2_SOURCES = creeMaillagePolygone2D.c test2D_1_c2.f90
-test3D_1_c1_SOURCES = test3D_1_c1.c
-test3D_1_c2_SOURCES = test3D_1_c2.c
+#test3D_1_c1_SOURCES = test3D_1_c1.c
+#test3D_1_c2_SOURCES = test3D_1_c2.c
 c_linear_coupling_LDADD = \
 $(top_builddir)/src/bft/libbft.la \
 $(top_builddir)/src/fvm/libfvm.la \
@@ -384,20 +373,20 @@ $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
-test3D_1_c1_LDADD = \
-$(top_builddir)/src/bft/libbft.la \
-$(top_builddir)/src/fvm/libfvm.la \
-$(top_builddir)/src/libcwipi.la \
-@MPI_LIBS@ \
--lm
 
-test3D_1_c2_LDADD = \
-$(top_builddir)/src/bft/libbft.la \
-$(top_builddir)/src/fvm/libfvm.la \
-$(top_builddir)/src/libcwipi.la \
-@MPI_LIBS@ \
--lm
+# test3D_1_c1_LDADD = \
+# $(top_builddir)/src/bft/libbft.la \
+# $(top_builddir)/src/fvm/libfvm.la \
+# $(top_builddir)/src/libcwipi.la \
+# @MPI_LIBS@ \
+# -lm
 
+# test3D_1_c2_LDADD = \
+# $(top_builddir)/src/bft/libbft.la \
+# $(top_builddir)/src/fvm/libfvm.la \
+# $(top_builddir)/src/libcwipi.la \
+# @MPI_LIBS@ \
+# -lm
 
 #test2D_1_c1_LDADD =  $(top_builddir)/src/libcwipi.la \
 #        @FVM_LIBS@ @BFT_LIBS@ @MPI_LIBS@ \
@@ -466,12 +455,6 @@ c_surf_coupling_P1P1_micron_polygon$(EXEEXT): $(c_surf_coupling_P1P1_micron_poly
 c_surf_coupling_P1P1_polygon$(EXEEXT): $(c_surf_coupling_P1P1_polygon_OBJECTS) $(c_surf_coupling_P1P1_polygon_DEPENDENCIES) 
 	@rm -f c_surf_coupling_P1P1_polygon$(EXEEXT)
 	$(LINK) $(c_surf_coupling_P1P1_polygon_OBJECTS) $(c_surf_coupling_P1P1_polygon_LDADD) $(LIBS)
-test3D_1_c1$(EXEEXT): $(test3D_1_c1_OBJECTS) $(test3D_1_c1_DEPENDENCIES) 
-	@rm -f test3D_1_c1$(EXEEXT)
-	$(LINK) $(test3D_1_c1_OBJECTS) $(test3D_1_c1_LDADD) $(LIBS)
-test3D_1_c2$(EXEEXT): $(test3D_1_c2_OBJECTS) $(test3D_1_c2_DEPENDENCIES) 
-	@rm -f test3D_1_c2$(EXEEXT)
-	$(LINK) $(test3D_1_c2_OBJECTS) $(test3D_1_c2_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -486,8 +469,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_surf_coupling_P1P1_polygon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/creeMaillagePolygone2D.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/grid_mesh.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3D_1_c1.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3D_1_c2.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

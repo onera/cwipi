@@ -24,7 +24,7 @@
  */
 
 //Bug mpich2
-#define MPICH_IGNORE_CXX_SEEK 1
+//#define MPICH_IGNORE_CXX_SEEK 1
 
 #include <mpi.h>
 
@@ -83,12 +83,12 @@ LocationToLocalMesh::~LocationToLocalMesh()
   }
 
   else {
-    BFT_FREE(_barycentricCoordinatesIndex);
-    BFT_FREE(_barycentricCoordinates);
+    bft::BFT_FREE(_barycentricCoordinatesIndex);
+    bft::BFT_FREE(_barycentricCoordinates);
   }
 
   if (_fvmLocator != NULL)
-    fvm_locator_destroy(_fvmLocator);
+    fvm::fvm_locator_destroy(_fvmLocator);
 
   if (_nVertex != NULL)
     delete _nVertex;
@@ -108,10 +108,10 @@ void LocationToLocalMesh::locate()
   if ( _isCoupledRank && (_toLocate || _locationToDistantMesh.getToLocateStatus())) {
 
     if (_supportMesh == NULL)
-      bft_error(__FILE__, __LINE__, 0, "undefined support mesh\n");
+      bft::bft_error(__FILE__, __LINE__, 0, "undefined support mesh\n");
 
     if (_fvmLocator == NULL)
-      _fvmLocator = fvm_locator_create(_tolerance,
+      _fvmLocator = fvm::fvm_locator_create(_tolerance,
                                        _couplingComm,
                                        _coupledApplicationNRankCouplingComm,
                                        _coupledApplicationBeginningRankCouplingComm);
@@ -133,7 +133,7 @@ void LocationToLocalMesh::locate()
       coords = const_cast <double*> (_supportMesh->getVertexCoords());
     }
 
-    fvm_locator_set_nodal(_fvmLocator,
+    fvm::fvm_locator_set_nodal(_fvmLocator,
                           &_supportMesh->getFvmNodal(),
                           0,
                           3,
@@ -142,12 +142,12 @@ void LocationToLocalMesh::locate()
                           coords);
 
     _toLocate = false;
-    const int nLocatedPoint = fvm_locator_get_n_interior(_fvmLocator);
+    const int nLocatedPoint = fvm::fvm_locator_get_n_interior(_fvmLocator);
     const int nNotLocatedPoint = _locationToDistantMesh._nPointsToLocate - nLocatedPoint;
-    const int* exteriorList = fvm_locator_get_exterior_list(_fvmLocator);
-    const int* interiorList = fvm_locator_get_interior_list(_fvmLocator);
-    const int* locationList = fvm_locator_get_dist_locations(_fvmLocator);
-    const int nExterior = fvm_locator_get_n_exterior(_fvmLocator);
+    const int* exteriorList = fvm::fvm_locator_get_exterior_list(_fvmLocator);
+    const int* interiorList = fvm::fvm_locator_get_interior_list(_fvmLocator);
+    const int* locationList = fvm::fvm_locator_get_dist_locations(_fvmLocator);
+    const int nExterior = fvm::fvm_locator_get_n_exterior(_fvmLocator);
     assert(nNotLocatedPoint == nExterior);
 
     _locationToDistantMesh._unlocatedPoint = const_cast<int *> (exteriorList);
@@ -157,7 +157,7 @@ void LocationToLocalMesh::locate()
     _locationToDistantMesh._toLocate = false;
 
     _location = const_cast<int *> (locationList);
-    _nDistantPoint = fvm_locator_get_n_dist_points(_fvmLocator);
+    _nDistantPoint = fvm::fvm_locator_get_n_dist_points(_fvmLocator);
 
     if (_barycentricCoordinatesIndex != NULL) {
       if (_entitiesDim != 2) {
@@ -166,8 +166,8 @@ void LocationToLocalMesh::locate()
       }
 
       else {
-        BFT_FREE(_barycentricCoordinatesIndex);
-        BFT_FREE(_barycentricCoordinates);
+        bft::BFT_FREE(_barycentricCoordinatesIndex);
+        bft::BFT_FREE(_barycentricCoordinates);
       }
     }
 
@@ -177,9 +177,9 @@ void LocationToLocalMesh::locate()
 
     if (_barycentricCoordinatesIndex == NULL) {
       if (_entitiesDim == 1) {
-        const int nDistantPoint      = fvm_locator_get_n_dist_points(_fvmLocator);
-        const int *distantLocation   = fvm_locator_get_dist_locations(_fvmLocator);
-        const double *distantCoords   = fvm_locator_get_dist_coords(_fvmLocator);
+        const int nDistantPoint      = fvm::fvm_locator_get_n_dist_points(_fvmLocator);
+        const int *distantLocation   = fvm::fvm_locator_get_dist_locations(_fvmLocator);
+        const double *distantCoords   = fvm::fvm_locator_get_dist_coords(_fvmLocator);
 
         const int *eltsConnecPointer = _supportMesh->getEltConnectivityIndex();
         const int *eltsConnec = _supportMesh->getEltConnectivity();
@@ -309,7 +309,7 @@ void LocationToLocalMesh::locate()
       if (distantInfo == CWIPI_DISTANT_MESH_INFO)
         pLocation = _location;
 
-      fvm_locator_exchange_point_var(_fvmLocator,
+      fvm::fvm_locator_exchange_point_var(_fvmLocator,
                                      (void *) pLocation,
                                      (void *) _locationToDistantMesh._elementContaining,
                                      NULL,
@@ -333,7 +333,7 @@ void LocationToLocalMesh::locate()
         pMPIrank = &((*MPIrank)[0]);
       }
 
-      fvm_locator_exchange_point_var(_fvmLocator,
+      fvm::fvm_locator_exchange_point_var(_fvmLocator,
                                      (void *) pMPIrank,
                                      (void *) _locationToDistantMesh._elementContainingMPIrankContaining,
                                      NULL,
@@ -384,7 +384,7 @@ void LocationToLocalMesh::locate()
 
       _maxElementContainingNVertex = MAX(_maxElementContainingNVertex, distantMaxElementContainingNVertex);
 
-      fvm_locator_exchange_point_var(_fvmLocator,
+      fvm::fvm_locator_exchange_point_var(_fvmLocator,
                                      (void *) p_nVertex,
                                      (void *) _locationToDistantMesh._elementContainingNVertex,
                                      NULL,
@@ -429,7 +429,7 @@ void LocationToLocalMesh::locate()
           }
         }
 
-        fvm_locator_exchange_point_var(_fvmLocator,
+        fvm::fvm_locator_exchange_point_var(_fvmLocator,
                                        (void *) tmpLocal,
                                        (void *) tmpDistant,
                                        NULL,
@@ -479,7 +479,7 @@ void LocationToLocalMesh::locate()
           }
         }
 
-        fvm_locator_exchange_point_var(_fvmLocator,
+        fvm::fvm_locator_exchange_point_var(_fvmLocator,
                                        (void *) tmpLocal1,
                                        (void *) tmpDistant1,
                                        NULL,
@@ -534,7 +534,7 @@ void LocationToLocalMesh::locate()
           }
         }
 
-        fvm_locator_exchange_point_var(_fvmLocator,
+        fvm::fvm_locator_exchange_point_var(_fvmLocator,
                                        (void *) tmpLocal1,
                                        (void *) tmpDistant1,
                                        NULL,
@@ -602,7 +602,7 @@ void LocationToLocalMesh::exchangeCellVertexFieldOfElementContaining (double *se
       }
     }
 
-    fvm_locator_exchange_point_var(_fvmLocator,
+    fvm::fvm_locator_exchange_point_var(_fvmLocator,
                                    (void *) tmpLocal1,
                                    (void *) tmpDistant1,
                                    NULL,
@@ -634,7 +634,7 @@ void LocationToLocalMesh::exchangeCellCenterFieldOfElementContaining (double *se
 
   // TODO: exchangeCellCenterFieldOfElementContaining : doute pour un fonctionnement en parallele sans partitionnement
 
-  fvm_locator_exchange_point_var(_fvmLocator,
+  fvm::fvm_locator_exchange_point_var(_fvmLocator,
                                  (void *) sendingField,
                                  (void *) receivingField,
                                  NULL,

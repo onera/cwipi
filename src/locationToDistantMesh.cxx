@@ -23,6 +23,9 @@
  *      Author: equemera
  */
 
+
+#include <mpi.h>
+
 #include "locationToDistantMesh.hxx"
 
 namespace cwipi

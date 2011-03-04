@@ -37,9 +37,10 @@
 
 #include <assert.h>
 #include <stdarg.h>
-#include <stdio.h>
+#include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
+#include <stdio.h> 
+#include <string.h> 
 
 #if defined(HAVE_GLIBC_BACKTRACE)
 #include <memory.h>
@@ -59,9 +60,13 @@
 /*-----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus
+#ifdef BFT_CPPCALLER
+namespace bft {
+#else
 extern "C" {
+#endif
 #if 0
-} /* Fake brace to force back Emacs auto-indentation back to column 0 */
+}} /* Fake brace to force Emacs auto-indentation back to column 0 */
 #endif
 #endif /* __cplusplus */
 
@@ -104,7 +109,7 @@ struct _bft_backtrace_t {
  * Local static variable definitions
  *-----------------------------------------------------------------------------*/
 
-static bft_backtrace_print_t  *_bft_backtrace_print = NULL;
+ static bft_backtrace_print_t  *_bft_backtrace_print = NULL;
 
 /*-----------------------------------------------------------------------------
  * Local function definitions

@@ -32,15 +32,9 @@
 #include <bft_mem.h>
 #include <bft_printf.h>
 #include <fvm_parall.h>
+namespace cwipi {
 
-#ifdef __cplusplus
-extern "C" {
-#if 0
-} /* Fake brace to force back Emacs auto-indentation back to column 0 */
-#endif
-#endif /* __cplusplus */
-
-void coo_baryc(const fvm_locator_t* locator,
+void coo_baryc(const fvm::fvm_locator_t* locator,
                const int   nMeshCoords,
                const double *meshCoords,
                const int   nElts,
@@ -50,8 +44,6 @@ void coo_baryc(const fvm_locator_t* locator,
                int  **nDistBarCoords,
                double **distBarCoords);
 
-#ifdef __cplusplus
 }
-#endif /* __cplusplus */
 
 #endif /* __BAR_COORDS_H__ */

@@ -69,9 +69,14 @@
 /*----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus
+#ifdef FVM_CPPCALLER
+using namespace bft;
+namespace fvm {
+#else
 extern "C" {
+#endif
 #if 0
-} /* Fake brace to force Emacs auto-indentation back to column 0 */
+}} /* Fake brace to force Emacs auto-indentation back to column 0 */
 #endif
 #endif /* __cplusplus */
 

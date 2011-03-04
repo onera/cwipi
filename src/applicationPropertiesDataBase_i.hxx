@@ -26,10 +26,10 @@
 
 namespace cwipi {
 
-  inline void ApplicationPropertiesDataBase::setPrintfProxy(bft_printf_proxy_t *const callBackPrintf)
+  inline void ApplicationPropertiesDataBase::setPrintfProxy(bft::bft_printf_proxy_t *const callBackPrintf)
   {
     if (callBackPrintf != NULL)
-      bft_printf_proxy_set(callBackPrintf);
+      bft::bft_printf_proxy_set(callBackPrintf);
   }
 
   // Access to local MPI properties (synchronization with a second application)
@@ -62,7 +62,7 @@ namespace cwipi {
 //     if (p != _distantApplicationPropertiesDataBase.end())
 //       return p->second->getLocalComm();
 //     else
-//       bft_error(__FILE__, __LINE__, 0,
+//       bft::bft_error(__FILE__, __LINE__, 0,
 //                 "'%s' application not found \n", applicationName.c_str());
 //   }
 
@@ -70,7 +70,7 @@ namespace cwipi {
   {
     const std::map <std::string, ApplicationProperties * >::iterator p = _distantApplicationPropertiesDataBase.find(applicationName);
     if (p == _distantApplicationPropertiesDataBase.end())
-      bft_error(__FILE__, __LINE__, 0,
+      bft::bft_error(__FILE__, __LINE__, 0,
                 "'%s' application not found \n", applicationName.c_str());
     return p->second->getBeginningRank();
   }
@@ -79,7 +79,7 @@ namespace cwipi {
   {
     const std::map <std::string, ApplicationProperties * >::iterator p = _distantApplicationPropertiesDataBase.find(applicationName);
     if (p == _distantApplicationPropertiesDataBase.end())
-      bft_error(__FILE__, __LINE__, 0,
+      bft::bft_error(__FILE__, __LINE__, 0,
                 "'%s' application not found \n", applicationName.c_str());
     return p->second->getEndRank();
   }
@@ -152,7 +152,7 @@ namespace cwipi {
   {
     const std::map <std::string, ApplicationProperties * >::iterator p = _distantApplicationPropertiesDataBase.find(applicationName);
     if (p == _distantApplicationPropertiesDataBase.end())
-      bft_error(__FILE__, __LINE__, 0,
+      bft::bft_error(__FILE__, __LINE__, 0,
                 "'%s' application not found \n", applicationName.c_str());
     return p->second->getIntControlParameter(name);
   }
@@ -161,7 +161,7 @@ namespace cwipi {
   {
     const std::map <std::string, ApplicationProperties * >::iterator p = _distantApplicationPropertiesDataBase.find(applicationName);
     if (p == _distantApplicationPropertiesDataBase.end())
-      bft_error(__FILE__, __LINE__, 0,
+      bft::bft_error(__FILE__, __LINE__, 0,
                 "'%s' application not found \n", applicationName.c_str());
     assert(p->second != NULL);
     return *(p->second);
@@ -177,7 +177,7 @@ namespace cwipi {
   {
     const std::map <std::string, ApplicationProperties * >::iterator p = _distantApplicationPropertiesDataBase.find(applicationName);
     if (p == _distantApplicationPropertiesDataBase.end())
-      bft_error(__FILE__, __LINE__, 0,
+      bft::bft_error(__FILE__, __LINE__, 0,
                 "'%s' application not found \n", applicationName.c_str());
     return p->second->getDoubleControlParameter(name);
   }
@@ -186,7 +186,7 @@ namespace cwipi {
   {
     const std::map <std::string, ApplicationProperties * >::iterator p = _distantApplicationPropertiesDataBase.find(applicationName);
     if (p == _distantApplicationPropertiesDataBase.end())
-      bft_error(__FILE__, __LINE__, 0,
+      bft::bft_error(__FILE__, __LINE__, 0,
                 "'%s' application not found \n", applicationName.c_str());
     return p->second->getStringControlParameter(name);
   }

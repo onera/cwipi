@@ -20,12 +20,12 @@
 */
 
 //Bug mpich2
-#define MPICH_IGNORE_CXX_SEEK 1
-
-#include <stdio.h>
+//#define MPICH_IGNORE_CXX_SEEK 1
 #include <mpi.h>
 
-#include <fvm_nodal.h>
+#include <stdio.h>
+
+//#include <fvm_nodal.h>
 
 /*=============================================================================
  * Macro definitions
@@ -607,7 +607,7 @@ void cwipi_define_mesh(const char *coupling_id,
                        int connectivity[]);
 
 void cwipi_shared_fvm_nodal(const char *coupling_name,
-                            fvm_nodal_t* fvm_nodal);
+                            void * fvm_nodal);
 
 
 /*----------------------------------------------------------------------------

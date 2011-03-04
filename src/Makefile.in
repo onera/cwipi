@@ -321,7 +321,7 @@ locationToDistantMesh.cxx \
 cwipi.cxx \
 quickSort.c \
 solve_ax_b_4.c \
-coo_baryc.c \
+coo_baryc.cxx \
 mesh.cxx \
 coupling.cxx \
 couplingDataBase.cxx \

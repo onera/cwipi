@@ -17,7 +17,7 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 //Bug mpich2
-#define MPICH_IGNORE_CXX_SEEK 1
+//#define MPICH_IGNORE_CXX_SEEK 1
 
 #include <mpi.h>
 
@@ -58,16 +58,16 @@ namespace cwipi {
 
   {
 
-    MPI_Comm oldFVMComm = fvm_parall_get_mpi_comm();
+    MPI_Comm oldFVMComm = fvm::fvm_parall_get_mpi_comm();
     if (oldFVMComm != MPI_COMM_NULL)
       MPI_Barrier(oldFVMComm);
-    fvm_parall_set_mpi_comm(localComm);
+    fvm::fvm_parall_set_mpi_comm(localComm);
 
     //
     // Check dim
 
     if (_nDim > 3 || _nDim < 1)
-      bft_error(__FILE__, __LINE__, 0, "'%i' bad dimension\n", _nDim);
+      bft::bft_error(__FILE__, __LINE__, 0, "'%i' bad dimension\n", _nDim);
 
     //
     // Check order
@@ -107,7 +107,7 @@ namespace cwipi {
           }
 
           else
-            bft_error(__FILE__, __LINE__, 0, "Erreur dans l'index de connectivite\n");
+            bft::bft_error(__FILE__, __LINE__, 0, "Erreur dans l'index de connectivite\n");
         }
       }
 
@@ -146,12 +146,12 @@ namespace cwipi {
           }
 
           else if (nCurrentEltVertex > 8) {
-            bft_error(__FILE__, __LINE__, 0, "Erreur dans l'index de connectivite\n");
+            bft::bft_error(__FILE__, __LINE__, 0, "Erreur dans l'index de connectivite\n");
             ++nbPoly;
           }
 
           else
-            bft_error(__FILE__, __LINE__, 0, "Erreur dans l'index de connectivite\n");
+            bft::bft_error(__FILE__, __LINE__, 0, "Erreur dans l'index de connectivite\n");
         }
       }
     }
@@ -164,22 +164,22 @@ namespace cwipi {
       switch (_nDim) {
 
       case 1 :
-        bft_error(__FILE__, __LINE__, 0, "Connectivity is not ordered\n"
+        bft::bft_error(__FILE__, __LINE__, 0, "Connectivity is not ordered\n"
                   "Bug for edges\n");
         break;
 
       case 2 :
-        bft_error(__FILE__, __LINE__, 0, "Connectivity is not ordered\n"
+        bft::bft_error(__FILE__, __LINE__, 0, "Connectivity is not ordered\n"
                   "Specified order : triangle, quadrangle\n");
         break;
 
       case 3 :
-        bft_error(__FILE__, __LINE__, 0, "Connectivity is not ordered\n"
+        bft::bft_error(__FILE__, __LINE__, 0, "Connectivity is not ordered\n"
                   "Specified order : tetraedra, pyramid, prism, hexaedra\n");
         break;
 
       default :
-        bft_error(__FILE__, __LINE__, 0, "Connectivity is not ordered\n"
+        bft::bft_error(__FILE__, __LINE__, 0, "Connectivity is not ordered\n"
                   "unknown dimension : %i\n", _nDim);
         break;
       }
@@ -188,7 +188,7 @@ namespace cwipi {
     //
     // fvm_nodal building
 
-    _fvmNodal = fvm_nodal_create("Mesh", 3);
+    _fvmNodal = fvm::fvm_nodal_create("Mesh", 3);
 
     //
     // Sections building
@@ -198,9 +198,9 @@ namespace cwipi {
     case 1 :
 
 
-      fvm_nodal_append_shared(_fvmNodal,
+      fvm::fvm_nodal_append_shared(_fvmNodal,
                               _nElts,
-                              FVM_EDGE,
+                              fvm::FVM_EDGE,
                               NULL,
                               NULL,
                               NULL,
@@ -227,9 +227,9 @@ namespace cwipi {
                      localComm);
 
       if (nbTriangle != 0)
-        fvm_nodal_append_shared(_fvmNodal,
+        fvm::fvm_nodal_append_shared(_fvmNodal,
                                 nbTriangle,
-                                FVM_FACE_TRIA,
+                                fvm::FVM_FACE_TRIA,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -237,9 +237,9 @@ namespace cwipi {
                                 NULL);
 
       else if (nTriangleSum != 0)
-        fvm_nodal_append_shared(_fvmNodal,
+        fvm::fvm_nodal_append_shared(_fvmNodal,
                                 0,
-                                FVM_FACE_TRIA,
+                                fvm::FVM_FACE_TRIA,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -247,9 +247,9 @@ namespace cwipi {
                                 NULL);
 
       if (nbQuadrangle != 0)
-        fvm_nodal_append_shared(_fvmNodal,
+        fvm::fvm_nodal_append_shared(_fvmNodal,
                                 nbQuadrangle,
-                                FVM_FACE_QUAD,
+                                fvm::FVM_FACE_QUAD,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -258,9 +258,9 @@ namespace cwipi {
 
 
       else if (nQuadrangleSum != 0)
-        fvm_nodal_append_shared(_fvmNodal,
+        fvm::fvm_nodal_append_shared(_fvmNodal,
                                 0,
-                                FVM_FACE_QUAD,
+                                fvm::FVM_FACE_QUAD,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -273,9 +273,9 @@ namespace cwipi {
           _polygonIndex[i] = _eltConnectivityIndex[nbTriangle+nbQuadrangle+i]-_eltConnectivityIndex[nbTriangle+nbQuadrangle];
         }
 
-        fvm_nodal_append_shared(_fvmNodal,
+        fvm::fvm_nodal_append_shared(_fvmNodal,
                                 nbPoly,
-                                FVM_FACE_POLY,
+                                fvm::FVM_FACE_POLY,
                                 NULL,
                                 NULL,
                                 _polygonIndex,
@@ -285,11 +285,11 @@ namespace cwipi {
 
       else if (nPolySum != 0) {
 
-        //bft_error(__FILE__, __LINE__, 0, "define Mesh : unresolved bug in fvm for a empty polygon section\n");
+        //bft::bft_error(__FILE__, __LINE__, 0, "define Mesh : unresolved bug in fvm for a empty polygon section\n");
 
-        fvm_nodal_append_shared(_fvmNodal,
+        fvm::fvm_nodal_append_shared(_fvmNodal,
                                 0,
-                                FVM_FACE_POLY,
+                                fvm::FVM_FACE_POLY,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -321,9 +321,9 @@ namespace cwipi {
                      localComm);
 
       if (nbTetra != 0)
-        fvm_nodal_append_shared(_fvmNodal,
+        fvm::fvm_nodal_append_shared(_fvmNodal,
                                 nbTetra,
-                                FVM_CELL_TETRA,
+                                fvm::FVM_CELL_TETRA,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -331,9 +331,9 @@ namespace cwipi {
                                 NULL);
 
       else if (nTetraSum != 0)
-        fvm_nodal_append_shared(_fvmNodal,
+        fvm::fvm_nodal_append_shared(_fvmNodal,
                                 0,
-                                FVM_CELL_TETRA,
+                                fvm::FVM_CELL_TETRA,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -341,9 +341,9 @@ namespace cwipi {
                                 NULL);
 
       if (nbPyramid != 0)
-        fvm_nodal_append_shared(_fvmNodal,
+        fvm::fvm_nodal_append_shared(_fvmNodal,
                                 nbPyramid,
-                                FVM_CELL_PYRAM,
+                                fvm::FVM_CELL_PYRAM,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -351,9 +351,9 @@ namespace cwipi {
                                 NULL);
 
       else if (nPyramidSum != 0)
-        fvm_nodal_append_shared(_fvmNodal,
+        fvm::fvm_nodal_append_shared(_fvmNodal,
                                 0,
-                                FVM_CELL_PYRAM,
+                                fvm::FVM_CELL_PYRAM,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -361,9 +361,9 @@ namespace cwipi {
                                 NULL);
 
       if (nbPrism != 0)
-        fvm_nodal_append_shared(_fvmNodal,
+        fvm::fvm_nodal_append_shared(_fvmNodal,
                                 nbPrism,
-                                FVM_CELL_PRISM,
+                                fvm::FVM_CELL_PRISM,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -371,9 +371,9 @@ namespace cwipi {
                                 NULL);
 
       else if (nPrismSum != 0)
-        fvm_nodal_append_shared(_fvmNodal,
+        fvm::fvm_nodal_append_shared(_fvmNodal,
                                 0,
-                                FVM_CELL_PRISM,
+                                fvm::FVM_CELL_PRISM,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -381,9 +381,9 @@ namespace cwipi {
                                 NULL);
 
       if (nbHexaedra != 0)
-        fvm_nodal_append_shared(_fvmNodal,
+        fvm::fvm_nodal_append_shared(_fvmNodal,
                                 nbHexaedra,
-                                FVM_CELL_HEXA,
+                                fvm::FVM_CELL_HEXA,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -391,9 +391,9 @@ namespace cwipi {
                                 NULL);
 
       else if (nbHexaedra != 0)
-        fvm_nodal_append_shared(_fvmNodal,
+        fvm::fvm_nodal_append_shared(_fvmNodal,
                                 0,
-                                FVM_CELL_HEXA,
+                                fvm::FVM_CELL_HEXA,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -407,7 +407,7 @@ namespace cwipi {
     //
     // Shared vertices
 
-    fvm_nodal_set_shared_vertices(_fvmNodal, _coords);
+    fvm::fvm_nodal_set_shared_vertices(_fvmNodal, _coords);
 
     //
     // Order Fvm_nodal
@@ -438,14 +438,14 @@ namespace cwipi {
 
     switch (_nDim) {
       case 2 :
-        fvm_nodal_order_faces(_fvmNodal, globalEltNum);
+        fvm::fvm_nodal_order_faces(_fvmNodal, globalEltNum);
         break;
       case 3 :
-        fvm_nodal_order_cells(_fvmNodal, globalEltNum);
+        fvm::fvm_nodal_order_cells(_fvmNodal, globalEltNum);
         break;
     }
 
-    fvm_nodal_init_io_num(_fvmNodal, globalEltNum, _nDim);
+    fvm::fvm_nodal_init_io_num(_fvmNodal, globalEltNum, _nDim);
 
     delete [] globalEltNum;
 
@@ -470,18 +470,18 @@ namespace cwipi {
       globalVertexNum[i] = nGlobal + i + 1;
 
 
-    fvm_nodal_order_vertices(_fvmNodal, globalVertexNum);
-    fvm_nodal_init_io_num(_fvmNodal, globalVertexNum, 0);
+    fvm::fvm_nodal_order_vertices(_fvmNodal, globalVertexNum);
+    fvm::fvm_nodal_init_io_num(_fvmNodal, globalVertexNum, 0);
 
     delete[] globalVertexNum;
     delete[] allNElts;
 
     #if defined(DEBUG) && 0
-    fvm_nodal_dump(_fvmNodal);
+    fvm::fvm_nodal_dump(_fvmNodal);
     #endif
 
     MPI_Barrier(localComm);
-    fvm_parall_set_mpi_comm(oldFVMComm);
+    fvm::fvm_parall_set_mpi_comm(oldFVMComm);
 
   }
 
@@ -493,9 +493,9 @@ namespace cwipi {
   /////////
 
   Mesh::Mesh(const MPI_Comm &localComm,
-             fvm_nodal_t* fvm_nodal)
+             fvm::fvm_nodal_t* fvm_nodal)
     : _localComm(localComm),
-      _nDim(fvm_nodal_get_dim(fvm_nodal)), _nVertex(0),
+      _nDim(fvm::fvm_nodal_get_dim(fvm_nodal)), _nVertex(0),
       _nElts(0), _nPolyhedra(0), _coords(NULL),
       _eltConnectivityIndex(NULL), _eltConnectivity(NULL),
       _polyhedraFaceIndex(NULL), _polyhedraCellToFaceConnectivity(NULL),
@@ -512,29 +512,29 @@ namespace cwipi {
 
 
 
-    fvm_nodal_get_vertex(fvm_nodal,
+    fvm::fvm_nodal_get_vertex(fvm_nodal,
                          &_nElts,
                          &_eltConnectivityIndex,
                          &_eltConnectivity);
 
 
-    fvm_nodal_get_coords(fvm_nodal,
+    fvm::fvm_nodal_get_coords(fvm_nodal,
                          &_nVertex,
                          &_coords);
 
 
-    MPI_Comm oldFVMComm = fvm_parall_get_mpi_comm();
+    MPI_Comm oldFVMComm = fvm::fvm_parall_get_mpi_comm();
     if (oldFVMComm != MPI_COMM_NULL)
       MPI_Barrier(oldFVMComm);
-    fvm_nodal_destroy(fvm_nodal); 
+    fvm::fvm_nodal_destroy(fvm_nodal); 
 
-    fvm_parall_set_mpi_comm(localComm);
+    fvm::fvm_parall_set_mpi_comm(localComm);
 
     //
     // Check dim
 
     if (_nDim > 3 || _nDim < 1)
-      bft_error(__FILE__, __LINE__, 0, "'%i' bad dimension\n", _nDim);
+      bft::bft_error(__FILE__, __LINE__, 0, "'%i' bad dimension\n", _nDim);
 
     //
     // Check order
@@ -575,7 +575,7 @@ namespace cwipi {
           }
 
           else
-            bft_error(__FILE__, __LINE__, 0, "Erreur dans l'index de connectivite\n");
+            bft::bft_error(__FILE__, __LINE__, 0, "Erreur dans l'index de connectivite\n");
         }
       }
 
@@ -614,12 +614,12 @@ namespace cwipi {
           }
 
           else if (nCurrentEltVertex > 8) {
-            bft_error(__FILE__, __LINE__, 0, "Erreur dans l'index de connectivite\n");
+            bft::bft_error(__FILE__, __LINE__, 0, "Erreur dans l'index de connectivite\n");
             ++nbPoly;
           }
 
           else
-            bft_error(__FILE__, __LINE__, 0, "Erreur dans l'index de connectivite\n");
+            bft::bft_error(__FILE__, __LINE__, 0, "Erreur dans l'index de connectivite\n");
         }
 
       }
@@ -633,22 +633,22 @@ namespace cwipi {
       switch (_nDim) {
 
       case 1 :
-        bft_error(__FILE__, __LINE__, 0, "Connectivity is not ordered\n"
+        bft::bft_error(__FILE__, __LINE__, 0, "Connectivity is not ordered\n"
                   "Bug for edges\n");
         break;
 
       case 2 :
-        bft_error(__FILE__, __LINE__, 0, "Connectivity is not ordered\n"
+        bft::bft_error(__FILE__, __LINE__, 0, "Connectivity is not ordered\n"
                   "Specified order : triangle, quadrangle\n");
         break;
 
       case 3 :
-        bft_error(__FILE__, __LINE__, 0, "Connectivity is not ordered\n"
+        bft::bft_error(__FILE__, __LINE__, 0, "Connectivity is not ordered\n"
                   "Specified order : tetraedra, pyramid, prism, hexaedra\n");
         break;
 
       default :
-        bft_error(__FILE__, __LINE__, 0, "Connectivity is not ordered\n"
+        bft::bft_error(__FILE__, __LINE__, 0, "Connectivity is not ordered\n"
                   "unknown dimension : %i\n", _nDim);
         break;
       }
@@ -657,7 +657,7 @@ namespace cwipi {
     //
     // fvm_nodal building
 
-    _fvmNodal = fvm_nodal_create("Mesh", 3);
+    _fvmNodal = fvm::fvm_nodal_create("Mesh", 3);
 
     //
     // Sections building
@@ -667,9 +667,9 @@ namespace cwipi {
     case 1 :
 
 
-      fvm_nodal_append_shared(_fvmNodal,
+      fvm::fvm_nodal_append_shared(_fvmNodal,
                               _nElts,
-                              FVM_EDGE,
+                              fvm::FVM_EDGE,
                               NULL,
                               NULL,
                               NULL,
@@ -696,9 +696,9 @@ namespace cwipi {
                      localComm);
 
       if (nbTriangle != 0)
-        fvm_nodal_append_shared(_fvmNodal,
+        fvm::fvm_nodal_append_shared(_fvmNodal,
                                 nbTriangle,
-                                FVM_FACE_TRIA,
+                                fvm::FVM_FACE_TRIA,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -706,9 +706,9 @@ namespace cwipi {
                                 NULL);
 
       else if (nTriangleSum != 0)
-        fvm_nodal_append_shared(_fvmNodal,
+        fvm::fvm_nodal_append_shared(_fvmNodal,
                                 0,
-                                FVM_FACE_TRIA,
+                                fvm::FVM_FACE_TRIA,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -716,9 +716,9 @@ namespace cwipi {
                                 NULL);
 
       if (nbQuadrangle != 0)
-        fvm_nodal_append_shared(_fvmNodal,
+        fvm::fvm_nodal_append_shared(_fvmNodal,
                                 nbQuadrangle,
-                                FVM_FACE_QUAD,
+                                fvm::FVM_FACE_QUAD,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -727,9 +727,9 @@ namespace cwipi {
 
 
       else if (nQuadrangleSum != 0)
-        fvm_nodal_append_shared(_fvmNodal,
+        fvm::fvm_nodal_append_shared(_fvmNodal,
                                 0,
-                                FVM_FACE_QUAD,
+                                fvm::FVM_FACE_QUAD,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -742,9 +742,9 @@ namespace cwipi {
           _polygonIndex[i] = _eltConnectivityIndex[nbTriangle+nbQuadrangle+i]-_eltConnectivityIndex[nbTriangle+nbQuadrangle];
         }
 
-        fvm_nodal_append_shared(_fvmNodal,
+        fvm::fvm_nodal_append_shared(_fvmNodal,
                                 nbPoly,
-                                FVM_FACE_POLY,
+                                fvm::FVM_FACE_POLY,
                                 NULL,
                                 NULL,
                                 _polygonIndex,
@@ -754,11 +754,11 @@ namespace cwipi {
 
       else if (nPolySum != 0) {
 
-        //bft_error(__FILE__, __LINE__, 0, "define Mesh : unresolved bug in fvm for a empty polygon section\n");
+        //bft::bft_error(__FILE__, __LINE__, 0, "define Mesh : unresolved bug in fvm for a empty polygon section\n");
 
-        fvm_nodal_append_shared(_fvmNodal,
+        fvm::fvm_nodal_append_shared(_fvmNodal,
                                 0,
-                                FVM_FACE_POLY,
+                                fvm::FVM_FACE_POLY,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -790,9 +790,9 @@ namespace cwipi {
                      localComm);
 
       if (nbTetra != 0)
-        fvm_nodal_append_shared(_fvmNodal,
+        fvm::fvm_nodal_append_shared(_fvmNodal,
                                 nbTetra,
-                                FVM_CELL_TETRA,
+                                fvm::FVM_CELL_TETRA,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -800,9 +800,9 @@ namespace cwipi {
                                 NULL);
 
       else if (nTetraSum != 0)
-        fvm_nodal_append_shared(_fvmNodal,
+        fvm::fvm_nodal_append_shared(_fvmNodal,
                                 0,
-                                FVM_CELL_TETRA,
+                                fvm::FVM_CELL_TETRA,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -810,9 +810,9 @@ namespace cwipi {
                                 NULL);
 
       if (nbPyramid != 0)
-        fvm_nodal_append_shared(_fvmNodal,
+        fvm::fvm_nodal_append_shared(_fvmNodal,
                                 nbPyramid,
-                                FVM_CELL_PYRAM,
+                                fvm::FVM_CELL_PYRAM,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -820,9 +820,9 @@ namespace cwipi {
                                 NULL);
 
       else if (nPyramidSum != 0)
-        fvm_nodal_append_shared(_fvmNodal,
+        fvm::fvm_nodal_append_shared(_fvmNodal,
                                 0,
-                                FVM_CELL_PYRAM,
+                                fvm::FVM_CELL_PYRAM,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -830,9 +830,9 @@ namespace cwipi {
                                 NULL);
 
       if (nbPrism != 0)
-        fvm_nodal_append_shared(_fvmNodal,
+        fvm::fvm_nodal_append_shared(_fvmNodal,
                                 nbPrism,
-                                FVM_CELL_PRISM,
+                                fvm::FVM_CELL_PRISM,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -840,9 +840,9 @@ namespace cwipi {
                                 NULL);
 
       else if (nPrismSum != 0)
-        fvm_nodal_append_shared(_fvmNodal,
+        fvm::fvm_nodal_append_shared(_fvmNodal,
                                 0,
-                                FVM_CELL_PRISM,
+                                fvm::FVM_CELL_PRISM,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -850,9 +850,9 @@ namespace cwipi {
                                 NULL);
 
       if (nbHexaedra != 0)
-        fvm_nodal_append_shared(_fvmNodal,
+        fvm::fvm_nodal_append_shared(_fvmNodal,
                                 nbHexaedra,
-                                FVM_CELL_HEXA,
+                                fvm::FVM_CELL_HEXA,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -860,9 +860,9 @@ namespace cwipi {
                                 NULL);
 
       else if (nbHexaedra != 0)
-        fvm_nodal_append_shared(_fvmNodal,
+        fvm::fvm_nodal_append_shared(_fvmNodal,
                                 0,
-                                FVM_CELL_HEXA,
+                                fvm::FVM_CELL_HEXA,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -876,7 +876,7 @@ namespace cwipi {
     //
     // Shared vertices
 
-    fvm_nodal_set_shared_vertices(_fvmNodal, _coords);
+    fvm::fvm_nodal_set_shared_vertices(_fvmNodal, _coords);
 
     //
     // Order Fvm_nodal
@@ -907,14 +907,14 @@ namespace cwipi {
 
     switch (_nDim) {
       case 2 :
-        fvm_nodal_order_faces(_fvmNodal, globalEltNum);
+        fvm::fvm_nodal_order_faces(_fvmNodal, globalEltNum);
         break;
       case 3 :
-        fvm_nodal_order_cells(_fvmNodal, globalEltNum);
+        fvm::fvm_nodal_order_cells(_fvmNodal, globalEltNum);
         break;
     }
 
-    fvm_nodal_init_io_num(_fvmNodal, globalEltNum, _nDim);
+    fvm::fvm_nodal_init_io_num(_fvmNodal, globalEltNum, _nDim);
 
     delete [] globalEltNum;
 
@@ -939,18 +939,18 @@ namespace cwipi {
       globalVertexNum[i] = nGlobal + i + 1;
 
 
-    fvm_nodal_order_vertices(_fvmNodal, globalVertexNum);
-    fvm_nodal_init_io_num(_fvmNodal, globalVertexNum, 0);
+    fvm::fvm_nodal_order_vertices(_fvmNodal, globalVertexNum);
+    fvm::fvm_nodal_init_io_num(_fvmNodal, globalVertexNum, 0);
 
     delete[] globalVertexNum;
     delete[] allNElts;
 
     #if defined(DEBUG) && 0
-    fvm_nodal_dump(_fvmNodal);
+    fvm::fvm_nodal_dump(_fvmNodal);
     #endif
 
     MPI_Barrier(localComm);
-    fvm_parall_set_mpi_comm(oldFVMComm);
+    fvm::fvm_parall_set_mpi_comm(oldFVMComm);
 
   }
 
@@ -966,7 +966,7 @@ namespace cwipi {
     delete _cellCenterCoords;
     delete _cellVolume;
     delete[] _polygonIndex;
-    fvm_nodal_destroy(_fvmNodal);
+    fvm::fvm_nodal_destroy(_fvmNodal);
   }
 
 
@@ -976,13 +976,13 @@ namespace cwipi {
                           int *faceConnectivityIndex,
                           int *faceConnectivity)
   {
-    MPI_Comm oldFVMComm = fvm_parall_get_mpi_comm();
+    MPI_Comm oldFVMComm = fvm::fvm_parall_get_mpi_comm();
     if (oldFVMComm != MPI_COMM_NULL)
       MPI_Barrier(oldFVMComm);
-    fvm_parall_set_mpi_comm(_localComm);
+    fvm::fvm_parall_set_mpi_comm(_localComm);
 
     if (_fvmNodal == NULL)
-      bft_error(__FILE__, __LINE__, 0, "No mesh to add element\n");
+      bft::bft_error(__FILE__, __LINE__, 0, "No mesh to add element\n");
 
     _nPolyhedra += nElt;
     _nElts += nElt;
@@ -994,21 +994,21 @@ namespace cwipi {
 
     if (nElt > 0)
 
-      fvm_nodal_append_shared(_fvmNodal,
+      fvm::fvm_nodal_append_shared(_fvmNodal,
                               nElt,
-                              FVM_CELL_POLY,
+                              fvm::FVM_CELL_POLY,
                               faceIndex,
                               cellToFaceConnectivity,
                               faceConnectivityIndex,
                               faceConnectivity,
                               NULL);
     else {
-      //bft_error(__FILE__, __LINE__, 0, "define Mesh : unresolved bug in fvm for an empty polyedron section\n");
+      //bft::bft_error(__FILE__, __LINE__, 0, "define Mesh : unresolved bug in fvm for an empty polyedron section\n");
 
 
-      fvm_nodal_append_shared(_fvmNodal,
+      fvm::fvm_nodal_append_shared(_fvmNodal,
                                  0,
-                                 FVM_CELL_POLY,
+                                 fvm::FVM_CELL_POLY,
                                  NULL,
                                  NULL,
                                  NULL,
@@ -1043,23 +1043,23 @@ namespace cwipi {
 
     switch (_nDim) {
       case 3 :
-        fvm_nodal_order_cells(_fvmNodal, globalEltNum);
+        fvm::fvm_nodal_order_cells(_fvmNodal, globalEltNum);
         break;
       default :
-        bft_error(__FILE__, __LINE__,0, "Polyhedra is 3D a element !\n");
+        bft::bft_error(__FILE__, __LINE__,0, "Polyhedra is 3D a element !\n");
         break;
     }
 
-    fvm_nodal_init_io_num(_fvmNodal, globalEltNum, _nDim);
+    fvm::fvm_nodal_init_io_num(_fvmNodal, globalEltNum, _nDim);
 
     delete [] globalEltNum;
 
 #if defined(DEBUG) && 0
-    fvm_nodal_dump(_fvmNodal);
+    fvm::fvm_nodal_dump(_fvmNodal);
 #endif
 
     MPI_Barrier(_localComm);
-    fvm_parall_set_mpi_comm(oldFVMComm);
+    fvm::fvm_parall_set_mpi_comm(oldFVMComm);
   }
 
 
@@ -1440,9 +1440,9 @@ namespace cwipi {
       // Polyedra splitting
 
       // Not yet implemented
-      bft_error(__FILE__, __LINE__, 0, "Not implemented yet\n");
+      bft::bft_error(__FILE__, __LINE__, 0, "Not implemented yet\n");
 
-//       fvm_tesselation_t *fvm_tesselation = fvm_tesselation_create(FVM_CELL_POLY,
+//       fvm::fvm_tesselation_t *fvm::fvm_tesselation = fvm::fvm_tesselation_create(fvm::FVM_CELL_POLY,
 //                                                                   _nPolyhedra,
 //                                                                   _polyhedraFaceIndex,
 //                                                                   _polyhedraCellToFaceConnectivity,
@@ -1450,7 +1450,7 @@ namespace cwipi {
 //                                                                   _polyhedraFaceConnectivity,
 //                                                                   null);
 
-//       fvm_tesselation_init(fvm_tesselation, 3,_coords, NULL, NULL);
+//       fvm::fvm_tesselation_init(fvm::fvm_tesselation, 3,_coords, NULL, NULL);
 
 
 //       std::vector<int>  tesselationFaceConnectivityIndex;
@@ -1511,7 +1511,7 @@ namespace cwipi {
 //         faceConnectivity.resize(maxVertexFace);
 
 
-//       fvm_triangulate_state_t* state = fvm_triangulate_state_create(maxVertexFace);
+//       fvm::fvm_triangulate_state_t* state = fvm::fvm_triangulate_state_create(maxVertexFace);
 
 //       std::vector<int> triangulateConnectivityIndex = NULL;
 //       std::vector<int> triangulateConnectivity = NULL;
@@ -1539,12 +1539,12 @@ namespace cwipi {
 //               faceConnectivity[faceConnectivityIndex[j]+k] = _polyhedraFaceConnectivity[vertexIndex+k];
 //           }
 
-//           fvm_triangulate_polygon(3,
+//           fvm::fvm_triangulate_polygon(3,
 //                                   nVertexFace,
 //                                   _coords,
 //                                   NULL,
 //                                   faceConnectivity,
-//                                   FVM_TRIANGULATE_MESH_DEF,
+//                                   fvm::FVM_TRIANGULATE_MESH_DEF,
 //                                   triangulateConnectivity[triangulateConnectivityIndex[j]],
 //                                   state);
 
@@ -1578,7 +1578,7 @@ namespace cwipi {
 //         refCellCenterCoords[3*(nStandardElement+i)+1] /= cellSurface;
 //         refCellCenterCoords[3*(nStandardElement+i)+2] /= cellSurface;
 //       }
-//       fvm_triangulate_state_destroy(state);
+//       fvm::fvm_triangulate_state_destroy(state);
     }
   }
 

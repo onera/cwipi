@@ -16,7 +16,9 @@
   You should have received a copy of the GNU Lesser General Public
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
-#include <fvm_parall.h>
+
+//#include <fvm_parall.h>
+#include <mpi.h>
 
 #include "singleton.hpp"
 #include "couplingDataBase.hxx"
@@ -27,7 +29,7 @@
 namespace cwipi {
 
   CouplingDataBase::CouplingDataBase()
-    :  _couplingDataBase(*new std::map <std::string, Coupling * > ())
+    : _couplingDataBase(*new std::map <std::string, Coupling * > ())
   {
     _fvmComm = MPI_COMM_NULL;
   }
@@ -80,9 +82,9 @@ namespace cwipi {
 //         if ((couplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING && fvmCommSize > 1) ||
 //             (couplingType == CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING && fvmCommSize == 1)) {
 
-//           bft_printf("Warning : Post-processing deactivation for '%s' coupling", name.c_str());
-//           bft_printf("          Post-processing is activated for an other coupling type\n");
-//           bft_printf("          To activate this Post-processing, deactivate the other\n");
+//           bft::bft_printf("Warning : Post-processing deactivation for '%s' coupling", name.c_str());
+//           bft::bft_printf("          Post-processing is activated for an other coupling type\n");
+//           bft::bft_printf("          To activate this Post-processing, deactivate the other\n");
 
 //           newOutputFrequency = -1;
 //         }
@@ -138,7 +140,7 @@ namespace cwipi {
       p = _couplingDataBase.insert(newPair);
 
     if (!p.second)
-      bft_error(__FILE__, __LINE__, 0,
+      bft::bft_error(__FILE__, __LINE__, 0,
                 "'%s' existing coupling\n", name.c_str());
 
   }
@@ -147,7 +149,7 @@ namespace cwipi {
   {
     const std::map <std::string, Coupling * >::iterator p = _couplingDataBase.find(name);
     if (p == _couplingDataBase.end())
-      bft_error(__FILE__, __LINE__, 0,
+      bft::bft_error(__FILE__, __LINE__, 0,
                 "'%s' coupling not found \n", name.c_str());
 
     if (p->second != NULL)
