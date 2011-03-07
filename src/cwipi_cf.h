@@ -19,11 +19,8 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-//Bug mpich2
-#define MPICH_IGNORE_CXX_SEEK 1
-
-#include <stdio.h>
 #include <mpi.h>
+#include <stdio.h>
 
 /*=============================================================================
  * Macro definitions

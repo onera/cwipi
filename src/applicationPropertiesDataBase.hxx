@@ -21,8 +21,6 @@
 
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
-//Bug mpich2
-#define MPICH_IGNORE_CXX_SEEK 1
 #include <mpi.h>
 #include <map>
 

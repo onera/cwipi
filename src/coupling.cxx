@@ -16,6 +16,9 @@
   You should have received a copy of the GNU Lesser General Public
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
+
+#include <mpi.h>
+
 #include <cassert>
 #include <cmath>
 #include <cstring>
@@ -370,8 +373,8 @@ void Coupling::_interpolate1D(double *referenceVertexField,
   const int *eltsConnecPointer = _supportMesh->getEltConnectivityIndex();
   const int *eltsConnec        = _supportMesh->getEltConnectivity();
   const double *coords         = _supportMesh->getVertexCoords();
-  const double *barycentricCoordinates = _locationToLocalMesh->getBarycentricCoordinates();
-  const int *barycentricCoordinatesIndex = _locationToLocalMesh->getBarycentricCoordinatesIndex();
+  const double *barycentricCoordinates = &_locationToLocalMesh->getBarycentricCoordinates()[0];
+  const int *barycentricCoordinatesIndex = &_locationToLocalMesh->getBarycentricCoordinatesIndex()[0];
 
   for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
     int iel = distantLocation[ipoint] - 1;
@@ -400,8 +403,8 @@ void Coupling::_interpolate2D (double *vertexField,
   const int *eltsConnecPointer = _supportMesh->getEltConnectivityIndex();
   const int *eltsConnec        = _supportMesh->getEltConnectivity();
 
-  const double *barycentricCoordinates = _locationToLocalMesh->getBarycentricCoordinates();
-  const int *barycentricCoordinatesIndex = _locationToLocalMesh->getBarycentricCoordinatesIndex();
+  const double *barycentricCoordinates = &_locationToLocalMesh->getBarycentricCoordinates()[0];
+  const int *barycentricCoordinatesIndex = &_locationToLocalMesh->getBarycentricCoordinatesIndex()[0];
 
   for (int ipoint = 0; ipoint <nDistantPoint; ipoint++) {
     int iel = distantLocation[ipoint] - 1;
@@ -829,8 +832,8 @@ cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
 
     const int* interiorList     = _locationToDistantMesh->getLocatedPoint();
     const int nInteriorList     = _locationToDistantMesh->getNLocatedPoint();
-    const double *barycentricCoordinates = _locationToLocalMesh->getBarycentricCoordinates();
-    const int *barycentricCoordinatesIndex = _locationToLocalMesh->getBarycentricCoordinatesIndex();
+    const double *barycentricCoordinates = &_locationToLocalMesh->getBarycentricCoordinates()[0];
+    const int *barycentricCoordinatesIndex = &_locationToLocalMesh->getBarycentricCoordinatesIndex()[0];
 
     int lDistantField = stride * nDistantPoint;
     int lReceivingField = stride * _locationToDistantMesh->getNpointsToLocate();
@@ -1058,8 +1061,8 @@ void Coupling::issend(const char    *exchangeName,
 
     const int* interiorList     = _locationToDistantMesh->getLocatedPoint();
     const int nInteriorList     = _locationToDistantMesh->getNLocatedPoint();
-    const double *barycentricCoordinates = _locationToLocalMesh->getBarycentricCoordinates();
-    const int *barycentricCoordinatesIndex = _locationToLocalMesh->getBarycentricCoordinatesIndex();
+    const double *barycentricCoordinates = &_locationToLocalMesh->getBarycentricCoordinates()[0];
+    const int *barycentricCoordinatesIndex = &_locationToLocalMesh->getBarycentricCoordinatesIndex()[0];
 
     int lDistantField = stride * nDistantPoint;
     int lReceivingField = stride * _locationToDistantMesh->getNpointsToLocate();

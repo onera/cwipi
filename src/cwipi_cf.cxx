@@ -20,6 +20,8 @@
  * Standard C/C++ library headers
  *----------------------------------------------------------------------------*/
 
+#include <mpi.h>
+
 #include <cassert>
 #include <cstring>
 

@@ -16,8 +16,6 @@
   You should have received a copy of the GNU Lesser General Public
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
-//Bug mpich2
-//#define MPICH_IGNORE_CXX_SEEK 1
 
 #include <mpi.h>
 
@@ -39,7 +37,6 @@
 #define ABS(a)     ((a) <  0  ? -(a) : (a))
 //TODO: Remplacer les #define MAX, ABS... par des fonctions inline
 namespace cwipi {
-
 
   Mesh::Mesh(const MPI_Comm &localComm,
              const int nDim,

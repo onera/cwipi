@@ -22,7 +22,6 @@ cwipi_f.f90 \
 cwipi.h 
 
 noinst_HEADERS = \
-coo_baryc.h \
 cwipi_cf.h \
 quickSort.h \
 solve_ax_b_4.h
@@ -43,7 +42,6 @@ locationToDistantMesh.cxx \
 cwipi.cxx \
 quickSort.c \
 solve_ax_b_4.c \
-coo_baryc.cxx \
 mesh.cxx \
 coupling.cxx \
 couplingDataBase.cxx \

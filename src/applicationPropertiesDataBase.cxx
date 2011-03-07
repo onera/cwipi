@@ -17,6 +17,8 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <mpi.h>
+
 #include <cstring>
 #include <ctime>
 #include <cstdlib>

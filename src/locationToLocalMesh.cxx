@@ -16,15 +16,6 @@
   You should have received a copy of the GNU Lesser General Public
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
-/*
- * localLocation.cxx
- *
- *  Created on: Oct 16, 2009
- *      Author: equemera
- */
-
-//Bug mpich2
-//#define MPICH_IGNORE_CXX_SEEK 1
 
 #include <mpi.h>
 
@@ -36,7 +27,6 @@
 
 #include "locationToLocalMesh.hxx"
 #include "locationToDistantMesh.hxx"
-#include "coo_baryc.h"
 #include "applicationProperties.hxx"
 
 
@@ -74,17 +64,10 @@ LocationToLocalMesh::LocationToLocalMesh(
 
 LocationToLocalMesh::~LocationToLocalMesh()
 {
-  //
-  // TODO: Recoder les coord bary 2D en c++
 
-  if (_entitiesDim != 2) {
-    delete[] _barycentricCoordinatesIndex;
-    delete[] _barycentricCoordinates;
-  }
-
-  else {
-    bft::BFT_FREE(_barycentricCoordinatesIndex);
-    bft::BFT_FREE(_barycentricCoordinates);
+  if (_barycentricCoordinatesIndex != NULL) {
+    delete _barycentricCoordinatesIndex;
+    delete _barycentricCoordinates;
   }
 
   if (_fvmLocator != NULL)
@@ -160,15 +143,8 @@ void LocationToLocalMesh::locate()
     _nDistantPoint = fvm::fvm_locator_get_n_dist_points(_fvmLocator);
 
     if (_barycentricCoordinatesIndex != NULL) {
-      if (_entitiesDim != 2) {
-        delete[] _barycentricCoordinatesIndex;
-        delete[] _barycentricCoordinates;
-      }
-
-      else {
-        bft::BFT_FREE(_barycentricCoordinatesIndex);
-        bft::BFT_FREE(_barycentricCoordinates);
-      }
+      delete _barycentricCoordinatesIndex;
+      delete _barycentricCoordinates;
     }
 
     //
@@ -186,41 +162,35 @@ void LocationToLocalMesh::locate()
         const double *localCoords    = _supportMesh->getVertexCoords();
 
         if ( nDistantPoint > 0 ) {
-          _barycentricCoordinatesIndex = new int[nDistantPoint+1];
-          _barycentricCoordinates = new double[2*nDistantPoint];
-          _barycentricCoordinatesIndex[0] = 0;
+          _barycentricCoordinatesIndex = new std::vector <int> (nDistantPoint + 1);
+          _barycentricCoordinates = new std::vector <double> (2 * nDistantPoint);
+          std::vector <int> &  _refBarycentricCoordinatesIndex = *_barycentricCoordinatesIndex;
+          std::vector <double> &  _refBarycentricCoordinates = *_barycentricCoordinates;
+
+          _refBarycentricCoordinatesIndex[0] = 0;
 
           for (int ipoint = 0; ipoint < nDistantPoint ; ipoint++) {
             int iel = distantLocation[ipoint] - 1;
-            _barycentricCoordinatesIndex[ipoint+1] = _barycentricCoordinatesIndex[ipoint] + 2;
+            _refBarycentricCoordinatesIndex[ipoint+1] = _refBarycentricCoordinatesIndex[ipoint] + 2;
             int index = eltsConnecPointer[iel];
             int nVertex = eltsConnecPointer[iel+1] - eltsConnecPointer[iel];
             assert(nVertex == 2);
             int pt1 = eltsConnec[index] - 1;
             int pt2 = eltsConnec[index+1] - 1;
-             double coef1 = sqrt((localCoords[3*pt1]-distantCoords[3*ipoint])*(localCoords[3*pt1]-distantCoords[3*ipoint])+
+            double coef1 = sqrt((localCoords[3*pt1]-distantCoords[3*ipoint])*(localCoords[3*pt1]-distantCoords[3*ipoint])+
                                 (localCoords[3*pt1+1]-distantCoords[3*ipoint+1])*(localCoords[3*pt1+1]-distantCoords[3*ipoint+1])+
-                              (localCoords[3*pt1+2]-distantCoords[3*ipoint+2])*(localCoords[3*pt1+2]-distantCoords[3*ipoint+2]));
+                                (localCoords[3*pt1+2]-distantCoords[3*ipoint+2])*(localCoords[3*pt1+2]-distantCoords[3*ipoint+2]));
             double coef2 = sqrt((localCoords[3*pt2]-distantCoords[3*ipoint])*(localCoords[3*pt2]-distantCoords[3*ipoint])+
                                 (localCoords[3*pt2+1]-distantCoords[3*ipoint+1])*(localCoords[3*pt2+1]-distantCoords[3*ipoint+1])+
                                 (localCoords[3*pt2+2]-distantCoords[3*ipoint+2])*(localCoords[3*pt2+2]-distantCoords[3*ipoint+2]));
-            _barycentricCoordinates[_barycentricCoordinatesIndex[ipoint]] = coef2/(coef1+coef2);
-            _barycentricCoordinates[_barycentricCoordinatesIndex[ipoint]+1] = coef1/(coef1+coef2);
+            _refBarycentricCoordinates[_refBarycentricCoordinatesIndex[ipoint]] = coef2/(coef1+coef2);
+            _refBarycentricCoordinates[_refBarycentricCoordinatesIndex[ipoint]+1] = coef1/(coef1+coef2);
           }
         }
       }
 
       else if (_entitiesDim == 2) {
-        int nPoints;
-        coo_baryc(_fvmLocator,
-                  _supportMesh->getNVertex(),
-                  _supportMesh->getVertexCoords(),
-                  _supportMesh->getNElts(),
-                  _supportMesh->getEltConnectivityIndex(),
-                  _supportMesh->getEltConnectivity(),
-                  &nPoints,
-                  &_barycentricCoordinatesIndex,
-                  &_barycentricCoordinates);
+        compute2DMeanValues();
       }
 
       else if (_entitiesDim == 3) {
@@ -382,7 +352,7 @@ void LocationToLocalMesh::locate()
 
       MPI_Bcast(&distantMaxElementContainingNVertex, 1, MPI_INT, 0, _localApplicationProperties.getLocalComm());
 
-      _maxElementContainingNVertex = MAX(_maxElementContainingNVertex, distantMaxElementContainingNVertex);
+      _maxElementContainingNVertex = std::max(_maxElementContainingNVertex, distantMaxElementContainingNVertex);
 
       fvm::fvm_locator_exchange_point_var(_fvmLocator,
                                      (void *) p_nVertex,
@@ -469,12 +439,14 @@ void LocationToLocalMesh::locate()
         tmpLocal1 = new double [_nDistantPoint];
 
       for (int i = 0; i < _maxElementContainingNVertex; i++) {
+        std::vector <double> &  _refBarycentricCoordinates = *_barycentricCoordinates;
+
         if (distantInfo == CWIPI_DISTANT_MESH_INFO) {
           std::vector <int> & _nVertexRef = *_nVertex;
           for (int j = 0; j < _nDistantPoint; j++) {
             if (i < _nVertexRef[j]) {
               int index = _supportMesh->getEltConnectivityIndex()[_location[j]-1] + i;
-              tmpLocal1[j] = _barycentricCoordinates[index];
+              tmpLocal1[j] = _refBarycentricCoordinates[index];
             }
           }
         }
@@ -642,6 +614,411 @@ void LocationToLocalMesh::exchangeCellCenterFieldOfElementContaining (double *se
                                  stride,
                                  0);
 }
+
+///
+/// \brief Compute Mean Values
+///
+///
+
+void  LocationToLocalMesh::midplaneProjection
+(
+ const int     nbr_som_fac,
+ double *const coo_som_fac,
+ double *const coo_point_dist
+)
+
+{
+
+  int    icoo ;
+  int    isom ;
+  int    itri ;
+
+  double   cost ;
+  double   sint ;
+
+  double   coo_tmp ;
+
+  double   vect1[3] ;
+  double   vect2[3] ;
+
+  double  prod_vect[3] ;
+
+  double  barycentre_fac[3] ;
+  double  normale_fac[3] ;
+
+  double *coo_som_fac_tmp = NULL;
+  double  coo_point_dist_tmp[3] ;
+
+  const double eps = 1e-15;
+
+
+  /*xxxxxxxxxxxxxxxxxxxxxxxxxxx Instructions xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
+
+
+  /* Calcul des coordonnées du barycentre B du polygone P */
+  /*======================================================*/
+
+  for (icoo = 0 ; icoo < 3 ; icoo++) {
+
+    barycentre_fac[icoo] = 0. ;
+
+    for (isom = 0 ; isom < nbr_som_fac ; isom++)
+      barycentre_fac[icoo] += coo_som_fac[3*isom+icoo] ;
+
+    barycentre_fac[icoo] /= nbr_som_fac ;
+
+  }
+
+  for (icoo = 0 ; icoo < 3 ; icoo++)
+    normale_fac[icoo] = 0. ;
+
+  /* Calcul de la normale */
+  /*======================*/
+
+  for (itri = 0 ; itri < nbr_som_fac ; itri++) {
+
+    for (icoo = 0 ; icoo < 3 ; icoo++) {
+
+      vect1[icoo] = coo_som_fac[3*itri+icoo] - barycentre_fac[icoo] ;
+
+      if (itri < nbr_som_fac - 1)
+        vect2[icoo] = coo_som_fac[3*(itri+1)+icoo] - barycentre_fac[icoo] ;
+      else
+        vect2[icoo] = coo_som_fac[icoo] - barycentre_fac[icoo] ;
+
+    }
+
+    normale_fac[0] += vect1[1] * vect2[2] - vect2[1] * vect1[2] ;
+    normale_fac[1] += vect2[0] * vect1[2] - vect1[0] * vect2[2] ;
+    normale_fac[2] += vect1[0] * vect2[1] - vect2[0] * vect1[1] ;
+
+  }
+
+
+  /* Projection dans un plan parallèle à la face */
+  /*=============================================*/
+
+  /* On ramène l'origine au centre de gravité de la fac */
+
+  for (isom = 0 ; isom < nbr_som_fac ; isom++)
+    for (icoo = 0 ; icoo < 3 ; icoo++)
+      coo_som_fac[3*isom+icoo] -= barycentre_fac[icoo] ;
+
+  for (icoo = 0 ; icoo < 3 ; icoo++)
+    coo_point_dist[icoo] -= barycentre_fac[icoo] ;
+
+  if (abs(normale_fac[0]) > eps || abs(normale_fac[1]) > eps) {
+
+    /* Première rotation d'axe (Oz) et d'angle (Ox, proj normale sur Oxy) */
+
+    coo_som_fac_tmp = new double [3 * nbr_som_fac];
+
+    vect1[0] = 1. ;
+    vect1[1] = 0. ;
+    vect1[2] = 0. ;
+
+    vect2[0] = normale_fac[0] ;
+    vect2[1] = normale_fac[1] ;
+    vect2[2] = 0. ;
+
+    computeVectorProduct(prod_vect, vect1, vect2) ;
+
+    cost = computeCrossProduct(vect1, vect2) / computeNorm(vect2) ;
+
+    if (prod_vect[2] > 0.)
+      sint =  computeNorm(prod_vect) / computeNorm(vect2) ;
+    else
+      sint = -computeNorm(prod_vect) / computeNorm(vect2) ;
+
+    for (isom = 0 ; isom < nbr_som_fac ; isom++) {
+
+      coo_som_fac_tmp[3*isom] =
+         cost*coo_som_fac[3*isom] + sint*coo_som_fac[3*isom+1] ;
+      coo_som_fac_tmp[3*isom+1] =
+        -sint*coo_som_fac[3*isom] + cost*coo_som_fac[3*isom+1] ;
+      coo_som_fac_tmp[3*isom+2] = coo_som_fac[3*isom+2] ;
+
+    }
+
+    coo_point_dist_tmp[0] = cost*coo_point_dist[0] + sint*coo_point_dist[1] ;
+    coo_point_dist_tmp[1] = -sint*coo_point_dist[0] + cost*coo_point_dist[1] ;
+    coo_point_dist_tmp[2] = coo_point_dist[2] ;
+
+    /* Deuxième rotation d'axe (Oy) et d'angle (Oz', proj normale sur Ox'z) */
+
+    vect1[0] =  0. ;
+    vect1[1] =  0. ;
+    vect1[2] =  1. ;
+
+    vect2[0] =
+      sqrt(normale_fac[0]*normale_fac[0] + normale_fac[1]*normale_fac[1]) ;
+    vect2[1] = 0. ;
+    vect2[2] = normale_fac[2] ;
+
+    computeVectorProduct(prod_vect, vect1, vect2) ;
+
+    cost = computeCrossProduct(vect1, vect2) / computeNorm(vect2) ;
+
+    if (prod_vect[2] > 0.)
+      sint =  computeNorm(prod_vect) / computeNorm(vect2) ;
+    else
+      sint = -computeNorm(prod_vect) / computeNorm(vect2) ;
+
+
+    for (isom = 0 ; isom < nbr_som_fac ; isom++) {
+
+      coo_som_fac[3*isom] =
+         cost*coo_som_fac_tmp[3*isom] + sint*coo_som_fac_tmp[3*isom + 2] ;
+      coo_som_fac[3*isom+1] = coo_som_fac_tmp[3*isom+1] ;
+      coo_som_fac[3*isom+2] = 0. ;
+
+    }
+
+    coo_point_dist[0] =
+      cost*coo_point_dist_tmp[0] + sint*coo_point_dist_tmp[2] ;
+    coo_point_dist[1] = coo_point_dist_tmp[1] ;
+    coo_point_dist[2] = 0. ;
+
+
+    delete [] (coo_som_fac_tmp) ;
+
+  }
+  else {
+
+    /* On écrase seulement la coordonnée z du sommet, en intervertissant
+       éventuellement les coordonnées dans le plan de projection (Oxy).  */
+
+    if (normale_fac[2] > 0.) {
+      for (isom = 0 ; isom < nbr_som_fac ; isom++)
+        coo_som_fac[3*isom+2] = 0. ;
+
+      coo_point_dist[2] = 0. ;
+    }
+    else {
+      for (isom = 0 ; isom < nbr_som_fac ; isom++) {
+        coo_tmp = coo_som_fac[3*isom] ;
+        coo_som_fac[3*isom] = coo_som_fac[3*isom+1] ;
+        coo_som_fac[3*isom+1] = coo_tmp ;
+        coo_som_fac[3*isom+2] = 0. ;
+      }
+      coo_tmp = coo_point_dist[0] ;
+      coo_point_dist[0] = coo_point_dist[1] ;
+      coo_point_dist[1] = coo_tmp ;
+      coo_point_dist[2] = 0. ;
+    }
+  }
+}
+
+///
+/// \brief Compute Mean Values
+///
+///
+
+void LocationToLocalMesh::compute2DMeanValues()
+{
+  /* Boucle sur les points distants */
+
+  const int n_dist_points = fvm::fvm_locator_get_n_dist_points(_fvmLocator);
+  const fvm::fvm_lnum_t *dist_locations = fvm::fvm_locator_get_dist_locations(_fvmLocator);
+  const fvm::fvm_coord_t *dist_coords = fvm::fvm_locator_get_dist_coords(_fvmLocator);
+  fvm::fvm_coord_t coo_point_dist[3];
+
+  /* Tableaux locaux */
+
+  const double eps = 1e-15;
+  std::vector <double> coo_som_fac;
+  std::vector <double> s; 
+  std::vector <double> dist;
+  std::vector <double> aire;
+  std::vector <double> proScal;
+
+  int tailleDistBarCoords;
+
+  _barycentricCoordinatesIndex = new std::vector <int> (n_dist_points + 1);
+
+  tailleDistBarCoords = 4 * n_dist_points;
+  _barycentricCoordinates = new std::vector <double> (tailleDistBarCoords);
+
+  std::vector <int>& nDistBarCoords = *_barycentricCoordinatesIndex;
+  std::vector <double>& distBarCoords = *_barycentricCoordinates;
+
+  const int *meshConnectivityIndex = _supportMesh->getEltConnectivityIndex();
+  const int *meshConnectivity = _supportMesh->getEltConnectivity();
+  const double *meshVertexCoords = _supportMesh->getVertexCoords();
+
+  nDistBarCoords[0] = 0;
+
+  for (int ipoint =  0; ipoint < n_dist_points; ipoint++ ) {
+    //bft_printf("-- Etude du point : %d \n", ipoint);
+
+    /* Initialisation - Copie locale */
+
+    int isOnEdge = 0;
+    int isVertex = 0;
+    int ielt = dist_locations[ipoint] - 1;
+    int nbr_som_fac =  meshConnectivityIndex[ielt+1] - 
+                       meshConnectivityIndex[ielt];
+    coo_point_dist[0] = dist_coords[3*ipoint];
+    coo_point_dist[1] = dist_coords[3*ipoint + 1];
+    coo_point_dist[2] = dist_coords[3*ipoint + 2];
+
+    if (ipoint == 0) {
+      coo_som_fac.resize(3 * nbr_som_fac);
+      s.resize(3 * nbr_som_fac);
+      dist.resize(nbr_som_fac);
+      aire.resize(nbr_som_fac);
+      proScal.resize(nbr_som_fac);
+    }
+    else
+      if (proScal.size() < nbr_som_fac) {
+        coo_som_fac.resize(3 * nbr_som_fac);
+        s.resize(3 * nbr_som_fac);
+        dist.resize(nbr_som_fac);
+        aire.resize(nbr_som_fac);
+        proScal.resize(nbr_som_fac);
+      }
+
+    for (int isom = 0; isom < nbr_som_fac; isom++) {
+      coo_som_fac[3*isom]   = meshVertexCoords[3*(meshConnectivity[meshConnectivityIndex[ielt]+isom]-1)];
+      coo_som_fac[3*isom+1] = meshVertexCoords[3*(meshConnectivity[meshConnectivityIndex[ielt]+isom]-1)+1];
+      coo_som_fac[3*isom+2] = meshVertexCoords[3*(meshConnectivity[meshConnectivityIndex[ielt]+isom]-1)+2];
+    }
+
+    /* Projection sur un plan moyen */
+
+    midplaneProjection(nbr_som_fac, &coo_som_fac[0], coo_point_dist);
+
+    /* Calcul des coordonnnees barycentriques */
+
+    for (int isom = 0; isom < nbr_som_fac; isom++) {
+
+      s[3*isom]   = coo_som_fac[3*isom]   - coo_point_dist[0];
+      s[3*isom+1] = coo_som_fac[3*isom+1] - coo_point_dist[1];
+      s[3*isom+2] = coo_som_fac[3*isom+2] - coo_point_dist[2];
+      dist[isom] = sqrt(s[3*isom]*s[3*isom] +
+                        s[3*isom+1]*s[3*isom+1] +
+                        s[3*isom+2]*s[3*isom+2]);
+    }
+
+    int currentVertex;
+    for (int isom = 0; isom < nbr_som_fac; isom++) {
+      if (isom != (nbr_som_fac - 1)) {
+        aire[isom] = s[3*isom]*s[3*(isom+1)+1] - s[3*(isom+1)]*s[3*isom+1];
+        proScal[isom] = s[3*isom] * s[3*(isom+1)] +
+                        s[3*isom+1] * s[3*(isom+1)+1] +
+                        s[3*isom+2] * s[3*(isom+1)+2];
+      }
+      else {
+        aire[isom] = s[3*isom]*s[1] - s[0]*s[3*isom+1];
+        proScal[isom] = s[3*isom] * s[0] +
+                        s[3*isom+1] * s[1] +
+                        s[3*isom+2] * s[2];
+      }
+      if (dist[isom] <= eps) {
+        isVertex = 1;
+        currentVertex = isom;
+        break;
+      }
+      /* faire un test avec eps pour proScal */
+      else if (aire[isom] <= eps && proScal[isom] < 0.) {
+        isOnEdge = 1;
+        currentVertex = isom;
+        break;
+      }
+    }
+
+    /* Mise a jour de la taille du tableau de stockage des coordonnees barycentriques */
+
+    nDistBarCoords[ipoint+1] = nDistBarCoords[ipoint] + nbr_som_fac;
+
+    if (distBarCoords.size() <= nDistBarCoords[ipoint+1]) {
+      distBarCoords.resize(2 * distBarCoords.size());
+    }
+
+    /* Le point distant est un sommet */
+
+    if (isVertex) {
+
+      for (int isom = 0; isom < nbr_som_fac; isom++)
+        distBarCoords[nDistBarCoords[ipoint]+isom] = 0.;
+      distBarCoords[nDistBarCoords[ipoint]+currentVertex] = 1.;
+    }
+
+    /* Le point distant est sur arete */
+
+    else if (isOnEdge) {
+      for (int isom = 0; isom < nbr_som_fac; isom++)
+        distBarCoords[nDistBarCoords[ipoint]+isom] = 0.;
+
+      int nextPoint;
+      if (currentVertex == (nbr_som_fac - 1))
+        nextPoint = 0;
+      else
+        nextPoint = currentVertex + 1;
+
+      distBarCoords[nDistBarCoords[ipoint]+currentVertex] = dist[nextPoint]     / (dist[nextPoint]+dist[currentVertex]);
+      distBarCoords[nDistBarCoords[ipoint]+nextPoint]     = dist[currentVertex] / (dist[nextPoint]+dist[currentVertex]);
+
+    }
+
+    /* Cas general */
+
+    else {
+      double sigma = 0;
+      for (int isom = 0; isom < nbr_som_fac; isom++) {
+        double coef = 0.;
+        int previousVertex;
+        int nextVertex;
+        if (isom != 0)
+          previousVertex = isom - 1;
+        else
+          previousVertex = nbr_som_fac - 1;
+        if (isom < nbr_som_fac - 1)
+          nextVertex = isom + 1;
+        else
+          nextVertex = 0;
+        if (abs(aire[previousVertex]) > eps)
+          coef += (dist[previousVertex] - proScal[previousVertex]/dist[isom]) / aire[previousVertex];
+        // BUG: verifier le test de calcul du coeff
+        if (abs(aire[isom]) > eps)
+          coef += (dist[nextVertex] - proScal[isom]/dist[isom]) / aire[isom];
+        sigma += coef;
+        distBarCoords[nDistBarCoords[ipoint]+isom] = coef;
+      }
+      if (abs(sigma) >= eps ) {
+        for (int isom = 0; isom < nbr_som_fac; isom++) {
+          distBarCoords[nDistBarCoords[ipoint]+isom] /= sigma;
+        }
+      }
+      else {
+        double abs_sigma = abs(sigma);
+        printf("Warning : mise à NAN %f %f", abs_sigma,  eps);
+        for (int isom = 0; isom < nbr_som_fac; isom++) {
+          distBarCoords[nDistBarCoords[ipoint]+isom] = NAN;
+        }
+      }
+    }
+
+    if (0 == 1) {
+      bft::bft_printf("coo b %i :", ipoint);
+      for (int isom = 0; isom < nbr_som_fac; isom++) {
+        bft::bft_printf(" %f", distBarCoords[nDistBarCoords[ipoint]+isom]);
+      }
+      bft::bft_printf("\n");
+    }
+  }
+
+  coo_som_fac.clear();
+  s.clear();
+  aire.clear();
+  dist.clear();
+  proScal.clear();
+
+  distBarCoords.resize(nDistBarCoords[n_dist_points]);
+
+}
+
+
 
 } // Namespace CWIPI
 

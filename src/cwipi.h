@@ -19,13 +19,11 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-//Bug mpich2
-//#define MPICH_IGNORE_CXX_SEEK 1
 #include <mpi.h>
 
 #include <stdio.h>
 
-//#include <fvm_nodal.h>
+//#include <fvm_nodal.h> // 
 
 /*=============================================================================
  * Macro definitions

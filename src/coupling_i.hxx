@@ -56,12 +56,12 @@ namespace cwipi {
 
   const int *Coupling::getDistantBarycentricCoordinatesIndex() const
   {
-    return _locationToLocalMesh->getBarycentricCoordinatesIndex();
+    return &_locationToLocalMesh->getBarycentricCoordinatesIndex()[0];
   }
 
   const double *Coupling::getDistantBarycentricCoordinates() const
   {
-    return _locationToLocalMesh->getBarycentricCoordinates();
+    return &_locationToLocalMesh->getBarycentricCoordinates()[0];
   }
 
   int Coupling::getNDistantPoint() const

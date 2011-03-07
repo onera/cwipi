@@ -19,10 +19,9 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define MPICH_IGNORE_CXX_SEEK 1
-
 #include <string>
 #include <vector>
+#include <cmath>
 
 #include <fvm_locator.h>
 #include <fvm_nodal.h>
@@ -36,6 +35,12 @@ namespace cwipi
 
 class LocationToDistantMesh;
 class ApplicationProperties;
+
+enum {
+  X,
+  Y,
+  Z
+} ;
 
 class LocationToLocalMesh
 {
@@ -83,13 +88,13 @@ public:
   /// \brief Get barycentric coordinates index  of distant points in the local mesh (size = nDistantPoint + 1)
   ///
 
-  inline const int *getBarycentricCoordinatesIndex() const;
+  inline const std::vector <int> & getBarycentricCoordinatesIndex() const;
 
   ///
   /// \brief Get barycentric coordinates of distant points in the local mesh (size = BarycentricCoordinatesIndex[nDistantPoint])
   ///
 
-  inline const double *getBarycentricCoordinates() const;
+  inline const std::vector <double> & getBarycentricCoordinates() const;
 
   ///
   /// \brief Return location result (size = nDistantpoint)
@@ -140,10 +145,79 @@ public:
   ///
   /// \brief Set support mesh
   ///
-  ///   @param [in]      supportMesh  location support mesh
+  ///   @param [in]      supportMesh location support mesh
   ///
 
   inline void setSupportMesh(Mesh *supportMesh);
+
+private :
+
+  ///
+  /// \brief Compute Mean Values
+  ///
+  ///
+
+  void compute2DMeanValues();
+
+  ///
+  /// \brief Projection to the midplane
+  ///
+  ///   @param [in]         nbr_som_fac location support mesh
+  ///   @param [inout]      coo_som_fac coordinates of face vertices
+  ///   @param [inout]      coo_point_dist coordinates of distant points
+  ///
+
+  void midplaneProjection
+  (
+   const int     nbr_som_fac,
+   double *const coo_som_fac,
+   double *const coo_point_dist
+   );
+
+  ///
+  /// \brief Compute vector product
+  ///
+  ///   @param [in]      vect1  first vector
+  ///   @param [in]      vect2  second vector
+  ///   @param [inout]   prod_vect vect1 X vect2
+  ///
+
+  inline void computeVectorProduct(double *prod_vect, 
+                                   const double *vect1, 
+                                   const double *vect2);
+
+  ///
+  /// \brief Cross product
+  ///
+  ///   @param [in]      vect1  first vector
+  ///   @param [in]      vect2  second vector
+  ///   @return          vect1 . vect2
+  ///
+
+  inline double computeCrossProduct(const double* vect1, 
+                                    const double* vect2);
+
+  ///
+  /// \brief Compute Norm
+  ///
+  ///   @param [in]      vect  Vector
+  ///   @return          Cross product
+  ///
+
+  inline double computeNorm(const double* vect);
+
+  ///
+  /// \brief Compute determinant
+  ///
+  ///   @param [in]      vect1  First vector
+  ///   @param [in]      vect2  Second vector
+  ///   @param [in]      vect3  Third vector
+  ///   @return          Cross product
+  ///
+
+  inline double computeDeterminant(const double* vect1, 
+                                   const double* vect2,
+                                   const double* vect3);
 
 private :
 
@@ -158,9 +232,9 @@ private :
   const ApplicationProperties&_localApplicationProperties;                  ///< Application properties
   LocationToDistantMesh      &_locationToDistantMesh;                       ///< Information about local points location in the distant mesh
 
-  fvm::fvm_locator_t              *_fvmLocator;                                  ///< fvm structure that build the location
-  int                        *_barycentricCoordinatesIndex;                 ///< Barycentric coordinates for each
-  double                     *_barycentricCoordinates;                      ///< Barycentric coordinates associated to the element that contains each located distant point
+  fvm::fvm_locator_t         *_fvmLocator;                                  ///< fvm structure that build the location
+  std::vector <int>          *_barycentricCoordinatesIndex;                 ///< Barycentric coordinates for each
+  std::vector <double>       *_barycentricCoordinates;                      ///< Barycentric coordinates associated to the element that contains each located distant point
   int                         _nDistantPoint;                               ///< Number of distant points located in the local mesh
   int                        *_location;                                    ///< Local elements that contain distant points
   std::vector <int>          *_nVertex;                                     ///< Vertices number of local elements that contain distant points
@@ -172,22 +246,22 @@ private :
 /// \brief Get barycentric coordinates index  of distant points in the local mesh (size = nDistantPoint + 1)
 ///
 
-const int *LocationToLocalMesh::getBarycentricCoordinatesIndex() const
+  const std::vector <int> & LocationToLocalMesh::getBarycentricCoordinatesIndex() const
 {
   if (_toLocate)
     bft::bft_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
-  return _barycentricCoordinatesIndex;
+  return *_barycentricCoordinatesIndex;
 }
 
 ///
 /// \brief Get barycentric coordinates of distant points in the local mesh (size = BarycentricCoordinatesIndex[nDistantPoint])
 ///
 
-const double *LocationToLocalMesh::getBarycentricCoordinates() const
+  const std::vector <double> & LocationToLocalMesh::getBarycentricCoordinates() const
 {
   if (_toLocate)
     bft::bft_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
-  return _barycentricCoordinates;
+  return *_barycentricCoordinates;
 }
 
 ///
@@ -240,10 +314,72 @@ fvm::fvm_locator_t *LocationToLocalMesh::getFVMLocator() const
 ///   @param [in]      supportMesh  location support mesh
 ///
 
-inline void LocationToLocalMesh::setSupportMesh(Mesh *supportMesh)
+void LocationToLocalMesh::setSupportMesh(Mesh *supportMesh)
 {
   _toLocate = true;
   _supportMesh = supportMesh;
+}
+
+///
+/// \brief Compute vector product
+///
+///   @param [in]      vect1  first vector
+///   @param [in]      vect2  second vector
+///   @param [inout]   prod_vect vect1 X vect2
+///
+
+void LocationToLocalMesh::computeVectorProduct(double *prod_vect, 
+                                               const double *vect1, 
+                                               const double *vect2)
+{ 
+  prod_vect[X] = vect1[Y] * vect2[Z] - vect2[Y] * vect1[Z];
+  prod_vect[Y] = vect2[X] * vect1[Z] - vect1[X] * vect2[Z];
+  prod_vect[Z] = vect1[X] * vect2[Y] - vect2[X] * vect1[Y];
+}
+
+///
+/// \brief Cross product
+///
+///   @param [in]      vect1  first vector
+///   @param [in]      vect2  second vector
+///   @param [inout]   prod_vect vect1 X vect2
+///
+
+double LocationToLocalMesh::computeCrossProduct(const double *vect1, 
+                                                const double *vect2)
+{
+  return vect1[X] * vect2[X] + vect1[Y] * vect2[Y] + vect1[Z] * vect2[Z];
+}
+
+///
+/// \brief Compute Norm
+///
+///   @param [in]      vect1  first vector
+///   @param [in]      vect2  second vector
+///   @param [inout]   prod_vect vect1 X vect2
+///
+  
+double LocationToLocalMesh::computeNorm(const double* vect)
+{
+  return sqrt(vect[X] * vect[X] + vect[Y] * vect[Y] + vect[Z] * vect[Z]);
+}
+
+///
+/// \brief Compute determinant
+///
+///   @param [in]      vect1  First vector
+///   @param [in]      vect2  Second vector
+///   @param [in]      vect3  Third vector
+///   @return          Cross product
+///
+
+double LocationToLocalMesh::computeDeterminant(const double* vect1,
+                                               const double* vect2,
+                                               const double* vect3)
+{
+  return ((vect1[Y] * vect2[Z] - vect2[Y] * vect1[Z]) * vect3[X])
+       + ((vect2[X] * vect1[Z] - vect1[X] * vect2[Z]) * vect3[Y])
+       + ((vect1[X] * vect2[Y] - vect2[X] * vect1[Y]) * vect3[Z]);
 }
 
 } // Namespace cwipi

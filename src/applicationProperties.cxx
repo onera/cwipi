@@ -27,6 +27,9 @@
 //        - control parameters storage
 //
 ///////////////////////////////////////////////////////////////////////////////
+
+#include <mpi.h>
+
 #include "applicationProperties.hxx"
 
 namespace cwipi

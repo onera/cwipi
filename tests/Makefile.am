@@ -55,6 +55,7 @@ c_linear_coupling \
 c_surf_coupling_P1P1_micron_polygon \
 c_surf_coupling_P1P1_polygon \
 c_surf_coupling_P1P1 \
+c_surf_coupling_P1P0_P0P1 \
 c_surf_coupling_P1P1_asynchronous
 #test3D_1_c1 \
 #test3D_1_c2 

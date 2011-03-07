@@ -19,9 +19,6 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-//Bug mpich2
-//#define MPICH_IGNORE_CXX_SEEK 1
-
 #include <fvm_nodal.h>
 #include <vector>
 #include <mpi.h>
@@ -107,18 +104,21 @@ namespace cwipi {
   private:
     // TODO: renommer _nDim par entitesDim
     const MPI_Comm & _localComm;
-    int     _nDim;
-    int     _nVertex;
+    int            _nDim;
+    int           _nVertex;
     int           _nElts;
     int           _nPolyhedra;
     double       *_coords;
-    int          *_eltConnectivityIndex;
     int          *_polygonIndex;
+
+    int          *_eltConnectivityIndex;
     int          *_eltConnectivity;
+
     int          *_polyhedraFaceIndex;
     int          *_polyhedraCellToFaceConnectivity;
     int          *_polyhedraFaceConnectivityIndex;
     int          *_polyhedraFaceConnectivity;
+
     std::vector<double>  *_cellCenterCoords;
     std::vector<double>  *_cellVolume;
     fvm::fvm_nodal_t *_fvmNodal;
@@ -195,6 +195,5 @@ namespace cwipi {
   }
 
 }
-
 
 #endif //__COUPLING_MESH_H__
