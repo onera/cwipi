@@ -28,6 +28,7 @@
 #include "locationToLocalMesh.hxx"
 #include "locationToDistantMesh.hxx"
 #include "applicationProperties.hxx"
+#include "coo_baryc.h"
 
 
 namespace cwipi
@@ -117,12 +118,12 @@ void LocationToLocalMesh::locate()
     }
 
     fvm::fvm_locator_set_nodal(_fvmLocator,
-                          &_supportMesh->getFvmNodal(),
-                          0,
-                          3,
-                          _locationToDistantMesh._nPointsToLocate,
-                          NULL,
-                          coords);
+                               &_supportMesh->getFvmNodal(),
+                               0,
+                               3,
+                               _locationToDistantMesh._nPointsToLocate,
+                               NULL,
+                               coords);
 
     _toLocate = false;
     const int nLocatedPoint = fvm::fvm_locator_get_n_interior(_fvmLocator);
@@ -694,7 +695,6 @@ void  LocationToLocalMesh::midplaneProjection
 
   }
 
-
   /* Projection dans un plan parallèle à la face */
   /*=============================================*/
 
@@ -707,7 +707,7 @@ void  LocationToLocalMesh::midplaneProjection
   for (icoo = 0 ; icoo < 3 ; icoo++)
     coo_point_dist[icoo] -= barycentre_fac[icoo] ;
 
-  if (abs(normale_fac[0]) > eps || abs(normale_fac[1]) > eps) {
+  if (LocationToLocalMesh::abs(normale_fac[0]) > eps || LocationToLocalMesh::abs(normale_fac[1]) > eps) {
 
     /* Première rotation d'axe (Oz) et d'angle (Ox, proj normale sur Oxy) */
 
@@ -977,21 +977,21 @@ void LocationToLocalMesh::compute2DMeanValues()
           nextVertex = isom + 1;
         else
           nextVertex = 0;
-        if (abs(aire[previousVertex]) > eps)
+        if (LocationToLocalMesh::abs(aire[previousVertex]) > eps)
           coef += (dist[previousVertex] - proScal[previousVertex]/dist[isom]) / aire[previousVertex];
         // BUG: verifier le test de calcul du coeff
-        if (abs(aire[isom]) > eps)
+        if (LocationToLocalMesh::abs(aire[isom]) > eps)
           coef += (dist[nextVertex] - proScal[isom]/dist[isom]) / aire[isom];
         sigma += coef;
         distBarCoords[nDistBarCoords[ipoint]+isom] = coef;
       }
-      if (abs(sigma) >= eps ) {
+      if (LocationToLocalMesh::abs(sigma) >= eps ) {
         for (int isom = 0; isom < nbr_som_fac; isom++) {
           distBarCoords[nDistBarCoords[ipoint]+isom] /= sigma;
         }
       }
       else {
-        double abs_sigma = abs(sigma);
+        double abs_sigma = LocationToLocalMesh::abs(sigma);
         printf("Warning : mise à NAN %f %f", abs_sigma,  eps);
         for (int isom = 0; isom < nbr_som_fac; isom++) {
           distBarCoords[nDistBarCoords[ipoint]+isom] = NAN;
@@ -999,7 +999,13 @@ void LocationToLocalMesh::compute2DMeanValues()
       }
     }
 
-    if (0 == 1) {
+    if (1 == 1) {
+      bft::bft_printf("coord %i :", ipoint);
+      bft::bft_printf(" %12.5e %12.5e %12.5e", dist_coords[3*ipoint], 
+                      dist_coords[3*ipoint+1], 
+                      dist_coords[3*ipoint+2] );
+      bft::bft_printf("\n");
+
       bft::bft_printf("coo b %i :", ipoint);
       for (int isom = 0; isom < nbr_som_fac; isom++) {
         bft::bft_printf(" %f", distBarCoords[nDistBarCoords[ipoint]+isom]);

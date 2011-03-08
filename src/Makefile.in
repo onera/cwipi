@@ -79,7 +79,8 @@ libcwipi_la_DEPENDENCIES = $(top_builddir)/src/bft/libbfto.la \
 am_libcwipi_la_OBJECTS = applicationProperties.lo \
 	applicationPropertiesDataBase.lo locationToLocalMesh.lo \
 	locationToDistantMesh.lo cwipi.lo quickSort.lo solve_ax_b_4.lo \
-	mesh.lo coupling.lo couplingDataBase.lo callfortinterpfct.lo
+	mesh.lo coupling.lo coo_baryc.lo couplingDataBase.lo \
+	callfortinterpfct.lo
 libcwipi_la_OBJECTS = $(am_libcwipi_la_OBJECTS)
 libcwipi_f_la_DEPENDENCIES = $(top_builddir)/src/bft/libbfto.la \
 	$(top_builddir)/src/fvm/libfvmo.la libcwipi.la
@@ -301,6 +302,7 @@ cwipi.h
 noinst_HEADERS = \
 cwipi_cf.h \
 quickSort.h \
+coo_baryc.h \
 solve_ax_b_4.h
 
 
@@ -321,6 +323,7 @@ quickSort.c \
 solve_ax_b_4.c \
 mesh.cxx \
 coupling.cxx \
+coo_baryc.cxx \
 couplingDataBase.cxx \
 callfortinterpfct.f90
 
@@ -416,6 +419,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/applicationProperties.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/applicationPropertiesDataBase.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/coo_baryc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/coupling.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/couplingDataBase.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwipi.Plo@am__quote@

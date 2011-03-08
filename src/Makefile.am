@@ -24,6 +24,7 @@ cwipi.h
 noinst_HEADERS = \
 cwipi_cf.h \
 quickSort.h \
+coo_baryc.h \
 solve_ax_b_4.h
 
 # Library source files
@@ -44,6 +45,7 @@ quickSort.c \
 solve_ax_b_4.c \
 mesh.cxx \
 coupling.cxx \
+coo_baryc.cxx \
 couplingDataBase.cxx \
 callfortinterpfct.f90
 

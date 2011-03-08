@@ -186,8 +186,11 @@ int main
   /* Read args from command line
    * --------------------------- */
 
+/*   int nVertexSeg = 10; */
+/*   double randLevel = 0.4; */
+
   int nVertexSeg = 10;
-  double randLevel = 0.4;
+  double randLevel = 0.1;
 
   _read_args(argc, argv, &nVertexSeg, &randLevel);
 

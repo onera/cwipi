@@ -219,6 +219,16 @@ private :
                                    const double* vect2,
                                    const double* vect3);
 
+
+  ///
+  /// \brief Compute abs
+  ///
+  ///   @param [in]      a  value
+  ///   @return          abs(a)
+  ///
+
+  inline double abs(const double a);
+
 private :
 
   Mesh                       *_supportMesh;                                 ///< Mesh where distant points are localized
@@ -380,6 +390,18 @@ double LocationToLocalMesh::computeDeterminant(const double* vect1,
   return ((vect1[Y] * vect2[Z] - vect2[Y] * vect1[Z]) * vect3[X])
        + ((vect2[X] * vect1[Z] - vect1[X] * vect2[Z]) * vect3[Y])
        + ((vect1[X] * vect2[Y] - vect2[X] * vect1[Y]) * vect3[Z]);
+}
+
+  ///
+  /// \brief Compute abs
+  ///
+  ///   @param [in]      a  value
+  ///   @return          abs(a)
+  ///
+
+double LocationToLocalMesh::abs(const double a)
+{
+  return ((a) <  0  ? -(a) : (a));
 }
 
 } // Namespace cwipi

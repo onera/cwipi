@@ -55,8 +55,9 @@ c_linear_coupling \
 c_surf_coupling_P1P1_micron_polygon \
 c_surf_coupling_P1P1_polygon \
 c_surf_coupling_P1P1 \
-c_surf_coupling_P1P0_P0P1 \
-c_surf_coupling_P1P1_asynchronous
+c_surf_coupling_P1P1_asynchronous \
+c_mean_value_3D
+#c_surf_coupling_P1P0_P0P1 \
 #test3D_1_c1 \
 #test3D_1_c2 
 
@@ -68,10 +69,18 @@ c_surf_coupling_P1P1_micron_polygon_SOURCES = creeMaillagePolygone2D.c c_surf_co
 c_surf_coupling_P1P1_polygon_SOURCES = creeMaillagePolygone2D.c c_surf_coupling_P1P1_polygon.c
 c_surf_coupling_P1P1_SOURCES = grid_mesh.c c_surf_coupling_P1P1.c
 c_surf_coupling_P1P1_asynchronous_SOURCES = grid_mesh.c c_surf_coupling_P1P1_asynchronous.c
+c_mean_value_3D_SOURCES = c_mean_value_3D.c
 #test2D_1_c1_SOURCES = creeMaillagePolygone2D.c test2D_1_c1.c
 #test2D_1_c2_SOURCES = creeMaillagePolygone2D.c test2D_1_c2.f90
 #test3D_1_c1_SOURCES = test3D_1_c1.c
 #test3D_1_c2_SOURCES = test3D_1_c2.c
+
+c_mean_value_3D_LDADD = \
+$(top_builddir)/src/bft/libbfto.la \
+$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/libcwipi.la \
+@MPI_LIBS@ \
+-lm
 
 c_linear_coupling_LDADD = \
 $(top_builddir)/src/bft/libbfto.la \
@@ -133,8 +142,8 @@ TESTS = c_linear_coupling \
 	c_surf_coupling_P1P1_micron_polygon \
 	c_surf_coupling_P1P1_polygon \
 	c_surf_coupling_P1P1 \
-	c_surf_coupling_P1P1_asynchronous
-	python_api.py
+	c_surf_coupling_P1P1_asynchronous \
+	c_mean_value_3D
 if ENABLE_PYTHON 
   TESTS += python_api.py
 endif

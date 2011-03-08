@@ -57,13 +57,14 @@ check_PROGRAMS = c_linear_coupling$(EXEEXT) \
 	c_surf_coupling_P1P1_micron_polygon$(EXEEXT) \
 	c_surf_coupling_P1P1_polygon$(EXEEXT) \
 	c_surf_coupling_P1P1$(EXEEXT) \
-	c_surf_coupling_P1P0_P0P1$(EXEEXT) \
-	c_surf_coupling_P1P1_asynchronous$(EXEEXT)
+	c_surf_coupling_P1P1_asynchronous$(EXEEXT) \
+	c_mean_value_3D$(EXEEXT)
 TESTS = c_linear_coupling$(EXEEXT) \
 	c_surf_coupling_P1P1_micron_polygon$(EXEEXT) \
 	c_surf_coupling_P1P1_polygon$(EXEEXT) \
 	c_surf_coupling_P1P1$(EXEEXT) \
-	c_surf_coupling_P1P1_asynchronous$(EXEEXT) $(am__append_1)
+	c_surf_coupling_P1P1_asynchronous$(EXEEXT) \
+	c_mean_value_3D$(EXEEXT) $(am__append_1)
 @ENABLE_PYTHON_TRUE@am__append_1 = python_api.py
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
@@ -98,12 +99,9 @@ c_linear_coupling_OBJECTS = $(am_c_linear_coupling_OBJECTS)
 c_linear_coupling_DEPENDENCIES = $(top_builddir)/src/bft/libbfto.la \
 	$(top_builddir)/src/fvm/libfvmo.la \
 	$(top_builddir)/src/libcwipi.la
-c_surf_coupling_P1P0_P0P1_SOURCES = c_surf_coupling_P1P0_P0P1.c
-c_surf_coupling_P1P0_P0P1_OBJECTS =  \
-	c_surf_coupling_P1P0_P0P1.$(OBJEXT)
-c_surf_coupling_P1P0_P0P1_LDADD = $(LDADD)
-c_surf_coupling_P1P0_P0P1_DEPENDENCIES =  \
-	$(top_builddir)/src/bft/libbfto.la \
+am_c_mean_value_3D_OBJECTS = c_mean_value_3D.$(OBJEXT)
+c_mean_value_3D_OBJECTS = $(am_c_mean_value_3D_OBJECTS)
+c_mean_value_3D_DEPENDENCIES = $(top_builddir)/src/bft/libbfto.la \
 	$(top_builddir)/src/fvm/libfvmo.la \
 	$(top_builddir)/src/libcwipi.la
 am_c_surf_coupling_P1P1_OBJECTS = grid_mesh.$(OBJEXT) \
@@ -152,13 +150,13 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(c_linear_coupling_SOURCES) c_surf_coupling_P1P0_P0P1.c \
+SOURCES = $(c_linear_coupling_SOURCES) $(c_mean_value_3D_SOURCES) \
 	$(c_surf_coupling_P1P1_SOURCES) \
 	$(c_surf_coupling_P1P1_asynchronous_SOURCES) \
 	$(c_surf_coupling_P1P1_micron_polygon_SOURCES) \
 	$(c_surf_coupling_P1P1_polygon_SOURCES)
-DIST_SOURCES = $(c_linear_coupling_SOURCES) \
-	c_surf_coupling_P1P0_P0P1.c $(c_surf_coupling_P1P1_SOURCES) \
+DIST_SOURCES = $(c_linear_coupling_SOURCES) $(c_mean_value_3D_SOURCES) \
+	$(c_surf_coupling_P1P1_SOURCES) \
 	$(c_surf_coupling_P1P1_asynchronous_SOURCES) \
 	$(c_surf_coupling_P1P1_micron_polygon_SOURCES) \
 	$(c_surf_coupling_P1P1_polygon_SOURCES)
@@ -343,6 +341,7 @@ LDADD = $(top_builddir)/src/bft/libbfto.la \
         @MPI_LIBS@ \
 	-lm
 
+#c_surf_coupling_P1P0_P0P1 \
 #test3D_1_c1 \
 #test3D_1_c2 
 
@@ -353,10 +352,18 @@ c_surf_coupling_P1P1_micron_polygon_SOURCES = creeMaillagePolygone2D.c c_surf_co
 c_surf_coupling_P1P1_polygon_SOURCES = creeMaillagePolygone2D.c c_surf_coupling_P1P1_polygon.c
 c_surf_coupling_P1P1_SOURCES = grid_mesh.c c_surf_coupling_P1P1.c
 c_surf_coupling_P1P1_asynchronous_SOURCES = grid_mesh.c c_surf_coupling_P1P1_asynchronous.c
+c_mean_value_3D_SOURCES = c_mean_value_3D.c
 #test2D_1_c1_SOURCES = creeMaillagePolygone2D.c test2D_1_c1.c
 #test2D_1_c2_SOURCES = creeMaillagePolygone2D.c test2D_1_c2.f90
 #test3D_1_c1_SOURCES = test3D_1_c1.c
 #test3D_1_c2_SOURCES = test3D_1_c2.c
+c_mean_value_3D_LDADD = \
+$(top_builddir)/src/bft/libbfto.la \
+$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/libcwipi.la \
+@MPI_LIBS@ \
+-lm
+
 c_linear_coupling_LDADD = \
 $(top_builddir)/src/bft/libbfto.la \
 $(top_builddir)/src/fvm/libfvmo.la \
@@ -455,9 +462,9 @@ clean-checkPROGRAMS:
 c_linear_coupling$(EXEEXT): $(c_linear_coupling_OBJECTS) $(c_linear_coupling_DEPENDENCIES) 
 	@rm -f c_linear_coupling$(EXEEXT)
 	$(LINK) $(c_linear_coupling_OBJECTS) $(c_linear_coupling_LDADD) $(LIBS)
-c_surf_coupling_P1P0_P0P1$(EXEEXT): $(c_surf_coupling_P1P0_P0P1_OBJECTS) $(c_surf_coupling_P1P0_P0P1_DEPENDENCIES) 
-	@rm -f c_surf_coupling_P1P0_P0P1$(EXEEXT)
-	$(LINK) $(c_surf_coupling_P1P0_P0P1_OBJECTS) $(c_surf_coupling_P1P0_P0P1_LDADD) $(LIBS)
+c_mean_value_3D$(EXEEXT): $(c_mean_value_3D_OBJECTS) $(c_mean_value_3D_DEPENDENCIES) 
+	@rm -f c_mean_value_3D$(EXEEXT)
+	$(LINK) $(c_mean_value_3D_OBJECTS) $(c_mean_value_3D_LDADD) $(LIBS)
 c_surf_coupling_P1P1$(EXEEXT): $(c_surf_coupling_P1P1_OBJECTS) $(c_surf_coupling_P1P1_DEPENDENCIES) 
 	@rm -f c_surf_coupling_P1P1$(EXEEXT)
 	$(LINK) $(c_surf_coupling_P1P1_OBJECTS) $(c_surf_coupling_P1P1_LDADD) $(LIBS)
@@ -478,7 +485,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_linear_coupling.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_surf_coupling_P1P0_P0P1.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_mean_value_3D.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_surf_coupling_P1P1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_surf_coupling_P1P1_asynchronous.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_surf_coupling_P1P1_micron_polygon.Po@am__quote@
@@ -764,7 +771,6 @@ uninstall-am:
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags uninstall uninstall-am
 
-	python_api.py
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
