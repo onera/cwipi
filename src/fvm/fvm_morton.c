@@ -6,6 +6,8 @@
   This file is part of the "Finite Volume Mesh" library, intended to provide
   finite volume mesh and associated fields I/O and manipulation services.
 
+  Copyright (C) 2011       ONERA
+
   Copyright (C) 2008-2010  EDF
 
   This library is free software; you can redistribute it and/or
