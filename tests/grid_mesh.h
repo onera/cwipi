@@ -19,6 +19,17 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*----------------------------------------------------------------------------
+ * Macro for handling of different symbol names (underscored or not,
+ * lowercase or uppercase) between C and Fortran, for link resolution.
+ *----------------------------------------------------------------------------*/
+
+#if !defined (__hpux) && !defined (_AIX)
+#define PROCF(x, y) x##_
+#else
+#define PROCF(x, y) x
+#endif
+
 #include <mpi.h>
 
 /*----------------------------------------------------------------------
@@ -41,17 +52,29 @@
  *   localComm           <-- MPI comm of the global grid
  *---------------------------------------------------------------------*/
 
-void  grid_mesh(double xmin, 
-                double xmax, 
-                double ymin, 
-                double ymax, 
-                double randLevel,
-                int nVertexSeg,
-                int nPartitionSeg, 
-                int *nVertex,
-                double **coords, 
-                int *nElts,
-                int **eltsConnecPointer,
-                int **eltsConnec,
-                MPI_Comm localComm);
+void grid_mesh(double xmin, 
+               double xmax, 
+               double ymin, 
+               double ymax, 
+               double randLevel,
+               int nVertexSeg,
+               int nPartitionSeg, 
+               double *coords, 
+               int *eltsConnecPointer,
+               int *eltsConnec,
+               MPI_Comm localComm);
+
+void PROCF(grid_mesh_f, GRID_MESH_F)
+     (double *xmin, 
+      double *xmax, 
+      double *ymin, 
+      double *ymax, 
+      double *randLevel,
+      int *nVertexSeg,
+      int *nPartitionSeg, 
+      double *coords, 
+      int *eltsConnecPointer,
+      int *eltsConnec,
+      MPI_Fint *localComm);
+
 #endif

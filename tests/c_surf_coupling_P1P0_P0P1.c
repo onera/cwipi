@@ -174,7 +174,8 @@ int main
   int n_partition = 0;
   while(2 * pow(n_partition, 2) < commWorldSize) n_partition++;
 
-  int n2 = 2 * pow(n_partition, 2);
+  const int two = 2;
+  int n2 = two * (int) pow(n_partition, two);
 
   if (n2 != commWorldSize) {
     if (rank == 0)
@@ -197,8 +198,6 @@ int main
   char *codeName;
   int codeId;
   char *codeCoupledName;
-
-  int third_size; 
 
   if (rank < commWorldSize / 2) {
     codeName = "code1";
@@ -284,6 +283,13 @@ int main
   const double ymin = -10;
   const double ymax =  10;
 
+  nVertex = nVertexSeg * nVertexSeg;
+  nElts = (nVertexSeg - 1) * (nVertexSeg - 1);
+
+  coords = (double *) malloc(sizeof(double) * 3 * nVertex );
+  eltsConnecPointer = (int *) malloc(sizeof(int) * (nElts + 1));
+  eltsConnec = (int *) malloc(sizeof(int) * 4 * nElts);
+
   grid_mesh(xmin, 
             xmax, 
             ymin, 
@@ -291,11 +297,9 @@ int main
             randLevel,
             nVertexSeg,
             n_partition, 
-            &nVertex,
-            &coords, 
-            &nElts,
-            &eltsConnecPointer,
-            &eltsConnec,
+            coords, 
+            eltsConnecPointer,
+            eltsConnec,
             localComm); 
 
 
@@ -376,17 +380,17 @@ int main
                                                     NULL,
                                                     &nNotLocatedPoints);
 
-    cwipi_exchange_status_t status = cwipi_exchange("c_surf_cpl_P1P0_P0P1",
-                                                    "ech2",
-                                                    1,
-                                                    1,     // n_step
-                                                    0.1,   // physical_time
-                                                    NULL,
-                                                    NULL,
-                                                    recvValuesName,
-                                                    recvValues,
-                                                    &nNotLocatedPoints);
-
+    status = cwipi_exchange("c_surf_cpl_P1P0_P0P1",
+                            "ech2",
+                            1,
+                            1,     // n_step
+                            0.1,   // physical_time
+                            NULL,
+                            NULL,
+                            recvValuesName,
+                            recvValues,
+                            &nNotLocatedPoints);
+    
     _dumpStatus(outputFile, status);
     _dumpNotLocatedPoints(outputFile, "c_surf_cpl_P1P0_P0P1", nNotLocatedPoints);
 
@@ -409,17 +413,17 @@ int main
     _dumpStatus(outputFile, status);
     _dumpNotLocatedPoints(outputFile, "c_surf_cpl_P1P0_P0P1", nNotLocatedPoints);
 
-    cwipi_exchange_status_t status = cwipi_exchange("c_surf_cpl_P1P0_P0P1",
-                                                    "ech2",
-                                                    1,
-                                                    1,     // n_step
-                                                    0.1,   // physical_time
-                                                    recvValuesName,
-                                                    recvValues,
-                                                    NULL,
-                                                    NULL,
-                                                    &nNotLocatedPoints);
-
+    status = cwipi_exchange("c_surf_cpl_P1P0_P0P1",
+                            "ech2",
+                            1,
+                            1,     // n_step
+                            0.1,   // physical_time
+                            recvValuesName,
+                            recvValues,
+                            NULL,
+                            NULL,
+                            &nNotLocatedPoints);
+    
   }
 
 

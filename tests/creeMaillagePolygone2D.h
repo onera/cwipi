@@ -54,7 +54,7 @@ void creeMaillagePolygone2D(int order,
                             int **eltsConnec
                             );
 
-void PROCF(creeMaillagePolygone2D_cf, CREEMAILLAGEPOLYGONE2D_CF)(int *order,
+void PROCF(creemaillagepolygone2d_f, CREEMAILLAGEPOLYGONE2D_F)(int *order,
                                                                MPI_Comm *localComm,
                                                                double *xmin,
                                                                double *xmax,

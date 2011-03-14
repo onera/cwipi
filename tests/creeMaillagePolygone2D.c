@@ -18,6 +18,8 @@
 */
 #include <mpi.h>
 
+#include <stdio.h>
+
 #include <stdlib.h>
 #include <assert.h>
 #include <math.h>
@@ -89,7 +91,6 @@ static int _partitionner(int tableau[], int p, int r)
     else
       return j;
   }
-  return j;
 }
 
 /* Fonctions publiques */
@@ -120,7 +121,6 @@ void creeMaillagePolygone2D(int order,
                             int **eltsConnecPointer,
                             int **eltsConnec)
 {
-  MPI_Status status;
 
   int nRank;
   MPI_Comm_size(localComm, &nRank);
@@ -128,14 +128,8 @@ void creeMaillagePolygone2D(int order,
   int localRank;
   MPI_Comm_rank(localComm, &localRank);
 
-  int nEdges = 0;
   int *globalVertexNum = NULL;
   int *globalEltNum = NULL;
-  int *downConnectivity = NULL;
-  int *edges = NULL;
-  int *edgeToFace = NULL;
-  int *neighbourPointer = NULL;
-  int *neighbour = NULL;
 
   if (localRank == 0) {
     const double coefRand = 0;
@@ -192,7 +186,6 @@ void creeMaillagePolygone2D(int order,
       cptMax = ny1;
 
     double ycourant = ymin;
-    int iy = 0;
     const double eps = 1e-5;
     while(cpt < cptMax) {
       if (cpt % 3 == 1 || cpt % 3 == 2) {
@@ -336,7 +329,6 @@ void creeMaillagePolygone2D(int order,
           *nElts += 1;
           (*eltsConnecPointer)[*nElts] = ideb + 3;
         }
-        int nbTriangle = (*nElts);
       }
 
       else if (itype1 == 1) {
@@ -344,7 +336,6 @@ void creeMaillagePolygone2D(int order,
         /* Quadrangles */
         int nxQuad = (nx1-4)/2;
         int nyQuad = (ny1-4)/2;
-        int nbQuadrangle = nxQuad*nyQuad;
 
         for (int iy = 0; iy < nyQuad; iy++) {
           for (int ix = 0; ix < nxQuad; ix++) {
@@ -368,7 +359,6 @@ void creeMaillagePolygone2D(int order,
         /* Polygones */
         int nxPoly = (nx1-2)/2;
         int nyPoly = (ny1-2)/2;
-        int nbPoly = nxPoly * nyPoly;
 
         int delta = 0;
 
@@ -415,9 +405,15 @@ void creeMaillagePolygone2D(int order,
   if (nRank > 1) {
 
 #ifdef HAVE_METIS
+    int *neighbourPointer = NULL;
+    int *neighbour = NULL;
+    int *downConnectivity = NULL;
+    int *edges = NULL;
+    int *edgeToFace = NULL;
 
     if (localRank == 0) {
 
+      int nEdges = 0;
       int localNVertex = 0;
       int localNElts = 0;
       double *localCoords = NULL;

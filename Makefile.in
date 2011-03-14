@@ -820,12 +820,6 @@ uninstall-am: uninstall-binSCRIPTS uninstall-configincludeHEADERS \
 
 uninstall-local:
 	rmdir $(includedir)/cwipi
-
-install-tests:
-	@cd tests ; $(MAKE) install-tests
-
-uninstall-tests:
-	@cd tests ; $(MAKE) uninstall-tests
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

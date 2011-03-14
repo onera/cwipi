@@ -54,9 +54,3 @@ uninstall-local:
 DISTCLEANFILES = cwipi-config cwipi_config.h cwipi_config_priv.h
 
 ACLOCAL_AMFLAGS = -I config
-
-install-tests:
-	@cd tests ; $(MAKE) install-tests
-
-uninstall-tests:
-	@cd tests ; $(MAKE) uninstall-tests

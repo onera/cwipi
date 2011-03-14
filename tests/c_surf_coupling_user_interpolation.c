@@ -139,6 +139,48 @@ _read_args(int            argc,
 
 /*----------------------------------------------------------------------
  *                                                                     
+ * Main : Exemple of user interpolation
+ *
+ *---------------------------------------------------------------------*/
+ 
+static void _userInterpolation(const int entities_dim,
+                               const int n_local_vertex,
+                               const int n_local_element,
+                               const int n_local_polhyedra,
+                               const int n_distant_point,
+                               const double local_coordinates[],
+                               const int local_connectivity_index[],
+                               const int local_connectivity[],
+                               const int local_polyhedra_face_index[],
+                               const int local_polyhedra_cell_to_face_connectivity[],
+                               const int local_polyhedra_face_connectivity_index[],
+                               const int local_polyhedra_face_connectivity[],
+                               const double distant_points_coordinates[],
+                               const int distant_points_location[],
+                               const int distant_points_barycentric_coordinates_index[],
+                               const double distant_points_barycentric_coordinates[],
+                               const int stride,
+                               const cwipi_solver_type_t  solver_type,
+                               const void *local_field,
+                               void *distant_field)
+{
+
+  //
+  // For each target point, give the value of the cell that contains the target point 
+
+  if (solver_type == CWIPI_SOLVER_CELL_CENTER) {
+    for (int i = 0; i < n_distant_point; i++) {
+      ((double *) distant_field)[i] = ((double *) local_field)[distant_points_location[i]-1];
+    }
+  }
+  else {
+    printf("Error in _userInterpolation : bad solver_type\n");
+    exit(EXIT_FAILURE);
+  }
+}
+
+/*----------------------------------------------------------------------
+ *                                                                     
  * Main : surface coupling test : P1P1 
  *
  *---------------------------------------------------------------------*/
@@ -169,7 +211,7 @@ int main
   if (rank == 0)
     printf("\nSTART: %s\n", srcBaseName);
 
-  srand(rank + time(0));
+  srand(rank+time(0));
 
   int n_partition = 0;
   const int two = 2;
@@ -187,11 +229,8 @@ int main
   /* Read args from command line
    * --------------------------- */
 
-/*   int nVertexSeg = 10; */
-/*   double randLevel = 0.4; */
-
   int nVertexSeg = 10;
-  double randLevel = 0.1;
+  double randLevel = 0.2;
 
   _read_args(argc, argv, &nVertexSeg, &randLevel);
 
@@ -213,8 +252,8 @@ int main
     codeCoupledName = "code1";
   }
 
-  char* fileName = (char *) malloc(sizeof(char) * 30);
-  sprintf(fileName,"c_surf_coupling_P1P1_%4.4d.txt",rank);
+  char* fileName = (char *) malloc(sizeof(char) * 44);
+  sprintf(fileName,"c_surf_coupling_user_interpolation_%4.4d.txt",rank);
 
   outputFile = fopen(fileName,"w");
 
@@ -236,7 +275,7 @@ int main
   MPI_Comm_rank(localComm, &currentRank);
   MPI_Comm_size(localComm, &localCommSize);
 
-  fprintf(outputFile, "  Surface coupling test : P1P1 with polygon\n");
+  fprintf(outputFile, "  Surface coupling test : user interpolation \n");
   fprintf(outputFile, "\n");
 
   fprintf(outputFile, "\nDump after initialization\n");
@@ -248,12 +287,12 @@ int main
   
   cwipi_solver_type_t solver_type;
   
-  solver_type = CWIPI_SOLVER_CELL_VERTEX;
+  solver_type = CWIPI_SOLVER_CELL_CENTER;
   
   /* Coupling creation
    * ----------------- */
 
-  cwipi_create_coupling("c_surf_cpl_P1P1",                                // Coupling id
+  cwipi_create_coupling("c_surf_cpl_usr_interpolation",                                // Coupling id
                         CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING, // Coupling type
                         codeCoupledName,                           // Coupled application id
                         2,                                         // Geometric entities dimension
@@ -289,7 +328,7 @@ int main
   coords = (double *) malloc(sizeof(double) * 3 * nVertex );
   eltsConnecPointer = (int *) malloc(sizeof(int) * (nElts + 1));
   eltsConnec = (int *) malloc(sizeof(int) * 4 * nElts);
-  
+
   grid_mesh(xmin, 
             xmax, 
             ymin, 
@@ -302,11 +341,10 @@ int main
             eltsConnec,
             localComm); 
 
-
   fprintf(outputFile, "   Number of vertex   : %i\n", nVertex);
   fprintf(outputFile, "   Number of elements : %i\n", nElts);
 
-  cwipi_define_mesh("c_surf_cpl_P1P1",
+  cwipi_define_mesh("c_surf_cpl_usr_interpolation",
                     nVertex,
                     nElts,
                     coords,
@@ -326,17 +364,30 @@ int main
   double *sendValues = NULL;
   double *recvValues = NULL;
   
-  sendValues = (double *) malloc(sizeof(double) * nVertex);
-  recvValues = (double *) malloc(sizeof(double) * nVertex);
+  sendValues = (double *) malloc(sizeof(double) * nElts);
+  recvValues = (double *) malloc(sizeof(double) * nElts);
 
-  /* Define fields to send (X coordinate or Y coordinate) */
+  /* Compute cell center coordinates */
 
-  for (int i = 0; i < nVertex; i++) {
-    if (codeId == 1)
-      sendValues[i] = coords[3 * i];
-    else
-      sendValues[i] = coords[3 * i + 1];
+  for (int i = 0; i < nElts; i++)   
+    sendValues[i] = 0;
+  
+  for (int i = 0; i < nElts; i++) {
+    const int startVertex = eltsConnecPointer[i];
+    const int endVertex = eltsConnecPointer[i+1];
+    
+    for (int j = startVertex; j < endVertex; j++) {
+      if (codeId == 1)
+        sendValues[i] += coords[3 * (eltsConnec[j] - 1)];
+      else
+        sendValues[i] += coords[3 * (eltsConnec[j] - 1) + 1];
+    }
+    sendValues[i] /= (endVertex - startVertex);
   }
+
+  /* Active callback */
+
+  cwipi_set_interpolation_function("c_surf_cpl_usr_interpolation", _userInterpolation);
 
   /* Exchange */
 
@@ -352,7 +403,7 @@ int main
     recvValuesName = "cooX";
   }
 
-  cwipi_exchange_status_t status = cwipi_exchange("c_surf_cpl_P1P1",
+  cwipi_exchange_status_t status = cwipi_exchange("c_surf_cpl_usr_interpolation",
                                                   "ech",
                                                   1,
                                                   1,     // n_step
@@ -364,7 +415,7 @@ int main
                                                   &nNotLocatedPoints); 
 
   _dumpStatus(outputFile, status);
-  _dumpNotLocatedPoints(outputFile, "c_surf_cpl_P1P1", nNotLocatedPoints);
+  _dumpNotLocatedPoints(outputFile, "c_surf_cpl_usr_interpolation", nNotLocatedPoints);
 
   /* Coupling deletion
    * ----------------- */
@@ -372,7 +423,7 @@ int main
   if (rank == 0)
     printf("        Delete coupling\n");
 
-  cwipi_delete_coupling("c_surf_cpl_P1P1");
+  cwipi_delete_coupling("c_surf_cpl_usr_interpolation");
 
   /* Freeing memory
    * -------------- */
