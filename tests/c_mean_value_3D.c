@@ -267,12 +267,13 @@ int main
 
   if (rank == 0)
     printf("        Create mesh\n");
-  /* tetraedre */
+
+
+
+  /*  coord tetraedre + octaedre */
+
   int nVertex = 7;               // Number of vertex
   double *coords = (double *) malloc(nVertex * 3 * sizeof(double));
-  int nElts = 1;                 // Number of elements
-  int *eltsConnecPointer = (int *) malloc(2 * sizeof(int));
-  int *eltsConnec = (int *) malloc(4 * sizeof(int));
 
   coords[0] = 0.; 
   coords[1] = 0.; 
@@ -302,23 +303,16 @@ int main
   coords[18] = 1./2; 
   coords[19] = 1./2; 
   coords[20] = -1;
+ 
 
-  /*coords[0] = 0; 
-  coords[1] = 0; 
-  coords[2] = 0; 
   
-  coords[3] = 1; 
-  coords[4] = 0; 
-  coords[5] = 0; 
-  
-  coords[6] = 0; 
-  coords[7] = 1; 
-  coords[8] = 0; 
-  
-  coords[9] =  0; 
-  coords[10] = 0; 
-  coords[11] = 1;*/
-  
+  /******tetraedre*******/
+
+  int nElts = 1;                 // Number of elements
+  int *eltsConnecPointer = (int *) malloc(2 * sizeof(int));
+  int *eltsConnec = (int *) malloc(4 * sizeof(int));
+
+
   eltsConnecPointer[0] = 0; 
   eltsConnecPointer[1] = 4; 
   
@@ -339,7 +333,8 @@ int main
 
 
   nVertex = 6;               // Number of vertex
-  /*octaedre*/
+
+  /************octaedre**************/
 
   int *face_index = (int*) malloc(nElts * sizeof(int));
   int *cell_to_face_connectivity = (int*) malloc((8+1) * sizeof(int));
@@ -397,7 +392,6 @@ int main
                      face_connectivity_index,
                      face_connectivity);
   
-
 
   //ajouter des polyedres par cwipi_add_polyedra ...
 
