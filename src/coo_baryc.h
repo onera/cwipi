@@ -44,6 +44,18 @@ void coo_baryc(const fvm::fvm_locator_t* locator,
                int  **nDistBarCoords,
                double **distBarCoords);
 
+
+
+void coo_baryc3D(const fvm::fvm_locator_t* locator,
+               const int   nMeshCoords,
+               const double *meshCoords,
+               const int   nElts,
+               const int  *nMeshElts,
+               const int  *meshElts,
+               int  *n_dist_points,
+               int  **nDistBarCoords,
+               double **distBarCoords);
+
 }
 
 #endif /* __BAR_COORDS_H__ */

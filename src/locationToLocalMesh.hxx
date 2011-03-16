@@ -160,6 +160,14 @@ private :
   void compute2DMeanValues();
 
   ///
+  /// \brief Compute Mean Values 3D
+  ///
+  ///
+
+  void compute3DMeanValues();
+
+
+  ///
   /// \brief Projection to the midplane
   ///
   ///   @param [in]         nbr_som_fac location support mesh

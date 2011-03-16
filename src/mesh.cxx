@@ -50,7 +50,7 @@ namespace cwipi {
       _nDim(nDim), _nVertex(nVertex), _nElts(nElts), _nPolyhedra(0), _coords(coords),
       _eltConnectivityIndex(eltConnectivityIndex), _eltConnectivity(eltConnectivity),
       _polyhedraFaceIndex(NULL), _polyhedraCellToFaceConnectivity(NULL),
-      _polyhedraFaceConnectivityIndex(NULL), _polyhedraFaceConnectivity(NULL), _cellCenterCoords(NULL),
+      _polyhedraFaceConnectivityIndex(NULL), _polyhedraFaceConnectivity(NULL), _polyhedraCellToVertexConnectivity(NULL), _polyhedraCellToVertexConnectivityIndex(NULL), _cellCenterCoords(NULL),
       _cellVolume(NULL), _fvmNodal(NULL), _polygonIndex(NULL)
 
   {
@@ -496,7 +496,7 @@ namespace cwipi {
       _nElts(0), _nPolyhedra(0), _coords(NULL),
       _eltConnectivityIndex(NULL), _eltConnectivity(NULL),
       _polyhedraFaceIndex(NULL), _polyhedraCellToFaceConnectivity(NULL),
-      _polyhedraFaceConnectivityIndex(NULL), _polyhedraFaceConnectivity(NULL), _cellCenterCoords(NULL),
+      _polyhedraFaceConnectivityIndex(NULL), _polyhedraFaceConnectivity(NULL), _polyhedraCellToVertexConnectivity(NULL), _polyhedraCellToVertexConnectivityIndex(NULL), _cellCenterCoords(NULL),
       _cellVolume(NULL), _fvmNodal(NULL), _polygonIndex(NULL)
 
   {
@@ -1606,5 +1606,110 @@ namespace cwipi {
       _computeMeshProperties3D();
 
   }
+  
+  void Mesh::_computeMeshPolyhedraProperties(){
+    int nbrVertex = 0;
+    int nbrVertexOld = 0;
+    int sizeTabLoc = 12;
+    int indFaceVertex;
+    int indVertex;
+    int nbrVertexFace;
+    std::vector<int> vertexPolyLoc (sizeTabLoc);
+    std::vector<int> vertexPolyBool(_nVertex);
+
+    if(_polyhedraCellToVertexConnectivity == NULL)
+       _polyhedraCellToVertexConnectivity = new std::vector<int>(0);
+    
+    if (_polyhedraCellToVertexConnectivityIndex == NULL)
+      _polyhedraCellToVertexConnectivityIndex = new std::vector<int>(0);
+
+    std::vector<int> & refPolyhedraCellToVertexConnectivity = *_polyhedraCellToVertexConnectivity;
+    std::vector<int> & refPolyhedraCellToVertexConnectivityIndex = *_polyhedraCellToVertexConnectivityIndex;
+
+    for (int i = 0; i < _nVertex; i++){
+      vertexPolyBool[i] = 0;
+    }
+
+    for(int iPoly = 0; iPoly < _nPolyhedra ; iPoly++){
+
+       int nFacePolyhedra = _polyhedraFaceIndex[iPoly+1] - _polyhedraFaceIndex[iPoly];
+
+       for(int iFace = 0; iFace < nFacePolyhedra ; iFace++){
+
+         nbrVertexFace = _polyhedraFaceConnectivityIndex[_polyhedraCellToFaceConnectivity[_polyhedraFaceIndex[iPoly] + iFace]]
+                       - _polyhedraFaceConnectivityIndex[_polyhedraCellToFaceConnectivity[_polyhedraFaceIndex[iPoly] + iFace] - 1];
+         
+         indFaceVertex = _polyhedraFaceConnectivityIndex[_polyhedraCellToFaceConnectivity[_polyhedraFaceIndex[iPoly]  + iFace] - 1];
+
+         for (int iVertex = 0 ; iVertex < nbrVertexFace ; iVertex++){
+
+           indVertex = _polyhedraFaceConnectivity[indFaceVertex + iVertex];
+
+           if(vertexPolyBool[indVertex - 1] == 0){
+
+             if(nbrVertex > sizeTabLoc){
+               sizeTabLoc *=2;
+               vertexPolyLoc.resize(sizeTabLoc);
+             }
+
+             vertexPolyLoc[nbrVertex - nbrVertexOld] = indVertex;
+             nbrVertex++;
+             vertexPolyBool[indVertex - 1] = 1;       
+           }           
+
+         }
+
+       }
+
+       for(int iVertexPoly = 0 ; iVertexPoly < nbrVertex - nbrVertexOld ; iVertexPoly++)
+         vertexPolyBool[vertexPolyLoc[iVertexPoly] - 1] = 0;
+ 
+       nbrVertexOld = nbrVertex;
+    }
+
+    vertexPolyLoc.clear();
+
+    refPolyhedraCellToVertexConnectivity.resize(nbrVertex);
+    refPolyhedraCellToVertexConnectivityIndex.resize(_nPolyhedra+1);
+    refPolyhedraCellToVertexConnectivityIndex[0] = 0;
+
+    nbrVertex = 0;
+    nbrVertexOld = 0;
+
+    for(int iPoly = 0; iPoly < _nPolyhedra ; iPoly++){
+
+       int nFacePolyhedra = _polyhedraFaceIndex[iPoly+1] - _polyhedraFaceIndex[iPoly];
+
+      for(int iFace = 0; iFace < nFacePolyhedra ; iFace++){
+
+         nbrVertexFace = _polyhedraFaceConnectivityIndex[_polyhedraCellToFaceConnectivity[_polyhedraFaceIndex[iPoly] + iFace ] ]
+                       - _polyhedraFaceConnectivityIndex[_polyhedraCellToFaceConnectivity[_polyhedraFaceIndex[iPoly] + iFace ] - 1];
+         
+         indFaceVertex = _polyhedraFaceConnectivityIndex[_polyhedraCellToFaceConnectivity[_polyhedraFaceIndex[iPoly] + iFace] - 1];        
+
+        for (int iVertex = 0 ; iVertex < nbrVertexFace ; iVertex++){
+
+          indVertex = _polyhedraFaceConnectivity[indFaceVertex + iVertex];
+
+          if(vertexPolyBool[indVertex - 1] == 0){
+            refPolyhedraCellToVertexConnectivity[nbrVertex] = indVertex;            
+            nbrVertex++;
+            vertexPolyBool[indVertex - 1] = 1;                   
+          }           
+          
+        }
+        
+      }
+      
+      for(int iVertexPoly = nbrVertexOld ; iVertexPoly < nbrVertex ; iVertexPoly++)
+        vertexPolyBool[refPolyhedraCellToVertexConnectivity[iVertexPoly] - 1] = 0;
+      
+      refPolyhedraCellToVertexConnectivityIndex[iPoly+1] = nbrVertex;
+      
+      nbrVertexOld = nbrVertex;
+      }
+
+    printf("----end---- \n");
+  }      
 
 }

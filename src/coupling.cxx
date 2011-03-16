@@ -702,9 +702,10 @@ void Coupling::defineMeshAddPolyhedra(const int n_element,
                                face_connectivity_index,
                                face_connectivity);
   }
-  bft::bft_error(__FILE__, __LINE__, 0, "for a coupling without parallel partitionning,"
-            " the coupling mesh must be defined only by the root rank\n");
-
+  else {
+    bft::bft_error(__FILE__, __LINE__, 0, "for a coupling without parallel partitionning,"
+                   " the coupling mesh must be defined only by the root rank\n");
+  }
 }
 
 

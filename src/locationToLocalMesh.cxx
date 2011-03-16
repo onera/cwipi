@@ -195,8 +195,9 @@ void LocationToLocalMesh::locate()
       }
 
       else if (_entitiesDim == 3) {
+         compute3DMeanValues();
         //TODO: calcul des coord barycentriques 3D
-        int nPoints;
+        //int nPoints;        
         //         coo_baryc(_fvmLocator,
         //                   _supportMesh->getNVertex(),
         //                   _supportMesh->getVertexCoords(),
@@ -1024,7 +1025,433 @@ void LocationToLocalMesh::compute2DMeanValues()
 
 }
 
+void LocationToLocalMesh::compute3DMeanValues()
+{
+ 
+  /* Boucle sur les points distants */
 
+  const int n_dist_points = fvm::fvm_locator_get_n_dist_points(_fvmLocator);
+  const fvm::fvm_lnum_t *dist_locations = fvm::fvm_locator_get_dist_locations(_fvmLocator);
+  const fvm::fvm_coord_t *dist_coords = fvm::fvm_locator_get_dist_coords(_fvmLocator);
+  fvm::fvm_coord_t coo_point_dist[3];
+
+  /* Tableaux locaux */
+
+  const double eps = 1e-15;
+
+  std::vector <double> coo_som_fac;
+  std::vector <double> s;
+  std::vector <double> dist;
+  std::vector <double> proScal;
+  std::vector <double> angle;
+  std::vector <double> normale;
+  std::vector <double> distBarCoordsTmp;
+  std::vector <int> localIndVertex(_supportMesh->getNVertex());
+    
+  int tailleDistBarCoords;
+  int isOnFace;
+  int ind_fac = 0;
+  int ind_fac_som = 0;
+
+  const int eltStd = _supportMesh->getNElts() - _supportMesh->getNPolyhedra();
+  printf("Nelt  eltSrd   Npolyhedra   %d   %d   %d  \n",_supportMesh->getNElts(),eltStd,_supportMesh->getNPolyhedra());
+  printf("nbr vertex   %d \n",_supportMesh->getNVertex());
+  _barycentricCoordinatesIndex = new std::vector <int> (n_dist_points + 1);
+
+  tailleDistBarCoords = 4 * n_dist_points;
+  _barycentricCoordinates = new std::vector <double> (tailleDistBarCoords);
+
+  std::vector <int>& nDistBarCoords = *_barycentricCoordinatesIndex;
+  std::vector <double>& distBarCoords = *_barycentricCoordinates;
+
+  const int *meshConnectivityIndex;
+  const int *meshConnectivity;
+  const double *meshVertexCoords = _supportMesh->getVertexCoords();
+  const int *face_index;
+  const int *cell_to_face_connectivity;
+  const int *face_connectivity;
+  const int *face_connectivity_index;
+
+  int *face_index_Tmp;
+  int *cell_to_face_connectivity_Tmp;
+  int *face_connectivity_Tmp;
+  int *face_connectivity_index_Tmp;
+
+  nDistBarCoords[0] = 0;
+
+  printf("npoint  %d\n",n_dist_points);
+  for (int ipoint =  0; ipoint < n_dist_points; ipoint++ ) {
+    
+    int ielt = dist_locations[ipoint] - 1;
+    isOnFace = 0;
+
+    coo_point_dist[0] = dist_coords[3 * ipoint];
+    coo_point_dist[1] = dist_coords[3 * ipoint + 1];
+    coo_point_dist[2] = dist_coords[3 * ipoint + 2];
+
+    int nbr_face;
+    int nbr_som_fac;      
+    int nbr_som;
+
+    if(ielt < eltStd){ 
+      
+      printf("**********dodecaedre********** \n");
+      meshConnectivityIndex = _supportMesh->getEltConnectivityIndex();
+      meshConnectivity = _supportMesh->getEltConnectivity();
+
+      nbr_som = meshConnectivityIndex[ielt+1] - meshConnectivityIndex[ielt];
+      nbr_face = 4;
+      nbr_som_fac = 3;      
+            
+      face_connectivity_index_Tmp = (int* ) malloc((nbr_face + 1) * sizeof(int) );
+      face_connectivity_Tmp = (int* ) malloc(nbr_som_fac * nbr_face * sizeof(int));
+      cell_to_face_connectivity_Tmp = (int* ) malloc(nbr_face * sizeof(int));
+
+      face_connectivity_Tmp[0]  = 1;
+      face_connectivity_Tmp[1]  = 3;
+      face_connectivity_Tmp[2]  = 2;
+      
+      face_connectivity_Tmp[3]  = 1;
+      face_connectivity_Tmp[4]  = 2;
+      face_connectivity_Tmp[5]  = 4;
+      
+      face_connectivity_Tmp[6]  = 1;
+      face_connectivity_Tmp[7]  = 4;
+      face_connectivity_Tmp[8]  = 3;
+      
+      face_connectivity_Tmp[9]  = 2;
+      face_connectivity_Tmp[10] = 3;
+      face_connectivity_Tmp[11] = 4;
+      
+      for(int i = 0; i < nbr_face ; i++)
+        cell_to_face_connectivity_Tmp[i] = i+1;
+      
+      for (int i = 0; i < nbr_face ; i++)
+        face_connectivity_index_Tmp[i] = 3*i;
+      
+      face_connectivity = face_connectivity_Tmp;
+      cell_to_face_connectivity = cell_to_face_connectivity_Tmp;
+      face_connectivity_index = face_connectivity_index_Tmp;
+ 
+       }
+    else {
+      //printf("ielt   %d \n",ielt);
+      printf("**********octaedre********** \n");
+      ielt -= eltStd;
+
+      //printf("ielt - eltStd   %d \n",ielt);
+
+      meshConnectivityIndex = &(_supportMesh->getPolyhedraCellToVertexConnectivityIndex()[0]);
+      meshConnectivity = &(_supportMesh->getPolyhedraCellToVertexConnectivity()[0]);
+      face_index = _supportMesh->getPolyhedraFaceIndex();     
+      cell_to_face_connectivity = _supportMesh->getPolyhedraCellToFaceConnectivity();     
+      face_connectivity = _supportMesh->getPolyhedraFaceConnectivity();     
+      face_connectivity_index = _supportMesh->getPolyhedraFaceConnectivityIndex();
+     
+      nbr_som = meshConnectivityIndex[ielt + 1] - meshConnectivityIndex[ielt];
+      nbr_face = face_index[ielt + 1] - face_index[ielt];
+      nbr_som_fac = 3;     
+      ind_fac = face_index[ielt];
+      //printf("meshConnectivityIndex    %d   %d  \n",meshConnectivityIndex[0],meshConnectivityIndex[1]);
+      }
+  
+    for (int isom = 0 ; isom < nbr_som ; isom++){
+      localIndVertex[meshConnectivity[meshConnectivityIndex[ielt] + isom]-1] = isom ;     
+    }
+        
+    nDistBarCoords[ipoint + 1] = nDistBarCoords[ipoint] + nbr_som;
+
+    if (distBarCoords.size() <= nDistBarCoords[ipoint + 1])
+      distBarCoords.resize(2 * distBarCoords.size());
+ 
+    if(ipoint == 0) {
+      angle.resize(nbr_som_fac); // danger lorsque nbr_som_fac != 3
+      normale.resize(3 * nbr_som_fac); // danger lorsque nbr_som_fac != 3
+      distBarCoordsTmp.resize(nbr_som);
+      coo_som_fac.resize(3 * nbr_som);        
+      dist.resize(nbr_som);        
+      s.resize(3 * nbr_som);
+
+      }
+    else
+      if (dist.size() <  nbr_som_fac){
+        coo_som_fac.resize(3 * nbr_som_fac);        
+        dist.resize(nbr_som_fac);
+        s.resize(3 * nbr_som);
+      } 
+
+
+    double sigma = 0;
+
+
+    for (int isom = 0; isom < nbr_som; isom++)
+      distBarCoordsTmp[isom] = 0; 
+    
+    for(int i = 0 ;i < _supportMesh->getNVertex() ;i++){
+      printf("meshVertexCoords   %f   %f   %f  \n",meshVertexCoords[3 *i],meshVertexCoords[3 *i+1],meshVertexCoords[3 *i+2]);
+    } 
+
+    //Verifier que le sommet appartient ni a une face, arrete ou egal a un sommet
+     for (int isom = 0; isom < nbr_som ; isom++){
+       // printf("(meshConnectivityIndex[ielt] + isom)   %d \n",(meshConnectivityIndex[ielt] + isom));
+       
+       coo_som_fac[3 * isom]     = meshVertexCoords[3 * (meshConnectivity[meshConnectivityIndex[ielt] + isom]-1)];
+       coo_som_fac[3 * isom + 1] = meshVertexCoords[3 * (meshConnectivity[meshConnectivityIndex[ielt] + isom]-1) + 1];
+       coo_som_fac[3 * isom + 2] = meshVertexCoords[3 * (meshConnectivity[meshConnectivityIndex[ielt] + isom]-1) + 2];
+
+       // printf("vertex coord  %d   %f   %f   %f \n", isom, coo_som_fac[3 * isom], coo_som_fac[3 * isom+1], coo_som_fac[3 * isom+2]);
+       
+       s[3 * isom]     = coo_som_fac[3 * isom]     - coo_point_dist[0];
+       s[3 * isom + 1] = coo_som_fac[3 * isom + 1] - coo_point_dist[1];
+       s[3 * isom + 2] = coo_som_fac[3 * isom + 2] - coo_point_dist[2];
+
+       
+       //printf("s %d   %f   %f   %f \n", isom, s[3 * isom], s[3 * isom+1], s[3 * isom+2]);
+
+       dist[isom] = sqrt(s[3 * isom]*s[3*isom] +
+                         s[3 * isom + 1]*s[3*isom + 1] +
+                         s[3 * isom + 2]*s[3*isom + 2]);           
+     }
+    
+    for(int iface = 0; iface < nbr_face ; iface++){
+      double det;
+
+      ind_fac_som = face_connectivity_index[cell_to_face_connectivity[ind_fac + iface] - 1];
+
+      const int i = localIndVertex[face_connectivity[ind_fac_som] - 1];
+      const int j = localIndVertex[face_connectivity[ind_fac_som + 1] - 1];
+      const int k = localIndVertex[face_connectivity[ind_fac_som + 2] - 1];
+
+      // printf("--- sommet   %d  %d  %d \n",i,j,k);
+      /*   printf("s  i  j   k  %f  %f  %f \n %f  %f  %f \n %f  %f  %f \n",
+             s[3*i],s[3*i+1],s[3*i+2],
+             s[3*j],s[3*j+1],s[3*j+2],
+             s[3*k],s[3*k+1],s[3*k+2]);*/
+
+
+      det =  (1./6) * (  ( (s[3*i+1] * s[3*j+2] - s[3*j+1] * s[3*i+2]) * s[3*k])
+                       + ( (s[3*j]  * s[3*i+2] - s[3*i] * s[3*j+2]) * s[3*k+1])
+                       + ( (s[3*i]  * s[3*j+2] - s[3*j] * s[3*i+1]) * s[3*k+2]) );
+
+      // printf("determinant   %f \n",det);
+      if(abs(det) < eps){
+
+        double aireTri_ijk;
+        double aireTri_ijv;
+        double aireTri_ikv;
+        double aireTri_jkv;
+        double coo_ijx;
+        double coo_ijy;
+        double coo_ijz;
+        double coo_ikx;
+        double coo_iky;
+        double coo_ikz;
+       
+        coo_ijx = coo_som_fac[3*j]   - coo_som_fac[3*i];
+        coo_ijy = coo_som_fac[3*j+1] - coo_som_fac[3*i+1];
+        coo_ijz = coo_som_fac[3*j+2] - coo_som_fac[3*i+2];
+        coo_ikx = coo_som_fac[3*k]   - coo_som_fac[3*i];
+        coo_iky = coo_som_fac[3*k+1] - coo_som_fac[3*i+1];
+        coo_ikz = coo_som_fac[3*k+2] - coo_som_fac[3*i+2];
+        
+        aireTri_ijk = sqrt(  ( coo_ijy * coo_ikz - coo_ijz * coo_iky ) * ( coo_ijy * coo_ikz - coo_ijz * coo_iky )
+                           + ( coo_ijz * coo_ikx - coo_ijx * coo_ikz ) * ( coo_ijz * coo_ikx - coo_ijx * coo_ikz )
+                           + ( coo_ijx * coo_iky - coo_ijy * coo_ikx ) * ( coo_ijx * coo_iky - coo_ijy * coo_ikx ));
+
+        aireTri_ijv = sqrt(  ( s[3*i+1] * s[3*j+2] - s[3*i+2] * s[3*j+1] ) * ( s[3*i+1] * s[3*j+2] - s[3*i+2] * s[3*j+1] )
+                           + ( s[3*i+2] * s[3*j]   - s[3*i]   * s[3*j+2] ) * ( s[3*i+2] * s[3*j]   - s[3*i]   * s[3*j+2] )
+                           + ( s[3*i]   * s[3*j+1] - s[3*i+1] * s[3*j] )   * ( s[3*i]   * s[3*j+1] - s[3*i+1] * s[3*j] ));
+
+        aireTri_ikv = sqrt(  ( s[3*i+1] * s[3*k+2] - s[3*i+2] * s[3*k+1] ) * ( s[3*i+1] * s[3*k+2] - s[3*i+2] * s[3*k+1] )
+                           + ( s[3*i+2] * s[3*k]   - s[3*i]   * s[3*k+2] ) * ( s[3*i+2] * s[3*k]   - s[3*i]   * s[3*k+2] )
+                           + ( s[3*i]   * s[3*k+1] - s[3*i+1] * s[3*k] )   * ( s[3*i]   * s[3*k+1] - s[3*i+1] * s[3*k] ));
+
+        aireTri_jkv = sqrt(  ( s[3*j+1] * s[3*k+2] - s[3*j+2] * s[3*k+1] ) * ( s[3*j+1] * s[3*k+2] - s[3*j+2] * s[3*k+1] )
+                           + ( s[3*j+2] * s[3*k]   - s[3*j]   * s[3*k+2] ) * ( s[3*j+2] * s[3*k]   - s[3*j]   * s[3*k+2] )
+                           + ( s[3*j]   * s[3*k+1] - s[3*j+1] * s[3*k] )   * ( s[3*j]   * s[3*k+1] - s[3*j+1] * s[3*k] ));
+        
+        
+        /* printf("aire ijk  %f  \n",aireTri_ijk);
+        printf("aire ijv  %f  \n",aireTri_ijv);
+        printf("aire ikv  %f  \n",aireTri_ikv);
+        printf("aire jkv  %f  \n",aireTri_jkv);*/
+
+        for(int isom = 0 ; isom < nbr_som ; isom++)
+          distBarCoords[nDistBarCoords[ipoint]+isom] = 0.;
+          
+        distBarCoords[ nDistBarCoords[ipoint] + i ] = aireTri_jkv / aireTri_ijk ;
+        distBarCoords[ nDistBarCoords[ipoint] + j ] = aireTri_ikv / aireTri_ijk ;
+        distBarCoords[ nDistBarCoords[ipoint] + k ] = aireTri_ijv / aireTri_ijk ;
+
+        isOnFace = 1;
+
+        break;
+
+      }
+
+    }
+
+    if(!isOnFace){
+      int ind_som;
+        // normalisation de s (on sait que s est non nul) 
+
+        for(int isom = 0 ; isom < nbr_som ; isom++){
+          // printf("s ind %d  %f  %f  %f\n",isom,s[3*isom],s[3*isom+1],s[3*isom+2]);
+          s[3 * isom]     /= dist[isom];
+          s[3 * isom + 1] /= dist[isom];
+          s[3 * isom + 2] /= dist[isom];       
+        }              
+
+      for(int iface = 0; iface < nbr_face ; iface++){        
+        
+        ind_fac_som = face_connectivity_index[cell_to_face_connectivity[ind_fac + iface] - 1] ;
+      
+        /*for(int isom = 0 ; isom < nbr_som_fac ; isom++){
+          printf("nface %d  %d \n",nbr_som_fac*iface+isom,face_connectivity[nbr_som_fac*iface+isom]);
+          printf("mesh coord   %f   %f   %f \n",
+          meshVertexCoords[3*(meshConnectivityIndex[ielt] + face_connectivity[nbr_som_fac*iface + isom] - 1)],
+          meshVertexCoords[3*(meshConnectivityIndex[ielt] + face_connectivity[nbr_som_fac*iface + isom] - 1) + 1],
+          meshVertexCoords[3*(meshConnectivityIndex[ielt] + face_connectivity[nbr_som_fac*iface + isom] - 1) + 2]);                           
+          }*/
+
+        for(int isom = 0; isom < nbr_som_fac; isom++){
+                   
+          int isuiv;
+          int iprec;
+          double prod_scal;
+          double mod;                    
+
+          if(isom ==0)
+            iprec = localIndVertex[face_connectivity[ ind_fac_som +  nbr_som_fac - 1 ] - 1]; // se place a la ieme face sur le dernier element
+          else 
+            iprec = localIndVertex[face_connectivity[ind_fac_som + isom - 1 ] - 1]; //prend l'indice du sommet juste precedent
+          
+          if (isom == nbr_som_fac - 1)
+            isuiv = localIndVertex[face_connectivity[ind_fac_som] - 1];
+          else 
+            isuiv = localIndVertex[face_connectivity[ind_fac_som + isom + 1] - 1];       
+                                   
+          prod_scal = s[3 * iprec]     * s[3 * isuiv]
+                    + s[3 * iprec + 1] * s[3 * isuiv + 1]
+                    + s[3 * iprec + 2] * s[3 * isuiv + 2];
+
+          angle[isom] = acos(prod_scal); //s est de norme 1         
+
+          normale[3 * isom]     = s[3 * iprec + 1] * s[3 * isuiv + 2] - s[3 * iprec + 2] * s[3*isuiv + 1];        
+          normale[3 * isom + 1] = s[3 * iprec + 2] * s[3 * isuiv]     - s[3 * iprec]     * s[3 * isuiv + 2];
+          normale[3 * isom + 2] = s[3 * iprec]     * s[3 * isuiv + 1] - s[3 * iprec + 1] * s[3 * isuiv];        
+                             
+          mod = sqrt(normale[3 * isom]*normale[3 * isom]
+                     + normale[3 * isom + 1]*normale[3 * isom + 1]
+                     + normale[3 * isom + 2]*normale[3 * isom + 2]);
+          
+          normale[3 * isom]     /= mod ;
+          normale[3 * isom + 1] /= mod ;
+          normale[3 * isom + 2] /= mod ;
+            
+        }           
+        
+        for(int isom = 0; isom < nbr_som_fac; isom++){
+           
+          int isuiv;
+          int iprec;
+          double ps_nij_njk; //a ameliorer
+          double ps_nki_njk; //a ameliorer
+          double ps_ei_njk;  //a ameliorer          
+
+          if(isom ==0)
+            iprec =  nbr_som_fac - 1; // se place a la ieme face sur le dernier element
+          else 
+            iprec = isom - 1; //prend l'indice du sommet juste precedent
+          
+          if (isom == nbr_som_fac - 1)
+            isuiv = 0;
+          else 
+            isuiv = isom + 1;            
+                  
+          ps_nij_njk = normale[3 * isom] * normale[3 * isuiv]
+            + normale[3 * isom + 1] * normale[3 * isuiv + 1]
+            + normale[3 * isom + 2] * normale[3 * isuiv + 2];
+          
+          ps_nki_njk = normale[3 * isom] * normale[3 * iprec]
+            + normale[3 * isom + 1] * normale[3 * iprec + 1]
+            + normale[3 * isom + 2] * normale[3 * iprec + 2];
+          
+          ps_ei_njk = s[3 * (localIndVertex[face_connectivity[ind_fac_som + isom] - 1])] * normale[3 * isom] 
+            + s[3 * (localIndVertex[face_connectivity[ind_fac_som + isom] - 1]) + 1] * normale[3 * isom + 1]
+            + s[3 * (localIndVertex[face_connectivity[ind_fac_som + isom] - 1]) + 2] * normale[3 * isom + 2];       
+          
+          distBarCoordsTmp[localIndVertex[(face_connectivity[ind_fac_som + isom] - 1)]] += (angle[isom] + angle[isuiv] * ps_nij_njk + angle[iprec] * ps_nki_njk) / (2 * ps_ei_njk);           
+          //printf("(face_connectivity[ind_fac_som + isom] - 1)   %d \n",(face_connectivity[ind_fac_som + isom] - 1));
+        }
+          
+      }
+      
+      for(int isom = 0; isom<nbr_som;isom++){
+        // printf("isom distbarcoordtm   %d   %f   \n",isom,distBarCoordsTmp[isom]);
+        sigma += distBarCoordsTmp[isom];      
+      }      
+      //printf("sigma   %f   \n",sigma);
+      
+      for(int isom = 0; isom<nbr_som;isom++)
+        distBarCoords[nDistBarCoords[ipoint] + isom] = distBarCoordsTmp[isom]/sigma;
+      
+      
+    }
+    
+    for(int isom = 0; isom<nbr_som;isom++)
+      printf("sommet   %f %f %f  coord bar final   %f \n",coo_som_fac[3*isom],coo_som_fac[3*isom+1],coo_som_fac[3*isom+2],distBarCoords[nDistBarCoords[ipoint] + isom]);
+    
+    
+    if( 1== 1){
+      std::vector <double> test(3);
+      
+      for(int i =0;i<3;i++)
+        test[i] = 0;
+      
+      for(int isom =0;isom<nbr_som;isom++){
+        
+        test[0] += distBarCoords[nDistBarCoords[ipoint] + isom] * coo_point_dist[0];
+        test[1] += distBarCoords[nDistBarCoords[ipoint] + isom] * coo_point_dist[1];
+        test[2] += distBarCoords[nDistBarCoords[ipoint] + isom] * coo_point_dist[2];
+        
+      }
+      for(int i =0;i<3;i++)
+        printf("test   %f  coord  %f \n",test[i],coo_point_dist[i]);
+
+    }
+   
+    if (1 == 1) {
+      bft::bft_printf("coord %i :", ipoint);
+      bft::bft_printf(" %12.5e %12.5e %12.5e", dist_coords[3 * ipoint], 
+                      dist_coords[3 * ipoint + 1], 
+                      dist_coords[3 * ipoint + 2] );
+      bft::bft_printf("\n");
+      
+      bft::bft_printf("coo b %i :", ipoint);
+      for (int isom = 0; isom < nbr_som; isom++) 
+        bft::bft_printf(" %f", distBarCoords[nDistBarCoords[ipoint] + isom]);
+      
+      bft::bft_printf("\n");
+      
+      }
+    
+    if(nbr_som == 4){    
+      free(cell_to_face_connectivity_Tmp);
+      free(face_connectivity_index_Tmp);
+      free(face_connectivity_Tmp);
+    }
+    
+    
+  }
+  coo_som_fac.clear();
+  s.clear();
+  dist.clear();
+  proScal.clear();
+  angle.clear();
+  distBarCoordsTmp.clear();
+  localIndVertex.clear();
+}
 
 } // Namespace CWIPI
 
