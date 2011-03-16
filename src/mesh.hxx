@@ -47,7 +47,6 @@ namespace cwipi {
                       int *cellToFaceConnectivity,
                       int *faceConnectivityIndex,
                       int *faceConnectivity);
-
     inline const int& getNVertex() const;
 
     inline const double* getVertexCoords() const;
@@ -75,6 +74,10 @@ namespace cwipi {
     inline const int *getPolyhedraFaceConnectivityIndex() const;
 
     inline const int *getPolyhedraFaceConnectivity() const;
+
+    inline const std::vector<int>& getPolyhedraCellToVertexConnectivity();
+
+    inline const std::vector<int>& getPolyhedraCellToVertexConnectivityIndex();
 
     void update();
 
@@ -106,6 +109,8 @@ namespace cwipi {
 
     void _finalizeNodal();
 
+    void _computeMeshPolyhedraProperties();
+
   private:
     // TODO: renommer _nDim par entitesDim
     const MPI_Comm & _localComm;
@@ -124,6 +129,8 @@ namespace cwipi {
     int          *_polyhedraFaceConnectivityIndex;
     int          *_polyhedraFaceConnectivity;
     bool         _isNodalFinalized;
+    std::vector<int>          *_polyhedraCellToVertexConnectivity;
+    std::vector<int>          *_polyhedraCellToVertexConnectivityIndex;
 
     std::vector<double>  *_cellCenterCoords;
     std::vector<double>  *_cellVolume;
@@ -208,6 +215,23 @@ namespace cwipi {
   {
     return _polyhedraFaceConnectivity;
   }
+
+  const std::vector<int>& Mesh::getPolyhedraCellToVertexConnectivity()
+  {
+    if (_polyhedraCellToVertexConnectivity == NULL)
+      _computeMeshPolyhedraProperties();
+    
+    return *_polyhedraCellToVertexConnectivity;
+  }
+  
+  const std::vector<int>& Mesh::getPolyhedraCellToVertexConnectivityIndex()
+  {
+    if (_polyhedraCellToVertexConnectivityIndex == NULL)
+      _computeMeshPolyhedraProperties();
+    
+    return *_polyhedraCellToVertexConnectivityIndex;
+  }
+
 
 }
 

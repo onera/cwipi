@@ -267,59 +267,199 @@ int main
 
   if (rank == 0)
     printf("        Create mesh\n");
-
-  int nVertex = 4;               // Number of vertex
+  /* tetraedre */
+  int nVertex = 7;               // Number of vertex
   double *coords = (double *) malloc(nVertex * 3 * sizeof(double));
   int nElts = 1;                 // Number of elements
   int *eltsConnecPointer = (int *) malloc(2 * sizeof(int));
   int *eltsConnec = (int *) malloc(4 * sizeof(int));
+
+  coords[0] = 0.; 
+  coords[1] = 0.; 
+  coords[2] = 0.; 
   
-  coords[0] = 0; 
+  coords[3] = 0.; 
+  coords[4] = 1.; 
+  coords[5] = 0.; 
+     
+  coords[6] = 1./2; 
+  coords[7] = 1./2; 
+  coords[8] = 1.;
+
+  coords[9] = 0.; 
+  coords[10] = 0.; 
+  coords[11] = 1.;
+  
+  coords[12] = 1; 
+  coords[13] = 0; 
+  coords[14] = 0; 
+    
+  coords[15] =  1; 
+  coords[16] = 1; 
+  coords[17] = 0;
+  
+  
+  coords[18] = 1./2; 
+  coords[19] = 1./2; 
+  coords[20] = -1;
+
+  /*coords[0] = 0; 
   coords[1] = 0; 
   coords[2] = 0; 
-
+  
   coords[3] = 1; 
   coords[4] = 0; 
   coords[5] = 0; 
-
+  
   coords[6] = 0; 
   coords[7] = 1; 
   coords[8] = 0; 
-
+  
   coords[9] =  0; 
   coords[10] = 0; 
-  coords[11] = 1;
-
+  coords[11] = 1;*/
+  
   eltsConnecPointer[0] = 0; 
   eltsConnecPointer[1] = 4; 
-
+  
   eltsConnec[0] = 1; 
-  eltsConnec[1] = 2; 
+  eltsConnec[1] = 4; 
   eltsConnec[2] = 3; 
-  eltsConnec[3] = 4; 
+  eltsConnec[3] = 2; 
+
 
   cwipi_define_mesh("c_mean_value_3D",
                     nVertex,
-                    nElts,
+                    1,
                     coords,
                     eltsConnecPointer,
                     eltsConnec);
 
 
+
+
+  nVertex = 6;               // Number of vertex
+  /*octaedre*/
+
+  int *face_index = (int*) malloc(nElts * sizeof(int));
+  int *cell_to_face_connectivity = (int*) malloc((8+1) * sizeof(int));
+  int *face_connectivity = (int*) malloc(3 * 8 * sizeof(int));
+  int *face_connectivity_index = (int*) malloc((8+1) * sizeof(int));
+ 
+ 
+
+  face_index[0] = 0;
+  face_index[1] = 8;
+
+  for(int i = 0; i < 9 ; i++)
+    cell_to_face_connectivity[i] = i+1;
+
+  for (int i = 0; i < 9 ; i++)
+    face_connectivity_index[i] = 3*i;
+     
+  face_connectivity[0]  = 1;
+  face_connectivity[1]  = 3;
+  face_connectivity[2]  = 2;
+
+  face_connectivity[3]  = 2;
+  face_connectivity[4]  = 3;
+  face_connectivity[5]  = 6;
+
+  face_connectivity[6]  = 6;
+  face_connectivity[7]  = 3;
+  face_connectivity[8]  = 5;
+
+  face_connectivity[9]  = 5;
+  face_connectivity[10] = 3;
+  face_connectivity[11] = 1;
+
+  face_connectivity[12] = 1;
+  face_connectivity[13] = 2;
+  face_connectivity[14] = 7;
+
+  face_connectivity[15] = 2;
+  face_connectivity[16] = 6;
+  face_connectivity[17] = 7;
+
+  face_connectivity[18] = 6;
+  face_connectivity[19] = 5;
+  face_connectivity[20] = 7;
+
+  face_connectivity[21] = 5;
+  face_connectivity[22] = 1;
+  face_connectivity[23] = 7;
+
+  
+  cwipi_add_polyhedra("c_mean_value_3D",
+                     nElts,
+                     face_index,
+                     cell_to_face_connectivity,
+                     face_connectivity_index,
+                     face_connectivity);
+  
+
+
+  //ajouter des polyedres par cwipi_add_polyedra ...
+
+
   /* Points to locate
    * --------------- */
 
-  int nPts = 1;               // Number of vertex
+  int nPts = 7;               // Number of vertex
   double *coordsPts = (double *) malloc(nPts * 3 * sizeof(double));
 
-  coordsPts[0] = 0.1;
-  coordsPts[1] = 0.1;
-  coordsPts[2] = 0.1;
+  coordsPts[0] = 0.;
+  coordsPts[1] = 0.;
+  coordsPts[2] = 0.;
 
-  cwipi_set_points_to_locate ("c_mean_value_3D", nPts, coordsPts);
+  coordsPts[3] = 1.;
+  coordsPts[4] = 0.;
+  coordsPts[5] = 0.;
+
+  coordsPts[6] = 0.;
+  coordsPts[7] = 1./2;
+  coordsPts[8] = 1./2;
+  
+  coordsPts[9] = 0.;
+  coordsPts[10] = 1./4;
+  coordsPts[11] = 1./4;
+
+  coordsPts[12] = 1./3;
+  coordsPts[13] = 1./2;
+  coordsPts[14] = -1./10;
+
+  coordsPts[15] = 0.;
+  coordsPts[16] = 0.;
+  coordsPts[17] = 1.;
+
+  coordsPts[18] = 1./8;
+  coordsPts[19] = 1./3;
+  coordsPts[20] = 1./2;
+
+  //cwipi_set_points_to_locate ("c_mean_value_3D", nPts, coordsPts);
+
+  double* value = (double *) malloc (nVertex * sizeof(double));
+  double* lvalue = (double *) malloc (nVertex * sizeof(double));
+
+  int nNotLocatedPoints;
+
+  for (int i = 0; i < nVertex; i++) 
+    value[i] = 1.2;
+
+  cwipi_exchange_status_t status = cwipi_exchange("c_mean_value_3D",
+                                                  "ech",
+                                                  1,
+                                                  1,     // n_step
+                                                  0.1,   // physical_time
+                                                  "val1",
+                                                  value,
+                                                  "val2",
+                                                  lvalue,
+                                                  &nNotLocatedPoints); 
 
   
-  cwipi_locate("c_mean_value_3D");
+
+  //cwipi_locate("c_mean_value_3D");
   
 
   cwipi_delete_coupling("c_mean_value_3D");
