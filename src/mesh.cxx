@@ -403,82 +403,6 @@ namespace cwipi {
       break;
     }
 
-//     //
-//     // Shared vertices
-
-//     fvm::fvm_nodal_set_shared_vertices(_fvmNodal, _coords);
-
-//     //
-//     // Order Fvm_nodal
-
-//     int localCommSize = 0;
-//     int localRank = 0;
-
-//     MPI_Comm_size(_localComm, &localCommSize);
-//     MPI_Comm_rank(_localComm, &localRank);
-
-//     int *allNElts     = new int[localCommSize];
-//     unsigned int *globalEltNum = new unsigned int[_nElts];
-
-//     MPI_Allgather((void *) const_cast<int*> (&_nElts),
-//                   1,
-//                   MPI_INT,
-//                   allNElts,
-//                   1,
-//                   MPI_INT,
-//                   _localComm);
-
-//     int nGlobal = 0;
-//     for(int i = 0; i < localRank; i++)
-//       nGlobal += allNElts[i];
-
-//     for(int i = 0; i < nElts; i++)
-//       globalEltNum[i] = nGlobal + i + 1;
-
-//     switch (_nDim) {
-//       case 2 :
-//         fvm::fvm_nodal_order_faces(_fvmNodal, globalEltNum);
-//         break;
-//       case 3 :
-//         fvm::fvm_nodal_order_cells(_fvmNodal, globalEltNum);
-//         break;
-//     }
-
-//     fvm::fvm_nodal_init_io_num(_fvmNodal, globalEltNum, _nDim);
-
-//     delete [] globalEltNum;
-
-//     //
-//     // global vertex num
-
-//     unsigned int *globalVertexNum = new unsigned int[_nVertex];
-
-//     MPI_Allgather((void *) const_cast<int*> (&_nVertex),
-//                   1,
-//                   MPI_INT,
-//                   allNElts,
-//                   1,
-//                   MPI_INT,
-//                   _localComm);
-
-//     nGlobal = 0;
-//     for(int i = 0; i < localRank; i++)
-//       nGlobal += allNElts[i];
-
-//     for(int i = 0; i < _nVertex; i++)
-//       globalVertexNum[i] = nGlobal + i + 1;
-
-
-//     fvm::fvm_nodal_order_vertices(_fvmNodal, globalVertexNum);
-//     fvm::fvm_nodal_init_io_num(_fvmNodal, globalVertexNum, 0);
-
-//     delete[] globalVertexNum;
-//     delete[] allNElts;
-
-//     #if defined(DEBUG) && 0
-//     fvm::fvm_nodal_dump(_fvmNodal);
-//     #endif
-
      MPI_Barrier(localComm);
      fvm::fvm_parall_set_mpi_comm(oldFVMComm);
 
@@ -1111,50 +1035,6 @@ namespace cwipi {
 
     if (_cellCenterCoords != NULL || _cellVolume != NULL)
       _computeMeshProperties();
-
-//     int localCommSize = 0;
-//     int localRank = 0;
-
-//     MPI_Comm_size(_localComm, &localCommSize);
-//     MPI_Comm_rank(_localComm, &localRank);
-
-//     int *allNElts     = new int[localCommSize];
-//     unsigned int *globalEltNum = new unsigned int[_nElts];
-
-//     MPI_Allgather((void *) const_cast<int*> (&_nElts),
-//                   1,
-//                   MPI_INT,
-//                   allNElts,
-//                   1,
-//                   MPI_INT,
-//                   _localComm);
-
-//     int nGlobal = 0;
-//     for(int i = 0; i < localRank; i++)
-//       nGlobal += allNElts[i];
-
-//     for(int i = 0; i < _nElts; i++)
-//       globalEltNum[i] = nGlobal + i + 1;
-
-//     switch (_nDim) {
-//       case 3 :
-//         fvm::fvm_nodal_order_cells(_fvmNodal, globalEltNum);
-//         break;
-//       default :
-//         bft::bft_error(__FILE__, __LINE__,0, "Polyhedra is 3D a element !\n");
-//         break;
-//     }
-
-//     fvm::fvm_nodal_init_io_num(_fvmNodal, globalEltNum, _nDim);
-
-//     delete [] globalEltNum;
-
-// #if defined(DEBUG) && 0
-//     fvm::fvm_nodal_dump(_fvmNodal);
-// #endif
-
-//     MPI_Barrier(_localComm);
-//     fvm::fvm_parall_set_mpi_comm(oldFVMComm);
   }
 
 
