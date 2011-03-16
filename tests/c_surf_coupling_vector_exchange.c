@@ -169,7 +169,7 @@ int main
   if (rank == 0)
     printf("\nSTART: %s\n", srcBaseName);
 
-  srand(rank + time(0));
+  srand(rank+time(0));
 
   int n_partition = 0;
   const int two = 2;
@@ -213,8 +213,8 @@ int main
     codeCoupledName = "code1";
   }
 
-  char* fileName = (char *) malloc(sizeof(char) * 30);
-  sprintf(fileName,"c_surf_coupling_P1P1_%4.4d.txt",rank);
+  char* fileName = (char *) malloc(sizeof(char) * 39);
+  sprintf(fileName,"c_surf_coupling_vector_exchange_%4.4d.txt",rank);
 
   outputFile = fopen(fileName,"w");
 
@@ -236,7 +236,7 @@ int main
   MPI_Comm_rank(localComm, &currentRank);
   MPI_Comm_size(localComm, &localCommSize);
 
-  fprintf(outputFile, "  Surface coupling test : P1P1 with polygon\n");
+  fprintf(outputFile, "  Surface coupling test : Exchange a vector\n");
   fprintf(outputFile, "\n");
 
   fprintf(outputFile, "\nDump after initialization\n");
@@ -253,7 +253,7 @@ int main
   /* Coupling creation
    * ----------------- */
 
-  cwipi_create_coupling("c_surf_cpl_P1P1",                                // Coupling id
+  cwipi_create_coupling("c_surf_cpl_vect_exch",                                // Coupling id
                         CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING, // Coupling type
                         codeCoupledName,                           // Coupled application id
                         2,                                         // Geometric entities dimension
@@ -289,7 +289,7 @@ int main
   coords = (double *) malloc(sizeof(double) * 3 * nVertex );
   eltsConnecPointer = (int *) malloc(sizeof(int) * (nElts + 1));
   eltsConnec = (int *) malloc(sizeof(int) * 4 * nElts);
-  
+
   grid_mesh(xmin, 
             xmax, 
             ymin, 
@@ -306,7 +306,7 @@ int main
   fprintf(outputFile, "   Number of vertex   : %i\n", nVertex);
   fprintf(outputFile, "   Number of elements : %i\n", nElts);
 
-  cwipi_define_mesh("c_surf_cpl_P1P1",
+  cwipi_define_mesh("c_surf_cpl_vect_exch",
                     nVertex,
                     nElts,
                     coords,
@@ -314,28 +314,26 @@ int main
                     eltsConnec);
 
   /* Fields exchange
-   *     - Proc 0 : Send X coordinates
-   *                Recv Y coordinates
-   *     - Proc 1 : Send Y coordinates
-   *                Recv X coordinates
-   * --------------------------------- */
+   *     - Proc 0 : Send X,Y,Z interlaced coordinates
+   *                Recv X,Y,Z interlaced coordinates
+   *     - Proc 1 : Send X,Y,Z interlaced coordinates
+   *                Recv X,Y,Z interlaced coordinates
+   * ------------------------------------------------------ */
 
   if (rank == 0)
     printf("        Exchange Code1 <-> Code2\n");
 
   double *sendValues = NULL;
   double *recvValues = NULL;
-  
-  sendValues = (double *) malloc(sizeof(double) * nVertex);
-  recvValues = (double *) malloc(sizeof(double) * nVertex);
+  const int stride = 3;
+
+  sendValues = (double *) malloc(sizeof(double) * nVertex * stride);
+  recvValues = (double *) malloc(sizeof(double) * nVertex * stride);
 
   /* Define fields to send (X coordinate or Y coordinate) */
 
-  for (int i = 0; i < nVertex; i++) {
-    if (codeId == 1)
-      sendValues[i] = coords[3 * i];
-    else
-      sendValues[i] = coords[3 * i + 1];
+  for (int i = 0; i < 3 * nVertex; i++) {
+    sendValues[i] = coords[i];
   }
 
   /* Exchange */
@@ -352,9 +350,9 @@ int main
     recvValuesName = "cooX";
   }
 
-  cwipi_exchange_status_t status = cwipi_exchange("c_surf_cpl_P1P1",
+  cwipi_exchange_status_t status = cwipi_exchange("c_surf_cpl_vect_exch",
                                                   "ech",
-                                                  1,
+                                                  stride,
                                                   1,     // n_step
                                                   0.1,   // physical_time
                                                   sendValuesName,
@@ -364,7 +362,7 @@ int main
                                                   &nNotLocatedPoints); 
 
   _dumpStatus(outputFile, status);
-  _dumpNotLocatedPoints(outputFile, "c_surf_cpl_P1P1", nNotLocatedPoints);
+  _dumpNotLocatedPoints(outputFile, "c_surf_cpl_vect_exch", nNotLocatedPoints);
 
   /* Coupling deletion
    * ----------------- */
@@ -372,7 +370,7 @@ int main
   if (rank == 0)
     printf("        Delete coupling\n");
 
-  cwipi_delete_coupling("c_surf_cpl_P1P1");
+  cwipi_delete_coupling("c_surf_cpl_vect_exch");
 
   /* Freeing memory
    * -------------- */

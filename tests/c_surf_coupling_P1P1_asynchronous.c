@@ -171,10 +171,11 @@ int main
 
   srand(rank+time(0));
 
+  const int two = 2;
   int n_partition = 0;
-  while(2 * pow(n_partition, 2) < commWorldSize) n_partition++;
+  while(two * pow(n_partition, two) < commWorldSize) n_partition++;
 
-  int n2 = 2 * pow(n_partition, 2);
+  int n2 = (int) (two * pow(n_partition, two));
 
   if (n2 != commWorldSize) {
     if (rank == 0)
@@ -197,8 +198,6 @@ int main
   char *codeName;
   int codeId;
   char *codeCoupledName;
-
-  int third_size; 
 
   if (rank < commWorldSize / 2) {
     codeName = "code1";
@@ -281,6 +280,13 @@ int main
   const double ymin = -10;
   const double ymax =  10;
 
+  nVertex = nVertexSeg * nVertexSeg;
+  nElts = (nVertexSeg - 1) * (nVertexSeg - 1);
+
+  coords = (double *) malloc(sizeof(double) * 3 * nVertex );
+  eltsConnecPointer = (int *) malloc(sizeof(int) * (nElts + 1));
+  eltsConnec = (int *) malloc(sizeof(int) * 4 * nElts);
+
   grid_mesh(xmin, 
             xmax, 
             ymin, 
@@ -288,11 +294,9 @@ int main
             randLevel,
             nVertexSeg,
             n_partition, 
-            &nVertex,
-            &coords, 
-            &nElts,
-            &eltsConnecPointer,
-            &eltsConnec,
+            coords, 
+            eltsConnecPointer,
+            eltsConnec,
             localComm); 
 
 

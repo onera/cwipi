@@ -28,8 +28,6 @@
 #include "locationToLocalMesh.hxx"
 #include "locationToDistantMesh.hxx"
 #include "applicationProperties.hxx"
-#include "coo_baryc.h"
-
 
 namespace cwipi
 {

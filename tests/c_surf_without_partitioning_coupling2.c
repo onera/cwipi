@@ -16,6 +16,7 @@
   You should have received a copy of the GNU Lesser General Public
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -169,7 +170,7 @@ int main
   if (rank == 0)
     printf("\nSTART: %s\n", srcBaseName);
 
-  srand(rank + time(0));
+  srand(rank+time(0));
 
   int n_partition = 0;
   const int two = 2;
@@ -213,8 +214,8 @@ int main
     codeCoupledName = "code1";
   }
 
-  char* fileName = (char *) malloc(sizeof(char) * 30);
-  sprintf(fileName,"c_surf_coupling_P1P1_%4.4d.txt",rank);
+  char* fileName = (char *) malloc(sizeof(char) * 67);
+  sprintf(fileName,"c_surf_without_partitioning_coupling2_%4.4d.txt",rank);
 
   outputFile = fopen(fileName,"w");
 
@@ -236,7 +237,7 @@ int main
   MPI_Comm_rank(localComm, &currentRank);
   MPI_Comm_size(localComm, &localCommSize);
 
-  fprintf(outputFile, "  Surface coupling test : P1P1 with polygon\n");
+  fprintf(outputFile, "  Test CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING/CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING\n");
   fprintf(outputFile, "\n");
 
   fprintf(outputFile, "\nDump after initialization\n");
@@ -253,8 +254,12 @@ int main
   /* Coupling creation
    * ----------------- */
 
-  cwipi_create_coupling("c_surf_cpl_P1P1",                                // Coupling id
-                        CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING, // Coupling type
+  cwipi_coupling_type_t coupling_type;
+
+  coupling_type = CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING;
+
+  cwipi_create_coupling("c_surf_without_partitioning_cpl2",                                // Coupling id
+                        coupling_type, // Coupling type
                         codeCoupledName,                           // Coupled application id
                         2,                                         // Geometric entities dimension
                         0.1,                                       // Geometric tolerance
@@ -283,35 +288,50 @@ int main
   const double ymin = -10;
   const double ymax =  10;
 
+  MPI_Group localGroup = MPI_GROUP_NULL;
+  MPI_Group p1Group = MPI_GROUP_NULL;
+  MPI_Comm p1Comm = MPI_COMM_NULL;
+  int rl = 0;
+    
+  MPI_Comm_group(localComm, &localGroup);
+  MPI_Group_incl(localGroup, 1, &rl, &p1Group);
+  MPI_Comm_create(localComm, p1Group, &p1Comm);
+
   nVertex = nVertexSeg * nVertexSeg;
   nElts = (nVertexSeg - 1) * (nVertexSeg - 1);
 
-  coords = (double *) malloc(sizeof(double) * 3 * nVertex );
+  coords = (double *) malloc(sizeof(double) * 3 * nVertex);
   eltsConnecPointer = (int *) malloc(sizeof(int) * (nElts + 1));
   eltsConnec = (int *) malloc(sizeof(int) * 4 * nElts);
-  
-  grid_mesh(xmin, 
-            xmax, 
-            ymin, 
-            ymax, 
-            randLevel,
-            nVertexSeg,
-            n_partition, 
-            coords, 
-            eltsConnecPointer,
-            eltsConnec,
-            localComm); 
 
+  if (currentRank == 0) {
+
+    grid_mesh(xmin, 
+              xmax, 
+              ymin, 
+              ymax, 
+              randLevel,
+              nVertexSeg,
+              1, 
+              coords, 
+              eltsConnecPointer,
+              eltsConnec,
+              p1Comm); 
+    
+    cwipi_define_mesh("c_surf_without_partitioning_cpl2",
+                      nVertex,
+                      nElts,
+                      coords,
+                      eltsConnecPointer,
+                      eltsConnec);
+
+  }
+
+  MPI_Bcast(&nVertex, 1, MPI_INT, 0, localComm);
+  MPI_Bcast(&nElts, 1, MPI_INT, 0, localComm);
 
   fprintf(outputFile, "   Number of vertex   : %i\n", nVertex);
   fprintf(outputFile, "   Number of elements : %i\n", nElts);
-
-  cwipi_define_mesh("c_surf_cpl_P1P1",
-                    nVertex,
-                    nElts,
-                    coords,
-                    eltsConnecPointer,
-                    eltsConnec);
 
   /* Fields exchange
    *     - Proc 0 : Send X coordinates
@@ -331,12 +351,8 @@ int main
 
   /* Define fields to send (X coordinate or Y coordinate) */
 
-  for (int i = 0; i < nVertex; i++) {
-    if (codeId == 1)
-      sendValues[i] = coords[3 * i];
-    else
-      sendValues[i] = coords[3 * i + 1];
-  }
+  for (int i = 0; i < nVertex; i++)
+    sendValues[i] = 1.;
 
   /* Exchange */
 
@@ -352,7 +368,7 @@ int main
     recvValuesName = "cooX";
   }
 
-  cwipi_exchange_status_t status = cwipi_exchange("c_surf_cpl_P1P1",
+  cwipi_exchange_status_t status = cwipi_exchange("c_surf_without_partitioning_cpl2",
                                                   "ech",
                                                   1,
                                                   1,     // n_step
@@ -364,7 +380,7 @@ int main
                                                   &nNotLocatedPoints); 
 
   _dumpStatus(outputFile, status);
-  _dumpNotLocatedPoints(outputFile, "c_surf_cpl_P1P1", nNotLocatedPoints);
+  _dumpNotLocatedPoints(outputFile, "c_surf_without_partitioning_cpl2", nNotLocatedPoints);
 
   /* Coupling deletion
    * ----------------- */
@@ -372,7 +388,7 @@ int main
   if (rank == 0)
     printf("        Delete coupling\n");
 
-  cwipi_delete_coupling("c_surf_cpl_P1P1");
+  cwipi_delete_coupling("c_surf_without_partitioning_cpl2");
 
   /* Freeing memory
    * -------------- */

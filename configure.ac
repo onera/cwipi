@@ -49,8 +49,6 @@ m4_define([bft_licence_c_comment],
   library, intended to simplify and enhance portability, memory 
   and I/O use for scientific codes.
 
-  Copyright (C) 2011  ONERA
-
   Copyright (C) 2004-2010  EDF   
 
   This library is free software; you can redistribute it and/or
@@ -93,7 +91,7 @@ m4_define([fvm_licence_c_comment],
 
 m4_define([cwipi_major_version], [0])
 m4_define([cwipi_minor_version], [4])
-m4_define([cwipi_release_version], [1])
+m4_define([cwipi_release_version], [2])
 m4_define([cwipi_version_extra], [])
 m4_define([cwipi_version_string],
           [cwipi_major_version.cwipi_minor_version.cwipi_release_version@&t@cwipi_version_extra])
@@ -206,8 +204,8 @@ AC_PROG_INSTALL
 
 AC_PROG_LN_S
 
-AC_LIBTOOL_DLOPEN
-AC_PROG_LIBTOOL
+#AC_LIBTOOL_DLOPEN
+#AC_PROG_LIBTOOL
 
 # Debug or production compilation mode (debug by default) ?
 
@@ -603,7 +601,7 @@ BFT_AC_CHECK_SIZEOF([off_t], [bft])
 have_malloc_hooks=no
 
 AC_ARG_ENABLE(malloc_hooks,
-  [  --disable-malloc-hooks  Do not use malloc hooks when available],
+  [  --enable-malloc-hooks  Use malloc hooks when available],
   [
     case "${enableval}" in
       yes) malloc_hooks=true ;;
@@ -611,7 +609,7 @@ AC_ARG_ENABLE(malloc_hooks,
       *)   AC_MSG_ERROR([bad value ${enableval} for --enable-malloc-hooks]) ;;
     esac
   ],
-  [ malloc_hooks=true ]
+  [ malloc_hooks=false ]
 )
 
 saved_LIBS="$LIBS"

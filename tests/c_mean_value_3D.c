@@ -172,9 +172,11 @@ int main
   srand(rank+time(0));
 
   int n_partition = 0;
-  while(2 * pow(n_partition, 2) < commWorldSize) n_partition++;
+  const int two = 2;
 
-  int n2 = 2 * pow(n_partition, 2);
+  while(two * pow(n_partition, two) < commWorldSize) n_partition++;
+
+  int n2 = (int) (two * pow(n_partition, two));
 
   if (n2 != commWorldSize) {
     if (rank == 0)
@@ -197,8 +199,6 @@ int main
   char *codeName;
   int codeId;
   char *codeCoupledName;
-
-  int third_size; 
 
   if (rank < commWorldSize / 2) {
     codeName = "code1";

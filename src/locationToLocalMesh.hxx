@@ -88,13 +88,15 @@ public:
   /// \brief Get barycentric coordinates index  of distant points in the local mesh (size = nDistantPoint + 1)
   ///
 
-  inline const std::vector <int> & getBarycentricCoordinatesIndex() const;
+  //inline const std::vector <int> & getBarycentricCoordinatesIndex() const;
+  inline const int *getBarycentricCoordinatesIndex() const;
 
   ///
   /// \brief Get barycentric coordinates of distant points in the local mesh (size = BarycentricCoordinatesIndex[nDistantPoint])
   ///
 
-  inline const std::vector <double> & getBarycentricCoordinates() const;
+  //inline const std::vector <double> & getBarycentricCoordinates() const;
+  inline const double *getBarycentricCoordinates() const;
 
   ///
   /// \brief Return location result (size = nDistantpoint)
@@ -264,23 +266,43 @@ private :
 /// \brief Get barycentric coordinates index  of distant points in the local mesh (size = nDistantPoint + 1)
 ///
 
-  const std::vector <int> & LocationToLocalMesh::getBarycentricCoordinatesIndex() const
-{
-  if (_toLocate)
-    bft::bft_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
-  return *_barycentricCoordinatesIndex;
-}
+//   const std::vector <int> & LocationToLocalMesh::getBarycentricCoordinatesIndex() const
+//   {
+//     if (_toLocate)
+//       bft::bft_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
+//     return *_barycentricCoordinatesIndex;
+//   }
+
+  const int* LocationToLocalMesh::getBarycentricCoordinatesIndex() const
+  {
+    if (_toLocate)
+      bft::bft_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
+    if (_barycentricCoordinatesIndex == NULL)
+      return NULL;
+    else 
+      return &(*_barycentricCoordinatesIndex)[0];
+  }
 
 ///
 /// \brief Get barycentric coordinates of distant points in the local mesh (size = BarycentricCoordinatesIndex[nDistantPoint])
 ///
 
-  const std::vector <double> & LocationToLocalMesh::getBarycentricCoordinates() const
-{
-  if (_toLocate)
-    bft::bft_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
-  return *_barycentricCoordinates;
-}
+//   const std::vector <double> & LocationToLocalMesh::getBarycentricCoordinates() const
+//   {
+//     if (_toLocate)
+//       bft::bft_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
+//     return *_barycentricCoordinates;
+//   }
+
+  const double *LocationToLocalMesh::getBarycentricCoordinates() const
+  {
+    if (_toLocate)
+      bft::bft_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
+    if (_barycentricCoordinates == NULL)
+      return NULL;
+    else
+      return &(*_barycentricCoordinates)[0];
+  }
 
 ///
 /// \brief Return location result (size = nDistantpoint)

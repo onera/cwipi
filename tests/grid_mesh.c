@@ -16,12 +16,14 @@
   You should have received a copy of the GNU Lesser General Public
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
+
 #include <stdlib.h>
 #include <mpi.h>
 
 #include "grid_mesh.h"
 
 #define ABS(a)     ((a) <  0  ? -(a) : (a))
+
 
 /*----------------------------------------------------------------------
  *                                                                     
@@ -70,11 +72,9 @@ void  grid_mesh(double xmin,
                 double randLevel,
                 int nVertexSeg,
                 int nPartitionSeg, 
-                int *nVertex,
-                double **coords, 
-                int *nElts,
-                int **eltsConnecPointer,
-                int **eltsConnec,
+                double *coords, 
+                int *eltsConnecPointer,
+                int *eltsConnec,
                 MPI_Comm localComm)
 {
 
@@ -144,13 +144,10 @@ void  grid_mesh(double xmin,
 
   /* Number of vertices and elements in the partition */
 
-  *nVertex = nVertexSeg * nVertexSeg;
-  *nElts   = (nVertexSeg - 1) * (nVertexSeg - 1);
+  const int nVertex = nVertexSeg * nVertexSeg;
+  const int nElts   = (nVertexSeg - 1) * (nVertexSeg - 1);
 
   /* Define coordinates */
-
-  *coords = (double *) malloc(sizeof(double) * 3 * (*nVertex) );
-  double *const _coords = *coords;
 
   double deltaU = 2.0/(nVertexSeg - 1);
   double deltaV = 2.0/(nVertexSeg - 1);
@@ -165,19 +162,19 @@ void  grid_mesh(double xmin,
         randV +=  _random01() * randLevel * deltaV;
       }
       
-      _coords[3 * (j * nVertexSeg + i) + 0] = 
+      coords[3 * (j * nVertexSeg + i) + 0] = 
         0.25 * ((1 - randU - randV + randU * randV) * boundRank[0 * 3 + 0] +
                 (1 + randU - randV - randU * randV) * boundRank[1 * 3 + 0] +
                 (1 + randU + randV + randU * randV) * boundRank[2 * 3 + 0] +
                 (1 - randU + randV - randU * randV) * boundRank[3 * 3 + 0] );
       
-      _coords[3 * (j * nVertexSeg + i) + 1] = 
+      coords[3 * (j * nVertexSeg + i) + 1] = 
         0.25 * ((1 - randU - randV + randU * randV) * boundRank[0 * 3 + 1] +
                 (1 + randU - randV - randU * randV) * boundRank[1 * 3 + 1] +
                 (1 + randU + randV + randU * randV) * boundRank[2 * 3 + 1] +
                 (1 - randU + randV - randU * randV) * boundRank[3 * 3 + 1] );
 
-      _coords[3 * (j * nVertexSeg + i) + 2] = 0.;
+      coords[3 * (j * nVertexSeg + i) + 2] = 0.;
 
       u += deltaU;
     }
@@ -189,24 +186,40 @@ void  grid_mesh(double xmin,
 
   /* Define connectivity */
 
-  *eltsConnecPointer = (int *) malloc(sizeof(int) * (*nElts + 1));
-  int *const _eltsConnecPointer = *eltsConnecPointer;
-
-  *eltsConnec = (int *) malloc(sizeof(int) * 4 * (*nElts));
-  int *const _eltsConnec = *eltsConnec;
-
-  _eltsConnecPointer[0] = 0;
-  for (int i = 1; i < *nElts + 1; i++) 
-    _eltsConnecPointer[i] = _eltsConnecPointer[i-1] + 4;
+  eltsConnecPointer[0] = 0;
+  for (int i = 1; i < nElts + 1; i++) 
+    eltsConnecPointer[i] = eltsConnecPointer[i-1] + 4;
 
   int k = 0;
   for (int j = 0; j < (nVertexSeg - 1); j++) {
     for (int i = 0; i < (nVertexSeg - 1); i++) {
-      _eltsConnec[4 * k]     =       j * nVertexSeg + i     + 1;
-      _eltsConnec[4 * k + 1] =       j * nVertexSeg + i + 1 + 1;
-      _eltsConnec[4 * k + 2] = (j + 1) * nVertexSeg + i + 1 + 1;
-      _eltsConnec[4 * k + 3] = (j + 1) * nVertexSeg + i     + 1;
+      eltsConnec[4 * k]     =       j * nVertexSeg + i     + 1;
+      eltsConnec[4 * k + 1] =       j * nVertexSeg + i + 1 + 1;
+      eltsConnec[4 * k + 2] = (j + 1) * nVertexSeg + i + 1 + 1;
+      eltsConnec[4 * k + 3] = (j + 1) * nVertexSeg + i     + 1;
       k++;
     }
   }
+}
+
+void PROCF(grid_mesh_f, GRID_MESH_F)
+     (double *xmin, 
+      double *xmax, 
+      double *ymin, 
+      double *ymax, 
+      double *randLevel,
+      int *nVertexSeg,
+      int *nPartitionSeg, 
+      double *coords, 
+      int *eltsConnecPointer,
+      int *eltsConnec,
+      MPI_Fint *localComm)
+{
+
+  MPI_Comm localComm_c =  MPI_Comm_f2c(*localComm);
+
+  grid_mesh(*xmin, *xmax, *ymin, *ymax, *randLevel,
+            *nVertexSeg, *nPartitionSeg, coords,
+            eltsConnecPointer, eltsConnec, localComm_c);
+
 }

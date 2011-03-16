@@ -27,6 +27,8 @@
 #include <bft_error.h>
 #include <bft_file.h>
 
+#include <fvm_parall.h>
+
 #include "coupling.hxx"
 #include "coupling_i.hxx"
 
@@ -35,7 +37,6 @@
 
 #include "solve_ax_b_4.h"
 #include "quickSort.h"
-#include "coo_baryc.h"
 #include "cwipi.h"
 
 /*----------------------------------------------------------------------------
@@ -373,8 +374,8 @@ void Coupling::_interpolate1D(double *referenceVertexField,
   const int *eltsConnecPointer = _supportMesh->getEltConnectivityIndex();
   const int *eltsConnec        = _supportMesh->getEltConnectivity();
   const double *coords         = _supportMesh->getVertexCoords();
-  const double *barycentricCoordinates = &_locationToLocalMesh->getBarycentricCoordinates()[0];
-  const int *barycentricCoordinatesIndex = &_locationToLocalMesh->getBarycentricCoordinatesIndex()[0];
+  const double *barycentricCoordinates = _locationToLocalMesh->getBarycentricCoordinates();
+  const int *barycentricCoordinatesIndex = _locationToLocalMesh->getBarycentricCoordinatesIndex();
 
   for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
     int iel = distantLocation[ipoint] - 1;
@@ -403,8 +404,8 @@ void Coupling::_interpolate2D (double *vertexField,
   const int *eltsConnecPointer = _supportMesh->getEltConnectivityIndex();
   const int *eltsConnec        = _supportMesh->getEltConnectivity();
 
-  const double *barycentricCoordinates = &_locationToLocalMesh->getBarycentricCoordinates()[0];
-  const int *barycentricCoordinatesIndex = &_locationToLocalMesh->getBarycentricCoordinatesIndex()[0];
+  const double *barycentricCoordinates = _locationToLocalMesh->getBarycentricCoordinates();
+  const int *barycentricCoordinatesIndex = _locationToLocalMesh->getBarycentricCoordinatesIndex();
 
   for (int ipoint = 0; ipoint <nDistantPoint; ipoint++) {
     int iel = distantLocation[ipoint] - 1;
@@ -702,10 +703,10 @@ void Coupling::defineMeshAddPolyhedra(const int n_element,
                                face_connectivity_index,
                                face_connectivity);
   }
-  else {
+  else
     bft::bft_error(__FILE__, __LINE__, 0, "for a coupling without parallel partitionning,"
                    " the coupling mesh must be defined only by the root rank\n");
-  }
+
 }
 
 
@@ -746,6 +747,7 @@ cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
 
     int currentRank;
     MPI_Comm_rank(_couplingComm, &currentRank);
+
 
     int lLocalName = _name.size() + 1;
     int lDistantName = 0;
@@ -833,8 +835,8 @@ cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
 
     const int* interiorList     = _locationToDistantMesh->getLocatedPoint();
     const int nInteriorList     = _locationToDistantMesh->getNLocatedPoint();
-    const double *barycentricCoordinates = &_locationToLocalMesh->getBarycentricCoordinates()[0];
-    const int *barycentricCoordinatesIndex = &_locationToLocalMesh->getBarycentricCoordinatesIndex()[0];
+    const double *barycentricCoordinates = _locationToLocalMesh->getBarycentricCoordinates();
+    const int *barycentricCoordinatesIndex = _locationToLocalMesh->getBarycentricCoordinatesIndex();
 
     int lDistantField = stride * nDistantPoint;
     int lReceivingField = stride * _locationToDistantMesh->getNpointsToLocate();
@@ -1062,8 +1064,8 @@ void Coupling::issend(const char    *exchangeName,
 
     const int* interiorList     = _locationToDistantMesh->getLocatedPoint();
     const int nInteriorList     = _locationToDistantMesh->getNLocatedPoint();
-    const double *barycentricCoordinates = &_locationToLocalMesh->getBarycentricCoordinates()[0];
-    const int *barycentricCoordinatesIndex = &_locationToLocalMesh->getBarycentricCoordinatesIndex()[0];
+    const double *barycentricCoordinates = _locationToLocalMesh->getBarycentricCoordinates();
+    const int *barycentricCoordinatesIndex = _locationToLocalMesh->getBarycentricCoordinatesIndex();
 
     int lDistantField = stride * nDistantPoint;
     int lReceivingField = stride * _locationToDistantMesh->getNpointsToLocate();

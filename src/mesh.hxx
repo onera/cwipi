@@ -22,6 +22,7 @@
 #include <fvm_nodal.h>
 #include <vector>
 #include <mpi.h>
+#include <bft_error.h>
 
 namespace cwipi {
 
@@ -51,6 +52,8 @@ namespace cwipi {
     inline const double* getVertexCoords() const;
 
     inline fvm::fvm_nodal_t& getFvmNodal() const;
+
+    inline fvm::fvm_nodal_t& getFvmNodal();
 
     inline const int& getNElts() const;
 
@@ -104,6 +107,8 @@ namespace cwipi {
 
     void _computeMeshProperties();
 
+    void _finalizeNodal();
+
     void _computeMeshPolyhedraProperties();
 
   private:
@@ -123,6 +128,7 @@ namespace cwipi {
     int          *_polyhedraCellToFaceConnectivity;
     int          *_polyhedraFaceConnectivityIndex;
     int          *_polyhedraFaceConnectivity;
+    bool         _isNodalFinalized;
     std::vector<int>          *_polyhedraCellToVertexConnectivity;
     std::vector<int>          *_polyhedraCellToVertexConnectivityIndex;
 
@@ -141,8 +147,17 @@ namespace cwipi {
     return _coords;
   }
 
-  fvm::fvm_nodal_t& Mesh::getFvmNodal() const
+  fvm::fvm_nodal_t& Mesh::getFvmNodal()
   {
+    _finalizeNodal();
+    return *_fvmNodal;
+  }
+
+  fvm::fvm_nodal_t& Mesh::getFvmNodal() const 
+  {
+    if (! _isNodalFinalized) {
+      bft::bft_error(__FILE__, __LINE__, 0, "'%i' bad dimension\n", _nDim);
+    }
     return *_fvmNodal;
   }
 
