@@ -1,8 +1,4 @@
 /*
-  This file is part of the CWIPI library. 
-
-  Copyright (C) 2011  ONERA
-
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
@@ -172,11 +168,9 @@ int main
   srand(rank+time(0));
 
   int n_partition = 0;
-  const int two = 2;
+  while(2 * pow(n_partition, 2) < commWorldSize) n_partition++;
 
-  while(two * pow(n_partition, two) < commWorldSize) n_partition++;
-
-  int n2 = (int) (two * pow(n_partition, two));
+  int n2 = 2 * pow(n_partition, 2);
 
   if (n2 != commWorldSize) {
     if (rank == 0)
@@ -199,6 +193,8 @@ int main
   char *codeName;
   int codeId;
   char *codeCoupledName;
+
+  int third_size; 
 
   if (rank < commWorldSize / 2) {
     codeName = "code1";
@@ -272,7 +268,7 @@ int main
 
   /*  coord tetraedre + octaedre */
 
-  int nVertex = 7;               // Number of vertex
+  /* int nVertex = 7;               // Number of vertex
   double *coords = (double *) malloc(nVertex * 3 * sizeof(double));
 
   coords[0] = 0.; 
@@ -303,9 +299,67 @@ int main
   coords[18] = 1./2; 
   coords[19] = 1./2; 
   coords[20] = -1;
- 
-
   
+  /*  coord tetraedre + dodecaedre */
+
+  double X = 1.;
+  double Z = (1./2)*(1 + sqrt(5));
+
+  int nVertex = 13;               // Number of vertex
+  double *coords = (double *) malloc(nVertex * 3 * sizeof(double));
+
+  coords[0] = 2.;
+  coords[1] =  Z/3 + 3;
+  coords[2] =  (X + 2*Z)/3;
+
+  coords[3] = -X;
+  coords[4] =  0;
+  coords[5] =  Z;
+
+  coords[6] =  X;
+  coords[7] =  0;
+  coords[8] =  Z;
+
+  coords[9] = -X;
+  coords[10] =  0;
+  coords[11] = -Z;
+
+  coords[12] =  X;
+  coords[13] =  0;
+  coords[14] = -Z;
+
+  coords[15] =  0;
+  coords[16] =  Z;
+  coords[17] =  X;
+
+  coords[18] =  0;
+  coords[19] =  Z;
+  coords[20] = -X;
+
+  coords[21] =  0;
+  coords[22] = -Z;
+  coords[23] =  X;
+
+  coords[24] =  0;
+  coords[25] = -Z;
+  coords[26] = -X;
+
+  coords[27] =  Z;
+  coords[28] =  X;
+  coords[29] =  0;
+
+  coords[30] = -Z;
+  coords[31] =  X;
+  coords[32] =  0;
+
+  coords[33] =  Z;
+  coords[34] = -X;
+  coords[35] =  0;
+
+  coords[36] = -Z;
+  coords[37] = -X;
+  coords[38] =  0;
+
   /******tetraedre*******/
 
   int nElts = 1;                 // Number of elements
@@ -317,7 +371,7 @@ int main
   eltsConnecPointer[1] = 4; 
   
   eltsConnec[0] = 1; 
-  eltsConnec[1] = 4; 
+  eltsConnec[1] = 6; 
   eltsConnec[2] = 3; 
   eltsConnec[3] = 2; 
 
@@ -332,57 +386,59 @@ int main
 
 
 
-  nVertex = 6;               // Number of vertex
-
+    
   /************octaedre**************/
 
-  int *face_index = (int*) malloc(nElts * sizeof(int));
-  int *cell_to_face_connectivity = (int*) malloc((8+1) * sizeof(int));
-  int *face_connectivity = (int*) malloc(3 * 8 * sizeof(int));
-  int *face_connectivity_index = (int*) malloc((8+1) * sizeof(int));
+  
+  /* int nbr_face = 8;
+  
+  int *face_index = (int*) malloc(2 * sizeof(int));
+  int *cell_to_face_connectivity = (int*) malloc(nbr_face* sizeof(int));
+  int *face_connectivity = (int*) malloc(3 * nbr_face * sizeof(int));
+  int *face_connectivity_index = (int*) malloc((nbr_face+1) * sizeof(int));
  
  
 
   face_index[0] = 0;
   face_index[1] = 8;
 
-  for(int i = 0; i < 9 ; i++)
+  for(int i = 0; i < 8 ; i++)
     cell_to_face_connectivity[i] = i+1;
 
   for (int i = 0; i < 9 ; i++)
     face_connectivity_index[i] = 3*i;
      
   face_connectivity[0]  = 1;
-  face_connectivity[1]  = 3;
-  face_connectivity[2]  = 2;
+  face_connectivity[1]  = 2;
+  face_connectivity[2]  = 3;
 
   face_connectivity[3]  = 2;
-  face_connectivity[4]  = 3;
-  face_connectivity[5]  = 6;
+  face_connectivity[4]  = 6;
+  face_connectivity[5]  = 3;
 
   face_connectivity[6]  = 6;
-  face_connectivity[7]  = 3;
-  face_connectivity[8]  = 5;
+  face_connectivity[7]  = 5;
+  face_connectivity[8]  = 3;
 
   face_connectivity[9]  = 5;
-  face_connectivity[10] = 3;
-  face_connectivity[11] = 1;
+  face_connectivity[10] = 1;
+  face_connectivity[11] = 3;
 
   face_connectivity[12] = 1;
-  face_connectivity[13] = 2;
-  face_connectivity[14] = 7;
+  face_connectivity[13] = 7;
+  face_connectivity[14] = 2;
 
   face_connectivity[15] = 2;
-  face_connectivity[16] = 6;
-  face_connectivity[17] = 7;
+  face_connectivity[16] = 7;
+  face_connectivity[17] = 6;
 
   face_connectivity[18] = 6;
-  face_connectivity[19] = 5;
-  face_connectivity[20] = 7;
+  face_connectivity[19] = 7;
+  face_connectivity[20] = 5;
 
   face_connectivity[21] = 5;
-  face_connectivity[22] = 1;
-  face_connectivity[23] = 7;
+  face_connectivity[22] = 7;
+  face_connectivity[23] = 1;
 
   
   cwipi_add_polyhedra("c_mean_value_3D",
@@ -392,6 +448,113 @@ int main
                      face_connectivity_index,
                      face_connectivity);
   
+
+  /**********Dodecaedre**********/
+
+  int nbr_face = 20;
+  
+  int *face_index = (int*) malloc(2 * sizeof(int));
+  int *cell_to_face_connectivity = (int*) malloc(nbr_face*sizeof(int));
+  int *face_connectivity = (int*) malloc(3 * nbr_face * sizeof(int));
+  int *face_connectivity_index = (int*) malloc((nbr_face+1) * sizeof(int));
+  
+  
+  
+  face_index[0] = 0;
+  face_index[1] = nbr_face;
+
+  for(int i = 0; i < nbr_face ; i++)
+    cell_to_face_connectivity[i] = i+1;
+
+  for (int i = 0; i < nbr_face+1 ; i++)
+    face_connectivity_index[i] = 3*i;
+     
+  face_connectivity[0]  = 2;
+  face_connectivity[1]  = 6;
+  face_connectivity[2]  = 3;
+
+  face_connectivity[3]  = 2;
+  face_connectivity[4]  = 11;
+  face_connectivity[5]  = 6;
+
+  face_connectivity[6]  = 11;
+  face_connectivity[7]  = 7;
+  face_connectivity[8]  = 6;
+
+  face_connectivity[9]  = 6;
+  face_connectivity[10]  = 7;
+  face_connectivity[11]  = 10;
+
+  face_connectivity[12]  = 6;
+  face_connectivity[13]  = 10;
+  face_connectivity[14]  = 3;
+
+  face_connectivity[15]  = 10;
+  face_connectivity[16]  = 12;
+  face_connectivity[17]  = 3;
+
+  face_connectivity[18]  = 10;
+  face_connectivity[19]  = 5;
+  face_connectivity[20]  = 12;
+
+  face_connectivity[21]  = 7;
+  face_connectivity[22]  = 5;
+  face_connectivity[23]  = 10;
+
+  face_connectivity[24]  = 7;
+  face_connectivity[25]  = 4;
+  face_connectivity[26]  = 5;
+
+  face_connectivity[27]  = 4;
+  face_connectivity[28]  = 9;
+  face_connectivity[29]  = 5;
+
+  face_connectivity[30]  = 9;
+  face_connectivity[31]  = 12;
+  face_connectivity[32]  = 5;
+
+  face_connectivity[33]  = 9;
+  face_connectivity[34]  = 8;
+  face_connectivity[35]  = 12;
+
+  face_connectivity[36]  = 9;
+  face_connectivity[37]  = 13;
+  face_connectivity[38]  = 8;
+
+  face_connectivity[39]  = 13;
+  face_connectivity[40]  = 2;
+  face_connectivity[41]  = 8;
+
+  face_connectivity[42]  = 2;
+  face_connectivity[43]  = 3;
+  face_connectivity[44]  = 8;
+
+  face_connectivity[45]  = 8;
+  face_connectivity[46]  = 3;
+  face_connectivity[47]  = 12;
+
+  face_connectivity[48]  = 11;
+  face_connectivity[49]  = 2;
+  face_connectivity[50]  = 13;
+
+  face_connectivity[51]  = 11;
+  face_connectivity[52]  = 13;
+  face_connectivity[53]  = 4;
+                                                 
+  face_connectivity[54]  = 11;
+  face_connectivity[55]  = 4;
+  face_connectivity[56]  = 7;
+
+  face_connectivity[57]  = 9;
+  face_connectivity[58]  = 4;
+  face_connectivity[59]  = 13;
+
+  cwipi_add_polyhedra("c_mean_value_3D",
+                     nElts,
+                     face_index,
+                     cell_to_face_connectivity,
+                     face_connectivity_index,
+                     face_connectivity);
 
   //ajouter des polyedres par cwipi_add_polyedra ...
 
@@ -405,8 +568,32 @@ int main
   coordsPts[0] = 0.;
   coordsPts[1] = 0.;
   coordsPts[2] = 0.;
+  
+  coordsPts[3] = X;
+  coordsPts[4] = 0.;
+  coordsPts[5] = Z;
 
-  coordsPts[3] = 1.;
+  coordsPts[6] = 0.;
+  coordsPts[7] = -Z;
+  coordsPts[8] = X   ;
+  
+  coordsPts[9] =  0.3;
+  coordsPts[10] = 0.9;
+  coordsPts[11] = 0.7;
+
+  coordsPts[12] = 0.6;
+  coordsPts[13] = -0.2;
+  coordsPts[14] = -0.1;
+
+  coordsPts[15] = 0.;
+  coordsPts[16] = 0.;
+  coordsPts[17] = 1.;
+
+  coordsPts[18] = -1./8;
+  coordsPts[19] = -1./3;
+  coordsPts[20] = -1./2;
+
+  /*  coordsPts[3] = 1.;
   coordsPts[4] = 0.;
   coordsPts[5] = 0.;
 
@@ -428,9 +615,9 @@ int main
 
   coordsPts[18] = 1./8;
   coordsPts[19] = 1./3;
-  coordsPts[20] = 1./2;
+  coordsPts[20] = 1./2;*/
 
-  //cwipi_set_points_to_locate ("c_mean_value_3D", nPts, coordsPts);
+  // cwipi_set_points_to_locate ("c_mean_value_3D", nPts, coordsPts);
 
   double* value = (double *) malloc (nVertex * sizeof(double));
   double* lvalue = (double *) malloc (nVertex * sizeof(double));
@@ -452,8 +639,8 @@ int main
                                                   &nNotLocatedPoints); 
 
   
-
-  //cwipi_locate("c_mean_value_3D");
+  
+  // cwipi_locate("c_mean_value_3D");
   
 
   cwipi_delete_coupling("c_mean_value_3D");

@@ -1052,8 +1052,8 @@ void LocationToLocalMesh::compute3DMeanValues()
   int ind_fac_som = 0;
 
   const int eltStd = _supportMesh->getNElts() - _supportMesh->getNPolyhedra();
-  printf("Nelt  eltSrd   Npolyhedra   %d   %d   %d  \n",_supportMesh->getNElts(),eltStd,_supportMesh->getNPolyhedra());
-  printf("nbr vertex   %d \n",_supportMesh->getNVertex());
+  bft::bft_printf("Nelt  eltSrd   Npolyhedra   %d   %d   %d  \n",_supportMesh->getNElts(),eltStd,_supportMesh->getNPolyhedra());
+  bft::bft_printf("nbr vertex   %d \n",_supportMesh->getNVertex());
   _barycentricCoordinatesIndex = new std::vector <int> (n_dist_points + 1);
 
   tailleDistBarCoords = 4 * n_dist_points;
@@ -1077,7 +1077,22 @@ void LocationToLocalMesh::compute3DMeanValues()
 
   nDistBarCoords[0] = 0;
 
-  printf("npoint  %d\n",n_dist_points);
+  bft::bft_printf("npoint  %d\n",n_dist_points);
+  for (int ipoint =  0; ipoint < n_dist_points; ipoint++ ) {
+    
+    int ielt = dist_locations[ipoint] - 1;
+    bft::bft_printf("point elt : %i %12.5e %12.5e %12.5e %i \n", ipoint, 
+           dist_coords[3*ipoint],
+           dist_coords[3*ipoint+1],
+           dist_coords[3*ipoint+2],
+           ielt);
+  }
+
+    for(int i = 0 ;i < _supportMesh->getNVertex() ;i++){
+      bft::bft_printf("meshVertexCoords   %f   %f   %f  \n",meshVertexCoords[3 *i],meshVertexCoords[3 *i+1],meshVertexCoords[3 *i+2]);
+    } 
+
+
   for (int ipoint =  0; ipoint < n_dist_points; ipoint++ ) {
     
     int ielt = dist_locations[ipoint] - 1;
@@ -1093,7 +1108,7 @@ void LocationToLocalMesh::compute3DMeanValues()
 
     if(ielt < eltStd){ 
       
-      printf("**********dodecaedre********** \n");
+      bft::bft_printf("**********tetraedre********** \n");
       meshConnectivityIndex = _supportMesh->getEltConnectivityIndex();
       meshConnectivity = _supportMesh->getEltConnectivity();
 
@@ -1124,7 +1139,7 @@ void LocationToLocalMesh::compute3DMeanValues()
       for(int i = 0; i < nbr_face ; i++)
         cell_to_face_connectivity_Tmp[i] = i+1;
       
-      for (int i = 0; i < nbr_face ; i++)
+      for (int i = 0; i < nbr_face+1 ; i++)
         face_connectivity_index_Tmp[i] = 3*i;
       
       face_connectivity = face_connectivity_Tmp;
@@ -1133,11 +1148,11 @@ void LocationToLocalMesh::compute3DMeanValues()
  
        }
     else {
-      //printf("ielt   %d \n",ielt);
-      printf("**********octaedre********** \n");
+      //bft::bft_printf("ielt   %d \n",ielt);
+      bft::bft_printf("**********tetraedre********** \n");
       ielt -= eltStd;
 
-      //printf("ielt - eltStd   %d \n",ielt);
+      //bft::bft_printf("ielt - eltStd   %d \n",ielt);
 
       meshConnectivityIndex = &(_supportMesh->getPolyhedraCellToVertexConnectivityIndex()[0]);
       meshConnectivity = &(_supportMesh->getPolyhedraCellToVertexConnectivity()[0]);
@@ -1150,7 +1165,7 @@ void LocationToLocalMesh::compute3DMeanValues()
       nbr_face = face_index[ielt + 1] - face_index[ielt];
       nbr_som_fac = 3;     
       ind_fac = face_index[ielt];
-      //printf("meshConnectivityIndex    %d   %d  \n",meshConnectivityIndex[0],meshConnectivityIndex[1]);
+      //bft::bft_printf("meshConnectivityIndex    %d   %d  \n",meshConnectivityIndex[0],meshConnectivityIndex[1]);
       }
   
     for (int isom = 0 ; isom < nbr_som ; isom++){
@@ -1185,26 +1200,22 @@ void LocationToLocalMesh::compute3DMeanValues()
     for (int isom = 0; isom < nbr_som; isom++)
       distBarCoordsTmp[isom] = 0; 
     
-    for(int i = 0 ;i < _supportMesh->getNVertex() ;i++){
-      printf("meshVertexCoords   %f   %f   %f  \n",meshVertexCoords[3 *i],meshVertexCoords[3 *i+1],meshVertexCoords[3 *i+2]);
-    } 
-
     //Verifier que le sommet appartient ni a une face, arrete ou egal a un sommet
      for (int isom = 0; isom < nbr_som ; isom++){
-       // printf("(meshConnectivityIndex[ielt] + isom)   %d \n",(meshConnectivityIndex[ielt] + isom));
+       // bft::bft_printf("(meshConnectivityIndex[ielt] + isom)   %d \n",(meshConnectivityIndex[ielt] + isom));
        
        coo_som_fac[3 * isom]     = meshVertexCoords[3 * (meshConnectivity[meshConnectivityIndex[ielt] + isom]-1)];
        coo_som_fac[3 * isom + 1] = meshVertexCoords[3 * (meshConnectivity[meshConnectivityIndex[ielt] + isom]-1) + 1];
        coo_som_fac[3 * isom + 2] = meshVertexCoords[3 * (meshConnectivity[meshConnectivityIndex[ielt] + isom]-1) + 2];
 
-       // printf("vertex coord  %d   %f   %f   %f \n", isom, coo_som_fac[3 * isom], coo_som_fac[3 * isom+1], coo_som_fac[3 * isom+2]);
+       // bft::bft_printf("vertex coord  %d   %f   %f   %f \n", isom, coo_som_fac[3 * isom], coo_som_fac[3 * isom+1], coo_som_fac[3 * isom+2]);
        
        s[3 * isom]     = coo_som_fac[3 * isom]     - coo_point_dist[0];
        s[3 * isom + 1] = coo_som_fac[3 * isom + 1] - coo_point_dist[1];
        s[3 * isom + 2] = coo_som_fac[3 * isom + 2] - coo_point_dist[2];
 
        
-       //printf("s %d   %f   %f   %f \n", isom, s[3 * isom], s[3 * isom+1], s[3 * isom+2]);
+       //bft::bft_printf("s %d   %f   %f   %f \n", isom, s[3 * isom], s[3 * isom+1], s[3 * isom+2]);
 
        dist[isom] = sqrt(s[3 * isom]*s[3*isom] +
                          s[3 * isom + 1]*s[3*isom + 1] +
@@ -1220,18 +1231,18 @@ void LocationToLocalMesh::compute3DMeanValues()
       const int j = localIndVertex[face_connectivity[ind_fac_som + 1] - 1];
       const int k = localIndVertex[face_connectivity[ind_fac_som + 2] - 1];
 
-      // printf("--- sommet   %d  %d  %d \n",i,j,k);
-      /*   printf("s  i  j   k  %f  %f  %f \n %f  %f  %f \n %f  %f  %f \n",
+       bft::bft_printf("--- sommet   %d  %d  %d \n",i,j,k);
+         bft::bft_printf("s  i  j   k  %f  %f  %f \n %f  %f  %f \n %f  %f  %f \n",
              s[3*i],s[3*i+1],s[3*i+2],
              s[3*j],s[3*j+1],s[3*j+2],
-             s[3*k],s[3*k+1],s[3*k+2]);*/
+             s[3*k],s[3*k+1],s[3*k+2]);
 
 
       det =  (1./6) * (  ( (s[3*i+1] * s[3*j+2] - s[3*j+1] * s[3*i+2]) * s[3*k])
                        + ( (s[3*j]  * s[3*i+2] - s[3*i] * s[3*j+2]) * s[3*k+1])
-                       + ( (s[3*i]  * s[3*j+2] - s[3*j] * s[3*i+1]) * s[3*k+2]) );
+                       + ( (s[3*i]  * s[3*j+1] - s[3*j] * s[3*i+1]) * s[3*k+2]) );
 
-      // printf("determinant   %f \n",det);
+      bft::bft_printf("determinant   %f \n",det);
       if(abs(det) < eps){
 
         double aireTri_ijk;
@@ -1269,10 +1280,10 @@ void LocationToLocalMesh::compute3DMeanValues()
                            + ( s[3*j]   * s[3*k+1] - s[3*j+1] * s[3*k] )   * ( s[3*j]   * s[3*k+1] - s[3*j+1] * s[3*k] ));
         
         
-        /* printf("aire ijk  %f  \n",aireTri_ijk);
-        printf("aire ijv  %f  \n",aireTri_ijv);
-        printf("aire ikv  %f  \n",aireTri_ikv);
-        printf("aire jkv  %f  \n",aireTri_jkv);*/
+        /* bft::bft_printf("aire ijk  %f  \n",aireTri_ijk);
+        bft::bft_printf("aire ijv  %f  \n",aireTri_ijv);
+        bft::bft_printf("aire ikv  %f  \n",aireTri_ikv);
+        bft::bft_printf("aire jkv  %f  \n",aireTri_jkv);*/
 
         for(int isom = 0 ; isom < nbr_som ; isom++)
           distBarCoords[nDistBarCoords[ipoint]+isom] = 0.;
@@ -1280,7 +1291,7 @@ void LocationToLocalMesh::compute3DMeanValues()
         distBarCoords[ nDistBarCoords[ipoint] + i ] = aireTri_jkv / aireTri_ijk ;
         distBarCoords[ nDistBarCoords[ipoint] + j ] = aireTri_ikv / aireTri_ijk ;
         distBarCoords[ nDistBarCoords[ipoint] + k ] = aireTri_ijv / aireTri_ijk ;
-
+        bft::bft_printf("*********is vertex or on edge********\n");
         isOnFace = 1;
 
         break;
@@ -1294,7 +1305,7 @@ void LocationToLocalMesh::compute3DMeanValues()
         // normalisation de s (on sait que s est non nul) 
 
         for(int isom = 0 ; isom < nbr_som ; isom++){
-          // printf("s ind %d  %f  %f  %f\n",isom,s[3*isom],s[3*isom+1],s[3*isom+2]);
+          // bft::bft_printf("s ind %d  %f  %f  %f\n",isom,s[3*isom],s[3*isom+1],s[3*isom+2]);
           s[3 * isom]     /= dist[isom];
           s[3 * isom + 1] /= dist[isom];
           s[3 * isom + 2] /= dist[isom];       
@@ -1305,8 +1316,8 @@ void LocationToLocalMesh::compute3DMeanValues()
         ind_fac_som = face_connectivity_index[cell_to_face_connectivity[ind_fac + iface] - 1] ;
       
         /*for(int isom = 0 ; isom < nbr_som_fac ; isom++){
-          printf("nface %d  %d \n",nbr_som_fac*iface+isom,face_connectivity[nbr_som_fac*iface+isom]);
-          printf("mesh coord   %f   %f   %f \n",
+          bft::bft_printf("nface %d  %d \n",nbr_som_fac*iface+isom,face_connectivity[nbr_som_fac*iface+isom]);
+          bft::bft_printf("mesh coord   %f   %f   %f \n",
           meshVertexCoords[3*(meshConnectivityIndex[ielt] + face_connectivity[nbr_som_fac*iface + isom] - 1)],
           meshVertexCoords[3*(meshConnectivityIndex[ielt] + face_connectivity[nbr_som_fac*iface + isom] - 1) + 1],
           meshVertexCoords[3*(meshConnectivityIndex[ielt] + face_connectivity[nbr_som_fac*iface + isom] - 1) + 2]);                           
@@ -1380,16 +1391,16 @@ void LocationToLocalMesh::compute3DMeanValues()
             + s[3 * (localIndVertex[face_connectivity[ind_fac_som + isom] - 1]) + 2] * normale[3 * isom + 2];       
           
           distBarCoordsTmp[localIndVertex[(face_connectivity[ind_fac_som + isom] - 1)]] += (angle[isom] + angle[isuiv] * ps_nij_njk + angle[iprec] * ps_nki_njk) / (2 * ps_ei_njk);           
-          //printf("(face_connectivity[ind_fac_som + isom] - 1)   %d \n",(face_connectivity[ind_fac_som + isom] - 1));
+          //bft::bft_printf("(face_connectivity[ind_fac_som + isom] - 1)   %d \n",(face_connectivity[ind_fac_som + isom] - 1));
         }
           
       }
       
       for(int isom = 0; isom<nbr_som;isom++){
-        // printf("isom distbarcoordtm   %d   %f   \n",isom,distBarCoordsTmp[isom]);
+        // bft::bft_printf("isom distbarcoordtm   %d   %f   \n",isom,distBarCoordsTmp[isom]);
         sigma += distBarCoordsTmp[isom];      
       }      
-      //printf("sigma   %f   \n",sigma);
+      //bft::bft_printf("sigma   %f   \n",sigma);
       
       for(int isom = 0; isom<nbr_som;isom++)
         distBarCoords[nDistBarCoords[ipoint] + isom] = distBarCoordsTmp[isom]/sigma;
@@ -1398,7 +1409,7 @@ void LocationToLocalMesh::compute3DMeanValues()
     }
     
     for(int isom = 0; isom<nbr_som;isom++)
-      printf("sommet   %f %f %f  coord bar final   %f \n",coo_som_fac[3*isom],coo_som_fac[3*isom+1],coo_som_fac[3*isom+2],distBarCoords[nDistBarCoords[ipoint] + isom]);
+      bft::bft_printf("sommet   %f %f %f  coord bar final   %f \n",coo_som_fac[3*isom],coo_som_fac[3*isom+1],coo_som_fac[3*isom+2],distBarCoords[nDistBarCoords[ipoint] + isom]);
     
     
     if( 1== 1){
@@ -1415,11 +1426,11 @@ void LocationToLocalMesh::compute3DMeanValues()
         
       }
       for(int i =0;i<3;i++)
-        printf("test   %f  coord  %f \n",test[i],coo_point_dist[i]);
+        bft::bft_printf("test   %f  coord  %f \n",test[i],coo_point_dist[i]);
 
     }
    
-    if (1 == 1) {
+    if (0 == 1) {
       bft::bft_printf("coord %i :", ipoint);
       bft::bft_printf(" %12.5e %12.5e %12.5e", dist_coords[3 * ipoint], 
                       dist_coords[3 * ipoint + 1], 
