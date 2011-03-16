@@ -192,8 +192,6 @@ user_CPPFLAGS=$CPPFLAGS
 user_CFLAGS=$CFLAGS
 user_LDFLAGS=$LDFLAGS
 
-LT_INIT
-
 AC_PROG_CC(cc gcc icc)
 
 AC_PROG_CXX(g++ icpc)
@@ -206,8 +204,8 @@ AC_PROG_INSTALL
 
 AC_PROG_LN_S
 
-AC_LIBTOOL_DLOPEN
-AC_PROG_LIBTOOL
+#AC_LIBTOOL_DLOPEN
+#AC_PROG_LIBTOOL
 
 # Debug or production compilation mode (debug by default) ?
 
@@ -481,7 +479,7 @@ if test "x$cwipi_disable_shared" = "xyes" ; then
   enable_shared=no
 fi
 
-#LT_INIT
+LT_INIT
 
 #--------------------------------------------------------------------------
 # If the system is of a known type, declare it in the configuration header.
