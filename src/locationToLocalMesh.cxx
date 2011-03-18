@@ -193,9 +193,10 @@ void LocationToLocalMesh::locate()
       }
 
       else if (_entitiesDim == 3) {
-         compute3DMeanValues();
+        //TODO: Activer les mean value
+        //compute3DMeanValues();
         //TODO: calcul des coord barycentriques 3D
-        //int nPoints;        
+        int nPoints;        
         //         coo_baryc(_fvmLocator,
         //                   _supportMesh->getNVertex(),
         //                   _supportMesh->getVertexCoords(),
