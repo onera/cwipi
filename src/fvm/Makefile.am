@@ -118,85 +118,85 @@ endif
 
 if HAVE_MPI
 libfvmo_la_SOURCES = \
-fvm_block_dist.c \
-fvm_block_to_part.c \
-fvm_box.c \
-fvm_box_tree.c \
-fvm_convert_array.c \
-fvm_defs.c \
-fvm_file.c \
-fvm_gather.c \
-fvm_group.c \
-fvm_interface.c \
-fvm_io_num.c \
-fvm_locator.c \
-fvm_morton.c \
-fvm_neighborhood.c \
-fvm_nodal.c \
-fvm_nodal_append.c \
-fvm_nodal_extrude.c \
-fvm_nodal_from_desc.c \
-fvm_nodal_order.c \
-fvm_nodal_project.c \
-fvm_nodal_triangulate.c \
-fvm_nodal_extract.c \
-fvm_order.c \
-fvm_parall.c \
-fvm_part_to_block.c \
-fvm_periodicity.c \
-fvm_point_location.c \
-fvm_selector.c \
-fvm_selector_postfix.c \
-fvm_tesselation.c \
-fvm_to_ensight.c \
-fvm_to_ensight_case.c \
-fvm_to_text.c \
-fvm_triangulate.c \
-fvm_writer.c \
-fvm_writer_helper.c
+fvm_block_dist.cpp \
+fvm_block_to_part.cpp \
+fvm_box.cpp \
+fvm_box_tree.cpp \
+fvm_convert_array.cpp \
+fvm_defs.cpp \
+fvm_file.cpp \
+fvm_gather.cpp \
+fvm_group.cpp \
+fvm_interface.cpp \
+fvm_io_num.cpp \
+fvm_locator.cpp \
+fvm_morton.cpp \
+fvm_neighborhood.cpp \
+fvm_nodal.cpp \
+fvm_nodal_append.cpp \
+fvm_nodal_extrude.cpp \
+fvm_nodal_from_desc.cpp \
+fvm_nodal_order.cpp \
+fvm_nodal_project.cpp \
+fvm_nodal_triangulate.cpp \
+fvm_nodal_extract.cpp \
+fvm_order.cpp \
+fvm_parall.cpp \
+fvm_part_to_block.cpp \
+fvm_periodicity.cpp \
+fvm_point_location.cpp \
+fvm_selector.cpp \
+fvm_selector_postfix.cpp \
+fvm_tesselation.cpp \
+fvm_to_ensight.cpp \
+fvm_to_ensight_case.cpp \
+fvm_to_text.cpp \
+fvm_triangulate.cpp \
+fvm_writer.cpp \
+fvm_writer_helper.cpp
 else
 libfvmo_scal_la_SOURCES = \
-fvm_block_dist.c \
-fvm_block_to_part.c \
-fvm_box.c \
-fvm_box_tree.c \
-fvm_convert_array.c \
-fvm_defs.c \
-fvm_file.c \
-fvm_gather.c \
-fvm_group.c \
-fvm_interface.c \
-fvm_io_num.c \
-fvm_locator.c \
-fvm_morton.c \
-fvm_neighborhood.c \
-fvm_nodal.c \
-fvm_nodal_append.c \
-fvm_nodal_extrude.c \
-fvm_nodal_from_desc.c \
-fvm_nodal_order.c \
-fvm_nodal_project.c \
-fvm_nodal_triangulate.c \
-fvm_nodal_extract.c \
-fvm_order.c \
-fvm_parall.c \
-fvm_part_to_block.c \
-fvm_periodicity.c \
-fvm_point_location.c \
-fvm_selector.c \
-fvm_selector_postfix.c \
-fvm_tesselation.c \
-fvm_to_ensight.c \
-fvm_to_ensight_case.c \
-fvm_to_text.c \
-fvm_triangulate.c \
-fvm_writer.c \
-fvm_writer_helper.c
+fvm_block_dist.cpp \
+fvm_block_to_part.cpp \
+fvm_box.cpp \
+fvm_box_tree.cpp \
+fvm_convert_array.cpp \
+fvm_defs.cpp \
+fvm_file.cpp \
+fvm_gather.cpp \
+fvm_group.cpp \
+fvm_interface.cpp \
+fvm_io_num.cpp \
+fvm_locator.cpp \
+fvm_morton.cpp \
+fvm_neighborhood.cpp \
+fvm_nodal.cpp \
+fvm_nodal_append.cpp \
+fvm_nodal_extrude.cpp \
+fvm_nodal_from_desc.cpp \
+fvm_nodal_order.cpp \
+fvm_nodal_project.cpp \
+fvm_nodal_triangulate.cpp \
+fvm_nodal_extract.cpp \
+fvm_order.cpp \
+fvm_parall.cpp \
+fvm_part_to_block.cpp \
+fvm_periodicity.cpp \
+fvm_point_location.cpp \
+fvm_selector.cpp \
+fvm_selector_postfix.cpp \
+fvm_tesselation.cpp \
+fvm_to_ensight.cpp \
+fvm_to_ensight_case.cpp \
+fvm_to_text.cpp \
+fvm_triangulate.cpp \
+fvm_writer.cpp \
+fvm_writer_helper.cpp
 endif
 
 if HAVE_MPI
 lib_LTLIBRARIES += libfvmo_coupl.la
-libfvmo_coupl_la_SOURCES = fvm_coupling.c
+libfvmo_coupl_la_SOURCES = fvm_coupling.cpp
 endif
 
 if HAVE_CGNS
@@ -206,7 +206,7 @@ libfvmo_la_LIBADD += libfvmo_cgns.la $(top_builddir)/src/bft/libbfto.la
 else
 libfvmo_scal_la_LIBADD += libfvmo_cgns.la $(top_builddir)/src/bft/libbfto.la
 endif
-libfvmo_cgns_la_SOURCES = fvm_to_cgns.c
+libfvmo_cgns_la_SOURCES = fvm_to_cgns.cpp
 endif
 
 if HAVE_MED
@@ -216,7 +216,7 @@ libfvmo_la_LIBADD += libfvmo_med.la $(top_builddir)/src/bft/libbfto.la
 else
 libfvmo_scal_la_LIBADD += libfvmo_med.la $(top_builddir)/src/bft/libbfto.la
 endif
-libfvmo_med_la_SOURCES = fvm_to_med.c
+libfvmo_med_la_SOURCES = fvm_to_med.cpp
 endif
 
 if HAVE_MPI

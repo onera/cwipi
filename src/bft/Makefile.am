@@ -71,16 +71,16 @@ bft_config_defs.h
 
 lib_LTLIBRARIES = libbfto.la
 libbfto_la_SOURCES   = \
-bft_backtrace.c \
-bft_error.c \
-bft_file.c \
-bft_fp_trap.c \
-bft_mem.c \
-bft_mem_usage.c \
-bft_printf.c \
-bft_sys_info.c \
-bft_timer.c \
-bft_version.c
+bft_backtrace.cpp \
+bft_error.cpp \
+bft_file.cpp \
+bft_fp_trap.cpp \
+bft_mem.cpp \
+bft_mem_usage.cpp \
+bft_printf.cpp \
+bft_sys_info.cpp \
+bft_timer.cpp \
+bft_version.cpp
 
 libbfto_la_LDFLAGS = -no-undefined -version-info 1:0:0
 

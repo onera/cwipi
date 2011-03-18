@@ -842,7 +842,7 @@ fvm_periodicity_add_rotation(fvm_periodicity_t  *this_periodicity,
   double rot[3][3];
   double matrix[3][4];
 
-  const double pi = 4 * atan(1);
+  const double pi = 4 * atan(1.);
   const double theta = pi * angle/180.;
   const double cost = cos(theta);
   const double sint = sin(theta);

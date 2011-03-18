@@ -111,18 +111,20 @@ LTLIBRARIES = $(lib_LTLIBRARIES) $(noinst_LTLIBRARIES)
 @HAVE_MPI_TRUE@libfvmo_la_DEPENDENCIES =  \
 @HAVE_MPI_TRUE@	$(top_builddir)/src/bft/libbfto.la \
 @HAVE_MPI_TRUE@	$(am__append_2) $(am__append_5)
-am__libfvmo_la_SOURCES_DIST = fvm_block_dist.c fvm_block_to_part.c \
-	fvm_box.c fvm_box_tree.c fvm_convert_array.c fvm_defs.c \
-	fvm_file.c fvm_gather.c fvm_group.c fvm_interface.c \
-	fvm_io_num.c fvm_locator.c fvm_morton.c fvm_neighborhood.c \
-	fvm_nodal.c fvm_nodal_append.c fvm_nodal_extrude.c \
-	fvm_nodal_from_desc.c fvm_nodal_order.c fvm_nodal_project.c \
-	fvm_nodal_triangulate.c fvm_nodal_extract.c fvm_order.c \
-	fvm_parall.c fvm_part_to_block.c fvm_periodicity.c \
-	fvm_point_location.c fvm_selector.c fvm_selector_postfix.c \
-	fvm_tesselation.c fvm_to_ensight.c fvm_to_ensight_case.c \
-	fvm_to_text.c fvm_triangulate.c fvm_writer.c \
-	fvm_writer_helper.c
+am__libfvmo_la_SOURCES_DIST = fvm_block_dist.cpp fvm_block_to_part.cpp \
+	fvm_box.cpp fvm_box_tree.cpp fvm_convert_array.cpp \
+	fvm_defs.cpp fvm_file.cpp fvm_gather.cpp fvm_group.cpp \
+	fvm_interface.cpp fvm_io_num.cpp fvm_locator.cpp \
+	fvm_morton.cpp fvm_neighborhood.cpp fvm_nodal.cpp \
+	fvm_nodal_append.cpp fvm_nodal_extrude.cpp \
+	fvm_nodal_from_desc.cpp fvm_nodal_order.cpp \
+	fvm_nodal_project.cpp fvm_nodal_triangulate.cpp \
+	fvm_nodal_extract.cpp fvm_order.cpp fvm_parall.cpp \
+	fvm_part_to_block.cpp fvm_periodicity.cpp \
+	fvm_point_location.cpp fvm_selector.cpp \
+	fvm_selector_postfix.cpp fvm_tesselation.cpp \
+	fvm_to_ensight.cpp fvm_to_ensight_case.cpp fvm_to_text.cpp \
+	fvm_triangulate.cpp fvm_writer.cpp fvm_writer_helper.cpp
 @HAVE_MPI_TRUE@am_libfvmo_la_OBJECTS = fvm_block_dist.lo \
 @HAVE_MPI_TRUE@	fvm_block_to_part.lo fvm_box.lo fvm_box_tree.lo \
 @HAVE_MPI_TRUE@	fvm_convert_array.lo fvm_defs.lo fvm_file.lo \
@@ -140,26 +142,26 @@ am__libfvmo_la_SOURCES_DIST = fvm_block_dist.c fvm_block_to_part.c \
 @HAVE_MPI_TRUE@	fvm_to_text.lo fvm_triangulate.lo fvm_writer.lo \
 @HAVE_MPI_TRUE@	fvm_writer_helper.lo
 libfvmo_la_OBJECTS = $(am_libfvmo_la_OBJECTS)
-libfvmo_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(libfvmo_la_LDFLAGS) $(LDFLAGS) -o $@
+libfvmo_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
+	$(CXXFLAGS) $(libfvmo_la_LDFLAGS) $(LDFLAGS) -o $@
 @HAVE_MPI_TRUE@am_libfvmo_la_rpath = -rpath $(libdir)
 libfvmo_cgns_la_LIBADD =
-am__libfvmo_cgns_la_SOURCES_DIST = fvm_to_cgns.c
+am__libfvmo_cgns_la_SOURCES_DIST = fvm_to_cgns.cpp
 @HAVE_CGNS_TRUE@am_libfvmo_cgns_la_OBJECTS =  \
 @HAVE_CGNS_TRUE@	libfvmo_cgns_la-fvm_to_cgns.lo
 libfvmo_cgns_la_OBJECTS = $(am_libfvmo_cgns_la_OBJECTS)
 @HAVE_CGNS_TRUE@am_libfvmo_cgns_la_rpath =
 libfvmo_coupl_la_LIBADD =
-am__libfvmo_coupl_la_SOURCES_DIST = fvm_coupling.c
+am__libfvmo_coupl_la_SOURCES_DIST = fvm_coupling.cpp
 @HAVE_MPI_TRUE@am_libfvmo_coupl_la_OBJECTS = fvm_coupling.lo
 libfvmo_coupl_la_OBJECTS = $(am_libfvmo_coupl_la_OBJECTS)
-libfvmo_coupl_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(libfvmo_coupl_la_LDFLAGS) $(LDFLAGS) -o $@
+libfvmo_coupl_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
+	$(CXXFLAGS) $(libfvmo_coupl_la_LDFLAGS) $(LDFLAGS) -o $@
 @HAVE_MPI_TRUE@am_libfvmo_coupl_la_rpath = -rpath $(libdir)
 libfvmo_med_la_LIBADD =
-am__libfvmo_med_la_SOURCES_DIST = fvm_to_med.c
+am__libfvmo_med_la_SOURCES_DIST = fvm_to_med.cpp
 @HAVE_MED_TRUE@am_libfvmo_med_la_OBJECTS =  \
 @HAVE_MED_TRUE@	libfvmo_med_la-fvm_to_med.lo
 libfvmo_med_la_OBJECTS = $(am_libfvmo_med_la_OBJECTS)
@@ -167,18 +169,20 @@ libfvmo_med_la_OBJECTS = $(am_libfvmo_med_la_OBJECTS)
 @HAVE_MPI_FALSE@libfvmo_scal_la_DEPENDENCIES =  \
 @HAVE_MPI_FALSE@	$(top_builddir)/src/bft/libbfto.la \
 @HAVE_MPI_FALSE@	$(am__append_3) $(am__append_6)
-am__libfvmo_scal_la_SOURCES_DIST = fvm_block_dist.c \
-	fvm_block_to_part.c fvm_box.c fvm_box_tree.c \
-	fvm_convert_array.c fvm_defs.c fvm_file.c fvm_gather.c \
-	fvm_group.c fvm_interface.c fvm_io_num.c fvm_locator.c \
-	fvm_morton.c fvm_neighborhood.c fvm_nodal.c fvm_nodal_append.c \
-	fvm_nodal_extrude.c fvm_nodal_from_desc.c fvm_nodal_order.c \
-	fvm_nodal_project.c fvm_nodal_triangulate.c \
-	fvm_nodal_extract.c fvm_order.c fvm_parall.c \
-	fvm_part_to_block.c fvm_periodicity.c fvm_point_location.c \
-	fvm_selector.c fvm_selector_postfix.c fvm_tesselation.c \
-	fvm_to_ensight.c fvm_to_ensight_case.c fvm_to_text.c \
-	fvm_triangulate.c fvm_writer.c fvm_writer_helper.c
+am__libfvmo_scal_la_SOURCES_DIST = fvm_block_dist.cpp \
+	fvm_block_to_part.cpp fvm_box.cpp fvm_box_tree.cpp \
+	fvm_convert_array.cpp fvm_defs.cpp fvm_file.cpp fvm_gather.cpp \
+	fvm_group.cpp fvm_interface.cpp fvm_io_num.cpp fvm_locator.cpp \
+	fvm_morton.cpp fvm_neighborhood.cpp fvm_nodal.cpp \
+	fvm_nodal_append.cpp fvm_nodal_extrude.cpp \
+	fvm_nodal_from_desc.cpp fvm_nodal_order.cpp \
+	fvm_nodal_project.cpp fvm_nodal_triangulate.cpp \
+	fvm_nodal_extract.cpp fvm_order.cpp fvm_parall.cpp \
+	fvm_part_to_block.cpp fvm_periodicity.cpp \
+	fvm_point_location.cpp fvm_selector.cpp \
+	fvm_selector_postfix.cpp fvm_tesselation.cpp \
+	fvm_to_ensight.cpp fvm_to_ensight_case.cpp fvm_to_text.cpp \
+	fvm_triangulate.cpp fvm_writer.cpp fvm_writer_helper.cpp
 @HAVE_MPI_FALSE@am_libfvmo_scal_la_OBJECTS = fvm_block_dist.lo \
 @HAVE_MPI_FALSE@	fvm_block_to_part.lo fvm_box.lo \
 @HAVE_MPI_FALSE@	fvm_box_tree.lo fvm_convert_array.lo \
@@ -198,21 +202,21 @@ am__libfvmo_scal_la_SOURCES_DIST = fvm_block_dist.c \
 @HAVE_MPI_FALSE@	fvm_triangulate.lo fvm_writer.lo \
 @HAVE_MPI_FALSE@	fvm_writer_helper.lo
 libfvmo_scal_la_OBJECTS = $(am_libfvmo_scal_la_OBJECTS)
-libfvmo_scal_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(libfvmo_scal_la_LDFLAGS) $(LDFLAGS) -o $@
+libfvmo_scal_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
+	$(CXXFLAGS) $(libfvmo_scal_la_LDFLAGS) $(LDFLAGS) -o $@
 @HAVE_MPI_FALSE@am_libfvmo_scal_la_rpath = -rpath $(libdir)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__depfiles_maybe = depfiles
-COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-CCLD = $(CC)
-LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
+CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
+LTCXXCOMPILE = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
+CXXLD = $(CXX)
+CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(libfvmo_la_SOURCES) $(libfvmo_cgns_la_SOURCES) \
 	$(libfvmo_coupl_la_SOURCES) $(libfvmo_med_la_SOURCES) \
@@ -459,91 +463,91 @@ noinst_LTLIBRARIES = $(am__append_1) $(am__append_4)
 @HAVE_MPI_FALSE@	$(top_builddir)/src/bft/libbfto.la \
 @HAVE_MPI_FALSE@	$(am__append_3) $(am__append_6)
 @HAVE_MPI_TRUE@libfvmo_la_SOURCES = \
-@HAVE_MPI_TRUE@fvm_block_dist.c \
-@HAVE_MPI_TRUE@fvm_block_to_part.c \
-@HAVE_MPI_TRUE@fvm_box.c \
-@HAVE_MPI_TRUE@fvm_box_tree.c \
-@HAVE_MPI_TRUE@fvm_convert_array.c \
-@HAVE_MPI_TRUE@fvm_defs.c \
-@HAVE_MPI_TRUE@fvm_file.c \
-@HAVE_MPI_TRUE@fvm_gather.c \
-@HAVE_MPI_TRUE@fvm_group.c \
-@HAVE_MPI_TRUE@fvm_interface.c \
-@HAVE_MPI_TRUE@fvm_io_num.c \
-@HAVE_MPI_TRUE@fvm_locator.c \
-@HAVE_MPI_TRUE@fvm_morton.c \
-@HAVE_MPI_TRUE@fvm_neighborhood.c \
-@HAVE_MPI_TRUE@fvm_nodal.c \
-@HAVE_MPI_TRUE@fvm_nodal_append.c \
-@HAVE_MPI_TRUE@fvm_nodal_extrude.c \
-@HAVE_MPI_TRUE@fvm_nodal_from_desc.c \
-@HAVE_MPI_TRUE@fvm_nodal_order.c \
-@HAVE_MPI_TRUE@fvm_nodal_project.c \
-@HAVE_MPI_TRUE@fvm_nodal_triangulate.c \
-@HAVE_MPI_TRUE@fvm_nodal_extract.c \
-@HAVE_MPI_TRUE@fvm_order.c \
-@HAVE_MPI_TRUE@fvm_parall.c \
-@HAVE_MPI_TRUE@fvm_part_to_block.c \
-@HAVE_MPI_TRUE@fvm_periodicity.c \
-@HAVE_MPI_TRUE@fvm_point_location.c \
-@HAVE_MPI_TRUE@fvm_selector.c \
-@HAVE_MPI_TRUE@fvm_selector_postfix.c \
-@HAVE_MPI_TRUE@fvm_tesselation.c \
-@HAVE_MPI_TRUE@fvm_to_ensight.c \
-@HAVE_MPI_TRUE@fvm_to_ensight_case.c \
-@HAVE_MPI_TRUE@fvm_to_text.c \
-@HAVE_MPI_TRUE@fvm_triangulate.c \
-@HAVE_MPI_TRUE@fvm_writer.c \
-@HAVE_MPI_TRUE@fvm_writer_helper.c
+@HAVE_MPI_TRUE@fvm_block_dist.cpp \
+@HAVE_MPI_TRUE@fvm_block_to_part.cpp \
+@HAVE_MPI_TRUE@fvm_box.cpp \
+@HAVE_MPI_TRUE@fvm_box_tree.cpp \
+@HAVE_MPI_TRUE@fvm_convert_array.cpp \
+@HAVE_MPI_TRUE@fvm_defs.cpp \
+@HAVE_MPI_TRUE@fvm_file.cpp \
+@HAVE_MPI_TRUE@fvm_gather.cpp \
+@HAVE_MPI_TRUE@fvm_group.cpp \
+@HAVE_MPI_TRUE@fvm_interface.cpp \
+@HAVE_MPI_TRUE@fvm_io_num.cpp \
+@HAVE_MPI_TRUE@fvm_locator.cpp \
+@HAVE_MPI_TRUE@fvm_morton.cpp \
+@HAVE_MPI_TRUE@fvm_neighborhood.cpp \
+@HAVE_MPI_TRUE@fvm_nodal.cpp \
+@HAVE_MPI_TRUE@fvm_nodal_append.cpp \
+@HAVE_MPI_TRUE@fvm_nodal_extrude.cpp \
+@HAVE_MPI_TRUE@fvm_nodal_from_desc.cpp \
+@HAVE_MPI_TRUE@fvm_nodal_order.cpp \
+@HAVE_MPI_TRUE@fvm_nodal_project.cpp \
+@HAVE_MPI_TRUE@fvm_nodal_triangulate.cpp \
+@HAVE_MPI_TRUE@fvm_nodal_extract.cpp \
+@HAVE_MPI_TRUE@fvm_order.cpp \
+@HAVE_MPI_TRUE@fvm_parall.cpp \
+@HAVE_MPI_TRUE@fvm_part_to_block.cpp \
+@HAVE_MPI_TRUE@fvm_periodicity.cpp \
+@HAVE_MPI_TRUE@fvm_point_location.cpp \
+@HAVE_MPI_TRUE@fvm_selector.cpp \
+@HAVE_MPI_TRUE@fvm_selector_postfix.cpp \
+@HAVE_MPI_TRUE@fvm_tesselation.cpp \
+@HAVE_MPI_TRUE@fvm_to_ensight.cpp \
+@HAVE_MPI_TRUE@fvm_to_ensight_case.cpp \
+@HAVE_MPI_TRUE@fvm_to_text.cpp \
+@HAVE_MPI_TRUE@fvm_triangulate.cpp \
+@HAVE_MPI_TRUE@fvm_writer.cpp \
+@HAVE_MPI_TRUE@fvm_writer_helper.cpp
 
 @HAVE_MPI_FALSE@libfvmo_scal_la_SOURCES = \
-@HAVE_MPI_FALSE@fvm_block_dist.c \
-@HAVE_MPI_FALSE@fvm_block_to_part.c \
-@HAVE_MPI_FALSE@fvm_box.c \
-@HAVE_MPI_FALSE@fvm_box_tree.c \
-@HAVE_MPI_FALSE@fvm_convert_array.c \
-@HAVE_MPI_FALSE@fvm_defs.c \
-@HAVE_MPI_FALSE@fvm_file.c \
-@HAVE_MPI_FALSE@fvm_gather.c \
-@HAVE_MPI_FALSE@fvm_group.c \
-@HAVE_MPI_FALSE@fvm_interface.c \
-@HAVE_MPI_FALSE@fvm_io_num.c \
-@HAVE_MPI_FALSE@fvm_locator.c \
-@HAVE_MPI_FALSE@fvm_morton.c \
-@HAVE_MPI_FALSE@fvm_neighborhood.c \
-@HAVE_MPI_FALSE@fvm_nodal.c \
-@HAVE_MPI_FALSE@fvm_nodal_append.c \
-@HAVE_MPI_FALSE@fvm_nodal_extrude.c \
-@HAVE_MPI_FALSE@fvm_nodal_from_desc.c \
-@HAVE_MPI_FALSE@fvm_nodal_order.c \
-@HAVE_MPI_FALSE@fvm_nodal_project.c \
-@HAVE_MPI_FALSE@fvm_nodal_triangulate.c \
-@HAVE_MPI_FALSE@fvm_nodal_extract.c \
-@HAVE_MPI_FALSE@fvm_order.c \
-@HAVE_MPI_FALSE@fvm_parall.c \
-@HAVE_MPI_FALSE@fvm_part_to_block.c \
-@HAVE_MPI_FALSE@fvm_periodicity.c \
-@HAVE_MPI_FALSE@fvm_point_location.c \
-@HAVE_MPI_FALSE@fvm_selector.c \
-@HAVE_MPI_FALSE@fvm_selector_postfix.c \
-@HAVE_MPI_FALSE@fvm_tesselation.c \
-@HAVE_MPI_FALSE@fvm_to_ensight.c \
-@HAVE_MPI_FALSE@fvm_to_ensight_case.c \
-@HAVE_MPI_FALSE@fvm_to_text.c \
-@HAVE_MPI_FALSE@fvm_triangulate.c \
-@HAVE_MPI_FALSE@fvm_writer.c \
-@HAVE_MPI_FALSE@fvm_writer_helper.c
+@HAVE_MPI_FALSE@fvm_block_dist.cpp \
+@HAVE_MPI_FALSE@fvm_block_to_part.cpp \
+@HAVE_MPI_FALSE@fvm_box.cpp \
+@HAVE_MPI_FALSE@fvm_box_tree.cpp \
+@HAVE_MPI_FALSE@fvm_convert_array.cpp \
+@HAVE_MPI_FALSE@fvm_defs.cpp \
+@HAVE_MPI_FALSE@fvm_file.cpp \
+@HAVE_MPI_FALSE@fvm_gather.cpp \
+@HAVE_MPI_FALSE@fvm_group.cpp \
+@HAVE_MPI_FALSE@fvm_interface.cpp \
+@HAVE_MPI_FALSE@fvm_io_num.cpp \
+@HAVE_MPI_FALSE@fvm_locator.cpp \
+@HAVE_MPI_FALSE@fvm_morton.cpp \
+@HAVE_MPI_FALSE@fvm_neighborhood.cpp \
+@HAVE_MPI_FALSE@fvm_nodal.cpp \
+@HAVE_MPI_FALSE@fvm_nodal_append.cpp \
+@HAVE_MPI_FALSE@fvm_nodal_extrude.cpp \
+@HAVE_MPI_FALSE@fvm_nodal_from_desc.cpp \
+@HAVE_MPI_FALSE@fvm_nodal_order.cpp \
+@HAVE_MPI_FALSE@fvm_nodal_project.cpp \
+@HAVE_MPI_FALSE@fvm_nodal_triangulate.cpp \
+@HAVE_MPI_FALSE@fvm_nodal_extract.cpp \
+@HAVE_MPI_FALSE@fvm_order.cpp \
+@HAVE_MPI_FALSE@fvm_parall.cpp \
+@HAVE_MPI_FALSE@fvm_part_to_block.cpp \
+@HAVE_MPI_FALSE@fvm_periodicity.cpp \
+@HAVE_MPI_FALSE@fvm_point_location.cpp \
+@HAVE_MPI_FALSE@fvm_selector.cpp \
+@HAVE_MPI_FALSE@fvm_selector_postfix.cpp \
+@HAVE_MPI_FALSE@fvm_tesselation.cpp \
+@HAVE_MPI_FALSE@fvm_to_ensight.cpp \
+@HAVE_MPI_FALSE@fvm_to_ensight_case.cpp \
+@HAVE_MPI_FALSE@fvm_to_text.cpp \
+@HAVE_MPI_FALSE@fvm_triangulate.cpp \
+@HAVE_MPI_FALSE@fvm_writer.cpp \
+@HAVE_MPI_FALSE@fvm_writer_helper.cpp
 
-@HAVE_MPI_TRUE@libfvmo_coupl_la_SOURCES = fvm_coupling.c
-@HAVE_CGNS_TRUE@libfvmo_cgns_la_SOURCES = fvm_to_cgns.c
-@HAVE_MED_TRUE@libfvmo_med_la_SOURCES = fvm_to_med.c
+@HAVE_MPI_TRUE@libfvmo_coupl_la_SOURCES = fvm_coupling.cpp
+@HAVE_CGNS_TRUE@libfvmo_cgns_la_SOURCES = fvm_to_cgns.cpp
+@HAVE_MED_TRUE@libfvmo_med_la_SOURCES = fvm_to_med.cpp
 @HAVE_MPI_TRUE@libfvmo_la_LDFLAGS = -no-undefined -version-info 0:0:0
 @HAVE_MPI_FALSE@libfvmo_scal_la_LDFLAGS = -no-undefined -version-info 0:0:0
 libfvmo_coupl_la_LDFLAGS = -no-undefined -version-info 0:0:0
 all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .c .lo .o .obj
+.SUFFIXES: .cpp .lo .o .obj
 $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -612,11 +616,11 @@ clean-noinstLTLIBRARIES:
 libfvmo.la: $(libfvmo_la_OBJECTS) $(libfvmo_la_DEPENDENCIES) 
 	$(libfvmo_la_LINK) $(am_libfvmo_la_rpath) $(libfvmo_la_OBJECTS) $(libfvmo_la_LIBADD) $(LIBS)
 libfvmo_cgns.la: $(libfvmo_cgns_la_OBJECTS) $(libfvmo_cgns_la_DEPENDENCIES) 
-	$(LINK) $(am_libfvmo_cgns_la_rpath) $(libfvmo_cgns_la_OBJECTS) $(libfvmo_cgns_la_LIBADD) $(LIBS)
+	$(CXXLINK) $(am_libfvmo_cgns_la_rpath) $(libfvmo_cgns_la_OBJECTS) $(libfvmo_cgns_la_LIBADD) $(LIBS)
 libfvmo_coupl.la: $(libfvmo_coupl_la_OBJECTS) $(libfvmo_coupl_la_DEPENDENCIES) 
 	$(libfvmo_coupl_la_LINK) $(am_libfvmo_coupl_la_rpath) $(libfvmo_coupl_la_OBJECTS) $(libfvmo_coupl_la_LIBADD) $(LIBS)
 libfvmo_med.la: $(libfvmo_med_la_OBJECTS) $(libfvmo_med_la_DEPENDENCIES) 
-	$(LINK) $(am_libfvmo_med_la_rpath) $(libfvmo_med_la_OBJECTS) $(libfvmo_med_la_LIBADD) $(LIBS)
+	$(CXXLINK) $(am_libfvmo_med_la_rpath) $(libfvmo_med_la_OBJECTS) $(libfvmo_med_la_LIBADD) $(LIBS)
 libfvmo_scal.la: $(libfvmo_scal_la_OBJECTS) $(libfvmo_scal_la_DEPENDENCIES) 
 	$(libfvmo_scal_la_LINK) $(am_libfvmo_scal_la_rpath) $(libfvmo_scal_la_OBJECTS) $(libfvmo_scal_la_LIBADD) $(LIBS)
 
@@ -666,40 +670,40 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libfvmo_cgns_la-fvm_to_cgns.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libfvmo_med_la-fvm_to_med.Plo@am__quote@
 
-.c.o:
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(COMPILE) -c $<
+.cpp.o:
+@am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ $<
 
-.c.obj:
-@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
+.cpp.obj:
+@am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
-.c.lo:
-@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
+.cpp.lo:
+@am__fastdepCXX_TRUE@	$(LTCXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
 
-libfvmo_cgns_la-fvm_to_cgns.lo: fvm_to_cgns.c
-@am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libfvmo_cgns_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libfvmo_cgns_la-fvm_to_cgns.lo -MD -MP -MF $(DEPDIR)/libfvmo_cgns_la-fvm_to_cgns.Tpo -c -o libfvmo_cgns_la-fvm_to_cgns.lo `test -f 'fvm_to_cgns.c' || echo '$(srcdir)/'`fvm_to_cgns.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libfvmo_cgns_la-fvm_to_cgns.Tpo $(DEPDIR)/libfvmo_cgns_la-fvm_to_cgns.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='fvm_to_cgns.c' object='libfvmo_cgns_la-fvm_to_cgns.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libfvmo_cgns_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libfvmo_cgns_la-fvm_to_cgns.lo `test -f 'fvm_to_cgns.c' || echo '$(srcdir)/'`fvm_to_cgns.c
+libfvmo_cgns_la-fvm_to_cgns.lo: fvm_to_cgns.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libfvmo_cgns_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libfvmo_cgns_la-fvm_to_cgns.lo -MD -MP -MF $(DEPDIR)/libfvmo_cgns_la-fvm_to_cgns.Tpo -c -o libfvmo_cgns_la-fvm_to_cgns.lo `test -f 'fvm_to_cgns.cpp' || echo '$(srcdir)/'`fvm_to_cgns.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libfvmo_cgns_la-fvm_to_cgns.Tpo $(DEPDIR)/libfvmo_cgns_la-fvm_to_cgns.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='fvm_to_cgns.cpp' object='libfvmo_cgns_la-fvm_to_cgns.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libfvmo_cgns_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libfvmo_cgns_la-fvm_to_cgns.lo `test -f 'fvm_to_cgns.cpp' || echo '$(srcdir)/'`fvm_to_cgns.cpp
 
-libfvmo_med_la-fvm_to_med.lo: fvm_to_med.c
-@am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libfvmo_med_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libfvmo_med_la-fvm_to_med.lo -MD -MP -MF $(DEPDIR)/libfvmo_med_la-fvm_to_med.Tpo -c -o libfvmo_med_la-fvm_to_med.lo `test -f 'fvm_to_med.c' || echo '$(srcdir)/'`fvm_to_med.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/libfvmo_med_la-fvm_to_med.Tpo $(DEPDIR)/libfvmo_med_la-fvm_to_med.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='fvm_to_med.c' object='libfvmo_med_la-fvm_to_med.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libfvmo_med_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libfvmo_med_la-fvm_to_med.lo `test -f 'fvm_to_med.c' || echo '$(srcdir)/'`fvm_to_med.c
+libfvmo_med_la-fvm_to_med.lo: fvm_to_med.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libfvmo_med_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libfvmo_med_la-fvm_to_med.lo -MD -MP -MF $(DEPDIR)/libfvmo_med_la-fvm_to_med.Tpo -c -o libfvmo_med_la-fvm_to_med.lo `test -f 'fvm_to_med.cpp' || echo '$(srcdir)/'`fvm_to_med.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libfvmo_med_la-fvm_to_med.Tpo $(DEPDIR)/libfvmo_med_la-fvm_to_med.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='fvm_to_med.cpp' object='libfvmo_med_la-fvm_to_med.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libfvmo_med_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libfvmo_med_la-fvm_to_med.lo `test -f 'fvm_to_med.cpp' || echo '$(srcdir)/'`fvm_to_med.cpp
 
 mostlyclean-libtool:
 	-rm -f *.lo
