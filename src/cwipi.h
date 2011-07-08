@@ -693,6 +693,18 @@ const double *cwipi_get_distant_barycentric_coordinates (const char *coupling_id
 
 /*----------------------------------------------------------------------------
  *
+ * Get distant point coordinates
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ * return
+ *   coordinates
+ *----------------------------------------------------------------------------*/
+
+const double *cwipi_get_distant_coordinates (const char *coupling_id);
+
+/*----------------------------------------------------------------------------
+ *
  * Exchange data with the coupled application.
  * It is a synchronization point with the coupled application
  *
@@ -779,7 +791,7 @@ void cwipi_irecv
  const int                 stride,
  const int                 time_step,
  const double              time_value,
- char                *receiving_field_name,
+ char                      *receiving_field_name,
  double                    *receiving_field,
  int                       *request);
 
@@ -896,7 +908,7 @@ int cwipi_get_n_not_located_points(const char *coupling_id);
  *
  *----------------------------------------------------------------------------*/
 
-int cwipi_get_n_located_distant_points(const char *coupling_id);
+int cwipi_get_n_distant_points(const char *coupling_id);
 
 /*----------------------------------------------------------------------------
  *

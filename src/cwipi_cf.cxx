@@ -943,6 +943,42 @@ void PROCF(cwipi_get_n_located_dist_pts_cf,
 
 /*----------------------------------------------------------------------------
  *
+ * Get distant points coordinates
+ *
+ * parameters
+ *   coupling_name        <-- Coupling identifier
+ *   coordinates          --> Distant points coordinates 
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_dis_coord_cf,
+           CWIPI_GET_DIS_COORD_CF)(const char *coupling_name,
+                                   const int  *l_coupling_name,
+                                   double *coordinates
+                                   ARGF_SUPP_CHAINE)
+{
+  char *coupling_nameC =
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
+
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_nameC;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  const double* coordinatesC = coupling.getDistantPointCoordinates();
+  const int nDistantPoint = coupling.getNDistantPoint();
+
+  for (int i = 0; i < 3 * nDistantPoint; i++)
+    coordinates[i] = coordinatesC[i];
+
+  delete[] coupling_nameC;
+}
+
+
+/*----------------------------------------------------------------------------
+ *
  * Get located points barycentric coordinates index
  *
  * parameters

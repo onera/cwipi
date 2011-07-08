@@ -122,6 +122,8 @@ namespace cwipi {
 
     inline int getNDistantPoint() const;
 
+    inline const double *getDistantPointCoordinates() const;
+
     inline const int *getDistantBarycentricCoordinatesIndex() const;
 
     inline const double *getDistantBarycentricCoordinates() const;

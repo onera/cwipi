@@ -571,9 +571,25 @@ void PROCF(cwipi_get_n_located_pts_cf,
 
 void PROCF(cwipi_get_n_located_dist_pts_cf,
            CWIPI_GET_N_LOCATED_DIST_PTS_CF) (const char *coupling_name,
-                                                       const int  *l_coupling_name,
-                                                       int *n_located_distant_Points
-                                                       ARGF_SUPP_CHAINE);
+                                             const int  *l_coupling_name,
+                                             int *n_located_distant_Points
+                                             ARGF_SUPP_CHAINE);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get distant points coordinates
+ *
+ * parameters
+ *   coupling_name        <-- Coupling identifier
+ *   coordinates          --> Distant points coordinates 
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_dis_coord_cf,
+           CWIPI_GET_DIS_COORD_CF)(const char *coupling_name,
+                                   const int  *l_coupling_name,
+                                   double *coordinates
+                                   ARGF_SUPP_CHAINE);
 
 /*----------------------------------------------------------------------------
  *

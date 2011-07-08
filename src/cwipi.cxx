@@ -90,7 +90,7 @@ static FILE* _cwipi_output_listing;
  *
  *----------------------------------------------------------------------------*/
 
-int _cwipi_print_with_c
+static int _cwipi_print_with_c
 (
  const char     *const format,
        va_list         arg_ptr
@@ -103,7 +103,6 @@ int _cwipi_print_with_c
 /*============================================================================
  * Public function definitions
  *============================================================================*/
-
 
 /*----------------------------------------------------------------------------
  *
@@ -1199,7 +1198,7 @@ const int * cwipi_get_located_points(const char *coupling_id)
  *
  *----------------------------------------------------------------------------*/
 
-int cwipi_get_n_located_distant_points(const char *coupling_id)
+int cwipi_get_n_distant_points(const char *coupling_id)
 {
   cwipi::CouplingDataBase & couplingDataBase =
     cwipi::CouplingDataBase::getInstance();
@@ -1209,6 +1208,28 @@ int cwipi_get_n_located_distant_points(const char *coupling_id)
   cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   return coupling.getNDistantPoint();
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get distant point coordinates
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ * return
+ *   coordinates
+ *----------------------------------------------------------------------------*/
+
+const double *cwipi_get_distant_coordinates (const char *coupling_id)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_id;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  return coupling.getDistantPointCoordinates();
 }
 
 /*----------------------------------------------------------------------------

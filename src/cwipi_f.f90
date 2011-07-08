@@ -191,6 +191,10 @@ module cwipi
     cwipi_get_location_f_
   end interface
 
+  interface cwipi_get_coord_f           ; module procedure &
+    cwipi_get_coord_f_
+  end interface
+
   interface cwipi_receive_f                ; module procedure &
     cwipi_receive_f_
   end interface
@@ -313,6 +317,10 @@ module cwipi
              cwipi_delete_coupling_f_,        &
              cwipi_dump_appli_properties_f_,  &
              cwipi_finalize_f_,               &
+             cwipi_get_location_f_,           &
+             cwipi_get_bary_coord_f_,         &
+             cwipi_get_bary_coord_idx_f_,     &
+             cwipi_get_coord_f_,              &
              cwipi_get_not_located_pts_f_,    &
              cwipi_get_elt_cont_f_,           &
              cwipi_get_elt_cont_n_vtx_f_,     &
@@ -1236,6 +1244,36 @@ contains
 !
 !********************************************************************************
 !
+! cwipi_get_coord
+!
+! Get distant points coordinates
+!
+! parameters
+!   couplingName      <-- Coupling identifier
+!   coordinates       <-- Get distant point coordinates
+! 
+!*******************************************************************************
+!
+
+  subroutine cwipi_get_coord_f_(couplingName, &
+                                coordinates)
+
+    implicit none
+
+    character (len = *) :: couplingName
+    integer :: lcouplingname
+    double precision, dimension(*) :: coordinates
+
+    lCouplingName = len(couplingName)
+
+    call cwipi_get_dis_coord_cf(couplingName, &
+                                lCouplingName, &
+                                coordinates)
+  end subroutine cwipi_get_coord_f_
+
+!
+!********************************************************************************
+!
 ! cwipi_get_bary_coord_idx_f
 !
 ! Get located points barycentric coordinates index
@@ -1248,7 +1286,7 @@ contains
 !
 
   subroutine cwipi_get_bary_coord_idx_f_(couplingName, &
-                                                            barycentricCoordinatesIndex)
+                                         barycentricCoordinatesIndex)
 
     implicit none
 
@@ -1278,7 +1316,7 @@ contains
 !
 
   subroutine cwipi_get_bary_coord_f_(couplingName, &
-                                                      barycentricCoordinates)
+                                     barycentricCoordinates)
 
     implicit none
 
