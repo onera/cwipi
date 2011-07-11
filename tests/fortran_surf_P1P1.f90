@@ -243,7 +243,7 @@ program testf
      if (irank == 0) then
         print *, '      Not executed : only available if the number of processus in the form of 2 * n_partition**2'
      endif
-     call mpi_finalize()
+     call mpi_finalize(code)
      stop;
   endif
 

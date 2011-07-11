@@ -35,8 +35,6 @@
 
 # Add any debug flags
 
-CC = $(CXX)
-
 if DEBUG
   DEBUG_CPPFLAGS = -DDEBUG
 else
@@ -53,34 +51,34 @@ AM_LDFLAGS  =
 
 bftincludedir = $(includedir)
 bftinclude_HEADERS = \
-bft_backtrace.h \
-bft_error.h \
-bft_file.h \
-bft_fp_trap.h \
-bft_mem.h \
-bft_mem_usage.h \
-bft_printf.h \
-bft_sys_info.h \
-bft_timer.h \
-bft_version.h
+bftc_backtrace.h \
+bftc_error.h \
+bftc_file.h \
+bftc_fp_trap.h \
+bftc_mem.h \
+bftc_mem_usage.h \
+bftc_printf.h \
+bftc_sys_info.h \
+bftc_timer.h \
+bftc_version.h
 
 noinst_HEADERS = \
-bft_config_defs.h
+bftc_config_defs.h
 
 # Library source files
 
-lib_LTLIBRARIES = libbfto.la
-libbfto_la_SOURCES   = \
-bft_backtrace.cpp \
-bft_error.cpp \
-bft_file.cpp \
-bft_fp_trap.cpp \
-bft_mem.cpp \
-bft_mem_usage.cpp \
-bft_printf.cpp \
-bft_sys_info.cpp \
-bft_timer.cpp \
-bft_version.cpp
+lib_LTLIBRARIES = libbftc.la
+libbftc_la_SOURCES   = \
+bftc_backtrace.c \
+bftc_error.c \
+bftc_file.c \
+bftc_fp_trap.c \
+bftc_mem.c \
+bftc_mem_usage.c \
+bftc_printf.c \
+bftc_sys_info.c \
+bftc_timer.c \
+bftc_version.c
 
-libbfto_la_LDFLAGS = -no-undefined -version-info 1:0:0
+libbftc_la_LDFLAGS = -no-undefined -version-info 1:0:0
 

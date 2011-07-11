@@ -24,7 +24,7 @@
 
 #include <mpi.h>
 
-#include <bft_printf.h>
+#include <bftc_printf.h>
 
 #include "singleton.hpp"
 #include "cwipi.h"

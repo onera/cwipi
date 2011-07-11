@@ -77,9 +77,7 @@ am__aclocal_m4_deps = $(top_srcdir)/config/bft_config_info.m4 \
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
-CONFIG_HEADER = $(top_builddir)/config_priv.h \
-	$(top_builddir)/fvm_config_priv.h \
-	$(top_builddir)/bft_config_priv.h
+CONFIG_HEADER = $(top_builddir)/config_priv.h
 CONFIG_CLEAN_FILES =
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
@@ -91,8 +89,8 @@ am__installdirs = "$(DESTDIR)$(pkgpyexecdir)" \
 	"$(DESTDIR)$(pkgpythondir)"
 pkgpyexecLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(pkgpyexec_LTLIBRARIES)
-CWIPI_la_DEPENDENCIES = $(top_builddir)/src/bft/libbfto.la \
-	$(top_builddir)/src/fvm/libfvmo.la \
+CWIPI_la_DEPENDENCIES = $(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
 	$(top_builddir)/src/libcwipi.la
 am_CWIPI_la_OBJECTS = CWIPI.lo
 CWIPI_la_OBJECTS = $(am_CWIPI_la_OBJECTS)
@@ -287,8 +285,8 @@ pkgpython_PYTHON = __init__.py
 pkgpyexec_LTLIBRARIES = CWIPI.la
 CWIPI_la_SOURCES = CWIPI.c
 CWIPI_la_LIBADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la 
 
 CWIPI_la_LDFLAGS = _avoid_version -module

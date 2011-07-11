@@ -56,8 +56,7 @@ target_triplet = @target@
 subdir = .
 DIST_COMMON = README $(am__configure_deps) $(configinclude_HEADERS) \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(srcdir)/bft_config_priv.h.in $(srcdir)/config_priv.h.in \
-	$(srcdir)/fvm_config_priv.h.in $(top_srcdir)/configure AUTHORS \
+	$(srcdir)/config_priv.h.in $(top_srcdir)/configure AUTHORS \
 	COPYING ChangeLog INSTALL NEWS config/config.guess \
 	config/config.sub config/depcomp config/install-sh \
 	config/ltmain.sh config/missing config/py-compile
@@ -85,7 +84,7 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
-CONFIG_HEADER = config_priv.h fvm_config_priv.h bft_config_priv.h
+CONFIG_HEADER = config_priv.h
 CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)" \
 	"$(DESTDIR)$(configincludedir)"
@@ -303,7 +302,7 @@ configincludedir = $(includedir)
 configinclude_HEADERS = cwipi_config.h 
 DISTCLEANFILES = cwipi-config cwipi_config.h cwipi_config_priv.h
 ACLOCAL_AMFLAGS = -I config
-all: config_priv.h fvm_config_priv.h bft_config_priv.h
+all: config_priv.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
 .SUFFIXES:
@@ -355,28 +354,8 @@ $(srcdir)/config_priv.h.in: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 	rm -f stamp-h1
 	touch $@
 
-fvm_config_priv.h: stamp-h2
-	@if test ! -f $@; then \
-	  rm -f stamp-h2; \
-	  $(MAKE) $(AM_MAKEFLAGS) stamp-h2; \
-	else :; fi
-
-stamp-h2: $(srcdir)/fvm_config_priv.h.in $(top_builddir)/config.status
-	@rm -f stamp-h2
-	cd $(top_builddir) && $(SHELL) ./config.status fvm_config_priv.h
-
-bft_config_priv.h: stamp-h3
-	@if test ! -f $@; then \
-	  rm -f stamp-h3; \
-	  $(MAKE) $(AM_MAKEFLAGS) stamp-h3; \
-	else :; fi
-
-stamp-h3: $(srcdir)/bft_config_priv.h.in $(top_builddir)/config.status
-	@rm -f stamp-h3
-	cd $(top_builddir) && $(SHELL) ./config.status bft_config_priv.h
-
 distclean-hdr:
-	-rm -f config_priv.h stamp-h1 fvm_config_priv.h stamp-h2 bft_config_priv.h stamp-h3
+	-rm -f config_priv.h stamp-h1
 install-binSCRIPTS: $(bin_SCRIPTS)
 	@$(NORMAL_INSTALL)
 	test -z "$(bindir)" || $(MKDIR_P) "$(DESTDIR)$(bindir)"
@@ -503,7 +482,7 @@ ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	mkid -fID $$unique
 tags: TAGS
 
-TAGS: tags-recursive $(HEADERS) $(SOURCES) config_priv.h.in fvm_config_priv.h.in bft_config_priv.h.in $(TAGS_DEPENDENCIES) \
+TAGS: tags-recursive $(HEADERS) $(SOURCES) config_priv.h.in $(TAGS_DEPENDENCIES) \
 		$(TAGS_FILES) $(LISP)
 	tags=; \
 	here=`pwd`; \
@@ -520,7 +499,7 @@ TAGS: tags-recursive $(HEADERS) $(SOURCES) config_priv.h.in fvm_config_priv.h.in
 	      tags="$$tags $$include_option=$$here/$$subdir/TAGS"; \
 	  fi; \
 	done; \
-	list='$(SOURCES) $(HEADERS) config_priv.h.in fvm_config_priv.h.in bft_config_priv.h.in $(LISP) $(TAGS_FILES)'; \
+	list='$(SOURCES) $(HEADERS) config_priv.h.in $(LISP) $(TAGS_FILES)'; \
 	unique=`for i in $$list; do \
 	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
 	  done | \
@@ -532,10 +511,10 @@ TAGS: tags-recursive $(HEADERS) $(SOURCES) config_priv.h.in fvm_config_priv.h.in
 	    $$tags $$unique; \
 	fi
 ctags: CTAGS
-CTAGS: ctags-recursive $(HEADERS) $(SOURCES) config_priv.h.in fvm_config_priv.h.in bft_config_priv.h.in $(TAGS_DEPENDENCIES) \
+CTAGS: ctags-recursive $(HEADERS) $(SOURCES) config_priv.h.in $(TAGS_DEPENDENCIES) \
 		$(TAGS_FILES) $(LISP)
 	tags=; \
-	list='$(SOURCES) $(HEADERS) config_priv.h.in fvm_config_priv.h.in bft_config_priv.h.in $(LISP) $(TAGS_FILES)'; \
+	list='$(SOURCES) $(HEADERS) config_priv.h.in $(LISP) $(TAGS_FILES)'; \
 	unique=`for i in $$list; do \
 	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
 	  done | \
@@ -703,8 +682,7 @@ distcleancheck: distclean
 	       exit 1; } >&2
 check-am: all-am
 check: check-recursive
-all-am: Makefile $(SCRIPTS) $(HEADERS) config_priv.h fvm_config_priv.h \
-		bft_config_priv.h
+all-am: Makefile $(SCRIPTS) $(HEADERS) config_priv.h
 installdirs: installdirs-recursive
 installdirs-am:
 	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(configincludedir)"; do \

@@ -23,9 +23,9 @@
 #include <map>
 #include <vector>
 
-#include <fvm_locator.h>
-#include <fvm_writer.h>
-#include <fvm_nodal.h>
+#include <fvmc_locator.h>
+#include <fvmc_writer.h>
+#include <fvmc_nodal.h>
 #include "cwipi.h"
 
 namespace cwipi {
@@ -61,7 +61,7 @@ namespace cwipi {
                     int connectivity_index[],
                     int connectivity[]);
 
-    void defineMesh(fvm::fvm_nodal_t* fvm_nodal); 
+    void defineMesh(fvmc_nodal_t* fvmc_nodal); 
 
 
     void defineMeshAddPolyhedra(const int n_element,
@@ -240,7 +240,7 @@ namespace cwipi {
     const int                       _outputFrequency;
 
   private:
-    fvm::fvm_writer_t        *_fvmWriter;
+    fvmc_writer_t        *_fvmWriter;
     MPI_Comm             _couplingComm;
     MPI_Comm             _mergeComm;
     MPI_Comm             _fvmComm;

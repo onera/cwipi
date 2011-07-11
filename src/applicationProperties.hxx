@@ -25,7 +25,7 @@
 #include <string>
 
 #include <mpi.h>
-#include <bft_error.h>
+#include <bftc_error.h>
 #include "applicationPropertiesDataBase.hxx"
 
 namespace cwipi {
@@ -145,7 +145,7 @@ namespace cwipi {
   {
     const std::map <std::string, int>::iterator p = _intControlParameters.find(name);
     if (p == _intControlParameters.end())
-      bft::bft_error(__FILE__, __LINE__, 0,
+      bftc_error(__FILE__, __LINE__, 0,
                 "'%s' int control parameter not found \n", name.c_str());
     return p->second;
   }
@@ -154,7 +154,7 @@ namespace cwipi {
   {
     const std::map <std::string, double>::iterator p = _doubleControlParameters.find(name);
     if (p == _doubleControlParameters.end())
-      bft::bft_error(__FILE__, __LINE__, 0,
+      bftc_error(__FILE__, __LINE__, 0,
                 "'%s' double control parameter not found \n", name.c_str());
     return p->second;
   }
@@ -163,7 +163,7 @@ namespace cwipi {
   {
     const std::map <std::string, std::string>::iterator p = _stringControlParameters.find(name);
     if (p == _stringControlParameters.end())
-      bft::bft_error(__FILE__, __LINE__, 0,
+      bftc_error(__FILE__, __LINE__, 0,
                 "'%s' string control parameter not found \n", name.c_str());
     return p->second;
   }
@@ -172,7 +172,7 @@ namespace cwipi {
   {
     std::map <std::string, int>::iterator p = _intControlParameters.find(name);
     if (p == _intControlParameters.end())
-      bft::bft_error(__FILE__, __LINE__, 0,
+      bftc_error(__FILE__, __LINE__, 0,
                 "'%s' int control parameter not found \n", name.c_str());
     p->second = value;
   }
@@ -183,7 +183,7 @@ namespace cwipi {
     if (p != _doubleControlParameters.end())
       p->second = value;
     else
-      bft::bft_error(__FILE__, __LINE__, 0,
+      bftc_error(__FILE__, __LINE__, 0,
                 "'%s' double control parameter not found \n", name.c_str());
   }
 
@@ -193,7 +193,7 @@ namespace cwipi {
     if (p != _stringControlParameters.end())
       p->second = value;
     else
-      bft::bft_error(__FILE__, __LINE__, 0,
+      bftc_error(__FILE__, __LINE__, 0,
                 "'%s' string control parameter not found \n", name.c_str());
   }
 
@@ -202,7 +202,7 @@ namespace cwipi {
     std::pair<std::string, int> parameter(name, initialValue);
     std::pair<std::map<std::string, int>::iterator, bool> p = _intControlParameters.insert(parameter);
     if (!p.second)
-      bft::bft_error(__FILE__, __LINE__, 0,
+      bftc_error(__FILE__, __LINE__, 0,
                 "'%s' existing int control parameter \n", name.c_str());
   }
 
@@ -211,7 +211,7 @@ namespace cwipi {
     std::pair<std::string, double> parameter(name, initialValue);
     std::pair<std::map<std::string, double>::iterator, bool> p = _doubleControlParameters.insert(parameter);
     if (!p.second)
-      bft::bft_error(__FILE__, __LINE__, 0,
+      bftc_error(__FILE__, __LINE__, 0,
                 "'%s' existing double control parameter \n", name.c_str());
   }
 
@@ -220,7 +220,7 @@ namespace cwipi {
     std::pair<std::string, std::string> parameter(name, initialValue);
     std::pair<std::map<std::string, std::string>::iterator, bool> p = _stringControlParameters.insert(parameter);
     if (!p.second)
-      bft::bft_error(__FILE__, __LINE__, 0,
+      bftc_error(__FILE__, __LINE__, 0,
                 "'%s' existing string control parameter \n", name.c_str());
   }
   void ApplicationProperties::eraseIntControlParameter(const std::string &name)
@@ -229,7 +229,7 @@ namespace cwipi {
     if (p != _intControlParameters.end())
       _intControlParameters.erase(p);
     else
-      bft::bft_error(__FILE__, __LINE__, 0,
+      bftc_error(__FILE__, __LINE__, 0,
                 "'%s' int control parameter not found \n", name.c_str());
   }
 
@@ -239,7 +239,7 @@ namespace cwipi {
     if (p != _doubleControlParameters.end())
       _doubleControlParameters.erase(p);
     else
-      bft::bft_error(__FILE__, __LINE__, 0,
+      bftc_error(__FILE__, __LINE__, 0,
                 "'%s' double control parameter not found \n", name.c_str());
   }
 
@@ -249,7 +249,7 @@ namespace cwipi {
     if (p != _stringControlParameters.end())
       _stringControlParameters.erase(p);
     else
-      bft::bft_error(__FILE__, __LINE__, 0,
+      bftc_error(__FILE__, __LINE__, 0,
                 "'%s' string control parameter not found \n", name.c_str());
   }
 }

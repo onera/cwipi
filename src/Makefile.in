@@ -61,9 +61,7 @@ am__aclocal_m4_deps = $(top_srcdir)/config/bft_config_info.m4 \
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
-CONFIG_HEADER = $(top_builddir)/config_priv.h \
-	$(top_builddir)/fvm_config_priv.h \
-	$(top_builddir)/bft_config_priv.h
+CONFIG_HEADER = $(top_builddir)/config_priv.h
 CONFIG_CLEAN_FILES =
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
@@ -74,15 +72,15 @@ am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(cwipiincludedir)"
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES) $(noinst_LTLIBRARIES)
-libcwipi_la_DEPENDENCIES = $(top_builddir)/src/bft/libbfto.la \
-	$(top_builddir)/src/fvm/libfvmo.la
+libcwipi_la_DEPENDENCIES = $(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la
 am_libcwipi_la_OBJECTS = applicationProperties.lo \
 	applicationPropertiesDataBase.lo locationToLocalMesh.lo \
 	locationToDistantMesh.lo cwipi.lo quickSort.lo solve_ax_b_4.lo \
 	mesh.lo coupling.lo couplingDataBase.lo callfortinterpfct.lo
 libcwipi_la_OBJECTS = $(am_libcwipi_la_OBJECTS)
-libcwipi_f_la_DEPENDENCIES = $(top_builddir)/src/bft/libbfto.la \
-	$(top_builddir)/src/fvm/libfvmo.la libcwipi.la
+libcwipi_f_la_DEPENDENCIES = $(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la libcwipi.la
 am_libcwipi_f_la_OBJECTS = cwipi_cf.lo cwipi_f.lo printfort.lo
 libcwipi_f_la_OBJECTS = $(am_libcwipi_f_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
@@ -308,8 +306,8 @@ solve_ax_b_4.h
 lib_LTLIBRARIES = libcwipi.la libcwipi_f.la
 noinst_LTLIBRARIES = 
 libcwipi_la_LIBADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la
 
 libcwipi_la_SOURCES = \
 applicationProperties.cxx \
@@ -325,8 +323,8 @@ couplingDataBase.cxx \
 callfortinterpfct.f90
 
 libcwipi_f_la_LIBADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 libcwipi.la
 
 libcwipi_f_la_SOURCES = \

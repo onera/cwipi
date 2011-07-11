@@ -4,14 +4,14 @@ dnl This file is part of the FVM software package. For license
 dnl information, see the COPYING file in the top level directory of the
 dnl FVM source distribution.
 
-# FVM_AC_TEST_MED
+# FVMC_AC_TEST_MED
 #----------------
 # modifies or sets have_med, MED_CPPFLAGS, MED_LDFLAGS, and MED_LIBS
 # depending on libraries found
 
-AC_DEFUN([FVM_AC_TEST_MED], [
+AC_DEFUN([FVMC_AC_TEST_MED], [
 
-AC_REQUIRE([FVM_AC_CONFIG_PUBL_INIT])dnl
+AC_REQUIRE([FVMC_AC_CONFIG_PUBL_INIT])dnl
 
 have_med=no
 have_med_headers=no

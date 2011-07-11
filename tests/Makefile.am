@@ -49,8 +49,8 @@ AM_LDFLAGS  = @MPI_LDFLAGS@
 
 AM_FCFLAGS = -I$(top_builddir)/src -I$(top_srcdir)/src
 
-LDADD = $(top_builddir)/src/bft/libbfto.la \
-	$(top_builddir)/src/fvm/libfvmo.la \
+LDADD = $(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
 	$(top_builddir)/src/libcwipi.la \
         @MPI_LIBS@ \
 	-lm
@@ -94,113 +94,113 @@ fortran_surf_P1P1_SOURCES = grid_mesh.c fortran_surf_P1P1.f90
 #c_mean_value_3D_SOURCES = c_mean_value_3D.c
 
 c_linear_coupling_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_coupling_P1P1_micron_polygon_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_coupling_P1P1_polygon_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_coupling_P1P1_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_coupling_P1P0_P0P1_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_coupling_user_target_points_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_coupling_user_interpolation_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_coupling_vector_exchange_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_coupling_output_error_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_coupling_simple_location_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_without_partitioning_coupling_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_without_partitioning_coupling2_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_sequential_coupling_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 # c_mean_value_3D_LDADD = \
-# $(top_builddir)/src/bft/libbfto.la \
-# $(top_builddir)/src/fvm/libfvmo.la \
+# $(top_builddir)/src/bft/libbftc.la \
+# $(top_builddir)/src/fvm/libfvmc.la \
 # $(top_builddir)/src/libcwipi.la \
 # @MPI_LIBS@ \
 # -lm
 
 c_vol_coupling_P1P1_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 fortran_surf_P1P1_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 $(top_builddir)/src/libcwipi_f.la \
  @MPI_LIBS@ \

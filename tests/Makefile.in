@@ -110,29 +110,27 @@ am__aclocal_m4_deps = $(top_srcdir)/config/bft_config_info.m4 \
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
-CONFIG_HEADER = $(top_builddir)/config_priv.h \
-	$(top_builddir)/fvm_config_priv.h \
-	$(top_builddir)/bft_config_priv.h
+CONFIG_HEADER = $(top_builddir)/config_priv.h
 CONFIG_CLEAN_FILES =
 am_c_linear_coupling_OBJECTS = c_linear_coupling.$(OBJEXT)
 c_linear_coupling_OBJECTS = $(am_c_linear_coupling_OBJECTS)
-c_linear_coupling_DEPENDENCIES = $(top_builddir)/src/bft/libbfto.la \
-	$(top_builddir)/src/fvm/libfvmo.la \
+c_linear_coupling_DEPENDENCIES = $(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
 	$(top_builddir)/src/libcwipi.la
 am_c_surf_coupling_P1P0_P0P1_OBJECTS = grid_mesh.$(OBJEXT) \
 	c_surf_coupling_P1P0_P0P1.$(OBJEXT)
 c_surf_coupling_P1P0_P0P1_OBJECTS =  \
 	$(am_c_surf_coupling_P1P0_P0P1_OBJECTS)
 c_surf_coupling_P1P0_P0P1_DEPENDENCIES =  \
-	$(top_builddir)/src/bft/libbfto.la \
-	$(top_builddir)/src/fvm/libfvmo.la \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
 	$(top_builddir)/src/libcwipi.la
 am_c_surf_coupling_P1P1_OBJECTS = grid_mesh.$(OBJEXT) \
 	c_surf_coupling_P1P1.$(OBJEXT)
 c_surf_coupling_P1P1_OBJECTS = $(am_c_surf_coupling_P1P1_OBJECTS)
 c_surf_coupling_P1P1_DEPENDENCIES =  \
-	$(top_builddir)/src/bft/libbfto.la \
-	$(top_builddir)/src/fvm/libfvmo.la \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
 	$(top_builddir)/src/libcwipi.la
 am_c_surf_coupling_P1P1_asynchronous_OBJECTS = grid_mesh.$(OBJEXT) \
 	c_surf_coupling_P1P1_asynchronous.$(OBJEXT)
@@ -140,8 +138,8 @@ c_surf_coupling_P1P1_asynchronous_OBJECTS =  \
 	$(am_c_surf_coupling_P1P1_asynchronous_OBJECTS)
 c_surf_coupling_P1P1_asynchronous_LDADD = $(LDADD)
 c_surf_coupling_P1P1_asynchronous_DEPENDENCIES =  \
-	$(top_builddir)/src/bft/libbfto.la \
-	$(top_builddir)/src/fvm/libfvmo.la \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
 	$(top_builddir)/src/libcwipi.la
 am_c_surf_coupling_P1P1_micron_polygon_OBJECTS =  \
 	creeMaillagePolygone2D.$(OBJEXT) \
@@ -149,8 +147,8 @@ am_c_surf_coupling_P1P1_micron_polygon_OBJECTS =  \
 c_surf_coupling_P1P1_micron_polygon_OBJECTS =  \
 	$(am_c_surf_coupling_P1P1_micron_polygon_OBJECTS)
 c_surf_coupling_P1P1_micron_polygon_DEPENDENCIES =  \
-	$(top_builddir)/src/bft/libbfto.la \
-	$(top_builddir)/src/fvm/libfvmo.la \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
 	$(top_builddir)/src/libcwipi.la
 am_c_surf_coupling_P1P1_polygon_OBJECTS =  \
 	creeMaillagePolygone2D.$(OBJEXT) \
@@ -158,64 +156,64 @@ am_c_surf_coupling_P1P1_polygon_OBJECTS =  \
 c_surf_coupling_P1P1_polygon_OBJECTS =  \
 	$(am_c_surf_coupling_P1P1_polygon_OBJECTS)
 c_surf_coupling_P1P1_polygon_DEPENDENCIES =  \
-	$(top_builddir)/src/bft/libbfto.la \
-	$(top_builddir)/src/fvm/libfvmo.la \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
 	$(top_builddir)/src/libcwipi.la
 am_c_surf_coupling_output_error_OBJECTS = grid_mesh.$(OBJEXT) \
 	c_surf_coupling_output_error.$(OBJEXT)
 c_surf_coupling_output_error_OBJECTS =  \
 	$(am_c_surf_coupling_output_error_OBJECTS)
 c_surf_coupling_output_error_DEPENDENCIES =  \
-	$(top_builddir)/src/bft/libbfto.la \
-	$(top_builddir)/src/fvm/libfvmo.la \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
 	$(top_builddir)/src/libcwipi.la
 am_c_surf_coupling_simple_location_OBJECTS = grid_mesh.$(OBJEXT) \
 	c_surf_coupling_simple_location.$(OBJEXT)
 c_surf_coupling_simple_location_OBJECTS =  \
 	$(am_c_surf_coupling_simple_location_OBJECTS)
 c_surf_coupling_simple_location_DEPENDENCIES =  \
-	$(top_builddir)/src/bft/libbfto.la \
-	$(top_builddir)/src/fvm/libfvmo.la \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
 	$(top_builddir)/src/libcwipi.la
 am_c_surf_coupling_user_interpolation_OBJECTS = grid_mesh.$(OBJEXT) \
 	c_surf_coupling_user_interpolation.$(OBJEXT)
 c_surf_coupling_user_interpolation_OBJECTS =  \
 	$(am_c_surf_coupling_user_interpolation_OBJECTS)
 c_surf_coupling_user_interpolation_DEPENDENCIES =  \
-	$(top_builddir)/src/bft/libbfto.la \
-	$(top_builddir)/src/fvm/libfvmo.la \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
 	$(top_builddir)/src/libcwipi.la
 am_c_surf_coupling_user_target_points_OBJECTS = grid_mesh.$(OBJEXT) \
 	c_surf_coupling_user_target_points.$(OBJEXT)
 c_surf_coupling_user_target_points_OBJECTS =  \
 	$(am_c_surf_coupling_user_target_points_OBJECTS)
 c_surf_coupling_user_target_points_DEPENDENCIES =  \
-	$(top_builddir)/src/bft/libbfto.la \
-	$(top_builddir)/src/fvm/libfvmo.la \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
 	$(top_builddir)/src/libcwipi.la
 am_c_surf_coupling_vector_exchange_OBJECTS = grid_mesh.$(OBJEXT) \
 	c_surf_coupling_vector_exchange.$(OBJEXT)
 c_surf_coupling_vector_exchange_OBJECTS =  \
 	$(am_c_surf_coupling_vector_exchange_OBJECTS)
 c_surf_coupling_vector_exchange_DEPENDENCIES =  \
-	$(top_builddir)/src/bft/libbfto.la \
-	$(top_builddir)/src/fvm/libfvmo.la \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
 	$(top_builddir)/src/libcwipi.la
 am_c_surf_sequential_coupling_OBJECTS = grid_mesh.$(OBJEXT) \
 	c_surf_sequential_coupling.$(OBJEXT)
 c_surf_sequential_coupling_OBJECTS =  \
 	$(am_c_surf_sequential_coupling_OBJECTS)
 c_surf_sequential_coupling_DEPENDENCIES =  \
-	$(top_builddir)/src/bft/libbfto.la \
-	$(top_builddir)/src/fvm/libfvmo.la \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
 	$(top_builddir)/src/libcwipi.la
 am_c_surf_without_partitioning_coupling_OBJECTS = grid_mesh.$(OBJEXT) \
 	c_surf_without_partitioning_coupling.$(OBJEXT)
 c_surf_without_partitioning_coupling_OBJECTS =  \
 	$(am_c_surf_without_partitioning_coupling_OBJECTS)
 c_surf_without_partitioning_coupling_DEPENDENCIES =  \
-	$(top_builddir)/src/bft/libbfto.la \
-	$(top_builddir)/src/fvm/libfvmo.la \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
 	$(top_builddir)/src/libcwipi.la
 am_c_surf_without_partitioning_coupling2_OBJECTS =  \
 	grid_mesh.$(OBJEXT) \
@@ -223,19 +221,19 @@ am_c_surf_without_partitioning_coupling2_OBJECTS =  \
 c_surf_without_partitioning_coupling2_OBJECTS =  \
 	$(am_c_surf_without_partitioning_coupling2_OBJECTS)
 c_surf_without_partitioning_coupling2_DEPENDENCIES =  \
-	$(top_builddir)/src/bft/libbfto.la \
-	$(top_builddir)/src/fvm/libfvmo.la \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
 	$(top_builddir)/src/libcwipi.la
 am_c_vol_coupling_P1P1_OBJECTS = c_vol_coupling_P1P1.$(OBJEXT)
 c_vol_coupling_P1P1_OBJECTS = $(am_c_vol_coupling_P1P1_OBJECTS)
-c_vol_coupling_P1P1_DEPENDENCIES = $(top_builddir)/src/bft/libbfto.la \
-	$(top_builddir)/src/fvm/libfvmo.la \
+c_vol_coupling_P1P1_DEPENDENCIES = $(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
 	$(top_builddir)/src/libcwipi.la
 am_fortran_surf_P1P1_OBJECTS = grid_mesh.$(OBJEXT) \
 	fortran_surf_P1P1.$(OBJEXT)
 fortran_surf_P1P1_OBJECTS = $(am_fortran_surf_P1P1_OBJECTS)
-fortran_surf_P1P1_DEPENDENCIES = $(top_builddir)/src/bft/libbfto.la \
-	$(top_builddir)/src/fvm/libfvmo.la \
+fortran_surf_P1P1_DEPENDENCIES = $(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
 	$(top_builddir)/src/libcwipi.la \
 	$(top_builddir)/src/libcwipi_f.la
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
@@ -462,8 +460,8 @@ $(DEBUG_CPPFLAGS) \
 AM_CFLAGS = 
 AM_LDFLAGS = @MPI_LDFLAGS@
 AM_FCFLAGS = -I$(top_builddir)/src -I$(top_srcdir)/src
-LDADD = $(top_builddir)/src/bft/libbfto.la \
-	$(top_builddir)/src/fvm/libfvmo.la \
+LDADD = $(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
 	$(top_builddir)/src/libcwipi.la \
         @MPI_LIBS@ \
 	-lm
@@ -488,113 +486,113 @@ c_vol_coupling_P1P1_SOURCES = c_vol_coupling_P1P1.c
 fortran_surf_P1P1_SOURCES = grid_mesh.c fortran_surf_P1P1.f90
 #c_mean_value_3D_SOURCES = c_mean_value_3D.c
 c_linear_coupling_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_coupling_P1P1_micron_polygon_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_coupling_P1P1_polygon_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_coupling_P1P1_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_coupling_P1P0_P0P1_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_coupling_user_target_points_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_coupling_user_interpolation_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_coupling_vector_exchange_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_coupling_output_error_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_coupling_simple_location_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_without_partitioning_coupling_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_without_partitioning_coupling2_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 c_surf_sequential_coupling_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 
 # c_mean_value_3D_LDADD = \
-# $(top_builddir)/src/bft/libbfto.la \
-# $(top_builddir)/src/fvm/libfvmo.la \
+# $(top_builddir)/src/bft/libbftc.la \
+# $(top_builddir)/src/fvm/libfvmc.la \
 # $(top_builddir)/src/libcwipi.la \
 # @MPI_LIBS@ \
 # -lm
 c_vol_coupling_P1P1_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
 fortran_surf_P1P1_LDADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 $(top_builddir)/src/libcwipi_f.la \
  @MPI_LIBS@ \

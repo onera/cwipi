@@ -17,7 +17,7 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-//#include <fvm_parall.h>
+//#include <fvmc_parall.h>
 #include <mpi.h>
 
 #include "singleton.hpp"
@@ -82,9 +82,9 @@ namespace cwipi {
 //         if ((couplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING && fvmCommSize > 1) ||
 //             (couplingType == CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING && fvmCommSize == 1)) {
 
-//           bft::bft_printf("Warning : Post-processing deactivation for '%s' coupling", name.c_str());
-//           bft::bft_printf("          Post-processing is activated for an other coupling type\n");
-//           bft::bft_printf("          To activate this Post-processing, deactivate the other\n");
+//           bftc_printf("Warning : Post-processing deactivation for '%s' coupling", name.c_str());
+//           bftc_printf("          Post-processing is activated for an other coupling type\n");
+//           bftc_printf("          To activate this Post-processing, deactivate the other\n");
 
 //           newOutputFrequency = -1;
 //         }
@@ -115,7 +115,7 @@ namespace cwipi {
 //       MPI_Comm_size(_fvmComm, &tutu);
 //       MPI_Comm_rank(_fvmComm, &titi);
 //       std::cout << "fvmComm : " << tutu << " " << titi << std::endl;
-//       fvm_parall_set_mpi_comm(_fvmComm);
+//       fvmc_parall_set_mpi_comm(_fvmComm);
 
 //     }
 
@@ -140,7 +140,7 @@ namespace cwipi {
       p = _couplingDataBase.insert(newPair);
 
     if (!p.second)
-      bft::bft_error(__FILE__, __LINE__, 0,
+      bftc_error(__FILE__, __LINE__, 0,
                 "'%s' existing coupling\n", name.c_str());
 
   }
@@ -149,7 +149,7 @@ namespace cwipi {
   {
     const std::map <std::string, Coupling * >::iterator p = _couplingDataBase.find(name);
     if (p == _couplingDataBase.end())
-      bft::bft_error(__FILE__, __LINE__, 0,
+      bftc_error(__FILE__, __LINE__, 0,
                 "'%s' coupling not found \n", name.c_str());
 
     if (p->second != NULL)

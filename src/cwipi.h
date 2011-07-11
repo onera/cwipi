@@ -23,7 +23,7 @@
 
 #include <stdio.h>
 
-//#include <fvm_nodal.h> // 
+//#include <fvmc_nodal.h> // 
 
 /*=============================================================================
  * Macro definitions
@@ -604,8 +604,8 @@ void cwipi_define_mesh(const char *coupling_id,
                        int connectivity_index[],
                        int connectivity[]);
 
-void cwipi_shared_fvm_nodal(const char *coupling_name,
-                            void * fvm_nodal);
+void cwipi_shared_fvmc_nodal(const char *coupling_name,
+                            void * fvmc_nodal);
 
 
 /*----------------------------------------------------------------------------

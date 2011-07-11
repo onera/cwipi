@@ -4,14 +4,14 @@ dnl This file is part of the FVM software package.  For license
 dnl information, see the COPYING file in the top level directory of the
 dnl FVM source distribution.
 
-# FVM_AC_TEST_HDF5
+# FVMC_AC_TEST_HDF5
 #----------------
 # modifies or sets have_hdf5, HDF_CPPFLAGS, HDF_LDFLAGS, and HDF_LIBS
 # depending on libraries found
 
-AC_DEFUN([FVM_AC_TEST_HDF5], [
+AC_DEFUN([FVMC_AC_TEST_HDF5], [
 
-AC_REQUIRE([FVM_AC_CONFIG_PUBL_INIT])dnl
+AC_REQUIRE([FVMC_AC_CONFIG_PUBL_INIT])dnl
 
 have_hdf5=no
 

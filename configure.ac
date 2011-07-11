@@ -43,7 +43,7 @@ m4_define([cwipi_licence_c_comment],
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */])
 
-m4_define([bft_licence_c_comment],
+m4_define([bftc_licence_c_comment],
 [/*
   This file is part of the CWIPI library, derived from "Base Functions and Types"
   library, intended to simplify and enhance portability, memory 
@@ -65,7 +65,7 @@ m4_define([bft_licence_c_comment],
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */])
 
-m4_define([fvm_licence_c_comment],
+m4_define([fvmc_licence_c_comment],
 [/*
   This file is part of the CWIPI library, derived from the "Finite Volume Mesh" 
   library, intended to provide finite volume mesh and associated 
@@ -91,23 +91,23 @@ m4_define([fvm_licence_c_comment],
 
 m4_define([cwipi_major_version], [0])
 m4_define([cwipi_minor_version], [4])
-m4_define([cwipi_release_version], [5])
+m4_define([cwipi_release_version], [6])
 m4_define([cwipi_version_extra], [])
 m4_define([cwipi_version_string],
           [cwipi_major_version.cwipi_minor_version.cwipi_release_version@&t@cwipi_version_extra])
 
-m4_define([fvm_major_version], [0])
-m4_define([fvm_minor_version], [15])
-m4_define([fvm_release_version], [1])
-m4_define([fvm_version_extra], [-onera-6])
-m4_define([fvm_version_string],
-          [fvm_major_version.fvm_minor_version.fvm_release_version@&t@fvm_version_extra])
+m4_define([fvmc_major_version], [0])
+m4_define([fvmc_minor_version], [15])
+m4_define([fvmc_release_version], [1])
+m4_define([fvmc_version_extra], [-onera-6])
+m4_define([fvmc_version_string],
+          [fvmc_major_version.fvmc_minor_version.fvmc_release_version@&t@fvmc_version_extra])
 
-m4_define([bft_major_version], [1])
-m4_define([bft_minor_version], [1])
-m4_define([bft_release_version], [3])
-m4_define([bft_version_string],
-          [bft_major_version.bft_minor_version.bft_release_version])
+m4_define([bftc_major_version], [1])
+m4_define([bftc_minor_version], [1])
+m4_define([bftc_release_version], [3])
+m4_define([bftc_version_string],
+          [bftc_major_version.bftc_minor_version.bftc_release_version])
 
 AC_INIT([cwipi],[cwipi_version_string],[eric.quemerais@onera.fr])
 AC_CONFIG_SRCDIR([src/cwipi.h])
@@ -119,8 +119,8 @@ AC_SUBST(ac_aux_dir)
 
 AC_CANONICAL_TARGET
 AC_CONFIG_HEADERS([config_priv.h:config_priv.h.in])
-AC_CONFIG_HEADERS([fvm_config_priv.h:fvm_config_priv.h.in])
-AC_CONFIG_HEADERS([bft_config_priv.h:bft_config_priv.h.in])
+#AC_CONFIG_HEADERS([fvmc_config_priv.h:fvmc_config_priv.h.in])
+#AC_CONFIG_HEADERS([bftc_config_priv.h:bftc_config_priv.h.in])
 
 AM_INIT_AUTOMAKE
 
@@ -138,11 +138,11 @@ AH_BOTTOM([#endif /* __CONFIG_PRIV_H__ */])
 CWIPI_AC_CONFIG_PUBL_INIT([cwipi_config.h])
 CWIPI_AC_CONFIG_PUBL_VERBATIM([cwipi_licence_c_comment])
 
-FVM_AC_CONFIG_PUBL_INIT([fvm_config.h])
-FVM_AC_CONFIG_PUBL_VERBATIM([fvm_licence_c_comment])
+FVMC_AC_CONFIG_PUBL_INIT([fvmc_config.h])
+FVMC_AC_CONFIG_PUBL_VERBATIM([fvmc_licence_c_comment])
 
-BFT_AC_CONFIG_PUBL_INIT([bft_config.h])
-BFT_AC_CONFIG_PUBL_VERBATIM([bft_licence_c_comment])
+BFTC_AC_CONFIG_PUBL_INIT([bftc_config.h])
+BFTC_AC_CONFIG_PUBL_VERBATIM([bftc_licence_c_comment])
 
 
 AM_MAINTAINER_MODE
@@ -159,30 +159,30 @@ CWIPI_AC_CONFIG_PUBL_DEFINE(CWIPI_MINOR_VERSION, cwipi_minor_version,
 CWIPI_AC_CONFIG_PUBL_DEFINE(CWIPI_RELEASE_VERSION, cwipi_release_version,
                           [Release version number])
 
-FVM_AC_CONFIG_PUBL_DEFINE_STRING(FVM_VERSION, fvm_version_string,
+FVMC_AC_CONFIG_PUBL_DEFINE_STRING(FVMC_VERSION, fvmc_version_string,
                                  [Complete version number])
 
-FVM_AC_CONFIG_PUBL_DEFINE(FVM_MAJOR_VERSION, fvm_major_version,
+FVMC_AC_CONFIG_PUBL_DEFINE(FVMC_MAJOR_VERSION, fvmc_major_version,
                           [Major version number])
-FVM_AC_CONFIG_PUBL_DEFINE(FVM_MINOR_VERSION, fvm_minor_version,
+FVMC_AC_CONFIG_PUBL_DEFINE(FVMC_MINOR_VERSION, fvmc_minor_version,
                           [Minor version number])
-FVM_AC_CONFIG_PUBL_DEFINE(FVM_RELEASE_VERSION, fvm_release_version,
+FVMC_AC_CONFIG_PUBL_DEFINE(FVMC_RELEASE_VERSION, fvmc_release_version,
                           [Release version number])
 
-BFT_AC_CONFIG_PUBL_DEFINE_STRING(BFT_VERSION, bft_version_string,
+BFTC_AC_CONFIG_PUBL_DEFINE_STRING(BFTC_VERSION, bftc_version_string,
                                  [Complete version number])
 
-BFT_AC_CONFIG_PUBL_DEFINE(BFT_MAJOR_VERSION, bft_major_version,
+BFTC_AC_CONFIG_PUBL_DEFINE(BFTC_MAJOR_VERSION, bftc_major_version,
                           [Major version number])
-BFT_AC_CONFIG_PUBL_DEFINE(BFT_MINOR_VERSION, bft_minor_version,
+BFTC_AC_CONFIG_PUBL_DEFINE(BFTC_MINOR_VERSION, bftc_minor_version,
                           [Minor version number])
-BFT_AC_CONFIG_PUBL_DEFINE(BFT_RELEASE_VERSION, bft_release_version,
+BFTC_AC_CONFIG_PUBL_DEFINE(BFTC_RELEASE_VERSION, bftc_release_version,
                           [Release version number])
 
-BFT_AC_CONFIG_PUBL_DEFINE(BFT_CPPCALLER, 1,
-                          [Active namespace bft for cwipi])
-FVM_AC_CONFIG_PUBL_DEFINE(FVM_CPPCALLER, 1,
-                          [Active namespace fvm for cwipi])
+#BFTC_AC_CONFIG_PUBL_DEFINE(BFTC_CPPCALLER, 1,
+#                          [Active namespace bft for cwipi])
+#FVMC_AC_CONFIG_PUBL_DEFINE(FVMC_CPPCALLER, 1,
+#                          [Active namespace fvm for cwipi])
 
 #------------------------------------------------------------------------------
 # Checks for programs.
@@ -192,13 +192,13 @@ user_CPPFLAGS=$CPPFLAGS
 user_CFLAGS=$CFLAGS
 user_LDFLAGS=$LDFLAGS
 
-AC_PROG_CC(cc gcc icc)
+AC_PROG_CC(icc gcc)
 
-AC_PROG_CXX(g++ icpc)
+AC_PROG_CXX(icpc g++)
 
-AC_PROG_FC(gfortran ifort)
+AC_PROG_FC(ifort gfortran)
 
-AC_PROG_LD(g++ icpc)
+AC_PROG_LD(icpc g++)
 
 AC_PROG_INSTALL
 
@@ -487,25 +487,25 @@ LT_INIT
 
 case "$host_os" in
   linux*)
-    AC_DEFINE(bft_OS_Linux, 1, bft_OS_Linux)
+    AC_DEFINE(bftc_OS_Linux, 1, bftc_OS_Linux)
     ;;
   solaris2.*)
-    AC_DEFINE(bft_OS_Solaris, 1, bft_OS_SunOS)
+    AC_DEFINE(bftc_OS_Solaris, 1, bftc_OS_SunOS)
     ;;
   aix*)
-    AC_DEFINE(bft_OS_AIX, 1, bft_OS_AIX)
+    AC_DEFINE(bftc_OS_AIX, 1, bftc_OS_AIX)
     ;;
   osf*)
-    AC_DEFINE(bft_OS_OSF1, 1, bft_OS_OSF1)
+    AC_DEFINE(bftc_OS_OSF1, 1, bftc_OS_OSF1)
     ;;
   irix5.*|irix6.*)
-    AC_DEFINE(bft_OS_IRIX64, 1, bft_OS_IRIX64)
+    AC_DEFINE(bftc_OS_IRIX64, 1, bftc_OS_IRIX64)
     ;;
   hpux*)
-    AC_DEFINE(bft_OS_HP_UX, 1, bft_OS_HP_UX)
+    AC_DEFINE(bftc_OS_HP_UX, 1, bftc_OS_HP_UX)
     ;;
   uxpv*)
-    AC_DEFINE(bft_OS_UXPV, 1, bft_OS_UNIX_System_V)
+    AC_DEFINE(bftc_OS_UXPV, 1, bftc_OS_UNIX_System_V)
     ;;
 esac
 
@@ -515,19 +515,19 @@ esac
 
 # Check for optionnal HDF support
 
-FVM_AC_TEST_HDF5
+FVMC_AC_TEST_HDF5
 
 # Check for optionnal CGNS support
 
-FVM_AC_TEST_CGNS
+FVMC_AC_TEST_CGNS
 
 # Check for optionnal MED support
 
-FVM_AC_TEST_MED
+FVMC_AC_TEST_MED
 
 # Optional Zlib Support
 
-BFT_AC_ZLIB
+BFTC_AC_ZLIB
 
 #------------------------------------------------------------------------------
 # Checks for header files.
@@ -556,21 +556,21 @@ AC_CHECK_TYPES([uint32_t])
 AC_CHECK_TYPES([uint64_t])
 AC_CHECK_TYPES([ptrdiff_t])
 
-FVM_AC_CHECK_SIZEOF([void *], [fvm])
-FVM_AC_CHECK_SIZEOF([short], [fvm])
-FVM_AC_CHECK_SIZEOF([int], [fvm])
-FVM_AC_CHECK_SIZEOF([long], [fvm])
-FVM_AC_CHECK_SIZEOF([long long], [fvm])
-FVM_AC_CHECK_SIZEOF([float], [fvm])
-FVM_AC_CHECK_SIZEOF([double], [fvm])
+FVMC_AC_CHECK_SIZEOF([void *], [fvmc])
+FVMC_AC_CHECK_SIZEOF([short], [fvmc])
+FVMC_AC_CHECK_SIZEOF([int], [fvmc])
+FVMC_AC_CHECK_SIZEOF([long], [fvmc])
+FVMC_AC_CHECK_SIZEOF([long long], [fvmc])
+FVMC_AC_CHECK_SIZEOF([float], [fvmc])
+FVMC_AC_CHECK_SIZEOF([double], [fvmc])
 
-BFT_AC_CHECK_SIZEOF([void *],    [bft])
-BFT_AC_CHECK_SIZEOF([short],     [bft])
-BFT_AC_CHECK_SIZEOF([int],       [bft])
-BFT_AC_CHECK_SIZEOF([long],      [bft])
-BFT_AC_CHECK_SIZEOF([long long], [bft])
-BFT_AC_CHECK_SIZEOF([float],     [bft])
-BFT_AC_CHECK_SIZEOF([double],    [bft])
+BFTC_AC_CHECK_SIZEOF([void *],    [bftc])
+BFTC_AC_CHECK_SIZEOF([short],     [bftc])
+BFTC_AC_CHECK_SIZEOF([int],       [bftc])
+BFTC_AC_CHECK_SIZEOF([long],      [bftc])
+BFTC_AC_CHECK_SIZEOF([long long], [bftc])
+BFTC_AC_CHECK_SIZEOF([float],     [bftc])
+BFTC_AC_CHECK_SIZEOF([double],    [bftc])
 
 #------------------------------------------------------------------------------
 # Checks for library functions.
@@ -592,7 +592,7 @@ AC_FUNC_FSEEKO
 
 # Test for size of off_t once largefile support is activated
 
-BFT_AC_CHECK_SIZEOF([off_t], [bft])
+BFTC_AC_CHECK_SIZEOF([off_t], [bftc])
 
 #------------------------------
 # optional malloc hooks support (for glibc)
@@ -686,12 +686,12 @@ if test "x$have_mpi" = "xyes" ; then
                          [cwipi library configured with MPI One-sided support ?])
 fi
 
-FVM_AC_CONFIG_PUBL_SET(FVM_HAVE_MPI, $have_mpi,
+FVMC_AC_CONFIG_PUBL_SET(FVMC_HAVE_MPI, $have_mpi,
                        [FVM library configured with MPI support ?])
 if test "x$have_mpi" = "xyes" ; then
-  FVM_AC_CONFIG_PUBL_SET(FVM_HAVE_MPI_IO, $have_mpi_io,
+  FVMC_AC_CONFIG_PUBL_SET(FVMC_HAVE_MPI_IO, $have_mpi_io,
                          [FVM library configured with MPI IO support ?])
-  FVM_AC_CONFIG_PUBL_SET(FVM_HAVE_MPI_ONE_SIDED, $have_mpi_one_sided,
+  FVMC_AC_CONFIG_PUBL_SET(FVMC_HAVE_MPI_ONE_SIDED, $have_mpi_one_sided,
                          [FVM library configured with MPI One-sided support ?])
 fi
 
@@ -763,8 +763,8 @@ CWIPI_AC_CONFIG_INFO_EXTRA([
 CWIPI_AC_CONFIG_INFO_CC([${CC}], [${cwipi_ac_cc_version}], [${cwipi_ac_cc_version_full}])
 
 CWIPI_AC_CONFIG_INFO_VERSION([cwipi_version_string])
-BFT_AC_CONFIG_INFO_VERSION([bft_version_string])
-FVM_AC_CONFIG_INFO_VERSION([fvm_version_string])
+BFTC_AC_CONFIG_INFO_VERSION([bftc_version_string])
+FVMC_AC_CONFIG_INFO_VERSION([fvmc_version_string])
 
 CWIPI_AC_CONFIG_INFO_DIRS([$prefix], [$exec_prefix], [$includedir], [$libdir])
 
@@ -773,11 +773,11 @@ CWIPI_AC_CONFIG_INFO_FLAGS([$user_cppflags], [], [$user_ldflags], [$LIBS])
 CWIPI_AC_CONFIG_INFO_FLAGS([$CPPFLAGS], [$CFLAGS], [$LDFLAGS], [$LIBS],
                          [build])
 
-CWIPI_AC_CONFIG_INFO_FLAGS([$BFT_CPPFLAGS], [], [$BFT_LDFLAGS], [$BFT_LIBS],
-                         [bft])
+CWIPI_AC_CONFIG_INFO_FLAGS([$BFTC_CPPFLAGS], [], [$BFTC_LDFLAGS], [$BFTC_LIBS],
+                         [bftc])
 
-CWIPI_AC_CONFIG_INFO_FLAGS([$FVM_CPPFLAGS], [], [$FVM_LDFLAGS], [$FVM_LIBS],
-                         [fvm])
+CWIPI_AC_CONFIG_INFO_FLAGS([$FVMC_CPPFLAGS], [], [$FVMC_LDFLAGS], [$FVMC_LIBS],
+                         [fvmc])
 
 CWIPI_AC_CONFIG_INFO_FLAGS([$MPI_CPPFLAGS], [], [$MPI_LDFLAGS], [$MPI_LIBS],
                          [mpi])
@@ -797,8 +797,8 @@ AC_CONFIG_FILES([Makefile src/Makefile src/bft/Makefile src/fvm/Makefile cython/
 #------------------------------------------------------------------------------
 
 CWIPI_AC_CONFIG_PUBL_FINALIZE
-FVM_AC_CONFIG_PUBL_FINALIZE
-BFT_AC_CONFIG_PUBL_FINALIZE
+FVMC_AC_CONFIG_PUBL_FINALIZE
+BFTC_AC_CONFIG_PUBL_FINALIZE
 
 AC_OUTPUT
 

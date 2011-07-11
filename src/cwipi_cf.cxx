@@ -29,8 +29,8 @@
  * BFT library headers
  *----------------------------------------------------------------------------*/
 
-#include <bft_mem.h>
-#include <bft_printf.h>
+#include <bftc_mem.h>
+#include <bftc_printf.h>
 
 /*----------------------------------------------------------------------------
  * FVM library headers
@@ -142,7 +142,7 @@ static char *_cwipi_fortran_to_c_string(const char *application_name_f,
 
 /*----------------------------------------------------------------------------
  *
- * Set bft_printf proxy for Fortran interface
+ * Set bftc_printf proxy for Fortran interface
  *
  *----------------------------------------------------------------------------*/
 
@@ -234,8 +234,8 @@ void PROCF(cwipi_init_cf, CWIPI_INIT_CF)
   char *application_name_c = _cwipi_fortran_to_c_string(application_name_f,
                                                             *l_application_name);
 
-  bft::bft_printf("\ncwipi "CWIPI_VERSION" initializing\n");
-  bft::bft_printf("------------------------\n\n");
+  bftc_printf("\ncwipi "CWIPI_VERSION" initializing\n");
+  bftc_printf("------------------------\n\n");
 
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
@@ -257,7 +257,7 @@ void PROCF(cwipi_init_cf, CWIPI_INIT_CF)
 
 void PROCF(cwipi_set_output_listing_cf, CWIPI_SET_OUTPUT_LISTING_CF)()
 {
-  bft::bft_printf_proxy_set(_cwipi_print_with_fortran);
+  bftc_printf_proxy_set(_cwipi_print_with_fortran);
 }
 
 /*----------------------------------------------------------------------------

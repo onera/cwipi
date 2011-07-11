@@ -204,7 +204,7 @@ fi
 # Otherwise, are we using pgcc ?
 #-------------------------------
 
-if test "x$fvm_compiler_known" != "xyes" ; then
+if test "x$fvmc_compiler_known" != "xyes" ; then
 
   $CC -V 2>&1 | grep 'The Portland Group' > /dev/null
   if test "$?" = "0" ; then
