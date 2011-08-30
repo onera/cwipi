@@ -166,11 +166,11 @@ int main
   /* Coupling creation
    * ----------------- */
 
-  cwipi_create_coupling("c_surf_cpl_P1P1_polygon",                                // Coupling id
+  cwipi_create_coupling("c_surf_cpl_P1P1_polygon",                 // Coupling id
                         CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING, // Coupling type
                         codeCoupledName,                           // Coupled application id
                         2,                                         // Geometric entities dimension
-                        0.1,                                       // Geometric tolerance
+                        1,                                         // Geometric tolerance
                         CWIPI_STATIC_MESH,                         // Mesh type
                         solver_type,                               // Solver type
                         1,                                         // Postprocessing frequency
@@ -197,12 +197,12 @@ int main
   int    ny;
 
   if (rank == 0) {
-    nx = 68;
-    ny = 68;
+    nx = 20;
+    ny = 16;
   }
   else {
-    nx = 24;
-    ny = 28;
+    nx = 56;
+    ny = 60;
   } 
 
   const int   order = 1;
@@ -213,7 +213,7 @@ int main
                          xmax,
                          ymin,
                          ymax,
-                         1,
+                         rank+1,
                          nx,
                          ny,
                          &nVertex,
@@ -241,7 +241,7 @@ int main
 
   if (rank == 0)
     printf("        Exchange Proc 0 <-> Proc 1\n");
-
+  
   double *sendValues = NULL;
   double *recvValues = NULL;
   
@@ -250,9 +250,9 @@ int main
 
   for (int i = 0; i < nVertex; i++) {
     if (rank == 0)
-      sendValues[i] = coords[3 * i];
+      sendValues[i] = coords[3*i+1];
     else
-      sendValues[i] = coords[3 * i + 1];
+      sendValues[i] = coords[3*i+1];
   }
 
   int nNotLocatedPoints = 0;
@@ -261,7 +261,7 @@ int main
                                                   1,
                                                   1,     // n_step
                                                   0.1,   // physical_time
-                                                  "cooX",
+                                                  "cooY",
                                                   sendValues,
                                                   "cooY",
                                                   recvValues,

@@ -52,7 +52,7 @@ namespace cwipi {
       _polyhedraFaceIndex(NULL), _polyhedraCellToFaceConnectivity(NULL),
       _polyhedraFaceConnectivityIndex(NULL), _polyhedraFaceConnectivity(NULL), _polyhedraCellToVertexConnectivity(NULL),
       _polyhedraCellToVertexConnectivityIndex(NULL), _cellCenterCoords(NULL),
-      _cellVolume(NULL), _fvmNodal(NULL), _polygonIndex(NULL), _isNodalFinalized(false)
+      _cellVolume(NULL), _normalFace(NULL),_fvmNodal(NULL), _polygonIndex(NULL), _isNodalFinalized(false)
 
 
   {
@@ -85,7 +85,6 @@ namespace cwipi {
     if (_nDim > 1) {
 
       if (_nDim == 2) {
-
         for (int i = 0; i < _nElts; i++) {
           int nCurrentEltVertex = eltConnectivityIndex[i+1] - eltConnectivityIndex[i];
           if (nCurrentEltVertex == 3) {
@@ -106,7 +105,8 @@ namespace cwipi {
           }
 
           else
-            bft::bft_error(__FILE__, __LINE__, 0, "Erreur dans l'index de connectivite\n");
+            bft::bft_error(__FILE__, __LINE__, 0, "Erreur dans l'index de connectivite \n ");
+          
         }
       }
 
@@ -516,7 +516,7 @@ namespace cwipi {
       _polyhedraFaceIndex(NULL), _polyhedraCellToFaceConnectivity(NULL),
       _polyhedraFaceConnectivityIndex(NULL), _polyhedraFaceConnectivity(NULL), _polyhedraCellToVertexConnectivity(NULL), 
       _polyhedraCellToVertexConnectivityIndex(NULL), _cellCenterCoords(NULL),
-      _cellVolume(NULL), _fvmNodal(NULL), _polygonIndex(NULL), _isNodalFinalized(true)
+      _cellVolume(NULL), _normalFace(NULL),_fvmNodal(NULL), _polygonIndex(NULL), _isNodalFinalized(true)
 
 
   {
@@ -982,6 +982,7 @@ namespace cwipi {
   {
     delete _cellCenterCoords;
     delete _cellVolume;
+    delete _normalFace;
     delete[] _polygonIndex;
     fvm::fvm_nodal_destroy(_fvmNodal);
   }
@@ -1572,11 +1573,11 @@ namespace cwipi {
     if (_nDim == 1)
         _computeMeshProperties1D();
     else if (_nDim == 2) {
-      std::vector<double> faceNormal(3*_nElts);
+      _normalFace = new std::vector<double>(3*_nElts);
       _computeMeshProperties2D(_nElts,
                                _eltConnectivityIndex,
                                _eltConnectivity,
-                               &faceNormal,
+                               _normalFace,
                                _cellVolume,
                                _cellCenterCoords);
     }
@@ -1586,12 +1587,14 @@ namespace cwipi {
   }
   
   void Mesh::_computeMeshPolyhedraProperties(){
+    
     int nbrVertex = 0;
     int nbrVertexOld = 0;
     int sizeTabLoc = 12;
     int indFaceVertex;
     int indVertex;
     int nbrVertexFace;
+    
     std::vector<int> vertexPolyLoc (sizeTabLoc);
     std::vector<int> vertexPolyBool(_nVertex);
 
@@ -1604,9 +1607,10 @@ namespace cwipi {
     std::vector<int> & refPolyhedraCellToVertexConnectivity = *_polyhedraCellToVertexConnectivity;
     std::vector<int> & refPolyhedraCellToVertexConnectivityIndex = *_polyhedraCellToVertexConnectivityIndex;
 
-    for (int i = 0; i < _nVertex; i++){
-      vertexPolyBool[i] = 0;
-    }
+    for (int i = 0; i < _nVertex; i++)
+      vertexPolyBool[i] = 0;    
+    
+    /**** Premiere boucle pour connaitre le nombre total de sommets ****/
 
     for(int iPoly = 0; iPoly < _nPolyhedra ; iPoly++){
 
@@ -1654,16 +1658,18 @@ namespace cwipi {
     nbrVertex = 0;
     nbrVertexOld = 0;
 
+    /**** Calcul des tableaux d'index et de connectivite entre poly et sommets ****/
+
     for(int iPoly = 0; iPoly < _nPolyhedra ; iPoly++){
 
        int nFacePolyhedra = _polyhedraFaceIndex[iPoly+1] - _polyhedraFaceIndex[iPoly];
 
       for(int iFace = 0; iFace < nFacePolyhedra ; iFace++){
 
-         nbrVertexFace = _polyhedraFaceConnectivityIndex[_polyhedraCellToFaceConnectivity[_polyhedraFaceIndex[iPoly] + iFace ] ]
-                       - _polyhedraFaceConnectivityIndex[_polyhedraCellToFaceConnectivity[_polyhedraFaceIndex[iPoly] + iFace ] - 1];
+        nbrVertexFace = _polyhedraFaceConnectivityIndex[_polyhedraCellToFaceConnectivity[_polyhedraFaceIndex[iPoly] + iFace ] ]
+                      - _polyhedraFaceConnectivityIndex[_polyhedraCellToFaceConnectivity[_polyhedraFaceIndex[iPoly] + iFace ] - 1];
          
-         indFaceVertex = _polyhedraFaceConnectivityIndex[_polyhedraCellToFaceConnectivity[_polyhedraFaceIndex[iPoly] + iFace] - 1];        
+        indFaceVertex = _polyhedraFaceConnectivityIndex[_polyhedraCellToFaceConnectivity[_polyhedraFaceIndex[iPoly] + iFace] - 1];        
 
         for (int iVertex = 0 ; iVertex < nbrVertexFace ; iVertex++){
 
@@ -1685,9 +1691,8 @@ namespace cwipi {
       refPolyhedraCellToVertexConnectivityIndex[iPoly+1] = nbrVertex;
       
       nbrVertexOld = nbrVertex;
-      }
 
-    printf("----end---- \n");
+    }    
   }      
 
 }

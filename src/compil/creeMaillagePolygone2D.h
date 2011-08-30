@@ -38,13 +38,6 @@
 #define PROCF(x, y) x
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#if 0
-} /* Fake brace to force back Emacs auto-indentation back to column 0 */
-#endif
-#endif /* __cplusplus */
-
 void creeMaillagePolygone2D(int order,
                             MPI_Comm localComm,
                             double xmin,
@@ -77,8 +70,4 @@ void PROCF(creemaillagepolygone2d_f, CREEMAILLAGEPOLYGONE2D_F)(int *order,
                                                                int *eltsConnecPointer_f,
                                                                int *eltsConnec_f
                                                                );
-
-#ifdef __cplusplus
-}
-#endif
 #endif

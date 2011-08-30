@@ -48,6 +48,8 @@
 #include "couplingDataBase_i.hxx"
 #include "coupling.hxx"
 #include "coupling_i.hxx"
+#include "conservativeMesh.hxx"
+
 
 /*----------------------------------------------------------------------------*/
 
@@ -672,6 +674,7 @@ void cwipi_define_mesh(const char *coupling_name,
                       connectivity_index,
                       connectivity);
 }
+
 
 
 void cwipi_shared_fvm_nodal(const char *coupling_name,

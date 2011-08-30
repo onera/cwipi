@@ -1,6 +1,7 @@
+
 #ifndef LOCATIONTOLOCALMESH_HXX_
 #define LOCATIONTOLOCALMESH_HXX_
-/*
+ /*
   This file is part of the CWIPI library. 
 
   Copyright (C) 2011  ONERA
@@ -25,6 +26,7 @@
 
 #include <fvm_locator.h>
 #include <fvm_nodal.h>
+#include <fvm_triangulate.h>
 #include <bft_error.h>
 
 #include "mesh.hxx"
@@ -162,6 +164,14 @@ private :
   void compute2DMeanValues();
 
   ///
+  /// \brief Compute Mean Values
+  ///
+  ///
+
+  void compute2DMeanValues2();
+
+
+  ///
   /// \brief Compute Mean Values 3D
   ///
   ///
@@ -183,6 +193,23 @@ private :
    double *const coo_som_fac,
    double *const coo_point_dist
    );
+
+  ///
+  /// \brief Projection to the midplane
+  ///
+  ///   @param [in]         nbr_som_fac location support mesh
+  ///   @param [inout]      coo_som_fac coordinates of face vertices
+  ///   @param [inout]      coo_point_dist coordinates of distant points
+  ///   @return             true if polygon is plane
+  ///
+
+  bool midplaneProjection2
+  (
+   const int     nbr_som_fac,
+   double *const coo_som_fac,
+   double *const coo_point_dist
+   );
+
 
   ///
   /// \brief Compute vector product

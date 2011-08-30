@@ -29,6 +29,7 @@
 #include "locationToDistantMesh.hxx"
 #include "applicationProperties.hxx"
 
+
 namespace cwipi
 {
 
@@ -873,7 +874,7 @@ void LocationToLocalMesh::compute2DMeanValues()
         coo_som_fac.resize(3 * nbr_som_fac);
         s.resize(3 * nbr_som_fac);
         dist.resize(nbr_som_fac);
-        aire.resize(nbr_som_fac);
+         aire.resize(nbr_som_fac);
         proScal.resize(nbr_som_fac);
       }
 
@@ -1019,48 +1020,43 @@ void LocationToLocalMesh::compute2DMeanValues()
   dist.clear();
   proScal.clear();
 
-  distBarCoords.resize(nDistBarCoords[n_dist_points]);
-
 }
 
 void LocationToLocalMesh::compute3DMeanValues()
 {
- 
-  /* Boucle sur les points distants */
 
-  const int n_dist_points = fvm::fvm_locator_get_n_dist_points(_fvmLocator);
+  bft::bft_printf("compute 3d mean Value \n");
+
+  const int n_dist_points               = fvm::fvm_locator_get_n_dist_points(_fvmLocator);
   const fvm::fvm_lnum_t *dist_locations = fvm::fvm_locator_get_dist_locations(_fvmLocator);
-  const fvm::fvm_coord_t *dist_coords = fvm::fvm_locator_get_dist_coords(_fvmLocator);
+  const fvm::fvm_coord_t *dist_coords   = fvm::fvm_locator_get_dist_coords(_fvmLocator);
   fvm::fvm_coord_t coo_point_dist[3];
 
-  /* Tableaux locaux */
+  /**** Tableaux barycentriques ****/
+
+  int tailleDistBarCoords = 4 * n_dist_points;
+
+  _barycentricCoordinatesIndex = new std::vector <int> (n_dist_points + 1);
+  _barycentricCoordinates = new std::vector <double> (tailleDistBarCoords);
+
 
   const double eps = 1e-15;
 
-  std::vector <double> coo_som_fac;
-  std::vector <double> s;
-  std::vector <double> dist;
-  std::vector <double> proScal;
-  std::vector <double> angle;
-  std::vector <double> normale;
+  /* Vector */
+
+  std::vector <double> coo_som_elt; //coordonnees des sommets d'un element
+  std::vector <double> coo_som_face; //coordonnees des sommets d'une face
+  std::vector <double> s; //coordonnees des vecteur  v-vi (puis normalise)
+  std::vector <double> dist; //distance (v-vi)
+  std::vector <double> proScal; 
+  std::vector <double> angle; //angle[  v(i) v v(i+1) ]
+  std::vector <double> normale; //normale 
   std::vector <double> distBarCoordsTmp;
-  std::vector <int> localIndVertex(_supportMesh->getNVertex());
-    
-  int tailleDistBarCoords;
-  int isOnFace;
-  int ind_fac = 0;
-  int ind_fac_som = 0;
+  std::vector <int> localIndVertex(_supportMesh->getNVertex()); //indices locales 
+  std::vector <int>& nDistBarCoords = *_barycentricCoordinatesIndex; //index des coordonnees barycentriques
+  std::vector <double>& distBarCoords = *_barycentricCoordinates; //coordonnees barycentriques des points distants
 
-  const int eltStd = _supportMesh->getNElts() - _supportMesh->getNPolyhedra();
-  bft::bft_printf("Nelt  eltSrd   Npolyhedra   %d   %d   %d  \n",_supportMesh->getNElts(),eltStd,_supportMesh->getNPolyhedra());
-  bft::bft_printf("nbr vertex   %d \n",_supportMesh->getNVertex());
-  _barycentricCoordinatesIndex = new std::vector <int> (n_dist_points + 1);
-
-  tailleDistBarCoords = 4 * n_dist_points;
-  _barycentricCoordinates = new std::vector <double> (tailleDistBarCoords);
-
-  std::vector <int>& nDistBarCoords = *_barycentricCoordinatesIndex;
-  std::vector <double>& distBarCoords = *_barycentricCoordinates;
+  /* Const */
 
   const int *meshConnectivityIndex;
   const int *meshConnectivity;
@@ -1070,349 +1066,725 @@ void LocationToLocalMesh::compute3DMeanValues()
   const int *face_connectivity;
   const int *face_connectivity_index;
 
+  nDistBarCoords[0] = 0;
+
+  /* Tmp */
+
   int *face_index_Tmp;
-  int *cell_to_face_connectivity_Tmp;
+  int *cell_to_face_connectivity_Tmp; 
   int *face_connectivity_Tmp;
   int *face_connectivity_index_Tmp;
 
-  nDistBarCoords[0] = 0;
+  /* Constantes */
 
-  bft::bft_printf("npoint  %d\n",n_dist_points);
-  for (int ipoint =  0; ipoint < n_dist_points; ipoint++ ) {
+  int isOnFace;
+  int ind_fac      = 0;
+  int ind_fac_som  = 0;
+  int n_triangles;
+  const int eltStd = _supportMesh->getNElts() - _supportMesh->getNPolyhedra();
+  bool elt_std = false;
+
+  /**** Print caracteristiques du maillage ****/
+
+  bft::bft_printf("Nelt  eltSrd   Npolyhedra   %d   %d   %d  \n \n",
+                  _supportMesh->getNElts(),
+                  eltStd,_supportMesh->getNPolyhedra());
+  bft::bft_printf("nbr vertex   %d \n \n",_supportMesh->getNVertex());
+  bft::bft_printf("npoint  %d \n \n",n_dist_points);
+
+  for(int i = 0 ;i < _supportMesh->getNVertex() ;i++){
+
+    bft::bft_printf("meshVertexCoords   %f   %f   %f  \n",
+                    meshVertexCoords[3 *i],
+                    meshVertexCoords[3 *i+1],
+                    meshVertexCoords[3 *i+2]);
+
+  } 
     
-    int ielt = dist_locations[ipoint] - 1;
-    bft::bft_printf("point elt : %i %12.5e %12.5e %12.5e %i \n", ipoint, 
-           dist_coords[3*ipoint],
-           dist_coords[3*ipoint+1],
-           dist_coords[3*ipoint+2],
-           ielt);
-  }
-
-    for(int i = 0 ;i < _supportMesh->getNVertex() ;i++){
-      bft::bft_printf("meshVertexCoords   %f   %f   %f  \n",meshVertexCoords[3 *i],meshVertexCoords[3 *i+1],meshVertexCoords[3 *i+2]);
-    } 
-
+  /* Boucle sur les points distants */
 
   for (int ipoint =  0; ipoint < n_dist_points; ipoint++ ) {
-    
-    int ielt = dist_locations[ipoint] - 1;
+
+    std::vector <int> triangle_vertices;
+
+    int ielt = dist_locations[ipoint] - 1; // numero de l'element le plus proche du point
     isOnFace = 0;
+
+    /* Coordonnees du point distant */
 
     coo_point_dist[0] = dist_coords[3 * ipoint];
     coo_point_dist[1] = dist_coords[3 * ipoint + 1];
     coo_point_dist[2] = dist_coords[3 * ipoint + 2];
 
-    int nbr_face;
-    int nbr_som_fac;      
-    int nbr_som;
+    int nbr_face; //nombre de face
+    int nbr_som_fac_tr = 3; //nombre de sommet sur une face triangulaire (inutile)      
+    int nbr_som_fac; //nombre de sommets sur une face donnee
+    int nbr_som; //nombre de sommets sur l'element
+
+    /***** Cas d'un element standard (tetraedre, pyramide..)****/
 
     if(ielt < eltStd){ 
       
-      bft::bft_printf("**********tetraedre********** \n");
+      elt_std = true;
       meshConnectivityIndex = _supportMesh->getEltConnectivityIndex();
-      meshConnectivity = _supportMesh->getEltConnectivity();
+      meshConnectivity      = _supportMesh->getEltConnectivity();
 
-      nbr_som = meshConnectivityIndex[ielt+1] - meshConnectivityIndex[ielt];
-      nbr_face = 4;
-      nbr_som_fac = 3;      
-            
-      face_connectivity_index_Tmp = (int* ) malloc((nbr_face + 1) * sizeof(int) );
-      face_connectivity_Tmp = (int* ) malloc(nbr_som_fac * nbr_face * sizeof(int));
-      cell_to_face_connectivity_Tmp = (int* ) malloc(nbr_face * sizeof(int));
+      nbr_som     = meshConnectivityIndex[ielt+1] - meshConnectivityIndex[ielt];
+      
+      switch(nbr_som){
+      
+      case 4 :
 
-      face_connectivity_Tmp[0]  = 1;
-      face_connectivity_Tmp[1]  = 3;
-      face_connectivity_Tmp[2]  = 2;
-      
-      face_connectivity_Tmp[3]  = 1;
-      face_connectivity_Tmp[4]  = 2;
-      face_connectivity_Tmp[5]  = 4;
-      
-      face_connectivity_Tmp[6]  = 1;
-      face_connectivity_Tmp[7]  = 4;
-      face_connectivity_Tmp[8]  = 3;
-      
-      face_connectivity_Tmp[9]  = 2;
-      face_connectivity_Tmp[10] = 3;
-      face_connectivity_Tmp[11] = 4;
-      
-      for(int i = 0; i < nbr_face ; i++)
-        cell_to_face_connectivity_Tmp[i] = i+1;
-      
-      for (int i = 0; i < nbr_face+1 ; i++)
-        face_connectivity_index_Tmp[i] = 3*i;
+        bft::bft_printf("\n **********tetraedre n° %d********** \n",ielt);
+        
+        nbr_face    = 4;
+        
+        /**** Definition des tableaux d'index et de connectivite ****/
+        
+        face_connectivity_index_Tmp = (int* ) malloc((nbr_face + 1) * sizeof(int) );
+        face_connectivity_Tmp = (int* ) malloc(12 * sizeof(int));
+        cell_to_face_connectivity_Tmp = (int* ) malloc(nbr_face * sizeof(int));
+        
+        face_connectivity_Tmp[0]  = meshConnectivity[meshConnectivityIndex[ielt]];
+        face_connectivity_Tmp[1]  = meshConnectivity[meshConnectivityIndex[ielt] + 1];
+        face_connectivity_Tmp[2]  = meshConnectivity[meshConnectivityIndex[ielt] + 2];
+        
+        face_connectivity_Tmp[3]  = meshConnectivity[meshConnectivityIndex[ielt]];
+        face_connectivity_Tmp[4]  = meshConnectivity[meshConnectivityIndex[ielt] + 3];
+        face_connectivity_Tmp[5]  = meshConnectivity[meshConnectivityIndex[ielt] + 1];
+        
+        face_connectivity_Tmp[6]  = meshConnectivity[meshConnectivityIndex[ielt]];
+        face_connectivity_Tmp[7]  = meshConnectivity[meshConnectivityIndex[ielt] + 4];
+        face_connectivity_Tmp[8]  = meshConnectivity[meshConnectivityIndex[ielt] + 3];
+        
+        face_connectivity_Tmp[9]  = meshConnectivity[meshConnectivityIndex[ielt] + 1];
+        face_connectivity_Tmp[10] = meshConnectivity[meshConnectivityIndex[ielt] + 3];
+        face_connectivity_Tmp[11] = meshConnectivity[meshConnectivityIndex[ielt] + 2];
+        
+        for(int i = 0; i < nbr_face ; i++)
+          cell_to_face_connectivity_Tmp[i] = i+1;
+        
+        for (int i = 0; i < nbr_face+1 ; i++)
+          face_connectivity_index_Tmp[i] = 3*i;
+
+        break;
+
+      case 5 : 
+        
+        bft::bft_printf("\n **********Pyramide n° %d********** \n",ielt);
+
+        nbr_face    = 5;
+        
+        /**** Definition des tableaux d'index et de connectivite ****/
+        
+        face_connectivity_index_Tmp = (int* ) malloc((nbr_face + 1) * sizeof(int) );
+        face_connectivity_Tmp = (int* ) malloc(16 * sizeof(int));
+        cell_to_face_connectivity_Tmp = (int* ) malloc(nbr_face * sizeof(int));
+
+        for(int i = 0; i < nbr_face ; i++)
+          cell_to_face_connectivity_Tmp[i] = i+1;
+        
+        face_connectivity_index_Tmp[0] = 0;
+        face_connectivity_index_Tmp[1] = 4;
+        
+        for (int i = 2; i < nbr_face+1 ; i++)
+          face_connectivity_index_Tmp[i] = 3*i+1;
+        
+        face_connectivity_Tmp[0]  = meshConnectivity[meshConnectivityIndex[ielt]];
+        face_connectivity_Tmp[1]  = meshConnectivity[meshConnectivityIndex[ielt] + 1];
+        face_connectivity_Tmp[2]  = meshConnectivity[meshConnectivityIndex[ielt] + 2];
+        face_connectivity_Tmp[3]  = meshConnectivity[meshConnectivityIndex[ielt] + 3];
+        
+        face_connectivity_Tmp[4]  = meshConnectivity[meshConnectivityIndex[ielt] + 1];
+        face_connectivity_Tmp[5]  = meshConnectivity[meshConnectivityIndex[ielt]];
+        face_connectivity_Tmp[6]  = meshConnectivity[meshConnectivityIndex[ielt] + 4];
+        
+        face_connectivity_Tmp[7]  = meshConnectivity[meshConnectivityIndex[ielt] + 2];
+        face_connectivity_Tmp[8]  = meshConnectivity[meshConnectivityIndex[ielt] + 1];
+        face_connectivity_Tmp[9]  = meshConnectivity[meshConnectivityIndex[ielt] + 4];
+        
+        face_connectivity_Tmp[10] = meshConnectivity[meshConnectivityIndex[ielt] + 3];
+        face_connectivity_Tmp[11] = meshConnectivity[meshConnectivityIndex[ielt] + 2];
+        face_connectivity_Tmp[12] = meshConnectivity[meshConnectivityIndex[ielt] + 4];
+        
+        face_connectivity_Tmp[13] = meshConnectivity[meshConnectivityIndex[ielt]];
+        face_connectivity_Tmp[14] = meshConnectivity[meshConnectivityIndex[ielt] + 3];
+        face_connectivity_Tmp[15] = meshConnectivity[meshConnectivityIndex[ielt] + 4];
+        
+        break;
+
+      case 6 :
+        
+        bft::bft_printf("\n **********Prisme n° %d********** \n",ielt);
+
+        nbr_face    = 5;
+        
+        /**** Definition des tableaux d'index et de connectivite ****/
+        
+        face_connectivity_index_Tmp = (int* ) malloc((nbr_face + 1) * sizeof(int) );
+        face_connectivity_Tmp = (int* ) malloc(18 * sizeof(int));
+        cell_to_face_connectivity_Tmp = (int* ) malloc(nbr_face * sizeof(int));
+        
+        for(int i = 0; i < nbr_face ; i++)
+          cell_to_face_connectivity_Tmp[i] = i+1;
+        
+        face_connectivity_index_Tmp[0] = 0;
+        face_connectivity_index_Tmp[1] = 3;
+        face_connectivity_index_Tmp[2] = 6;
+        face_connectivity_index_Tmp[3] = 10;
+        face_connectivity_index_Tmp[4] = 14;
+        face_connectivity_index_Tmp[5] = 18;
+                
+
+
+        face_connectivity_Tmp[0]  = meshConnectivity[meshConnectivityIndex[ielt]];
+        face_connectivity_Tmp[1]  = meshConnectivity[meshConnectivityIndex[ielt] + 1];
+        face_connectivity_Tmp[2]  = meshConnectivity[meshConnectivityIndex[ielt] + 2];
+
+        face_connectivity_Tmp[3]  = meshConnectivity[meshConnectivityIndex[ielt] + 3];        
+        face_connectivity_Tmp[4]  = meshConnectivity[meshConnectivityIndex[ielt] + 5];
+        face_connectivity_Tmp[5]  = meshConnectivity[meshConnectivityIndex[ielt] + 4];
+
+        face_connectivity_Tmp[6]  = meshConnectivity[meshConnectivityIndex[ielt] + 2];        
+        face_connectivity_Tmp[7]  = meshConnectivity[meshConnectivityIndex[ielt] + 1];
+        face_connectivity_Tmp[8]  = meshConnectivity[meshConnectivityIndex[ielt] + 4];
+        face_connectivity_Tmp[9]  = meshConnectivity[meshConnectivityIndex[ielt] + 5];
+        
+        face_connectivity_Tmp[10] = meshConnectivity[meshConnectivityIndex[ielt] + 1];
+        face_connectivity_Tmp[11] = meshConnectivity[meshConnectivityIndex[ielt] + 0];
+        face_connectivity_Tmp[12] = meshConnectivity[meshConnectivityIndex[ielt] + 3];        
+        face_connectivity_Tmp[13] = meshConnectivity[meshConnectivityIndex[ielt] + 4];
+
+        face_connectivity_Tmp[14] = meshConnectivity[meshConnectivityIndex[ielt] ];
+        face_connectivity_Tmp[15] = meshConnectivity[meshConnectivityIndex[ielt] + 2];
+        face_connectivity_Tmp[16] = meshConnectivity[meshConnectivityIndex[ielt] + 5];
+        face_connectivity_Tmp[17] = meshConnectivity[meshConnectivityIndex[ielt] + 3];
+
+        break;
+
+      case 8 :
+        
+        bft::bft_printf("\n **********Hexaedre n° %d********** \n",ielt);
+
+        nbr_face    = 6;
+        
+        /**** Definition des tableaux d'index et de connectivite ****/
+        
+        face_connectivity_index_Tmp = (int* ) malloc((nbr_face + 1) * sizeof(int) );
+        face_connectivity_Tmp = (int* ) malloc(24 * sizeof(int));
+        cell_to_face_connectivity_Tmp = (int* ) malloc(nbr_face * sizeof(int));
+        
+        for(int i = 0; i < nbr_face ; i++)
+          cell_to_face_connectivity_Tmp[i] = i+1;
+        
+        for(int i = 0 ; i < 7; i++)
+          face_connectivity_index_Tmp[i] = 4*i;
+                
+
+        face_connectivity_Tmp[0]  = meshConnectivity[meshConnectivityIndex[ielt]];
+        face_connectivity_Tmp[1]  = meshConnectivity[meshConnectivityIndex[ielt] + 1];
+        face_connectivity_Tmp[2]  = meshConnectivity[meshConnectivityIndex[ielt] + 2];
+        face_connectivity_Tmp[3]  = meshConnectivity[meshConnectivityIndex[ielt] + 3];
+        
+        face_connectivity_Tmp[4]  = meshConnectivity[meshConnectivityIndex[ielt] + 5];
+        face_connectivity_Tmp[5]  = meshConnectivity[meshConnectivityIndex[ielt] + 4];
+        face_connectivity_Tmp[6]  = meshConnectivity[meshConnectivityIndex[ielt] + 7];        
+        face_connectivity_Tmp[7]  = meshConnectivity[meshConnectivityIndex[ielt] + 6];
+
+        face_connectivity_Tmp[8]  = meshConnectivity[meshConnectivityIndex[ielt] ];
+        face_connectivity_Tmp[9]  = meshConnectivity[meshConnectivityIndex[ielt] + 3];        
+        face_connectivity_Tmp[10] = meshConnectivity[meshConnectivityIndex[ielt] + 7];
+        face_connectivity_Tmp[11] = meshConnectivity[meshConnectivityIndex[ielt] + 4];
+
+        face_connectivity_Tmp[12] = meshConnectivity[meshConnectivityIndex[ielt] + 3];        
+        face_connectivity_Tmp[13] = meshConnectivity[meshConnectivityIndex[ielt] + 2];
+        face_connectivity_Tmp[14] = meshConnectivity[meshConnectivityIndex[ielt] + 6];
+        face_connectivity_Tmp[15] = meshConnectivity[meshConnectivityIndex[ielt] + 7];
+
+        face_connectivity_Tmp[16] = meshConnectivity[meshConnectivityIndex[ielt] + 1];
+        face_connectivity_Tmp[17] = meshConnectivity[meshConnectivityIndex[ielt] + 5];
+        face_connectivity_Tmp[18] = meshConnectivity[meshConnectivityIndex[ielt] + 6];
+        face_connectivity_Tmp[19] = meshConnectivity[meshConnectivityIndex[ielt] + 2];
+
+        face_connectivity_Tmp[20] = meshConnectivity[meshConnectivityIndex[ielt] ];
+        face_connectivity_Tmp[21] = meshConnectivity[meshConnectivityIndex[ielt] + 4];
+        face_connectivity_Tmp[22] = meshConnectivity[meshConnectivityIndex[ielt] + 5];
+        face_connectivity_Tmp[23] = meshConnectivity[meshConnectivityIndex[ielt] + 1];
+
+        break;
+
+
+      }
       
       face_connectivity = face_connectivity_Tmp;
       cell_to_face_connectivity = cell_to_face_connectivity_Tmp;
       face_connectivity_index = face_connectivity_index_Tmp;
- 
-       }
+
+
+    }
+
+    /**** Cas d'un polyedre ****/
+
     else {
-      //bft::bft_printf("ielt   %d \n",ielt);
-      bft::bft_printf("**********tetraedre********** \n");
+      elt_std = false;
+
       ielt -= eltStd;
 
-      //bft::bft_printf("ielt - eltStd   %d \n",ielt);
-
-      meshConnectivityIndex = &(_supportMesh->getPolyhedraCellToVertexConnectivityIndex()[0]);
-      meshConnectivity = &(_supportMesh->getPolyhedraCellToVertexConnectivity()[0]);
-      face_index = _supportMesh->getPolyhedraFaceIndex();     
+      meshConnectivityIndex     = &(_supportMesh->getPolyhedraCellToVertexConnectivityIndex()[0]);
+      meshConnectivity          = &(_supportMesh->getPolyhedraCellToVertexConnectivity()[0]);
+      face_index                = _supportMesh->getPolyhedraFaceIndex();     
       cell_to_face_connectivity = _supportMesh->getPolyhedraCellToFaceConnectivity();     
-      face_connectivity = _supportMesh->getPolyhedraFaceConnectivity();     
-      face_connectivity_index = _supportMesh->getPolyhedraFaceConnectivityIndex();
+      face_connectivity         = _supportMesh->getPolyhedraFaceConnectivity();     
+      face_connectivity_index   = _supportMesh->getPolyhedraFaceConnectivityIndex();
      
-      nbr_som = meshConnectivityIndex[ielt + 1] - meshConnectivityIndex[ielt];
-      nbr_face = face_index[ielt + 1] - face_index[ielt];
-      nbr_som_fac = 3;     
-      ind_fac = face_index[ielt];
-      //bft::bft_printf("meshConnectivityIndex    %d   %d  \n",meshConnectivityIndex[0],meshConnectivityIndex[1]);
-      }
-  
+      nbr_som        = meshConnectivityIndex[ielt + 1] - meshConnectivityIndex[ielt];
+      nbr_face       = face_index[ielt + 1] - face_index[ielt];
+      ind_fac        = face_index[ielt];
+
+      bft::bft_printf("\n **********polyedre n° %d********** \n vert numb %d \n",ielt,nbr_som);
+
+    }
+ 
+    
+ 
+    /**** Tableau d'indexation locale des sommets ****/
+
     for (int isom = 0 ; isom < nbr_som ; isom++){
-      localIndVertex[meshConnectivity[meshConnectivityIndex[ielt] + isom]-1] = isom ;     
+      
+      localIndVertex[ meshConnectivity[ meshConnectivityIndex[ ielt ] + isom ] - 1 ] = isom ;
+      bft::bft_printf("local   %d   %d \n",meshConnectivity[ meshConnectivityIndex[ ielt ] + isom ], isom);
+
     }
         
-    nDistBarCoords[ipoint + 1] = nDistBarCoords[ipoint] + nbr_som;
+    nDistBarCoords[ ipoint + 1 ] = nDistBarCoords[ ipoint ] + nbr_som;
+
+    /**** Gestion de la taille des tableaux ****/
 
     if (distBarCoords.size() <= nDistBarCoords[ipoint + 1])
       distBarCoords.resize(2 * distBarCoords.size());
- 
+  
     if(ipoint == 0) {
-      angle.resize(nbr_som_fac); // danger lorsque nbr_som_fac != 3
-      normale.resize(3 * nbr_som_fac); // danger lorsque nbr_som_fac != 3
+
+      angle.resize(nbr_som_fac_tr); 
+      normale.resize(3 * nbr_som_fac_tr); 
       distBarCoordsTmp.resize(nbr_som);
-      coo_som_fac.resize(3 * nbr_som);        
+      coo_som_elt.resize(3 * nbr_som);        
       dist.resize(nbr_som);        
-      s.resize(3 * nbr_som);
+      s.resize(3 * nbr_som);     
+      triangle_vertices.resize(3);
+    }
+    else{
+      triangle_vertices.resize(3);
+
+      if(distBarCoordsTmp.size() < nbr_som){
+
+        distBarCoordsTmp.resize(nbr_som);      
+        coo_som_elt.resize(3 * nbr_som);        
+        dist.resize(nbr_som);
+        s.resize(3 * nbr_som);
 
       }
-    else
-      if (dist.size() <  nbr_som_fac){
-        coo_som_fac.resize(3 * nbr_som_fac);        
-        dist.resize(nbr_som_fac);
-        s.resize(3 * nbr_som);
-      } 
+    } 
+
 
 
     double sigma = 0;
 
+    /**** Inialisation du tableau des coordonnees temporaires a 0 ****/
 
     for (int isom = 0; isom < nbr_som; isom++)
       distBarCoordsTmp[isom] = 0; 
-    
-    //Verifier que le sommet appartient ni a une face, arrete ou egal a un sommet
-     for (int isom = 0; isom < nbr_som ; isom++){
-       // bft::bft_printf("(meshConnectivityIndex[ielt] + isom)   %d \n",(meshConnectivityIndex[ielt] + isom));
-       
-       coo_som_fac[3 * isom]     = meshVertexCoords[3 * (meshConnectivity[meshConnectivityIndex[ielt] + isom]-1)];
-       coo_som_fac[3 * isom + 1] = meshVertexCoords[3 * (meshConnectivity[meshConnectivityIndex[ielt] + isom]-1) + 1];
-       coo_som_fac[3 * isom + 2] = meshVertexCoords[3 * (meshConnectivity[meshConnectivityIndex[ielt] + isom]-1) + 2];
+   
+    for (int isom = 0; isom < nbr_som ; isom++){
+      
+      coo_som_elt[ 3 * isom ]     = meshVertexCoords[ 3 * (meshConnectivity[ meshConnectivityIndex[ ielt ] + isom ] - 1 ) ];
+      coo_som_elt[ 3 * isom + 1 ] = meshVertexCoords[ 3 * (meshConnectivity[ meshConnectivityIndex[ ielt ] + isom ] - 1 ) + 1];
+      coo_som_elt[ 3 * isom + 2 ] = meshVertexCoords[ 3 * (meshConnectivity[ meshConnectivityIndex[ ielt ] + isom ] - 1 ) + 2];      
 
-       // bft::bft_printf("vertex coord  %d   %f   %f   %f \n", isom, coo_som_fac[3 * isom], coo_som_fac[3 * isom+1], coo_som_fac[3 * isom+2]);
-       
-       s[3 * isom]     = coo_som_fac[3 * isom]     - coo_point_dist[0];
-       s[3 * isom + 1] = coo_som_fac[3 * isom + 1] - coo_point_dist[1];
-       s[3 * isom + 2] = coo_som_fac[3 * isom + 2] - coo_point_dist[2];
 
-       
-       //bft::bft_printf("s %d   %f   %f   %f \n", isom, s[3 * isom], s[3 * isom+1], s[3 * isom+2]);
 
-       dist[isom] = sqrt(s[3 * isom]*s[3*isom] +
-                         s[3 * isom + 1]*s[3*isom + 1] +
-                         s[3 * isom + 2]*s[3*isom + 2]);           
-     }
+      bft::bft_printf("coo som fac  %f %f %f \n",
+             coo_som_elt[ 3 * isom ],
+             coo_som_elt[ 3 * isom + 1 ],
+             coo_som_elt[ 3 * isom + 2]);
+
+
+
+      s[ 3 * isom ]     = coo_som_elt[ 3 * isom ]     - coo_point_dist[ 0 ];
+      s[ 3 * isom + 1 ] = coo_som_elt[ 3 * isom + 1 ] - coo_point_dist[ 1 ];
+      s[ 3 * isom + 2 ] = coo_som_elt[ 3 * isom + 2 ] - coo_point_dist[ 2 ];
+       
+      bft::bft_printf("s   %f  %f  %f \n",s[ 3 * isom ],s[ 3 * isom + 1 ],s[ 3 * isom + 2 ]);
+
+
+      dist[isom] = sqrt(  s[ 3 * isom ]    * s[ 3 * isom ] 
+                        + s[ 3 * isom + 1] * s[ 3 * isom + 1 ] 
+                        + s[ 3 * isom + 2] * s[ 3 * isom + 2 ] );           
+
+    }
     
     for(int iface = 0; iface < nbr_face ; iface++){
-      double det;
+      
+      nbr_som_fac = face_connectivity_index[ cell_to_face_connectivity[ ind_fac + iface] ] 
+        - face_connectivity_index[ cell_to_face_connectivity[ ind_fac + iface ] - 1 ];
 
-      ind_fac_som = face_connectivity_index[cell_to_face_connectivity[ind_fac + iface] - 1];
+      if(cell_to_face_connectivity[ ind_fac + iface ] > 0)        
+        ind_fac_som = face_connectivity_index[ cell_to_face_connectivity[ ind_fac + iface ] - 1 ];
+      else
+        ind_fac_som = face_connectivity_index[ -(cell_to_face_connectivity[ ind_fac + iface ]) - 1 ];             
+      
+      if(nbr_som_fac == 4){               
 
-      const int i = localIndVertex[face_connectivity[ind_fac_som] - 1];
-      const int j = localIndVertex[face_connectivity[ind_fac_som + 1] - 1];
-      const int k = localIndVertex[face_connectivity[ind_fac_som + 2] - 1];
+        if(triangle_vertices.size() < 6 ){          
+          triangle_vertices.resize(6);
+          coo_som_face.resize(nbr_som_fac);
+        }
 
-       bft::bft_printf("--- sommet   %d  %d  %d \n",i,j,k);
-         bft::bft_printf("s  i  j   k  %f  %f  %f \n %f  %f  %f \n %f  %f  %f \n",
-             s[3*i],s[3*i+1],s[3*i+2],
-             s[3*j],s[3*j+1],s[3*j+2],
-             s[3*k],s[3*k+1],s[3*k+2]);
+        for (int isom = 0 ; isom <nbr_som_fac ; isom++){
+          coo_som_face[3*isom] = meshVertexCoords[3*(face_connectivity[ind_fac_som + isom] - 1) ];
+          coo_som_face[3*isom + 1] = meshVertexCoords[3*(face_connectivity[ind_fac_som + isom] - 1) + 1 ];
+          coo_som_face[3*isom + 2] = meshVertexCoords[3*(face_connectivity[ind_fac_som + isom] - 1) + 2 ];
+        }
 
 
-      det =  (1./6) * (  ( (s[3*i+1] * s[3*j+2] - s[3*j+1] * s[3*i+2]) * s[3*k])
-                       + ( (s[3*j]  * s[3*i+2] - s[3*i] * s[3*j+2]) * s[3*k+1])
-                       + ( (s[3*i]  * s[3*j+1] - s[3*j] * s[3*i+1]) * s[3*k+2]) );
+        n_triangles = fvm::fvm_triangulate_quadrangle(3,
+                                                      &(coo_som_face[0]),
+                                                      NULL,
+                                                      NULL,
+                                                      &(triangle_vertices[0]));
+        for(int i = 0 ; i< 3*n_triangles ; i++)
+          triangle_vertices[i] = face_connectivity[ind_fac_som + triangle_vertices[i] - 1 ] - 1;
+                       
+      }
+      
+      else if (nbr_som_fac > 4){
 
-      bft::bft_printf("determinant   %f \n",det);
-      if(abs(det) < eps){
+        if(triangle_vertices.size() < nbr_som_fac ){          
+          triangle_vertices.resize(3*nbr_som_fac);
+          coo_som_face.resize(3*nbr_som_fac);
+        }
 
-        double aireTri_ijk;
-        double aireTri_ijv;
-        double aireTri_ikv;
-        double aireTri_jkv;
-        double coo_ijx;
-        double coo_ijy;
-        double coo_ijz;
-        double coo_ikx;
-        double coo_iky;
-        double coo_ikz;
-       
-        coo_ijx = coo_som_fac[3*j]   - coo_som_fac[3*i];
-        coo_ijy = coo_som_fac[3*j+1] - coo_som_fac[3*i+1];
-        coo_ijz = coo_som_fac[3*j+2] - coo_som_fac[3*i+2];
-        coo_ikx = coo_som_fac[3*k]   - coo_som_fac[3*i];
-        coo_iky = coo_som_fac[3*k+1] - coo_som_fac[3*i+1];
-        coo_ikz = coo_som_fac[3*k+2] - coo_som_fac[3*i+2];
+
+        for (int isom = 0 ; isom <nbr_som_fac ; isom++){
+          coo_som_face[3*isom] = meshVertexCoords[3*(face_connectivity[ind_fac_som + isom] - 1) ];
+          coo_som_face[3*isom + 1] = meshVertexCoords[3*(face_connectivity[ind_fac_som + isom] - 1) + 1 ];
+          coo_som_face[3*isom + 2] = meshVertexCoords[3*(face_connectivity[ind_fac_som + isom] - 1) + 2 ];
+        }
         
-        aireTri_ijk = sqrt(  ( coo_ijy * coo_ikz - coo_ijz * coo_iky ) * ( coo_ijy * coo_ikz - coo_ijz * coo_iky )
-                           + ( coo_ijz * coo_ikx - coo_ijx * coo_ikz ) * ( coo_ijz * coo_ikx - coo_ijx * coo_ikz )
-                           + ( coo_ijx * coo_iky - coo_ijy * coo_ikx ) * ( coo_ijx * coo_iky - coo_ijy * coo_ikx ));
+        n_triangles = fvm::fvm_triangulate_polygon(3,
+                                                   nbr_som_fac,
+                                                   &(coo_som_face[0]),
+                                                   NULL,
+                                                   NULL,
+                                                   fvm::FVM_TRIANGULATE_MESH_DEF,
+                                                   &(triangle_vertices[0]),
+                                                   fvm::fvm_triangulate_state_create(nbr_som_fac));
 
-        aireTri_ijv = sqrt(  ( s[3*i+1] * s[3*j+2] - s[3*i+2] * s[3*j+1] ) * ( s[3*i+1] * s[3*j+2] - s[3*i+2] * s[3*j+1] )
-                           + ( s[3*i+2] * s[3*j]   - s[3*i]   * s[3*j+2] ) * ( s[3*i+2] * s[3*j]   - s[3*i]   * s[3*j+2] )
-                           + ( s[3*i]   * s[3*j+1] - s[3*i+1] * s[3*j] )   * ( s[3*i]   * s[3*j+1] - s[3*i+1] * s[3*j] ));
-
-        aireTri_ikv = sqrt(  ( s[3*i+1] * s[3*k+2] - s[3*i+2] * s[3*k+1] ) * ( s[3*i+1] * s[3*k+2] - s[3*i+2] * s[3*k+1] )
-                           + ( s[3*i+2] * s[3*k]   - s[3*i]   * s[3*k+2] ) * ( s[3*i+2] * s[3*k]   - s[3*i]   * s[3*k+2] )
-                           + ( s[3*i]   * s[3*k+1] - s[3*i+1] * s[3*k] )   * ( s[3*i]   * s[3*k+1] - s[3*i+1] * s[3*k] ));
-
-        aireTri_jkv = sqrt(  ( s[3*j+1] * s[3*k+2] - s[3*j+2] * s[3*k+1] ) * ( s[3*j+1] * s[3*k+2] - s[3*j+2] * s[3*k+1] )
-                           + ( s[3*j+2] * s[3*k]   - s[3*j]   * s[3*k+2] ) * ( s[3*j+2] * s[3*k]   - s[3*j]   * s[3*k+2] )
-                           + ( s[3*j]   * s[3*k+1] - s[3*j+1] * s[3*k] )   * ( s[3*j]   * s[3*k+1] - s[3*j+1] * s[3*k] ));
+        for(int i = 0 ; i< 3*n_triangles ; i++)
+          triangle_vertices[i] = face_connectivity[ind_fac_som + triangle_vertices[i] - 1 ] - 1;
         
+      }       
+      else{
+        n_triangles = 1;
+
+     
+        for(int i = 0; i < 3 ; i++)
+           triangle_vertices[i] = face_connectivity[ind_fac_som + i] - 1;         
         
-        /* bft::bft_printf("aire ijk  %f  \n",aireTri_ijk);
-        bft::bft_printf("aire ijv  %f  \n",aireTri_ijv);
-        bft::bft_printf("aire ikv  %f  \n",aireTri_ikv);
-        bft::bft_printf("aire jkv  %f  \n",aireTri_jkv);*/
-
-        for(int isom = 0 ; isom < nbr_som ; isom++)
-          distBarCoords[nDistBarCoords[ipoint]+isom] = 0.;
-          
-        distBarCoords[ nDistBarCoords[ipoint] + i ] = aireTri_jkv / aireTri_ijk ;
-        distBarCoords[ nDistBarCoords[ipoint] + j ] = aireTri_ikv / aireTri_ijk ;
-        distBarCoords[ nDistBarCoords[ipoint] + k ] = aireTri_ijv / aireTri_ijk ;
-        bft::bft_printf("*********is vertex or on edge********\n");
-        isOnFace = 1;
-
-        break;
-
       }
 
+      for(int itri = 0 ; itri < n_triangles ; itri++){
+        double det;
+        
+        
+        
+        /**** indice des sommets de la face ****/
+        
+        const int i = localIndVertex[ triangle_vertices[3*itri] ];
+        const int j = localIndVertex[ triangle_vertices[3*itri + 1] ];
+        const int k = localIndVertex[ triangle_vertices[3*itri + 2] ];
+
+        det =  (1./6) * (  ( ( s[3*i+1] * s[3*j+2] - s[3*j+1] * s[3*i+2] ) * s[3*k] )
+                           + ( ( s[3*i]   * s[3*j+2] - s[3*j]   * s[3*i+2] ) * s[3*k+1])
+                           + ( ( s[3*i]   * s[3*j+1] - s[3*j]   * s[3*i+1] ) * s[3*k+2] ) );
+        
+        
+        bft::bft_printf("face %d %d %d   determinant  %f \n",i,j,k,det);
+        
+        if(abs(det) < eps){
+          
+          bft::bft_printf("*********is vertex or on edge********\n");
+          
+          double aireTri_ijk;
+          double aireTri_ijv;
+          double aireTri_ikv;
+          double aireTri_jkv;
+          double coo_ijx;
+          double coo_ijy;
+          double coo_ijz;
+          double coo_ikx;
+          double coo_iky;
+          double coo_ikz;
+          
+          double ps_ijv;
+          double ps_jkv;
+          double ps_kiv;
+
+          coo_ijx = coo_som_elt[3*j]   - coo_som_elt[3*i];
+          coo_ijy = coo_som_elt[3*j+1] - coo_som_elt[3*i+1];
+          coo_ijz = coo_som_elt[3*j+2] - coo_som_elt[3*i+2];
+          coo_ikx = coo_som_elt[3*k]   - coo_som_elt[3*i];
+          coo_iky = coo_som_elt[3*k+1] - coo_som_elt[3*i+1];
+          coo_ikz = coo_som_elt[3*k+2] - coo_som_elt[3*i+2];
+          
+          aireTri_ijk = sqrt(  ( coo_ijy * coo_ikz - coo_ijz * coo_iky ) * ( coo_ijy * coo_ikz - coo_ijz * coo_iky )
+                               + ( coo_ijz * coo_ikx - coo_ijx * coo_ikz ) * ( coo_ijz * coo_ikx - coo_ijx * coo_ikz )
+                               + ( coo_ijx * coo_iky - coo_ijy * coo_ikx ) * ( coo_ijx * coo_iky - coo_ijy * coo_ikx ));
+          
+          aireTri_ijv = sqrt(  ( s[3*i+1] * s[3*j+2] - s[3*i+2] * s[3*j+1] ) * ( s[3*i+1] * s[3*j+2] - s[3*i+2] * s[3*j+1] )
+                               + ( s[3*i+2] * s[3*j]   - s[3*i]   * s[3*j+2] ) * ( s[3*i+2] * s[3*j]   - s[3*i]   * s[3*j+2] )
+                               + ( s[3*i]   * s[3*j+1] - s[3*i+1] * s[3*j] )   * ( s[3*i]   * s[3*j+1] - s[3*i+1] * s[3*j] ));
+          
+          aireTri_ikv = sqrt(  ( s[3*i+1] * s[3*k+2] - s[3*i+2] * s[3*k+1] ) * ( s[3*i+1] * s[3*k+2] - s[3*i+2] * s[3*k+1] )
+                               + ( s[3*i+2] * s[3*k]   - s[3*i]   * s[3*k+2] ) * ( s[3*i+2] * s[3*k]   - s[3*i]   * s[3*k+2] )
+                               + ( s[3*i]   * s[3*k+1] - s[3*i+1] * s[3*k] )   * ( s[3*i]   * s[3*k+1] - s[3*i+1] * s[3*k] ));
+          
+          aireTri_jkv = sqrt(  ( s[3*j+1] * s[3*k+2] - s[3*j+2] * s[3*k+1] ) * ( s[3*j+1] * s[3*k+2] - s[3*j+2] * s[3*k+1] )
+                               + ( s[3*j+2] * s[3*k]   - s[3*j]   * s[3*k+2] ) * ( s[3*j+2] * s[3*k]   - s[3*j]   * s[3*k+2] )
+                               + ( s[3*j]   * s[3*k+1] - s[3*j+1] * s[3*k] )   * ( s[3*j]   * s[3*k+1] - s[3*j+1] * s[3*k] ));
+ 
+
+          /*ps_ijv = s[3*i]*s[3*j] + s[3*i + 1]*s[3*j + 1] + s[3*i + 2]*s[3*j + 2];
+          ps_jkv = s[3*j]*s[3*k] + s[3*j + 1]*s[3*k + 1] + s[3*j + 2]*s[3*k + 2];
+          ps_ijv = s[3*k]*s[3*i] + s[3*k + 1]*s[3*i + 1] + s[3*k + 2]*s[3*i + 2];*/
+
+          //          if( ( (ps_ijv > 0) && (ps_jkv > 0) && (ps_kiv > 0) ) || ( (ps_ijv < 0) && (ps_jkv < 0) && (ps_kiv < 0))){
+
+          if( abs(1 - (aireTri_jkv + aireTri_ikv + aireTri_ijv) / aireTri_ijk) < eps){
+            for(int isom = 0 ; isom < nbr_som ; isom++)
+              distBarCoords[nDistBarCoords[ipoint]+isom] = 0.;
+            
+          
+            distBarCoords[ nDistBarCoords[ipoint] + i ] = aireTri_jkv / aireTri_ijk ;
+            distBarCoords[ nDistBarCoords[ipoint] + j ] = aireTri_ikv / aireTri_ijk ;
+            distBarCoords[ nDistBarCoords[ipoint] + k ] = aireTri_ijv / aireTri_ijk ;
+            isOnFace = 1;
+            
+            break;
+          }
+
+        }
+        
+      }
+      if(isOnFace)
+        break;
     }
 
     if(!isOnFace){
       int ind_som;
-        // normalisation de s (on sait que s est non nul) 
 
-        for(int isom = 0 ; isom < nbr_som ; isom++){
-          // bft::bft_printf("s ind %d  %f  %f  %f\n",isom,s[3*isom],s[3*isom+1],s[3*isom+2]);
-          s[3 * isom]     /= dist[isom];
-          s[3 * isom + 1] /= dist[isom];
-          s[3 * isom + 2] /= dist[isom];       
-        }              
-
-      for(int iface = 0; iface < nbr_face ; iface++){        
+      for(int isom = 0 ; isom < nbr_som ; isom++){
         
-        ind_fac_som = face_connectivity_index[cell_to_face_connectivity[ind_fac + iface] - 1] ;
-      
-        /*for(int isom = 0 ; isom < nbr_som_fac ; isom++){
-          bft::bft_printf("nface %d  %d \n",nbr_som_fac*iface+isom,face_connectivity[nbr_som_fac*iface+isom]);
-          bft::bft_printf("mesh coord   %f   %f   %f \n",
-          meshVertexCoords[3*(meshConnectivityIndex[ielt] + face_connectivity[nbr_som_fac*iface + isom] - 1)],
-          meshVertexCoords[3*(meshConnectivityIndex[ielt] + face_connectivity[nbr_som_fac*iface + isom] - 1) + 1],
-          meshVertexCoords[3*(meshConnectivityIndex[ielt] + face_connectivity[nbr_som_fac*iface + isom] - 1) + 2]);                           
-          }*/
-
-        for(int isom = 0; isom < nbr_som_fac; isom++){
-                   
-          int isuiv;
-          int iprec;
-          double prod_scal;
-          double mod;                    
-
-          if(isom ==0)
-            iprec = localIndVertex[face_connectivity[ ind_fac_som +  nbr_som_fac - 1 ] - 1]; // se place a la ieme face sur le dernier element
-          else 
-            iprec = localIndVertex[face_connectivity[ind_fac_som + isom - 1 ] - 1]; //prend l'indice du sommet juste precedent
-          
-          if (isom == nbr_som_fac - 1)
-            isuiv = localIndVertex[face_connectivity[ind_fac_som] - 1];
-          else 
-            isuiv = localIndVertex[face_connectivity[ind_fac_som + isom + 1] - 1];       
-                                   
-          prod_scal = s[3 * iprec]     * s[3 * isuiv]
-                    + s[3 * iprec + 1] * s[3 * isuiv + 1]
-                    + s[3 * iprec + 2] * s[3 * isuiv + 2];
-
-          angle[isom] = acos(prod_scal); //s est de norme 1         
-
-          normale[3 * isom]     = s[3 * iprec + 1] * s[3 * isuiv + 2] - s[3 * iprec + 2] * s[3*isuiv + 1];        
-          normale[3 * isom + 1] = s[3 * iprec + 2] * s[3 * isuiv]     - s[3 * iprec]     * s[3 * isuiv + 2];
-          normale[3 * isom + 2] = s[3 * iprec]     * s[3 * isuiv + 1] - s[3 * iprec + 1] * s[3 * isuiv];        
-                             
-          mod = sqrt(normale[3 * isom]*normale[3 * isom]
-                     + normale[3 * isom + 1]*normale[3 * isom + 1]
-                     + normale[3 * isom + 2]*normale[3 * isom + 2]);
-          
-          normale[3 * isom]     /= mod ;
-          normale[3 * isom + 1] /= mod ;
-          normale[3 * isom + 2] /= mod ;
-            
-        }           
+        s[3 * isom]     /= dist[isom];
+        s[3 * isom + 1] /= dist[isom];
+        s[3 * isom + 2] /= dist[isom];      
         
-        for(int isom = 0; isom < nbr_som_fac; isom++){
-           
-          int isuiv;
-          int iprec;
-          double ps_nij_njk; //a ameliorer
-          double ps_nki_njk; //a ameliorer
-          double ps_ei_njk;  //a ameliorer          
 
-          if(isom ==0)
-            iprec =  nbr_som_fac - 1; // se place a la ieme face sur le dernier element
-          else 
-            iprec = isom - 1; //prend l'indice du sommet juste precedent
+      }              
+
+
+      for(int iface = 0; iface < nbr_face ; iface++){
+        
+        if(cell_to_face_connectivity[ind_fac + iface] > 0)        
+          ind_fac_som = face_connectivity_index[cell_to_face_connectivity[ind_fac + iface] - 1];
+        else
+          ind_fac_som = face_connectivity_index[-(cell_to_face_connectivity[ind_fac + iface]) - 1];        
+
+        
+        nbr_som_fac = face_connectivity_index[ cell_to_face_connectivity[ ind_fac + iface] ] 
+          - face_connectivity_index[ cell_to_face_connectivity[ ind_fac + iface ] - 1 ];
+        
+        if(nbr_som_fac == 4){               
+                    
+          if(triangle_vertices.size() < 6 ){          
+            triangle_vertices.resize(6);
+            coo_som_face.resize(nbr_som_fac);
+          }
           
-          if (isom == nbr_som_fac - 1)
-            isuiv = 0;
-          else 
-            isuiv = isom + 1;            
-                  
-          ps_nij_njk = normale[3 * isom] * normale[3 * isuiv]
-            + normale[3 * isom + 1] * normale[3 * isuiv + 1]
-            + normale[3 * isom + 2] * normale[3 * isuiv + 2];
+          for (int isom = 0 ; isom <nbr_som_fac ; isom++){
+            coo_som_face[3*isom] = meshVertexCoords[3*(face_connectivity[ind_fac_som + isom] - 1) ];
+            coo_som_face[3*isom + 1] = meshVertexCoords[3*(face_connectivity[ind_fac_som + isom] - 1) + 1 ];
+            coo_som_face[3*isom + 2] = meshVertexCoords[3*(face_connectivity[ind_fac_som + isom] - 1) + 2 ];
+          }
           
-          ps_nki_njk = normale[3 * isom] * normale[3 * iprec]
-            + normale[3 * isom + 1] * normale[3 * iprec + 1]
-            + normale[3 * isom + 2] * normale[3 * iprec + 2];
           
-          ps_ei_njk = s[3 * (localIndVertex[face_connectivity[ind_fac_som + isom] - 1])] * normale[3 * isom] 
-            + s[3 * (localIndVertex[face_connectivity[ind_fac_som + isom] - 1]) + 1] * normale[3 * isom + 1]
-            + s[3 * (localIndVertex[face_connectivity[ind_fac_som + isom] - 1]) + 2] * normale[3 * isom + 2];       
+          n_triangles = fvm::fvm_triangulate_quadrangle(3,
+                                                        &(coo_som_face[0]),
+                                                        NULL,
+                                                        NULL,
+                                                        &(triangle_vertices[0]));
           
-          distBarCoordsTmp[localIndVertex[(face_connectivity[ind_fac_som + isom] - 1)]] += (angle[isom] + angle[isuiv] * ps_nij_njk + angle[iprec] * ps_nki_njk) / (2 * ps_ei_njk);           
-          //bft::bft_printf("(face_connectivity[ind_fac_som + isom] - 1)   %d \n",(face_connectivity[ind_fac_som + isom] - 1));
+          for(int i = 0 ; i< 3*n_triangles ; i++)
+            triangle_vertices[i] = face_connectivity[ind_fac_som + triangle_vertices[i] - 1] - 1;
+          
         }
+        
+        else if (nbr_som_fac > 4){
           
+          if(triangle_vertices.size() < nbr_som_fac ){          
+            triangle_vertices.resize(3*nbr_som_fac);
+            coo_som_face.resize(3*nbr_som_fac);
+          }
+   
+        for (int isom = 0 ; isom <nbr_som_fac ; isom++){
+          coo_som_face[3*isom] = meshVertexCoords[3*(face_connectivity[ind_fac_som + isom] - 1) ];
+          coo_som_face[3*isom + 1] = meshVertexCoords[3*(face_connectivity[ind_fac_som + isom] - 1) + 1 ];
+          coo_som_face[3*isom + 2] = meshVertexCoords[3*(face_connectivity[ind_fac_som + isom] - 1) + 2 ];
+        }
+      
+          
+          n_triangles = fvm::fvm_triangulate_polygon(3,
+                                                     nbr_som_fac,
+                                                     &(coo_som_face[0]),
+                                                     NULL,
+                                                     NULL,
+                                                     fvm::FVM_TRIANGULATE_MESH_DEF,
+                                                     &(triangle_vertices[0]),
+                                                     fvm::fvm_triangulate_state_create(nbr_som_fac));          
+          
+          for(int i = 0 ; i< 3*n_triangles ; i++)
+            triangle_vertices[i] = face_connectivity[ind_fac_som + triangle_vertices[i] - 1] - 1;
+          
+        }       
+        
+        
+        else{          
+          n_triangles = 1;
+          
+          for(int i = 0; i < 3 ; i++)
+            triangle_vertices[i] = face_connectivity[ind_fac_som + i] - 1;
+          
+        }
+
+        
+        for(int itri = 0; itri < n_triangles ; itri ++){ 
+          for(int isom = 0; isom < nbr_som_fac_tr; isom++){
+            
+            int isuiv;
+            int iprec;
+            double prod_scal;
+            double mod;                    
+            
+            /**** fonctionne seulement lorsque nbr_som_fac_tr = 3 ****/
+
+            if(cell_to_face_connectivity[ind_fac + iface] > 0){  
+              
+              if(isom == 0)
+                iprec = localIndVertex[triangle_vertices[3*itri + nbr_som_fac_tr - 1]];
+
+              else 
+                iprec = localIndVertex[triangle_vertices[3*itri + isom - 1]];
+              
+              if (isom == nbr_som_fac_tr - 1)
+                isuiv = localIndVertex[triangle_vertices[3*itri]];
+              else 
+                isuiv = localIndVertex[triangle_vertices[3*itri + isom + 1]]; 
+      
+            }
+            else{                            
+
+              if(isom ==0)
+                iprec = localIndVertex[triangle_vertices[3*itri + nbr_som_fac_tr - 1]];
+              else 
+                iprec = localIndVertex[triangle_vertices[3*itri + isom - 1]];
+                
+              if (isom == nbr_som_fac_tr - 1)
+                isuiv = localIndVertex[triangle_vertices[3*itri]];
+              else 
+                isuiv = localIndVertex[triangle_vertices[3*itri +isom + 1]];       
+
+            }
+                        
+
+            prod_scal = s[3 * iprec]     * s[3 * isuiv]
+              + s[3 * iprec + 1] * s[3 * isuiv + 1]
+              + s[3 * iprec + 2] * s[3 * isuiv + 2];
+            
+            angle[isom] = acos(prod_scal); //s est de norme 1                   
+            
+            normale[3 * isom]     = s[3 * iprec + 1] * s[3 * isuiv + 2] - s[3 * iprec + 2] * s[3*isuiv + 1];        
+            normale[3 * isom + 1] = s[3 * iprec + 2] * s[3 * isuiv]     - s[3 * iprec]     * s[3 * isuiv + 2];
+            normale[3 * isom + 2] = s[3 * iprec]     * s[3 * isuiv + 1] - s[3 * iprec + 1] * s[3 * isuiv];        
+            
+            mod = sqrt(  normale[3 * isom]     * normale[3 * isom]
+                         + normale[3 * isom + 1] * normale[3 * isom + 1]
+                         + normale[3 * isom + 2] * normale[3 * isom + 2]);
+            
+            normale[3 * isom]     /= mod ;
+            normale[3 * isom + 1] /= mod ;
+            normale[3 * isom + 2] /= mod ;
+            
+          }    
+       
+
+          for(int isom = 0; isom < nbr_som_fac_tr; isom++){
+            
+            int isuiv;
+            int iprec;
+            double ps_nij_njk; //a ameliorer
+            double ps_nki_njk; //a ameliorer
+            double ps_ei_njk;  //a ameliorer          
+            
+            if(isom ==0)
+              iprec =  nbr_som_fac_tr - 1;
+            else 
+              iprec = isom - 1; 
+            
+            if (isom == nbr_som_fac_tr - 1)
+              isuiv = 0;
+            else 
+              isuiv = isom + 1;            
+            
+            ps_nij_njk = normale[3 * isom]     * normale[3 * isuiv]
+              + normale[3 * isom + 1] * normale[3 * isuiv + 1]
+              + normale[3 * isom + 2] * normale[3 * isuiv + 2];
+            
+            ps_nki_njk = normale[3 * isom]     * normale[3 * iprec]
+              + normale[3 * isom + 1] * normale[3 * iprec + 1]
+              + normale[3 * isom + 2] * normale[3 * iprec + 2];
+            
+            ps_ei_njk = s[3 * localIndVertex[triangle_vertices[3*itri + isom]]  ]    * normale[3 * isom] 
+              + s[3 * localIndVertex[triangle_vertices[3*itri + isom]] + 1] * normale[3 * isom + 1]
+              + s[3 * localIndVertex[triangle_vertices[3*itri + isom]] + 2] * normale[3 * isom + 2];       
+            
+            distBarCoordsTmp[localIndVertex[triangle_vertices[3*itri + isom]]] +=
+              (angle[isom] + angle[isuiv] * ps_nij_njk + angle[iprec] * ps_nki_njk) / (2 * ps_ei_njk);           
+           
+          }
+
+        }
+
       }
       
+      
       for(int isom = 0; isom<nbr_som;isom++){
-        // bft::bft_printf("isom distbarcoordtm   %d   %f   \n",isom,distBarCoordsTmp[isom]);
+
+        distBarCoordsTmp[isom] /= dist[isom];
         sigma += distBarCoordsTmp[isom];      
-      }      
-      //bft::bft_printf("sigma   %f   \n",sigma);
-      
+
+      }
+                   
       for(int isom = 0; isom<nbr_som;isom++)
-        distBarCoords[nDistBarCoords[ipoint] + isom] = distBarCoordsTmp[isom]/sigma;
-      
-      
+        distBarCoords[nDistBarCoords[ipoint] + isom] = distBarCoordsTmp[isom] / sigma;            
+
     }
     
     for(int isom = 0; isom<nbr_som;isom++)
-      bft::bft_printf("sommet   %f %f %f  coord bar final   %f \n",coo_som_fac[3*isom],coo_som_fac[3*isom+1],coo_som_fac[3*isom+2],distBarCoords[nDistBarCoords[ipoint] + isom]);
+      bft::bft_printf("sommet   %f %f %f  coord bar final   %f \n",coo_som_elt[3*isom],coo_som_elt[3*isom+1],coo_som_elt[3*isom+2],distBarCoords[nDistBarCoords[ipoint] + isom]);
     
     
-    if( 1== 1){
+    if( 1 == 1){
+
       std::vector <double> test(3);
       
       for(int i =0;i<3;i++)
@@ -1420,16 +1792,19 @@ void LocationToLocalMesh::compute3DMeanValues()
       
       for(int isom =0;isom<nbr_som;isom++){
         
-        test[0] += distBarCoords[nDistBarCoords[ipoint] + isom] * coo_point_dist[0];
-        test[1] += distBarCoords[nDistBarCoords[ipoint] + isom] * coo_point_dist[1];
-        test[2] += distBarCoords[nDistBarCoords[ipoint] + isom] * coo_point_dist[2];
+        test[0] += distBarCoords[nDistBarCoords[ipoint] + isom] * coo_som_elt[3*isom];
+        test[1] += distBarCoords[nDistBarCoords[ipoint] + isom] * coo_som_elt[3*isom + 1];
+        test[2] += distBarCoords[nDistBarCoords[ipoint] + isom] * coo_som_elt[3*isom + 2];
         
       }
-      for(int i =0;i<3;i++)
-        bft::bft_printf("test   %f  coord  %f \n",test[i],coo_point_dist[i]);
 
+      bft::bft_printf("point distant n°%d| verification \n",ipoint);
+
+      for(int i =0;i<3;i++)
+        bft::bft_printf("  %f       |    %f \n",coo_point_dist[i],test[i]);
+      
     }
-   
+    
     if (0 == 1) {
       bft::bft_printf("coord %i :", ipoint);
       bft::bft_printf(" %12.5e %12.5e %12.5e", dist_coords[3 * ipoint], 
@@ -1443,24 +1818,926 @@ void LocationToLocalMesh::compute3DMeanValues()
       
       bft::bft_printf("\n");
       
-      }
+    }
     
-    if(nbr_som == 4){    
+    if(elt_std){    
+
       free(cell_to_face_connectivity_Tmp);
       free(face_connectivity_index_Tmp);
       free(face_connectivity_Tmp);
+
     }
-    
+   
+    triangle_vertices.clear();
     
   }
-  coo_som_fac.clear();
+
+  coo_som_elt.clear();
   s.clear();
   dist.clear();
   proScal.clear();
   angle.clear();
   distBarCoordsTmp.clear();
   localIndVertex.clear();
+  coo_som_face.clear();
 }
+
+bool  LocationToLocalMesh::midplaneProjection2
+(
+ const int     nbr_som_fac,
+ double *const coo_som_fac,
+ double *const coo_point_dist
+)
+
+{
+
+  int    icoo ;
+  int    isom ;
+  int    itri ;
+  
+  bool isPlane;
+
+  double   cost ;
+  double   sint ;
+
+  double   coo_tmp ;
+
+  std::vector<double>   vect1(3) ;
+  std::vector<double>   vect2(3) ;
+
+  std::vector<double>  prod_vect(3) ;
+
+  std::vector<double>  barycentre_fac(3) ;
+  std::vector<double>  normale_fac(3) ;
+  std::vector<double>  normale_fac_tri ;
+
+  double *coo_som_fac_tmp = NULL;
+  std::vector<double>  coo_point_dist_tmp(3) ;
+
+  const double eps = 1e-15;
+
+
+  /*xxxxxxxxxxxxxxxxxxxxxxxxxxx Instructions xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx*/
+
+
+  /* Calcul des coordonnées du barycentre B du polygone P */
+  /*======================================================*/
+
+  for (icoo = 0 ; icoo < 3 ; icoo++) {
+
+    barycentre_fac[icoo] = 0. ;
+
+    for (isom = 0 ; isom < nbr_som_fac ; isom++)
+      barycentre_fac[icoo] += coo_som_fac[3*isom+icoo] ;
+
+    barycentre_fac[icoo] /= nbr_som_fac ;
+
+  }
+
+  normale_fac_tri.resize(3*nbr_som_fac);
+
+  for (icoo = 0 ; icoo < 3 ; icoo++)
+    normale_fac[icoo] = 0. ;
+
+  /* Calcul de la normale */
+  /*======================*/
+
+  double norme;
+  double ps;
+
+  for (itri = 0 ; itri < nbr_som_fac ; itri++) {
+
+    for (icoo = 0 ; icoo < 3 ; icoo++) {
+
+      vect1[icoo] = coo_som_fac[3*itri+icoo] - barycentre_fac[icoo] ;
+
+      if (itri < nbr_som_fac - 1)
+        vect2[icoo] = coo_som_fac[3*(itri+1)+icoo] - barycentre_fac[icoo] ;
+      else
+        vect2[icoo] = coo_som_fac[icoo] - barycentre_fac[icoo] ;
+
+    }
+
+    normale_fac_tri[3*itri]  = vect1[1] * vect2[2] - vect2[1] * vect1[2];
+    normale_fac_tri[3*itri + 1] = vect2[0] * vect1[2] - vect1[0] * vect2[2];
+    normale_fac_tri[3*itri + 2] = vect1[0] * vect2[1] - vect2[0] * vect1[1] ;
+
+    norme = sqrt(normale_fac_tri[3*itri]*normale_fac_tri[3*itri] + normale_fac_tri[3*itri + 1]*normale_fac_tri[3*itri + 1] + normale_fac_tri[3*itri + 2]*normale_fac_tri[3*itri + 2]);
+
+    normale_fac_tri[3*itri]     /= norme;
+    normale_fac_tri[3*itri + 1] /= norme;
+    normale_fac_tri[3*itri + 2] /= norme;
+
+
+    normale_fac[0] += normale_fac_tri[3*itri] ;
+    normale_fac[1] += normale_fac_tri[3*itri + 1] ;
+    normale_fac[2] += normale_fac_tri[3*itri + 2] ;
+
+  }
+
+  for (itri = 0 ; itri < nbr_som_fac ; itri++) {
+    if(itri == nbr_som_fac - 1)
+      ps = normale_fac_tri[3*itri]*normale_fac_tri[0] 
+        + normale_fac_tri[3*itri + 1]*normale_fac_tri[1] 
+        + normale_fac_tri[3*itri + 2]*normale_fac_tri[2];
+      
+    else      
+      ps = normale_fac_tri[3*itri]*normale_fac_tri[3*(itri+1)] 
+      + normale_fac_tri[3*itri + 1]*normale_fac_tri[3*(itri+1) + 1] 
+      + normale_fac_tri[3*itri + 2]*normale_fac_tri[3*(itri+1) + 2];
+
+    isPlane = (ps > 0.8);
+    bft::bft_printf("ps   %f  \n",ps);
+    
+    if(!isPlane)
+      break;
+      }   
+ 
+
+  //   isPlane = true;
+  
+  if(isPlane){
+      
+    /* Projection dans un plan parallèle à la face */
+      /*=============================================*/
+      
+      /* On ramène l'origine au centre de gravité de la fac */
+      
+      for (isom = 0 ; isom < nbr_som_fac ; isom++)
+        for (icoo = 0 ; icoo < 3 ; icoo++)
+          coo_som_fac[3*isom+icoo] -= barycentre_fac[icoo] ;
+
+      for (icoo = 0 ; icoo < 3 ; icoo++)
+        coo_point_dist[icoo] -= barycentre_fac[icoo] ;
+      
+      if (LocationToLocalMesh::abs(normale_fac[0]) > eps || LocationToLocalMesh::abs(normale_fac[1]) > eps) {
+        
+        /* Première rotation d'axe (Oz) et d'angle (Ox, proj normale sur Oxy) */
+        
+        coo_som_fac_tmp = new double [3 * nbr_som_fac];
+        
+        vect1[0] = 1. ;
+        vect1[1] = 0. ;
+        vect1[2] = 0. ;
+        
+        vect2[0] = normale_fac[0] ;
+        vect2[1] = normale_fac[1] ;
+        vect2[2] = 0. ;
+        
+        computeVectorProduct(&(prod_vect[0]), &(vect1[0]), &(vect2[0])) ;
+        
+        cost = computeCrossProduct(&(vect1[0]), &(vect2[0])) / computeNorm(&(vect2[0])) ;
+        
+        if (prod_vect[2] > 0.)
+          sint =  computeNorm(&(prod_vect[0])) / computeNorm(&(vect2[0])) ;
+        else
+          sint = -computeNorm(&(prod_vect[0])) / computeNorm(&(vect2[0])) ;
+        
+        for (isom = 0 ; isom < nbr_som_fac ; isom++) {
+          
+          coo_som_fac_tmp[3*isom] =
+            cost*coo_som_fac[3*isom] + sint*coo_som_fac[3*isom+1] ;
+          coo_som_fac_tmp[3*isom+1] =
+            -sint*coo_som_fac[3*isom] + cost*coo_som_fac[3*isom+1] ;
+          coo_som_fac_tmp[3*isom+2] = coo_som_fac[3*isom+2] ;
+          
+        }
+        
+        coo_point_dist_tmp[0] = cost*coo_point_dist[0] + sint*coo_point_dist[1] ;
+        coo_point_dist_tmp[1] = -sint*coo_point_dist[0] + cost*coo_point_dist[1] ;
+        coo_point_dist_tmp[2] = coo_point_dist[2] ;
+        
+        /* Deuxième rotation d'axe (Oy) et d'angle (Oz', proj normale sur Ox'z) */
+        
+        vect1[0] =  0. ;
+        vect1[1] =  0. ;
+        vect1[2] =  1. ;
+        
+        vect2[0] =
+          sqrt(normale_fac[0]*normale_fac[0] + normale_fac[1]*normale_fac[1]) ;
+        vect2[1] = 0. ;
+        vect2[2] = normale_fac[2] ;
+        
+        computeVectorProduct(&(prod_vect[0]), &(vect1[0]),&(vect2[0])) ;
+        
+        cost = computeCrossProduct(&(vect1[0]), &(vect2[0])) / computeNorm(&(vect2[0])) ;
+        
+        if (prod_vect[2] > 0.)
+          sint =  computeNorm(&(prod_vect[0])) / computeNorm(&(vect2[0])) ;
+        else
+          sint = -computeNorm(&(prod_vect[0])) / computeNorm(&(vect2[0])) ;
+        
+        
+        for (isom = 0 ; isom < nbr_som_fac ; isom++) {
+          
+          coo_som_fac[3*isom] =
+            cost*coo_som_fac_tmp[3*isom] + sint*coo_som_fac_tmp[3*isom + 2] ;
+          coo_som_fac[3*isom+1] = coo_som_fac_tmp[3*isom+1] ;
+          coo_som_fac[3*isom+2] = 0. ;
+          
+        }
+        
+        coo_point_dist[0] =
+          cost*coo_point_dist_tmp[0] + sint*coo_point_dist_tmp[2] ;
+        coo_point_dist[1] = coo_point_dist_tmp[1] ;
+        coo_point_dist[2] = 0. ;
+        
+        
+        delete [] (coo_som_fac_tmp) ;
+        
+      }
+      else {
+        
+        /* On écrase seulement la coordonnée z du sommet, en intervertissant
+           éventuellement les coordonnées dans le plan de projection (Oxy).  */
+        
+        if (normale_fac[2] > 0.) {
+          for (isom = 0 ; isom < nbr_som_fac ; isom++)
+            coo_som_fac[3*isom+2] = 0. ;
+          
+          coo_point_dist[2] = 0. ;
+        }
+        else {
+          for (isom = 0 ; isom < nbr_som_fac ; isom++) {
+            coo_tmp = coo_som_fac[3*isom] ;
+            coo_som_fac[3*isom] = coo_som_fac[3*isom+1] ;
+            coo_som_fac[3*isom+1] = coo_tmp ;
+            coo_som_fac[3*isom+2] = 0. ;
+          }
+          coo_tmp = coo_point_dist[0] ;
+          coo_point_dist[0] = coo_point_dist[1] ;
+          coo_point_dist[1] = coo_tmp ;
+          coo_point_dist[2] = 0. ;
+        }
+      }
+    }
+
+    return isPlane;
+  }
+  
+  
+void LocationToLocalMesh::compute2DMeanValues2()
+{
+  /* Boucle sur les points distants */
+
+  const int n_dist_points = fvm::fvm_locator_get_n_dist_points(_fvmLocator);
+  const fvm::fvm_lnum_t *dist_locations = fvm::fvm_locator_get_dist_locations(_fvmLocator);
+  const fvm::fvm_coord_t *dist_coords = fvm::fvm_locator_get_dist_coords(_fvmLocator);
+  fvm::fvm_coord_t coo_point_dist[3];
+
+  /* Tableaux locaux */
+
+  const double eps = 1e-15;
+  std::vector <double> coo_som_face;
+  std::vector <double> s; 
+  std::vector <double> dist;
+  std::vector <double> aire;
+  std::vector <double> proScal;
+  std::vector <double> angle;
+  std::vector <double> normale;
+  std::vector <double> distBarCoordsTmp;
+  std::vector <double> coo_som_elt;
+  std::vector <double> triangle_vertices;
+  std::vector <int> localIndVertex(_supportMesh->getNVertex());
+
+
+
+  int tailleDistBarCoords;
+  int n_triangles;
+
+  _barycentricCoordinatesIndex = new std::vector <int> (n_dist_points + 1);
+
+  tailleDistBarCoords = 4 * n_dist_points;
+  _barycentricCoordinates = new std::vector <double> (tailleDistBarCoords);
+
+  std::vector <int>& nDistBarCoords = *_barycentricCoordinatesIndex;
+  std::vector <double>& distBarCoords = *_barycentricCoordinates;
+
+  const int *meshConnectivityIndex = _supportMesh->getEltConnectivityIndex();
+  const int *meshConnectivity = _supportMesh->getEltConnectivity();
+  const double *meshVertexCoords = _supportMesh->getVertexCoords();
+
+  nDistBarCoords[0] = 0;
+
+  for (int ipoint =  0; ipoint < n_dist_points; ipoint++ ) {
+    //bft_printf("-- Etude du point : %d \n", ipoint);
+
+    /* Initialisation - Copie locale */
+
+    int isOnEdge = 0;
+    int isVertex = 0;
+    bool isPlane;
+    bool isOnFace = false;
+    int ielt = dist_locations[ipoint] - 1;
+    int nbr_som_fac =  meshConnectivityIndex[ielt+1] - 
+                       meshConnectivityIndex[ielt];
+
+        bft::bft_printf("numero element  %d \n",ielt);
+
+    coo_point_dist[0] = dist_coords[3*ipoint];
+    coo_point_dist[1] = dist_coords[3*ipoint + 1];
+    coo_point_dist[2] = dist_coords[3*ipoint + 2];
+
+    if (ipoint == 0) {
+      coo_som_face.resize(3 * nbr_som_fac);
+      s.resize(3 * nbr_som_fac);
+      dist.resize(nbr_som_fac);
+      aire.resize(nbr_som_fac);
+      proScal.resize(nbr_som_fac);
+      angle.resize(3);
+      normale.resize(9);
+      distBarCoordsTmp.resize(nbr_som_fac);
+      coo_som_elt.resize(3*nbr_som_fac);
+
+    }
+    else
+      if (proScal.size() < nbr_som_fac) {
+        coo_som_face.resize(3 * nbr_som_fac);
+        s.resize(3 * nbr_som_fac);
+        dist.resize(nbr_som_fac);
+        aire.resize(nbr_som_fac);
+        proScal.resize(nbr_som_fac);
+        distBarCoordsTmp.resize(nbr_som_fac);
+        coo_som_elt.resize(3*nbr_som_fac);
+      }
+
+    for (int isom = 0; isom < nbr_som_fac; isom++) {
+      coo_som_elt[3*isom]   = meshVertexCoords[3*(meshConnectivity[meshConnectivityIndex[ielt]+isom]-1)];
+      coo_som_elt[3*isom+1] = meshVertexCoords[3*(meshConnectivity[meshConnectivityIndex[ielt]+isom]-1)+1];
+      coo_som_elt[3*isom+2] = meshVertexCoords[3*(meshConnectivity[meshConnectivityIndex[ielt]+isom]-1)+2];
+    }
+
+    /* Projection sur un plan moyen */
+
+    isPlane = midplaneProjection2(nbr_som_fac, &coo_som_elt[0], coo_point_dist);
+
+    if(isPlane){
+
+      /* Calcul des coordonnnees barycentriques */
+      
+      for (int isom = 0; isom < nbr_som_fac; isom++) {
+        
+        s[3*isom]   = coo_som_elt[3*isom]   - coo_point_dist[0];
+        s[3*isom+1] = coo_som_elt[3*isom+1] - coo_point_dist[1];
+        s[3*isom+2] = coo_som_elt[3*isom+2] - coo_point_dist[2];
+        dist[isom] = sqrt(s[3*isom]*s[3*isom] +
+                          s[3*isom+1]*s[3*isom+1] +
+                          s[3*isom+2]*s[3*isom+2]);
+      }
+      
+      int currentVertex;
+      for (int isom = 0; isom < nbr_som_fac; isom++) {
+        if (isom != (nbr_som_fac - 1)) {
+          aire[isom] = s[3*isom]*s[3*(isom+1)+1] - s[3*(isom+1)]*s[3*isom+1];
+          proScal[isom] = s[3*isom] * s[3*(isom+1)] +
+            s[3*isom+1] * s[3*(isom+1)+1] +
+            s[3*isom+2] * s[3*(isom+1)+2];
+        }
+        else {
+          aire[isom] = s[3*isom]*s[1] - s[0]*s[3*isom+1];
+          proScal[isom] = s[3*isom] * s[0] +
+            s[3*isom+1] * s[1] +
+            s[3*isom+2] * s[2];
+        }
+        if (dist[isom] <= eps) {
+          isVertex = 1;
+          currentVertex = isom;
+          break;
+        }
+        /* faire un test avec eps pour proScal */
+        else if (aire[isom] <= eps && proScal[isom] < 0.) {
+          isOnEdge = 1;
+          currentVertex = isom;
+          break;
+        }
+      }
+      
+      /* Mise a jour de la taille du tableau de stockage des coordonnees barycentriques */
+      
+      nDistBarCoords[ipoint+1] = nDistBarCoords[ipoint] + nbr_som_fac;
+      
+      if (distBarCoords.size() <= nDistBarCoords[ipoint+1]) {
+        distBarCoords.resize(2 * distBarCoords.size());
+      }
+      
+      /* Le point distant est un sommet */
+      
+      if (isVertex) {
+        
+        for (int isom = 0; isom < nbr_som_fac; isom++)
+          distBarCoords[nDistBarCoords[ipoint]+isom] = 0.;
+        distBarCoords[nDistBarCoords[ipoint]+currentVertex] = 1.;
+      }
+      
+      /* Le point distant est sur arete */
+      
+      else if (isOnEdge) {
+        for (int isom = 0; isom < nbr_som_fac; isom++)
+          distBarCoords[nDistBarCoords[ipoint]+isom] = 0.;
+        
+        int nextPoint;
+        if (currentVertex == (nbr_som_fac - 1))
+          nextPoint = 0;
+        else
+          nextPoint = currentVertex + 1;
+        
+        distBarCoords[nDistBarCoords[ipoint]+currentVertex] = dist[nextPoint]     / (dist[nextPoint]+dist[currentVertex]);
+        distBarCoords[nDistBarCoords[ipoint]+nextPoint]     = dist[currentVertex] / (dist[nextPoint]+dist[currentVertex]);
+        
+      }
+      
+      /* Cas general */
+      
+      else {
+        double sigma = 0;
+        for (int isom = 0; isom < nbr_som_fac; isom++) {
+          double coef = 0.;
+          int previousVertex;
+          int nextVertex;
+          if (isom != 0)
+            previousVertex = isom - 1;
+          else
+            previousVertex = nbr_som_fac - 1;
+          if (isom < nbr_som_fac - 1)
+            nextVertex = isom + 1;
+          else
+            nextVertex = 0;
+          if (LocationToLocalMesh::abs(aire[previousVertex]) > eps)
+            coef += (dist[previousVertex] - proScal[previousVertex]/dist[isom]) / aire[previousVertex];
+          // BUG: verifier le test de calcul du coeff
+          if (LocationToLocalMesh::abs(aire[isom]) > eps)
+            coef += (dist[nextVertex] - proScal[isom]/dist[isom]) / aire[isom];
+          sigma += coef;
+          distBarCoords[nDistBarCoords[ipoint]+isom] = coef;
+        }
+        if (LocationToLocalMesh::abs(sigma) >= eps ) {
+          for (int isom = 0; isom < nbr_som_fac; isom++) {
+            distBarCoords[nDistBarCoords[ipoint]+isom] /= sigma;
+          }
+        }
+        else {
+          double abs_sigma = LocationToLocalMesh::abs(sigma);
+          printf("Warning : mise à NAN %f %f", abs_sigma,  eps);
+          for (int isom = 0; isom < nbr_som_fac; isom++) {
+            distBarCoords[nDistBarCoords[ipoint]+isom] = NAN;
+          }
+        }
+      }
+      
+      if( 1 == 1){
+        
+        for(int isom = 0; isom<nbr_som_fac;isom++)
+          bft::bft_printf("sommet   %f %f %f  coord bar final   %f \n",coo_som_elt[3*isom],coo_som_elt[3*isom+1],coo_som_elt[3*isom+2],distBarCoords[nDistBarCoords[ipoint] + isom]);
+
+
+        std::vector <double> test(3);
+        
+        for(int i =0;i<3;i++)
+          test[i] = 0;
+        
+        double sum =0;
+
+        for(int isom =0;isom<nbr_som_fac;isom++){
+          
+          test[0] += distBarCoords[nDistBarCoords[ipoint] + isom] * coo_som_elt[3*isom];
+          test[1] += distBarCoords[nDistBarCoords[ipoint] + isom] * coo_som_elt[3*isom + 1];
+          test[2] += distBarCoords[nDistBarCoords[ipoint] + isom] * coo_som_elt[3*isom + 2];
+          
+          sum += distBarCoords[nDistBarCoords[ipoint] + isom];
+        }
+        
+        bft::bft_printf("MV2D  point distant n°%d| verification \n",ipoint);
+        
+        for(int i =0;i<3;i++)
+          bft::bft_printf("  %f       |    %f \n",dist_coords[3*ipoint+i],test[i]);
+       
+        bft::bft_printf("sum  %f \n",sum);
+ 
+      }
+
+
+    }
+    
+    else{
+
+      std::vector <int> triangle_vertices;
+      std::vector <int> face_connectivity(nbr_som_fac);
+      std::vector <int> face_connectivity_index(2);
+
+      face_connectivity_index[0] = 0;
+      face_connectivity_index[1] = nbr_som_fac;
+
+      for(int i=0; i < nbr_som_fac;i++)
+        face_connectivity[i] = meshConnectivity[meshConnectivityIndex[ielt] + i];
+      
+      for(int isom=0; isom<nbr_som_fac;isom ++)
+        distBarCoordsTmp[isom] = 0;
+
+      for(int isom = 0; isom < nbr_som_fac;isom++)
+        localIndVertex[meshConnectivity[meshConnectivityIndex[ielt] + isom] - 1] = isom ;
+      
+      nDistBarCoords[ipoint + 1] = nDistBarCoords[ipoint] + nbr_som_fac;
+      
+      if(distBarCoords.size() <= nDistBarCoords[ipoint + 1 ])
+        distBarCoords.resize(2*distBarCoords.size());
+      
+      double sigma = 0;
+      
+
+      for (int isom = 0; isom < nbr_som_fac ; isom++){
+        
+        coo_som_elt[ 3 * isom ]     = meshVertexCoords[ 3 * (meshConnectivity[ meshConnectivityIndex[ ielt ] + isom ] - 1 ) ];
+        coo_som_elt[ 3 * isom + 1 ] = meshVertexCoords[ 3 * (meshConnectivity[ meshConnectivityIndex[ ielt ] + isom ] - 1 ) + 1];
+        coo_som_elt[ 3 * isom + 2 ] = meshVertexCoords[ 3 * (meshConnectivity[ meshConnectivityIndex[ ielt ] + isom ] - 1 ) + 2];      
+        
+       
+        bft::bft_printf("coo som fac  %f %f %f \n",
+                        coo_som_elt[ 3 * isom ],
+                        coo_som_elt[ 3 * isom + 1 ],
+                        coo_som_elt[ 3 * isom + 2]);
+        
+        
+        
+        s[ 3 * isom ]     = coo_som_elt[ 3 * isom ]     - coo_point_dist[ 0 ];
+        s[ 3 * isom + 1 ] = coo_som_elt[ 3 * isom + 1 ] - coo_point_dist[ 1 ];
+        s[ 3 * isom + 2 ] = coo_som_elt[ 3 * isom + 2 ] - coo_point_dist[ 2 ];
+        
+        //  bft::bft_printf("s   %f  %f  %f \n",s[ 3 * isom ],s[ 3 * isom + 1 ],s[ 3 * isom + 2 ]);
+        
+        
+        dist[isom] = sqrt(  s[ 3 * isom ]    * s[ 3 * isom ] 
+                            + s[ 3 * isom + 1] * s[ 3 * isom + 1 ] 
+                            + s[ 3 * isom + 2] * s[ 3 * isom + 2 ] );           
+        
+      }
+      
+
+      if(nbr_som_fac == 4){               
+        if(triangle_vertices.size() < 6 ){          
+          triangle_vertices.resize(6);
+          coo_som_face.resize(nbr_som_fac);
+        }
+               
+        for (int isom = 0 ; isom <nbr_som_fac ; isom++){
+          coo_som_face[3*isom] = meshVertexCoords[3*(face_connectivity[isom] - 1) ];
+          coo_som_face[3*isom + 1] = meshVertexCoords[3*(face_connectivity[isom] - 1) + 1 ];
+          coo_som_face[3*isom + 2] = meshVertexCoords[3*(face_connectivity[isom] - 1) + 2 ];
+        }
+
+        
+        n_triangles = fvm::fvm_triangulate_quadrangle(3,
+                                                      &(coo_som_face[0]),
+                                                      NULL,
+                                                      NULL,
+                                                      &(triangle_vertices[0]));
+        for(int i = 0 ; i< 3*n_triangles ; i++)
+          triangle_vertices[i] = face_connectivity[triangle_vertices[i] - 1 ] - 1;
+        
+      }
+      
+      else if (nbr_som_fac > 4){
+
+        if(triangle_vertices.size() < nbr_som_fac ){          
+          triangle_vertices.resize(3*nbr_som_fac);
+          coo_som_face.resize(3*nbr_som_fac);
+        }
+
+        for (int isom = 0 ; isom <nbr_som_fac ; isom++){
+          coo_som_face[3*isom] = meshVertexCoords[3*(face_connectivity[isom] - 1) ];
+          coo_som_face[3*isom + 1] = meshVertexCoords[3*(face_connectivity[isom] - 1) + 1 ];
+          coo_som_face[3*isom + 2] = meshVertexCoords[3*(face_connectivity[isom] - 1) + 2 ];
+        }
+
+        n_triangles = fvm::fvm_triangulate_polygon(3,
+                                                   nbr_som_fac,
+                                                   &(coo_som_face[0]),
+                                                   NULL,
+                                                   NULL,
+                                                   fvm::FVM_TRIANGULATE_MESH_DEF,
+                                                   &(triangle_vertices[0]),
+                                                   fvm::fvm_triangulate_state_create(nbr_som_fac));
+
+
+        for(int i = 0 ; i< 3*n_triangles ; i++)
+          triangle_vertices[i] = face_connectivity[triangle_vertices[i] - 1 ] - 1;
+
+      }       
+      else{
+        n_triangles = 1;
+        
+        //bft::bft_printf("triangulaire \n");        
+        for(int i = 0; i < 3 ; i++)
+          triangle_vertices[i] = face_connectivity[i] - 1;         
+        
+      }
+
+     
+      for(int itri = 0 ; itri < n_triangles ; itri++){
+        double det;
+        
+        
+        
+        /**** indice des sommets de la face ****/
+        
+        const int i = localIndVertex[ triangle_vertices[3*itri] ];
+        const int j = localIndVertex[ triangle_vertices[3*itri + 1] ];
+        const int k = localIndVertex[ triangle_vertices[3*itri + 2] ];
+        
+        det =  (1./6) * (  ( ( s[3*i+1] * s[3*j+2] - s[3*j+1] * s[3*i+2] ) * s[3*k] )
+                           + ( ( s[3*i]   * s[3*j+2] - s[3*j]   * s[3*i+2] ) * s[3*k+1])
+                           + ( ( s[3*i]   * s[3*j+1] - s[3*j]   * s[3*i+1] ) * s[3*k+2] ) );
+        
+        
+        bft::bft_printf("face %d %d %d   determinant  %f \n",i,j,k,det);
+        
+
+        if(abs(det) < eps){
+          
+          bft::bft_printf("*********is vertex or on edge********\n");
+          
+          double aireTri_ijk;
+          double aireTri_ijv;
+          double aireTri_ikv;
+          double aireTri_jkv;
+          double coo_ijx;
+          double coo_ijy;
+          double coo_ijz;
+          double coo_ikx;
+          double coo_iky;
+          double coo_ikz;
+          
+          coo_ijx = coo_som_elt[3*j]   - coo_som_elt[3*i];
+          coo_ijy = coo_som_elt[3*j+1] - coo_som_elt[3*i+1];
+          coo_ijz = coo_som_elt[3*j+2] - coo_som_elt[3*i+2];
+          coo_ikx = coo_som_elt[3*k]   - coo_som_elt[3*i];
+          coo_iky = coo_som_elt[3*k+1] - coo_som_elt[3*i+1];
+          coo_ikz = coo_som_elt[3*k+2] - coo_som_elt[3*i+2];
+         
+ 
+          aireTri_ijk = sqrt(  ( coo_ijy * coo_ikz - coo_ijz * coo_iky ) * ( coo_ijy * coo_ikz - coo_ijz * coo_iky )
+                               + ( coo_ijz * coo_ikx - coo_ijx * coo_ikz ) * ( coo_ijz * coo_ikx - coo_ijx * coo_ikz )
+                               + ( coo_ijx * coo_iky - coo_ijy * coo_ikx ) * ( coo_ijx * coo_iky - coo_ijy * coo_ikx ));
+          
+          aireTri_ijv = sqrt(  ( s[3*i+1] * s[3*j+2] - s[3*i+2] * s[3*j+1] ) * ( s[3*i+1] * s[3*j+2] - s[3*i+2] * s[3*j+1] )
+                               + ( s[3*i+2] * s[3*j]   - s[3*i]   * s[3*j+2] ) * ( s[3*i+2] * s[3*j]   - s[3*i]   * s[3*j+2] )
+                               + ( s[3*i]   * s[3*j+1] - s[3*i+1] * s[3*j] )   * ( s[3*i]   * s[3*j+1] - s[3*i+1] * s[3*j] ));
+          
+          aireTri_ikv = sqrt(  ( s[3*i+1] * s[3*k+2] - s[3*i+2] * s[3*k+1] ) * ( s[3*i+1] * s[3*k+2] - s[3*i+2] * s[3*k+1] )
+                               + ( s[3*i+2] * s[3*k]   - s[3*i]   * s[3*k+2] ) * ( s[3*i+2] * s[3*k]   - s[3*i]   * s[3*k+2] )
+                               + ( s[3*i]   * s[3*k+1] - s[3*i+1] * s[3*k] )   * ( s[3*i]   * s[3*k+1] - s[3*i+1] * s[3*k] ));
+          
+          aireTri_jkv = sqrt(  ( s[3*j+1] * s[3*k+2] - s[3*j+2] * s[3*k+1] ) * ( s[3*j+1] * s[3*k+2] - s[3*j+2] * s[3*k+1] )
+                               + ( s[3*j+2] * s[3*k]   - s[3*j]   * s[3*k+2] ) * ( s[3*j+2] * s[3*k]   - s[3*j]   * s[3*k+2] )
+                               + ( s[3*j]   * s[3*k+1] - s[3*j+1] * s[3*k] )   * ( s[3*j]   * s[3*k+1] - s[3*j+1] * s[3*k] ));
+         
+          
+          if( abs(1 - (aireTri_jkv + aireTri_ikv + aireTri_ijv) / aireTri_ijk) < eps){
+            for(int isom = 0 ; isom < nbr_som_fac ; isom++)
+              distBarCoords[nDistBarCoords[ipoint]+isom] = 0.;
+            
+            
+            distBarCoords[ nDistBarCoords[ipoint] + i ] = aireTri_jkv / aireTri_ijk ;
+            distBarCoords[ nDistBarCoords[ipoint] + j ] = aireTri_ikv / aireTri_ijk ;
+            distBarCoords[ nDistBarCoords[ipoint] + k ] = aireTri_ijv / aireTri_ijk ;
+            isOnFace = true;
+            
+            break;
+          }
+          
+        }
+        
+      }
+
+      if(!isOnFace){     
+        int ind_som;
+        
+        for(int isom = 0 ; isom < nbr_som_fac ; isom++){
+
+          s[3 * isom]     /= dist[isom];
+          s[3 * isom + 1] /= dist[isom];
+          s[3 * isom + 2] /= dist[isom];      
+          
+          
+        }              
+
+        if(nbr_som_fac == 4){               
+          
+          if(triangle_vertices.size() < 6 ){          
+            triangle_vertices.resize(6);
+            coo_som_face.resize(nbr_som_fac);
+          }
+           
+          for (int isom = 0 ; isom <nbr_som_fac ; isom++){
+            coo_som_face[3*isom] = meshVertexCoords[3*(face_connectivity[isom] - 1) ];
+            coo_som_face[3*isom + 1] = meshVertexCoords[3*(face_connectivity[isom] - 1) + 1 ];
+            coo_som_face[3*isom + 2] = meshVertexCoords[3*(face_connectivity[isom] - 1) + 2 ];
+          }          
+
+          
+          n_triangles = fvm::fvm_triangulate_quadrangle(3,
+                                                        &(coo_som_face[0]),
+                                                        NULL,
+                                                        NULL,
+                                                        &(triangle_vertices[0]));
+          
+          for(int i = 0 ; i< 3*n_triangles ; i++)
+            triangle_vertices[i] = face_connectivity[triangle_vertices[i] - 1] - 1;
+          
+        }
+        
+        else if (nbr_som_fac > 4){
+          
+          if(triangle_vertices.size() < nbr_som_fac ){          
+            triangle_vertices.resize(3*nbr_som_fac);
+            coo_som_face.resize(3*nbr_som_fac);
+          }
+          
+   
+          for (int isom = 0 ; isom <nbr_som_fac ; isom++){
+            coo_som_face[3*isom] = meshVertexCoords[3*(face_connectivity[isom] - 1) ];
+            coo_som_face[3*isom + 1] = meshVertexCoords[3*(face_connectivity[isom] - 1) + 1 ];
+            coo_som_face[3*isom + 2] = meshVertexCoords[3*(face_connectivity[isom] - 1) + 2 ];
+          }          
+
+
+          n_triangles = fvm::fvm_triangulate_polygon(3,
+                                                     nbr_som_fac,
+                                                     &(coo_som_face[0]),
+                                                     NULL,
+                                                     NULL,
+                                                     fvm::FVM_TRIANGULATE_MESH_DEF,
+                                                     &(triangle_vertices[0]),
+                                                     fvm::fvm_triangulate_state_create(nbr_som_fac));          
+          
+          for(int i = 0 ; i< 3*n_triangles ; i++)
+            triangle_vertices[i] = face_connectivity[triangle_vertices[i] - 1] - 1;
+          
+        }       
+        
+        
+        else{          
+          n_triangles = 1;
+          
+          for(int i = 0; i < 3 ; i++)
+            triangle_vertices[i] = face_connectivity[i] - 1;
+          
+        }
+ 
+        for(int itri = 0; itri < n_triangles ; itri ++){ 
+          for(int isom = 0; isom < 3; isom++){
+            
+            int isuiv;
+            int iprec;
+            double prod_scal;
+            double mod;                    
+            
+            /**** fonctionne seulement lorsque nbr_som_fac_tr = 3 ****/
+            
+            
+            if(isom == 0)
+              iprec = localIndVertex[triangle_vertices[3*itri + 2]];             
+            else 
+              iprec = localIndVertex[triangle_vertices[3*itri + isom - 1]];
+            
+            if (isom == 2)
+              isuiv = localIndVertex[triangle_vertices[3*itri]];
+            else 
+              isuiv = localIndVertex[triangle_vertices[3*itri + isom + 1]]; 
+            
+            
+            prod_scal = s[3 * iprec]     * s[3 * isuiv]
+              + s[3 * iprec + 1] * s[3 * isuiv + 1]
+              + s[3 * iprec + 2] * s[3 * isuiv + 2];
+            
+            angle[isom] = acos(prod_scal); //s est de norme 1                   
+            
+            normale[3 * isom]     = s[3 * iprec + 1] * s[3 * isuiv + 2] - s[3 * iprec + 2] * s[3*isuiv + 1];        
+            normale[3 * isom + 1] = s[3 * iprec + 2] * s[3 * isuiv]     - s[3 * iprec]     * s[3 * isuiv + 2];
+            normale[3 * isom + 2] = s[3 * iprec]     * s[3 * isuiv + 1] - s[3 * iprec + 1] * s[3 * isuiv];        
+            
+            mod = sqrt(  normale[3 * isom]     * normale[3 * isom]
+                         + normale[3 * isom + 1] * normale[3 * isom + 1]
+                         + normale[3 * isom + 2] * normale[3 * isom + 2]);
+            
+            normale[3 * isom]     /= mod ;
+            normale[3 * isom + 1] /= mod ;
+            normale[3 * isom + 2] /= mod ;
+            
+          }    
+          
+          
+          for(int isom = 0; isom < 3; isom++){
+            
+            int isuiv;
+            int iprec;
+            double ps_nij_njk; //a ameliorer
+            double ps_nki_njk; //a ameliorer
+            double ps_ei_njk;  //a ameliorer          
+            
+            if(isom ==0)
+              iprec =  2;
+            else 
+              iprec = isom - 1; 
+            
+            if (isom == 2)
+              isuiv = 0;
+            else 
+              isuiv = isom + 1;            
+            
+            ps_nij_njk = normale[3 * isom]     * normale[3 * isuiv]
+              + normale[3 * isom + 1] * normale[3 * isuiv + 1]
+              + normale[3 * isom + 2] * normale[3 * isuiv + 2];
+            
+            ps_nki_njk = normale[3 * isom]     * normale[3 * iprec]
+              + normale[3 * isom + 1] * normale[3 * iprec + 1]
+              + normale[3 * isom + 2] * normale[3 * iprec + 2];
+            
+            ps_ei_njk = s[3 * localIndVertex[triangle_vertices[3*itri + isom]]  ]    * normale[3 * isom] 
+              + s[3 * localIndVertex[triangle_vertices[3*itri + isom]] + 1] * normale[3 * isom + 1]
+              + s[3 * localIndVertex[triangle_vertices[3*itri + isom]] + 2] * normale[3 * isom + 2];       
+            
+             distBarCoordsTmp[localIndVertex[triangle_vertices[3*itri + isom]]] +=
+               (angle[isom] + angle[isuiv] * ps_nij_njk + angle[iprec] * ps_nki_njk) / (2 * ps_ei_njk);           
+
+             if((angle[isom] + angle[isuiv] * ps_nij_njk + angle[iprec] * ps_nki_njk) / (2 * ps_ei_njk) < 0)
+               bft::bft_printf("coo < 0    %f  %f  %f  %f  %f  %f  %f \n",angle[isom] , angle[isuiv] , ps_nij_njk , angle[iprec] ,ps_nki_njk,ps_ei_njk,(angle[isom] + angle[isuiv] * ps_nij_njk + angle[iprec] * ps_nki_njk) / (2 * ps_ei_njk));
+          }
+        }
+        
+        
+        for(int isom = 0; isom<nbr_som_fac;isom++){
+          
+          distBarCoordsTmp[isom] /= dist[isom];
+          sigma += distBarCoordsTmp[isom];
+          
+        }
+        
+        for(int isom = 0; isom<nbr_som_fac;isom++)
+          distBarCoords[nDistBarCoords[ipoint] + isom] = distBarCoordsTmp[isom] / sigma;            
+        
+      }
+      
+      for(int isom = 0; isom<nbr_som_fac;isom++)
+        bft::bft_printf("sommet   %f %f %f  coord bar final   %f \n",coo_som_elt[3*isom],coo_som_elt[3*isom+1],coo_som_elt[3*isom+2],distBarCoords[nDistBarCoords[ipoint] + isom]);
+      
+      
+      if( 1 == 1){
+        
+        std::vector <double> test(3);
+        
+        for(int i =0;i<3;i++)
+          test[i] = 0;
+        
+        double sum =0;
+
+        for(int isom =0;isom<nbr_som_fac;isom++){
+          
+          test[0] += distBarCoords[nDistBarCoords[ipoint] + isom] * coo_som_elt[3*isom];
+          test[1] += distBarCoords[nDistBarCoords[ipoint] + isom] * coo_som_elt[3*isom + 1];
+          test[2] += distBarCoords[nDistBarCoords[ipoint] + isom] * coo_som_elt[3*isom + 2];
+          
+          sum += distBarCoords[nDistBarCoords[ipoint] + isom];
+        }
+        
+        bft::bft_printf("MV3D   point distant n°%d| verification \n",ipoint);
+        
+        for(int i =0;i<3;i++)
+          bft::bft_printf("  %f       |    %f \n",coo_point_dist[i],test[i]);
+       
+        bft::bft_printf("sum  %f \n",sum);
+ 
+      }
+      
+      if (0 == 1) {
+        bft::bft_printf("coord %i :", ipoint);
+        bft::bft_printf(" %12.5e %12.5e %12.5e", dist_coords[3 * ipoint], 
+                        dist_coords[3 * ipoint + 1], 
+                        dist_coords[3 * ipoint + 2] );
+        bft::bft_printf("\n");
+        
+        bft::bft_printf("coo b %i :", ipoint);
+        for (int isom = 0; isom < nbr_som_fac; isom++) 
+          bft::bft_printf(" %f", distBarCoords[nDistBarCoords[ipoint] + isom]);
+        
+
+
+        bft::bft_printf("\n");
+        
+      }
+      
+      triangle_vertices.clear();             
+    }
+  }
+
+  coo_som_face.clear();
+  s.clear();
+  aire.clear();
+  dist.clear();
+  proScal.clear();
+  
+}
+
+
 
 } // Namespace CWIPI
 

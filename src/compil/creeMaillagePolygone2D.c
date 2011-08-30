@@ -242,9 +242,9 @@ void creeMaillagePolygone2D(int order,
         (*meshCoords)[3*ix+1] += random01() * coefRand * cote2;
 
       }
-      //(*meshCoords)[3*ix+2]=2*sin(3*(*meshCoords)[3*ix+1])*sin(3*(*meshCoords)[3*ix]);
+      (*meshCoords)[3*ix+2]=2*sin(3*(*meshCoords)[3*ix+1])*sin(3*(*meshCoords)[3*ix]);
       //(*meshCoords)[3*ix+2]=20*sin((*meshCoords)[3*ix+1]/5.)*sin((*meshCoords)[3*ix]/5.);
-      (*meshCoords)[3*ix+2]=0.;
+      //(*meshCoords)[3*ix+2]=0.;
     }
 
 

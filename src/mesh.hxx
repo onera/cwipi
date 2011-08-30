@@ -47,6 +47,7 @@ namespace cwipi {
                       int *cellToFaceConnectivity,
                       int *faceConnectivityIndex,
                       int *faceConnectivity);
+
     inline const int& getNVertex() const;
 
     inline const double* getVertexCoords() const;
@@ -67,6 +68,8 @@ namespace cwipi {
 
     inline const std::vector<double>& getCellCenterCoords();
 
+    inline const std::vector<double>& getNormalFace();    
+
     inline const int *getPolyhedraFaceIndex() const;
 
     inline const int *getPolyhedraCellToFaceConnectivity() const;
@@ -81,12 +84,14 @@ namespace cwipi {
 
     void update();
 
-  private:
+  private :
     Mesh();
 
     Mesh(const Mesh&);
 
     Mesh& operator=(const Mesh&);
+
+  protected :
 
     void _computeCellCenterCoordsWithVertex(const int i,
                                             const int nCurrentEltVertex,
@@ -134,6 +139,8 @@ namespace cwipi {
 
     std::vector<double>  *_cellCenterCoords;
     std::vector<double>  *_cellVolume;
+    std::vector<double>  *_normalFace;
+
     fvm::fvm_nodal_t *_fvmNodal;
   };
 
@@ -195,6 +202,15 @@ namespace cwipi {
 
     return *_cellCenterCoords;
   }
+
+  const std::vector<double>& Mesh::getNormalFace()
+  {
+    if (_normalFace == NULL)
+      _computeMeshProperties();
+
+    return *_normalFace;
+  }
+  
 
   const int *Mesh::getPolyhedraFaceIndex() const
   {

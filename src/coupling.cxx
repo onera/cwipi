@@ -415,12 +415,12 @@ void Coupling::_interpolate2D (double *vertexField,
     //TODO: Stocker le resultat de la verification dans un tableau en Npoints pour ne le faire qu'une fois
 
     bool barycentricCoordValidation = true;
-    for (int isom = 0; isom <  nSom; isom++) {
-      if ( barycentricCoordinates[index+isom] != barycentricCoordinates[index+isom] ||
-          barycentricCoordinates[index+isom] < 0. ||
-          barycentricCoordinates[index+isom] > 1. )
-        barycentricCoordValidation = false;
-    }
+//     for (int isom = 0; isom <  nSom; isom++) {
+//       if ( barycentricCoordinates[index+isom] != barycentricCoordinates[index+isom] ||
+//           barycentricCoordinates[index+isom] < 0. ||
+//           barycentricCoordinates[index+isom] > 1. )
+//         barycentricCoordValidation = false;
+//     }
 
     if (barycentricCoordValidation) {
       for (int k = 0; k < stride; k++)
