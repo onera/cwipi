@@ -24,7 +24,7 @@
 #include <mpi.h>
 #include <map>
 
-#include <bft_printf.h>
+#include <bftc_printf.h>
 
 #include "singleton.hpp"
 
@@ -46,7 +46,7 @@ namespace cwipi {
   public:
     MPI_Comm init(const char* name, const MPI_Comm globalComm);
 
-    inline void setPrintfProxy(bft::bft_printf_proxy_t *const callBackPrintf);
+    inline void setPrintfProxy(bftc_printf_proxy_t *const callBackPrintf);
 
     // Access to local MPI properties (synchronisation with a second application)
 

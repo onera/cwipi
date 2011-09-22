@@ -17,7 +17,7 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <bft_mem.h>
+#include <bftc_mem.h>
 #include "quickSort.h"
 
 #ifdef __cplusplus

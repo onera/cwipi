@@ -19,8 +19,8 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <fvm_defs.h>
-#include <fvm_nodal.h>
+/* #include <fvm_defs.h> */
+/* #include <fvm_nodal.h> */
 #include <mpi.h>
 
 #include "cwipi_config.h"

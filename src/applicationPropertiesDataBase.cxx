@@ -23,9 +23,9 @@
 #include <ctime>
 #include <cstdlib>
 
-#include <bft_mem.h>
+#include <bftc_mem.h>
 
-#include <fvm_parall.h>
+#include <fvmc_parall.h>
 
 #include "cwipi_config.h"
 #include "applicationPropertiesDataBase.hxx"
@@ -91,7 +91,7 @@ namespace cwipi {
 
       MPI_Initialized(&flag);
       if (!flag)
-        bft::bft_error(__FILE__, __LINE__, 0, "MPI is not initialized\n");
+        bftc_error(__FILE__, __LINE__, 0, "MPI is not initialized\n");
 
       MPI_Comm_rank(globalComm, &currentRank);
       MPI_Comm_size(globalComm, &globalCommSize);
@@ -115,7 +115,7 @@ namespace cwipi {
       MPI_Allreduce (&nameLength, &totalLength, 1, MPI_INT, MPI_SUM,
                      globalComm);
 
-//       BFT::BFT_MALLOC(mergeNames, totalLength, char) ;
+//       BFT::BFTC_MALLOC(mergeNames, totalLength, char) ;
       char *mergeNames = new char[totalLength];
 
       int *namesLength = new int[globalCommSize];
@@ -169,7 +169,7 @@ namespace cwipi {
               p = _distantApplicationPropertiesDataBase.insert(newPair);
 
             if (!p.second)
-              bft::bft_error(__FILE__, __LINE__, 0,
+              bftc_error(__FILE__, __LINE__, 0,
                         "The MPI ranks range is not continous or\n"
                         "There are two applications with the same name '%s'  \n", currentName.c_str());
           }
@@ -228,7 +228,7 @@ namespace cwipi {
 
     const std::map <std::string, ApplicationProperties * >::iterator p = _distantApplicationPropertiesDataBase.find(applicationName);
     if (p == _distantApplicationPropertiesDataBase.end())
-      bft::bft_error(__FILE__, __LINE__, 0,
+      bftc_error(__FILE__, __LINE__, 0,
                 "'%s' application not found \n", applicationName.c_str());
 
     std::map <std::string, int> &localControlParameters   = _localApplicationProperties->_intControlParameters;
@@ -275,19 +275,19 @@ namespace cwipi {
 
             MPI_Recv(&distantNameSize, 1, MPI_INT, irank, 0, localComm, &status);
             if (distantNameSize != nameSize)
-              bft::bft_error(__FILE__, __LINE__, 0,
+              bftc_error(__FILE__, __LINE__, 0,
                         "Inconsistency between local parameters\n");
 
             distantParamName = new char[distantNameSize+1];
             MPI_Recv(distantParamName, distantNameSize+1, MPI_CHAR, irank, 0, localComm, &status);
             if (strcmp(distantParamName, paramName))
-              bft::bft_error(__FILE__, __LINE__, 0,
+              bftc_error(__FILE__, __LINE__, 0,
                         "Inconsistency between local parameters\n");
             delete[] distantParamName;
 
             MPI_Recv(&distantValue, 1, MPI_INT, irank, 0, localComm, &status);
             if (distantValue != value)
-              bft::bft_error(__FILE__, __LINE__, 0,
+              bftc_error(__FILE__, __LINE__, 0,
                         "Different values for '%s' parameter for the rank 0 and the rank '%i'\n", paramName, irank);
           }
         }
@@ -437,7 +437,7 @@ namespace cwipi {
 
     const std::map <std::string, ApplicationProperties * >::iterator p = _distantApplicationPropertiesDataBase.find(applicationName);
     if (p == _distantApplicationPropertiesDataBase.end())
-      bft::bft_error(__FILE__, __LINE__, 0,
+      bftc_error(__FILE__, __LINE__, 0,
                 "'%s' application not found \n", applicationName.c_str());
 
     std::map <std::string, double> &localControlParameters   = _localApplicationProperties->_doubleControlParameters;
@@ -485,19 +485,19 @@ namespace cwipi {
 
             MPI_Recv(&distantNameSize, 1, MPI_INT, irank, 0, localComm, &status);
             if (distantNameSize != nameSize)
-              bft::bft_error(__FILE__, __LINE__, 0,
+              bftc_error(__FILE__, __LINE__, 0,
                         "Inconsistency between local parameters\n");
 
             distantParamName = new char[distantNameSize+1];
             MPI_Recv(distantParamName, distantNameSize+1, MPI_CHAR, irank, 0, localComm, &status);
             if (strcmp(distantParamName, paramName))
-              bft::bft_error(__FILE__, __LINE__, 0,
+              bftc_error(__FILE__, __LINE__, 0,
                         "Inconsistency between local parameters\n");
             delete[] distantParamName;
 
             MPI_Recv(&distantValue, 1, MPI_DOUBLE, irank, 0, localComm, &status);
             if (distantValue != value)
-              bft::bft_error(__FILE__, __LINE__, 0,
+              bftc_error(__FILE__, __LINE__, 0,
                         "Different values for '%s' parameter for the rank 0 and the rank '%i'\n", paramName, irank);
           }
         }
@@ -641,7 +641,7 @@ namespace cwipi {
 
     const std::map <std::string, ApplicationProperties * >::iterator p = _distantApplicationPropertiesDataBase.find(applicationName);
     if (p == _distantApplicationPropertiesDataBase.end())
-      bft::bft_error(__FILE__, __LINE__, 0,
+      bftc_error(__FILE__, __LINE__, 0,
                 "'%s' application not found \n", applicationName.c_str());
 
     std::map <std::string, std::string> &localControlParameters   = _localApplicationProperties->_stringControlParameters;
@@ -693,25 +693,25 @@ namespace cwipi {
 
             MPI_Recv(&distantNameSize, 1, MPI_INT, irank, 0, localComm, &status);
             if (distantNameSize != nameSize)
-              bft::bft_error(__FILE__, __LINE__, 0,
+              bftc_error(__FILE__, __LINE__, 0,
                         "Inconsistency between local parameters\n");
 
             distantParamName = new char[distantNameSize+1];
             MPI_Recv(distantParamName, distantNameSize+1, MPI_CHAR, irank, 0, localComm, &status);
             if (strcmp(distantParamName, paramName))
-              bft::bft_error(__FILE__, __LINE__, 0,
+              bftc_error(__FILE__, __LINE__, 0,
                         "Inconsistency between local parameters\n");
             delete[] distantParamName;
 
             MPI_Recv(&distantValueSize, 1, MPI_INT, irank, 0, localComm, &status);
             if (distantValueSize != valueSize)
-              bft::bft_error(__FILE__, __LINE__, 0,
+              bftc_error(__FILE__, __LINE__, 0,
                         "Inconsistency between local parameters\n");
 
             distantValueCStr = new char[distantValueSize+1];
             MPI_Recv(distantValueCStr, distantValueSize+1, MPI_CHAR, irank, 0, localComm, &status);
             if (strcmp(distantValueCStr, valueCStr))
-              bft::bft_error(__FILE__, __LINE__, 0,
+              bftc_error(__FILE__, __LINE__, 0,
                         "Inconsistency between local parameters\n");
             delete[] distantValueCStr;
           }
@@ -879,17 +879,17 @@ namespace cwipi {
 
   void ApplicationPropertiesDataBase::dump()
   {
-    bft::bft_printf("\nLocal application properties\n\n");
+    bftc_printf("\nLocal application properties\n\n");
     _localApplicationProperties->dump();
 
     typedef std::map <std::string, ApplicationProperties *>::iterator Iterator;
 
-    bft::bft_printf("\nDistant application properties\n\n");
+    bftc_printf("\nDistant application properties\n\n");
     for (Iterator p = _distantApplicationPropertiesDataBase.begin(); p != _distantApplicationPropertiesDataBase.end(); p++){
       p->second->dump();
-      bft::bft_printf("\n");
+      bftc_printf("\n");
     }
-    bft::bft_printf_flush();
+    bftc_printf_flush();
   }
 
 }

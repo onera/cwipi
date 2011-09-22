@@ -24,13 +24,13 @@
  * BFT library headers
  *----------------------------------------------------------------------------*/
 
-#include <bft_mem.h>
-#include <bft_printf.h>
+#include <bftc_mem.h>
+#include <bftc_printf.h>
 
 /*----------------------------------------------------------------------------
  * FVM library headers
  *----------------------------------------------------------------------------*/
-#include <fvm_parall.h>
+#include <fvmc_parall.h>
 
 /*----------------------------------------------------------------------------
  *  Local headers
@@ -88,11 +88,11 @@ static FILE* _cwipi_output_listing;
 
 /*----------------------------------------------------------------------------
  *
- * bft_printf proxy setting for C interface
+ * bftc_printf proxy setting for C interface
  *
  *----------------------------------------------------------------------------*/
 
-int _cwipi_print_with_c
+static int _cwipi_print_with_c
 (
  const char     *const format,
        va_list         arg_ptr
@@ -105,7 +105,6 @@ int _cwipi_print_with_c
 /*============================================================================
  * Public function definitions
  *============================================================================*/
-
 
 /*----------------------------------------------------------------------------
  *
@@ -133,8 +132,8 @@ void cwipi_init
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
-  bft::bft_printf("\ncwipi "CWIPI_VERSION" initializing\n");
-  bft::bft_printf("------------------------\n\n");
+  bftc_printf("\ncwipi "CWIPI_VERSION" initializing\n");
+  bftc_printf("------------------------\n\n");
 
   *application_comm = properties.init(application_name,
                                       common_comm);
@@ -152,7 +151,7 @@ void cwipi_set_output_listing
 (FILE *output_listing)
 {
   _cwipi_output_listing = output_listing;
-  bft::bft_printf_proxy_set(_cwipi_print_with_c);
+  bftc_printf_proxy_set(_cwipi_print_with_c);
 }
 
 /*----------------------------------------------------------------------------
@@ -677,8 +676,8 @@ void cwipi_define_mesh(const char *coupling_name,
 
 
 
-void cwipi_shared_fvm_nodal(const char *coupling_name,
-                            void* fvm_nodal)
+void cwipi_shared_fvmc_nodal(const char *coupling_name,
+                            void* fvmc_nodal)
 {
   cwipi::CouplingDataBase & couplingDataBase =
     cwipi::CouplingDataBase::getInstance();
@@ -692,7 +691,7 @@ void cwipi_shared_fvm_nodal(const char *coupling_name,
 
   cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
-  coupling.defineMesh((fvm::fvm_nodal_t *) fvm_nodal);
+  coupling.defineMesh((fvmc_nodal_t *) fvmc_nodal);
 
 }
 
@@ -1113,7 +1112,7 @@ void cwipi_finalize()
 
   const MPI_Comm globalComm = properties.getGlobalComm();
 
-  bft::bft_printf("Finalize cwipi\n");
+  bftc_printf("Finalize cwipi\n");
   couplingDataBase.kill();
   properties.kill();
 
@@ -1121,11 +1120,11 @@ void cwipi_finalize()
   MPI_Initialized(&flag);
 
   if (flag != 0) {
-    bft::bft_printf_flush();
+    bftc_printf_flush();
     MPI_Barrier(globalComm);
-    MPI_Comm oldFVMComm = fvm::fvm_parall_get_mpi_comm();
+    MPI_Comm oldFVMComm = fvmc_parall_get_mpi_comm();
   }
-  bft::bft_printf("Finalize MPI\n");
+  bftc_printf("Finalize MPI\n");
 
 }
 
@@ -1202,7 +1201,7 @@ const int * cwipi_get_located_points(const char *coupling_id)
  *
  *----------------------------------------------------------------------------*/
 
-int cwipi_get_n_located_distant_points(const char *coupling_id)
+int cwipi_get_n_distant_points(const char *coupling_id)
 {
   cwipi::CouplingDataBase & couplingDataBase =
     cwipi::CouplingDataBase::getInstance();
@@ -1212,6 +1211,28 @@ int cwipi_get_n_located_distant_points(const char *coupling_id)
   cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   return coupling.getNDistantPoint();
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get distant point coordinates
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ * return
+ *   coordinates
+ *----------------------------------------------------------------------------*/
+
+const double *cwipi_get_distant_coordinates (const char *coupling_id)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_id;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  return coupling.getDistantPointCoordinates();
 }
 
 /*----------------------------------------------------------------------------

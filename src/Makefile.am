@@ -31,8 +31,8 @@ solve_ax_b_4.h
 lib_LTLIBRARIES = libcwipi.la libcwipi_f.la
 noinst_LTLIBRARIES =
 libcwipi_la_LIBADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la
 
 libcwipi_la_SOURCES = \
 applicationProperties.cxx \
@@ -48,8 +48,8 @@ couplingDataBase.cxx \
 callfortinterpfct.f90
 
 libcwipi_f_la_LIBADD = \
-$(top_builddir)/src/bft/libbfto.la \
-$(top_builddir)/src/fvm/libfvmo.la \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
 libcwipi.la
 
 libcwipi_f_la_SOURCES = \

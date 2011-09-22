@@ -4,48 +4,48 @@ dnl This file is part of the BFT software package.  For license
 dnl information, see the COPYING file in the top level directory of the
 dnl BFT source distribution.
 
-# BFT_AC_CHECK_SIZEOF(TYPE, [PREFIX])
+# BFTC_AC_CHECK_SIZEOF(TYPE, [PREFIX])
 #------------------------------------
 # get type sizes
 # Optionnaly, the corresponding SIZEOF definition may be prefixed
 # by the PREFIX variable
 
-AC_DEFUN([BFT_AC_CHECK_SIZEOF],[
+AC_DEFUN([BFTC_AC_CHECK_SIZEOF],[
 
 if test "$1" = "" ; then
   AC_MSG_ERROR([configure test cannot be run])
 fi
 
-AC_REQUIRE([BFT_AC_CONFIG_PUBL_INIT])dnl
+AC_REQUIRE([BFTC_AC_CONFIG_PUBL_INIT])dnl
 
-bft_ac_lcname=`echo "$1" | sed y/' *'/'_p'/`
-bft_ac_lower='abcdefghijklmnopqrstuvwxyz'
-bft_ac_upper='ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+bftc_ac_lcname=`echo "$1" | sed y/' *'/'_p'/`
+bftc_ac_lower='abcdefghijklmnopqrstuvwxyz'
+bftc_ac_upper='ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 if test "$2" != "" ; then
-  bft_ac_szname_prefix=`echo $2 | sed y/$bft_ac_lower/$bft_ac_upper/`_
+  bftc_ac_szname_prefix=`echo $2 | sed y/$bftc_ac_lower/$bftc_ac_upper/`_
 else
-  bft_ac_szname_prefix=""
+  bftc_ac_szname_prefix=""
 fi
-bft_ac_szname_postfix=`echo $bft_ac_lcname | sed y/$bft_ac_lower/$bft_ac_upper/`
-bft_ac_szname="${bft_ac_szname_prefix}SIZEOF_${bft_ac_szname_postfix}"
-unset bft_ac_lower
-unset bft_ac_upper
-unset bft_ac_szname_prefix
-unset bft_ac_szname_postfix
+bftc_ac_szname_postfix=`echo $bftc_ac_lcname | sed y/$bftc_ac_lower/$bftc_ac_upper/`
+bftc_ac_szname="${bftc_ac_szname_prefix}SIZEOF_${bftc_ac_szname_postfix}"
+unset bftc_ac_lower
+unset bftc_ac_upper
+unset bftc_ac_szname_prefix
+unset bftc_ac_szname_postfix
 
 AC_CHECK_SIZEOF($1)
-eval bft_ac_sizeof=\$ac_cv_sizeof_$bft_ac_lcname
-if test "$bft_ac_sizeof" != "" ; then
-  BFT_AC_CONFIG_PUBL_DEFINE([$bft_ac_szname], [$bft_ac_sizeof],
+eval bftc_ac_sizeof=\$ac_cv_sizeof_$bftc_ac_lcname
+if test "$bftc_ac_sizeof" != "" ; then
+  BFTC_AC_CONFIG_PUBL_DEFINE([$bftc_ac_szname], [$bftc_ac_sizeof],
                             [The size of a '$1', as computed by sizeof.])
 else
-  BFT_AC_CONFIG_PUBL_SET([$bft_ac_szname], [no],
+  BFTC_AC_CONFIG_PUBL_SET([$bftc_ac_szname], [no],
                          [The size of a '$1', as computed by sizeof.])
 fi
 
-unset bft_ac_lcname
-unset bft_ac_szname
-unset bft_ac_sizeof
+unset bftc_ac_lcname
+unset bftc_ac_szname
+unset bftc_ac_sizeof
 
 /bin/rm -f conftest*])dnl
 

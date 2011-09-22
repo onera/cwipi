@@ -23,7 +23,7 @@
 
 #include <stdio.h>
 
-//#include <fvm_nodal.h> // 
+//#include <fvmc_nodal.h> // 
 
 /*=============================================================================
  * Macro definitions
@@ -604,8 +604,8 @@ void cwipi_define_mesh(const char *coupling_id,
                        int connectivity_index[],
                        int connectivity[]);
 
-void cwipi_shared_fvm_nodal(const char *coupling_name,
-                            void * fvm_nodal);
+void cwipi_shared_fvmc_nodal(const char *coupling_name,
+                            void * fvmc_nodal);
 
 
 /*----------------------------------------------------------------------------
@@ -690,6 +690,18 @@ const int *cwipi_get_distant_barycentric_coordinates_index (const char *coupling
  *----------------------------------------------------------------------------*/
 
 const double *cwipi_get_distant_barycentric_coordinates (const char *coupling_id);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get distant point coordinates
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ * return
+ *   coordinates
+ *----------------------------------------------------------------------------*/
+
+const double *cwipi_get_distant_coordinates (const char *coupling_id);
 
 /*----------------------------------------------------------------------------
  *
@@ -779,7 +791,7 @@ void cwipi_irecv
  const int                 stride,
  const int                 time_step,
  const double              time_value,
- char                *receiving_field_name,
+ char                      *receiving_field_name,
  double                    *receiving_field,
  int                       *request);
 
@@ -896,7 +908,7 @@ int cwipi_get_n_not_located_points(const char *coupling_id);
  *
  *----------------------------------------------------------------------------*/
 
-int cwipi_get_n_located_distant_points(const char *coupling_id);
+int cwipi_get_n_distant_points(const char *coupling_id);
 
 /*----------------------------------------------------------------------------
  *

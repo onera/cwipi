@@ -69,6 +69,11 @@ namespace cwipi {
     return _locationToLocalMesh->getNLocatedDistantPoint();
   }
 
+  const double *Coupling::getDistantPointCoordinates() const
+  {
+    return &_locationToLocalMesh->getPointCoordinates()[0];
+  }
+
   ///
   /// \brief Set the type of information to be exchanged at the location
   ///

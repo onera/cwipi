@@ -4,14 +4,14 @@ dnl This file is part of the FVM software package.  For license
 dnl information, see the COPYING file in the top level directory of the
 dnl FVM source distribution.
 
-# FVM_AC_TEST_CGNS
+# FVMC_AC_TEST_CGNS
 #-----------------
 # modifies or sets have_cgns, CGNS_CPPFLAGS, CGNS_LDFLAGS, and CGNS_LIBS
 # depending on libraries found
 
-AC_DEFUN([FVM_AC_TEST_CGNS], [
+AC_DEFUN([FVMC_AC_TEST_CGNS], [
 
-AC_REQUIRE([FVM_AC_CONFIG_PUBL_INIT])dnl
+AC_REQUIRE([FVMC_AC_CONFIG_PUBL_INIT])dnl
 
 have_cgns=no
 

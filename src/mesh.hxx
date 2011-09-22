@@ -19,10 +19,10 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <fvm_nodal.h>
+#include <fvmc_nodal.h>
 #include <vector>
 #include <mpi.h>
-#include <bft_error.h>
+#include <bftc_error.h>
 
 namespace cwipi {
 
@@ -38,7 +38,7 @@ namespace cwipi {
          int *eltConnectivity);
 
     Mesh(const MPI_Comm &localComm,
-         fvm::fvm_nodal_t* fvm_nodal);
+         fvmc_nodal_t* fvmc_nodal);
 
     virtual ~Mesh();
 
@@ -52,9 +52,9 @@ namespace cwipi {
 
     inline const double* getVertexCoords() const;
 
-    inline fvm::fvm_nodal_t& getFvmNodal() const;
+    inline fvmc_nodal_t& getFvmNodal() const;
 
-    inline fvm::fvm_nodal_t& getFvmNodal();
+    inline fvmc_nodal_t& getFvmNodal();
 
     inline const int& getNElts() const;
 
@@ -139,9 +139,9 @@ namespace cwipi {
 
     std::vector<double>  *_cellCenterCoords;
     std::vector<double>  *_cellVolume;
+    fvmc_nodal_t *_fvmNodal;
     std::vector<double>  *_normalFace;
 
-    fvm::fvm_nodal_t *_fvmNodal;
   };
 
   const int& Mesh::getNVertex()  const
@@ -154,16 +154,16 @@ namespace cwipi {
     return _coords;
   }
 
-  fvm::fvm_nodal_t& Mesh::getFvmNodal()
+  fvmc_nodal_t& Mesh::getFvmNodal()
   {
     _finalizeNodal();
     return *_fvmNodal;
   }
 
-  fvm::fvm_nodal_t& Mesh::getFvmNodal() const 
+  fvmc_nodal_t& Mesh::getFvmNodal() const 
   {
     if (! _isNodalFinalized) {
-      bft::bft_error(__FILE__, __LINE__, 0, "'%i' bad dimension\n", _nDim);
+      bftc_error(__FILE__, __LINE__, 0, "'%i' bad dimension\n", _nDim);
     }
     return *_fvmNodal;
   }

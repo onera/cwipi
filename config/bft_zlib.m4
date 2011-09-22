@@ -4,15 +4,15 @@ dnl This file is part of the BFT software package.  For license
 dnl information, see the COPYING file in the top level directory of the
 dnl BFT source distribution.
 
-# BFT_AC_ZLIB
+# BFTC_AC_ZLIB
 #------------
 # Checks for Zlib support
 # modifies or sets have_zlib, ZLIB_CPPFLAGS, ZLIB_LDFLAGS, and ZLIB_LIBS
 # depending on libraries found
 
-AC_DEFUN([BFT_AC_ZLIB],[
+AC_DEFUN([BFTC_AC_ZLIB],[
 
-AC_REQUIRE([BFT_AC_CONFIG_PUBL_INIT])dnl
+AC_REQUIRE([BFTC_AC_CONFIG_PUBL_INIT])dnl
 
 have_zlib=no
 
@@ -119,12 +119,12 @@ int main(int argc, char** argv)
 }])],
 [
 if test -f conftestval ; then
-  bft_ac_sizeof=`cat conftestval`
-  if test "$bft_ac_sizeof" = "0" ; then
+  bftc_ac_sizeof=`cat conftestval`
+  if test "$bftc_ac_sizeof" = "0" ; then
     AC_MSG_ERROR([zlib uint, ulong, or void sizes do not match current values.])
   else
-    AC_MSG_RESULT([$bft_ac_sizeof])
-    BFT_AC_CONFIG_PUBL_DEFINE([BFT_SIZEOF_Z_OFF_T], [$bft_ac_sizeof],
+    AC_MSG_RESULT([$bftc_ac_sizeof])
+    BFTC_AC_CONFIG_PUBL_DEFINE([BFTC_SIZEOF_Z_OFF_T], [$bftc_ac_sizeof],
                               [The size of z_off_t, as returned by zlibCompileFlags.])
   fi
 fi
@@ -136,7 +136,7 @@ AC_MSG_WARN([error running zlibCompileFlags configure test])
 AC_MSG_WARN([unable to test for zlibCompileFlags when cross-compiling])
 ])
 
-    unset bft_ac_sizeof
+    unset bftc_ac_sizeof
 
     /bin/rm -f conftest*]
 

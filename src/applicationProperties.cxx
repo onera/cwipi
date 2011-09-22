@@ -59,28 +59,28 @@ namespace cwipi
 
   void ApplicationProperties::dump()
   {
-    bft::bft_printf("'%s' properties\n",_name.c_str());
-    bft::bft_printf("  - Ranks in global MPI_comm : %i <= ranks <= %i \n",
+    bftc_printf("'%s' properties\n",_name.c_str());
+    bftc_printf("  - Ranks in global MPI_comm : %i <= ranks <= %i \n",
                _beginningRank,
                _endRank);
-    bft::bft_printf("  - Int Control Parameter :\n");
+    bftc_printf("  - Int Control Parameter :\n");
 
     typedef std::map <std::string, int>::iterator Iterator1;
     for (Iterator1 p = _intControlParameters.begin(); p != _intControlParameters.end(); p++)
-      bft::bft_printf("   * '%s' : %i\n", p->first.c_str(), p->second);
-    bft::bft_printf("  - Double Control Parameter :\n");
+      bftc_printf("   * '%s' : %i\n", p->first.c_str(), p->second);
+    bftc_printf("  - Double Control Parameter :\n");
 
     typedef std::map <std::string, double>::iterator Iterator2;
     for (Iterator2 p = _doubleControlParameters.begin(); p != _doubleControlParameters.end(); p++)
-      bft::bft_printf("   * '%s' : %12.5e\n", p->first.c_str(), p->second);
+      bftc_printf("   * '%s' : %12.5e\n", p->first.c_str(), p->second);
 
-    bft::bft_printf("  - String Control Parameter :\n");
+    bftc_printf("  - String Control Parameter :\n");
 
     typedef std::map <std::string, std::string>::iterator Iterator3;
     for (Iterator3 p = _stringControlParameters.begin(); p != _stringControlParameters.end(); p++)
-      bft::bft_printf("   * '%s' : '%s'\n", p->first.c_str(), p->second.c_str());
+      bftc_printf("   * '%s' : '%s'\n", p->first.c_str(), p->second.c_str());
 
-    bft::bft_printf_flush();
+    bftc_printf_flush();
   }
 
   ApplicationProperties::~ApplicationProperties()

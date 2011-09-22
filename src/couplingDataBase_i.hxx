@@ -21,7 +21,7 @@
 
 #include <cassert>
 
-#include <bft_error.h>
+#include <bftc_error.h>
 
 namespace cwipi {
 
@@ -29,7 +29,7 @@ namespace cwipi {
   {
     const std::map <std::string, Coupling * >::iterator p = _couplingDataBase.find(name);
     if (p == _couplingDataBase.end())
-      bft::bft_error(__FILE__, __LINE__, 0, 
+      bftc_error(__FILE__, __LINE__, 0, 
                 "'%s' coupling not found \n", name.c_str());
     assert( p->second != NULL);
     return *p->second;

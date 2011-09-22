@@ -23,7 +23,7 @@
 #include <cmath>
 #include <cassert>
 
-#include <bft_printf.h>
+#include <bftc_printf.h>
 
 #include "locationToLocalMesh.hxx"
 #include "locationToDistantMesh.hxx"
@@ -71,7 +71,7 @@ LocationToLocalMesh::~LocationToLocalMesh()
   }
 
   if (_fvmLocator != NULL)
-    fvm::fvm_locator_destroy(_fvmLocator);
+    fvmc_locator_destroy(_fvmLocator);
 
   if (_nVertex != NULL)
     delete _nVertex;
@@ -91,10 +91,10 @@ void LocationToLocalMesh::locate()
   if ( _isCoupledRank && (_toLocate || _locationToDistantMesh.getToLocateStatus())) {
 
     if (_supportMesh == NULL)
-      bft::bft_error(__FILE__, __LINE__, 0, "undefined support mesh\n");
+      bftc_error(__FILE__, __LINE__, 0, "undefined support mesh\n");
 
     if (_fvmLocator == NULL)
-      _fvmLocator = fvm::fvm_locator_create(_tolerance,
+      _fvmLocator = fvmc_locator_create(_tolerance,
                                        _couplingComm,
                                        _coupledApplicationNRankCouplingComm,
                                        _coupledApplicationBeginningRankCouplingComm);
@@ -116,7 +116,7 @@ void LocationToLocalMesh::locate()
       coords = const_cast <double*> (_supportMesh->getVertexCoords());
     }
 
-    fvm::fvm_locator_set_nodal(_fvmLocator,
+    fvmc_locator_set_nodal(_fvmLocator,
                                &_supportMesh->getFvmNodal(),
                                0,
                                3,
@@ -125,12 +125,12 @@ void LocationToLocalMesh::locate()
                                coords);
 
     _toLocate = false;
-    const int nLocatedPoint = fvm::fvm_locator_get_n_interior(_fvmLocator);
+    const int nLocatedPoint = fvmc_locator_get_n_interior(_fvmLocator);
     const int nNotLocatedPoint = _locationToDistantMesh._nPointsToLocate - nLocatedPoint;
-    const int* exteriorList = fvm::fvm_locator_get_exterior_list(_fvmLocator);
-    const int* interiorList = fvm::fvm_locator_get_interior_list(_fvmLocator);
-    const int* locationList = fvm::fvm_locator_get_dist_locations(_fvmLocator);
-    const int nExterior = fvm::fvm_locator_get_n_exterior(_fvmLocator);
+    const int* exteriorList = fvmc_locator_get_exterior_list(_fvmLocator);
+    const int* interiorList = fvmc_locator_get_interior_list(_fvmLocator);
+    const int* locationList = fvmc_locator_get_dist_locations(_fvmLocator);
+    const int nExterior = fvmc_locator_get_n_exterior(_fvmLocator);
     assert(nNotLocatedPoint == nExterior);
 
     _locationToDistantMesh._unlocatedPoint = const_cast<int *> (exteriorList);
@@ -140,7 +140,7 @@ void LocationToLocalMesh::locate()
     _locationToDistantMesh._toLocate = false;
 
     _location = const_cast<int *> (locationList);
-    _nDistantPoint = fvm::fvm_locator_get_n_dist_points(_fvmLocator);
+    _nDistantPoint = fvmc_locator_get_n_dist_points(_fvmLocator);
 
     if (_barycentricCoordinatesIndex != NULL) {
       delete _barycentricCoordinatesIndex;
@@ -153,9 +153,9 @@ void LocationToLocalMesh::locate()
 
     if (_barycentricCoordinatesIndex == NULL) {
       if (_entitiesDim == 1) {
-        const int nDistantPoint      = fvm::fvm_locator_get_n_dist_points(_fvmLocator);
-        const int *distantLocation   = fvm::fvm_locator_get_dist_locations(_fvmLocator);
-        const double *distantCoords   = fvm::fvm_locator_get_dist_coords(_fvmLocator);
+        const int nDistantPoint      = fvmc_locator_get_n_dist_points(_fvmLocator);
+        const int *distantLocation   = fvmc_locator_get_dist_locations(_fvmLocator);
+        const double *distantCoords   = fvmc_locator_get_dist_coords(_fvmLocator);
 
         const int *eltsConnecPointer = _supportMesh->getEltConnectivityIndex();
         const int *eltsConnec = _supportMesh->getEltConnectivity();
@@ -280,7 +280,7 @@ void LocationToLocalMesh::locate()
       if (distantInfo == CWIPI_DISTANT_MESH_INFO)
         pLocation = _location;
 
-      fvm::fvm_locator_exchange_point_var(_fvmLocator,
+      fvmc_locator_exchange_point_var(_fvmLocator,
                                      (void *) pLocation,
                                      (void *) _locationToDistantMesh._elementContaining,
                                      NULL,
@@ -304,7 +304,7 @@ void LocationToLocalMesh::locate()
         pMPIrank = &((*MPIrank)[0]);
       }
 
-      fvm::fvm_locator_exchange_point_var(_fvmLocator,
+      fvmc_locator_exchange_point_var(_fvmLocator,
                                      (void *) pMPIrank,
                                      (void *) _locationToDistantMesh._elementContainingMPIrankContaining,
                                      NULL,
@@ -355,7 +355,7 @@ void LocationToLocalMesh::locate()
 
       _maxElementContainingNVertex = std::max(_maxElementContainingNVertex, distantMaxElementContainingNVertex);
 
-      fvm::fvm_locator_exchange_point_var(_fvmLocator,
+      fvmc_locator_exchange_point_var(_fvmLocator,
                                      (void *) p_nVertex,
                                      (void *) _locationToDistantMesh._elementContainingNVertex,
                                      NULL,
@@ -400,7 +400,7 @@ void LocationToLocalMesh::locate()
           }
         }
 
-        fvm::fvm_locator_exchange_point_var(_fvmLocator,
+        fvmc_locator_exchange_point_var(_fvmLocator,
                                        (void *) tmpLocal,
                                        (void *) tmpDistant,
                                        NULL,
@@ -452,7 +452,7 @@ void LocationToLocalMesh::locate()
           }
         }
 
-        fvm::fvm_locator_exchange_point_var(_fvmLocator,
+        fvmc_locator_exchange_point_var(_fvmLocator,
                                        (void *) tmpLocal1,
                                        (void *) tmpDistant1,
                                        NULL,
@@ -507,7 +507,7 @@ void LocationToLocalMesh::locate()
           }
         }
 
-        fvm::fvm_locator_exchange_point_var(_fvmLocator,
+        fvmc_locator_exchange_point_var(_fvmLocator,
                                        (void *) tmpLocal1,
                                        (void *) tmpDistant1,
                                        NULL,
@@ -575,7 +575,7 @@ void LocationToLocalMesh::exchangeCellVertexFieldOfElementContaining (double *se
       }
     }
 
-    fvm::fvm_locator_exchange_point_var(_fvmLocator,
+    fvmc_locator_exchange_point_var(_fvmLocator,
                                    (void *) tmpLocal1,
                                    (void *) tmpDistant1,
                                    NULL,
@@ -607,7 +607,7 @@ void LocationToLocalMesh::exchangeCellCenterFieldOfElementContaining (double *se
 
   // TODO: exchangeCellCenterFieldOfElementContaining : doute pour un fonctionnement en parallele sans partitionnement
 
-  fvm::fvm_locator_exchange_point_var(_fvmLocator,
+  fvmc_locator_exchange_point_var(_fvmLocator,
                                  (void *) sendingField,
                                  (void *) receivingField,
                                  NULL,
@@ -818,10 +818,10 @@ void LocationToLocalMesh::compute2DMeanValues()
 {
   /* Boucle sur les points distants */
 
-  const int n_dist_points = fvm::fvm_locator_get_n_dist_points(_fvmLocator);
-  const fvm::fvm_lnum_t *dist_locations = fvm::fvm_locator_get_dist_locations(_fvmLocator);
-  const fvm::fvm_coord_t *dist_coords = fvm::fvm_locator_get_dist_coords(_fvmLocator);
-  fvm::fvm_coord_t coo_point_dist[3];
+  const int n_dist_points = fvmc_locator_get_n_dist_points(_fvmLocator);
+  const fvmc_lnum_t *dist_locations = fvmc_locator_get_dist_locations(_fvmLocator);
+  const fvmc_coord_t *dist_coords = fvmc_locator_get_dist_coords(_fvmLocator);
+  fvmc_coord_t coo_point_dist[3];
 
   /* Tableaux locaux */
 
@@ -849,7 +849,7 @@ void LocationToLocalMesh::compute2DMeanValues()
   nDistBarCoords[0] = 0;
 
   for (int ipoint =  0; ipoint < n_dist_points; ipoint++ ) {
-    //bft_printf("-- Etude du point : %d \n", ipoint);
+    //bftc_printf("-- Etude du point : %d \n", ipoint);
 
     /* Initialisation - Copie locale */
 
@@ -1000,17 +1000,17 @@ void LocationToLocalMesh::compute2DMeanValues()
     }
 
     if (1 == 1) {
-      bft::bft_printf("coord %i :", ipoint);
-      bft::bft_printf(" %12.5e %12.5e %12.5e", dist_coords[3*ipoint], 
+      bftc_printf("coord %i :", ipoint);
+      bftc_printf(" %12.5e %12.5e %12.5e", dist_coords[3*ipoint], 
                       dist_coords[3*ipoint+1], 
                       dist_coords[3*ipoint+2] );
-      bft::bft_printf("\n");
+      bftc_printf("\n");
 
-      bft::bft_printf("coo b %i :", ipoint);
+      bftc_printf("coo b %i :", ipoint);
       for (int isom = 0; isom < nbr_som_fac; isom++) {
-        bft::bft_printf(" %f", distBarCoords[nDistBarCoords[ipoint]+isom]);
+        bftc_printf(" %f", distBarCoords[nDistBarCoords[ipoint]+isom]);
       }
-      bft::bft_printf("\n");
+      bftc_printf("\n");
     }
   }
 
@@ -1027,10 +1027,10 @@ void LocationToLocalMesh::compute3DMeanValues()
 
   bft::bft_printf("compute 3d mean Value \n");
 
-  const int n_dist_points               = fvm::fvm_locator_get_n_dist_points(_fvmLocator);
-  const fvm::fvm_lnum_t *dist_locations = fvm::fvm_locator_get_dist_locations(_fvmLocator);
-  const fvm::fvm_coord_t *dist_coords   = fvm::fvm_locator_get_dist_coords(_fvmLocator);
-  fvm::fvm_coord_t coo_point_dist[3];
+  const int n_dist_points = fvmc_locator_get_n_dist_points(_fvmLocator);
+  const fvmc_lnum_t *dist_locations = fvmc_locator_get_dist_locations(_fvmLocator);
+  const fvmc_coord_t *dist_coords = fvmc_locator_get_dist_coords(_fvmLocator);
+  fvmc_coord_t coo_point_dist[3];
 
   /**** Tableaux barycentriques ****/
 
@@ -1086,15 +1086,15 @@ void LocationToLocalMesh::compute3DMeanValues()
 
   /**** Print caracteristiques du maillage ****/
 
-  bft::bft_printf("Nelt  eltSrd   Npolyhedra   %d   %d   %d  \n \n",
+  bftc_printf("Nelt  eltSrd   Npolyhedra   %d   %d   %d  \n \n",
                   _supportMesh->getNElts(),
                   eltStd,_supportMesh->getNPolyhedra());
-  bft::bft_printf("nbr vertex   %d \n \n",_supportMesh->getNVertex());
-  bft::bft_printf("npoint  %d \n \n",n_dist_points);
+  bftc_printf("nbr vertex   %d \n \n",_supportMesh->getNVertex());
+  bftc_printf("npoint  %d \n \n",n_dist_points);
 
   for(int i = 0 ;i < _supportMesh->getNVertex() ;i++){
 
-    bft::bft_printf("meshVertexCoords   %f   %f   %f  \n",
+    bftc_printf("meshVertexCoords   %f   %f   %f  \n",
                     meshVertexCoords[3 *i],
                     meshVertexCoords[3 *i+1],
                     meshVertexCoords[3 *i+2]);
@@ -1215,7 +1215,7 @@ void LocationToLocalMesh::compute3DMeanValues()
 
       case 6 :
         
-        bft::bft_printf("\n **********Prisme n° %d********** \n",ielt);
+        bftc_printf("\n **********Prisme n° %d********** \n",ielt);
 
         nbr_face    = 5;
         
@@ -1264,7 +1264,7 @@ void LocationToLocalMesh::compute3DMeanValues()
 
       case 8 :
         
-        bft::bft_printf("\n **********Hexaedre n° %d********** \n",ielt);
+        bftc_printf("\n **********Hexaedre n° %d********** \n",ielt);
 
         nbr_face    = 6;
         
@@ -1341,7 +1341,7 @@ void LocationToLocalMesh::compute3DMeanValues()
       nbr_face       = face_index[ielt + 1] - face_index[ielt];
       ind_fac        = face_index[ielt];
 
-      bft::bft_printf("\n **********polyedre n° %d********** \n vert numb %d \n",ielt,nbr_som);
+      bftc_printf("\n **********polyedre n° %d********** \n vert numb %d \n",ielt,nbr_som);
 
     }
  
@@ -1352,7 +1352,7 @@ void LocationToLocalMesh::compute3DMeanValues()
     for (int isom = 0 ; isom < nbr_som ; isom++){
       
       localIndVertex[ meshConnectivity[ meshConnectivityIndex[ ielt ] + isom ] - 1 ] = isom ;
-      bft::bft_printf("local   %d   %d \n",meshConnectivity[ meshConnectivityIndex[ ielt ] + isom ], isom);
+      bftc_printf("local   %d   %d \n",meshConnectivity[ meshConnectivityIndex[ ielt ] + isom ], isom);
 
     }
         
@@ -1403,7 +1403,7 @@ void LocationToLocalMesh::compute3DMeanValues()
 
 
 
-      bft::bft_printf("coo som fac  %f %f %f \n",
+      bftc_printf("coo som fac  %f %f %f \n",
              coo_som_elt[ 3 * isom ],
              coo_som_elt[ 3 * isom + 1 ],
              coo_som_elt[ 3 * isom + 2]);
@@ -1414,7 +1414,7 @@ void LocationToLocalMesh::compute3DMeanValues()
       s[ 3 * isom + 1 ] = coo_som_elt[ 3 * isom + 1 ] - coo_point_dist[ 1 ];
       s[ 3 * isom + 2 ] = coo_som_elt[ 3 * isom + 2 ] - coo_point_dist[ 2 ];
        
-      bft::bft_printf("s   %f  %f  %f \n",s[ 3 * isom ],s[ 3 * isom + 1 ],s[ 3 * isom + 2 ]);
+      bftc_printf("s   %f  %f  %f \n",s[ 3 * isom ],s[ 3 * isom + 1 ],s[ 3 * isom + 2 ]);
 
 
       dist[isom] = sqrt(  s[ 3 * isom ]    * s[ 3 * isom ] 
@@ -1509,11 +1509,11 @@ void LocationToLocalMesh::compute3DMeanValues()
                            + ( ( s[3*i]   * s[3*j+1] - s[3*j]   * s[3*i+1] ) * s[3*k+2] ) );
         
         
-        bft::bft_printf("face %d %d %d   determinant  %f \n",i,j,k,det);
+        bftc_printf("face %d %d %d   determinant  %f \n",i,j,k,det);
         
         if(abs(det) < eps){
           
-          bft::bft_printf("*********is vertex or on edge********\n");
+          bftc_printf("*********is vertex or on edge********\n");
           
           double aireTri_ijk;
           double aireTri_ijv;
@@ -1780,7 +1780,7 @@ void LocationToLocalMesh::compute3DMeanValues()
     }
     
     for(int isom = 0; isom<nbr_som;isom++)
-      bft::bft_printf("sommet   %f %f %f  coord bar final   %f \n",coo_som_elt[3*isom],coo_som_elt[3*isom+1],coo_som_elt[3*isom+2],distBarCoords[nDistBarCoords[ipoint] + isom]);
+      bftc_printf("sommet   %f %f %f  coord bar final   %f \n",coo_som_elt[3*isom],coo_som_elt[3*isom+1],coo_som_elt[3*isom+2],distBarCoords[nDistBarCoords[ipoint] + isom]);
     
     
     if( 1 == 1){
@@ -1798,25 +1798,25 @@ void LocationToLocalMesh::compute3DMeanValues()
         
       }
 
-      bft::bft_printf("point distant n°%d| verification \n",ipoint);
+      bftc_printf("point distant n°%d| verification \n",ipoint);
 
       for(int i =0;i<3;i++)
-        bft::bft_printf("  %f       |    %f \n",coo_point_dist[i],test[i]);
+        bftc_printf("  %f       |    %f \n",coo_point_dist[i],test[i]);
       
     }
     
     if (0 == 1) {
-      bft::bft_printf("coord %i :", ipoint);
-      bft::bft_printf(" %12.5e %12.5e %12.5e", dist_coords[3 * ipoint], 
+      bftc_printf("coord %i :", ipoint);
+      bftc_printf(" %12.5e %12.5e %12.5e", dist_coords[3 * ipoint], 
                       dist_coords[3 * ipoint + 1], 
                       dist_coords[3 * ipoint + 2] );
-      bft::bft_printf("\n");
+      bftc_printf("\n");
       
-      bft::bft_printf("coo b %i :", ipoint);
+      bftc_printf("coo b %i :", ipoint);
       for (int isom = 0; isom < nbr_som; isom++) 
-        bft::bft_printf(" %f", distBarCoords[nDistBarCoords[ipoint] + isom]);
+        bftc_printf(" %f", distBarCoords[nDistBarCoords[ipoint] + isom]);
       
-      bft::bft_printf("\n");
+      bftc_printf("\n");
       
     }
     

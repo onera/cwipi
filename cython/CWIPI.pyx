@@ -143,6 +143,7 @@ cdef extern from "cwipi.h":
     # info about mpi rank, mesh and element where local points are located 
 
     int* cwipi_get_distant_location (char* coupling_id)
+    double* cwipi_get_distant_coordinates(char* coupling_id)
     int* cwipi_get_distant_barycentric_coordinates_index (char* coupling_id)
     double* cwipi_get_distant_barycentric_coordinates (char* coupling_id)
     int cwipi_get_n_located_distant_points(char* coupling_id)
@@ -808,6 +809,7 @@ cdef class Coupling:
     # info about mpi rank, mesh and element where local points are located 
 
 #    int* cwipi_get_distant_location (char* coupling_id)
+#    double* cwipi_get_distant_coordinates(char* coupling_id)
 #    int* cwipi_get_distant_barycentric_coordinates_index (char* coupling_id)
 #    double* cwipi_get_distant_barycentric_coordinates (char* coupling_id)
 #    int cwipi_get_n_located_distant_points(char* coupling_id)
