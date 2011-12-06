@@ -992,14 +992,14 @@ void LocationToLocalMesh::compute2DMeanValues()
       }
       else {
         double abs_sigma = LocationToLocalMesh::abs(sigma);
-        printf("Warning : mise à NAN %f %f", abs_sigma,  eps);
+        printf("Warning : mise à NAN %f %f\n", abs_sigma,  eps);
         for (int isom = 0; isom < nbr_som_fac; isom++) {
           distBarCoords[nDistBarCoords[ipoint]+isom] = NAN;
         }
       }
     }
 
-    if (1 == 1) {
+    if (0 == 1) {
       bftc_printf("coord %i :", ipoint);
       bftc_printf(" %12.5e %12.5e %12.5e", dist_coords[3*ipoint], 
                       dist_coords[3*ipoint+1], 
@@ -1420,7 +1420,7 @@ void LocationToLocalMesh::compute3DMeanValues()
 
     }
    
-    if (1 == 1) {
+    if (0 == 1) {
       bftc_printf("coord %i :", ipoint);
       bftc_printf(" %12.5e %12.5e %12.5e", dist_coords[3 * ipoint], 
                       dist_coords[3 * ipoint + 1], 
