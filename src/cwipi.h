@@ -226,7 +226,7 @@ void cwipi_init
  *   output_listing      <-- Output listing file (C function)
  *----------------------------------------------------------------------------*/
 
-void PROCF (cwipi_set_output_listing_f, CWIPI_SET_OUTPUT_LISTING_F) (int iunit);
+void PROCF (cwipi_set_output_logical_unit, CWIPI_SET_OUTPUT_LOGICAL_UNIT) (int *iunit);
 
 void cwipi_set_output_listing(FILE *output_listing);
 
@@ -834,6 +834,20 @@ void cwipi_wait_irecv(const char  *coupling_name,
 void cwipi_set_interpolation_function
 (const char *coupling_id,
  cwipi_interpolation_fct_t fct);
+
+/*----------------------------------------------------------------------------
+ *
+ * Define a FORTRAN interpolation function
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   fct                  <-- Interpolation function
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_set_interpolation_function_f
+(const char *coupling_id,
+ void* fct);
 
 /*----------------------------------------------------------------------------
  *

@@ -29,6 +29,11 @@ namespace cwipi {
     _interpolationFct = fct;
   }
 
+  void  Coupling::set_interpolation_function_f(void * fct)
+  {
+    _interpolationFct_f = fct;
+  }
+
   const int * Coupling::getDistantLocation() const
   {
     return _locationToLocalMesh->getLocation();

@@ -101,6 +101,6 @@ MPI4PY_INCLUDE=`${PYTHON} -c 'import mpi4py; print( mpi4py.get_include() )'`
 NUMPY_INCLUDE=`${PYTHON} -c 'import numpy; print( numpy.get_include() )'`
 CWIPI_INCLUDE=${PWD1}/src
 
-${CYTHON} -a  -I${MPI4PY_INCLUDE} -I{CWIPI_INCLUDE} -I{NUMPY_INCLUDE} CWIPI.pyx
+${CYTHON} -a  -I${MPI4PY_INCLUDE} -I${CWIPI_INCLUDE} -I${NUMPY_INCLUDE} CWIPI.pyx
 
 cd ${PWD1}

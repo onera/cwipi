@@ -1074,6 +1074,32 @@ void cwipi_set_interpolation_function
   coupling.set_interpolation_function(fct);
 }
 
+
+/*----------------------------------------------------------------------------
+ *
+ * Define the interpolation function
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   fct                  <-- Interpolation function
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_set_interpolation_function_f
+(const char *coupling_name,
+ void * fct)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.set_interpolation_function_f(fct);
+}
+
+
 /*----------------------------------------------------------------------------
  *
  * Delete a coupling

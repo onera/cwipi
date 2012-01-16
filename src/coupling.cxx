@@ -115,6 +115,7 @@ Coupling::Coupling(const std::string& name,
   _mergeComm = MPI_COMM_NULL;
   _fvmComm = MPI_COMM_NULL;
   _interpolationFct = NULL;
+  _interpolationFct_f = NULL;
   _toLocate = true;
   _isCoupledRank = false;
   
@@ -907,6 +908,35 @@ cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
                           _solverType,
                           sendingField,
                           &tmpDistantField[0]);
+
+      //
+      // Callback Fortran appele en C
+
+      else if (_interpolationFct_f != NULL)
+        PROCF(callfortinterpfct, CALLFORTINTERPFCT) (
+           const_cast <int *> (&_entitiesDim),
+           const_cast <int *> (&nVertex),
+           const_cast <int *> (&nElts),
+           const_cast <int *> (&nPoly),
+           const_cast <int *> (&nDistantPoint),
+           const_cast <double *> (_supportMesh->getVertexCoords()),
+           const_cast <int *> (localConnectivityIndex),
+           const_cast <int *> (localConnectivity),
+           const_cast <int *> (localPolyhedraFaceIndex),
+           const_cast <int *> (localPolyhedraCellToFaceConnectivity),
+           const_cast <int *> (localPolyhedraFaceConnectivity_index),
+           const_cast <int *> (localPolyhedraFaceConnectivity),
+           const_cast <double *> (distantCoords),
+           const_cast <int *> (distantLocation),
+           const_cast <int *> (barycentricCoordinatesIndex),
+           const_cast <double *> (barycentricCoordinates),
+           const_cast <int *> (&stride),
+           const_cast <int *> ((const int *) &_solverType),
+           const_cast <double *> (sendingField),
+           const_cast <double *> (&tmpDistantField[0]),
+	   _interpolationFct_f
+          );
+
       else
         _interpolate((double* )sendingField,
                      tmpDistantField,

@@ -32,6 +32,10 @@ cdef extern from "Python.h":
     ctypedef struct FILE
     FILE* PyFile_AsFile(object)
 
+cdef extern from "fileobject.h":
+    ctypedef class __builtin__.file [object PyFileObject]:
+        pass
+
 cdef extern from "cwipi.h":
 
     ctypedef enum cwipi_coupling_type_t:
@@ -805,8 +809,8 @@ cdef class Coupling:
 # TODO:
 #    void cwipi_set_info(char* coupling_id, cwipi_located_point_info_t info)
   
-    #
-    # info about mpi rank, mesh and element where local points are located 
+#
+# info about mpi rank, mesh and element where local points are located 
 
 #    int* cwipi_get_distant_location (char* coupling_id)
 #    double* cwipi_get_distant_coordinates(char* coupling_id)
@@ -993,12 +997,4 @@ cdef void callback(int entities_dim,
                                     stride,
                                     solver_type,
                                     local_field_a,
-                                    distant_field_a)     
-
-
-
-
-
-
-
-
+                                    distant_field_a)
