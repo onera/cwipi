@@ -45,7 +45,8 @@ solve_ax_b_4.c \
 mesh.cxx \
 coupling.cxx \
 couplingDataBase.cxx \
-callfortinterpfct.f90
+callfortinterpfct.f90 \
+cwipi_set_output_logical_unit.f90
 
 libcwipi_f_la_LIBADD = \
 $(top_builddir)/src/bft/libbftc.la \

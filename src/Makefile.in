@@ -94,7 +94,8 @@ libcwipi_la_DEPENDENCIES = $(top_builddir)/src/bft/libbftc.la \
 am_libcwipi_la_OBJECTS = applicationProperties.lo \
 	applicationPropertiesDataBase.lo locationToLocalMesh.lo \
 	locationToDistantMesh.lo cwipi.lo quickSort.lo solve_ax_b_4.lo \
-	mesh.lo coupling.lo couplingDataBase.lo callfortinterpfct.lo
+	mesh.lo coupling.lo couplingDataBase.lo callfortinterpfct.lo \
+	cwipi_set_output_logical_unit.lo
 libcwipi_la_OBJECTS = $(am_libcwipi_la_OBJECTS)
 libcwipi_f_la_DEPENDENCIES = $(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la libcwipi.la
@@ -368,7 +369,8 @@ solve_ax_b_4.c \
 mesh.cxx \
 coupling.cxx \
 couplingDataBase.cxx \
-callfortinterpfct.f90
+callfortinterpfct.f90 \
+cwipi_set_output_logical_unit.f90
 
 libcwipi_f_la_LIBADD = \
 $(top_builddir)/src/bft/libbftc.la \
