@@ -55,7 +55,7 @@ void creeMaillagePolygone2D(int order,
                             );
 
 void PROCF(creemaillagepolygone2d_f, CREEMAILLAGEPOLYGONE2D_F)(int *order,
-                                                               MPI_Comm *localComm,
+							       MPI_Fint* localFComm,
                                                                double *xmin,
                                                                double *xmax,
                                                                double *ymin,
