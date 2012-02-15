@@ -79,7 +79,7 @@ def runTest():
     fname = ["proc0","proc1"]
 
     try:
-        import cwipi.CWIPI as CWIPI
+        import cwipi
     except:
         if rank == 0:
             print "      Error : CWIPI module not found (update PYTHONPATH variable)"
@@ -92,8 +92,8 @@ def runTest():
         print "        Output redirection"
 
     f=open(applis[rank]+".txt",'w')
-    CWIPI.set_output_listing(f)
-    CWIPI.init(MPI.COMM_WORLD, applis[rank], commloc)
+    cwipi.set_output_listing(f)
+    cwipi.init(MPI.COMM_WORLD, applis[rank], commloc)
 
     #
     # Control parameters
@@ -101,12 +101,12 @@ def runTest():
     if (rank == 0):
         print "        Control parameters"
 
-    CWIPI.add_local_int_control_parameter("param_1", 1)
-    CWIPI.synchronize_control_parameter(applis[(rank + 1) % 2])
-    CWIPI.dump_application_properties()
+    cwipi.add_local_int_control_parameter("param_1", 1)
+    cwipi.synchronize_control_parameter(applis[(rank + 1) % 2])
+    cwipi.dump_application_properties()
 
-    param_1 = CWIPI.get_local_int_control_parameter("param_1")
-    param_2 = CWIPI.get_distant_int_control_parameter(applis[(rank + 1) % 2],"param_1")
+    param_1 = cwipi.get_local_int_control_parameter("param_1")
+    param_2 = cwipi.get_distant_int_control_parameter(applis[(rank + 1) % 2],"param_1")
     f.write('parametres: {param_1}, {param_2}'.format(param_1=param_1, param_2=param_2))
 
     #
@@ -117,13 +117,13 @@ def runTest():
 
     # Constructor
 
-    cpl = CWIPI.Coupling("cpl", 
-                         CWIPI.COUPLING_PARALLEL_WITH_PARTITIONING, 
+    cpl = cwipi.Coupling("cpl", 
+                         cwipi.COUPLING_PARALLEL_WITH_PARTITIONING, 
                          applis[(rank + 1) % 2] , 
                          2, 
                          0.1,  
-                         CWIPI.STATIC_MESH, 
-                         CWIPI.SOLVER_CELL_VERTEX, 
+                         cwipi.STATIC_MESH, 
+                         cwipi.SOLVER_CELL_VERTEX, 
                          1, 
                          "Ensight", 
                          "txt")

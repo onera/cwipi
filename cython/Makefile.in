@@ -89,13 +89,13 @@ am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
 am__installdirs = "$(DESTDIR)$(pyexecdir)" "$(DESTDIR)$(pythondir)"
 pyexecLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(pyexec_LTLIBRARIES)
-CWIPI_la_DEPENDENCIES = $(top_builddir)/src/bft/libbftc.la \
+cwipi_la_DEPENDENCIES = $(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
 	$(top_builddir)/src/libcwipi.la
-am_CWIPI_la_OBJECTS = CWIPI.lo
-CWIPI_la_OBJECTS = $(am_CWIPI_la_OBJECTS)
-CWIPI_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(CWIPI_la_LDFLAGS) \
+am_cwipi_la_OBJECTS = cwipi.lo
+cwipi_la_OBJECTS = $(am_cwipi_la_OBJECTS)
+cwipi_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(cwipi_la_LDFLAGS) \
 	$(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
@@ -109,8 +109,8 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(CWIPI_la_SOURCES)
-DIST_SOURCES = $(CWIPI_la_SOURCES)
+SOURCES = $(cwipi_la_SOURCES)
+DIST_SOURCES = $(cwipi_la_SOURCES)
 pythonPYTHON_INSTALL = $(INSTALL_DATA)
 py_compile = $(top_srcdir)/config/py-compile
 ETAGS = etags
@@ -285,14 +285,14 @@ $(DEBUG_CPPFLAGS) \
 AM_CFLAGS = -fno-strict-aliasing 
 AM_LDFLAGS = @MPI_LDFLAGS@
 python_PYTHON = __init__.py
-pyexec_LTLIBRARIES = CWIPI.la
-CWIPI_la_SOURCES = CWIPI.c
-CWIPI_la_LIBADD = \
+pyexec_LTLIBRARIES = cwipi.la
+cwipi_la_SOURCES = cwipi.c
+cwipi_la_LIBADD = \
 $(top_builddir)/src/bft/libbftc.la \
 $(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la 
 
-CWIPI_la_LDFLAGS = _avoid_version -module
+cwipi_la_LDFLAGS = _avoid_version -module
 all: all-am
 
 .SUFFIXES:
@@ -353,8 +353,8 @@ clean-pyexecLTLIBRARIES:
 	  echo "rm -f \"$${dir}/so_locations\""; \
 	  rm -f "$${dir}/so_locations"; \
 	done
-CWIPI.la: $(CWIPI_la_OBJECTS) $(CWIPI_la_DEPENDENCIES) 
-	$(CWIPI_la_LINK) -rpath $(pyexecdir) $(CWIPI_la_OBJECTS) $(CWIPI_la_LIBADD) $(LIBS)
+cwipi.la: $(cwipi_la_OBJECTS) $(cwipi_la_DEPENDENCIES) 
+	$(cwipi_la_LINK) -rpath $(pyexecdir) $(cwipi_la_OBJECTS) $(cwipi_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -362,7 +362,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CWIPI.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwipi.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

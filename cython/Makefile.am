@@ -30,15 +30,15 @@ AM_CFLAGS = -fno-strict-aliasing
 AM_LDFLAGS = @MPI_LDFLAGS@
 
 python_PYTHON = __init__.py
-pyexec_LTLIBRARIES = CWIPI.la
-CWIPI_la_SOURCES = CWIPI.c
+pyexec_LTLIBRARIES = cwipi.la
+cwipi_la_SOURCES = cwipi.c
 
-CWIPI_la_LIBADD = \
+cwipi_la_LIBADD = \
 $(top_builddir)/src/bft/libbftc.la \
 $(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la 
 
-CWIPI_la_LDFLAGS = _avoid_version -module
+cwipi_la_LDFLAGS = _avoid_version -module
 
 clean-local:
 	rm -f core *.o *.bak *~ *.pyc *.pyo
