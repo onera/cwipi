@@ -29,8 +29,8 @@ $(DEBUG_CPPFLAGS) \
 AM_CFLAGS = -fno-strict-aliasing 
 AM_LDFLAGS = @MPI_LDFLAGS@
 
-pkgpython_PYTHON = __init__.py
-pkgpyexec_LTLIBRARIES = CWIPI.la
+python_PYTHON = __init__.py
+pyexec_LTLIBRARIES = CWIPI.la
 CWIPI_la_SOURCES = CWIPI.c
 
 CWIPI_la_LIBADD = \
