@@ -10,6 +10,6 @@ Derived libraries
 A part of this work is derived from "Finite Volume Mesh" library (FVM) and its 
 dependence "Base Functions and Types" (BFT). FVM and BFT are licensed under 
 LGPL 2.1. They are mainly developed for the CFD software code_saturne. 
-Principal authors are Yvan Forunier <yvan.forunier@edf.fr> and Jerome Bonelle 
+Principal authors are Yvan Forunier <yvan.fournier@edf.fr> and Jerome Bonelle 
 <jerome.bonelle@edf.fr>. These libraries are downloadlable 
 from http://www.code-saturne.org
