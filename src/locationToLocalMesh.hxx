@@ -1,6 +1,7 @@
+
 #ifndef LOCATIONTOLOCALMESH_HXX_
 #define LOCATIONTOLOCALMESH_HXX_
-/*
+ /*
   This file is part of the CWIPI library. 
 
   Copyright (C) 2011  ONERA
@@ -26,6 +27,7 @@
 #include <fvmc_locator.h>
 #include <fvmc_nodal.h>
 #include <bftc_error.h>
+#include <fvmc_triangulate.h>
 
 #include "mesh.hxx"
 #include "cwipi.h"
@@ -155,7 +157,7 @@ public:
 private :
 
   ///
-  /// \brief Compute Mean Values
+  /// \brief Compute Mean Values 2D
   ///
   ///
 
@@ -229,15 +231,6 @@ private :
                                    const double* vect2,
                                    const double* vect3);
 
-
-  ///
-  /// \brief Compute abs
-  ///
-  ///   @param [in]      a  value
-  ///   @return          abs(a)
-  ///
-
-  inline double abs(const double a);
 
 private :
 
@@ -420,18 +413,6 @@ double LocationToLocalMesh::computeDeterminant(const double* vect1,
   return ((vect1[Y] * vect2[Z] - vect2[Y] * vect1[Z]) * vect3[X])
        + ((vect2[X] * vect1[Z] - vect1[X] * vect2[Z]) * vect3[Y])
        + ((vect1[X] * vect2[Y] - vect2[X] * vect1[Y]) * vect3[Z]);
-}
-
-  ///
-  /// \brief Compute abs
-  ///
-  ///   @param [in]      a  value
-  ///   @return          abs(a)
-  ///
-
-double LocationToLocalMesh::abs(const double a)
-{
-  return ((a) <  0  ? -(a) : (a));
 }
 
 } // Namespace cwipi

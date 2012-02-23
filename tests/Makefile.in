@@ -68,7 +68,8 @@ check_PROGRAMS = c_linear_coupling$(EXEEXT) \
 	c_surf_without_partitioning_coupling$(EXEEXT) \
 	c_surf_without_partitioning_coupling2$(EXEEXT) \
 	c_surf_sequential_coupling$(EXEEXT) \
-	c_vol_coupling_P1P1$(EXEEXT) fortran_surf_P1P1$(EXEEXT)
+	c_vol_coupling_P1P1$(EXEEXT) fortran_surf_P1P1$(EXEEXT) \
+	c_mean_value_3D$(EXEEXT)
 TESTS = c_linear_coupling$(EXEEXT) \
 	c_surf_coupling_P1P1_micron_polygon$(EXEEXT) \
 	c_surf_coupling_P1P1_polygon$(EXEEXT) \
@@ -83,9 +84,7 @@ TESTS = c_linear_coupling$(EXEEXT) \
 	c_surf_without_partitioning_coupling2$(EXEEXT) \
 	c_surf_sequential_coupling$(EXEEXT) \
 	c_vol_coupling_P1P1$(EXEEXT) fortran_surf_P1P1$(EXEEXT) \
-	$(am__append_1)
-
-#	c_mean_value_3D
+	c_mean_value_3D$(EXEEXT) $(am__append_1)
 @ENABLE_PYTHON_TRUE@am__append_1 = python_api.py
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
@@ -116,6 +115,11 @@ CONFIG_CLEAN_FILES =
 am_c_linear_coupling_OBJECTS = c_linear_coupling.$(OBJEXT)
 c_linear_coupling_OBJECTS = $(am_c_linear_coupling_OBJECTS)
 c_linear_coupling_DEPENDENCIES = $(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
+	$(top_builddir)/src/libcwipi.la
+am_c_mean_value_3D_OBJECTS = c_mean_value_3D.$(OBJEXT)
+c_mean_value_3D_OBJECTS = $(am_c_mean_value_3D_OBJECTS)
+c_mean_value_3D_DEPENDENCIES = $(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
 	$(top_builddir)/src/libcwipi.la
 am_c_surf_coupling_P1P0_P0P1_OBJECTS = grid_mesh.$(OBJEXT) \
@@ -256,7 +260,7 @@ FCLD = $(FC)
 FCLINK = $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
 	$(FCLD) $(AM_FCFLAGS) $(FCFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o \
 	$@
-SOURCES = $(c_linear_coupling_SOURCES) \
+SOURCES = $(c_linear_coupling_SOURCES) $(c_mean_value_3D_SOURCES) \
 	$(c_surf_coupling_P1P0_P0P1_SOURCES) \
 	$(c_surf_coupling_P1P1_SOURCES) \
 	$(c_surf_coupling_P1P1_asynchronous_SOURCES) \
@@ -271,7 +275,7 @@ SOURCES = $(c_linear_coupling_SOURCES) \
 	$(c_surf_without_partitioning_coupling_SOURCES) \
 	$(c_surf_without_partitioning_coupling2_SOURCES) \
 	$(c_vol_coupling_P1P1_SOURCES) $(fortran_surf_P1P1_SOURCES)
-DIST_SOURCES = $(c_linear_coupling_SOURCES) \
+DIST_SOURCES = $(c_linear_coupling_SOURCES) $(c_mean_value_3D_SOURCES) \
 	$(c_surf_coupling_P1P0_P0P1_SOURCES) \
 	$(c_surf_coupling_P1P1_SOURCES) \
 	$(c_surf_coupling_P1P1_asynchronous_SOURCES) \
@@ -470,8 +474,6 @@ LDADD = $(top_builddir)/src/bft/libbftc.la \
         @MPI_LIBS@ \
 	-lm
 
-
-#c_mean_value_3D
 c_linear_coupling_SOURCES = c_linear_coupling.c
 c_surf_coupling_P1P1_micron_polygon_SOURCES = creeMaillagePolygone2D.c c_surf_coupling_P1P1_micron_polygon.c
 c_surf_coupling_P1P1_polygon_SOURCES = creeMaillagePolygone2D.c c_surf_coupling_P1P1_polygon.c
@@ -488,7 +490,7 @@ c_surf_without_partitioning_coupling2_SOURCES = grid_mesh.c c_surf_without_parti
 c_surf_sequential_coupling_SOURCES = grid_mesh.c c_surf_sequential_coupling.c
 c_vol_coupling_P1P1_SOURCES = c_vol_coupling_P1P1.c
 fortran_surf_P1P1_SOURCES = grid_mesh.c fortran_surf_P1P1.f90
-#c_mean_value_3D_SOURCES = c_mean_value_3D.c
+c_mean_value_3D_SOURCES = c_mean_value_3D.c
 c_linear_coupling_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
 $(top_builddir)/src/fvm/libfvmc.la \
@@ -580,13 +582,13 @@ $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
+c_mean_value_3D_LDADD = \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
+$(top_builddir)/src/libcwipi.la \
+@MPI_LIBS@ \
+-lm
 
-# c_mean_value_3D_LDADD = \
-# $(top_builddir)/src/bft/libbftc.la \
-# $(top_builddir)/src/fvm/libfvmc.la \
-# $(top_builddir)/src/libcwipi.la \
-# @MPI_LIBS@ \
-# -lm
 c_vol_coupling_P1P1_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
 $(top_builddir)/src/fvm/libfvmc.la \
@@ -650,6 +652,9 @@ clean-checkPROGRAMS:
 c_linear_coupling$(EXEEXT): $(c_linear_coupling_OBJECTS) $(c_linear_coupling_DEPENDENCIES) 
 	@rm -f c_linear_coupling$(EXEEXT)
 	$(LINK) $(c_linear_coupling_OBJECTS) $(c_linear_coupling_LDADD) $(LIBS)
+c_mean_value_3D$(EXEEXT): $(c_mean_value_3D_OBJECTS) $(c_mean_value_3D_DEPENDENCIES) 
+	@rm -f c_mean_value_3D$(EXEEXT)
+	$(LINK) $(c_mean_value_3D_OBJECTS) $(c_mean_value_3D_LDADD) $(LIBS)
 c_surf_coupling_P1P0_P0P1$(EXEEXT): $(c_surf_coupling_P1P0_P0P1_OBJECTS) $(c_surf_coupling_P1P0_P0P1_DEPENDENCIES) 
 	@rm -f c_surf_coupling_P1P0_P0P1$(EXEEXT)
 	$(LINK) $(c_surf_coupling_P1P0_P0P1_OBJECTS) $(c_surf_coupling_P1P0_P0P1_LDADD) $(LIBS)
@@ -703,6 +708,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_linear_coupling.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_mean_value_3D.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_surf_coupling_P1P0_P0P1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_surf_coupling_P1P1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_surf_coupling_P1P1_asynchronous.Po@am__quote@

@@ -71,9 +71,8 @@ c_surf_without_partitioning_coupling \
 c_surf_without_partitioning_coupling2 \
 c_surf_sequential_coupling \
 c_vol_coupling_P1P1 \
-fortran_surf_P1P1
-
-#c_mean_value_3D
+fortran_surf_P1P1 \
+c_mean_value_3D
 
 c_linear_coupling_SOURCES = c_linear_coupling.c
 c_surf_coupling_P1P1_micron_polygon_SOURCES = creeMaillagePolygone2D.c c_surf_coupling_P1P1_micron_polygon.c
@@ -91,7 +90,7 @@ c_surf_without_partitioning_coupling2_SOURCES = grid_mesh.c c_surf_without_parti
 c_surf_sequential_coupling_SOURCES = grid_mesh.c c_surf_sequential_coupling.c
 c_vol_coupling_P1P1_SOURCES = c_vol_coupling_P1P1.c
 fortran_surf_P1P1_SOURCES = grid_mesh.c fortran_surf_P1P1.f90
-#c_mean_value_3D_SOURCES = c_mean_value_3D.c
+c_mean_value_3D_SOURCES = c_mean_value_3D.c
 
 c_linear_coupling_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
@@ -184,12 +183,12 @@ $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
-# c_mean_value_3D_LDADD = \
-# $(top_builddir)/src/bft/libbftc.la \
-# $(top_builddir)/src/fvm/libfvmc.la \
-# $(top_builddir)/src/libcwipi.la \
-# @MPI_LIBS@ \
-# -lm
+c_mean_value_3D_LDADD = \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
+$(top_builddir)/src/libcwipi.la \
+@MPI_LIBS@ \
+-lm
 
 c_vol_coupling_P1P1_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
@@ -226,9 +225,8 @@ TESTS = c_linear_coupling \
 	c_surf_without_partitioning_coupling2 \
 	c_surf_sequential_coupling \
 	c_vol_coupling_P1P1 \
-	fortran_surf_P1P1
-
-#	c_mean_value_3D
+	fortran_surf_P1P1 \
+	c_mean_value_3D
 
 if ENABLE_PYTHON 
   TESTS += python_api.py

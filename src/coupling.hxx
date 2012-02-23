@@ -208,7 +208,6 @@ namespace cwipi {
                         const int stride);
 
     void _interpolate2D(double *vertexField,
-                        double *cellField,
                         std::vector<double>& interpolatedField,
                         const int stride);
 

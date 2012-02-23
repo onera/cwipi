@@ -324,45 +324,45 @@ void Coupling::_interpolate(double *referenceField,
                             const int stride)
 {
 
-  // Methode d'interplation temporaire identique a MPCCI pour contrat SPS
-////  if (_solverType == CWIPI_SOLVER_CELL_CENTER) {
-////    const int nDistantPoint      = fvmc_locator_get_n_dist_points(_fvmLocator);
-////    const int *distantLocation   = fvmc_locator_get_dist_locations(_fvmLocator);
-////    const int *eltsConnecPointer = _supportMesh->getEltConnectivityIndex();
-////    const int *eltsConnec        = _supportMesh->getEltConnectivity();
-////    for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
-////      int iel = distantLocation[ipoint] - 1;
-////      interpolatedField[ipoint] = referenceField[iel];
-////    }
-////  }
-//
-//  else {
+  //
+  // For a cell center field : give the value of the located cell
 
-  double *cellField = NULL;
-  double *dataField = referenceField;
   if (_solverType == CWIPI_SOLVER_CELL_CENTER) {
-    cellField = dataField;
-    dataField = &_extrapolate(referenceField, stride)[0];
+    const int nDistantPoint      = _locationToLocalMesh->getNLocatedDistantPoint() ;
+    const int *distantLocation   = _locationToLocalMesh->getLocation();
+    const int *eltsConnecPointer = _supportMesh->getEltConnectivityIndex();
+    const int *eltsConnec        = _supportMesh->getEltConnectivity();
+    for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
+      int iel = distantLocation[ipoint] - 1;
+      interpolatedField[ipoint] = referenceField[iel];
+    }
   }
 
-  switch(_entitiesDim) {
+  //
+  // For a cell vertex field : interpolate with mean values
 
-  case 1 :
-    _interpolate1D(dataField, interpolatedField, stride);
+  else {
+
+    double *dataField = referenceField;
+    
+    switch(_entitiesDim) {
+      
+    case 1 :
+      _interpolate1D(dataField, interpolatedField, stride);
+      break;
+      
+    case 2 :
+      _interpolate2D(dataField, interpolatedField, stride);
     break;
 
-  case 2 :
-    _interpolate2D(dataField, cellField, interpolatedField, stride);
-    break;
-
-  case 3 :
-    _interpolate3D(dataField, interpolatedField, stride);
-    break;
-
-  default:
-    bftc_error(__FILE__, __LINE__, 0, "'%i' bad entities dimension\n",_entitiesDim);
+    case 3 :
+      _interpolate3D(dataField, interpolatedField, stride);
+      break;
+      
+    default:
+      bftc_error(__FILE__, __LINE__, 0, "'%i' bad entities dimension\n",_entitiesDim);
+    }
   }
-//  }
 }
 
 void Coupling::_interpolate1D(double *referenceVertexField,
@@ -393,7 +393,6 @@ void Coupling::_interpolate1D(double *referenceVertexField,
 }
 
 void Coupling::_interpolate2D (double *vertexField,
-                               double *cellField,
                                std::vector<double>& interpolatedField,
                                const int stride)
 {
@@ -418,8 +417,8 @@ void Coupling::_interpolate2D (double *vertexField,
     bool barycentricCoordValidation = true;
     for (int isom = 0; isom <  nSom; isom++) {
       if ( barycentricCoordinates[index+isom] != barycentricCoordinates[index+isom] ||
-          barycentricCoordinates[index+isom] < 0. ||
-          barycentricCoordinates[index+isom] > 1. )
+           barycentricCoordinates[index+isom] < 0. ||
+           barycentricCoordinates[index+isom] > 1. )
         barycentricCoordValidation = false;
     }
 
@@ -433,40 +432,33 @@ void Coupling::_interpolate2D (double *vertexField,
         }
       }
     }
+
     else {
       bftc_printf("Warning interpolate2D : barycentric coordinates of the number point '%i' are degenerated :\n", ipoint+1);
-      if (cellField != NULL) {
-        bftc_printf("                         The interpolated value is located cell value ('%i') \n", iel+1);
-        for (int k = 0; k < stride; k++) {
-          interpolatedField[stride*ipoint+k] = cellField[stride*iel+k];
+
+      const int firstElementVertex = eltsConnecPointer[iel];
+      const int nElementVertex    = eltsConnecPointer[iel+1] - firstElementVertex;
+      
+      double dist = 1e33;
+      int neighborVertex = -1;
+      const double &pointCoordX = distantCoords[3*ipoint];
+      const double &pointCoordY = distantCoords[3*ipoint + 1];
+      const double &pointCoordZ = distantCoords[3*ipoint + 2];
+      for(int ivertex = firstElementVertex;  ivertex < firstElementVertex+nElementVertex; ivertex++ ) {
+        const double &vertexCoordX = _supportMesh->getVertexCoords()[3*(eltsConnec[ivertex]-1)];
+        const double &vertexCoordY = _supportMesh->getVertexCoords()[3*(eltsConnec[ivertex]-1)+1];
+        const double &vertexCoordZ = _supportMesh->getVertexCoords()[3*(eltsConnec[ivertex]-1)+2];
+        const double localDist = std::sqrt((pointCoordX-vertexCoordX)*(pointCoordX-vertexCoordX)+
+                                           (pointCoordY-vertexCoordY)*(pointCoordY-vertexCoordY)+
+                                           (pointCoordZ-vertexCoordZ)*(pointCoordZ-vertexCoordZ));
+        if (localDist < dist) {
+          neighborVertex = eltsConnec[ivertex]-1;
+          dist = localDist;
         }
       }
-      else {
-        //TODO: Determination du sommet le proche a calculer
-        const int firstElementVertex = eltsConnecPointer[iel];
-        const int nElementVertex    = eltsConnecPointer[iel+1] - firstElementVertex;
-
-        double dist = 1e33;
-        int neighborVertex = -1;
-        const double &pointCoordX = distantCoords[3*ipoint];
-        const double &pointCoordY = distantCoords[3*ipoint + 1];
-        const double &pointCoordZ = distantCoords[3*ipoint + 2];
-        for(int ivertex = firstElementVertex;  ivertex < firstElementVertex+nElementVertex; ivertex++ ) {
-          const double &vertexCoordX = _supportMesh->getVertexCoords()[3*(eltsConnec[ivertex]-1)];
-          const double &vertexCoordY = _supportMesh->getVertexCoords()[3*(eltsConnec[ivertex]-1)+1];
-          const double &vertexCoordZ = _supportMesh->getVertexCoords()[3*(eltsConnec[ivertex]-1)+2];
-          const double localDist = std::sqrt((pointCoordX-vertexCoordX)*(pointCoordX-vertexCoordX)+
-                                             (pointCoordY-vertexCoordY)*(pointCoordY-vertexCoordY)+
-                                             (pointCoordZ-vertexCoordZ)*(pointCoordZ-vertexCoordZ));
-          if (localDist < dist) {
-            neighborVertex = eltsConnec[ivertex]-1;
-            dist = localDist;
-          }
-        }
-        bftc_printf("                       the interpolated value is defined by the closest vertex ('%i') of the located cell\n", neighborVertex+1);
-        for (int k = 0; k < stride; k++) {
-          interpolatedField[stride*ipoint+k] = vertexField[stride*neighborVertex+k];
-        }
+      bftc_printf("                       the interpolated value is defined by the closest vertex ('%i') of the located cell\n", neighborVertex+1);
+      for (int k = 0; k < stride; k++) {
+        interpolatedField[stride*ipoint+k] = vertexField[stride*neighborVertex+k];
       }
     }
   }
@@ -478,9 +470,6 @@ void Coupling::_interpolate3D(double *vertexField,
                               const int stride)
 {
 
-  // TODO: Faire le calcul des coordonnees barycentriques pour les polyedres
-  // TODO: Dans un premier temps faire le calcul pour les tetraedres
-
   const int nDistantPoint      =  _locationToLocalMesh->getNLocatedDistantPoint() ;
   const int *distantLocation   = _locationToLocalMesh->getLocation();
   const double *distantCoords   = _locationToLocalMesh->getPointCoordinates();
@@ -491,126 +480,63 @@ void Coupling::_interpolate3D(double *vertexField,
   const double *coords         = _supportMesh->getVertexCoords();
   double coeff[4];
 
-  for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
-    int iel = distantLocation[ipoint] - 1;
-    if (iel < nStandardElt) {
-      int index = eltsConnecPointer[iel];
-      int nVertex = eltsConnecPointer[iel+1]-index;
+  const double *barycentricCoordinates = _locationToLocalMesh->getBarycentricCoordinates();
+  const int *barycentricCoordinatesIndex = _locationToLocalMesh->getBarycentricCoordinatesIndex();
 
-      for (int k = 0; k < stride; k++) {
-        double a[4][4] = {{0., 0., 0., 0.},
-            {0., 0., 0., 0.},
-            {0., 0., 0., 0.},
-            {0., 0., 0., 0.}};
-        double b[4] = {0., 0., 0., 0.};
-        for (int i = 0; i < nVertex; i++) {
-          int iVertex = eltsConnec[index+i]-1;
-          double v_x = coords[3*iVertex];
-          double v_y = coords[3*iVertex+1];
-          double v_z = coords[3*iVertex+2];
-          double v_f = vertexField[stride*iVertex+k];
+  const bool useMeanValues = true;
 
-          a[0][0] += v_x * v_x;
-          a[0][1] += v_x * v_y;
-          a[0][2] += v_x * v_z;
-          a[0][3] += v_x;
+  if (useMeanValues) {
 
-          a[1][1] += v_y * v_y;
-          a[1][2] += v_y * v_z;
-          a[1][3] += v_y;
+    for (int ipoint = 0; ipoint <nDistantPoint; ipoint++) {
+      int iel = distantLocation[ipoint] - 1;
+      int index = barycentricCoordinatesIndex[ipoint];
+      int nSom = barycentricCoordinatesIndex[ipoint+1] - index;
 
-          a[2][2] += v_z * v_z;
-          a[2][3] += v_z;
-
-          a[3][3] += 1.;
-
-          b[0] += v_x * v_f;
-          b[1] += v_y * v_f;
-          b[2] += v_z * v_f;
-          b[3] += v_f;
-        }
-        a[1][0] = a[0][1];
-        a[2][0] = a[0][2];
-        a[3][0] = a[0][3];
-
-        a[2][1] = a[1][2];
-        a[3][1] = a[1][3];
-
-        a[3][2] = a[2][3];
-
-        if (solve_ax_b_4(a, b, coeff) == 0) {
-          interpolatedField[stride*ipoint+k] = (coeff[0] * distantCoords[3*ipoint]
-                                                                         + coeff[1] * distantCoords[3*ipoint+1]
-                                                                                                    + coeff[2] * distantCoords[3*ipoint+2]
-                                                                                                                               + coeff[3]);
-        }
-        else {
-          interpolatedField[stride*ipoint+k] = vertexField[stride*nVertex+k]; /* last encountered value */
+      for (int k = 0; k < stride; k++)
+        interpolatedField[stride*ipoint + k] = 0;
+      for (int isom = 0; isom <  nSom; isom++) {
+        for (int k = 0; k < stride; k++) {
+          interpolatedField[stride*ipoint+k] += vertexField[stride*(eltsConnec[eltsConnecPointer[iel]+isom]-1)+k]
+                                                *barycentricCoordinates[index+isom];
         }
       }
     }
-    else {
+  }
 
-      const int *polyhedraFaceIndex = _supportMesh->getPolyhedraFaceIndex();
-      const int *polyhedraCellToFaceConnectivity = _supportMesh->getPolyhedraCellToFaceConnectivity();
-      const int *polyhedraFaceConnectivityIndex = _supportMesh->getPolyhedraFaceConnectivityIndex() ;
-      const int *polyhedraFaceConnectivity = _supportMesh->getPolyhedraFaceConnectivity();
+  else {
+    for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
+      int iel = distantLocation[ipoint] - 1;
+      if (iel < nStandardElt) {
+        int index = eltsConnecPointer[iel];
+        int nVertex = eltsConnecPointer[iel+1]-index;
 
-      int ipoly = iel - nStandardElt;
-      int nFacePolyhedra = polyhedraFaceIndex[iel+1] - polyhedraFaceIndex[iel];
-      int faceIndex = polyhedraCellToFaceConnectivity[iel];
-      int nVertexFace = 0;
-
-      for (int j = 0; j < nFacePolyhedra; j++) {
-        int iface = polyhedraCellToFaceConnectivity[faceIndex+j] - 1;
-        nVertexFace += polyhedraFaceConnectivityIndex[iface+1] - polyhedraFaceConnectivityIndex[iface];
-      }
-
-      std::vector<int> vertexPoly(nVertexFace);
-      for (int j = 0; j < nFacePolyhedra; j++) {
-        int iface = polyhedraCellToFaceConnectivity[faceIndex+j] - 1;
-        int nVertexLocFace = polyhedraFaceConnectivityIndex[iface+1] - polyhedraFaceConnectivityIndex[iface];
-        int vertexIndex = polyhedraFaceConnectivityIndex[iface];
-        for (int k = 0; k < nVertexLocFace; k++)
-          vertexPoly.push_back(polyhedraFaceConnectivity[vertexIndex+k]);
-      }
-      quickSort(&vertexPoly[0], 0, vertexPoly.size()-1, NULL);
-
-      int iVertex = -1;
-      double v_x;
-      double v_y;
-      double v_z;
-      double v_f;
-
-      for(int k = 0; k < stride; k++) {
-        double a[4][4] = {{0., 0., 0., 0.},
-            {0., 0., 0., 0.},
-            {0., 0., 0., 0.},
-            {0., 0., 0., 0.}};
-        double b[4] = {0., 0., 0., 0.};
-
-        for (int j = 0; j < vertexPoly.size(); j++) {
-          if (iVertex < vertexPoly[j]) {
-            iVertex = vertexPoly[j];
-            v_x = coords[3*iVertex];
-            v_y = coords[3*iVertex+1];
-            v_z = coords[3*iVertex+2];
-            v_f = vertexField[stride*iVertex+k];
+        for (int k = 0; k < stride; k++) {
+          double a[4][4] = {{0., 0., 0., 0.},
+                            {0., 0., 0., 0.},
+                            {0., 0., 0., 0.},
+                            {0., 0., 0., 0.}};
+          double b[4] = {0., 0., 0., 0.};
+          for (int i = 0; i < nVertex; i++) {
+            int iVertex = eltsConnec[index+i]-1;
+            double v_x = coords[3*iVertex];
+            double v_y = coords[3*iVertex+1];
+            double v_z = coords[3*iVertex+2];
+            double v_f = vertexField[stride*iVertex+k];
 
             a[0][0] += v_x * v_x;
             a[0][1] += v_x * v_y;
             a[0][2] += v_x * v_z;
             a[0][3] += v_x;
-
+            
             a[1][1] += v_y * v_y;
             a[1][2] += v_y * v_z;
             a[1][3] += v_y;
-
+            
             a[2][2] += v_z * v_z;
             a[2][3] += v_z;
-
+            
             a[3][3] += 1.;
-
+            
             b[0] += v_x * v_f;
             b[1] += v_y * v_f;
             b[2] += v_z * v_f;
@@ -619,20 +545,108 @@ void Coupling::_interpolate3D(double *vertexField,
           a[1][0] = a[0][1];
           a[2][0] = a[0][2];
           a[3][0] = a[0][3];
-
+          
           a[2][1] = a[1][2];
           a[3][1] = a[1][3];
-
+          
           a[3][2] = a[2][3];
-
+        
           if (solve_ax_b_4(a, b, coeff) == 0) {
             interpolatedField[stride*ipoint+k] = (coeff[0] * distantCoords[3*ipoint]
-                                                                           + coeff[1] * distantCoords[3*ipoint+1]
-                                                                                                      + coeff[2] * distantCoords[3*ipoint+2]
-                                                                                                                                 + coeff[3]);
+                                                  + coeff[1] * distantCoords[3*ipoint+1]
+                                                  + coeff[2] * distantCoords[3*ipoint+2]
+                                                  + coeff[3]);
           }
           else {
-            interpolatedField[stride*ipoint+k] = v_f; /* last encountered value */
+            interpolatedField[stride*ipoint+k] = vertexField[stride*nVertex+k]; /* last encountered value */
+          }
+        }
+      }
+      else {
+
+        const int *polyhedraFaceIndex = _supportMesh->getPolyhedraFaceIndex();
+        const int *polyhedraCellToFaceConnectivity = _supportMesh->getPolyhedraCellToFaceConnectivity();
+        const int *polyhedraFaceConnectivityIndex = _supportMesh->getPolyhedraFaceConnectivityIndex() ;
+        const int *polyhedraFaceConnectivity = _supportMesh->getPolyhedraFaceConnectivity();
+        
+        int ipoly = iel - nStandardElt;
+        int nFacePolyhedra = polyhedraFaceIndex[iel+1] - polyhedraFaceIndex[iel];
+        int faceIndex = polyhedraCellToFaceConnectivity[iel];
+        int nVertexFace = 0;
+        
+        for (int j = 0; j < nFacePolyhedra; j++) {
+          int iface = polyhedraCellToFaceConnectivity[faceIndex+j] - 1;
+          nVertexFace += polyhedraFaceConnectivityIndex[iface+1] - polyhedraFaceConnectivityIndex[iface];
+        }
+        
+        std::vector<int> vertexPoly(nVertexFace);
+        for (int j = 0; j < nFacePolyhedra; j++) {
+          int iface = polyhedraCellToFaceConnectivity[faceIndex+j] - 1;
+          int nVertexLocFace = polyhedraFaceConnectivityIndex[iface+1] - polyhedraFaceConnectivityIndex[iface];
+          int vertexIndex = polyhedraFaceConnectivityIndex[iface];
+          for (int k = 0; k < nVertexLocFace; k++)
+            vertexPoly.push_back(polyhedraFaceConnectivity[vertexIndex+k]);
+        }
+        quickSort(&vertexPoly[0], 0, vertexPoly.size()-1, NULL);
+        
+        int iVertex = -1;
+        double v_x;
+        double v_y;
+        double v_z;
+        double v_f;
+        
+        for(int k = 0; k < stride; k++) {
+          double a[4][4] = {{0., 0., 0., 0.},
+                            {0., 0., 0., 0.},
+                            {0., 0., 0., 0.},
+                            {0., 0., 0., 0.}};
+          double b[4] = {0., 0., 0., 0.};
+          
+          for (int j = 0; j < vertexPoly.size(); j++) {
+            if (iVertex < vertexPoly[j]) {
+              iVertex = vertexPoly[j];
+              v_x = coords[3*iVertex];
+              v_y = coords[3*iVertex+1];
+              v_z = coords[3*iVertex+2];
+              v_f = vertexField[stride*iVertex+k];
+              
+              a[0][0] += v_x * v_x;
+              a[0][1] += v_x * v_y;
+              a[0][2] += v_x * v_z;
+              a[0][3] += v_x;
+              
+              a[1][1] += v_y * v_y;
+              a[1][2] += v_y * v_z;
+              a[1][3] += v_y;
+              
+              a[2][2] += v_z * v_z;
+              a[2][3] += v_z;
+              
+              a[3][3] += 1.;
+              
+              b[0] += v_x * v_f;
+              b[1] += v_y * v_f;
+              b[2] += v_z * v_f;
+              b[3] += v_f;
+            }
+            a[1][0] = a[0][1];
+            a[2][0] = a[0][2];
+            a[3][0] = a[0][3];
+            
+            a[2][1] = a[1][2];
+            a[3][1] = a[1][3];
+            
+            a[3][2] = a[2][3];
+            
+            if (solve_ax_b_4(a, b, coeff) == 0) {
+              interpolatedField[stride*ipoint+k] = (coeff[0] * distantCoords[3*ipoint]
+                                                    + coeff[1] * distantCoords[3*ipoint+1]
+                                                    + coeff[2] * distantCoords[3*ipoint+2]
+                                                    + coeff[3]);
+            }
+            else {
+              interpolatedField[stride*ipoint+k] = v_f; /* last encountered value */
+            }
           }
         }
       }
@@ -1296,7 +1310,7 @@ void Coupling::waitIrecv(int request)
 
   if (_couplingType == CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING) {
 
-    if(_tmpStrideIrecv[request] != NULL ) {
+    if(_tmpStrideIrecv[request] != 0 ) {
 
       const MPI_Comm& localComm = _localApplicationProperties.getLocalComm();
 

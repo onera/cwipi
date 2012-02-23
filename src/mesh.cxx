@@ -50,11 +50,14 @@ namespace cwipi {
       _nDim(nDim), _nVertex(nVertex), _nElts(nElts), _nPolyhedra(0), _coords(coords),
       _eltConnectivityIndex(eltConnectivityIndex), _eltConnectivity(eltConnectivity),
       _polyhedraFaceIndex(NULL), _polyhedraCellToFaceConnectivity(NULL),
-      _polyhedraFaceConnectivityIndex(NULL), _polyhedraFaceConnectivity(NULL), _polyhedraCellToVertexConnectivity(NULL),
+      _polyhedraFaceConnectivityIndex(NULL), _polyhedraFaceConnectivity(NULL), 
+      _polyhedraCellToVertexConnectivity(NULL),
       _polyhedraCellToVertexConnectivityIndex(NULL), _cellCenterCoords(NULL),
-      _cellVolume(NULL), _fvmNodal(NULL), _polygonIndex(NULL), _isNodalFinalized(false)
-
-
+      _cellVolume(NULL), _normalFace(NULL),_fvmNodal(NULL), 
+      _polygonIndex(NULL), _isNodalFinalized(false),
+      _characteristicLength(NULL),
+      _isDegenerated(NULL)
+      
   {
 
     MPI_Comm oldFVMComm = fvmc_parall_get_mpi_comm();
@@ -85,7 +88,6 @@ namespace cwipi {
     if (_nDim > 1) {
 
       if (_nDim == 2) {
-
         for (int i = 0; i < _nElts; i++) {
           int nCurrentEltVertex = eltConnectivityIndex[i+1] - eltConnectivityIndex[i];
           if (nCurrentEltVertex == 3) {
@@ -107,6 +109,7 @@ namespace cwipi {
 
           else
             bftc_error(__FILE__, __LINE__, 0, "Erreur dans l'index de connectivite\n");
+          
         }
       }
 
@@ -516,7 +519,7 @@ namespace cwipi {
       _polyhedraFaceIndex(NULL), _polyhedraCellToFaceConnectivity(NULL),
       _polyhedraFaceConnectivityIndex(NULL), _polyhedraFaceConnectivity(NULL), _polyhedraCellToVertexConnectivity(NULL), 
       _polyhedraCellToVertexConnectivityIndex(NULL), _cellCenterCoords(NULL),
-      _cellVolume(NULL), _fvmNodal(NULL), _polygonIndex(NULL), _isNodalFinalized(true)
+      _cellVolume(NULL), _normalFace(NULL),_fvmNodal(NULL), _polygonIndex(NULL), _isNodalFinalized(true)
 
 
   {
@@ -982,6 +985,7 @@ namespace cwipi {
   {
     delete _cellCenterCoords;
     delete _cellVolume;
+    delete _normalFace;
     delete[] _polygonIndex;
     fvmc_nodal_destroy(_fvmNodal);
   }
@@ -1070,13 +1074,16 @@ namespace cwipi {
     refCellCenterCoords[3*i+2] /= nCurrentEltVertex;
   }
 
-
   void Mesh::_computeMeshProperties1D()
   {
     int nCurrentEltVertex;
     int index;
     std::vector<double> &refCellVolume = *_cellVolume;
+    std::vector<double> &refCharacteristicLength = *_characteristicLength;
+    std::vector<bool>   &refIsDegenerated        = *_isDegenerated;
+
     for (int i = 0; i < _nElts ; i++) {
+      refIsDegenerated[i] = false;
       nCurrentEltVertex = _eltConnectivityIndex[i+1] - _eltConnectivityIndex[i];
       assert(nCurrentEltVertex == 2);
       index = _eltConnectivityIndex[i];
@@ -1085,9 +1092,18 @@ namespace cwipi {
       int index = _eltConnectivityIndex[i];
       int pt1 = _eltConnectivity[index]   - 1;
       int pt2 = _eltConnectivity[index+1] - 1;
-      refCellVolume[i] = sqrt((_coords[3*pt2]-_coords[3*pt1])*(_coords[3*pt2]-_coords[3*pt1])+
-                              (_coords[3*pt2+1]-_coords[3*pt1+1])*(_coords[3*pt2+1]-_coords[3*pt1+1])+
-                              (_coords[3*pt2+2]-_coords[3*pt1+2])*(_coords[3*pt2+2]-_coords[3*pt1+2]));
+      refCellVolume[i] = 
+        sqrt((_coords[3*pt2]-_coords[3*pt1])*(_coords[3*pt2]-_coords[3*pt1])
+            +(_coords[3*pt2+1]-_coords[3*pt1+1])*(_coords[3*pt2+1]-_coords[3*pt1+1]) 
+            +(_coords[3*pt2+2]-_coords[3*pt1+2])*(_coords[3*pt2+2]-_coords[3*pt1+2]));
+      refCharacteristicLength[i] = refCellVolume[i];
+      if (refCharacteristicLength[i] < GEOM_EPS_DIST) {
+        refIsDegenerated[i] = true;
+        bftc_printf("Warning computeMeshProperties : linear element '%i' is degenerated "
+                   "(distance between 2 vertices = %12.5e)\n",
+                   i,
+                   refCharacteristicLength[i]);
+      }
     }
   }
 
@@ -1095,25 +1111,33 @@ namespace cwipi {
                                       const int *faceConnectivityIndex,
                                       const int *faceConnectivity,
                                       std::vector<double> *faceNormal,
+                                      std::vector<double> *characteristicLength,
+                                      std::vector<bool>   *isDegenerated,
                                       std::vector<double> *faceSurface,
                                       std::vector<double> *faceCenter)
 
   {
+    const double big = 1e32; 
     int nCurrentEltVertex;
     double v1[3];
     double v2[3];
+    double v3[3];
     double barycentre[3];
     std::vector <double> triNormal;
     std::vector <double> triBarycentre;
     int index;
     std::vector<double> &refFaceSurface = *faceSurface;
     std::vector<double> &refFaceNormal  = *faceNormal;
+    std::vector<double> &refCharacteristicLength = *characteristicLength;
+    std::vector<bool>   &refIsDegenerated        = *isDegenerated;
 
     int maxCurrentEltVertex  = 0;
     double surftot = 0.;
 
     for (int i = 0; i < nElts ; i++) {
       nCurrentEltVertex = faceConnectivityIndex[i+1] - faceConnectivityIndex[i];
+      refCharacteristicLength[i] = big;
+      refIsDegenerated[i] = false;
       if (nCurrentEltVertex > maxCurrentEltVertex)
         maxCurrentEltVertex = nCurrentEltVertex;
     }
@@ -1127,9 +1151,12 @@ namespace cwipi {
       _computeCellCenterCoordsWithVertex(i, nCurrentEltVertex, index,
                                          faceConnectivity,  faceCenter);
       if (nCurrentEltVertex == 3) {
-        int pt1 = faceConnectivity[index]   - 1;
-        int pt2 = faceConnectivity[index+1] - 1;
-        int pt3 = faceConnectivity[index+2] - 1;
+        const int pt1 = faceConnectivity[index]   - 1;
+        const int pt2 = faceConnectivity[index+1] - 1;
+        const int pt3 = faceConnectivity[index+2] - 1;
+        double d1;
+        double d2;
+        double d3;
 
         v1[0] = _coords[3*pt2]   - _coords[3*pt1];
         v1[1] = _coords[3*pt2+1] - _coords[3*pt1+1];
@@ -1138,6 +1165,17 @@ namespace cwipi {
         v2[0] = _coords[3*pt3]   - _coords[3*pt1];
         v2[1] = _coords[3*pt3+1] - _coords[3*pt1+1];
         v2[2] = _coords[3*pt3+2] - _coords[3*pt1+2];
+
+        v3[0] = _coords[3*pt3]   - _coords[3*pt2];
+        v3[1] = _coords[3*pt3+1] - _coords[3*pt2+1];
+        v3[2] = _coords[3*pt3+2] - _coords[3*pt2+2];
+
+        d1 = sqrt(v1[0]*v1[0] + v1[1]*v1[1] + v1[2]*v1[2]);
+        d2 = sqrt(v2[0]*v2[0] + v2[1]*v2[1] + v2[2]*v2[2]);
+        d3 = sqrt(v3[0]*v2[0] + v3[1]*v3[1] + v3[2]*v3[2]);
+
+        refCharacteristicLength[i] = std::min(d1, d2);
+        refCharacteristicLength[i] = std::min(d3, refCharacteristicLength[i]);
 
         refFaceNormal[3*i]   = 0.5 * (v1[1]*v2[2]-v1[2]*v2[1]);
         refFaceNormal[3*i+1] = 0.5 * (v1[2]*v2[0]-v1[0]*v2[2]);
@@ -1162,9 +1200,18 @@ namespace cwipi {
         refFaceCenter[3*i+1] = 0.;
         refFaceCenter[3*i+2] = 0.;
 
+        refCharacteristicLength[i] = big;
+
         for (int k = 0; k < nCurrentEltVertex ; k++) {
           int pt1 = faceConnectivity[index + k] - 1;
           int pt2 = faceConnectivity[index + (k+1)%nCurrentEltVertex] - 1;
+          double xx = _coords[3*pt1    ] - _coords[3*pt2    ];
+          double yy = _coords[3*pt1 + 1] - _coords[3*pt2 + 1];
+          double zz = _coords[3*pt1 + 2] - _coords[3*pt2 + 2];
+          double lEdge = sqrt(xx*xx + yy*yy + zz*zz);
+
+          refCharacteristicLength[i] = std::min(refCharacteristicLength[i], lEdge); 
+
           v1[0] = _coords[3*pt1]   - barycentre[0];
           v1[1] = _coords[3*pt1+1] - barycentre[1];
           v1[2] = _coords[3*pt1+2] - barycentre[2];
@@ -1206,26 +1253,34 @@ namespace cwipi {
 
         }
 
-        refFaceCenter[3*i]   /= refFaceSurface[i];
-        refFaceCenter[3*i+1] /= refFaceSurface[i];
-        refFaceCenter[3*i+2] /= refFaceSurface[i];
-#ifdef NAN
-        if (isnan(refFaceCenter[3*i]) ||
-            isnan(refFaceCenter[3*i]+1) ||
-            isnan(refFaceCenter[3*i]+2)) {
-          std::cout << "degenerated element (nan):" << i << std::endl;
+        double eps_loc = computeGeometricEpsilon(refCharacteristicLength[i], GEOM_EPS_SURF);
+
+        if (refFaceSurface[i] <= eps_loc) {
+          refIsDegenerated[i] = true;
+          bftc_printf("Warning computeMeshProperties : surface element '%i' is degenerated (surface = %12.5e)\n", 
+                     i, 
+                     refFaceSurface[i]);
           refFaceCenter[3*i] = barycentre[0];
           refFaceCenter[3*i+1] = barycentre[1];
           refFaceCenter[3*i+2] = barycentre[2];
         }
-#endif
-
+        else {
+          refFaceCenter[3*i]   /= refFaceSurface[i];
+          refFaceCenter[3*i+1] /= refFaceSurface[i];
+          refFaceCenter[3*i+2] /= refFaceSurface[i];
+        }
 
 #ifdef INFINITY
-        if (isinf(ABS(refFaceCenter[3*i])) ||
-            isinf(ABS(refFaceCenter[3*i]+1)) ||
-            isinf(ABS(refFaceCenter[3*i]+2))) {
-          std::cout << "degenerated element (inf) :" << i << std::endl;
+        if (isinf(ABS(refFaceCenter[3*i]))   ||
+            isinf(ABS(refFaceCenter[3*i+1])) ||
+            isinf(ABS(refFaceCenter[3*i+2]))) {
+          refIsDegenerated[i] = true;
+          bftc_printf("Warning computeMeshProperties : surface element '%i' is degenerated "
+                     "(center coordinates = (%12.5e, %12.5e, %12.5e))\n", 
+                     i, 
+                     refFaceCenter[3*i],
+                     refFaceCenter[3*i+1],
+                     refFaceCenter[3*i+2]);
           refFaceCenter[3*i] = barycentre[0];
           refFaceCenter[3*i+1] = barycentre[1];
           refFaceCenter[3*i+2] = barycentre[2];
@@ -1240,8 +1295,14 @@ namespace cwipi {
 
   void Mesh::_computeMeshProperties3D()
   {
+
+    // TODO: Refaire completement les calcul des centres cellules et volume (comme dans CEDRE)
+
     std::vector<double> & refCellCenterCoords = *_cellCenterCoords;
     std::vector<double> & refCellVolume = *_cellVolume;
+    std::vector<double> &refCharacteristicLength = *_characteristicLength;
+    std::vector<bool>   &refIsDegenerated        = *_isDegenerated;
+    std::vector<double> barycentre(3, 0.);
 
     int nStandardElement = _nElts - _nPolyhedra;
     if (nStandardElement > 0) {
@@ -1250,6 +1311,8 @@ namespace cwipi {
       std::vector<int>  tetraConnec(24,0);
       int ntetra =0;
       std::vector<double> faceSurface(4,0.);
+      std::vector<double> faceCharacteristicLength(4,0.);
+      std::vector<bool>   faceIsDegenerated(4,false);
       std::vector<double> faceCenter(3*4,0.);
       std::vector<double> faceNormal(3*4,0.);
 
@@ -1259,8 +1322,13 @@ namespace cwipi {
         int nCurrentEltVertex = _eltConnectivityIndex[i+1] - _eltConnectivityIndex[i];
         int index = _eltConnectivityIndex[i];
 
+        refIsDegenerated[i] = false;
+
         //
         // Element spliting
+
+        for (int j = 0; j < barycentre.size(); j++)
+          barycentre[j] = 0.;
 
         switch(nCurrentEltVertex) {
 
@@ -1270,6 +1338,14 @@ namespace cwipi {
           tetraConnec[1] = _eltConnectivity[index+1];
           tetraConnec[2] = _eltConnectivity[index+2];
           tetraConnec[3] = _eltConnectivity[index+3];
+          for (int j = 0; j < 4 ; j++) {
+            barycentre[0] += _coords[3 * tetraConnec[j]    ]; 
+            barycentre[1] += _coords[3 * tetraConnec[j] + 1]; 
+            barycentre[2] += _coords[3 * tetraConnec[j] + 2]; 
+          }
+          barycentre[0] / 4;
+          barycentre[1] / 4;
+          barycentre[2] / 4;
           break;
 
         case 5 :
@@ -1283,6 +1359,17 @@ namespace cwipi {
           tetraConnec[5] = _eltConnectivity[index+2];
           tetraConnec[6] = _eltConnectivity[index+3];
           tetraConnec[7] = _eltConnectivity[index+4];
+          for (int j = 0; j < 4 ; j++) {
+            barycentre[0] += _coords[3 * tetraConnec[j]    ]; 
+            barycentre[1] += _coords[3 * tetraConnec[j] + 1]; 
+            barycentre[2] += _coords[3 * tetraConnec[j] + 2]; 
+          }
+          barycentre[0] += _coords[3 * tetraConnec[5]    ]; 
+          barycentre[1] += _coords[3 * tetraConnec[5] + 1]; 
+          barycentre[2] += _coords[3 * tetraConnec[5] + 2]; 
+          barycentre[0] / 5;
+          barycentre[1] / 5;
+          barycentre[2] / 5;
           break;
 
         case 6 :
@@ -1302,7 +1389,21 @@ namespace cwipi {
           tetraConnec[9] = _eltConnectivity[index+5];
           tetraConnec[10] = _eltConnectivity[index+3];
           tetraConnec[11] = _eltConnectivity[index+1];
-          break;
+          for (int j = 0; j < 4 ; j++) {
+            barycentre[0] += _coords[3 * tetraConnec[j]    ]; 
+            barycentre[1] += _coords[3 * tetraConnec[j] + 1]; 
+            barycentre[2] += _coords[3 * tetraConnec[j] + 2]; 
+          }
+          barycentre[0] += _coords[3 * tetraConnec[5]    ]; 
+          barycentre[1] += _coords[3 * tetraConnec[5] + 1]; 
+          barycentre[2] += _coords[3 * tetraConnec[5] + 2]; 
+          barycentre[0] += _coords[3 * tetraConnec[6]    ]; 
+          barycentre[1] += _coords[3 * tetraConnec[6] + 1]; 
+          barycentre[2] += _coords[3 * tetraConnec[6] + 2]; 
+          barycentre[0] / 6;
+          barycentre[1] / 6;
+          barycentre[2] / 6;
+        break;
 
         case 8 :
 
@@ -1336,6 +1437,30 @@ namespace cwipi {
           tetraConnec[21] = _eltConnectivity[index+3];
           tetraConnec[22] = _eltConnectivity[index+7];
           tetraConnec[23] = _eltConnectivity[index+6];
+          for (int j = 0; j < 4 ; j++) {
+            barycentre[0] += _coords[3 * tetraConnec[j]    ]; 
+            barycentre[1] += _coords[3 * tetraConnec[j] + 1]; 
+            barycentre[2] += _coords[3 * tetraConnec[j] + 2]; 
+          }
+          barycentre[0] += _coords[3 * tetraConnec[5]    ]; 
+          barycentre[1] += _coords[3 * tetraConnec[5] + 1]; 
+          barycentre[2] += _coords[3 * tetraConnec[5] + 2]; 
+
+          barycentre[0] += _coords[3 * tetraConnec[13]    ]; 
+          barycentre[1] += _coords[3 * tetraConnec[13] + 1]; 
+          barycentre[2] += _coords[3 * tetraConnec[13] + 2];
+ 
+          barycentre[0] += _coords[3 * tetraConnec[15]    ]; 
+          barycentre[1] += _coords[3 * tetraConnec[15] + 1]; 
+          barycentre[2] += _coords[3 * tetraConnec[15] + 2];
+
+          barycentre[0] += _coords[3 * tetraConnec[6]    ]; 
+          barycentre[1] += _coords[3 * tetraConnec[6] + 1]; 
+          barycentre[2] += _coords[3 * tetraConnec[6] + 2];
+
+          barycentre[0] / 8;
+          barycentre[1] / 8;
+          barycentre[2] / 8;
           break;
         }
 
@@ -1376,11 +1501,13 @@ namespace cwipi {
                                    &faceConnectivityIndex[0],
                                    &faceConnectivity[0],
                                    &faceNormal,
+                                   &faceCharacteristicLength,
+                                   &faceIsDegenerated,
                                    &faceSurface,
                                    &faceCenter);
 
           for (int k = 0; k < 4; k++) {
-	        tetraCenterCoords[0] += _coords[3*(tetraConnec[4*j+k]-1)];
+            tetraCenterCoords[0] += _coords[3*(tetraConnec[4*j+k]-1)];
             tetraCenterCoords[1] += _coords[3*(tetraConnec[4*j+k]-1)+1];
             tetraCenterCoords[2] += _coords[3*(tetraConnec[4*j+k]-1)+2];
           }
@@ -1390,6 +1517,11 @@ namespace cwipi {
 
           double cellSurface = 0.;
           for (int k = 0; k < nFace; k++) {
+            if (faceIsDegenerated[k]) {
+              bftc_printf("Warning : a face of an volume element '%i'"
+                         " is degenerated (surface face '%i' = %12.5e)\n", 
+                         i, faceSurface[k]); 
+            }
             cellSurface += faceSurface[k];
             tetraVolume +=  faceNormal[3*k]   * faceCenter[3*k] +
                             faceNormal[3*k+1] * faceCenter[3*k+1] +
@@ -1403,9 +1535,27 @@ namespace cwipi {
           refCellCenterCoords[3*i+2] += tetraVolume*tetraCenterCoords[2];
           refCellVolume[i] += tetraVolume;
         }
-        refCellCenterCoords[3*i] /= refCellVolume[i];
-        refCellCenterCoords[3*i+1] /= refCellVolume[i];
-        refCellCenterCoords[3*i+2] /= refCellVolume[i];
+
+        //
+        // Check element
+        // 
+
+        double eps_loc = computeGeometricEpsilon(refCharacteristicLength[i], GEOM_EPS_VOL);
+
+        if (refCellVolume[i] <= eps_loc) {
+          refIsDegenerated[i] = true;
+          bftc_printf("Warning computeMeshProperties : volume element '%i' is degenerated (volume = %12.5e)\n", 
+                     i, 
+                     refCellVolume[i]);
+          refCellCenterCoords[3*i]   = barycentre[1];
+          refCellCenterCoords[3*i+1] = barycentre[2];
+          refCellCenterCoords[3*i+2] = barycentre[3];
+        }
+        else {
+          refCellCenterCoords[3*i]   /= refCellVolume[i];
+          refCellCenterCoords[3*i+1] /= refCellVolume[i];
+          refCellCenterCoords[3*i+2] /= refCellVolume[i];
+        }
       }
     }
 
@@ -1443,6 +1593,8 @@ namespace cwipi {
 //       int maxVertexFace = 0;
 
 //       for (int i = 0; i < _nPolyhedra; i++) {
+
+//      refIsDegenerated[i] = false;
 
 //         int nFacePolyhedra = _polyhedraFaceIndex[i+1] - _polyhedraFaceIndex[i];
 //         if (maxFacePolyhedra < nFacePolyhedra)
@@ -1559,24 +1711,32 @@ namespace cwipi {
 
   void Mesh::_computeMeshProperties()
   {
-    if (_cellCenterCoords == NULL)
+    if (_cellCenterCoords == NULL) {
       _cellCenterCoords = new std::vector<double>(3*_nElts);
-    else if (_cellCenterCoords->size() < 3*_nElts)
-      _cellCenterCoords->resize(3*_nElts);
-
-    if (_cellVolume == NULL)
       _cellVolume = new std::vector<double>(_nElts);
-    else if (_cellVolume->size() < _nElts)
+      _characteristicLength = new std::vector<double>(_nElts);
+      _isDegenerated = new std::vector<bool>(_nElts);
+    }
+    else {
+      _cellCenterCoords->resize(3*_nElts);
       _cellVolume->resize(_nElts);
+      _characteristicLength->resize(_nElts);
+      _isDegenerated = new std::vector<bool>(_nElts);
+    }
 
     if (_nDim == 1)
         _computeMeshProperties1D();
     else if (_nDim == 2) {
-      std::vector<double> faceNormal(3*_nElts);
+      if (_cellCenterCoords == NULL)
+        _normalFace = new std::vector<double>(3*_nElts);
+      else
+        _normalFace->resize(3*_nElts);
       _computeMeshProperties2D(_nElts,
                                _eltConnectivityIndex,
                                _eltConnectivity,
-                               &faceNormal,
+                               _normalFace,
+                               _characteristicLength,
+                               _isDegenerated,
                                _cellVolume,
                                _cellCenterCoords);
     }
@@ -1586,12 +1746,14 @@ namespace cwipi {
   }
   
   void Mesh::_computeMeshPolyhedraProperties(){
+    
     int nbrVertex = 0;
     int nbrVertexOld = 0;
     int sizeTabLoc = 12;
     int indFaceVertex;
     int indVertex;
     int nbrVertexFace;
+    
     std::vector<int> vertexPolyLoc (sizeTabLoc);
     std::vector<int> vertexPolyBool(_nVertex);
 
@@ -1604,9 +1766,10 @@ namespace cwipi {
     std::vector<int> & refPolyhedraCellToVertexConnectivity = *_polyhedraCellToVertexConnectivity;
     std::vector<int> & refPolyhedraCellToVertexConnectivityIndex = *_polyhedraCellToVertexConnectivityIndex;
 
-    for (int i = 0; i < _nVertex; i++){
-      vertexPolyBool[i] = 0;
-    }
+    for (int i = 0; i < _nVertex; i++)
+      vertexPolyBool[i] = 0;    
+    
+    /**** Premiere boucle pour connaitre le nombre total de sommets ****/
 
     for(int iPoly = 0; iPoly < _nPolyhedra ; iPoly++){
 
@@ -1654,16 +1817,18 @@ namespace cwipi {
     nbrVertex = 0;
     nbrVertexOld = 0;
 
+    /**** Calcul des tableaux d'index et de connectivite entre poly et sommets ****/
+
     for(int iPoly = 0; iPoly < _nPolyhedra ; iPoly++){
 
        int nFacePolyhedra = _polyhedraFaceIndex[iPoly+1] - _polyhedraFaceIndex[iPoly];
 
       for(int iFace = 0; iFace < nFacePolyhedra ; iFace++){
 
-         nbrVertexFace = _polyhedraFaceConnectivityIndex[_polyhedraCellToFaceConnectivity[_polyhedraFaceIndex[iPoly] + iFace ] ]
-                       - _polyhedraFaceConnectivityIndex[_polyhedraCellToFaceConnectivity[_polyhedraFaceIndex[iPoly] + iFace ] - 1];
+        nbrVertexFace = _polyhedraFaceConnectivityIndex[_polyhedraCellToFaceConnectivity[_polyhedraFaceIndex[iPoly] + iFace ] ]
+                      - _polyhedraFaceConnectivityIndex[_polyhedraCellToFaceConnectivity[_polyhedraFaceIndex[iPoly] + iFace ] - 1];
          
-         indFaceVertex = _polyhedraFaceConnectivityIndex[_polyhedraCellToFaceConnectivity[_polyhedraFaceIndex[iPoly] + iFace] - 1];        
+        indFaceVertex = _polyhedraFaceConnectivityIndex[_polyhedraCellToFaceConnectivity[_polyhedraFaceIndex[iPoly] + iFace] - 1];        
 
         for (int iVertex = 0 ; iVertex < nbrVertexFace ; iVertex++){
 
@@ -1685,9 +1850,8 @@ namespace cwipi {
       refPolyhedraCellToVertexConnectivityIndex[iPoly+1] = nbrVertex;
       
       nbrVertexOld = nbrVertex;
-      }
 
-    printf("----end---- \n");
+    }    
   }      
 
 }

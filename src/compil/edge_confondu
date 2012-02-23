@@ -1,0 +1,6 @@
+./clean
+mpiicpc -I/home/bfrisull/workspace/build/cwipi -I/home/bfrisull/workspace/cwipi/src -I/home/bfrisull/workspace/cwipi/src/bft -I/home/bfrisull/workspace/cwipi/src/fvm -c ../conservativeMesh.cxx -g 
+mpiicpc -I/home/bfrisull/workspace/build/cwipi -I/home/bfrisull/workspace/cwipi/src -I/home/bfrisull/workspace/cwipi/src/bft -I/home/bfrisull/workspace/cwipi/src/fvm -c ../../tests/test_conservative_mesh_edge_confondu.cxx -g 
+mpiicpc *.o -o test -L/home/bfrisull/opt/cwipi/lib -lbft -lfvm -lcwipi -Wl,-rpath -Wl,/home/bfrisull/opt/cwipi/lib
+./test
+

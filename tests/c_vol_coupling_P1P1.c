@@ -309,7 +309,7 @@ int main( int argc, char* argv[] ) {
     values = (double *) malloc(nVertex * sizeof(double));
    
     for (int i = 0; i < nVertex; i++) 
-      values[i] = coords[3*i]*coords[3*i];
+      values[i] = coords[3*i];
     
     localValues = (double *) malloc(nVertex * sizeof(double));
 
