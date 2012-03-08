@@ -27,6 +27,7 @@
 
 #include "locationToLocalMesh.hxx"
 #include "locationToDistantMesh.hxx"
+#include "vectorUtilities.hxx"
 #include "applicationProperties.hxx"
 
 
@@ -177,12 +178,18 @@ void LocationToLocalMesh::locate()
             assert(nVertex == 2);
             int pt1 = eltsConnec[index] - 1;
             int pt2 = eltsConnec[index+1] - 1;
-            double coef1 = sqrt((localCoords[3*pt1]-distantCoords[3*ipoint])*(localCoords[3*pt1]-distantCoords[3*ipoint])+
-                                (localCoords[3*pt1+1]-distantCoords[3*ipoint+1])*(localCoords[3*pt1+1]-distantCoords[3*ipoint+1])+
-                                (localCoords[3*pt1+2]-distantCoords[3*ipoint+2])*(localCoords[3*pt1+2]-distantCoords[3*ipoint+2]));
-            double coef2 = sqrt((localCoords[3*pt2]-distantCoords[3*ipoint])*(localCoords[3*pt2]-distantCoords[3*ipoint])+
-                                (localCoords[3*pt2+1]-distantCoords[3*ipoint+1])*(localCoords[3*pt2+1]-distantCoords[3*ipoint+1])+
-                                (localCoords[3*pt2+2]-distantCoords[3*ipoint+2])*(localCoords[3*pt2+2]-distantCoords[3*ipoint+2]));
+            double coef1 = sqrt((localCoords[3*pt1]-distantCoords[3*ipoint])
+                               *(localCoords[3*pt1]-distantCoords[3*ipoint])+
+                                (localCoords[3*pt1+1]-distantCoords[3*ipoint+1])
+                               *(localCoords[3*pt1+1]-distantCoords[3*ipoint+1])+
+                                (localCoords[3*pt1+2]-distantCoords[3*ipoint+2])
+                               *(localCoords[3*pt1+2]-distantCoords[3*ipoint+2]));
+            double coef2 = sqrt((localCoords[3*pt2]-distantCoords[3*ipoint])
+                               *(localCoords[3*pt2]-distantCoords[3*ipoint])+
+                                (localCoords[3*pt2+1]-distantCoords[3*ipoint+1])
+                               *(localCoords[3*pt2+1]-distantCoords[3*ipoint+1])+
+                                (localCoords[3*pt2+2]-distantCoords[3*ipoint+2])
+                               *(localCoords[3*pt2+2]-distantCoords[3*ipoint+2]));
             _refBarycentricCoordinates[_refBarycentricCoordinatesIndex[ipoint]] = coef2/(coef1+coef2);
             _refBarycentricCoordinates[_refBarycentricCoordinatesIndex[ipoint]+1] = coef1/(coef1+coef2);
           }
@@ -194,7 +201,7 @@ void LocationToLocalMesh::locate()
       }
 
       else if (_entitiesDim == 3) {
-         compute3DMeanValues();
+        compute3DMeanValues();
       }
     }
 
@@ -711,14 +718,14 @@ void  LocationToLocalMesh::midplaneProjection
     vect2[1] = normale_fac[1];
     vect2[2] = 0.;
 
-    computeVectorProduct(prod_vect, vect1, vect2);
+    crossProduct(vect1, vect2, prod_vect);
 
-    cost = computeCrossProduct(vect1, vect2) / computeNorm(vect2);
+    cost = dotProduct(vect1, vect2) / norm(vect2);
 
     if (prod_vect[2] > 0.)
-      sint =  computeNorm(prod_vect) / computeNorm(vect2);
+      sint =  norm(prod_vect) / norm(vect2);
     else
-      sint = -computeNorm(prod_vect) / computeNorm(vect2);
+      sint = -norm(prod_vect) / norm(vect2);
 
     for (isom = 0; isom < nbr_som_fac; isom++) {
 
@@ -745,14 +752,14 @@ void  LocationToLocalMesh::midplaneProjection
     vect2[1] = 0.;
     vect2[2] = normale_fac[2];
 
-    computeVectorProduct(prod_vect, vect1, vect2);
+    crossProduct(vect1, vect2, prod_vect);
 
-    cost = computeCrossProduct(vect1, vect2) / computeNorm(vect2);
+    cost = dotProduct(vect1, vect2) / norm(vect2);
 
     if (prod_vect[2] > 0.)
-      sint =  computeNorm(prod_vect) / computeNorm(vect2);
+      sint =  norm(prod_vect) / norm(vect2);
     else
-      sint = -computeNorm(prod_vect) / computeNorm(vect2);
+      sint = -norm(prod_vect) / norm(vect2);
 
 
     for (isom = 0; isom < nbr_som_fac; isom++) {
@@ -1122,7 +1129,7 @@ void LocationToLocalMesh::compute3DMeanValues()
     int nbr_som_fac; //nombre de sommets sur une face donnee
     int nbr_som; //nombre de sommets sur l'element
 
-    double eps_loc = _supportMesh->computeGeometricEpsilon(characteristicLength[ielt], GEOM_EPS_VOL);
+    double eps_loc = geometricEpsilon(characteristicLength[ielt], GEOM_EPS_VOL);
  
     //
     // If element is degenerated
@@ -1148,7 +1155,7 @@ void LocationToLocalMesh::compute3DMeanValues()
     else {
 
       //
-      // Build Element faces connectivity
+      // Build oriented Element faces connectivity (oriented towards the inside of cell)
       //
       
       if (ielt < eltStd) { 
@@ -1168,7 +1175,7 @@ void LocationToLocalMesh::compute3DMeanValues()
         case 4 :
 
           //
-          // Tetraedra           
+          // Tetraedra :            
           //
         
           nbr_face    = 4;
@@ -1177,16 +1184,16 @@ void LocationToLocalMesh::compute3DMeanValues()
           face_connectivity_Tmp = (int* ) malloc(12 * sizeof(int));
           cell_to_face_connectivity_Tmp = (int* ) malloc(nbr_face * sizeof(int));
           
-          face_connectivity_Tmp[0]  = meshConnectivity[meshConnectivityIndex[ielt]];
+          face_connectivity_Tmp[0]  = meshConnectivity[meshConnectivityIndex[ielt]    ];
           face_connectivity_Tmp[1]  = meshConnectivity[meshConnectivityIndex[ielt] + 1];
           face_connectivity_Tmp[2]  = meshConnectivity[meshConnectivityIndex[ielt] + 2];
           
-          face_connectivity_Tmp[3]  = meshConnectivity[meshConnectivityIndex[ielt]];
+          face_connectivity_Tmp[3]  = meshConnectivity[meshConnectivityIndex[ielt]    ];
           face_connectivity_Tmp[4]  = meshConnectivity[meshConnectivityIndex[ielt] + 3];
           face_connectivity_Tmp[5]  = meshConnectivity[meshConnectivityIndex[ielt] + 1];
           
-          face_connectivity_Tmp[6]  = meshConnectivity[meshConnectivityIndex[ielt]];
-          face_connectivity_Tmp[7]  = meshConnectivity[meshConnectivityIndex[ielt] + 4];
+          face_connectivity_Tmp[6]  = meshConnectivity[meshConnectivityIndex[ielt]    ];
+          face_connectivity_Tmp[7]  = meshConnectivity[meshConnectivityIndex[ielt] + 2];
           face_connectivity_Tmp[8]  = meshConnectivity[meshConnectivityIndex[ielt] + 3];
         
           face_connectivity_Tmp[9]  = meshConnectivity[meshConnectivityIndex[ielt] + 1];
@@ -1470,7 +1477,7 @@ void LocationToLocalMesh::compute3DMeanValues()
           l_are_min = std::min(l_are, l_are_min);
         }
 
-        double eps_face = _supportMesh->computeGeometricEpsilon(l_are_min, GEOM_EPS_SURF);
+        double eps_face = geometricEpsilon(l_are_min, GEOM_EPS_SURF);
         
         //
         // Face triangulation 
@@ -1542,18 +1549,16 @@ void LocationToLocalMesh::compute3DMeanValues()
             const double coo_iky = coo_som_elt[3*k+1] - coo_som_elt[3*i+1];
             const double coo_ikz = coo_som_elt[3*k+2] - coo_som_elt[3*i+2];
             
-            double areaTri_ijk = (coo_ijy * coo_ikz - coo_ijz * coo_iky) 
-                               * (coo_ijy * coo_ikz - coo_ijz * coo_iky)
-                                  + (coo_ijz * coo_ikx - coo_ijx * coo_ikz) 
-                               * (coo_ijz * coo_ikx - coo_ijx * coo_ikz)
-                                  + (coo_ijx * coo_iky - coo_ijy * coo_ikx) 
-                               * (coo_ijx * coo_iky - coo_ijy * coo_ikx);
+            double areaTri_ijk = 0.5 * sqrt((coo_ijy * coo_ikz - coo_ijz * coo_iky) 
+                                            * (coo_ijy * coo_ikz - coo_ijz * coo_iky)
+                                            + (coo_ijz * coo_ikx - coo_ijx * coo_ikz) 
+                                            * (coo_ijz * coo_ikx - coo_ijx * coo_ikz)
+                                            + (coo_ijx * coo_iky - coo_ijy * coo_ikx) 
+                                            * (coo_ijx * coo_iky - coo_ijy * coo_ikx));
             
             bftc_printf("-- aire triangle : %12.5e %12.5e\n", fabs(areaTri_ijk), eps_face);
 
             if (fabs(areaTri_ijk) > eps_face) { 
-
-              areaTri_ijk = 0.5 * sqrt(fabs(areaTri_ijk));
              
               //
               // Check if distant point is in the triangle
@@ -1843,7 +1848,7 @@ void LocationToLocalMesh::compute3DMeanValues()
                                   + (coo_ijx * coo_iky - coo_ijy * coo_ikx) 
                                * (coo_ijx * coo_iky - coo_ijy * coo_ikx);
 
-              double eps_face = _supportMesh->computeGeometricEpsilon(l_are_min, GEOM_EPS_SURF);
+              double eps_face = geometricEpsilon(l_are_min, GEOM_EPS_SURF);
 
               bftc_printf(" *** surface triangle : %12.5e %12.5e \n", fabs(areaTri_ijk), eps_face);
               if (fabs(areaTri_ijk) > eps_face) { 

@@ -89,12 +89,12 @@ extern "C" {
 
 void
 fvmc_point_location_nodal(const fvmc_nodal_t  *this_nodal,
-                         double              tolerance,
-                         _Bool               locate_on_parents,
-                         fvmc_lnum_t          n_points,
-                         const fvmc_coord_t   point_coords[],
-                         fvmc_lnum_t          location[],
-                         float               distance[]);
+                         double                tolerance,
+                         _Bool                 locate_on_parents,
+                         fvmc_lnum_t           n_points,
+                         const fvmc_coord_t    point_coords[],
+                         fvmc_lnum_t           location[],
+                         float                distance[]);
 
 /*----------------------------------------------------------------------------
  * Find elements in a given nodal mesh closest to points: updates the

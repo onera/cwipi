@@ -16,19 +16,21 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "conservativeMesh.hxx"
+
 #include <mpi.h>
 #include <algorithm>
 #include <cmath>
 #include <cassert>
 
-#include <bft_printf.h>
+#include <bftc_printf.h>
+
+#include <fvmc_writer.h>
 
 #include "locationToLocalMesh.hxx"
 #include "locationToDistantMesh.hxx"
 #include "applicationProperties.hxx"
-#include "conservativeMesh.hxx"
-#include "fvm_writer.h"
-
+#include "vectorUtilities.hxx"
 
 namespace cwipi
 {
@@ -39,7 +41,7 @@ namespace cwipi
                                      const double tolerance) :
 
     _sourceMesh(sourceMesh), _targetMesh(targetMesh),_intersectionMesh(NULL),
-    _newEltOldElt(NULL),_tolerance(tolerance)
+    _tolerance(tolerance)
   {
     
     std::vector<int> eltEdgeConnectivitySM;          //tableau de connectivité Element/Arete du maillage source
@@ -130,16 +132,16 @@ namespace cwipi
                               &edgeIndex[0],
                               &edgeVertexConnectivityIM[0]);
 
-    fvm::fvm_writer_t *fvmWriter = fvm::fvm_writer_init("EdgeMesh",
+    fvmc_writer_t *fvmWriter = fvmc_writer_init("EdgeMesh",
                                                           "/home/bfrisull/workspace/cwipi/src/compil/meshes",
                                                           "Ensight Gold",
                                                           "text",
-                                                          fvm::FVM_WRITER_FIXED_MESH);
+                                                          FVMC_WRITER_FIXED_MESH);
     
-    fvm::fvm_writer_export_nodal(fvmWriter, 
+    fvmc_writer_export_nodal(fvmWriter, 
                                  &(edgeMesh->getFvmNodal()));
     
-    fvm::fvm_writer_finalize(fvmWriter);
+    fvmc_writer_finalize(fvmWriter);
     
 
 
@@ -240,13 +242,13 @@ namespace cwipi
     v2[2] = p1TarEdge[2] - p1SourEdge[2];
     
 
-    double normV0 = computeDotProduct(&v0[0],&v0[0]);    //norme du vecteur V0
-    double normV1 = computeDotProduct(&v1[0],&v1[0]);    //norme du vecteur V1
-    double normV2 = computeDotProduct(&v2[0],&v2[0]);    //norme du vecteur V2
+    double normV0 = dotProduct(&v0[0],&v0[0]);    //norme du vecteur V0
+    double normV1 = dotProduct(&v1[0],&v1[0]);    //norme du vecteur V1
+    double normV2 = dotProduct(&v2[0],&v2[0]);    //norme du vecteur V2
 
-    double psV0V1 = computeDotProduct(&v0[0],&v1[0]);    //produit scalaire du (V0,V1)
-    double psV0V2 = computeDotProduct(&v0[0],&v2[0]);    //produit scalaire du (V0,V2)
-    double psV1V2 = computeDotProduct(&v1[0],&v2[0]);    //produit scalaire du (V1,V2)
+    double psV0V1 = dotProduct(&v0[0],&v1[0]);    //produit scalaire du (V0,V1)
+    double psV0V2 = dotProduct(&v0[0],&v2[0]);    //produit scalaire du (V0,V2)
+    double psV1V2 = dotProduct(&v1[0],&v2[0]);    //produit scalaire du (V1,V2)
 
     v0.clear();    
     v1.clear();
@@ -827,7 +829,7 @@ namespace cwipi
 
 
     for(int iVert = 0 ; iVert < nVertSM ; iVert ++){
-      indEdge = abs(vertexEdgeConnectivitySM[vertexEdgeIndexSM[iVert]]) - 1;
+      indEdge = std::abs(vertexEdgeConnectivitySM[vertexEdgeIndexSM[iVert]]) - 1;
       vert1 = edgeVertexConnectivitySM[2*indEdge] - 1;
       vert2 = edgeVertexConnectivitySM[2*indEdge + 1] - 1;
 
@@ -835,10 +837,10 @@ namespace cwipi
       edge[1] = vertexCoordSM[3*vert2 + 1] - vertexCoordSM[3*vert1 + 1] ;
       edge[2] = vertexCoordSM[3*vert2 + 2] - vertexCoordSM[3*vert1 + 2] ;
 
-      normMinEdge = norme(&edge[0]);
+      normMinEdge = norm(&edge[0]);
 
       for(int iEdge = 1; iEdge < vertexEdgeIndexSM[iVert + 1] - vertexEdgeIndexSM[iVert] ; iEdge ++){
-        indEdge = abs(vertexEdgeConnectivitySM[vertexEdgeIndexSM[iVert] + iEdge]) - 1;
+        indEdge = std::abs(vertexEdgeConnectivitySM[vertexEdgeIndexSM[iVert] + iEdge]) - 1;
         vert1 = edgeVertexConnectivitySM[2*indEdge] - 1;
         vert2 = edgeVertexConnectivitySM[2*indEdge + 1] - 1;
         
@@ -846,7 +848,7 @@ namespace cwipi
         edge[1] = vertexCoordSM[3*vert2 + 1] - vertexCoordSM[3*vert1 + 1] ;
         edge[2] = vertexCoordSM[3*vert2 + 2] - vertexCoordSM[3*vert1 + 2] ;
         
-        normEdge = norme(&edge[0]);
+        normEdge = norm(&edge[0]);
         
         if(normEdge < normMinEdge)
           normMinEdge = normEdge;
@@ -857,7 +859,7 @@ namespace cwipi
 
 
     for(int iVert = 0 ; iVert < nVertTM ; iVert ++){
-      indEdge = abs(vertexEdgeConnectivityTM[vertexEdgeIndexTM[iVert]]) - 1;
+      indEdge = std::abs(vertexEdgeConnectivityTM[vertexEdgeIndexTM[iVert]]) - 1;
       vert1 = edgeVertexConnectivityTM[2*indEdge] - 1;
       vert2 = edgeVertexConnectivityTM[2*indEdge + 1] - 1;
 
@@ -865,10 +867,10 @@ namespace cwipi
       edge[1] = vertexCoordTM[3*vert2 + 1] - vertexCoordTM[3*vert1 + 1] ;
       edge[2] = vertexCoordTM[3*vert2 + 2] - vertexCoordTM[3*vert1 + 2] ;
 
-      normMinEdge = norme(&edge[0]);
+      normMinEdge = norm(&edge[0]);
 
       for(int iEdge = 1; iEdge < vertexEdgeIndexTM[iVert + 1] - vertexEdgeIndexTM[iVert] ; iEdge ++){
-        indEdge = abs(vertexEdgeConnectivityTM[vertexEdgeIndexTM[iVert] + iEdge]) - 1 ;
+        indEdge = std::abs(vertexEdgeConnectivityTM[vertexEdgeIndexTM[iVert] + iEdge]) - 1 ;
         vert1 = edgeVertexConnectivityTM[2*indEdge] - 1;
         vert2 = edgeVertexConnectivityTM[2*indEdge + 1] - 1;
         
@@ -876,7 +878,7 @@ namespace cwipi
         edge[1] = vertexCoordTM[3*vert2 + 1] - vertexCoordTM[3*vert1 + 1] ;
         edge[2] = vertexCoordTM[3*vert2 + 2] - vertexCoordTM[3*vert1 + 2] ;
         
-        normEdge = norme(&edge[0]);
+        normEdge = norm(&edge[0]);
         
         if(normEdge < normMinEdge)
           normMinEdge = normEdge;
@@ -1326,29 +1328,29 @@ namespace cwipi
           /***************************************************************************/
           /*          if(nIntersLoc > 0){
             
-            bft::bft_printf(" indP1SM %d indP2SM %d  indP1TM %d indP2TM %d \n",
+            bftc_printf(" indP1SM %d indP2SM %d  indP1TM %d indP2TM %d \n",
                             indP1SM + 1,indP2SM + 1,
                           indP1TM + 1 ,indP2TM + 1);
-            bft::bft_printf("coordsSM  P1 %f  %f  %f \n",p1EdgeSM[0],p1EdgeSM[1],p1EdgeSM[2]);
-            bft::bft_printf("coordsSM  P2 %f  %f  %f \n",p2EdgeSM[0],p2EdgeSM[1],p2EdgeSM[2]);
-            bft::bft_printf("coordsTM  P1 %f  %f  %f \n",p1EdgeTM[0],p1EdgeTM[1],p1EdgeTM[2]);
-            bft::bft_printf("coordsTM  P2 %f  %f  %f \n",p2EdgeTM[0],p2EdgeTM[1],p2EdgeTM[2]);
-            bft::bft_printf("distMin SM1  %f  SM2  %f  TM1  %f  TM2  %f \n",
+            bftc_printf("coordsSM  P1 %f  %f  %f \n",p1EdgeSM[0],p1EdgeSM[1],p1EdgeSM[2]);
+            bftc_printf("coordsSM  P2 %f  %f  %f \n",p2EdgeSM[0],p2EdgeSM[1],p2EdgeSM[2]);
+            bftc_printf("coordsTM  P1 %f  %f  %f \n",p1EdgeTM[0],p1EdgeTM[1],p1EdgeTM[2]);
+            bftc_printf("coordsTM  P2 %f  %f  %f \n",p2EdgeTM[0],p2EdgeTM[1],p2EdgeTM[2]);
+            bftc_printf("distMin SM1  %f  SM2  %f  TM1  %f  TM2  %f \n",
                             distMinVertex[indP1SM],
                             distMinVertex[indP2SM],
                             distMinVertex[indP1TM],
                             distMinVertex[indP2TM]);
             
-            bft::bft_printf("nbr inters %d \n",nIntersLoc);
+            bftc_printf("nbr inters %d \n",nIntersLoc);
           
             if(nIntersLoc == 2)
-              bft::bft_printf("intersection   s1  %f  t1  %f \n s2  %f  t2  %f \n \n",
+              bftc_printf("intersection   s1  %f  t1  %f \n s2  %f  t2  %f \n \n",
                               locCoordInters[0],
                               locCoordInters[1],
                               locCoordInters[2],
                               locCoordInters[3]);
             else if(nIntersLoc == 1)
-              bft::bft_printf("intersection   s1  %f  t1  %f \n \n",
+              bftc_printf("intersection   s1  %f  t1  %f \n \n",
                               locCoordInters[0],
                             locCoordInters[1]);
                             }*/
@@ -1365,7 +1367,7 @@ namespace cwipi
               if(locCoordInters[0] < 0){
                 if(locCoordInters[1] < 0){
                   if(locCoordInters[2] < 0){
-                    bft::bft_error(__FILE__,
+                    bftc_error(__FILE__,
                                    __LINE__, 0,
                                    "Combinaison impossible coords locales %f %f %f %f \n",
                                    locCoordInters[0],
@@ -1377,7 +1379,7 @@ namespace cwipi
                   }
                   else if (locCoordInters[2] > 1){
                     if(locCoordInters[3] < 0){
-                      bft::bft_error(__FILE__,
+                      bftc_error(__FILE__,
                                      __LINE__, 0,
                                    "Combinaison impossible coords locales %f %f %f %f \n",
                                      locCoordInters[0],
@@ -1396,7 +1398,7 @@ namespace cwipi
                       oldVertNewVert[indP1SM] = nIntersGlob + nVertSM + nVertTM + 1;
                       
                       distMinVertex[nIntersGlob + nVertSM + nVertTM] = 
-                        min(distMinVertex[indP1SM],distMinVertex[indP1TM]);
+                        std::min(distMinVertex[indP1SM],distMinVertex[indP1TM]);
 
 
                       nIntersGlob++;
@@ -1409,7 +1411,7 @@ namespace cwipi
                       oldVertNewVert[indP2SM] = nIntersGlob + nVertSM + nVertTM + 1;
 
                       distMinVertex[nIntersGlob + nVertSM + nVertTM] = 
-                        min(distMinVertex[indP2SM],distMinVertex[indP2TM]);
+                        std::min(distMinVertex[indP2SM],distMinVertex[indP2TM]);
 
                       
                       nIntersGlob++;
@@ -1425,7 +1427,7 @@ namespace cwipi
                       oldVertNewVert[indP1SM] = nIntersGlob + nVertSM + nVertTM + 1;
 
                       distMinVertex[nIntersGlob + nVertSM + nVertTM] = 
-                        min(distMinVertex[indP1SM],distMinVertex[indP1TM]);
+                        std::min(distMinVertex[indP1SM],distMinVertex[indP1TM]);
 
 
                       nIntersGlob++;
@@ -1450,7 +1452,7 @@ namespace cwipi
                       oldVertNewVert[indP1SM] = nIntersGlob + nVertSM + nVertTM + 1;
 
                       distMinVertex[nIntersGlob + nVertSM + nVertTM] = 
-                        min(distMinVertex[indP1SM],distMinVertex[indP1TM]);
+                        std::min(distMinVertex[indP1SM],distMinVertex[indP1TM]);
 
 
                       nIntersGlob++;
@@ -1468,7 +1470,7 @@ namespace cwipi
                       
                     }
                     else{
-                      bft::bft_error(__FILE__,
+                      bftc_error(__FILE__,
                                      __LINE__, 0,
                                    "Combinaison impossible coords locales %f %f %f %f \n",
                                      locCoordInters[0],
@@ -1482,7 +1484,7 @@ namespace cwipi
                 }
                 else if (locCoordInters[1] > 1){
                   if (locCoordInters[2] < 0){
-                      bft::bft_error(__FILE__,
+                      bftc_error(__FILE__,
                                      __LINE__, 0,
                                    "Combinaison impossible coords locales %f %f %f %f \n",
                                      locCoordInters[0],
@@ -1502,7 +1504,7 @@ namespace cwipi
                       oldVertNewVert[indP1SM] = nIntersGlob + nVertSM + nVertTM + 1;
                       
                       distMinVertex[nIntersGlob + nVertSM + nVertTM] = 
-                        min(distMinVertex[indP1SM],distMinVertex[indP2TM]);
+                        std::min(distMinVertex[indP1SM],distMinVertex[indP2TM]);
 
 
                       nIntersGlob++;
@@ -1515,13 +1517,13 @@ namespace cwipi
                       oldVertNewVert[indP2SM] = nIntersGlob + nVertSM + nVertTM + 1;
                       
                       distMinVertex[nIntersGlob + nVertSM + nVertTM] = 
-                        min(distMinVertex[indP2SM],distMinVertex[indP1TM]);
+                        std::min(distMinVertex[indP2SM],distMinVertex[indP1TM]);
 
 
                       nIntersGlob++;                                           
                     }
                     else if (locCoordInters[3] > 1){
-                      bft::bft_error(__FILE__,
+                      bftc_error(__FILE__,
                                      __LINE__, 0,
                                    "Combinaison impossible coords locales %f %f %f %f \n",
                                      locCoordInters[0],
@@ -1540,7 +1542,7 @@ namespace cwipi
                       oldVertNewVert[indP1SM] = nIntersGlob + nVertSM + nVertTM + 1;
 
                       distMinVertex[nIntersGlob + nVertSM + nVertTM] = 
-                        min(distMinVertex[indP1SM],distMinVertex[indP2TM]);
+                        std::min(distMinVertex[indP1SM],distMinVertex[indP2TM]);
 
 
                       nIntersGlob++;
@@ -1564,7 +1566,7 @@ namespace cwipi
                       oldVertNewVert[indP1SM] = nIntersGlob + nVertSM + nVertTM + 1;
 
                       distMinVertex[nIntersGlob + nVertSM + nVertTM] = 
-                        min(distMinVertex[indP1SM],distMinVertex[indP2TM]);
+                        std::min(distMinVertex[indP1SM],distMinVertex[indP2TM]);
 
 
                       nIntersGlob++;
@@ -1582,7 +1584,7 @@ namespace cwipi
 
                     }
                     else{
-                      bft::bft_error(__FILE__,
+                      bftc_error(__FILE__,
                                      __LINE__, 0,
                                    "Combinaison impossible coords locales %f %f %f %f \n",
                                      locCoordInters[0],
@@ -1596,7 +1598,7 @@ namespace cwipi
                 }
                 else{
                   if (locCoordInters[2] < 0){
-                      bft::bft_error(__FILE__,
+                      bftc_error(__FILE__,
                                      __LINE__, 0,
                                      "Combinaison impossible coords locales %f %f %f %f \n",
                                      locCoordInters[0],
@@ -1616,7 +1618,7 @@ namespace cwipi
                       oldVertNewVert[indP2SM] = nIntersGlob + nVertSM + nVertTM + 1;
 
                       distMinVertex[nIntersGlob + nVertSM + nVertTM] = 
-                        min(distMinVertex[indP1SM],distMinVertex[indP2TM]);
+                        std::min(distMinVertex[indP1SM],distMinVertex[indP2TM]);
 
 
                       nIntersGlob++;
@@ -1639,7 +1641,7 @@ namespace cwipi
                       oldVertNewVert[indP2SM] = nIntersGlob + nVertSM + nVertTM + 1;
 
                       distMinVertex[nIntersGlob + nVertSM + nVertTM] = 
-                        min(distMinVertex[indP2SM],distMinVertex[indP2TM]);
+                        std::min(distMinVertex[indP2SM],distMinVertex[indP2TM]);
 
 
                       nIntersGlob++;
@@ -1675,7 +1677,7 @@ namespace cwipi
                       nEdgeIntersTmp +=2;
                     }
                     else{
-                      bft::bft_error(__FILE__,
+                      bftc_error(__FILE__,
                                      __LINE__, 0,
                                      "Combinaison impossible coords locales %f %f %f %f \n",
                                      locCoordInters[0],
@@ -1727,7 +1729,7 @@ namespace cwipi
                       nEdgeIntersTmp ++;
                     }
                     else{
-                      bft::bft_error(__FILE__,
+                      bftc_error(__FILE__,
                                      __LINE__, 0,
                                      "Combinaison impossible coords locales %f %f %f %f \n",
                                      locCoordInters[0],
@@ -1743,7 +1745,7 @@ namespace cwipi
               else if (locCoordInters[0] > 1){
                 if(locCoordInters[1] < 0){
                   if(locCoordInters[2] < 0 || locCoordInters[2] > 1){
-                      bft::bft_error(__FILE__,
+                      bftc_error(__FILE__,
                                      __LINE__, 0,
                                      "Combinaison impossible coords locales %f %f %f %f \n",
                                      locCoordInters[0],
@@ -1763,7 +1765,7 @@ namespace cwipi
                       oldVertNewVert[indP2SM] = nIntersGlob + nVertSM + nVertTM + 1;
 
                       distMinVertex[nIntersGlob + nVertSM + nVertTM] = 
-                        min(distMinVertex[indP2SM],distMinVertex[indP1TM]);
+                        std::min(distMinVertex[indP2SM],distMinVertex[indP1TM]);
 
 
                       nIntersGlob++;
@@ -1784,7 +1786,7 @@ namespace cwipi
 
                     }
                     else{
-                      bft::bft_error(__FILE__,
+                      bftc_error(__FILE__,
                                      __LINE__, 0,
                                      "Combinaison impossible coords locales %f %f %f %f \n",
                                      locCoordInters[0],
@@ -1800,7 +1802,7 @@ namespace cwipi
                 else if (locCoordInters[1] > 1){
 
                   if(locCoordInters[2] < 0 || locCoordInters [2] > 1){
-                      bft::bft_error(__FILE__,
+                      bftc_error(__FILE__,
                                      __LINE__, 0,
                                      "Combinaison impossible coords locales %f %f %f %f \n",
                                      locCoordInters[0],
@@ -1821,7 +1823,7 @@ namespace cwipi
                       oldVertNewVert[indP2SM] = nIntersGlob + nVertSM + nVertTM + 1;
                       
                       distMinVertex[nIntersGlob + nVertSM + nVertTM] = 
-                        min(distMinVertex[indP2SM],distMinVertex[indP1TM]);
+                        std::min(distMinVertex[indP2SM],distMinVertex[indP1TM]);
                       
 
                       nIntersGlob++;
@@ -1839,7 +1841,7 @@ namespace cwipi
 
                     }
                     else{
-                      bft::bft_error(__FILE__,
+                      bftc_error(__FILE__,
                                      __LINE__, 0,
                                      "Combinaison impossible coords locales %f %f %f %f \n",
                                      locCoordInters[0],
@@ -1853,7 +1855,7 @@ namespace cwipi
                 }
                 else{
                   if (locCoordInters[2] < 0 || locCoordInters[2] > 1){
-                      bft::bft_error(__FILE__,
+                      bftc_error(__FILE__,
                                      __LINE__, 0,
                                      "Combinaison impossible coords locales %f %f %f %f \n",
                                      locCoordInters[0],
@@ -1907,7 +1909,7 @@ namespace cwipi
                       
                     }
                     else{
-                      bft::bft_error(__FILE__,
+                      bftc_error(__FILE__,
                                      __LINE__, 0,
                                      "Combinaison impossible coords locales %f %f %f %f \n",
                                      locCoordInters[0],
@@ -1923,7 +1925,7 @@ namespace cwipi
               else{
                 if(locCoordInters[1] < 0){
                   if (locCoordInters[2] < 0 || locCoordInters[2] > 1){
-                      bft::bft_error(__FILE__,
+                      bftc_error(__FILE__,
                                      __LINE__, 0,
                                      "Combinaison impossible coords locales %f %f %f %f \n",
                                      locCoordInters[0],
@@ -1984,7 +1986,7 @@ namespace cwipi
                         nCutEdgeSM +=2;
                       }
                       else{
-                        bft::bft_error(__FILE__,
+                        bftc_error(__FILE__,
                                        __LINE__, 0,
                                        "Combinaison impossible coords locales %f %f %f %f \n",
                                        locCoordInters[0],
@@ -1996,7 +1998,7 @@ namespace cwipi
                       }                      
                     }
                     else{
-                        bft::bft_error(__FILE__,
+                        bftc_error(__FILE__,
                                        __LINE__, 0,
                                        "Combinaison impossible coords locales %f %f %f %f \n",
                                        locCoordInters[0],
@@ -2009,7 +2011,7 @@ namespace cwipi
                   }
                 }
                 else{
-                  bft::bft_error(__FILE__,
+                  bftc_error(__FILE__,
                                  __LINE__, 0,
                                  "Combinaison impossible coords locales %f %f %f %f \n",
                                  locCoordInters[0],
@@ -2038,7 +2040,7 @@ namespace cwipi
                   oldVertNewVert[indP1SM] = nIntersGlob + nVertSM + nVertTM + 1;
                                     
                   distMinVertex[nIntersGlob + nVertSM + nVertTM] = 
-                    min(distMinVertex[indP1TM],distMinVertex[indP1SM]);
+                    std::min(distMinVertex[indP1TM],distMinVertex[indP1SM]);
                                     
                   nIntersGlob++;
                 }
@@ -2051,7 +2053,7 @@ namespace cwipi
                   oldVertNewVert[indP2TM] = nIntersGlob + nVertSM + nVertTM + 1;
 
                   distMinVertex[nIntersGlob + nVertSM + nVertTM] = 
-                    min(distMinVertex[indP1SM],distMinVertex[indP2TM]);
+                    std::min(distMinVertex[indP1SM],distMinVertex[indP2TM]);
                  
                   nIntersGlob++;
                   
@@ -2076,7 +2078,7 @@ namespace cwipi
                   oldVertNewVert[indP1TM] = nIntersGlob + nVertSM + nVertTM + 1;                
                   
                   distMinVertex[nIntersGlob + nVertSM + nVertTM] = 
-                    min(distMinVertex[indP2SM],distMinVertex[indP1TM]);
+                    std::min(distMinVertex[indP2SM],distMinVertex[indP1TM]);
 
                   nIntersGlob++;
                   
@@ -2090,7 +2092,7 @@ namespace cwipi
                   oldVertNewVert[indP2TM] = nIntersGlob + nVertSM + nVertTM + 1;
 
                   distMinVertex[nIntersGlob + nVertSM + nVertTM] = 
-                    min(distMinVertex[indP2SM],distMinVertex[indP2TM]);
+                    std::min(distMinVertex[indP2SM],distMinVertex[indP2TM]);
 
                   nIntersGlob++;
                   
@@ -2163,23 +2165,23 @@ namespace cwipi
                 
                 
                 
-                distMinP1SM = norme(&(_coordsIM[3*nIntersGlob]),
+                distMinP1SM = norm(&(_coordsIM[3*nIntersGlob]),
                                                      p1EdgeSM);
 
-                distMinP2SM = norme(&(_coordsIM[3*nIntersGlob]),
+                distMinP2SM = norm(&(_coordsIM[3*nIntersGlob]),
                                                p2EdgeSM);
 
-                distMinP1TM = norme(&(_coordsIM[3*nIntersGlob]),
+                distMinP1TM = norm(&(_coordsIM[3*nIntersGlob]),
                                                p1EdgeTM);
 
-                distMinP2TM = norme(&(_coordsIM[3*nIntersGlob]),
+                distMinP2TM = norm(&(_coordsIM[3*nIntersGlob]),
                                                p2EdgeTM);
                 
                 distMinVertex[nVertTM + nVertSM + nIntersGlob] =
                   _tolerance*
-                  min(distMinP1SM,
-                      min(distMinP2SM,
-                          min(distMinP1TM,distMinP2TM)));
+                  std::min(distMinP1SM,
+                      std::min(distMinP2SM,
+                          std::min(distMinP1TM,distMinP2TM)));
 
 
                 nCutEdgeSM ++;
@@ -2278,13 +2280,13 @@ namespace cwipi
 
     /***********************************/
 
-    /*    bft::bft_printf("\n coords IM \n");
+    /*    bftc_printf("\n coords IM \n");
 
     for(int i = 0 ; i < nVertex ; i++)
-      bft::bft_printf(" %d   %f  %f  %f \n",i + 1,
+      bftc_printf(" %d   %f  %f  %f \n",i + 1,
                       _coordsIM[3*i],_coordsIM[3*i + 1],_coordsIM[3*i + 2]);
 
-                      bft::bft_printf("------------------end coords--------------------- \n");*/
+                      bftc_printf("------------------end coords--------------------- \n");*/
 
    /************************************/
 
@@ -2567,13 +2569,13 @@ namespace cwipi
 
     /*****************************************************************/
 
-    /*    bft::bft_printf("edgeVertexConnectivity \n");
+    /*    bftc_printf("edgeVertexConnectivity \n");
     for(int i = 0; i < nEdge ; i++)
-      bft::bft_printf("%d  %d  %d \n",
+      bftc_printf("%d  %d  %d \n",
              i + 1, 
              edgeVertexConnectivityIM[2*i],
              edgeVertexConnectivityIM[2*i + 1]);
-             bft::bft_printf("--------end edgeVertexConnectivity --------\n");*/
+             bftc_printf("--------end edgeVertexConnectivity --------\n");*/
 
 
     /*****************************************************************/
@@ -2595,12 +2597,12 @@ namespace cwipi
     edgeMeshTag.resize(nEdge);
 
     for (int iEdge = 0; iEdge < nCutEdgeTM ; iEdge ++)
-      if(abs(newEdgeOldEdgeTM[iEdge]) > 0)
-        oldEdgeNewEdgeIndexIM[abs(newEdgeOldEdgeTM[iEdge]) - 1] ++;
+      if(std::abs(newEdgeOldEdgeTM[iEdge]) > 0)
+        oldEdgeNewEdgeIndexIM[std::abs(newEdgeOldEdgeTM[iEdge]) - 1] ++;
 
     for (int iEdge = 0; iEdge < nCutEdgeSM ; iEdge ++)
-      if(abs(newEdgeOldEdgeSM[iEdge]) > 0)
-        oldEdgeNewEdgeIndexIM[abs(newEdgeOldEdgeSM[iEdge]) + nEdgeTM - 1 ] ++;
+      if(std::abs(newEdgeOldEdgeSM[iEdge]) > 0)
+        oldEdgeNewEdgeIndexIM[std::abs(newEdgeOldEdgeSM[iEdge]) + nEdgeTM - 1 ] ++;
 
 
     int sum = 0;
@@ -2619,45 +2621,45 @@ namespace cwipi
     
 
     for (int iEdge = 0; iEdge < nCutEdgeTM ; iEdge ++)
-      if(abs(newEdgeOldEdgeTM[iEdge]) > 0){
+      if(std::abs(newEdgeOldEdgeTM[iEdge]) > 0){
         signe = newEdgeOldEdgeTM[iEdge] > 0 ? 1 : -1;
         
-        oldEdgeNewEdgeConnectivityIM[ oldEdgeNewEdgeIndexIM[abs(newEdgeOldEdgeTM[iEdge]) - 1] +
-                                      stockTabTmp[abs(newEdgeOldEdgeTM[iEdge]) - 1]] 
+        oldEdgeNewEdgeConnectivityIM[ oldEdgeNewEdgeIndexIM[std::abs(newEdgeOldEdgeTM[iEdge]) - 1] +
+                                      stockTabTmp[std::abs(newEdgeOldEdgeTM[iEdge]) - 1]] 
           = signe * classifyEdge[iEdge];
 
-        if(oldEdgeNewEdgeIndexIM[abs(newEdgeOldEdgeTM[iEdge])] - oldEdgeNewEdgeIndexIM[abs(newEdgeOldEdgeTM[iEdge]) - 1] > 1)
-          edgeMeshTag[abs(classifyEdge[iEdge]) - 1] = 3;
+        if(oldEdgeNewEdgeIndexIM[std::abs(newEdgeOldEdgeTM[iEdge])] - oldEdgeNewEdgeIndexIM[std::abs(newEdgeOldEdgeTM[iEdge]) - 1] > 1)
+          edgeMeshTag[std::abs(classifyEdge[iEdge]) - 1] = 3;
         else
-          edgeMeshTag[abs(classifyEdge[iEdge]) - 1] = 2;
+          edgeMeshTag[std::abs(classifyEdge[iEdge]) - 1] = 2;
 
-        stockTabTmp[abs(newEdgeOldEdgeTM[iEdge]) - 1] ++;
+        stockTabTmp[std::abs(newEdgeOldEdgeTM[iEdge]) - 1] ++;
       }
 
     for (int iEdge = 0; iEdge < nCutEdgeSM ; iEdge ++)
-      if(abs(newEdgeOldEdgeSM[iEdge]) > 0){
+      if(std::abs(newEdgeOldEdgeSM[iEdge]) > 0){
 
         signe = newEdgeOldEdgeSM[iEdge] > 0 ? 1 : -1;
         
-        oldEdgeNewEdgeConnectivityIM[ oldEdgeNewEdgeIndexIM[abs(newEdgeOldEdgeSM[iEdge]) + 
+        oldEdgeNewEdgeConnectivityIM[ oldEdgeNewEdgeIndexIM[std::abs(newEdgeOldEdgeSM[iEdge]) + 
                                                             nEdgeTM - 1] + 
-                                    stockTabTmp[abs(newEdgeOldEdgeSM[iEdge]) 
+                                    stockTabTmp[std::abs(newEdgeOldEdgeSM[iEdge]) 
                                                      + nEdgeTM - 1]] 
           = signe*classifyEdge[iEdge  + nCutEdgeTM];
 
 
-        if( oldEdgeNewEdgeIndexIM[abs(newEdgeOldEdgeSM[iEdge]) + 
+        if( oldEdgeNewEdgeIndexIM[std::abs(newEdgeOldEdgeSM[iEdge]) + 
                                                             nEdgeTM] 
-            - oldEdgeNewEdgeIndexIM[abs(newEdgeOldEdgeSM[iEdge]) + 
+            - oldEdgeNewEdgeIndexIM[std::abs(newEdgeOldEdgeSM[iEdge]) + 
                                                             nEdgeTM - 1] > 1 
-            || edgeMeshTag[abs(classifyEdge[iEdge + nCutEdgeTM]) - 1] == 2)
+            || edgeMeshTag[std::abs(classifyEdge[iEdge + nCutEdgeTM]) - 1] == 2)
 
-          edgeMeshTag[abs(classifyEdge[iEdge + nCutEdgeTM]) - 1] = 3;
+          edgeMeshTag[std::abs(classifyEdge[iEdge + nCutEdgeTM]) - 1] = 3;
         else
-          edgeMeshTag[abs(classifyEdge[iEdge + nCutEdgeTM]) - 1] = 1;
+          edgeMeshTag[std::abs(classifyEdge[iEdge + nCutEdgeTM]) - 1] = 1;
 
         
-        stockTabTmp[abs(newEdgeOldEdgeSM[iEdge])  + nEdgeTM - 1] ++;
+        stockTabTmp[std::abs(newEdgeOldEdgeSM[iEdge])  + nEdgeTM - 1] ++;
       }
     
     stockTabTmp.clear();
@@ -2769,7 +2771,7 @@ namespace cwipi
     std::vector<int> newEltOldEltPol;                                            //Tableau de liaison entre element polygonal fils et element pere
     std::vector<int> indElt;                                                     //Tableau de liaison entre indice general et indice du tableau de connectivite Element/Sommets
     std::vector<int> newElt(10);                                                 //Tableau contenant les indices de l'element en creation
-    std::vector<double> crossProduct(3);                                         //Tableau de coordonnees du produit vectoriel
+    std::vector<double> vectCrossProduct(3);                                         //Tableau de coordonnees du produit vectoriel
     std::vector<double> vect1(3);                                                //Tableau de coordonnees du vecteur 1
     std::vector<double> vect2(3);                                                //Tableau de coordonnees du vecteur 2
     std::vector<double> vect1Proj(3);                                            //Tableau de coordonnees de la projection du vecteur 1
@@ -2892,11 +2894,13 @@ namespace cwipi
                                                   indice impair element pere cible)
 
      */
+    
+    double tolerance_loc = 1e-19*_tolerance;
 
 
     for(int iElt = 0; iElt < nEltTM ; iElt ++){
 
-      normeNormaleFace = norme(&_targetMesh.getNormalFace()[3*iElt]);
+      normeNormaleFace = norm(&_targetMesh.getNormalFace()[3*iElt]);
       normalFaceTM[0] = _targetMesh.getNormalFace()[3*iElt]/normeNormaleFace;
       normalFaceTM[1] = _targetMesh.getNormalFace()[3*iElt + 1]/normeNormaleFace;
       normalFaceTM[2] = _targetMesh.getNormalFace()[3*iElt + 2]/normeNormaleFace;
@@ -2910,7 +2914,7 @@ namespace cwipi
         
         oldEdge = eltEdgeConnectivityTM[eltVertIndexTM[iElt] + iEdge];
         signe = oldEdge > 0 ? 1 : -1;
-        oldEdge = abs(oldEdge) - 1;
+        oldEdge = std::abs(oldEdge) - 1;
         
         nNewEdge = oldEdgeNewEdgeIndexIM[oldEdge + 1] - oldEdgeNewEdgeIndexIM[oldEdge];
         
@@ -2918,31 +2922,31 @@ namespace cwipi
           newEdge = signe*
             oldEdgeNewEdgeConnectivityIM[oldEdgeNewEdgeIndexIM[oldEdge] + iCutEdge];
           
-          borderEdge[abs(newEdge) - 1] = true;
+          borderEdge[std::abs(newEdge) - 1] = true;
           
-          if(doubleEdge[abs(newEdge) - 1] == 0){
+          if(doubleEdge[std::abs(newEdge) - 1] == 0){
             if(stackEdge.size() <= nStackEdge)
               stackEdge.resize(2*stackEdge.size());
             
             stackEdge[nStackEdge] = newEdge;
             
-            doubleEdge[abs(newEdge) - 1] 
+            doubleEdge[std::abs(newEdge) - 1] 
               = nStackEdge + 1;            
             
             nStackEdge ++;
           }
           else{
-            stackEdge[doubleEdge[abs(newEdge) - 1] - 1] 
+            stackEdge[doubleEdge[std::abs(newEdge) - 1] - 1] 
               = 0;
             
-            doubleEdge[abs(newEdge) - 1] = 0;            
+            doubleEdge[std::abs(newEdge) - 1] = 0;            
           }
         }
       }
       
       for(int i = 0 ; i < nStackEdge ; i++)        
         if(stackEdge[i] != 0)
-          doubleEdge[abs(stackEdge[i]) - 1] = 0;
+          doubleEdge[std::abs(stackEdge[i]) - 1] = 0;
       
       
       /******************************************************************/
@@ -3034,10 +3038,10 @@ namespace cwipi
               vect2Proj[1] = vect2[1] - psV2Normal * normalFaceTM[1];
               vect2Proj[2] = vect2[2] - psV2Normal * normalFaceTM[2];                
               
-              cosV1V2 = computeCos(&vect1Proj[0],&vect2Proj[0]);
+              cosV1V2 = cosinus(&vect1Proj[0], &vect2Proj[0], tolerance_loc);
                             
-              if(abs(1 + cosV1V2) < 1e-15 && 
-                 norme(&vect2Proj[0]) < norme(&vect1Proj[0]))
+              if(fabs(1 + cosV1V2) < 1e-15 && 
+                 norm(&vect2Proj[0]) < norm(&vect1Proj[0]))
            
                 areteConfondue = true;
                 
@@ -3050,16 +3054,16 @@ namespace cwipi
             
             while(firstVertElt != intVert){
               
-              if (edgeElementTag[abs(newEdge) - 1 ]){
+              if (edgeElementTag[std::abs(newEdge) - 1 ]){
                 
-                bft::bft_error(__FILE__,
+                bftc_error(__FILE__,
                                __LINE__, 0,
                                "Probleme de reconstruction (arete utilisee plusieurs fois) \n");
                 
                 return false;
               }
               else
-                edgeElementTag[abs(newEdge) - 1 ] = true;
+                edgeElementTag[std::abs(newEdge) - 1 ] = true;
               
               isBorderEdge = false;
               
@@ -3070,7 +3074,7 @@ namespace cwipi
               vect1[1] = _coordsIM[3*intVert + 1] - _coordsIM[3*prevVert + 1];
               vect1[2] = _coordsIM[3*intVert + 2] - _coordsIM[3*prevVert + 2];
               
-              psV1Normal = computeDotProduct(&vect1[0],&normalFaceTM[0]);
+              psV1Normal = dotProduct(&vect1[0],&normalFaceTM[0]);
               
               vect1Proj[0] = vect1[0] - psV1Normal * normalFaceTM[0];
               vect1Proj[1] = vect1[1] - psV1Normal * normalFaceTM[1];
@@ -3079,7 +3083,7 @@ namespace cwipi
               
               for(int iEdge = 0; iEdge < nIntersEdge ; iEdge ++){
                 
-                if(borderEdge[abs(vertexEdgeConnectivityIM[vertexEdgeIndexIM[intVert]
+                if(borderEdge[std::abs(vertexEdgeConnectivityIM[vertexEdgeIndexIM[intVert]
                                                            + iEdge]) - 1]){
                   
                   nextEdgeTmp = vertexEdgeConnectivityIM[vertexEdgeIndexIM[intVert]
@@ -3094,19 +3098,22 @@ namespace cwipi
                   vect2[1] = _coordsIM[3*nextVertTmp + 1] - _coordsIM[3*intVert + 1];
                   vect2[2] = _coordsIM[3*nextVertTmp + 2] - _coordsIM[3*intVert + 2];
                   
-                  psV2Normal = computeDotProduct(&vect2[0],&normalFaceTM[0]);
+                  psV2Normal = dotProduct(&vect2[0],&normalFaceTM[0]);
                   
                   vect2Proj[0] = vect2[0] - psV2Normal * normalFaceTM[0];
                   vect2Proj[1] = vect2[1] - psV2Normal * normalFaceTM[1];
                   vect2Proj[2] = vect2[2] - psV2Normal * normalFaceTM[2];                
                   
-                  cosV1V2 = computeCos(&vect1Proj[0],&vect2Proj[0]);
-                  computeCrossProduct(&vect1Proj[0],&vect2Proj[0],&crossProduct[0]);                  
+                  cosV1V2 = cosinus(&vect1Proj[0], &vect2Proj[0], tolerance_loc);
+                  normalizedCrossProduct(&vect1Proj[0],
+                                         &vect2Proj[0],
+                                         tolerance_loc,
+                                         &vectCrossProduct[0]);                  
                   
-                  if(norme(&crossProduct[0]) < 1e-15*_tolerance)
+                  if(norm(&vectCrossProduct[0]) < 1e-15*_tolerance)
                     direction = cosV1V2 > 0 ? 1 : -1;
                   else
-                    direction = computeDirection(&crossProduct[0],&normalFaceTM[0]);                
+                    direction = signDotProduct(&vectCrossProduct[0],&normalFaceTM[0]);                
                   
                   if(!isBorderEdge){
                     cosBorder = cosV1V2;
@@ -3162,38 +3169,37 @@ namespace cwipi
                   vect2[1] = _coordsIM[3*nextVertTmp + 1] - _coordsIM[3*intVert + 1];
                   vect2[2] = _coordsIM[3*nextVertTmp + 2] - _coordsIM[3*intVert + 2];
                   
-                  computeCrossProduct(&vect1[0],&vect2[0],&crossProduct[0]);
+                  normalizedCrossProduct(&vect1[0],&vect2[0],tolerance_loc,&vectCrossProduct[0]);
                   
                   normalTest = false;
                   
-                  if(norme(&crossProduct[0]) < 1e-15*_tolerance){
-                    if(computeCos(&vect1[0],
-                                  &vect2[0]) > 0)
+                  if(norm(&vectCrossProduct[0]) < 1e-15*_tolerance){
+                    if(cosinus(&vect1[0],&vect2[0],tolerance_loc) > 0)
                       normalTest = true;
                   }
                   else
-                    normalTest = (abs(computeCos(&crossProduct[0],
-                                                 &normalFaceTM[0])) > (1-_tolerance));
+                    normalTest = (fabs(cosinus(&vectCrossProduct[0],
+                                              &normalFaceTM[0], tolerance_loc)) > (1-_tolerance));
                   
                   if( normalTest ||
-                      (abs(computeDotProduct(&vect1[0],&normalFaceTM[0])) < 0.001*_tolerance && 
-                       abs(computeDotProduct(&vect2[0],&normalFaceTM[0])) < 0.001*_tolerance)){
+                      (fabs(dotProduct(&vect1[0],&normalFaceTM[0])) < 0.001*_tolerance && 
+                       fabs(dotProduct(&vect2[0],&normalFaceTM[0])) < 0.001*_tolerance)){
                     
-                    psV2Normal = computeDotProduct(&vect2[0],&normalFaceTM[0]);                                 
+                    psV2Normal = dotProduct(&vect2[0],&normalFaceTM[0]);                                 
                     
                     vect2Proj[0] = vect2[0] - psV2Normal * normalFaceTM[0];
                     vect2Proj[1] = vect2[1] - psV2Normal * normalFaceTM[1];
                     vect2Proj[2] = vect2[2] - psV2Normal * normalFaceTM[2];                
                     
-                    cosV1V2 = computeCos(&vect1Proj[0],&vect2Proj[0]);
-                    computeCrossProduct(&vect1Proj[0],&vect2Proj[0],&crossProduct[0]);
+                    cosV1V2 = cosinus(&vect1Proj[0],&vect2Proj[0], tolerance_loc);
+                    normalizedCrossProduct(&vect1Proj[0],&vect2Proj[0],tolerance_loc,&vectCrossProduct[0]);
                     
-                    if(norme(&crossProduct[0]) < 1e-15*_tolerance)
+                    if(norm(&vectCrossProduct[0]) < 1e-15*_tolerance)
                       direction = cosV1V2 > 0 ? 1 : -1;
                     else
-                      direction = computeDirection(&crossProduct[0],&normalFaceTM[0]);                
+                      direction = signDotProduct(&vectCrossProduct[0],&normalFaceTM[0]);                
                     
-                    cosNormalNextTmp = computeCos(&vect2[0],&normalFaceTM[0]);
+                    cosNormalNextTmp = cosinus(&vect2[0],&normalFaceTM[0],tolerance_loc);
                     
                     if(nextEdge == 0){
                       cosLeft = cosV1V2;
@@ -3203,13 +3209,13 @@ namespace cwipi
                       cosNormalNext = cosNormalNextTmp;
                     }
                     else if( directionLeft - direction == 0 
-                             && abs(cosLeft - cosV1V2) < 1e-15){
+                             && fabs(cosLeft - cosV1V2) < 1e-15){
                       
-                      if(abs(cosNormalNextTmp) < abs(cosNormalNext) || 
+                      if(fabs(cosNormalNextTmp) < fabs(cosNormalNext) || 
                          
-                         (abs(abs(cosNormalNextTmp) - abs(cosNormalNext)) < 1e-15*_tolerance
-                          && norme(&vect2Proj[0]) 
-                          < norme(&_coordsIM[3*intVert],&_coordsIM[3*nextVert]))){
+                         (fabs(fabs(cosNormalNextTmp) - fabs(cosNormalNext)) < 1e-15*_tolerance
+                          && norm(&vect2Proj[0]) 
+                          < norm(&_coordsIM[3*intVert],&_coordsIM[3*nextVert]))){
                         
                         cosLeft = cosV1V2;
                         directionLeft = direction;
@@ -3276,15 +3282,15 @@ namespace cwipi
                 }
               }
               if(nextEdge == 0){
-                bft::bft_error(__FILE__,
+                bftc_error(__FILE__,
                                __LINE__, 0,
                                "Impossible de trouver une arete a gauche \n Verifiez si les sommets de l'element n° %d du maillage cible sont coplanaires \n",iElt + 1);
                 
                 return false;
               }
               
-              if(edgeMeshTag[abs(nextEdge) - 1] == 2 && !(borderEdge[abs(nextEdge) - 1])){
-                bft::bft_error(__FILE__,
+              if(edgeMeshTag[std::abs(nextEdge) - 1] == 2 && !(borderEdge[std::abs(nextEdge) - 1])){
+                bftc_error(__FILE__,
                                __LINE__, 0,
                                "Reconstruction d'un element avec une arete d'un autre element du meme maillage \n");
               }
@@ -3373,7 +3379,7 @@ namespace cwipi
               nPolElt ++;
             }
             else{
-              bft::bft_error(__FILE__,
+              bftc_error(__FILE__,
                              __LINE__, 0,"error element compose de %d \n ",nVertNewElt);
               return false;
             }
@@ -3400,7 +3406,7 @@ namespace cwipi
     
     for(int iElt = 0; iElt < nEltSM ; iElt ++){
       
-      normeNormaleFace = norme(&_sourceMesh.getNormalFace()[3*iElt]);
+      normeNormaleFace = norm(&_sourceMesh.getNormalFace()[3*iElt]);
       normalFaceSM[0] = _sourceMesh.getNormalFace()[3*iElt]/normeNormaleFace;
       normalFaceSM[1] = _sourceMesh.getNormalFace()[3*iElt + 1]/normeNormaleFace;
       normalFaceSM[2] = _sourceMesh.getNormalFace()[3*iElt + 2]/normeNormaleFace;
@@ -3416,7 +3422,7 @@ namespace cwipi
         
         signe = oldEdge > 0 ? 1 : -1;
         
-        oldEdge = abs(oldEdge) - 1 + nEdgeTM;
+        oldEdge = std::abs(oldEdge) - 1 + nEdgeTM;
         
         nNewEdge = oldEdgeNewEdgeIndexIM[oldEdge + 1] - oldEdgeNewEdgeIndexIM[oldEdge];
         
@@ -3425,22 +3431,22 @@ namespace cwipi
           newEdge = signe*
             oldEdgeNewEdgeConnectivityIM[oldEdgeNewEdgeIndexIM[oldEdge] + iCutEdge];
           
-          borderEdge[abs(newEdge) - 1] = true;
+          borderEdge[std::abs(newEdge) - 1] = true;
           
-          if(doubleEdge[abs(newEdge) - 1] == 0){
+          if(doubleEdge[std::abs(newEdge) - 1] == 0){
             if(stackEdge.size() <= nStackEdge)
               stackEdge.resize(2*stackEdge.size());
             stackEdge[nStackEdge] = newEdge;
             
-            doubleEdge[abs(newEdge) - 1] 
+            doubleEdge[std::abs(newEdge) - 1] 
               = nStackEdge + 1;            
             
             nStackEdge ++;
           }
           else{
-            stackEdge[doubleEdge[abs(newEdge) - 1] - 1] 
+            stackEdge[doubleEdge[std::abs(newEdge) - 1] - 1] 
               = 0;
-            doubleEdge[abs(newEdge) - 1] = 0;
+            doubleEdge[std::abs(newEdge) - 1] = 0;
             
           }
         }
@@ -3448,7 +3454,7 @@ namespace cwipi
       
       for(int i = 0 ; i < nStackEdge ; i++)
         if(stackEdge[i] != 0)
-          doubleEdge[abs(stackEdge[i]) - 1] = 0;
+          doubleEdge[std::abs(stackEdge[i]) - 1] = 0;
       
       
       /****************************************************************/
@@ -3569,11 +3575,11 @@ namespace cwipi
               vect2Proj[1] = vect2[1] - psV2Normal * normalFaceTM[1];
               vect2Proj[2] = vect2[2] - psV2Normal * normalFaceTM[2];                
               
-              cosV1V2 = computeCos(&vect1Proj[0],&vect2Proj[0]);
+              cosV1V2 = cosinus(&vect1Proj[0],&vect2Proj[0],tolerance_loc);
               
               
-              if(abs(1 + cosV1V2) < 1e-15 && 
-                 norme(&vect2Proj[0]) < norme(&vect1Proj[0])){
+              if(fabs(1 + cosV1V2) < 1e-15 && 
+                 norm(&vect2Proj[0]) < norm(&vect1Proj[0])){
                 areteConfondue = true;
                 
               }
@@ -3585,16 +3591,16 @@ namespace cwipi
             
             while(firstVertElt != intVert){
 
-              if (edgeElementTag[abs(newEdge) - 1 ]){
+              if (edgeElementTag[std::abs(newEdge) - 1 ]){
                 
-                bft::bft_error(__FILE__,
+                bftc_error(__FILE__,
                                __LINE__, 0,
                                "Probleme de reconstruction (arete utilisee plusieurs fois) \n");
                 
                 return false;
               }
               else
-                edgeElementTag[abs(newEdge) - 1 ] = true;
+                edgeElementTag[std::abs(newEdge) - 1 ] = true;
               
               isBorderEdge = false;
             
@@ -3605,7 +3611,7 @@ namespace cwipi
               vect1[1] = _coordsIM[3*intVert + 1] - _coordsIM[3*prevVert + 1];
               vect1[2] = _coordsIM[3*intVert + 2] - _coordsIM[3*prevVert + 2];
               
-              psV1Normal = computeDotProduct(&vect1[0],&normalFaceSM[0]);
+              psV1Normal = dotProduct(&vect1[0],&normalFaceSM[0]);
               
               vect1Proj[0] = vect1[0] - psV1Normal * normalFaceSM[0];
               vect1Proj[1] = vect1[1] - psV1Normal * normalFaceSM[1];
@@ -3613,7 +3619,7 @@ namespace cwipi
               
               for(int iEdge = 0; iEdge < nIntersEdge ; iEdge ++){
                 
-                if(borderEdge[abs(vertexEdgeConnectivityIM[vertexEdgeIndexIM[intVert]
+                if(borderEdge[std::abs(vertexEdgeConnectivityIM[vertexEdgeIndexIM[intVert]
                                                            + iEdge]) - 1]){
                 
                   nextEdgeTmp = vertexEdgeConnectivityIM[vertexEdgeIndexIM[intVert]
@@ -3629,19 +3635,19 @@ namespace cwipi
                   vect2[1] = _coordsIM[3*nextVertTmp + 1] - _coordsIM[3*intVert + 1];
                   vect2[2] = _coordsIM[3*nextVertTmp + 2] - _coordsIM[3*intVert + 2];
                   
-                  psV2Normal = computeDotProduct(&vect2[0],&normalFaceSM[0]);
+                  psV2Normal = dotProduct(&vect2[0],&normalFaceSM[0]);
                   
                   vect2Proj[0] = vect2[0] - psV2Normal * normalFaceSM[0];
                   vect2Proj[1] = vect2[1] - psV2Normal * normalFaceSM[1];
                   vect2Proj[2] = vect2[2] - psV2Normal * normalFaceSM[2];
                   
-                  cosV1V2 = computeCos(&vect1[0],&vect2[0]);
-                  computeCrossProduct(&vect1Proj[0],&vect2Proj[0],&crossProduct[0]);
+                  cosV1V2 = cosinus(&vect1[0],&vect2[0],tolerance_loc);
+                  crossProduct(&vect1Proj[0],&vect2Proj[0],&vectCrossProduct[0]);
                   
-                  if(norme(&crossProduct[0]) < 1e-15*_tolerance)
+                  if(norm(&vectCrossProduct[0]) < 1e-15*_tolerance)
                     direction = cosV1V2 > 0 ? 1 : -1;
                   else
-                    direction = computeDirection(&crossProduct[0],&normalFaceSM[0]);                
+                    direction = signDotProduct(&vectCrossProduct[0],&normalFaceSM[0]);                
                   
                   
                   
@@ -3699,22 +3705,22 @@ namespace cwipi
                 vect2[1] = _coordsIM[3*nextVertTmp + 1] - _coordsIM[3*intVert + 1];
                 vect2[2] = _coordsIM[3*nextVertTmp + 2] - _coordsIM[3*intVert + 2];
 
-                computeCrossProduct(&vect1[0],&vect2[0],&crossProduct[0]);
+                normalizedCrossProduct(&vect1[0],&vect2[0],tolerance_loc,&vectCrossProduct[0]);
                                                    
                 normalTest = false;
 
-                if(norme(&crossProduct[0]) < 1e-15*_tolerance)
+                if(norm(&vectCrossProduct[0]) < 1e-15*_tolerance)
                   normalTest = true;
                 else
-                  normalTest = (abs(computeCos(&crossProduct[0],&normalFaceTM[0])) 
+                  normalTest = (fabs(cosinus(&vectCrossProduct[0],&normalFaceTM[0],tolerance_loc)) 
                                 > 0.7*(1-_tolerance));
                 
                 if( normalTest || 
-                    (abs(computeDotProduct(&vect1[0],&normalFaceSM[0])) < 0.001*_tolerance && 
-                     abs(computeDotProduct(&vect2[0],&normalFaceSM[0])) < 0.001*_tolerance) ){
+                    (fabs(dotProduct(&vect1[0],&normalFaceSM[0])) < 0.001*_tolerance && 
+                     fabs(dotProduct(&vect2[0],&normalFaceSM[0])) < 0.001*_tolerance) ){
                   
 
-                    psV2Normal = computeDotProduct(&vect2[0],&normalFaceSM[0]);
+                    psV2Normal = dotProduct(&vect2[0],&normalFaceSM[0]);
                   
                   vect2Proj[0] = vect2[0] - psV2Normal * normalFaceSM[0];
                   vect2Proj[1] = vect2[1] - psV2Normal * normalFaceSM[1];
@@ -3722,14 +3728,14 @@ namespace cwipi
 
 
                 
-                  cosV1V2 = computeCos(&vect1Proj[0],&vect2Proj[0]);
+                  cosV1V2 = cosinus(&vect1Proj[0],&vect2Proj[0], tolerance_loc);
 
-                  computeCrossProduct(&vect1Proj[0],&vect2Proj[0],&crossProduct[0]);
+                  normalizedCrossProduct(&vect1Proj[0],&vect2Proj[0],tolerance_loc,&vectCrossProduct[0]);
                   
-                  if(norme(&crossProduct[0]) < 1e-15*_tolerance)
+                  if(norm(&vectCrossProduct[0]) < 1e-15*_tolerance)
                     direction = cosV1V2 > 0 ? 1 : -1;
                   else
-                    direction = computeDirection(&crossProduct[0],&normalFaceSM[0]);                
+                    direction = signDotProduct(&vectCrossProduct[0],&normalFaceSM[0]);                
                    
                   if(nextEdge == 0){
                     cosLeft = cosV1V2;
@@ -3738,13 +3744,13 @@ namespace cwipi
                     nextEdge = nextEdgeTmp;
                     cosNormalNext = cosNormalNextTmp;
                   }
-                  else if( abs(directionLeft - direction) == 0
-                           && abs(cosLeft - cosV1V2) < 1e-15){
-                    if(abs(cosNormalNextTmp) < abs(cosNormalNext)
+                  else if( std::abs(directionLeft - direction) == 0
+                           && fabs(cosLeft - cosV1V2) < 1e-15){
+                    if(fabs(cosNormalNextTmp) < fabs(cosNormalNext)
                        ||                        
-                       (abs(abs(cosNormalNextTmp) - abs(cosNormalNext)) < 1e-15
-                        && norme(&vect2Proj[0]) 
-                        < norme(&_coordsIM[3*intVert],&_coordsIM[3*nextVert]))){
+                       (fabs(fabs(cosNormalNextTmp) - fabs(cosNormalNext)) < 1e-15
+                        && norm(&vect2Proj[0]) 
+                        < norm(&_coordsIM[3*intVert],&_coordsIM[3*nextVert]))){
 
                       cosLeft = cosV1V2;
                       directionLeft = direction;
@@ -3821,8 +3827,8 @@ namespace cwipi
               return false;
             }
             
-            if(edgeMeshTag[abs(nextEdge) - 1] == 1 && !(borderEdge[abs(nextEdge) - 1])){
-              bft::bft_error(__FILE__,
+            if(edgeMeshTag[std::abs(nextEdge) - 1] == 1 && !(borderEdge[std::abs(nextEdge) - 1])){
+              bftc_error(__FILE__,
                              __LINE__, 0,
                              "Reconstruction d'un element avec une arete d'un autre element du meme maillage \n");
             }
@@ -3906,7 +3912,7 @@ namespace cwipi
             nPolElt ++;
           }
           else{
-             bft::bft_error(__FILE__,
+             bftc_error(__FILE__,
                             __LINE__, 0,"error element compose de %d \n ",nVertNewElt);
 
              return false;
@@ -3968,18 +3974,18 @@ namespace cwipi
       }
 
     /*******************************************************************/
-    /*    bft::bft_printf("triangles %d  quadrangles %d polygones %d  \n",
+    /*    bftc_printf("triangles %d  quadrangles %d polygones %d  \n",
                     nTrianElt,nQuadElt,nPolElt);
 
 
-    bft::bft_printf("_eltVertConnectivityIM  \n");
+    bftc_printf("_eltVertConnectivityIM  \n");
     for(int i = 0 ; i < nElts ; i++){
-      bft::bft_printf("element n° %d  ",i + 1);
+      bftc_printf("element n° %d  ",i + 1);
       for(int j = 0; j < _eltVertIndexIM[i + 1] - _eltVertIndexIM[i] ; j++)
-        bft::bft_printf("%d ",_eltVertConnectivityIM[_eltVertIndexIM[i] + j]);
-      bft::bft_printf("\n");
+        bftc_printf("%d ",_eltVertConnectivityIM[_eltVertIndexIM[i] + j]);
+      bftc_printf("\n");
     }
-    bft::bft_printf("--------end------- \n");*/
+    bftc_printf("--------end------- \n");*/
     /******************************************************************  /
 
     /**************   Libération des donnees  ************************/

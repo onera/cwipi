@@ -1596,7 +1596,7 @@ _locate_on_edge_2d(fvmc_lnum_t           elt_num,
 
 static void
 _locate_on_triangles_3d(fvmc_lnum_t           elt_num,
-                        int                  n_triangles,
+                        int                   n_triangles,
                         const fvmc_lnum_t     triangle_vertices[],
                         const fvmc_lnum_t    *parent_vertex_num,
                         const fvmc_coord_t    vertex_coords[],

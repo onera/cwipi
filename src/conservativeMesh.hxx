@@ -5,12 +5,6 @@
 #include <vector>
 #include <cmath>
 
-#include "fvm_locator.h"
-#include "fvm_nodal.h"
-#include "fvm_triangulate.h"
-
-#include <bft_error.h>
-
 #include "mesh.hxx"
 
 #include "cwipi.h"
@@ -188,26 +182,6 @@ namespace cwipi
                               int& nElts);    
 
     ///
-    /// \brief Compute the absolute value
-    /// 
-    /// @param [in]  x value
-    /// @return      absolute value
-    /// 
-    
-    inline double abs(const double x);
-
-    ///
-    /// \brief Compute the minimal value
-    /// 
-    /// @param [in]  x value
-    /// @param [in]  y value
-    /// @return      minimal value between x and y
-    /// 
-
-
-    inline double min(const double x,const double y);
-    
-    ///
     /// \brief Compute the dot product between two vectors
     /// 
     /// @param [in]  vect1  Coordinates of the first vector
@@ -256,9 +230,9 @@ namespace cwipi
     ///
 
     inline double computeCos(const double* p1V1 , 
-                      const double* p2V1,
-                      const double* p1V2 , 
-                      const double* p2V2);
+                             const double* p2V1,
+                             const double* p1V2 , 
+                             const double* p2V2);
 
 
     ///
@@ -293,7 +267,7 @@ namespace cwipi
     ///
 
     inline void computeCrossProduct(const double* vect1 , 
-                                    const double* vect1,
+                                    const double* vect2,
                                     double* crossProduct);
 
 
@@ -342,173 +316,6 @@ namespace cwipi
 
   }; /// class Conservative Mesh
     
-  
-  ///
-  /// \brief Compute the absolute value
-  /// 
-  /// @param [in]  x value
-  /// @return      absolute value
-  /// 
-
-  double ConservativeMesh::abs(const double x ){
-    return (x > -x ? x : -x );
-  }
-
-
-  ///
-  /// \brief Compute the minimal value
-  /// 
-  /// @param [in]  x value
-  /// @param [in]  y value
-  /// @return      minimal value between x and y
-  ///
-  
-  double ConservativeMesh::min(const double x ,const double y){
-    return (x < y ? x : y );
-  }
-
-  ///
-  /// \brief Compute the dot product between two vectors
-  /// 
-  /// @param [in]  vect1  Coordinates of the first vector
-  /// @param [in]  vect2  Coordinates of the second vector
-  /// @return             value of the dot product
-  ///
-  
-  double ConservativeMesh::computeDotProduct(const double* vect1, const double* vect2){
-    return vect1[0]*vect2[0] + vect1[1]*vect2[1] + vect1[2]*vect2[2];
-  }
-  
-
-  ///
-  /// \brief Compute the dot product between two vectors
-  /// 
-  /// @param [in]  p1V1  Coordinates of the first point of the first vector
-  /// @param [in]  p2V1  Coordinates of the second point of the first vector
-  /// @param [in]  p1V2  Coordinates of the first point of the second vector
-  /// @param [in]  p2V2  Coordinates of the second point of the second vector
-  /// @return            value of the dot product
-  ///
-
-  double ConservativeMesh::computeDotProduct(const double* p1V1 , 
-                                             const double* p2V1,
-                                             const double* p1V2, 
-                                             const double* p2V2){
-
-    return (p2V1[0] - p1V1[0])*(p2V2[0] - p1V2[0])
-      + (p2V1[1] - p1V1[1])*(p2V2[1] - p1V2[1])
-           + (p2V1[2] - p1V1[2])*(p2V2[2] - p1V2[2]);
-  }
-
-
-  ///
-  /// \brief Compute the cosinus between two vectors
-  /// 
-  /// @param [in]  vect1  Coordinates of the first vector
-  /// @param [in]  vect2  Coordinates of the second vector
-  /// @return             value of the cosinus
-  ///
-  
-  double ConservativeMesh::computeCos(const double* vect1, const double* vect2){
-
-    if(norme(vect1) < 1e-19*_tolerance || norme(vect2) < 1e-19*_tolerance)
-      bft::bft_error(__FILE__, __LINE__, 0,"Division by 0 (vect1 %f,vect2 %f)\n",
-                     norme(vect1),norme(vect2));
-
-    return (computeDotProduct(vect1,vect2)
-            /(norme(vect1)*norme(vect2)));
-  }
-
-
-  ///
-  /// \brief Compute the cosinus between two vectors
-  /// 
-  /// @param [in]  p1V1  Coordinates of the first point of the first vector
-  /// @param [in]  p2V1  Coordinates of the second point of the first vector
-  /// @param [in]  p1V2  Coordinates of the first point of the second vector
-  /// @param [in]  p2V2  Coordinates of the second point of the second vector
-  /// @return            value of the cosinus
-  ///
-  
-  double ConservativeMesh::computeCos(const double* p1V1, 
-                               const double* p2V1,
-                               const double* p1V2, 
-                               const double* p2V2){
-
-    if(norme(p1V1,p2V1) < 1e-19*_tolerance || norme(p1V2,p2V2) < 1e-19*_tolerance)
-      bft::bft_error(__FILE__, __LINE__, 0,"Division by 0\n");
-
-    return (computeDotProduct(p1V1,p2V1,p1V2,p2V2)
-            /(norme(p1V1,p2V1)*norme(p1V2,p2V2)));
-  }
-
-
-  ///
-  /// \brief Compute the norm of a vector
-  /// 
-  /// @param [in]  vect1  Coordinates of the first vector
-  /// @return             value of the norm
-  ///
-  
-  double ConservativeMesh::norme(const double* vect1){
-    return sqrt(computeDotProduct(vect1,vect1));
-  }
-
-
-  ///
-  /// \brief Compute the norm of a vector
-  /// 
-  /// @param [in]  p1V1  Coordinates of the first point of the first vector
-  /// @param [in]  p2V1  Coordinates of the second point of the first vector
-  /// @return             value of the norm
-  ///
-
-  double ConservativeMesh::norme(const double*  p1V1,const double* p2V1){
-    return sqrt(computeDotProduct(p1V1,p2V1,p1V1,p2V1));
-  }
-
-
-  ///
-  /// \brief Compute the normal vector of two vectors
-  /// 
-  /// @param [in]  vect1          Coordinates of the first vector
-  /// @param [in]  vect2          Coordinates of the second vector
-  /// @param [out] crossProduct   Coordinates of the normal vector
-  ///
-  
-  void ConservativeMesh::computeCrossProduct(const double* vect1,
-                                             const double*  vect2,
-                                             double* crossProduct){
-
-    crossProduct[0] = vect1[1]*vect2[2] - vect1[2]*vect2[1];
-    crossProduct[1] = vect1[2]*vect2[0] - vect1[0]*vect2[2];
-    crossProduct[2] = vect1[0]*vect2[1] - vect1[1]*vect2[0];
-
-    double normeCP = norme(crossProduct);
-
-    //si le vecteur est non nul on le normalise
-    if(normeCP > 1e-19 * _tolerance){    
-      crossProduct[0] /= normeCP;
-      crossProduct[1] /= normeCP;
-      crossProduct[2] /= normeCP;
-    }
-  }
-  
-  ///
-  /// \brief Compute if two vectors in the same direction
-  /// 
-  /// @param [in]  vect1   Coordinates of the first vector
-  /// @param [in]  vect2   Coordinates of the second vector
-  /// @return              Return 1 if the two vectors are in the same direction, else -1
-  ///
-  
-  int ConservativeMesh::computeDirection(const double* vect1,
-                                         const double*  vect2){
-
-    return (computeDotProduct(vect1,vect2) >= 0 ? 1 : -1 );
-  }
-
-
   ///
   /// \brief Return the intersection mesh
   ///

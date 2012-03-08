@@ -33,9 +33,8 @@
 
 #include "mesh.hxx"
 #include "quickSort.h"
+#include "vectorUtilities.hxx"
 
-#define ABS(a)     ((a) <  0  ? -(a) : (a))
-//TODO: Remplacer les #define MAX, ABS... par des fonctions inline
 namespace cwipi {
 
   Mesh::Mesh(const MPI_Comm &localComm,
@@ -1253,7 +1252,7 @@ namespace cwipi {
 
         }
 
-        double eps_loc = computeGeometricEpsilon(refCharacteristicLength[i], GEOM_EPS_SURF);
+        double eps_loc = geometricEpsilon(refCharacteristicLength[i], GEOM_EPS_SURF);
 
         if (refFaceSurface[i] <= eps_loc) {
           refIsDegenerated[i] = true;
@@ -1271,9 +1270,9 @@ namespace cwipi {
         }
 
 #ifdef INFINITY
-        if (isinf(ABS(refFaceCenter[3*i]))   ||
-            isinf(ABS(refFaceCenter[3*i+1])) ||
-            isinf(ABS(refFaceCenter[3*i+2]))) {
+        if (isinf(fabs(refFaceCenter[3*i]))   ||
+            isinf(fabs(refFaceCenter[3*i+1])) ||
+            isinf(fabs(refFaceCenter[3*i+2]))) {
           refIsDegenerated[i] = true;
           bftc_printf("Warning computeMeshProperties : surface element '%i' is degenerated "
                      "(center coordinates = (%12.5e, %12.5e, %12.5e))\n", 
@@ -1288,7 +1287,7 @@ namespace cwipi {
 #endif
 
       }
-      refFaceSurface[i] = ABS(refFaceSurface[i]);
+      refFaceSurface[i] = fabs(refFaceSurface[i]);
       surftot += refFaceSurface[i];
     }
   }
@@ -1540,7 +1539,7 @@ namespace cwipi {
         // Check element
         // 
 
-        double eps_loc = computeGeometricEpsilon(refCharacteristicLength[i], GEOM_EPS_VOL);
+        double eps_loc = geometricEpsilon(refCharacteristicLength[i], GEOM_EPS_VOL);
 
         if (refCellVolume[i] <= eps_loc) {
           refIsDegenerated[i] = true;

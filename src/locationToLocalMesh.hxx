@@ -186,52 +186,6 @@ private :
    double *const coo_point_dist
    );
 
-  ///
-  /// \brief Compute vector product
-  ///
-  ///   @param [in]      vect1  first vector
-  ///   @param [in]      vect2  second vector
-  ///   @param [inout]   prod_vect vect1 X vect2
-  ///
-
-  inline void computeVectorProduct(double *prod_vect, 
-                                   const double *vect1, 
-                                   const double *vect2);
-
-  ///
-  /// \brief Cross product
-  ///
-  ///   @param [in]      vect1  first vector
-  ///   @param [in]      vect2  second vector
-  ///   @return          vect1 . vect2
-  ///
-
-  inline double computeCrossProduct(const double* vect1, 
-                                    const double* vect2);
-
-  ///
-  /// \brief Compute Norm
-  ///
-  ///   @param [in]      vect  Vector
-  ///   @return          Cross product
-  ///
-
-  inline double computeNorm(const double* vect);
-
-  ///
-  /// \brief Compute determinant
-  ///
-  ///   @param [in]      vect1  First vector
-  ///   @param [in]      vect2  Second vector
-  ///   @param [in]      vect3  Third vector
-  ///   @return          Cross product
-  ///
-
-  inline double computeDeterminant(const double* vect1, 
-                                   const double* vect2,
-                                   const double* vect3);
-
-
 private :
 
   Mesh                       *_supportMesh;                                 ///< Mesh where distant points are localized
@@ -353,67 +307,6 @@ void LocationToLocalMesh::setSupportMesh(Mesh *supportMesh)
   _supportMesh = supportMesh;
 }
 
-///
-/// \brief Compute vector product
-///
-///   @param [in]      vect1  first vector
-///   @param [in]      vect2  second vector
-///   @param [inout]   prod_vect vect1 X vect2
-///
-
-void LocationToLocalMesh::computeVectorProduct(double *prod_vect, 
-                                               const double *vect1, 
-                                               const double *vect2)
-{ 
-  prod_vect[X] = vect1[Y] * vect2[Z] - vect2[Y] * vect1[Z];
-  prod_vect[Y] = vect2[X] * vect1[Z] - vect1[X] * vect2[Z];
-  prod_vect[Z] = vect1[X] * vect2[Y] - vect2[X] * vect1[Y];
-}
-
-///
-/// \brief Cross product
-///
-///   @param [in]      vect1  first vector
-///   @param [in]      vect2  second vector
-///   @param [inout]   prod_vect vect1 X vect2
-///
-
-double LocationToLocalMesh::computeCrossProduct(const double *vect1, 
-                                                const double *vect2)
-{
-  return vect1[X] * vect2[X] + vect1[Y] * vect2[Y] + vect1[Z] * vect2[Z];
-}
-
-///
-/// \brief Compute Norm
-///
-///   @param [in]      vect1  first vector
-///   @param [in]      vect2  second vector
-///   @param [inout]   prod_vect vect1 X vect2
-///
-  
-double LocationToLocalMesh::computeNorm(const double* vect)
-{
-  return sqrt(vect[X] * vect[X] + vect[Y] * vect[Y] + vect[Z] * vect[Z]);
-}
-
-///
-/// \brief Compute determinant
-///
-///   @param [in]      vect1  First vector
-///   @param [in]      vect2  Second vector
-///   @param [in]      vect3  Third vector
-///   @return          Cross product
-///
-
-double LocationToLocalMesh::computeDeterminant(const double* vect1,
-                                               const double* vect2,
-                                               const double* vect3)
-{
-  return ((vect1[Y] * vect2[Z] - vect2[Y] * vect1[Z]) * vect3[X])
-       + ((vect2[X] * vect1[Z] - vect1[X] * vect2[Z]) * vect3[Y])
-       + ((vect1[X] * vect2[Y] - vect2[X] * vect1[Y]) * vect3[Z]);
-}
 
 } // Namespace cwipi
 

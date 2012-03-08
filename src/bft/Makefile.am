@@ -50,7 +50,21 @@ AM_LDFLAGS  =
 # Public header files (to be installed)
 
 bftincludedir = $(includedir)
-bftinclude_HEADERS = \
+bftinclude_HEADERS =
+#bftinclude_HEADERS = \
+#bftc_backtrace.h \
+#bftc_error.h \
+#bftc_file.h \
+#bftc_fp_trap.h \
+#bftc_mem.h \
+#bftc_mem_usage.h \
+#bftc_printf.h \
+#bftc_sys_info.h \
+#bftc_timer.h \
+#bftc_version.h
+
+noinst_HEADERS = \
+bftc_config_defs.h \
 bftc_backtrace.h \
 bftc_error.h \
 bftc_file.h \
@@ -61,9 +75,6 @@ bftc_printf.h \
 bftc_sys_info.h \
 bftc_timer.h \
 bftc_version.h
-
-noinst_HEADERS = \
-bftc_config_defs.h
 
 # Library source files
 
