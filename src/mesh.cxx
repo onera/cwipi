@@ -985,6 +985,7 @@ namespace cwipi {
     delete _cellCenterCoords;
     delete _cellVolume;
     delete _normalFace;
+    delete _isDegenerated;
     delete[] _polygonIndex;
     fvmc_nodal_destroy(_fvmNodal);
   }
@@ -1726,7 +1727,7 @@ namespace cwipi {
     if (_nDim == 1)
         _computeMeshProperties1D();
     else if (_nDim == 2) {
-      if (_cellCenterCoords == NULL)
+      if (_normalFace == NULL)
         _normalFace = new std::vector<double>(3*_nElts);
       else
         _normalFace->resize(3*_nElts);
