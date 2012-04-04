@@ -26,36 +26,7 @@
 
 namespace cwipi {
 
-  /// Minimum value allowed for geometric computation
-  
-  const double GEOMETRY_EPS_MIN  = 1e-30; 
 
-  /// Constant value used to compute geomtric epsilon for volume
-
-  const double GEOMETRY_EPS_VOL  = 1e-15;
- 
-  /// Constant value used to compute geomtric epsilon for surface
-
-  const double GEOMETRY_EPS_SURF = 1e-12;
-
-  /// Minimum distance between two vertices 
-
-  const double GEOMETRY_EPS_DIST = 1e-9; 
-
-  ///
-  /// \brief Compute a dynamic geometric epsilon from a characteristic length
-  ///
-  ///   @param [in]  characteristicLength  Characteristic length
-  ///   @param [in]  consEpsilon           Constant part
-  ///   @return                            Geometric epsilon
-  ///
-
-  inline double geometricEpsilon(const double characteristicLength,
-                                 const double constEpsilon)
-    
-  {
-    return std::max(constEpsilon * characteristicLength, GEOMETRY_EPS_MIN);
-  }
 
   ///
   /// \brief Compute cross product
@@ -252,6 +223,54 @@ namespace cwipi {
     return ((dotProduct(vect1,vect2) >= 0 ) ? 1 : -1 );
   }
 
+  ///
+  /// \brief  Solve the equation "matrix.x = b" with Cramer's rule.
+  /// 
+  /// @param [in]     m[3][3] Equation matrix
+  /// @param [in]     b[3]    b equation right hand side
+  /// @param [inout]  vect2   Equation solution (unchanged if matrix is singular)
+  /// @return                 Return 1 if matrix is singular, 0 otherwise
+  ///
+
+  inline int
+  inverse_3x3(double  m[3][3],
+              double  b[3],
+              double  x[3])
+  {
+    double det, det_inv, x0, x1, x2;
+    const double epsilon_denom = 1e-30;
+
+    det =   m[0][0]*(m[1][1]*m[2][2] - m[2][1]*m[1][2])
+          - m[1][0]*(m[0][1]*m[2][2] - m[2][1]*m[0][2])
+          + m[2][0]*(m[0][1]*m[1][2] - m[1][1]*m[0][2]);
+
+    if (fabs(det) < epsilon_denom)
+      return 1;
+    else
+      det_inv = 1./det;
+    
+    /* Use local variables to ensure no aliasing */
+    
+    x0 = (  b[0]*(m[1][1]*m[2][2] - m[2][1]*m[1][2])
+            - b[1]*(m[0][1]*m[2][2] - m[2][1]*m[0][2])
+            + b[2]*(m[0][1]*m[1][2] - m[1][1]*m[0][2])) * det_inv;
+    
+    x1 = (  m[0][0]*(b[1]*m[2][2] - b[2]*m[1][2])
+            - m[1][0]*(b[0]*m[2][2] - b[2]*m[0][2])
+            + m[2][0]*(b[0]*m[1][2] - b[1]*m[0][2])) * det_inv;
+    
+    x2 = (  m[0][0]*(m[1][1]*b[2] - m[2][1]*b[1])
+            - m[1][0]*(m[0][1]*b[2] - m[2][1]*b[0])
+            + m[2][0]*(m[0][1]*b[1] - m[1][1]*b[0])) * det_inv;
+    
+    /* Copy local variables to output */
+    
+    x[0] = x0; x[1] = x1; x[2] = x2;
+    
+    return 0;
+  }
+
 }
+
 
 #endif //__CWIPI_VECTORUTILITIES_H__

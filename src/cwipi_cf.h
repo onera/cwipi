@@ -497,6 +497,7 @@ void PROCF(cwipi_add_polyhedra_cf,
    const int *n_element,
    int *face_index,
    int *cell_to_face_connectivity,
+   const int *n_faces,
    int *face_connectivity_index,
    int *face_connectivity
    ARGF_SUPP_CHAINE);
@@ -516,11 +517,11 @@ void PROCF(cwipi_locate_cf, CWIPI_LOCATE_CF) (const char *coupling_name,
 
 /*----------------------------------------------------------------------------
  *
- * Get located points location
+ * Get distant points location
  *
  * parameters
  *   coupling_name        <-- Coupling identifier
- *   location             --> located points location
+ *   location             --> Distant points location
  *----------------------------------------------------------------------------*/
 
 void PROCF(cwipi_get_distant_location_cf,
@@ -528,6 +529,21 @@ void PROCF(cwipi_get_distant_location_cf,
                                        const int  *l_coupling_name,
                                        int *location
                                        ARGF_SUPP_CHAINE);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get distant points distance to location element
+ *
+ * parameters
+ *   coupling_name        <-- Coupling identifier
+ *   distance             --> Distant points distance to location element
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_distant_distance_cf,
+           CWIPI_GET_DISTANT_DISTANCE_CF) (const char *coupling_name,
+                                           const int  *l_coupling_name,
+                                           float *distance
+                                           ARGF_SUPP_CHAINE);
 
 /*----------------------------------------------------------------------------
  *

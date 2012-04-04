@@ -120,7 +120,7 @@ cdef extern from "cwipi.h":
     void cwipi_define_mesh(char* coupling_id, int n_vertex, int n_element, double* coordinates, int* connectivity_index, int* connectivity)
 #    void cwipi_shared_fvm_nodal(char* coupling_name,
 #                                fvm_nodal_t* fvm_nodal)
-    void cwipi_add_polyhedra(char* coupling_id, int n_element, int face_index[], int cell_to_face_connectivity[], int face_connectivity_index[],
+    void cwipi_add_polyhedra(char* coupling_id, int n_element, int face_index[], int cell_to_face_connectivity[], int n_face, int face_connectivity_index[],
                              int face_connectivity[])
     void cwipi_locate (char* coupling_id)
     cwipi_exchange_status_t cwipi_exchange(char* coupling_id, char* exchange_name, int stride, int time_step, double time_value,
@@ -147,6 +147,7 @@ cdef extern from "cwipi.h":
     # info about mpi rank, mesh and element where local points are located 
 
     int* cwipi_get_distant_location (char* coupling_id)
+    float* cwipi_get_distant_distance (char* coupling_id)
     double* cwipi_get_distant_coordinates(char* coupling_id)
     int* cwipi_get_distant_barycentric_coordinates_index (char* coupling_id)
     double* cwipi_get_distant_barycentric_coordinates (char* coupling_id)
@@ -509,6 +510,7 @@ cdef class Coupling:
                             int n_element, 
                             char* face_index, 
                             char* cell_to_face_connectivity, 
+                            int n_face, 
                             char* face_connectivity_index,
                             char* face_connectivity):
         """
@@ -517,7 +519,8 @@ cdef class Coupling:
         cwipi_add_polyhedra(self.name, 
                             n_element,
                             <int *> face_index, 
-                            <int *> cell_to_face_connectivity, 
+                            <int *> cell_to_face_connectivity,
+                            n_face, 
                             <int *> face_connectivity_index,
                             <int *> face_connectivity)
 
@@ -526,6 +529,7 @@ cdef class Coupling:
                       int n_element, 
                       np.ndarray[np.int32_t] face_index not None, 
                       np.ndarray[np.int32_t] cell_to_face_connectivity not None, 
+                      int n_face, 
                       np.ndarray[np.int32_t] face_connectivity_index not None,
                       np.ndarray[np.int32_t] face_connectivity not None):
         """
@@ -536,7 +540,8 @@ cdef class Coupling:
         assert len(face_index) == (n_element + 1)
         self.cast_add_polyhedra(n_element, 
                                 face_index.data, 
-                                cell_to_face_connectivity.data, 
+                                cell_to_face_connectivity.data,
+                                n_face, 
                                 face_connectivity_index.data,
                                 face_connectivity.data)
         current_cpl = ""
@@ -844,6 +849,7 @@ cdef void callback(int entities_dim,
                    int local_polyhedra_face_connectivity[],
                    double distant_points_coordinates[],
                    int distant_points_location[],
+                   float distant_points_distance[],
                    int distant_points_barycentric_coordinates_index[],
                    double distant_points_barycentric_coordinates[],
                    int stride,

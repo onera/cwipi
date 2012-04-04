@@ -1,4 +1,3 @@
-
 #ifndef LOCATIONTOLOCALMESH_HXX_
 #define LOCATIONTOLOCALMESH_HXX_
  /*
@@ -107,6 +106,12 @@ public:
   inline const int *getLocation() const;
 
   ///
+  /// \brief Return distance to location element result (size = nDistantpoint)
+  ///
+
+  inline const float *getDistance() const;
+
+  ///
   /// \brief Return number of located distant point
   ///
 
@@ -133,7 +138,9 @@ public:
   ///   @param [in]  stride          Number of field component
   ///
 
-  void exchangeCellVertexFieldOfElementContaining (double *sendingField,  double *receivingField, const int stride);
+  void exchangeCellVertexFieldOfElementContaining(double *sendingField, 
+                                                  double *receivingField, 
+                                                  const int stride);
 
   ///
   /// \brief Exchange field on cells that contain each located points
@@ -144,7 +151,9 @@ public:
   ///   @param [in]  stride          Number of field component
   ///
 
-  void exchangeCellCenterFieldOfElementContaining (double *sendingField,  double *receivingField, const int stride);
+  void exchangeCellCenterFieldOfElementContaining(double *sendingField,
+                                                  double *receivingField, 
+                                                  const int stride);
 
   ///
   /// \brief Set support mesh
@@ -170,6 +179,14 @@ private :
 
   void compute3DMeanValues();
 
+  ///
+  /// \brief Compute Polyhedra Mean Values 3D
+  ///
+  ///
+
+  void compute3DMeanValuesPoly(const double point_coords[],
+                               const int    ipoly,
+                               double       distBarCoords[]);
 
   ///
   /// \brief Projection to the midplane
@@ -185,6 +202,45 @@ private :
    double *const coo_som_fac,
    double *const coo_point_dist
    );
+
+  ///
+  /// \brief Compute tetrzhedron, hexahedron, pyramid, or prism parametric coordinates for a given point.
+  ///
+  /// This function is adapted from the CGNS interpolation tool.
+  ///
+  ///   @param [in]    elt_type        Type of element
+  ///   @param [in]    point_coords    Point coordinates
+  ///   @param [in]    vertex_coords[] Pointer to element vertex coordinates
+  ///   @param [in]    tolerance       Location tolerance factor
+  ///   @param [out]   uvw[]           Parametric coordinates of point in element
+  ///
+  ///   @return                        Return 1 if uvw are computed, 0 otherwise
+  ///
+
+  int
+  compute_uvw(const cwipi_element_t elt_type,
+              const double          point_coords[],
+              const double          vertex_coords[8][3],
+              const double          tolerance,
+              double                uvw[3]);
+
+  ///
+  /// \brief Compute 3d shape functions and their derivatives given element
+  /// parametric coordinates.
+  ///
+  /// This function is adapted from the CGNS interpolation tool.
+  ///
+  ///   @param [in]    elt_type    Type of element
+  ///   @param [in]    uvw[]       Parametric coordinates
+  ///   @param [out]   shapef[]    Barycenter's coordinates
+  ///   @param [out]   deriv [][]  Derivative of shape function
+  ///
+
+  void
+  compute_shapef_3d(const cwipi_element_t elt_type,
+                    const double          uvw[3],
+                    double                shapef[8],
+                    double                deriv[8][3]);
 
 private :
 
@@ -204,6 +260,7 @@ private :
   std::vector <double>       *_barycentricCoordinates;                      ///< Barycentric coordinates associated to the element that contains each located distant point
   int                         _nDistantPoint;                               ///< Number of distant points located in the local mesh
   int                        *_location;                                    ///< Local elements that contain distant points
+  float                      *_distance;                                    ///< distance to Local elements that contain distant points
   std::vector <int>          *_nVertex;                                     ///< Vertices number of local elements that contain distant points
   bool                        _toLocate;                                    ///< Status to activate location
   int                         _maxElementContainingNVertex;                 ///< Maximum number of vertices of elements that contain located point
@@ -260,6 +317,17 @@ const int *LocationToLocalMesh::getLocation() const
   if (_toLocate)
     bftc_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
   return _location;
+}
+
+///
+/// \brief Return distance to location cell result (size = nDistantpoint)
+///
+
+const float *LocationToLocalMesh::getDistance() const
+{
+  if (_toLocate)
+    bftc_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
+  return _distance;
 }
 
 ///

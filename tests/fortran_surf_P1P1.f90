@@ -55,6 +55,7 @@ subroutine  userInterpolation(entitiesDim, &
                               localPolyFaceConnec, &
                               disPtsCoordinates, &
                               disPtsLocation, &
+                              disPtsDistance, &
                               disPtsBaryCoordIdx, &
                               disPtsBaryCoord, &
                               stride, &
@@ -80,6 +81,7 @@ subroutine  userInterpolation(entitiesDim, &
   integer, dimension(*) :: localPolyFaceConnec
   double precision, dimension(*) :: disPtsCoordinates
   integer, dimension(*) :: disPtsLocation
+  real*4, dimension(*) :: disPtsDistance
   integer, dimension(*) :: disPtsBaryCoordIdx
   double precision, dimension(*) :: disPtsBaryCoord
   integer :: stride
@@ -129,6 +131,7 @@ program testf
                                       localPolyFaceConnec, &
                                       disPtsCoordinates, &
                                       disPtsLocation, &
+                                      disPtsDistance, &
                                       disPtsBaryCoordIdx, &
                                       disPtsBaryCoord, &
                                       stride, &
@@ -149,6 +152,7 @@ program testf
          integer, dimension(*) :: localPolyFaceConnec
          double precision, dimension(*) :: disPtsCoordinates
          integer, dimension(*) :: disPtsLocation
+         real*4, dimension(*) :: disPtsDistance
          integer, dimension(*) :: disPtsBaryCoordIdx
          double precision, dimension(*) :: disPtsBaryCoord
          integer :: stride

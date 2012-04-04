@@ -830,6 +830,7 @@ void PROCF(cwipi_add_polyhedra_cf,
    const int *n_element,
    int *face_index,
    int *cell_to_face_connectivity,
+   const int *n_faces,
    int *face_connectivity_index,
    int *face_connectivity
    ARGF_SUPP_CHAINE)
@@ -839,11 +840,12 @@ void PROCF(cwipi_add_polyhedra_cf,
     _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
 
   cwipi_add_polyhedra(coupling_name,
-                          *n_element,
-                          face_index,
-                          cell_to_face_connectivity,
-                          face_connectivity_index,
-                          face_connectivity);
+                      *n_element,
+                      face_index,
+                      cell_to_face_connectivity,
+                      *n_faces,
+                      face_connectivity_index,
+                      face_connectivity);
   delete[] coupling_nameC;
 }
 
@@ -878,11 +880,11 @@ void PROCF(cwipi_locate_cf, CWIPI_LOCATE_CF) (const char *coupling_name,
 
 /*----------------------------------------------------------------------------
  *
- * Get located points location
+ * Get distant points location
  *
  * parameters
  *   coupling_name        <-- Coupling identifier
- *   location             --> located points location
+ *   location             --> Distant points location
  *----------------------------------------------------------------------------*/
 
 void PROCF(cwipi_get_distant_location_cf,
@@ -905,6 +907,39 @@ void PROCF(cwipi_get_distant_location_cf,
   const int nDistantPoint = coupling.getNDistantPoint();
   for (int i = 0; i < nDistantPoint; i++)
     location[i] = locationC[i];
+
+  delete[] coupling_nameC;
+}
+
+/*----------------------------------------------------------------------------
+ *
+ *  Get distant points distance to location element
+ *
+ * parameters
+ *   coupling_name        <-- Coupling identifier
+ *   distance             --> Distant points distance to location element
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_distant_distance_cf,
+           CWIPI_GET_DISTANT_DISTANCE_CF) (const char *coupling_name,
+                                           const int  *l_coupling_name,
+                                           float *distance
+                                           ARGF_SUPP_CHAINE)
+{
+  char *coupling_nameC =
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
+
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_nameC;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  const float* distanceC = (const float *) coupling.getDistantDistance();
+  const int nDistantPoint = coupling.getNDistantPoint();
+  for (int i = 0; i < nDistantPoint; i++)
+    distance[i] = distanceC[i];
 
   delete[] coupling_nameC;
 }

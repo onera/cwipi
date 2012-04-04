@@ -29,7 +29,7 @@ extern "C" {
 
 /* Fonctions privees */
 
-int partitionner(int tableau[], int p, int r, int* index) {
+static int partitionner(int tableau[], int p, int r, int* index) {
   int pivot = tableau[p], i = p-1, j = r+1;
   int temp;
   while(1) {
@@ -59,8 +59,6 @@ int partitionner(int tableau[], int p, int r, int* index) {
 
 void quickSort(int tableau[], int p, int r, int* index) {
   int q;
-  int i;
-
 
   if(p<r) {
     q = partitionner(tableau, p, r, index);

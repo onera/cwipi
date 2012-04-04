@@ -125,6 +125,26 @@ typedef enum {
 } cwipi_exchange_status_t;
 
 /*----------------------------------------------------------------------------
+ * Element type
+ *----------------------------------------------------------------------------*/
+
+typedef enum {
+
+  CWIPI_NODE,
+  CWIPI_EDGE2,
+  CWIPI_FACE_TRIA3,
+  CWIPI_FACE_TRIA6,
+  CWIPI_FACE_QUAD4,
+  CWIPI_FACE_POLY,
+  CWIPI_CELL_TETRA4,
+  CWIPI_CELL_HEXA8,
+  CWIPI_CELL_PRISM6,
+  CWIPI_CELL_PYRAM5,
+  CWIPI_CELL_POLY,
+
+} cwipi_element_t;
+
+/*----------------------------------------------------------------------------
  * Function pointer to define an user interpolation method (callback)
  *
  * parameters:
@@ -181,6 +201,7 @@ typedef void (*cwipi_interpolation_fct_t)
    const int local_polyhedra_face_connectivity[],
    const double distant_points_coordinates[],
    const int distant_points_location[],
+   const float distant_points_distance[],
    const int distant_points_barycentric_coordinates_index[],
    const double distant_points_barycentric_coordinates[],
    const int stride,
@@ -428,7 +449,7 @@ void cwipi_synchronize_control_parameter(const char *application_name);
  *
  *----------------------------------------------------------------------------*/
 
-void cwipi_dump_application_properties();
+void cwipi_dump_application_properties(void);
 
 /*----------------------------------------------------------------------------
  *
@@ -619,6 +640,7 @@ void cwipi_shared_fvmc_nodal(const char *coupling_name,
  *                                    size : n_elements + 1
  *   cell_to_face_connectivity    <-- Polyhedra -> face (1 to n)
  *                                    size : face_index[n_elements]
+ *   n_faces                      <-- Faces number
  *   face_connectivity_index      <-- Face connectivity index (0 to n-1)
  *                                    size : n_faces + 1
  *   face_connectivity            <-- Face connectivity (1 to n)
@@ -630,13 +652,14 @@ void cwipi_add_polyhedra(const char *coupling_id,
                              const int n_element,
                              int face_index[],
                              int cell_to_face_connectivity[],
+                             const int n_faces,
                              int face_connectivity_index[],
                              int face_connectivity[]);
 
 /*----------------------------------------------------------------------------
  *
- * Location completion.
- * It is a synchronization point with the coupled application
+ * Distant points location
+ * (synchronization point with the coupled application)
  *
  * parameters
  *   coupling_id          <-- Coupling identifier
@@ -657,15 +680,27 @@ void cwipi_set_info(const char *coupling_id, const cwipi_located_point_info_t in
 
 /*----------------------------------------------------------------------------
  *
- * Get located points location
+ * Get distant point Location
  *
  * parameters
  *   coupling_id          <-- Coupling identifier
  * return
- *   located points location
+ *   distant point location
  *----------------------------------------------------------------------------*/
 
 const int *cwipi_get_distant_location (const char *coupling_id);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get distance to distant location element
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ * return
+ *   distance
+ *----------------------------------------------------------------------------*/
+
+const float *cwipi_get_distant_distance (const char *coupling_id);
 
 /*----------------------------------------------------------------------------
  *
@@ -866,7 +901,7 @@ void cwipi_delete_coupling(const char *coupling_id);
  *
  *----------------------------------------------------------------------------*/
 
-void cwipi_finalize();
+void cwipi_finalize(void);
 
 /*----------------------------------------------------------------------------
  *

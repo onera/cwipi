@@ -66,6 +66,7 @@ extern "C" {
       int *local_polyhedra_face_connectivity,
       double *distant_points_coordinates,
       int *distant_points_location,
+      float *distant_points_distance,
       int *distant_points_barycentric_coordinates_index,
       double *distant_points_barycentric_coordinates,
       int *data_dimension,
@@ -472,10 +473,14 @@ void Coupling::_interpolate3D(double *vertexField,
 
   const int nDistantPoint      =  _locationToLocalMesh->getNLocatedDistantPoint() ;
   const int *distantLocation   = _locationToLocalMesh->getLocation();
-  const double *distantCoords   = _locationToLocalMesh->getPointCoordinates();
+  const double *distantCoords  = _locationToLocalMesh->getPointCoordinates();
 
   const int *eltsConnecPointer = _supportMesh->getEltConnectivityIndex();
   const int *eltsConnec        = _supportMesh->getEltConnectivity();
+
+  const std::vector<int> &polyEltsConnec        = _supportMesh->getPolyhedraCellToVertexConnectivity();
+  const std::vector<int> &polyEltsConnecPointer = _supportMesh->getPolyhedraCellToVertexConnectivityIndex();
+
   const int nStandardElt       = _supportMesh->getNElts() - _supportMesh->getNPolyhedra();
   const double *coords         = _supportMesh->getVertexCoords();
   double coeff[4];
@@ -486,18 +491,27 @@ void Coupling::_interpolate3D(double *vertexField,
   const bool useMeanValues = true;
 
   if (useMeanValues) {
-
+    
     for (int ipoint = 0; ipoint <nDistantPoint; ipoint++) {
       int iel = distantLocation[ipoint] - 1;
       int index = barycentricCoordinatesIndex[ipoint];
       int nSom = barycentricCoordinatesIndex[ipoint+1] - index;
-
+      
       for (int k = 0; k < stride; k++)
         interpolatedField[stride*ipoint + k] = 0;
+      
       for (int isom = 0; isom <  nSom; isom++) {
         for (int k = 0; k < stride; k++) {
-          interpolatedField[stride*ipoint+k] += vertexField[stride*(eltsConnec[eltsConnecPointer[iel]+isom]-1)+k]
-                                                *barycentricCoordinates[index+isom];
+          if (iel < nStandardElt) {
+            interpolatedField[stride*ipoint+k] += 
+              vertexField[stride*(eltsConnec[eltsConnecPointer[iel]+isom]-1)+k]
+              *barycentricCoordinates[index+isom];
+          }
+          else {
+            interpolatedField[stride*ipoint+k] += 
+              vertexField[stride*(polyEltsConnec[polyEltsConnecPointer[iel -  nStandardElt]+isom]-1)+k]
+              *barycentricCoordinates[index+isom];
+          }
         }
       }
     }
@@ -704,6 +718,7 @@ void Coupling::setPointsToLocate(const int    n_points,
 void Coupling::defineMeshAddPolyhedra(const int n_element,
                                       int face_index[],
                                       int cell_to_face_connectivity[],
+                                      const int nFace,
                                       int face_connectivity_index[],
                                       int face_connectivity[])
 
@@ -715,6 +730,7 @@ void Coupling::defineMeshAddPolyhedra(const int n_element,
     _supportMesh->addPolyhedra(n_element,
                                face_index,
                                cell_to_face_connectivity,
+                               nFace,
                                face_connectivity_index,
                                face_connectivity);
   }
@@ -846,7 +862,8 @@ cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
 
     const int nDistantPoint      =  _locationToLocalMesh->getNLocatedDistantPoint() ;
     const int *distantLocation   = _locationToLocalMesh->getLocation();
-    const double *distantCoords   = _locationToLocalMesh->getPointCoordinates();
+    const float *distantDistance   = _locationToLocalMesh->getDistance();
+    const double *distantCoords  = _locationToLocalMesh->getPointCoordinates();
 
     const int* interiorList     = _locationToDistantMesh->getLocatedPoint();
     const int nInteriorList     = _locationToDistantMesh->getNLocatedPoint();
@@ -889,6 +906,7 @@ cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
            const_cast <int *> (localPolyhedraFaceConnectivity),
            const_cast <double *> (distantCoords),
            const_cast <int *> (distantLocation),
+           const_cast <float *> (distantDistance),
            const_cast <int *> (barycentricCoordinatesIndex),
            const_cast <double *> (barycentricCoordinates),
            const_cast <int *> (&stride),
@@ -916,6 +934,7 @@ cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
                           localPolyhedraFaceConnectivity,
                           distantCoords,
                           distantLocation,
+                          distantDistance,
                           barycentricCoordinatesIndex,
                           barycentricCoordinates,
                           stride,
@@ -942,6 +961,7 @@ cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
            const_cast <int *> (localPolyhedraFaceConnectivity),
            const_cast <double *> (distantCoords),
            const_cast <int *> (distantLocation),
+           const_cast <float *> (distantDistance),
            const_cast <int *> (barycentricCoordinatesIndex),
            const_cast <double *> (barycentricCoordinates),
            const_cast <int *> (&stride),
@@ -1104,6 +1124,7 @@ void Coupling::issend(const char    *exchangeName,
 
     const int nDistantPoint      =  _locationToLocalMesh->getNLocatedDistantPoint() ;
     const int *distantLocation   = _locationToLocalMesh->getLocation();
+    const float *distantDistance   = _locationToLocalMesh->getDistance();
     const double *distantCoords   = _locationToLocalMesh->getPointCoordinates();
 
     const int* interiorList     = _locationToDistantMesh->getLocatedPoint();
@@ -1145,6 +1166,7 @@ void Coupling::issend(const char    *exchangeName,
            const_cast <int *> (localPolyhedraFaceConnectivity),
            const_cast <double *> (distantCoords),
            const_cast <int *> (distantLocation),
+           const_cast <float *> (distantDistance),
            const_cast <int *> (barycentricCoordinatesIndex),
            const_cast <double *> (barycentricCoordinates),
            const_cast <int *> (&stride),
@@ -1172,12 +1194,43 @@ void Coupling::issend(const char    *exchangeName,
                           localPolyhedraFaceConnectivity,
                           distantCoords,
                           distantLocation,
+                          distantDistance,
                           barycentricCoordinatesIndex,
                           barycentricCoordinates,
                           stride,
                           _solverType,
                           sendingField,
                           &tmpDistantField[0]);
+
+      //
+      // Callback Fortran appele en C
+
+      else if (_interpolationFct_f != NULL)
+        PROCF(callfortinterpfct, CALLFORTINTERPFCT) (
+           const_cast <int *> (&_entitiesDim),
+           const_cast <int *> (&nVertex),
+           const_cast <int *> (&nElts),
+           const_cast <int *> (&nPoly),
+           const_cast <int *> (&nDistantPoint),
+           const_cast <double *> (_supportMesh->getVertexCoords()),
+           const_cast <int *> (localConnectivityIndex),
+           const_cast <int *> (localConnectivity),
+           const_cast <int *> (localPolyhedraFaceIndex),
+           const_cast <int *> (localPolyhedraCellToFaceConnectivity),
+           const_cast <int *> (localPolyhedraFaceConnectivity_index),
+           const_cast <int *> (localPolyhedraFaceConnectivity),
+           const_cast <double *> (distantCoords),
+           const_cast <int *> (distantLocation),
+           const_cast <float *> (distantDistance),
+           const_cast <int *> (barycentricCoordinatesIndex),
+           const_cast <double *> (barycentricCoordinates),
+           const_cast <int *> (&stride),
+           const_cast <int *> ((const int *) &_solverType),
+           const_cast <double *> (sendingField),
+           const_cast <double *> (&tmpDistantField[0]),
+	   _interpolationFct_f
+          );
+
       else
         _interpolate((double* )sendingField,
                      tmpDistantField,

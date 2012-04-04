@@ -39,6 +39,11 @@ namespace cwipi {
     return _locationToLocalMesh->getLocation();
   }
 
+  const float * Coupling::getDistantDistance() const
+  {
+    return _locationToLocalMesh->getDistance();
+  }
+
   int Coupling::getNNotlocatedPoint() const
   {
     return _locationToDistantMesh->getNUnlocatedPoint();

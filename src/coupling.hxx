@@ -67,6 +67,7 @@ namespace cwipi {
     void defineMeshAddPolyhedra(const int n_element,
                                 int face_index[],
                                 int cell_to_face_connectivity[],
+                                const int nFace,
                                 int face_connectivity_index[],
                                 int face_connectivity[]);
 
@@ -121,6 +122,8 @@ namespace cwipi {
     inline const int *getLocatedPoint() const;
 
     inline const int *getDistantLocation() const;
+
+    inline const float *getDistantDistance() const;
 
     inline int getNDistantPoint() const;
 

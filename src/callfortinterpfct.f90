@@ -31,6 +31,7 @@ subroutine callfortinterpfct(entities_dim, &
                              local_poly_face_connec, &
                              dist_pts_coord, &
                              dist_pts_location, &
+                             dist_pts_distance, &
                              dist_pts_barycentric_coord_idx, &
                              dist_pts_barycentric_coord, &
                              stride, &
@@ -56,6 +57,7 @@ subroutine callfortinterpfct(entities_dim, &
                                     local_poly_face_connec, &
                                     dist_pts_coord, &
                                     dist_pts_location, &
+                                    dist_pts_distance, &
                                     dist_pts_barycentric_coord_idx, &
                                     dist_pts_barycentric_coord, &
                                     stride, &
@@ -76,6 +78,7 @@ subroutine callfortinterpfct(entities_dim, &
        integer, dimension(*) :: local_poly_face_connec
        double precision, dimension(*) :: dist_pts_coord
        integer, dimension(*) :: dist_pts_location
+       real*4, dimension(*)  :: dist_pts_distance
        integer, dimension(*) :: dist_pts_barycentric_coord_idx
        double precision, dimension(*) :: dist_pts_barycentric_coord
        integer :: stride
@@ -99,6 +102,7 @@ subroutine callfortinterpfct(entities_dim, &
   integer, dimension(*) :: local_poly_face_connec
   double precision, dimension(*) :: dist_pts_coord
   integer, dimension(*) :: dist_pts_location
+  real*4, dimension(*) :: dist_pts_distance
   integer, dimension(*) :: dist_pts_barycentric_coord_idx
   double precision, dimension(*) :: dist_pts_barycentric_coord
   integer :: stride
@@ -121,6 +125,7 @@ subroutine callfortinterpfct(entities_dim, &
                            local_poly_face_connec, &
                            dist_pts_coord, &
                            dist_pts_location, &
+                           dist_pts_distance, &
                            dist_pts_barycentric_coord_idx, &
                            dist_pts_barycentric_coord, &
                            stride, &

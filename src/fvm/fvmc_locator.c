@@ -153,6 +153,8 @@ struct _fvmc_locator_t {
                                            local_points_idx[] indexes,
                                            0 to n-1 numbering) */
 
+  float         *distant_point_distance; /* Distance of distant points to location
+                                            element number */
   fvmc_lnum_t   *distant_point_location; /* Location of distant points by parent
                                            element number (with blocs starting
                                            at distant_points_idx[] indexes) */
@@ -705,7 +707,7 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
   fvmc_lnum_t *send_index, *send_location;
   fvmc_lnum_t *location_count, *location_shift;
   fvmc_coord_t *coords_dist, *send_coords;
-  float *distance;
+  float *distance, *send_distance;
   float *distance_dist, *distance_loc;
   double extents[6];
 
@@ -865,7 +867,6 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
      (associated with the corresponding rank); the distance[] array
      is not needed anymore now that all comparisons have been done */
 
-  BFTC_FREE(distance);
 
   BFTC_MALLOC(location_shift, this_locator->n_intersects, fvmc_lnum_t);
   BFTC_MALLOC(location_count, this_locator->n_intersects, fvmc_lnum_t);
@@ -900,6 +901,7 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
     send_index[j] = -1;
 
   BFTC_MALLOC(send_location, n_points, fvmc_lnum_t);
+  BFTC_MALLOC(send_distance, n_points, float);
 
   n_interior = 0;
   n_exterior = 0;
@@ -967,6 +969,10 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
              this_locator->distant_points_idx[this_locator->n_intersects],
              fvmc_lnum_t);
 
+  BFTC_MALLOC(this_locator->distant_point_distance,
+             this_locator->distant_points_idx[this_locator->n_intersects],
+             float);
+
   BFTC_MALLOC(this_locator->distant_point_coords,
              this_locator->distant_points_idx[this_locator->n_intersects] * dim,
              fvmc_coord_t);
@@ -989,6 +995,7 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
       coord_idx = send_index[location_shift[i] + j];
       this_locator->local_point_ids[start_idx + j] = coord_idx;
       send_location[j] = location[coord_idx];
+      send_distance[j] = distance[coord_idx];
       if (point_list != NULL) {
         for (k = 0; k < dim; k++)
           send_coords[j*dim + k]
@@ -1010,6 +1017,13 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
                  FVMC_MPI_LNUM, dist_rank, FVMC_MPI_TAG,
                  this_locator->comm, &status);
 
+    MPI_Sendrecv(send_distance, (int)n_coords_loc,
+                 MPI_FLOAT, dist_rank, FVMC_MPI_TAG,
+                 (this_locator->distant_point_distance
+                  + this_locator->distant_points_idx[i]), (int)n_coords_dist,
+                 MPI_FLOAT, dist_rank, FVMC_MPI_TAG,
+                 this_locator->comm, &status);
+
     MPI_Sendrecv(send_coords, (int)(n_coords_loc*dim),
                  FVMC_MPI_COORD, dist_rank, FVMC_MPI_TAG,
                  (this_locator->distant_point_coords
@@ -1027,11 +1041,13 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
 
   BFTC_FREE(send_index);
   BFTC_FREE(send_location);
+  BFTC_FREE(send_distance);
   BFTC_FREE(send_coords);
 
   BFTC_FREE(location_rank_id);
 
   BFTC_FREE(location);
+  BFTC_FREE(distance);
 
   this_locator->location_wtime[1] += comm_timing[0];
   this_locator->location_cpu_time[1] += comm_timing[1];
@@ -1135,7 +1151,6 @@ _locate_all_local(fvmc_locator_t       *this_locator,
      the distance[] array is not needed anymore now that all comparisons have
      been done */
 
-  BFTC_FREE(distance);
 
   location_count = 0;
 
@@ -1167,6 +1182,7 @@ _locate_all_local(fvmc_locator_t       *this_locator,
   this_locator->local_point_ids = NULL; /* Not needed for single-process */
 
   BFTC_MALLOC(this_locator->distant_point_location, location_count, fvmc_lnum_t);
+  BFTC_MALLOC(this_locator->distant_point_distance, location_count, float);
   BFTC_MALLOC(this_locator->distant_point_coords, n_coords * dim, fvmc_coord_t);
 
   location_count = 0;
@@ -1186,6 +1202,7 @@ _locate_all_local(fvmc_locator_t       *this_locator,
 
       if (location[k] > -1) {
         this_locator->distant_point_location[location_count] = location[k];
+        this_locator->distant_point_distance[location_count] = distance[k];
         for (l = 0; l < dim; l++) {
           this_locator->distant_point_coords[location_count*dim + l]
             = point_coords[coord_idx*dim + l];
@@ -1211,6 +1228,7 @@ _locate_all_local(fvmc_locator_t       *this_locator,
   }
 
   BFTC_FREE(location);
+  BFTC_FREE(distance);
   BFTC_FREE(coords);
 }
 
@@ -2025,6 +2043,7 @@ fvmc_locator_destroy(fvmc_locator_t  * this_locator)
       BFTC_FREE(this_locator->local_point_ids);
 
     BFTC_FREE(this_locator->distant_point_location);
+    BFTC_FREE(this_locator->distant_point_distance);
     BFTC_FREE(this_locator->distant_point_coords);
 
     BFTC_FREE(this_locator->intersect_rank);
@@ -2406,6 +2425,30 @@ fvmc_locator_get_dist_locations(const fvmc_locator_t  *this_locator)
   if (this_locator != NULL) {
     if (this_locator->n_ranks != 0)
       retval = this_locator->distant_point_location;
+  }
+
+  return retval;
+}
+
+/*----------------------------------------------------------------------------
+ * Return an array of distance to local element numbers containing
+ * each distant point after locator initialization.
+ *
+ * parameters:
+ *   this_locator <-- pointer to locator structure
+ *
+ * returns:
+ *   distance to local element numbers associated with distant points
+ *----------------------------------------------------------------------------*/
+
+const float *
+fvmc_locator_get_dist_distances(const fvmc_locator_t  *this_locator)
+{
+  const fvmc_lnum_t * retval = NULL;
+
+  if (this_locator != NULL) {
+    if (this_locator->n_ranks != 0)
+      retval = this_locator->distant_point_distance;
   }
 
   return retval;

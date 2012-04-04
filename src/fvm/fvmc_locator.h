@@ -184,6 +184,20 @@ const fvmc_lnum_t *
 fvmc_locator_get_dist_locations(const fvmc_locator_t  *this_locator);
 
 /*----------------------------------------------------------------------------
+ * Return an array of distance to local element numbers containing
+ * each distant point after locator initialization.
+ *
+ * parameters:
+ *   this_locator <-- pointer to locator structure
+ *
+ * returns:
+ *   distance to local element numbers associated with distant points
+ *----------------------------------------------------------------------------*/
+
+const float *
+fvmc_locator_get_dist_distances(const fvmc_locator_t  *this_locator);
+
+/*----------------------------------------------------------------------------
  * Return an array of coordinates of each distant point after
  * locator initialization.
  *

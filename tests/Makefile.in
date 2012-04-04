@@ -68,8 +68,9 @@ check_PROGRAMS = c_linear_coupling$(EXEEXT) \
 	c_surf_without_partitioning_coupling$(EXEEXT) \
 	c_surf_without_partitioning_coupling2$(EXEEXT) \
 	c_surf_sequential_coupling$(EXEEXT) \
-	c_vol_coupling_P1P1$(EXEEXT) fortran_surf_P1P1$(EXEEXT) \
-	c_mean_value_3D$(EXEEXT)
+	c_vol_coupling_P1P1$(EXEEXT) \
+	c_vol_coupling_polyhedra_P1P1$(EXEEXT) \
+	fortran_surf_P1P1$(EXEEXT) c_mean_value_3D$(EXEEXT)
 TESTS = c_linear_coupling$(EXEEXT) \
 	c_surf_coupling_P1P1_micron_polygon$(EXEEXT) \
 	c_surf_coupling_P1P1_polygon$(EXEEXT) \
@@ -83,8 +84,10 @@ TESTS = c_linear_coupling$(EXEEXT) \
 	c_surf_without_partitioning_coupling$(EXEEXT) \
 	c_surf_without_partitioning_coupling2$(EXEEXT) \
 	c_surf_sequential_coupling$(EXEEXT) \
-	c_vol_coupling_P1P1$(EXEEXT) fortran_surf_P1P1$(EXEEXT) \
-	c_mean_value_3D$(EXEEXT) $(am__append_1)
+	c_vol_coupling_P1P1$(EXEEXT) \
+	c_vol_coupling_polyhedra_P1P1$(EXEEXT) \
+	fortran_surf_P1P1$(EXEEXT) c_mean_value_3D$(EXEEXT) \
+	$(am__append_1)
 @ENABLE_PYTHON_TRUE@am__append_1 = python_api.py
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
@@ -234,6 +237,14 @@ c_vol_coupling_P1P1_OBJECTS = $(am_c_vol_coupling_P1P1_OBJECTS)
 c_vol_coupling_P1P1_DEPENDENCIES = $(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
 	$(top_builddir)/src/libcwipi.la
+am_c_vol_coupling_polyhedra_P1P1_OBJECTS =  \
+	c_vol_coupling_polyhedra_P1P1.$(OBJEXT)
+c_vol_coupling_polyhedra_P1P1_OBJECTS =  \
+	$(am_c_vol_coupling_polyhedra_P1P1_OBJECTS)
+c_vol_coupling_polyhedra_P1P1_DEPENDENCIES =  \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
+	$(top_builddir)/src/libcwipi.la
 am_fortran_surf_P1P1_OBJECTS = grid_mesh.$(OBJEXT) \
 	fortran_surf_P1P1.$(OBJEXT)
 fortran_surf_P1P1_OBJECTS = $(am_fortran_surf_P1P1_OBJECTS)
@@ -274,7 +285,9 @@ SOURCES = $(c_linear_coupling_SOURCES) $(c_mean_value_3D_SOURCES) \
 	$(c_surf_sequential_coupling_SOURCES) \
 	$(c_surf_without_partitioning_coupling_SOURCES) \
 	$(c_surf_without_partitioning_coupling2_SOURCES) \
-	$(c_vol_coupling_P1P1_SOURCES) $(fortran_surf_P1P1_SOURCES)
+	$(c_vol_coupling_P1P1_SOURCES) \
+	$(c_vol_coupling_polyhedra_P1P1_SOURCES) \
+	$(fortran_surf_P1P1_SOURCES)
 DIST_SOURCES = $(c_linear_coupling_SOURCES) $(c_mean_value_3D_SOURCES) \
 	$(c_surf_coupling_P1P0_P0P1_SOURCES) \
 	$(c_surf_coupling_P1P1_SOURCES) \
@@ -289,7 +302,9 @@ DIST_SOURCES = $(c_linear_coupling_SOURCES) $(c_mean_value_3D_SOURCES) \
 	$(c_surf_sequential_coupling_SOURCES) \
 	$(c_surf_without_partitioning_coupling_SOURCES) \
 	$(c_surf_without_partitioning_coupling2_SOURCES) \
-	$(c_vol_coupling_P1P1_SOURCES) $(fortran_surf_P1P1_SOURCES)
+	$(c_vol_coupling_P1P1_SOURCES) \
+	$(c_vol_coupling_polyhedra_P1P1_SOURCES) \
+	$(fortran_surf_P1P1_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -489,6 +504,7 @@ c_surf_without_partitioning_coupling_SOURCES = grid_mesh.c c_surf_without_partit
 c_surf_without_partitioning_coupling2_SOURCES = grid_mesh.c c_surf_without_partitioning_coupling2.c
 c_surf_sequential_coupling_SOURCES = grid_mesh.c c_surf_sequential_coupling.c
 c_vol_coupling_P1P1_SOURCES = c_vol_coupling_P1P1.c
+c_vol_coupling_polyhedra_P1P1_SOURCES = c_vol_coupling_polyhedra_P1P1.c
 fortran_surf_P1P1_SOURCES = grid_mesh.c fortran_surf_P1P1.f90
 c_mean_value_3D_SOURCES = c_mean_value_3D.c
 c_linear_coupling_LDADD = \
@@ -596,6 +612,13 @@ $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
+c_vol_coupling_polyhedra_P1P1_LDADD = \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
+$(top_builddir)/src/libcwipi.la \
+@MPI_LIBS@ \
+-lm
+
 fortran_surf_P1P1_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
 $(top_builddir)/src/fvm/libfvmc.la \
@@ -697,6 +720,9 @@ c_surf_without_partitioning_coupling2$(EXEEXT): $(c_surf_without_partitioning_co
 c_vol_coupling_P1P1$(EXEEXT): $(c_vol_coupling_P1P1_OBJECTS) $(c_vol_coupling_P1P1_DEPENDENCIES) 
 	@rm -f c_vol_coupling_P1P1$(EXEEXT)
 	$(LINK) $(c_vol_coupling_P1P1_OBJECTS) $(c_vol_coupling_P1P1_LDADD) $(LIBS)
+c_vol_coupling_polyhedra_P1P1$(EXEEXT): $(c_vol_coupling_polyhedra_P1P1_OBJECTS) $(c_vol_coupling_polyhedra_P1P1_DEPENDENCIES) 
+	@rm -f c_vol_coupling_polyhedra_P1P1$(EXEEXT)
+	$(LINK) $(c_vol_coupling_polyhedra_P1P1_OBJECTS) $(c_vol_coupling_polyhedra_P1P1_LDADD) $(LIBS)
 fortran_surf_P1P1$(EXEEXT): $(fortran_surf_P1P1_OBJECTS) $(fortran_surf_P1P1_DEPENDENCIES) 
 	@rm -f fortran_surf_P1P1$(EXEEXT)
 	$(FCLINK) $(fortran_surf_P1P1_OBJECTS) $(fortran_surf_P1P1_LDADD) $(LIBS)
@@ -723,6 +749,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_surf_without_partitioning_coupling.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_surf_without_partitioning_coupling2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_vol_coupling_P1P1.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_vol_coupling_polyhedra_P1P1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/creeMaillagePolygone2D.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/grid_mesh.Po@am__quote@
 

@@ -24,6 +24,38 @@
 
 namespace cwipi {
 
+  /// Minimum value allowed for geometric computation
+  
+  const double GEOM_EPS_MIN  = 1e-30; 
+
+  /// Constant value used to compute geomtric epsilon for volume
+
+  const double GEOM_EPS_VOL  = 1e-15;
+ 
+  /// Constant value used to compute geomtric epsilon for surface
+
+  const double GEOM_EPS_SURF = 1e-15;
+
+  /// Minimum distance between two vertices 
+
+  const double GEOM_EPS_DIST = 1e-15; 
+
+  ///
+  /// \brief Compute a dynamic geometric epsilon from a characteristic length
+  ///
+  ///   @param [in]  characteristicLength  Characteristic length
+  ///   @param [in]  consEpsilon           Constant part
+  ///   @return                            Geometric epsilon
+  ///
+
+  inline double geometricEpsilon(const double characteristicLength,
+                                 const double constEpsilon)
+    
+  {
+    return std::max(constEpsilon * characteristicLength, GEOM_EPS_MIN);
+  }
+
+
   ///
   /// \brief Triangle surface vector
   /// 
@@ -31,12 +63,17 @@ namespace cwipi {
   /// @param [in]  connectivity   Connectivity
   /// @param [in]  coords         Vertice coordinates
   /// @param [out] surfaceVector  Surface Vector
+  /// @param [out] characteristicLength  Characteristic length (active if != NULL)             
+  /// @param [out] isDegenerated         Degenerated edge indicator (active if != NULL)             
   ///
 
   inline void triangleSurfaceVector (const int     nTriangle,
                                      const int    *connectivity,
                                      const double *coords,
-                                     double       *surfaceVector)
+                                     double       *surfaceVector,
+                                     double       *characteristicLength,
+                                     int         *isDegenerated)
+
   {
     for (int itri = 0; itri < nTriangle; itri++) {
 
@@ -56,12 +93,37 @@ namespace cwipi {
       v2[1] = coords[3*k + 1] - coords[3*i + 1]; 
       v2[2] = coords[3*k + 2] - coords[3*i + 2]; 
 
+      if (characteristicLength != NULL) {
+
+        double v3[3];
+
+        v3[0] = coords[3*k    ] - coords[3*j    ]; 
+        v3[1] = coords[3*k + 1] - coords[3*j + 1]; 
+        v3[2] = coords[3*k + 2] - coords[3*j + 2]; 
+
+        double normV1 = norm(v1);
+        double normV2 = norm(v2);
+        double normV3 = norm(v3);
+
+        characteristicLength[itri] = std::min(std::min(normV1, normV2), normV3);
+ 
+      }
+
       crossProduct(v1, v2, surfaceVectorTri);
 
       surfaceVectorTri[0] *= 0.5;
       surfaceVectorTri[1] *= 0.5;
       surfaceVectorTri[2] *= 0.5;
 
+      if ((characteristicLength != NULL) && (isDegenerated != NULL)) {
+
+        double normSurfaceVectorTri = norm(surfaceVectorTri);
+        double eps_loc = geometricEpsilon(characteristicLength[itri], GEOM_EPS_SURF);
+        isDegenerated[itri] = 0;
+        if (normSurfaceVectorTri <= eps_loc) 
+          isDegenerated[itri] = 1;
+
+      }
     }
   }
 
@@ -116,16 +178,20 @@ namespace cwipi {
   ///
   /// \brief Tetrahedra oriented volume
   /// 
-  /// @param [in]  nTetrahedra    Number of tetrahedra
-  /// @param [in]  connectivity   Connectivity
-  /// @param [in]  coords         Vertice coordinates
-  /// @param [out] volume         Volume              
+  /// @param [in]  nTetrahedra           Number of tetrahedra
+  /// @param [in]  connectivity          Connectivity
+  /// @param [in]  coords                Vertice coordinates
+  /// @param [out] volume                Volume              
+  /// @param [out] characteristicLength  Characteristic length (active if != NULL)
+  /// @param [out] isDegenerated         Degenerated edge indicator (active if != NULL)
   ///
 
   inline void tetrahedraOrientedVolume (const int     nTetrahedra,
                                         const int    *connectivity,
                                         const double *coords,
-                                        double       *volume)
+                                        double       *volume,
+                                        double       *characteristicLength,
+                                        int         *isDegenerated)
 
   {
     
@@ -146,7 +212,56 @@ namespace cwipi {
       triangleSurfaceVector(nTriangle,
                             connectivityTet,
                             coords,
-                            surfaceVector);
+                            surfaceVector,
+                            NULL,
+                            NULL);
+
+      if (characteristicLength != NULL) {
+
+        double vectV1V2[3] =
+          {coords[3*i2    ] - coords[3*i1    ],
+           coords[3*i2 + 1] - coords[3*i1 + 1],
+           coords[3*i2 + 2] - coords[3*i1 + 2]};
+
+        double vectV1V3[3] =
+          {coords[3*i3    ] - coords[3*i1    ],
+           coords[3*i3 + 1] - coords[3*i1 + 1],
+           coords[3*i3 + 2] - coords[3*i1 + 2]};
+
+        double vectV2V3[3] =
+          {coords[3*i3    ] - coords[3*i2    ],
+           coords[3*i3 + 1] - coords[3*i2 + 1],
+           coords[3*i3 + 2] - coords[3*i2 + 2]};
+
+        double vectV1V4[3] =
+          {coords[3*i4    ] - coords[3*i1    ],
+           coords[3*i4 + 1] - coords[3*i1 + 1],
+           coords[3*i4 + 2] - coords[3*i1 + 2]};
+
+        double vectV2V4[3] =
+          {coords[3*i4    ] - coords[3*i2    ],
+           coords[3*i4 + 1] - coords[3*i2 + 1],
+           coords[3*i4 + 2] - coords[3*i2 + 2]};
+
+        double vectV3V4[3] =
+          {coords[3*i4    ] - coords[3*i3    ],
+           coords[3*i4 + 1] - coords[3*i3 + 1],
+           coords[3*i4 + 2] - coords[3*i3 + 2]};
+
+        double normV1V2 = norm(vectV1V2);
+        double normV1V3 = norm(vectV1V3);
+        double normV2V3 = norm(vectV2V3);
+        double normV1V4 = norm(vectV1V4);
+        double normV2V4 = norm(vectV2V4);
+        double normV3V4 = norm(vectV3V4);
+
+        characteristicLength[itet] = std::min(normV1V2,                    normV1V3);
+        characteristicLength[itet] = std::min(characteristicLength[itet],  normV2V3);
+        characteristicLength[itet] = std::min(characteristicLength[itet],  normV1V2);
+        characteristicLength[itet] = std::min(characteristicLength[itet],  normV1V3);
+        characteristicLength[itet] = std::min(characteristicLength[itet],  normV1V4);
+
+      }
 
       triangleCenter(nTriangle,
                      connectivity,
@@ -159,6 +274,14 @@ namespace cwipi {
 
       volume[itet] = 1./3. * dotProduct(fC_i4, surfaceVector);
 
+      if ((characteristicLength != NULL) && (isDegenerated != NULL)) {
+     
+        double eps_loc = geometricEpsilon(characteristicLength[itet], GEOM_EPS_VOL);
+        isDegenerated[itet] = 0;
+        if (volume[itet]  <= eps_loc) 
+          isDegenerated[itet] = 1;
+
+      }
     }
   }
   
@@ -171,7 +294,7 @@ namespace cwipi {
   /// @param [out] center         center              
   ///
 
- inline double tetrahedraCenter (const int     nTetrahedra,
+ inline void   tetrahedraCenter (const int     nTetrahedra,
                                  const int    *connectivity,
                                  const double *coords,
                                        double *center)
@@ -534,12 +657,14 @@ namespace cwipi {
   ///
   /// \brief Edges properties 
   /// 
-  /// @param [in]  nEdges         Number of edges     
-  /// @param [in]  connectivity   Connectivity
-  /// @param [in]  nVertices      Number of vertices
-  /// @param [in]  coords         Vertices coordinates
-  /// @param [out] center         center              
-  /// @param [out] length         length              
+  /// @param [in]  nEdges                Number of edges     
+  /// @param [in]  connectivity          Connectivity
+  /// @param [in]  nVertices             Number of vertices
+  /// @param [in]  coords                Vertices coordinates
+  /// @param [out] center                Center              
+  /// @param [out] length                Length              
+  /// @param [out] characteristicLength  Characteristic length (active if != NULL)             
+  /// @param [out] isDegenerated         Degenerated edge indicator (active if != NULL)             
   ///
 
   inline void edgesProperties (const int     nEdges,
@@ -547,9 +672,12 @@ namespace cwipi {
                                const int     nVertices,
                                const double *coords,
                                double       *center,
-                               double       *length)
+                               double       *length,
+                               double       *characteristicLength,
+                               int         *isDegenerated)
 
   {
+
     for (int iedge = 0; iedge < nEdges; iedge++) {
 
       const int *connectivityEdge = connectivity + 2*iedge;
@@ -567,8 +695,16 @@ namespace cwipi {
                          + (coords[3*i2 + 1] - coords[3*i1 + 1]) 
                            * (coords[3*i2 + 1] - coords[3*i1 + 1])   
                          + (coords[3*i2 + 2] - coords[3*i1 + 2]) 
-                           * (coords[3*i2 + 2] - coords[3*i1 + 2])); 
+                           * (coords[3*i2 + 2] - coords[3*i1 + 2]));
 
+      if (characteristicLength != NULL) 
+        characteristicLength[iedge] = length[iedge];
+
+      if (isDegenerated != NULL) {
+        isDegenerated[iedge] = 0;
+        if (length[iedge] < GEOM_EPS_DIST)
+          isDegenerated[iedge] = 1;
+      }
     }    
   }
 
@@ -576,12 +712,14 @@ namespace cwipi {
   ///
   /// \brief Triangle properties
   /// 
-  /// @param [in]  nTriangle      Number of triangles
-  /// @param [in]  connectivity   Connectivity
-  /// @param [in]  nVertices      Number of vertices
-  /// @param [in]  coords         Vertices coordinates
-  /// @param [out] surfaceVector  Surface vector
-  /// @param [out] center         Center              
+  /// @param [in]  nTriangle             Number of triangles
+  /// @param [in]  connectivity          Connectivity
+  /// @param [in]  nVertices             Number of vertices
+  /// @param [in]  coords                Vertices coordinates
+  /// @param [out] surfaceVector         Surface vector
+  /// @param [out] center                Center              
+  /// @param [out] characteristicLength  Characteristic length (active if != NULL)             
+  /// @param [out] isDegenerated         Degenerated edge indicator (active if != NULL)             
   ///
 
   inline void triangleProperties (const int     nTriangle,
@@ -589,18 +727,23 @@ namespace cwipi {
                                   const int     nVertices,
                                   const double *coords,
                                   double       *surfaceVector,
-                                  double       *center)
+                                  double       *center,
+                                  double       *characteristicLength,
+                                  int         *isDegenerated)
+
   {
   
     triangleSurfaceVector (nTriangle,
                            connectivity,
                            coords,
-                           surfaceVector);
+                           surfaceVector,
+                           characteristicLength,
+                           isDegenerated);
 
     triangleCenter (nTriangle,
                     connectivity,
                     coords,
-                    surfaceVector);
+                    center);
 
   }
 
@@ -608,88 +751,103 @@ namespace cwipi {
   ///
   /// \brief Quadrangle properties
   /// 
-  /// @param [in]  nTriangle      Number of quadrangles
-  /// @param [in]  connectivity   Connectivity
-  /// @param [in]  nVertices      Number of vertices
-  /// @param [in]  coords         Vertices coordinates
-  /// @param [out] surfaceVector  Surface vector
-  /// @param [out] center         Center              
+  /// @param [in]  nTriangle             Number of quadrangles
+  /// @param [in]  connectivity          Connectivity
+  /// @param [in]  nVertices             Number of vertices
+  /// @param [in]  coords                Vertices coordinates
+  /// @param [out] surfaceVector         Surface vector
+  /// @param [out] center                Center              
+  /// @param [out] characteristicLength  Characteristic length (active if != NULL)             
+  /// @param [out] isDegenerated         Degenerated edge indicator (active if != NULL)             
   ///
   /// @return                     The status of properties computation convergence                
   ///
 
-  bool quadrangleProperties (const int     nQuadrangle,
+  int quadrangleProperties (const int     nQuadrangle,
                              const int    *connectivity,
                              const int     nVertices,
                              const double *coords,
                              double       *surfaceVector,
-                             double       *center);
+                             double       *center,
+                             double       *characteristicLength,
+                             int         *isDegenerated);
 
 
   ///
   /// \brief Polygon properties
   /// 
-  /// @param [in]  nPolygon          Number of polygon
-  /// @param [in]  connectivityIndex Connectivity Index
-  /// @param [in]  connectivity      Connectivity
-  /// @param [in]  nVertices         Number of vertices
-  /// @param [in]  coords            Vertices coordinates
-  /// @param [out] surfaceVector     Surface vector
-  /// @param [out] center            Center
+  /// @param [in]  nPolygon              Number of polygon
+  /// @param [in]  connectivityIndex     Connectivity Index
+  /// @param [in]  connectivity          Connectivity
+  /// @param [in]  nVertices             Number of vertices
+  /// @param [in]  coords                Vertices coordinates
+  /// @param [out] surfaceVector         Surface vector
+  /// @param [out] center                Center
+  /// @param [out] characteristicLength  Characteristic length (active if != NULL)             
+  /// @param [out] isDegenerated         Degenerated edge indicator (active if != NULL)             
   ///
   /// @return                        The status of properties computation convergence
   ///
 
-  bool polygonProperties (const int     nPolygon,   
+  int polygonProperties (const int     nPolygon,   
                           const int    *connectivityIndex,
                           const int    *connectivity,
                           const int     nVertices,
                           const double *coords,
                           double       *surfaceVector,
-                          double       *center);
+                          double       *center,
+                          double       *characteristicLength,
+                          int         *isDegenerated);
 
 
   ///
   /// \brief Tetrahedra properties
   /// 
-  /// @param [in]  nTetrahedra    Number of tetrahedra 
-  /// @param [in]  connectivity   Connectivity
-  /// @param [in]  nVertices      Number of vertices
-  /// @param [in]  coords         Vertices coordinates
-  /// @param [out] volume         Volume
-  /// @param [out] center         Center              
+  /// @param [in]  nTetrahedra           Number of tetrahedra 
+  /// @param [in]  connectivity          Connectivity
+  /// @param [in]  nVertices             Number of vertices
+  /// @param [in]  coords                Vertices coordinates
+  /// @param [out] volume                Volume
+  /// @param [out] center                Center              
+  /// @param [out] characteristicLength  Characteristic length (active if != NULL)             
+  /// @param [out] isDegenerated         Degenerated edge indicator (active if != NULL)             
   ///
 
-  void tetrahedraProperties (const int     nTetrahedra,
-                             const int    *connectivity,
-                             const int     nVertices,
-                             const double *coords,
-                             double       *volume,
-                             double       *center)
+  inline void tetrahedraProperties (const int     nTetrahedra,
+                                    const int    *connectivity,
+                                    const int     nVertices,
+                                    const double *coords,
+                                    double       *volume,
+                                    double       *center,
+                                    double       *characteristicLength,
+                                    int         *isDegenerated)
 
   {
     tetrahedraOrientedVolume (nTetrahedra,
                               connectivity,
                               coords,
-                              volume); 
-
-
+                              volume,
+                              characteristicLength,
+                              isDegenerated);
+    
     tetrahedraCenter (nTetrahedra,
                       connectivity,
                       coords,
                       center);
- }
-
-
+  }
+  
+  
   ///
   /// \brief Hexahedra properties
   /// 
-  /// @param [in]  nHexahedra     Number of hexahedra  
-  /// @param [in]  connectivity   Connectivity
-  /// @param [in]  nVertices      Number of vertices
-  /// @param [in]  coords         Vertices coordinates
-  /// @param [out] volume         Volume
-  /// @param [out] center         Center              
+  /// @param [in]  nHexahedra            Number of hexahedra  
+  /// @param [in]  connectivity          Connectivity
+  /// @param [in]  nVertices             Number of vertices
+  /// @param [in]  coords                Vertices coordinates
+  /// @param [out] volume                Volume
+  /// @param [out] center                Center              
+  /// @param [out] characteristicLength  Characteristic length (active if != NULL)             
+  /// @param [out] isDegenerated         Degenerated edge indicator (active if != NULL)             
   ///
 
   void hexahedraProperties (const int     nHexahedra,   
@@ -697,18 +855,22 @@ namespace cwipi {
                             const int     nVertices,
                             const double *coords,
                             double       *volume,
-                            double       *center);
+                            double       *center,
+                            double       *characteristicLength,
+                            int         *isDegenerated);
 
 
   ///
   /// \brief Prism properties
   /// 
-  /// @param [in]  nPrism         Number of prism      
-  /// @param [in]  connectivity   Connectivity
-  /// @param [in]  nVertices      Number of vertices
-  /// @param [in]  coords         Vertices coordinates
-  /// @param [out] volume         Volume
-  /// @param [out] center         Center              
+  /// @param [in]  nPrism                Number of prism      
+  /// @param [in]  connectivity          Connectivity
+  /// @param [in]  nVertices             Number of vertices
+  /// @param [in]  coords                Vertices coordinates
+  /// @param [out] volume                Volume
+  /// @param [out] center                Center              
+  /// @param [out] characteristicLength  Characteristic length (active if != NULL)             
+  /// @param [out] isDegenerated         Degenerated edge indicator (active if != NULL)             
   ///
 
   void prismProperties (const int     nPrism,     
@@ -716,18 +878,22 @@ namespace cwipi {
                         const int     nVertices,
                         const double *coords,
                         double       *volume,
-                        double       *center);
+                        double       *center,
+                        double       *characteristicLength,
+                        int         *isDegenerated);
 
 
   ///
   /// \brief Pyramid properties
   /// 
-  /// @param [in]  nPyramid       Number of pyramid    
-  /// @param [in]  connectivity   Connectivity
-  /// @param [in]  nVertices      Number of vertices
-  /// @param [in]  coords         Vertices coordinates
-  /// @param [out] volume         Volume
-  /// @param [out] center         Center              
+  /// @param [in]  nPyramid              Number of pyramid    
+  /// @param [in]  connectivity          Connectivity
+  /// @param [in]  nVertices             Number of vertices
+  /// @param [in]  coords                Vertices coordinates
+  /// @param [out] volume                Volume
+  /// @param [out] center                Center              
+  /// @param [out] characteristicLength  Characteristic length (active if != NULL)             
+  /// @param [out] isDegenerated         Degenerated edge indicator (active if != NULL)             
   ///
 
   void pyramidProperties (const int     nPyramid,   
@@ -735,7 +901,9 @@ namespace cwipi {
                           const int     nVertices,
                           const double *coords,
                           double       *volume,
-                          double       *center);
+                          double       *center,
+                          double       *characteristicLength,
+                          int         *isDegenerated);
 
 
   ///
@@ -751,6 +919,8 @@ namespace cwipi {
   /// @param [in]  coords                     Vertices coordinates
   /// @param [out] volume                     Volume
   /// @param [out] center                     Center              
+  /// @param [out] characteristicLength       Characteristic length (active if != NULL)             
+  /// @param [out] isDegenerated              Degenerated edge indicator (active if != NULL)
   ///
 
   void polyhedraProperties (const int     nPolyhedra,
@@ -762,15 +932,18 @@ namespace cwipi {
                             const int     nVertices,
                             const double *coords,
                             double       *volume,
-                            double       *center);
+                            double       *center,
+                            double       *characteristicLength,
+                            int         *isDegenerated);
+
 
   //inline double distPointOnSurfaceTriangle();
   
-  //inline bool isCoplanarPointOnSurfaceTriangle();
+  //inline int isCoplanarPointOnSurfaceTriangle();
 
-  //inline bool isCoplanarPointOnSurfacePolygon();
+  //inline int isCoplanarPointOnSurfacePolygon();
 
-  //inline bool isPointInVolumeTetra();
+  //inline int isPointInVolumeTetra();
 
 
 }

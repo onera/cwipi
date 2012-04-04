@@ -191,6 +191,10 @@ module cwipi
     cwipi_get_location_f_
   end interface
 
+  interface cwipi_get_distance_f           ; module procedure &
+    cwipi_get_distance_f_
+  end interface
+
   interface cwipi_get_coord_f           ; module procedure &
     cwipi_get_coord_f_
   end interface
@@ -318,6 +322,7 @@ module cwipi
              cwipi_dump_appli_properties_f_,  &
              cwipi_finalize_f_,               &
              cwipi_get_location_f_,           &
+             cwipi_get_distance_f_,           &
              cwipi_get_bary_coord_f_,         &
              cwipi_get_bary_coord_idx_f_,     &
              cwipi_get_coord_f_,              &
@@ -1096,7 +1101,7 @@ contains
 !        \|/
 !         x 2
 !
-!  -  hexaedra :
+!  -  hexahedra :
 !
 !      8 x-------x 7
 !       /|      /|
@@ -1114,12 +1119,10 @@ contains
 !   nVertex            <-- number of vertices
 !   nElts              <-- number of elements
 !   coords             <-- vertex interlaced coordinates
-!   connecIndex        <-> element -> vertices index (O to n-1)
+!   connecIndex        <-- element -> vertices index (O to n-1)
 !                          size: n_elements + 1
-!                          (out : stored connectivity_index)
-!   connec             <-> element -> vertex connectivity (1 to n)
+!   connec             <-- element -> vertex connectivity (1 to n)
 !                          size: connectivity_index[n_elements]
-!                          (out : stored connectivity)
 !
 !********************************************************************************
 !
@@ -1159,32 +1162,46 @@ contains
 !
 ! cwipi_add_polyhedra_f
 !
+! parameters:
+!   couplingName       <-- Coupling name
+!   nElts              <-- Number of elements
+!   cellToFaceIdx      <-- Cell -> faces connectivity index (0 to n-1)
+!                          size: nElts + 1
+!   cellToFace         <-- Cell -> faces connectivity (1 to n)                         
+!                          size: cellToFaceIdx(nElts)
+!   nFaces             <-- Number of faces
+!   faceConnecIdx      <-- Face -> vertex connectivity index (O to n-1)
+!                          size: nFaces + 1
+!   faceConnec         <-- Face -> vertex connectivity (1 to n)
+!                          size: faceConnecIdx[nFaces]
 !*******************************************************************************
 !
 
   subroutine cwipi_add_polyhedra_f_ (couplingName, &
-                                         nElts, &
-                                         faceIdx, &
-                                         cellToFace, &
-                                         faceConnecIdx, &
-                                         faceConnec)
+                                     nElts, &
+                                     cellToFaceIdx, &
+                                     cellToFace, &
+                                     nFaces, &
+                                     faceConnecIdx, &
+                                     faceConnec)
 
     implicit none
 
     character (len = *) :: couplingName
-    integer :: lCouplingname, nElts
-    integer, dimension(nelts) :: faceIdx
+    integer :: lCouplingname, nElts, nFaces
+    integer, dimension(nelts) :: cellToFaceIdx
     integer, dimension(*) :: cellToFace, faceConnecIdx, faceConnec
 
     lCouplingName = len(couplingName)
 
     call cwipi_add_polyhedra_cf (couplingName, &
-                                     lCouplingName, &
-                                     nElts, &
-                                     faceIdx, &
-                                     cellToFace, &
-                                     faceConnecIdx, &
-                                     faceConnec)
+                                 lCouplingName, &
+                                 nElts, &
+                                 cellToFaceIdx, &
+                                 cellToFace, &
+                                 nFaces, &
+                                 faceConnecIdx, &
+                                 faceConnec)
 
   end subroutine cwipi_add_polyhedra_f_
 
@@ -1240,6 +1257,33 @@ contains
 
     call cwipi_get_distant_location_cf (couplingName, lCouplingName, location)
   end subroutine cwipi_get_location_f_
+
+!
+!********************************************************************************
+!
+! cwipi_get_location_f
+!
+! Get located points location
+!
+! parameters
+!   couplingName         <-- Coupling identifier
+!   location             <-- Get located points location
+!
+!*******************************************************************************
+!
+
+  subroutine cwipi_get_distance_f_(couplingName, distance)
+
+    implicit none
+
+    character (len = *) :: couplingName
+    integer :: lcouplingname
+    real*4, dimension(*) :: distance
+
+    lCouplingName = len(couplingName)
+
+    call cwipi_get_distant_distance_cf (couplingName, lCouplingName, distance)
+  end subroutine cwipi_get_distance_f_
 
 !
 !********************************************************************************
@@ -1511,6 +1555,7 @@ contains
                                       localPolyFaceConnec, &
                                       disPtsCoordinates, &
                                       disPtsLocation, &
+                                      disPtsDistance, &
                                       disPtsBaryCoordIdx, &
                                       disPtsBaryCoord, &
                                       stride, &
@@ -1531,6 +1576,7 @@ contains
          integer, dimension(*) :: localPolyFaceConnec
          double precision, dimension(*) :: disPtsCoordinates
          integer, dimension(*) :: disPtsLocation
+         real*4, dimension(*) :: disPtsDistance
          integer, dimension(*) :: disPtsBaryCoordIdx
          double precision, dimension(*) :: disPtsBaryCoord
          integer :: stride
@@ -1672,6 +1718,7 @@ contains
                                       localPolyFaceConnec, &
                                       disPtsCoordinates, &
                                       disPtsLocation, &
+                                      disPtsDistance, &
                                       disPtsBaryCoordIdx, &
                                       disPtsBaryCoord, &
                                       stride, &
@@ -1692,6 +1739,7 @@ contains
          integer, dimension(*) :: localPolyFaceConnec
          double precision, dimension(*) :: disPtsCoordinates
          integer, dimension(*) :: disPtsLocation
+         real*4, dimension(*) :: disPtsDistance
          integer, dimension(*) :: disPtsBaryCoordIdx
          double precision, dimension(*) :: disPtsBaryCoord
          integer :: stride
@@ -1965,6 +2013,7 @@ contains
                                       localPolyFaceConnec, &
                                       disPtsCoordinates, &
                                       disPtsLocation, &
+                                      disPtsDistance, &
                                       disPtsBaryCoordIdx, &
                                       disPtsBaryCoord, &
                                       stride, &
@@ -1985,6 +2034,7 @@ contains
          integer, dimension(*) :: localPolyFaceConnec
          double precision, dimension(*) :: disPtsCoordinates
          integer, dimension(*) :: disPtsLocation
+         real*4, dimension(*) :: disPtsDistance
          integer, dimension(*) :: disPtsBaryCoordIdx
          double precision, dimension(*) :: disPtsBaryCoord
          integer :: stride

@@ -572,51 +572,52 @@ int main
 
   /************ forme quelconque ( au moins 1 face avec > 4 sommets) **************/
   
-  int nbr_face = 4;
+ /*  int nbr_face = 4; */
   
-  int *face_index = (int*) malloc(2 * sizeof(int));
-  int *cell_to_face_connectivity = (int*) malloc(nbr_face* sizeof(int));
-  int *face_connectivity = (int*) malloc(16 * sizeof(int));
-  int *face_connectivity_index = (int*) malloc((nbr_face+1) * sizeof(int));
+ /*  int *face_index = (int*) malloc(2 * sizeof(int)); */
+ /*  int *cell_to_face_connectivity = (int*) malloc(nbr_face* sizeof(int)); */
+ /*  int *face_connectivity = (int*) malloc(16 * sizeof(int)); */
+ /*  int *face_connectivity_index = (int*) malloc((nbr_face+1) * sizeof(int)); */
 
-  face_index[0] = 0;
-  face_index[1] = 4;
+ /*  face_index[0] = 0; */
+ /*  face_index[1] = 4; */
 
-  for(int i = 0; i < 4 ; i++)
-    cell_to_face_connectivity[i] = i+1;
+ /*  for(int i = 0; i < 4 ; i++) */
+ /*    cell_to_face_connectivity[i] = i+1; */
 
-  face_connectivity_index[0] = 0;
-  face_connectivity_index[1] = 5;  
-  face_connectivity_index[2] = 9;
-  face_connectivity_index[3] = 13;
-  face_connectivity_index[4] = 16;
+ /*  face_connectivity_index[0] = 0; */
+ /*  face_connectivity_index[1] = 5;   */
+ /*  face_connectivity_index[2] = 9; */
+ /*  face_connectivity_index[3] = 13; */
+ /*  face_connectivity_index[4] = 16; */
     
-  face_connectivity[0]  = 5;
-  face_connectivity[1]  = 3;
-  face_connectivity[2]  = 13;
-  face_connectivity[3]  = 12;
-  face_connectivity[4]  = 9;
+ /*  face_connectivity[0]  = 5; */
+ /*  face_connectivity[1]  = 3; */
+ /*  face_connectivity[2]  = 13; */
+ /*  face_connectivity[3]  = 12; */
+ /*  face_connectivity[4]  = 9; */
 
-  face_connectivity[5]  = 9;
-  face_connectivity[6]  = 12;
-  face_connectivity[7]  = 6;
-  face_connectivity[8]  = 5;
+ /*  face_connectivity[5]  = 9; */
+ /*  face_connectivity[6]  = 12; */
+ /*  face_connectivity[7]  = 6; */
+ /*  face_connectivity[8]  = 5; */
 
-  face_connectivity[9]  = 6;
-  face_connectivity[10]  = 12;
-  face_connectivity[11]  = 13;
-  face_connectivity[12]  = 3;
+ /*  face_connectivity[9]  = 6; */
+ /*  face_connectivity[10]  = 12; */
+ /*  face_connectivity[11]  = 13; */
+ /*  face_connectivity[12]  = 3; */
 
-  face_connectivity[13]  = 5;
-  face_connectivity[14]  = 6;
-  face_connectivity[15]  = 3;
+ /*  face_connectivity[13]  = 5; */
+ /*  face_connectivity[14]  = 6; */
+ /*  face_connectivity[15]  = 3; */
 
- cwipi_add_polyhedra("c_mean_value_3D",
-                     1,
-                     face_index,
-                     cell_to_face_connectivity,
-                     face_connectivity_index,
-                     face_connectivity);
+ /* cwipi_add_polyhedra("c_mean_value_3D", */
+ /*                     1, */
+ /*                     face_index, */
+ /*                     cell_to_face_connectivity, */
+ /*                     4, */
+ /*                     face_connectivity_index, */
+ /*                     face_connectivity); */
 
   /************octaedre**************/
 

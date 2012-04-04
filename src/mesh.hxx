@@ -29,11 +29,6 @@
 
 namespace cwipi {
 
-  const double GEOM_EPS_MIN  = 1e-32; // Minimum value authorized for geomtric computation
-  const double GEOM_EPS_VOL  = 1e-12;  // Constant value used to compute geomtric epsilon for volume
-  const double GEOM_EPS_SURF = 1e-12;  // Constant value used to compute geomtric epsilon for surface
-  const double GEOM_EPS_DIST = 1e-18; // Minimum distance between two vertices
-
   class Mesh {
 
   public:
@@ -53,6 +48,7 @@ namespace cwipi {
     void addPolyhedra(const int nElt,
                       int *faceIndex,
                       int *cellToFaceConnectivity,
+                      const int nFace,
                       int *faceConnectivityIndex,
                       int *faceConnectivity);
 
@@ -80,7 +76,7 @@ namespace cwipi {
 
     inline const std::vector<double>& getCharacteristicLength();    
 
-    inline const std::vector<bool>& getIsDegenerated();    
+    inline const std::vector<int>& getIsDegenerated();    
 
     inline const int *getPolyhedraFaceIndex() const;
 
@@ -113,14 +109,7 @@ namespace cwipi {
 
     void _computeMeshProperties1D() ;
 
-    void _computeMeshProperties2D(const int  nElts,
-                                  const int *faceConnectivityIndex,
-                                  const int *faceConnectivity,
-                                  std::vector<double> *faceNormal,
-                                  std::vector<double> *characteristicLength,
-                                  std::vector<bool>   *isDegenerated,
-                                  std::vector<double> *faceSurface,
-                                  std::vector<double> *faceCenter);
+    void _computeMeshProperties2D();
 
     void _computeMeshProperties3D();
 
@@ -144,20 +133,24 @@ namespace cwipi {
     int          *_eltConnectivityIndex;
     int          *_eltConnectivity;
 
-    int          *_polyhedraFaceIndex;
-    int          *_polyhedraCellToFaceConnectivity;
-    int          *_polyhedraFaceConnectivityIndex;
-    int          *_polyhedraFaceConnectivity;
+    int              *_polyhedraFaceIndex;
+    int              *_polyhedraCellToFaceConnectivity;
+
+    int              _polyhedraNFace;
+    int              *_polyhedraFaceConnectivityIndex;
+    int              *_polyhedraFaceConnectivity;
+
+    std::vector<int> *_polyhedraCellToVertexConnectivity;
+    std::vector<int> *_polyhedraCellToVertexConnectivityIndex;
+
     bool         _isNodalFinalized;
-    std::vector<int>          *_polyhedraCellToVertexConnectivity;
-    std::vector<int>          *_polyhedraCellToVertexConnectivityIndex;
 
     std::vector<double>  *_cellCenterCoords;
     std::vector<double>  *_cellVolume;
     fvmc_nodal_t *_fvmNodal;
     std::vector<double>  *_normalFace;
     std::vector<double>  *_characteristicLength;
-    std::vector<bool>    *_isDegenerated;
+    std::vector<int>     *_isDegenerated;
   };
 
   const int& Mesh::getNVertex()  const
@@ -235,7 +228,7 @@ namespace cwipi {
     return *_characteristicLength;
   }
 
-  inline const std::vector<bool>& Mesh::getIsDegenerated()
+  inline const std::vector<int>& Mesh::getIsDegenerated()
   {
     if (_isDegenerated == NULL)
       _computeMeshProperties();

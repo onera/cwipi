@@ -696,11 +696,12 @@ void cwipi_shared_fvmc_nodal(const char *coupling_name,
 }
 
 void cwipi_add_polyhedra(const char *coupling_name,
-                             const int n_element,
-                             int face_index[],
-                             int cell_to_face_connectivity[],
-                             int face_connectivity_index[],
-                             int face_connectivity[])
+                         const int n_element,
+                         int face_index[],
+                         int cell_to_face_connectivity[],
+                         const int n_faces,
+                         int face_connectivity_index[],
+                         int face_connectivity[])
 {
   cwipi::CouplingDataBase & couplingDataBase =
     cwipi::CouplingDataBase::getInstance();
@@ -715,6 +716,7 @@ void cwipi_add_polyhedra(const char *coupling_name,
   coupling.defineMeshAddPolyhedra(n_element,
                                   face_index,
                                   cell_to_face_connectivity,
+                                  n_faces,
                                   face_connectivity_index,
                                   face_connectivity);
 }
@@ -742,7 +744,7 @@ void cwipi_locate (const char *coupling_name)
 
 /*----------------------------------------------------------------------------
  *
- * Get located points location
+ * Get distant point Location
  *
  * parameters
  *   coupling_id          <-- Coupling identifier
@@ -1128,7 +1130,7 @@ void cwipi_delete_coupling(const char *coupling_name)
  *
  *----------------------------------------------------------------------------*/
 
-void cwipi_finalize()
+void cwipi_finalize(void)
 {
   cwipi::CouplingDataBase & couplingDataBase =
     cwipi::CouplingDataBase::getInstance();
@@ -1160,7 +1162,7 @@ void cwipi_finalize()
  *
  *----------------------------------------------------------------------------*/
 
-void cwipi_dump_application_properties()
+void cwipi_dump_application_properties(void)
 {
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
@@ -1259,6 +1261,28 @@ const double *cwipi_get_distant_coordinates (const char *coupling_id)
   cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   return coupling.getDistantPointCoordinates();
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get distance to distant location element
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ * return
+ *   distance
+ *----------------------------------------------------------------------------*/
+
+const float *cwipi_get_distant_distance (const char *coupling_id)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_id;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  return coupling.getDistantDistance();
 }
 
 /*----------------------------------------------------------------------------
