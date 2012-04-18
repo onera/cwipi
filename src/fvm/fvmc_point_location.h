@@ -89,12 +89,12 @@ extern "C" {
 
 void
 fvmc_point_location_nodal(const fvmc_nodal_t  *this_nodal,
-                         double                tolerance,
-                         _Bool                 locate_on_parents,
-                         fvmc_lnum_t           n_points,
-                         const fvmc_coord_t    point_coords[],
-                         fvmc_lnum_t           location[],
-                         float                distance[]);
+                          double                tolerance,
+                          _Bool                 locate_on_parents,
+                          fvmc_lnum_t           n_points,
+                          const fvmc_coord_t    point_coords[],
+                          fvmc_lnum_t           location[],
+                          float                 distance[]);
 
 /*----------------------------------------------------------------------------
  * Find elements in a given nodal mesh closest to points: updates the
@@ -126,6 +126,69 @@ fvmc_point_location_closest_nodal(const fvmc_nodal_t  *this_nodal,
                                  const fvmc_coord_t   point_coords[],
                                  fvmc_lnum_t          location[],
                                  float               distance[]);
+
+
+/*----------------------------------------------------------------------------
+ * Find elements in a given nodal mesh containing points: updates the
+ * location[] and distance[] arrays associated with a set of points
+ * for points that are in an element of this mesh, or closer to one
+ * than to previously encountered elements.
+ *
+ * parameters:
+ *   this_nodal        <-- pointer to nodal mesh representation structure
+ *   tolerance         <-- associated tolerance
+ *   locate_on_parents <-- location relative to parent element numbers if
+ *                         true, id of element + 1 in concatenated sections
+ *                         of same element dimension if false
+ *   n_points          <-- number of points to locate
+ *   point_coords      <-- point coordinates
+ *   location          <-> number of element containing or closest to each
+ *                         point (size: n_points)
+ *   distance          <-> distance from point to element indicated by
+ *                         location[]: < 0 if unlocated, 0 - 1 if inside,
+ *                         and > 1 if outside a volume element, or absolute
+ *                         distance to a surface element (size: n_points)
+ *----------------------------------------------------------------------------*/
+
+void
+fvmc_point_location_nodal(const fvmc_nodal_t  *this_nodal,
+                          double                tolerance,
+                          _Bool                 locate_on_parents,
+                          fvmc_lnum_t           n_points,
+                          const fvmc_coord_t    point_coords[],
+                          fvmc_lnum_t           location[],
+                          float                 distance[]);
+
+/*----------------------------------------------------------------------------
+ * Compute distance to polygons
+ *
+ * parameters:
+ *   dim               <-- dimension                                      
+ *   n_poly            <-- number of polygon                              
+ *   connectivity_idx  <-- polygon connectivity index
+ *   connectivity      <-- polygon connectivity
+ *   vertex_coords     <-- polygon connectivity
+ *   n_points          <-- polygon connectivity
+ *   point_coords      <-- polygon connectivity
+ *   distance          --> 3d surf : distance from point to element indicated by
+ *                         location[]: < 0 if unlocated, or absolute
+ *                         distance to a surface element (size: n_points)
+ *                         2d or 3d : distance from point to element indicated by
+ *                         location[]: < 0 if unlocated, 0 - 1 if inside,
+ *                          > 1 if outside (size: n_points)
+ *----------------------------------------------------------------------------*/
+
+void
+fvmc_point_dist_closest_polygon(const int            dim,
+                                const fvmc_lnum_t    n_poly,
+                                const fvmc_lnum_t    connectivity_idx[],
+                                const fvmc_lnum_t    connectivity[],
+                                const fvmc_coord_t   vertex_coords[],
+                                const fvmc_lnum_t    n_points,                           
+                                const fvmc_lnum_t    point_ids[],
+                                const fvmc_coord_t   point_coords[],
+                                fvmc_lnum_t          location[],
+                                float                distance[]);
 
 /*----------------------------------------------------------------------------*/
 

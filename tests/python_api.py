@@ -92,7 +92,8 @@ def runTest():
     if (rank == 0):
         print "        Output redirection"
 
-    f=open(applis[rank]+".txt",'w')
+    srank = '{0}'.format(rank)
+    f=open("python_api_"+srank.zfill(4)+".txt",'w')
     cwipi.set_output_listing(f)
     cwipi.init(MPI.COMM_WORLD, applis[rank], commloc)
 

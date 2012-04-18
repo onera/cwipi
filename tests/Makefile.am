@@ -64,6 +64,7 @@ c_surf_coupling_P1P1_asynchronous \
 c_surf_coupling_P1P0_P0P1 \
 c_surf_coupling_user_target_points \
 c_surf_coupling_user_interpolation \
+c_surf_coupling_user_interpolation2 \
 c_surf_coupling_vector_exchange \
 c_surf_coupling_output_error \
 c_surf_coupling_simple_location \
@@ -72,8 +73,8 @@ c_surf_without_partitioning_coupling2 \
 c_surf_sequential_coupling \
 c_vol_coupling_P1P1 \
 c_vol_coupling_polyhedra_P1P1 \
-fortran_surf_P1P1 \
-c_mean_value_3D
+c_vol_coupling_micro_polyhedra_P1P1 \
+fortran_surf_P1P1
 
 c_linear_coupling_SOURCES = c_linear_coupling.c
 c_surf_coupling_P1P1_micron_polygon_SOURCES = creeMaillagePolygone2D.c c_surf_coupling_P1P1_micron_polygon.c
@@ -83,6 +84,7 @@ c_surf_coupling_P1P0_P0P1_SOURCES = grid_mesh.c c_surf_coupling_P1P0_P0P1.c
 c_surf_coupling_P1P1_asynchronous_SOURCES = grid_mesh.c c_surf_coupling_P1P1_asynchronous.c
 c_surf_coupling_user_target_points_SOURCES = grid_mesh.c c_surf_coupling_user_target_points.c
 c_surf_coupling_user_interpolation_SOURCES = grid_mesh.c c_surf_coupling_user_interpolation.c
+c_surf_coupling_user_interpolation2_SOURCES = grid_mesh.c c_surf_coupling_user_interpolation2.c
 c_surf_coupling_vector_exchange_SOURCES = grid_mesh.c c_surf_coupling_vector_exchange.c
 c_surf_coupling_output_error_SOURCES = grid_mesh.c c_surf_coupling_output_error.c
 c_surf_coupling_simple_location_SOURCES = grid_mesh.c c_surf_coupling_simple_location.c
@@ -90,9 +92,9 @@ c_surf_without_partitioning_coupling_SOURCES = grid_mesh.c c_surf_without_partit
 c_surf_without_partitioning_coupling2_SOURCES = grid_mesh.c c_surf_without_partitioning_coupling2.c
 c_surf_sequential_coupling_SOURCES = grid_mesh.c c_surf_sequential_coupling.c
 c_vol_coupling_P1P1_SOURCES = c_vol_coupling_P1P1.c
+c_vol_coupling_micro_polyhedra_P1P1_SOURCES = c_vol_coupling_micro_polyhedra_P1P1.c
 c_vol_coupling_polyhedra_P1P1_SOURCES = c_vol_coupling_polyhedra_P1P1.c
 fortran_surf_P1P1_SOURCES = grid_mesh.c fortran_surf_P1P1.f90
-c_mean_value_3D_SOURCES = c_mean_value_3D.c
 
 c_linear_coupling_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
@@ -143,6 +145,13 @@ $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
+c_surf_coupling_user_interpolation2_LDADD = \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
+$(top_builddir)/src/libcwipi.la \
+@MPI_LIBS@ \
+-lm
+
 c_surf_coupling_vector_exchange_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
 $(top_builddir)/src/fvm/libfvmc.la \
@@ -185,13 +194,6 @@ $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
-c_mean_value_3D_LDADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-$(top_builddir)/src/libcwipi.la \
-@MPI_LIBS@ \
--lm
-
 c_vol_coupling_P1P1_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
 $(top_builddir)/src/fvm/libfvmc.la \
@@ -200,6 +202,13 @@ $(top_builddir)/src/libcwipi.la \
 -lm
 
 c_vol_coupling_polyhedra_P1P1_LDADD = \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
+$(top_builddir)/src/libcwipi.la \
+@MPI_LIBS@ \
+-lm
+
+c_vol_coupling_micro_polyhedra_P1P1_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
 $(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
@@ -228,6 +237,7 @@ TESTS = c_linear_coupling \
 	c_surf_coupling_P1P0_P0P1 \
 	c_surf_coupling_user_target_points \
 	c_surf_coupling_user_interpolation \
+	c_surf_coupling_user_interpolation2 \
 	c_surf_coupling_output_error \
 	c_surf_coupling_simple_location \
 	c_surf_without_partitioning_coupling \
@@ -235,8 +245,8 @@ TESTS = c_linear_coupling \
 	c_surf_sequential_coupling \
 	c_vol_coupling_P1P1 \
 	c_vol_coupling_polyhedra_P1P1 \
-	fortran_surf_P1P1 \
-	c_mean_value_3D
+	c_vol_coupling_micro_polyhedra_P1P1 \
+	fortran_surf_P1P1
 
 if ENABLE_PYTHON 
   TESTS += python_api.py

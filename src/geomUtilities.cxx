@@ -606,7 +606,7 @@ namespace cwipi {
     //
     // Loop on polyhedra
 
-    bftc_printf("vertex polyhedra 1: \n");
+    double volume_t =0;
     for (int ipoly = 0; ipoly < nPolyhedra; ipoly++) {
 
       double *polyCenter = center + 3*ipoly;
@@ -660,24 +660,6 @@ namespace cwipi {
 
       nPolyhedraVertices = 0;
 
-      // for (int iface = 0; iface < nPolyFace; iface++) {
-
-      //   const int face          = abs(cellToFaceConnectivity[polyIdx + iface]) - 1;
-      //   const int direction     = (cellToFaceConnectivity[polyIdx + iface] < 0) ? -1 : 1;
-      //   const double*surfaceVector_f = surfaceVector + 3*face;
-
-      //   const double vectCCFC[3] = 
-      //     {faceCenter[3 * face    ] - polyCenter[0],
-      //      faceCenter[3 * face + 1] - polyCenter[1],
-      //      faceCenter[3 * face + 2] - polyCenter[2]};
-     
-      //   double dd = direction * dotProduct (vectCCFC, surfaceVector_f);
-        
-      //   if (dd > 0)
-      //     tmpCellToFaceConnectivity[polyIdx + iface] = cellToFaceConnectivity[polyIdx + iface];
-      //   else
-      //     tmpCellToFaceConnectivity[polyIdx + iface] = -cellToFaceConnectivity[polyIdx + iface];
-      // }
 
       //
       // Intialize volume
@@ -787,6 +769,30 @@ namespace cwipi {
       for (int i = 0; i < 3; i++)
         polyCenter[i] =  polyCenter[i] + signeVol * denomVol * disp[i];
 
+
+      for (int iface = 0; iface < nPolyFace; iface++) {
+
+        const int face          = abs(cellToFaceConnectivity[polyIdx + iface]) - 1;
+        const int direction     = (cellToFaceConnectivity[polyIdx + iface] < 0) ? -1 : 1;
+        const double*surfaceVector_f = surfaceVector + 3*face;
+
+        const double vectCCFC[3] = 
+          {faceCenter[3 * face    ] - polyCenter[0],
+           faceCenter[3 * face + 1] - polyCenter[1],
+           faceCenter[3 * face + 2] - polyCenter[2]};
+     
+        double dd = direction * dotProduct (vectCCFC, surfaceVector_f);
+        
+        // if (dd < 0) {
+        //   printf("probleme de sens %i %i\n",ipoly+1, iface);
+        //   tmpCellToFaceConnectivity[polyIdx + iface] = -cellToFaceConnectivity[polyIdx + iface];
+        // }
+        // else
+        //   tmpCellToFaceConnectivity[polyIdx + iface] = cellToFaceConnectivity[polyIdx + iface];
+      }
+
+      volume_t += volume[ipoly];
+
       //
       // Check convergence
 
@@ -802,7 +808,6 @@ namespace cwipi {
       }
 
     }
-
     // if (nPolyhedra > 0) {
     //   bftc_printf("connec : ");
     //   for (int i = 0; i < cellToFaceConnectivityIdx[nPolyhedra]; i++)

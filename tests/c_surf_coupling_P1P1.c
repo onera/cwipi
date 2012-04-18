@@ -137,6 +137,7 @@ _read_args(int            argc,
   }
 }
 
+
 /*----------------------------------------------------------------------
  *                                                                     
  * Main : surface coupling test : P1P1 
@@ -374,8 +375,35 @@ int main
 
   cwipi_delete_coupling("c_surf_cpl_P1P1");
 
-  /* Freeing memory
-   * -------------- */
+  /* Check barycentric coordinates */
+
+  if (rank == 0)
+    printf("        Check results\n");    
+
+  double err;
+  if (codeId == 1)
+    err = fabs(recvValues[0] - coords[3 * 0 + 1]);
+  else
+    err = fabs(recvValues[0] - coords[3 * 0    ]);
+ 
+  for (int i = 1; i < nVertex; i++) {
+    if (codeId == 1)
+      err = ((fabs(recvValues[i] - coords[3 * i + 1])) < (err) ? (err) : 
+             (fabs(recvValues[i] - coords[3 * i + 1])));
+    else
+      err = ((fabs(recvValues[i] - coords[3 * i    ])) < (err) ? (err) : 
+             (fabs(recvValues[i] - coords[3 * i    ])));
+  }
+
+  if (err >= 1e-6) {
+    if (rank == 0) {
+      printf("        !!! Error = %12.5e\n", err);
+      return EXIT_FAILURE;
+    }
+  }
+
+  /* Free
+   * ---- */
 
   free(coords);
   free(eltsConnecPointer);

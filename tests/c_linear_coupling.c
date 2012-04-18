@@ -126,9 +126,9 @@ int main
 
   char* fileName = NULL;
   if (rank == 0) 
-    fileName="linear_coupling_0.txt";
+    fileName="c_linear_coupling_0000.txt";
   else
-    fileName="linear_coupling_1.txt";
+    fileName="c_linear_coupling_0001.txt";
 
   outputFile = fopen(fileName,"w");
 
@@ -281,8 +281,8 @@ int main
 
   cwipi_delete_coupling("test2D_0");
 
-  /* Freeing memory
-   * -------------- */
+  /* Free
+   * ---- */
 
   free(coords);
   free(connecIdx);

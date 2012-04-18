@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include <mpi.h>
+#include <math.h>
 
 #include "creeMaillagePolygone2D.h"
 #include "cwipi.h"
@@ -128,9 +129,9 @@ int main
 
   char* fileName = NULL;
   if (rank == 0) 
-    fileName = "c_surf_coupling_P1P1_micron_polygon_0.txt";
+    fileName = "c_surf_coupling_P1P1_micron_polygon_0000.txt";
   else
-    fileName = "c_surf_coupling_P1P1_micron_polygon_1.txt";
+    fileName = "c_surf_coupling_P1P1_micron_polygon_0001.txt";
 
   outputFile = fopen(fileName,"w");
 
@@ -280,8 +281,35 @@ int main
 
   cwipi_delete_coupling("c_surf_cpl_P1P1_micron_polygon");
 
-  /* Freeing memory
-   * -------------- */
+  /* Check barycentric coordinates */
+
+  if (rank == 0)
+    printf("        Check results\n");    
+
+  double err;
+  if (rank == 0)
+    err = fabs(recvValues[0] - coords[3 * 0 + 1]);
+  else
+    err = fabs(recvValues[0] - coords[3 * 0    ]);
+ 
+  for (int i = 1; i < nVertex; i++) {
+    if (rank == 0)
+      err = ((fabs(recvValues[i] - coords[3 * i + 1])) < (err) ? (err) : 
+             (fabs(recvValues[i] - coords[3 * i + 1])));
+    else
+      err = ((fabs(recvValues[i] - coords[3 * i    ])) < (err) ? (err) : 
+             (fabs(recvValues[i] - coords[3 * i    ])));
+  }
+
+  if (err >= 1e-6) {
+    if (rank == 0) {
+      printf("        !!! Error = %12.5e\n", err);
+      return EXIT_FAILURE;
+    }
+  }
+
+  /* Free
+   * ---- */
 
   free(coords);
   free(eltsConnecPointer);

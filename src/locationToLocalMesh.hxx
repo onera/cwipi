@@ -172,6 +172,19 @@ private :
 
   void compute2DMeanValues();
 
+///
+/// \brief Compute Polygo Mean Values
+///
+
+  void computePolygonMeanValues(const int n_dist_points,
+                                const fvmc_lnum_t *dist_locations,
+                                const fvmc_coord_t *dist_coords,
+                                const int *meshConnectivityIndex,
+                                const int *meshConnectivity,
+                                const double *meshVertexCoords,
+                                const std::vector <int>& nDistBarCoords,
+                                std::vector <double>& distBarCoords);
+  
   ///
   /// \brief Compute Mean Values 3D
   ///
@@ -185,8 +198,16 @@ private :
   ///
 
   void compute3DMeanValuesPoly(const double point_coords[],
-                               const int    ipoly,
+                               const int    n_poly_faces,
+                               const int    n_poly_vertex,
+                               const int    faceDirection[],
+                               const int    faceToVertexIdx[],
+                               const int    faceToVertex[],
+                               const double vertex_coords[],
+                               const double characteristicLength,
+                               const float  distElt,
                                double       distBarCoords[]);
+
 
   ///
   /// \brief Projection to the midplane

@@ -228,7 +228,7 @@ program testf
 
   write(proc,'(i4.4)') irank
   iiunit = 9
-  open(unit=iiunit, file='fortransurf_P1P1_'//proc, &
+  open(unit=iiunit, file='fortran_surf_P1P1_'//proc//'.txt', &
        form='formatted', status='unknown')
 
   if (irank == 0) then

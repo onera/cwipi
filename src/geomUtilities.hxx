@@ -30,15 +30,15 @@ namespace cwipi {
 
   /// Constant value used to compute geomtric epsilon for volume
 
-  const double GEOM_EPS_VOL  = 1e-15;
+  const double GEOM_EPS_VOL  = 1e-9;
  
   /// Constant value used to compute geomtric epsilon for surface
 
-  const double GEOM_EPS_SURF = 1e-15;
+  const double GEOM_EPS_SURF = 1e-9;
 
   /// Minimum distance between two vertices 
 
-  const double GEOM_EPS_DIST = 1e-15; 
+  const double GEOM_EPS_DIST = 1e-9; 
 
   ///
   /// \brief Compute a dynamic geometric epsilon from a characteristic length

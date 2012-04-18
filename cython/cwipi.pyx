@@ -73,6 +73,7 @@ cdef extern from "cwipi.h":
                                                int local_polyhedra_face_connectivity[],
                                                double distant_points_coordinates[],
                                                int distant_points_location[],
+                                               float distant_points_distance[],
                                                int distant_points_barycentric_coordinates_index[],
                                                double distant_points_barycentric_coordinates[],
                                                int stride,
@@ -924,6 +925,7 @@ cdef void callback(int entities_dim,
     if (distant_points_location == NULL or n_distant_point == 0):
         distant_points_location_a = None
         distant_points_coordinates_a = None
+        distant_points_distance_a = None
         distant_points_barycentric_coordinates_index_a = None
         distant_points_barycentric_coordinates_a = None
     else:
@@ -934,6 +936,10 @@ cdef void callback(int entities_dim,
                                                                  np.NPY_INT,
                                                                  <void *> distant_points_location) 
 
+        distant_points_distance_a = np.PyArray_SimpleNewFromData(1, 
+                                                                 &dims, 
+                                                                 np.NPY_FLOAT,
+                                                                 <void *> distant_points_distance) 
         dims = <np.npy_intp>(3 * n_distant_point)    
         distant_points_coordinates_a = np.PyArray_SimpleNewFromData(1, 
                                                                     &dims, 
@@ -998,6 +1004,7 @@ cdef void callback(int entities_dim,
                                     local_polyhedra_face_connectivity_a,
                                     distant_points_coordinates_a,
                                     distant_points_location_a,
+                                    distant_points_distance_a,
                                     distant_points_barycentric_coordinates_index_a,
                                     distant_points_barycentric_coordinates_a,
                                     stride,

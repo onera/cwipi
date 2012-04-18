@@ -226,12 +226,12 @@ int main( int argc, char* argv[] ) {
   }
 
   if (rank == 0)
-    meshFile = fopen("meshes/mesh_poly_d1", "r");
+    meshFile = fopen("meshes/mesh_micro_poly_d1", "r");
   else
-    meshFile = fopen("meshes/mesh_poly_d2", "r");
+    meshFile = fopen("meshes/mesh_micro_poly_d2", "r");
 
-  fileOutput = (char *) malloc((strlen("c_vol_poly_cpl_P1P1_") + 4 + 1 + 4) * sizeof(char));
-  sprintf(fileOutput, "c_vol_poly_cpl_P1P1_%4.4d.txt", rank);
+  fileOutput = (char *) malloc((strlen("c_vol_mirco_poly_cpl_P1P1_") + 4 + 1 + 4) * sizeof(char));
+  sprintf(fileOutput, "c_vol_mirco_poly_cpl_P1P1_%4.4d.txt", rank);
   outputFile = fopen(fileOutput, "w");
   free(fileOutput);
 
@@ -276,7 +276,7 @@ int main( int argc, char* argv[] ) {
       printf("        Create coupling\n");
 
     if (rank == 0)
-      cwipi_create_coupling("c_vol_cpl_poly_P1P1",                   // Name of the coupling
+      cwipi_create_coupling("c_vol_cpl_mirco_poly_P1P1",                   // Name of the coupling
                             CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
                             "codeC2",              // Coupled code
                             3,                            // Dimension of the geometry
@@ -287,7 +287,7 @@ int main( int argc, char* argv[] ) {
                             "EnSight Gold",               // Post-processing format
                             "text");                      // Post-processing options
     else
-      cwipi_create_coupling("c_vol_cpl_poly_P1P1",                   // Name of the coupling
+      cwipi_create_coupling("c_vol_cpl_mirco_poly_P1P1",                   // Name of the coupling
                             CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
                             "codeC1",              // Coupled code
                             3,                            // Dimension of the geometry
@@ -360,14 +360,14 @@ int main( int argc, char* argv[] ) {
     int t[2];
     t[0] = 0;
     t[1] = 0;
-    cwipi_define_mesh("c_vol_cpl_poly_P1P1",
+    cwipi_define_mesh("c_vol_cpl_mirco_poly_P1P1",
                       nVertex,
                       0,
                       coords,
                       t,
                       t);
 
-    cwipi_add_polyhedra("c_vol_cpl_poly_P1P1",
+    cwipi_add_polyhedra("c_vol_cpl_mirco_poly_P1P1",
                         nElements,
                         cellFaceIdx,
                         cellFace,
@@ -401,7 +401,7 @@ int main( int argc, char* argv[] ) {
     if (rank == 0)
       printf("        Exchange\n");
 
-    cwipi_exchange_status_t status = cwipi_exchange("c_vol_cpl_poly_P1P1",
+    cwipi_exchange_status_t status = cwipi_exchange("c_vol_cpl_mirco_poly_P1P1",
                                                     "echange1",
                                                     1,
                                                     1,     // n_step
@@ -412,14 +412,14 @@ int main( int argc, char* argv[] ) {
                                                     localValues,
                                                     &nNotLocatedPoints);
     _dumpStatus(outputFile, status);
-    _dumpNotLocatedPoints(outputFile, "c_vol_cpl_poly_P1P1", nNotLocatedPoints);
+    _dumpNotLocatedPoints(outputFile, "c_vol_cpl_mirco_poly_P1P1", nNotLocatedPoints);
 
     /* Deletion of the coupling object */
 
     if (rank == 0)
       printf("        Delete coupling\n");
 
-    cwipi_delete_coupling("c_vol_cpl_poly_P1P1");
+    cwipi_delete_coupling("c_vol_cpl_mirco_poly_P1P1");
 
     /* Check barycentric coordinates */
     if (rank == 0)

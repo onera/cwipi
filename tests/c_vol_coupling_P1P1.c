@@ -202,8 +202,8 @@ int main( int argc, char* argv[] ) {
   else
     meshFile = fopen("meshes/test3D_1_c2.mesh", "r");
 
-  fileOutput = (char *) malloc((strlen("listing_c_vol_cpl_P1P1_c1_") + 4 + 1) * sizeof(char));
-  sprintf(fileOutput, "listing_c_vol_cpl_P1P1_c1_%4.4d", rank);
+  fileOutput = (char *) malloc((strlen("c_vol_cpl_P1P1_c1_") + 4 + 1 + 4) * sizeof(char));
+  sprintf(fileOutput, "c_vol_cpl_P1P1_c1_%4.4d.txt", rank);
   outputFile = fopen(fileOutput, "w");
   free(fileOutput);
 
@@ -354,6 +354,7 @@ int main( int argc, char* argv[] ) {
     if (err >= 1e-6) {
       if (rank == 0) {
         printf("        !!! Error = %12.5e\n", err);
+        return EXIT_FAILURE;
       }
     }
 

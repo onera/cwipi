@@ -101,6 +101,8 @@ enum {X, Y, Z};
 #define _DOT_PRODUCT_2D(vect1, vect2) \
   (vect1[X] * vect2[X] + vect1[Y] * vect2[Y])
 
+#define _PI 3.1415926535897931
+
 /*============================================================================
  * Type definitions
  *============================================================================*/
@@ -506,7 +508,9 @@ _locate_in_extents(const fvmc_lnum_t    elt_num,
 
     }
 
-    if (  (distance[j] < 0 && elt_coord_max < 1)
+    elt_coord_max += 1.;
+
+    if (  (distance[j] < 0 && elt_coord_max < 2.)
         || elt_coord_max < distance[j]) {
 
       location[j] = elt_num;
@@ -1859,6 +1863,7 @@ _locate_on_triangles_2d(fvmc_lnum_t           elt_num,
  *
  * parameters:
  *   elt_num             <-- element number
+ *   unable_degenerated  <-- unable degenerated tetrahedra < 0
  *   tetra_coords[]      <-- tetrahedra vertex coordinates
  *   point_coords        <-- point coordinates
  *   n_points_in_extents <-- number of points in element extents
@@ -1895,7 +1900,8 @@ _locate_in_tetra(fvmc_lnum_t         elt_num,
     v03[i] = tetra_coords[3][i] - tetra_coords[0][i];
   }
 
-  vol6 = fabs(  v01[0] * (v02[1]*v03[2] - v02[2]*v03[1])
+
+  vol6 =  fabs( v01[0] * (v02[1]*v03[2] - v02[2]*v03[1])
               - v02[0] * (v01[1]*v03[2] - v01[2]*v03[1])
               + v03[0] * (v01[1]*v02[2] - v01[2]*v02[1]));
 
@@ -1949,6 +1955,7 @@ _locate_in_tetra(fvmc_lnum_t         elt_num,
       if (max_dist < dist)
         max_dist = dist;
     }
+
 
     if (   (max_dist > -0.5 && max_dist < (1. + 2.*tolerance))
         && (max_dist < distance[i] || distance[i] < 0)) {
@@ -2402,6 +2409,8 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
                                         split into tetrahedra, whose extents
                                         are 1/2 the polyhedron extents */
 
+  const double _eps_loc = 1e-5;
+
   fvmc_lnum_t n_vertices_max = 0;
   fvmc_lnum_t n_points_in_extents = 0;
   fvmc_lnum_t *triangle_vertices = NULL;
@@ -2427,9 +2436,13 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
     return;
 
   BFTC_MALLOC(triangle_vertices, (n_vertices_max-2)*3, int);
+
   state = fvmc_triangulate_state_create(n_vertices_max);
 
   /* Loop on elements */
+
+  double* solid_angle = NULL;
+  int l_solid_angle = 0;
 
   for (i = 0; i < this_section->n_elements; i++) {
 
@@ -2476,16 +2489,28 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
     if (n_points_in_extents < 1)
       continue;
 
-    /* Compute psuedo-element center */
-
-    for (j = 0; j < 3; j++)
-      center[j] = (elt_extents[j] + elt_extents[j + 3]) * 0.5;
+    if (solid_angle == NULL) {
+      l_solid_angle = n_points_in_extents;
+      BFTC_MALLOC(solid_angle, l_solid_angle, double);
+    }
+    else {
+      if (l_solid_angle < n_points_in_extents) {
+        l_solid_angle = n_points_in_extents;
+        BFTC_REALLOC(solid_angle, l_solid_angle, double);
+      }
+    }
+      
+    for (j = 0; j < l_solid_angle; j++)
+      solid_angle[j] = 0.;
 
     /* Loop on element faces */
+
+    int ntri_t = 0;
 
     for (j = this_section->face_index[i];
          j < this_section->face_index[i + 1];
          j++) {
+
 
       fvmc_lnum_t n_triangles;
 
@@ -2532,38 +2557,143 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
       for (k = 0; k < n_triangles; k++) {
 
         fvmc_lnum_t l, coord_id[3];
-        fvmc_coord_t tetra_coords[4][3];
 
         if (parent_vertex_num == NULL) {
           coord_id[0] = triangle_vertices[k*3    ] - 1;
-          coord_id[1] = triangle_vertices[k*3 + 2] - 1;
-          coord_id[2] = triangle_vertices[k*3 + 1] - 1;
+          coord_id[1] = triangle_vertices[k*3 + 1] - 1;
+          coord_id[2] = triangle_vertices[k*3 + 2] - 1;
         }
         else {
           coord_id[0] = parent_vertex_num[triangle_vertices[k*3    ] - 1] - 1;
-          coord_id[1] = parent_vertex_num[triangle_vertices[k*3 + 2] - 1] - 1;
-          coord_id[2] = parent_vertex_num[triangle_vertices[k*3 + 1] - 1] - 1;
+          coord_id[1] = parent_vertex_num[triangle_vertices[k*3 + 1] - 1] - 1;
+          coord_id[2] = parent_vertex_num[triangle_vertices[k*3 + 2] - 1] - 1;
         }
+
+        fvmc_coord_t ab[3]; 
+        fvmc_coord_t ac[3]; 
+        fvmc_coord_t bc[3];
 
         for (l = 0; l < 3; l++) {
-          tetra_coords[0][l] = vertex_coords[3*coord_id[0] + l];
-          tetra_coords[1][l] = vertex_coords[3*coord_id[1] + l];
-          tetra_coords[2][l] = vertex_coords[3*coord_id[2] + l];
-          tetra_coords[3][l] = center[l];
-        }
+          ab[l] = vertex_coords[3*coord_id[1] + l] - vertex_coords[3*coord_id[0] + l];
+          ac[l] = vertex_coords[3*coord_id[2] + l] - vertex_coords[3*coord_id[0] + l];
+          bc[l] = vertex_coords[3*coord_id[2] + l] - vertex_coords[3*coord_id[1] + l];
+        }  
 
-        _locate_in_tetra(elt_num,
-                         tetra_coords,
-                         point_coords,
-                         n_points_in_extents,
-                         points_in_extents,
-                         _tolerance,
-                         location,
-                         distance);
+        double n_ab = _MODULE(ab);
+        double n_ac = _MODULE(ac);
+        double n_bc = _MODULE(bc);
+
+        double characteristic_len = FVMC_MIN(n_ab, n_ac);
+        characteristic_len =  FVMC_MIN(characteristic_len, n_bc);
+        
+        double eps_elt = FVMC_MAX(_eps_loc * characteristic_len, 1e-30);
+
+        for (int ipt = 0; ipt < n_points_in_extents; ipt++) {
+
+          const int idx_pt = points_in_extents[ipt];
+
+          if (location[idx_pt] != elt_num) {
+
+            fvmc_coord_t v_pt_to_a[3]; 
+            fvmc_coord_t v_pt_to_b[3]; 
+            fvmc_coord_t v_pt_to_c[3];
+
+
+            for (l = 0; l < 3; l++) {
+              v_pt_to_a[l] = vertex_coords[3*coord_id[0] + l] - point_coords[3*idx_pt + l];  
+              v_pt_to_b[l] = vertex_coords[3*coord_id[1] + l] - point_coords[3*idx_pt + l];  
+              v_pt_to_c[l] = vertex_coords[3*coord_id[2] + l] - point_coords[3*idx_pt + l];
+            }
+
+            double det_abc =   v_pt_to_a[0] * v_pt_to_b[1] * v_pt_to_c[2]
+                             + v_pt_to_a[2] * v_pt_to_b[0] * v_pt_to_c[1]
+                             + v_pt_to_a[1] * v_pt_to_b[2] * v_pt_to_c[0]
+                             - v_pt_to_a[0] * v_pt_to_b[2] * v_pt_to_c[1]
+                             - v_pt_to_a[1] * v_pt_to_b[0] * v_pt_to_c[2]
+                             - v_pt_to_a[2] * v_pt_to_b[1] * v_pt_to_c[0];
+
+            double n_a = _MODULE(v_pt_to_a);
+            double n_b = _MODULE(v_pt_to_b);
+            double n_c = _MODULE(v_pt_to_c);
+
+            double dot_ab = _DOT_PRODUCT(v_pt_to_a, v_pt_to_b);
+            double dot_ac = _DOT_PRODUCT(v_pt_to_a, v_pt_to_c);
+            double dot_bc = _DOT_PRODUCT(v_pt_to_b, v_pt_to_c);
+
+            double denom =   n_a * n_b * n_c
+                           + dot_ab * n_c
+                           + dot_ac * n_b
+                           + dot_bc * n_a;
+
+            if (fabs(det_abc) < eps_elt) {
+
+              double cross_ab[3];
+              double cross_bc[3];
+              double cross_ca[3];
+
+              _CROSS_PRODUCT(v_pt_to_a, v_pt_to_b, cross_ab);
+              _CROSS_PRODUCT(v_pt_to_b, v_pt_to_c, cross_bc);
+              _CROSS_PRODUCT(v_pt_to_c, v_pt_to_a, cross_ca);
+
+              double n1 = _DOT_PRODUCT(cross_ab, cross_bc);
+              double n2 = _DOT_PRODUCT(cross_bc, cross_ca);
+              double n3 = _DOT_PRODUCT(cross_ca, cross_ab);
+
+              int s1 = (n1 < 0.) ? -1 : 1;
+              int s2 = (n2 < 0.) ? -1 : 1;
+              int s3 = (n3 < 0.) ? -1 : 1;
+
+              int sigma = s1+s2+s3;
+
+              if (abs(sigma) == 3) {
+                location[idx_pt] = elt_num;
+                distance[idx_pt] = 1e-3;
+              }
+            
+            }
+
+            else {
+              double half_angle = atan2(det_abc, denom);
+              
+              if ((half_angle < 0.) && (det_abc > 0)) {
+                half_angle = 2*_PI - half_angle;
+              }
+              else if ((half_angle > 0.) && (det_abc < 0)){
+                half_angle = -2*_PI + half_angle;
+              }
+              
+              solid_angle[ipt] += 2 * half_angle;
+            }
+
+          }
+
+        } /* End of loop on points */
 
       } /* End of loop on face triangles */
 
     } /* End of loop on element faces */
+
+    for (int ipt = 0; ipt < n_points_in_extents; ipt++) {
+      
+      const int idx_pt = points_in_extents[ipt];
+
+      if (fabs(solid_angle[ipt]) >= _eps_loc) {
+
+        if (location[idx_pt] == -1) {
+          location[idx_pt] = elt_num;
+          distance[idx_pt] = 1.e-3;
+        }
+
+      }
+
+    }
+
+
+  } /* End of loop on elements */
+
+  BFTC_FREE(solid_angle);
+
+  for (i = 0; i < this_section->n_elements; i++) {
 
     _locate_in_extents(elt_num,
                        3,
@@ -3817,9 +3947,82 @@ fvmc_point_location_closest_nodal(const fvmc_nodal_t  *this_nodal,
 
 /*----------------------------------------------------------------------------*/
 
+/*----------------------------------------------------------------------------
+ * Compute distance to polygons
+ *
+ * parameters:
+ *   dim               <-- dimension                                      
+ *   n_poly            <-- number of polygon                              
+ *   connectivity_idx  <-- polygon connectivity index
+ *   connectivity      <-- polygon connectivity
+ *   vertex_coords     <-- polygon connectivity
+ *   n_points          <-- polygon connectivity
+ *   point_coords      <-- polygon connectivity
+ *   distance          --> 3d surf : distance from point to element indicated by
+ *                         location[]: < 0 if unlocated, or absolute
+ *                         distance to a surface element (size: n_points)
+ *                         2d or 3d : distance from point to element indicated by
+ *                         location[]: < 0 if unlocated, 0 - 1 if inside,
+ *                          > 1 if outside (size: n_points)
+ *----------------------------------------------------------------------------*/
+
+void
+fvmc_point_dist_closest_polygon(const int            dim,
+                                const fvmc_lnum_t    n_poly,
+                                const fvmc_lnum_t    connectivity_idx[],
+                                const fvmc_lnum_t    connectivity[],
+                                const fvmc_coord_t   vertex_coords[],
+                                const fvmc_lnum_t    n_points,                           
+                                const fvmc_lnum_t    point_ids[],
+                                const fvmc_coord_t   point_coords[],
+                                fvmc_lnum_t          location[],
+                                float                distance[])
+{
+
+  fvmc_nodal_section_t* section = fvmc_nodal_section_create(FVMC_FACE_POLY);
+  section->entity_dim        = dim;
+  section->n_elements        = n_poly;
+  section->type              = FVMC_FACE_POLY;
+  section->connectivity_size = connectivity_idx[n_poly];
+  section->stride            = 0;
+  section->vertex_index      = connectivity_idx;
+  section->vertex_num        = connectivity;
+  section->parent_element_num   = NULL;
+  const int base_element_num = 1;
+
+  if (dim == 3)
+
+    _polygons_section_closest_3d(section,
+                                 NULL,
+                                 vertex_coords,
+                                 base_element_num,
+                                 point_coords,
+                                 n_points,
+                                 point_ids,
+                                 location,
+                                 distance);
+
+  else
+
+    _nodal_section_closest_2d(section,
+                              NULL,
+                              vertex_coords,
+                              base_element_num,
+                              point_coords,
+                              n_points,
+                              point_ids,
+                              location,
+                              distance);
+
+
+  fvmc_nodal_section_destroy(section);
+
+}
+
 #undef _DOT_PRODUCT
 #undef _MODULE
 #undef _CROSS_PRODUCT
+#undef _PI
 
 #ifdef __cplusplus
 }
