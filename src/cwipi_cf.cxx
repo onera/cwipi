@@ -778,6 +778,9 @@ void PROCF(cwipi_set_points_to_locate_cf,
   delete[] coupling_nameC;
 }
 
+
+
+
 /*----------------------------------------------------------------------------
  *
  * Define the support mesh for a coupling. The connectivity is ordered if
@@ -874,6 +877,34 @@ void PROCF(cwipi_locate_cf, CWIPI_LOCATE_CF) (const char *coupling_name,
   cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.locate();
+
+  delete[] coupling_nameC;
+}
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Update Location
+ *
+ * parameters
+ *   coupling_name        <-- Coupling identifier
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_update_location_cf, CWIPI_UPDATE_LOCATION_CF) (const char *coupling_name,
+                                                                const int  *l_coupling_name
+                                                                ARGF_SUPP_CHAINE)
+{
+  char *coupling_nameC =
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
+
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_nameC;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.updateLocation();
 
   delete[] coupling_nameC;
 }

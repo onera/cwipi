@@ -124,6 +124,7 @@ cdef extern from "cwipi.h":
     void cwipi_add_polyhedra(char* coupling_id, int n_element, int face_index[], int cell_to_face_connectivity[], int n_face, int face_connectivity_index[],
                              int face_connectivity[])
     void cwipi_locate (char* coupling_id)
+    void cwipi_update_location (char* coupling_id)
     cwipi_exchange_status_t cwipi_exchange(char* coupling_id, char* exchange_name, int stride, int time_step, double time_value,
                                            char* sending_field_name, double* sending_field, char* receiving_field_name, double* receiving_field, int* n_not_located_points)
     void cwipi_issend(char *coupling_name, char *exchange_name, int tag, int stride,
@@ -555,6 +556,16 @@ cdef class Coupling:
         global current_cpl
         current_cpl = self.name
         cwipi_locate (self.name)
+        current_cpl = ""
+
+
+    def update_location(self):
+        """
+        Locate
+        """
+        global current_cpl
+        current_cpl = self.name
+        cwipi_update_location (self.name)
         current_cpl = ""
 
 

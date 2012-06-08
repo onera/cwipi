@@ -71,6 +71,8 @@ LocationToLocalMesh::~LocationToLocalMesh()
   if (_barycentricCoordinatesIndex != NULL) {
     delete _barycentricCoordinatesIndex;
     delete _barycentricCoordinates;
+    _barycentricCoordinatesIndex = NULL;
+    _barycentricCoordinates = NULL;
   }
 
   if (_fvmLocator != NULL)
@@ -152,6 +154,8 @@ void LocationToLocalMesh::locate()
     if (_barycentricCoordinatesIndex != NULL) {
       delete _barycentricCoordinatesIndex;
       delete _barycentricCoordinates;
+      _barycentricCoordinatesIndex = NULL;
+      _barycentricCoordinates = NULL;
     }
 
     //

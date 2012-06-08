@@ -669,6 +669,16 @@ void cwipi_locate (const char *coupling_id);
 
 /*----------------------------------------------------------------------------
  *
+ * Update location
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *----------------------------------------------------------------------------*/
+
+void cwipi_update_location (const char *coupling_id);
+
+/*----------------------------------------------------------------------------
+ *
  * Set coupling info
  *
  * parameters

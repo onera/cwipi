@@ -1227,18 +1227,19 @@ namespace cwipi {
       }
     }
     
-    polyhedraProperties (_nPolyhedra,
-                         _polyhedraNFace,
-                         _polyhedraFaceConnectivityIndex,
-                         _polyhedraFaceConnectivity,
-                         _polyhedraFaceIndex,
-                         _polyhedraCellToFaceConnectivity,
-                         _nVertex,
-                         _coords,
-                         &refCellVolume[0],
-                         &refCellCenterCoords[0],
-                         &refCharacteristicLength[0],
-                         &refIsDegenerated[0]);
+    if (_nPolyhedra > 0)
+      polyhedraProperties (_nPolyhedra,
+                           _polyhedraNFace,
+                           _polyhedraFaceConnectivityIndex,
+                           _polyhedraFaceConnectivity,
+                           _polyhedraFaceIndex,
+                           _polyhedraCellToFaceConnectivity,
+                           _nVertex,
+                           _coords,
+                           &refCellVolume[0],
+                           &refCellCenterCoords[0],
+                           &refCharacteristicLength[0],
+                           &refIsDegenerated[0]);
 
   }
 

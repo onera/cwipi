@@ -179,6 +179,10 @@ module cwipi
     cwipi_locate_f_
   end interface
 
+  interface cwipi_update_location_f                 ; module procedure &
+    cwipi_update_location_f_
+  end interface
+
   interface cwipi_get_bary_coord_f         ; module procedure &
     cwipi_get_bary_coord_f_
   end interface
@@ -317,6 +321,7 @@ module cwipi
              cwipi_define_mesh_f_,            &
              cwipi_add_polyhedra_f_,          &
              cwipi_locate_f_,                 &
+             cwipi_update_location_f_,        &
              cwipi_receive_f_,                &
              cwipi_delete_coupling_f_,        &
              cwipi_dump_appli_properties_f_,  &
@@ -1230,6 +1235,33 @@ contains
 
     call cwipi_locate_cf(couplingName, lCouplingName)
   end subroutine cwipi_locate_f_
+
+!
+!********************************************************************************
+!
+! cwipi_locate_f
+!
+! Location completion.
+! It is a synchronization point with the coupled application
+!
+! parameters
+!   couplingName         <-- Coupling identifier
+!
+!*******************************************************************************
+!
+
+  subroutine cwipi_update_location_f_(couplingName)
+
+    implicit none
+
+    character (len = *) :: couplingName
+    integer :: lcouplingname
+
+    lCouplingName = len(couplingName)
+
+    call cwipi_update_location_cf(couplingName, lCouplingName)
+  end subroutine cwipi_update_location_f_
+
 
 !
 !********************************************************************************

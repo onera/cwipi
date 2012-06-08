@@ -744,6 +744,26 @@ void cwipi_locate (const char *coupling_name)
 
 /*----------------------------------------------------------------------------
  *
+ * Update location
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *----------------------------------------------------------------------------*/
+
+void cwipi_update_location (const char *coupling_name)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.updateLocation();
+}
+
+/*----------------------------------------------------------------------------
+ *
  * Get distant point Location
  *
  * parameters
