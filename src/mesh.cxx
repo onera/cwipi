@@ -1137,7 +1137,7 @@ namespace cwipi {
         
         eltConvergence = polygonProperties (nLocElt,   
                                             _eltConnectivityIndex + i,
-                                            _eltConnectivity + index,
+                                            _eltConnectivity,
                                             _nVertex,
                                             _coords,
                                             &refNormalFace[3*i],
