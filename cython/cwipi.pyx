@@ -199,8 +199,8 @@ def init(MPI.Comm common_comm, char* application_name, MPI.Comm application_comm
      It is a synchronization point between all applications
     """
     cdef MPI_Comm c_common_comm = common_comm.ob_mpi
-    cdef MPI_Comm c_application_comm = application_comm.ob_mpi
-    cwipi_init(c_common_comm, application_name, &c_application_comm)
+    #cdef MPI_Comm c_application_comm = application_comm.ob_mpi
+    cwipi_init(c_common_comm, application_name, &(application_comm.ob_mpi))
 
 
 def set_output_listing(file output_listing):
@@ -613,26 +613,44 @@ cdef class Coupling:
         global current_cpl
         current_cpl = self.name
 
-        if sending_field is None:
-            sendFieldData = NULL
-        else:
-            sendFieldData = sending_field.data
+        if (sending_field is None) and  (receiving_field is not None):
+           status = self.cast_exchange(exchange_name, 
+                                       stride, 
+                                       time_step, 
+                                       time_value,
+                                       sending_field_name, 
+                                       NULL, 
+                                       receiving_field_name, 
+                                       receiving_field.data)
+        elif (sending_field is not None) and  (receiving_field is None):
+           print "envoi cython d", stride, time_step, time_value, sending_field_name
+           status = self.cast_exchange(exchange_name, 
+                                       stride, 
+                                       time_step, 
+                                       time_value,
+                                       sending_field_name, 
+                                       sending_field.data, 
+                                       receiving_field_name, 
+                                       NULL)
+        elif (sending_field is not None) and  (receiving_field is not None):
+           status = self.cast_exchange(exchange_name, 
+                                       stride, 
+                                       time_step, 
+                                       time_value,
+                                       sending_field_name, 
+                                       sending_field.data, 
+                                       receiving_field_name, 
+                                       receiving_field.data)
+        else :
+           status = self.cast_exchange(exchange_name, 
+                                       stride, 
+                                       time_step, 
+                                       time_value,
+                                       sending_field_name, 
+                                       None, 
+                                       receiving_field_name, 
+                                       None)
 
-        if receiving_field is None:
-            recvFieldData = NULL
-        else:
-            recvFieldData = receiving_field.data
-
-        status = self.cast_exchange(exchange_name, 
-                                  stride, 
-                                  time_step, 
-                                  time_value,
-                                  sending_field_name, 
-                                  sendFieldData, 
-                                  receiving_field_name, 
-                                  recvFieldData)
-
-        current_cpl = ""
         return status
 
 
@@ -1022,3 +1040,4 @@ cdef void callback(int entities_dim,
                                     solver_type,
                                     local_field_a,
                                     distant_field_a)
+
