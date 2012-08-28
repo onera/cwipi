@@ -16,6 +16,7 @@
   You should have received a copy of the GNU Lesser General Public
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
+
 /*----------------------------------------------------------------------------
  * Standard C library headers
  *----------------------------------------------------------------------------*/
@@ -1172,7 +1173,6 @@ void cwipi_finalize(void)
     MPI_Barrier(globalComm);
     MPI_Comm oldFVMComm = fvmc_parall_get_mpi_comm();
   }
-  bftc_printf("Finalize MPI\n");
 
 }
 

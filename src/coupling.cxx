@@ -335,7 +335,8 @@ void Coupling::_interpolate(double *referenceField,
     const int *eltsConnec        = _supportMesh->getEltConnectivity();
     for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
       int iel = distantLocation[ipoint] - 1;
-      interpolatedField[ipoint] = referenceField[iel];
+      for (int k = 0; k < stride; k++)
+        interpolatedField[stride*ipoint+k] = referenceField[stride*iel+k];
     }
   }
 

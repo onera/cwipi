@@ -83,7 +83,7 @@ cdef extern from "cwipi.h":
 
 
 #
-# CWIPI bases fonctions
+# CWIPI bases functions
 
     void cwipi_init(MPI_Comm common_comm, char* application_name, MPI_Comm* application_comm)
     void cwipi_set_output_listing(FILE* output_listing)
@@ -623,7 +623,6 @@ cdef class Coupling:
                                        receiving_field_name, 
                                        receiving_field.data)
         elif (sending_field is not None) and  (receiving_field is None):
-           print "envoi cython d", stride, time_step, time_value, sending_field_name
            status = self.cast_exchange(exchange_name, 
                                        stride, 
                                        time_step, 

@@ -1101,7 +1101,7 @@ namespace cwipi {
     std::vector<double> &refNormalFace           = *_normalFace;
     std::vector<double> &refCellCenterCoords     = *_cellCenterCoords;
 
-    int convergence;
+    int convergence = 1;
 
     //TODO : 11/03/12 : Ecriture temporaire en attendant la séparation en blocs suivant le type d'element
 
