@@ -27,7 +27,7 @@ m4_define([cwipi_licence_c_comment],
 [/*
   This file is part of the CWIPI library. 
 
-  Copyright (C) 2011  ONERA
+  Copyright (C) 2011-2012  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -71,7 +71,7 @@ m4_define([fvmc_licence_c_comment],
   library, intended to provide finite volume mesh and associated 
   fields I/O and manipulation services.
 
-  Copyright (C) 2011  ONERA
+  Copyright (C) 2011-2012  ONERA
 
   Copyright (C) 2004-2010  EDF   
 
@@ -91,7 +91,7 @@ m4_define([fvmc_licence_c_comment],
 
 m4_define([cwipi_major_version], [0])
 m4_define([cwipi_minor_version], [5])
-m4_define([cwipi_release_version], [4])
+m4_define([cwipi_release_version], [5])
 m4_define([cwipi_version_extra], [])
 m4_define([cwipi_version_string],
           [cwipi_major_version.cwipi_minor_version.cwipi_release_version@&t@cwipi_version_extra])
@@ -325,13 +325,13 @@ if test "x$auto_flags" = "xtrue" ; then
 fi
 
 #------------------------------------------------------------------------------
-# Checks for optional Python bindings with SWIG support
+# Checks for optional Python bindings 
 #------------------------------------------------------------------------------
 
-# Check for optional Python bindings with SWIG support
+# Check for optional Python bindings 
 
 AC_ARG_ENABLE(python-bindings,
-  [AS_HELP_STRING([--disable-python-bindings],[build without Python interface])],
+  [AS_HELP_STRING([--enable-python-bindings],[build without Python interface])],
   [
     case "${enableval}" in
       yes) python_bindings=true ;;
@@ -339,7 +339,7 @@ AC_ARG_ENABLE(python-bindings,
       *)   AC_MSG_ERROR([bad value ${enableval} for --enable-python-bindings]) ;;
     esac
   ],
-  [ python_bindings=true ]
+  [ python_bindings=false ]
 )
 AM_CONDITIONAL(ENABLE_PYTHON, test x$python_bindings = xtrue)
 
@@ -361,10 +361,29 @@ if test "x${python_bindings}" != "xfalse"; then
         AC_PATH_PROG([PYEXE], [python], ["no"], [${PYTHON_EXE}])
     fi
 
+    python_version_min="2.7"
+    mpi4py_version_min="1.2.2"
+    numpy_version_min="1.5.1"
+
+    have_python="yes"
+    have_python_binding="yes"
+    have_python_include="no"
+    have_numpy="no"
+    have_mpi4py="no"
     PYTHON=${PYEXE}
-    AM_PATH_PYTHON([2.6],, PYTHON="no")
+    if test "x${PYTHON}" = "xno" ; then
+         have_python_binding="no"
+         have_python="no"
+    fi
+
+    AM_PATH_PYTHON([${python_version_min}],, PYTHON="no")
 
     if test "x${PYTHON}" = "xno" ; then
+         have_python_binding="no"
+         have_python="no"
+    fi
+
+    if test "x${have_python}" = "xno" ; then
         AC_MSG_WARN([])
         AC_MSG_WARN([Python interpreter not found])
         AC_MSG_WARN([Please install Python from http://www.python.org])
@@ -375,39 +394,108 @@ if test "x${python_bindings}" != "xfalse"; then
     else
     
         PYTHON_INCLUDE=`${PYTHON} -c 'from distutils import sysconfig; print( sysconfig.get_python_inc() )'`
-
+        have_python_include="yes"        
         if test "x${PYTHON_INCLUDE}" = "x" ; then
             AC_MSG_WARN([])
             AC_MSG_WARN([Python include not found])
             AC_MSG_WARN([Please install Python from http://www.python.org])
             AC_MSG_WARN([])
             AC_MSG_WARN([Sorry, we can't continue without Python include])
-            PYTHON="no"        
+            have_python_binding="no"
+            have_python_include="no"        
         fi
 
-        MPI4PY_INCLUDE=`${PYTHON} -c 'import mpi4py; print( mpi4py.get_include() )'`
+        if test "x${have_python}" = "xyes" ; then
 
-        if test "x${MPI4PY_INCLUDE}" = "x" ; then
+          MPI4PY_INCLUDE=`${PYTHON} -c 'import mpi4py; print( mpi4py.get_include() )'`
+          have_mpi4py="yes"
+
+          if test "x${MPI4PY_INCLUDE}" = "x" ; then
             AC_MSG_WARN([])
             AC_MSG_WARN([mpi4py package not found])
             AC_MSG_WARN([Please install mpi4py from http://code.google.com/p/mpi4py])
             AC_MSG_WARN([])
             AC_MSG_WARN([Sorry, we can't continue without mpi4py])
-            PYTHON="no"        
+            have_python_binding="no"        
+            have_mpi4py="no"
+          else
+             MPI4PY_VERSION=`${PYTHON} -c 'import mpi4py; print( mpi4py.__version__ )'`
+
+             mpi4py_version_major_min=`echo "$mpi4py_version_min" | cut -f1 -d.`
+             mpi4py_version_minor_min=`echo "$mpi4py_version_min" | cut -f2 -d.`
+             mpi4py_version_release_min=`echo "$mpi4py_version_min" | cut -f3 -d.`
+
+             mpi4py_version_major=`echo "$MPI4PY_VERSION" | cut -f1 -d.`
+             mpi4py_version_minor=`echo "$MPI4PY_VERSION" | cut -f2 -d.`
+             mpi4py_version_release=`echo "$MPI4PY_VERSION" | cut -f3 -d.`
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[]],
+[[#if $mpi4py_version_major < $mpi4py_version_major_min
+#  error mpi4py major version < $mpi4py_version_major_min
+#elif $mpi4py_version_major == $mpi4py_version_major_min
+#  if $mpi4py_version_minor < $mpi4py_version_minor_min
+#    error mpi4py minor version < $mpi4py_version_minor_min
+#  elif $mpi4py_version_minor == $mpi4py_version_minor_min
+#    if $mpi4py_version_release < $mpi4py_version_release_min
+#      error mpi4py release version < $mpi4py_version_release_min
+#    endif
+#  endif
+#endif
+]])],
+               [AC_MSG_RESULT([compatible mpi4py version found])],
+               [AC_MSG_WARN([compatible mpi4py version not found (min version ${mpi4py_version_min})])
+                have_python_binding="no"
+                have_mpi4py="no"
+                ])
+
+          fi
         fi
 
-        NUMPY_INCLUDE=`${PYTHON} -c 'import numpy; print( numpy.get_include() )'`
+        if test "x${have_python}" = "xyes" ; then
 
-        if test "x${NUMPY_INCLUDE}" = "x" ; then
+          NUMPY_INCLUDE=`${PYTHON} -c 'import numpy; print( numpy.get_include() )'`
+          have_numpy="yes"
+
+          if test "x${NUMPY_INCLUDE}" = "x" ; then
             AC_MSG_WARN([])
             AC_MSG_WARN([numpy package not found])
             AC_MSG_WARN([Please install mpi4py from http://numpy.scipy.org])
             AC_MSG_WARN([])
             AC_MSG_WARN([Sorry, we can't continue without numpy])
-            PYTHON="no"        
+            have_python_binding="no"        
+            have_numpy="no"
+          else
+             NUMPY_VERSION=`${PYTHON} -c 'import numpy; print( numpy.__version__ )'`
+
+             numpy_version_major_min=`echo "$numpy_version_min" | cut -f1 -d.`
+             numpy_version_minor_min=`echo "$numpy_version_min" | cut -f2 -d.`
+             numpy_version_release_min=`echo "$numpy_version_min" | cut -f3 -d.`
+
+             numpy_version_major=`echo "$NUMPY_VERSION" | cut -f1 -d.`
+             numpy_version_minor=`echo "$NUMPY_VERSION" | cut -f2 -d.`
+             numpy_version_release=`echo "$NUMPY_VERSION" | cut -f3 -d.`
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[]],
+[[#if $numpy_version_major < $numpy_version_major_min
+#  error numpy major version < $numpy_version_major_min
+#elif $numpy_version_major == $numpy_version_major_min
+#  if $numpy_version_minor < $numpy_version_minor_min
+#    error numpy minor version < $numpy_version_minor_min
+#  elif $numpy_version_minor == $numpy_version_minor_min
+#    if $numpy_version_release < $numpy_version_release_min
+#      error numpy release version < $numpy_version_release_min
+#    endif
+#  endif
+#endif
+]])],
+               [AC_MSG_RESULT([compatible numpy version found])],
+               [AC_MSG_WARN([compatible numpy version not found (min version ${numpy_version_min})])
+                have_python_binding="no"
+                have_numpy="no"
+                ])
+
+          fi
         fi
 
-        if test "x${PYTHON}" = "xno" ; then
+        if test "x${have_python_binding}" = "xno" ; then
             AM_CONDITIONAL(ENABLE_PYTHON, false)
         fi
         AC_SUBST(PYTHON_INCLUDE)
@@ -831,6 +919,14 @@ esac
 echo
 echo "Configuration options:"
 echo " use debugging code: "$debug""
+echo " enable python bindings : "${python_bindings}""
+if test "x${python_bindings}" != "xfalse"; then
+  echo "   Python bindings support : "$have_python_binding""
+  echo "     Python interpreter (>= ${python_version_min}): "$have_python""
+  echo "     Python include             : "$have_python_include""
+  echo "     mpi4py (>= ${mpi4py_version_min})          : "$have_mpi4py""
+  echo "     numpy (>= ${numpy_version_min})           : "$have_numpy""
+fi
 echo " MPI (Message Passing Interface) support: "$have_mpi""
 if (test x$have_mpi = xyes) ; then
   echo "   MPI I/O support: "$have_mpi_io""
