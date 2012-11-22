@@ -354,6 +354,8 @@ int main
 
   cwipi_locate("c_surf_cpl_P1P1_async");
 
+  nNotLocatedPoints = cwipi_get_n_not_located_points("c_surf_cpl_P1P1_async");
+
   cwipi_irecv("c_surf_cpl_P1P1_async",
               "ech",
               tag,

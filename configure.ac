@@ -91,7 +91,7 @@ m4_define([fvmc_licence_c_comment],
 
 m4_define([cwipi_major_version], [0])
 m4_define([cwipi_minor_version], [5])
-m4_define([cwipi_release_version], [5])
+m4_define([cwipi_release_version], [6])
 m4_define([cwipi_version_extra], [])
 m4_define([cwipi_version_string],
           [cwipi_major_version.cwipi_minor_version.cwipi_release_version@&t@cwipi_version_extra])
@@ -331,7 +331,7 @@ fi
 # Check for optional Python bindings 
 
 AC_ARG_ENABLE(python-bindings,
-  [AS_HELP_STRING([--enable-python-bindings],[build without Python interface])],
+  [AS_HELP_STRING([--enable-python-bindings],[build with Python interface])],
   [
     case "${enableval}" in
       yes) python_bindings=true ;;
@@ -343,13 +343,33 @@ AC_ARG_ENABLE(python-bindings,
 )
 AM_CONDITIONAL(ENABLE_PYTHON, test x$python_bindings = xtrue)
 
+AC_ARG_ENABLE(rebuild-bindings,
+  [AS_HELP_STRING([--enable-rebuild-bindings],[rebuild cython bindings])],
+  [
+    case "${enableval}" in
+      yes) rebuild_bindings=true ;;
+      no)  rebuild_bindings=false ;;
+      *)   AC_MSG_ERROR([bad value ${enableval} for --enable-rebuild-bindings]) ;;
+    esac
+  ],
+  [ rebuild_bindings=false ]
+)
+
+AM_CONDITIONAL(ENABLE_CYTHON, test x$rebuild_bindings = xtrue)
 
 AC_ARG_WITH(python-exec, [AS_HELP_STRING([--with-python-exec=PATH],
                                          [specify prefix directory for a Python interpreter])],
                          [PYTHON_EXE=${withval}],
                          [PYTHON_EXE=none])dnl
 
+AC_ARG_WITH(cython-exec, [AS_HELP_STRING([--with-cython-exec=PATH],
+                                         [specify prefix directory for a Cython interpreter])],
+                         [CYTHON_EXE=${withval}],
+                         [CYTHON_EXE=none])dnl
+
 if test "x${python_bindings}" != "xfalse"; then
+
+    cp -f ${srcdir}/cython/cwipi.c.default  ${srcdir}/cython/cwipi.c
 
     #------------------
     # Checks for Python
@@ -364,23 +384,34 @@ if test "x${python_bindings}" != "xfalse"; then
     python_version_min="2.7"
     mpi4py_version_min="1.2.2"
     numpy_version_min="1.5.1"
+    cython_version_min="0.14.1"
 
     have_python="yes"
     have_python_binding="yes"
+
     have_python_include="no"
     have_numpy="no"
     have_mpi4py="no"
+    have_cython="no"
+
     PYTHON=${PYEXE}
     if test "x${PYTHON}" = "xno" ; then
          have_python_binding="no"
          have_python="no"
     fi
 
-    AM_PATH_PYTHON([${python_version_min}],, PYTHON="no")
+    #
+    # Check python version (for rebuild_bindings = false)
+
+    if test "x${rebuild_bindings}" = "xfalse"; then    
+       AM_PATH_PYTHON(,, PYTHON="no")
+    else
+       AM_PATH_PYTHON([${python_version_min}],, PYTHON="no")
+    fi
 
     if test "x${PYTHON}" = "xno" ; then
-         have_python_binding="no"
-         have_python="no"
+       have_python_binding="no"
+       have_python="no"
     fi
 
     if test "x${have_python}" = "xno" ; then
@@ -419,6 +450,7 @@ if test "x${python_bindings}" != "xfalse"; then
             have_python_binding="no"        
             have_mpi4py="no"
           else
+           if test "x${rebuild_bindings}" = "xfalse"; then    
              MPI4PY_VERSION=`${PYTHON} -c 'import mpi4py; print( mpi4py.__version__ )'`
 
              mpi4py_version_major_min=`echo "$mpi4py_version_min" | cut -f1 -d.`
@@ -446,7 +478,7 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([[]],
                 have_python_binding="no"
                 have_mpi4py="no"
                 ])
-
+           fi 
           fi
         fi
 
@@ -458,12 +490,13 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([[]],
           if test "x${NUMPY_INCLUDE}" = "x" ; then
             AC_MSG_WARN([])
             AC_MSG_WARN([numpy package not found])
-            AC_MSG_WARN([Please install mpi4py from http://numpy.scipy.org])
+            AC_MSG_WARN([Please install numpy from http://numpy.scipy.org])
             AC_MSG_WARN([])
             AC_MSG_WARN([Sorry, we can't continue without numpy])
             have_python_binding="no"        
             have_numpy="no"
           else
+           if test "x${rebuild_bindings}" = "xfalse"; then    
              NUMPY_VERSION=`${PYTHON} -c 'import numpy; print( numpy.__version__ )'`
 
              numpy_version_major_min=`echo "$numpy_version_min" | cut -f1 -d.`
@@ -491,16 +524,77 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([[]],
                 have_python_binding="no"
                 have_numpy="no"
                 ])
-
+           fi
           fi
         fi
 
         if test "x${have_python_binding}" = "xno" ; then
             AM_CONDITIONAL(ENABLE_PYTHON, false)
         fi
+
+        if test "x${have_python}" = "xyes" ; then
+           if test "x${rebuild_bindings}" = "xtrue"; then    
+
+             if test "x${CYTHON_EXE}" = "xnone" ; then
+               AC_PATH_PROG([CYEXE], [cython], ["no"])
+             else
+               AC_PATH_PROG([CYEXE], [cython], ["no"], [${CYTHON_EXE}])
+             fi
+
+             if test "x${CYEXE}" = "xno" ; then
+               AC_MSG_WARN([])
+               AC_MSG_WARN([cython package not found])
+               AC_MSG_WARN([Please install cython from http://http://www.cython.org or remove --enable-rebuild-bindings option])
+               AC_MSG_WARN([])
+               AC_MSG_WARN([Sorry, we can't continue without cython])
+               have_python_binding="no"        
+               have_cython="no"
+             else
+               have_cython="yes"
+               CYTHON_VERSION=`${CYEXE} -V 2>&1 | awk '{print $3}'`
+
+               cython_version_major_min=`echo "$cython_version_min" | cut -f1 -d.`
+               cython_version_minor_min=`echo "$cython_version_min" | cut -f2 -d.`
+               cython_version_release_min=`echo "$cython_version_min" | cut -f3 -d.`
+
+               cython_version_major=`echo "$CYTHON_VERSION" | cut -f1 -d.`
+               cython_version_minor=`echo "$CYTHON_VERSION" | cut -f2 -d.`
+               cython_version_release=`echo "$CYTHON_VERSION" | cut -f3 -d.`
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[]],
+[[#if $cython_version_major < $cython_version_major_min
+#  error cython major version < $cython_version_major_min
+#elif $cython_version_major == $cython_version_major_min
+#  if $cython_version_minor < $cython_version_minor_min
+#    error cython minor version < $cython_version_minor_min
+#  elif $cython_version_minor == $cython_version_minor_min
+#    if $cython_version_release < $cython_version_release_min
+#      error cython release version < $cython_version_release_min
+#    endif
+#  endif
+#endif
+]])],
+               [AC_MSG_RESULT([compatible cython version found])],
+               [AC_MSG_WARN([compatible cython version not found (min version ${cython_version_min})])
+                have_python_binding="no"
+                have_cython="no"
+                ])
+                if test "x${have_cython}" = "xyes" ; then
+                  echo "running cython : " ${CYEXE} -I${MPI4PY_INCLUDE} -I${srcdir}/src -I${NUMPY_INCLUDE} ${srcdir}/cython/cwipi.pyx
+                  error=
+                  error=`${CYEXE} -I${MPI4PY_INCLUDE} -I${srcdir}/src -I${NUMPY_INCLUDE} ${srcdir}/cython/cwipi.pyx 2>&1 | grep Errno`
+                  if test "x${error}" != "x" ; then
+                     echo $error
+                     AC_MSG_ERROR([Error during cython binding])
+                  fi
+                fi
+             fi
+           fi
+        fi
+
         AC_SUBST(PYTHON_INCLUDE)
         AC_SUBST(MPI4PY_INCLUDE)
         AC_SUBST(NUMPY_INCLUDE)
+
     fi
 else
     AM_CONDITIONAL(ENABLE_PYTHON, false)
@@ -879,7 +973,6 @@ CWIPI_AC_CONFIG_INFO_FINALIZE
 # AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile doc/Makefile
 #                  intl/Makefile po/Makefile.in m4/Makefile])
 
-#AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile doc/Makefile])
 AC_CONFIG_FILES([Makefile src/Makefile src/bft/Makefile src/fvm/Makefile cython/Makefile tests/Makefile])
 
 #------------------------------------------------------------------------------
@@ -921,11 +1014,19 @@ echo "Configuration options:"
 echo " use debugging code: "$debug""
 echo " enable python bindings : "${python_bindings}""
 if test "x${python_bindings}" != "xfalse"; then
-  echo "   Python bindings support : "$have_python_binding""
-  echo "     Python interpreter (>= ${python_version_min}): "$have_python""
-  echo "     Python include             : "$have_python_include""
-  echo "     mpi4py (>= ${mpi4py_version_min})          : "$have_mpi4py""
-  echo "     numpy (>= ${numpy_version_min})           : "$have_numpy""
+  if test "x${rebuild_bindings}" = "xtrue"; then    
+    echo "   Rebuilding Python bindings with cython ("${cython_version}")"
+    echo "     Python interpreter (${PYTHON_VERSION}): "$have_python""
+    echo "     Python include             : "$have_python_include""
+    echo "     mpi4py (>= ${mpi4py_version_min})          : "$have_mpi4py""
+    echo "     numpy (>= ${numpy_version_min})           : "$have_numpy""
+  else
+    echo "   Python bindings support : "$have_python_binding""
+    echo "     Python interpreter (>= ${python_version_min}): "$have_python""
+    echo "     Python include             : "$have_python_include""
+    echo "     mpi4py (>= ${mpi4py_version_min})          : "$have_mpi4py""
+    echo "     numpy (>= ${numpy_version_min})           : "$have_numpy""
+  fi
 fi
 echo " MPI (Message Passing Interface) support: "$have_mpi""
 if (test x$have_mpi = xyes) ; then

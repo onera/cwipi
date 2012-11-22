@@ -2444,11 +2444,11 @@ fvmc_locator_get_dist_locations(const fvmc_locator_t  *this_locator)
 const float *
 fvmc_locator_get_dist_distances(const fvmc_locator_t  *this_locator)
 {
-  const fvmc_lnum_t * retval = NULL;
+  const float * retval = NULL;
 
   if (this_locator != NULL) {
     if (this_locator->n_ranks != 0)
-      retval = this_locator->distant_point_distance;
+      retval = (float *) this_locator->distant_point_distance;
   }
 
   return retval;
