@@ -19,6 +19,7 @@ c_conservative*.txt
 logmem.txt
 autom4te.cache/*
 autoscan.log
+cython/cwipi.c
 
 syntax: regexp
 .*\#.*\#$
