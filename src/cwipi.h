@@ -47,38 +47,39 @@ extern "C" {
  *============================================================================*/
 
 /*----------------------------------------------------------------------------
- * MPI ranks used for the coupling
+ * Data
  *----------------------------------------------------------------------------*/
 
 typedef enum {
 
-  CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
-  CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING,
-  CWIPI_COUPLING_SEQUENTIAL,
+  CWIPI_DATA_FROM_XML,
+  CWIPI_DATA_IN_CODE_SOURCE,
 
-} cwipi_coupling_type_t;
+} CWIPI_data_t;
 
 /*----------------------------------------------------------------------------
- * MPI ranks used for the coupling
+ * Communication
  *----------------------------------------------------------------------------*/
 
 typedef enum {
 
-  CWIPI_BASIC_INFO,
-  CWIPI_DISTANT_MESH_INFO,
+  CWIPI_COMM_PAR_WITH_PART,
+  CWIPI_COMM_PAR_WITHOUT_PART,
+  CWIPI_COMM_SEQ,
+  CWIPI_COMM_INTERNAL,
 
-} cwipi_located_point_info_t;
+} CWIPI_communication_t;
 
 /*----------------------------------------------------------------------------
- * Mesh type
+ * Moving mesh 
  *----------------------------------------------------------------------------*/
 
 typedef enum {
 
-  CWIPI_STATIC_MESH,
-  CWIPI_MOBILE_MESH,
+  CWIPI_MESH_MOVING_ON,
+  CWIPI_MESH_MOVING_OFF,
 
-} cwipi_mesh_type_t;
+} CWIPI_mesh_moving_t;
 
 /*----------------------------------------------------------------------------
  * Solver type
@@ -86,13 +87,14 @@ typedef enum {
 
 typedef enum {
 
-  CWIPI_SOLVER_CELL_CENTER,
-  CWIPI_SOLVER_CELL_VERTEX,
+  CWIPI_FIELD_NATURE_CELL_CENTER,
+  CWIPI_FIELD_NATURE_CELL_VERTEX,
+  CWIPI_FIELD_NATURE_USER,
 
-} cwipi_solver_type_t;
+} CWIPI_field_nature_t;
 
 /*----------------------------------------------------------------------------
- * Coupling type
+ * Field type
  *----------------------------------------------------------------------------*/
 
 typedef enum {
@@ -100,7 +102,7 @@ typedef enum {
   CWIPI_FIELD_TYPE_FLOAT,
   CWIPI_FIELD_TYPE_DOUBLE,
 
-} cwipi_field_type_t;
+} CWIPI_field_type_t;
 
 /*----------------------------------------------------------------------------
  * Coupling interpolation type
@@ -111,7 +113,7 @@ typedef enum {
   CWIPI_INTERPOLATION_DEFAULT,
   CWIPI_INTERPOLATION_USER,
 
-} cwipi_interpolation_t;
+} CWIPI_interpolation_t;
 
 /*----------------------------------------------------------------------------
  * Coupling exchange status
@@ -119,33 +121,68 @@ typedef enum {
 
 typedef enum {
 
-  CWIPI_EXCHANGE_OK,
-  CWIPI_EXCHANGE_BAD_RECEIVING,
+  CWIPI_STATUS_OK,
+  CWIPI_STATUS_ERROR,
 
-} cwipi_exchange_status_t;
+} CWIPI_status_t;
 
 /*----------------------------------------------------------------------------
- * Element type
+ * Block type
  *----------------------------------------------------------------------------*/
 
 typedef enum {
 
-  CWIPI_NODE,
-  CWIPI_EDGE2,
-  CWIPI_FACE_TRIA3,
-  CWIPI_FACE_TRIA6,
-  CWIPI_FACE_QUAD4,
-  CWIPI_FACE_POLY,
-  CWIPI_CELL_TETRA4,
-  CWIPI_CELL_HEXA8,
-  CWIPI_CELL_PRISM6,
-  CWIPI_CELL_PYRAM5,
-  CWIPI_CELL_POLY,
+  CWIPI_BLOCK_NODE,
+  CWIPI_BLOCK_EDGE2,
+  CWIPI_BLOCK_FACE_TRIA3,
+  CWIPI_BLOCK_FACE_TRIA6,
+  CWIPI_BLOCK_FACE_QUAD4,
+  CWIPI_BLOCK_FACE_POLY,
+  CWIPI_BLOCK_CELL_TETRA4,
+  CWIPI_BLOCK_CELL_HEXA8,
+  CWIPI_BLOCK_CELL_PRISM6,
+  CWIPI_BLOCK_CELL_PYRAM5,
+  CWIPI_BLOCK_CELL_POLY,
 
-} cwipi_element_t;
+} CWIPI_block_t;
 
 /*----------------------------------------------------------------------------
- * Function pointer to define an user interpolation method (callback)
+ * Source
+ *----------------------------------------------------------------------------*/
+
+typedef enum {
+
+  CWIPI_SOURCE_MESH,
+  CWIPI_SOURCE_POINT_CLOUD,
+
+} CWIPI_source_t;
+
+/*----------------------------------------------------------------------------
+ * Geometry
+ *----------------------------------------------------------------------------*/
+
+typedef enum {
+
+  CWIPI_GEOMETRY_CLOSEST_POINT,
+  CWIPI_GEOMETRY_INTERSECTION,
+  CWIPI_GEOMETRY_LOCATION,
+
+} CWIPI_source_t;
+
+/*----------------------------------------------------------------------------
+ * Entities
+ *----------------------------------------------------------------------------*/
+
+typedef enum {
+
+  CWIPI_ENTITIES_POINT,
+  CWIPI_ENTITIES_FACE,
+  CWIPI_ENTITIES_CELL,
+
+} CWIPI_entities_t;
+
+/*----------------------------------------------------------------------------
+ * Function pointer to define an user interpolation from mesh location 
  *
  * parameters:
  * ----------
@@ -186,7 +223,7 @@ typedef enum {
  *
  *----------------------------------------------------------------------------*/
 
-typedef void (*cwipi_interpolation_fct_t)
+typedef void (*CWIPI_interp_from_location_t)
   (const int entities_dim,
    const int n_local_vertex,
    const int n_local_element,
@@ -205,10 +242,50 @@ typedef void (*cwipi_interpolation_fct_t)
    const int distant_points_barycentric_coordinates_index[],
    const double distant_points_barycentric_coordinates[],
    const int stride,
-   const cwipi_solver_type_t  solver_type,
+   const CWIPI_solver_type_t  solver_type,
    const void *local_field,
    void *distant_field
    );
+
+/*----------------------------------------------------------------------------
+ * Function pointer to define an user interpolation from mesh intersection 
+ *
+ *                Not implemented yet
+ *
+ * parameters:
+ * ----------
+ *
+ * entities_dim                              <-- entities dimension of
+ *                                               the local mesh (1, 2 or 3)
+ * n_source_vertex                            <-- local mesh vertices number
+ * n_source_element                           <-- local mesh elements number
+ *                                               (without polyhedra)
+  *----------------------------------------------------------------------------*/
+
+typedef void (*CWIPI_interp_from_intersec_t)
+  (const int entities_dim,
+   const int n_source_vertex,
+   const int n_source_element
+   );
+
+/*----------------------------------------------------------------------------
+ * Function pointer to define an user interpolation from closest points 
+ *
+ *                Not implemented yet
+ *
+ * parameters:
+ * ----------
+ *
+ * entities_dim                              <-- entities dimension of
+ *                                               the local mesh (1, 2 or 3)
+ * n_source_vertex                            <-- local mesh vertices number
+ * n_source_element                           <-- local mesh elements number
+ *                                               (without polyhedra)
+  *----------------------------------------------------------------------------*/
+
+typedef void (*CWIPI_interp_from_closest_pts_t)
+  (const int n_source_vertex,
+   const int n_target_vertex);
 
 /*=============================================================================
  * Static global variables
@@ -227,16 +304,17 @@ typedef void (*cwipi_interpolation_fct_t)
  *
  * parameters:
  *   common_comm       <-- Common MPI communicator
- *   application_name  <-- Current application name
+ *   data_from         <-- Where data are defined
  *   application_comm  --> Internal MPI communicator for the current
  *                         application
  *
- * It is a synchronization point between all applications
+ *         Synchronization point between all applications
  *----------------------------------------------------------------------------*/
 
-void cwipi_init
-(const MPI_Comm                           common_comm,
+void CWIPI_init
+(const MPI_Comm                            common_comm,
  const char                               *application_name,
+ const CWIPI_data_t                        data_from,
  MPI_Comm                                 *application_comm);
 
 /*----------------------------------------------------------------------------
@@ -249,199 +327,7 @@ void cwipi_init
 
 void PROCF (cwipi_set_output_logical_unit, CWIPI_SET_OUTPUT_LOGICAL_UNIT) (int *iunit);
 
-void cwipi_set_output_listing(FILE *output_listing);
-
-/*----------------------------------------------------------------------------
- *
- * Add a integer control parameter
- *
- * parameters
- *    name           <-- parameter name
- *    initial_value  <-- initial value
- *
- *----------------------------------------------------------------------------*/
-
-void cwipi_add_local_int_control_parameter(const char *name, int initial_value);
-
-/*----------------------------------------------------------------------------
- *
- * Add a double control parameter
- *
- * parameters
- *    name           <-- parameter name
- *    initial_value  <-- initial value
- *
- *----------------------------------------------------------------------------*/
-
-void cwipi_add_local_double_control_parameter(const char *name, double initial_value);
-
-/*----------------------------------------------------------------------------
- *
- * Add a string control parameter
- *
- * parameters
- *    name           <-- parameter name
- *    initial_value  <-- initial value
- *
- *----------------------------------------------------------------------------*/
-
-void cwipi_add_local_string_control_parameter(const char *name, const char *initial_value);
-
-/*----------------------------------------------------------------------------
- *
- * Set a integer control parameter
- *
- * parameters
- *    name           <-- parameter name
- *    value          <-- value
- *
- *----------------------------------------------------------------------------*/
-
-void cwipi_set_local_int_control_parameter(const char *name, int value);
-
-/*----------------------------------------------------------------------------
- *
- * Set a double control parameter
- *
- * parameters
- *    name           <-- parameter name
- *    value          <-- value
- *
- *----------------------------------------------------------------------------*/
-
-void cwipi_set_local_double_control_parameter(const char *name, double value);
-
-/*----------------------------------------------------------------------------
- *
- * Set a string control parameter
- *
- * parameters
- *    name           <-- parameter name
- *    value          <-- value
- *
- *----------------------------------------------------------------------------*/
-
-void cwipi_set_local_string_control_parameter(const char *name, const char *value);
-
-/*----------------------------------------------------------------------------
- *
- * Get a integer control parameter of the current application
- *
- * parameters
- *    name           <-- parameter name
- *
- *----------------------------------------------------------------------------*/
-
-int cwipi_get_local_int_control_parameter(const char *name);
-
-/*----------------------------------------------------------------------------
- *
- * Get a double control parameter of the current application
- *
- * parameters
- *    name           <-- parameter name
- *
- *----------------------------------------------------------------------------*/
-
-double cwipi_get_local_double_control_parameter(const char *name);
-
-/*----------------------------------------------------------------------------
- *
- * Get a string control parameter of the current application
- *
- * parameters
- *    name           <-- parameter name
- *
- *----------------------------------------------------------------------------*/
-
-const char* cwipi_get_local_string_control_parameter(const char *name);
-
-/*----------------------------------------------------------------------------
- *
- * Delete a current application int parameter
- *
- * parameters
- *    name           <-- parameter name
- *
- *----------------------------------------------------------------------------*/
-
-void cwipi_delete_local_int_control_parameter(const char *name);
-
-/*----------------------------------------------------------------------------
- *
- * Delete a current application double parameter
- *
- * parameters
- *    name           <-- parameter name
- *
- *----------------------------------------------------------------------------*/
-
-void cwipi_delete_local_double_control_parameter(const char *name);
-
-/*----------------------------------------------------------------------------
- *
- * Delete a current application string parameter
- *
- * parameters
- *    name           <-- parameter name
- *
- *----------------------------------------------------------------------------*/
-
-void cwipi_delete_local_string_control_parameter(const char *name);
-
-/*----------------------------------------------------------------------------
- *
- * Get a integer control parameter of a other application
- *
- * parameters
- *    application_name       <-- application name
- *    name                   <-- parameter name
- *
- *----------------------------------------------------------------------------*/
-
-int cwipi_get_distant_int_control_parameter
-(const char *application_name,
- const char *name);
-
-/*----------------------------------------------------------------------------
- *
- * Get a double control parameter of a other application
- *
- * parameters
- *    application_name    <-- application name
- *    name                <-- parameter name
- *
- *----------------------------------------------------------------------------*/
-
-double cwipi_get_distant_double_control_parameter
-(const char *application_name,
- const char *name);
-
-/*----------------------------------------------------------------------------
- *
- * Get a string control parameter of a other application
- *
- * parameters
- *    application_name    <-- application name
- *    name                <-- parameter name
- *
- *----------------------------------------------------------------------------*/
-
-const char* cwipi_get_distant_string_control_parameter
-(const char *application_name,
- const char *name);
-
-/*----------------------------------------------------------------------------
- *
- * Synchronize local control parameters with an other application.
- *  It is a synchronization point with this second application
- *
- * parameters
- *    application_name    <-- application name
- *
- *----------------------------------------------------------------------------*/
-
-void cwipi_synchronize_control_parameter(const char *application_name);
+void CWIPI_set_output_listing(FILE *output_listing);
 
 /*----------------------------------------------------------------------------
  *
@@ -449,7 +335,15 @@ void cwipi_synchronize_control_parameter(const char *application_name);
  *
  *----------------------------------------------------------------------------*/
 
-void cwipi_dump_application_properties(void);
+void CWIPI_dump_appli_properties(void);
+
+/*----------------------------------------------------------------------------
+ *
+ * Create coupling objects defined in XML data file
+ *
+ *----------------------------------------------------------------------------*/
+
+void CWIPI_create_couplings_from_xml(void);
 
 /*----------------------------------------------------------------------------
  *
@@ -490,14 +384,14 @@ void cwipi_dump_application_properties(void);
  *
  *----------------------------------------------------------------------------*/
 
-void cwipi_create_coupling
-( const char  *coupling_name,
-  const cwipi_coupling_type_t coupling_type,
+void CWIPI_create_coupling
+( const char  *id,
+  const CWIPI_coupling_type_t coupling_type,
   const char  *coupled_application,
   const int    entitiesDim,
   const double tolerance,
-  const cwipi_mesh_type_t mesh_type,
-  const cwipi_solver_type_t solver_type,
+  const CWIPI_mesh_type_t mesh_type,
+  const CWIPI_solver_type_t solver_type,
   const int    output_frequency,
   const char  *output_format,
   const char  *output_format_option);
@@ -516,7 +410,7 @@ void cwipi_create_coupling
  *
  *----------------------------------------------------------------------------*/
 
-void cwipi_set_points_to_locate
+void CWIPI_set_points_to_locate
 (const char  *coupling_id,
  const int    n_points,
  double       coordinate[]);
@@ -618,14 +512,14 @@ void cwipi_set_points_to_locate
  *
  *----------------------------------------------------------------------------*/
 
-void cwipi_define_mesh(const char *coupling_id,
+void CWIPI_define_mesh(const char *coupling_id,
                        const int n_vertex,
                        const int n_element,
                        double coordinates[],
                        int connectivity_index[],
                        int connectivity[]);
 
-void cwipi_shared_fvmc_nodal(const char *coupling_name,
+void CWIPI_shared_fvmc_nodal(const char *coupling_name,
                             void * fvmc_nodal);
 
 
@@ -648,7 +542,7 @@ void cwipi_shared_fvmc_nodal(const char *coupling_name,
  *
  *----------------------------------------------------------------------------*/
 
-void cwipi_add_polyhedra(const char *coupling_id,
+void CWIPI_add_polyhedra(const char *coupling_id,
                              const int n_element,
                              int face_index[],
                              int cell_to_face_connectivity[],
@@ -665,7 +559,7 @@ void cwipi_add_polyhedra(const char *coupling_id,
  *   coupling_id          <-- Coupling identifier
  *----------------------------------------------------------------------------*/
 
-void cwipi_locate (const char *coupling_id);
+void CWIPI_locate (const char *coupling_id);
 
 /*----------------------------------------------------------------------------
  *
@@ -675,7 +569,7 @@ void cwipi_locate (const char *coupling_id);
  *   coupling_id          <-- Coupling identifier
  *----------------------------------------------------------------------------*/
 
-void cwipi_update_location (const char *coupling_id);
+void CWIPI_update_location (const char *coupling_id);
 
 /*----------------------------------------------------------------------------
  *
@@ -686,7 +580,21 @@ void cwipi_update_location (const char *coupling_id);
  *   info                 <-- Coupling info
  *----------------------------------------------------------------------------*/
 
-void cwipi_set_info(const char *coupling_id, const cwipi_located_point_info_t info);
+void CWIPI_set_info(const char *coupling_id, const CWIPI_located_point_info_t info);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of located distant point
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *
+ * return
+ *                        --> Number of located distant points
+ *
+ *----------------------------------------------------------------------------*/
+
+int CWIPI_get_n_dis_points(const char *coupling_id);
 
 /*----------------------------------------------------------------------------
  *
@@ -698,7 +606,7 @@ void cwipi_set_info(const char *coupling_id, const cwipi_located_point_info_t in
  *   distant point location
  *----------------------------------------------------------------------------*/
 
-const int *cwipi_get_distant_location (const char *coupling_id);
+const int *CWIPI_get_dis_location (const char *coupling_id);
 
 /*----------------------------------------------------------------------------
  *
@@ -710,7 +618,7 @@ const int *cwipi_get_distant_location (const char *coupling_id);
  *   distance
  *----------------------------------------------------------------------------*/
 
-const float *cwipi_get_distant_distance (const char *coupling_id);
+const float *CWIPI_get_dis_distance (const char *coupling_id);
 
 /*----------------------------------------------------------------------------
  *
@@ -722,7 +630,7 @@ const float *cwipi_get_distant_distance (const char *coupling_id);
  *   barycentric coordinates index
  *----------------------------------------------------------------------------*/
 
-const int *cwipi_get_distant_barycentric_coordinates_index (const char *coupling_id);
+const int *CWIPI_get_dis_bary_coord_idx (const char *coupling_id);
 
 /*----------------------------------------------------------------------------
  *
@@ -734,7 +642,7 @@ const int *cwipi_get_distant_barycentric_coordinates_index (const char *coupling
  *   barycentric coordinates
  *----------------------------------------------------------------------------*/
 
-const double *cwipi_get_distant_barycentric_coordinates (const char *coupling_id);
+const double *CWIPI_get_dis_bary_coord (const char *coupling_id);
 
 /*----------------------------------------------------------------------------
  *
@@ -746,7 +654,7 @@ const double *cwipi_get_distant_barycentric_coordinates (const char *coupling_id
  *   coordinates
  *----------------------------------------------------------------------------*/
 
-const double *cwipi_get_distant_coordinates (const char *coupling_id);
+const double *CWIPI_get_dis_coordinates (const char *coupling_id);
 
 /*----------------------------------------------------------------------------
  *
@@ -767,11 +675,11 @@ const double *cwipi_get_distant_coordinates (const char *coupling_id);
  *   n_not_located_points --> Number of not located points
  *
  * returns :
- *   cwipi_exchange_status
+ *   CWIPI_exchange_status
  *
  *----------------------------------------------------------------------------*/
 
-cwipi_exchange_status_t cwipi_exchange
+CWIPI_exchange_status_t CWIPI_sendrecv
 (const char                          *coupling_id,
  const char                          *exchange_name,
  const int                            stride,
@@ -800,7 +708,7 @@ cwipi_exchange_status_t cwipi_exchange
  *
  *----------------------------------------------------------------------------*/
 
-void cwipi_issend
+void CWIPI_issend
 (const char                *coupling_name,
  const char                *exchange_name,
  const int                 tag,
@@ -815,7 +723,7 @@ void cwipi_issend
  *
  * Receive interpolated data from the coupled application. 
  * Non blocking comunication. receiving_field is fully updated after 
- * cwipi_wait_irecv calling
+ * CWIPI_wait_irecv calling
  *
  * parameters
  *   coupling_id          <-- Coupling identifier
@@ -829,7 +737,7 @@ void cwipi_issend
  *
  *----------------------------------------------------------------------------*/
 
-void cwipi_irecv
+void CWIPI_irecv
 (const char                *coupling_name,
  const char                *exchange_name,
  const int                 tag,
@@ -842,7 +750,7 @@ void cwipi_irecv
 
 /*----------------------------------------------------------------------------
  *
- * Wait for cwipi_issend. 
+ * Wait for CWIPI_issend. 
  *
  * parameters
  *   coupling_id          <-- Coupling identifier
@@ -850,12 +758,12 @@ void cwipi_irecv
  *
  *----------------------------------------------------------------------------*/
 
-void cwipi_wait_issend(const char  *coupling_name,
+void CWIPI_wait_issend(const char  *coupling_name,
                        int          request);
 
 /*----------------------------------------------------------------------------
  *
- * Wait for cwipi_irecv. 
+ * Wait for CWIPI_irecv. 
  *
  * parameters
  *   coupling_id          <-- Coupling identifier
@@ -863,7 +771,7 @@ void cwipi_wait_issend(const char  *coupling_name,
  *
  *----------------------------------------------------------------------------*/
 
-void cwipi_wait_irecv(const char  *coupling_name,
+void CWIPI_wait_irecv(const char  *coupling_name,
                       int          request);
 
 /*----------------------------------------------------------------------------
@@ -876,9 +784,9 @@ void cwipi_wait_irecv(const char  *coupling_name,
  *
  *----------------------------------------------------------------------------*/
 
-void cwipi_set_interpolation_function
+void CWIPI_set_interpolation_function
 (const char *coupling_id,
- cwipi_interpolation_fct_t fct);
+ CWIPI_interpolation_fct_t fct);
 
 /*----------------------------------------------------------------------------
  *
@@ -890,7 +798,7 @@ void cwipi_set_interpolation_function
  *
  *----------------------------------------------------------------------------*/
 
-void cwipi_set_interpolation_function_f
+void CWIPI_set_interpolation_function_f
 (const char *coupling_id,
  void* fct);
 
@@ -903,7 +811,7 @@ void cwipi_set_interpolation_function_f
  *
  *----------------------------------------------------------------------------*/
 
-void cwipi_delete_coupling(const char *coupling_id);
+void CWIPI_delete_coupling(const char *coupling_id);
 
 /*----------------------------------------------------------------------------
  *
@@ -911,7 +819,7 @@ void cwipi_delete_coupling(const char *coupling_id);
  *
  *----------------------------------------------------------------------------*/
 
-void cwipi_finalize(void);
+void CWIPI_finalize(void);
 
 /*----------------------------------------------------------------------------
  *
@@ -924,7 +832,7 @@ void cwipi_finalize(void);
  *                        --> Not located points
  *----------------------------------------------------------------------------*/
 
-const int * cwipi_get_not_located_points(const char *coupling_id);
+const int *CWIPI_get_not_located_points(const char *coupling_id);
 
 /*----------------------------------------------------------------------------
  *
@@ -938,7 +846,7 @@ const int * cwipi_get_not_located_points(const char *coupling_id);
  *
  *----------------------------------------------------------------------------*/
 
-int cwipi_get_n_located_points(const char *coupling_id);
+int CWIPI_get_n_located_points(const char *coupling_id);
 
 /*----------------------------------------------------------------------------
  *
@@ -952,144 +860,199 @@ int cwipi_get_n_located_points(const char *coupling_id);
  *
  *----------------------------------------------------------------------------*/
 
-int cwipi_get_n_not_located_points(const char *coupling_id);
-
-
-/*----------------------------------------------------------------------------
- *
- * Get number of located distant point
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *
- * return
- *                        --> Number of located distant points
- *
- *----------------------------------------------------------------------------*/
-
-int cwipi_get_n_distant_points(const char *coupling_id);
+int CWIPI_get_n_not_located_points(const char *coupling_id);
 
 /*----------------------------------------------------------------------------
  *
- * Get distant elements that contain located points
+ * Add a integer control parameter
  *
  * parameters
- *   coupling_id          <-- Coupling identifier
- *
- * return
- *                        --> Number of vertices
+ *    name           <-- parameter name
+ *    initial_value  <-- initial value
  *
  *----------------------------------------------------------------------------*/
 
-const int *cwipi_get_element_containing(const char *coupling_id);
+void CWIPI_add_loc_int_ctrl_param(const char *name, int initial_value);
 
 /*----------------------------------------------------------------------------
  *
- * Get number of vertices of distant elements that contain located points
+ * Add a double control parameter
  *
  * parameters
- *   coupling_id          <-- Coupling identifier
- *
- * return
- *                        --> Number of vertices
+ *    name           <-- parameter name
+ *    initial_value  <-- initial value
  *
  *----------------------------------------------------------------------------*/
 
-const int *cwipi_get_element_containing_n_vertex(const char *coupling_id);
+void CWIPI_add_loc_dbl_ctrl_param(const char *name, double initial_value);
 
 /*----------------------------------------------------------------------------
  *
- * Get vertices id of distant elements that contain located points
+ * Add a string control parameter
  *
  * parameters
- *   coupling_id          <-- Coupling identifier
- *
- * return
- *                        --> vertices id
+ *    name           <-- parameter name
+ *    initial_value  <-- initial value
  *
  *----------------------------------------------------------------------------*/
 
-const int *cwipi_get_element_containing_vertex(const char *coupling_id);
+void CWIPI_add_loc_str_ctrl_param(const char *name, const char *initial_value);
 
 /*----------------------------------------------------------------------------
  *
- * Get vertices coordinates of distant elements that contain located points
+ * Set a integer control parameter
  *
  * parameters
- *   coupling_id          <-- Coupling identifier
- *
- * return
- *                        --> Vertices coordinates
+ *    name           <-- parameter name
+ *    value          <-- value
  *
  *----------------------------------------------------------------------------*/
 
-const double *cwipi_get_element_containing_vertex_coords(const char *coupling_id);
+void CWIPI_set_loc_int_ctrl_param(const char *name, int value);
 
 /*----------------------------------------------------------------------------
  *
- * Get barycentric coords in distant elements for located points
+ * Set a double control parameter
  *
  * parameters
- *   coupling_id          <-- Coupling identifier
- *
- * return
- *                        --> Barycentric coordinates
+ *    name           <-- parameter name
+ *    value          <-- value
  *
  *----------------------------------------------------------------------------*/
 
-const double *cwipi_get_element_containing_barycentric_coordinates(const char *coupling_id);
+void CWIPI_set_loc_dbl_ctrl_param(const char *name, double value);
 
 /*----------------------------------------------------------------------------
  *
- * For each located point get the MPI rank of distant element
+ * Set a string control parameter
  *
  * parameters
- *   coupling_id          <-- Coupling identifier
- *
- * return
- *                        --> MPI ranks
+ *    name           <-- parameter name
+ *    value          <-- value
  *
  *----------------------------------------------------------------------------*/
 
-const int *cwipi_get_element_containing_MPI_rank(const char *coupling_id);
+void CWIPI_set_loc_str_ctrl_param(const char *name, const char *value);
 
 /*----------------------------------------------------------------------------
  *
- * Exchange Fields on vertices of element containing each located point
+ * Get a integer control parameter of the current application
  *
  * parameters
- *   coupling_id          <-- Coupling identifier
- *   sendingField         <-- Field defined on local mesh vertices
- *   receivingField       --> Field defined on vertices of distant
- *                            elements that contain each located point
- *   stride               <-- Number of field component
+ *    name           <-- parameter name
  *
  *----------------------------------------------------------------------------*/
 
-void cwipi_exchange_cell_vertex_field_of_element_containing (const char *coupling_id,
-                                                             double *sendingField,
-                                                             double *receivingField,
-                                                             const int stride);
+int CWIPI_get_loc_int_ctrl_param(const char *name);
 
 /*----------------------------------------------------------------------------
  *
- * Exchange field on cells that contain each located points
+ * Get a double control parameter of the current application
  *
  * parameters
- *   coupling_id          <-- Coupling identifier
- *   sendingField         <-- Field defined on local mesh vertices
- *   receivingField       --> Field defined on vertices of distant
- *                            elements that contain each located point
- *   stride               <-- Number of field component
+ *    name           <-- parameter name
  *
  *----------------------------------------------------------------------------*/
 
-void cwipi_exchange_cell_center_field_of_element_containing (const char *coupling_id,
-                                                             double *sendingField,
-                                                             double *receivingField,
-                                                             const int stride);
+double CWIPI_get_loc_dbl_ctrl_param(const char *name);
 
-/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------
+ *
+ * Get a string control parameter of the current application
+ *
+ * parameters
+ *    name           <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+const char* CWIPI_get_loc_str_ctrl_param(const char *name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Delete a current application int parameter
+ *
+ * parameters
+ *    name           <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void CWIPI_del_loc_int_ctrl_param(const char *name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Delete a current application double parameter
+ *
+ * parameters
+ *    name           <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void CWIPI_del_loc_dbl_ctrl_param(const char *name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Delete a current application string parameter
+ *
+ * parameters
+ *    name           <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void CWIPI_del_loc_str_ctrl_param(const char *name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get a integer control parameter of a other application
+ *
+ * parameters
+ *    application_name       <-- application name
+ *    name                   <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+int CWIPI_get_dis_int_ctrl_param
+(const char *application_name,
+ const char *name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get a double control parameter of a other application
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+double CWIPI_get_dis_dbl_ctrl_param
+(const char *application_name,
+ const char *name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get a string control parameter of a other application
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+const char* CWIPI_get_dis_str_ctrl_param
+(const char *application_name,
+ const char *name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Synchronize local control parameters with an other application.
+ *  It is a synchronization point with this second application
+ *
+ * parameters
+ *    application_name    <-- application name
+ *
+ *----------------------------------------------------------------------------*/
+
+void CWIPI_synch_ctrl_param(const char *application_name);
 
 #ifdef __cplusplus
 }
