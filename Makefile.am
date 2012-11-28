@@ -27,12 +27,10 @@ AUX_DIST = $(ac_aux_dir)/config.guess \
 
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 configure config-h.in stamp-h.in $(AUX_DIST)
 
-#SUBDIRS = src tests doc
-
 if ENABLE_PYTHON 
- SUBDIRS = src cython tests
+ SUBDIRS = doc src cython tests
 else
- SUBDIRS = src tests
+ SUBDIRS = doc src tests
 endif
 
 EXTRA_DIST = $(ac_aux_dir)/cwipi_auto_flags.sh \

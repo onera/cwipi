@@ -95,11 +95,6 @@ extern "C" {
  * by another communicator.
  */
 
-/*!
- * \example bftc_error_example.c
- *
- * This is an example of an MPI-aware error handler.
- */
 
 /*-----------------------------------------------------------------------------
  * Local function prototypes

@@ -17,6 +17,11 @@
 ! License along with this library. If not, see <http://www.gnu.org/licenses/>.
 !-----------------------------------------------------------------------------
 
+!
+!> @example fortran_surf_P1P1.f90
+!! This is an example of an MPI-aware error handler.
+!
+
 subroutine printStatus(iiunit, status)
   use cwipi
   implicit none

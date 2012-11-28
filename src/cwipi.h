@@ -46,58 +46,73 @@ extern "C" {
  * Type definitions
  *============================================================================*/
 
-/*----------------------------------------------------------------------------
- * Data
- *----------------------------------------------------------------------------*/
+/**
+ * \enum CWIPI_data_t
+ * \brief  How coupling data are defined 
+ *
+ * CWIPI_data_t describes the different ways to define coupling data 
+ */
 
 typedef enum {
 
-  CWIPI_DATA_FROM_XML,
-  CWIPI_DATA_IN_CODE_SOURCE,
+  CWIPI_DATA_FROM_XML,      /*!< Data are defined in a XML data file */
+  CWIPI_DATA_IN_CODE_SOURCE,/*!< Data are Defined in code source */ 
 
 } CWIPI_data_t;
 
-/*----------------------------------------------------------------------------
- * Communication
- *----------------------------------------------------------------------------*/
+/**
+ * \enum CWIPI_communication_t
+ * \brief Communication mode
+ *
+ * CWIPI_communication_t gives the different communication mode 
+ */
 
 typedef enum {
 
-  CWIPI_COMM_PAR_WITH_PART,
-  CWIPI_COMM_PAR_WITHOUT_PART,
-  CWIPI_COMM_SEQ,
-  CWIPI_COMM_INTERNAL,
+  CWIPI_COMM_PAR_WITH_PART,    /*!< Parallel communcation 
+                                    on partitioned source */
+  CWIPI_COMM_PAR_WITHOUT_PART, /*!< Parallel communcation 
+                                    on unpartitioned source defined on all process */
+  CWIPI_COMM_SEQ,              /*!< Parallel communcation 
+                                    on unpartitioned source defined on master process */
+  CWIPI_COMM_INTERNAL,         /*!< Internal communcation within a process */
 
 } CWIPI_communication_t;
 
-/*----------------------------------------------------------------------------
- * Moving mesh 
- *----------------------------------------------------------------------------*/
+/**
+ * \enum CWIPI_source_moving_t
+ * \brief Active moving source
+ *
+ * CWIPI_source_moving_t active moving source (mesh or point cloud)  
+ */
 
 typedef enum {
 
-  CWIPI_MESH_MOVING_ON,
-  CWIPI_MESH_MOVING_OFF,
+  CWIPI_SOURCE_MOVING_ON,     /*!< Moving on */ 
+  CWIPI_SOURCE_MOVING_OFF,    /*!< Moving off */ 
 
-} CWIPI_mesh_moving_t;
+} CWIPI_source_moving_t;
 
-/*----------------------------------------------------------------------------
- * Solver type
- *----------------------------------------------------------------------------*/
+/**
+ * \enum CWIPI_field_nature_t
+ * \brief Field nature
+ *
+ * CWIPI_field_nature_t gives dfieferent nature 
+ */
 
 typedef enum {
 
-  CWIPI_FIELD_NATURE_CELL_CENTER,
-  CWIPI_FIELD_NATURE_CELL_VERTEX,
-  CWIPI_FIELD_NATURE_USER,
+  CWIPI_FIELD_NATURE_CELL_CENTER,  /*!< Cell center field */
+  CWIPI_FIELD_NATURE_CELL_VERTEX,  /*!< Cell vertex field */
+  CWIPI_FIELD_NATURE_USER,         /*!< User defined field */ 
 
-} CWIPI_field_nature_t;
+} CWIPI_field_nature_t ;
 
 /*----------------------------------------------------------------------------
  * Field type
  *----------------------------------------------------------------------------*/
 
-typedef enum {
+typedef enum { 
 
   CWIPI_FIELD_TYPE_FLOAT,
   CWIPI_FIELD_TYPE_DOUBLE,

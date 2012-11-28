@@ -325,6 +325,22 @@ if test "x$auto_flags" = "xtrue" ; then
 fi
 
 #------------------------------------------------------------------------------
+# Checks doxygen
+#------------------------------------------------------------------------------
+
+AC_CHECK_PROGS([DOXYGEN], [doxygen])
+if test -z "$DOXYGEN"; then
+   AC_MSG_WARN([Doxygen not found - continuing without Doxygen support])
+fi
+
+AM_CONDITIONAL([HAVE_DOXYGEN],
+[test -n "$DOXYGEN"])
+
+if test -n "$DOXYGEN"; then
+  AC_CONFIG_FILES([doc/Doxyfile])]
+fi
+
+#------------------------------------------------------------------------------
 # Checks for optional Python bindings 
 #------------------------------------------------------------------------------
 
@@ -973,7 +989,7 @@ CWIPI_AC_CONFIG_INFO_FINALIZE
 # AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile doc/Makefile
 #                  intl/Makefile po/Makefile.in m4/Makefile])
 
-AC_CONFIG_FILES([Makefile src/Makefile src/bft/Makefile src/fvm/Makefile cython/Makefile tests/Makefile])
+AC_CONFIG_FILES([Makefile doc/Makefile src/Makefile src/bft/Makefile src/fvm/Makefile cython/Makefile tests/Makefile])
 
 #------------------------------------------------------------------------------
 
