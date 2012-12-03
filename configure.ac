@@ -596,13 +596,15 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([[]],
                 ])
                 if test "x${have_cython}" = "xyes" ; then
                   echo "running cython : " ${CYEXE} -I${MPI4PY_INCLUDE} -I${srcdir}/src -I${NUMPY_INCLUDE} ${srcdir}/cython/cwipi.pyx
+                  cp ${srcdir}/cython/cwipi.pyx cwipi.pyx
                   error=
-                  error=`${CYEXE} -I${MPI4PY_INCLUDE} -I${srcdir}/src -I${NUMPY_INCLUDE} ${srcdir}/cython/cwipi.pyx 2>&1 | grep Errno`
+                  error=`${CYEXE} -v -I${MPI4PY_INCLUDE} -I${srcdir}/src -I${NUMPY_INCLUDE} ${srcdir}/cython/cwipi.pyx 2>&1 | grep Errno`
                   if test "x${error}" != "x" ; then
                      echo $error
                      AC_MSG_ERROR([Error during cython binding])
                   fi
-                fi
+                  cp -f cwipi.c ${srcdir}/cython/cwipi.c
+                 fi
              fi
            fi
         fi
