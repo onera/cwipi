@@ -10,7 +10,6 @@ CHR*
 chr*
 *.case
 *.geo
-c_conservative*.txt
 *.nfs*
 .cproject
 .project

@@ -91,7 +91,7 @@ m4_define([fvmc_licence_c_comment],
 
 m4_define([cwipi_major_version], [0])
 m4_define([cwipi_minor_version], [5])
-m4_define([cwipi_release_version], [6])
+m4_define([cwipi_release_version], [7])
 m4_define([cwipi_version_extra], [])
 m4_define([cwipi_version_string],
           [cwipi_major_version.cwipi_minor_version.cwipi_release_version@&t@cwipi_version_extra])
@@ -580,12 +580,14 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([[]],
                 ])
                 if test "x${have_cython}" = "xyes" ; then
                   echo "running cython : " ${CYEXE} -I${MPI4PY_INCLUDE} -I${srcdir}/src -I${NUMPY_INCLUDE} ${srcdir}/cython/cwipi.pyx
+                  cp ${srcdir}/cython/cwipi.pyx cwipi.pyx
                   error=
-                  error=`${CYEXE} -I${MPI4PY_INCLUDE} -I${srcdir}/src -I${NUMPY_INCLUDE} ${srcdir}/cython/cwipi.pyx 2>&1 | grep Errno`
+                  error=`${CYEXE} -v -I${MPI4PY_INCLUDE} -I${srcdir}/src -I${NUMPY_INCLUDE} cwipi.pyx 2>&1 | grep -i Err`
                   if test "x${error}" != "x" ; then
                      echo $error
                      AC_MSG_ERROR([Error during cython binding])
                   fi
+                  cp -f cwipi.c ${srcdir}/cython/cwipi.c
                 fi
              fi
            fi
@@ -1015,7 +1017,7 @@ echo " use debugging code: "$debug""
 echo " enable python bindings : "${python_bindings}""
 if test "x${python_bindings}" != "xfalse"; then
   if test "x${rebuild_bindings}" = "xtrue"; then    
-    echo "   Rebuilding Python bindings with cython ("${cython_version}")"
+    echo "   Rebuilding Python bindings with cython ("${CYTHON_VERSION}")"
     echo "     Python interpreter (${PYTHON_VERSION}): "$have_python""
     echo "     Python include             : "$have_python_include""
     echo "     mpi4py (>= ${mpi4py_version_min})          : "$have_mpi4py""
