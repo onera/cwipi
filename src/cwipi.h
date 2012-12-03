@@ -383,7 +383,7 @@ typedef void (*CWIPI_interp_from_closest_pts_t)
  *
  * This function create the MPI intra communicator for this code from
  * the MPI inter communicator that contains all code process. It is a
- * synchronization point between all codes
+ * synchronization point between all codes.
  *
  * \param [in]  inter_comm   MPI inter communicator
  * \param [in]  data_file    xml_data_file
@@ -423,66 +423,63 @@ CWIPI_init
  MPI_Comm                *intra_comm);
 
 /*!
- * \brief Initialize CWIPI.
+ * \brief Writing output to fortran file.
  *
- * This function create the MPI intra communicator for this code from
- * the MPI inter communicator that contains all code process. It is a
- * synchronization point between all codes
+ * This function set the file fortran logical unit for writing output.
  *
- * \param [in]  inter_comm   MPI inter communicator
- * \param [in]  code_name    Name of this code
- * \param [in]  time_init    Time init
- * \param [out] intra_comm   MPI intra communicator
+ * \param [in]  iunit        File fortan logical unit
  *
  */
 
-/*----------------------------------------------------------------------------
- *
- * Set up the file used for the output listing
- *
- * parameters:
- *   output_listing      <-- Output listing file (C function)
- *----------------------------------------------------------------------------*/
-
 void 
-PROCF (cwipi_output_listing_fortran, CWIPI_SET_OUTPUT_LOGICAL_UNIT) 
+PROCF (cwipi_output_to_fortran_unit_set, CWIPI_OUTPUT_TO_FORTRAN_UNIT_SET)
 (int *iunit);
 
-void 
-CWIPI_set_output_listing
-(FILE *output_listing);
+/*!
+ * \brief Writing output to file.
+ *
+ * This function set the file for writing output.
+ *
+ * \param [in] output_file    Output file
+ *
+ */
 
-/*----------------------------------------------------------------------------
+void 
+CWIPI_output_to_file_set
+(FILE *output_file);
+
+/*!
+ * \brief Dump application properties.
  *
- * Dump application properties
+ * This function dump application properties.
  *
- *----------------------------------------------------------------------------*/
+ */
 
 void 
 CWIPI_dump_appli_properties
 (void);
 
-/*----------------------------------------------------------------------------
+/*!
+ * \brief Creating a coupling object.
  *
- * Create a coupling object
+ * This function dump application properties.
  *
- * parameters:
- *   coupling_name           <-- Coupling identifier
- *   coupling_type           <-- Coupling type
- *   coupled_application     <-- Coupled application name
- *   entitiesDim             <-- Mesh entities dimension (1, 2 or 3)
- *   tolerance               <-- Geometric tolerance to locate
- *   mesh_type               <-- CWIPI_STATIC_MESH
- *                               CWIPI_MOBILE_MESH (not implemented yet)
- *   solver_type             <-- CWIPI_SOLVER_CELL_CENTER
- *                               CWIPI_SOLVER_CELL_VERTEX
- *   output_frequency        <-- Output frequency
- *   output_format           <-- Output format to visualize exchanged fields
- *                               on the coupled mesh. Choice between :
- *                                 - "EnSight Gold"
- *                                 - "MED_ficher"
- *                                 - "CGNS"
- *   output_format_option    <-- Output options "opt1, opt2,
+ * \param [in]  coupling_name           <-- Coupling identifier
+ * \param [in]  coupling_type           <-- Coupling type
+ * \param [in]  coupled_application     <-- Coupled application name
+ * \param [in]  entitiesDim             <-- Mesh entities dimension (1, 2 or 3)
+ * \param [in]  tolerance               <-- Geometric tolerance to locate
+ * \param [in]  mesh_type               <-- CWIPI_STATIC_MESH
+ * \param [in]                              CWIPI_MOBILE_MESH (not implemented yet)
+ * \param [in]  solver_type             <-- CWIPI_SOLVER_CELL_CENTER
+ * \param [in]                              CWIPI_SOLVER_CELL_VERTEX
+ * \param [in]  output_frequency        <-- Output frequency
+ * \param [in]  output_format           <-- Output format to visualize exchanged fields
+ *                                          on the coupled mesh. Choice between :
+ *                                            - "EnSight Gold"
+ *                                            - "MED_ficher"
+ *                                            - "CGNS"
+ * \param [in]  output_format_option    <-- Output options "opt1, opt2,
  *                             text             output text files
  *                             binary              output binary files (default)
  *                             big_endian          force binary files
