@@ -1049,6 +1049,11 @@ if (test x$have_mpi = xyes) ; then
   echo "   MPI I/O support: "$have_mpi_io""
   echo "   MPI2 one-sided communication support: "$have_mpi_one_sided""
 fi
+if test -n "$DOXYGEN"; then
+  echo " Doxygen found"
+else
+  echo " Doxygen not found : Documentation will be not compiled"
+fi
 echo
 echo "The package has been configured. Type:"
 echo " make"

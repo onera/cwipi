@@ -3,7 +3,7 @@
 /*
   This file is part of the CWIPI library. 
 
-  Copyright (C) 2011  ONERA
+  Copyright (C) 2011-2012  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -23,8 +23,6 @@
 
 #include <stdio.h>
 
-//#include <fvmc_nodal.h> // 
-
 /*=============================================================================
  * Macro definitions
  *============================================================================*/
@@ -43,7 +41,20 @@ extern "C" {
 #endif /* __cplusplus */
 
 /*============================================================================
- * Type definitions
+ * Type
+ *============================================================================*/
+
+/**
+ * \enum CWIPI_long_t
+ * \brief Long int in cwipi 
+ *
+ * CWIPI_data_t describes the different ways to define coupling data 
+ */
+
+typedef long cwipi_long_int_t;
+
+/*============================================================================
+ * Enumeration definitions
  *============================================================================*/
 
 /**
@@ -56,7 +67,7 @@ extern "C" {
 typedef enum {
 
   CWIPI_DATA_FROM_XML,      /*!< Data are defined in a XML data file */
-  CWIPI_DATA_IN_CODE_SOURCE,/*!< Data are Defined in code source */ 
+  CWIPI_DATA_IN_CODE_SRC,   /*!< Data are Defined in code source */ 
 
 } CWIPI_data_t;
 
@@ -72,24 +83,43 @@ typedef enum {
   CWIPI_COMM_PAR_WITH_PART,    /*!< Parallel communcation 
                                     on partitioned source */
   CWIPI_COMM_PAR_WITHOUT_PART, /*!< Parallel communcation 
-                                    on unpartitioned source defined on all process */
+                                    on unpartitioned source defined on 
+                                    all process */
   CWIPI_COMM_SEQ,              /*!< Parallel communcation 
-                                    on unpartitioned source defined on master process */
+                                    on unpartitioned source defined on 
+                                    master process */
   CWIPI_COMM_INTERNAL,         /*!< Internal communcation within a process */
 
 } CWIPI_communication_t;
 
 /**
- * \enum CWIPI_source_moving_t
- * \brief Active moving source
+ * \enum CWIPI_frequency_t
+ * \brief  Echange frequency 
  *
- * CWIPI_source_moving_t active moving source (mesh or point cloud)  
+ * CWIPI_frequency_t describes the different ways to define coupling data 
  */
 
 typedef enum {
 
-  CWIPI_SOURCE_MOVING_ON,     /*!< Moving on */ 
-  CWIPI_SOURCE_MOVING_OFF,    /*!< Moving off */ 
+  CWIPI_FREQUENCY_NO,                /*!< Exchange unrelated to time */
+  CWIPI_FREQUENCY_EACH_TIME_STEP,    /*!< Exchange at each time step */
+  CWIPI_FREQUENCY_RELATED_TIME_STEP, /*!< Exchange frequency is linked to 
+                                          time step  */ 
+  CWIPI_FREQUENCY_ASYNCHRONOUS,      /*!< Exchange are asynchronous */ 
+
+} CWIPI_frequency_t;
+
+/**
+ * \enum CWIPI_src_moving_t
+ * \brief Active moving source
+ *
+ * CWIPI_src_moving_t active moving source (mesh or point cloud)  
+ */
+
+typedef enum {
+
+  CWIPI_SRC_MOVING_ON,     /*!< Moving on */ 
+  CWIPI_SRC_MOVING_OFF,    /*!< Moving off */ 
 
 } CWIPI_source_moving_t;
 
@@ -108,199 +138,233 @@ typedef enum {
 
 } CWIPI_field_nature_t ;
 
-/*----------------------------------------------------------------------------
- * Field type
- *----------------------------------------------------------------------------*/
+/**
+ * \enum CWIPI_field_type_t
+ * \brief Field type
+ *
+ * CWIPI_field_type_t gives types accepted by field
+ */
 
 typedef enum { 
 
-  CWIPI_FIELD_TYPE_FLOAT,
-  CWIPI_FIELD_TYPE_DOUBLE,
+  CWIPI_FIELD_TYPE_DOUBLE, /*!< Field type is double */
 
 } CWIPI_field_type_t;
 
-/*----------------------------------------------------------------------------
- * Coupling interpolation type
- *----------------------------------------------------------------------------*/
+/**
+ * \enum CWIPI_interpolation_t
+ * \brief Interpolation type
+ *
+ * CWIPI_interpolation_t gives the different ways to interpolate
+ */
 
 typedef enum {
 
-  CWIPI_INTERPOLATION_DEFAULT,
-  CWIPI_INTERPOLATION_USER,
+  CWIPI_INTERPOLATION_DEFAULT,  /*!< Default interpolation */
+  CWIPI_INTERPOLATION_USER,     /*!< User interpolation */
 
 } CWIPI_interpolation_t;
 
-/*----------------------------------------------------------------------------
- * Coupling exchange status
- *----------------------------------------------------------------------------*/
+/**
+ * \enum CWIPI_status_t
+ * \brief Error codes
+ *
+ * CWIPI_status_t defines the different error codes 
+ */
 
 typedef enum {
 
-  CWIPI_STATUS_OK,
-  CWIPI_STATUS_ERROR,
+  CWIPI_STATUS_OK,            /*!< Output without error */
+  CWIPI_STATUS_ERROR,         /*!< output with error */
 
 } CWIPI_status_t;
 
-/*----------------------------------------------------------------------------
- * Block type
- *----------------------------------------------------------------------------*/
+/**
+ * \enum CWIPI_block_t
+ * \brief Elements taken into account
+ *
+ * CWIPI_block_t defines elements taken into account  
+ */
 
 typedef enum {
 
-  CWIPI_BLOCK_NODE,
-  CWIPI_BLOCK_EDGE2,
-  CWIPI_BLOCK_FACE_TRIA3,
-  CWIPI_BLOCK_FACE_TRIA6,
-  CWIPI_BLOCK_FACE_QUAD4,
-  CWIPI_BLOCK_FACE_POLY,
-  CWIPI_BLOCK_CELL_TETRA4,
-  CWIPI_BLOCK_CELL_HEXA8,
-  CWIPI_BLOCK_CELL_PRISM6,
-  CWIPI_BLOCK_CELL_PYRAM5,
-  CWIPI_BLOCK_CELL_POLY,
+  CWIPI_BLOCK_NODE,          /*!< Node */
+  CWIPI_BLOCK_EDGE2,         /*!< Edge with two nodes */
+  CWIPI_BLOCK_FACE_TRIA3,    /*!< Triangle with three nodes */
+  CWIPI_BLOCK_FACE_QUAD4,    /*!< Quadrangle with three nodes */
+  CWIPI_BLOCK_FACE_POLY,     /*!< Generic polygon */
+  CWIPI_BLOCK_CELL_TETRA4,   /*!< Tetrahedron with four nodes */
+  CWIPI_BLOCK_CELL_HEXA8,    /*!< Hexahedron with eight nodes */
+  CWIPI_BLOCK_CELL_PRISM6,   /*!< Prism with six nodes */
+  CWIPI_BLOCK_CELL_PYRAM5,   /*!< Pyramid with five nodes */
+  CWIPI_BLOCK_CELL_POLY,     /*!< Generic polyhedron */
 
 } CWIPI_block_t;
 
-/*----------------------------------------------------------------------------
- * Source
- *----------------------------------------------------------------------------*/
+/**
+ * \enum CWIPI_support_t
+ * \brief Geomtric supports
+ *
+ * CWIPI_support_t gives different geometric supports on which source fields 
+ * are defined  
+ */
 
 typedef enum {
 
-  CWIPI_SOURCE_MESH,
-  CWIPI_SOURCE_POINT_CLOUD,
+  CWIPI_SUPPORT_MESH,         /*!< Mesh */
+  CWIPI_SUPPORT_POINT_CLOUD,  /*!< Point cloud */
 
-} CWIPI_source_t;
+} CWIPI_support_t;
 
-/*----------------------------------------------------------------------------
- * Geometry
- *----------------------------------------------------------------------------*/
+/**
+ * \enum CWIPI_geometry_t
+ * \brief Geomtric algorithms
+ *
+ * CWIPI_geometry_t gives different geometric algorithm on which interpolation 
+ * method is based 
+ */
 
 typedef enum {
 
-  CWIPI_GEOMETRY_CLOSEST_POINT,
-  CWIPI_GEOMETRY_INTERSECTION,
-  CWIPI_GEOMETRY_LOCATION,
+  CWIPI_GEOMETRY_CLOSEST_POINT, /*!< Closest points */
+  CWIPI_GEOMETRY_INTERSECTION,  /*!< Meshes intersection */
+  CWIPI_GEOMETRY_LOCATION,      /*!< Location into a mesh */
 
 } CWIPI_geometry_t;
 
-/*----------------------------------------------------------------------------
- * Entities
- *----------------------------------------------------------------------------*/
+/**
+ * \enum CWIPI_interface_t
+ * \brief Coupling interfaces
+ *
+ * CWIPI_interface_t gives different coupling interfaces 
+ */
 
 typedef enum {
 
-  CWIPI_ENTITIES_POINT,
-  CWIPI_ENTITIES_FACE,
-  CWIPI_ENTITIES_CELL,
+  CWIPI_INTERFACE_POINT,    /*!< Point interface */ 
+  CWIPI_INTERFACE_LINEAR,   /*!< Linear interface */ 
+  CWIPI_INTERFACE_SURFACE,  /*!< Surface interface */ 
+  CWIPI_INTERFACE_VOLUME,   /*!< Volume interface */ 
 
-} CWIPI_entities_t;
+} CWIPI_interface_t;
 
-/*----------------------------------------------------------------------------
- * Function pointer to define an user interpolation from mesh location 
+/*============================================================================
+ * User interpolation type
+ *============================================================================*/
+
+/**
+ * \typedef void (*CWIPI_interp_from_location_t)
+ * \brief User interpolation function from location into a mesh.
  *
- * parameters:
- * ----------
+ * void (*CWIPI_interp_from_location_t) defines the user interpolation 
+ * interface to take into account an user interpolation from location of target 
+ * points into the source mesh.
  *
- * entities_dim                              <-- entities dimension of
- *                                               the local mesh (1, 2 or 3)
- * n_local_vertex                            <-- local mesh vertices number
- * n_local_element                           <-- local mesh elements number
- *                                               (without polyhedra)
- * n_local_polyhedra                         <-- local mesh elements number
- * n_distant_point                           <-- located distant point number
- * local_coordinates                         <-- local mesh vertex coordinates
- * local_parent_elt_num                      <-- pointer to parent element
- *                                               (or NULL if sorted elements)
- * local_connectivity_index                  <-- element -> vertices index
- *                                               (O to n-1)
- *                                               size:n_local_elements + 1
- * local_connectivity                        <-- element -> vertex connectivity
- *                                                       of the local mesh
- *                               size:local_connectivity_index[n_local_elements]
- * local_polyhedra_face_index                <-- polyhedra volume -> faces index
- * local_polyhedra_cell_to_face_connectivity <-- polyhedra -> face connectivity
- * local_polyhedra_face_connectivity_index   <-- polyhedra faces
- *                                               face -> vertices index
- * local_polyhedra_face_connectivity         <-- polyhedra
- *                                               face -> vertex connectivity
- * distant_points_coordinates                <-- distant point coordinates
- * distant_points_location                   <-- distant point location
- * distant_points_barycentric_coordinates_index
- *                                           <-- element -> barycentric coordinates
- *                                                (0 to n-1)
- *                                               size: n_distant_point + 1
- * distant_points_barycentric_coordinates    <-- distant point barycentric coordinates
- *                                             size: distant_points_barycentric_coordinates_index[n_distant_point]
- * stride                                    <-- interlaced field number
- * local_field                               <-- local field
- * distant_field                             --> distant field
- *
- *----------------------------------------------------------------------------*/
+ * \param [in]  interface_type              Interface type
+ * \param [in]  n_src_vtcs                  Number of source mesh vertices
+ * \param [in]  n_src_std_elts              Number of source mesh standard elements
+ * \param [in]  n_src_poly                  Number of source mesh polyhedra
+ * \param [in]  n_tgt_pts                   Number of target points
+ * \param [in]  src_vts_coords              Source Mesh vertices coordinates
+ * \param [in]  src_parent_elts_num         Pointer to parent element number 
+ *                                          (or NULL)
+ * \param [in]  src_parent_vtcs_num         Pointer to parent vertex number 
+ *                                          (or NULL)
+ * \param [in]  src_connec_idx              Element to vertex index 
+ *                                          (src_connec_idx[0] = 0 and
+ *                                          size = n_src_std_element + 1)
+ * \param [in]  src_connec                  Element to vertex connectivity. 
+ *                                          (size = src_connec_idx[n_src_std_element])
+ * \param [in]  src_poly_cell_face_idx      Polyhedron to face index 
+ *                                          (src_poly_cell_face_idx[0] = 0 and
+ *                                          size = n_src_polyhedron + 1)
+ * \param [in]  src_poly_cell_face_connec   Polyhedron to face connectivity 
+ *                                          (size = src_poly_cell_face_idx[n_src_polyhedron])
+ * \param [in]  src_poly_face_vtx_idx       Polyhedron face to vertex index 
+ *                                          (src_poly_face_vertex_idx[0] = 0 and
+ *                                          size_idx = max(src_poly_cell_face_connec) + 1)
+ * \param [in]  src_poly_face_vtx_connec    Polyhedron face to vertex connectivity
+ *                                          (size = src_poly_face_vertex_idx[size_iudx - 1])
+ * \param [in]  tgt_pts_coords              Target points coordinates
+ *                                          (size = 3 * n_tgt_pts) 
+ * \param [in]  tgt_pts_location            target points location
+ *                                          (size = n_tgt_pts) 
+ * \param [in]  tgt_pts_dist                target points distance to location element
+ *                                          (size = n_tgt_pts) 
+ * \param [in]  tgt_pts_bary_coords_idx     Index of Barycentric coordinates target points
+ *                                          in location element 
+ *                                          (tgt_pts_bary_coords_idx[0] = 0 and 
+ *                                          size = n_tgt_pts + 1) 
+ * \param [in]  tgt_pts_bary_coords         Barycentric coordinates target points
+ *                                          in location element 
+ *                                          (size = tgt_pts_bary_coords_idx[n_tgt_pts])
+ * \param [in]  stride                      Number of field components
+ * \param [in]  src_field_nature            source field nature
+ * \param [in]  src_field                   source field
+ *                                          (size depends on field type and stride)
+ * \param [in]  src_field_nature            target field nature
+ * \param [out] tgt_field                   target field
+ *                                          (size = stride * n_tgt_pts)
+ */
 
 typedef void (*CWIPI_interp_from_location_t)
-  (const int entities_dim,
-   const int n_local_vertex,
-   const int n_local_element,
-   const int n_local_polhyedra,
-   const int n_distant_point,
-   const double local_coordinates[],
-   const int local_connectivity_index[],
-   const int local_connectivity[],
-   const int local_polyhedra_face_index[],
-   const int local_polyhedra_cell_to_face_connectivity[],
-   const int local_polyhedra_face_connectivity_index[],
-   const int local_polyhedra_face_connectivity[],
-   const double distant_points_coordinates[],
-   const int distant_points_location[],
-   const float distant_points_distance[],
-   const int distant_points_barycentric_coordinates_index[],
-   const double distant_points_barycentric_coordinates[],
-   const int stride,
-   const CWIPI_solver_type_t  solver_type,
-   const void *local_field,
-   void *distant_field
+  (const int                   interface_type,
+   const int                   n_src_vtcs,
+   const int                   n_src_std_elts,
+   const int                   n_src_poly,
+   const int                   n_tgt_pts,
+   const double                src_vtcs_coords[],
+   const cwipi_long_t          src_parent_elts_num[],
+   const cwipi_long_t          src_parent_vtcs_num[],
+   const int                   src_connec_idx[],
+   const int                   src_connec[],
+   const int                   src_poly_cell_face_idx[],
+   const int                   src_poly_cell_face_connec[],
+   const int                   src_poly_face_vtx_idx[],
+   const int                   src_poly_face_vtx_connec[],
+   const double                tgt_pts_coords[],
+   const int                   tgt_pts_location[],
+   const float                 tgt_pts_dist[],
+   const int                   tgt_pts_bary_coords_idx[],
+   const double                tgt_pts_bary_coords[],
+   const int                   stride,
+   const CWIPI_field_nature_t  src_field_nature,
+   const void                 *src_field,
+   const CWIPI_field_nature_t  tgt_field_nature,
+   void                       *tgt_field
    );
 
-/*----------------------------------------------------------------------------
- * Function pointer to define an user interpolation from mesh intersection 
+/**
+ * \typedef void (*CWIPI_interp_from_intersec_t)
+ * \brief User interpolation function from intersection between meshes <b>(Not implemented yet)</b>
  *
- *                Not implemented yet
+ * void (*CWIPI_interp_from_intersec_t) defines the user interpolation 
+ * interface to take into account an user interpolation from intersection 
+ * between source and target meshes 
  *
- * parameters:
- * ----------
+ * \param [in]  interface_type              Interface type
  *
- * entities_dim                              <-- entities dimension of
- *                                               the local mesh (1, 2 or 3)
- * n_source_vertex                            <-- local mesh vertices number
- * n_source_element                           <-- local mesh elements number
- *                                               (without polyhedra)
-  *----------------------------------------------------------------------------*/
+ */
 
 typedef void (*CWIPI_interp_from_intersec_t)
-  (const int entities_dim,
-   const int n_source_vertex,
-   const int n_source_element
+  (const int interface_type
    );
 
-/*----------------------------------------------------------------------------
- * Function pointer to define an user interpolation from closest points 
+/**
+ * \typedef void (*CWIPI_interp_from_closest_pts_t)
+ * \brief User interpolation function from closest points <b>(Not implemented yet)</b>
  *
- *                Not implemented yet
+ * void (*CWIPI_interp_from_closest_pts_t) defines the user interpolation 
+ * interface to take into account an user interpolation from <i>n</i> closest
+ * point 
  *
- * parameters:
- * ----------
+ * \param [in]  interface_type              Interface type
  *
- * entities_dim                              <-- entities dimension of
- *                                               the local mesh (1, 2 or 3)
- * n_source_vertex                            <-- local mesh vertices number
- * n_source_element                           <-- local mesh elements number
- *                                               (without polyhedra)
-  *----------------------------------------------------------------------------*/
+ */
 
 typedef void (*CWIPI_interp_from_closest_pts_t)
-  (const int n_source_vertex,
-   const int n_target_vertex);
+  (const int interface_type
+   );
 
 /*=============================================================================
  * Static global variables
@@ -308,6 +372,33 @@ typedef void (*CWIPI_interp_from_closest_pts_t)
 
 /*=============================================================================
  * Public function prototypes 
+ *============================================================================*/
+
+/*=============================================================================
+ * Public function prototypes - with xml data
+ *============================================================================*/
+
+/*!
+ * \brief Initialize CWIPI from xml data file
+ *
+ * This function create the MPI intra communicator for this code from
+ * the MPI inter communicator that contains all code process. It is a
+ * synchronization point between all codes
+ *
+ * \param [in]  inter_comm   MPI inter communicator
+ * \param [in]  data_file    xml_data_file
+ * \param [out] intra_comm   MPI intra communicator
+ *
+ */
+
+void 
+CWIPI_init_from_xml
+(const MPI_Comm           inter_comm,
+ const char              *data_file,
+ MPI_Comm                *intra_comm);
+
+/*=============================================================================
+ * Public function prototypes - without xml data
  *============================================================================*/
 
 /*!
@@ -318,8 +409,8 @@ typedef void (*CWIPI_interp_from_closest_pts_t)
  * synchronization point between all codes
  *
  * \param [in]  inter_comm   MPI inter communicator
- * \param [in]  code_name    name of this code
- * \param [in]  data_type    data type (read in xml data file or not)
+ * \param [in]  code_name    Name of this code
+ * \param [in]  time_init    Time init
  * \param [out] intra_comm   MPI intra communicator
  *
  */
@@ -328,92 +419,22 @@ void
 CWIPI_init
 (const MPI_Comm           inter_comm,
  const char              *code_name,
- const CWIPI_data_t       data_type,
- const char              *data_file,
+ const double            *time_init,
  MPI_Comm                *intra_comm);
 
-/*=============================================================================
- * Public function prototypes - with xml data
- *============================================================================*/
-
-/*----------------------------------------------------------------------------
+/*!
+ * \brief Initialize CWIPI.
  *
- * Initialize the cwipi library.
- * Redirect outputs in a file (Standard output with output_listing = NULL or
- * output_logical_unit = -1)
- * Create the current communicator application from 'common_comm'.
+ * This function create the MPI intra communicator for this code from
+ * the MPI inter communicator that contains all code process. It is a
+ * synchronization point between all codes
  *
- * parameters:
- *   common_comm       <-- Common MPI communicator
- *   data_from         <-- Where data are defined
- *   application_comm  --> Internal MPI communicator for the current
- *                         application
+ * \param [in]  inter_comm   MPI inter communicator
+ * \param [in]  code_name    Name of this code
+ * \param [in]  time_init    Time init
+ * \param [out] intra_comm   MPI intra communicator
  *
- *         Synchronization point between all applications
- *----------------------------------------------------------------------------*/
-
-void 
-CWIPI_code_init
-(const double            *time_init,
- const double            *time_step);
- MPI_Comm                *application_comm);
-
-/*=============================================================================
- * Public function prototypes - without xml data
- *============================================================================*/
-
-
-/*----------------------------------------------------------------------------
- *
- * Initialize the cwipi library.
- * Redirect outputs in a file (Standard output with output_listing = NULL or
- * output_logical_unit = -1)
- * Create the current communicator application from 'common_comm'.
- *
- * parameters:
- *   common_comm       <-- Common MPI communicator
- *   data_from         <-- Where data are defined
- *   application_comm  --> Internal MPI communicator for the current
- *                         application
- *
- *         Synchronization point between all applications
- *----------------------------------------------------------------------------*/
-
-void 
-CWIPI_code_init
-(const MPI_Comm           common_comm,
- const char              *application_name,
- const CWIPI_data_t       data_from,
- const char              *data_file,
- const double            *time_init,
- const double            *time_step,
- MPI_Comm                *application_comm);
-
-/*----------------------------------------------------------------------------
- *
- * Initialize the cwipi library.
- * Redirect outputs in a file (Standard output with output_listing = NULL or
- * output_logical_unit = -1)
- * Create the current communicator application from 'common_comm'.
- *
- * parameters:
- *   common_comm       <-- Common MPI communicator
- *   data_from         <-- Where data are defined
- *   application_comm  --> Internal MPI communicator for the current
- *                         application
- *
- *         Synchronization point between all applications
- *----------------------------------------------------------------------------*/
-
-void 
-CWIPI_code_init
-(const MPI_Comm           common_comm,
- const char              *application_name,
- const CWIPI_data_t       data_from,
- const char              *data_file,
- const double            *time_init,
- const double            *time_step,
- MPI_Comm                *application_comm);
+ */
 
 /*----------------------------------------------------------------------------
  *
@@ -424,7 +445,7 @@ CWIPI_code_init
  *----------------------------------------------------------------------------*/
 
 void 
-PROCF (cwipi_set_output_logical_unit, CWIPI_SET_OUTPUT_LOGICAL_UNIT) 
+PROCF (cwipi_output_listing_fortran, CWIPI_SET_OUTPUT_LOGICAL_UNIT) 
 (int *iunit);
 
 void 
