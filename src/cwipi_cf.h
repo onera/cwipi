@@ -515,6 +515,22 @@ void PROCF(cwipi_locate_cf, CWIPI_LOCATE_CF) (const char *coupling_name,
                                                       const int  *l_coupling_name
                                                       ARGF_SUPP_CHAINE);
 
+
+/*----------------------------------------------------------------------------
+ *
+ * Return located points distance to th interface
+ *
+ * parameters
+ *   coupling_name        <-- Coupling identifier
+ *   distance             <-- distance              
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_dist_located_pts_get_cf, CWIPI_DIST_LOCATED_PTS_GET_CF) 
+     (const char *coupling_name,
+      const int  *l_coupling_name,
+      float      *distance
+      ARGF_SUPP_CHAINE);
+
 /*----------------------------------------------------------------------------
  *
  * Update Location

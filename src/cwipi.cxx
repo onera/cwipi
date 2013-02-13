@@ -1032,6 +1032,28 @@ void cwipi_irecv
 
 /*----------------------------------------------------------------------------
  *
+ * Get located point distance to exchange area 
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *
+ *----------------------------------------------------------------------------*/
+
+const float *cwipi_distance_located_pts_get(const char  *coupling_name)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  return coupling.distance();
+}
+
+
+/*----------------------------------------------------------------------------
+ *
  * Wait for cwipi_issend. 
  *
  * parameters
@@ -1302,7 +1324,7 @@ const float *cwipi_get_distant_distance (const char *coupling_id)
 
   cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
-  return coupling.getDistantDistance();
+  return coupling.distance();
 }
 
 /*----------------------------------------------------------------------------

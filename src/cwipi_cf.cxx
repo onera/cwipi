@@ -884,6 +884,40 @@ void PROCF(cwipi_locate_cf, CWIPI_LOCATE_CF) (const char *coupling_name,
 
 /*----------------------------------------------------------------------------
  *
+ * Return located points distance to th interface
+ *
+ * parameters
+ *   coupling_name        <-- Coupling identifier
+ *   distance             <-- distance              
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_dist_located_pts_get_cf, CWIPI_DIST_LOCATED_PTS_GET_CF) 
+     (const char *coupling_name,
+      const int  *l_coupling_name,
+      float      *distance
+      ARGF_SUPP_CHAINE)
+{
+  char *coupling_nameC =
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
+
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_nameC;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  const int npts = coupling.getNLocatedPoint();
+
+  const float *dist_c = coupling.distance();
+
+  for (int i = 0; i < npts; i++)
+    distance[i] = dist_c[i];
+
+  delete[] coupling_nameC;
+}
+
+/*----------------------------------------------------------------------------
+ *
  * Update Location
  *
  * parameters

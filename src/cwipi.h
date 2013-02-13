@@ -868,6 +868,17 @@ void cwipi_wait_irecv(const char  *coupling_name,
 
 /*----------------------------------------------------------------------------
  *
+ * Get located point distance to exchange area 
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *
+ *----------------------------------------------------------------------------*/
+
+const float *cwipi_distance_located_pts_get(const char  *coupling_name);
+
+/*----------------------------------------------------------------------------
+ *
  * Define the interpolation function
  *
  * parameters

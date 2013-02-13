@@ -24,6 +24,13 @@
 
 namespace cwipi {
 
+
+  const float *Coupling::distance() const
+  {
+    return &(_distance[0]);
+  }
+
+
   void  Coupling::set_interpolation_function(cwipi_interpolation_fct_t fct)
   {
     _interpolationFct = fct;

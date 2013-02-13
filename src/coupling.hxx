@@ -125,6 +125,8 @@ namespace cwipi {
 
     inline const float *getDistantDistance() const;
 
+    inline const float *distance() const;
+
     inline int getNDistantPoint() const;
 
     inline const double *getDistantPointCoordinates() const;
@@ -271,6 +273,7 @@ namespace cwipi {
     std::map<int, int > &_tmpTimeStepIrecv;
     std::map<int, double > &_tmpTimeValueIrecv;
     std::map<int, const char * > &_tmpFieldNameIrecv;
+    std::vector<float> _distance;
   };
 
 }

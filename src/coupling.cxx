@@ -262,6 +262,8 @@ Coupling::~Coupling()
       delete p->second;
   }
 
+  _distance.clear();
+
   _tmpDistantFieldsIssend.clear();
   delete &_tmpDistantFieldsIssend;
 
@@ -1680,6 +1682,21 @@ void Coupling::locate()
   }
 
   _locationToLocalMesh->locate();
+  float *distantDistance = const_cast <float *> (_locationToLocalMesh->getDistance());
+
+  /* Ajouter les échanges des distances */
+
+  int nLocPts = getNLocatedPoint();
+  if (_distance.size() != nLocPts)
+    _distance.resize(nLocPts);
+
+  fvmc_locator_exchange_point_var(_locationToLocalMesh->getFVMLocator(),
+                                  (void *) distantDistance,
+                                  (void *) &(_distance[0]),
+                                  NULL,
+                                  sizeof(float),
+                                  1,
+                                  0);
 
   if (_isCoupledRank)
     _initVisualization();

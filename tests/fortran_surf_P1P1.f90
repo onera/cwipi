@@ -203,6 +203,8 @@ program testf
   double precision, allocatable, dimension(:) :: values
   double precision, allocatable, dimension(:) :: localvalues
 
+  real*4, allocatable, dimension(:) :: distLocPts
+
   integer status
 
   integer i, order, k
@@ -219,6 +221,8 @@ program testf
   integer :: n_partition, n2, codeId
 
   integer :: nVertexSeg
+
+  integer :: nLocatedPts
 
   double precision :: randLevel
 
@@ -403,6 +407,14 @@ program testf
                          userInterpolation, &
                          nNotLocatedPoints, &
                          status)
+  
+  call cwipi_get_n_located_pts_f("test2D_3", nLocatedPts)
+
+  allocate(distLocPts(nLocatedPts))
+
+  call cwipi_dist_located_pts_get_f("test2D_3", distLocPts)
+
+  print* , "distLocPts", distLocPts
 
   call printStatus(iiunit, status)
   write(iiunit,*) "valeurs recues test2D_3"

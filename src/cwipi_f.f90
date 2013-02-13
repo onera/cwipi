@@ -291,6 +291,10 @@ module cwipi
     cwipi_set_info_f_
   end interface
 
+  interface cwipi_dist_located_pts_get_f; module procedure &
+    cwipi_dist_located_pts_get_f_  
+  end interface cwipi_dist_located_pts_get_f
+
   !
   ! Private
 
@@ -340,6 +344,7 @@ module cwipi
              cwipi_get_elt_cont_MPI_rank_f_,  &
              cwipi_exch_cellvtxfd_eltcont_f_, &
              cwipi_exch_cellcenfd_eltcont_f_, &
+             cwipi_dist_located_pts_get_f_,   &
              cwipi_set_info_f_
 
 contains
@@ -1236,6 +1241,30 @@ contains
     call cwipi_locate_cf(couplingName, lCouplingName)
   end subroutine cwipi_locate_f_
 
+!
+!********************************************************************************
+!
+! cwipi_dist_located_pts_get_f_
+!
+! Return located points to interface
+!
+! parameters
+!   couplingName         <-- Coupling identifier
+!
+!*******************************************************************************
+!
+
+  subroutine cwipi_dist_located_pts_get_f_(couplingName, distance)
+    implicit none
+
+    character (len = *) :: couplingName
+    real(kind=4) :: distance(*)
+    integer :: lcouplingname
+
+    lCouplingName = len(couplingName)
+
+    call cwipi_dist_located_pts_get_cf(couplingName, lCouplingName, distance)
+  end subroutine cwipi_dist_located_pts_get_f_
 !
 !********************************************************************************
 !
