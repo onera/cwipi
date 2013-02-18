@@ -1,4 +1,3 @@
-syntax: glob
 *.orig
 *.rej
 *~
@@ -19,6 +18,5 @@ logmem.txt
 autom4te.cache/*
 autoscan.log
 cython/cwipi.c
+\#*
 
-syntax: regexp
-.*\#.*\#$
