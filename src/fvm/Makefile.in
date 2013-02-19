@@ -65,9 +65,14 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
+
+#if HAVE_MPI
+#lib_LTLIBRARIES += libfvmc_coupl.la
+#libfvmc_coupl_la_SOURCES = fvmc_coupling.c
+#endif
 @HAVE_CGNS_TRUE@am__append_1 = libfvmc_cgns.la
-@HAVE_CGNS_TRUE@@HAVE_MPI_TRUE@am__append_2 = libfvmc_cgns.la $(top_builddir)/src/bft/libbfto.la
-@HAVE_CGNS_TRUE@@HAVE_MPI_FALSE@am__append_3 = libfvmc_cgns.la $(top_builddir)/src/bft/libbfto.la
+@HAVE_CGNS_TRUE@@HAVE_MPI_TRUE@am__append_2 = libfvmc_cgns.la
+@HAVE_CGNS_TRUE@@HAVE_MPI_FALSE@am__append_3 = libfvmc_cgns.la
 @HAVE_MED_TRUE@am__append_4 = libfvmc_med.la
 @HAVE_MED_TRUE@@HAVE_MPI_TRUE@am__append_5 = libfvmc_med.la $(top_builddir)/src/bft/libbfto.la
 @HAVE_MED_TRUE@@HAVE_MPI_FALSE@am__append_6 = libfvmc_med.la $(top_builddir)/src/bft/libbfto.la
@@ -145,21 +150,15 @@ libfvmc_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(libfvmc_la_LDFLAGS) $(LDFLAGS) -o $@
 @HAVE_MPI_TRUE@am_libfvmc_la_rpath = -rpath $(libdir)
-libfvmc_cgns_la_LIBADD =
+@HAVE_CGNS_TRUE@libfvmc_cgns_la_DEPENDENCIES =  \
+@HAVE_CGNS_TRUE@	$(top_builddir)/src/bft/libbftc.la
 am__libfvmc_cgns_la_SOURCES_DIST = fvmc_to_cgns.c
 @HAVE_CGNS_TRUE@am_libfvmc_cgns_la_OBJECTS =  \
 @HAVE_CGNS_TRUE@	libfvmc_cgns_la-fvmc_to_cgns.lo
 libfvmc_cgns_la_OBJECTS = $(am_libfvmc_cgns_la_OBJECTS)
 @HAVE_CGNS_TRUE@am_libfvmc_cgns_la_rpath =
-libfvmc_coupl_la_LIBADD =
-am__libfvmc_coupl_la_SOURCES_DIST = fvmc_coupling.c
-@HAVE_MPI_TRUE@am_libfvmc_coupl_la_OBJECTS = fvmc_coupling.lo
-libfvmc_coupl_la_OBJECTS = $(am_libfvmc_coupl_la_OBJECTS)
-libfvmc_coupl_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(libfvmc_coupl_la_LDFLAGS) $(LDFLAGS) -o $@
-@HAVE_MPI_TRUE@am_libfvmc_coupl_la_rpath = -rpath $(libdir)
-libfvmc_med_la_LIBADD =
+@HAVE_MED_TRUE@libfvmc_med_la_DEPENDENCIES =  \
+@HAVE_MED_TRUE@	$(top_builddir)/src/bft/libbftc.la
 am__libfvmc_med_la_SOURCES_DIST = fvmc_to_med.c
 @HAVE_MED_TRUE@am_libfvmc_med_la_OBJECTS =  \
 @HAVE_MED_TRUE@	libfvmc_med_la-fvmc_to_med.lo
@@ -218,11 +217,9 @@ LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(libfvmc_la_SOURCES) $(libfvmc_cgns_la_SOURCES) \
-	$(libfvmc_coupl_la_SOURCES) $(libfvmc_med_la_SOURCES) \
-	$(libfvmc_scal_la_SOURCES)
+	$(libfvmc_med_la_SOURCES) $(libfvmc_scal_la_SOURCES)
 DIST_SOURCES = $(am__libfvmc_la_SOURCES_DIST) \
 	$(am__libfvmc_cgns_la_SOURCES_DIST) \
-	$(am__libfvmc_coupl_la_SOURCES_DIST) \
 	$(am__libfvmc_med_la_SOURCES_DIST) \
 	$(am__libfvmc_scal_la_SOURCES_DIST)
 fvmincludeHEADERS_INSTALL = $(INSTALL_HEADER)
@@ -399,11 +396,11 @@ AM_LDFLAGS = @HDF5_LDFLAGS@ @MED_LDFLAGS@ @CGNS_LDFLAGS@ \
 
 
 # Conditionally compiled extensions
-libfvmc_cgns_la_CPPFLAGS = $(DEBUG_CPPFLAGS) @MPI_CPPFLAGS@ \
-                         @CGNS_CPPFLAGS@
+@HAVE_CGNS_TRUE@libfvmc_cgns_la_CPPFLAGS = $(DEBUG_CPPFLAGS) @MPI_CPPFLAGS@ \
+@HAVE_CGNS_TRUE@                         @CGNS_CPPFLAGS@
 
-libfvmc_med_la_CPPFLAGS = $(DEBUG_CPPFLAGS)  @MPI_CPPFLAGS@ \
-                         @HDF5_CPPFLAGS@ @MED_CPPFLAGS@ 
+@HAVE_MED_TRUE@libfvmc_med_la_CPPFLAGS = $(DEBUG_CPPFLAGS)  @MPI_CPPFLAGS@ \
+@HAVE_MED_TRUE@                         @HDF5_CPPFLAGS@ @MED_CPPFLAGS@ 
 
 
 # Public header files (to be installed)
@@ -484,7 +481,7 @@ fvmc_writer.h
 @HAVE_MPI_FALSE@lib_LTLIBRARIES = libfvmc_scal.la
 
 # Library source files
-@HAVE_MPI_TRUE@lib_LTLIBRARIES = libfvmc.la libfvmc_coupl.la
+@HAVE_MPI_TRUE@lib_LTLIBRARIES = libfvmc.la
 noinst_LTLIBRARIES = $(am__append_1) $(am__append_4)
 @HAVE_MPI_TRUE@libfvmc_la_LIBADD = $(top_builddir)/src/bft/libbftc.la \
 @HAVE_MPI_TRUE@	$(am__append_2) $(am__append_5)
@@ -567,12 +564,12 @@ noinst_LTLIBRARIES = $(am__append_1) $(am__append_4)
 @HAVE_MPI_FALSE@fvmc_writer.c \
 @HAVE_MPI_FALSE@fvmc_writer_helper.c
 
-@HAVE_MPI_TRUE@libfvmc_coupl_la_SOURCES = fvmc_coupling.c
 @HAVE_CGNS_TRUE@libfvmc_cgns_la_SOURCES = fvmc_to_cgns.c
+@HAVE_CGNS_TRUE@libfvmc_cgns_la_LIBADD = $(top_builddir)/src/bft/libbftc.la
 @HAVE_MED_TRUE@libfvmc_med_la_SOURCES = fvmc_to_med.c
+@HAVE_MED_TRUE@libfvmc_med_la_LIBADD = $(top_builddir)/src/bft/libbftc.la
 @HAVE_MPI_TRUE@libfvmc_la_LDFLAGS = -no-undefined -version-info 0:0:0
 @HAVE_MPI_FALSE@libfvmc_scal_la_LDFLAGS = -no-undefined -version-info 0:0:0
-libfvmc_coupl_la_LDFLAGS = -no-undefined -version-info 0:0:0
 all: all-am
 
 .SUFFIXES:
@@ -646,8 +643,6 @@ libfvmc.la: $(libfvmc_la_OBJECTS) $(libfvmc_la_DEPENDENCIES)
 	$(libfvmc_la_LINK) $(am_libfvmc_la_rpath) $(libfvmc_la_OBJECTS) $(libfvmc_la_LIBADD) $(LIBS)
 libfvmc_cgns.la: $(libfvmc_cgns_la_OBJECTS) $(libfvmc_cgns_la_DEPENDENCIES) 
 	$(LINK) $(am_libfvmc_cgns_la_rpath) $(libfvmc_cgns_la_OBJECTS) $(libfvmc_cgns_la_LIBADD) $(LIBS)
-libfvmc_coupl.la: $(libfvmc_coupl_la_OBJECTS) $(libfvmc_coupl_la_DEPENDENCIES) 
-	$(libfvmc_coupl_la_LINK) $(am_libfvmc_coupl_la_rpath) $(libfvmc_coupl_la_OBJECTS) $(libfvmc_coupl_la_LIBADD) $(LIBS)
 libfvmc_med.la: $(libfvmc_med_la_OBJECTS) $(libfvmc_med_la_DEPENDENCIES) 
 	$(LINK) $(am_libfvmc_med_la_rpath) $(libfvmc_med_la_OBJECTS) $(libfvmc_med_la_LIBADD) $(LIBS)
 libfvmc_scal.la: $(libfvmc_scal_la_OBJECTS) $(libfvmc_scal_la_DEPENDENCIES) 
@@ -664,7 +659,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fvmc_box.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fvmc_box_tree.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fvmc_convert_array.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fvmc_coupling.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fvmc_defs.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fvmc_file.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fvmc_gather.Plo@am__quote@
@@ -950,6 +944,7 @@ uninstall-am: uninstall-fvmincludeHEADERS uninstall-libLTLIBRARIES
 	tags uninstall uninstall-am uninstall-fvmincludeHEADERS \
 	uninstall-libLTLIBRARIES
 
+#libfvmc_coupl_la_LDFLAGS = -no-undefined -version-info 0:0:0
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
