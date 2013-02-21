@@ -1682,21 +1682,32 @@ void Coupling::locate()
   }
 
   _locationToLocalMesh->locate();
-  float *distantDistance = const_cast <float *> (_locationToLocalMesh->getDistance());
 
   /* Ajouter les échanges des distances */
 
   int nLocPts = getNLocatedPoint();
+
   if (_distance.size() != nLocPts)
     _distance.resize(nLocPts);
 
-  fvmc_locator_exchange_point_var(_locationToLocalMesh->getFVMLocator(),
-                                  (void *) distantDistance,
-                                  (void *) &(_distance[0]),
-                                  NULL,
-                                  sizeof(float),
-                                  1,
-                                  0);
+  if (_isCoupledRank) {
+
+    float *distantDistance = const_cast <float *> (_locationToLocalMesh->getDistance());
+
+    fvmc_locator_exchange_point_var(_locationToLocalMesh->getFVMLocator(),
+                                    (void *) distantDistance,
+                                    (void *) &(_distance[0]),
+                                    NULL,
+                                    sizeof(float),
+                                    1,
+                                    0);
+  }
+
+  if (_couplingType == CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING) {
+
+    MPI_Bcast(&(_distance[0]), nLocPts, MPI_FLOAT, 0, localComm );
+  
+  }
 
   if (_isCoupledRank)
     _initVisualization();
