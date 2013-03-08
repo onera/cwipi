@@ -392,7 +392,7 @@ namespace cwipi {
                                 _eltConnectivity +  4*nbTetra + 5*nbPyramid + 6*nbPrism,
                                 NULL);
 
-      else if (nbHexaedra != 0)
+      else if (nHexaedraSum != 0)
         fvmc_nodal_append_shared(_fvmNodal,
                                 0,
                                 FVMC_CELL_HEXA,
