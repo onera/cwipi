@@ -939,6 +939,20 @@ const int * cwipi_get_not_located_points(const char *coupling_id);
 
 /*----------------------------------------------------------------------------
  *
+ * Get located points
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *
+ * return
+ *   locatedPoints        <-- Located points
+ *
+ *----------------------------------------------------------------------------*/
+
+const int * cwipi_get_located_points(const char *coupling_id)
+
+/*----------------------------------------------------------------------------
+ *
  * Get number of located points
  *
  * parameters
