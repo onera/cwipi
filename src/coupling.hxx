@@ -121,7 +121,13 @@ namespace cwipi {
 
     inline const int *getLocatedPoint() const;
 
+    inline const int *getLocatedPointsDistribution() const;
+
     inline const int *getDistantLocation() const;
+
+    inline int getNDistantRank() const;
+
+    inline const int *getDistantDistribution() const;
 
     inline const float *getDistantDistance() const;
 

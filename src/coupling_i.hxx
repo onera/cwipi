@@ -91,6 +91,21 @@ namespace cwipi {
     return &_locationToLocalMesh->getPointCoordinates()[0];
   }
 
+  int Coupling::getNDistantRank() const
+  {
+    return _locationToLocalMesh->getNDistantRank();
+  }
+
+  const int *Coupling::getLocatedPointsDistribution() const
+  {
+    return _locationToLocalMesh->getLocatedPointsDistribution();
+  }
+
+  const int *Coupling::getDistantDistribution() const
+  {
+    return _locationToLocalMesh->getDistantDistribution();
+  }
+
   ///
   /// \brief Set the type of information to be exchanged at the location
   ///

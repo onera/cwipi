@@ -140,11 +140,6 @@ cdef extern from "cwipi.h":
     int cwipi_get_n_located_points(char* coupling_id)
     int cwipi_get_n_not_located_points(char* coupling_id)
 
-#
-# Coupling additional functions (activated by set_info function)
-
-    void cwipi_set_info(char* coupling_id, cwipi_located_point_info_t info)
-  
     #
     # info about mpi rank, mesh and element where local points are located 
 
@@ -153,19 +148,11 @@ cdef extern from "cwipi.h":
     double* cwipi_get_distant_coordinates(char* coupling_id)
     int* cwipi_get_distant_barycentric_coordinates_index (char* coupling_id)
     double* cwipi_get_distant_barycentric_coordinates (char* coupling_id)
-    int cwipi_get_n_located_distant_points(char* coupling_id)
-
-    int* cwipi_get_element_containing(char* coupling_id)
-    int* cwipi_get_element_containing_n_vertex(char* coupling_id)
-    int* cwipi_get_element_containing_vertex(char* coupling_id)
-    double* cwipi_get_element_containing_vertex_coords(char* coupling_id)
-    double* cwipi_get_element_containing_barycentric_coordinates(char* coupling_id)
-    int* cwipi_get_element_containing_MPI_rank(char* coupling_id)
-    void cwipi_exchange_cell_vertex_field_of_element_containing(char* coupling_id, double* sendingField,
-                                                                double* receivingField, int stride)
-    void cwipi_exchange_cell_center_field_of_element_containing(char* coupling_id, double* sendingField,
-                                                                double* receivingField, int stride)
-
+    int cwipi_get_n_distant_points(char* coupling_id)
+    int cwipi_get_n_distant_ranks(char *coupling_id)
+    int *cwipi_get_distant_distribution(char *coupling_id)
+    int *cwipi_get_located_points_distribution(char *coupling_id)
+ 
 COUPLING_PARALLEL_WITH_PARTITIONING = CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING
 COUPLING_PARALLEL_WITHOUT_PARTITIONING = CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING
 COUPLING_SEQUENTIAL = CWIPI_COUPLING_SEQUENTIAL
@@ -820,6 +807,126 @@ cdef class Coupling:
                                                  <void *> cwipi_get_not_located_points(self.name)) 
 
 
+    def get_distant_location(self):
+        """
+        Get distant point location 
+        """
+        np.import_array()
+        cdef np.npy_intp dims = <np.npy_intp> cwipi_get_n_distant_points(self.name)
+        if (dims == 0):
+            return None
+        else :
+            return np.PyArray_SimpleNewFromData(1, 
+                                                 &dims, 
+                                                 np.NPY_INT32,
+                                                 <void *> cwipi_get_distant_location(self.name))
+
+ 
+    def get_distant_distance(self):
+        """
+        Get distant points distance to location element
+        """
+        np.import_array()
+        cdef np.npy_intp dims = <np.npy_intp> cwipi_get_n_distant_points(self.name)
+        if (dims == 0):
+            return None
+        else :
+            return np.PyArray_SimpleNewFromData(1, 
+                                                 &dims, 
+                                                 np.NPY_FLOAT,
+                                                 <void *> cwipi_get_distant_distance(self.name))
+
+
+    def get_distant_coordinates(self):
+        """
+        Get distant points coordinates
+        """
+        np.import_array()
+        cdef np.npy_intp dims = 3 * <np.npy_intp> cwipi_get_n_distant_points(self.name)
+        if (dims == 0):
+            return None
+        else :
+            return np.PyArray_SimpleNewFromData(1, 
+                                                 &dims, 
+                                                 np.NPY_DOUBLE,
+                                                 <void *> cwipi_get_distant_coordinates(self.name))
+
+
+    def get_distant_barycentric_coordinates_index(self):
+        """
+        Get distant points barycentric coordinates index
+        """
+        np.import_array()
+        cdef np.npy_intp dims = <np.npy_intp> cwipi_get_n_distant_points(self.name) + 1
+        if (dims == 0):
+            return None
+        else :
+            return np.PyArray_SimpleNewFromData(1, 
+                                                 &dims, 
+                                                 np.NPY_INT32,
+                                                 <void *> cwipi_get_distant_barycentric_coordinates_index(self.name))
+
+
+    def get_distant_barycentric_coordinates(self):
+        """
+        Get distant points barycentric coordinates
+        """
+        np.import_array()
+        cdef np.npy_intp dims1 = <np.npy_intp> cwipi_get_n_distant_points(self.name) + 1
+        cdef np.npy_intp dims = <np.npy_intp> (cwipi_get_distant_barycentric_coordinates_index(self.name)[dims1])
+        if (dims == 0):
+            return None
+        else :
+            return np.PyArray_SimpleNewFromData(1, 
+                                                 &dims, 
+                                                 np.NPY_DOUBLE,
+                                                 <void *> cwipi_get_distant_barycentric_coordinates(self.name))
+
+
+    def get_n_distant_points(self):
+        """
+        Get number of distant points
+        """
+        return  cwipi_get_n_distant_points(self.name)
+
+
+    def get_n_distant_ranks(self):
+        """
+        Get number of distant ranks
+        """
+        return  cwipi_get_n_distant_ranks(self.name)
+
+
+    def get_distant_distribution(self):
+        """
+        Get distant points distribution on distant ranks
+        """
+        np.import_array()
+        cdef np.npy_intp dims = <np.npy_intp> cwipi_get_n_distant_ranks(self.name) + 1
+        if (dims == 0):
+            return None
+        else :
+            return np.PyArray_SimpleNewFromData(1, 
+                                                 &dims, 
+                                                 np.NPY_INT32,
+                                                 <void *> cwipi_get_distant_distribution(self.name))
+
+
+    def get_located_points_distribution(self):
+        """
+        Get located points distribution on distant ranks
+        """
+        np.import_array()
+        cdef np.npy_intp dims = <np.npy_intp> cwipi_get_n_distant_ranks(self.name) + 1
+        if (dims == 0):
+            return None
+        else :
+            return np.PyArray_SimpleNewFromData(1, 
+                                                 &dims, 
+                                                 np.NPY_INT32,
+                                                 <void *> cwipi_get_located_points_distribution(self.name))
+
+
     def set_interpolation_function(self, f):
         """
         """
@@ -841,7 +948,6 @@ cdef class Coupling:
 # ----------------------------------------------------------------------
 
 # TODO:
-#    void cwipi_set_info(char* coupling_id, cwipi_located_point_info_t info)
   
 #
 # info about mpi rank, mesh and element where local points are located 
@@ -850,18 +956,7 @@ cdef class Coupling:
 #    double* cwipi_get_distant_coordinates(char* coupling_id)
 #    int* cwipi_get_distant_barycentric_coordinates_index (char* coupling_id)
 #    double* cwipi_get_distant_barycentric_coordinates (char* coupling_id)
-#    int cwipi_get_n_located_distant_points(char* coupling_id)
-
-#    int* cwipi_get_element_containing(char* coupling_id)
-#    int* cwipi_get_element_containing_n_vertex(char* coupling_id)
-#    int* cwipi_get_element_containing_vertex(char* coupling_id)
-#    double* cwipi_get_element_containing_vertex_coords(char* coupling_id)
-#    double* cwipi_get_element_containing_barycentric_coordinates(char* coupling_id)
-#    int* cwipi_get_element_containing_MPI_rank(char* coupling_id)
-#    void cwipi_exchange_cell_vertex_field_of_element_containing(char* coupling_id, double* sendingField,
-#                                                                double* receivingField, int stride)
-#    void cwipi_exchange_cell_center_field_of_element_containing(char* coupling_id, double* sendingField,
-#                                                                double* receivingField, int stride)
+#    int cwipi_get_n_distant_points(char* coupling_id)
 
 
 cdef void callback(int entities_dim,

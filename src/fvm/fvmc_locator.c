@@ -145,8 +145,14 @@ struct _fvmc_locator_t {
 
   fvmc_lnum_t   *local_points_idx;   /* Start index of local points per rank
                                        (size: n_intersects + 1)*/
-  fvmc_lnum_t   *distant_points_idx; /* Start index of distant points per rank
-                                       (size: n_intersects + 1)*/
+  fvmc_lnum_t   *local_distribution; /* Start index of distant points per rank
+                                       (size: n_rank + 1)*/
+
+  fvmc_lnum_t   *distant_points_idx; /* Start index of distant points per 
+                                       intersect rank
+                                      (size: n_intersects + 1)*/
+  fvmc_lnum_t   *distant_distribution; /* Start index of distant points per rank
+                                       (size: n_rank + 1)*/
 
   fvmc_lnum_t   *local_point_ids;        /* Local point index for data received
                                            (with blocs starting at
@@ -932,6 +938,14 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
              this_locator->n_intersects + 1,
              fvmc_lnum_t);
 
+  BFTC_MALLOC(this_locator->distant_distribution,
+             this_locator->n_ranks + 1,
+             fvmc_lnum_t);
+
+  BFTC_MALLOC(this_locator->local_distribution,
+             this_locator->n_ranks + 1,
+             fvmc_lnum_t);
+
   this_locator->local_points_idx[0] = 0;
   this_locator->distant_points_idx[0] = 0;
 
@@ -956,6 +970,21 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
     this_locator->distant_points_idx[i+1]
       = this_locator->distant_points_idx[i] + n_coords_dist;
 
+  }
+
+  k = 0;
+  for (i = 0; i < this_locator->n_ranks; i++) {
+    if ((i < this_locator->intersect_rank[k]) &&
+        (i > this_locator->intersect_rank[k])) {
+      this_locator->distant_distribution[i+1] = this_locator->distant_distribution[i];
+      this_locator->local_distribution[i+1]   = this_locator->local_distribution[i];
+    }
+    else if (i == this_locator->intersect_rank[k]) {
+      this_locator->distant_distribution[i+1] = this_locator->distant_points_idx[k+1];
+      this_locator->local_distribution[i+1]   = this_locator->local_points_idx[k+1];
+      if (k < this_locator->n_intersects - 1)
+        k += 1;
+    }
   }
 
   /* Third loop on possibly intersecting distant ranks */
@@ -2382,6 +2411,55 @@ fvmc_locator_set_nodal(fvmc_locator_t       *this_locator,
   this_locator->location_wtime[1] += comm_timing[0];
   this_locator->location_cpu_time[1] += comm_timing[1];
 }
+
+
+/*----------------------------------------------------------------------------
+ * Return distribution graph of distant points per distant rank
+ *
+ * parameters:
+ *   this_locator <-- pointer to locator structure
+ *
+ * returns:
+ *   distant points index
+ *----------------------------------------------------------------------------*/
+
+const fvmc_lnum_t *
+fvmc_locator_get_dist_distrib(const fvmc_locator_t  *this_locator)
+{
+  fvmc_lnum_t * retval = NULL;
+
+  if (this_locator != NULL) {
+    if (this_locator->n_intersects != 0)
+      retval = this_locator->distant_distribution;
+  }
+
+  return retval;
+}
+
+
+/*----------------------------------------------------------------------------
+ * Return distribution graph of local points per distant rank
+ *
+ * parameters:
+ *   this_locator <-- pointer to locator structure
+ *
+ * returns:
+ *   distant points index
+ *----------------------------------------------------------------------------*/
+
+const fvmc_lnum_t *
+fvmc_locator_get_loc_distrib(const fvmc_locator_t  *this_locator)
+{
+  fvmc_lnum_t * retval = NULL;
+
+  if (this_locator != NULL) {
+    if (this_locator->n_intersects != 0)
+      retval = this_locator->local_distribution;
+  }
+
+  return retval;
+}
+
 
 /*----------------------------------------------------------------------------
  * Return number of distant points after locator initialization.

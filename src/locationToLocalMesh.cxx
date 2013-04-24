@@ -48,10 +48,11 @@ LocationToLocalMesh::LocationToLocalMesh(
                                          LocationToDistantMesh &locationToDistantMesh)
 
 : _solverType(solverType),  _tolerance(tolerance),
- _locationToDistantMesh(locationToDistantMesh), _couplingComm(couplingComm),
- _coupledApplicationNRankCouplingComm(coupledApplicationNRankCouplingComm),
- _coupledApplicationBeginningRankCouplingComm(coupledApplicationBeginningRankCouplingComm),
- _isCoupledRank(isCoupledRank), _entitiesDim(entitiesDim), _localApplicationProperties(localApplicationProperties)
+  _locationToDistantMesh(locationToDistantMesh), _couplingComm(couplingComm),
+  _coupledApplicationNRankCouplingComm(coupledApplicationNRankCouplingComm),
+  _coupledApplicationBeginningRankCouplingComm(coupledApplicationBeginningRankCouplingComm),
+  _isCoupledRank(isCoupledRank), _entitiesDim(entitiesDim), _localApplicationProperties(localApplicationProperties),
+  _locatedPointsDistribution(NULL), _distantDistribution(NULL)
 
 {
   _fvmLocator = NULL;
@@ -148,6 +149,9 @@ void LocationToLocalMesh::locate()
 
     _location = const_cast<int *> (locationList);
     _distance = const_cast<float *> (distanceList);
+ 
+    _distantDistribution =  const_cast<int *> (fvmc_locator_get_dist_distrib(_fvmLocator));
+    _locatedPointsDistribution =  const_cast<int *> (fvmc_locator_get_loc_distrib(_fvmLocator));
 
     _nDistantPoint = fvmc_locator_get_n_dist_points(_fvmLocator);
 

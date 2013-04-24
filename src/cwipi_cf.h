@@ -614,11 +614,11 @@ void PROCF(cwipi_get_n_located_pts_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_get_n_located_dist_pts_cf,
-           CWIPI_GET_N_LOCATED_DIST_PTS_CF) (const char *coupling_name,
-                                             const int  *l_coupling_name,
-                                             int *n_located_distant_Points
-                                             ARGF_SUPP_CHAINE);
+void PROCF(cwipi_get_n_located_dist_pts_cf, CWIPI_GET_N_LOCATED_DIST_PTS_CF) 
+(const char *coupling_name,
+ const int  *l_coupling_name,
+ int *n_located_distant_Points
+ ARGF_SUPP_CHAINE);
 
 /*----------------------------------------------------------------------------
  *
@@ -630,11 +630,12 @@ void PROCF(cwipi_get_n_located_dist_pts_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_get_dis_coord_cf,
-           CWIPI_GET_DIS_COORD_CF)(const char *coupling_name,
-                                   const int  *l_coupling_name,
-                                   double *coordinates
-                                   ARGF_SUPP_CHAINE);
+void PROCF(cwipi_get_dis_coord_cf, CWIPI_GET_DIS_COORD_CF)
+(const char *coupling_name,
+ const int  *l_coupling_name,
+ double *coordinates
+ ARGF_SUPP_CHAINE
+);
 
 /*----------------------------------------------------------------------------
  *
@@ -646,11 +647,11 @@ void PROCF(cwipi_get_dis_coord_cf,
  *                                    coordinates index
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_get_dis_bary_coord_idx_cf,
-           CWIPI_GET_DIS_BARY_COORD_IDX_CF) (const char *coupling_name,
-                                       const int  *l_coupling_name,
-                                       int *barycentricCoordinatesIndex
-                                       ARGF_SUPP_CHAINE);
+void PROCF(cwipi_get_dis_bary_coord_idx_cf, CWIPI_GET_DIS_BARY_COORD_IDX_CF) 
+(const char *coupling_name,
+ const int  *l_coupling_name,
+ int *barycentricCoordinatesIndex
+ ARGF_SUPP_CHAINE);
 
 /*----------------------------------------------------------------------------
  *
@@ -662,11 +663,69 @@ void PROCF(cwipi_get_dis_bary_coord_idx_cf,
  *                                    coordinates
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_get_distant_bary_coord_cf,
-           CWIPI_GET_DISTANT_BARY_COORD_CF) (const char *coupling_name,
-                                             const int  *l_coupling_name,
-                                             double *barycentricCoordinates
-                                             ARGF_SUPP_CHAINE);
+void PROCF(cwipi_get_distant_bary_coord_cf, CWIPI_GET_DISTANT_BARY_COORD_CF) 
+(const char *coupling_name,
+ const int  *l_coupling_name,
+ double *barycentricCoordinates
+ ARGF_SUPP_CHAINE);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of distant ranks 
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *
+ * return
+ *                        --> Number of distant ranks
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_n_dis_ranks_cf, CWIPI_GET_N_DIS_RANKS_CF)
+(const char *coupling_name,
+ const int  *l_coupling_name,
+ int *n_dis_ranks
+ ARGF_SUPP_CHAINE);
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Get distant point distribution on distant ranks (size = n_distant_rank + 1)
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *
+ * return
+ *                             Distant point distribution on distant ranks
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_dis_distrib_cf, CWIPI_GET_DIS_DISTRIB_CF) 
+(const char *coupling_name,
+ const int  *l_coupling_name,
+ int *distrib
+ ARGF_SUPP_CHAINE);
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Get located points distribution on distant ranks (size = n_distant_rank + 1)
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *
+ * return
+ *                            Located points distribution
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_loc_pts_distrib_cf, CWIPI_GET_LOC_PTS_DISTRIB_CF)
+(const char *coupling_name,
+ const int  *l_coupling_name,
+ int *distrib
+ ARGF_SUPP_CHAINE);
+
+
 
 /*----------------------------------------------------------------------------
  *

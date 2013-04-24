@@ -237,65 +237,25 @@ module cwipi
       cwipi_dump_appli_properties_f_
   end interface
 
-  interface cwipi_get_elt_cont_f ; module procedure &
-      cwipi_get_elt_cont_f_
-  end interface
-
-  interface  cwipi_get_elt_cont_n_vtx_f ; module procedure &
-    cwipi_get_elt_cont_n_vtx_f_
-  end interface
-
-  interface  cwipi_get_elt_cont_vtx_f ; module procedure &
-    cwipi_get_elt_cont_vtx_f_
-  end interface
-
-  interface  cwipi_get_elt_cont_vtx_coo_f ; module procedure &
-    cwipi_get_elt_cont_vtx_coo_f_
-  end interface
-
-  interface  cwipi_get_elt_cont_bar_coo_f ; module procedure &
-    cwipi_get_elt_cont_bar_coo_f_
-  end interface
-
-  interface  cwipi_get_elt_cont_MPI_rank_f ; module procedure &
-    cwipi_get_elt_cont_MPI_rank_f_
-  end interface
-
-  interface  cwipi_exch_cellvtxfd_eltcont_f ; module procedure &
-    cwipi_exch_cellvtxfd_eltcont_f_
-  end interface
-
-  interface  cwipi_send_cellvtxfd_eltcont_f ; module procedure &
-    cwipi_send_cellvtxfd_eltcont_f_
-  end interface
-
-  interface  cwipi_recv_cellvtxfd_eltcont_f ; module procedure &
-    cwipi_recv_cellvtxfd_eltcont_f_
-  end interface
-
-  interface  cwipi_exch_cellcenfd_eltcont_f ; module procedure &
-    cwipi_exch_cellcenfd_eltcont_f_
-  end interface
-
-  interface  cwipi_send_cellcenfd_eltcont_f ; module procedure &
-    cwipi_send_cellcenfd_eltcont_f_
-  end interface
-
-  interface  cwipi_recv_cellcenfd_eltcont_f ; module procedure &
-    cwipi_recv_cellcenfd_eltcont_f_
-  end interface
-
   interface  cwipi_finalize_f; module procedure &
     cwipi_finalize_f_
-  end interface
-
-  interface  cwipi_set_info_f; module procedure &
-    cwipi_set_info_f_
   end interface
 
   interface cwipi_dist_located_pts_get_f; module procedure &
     cwipi_dist_located_pts_get_f_  
   end interface cwipi_dist_located_pts_get_f
+
+  interface cwipi_get_n_dis_ranks_f; module procedure &
+    cwipi_get_n_dis_ranks_f_
+  end interface cwipi_get_n_dis_ranks_f
+
+  interface cwipi_get_dis_distrib_f; module procedure &
+    cwipi_get_dis_distrib_f_
+  end interface cwipi_get_dis_distrib_f
+
+  interface cwipi_get_loc_pts_distrib_f; module procedure &
+    cwipi_get_loc_pts_distrib_f_
+  end interface cwipi_get_loc_pts_distrib_f
 
   !
   ! Private
@@ -338,16 +298,10 @@ module cwipi
              cwipi_get_bary_coord_idx_f_,     &
              cwipi_get_coord_f_,              &
              cwipi_get_not_located_pts_f_,    &
-             cwipi_get_elt_cont_f_,           &
-             cwipi_get_elt_cont_n_vtx_f_,     &
-             cwipi_get_elt_cont_vtx_f_,       &
-             cwipi_get_elt_cont_vtx_coo_f_,   &
-             cwipi_get_elt_cont_bar_coo_f_,   &
-             cwipi_get_elt_cont_MPI_rank_f_,  &
-             cwipi_exch_cellvtxfd_eltcont_f_, &
-             cwipi_exch_cellcenfd_eltcont_f_, &
              cwipi_dist_located_pts_get_f_,   &
-             cwipi_set_info_f_
+             cwipi_get_n_dis_ranks_f_,        &
+             cwipi_get_dis_distrib_f_,        &
+             cwipi_get_loc_pts_distrib_f_
 
 contains
 
@@ -2318,325 +2272,83 @@ contains
 !
 !********************************************************************************
 !
-! Get distant elements that contain located points
+! Get number of distant ranks 
 !
 ! parameters
-!   couplingName         <-- Coupling identifier
-!   elements             --> Element that contain located points
+!   coupling_id          <-- Coupling identifier
+!
+! return
+!                        --> Number of distant ranks
 !
 !********************************************************************************
 !
 
-  subroutine cwipi_get_elt_cont_f_ (couplingName, elements)
+  subroutine cwipi_get_n_dis_ranks_f_(couplingName, n_dis_ranks)
     implicit none
 
     character (len = *) :: couplingName
-    integer (kind = cwipi_int_l), dimension(*) :: elements
     integer (kind = cwipi_int_l) :: lCouplingName
+    integer (kind = cwipi_int_l) :: n_dis_ranks
 
     lCouplingName       = len(couplingName)
 
-    call cwipi_get_elt_cont_cf (couplingName, lCouplingName, elements)
+    call cwipi_get_n_dis_ranks_cf(couplingName,  lCouplingName , n_dis_ranks)
 
-  end subroutine cwipi_get_elt_cont_f_
+  end subroutine cwipi_get_n_dis_ranks_f_
 
 !
 !********************************************************************************
 !
-! Get number of vertices of distant elements that contain located points
+! Get distant point distribution on distant ranks (size = n_distant_rank + 1)
 !
 ! parameters
-!   couplingName         <-- Coupling identifier
-!   n_vertices           --> Number of vertices of element that contain
-!                            located pointlocatedPoints        --> Located points (1 to n)
+!   coupling_id          <-- Coupling identifier
+!
+! return
+!                             Distant point distribution on distant ranks
 !
 !********************************************************************************
 !
 
-  subroutine cwipi_get_elt_cont_n_vtx_f_ (couplingName, n_vertices)
+  subroutine cwipi_get_dis_distrib_f_(couplingName, distrib)
     implicit none
 
     character (len = *) :: couplingName
-    integer (kind = cwipi_int_l), dimension(*) :: n_vertices
     integer (kind = cwipi_int_l) :: lCouplingName
+    integer (kind = cwipi_int_l) :: distrib(*)
 
     lCouplingName       = len(couplingName)
 
-    call cwipi_get_elt_cont_n_vtx_cf(couplingname, lCouplingName, n_vertices)
+    call cwipi_get_dis_distrib_cf(couplingName,  lCouplingName , distrib)
 
-  end subroutine cwipi_get_elt_cont_n_vtx_f_
+  end subroutine cwipi_get_dis_distrib_f_
 
 !
 !********************************************************************************
 !
-! Get vertices id of distant elements that contain located points
+! Get located points distribution on distant ranks (size = n_distant_rank + 1)
 !
 ! parameters
-!   couplingName         <-- Coupling identifier
-!   vertices             --> Vertices id
+!   coupling_id          <-- Coupling identifier
+!
+! return
+!                            Located points distribution
 !
 !********************************************************************************
 !
 
-  subroutine cwipi_get_elt_cont_vtx_f_ (couplingName, vertices)
+  subroutine cwipi_get_loc_pts_distrib_f_(couplingName, distrib)
     implicit none
 
     character (len = *) :: couplingName
-    integer (kind = cwipi_int_l), dimension(*) :: vertices
     integer (kind = cwipi_int_l) :: lCouplingName
+    integer (kind = cwipi_int_l) :: distrib(*)
 
     lCouplingName       = len(couplingName)
 
-    call cwipi_get_elt_cont_n_vtx_cf(couplingName, lCouplingName, vertices)
+    call cwipi_get_loc_pts_distrib_cf(couplingName,  lCouplingName , distrib)
 
-  end subroutine cwipi_get_elt_cont_vtx_f_
+  end subroutine cwipi_get_loc_pts_distrib_f_
 
-!
-!********************************************************************************
-!
-! Get vertices coordinates of distant elements that contain located points
-!
-! parameters
-!   couplingName         <-- Coupling identifier
-!   coordinates          --> Vertices coordinates
-!
-!********************************************************************************
-!
-
-  subroutine cwipi_get_elt_cont_vtx_coo_f_ (couplingName, coordinates)
-    implicit none
-
-    character (len = *) :: couplingName
-    double precision, dimension(*) :: coordinates
-    integer (kind = cwipi_int_l) :: lCouplingName
-
-    lCouplingName       = len(couplingName)
-
-    call cwipi_get_elt_cont_vtx_coo_cf(couplingName, lCouplingName, coordinates)
-
-  end subroutine cwipi_get_elt_cont_vtx_coo_f_
-
-!
-!********************************************************************************
-!
-! Get barycentric coords in distant elements for located points
-!
-! parameters
-!   couplingName         <-- Coupling identifier
-!   coordinates          --> Barycentric coordinates
-!
-!********************************************************************************
-!
-
-  subroutine cwipi_get_elt_cont_bar_coo_f_(couplingName, coordinates)
-    implicit none
-
-    character (len = *) :: couplingName
-    double precision, dimension(*) :: coordinates
-    integer (kind = cwipi_int_l) :: lCouplingName
-
-    lCouplingName       = len(couplingName)
-
-    call cwipi_get_elt_cont_bar_coo_cf(couplingName, lCouplingName, coordinates)
-
-  end subroutine cwipi_get_elt_cont_bar_coo_f_
-
-!
-!********************************************************************************
-!
-! For each located point get the MPI rank of distant element
-!
-! parameters
-!   couplingName         <-- Coupling identifier
-!   MPIranks             --> MPI ranks that contains located point
-!
-!********************************************************************************
-!
-
-  subroutine cwipi_get_elt_cont_MPI_rank_f_(couplingName, MPIrank)
-    implicit none
-
-    character (len = *) :: couplingName
-    integer (kind = cwipi_int_l), dimension(*) :: MPIrank
-    integer (kind = cwipi_int_l) :: lCouplingName
-
-    lCouplingName       = len(couplingName)
-
-    call cwipi_get_elt_cont_MPI_rank_cf(couplingName, lCouplingName, MPIrank)
-
-  end subroutine cwipi_get_elt_cont_MPI_rank_f_
-
-!
-!********************************************************************************
-!
-! Exchange Fields on vertices of element containing each located point
-!
-! parameters
-!   couplingName         <-- Coupling identifier
-!   sendingField         <-- Field defined on local mesh vertices
-!   receivingField       --> Field defined on vertices of distant
-!                             elements that contain each located point
-!   stride               <-- Number of field component
-!
-!********************************************************************************
-!
-
-  subroutine cwipi_exch_cellvtxfd_eltcont_f_(couplingName, &
-                                              sendingField, &
-                                              receivingField, &
-                                              stride)
-    implicit none
-
-    character (len = *) :: couplingName
-    double precision, dimension(*) :: sendingField
-    double precision, dimension(*) :: receivingField
-    integer (kind = cwipi_int_l) :: stride
-    integer (kind = cwipi_int_l) :: lCouplingName
-
-    lCouplingName       = len(couplingName)
-
-    call cwipi_exch_cellvtxfd_eltcont_cf(couplingName, &
-                                         lCouplingName, &
-                                         sendingField, &
-                                         receivingField, &
-                                         stride)
-  end subroutine cwipi_exch_cellvtxfd_eltcont_f_
-
-
-  subroutine cwipi_send_cellvtxfd_eltcont_f_(couplingName, &
-                                              sendingField, &
-                                              stride)
-    implicit none
-
-    character (len = *) :: couplingName
-    double precision, dimension(*) :: sendingField
-    integer (kind = cwipi_int_l) :: stride
-    integer (kind = cwipi_int_l) :: lCouplingName
-
-    lCouplingName       = len(couplingName)
-
-    call cwipi_send_cellvtxfd_eltcont_cf(couplingName, &
-                                         lCouplingName, &
-                                         sendingField, &
-                                         stride)
-  end subroutine cwipi_send_cellvtxfd_eltcont_f_
-
-  subroutine cwipi_recv_cellvtxfd_eltcont_f_(couplingName, &
-                                              receivingField, &
-                                              stride)
-    implicit none
-
-    character (len = *) :: couplingName
-    double precision, dimension(*) :: receivingField
-    integer (kind = cwipi_int_l) :: stride
-    integer (kind = cwipi_int_l) :: lCouplingName
-
-    lCouplingName       = len(couplingName)
-
-    call cwipi_recv_cellvtxfd_eltcont_cf(couplingName, &
-                                         lCouplingName, &
-                                         receivingField, &
-                                         stride)
-  end subroutine cwipi_recv_cellvtxfd_eltcont_f_
-!
-!********************************************************************************
-!
-! Get number of not located points
-!
-! parameters
-!   couplingName         <-- Coupling identifier
-!   sendingField         <-- Field defined on local mesh vertices
-!   receivingField       --> Field defined on vertices of distant
-!                            elements that contain each located point
-!   stride               <-- Number of field component
-!
-!********************************************************************************
-!
-
-  subroutine cwipi_exch_cellcenfd_eltcont_f_(couplingName, &
-                                              sendingField, &
-                                              receivingField, &
-                                              stride)
-
-    implicit none
-
-    character (len = *) :: couplingName
-    double precision, dimension(*) :: sendingField
-    double precision, dimension(*) :: receivingField
-    integer (kind = cwipi_int_l) :: stride
-    integer (kind = cwipi_int_l) :: lCouplingName
-
-    lCouplingName       = len(couplingName)
-
-    call cwipi_exch_cellcenfd_eltcont_cf(couplingName, &
-                                         lCouplingName, &
-                                         sendingField, &
-                                         receivingField, &
-                                         stride)
-  end subroutine cwipi_exch_cellcenfd_eltcont_f_
-
-  subroutine cwipi_send_cellcenfd_eltcont_f_(couplingName, &
-                                              sendingField, &
-                                              stride)
-    implicit none
-
-    character (len = *) :: couplingName
-    double precision, dimension(*) :: sendingField
-    integer (kind = cwipi_int_l) :: stride
-    integer (kind = cwipi_int_l) :: lCouplingName
-
-    lCouplingName       = len(couplingName)
-
-    call cwipi_send_cellcenfd_eltcont_cf(couplingName, &
-                                         lCouplingName, &
-                                         sendingField, &
-                                         stride)
-  end subroutine cwipi_send_cellcenfd_eltcont_f_
-
-  subroutine cwipi_recv_cellcenfd_eltcont_f_(couplingName, &
-                                              receivingField, &
-                                              stride)
-    implicit none
-
-    character (len = *) :: couplingName
-    double precision, dimension(*) :: receivingField
-    integer (kind = cwipi_int_l) :: stride
-    integer (kind = cwipi_int_l) :: lCouplingName
-
-    lCouplingName       = len(couplingName)
-
-    call cwipi_recv_cellcenfd_eltcont_cf(couplingName, &
-                                         lCouplingName, &
-                                         receivingField, &
-                                         stride)
-  end subroutine cwipi_recv_cellcenfd_eltcont_f_
-!
-!********************************************************************************
-!
-! Set coupling info
-!
-! parameters
-!   couplingName         <-- Coupling identifier
-!   sendingField         <-- Field defined on local mesh vertices
-!   info                 <-- Coupling info
-!
-!********************************************************************************
-!
-
- subroutine cwipi_set_info_f_(couplingName, info)
-
-    implicit none
-
-    character (len = *) :: couplingName
-    integer (kind = cwipi_int_l) :: info
-    integer (kind = cwipi_int_l) :: lCouplingName
-
-    lCouplingName       = len(couplingName)
-
-    call cwipi_set_info_cf(couplingName, &
-                           lCouplingName, &
-                           info)
-
-  end subroutine cwipi_set_info_f_
 
 end module cwipi

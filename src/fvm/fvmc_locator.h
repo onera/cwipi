@@ -157,6 +157,32 @@ fvmc_locator_set_nodal(fvmc_locator_t       *this_locator,
                       const fvmc_coord_t    point_coords[]);
 
 /*----------------------------------------------------------------------------
+ * Return distribution graph of distant points per distant rank
+ *
+ * parameters:
+ *   this_locator <-- pointer to locator structure
+ *
+ * returns:
+ *   distant points index
+ *----------------------------------------------------------------------------*/
+
+const fvmc_lnum_t *
+fvmc_locator_get_dist_distrib(const fvmc_locator_t  *this_locator);
+
+/*----------------------------------------------------------------------------
+ * Return distribution graph of local points per distant rank
+ *
+ * parameters:
+ *   this_locator <-- pointer to locator structure
+ *
+ * returns:
+ *   distant points index
+ *----------------------------------------------------------------------------*/
+
+const fvmc_lnum_t *
+fvmc_locator_get_loc_distrib(const fvmc_locator_t  *this_locator);
+
+/*----------------------------------------------------------------------------
  * Return number of distant points after locator initialization.
  *
  * parameters:

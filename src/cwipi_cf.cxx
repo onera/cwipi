@@ -1211,6 +1211,119 @@ void PROCF(cwipi_get_dis_bary_coord_cf,
 
 /*----------------------------------------------------------------------------
  *
+ * Get number of distant ranks 
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *
+ * return
+ *                        --> Number of distant ranks
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_n_dis_ranks_cf, CWIPI_GET_N_DIS_RANKS_CF)
+(const char *coupling_name,
+ const int  *l_coupling_name,
+ int *n_dis_ranks
+ ARGF_SUPP_CHAINE)
+{
+  char *coupling_nameC =
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
+
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_nameC;
+
+  cwipi::Coupling& coupling =
+    couplingDataBase.getCoupling(coupling_name_str);
+
+  *n_dis_ranks = coupling.getNDistantRank();
+
+  delete[] coupling_nameC;
+}
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Get distant point distribution on distant ranks (size = n_distant_rank + 1)
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *
+ * return
+ *                             Distant point distribution on distant ranks
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_dis_distrib_cf, CWIPI_GET_DIS_DISTRIB_CF) 
+(const char *coupling_name,
+ const int  *l_coupling_name,
+ int *distrib
+ ARGF_SUPP_CHAINE)
+{
+  char *coupling_nameC =
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
+
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_nameC;
+
+  cwipi::Coupling& coupling =
+    couplingDataBase.getCoupling(coupling_name_str);
+
+  const int n_dis_ranks = coupling.getNDistantRank();
+  const int *distrib_c = coupling.getDistantDistribution();
+
+  for (int i = 0; i < n_dis_ranks + 1; i++)
+    distrib[i] = distrib_c[i];
+
+  delete[] coupling_nameC;
+}
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Get located points distribution on distant ranks (size = n_distant_rank + 1)
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *
+ * return
+ *                            Located points distribution
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_loc_pts_distrib_cf, CWIPI_GET_LOC_PTS_DISTRIB_CF)
+(const char *coupling_name,
+ const int  *l_coupling_name,
+ int *distrib
+ ARGF_SUPP_CHAINE)
+{
+  char *coupling_nameC =
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
+
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_nameC;
+
+  cwipi::Coupling& coupling =
+    couplingDataBase.getCoupling(coupling_name_str);
+
+  const int n_dis_ranks = coupling.getNDistantRank();
+  const int *distrib_c = coupling.getLocatedPointsDistribution();
+
+  for (int i = 0; i < n_dis_ranks + 1; i++)
+    distrib[i] = distrib_c[i];
+
+  delete[] coupling_nameC;
+}
+
+
+/*----------------------------------------------------------------------------
+ *
  * Exchange data with the coupled application. This is a synchronization point
  * with the coupled application
  *
@@ -1792,393 +1905,6 @@ void PROCF(cwipi_get_located_pts_cf,
   for( int i = 0; i < n_located_points; i++)
     locatedPoints[i] = locatedPointsC[i];
 
-  delete[] coupling_nameC;
-
-}
-
-/*----------------------------------------------------------------------------
- *
- * Get distant elements that contain located points
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *   elements             --> Element that contain located points
- *
- *----------------------------------------------------------------------------*/
-
-void PROCF(cwipi_get_elt_cont_cf,
-           CWIPI_GET_ELT_CONT_CF)
-( const char *coupling_id,
-  const int  *l_coupling_id,
-  int *elements)
-{
-  cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::getInstance();
-
-  char *coupling_nameC =
-    _cwipi_fortran_to_c_string(coupling_id, *l_coupling_id);
-
-  const std::string &coupling_name_str = coupling_nameC;
-
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
-
-  const int n_located_points = coupling.getNLocatedPoint();
-  const int *elementsC = coupling.getElementContaining();
-
-  for( int i = 0; i < n_located_points; i++)
-    elements[i] = elementsC[i];
-
-  delete[] coupling_nameC;
-}
-
-/*----------------------------------------------------------------------------
- *
- * Get number of vertices of distant elements that contain located points
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *   n_vertices           --> Number of vertices of element that contain
- *                            located point
- *
- *----------------------------------------------------------------------------*/
-
-void PROCF(cwipi_get_elt_cont_n_vtx_cf,
-           CWIPI_GET_ELT_CONT_N_VTX_CF)
-(const char *coupling_id,
- const int  *l_coupling_id,
- int *n_vertices)
-{
-  cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::getInstance();
-
-  char *coupling_nameC =
-    _cwipi_fortran_to_c_string(coupling_id, *l_coupling_id);
-
-  const std::string &coupling_name_str = coupling_nameC;
-
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
-
-  const int n_located_points = coupling.getNLocatedPoint();
-  const int *n_verticesC = coupling.getElementContainingNVertex();
-
-  for( int i = 0; i < n_located_points + 1; i++)
-    n_vertices[i] = n_verticesC[i];
-
-  delete[] coupling_nameC;
-}
-
-/*----------------------------------------------------------------------------
- *
- * Get vertices id of distant elements that contain located points
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *   vertices             --> Vertices id
- *
- *----------------------------------------------------------------------------*/
-
-void PROCF(cwipi_get_elt_cont_vtx_cf,
-           CWIPI_GET_ELT_CONT_VTX_CF)
-(const char *coupling_id,
- const int  *l_coupling_id,
- int *vertices)
-{
-  cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::getInstance();
-
-  char *coupling_nameC =
-    _cwipi_fortran_to_c_string(coupling_id, *l_coupling_id);
-
-  const std::string &coupling_name_str = coupling_nameC;
-
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
-
-  const int n_located_points = coupling.getNLocatedPoint();
-  const int size = coupling.getElementContainingNVertex()[n_located_points];
-
-  const int *verticesC = coupling.getElementContainingVertex();
-
-  for( int i = 0; i < size; i++)
-    vertices[i] = verticesC[i];
-
-  delete[] coupling_nameC;
-}
-
-/*----------------------------------------------------------------------------
- *
- * Get vertices coordinates of distant elements that contain located points
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *   coordinates          --> Vertices coordinates
- *
- *----------------------------------------------------------------------------*/
-
-void PROCF(cwipi_get_elt_cont_vtx_coo_cf,
-           CWIPI_GET_ELT_CONT_VTX_COO_CF)
-(const char *coupling_id,
- const int  *l_coupling_id,
- double* coordinates)
-{
-  cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::getInstance();
-
-  char *coupling_nameC =
-    _cwipi_fortran_to_c_string(coupling_id, *l_coupling_id);
-
-  const std::string &coupling_name_str = coupling_nameC;
-
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
-
-  const int n_located_points = coupling.getNLocatedPoint();
-  const int size = coupling.getElementContainingNVertex()[n_located_points];
-
-  const double *coordinatesC = coupling.getElementContainingVertexCoords();
-
-  for( int i = 0; i < 3*size; i++)
-    coordinates[i] = coordinatesC[i];
-
-  delete[] coupling_nameC;
-}
-
-/*----------------------------------------------------------------------------
- *
- * Get barycentric coords in distant elements for located points
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *   coordinates          --> Barycentric coordinates
- *
- *----------------------------------------------------------------------------*/
-
-void PROCF(cwipi_get_elt_cont_bar_coo_cf,
-           CWIPI_GET_ELT_CONT_BAR_COO_CF)
-(const char *coupling_id,
- const int  *l_coupling_id,
- double *coordinates)
-{
-  cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::getInstance();
-
-  char *coupling_nameC =
-    _cwipi_fortran_to_c_string(coupling_id, *l_coupling_id);
-
-  const std::string &coupling_name_str = coupling_nameC;
-
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
-
-  const int n_located_points = coupling.getNLocatedPoint();
-
-  const double *coordinatesC = coupling.getElementContainingBarycentricCoordinates();
-
-  for( int i = 0; i < n_located_points; i++)
-    coordinates[i] = coordinatesC[i];
-
-  delete[] coupling_nameC;
-}
-
-/*----------------------------------------------------------------------------
- *
- * For each located point get the MPI rank of distant element
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *   MPIranks             --> MPI ranks that contains located point
- *
- *----------------------------------------------------------------------------*/
-
-void PROCF(cwipi_get_elt_cont_mpi_rank_cf,
-           CWIPI_GET_ELT_CONT_MPI_RANK_CF)
-(const char *coupling_id,
- const int  *l_coupling_id,
- int *MPIrank)
-{
-  cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::getInstance();
-
-  char *coupling_nameC =
-    _cwipi_fortran_to_c_string(coupling_id, *l_coupling_id);
-
-  const std::string &coupling_name_str = coupling_nameC;
-
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
-
-  const int n_located_points = coupling.getNLocatedPoint();
-  const int *MPIrankC = coupling.getElementContainingMPIrank();
-
-  for( int i = 0; i < n_located_points; i++)
-    MPIrank[i] = MPIrankC[i];
-
-  delete[] coupling_nameC;
-}
-
-/*----------------------------------------------------------------------------
- *
- * Exchange Fields on vertices of element containing each located point
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *   sendingField         <-- Field defined on local mesh vertices
- *   receivingField       --> Field defined on vertices of distant
- *                            elements that contain each located point
- *   stride               <-- Number of field component
- *
- *----------------------------------------------------------------------------*/
-
-void PROCF(cwipi_exch_cellvtxfd_eltcont_cf,
-           CWIPI_EXCH_CELLVTXFD_ELTCONT_CF)
-(const char *coupling_id,
- const int  *l_coupling_id,
- double *sendingField,
- double *receivingField,
- const int *stride)
-{
-  char *coupling_nameC =
-    _cwipi_fortran_to_c_string(coupling_id, *l_coupling_id);
-
-  const std::string &coupling_name_str = coupling_nameC;
-
-  cwipi_exchange_cell_vertex_field_of_element_containing(coupling_nameC,
-                                                         sendingField,
-                                                         receivingField,
-                                                         *stride);
-
-  delete[] coupling_nameC;
-}
-
-void PROCF(cwipi_send_cellvtxfd_eltcont_cf,
-           CWIPI_SEND_CELLVTXFD_ELTCONT_CF)
-(const char *coupling_id,
- const int  *l_coupling_id,
- double *sendingField,
- const int *stride)
-{
-  char *coupling_nameC =
-    _cwipi_fortran_to_c_string(coupling_id, *l_coupling_id);
-
-  const std::string &coupling_name_str = coupling_nameC;
-
-  cwipi_exchange_cell_vertex_field_of_element_containing(coupling_nameC,
-                                                         sendingField,
-                                                         NULL,
-                                                         *stride);
-
-  delete[] coupling_nameC;
-}
-
-void PROCF(cwipi_recv_cellvtxfd_eltcont_cf,
-           CWIPI_RECV_CELLVTXFD_ELTCONT_CF)
-(const char *coupling_id,
- const int  *l_coupling_id,
- double *receivingField,
- const int *stride)
-{
-  char *coupling_nameC =
-    _cwipi_fortran_to_c_string(coupling_id, *l_coupling_id);
-
-  const std::string &coupling_name_str = coupling_nameC;
-
-  cwipi_exchange_cell_vertex_field_of_element_containing(coupling_nameC,
-                                                         NULL,
-                                                         receivingField,
-                                                         *stride);
-
-  delete[] coupling_nameC;
-}
-
-/*----------------------------------------------------------------------------
- *
- * Exchange field on cells that contain each located points
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *   sendingField         <-- Field defined on local mesh vertices
- *   receivingField       --> Field defined on vertices of distant
- *                            elements that contain each located point
- *   stride               <-- Number of field component
- *
- *----------------------------------------------------------------------------*/
-
-void PROCF(cwipi_exch_cellcenfd_eltcont_cf,
-           CWIPI_EXCH_CELLCENFD_ELTCONT_CF)
-(const char *coupling_id,
- const int  *l_coupling_id,
- double *sendingField,
- double *receivingField,
- const int *stride)
-{
-  char *coupling_nameC =
-    _cwipi_fortran_to_c_string(coupling_id, *l_coupling_id);
-
-  const std::string &coupling_name_str = coupling_nameC;
-
-  cwipi_exchange_cell_center_field_of_element_containing(coupling_nameC,
-                                                         sendingField,
-                                                         receivingField,
-                                                         *stride);
-  delete[] coupling_nameC;
-}
-
-void PROCF(cwipi_send_cellcenfd_eltcont_cf,
-           CWIPI_SEND_CELLCENFD_ELTCONT_CF)
-(const char *coupling_id,
- const int  *l_coupling_id,
- double *sendingField,
- const int *stride)
-{
-  char *coupling_nameC =
-    _cwipi_fortran_to_c_string(coupling_id, *l_coupling_id);
-
-  const std::string &coupling_name_str = coupling_nameC;
-
-  cwipi_exchange_cell_center_field_of_element_containing(coupling_nameC,
-                                                         sendingField,
-                                                         NULL,
-                                                         *stride);
-  delete[] coupling_nameC;
-}
-
-void PROCF(cwipi_recv_cellcenfd_eltcont_cf,
-           CWIPI_RECV_CELLCENFD_ELTCONT_CF)
-(const char *coupling_id,
- const int  *l_coupling_id,
- double *receivingField,
- const int *stride)
-{
-  char *coupling_nameC =
-    _cwipi_fortran_to_c_string(coupling_id, *l_coupling_id);
-
-  const std::string &coupling_name_str = coupling_nameC;
-
-  cwipi_exchange_cell_center_field_of_element_containing(coupling_nameC,
-                                                         NULL,
-                                                         receivingField,
-                                                         *stride);
-  delete[] coupling_nameC;
-}
-
-
-/*----------------------------------------------------------------------------
- *
- * Set coupling info
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *   info                 <-- Coupling info
- *----------------------------------------------------------------------------*/
-
-void PROCF(cwipi_set_info_cf,
-           CWIPI_SET_INFO_CF)
-(const char *coupling_id,
- const int  *l_coupling_id,
- const int *info)
-{
-  char *coupling_nameC =
-    _cwipi_fortran_to_c_string(coupling_id, *l_coupling_id);
-
-  const std::string &coupling_name_str = coupling_nameC;
-
-  cwipi_set_info(coupling_nameC, (cwipi_located_point_info_t) *info);
   delete[] coupling_nameC;
 
 }

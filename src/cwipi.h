@@ -679,17 +679,6 @@ void cwipi_update_location (const char *coupling_id);
 
 /*----------------------------------------------------------------------------
  *
- * Set coupling info
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *   info                 <-- Coupling info
- *----------------------------------------------------------------------------*/
-
-void cwipi_set_info(const char *coupling_id, const cwipi_located_point_info_t info);
-
-/*----------------------------------------------------------------------------
- *
  * Get distant point Location
  *
  * parameters
@@ -949,7 +938,7 @@ const int * cwipi_get_not_located_points(const char *coupling_id);
  *
  *----------------------------------------------------------------------------*/
 
-const int * cwipi_get_located_points(const char *coupling_id)
+const int * cwipi_get_located_points(const char *coupling_id);
 
 /*----------------------------------------------------------------------------
  *
@@ -994,125 +983,50 @@ int cwipi_get_n_not_located_points(const char *coupling_id);
 
 int cwipi_get_n_distant_points(const char *coupling_id);
 
+
 /*----------------------------------------------------------------------------
  *
- * Get distant elements that contain located points
+ * Get number of distant ranks 
  *
  * parameters
  *   coupling_id          <-- Coupling identifier
  *
  * return
- *                        --> Number of vertices
+ *                        --> Number of distant ranks
  *
  *----------------------------------------------------------------------------*/
 
-const int *cwipi_get_element_containing(const char *coupling_id);
+int cwipi_get_n_distant_ranks(const char *coupling_id);
+
 
 /*----------------------------------------------------------------------------
  *
- * Get number of vertices of distant elements that contain located points
+ * Get distant point distribution on distant ranks (size = n_distant_rank + 1)
  *
  * parameters
  *   coupling_id          <-- Coupling identifier
  *
  * return
- *                        --> Number of vertices
+ *                             Distant point distribution on distant ranks
  *
  *----------------------------------------------------------------------------*/
 
-const int *cwipi_get_element_containing_n_vertex(const char *coupling_id);
+const int *cwipi_get_distant_distribution(const char *coupling_id);
+
 
 /*----------------------------------------------------------------------------
  *
- * Get vertices id of distant elements that contain located points
+ * Get located points distribution on distant ranks (size = n_distant_rank + 1)
  *
  * parameters
  *   coupling_id          <-- Coupling identifier
  *
  * return
- *                        --> vertices id
+ *                            Located points distribution
  *
  *----------------------------------------------------------------------------*/
 
-const int *cwipi_get_element_containing_vertex(const char *coupling_id);
-
-/*----------------------------------------------------------------------------
- *
- * Get vertices coordinates of distant elements that contain located points
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *
- * return
- *                        --> Vertices coordinates
- *
- *----------------------------------------------------------------------------*/
-
-const double *cwipi_get_element_containing_vertex_coords(const char *coupling_id);
-
-/*----------------------------------------------------------------------------
- *
- * Get barycentric coords in distant elements for located points
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *
- * return
- *                        --> Barycentric coordinates
- *
- *----------------------------------------------------------------------------*/
-
-const double *cwipi_get_element_containing_barycentric_coordinates(const char *coupling_id);
-
-/*----------------------------------------------------------------------------
- *
- * For each located point get the MPI rank of distant element
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *
- * return
- *                        --> MPI ranks
- *
- *----------------------------------------------------------------------------*/
-
-const int *cwipi_get_element_containing_MPI_rank(const char *coupling_id);
-
-/*----------------------------------------------------------------------------
- *
- * Exchange Fields on vertices of element containing each located point
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *   sendingField         <-- Field defined on local mesh vertices
- *   receivingField       --> Field defined on vertices of distant
- *                            elements that contain each located point
- *   stride               <-- Number of field component
- *
- *----------------------------------------------------------------------------*/
-
-void cwipi_exchange_cell_vertex_field_of_element_containing (const char *coupling_id,
-                                                             double *sendingField,
-                                                             double *receivingField,
-                                                             const int stride);
-
-/*----------------------------------------------------------------------------
- *
- * Exchange field on cells that contain each located points
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *   sendingField         <-- Field defined on local mesh vertices
- *   receivingField       --> Field defined on vertices of distant
- *                            elements that contain each located point
- *   stride               <-- Number of field component
- *
- *----------------------------------------------------------------------------*/
-
-void cwipi_exchange_cell_center_field_of_element_containing (const char *coupling_id,
-                                                             double *sendingField,
-                                                             double *receivingField,
-                                                             const int stride);
+const int *cwipi_get_located_points_distribution(const char *coupling_id);
 
 /*----------------------------------------------------------------------------*/
 
