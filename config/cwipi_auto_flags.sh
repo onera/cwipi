@@ -176,7 +176,7 @@ elif test "x$cwipi_gcc" = "xicc"; then
   cwipi_compiler_known=yes
 
   # Default compiler flags
-  cflags_default="-strict-ansi -std=c99 -funsigned-char -Wall -Wcheck -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused"
+  cflags_default="-std=c99 -funsigned-char -Wall -Wcheck -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused"
   cflags_default_dbg="-g -O0 -traceback"
   cflags_default_opt="-O2"
   cflags_default_prf="-p"

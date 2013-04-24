@@ -111,7 +111,7 @@ RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
   distclean-recursive maintainer-clean-recursive
 ETAGS = etags
 CTAGS = ctags
-DIST_SUBDIRS = src tests cython
+DIST_SUBDIRS = src tests Cython
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -290,7 +290,7 @@ MAINTAINERCLEANFILES = Makefile.in aclocal.m4 configure config-h.in stamp-h.in $
 @ENABLE_PYTHON_FALSE@SUBDIRS = src tests
 
 #SUBDIRS = src tests doc
-@ENABLE_PYTHON_TRUE@SUBDIRS = src cython tests
+@ENABLE_PYTHON_TRUE@SUBDIRS = src Cython tests
 EXTRA_DIST = $(ac_aux_dir)/cwipi_auto_flags.sh \
              $(ac_aux_dir)/check_bft.m4 \
              $(ac_aux_dir)/check_fvm.m4 \
