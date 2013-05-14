@@ -1039,6 +1039,8 @@ namespace cwipi {
 
     if (_cellCenterCoords != NULL || _cellVolume != NULL)
       _computeMeshProperties();
+
+    fvmc_parall_set_mpi_comm(oldFVMComm);
   }
 
 
