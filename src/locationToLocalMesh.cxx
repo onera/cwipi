@@ -1637,10 +1637,19 @@ void LocationToLocalMesh::compute3DMeanValuesPoly(const double point_coords[],
               mod = sqrt(normale[3*isom    ] * normale[3*isom    ]
                          + normale[3*isom + 1] * normale[3*isom + 1]
                          + normale[3*isom + 2] * normale[3*isom + 2]);
+
+              if (mod <  eps_face) {
+                normale[3*isom    ] = 0.;
+                normale[3*isom + 1] = 0.;
+                normale[3*isom + 2] = 0.;
+              }
+
+              else {
               
-              normale[3*isom    ] /= mod;
-              normale[3*isom + 1] /= mod;
-              normale[3*isom + 2] /= mod;
+                normale[3*isom    ] /= mod;
+                normale[3*isom + 1] /= mod;
+                normale[3*isom + 2] /= mod;
+              }
               
             }    
 

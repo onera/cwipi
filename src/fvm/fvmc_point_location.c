@@ -2416,12 +2416,12 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
   fvmc_lnum_t *triangle_vertices = NULL;
   fvmc_triangulate_state_t *state = NULL;
 
-  assert(this_section->face_index != NULL);
-
   /* Return immediately if nothing to do for this rank */
 
   if (this_section->n_elements == 0)
     return;
+
+  assert(this_section->face_index != NULL);
 
   /* Counting loop on faces */
 

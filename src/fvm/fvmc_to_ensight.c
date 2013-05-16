@@ -1562,11 +1562,13 @@ _export_nodal_polyhedra_g(const fvmc_writer_section_t  *export_section,
 
     /* Build local polyhedron face lengths information */
 
-    if (section->face_index[section->n_elements] > n_face_lengths_max) {
-      BFTC_REALLOC(face_lengths,
-                  section->face_index[section->n_elements],
-                  fvmc_lnum_t);
-      n_face_lengths_max = section->face_index[section->n_elements];
+    if (section->n_elements) {
+      if (section->face_index[section->n_elements] > n_face_lengths_max) {
+        BFTC_REALLOC(face_lengths,
+                     section->face_index[section->n_elements],
+                     fvmc_lnum_t);
+        n_face_lengths_max = section->face_index[section->n_elements];
+      }
     }
 
     l = 0;
@@ -1578,7 +1580,10 @@ _export_nodal_polyhedra_g(const fvmc_writer_section_t  *export_section,
         face_lengths[l++] = face_length;
       }
     }
-    assert(l == section->face_index[section->n_elements]);
+
+    if (section->n_elements) {
+      assert(l == section->face_index[section->n_elements]);
+    }
 
     /* Loop on slices */
 
