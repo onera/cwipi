@@ -90,6 +90,9 @@ _usage(int exit_code)
      "  Usage: \n\n"
      "  -n     <level>  Number of vertices in band width.\n\n"
      "  -rand  <level>  Random level ( > 0 and < 0.4) \n\n"
+     "  -visu           Ensight outputs \n\n"
+     "  -a              Unlocking communication \n\n"
+     "  -stdout         Standard output \n\n"
      "  -h             this message.\n\n");
 
   exit(exit_code);
@@ -108,7 +111,12 @@ static void
 _read_args(int            argc,
            char         **argv,
            int          *nVertex,
-           double       *randLevel)
+           double       *randLevel,
+	   int          *randFromClock,
+	   int          *postFreq,
+	   int          *t_com,
+	   int          *tostdout)
+
 {
   int i = 1;
 
@@ -133,6 +141,20 @@ _read_args(int            argc,
       else
         *randLevel = atof(argv[i]);
     }
+    else if (strcmp(argv[i], "-randFromClock") == 0) {
+      *randFromClock = 1;
+    }
+    else if (strcmp(argv[i], "-a") == 0) {
+      *t_com = 1;
+    }
+    else if (strcmp(argv[i], "-visu") == 0) {
+      *postFreq = 1;
+    }
+    else if (strcmp(argv[i], "-stdout") == 0) {
+      *tostdout = 1;
+    }
+    else
+      _usage(EXIT_FAILURE);
     i++;
   }
 }
@@ -200,8 +222,18 @@ int main
 
   int nVertexSeg = 10;
   double randLevel = 0.4;
+  int postFreq     = -1;
+  int t_com        = 0;
+  int tostdout     = 0;
+  int randFromClock = 0;
 
-  _read_args(argc, argv, &nVertexSeg, &randLevel);
+  _read_args(argc, argv, &nVertexSeg, &randLevel,
+             &randFromClock, &postFreq, &t_com, &tostdout);
+
+  if (randFromClock == 1)
+    srand(rank + time(0));
+  else
+    srand(rank + 1);
 
   /* Initialization
    * -------------- */
@@ -224,7 +256,10 @@ int main
   char* fileName = (char *) malloc(sizeof(char) * 30);
   sprintf(fileName,"c_surf_coupling_P1P1_%4.4d.txt",rank);
 
-  outputFile = fopen(fileName,"w");
+  if (tostdout)
+    outputFile = stdout;
+  else
+    outputFile = fopen(fileName,"w");
 
   free(fileName);
 
@@ -265,10 +300,10 @@ int main
                         CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING, // Coupling type
                         codeCoupledName,                           // Coupled application id
                         2,                                         // Geometric entities dimension
-                        0.1,                                       // Geometric tolerance
+                        1e-3,                                       // Geometric tolerance
                         CWIPI_STATIC_MESH,                         // Mesh type
                         solver_type,                               // Solver type
-                        1,                                         // Postprocessing frequency
+                        postFreq,                                         // Postprocessing frequency
                         "EnSight Gold",                            // Postprocessing format
                         "text");                                   // Postprocessing option
   
@@ -360,19 +395,59 @@ int main
     recvValuesName = "cooX";
   }
 
-  cwipi_exchange_status_t status = cwipi_exchange("c_surf_cpl_P1P1",
-                                                  "ech",
-                                                  1,
-                                                  1,     // n_step
-                                                  0.1,   // physical_time
-                                                  sendValuesName,
-                                                  sendValues,
-                                                  recvValuesName,
-                                                  recvValues,
-                                                  &nNotLocatedPoints); 
+  cwipi_locate("c_surf_cpl_P1P1");
 
-  _dumpStatus(outputFile, status);
-  _dumpNotLocatedPoints(outputFile, "c_surf_cpl_P1P1", nNotLocatedPoints);
+  nNotLocatedPoints = cwipi_get_n_not_located_points("c_surf_cpl_P1P1");
+  if (nNotLocatedPoints > 0) {
+    printf("--- Error --- : %d not located points found\n", nNotLocatedPoints);
+    exit(1);
+  }
+
+  if (t_com == 0) {
+    cwipi_exchange_status_t status = cwipi_exchange("c_surf_cpl_P1P1",
+						    "ech",
+						    1,
+						    1,     // n_step
+						    0.1,   // physical_time
+						    sendValuesName,
+						    sendValues,
+						    recvValuesName,
+						    recvValues,
+						    &nNotLocatedPoints);
+    _dumpStatus(outputFile, status);
+  }
+
+  else if (t_com == 1) {
+
+    int sRequest, rRequest;
+    int tag = 1;
+
+    cwipi_irecv("c_surf_cpl_P1P1",
+		"ech",
+		tag,
+		1,
+		1,
+		0.1,
+		recvValuesName,
+		recvValues,
+		&rRequest);
+  
+
+    cwipi_issend("c_surf_cpl_P1P1",
+		 "ech",
+		 tag,
+		 1,
+		 1,
+		 0.1,
+		 sendValuesName,
+		 sendValues,
+		 &sRequest);
+
+    cwipi_wait_irecv("c_surf_cpl_P1P1", rRequest);
+    cwipi_wait_issend("c_surf_cpl_P1P1", sRequest);
+
+  }
+
 
   /* Coupling deletion
    * ----------------- */
@@ -426,7 +501,8 @@ int main
 
   MPI_Finalize();
 
-  fclose(outputFile);
+  if (!tostdout)
+    fclose(outputFile);
 
   return EXIT_SUCCESS;
 }

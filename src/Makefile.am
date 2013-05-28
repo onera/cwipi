@@ -24,6 +24,7 @@ cwipi.h
 noinst_HEADERS = \
 cwipi_cf.h \
 quickSort.h \
+cwipi_timer.h \
 solve_ax_b_4.h
 
 # Library source files
@@ -47,7 +48,8 @@ conservativeMesh.cxx \
 coupling.cxx \
 couplingDataBase.cxx \
 geomUtilities.cxx \
-callfortinterpfct.f90
+callfortinterpfct.f90 \
+cwipi_timer.c
 
 libcwipi_f_la_LIBADD = \
 $(top_builddir)/src/bft/libbftc.la \

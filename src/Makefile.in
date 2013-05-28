@@ -78,7 +78,7 @@ am_libcwipi_la_OBJECTS = applicationProperties.lo \
 	applicationPropertiesDataBase.lo locationToLocalMesh.lo \
 	locationToDistantMesh.lo cwipi.lo quickSort.lo solve_ax_b_4.lo \
 	mesh.lo conservativeMesh.lo coupling.lo couplingDataBase.lo \
-	geomUtilities.lo callfortinterpfct.lo
+	geomUtilities.lo callfortinterpfct.lo cwipi_timer.lo
 libcwipi_la_OBJECTS = $(am_libcwipi_la_OBJECTS)
 libcwipi_f_la_DEPENDENCIES = $(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la libcwipi.la
@@ -302,6 +302,7 @@ cwipi.h
 noinst_HEADERS = \
 cwipi_cf.h \
 quickSort.h \
+cwipi_timer.h \
 solve_ax_b_4.h
 
 
@@ -325,7 +326,8 @@ conservativeMesh.cxx \
 coupling.cxx \
 couplingDataBase.cxx \
 geomUtilities.cxx \
-callfortinterpfct.f90
+callfortinterpfct.f90 \
+cwipi_timer.c
 
 libcwipi_f_la_LIBADD = \
 $(top_builddir)/src/bft/libbftc.la \
@@ -425,6 +427,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/couplingDataBase.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwipi.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwipi_cf.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwipi_timer.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/geomUtilities.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/locationToDistantMesh.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/locationToLocalMesh.Plo@am__quote@
