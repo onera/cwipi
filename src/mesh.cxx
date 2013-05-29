@@ -1239,7 +1239,7 @@ namespace cwipi {
                            _nVertex,
                            _coords,
                            &refCellVolume[nStandardElement],
-                           &refCellCenterCoords[nStandardElement],
+                           &refCellCenterCoords[3*nStandardElement],
                            &refCharacteristicLength[nStandardElement],
                            &refIsDegenerated[nStandardElement]);
 
