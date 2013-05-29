@@ -1238,10 +1238,10 @@ namespace cwipi {
                            _polyhedraCellToFaceConnectivity,
                            _nVertex,
                            _coords,
-                           &refCellVolume[0],
-                           &refCellCenterCoords[0],
-                           &refCharacteristicLength[0],
-                           &refIsDegenerated[0]);
+                           &refCellVolume[nStandardElement],
+                           &refCellCenterCoords[nStandardElement],
+                           &refCharacteristicLength[nStandardElement],
+                           &refIsDegenerated[nStandardElement]);
 
   }
 
