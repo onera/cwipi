@@ -1208,7 +1208,7 @@ void LocationToLocalMesh::compute3DMeanValues()
           ierr = compute_uvw(CWIPI_CELL_PYRAM5,
                              coo_point_dist,
                              vertex_coords,
-                             1e-12,
+                             1e-6,
                              uvw);
 
           compute_shapef_3d(CWIPI_CELL_PYRAM5,
@@ -1227,7 +1227,7 @@ void LocationToLocalMesh::compute3DMeanValues()
           ierr = compute_uvw(CWIPI_CELL_PRISM6,
                              coo_point_dist,
                              vertex_coords,
-                             1e-12,
+                             1e-6,
                              uvw);
 
           compute_shapef_3d(CWIPI_CELL_PRISM6,
@@ -1245,7 +1245,7 @@ void LocationToLocalMesh::compute3DMeanValues()
           ierr = compute_uvw(CWIPI_CELL_HEXA8,
                              coo_point_dist,
                              vertex_coords,
-                             1e-12,
+                             1e-6,
                              uvw);
 
           compute_shapef_3d(CWIPI_CELL_HEXA8,
