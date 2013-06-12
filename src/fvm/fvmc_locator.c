@@ -972,18 +972,20 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
 
   }
 
-  k = 0;
-  for (i = 0; i < this_locator->n_ranks; i++) {
-    if ((i < this_locator->intersect_rank[k]) &&
-        (i > this_locator->intersect_rank[k])) {
-      this_locator->distant_distribution[i+1] = this_locator->distant_distribution[i];
-      this_locator->local_distribution[i+1]   = this_locator->local_distribution[i];
-    }
-    else if (i == this_locator->intersect_rank[k]) {
-      this_locator->distant_distribution[i+1] = this_locator->distant_points_idx[k+1];
-      this_locator->local_distribution[i+1]   = this_locator->local_points_idx[k+1];
-      if (k < this_locator->n_intersects - 1)
-        k += 1;
+  if (this_locator->n_intersects > 0) {
+    k = 0;
+    for (i = 0; i < this_locator->n_ranks; i++) {
+      if ((i < this_locator->intersect_rank[k]) &&
+          (i > this_locator->intersect_rank[k])) {
+        this_locator->distant_distribution[i+1] = this_locator->distant_distribution[i];
+        this_locator->local_distribution[i+1]   = this_locator->local_distribution[i];
+      }
+      else if (i == this_locator->intersect_rank[k]) {
+        this_locator->distant_distribution[i+1] = this_locator->distant_points_idx[k+1];
+        this_locator->local_distribution[i+1]   = this_locator->local_points_idx[k+1];
+        if (k < this_locator->n_intersects - 1)
+          k += 1;
+      }
     }
   }
 
