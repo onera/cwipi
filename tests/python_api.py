@@ -95,7 +95,7 @@ def runTest():
     srank = '{0}'.format(rank)
     f=open("python_api_"+srank.zfill(4)+".txt",'w')
     cwipi.set_output_listing(f)
-    cwipi.init(MPI.COMM_WORLD, applis[rank], commloc)
+    comm_loc = cwipi.init(MPI.COMM_WORLD, applis[rank])
 
     #
     # Control parameters

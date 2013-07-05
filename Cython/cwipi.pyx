@@ -173,7 +173,8 @@ EXCHANGE_BAD_RECEIVING = CWIPI_EXCHANGE_BAD_RECEIVING
 # Basic fonctions
 # ---------------
 
-def init(MPI.Comm common_comm, char* application_name, MPI.Comm application_comm):
+def  init(MPI.Comm common_comm, char* application_name):
+#def init(MPI.Comm common_comm, char* application_name, MPI.Comm application_comm):
     """
      Initialize the cwipi library and create 
      the current communicator application from 'common_comm'.
@@ -186,8 +187,12 @@ def init(MPI.Comm common_comm, char* application_name, MPI.Comm application_comm
      It is a synchronization point between all applications
     """
     cdef MPI_Comm c_common_comm = common_comm.ob_mpi
-    #cdef MPI_Comm c_application_comm = application_comm.ob_mpi
+
+    cdef MPI.Comm application_comm = MPI.Comm()
+
     cwipi_init(c_common_comm, application_name, &(application_comm.ob_mpi))
+
+    return  application_comm
 
 
 def set_output_listing(file output_listing):
@@ -391,7 +396,7 @@ def synchronize_control_parameter(char* application_name):
 # Class coupling
 # --------------
 
-cdef class Coupling:
+cdef class Coupling (object):
 
     """
     Coupling
