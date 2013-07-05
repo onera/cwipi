@@ -434,23 +434,6 @@ cdef class Coupling:
 # Class coupling : basic functions
 # --------------------------------
 
-    cdef cast_define_mesh(self, 
-                          int n_vertex, 
-                          int n_element, 
-                          char* coordinates, 
-                          char* connectivity_index, 
-                          char* connectivity):
-        """
-        Cast parameters to double *, int * to call C function
-        """
-        cwipi_define_mesh(self.name,
-                          n_vertex, 
-                          n_element, 
-                          <double *> coordinates, 
-                          <int *> connectivity_index, 
-                          <int *> connectivity)
-
-
     def define_mesh(self, 
                     int n_vertex, 
                     int n_element, 
@@ -462,26 +445,17 @@ cdef class Coupling:
         """
         global current_cpl
         current_cpl = self.name
-        assert (3 * n_vertex) <= len(coordinates)
-        assert (n_element + 1) <= len(connectivity_index)
-        self.cast_define_mesh(n_vertex, 
-                              n_element, 
-                              coordinates.data, 
-                              connectivity_index.data, 
-                              connectivity.data)
+        assert (3 * n_vertex) <= coordinates.size
+        assert (n_element + 1) <= connectivity_index.size
+        cwipi_define_mesh(self.name,
+                          n_vertex, 
+                          n_element, 
+                          <double *> coordinates.data, 
+                          <int *> connectivity_index.data, 
+                          <int *> connectivity.data)
         current_cpl = ""
 
  
-    cdef cast_set_points_to_locate(self,
-                                   int n_points, 
-                                   char* coordinates):
-        """
-        Cast parameters to double* to call C function
-        """
-        cwipi_set_points_to_locate(self.name,
-                                   n_points,
-                                   <double *> coordinates)
-
 
     def set_points_to_locate(self,
                              int n_points, 
@@ -491,27 +465,10 @@ cdef class Coupling:
         """ 
         global current_cpl
         current_cpl = self.name
-        self.cast_set_points_to_locate(n_points, coordinates.data)
+        cwipi_set_points_to_locate(self.name,
+                                   n_points,
+                                   <double *> coordinates.data)
         current_cpl = ""
-
-
-    cdef cast_add_polyhedra(self, 
-                            int n_element, 
-                            char* face_index, 
-                            char* cell_to_face_connectivity, 
-                            int n_face, 
-                            char* face_connectivity_index,
-                            char* face_connectivity):
-        """
-        Cast parameters to double*, int* to call C function
-        """
-        cwipi_add_polyhedra(self.name, 
-                            n_element,
-                            <int *> face_index, 
-                            <int *> cell_to_face_connectivity,
-                            n_face, 
-                            <int *> face_connectivity_index,
-                            <int *> face_connectivity)
 
 
     def add_polyhedra(self, 
@@ -526,13 +483,15 @@ cdef class Coupling:
         """
         global current_cpl
         current_cpl = self.name
-        assert len(face_index) == (n_element + 1)
-        self.cast_add_polyhedra(n_element, 
-                                face_index.data, 
-                                cell_to_face_connectivity.data,
-                                n_face, 
-                                face_connectivity_index.data,
-                                face_connectivity.data)
+        assert face_index.size == (n_element + 1)
+        cwipi_add_polyhedra(self.name, 
+                            n_element,
+                            <int *> face_index.data, 
+                            <int *> cell_to_face_connectivity.data,
+                            n_face, 
+                            <int *> face_connectivity_index.data,
+                            <int *> face_connectivity.data)
+
         current_cpl = ""
 
 
@@ -556,35 +515,6 @@ cdef class Coupling:
         current_cpl = ""
 
 
-    cdef cast_exchange(self, 
-                       char* exchange_name, 
-                       int stride, 
-                       int time_step, 
-                       double time_value,
-                       char* sending_field_name, 
-                       char* sending_field, 
-                       char* receiving_field_name, 
-                       char* receiving_field):
-        """
-        Cast parameters to double*, int* to call C function
-        """
-        cdef int c_n_not_located_points
-        cdef cwipi_exchange_status_t status
-
-        status = cwipi_exchange(self.name, 
-                       exchange_name, 
-                       stride, 
-                       time_step, 
-                       time_value,
-                       sending_field_name, 
-                       <double*> sending_field, 
-                       receiving_field_name, 
-                       <double*> receiving_field, 
-                       &c_n_not_located_points)
- 
-        return {'status':status, 'n_not_located_points':c_n_not_located_points}
-
-
     def exchange(self, 
                  char* exchange_name, 
                  int stride, 
@@ -600,70 +530,56 @@ cdef class Coupling:
         global current_cpl
         current_cpl = self.name
 
+        cdef int c_n_not_located_points
+        cdef cwipi_exchange_status_t status
+
         if (sending_field is None) and  (receiving_field is not None):
-           status = self.cast_exchange(exchange_name, 
-                                       stride, 
-                                       time_step, 
-                                       time_value,
-                                       sending_field_name, 
-                                       NULL, 
-                                       receiving_field_name, 
-                                       receiving_field.data)
+          status = cwipi_exchange(self.name, 
+                                   exchange_name, 
+                                   stride, 
+                                   time_step, 
+                                   time_value,
+                                   sending_field_name, 
+                                   NULL,
+                                   receiving_field_name, 
+                                   <double*> receiving_field.data, 
+                                   &c_n_not_located_points)
         elif (sending_field is not None) and  (receiving_field is None):
-           status = self.cast_exchange(exchange_name, 
-                                       stride, 
-                                       time_step, 
-                                       time_value,
-                                       sending_field_name, 
-                                       sending_field.data, 
-                                       receiving_field_name, 
-                                       NULL)
+          status = cwipi_exchange(self.name, 
+                                   exchange_name, 
+                                   stride, 
+                                   time_step, 
+                                   time_value,
+                                   sending_field_name, 
+                                   <double*> sending_field.data, 
+                                   receiving_field_name, 
+                                   NULL, 
+                                   &c_n_not_located_points)
         elif (sending_field is not None) and  (receiving_field is not None):
-           status = self.cast_exchange(exchange_name, 
-                                       stride, 
-                                       time_step, 
-                                       time_value,
-                                       sending_field_name, 
-                                       sending_field.data, 
-                                       receiving_field_name, 
-                                       receiving_field.data)
+          status = cwipi_exchange(self.name, 
+                                   exchange_name, 
+                                   stride, 
+                                   time_step, 
+                                   time_value,
+                                   sending_field_name, 
+                                   <double*> sending_field.data, 
+                                   receiving_field_name, 
+                                   <double*> receiving_field.data, 
+                                   &c_n_not_located_points)
         else :
-           status = self.cast_exchange(exchange_name, 
-                                       stride, 
-                                       time_step, 
-                                       time_value,
-                                       sending_field_name, 
-                                       None, 
-                                       receiving_field_name, 
-                                       None)
+          status = cwipi_exchange(self.name, 
+                                   exchange_name, 
+                                   stride, 
+                                   time_step, 
+                                   time_value,
+                                   sending_field_name, 
+                                   NULL,
+                                   receiving_field_name, 
+                                   NULL,
+                                   &c_n_not_located_points)
 
-        return status
-
-
-    cdef cast_issend(self, 
-                     char* exchange_name,
-                     int tag, 
-                     int stride, 
-                     int time_step, 
-                     double time_value,
-                     char* sending_field_name, 
-                     char* sending_field):
-        """
-        Cast parameters to double*, int* to call C function
-        """
-        cdef int request
-
-        cwipi_issend(self.name, 
-                     exchange_name, 
-                     tag,
-                     stride, 
-                     time_step, 
-                     time_value,
-                     sending_field_name, 
-                     <double*> sending_field, 
-                     &request)
- 
-        return {'request':request}
+        current_cpl = ""
+        return {'status':status, 'n_not_located_points':c_n_not_located_points}
 
 
     def issend(self, 
@@ -677,49 +593,34 @@ cdef class Coupling:
         """
         Issend
         """
+        cdef int request
+
         global current_cpl
         current_cpl = self.name
 
         if sending_field is None:
-            sendFieldData = NULL
+            cwipi_issend(self.name, 
+                         exchange_name, 
+                         tag,
+                         stride, 
+                         time_step, 
+                         time_value,
+                         sending_field_name, 
+                         NULL,
+                         &request)
         else:
-            sendFieldData = sending_field.data
+            cwipi_issend(self.name, 
+                         exchange_name, 
+                         tag,
+                         stride, 
+                         time_step, 
+                         time_value,
+                         sending_field_name, 
+                         <double*> sending_field.data, 
+                         &request)
 
-        status = self.cast_issend(exchange_name,
-                                  tag, 
-                                  stride, 
-                                  time_step, 
-                                  time_value,
-                                  sending_field_name, 
-                                  sendFieldData) 
 
         current_cpl = ""
-        return status
-
-
-    cdef cast_irecv(self, 
-                    char* exchange_name,
-                    int tag, 
-                    int stride, 
-                    int time_step, 
-                    double time_value,
-                    char* receiving_field_name, 
-                    char* receiving_field):
-        """
-        Cast parameters to double*, int* to call C function
-        """
-        cdef int request
-
-        cwipi_irecv(self.name, 
-                    exchange_name, 
-                    tag,
-                    stride, 
-                    time_step, 
-                    time_value,
-                    receiving_field_name, 
-                    <double*> receiving_field, 
-                    &request)
- 
         return {'request':request}
 
 
@@ -734,24 +635,35 @@ cdef class Coupling:
         """
         Irecv
         """
+        cdef int request
+
         global current_cpl
         current_cpl = self.name
 
         if receiving_field is None:
-            recvFieldData = NULL
+            cwipi_irecv(self.name, 
+                        exchange_name, 
+                        tag,
+                        stride, 
+                        time_step, 
+                        time_value,
+                        receiving_field_name, 
+                        NULL,
+                        &request)
         else:
-            recvFieldData = receiving_field.data
+            cwipi_irecv(self.name, 
+                        exchange_name, 
+                        tag,
+                        stride, 
+                        time_step, 
+                        time_value,
+                        receiving_field_name, 
+                        <double*> receiving_field.data, 
+                        &request)
 
-        status = self.cast_issend(exchange_name,
-                                  tag,
-                                  stride, 
-                                  time_step, 
-                                  time_value,
-                                  receiving_field_name, 
-                                  recvFieldData) 
 
         current_cpl = ""
-        return status
+        return {'request':request}
 
 
     def wait_issend(self,
