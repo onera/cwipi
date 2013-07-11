@@ -103,13 +103,55 @@ def runTest():
     if (rank == 0):
         print "        Control parameters"
 
-    cwipi.add_local_int_control_parameter("param_1", 1)
+    if (rank == 0):
+        cwipi.add_local_int_control_parameter("i_0_param_1", 1)
+        cwipi.add_local_int_control_parameter("i_1_param_1", 1)
+        cwipi.add_local_int_control_parameter("i_2_param_1", 1)
+        cwipi.add_local_int_control_parameter("i_3_param_1", 1)
+        cwipi.add_local_double_control_parameter("d_0_param_1", 1)
+        cwipi.add_local_double_control_parameter("d_1_param_1", 1)
+        cwipi.add_local_double_control_parameter("d_2_param_1", 1)
+        cwipi.add_local_string_control_parameter("s_0_param_1", "1")
+        cwipi.add_local_string_control_parameter("s_1_param_1",  "1")
+        cwipi.add_local_string_control_parameter("s_2_param_1",  "1")
+        cwipi.add_local_string_control_parameter("s_3_param_1",  "1")
+        cwipi.add_local_string_control_parameter("s_4_param_1",  "1")
+        cwipi.add_local_string_control_parameter("s_5_param_1",  "1")
+    else :
+        cwipi.add_local_int_control_parameter("i_0_param_2", 1)
+        cwipi.add_local_int_control_parameter("i_1_param_2", 1)
+        cwipi.add_local_int_control_parameter("i_2_param_2", 1)
+        cwipi.add_local_int_control_parameter("i_3_param_2", 1)
+        cwipi.add_local_int_control_parameter("i_4_param_2", 1)
+        cwipi.add_local_double_control_parameter("d_0_param_2", 1)
+        cwipi.add_local_double_control_parameter("d_1_param_2", 1)
+        cwipi.add_local_string_control_parameter("s_0_param_2",  "1")
+        cwipi.add_local_string_control_parameter("s_1_param_2",  "1")
+        cwipi.add_local_string_control_parameter("s_2_param_2",  "1")
+        cwipi.add_local_string_control_parameter("s_3_param_2",  "1")
+
     cwipi.synchronize_control_parameter(applis[(rank + 1) % 2])
+
+    has_toto_0 = cwipi.has_int_parameter("proc0","toto")
+    has_toto_1 = cwipi.has_int_parameter("proc1","toto")
+    has_param1_0 = cwipi.has_double_parameter("proc0","d_0_param_1")
+    has_param1_1 = cwipi.has_double_parameter("proc1","d_0_param_2")
+
+#    f.write(cwipi.get_list_int_parameter("proc0"))
+    f.write("  - has d_0_param_1 proc0 : {param}\n".format(param=has_param1_0))
+    f.write("  - has d_0_param_2 proc1 : {param}\n".format(param=has_param1_1))
+    f.write("  - list int param proc0 : {param}\n".format(param=cwipi.get_list_int_parameter("proc0")))
+    f.write("  - list int param proc1 : {param}\n".format(param=cwipi.get_list_int_parameter("proc1")))
+    f.write("  - list double param proc0 : {param}\n".format(param=cwipi.get_list_double_parameter("proc0")))
+    f.write("  - list double param proc1 : {param}\n".format(param=cwipi.get_list_double_parameter("proc1")))
+    f.write("  - list string param proc0 : {param}\n".format(param=cwipi.get_list_string_parameter("proc0")))
+    f.write("  - list string param proc1 : {param}\n".format(param=cwipi.get_list_string_parameter("proc1")))
+
     cwipi.dump_application_properties()
 
-    param_1 = cwipi.get_local_int_control_parameter("param_1")
-    param_2 = cwipi.get_distant_int_control_parameter(applis[(rank + 1) % 2],"param_1")
-    f.write('parametres: {param_1}, {param_2}'.format(param_1=param_1, param_2=param_2))
+#    param_1 = cwipi.get_local_int_control_parameter("param_1")
+#    param_2 = cwipi.get_distant_int_control_parameter(applis[(rank + 1) % 2],"param_1")
+#    f.write('parametres: {param_1}, {param_2}'.format(param_1=param_1, param_2=param_2))
 
     #
     # Class coupling
@@ -146,7 +188,7 @@ def runTest():
     if (rank == 0):
         print "        Exchange Proc 0 -> Proc 1"
 
-    f.write("send :")
+    f.write("send :\n")
 
     sendField=np.array([0.1, 0.2, 0.3, 0.4], dtype=np.double)
     recvField=np.arange(4, dtype=np.double)
@@ -166,9 +208,9 @@ def runTest():
                               "field_s", None, 
                               "field_r", recvField)
 
-    f.write('  - status : {param_1}'.format(param_1=result["status"]))
+    f.write('  - status : {param_1}\n'.format(param_1=result["status"]))
     if rank == 1:
-        f.write("  - number of not located points : {param}".format(param=result["n_not_located_points"]))
+        f.write("  - number of not located points : {param}\n".format(param=result["n_not_located_points"]))
 
 
     # Send and receive with user interpolation

@@ -39,6 +39,11 @@ namespace cwipi {
     return _localApplicationProperties->getLocalComm();
   }
 
+  inline const std::string &ApplicationPropertiesDataBase::getLocalName() const
+  {
+    return _localApplicationProperties->getName();
+  }
+
   inline const MPI_Comm &ApplicationPropertiesDataBase::getGlobalComm() const
   {
     return _localApplicationProperties->getGlobalComm();
@@ -189,6 +194,132 @@ namespace cwipi {
       bftc_error(__FILE__, __LINE__, 0,
                 "'%s' application not found \n", applicationName.c_str());
     return p->second->getStringControlParameter(name);
+  }
+
+  inline int ApplicationPropertiesDataBase::hasLocalIntControlParameter(const std::string &name) const
+  {
+    return  _localApplicationProperties->hasIntControlParameter(name);
+  }
+
+  inline int ApplicationPropertiesDataBase::hasLocalDoubleControlParameter(const std::string &name) const
+  {
+    return  _localApplicationProperties->hasDoubleControlParameter(name);
+  }
+
+  inline int ApplicationPropertiesDataBase::hasLocalStringControlParameter(const std::string &name) const
+  {
+    return  _localApplicationProperties->hasStringControlParameter(name);
+  }
+
+  inline int ApplicationPropertiesDataBase::getLocalNIntControlParameter() const
+  {
+    return  _localApplicationProperties->getNIntControlParameter();
+  }
+
+  inline int ApplicationPropertiesDataBase::getLocalNDoubleControlParameter() const
+  {
+    return  _localApplicationProperties->getNDoubleControlParameter();
+  }
+
+  inline int ApplicationPropertiesDataBase::getLocalNStringControlParameter() const
+  {
+    return  _localApplicationProperties->getNStringControlParameter();
+  }
+
+  inline char** ApplicationPropertiesDataBase::getLocalListIntControlParameter() const
+  {
+    return  _localApplicationProperties->getListIntControlParameter();
+  }
+
+  inline char** ApplicationPropertiesDataBase::getLocalListDoubleControlParameter() const
+  {
+    return  _localApplicationProperties->getListDoubleControlParameter();
+  }
+
+  inline char** ApplicationPropertiesDataBase::getLocalListStringControlParameter() const
+  {
+    return  _localApplicationProperties->getListStringControlParameter();
+  }
+
+  inline int ApplicationPropertiesDataBase::hasDistantIntControlParameter(const std::string &applicationName, const std::string &name) const
+  {
+    const std::map <std::string, ApplicationProperties * >::iterator p = _distantApplicationPropertiesDataBase.find(applicationName);
+    if (p == _distantApplicationPropertiesDataBase.end())
+      bftc_error(__FILE__, __LINE__, 0,
+                "'%s' application not found \n", applicationName.c_str());
+    return p->second->hasIntControlParameter(name);
+  }
+
+  inline int ApplicationPropertiesDataBase::hasDistantDoubleControlParameter(const std::string &applicationName, const std::string &name) const
+  {
+    const std::map <std::string, ApplicationProperties * >::iterator p = _distantApplicationPropertiesDataBase.find(applicationName);
+    if (p == _distantApplicationPropertiesDataBase.end())
+      bftc_error(__FILE__, __LINE__, 0,
+                "'%s' application not found \n", applicationName.c_str());
+    return p->second->hasDoubleControlParameter(name);
+  }
+
+  inline int ApplicationPropertiesDataBase::hasDistantStringControlParameter(const std::string &applicationName, const std::string &name) const
+  {
+    const std::map <std::string, ApplicationProperties * >::iterator p = _distantApplicationPropertiesDataBase.find(applicationName);
+    if (p == _distantApplicationPropertiesDataBase.end())
+      bftc_error(__FILE__, __LINE__, 0,
+                "'%s' application not found \n", applicationName.c_str());
+    return p->second->hasStringControlParameter(name);
+  }
+
+  inline int ApplicationPropertiesDataBase::getDistantNIntControlParameter(const std::string &applicationName) const
+  {
+    const std::map <std::string, ApplicationProperties * >::iterator p = _distantApplicationPropertiesDataBase.find(applicationName);
+    if (p == _distantApplicationPropertiesDataBase.end())
+      bftc_error(__FILE__, __LINE__, 0,
+                "'%s' application not found \n", applicationName.c_str());
+    return p->second->getNIntControlParameter();
+  }
+
+  inline int ApplicationPropertiesDataBase::getDistantNDoubleControlParameter(const std::string &applicationName) const
+  {
+    const std::map <std::string, ApplicationProperties * >::iterator p = _distantApplicationPropertiesDataBase.find(applicationName);
+    if (p == _distantApplicationPropertiesDataBase.end())
+      bftc_error(__FILE__, __LINE__, 0,
+                "'%s' application not found \n", applicationName.c_str());
+    return p->second->getNDoubleControlParameter();
+  }
+
+  inline int ApplicationPropertiesDataBase::getDistantNStringControlParameter(const std::string &applicationName) const
+  {
+    const std::map <std::string, ApplicationProperties * >::iterator p = _distantApplicationPropertiesDataBase.find(applicationName);
+    if (p == _distantApplicationPropertiesDataBase.end())
+      bftc_error(__FILE__, __LINE__, 0,
+                "'%s' application not found \n", applicationName.c_str());
+    return p->second->getNStringControlParameter();
+  }
+
+  inline char** ApplicationPropertiesDataBase::getDistantListIntControlParameter(const std::string &applicationName) const
+  {
+    const std::map <std::string, ApplicationProperties * >::iterator p = _distantApplicationPropertiesDataBase.find(applicationName);
+    if (p == _distantApplicationPropertiesDataBase.end())
+      bftc_error(__FILE__, __LINE__, 0,
+                "'%s' application not found \n", applicationName.c_str());
+    return p->second->getListIntControlParameter();
+  }
+
+  inline char** ApplicationPropertiesDataBase::getDistantListDoubleControlParameter(const std::string &applicationName) const
+  {
+    const std::map <std::string, ApplicationProperties * >::iterator p = _distantApplicationPropertiesDataBase.find(applicationName);
+    if (p == _distantApplicationPropertiesDataBase.end())
+      bftc_error(__FILE__, __LINE__, 0,
+                "'%s' application not found \n", applicationName.c_str());
+    return p->second->getListDoubleControlParameter();
+  }
+
+  inline char** ApplicationPropertiesDataBase::getDistantListStringControlParameter(const std::string &applicationName) const
+  {
+    const std::map <std::string, ApplicationProperties * >::iterator p = _distantApplicationPropertiesDataBase.find(applicationName);
+    if (p == _distantApplicationPropertiesDataBase.end())
+      bftc_error(__FILE__, __LINE__, 0,
+                "'%s' application not found \n", applicationName.c_str());
+    return p->second->getListStringControlParameter();
   }
 
 } // namespace cwipi

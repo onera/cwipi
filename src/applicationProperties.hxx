@@ -24,6 +24,7 @@
 
 #include <map>
 #include <string>
+#include <cstring>
 
 #include <mpi.h>
 #include <bftc_error.h>
@@ -84,6 +85,24 @@ namespace cwipi {
     inline void eraseDoubleControlParameter(const std::string &name);
 
     inline void eraseStringControlParameter(const std::string &name);
+
+    inline int hasIntControlParameter(const std::string &name);
+
+    inline int hasDoubleControlParameter(const std::string &name);
+
+    inline int hasStringControlParameter(const std::string &name);
+
+    inline int getNIntControlParameter();
+
+    inline int getNDoubleControlParameter();
+
+    inline int getNStringControlParameter();
+
+    inline char** getListIntControlParameter();
+
+    inline char** getListDoubleControlParameter();
+
+    inline char** getListStringControlParameter();
 
     void dump();
 
@@ -253,6 +272,91 @@ namespace cwipi {
       bftc_error(__FILE__, __LINE__, 0,
                 "'%s' string control parameter not found \n", name.c_str());
   }
+
+  int ApplicationProperties::hasIntControlParameter(const std::string &name) 
+  {
+    std::map <std::string, int>::iterator p = _intControlParameters.find(name);
+    if (p != _intControlParameters.end())
+      return 1;
+    else
+      return 0;
+  }
+
+  int ApplicationProperties::hasDoubleControlParameter(const std::string &name)
+  {
+    std::map <std::string, double>::iterator p = _doubleControlParameters.find(name);
+    if (p != _doubleControlParameters.end())
+      return 1;
+    else
+      return 0;
+  }
+
+  int ApplicationProperties::hasStringControlParameter(const std::string &name)
+  {
+    std::map <std::string, std::string>::iterator p = _stringControlParameters.find(name);
+    if (p != _stringControlParameters.end())
+      return 1;
+    else
+      return 0;
+  }
+
+  int ApplicationProperties::getNIntControlParameter()
+  {
+    return _intControlParameters.size();
+  }
+
+  int ApplicationProperties::getNDoubleControlParameter()
+  {
+    return _doubleControlParameters.size();
+  }
+
+  int ApplicationProperties::getNStringControlParameter()
+  {
+    return _stringControlParameters.size();
+  }
+
+  char** ApplicationProperties::getListIntControlParameter()
+  {
+    char **names = new char * [getNIntControlParameter()];
+    int i = 0;
+    for(std::map <std::string, int>::iterator p = _intControlParameters.begin(); 
+        p !=_intControlParameters.end(); 
+        ++p) {
+      names[i] = new char [p->first.size() + 1];
+      strcpy(names[i], p->first.c_str());
+      i += 1;
+    } 
+    return names;
+  }
+
+  char** ApplicationProperties::getListDoubleControlParameter()
+  {
+    char **names = new char * [getNDoubleControlParameter()];
+    int i = 0;
+    for(std::map <std::string, double>::iterator p = _doubleControlParameters.begin(); 
+        p !=_doubleControlParameters.end(); 
+        ++p) {
+      names[i] = new char [p->first.size() + 1];
+      strcpy(names[i], p->first.c_str());
+      i += 1;
+    } 
+    return names;
+  }
+
+  char** ApplicationProperties::getListStringControlParameter()
+  {
+    char **names = new char * [getNStringControlParameter()];
+    int i = 0;
+    for(std::map <std::string, std::string>::iterator p = _stringControlParameters.begin(); 
+        p !=_stringControlParameters.end(); 
+        ++p) {
+      names[i] = new char [p->first.size() + 1];
+      strcpy(names[i], p->first.c_str());
+      i += 1;
+    } 
+    return names;
+  }
+
 }
 
 #endif /* __APPLICATION_PROPERTIES_H__ */

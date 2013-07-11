@@ -636,6 +636,251 @@ void PROCF(cwipi_get_dis_str_ctrl_param_cf,
   delete[] application_nameC;
 }
 
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Has int control parameter ?
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_has_int_ctrl_param_cf,
+           CWIPI_HAS_INT_CTRL_PARAM_CF)
+  (const char *application_name,
+   const int  *l_application_name,
+   const char *name,
+   const int  *l_name,
+   int *status
+   ARGF_SUPP_CHAINE)
+{
+  char *application_nameC = _cwipi_fortran_to_c_string(application_name, *l_application_name);
+  char *nameC = _cwipi_fortran_to_c_string(name, *l_name);
+
+  *status = cwipi_has_int_parameter(application_nameC, nameC);
+}
+/*----------------------------------------------------------------------------
+ *
+ * Has dbl control parameter ?
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_has_dbl_ctrl_param_cf,
+           CWIPI_HAS_DBL_CTRL_PARAM_CF)
+  (const char *application_name,
+   const int  *l_application_name,
+   const char *name,
+   const int  *l_name,
+   int *status
+   ARGF_SUPP_CHAINE)
+{
+  char *application_nameC = _cwipi_fortran_to_c_string(application_name, *l_application_name);
+  char *nameC = _cwipi_fortran_to_c_string(name, *l_name);
+
+  *status = cwipi_has_double_parameter(application_nameC, nameC);
+}
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Has str control parameter ?
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_has_str_ctrl_param_cf,
+           CWIPI_HAS_STR_CTRL_PARAM_CF)
+  (const char *application_name,
+   const int  *l_application_name,
+   const char *name,
+   const int  *l_name,
+   int *status
+   ARGF_SUPP_CHAINE)
+{
+  char *application_nameC = _cwipi_fortran_to_c_string(application_name, *l_application_name);
+  char *nameC = _cwipi_fortran_to_c_string(name, *l_name);
+
+  *status = cwipi_has_string_parameter(application_nameC, nameC);
+}
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of int parameters
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_n_int_ctrl_param_cf,
+           CWIPI_GET_N_INT_CTRL_PARAM_CF)
+  (const char *application_name,
+   const int  *l_application_name,
+   int *n_param
+   ARGF_SUPP_CHAINE)
+{
+  char *application_nameC = _cwipi_fortran_to_c_string(application_name, *l_application_name);
+
+  *n_param = cwipi_get_n_int_parameters(application_nameC);
+}
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of dbl parameters
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_n_dbl_ctrl_param_cf,
+           CWIPI_GET_N_DBL_CTRL_PARAM_CF)
+  (const char *application_name,
+   const int  *l_application_name,
+   int *n_param
+   ARGF_SUPP_CHAINE)
+{
+  char *application_nameC = _cwipi_fortran_to_c_string(application_name, *l_application_name);
+
+  *n_param = cwipi_get_n_double_parameters(application_nameC);
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of str parameters
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_n_str_ctrl_param_cf,
+           CWIPI_GET_N_STR_CTRL_PARAM_CF)
+  (const char *application_name,
+   const int  *l_application_name,
+   int *n_param
+   ARGF_SUPP_CHAINE)
+{
+  char *application_nameC = _cwipi_fortran_to_c_string(application_name, *l_application_name);
+
+  *n_param = cwipi_get_n_string_parameters(application_nameC);
+}
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Get int parameters list
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_list_int_ctrl_param_cf,
+           CWIPI_GET_LIST_INT_CTRL_PARAM_CF)
+  (const char *application_name,
+   const int  *l_application_name,
+   char *params,
+   const int  *l_param  
+   ARGF_SUPP_CHAINE)
+{
+  char *application_nameC = _cwipi_fortran_to_c_string(application_name, *l_application_name);
+  
+  int n_param = cwipi_get_n_int_parameters(application_nameC);
+  char ** c_params =  cwipi_get_list_int_parameters(application_nameC);
+  
+  for (int i = 0; i < n_param; i++) {
+    for (int j = 0; strlen(c_params[i]); j++)
+      params[i * (*l_param) + j] =  c_params[i][j];
+    for (int j = strlen(c_params[i]); j < *l_param; j++)
+      params[i * (*l_param) + j] = ' ';
+    free(c_params[i]);
+  }
+  free(c_params);
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get dbl parameters list
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_list_dbl_ctrl_param_cf,
+           CWIPI_GET_LIST_DBL_CTRL_PARAM_CF)
+  (const char *application_name,
+   const int  *l_application_name,
+   char *params,
+   const int  *l_param  
+   ARGF_SUPP_CHAINE)
+{
+  char *application_nameC = _cwipi_fortran_to_c_string(application_name, *l_application_name);
+  
+  int n_param = cwipi_get_n_double_parameters(application_nameC);
+  char ** c_params =  cwipi_get_list_double_parameters(application_nameC);
+  
+  for (int i = 0; i < n_param; i++) {
+    for (int j = 0; strlen(c_params[i]); j++)
+      params[i * (*l_param) + j] =  c_params[i][j];
+    for (int j = strlen(c_params[i]); j < *l_param; j++)
+      params[i * (*l_param) + j] = ' ';
+    free(c_params[i]);
+  }
+  free(c_params);
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get str parameters list
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_list_str_ctrl_param_cf,
+           CWIPI_GET_LIST_STR_CTRL_PARAM_CF)
+  (const char *application_name,
+   const int  *l_application_name,
+   char *params,
+   const int  *l_param  
+   ARGF_SUPP_CHAINE)
+{
+  char *application_nameC = _cwipi_fortran_to_c_string(application_name, *l_application_name);
+  
+  int n_param = cwipi_get_n_string_parameters(application_nameC);
+  char ** c_params =  cwipi_get_list_string_parameters(application_nameC);
+  
+  for (int i = 0; i < n_param; i++) {
+    for (int j = 0; strlen(c_params[i]); j++)
+      params[i * (*l_param) + j] =  c_params[i][j];
+    for (int j = strlen(c_params[i]); j < *l_param; j++)
+      params[i * (*l_param) + j] = ' ';
+    free(c_params[i]);
+  }
+  free(c_params);
+}
+
 /*----------------------------------------------------------------------------
  *
  * Synchronize local control parameters with an other application.
@@ -643,7 +888,7 @@ void PROCF(cwipi_get_dis_str_ctrl_param_cf,
  *
  * parameters
  *    application_name    <-- application name
- *    name                <-- parameter name
+ *    name                <22-- parameter name
  *
  *----------------------------------------------------------------------------*/
 

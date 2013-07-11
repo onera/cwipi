@@ -433,6 +433,180 @@ const char* cwipi_get_distant_string_control_parameter
 
 /*----------------------------------------------------------------------------
  *
+ * Get a integer control parameter of a other application
+ *
+ * parameters
+ *    application_name       <-- application name
+ *    name                   <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+int cwipi_get_distant_int_control_parameter
+(const char *application_name,
+ const char *name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get a double control parameter of a other application
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+double cwipi_get_distant_double_control_parameter
+(const char *application_name,
+ const char *name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get a string control parameter of a other application
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+const char* cwipi_get_distant_string_control_parameter
+(const char *application_name,
+ const char *name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Has int parameter
+ *
+ * parameters
+ *    application_name       <-- application name
+ *    name                   <-- parameter name
+ *
+ * return
+ *    1 : true / 0 : false
+ *----------------------------------------------------------------------------*/
+
+int cwipi_has_int_parameter
+(const char *application_name,
+ const char *name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Has double parameter
+ *
+ * parameters
+ *    application_name       <-- application name
+ *    name                   <-- parameter name
+ *
+ * return
+ *    1 : true / 0 : false
+ *----------------------------------------------------------------------------*/
+
+int cwipi_has_double_parameter
+(const char *application_name,
+ const char *name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Has string parameter
+ *
+ * parameters
+ *    application_name       <-- application name
+ *    name                   <-- parameter name
+ *
+ * return
+ *    1 : true / 0 : false
+ *----------------------------------------------------------------------------*/
+
+int cwipi_has_string_parameter
+(const char *application_name,
+ const char *name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of int parameters
+ *
+ * parameters
+ *    application_name       <-- application name
+ *
+ * return
+ *    Number of int parameters
+ *----------------------------------------------------------------------------*/
+
+int cwipi_get_n_int_parameters
+(const char *application_name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of double parameters
+ *
+ * parameters
+ *    application_name       <-- application name
+ *
+ * return
+ *    Number of double parameters
+ *----------------------------------------------------------------------------*/
+
+int cwipi_get_n_double_parameters
+(const char *application_name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of string parameters
+ *
+ * parameters
+ *    application_name       <-- application name
+ *
+ * return
+ *    Number of string parameters
+ *----------------------------------------------------------------------------*/
+
+int cwipi_get_n_string_parameters
+(const char *application_name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get list int parameters
+ *
+ * parameters
+ *    application_name       <-- application name
+ *
+ * return
+ *    parameters name
+ *----------------------------------------------------------------------------*/
+
+char** cwipi_get_list_int_parameters
+(const char *application_name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get list double parameters
+ *
+ * parameters
+ *    application_name       <-- application name
+ *
+ * return
+ *    parameters name
+ *----------------------------------------------------------------------------*/
+
+char** cwipi_get_list_double_parameters
+(const char *application_name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get list string parameters
+ *
+ * parameters
+ *    application_name       <-- application name
+ *
+ * return
+ *    parameters name
+ *----------------------------------------------------------------------------*/
+
+char** cwipi_get_list_string_parameters
+(const char *application_name);
+
+/*----------------------------------------------------------------------------
+ *
  * Synchronize local control parameters with an other application.
  *  It is a synchronization point with this second application
  *

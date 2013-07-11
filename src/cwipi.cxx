@@ -433,6 +433,219 @@ const char *cwipi_get_distant_string_control_parameter
 
 /*----------------------------------------------------------------------------
  *
+ * Has int parameter
+ *
+ * parameters
+ *    application_name       <-- application name
+ *    name                   <-- parameter name
+ *
+ * return
+ *    1 : true / 0 : false
+ *----------------------------------------------------------------------------*/
+
+int cwipi_has_int_parameter
+(const char *application_name,
+ const char *name)
+{
+  cwipi::ApplicationPropertiesDataBase & properties =
+    cwipi::ApplicationPropertiesDataBase::getInstance();
+
+  if (!strcmp(application_name,  properties.getLocalName().c_str())) 
+    return properties.hasLocalIntControlParameter(name);
+  else
+    return properties.hasDistantIntControlParameter(application_name,name);
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Has double parameter
+ *
+ * parameters
+ *    application_name       <-- application name
+ *    name                   <-- parameter name
+ *
+ * return
+ *    1 : true / 0 : false
+ *----------------------------------------------------------------------------*/
+
+int cwipi_has_double_parameter
+(const char *application_name,
+ const char *name)
+{
+  cwipi::ApplicationPropertiesDataBase & properties =
+    cwipi::ApplicationPropertiesDataBase::getInstance();
+
+  if (!strcmp(application_name,  properties.getLocalName().c_str())) 
+    return properties.hasLocalDoubleControlParameter(name);
+  else
+    return properties.hasDistantDoubleControlParameter(application_name,name);
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Has string parameter
+ *
+ * parameters
+ *    application_name       <-- application name
+ *    name                   <-- parameter name
+ *
+ * return
+ *    1 : true / 0 : false
+ *----------------------------------------------------------------------------*/
+
+int cwipi_has_string_parameter
+(const char *application_name,
+ const char *name)
+{
+  cwipi::ApplicationPropertiesDataBase & properties =
+    cwipi::ApplicationPropertiesDataBase::getInstance();
+
+  if (!strcmp(application_name,  properties.getLocalName().c_str())) 
+    return properties.hasLocalStringControlParameter(name);
+  else
+    return properties.hasDistantStringControlParameter(application_name,name);
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of int parameters
+ *
+ * parameters
+ *    application_name       <-- application name
+ *
+ * return
+ *    Number of int parameters
+ *----------------------------------------------------------------------------*/
+
+int cwipi_get_n_int_parameters
+(const char *application_name)
+{
+  cwipi::ApplicationPropertiesDataBase & properties =
+    cwipi::ApplicationPropertiesDataBase::getInstance();
+
+  if (!strcmp(application_name,  properties.getLocalName().c_str())) 
+    return properties.getLocalNIntControlParameter();
+  else
+    return properties.getDistantNIntControlParameter(application_name);
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of double parameters
+ *
+ * parameters
+ *    application_name       <-- application name
+ *
+ * return
+ *    Number of double parameters
+ *----------------------------------------------------------------------------*/
+
+int cwipi_get_n_double_parameters
+(const char *application_name)
+{
+  cwipi::ApplicationPropertiesDataBase & properties =
+    cwipi::ApplicationPropertiesDataBase::getInstance();
+
+  if (!strcmp(application_name,  properties.getLocalName().c_str())) 
+    return properties.getLocalNDoubleControlParameter();
+  else
+    return properties.getDistantNDoubleControlParameter(application_name);
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of string parameters
+ *
+ * parameters
+ *    application_name       <-- application name
+ *
+ * return
+ *    Number of string parameters
+ *----------------------------------------------------------------------------*/
+
+int cwipi_get_n_string_parameters
+(const char *application_name)
+{
+  cwipi::ApplicationPropertiesDataBase & properties =
+    cwipi::ApplicationPropertiesDataBase::getInstance();
+
+  if (!strcmp(application_name,  properties.getLocalName().c_str())) 
+    return properties.getLocalNStringControlParameter();
+  else
+    return properties.getDistantNStringControlParameter(application_name);
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get list int parameters
+ *
+ * parameters
+ *    application_name       <-- application name
+ *
+ * return
+ *    parameters name
+ *----------------------------------------------------------------------------*/
+
+char** cwipi_get_list_int_parameters
+(const char *application_name)
+{
+  cwipi::ApplicationPropertiesDataBase & properties =
+    cwipi::ApplicationPropertiesDataBase::getInstance();
+
+  if (!strcmp(application_name,  properties.getLocalName().c_str())) 
+    return properties.getLocalListIntControlParameter();
+  else
+    return properties.getDistantListIntControlParameter(application_name);
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get list double parameters
+ *
+ * parameters
+ *    application_name       <-- application name
+ *
+ * return
+ *    parameters name
+ *----------------------------------------------------------------------------*/
+
+char** cwipi_get_list_double_parameters
+(const char *application_name)
+{
+  cwipi::ApplicationPropertiesDataBase & properties =
+    cwipi::ApplicationPropertiesDataBase::getInstance();
+
+  if (!strcmp(application_name,  properties.getLocalName().c_str())) 
+    return properties.getLocalListDoubleControlParameter();
+  else
+    return properties.getDistantListDoubleControlParameter(application_name);
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get list string parameters
+ *
+ * parameters
+ *    application_name       <-- application name
+ *
+ * return
+ *    parameters name
+ *----------------------------------------------------------------------------*/
+
+char** cwipi_get_list_string_parameters
+(const char *application_name)
+{
+  cwipi::ApplicationPropertiesDataBase & properties =
+    cwipi::ApplicationPropertiesDataBase::getInstance();
+
+  if (!strcmp(application_name,  properties.getLocalName().c_str())) 
+    return properties.getLocalListStringControlParameter();
+  else
+    return properties.getDistantListStringControlParameter(application_name);
+}
+
+/*----------------------------------------------------------------------------
+ *
  * Synchronize local control parameters with an other application.
  *  This is a synchronization point with this second application
  *

@@ -24,6 +24,7 @@ cimport numpy as np
 
 cimport mpi4py.MPI as MPI
 from mpi4py.mpi_c cimport *
+from libc.stdlib cimport malloc, free
 
 interp_f={}
 current_cpl = "" 
@@ -153,6 +154,19 @@ cdef extern from "cwipi.h":
     int *cwipi_get_distant_distribution(char *coupling_id)
     int *cwipi_get_located_points_distribution(char *coupling_id)
  
+    int cwipi_has_int_parameter(const char *application_name, const char *name)
+    int cwipi_has_double_parameter(const char *application_name, const char *name)
+    int cwipi_has_string_parameter(const char *application_name, const char *name)
+
+    int cwipi_get_n_int_parameters(const char *application_name)
+    int cwipi_get_n_double_parameters(const char *application_name)
+    int cwipi_get_n_string_parameters(const char *application_name)
+
+    char ** cwipi_get_list_int_parameters(const char *application_name)
+    char ** cwipi_get_list_double_parameters(const char *application_name)
+    char ** cwipi_get_list_string_parameters(const char *application_name)
+
+
 COUPLING_PARALLEL_WITH_PARTITIONING = CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING
 COUPLING_PARALLEL_WITHOUT_PARTITIONING = CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING
 COUPLING_SEQUENTIAL = CWIPI_COUPLING_SEQUENTIAL
@@ -174,7 +188,6 @@ EXCHANGE_BAD_RECEIVING = CWIPI_EXCHANGE_BAD_RECEIVING
 # ---------------
 
 def  init(MPI.Comm common_comm, char* application_name):
-#def init(MPI.Comm common_comm, char* application_name, MPI.Comm application_comm):
     """
      Initialize the cwipi library and create 
      the current communicator application from 'common_comm'.
@@ -380,6 +393,113 @@ def get_distant_string_control_parameter(char* application_name, char* name):
       name             <-- parameter name
     """
     return cwipi_get_distant_string_control_parameter(application_name, name)
+
+
+def has_int_parameter(char* application_name, char* name):
+    """
+    Has this int parameter ?
+
+    parameters
+      application_name <-- distant application name
+      name             <-- parameter name
+    return
+      boolean
+    """
+    return (cwipi_has_int_parameter(application_name, name) == 1)
+
+
+def has_double_parameter(char* application_name, char* name):
+    """
+    Has this double parameter ?
+
+    parameters
+      application_name <-- distant application name
+      name             <-- parameter name
+    return
+      boolean
+    """
+    return (cwipi_has_double_parameter(application_name, name) == 1)
+
+
+def has_string_parameter(char* application_name, char* name):
+    """
+    Has this double parameter ?
+
+    parameters
+      application_name <-- distant application name
+      name             <-- parameter name
+    return
+      boolean
+    """
+    return (cwipi_has_string_parameter(application_name, name) == 1)
+
+
+def get_list_int_parameter(char* application_name):
+    """
+    return int parameters names
+
+    parameters
+      application_name <-- distant application name
+      name             <-- parameter name
+    return
+      list
+    """
+    i_parameters = []
+    cdef int n_parameters = cwipi_get_n_int_parameters(application_name)
+    cdef char** c_parameters = cwipi_get_list_int_parameters(application_name)
+
+    for i in range(n_parameters) :
+        i_parameters.append(str(c_parameters[i]))
+        free(c_parameters[i])
+
+    free(c_parameters)
+
+    return i_parameters
+
+
+def get_list_double_parameter(char* application_name):
+    """
+    return double parameters names
+
+    parameters
+      application_name <-- distant application name
+      name             <-- parameter name
+    return
+      list
+    """
+    d_parameters = []
+    cdef int n_parameters = cwipi_get_n_double_parameters(application_name)
+    cdef char** c_parameters = cwipi_get_list_double_parameters(application_name)
+
+    for i in range(n_parameters) :
+        d_parameters.append(str(c_parameters[i]))
+        free(c_parameters[i])
+
+    free(c_parameters)
+    return d_parameters
+
+
+def get_list_string_parameter(char* application_name):
+    """
+    return string parameters names
+
+    parameters
+      application_name <-- distant application name
+      name             <-- parameter name
+    return
+      list
+    """
+    s_parameters = []
+    cdef int n_parameters = cwipi_get_n_string_parameters(application_name)
+    cdef char** c_parameters = cwipi_get_list_string_parameters(application_name)
+
+    for i in range(n_parameters) :
+        s_parameters.append(str(c_parameters[i]))
+        free(c_parameters[i])
+
+    free(c_parameters)
+
+    return s_parameters
 
 
 def synchronize_control_parameter(char* application_name):

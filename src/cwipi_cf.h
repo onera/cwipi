@@ -361,6 +361,171 @@ void PROCF(cwipi_get_dis_str_ctrl_param_cf,
    int *l_value
    ARGF_SUPP_CHAINE);
 
+/*----------------------------------------------------------------------------
+ *
+ * Has int control parameter ?
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_has_int_ctrl_param_cf,
+           CWIPI_HAS_INT_CTRL_PARAM_CF)
+  (const char *application_name,
+   const int  *l_application_name,
+   const char *name,
+   const int  *l_name,
+   int *status
+   ARGF_SUPP_CHAINE);
+
+/*----------------------------------------------------------------------------
+ *
+ * Has dbl control parameter ?
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_has_dbl_ctrl_param_cf,
+           CWIPI_HAS_DBL_CTRL_PARAM_CF)
+  (const char *application_name,
+   const int  *l_application_name,
+   const char *name,
+   const int  *l_name,
+   int *status
+   ARGF_SUPP_CHAINE);
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Has str control parameter ?
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_has_str_ctrl_param_cf,
+           CWIPI_HAS_STR_CTRL_PARAM_CF)
+  (const char *application_name,
+   const int  *l_application_name,
+   const char *name,
+   const int  *l_name,
+   int *status
+   ARGF_SUPP_CHAINE);
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of int parameters
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_n_int_ctrl_param_cf,
+           CWIPI_GET_N_INT_CTRL_PARAM_CF)
+  (const char *application_name,
+   const int  *l_application_name,
+   int *n_param
+   ARGF_SUPP_CHAINE);
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of dbl parameters
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_n_dbl_ctrl_param_cf,
+           CWIPI_GET_N_DBL_CTRL_PARAM_CF)
+  (const char *application_name,
+   const int  *l_application_name,
+   int *n_param
+   ARGF_SUPP_CHAINE);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of str parameters
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_n_str_ctrl_param_cf,
+           CWIPI_GET_N_STR_CTRL_PARAM_CF)
+  (const char *application_name,
+   const int  *l_application_name,
+   int *n_param
+   ARGF_SUPP_CHAINE);
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Get int parameters list
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_list_int_ctrl_param_cf,
+           CWIPI_GET_LIST_INT_CTRL_PARAM_CF)
+  (const char *application_name,
+   const int  *l_application_name,
+   char *params,
+   const int  *l_param  
+   ARGF_SUPP_CHAINE);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get dbl parameters list
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_list_dbl_ctrl_param_cf,
+           CWIPI_GET_LIST_DBL_CTRL_PARAM_CF)
+  (const char *application_name,
+   const int  *l_application_name,
+   char *params,
+   const int  *l_param  
+   ARGF_SUPP_CHAINE);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get str parameters list
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_list_str_ctrl_param_cf,
+           CWIPI_GET_LIST_STR_CTRL_PARAM_CF)
+  (const char *application_name,
+   const int  *l_application_name,
+   char *params,
+   const int  *l_param  
+   ARGF_SUPP_CHAINE);
 
 /*----------------------------------------------------------------------------
  *

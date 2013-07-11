@@ -257,6 +257,42 @@ module cwipi
     cwipi_get_loc_pts_distrib_f_
   end interface cwipi_get_loc_pts_distrib_f
 
+  interface cwipi_has_int_ctrl_param_f; module procedure &
+    cwipi_has_int_ctrl_param_f_
+  end interface cwipi_has_int_ctrl_param_f
+
+  interface cwipi_has_dbl_ctrl_param_f; module procedure &
+    cwipi_has_dbl_ctrl_param_f_
+  end interface cwipi_has_dbl_ctrl_param_f
+
+  interface cwipi_has_str_ctrl_param_f; module procedure &
+    cwipi_has_str_ctrl_param_f_
+  end interface cwipi_has_str_ctrl_param_f
+
+  interface cwipi_get_n_int_ctrl_param_f; module procedure &
+    cwipi_get_n_int_ctrl_param_f_
+  end interface cwipi_get_n_int_ctrl_param_f
+
+  interface cwipi_get_n_dbl_ctrl_param_f; module procedure &
+    cwipi_get_n_dbl_ctrl_param_f_
+  end interface  cwipi_get_n_dbl_ctrl_param_f
+
+  interface cwipi_get_n_str_ctrl_param_f; module procedure &
+    cwipi_get_n_str_ctrl_param_f_
+  end interface cwipi_get_n_str_ctrl_param_f
+
+  interface cwipi_get_list_int_ctrl_param_f; module procedure &
+    cwipi_get_list_int_ctrl_param_f_
+  end interface cwipi_get_list_int_ctrl_param_f
+
+  interface cwipi_get_list_dbl_ctrl_param_f; module procedure &
+    cwipi_get_list_dbl_ctrl_param_f_
+  end interface cwipi_get_list_dbl_ctrl_param_f
+
+  interface cwipi_get_list_str_ctrl_param_f; module procedure &
+    cwipi_get_list_str_ctrl_param_f_
+  end interface cwipi_get_list_str_ctrl_param_f
+
   !
   ! Private
 
@@ -281,6 +317,15 @@ module cwipi
              cwipi_get_dis_int_ctrl_param_f_, &
              cwipi_get_dis_dbl_ctrl_param_f_, &
              cwipi_get_dis_str_ctrl_param_f_, &
+             cwipi_has_int_ctrl_param_f_, &
+             cwipi_has_dbl_ctrl_param_f_, &
+             cwipi_has_str_ctrl_param_f_, &
+             cwipi_get_n_int_ctrl_param_f_, &
+             cwipi_get_n_dbl_ctrl_param_f_, &
+             cwipi_get_n_str_ctrl_param_f_, &
+             cwipi_get_list_int_ctrl_param_f_, &
+             cwipi_get_list_dbl_ctrl_param_f_, &
+             cwipi_get_list_str_ctrl_param_f_, &
              cwipi_synch_ctrl_param_f_,       &
              cwipi_create_coupling_f_,        &
              cwipi_set_points_to_locate_f_,   &
@@ -719,6 +764,321 @@ contains
     call cwipi_del_loc_str_ctrl_param_cf (name, l)
 
   end subroutine cwipi_del_loc_str_ctrl_param_f_
+
+!
+!********************************************************************************
+!
+! cwipi_has_int_ctrl_param_f
+!
+! Has int control parameter ?
+!
+! parameters
+!    application_name       <-- application name
+!    name                   <-- parameter name
+!
+!********************************************************************************
+!
+
+  subroutine cwipi_has_int_ctrl_param_f_(appliName, &
+                                         paramName, &
+                                         status)
+
+    implicit none
+
+    character (len = *) :: appliName
+    character (len = *) :: paramName
+    integer (kind = cwipi_int_l) :: status
+
+    integer (kind = cwipi_int_l) :: l1, l2
+
+    l1 = len(appliName)
+    l2 = len(paramName)
+
+    call cwipi_has_int_ctrl_param_cf(appliName, &
+                                         l1, &
+                                         paramName, &
+                                         l2, &
+                                         status)
+
+  end subroutine cwipi_has_int_ctrl_param_f_
+
+!
+!********************************************************************************
+!
+! cwipi_has_dbl_ctrl_param_f
+!
+! has double control parameter ?
+!
+! parameters
+!    application_name       <-- application name
+!    name                   <-- parameter name
+!
+!********************************************************************************
+!
+
+  subroutine cwipi_has_dbl_ctrl_param_f_(appliName, &
+                                             paramName, &
+                                             status)
+
+    implicit none
+
+    character (len = *) :: appliName
+    character (len = *) :: paramName
+    integer (kind = cwipi_int_l) :: status
+
+    integer (kind = cwipi_int_l) :: l1, l2
+
+    l1 = len(appliName)
+    l2 = len(paramName)
+
+    call cwipi_has_dbl_ctrl_param_cf(appliName, &
+                                     l1, &
+                                     paramName, &
+                                     l2, &
+                                     status)
+
+  end subroutine cwipi_has_dbl_ctrl_param_f_
+
+!
+!********************************************************************************
+!
+! cwipi_has_str_ctrl_param_f
+!
+! has double control parameter ?
+!
+! parameters
+!    application_name       <-- application name
+!    name                   <-- parameter name
+!
+!********************************************************************************
+!
+
+  subroutine cwipi_has_str_ctrl_param_f_(appliName, &
+                                         paramName, &
+                                         status)
+
+    implicit none
+
+    character (len = *) :: appliName
+    character (len = *) :: paramName
+    integer (kind = cwipi_int_l) :: status
+
+    integer (kind = cwipi_int_l) :: l1, l2
+
+    l1 = len(appliName)
+    l2 = len(paramName)
+
+    call cwipi_has_str_ctrl_param_cf(appliName, &
+                                     l1, &
+                                     paramName, &
+                                     l2, &
+                                     status)
+
+  end subroutine cwipi_has_str_ctrl_param_f_
+
+!
+!********************************************************************************
+!
+! cwipi_get_n_int_ctrl_param_f
+!
+! Get number of int control parameter
+!
+! parameters
+!    application_name       <-- application name
+!    name                   <-- parameter name
+!
+!********************************************************************************
+!
+
+  subroutine cwipi_get_n_int_ctrl_param_f_(appliName, &
+                                           n_param)
+
+    implicit none
+
+    character (len = *) :: appliName
+    integer (kind = cwipi_int_l) :: n_param
+
+    integer (kind = cwipi_int_l) :: l1
+
+    l1 = len(appliName)
+
+    call cwipi_get_n_int_ctrl_param_cf(appliName, &
+                                     l1, &
+                                     n_param)
+
+  end subroutine cwipi_get_n_int_ctrl_param_f_
+
+
+!
+!********************************************************************************
+!
+! cwipi_get_n_dbl_ctrl_param_f
+!
+! Get number of int control parameter
+!
+! parameters
+!    application_name       <-- application name
+!    name                   <-- parameter name
+!
+!********************************************************************************
+!
+
+  subroutine cwipi_get_n_dbl_ctrl_param_f_(appliName, &
+                                           n_param)
+
+    implicit none
+
+    character (len = *) :: appliName
+    integer (kind = cwipi_int_l) :: n_param
+
+    integer (kind = cwipi_int_l) :: l1
+
+    l1 = len(appliName)
+
+    call cwipi_get_n_dbl_ctrl_param_cf(appliName, &
+                                       l1, &
+                                       n_param)
+
+  end subroutine cwipi_get_n_dbl_ctrl_param_f_
+
+!
+!********************************************************************************
+!
+! cwipi_get_n_str_ctrl_param_f
+!
+! Get number of int control parameter
+!
+! parameters
+!    application_name       <-- application name
+!    name                   <-- parameter name
+!
+!********************************************************************************
+!
+
+  subroutine cwipi_get_n_str_ctrl_param_f_(appliName, &
+                                           n_param)
+
+    implicit none
+
+    character (len = *) :: appliName
+    integer (kind = cwipi_int_l) :: n_param
+
+    integer (kind = cwipi_int_l) :: l1
+
+    l1 = len(appliName)
+
+    call cwipi_get_n_str_ctrl_param_cf(appliName, &
+                                       l1, &
+                                       n_param)
+
+  end subroutine cwipi_get_n_str_ctrl_param_f_
+
+
+!
+!********************************************************************************
+!
+! cwipi_get_list_int_ctrl_param_f
+!
+! Get int control parameter list
+!
+! parameters
+!    application_name       <-- application name
+!    name                   <-- parameter name
+!
+!********************************************************************************
+!
+
+  subroutine cwipi_get_list_int_ctrl_param_f_(appliName, &
+                                              params)
+
+    implicit none
+
+    character (len = *) :: appliName
+    character (len = *) :: params(*)
+
+    integer (kind = cwipi_int_l) :: l1, l2
+
+    l1 = len(appliName)
+    l2 = len(params)
+
+    call cwipi_get_list_int_ctrl_param_cf(appliName, &
+                                          l1, &
+                                          params, &
+                                          l2)
+
+  end subroutine cwipi_get_list_int_ctrl_param_f_
+
+
+!
+!********************************************************************************
+!
+! cwipi_get_list_dbl_ctrl_param_f
+!
+! Get double control parameter list
+!
+! parameters
+!    application_name       <-- application name
+!    name                   <-- parameter name
+!
+!********************************************************************************
+!
+
+  subroutine cwipi_get_list_dbl_ctrl_param_f_(appliName, &
+                                              params)
+
+    implicit none
+
+    character (len = *) :: appliName
+    character (len = *) :: params(*)
+
+    integer (kind = cwipi_int_l) :: l1, l2
+
+    l1 = len(appliName)
+    l2 = len(params)
+
+    call cwipi_get_list_dbl_ctrl_param_cf(appliName, &
+                                          l1, &
+                                          params, &
+                                          l2)
+
+  end subroutine cwipi_get_list_dbl_ctrl_param_f_
+
+
+
+!
+!********************************************************************************
+!
+! cwipi_get_list_dbl_ctrl_param_f
+!
+! Get double control parameter list
+!
+! parameters
+!    application_name       <-- application name
+!    name                   <-- parameter name
+!
+!********************************************************************************
+!
+
+  subroutine cwipi_get_list_str_ctrl_param_f_(appliName, &
+                                              params)
+
+    implicit none
+
+    character (len = *) :: appliName
+    character (len = *) :: params(*)
+
+    integer (kind = cwipi_int_l) :: l1, l2
+
+    l1 = len(appliName)
+    l2 = len(params)
+
+    call cwipi_get_list_str_ctrl_param_cf(appliName, &
+                                          l1, &
+                                          params, &
+                                          l2)
+
+  end subroutine cwipi_get_list_str_ctrl_param_f_
+
 
 !
 !********************************************************************************

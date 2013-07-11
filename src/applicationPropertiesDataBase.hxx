@@ -54,6 +54,8 @@ namespace cwipi {
 
     inline const MPI_Comm &getGlobalComm() const;
 
+    inline const std::string &getLocalName() const;
+
     inline const int &getBeginningRank() const;
 
     inline const int &getEndRank() const;
@@ -107,6 +109,42 @@ namespace cwipi {
     inline const double &getDistantDoubleControlParameter(const std::string &applicationName, const std::string &name) const;
 
     inline const std::string &getDistantStringControlParameter(const std::string &applicationName, const std::string &name) const;
+
+    inline int hasLocalIntControlParameter(const std::string &name) const;
+
+    inline int hasLocalDoubleControlParameter(const std::string &name) const;
+
+    inline int hasLocalStringControlParameter(const std::string &name) const;
+
+    inline int getLocalNIntControlParameter() const;
+
+    inline int getLocalNDoubleControlParameter() const;
+
+    inline int getLocalNStringControlParameter() const;
+
+    inline char** getLocalListIntControlParameter() const;
+
+    inline char** getLocalListDoubleControlParameter() const;
+
+    inline char** getLocalListStringControlParameter() const;
+
+    inline int hasDistantIntControlParameter(const std::string &applicationName, const std::string &name) const;
+
+    inline int hasDistantDoubleControlParameter(const std::string &applicationName, const std::string &name) const;
+
+    inline int hasDistantStringControlParameter(const std::string &applicationName, const std::string &name) const;
+
+    inline int getDistantNIntControlParameter(const std::string &applicationName) const;
+
+    inline int getDistantNDoubleControlParameter(const std::string &applicationName) const;
+
+    inline int getDistantNStringControlParameter(const std::string &applicationName) const;
+
+    inline char** getDistantListIntControlParameter(const std::string &applicationName) const;
+
+    inline char** getDistantListDoubleControlParameter(const std::string &applicationName) const;
+
+    inline char** getDistantListStringControlParameter(const std::string &applicationName) const;
 
     void dump();
 
