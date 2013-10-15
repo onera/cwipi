@@ -274,11 +274,11 @@ namespace cwipi {
     std::map<int, std::vector<double> * > &_tmpDistantFieldsIssend; //TODO: temporaire : A revoir lors
                                                                     // de la restructuration
     std::map<int, const double * > &_tmpLocalFieldsIrecv;
-    std::map<int, const char * > &_tmpExchangeNameIrecv;
+    std::map<int, std::string > &_tmpExchangeNameIrecv;
     std::map<int, int > &_tmpStrideIrecv;
     std::map<int, int > &_tmpTimeStepIrecv;
     std::map<int, double > &_tmpTimeValueIrecv;
-    std::map<int, const char * > &_tmpFieldNameIrecv;
+    std::map<int, std::string > &_tmpFieldNameIrecv;
     std::vector<float> _distance;
   };
 

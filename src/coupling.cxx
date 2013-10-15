@@ -100,11 +100,11 @@ Coupling::Coupling(const std::string& name,
  _couplingType(couplingType),
  _tmpDistantFieldsIssend(*new std::map<int, std::vector<double> * > ()),
  _tmpLocalFieldsIrecv(*new std::map<int, const double * > ()),
- _tmpExchangeNameIrecv(*new  std::map<int, const char * > ()),
+ _tmpExchangeNameIrecv(*new  std::map<int, std::string > ()),
  _tmpStrideIrecv(*new  std::map<int, int > ()),
  _tmpTimeStepIrecv(*new  std::map<int, int > ()),
  _tmpTimeValueIrecv(*new  std::map<int, double > ()),
- _tmpFieldNameIrecv(*new  std::map<int, const char * > ())
+ _tmpFieldNameIrecv(*new  std::map<int, std::string > ())
 
 {
   _tmpVertexField = NULL;
@@ -1354,13 +1354,13 @@ void Coupling::waitIrecv(int request)
     //
     // Visualization
 
-    _fieldsVisualization(_tmpExchangeNameIrecv[request],
+    _fieldsVisualization(_tmpExchangeNameIrecv[request].c_str(),
                          _tmpStrideIrecv[request],      
                          _tmpTimeStepIrecv[request],  
                          _tmpTimeValueIrecv[request],
                          "",
                          NULL,
-                         _tmpFieldNameIrecv[request], 
+                         _tmpFieldNameIrecv[request].c_str(), 
                          _tmpLocalFieldsIrecv[request]);  
   }
 
@@ -1379,11 +1379,11 @@ void Coupling::waitIrecv(int request)
   }
 
   _tmpLocalFieldsIrecv[request] = NULL;
-  _tmpExchangeNameIrecv[request] = NULL;
+  _tmpExchangeNameIrecv[request] = "";
   _tmpStrideIrecv[request] = 0;
   _tmpTimeStepIrecv[request] = 1;
   _tmpTimeValueIrecv[request] = 0;
-  _tmpFieldNameIrecv[request] = NULL;
+  _tmpFieldNameIrecv[request] = "";
 }
 
 
@@ -1571,7 +1571,6 @@ void Coupling::_fieldsVisualization(const char *exchangeName,
       void **ptField = NULL;
 
       for (int kk = 0; kk < stride; kk++) {
-
         std::ostringstream num;
         num << kk;
 
