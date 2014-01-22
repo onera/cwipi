@@ -138,6 +138,7 @@ cdef extern from "cwipi.h":
     void cwipi_wait_irecv(char *coupling_name, int request)
     void cwipi_set_interpolation_function(char* coupling_id, cwipi_interpolation_fct_t fct)
     int* cwipi_get_not_located_points(char* coupling_id)
+    int* cwipi_get_located_points(char* coupling_id)
     int cwipi_get_n_located_points(char* coupling_id)
     int cwipi_get_n_not_located_points(char* coupling_id)
 
@@ -154,17 +155,17 @@ cdef extern from "cwipi.h":
     int *cwipi_get_distant_distribution(char *coupling_id)
     int *cwipi_get_located_points_distribution(char *coupling_id)
  
-    int cwipi_has_int_parameter(const char *application_name, const char *name)
-    int cwipi_has_double_parameter(const char *application_name, const char *name)
-    int cwipi_has_string_parameter(const char *application_name, const char *name)
+    int cwipi_has_int_parameter(char *application_name, char *name)
+    int cwipi_has_double_parameter(char *application_name, char *name)
+    int cwipi_has_string_parameter(char *application_name, char *name)
 
-    int cwipi_get_n_int_parameters(const char *application_name)
-    int cwipi_get_n_double_parameters(const char *application_name)
-    int cwipi_get_n_string_parameters(const char *application_name)
+    int cwipi_get_n_int_parameters(char *application_name)
+    int cwipi_get_n_double_parameters(char *application_name)
+    int cwipi_get_n_string_parameters(char *application_name)
 
-    char ** cwipi_get_list_int_parameters(const char *application_name)
-    char ** cwipi_get_list_double_parameters(const char *application_name)
-    char ** cwipi_get_list_string_parameters(const char *application_name)
+    char ** cwipi_get_list_int_parameters(char *application_name)
+    char ** cwipi_get_list_double_parameters(char *application_name)
+    char ** cwipi_get_list_string_parameters(char *application_name)
 
 
 COUPLING_PARALLEL_WITH_PARTITIONING = CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING
@@ -843,6 +844,20 @@ cdef class Coupling (object):
                                                  np.NPY_INT32,
                                                  <void *> cwipi_get_not_located_points(self.name)) 
 
+
+    def get_located_points(self):
+        """
+        Get not located points
+        """
+        np.import_array()
+        cdef np.npy_intp dims = <np.npy_intp> cwipi_get_n_located_points(self.name)
+        if (dims == 0):
+            return None
+        else :
+            return np.PyArray_SimpleNewFromData(1, 
+                                                 &dims, 
+                                                 np.NPY_INT32,
+                                                 <void *> cwipi_get_located_points(self.name)) 
 
     def get_distant_location(self):
         """
