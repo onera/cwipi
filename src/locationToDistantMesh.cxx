@@ -115,6 +115,8 @@ void LocationToDistantMesh::synchronize()
 
       MPI_Bcast(_unlocatedPoint, _nUnlocatedPoint, MPI_INT, rootRank, localComm );
 
+      _toLocate = false;
+
       if (_locationInfo == CWIPI_DISTANT_MESH_INFO) {
 
 
@@ -215,11 +217,17 @@ void LocationToDistantMesh::synchronize()
 void LocationToDistantMesh::clear()
 {
   if (!_isCoupledRank && _couplingType == CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING) {
-    if (_locatedPoint != NULL)
+    if (_locatedPoint != NULL) {
       delete []  _locatedPoint;
+      _locatedPoint = NULL;
+    }
+    
 
-    if (_unlocatedPoint != NULL)
+    if (_unlocatedPoint != NULL) {
       delete []  _unlocatedPoint;
+      _unlocatedPoint = NULL;
+    }
+
   }
 
   if (_elementContainingBarycentricCoordinates != NULL)
@@ -234,6 +242,13 @@ void LocationToDistantMesh::clear()
     delete [] _elementContainingVertexCoords;
   if (_elementContaining != NULL)
     delete [] _elementContaining;
+
+  _elementContainingBarycentricCoordinates = NULL;
+  _elementContainingMPIrankContaining = NULL;
+  _elementContainingNVertex = NULL;
+  _elementContainingVertex = NULL;
+  _elementContainingVertexCoords = NULL;
+  _elementContaining = NULL;
 
 }
 
