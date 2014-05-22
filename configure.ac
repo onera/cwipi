@@ -192,6 +192,8 @@ user_CPPFLAGS=$CPPFLAGS
 user_CFLAGS=$CFLAGS
 user_LDFLAGS=$LDFLAGS
 
+LT_INIT
+
 AC_PROG_CC(icc gcc)
 
 AC_PROG_CXX(icpc g++)
@@ -663,7 +665,7 @@ if test "x$cwipi_disable_shared" = "xyes" ; then
   enable_shared=no
 fi
 
-LT_INIT
+#LT_INIT
 
 #--------------------------------------------------------------------------
 # If the system is of a known type, declare it in the configuration header.
