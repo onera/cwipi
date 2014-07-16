@@ -1170,7 +1170,8 @@ void LocationToLocalMesh::compute3DMeanValues()
         //
         // Standard element    
         //
-      
+
+
         double uvw[3];
         double vertex_coords[8][3];
         double deriv[8][3];
@@ -1186,95 +1187,128 @@ void LocationToLocalMesh::compute3DMeanValues()
         
         int ierr = 0;
 
-        switch(nbr_som){
-      
-        case 4 :
-
+        if (dist > 1.) {
+    
           //
-          // Tetraedra :            
+          // If point is not in element, get the closest vertex
           //
-
-          ierr = compute_uvw(CWIPI_CELL_TETRA4,
-                             coo_point_dist,
-                             vertex_coords,
-                             1e-6,
-                             uvw);
-
-          compute_shapef_3d(CWIPI_CELL_TETRA4,
-                            uvw,
-                            &distBarCoords[0] + nDistBarCoords[ipoint],
-                            deriv);        
           
+          double vect3D[3];
+          double dist2 = -1;
 
+          int closestVertex = -1;
           
-          break;
+          for (int isom = 0; isom < nbr_som; isom++) {
+            distBarCoords[nDistBarCoords[ipoint] + isom] = 0.;
+            for (int i = 0; i < 3; i++) {
+              vect3D[i] = vertex_coords[isom][i] - coo_point_dist[i];
+            }
+
+            double normVect3D = sqrt(vect3D[0] * vect3D[0] 
+                                   + vect3D[1] * vect3D[1]
+                                   + vect3D[2] * vect3D[2]);
+
+            if ((normVect3D < dist2) || (closestVertex == -1)) {
+              closestVertex = isom;
+              dist2  =  normVect3D;
+            }
+          }    
           
-        case 5 : 
-        
-          //
-          // Pyramid             
-          //
-
-          ierr = compute_uvw(CWIPI_CELL_PYRAM5,
-                             coo_point_dist,
-                             vertex_coords,
-                             1e-6,
-                             uvw);
-
-          compute_shapef_3d(CWIPI_CELL_PYRAM5,
-                            uvw,
-                            &(distBarCoords[0]) + nDistBarCoords[ipoint],
-                            deriv);
-        
-          break;
-
-        case 6 :
-        
-          //
-          // Prism               
-          //
-
-          ierr = compute_uvw(CWIPI_CELL_PRISM6,
-                             coo_point_dist,
-                             vertex_coords,
-                             1e-6,
-                             uvw);
-
-          compute_shapef_3d(CWIPI_CELL_PRISM6,
-                            uvw,
-                            &(distBarCoords[0]) + nDistBarCoords[ipoint],
-                            deriv);        
-          break;
-
-        case 8 :
-          
-          //
-          // Hexahedron          
-          //
-
-          ierr = compute_uvw(CWIPI_CELL_HEXA8,
-                             coo_point_dist,
-                             vertex_coords,
-                             1e-6,
-                             uvw);
-
-          compute_shapef_3d(CWIPI_CELL_HEXA8,
-                            uvw,
-                            &(distBarCoords[0]) + nDistBarCoords[ipoint],
-                            deriv);        
-          break;
-
-        default:
-          bftc_error(__FILE__, __LINE__, 0,
-                     "compute3DMeanValues: unhandled element type\n");
-          
-
+          distBarCoords[nDistBarCoords[ipoint] + closestVertex] = 1;
+    
         }
+        
+        else {
 
-        if (ierr == 0) 
-          bftc_error(__FILE__, __LINE__, 0,
-                     "compute3DMeanValues: Error to barycentric coordinates\n");
+          switch(nbr_som){
+      
+          case 4 :
+            
+            //
+            // Tetraedra :            
+            //
+            
+            ierr = compute_uvw(CWIPI_CELL_TETRA4,
+                               coo_point_dist,
+                               vertex_coords,
+                               1e-6,
+                               uvw);
+            
+            compute_shapef_3d(CWIPI_CELL_TETRA4,
+                              uvw,
+                              &distBarCoords[0] + nDistBarCoords[ipoint],
+                              deriv);        
+            
 
+          
+            break;
+          
+          case 5 : 
+            
+            //
+            // Pyramid             
+            //
+            
+            ierr = compute_uvw(CWIPI_CELL_PYRAM5,
+                               coo_point_dist,
+                               vertex_coords,
+                               1e-6,
+                               uvw);
+            
+            compute_shapef_3d(CWIPI_CELL_PYRAM5,
+                              uvw,
+                              &(distBarCoords[0]) + nDistBarCoords[ipoint],
+                              deriv);
+            
+            break;
+
+          case 6 :
+            
+            //
+            // Prism               
+            //
+            
+            ierr = compute_uvw(CWIPI_CELL_PRISM6,
+                               coo_point_dist,
+                               vertex_coords,
+                               1e-6,
+                               uvw);
+
+            compute_shapef_3d(CWIPI_CELL_PRISM6,
+                              uvw,
+                              &(distBarCoords[0]) + nDistBarCoords[ipoint],
+                              deriv);        
+            break;
+            
+          case 8 :
+            
+            //
+            // Hexahedron          
+            //
+            
+            ierr = compute_uvw(CWIPI_CELL_HEXA8,
+                               coo_point_dist,
+                               vertex_coords,
+                               1e-6,
+                               uvw);
+            
+            compute_shapef_3d(CWIPI_CELL_HEXA8,
+                              uvw,
+                              &(distBarCoords[0]) + nDistBarCoords[ipoint],
+                              deriv);        
+            break;
+            
+          default:
+            bftc_error(__FILE__, __LINE__, 0,
+                       "compute3DMeanValues: unhandled element type\n");
+          
+
+          }
+
+          if (ierr == 0) 
+            bftc_error(__FILE__, __LINE__, 0,
+                       "compute3DMeanValues: Error to barycentric coordinates\n");
+        }
       }
 
       else {
@@ -1886,28 +1920,64 @@ LocationToLocalMesh::compute_shapef_3d(const cwipi_element_t elt_type,
 
   case CWIPI_CELL_PYRAM5:
 
-    shapef[0] = (1.0 - uvw[0]) * (1.0 - uvw[1]) * (1.0 - uvw[2]);
-    shapef[1] = uvw[0] * (1.0 - uvw[1]) * (1.0 - uvw[2]);
-    shapef[2] = uvw[0] * uvw[1] * (1.0 - uvw[2]);
-    shapef[3] = (1.0 - uvw[0]) * uvw[1] * (1.0 - uvw[2]);
-    shapef[4] = uvw[2];
+    if (0 == 1) {
 
-    if (deriv != NULL) {
-      deriv[0][0] = -(1.0 - uvw[1]) * (1.0 - uvw[2]);
-      deriv[0][1] = -(1.0 - uvw[0]) * (1.0 - uvw[2]);
-      deriv[0][2] = -(1.0 - uvw[0]) * (1.0 - uvw[1]);
-      deriv[1][0] =  (1.0 - uvw[1]) * (1.0 - uvw[2]);
-      deriv[1][1] = -uvw[0] * (1.0 - uvw[2]);
-      deriv[1][2] = -uvw[0] * (1.0 - uvw[1]);
-      deriv[2][0] =  uvw[1] * (1.0 - uvw[2]);
-      deriv[2][1] =  uvw[0] * (1.0 - uvw[2]);
-      deriv[2][2] = -uvw[0] * uvw[1];
-      deriv[3][0] = -uvw[1] * (1.0 - uvw[2]);
-      deriv[3][1] =  (1.0 - uvw[0]) * (1.0 - uvw[2]);
-      deriv[3][2] = -(1.0 - uvw[0]) * uvw[1];
-      deriv[4][0] =  0.0;
-      deriv[4][1] =  0.0;
-      deriv[4][2] =  1.0;
+      // Alternative de coordonnees barycentriques
+
+      shapef[0] = 0.125 * (1.0 - uvw[0]) * (1.0 - uvw[1]) * (1.0 - uvw[2]);
+      shapef[1] = 0.125 * (1.0 + uvw[0]) * (1.0 - uvw[1]) * (1.0 - uvw[2]);
+      shapef[2] = 0.125 * (1.0 + uvw[0]) * (1.0 + uvw[1]) * (1.0 - uvw[2]);
+      shapef[3] = 0.125 * (1.0 - uvw[0]) * (1.0 + uvw[1]) * (1.0 - uvw[2]);
+      shapef[4] = 0.5   *                                   (1.0 + uvw[2]);
+
+      if (deriv != NULL) {
+        deriv[0][0] = - 0.125 * (1.0 - uvw[1]) * (1.0 - uvw[2]);
+        deriv[0][1] = - 0.125 * (1.0 - uvw[0]) * (1.0 - uvw[2]);
+        deriv[0][2] = - 0.125 * (1.0 - uvw[0]) * (1.0 - uvw[1]);
+
+        deriv[1][0] =   0.125 * (1.0 - uvw[1]) * (1.0 - uvw[2]);
+        deriv[1][1] = - 0.125 * (1.0 + uvw[0]) * (1.0 - uvw[2]);
+        deriv[1][2] = - 0.125 * (1.0 + uvw[0]) * (1.0 - uvw[1]);
+
+        deriv[2][0] =   0.125 * (1.0 + uvw[1]) * (1.0 - uvw[2]);
+        deriv[2][1] =   0.125 * (1.0 + uvw[0]) * (1.0 - uvw[2]);
+        deriv[2][2] = - 0.125 * (1.0 + uvw[0]) * (1.0 + uvw[1]);
+
+        deriv[3][0] = - 0.125 * (1.0 + uvw[1]) * (1.0 - uvw[2]);
+        deriv[3][1] =   0.125 * (1.0 - uvw[0]) * (1.0 - uvw[2]);
+        deriv[3][2] = - 0.125 * (1.0 - uvw[0]) * (1.0 + uvw[1]);
+
+        deriv[4][0] = 0;
+        deriv[4][1] = 0;
+        deriv[4][2] = 0.5;
+      }
+    }
+
+    else {
+
+      shapef[0] = (1.0 - uvw[0]) * (1.0 - uvw[1]) * (1.0 - uvw[2]);
+      shapef[1] = uvw[0] * (1.0 - uvw[1]) * (1.0 - uvw[2]);
+      shapef[2] = uvw[0] * uvw[1] * (1.0 - uvw[2]);
+      shapef[3] = (1.0 - uvw[0]) * uvw[1] * (1.0 - uvw[2]);
+      shapef[4] = uvw[2];
+
+      if (deriv != NULL) {
+        deriv[0][0] = -(1.0 - uvw[1]) * (1.0 - uvw[2]);
+        deriv[0][1] = -(1.0 - uvw[0]) * (1.0 - uvw[2]);
+        deriv[0][2] = -(1.0 - uvw[0]) * (1.0 - uvw[1]);
+        deriv[1][0] =  (1.0 - uvw[1]) * (1.0 - uvw[2]);
+        deriv[1][1] = -uvw[0] * (1.0 - uvw[2]);
+        deriv[1][2] = -uvw[0] * (1.0 - uvw[1]);
+        deriv[2][0] =  uvw[1] * (1.0 - uvw[2]);
+        deriv[2][1] =  uvw[0] * (1.0 - uvw[2]);
+        deriv[2][2] = -uvw[0] * uvw[1];
+        deriv[3][0] = -uvw[1] * (1.0 - uvw[2]);
+        deriv[3][1] =  (1.0 - uvw[0]) * (1.0 - uvw[2]);
+        deriv[3][2] = -(1.0 - uvw[0]) * uvw[1];
+        deriv[4][0] =  0.0;
+        deriv[4][1] =  0.0;
+        deriv[4][2] =  1.0;
+      }
     }
 
     break;
@@ -2075,8 +2145,10 @@ LocationToLocalMesh::compute_uvw(const cwipi_element_t elt_type,
         
       }
 
-      if (inverse_3x3(a, b, x))
+      if (inverse_3x3(a, b, x)) {
+        bftc_printf("error compute_uvw : matrice non iversible\n");
         return 0;
+      }
       
       dist = 0.0;
 
@@ -2090,7 +2162,23 @@ LocationToLocalMesh::compute_uvw(const cwipi_element_t elt_type,
       
     }
 
-    return 0;
+    bftc_printf("Warning compute_uvw : no convergence for the point (%12.5e, %12.5e, %12.5e), dist = %12.5e\n", 
+                point_coords[0], point_coords[1], point_coords[2], dist);
+    bftc_printf("                      in the element : (%12.5e, %12.5e, %12.5e)\n", vertex_coords[0][0], 
+                vertex_coords[0][1], 
+                vertex_coords[0][2]);
+    for (i = 1; i < n_elt_vertices; i++) {
+      bftc_printf("                                       (%12.5e, %12.5e, %12.5e)\n", vertex_coords[i][0], 
+                  vertex_coords[i][1], 
+                  vertex_coords[i][2]);
+    }
+    bftc_printf("                            shapef :");
+    for (i = 1; i < n_elt_vertices; i++) {
+      bftc_printf(" %12.5e", shapef[i]);
+    }
+    bftc_printf("\n");
+
+    return 1;
 
   }
 
