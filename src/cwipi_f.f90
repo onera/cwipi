@@ -47,6 +47,7 @@ module cwipi
   ! mesh type
   integer (kind = cwipi_int_l), parameter :: cwipi_static_mesh = 0
   integer (kind = cwipi_int_l), parameter :: cwipi_mobile_mesh = 1
+  integer (kind = cwipi_int_l), parameter :: cwipi_cyclic_mesh = 2
   !
   ! solver type
   integer (kind = cwipi_int_l), parameter :: cwipi_solver_cell_center = 0
@@ -257,6 +258,26 @@ module cwipi
     cwipi_get_loc_pts_distrib_f_
   end interface cwipi_get_loc_pts_distrib_f
 
+  interface cwipi_set_location_index_f; module procedure &
+    cwipi_set_location_index_f_
+  end interface cwipi_set_location_index_f
+
+  interface cwipi_load_location_f; module procedure &
+    cwipi_load_location_f_
+  end interface cwipi_load_location_f
+
+  interface cwipi_save_location_f; module procedure &
+    cwipi_save_location_f_
+  end interface cwipi_save_location_f
+
+  interface cwipi_open_location_file_f; module procedure &
+    cwipi_open_location_file_f_
+  end interface cwipi_open_location_file_f
+
+  interface cwipi_close_location_file_f; module procedure &
+    cwipi_close_location_file_f_
+  end interface cwipi_close_location_file_f
+
   interface cwipi_has_int_ctrl_param_f; module procedure &
     cwipi_has_int_ctrl_param_f_
   end interface cwipi_has_int_ctrl_param_f
@@ -346,7 +367,12 @@ module cwipi
              cwipi_dist_located_pts_get_f_,   &
              cwipi_get_n_dis_ranks_f_,        &
              cwipi_get_dis_distrib_f_,        &
-             cwipi_get_loc_pts_distrib_f_
+             cwipi_get_loc_pts_distrib_f_,    &
+             cwipi_set_location_index_f_,     &
+             cwipi_load_location_f_,          &
+             cwipi_save_location_f_,          &
+             cwipi_open_location_file_f_,     &
+             cwipi_close_location_file_f_      
 
 contains
 
@@ -1247,6 +1273,7 @@ contains
 !   tolerance               <-- Geometric tolerance to locate
 !   meshT                   <-- CWIPI_STATIC_MESH
 !                               CWIPI_MOBILE_MESH (not implemented yet)
+!                               CWIPI_CYCLIC_MESH 
 !   solverT                 <-- CWIPI_SOLVER_CELL_CENTER
 !                               CWIPI_SOLVER_CELL_VERTEX
 !   outputFreq              <-- Output frequency
@@ -1270,6 +1297,8 @@ contains
 !                                                 with tetrahedra and pyramids
 !                                                 (adding a vertex near
 !                                                 each polyhedron's center)
+!   nbLocations             <-- maximun number of locations (only with 
+!                               CWIPI_CYCLIC_MESH) optional default 1
 !
 !********************************************************************************
 !
@@ -1283,7 +1312,8 @@ contains
                                            solvert, &
                                            outputfreq, &
                                            outputfmt, &
-                                           outputfmtopt)
+                                           outputfmtopt,&
+                                           nbLocations)
 
     implicit none
 
@@ -1295,6 +1325,15 @@ contains
 
     integer (kind = cwipi_int_l) :: lCouplingName, lCplAppli
     integer (kind = cwipi_int_l) :: lOutputFmt, lOutputFmtOpt
+    integer (kind = cwipi_int_l),intent(in), optional :: nbLocations
+   
+    integer (kind = cwipi_int_l) nbLoc
+
+    if(present(nbLocations)) then
+       nbLoc = nbLocations
+    else
+       nbLoc = 1
+    endif
 
     lCouplingName = len(couplingName)
     lCplAppli     = len(cplAppli)
@@ -1314,7 +1353,8 @@ contains
                                   outputFmt, &
                                   lOutputFmt, &
                                   outputFmtOpt, &
-                                  lOutputFmtOpt)
+                                  lOutputFmtOpt, &
+                                  nbLoc)
     
   end subroutine cwipi_create_coupling_f_
 
@@ -1584,7 +1624,7 @@ contains
 !
 !********************************************************************************
 !
-! cwipi_locate_f
+! cwipi_update_location_f
 !
 ! Location completion.
 ! It is a synchronization point with the coupled application
@@ -1607,6 +1647,138 @@ contains
     call cwipi_update_location_cf(couplingName, lCouplingName)
   end subroutine cwipi_update_location_f_
 
+
+!
+!********************************************************************************
+!
+! cwipi_set_location_index_f
+!
+! parameters
+!   couplingName          <-- Coupling identifier
+!   index                 <-- location index
+!
+!*******************************************************************************
+!
+
+  subroutine cwipi_set_location_index_f_(couplingName, index)
+
+    implicit none
+
+    character (len = *) :: couplingName
+    integer (kind = cwipi_int_l) :: lcouplingname
+    integer (kind = cwipi_int_l) :: index
+
+    lCouplingName = len(couplingName)
+
+    call cwipi_set_location_index_cf(couplingName, lCouplingName, index)
+  end subroutine cwipi_set_location_index_f_
+
+
+!
+!********************************************************************************
+!
+! cwipi_load_location_f
+!
+! parameters
+!   couplingName          <-- Coupling identifier
+!
+!*******************************************************************************
+!
+
+  subroutine cwipi_load_location_f_(couplingName)
+
+    implicit none
+
+    character (len = *) :: couplingName
+    integer (kind = cwipi_int_l) :: lcouplingname
+
+    lCouplingName = len(couplingName)
+
+    call cwipi_load_location_cf(couplingName, lCouplingName)
+  end subroutine cwipi_load_location_f_
+
+
+!
+!********************************************************************************
+!
+! cwipi_save_location_f
+!
+! parameters
+!   couplingName          <-- Coupling identifier
+!
+!*******************************************************************************
+!
+
+  subroutine cwipi_save_location_f_(couplingName)
+
+    implicit none
+
+    character (len = *) :: couplingName
+    integer (kind = cwipi_int_l) :: lcouplingname
+
+    lCouplingName = len(couplingName)
+
+    call cwipi_save_location_cf(couplingName, lCouplingName)
+  end subroutine cwipi_save_location_f_
+
+
+!
+!********************************************************************************
+!
+! cwipi_save_location_f
+!
+! parameters
+!   couplingName          <-- Coupling identifier
+!
+!*******************************************************************************
+!
+
+  subroutine cwipi_open_location_file_f_(couplingName, fileName, mode)
+
+    implicit none
+
+    character (len = *) :: couplingName
+    character (len = *) :: fileName
+    character (len = *) :: mode
+    integer (kind = cwipi_int_l) :: lcouplingname
+    integer (kind = cwipi_int_l) :: lfileName
+    integer (kind = cwipi_int_l) :: lmode
+
+    lCouplingName = len(couplingName)
+    lfileName = len(fileName)
+    lmode = len(mode)
+
+    call cwipi_open_location_file_cf(couplingName, lCouplingName, &
+                                     fileName, lfileName, &
+                                     mode, lmode)
+ 
+  end subroutine cwipi_open_location_file_f_
+
+
+
+!
+!********************************************************************************
+!
+! cwipi_save_location_f
+!
+! parameters
+!   couplingName          <-- Coupling identifier
+!
+!*******************************************************************************
+!
+
+  subroutine cwipi_close_location_file_f_(couplingName)
+
+    implicit none
+
+    character (len = *) :: couplingName
+    integer (kind = cwipi_int_l) :: lcouplingname
+
+    lCouplingName = len(couplingName)
+
+    call cwipi_close_location_file_cf(couplingName, lCouplingName)
+ 
+  end subroutine cwipi_close_location_file_f_
 
 !
 !********************************************************************************

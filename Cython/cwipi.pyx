@@ -47,6 +47,7 @@ cdef extern from "cwipi.h":
     ctypedef enum cwipi_mesh_type_t:
         CWIPI_STATIC_MESH
         CWIPI_MOBILE_MESH
+        CWIPI_CYCLIC_MESH
 
     ctypedef enum cwipi_solver_type_t:
         CWIPI_SOLVER_CELL_CENTER
@@ -116,7 +117,7 @@ cdef extern from "cwipi.h":
 
     void cwipi_create_coupling(char* coupling_name, cwipi_coupling_type_t coupling_type, char* coupled_application,
                                int entitiesDim, double tolerance, cwipi_mesh_type_t mesh_type, cwipi_solver_type_t solver_type, 
-                               int output_frequency, char* output_format, char* output_format_option)
+                               int output_frequency, char* output_format, char* output_format_option, ...)
     void cwipi_delete_coupling(char* coupling_id)
     void cwipi_set_points_to_locate(char* coupling_id, int n_points, double coordinate[])
     void cwipi_define_mesh(char* coupling_id, int n_vertex, int n_element, double* coordinates, int* connectivity_index, int* connectivity)
@@ -167,6 +168,12 @@ cdef extern from "cwipi.h":
     char ** cwipi_get_list_double_parameters(char *application_name)
     char ** cwipi_get_list_string_parameters(char *application_name)
 
+    void cwipi_set_location_index(char *coupling_name, int index)
+    void cwipi_load_location(char *coupling_name)
+    void cwipi_save_location(char *coupling_name)
+
+    void cwipi_open_location_file(char *coupling_name, char *filename, char *mode)
+    void cwipi_close_location_file(char *coupling_name)
 
 COUPLING_PARALLEL_WITH_PARTITIONING = CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING
 COUPLING_PARALLEL_WITHOUT_PARTITIONING = CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING
@@ -174,6 +181,7 @@ COUPLING_SEQUENTIAL = CWIPI_COUPLING_SEQUENTIAL
 
 STATIC_MESH = CWIPI_STATIC_MESH
 MOBILE_MESH = CWIPI_MOBILE_MESH
+CYCLIC_MESH = CWIPI_CYCLIC_MESH
 
 SOLVER_CELL_CENTER = CWIPI_SOLVER_CELL_CENTER
 SOLVER_CELL_VERTEX = CWIPI_SOLVER_CELL_VERTEX
@@ -534,13 +542,19 @@ cdef class Coupling (object):
                  cwipi_solver_type_t solver_type,
                  int output_frequency, 
                  char *output_format,
-                 char *output_format_option):
+                 char *output_format_option,
+                 nb_locations = None):
         """
         Init
         """
         global current_cpl
         self.name = coupling_name
         current_cpl = self.name
+        cdef int _nb_locations
+        if (nb_locations is None):
+           _nb_locations = 1
+        else :
+           _nb_locations = <int> nb_locations
         cwipi_create_coupling(coupling_name, 
                               coupling_type, 
                               coupled_application,
@@ -550,7 +564,8 @@ cdef class Coupling (object):
                               solver_type, 
                               output_frequency, 
                               output_format, 
-                              output_format_option)
+                              output_format_option,
+                              _nb_locations)
         current_cpl = ""
 
     def __dealloc__(self):
@@ -628,6 +643,56 @@ cdef class Coupling (object):
         global current_cpl
         current_cpl = self.name
         cwipi_locate (self.name)
+        current_cpl = ""
+
+
+    def set_location_index(self, int index):
+        """
+        Set location index
+        """
+        global current_cpl
+        current_cpl = self.name
+        cwipi_set_location_index(self.name, index)
+        current_cpl = ""
+
+
+    def load_location(self):
+        """
+        Set location index
+        """
+        global current_cpl
+        current_cpl = self.name
+        cwipi_load_location(self.name)
+        current_cpl = ""
+
+
+    def save_location(self):
+        """
+        Set location index
+        """
+        global current_cpl
+        current_cpl = self.name
+        cwipi_save_location(self.name)
+        current_cpl = ""
+
+
+    def open_location_file(self, char *filename, char *mode):
+        """
+        Set location index
+        """
+        global current_cpl
+        current_cpl = self.name
+        cwipi_open_location_file(self.name, filename, mode)
+        current_cpl = ""
+
+
+    def close_location_file(self):
+        """
+        Set location index
+        """
+        global current_cpl
+        current_cpl = self.name
+        cwipi_close_location_file(self.name)
         current_cpl = ""
 
 

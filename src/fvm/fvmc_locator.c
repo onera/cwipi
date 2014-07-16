@@ -63,6 +63,7 @@
 #include "fvmc_parall.h"
 #include "fvmc_point_location.h"
 
+
 /*----------------------------------------------------------------------------
  *  Header for the current file
  *----------------------------------------------------------------------------*/
@@ -2094,6 +2095,166 @@ fvmc_locator_destroy(fvmc_locator_t  * this_locator)
 
   return NULL;
 }
+/*----------------------------------------------------------------------------
+ * locator size 
+ *
+ * parameters:
+ *   this_locator <-> locator to get size
+ * 
+ *----------------------------------------------------------------------------*/
+
+size_t
+fvmc_locator_size(const fvmc_locator_t  * this_locator)
+{
+  size_t il_size = 0;
+  if (this_locator != NULL) {
+     il_size += sizeof(double);
+     il_size += sizeof(_Bool);
+     il_size += 4 * sizeof(int);
+     il_size += this_locator->n_intersects*sizeof(int);
+#if defined(FVMC_HAVE_MPI)
+     il_size += 2 * sizeof(int);
+#endif
+     il_size += this_locator->n_intersects * this_locator->dim * 2 * sizeof(double);
+     il_size += (this_locator->n_intersects + 1) * sizeof(fvmc_lnum_t); 
+     il_size += (this_locator->n_ranks + 1) * sizeof(fvmc_lnum_t);
+     il_size += (this_locator->n_intersects + 1) * sizeof(fvmc_lnum_t); 
+     il_size += (this_locator->n_ranks + 1) * sizeof(fvmc_lnum_t);
+     il_size +=  this_locator->local_points_idx[this_locator->n_intersects] * sizeof(fvmc_lnum_t);   
+     il_size +=  this_locator->distant_points_idx[this_locator->n_intersects] * sizeof(float);
+     il_size +=  this_locator->distant_points_idx[this_locator->n_intersects] * sizeof(fvmc_lnum_t);
+     il_size +=  this_locator->distant_points_idx[this_locator->n_intersects] *this_locator->dim  * sizeof(fvmc_coord_t);
+     il_size +=  sizeof(fvmc_lnum_t);
+     il_size +=  this_locator->n_interior *  sizeof(fvmc_lnum_t);
+     il_size +=  sizeof(fvmc_lnum_t);
+     il_size +=  this_locator->n_exterior *  sizeof(fvmc_lnum_t);
+  }
+  return il_size;
+}
+
+/*----------------------------------------------------------------------------
+ * save a locator
+ *
+ * parameters:
+ *   this_locator <-> locator to save
+ * 
+ *----------------------------------------------------------------------------*/
+
+
+void * 
+fvmc_locator_pack(void *p, const fvmc_locator_t  * this_locator)
+{
+  if (this_locator != NULL) {
+    p = mempcpy(p,(const void *)&this_locator->tolerance, sizeof(double));
+    p = mempcpy(p,(const void *)&this_locator->locate_on_parents, sizeof(_Bool));
+    p = mempcpy(p,(const void *)&this_locator->dim, sizeof(int));
+    p = mempcpy(p,(const void *)&this_locator->n_ranks, sizeof(int));
+    p = mempcpy(p,(const void *)&this_locator->start_rank, sizeof(int));
+    p = mempcpy(p,(const void *)&this_locator->n_intersects, sizeof(int)); 
+    p = mempcpy(p,(const void *)this_locator->intersect_rank,this_locator->n_intersects*sizeof(int));
+#if defined(FVMC_HAVE_MPI)
+    p = mempcpy(p,(const void *)&this_locator->max_nblockings_send,sizeof(int));
+    p = mempcpy(p,(const void *)&this_locator->max_nblockings_recv,sizeof(int));
+#endif
+    p = mempcpy(p,(void *)this_locator->intersect_extents,this_locator->n_intersects * this_locator->dim * 2 * sizeof(double));
+    p = mempcpy(p,(void *)this_locator->local_points_idx,(this_locator->n_intersects + 1) * sizeof(fvmc_lnum_t)); 
+    p = mempcpy(p,(void *)this_locator->local_distribution,(this_locator->n_ranks + 1) * sizeof(fvmc_lnum_t));
+    p = mempcpy(p,(void *)this_locator->distant_points_idx,(this_locator->n_intersects + 1) * sizeof(fvmc_lnum_t)); 
+    p = mempcpy(p,(void *)this_locator->distant_distribution,(this_locator->n_ranks + 1) * sizeof(fvmc_lnum_t));
+    p = mempcpy(p,(void *)this_locator->local_point_ids, this_locator->local_points_idx[this_locator->n_intersects] * sizeof(fvmc_lnum_t));   
+    p = mempcpy(p,(void *)this_locator->distant_point_distance,this_locator->distant_points_idx[this_locator->n_intersects] * sizeof(float));
+    p = mempcpy(p,(void *)this_locator->distant_point_location,this_locator->distant_points_idx[this_locator->n_intersects] * sizeof(fvmc_lnum_t));
+    p = mempcpy(p,(void *)this_locator->distant_point_coords,this_locator->distant_points_idx[this_locator->n_intersects] *this_locator->dim  * sizeof(fvmc_coord_t));
+    p = mempcpy(p,(const void *)&this_locator->n_interior, sizeof(fvmc_lnum_t));
+    p = mempcpy(p,(void *)this_locator->interior_list, this_locator->n_interior *  sizeof(fvmc_lnum_t));
+    p = mempcpy(p,(const void *)&this_locator->n_exterior, sizeof(fvmc_lnum_t));
+    p = mempcpy(p,(void *)this_locator->exterior_list, this_locator->n_exterior *  sizeof(fvmc_lnum_t));
+  }
+  return p;
+}
+
+/*----------------------------------------------------------------------------
+ * unpack a locator
+ *
+ * parameters:
+ *   this_locator <-> locator to read
+ * 
+ *----------------------------------------------------------------------------*/
+/* fonction de base aussi appele dans cwipi */
+size_t fvmc_locator_unpack_elem(const void * buffer, void *data,  const size_t data_size) 
+{
+  memcpy(data, buffer, data_size);
+  return data_size;	 
+}
+
+size_t 
+fvmc_locator_unpack(unsigned char *buff, fvmc_locator_t  * this_locator)
+{
+  size_t cur_pos;
+  cur_pos = 0;
+
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)&this_locator->tolerance, sizeof(double));
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)&this_locator->locate_on_parents, sizeof(_Bool));
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)&this_locator->dim, sizeof(int));
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)&this_locator->n_ranks, sizeof(int));
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)&this_locator->start_rank, sizeof(int));
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)&this_locator->n_intersects, sizeof(int)); 
+  BFTC_MALLOC(this_locator->intersect_rank,
+	      this_locator->n_intersects,
+	      int);
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)this_locator->intersect_rank,this_locator->n_intersects*sizeof(int));
+#if defined(FVMC_HAVE_MPI)  
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)&this_locator->max_nblockings_send,sizeof(int));
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)&this_locator->max_nblockings_recv,sizeof(int));
+#endif
+  BFTC_MALLOC(this_locator->intersect_extents,
+	      this_locator->n_intersects * this_locator->dim * 2 ,
+	      double);
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)this_locator->intersect_extents,this_locator->n_intersects * this_locator->dim * 2 * sizeof(double));
+  
+  BFTC_MALLOC(this_locator->local_points_idx,
+	      this_locator->n_intersects + 1,
+	      fvmc_lnum_t);
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)this_locator->local_points_idx,(this_locator->n_intersects + 1) * sizeof(fvmc_lnum_t)); 
+  BFTC_MALLOC(this_locator->local_distribution,
+	      this_locator->n_ranks + 1,
+	      fvmc_lnum_t);
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)this_locator->local_distribution,(this_locator->n_ranks + 1) * sizeof(fvmc_lnum_t));
+  BFTC_MALLOC(this_locator->distant_points_idx,
+	      this_locator->n_intersects + 1,
+	      fvmc_lnum_t);
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)this_locator->distant_points_idx,(this_locator->n_intersects + 1) * sizeof(fvmc_lnum_t)); 
+  BFTC_MALLOC(this_locator->distant_distribution,
+	      this_locator->n_ranks + 1,
+	      fvmc_lnum_t);
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)this_locator->distant_distribution,(this_locator->n_ranks + 1) * sizeof(fvmc_lnum_t));
+  
+  BFTC_MALLOC(this_locator->local_point_ids,
+	      this_locator->local_points_idx[this_locator->n_intersects],
+	      fvmc_lnum_t);
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)this_locator->local_point_ids, this_locator->local_points_idx[this_locator->n_intersects] * sizeof(fvmc_lnum_t));
+  BFTC_MALLOC(this_locator->distant_point_distance,
+	      this_locator->distant_points_idx[this_locator->n_intersects],
+	      float);
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)this_locator->distant_point_distance, this_locator->distant_points_idx[this_locator->n_intersects]* sizeof(float));
+  BFTC_MALLOC(this_locator->distant_point_location,
+	      this_locator->distant_points_idx[this_locator->n_intersects],
+	      fvmc_lnum_t);
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)this_locator->distant_point_location, this_locator->distant_points_idx[this_locator->n_intersects]* sizeof(fvmc_lnum_t));
+  BFTC_MALLOC(this_locator->distant_point_coords,
+	      this_locator->distant_points_idx[this_locator->n_intersects] *this_locator->dim,
+	      fvmc_coord_t);
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)this_locator->distant_point_coords,this_locator->distant_points_idx[this_locator->n_intersects] *this_locator->dim * sizeof(fvmc_coord_t));
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)&this_locator->n_interior, sizeof(fvmc_lnum_t)); 
+  BFTC_MALLOC(this_locator->interior_list, this_locator->n_interior, fvmc_lnum_t);
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)this_locator->interior_list, this_locator->n_interior *  sizeof(fvmc_lnum_t));
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)&this_locator->n_exterior, sizeof(fvmc_lnum_t));
+  BFTC_MALLOC(this_locator->exterior_list, this_locator->n_exterior, fvmc_lnum_t);
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos], (void *)this_locator->exterior_list, this_locator->n_exterior *  sizeof(fvmc_lnum_t));
+  return cur_pos;
+}
+
+
 
 /*----------------------------------------------------------------------------
  * Prepare locator for use with a given nodal mesh representation.

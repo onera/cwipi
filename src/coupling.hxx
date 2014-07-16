@@ -51,7 +51,8 @@ namespace cwipi {
              const cwipi_solver_type_t solverType,
              const int    outputFrequency,
              const char  *outputFormat,
-             const char  *outputFormatOption);
+             const char  *outputFormatOption,
+             const int nb_Locations);
 
     virtual ~Coupling();
 
@@ -105,6 +106,12 @@ namespace cwipi {
     void waitIrecv(int request);    
 
     void updateLocation();
+
+    void setLocationIndex(const int index);
+    void openLocationFile(char *file, const char *moderwa);
+    void closeLocationFile();
+    void saveLocation();
+    void loadLocation();
 
     void setPointsToLocate(const int n_points,
                            double coordinate[]);
@@ -264,6 +271,12 @@ namespace cwipi {
     void * _interpolationFct_f;
     bool                 _toLocate;
     Mesh                *_supportMesh;
+    MPI_File _locationsFile;
+    size_t _locationsFile_position;
+
+    std::vector<LocationToDistantMesh *> &_tablelocationToDistantMesh;
+    std::vector<LocationToLocalMesh *> &_tablelocationToLocalMesh;
+
     LocationToDistantMesh *_locationToDistantMesh;
     LocationToLocalMesh *_locationToLocalMesh;
 

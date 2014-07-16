@@ -20,6 +20,7 @@
 /*----------------------------------------------------------------------------
  * Standard C library headers
  *----------------------------------------------------------------------------*/
+#include <stdarg.h>
 
 /*----------------------------------------------------------------------------
  * BFT library headers
@@ -676,6 +677,7 @@ void cwipi_synchronize_control_parameter(const char *application_name)
  *   tolerance               <-- Geometric tolerance to locate
  *   mesh_type               <-- CWIPI_STATIC_MESH
  *                               CWIPI_MOBILE_MESH (not implemented yet)
+ *                               CWIPI_CYCLIC_MESH
  *   solver_type             <-- CWIPI_SOLVER_CELL_CENTER
  *                               CWIPI_SOLVER_CELL_VERTEX
  *   output_frequency        <-- Output frequency
@@ -713,11 +715,21 @@ void cwipi_create_coupling
   const cwipi_solver_type_t solver_type,
   const int    output_frequency,
   const char  *output_format,
-  const char  *output_format_option)
+  const char  *output_format_option
+  ...)
 {
+  // traitement du parametre optionnel 
+  
+  va_list args;
+  int nb_locations = 1;
+  va_start(args, output_format_option);
+  if(mesh_type == CWIPI_CYCLIC_MESH) 
+    nb_locations = va_arg(args, int);
+  va_end(args);
+
   cwipi::CouplingDataBase & couplingDataBase =
     cwipi::CouplingDataBase::getInstance();
-
+  
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
@@ -733,7 +745,113 @@ void cwipi_create_coupling
                                   solver_type,
                                   output_frequency,
                                   output_format,
-                                  output_format_option);
+                                  output_format_option,
+				  nb_locations);
+}
+/*----------------------------------------------------------------------------
+ *
+ * cwipi_set_location_index
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   index                <-- location index
+ *----------------------------------------------------------------------------*/
+
+void cwipi_set_location_index (const char *coupling_name,
+			       const int index)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.setLocationIndex(index);
+}
+/*----------------------------------------------------------------------------
+ *
+ * cwipi_save_location
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *----------------------------------------------------------------------------*/
+
+void cwipi_save_location(const char *coupling_name)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.saveLocation();
+}
+
+
+/*----------------------------------------------------------------------------
+ *
+ * cwipi_load_location
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *----------------------------------------------------------------------------*/
+
+void cwipi_load_location(const char *coupling_name)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.loadLocation();
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * cwipi_open_location_file
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   filename             <-- file name 
+ *   mode                 <-- "r" : read
+ *                            "w" : write
+ *----------------------------------------------------------------------------*/
+
+void cwipi_open_location_file (const char *coupling_name,
+			       char *filename,
+			       const char *mode)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.openLocationFile(filename,mode);
+}
+/*----------------------------------------------------------------------------
+ *
+ * cwipi_close_location_file
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *----------------------------------------------------------------------------*/
+
+void cwipi_close_location_file (const char *coupling_name)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.closeLocationFile();
 }
 
 /*----------------------------------------------------------------------------

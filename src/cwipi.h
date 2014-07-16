@@ -77,6 +77,7 @@ typedef enum {
 
   CWIPI_STATIC_MESH,
   CWIPI_MOBILE_MESH,
+  CWIPI_CYCLIC_MESH,
 
 } cwipi_mesh_type_t;
 
@@ -637,6 +638,7 @@ void cwipi_dump_application_properties(void);
  *   tolerance               <-- Geometric tolerance to locate
  *   mesh_type               <-- CWIPI_STATIC_MESH
  *                               CWIPI_MOBILE_MESH (not implemented yet)
+ *                               CWIPI_CYCLIC_MESH 
  *   solver_type             <-- CWIPI_SOLVER_CELL_CENTER
  *                               CWIPI_SOLVER_CELL_VERTEX
  *   output_frequency        <-- Output frequency
@@ -660,7 +662,8 @@ void cwipi_dump_application_properties(void);
  *                                                 with tetrahedra and pyramids
  *                                                 (adding a vertex near
  *                                                 each polyhedron's center)
- *
+ *   nblocations             <-- Number of possible localisations with
+ *                               CWIPI_CYCLIC_MESH, optional
  *
  *----------------------------------------------------------------------------*/
 
@@ -674,7 +677,57 @@ void cwipi_create_coupling
   const cwipi_solver_type_t solver_type,
   const int    output_frequency,
   const char  *output_format,
-  const char  *output_format_option);
+  const char  *output_format_option,
+  ...);
+
+/*----------------------------------------------------------------------------
+ *
+ * Set the index location for multiple location with CWIPI_CYCLIC_MESH
+ *
+ * parameters:
+ *   coupling_name           <-- Coupling identifier
+ *   index                   <-- location index
+ *----------------------------------------------------------------------------*/
+
+void cwipi_set_location_index
+( const char  *coupling_name,
+  const int index);
+
+/*----------------------------------------------------------------------------
+ *
+ * save/load  location 
+ *
+ * parameters:
+ *   coupling_name           <-- Coupling identifier
+ *----------------------------------------------------------------------------*/
+
+void cwipi_load_location(const char *coupling_name);
+void cwipi_save_location(const char *coupling_name);
+
+
+/*----------------------------------------------------------------------------
+ *
+ * cwipi_open_location_file
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   filename             <-- file name 
+ *   mode                 <-- "r" : read
+ *                            "w" : write
+ *----------------------------------------------------------------------------*/
+
+void cwipi_open_location_file (const char *coupling_name,
+                               char *filename,
+                               const char *mode);
+/*----------------------------------------------------------------------------
+ *
+ * cwipi_close_location_file
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *----------------------------------------------------------------------------*/
+
+void cwipi_close_location_file (const char *coupling_name);
 
 /*----------------------------------------------------------------------------
  *

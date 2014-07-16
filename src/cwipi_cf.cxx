@@ -918,6 +918,7 @@ void PROCF(cwipi_synch_ctrl_param_cf,
  *   tolerance               <-- Geometric tolerance to locate
  *   meshT                   <-- CWIPI_STATIC_MESH
  *                               CWIPI_MOBILE_MESH (not implemented yet)
+ *                               CWIPI_CYCLIC_MESH
  *   solverT                 <-- CWIPI_SOLVER_CELL_CENTER
  *                               CWIPI_SOLVER_CELL_VERTEX
  *   outputFreq              <-- Output frequency
@@ -959,7 +960,8 @@ void PROCF(cwipi_create_coupling_cf,
   const char  *output_format,
   const int  *l_output_format,
   const char  *output_format_option,
-  const int  *l_output_format_option
+  const int  *l_output_format_option,
+  const int *nbLocations
   ARGF_SUPP_CHAINE)
 
 {
@@ -976,15 +978,16 @@ void PROCF(cwipi_create_coupling_cf,
     _cwipi_fortran_to_c_string(output_format_option, *l_output_format_option);
 
   cwipi_create_coupling(coupling_nameC,
-                            (cwipi_coupling_type_t) *coupling_type,
-                            coupled_applicationC,
-                            *entities_dim,
-                            *tolerance,
-                            (cwipi_mesh_type_t) *mesh_type,
-                            (cwipi_solver_type_t) *solver_type,
-                            *output_frequency,
-                            output_formatC,
-                            output_format_optionC);
+                        (cwipi_coupling_type_t) *coupling_type,
+                        coupled_applicationC,
+                        *entities_dim,
+                        *tolerance,
+                        (cwipi_mesh_type_t) *mesh_type,
+                        (cwipi_solver_type_t) *solver_type,
+                        *output_frequency,
+                        output_formatC,
+                        output_format_optionC,
+                        *nbLocations);
 
   delete[] coupling_nameC;
   delete[] coupled_applicationC;
@@ -1107,8 +1110,8 @@ void PROCF(cwipi_add_polyhedra_cf,
  *----------------------------------------------------------------------------*/
 
 void PROCF(cwipi_locate_cf, CWIPI_LOCATE_CF) (const char *coupling_name,
-                                                      const int  *l_coupling_name
-                                                      ARGF_SUPP_CHAINE)
+      const int  *l_coupling_name
+      ARGF_SUPP_CHAINE)
 {
 
   char *coupling_nameC =
@@ -1124,6 +1127,161 @@ void PROCF(cwipi_locate_cf, CWIPI_LOCATE_CF) (const char *coupling_name,
   coupling.locate();
 
   delete[] coupling_nameC;
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * cwipi_set_location_index
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   index                <-- location index
+ *----------------------------------------------------------------------------*/
+void PROCF(cwipi_set_location_index_cf,
+           CWIPI_SET_LOCATION_INDEX_CF) (const char *coupling_name,
+                                         const int  *l_coupling_name,
+                                         const int  *index
+                                         ARGF_SUPP_CHAINE)
+{
+  char *coupling_nameC =
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_nameC;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.setLocationIndex(*index);
+
+  delete[] coupling_nameC;
+
+
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * save/load  location 
+ *
+ * parameters:
+ *   coupling_name           <-- Coupling identifier
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_load_location_cf, 
+           CWIPI_LOAD_LOCATION_CF)
+(const char *coupling_name,
+ const int  *l_coupling_name
+ ARGF_SUPP_CHAINE)
+{
+  char *coupling_nameC =
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_nameC;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.loadLocation();
+
+  delete[] coupling_nameC;
+
+
+}
+
+void PROCF(cwipi_save_location_cf,
+           CWIPI_SAVE_LOCATION_CF)
+(const char *coupling_name, 
+ const int  *l_coupling_name
+ ARGF_SUPP_CHAINE)
+{
+  char *coupling_nameC =
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_nameC;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.saveLocation();
+
+  delete[] coupling_nameC;
+
+
+}
+
+
+/*----------------------------------------------------------------------------
+ *
+ * cwipi_open_location_file
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   filename             <-- file name 
+ *   mode                 <-- "r" : read
+ *                            "w" : write
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_open_location_file_cf,
+           CWIPI_OPEN_LOCATION_FILE_CF)
+ (const char *coupling_name,
+  const int  *l_coupling_name,
+  char *filename,
+  const int  *l_filename,
+  const char *mode,
+  const int  *l_mode
+ ARGF_SUPP_CHAINE)
+{
+  char *coupling_nameC =
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
+  char *filenameC =
+    _cwipi_fortran_to_c_string(coupling_name, *l_filename);
+  char *modeC =
+    _cwipi_fortran_to_c_string(coupling_name, *l_mode);
+
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_nameC;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.openLocationFile(filenameC, modeC);
+
+  delete[] coupling_nameC;
+  delete[] filenameC;
+  delete[] modeC;
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * cwipi_close_location_file
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *----------------------------------------------------------------------------*/
+
+ void PROCF(cwipi_close_location_file_cf,
+            CWIPI_CLOSE_LOCATION_FILE_CF)
+(const char *coupling_name,
+  const int  *l_coupling_name
+  ARGF_SUPP_CHAINE)
+{
+  char *coupling_nameC =
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_nameC;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.closeLocationFile();
+
+  delete[] coupling_nameC;
+
+
 }
 
 

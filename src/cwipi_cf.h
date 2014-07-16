@@ -556,6 +556,7 @@ void PROCF(cwipi_synch_ctrl_param_cf,
  *   tolerance               <-- Geometric tolerance to locate
  *   meshT                   <-- CWIPI_STATIC_MESH
  *                               CWIPI_MOBILE_MESH (not implemented yet)
+ *                               CWIPI_CYCLIC_MESH 
  *   solverT                 <-- CWIPI_SOLVER_CELL_CENTER
  *                               CWIPI_SOLVER_CELL_VERTEX
  *   outputFreq              <-- Output frequency
@@ -579,6 +580,7 @@ void PROCF(cwipi_synch_ctrl_param_cf,
  *                                                 with tetrahedra and pyramids
  *                                                 (adding a vertex near
  *                                                 each polyhedron's center)
+ *  nbLocations             <-- maximun number of locations 
  *
  *----------------------------------------------------------------------------*/
 
@@ -597,7 +599,8 @@ void PROCF(cwipi_create_coupling_cf,
   const char  *output_format,
   const int  *l_output_format,
   const char  *output_format_option,
-  const int  *l_output_format_option
+  const int  *l_output_format_option,
+  const int *nbLocations
   ARGF_SUPP_CHAINE);
 
 /*----------------------------------------------------------------------------
@@ -1312,6 +1315,80 @@ void PROCF(cwipi_set_info_cf,
 (const char *coupling_id,
  const int  *l_coupling_id,
  const int *info);
+
+/*----------------------------------------------------------------------------
+ *
+ * cwipi_set_location_index
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   index                <-- location index
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_set_location_index_cf,
+	   CWIPI_SET_LOCATION_INDEX_CF)
+(const char *coupling_id,
+ const int  *l_coupling_id,
+ const int  *index
+ ARGF_SUPP_CHAINE);
+
+
+/*----------------------------------------------------------------------------
+ *
+ * save/load  location 
+ *
+ * parameters:
+ *   coupling_name           <-- Coupling identifier
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_load_location_cf, 
+           CWIPI_LOAD_LOCATION_CF)
+(const char *coupling_name,
+ const int  *l_coupling_name
+ ARGF_SUPP_CHAINE);
+
+void PROCF(cwipi_save_location_cf,
+           CWIPI_SAVE_LOCATION_CF)
+(const char *coupling_name, 
+ const int  *l_coupling_name
+ ARGF_SUPP_CHAINE);
+
+
+/*----------------------------------------------------------------------------
+ *
+ * cwipi_open_location_file
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   filename             <-- file name 
+ *   mode                 <-- "r" : read
+ *                            "w" : write
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_open_location_file_cf,
+           CWIPI_OPEN_LOCATION_FILE_CF)
+ (const char *coupling_name,
+  const int  *l_coupling_name,
+  char *filename,
+  const int  *l_filename_name,
+  const char *mode,
+  const int  *l_mode
+ ARGF_SUPP_CHAINE);
+
+/*----------------------------------------------------------------------------
+ *
+ * cwipi_close_location_file
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *----------------------------------------------------------------------------*/
+
+ void PROCF(cwipi_close_location_file_cf,
+            CWIPI_CLOSE_LOCATION_FILE_CF)
+(const char *coupling_name,
+  const int  *l_coupling_name
+  ARGF_SUPP_CHAINE);
+
 
 /*----------------------------------------------------------------------------*/
 

@@ -62,7 +62,7 @@ LocationToLocalMesh::LocationToLocalMesh(
   _location = NULL;
   _toLocate = true;
   _maxElementContainingNVertex = -1;
-  _nVertex = NULL;
+  _nVertex = NULL; 
   _supportMesh = NULL;
 }
 
@@ -83,6 +83,155 @@ LocationToLocalMesh::~LocationToLocalMesh()
     delete _nVertex;
 
 }
+
+size_t LocationToLocalMesh::locationSize()
+{
+  size_t il_size = 0;
+
+  if ( _isCoupledRank) {
+    il_size += sizeof(int);
+    il_size += fvmc_locator_size(_fvmLocator);
+    const int nDistantPoint = fvmc_locator_get_n_dist_points(_fvmLocator);
+    
+    il_size += sizeof(int);
+    if (_barycentricCoordinatesIndex != NULL) {
+      il_size += (nDistantPoint + 1)*sizeof(int);
+    }
+    
+    il_size += sizeof(int);
+    if (_barycentricCoordinates != NULL) {
+      std::vector <double> &  _refBarycentricCoordinates = *_barycentricCoordinates;
+      il_size += _refBarycentricCoordinates.size()*sizeof(double);
+    }
+    
+    il_size += sizeof(int);
+    if (_nVertex != NULL) {
+      il_size +=  _nDistantPoint*sizeof(int); 
+    }
+  }
+  return il_size;
+}
+
+
+
+
+void LocationToLocalMesh::packLocation(unsigned char *buff)
+{
+  int s;
+  void *p;
+
+  p = (void *)buff;
+
+  if ( _isCoupledRank) {
+    
+    if (_fvmLocator != NULL) {
+      s = 1;
+      p = mempcpy(p,(void *)&s, sizeof(int));
+      p = fvmc_locator_pack(p, _fvmLocator);
+    } else {
+      s = 0;
+      p = mempcpy(p,(void *)&s, sizeof(int));      
+    }
+
+    const int nDistantPoint      = fvmc_locator_get_n_dist_points(_fvmLocator);
+    if (_barycentricCoordinatesIndex != NULL) {
+      s = 1;
+      p = mempcpy(p,(void *)&s, sizeof(int));
+      std::vector <int> &  _refBarycentricCoordinatesIndex = *_barycentricCoordinatesIndex;
+      p = mempcpy(p,(void *)&_refBarycentricCoordinatesIndex[0], (nDistantPoint + 1)*sizeof(int));
+    } else {
+      s = 0;
+      p = mempcpy(p,(void *)&s, sizeof(int));      
+    }
+
+    if (_barycentricCoordinates != NULL) {
+      std::vector <double> &  _refBarycentricCoordinates = *_barycentricCoordinates;
+      // calcul de la taille de _barycentricCoordinates 
+      s = _refBarycentricCoordinates.size();
+      p = mempcpy(p,(void *)&s, sizeof(int));     
+      p = mempcpy(p,(void *)&_refBarycentricCoordinates[0], s*sizeof(double));
+    } else {
+      s = 0;
+      p = mempcpy(p,(void *)&s, sizeof(int));      
+    }
+
+    if (_nVertex != NULL) {
+      s = 1;
+      p = mempcpy(p,(void *)&s, sizeof(int));
+      std::vector <int> & _nVertexRef = *_nVertex;
+      p = mempcpy(p,(void *)&_nVertexRef[0], _nDistantPoint*sizeof(int)); 
+    }  else {
+      s = 0;
+      p = mempcpy(p,(void *)&s, sizeof(int));      
+    }
+
+  } 
+}
+
+
+void LocationToLocalMesh::unpackLocation(unsigned char *buff)
+{
+  int s;
+  size_t cur_pos;
+  cur_pos = 0;
+
+  if ( _isCoupledRank) {
+    // read the locator 
+    cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));      
+    if (s == 1) {
+      _fvmLocator = fvmc_locator_create(_tolerance,
+					_couplingComm,
+					_coupledApplicationNRankCouplingComm,
+					_coupledApplicationBeginningRankCouplingComm);
+      cur_pos += fvmc_locator_unpack(&buff[cur_pos],_fvmLocator);
+      
+      // mise à jour de l'objet locationToLocalMesh
+
+      const int* locationList = fvmc_locator_get_dist_locations(_fvmLocator);
+      const float* distanceList = fvmc_locator_get_dist_distances(_fvmLocator);
+      _location = const_cast<int *> (locationList);
+      _distance = const_cast<float *> (distanceList);
+
+      _distantDistribution =  const_cast<int *> (fvmc_locator_get_dist_distrib(_fvmLocator));
+      _locatedPointsDistribution =  const_cast<int *> (fvmc_locator_get_loc_distrib(_fvmLocator));
+      
+      _nDistantPoint = fvmc_locator_get_n_dist_points(_fvmLocator);
+      // printf("LocationToLocalMesh::load ATTENTION DUMP \n");
+      // fvmc_locator_dump(_fvmLocator);
+
+    }
+
+    // load the barycentric coordinates
+    const int nDistantPoint      = fvmc_locator_get_n_dist_points(_fvmLocator);
+
+    cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));      
+    if (s == 1) {
+      if (_barycentricCoordinatesIndex != NULL) delete _barycentricCoordinatesIndex;
+      _barycentricCoordinatesIndex = new std::vector <int> (nDistantPoint + 1);
+      std::vector <int> &  _refBarycentricCoordinatesIndex = *_barycentricCoordinatesIndex;
+      cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&_refBarycentricCoordinatesIndex[0], (nDistantPoint + 1)*sizeof(int));
+    }
+
+    cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));      
+    if (s != 0) {
+      if (_barycentricCoordinates != NULL) delete _barycentricCoordinates;
+      _barycentricCoordinates = new std::vector <double> (s);
+      std::vector <double> &  _refBarycentricCoordinates = *_barycentricCoordinates;
+      cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&_refBarycentricCoordinates[0], s*sizeof(double));
+    }
+
+    cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));      
+    if (s == 1) {
+      if(_nVertex != NULL) delete _nVertex;
+      _nVertex = new std::vector <int> (_nDistantPoint, 0);
+      std::vector <int> & _nVertexRef = *_nVertex;
+      cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&_nVertexRef[0], _nDistantPoint*sizeof(int));
+    }
+    _toLocate = false;
+    _locationToDistantMesh._toLocate = false;
+  }
+}
+
 
 void LocationToLocalMesh::locate()
 {

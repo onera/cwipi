@@ -166,11 +166,12 @@ def runTest():
                          applis[(rank + 1) % 2] , 
                          2, 
                          0.1,  
-                         cwipi.STATIC_MESH, 
+                         cwipi.CYCLIC_MESH, 
                          cwipi.SOLVER_CELL_VERTEX, 
                          1, 
                          "Ensight", 
                          "txt")
+                         
 
     # Mesh
 
@@ -240,7 +241,7 @@ def runTest():
     if (rank == 0):
         print "        Delete coupling"
 
-    del cpl
+    #del cpl
 
 if __name__ == '__main__':
     runTest()

@@ -79,6 +79,11 @@ public:
 
   virtual ~LocationToLocalMesh();
 
+  void packLocation(unsigned char *buff);
+  void unpackLocation(unsigned char *buff);
+  size_t locationSize();
+
+
   ///
   /// \brief distant points location in the local mesh
   ///
@@ -179,7 +184,7 @@ public:
   ///   @param [in]      supportMesh location support mesh
   ///
 
-  inline void setSupportMesh(Mesh *supportMesh);
+  inline void setSupportMesh(Mesh *supportMesh, bool lb_tolocate);
 
 private :
 
@@ -443,9 +448,9 @@ fvmc_locator_t *LocationToLocalMesh::getFVMLocator() const
 ///   @param [in]      supportMesh  location support mesh
 ///
 
-void LocationToLocalMesh::setSupportMesh(Mesh *supportMesh)
+void LocationToLocalMesh::setSupportMesh(Mesh *supportMesh, bool lb_tolocate = true)
 {
-  _toLocate = true;
+  _toLocate = lb_tolocate;
   _supportMesh = supportMesh;
 }
 

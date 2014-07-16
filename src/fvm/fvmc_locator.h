@@ -131,6 +131,49 @@ fvmc_locator_t *
 fvmc_locator_destroy(fvmc_locator_t  * this_locator);
 
 /*----------------------------------------------------------------------------
+ * locator size 
+ *
+ * parameters:
+ *   this_locator <-> locator to get size
+ *
+ * returns:
+ *  size 
+ *----------------------------------------------------------------------------*/
+size_t
+fvmc_locator_size(const fvmc_locator_t  * this_locator);
+
+/*----------------------------------------------------------------------------
+ * save a locator
+ *
+ * parameters:
+ *   this_locator <-> locator to save
+ * 
+ *----------------------------------------------------------------------------*/
+
+void
+fvmc_locator_save(const fvmc_locator_t  * this_locator);
+
+void * 
+fvmc_locator_pack(void *p, const fvmc_locator_t  * this_locator);
+
+size_t fvmc_locator_unpack_elem(const void * buffer, void *data,  const size_t data_size); 
+
+size_t 
+fvmc_locator_unpack(unsigned char *buff, fvmc_locator_t  * this_locator);
+
+/*----------------------------------------------------------------------------
+ * save a locator
+ *
+ * parameters:
+ *   this_locator <-> locator to read
+ * 
+ *----------------------------------------------------------------------------*/
+
+void
+fvmc_locator_read(fvmc_locator_t  * this_locator);
+
+
+/*----------------------------------------------------------------------------
  * Prepare locator for use with a given nodal mesh representation.
  *
  * parameters:
@@ -491,6 +534,16 @@ fvmc_locator_get_comm_times(const fvmc_locator_t  *this_locator,
 
 void
 fvmc_locator_dump(const fvmc_locator_t  *this_locator);
+
+/*----------------------------------------------------------------------------
+ * save a locator structure.
+ *
+ * parameters:
+ *   this_locator  <-- pointer to structure that should be dumped
+ *----------------------------------------------------------------------------*/
+
+void
+fvmc_locator_save(const fvmc_locator_t  *this_locator);
 
 /*----------------------------------------------------------------------------
  * Register communication logging functions for locator instrumentation.

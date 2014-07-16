@@ -64,6 +64,9 @@ void grid_mesh(double xmin,
                int *eltsConnec,
                MPI_Comm localComm);
 
+void  mesh_rotate(double *coords, int npt, double alpha);
+void carre2rond(double xmin, double xmax, double ymin, double ymax, double *coords, int nVertex);
+
 void PROCF(grid_mesh_f, GRID_MESH_F)
      (double *xmin, 
       double *xmax, 
