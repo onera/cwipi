@@ -220,14 +220,6 @@ size_t LocationToDistantMesh::locationSize()
   il_size += 3 * sizeof(int);
 
   il_size += sizeof(int);
-  if (_locatedPoint != NULL) 
-    il_size += _nLocatedPoint * sizeof(int);
- 
-  il_size += sizeof(int);
-  if (_unlocatedPoint != NULL) 
-    il_size += _nUnlocatedPoint * sizeof(int);
-
-  il_size += sizeof(int);
   if (_elementContainingNVertex != NULL) 
     il_size += (_nLocatedPoint+1) * sizeof(int);
 
@@ -268,23 +260,6 @@ void LocationToDistantMesh::packLocation(unsigned char *buff)
   
   // pour chaque tableau, on commence par stoker sa taille 
   // pour pouvoir l'allouer si nécessaire à la lecture
-  if (_locatedPoint != NULL) {
-    s = _nLocatedPoint;
-    p = mempcpy(p,(void *)&s, sizeof(int));
-    p = mempcpy(p,(void *)_locatedPoint, s*sizeof(int));
-  } else {
-    s = 0;
-    p = mempcpy(p,(void *)&s, sizeof(int));
-  }
-
-  if (_unlocatedPoint != NULL) {
-    s=_nUnlocatedPoint;
-    p = mempcpy(p,(void *)&s, sizeof(int));
-    p = mempcpy(p,(void *)_unlocatedPoint, s*sizeof(int));
-  } else {
-    s = 0;
-    p = mempcpy(p,(void *)&s, sizeof(int));
-  }
   
   if (_elementContainingNVertex != NULL) {
     s = _nLocatedPoint+1;
@@ -352,21 +327,7 @@ void LocationToDistantMesh::unpackLocation(unsigned char *buff)
   cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&_nPointsToLocate,sizeof(int));
   cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&_nLocatedPoint,sizeof(int));
   cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&_nUnlocatedPoint,sizeof(int));
-
-  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));
-  if (s != 0) {
-    if (_locatedPoint != NULL) delete [] _locatedPoint ; 
-    _locatedPoint = new int[s];
-    cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)_locatedPoint, s*sizeof(int));
-  } 
-
-  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));
-  if (s != 0) {
-    if (_unlocatedPoint != NULL) delete [] _unlocatedPoint;
-    _unlocatedPoint = new int[s];
-    cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)_unlocatedPoint, s*sizeof(int));
-  } 
-  
+ 
   cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));
   if (s != 0) {
     if (_elementContainingNVertex != NULL) delete [] _elementContainingNVertex;

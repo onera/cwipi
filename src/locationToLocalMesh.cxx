@@ -196,6 +196,15 @@ void LocationToLocalMesh::unpackLocation(unsigned char *buff)
       _locatedPointsDistribution =  const_cast<int *> (fvmc_locator_get_loc_distrib(_fvmLocator));
       
       _nDistantPoint = fvmc_locator_get_n_dist_points(_fvmLocator);
+
+
+      // mise à jour de l'objet locationToDistantMesh
+      const int* exteriorList = fvmc_locator_get_exterior_list(_fvmLocator);
+      const int* interiorList = fvmc_locator_get_interior_list(_fvmLocator);
+      _locationToDistantMesh._unlocatedPoint = const_cast<int *> (exteriorList);
+      _locationToDistantMesh._locatedPoint = const_cast<int *> (interiorList);
+
+
       // printf("LocationToLocalMesh::load ATTENTION DUMP \n");
       // fvmc_locator_dump(_fvmLocator);
 
@@ -294,7 +303,6 @@ void LocationToLocalMesh::locate()
       const float* distanceList = fvmc_locator_get_dist_distances(_fvmLocator);
       const int nExterior = fvmc_locator_get_n_exterior(_fvmLocator);
       assert(nNotLocatedPoint == nExterior);
-      
       _locationToDistantMesh._unlocatedPoint = const_cast<int *> (exteriorList);
       _locationToDistantMesh._locatedPoint = const_cast<int *> (interiorList);
       _locationToDistantMesh._nUnlocatedPoint = nNotLocatedPoint;
