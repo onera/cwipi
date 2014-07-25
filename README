@@ -17,7 +17,7 @@ To compile and execute tests, execute :
 To use valgrind, add VALGRIND=<path> option
 To execute only few tests, define TESTS option
 
-
+test git 
 
 
  
