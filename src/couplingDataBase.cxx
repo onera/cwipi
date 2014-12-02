@@ -56,7 +56,8 @@ namespace cwipi {
                                          const cwipi_solver_type_t solverType,
                                          const int    outputFrequency,
                                          const char  *outputFormat,
-                                         const char  *outputFormatOption)
+                                         const char  *outputFormatOption,
+                                         const int nbLocations)
   {
 
     //
@@ -131,7 +132,8 @@ namespace cwipi {
                                          solverType,
                                          newOutputFrequency,
                                          outputFormat,
-                                         outputFormatOption);
+                                         outputFormatOption,
+					 nbLocations);
 
     std::pair<std::string, Coupling* >
       newPair(std::string(name), newCoupling);

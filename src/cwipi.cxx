@@ -20,6 +20,7 @@
 /*----------------------------------------------------------------------------
  * Standard C library headers
  *----------------------------------------------------------------------------*/
+#include <stdarg.h>
 
 /*----------------------------------------------------------------------------
  * BFT library headers
@@ -433,6 +434,219 @@ const char *cwipi_get_distant_string_control_parameter
 
 /*----------------------------------------------------------------------------
  *
+ * Has int parameter
+ *
+ * parameters
+ *    application_name       <-- application name
+ *    name                   <-- parameter name
+ *
+ * return
+ *    1 : true / 0 : false
+ *----------------------------------------------------------------------------*/
+
+int cwipi_has_int_parameter
+(const char *application_name,
+ const char *name)
+{
+  cwipi::ApplicationPropertiesDataBase & properties =
+    cwipi::ApplicationPropertiesDataBase::getInstance();
+
+  if (!strcmp(application_name,  properties.getLocalName().c_str())) 
+    return properties.hasLocalIntControlParameter(name);
+  else
+    return properties.hasDistantIntControlParameter(application_name,name);
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Has double parameter
+ *
+ * parameters
+ *    application_name       <-- application name
+ *    name                   <-- parameter name
+ *
+ * return
+ *    1 : true / 0 : false
+ *----------------------------------------------------------------------------*/
+
+int cwipi_has_double_parameter
+(const char *application_name,
+ const char *name)
+{
+  cwipi::ApplicationPropertiesDataBase & properties =
+    cwipi::ApplicationPropertiesDataBase::getInstance();
+
+  if (!strcmp(application_name,  properties.getLocalName().c_str())) 
+    return properties.hasLocalDoubleControlParameter(name);
+  else
+    return properties.hasDistantDoubleControlParameter(application_name,name);
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Has string parameter
+ *
+ * parameters
+ *    application_name       <-- application name
+ *    name                   <-- parameter name
+ *
+ * return
+ *    1 : true / 0 : false
+ *----------------------------------------------------------------------------*/
+
+int cwipi_has_string_parameter
+(const char *application_name,
+ const char *name)
+{
+  cwipi::ApplicationPropertiesDataBase & properties =
+    cwipi::ApplicationPropertiesDataBase::getInstance();
+
+  if (!strcmp(application_name,  properties.getLocalName().c_str())) 
+    return properties.hasLocalStringControlParameter(name);
+  else
+    return properties.hasDistantStringControlParameter(application_name,name);
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of int parameters
+ *
+ * parameters
+ *    application_name       <-- application name
+ *
+ * return
+ *    Number of int parameters
+ *----------------------------------------------------------------------------*/
+
+int cwipi_get_n_int_parameters
+(const char *application_name)
+{
+  cwipi::ApplicationPropertiesDataBase & properties =
+    cwipi::ApplicationPropertiesDataBase::getInstance();
+
+  if (!strcmp(application_name,  properties.getLocalName().c_str())) 
+    return properties.getLocalNIntControlParameter();
+  else
+    return properties.getDistantNIntControlParameter(application_name);
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of double parameters
+ *
+ * parameters
+ *    application_name       <-- application name
+ *
+ * return
+ *    Number of double parameters
+ *----------------------------------------------------------------------------*/
+
+int cwipi_get_n_double_parameters
+(const char *application_name)
+{
+  cwipi::ApplicationPropertiesDataBase & properties =
+    cwipi::ApplicationPropertiesDataBase::getInstance();
+
+  if (!strcmp(application_name,  properties.getLocalName().c_str())) 
+    return properties.getLocalNDoubleControlParameter();
+  else
+    return properties.getDistantNDoubleControlParameter(application_name);
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of string parameters
+ *
+ * parameters
+ *    application_name       <-- application name
+ *
+ * return
+ *    Number of string parameters
+ *----------------------------------------------------------------------------*/
+
+int cwipi_get_n_string_parameters
+(const char *application_name)
+{
+  cwipi::ApplicationPropertiesDataBase & properties =
+    cwipi::ApplicationPropertiesDataBase::getInstance();
+
+  if (!strcmp(application_name,  properties.getLocalName().c_str())) 
+    return properties.getLocalNStringControlParameter();
+  else
+    return properties.getDistantNStringControlParameter(application_name);
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get list int parameters
+ *
+ * parameters
+ *    application_name       <-- application name
+ *
+ * return
+ *    parameters name
+ *----------------------------------------------------------------------------*/
+
+char** cwipi_get_list_int_parameters
+(const char *application_name)
+{
+  cwipi::ApplicationPropertiesDataBase & properties =
+    cwipi::ApplicationPropertiesDataBase::getInstance();
+
+  if (!strcmp(application_name,  properties.getLocalName().c_str())) 
+    return properties.getLocalListIntControlParameter();
+  else
+    return properties.getDistantListIntControlParameter(application_name);
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get list double parameters
+ *
+ * parameters
+ *    application_name       <-- application name
+ *
+ * return
+ *    parameters name
+ *----------------------------------------------------------------------------*/
+
+char** cwipi_get_list_double_parameters
+(const char *application_name)
+{
+  cwipi::ApplicationPropertiesDataBase & properties =
+    cwipi::ApplicationPropertiesDataBase::getInstance();
+
+  if (!strcmp(application_name,  properties.getLocalName().c_str())) 
+    return properties.getLocalListDoubleControlParameter();
+  else
+    return properties.getDistantListDoubleControlParameter(application_name);
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Get list string parameters
+ *
+ * parameters
+ *    application_name       <-- application name
+ *
+ * return
+ *    parameters name
+ *----------------------------------------------------------------------------*/
+
+char** cwipi_get_list_string_parameters
+(const char *application_name)
+{
+  cwipi::ApplicationPropertiesDataBase & properties =
+    cwipi::ApplicationPropertiesDataBase::getInstance();
+
+  if (!strcmp(application_name,  properties.getLocalName().c_str())) 
+    return properties.getLocalListStringControlParameter();
+  else
+    return properties.getDistantListStringControlParameter(application_name);
+}
+
+/*----------------------------------------------------------------------------
+ *
  * Synchronize local control parameters with an other application.
  *  This is a synchronization point with this second application
  *
@@ -463,6 +677,7 @@ void cwipi_synchronize_control_parameter(const char *application_name)
  *   tolerance               <-- Geometric tolerance to locate
  *   mesh_type               <-- CWIPI_STATIC_MESH
  *                               CWIPI_MOBILE_MESH (not implemented yet)
+ *                               CWIPI_CYCLIC_MESH
  *   solver_type             <-- CWIPI_SOLVER_CELL_CENTER
  *                               CWIPI_SOLVER_CELL_VERTEX
  *   output_frequency        <-- Output frequency
@@ -500,11 +715,21 @@ void cwipi_create_coupling
   const cwipi_solver_type_t solver_type,
   const int    output_frequency,
   const char  *output_format,
-  const char  *output_format_option)
+  const char  *output_format_option
+  ...)
 {
+  // traitement du parametre optionnel 
+  
+  va_list args;
+  int nb_locations = 1;
+  va_start(args, output_format_option);
+  if(mesh_type == CWIPI_CYCLIC_MESH) 
+    nb_locations = va_arg(args, int);
+  va_end(args);
+
   cwipi::CouplingDataBase & couplingDataBase =
     cwipi::CouplingDataBase::getInstance();
-
+  
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
@@ -520,7 +745,113 @@ void cwipi_create_coupling
                                   solver_type,
                                   output_frequency,
                                   output_format,
-                                  output_format_option);
+                                  output_format_option,
+				  nb_locations);
+}
+/*----------------------------------------------------------------------------
+ *
+ * cwipi_set_location_index
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   index                <-- location index
+ *----------------------------------------------------------------------------*/
+
+void cwipi_set_location_index (const char *coupling_name,
+			       const int index)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.setLocationIndex(index);
+}
+/*----------------------------------------------------------------------------
+ *
+ * cwipi_save_location
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *----------------------------------------------------------------------------*/
+
+void cwipi_save_location(const char *coupling_name)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.saveLocation();
+}
+
+
+/*----------------------------------------------------------------------------
+ *
+ * cwipi_load_location
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *----------------------------------------------------------------------------*/
+
+void cwipi_load_location(const char *coupling_name)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.loadLocation();
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * cwipi_open_location_file
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   filename             <-- file name 
+ *   mode                 <-- "r" : read
+ *                            "w" : write
+ *----------------------------------------------------------------------------*/
+
+void cwipi_open_location_file (const char *coupling_name,
+			       char *filename,
+			       const char *mode)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.openLocationFile(filename,mode);
+}
+/*----------------------------------------------------------------------------
+ *
+ * cwipi_close_location_file
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *----------------------------------------------------------------------------*/
+
+void cwipi_close_location_file (const char *coupling_name)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.closeLocationFile();
 }
 
 /*----------------------------------------------------------------------------
@@ -1283,6 +1614,82 @@ int cwipi_get_n_distant_points(const char *coupling_id)
   return coupling.getNDistantPoint();
 }
 
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of distant ranks 
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *
+ * return
+ *                        --> Number of distant ranks
+ *
+ *----------------------------------------------------------------------------*/
+
+int cwipi_get_n_distant_ranks(const char *coupling_id)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_id;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  return coupling.getNDistantRank();
+}
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Get distant point distribution on distant ranks (size = n_distant_rank + 1)
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *
+ * return
+ *                             Distant point distribution on distant ranks
+ *
+ *----------------------------------------------------------------------------*/
+
+const int *cwipi_get_distant_distribution(const char *coupling_id)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_id;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  return coupling.getDistantDistribution();
+}
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Get located points distribution on distant ranks (size = n_distant_rank + 1)
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *
+ * return
+ *                            Located points distribution
+ *
+ *----------------------------------------------------------------------------*/
+
+const int *cwipi_get_located_points_distribution(const char *coupling_id)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_id;
+
+  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  return coupling.getLocatedPointsDistribution();
+}
+
+
 /*----------------------------------------------------------------------------
  *
  * Get distant point coordinates
@@ -1327,229 +1734,6 @@ const float *cwipi_get_distant_distance (const char *coupling_id)
   return coupling.distance();
 }
 
-/*----------------------------------------------------------------------------
- *
- * Set coupling info
- *
- * parameters
- *   info         <-- Coupling info
- *----------------------------------------------------------------------------*/
-
-void cwipi_set_info(const char *coupling_id, const cwipi_located_point_info_t info)
-{
-  cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::getInstance();
-
-  const std::string &coupling_name_str = coupling_id;
-
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
-
-  coupling.setInfo(info);
-}
-
-/*----------------------------------------------------------------------------
- *
- * Get distant elements that contain located points
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *
- * return
- *                        --> Number of vertices
- *
- *----------------------------------------------------------------------------*/
-
-const int *cwipi_get_element_containing(const char *coupling_id)
-{
-  cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::getInstance();
-
-  const std::string &coupling_name_str = coupling_id;
-
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
-
-  return coupling.getElementContaining();
-}
-
-/*----------------------------------------------------------------------------
- *
- * Get number of vertices of distant elements that contain located points
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *
- * return
- *                        --> Number of vertices
- *
- *----------------------------------------------------------------------------*/
-
-const int *cwipi_get_element_containing_n_vertex(const char *coupling_id)
-{
-  cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::getInstance();
-
-  const std::string &coupling_name_str = coupling_id;
-
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
-
-  return coupling.getElementContainingNVertex();
-}
-
-/*----------------------------------------------------------------------------
- *
- * Get vertices id of distant elements that contain located points
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *
- * return
- *                        --> vertices id
- *
- *----------------------------------------------------------------------------*/
-
-const int *cwipi_get_element_containing_vertex(const char *coupling_id)
-{
-  cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::getInstance();
-
-  const std::string &coupling_name_str = coupling_id;
-
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
-
-  return coupling.getElementContainingVertex();
-}
-
-/*----------------------------------------------------------------------------
- *
- * Get vertices coordinates of distant elements that contain located points
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *
- * return
- *                        --> Vertices coordinates
- *
- *----------------------------------------------------------------------------*/
-
-const double *cwipi_get_element_containing_vertex_coords(const char *coupling_id)
-{
-  cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::getInstance();
-
-  const std::string &coupling_name_str = coupling_id;
-
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
-
-  return coupling.getElementContainingVertexCoords();
-
-}
-
-/*----------------------------------------------------------------------------
- *
- * Get barycentric coords in distant elements for located points
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *
- * return
- *                        --> Barycentric coordinates
- *
- *----------------------------------------------------------------------------*/
-
-const double *cwipi_get_element_containing_barycentric_coordinates(const char *coupling_id)
-{
-  cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::getInstance();
-
-  const std::string &coupling_name_str = coupling_id;
-
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
-
-  return coupling.getElementContainingBarycentricCoordinates();
-}
-
-/*----------------------------------------------------------------------------
- *
- * For each located point get the MPI rank of distant element
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *
- * return
- *                        --> MPI ranks
- *
- *----------------------------------------------------------------------------*/
-
-const int *cwipi_get_element_containing_MPI_rank(const char *coupling_id)
-{
-  cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::getInstance();
-
-  const std::string &coupling_name_str = coupling_id;
-
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
-
-  return coupling.getElementContainingMPIrank();
-}
-
-/*----------------------------------------------------------------------------
- *
- * Exchange Fields on vertices of element containing each located point
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *   sendingField         <-- Field defined on local mesh vertices
- *   receivingField       --> Field defined on vertices of distant
- *                            elements that contain each located point
- *   stride               <-- Number of field component
- *
- *----------------------------------------------------------------------------*/
-
-void cwipi_exchange_cell_vertex_field_of_element_containing (const char *coupling_id,
-                                                             double *sendingField,
-                                                             double *receivingField,
-                                                             const int stride)
-{
-  cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::getInstance();
-
-  const std::string &coupling_name_str = coupling_id;
-
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
-  coupling.exchangeCellVertexFieldOfElementContaining(sendingField,
-                                                      receivingField,
-                                                      stride);
-}
-
-/*----------------------------------------------------------------------------
- *
- * Exchange field on cells that contain each located points
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *   sendingField         <-- Field defined on local mesh vertices
- *   receivingField       --> Field defined on vertices of distant
- *                            elements that contain each located point
- *   stride               <-- Number of field component
- *
- *----------------------------------------------------------------------------*/
-
-void cwipi_exchange_cell_center_field_of_element_containing (const char *coupling_id,
-                                                       double *sendingField,
-                                                       double *receivingField,
-                                                       const int stride)
-{
-  cwipi::CouplingDataBase & couplingDataBase =
-    cwipi::CouplingDataBase::getInstance();
-
-  const std::string &coupling_name_str = coupling_id;
-
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
-
-  coupling.exchangeCellCenterFieldOfElementContaining(sendingField,
-                                                      receivingField,
-                                                      stride);
-}
 
 
 /*----------------------------------------------------------------------------*/

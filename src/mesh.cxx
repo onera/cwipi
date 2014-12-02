@@ -1039,6 +1039,8 @@ namespace cwipi {
 
     if (_cellCenterCoords != NULL || _cellVolume != NULL)
       _computeMeshProperties();
+
+    fvmc_parall_set_mpi_comm(oldFVMComm);
   }
 
 
@@ -1236,10 +1238,10 @@ namespace cwipi {
                            _polyhedraCellToFaceConnectivity,
                            _nVertex,
                            _coords,
-                           &refCellVolume[0],
-                           &refCellCenterCoords[0],
-                           &refCharacteristicLength[0],
-                           &refIsDegenerated[0]);
+                           &refCellVolume[nStandardElement],
+                           &refCellCenterCoords[3*nStandardElement],
+                           &refCharacteristicLength[nStandardElement],
+                           &refIsDegenerated[nStandardElement]);
 
   }
 

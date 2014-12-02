@@ -51,7 +51,8 @@ namespace cwipi {
              const cwipi_solver_type_t solverType,
              const int    outputFrequency,
              const char  *outputFormat,
-             const char  *outputFormatOption);
+             const char  *outputFormatOption,
+             const int nb_Locations);
 
     virtual ~Coupling();
 
@@ -106,6 +107,12 @@ namespace cwipi {
 
     void updateLocation();
 
+    void setLocationIndex(const int index);
+    void openLocationFile(char *file, const char *moderwa);
+    void closeLocationFile();
+    void saveLocation();
+    void loadLocation();
+
     void setPointsToLocate(const int n_points,
                            double coordinate[]);
 
@@ -121,7 +128,13 @@ namespace cwipi {
 
     inline const int *getLocatedPoint() const;
 
+    inline const int *getLocatedPointsDistribution() const;
+
     inline const int *getDistantLocation() const;
+
+    inline int getNDistantRank() const;
+
+    inline const int *getDistantDistribution() const;
 
     inline const float *getDistantDistance() const;
 
@@ -258,6 +271,12 @@ namespace cwipi {
     void * _interpolationFct_f;
     bool                 _toLocate;
     Mesh                *_supportMesh;
+    MPI_File _locationsFile;
+    size_t _locationsFile_position;
+
+    std::vector<LocationToDistantMesh *> &_tablelocationToDistantMesh;
+    std::vector<LocationToLocalMesh *> &_tablelocationToLocalMesh;
+
     LocationToDistantMesh *_locationToDistantMesh;
     LocationToLocalMesh *_locationToLocalMesh;
 
@@ -268,11 +287,11 @@ namespace cwipi {
     std::map<int, std::vector<double> * > &_tmpDistantFieldsIssend; //TODO: temporaire : A revoir lors
                                                                     // de la restructuration
     std::map<int, const double * > &_tmpLocalFieldsIrecv;
-    std::map<int, const char * > &_tmpExchangeNameIrecv;
+    std::map<int, std::string > &_tmpExchangeNameIrecv;
     std::map<int, int > &_tmpStrideIrecv;
     std::map<int, int > &_tmpTimeStepIrecv;
     std::map<int, double > &_tmpTimeValueIrecv;
-    std::map<int, const char * > &_tmpFieldNameIrecv;
+    std::map<int, std::string > &_tmpFieldNameIrecv;
     std::vector<float> _distance;
   };
 

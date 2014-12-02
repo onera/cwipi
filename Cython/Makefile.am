@@ -26,7 +26,8 @@ AM_CPPFLAGS = \
 $(DEBUG_CPPFLAGS) \
 @MPI_CPPFLAGS@
 
-AM_CFLAGS = -fno-strict-aliasing 
+#AM_CFLAGS = -fno-strict-aliasing 
+AM_CFLAGS =
 AM_LDFLAGS = @MPI_LDFLAGS@
 
 python_PYTHON = __init__.py

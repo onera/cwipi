@@ -48,7 +48,8 @@ namespace cwipi {
                         const cwipi_solver_type_t solverType,
                         const int    outputFrequency,
                         const char  *outputFormat,
-                        const char  *outputFormatOption);
+                        const char  *outputFormatOption,
+			const int nbLocations);
     
     void deleteCoupling(const std::string &name);
     

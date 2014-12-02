@@ -77,6 +77,7 @@ typedef enum {
 
   CWIPI_STATIC_MESH,
   CWIPI_MOBILE_MESH,
+  CWIPI_CYCLIC_MESH,
 
 } cwipi_mesh_type_t;
 
@@ -433,6 +434,180 @@ const char* cwipi_get_distant_string_control_parameter
 
 /*----------------------------------------------------------------------------
  *
+ * Get a integer control parameter of a other application
+ *
+ * parameters
+ *    application_name       <-- application name
+ *    name                   <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+int cwipi_get_distant_int_control_parameter
+(const char *application_name,
+ const char *name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get a double control parameter of a other application
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+double cwipi_get_distant_double_control_parameter
+(const char *application_name,
+ const char *name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get a string control parameter of a other application
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+const char* cwipi_get_distant_string_control_parameter
+(const char *application_name,
+ const char *name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Has int parameter
+ *
+ * parameters
+ *    application_name       <-- application name
+ *    name                   <-- parameter name
+ *
+ * return
+ *    1 : true / 0 : false
+ *----------------------------------------------------------------------------*/
+
+int cwipi_has_int_parameter
+(const char *application_name,
+ const char *name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Has double parameter
+ *
+ * parameters
+ *    application_name       <-- application name
+ *    name                   <-- parameter name
+ *
+ * return
+ *    1 : true / 0 : false
+ *----------------------------------------------------------------------------*/
+
+int cwipi_has_double_parameter
+(const char *application_name,
+ const char *name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Has string parameter
+ *
+ * parameters
+ *    application_name       <-- application name
+ *    name                   <-- parameter name
+ *
+ * return
+ *    1 : true / 0 : false
+ *----------------------------------------------------------------------------*/
+
+int cwipi_has_string_parameter
+(const char *application_name,
+ const char *name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of int parameters
+ *
+ * parameters
+ *    application_name       <-- application name
+ *
+ * return
+ *    Number of int parameters
+ *----------------------------------------------------------------------------*/
+
+int cwipi_get_n_int_parameters
+(const char *application_name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of double parameters
+ *
+ * parameters
+ *    application_name       <-- application name
+ *
+ * return
+ *    Number of double parameters
+ *----------------------------------------------------------------------------*/
+
+int cwipi_get_n_double_parameters
+(const char *application_name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of string parameters
+ *
+ * parameters
+ *    application_name       <-- application name
+ *
+ * return
+ *    Number of string parameters
+ *----------------------------------------------------------------------------*/
+
+int cwipi_get_n_string_parameters
+(const char *application_name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get list int parameters
+ *
+ * parameters
+ *    application_name       <-- application name
+ *
+ * return
+ *    parameters name
+ *----------------------------------------------------------------------------*/
+
+char** cwipi_get_list_int_parameters
+(const char *application_name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get list double parameters
+ *
+ * parameters
+ *    application_name       <-- application name
+ *
+ * return
+ *    parameters name
+ *----------------------------------------------------------------------------*/
+
+char** cwipi_get_list_double_parameters
+(const char *application_name);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get list string parameters
+ *
+ * parameters
+ *    application_name       <-- application name
+ *
+ * return
+ *    parameters name
+ *----------------------------------------------------------------------------*/
+
+char** cwipi_get_list_string_parameters
+(const char *application_name);
+
+/*----------------------------------------------------------------------------
+ *
  * Synchronize local control parameters with an other application.
  *  It is a synchronization point with this second application
  *
@@ -463,6 +638,7 @@ void cwipi_dump_application_properties(void);
  *   tolerance               <-- Geometric tolerance to locate
  *   mesh_type               <-- CWIPI_STATIC_MESH
  *                               CWIPI_MOBILE_MESH (not implemented yet)
+ *                               CWIPI_CYCLIC_MESH 
  *   solver_type             <-- CWIPI_SOLVER_CELL_CENTER
  *                               CWIPI_SOLVER_CELL_VERTEX
  *   output_frequency        <-- Output frequency
@@ -486,7 +662,8 @@ void cwipi_dump_application_properties(void);
  *                                                 with tetrahedra and pyramids
  *                                                 (adding a vertex near
  *                                                 each polyhedron's center)
- *
+ *   nblocations             <-- Number of possible localisations with
+ *                               CWIPI_CYCLIC_MESH, optional
  *
  *----------------------------------------------------------------------------*/
 
@@ -500,7 +677,57 @@ void cwipi_create_coupling
   const cwipi_solver_type_t solver_type,
   const int    output_frequency,
   const char  *output_format,
-  const char  *output_format_option);
+  const char  *output_format_option,
+  ...);
+
+/*----------------------------------------------------------------------------
+ *
+ * Set the index location for multiple location with CWIPI_CYCLIC_MESH
+ *
+ * parameters:
+ *   coupling_name           <-- Coupling identifier
+ *   index                   <-- location index
+ *----------------------------------------------------------------------------*/
+
+void cwipi_set_location_index
+( const char  *coupling_name,
+  const int index);
+
+/*----------------------------------------------------------------------------
+ *
+ * save/load  location 
+ *
+ * parameters:
+ *   coupling_name           <-- Coupling identifier
+ *----------------------------------------------------------------------------*/
+
+void cwipi_load_location(const char *coupling_name);
+void cwipi_save_location(const char *coupling_name);
+
+
+/*----------------------------------------------------------------------------
+ *
+ * cwipi_open_location_file
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   filename             <-- file name 
+ *   mode                 <-- "r" : read
+ *                            "w" : write
+ *----------------------------------------------------------------------------*/
+
+void cwipi_open_location_file (const char *coupling_name,
+                               char *filename,
+                               const char *mode);
+/*----------------------------------------------------------------------------
+ *
+ * cwipi_close_location_file
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *----------------------------------------------------------------------------*/
+
+void cwipi_close_location_file (const char *coupling_name);
 
 /*----------------------------------------------------------------------------
  *
@@ -676,17 +903,6 @@ void cwipi_locate (const char *coupling_id);
  *----------------------------------------------------------------------------*/
 
 void cwipi_update_location (const char *coupling_id);
-
-/*----------------------------------------------------------------------------
- *
- * Set coupling info
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *   info                 <-- Coupling info
- *----------------------------------------------------------------------------*/
-
-void cwipi_set_info(const char *coupling_id, const cwipi_located_point_info_t info);
 
 /*----------------------------------------------------------------------------
  *
@@ -939,6 +1155,20 @@ const int * cwipi_get_not_located_points(const char *coupling_id);
 
 /*----------------------------------------------------------------------------
  *
+ * Get located points
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *
+ * return
+ *   locatedPoints        <-- Located points
+ *
+ *----------------------------------------------------------------------------*/
+
+const int * cwipi_get_located_points(const char *coupling_id);
+
+/*----------------------------------------------------------------------------
+ *
  * Get number of located points
  *
  * parameters
@@ -980,125 +1210,50 @@ int cwipi_get_n_not_located_points(const char *coupling_id);
 
 int cwipi_get_n_distant_points(const char *coupling_id);
 
+
 /*----------------------------------------------------------------------------
  *
- * Get distant elements that contain located points
+ * Get number of distant ranks 
  *
  * parameters
  *   coupling_id          <-- Coupling identifier
  *
  * return
- *                        --> Number of vertices
+ *                        --> Number of distant ranks
  *
  *----------------------------------------------------------------------------*/
 
-const int *cwipi_get_element_containing(const char *coupling_id);
+int cwipi_get_n_distant_ranks(const char *coupling_id);
+
 
 /*----------------------------------------------------------------------------
  *
- * Get number of vertices of distant elements that contain located points
+ * Get distant point distribution on distant ranks (size = n_distant_rank + 1)
  *
  * parameters
  *   coupling_id          <-- Coupling identifier
  *
  * return
- *                        --> Number of vertices
+ *                             Distant point distribution on distant ranks
  *
  *----------------------------------------------------------------------------*/
 
-const int *cwipi_get_element_containing_n_vertex(const char *coupling_id);
+const int *cwipi_get_distant_distribution(const char *coupling_id);
+
 
 /*----------------------------------------------------------------------------
  *
- * Get vertices id of distant elements that contain located points
+ * Get located points distribution on distant ranks (size = n_distant_rank + 1)
  *
  * parameters
  *   coupling_id          <-- Coupling identifier
  *
  * return
- *                        --> vertices id
+ *                            Located points distribution
  *
  *----------------------------------------------------------------------------*/
 
-const int *cwipi_get_element_containing_vertex(const char *coupling_id);
-
-/*----------------------------------------------------------------------------
- *
- * Get vertices coordinates of distant elements that contain located points
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *
- * return
- *                        --> Vertices coordinates
- *
- *----------------------------------------------------------------------------*/
-
-const double *cwipi_get_element_containing_vertex_coords(const char *coupling_id);
-
-/*----------------------------------------------------------------------------
- *
- * Get barycentric coords in distant elements for located points
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *
- * return
- *                        --> Barycentric coordinates
- *
- *----------------------------------------------------------------------------*/
-
-const double *cwipi_get_element_containing_barycentric_coordinates(const char *coupling_id);
-
-/*----------------------------------------------------------------------------
- *
- * For each located point get the MPI rank of distant element
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *
- * return
- *                        --> MPI ranks
- *
- *----------------------------------------------------------------------------*/
-
-const int *cwipi_get_element_containing_MPI_rank(const char *coupling_id);
-
-/*----------------------------------------------------------------------------
- *
- * Exchange Fields on vertices of element containing each located point
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *   sendingField         <-- Field defined on local mesh vertices
- *   receivingField       --> Field defined on vertices of distant
- *                            elements that contain each located point
- *   stride               <-- Number of field component
- *
- *----------------------------------------------------------------------------*/
-
-void cwipi_exchange_cell_vertex_field_of_element_containing (const char *coupling_id,
-                                                             double *sendingField,
-                                                             double *receivingField,
-                                                             const int stride);
-
-/*----------------------------------------------------------------------------
- *
- * Exchange field on cells that contain each located points
- *
- * parameters
- *   coupling_id          <-- Coupling identifier
- *   sendingField         <-- Field defined on local mesh vertices
- *   receivingField       --> Field defined on vertices of distant
- *                            elements that contain each located point
- *   stride               <-- Number of field component
- *
- *----------------------------------------------------------------------------*/
-
-void cwipi_exchange_cell_center_field_of_element_containing (const char *coupling_id,
-                                                             double *sendingField,
-                                                             double *receivingField,
-                                                             const int stride);
+const int *cwipi_get_located_points_distribution(const char *coupling_id);
 
 /*----------------------------------------------------------------------------*/
 

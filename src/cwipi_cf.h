@@ -361,6 +361,171 @@ void PROCF(cwipi_get_dis_str_ctrl_param_cf,
    int *l_value
    ARGF_SUPP_CHAINE);
 
+/*----------------------------------------------------------------------------
+ *
+ * Has int control parameter ?
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_has_int_ctrl_param_cf,
+           CWIPI_HAS_INT_CTRL_PARAM_CF)
+  (const char *application_name,
+   const int  *l_application_name,
+   const char *name,
+   const int  *l_name,
+   int *status
+   ARGF_SUPP_CHAINE);
+
+/*----------------------------------------------------------------------------
+ *
+ * Has dbl control parameter ?
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_has_dbl_ctrl_param_cf,
+           CWIPI_HAS_DBL_CTRL_PARAM_CF)
+  (const char *application_name,
+   const int  *l_application_name,
+   const char *name,
+   const int  *l_name,
+   int *status
+   ARGF_SUPP_CHAINE);
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Has str control parameter ?
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_has_str_ctrl_param_cf,
+           CWIPI_HAS_STR_CTRL_PARAM_CF)
+  (const char *application_name,
+   const int  *l_application_name,
+   const char *name,
+   const int  *l_name,
+   int *status
+   ARGF_SUPP_CHAINE);
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of int parameters
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_n_int_ctrl_param_cf,
+           CWIPI_GET_N_INT_CTRL_PARAM_CF)
+  (const char *application_name,
+   const int  *l_application_name,
+   int *n_param
+   ARGF_SUPP_CHAINE);
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of dbl parameters
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_n_dbl_ctrl_param_cf,
+           CWIPI_GET_N_DBL_CTRL_PARAM_CF)
+  (const char *application_name,
+   const int  *l_application_name,
+   int *n_param
+   ARGF_SUPP_CHAINE);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of str parameters
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_n_str_ctrl_param_cf,
+           CWIPI_GET_N_STR_CTRL_PARAM_CF)
+  (const char *application_name,
+   const int  *l_application_name,
+   int *n_param
+   ARGF_SUPP_CHAINE);
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Get int parameters list
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_list_int_ctrl_param_cf,
+           CWIPI_GET_LIST_INT_CTRL_PARAM_CF)
+  (const char *application_name,
+   const int  *l_application_name,
+   char *params,
+   const int  *l_param  
+   ARGF_SUPP_CHAINE);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get dbl parameters list
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_list_dbl_ctrl_param_cf,
+           CWIPI_GET_LIST_DBL_CTRL_PARAM_CF)
+  (const char *application_name,
+   const int  *l_application_name,
+   char *params,
+   const int  *l_param  
+   ARGF_SUPP_CHAINE);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get str parameters list
+ *
+ * parameters
+ *    application_name    <-- application name
+ *    name                <-- parameter name
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_list_str_ctrl_param_cf,
+           CWIPI_GET_LIST_STR_CTRL_PARAM_CF)
+  (const char *application_name,
+   const int  *l_application_name,
+   char *params,
+   const int  *l_param  
+   ARGF_SUPP_CHAINE);
 
 /*----------------------------------------------------------------------------
  *
@@ -391,6 +556,7 @@ void PROCF(cwipi_synch_ctrl_param_cf,
  *   tolerance               <-- Geometric tolerance to locate
  *   meshT                   <-- CWIPI_STATIC_MESH
  *                               CWIPI_MOBILE_MESH (not implemented yet)
+ *                               CWIPI_CYCLIC_MESH 
  *   solverT                 <-- CWIPI_SOLVER_CELL_CENTER
  *                               CWIPI_SOLVER_CELL_VERTEX
  *   outputFreq              <-- Output frequency
@@ -414,6 +580,7 @@ void PROCF(cwipi_synch_ctrl_param_cf,
  *                                                 with tetrahedra and pyramids
  *                                                 (adding a vertex near
  *                                                 each polyhedron's center)
+ *  nbLocations             <-- maximun number of locations 
  *
  *----------------------------------------------------------------------------*/
 
@@ -432,7 +599,8 @@ void PROCF(cwipi_create_coupling_cf,
   const char  *output_format,
   const int  *l_output_format,
   const char  *output_format_option,
-  const int  *l_output_format_option
+  const int  *l_output_format_option,
+  const int *nbLocations
   ARGF_SUPP_CHAINE);
 
 /*----------------------------------------------------------------------------
@@ -614,11 +782,11 @@ void PROCF(cwipi_get_n_located_pts_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_get_n_located_dist_pts_cf,
-           CWIPI_GET_N_LOCATED_DIST_PTS_CF) (const char *coupling_name,
-                                             const int  *l_coupling_name,
-                                             int *n_located_distant_Points
-                                             ARGF_SUPP_CHAINE);
+void PROCF(cwipi_get_n_located_dist_pts_cf, CWIPI_GET_N_LOCATED_DIST_PTS_CF) 
+(const char *coupling_name,
+ const int  *l_coupling_name,
+ int *n_located_distant_Points
+ ARGF_SUPP_CHAINE);
 
 /*----------------------------------------------------------------------------
  *
@@ -630,11 +798,12 @@ void PROCF(cwipi_get_n_located_dist_pts_cf,
  *
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_get_dis_coord_cf,
-           CWIPI_GET_DIS_COORD_CF)(const char *coupling_name,
-                                   const int  *l_coupling_name,
-                                   double *coordinates
-                                   ARGF_SUPP_CHAINE);
+void PROCF(cwipi_get_dis_coord_cf, CWIPI_GET_DIS_COORD_CF)
+(const char *coupling_name,
+ const int  *l_coupling_name,
+ double *coordinates
+ ARGF_SUPP_CHAINE
+);
 
 /*----------------------------------------------------------------------------
  *
@@ -646,11 +815,11 @@ void PROCF(cwipi_get_dis_coord_cf,
  *                                    coordinates index
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_get_dis_bary_coord_idx_cf,
-           CWIPI_GET_DIS_BARY_COORD_IDX_CF) (const char *coupling_name,
-                                       const int  *l_coupling_name,
-                                       int *barycentricCoordinatesIndex
-                                       ARGF_SUPP_CHAINE);
+void PROCF(cwipi_get_dis_bary_coord_idx_cf, CWIPI_GET_DIS_BARY_COORD_IDX_CF) 
+(const char *coupling_name,
+ const int  *l_coupling_name,
+ int *barycentricCoordinatesIndex
+ ARGF_SUPP_CHAINE);
 
 /*----------------------------------------------------------------------------
  *
@@ -662,11 +831,69 @@ void PROCF(cwipi_get_dis_bary_coord_idx_cf,
  *                                    coordinates
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_get_distant_bary_coord_cf,
-           CWIPI_GET_DISTANT_BARY_COORD_CF) (const char *coupling_name,
-                                             const int  *l_coupling_name,
-                                             double *barycentricCoordinates
-                                             ARGF_SUPP_CHAINE);
+void PROCF(cwipi_get_distant_bary_coord_cf, CWIPI_GET_DISTANT_BARY_COORD_CF) 
+(const char *coupling_name,
+ const int  *l_coupling_name,
+ double *barycentricCoordinates
+ ARGF_SUPP_CHAINE);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get number of distant ranks 
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *
+ * return
+ *                        --> Number of distant ranks
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_n_dis_ranks_cf, CWIPI_GET_N_DIS_RANKS_CF)
+(const char *coupling_name,
+ const int  *l_coupling_name,
+ int *n_dis_ranks
+ ARGF_SUPP_CHAINE);
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Get distant point distribution on distant ranks (size = n_distant_rank + 1)
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *
+ * return
+ *                             Distant point distribution on distant ranks
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_dis_distrib_cf, CWIPI_GET_DIS_DISTRIB_CF) 
+(const char *coupling_name,
+ const int  *l_coupling_name,
+ int *distrib
+ ARGF_SUPP_CHAINE);
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Get located points distribution on distant ranks (size = n_distant_rank + 1)
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *
+ * return
+ *                            Located points distribution
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_loc_pts_distrib_cf, CWIPI_GET_LOC_PTS_DISTRIB_CF)
+(const char *coupling_name,
+ const int  *l_coupling_name,
+ int *distrib
+ ARGF_SUPP_CHAINE);
+
+
 
 /*----------------------------------------------------------------------------
  *
@@ -1088,6 +1315,80 @@ void PROCF(cwipi_set_info_cf,
 (const char *coupling_id,
  const int  *l_coupling_id,
  const int *info);
+
+/*----------------------------------------------------------------------------
+ *
+ * cwipi_set_location_index
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   index                <-- location index
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_set_location_index_cf,
+	   CWIPI_SET_LOCATION_INDEX_CF)
+(const char *coupling_id,
+ const int  *l_coupling_id,
+ const int  *index
+ ARGF_SUPP_CHAINE);
+
+
+/*----------------------------------------------------------------------------
+ *
+ * save/load  location 
+ *
+ * parameters:
+ *   coupling_name           <-- Coupling identifier
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_load_location_cf, 
+           CWIPI_LOAD_LOCATION_CF)
+(const char *coupling_name,
+ const int  *l_coupling_name
+ ARGF_SUPP_CHAINE);
+
+void PROCF(cwipi_save_location_cf,
+           CWIPI_SAVE_LOCATION_CF)
+(const char *coupling_name, 
+ const int  *l_coupling_name
+ ARGF_SUPP_CHAINE);
+
+
+/*----------------------------------------------------------------------------
+ *
+ * cwipi_open_location_file
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   filename             <-- file name 
+ *   mode                 <-- "r" : read
+ *                            "w" : write
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_open_location_file_cf,
+           CWIPI_OPEN_LOCATION_FILE_CF)
+ (const char *coupling_name,
+  const int  *l_coupling_name,
+  char *filename,
+  const int  *l_filename_name,
+  const char *mode,
+  const int  *l_mode
+ ARGF_SUPP_CHAINE);
+
+/*----------------------------------------------------------------------------
+ *
+ * cwipi_close_location_file
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *----------------------------------------------------------------------------*/
+
+ void PROCF(cwipi_close_location_file_cf,
+            CWIPI_CLOSE_LOCATION_FILE_CF)
+(const char *coupling_name,
+  const int  *l_coupling_name
+  ARGF_SUPP_CHAINE);
+
 
 /*----------------------------------------------------------------------------*/
 

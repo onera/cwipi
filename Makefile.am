@@ -30,7 +30,7 @@ MAINTAINERCLEANFILES = Makefile.in aclocal.m4 configure config-h.in stamp-h.in $
 #SUBDIRS = src tests doc
 
 if ENABLE_PYTHON 
- SUBDIRS = src cython tests
+ SUBDIRS = src Cython tests
 else
  SUBDIRS = src tests
 endif

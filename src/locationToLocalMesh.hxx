@@ -79,6 +79,11 @@ public:
 
   virtual ~LocationToLocalMesh();
 
+  void packLocation(unsigned char *buff);
+  void unpackLocation(unsigned char *buff);
+  size_t locationSize();
+
+
   ///
   /// \brief distant points location in the local mesh
   ///
@@ -116,6 +121,24 @@ public:
   ///
 
   inline int getNLocatedDistantPoint() const;
+
+  ///
+  /// \brief Return number of distant ranks
+  ///
+
+  inline int getNDistantRank() const;
+
+  ///
+  /// \brief Return located points distribution on distant ranks (size = n_distant_rank + 1)
+  ///
+
+  inline const int *getLocatedPointsDistribution() const;
+
+  ///
+  /// \brief Return distant point distribution on distant ranks (size = n_distant_rank + 1)
+  ///
+
+  inline const int *getDistantDistribution() const;
 
   ///
   /// \brief Return number coordinates of located distant point
@@ -161,7 +184,7 @@ public:
   ///   @param [in]      supportMesh location support mesh
   ///
 
-  inline void setSupportMesh(Mesh *supportMesh);
+  inline void setSupportMesh(Mesh *supportMesh, bool lb_tolocate);
 
 private :
 
@@ -281,6 +304,8 @@ private :
   std::vector <double>       *_barycentricCoordinates;                      ///< Barycentric coordinates associated to the element that contains each located distant point
   int                         _nDistantPoint;                               ///< Number of distant points located in the local mesh
   int                        *_location;                                    ///< Local elements that contain distant points
+  int                        *_locatedPointsDistribution;                   ///< Located points distribution on distant ranks
+  int                        *_distantDistribution;                         ///< Distant point distribution on distant ranks
   float                      *_distance;                                    ///< distance to Local elements that contain distant points
   std::vector <int>          *_nVertex;                                     ///< Vertices number of local elements that contain distant points
   bool                        _toLocate;                                    ///< Status to activate location
@@ -341,6 +366,39 @@ const int *LocationToLocalMesh::getLocation() const
 }
 
 ///
+/// \brief Return number of distant ranks
+///
+
+int LocationToLocalMesh::getNDistantRank() const
+{
+  if (_toLocate)
+    bftc_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
+  return _coupledApplicationNRankCouplingComm;
+}
+
+///
+/// \brief Return located points distribution on distant ranks (size = n_distant_rank + 1)
+///
+
+const int *LocationToLocalMesh::getLocatedPointsDistribution() const
+{
+  if (_toLocate)
+    bftc_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
+  return _locatedPointsDistribution;
+}
+
+///
+/// \brief Return distant point distribution on distant ranks (size = n_distant_rank + 1)
+///
+
+const int *LocationToLocalMesh::getDistantDistribution() const
+{
+  if (_toLocate)
+    bftc_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
+  return _distantDistribution;
+}
+
+///
 /// \brief Return distance to location cell result (size = nDistantpoint)
 ///
 
@@ -390,9 +448,9 @@ fvmc_locator_t *LocationToLocalMesh::getFVMLocator() const
 ///   @param [in]      supportMesh  location support mesh
 ///
 
-void LocationToLocalMesh::setSupportMesh(Mesh *supportMesh)
+void LocationToLocalMesh::setSupportMesh(Mesh *supportMesh, bool lb_tolocate = true)
 {
-  _toLocate = true;
+  _toLocate = lb_tolocate;
   _supportMesh = supportMesh;
 }
 

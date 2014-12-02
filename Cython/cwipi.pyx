@@ -24,6 +24,7 @@ cimport numpy as np
 
 cimport mpi4py.MPI as MPI
 from mpi4py.mpi_c cimport *
+from libc.stdlib cimport malloc, free
 
 interp_f={}
 current_cpl = "" 
@@ -46,6 +47,7 @@ cdef extern from "cwipi.h":
     ctypedef enum cwipi_mesh_type_t:
         CWIPI_STATIC_MESH
         CWIPI_MOBILE_MESH
+        CWIPI_CYCLIC_MESH
 
     ctypedef enum cwipi_solver_type_t:
         CWIPI_SOLVER_CELL_CENTER
@@ -115,7 +117,7 @@ cdef extern from "cwipi.h":
 
     void cwipi_create_coupling(char* coupling_name, cwipi_coupling_type_t coupling_type, char* coupled_application,
                                int entitiesDim, double tolerance, cwipi_mesh_type_t mesh_type, cwipi_solver_type_t solver_type, 
-                               int output_frequency, char* output_format, char* output_format_option)
+                               int output_frequency, char* output_format, char* output_format_option, ...)
     void cwipi_delete_coupling(char* coupling_id)
     void cwipi_set_points_to_locate(char* coupling_id, int n_points, double coordinate[])
     void cwipi_define_mesh(char* coupling_id, int n_vertex, int n_element, double* coordinates, int* connectivity_index, int* connectivity)
@@ -137,14 +139,10 @@ cdef extern from "cwipi.h":
     void cwipi_wait_irecv(char *coupling_name, int request)
     void cwipi_set_interpolation_function(char* coupling_id, cwipi_interpolation_fct_t fct)
     int* cwipi_get_not_located_points(char* coupling_id)
+    int* cwipi_get_located_points(char* coupling_id)
     int cwipi_get_n_located_points(char* coupling_id)
     int cwipi_get_n_not_located_points(char* coupling_id)
 
-#
-# Coupling additional functions (activated by set_info function)
-
-    void cwipi_set_info(char* coupling_id, cwipi_located_point_info_t info)
-  
     #
     # info about mpi rank, mesh and element where local points are located 
 
@@ -153,18 +151,29 @@ cdef extern from "cwipi.h":
     double* cwipi_get_distant_coordinates(char* coupling_id)
     int* cwipi_get_distant_barycentric_coordinates_index (char* coupling_id)
     double* cwipi_get_distant_barycentric_coordinates (char* coupling_id)
-    int cwipi_get_n_located_distant_points(char* coupling_id)
+    int cwipi_get_n_distant_points(char* coupling_id)
+    int cwipi_get_n_distant_ranks(char *coupling_id)
+    int *cwipi_get_distant_distribution(char *coupling_id)
+    int *cwipi_get_located_points_distribution(char *coupling_id)
+ 
+    int cwipi_has_int_parameter(char *application_name, char *name)
+    int cwipi_has_double_parameter(char *application_name, char *name)
+    int cwipi_has_string_parameter(char *application_name, char *name)
 
-    int* cwipi_get_element_containing(char* coupling_id)
-    int* cwipi_get_element_containing_n_vertex(char* coupling_id)
-    int* cwipi_get_element_containing_vertex(char* coupling_id)
-    double* cwipi_get_element_containing_vertex_coords(char* coupling_id)
-    double* cwipi_get_element_containing_barycentric_coordinates(char* coupling_id)
-    int* cwipi_get_element_containing_MPI_rank(char* coupling_id)
-    void cwipi_exchange_cell_vertex_field_of_element_containing(char* coupling_id, double* sendingField,
-                                                                double* receivingField, int stride)
-    void cwipi_exchange_cell_center_field_of_element_containing(char* coupling_id, double* sendingField,
-                                                                double* receivingField, int stride)
+    int cwipi_get_n_int_parameters(char *application_name)
+    int cwipi_get_n_double_parameters(char *application_name)
+    int cwipi_get_n_string_parameters(char *application_name)
+
+    char ** cwipi_get_list_int_parameters(char *application_name)
+    char ** cwipi_get_list_double_parameters(char *application_name)
+    char ** cwipi_get_list_string_parameters(char *application_name)
+
+    void cwipi_set_location_index(char *coupling_name, int index)
+    void cwipi_load_location(char *coupling_name)
+    void cwipi_save_location(char *coupling_name)
+
+    void cwipi_open_location_file(char *coupling_name, char *filename, char *mode)
+    void cwipi_close_location_file(char *coupling_name)
 
 COUPLING_PARALLEL_WITH_PARTITIONING = CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING
 COUPLING_PARALLEL_WITHOUT_PARTITIONING = CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING
@@ -172,6 +181,7 @@ COUPLING_SEQUENTIAL = CWIPI_COUPLING_SEQUENTIAL
 
 STATIC_MESH = CWIPI_STATIC_MESH
 MOBILE_MESH = CWIPI_MOBILE_MESH
+CYCLIC_MESH = CWIPI_CYCLIC_MESH
 
 SOLVER_CELL_CENTER = CWIPI_SOLVER_CELL_CENTER
 SOLVER_CELL_VERTEX = CWIPI_SOLVER_CELL_VERTEX
@@ -186,7 +196,7 @@ EXCHANGE_BAD_RECEIVING = CWIPI_EXCHANGE_BAD_RECEIVING
 # Basic fonctions
 # ---------------
 
-def init(MPI.Comm common_comm, char* application_name, MPI.Comm application_comm):
+def  init(MPI.Comm common_comm, char* application_name):
     """
      Initialize the cwipi library and create 
      the current communicator application from 'common_comm'.
@@ -199,8 +209,12 @@ def init(MPI.Comm common_comm, char* application_name, MPI.Comm application_comm
      It is a synchronization point between all applications
     """
     cdef MPI_Comm c_common_comm = common_comm.ob_mpi
-    #cdef MPI_Comm c_application_comm = application_comm.ob_mpi
+
+    cdef MPI.Comm application_comm = MPI.Comm()
+
     cwipi_init(c_common_comm, application_name, &(application_comm.ob_mpi))
+
+    return  application_comm
 
 
 def set_output_listing(file output_listing):
@@ -390,6 +404,113 @@ def get_distant_string_control_parameter(char* application_name, char* name):
     return cwipi_get_distant_string_control_parameter(application_name, name)
 
 
+def has_int_parameter(char* application_name, char* name):
+    """
+    Has this int parameter ?
+
+    parameters
+      application_name <-- distant application name
+      name             <-- parameter name
+    return
+      boolean
+    """
+    return (cwipi_has_int_parameter(application_name, name) == 1)
+
+
+def has_double_parameter(char* application_name, char* name):
+    """
+    Has this double parameter ?
+
+    parameters
+      application_name <-- distant application name
+      name             <-- parameter name
+    return
+      boolean
+    """
+    return (cwipi_has_double_parameter(application_name, name) == 1)
+
+
+def has_string_parameter(char* application_name, char* name):
+    """
+    Has this double parameter ?
+
+    parameters
+      application_name <-- distant application name
+      name             <-- parameter name
+    return
+      boolean
+    """
+    return (cwipi_has_string_parameter(application_name, name) == 1)
+
+
+def get_list_int_parameter(char* application_name):
+    """
+    return int parameters names
+
+    parameters
+      application_name <-- distant application name
+      name             <-- parameter name
+    return
+      list
+    """
+    i_parameters = []
+    cdef int n_parameters = cwipi_get_n_int_parameters(application_name)
+    cdef char** c_parameters = cwipi_get_list_int_parameters(application_name)
+
+    for i in range(n_parameters) :
+        i_parameters.append(str(c_parameters[i]))
+        free(c_parameters[i])
+
+    free(c_parameters)
+
+    return i_parameters
+
+
+def get_list_double_parameter(char* application_name):
+    """
+    return double parameters names
+
+    parameters
+      application_name <-- distant application name
+      name             <-- parameter name
+    return
+      list
+    """
+    d_parameters = []
+    cdef int n_parameters = cwipi_get_n_double_parameters(application_name)
+    cdef char** c_parameters = cwipi_get_list_double_parameters(application_name)
+
+    for i in range(n_parameters) :
+        d_parameters.append(str(c_parameters[i]))
+        free(c_parameters[i])
+
+    free(c_parameters)
+    return d_parameters
+
+
+def get_list_string_parameter(char* application_name):
+    """
+    return string parameters names
+
+    parameters
+      application_name <-- distant application name
+      name             <-- parameter name
+    return
+      list
+    """
+    s_parameters = []
+    cdef int n_parameters = cwipi_get_n_string_parameters(application_name)
+    cdef char** c_parameters = cwipi_get_list_string_parameters(application_name)
+
+    for i in range(n_parameters) :
+        s_parameters.append(str(c_parameters[i]))
+        free(c_parameters[i])
+
+    free(c_parameters)
+
+    return s_parameters
+
+
 def synchronize_control_parameter(char* application_name):
     """
     Synchronize local control parameters with an other application.
@@ -404,7 +525,7 @@ def synchronize_control_parameter(char* application_name):
 # Class coupling
 # --------------
 
-cdef class Coupling:
+cdef class Coupling (object):
 
     """
     Coupling
@@ -421,13 +542,19 @@ cdef class Coupling:
                  cwipi_solver_type_t solver_type,
                  int output_frequency, 
                  char *output_format,
-                 char *output_format_option):
+                 char *output_format_option,
+                 nb_locations = None):
         """
         Init
         """
         global current_cpl
         self.name = coupling_name
         current_cpl = self.name
+        cdef int _nb_locations
+        if (nb_locations is None):
+           _nb_locations = 1
+        else :
+           _nb_locations = <int> nb_locations
         cwipi_create_coupling(coupling_name, 
                               coupling_type, 
                               coupled_application,
@@ -437,7 +564,8 @@ cdef class Coupling:
                               solver_type, 
                               output_frequency, 
                               output_format, 
-                              output_format_option)
+                              output_format_option,
+                              _nb_locations)
         current_cpl = ""
 
     def __dealloc__(self):
@@ -446,23 +574,6 @@ cdef class Coupling:
 #
 # Class coupling : basic functions
 # --------------------------------
-
-    cdef cast_define_mesh(self, 
-                          int n_vertex, 
-                          int n_element, 
-                          char* coordinates, 
-                          char* connectivity_index, 
-                          char* connectivity):
-        """
-        Cast parameters to double *, int * to call C function
-        """
-        cwipi_define_mesh(self.name,
-                          n_vertex, 
-                          n_element, 
-                          <double *> coordinates, 
-                          <int *> connectivity_index, 
-                          <int *> connectivity)
-
 
     def define_mesh(self, 
                     int n_vertex, 
@@ -475,26 +586,17 @@ cdef class Coupling:
         """
         global current_cpl
         current_cpl = self.name
-        assert (3 * n_vertex) <= len(coordinates)
-        assert (n_element + 1) <= len(connectivity_index)
-        self.cast_define_mesh(n_vertex, 
-                              n_element, 
-                              coordinates.data, 
-                              connectivity_index.data, 
-                              connectivity.data)
+        assert (3 * n_vertex) <= coordinates.size
+        assert (n_element + 1) <= connectivity_index.size
+        cwipi_define_mesh(self.name,
+                          n_vertex, 
+                          n_element, 
+                          <double *> coordinates.data, 
+                          <int *> connectivity_index.data, 
+                          <int *> connectivity.data)
         current_cpl = ""
 
  
-    cdef cast_set_points_to_locate(self,
-                                   int n_points, 
-                                   char* coordinates):
-        """
-        Cast parameters to double* to call C function
-        """
-        cwipi_set_points_to_locate(self.name,
-                                   n_points,
-                                   <double *> coordinates)
-
 
     def set_points_to_locate(self,
                              int n_points, 
@@ -504,27 +606,10 @@ cdef class Coupling:
         """ 
         global current_cpl
         current_cpl = self.name
-        self.cast_set_points_to_locate(n_points, coordinates.data)
+        cwipi_set_points_to_locate(self.name,
+                                   n_points,
+                                   <double *> coordinates.data)
         current_cpl = ""
-
-
-    cdef cast_add_polyhedra(self, 
-                            int n_element, 
-                            char* face_index, 
-                            char* cell_to_face_connectivity, 
-                            int n_face, 
-                            char* face_connectivity_index,
-                            char* face_connectivity):
-        """
-        Cast parameters to double*, int* to call C function
-        """
-        cwipi_add_polyhedra(self.name, 
-                            n_element,
-                            <int *> face_index, 
-                            <int *> cell_to_face_connectivity,
-                            n_face, 
-                            <int *> face_connectivity_index,
-                            <int *> face_connectivity)
 
 
     def add_polyhedra(self, 
@@ -539,13 +624,15 @@ cdef class Coupling:
         """
         global current_cpl
         current_cpl = self.name
-        assert len(face_index) == (n_element + 1)
-        self.cast_add_polyhedra(n_element, 
-                                face_index.data, 
-                                cell_to_face_connectivity.data,
-                                n_face, 
-                                face_connectivity_index.data,
-                                face_connectivity.data)
+        assert face_index.size == (n_element + 1)
+        cwipi_add_polyhedra(self.name, 
+                            n_element,
+                            <int *> face_index.data, 
+                            <int *> cell_to_face_connectivity.data,
+                            n_face, 
+                            <int *> face_connectivity_index.data,
+                            <int *> face_connectivity.data)
+
         current_cpl = ""
 
 
@@ -559,6 +646,56 @@ cdef class Coupling:
         current_cpl = ""
 
 
+    def set_location_index(self, int index):
+        """
+        Set location index
+        """
+        global current_cpl
+        current_cpl = self.name
+        cwipi_set_location_index(self.name, index)
+        current_cpl = ""
+
+
+    def load_location(self):
+        """
+        Set location index
+        """
+        global current_cpl
+        current_cpl = self.name
+        cwipi_load_location(self.name)
+        current_cpl = ""
+
+
+    def save_location(self):
+        """
+        Set location index
+        """
+        global current_cpl
+        current_cpl = self.name
+        cwipi_save_location(self.name)
+        current_cpl = ""
+
+
+    def open_location_file(self, char *filename, char *mode):
+        """
+        Set location index
+        """
+        global current_cpl
+        current_cpl = self.name
+        cwipi_open_location_file(self.name, filename, mode)
+        current_cpl = ""
+
+
+    def close_location_file(self):
+        """
+        Set location index
+        """
+        global current_cpl
+        current_cpl = self.name
+        cwipi_close_location_file(self.name)
+        current_cpl = ""
+
+
     def update_location(self):
         """
         Locate
@@ -567,35 +704,6 @@ cdef class Coupling:
         current_cpl = self.name
         cwipi_update_location (self.name)
         current_cpl = ""
-
-
-    cdef cast_exchange(self, 
-                       char* exchange_name, 
-                       int stride, 
-                       int time_step, 
-                       double time_value,
-                       char* sending_field_name, 
-                       char* sending_field, 
-                       char* receiving_field_name, 
-                       char* receiving_field):
-        """
-        Cast parameters to double*, int* to call C function
-        """
-        cdef int c_n_not_located_points
-        cdef cwipi_exchange_status_t status
-
-        status = cwipi_exchange(self.name, 
-                       exchange_name, 
-                       stride, 
-                       time_step, 
-                       time_value,
-                       sending_field_name, 
-                       <double*> sending_field, 
-                       receiving_field_name, 
-                       <double*> receiving_field, 
-                       &c_n_not_located_points)
- 
-        return {'status':status, 'n_not_located_points':c_n_not_located_points}
 
 
     def exchange(self, 
@@ -613,70 +721,56 @@ cdef class Coupling:
         global current_cpl
         current_cpl = self.name
 
+        cdef int c_n_not_located_points
+        cdef cwipi_exchange_status_t status
+
         if (sending_field is None) and  (receiving_field is not None):
-           status = self.cast_exchange(exchange_name, 
-                                       stride, 
-                                       time_step, 
-                                       time_value,
-                                       sending_field_name, 
-                                       NULL, 
-                                       receiving_field_name, 
-                                       receiving_field.data)
+          status = cwipi_exchange(self.name, 
+                                   exchange_name, 
+                                   stride, 
+                                   time_step, 
+                                   time_value,
+                                   sending_field_name, 
+                                   NULL,
+                                   receiving_field_name, 
+                                   <double*> receiving_field.data, 
+                                   &c_n_not_located_points)
         elif (sending_field is not None) and  (receiving_field is None):
-           status = self.cast_exchange(exchange_name, 
-                                       stride, 
-                                       time_step, 
-                                       time_value,
-                                       sending_field_name, 
-                                       sending_field.data, 
-                                       receiving_field_name, 
-                                       NULL)
+          status = cwipi_exchange(self.name, 
+                                   exchange_name, 
+                                   stride, 
+                                   time_step, 
+                                   time_value,
+                                   sending_field_name, 
+                                   <double*> sending_field.data, 
+                                   receiving_field_name, 
+                                   NULL, 
+                                   &c_n_not_located_points)
         elif (sending_field is not None) and  (receiving_field is not None):
-           status = self.cast_exchange(exchange_name, 
-                                       stride, 
-                                       time_step, 
-                                       time_value,
-                                       sending_field_name, 
-                                       sending_field.data, 
-                                       receiving_field_name, 
-                                       receiving_field.data)
+          status = cwipi_exchange(self.name, 
+                                   exchange_name, 
+                                   stride, 
+                                   time_step, 
+                                   time_value,
+                                   sending_field_name, 
+                                   <double*> sending_field.data, 
+                                   receiving_field_name, 
+                                   <double*> receiving_field.data, 
+                                   &c_n_not_located_points)
         else :
-           status = self.cast_exchange(exchange_name, 
-                                       stride, 
-                                       time_step, 
-                                       time_value,
-                                       sending_field_name, 
-                                       None, 
-                                       receiving_field_name, 
-                                       None)
+          status = cwipi_exchange(self.name, 
+                                   exchange_name, 
+                                   stride, 
+                                   time_step, 
+                                   time_value,
+                                   sending_field_name, 
+                                   NULL,
+                                   receiving_field_name, 
+                                   NULL,
+                                   &c_n_not_located_points)
 
-        return status
-
-
-    cdef cast_issend(self, 
-                     char* exchange_name,
-                     int tag, 
-                     int stride, 
-                     int time_step, 
-                     double time_value,
-                     char* sending_field_name, 
-                     char* sending_field):
-        """
-        Cast parameters to double*, int* to call C function
-        """
-        cdef int request
-
-        cwipi_issend(self.name, 
-                     exchange_name, 
-                     tag,
-                     stride, 
-                     time_step, 
-                     time_value,
-                     sending_field_name, 
-                     <double*> sending_field, 
-                     &request)
- 
-        return {'request':request}
+        current_cpl = ""
+        return {'status':status, 'n_not_located_points':c_n_not_located_points}
 
 
     def issend(self, 
@@ -690,49 +784,34 @@ cdef class Coupling:
         """
         Issend
         """
+        cdef int request
+
         global current_cpl
         current_cpl = self.name
 
         if sending_field is None:
-            sendFieldData = NULL
+            cwipi_issend(self.name, 
+                         exchange_name, 
+                         tag,
+                         stride, 
+                         time_step, 
+                         time_value,
+                         sending_field_name, 
+                         NULL,
+                         &request)
         else:
-            sendFieldData = sending_field.data
+            cwipi_issend(self.name, 
+                         exchange_name, 
+                         tag,
+                         stride, 
+                         time_step, 
+                         time_value,
+                         sending_field_name, 
+                         <double*> sending_field.data, 
+                         &request)
 
-        status = self.cast_issend(exchange_name,
-                                  tag, 
-                                  stride, 
-                                  time_step, 
-                                  time_value,
-                                  sending_field_name, 
-                                  sendFieldData) 
 
         current_cpl = ""
-        return status
-
-
-    cdef cast_irecv(self, 
-                    char* exchange_name,
-                    int tag, 
-                    int stride, 
-                    int time_step, 
-                    double time_value,
-                    char* receiving_field_name, 
-                    char* receiving_field):
-        """
-        Cast parameters to double*, int* to call C function
-        """
-        cdef int request
-
-        cwipi_irecv(self.name, 
-                    exchange_name, 
-                    tag,
-                    stride, 
-                    time_step, 
-                    time_value,
-                    receiving_field_name, 
-                    <double*> receiving_field, 
-                    &request)
- 
         return {'request':request}
 
 
@@ -747,24 +826,35 @@ cdef class Coupling:
         """
         Irecv
         """
+        cdef int request
+
         global current_cpl
         current_cpl = self.name
 
         if receiving_field is None:
-            recvFieldData = NULL
+            cwipi_irecv(self.name, 
+                        exchange_name, 
+                        tag,
+                        stride, 
+                        time_step, 
+                        time_value,
+                        receiving_field_name, 
+                        NULL,
+                        &request)
         else:
-            recvFieldData = receiving_field.data
+            cwipi_irecv(self.name, 
+                        exchange_name, 
+                        tag,
+                        stride, 
+                        time_step, 
+                        time_value,
+                        receiving_field_name, 
+                        <double*> receiving_field.data, 
+                        &request)
 
-        status = self.cast_issend(exchange_name,
-                                  tag,
-                                  stride, 
-                                  time_step, 
-                                  time_value,
-                                  receiving_field_name, 
-                                  recvFieldData) 
 
         current_cpl = ""
-        return status
+        return {'request':request}
 
 
     def wait_issend(self,
@@ -820,6 +910,140 @@ cdef class Coupling:
                                                  <void *> cwipi_get_not_located_points(self.name)) 
 
 
+    def get_located_points(self):
+        """
+        Get not located points
+        """
+        np.import_array()
+        cdef np.npy_intp dims = <np.npy_intp> cwipi_get_n_located_points(self.name)
+        if (dims == 0):
+            return None
+        else :
+            return np.PyArray_SimpleNewFromData(1, 
+                                                 &dims, 
+                                                 np.NPY_INT32,
+                                                 <void *> cwipi_get_located_points(self.name)) 
+
+    def get_distant_location(self):
+        """
+        Get distant point location 
+        """
+        np.import_array()
+        cdef np.npy_intp dims = <np.npy_intp> cwipi_get_n_distant_points(self.name)
+        if (dims == 0):
+            return None
+        else :
+            return np.PyArray_SimpleNewFromData(1, 
+                                                 &dims, 
+                                                 np.NPY_INT32,
+                                                 <void *> cwipi_get_distant_location(self.name))
+
+ 
+    def get_distant_distance(self):
+        """
+        Get distant points distance to location element
+        """
+        np.import_array()
+        cdef np.npy_intp dims = <np.npy_intp> cwipi_get_n_distant_points(self.name)
+        if (dims == 0):
+            return None
+        else :
+            return np.PyArray_SimpleNewFromData(1, 
+                                                 &dims, 
+                                                 np.NPY_FLOAT,
+                                                 <void *> cwipi_get_distant_distance(self.name))
+
+
+    def get_distant_coordinates(self):
+        """
+        Get distant points coordinates
+        """
+        np.import_array()
+        cdef np.npy_intp dims = 3 * <np.npy_intp> cwipi_get_n_distant_points(self.name)
+        if (dims == 0):
+            return None
+        else :
+            return np.PyArray_SimpleNewFromData(1, 
+                                                 &dims, 
+                                                 np.NPY_DOUBLE,
+                                                 <void *> cwipi_get_distant_coordinates(self.name))
+
+
+    def get_distant_barycentric_coordinates_index(self):
+        """
+        Get distant points barycentric coordinates index
+        """
+        np.import_array()
+        cdef np.npy_intp dims = <np.npy_intp> cwipi_get_n_distant_points(self.name) + 1
+        if (dims == 0):
+            return None
+        else :
+            return np.PyArray_SimpleNewFromData(1, 
+                                                 &dims, 
+                                                 np.NPY_INT32,
+                                                 <void *> cwipi_get_distant_barycentric_coordinates_index(self.name))
+
+
+    def get_distant_barycentric_coordinates(self):
+        """
+        Get distant points barycentric coordinates
+        """
+        np.import_array()
+        cdef np.npy_intp dims1 = <np.npy_intp> cwipi_get_n_distant_points(self.name) + 1
+        cdef np.npy_intp dims = <np.npy_intp> (cwipi_get_distant_barycentric_coordinates_index(self.name)[dims1])
+        if (dims == 0):
+            return None
+        else :
+            return np.PyArray_SimpleNewFromData(1, 
+                                                 &dims, 
+                                                 np.NPY_DOUBLE,
+                                                 <void *> cwipi_get_distant_barycentric_coordinates(self.name))
+
+
+    def get_n_distant_points(self):
+        """
+        Get number of distant points
+        """
+        return  cwipi_get_n_distant_points(self.name)
+
+
+    def get_n_distant_ranks(self):
+        """
+        Get number of distant ranks
+        """
+        return  cwipi_get_n_distant_ranks(self.name)
+
+
+    def get_distant_distribution(self):
+        """
+        Get distant points distribution on distant ranks
+        """
+        np.import_array()
+        cdef np.npy_intp dims = <np.npy_intp> cwipi_get_n_distant_ranks(self.name) + 1
+        if (dims == 0):
+            return None
+        else :
+            return np.PyArray_SimpleNewFromData(1, 
+                                                 &dims, 
+                                                 np.NPY_INT32,
+                                                 <void *> cwipi_get_distant_distribution(self.name))
+
+
+    def get_located_points_distribution(self):
+        """
+        Get located points distribution on distant ranks
+        """
+        np.import_array()
+        cdef np.npy_intp dims = <np.npy_intp> cwipi_get_n_distant_ranks(self.name) + 1
+        if (dims == 0):
+            return None
+        else :
+            return np.PyArray_SimpleNewFromData(1, 
+                                                 &dims, 
+                                                 np.NPY_INT32,
+                                                 <void *> cwipi_get_located_points_distribution(self.name))
+
+
     def set_interpolation_function(self, f):
         """
         """
@@ -841,7 +1065,6 @@ cdef class Coupling:
 # ----------------------------------------------------------------------
 
 # TODO:
-#    void cwipi_set_info(char* coupling_id, cwipi_located_point_info_t info)
   
 #
 # info about mpi rank, mesh and element where local points are located 
@@ -850,18 +1073,7 @@ cdef class Coupling:
 #    double* cwipi_get_distant_coordinates(char* coupling_id)
 #    int* cwipi_get_distant_barycentric_coordinates_index (char* coupling_id)
 #    double* cwipi_get_distant_barycentric_coordinates (char* coupling_id)
-#    int cwipi_get_n_located_distant_points(char* coupling_id)
-
-#    int* cwipi_get_element_containing(char* coupling_id)
-#    int* cwipi_get_element_containing_n_vertex(char* coupling_id)
-#    int* cwipi_get_element_containing_vertex(char* coupling_id)
-#    double* cwipi_get_element_containing_vertex_coords(char* coupling_id)
-#    double* cwipi_get_element_containing_barycentric_coordinates(char* coupling_id)
-#    int* cwipi_get_element_containing_MPI_rank(char* coupling_id)
-#    void cwipi_exchange_cell_vertex_field_of_element_containing(char* coupling_id, double* sendingField,
-#                                                                double* receivingField, int stride)
-#    void cwipi_exchange_cell_center_field_of_element_containing(char* coupling_id, double* sendingField,
-#                                                                double* receivingField, int stride)
+#    int cwipi_get_n_distant_points(char* coupling_id)
 
 
 cdef void callback(int entities_dim,

@@ -62,6 +62,8 @@ c_surf_coupling_P1P1_polygon \
 c_surf_coupling_P1P1 \
 c_surf_coupling_P1P1_asynchronous \
 c_surf_coupling_P1P0_P0P1 \
+c_surf_coupling_P1P0_P0P1_savedisk \
+c_surf_coupling_P1P0_P0P1_savememory \
 c_surf_coupling_user_target_points \
 c_surf_coupling_user_interpolation \
 c_surf_coupling_user_interpolation2 \
@@ -74,13 +76,16 @@ c_surf_sequential_coupling \
 c_vol_coupling_P1P1 \
 c_vol_coupling_polyhedra_P1P1 \
 c_vol_coupling_micro_polyhedra_P1P1 \
-fortran_surf_P1P1
+fortran_surf_P1P1 \
+fortran_surf_P1P1_savememory
 
 c_linear_coupling_SOURCES = c_linear_coupling.c
 c_surf_coupling_P1P1_micron_polygon_SOURCES = creeMaillagePolygone2D.c c_surf_coupling_P1P1_micron_polygon.c
 c_surf_coupling_P1P1_polygon_SOURCES = creeMaillagePolygone2D.c c_surf_coupling_P1P1_polygon.c
 c_surf_coupling_P1P1_SOURCES = grid_mesh.c c_surf_coupling_P1P1.c
 c_surf_coupling_P1P0_P0P1_SOURCES = grid_mesh.c c_surf_coupling_P1P0_P0P1.c
+c_surf_coupling_P1P0_P0P1_savedisk_SOURCES = grid_mesh.c c_surf_coupling_P1P0_P0P1_savedisk.c
+c_surf_coupling_P1P0_P0P1_savememory_SOURCES = grid_mesh.c c_surf_coupling_P1P0_P0P1_savememory.c
 c_surf_coupling_P1P1_asynchronous_SOURCES = grid_mesh.c c_surf_coupling_P1P1_asynchronous.c
 c_surf_coupling_user_target_points_SOURCES = grid_mesh.c c_surf_coupling_user_target_points.c
 c_surf_coupling_user_interpolation_SOURCES = grid_mesh.c c_surf_coupling_user_interpolation.c
@@ -95,6 +100,7 @@ c_vol_coupling_P1P1_SOURCES = c_vol_coupling_P1P1.c
 c_vol_coupling_micro_polyhedra_P1P1_SOURCES = c_vol_coupling_micro_polyhedra_P1P1.c
 c_vol_coupling_polyhedra_P1P1_SOURCES = c_vol_coupling_polyhedra_P1P1.c
 fortran_surf_P1P1_SOURCES = grid_mesh.c fortran_surf_P1P1.f90
+fortran_surf_P1P1_savememory_SOURCES = grid_mesh.c fortran_surf_P1P1_savememory.f90
 
 c_linear_coupling_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
@@ -125,6 +131,20 @@ $(top_builddir)/src/libcwipi.la \
 -lm
 
 c_surf_coupling_P1P0_P0P1_LDADD = \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
+$(top_builddir)/src/libcwipi.la \
+@MPI_LIBS@ \
+-lm
+
+c_surf_coupling_P1P0_P0P1_savedisk_LDADD = \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
+$(top_builddir)/src/libcwipi.la \
+@MPI_LIBS@ \
+-lm
+
+c_surf_coupling_P1P0_P0P1_savememory_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
 $(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
@@ -223,6 +243,14 @@ $(top_builddir)/src/libcwipi_f.la \
  @MPI_LIBS@ \
  -lm
 
+fortran_surf_P1P1_savememory_LDADD = \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
+$(top_builddir)/src/libcwipi.la \
+$(top_builddir)/src/libcwipi_f.la \
+ @MPI_LIBS@ \
+ -lm
+
 VALGRIND =
 MPI_EXEC = mpiexec
 MPI_NP = -np
@@ -235,6 +263,8 @@ TESTS = c_linear_coupling \
 	c_surf_coupling_P1P1 \
 	c_surf_coupling_P1P1_asynchronous \
 	c_surf_coupling_P1P0_P0P1 \
+	c_surf_coupling_P1P0_P0P1_savedisk \
+	c_surf_coupling_P1P0_P0P1_savememory \
 	c_surf_coupling_user_target_points \
 	c_surf_coupling_user_interpolation \
 	c_surf_coupling_user_interpolation2 \
@@ -246,7 +276,8 @@ TESTS = c_linear_coupling \
 	c_vol_coupling_P1P1 \
 	c_vol_coupling_polyhedra_P1P1 \
 	c_vol_coupling_micro_polyhedra_P1P1 \
-	fortran_surf_P1P1
+	fortran_surf_P1P1 \
+	fortran_surf_P1P1_savememory
 
 if ENABLE_PYTHON 
   TESTS += python_api.py

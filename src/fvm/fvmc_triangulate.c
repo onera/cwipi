@@ -1145,7 +1145,7 @@ fvmc_triangulate_quadrangle(int                dim,
   for (j = 1; j < 4; j++) {
     for (i = 0; i < dim; i++) {
       v1[i] = coords[vertex_id[(j+1)%4]*dim + i] - coords[vertex_id[j]*dim + i];
-      v2[i] = coords[vertex_id[ j-1   ]*dim + i] - coords[vertex_id[0]*dim + i];
+      v2[i] = coords[vertex_id[ j-1   ]*dim + i] - coords[vertex_id[j]*dim + i];
     }
     _CROSS_PRODUCT_3D(ni, v1, v2);
     if (_DOT_PRODUCT_3D(n0, ni) < 0) {

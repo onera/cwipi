@@ -24,6 +24,7 @@ cwipi.h
 noinst_HEADERS = \
 cwipi_cf.h \
 quickSort.h \
+cwipi_timer.h \
 solve_ax_b_4.h
 
 # Library source files
@@ -32,7 +33,9 @@ lib_LTLIBRARIES = libcwipi.la libcwipi_f.la
 noinst_LTLIBRARIES =
 libcwipi_la_LIBADD = \
 $(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la
+$(top_builddir)/src/fvm/libfvmc.la \
+@MPI_LIBS@
+
 
 libcwipi_la_SOURCES = \
 applicationProperties.cxx \
@@ -47,12 +50,14 @@ conservativeMesh.cxx \
 coupling.cxx \
 couplingDataBase.cxx \
 geomUtilities.cxx \
-callfortinterpfct.f90
+callfortinterpfct.f90 \
+cwipi_timer.c
 
 libcwipi_f_la_LIBADD = \
 $(top_builddir)/src/bft/libbftc.la \
 $(top_builddir)/src/fvm/libfvmc.la \
-libcwipi.la
+libcwipi.la \
+@MPI_LIBS@
 
 libcwipi_f_la_SOURCES = \
 cwipi_cf.cxx \

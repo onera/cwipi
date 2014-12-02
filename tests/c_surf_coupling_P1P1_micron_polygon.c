@@ -97,9 +97,16 @@ int main
 
   char *srcName = (char *) malloc (sizeof(char) * (strlen(__FILE__) + 1));
   strcpy(srcName, __FILE__);
-  char *srcBaseName = strrchr(srcName, '.');
-  *srcBaseName = '\0';
-  srcBaseName = strrchr(srcName, '/') + 1;
+  char *srcBaseName = NULL;
+  srcBaseName = strrchr(srcName, '.');
+  if (srcBaseName != NULL)
+    *srcBaseName = '\0';
+  srcBaseName = NULL;
+  srcBaseName = strrchr(srcName, '/');
+  if (srcBaseName != NULL)
+    srcBaseName += 1;
+  else
+    srcBaseName = srcName;
 
   if (rank == 0) {
     printf("\nSTART: %s\n", srcBaseName);

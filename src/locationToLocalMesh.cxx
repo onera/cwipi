@@ -48,10 +48,11 @@ LocationToLocalMesh::LocationToLocalMesh(
                                          LocationToDistantMesh &locationToDistantMesh)
 
 : _solverType(solverType),  _tolerance(tolerance),
- _locationToDistantMesh(locationToDistantMesh), _couplingComm(couplingComm),
- _coupledApplicationNRankCouplingComm(coupledApplicationNRankCouplingComm),
- _coupledApplicationBeginningRankCouplingComm(coupledApplicationBeginningRankCouplingComm),
- _isCoupledRank(isCoupledRank), _entitiesDim(entitiesDim), _localApplicationProperties(localApplicationProperties)
+  _locationToDistantMesh(locationToDistantMesh), _couplingComm(couplingComm),
+  _coupledApplicationNRankCouplingComm(coupledApplicationNRankCouplingComm),
+  _coupledApplicationBeginningRankCouplingComm(coupledApplicationBeginningRankCouplingComm),
+  _isCoupledRank(isCoupledRank), _entitiesDim(entitiesDim), _localApplicationProperties(localApplicationProperties),
+  _locatedPointsDistribution(NULL), _distantDistribution(NULL)
 
 {
   _fvmLocator = NULL;
@@ -61,7 +62,7 @@ LocationToLocalMesh::LocationToLocalMesh(
   _location = NULL;
   _toLocate = true;
   _maxElementContainingNVertex = -1;
-  _nVertex = NULL;
+  _nVertex = NULL; 
   _supportMesh = NULL;
 }
 
@@ -83,6 +84,164 @@ LocationToLocalMesh::~LocationToLocalMesh()
 
 }
 
+size_t LocationToLocalMesh::locationSize()
+{
+  size_t il_size = 0;
+
+  if ( _isCoupledRank) {
+    il_size += sizeof(int);
+    il_size += fvmc_locator_size(_fvmLocator);
+    const int nDistantPoint = fvmc_locator_get_n_dist_points(_fvmLocator);
+    
+    il_size += sizeof(int);
+    if (_barycentricCoordinatesIndex != NULL) {
+      il_size += (nDistantPoint + 1)*sizeof(int);
+    }
+    
+    il_size += sizeof(int);
+    if (_barycentricCoordinates != NULL) {
+      std::vector <double> &  _refBarycentricCoordinates = *_barycentricCoordinates;
+      il_size += _refBarycentricCoordinates.size()*sizeof(double);
+    }
+    
+    il_size += sizeof(int);
+    if (_nVertex != NULL) {
+      il_size +=  _nDistantPoint*sizeof(int); 
+    }
+  }
+  return il_size;
+}
+
+
+
+
+void LocationToLocalMesh::packLocation(unsigned char *buff)
+{
+  int s;
+  void *p;
+
+  p = (void *)buff;
+
+  if ( _isCoupledRank) {
+    
+    if (_fvmLocator != NULL) {
+      s = 1;
+      p = mempcpy(p,(void *)&s, sizeof(int));
+      p = fvmc_locator_pack(p, _fvmLocator);
+    } else {
+      s = 0;
+      p = mempcpy(p,(void *)&s, sizeof(int));      
+    }
+
+    const int nDistantPoint      = fvmc_locator_get_n_dist_points(_fvmLocator);
+    if (_barycentricCoordinatesIndex != NULL) {
+      s = 1;
+      p = mempcpy(p,(void *)&s, sizeof(int));
+      std::vector <int> &  _refBarycentricCoordinatesIndex = *_barycentricCoordinatesIndex;
+      p = mempcpy(p,(void *)&_refBarycentricCoordinatesIndex[0], (nDistantPoint + 1)*sizeof(int));
+    } else {
+      s = 0;
+      p = mempcpy(p,(void *)&s, sizeof(int));      
+    }
+
+    if (_barycentricCoordinates != NULL) {
+      std::vector <double> &  _refBarycentricCoordinates = *_barycentricCoordinates;
+      // calcul de la taille de _barycentricCoordinates 
+      s = _refBarycentricCoordinates.size();
+      p = mempcpy(p,(void *)&s, sizeof(int));     
+      p = mempcpy(p,(void *)&_refBarycentricCoordinates[0], s*sizeof(double));
+    } else {
+      s = 0;
+      p = mempcpy(p,(void *)&s, sizeof(int));      
+    }
+
+    if (_nVertex != NULL) {
+      s = 1;
+      p = mempcpy(p,(void *)&s, sizeof(int));
+      std::vector <int> & _nVertexRef = *_nVertex;
+      p = mempcpy(p,(void *)&_nVertexRef[0], _nDistantPoint*sizeof(int)); 
+    }  else {
+      s = 0;
+      p = mempcpy(p,(void *)&s, sizeof(int));      
+    }
+
+  } 
+}
+
+
+void LocationToLocalMesh::unpackLocation(unsigned char *buff)
+{
+  int s;
+  size_t cur_pos;
+  cur_pos = 0;
+
+  if ( _isCoupledRank) {
+    // read the locator 
+    cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));      
+    if (s == 1) {
+      _fvmLocator = fvmc_locator_create(_tolerance,
+					_couplingComm,
+					_coupledApplicationNRankCouplingComm,
+					_coupledApplicationBeginningRankCouplingComm);
+      cur_pos += fvmc_locator_unpack(&buff[cur_pos],_fvmLocator);
+      
+      // mise à jour de l'objet locationToLocalMesh
+
+      const int* locationList = fvmc_locator_get_dist_locations(_fvmLocator);
+      const float* distanceList = fvmc_locator_get_dist_distances(_fvmLocator);
+      _location = const_cast<int *> (locationList);
+      _distance = const_cast<float *> (distanceList);
+
+      _distantDistribution =  const_cast<int *> (fvmc_locator_get_dist_distrib(_fvmLocator));
+      _locatedPointsDistribution =  const_cast<int *> (fvmc_locator_get_loc_distrib(_fvmLocator));
+      
+      _nDistantPoint = fvmc_locator_get_n_dist_points(_fvmLocator);
+
+
+      // mise à jour de l'objet locationToDistantMesh
+      const int* exteriorList = fvmc_locator_get_exterior_list(_fvmLocator);
+      const int* interiorList = fvmc_locator_get_interior_list(_fvmLocator);
+      _locationToDistantMesh._unlocatedPoint = const_cast<int *> (exteriorList);
+      _locationToDistantMesh._locatedPoint = const_cast<int *> (interiorList);
+
+
+      // printf("LocationToLocalMesh::load ATTENTION DUMP \n");
+      // fvmc_locator_dump(_fvmLocator);
+
+    }
+
+    // load the barycentric coordinates
+    const int nDistantPoint      = fvmc_locator_get_n_dist_points(_fvmLocator);
+
+    cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));      
+    if (s == 1) {
+      if (_barycentricCoordinatesIndex != NULL) delete _barycentricCoordinatesIndex;
+      _barycentricCoordinatesIndex = new std::vector <int> (nDistantPoint + 1);
+      std::vector <int> &  _refBarycentricCoordinatesIndex = *_barycentricCoordinatesIndex;
+      cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&_refBarycentricCoordinatesIndex[0], (nDistantPoint + 1)*sizeof(int));
+    }
+
+    cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));      
+    if (s != 0) {
+      if (_barycentricCoordinates != NULL) delete _barycentricCoordinates;
+      _barycentricCoordinates = new std::vector <double> (s);
+      std::vector <double> &  _refBarycentricCoordinates = *_barycentricCoordinates;
+      cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&_refBarycentricCoordinates[0], s*sizeof(double));
+    }
+
+    cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));      
+    if (s == 1) {
+      if(_nVertex != NULL) delete _nVertex;
+      _nVertex = new std::vector <int> (_nDistantPoint, 0);
+      std::vector <int> & _nVertexRef = *_nVertex;
+      cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&_nVertexRef[0], _nDistantPoint*sizeof(int));
+    }
+    _toLocate = false;
+    _locationToDistantMesh._toLocate = false;
+  }
+}
+
+
 void LocationToLocalMesh::locate()
 {
   //
@@ -91,465 +250,477 @@ void LocationToLocalMesh::locate()
   // TODO: Exchange MPI of _toLocate param between master rank !!!
   // TODO: Attention la fonction clear ne devrait-elle pas etre dans le if suivant !
 
-  _locationToDistantMesh.clear();
+  //  _locationToDistantMesh.clear();
 
-  if ( _isCoupledRank && (_toLocate || _locationToDistantMesh.getToLocateStatus())) {
+  if (_toLocate || _locationToDistantMesh.getToLocateStatus()) {
 
-    if (_supportMesh == NULL)
-      bftc_error(__FILE__, __LINE__, 0, "undefined support mesh\n");
+    _locationToDistantMesh.clear();
 
-    if (_fvmLocator == NULL)
-      _fvmLocator = fvmc_locator_create(_tolerance,
-                                       _couplingComm,
-                                       _coupledApplicationNRankCouplingComm,
-                                       _coupledApplicationBeginningRankCouplingComm);
+    if (_isCoupledRank) {
 
-    // TODO: Revoir les coordonnees des points a localiser 
-    // (cas centres sommets + centres faces + autres points)
-    // TODO: Ajouter un locator pour les sommets pour les centres faces,...
 
-    double* coords = NULL;
-    if (_locationToDistantMesh._coordsPointsToLocate != NULL)
-      coords = _locationToDistantMesh._coordsPointsToLocate;
+      if (_supportMesh == NULL)
+        bftc_error(__FILE__, __LINE__, 0, "undefined support mesh\n");
 
-    else if(_solverType == CWIPI_SOLVER_CELL_CENTER) {
-      _locationToDistantMesh._nPointsToLocate = _supportMesh->getNElts();
-      coords = const_cast <double*> (&(_supportMesh->getCellCenterCoords()[0]));
-    }
+      if (_fvmLocator == NULL)
+        _fvmLocator = fvmc_locator_create(_tolerance,
+                                          _couplingComm,
+                                          _coupledApplicationNRankCouplingComm,
+                                          _coupledApplicationBeginningRankCouplingComm);
 
-    else if(_solverType == CWIPI_SOLVER_CELL_VERTEX) {
-      _locationToDistantMesh._nPointsToLocate = _supportMesh->getNVertex();
-      coords = const_cast <double*> (_supportMesh->getVertexCoords());
-    }
+      // TODO: Revoir les coordonnees des points a localiser 
+      // (cas centres sommets + centres faces + autres points)
+      // TODO: Ajouter un locator pour les sommets pour les centres faces,...
+      
+      double* coords = NULL;
+      if (_locationToDistantMesh._coordsPointsToLocate != NULL)
+        coords = _locationToDistantMesh._coordsPointsToLocate;
+      
+      else if(_solverType == CWIPI_SOLVER_CELL_CENTER) {
+        _locationToDistantMesh._nPointsToLocate = _supportMesh->getNElts();
+        coords = const_cast <double*> (&(_supportMesh->getCellCenterCoords()[0]));
+      }
+      
+      else if(_solverType == CWIPI_SOLVER_CELL_VERTEX) {
+        _locationToDistantMesh._nPointsToLocate = _supportMesh->getNVertex();
+        coords = const_cast <double*> (_supportMesh->getVertexCoords());
+      }
+      
+      fvmc_locator_set_nodal(_fvmLocator,
+                             &_supportMesh->getFvmNodal(),
+                             0,
+                             3,
+                             _locationToDistantMesh._nPointsToLocate,
+                             NULL,
+                             coords);
 
-    fvmc_locator_set_nodal(_fvmLocator,
-                           &_supportMesh->getFvmNodal(),
-                           0,
-                           3,
-                           _locationToDistantMesh._nPointsToLocate,
-                           NULL,
-                           coords);
-
-    _toLocate = false;
-    const int nLocatedPoint = fvmc_locator_get_n_interior(_fvmLocator);
-    const int nNotLocatedPoint = _locationToDistantMesh._nPointsToLocate - nLocatedPoint;
-    const int* exteriorList = fvmc_locator_get_exterior_list(_fvmLocator);
-    const int* interiorList = fvmc_locator_get_interior_list(_fvmLocator);
-    const int* locationList = fvmc_locator_get_dist_locations(_fvmLocator);
-    const float* distanceList = fvmc_locator_get_dist_distances(_fvmLocator);
-    const int nExterior = fvmc_locator_get_n_exterior(_fvmLocator);
-    assert(nNotLocatedPoint == nExterior);
-
-    _locationToDistantMesh._unlocatedPoint = const_cast<int *> (exteriorList);
-    _locationToDistantMesh._locatedPoint = const_cast<int *> (interiorList);
-    _locationToDistantMesh._nUnlocatedPoint = nNotLocatedPoint;
-    _locationToDistantMesh._nLocatedPoint = nLocatedPoint;
-    _locationToDistantMesh._toLocate = false;
-
-    _location = const_cast<int *> (locationList);
-    _distance = const_cast<float *> (distanceList);
-
-    _nDistantPoint = fvmc_locator_get_n_dist_points(_fvmLocator);
-
-    if (_barycentricCoordinatesIndex != NULL) {
-      delete _barycentricCoordinatesIndex;
-      delete _barycentricCoordinates;
-      _barycentricCoordinatesIndex = NULL;
-      _barycentricCoordinates = NULL;
-    }
-
-    //
-    // TODO: Prevoir une fabrique pour supprimer les tests if sur _entitiesDim
-    //       Le calcul des coordonnees barycentriques se fera dans cette fabrique
-
-    if (_barycentricCoordinatesIndex == NULL) {
-      if (_entitiesDim == 1) {
-        const int nDistantPoint      = fvmc_locator_get_n_dist_points(_fvmLocator);
-        const int *distantLocation   = fvmc_locator_get_dist_locations(_fvmLocator);
-        const double *distantCoords   = fvmc_locator_get_dist_coords(_fvmLocator);
-
-        const int *eltsConnecPointer = _supportMesh->getEltConnectivityIndex();
-        const int *eltsConnec = _supportMesh->getEltConnectivity();
-        const double *localCoords    = _supportMesh->getVertexCoords();
-
-        if ( nDistantPoint > 0 ) {
-          _barycentricCoordinatesIndex = new std::vector <int> (nDistantPoint + 1);
-          _barycentricCoordinates = new std::vector <double> (2 * nDistantPoint);
-          std::vector <int> &  _refBarycentricCoordinatesIndex = *_barycentricCoordinatesIndex;
-          std::vector <double> &  _refBarycentricCoordinates = *_barycentricCoordinates;
-
-          _refBarycentricCoordinatesIndex[0] = 0;
-
-          for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
-            int iel = distantLocation[ipoint] - 1;
-            _refBarycentricCoordinatesIndex[ipoint+1] = _refBarycentricCoordinatesIndex[ipoint] + 2;
-            int index = eltsConnecPointer[iel];
-            int nVertex = eltsConnecPointer[iel+1] - eltsConnecPointer[iel];
-            assert(nVertex == 2);
-            int pt1 = eltsConnec[index] - 1;
-            int pt2 = eltsConnec[index+1] - 1;
-            double coef1 = sqrt((localCoords[3*pt1]-distantCoords[3*ipoint])
-                               *(localCoords[3*pt1]-distantCoords[3*ipoint])+
-                                (localCoords[3*pt1+1]-distantCoords[3*ipoint+1])
-                               *(localCoords[3*pt1+1]-distantCoords[3*ipoint+1])+
-                                (localCoords[3*pt1+2]-distantCoords[3*ipoint+2])
-                               *(localCoords[3*pt1+2]-distantCoords[3*ipoint+2]));
-            double coef2 = sqrt((localCoords[3*pt2]-distantCoords[3*ipoint])
-                               *(localCoords[3*pt2]-distantCoords[3*ipoint])+
-                                (localCoords[3*pt2+1]-distantCoords[3*ipoint+1])
-                               *(localCoords[3*pt2+1]-distantCoords[3*ipoint+1])+
-                                (localCoords[3*pt2+2]-distantCoords[3*ipoint+2])
-                               *(localCoords[3*pt2+2]-distantCoords[3*ipoint+2]));
-            _refBarycentricCoordinates[_refBarycentricCoordinatesIndex[ipoint]] = 
-              coef2/(coef1+coef2);
-            _refBarycentricCoordinates[_refBarycentricCoordinatesIndex[ipoint]+1] = 
-              coef1/(coef1+coef2);
+      _toLocate = false;
+      const int nLocatedPoint = fvmc_locator_get_n_interior(_fvmLocator);
+      const int nNotLocatedPoint = _locationToDistantMesh._nPointsToLocate - nLocatedPoint;
+      const int* exteriorList = fvmc_locator_get_exterior_list(_fvmLocator);
+      const int* interiorList = fvmc_locator_get_interior_list(_fvmLocator);
+      const int* locationList = fvmc_locator_get_dist_locations(_fvmLocator);
+      const float* distanceList = fvmc_locator_get_dist_distances(_fvmLocator);
+      const int nExterior = fvmc_locator_get_n_exterior(_fvmLocator);
+      assert(nNotLocatedPoint == nExterior);
+      _locationToDistantMesh._unlocatedPoint = const_cast<int *> (exteriorList);
+      _locationToDistantMesh._locatedPoint = const_cast<int *> (interiorList);
+      _locationToDistantMesh._nUnlocatedPoint = nNotLocatedPoint;
+      _locationToDistantMesh._nLocatedPoint = nLocatedPoint;
+      _locationToDistantMesh._toLocate = false;
+      
+      _location = const_cast<int *> (locationList);
+      _distance = const_cast<float *> (distanceList);
+      
+      _distantDistribution =  const_cast<int *> (fvmc_locator_get_dist_distrib(_fvmLocator));
+      _locatedPointsDistribution =  const_cast<int *> (fvmc_locator_get_loc_distrib(_fvmLocator));
+      
+      _nDistantPoint = fvmc_locator_get_n_dist_points(_fvmLocator);
+      
+      if (_barycentricCoordinatesIndex != NULL) {
+        delete _barycentricCoordinatesIndex;
+        delete _barycentricCoordinates;
+        _barycentricCoordinatesIndex = NULL;
+        _barycentricCoordinates = NULL;
+      }
+      
+      //
+      // TODO: Prevoir une fabrique pour supprimer les tests if sur _entitiesDim
+      //       Le calcul des coordonnees barycentriques se fera dans cette fabrique
+      
+      if (_barycentricCoordinatesIndex == NULL) {
+        if (_entitiesDim == 1) {
+          const int nDistantPoint      = fvmc_locator_get_n_dist_points(_fvmLocator);
+          const int *distantLocation   = fvmc_locator_get_dist_locations(_fvmLocator);
+          const double *distantCoords   = fvmc_locator_get_dist_coords(_fvmLocator);
+          
+          const int *eltsConnecPointer = _supportMesh->getEltConnectivityIndex();
+          const int *eltsConnec = _supportMesh->getEltConnectivity();
+          const double *localCoords    = _supportMesh->getVertexCoords();
+          
+          if ( nDistantPoint > 0 ) {
+            _barycentricCoordinatesIndex = new std::vector <int> (nDistantPoint + 1);
+            _barycentricCoordinates = new std::vector <double> (2 * nDistantPoint);
+            std::vector <int> &  _refBarycentricCoordinatesIndex = *_barycentricCoordinatesIndex;
+            std::vector <double> &  _refBarycentricCoordinates = *_barycentricCoordinates;
+            
+            _refBarycentricCoordinatesIndex[0] = 0;
+            
+            for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
+              int iel = distantLocation[ipoint] - 1;
+              _refBarycentricCoordinatesIndex[ipoint+1] = _refBarycentricCoordinatesIndex[ipoint] + 2;
+              int index = eltsConnecPointer[iel];
+              int nVertex = eltsConnecPointer[iel+1] - eltsConnecPointer[iel];
+              assert(nVertex == 2);
+              int pt1 = eltsConnec[index] - 1;
+              int pt2 = eltsConnec[index+1] - 1;
+              double coef1 = sqrt((localCoords[3*pt1]-distantCoords[3*ipoint])
+                                  *(localCoords[3*pt1]-distantCoords[3*ipoint])+
+                                  (localCoords[3*pt1+1]-distantCoords[3*ipoint+1])
+                                  *(localCoords[3*pt1+1]-distantCoords[3*ipoint+1])+
+                                  (localCoords[3*pt1+2]-distantCoords[3*ipoint+2])
+                                  *(localCoords[3*pt1+2]-distantCoords[3*ipoint+2]));
+              double coef2 = sqrt((localCoords[3*pt2]-distantCoords[3*ipoint])
+                                  *(localCoords[3*pt2]-distantCoords[3*ipoint])+
+                                  (localCoords[3*pt2+1]-distantCoords[3*ipoint+1])
+                                  *(localCoords[3*pt2+1]-distantCoords[3*ipoint+1])+
+                                  (localCoords[3*pt2+2]-distantCoords[3*ipoint+2])
+                                  *(localCoords[3*pt2+2]-distantCoords[3*ipoint+2]));
+              _refBarycentricCoordinates[_refBarycentricCoordinatesIndex[ipoint]] = 
+                coef2/(coef1+coef2);
+              _refBarycentricCoordinates[_refBarycentricCoordinatesIndex[ipoint]+1] = 
+                coef1/(coef1+coef2);
+            }
           }
+        }
+        
+        else if (_entitiesDim == 2) {
+        compute2DMeanValues();
+        }
+        
+        else if (_entitiesDim == 3) {
+          compute3DMeanValues();
         }
       }
 
-      else if (_entitiesDim == 2) {
-        compute2DMeanValues();
-      }
-
-      else if (_entitiesDim == 3) {
-        compute3DMeanValues();
-      }
-    }
-
-    //
-    // Exchange info status between root ranks
-
-    int currentRank;
-    MPI_Comm_rank(_couplingComm, &currentRank);
-    cwipi_located_point_info_t distantInfo;
-    cwipi_located_point_info_t localInfo = _locationToDistantMesh._locationInfo;
-    MPI_Status MPIStatus;
-
-    const bool isRootRank = (currentRank == 0 ||
-                            currentRank == _coupledApplicationBeginningRankCouplingComm +
-                            _coupledApplicationNRankCouplingComm);
-
-    int rootRank;
-    if (isRootRank) {
-
-      MPI_Sendrecv((int*) &localInfo,   1, MPI_INT,
-                   _coupledApplicationBeginningRankCouplingComm, 0,
-                   (int*) &distantInfo, 1, MPI_INT,
-                   _coupledApplicationBeginningRankCouplingComm, 0,
-                   _couplingComm, &MPIStatus);
-    }
-
-    //
-    // application rootRank send the value of distantInfo to the other applications in the couplingComm
-
-    int sizeComm;
-    MPI_Comm_size(_couplingComm, &sizeComm);
-    MPI_Status status;
-
-    if ( _coupledApplicationBeginningRankCouplingComm == 0)
-      rootRank = _coupledApplicationNRankCouplingComm;
-    else
-      rootRank = 0;
-
-    if (! isRootRank)
-      MPI_Recv(&distantInfo, 1, MPI_INT, rootRank, 0, _couplingComm, &status);
-    else {
-      int rank1;
-      int rank2;
-
-      if (rootRank == 0) {
-        rank1 = 1;
-        rank2 = _coupledApplicationBeginningRankCouplingComm;
-      }
-      else {
-        rank1 = _coupledApplicationNRankCouplingComm+1;
-        rank2 = sizeComm;
-      }
-
-      for (int i = rank1; i < rank2; i++)
-        MPI_Send(&distantInfo, 1, MPI_INT, i, 0, _couplingComm);
-
-    }
-
-    //
-    // Exchange info about distant mesh
-
-    if (distantInfo == CWIPI_DISTANT_MESH_INFO ||
-        localInfo == CWIPI_DISTANT_MESH_INFO) {
-
       //
-      // Location
-
-      if (localInfo == CWIPI_DISTANT_MESH_INFO)
-        _locationToDistantMesh._elementContaining = new int[_locationToDistantMesh._nLocatedPoint];
-
-      int *pLocation = NULL;
-      if (distantInfo == CWIPI_DISTANT_MESH_INFO)
-        pLocation = _location;
-
-      fvmc_locator_exchange_point_var(_fvmLocator,
-                                     (void *) pLocation,
-                                     (void *) _locationToDistantMesh._elementContaining,
-                                     NULL,
-                                     sizeof(int),
-                                     1,
-                                     0);
-
-      //
-      // elementContainingMPIrankContaining
-
-      if (localInfo == CWIPI_DISTANT_MESH_INFO)
-        _locationToDistantMesh._elementContainingMPIrankContaining = new int[_locationToDistantMesh._nLocatedPoint];
-
-      int *pMPIrank = NULL;
-      std::vector <int> *MPIrank = NULL;
-
-      if (distantInfo == CWIPI_DISTANT_MESH_INFO) {
-        int rankInGlobalComm;
-        MPI_Comm_rank(_localApplicationProperties.getGlobalComm(), &rankInGlobalComm);
-        MPIrank = new std::vector <int> (_nDistantPoint, rankInGlobalComm);
-        pMPIrank = &((*MPIrank)[0]);
-      }
-
-      fvmc_locator_exchange_point_var(_fvmLocator,
-                                     (void *) pMPIrank,
-                                     (void *) _locationToDistantMesh._elementContainingMPIrankContaining,
-                                     NULL,
-                                     sizeof(int),
-                                     1,
-                                     0);
-
-      if (distantInfo == CWIPI_DISTANT_MESH_INFO) {
-        delete MPIrank;
-      }
-
-      //
-      // ElementContainingNVertex
-
-      if (localInfo == CWIPI_DISTANT_MESH_INFO)
-        _locationToDistantMesh._elementContainingNVertex = new int[_locationToDistantMesh._nLocatedPoint + 1];
-
-      int *p_nVertex = NULL;
-      _maxElementContainingNVertex = 0;
-
-      if (distantInfo == CWIPI_DISTANT_MESH_INFO) {
-        _nVertex = new std::vector <int> (_nDistantPoint, 0);
-        std::vector <int> & _nVertexRef = *_nVertex;
-
-        for (int i = 0; i < _nDistantPoint; i++)
-          _nVertexRef[i] = _supportMesh->getEltConnectivityIndex()[_location[i]] -
-                                           _supportMesh->getEltConnectivityIndex()[_location[i]-1];
-
-        p_nVertex = &(*_nVertex)[0];
-
-        int localMaxElementContainingNVertex = *std::max_element(_nVertexRef.begin(), _nVertexRef.end());
-        MPI_Allreduce (&localMaxElementContainingNVertex,
-                       &_maxElementContainingNVertex,
-                       1, MPI_INT, MPI_MAX,
-                       _localApplicationProperties.getLocalComm());
-      }
-
-      int distantMaxElementContainingNVertex = 0;
+      // Exchange info status between root ranks
+      
+      int currentRank;
+      MPI_Comm_rank(_couplingComm, &currentRank);
+      cwipi_located_point_info_t distantInfo;
+      cwipi_located_point_info_t localInfo = _locationToDistantMesh._locationInfo;
+      MPI_Status MPIStatus;
+      
+      const bool isRootRank = (currentRank == 0 ||
+                               currentRank == _coupledApplicationBeginningRankCouplingComm +
+                               _coupledApplicationNRankCouplingComm);
+      
+      int rootRank;
       if (isRootRank) {
-        MPI_Sendrecv((int*) &_maxElementContainingNVertex,   1, MPI_INT,
+        
+        MPI_Sendrecv((int*) &localInfo,   1, MPI_INT,
                      _coupledApplicationBeginningRankCouplingComm, 0,
-                     (int*) &distantMaxElementContainingNVertex, 1, MPI_INT,
+                     (int*) &distantInfo, 1, MPI_INT,
                      _coupledApplicationBeginningRankCouplingComm, 0,
                      _couplingComm, &MPIStatus);
       }
-
-      MPI_Bcast(&distantMaxElementContainingNVertex, 1, MPI_INT, 0, _localApplicationProperties.getLocalComm());
-
-      _maxElementContainingNVertex = std::max(_maxElementContainingNVertex, distantMaxElementContainingNVertex);
-
-      fvmc_locator_exchange_point_var(_fvmLocator,
-                                     (void *) p_nVertex,
-                                     (void *) _locationToDistantMesh._elementContainingNVertex,
-                                     NULL,
-                                     sizeof(int),
-                                     1,
-                                     0);
-
-      if (localInfo == CWIPI_DISTANT_MESH_INFO) {
-        int previous1 = _locationToDistantMesh._elementContainingNVertex[0];
-        _locationToDistantMesh._elementContainingNVertex[0] = 0;
-        for (int i = 1; i < _locationToDistantMesh._nLocatedPoint + 1; i++) {
-          int previous2 = _locationToDistantMesh._elementContainingNVertex[i];
-          _locationToDistantMesh._elementContainingNVertex[i] = previous1 + _locationToDistantMesh._elementContainingNVertex[i-1];
-          previous1 = previous2;
-        }
-      }
-
+      
       //
-      // ElementContainingVertex
-
-      int *tmpLocal = NULL;
-      int *tmpDistant = NULL;
-
-      if (localInfo == CWIPI_DISTANT_MESH_INFO) {
-        tmpDistant = new int [_locationToDistantMesh._nLocatedPoint];
-        _locationToDistantMesh._elementContainingVertex = new int [_locationToDistantMesh._elementContainingNVertex[_locationToDistantMesh._nLocatedPoint]];
+      // application rootRank send the value of distantInfo to the other applications in the couplingComm
+      
+      int sizeComm;
+      MPI_Comm_size(_couplingComm, &sizeComm);
+      MPI_Status status;
+      
+      if ( _coupledApplicationBeginningRankCouplingComm == 0)
+        rootRank = _coupledApplicationNRankCouplingComm;
+      else
+        rootRank = 0;
+      
+      if (! isRootRank)
+        MPI_Recv(&distantInfo, 1, MPI_INT, rootRank, 0, _couplingComm, &status);
+      else {
+        int rank1;
+        int rank2;
+        
+        if (rootRank == 0) {
+          rank1 = 1;
+          rank2 = _coupledApplicationBeginningRankCouplingComm;
+        }
+        else {
+          rank1 = _coupledApplicationNRankCouplingComm+1;
+          rank2 = sizeComm;
+        }
+        
+        for (int i = rank1; i < rank2; i++)
+          MPI_Send(&distantInfo, 1, MPI_INT, i, 0, _couplingComm);
+        
       }
-
-      if (distantInfo == CWIPI_DISTANT_MESH_INFO)
-        tmpLocal = new int [_nDistantPoint];
-
-      for (int i = 0; i < _maxElementContainingNVertex; i++) {
+      
+      //
+      // Exchange info about distant mesh
+      
+      if (distantInfo == CWIPI_DISTANT_MESH_INFO ||
+          localInfo == CWIPI_DISTANT_MESH_INFO) {
+        
+        //
+        // Location
+        
+        if (localInfo == CWIPI_DISTANT_MESH_INFO)
+          _locationToDistantMesh._elementContaining = new int[_locationToDistantMesh._nLocatedPoint];
+        
+        int *pLocation = NULL;
+        if (distantInfo == CWIPI_DISTANT_MESH_INFO)
+          pLocation = _location;
+        
+        fvmc_locator_exchange_point_var(_fvmLocator,
+                                        (void *) pLocation,
+                                        (void *) _locationToDistantMesh._elementContaining,
+                                        NULL,
+                                        sizeof(int),
+                                        1,
+                                        0);
+        
+        //
+        // elementContainingMPIrankContaining
+        
+        if (localInfo == CWIPI_DISTANT_MESH_INFO)
+          _locationToDistantMesh._elementContainingMPIrankContaining = new int[_locationToDistantMesh._nLocatedPoint];
+        
+        int *pMPIrank = NULL;
+        std::vector <int> *MPIrank = NULL;
+        
         if (distantInfo == CWIPI_DISTANT_MESH_INFO) {
+          int rankInGlobalComm;
+          MPI_Comm_rank(_localApplicationProperties.getGlobalComm(), &rankInGlobalComm);
+          MPIrank = new std::vector <int> (_nDistantPoint, rankInGlobalComm);
+          pMPIrank = &((*MPIrank)[0]);
+        }
+        
+        fvmc_locator_exchange_point_var(_fvmLocator,
+                                        (void *) pMPIrank,
+                                        (void *) _locationToDistantMesh._elementContainingMPIrankContaining,
+                                        NULL,
+                                        sizeof(int),
+                                        1,
+                                        0);
+        
+        if (distantInfo == CWIPI_DISTANT_MESH_INFO) {
+          delete MPIrank;
+        }
+        
+        //
+        // ElementContainingNVertex
+        
+        if (localInfo == CWIPI_DISTANT_MESH_INFO)
+          _locationToDistantMesh._elementContainingNVertex = new int[_locationToDistantMesh._nLocatedPoint + 1];
+        
+        int *p_nVertex = NULL;
+        _maxElementContainingNVertex = 0;
+        
+        if (distantInfo == CWIPI_DISTANT_MESH_INFO) {
+          _nVertex = new std::vector <int> (_nDistantPoint, 0);
           std::vector <int> & _nVertexRef = *_nVertex;
-          for (int j = 0; j < _nDistantPoint; j++) {
-            if (i < _nVertexRef[j]) {
-              int index = _supportMesh->getEltConnectivityIndex()[_location[j]-1] + i;
-              tmpLocal[j] = _supportMesh->getEltConnectivity()[index];
-            }
-            else
-              tmpLocal[j] = -1;
-          }
+          
+          for (int i = 0; i < _nDistantPoint; i++)
+            _nVertexRef[i] = _supportMesh->getEltConnectivityIndex()[_location[i]] -
+              _supportMesh->getEltConnectivityIndex()[_location[i]-1];
+          
+          p_nVertex = &(*_nVertex)[0];
+          
+          int localMaxElementContainingNVertex = *std::max_element(_nVertexRef.begin(), _nVertexRef.end());
+          MPI_Allreduce (&localMaxElementContainingNVertex,
+                         &_maxElementContainingNVertex,
+                         1, MPI_INT, MPI_MAX,
+                         _localApplicationProperties.getLocalComm());
         }
 
+        int distantMaxElementContainingNVertex = 0;
+        if (isRootRank) {
+          MPI_Sendrecv((int*) &_maxElementContainingNVertex,   1, MPI_INT,
+                       _coupledApplicationBeginningRankCouplingComm, 0,
+                       (int*) &distantMaxElementContainingNVertex, 1, MPI_INT,
+                       _coupledApplicationBeginningRankCouplingComm, 0,
+                       _couplingComm, &MPIStatus);
+        }
+        
+        MPI_Bcast(&distantMaxElementContainingNVertex, 1, MPI_INT, 0, _localApplicationProperties.getLocalComm());
+        
+        _maxElementContainingNVertex = std::max(_maxElementContainingNVertex, distantMaxElementContainingNVertex);
+        
         fvmc_locator_exchange_point_var(_fvmLocator,
-                                       (void *) tmpLocal,
-                                       (void *) tmpDistant,
-                                       NULL,
-                                       sizeof(int),
-                                       1,
-                                       0);
-
+                                        (void *) p_nVertex,
+                                        (void *) _locationToDistantMesh._elementContainingNVertex,
+                                        NULL,
+                                        sizeof(int),
+                                        1,
+                                        0);
+        
         if (localInfo == CWIPI_DISTANT_MESH_INFO) {
-          for (int j = 0; j < _locationToDistantMesh._nLocatedPoint; j++) {
-            int nVertices = _locationToDistantMesh._elementContainingNVertex[j+1] - _locationToDistantMesh._elementContainingNVertex[j];
-            if (i < nVertices) {
-              assert(tmpDistant[j] != -1);
-              _locationToDistantMesh._elementContainingVertex[_locationToDistantMesh._elementContainingNVertex[j] + i] = tmpDistant[j];
-            }
+          int previous1 = _locationToDistantMesh._elementContainingNVertex[0];
+          _locationToDistantMesh._elementContainingNVertex[0] = 0;
+          for (int i = 1; i < _locationToDistantMesh._nLocatedPoint + 1; i++) {
+            int previous2 = _locationToDistantMesh._elementContainingNVertex[i];
+            _locationToDistantMesh._elementContainingNVertex[i] = previous1 + _locationToDistantMesh._elementContainingNVertex[i-1];
+            previous1 = previous2;
           }
         }
-      }
-
-      if (localInfo == CWIPI_DISTANT_MESH_INFO)
-        delete [] tmpDistant;
-
-      if (distantInfo == CWIPI_DISTANT_MESH_INFO)
-        delete [] tmpLocal;
-
-      //
-      // ElementContainingBarycentricCoordinates
-
-      double *tmpLocal1 = NULL;
-      double *tmpDistant1 = NULL;
-
-      if (localInfo == CWIPI_DISTANT_MESH_INFO) {
-        tmpDistant1 = new double [_locationToDistantMesh._nLocatedPoint];
-        _locationToDistantMesh._elementContainingBarycentricCoordinates = new double [_locationToDistantMesh._elementContainingNVertex[_locationToDistantMesh._nLocatedPoint]];
-      }
-
-      if (distantInfo == CWIPI_DISTANT_MESH_INFO)
-        tmpLocal1 = new double [_nDistantPoint];
-
-      for (int i = 0; i < _maxElementContainingNVertex; i++) {
-        std::vector <double> &  _refBarycentricCoordinates = *_barycentricCoordinates;
-
-        if (distantInfo == CWIPI_DISTANT_MESH_INFO) {
-          std::vector <int> & _nVertexRef = *_nVertex;
-          for (int j = 0; j < _nDistantPoint; j++) {
-            if (i < _nVertexRef[j]) {
-              int index = _supportMesh->getEltConnectivityIndex()[_location[j]-1] + i;
-              tmpLocal1[j] = _refBarycentricCoordinates[index];
-            }
-          }
-        }
-
-        fvmc_locator_exchange_point_var(_fvmLocator,
-                                       (void *) tmpLocal1,
-                                       (void *) tmpDistant1,
-                                       NULL,
-                                       sizeof(double),
-                                       1,
-                                       0);
-
+        
+        //
+        // ElementContainingVertex
+        
+        int *tmpLocal = NULL;
+        int *tmpDistant = NULL;
+        
         if (localInfo == CWIPI_DISTANT_MESH_INFO) {
-          for (int j = 0; j < _locationToDistantMesh._nLocatedPoint; j++) {
-            int nVertices = _locationToDistantMesh._elementContainingNVertex[j+1] - _locationToDistantMesh._elementContainingNVertex[j];
-            if (i < nVertices) {
-              _locationToDistantMesh._elementContainingBarycentricCoordinates[_locationToDistantMesh._elementContainingNVertex[j] + i] = tmpDistant1[j];
+          tmpDistant = new int [_locationToDistantMesh._nLocatedPoint];
+          _locationToDistantMesh._elementContainingVertex = new int [_locationToDistantMesh._elementContainingNVertex[_locationToDistantMesh._nLocatedPoint]];
+        }
+        
+        if (distantInfo == CWIPI_DISTANT_MESH_INFO)
+          tmpLocal = new int [_nDistantPoint];
+        
+        for (int i = 0; i < _maxElementContainingNVertex; i++) {
+          if (distantInfo == CWIPI_DISTANT_MESH_INFO) {
+            std::vector <int> & _nVertexRef = *_nVertex;
+            for (int j = 0; j < _nDistantPoint; j++) {
+              if (i < _nVertexRef[j]) {
+                int index = _supportMesh->getEltConnectivityIndex()[_location[j]-1] + i;
+                tmpLocal[j] = _supportMesh->getEltConnectivity()[index];
+              }
+              else
+                tmpLocal[j] = -1;
             }
           }
-        }
-      }
-
-      if (localInfo == CWIPI_DISTANT_MESH_INFO)
-        delete [] tmpDistant1;
-
-      if (distantInfo == CWIPI_DISTANT_MESH_INFO)
-        delete [] tmpLocal1;
-
-      // TODO: Optimisation a réaliser dans fvm en mettant un stride[dim]
-      //       pour l'instant on calcule le max des nombre de sommets
-      //       ou bien creer son propre graphe de communication MPI
-
-      //
-      // ElementContainingVertexCoords
-      tmpLocal1 = NULL;
-      tmpDistant1 = NULL;
-
-      int stride = 3;
-      if (localInfo == CWIPI_DISTANT_MESH_INFO) {
-        tmpDistant1 = new double [stride * _locationToDistantMesh._nLocatedPoint];
-        _locationToDistantMesh._elementContainingVertexCoords = new double [stride * _locationToDistantMesh._elementContainingNVertex[_locationToDistantMesh._nLocatedPoint]];
-      }
-
-      if (distantInfo == CWIPI_DISTANT_MESH_INFO)
-        tmpLocal1 = new double [stride * _nDistantPoint];
-
-      for (int i = 0; i < _maxElementContainingNVertex; i++) {
-        std::vector <int> & _nVertexRef = *_nVertex;
-        if (distantInfo == CWIPI_DISTANT_MESH_INFO) {
-          for (int j = 0; j < _nDistantPoint; j++) {
-            if (i < _nVertexRef[j]) {
-              int index = _supportMesh->getEltConnectivityIndex()[_location[j]-1] + i;
-              int icel = _supportMesh->getEltConnectivity()[index];
-              for (int k = 0; k < stride; k++)
-                tmpLocal1[stride *j + k] = _supportMesh->getVertexCoords()[stride * (icel - 1) + k];
-            }
-          }
-        }
-
-        fvmc_locator_exchange_point_var(_fvmLocator,
-                                       (void *) tmpLocal1,
-                                       (void *) tmpDistant1,
-                                       NULL,
-                                       sizeof(double),
-                                       stride,
-                                       0);
-
-        if (localInfo == CWIPI_DISTANT_MESH_INFO) {
-          for (int j = 0; j < _locationToDistantMesh._nLocatedPoint; j++) {
-            int nVertices = _locationToDistantMesh._elementContainingNVertex[j+1] - _locationToDistantMesh._elementContainingNVertex[j];
-            if (i < nVertices) {
-              for (int k = 0; k < stride; k++) {
-                _locationToDistantMesh._elementContainingVertexCoords[stride * (_locationToDistantMesh._elementContainingNVertex[j] + i) + k] =
-                  tmpDistant1[stride * j + k];
+          
+          fvmc_locator_exchange_point_var(_fvmLocator,
+                                          (void *) tmpLocal,
+                                          (void *) tmpDistant,
+                                          NULL,
+                                          sizeof(int),
+                                          1,
+                                          0);
+          
+          if (localInfo == CWIPI_DISTANT_MESH_INFO) {
+            for (int j = 0; j < _locationToDistantMesh._nLocatedPoint; j++) {
+              int nVertices = _locationToDistantMesh._elementContainingNVertex[j+1] - _locationToDistantMesh._elementContainingNVertex[j];
+              if (i < nVertices) {
+                assert(tmpDistant[j] != -1);
+                _locationToDistantMesh._elementContainingVertex[_locationToDistantMesh._elementContainingNVertex[j] + i] = tmpDistant[j];
               }
             }
           }
         }
+        
+        if (localInfo == CWIPI_DISTANT_MESH_INFO)
+          delete [] tmpDistant;
+        
+        if (distantInfo == CWIPI_DISTANT_MESH_INFO)
+          delete [] tmpLocal;
+        
+        //
+        // ElementContainingBarycentricCoordinates
+        
+        double *tmpLocal1 = NULL;
+        double *tmpDistant1 = NULL;
+        
+        if (localInfo == CWIPI_DISTANT_MESH_INFO) {
+          tmpDistant1 = new double [_locationToDistantMesh._nLocatedPoint];
+          _locationToDistantMesh._elementContainingBarycentricCoordinates = new double [_locationToDistantMesh._elementContainingNVertex[_locationToDistantMesh._nLocatedPoint]];
+        }
+        
+        if (distantInfo == CWIPI_DISTANT_MESH_INFO)
+          tmpLocal1 = new double [_nDistantPoint];
+        
+        for (int i = 0; i < _maxElementContainingNVertex; i++) {
+          std::vector <double> &  _refBarycentricCoordinates = *_barycentricCoordinates;
+          
+          if (distantInfo == CWIPI_DISTANT_MESH_INFO) {
+            std::vector <int> & _nVertexRef = *_nVertex;
+            for (int j = 0; j < _nDistantPoint; j++) {
+              if (i < _nVertexRef[j]) {
+                int index = _supportMesh->getEltConnectivityIndex()[_location[j]-1] + i;
+                tmpLocal1[j] = _refBarycentricCoordinates[index];
+              }
+            }
+          }
+          
+          fvmc_locator_exchange_point_var(_fvmLocator,
+                                          (void *) tmpLocal1,
+                                          (void *) tmpDistant1,
+                                          NULL,
+                                          sizeof(double),
+                                          1,
+                                          0);
+
+          if (localInfo == CWIPI_DISTANT_MESH_INFO) {
+            for (int j = 0; j < _locationToDistantMesh._nLocatedPoint; j++) {
+              int nVertices = _locationToDistantMesh._elementContainingNVertex[j+1] - _locationToDistantMesh._elementContainingNVertex[j];
+              if (i < nVertices) {
+                _locationToDistantMesh._elementContainingBarycentricCoordinates[_locationToDistantMesh._elementContainingNVertex[j] + i] = tmpDistant1[j];
+              }
+            }
+          }
+        }
+        
+        if (localInfo == CWIPI_DISTANT_MESH_INFO)
+          delete [] tmpDistant1;
+        
+        if (distantInfo == CWIPI_DISTANT_MESH_INFO)
+          delete [] tmpLocal1;
+        
+        // TODO: Optimisation a réaliser dans fvm en mettant un stride[dim]
+        //       pour l'instant on calcule le max des nombre de sommets
+        //       ou bien creer son propre graphe de communication MPI
+        
+        //
+        // ElementContainingVertexCoords
+        tmpLocal1 = NULL;
+        tmpDistant1 = NULL;
+        
+        int stride = 3;
+        if (localInfo == CWIPI_DISTANT_MESH_INFO) {
+          tmpDistant1 = new double [stride * _locationToDistantMesh._nLocatedPoint];
+          _locationToDistantMesh._elementContainingVertexCoords = new double [stride * _locationToDistantMesh._elementContainingNVertex[_locationToDistantMesh._nLocatedPoint]];
+        }
+        
+        if (distantInfo == CWIPI_DISTANT_MESH_INFO)
+          tmpLocal1 = new double [stride * _nDistantPoint];
+        
+        for (int i = 0; i < _maxElementContainingNVertex; i++) {
+          std::vector <int> & _nVertexRef = *_nVertex;
+          if (distantInfo == CWIPI_DISTANT_MESH_INFO) {
+            for (int j = 0; j < _nDistantPoint; j++) {
+              if (i < _nVertexRef[j]) {
+                int index = _supportMesh->getEltConnectivityIndex()[_location[j]-1] + i;
+                int icel = _supportMesh->getEltConnectivity()[index];
+                for (int k = 0; k < stride; k++)
+                  tmpLocal1[stride *j + k] = _supportMesh->getVertexCoords()[stride * (icel - 1) + k];
+              }
+            }
+          }
+          
+          fvmc_locator_exchange_point_var(_fvmLocator,
+                                          (void *) tmpLocal1,
+                                          (void *) tmpDistant1,
+                                          NULL,
+                                          sizeof(double),
+                                          stride,
+                                          0);
+          
+          if (localInfo == CWIPI_DISTANT_MESH_INFO) {
+            for (int j = 0; j < _locationToDistantMesh._nLocatedPoint; j++) {
+              int nVertices = _locationToDistantMesh._elementContainingNVertex[j+1] - _locationToDistantMesh._elementContainingNVertex[j];
+              if (i < nVertices) {
+                for (int k = 0; k < stride; k++) {
+                  _locationToDistantMesh._elementContainingVertexCoords[stride * (_locationToDistantMesh._elementContainingNVertex[j] + i) + k] =
+                    tmpDistant1[stride * j + k];
+                }
+              }
+            }
+          }
+        }
+        
+        if (localInfo == CWIPI_DISTANT_MESH_INFO)
+          delete [] tmpDistant1;
+        
+        if (distantInfo == CWIPI_DISTANT_MESH_INFO)
+          delete [] tmpLocal1;
       }
-
-      if (localInfo == CWIPI_DISTANT_MESH_INFO)
-        delete [] tmpDistant1;
-
-      if (distantInfo == CWIPI_DISTANT_MESH_INFO)
-        delete [] tmpLocal1;
+      
+      // TODO: Attention la fonction synchronise ne devrait-elle pas etre dans le if precedent !
+      
     }
+
+    _locationToDistantMesh.synchronize();
+    _toLocate = false;
+      
   }
-
-  // TODO: Attention la fonction synchronise ne devrait-elle pas etre dans le if precedent !
-
-  _locationToDistantMesh.synchronize();
-
+  //  _locationToDistantMesh.synchronize();
+    
 }
-
+  
 ///
 /// \brief Exchange field on vertices of cells that contain each located points
 ///
@@ -1156,7 +1327,8 @@ void LocationToLocalMesh::compute3DMeanValues()
         //
         // Standard element    
         //
-      
+
+
         double uvw[3];
         double vertex_coords[8][3];
         double deriv[8][3];
@@ -1172,95 +1344,128 @@ void LocationToLocalMesh::compute3DMeanValues()
         
         int ierr = 0;
 
-        switch(nbr_som){
-      
-        case 4 :
-
+        if (dist > 1.) {
+    
           //
-          // Tetraedra :            
+          // If point is not in element, get the closest vertex
           //
-
-          ierr = compute_uvw(CWIPI_CELL_TETRA4,
-                             coo_point_dist,
-                             vertex_coords,
-                             1e-6,
-                             uvw);
-
-          compute_shapef_3d(CWIPI_CELL_TETRA4,
-                            uvw,
-                            &distBarCoords[0] + nDistBarCoords[ipoint],
-                            deriv);        
           
+          double vect3D[3];
+          double dist2 = -1;
 
+          int closestVertex = -1;
           
-          break;
+          for (int isom = 0; isom < nbr_som; isom++) {
+            distBarCoords[nDistBarCoords[ipoint] + isom] = 0.;
+            for (int i = 0; i < 3; i++) {
+              vect3D[i] = vertex_coords[isom][i] - coo_point_dist[i];
+            }
+
+            double normVect3D = sqrt(vect3D[0] * vect3D[0] 
+                                   + vect3D[1] * vect3D[1]
+                                   + vect3D[2] * vect3D[2]);
+
+            if ((normVect3D < dist2) || (closestVertex == -1)) {
+              closestVertex = isom;
+              dist2  =  normVect3D;
+            }
+          }    
           
-        case 5 : 
-        
-          //
-          // Pyramid             
-          //
-
-          ierr = compute_uvw(CWIPI_CELL_PYRAM5,
-                             coo_point_dist,
-                             vertex_coords,
-                             1e-12,
-                             uvw);
-
-          compute_shapef_3d(CWIPI_CELL_PYRAM5,
-                            uvw,
-                            &(distBarCoords[0]) + nDistBarCoords[ipoint],
-                            deriv);
-        
-          break;
-
-        case 6 :
-        
-          //
-          // Prism               
-          //
-
-          ierr = compute_uvw(CWIPI_CELL_PRISM6,
-                             coo_point_dist,
-                             vertex_coords,
-                             1e-12,
-                             uvw);
-
-          compute_shapef_3d(CWIPI_CELL_PRISM6,
-                            uvw,
-                            &(distBarCoords[0]) + nDistBarCoords[ipoint],
-                            deriv);        
-          break;
-
-        case 8 :
-          
-          //
-          // Hexahedron          
-          //
-
-          ierr = compute_uvw(CWIPI_CELL_HEXA8,
-                             coo_point_dist,
-                             vertex_coords,
-                             1e-12,
-                             uvw);
-
-          compute_shapef_3d(CWIPI_CELL_HEXA8,
-                            uvw,
-                            &(distBarCoords[0]) + nDistBarCoords[ipoint],
-                            deriv);        
-          break;
-
-        default:
-          bftc_error(__FILE__, __LINE__, 0,
-                     "compute3DMeanValues: unhandled element type\n");
-          
-
+          distBarCoords[nDistBarCoords[ipoint] + closestVertex] = 1;
+    
         }
+        
+        else {
 
-        if (ierr == 0) 
-          bftc_error(__FILE__, __LINE__, 0,
-                     "compute3DMeanValues: Error to barycentric coordinates\n");
+          switch(nbr_som){
+      
+          case 4 :
+            
+            //
+            // Tetraedra :            
+            //
+            
+            ierr = compute_uvw(CWIPI_CELL_TETRA4,
+                               coo_point_dist,
+                               vertex_coords,
+                               1e-6,
+                               uvw);
+            
+            compute_shapef_3d(CWIPI_CELL_TETRA4,
+                              uvw,
+                              &distBarCoords[0] + nDistBarCoords[ipoint],
+                              deriv);        
+            
 
+          
+            break;
+          
+          case 5 : 
+            
+            //
+            // Pyramid             
+            //
+            
+            ierr = compute_uvw(CWIPI_CELL_PYRAM5,
+                               coo_point_dist,
+                               vertex_coords,
+                               1e-6,
+                               uvw);
+            
+            compute_shapef_3d(CWIPI_CELL_PYRAM5,
+                              uvw,
+                              &(distBarCoords[0]) + nDistBarCoords[ipoint],
+                              deriv);
+            
+            break;
+
+          case 6 :
+            
+            //
+            // Prism               
+            //
+            
+            ierr = compute_uvw(CWIPI_CELL_PRISM6,
+                               coo_point_dist,
+                               vertex_coords,
+                               1e-6,
+                               uvw);
+
+            compute_shapef_3d(CWIPI_CELL_PRISM6,
+                              uvw,
+                              &(distBarCoords[0]) + nDistBarCoords[ipoint],
+                              deriv);        
+            break;
+            
+          case 8 :
+            
+            //
+            // Hexahedron          
+            //
+            
+            ierr = compute_uvw(CWIPI_CELL_HEXA8,
+                               coo_point_dist,
+                               vertex_coords,
+                               1e-6,
+                               uvw);
+            
+            compute_shapef_3d(CWIPI_CELL_HEXA8,
+                              uvw,
+                              &(distBarCoords[0]) + nDistBarCoords[ipoint],
+                              deriv);        
+            break;
+            
+          default:
+            bftc_error(__FILE__, __LINE__, 0,
+                       "compute3DMeanValues: unhandled element type\n");
+          
+
+          }
+
+          if (ierr == 0) 
+            bftc_error(__FILE__, __LINE__, 0,
+                       "compute3DMeanValues: Error to barycentric coordinates\n");
+        }
       }
 
       else {
@@ -1633,10 +1838,19 @@ void LocationToLocalMesh::compute3DMeanValuesPoly(const double point_coords[],
               mod = sqrt(normale[3*isom    ] * normale[3*isom    ]
                          + normale[3*isom + 1] * normale[3*isom + 1]
                          + normale[3*isom + 2] * normale[3*isom + 2]);
+
+              if (mod <  eps_face) {
+                normale[3*isom    ] = 0.;
+                normale[3*isom + 1] = 0.;
+                normale[3*isom + 2] = 0.;
+              }
+
+              else {
               
-              normale[3*isom    ] /= mod;
-              normale[3*isom + 1] /= mod;
-              normale[3*isom + 2] /= mod;
+                normale[3*isom    ] /= mod;
+                normale[3*isom + 1] /= mod;
+                normale[3*isom + 2] /= mod;
+              }
               
             }    
 
@@ -1863,28 +2077,64 @@ LocationToLocalMesh::compute_shapef_3d(const cwipi_element_t elt_type,
 
   case CWIPI_CELL_PYRAM5:
 
-    shapef[0] = (1.0 - uvw[0]) * (1.0 - uvw[1]) * (1.0 - uvw[2]);
-    shapef[1] = uvw[0] * (1.0 - uvw[1]) * (1.0 - uvw[2]);
-    shapef[2] = uvw[0] * uvw[1] * (1.0 - uvw[2]);
-    shapef[3] = (1.0 - uvw[0]) * uvw[1] * (1.0 - uvw[2]);
-    shapef[4] = uvw[2];
+    if (0 == 1) {
 
-    if (deriv != NULL) {
-      deriv[0][0] = -(1.0 - uvw[1]) * (1.0 - uvw[2]);
-      deriv[0][1] = -(1.0 - uvw[0]) * (1.0 - uvw[2]);
-      deriv[0][2] = -(1.0 - uvw[0]) * (1.0 - uvw[1]);
-      deriv[1][0] =  (1.0 - uvw[1]) * (1.0 - uvw[2]);
-      deriv[1][1] = -uvw[0] * (1.0 - uvw[2]);
-      deriv[1][2] = -uvw[0] * (1.0 - uvw[1]);
-      deriv[2][0] =  uvw[1] * (1.0 - uvw[2]);
-      deriv[2][1] =  uvw[0] * (1.0 - uvw[2]);
-      deriv[2][2] = -uvw[0] * uvw[1];
-      deriv[3][0] = -uvw[1] * (1.0 - uvw[2]);
-      deriv[3][1] =  (1.0 - uvw[0]) * (1.0 - uvw[2]);
-      deriv[3][2] = -(1.0 - uvw[0]) * uvw[1];
-      deriv[4][0] =  0.0;
-      deriv[4][1] =  0.0;
-      deriv[4][2] =  1.0;
+      // Alternative de coordonnees barycentriques
+
+      shapef[0] = 0.125 * (1.0 - uvw[0]) * (1.0 - uvw[1]) * (1.0 - uvw[2]);
+      shapef[1] = 0.125 * (1.0 + uvw[0]) * (1.0 - uvw[1]) * (1.0 - uvw[2]);
+      shapef[2] = 0.125 * (1.0 + uvw[0]) * (1.0 + uvw[1]) * (1.0 - uvw[2]);
+      shapef[3] = 0.125 * (1.0 - uvw[0]) * (1.0 + uvw[1]) * (1.0 - uvw[2]);
+      shapef[4] = 0.5   *                                   (1.0 + uvw[2]);
+
+      if (deriv != NULL) {
+        deriv[0][0] = - 0.125 * (1.0 - uvw[1]) * (1.0 - uvw[2]);
+        deriv[0][1] = - 0.125 * (1.0 - uvw[0]) * (1.0 - uvw[2]);
+        deriv[0][2] = - 0.125 * (1.0 - uvw[0]) * (1.0 - uvw[1]);
+
+        deriv[1][0] =   0.125 * (1.0 - uvw[1]) * (1.0 - uvw[2]);
+        deriv[1][1] = - 0.125 * (1.0 + uvw[0]) * (1.0 - uvw[2]);
+        deriv[1][2] = - 0.125 * (1.0 + uvw[0]) * (1.0 - uvw[1]);
+
+        deriv[2][0] =   0.125 * (1.0 + uvw[1]) * (1.0 - uvw[2]);
+        deriv[2][1] =   0.125 * (1.0 + uvw[0]) * (1.0 - uvw[2]);
+        deriv[2][2] = - 0.125 * (1.0 + uvw[0]) * (1.0 + uvw[1]);
+
+        deriv[3][0] = - 0.125 * (1.0 + uvw[1]) * (1.0 - uvw[2]);
+        deriv[3][1] =   0.125 * (1.0 - uvw[0]) * (1.0 - uvw[2]);
+        deriv[3][2] = - 0.125 * (1.0 - uvw[0]) * (1.0 + uvw[1]);
+
+        deriv[4][0] = 0;
+        deriv[4][1] = 0;
+        deriv[4][2] = 0.5;
+      }
+    }
+
+    else {
+
+      shapef[0] = (1.0 - uvw[0]) * (1.0 - uvw[1]) * (1.0 - uvw[2]);
+      shapef[1] = uvw[0] * (1.0 - uvw[1]) * (1.0 - uvw[2]);
+      shapef[2] = uvw[0] * uvw[1] * (1.0 - uvw[2]);
+      shapef[3] = (1.0 - uvw[0]) * uvw[1] * (1.0 - uvw[2]);
+      shapef[4] = uvw[2];
+
+      if (deriv != NULL) {
+        deriv[0][0] = -(1.0 - uvw[1]) * (1.0 - uvw[2]);
+        deriv[0][1] = -(1.0 - uvw[0]) * (1.0 - uvw[2]);
+        deriv[0][2] = -(1.0 - uvw[0]) * (1.0 - uvw[1]);
+        deriv[1][0] =  (1.0 - uvw[1]) * (1.0 - uvw[2]);
+        deriv[1][1] = -uvw[0] * (1.0 - uvw[2]);
+        deriv[1][2] = -uvw[0] * (1.0 - uvw[1]);
+        deriv[2][0] =  uvw[1] * (1.0 - uvw[2]);
+        deriv[2][1] =  uvw[0] * (1.0 - uvw[2]);
+        deriv[2][2] = -uvw[0] * uvw[1];
+        deriv[3][0] = -uvw[1] * (1.0 - uvw[2]);
+        deriv[3][1] =  (1.0 - uvw[0]) * (1.0 - uvw[2]);
+        deriv[3][2] = -(1.0 - uvw[0]) * uvw[1];
+        deriv[4][0] =  0.0;
+        deriv[4][1] =  0.0;
+        deriv[4][2] =  1.0;
+      }
     }
 
     break;
@@ -2052,8 +2302,10 @@ LocationToLocalMesh::compute_uvw(const cwipi_element_t elt_type,
         
       }
 
-      if (inverse_3x3(a, b, x))
+      if (inverse_3x3(a, b, x)) {
+        bftc_printf("error compute_uvw : matrice non iversible\n");
         return 0;
+      }
       
       dist = 0.0;
 
@@ -2067,7 +2319,23 @@ LocationToLocalMesh::compute_uvw(const cwipi_element_t elt_type,
       
     }
 
-    return 0;
+    bftc_printf("Warning compute_uvw : no convergence for the point (%12.5e, %12.5e, %12.5e), dist = %12.5e\n", 
+                point_coords[0], point_coords[1], point_coords[2], dist);
+    bftc_printf("                      in the element : (%12.5e, %12.5e, %12.5e)\n", vertex_coords[0][0], 
+                vertex_coords[0][1], 
+                vertex_coords[0][2]);
+    for (i = 1; i < n_elt_vertices; i++) {
+      bftc_printf("                                       (%12.5e, %12.5e, %12.5e)\n", vertex_coords[i][0], 
+                  vertex_coords[i][1], 
+                  vertex_coords[i][2]);
+    }
+    bftc_printf("                            shapef :");
+    for (i = 1; i < n_elt_vertices; i++) {
+      bftc_printf(" %12.5e", shapef[i]);
+    }
+    bftc_printf("\n");
+
+    return 1;
 
   }
 

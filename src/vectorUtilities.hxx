@@ -244,8 +244,10 @@ namespace cwipi {
           - m[1][0]*(m[0][1]*m[2][2] - m[2][1]*m[0][2])
           + m[2][0]*(m[0][1]*m[1][2] - m[1][1]*m[0][2]);
 
-    if (fabs(det) < epsilon_denom)
+    if (fabs(det) < epsilon_denom) {
+      bftc_printf("error inverse_3x3 : determinat nul : %12.5e\n", fabs(det));
       return 1;
+    }
     else
       det_inv = 1./det;
     

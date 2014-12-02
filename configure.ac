@@ -90,8 +90,8 @@ m4_define([fvmc_licence_c_comment],
 */])
 
 m4_define([cwipi_major_version], [0])
-m4_define([cwipi_minor_version], [5])
-m4_define([cwipi_release_version], [10])
+m4_define([cwipi_minor_version], [8])
+m4_define([cwipi_release_version], [1])
 m4_define([cwipi_version_extra], [])
 m4_define([cwipi_version_string],
           [cwipi_major_version.cwipi_minor_version.cwipi_release_version@&t@cwipi_version_extra])
@@ -191,6 +191,8 @@ BFTC_AC_CONFIG_PUBL_DEFINE(BFTC_RELEASE_VERSION, bftc_release_version,
 user_CPPFLAGS=$CPPFLAGS
 user_CFLAGS=$CFLAGS
 user_LDFLAGS=$LDFLAGS
+
+LT_INIT
 
 AC_PROG_CC(icc gcc)
 
@@ -344,7 +346,7 @@ AC_ARG_ENABLE(python-bindings,
 AM_CONDITIONAL(ENABLE_PYTHON, test x$python_bindings = xtrue)
 
 AC_ARG_ENABLE(rebuild-bindings,
-  [AS_HELP_STRING([--enable-rebuild-bindings],[rebuild cython bindings])],
+  [AS_HELP_STRING([--enable-rebuild-bindings],[rebuild Cython bindings])],
   [
     case "${enableval}" in
       yes) rebuild_bindings=true ;;
@@ -369,7 +371,7 @@ AC_ARG_WITH(cython-exec, [AS_HELP_STRING([--with-cython-exec=PATH],
 
 if test "x${python_bindings}" != "xfalse"; then
 
-    cp -f ${srcdir}/cython/cwipi.c.default  ${srcdir}/cython/cwipi.c
+    cp -f ${srcdir}/Cython/cwipi.c.default  ${srcdir}/Cython/cwipi.c
 
     #------------------
     # Checks for Python
@@ -543,8 +545,8 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([[]],
 
              if test "x${CYEXE}" = "xno" ; then
                AC_MSG_WARN([])
-               AC_MSG_WARN([cython package not found])
-               AC_MSG_WARN([Please install cython from http://http://www.cython.org or remove --enable-rebuild-bindings option])
+               AC_MSG_WARN([Cython package not found])
+               AC_MSG_WARN([Please install Cython from http://http://www.cython.org or remove --enable-rebuild-bindings option])
                AC_MSG_WARN([])
                AC_MSG_WARN([Sorry, we can't continue without cython])
                have_python_binding="no"        
@@ -579,15 +581,15 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([[]],
                 have_cython="no"
                 ])
                 if test "x${have_cython}" = "xyes" ; then
-                  echo "running cython : " ${CYEXE} -I${MPI4PY_INCLUDE} -I${srcdir}/src -I${NUMPY_INCLUDE} ${srcdir}/cython/cwipi.pyx
-                  cp ${srcdir}/cython/cwipi.pyx cwipi.pyx
+                  echo "running cython : " ${CYEXE} -I${MPI4PY_INCLUDE} -I${srcdir}/src -I${NUMPY_INCLUDE} ${srcdir}/Cython/cwipi.pyx
+                  cp ${srcdir}/Cython/cwipi.pyx cwipi.pyx
                   error=
                   error=`${CYEXE} -v -I${MPI4PY_INCLUDE} -I${srcdir}/src -I${NUMPY_INCLUDE} cwipi.pyx 2>&1 | grep -i Err`
                   if test "x${error}" != "x" ; then
                      echo $error
                      AC_MSG_ERROR([Error during cython binding])
                   fi
-                  cp -f cwipi.c ${srcdir}/cython/cwipi.c
+                  cp -f cwipi.c ${srcdir}/Cython/cwipi.c
                 fi
              fi
            fi
@@ -663,7 +665,7 @@ if test "x$cwipi_disable_shared" = "xyes" ; then
   enable_shared=no
 fi
 
-LT_INIT
+#LT_INIT
 
 #--------------------------------------------------------------------------
 # If the system is of a known type, declare it in the configuration header.
@@ -975,7 +977,7 @@ CWIPI_AC_CONFIG_INFO_FINALIZE
 # AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile doc/Makefile
 #                  intl/Makefile po/Makefile.in m4/Makefile])
 
-AC_CONFIG_FILES([Makefile src/Makefile src/bft/Makefile src/fvm/Makefile cython/Makefile tests/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile src/bft/Makefile src/fvm/Makefile Cython/Makefile tests/Makefile])
 
 #------------------------------------------------------------------------------
 

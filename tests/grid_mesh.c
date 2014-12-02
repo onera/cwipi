@@ -19,6 +19,7 @@
 
 #include <stdlib.h>
 #include <mpi.h>
+#include <math.h>
 
 #include "grid_mesh.h"
 
@@ -223,3 +224,49 @@ void PROCF(grid_mesh_f, GRID_MESH_F)
             eltsConnecPointer, eltsConnec, localComm_c);
 
 }
+
+/* rotation d'un angle alpha en degre */
+void mesh_rotate(double *coords, int npt, double alpha) {
+  double degrad = acos(-1.0)/180.;
+  double sina, cosa, x, y;
+  
+  alpha = alpha * degrad;
+  sina = sin(alpha);
+  cosa = cos(alpha);
+
+  for (int i = 0; i < npt; i++) {
+    x = coords[i*3];
+    y = coords[i*3 +1];
+    coords[i*3]   = cosa*x - sina*y;
+    coords[i*3+1] = sina*x + cosa*y;
+  }
+}
+
+void carre2rond(double xmin, double xmax, double ymin, double ymax, double *coords, int nVertex)  {
+  double xc, yc , x , y, z;
+  double hyp, l;
+  // tolerance pour eviter division par ZERO
+  const double toler = 0.00000001;
+
+  // remarque : ne fonctionne que dans un plan XY
+  // coord centre
+  xc = (xmax + xmin)/2.;
+  yc = (ymax + ymin)/2.;
+
+  for (int i = 0; i < nVertex ; i++) {
+    x = coords[i*3] - xc;
+    y = coords[i*3+1] - yc;
+
+    hyp = sqrt(x*x + y*y);
+    if (hyp > toler) {
+      if (fabs(x) > fabs(y)) {
+    l = fabs(cos(acos(x / hyp)));
+      } else {
+    l = fabs(sin(asin(y / hyp)));
+      }
+      coords[i*3] = xc + x*l;
+      coords[i*3+1] = yc + y*l;
+    }
+  }
+}
+

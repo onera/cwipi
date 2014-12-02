@@ -77,9 +77,16 @@ public:
   void setpointsToLocate(int nPointsToLocate, double *coordsPointsToLocate);
 
   ///
+  /// 
+  ///
+  size_t  locationSize();
+
+  void packLocation(unsigned char *buff);
+  void unpackLocation(unsigned char *buff);
+
+  ///
   /// \brief Points location
   ///
-
   void locate();
 
   ///

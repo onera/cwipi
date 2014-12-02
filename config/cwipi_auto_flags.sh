@@ -176,7 +176,7 @@ elif test "x$cwipi_gcc" = "xicc"; then
   cwipi_compiler_known=yes
 
   # Default compiler flags
-  cflags_default="-strict-ansi -std=c99 -funsigned-char -Wall -Wcheck -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused"
+  cflags_default="-std=c99 -funsigned-char -Wall -Wcheck -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused"
   cflags_default_dbg="-g -O0 -traceback"
   cflags_default_opt="-O2"
   cflags_default_prf="-p"
@@ -204,7 +204,7 @@ fi
 # Otherwise, are we using pgcc ?
 #-------------------------------
 
-if test "x$fvmc_compiler_known" != "xyes" ; then
+if test "x$cwipi_compiler_known" != "xyes" ; then
 
   $CC -V 2>&1 | grep 'The Portland Group' > /dev/null
   if test "$?" = "0" ; then
@@ -217,10 +217,15 @@ if test "x$fvmc_compiler_known" != "xyes" ; then
     cwipi_compiler_known=yes
 
     # Default compiler flags
-    cflags_default="-Xa -fPIC"
+    cflags_default="-Xa -fPIC -pgf90libs"
     cflags_default_dbg="-g"
     cflags_default_opt="-fast -fastsse"
     cflags_default_prf="-Mprof=func,lines"
+
+    cxxflags_default="-Xa -fPIC -pgf90libs"
+    cxxflags_default_dbg="-g"
+    cxxflags_default_opt="-fast -fastsse"
+    cxxflags_default_prf="-Mprof=func,lines"
 
   fi
 

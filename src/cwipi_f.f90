@@ -20,43 +20,46 @@
 module cwipi
   implicit none
 
+  integer, parameter :: cwipi_int_l = 4
+
   !
   ! Parameters
   ! ----------
   !
   ! cwipi_nature_t
   ! TODO:  cwipi_nature a supprimer ?
-  integer, parameter :: cwipi_nature_element_center = 0
-  integer, parameter :: cwipi_nature_node = 1
+  integer (kind = cwipi_int_l), parameter :: cwipi_nature_element_center = 0
+  integer (kind = cwipi_int_l), parameter :: cwipi_nature_node = 1
   !
   ! cwipi_coupling_type_t
-  integer, parameter :: cwipi_cpl_parallel_with_part = 0
-  integer, parameter :: cwipi_cpl_parallel_without_part = 1
-  integer, parameter :: cwipi_cpl_sequential = 2
+  integer (kind = cwipi_int_l), parameter :: cwipi_cpl_parallel_with_part = 0
+  integer (kind = cwipi_int_l), parameter :: cwipi_cpl_parallel_without_part = 1
+  integer (kind = cwipi_int_l), parameter :: cwipi_cpl_sequential = 2
   !
   ! cwipi_type_t
-  integer, parameter :: cwipi_type_float = 0
-  integer, parameter :: cwipi_type_double = 1
+  integer (kind = cwipi_int_l), parameter :: cwipi_type_float = 0
+  integer (kind = cwipi_int_l), parameter :: cwipi_type_double = 1
   !
   ! cwipi_interpolation_t
-  integer, parameter :: cwipi_interpolation_standard = 0
-  integer, parameter :: cwipi_interpolation_user = 1
+  integer (kind = cwipi_int_l), parameter :: cwipi_interpolation_standard = 0
+  integer (kind = cwipi_int_l), parameter :: cwipi_interpolation_user = 1
   !
   ! mesh type
-  integer, parameter :: cwipi_static_mesh = 0
-  integer, parameter :: cwipi_mobile_mesh = 1
+  integer (kind = cwipi_int_l), parameter :: cwipi_static_mesh = 0
+  integer (kind = cwipi_int_l), parameter :: cwipi_mobile_mesh = 1
+  integer (kind = cwipi_int_l), parameter :: cwipi_cyclic_mesh = 2
   !
   ! solver type
-  integer, parameter :: cwipi_solver_cell_center = 0
-  integer, parameter :: cwipi_solver_cell_vertex = 1
+  integer (kind = cwipi_int_l), parameter :: cwipi_solver_cell_center = 0
+  integer (kind = cwipi_int_l), parameter :: cwipi_solver_cell_vertex = 1
   !
   ! exchange status
-  integer, parameter :: cwipi_exchange_ok = 0
-  integer, parameter :: cwipi_exchange_bad_receiving = 1
+  integer (kind = cwipi_int_l), parameter :: cwipi_exchange_ok = 0
+  integer (kind = cwipi_int_l), parameter :: cwipi_exchange_bad_receiving = 1
 
   !
   ! Logical unit for listing
-  integer, save :: ifile
+  integer (kind = cwipi_int_l), save :: ifile
 
   !
   ! Public interfaces
@@ -235,65 +238,81 @@ module cwipi
       cwipi_dump_appli_properties_f_
   end interface
 
-  interface cwipi_get_elt_cont_f ; module procedure &
-      cwipi_get_elt_cont_f_
-  end interface
-
-  interface  cwipi_get_elt_cont_n_vtx_f ; module procedure &
-    cwipi_get_elt_cont_n_vtx_f_
-  end interface
-
-  interface  cwipi_get_elt_cont_vtx_f ; module procedure &
-    cwipi_get_elt_cont_vtx_f_
-  end interface
-
-  interface  cwipi_get_elt_cont_vtx_coo_f ; module procedure &
-    cwipi_get_elt_cont_vtx_coo_f_
-  end interface
-
-  interface  cwipi_get_elt_cont_bar_coo_f ; module procedure &
-    cwipi_get_elt_cont_bar_coo_f_
-  end interface
-
-  interface  cwipi_get_elt_cont_MPI_rank_f ; module procedure &
-    cwipi_get_elt_cont_MPI_rank_f_
-  end interface
-
-  interface  cwipi_exch_cellvtxfd_eltcont_f ; module procedure &
-    cwipi_exch_cellvtxfd_eltcont_f_
-  end interface
-
-  interface  cwipi_send_cellvtxfd_eltcont_f ; module procedure &
-    cwipi_send_cellvtxfd_eltcont_f_
-  end interface
-
-  interface  cwipi_recv_cellvtxfd_eltcont_f ; module procedure &
-    cwipi_recv_cellvtxfd_eltcont_f_
-  end interface
-
-  interface  cwipi_exch_cellcenfd_eltcont_f ; module procedure &
-    cwipi_exch_cellcenfd_eltcont_f_
-  end interface
-
-  interface  cwipi_send_cellcenfd_eltcont_f ; module procedure &
-    cwipi_send_cellcenfd_eltcont_f_
-  end interface
-
-  interface  cwipi_recv_cellcenfd_eltcont_f ; module procedure &
-    cwipi_recv_cellcenfd_eltcont_f_
-  end interface
-
   interface  cwipi_finalize_f; module procedure &
     cwipi_finalize_f_
-  end interface
-
-  interface  cwipi_set_info_f; module procedure &
-    cwipi_set_info_f_
   end interface
 
   interface cwipi_dist_located_pts_get_f; module procedure &
     cwipi_dist_located_pts_get_f_  
   end interface cwipi_dist_located_pts_get_f
+
+  interface cwipi_get_n_dis_ranks_f; module procedure &
+    cwipi_get_n_dis_ranks_f_
+  end interface cwipi_get_n_dis_ranks_f
+
+  interface cwipi_get_dis_distrib_f; module procedure &
+    cwipi_get_dis_distrib_f_
+  end interface cwipi_get_dis_distrib_f
+
+  interface cwipi_get_loc_pts_distrib_f; module procedure &
+    cwipi_get_loc_pts_distrib_f_
+  end interface cwipi_get_loc_pts_distrib_f
+
+  interface cwipi_set_location_index_f; module procedure &
+    cwipi_set_location_index_f_
+  end interface cwipi_set_location_index_f
+
+  interface cwipi_load_location_f; module procedure &
+    cwipi_load_location_f_
+  end interface cwipi_load_location_f
+
+  interface cwipi_save_location_f; module procedure &
+    cwipi_save_location_f_
+  end interface cwipi_save_location_f
+
+  interface cwipi_open_location_file_f; module procedure &
+    cwipi_open_location_file_f_
+  end interface cwipi_open_location_file_f
+
+  interface cwipi_close_location_file_f; module procedure &
+    cwipi_close_location_file_f_
+  end interface cwipi_close_location_file_f
+
+  interface cwipi_has_int_ctrl_param_f; module procedure &
+    cwipi_has_int_ctrl_param_f_
+  end interface cwipi_has_int_ctrl_param_f
+
+  interface cwipi_has_dbl_ctrl_param_f; module procedure &
+    cwipi_has_dbl_ctrl_param_f_
+  end interface cwipi_has_dbl_ctrl_param_f
+
+  interface cwipi_has_str_ctrl_param_f; module procedure &
+    cwipi_has_str_ctrl_param_f_
+  end interface cwipi_has_str_ctrl_param_f
+
+  interface cwipi_get_n_int_ctrl_param_f; module procedure &
+    cwipi_get_n_int_ctrl_param_f_
+  end interface cwipi_get_n_int_ctrl_param_f
+
+  interface cwipi_get_n_dbl_ctrl_param_f; module procedure &
+    cwipi_get_n_dbl_ctrl_param_f_
+  end interface  cwipi_get_n_dbl_ctrl_param_f
+
+  interface cwipi_get_n_str_ctrl_param_f; module procedure &
+    cwipi_get_n_str_ctrl_param_f_
+  end interface cwipi_get_n_str_ctrl_param_f
+
+  interface cwipi_get_list_int_ctrl_param_f; module procedure &
+    cwipi_get_list_int_ctrl_param_f_
+  end interface cwipi_get_list_int_ctrl_param_f
+
+  interface cwipi_get_list_dbl_ctrl_param_f; module procedure &
+    cwipi_get_list_dbl_ctrl_param_f_
+  end interface cwipi_get_list_dbl_ctrl_param_f
+
+  interface cwipi_get_list_str_ctrl_param_f; module procedure &
+    cwipi_get_list_str_ctrl_param_f_
+  end interface cwipi_get_list_str_ctrl_param_f
 
   !
   ! Private
@@ -319,6 +338,15 @@ module cwipi
              cwipi_get_dis_int_ctrl_param_f_, &
              cwipi_get_dis_dbl_ctrl_param_f_, &
              cwipi_get_dis_str_ctrl_param_f_, &
+             cwipi_has_int_ctrl_param_f_, &
+             cwipi_has_dbl_ctrl_param_f_, &
+             cwipi_has_str_ctrl_param_f_, &
+             cwipi_get_n_int_ctrl_param_f_, &
+             cwipi_get_n_dbl_ctrl_param_f_, &
+             cwipi_get_n_str_ctrl_param_f_, &
+             cwipi_get_list_int_ctrl_param_f_, &
+             cwipi_get_list_dbl_ctrl_param_f_, &
+             cwipi_get_list_str_ctrl_param_f_, &
              cwipi_synch_ctrl_param_f_,       &
              cwipi_create_coupling_f_,        &
              cwipi_set_points_to_locate_f_,   &
@@ -336,16 +364,15 @@ module cwipi
              cwipi_get_bary_coord_idx_f_,     &
              cwipi_get_coord_f_,              &
              cwipi_get_not_located_pts_f_,    &
-             cwipi_get_elt_cont_f_,           &
-             cwipi_get_elt_cont_n_vtx_f_,     &
-             cwipi_get_elt_cont_vtx_f_,       &
-             cwipi_get_elt_cont_vtx_coo_f_,   &
-             cwipi_get_elt_cont_bar_coo_f_,   &
-             cwipi_get_elt_cont_MPI_rank_f_,  &
-             cwipi_exch_cellvtxfd_eltcont_f_, &
-             cwipi_exch_cellcenfd_eltcont_f_, &
              cwipi_dist_located_pts_get_f_,   &
-             cwipi_set_info_f_
+             cwipi_get_n_dis_ranks_f_,        &
+             cwipi_get_dis_distrib_f_,        &
+             cwipi_get_loc_pts_distrib_f_,    &
+             cwipi_set_location_index_f_,     &
+             cwipi_load_location_f_,          &
+             cwipi_save_location_f_,          &
+             cwipi_open_location_file_f_,     &
+             cwipi_close_location_file_f_      
 
 contains
 
@@ -392,10 +419,10 @@ contains
 
     implicit none
 
-    integer :: globalcomm, applicomm
+    integer (kind = cwipi_int_l) :: globalcomm, applicomm
     character (len = *) :: appliname
 
-    integer :: l1
+    integer (kind = cwipi_int_l) :: l1
 
     l1 = len(appliname)
 
@@ -418,7 +445,7 @@ contains
 
   implicit none
 
-  integer :: outputUnit
+  integer (kind = cwipi_int_l) :: outputUnit
 
   ifile =  outputUnit
 
@@ -444,9 +471,9 @@ contains
     implicit none
 
     character (len = *) :: name
-    integer :: initialvalue
+    integer (kind = cwipi_int_l) :: initialvalue
 
-    integer :: l
+    integer (kind = cwipi_int_l) :: l
 
     l = len(name)
 
@@ -474,7 +501,7 @@ contains
     character (len = *) ::name
     double precision :: initialvalue
 
-    integer :: l
+    integer (kind = cwipi_int_l) :: l
 
     l = len(name)
 
@@ -502,7 +529,7 @@ contains
     character (len = *) :: name
     character (len = *) :: initialvalue
 
-    integer :: l1, l2
+    integer (kind = cwipi_int_l) :: l1, l2
 
     l1 = len(name)
     l2 = len(initialvalue)
@@ -530,9 +557,9 @@ contains
     implicit none
 
     character (len = *) ::name
-    integer :: initialvalue
+    integer (kind = cwipi_int_l) :: initialvalue
 
-    integer :: l
+    integer (kind = cwipi_int_l) :: l
 
     l = len(name)
 
@@ -562,7 +589,7 @@ contains
     character (len = *) :: name
     double precision :: initialvalue
 
-    integer :: l
+    integer (kind = cwipi_int_l) :: l
 
     l = len(name)
 
@@ -592,7 +619,7 @@ contains
     character (len = *) :: name
     character (len = *) :: initialvalue
 
-    integer :: l1, l2
+    integer (kind = cwipi_int_l) :: l1, l2
 
     l1 = len(name)
     l2 = len(initialvalue)
@@ -619,9 +646,9 @@ contains
     implicit none
 
     character (len = *) :: name
-    integer ::value
+    integer (kind = cwipi_int_l) ::value
 
-    integer :: l
+    integer (kind = cwipi_int_l) :: l
 
     l = len(name)
 
@@ -649,7 +676,7 @@ contains
     character (len = *) :: name
     double precision :: value
 
-    integer :: l
+    integer (kind = cwipi_int_l) :: l
 
     l = len(name)
 
@@ -677,7 +704,7 @@ contains
     character (len = *) :: name
     character (len = *) :: value_str_f
 
-    integer :: l1, l2
+    integer (kind = cwipi_int_l) :: l1, l2
 
     l1 = len(name)
     l2 = len(value_str_f)
@@ -704,7 +731,7 @@ contains
     implicit none
 
     character (len = *) :: name
-    integer l
+    integer (kind = cwipi_int_l) l
 
     l = len(name)
 
@@ -730,7 +757,7 @@ contains
     implicit none
 
     character (len = *) :: name
-    integer :: l
+    integer (kind = cwipi_int_l) :: l
 
     l = len(name)
 
@@ -756,13 +783,328 @@ contains
     implicit none
 
     character (len = *) :: name
-    integer :: l
+    integer (kind = cwipi_int_l) :: l
 
     l = len(name)
 
     call cwipi_del_loc_str_ctrl_param_cf (name, l)
 
   end subroutine cwipi_del_loc_str_ctrl_param_f_
+
+!
+!********************************************************************************
+!
+! cwipi_has_int_ctrl_param_f
+!
+! Has int control parameter ?
+!
+! parameters
+!    application_name       <-- application name
+!    name                   <-- parameter name
+!
+!********************************************************************************
+!
+
+  subroutine cwipi_has_int_ctrl_param_f_(appliName, &
+                                         paramName, &
+                                         status)
+
+    implicit none
+
+    character (len = *) :: appliName
+    character (len = *) :: paramName
+    integer (kind = cwipi_int_l) :: status
+
+    integer (kind = cwipi_int_l) :: l1, l2
+
+    l1 = len(appliName)
+    l2 = len(paramName)
+
+    call cwipi_has_int_ctrl_param_cf(appliName, &
+                                         l1, &
+                                         paramName, &
+                                         l2, &
+                                         status)
+
+  end subroutine cwipi_has_int_ctrl_param_f_
+
+!
+!********************************************************************************
+!
+! cwipi_has_dbl_ctrl_param_f
+!
+! has double control parameter ?
+!
+! parameters
+!    application_name       <-- application name
+!    name                   <-- parameter name
+!
+!********************************************************************************
+!
+
+  subroutine cwipi_has_dbl_ctrl_param_f_(appliName, &
+                                             paramName, &
+                                             status)
+
+    implicit none
+
+    character (len = *) :: appliName
+    character (len = *) :: paramName
+    integer (kind = cwipi_int_l) :: status
+
+    integer (kind = cwipi_int_l) :: l1, l2
+
+    l1 = len(appliName)
+    l2 = len(paramName)
+
+    call cwipi_has_dbl_ctrl_param_cf(appliName, &
+                                     l1, &
+                                     paramName, &
+                                     l2, &
+                                     status)
+
+  end subroutine cwipi_has_dbl_ctrl_param_f_
+
+!
+!********************************************************************************
+!
+! cwipi_has_str_ctrl_param_f
+!
+! has double control parameter ?
+!
+! parameters
+!    application_name       <-- application name
+!    name                   <-- parameter name
+!
+!********************************************************************************
+!
+
+  subroutine cwipi_has_str_ctrl_param_f_(appliName, &
+                                         paramName, &
+                                         status)
+
+    implicit none
+
+    character (len = *) :: appliName
+    character (len = *) :: paramName
+    integer (kind = cwipi_int_l) :: status
+
+    integer (kind = cwipi_int_l) :: l1, l2
+
+    l1 = len(appliName)
+    l2 = len(paramName)
+
+    call cwipi_has_str_ctrl_param_cf(appliName, &
+                                     l1, &
+                                     paramName, &
+                                     l2, &
+                                     status)
+
+  end subroutine cwipi_has_str_ctrl_param_f_
+
+!
+!********************************************************************************
+!
+! cwipi_get_n_int_ctrl_param_f
+!
+! Get number of int control parameter
+!
+! parameters
+!    application_name       <-- application name
+!    name                   <-- parameter name
+!
+!********************************************************************************
+!
+
+  subroutine cwipi_get_n_int_ctrl_param_f_(appliName, &
+                                           n_param)
+
+    implicit none
+
+    character (len = *) :: appliName
+    integer (kind = cwipi_int_l) :: n_param
+
+    integer (kind = cwipi_int_l) :: l1
+
+    l1 = len(appliName)
+
+    call cwipi_get_n_int_ctrl_param_cf(appliName, &
+                                     l1, &
+                                     n_param)
+
+  end subroutine cwipi_get_n_int_ctrl_param_f_
+
+
+!
+!********************************************************************************
+!
+! cwipi_get_n_dbl_ctrl_param_f
+!
+! Get number of int control parameter
+!
+! parameters
+!    application_name       <-- application name
+!    name                   <-- parameter name
+!
+!********************************************************************************
+!
+
+  subroutine cwipi_get_n_dbl_ctrl_param_f_(appliName, &
+                                           n_param)
+
+    implicit none
+
+    character (len = *) :: appliName
+    integer (kind = cwipi_int_l) :: n_param
+
+    integer (kind = cwipi_int_l) :: l1
+
+    l1 = len(appliName)
+
+    call cwipi_get_n_dbl_ctrl_param_cf(appliName, &
+                                       l1, &
+                                       n_param)
+
+  end subroutine cwipi_get_n_dbl_ctrl_param_f_
+
+!
+!********************************************************************************
+!
+! cwipi_get_n_str_ctrl_param_f
+!
+! Get number of int control parameter
+!
+! parameters
+!    application_name       <-- application name
+!    name                   <-- parameter name
+!
+!********************************************************************************
+!
+
+  subroutine cwipi_get_n_str_ctrl_param_f_(appliName, &
+                                           n_param)
+
+    implicit none
+
+    character (len = *) :: appliName
+    integer (kind = cwipi_int_l) :: n_param
+
+    integer (kind = cwipi_int_l) :: l1
+
+    l1 = len(appliName)
+
+    call cwipi_get_n_str_ctrl_param_cf(appliName, &
+                                       l1, &
+                                       n_param)
+
+  end subroutine cwipi_get_n_str_ctrl_param_f_
+
+
+!
+!********************************************************************************
+!
+! cwipi_get_list_int_ctrl_param_f
+!
+! Get int control parameter list
+!
+! parameters
+!    application_name       <-- application name
+!    name                   <-- parameter name
+!
+!********************************************************************************
+!
+
+  subroutine cwipi_get_list_int_ctrl_param_f_(appliName, &
+                                              params)
+
+    implicit none
+
+    character (len = *) :: appliName
+    character (len = *) :: params(*)
+
+    integer (kind = cwipi_int_l) :: l1, l2
+
+    l1 = len(appliName)
+    l2 = len(params)
+
+    call cwipi_get_list_int_ctrl_param_cf(appliName, &
+                                          l1, &
+                                          params, &
+                                          l2)
+
+  end subroutine cwipi_get_list_int_ctrl_param_f_
+
+
+!
+!********************************************************************************
+!
+! cwipi_get_list_dbl_ctrl_param_f
+!
+! Get double control parameter list
+!
+! parameters
+!    application_name       <-- application name
+!    name                   <-- parameter name
+!
+!********************************************************************************
+!
+
+  subroutine cwipi_get_list_dbl_ctrl_param_f_(appliName, &
+                                              params)
+
+    implicit none
+
+    character (len = *) :: appliName
+    character (len = *) :: params(*)
+
+    integer (kind = cwipi_int_l) :: l1, l2
+
+    l1 = len(appliName)
+    l2 = len(params)
+
+    call cwipi_get_list_dbl_ctrl_param_cf(appliName, &
+                                          l1, &
+                                          params, &
+                                          l2)
+
+  end subroutine cwipi_get_list_dbl_ctrl_param_f_
+
+
+
+!
+!********************************************************************************
+!
+! cwipi_get_list_dbl_ctrl_param_f
+!
+! Get double control parameter list
+!
+! parameters
+!    application_name       <-- application name
+!    name                   <-- parameter name
+!
+!********************************************************************************
+!
+
+  subroutine cwipi_get_list_str_ctrl_param_f_(appliName, &
+                                              params)
+
+    implicit none
+
+    character (len = *) :: appliName
+    character (len = *) :: params(*)
+
+    integer (kind = cwipi_int_l) :: l1, l2
+
+    l1 = len(appliName)
+    l2 = len(params)
+
+    call cwipi_get_list_str_ctrl_param_cf(appliName, &
+                                          l1, &
+                                          params, &
+                                          l2)
+
+  end subroutine cwipi_get_list_str_ctrl_param_f_
+
 
 !
 !********************************************************************************
@@ -786,9 +1128,9 @@ contains
 
     character (len = *) :: appliName
     character (len = *) :: paramName
-    integer :: value
+    integer (kind = cwipi_int_l) :: value
 
-    integer :: l1, l2
+    integer (kind = cwipi_int_l) :: l1, l2
 
     l1 = len(appliName)
     l2 = len(paramName)
@@ -825,7 +1167,7 @@ contains
     character (len = *) :: paramName
     double precision :: value
 
-    integer l1, l2
+    integer (kind = cwipi_int_l) l1, l2
 
     l1 = len(appliName)
     l2 = len(paramName)
@@ -863,7 +1205,7 @@ contains
     character (len = *) :: paramName
     character (len = *) :: value_str_f
 
-    integer :: l1, l2, l3
+    integer (kind = cwipi_int_l) :: l1, l2, l3
 
     l1 = len(appliName)
     l2 = len(paramName)
@@ -898,7 +1240,7 @@ contains
 
     character (len = *) :: appliName
 
-    integer l
+    integer (kind = cwipi_int_l) l
 
     l = len(appliName)
 
@@ -931,6 +1273,7 @@ contains
 !   tolerance               <-- Geometric tolerance to locate
 !   meshT                   <-- CWIPI_STATIC_MESH
 !                               CWIPI_MOBILE_MESH (not implemented yet)
+!                               CWIPI_CYCLIC_MESH 
 !   solverT                 <-- CWIPI_SOLVER_CELL_CENTER
 !                               CWIPI_SOLVER_CELL_VERTEX
 !   outputFreq              <-- Output frequency
@@ -954,6 +1297,8 @@ contains
 !                                                 with tetrahedra and pyramids
 !                                                 (adding a vertex near
 !                                                 each polyhedron's center)
+!   nbLocations             <-- maximun number of locations (only with 
+!                               CWIPI_CYCLIC_MESH) optional default 1
 !
 !********************************************************************************
 !
@@ -967,18 +1312,28 @@ contains
                                            solvert, &
                                            outputfreq, &
                                            outputfmt, &
-                                           outputfmtopt)
+                                           outputfmtopt,&
+                                           nbLocations)
 
     implicit none
 
     character (len = *) :: couplingName, cplAppli
-    integer :: entitiesDim, meshT, solverT, couplingType
+    integer (kind = cwipi_int_l) :: entitiesDim, meshT, solverT, couplingType
     double precision :: tolerance
-    integer :: outputFreq
+    integer (kind = cwipi_int_l) :: outputFreq
     character (len = *) :: outputFmt, outputFmtOpt
 
-    integer :: lCouplingName, lCplAppli
-    integer :: lOutputFmt, lOutputFmtOpt
+    integer (kind = cwipi_int_l) :: lCouplingName, lCplAppli
+    integer (kind = cwipi_int_l) :: lOutputFmt, lOutputFmtOpt
+    integer (kind = cwipi_int_l),intent(in), optional :: nbLocations
+   
+    integer (kind = cwipi_int_l) nbLoc
+
+    if(present(nbLocations)) then
+       nbLoc = nbLocations
+    else
+       nbLoc = 1
+    endif
 
     lCouplingName = len(couplingName)
     lCplAppli     = len(cplAppli)
@@ -998,7 +1353,8 @@ contains
                                   outputFmt, &
                                   lOutputFmt, &
                                   outputFmtOpt, &
-                                  lOutputFmtOpt)
+                                  lOutputFmtOpt, &
+                                  nbLoc)
     
   end subroutine cwipi_create_coupling_f_
 
@@ -1028,10 +1384,10 @@ contains
 
     character (len = *) :: couplingName
 
-    integer :: nPts
+    integer (kind = cwipi_int_l) :: nPts
     double precision, dimension(3 * npts) :: coords
 
-    integer :: lCouplingName
+    integer (kind = cwipi_int_l) :: lCouplingName
 
     lCouplingName  = len(couplingName)
 
@@ -1147,12 +1503,12 @@ contains
     implicit none
 
     character (len = *) :: couplingName
-    integer :: lCouplingName
+    integer (kind = cwipi_int_l) :: lCouplingName
 
-    integer :: nElts, nVertex
-    integer, dimension (nelts+1) :: connecIndex(nelts+1)
+    integer (kind = cwipi_int_l) :: nElts, nVertex
+    integer (kind = cwipi_int_l), dimension (nelts+1) :: connecIndex(nelts+1)
 
-    integer, dimension (*) ::  connec
+    integer (kind = cwipi_int_l), dimension (*) ::  connec
     double precision, dimension(3 * nVertex) :: coords
 
     lCouplingName    = len(couplingName)
@@ -1198,9 +1554,9 @@ contains
     implicit none
 
     character (len = *) :: couplingName
-    integer :: lCouplingname, nElts, nFaces
-    integer, dimension(nelts) :: cellToFaceIdx
-    integer, dimension(*) :: cellToFace, faceConnecIdx, faceConnec
+    integer (kind = cwipi_int_l) :: lCouplingname, nElts, nFaces
+    integer (kind = cwipi_int_l), dimension(nelts) :: cellToFaceIdx
+    integer (kind = cwipi_int_l), dimension(*) :: cellToFace, faceConnecIdx, faceConnec
 
     lCouplingName = len(couplingName)
 
@@ -1234,7 +1590,7 @@ contains
     implicit none
 
     character (len = *) :: couplingName
-    integer :: lcouplingname
+    integer (kind = cwipi_int_l) :: lcouplingname
 
     lCouplingName = len(couplingName)
 
@@ -1259,7 +1615,7 @@ contains
 
     character (len = *) :: couplingName
     real(kind=4) :: distance(*)
-    integer :: lcouplingname
+    integer (kind = cwipi_int_l) :: lcouplingname
 
     lCouplingName = len(couplingName)
 
@@ -1268,7 +1624,7 @@ contains
 !
 !********************************************************************************
 !
-! cwipi_locate_f
+! cwipi_update_location_f
 !
 ! Location completion.
 ! It is a synchronization point with the coupled application
@@ -1284,13 +1640,145 @@ contains
     implicit none
 
     character (len = *) :: couplingName
-    integer :: lcouplingname
+    integer (kind = cwipi_int_l) :: lcouplingname
 
     lCouplingName = len(couplingName)
 
     call cwipi_update_location_cf(couplingName, lCouplingName)
   end subroutine cwipi_update_location_f_
 
+
+!
+!********************************************************************************
+!
+! cwipi_set_location_index_f
+!
+! parameters
+!   couplingName          <-- Coupling identifier
+!   index                 <-- location index
+!
+!*******************************************************************************
+!
+
+  subroutine cwipi_set_location_index_f_(couplingName, index)
+
+    implicit none
+
+    character (len = *) :: couplingName
+    integer (kind = cwipi_int_l) :: lcouplingname
+    integer (kind = cwipi_int_l) :: index
+
+    lCouplingName = len(couplingName)
+
+    call cwipi_set_location_index_cf(couplingName, lCouplingName, index)
+  end subroutine cwipi_set_location_index_f_
+
+
+!
+!********************************************************************************
+!
+! cwipi_load_location_f
+!
+! parameters
+!   couplingName          <-- Coupling identifier
+!
+!*******************************************************************************
+!
+
+  subroutine cwipi_load_location_f_(couplingName)
+
+    implicit none
+
+    character (len = *) :: couplingName
+    integer (kind = cwipi_int_l) :: lcouplingname
+
+    lCouplingName = len(couplingName)
+
+    call cwipi_load_location_cf(couplingName, lCouplingName)
+  end subroutine cwipi_load_location_f_
+
+
+!
+!********************************************************************************
+!
+! cwipi_save_location_f
+!
+! parameters
+!   couplingName          <-- Coupling identifier
+!
+!*******************************************************************************
+!
+
+  subroutine cwipi_save_location_f_(couplingName)
+
+    implicit none
+
+    character (len = *) :: couplingName
+    integer (kind = cwipi_int_l) :: lcouplingname
+
+    lCouplingName = len(couplingName)
+
+    call cwipi_save_location_cf(couplingName, lCouplingName)
+  end subroutine cwipi_save_location_f_
+
+
+!
+!********************************************************************************
+!
+! cwipi_save_location_f
+!
+! parameters
+!   couplingName          <-- Coupling identifier
+!
+!*******************************************************************************
+!
+
+  subroutine cwipi_open_location_file_f_(couplingName, fileName, mode)
+
+    implicit none
+
+    character (len = *) :: couplingName
+    character (len = *) :: fileName
+    character (len = *) :: mode
+    integer (kind = cwipi_int_l) :: lcouplingname
+    integer (kind = cwipi_int_l) :: lfileName
+    integer (kind = cwipi_int_l) :: lmode
+
+    lCouplingName = len(couplingName)
+    lfileName = len(fileName)
+    lmode = len(mode)
+
+    call cwipi_open_location_file_cf(couplingName, lCouplingName, &
+                                     fileName, lfileName, &
+                                     mode, lmode)
+ 
+  end subroutine cwipi_open_location_file_f_
+
+
+
+!
+!********************************************************************************
+!
+! cwipi_save_location_f
+!
+! parameters
+!   couplingName          <-- Coupling identifier
+!
+!*******************************************************************************
+!
+
+  subroutine cwipi_close_location_file_f_(couplingName)
+
+    implicit none
+
+    character (len = *) :: couplingName
+    integer (kind = cwipi_int_l) :: lcouplingname
+
+    lCouplingName = len(couplingName)
+
+    call cwipi_close_location_file_cf(couplingName, lCouplingName)
+ 
+  end subroutine cwipi_close_location_file_f_
 
 !
 !********************************************************************************
@@ -1311,8 +1799,8 @@ contains
     implicit none
 
     character (len = *) :: couplingName
-    integer :: lcouplingname
-    integer, dimension(*) :: location
+    integer (kind = cwipi_int_l) :: lcouplingname
+    integer (kind = cwipi_int_l), dimension(*) :: location
 
     lCouplingName = len(couplingName)
 
@@ -1338,7 +1826,7 @@ contains
     implicit none
 
     character (len = *) :: couplingName
-    integer :: lcouplingname
+    integer (kind = cwipi_int_l) :: lcouplingname
     real*4, dimension(*) :: distance
 
     lCouplingName = len(couplingName)
@@ -1366,7 +1854,7 @@ contains
     implicit none
 
     character (len = *) :: couplingName
-    integer :: lcouplingname
+    integer (kind = cwipi_int_l) :: lcouplingname
     double precision, dimension(*) :: coordinates
 
     lCouplingName = len(couplingName)
@@ -1396,8 +1884,8 @@ contains
     implicit none
 
     character (len = *) :: couplingName
-    integer :: lcouplingname
-    integer, dimension(*) :: barycentricCoordinatesIndex
+    integer (kind = cwipi_int_l) :: lcouplingname
+    integer (kind = cwipi_int_l), dimension(*) :: barycentricCoordinatesIndex
 
     lCouplingName = len(couplingName)
 
@@ -1426,7 +1914,7 @@ contains
     implicit none
 
     character (len = *) :: couplingName
-    integer :: lcouplingname
+    integer (kind = cwipi_int_l) :: lcouplingname
     double precision, dimension(*) :: barycentricCoordinates
 
     lCouplingName = len(couplingName)
@@ -1476,13 +1964,13 @@ contains
 
     character (len = *) :: couplingName, exchangeName, sendingFieldName
     character (len = *) :: receivingFieldName
-    integer :: stride, nStep, status
-    integer :: nNotLocatedPoints
+    integer (kind = cwipi_int_l) :: stride, nStep, status
+    integer (kind = cwipi_int_l) :: nNotLocatedPoints
     double precision :: timeValue
     double precision, dimension(*) :: sendingField, receivingField
 
-    integer :: lCouplingName, lExchangeName, lSendingFieldName
-    integer :: lReceivingFieldName
+    integer (kind = cwipi_int_l) :: lCouplingName, lExchangeName, lSendingFieldName
+    integer (kind = cwipi_int_l) :: lReceivingFieldName
 
     lCouplingName       = len(couplingName)
     lExchangeName       = len(exchangeName)
@@ -1542,11 +2030,11 @@ contains
     implicit none
 
     character (len = *) :: couplingName, exchangeName, sendingFieldName
-    integer :: stride, nStep, status, tag, request
+    integer (kind = cwipi_int_l) :: stride, nStep, status, tag, request
     double precision :: timeValue
     double precision, dimension(*) :: sendingField
 
-    integer :: lCouplingName, lExchangeName, lSendingFieldName
+    integer (kind = cwipi_int_l) :: lCouplingName, lExchangeName, lSendingFieldName
 
     lCouplingName       = len(couplingName)
     lExchangeName       = len(exchangeName)
@@ -1623,35 +2111,35 @@ contains
                                       solverType, &
                                       localField, &
                                       distantField)
-         integer :: entitiesDim
-         integer :: nLocalVertex
-         integer :: nLocalElement
-         integer :: nLocalPolyhedra
-         integer :: nDistantPoint
+         integer (kind = 4) :: entitiesDim
+         integer (kind = 4) :: nLocalVertex
+         integer (kind = 4) :: nLocalElement
+         integer (kind = 4) :: nLocalPolyhedra
+         integer (kind = 4) :: nDistantPoint
          double precision, dimension(*) :: localCoordinates
-         integer, dimension(*) :: localConnectivityIndex
-         integer, dimension(*) :: localConnectivity
-         integer, dimension(*) :: localPolyFaceIndex
-         integer, dimension(*) :: localPolyCellToFaceConnec
-         integer, dimension(*) :: localPolyFaceConnecIdx
-         integer, dimension(*) :: localPolyFaceConnec
+         integer (kind = 4), dimension(*) :: localConnectivityIndex
+         integer (kind = 4), dimension(*) :: localConnectivity
+         integer (kind = 4), dimension(*) :: localPolyFaceIndex
+         integer (kind = 4), dimension(*) :: localPolyCellToFaceConnec
+         integer (kind = 4), dimension(*) :: localPolyFaceConnecIdx
+         integer (kind = 4), dimension(*) :: localPolyFaceConnec
          double precision, dimension(*) :: disPtsCoordinates
-         integer, dimension(*) :: disPtsLocation
+         integer (kind = 4), dimension(*) :: disPtsLocation
          real*4, dimension(*) :: disPtsDistance
-         integer, dimension(*) :: disPtsBaryCoordIdx
+         integer (kind = 4), dimension(*) :: disPtsBaryCoordIdx
          double precision, dimension(*) :: disPtsBaryCoord
-         integer :: stride
-         integer :: solverType
+         integer (kind = 4) :: stride
+         integer (kind = 4) :: solverType
          double precision, dimension(*) :: localField
          double precision, dimension(*) :: distantField
        end subroutine ptInterpolationFct
     end interface
     character (len = *) :: couplingName, exchangeName, sendingFieldName
-    integer :: stride, nStep, tag, request
+    integer (kind = cwipi_int_l) :: stride, nStep, tag, request
     double precision :: timeValue
     double precision, dimension(*) :: sendingField
 
-    integer :: lCouplingName, lExchangeName, lSendingFieldName
+    integer (kind = cwipi_int_l) :: lCouplingName, lExchangeName, lSendingFieldName
 
     lCouplingName       = len(couplingName)
     lExchangeName       = len(exchangeName)
@@ -1707,11 +2195,11 @@ contains
     implicit none
 
     character (len = *) :: couplingName, exchangeName, sendingFieldName
-    integer :: stride, nStep, status
+    integer (kind = cwipi_int_l) :: stride, nStep, status
     double precision :: timeValue
     double precision, dimension(*) :: sendingField
 
-    integer :: lCouplingName, lExchangeName, lSendingFieldName
+    integer (kind = cwipi_int_l) :: lCouplingName, lExchangeName, lSendingFieldName
 
     lCouplingName       = len(couplingName)
     lExchangeName       = len(exchangeName)
@@ -1786,35 +2274,35 @@ contains
                                       solverType, &
                                       localField, &
                                       distantField)
-         integer :: entitiesDim
-         integer :: nLocalVertex
-         integer :: nLocalElement
-         integer :: nLocalPolyhedra
-         integer :: nDistantPoint
+         integer (kind = 4) :: entitiesDim
+         integer (kind = 4) :: nLocalVertex
+         integer (kind = 4) :: nLocalElement
+         integer (kind = 4) :: nLocalPolyhedra
+         integer (kind = 4) :: nDistantPoint
          double precision, dimension(*) :: localCoordinates
-         integer, dimension(*) :: localConnectivityIndex
-         integer, dimension(*) :: localConnectivity
-         integer, dimension(*) :: localPolyFaceIndex
-         integer, dimension(*) :: localPolyCellToFaceConnec
-         integer, dimension(*) :: localPolyFaceConnecIdx
-         integer, dimension(*) :: localPolyFaceConnec
+         integer (kind = 4), dimension(*) :: localConnectivityIndex
+         integer (kind = 4), dimension(*) :: localConnectivity
+         integer (kind = 4), dimension(*) :: localPolyFaceIndex
+         integer (kind = 4), dimension(*) :: localPolyCellToFaceConnec
+         integer (kind = 4), dimension(*) :: localPolyFaceConnecIdx
+         integer (kind = 4), dimension(*) :: localPolyFaceConnec
          double precision, dimension(*) :: disPtsCoordinates
-         integer, dimension(*) :: disPtsLocation
+         integer (kind = 4), dimension(*) :: disPtsLocation
          real*4, dimension(*) :: disPtsDistance
-         integer, dimension(*) :: disPtsBaryCoordIdx
+         integer (kind = 4), dimension(*) :: disPtsBaryCoordIdx
          double precision, dimension(*) :: disPtsBaryCoord
-         integer :: stride
-         integer :: solverType
+         integer (kind = 4) :: stride
+         integer (kind = 4) :: solverType
          double precision, dimension(*) :: localField
          double precision, dimension(*) :: distantField
        end subroutine ptInterpolationFct
     end interface
     character (len = *) :: couplingName, exchangeName, sendingFieldName
-    integer :: stride, nStep, status
+    integer (kind = cwipi_int_l) :: stride, nStep, status
     double precision :: timeValue
     double precision, dimension(*) :: sendingField
 
-    integer :: lCouplingName, lExchangeName, lSendingFieldName
+    integer (kind = cwipi_int_l) :: lCouplingName, lExchangeName, lSendingFieldName
 
     lCouplingName       = len(couplingName)
     lExchangeName       = len(exchangeName)
@@ -1870,12 +2358,12 @@ contains
     implicit none
 
     character (len = *) :: couplingName, exchangeName, receivingFieldName
-    integer :: stride, nStep, status
-    integer :: nNotlocatedPoints
+    integer (kind = cwipi_int_l) :: stride, nStep, status
+    integer (kind = cwipi_int_l) :: nNotlocatedPoints
     double precision :: timeValue
     double precision, dimension(*) :: receivingField
 
-    integer :: lCouplingName, lExchangeName, lReceivingFieldName
+    integer (kind = cwipi_int_l) :: lCouplingName, lExchangeName, lReceivingFieldName
 
     lCouplingName       = len(couplingName)
     lExchangeName       = len(exchangeName)
@@ -1933,11 +2421,11 @@ contains
     implicit none
 
     character (len = *) :: couplingName, exchangeName, receivingFieldName
-    integer :: stride, nStep, status, tag, request
+    integer (kind = cwipi_int_l) :: stride, nStep, status, tag, request
     double precision :: timeValue
     double precision, dimension(*) :: receivingField
 
-    integer :: lCouplingName, lExchangeName, lReceivingFieldName
+    integer (kind = cwipi_int_l) :: lCouplingName, lExchangeName, lReceivingFieldName
 
     lCouplingName       = len(couplingName)
     lExchangeName       = len(exchangeName)
@@ -1979,8 +2467,8 @@ contains
     implicit none
 
     character (len = *) :: couplingName
-    integer :: request
-    integer :: lCouplingName
+    integer (kind = cwipi_int_l) :: request
+    integer (kind = cwipi_int_l) :: lCouplingName
 
     lCouplingName       = len(couplingName)
 
@@ -2009,8 +2497,8 @@ contains
     implicit none
 
     character (len = *) :: couplingName
-    integer :: request
-    integer :: lCouplingName
+    integer (kind = cwipi_int_l) :: request
+    integer (kind = cwipi_int_l) :: lCouplingName
 
     lCouplingName       = len(couplingName)
 
@@ -2081,25 +2569,25 @@ contains
                                       solverType, &
                                       localField, &
                                       distantField)
-         integer :: entitiesDim
-         integer :: nLocalVertex
-         integer :: nLocalElement
-         integer :: nLocalPolyhedra
-         integer :: nDistantPoint
+         integer (kind = 4) :: entitiesDim
+         integer (kind = 4) :: nLocalVertex
+         integer (kind = 4) :: nLocalElement
+         integer (kind = 4) :: nLocalPolyhedra
+         integer (kind = 4) :: nDistantPoint
          double precision, dimension(*) :: localCoordinates
-         integer, dimension(*) :: localConnectivityIndex
-         integer, dimension(*) :: localConnectivity
-         integer, dimension(*) :: localPolyFaceIndex
-         integer, dimension(*) :: localPolyCellToFaceConnec
-         integer, dimension(*) :: localPolyFaceConnecIdx
-         integer, dimension(*) :: localPolyFaceConnec
+         integer (kind = 4), dimension(*) :: localConnectivityIndex
+         integer (kind = 4), dimension(*) :: localConnectivity
+         integer (kind = 4), dimension(*) :: localPolyFaceIndex
+         integer (kind = 4), dimension(*) :: localPolyCellToFaceConnec
+         integer (kind = 4), dimension(*) :: localPolyFaceConnecIdx
+         integer (kind = 4), dimension(*) :: localPolyFaceConnec
          double precision, dimension(*) :: disPtsCoordinates
-         integer, dimension(*) :: disPtsLocation
+         integer (kind = 4), dimension(*) :: disPtsLocation
          real*4, dimension(*) :: disPtsDistance
-         integer, dimension(*) :: disPtsBaryCoordIdx
+         integer (kind = 4), dimension(*) :: disPtsBaryCoordIdx
          double precision, dimension(*) :: disPtsBaryCoord
-         integer :: stride
-         integer :: solverType
+         integer (kind = 4) :: stride
+         integer (kind = 4) :: solverType
          double precision, dimension(*) :: localField
          double precision, dimension(*) :: distantField
        end subroutine ptInterpolationFct
@@ -2107,13 +2595,13 @@ contains
 
     character (len = *) :: couplingName, exchangeName, sendingFieldName
     character (len = *) :: receivingFieldName
-    integer :: exchangeDim, nStep, status
-    integer :: nnotlocatedpoints
+    integer (kind = cwipi_int_l) :: exchangeDim, nStep, status
+    integer (kind = cwipi_int_l) :: nnotlocatedpoints
     double precision :: timeValue
     double precision, dimension(*) ::  sendingField, receivingField
 
-    integer :: lCouplingName, lExchangeName, lSendingFieldName
-    integer :: lReceivingFieldName
+    integer (kind = cwipi_int_l) :: lCouplingName, lExchangeName, lSendingFieldName
+    integer (kind = cwipi_int_l) :: lReceivingFieldName
 
     lCouplingName       = len(couplingName)
     lExchangeName       = len(exchangeName)
@@ -2158,7 +2646,7 @@ contains
     implicit none
 
     character (len = *) :: couplingName
-    integer :: lCouplingName
+    integer (kind = cwipi_int_l) :: lCouplingName
 
     lCouplingName       = len(couplingName)
 
@@ -2194,8 +2682,8 @@ contains
     implicit none
 
     character (len = *) :: couplingName
-    integer, dimension(*) :: notLocatedPoints
-    integer :: lCouplingName
+    integer (kind = cwipi_int_l), dimension(*) :: notLocatedPoints
+    integer (kind = cwipi_int_l) :: lCouplingName
 
     lCouplingName       = len(couplingName)
 
@@ -2220,8 +2708,8 @@ contains
     implicit none
 
     character (len = *) :: couplingName
-    integer :: nLocatedDistantPoints
-    integer :: lCouplingName
+    integer (kind = cwipi_int_l) :: nLocatedDistantPoints
+    integer (kind = cwipi_int_l) :: lCouplingName
 
     lCouplingName       = len(couplingName)
 
@@ -2249,8 +2737,8 @@ contains
     implicit none
 
     character (len = *) :: couplingName
-    integer, dimension(*) :: locatedPoints
-    integer :: lCouplingName
+    integer (kind = cwipi_int_l), dimension(*) :: locatedPoints
+    integer (kind = cwipi_int_l) :: lCouplingName
 
     lCouplingName       = len(couplingName)
 
@@ -2274,8 +2762,8 @@ contains
     implicit none
 
     character (len = *) :: couplingName
-    integer :: nLocatedPoints
-    integer :: lCouplingName
+    integer (kind = cwipi_int_l) :: nLocatedPoints
+    integer (kind = cwipi_int_l) :: lCouplingName
 
     lCouplingName       = len(couplingName)
 
@@ -2302,8 +2790,8 @@ contains
     implicit none
 
     character (len = *) :: couplingName
-    integer :: nNotLocatedPoints
-    integer :: lCouplingName
+    integer (kind = cwipi_int_l) :: nNotLocatedPoints
+    integer (kind = cwipi_int_l) :: lCouplingName
 
     lCouplingName       = len(couplingName)
 
@@ -2316,325 +2804,83 @@ contains
 !
 !********************************************************************************
 !
-! Get distant elements that contain located points
+! Get number of distant ranks 
 !
 ! parameters
-!   couplingName         <-- Coupling identifier
-!   elements             --> Element that contain located points
+!   coupling_id          <-- Coupling identifier
+!
+! return
+!                        --> Number of distant ranks
 !
 !********************************************************************************
 !
 
-  subroutine cwipi_get_elt_cont_f_ (couplingName, elements)
+  subroutine cwipi_get_n_dis_ranks_f_(couplingName, n_dis_ranks)
     implicit none
 
     character (len = *) :: couplingName
-    integer, dimension(*) :: elements
-    integer :: lCouplingName
+    integer (kind = cwipi_int_l) :: lCouplingName
+    integer (kind = cwipi_int_l) :: n_dis_ranks
 
     lCouplingName       = len(couplingName)
 
-    call cwipi_get_elt_cont_cf (couplingName, lCouplingName, elements)
+    call cwipi_get_n_dis_ranks_cf(couplingName,  lCouplingName , n_dis_ranks)
 
-  end subroutine cwipi_get_elt_cont_f_
+  end subroutine cwipi_get_n_dis_ranks_f_
 
 !
 !********************************************************************************
 !
-! Get number of vertices of distant elements that contain located points
+! Get distant point distribution on distant ranks (size = n_distant_rank + 1)
 !
 ! parameters
-!   couplingName         <-- Coupling identifier
-!   n_vertices           --> Number of vertices of element that contain
-!                            located pointlocatedPoints        --> Located points (1 to n)
+!   coupling_id          <-- Coupling identifier
+!
+! return
+!                             Distant point distribution on distant ranks
 !
 !********************************************************************************
 !
 
-  subroutine cwipi_get_elt_cont_n_vtx_f_ (couplingName, n_vertices)
+  subroutine cwipi_get_dis_distrib_f_(couplingName, distrib)
     implicit none
 
     character (len = *) :: couplingName
-    integer, dimension(*) :: n_vertices
-    integer :: lCouplingName
+    integer (kind = cwipi_int_l) :: lCouplingName
+    integer (kind = cwipi_int_l) :: distrib(*)
 
     lCouplingName       = len(couplingName)
 
-    call cwipi_get_elt_cont_n_vtx_cf(couplingname, lCouplingName, n_vertices)
+    call cwipi_get_dis_distrib_cf(couplingName,  lCouplingName , distrib)
 
-  end subroutine cwipi_get_elt_cont_n_vtx_f_
+  end subroutine cwipi_get_dis_distrib_f_
 
 !
 !********************************************************************************
 !
-! Get vertices id of distant elements that contain located points
+! Get located points distribution on distant ranks (size = n_distant_rank + 1)
 !
 ! parameters
-!   couplingName         <-- Coupling identifier
-!   vertices             --> Vertices id
+!   coupling_id          <-- Coupling identifier
+!
+! return
+!                            Located points distribution
 !
 !********************************************************************************
 !
 
-  subroutine cwipi_get_elt_cont_vtx_f_ (couplingName, vertices)
+  subroutine cwipi_get_loc_pts_distrib_f_(couplingName, distrib)
     implicit none
 
     character (len = *) :: couplingName
-    integer, dimension(*) :: vertices
-    integer :: lCouplingName
+    integer (kind = cwipi_int_l) :: lCouplingName
+    integer (kind = cwipi_int_l) :: distrib(*)
 
     lCouplingName       = len(couplingName)
 
-    call cwipi_get_elt_cont_n_vtx_cf(couplingName, lCouplingName, vertices)
+    call cwipi_get_loc_pts_distrib_cf(couplingName,  lCouplingName , distrib)
 
-  end subroutine cwipi_get_elt_cont_vtx_f_
+  end subroutine cwipi_get_loc_pts_distrib_f_
 
-!
-!********************************************************************************
-!
-! Get vertices coordinates of distant elements that contain located points
-!
-! parameters
-!   couplingName         <-- Coupling identifier
-!   coordinates          --> Vertices coordinates
-!
-!********************************************************************************
-!
-
-  subroutine cwipi_get_elt_cont_vtx_coo_f_ (couplingName, coordinates)
-    implicit none
-
-    character (len = *) :: couplingName
-    double precision, dimension(*) :: coordinates
-    integer :: lCouplingName
-
-    lCouplingName       = len(couplingName)
-
-    call cwipi_get_elt_cont_vtx_coo_cf(couplingName, lCouplingName, coordinates)
-
-  end subroutine cwipi_get_elt_cont_vtx_coo_f_
-
-!
-!********************************************************************************
-!
-! Get barycentric coords in distant elements for located points
-!
-! parameters
-!   couplingName         <-- Coupling identifier
-!   coordinates          --> Barycentric coordinates
-!
-!********************************************************************************
-!
-
-  subroutine cwipi_get_elt_cont_bar_coo_f_(couplingName, coordinates)
-    implicit none
-
-    character (len = *) :: couplingName
-    double precision, dimension(*) :: coordinates
-    integer :: lCouplingName
-
-    lCouplingName       = len(couplingName)
-
-    call cwipi_get_elt_cont_bar_coo_cf(couplingName, lCouplingName, coordinates)
-
-  end subroutine cwipi_get_elt_cont_bar_coo_f_
-
-!
-!********************************************************************************
-!
-! For each located point get the MPI rank of distant element
-!
-! parameters
-!   couplingName         <-- Coupling identifier
-!   MPIranks             --> MPI ranks that contains located point
-!
-!********************************************************************************
-!
-
-  subroutine cwipi_get_elt_cont_MPI_rank_f_(couplingName, MPIrank)
-    implicit none
-
-    character (len = *) :: couplingName
-    integer, dimension(*) :: MPIrank
-    integer :: lCouplingName
-
-    lCouplingName       = len(couplingName)
-
-    call cwipi_get_elt_cont_MPI_rank_cf(couplingName, lCouplingName, MPIrank)
-
-  end subroutine cwipi_get_elt_cont_MPI_rank_f_
-
-!
-!********************************************************************************
-!
-! Exchange Fields on vertices of element containing each located point
-!
-! parameters
-!   couplingName         <-- Coupling identifier
-!   sendingField         <-- Field defined on local mesh vertices
-!   receivingField       --> Field defined on vertices of distant
-!                             elements that contain each located point
-!   stride               <-- Number of field component
-!
-!********************************************************************************
-!
-
-  subroutine cwipi_exch_cellvtxfd_eltcont_f_(couplingName, &
-                                              sendingField, &
-                                              receivingField, &
-                                              stride)
-    implicit none
-
-    character (len = *) :: couplingName
-    double precision, dimension(*) :: sendingField
-    double precision, dimension(*) :: receivingField
-    integer :: stride
-    integer :: lCouplingName
-
-    lCouplingName       = len(couplingName)
-
-    call cwipi_exch_cellvtxfd_eltcont_cf(couplingName, &
-                                         lCouplingName, &
-                                         sendingField, &
-                                         receivingField, &
-                                         stride)
-  end subroutine cwipi_exch_cellvtxfd_eltcont_f_
-
-
-  subroutine cwipi_send_cellvtxfd_eltcont_f_(couplingName, &
-                                              sendingField, &
-                                              stride)
-    implicit none
-
-    character (len = *) :: couplingName
-    double precision, dimension(*) :: sendingField
-    integer :: stride
-    integer :: lCouplingName
-
-    lCouplingName       = len(couplingName)
-
-    call cwipi_send_cellvtxfd_eltcont_cf(couplingName, &
-                                         lCouplingName, &
-                                         sendingField, &
-                                         stride)
-  end subroutine cwipi_send_cellvtxfd_eltcont_f_
-
-  subroutine cwipi_recv_cellvtxfd_eltcont_f_(couplingName, &
-                                              receivingField, &
-                                              stride)
-    implicit none
-
-    character (len = *) :: couplingName
-    double precision, dimension(*) :: receivingField
-    integer :: stride
-    integer :: lCouplingName
-
-    lCouplingName       = len(couplingName)
-
-    call cwipi_recv_cellvtxfd_eltcont_cf(couplingName, &
-                                         lCouplingName, &
-                                         receivingField, &
-                                         stride)
-  end subroutine cwipi_recv_cellvtxfd_eltcont_f_
-!
-!********************************************************************************
-!
-! Get number of not located points
-!
-! parameters
-!   couplingName         <-- Coupling identifier
-!   sendingField         <-- Field defined on local mesh vertices
-!   receivingField       --> Field defined on vertices of distant
-!                            elements that contain each located point
-!   stride               <-- Number of field component
-!
-!********************************************************************************
-!
-
-  subroutine cwipi_exch_cellcenfd_eltcont_f_(couplingName, &
-                                              sendingField, &
-                                              receivingField, &
-                                              stride)
-
-    implicit none
-
-    character (len = *) :: couplingName
-    double precision, dimension(*) :: sendingField
-    double precision, dimension(*) :: receivingField
-    integer :: stride
-    integer :: lCouplingName
-
-    lCouplingName       = len(couplingName)
-
-    call cwipi_exch_cellcenfd_eltcont_cf(couplingName, &
-                                         lCouplingName, &
-                                         sendingField, &
-                                         receivingField, &
-                                         stride)
-  end subroutine cwipi_exch_cellcenfd_eltcont_f_
-
-  subroutine cwipi_send_cellcenfd_eltcont_f_(couplingName, &
-                                              sendingField, &
-                                              stride)
-    implicit none
-
-    character (len = *) :: couplingName
-    double precision, dimension(*) :: sendingField
-    integer :: stride
-    integer :: lCouplingName
-
-    lCouplingName       = len(couplingName)
-
-    call cwipi_send_cellcenfd_eltcont_cf(couplingName, &
-                                         lCouplingName, &
-                                         sendingField, &
-                                         stride)
-  end subroutine cwipi_send_cellcenfd_eltcont_f_
-
-  subroutine cwipi_recv_cellcenfd_eltcont_f_(couplingName, &
-                                              receivingField, &
-                                              stride)
-    implicit none
-
-    character (len = *) :: couplingName
-    double precision, dimension(*) :: receivingField
-    integer :: stride
-    integer :: lCouplingName
-
-    lCouplingName       = len(couplingName)
-
-    call cwipi_recv_cellcenfd_eltcont_cf(couplingName, &
-                                         lCouplingName, &
-                                         receivingField, &
-                                         stride)
-  end subroutine cwipi_recv_cellcenfd_eltcont_f_
-!
-!********************************************************************************
-!
-! Set coupling info
-!
-! parameters
-!   couplingName         <-- Coupling identifier
-!   sendingField         <-- Field defined on local mesh vertices
-!   info                 <-- Coupling info
-!
-!********************************************************************************
-!
-
- subroutine cwipi_set_info_f_(couplingName, info)
-
-    implicit none
-
-    character (len = *) :: couplingName
-    integer :: info
-    integer :: lCouplingName
-
-    lCouplingName       = len(couplingName)
-
-    call cwipi_set_info_cf(couplingName, &
-                           lCouplingName, &
-                           info)
-
-  end subroutine cwipi_set_info_f_
 
 end module cwipi

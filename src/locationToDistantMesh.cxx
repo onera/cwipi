@@ -25,6 +25,7 @@
 
 
 #include <mpi.h>
+#include <fvmc_locator.h>
 
 #include "locationToDistantMesh.hxx"
 
@@ -114,6 +115,8 @@ void LocationToDistantMesh::synchronize()
                 localComm );
 
       MPI_Bcast(_unlocatedPoint, _nUnlocatedPoint, MPI_INT, rootRank, localComm );
+
+      _toLocate = false;
 
       if (_locationInfo == CWIPI_DISTANT_MESH_INFO) {
 
@@ -209,17 +212,187 @@ void LocationToDistantMesh::synchronize()
 }
 
 ///
+/// 
+///
+size_t LocationToDistantMesh::locationSize()
+{
+  size_t il_size = 0;
+  il_size += 3 * sizeof(int);
+
+  il_size += sizeof(int);
+  if (_elementContainingNVertex != NULL) 
+    il_size += (_nLocatedPoint+1) * sizeof(int);
+
+  il_size += sizeof(int);
+  if (_elementContainingVertex != NULL) 
+    il_size += _elementContainingNVertex[_nLocatedPoint] * sizeof(int);
+
+  il_size += sizeof(int);
+  if (_elementContainingBarycentricCoordinates != NULL) 
+    il_size += _elementContainingNVertex[_nLocatedPoint] * sizeof(double);
+  
+  il_size += sizeof(int);
+  if(_elementContainingMPIrankContaining != NULL) 
+    il_size += _nLocatedPoint *sizeof(int);
+
+  il_size += sizeof(int);
+  if (_elementContainingVertexCoords != NULL) 
+    il_size += (3 * _elementContainingNVertex[_nLocatedPoint]) * sizeof(double);
+
+  il_size += sizeof(int);
+  if (_elementContaining != NULL) 
+    il_size += _nLocatedPoint * sizeof(int);
+  
+  return il_size;
+  
+}
+
+void LocationToDistantMesh::packLocation(unsigned char *buff)
+{
+  int s;
+  size_t cur_pos;
+  void *p;
+  p = (void *)buff;
+
+  p = mempcpy(p,(void *)&_nPointsToLocate,sizeof(int));
+  p = mempcpy(p,(void *)&_nLocatedPoint,sizeof(int));
+  p = mempcpy(p,(void *)&_nUnlocatedPoint,sizeof(int));
+  
+  // pour chaque tableau, on commence par stoker sa taille 
+  // pour pouvoir l'allouer si nécessaire à la lecture
+  
+  if (_elementContainingNVertex != NULL) {
+    s = _nLocatedPoint+1;
+    p = mempcpy(p,(void *)&s, sizeof(int));
+    p = mempcpy(p,(void *) _elementContainingNVertex,s*sizeof(int));
+  } else {
+    s = 0;
+    p = mempcpy(p,(void *)&s, sizeof(int));
+  }
+
+  if (_elementContainingVertex != NULL) {
+    s = _elementContainingNVertex[_nLocatedPoint];
+    p = mempcpy(p,(void *)&s, sizeof(int));
+    p = mempcpy(p,(void *) _elementContainingVertex,s*sizeof(int));
+  } else {
+    s = 0;
+    p = mempcpy(p,(void *)&s, sizeof(int));
+  }
+
+  if (_elementContainingBarycentricCoordinates != NULL) {
+    s = _elementContainingNVertex[_nLocatedPoint];
+    p = mempcpy(p,(void *)&s, sizeof(int));
+    p = mempcpy(p,(void *) _elementContainingBarycentricCoordinates,s*sizeof(double));
+  } else {
+    s = 0;
+    p = mempcpy(p,(void *)&s, sizeof(int));
+  }
+
+  // attention : alloué dans locationToLocalMesh
+  if(_elementContainingMPIrankContaining != NULL) {
+    s = _nLocatedPoint;
+    p = mempcpy(p,(void *)&s, sizeof(int));
+    p = mempcpy(p,(void *) _elementContainingMPIrankContaining,s*sizeof(int));
+  } else {
+    s = 0;
+    p = mempcpy(p,(void *)&s, sizeof(int));
+  }
+  
+  if (_elementContainingVertexCoords != NULL) {
+    s = (3 * _elementContainingNVertex[_nLocatedPoint]);
+    p = mempcpy(p,(void *)&s, sizeof(int));
+    p = mempcpy(p,(void *)_elementContainingVertexCoords,s*sizeof(double));
+  } else {
+    s = 0;
+    p = mempcpy(p,(void *)&s, sizeof(int));
+  }
+
+  if (_elementContaining != NULL) {
+    s = _nLocatedPoint;
+    p = mempcpy(p,(void *)&s, sizeof(int));
+    p = mempcpy(p,(void *)_elementContaining,_nLocatedPoint*sizeof(int));
+  } else {
+    s = 0;
+    p = mempcpy(p,(void *)&s, sizeof(int));
+  }
+}
+
+void LocationToDistantMesh::unpackLocation(unsigned char *buff)
+{
+  int s;
+  size_t cur_pos;
+  
+  cur_pos = 0;
+
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&_nPointsToLocate,sizeof(int));
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&_nLocatedPoint,sizeof(int));
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&_nUnlocatedPoint,sizeof(int));
+ 
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));
+  if (s != 0) {
+    if (_elementContainingNVertex != NULL) delete [] _elementContainingNVertex;
+    _elementContainingNVertex = new int[s];
+    cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)_elementContainingNVertex,s*sizeof(int));
+  }
+    
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));
+  if (s != 0) {
+    if (_elementContainingVertex != NULL) delete [] _elementContainingVertex;
+    _elementContainingVertex = new int[s];
+    cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *) _elementContainingVertex,s*sizeof(int));
+  }
+
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));
+  if (s != 0) {
+    if (_elementContainingBarycentricCoordinates != NULL) delete [] _elementContainingBarycentricCoordinates;
+    _elementContainingBarycentricCoordinates = new double[s];
+    cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *) _elementContainingBarycentricCoordinates,s*sizeof(double));
+  } 
+
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));
+  if (s != 0) {
+    if(_elementContainingMPIrankContaining != NULL) delete [] _elementContainingMPIrankContaining;
+    _elementContainingMPIrankContaining = new int[s];
+    cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *) _elementContainingMPIrankContaining,s*sizeof(int));
+  } 
+ 
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));
+  if (s != 0) {
+    if (_elementContainingVertexCoords != NULL) delete [] _elementContainingVertexCoords;
+    _elementContainingVertexCoords = new double[s] ;
+    cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)_elementContainingVertexCoords,s*sizeof(double));
+  } 
+  
+  cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));
+  if (s != 0) {
+    if (_elementContaining != NULL) delete [] _elementContaining;
+    _elementContaining = new int[s];
+    cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)_elementContaining,_nLocatedPoint*sizeof(int));
+  } 
+  _toLocate = false;
+}
+
+
+
+
+///
 /// \brief Clear location
 ///
 
 void LocationToDistantMesh::clear()
 {
   if (!_isCoupledRank && _couplingType == CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING) {
-    if (_locatedPoint != NULL)
+    if (_locatedPoint != NULL) {
       delete []  _locatedPoint;
+      _locatedPoint = NULL;
+    }
+    
 
-    if (_unlocatedPoint != NULL)
+    if (_unlocatedPoint != NULL) {
       delete []  _unlocatedPoint;
+      _unlocatedPoint = NULL;
+    }
+
   }
 
   if (_elementContainingBarycentricCoordinates != NULL)
@@ -234,6 +407,13 @@ void LocationToDistantMesh::clear()
     delete [] _elementContainingVertexCoords;
   if (_elementContaining != NULL)
     delete [] _elementContaining;
+
+  _elementContainingBarycentricCoordinates = NULL;
+  _elementContainingMPIrankContaining = NULL;
+  _elementContainingNVertex = NULL;
+  _elementContainingVertex = NULL;
+  _elementContainingVertexCoords = NULL;
+  _elementContaining = NULL;
 
 }
 

@@ -28,6 +28,10 @@
 #include "cwipi.h"
 #include "grid_mesh.h"
 
+#define  IP_BEGIN_ANGLE   0 
+#define  IP_END_ANGLE     3*360
+#define  IP_FREQ_ANGLE    30
+#define  IP_NB_LOCATIONS  360/IP_FREQ_ANGLE+1 
 
 /*----------------------------------------------------------------------
  *                                                                     
@@ -36,6 +40,9 @@
  * parameters:
  *   status              <-- Exchange status           
  *---------------------------------------------------------------------*/
+int current_angle;
+int location_id = 0;
+
 
 static void _dumpStatus(FILE* outputFile, cwipi_exchange_status_t status)
 {
@@ -156,6 +163,7 @@ int main
 
   int rank;
   int commWorldSize;
+  double ttime;
 
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &commWorldSize);
@@ -194,8 +202,9 @@ int main
   /* Read args from command line
    * --------------------------- */
 
-  int nVertexSeg = 10;
-  double randLevel = 0.4;
+  int nVertexSeg = 200;
+  // double randLevel = 0.1;
+  double randLevel = 0.0;
 
   _read_args(argc, argv, &nVertexSeg, &randLevel);
 
@@ -265,12 +274,12 @@ int main
                         codeCoupledName,                           // Coupled application id
                         2,                                         // Geometric entities dimension
                         0.1,                                       // Geometric tolerance
-                        CWIPI_STATIC_MESH,                         // Mesh type
+                        CWIPI_CYCLIC_MESH,                         // Mesh type
                         solver_type,                               // Solver type
                         1,                                         // Postprocessing frequency
                         "EnSight Gold",                            // Postprocessing format
-                        "text");                                   // Postprocessing option
-  
+                        "text",                                   // Postprocessing option
+			IP_NB_LOCATIONS);
   /* Mesh definition
    * --------------- */
 
@@ -279,6 +288,7 @@ int main
 
   int nVertex = 0;               // Number of vertex
   double *coords = NULL;         // Vertex coordinates
+  double *coords_t0 = NULL;         // Vertex coordinates at time = 0
   int nElts = 0;                 // Number of elements
   int *eltsConnecPointer = NULL; // Connectivity index
   int *eltsConnec = NULL;        // Connectivity
@@ -293,6 +303,7 @@ int main
   nVertex = nVertexSeg * nVertexSeg;
   nElts = (nVertexSeg - 1) * (nVertexSeg - 1);
 
+  coords_t0 = (double *) malloc(sizeof(double) * 3 * nVertex );
   coords = (double *) malloc(sizeof(double) * 3 * nVertex );
   eltsConnecPointer = (int *) malloc(sizeof(int) * (nElts + 1));
   eltsConnec = (int *) malloc(sizeof(int) * 4 * nElts);
@@ -304,14 +315,22 @@ int main
             randLevel,
             nVertexSeg,
             n_partition, 
-            coords, 
+            coords_t0, 
             eltsConnecPointer,
             eltsConnec,
             localComm); 
 
+  carre2rond(xmin, 
+	     xmax, 
+	     ymin, 
+	     ymax,
+	     coords_t0,
+	     nVertex);
 
   fprintf(outputFile, "   Number of vertex   : %i\n", nVertex);
   fprintf(outputFile, "   Number of elements : %i\n", nElts);
+
+  for (int i = 0; i < nVertex*3 ; i++) { coords[i] = coords_t0[i]; } 
 
   cwipi_define_mesh("c_surf_cpl_P1P0_P0P1",
                     nVertex,
@@ -341,9 +360,9 @@ int main
 
     for (int i = 0; i < nVertex; i++) {
       if (codeId == 1)
-        sendValues[i] = coords[3 * i];
+        sendValues[i] = coords_t0[3 * i];
       else
-        sendValues[i] = coords[3 * i + 1];
+        sendValues[i] = coords_t0[3 * i + 1];
     }
   }
 
@@ -374,65 +393,75 @@ int main
     recvValuesName = "cooX";
   }
 
-  if (codeId == 1) {
-
-    cwipi_exchange_status_t status = cwipi_exchange("c_surf_cpl_P1P0_P0P1",
-                                                    "ech1",
-                                                    1,
-                                                    1,     // n_step
-                                                    0.1,   // physical_time
-                                                    sendValuesName,
-                                                    sendValues,
-                                                    NULL,
-                                                    NULL,
-                                                    &nNotLocatedPoints);
-
-    status = cwipi_exchange("c_surf_cpl_P1P0_P0P1",
-                            "ech2",
-                            1,
-                            1,     // n_step
-                            0.1,   // physical_time
-                            NULL,
-                            NULL,
-                            recvValuesName,
-                            recvValues,
-                            &nNotLocatedPoints);
+  for (int angle = IP_BEGIN_ANGLE ; angle <= IP_END_ANGLE; angle += IP_FREQ_ANGLE) {
+    for (int i = 0; i < nVertex*3 ; i++) { coords[i] = coords_t0[i]; } 
+    ttime = angle;  
+    location_id = (angle % 360)/IP_FREQ_ANGLE;
+    cwipi_set_location_index("c_surf_cpl_P1P0_P0P1",location_id);
+    if (angle < 360)
+      cwipi_update_location("c_surf_cpl_P1P0_P0P1");
     
-    _dumpStatus(outputFile, status);
-    _dumpNotLocatedPoints(outputFile, "c_surf_cpl_P1P0_P0P1", nNotLocatedPoints);
+    if (codeId == 1) {
+      if (rank == 0) printf("vertex==> Angle : %d  location_id : %d \n",angle, location_id);
+ 
+      mesh_rotate(coords, nVertex, ttime);
 
-  }
-
-  else {
-
-    cwipi_exchange_status_t status = cwipi_exchange("c_surf_cpl_P1P0_P0P1",
-                                                    "ech1",
-                                                    1,
-                                                    1,     // n_step
-                                                    0.1,   // physical_time
-                                                    NULL,
-                                                    NULL,
-                                                    recvValuesName,
-                                                    recvValues,
-                                                    &nNotLocatedPoints);
-
-
-    _dumpStatus(outputFile, status);
-    _dumpNotLocatedPoints(outputFile, "c_surf_cpl_P1P0_P0P1", nNotLocatedPoints);
-
-    status = cwipi_exchange("c_surf_cpl_P1P0_P0P1",
-                            "ech2",
-                            1,
-                            1,     // n_step
-                            0.1,   // physical_time
-                            recvValuesName,
-                            recvValues,
-                            NULL,
-                            NULL,
-                            &nNotLocatedPoints);
+      cwipi_exchange_status_t status = cwipi_exchange("c_surf_cpl_P1P0_P0P1",
+						      "ech1",
+						      1,
+						      angle,     // n_step
+						      ttime,   // physical_time
+						      sendValuesName,
+						      sendValues,
+						      NULL,
+						      NULL,
+						      &nNotLocatedPoints);
+      
+      status = cwipi_exchange("c_surf_cpl_P1P0_P0P1",
+			      "ech2",
+			      1,
+			      angle,     // n_step
+			      ttime,   // physical_time
+			      NULL,
+			      NULL,
+			      recvValuesName,
+			      recvValues,
+			      &nNotLocatedPoints);
+      
+      _dumpStatus(outputFile, status);
+      _dumpNotLocatedPoints(outputFile, "c_surf_cpl_P1P0_P0P1", nNotLocatedPoints);
+    }
     
+    else {
+      
+      cwipi_exchange_status_t status = cwipi_exchange("c_surf_cpl_P1P0_P0P1",
+						      "ech1",
+						      1,
+						      angle,     // n_step
+						      ttime,   // physical_time
+						      NULL,
+						      NULL,
+						      recvValuesName,
+						      recvValues,
+						      &nNotLocatedPoints);
+      
+      
+      _dumpStatus(outputFile, status);
+      _dumpNotLocatedPoints(outputFile, "c_surf_cpl_P1P0_P0P1", nNotLocatedPoints);
+      
+      status = cwipi_exchange("c_surf_cpl_P1P0_P0P1",
+			      "ech2",
+			      1,
+			      angle,     // n_step
+			      ttime,   // physical_time
+			      recvValuesName,
+			      recvValues,
+			      NULL,
+			      NULL,
+			      &nNotLocatedPoints);
+      
+    }
   }
-
 
   /* Coupling deletion
    * ----------------- */
@@ -446,6 +475,7 @@ int main
    * -------------- */
 
   free(coords);
+  free(coords_t0);
   free(eltsConnecPointer);
   free(eltsConnec);
   free(sendValues);
