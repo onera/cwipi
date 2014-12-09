@@ -1856,7 +1856,7 @@ _exchange_point_var_local(fvmc_locator_t     *this_locator,
   if (reverse == false) {
 
     if (local_list == NULL)
-      memcpy(local_var, distant_var, n_points_loc*nbytes);
+      memcpy((void *) local_var, (const void *) distant_var, (size_t) n_points_loc*nbytes);
 
     else {
       for (i = 0; i < n_points_loc; i++) {
@@ -1871,7 +1871,7 @@ _exchange_point_var_local(fvmc_locator_t     *this_locator,
   else { /* if (reverse == true) */
 
     if (local_list == NULL)
-      memcpy(distant_var, local_var, n_points_loc*nbytes);
+      memcpy((void *) distant_var, (const void *) local_var, (size_t) n_points_loc*nbytes);
 
     else {
       for (i = 0; i < n_points_loc; i++) {
@@ -2144,31 +2144,98 @@ fvmc_locator_size(const fvmc_locator_t  * this_locator)
 void * 
 fvmc_locator_pack(void *p, const fvmc_locator_t  * this_locator)
 {
+  size_t s_pack;
   if (this_locator != NULL) {
-    p = mempcpy(p,(const void *)&this_locator->tolerance, sizeof(double));
-    p = mempcpy(p,(const void *)&this_locator->locate_on_parents, sizeof(_Bool));
-    p = mempcpy(p,(const void *)&this_locator->dim, sizeof(int));
-    p = mempcpy(p,(const void *)&this_locator->n_ranks, sizeof(int));
-    p = mempcpy(p,(const void *)&this_locator->start_rank, sizeof(int));
-    p = mempcpy(p,(const void *)&this_locator->n_intersects, sizeof(int)); 
-    p = mempcpy(p,(const void *)this_locator->intersect_rank,this_locator->n_intersects*sizeof(int));
+
+    s_pack = sizeof(double);
+    memcpy(p,(const void *)&this_locator->tolerance, s_pack);
+    p = (void *) ((char *) p + s_pack);
+
+    s_pack = sizeof(_Bool);
+    memcpy(p,(const void *)&this_locator->locate_on_parents, s_pack);
+    p = (void *) ((char *) p + s_pack);
+
+    s_pack = sizeof(int);
+    memcpy(p,(const void *)&this_locator->dim,  s_pack);
+    p = (void *) ((char *) p + s_pack);
+
+    s_pack = sizeof(int);
+    memcpy(p,(const void *)&this_locator->n_ranks, s_pack);
+    p = (void *) ((char *) p + s_pack);
+
+    s_pack = sizeof(int);
+    memcpy(p,(const void *)&this_locator->start_rank,  s_pack);
+    p = (void *) ((char *) p + s_pack);
+
+    s_pack = sizeof(int);
+    memcpy(p,(const void *)&this_locator->n_intersects,  s_pack);
+    p = (void *) ((char *) p + s_pack);
+
+    s_pack = this_locator->n_intersects*sizeof(int);
+    memcpy(p,(const void *)this_locator->intersect_rank, s_pack);
+    p = (void *) ((char *) p + s_pack);
 #if defined(FVMC_HAVE_MPI)
-    p = mempcpy(p,(const void *)&this_locator->max_nblockings_send,sizeof(int));
-    p = mempcpy(p,(const void *)&this_locator->max_nblockings_recv,sizeof(int));
+
+    s_pack = sizeof(int);
+    memcpy(p,(const void *)&this_locator->max_nblockings_send, s_pack);
+    p = (void *) ((char *) p + s_pack);
+
+    s_pack = sizeof(int);
+    memcpy(p,(const void *)&this_locator->max_nblockings_recv, s_pack);
+    p = (void *) ((char *) p + s_pack);
 #endif
-    p = mempcpy(p,(void *)this_locator->intersect_extents,this_locator->n_intersects * this_locator->dim * 2 * sizeof(double));
-    p = mempcpy(p,(void *)this_locator->local_points_idx,(this_locator->n_intersects + 1) * sizeof(fvmc_lnum_t)); 
-    p = mempcpy(p,(void *)this_locator->local_distribution,(this_locator->n_ranks + 1) * sizeof(fvmc_lnum_t));
-    p = mempcpy(p,(void *)this_locator->distant_points_idx,(this_locator->n_intersects + 1) * sizeof(fvmc_lnum_t)); 
-    p = mempcpy(p,(void *)this_locator->distant_distribution,(this_locator->n_ranks + 1) * sizeof(fvmc_lnum_t));
-    p = mempcpy(p,(void *)this_locator->local_point_ids, this_locator->local_points_idx[this_locator->n_intersects] * sizeof(fvmc_lnum_t));   
-    p = mempcpy(p,(void *)this_locator->distant_point_distance,this_locator->distant_points_idx[this_locator->n_intersects] * sizeof(float));
-    p = mempcpy(p,(void *)this_locator->distant_point_location,this_locator->distant_points_idx[this_locator->n_intersects] * sizeof(fvmc_lnum_t));
-    p = mempcpy(p,(void *)this_locator->distant_point_coords,this_locator->distant_points_idx[this_locator->n_intersects] *this_locator->dim  * sizeof(fvmc_coord_t));
-    p = mempcpy(p,(const void *)&this_locator->n_interior, sizeof(fvmc_lnum_t));
-    p = mempcpy(p,(void *)this_locator->interior_list, this_locator->n_interior *  sizeof(fvmc_lnum_t));
-    p = mempcpy(p,(const void *)&this_locator->n_exterior, sizeof(fvmc_lnum_t));
-    p = mempcpy(p,(void *)this_locator->exterior_list, this_locator->n_exterior *  sizeof(fvmc_lnum_t));
+
+    s_pack = this_locator->n_intersects * this_locator->dim * 2 * sizeof(double);
+    memcpy(p,(void *)this_locator->intersect_extents, s_pack);
+    p = (void *) ((char *) p + s_pack);
+
+    s_pack = (this_locator->n_intersects + 1) * sizeof(fvmc_lnum_t);
+    memcpy(p,(void *)this_locator->local_points_idx, s_pack);
+    p = (void *) ((char *) p + s_pack);
+
+    s_pack = (this_locator->n_ranks + 1) * sizeof(fvmc_lnum_t);
+    memcpy(p,(void *)this_locator->local_distribution, s_pack);
+    p = (void *) ((char *) p + s_pack);
+
+    s_pack = (this_locator->n_intersects + 1) * sizeof(fvmc_lnum_t);
+    memcpy(p,(void *)this_locator->distant_points_idx, s_pack);
+    p = (void *) ((char *) p + s_pack);
+
+    s_pack = (this_locator->n_ranks + 1) * sizeof(fvmc_lnum_t);
+    memcpy(p,(void *)this_locator->distant_distribution, s_pack);
+    p = (void *) ((char *) p + s_pack);
+
+    s_pack = this_locator->local_points_idx[this_locator->n_intersects] * sizeof(fvmc_lnum_t);
+    memcpy(p,(void *)this_locator->local_point_ids, s_pack); 
+    p = (void *) ((char *) p + s_pack);
+
+    s_pack = this_locator->distant_points_idx[this_locator->n_intersects] * sizeof(float);
+    memcpy(p,(void *)this_locator->distant_point_distance, s_pack);
+    p = (void *) ((char *) p + s_pack);
+
+    s_pack = this_locator->distant_points_idx[this_locator->n_intersects] * sizeof(fvmc_lnum_t);
+    memcpy(p,(void *)this_locator->distant_point_location, s_pack);
+    p = (void *) ((char *) p + s_pack);
+
+    s_pack = this_locator->distant_points_idx[this_locator->n_intersects] *this_locator->dim  * sizeof(fvmc_coord_t);
+    memcpy(p,(void *)this_locator->distant_point_coords, s_pack);
+    p = (void *) ((char *) p + s_pack);
+
+    s_pack = sizeof(fvmc_lnum_t);
+    memcpy(p,(const void *)&this_locator->n_interior, s_pack);
+    p = (void *) ((char *) p + s_pack);
+
+    s_pack = this_locator->n_interior *  sizeof(fvmc_lnum_t);
+    memcpy(p,(void *)this_locator->interior_list, s_pack); 
+    p = (void *) ((char *) p + s_pack);
+
+    s_pack = sizeof(fvmc_lnum_t);
+    memcpy(p,(const void *)&this_locator->n_exterior, s_pack);
+    p = (void *) ((char *) p + s_pack);
+
+    s_pack =  this_locator->n_exterior *  sizeof(fvmc_lnum_t);
+    memcpy(p,(void *)this_locator->exterior_list, s_pack); 
+    p = (void *) ((char *) p + s_pack);
   }
   return p;
 }

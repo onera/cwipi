@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cassert>
+#include <cstring>
 
 #include <bftc_printf.h>
 #include <fvmc_point_location.h>
@@ -119,6 +120,7 @@ void LocationToLocalMesh::packLocation(unsigned char *buff)
 {
   int s;
   void *p;
+  size_t s_pack;
 
   p = (void *)buff;
 
@@ -126,45 +128,70 @@ void LocationToLocalMesh::packLocation(unsigned char *buff)
     
     if (_fvmLocator != NULL) {
       s = 1;
-      p = mempcpy(p,(void *)&s, sizeof(int));
+      s_pack = sizeof(int);
+      memcpy(p,(void *)&s, s_pack);
+      p = (void *) ((char *) p + s_pack);
       p = fvmc_locator_pack(p, _fvmLocator);
-    } else {
+    } 
+    else {
       s = 0;
-      p = mempcpy(p,(void *)&s, sizeof(int));      
+      s_pack = sizeof(int);
+      memcpy(p,(void *)&s, s_pack);      
+      p = (void *) ((char *) p + s_pack);
     }
 
     const int nDistantPoint      = fvmc_locator_get_n_dist_points(_fvmLocator);
     if (_barycentricCoordinatesIndex != NULL) {
       s = 1;
-      p = mempcpy(p,(void *)&s, sizeof(int));
+      s_pack = sizeof(int);
+      memcpy(p,(void *)&s, s_pack);
+      p = (void *) ((char *) p + s_pack);
       std::vector <int> &  _refBarycentricCoordinatesIndex = *_barycentricCoordinatesIndex;
-      p = mempcpy(p,(void *)&_refBarycentricCoordinatesIndex[0], (nDistantPoint + 1)*sizeof(int));
-    } else {
+      s_pack = (nDistantPoint + 1)*sizeof(int);
+      memcpy(p,(void *)&_refBarycentricCoordinatesIndex[0], s_pack);
+      p = (void *) ((char *) p + s_pack);
+    } 
+    else {
       s = 0;
-      p = mempcpy(p,(void *)&s, sizeof(int));      
+      s_pack = sizeof(int);
+      memcpy(p,(void *)&s, s_pack);      
+      p = (void *) ((char *) p + s_pack);
     }
 
     if (_barycentricCoordinates != NULL) {
       std::vector <double> &  _refBarycentricCoordinates = *_barycentricCoordinates;
       // calcul de la taille de _barycentricCoordinates 
       s = _refBarycentricCoordinates.size();
-      p = mempcpy(p,(void *)&s, sizeof(int));     
-      p = mempcpy(p,(void *)&_refBarycentricCoordinates[0], s*sizeof(double));
-    } else {
+      s_pack = sizeof(int);
+      memcpy(p,(void *)&s, s_pack);     
+      p = (void *) ((char *) p + s_pack);
+      s_pack = s * sizeof(double);
+      memcpy(p,(void *)&_refBarycentricCoordinates[0], s_pack);
+      p = (void *) ((char *) p + s_pack);
+    } 
+    else {
       s = 0;
-      p = mempcpy(p,(void *)&s, sizeof(int));      
+      s_pack = sizeof(int);
+      memcpy(p,(void *)&s, s_pack);      
+      p = (void *) ((char *) p + s_pack);
     }
 
     if (_nVertex != NULL) {
       s = 1;
-      p = mempcpy(p,(void *)&s, sizeof(int));
+      s_pack = sizeof(int);
+      memcpy(p,(void *)&s, s_pack);
+      p = (void *) ((char *) p + s_pack);
       std::vector <int> & _nVertexRef = *_nVertex;
-      p = mempcpy(p,(void *)&_nVertexRef[0], _nDistantPoint*sizeof(int)); 
-    }  else {
+      s_pack = _nDistantPoint*sizeof(int);
+      memcpy(p,(void *)&_nVertexRef[0], s_pack);
+      p = (void *) ((char *) p + s_pack);
+    }  
+    else {
       s = 0;
-      p = mempcpy(p,(void *)&s, sizeof(int));      
+      s_pack = sizeof(int);
+      memcpy(p,(void *)&s, s_pack);      
+      p = (void *) ((char *) p + s_pack);
     }
-
   } 
 }
 

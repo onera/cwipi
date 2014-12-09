@@ -25,6 +25,7 @@
 
 
 #include <mpi.h>
+#include <cstring>
 #include <fvmc_locator.h>
 
 #include "locationToDistantMesh.hxx"
@@ -133,6 +134,7 @@ void LocationToDistantMesh::synchronize()
       _toLocate = false;
 
       MPI_Bcast(&_nPointsToLocate, 1, MPI_INT, rootRank, localComm );
+
       MPI_Bcast(&_nUnlocatedPoint, 1, MPI_INT, rootRank, localComm );
       MPI_Bcast(&_nLocatedPoint, 1, MPI_INT, rootRank, localComm );
 
@@ -252,68 +254,137 @@ void LocationToDistantMesh::packLocation(unsigned char *buff)
   int s;
   size_t cur_pos;
   void *p;
+  size_t s_pack;
+
   p = (void *)buff;
 
-  p = mempcpy(p,(void *)&_nPointsToLocate,sizeof(int));
-  p = mempcpy(p,(void *)&_nLocatedPoint,sizeof(int));
-  p = mempcpy(p,(void *)&_nUnlocatedPoint,sizeof(int));
+  s_pack = sizeof(int);
+  memcpy(p,(void *)&_nPointsToLocate, s_pack);
+  p = (void *) ((char *) p + s_pack);
+
+  s_pack = sizeof(int);
+  memcpy(p,(void *)&_nLocatedPoint, s_pack);
+  p = (void *) ((char *) p + s_pack);
+
+  s_pack = sizeof(int);
+  memcpy(p,(void *)&_nUnlocatedPoint, s_pack);
+  p = (void *) ((char *) p + s_pack);
   
   // pour chaque tableau, on commence par stoker sa taille 
   // pour pouvoir l'allouer si nécessaire à la lecture
   
   if (_elementContainingNVertex != NULL) {
     s = _nLocatedPoint+1;
-    p = mempcpy(p,(void *)&s, sizeof(int));
-    p = mempcpy(p,(void *) _elementContainingNVertex,s*sizeof(int));
-  } else {
+
+    s_pack = sizeof(int);
+    memcpy(p,(void *)&s, s_pack);
+    p = (void *) ((char *) p + s_pack);
+
+    s_pack = s*sizeof(int);
+    memcpy(p,(void *) _elementContainingNVertex, s_pack);
+    p = (void *) ((char *) p + s_pack);
+  } 
+  else {
     s = 0;
-    p = mempcpy(p,(void *)&s, sizeof(int));
+
+    s_pack = sizeof(int);
+    memcpy(p,(void *)&s,  s_pack);
+    p = (void *) ((char *) p + s_pack);
   }
 
   if (_elementContainingVertex != NULL) {
     s = _elementContainingNVertex[_nLocatedPoint];
-    p = mempcpy(p,(void *)&s, sizeof(int));
-    p = mempcpy(p,(void *) _elementContainingVertex,s*sizeof(int));
-  } else {
+
+    s_pack = sizeof(int);
+    memcpy(p,(void *)&s,  s_pack);
+    p = (void *) ((char *) p + s_pack);
+
+    s_pack = s*sizeof(int);
+    memcpy(p,(void *) _elementContainingVertex, s_pack);
+    p = (void *) ((char *) p + s_pack);
+  } 
+  else {
     s = 0;
-    p = mempcpy(p,(void *)&s, sizeof(int));
+    s_pack = sizeof(int);
+    memcpy(p,(void *)&s,  s_pack);
+    p = (void *) ((char *) p + s_pack);
   }
 
   if (_elementContainingBarycentricCoordinates != NULL) {
     s = _elementContainingNVertex[_nLocatedPoint];
-    p = mempcpy(p,(void *)&s, sizeof(int));
-    p = mempcpy(p,(void *) _elementContainingBarycentricCoordinates,s*sizeof(double));
-  } else {
+
+    s_pack = sizeof(int);
+    memcpy(p,(void *)&s,  s_pack);
+    p = (void *) ((char *) p + s_pack);
+    
+    s_pack = s*sizeof(double);
+    memcpy(p,(void *) _elementContainingBarycentricCoordinates, s_pack);
+    p = (void *) ((char *) p + s_pack);
+  } 
+  else {
     s = 0;
-    p = mempcpy(p,(void *)&s, sizeof(int));
+
+    s_pack = sizeof(int);
+    memcpy(p,(void *)&s,  s_pack);
+    p = (void *) ((char *) p + s_pack);
   }
 
   // attention : alloué dans locationToLocalMesh
   if(_elementContainingMPIrankContaining != NULL) {
     s = _nLocatedPoint;
-    p = mempcpy(p,(void *)&s, sizeof(int));
-    p = mempcpy(p,(void *) _elementContainingMPIrankContaining,s*sizeof(int));
-  } else {
+
+    s_pack = sizeof(int);
+    memcpy(p,(void *)&s,  s_pack);
+    p = (void *) ((char *) p + s_pack);
+
+    s_pack = s*sizeof(int);
+    memcpy(p,(void *) _elementContainingMPIrankContaining, s_pack);
+    p = (void *) ((char *) p + s_pack);
+  } 
+  else {
     s = 0;
-    p = mempcpy(p,(void *)&s, sizeof(int));
+
+    s_pack = sizeof(int);
+    memcpy(p,(void *)&s, s_pack);
+    p = (void *) ((char *) p + s_pack);
   }
   
   if (_elementContainingVertexCoords != NULL) {
     s = (3 * _elementContainingNVertex[_nLocatedPoint]);
-    p = mempcpy(p,(void *)&s, sizeof(int));
-    p = mempcpy(p,(void *)_elementContainingVertexCoords,s*sizeof(double));
-  } else {
+
+    s_pack = sizeof(int);
+    memcpy(p,(void *)&s, s_pack);
+    p = (void *) ((char *) p + s_pack);
+
+    s_pack = s*sizeof(double);
+    memcpy(p,(void *)_elementContainingVertexCoords, s_pack);
+    p = (void *) ((char *) p + s_pack);
+  } 
+  else {
     s = 0;
-    p = mempcpy(p,(void *)&s, sizeof(int));
+
+    s_pack = sizeof(int);
+    memcpy(p,(void *)&s, s_pack);
+    p = (void *) ((char *) p + s_pack);
   }
 
   if (_elementContaining != NULL) {
     s = _nLocatedPoint;
-    p = mempcpy(p,(void *)&s, sizeof(int));
-    p = mempcpy(p,(void *)_elementContaining,_nLocatedPoint*sizeof(int));
-  } else {
+
+    s_pack = sizeof(int);
+    memcpy(p,(void *)&s, s_pack);
+    p = (void *) ((char *) p + s_pack);
+
+    s_pack = _nLocatedPoint*sizeof(int);
+    memcpy(p,(void *)_elementContaining, s_pack);
+    p = (void *) ((char *) p + s_pack);
+  } 
+  else {
     s = 0;
-    p = mempcpy(p,(void *)&s, sizeof(int));
+
+    s_pack = sizeof(int);
+    memcpy(p,(void *)&s, s_pack);
+    p = (void *) ((char *) p + s_pack);
   }
 }
 
