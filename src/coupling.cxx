@@ -854,11 +854,12 @@ namespace cwipi {
     
       // remplissage du buffer d'ecriture copybuf 
       BFTC_MALLOC(copybuf,il_size, unsigned char);
+
       il_position = 0;
-      mempcpy((void *)&copybuf[il_position],(void *)&nLocPts,sizeof(int));
+      memcpy((void *)&copybuf[il_position],(void *)&nLocPts,sizeof(int));
       il_position += sizeof(int);
 
-      mempcpy((void *)&copybuf[il_position],(void *)&(_distance[0]),nLocPts*sizeof(float) );
+      memcpy((void *)&copybuf[il_position],(void *)&(_distance[0]),nLocPts*sizeof(float) );
       il_position += nLocPts*sizeof(float);
 
       _locationToLocalMesh->packLocation(&copybuf[il_position]);
