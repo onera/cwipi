@@ -1,0 +1,10 @@
+To https://github.com/Totophe92130/NodalBasis.git
+
+
+
+#génération connectivité
+ghs3d
+10
+5
+mesh3D_P10
+-1
