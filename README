@@ -3,6 +3,8 @@ git clone git@golden.peyret.fr:~git/BasesNodales.git
 git commit -am "Mon message"
 git push origin master
 
+rm test.tec
+git checkout -- test.tec
 
 To https://github.com/Totophe92130/NodalBasis.git
 
