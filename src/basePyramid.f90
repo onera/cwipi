@@ -4,7 +4,7 @@ module basePyramid
 
 contains
 
-
+  
   subroutine pyramidEquiNodes3D(ord, uvw, display)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! input: ord=polynomial order of interpolant
@@ -27,7 +27,7 @@ contains
     do iu=1,ord+1
       np=np+iu*iu
     enddo
-    if( display )print '("np=",i6)',np
+    if( display )print '("nDeg=",i6)',np
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -54,12 +54,11 @@ contains
       r1d(ord-iw)=+a
       !if( display )print '("r1d=",15(f12.9,1x))',r1d(0:ord-iw)
       
-      
-      do iu=0,ord-iw
-        do iv=0,ord-iw
+      !> computation of nodes
+      do iv=0,ord-iw
+        do iu=0,ord-iw
           iNod=iNod+1
           uvw(1:3,iNod)=[ r1d(iu), r1d(iv), real(iw,kind=8)/real(ord,kind=8)  ]
-          if( display )print '("uvw(",i6,")=",3(f12.9,1x))',iNod,uvw(1:3,iNod)
         enddo
       enddo  
       
@@ -67,26 +66,109 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( display )then
+      print '(/"Nodes coordinates")'
+      do iNod=1,np
+        print '("uvw(",i6,")=",3(f12.9,1x))',iNod,uvw(1:3,iNod)
+      enddo
+    endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-!    x = []; y = []; z= [];
-!    for level = 0:N
-!    a = (1-t(level+1));
-!    disp(a);
-!    if level < N        
-!        r1D = linspace(-a,a,N+1-level);
-!    else
-!        r1D = 0;
-!    end
-!    
-!    [r s] = meshgrid(r1D);
-!    x = [x; r(:)];
-!    y = [y; s(:)];    
-!    z = [z; t(level+1)*ones(size(r(:)))];
-    
+        
     return
   end subroutine pyramidEquiNodes3D
   
+  subroutine pyramidSides3D(ord, display)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    ! input: ord=polynomial order of interpolant
+    ! output: uvw(:,:) node coordinates in unity pyramid
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer, intent(in)           :: ord
+    logical, intent(in)           :: display
+    !---
+    integer                       :: iu,iv,iw
+    integer                       :: iNod,iSide
+    integer                       :: side((ord+1)*(ord+1)+4*(ord+1)*(ord+2)/2 )
+    integer                       :: sideIdx(6)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    sideIdx(1)=0
+    sideIdx(2)=sideIdx(1)+(ord+1)*(ord+1)   !> square
+    sideIdx(3)=sideIdx(2)+(ord+1)*(ord+2)/2 !> triangle
+    sideIdx(4)=sideIdx(3)+(ord+1)*(ord+2)/2 !> triangle
+    sideIdx(5)=sideIdx(4)+(ord+1)*(ord+2)/2 !> triangle
+    sideIdx(6)=sideIdx(5)+(ord+1)*(ord+2)/2 !> triangle
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    iNod=0
+    do iw=0,ord
+      do iv=0,ord-iw
+        do iu=0,ord-iw
+          
+          iNod=iNod+1
+          
+          !> side1 iw=0
+          if( iw==0 )then
+            sideIdx(1)=sideIdx(1)+1 ! print '("sideIdx(1)=",i2)',sideIdx(1)
+            side( sideIdx(1) )=iNod
+          endif
+          
+          !> side2 iu=0
+          if( iu==0 )then   
+            sideIdx(2)=sideIdx(2)+1
+            side( sideIdx(2) )=iNod
+          endif
+          
+          !> side3 iv=0
+          if( iv==0 )then   
+            sideIdx(3)=sideIdx(3)+1
+            side( sideIdx(3) )=iNod
+          endif
+          
+          !> side4 iu=ord
+          if( iu==ord-iw )then   
+            sideIdx(4)=sideIdx(4)+1
+            side( sideIdx(4) )=iNod
+          endif
+          
+          !> side5 iv=ord
+          if( iv==ord-iw )then   
+            sideIdx(5)=sideIdx(5)+1 ! print '("sideIdx(5)=",i2)',sideIdx(5)
+            side( sideIdx(5) )=iNod
+          endif
+          
+        enddo
+      enddo      
+    enddo
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    sideIdx(1)=0
+    sideIdx(2)=sideIdx(1)+(ord+1)*(ord+1)
+    sideIdx(3)=sideIdx(2)+(ord+1)*(ord+2)/2
+    sideIdx(4)=sideIdx(3)+(ord+1)*(ord+2)/2
+    sideIdx(5)=sideIdx(4)+(ord+1)*(ord+2)/2
+    sideIdx(6)=sideIdx(5)+(ord+1)*(ord+2)/2
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( display )then
+      print '(/"Degrees of freedom/side")'
+      do iSide=1,5
+        print '("Side",i1,": ",$)',iSide
+        do iNod=sideIdx(iSide)+1,sideIdx(iSide+1)
+          print '(i5,1x,$)',side(iNod)
+        enddo
+        print '()'
+      enddo
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine pyramidSides3D
   
 
 

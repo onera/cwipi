@@ -962,7 +962,10 @@ end subroutine testQuadrangles
 
 subroutine testPyramids()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  use basePyramid, only: pyramidEquiNodes3D
+  use modDeterminant
+  use baseSimplex2D
+  use baseSimplex3D
+  use basePyramid
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
@@ -976,6 +979,10 @@ subroutine testPyramids()
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   call pyramidEquiNodes3D(ord=ord, uvw=uvw, display=.true.)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  call pyramidSides3D(ord=ord, display=.true.)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   return
