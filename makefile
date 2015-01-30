@@ -65,6 +65,7 @@ OBJS =  $(OBJDIR)/libmesh5.o              \
         $(OBJDIR)/baseSimplex1D.o    \
         $(OBJDIR)/baseSimplex2D.o    \
         $(OBJDIR)/baseSimplex3D.o    \
+        $(OBJDIR)/basePyramid.o      \
         $(OBJDIR)/LDLt.o             \
         $(OBJDIR)/basesNodales.o
 
@@ -78,7 +79,7 @@ $(TARGET) : $(OBJS)
 	@echo  ----------- ${TARGET} created ----------- 
 
 compil_date :
-	touch src/gaussLegendreLobatto.f90
+	touch src/basesNodales.f90
 	\rm -f compil_date.h
 	echo "write(*,'(/a )')'------------------------------------------------------------------------'" >  compil_date.h
 	echo "write(*,'( a )')'                      program Bases Nodales                             '" >> compil_date.h
