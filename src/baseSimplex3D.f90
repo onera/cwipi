@@ -64,7 +64,7 @@ module baseSimplex3D
   subroutine nodes3D(ord, uvw, display)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! input: ord=polynomial order of interpolant
-    ! output: uvw(:,:) node coordinates in unity triangle
+    ! output: uvw(:,:) node coordinates in unity tetrahedron
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

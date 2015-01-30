@@ -883,8 +883,9 @@ subroutine testConnectivitiesOfSides()
   return
 end subroutine testConnectivitiesOfSides
 
+
 subroutine testQuadrangles()
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use space_LDLt      , only: factorise
   use baseSimplex1D
   use baseSimplexTools, only: massMatrix,display,compactForm
@@ -956,8 +957,29 @@ subroutine testQuadrangles()
   call factorise(n=(ord+1)**2,mat=mass)
   call display(title="Factorized(MassQ4)=",vec=mass)
   
+  return
 end subroutine testQuadrangles
 
+subroutine testPyramids()
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  use basePyramid, only: pyramidEquiNodes3D
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  implicit none
+  integer            :: ord
+  real(8), pointer   :: uvw(:,:)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  write(*,'(/"Order: ")',advance='no') ; read(*,*)ord
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  call pyramidEquiNodes3D(ord=ord, uvw=uvw, display=.true.)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  return
+end subroutine testPyramids
 
 
 program main
@@ -978,10 +1000,13 @@ program main
  !call test2D_01()
   
   !> Test Tetra
-  call test3D()
+  !call test3D()
   !call T4maillageVisuPi() ! maillages de visu pour le tetra d'ordre élevé
   
   !> Test Quad
   !call testQuadrangles()
+  
+  !> Test pyramids
+  call testPyramids()
   
 end program main
