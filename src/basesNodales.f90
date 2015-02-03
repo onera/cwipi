@@ -838,7 +838,6 @@ subroutine T4maillageVisuPi()
   call writeMeshSkin3D(ord=order)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
-  
   return
 end subroutine T4maillageVisuPi
 
@@ -985,6 +984,10 @@ subroutine testPyramids()
   call pyramidSides3D(ord=ord, display=.true.)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  call pyramidMesh3D(ord=ord, uvw=uvw)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
   return
 end subroutine testPyramids
 
@@ -1008,12 +1011,12 @@ program main
   
   !> Test Tetra
   !call test3D()
-  !call T4maillageVisuPi() ! maillages de visu pour le tetra d'ordre élevé
+  call T4maillageVisuPi() ! maillages de visu pour le tetra d'ordre élevé
   
   !> Test Quad
   !call testQuadrangles()
   
   !> Test pyramids
-  call testPyramids()
+  !call testPyramids()
   
 end program main

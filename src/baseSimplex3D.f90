@@ -1291,7 +1291,7 @@ module baseSimplex3D
   
   subroutine writeMeshSkin3D(ord)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    use M_libmesh5_api
+    use M_libmesh6_api
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)          :: ord
@@ -1312,20 +1312,20 @@ module baseSimplex3D
     integer , pointer            :: tria(:,:)
     real(8), parameter           :: eps=1d-6
     real(4)                      :: dist(1)
-    integer                      :: nFld,kind(1)
     !> libmesh
     character(256)               :: name
     integer                      :: ins,ver,res,geo
     integer , allocatable        :: TypTab(:)
     real(4)                      :: xyz(3)
+    integer                      :: nFld,kind(1)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #define fortran 0
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Point de depart : Tetra P1
     print '(/"writing TetraP1.mesh")'
     open(unit=iFile,name="TetraP1.mesh",status='unknown',action='write')
     write(iFile,'( "MeshVersionFormatted 1")')
@@ -1358,8 +1358,8 @@ module baseSimplex3D
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    do iOrd=1,ord
-   !do iOrd=ord,ord
+   !do iOrd=1,ord
+    do iOrd=ord,ord
       !>>>>>>>>
       if(   1<=iOrd .and. iOrd<  10 ) write(sfx,'("00",i1)')iOrd
       if(  10<=iOrd .and. iOrd< 100 ) write(sfx,'("0" ,i2)')iOrd
@@ -1367,6 +1367,7 @@ module baseSimplex3D
       !<<<<<<<<
       
       !>>>>>>>>
+      !> Ecriture DEFAULT.yams pour imposer Nbiter = iOrd
       print '(/"Writing DEFAULT.yams")'
       open(unit=iFile,name="DEFAULT.yams",status='unknown',action='write')
       write(iFile,'("Nbiter",i6)')iOrd
@@ -1374,6 +1375,7 @@ module baseSimplex3D
       !<<<<<<<<
       
       !>>>>>>>>
+      !> yams2_V2 va creer la peau TetraSkinPi.mesh en utilisant TetraSkinP1.meh et DEFAULT.yams
       name="TetraSkinP"//sfx//".mesh" ; print '(/"Building ",a)',trim(name)
       call system("yams2_V2 -O 4 -f TetraP1.mesh "// trim(name) // " >> ./yams.log")
       ins=GmfOpenMeshF77(trim(name),GmfRead,ver,geo) ! print '(3x,"ins=",i3)',ins
@@ -1384,6 +1386,7 @@ module baseSimplex3D
       !<<<<<<<<
       
       !>>>>>>>>
+      !> Lecture de la peau TetraSkinPi.mesh
       print '(/"Reading: ",a)',trim(name)
       ins=GmfOpenMeshF77(trim(name),GmfRead,ver,geo) ! print '(3x,"ins=",i3)',ins
       nVert=GmfStatKwdF77(ins,GmfVertices,ver,0,TypTab) ; print '(3x,"nVert=",i10)',nVert
@@ -1418,6 +1421,7 @@ module baseSimplex3D
       !<<<<<<<<
       
       !>>>>>>>>
+      !> Mise en correspondance des Noeuds de ceux construit par nodes3D (vert0) avec ceux de TetraSkinPi.mesh (vert)
       allocate(indx(nVert0)) ; indx(1:nVert0)=0
       do iVert0=1,nVert0
         iVert=1
@@ -1559,6 +1563,7 @@ module baseSimplex3D
       enddo
       !<<<<<<<<
       !>>>>>>>>
+      !> Test pour verifier que tous les noeuds sont en correspondance
       if( .not.count( indx(:)==0 )==0 )then
         print '("count(indx==0)=",i10)',count(indx(:)==0)
         stop"problem @ writeMeshSkin3D"
@@ -1566,6 +1571,7 @@ module baseSimplex3D
       !<<<<<<<<
       
       !>>>>>>>>
+      !> Reecriture de TetraPi.mesh
       name="TetraP"//sfx//".mesh" ; print '(/"OverWriting: ",a)',trim(name)
       ins=GmfOpenMeshF77(trim(name),GmfWrite,1,3) ; print '(3x,"nVert=",i10)',nVert0
       res=GmfSetKwdF77(ins,GmfVertices,nVert0,0,TypTab)

@@ -3,3 +3,10 @@ toto
 *.mod
 space*
 basesNodales
+*.mesh
+*.vtk
+*.vtu
+*.log
+*.yams
+
+
