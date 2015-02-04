@@ -981,6 +981,10 @@ subroutine testPyramids()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  call pyramidSkin3D(ord=ord, uvw=uvw)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   call pyramidSides3D(ord=ord, display=.true.)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
@@ -1011,12 +1015,12 @@ program main
   
   !> Test Tetra
   !call test3D()
-  call T4maillageVisuPi() ! maillages de visu pour le tetra d'ordre élevé
+  !call T4maillageVisuPi() ! maillages de visu pour le tetra d'ordre élevé
   
   !> Test Quad
   !call testQuadrangles()
   
   !> Test pyramids
-  !call testPyramids()
+  call testPyramids()
   
 end program main
