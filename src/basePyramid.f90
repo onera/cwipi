@@ -12,8 +12,9 @@ contains
     integer, intent(in)           :: ord
     real(8), intent(out), pointer :: uvw(:,:)
     !>
+    integer                       :: iu,iv,iw
     integer                       :: iNod ,nNod
-    real(4)                       :: dist(1)
+    real(4)                       :: dist
     character(3)                  :: sfx
     !> libmesh
     character(256)                :: name
@@ -21,10 +22,7 @@ contains
     integer , allocatable         :: TypTab(:)
     real(4)                       :: xyz(3)
     integer                       :: nFld,kind(1)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    nNod=size(uvw,2)
+    logical                       :: test
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -35,34 +33,67 @@ contains
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Ecriture
-    name="nodes3DP"//sfx//".mesh" ; print '(/"Writing: ",a)',trim(name)
-    open(unit=10,file=trim(name),action='write')
-    write(10,'( "MeshVersionFormatted 1")' )
-    write(10,'(/"Dimension"/,"3")' )
-    write(10,'(/"Vertices"/,i10)' )nNod
-    write(10,'(3(e22.15,1x),i3)')((uvw(1:3,iNod),0),iNod=1,nNod)
-    write(10,'(/"End")')
-    close(10)
+    nNod=0
+    do iw=0,ord
+      do iv=0,ord-iw
+        do iu=0,ord-iw
+          test= (iu==0.or.iu==ord-iw).or.( iv==0.or.iv==ord-iw).or.iw==0
+          if( .not.test )nNod=nNod+1
+        enddo
+      enddo
+    enddo
+    
+    if( .not. nNod==0 )then    
+      !> mesh
+      name="nodes3DP"//sfx//".mesh" ; print '(/"Writing: ",a)',trim(name)
+      open(unit=10,file=trim(name),action='write')
+      write(10,'( "MeshVersionFormatted 1")' )
+      write(10,'(/"Dimension"/,"3")' )
+      write(10,'(/"Vertices"/,i10)' )nNod
+      iNod=0
+      do iw=0,ord
+        do iv=0,ord-iw
+          do iu=0,ord-iw
+            iNod=iNod+1
+            test= (iu==0.or.iu==ord-iw).or.( iv==0.or.iv==ord-iw).or.iw==0
+            if( .not.test )write(10,'(3(e22.15,1x),i3)')uvw(1:3,iNod),0
+          enddo
+        enddo
+      enddo
+      write(10,'(/"End")')
+      close(10)
+      
+      !> sol
+      dist=1e0/real(ord,kind=4)      
+      name="nodes3DP"//sfx//".sol" ; print '( "Writing: ",a)',trim(name)
+      open(unit=10,file=trim(name),action='write')
+      write(10,'( "MeshVersionFormatted 1")' )
+      write(10,'(/"Dimension"/,"3")' )
+      write(10,'(/"SolAtVertices"/,i10)' )nNod
+      write(10,'("1",1x,"1")' ) !> 1 field 1=scalar
+      write(10,'(e22.15)')((dist),iNod=1,nNod)
+      write(10,'(/"End")')
+      close(10)
+            
+    endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    nFld=1 ; kind(1)=1 ; dist(1)=1e0/real(ord,kind=4)
-    name="nodes3DP"//sfx//".sol" ; print '(/"Writing: ",a)',trim(name)
-    ver=1
-    ins=GmfOpenMeshF77(trim(name),GmfWrite,ver,3) ; print '(3x,"nSolu=",i10)',nNod
-    res=GmfSetKwdF77(ins,GmfSolAtVertices,nNod,nFld,kind(1:1))
-    do iNod=1,nNod
-      call gmfSetSolAtVertexR4(ins,dist(1))
-    enddo
-    res=GmfCloseMeshF77(ins)
-    !<<<<<<<<
     
     ! yams2_V2 -f -O 0 PyramidSkinP025.mesh
     !>>>>>>>>
-!    call system("ghs3d -O 1  -exit 3 -in PyramidSkinP"//sfx//".mesh -force nodes3DP"//sfx//" -out PyramidP"//sfx//".mesh > ghs3d.log")
-!    call system("rm -f nodes3DP"//sfx//".mesh")
-!    call system("rm -f nodes3DP"//sfx//".sol")
-!    call system("rm -f TetraSkinP"//sfx//".mesh")
+    print '(/"Writing: ",a)',"PyramidP"//sfx//".mesh"
+    if( nNod==0 )then
+      call system("ghs3d -O 1  -exit 3 -in PyramidSkinP"//sfx//".mesh -out PyramidP"//sfx//".mesh > ghs3d.log")
+    else
+      !call system("ghs3d -O 1  -exit 3 -in PyramidSkinP"//sfx//".mesh -out PyramidP"//sfx//".mesh > ghs3d.log")
+      call system("ghs3d -O 1  -exit 3 -in PyramidSkinP"//sfx//".mesh -force nodes3DP"//sfx//" -out PyramidP"//sfx//".mesh") ! > ghs3d.log")
+      print '(/"Writing: ",a)',"PyramidP"//sfx//".mesh"
+    endif
+    
+      !call system("yams2_V2 -f -O 10 PyramidSkinP"//sfx//".mesh > yams.log")
+    !call system("rm -f nodes3DP"//sfx//".mesh")
+    !call system("rm -f nodes3DP"//sfx//".sol")
+!    call system("rm -f PyramidSkinP"//sfx//".d.mesh")
     !<<<<<<<<
       
     return
@@ -241,15 +272,14 @@ contains
     !---
     integer                       :: iu,iv,iw,iOrd
     integer                       :: iNod,nNod
-    integer                       :: iCel,nCel
     real(8)                       :: a
     real(8)                       :: sub(0:ord)
     
-    integer                       :: nQuadr,nTrian
-    integer, allocatable          :: conec(:,:)
-    integer, allocatable          :: quadr(:,:)
-    integer, allocatable          :: trian(:,:)
+    integer                       :: iCel,nPyr,nTet
+    integer, allocatable          :: pyram(:,:)
+    integer, allocatable          :: tetra(:,:)
     logical                       :: mesh
+    logical                       :: tf
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -261,11 +291,11 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    nCel=0
+    nPyr=0
     do iw=ord,1,-1
-      nCel=nCel+(iw*iw)+((iw-1)*(iw-1)) !> Pyramides droites + pyramides retournees
+      nPyr=nPyr+(iw*iw)+((iw-1)*(iw-1)) !> Pyramides droites + pyramides retournees
     enddo
-    if( display )print '("nCel=",i6)',nCel
+    if( display )print '("nPyr=",i6)',nPyr
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -317,36 +347,62 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    mesh=.false.
+    mesh=.true.
     if( mesh )then
-      allocate(conec(6,nCel))
-      nCel=0
+      allocate(pyram(6,nPyr))
+      allocate(tetra(6,1000))
+      nPyr=0
+      nTet=0
+      tf=.false.
       do iw=0,ord-1
-       !print '("iw=",i3)',iw
         do iv=0,ord-1-iw
+          print '("tf=",l)',tf
           do iu=0,ord-1-iw
-            nCel=nCel+1
-            conec(1:5,nCel)=[ pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw  ),& 
+          
+            if( tf )then
+              nTet=nTet+1
+              tetra(1:5,nTet)=[ pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw  ),&
+              &                 pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw  ),&
+              &                 pyramidIdx(ord=ord,iu=iu-2,iv=iv  ,iw=iw+1),&
+              &                 pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw+1),&
+              &                 0                                           ]
+            endif
+          
+          
+            nPyr=nPyr+1
+            pyram(1:6,nPyr)=[ pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw  ),& 
             &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw  ),&
             &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv+1,iw=iw  ),&
             &                 pyramidIdx(ord=ord,iu=iu  ,iv=iv+1,iw=iw  ),&
-            &                 pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw+1) ]
-           !print '(3x,"nCel=",i3,1x,"conec=",5(i3,1x))',nCel,conec(1:5,nCel)
-           
-           if( .not.iw==0 )then
-             nCel=nCel+1
-             conec(1:5,nCel)=[ pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw  ),& 
-             &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw  ),&
-             &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv+1,iw=iw  ),&
-             &                 pyramidIdx(ord=ord,iu=iu  ,iv=iv+1,iw=iw  ),&
-             &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv+1,iw=iw-1) ]
-           endif
-           
+            &                 pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw+1),&
+            &                 0                                           ]
+           !print '(3x,"nPyr=",i3,1x,"conec=",5(i3,1x))',nPyr,conec(1:5,nPyr)
+            
+            if( .not.iw==0 )then
+              nPyr=nPyr+1
+              pyram(1:6,nPyr)=[ pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw  ),& 
+              &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw  ),&
+              &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv+1,iw=iw  ),&
+              &                 pyramidIdx(ord=ord,iu=iu  ,iv=iv+1,iw=iw  ),&
+              &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv+1,iw=iw-1),&
+              &                 0                                           ]
+            endif
+            
+            if( .not.tf .and. .not.iu==ord-1-iw )then
+              nTet=nTet+1
+              tetra(1:5,nTet)=[ pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw  ),&
+              &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv+1,iw=iw  ),&
+              &                 pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw+1),&
+              &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw+1),&
+              &                 0                                           ]
+            endif
+            
           enddo
+          tf=.not.tf
         enddo
       enddo
       
-      open(unit=10,file="pymarid.mesh",action='write')
+      open(unit=10,file="Pyramid.mesh",action='write')
       write(10,'( "MeshVersionFormatted 1")' )
       write(10,'(/"Dimension")' )
       write(10,'( "3")' )
@@ -356,9 +412,14 @@ contains
         write(10,'(3(e22.15,1x),i3)')uvw(1:3,iNod),0
       enddo
       write(10,'(/"Pyramids")' )
-      write(10,'(i10)')nCel
-      do iCel=1,nCel
-        write(10,'(5(i6,1x),i3)')conec(1:5,iCel),0
+      write(10,'(i10)')nPyr
+      do iCel=1,nPyr
+        write(10,'(5(i6,1x),i3)')pyram(1:6,iCel)
+      enddo
+      write(10,'(/"Tetrahedra")' )
+      write(10,'(i10)')nTet
+      do iCel=1,nTet
+        write(10,'(5(i6,1x),i3)')tetra(1:5,iCel)
       enddo
       write(10,'(/"End")')
       close(10)

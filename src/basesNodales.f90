@@ -826,7 +826,8 @@ subroutine T4maillageVisuPi()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  write(*,'("Construction des maillages de visu P_i")')
+  write(*,'(/"Construction maillage Tetra P_i")')
+  write(*,'("Warning ghs3d is required")')
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

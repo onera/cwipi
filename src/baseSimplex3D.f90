@@ -1421,7 +1421,7 @@ module baseSimplex3D
       !<<<<<<<<
       
       !>>>>>>>>
-      !> Mise en correspondance des Noeuds de ceux construit par nodes3D (vert0) avec ceux de TetraSkinPi.mesh (vert)
+      !> Mise en correspondance des Noeuds de ceux construits par nodes3D (vert0) avec ceux de TetraSkinPi.mesh (vert)
       allocate(indx(nVert0)) ; indx(1:nVert0)=0
       do iVert0=1,nVert0
         iVert=1
@@ -1449,11 +1449,12 @@ module baseSimplex3D
       !<<<<<<<<
       
       !>>>>>>>>
+      !> Sauvegarde des noeuds non situés sur la peau
       if( .not.nVertVol==0 )then
         name="nodes3DP"//sfx//".mesh" ; print '(/"Writing: ",a)',trim(name)
         ver=1
-        ins=GmfOpenMeshF77(trim(name),GmfWrite,ver,geo) ; print '(3x,"nVert=",i10)',count(indx(:)==0)
-        res=GmfSetKwdF77(ins,GmfVertices,count(indx(:)==0),0,TypTab)
+        ins=GmfOpenMeshF77(trim(name),GmfWrite,ver,geo) ; print '(3x,"nVert=",i10)',nVertVol
+        res=GmfSetKwdF77(ins,GmfVertices,nVertVol,0,TypTab)
         do iVert0=1,nVert0
           if( indx(iVert0)==0 )then
             call GmfSetVertex3dr4(ins                         ,&
@@ -1469,8 +1470,8 @@ module baseSimplex3D
         nFld=1 ; kind(1)=1 ; dist(1)=1e0/real(iOrd,kind=4)
         name="nodes3DP"//sfx//".sol" ; print '(/"Writing: ",a)',trim(name)
         ver=1
-        ins=GmfOpenMeshF77(trim(name),GmfWrite,ver,geo) ; print '(3x,"nSolu=",i10)',count(indx(:)==0)
-        res=GmfSetKwdF77(ins,GmfSolAtVertices,count(indx(:)==0),nFld,kind(1:1))
+        ins=GmfOpenMeshF77(trim(name),GmfWrite,ver,geo) ; print '(3x,"nSolu=",i10)',nVertVol
+        res=GmfSetKwdF77(ins,GmfSolAtVertices,nVertVol,nFld,kind(1:1))
         do iVert0=1,nVert0
           if( indx(iVert0)==0 )then
             call gmfSetSolAtVertexR4(ins,dist(1))
