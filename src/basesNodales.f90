@@ -982,15 +982,12 @@ subroutine testPyramids()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  call pyramidSkin3D(ord=ord, uvw=uvw)
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   call pyramidSides3D(ord=ord, display=.true.)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  call pyramidMesh3D(ord=ord, uvw=uvw)
+  call pyramidSkin3D(ord=ord, uvw=uvw, display=.true.)
+  call pyramidMesh3D(ord=ord, uvw=uvw, display=.true.)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   return
