@@ -1563,6 +1563,7 @@ module baseSimplex3D
         enddo loop1
       enddo
       !<<<<<<<<
+      
       !>>>>>>>>
       !> Test pour verifier que tous les noeuds sont en correspondance
       if( .not.count( indx(:)==0 )==0 )then

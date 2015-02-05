@@ -3,7 +3,293 @@ module basePyramid
   implicit none
 
 contains
-
+  
+  
+  subroutine pyramidNodes(ord, uvw, display)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    ! input: ord=polynomial order of interpolant
+    ! output: uvw(:,:) node coordinates in unity pyramid
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer, intent(in)           :: ord
+    real(8), intent(out), pointer :: uvw(:,:)
+    logical, intent(in)           :: display
+    !---
+    integer                       :: iu,iv,iw,iOrd
+    integer                       :: iNod,nNod
+    real(8)                       :: a
+    real(8)                       :: sub(0:ord)
+    
+    integer                       :: iCel,nPyr,nTet
+    integer, allocatable          :: pyram(:,:)
+    integer, allocatable          :: tetra(:,:)
+    logical                       :: mesh
+    logical                       :: tf
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( display )print '(/"Building Pyramid Equidistant Nodes")'
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    nNod=0
+    do iu=1,ord+1
+      nNod=nNod+iu*iu
+    enddo
+    if( display )print '(3x,"nDeg=",i6)',nNod
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    nPyr=0
+    do iw=ord,1,-1
+      nPyr=nPyr+(iw*iw)+((iw-1)*(iw-1)) !> Pyramides droites + pyramides retournees
+    enddo
+    if( display )print '(3x,"nPyr=",i6)',nPyr
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    allocate(uvw(3,nNod))
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    iNod=0
+    do iw=0,ord
+      
+      !>>>>>> square [-a,+a]x[-a,+a] @ level iw
+      if( ord==0 )then
+        a=0d0
+      else
+        a=1d0-real(iw,kind=8)/real(ord,kind=8) 
+      endif
+     !if( display )print '("a=",f12.9)',a
+      !<<<<<<
+      
+      !>>>>>> subdivision of [-a,+a]
+      sub(0)=-a
+      do iu=1,ord-iw-1
+        sub(iu)=-a+(2d0*a)*real(iu,kind=8)/real(ord-iw,kind=8)
+      enddo
+      sub(ord-iw)=+a
+     !if( display )print '("sub=",15(f12.9,1x))',sub(0:ord-iw)
+      !<<<<<<
+      
+      !>>>>>> 2D Grid (sub(iu),sub(iv))
+      iOrd=ord-iw
+      do iv=0,iOrd
+        do iu=0,iOrd
+          iNod=iNod+1
+          uvw(1:3,iNod)=[ sub(iu), sub(iv), real(iw,kind=8)/real(ord,kind=8)  ]
+        enddo
+      enddo  
+      !<<<<<<
+      
+    enddo
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( display )then
+      print '(3x,"Vertices")'
+      do iNod=1,nNod
+        print '(6x,"uvw(",i6,")=",3(f12.9,1x))',iNod,uvw(1:3,iNod)
+      enddo
+      print '(3x,"end Vertices")'
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    mesh=.false.
+    if( mesh )then
+      allocate(pyram(6,nPyr))
+      allocate(tetra(6,1000))
+      nPyr=0
+      nTet=0
+      tf=.false.
+      do iw=0,ord-1
+        do iv=0,ord-1-iw
+          print '("tf=",l)',tf
+          do iu=0,ord-1-iw
+          
+            if( tf )then
+              nTet=nTet+1
+              tetra(1:5,nTet)=[ pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw  ),&
+              &                 pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw  ),&
+              &                 pyramidIdx(ord=ord,iu=iu-2,iv=iv  ,iw=iw+1),&
+              &                 pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw+1),&
+              &                 0                                           ]
+            endif
+            
+            nPyr=nPyr+1
+            pyram(1:6,nPyr)=[ pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw  ),& 
+            &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw  ),&
+            &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv+1,iw=iw  ),&
+            &                 pyramidIdx(ord=ord,iu=iu  ,iv=iv+1,iw=iw  ),&
+            &                 pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw+1),&
+            &                 0                                           ]
+            
+            if( .not.iw==0 )then
+              nPyr=nPyr+1
+              pyram(1:6,nPyr)=[ pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw  ),& 
+              &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw  ),&
+              &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv+1,iw=iw  ),&
+              &                 pyramidIdx(ord=ord,iu=iu  ,iv=iv+1,iw=iw  ),&
+              &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv+1,iw=iw-1),&
+              &                 0                                           ]
+            endif
+            
+            if( .not.tf .and. .not.iu==ord-1-iw )then
+              nTet=nTet+1
+              tetra(1:5,nTet)=[ pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw  ),&
+              &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv+1,iw=iw  ),&
+              &                 pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw+1),&
+              &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw+1),&
+              &                 0                                           ]
+            endif
+            
+          enddo
+          tf=.not.tf
+        enddo
+      enddo
+      
+      open(unit=10,file="Pyramid.mesh",action='write')
+      write(10,'( "MeshVersionFormatted 1")' )
+      write(10,'(/"Dimension")' )
+      write(10,'( "3")' )
+      write(10,'(/"Vertices")' )
+      write(10,'(i10)')nNod
+      do iNod=1,nNod
+        write(10,'(3(e22.15,1x),i3)')uvw(1:3,iNod),0
+      enddo
+      write(10,'(/"Pyramids")' )
+      write(10,'(i10)')nPyr
+      do iCel=1,nPyr
+        write(10,'(5(i6,1x),i3)')pyram(1:6,iCel)
+      enddo
+      write(10,'(/"Tetrahedra")' )
+      write(10,'(i10)')nTet
+      do iCel=1,nTet
+        write(10,'(5(i6,1x),i3)')tetra(1:5,iCel)
+      enddo
+      write(10,'(/"End")')
+      close(10)
+      
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( display )print '("end Building Pyramid Equidistant Nodes")'
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine pyramidNodes
+  
+  
+  subroutine pyramidNodesOpt(ord, uvw, uv, display)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    ! input: ord=polynomial order of interpolant
+    ! output: uvw(:,:) node coordinates in unity pyramid
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer, intent(in)           :: ord
+    real(8), intent(in) , pointer :: uv (:,:) !> Triangle optimized points
+    real(8), intent(out), pointer :: uvw(:,:)
+    logical, intent(in)           :: display
+    !---
+    integer                       :: iu,iv,iw
+    integer                       :: iNod,jNod,nNod
+    real(8)                       :: a
+    real(8)                       :: subV(0:ord)
+    real(8)                       :: subW(0:ord)
+    integer, allocatable          :: idx(:,:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( display )print '(/"Building Pyramid Optimized Nodes")'
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( display )then
+      print '(3x,"3D Triangle Optimized Nodes")'
+      iNod=0
+      do iw=0,ord
+        print '(6x,"level:",i3)',iw
+        do iv=0,ord-iw
+          iNod=iNod+1
+          print '(9x,"uv(",i6,")=",2(f12.9,1x))',iNod,uv(1:2,iNod)
+        enddo
+      enddo
+      print '(3x,"end")'
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Index Optimized Triangles
+    allocate(idx(0:ord,0:ord)) ; idx(:,:)=0
+    iNod=0
+    do iu=0,ord
+      do iv=0,ord-iu
+        iNod=iNod+1
+        idx(iu,iv)=iNod
+      enddo
+    enddo
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    nNod=0
+    do iu=1,ord+1
+      nNod=nNod+iu*iu
+    enddo
+    if( display )print '(3x,"nDeg=",i6)',nNod
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    allocate(uvw(3,nNod))
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    iNod=0 ; jNod=0
+    
+    subW(0:ord)=uv(1,1:ord+1)
+    do iw=0,ord
+      
+      subV(0:ord-iw)=2d0*uv(1,jNod +1:jNod+ord-iw +1)-uv(1,jNod+ord-iw +1)
+      !subW(0:ord-iw)=    uv(1,jNod +1:jNod+ord-iw +1)
+      
+      do iv=0,ord-iw
+        jNod=jNod+1
+        do iu=0,ord-iw
+        iNod=iNod+1 !> tensorisation
+        uvw(1:3,iNod)=[ subV(iu), subV(iv),  subW(iw) ]
+      enddo ; enddo
+      !<<<<<<
+      
+    enddo
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( display )then
+      print '(3x,"Vertices")'
+      iNod=0
+      do iw=0,ord
+        print '(6x,"level: ",i3)',iw
+        do iv=0,ord-iw ; do iu=0,ord-iw
+          iNod=iNod+1
+          print '(6x,"uvw(",i6,")=",3(f12.9,1x))',iNod,uvw(1:3,iNod)
+        enddo ; enddo
+      enddo
+      print '(3x,"end")'
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( display )print '("end Building Pyramid Optimized Nodes")'
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine pyramidNodesOpt
+  
   subroutine pyramidMesh3D(ord,uvw,display)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     use M_libmesh6_api
@@ -205,7 +491,7 @@ contains
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Reecriture de TetraPi.mesh
-    name="PyramidP"//sfx//".mesh" ; if( display )print '(3x,"Writing Pyramid Volumic Mesh: ",a)',trim(name)
+    name="PyramidP"//sfx//".mesh" ; if( display )print '(3x,"Writing Reordered Pyramid Volumic Mesh: ",a)',trim(name)
     ins=GmfOpenMeshF77(trim(name),GmfWrite,1,3) ; if( display )print '(6x,"nNod =",i10)',nNod
     
     res=GmfSetKwdF77(ins,GmfVertices,nNod,0,TypTab)
@@ -237,6 +523,7 @@ contains
     enddo
     
     res=GmfCloseMeshF77(ins)
+    if( display )print '(3x,"end")'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -442,7 +729,7 @@ contains
     do iCel=1,nTrian
       write(10,'(3(i6,1x),i3)')indx(trian(1:3,iCel)),trian(4,iCel)
     enddo
-    write(10,'(/"End")')   
+    write(10,'(/"End")')
     close(10)
     
     if( display )then
@@ -467,185 +754,6 @@ contains
     return
   end subroutine pyramidSkin3D
   
-  
-  subroutine pyramidEquiNodes3D(ord, uvw, display)
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    ! input: ord=polynomial order of interpolant
-    ! output: uvw(:,:) node coordinates in unity pyramid
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    integer, intent(in)           :: ord
-    real(8), intent(out), pointer :: uvw(:,:)
-    logical, intent(in)           :: display
-    !---
-    integer                       :: iu,iv,iw,iOrd
-    integer                       :: iNod,nNod
-    real(8)                       :: a
-    real(8)                       :: sub(0:ord)
-    
-    integer                       :: iCel,nPyr,nTet
-    integer, allocatable          :: pyram(:,:)
-    integer, allocatable          :: tetra(:,:)
-    logical                       :: mesh
-    logical                       :: tf
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if( display )print '("Building Pyramid Equidistant Nodes")'
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    nNod=0
-    do iu=1,ord+1
-      nNod=nNod+iu*iu
-    enddo
-    if( display )print '(3x,"nDeg=",i6)',nNod
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    nPyr=0
-    do iw=ord,1,-1
-      nPyr=nPyr+(iw*iw)+((iw-1)*(iw-1)) !> Pyramides droites + pyramides retournees
-    enddo
-    if( display )print '(3x,"nPyr=",i6)',nPyr
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    allocate(uvw(3,nNod))
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    iNod=0
-    do iw=0,ord
-      
-      !>>>>>> square [-a,+a]x[-a,+a] @ level iw
-      if( ord==0 )then
-        a=0d0
-      else
-        a=1d0-real(iw,kind=8)/real(ord,kind=8) 
-      endif
-     !if( display )print '("a=",f12.9)',a
-      !<<<<<<
-      
-      !>>>>>> subdivision of [-a,+a]
-      sub(0)=-a
-      do iu=1,ord-iw-1
-        sub(iu)=-a+(2d0*a)*real(iu,kind=8)/real(ord-iw,kind=8)
-      enddo
-      sub(ord-iw)=+a
-     !if( display )print '("sub=",15(f12.9,1x))',sub(0:ord-iw)
-      !<<<<<<
-      
-      !>>>>>> 2D Grid (sub(iu),sub(iv))
-      iOrd=ord-iw
-      do iv=0,iOrd
-        do iu=0,iOrd
-          iNod=iNod+1
-          uvw(1:3,iNod)=[ sub(iu), sub(iv), real(iw,kind=8)/real(ord,kind=8)  ]
-        enddo
-      enddo  
-      !<<<<<<
-      
-    enddo
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if( display )then
-      print '(3x,"Vertices")'
-      do iNod=1,nNod
-        print '(6x,"uvw(",i6,")=",3(f12.9,1x))',iNod,uvw(1:3,iNod)
-      enddo
-      print '(3x,"end Vertices")'
-    endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    mesh=.false.
-    if( mesh )then
-      allocate(pyram(6,nPyr))
-      allocate(tetra(6,1000))
-      nPyr=0
-      nTet=0
-      tf=.false.
-      do iw=0,ord-1
-        do iv=0,ord-1-iw
-          print '("tf=",l)',tf
-          do iu=0,ord-1-iw
-          
-            if( tf )then
-              nTet=nTet+1
-              tetra(1:5,nTet)=[ pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw  ),&
-              &                 pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw  ),&
-              &                 pyramidIdx(ord=ord,iu=iu-2,iv=iv  ,iw=iw+1),&
-              &                 pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw+1),&
-              &                 0                                           ]
-            endif
-            
-            nPyr=nPyr+1
-            pyram(1:6,nPyr)=[ pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw  ),& 
-            &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw  ),&
-            &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv+1,iw=iw  ),&
-            &                 pyramidIdx(ord=ord,iu=iu  ,iv=iv+1,iw=iw  ),&
-            &                 pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw+1),&
-            &                 0                                           ]
-           !print '(3x,"nPyr=",i3,1x,"conec=",5(i3,1x))',nPyr,conec(1:5,nPyr)
-            
-            if( .not.iw==0 )then
-              nPyr=nPyr+1
-              pyram(1:6,nPyr)=[ pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw  ),& 
-              &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw  ),&
-              &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv+1,iw=iw  ),&
-              &                 pyramidIdx(ord=ord,iu=iu  ,iv=iv+1,iw=iw  ),&
-              &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv+1,iw=iw-1),&
-              &                 0                                           ]
-            endif
-            
-            if( .not.tf .and. .not.iu==ord-1-iw )then
-              nTet=nTet+1
-              tetra(1:5,nTet)=[ pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw  ),&
-              &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv+1,iw=iw  ),&
-              &                 pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw+1),&
-              &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw+1),&
-              &                 0                                           ]
-            endif
-            
-          enddo
-          tf=.not.tf
-        enddo
-      enddo
-      
-      open(unit=10,file="Pyramid.mesh",action='write')
-      write(10,'( "MeshVersionFormatted 1")' )
-      write(10,'(/"Dimension")' )
-      write(10,'( "3")' )
-      write(10,'(/"Vertices")' )
-      write(10,'(i10)')nNod
-      do iNod=1,nNod
-        write(10,'(3(e22.15,1x),i3)')uvw(1:3,iNod),0
-      enddo
-      write(10,'(/"Pyramids")' )
-      write(10,'(i10)')nPyr
-      do iCel=1,nPyr
-        write(10,'(5(i6,1x),i3)')pyram(1:6,iCel)
-      enddo
-      write(10,'(/"Tetrahedra")' )
-      write(10,'(i10)')nTet
-      do iCel=1,nTet
-        write(10,'(5(i6,1x),i3)')tetra(1:5,iCel)
-      enddo
-      write(10,'(/"End")')
-      close(10)
-       
-    endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if( display )print '("end Building Pyramid Equidistant Nodes")'
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    return    
-  end subroutine pyramidEquiNodes3D
   
   function pyramidIdx(ord, iu,iv,iw) result(idx)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

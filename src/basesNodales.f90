@@ -1,4 +1,4 @@
-subroutine test0()
+subroutine jacobiTest()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use baseSimplexTools
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -40,7 +40,7 @@ subroutine test0()
   deallocate(u)
   
   return
-end subroutine test0
+end subroutine jacobiTest
 
 subroutine testQuadratureGL()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -530,7 +530,7 @@ subroutine test2D_01()
 end subroutine test2D_01
 
 
-subroutine test3D()
+subroutine tetraTest()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use modDeterminant
   use baseSimplex2D
@@ -561,7 +561,7 @@ subroutine test3D()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  write(*,'("Calcul des bases polynômiales 3D")')
+  write(*,'("Calcul des bases polynômiales Tetra")')
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -806,9 +806,9 @@ subroutine test3D()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   return
-end subroutine test3D
+end subroutine tetraTest
 
-subroutine T4maillageVisuPi()
+subroutine tetraMaillageVisu()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! Cette procedure sert à construire les maillages de visu pour le tetra d'ordre élevé
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -840,7 +840,7 @@ subroutine T4maillageVisuPi()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   return
-end subroutine T4maillageVisuPi
+end subroutine tetraMaillageVisu
 
 
 subroutine testConnectivitiesOfSides()
@@ -884,7 +884,7 @@ subroutine testConnectivitiesOfSides()
 end subroutine testConnectivitiesOfSides
 
 
-subroutine testQuadrangles()
+subroutine quadTest()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use space_LDLt      , only: factorise
   use baseSimplex1D
@@ -958,13 +958,115 @@ subroutine testQuadrangles()
   call display(title="Factorized(MassQ4)=",vec=mass)
   
   return
-end subroutine testQuadrangles
+end subroutine quadTest
 
-subroutine testPyramids()
+subroutine testPyramid()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  use modDeterminant
+  !use modDeterminant
   use baseSimplex2D
   use baseSimplex3D
+  use basePyramid
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  implicit none
+  integer              :: ord
+  real(8), pointer     :: uvw(:,:)
+  real(8), pointer     :: uv (:,:)
+  real(8), pointer     :: xGLL(:)
+  integer              :: ad,iSide
+  integer              :: iNod,nNod,iu,iv,iw
+  integer, allocatable :: conec(:,:)
+  
+  character(3)         :: sfx
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  write(*,'("Calcul des bases polynômiales Pyram")')
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  write(*,'(/"Order: ")',advance='no') ; read(*,*)ord
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  if(   1<=ord .and. ord<  10 ) write(sfx,'("00",i1)')ord
+  if(  10<=ord .and. ord< 100 ) write(sfx,'("0" ,i2)')ord
+  if( 100<=ord .and. ord<1000 ) write(sfx,'(     i3)')ord
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Points optimises sur une face triangle
+  print '(/"Gauss Lobatto Points")'
+  call gaussLegendreLobatto(ord=ord,xGLL=xGLL)
+  print '(3x,"ad=",i5,2x,"u=",f19.16)',(ad,5d-1*(xGLL(ad)+1d0),ad=1,size(xGLL))
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Points optimises sur une face triangle
+  write(*,'(/"3D Triangle Optimized Nodes")') !> confere routine tetraTest pour detail
+  call nodes3D   (ord=ord,uvw=uvw,display=.false.)
+  call nodes3Dopt(ord=ord,uvw=uvw,display=.false.)  
+  call trianglesConnectivity(ord=ord,conec=conec) ; nNod=size(conec,1)
+  
+  allocate(uv(3,nNod))
+  do iNod=1,nNod
+    ad=conec(iNod,3) !> Triangle3
+    uv(1,iNod)=uvw(1,ad)
+    uv(2,iNod)=uvw(3,ad)
+    uv(3,iNod)=1d0-uv(1,iNod)-uv(2,iNod)
+  enddo
+  deallocate(uvw,conec)
+  
+  
+  write(*,'(3x,"writing: ",a)')"TriangleOptP"//sfx//".mesh"
+  open(unit=10,file="TriangleOptP"//sfx//".mesh",action='write')
+  write(10,'( "MeshVersionFormatted 1")' )
+  write(10,'(/"Dimension"/,"3")' )
+  write(10,'(/"Vertices"/,i3)' )nNod
+  write(10,'(3(e22.15,1x),i3)')((uv(1:3,iNod),0), iNod=1,nNod)
+  
+  write(10,'(/"Triangles"/,i6)' )ord*ord
+  iNod=0
+  do iw=0,ord-1
+    do iv=0,ord-iw-1
+      iNod=iNod+1
+      write(10,'(3(i3,1x),3x,i3)' )iNod,iNod+1,iNod+ord-iw+1, 0
+      if( .not.iv==ord-iw-1 )then
+        write(10,'(3(i3,1x),3x,i3)' )iNod+1,iNod+ord-iw+2,iNod+ord-iw+1, 0
+      endif
+    enddo
+    iNod=iNod+1
+  enddo  
+  write(10,'(/"End")')
+  close(10)
+  
+  
+  !do iNod=1,nNod
+  !  print '(3x,"uv(",i6,")=",3(f12.9,1x))',iNod,uv(1:3,iNod)
+  !enddo  
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  call pyramidNodesOpt(ord=ord, uvw=uvw, uv=uv, display=.true.)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  call pyramidSkin3D(ord=ord, uvw=uvw, display=.true.)
+  !call pyramidMesh3D(ord=ord, uvw=uvw, display=.true.)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  call pyramidSides3D(ord=ord, display=.true.)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  return
+end subroutine testPyramid
+
+subroutine pyramMaillageVisu()
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !use modDeterminant
+  !use baseSimplex2D
+  !use baseSimplex3D
   use basePyramid
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -974,15 +1076,16 @@ subroutine testPyramids()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  write(*,'(/"Construction maillage Pyramid P_i")')
+  write(*,'("Warning ghs3d is required")')
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   write(*,'(/"Order: ")',advance='no') ; read(*,*)ord
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  call pyramidEquiNodes3D(ord=ord, uvw=uvw, display=.true.)
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  call pyramidSides3D(ord=ord, display=.true.)
+  call pyramidNodes(ord=ord, uvw=uvw, display=.true.)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -991,14 +1094,14 @@ subroutine testPyramids()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   return
-end subroutine testPyramids
+end subroutine pyramMaillageVisu
 
 
 program main
   
   !> Connectivite 
  !call testConnectivitiesOfSides()
- !call test0()
+ !call jacobiTest()
   
   !> Test des quadratures
  !call testQuadratureGL()
@@ -1012,13 +1115,14 @@ program main
  !call test2D_01()
   
   !> Test Tetra
-  !call test3D()
-  !call T4maillageVisuPi() ! maillages de visu pour le tetra d'ordre élevé
+  !call tetraTest()
+  !call tetraMaillageVisu() ! maillages de visu pour le tetra d'ordre élevé
   
   !> Test Quad
-  !call testQuadrangles()
+  !call quadTest()
   
   !> Test pyramids
-  call testPyramids()
+  !call pyramMaillageVisu()
+  call testPyramid()
   
 end program main
