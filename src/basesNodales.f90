@@ -1023,7 +1023,13 @@ subroutine testPyramid()
   write(10,'( "MeshVersionFormatted 1")' )
   write(10,'(/"Dimension"/,"3")' )
   write(10,'(/"Vertices"/,i3)' )nNod
-  write(10,'(3(e22.15,1x),i3)')((uv(1:3,iNod),0), iNod=1,nNod)
+  iNod=0
+  do iw=0,ord
+    do iv=0,ord-iw
+      iNod=iNod+1
+      write(10,'(3(e22.15,1x),i3)'),uv(1,iNod),uv(2,iNod),uv(3,iNod),0
+    enddo
+  enddo
   
   write(10,'(/"Triangles"/,i6)' )ord*ord
   iNod=0
