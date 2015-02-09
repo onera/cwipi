@@ -972,6 +972,7 @@ subroutine testPyramid()
   integer              :: ord
   real(8), pointer     :: uvw(:,:)
   real(8), pointer     :: uv (:,:)
+  real(8), pointer     :: func(:,:)
   real(8), pointer     :: xGLL(:)
   integer              :: ad,iSide
   integer              :: iNod,nNod,iu,iv,iw
@@ -1007,6 +1008,7 @@ subroutine testPyramid()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Points optimises sur une face triangle
   call pyramidSideNodesOpt(ord=ord,uv=uv,display=.true.)
+  call pyramidVertexFunctions(uvw=uv, func=func, display=.true.)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

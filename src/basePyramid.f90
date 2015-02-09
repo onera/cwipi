@@ -4,6 +4,39 @@ module basePyramid
 
 contains
   
+  subroutine pyramidVertexFunctions(uvw, func, display)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    real(8), intent(in) , pointer :: uvw(:,:)
+    real(8), intent(out), pointer :: func(:,:)
+    logical, intent(in)           :: display
+    !>
+    integer                       :: i
+    real(8), parameter            :: tol = 1d-10;
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    allocate( func(5,size(uvw,2)) )
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> vertex functions
+    func(1,:) = .25d0*(1d0-uvw(1,:)-uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol));
+    func(2,:) = .25d0*(1d0+uvw(1,:)-uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol));
+    func(3,:) = .25d0*(1d0+uvw(1,:)+uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol));
+    func(4,:) = .25d0*(1d0-uvw(1,:)+uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol));
+    func(5,:) = uvw(3,:);
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( display )then
+      do i=1,size(func,2)
+        print '(i3,1x,"uvw=",3(f12.9,1x),1x,"func=",5(f12.9,1x))',i,uvw(1:3,i),func(1:5,i)
+      enddo
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine pyramidVertexFunctions
   
   subroutine pyramidNodes(ord, uvw, display)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -284,8 +317,8 @@ contains
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
-  return
-end subroutine pyramidSideNodesOpt
+    return
+  end subroutine pyramidSideNodesOpt
     
   subroutine pyramidNodesOpt(ord, uvw, uv, display)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
