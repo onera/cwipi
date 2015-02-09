@@ -995,7 +995,7 @@ module baseSimplex2D
   
     open ( unit = file_unit, file = file_name, status = 'replace',iostat = ios )
     
-    if ( ios /= 0 ) then
+    if( .not.ios== 0 )then
       write ( *, '(a)' ) ' '
       write ( *, '(a)' ) 'TRIANGLE_POINTS_PLOT - Fatal error!'
       write ( *, '(a)' ) '  Can not open output file.'

@@ -976,6 +976,9 @@ subroutine testPyramid()
   integer              :: ad,iSide
   integer              :: iNod,nNod,iu,iv,iw
   integer, allocatable :: conec(:,:)
+  integer, allocatable :: idx(:)
+  real(8)              :: rot(3,3),xyz(1:3),cos_a,sin_a
+  real(8)              :: alpha
   
   character(3)         :: sfx
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -995,61 +998,15 @@ subroutine testPyramid()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Points optimises sur une face triangle
-  print '(/"Gauss Lobatto Points")'
-  call gaussLegendreLobatto(ord=ord,xGLL=xGLL)
-  print '(3x,"ad=",i5,2x,"u=",f19.16)',(ad,5d-1*(xGLL(ad)+1d0),ad=1,size(xGLL))
+  !> Points optimises sur un segment
+  !print '(/"Gauss Lobatto Points")'
+  !call gaussLegendreLobatto(ord=ord,xGLL=xGLL)
+  !print '(3x,"ad=",i5,2x,"u=",f19.16)',(ad,5d-1*(xGLL(ad)+1d0),ad=1,size(xGLL))
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Points optimises sur une face triangle
-  write(*,'(/"3D Triangle Optimized Nodes")') !> confere routine tetraTest pour detail
-  call nodes3D   (ord=ord,uvw=uvw,display=.false.)
-  call nodes3Dopt(ord=ord,uvw=uvw,display=.false.)  
-  call trianglesConnectivity(ord=ord,conec=conec) ; nNod=size(conec,1)
-  
-  allocate(uv(3,nNod))
-  do iNod=1,nNod
-    ad=conec(iNod,3) !> Triangle3
-    uv(1,iNod)=uvw(1,ad)
-    uv(2,iNod)=uvw(3,ad)
-    uv(3,iNod)=1d0-uv(1,iNod)-uv(2,iNod)
-  enddo
-  deallocate(uvw,conec)
-  
-  
-  write(*,'(3x,"writing: ",a)')"TriangleOptP"//sfx//".mesh"
-  open(unit=10,file="TriangleOptP"//sfx//".mesh",action='write')
-  write(10,'( "MeshVersionFormatted 1")' )
-  write(10,'(/"Dimension"/,"3")' )
-  write(10,'(/"Vertices"/,i3)' )nNod
-  iNod=0
-  do iw=0,ord
-    do iv=0,ord-iw
-      iNod=iNod+1
-      write(10,'(3(e22.15,1x),i3)'),uv(1,iNod),uv(2,iNod),uv(3,iNod),0
-    enddo
-  enddo
-  
-  write(10,'(/"Triangles"/,i6)' )ord*ord
-  iNod=0
-  do iw=0,ord-1
-    do iv=0,ord-iw-1
-      iNod=iNod+1
-      write(10,'(3(i3,1x),3x,i3)' )iNod,iNod+1,iNod+ord-iw+1, 0
-      if( .not.iv==ord-iw-1 )then
-        write(10,'(3(i3,1x),3x,i3)' )iNod+1,iNod+ord-iw+2,iNod+ord-iw+1, 0
-      endif
-    enddo
-    iNod=iNod+1
-  enddo  
-  write(10,'(/"End")')
-  close(10)
-  
-  
-  !do iNod=1,nNod
-  !  print '(3x,"uv(",i6,")=",3(f12.9,1x))',iNod,uv(1:3,iNod)
-  !enddo  
+  call pyramidSideNodesOpt(ord=ord,uv=uv,display=.true.)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1058,11 +1015,11 @@ subroutine testPyramid()
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   call pyramidSkin3D(ord=ord, uvw=uvw, display=.true.)
-  !call pyramidMesh3D(ord=ord, uvw=uvw, display=.true.)
+ !call pyramidMesh3D(ord=ord, uvw=uvw, display=.true.)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  call pyramidSides3D(ord=ord, display=.true.)
+ !call pyramidSides3D(ord=ord, display=.true.)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   return

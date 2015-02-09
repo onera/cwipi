@@ -1688,6 +1688,14 @@ module baseSimplex3D
   
   subroutine trianglesConnectivity(ord,conec)!,trian,uvw)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Cette procedure extrait les connec-
+    !> tivités des 4 triangles entourant le
+    !> tétra.
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#define trianglesConnectivity 0
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer,              intent(in)  :: ord
     integer, allocatable, intent(out) :: conec (:,:)
     !>
@@ -1754,7 +1762,7 @@ module baseSimplex3D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#if 0==1
+#if trianglesConnectivity==1
     if( ord<10 )then
       write(*,'(/"Lagrangian Tetrahedra P",i1)')ord
     else
@@ -1771,10 +1779,20 @@ module baseSimplex3D
 #endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#undef trianglesConnectivity
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
     return
   end subroutine trianglesConnectivity
   
+  
   subroutine permutation(order, move, flip, dg)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Cette procedure tourne une face triangulaire
+    !> vers la gauche ou vers la droite et peut aussi
+    !> la retourner
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer , intent(in)  :: order
     integer , intent(in)  :: move
@@ -1793,21 +1811,17 @@ module baseSimplex3D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    ! definition du standard i j k
+    !> definition du standard i j k
     s=0
-    do j=0,order
-      do i=0,order
-        do k=0,order
-          if( i+j+k==order )then
-            s=s+1 ; tab(i,j,k)=s
-          endif
-        enddo
-      enddo
-    enddo
+    do j=0,order ; do i=0,order ; do k=0,order
+      if( i+j+k==order )then
+        s=s+1 ; tab(i,j,k)=s
+      endif
+    enddo ; enddo ; enddo
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    ! application de la transformation
+    !> application de la transformation
     dg(1:n)=0
     
     s=0

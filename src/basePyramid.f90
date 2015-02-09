@@ -183,7 +183,110 @@ contains
     return
   end subroutine pyramidNodes
   
-  
+  subroutine pyramidSideNodesOpt(ord,uv,display)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    use baseSimplex3D, only: nodes3D,nodes3DOpt,trianglesConnectivity,permutation
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer, intent(in)           :: ord
+    real(8), intent(out), pointer :: uv (:,:)
+    logical, intent(in)           :: display
+    !>
+    real(8), pointer     :: uvw(:,:)
+    real(8), pointer     :: xGLL(:)
+    integer              :: ad,iSide
+    integer              :: iNod,nNod,iu,iv,iw
+    integer, allocatable :: conec(:,:)
+    integer, allocatable :: idx(:)
+    real(8)              :: rot(3,3),xyz(1:3),cos_a,sin_a
+    real(8)              :: alpha
+    character(3)         :: sfx
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( display )print '(/"Pyramid Triangle Optimized Nodes")' !> confere routine tetraTest pour detail
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Points optimises sur un segment
+    !print '(/"Gauss Lobatto Points")'
+    !call gaussLegendreLobatto(ord=ord,xGLL=xGLL)
+    !print '(3x,"ad=",i5,2x,"u=",f19.16)',(ad,5d-1*(xGLL(ad)+1d0),ad=1,size(xGLL))
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Points optimises sur une face triangle
+    call nodes3D   (ord=ord,uvw=uvw,display=.false.) !> nodes3D sur tetra
+    call nodes3Dopt(ord=ord,uvw=uvw,display=.false.) !> nodes3D sur tetra (optimisation) 
+    call trianglesConnectivity(ord=ord,conec=conec)
+    
+    !> On fait tourner la face pour mettre l'indice 1 en bas à gauche
+    nNod=size(conec,1) ; allocate(idx(nNod))
+    call permutation(order=ord, move=-1, flip=.false., dg=idx)
+    
+    !> Coordonnées de la face triangulaire 3
+    allocate(uv(3,nNod))
+    do iNod=1,nNod
+      ad=conec(idx(iNod),3) !> idx sur face3 du triangle
+      uv(1,iNod)=uvw(1,ad)
+      uv(2,iNod)=uvw(3,ad)
+      uv(3,iNod)=1d0-uv(1,iNod)-uv(2,iNod)        
+    enddo
+    deallocate(uvw,conec,idx)
+    
+    !> Rotation autour de (zz') angle -pi/4
+    cos_a=sqrt(2d0)/2d0 ; sin_a=-cos_a
+    rot(1,1:3) = [cos_a, -sin_a, 0d0]
+    rot(2,1:3) = [sin_a,  cos_a, 0d0]
+    rot(3,1:3) = [0d0  ,  0d0  , 1d0]
+    do iNod=1,nNod
+      xyz(1:3)=uv(1:3,iNod)
+      uv(1:3,iNod)= matmul(rot,xyz) !> rotation -pi/4 autour de (zz')
+    enddo
+    
+    !> Homothétie
+    alpha=2d0/( uv(2,ord+1)-uv(2,1) )
+    uv(1:2,1:nNod)=alpha*uv(1:2,1:nNod) !> on touche pas à uv(3,:)
+    
+    !> Ecriture du triangle TriangleOptPi.mesh
+    if( display )then
+      
+      if(   1<=ord .and. ord<  10 ) write(sfx,'("00",i1)')ord
+      if(  10<=ord .and. ord< 100 ) write(sfx,'("0" ,i2)')ord
+      if( 100<=ord .and. ord<1000 ) write(sfx,'(     i3)')ord
+      
+      write(*,'(3x,"writing: ",a)')"TriangleOptP"//sfx//".mesh"
+      open(unit=10,file="TriangleOptP"//sfx//".mesh",action='write')
+      write(10,'( "MeshVersionFormatted 1")' )
+      write(10,'(/"Dimension"/,"3")' )
+      write(10,'(/"Vertices"/,i3)' )nNod
+      iNod=0
+      do iw=0,ord
+        do iv=0,ord-iw
+          iNod=iNod+1
+          write(10,'(3(e22.15,1x),i3)'),uv(1,iNod),uv(2,iNod),uv(3,iNod),0
+        enddo
+      enddo
+      write(10,'(/"Triangles"/,i6)' )ord*ord
+      iNod=0
+      do iw=0,ord-1
+        do iv=0,ord-iw-1
+          iNod=iNod+1
+          write(10,'(3(i3,1x),3x,i3)' )iNod,iNod+1,iNod+ord-iw+1, 0
+          if( .not.iv==ord-iw-1 )then
+            write(10,'(3(i3,1x),3x,i3)' )iNod+1,iNod+ord-iw+2,iNod+ord-iw+1, 0
+          endif
+        enddo
+        iNod=iNod+1
+      enddo  
+      write(10,'(/"End")')
+      close(10)
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+  return
+end subroutine pyramidSideNodesOpt
+    
   subroutine pyramidNodesOpt(ord, uvw, uv, display)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! input: ord=polynomial order of interpolant
@@ -196,11 +299,14 @@ contains
     real(8), intent(out), pointer :: uvw(:,:) !> Tetra    optimized points
     logical, intent(in)           :: display
     !>
-    integer                       :: iu,iv,iw
+    integer                       :: iu,iv,iw,ad
     integer                       :: iNod,jNod,nNod
-    real(8)                       :: subV(0:ord)
-    real(8)                       :: subW(0:ord)
+    real(8)                       :: sub(3,0:ord)
+    integer :: test(3)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+test(1:3)=[1,2,3]
+print '("test inverse: ",3(i2,1x))',test(3:1:-1)
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( display )print '(/"Building Pyramid Optimized Nodes")'
@@ -214,7 +320,7 @@ contains
         print '(6x,"level:",i3)',iw
         do iv=0,ord-iw
           iNod=iNod+1
-          print '(9x,"uv(",i6,")=",2(f12.9,1x))',iNod,uv(1:2,iNod)
+          print '(9x,"uv(",i6,")=",3(f12.9,1x))',iNod,uv(1:3,iNod)
         enddo
       enddo
       print '(3x,"end")'
@@ -226,7 +332,7 @@ contains
     do iu=1,ord+1
       nNod=nNod+iu*iu
     enddo
-    if( display )print '(3x,"nDeg=",i6)',nNod
+    if( display )print '(/3x,"nDeg=",i6)',nNod
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -234,26 +340,76 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    iNod=0 ; jNod=0
+    !> iw=0d0 side1
+    !> iu=0d0 side2
+    !> iv=0d0 side3
+    !> iu=ord side4
+    !> iv=ord side5
     
-   !subW(0:ord)=uv(1,1:ord+1)
+!    iNod=0 ; jNod=0
+!    do iw=0,ord      
+!      sub(1:3,0:ord-iw)=uv(1:3,jNod +1:jNod+ord-iw +1)
+!      print '(/"sub=",12(f12.5,2x))',sub(1,0:ord-iw)
+!      print '( 4x    ,12(f12.5,2x))',sub(2,0:ord-iw)
+!      print '( 4x    ,12(f12.5,2x))',sub(3,0:ord-iw)
+!      do iv=0,ord-iw
+!        jNod=jNod+1
+!        do iu=0,ord-iw
+!          iNod=iNod+1 !> tensorisation
+!          !uvw(1:3,iNod)=[subV(iu),subV(iv),subW(iw)]
+!           uvw(1:3,iNod)=[sub(1,iu),sub(2,iv),sub(3,iw) ]          
+!        enddo
+!      enddo
+!    enddo
+    
+    uvw(1,:)=0d0
+    uvw(2,:)=0d0
+    uvw(3,:)=5d-1
+    
+    iNod=0 ; jNod=0    
     do iw=0,ord
       
-      subV(0:ord-iw)=2d0*uv(1,jNod +1:jNod+ord-iw +1)-uv(1,jNod+ord-iw +1)
-      subW(0:ord-iw)=    uv(2,jNod +1:jNod+ord-iw +1)
+      sub(1:3,0:ord-iw)=uv(1:3,jNod +1:jNod+ord-iw +1)
+      print '(/"sub=",12(f12.5,2x))',sub(1,0:ord-iw)
+      print '( 4x    ,12(f12.5,2x))',sub(2,0:ord-iw)
+      print '( 4x    ,12(f12.5,2x))',sub(3,0:ord-iw)
       
       do iv=0,ord-iw
         jNod=jNod+1
         do iu=0,ord-iw
-        iNod=iNod+1 !> tensorisation
-        uvw(1:3,iNod)=[subV(iu),subV(iv),  (subW(iu)+subW(iv))/2 ]
-       !uvw(1:3,iNod)=[subV(iu),subV(iv),subW(iw)]
-      enddo ; enddo
+          iNod=iNod+1
+          
+          if    ( iw==0 )then
+            uvw(1:3,iNod)=[sub(2,iu),sub(2,iv),0d0 ]
+          endif
+          
+          if( iu==0 )then
+            ad=iv
+            uvw(1:3,iNod)=[sub(2,ad),sub(1,ad),sub(3,ad)]
+          endif
+          
+          if( iv==0 )then
+            ad=iu
+            uvw(1:3,iNod)=[sub(1,ad),sub(2,ad),sub(3,ad)]
+          endif
+          
+          if( iu==ord-iw )then
+            ad=ord-iw-iv            
+            uvw(1:3,iNod)=[-sub(2,ad),sub(1,ad),sub(3,ad)]
+          endif
+
+          if( iv==ord-iw )then
+            ad=ord-iw-iu
+            uvw(1:3,iNod)=[-sub(1,ad),sub(2,ad),sub(3,ad)]
+          endif
+        enddo
+      enddo
     enddo
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if( display )then
+   !if( display )then
+    if( 0==1 )then
       print '(3x,"Vertices")'
       iNod=0
       do iw=0,ord
