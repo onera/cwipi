@@ -1022,7 +1022,7 @@ subroutine testPyramid()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
- !call pyramidSides3D(ord=ord, display=.true.)
+  call pyramidSides3D(ord=ord, display=.true.)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   return
