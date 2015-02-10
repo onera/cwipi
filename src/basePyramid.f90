@@ -72,15 +72,7 @@ contains
     enddo
     if( display )print '(3x,"nDeg=",i6)',nNod
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    nPyr=0
-    do iw=ord,1,-1
-      nPyr=nPyr+(iw*iw)+((iw-1)*(iw-1)) !> Pyramides droites + pyramides retournees
-    enddo
-    if( display )print '(3x,"nPyr=",i6)',nPyr
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+        
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     allocate(uvw(3,nNod))
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -129,86 +121,7 @@ contains
       print '(3x,"end Vertices")'
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    mesh=.false.
-    if( mesh )then
-      allocate(pyram(6,nPyr))
-      allocate(tetra(6,1000))
-      nPyr=0
-      nTet=0
-      tf=.false.
-      do iw=0,ord-1
-        do iv=0,ord-iw-1
-          print '("tf=",l)',tf
-          do iu=0,ord-iw-1
-          
-            if( tf )then
-              nTet=nTet+1
-              tetra(1:5,nTet)=[ pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw  ),&
-              &                 pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw  ),&
-              &                 pyramidIdx(ord=ord,iu=iu-2,iv=iv  ,iw=iw+1),&
-              &                 pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw+1),&
-              &                 0                                           ]
-            endif
-            
-            nPyr=nPyr+1
-            pyram(1:6,nPyr)=[ pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw  ),& 
-            &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw  ),&
-            &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv+1,iw=iw  ),&
-            &                 pyramidIdx(ord=ord,iu=iu  ,iv=iv+1,iw=iw  ),&
-            &                 pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw+1),&
-            &                 0                                           ]
-            
-            if( .not.iw==0 )then
-              nPyr=nPyr+1
-              pyram(1:6,nPyr)=[ pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw  ),& 
-              &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw  ),&
-              &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv+1,iw=iw  ),&
-              &                 pyramidIdx(ord=ord,iu=iu  ,iv=iv+1,iw=iw  ),&
-              &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv+1,iw=iw-1),&
-              &                 0                                           ]
-            endif
-            
-            if( .not.tf .and. .not.iu==ord-iw-1 )then
-              nTet=nTet+1
-              tetra(1:5,nTet)=[ pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw  ),&
-              &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv+1,iw=iw  ),&
-              &                 pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw+1),&
-              &                 pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw+1),&
-              &                 0                                           ]
-            endif
-            
-          enddo
-          tf=.not.tf
-        enddo
-      enddo
-      
-      open(unit=10,file="Pyramid.mesh",action='write')
-      write(10,'( "MeshVersionFormatted 1")' )
-      write(10,'(/"Dimension")' )
-      write(10,'( "3")' )
-      write(10,'(/"Vertices")' )
-      write(10,'(i10)')nNod
-      do iNod=1,nNod
-        write(10,'(3(e22.15,1x),i3)')uvw(1:3,iNod),0
-      enddo
-      write(10,'(/"Pyramids")' )
-      write(10,'(i10)')nPyr
-      do iCel=1,nPyr
-        write(10,'(5(i6,1x),i3)')pyram(1:6,iCel)
-      enddo
-      write(10,'(/"Tetrahedra")' )
-      write(10,'(i10)')nTet
-      do iCel=1,nTet
-        write(10,'(5(i6,1x),i3)')tetra(1:5,iCel)
-      enddo
-      write(10,'(/"End")')
-      close(10)
-      
-    endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+        
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( display )print '("end Building Pyramid Equidistant Nodes")'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -216,7 +129,160 @@ contains
     return
   end subroutine pyramidNodes
   
-  subroutine pyramidSideNodesOpt(ord,uv,display)
+  subroutine pyramidNodesOpt(ord, uvw, uv, display)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    ! input: ord=polynomial order of interpolant
+    ! output: uvw(:,:) node coordinates in unity pyramid
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer, intent(in)             :: ord
+    real(8), intent(in)   , pointer :: uv (:,:) !> Triangle optimized points
+    real(8), intent(inout), pointer :: uvw(:,:) !> Pyramide optimized points
+    logical, intent(in)             :: display
+    !>
+    real(8),                pointer :: duvw(:,:) !> Displacement
+    integer                         :: iu,iv,iw,ad
+    integer                         :: iNod,jNod,nNod
+    real(8)                         :: sub(3,0:ord)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( display )print '(/"Building Pyramid Optimized Nodes")'
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( display )then
+      print '(3x,"3D Triangle Optimized Nodes")'
+      iNod=0
+      do iw=0,ord
+        print '(6x,"level:",i3)',iw
+        do iv=0,ord-iw
+          iNod=iNod+1
+          print '(9x,"uv(",i6,")=",3(f12.9,1x))',iNod,uv(1:3,iNod)
+        enddo
+      enddo
+      print '(3x,"end")'
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    nNod=0
+    do iu=1,ord+1
+      nNod=nNod+iu*iu
+    enddo
+    if( display )print '(/3x,"nDeg=",i6)',nNod
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( .not.associated(uvw) )allocate(uvw(3,nNod))
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> iw=0      -> Side1
+    !> iv=0      -> Side2
+    !> iu=ord-iw -> Side3
+    !> iv=ord-iw -> Side4
+    !> iu=0      -> Side5    
+    iNod=0 ; jNod=0    
+    do iw=0,ord
+      
+      sub(1:3,0:ord-iw)=uv(1:3,jNod +1:jNod+ord-iw +1)
+      print '(/"sub=",12(f12.5,2x))',sub(1,0:ord-iw)
+      print '( 4x    ,12(f12.5,2x))',sub(2,0:ord-iw)
+      print '( 4x    ,12(f12.5,2x))',sub(3,0:ord-iw)
+      
+      do iv=0,ord-iw
+        jNod=jNod+1
+        do iu=0,ord-iw
+          iNod=iNod+1
+          
+          if    ( iw==0 )then !> side1
+            uvw(1:3,iNod)=[sub(1,iu),sub(1,iv),0d0]
+          elseif( iv==0 )then !> side2
+            ad=iu
+            uvw(1:3,iNod)=sub(1:3,ad)
+          elseif( iu==ord-iw )then !> side3
+            !> side2 -> side3 rotation +pi/2 (zz')
+            !>  0 -1  0   x     -y
+            !> +1  0  0   y  =   x
+            !>  0  0 +1   z      z
+            ad=iv
+            uvw(1:3,iNod)=[-sub(2,ad),+sub(1,ad),sub(3,ad)]
+          elseif( iv==ord-iw )then !> side4
+            !> side2 -> side4 rotation +pi (zz')
+            !> -1  0  0   x     -x
+            !>  0 -1  0   y  =  -y
+            !>  0  0 +1   z      z
+            ad=ord-iw-iu
+            uvw(1:3,iNod)=[-sub(1,ad),-sub(2,ad),sub(3,ad)]             
+          elseif( iu==0 )then !> side5
+!            !> side2 -> side5 rotation 3pi/2 (zz')
+!            !>  0 +1  0   x     +y
+!            !> -1  0  0   y  =  -x
+!            !>  0  0 +1   z      z
+!            ad=ord-iw-iv
+!            uvw(1:3,iNod)=[sub(2,ad),-sub(1,ad),sub(3,ad)]
+          endif
+          
+!          if    ( iw==0 )then !> side1
+!            uvw(1:3,iNod)=[sub(2,iu),sub(2,iv),0d0]
+!          endif
+!     
+!          if( iu==0 )then !> side2
+!            ad=iv
+!            uvw(1:3,iNod)=[-sub(2,ad),sub(1,ad),sub(3,ad)]
+!          endif
+!          
+!          if( iv==0 )then !> side3
+!            ad=iu
+!            uvw(1:3,iNod)=[sub(1,ad),sub(2,ad),sub(3,ad)]
+!          endif
+!          
+!          if( iu==ord-iw )then !> side4
+!            ad=ord-iw-iv
+!            uvw(1:3,iNod)=[-sub(2,ad),-sub(1,ad),sub(3,ad)]
+!          endif
+!
+!          if( iv==ord-iw )then !> side5
+!            ad=ord-iw-iu
+!            uvw(1:3,iNod)=[-sub(1,ad),sub(2,ad),sub(3,ad)]
+!          endif
+          
+        enddo
+      enddo
+    enddo
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+   !if( display )then
+    if( 0==1 )then
+      print '(3x,"Vertices")'
+      iNod=0
+      do iw=0,ord
+        print '(6x,"level: ",i3)',iw
+        do iv=0,ord-iw ; do iu=0,ord-iw
+          iNod=iNod+1
+          print '(6x,"uvw(",i6,")=",3(f12.9,1x))',iNod,uvw(1:3,iNod)
+        enddo ; enddo
+      enddo
+      print '(3x,"end")'
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( display )print '("end Building Pyramid Optimized Nodes")'
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine pyramidNodesOpt
+  
+  subroutine pyramidSide2NodesOpt(ord,uv,display)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Coordonnées des noeuds optimises
+    !> sur la face2 de la pyramide (iv=0)
+    !> nd 1 2 5
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     use baseSimplex3D, only: nodes3D,nodes3DOpt,trianglesConnectivity,permutation
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -251,12 +317,16 @@ contains
     !> Points optimises sur une face triangle
     call nodes3D   (ord=ord,uvw=uvw,display=.false.) !> nodes3D sur tetra
     call nodes3Dopt(ord=ord,uvw=uvw,display=.false.) !> nodes3D sur tetra (optimisation) 
-    call trianglesConnectivity(ord=ord,conec=conec)
+    call trianglesConnectivity(ord=ord,conec=conec)  !> Extraction des faces du tetra
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> On fait tourner la face pour mettre l'indice 1 en bas à gauche
     nNod=size(conec,1) ; allocate(idx(nNod))
     call permutation(order=ord, move=-1, flip=.false., dg=idx)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Coordonnées de la face triangulaire 3
     allocate(uv(3,nNod))
     do iNod=1,nNod
@@ -266,22 +336,29 @@ contains
       uv(3,iNod)=1d0-uv(1,iNod)-uv(2,iNod)        
     enddo
     deallocate(uvw,conec,idx)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
-    !> Rotation autour de (zz') angle -pi/4
-    cos_a=sqrt(2d0)/2d0 ; sin_a=-cos_a
-    rot(1,1:3) = [cos_a, -sin_a, 0d0]
-    rot(2,1:3) = [sin_a,  cos_a, 0d0]
-    rot(3,1:3) = [0d0  ,  0d0  , 1d0]
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    
+    !> Des transformations sont realisees pour plaquer sur Side2 (iu=0)
+    
+    !> Rotation autour de (zz') angle -3pi/4
+    cos_a=-sqrt(2d0)/2d0 ; sin_a=-sqrt(2d0)/2d0
+    rot(1,1:3) = [cos_a,-sin_a, 0d0]
+    rot(2,1:3) = [sin_a, cos_a, 0d0]
+    rot(3,1:3) = [0d0  , 0d0  , 1d0]
     do iNod=1,nNod
       xyz(1:3)=uv(1:3,iNod)
-      uv(1:3,iNod)= matmul(rot,xyz) !> rotation -pi/4 autour de (zz')
+      uv(1:3,iNod)= matmul(rot(1:3,1:3),xyz(1:3)) !> rotation -3pi/4 autour de (zz')
+      print '("uv(",i3,")=",3(f12.9,1x))',iNod,uv(1:3,iNod)
     enddo
     
     !> Homothétie
-    alpha=2d0/( uv(2,ord+1)-uv(2,1) )
+    alpha=2d0/abs( uv(1,ord+1)-uv(1,1) )
     uv(1:2,1:nNod)=alpha*uv(1:2,1:nNod) !> on touche pas à uv(3,:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
-    !> Ecriture du triangle TriangleOptPi.mesh
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    
+    !> Ecriture du triangle TriangleOptPi.mesh (Side2 de la pyramide)
     if( display )then
       
       if(   1<=ord .and. ord<  10 ) write(sfx,'("00",i1)')ord
@@ -318,151 +395,8 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
-  end subroutine pyramidSideNodesOpt
+  end subroutine pyramidSide2NodesOpt
     
-  subroutine pyramidNodesOpt(ord, uvw, uv, display)
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    ! input: ord=polynomial order of interpolant
-    ! output: uvw(:,:) node coordinates in unity pyramid
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    integer, intent(in)           :: ord
-    real(8), intent(in) , pointer :: uv (:,:) !> Triangle optimized points
-    real(8), intent(out), pointer :: uvw(:,:) !> Tetra    optimized points
-    logical, intent(in)           :: display
-    !>
-    integer                       :: iu,iv,iw,ad
-    integer                       :: iNod,jNod,nNod
-    real(8)                       :: sub(3,0:ord)
-    integer :: test(3)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-test(1:3)=[1,2,3]
-print '("test inverse: ",3(i2,1x))',test(3:1:-1)
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if( display )print '(/"Building Pyramid Optimized Nodes")'
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if( display )then
-      print '(3x,"3D Triangle Optimized Nodes")'
-      iNod=0
-      do iw=0,ord
-        print '(6x,"level:",i3)',iw
-        do iv=0,ord-iw
-          iNod=iNod+1
-          print '(9x,"uv(",i6,")=",3(f12.9,1x))',iNod,uv(1:3,iNod)
-        enddo
-      enddo
-      print '(3x,"end")'
-    endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    nNod=0
-    do iu=1,ord+1
-      nNod=nNod+iu*iu
-    enddo
-    if( display )print '(/3x,"nDeg=",i6)',nNod
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    allocate(uvw(3,nNod))
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> iw=0d0 side1
-    !> iu=0d0 side2
-    !> iv=0d0 side3
-    !> iu=ord side4
-    !> iv=ord side5
-    
-!    iNod=0 ; jNod=0
-!    do iw=0,ord      
-!      sub(1:3,0:ord-iw)=uv(1:3,jNod +1:jNod+ord-iw +1)
-!      print '(/"sub=",12(f12.5,2x))',sub(1,0:ord-iw)
-!      print '( 4x    ,12(f12.5,2x))',sub(2,0:ord-iw)
-!      print '( 4x    ,12(f12.5,2x))',sub(3,0:ord-iw)
-!      do iv=0,ord-iw
-!        jNod=jNod+1
-!        do iu=0,ord-iw
-!          iNod=iNod+1 !> tensorisation
-!          !uvw(1:3,iNod)=[subV(iu),subV(iv),subW(iw)]
-!           uvw(1:3,iNod)=[sub(1,iu),sub(2,iv),sub(3,iw) ]          
-!        enddo
-!      enddo
-!    enddo
-    
-    uvw(1,:)=0d0
-    uvw(2,:)=0d0
-    uvw(3,:)=5d-1
-    
-    iNod=0 ; jNod=0    
-    do iw=0,ord
-      
-      sub(1:3,0:ord-iw)=uv(1:3,jNod +1:jNod+ord-iw +1)
-      print '(/"sub=",12(f12.5,2x))',sub(1,0:ord-iw)
-      print '( 4x    ,12(f12.5,2x))',sub(2,0:ord-iw)
-      print '( 4x    ,12(f12.5,2x))',sub(3,0:ord-iw)
-      
-      do iv=0,ord-iw
-        jNod=jNod+1
-        do iu=0,ord-iw
-          iNod=iNod+1
-          
-          if    ( iw==0 )then
-            uvw(1:3,iNod)=[sub(2,iu),sub(2,iv),0d0 ]
-          endif
-          
-          if( iu==0 )then
-            ad=iv
-            uvw(1:3,iNod)=[sub(2,ad),sub(1,ad),sub(3,ad)]
-          endif
-          
-          if( iv==0 )then
-            ad=iu
-            uvw(1:3,iNod)=[sub(1,ad),sub(2,ad),sub(3,ad)]
-          endif
-          
-          if( iu==ord-iw )then
-            ad=ord-iw-iv            
-            uvw(1:3,iNod)=[-sub(2,ad),sub(1,ad),sub(3,ad)]
-          endif
-
-          if( iv==ord-iw )then
-            ad=ord-iw-iu
-            uvw(1:3,iNod)=[-sub(1,ad),sub(2,ad),sub(3,ad)]
-          endif
-        enddo
-      enddo
-    enddo
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-   !if( display )then
-    if( 0==1 )then
-      print '(3x,"Vertices")'
-      iNod=0
-      do iw=0,ord
-        print '(6x,"level: ",i3)',iw
-        do iv=0,ord-iw ; do iu=0,ord-iw
-          iNod=iNod+1
-          print '(6x,"uvw(",i6,")=",3(f12.9,1x))',iNod,uvw(1:3,iNod)
-        enddo ; enddo
-      enddo
-      print '(3x,"end")'
-    endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if( display )print '("end Building Pyramid Optimized Nodes")'
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    return
-  end subroutine pyramidNodesOpt
-  
   subroutine pyramidMesh3D(ord,uvw,display)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     use M_libmesh6_api
@@ -743,56 +677,32 @@ print '("test inverse: ",3(i2,1x))',test(3:1:-1)
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     nNod=size(uvw,2)
-    allocate(quadr(1:5,  ord*ord))
-    allocate(trian(1:4,4*ord*ord))
+    allocate(quadr(5,  ord*ord))
+    allocate(trian(4,4*ord*ord))
     nQuadr=0
     nTrian=0
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Side1
+    !> iw=0b -> side1
     if( display )print '(3x,"Side1")'
-    iw=0
-    do iv=0,ord-iw-1
-      do iu=0,ord-iw-1
-        nQuadr=nQuadr+1
-        quadr(1:5,nQuadr)=[pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw  ),& 
-        &                  pyramidIdx(ord=ord,iu=iu  ,iv=iv+1,iw=iw  ),&
-        &                  pyramidIdx(ord=ord,iu=iu+1,iv=iv+1,iw=iw  ),&
-        &                  pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw  ),&
-        &                  1                                           ]
-      enddo
-    enddo
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Side2 
-    if( display )print '(3x,"Side2")'
-    do iw=0,ord-1
+    do iw=0,0
       do iv=0,ord-iw-1
-        do iu=0,0
-          nTrian=nTrian+1
-          trian(1:4,nTrian)=[pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw  ),&
-          &                  pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw+1),&
+        do iu=0,ord-iw-1
+          nQuadr=nQuadr+1
+          quadr(1:5,nQuadr)=[pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw  ),& 
           &                  pyramidIdx(ord=ord,iu=iu  ,iv=iv+1,iw=iw  ),&
-          &                  2                                           ]
-          print '("Trian(",i3,")=",4(I3,1x))',nTrian,trian(1:4,nTrian)
-          if( .not. iv==ord-iw-1 )then
-            nTrian=nTrian+1
-            trian(1:4,nTrian)=[pyramidIdx(ord=ord,iu=iu  ,iv=iv+1,iw=iw  ),&
-            &                  pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw+1),& 
-            &                  pyramidIdx(ord=ord,iu=iu  ,iv=iv+1,iw=iw+1),&
-            &                  2                                           ]
-            print '("Trian(",i3,")=",4(I3,1x))',nTrian,trian(1:4,nTrian)
-          endif
+          &                  pyramidIdx(ord=ord,iu=iu+1,iv=iv+1,iw=iw  ),&
+          &                  pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw  ),&
+          &                  1                                           ]
         enddo
       enddo
     enddo
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+        
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Side3
-    if( display )print '(3x,"Side3")'
+    !> iv=0 -> Side2
+    if( display )print '(3x,"Side2")'
     do iw=0,ord-1
       do iv=0,0
         do iu=0,ord-iw-1
@@ -800,12 +710,35 @@ print '("test inverse: ",3(i2,1x))',test(3:1:-1)
           trian(1:4,nTrian)=[pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw  ),& 
           &                  pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw  ),&
           &                  pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw+1),&
-          &                  3                                           ]
-          if( .not. iu==ord-iw-1 )then
+          &                  2                                           ]
+          if( .not.iu==ord-iw-1 )then
             nTrian=nTrian+1
             trian(1:4,nTrian)=[pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw  ),&
             &                  pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw+1),& 
             &                  pyramidIdx(ord=ord,iu=iu  ,iv=iv , iw=iw+1),&
+            &                  2                                           ]
+          endif
+        enddo
+      enddo
+    enddo
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> iu=ord-iw -> Side3
+    if( display )print '(3x,"Side3")'
+    do iw=0,ord-1
+      do iv=0,ord-iw-1
+        do iu=ord-iw-1,ord-1-iw
+          nTrian=nTrian+1
+          trian(1:4,nTrian)=[pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw  ),&
+          &                  pyramidIdx(ord=ord,iu=iu+1,iv=iv+1,iw=iw  ),&
+          &                  pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw+1),&
+          &                  3                                           ]            
+          if( .not.iv==ord-iw-1 )then
+            nTrian=nTrian+1
+            trian(1:4,nTrian)=[pyramidIdx(ord=ord,iu=iu+1,iv=iv+1,iw=iw  ),&
+            &                  pyramidIdx(ord=ord,iu=iu  ,iv=iv+1,iw=iw+1),&
+            &                  pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw+1),&
             &                  3                                           ]
           endif
         enddo
@@ -814,21 +747,21 @@ print '("test inverse: ",3(i2,1x))',test(3:1:-1)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Side4 
+    !> iv=ord-iw -> Side4
     if( display )print '(3x,"Side4")'
     do iw=0,ord-1
-      do iv=0,ord-iw-1
-        do iu=ord-iw-1,ord-1-iw
+      do iv=ord-iw-1,ord-iw-1
+        do iu=0,ord-iw-1
           nTrian=nTrian+1
-          trian(1:4,nTrian)=[pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw  ),&
-          &                  pyramidIdx(ord=ord,iu=iu+1,iv=iv+1,iw=iw  ),&
+          trian(1:4,nTrian)=[pyramidIdx(ord=ord,iu=iu+1,iv=iv+1,iw=iw  ),&
+          &                  pyramidIdx(ord=ord,iu=iu  ,iv=iv+1,iw=iw  ),&
           &                  pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw+1),&
-          &                  4                                           ]            
-          if( .not.iv==ord-iw-1 )then
+          &                  4                                           ]
+          if( .not.iu==ord-iw-1 )then
             nTrian=nTrian+1
             trian(1:4,nTrian)=[pyramidIdx(ord=ord,iu=iu+1,iv=iv+1,iw=iw  ),&
-            &                  pyramidIdx(ord=ord,iu=iu  ,iv=iv+1,iw=iw+1),&
             &                  pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw+1),&
+            &                  pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw+1),&
             &                  4                                           ]
           endif
         enddo
@@ -837,27 +770,30 @@ print '("test inverse: ",3(i2,1x))',test(3:1:-1)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Side5
+    !> iu=0      -> side5
+    if( display )print '(3x,"Side5")'
     do iw=0,ord-1
-      do iv=ord-iw-1,ord-iw-1
-        do iu=0,ord-iw-1
+      do iv=0,ord-iw-1
+        do iu=0,0
           nTrian=nTrian+1
-          trian(1:4,nTrian)=[pyramidIdx(ord=ord,iu=iu+1,iv=iv+1,iw=iw  ),&
-          &                  pyramidIdx(ord=ord,iu=iu  ,iv=iv+1,iw=iw  ),&
+          trian(1:4,nTrian)=[pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw  ),&
           &                  pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw+1),&
+          &                  pyramidIdx(ord=ord,iu=iu  ,iv=iv+1,iw=iw  ),&
           &                  5                                           ]
-          if( .not.iu==ord-iw-1 )then
+          print '("Trian(",i3,")=",4(I3,1x))',nTrian,trian(1:4,nTrian)
+          if( .not.iv==ord-iw-1 )then
             nTrian=nTrian+1
-            trian(1:4,nTrian)=[pyramidIdx(ord=ord,iu=iu+1,iv=iv+1,iw=iw  ),&
-            &                  pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw+1),&
-            &                  pyramidIdx(ord=ord,iu=iu+1,iv=iv  ,iw=iw+1),&
+            trian(1:4,nTrian)=[pyramidIdx(ord=ord,iu=iu  ,iv=iv+1,iw=iw  ),&
+            &                  pyramidIdx(ord=ord,iu=iu  ,iv=iv  ,iw=iw+1),& 
+            &                  pyramidIdx(ord=ord,iu=iu  ,iv=iv+1,iw=iw+1),&
             &                  5                                           ]
+            print '("Trian(",i3,")=",4(I3,1x))',nTrian,trian(1:4,nTrian)
           endif
         enddo
       enddo
     enddo
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Removing Extra vertices
     if( display ) print '(3x,"Removing Extra vertices")'
@@ -955,7 +891,18 @@ print '("test inverse: ",3(i2,1x))',test(3:1:-1)
     ! input: ord=polynomial order of interpolant
     ! output: uvw(:,:) node coordinates in unity pyramid
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
+    
+    !>        y
+    !>        ^
+    !>    4x--|---x3
+    !>     |\ S4 /|
+    !>     | \| / |
+    !>     |S5x-S3--->x
+    !>     | /  \ |
+    !>     |/ S2 \|
+    !>    1x------x2
+    !>
+    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)           :: ord
     logical, intent(in)           :: display
@@ -992,30 +939,30 @@ print '("test inverse: ",3(i2,1x))',test(3:1:-1)
             side( sideIdx(1) )=iNod
           endif
           
-          !> side2 iu=0
-          if( iu==0 )then
-            sideIdx(2)=sideIdx(2)+1
+          !> side2 iv=0
+          if( iv==0 )then
+            sideIdx(3)=sideIdx(2)+1
             side( sideIdx(2) )=iNod
           endif
           
-          !> side3 iv=0
-          if( iv==0 )then
-            sideIdx(3)=sideIdx(3)+1
+          !> side3 iu=ord
+          if( iu==ord-iw )then
+            sideIdx(4)=sideIdx(3)+1
             side( sideIdx(3) )=iNod
           endif
           
-          !> side4 iu=ord
-          if( iu==ord-iw )then
-            sideIdx(4)=sideIdx(4)+1
+          !> side4 iv=ord
+          if( iv==ord-iw )then
+            sideIdx(4)=sideIdx(4)+1 ! print '("sideIdx(5)=",i2)',sideIdx(5)
             side( sideIdx(4) )=iNod
           endif
           
-          !> side5 iv=ord
-          if( iv==ord-iw )then
-            sideIdx(5)=sideIdx(5)+1 ! print '("sideIdx(5)=",i2)',sideIdx(5)
+          !> side5 iu=0
+          if( iu==0 )then
+            sideIdx(5)=sideIdx(5)+1
             side( sideIdx(5) )=iNod
           endif
-          
+                    
         enddo
       enddo
     enddo

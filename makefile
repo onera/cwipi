@@ -34,7 +34,8 @@ INCL += -I$(MKL_HOME)/include/intel64/lp64 -I${MKL_HOME}/include
 #         ${MKL_HOME}/lib/libmkl_intel_thread.a  \
 #         ${MKL_HOME}/lib/libmkl_core.a -lpthread -lm
 
-LIBS += -lpthread -lm -mkl
+#LIBS += -lpthread -lm -mkl
+LIBS += -lm -mkl
 
 #LIBS +=  $(MKL_HOME)/lib/libmkl_lapack95_ilp64.a \
 #         $(MKL_HOME)/lib/libmkl_intel_ilp64.a    \
@@ -60,13 +61,13 @@ LDFLAGS    =  # -cxxlib  # -openmp # -static-intel
 OBJS =  $(OBJDIR)/libmesh6.o              \
         $(OBJDIR)/libmesh6_fortran_api.o  \
         $(OBJDIR)/M_libmesh6_api.o        \
-        $(OBJDIR)/modDeterminant.o   \
-        $(OBJDIR)/baseSimplexTools.o \
-        $(OBJDIR)/baseSimplex1D.o    \
-        $(OBJDIR)/baseSimplex2D.o    \
-        $(OBJDIR)/baseSimplex3D.o    \
-        $(OBJDIR)/basePyramid.o      \
-        $(OBJDIR)/LDLt.o             \
+        $(OBJDIR)/modDeterminant.o        \
+        $(OBJDIR)/baseSimplexTools.o      \
+        $(OBJDIR)/baseSimplex1D.o         \
+        $(OBJDIR)/baseSimplex2D.o         \
+        $(OBJDIR)/baseSimplex3D.o         \
+        $(OBJDIR)/basePyramid.o           \
+        $(OBJDIR)/LDLt.o                  \
         $(OBJDIR)/basesNodales.o
 
 ### Building Rules ###

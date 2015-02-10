@@ -1007,16 +1007,17 @@ subroutine testPyramid()
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Points optimises sur une face triangle
-  call pyramidSideNodesOpt(ord=ord,uv=uv,display=.true.)
-  call pyramidVertexFunctions(uvw=uv, func=func, display=.true.)
+  call pyramidSide2NodesOpt(ord=ord, uv=uv, display=.true.)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  call pyramidNodes   (ord=ord, uvw=uvw,        display=.true.)
   call pyramidNodesOpt(ord=ord, uvw=uvw, uv=uv, display=.true.)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   call pyramidSkin3D(ord=ord, uvw=uvw, display=.true.)
+ !call pyramidVertexFunctions(uvw=uvw, func=func, display=.true.)
  !call pyramidMesh3D(ord=ord, uvw=uvw, display=.true.)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
