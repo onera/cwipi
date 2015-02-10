@@ -591,41 +591,40 @@ subroutine tetraTest()
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Extraction des faces et vérification des coordonnées barycentriques
-  
-  call gaussLegendreLobatto(ord=order,xGLL=xGLL)
-  print '(/"Point de Gauss Lobatto")'
-  print '("ad=",i5,2x,"u=",f19.16)',(ad,5d-1*(xGLL(ad)+1d0),ad=1,size(xGLL))
-  
-  call nodes2D   (ord=order,uvw=uv,display=.false.)
-  call nodes2Dopt(ord=order,uvw=uv,display=.true. )
-  
-  call trianglesConnectivity(ord=order,conec=conec)
-  print '()'
- !do i=1,4
-  do i=3,3
-    print '("Triangle",i1)',i
-    do j=1,size(conec,1)
-      ad=conec(j,i)
-      !print '("dg=",i6," uvw=",3(f19.16,1x))',conec(j,i),uvw(1:3,conec(j,i))
-      !print '("dg=",i5,2x,"u=",f19.16,2x,"v=",f19.16,2x,"w=",f19.16)',ad,uvw(1:3,ad)
-      print '("dg=",i5,2x,"du=",f19.16,2x,"dw=",f19.16)',ad,uvw(1,ad)-uv(1,j),uvw(3,ad)-uv(2,j)
+  if( 0==1 )then
+    call gaussLegendreLobatto(ord=order,xGLL=xGLL)
+    print '(/"Point de Gauss Lobatto")'
+    print '("ad=",i5,2x,"u=",f19.16)',(ad,5d-1*(xGLL(ad)+1d0),ad=1,size(xGLL))
+    
+    call nodes2D   (ord=order,uvw=uv,display=.false.)
+    call nodes2Dopt(ord=order,uvw=uv,display=.true. )
+    
+    call trianglesConnectivity(ord=order,conec=conec)
+    print '()'
+   !do i=1,4
+    do i=3,3
+      print '("Triangle",i1)',i
+      do j=1,size(conec,1)
+        ad=conec(j,i)
+        !print '("dg=",i6," uvw=",3(f19.16,1x))',conec(j,i),uvw(1:3,conec(j,i))
+        !print '("dg=",i5,2x,"u=",f19.16,2x,"v=",f19.16,2x,"w=",f19.16)',ad,uvw(1:3,ad)
+        print '("dg=",i5,2x,"du=",f19.16,2x,"dw=",f19.16)',ad,uvw(1,ad)-uv(1,j),uvw(3,ad)-uv(2,j)
+      enddo
     enddo
-  enddo
-  
-  do j=1,size(conec,1)
-    ad=conec(j,3)
-    uv(1,j)=uvw(1,ad)
-    uv(2,j)=uvw(3,ad)
-    uv(3,j)=1d0-uv(1,j)-uv(2,j)
-  enddo
-  
-  deallocate(conec,uv)
-  
-  call nodes3Dopt_2D(ord=order,uvw=uv,display=.true.)
-  
-  stop
+    
+    do j=1,size(conec,1)
+      ad=conec(j,3)
+      uv(1,j)=uvw(1,ad)
+      uv(2,j)=uvw(3,ad)
+      uv(3,j)=1d0-uv(1,j)-uv(2,j)
+    enddo
+    deallocate(conec,uv)
+    
+    call nodes3Dopt_2D(ord=order,uvw=uv,display=.true.)
+    stop
+    
+  endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   call writeMesh3D(ord=order,uvw=uvw)
@@ -993,19 +992,6 @@ subroutine testPyramid()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  if(   1<=ord .and. ord<  10 ) write(sfx,'("00",i1)')ord
-  if(  10<=ord .and. ord< 100 ) write(sfx,'("0" ,i2)')ord
-  if( 100<=ord .and. ord<1000 ) write(sfx,'(     i3)')ord
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Points optimises sur un segment
-  !print '(/"Gauss Lobatto Points")'
-  !call gaussLegendreLobatto(ord=ord,xGLL=xGLL)
-  !print '(3x,"ad=",i5,2x,"u=",f19.16)',(ad,5d-1*(xGLL(ad)+1d0),ad=1,size(xGLL))
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Points optimises sur une face triangle
   call pyramidSide2NodesOpt(ord=ord, uv=uv, display=.true.)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -1013,12 +999,13 @@ subroutine testPyramid()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   call pyramidNodes   (ord=ord, uvw=uvw,        display=.true.)
   call pyramidNodesOpt(ord=ord, uvw=uvw, uv=uv, display=.true.)
+ !call writeMesh3D    (ord=ord, uvw=uvw)  
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   call pyramidSkin3D(ord=ord, uvw=uvw, display=.true.)
  !call pyramidVertexFunctions(uvw=uvw, func=func, display=.true.)
- !call pyramidMesh3D(ord=ord, uvw=uvw, display=.true.)
+  call pyramidMesh3D(ord=ord, uvw=uvw, display=.true.)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

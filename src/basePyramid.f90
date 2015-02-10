@@ -1,42 +1,127 @@
 module basePyramid
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !>  Pyramid ord
+  !>  nn=(ord+1)*(ord+2)*(2*ord+3)/6
+  !>  ne=3*ord*ord+2
+  !>  ni=(ord-1)*(ord-2)*(2*ord-3)/6
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   implicit none
-
+  
 contains
   
-  subroutine pyramidVertexFunctions(uvw, func, display)
+  subroutine pyramidBasePi(ord,a,b,c,mode,transpose)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    real(8), intent(in) , pointer :: uvw(:,:)
-    real(8), intent(out), pointer :: func(:,:)
-    logical, intent(in)           :: display
+    !> psi_{ijk}(a,b,c) = P_i^{0,0}(a) P_j^{0,0}(b) (1-c)**max(i,j) P_k^{2*max(i,j)+2,0}( 2*c-1)
+    !> avec {a=u/(1-w) b=v/(1/w) et c=w}
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    use baseSimplexTools, only: jacobiP
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer, intent(in)           :: ord
+    real(8), intent(in) , pointer :: a(:)
+    real(8), intent(in) , pointer :: b(:)
+    real(8), intent(in) , pointer :: c(:)
+    real(8), intent(out), pointer :: mode(:,:)
+    logical, intent(in)           :: transpose
     !>
-    integer                       :: i
-    real(8), parameter            :: tol = 1d-10;
+    integer                       :: iu,iv,iw,iM,iNod,n,np
+    real(8), pointer              :: mode1(:),mode2(:),mode3(:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Transpose = True  => mode(1:np,1:n)
+    !> Transpose = False => mode(1:n,1:np)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    n = size(a)
+    np=(ord+1)*(ord+2)*(2*ord+3)/6
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    allocate( func(5,size(uvw,2)) )
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> vertex functions
-    func(1,:) = .25d0*(1d0-uvw(1,:)-uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol));
-    func(2,:) = .25d0*(1d0+uvw(1,:)-uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol));
-    func(3,:) = .25d0*(1d0+uvw(1,:)+uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol));
-    func(4,:) = .25d0*(1d0-uvw(1,:)+uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol));
-    func(5,:) = uvw(3,:);
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if( display )then
-      do i=1,size(func,2)
-        print '(i3,1x,"uvw=",3(f12.9,1x),1x,"func=",5(f12.9,1x))',i,uvw(1:3,i),func(1:5,i)
+    if( .not.transpose )then
+      
+      allocate(mode(1:n,1:np))
+      
+      iNod=0
+      do iw=0,ord
+        do iv=0,ord-iw
+          do iu=0,ord-iw
+            iNod=iNod+1
+            
+            iM=max(iu,iv)
+            call jacobiP(n=iu,alpha=0d0             ,beta=0d0,u=a(1:n),jf=mode1) ! J_iu^{0             ,0}(x/(1-z))
+            call jacobiP(n=iv,alpha=0d0             ,beta=0d0,u=b(1:n),jf=mode2) ! J_iv^{0             ,0}(y/(1-z))
+            call jacobiP(n=iw,alpha=2d0*real(iM)+2d0,beta=0d0,u=c(1:n),jf=mode1) ! J_iw^{2*max(iu,iv)+2,0}(2*z-1  )
+            
+            mode(1:n,iNod)= mode1(1:n)                  &  !>   J_iu^{0             ,0}(x/(1-z))
+            &              *mode2(1:n)*(1d0-c(1:n))**iM &  !>  *J_iv^{0             ,0}(y/(1-z))  (1-z)^max(iu,iv)
+            &              *mode3(1:n)*(2*c(1:n)-1)        !>  *J_iw^{2*max(iu,iv)+2,0}(2*z-1  )  (2*z-1)
+            
+          enddo
+        enddo
       enddo
+    else
+    
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
-  end subroutine pyramidVertexFunctions
+  end subroutine pyramidBasePi
+  
+  subroutine pyramidBaseP1(uvw, mode, transpose)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    real(8), intent(in) , pointer :: uvw(:,:)
+    real(8), intent(out), pointer :: mode(:,:)
+    logical, intent(in)           :: transpose
+    !>
+    integer                       :: i
+    real(8), parameter            :: tol=1d-16
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Transpose = True  => mode(1:np,1:n)
+    !> Transpose = False => mode(1:n,1:np)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if(      transpose )allocate( mode(5,size(uvw,2)) )
+    if( .not.transpose )allocate( mode(size(uvw,2),4) )
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> vertex functions
+    if( transpose )then
+      mode(1,:) = .25d0*(1d0-uvw(1,:)-uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      mode(2,:) = .25d0*(1d0+uvw(1,:)-uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      mode(3,:) = .25d0*(1d0+uvw(1,:)+uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      mode(4,:) = .25d0*(1d0-uvw(1,:)+uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      mode(5,:) = uvw(3,:)
+    else
+      mode(:,1) = .25d0*(1d0-uvw(1,:)-uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      mode(:,2) = .25d0*(1d0+uvw(1,:)-uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      mode(:,3) = .25d0*(1d0+uvw(1,:)+uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      mode(:,4) = .25d0*(1d0-uvw(1,:)+uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      mode(:,5) = uvw(3,:)
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( transpose )then
+      if( 0==0 )then
+        do i=1,size(mode,2)
+          print '(i3,1x,"uvw=",3(f12.9,1x),1x,"func=",5(f12.9,1x))',i,uvw(1:3,i),mode(1:5,i)
+        enddo
+      endif
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine pyramidBaseP1
   
   subroutine pyramidNodes(ord, uvw, display)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -66,13 +151,10 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    nNod=0
-    do iu=1,ord+1
-      nNod=nNod+iu*iu
-    enddo
+    nNod=(ord+1)*(ord+2)*(2*ord+3)/6 !> = \sum_{k=1}^{ord+1} k^2
     if( display )print '(3x,"nDeg=",i6)',nNod
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        
+    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     allocate(uvw(3,nNod))
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -141,10 +223,16 @@ contains
     real(8), intent(inout), pointer :: uvw(:,:) !> Pyramide optimized points
     logical, intent(in)             :: display
     !>
-    real(8),                pointer :: duvw(:,:) !> Displacement
+    real(8)                         :: xyz(3)
+    real(8), pointer                :: dis(:,:) !> Displacement
     integer                         :: iu,iv,iw,ad
-    integer                         :: iNod,jNod,nNod
-    real(8)                         :: sub(3,0:ord)
+    integer                         :: iNod,iNod0,iNod1
+    integer                         :: jNod,jNod0,jNod1
+    integer                         :: nNod,nNodi,nNode
+    real(8)                         :: sd2(3,0:ord)
+    real(8)                         :: alphaU,betaU
+    real(8)                         :: alphaV,betaV
+    
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -176,21 +264,26 @@ contains
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( .not.associated(uvw) )allocate(uvw(3,nNod))
+    allocate(dis(3,nNod)) ; dis(1:3,1:nNod)=0d0
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Traitement des faces
+    if( display )print '(3x,"Nodes optimization over   pyramid")'
+    
     !> iw=0      -> Side1
     !> iv=0      -> Side2
     !> iu=ord-iw -> Side3
     !> iv=ord-iw -> Side4
     !> iu=0      -> Side5
+    nNode=0
     iNod=0 ; jNod=0
     do iw=0,ord
       
-      sub(1:3,0:ord-iw)=uv(1:3,jNod +1:jNod+ord-iw +1)
-      !print '(/"sub=",12(f12.5,2x))',sub(1,0:ord-iw)
-      !print '( 4x    ,12(f12.5,2x))',sub(2,0:ord-iw)
-      !print '( 4x    ,12(f12.5,2x))',sub(3,0:ord-iw)
+      sd2(1:3,0:ord-iw)=uv(1:3,jNod +1:jNod+ord-iw +1)
+      !print '(/"sd2=",12(f12.5,2x))',sd2(1,0:ord-iw)
+      !print '( 4x    ,12(f12.5,2x))',sd2(2,0:ord-iw)
+      !print '( 4x    ,12(f12.5,2x))',sd2(3,0:ord-iw)
       
       do iv=0,ord-iw
         jNod=jNod+1
@@ -198,34 +291,87 @@ contains
           iNod=iNod+1
           
           if    ( iw==0 )then !> side1
-            uvw(1:3,iNod)=[sub(1,iu),sub(1,iv),0d0]
+            nNode=nNode+1
+            dis(1:3,iNod)=[sd2(1,iu),sd2(1,iv),0d0]-uvw(1:3,iNod)
+            uvw(1:3,iNod)=[sd2(1,iu),sd2(1,iv),0d0]
           elseif( iv==0 )then !> side2
+            nNode=nNode+1
             ad=iu
-            uvw(1:3,iNod)=sub(1:3,ad)
+            dis(1:3,iNod)=sd2(1:3,ad)-uvw(1:3,iNod)
+            uvw(1:3,iNod)=sd2(1:3,ad)
           elseif( iu==ord-iw )then !> side3
             !> side2 -> side3 rotation +pi/2 (zz')
-            !>  0 -1  0   x     -y
-            !> +1  0  0   y  =   x
-            !>  0  0 +1   z      z
+            !> [ 0 -1  0] [x]   [-y]
+            !> [+1  0  0] [y] = [ x]
+            !> [ 0  0 +1] [z]   [ z]
+            nNode=nNode+1
             ad=iv
-            uvw(1:3,iNod)=[-sub(2,ad),+sub(1,ad),sub(3,ad)]
+            dis(1:3,iNod)=[-sd2(2,ad),+sd2(1,ad),sd2(3,ad)]-uvw(1:3,iNod)
+            uvw(1:3,iNod)=[-sd2(2,ad),+sd2(1,ad),sd2(3,ad)]
           elseif( iv==ord-iw )then !> side4
             !> side2 -> side4 rotation +pi (zz')
-            !> -1  0  0   x     -x
-            !>  0 -1  0   y  =  -y
-            !>  0  0 +1   z      z
+            !> [-1  0  0] [x]   [-x]
+            !> [ 0 -1  0] [y] = [-y]
+            !> [ 0  0 +1] [z]   [ z]
+            nNode=nNode+1
             ad=ord-iw-iu
-            uvw(1:3,iNod)=[-sub(1,ad),-sub(2,ad),sub(3,ad)]
+            dis(1:3,iNod)=[-sd2(1,ad),-sd2(2,ad),sd2(3,ad)]-uvw(1:3,iNod)
+            uvw(1:3,iNod)=[-sd2(1,ad),-sd2(2,ad),sd2(3,ad)]
           elseif( iu==0 )then !> side5
             !> side2 -> side5 rotation 3pi/2 (zz')
-            !>  0 +1  0   x     +y
-            !> -1  0  0   y  =  -x
-            !>  0  0 +1   z      z
+            !> [ 0 +1  0] [x]   [+y]
+            !> [-1  0  0] [y] = [-x]
+            !> [ 0  0 +1] [z]   [ z]
+            nNode=nNode+1
             ad=ord-iw-iv
-            uvw(1:3,iNod)=[sub(2,ad),-sub(1,ad),sub(3,ad)]
+            dis(1:3,iNod)=[sd2(2,ad),-sd2(1,ad),sd2(3,ad)]-uvw(1:3,iNod)
+            uvw(1:3,iNod)=[sd2(2,ad),-sd2(1,ad),sd2(3,ad)]
           endif
           
         enddo
+      enddo
+    enddo
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Traitement hors faces
+    if( display )print '(3x,"Nodes optimization inside pyramid")'
+    
+    nNodi=0
+    iNod=0
+    do iw=0,ord
+      if( display )print '(6x,"level:",i3)',iw
+      do iv=0,ord-iw
+        do iu=0,ord-iw
+          iNod=iNod+1
+          
+          if(.not.(iw==0.or.iv==0.or.iv==ord-iw.or.iu==0 .or.iu==ord-iw) )then
+            nNodi=nNodi+1
+            
+            iNod0=pyramidIdx(ord=ord, iu=0     ,iv=iv    ,iw=iw)
+            iNod1=pyramidIdx(ord=ord, iu=ord-iw,iv=iv    ,iw=iw)
+            jNod0=pyramidIdx(ord=ord, iu=iu    ,iv=0     ,iw=iw)
+            jNod1=pyramidIdx(ord=ord, iu=iu    ,iv=ord-iw,iw=iw)
+            
+            if( display )then
+              print '(/9x,"iNod=",i4,3x,"(iu,iv,iw)=",3(i4,1x))',iNod,iu,iv,iw
+              print '( 9x,"iNod0-iNod1",i4,1x,i4)',iNod0,iNod1
+              print '( 9x,"jNod0-jNod1",i4,1x,i4)',jNod0,jNod1
+            endif
+            
+            alphaU=real(iu,kind=8)/real(ord-iw,kind=8) ; betaU=1d0-alphaU
+            alphaV=real(iv,kind=8)/real(ord-iw,kind=8) ; betaV=1d0-alphaV
+            
+            xyz(1:3)=( alphaU*uvw(1:3,iNod1)+betaU*uvw(1:3,iNod0) &
+            &         +alphaV*uvw(1:3,jNod1)+betaV*uvw(1:3,jNod0) )/2d0
+            
+            dis(1:3,iNod)=xyz(1:3)-uvw(1:3,iNod)
+            uvw(1:3,iNod)=xyz(1:3)
+            
+          endif
+          
+        enddo
+        iNod0=iNod1
       enddo
     enddo
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -244,6 +390,27 @@ contains
       enddo
       print '(3x,"end")'
     endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+   !if( display )then
+    if( 0==1 )then
+      print '(3x,"displacement")'
+      iNod=0
+      do iw=0,ord
+        print '(6x,"level: ",i3)',iw
+        do iv=0,ord-iw ; do iu=0,ord-iw
+          iNod=iNod+1
+          print '(6x,"dis(",i6,")=",3(f12.9,1x))',iNod,dis(1:3,iNod)
+        enddo ; enddo
+      enddo
+      print '(3x,"end")'
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( display )print '(3x,"nn=",i4,3x,"ne=",i4,3x,"ni=",i4)',nNod,nNode,nNodi
+   !if( display )print '(3x,"nn=",i4,3x,"ne=",i4,3x,"ni=",i4)',(ord+1)*(ord+2)*(2*ord+3)/6,3*ord*ord+2,(ord-1)*(ord-2)*(2*ord-3)/6
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -843,6 +1010,7 @@ contains
     do k=0,iw-1
       idx=idx+(ord+1-k)**2
     enddo
+    
    !print '("iu,iv,iw=",3(i3,2x),"idx=",i3)',iu,iv,iw,idx
     idx=iu+iv*(ord+1-iw)+idx +1
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -877,7 +1045,7 @@ contains
     !---
     integer                :: iu,iv,iw
     integer                :: iNod,iSide
-    integer                :: side((ord+1)*(ord+1)+4*(ord+1)*(ord+2)/2 )
+    integer                :: side((ord+1)*(ord+1)+4*(ord+1)*(ord+2)/2)
     integer                :: sideIdx(6)
     integer                :: idx((ord+1)*(ord+2)/2)
     integer                :: nod((ord+1)*(ord+2)/2)
