@@ -9,8 +9,6 @@ module baseSimplex2D
   interface nodes2Duv2ab ; module procedure nodes2Duv2ab_0 ; end interface
   interface nodes2Duv2ab ; module procedure nodes2Duv2ab_1 ; end interface
   
-  
-  
   contains
   
   subroutine nodes2D(ord, uvw,display)

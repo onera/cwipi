@@ -961,18 +961,15 @@ end subroutine quadTest
 
 subroutine testPyramid()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !use modDeterminant
-  use baseSimplex2D
-  use baseSimplex3D
   use basePyramid
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
   integer              :: ord
+  real(8), pointer     :: vand(:,:) !,dVand(:,:),jf(:,:),dr(:,:)
   real(8), pointer     :: uvw(:,:)
   real(8), pointer     :: uv (:,:)
-  real(8), pointer     :: func(:,:)
-  real(8), pointer     :: xGLL(:)
+  real(8), pointer     :: a(:),b(:),c(:)
   integer              :: ad,iSide
   integer              :: iNod,nNod,iu,iv,iw
   integer, allocatable :: conec(:,:)
@@ -992,19 +989,27 @@ subroutine testPyramid()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Points optimises sur une face triangle
+  !> Points optimises sur face triangle (necessaire)
   call pyramidSide2NodesOpt(ord=ord, uv=uv, display=.true.)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   call pyramidNodes   (ord=ord, uvw=uvw,        display=.true.)
   call pyramidNodesOpt(ord=ord, uvw=uvw, uv=uv, display=.true.)
- !call writeMesh3D    (ord=ord, uvw=uvw)  
+ !call writeMesh3D    (ord=ord, uvw=uvw)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  call pyramiduvw2abc(uvw=uvw,a=a,b=b,c=c,display=.false.)
+ !call pyramidVertexFunctions(uvw=uvw, func=func, display=.true.)
+  call pyramidVandermonde3D(ord=ord,a=a,b=b,c=c,vand=vand)
+  if( ord<3 )then
+    call display(title="Vandermonde Matrix",mat=vand)
+  endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   call pyramidSkin3D(ord=ord, uvw=uvw, display=.true.)
- !call pyramidVertexFunctions(uvw=uvw, func=func, display=.true.)
   call pyramidMesh3D(ord=ord, uvw=uvw, display=.true.)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
@@ -1014,6 +1019,7 @@ subroutine testPyramid()
   
   return
 end subroutine testPyramid
+
 
 subroutine pyramMaillageVisu()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

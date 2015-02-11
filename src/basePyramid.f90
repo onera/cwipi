@@ -1,4 +1,9 @@
 module basePyramid
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  use baseSimplexTools
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !>  Pyramid ord
   !>  nn=(ord+1)*(ord+2)*(2*ord+3)/6
@@ -9,6 +14,79 @@ module basePyramid
   implicit none
   
 contains
+  
+  
+  subroutine pyramiduvw2abc(uvw,a,b,c,display)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> a = u/(1-w) pour w=1, u=0
+    !> b = v/(1-w) pour w=1  v=0
+    !> c = w
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    real(8), intent(in)  , pointer :: uvw(:,:)
+    real(8), intent(out) , pointer :: a(:),b(:),c(:)
+    logical, intent(in)            :: display
+    !>
+    integer                        :: i,n
+    real(8), parameter             :: tol=1d-12
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    n=size(uvw,2)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    allocate(a(1:n),b(1:n),c(1:n))
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    do i=1,n
+      if( uvw(3,i)==1d0 )then
+        a(i)=0d0
+        b(i)=0d0
+        c(i)=1d0
+      else
+        a(i)=uvw(1,i)/(1d0-uvw(3,i) +tol)
+        b(i)=uvw(2,i)/(1d0-uvw(3,i) +tol)
+        c(i)=uvw(3,i)
+      endif
+    enddo
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( display )then
+      write(*,'(/"Pyramid (uvw2abc):")')
+      print '("a,b,c(",i4,")=",f15.12,2x,f15.12,2x,f15.12)',(i,a(i),b(i),c(i),i=1,n)
+      print '()'
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine pyramiduvw2abc
+  
+  subroutine pyramidVandermonde3D(ord,a,b,c,vand)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer, intent(in)           :: ord
+    real(8), intent(in) , pointer :: a(:)
+    real(8), intent(in) , pointer :: b(:)
+    real(8), intent(in) , pointer :: c(:)
+    real(8), intent(out), pointer :: vand(:,:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( .not.associated(a) .or. .not.associated(b) .or. .not.associated(c) )then
+      print '("3D Nodes a or/and b or/and c not associated")'
+      stop "@pyramidVandermonde3D"
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Vandermonde matrix
+    call pyramidBasePi(ord=ord,a=a,b=b,c=c,mode=vand,transpose=.false.)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine pyramidVandermonde3D
   
   subroutine pyramidBasePi(ord,a,b,c,mode,transpose)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -30,15 +108,13 @@ contains
     real(8), pointer              :: mode1(:),mode2(:),mode3(:)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Transpose = True  => mode(1:np,1:n)
     !> Transpose = False => mode(1:n,1:np)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    n = size(a)
+    n =size(a)
     np=(ord+1)*(ord+2)*(2*ord+3)/6
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -56,7 +132,7 @@ contains
             iM=max(iu,iv)
             call jacobiP(n=iu,alpha=0d0             ,beta=0d0,u=a(1:n),jf=mode1) ! J_iu^{0             ,0}(x/(1-z))
             call jacobiP(n=iv,alpha=0d0             ,beta=0d0,u=b(1:n),jf=mode2) ! J_iv^{0             ,0}(y/(1-z))
-            call jacobiP(n=iw,alpha=2d0*real(iM)+2d0,beta=0d0,u=c(1:n),jf=mode1) ! J_iw^{2*max(iu,iv)+2,0}(2*z-1  )
+            call jacobiP(n=iw,alpha=2d0*real(iM)+2d0,beta=0d0,u=c(1:n),jf=mode3) ! J_iw^{2*max(iu,iv)+2,0}(2*z-1  )
             
             mode(1:n,iNod)= mode1(1:n)                  &  !>   J_iu^{0             ,0}(x/(1-z))
             &              *mode2(1:n)*(1d0-c(1:n))**iM &  !>  *J_iv^{0             ,0}(y/(1-z))  (1-z)^max(iu,iv)
@@ -65,8 +141,34 @@ contains
           enddo
         enddo
       enddo
+      
+      deallocate(mode1,mode2,mode3)
+      
     else
-    
+      
+      allocate(mode(1:np,1:n))
+      
+      iNod=0
+      do iw=0,ord
+        do iv=0,ord-iw
+          do iu=0,ord-iw
+            iNod=iNod+1
+            
+            iM=max(iu,iv)
+            call jacobiP(n=iu,alpha=0d0             ,beta=0d0,u=a(1:n),jf=mode1) ! J_iu^{0             ,0}(x/(1-z))
+            call jacobiP(n=iv,alpha=0d0             ,beta=0d0,u=b(1:n),jf=mode2) ! J_iv^{0             ,0}(y/(1-z))
+            call jacobiP(n=iw,alpha=2d0*real(iM)+2d0,beta=0d0,u=c(1:n),jf=mode3) ! J_iw^{2*max(iu,iv)+2,0}(2*z-1  )
+            
+            mode(iNod,1:n)= mode1(1:n)                  &  !>   J_iu^{0             ,0}(x/(1-z))
+            &              *mode2(1:n)*(1d0-c(1:n))**iM &  !>  *J_iv^{0             ,0}(y/(1-z))  (1-z)^max(iu,iv)
+            &              *mode3(1:n)*(2*c(1:n)-1)        !>  *J_iw^{2*max(iu,iv)+2,0}(2*z-1  )  (2*z-1)
+            
+          enddo
+        enddo
+      enddo
+      
+      deallocate(mode1,mode2,mode3)
+      
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
