@@ -961,21 +961,27 @@ end subroutine quadTest
 
 subroutine testPyramid()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  use modDeterminant
   use basePyramid
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
   integer              :: ord
-  real(8), pointer     :: vand(:,:) !,dVand(:,:),jf(:,:),dr(:,:)
-  real(8), pointer     :: uvw(:,:)
   real(8), pointer     :: uv (:,:)
-  real(8), pointer     :: a(:),b(:),c(:)
+  real(8), pointer     :: uvw(:,:)
   integer              :: ad,iSide
   integer              :: iNod,nNod,iu,iv,iw
   integer, allocatable :: conec(:,:)
   integer, allocatable :: idx(:)
   real(8)              :: rot(3,3),xyz(1:3),cos_a,sin_a
   real(8)              :: alpha
+  
+  real(8), parameter   :: eps=1d-12
+  real(8), pointer     :: a(:),b(:),c(:)
+  real(8), pointer     :: vand(:,:) !,dVand(:,:),jf(:,:),dr(:,:)
+  real(8), pointer     :: mass(:,:)
+  real(8), pointer     :: xyzOut(:,:),lxOut(:,:),drLxOut(:,:),dsLxOut(:,:),dtLxOut(:,:),leb(:,:)
+  real(8), pointer     :: eigv(:)
   
   character(3)         :: sfx
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -989,23 +995,50 @@ subroutine testPyramid()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Points optimises sur face triangle (necessaire)
-  call pyramidSide2NodesOpt(ord=ord, uv=uv, display=.true.)
+  call pyramidNodes   (ord=ord, uvw=uvw,        display=.true.)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  call pyramidNodes   (ord=ord, uvw=uvw,        display=.true.)
+  !> Points optimises sur face triangle (necessaire)
+  call pyramidSide2NodesOpt(ord=ord, uv=uv, display=.true.)
   call pyramidNodesOpt(ord=ord, uvw=uvw, uv=uv, display=.true.)
  !call writeMesh3D    (ord=ord, uvw=uvw)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  call pyramiduvw2abc(uvw=uvw,a=a,b=b,c=c,display=.false.)
- !call pyramidVertexFunctions(uvw=uvw, func=func, display=.true.)
+  call pyramiduvw2abc(uvw=uvw,a=a,b=b,c=c)
+ !write(*,'(/"Pyramid (abc):")')
+ !print '("a,b,c(",i2,")=",f12.5,2x,f12.5,2x,f12.5)',(ad,a(ad),b(ad),c(ad),ad=1,size(a))
   call pyramidVandermonde3D(ord=ord,a=a,b=b,c=c,vand=vand)
   if( ord<3 )then
     call display(title="Vandermonde Matrix",mat=vand)
   endif
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Polynomes d'interpolation (on teste avec les points d'interpolation) => Matrice Identité
+  call pyramidLagrange3Dv(ord=ord,vand=vand,a=a,b=b,c=c,lx=lxOut,transpose=.true.) !> true pour affichage
+  if( ord<3 )then
+    call display(title="Test avec l(uvw)",mat=lxOut)
+  else
+    call displaySparce(title="Test avec l(uvw)",mat=lxOut,tol=1d-14)
+  endif
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Matrice de masse
+  call massMatrix(vand=vand,mass=mass)
+  if( ord<3 )then
+    call display(title="Mass Matrix",mat=mass)
+  endif
+  print '(/"det(mass)=",e22.15/)',DMGT(eps=eps,n=size(mass,1),A=mass)
+  call eigenVectors(mat=mass,w=eigv,display=.true.)
+  deallocate(eigv)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Derivees base fonctionnelle
+  
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
