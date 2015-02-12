@@ -967,6 +967,7 @@ subroutine testPyramid()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
+  integer              :: i,j,order,np,nPt,cpt
   integer              :: ord
   real(8), pointer     :: uv (:,:)
   real(8), pointer     :: uvw(:,:)
@@ -986,6 +987,8 @@ subroutine testPyramid()
   real(8), pointer     :: xyzOut(:,:),lxOut(:,:),drLxOut(:,:),dsLxOut(:,:),dtLxOut(:,:),leb(:,:)
   real(8), pointer     :: mode(:,:)
   real(8), pointer     :: eigv(:)
+  real(8), pointer     :: fi(:)
+  real(8)              :: f0
   
   character(3)         :: sfx
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -999,13 +1002,15 @@ subroutine testPyramid()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  call pyramidNodes   (ord=ord, uvw=uvw,        display=.true.)
+  !> Points sur face triangle
+ !call pyramidNodes   (ord=ord, uvw=uvw,        display=.true.)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Points optimises sur face triangle (necessaire)
   call pyramidSide2NodesOpt(ord=ord, uv=uv, display=.true.)
   call pyramidNodesOpt(ord=ord, uvw=uvw, uv=uv, display=.true.)
+  deallocate(uv)
  !call writeMesh3D    (ord=ord, uvw=uvw)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
@@ -1076,13 +1081,13 @@ subroutine testPyramid()
   if(  10<=ord .and. ord< 100 ) write(sfx,'("0" ,i2)')ord
   if( 100<=ord .and. ord<1000 ) write(sfx,'(     i3)')ord
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+  
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Evaluation des fonctions de Lagrange aux points xyzOut
   call pyramidReadXYZout3D(xyzOut=xyzOut)
   call pyramiduvw2abc(uvw=xyzOut,a=a,b=b,c=c)
   
-  call pyramidBasePi(ord=ord,a=a,b=b,c=c,mode=mode,transpose=.false.)           !> Psi(xyzOut)
+  call pyramidBasePi(ord=ord,a=a,b=b,c=c,mode=mode,transpose=.false.)                !> Psi(xyzOut)
   call pyramidLagrange3Dv(ord=ord,vand=vand,a=a,b=b,c=c,lx=lxOut,transpose=.false.)  !> lxOut= Inverse[Transpose[Vand]].Psi[xyzOut] lxOut(nPt,np)
   if( ord<3 )then
     call pyramidWriteSolOut3D(title="simplex3D"//sfx,solOut=mode   )
@@ -1098,6 +1103,108 @@ subroutine testPyramid()
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Evaluation des dérivées des fonctions de Lagrange aux points xyzOut
+  call dLagrange1Dv(dMat=drMatrix,lx=lxOut,dlx=drLxOut,transpose=.false.) !> drLxOut(1:nPt,1:np)= Transpose[drMatrix] lxOut
+  call dLagrange1Dv(dMat=dsMatrix,lx=lxOut,dlx=dsLxOut,transpose=.false.) !> dsLxOut= Transpose[dsMatrix] lxOut
+  call dLagrange1Dv(dMat=dtMatrix,lx=lxOut,dlx=dtLxOut,transpose=.false.) !> dtLxOut= Transpose[dtMatrix] lxOut
+  
+  if( ord<3 )then
+    call pyramidWriteSolOut3D(title="drLagrange3D"//sfx,solOut=drLxOut)
+    call pyramidWriteSolOut3D(title="dsLagrange3D"//sfx,solOut=dsLxOut)
+    call pyramidWriteSolOut3D(title="dtLagrange3D"//sfx,solOut=dtLxOut)
+  endif  
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Test des fonctions : preliminaires
+  print '("size(lxOut)=",i6," x ",i3)',size(lxOut,1),size(lxOut,2)
+  nPt=size(lxOut,1)
+  np =(ord+1)*(ord+2)*(2*ord+3)/6 !> = \sum_{k=1}^{ord+1} k^2  
+  allocate(fi(1:np)) ; fi(1:np)=1d0
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Test des fonctions lxOut : f(xyzOut) = \sum_{i=1,np} lxOut(xyzOut,i) f_i
+  print '("Test des fonctions lxOut : f(xyzOut) = \sum_{i=1,np} lxOut(xyzOut,i) f_i")'
+  cPt=0
+  do i=1,nPt
+    f0=0d0
+    do j=1,np
+      f0=f0+lxOut(i,j)*fi(j)
+    enddo
+    if( abs(f0-1d0)>eps )then
+      print '("f(",i6,")=",e22.15)',i,(f0-1d0)
+      cpt=cpt+1
+    endif
+  enddo
+  if( .not.cpt==0 )print '("cpt(f)=",i6)',cpt
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Test des fonctions drLxOut : df/dr(xyzOut) = \sum_{i=1,np} drLxOut(xyzOut,i) f_i
+  print '("Test des fonctions drLxOut : df/dr(xyzOut) = \sum_{i=1,np} drLxOut(xyzOut,i) f_i")'
+  cPt=0
+  do i=1,nPt
+    f0=0d0
+    do j=1,np
+      f0=f0+drLxOut(i,j)*fi(j)
+    enddo
+    if( abs(f0)>eps )then
+      print '("df/dr(",i6,")=",e22.15)',i,(f0-1d0)
+      cpt=cpt+1
+    endif
+  enddo
+  if( .not.cpt==0 )print '("cpt(df/dr)=",i6)',cpt
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Test des fonctions dsLxOut : df/ds(xyzOut) = \sum_{i=1,np} dsLxOut(xyzOut,i) f_i
+  print '("Test des fonctions dsLxOut : df/ds(xyzOut) = \sum_{i=1,np} dsLxOut(xyzOut,i) f_i")'
+  cPt=0
+  do i=1,nPt
+    f0=0d0
+    do j=1,np
+      f0=f0+dsLxOut(i,j)*fi(j)
+    enddo
+    if( abs(f0)>eps )then
+      print '("df/ds(",i6,")=",e22.15)',i,(f0-1d0)
+      cpt=cpt+1
+    endif
+  enddo
+  if( .not.cpt==0 )print '("cpt(df/ds)=",i6)',cpt
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Test des fonctions dtLxOut : df/dt(xyzOut) = \sum_{i=1,np} dtLxOut(xyzOut,i) f_i
+  print '("Test des fonctions dtLxOut : df/dt(xyzOut) = \sum_{i=1,np} dtLxOut(xyzOut,i) f_i")'
+  cPt=0
+  do i=1,nPt
+    f0=0d0
+    do j=1,np
+      f0=f0+dtLxOut(i,j)*fi(j)
+    enddo
+    if( abs(f0)>eps )then
+      print '("df/dt(",i6,")=",e22.15)',i,(f0-1d0)
+      cpt=cpt+1
+    endif
+  enddo
+  if( .not.cpt==0 )print '("cpt(df/dt)=",i6)',cpt
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  deallocate(fi)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  deallocate(xyzOut)
+  deallocate(a,b,c)
+  !
+  deallocate(lxOut)
+  deallocate(drLxOut,dsLxOut,dtLxOut)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  deallocate(vand)
+  deallocate(drMatrix,dsMatrix,dtMatrix)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   return

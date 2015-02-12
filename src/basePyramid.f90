@@ -703,7 +703,6 @@ contains
     logical, intent(in)             :: display
     !>
     real(8)                         :: xyz(3)
-    real(8), pointer                :: dis(:,:) !> Displacement
     integer                         :: iu,iv,iw,ad
     integer                         :: iNod,iNod0,iNod1
     integer                         :: jNod,jNod0,jNod1
@@ -734,16 +733,12 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    nNod=0
-    do iu=1,ord+1
-      nNod=nNod+iu*iu
-    enddo
+    nNod=(ord+1)*(ord+2)*(2*ord+3)/6 !> = \sum_{k=1}^{ord+1} k^2
     if( display )print '(/3x,"nDeg=",i6)',nNod
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( .not.associated(uvw) )allocate(uvw(3,nNod))
-    allocate(dis(3,nNod)) ; dis(1:3,1:nNod)=0d0
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -771,12 +766,10 @@ contains
           
           if    ( iw==0 )then !> side1
             nNode=nNode+1
-            dis(1:3,iNod)=[sd2(1,iu),sd2(1,iv),0d0]-uvw(1:3,iNod)
             uvw(1:3,iNod)=[sd2(1,iu),sd2(1,iv),0d0]
           elseif( iv==0 )then !> side2
             nNode=nNode+1
             ad=iu
-            dis(1:3,iNod)=sd2(1:3,ad)-uvw(1:3,iNod)
             uvw(1:3,iNod)=sd2(1:3,ad)
           elseif( iu==ord-iw )then !> side3
             !> side2 -> side3 rotation +pi/2 (zz')
@@ -785,7 +778,6 @@ contains
             !> [ 0  0 +1] [z]   [ z]
             nNode=nNode+1
             ad=iv
-            dis(1:3,iNod)=[-sd2(2,ad),+sd2(1,ad),sd2(3,ad)]-uvw(1:3,iNod)
             uvw(1:3,iNod)=[-sd2(2,ad),+sd2(1,ad),sd2(3,ad)]
           elseif( iv==ord-iw )then !> side4
             !> side2 -> side4 rotation +pi (zz')
@@ -794,7 +786,6 @@ contains
             !> [ 0  0 +1] [z]   [ z]
             nNode=nNode+1
             ad=ord-iw-iu
-            dis(1:3,iNod)=[-sd2(1,ad),-sd2(2,ad),sd2(3,ad)]-uvw(1:3,iNod)
             uvw(1:3,iNod)=[-sd2(1,ad),-sd2(2,ad),sd2(3,ad)]
           elseif( iu==0 )then !> side5
             !> side2 -> side5 rotation 3pi/2 (zz')
@@ -803,7 +794,6 @@ contains
             !> [ 0  0 +1] [z]   [ z]
             nNode=nNode+1
             ad=ord-iw-iv
-            dis(1:3,iNod)=[sd2(2,ad),-sd2(1,ad),sd2(3,ad)]-uvw(1:3,iNod)
             uvw(1:3,iNod)=[sd2(2,ad),-sd2(1,ad),sd2(3,ad)]
           endif
           
@@ -844,7 +834,6 @@ contains
             xyz(1:3)=( alphaU*uvw(1:3,iNod1)+betaU*uvw(1:3,iNod0) &
             &         +alphaV*uvw(1:3,jNod1)+betaV*uvw(1:3,jNod0) )/2d0
             
-            dis(1:3,iNod)=xyz(1:3)-uvw(1:3,iNod)
             uvw(1:3,iNod)=xyz(1:3)
             
           endif
@@ -865,22 +854,6 @@ contains
         do iv=0,ord-iw ; do iu=0,ord-iw
           iNod=iNod+1
           print '(6x,"uvw(",i6,")=",3(f12.9,1x))',iNod,uvw(1:3,iNod)
-        enddo ; enddo
-      enddo
-      print '(3x,"end")'
-    endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-   !if( display )then
-    if( 0==1 )then
-      print '(3x,"displacement")'
-      iNod=0
-      do iw=0,ord
-        print '(6x,"level: ",i3)',iw
-        do iv=0,ord-iw ; do iu=0,ord-iw
-          iNod=iNod+1
-          print '(6x,"dis(",i6,")=",3(f12.9,1x))',iNod,dis(1:3,iNod)
         enddo ; enddo
       enddo
       print '(3x,"end")'
