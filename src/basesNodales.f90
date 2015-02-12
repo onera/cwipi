@@ -959,6 +959,7 @@ subroutine quadTest()
   return
 end subroutine quadTest
 
+
 subroutine testPyramid()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use modDeterminant
@@ -978,9 +979,12 @@ subroutine testPyramid()
   
   real(8), parameter   :: eps=1d-12
   real(8), pointer     :: a(:),b(:),c(:)
-  real(8), pointer     :: vand(:,:) !,dVand(:,:),jf(:,:),dr(:,:)
+  real(8), pointer     :: vand(:,:),dVand(:,:) !,jf(:,:),dr(:,:)
+  real(8), pointer     :: drVand  (:,:),dsVand  (:,:),dtVand  (:,:)
+  real(8), pointer     :: drMatrix(:,:),dsMatrix(:,:),dtMatrix(:,:)
   real(8), pointer     :: mass(:,:)
   real(8), pointer     :: xyzOut(:,:),lxOut(:,:),drLxOut(:,:),dsLxOut(:,:),dtLxOut(:,:),leb(:,:)
+  real(8), pointer     :: mode(:,:)
   real(8), pointer     :: eigv(:)
   
   character(3)         :: sfx
@@ -1032,14 +1036,26 @@ subroutine testPyramid()
     call display(title="Mass Matrix",mat=mass)
   endif
   print '(/"det(mass)=",e22.15/)',DMGT(eps=eps,n=size(mass,1),A=mass)
-  call eigenVectors(mat=mass,w=eigv,display=.true.)
-  deallocate(eigv)
+ !call eigenVectors(mat=mass,w=eigv,display=.true.)
+ !deallocate(eigv)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Derivees base fonctionnelle
-  
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  call pyramidGradVandermonde3D(ord=ord,a=a,b=b,c=c,drVand=drVand,dsVand=dsVand,dtVand=dtVand)
+  call derive1D(vand=vand,dVand=drVand,dMat=drMatrix) !> drMatrix = drVand.Inverse[vand]
+  call derive1D(vand=vand,dVand=dsVand,dMat=dsMatrix) !> dsMatrix = dsVand.Inverse[vand]
+  call derive1D(vand=vand,dVand=dtVand,dMat=dtMatrix) !> dtMatrix = dtVand.Inverse[vand]
+  if( ord<3 )then
+    call display(title="drVand Matrix",mat=drVand)
+    call display(title="dsVand Matrix",mat=dsVand)
+    call display(title="dtVand Matrix",mat=dtVand)
+    call display(title="drMatrix=drVand.vand^{-1}",mat=drMatrix)
+    call display(title="dsMatrix=dsVand.vand^{-1}",mat=dsMatrix)
+    call display(title="dsMatrix=dtVand.vand^{-1}",mat=dtMatrix)
+  endif
+  deallocate(drVand,dsVand,dtVand)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   call pyramidSkin3D(ord=ord, uvw=uvw, display=.true.)
@@ -1048,6 +1064,40 @@ subroutine testPyramid()
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   call pyramidSides3D(ord=ord, display=.true.)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  deallocate(uvw)
+  deallocate(a,b,c)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  if(   1<=ord .and. ord<  10 ) write(sfx,'("00",i1)')ord
+  if(  10<=ord .and. ord< 100 ) write(sfx,'("0" ,i2)')ord
+  if( 100<=ord .and. ord<1000 ) write(sfx,'(     i3)')ord
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Evaluation des fonctions de Lagrange aux points xyzOut
+  call pyramidReadXYZout3D(xyzOut=xyzOut)
+  call pyramiduvw2abc(uvw=xyzOut,a=a,b=b,c=c)
+  
+  call pyramidBasePi(ord=ord,a=a,b=b,c=c,mode=mode,transpose=.false.)           !> Psi(xyzOut)
+  call pyramidLagrange3Dv(ord=ord,vand=vand,a=a,b=b,c=c,lx=lxOut,transpose=.false.)  !> lxOut= Inverse[Transpose[Vand]].Psi[xyzOut] lxOut(nPt,np)
+  if( ord<3 )then
+    call pyramidWriteSolOut3D(title="simplex3D"//sfx,solOut=mode   )
+    call pyramidWriteSolOut3D(title="lagrange3D"//sfx,solOut=lxOut  )
+  endif
+  deallocate(mode)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  call lebesgue(lx=lxout,l=leb,transpose=.false.)
+  call pyramidWriteSolOut3D(title="lebesgue3DP"//sfx,solOut=leb)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Evaluation des dérivées des fonctions de Lagrange aux points xyzOut
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   return
@@ -1108,13 +1158,13 @@ program main
   
   !> Test Tetra
   !call tetraTest()
-  !call tetraMaillageVisu() ! maillages de visu pour le tetra d'ordre élevé
+  !call tetraMaillageVisu() !> maillages de visu pour le tetra d'ordre élevé
   
   !> Test Quad
   !call quadTest()
   
   !> Test pyramids
-  !call pyramMaillageVisu()
   call testPyramid()
+  !call pyramMaillageVisu() !> maillages de visu pour la pyramide d'ordre élevé
   
 end program main
