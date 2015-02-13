@@ -423,7 +423,7 @@ contains
       
       iNod=0
       do iw=0,ord ; do iv=0,ord-iw ; do iu=0,ord-iw
-        iNod=iNod+1 !  print '(/"pyramidGradBasePi: iNod=",i3)',iNod
+        iNod=iNod+1 ;  print '(/"pyramidGradBasePi: iNod=",i3)',iNod
         
         iM=max(iu,iv)
         
@@ -1594,22 +1594,56 @@ contains
     return
   end subroutine pyramidSides3D
   
-  subroutine pyramidReadXYZout3D(xyzOut)
+  subroutine pyramidReadXYZout3D(xyzOut,display)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    use M_libmesh6_api
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     real(8), intent(out), pointer :: xyzOut (:,:)
+    logical, intent(in)           :: display
     !-
-    integer :: i,j,nVert
+    integer                       :: i,j,nVert
+    character(256)                :: name
+    integer                       :: iNod0,nNod0
+    integer                       :: mark
+    integer                       :: ins,ver,res,geo
+    integer, allocatable          :: TypTab(:)
+    real(4)                       :: xyz(3)
+    integer                       :: nFld,kind(1)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    open(unit=10,file='PyramidP100.mesh',status='old',action='read')
-    do i=1,5 ; read(10,*) ; enddo
-    read(10,*)nVert
-    allocate(xyzOut(3,nVert))
-    do i=1,nVert
-      read(10,*)xyzOut(1:3,i)
-    enddo
-    close(10)
+!    open(unit=10,file='PyramidP100.mesh',status='old',action='read')
+!    do i=1,5 ; read(10,*) ; enddo
+!    read(10,*)nVert
+!    allocate(xyzOut(3,nVert))
+!    do i=1,nVert
+!      read(10,*)xyzOut(1:3,i)
+!    enddo
+!    close(10)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    name="Pyramids.meshb"
+    if( display )print '(3x,"Reading Pyramid Volumic Mesh: ",a)',trim(name)
+    ins=GmfOpenMeshF77(trim(name),GmfRead,ver,geo) ! print '(3x,"ins=",i3)',ins
+    nNod0=GmfStatKwdF77(ins,GmfVertices,ver,0,TypTab) ; if( display )print '(6x,"nNod0=",i10)',nNod0
+    allocate(xyzOut(geo,nNod0))
+    res=GmfGotoKwdF77(ins,GmfVertices)
+    select case(ver)
+    case(1) !> real(4)
+      do iNod0=1,nNod0
+        call GmfGetVertex3dr4(ins,xyz(1),xyz(2),xyz(3),mark)
+        xyzOut(1:3,iNod0)=xyz(1:3)
+      enddo
+    case(2) !> real(8)
+      do iNod0=1,nNod0
+        call GmfGetVertex3dr8(ins,xyzOut(1,iNod0),xyzOut(2,iNod0),xyzOut(3,iNod0),mark)
+      enddo
+    end select
+    
+    res=GmfCloseMeshF77(ins)
+    if( display )print '(3x,"end Reading")'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
@@ -1617,17 +1651,26 @@ contains
   
   subroutine pyramidWriteSolOut3D(title,solOut)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    use M_libmesh6_api
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     character(*)                 :: title
     real(8), intent(in), pointer :: solOut(:,:)
     !-
-    integer                      :: iOrd
+    integer                      :: iOrd,nSol
     integer                      :: i,j
     character(3)                 :: sfx
     integer , parameter          :: iFile=100
+    
+    character(256)               :: name
+    integer                      :: ins,ver,res,geo
+    integer                      :: nFld,kind(1)
+    real(8) , allocatable        :: sol(:)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     print '(/"writing solOut")'
+    nSol=size(solOut,1) ; allocate(sol(nSol))
     do iOrd=1,size(solOut,2)
       
       if(   1<=iOrd .and. iOrd<  10 ) write(sfx,'("00",i1)')iOrd
@@ -1635,21 +1678,49 @@ contains
       if( 100<=iOrd .and. iOrd<1000 ) write(sfx,'(     i3)')iOrd
       print '(3x,"saving ",a,"_",a)',title,sfx
       
-      call system("ln -fs PyramidP100.mesh "// title // "_" //sfx//".mesh")
+      call system("ln -fs Pyramids.meshb "// title // "_" //sfx//".meshb")
       
-      open(unit=iFile,file=title//"_"//sfx//".sol",status='unknown',action='write')
+      name=title//"_"//sfx//".sol" ; print '(/"Writing: ",a)',trim(name)
+      open(unit=iFile,file=trim(name),action='write')
       write(iFile,'("MeshVersionFormatted 2"/)')
       write(iFile,'("Dimension 3"/)')
       write(iFile,'("SolAtVertices")')
       write(iFile,*)size(solOut,1)
       write(iFile,'("1 1")')
-      do i=1,size(solOut,1)
+      do i=1,size(solOut,1) ; print '("i=",i6,"/",i6)',i,size(solOut,1)
         write(iFile,*)solOut(i,iOrd)
       enddo
       write(iFile,'(/"End")')
       close(iFile)
-      
     enddo
+    print '("end writing solOut")'
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!    print '(/"writing solOut")'
+!    nSol=size(solOut,1) ; allocate(sol(nSol))
+!    do iOrd=1,size(solOut,2)
+!      
+!      if(   1<=iOrd .and. iOrd<  10 ) write(sfx,'("00",i1)')iOrd
+!      if(  10<=iOrd .and. iOrd< 100 ) write(sfx,'("0" ,i2)')iOrd
+!      if( 100<=iOrd .and. iOrd<1000 ) write(sfx,'(     i3)')iOrd
+!      print '(3x,"saving ",a,"_",a)',title,sfx
+!      
+!      call system("ln -fs Pyramids.meshb "// title // "_" //sfx//".meshb")
+!      
+!      nFld=1 ; kind(1)=1 ; sol(1:nSol)=solOut(1:nSol,iOrd)
+!      name=title//"_"//sfx//".sol" ; print '(/"Writing: ",a)',trim(name)
+!      ver=2
+!      ins=GmfOpenMeshF77(trim(name),GmfWrite,ver,geo) ; print '(3x,"nSolu=",i10)',nSol
+!      res=GmfSetKwdF77(ins,GmfSolAtVertices,nSol,nFld,kind(1:1))
+!      do i=1,nSol ; print '("i=",i6,2x,"sol=",e22.15)',i,sol(i)
+!        call gmfSetSolAtVertexR8(MshIdx=ins,SolTab=sol(i))
+!      enddo
+!      res=GmfCloseMeshF77(ins)
+!      
+!    enddo
+!    deallocate(sol)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return

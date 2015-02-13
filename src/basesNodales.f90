@@ -1084,7 +1084,7 @@ subroutine testPyramid()
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Evaluation des fonctions de Lagrange aux points xyzOut
-  call pyramidReadXYZout3D(xyzOut=xyzOut)
+  call pyramidReadXYZout3D(xyzOut=xyzOut, display=.true.)
   call pyramiduvw2abc(uvw=xyzOut,a=a,b=b,c=c)
   
   call pyramidBasePi(ord=ord,a=a,b=b,c=c,mode=mode,transpose=.false.)                !> Psi(xyzOut)
@@ -1100,6 +1100,7 @@ subroutine testPyramid()
   call lebesgue(lx=lxout,l=leb,transpose=.false.)
   call pyramidWriteSolOut3D(title="lebesgue3DP"//sfx,solOut=leb)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  stop
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Evaluation des dérivées des fonctions de Lagrange aux points xyzOut

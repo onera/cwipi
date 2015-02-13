@@ -45,8 +45,8 @@ LIBS += -lm -mkl
 ### Compiler Flags and Link ###
 
 FCFLAGS    = -c -g -fpp -mkl=sequential -arch x86_64 $(INCL) -module $(MODS)
-CCFLAGS    = -c -g                     -arch x86_64 $(INCL) -std=c99
-CXXFLAGS   = -c -g                     -arch x86_64 $(INCL) -std=c99
+CCFLAGS    = -c -g                      -arch x86_64 $(INCL) -std=c99
+CXXFLAGS   = -c -g                      -arch x86_64 $(INCL) -std=c99
 
 
 #Debug

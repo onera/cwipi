@@ -5,7 +5,9 @@ toto
 space*
 basesNodales
 *.mesh
+*.meshb
 *.sol
+*.solb
 *.vtk
 *.vtu
 *.log
