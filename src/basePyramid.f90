@@ -348,16 +348,17 @@ contains
     !> avec {a=x/(1-z) ; b=y/(1-z) ; c=z}
     
     !> (∂Psi/∂x) = (∂a/∂x) (∂Psi/∂a) + (∂b/∂x) (∂Psi/∂b) + 2 (∂c/∂x) (∂Psi/∂c)
-    !> avec  (∂a/∂x)=1/(1-z) et (∂b/∂x)=(∂c/∂x)=0
-    !> soit (∂Psi/∂x) =  1/(1-c)  (∂Psi/∂a)
-    !>                =  (∂P_i^{0,0}/∂a)(a) P_j^{0,0}(b) (1-c)**(max(i,j)-1) P_k^{2*max(i,j)+2,0}(2*c+1)
+    !> avec : (∂a/∂x)=1/(1-z) ; (∂b/∂x)=0 ; (∂c/∂x)=0
+    !> soit : (∂Psi/∂x) =  (∂a/∂x) (∂Psi/∂a)
+    !>                  =  1/(1-c) (∂Psi/∂a)
+    !>                  =  (∂P_i^{0,0}/∂a)(a) P_j^{0,0}(b) (1-c)**(max(i,j)-1) P_k^{2*max(i,j)+2,0}(2*c+1)
     
     !> (∂Psi/∂y) = (∂a/∂y) (∂Psi/∂a) + (∂b/∂y) (∂Psi/∂b) + (∂c/∂y) (∂Psi/∂c)
-    !> avec  (∂a/∂y)=0 ; (∂b/∂y)=1/(1-z)=1/(1-c) ; (∂c/∂y)=0
-    !> soit (∂Psi/∂x) =  (∂b/∂y) (∂Psi/∂b)
-    !>                =  1/(1-c) (∂Psi/∂b)
-    !>                =  1/(1-c) P_i^{0,0}(a) (∂P_j^{0,0}/∂b)(b) (1-c)**max(i,j) P_k^{2*max(i,j)+2,0}(2*c+1)
-    !>                =  P_i^{0,0}(a) (∂P_j^{0,0}/∂b)(b) (1-c)**(max(i,j)-1) P_k^{2*max(i,j)+2,0}(2*c+1)
+    !> avec : (∂a/∂y)=0 ; (∂b/∂y)=1/(1-z)=1/(1-c) ; (∂c/∂y)=0
+    !> soit : (∂Psi/∂x) =  (∂b/∂y) (∂Psi/∂b)
+    !>                  =  1/(1-c) (∂Psi/∂b)
+    !>                  =  1/(1-c) P_i^{0,0}(a) (∂P_j^{0,0}/∂b)(b) (1-c)**max(i,j) P_k^{2*max(i,j)+2,0}(2*c+1)
+    !>                  =  P_i^{0,0}(a) (∂P_j^{0,0}/∂b)(b) (1-c)**(max(i,j)-1) P_k^{2*max(i,j)+2,0}(2*c+1)
     
     !> (∂Psi/∂z) = (∂a/∂z) (∂Psi/∂a) + (∂b/∂z) (∂Psi/∂b) + (∂c/∂z) (∂Psi/∂c)
     !> avec  (∂a/∂z)=-x/(1-z)^2=-a/(1-z)= -a/(1-c)
@@ -423,7 +424,7 @@ contains
       
       iNod=0
       do iw=0,ord ; do iv=0,ord-iw ; do iu=0,ord-iw
-        iNod=iNod+1 ;  print '(/"pyramidGradBasePi: iNod=",i3)',iNod
+        iNod=iNod+1 !  print '(/"pyramidGradBasePi: iNod=",i3)',iNod
         
         iM=max(iu,iv)
         
@@ -690,7 +691,7 @@ contains
     return
   end subroutine pyramidNodes
   
-  subroutine pyramidNodesOpt(ord, uvw, uv, display)
+  subroutine pyramidNodesOpt(ord, uvw, display)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! input: ord=polynomial order of interpolant
     ! output: uvw(:,:) node coordinates in unity pyramid
@@ -698,10 +699,10 @@ contains
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)             :: ord
-    real(8), intent(in)   , pointer :: uv (:,:) !> Triangle optimized points
     real(8), intent(inout), pointer :: uvw(:,:) !> Pyramide optimized points
     logical, intent(in)             :: display
     !>
+    real(8), pointer                :: uv (:,:) !> Triangle optimized points
     real(8)                         :: xyz(3)
     integer                         :: iu,iv,iw,ad
     integer                         :: iNod,iNod0,iNod1
@@ -712,9 +713,13 @@ contains
     real(8)                         :: alphaV,betaV
     
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        
+    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( display )print '(/"Building Pyramid Optimized Nodes")'
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    call pyramidSide2NodesOpt(ord=ord, uv=uv, display=.false.) !> face triangle (necessaire)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -803,6 +808,10 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    deallocate(uv)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Traitement hors faces
     if( display )print '(3x,"Nodes optimization inside pyramid")'
     
@@ -864,6 +873,7 @@ contains
     if( display )print '(3x,"nn=",i4,3x,"ne=",i4,3x,"ni=",i4)',nNod,nNode,nNodi
    !if( display )print '(3x,"nn=",i4,3x,"ne=",i4,3x,"ni=",i4)',(ord+1)*(ord+2)*(2*ord+3)/6,3*ord*ord+2,(ord-1)*(ord-2)*(2*ord-3)/6
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( display )print '("end Building Pyramid Optimized Nodes")'
@@ -1668,6 +1678,7 @@ contains
     real(8) , allocatable        :: sol(:)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
+#if 0==1
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     print '(/"writing solOut")'
     nSol=size(solOut,1) ; allocate(sol(nSol))
@@ -1687,7 +1698,7 @@ contains
       write(iFile,'("SolAtVertices")')
       write(iFile,*)size(solOut,1)
       write(iFile,'("1 1")')
-      do i=1,size(solOut,1) ; print '("i=",i6,"/",i6)',i,size(solOut,1)
+      do i=1,size(solOut,1) ! print '("i=",i6,"/",i6)',i,size(solOut,1)
         write(iFile,*)solOut(i,iOrd)
       enddo
       write(iFile,'(/"End")')
@@ -1695,33 +1706,33 @@ contains
     enddo
     print '("end writing solOut")'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    
+#else
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-!    print '(/"writing solOut")'
-!    nSol=size(solOut,1) ; allocate(sol(nSol))
-!    do iOrd=1,size(solOut,2)
-!      
-!      if(   1<=iOrd .and. iOrd<  10 ) write(sfx,'("00",i1)')iOrd
-!      if(  10<=iOrd .and. iOrd< 100 ) write(sfx,'("0" ,i2)')iOrd
-!      if( 100<=iOrd .and. iOrd<1000 ) write(sfx,'(     i3)')iOrd
-!      print '(3x,"saving ",a,"_",a)',title,sfx
-!      
-!      call system("ln -fs Pyramids.meshb "// title // "_" //sfx//".meshb")
-!      
-!      nFld=1 ; kind(1)=1 ; sol(1:nSol)=solOut(1:nSol,iOrd)
-!      name=title//"_"//sfx//".sol" ; print '(/"Writing: ",a)',trim(name)
-!      ver=2
-!      ins=GmfOpenMeshF77(trim(name),GmfWrite,ver,geo) ; print '(3x,"nSolu=",i10)',nSol
-!      res=GmfSetKwdF77(ins,GmfSolAtVertices,nSol,nFld,kind(1:1))
-!      do i=1,nSol ; print '("i=",i6,2x,"sol=",e22.15)',i,sol(i)
-!        call gmfSetSolAtVertexR8(MshIdx=ins,SolTab=sol(i))
-!      enddo
-!      res=GmfCloseMeshF77(ins)
-!      
-!    enddo
-!    deallocate(sol)
+    print '(/"writing solOut")'
+    nSol=size(solOut,1) ; allocate(sol(nSol))
+    do iOrd=1,size(solOut,2)
+      
+      if(   1<=iOrd .and. iOrd<  10 ) write(sfx,'("00",i1)')iOrd
+      if(  10<=iOrd .and. iOrd< 100 ) write(sfx,'("0" ,i2)')iOrd
+      if( 100<=iOrd .and. iOrd<1000 ) write(sfx,'(     i3)')iOrd
+      print '(3x,"saving ",a,"_",a)',title,sfx
+      
+      call system("ln -fs Pyramids.meshb "// title // "_" //sfx//".meshb")
+      geo=3
+      nFld=1 ; kind(1)=1 ; sol(1:nSol)=solOut(1:nSol,iOrd)
+      name=title//"_"//sfx//".solb" ; print '(/"Writing: ",a)',trim(name)
+      ver=2
+      ins=GmfOpenMeshF77(trim(name),GmfWrite,ver,geo) ; print '(3x,"nSolu=",i10)',nSol
+      res=GmfSetKwdF77(ins,GmfSolAtVertices,nSol,nFld,kind(1:1))
+      do i=1,nSol ! print '("i=",i6,2x,"sol=",e22.15)',i,sol(i)
+        call gmfSetSolAtVertexR8(MshIdx=ins,SolTab=sol(i))
+      enddo
+      res=GmfCloseMeshF77(ins)
+      
+    enddo
+    deallocate(sol)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+#endif
     
     return
   end subroutine pyramidWriteSolOut3D

@@ -960,7 +960,7 @@ subroutine quadTest()
 end subroutine quadTest
 
 
-subroutine testPyramid()
+subroutine pyramBasis()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use modDeterminant
   use basePyramid
@@ -1002,18 +1002,16 @@ subroutine testPyramid()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Points sur face triangle
- !call pyramidNodes   (ord=ord, uvw=uvw,        display=.true.)
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Points optimises sur face triangle (necessaire)
-  call pyramidSide2NodesOpt(ord=ord, uv=uv, display=.true.)
-  call pyramidNodesOpt(ord=ord, uvw=uvw, uv=uv, display=.true.)
-  deallocate(uv)
+ !call pyramidNodes   (ord=ord, uvw=uvw, display=.true.)  !> Points réguliers
+  call pyramidNodesOpt(ord=ord, uvw=uvw, display=.true.)  !> Points optimises
  !call writeMesh3D    (ord=ord, uvw=uvw)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  call pyramidSkin3D(ord=ord, uvw=uvw, display=.true.)
+  call pyramidMesh3D(ord=ord, uvw=uvw, display=.true.)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   call pyramiduvw2abc(uvw=uvw,a=a,b=b,c=c)
  !write(*,'(/"Pyramid (abc):")')
@@ -1030,7 +1028,7 @@ subroutine testPyramid()
   if( ord<3 )then
     call display(title="Test avec l(uvw)",mat=lxOut)
   else
-    call displaySparce(title="Test avec l(uvw)",mat=lxOut,tol=1d-14)
+    call displaySparce(title="Test avec l(uvw)",mat=lxOut,tol=1d-12)
   endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -1040,7 +1038,7 @@ subroutine testPyramid()
   if( ord<3 )then
     call display(title="Mass Matrix",mat=mass)
   endif
-  print '(/"det(mass)=",e22.15/)',DMGT(eps=eps,n=size(mass,1),A=mass)
+ !print '(/"det(mass)=",e22.15/)',DMGT(eps=eps,n=size(mass,1),A=mass)
  !call eigenVectors(mat=mass,w=eigv,display=.true.)
  !deallocate(eigv)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -1061,12 +1059,7 @@ subroutine testPyramid()
   endif
   deallocate(drVand,dsVand,dtVand)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
-  
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  call pyramidSkin3D(ord=ord, uvw=uvw, display=.true.)
-  call pyramidMesh3D(ord=ord, uvw=uvw, display=.true.)
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
+    
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   call pyramidSides3D(ord=ord, display=.true.)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -1076,6 +1069,89 @@ subroutine testPyramid()
   deallocate(a,b,c)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
+  return
+end subroutine pyramBasis
+
+
+subroutine pyramLebesgue()
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  use modDeterminant
+  use basePyramid
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  implicit none
+  integer              :: i,j,order,np,nPt,cpt
+  integer              :: ord
+  real(8), pointer     :: uv (:,:)
+  real(8), pointer     :: uvw(:,:)
+  integer              :: ad,iSide
+  integer              :: iNod,nNod,iu,iv,iw
+  integer, allocatable :: conec(:,:)
+  integer, allocatable :: idx(:)
+  real(8)              :: rot(3,3),xyz(1:3),cos_a,sin_a
+  real(8)              :: alpha
+  !>
+  real(8), parameter   :: eps=1d-12
+  real(8), pointer     :: a(:),b(:),c(:)
+  real(8), pointer     :: vand(:,:),dVand(:,:) !,jf(:,:),dr(:,:)
+  real(8), pointer     :: drVand  (:,:),dsVand  (:,:),dtVand  (:,:)
+  real(8), pointer     :: drMatrix(:,:),dsMatrix(:,:),dtMatrix(:,:)
+  real(8), pointer     :: mass(:,:)
+  real(8), pointer     :: xyzOut(:,:),lxOut(:,:),drLxOut(:,:),dsLxOut(:,:),dtLxOut(:,:),leb(:,:)
+  real(8), pointer     :: mode(:,:)
+  real(8), pointer     :: eigv(:)
+  real(8), pointer     :: fi(:)
+  real(8)              :: f0
+  
+  character(3)         :: sfx
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  write(*,'("Calcul fonction de Lebesgue pour pyramides")')
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  write(*,'(/"Order: ")',advance='no') ; read(*,*)ord
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+ !call pyramidNodes   (ord=ord, uvw=uvw, display=.false.)  !> Points réguliers
+  call pyramidNodesOpt(ord=ord, uvw=uvw, display=.false.)  !> Points optimises
+ !call writeMesh3D    (ord=ord, uvw=uvw)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  call pyramiduvw2abc(uvw=uvw,a=a,b=b,c=c)
+ !write(*,'(/"Pyramid (abc):")')
+ !print '("a,b,c(",i2,")=",f12.5,2x,f12.5,2x,f12.5)',(ad,a(ad),b(ad),c(ad),ad=1,size(a))
+  call pyramidVandermonde3D(ord=ord,a=a,b=b,c=c,vand=vand)
+  if( ord<3 )then
+    call display(title="Vandermonde Matrix",mat=vand)
+  endif
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Derivees base fonctionnelle
+  call pyramidGradVandermonde3D(ord=ord,a=a,b=b,c=c,drVand=drVand,dsVand=dsVand,dtVand=dtVand)
+  call derive1D(vand=vand,dVand=drVand,dMat=drMatrix) !> drMatrix = drVand.Inverse[vand]
+  call derive1D(vand=vand,dVand=dsVand,dMat=dsMatrix) !> dsMatrix = dsVand.Inverse[vand]
+  call derive1D(vand=vand,dVand=dtVand,dMat=dtMatrix) !> dtMatrix = dtVand.Inverse[vand]
+  if( ord<3 )then
+    call display(title="drVand Matrix",mat=drVand)
+    call display(title="dsVand Matrix",mat=dsVand)
+    call display(title="dtVand Matrix",mat=dtVand)
+    call display(title="drMatrix=drVand.vand^{-1}",mat=drMatrix)
+    call display(title="dsMatrix=dsVand.vand^{-1}",mat=dsMatrix)
+    call display(title="dsMatrix=dtVand.vand^{-1}",mat=dtMatrix)
+  endif
+  deallocate(drVand,dsVand,dtVand)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  deallocate(uvw)
+  deallocate(a,b,c)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   if(   1<=ord .and. ord<  10 ) write(sfx,'("00",i1)')ord
   if(  10<=ord .and. ord< 100 ) write(sfx,'("0" ,i2)')ord
@@ -1097,10 +1173,9 @@ subroutine testPyramid()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  call lebesgue(lx=lxout,l=leb,transpose=.false.)
+  call lebesgue(lx=lxout,l=leb,transpose=.false.) !> leb = Sum abs(lxOut)
   call pyramidWriteSolOut3D(title="lebesgue3DP"//sfx,solOut=leb)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  stop
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Evaluation des dérivées des fonctions de Lagrange aux points xyzOut
@@ -1209,7 +1284,7 @@ subroutine testPyramid()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   return
-end subroutine testPyramid
+end subroutine pyramLebesgue
 
 
 subroutine pyramMaillageVisu()
@@ -1272,7 +1347,8 @@ program main
   !call quadTest()
   
   !> Test pyramids
-  call testPyramid()
-  !call pyramMaillageVisu() !> maillages de visu pour la pyramide d'ordre élevé
+ !call pyramBasis()
+  call pyramLebesgue()
+ !call pyramMaillageVisu() !> maillages de visu pour la pyramide d'ordre élevé
   
 end program main
