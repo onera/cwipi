@@ -12,7 +12,9 @@ basesNodales
 *.vtu
 *.log
 *.yams
+*.medit
 *.i90
+*.ppm
 
 
 

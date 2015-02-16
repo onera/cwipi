@@ -17,8 +17,6 @@ module baseSimplexTools
   interface massMatrix  ; module procedure massMatrix0 ; end interface
   interface massMatrix  ; module procedure massMatrix1 ; end interface
   
-  
-  
   contains
   
   subroutine gaussLegendreQuadratures(ord,xGL,wGL)
@@ -89,11 +87,75 @@ module baseSimplexTools
     return
   end subroutine gaussLegendreQuadratures
   
+  subroutine gaussLobattoQuadratures(ord,xGL,wGL)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer         , intent(in)  :: ord
+    real(8), pointer, intent(out) :: xGL(:)
+    real(8), pointer, intent(out) :: wGL(:)
+    !>
+    integer                       :: i,k
+    integer                       :: np
+    real(8)                       :: coef
+    real(8), pointer              :: p0(:)
+    real(8), pointer              :: p1(:)
+    real(8), pointer              :: pn(:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( ord==0 )then
+      
+      allocate(xGL(1)) ; xGL(1)=0d0
+      allocate(wGL(1)) ; wGL(1)=2d0
+      
+    elseif( ord==1 )then
+      
+      allocate(xGL(1:2)) ; xGL(1:2)=[-1d0,1d0]
+      allocate(wGL(1:2)) ; wGL(1:2)=[ 1d0,1d0]
+      
+    else
+      
+      call gaussLegendreLobatto(ord=ord,xGLL=xGL)
+      
+      np=ord+1 ; allocate(wGL(1:np))
+      allocate(p0(1:np)) ; p0(1:np)=1d0
+      allocate(p1(1:np)) ; p1(1:np)=xGL(1:np)
+      allocate(pn(1:np))
+      do k=1,np-2
+        pn(1:np)=( real(2*k+1,kind=8)*xGL(1:np)*p1(1:np) &
+        &         -real(  k  ,kind=8)          *p0(1:np) &
+        &        )/real(k+1,kind=8)
+        
+        p0(1:np)=p1(1:np)
+        p1(1:np)=pn(1:np)
+      enddo
+      deallocate(p0,p1)
+      
+      coef=2d0/real(ord*(ord+1),kind=8)
+      do k=1,np
+        wGl(k)=coef/pn(k)**2
+      enddo
+      deallocate(pn)
+      
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#ifdef debug
+    print '(/"Gauss Legendre-Lobatto Quadatures")'
+    print '("i=",i2," xGL=",f12.5," wGL=",f12.5)',(i,xGL(i),wGL(i),i=1,size(xGL))
+    !stop
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine gaussLobattoQuadratures
+  
   
   subroutine jacobiGQ(a,b,ord,nGauss,xGL,wGL)
-    !--------------------------------------------
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! Quadratures de Gauss - Polynômes de Jacobi
-    !--------------------------------------------
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     implicit none
     real(8) , intent(in)  :: a
     real(8) , intent(in)  :: b
@@ -102,7 +164,7 @@ module baseSimplexTools
     integer , intent(out) :: nGauss
     real(8) , intent(out) :: xGL(0:)
     real(8) , intent(out) :: wGL(0:)
-    !--------------------------------------------
+    !>
     integer              :: i
     real(8)              :: amb,apb,a2mb2
     real(8)              :: h1(0:ord)
@@ -113,7 +175,9 @@ module baseSimplexTools
     real(8)              :: y    (0:ord)
     integer              :: cnt  (0:ord)
     integer              :: rc
-    !--------------------------------------------
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     nGauss=ord+1
     !
     apb=a+b
@@ -161,76 +225,11 @@ module baseSimplexTools
       enddo
       
     endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
     return
   end subroutine jacobiGQ
-  
-  
-  subroutine gaussLobattoQuadratures(ord,xGL,wGL)
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    integer         , intent(in)  :: ord
-    real(8), pointer, intent(out) :: xGL(:)
-    real(8), pointer, intent(out) :: wGL(:)
-    !>
-    integer                       :: i,k
-    integer                       :: np
-    real(8)                       :: coef
-    real(8), pointer              :: p0(:)
-    real(8), pointer              :: p1(:)
-    real(8), pointer              :: pn(:)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if( ord==0 )then
-      
-      allocate(xGL(1)) ; xGL(1)=0d0
-      allocate(wGL(1)) ; wGL(1)=2d0
-      
-    elseif( ord==1 )then
-      
-      allocate(xGL(1:2)) ; xGL(1:2)=[-1d0,1d0]
-      allocate(wGL(1:2)) ; wGL(1:2)=[ 1d0,1d0]
-      
-    else
-      
-      call gaussLegendreLobatto(ord=ord,xGLL=xGL)
-      
-      np=ord+1 ; allocate(wGL(1:np))
-      allocate(p0(1:np)) ; p0(1:np)=1d0
-      allocate(p1(1:np)) ; p1(1:np)=xGL(1:np)
-      allocate(pn(1:np))
-      do k=1,np-2
-        pn(1:np)=( real(2*k+1,kind=8)*xGL(1:np)*p1(1:np) &
-        &         -real(  k  ,kind=8)          *p0(1:np) &
-        &        )/real(k+1,kind=8)
-      
-        p0(1:np)=p1(1:np)
-        p1(1:np)=pn(1:np)
-      enddo
-      deallocate(p0,p1)
-      
-      coef=2d0/real(ord*(ord+1),kind=8)
-      do k=1,np
-        wGl(k)=coef/pn(k)**2
-      enddo
-      deallocate(pn)
-      
-    endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#ifdef debug
-    print '(/"Gauss Legendre-Lobatto Quadatures")'
-    print '("i=",i2," xGL=",f12.5," wGL=",f12.5)',(i,xGL(i),wGL(i),i=1,size(xGL))
-    !stop
-#endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    return
-  end subroutine gaussLobattoQuadratures
-  
   subroutine displayMatrix(title,mat)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     character(*) :: title
@@ -279,8 +278,7 @@ module baseSimplexTools
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
-  end subroutine displaySparceMatrix
-  
+  end subroutine displaySparceMatrix  
   
   subroutine mathematicaMatrix(title,mat)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -918,7 +916,7 @@ module baseSimplexTools
         enddo
       enddo
     else
-      print '("Matrix is not Symetric => Not comacted")'
+      print '("Matrix is not Symetric => Not compacted")'
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -1183,7 +1181,7 @@ module baseSimplexTools
     real(8), intent(in ), pointer :: dVand(:,:)
     real(8), intent(out), pointer :: dMat (:,:)
     !---
-    real(8), pointer              :: iVand(:,:)
+    real(8), pointer              :: iVand(:,:) ! inverse(vand)
     integer                       :: i,j,k,n
     integer                       :: lWork
     integer, pointer              :: ipiv(:)
@@ -1192,19 +1190,23 @@ module baseSimplexTools
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> iVand= Inverse[vand]
-    n=size(vand,1) ; allocate(ipiv(n))
-    lWork=64*n     ; allocate(work(lWork))
-    allocate(iVand(n,n)) ; iVand(:,:)=vand(:,:)
+    !> mat= vand.Inverse[vand]
+    n=size(vand,1) ; allocate(ipiv(1:n))
+    allocate(iVand(n,n)) ; iVand(1:n,1:n)=vand(1:n,1:n)
     call dgetrf(n,n,iVand(1,1),n,ipiv(1),iErr)
+    if( .not.iErr==0 )stop '("stop @ baseSimplexTools:derive1D:dgetrf unsuccessful exit")'
+    
+    lWork=64*n ; allocate(work(lWork))
     call dgetri(n,iVand(1,1),n,ipiv(1),work(1),lWork,iErr)
+    if( .not.iErr==0 )stop '("stop @ baseSimplexTools:derive1D:dgetri unsuccessful exit")'
     deallocate(ipiv,work)
    !call displayMatrix(title="Inverse Vandermonde Matrix",mat=iVand)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> dMat = dVand.iVand
-    allocate(dMat(1:n,1:n)) ; dMat(1:n,1:n)=0d0
+    !> dMat = vand.Transpose[vand]
+    allocate(dMat(1:n,1:n))
+    dMat(1:n,1:n)=0d0
     do i=1,n
       do j=1,n
         do k=1,n
@@ -1224,7 +1226,6 @@ module baseSimplexTools
     ! transpose = .false. => dlx(1:nPt,1:np)
     ! transpose = .true.  => dlx(1:np,1:nPt)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     real(8), intent(in)  , pointer :: dMat(:,:)
     real(8), intent(in)  , pointer :: lx  (:,:)

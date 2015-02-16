@@ -348,17 +348,17 @@ contains
     !> avec {a=x/(1-z) ; b=y/(1-z) ; c=z}
     
     !> (∂Psi/∂x) = (∂a/∂x) (∂Psi/∂a) + (∂b/∂x) (∂Psi/∂b) + 2 (∂c/∂x) (∂Psi/∂c)
-    !> avec : (∂a/∂x)=1/(1-z) ; (∂b/∂x)=0 ; (∂c/∂x)=0
+    !> avec : (∂a/∂x)=1/(1-z)=1/(1-c) ; (∂b/∂x)=0 ; (∂c/∂x)=0
     !> soit : (∂Psi/∂x) =  (∂a/∂x) (∂Psi/∂a)
     !>                  =  1/(1-c) (∂Psi/∂a)
-    !>                  =  (∂P_i^{0,0}/∂a)(a) P_j^{0,0}(b) (1-c)**(max(i,j)-1) P_k^{2*max(i,j)+2,0}(2*c+1)
+    !>                  =  (∂P_i^{0,0}/∂a)(a) P_j^{0,0}(b) P_k^{2*max(i,j)+2,0}(2*c+1)  (1-c)**(max(i,j)-1)
     
     !> (∂Psi/∂y) = (∂a/∂y) (∂Psi/∂a) + (∂b/∂y) (∂Psi/∂b) + (∂c/∂y) (∂Psi/∂c)
     !> avec : (∂a/∂y)=0 ; (∂b/∂y)=1/(1-z)=1/(1-c) ; (∂c/∂y)=0
     !> soit : (∂Psi/∂x) =  (∂b/∂y) (∂Psi/∂b)
     !>                  =  1/(1-c) (∂Psi/∂b)
     !>                  =  1/(1-c) P_i^{0,0}(a) (∂P_j^{0,0}/∂b)(b) (1-c)**max(i,j) P_k^{2*max(i,j)+2,0}(2*c+1)
-    !>                  =  P_i^{0,0}(a) (∂P_j^{0,0}/∂b)(b) (1-c)**(max(i,j)-1) P_k^{2*max(i,j)+2,0}(2*c+1)
+    !>                  =  P_i^{0,0}(a) (∂P_j^{0,0}/∂b)(b) P_k^{2*max(i,j)+2,0}(2*c+1)   (1-c)**(max(i,j)-1)
     
     !> (∂Psi/∂z) = (∂a/∂z) (∂Psi/∂a) + (∂b/∂z) (∂Psi/∂b) + (∂c/∂z) (∂Psi/∂c)
     !> avec  (∂a/∂z)=-x/(1-z)^2=-a/(1-z)= -a/(1-c)
@@ -479,27 +479,29 @@ contains
         
         
         !> dtMode(1:n,iNod) += (∂a/∂z) (∂Psi/∂a)
-        tmp(1:n)=-a(1:n)*dfa(1:n)*fb(1:n)*fc(1:n)
+        tmp(1:n)=-a(1:n)*dfa(1:n)*fb(1:n)*fc(1:n)        !> tmp= -a  (∂P_i^{0,0}/∂a)(a)  P_j^{0,0}(b)  P_k^{2*max(i,j)+2,0}(2*c+1)
         do i=1,n
-          if( .not.tmp(i)==0d0 )tmp(i)=tmp(i)*tmp1(i)
+          if( .not.tmp(i)==0d0 )tmp(i)=tmp(i)*tmp1(i)    !> tmp = tmp * (1-c)**(max(i,j)-1)
         enddo
-        dtMode(1:n,iNod)=tmp(1:n)
+        dtMode(1:n,iNod)=tmp(1:n)                        !> dtMode=tmp
         
         !> dtMode(1:n,iNod) += +(∂b/∂z) (∂Psi/∂b)
-        tmp(1:n)=-b(1:n)*fa(1:n)*dfb(1:n)*fc(1:n)
+        tmp(1:n)=-b(1:n)*fa(1:n)*dfb(1:n)*fc(1:n)        !> tmp= -b  P_i^{0,0}(a) (∂P_j^{0,0}/∂b)(b)  P_k^{2*max(i,j)+2,0}(2*c+1)
         do i=1,n
-          if( .not.tmp(i)==0d0 )tmp(i)=tmp(i)*tmp1(i)
+          if( .not.tmp(i)==0d0 )tmp(i)=tmp(i)*tmp1(i)    !> tmp = tmp * (1-c)**(max(i,j)-1)
         enddo
-        dtMode(1:n,iNod)=dtMode(1:n,iNod)+tmp(1:n)
+        dtMode(1:n,iNod)=dtMode(1:n,iNod)+tmp(1:n)       !> dtMode=dtMode+tmp
         
         !> dtMode(1:n,iNod) += +(∂c/∂z) (∂Psi/∂c)
-        tmp(1:n)=2d0*fa(1:n)*fb(1:n)*dfc(1:n)
-        tmp(1:n)=tmp(1:n)*(1d0-c(1:n))**iM
-        dtMode(1:n,iNod)=dtMode(1:n,iNod)+tmp(1:n)
+        tmp(1:n)=2d0*fa(1:n)*fb(1:n)*dfc(1:n)            !> tmp= 2 P_i^{0,0}(a) P_j^{0,0}(b) (∂P_k^{2*max(i,j)+2,0}/∂c)(2*c+1)
+        tmp(1:n)=tmp(1:n)*(1d0-c(1:n))**iM               !> tmp = tmp * (1-c)**max(i,j)
+        dtMode(1:n,iNod)=dtMode(1:n,iNod)+tmp(1:n)       !> dtMode=dtMode+tmp
         
-        tmp(1:n)=real(iM,kind=8)*fa(1:n)*fb(1:n)*fc(1:n)
-        if( iM>0 ) tmp(1:n)=tmp(1:n)*tmp1(1:n)
-        dtMode(1:n,iNod)=dtMode(1:n,iNod)+tmp(1:n)
+        tmp(1:n)=real(iM,kind=8)*fa(1:n)*fb(1:n)*fc(1:n) !> tmp=max(i,j) P_i^{0,0}(a) P_j^{0,0}(b) P_k^{2*max(i,j)+2,0}(2*c+1)
+        do i=1,n
+          if( .not.tmp(i)==0d0 )tmp(i)=tmp(i)*tmp1(i)    !> tmp = tmp * (1-c)**(max(i,j)-1)
+        enddo
+        dtMode(1:n,iNod)=dtMode(1:n,iNod)+tmp(1:n)       !> dtMode=dtMode+tmp
         
       enddo ; enddo ; enddo
       deallocate(tmp,tmp1)

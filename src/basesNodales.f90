@@ -1347,8 +1347,8 @@ program main
   !call quadTest()
   
   !> Test pyramids
- !call pyramBasis()
-  call pyramLebesgue()
+  call pyramBasis()
+ !call pyramLebesgue()
  !call pyramMaillageVisu() !> maillages de visu pour la pyramide d'ordre élevé
   
 end program main
