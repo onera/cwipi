@@ -1482,10 +1482,10 @@ contains
     return
   end function pyramidIdx
   
-  subroutine pyramidSides3D(ord, display)
+  subroutine pyramidSides3D(ord, sidesIdx, sides, display)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! input: ord=polynomial order of interpolant
-    ! output: uvw(:,:) node coordinates in unity pyramid
+    ! output: sidesIdx,sides (sides degrees)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1504,13 +1504,13 @@ contains
     use baseSimplex3D, only:  permutation
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    integer, intent(in)    :: ord
-    logical, intent(in)    :: display
+    integer             , intent(in)  :: ord
+    logical             , intent(in)  :: display
+    integer             , intent(out) :: sidesIdx(6)
+    integer, allocatable, intent(out) :: sides(:)
     !---
     integer                :: iu,iv,iw
     integer                :: iNod,iSide
-    integer                :: side((ord+1)*(ord+1)+4*(ord+1)*(ord+2)/2)
-    integer                :: sideIdx(6)
     integer                :: idx((ord+1)*(ord+2)/2)
     integer                :: nod((ord+1)*(ord+2)/2)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -1520,12 +1520,16 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    sideIdx(1)=0
-    sideIdx(2)=sideIdx(1)+(ord+1)*(ord+1)   !> square
-    sideIdx(3)=sideIdx(2)+(ord+1)*(ord+2)/2 !> triangle
-    sideIdx(4)=sideIdx(3)+(ord+1)*(ord+2)/2 !> triangle
-    sideIdx(5)=sideIdx(4)+(ord+1)*(ord+2)/2 !> triangle
-    sideIdx(6)=sideIdx(5)+(ord+1)*(ord+2)/2 !> triangle
+    allocate(sides((ord+1)*(ord+1)+4*(ord+1)*(ord+2)/2))
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    sidesIdx(1)=0
+    sidesIdx(2)=sidesIdx(1)+(ord+1)*(ord+1)   !> square
+    sidesIdx(3)=sidesIdx(2)+(ord+1)*(ord+2)/2 !> triangle
+    sidesIdx(4)=sidesIdx(3)+(ord+1)*(ord+2)/2 !> triangle
+    sidesIdx(5)=sidesIdx(4)+(ord+1)*(ord+2)/2 !> triangle
+    sidesIdx(6)=sidesIdx(5)+(ord+1)*(ord+2)/2 !> triangle
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1535,43 +1539,43 @@ contains
       
       !> side1 iw=0
       if( iw==0 )then
-        sideIdx(1)=sideIdx(1)+1
-        side( sideIdx(1) )=iNod
+        sidesIdx(1)=sidesIdx(1)+1
+        sides( sidesIdx(1) )=iNod
       endif
       
       !> side2 iv=0
       if( iv==0 )then
-        sideIdx(2)=sideIdx(2)+1
-        side( sideIdx(2) )=iNod
+        sidesIdx(2)=sidesIdx(2)+1
+        sides( sidesIdx(2) )=iNod
       endif
       
       !> side3 iu=ord
       if( iu==ord-iw )then
-        sideIdx(3)=sideIdx(3)+1
-        side( sideIdx(3) )=iNod
+        sidesIdx(3)=sidesIdx(3)+1
+        sides( sidesIdx(3) )=iNod
       endif
       
       !> side4 iv=ord
       if( iv==ord-iw )then
-        sideIdx(4)=sideIdx(4)+1
-        side( sideIdx(4) )=iNod
+        sidesIdx(4)=sidesIdx(4)+1
+        sides( sidesIdx(4) )=iNod
       endif
       
       !> side5 iu=0
       if( iu==0 )then
-        sideIdx(5)=sideIdx(5)+1
-        side( sideIdx(5) )=iNod
+        sidesIdx(5)=sidesIdx(5)+1
+        sides( sidesIdx(5) )=iNod
       endif
     enddo ; enddo ; enddo
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    sideIdx(1)=0
-    sideIdx(2)=sideIdx(1)+(ord+1)*(ord+1)
-    sideIdx(3)=sideIdx(2)+(ord+1)*(ord+2)/2
-    sideIdx(4)=sideIdx(3)+(ord+1)*(ord+2)/2
-    sideIdx(5)=sideIdx(4)+(ord+1)*(ord+2)/2
-    sideIdx(6)=sideIdx(5)+(ord+1)*(ord+2)/2
+    sidesIdx(1)=0
+    sidesIdx(2)=sidesIdx(1)+(ord+1)*(ord+1)
+    sidesIdx(3)=sidesIdx(2)+(ord+1)*(ord+2)/2
+    sidesIdx(4)=sidesIdx(3)+(ord+1)*(ord+2)/2
+    sidesIdx(5)=sidesIdx(4)+(ord+1)*(ord+2)/2
+    sidesIdx(6)=sidesIdx(5)+(ord+1)*(ord+2)/2
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1579,9 +1583,9 @@ contains
     call permutation(order=ord, move=+1, flip=.true., dg=idx)
     
     do iSide=4,5
-      nod(1:(ord+1)*(ord+2)/2)=side(sideIdx(iSide)+1:sideIdx(iSide+1) )
+      nod(1:(ord+1)*(ord+2)/2)=sides(sidesIdx(iSide)+1:sidesIdx(iSide+1) )
       do iNod=1,(ord+1)*(ord+2)/2
-        side( sideIdx(iSide)+iNod )=nod( idx(iNod) )
+        sides( sidesIdx(iSide)+iNod )=nod( idx(iNod) )
       enddo
     enddo
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -1591,8 +1595,8 @@ contains
     if( display )then
       do iSide=1,5
         print '(3x,"Side",i1,": ",$)',iSide
-        do iNod=sideIdx(iSide)+1,sideIdx(iSide+1)
-          print '(i5,1x,$)',side(iNod)
+        do iNod=sidesIdx(iSide)+1,sidesIdx(iSide+1)
+          print '(i5,1x,$)',sides(iNod)
         enddo
         print '()'
       enddo

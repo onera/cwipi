@@ -1061,10 +1061,6 @@ subroutine pyramBasis()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
     
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  call pyramidSides3D(ord=ord, display=.true.)
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   deallocate(uvw)
   deallocate(a,b,c)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -1072,6 +1068,29 @@ subroutine pyramBasis()
   return
 end subroutine pyramBasis
 
+subroutine pyramDegreesOverSides()
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  use modDeterminant
+  use basePyramid
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  implicit none
+  integer              :: ord
+  integer, allocatable :: sides(:)
+  integer              :: sidesIdx(1:6)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  write(*,'(/"Order: ")',advance='no') ; read(*,*)ord
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  call pyramidSides3D(ord=ord, sidesIdx=sidesIdx, sides=sides, display=.true.)
+  deallocate(sides)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  return
+end subroutine pyramDegreesOverSides
 
 subroutine pyramLebesgue()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1349,7 +1368,8 @@ program main
   
   !> Test pyramids
  !call pyramBasis()
-  call pyramLebesgue()
+ !call pyramLebesgue()
  !call pyramMaillageVisu() !> maillages de visu pour la pyramide d'ordre élevé
+ call pyramDegreesOverSides()
   
 end program main
