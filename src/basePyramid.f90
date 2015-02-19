@@ -197,13 +197,71 @@ contains
   
   
   
-  subroutine pyramidBaseP1(uvw, mode, transpose)
+  subroutine pyramidBaseP1(uvw, ai, transpose)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     real(8), intent(in) , pointer :: uvw(:,:)
-    real(8), intent(out), pointer :: mode(:,:)
+    real(8), intent(out), pointer :: ai(:,:)
     logical, intent(in)           :: transpose
     !>
-    integer                       :: i
+    integer                       :: i,nn
+    real(8), parameter            :: tol=1d-16
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Transpose = True  => ai(1:np,1:n)
+    !> Transpose = False => ai(1:n,1:np)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if(      transpose )allocate( ai(5,size(uvw,2)) )
+    if( .not.transpose )allocate( ai(size(uvw,2),5) )
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> vertex functions
+    if( transpose )then
+      
+      ai  (1,:) = .25d0*(1d0-uvw(1,:)-uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      ai  (2,:) = .25d0*(1d0+uvw(1,:)-uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      ai  (3,:) = .25d0*(1d0+uvw(1,:)+uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      ai  (4,:) = .25d0*(1d0-uvw(1,:)+uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      ai  (5,:) = uvw(3,:)
+      
+    else
+      
+      ai  (:,1) = .25d0*(1d0-uvw(1,:)-uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      ai  (:,2) = .25d0*(1d0+uvw(1,:)-uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      ai  (:,3) = .25d0*(1d0+uvw(1,:)+uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      ai  (:,4) = .25d0*(1d0-uvw(1,:)+uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      ai  (:,5) = uvw(3,:)
+      
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( transpose )then
+      if( 0==0 )then
+        do i=1,size(ai,2)
+          print '(i3,1x,"uvw=",3(f12.9,1x),1x,"ai=",5(f12.9,1x))',i,uvw(1:3,i),ai(1:5,i)
+        enddo
+      endif
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine pyramidBaseP1
+  
+  
+  subroutine pyramidGradBaseP1(uvw, ai, duai, dvai, dwai, transpose)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    real(8), intent(in) , pointer :: uvw(:,:)
+    real(8), intent(out), pointer ::   ai(:,:)
+    real(8), intent(out), pointer :: duai(:,:)
+    real(8), intent(out), pointer :: dvai(:,:)
+    real(8), intent(out), pointer :: dwai(:,:)
+    logical, intent(in)           :: transpose
+    !>
+    integer                       :: i,nn
     real(8), parameter            :: tol=1d-16
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -213,39 +271,74 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if(      transpose )allocate( mode(5,size(uvw,2)) )
-    if( .not.transpose )allocate( mode(size(uvw,2),4) )
+    nn=size(uvw,2)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if(      transpose )allocate( ai(5,nn),duai(5,nn),dvai(5,nn),dwai(5,nn) )
+    if( .not.transpose )allocate( ai(nn,5),duai(nn,5),dvai(nn,5),dwai(nn,5) )
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> vertex functions
     if( transpose )then
-      mode(1,:) = .25d0*(1d0-uvw(1,:)-uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
-      mode(2,:) = .25d0*(1d0+uvw(1,:)-uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
-      mode(3,:) = .25d0*(1d0+uvw(1,:)+uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
-      mode(4,:) = .25d0*(1d0-uvw(1,:)+uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
-      mode(5,:) = uvw(3,:)
+      
+      ai  (1,:) = .25d0*(1d0-uvw(1,:)-uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      ai  (2,:) = .25d0*(1d0+uvw(1,:)-uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      ai  (3,:) = .25d0*(1d0+uvw(1,:)+uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      ai  (4,:) = .25d0*(1d0-uvw(1,:)+uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      ai  (5,:) = uvw(3,:)
+      
+      duai(1,:) = .25d0*( -1d0+uvw(2,:)/(1d0-uvw(3,:)+tol) )
+      duai(2,:) = .25d0*(  1d0-uvw(2,:)/(1d0-uvw(3,:)+tol) )
+      duai(3,:) = .25d0*(  1d0+uvw(2,:)/(1d0-uvw(3,:)+tol) )
+      duai(4,:) = .25d0*( -1d0-uvw(2,:)/(1d0-uvw(3,:)+tol) )
+      duai(5,:) = 0d0
+      
+      dvai(1,:) = .25d0*( -1d0+uvw(1,:)/(1d0-uvw(3,:)+tol) )
+      dvai(2,:) = .25d0*( -1d0-uvw(1,:)/(1d0-uvw(3,:)+tol) )
+      dvai(3,:) = .25d0*(  1d0+uvw(1,:)/(1d0-uvw(3,:)+tol) )
+      dvai(4,:) = .25d0*(  1d0-uvw(1,:)/(1d0-uvw(3,:)+tol) )
+      dvai(5,:) = 0d0
+      
+      dwai(1,:) = .25d0*( -1d0+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:)+tol) )**2
+      dwai(2,:) = .25d0*( -1d0-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:)+tol) )**2
+      dwai(3,:) = .25d0*( -1d0+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:)+tol) )**2
+      dwai(4,:) = .25d0*( -1d0-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:)+tol) )**2
+      dwai(5,:) = 1d0
+      
     else
-      mode(:,1) = .25d0*(1d0-uvw(1,:)-uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
-      mode(:,2) = .25d0*(1d0+uvw(1,:)-uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
-      mode(:,3) = .25d0*(1d0+uvw(1,:)+uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
-      mode(:,4) = .25d0*(1d0-uvw(1,:)+uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
-      mode(:,5) = uvw(3,:)
+      
+      ai  (:,1) = .25d0*(1d0-uvw(1,:)-uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      ai  (:,2) = .25d0*(1d0+uvw(1,:)-uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      ai  (:,3) = .25d0*(1d0+uvw(1,:)+uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      ai  (:,4) = .25d0*(1d0-uvw(1,:)+uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      ai  (:,5) = uvw(3,:)
+      
+      duai(:,1) = .25d0*( -1d0+uvw(2,:)/(1d0-uvw(3,:)+tol) )
+      duai(:,2) = .25d0*(  1d0-uvw(2,:)/(1d0-uvw(3,:)+tol) )
+      duai(:,3) = .25d0*(  1d0+uvw(2,:)/(1d0-uvw(3,:)+tol) )
+      duai(:,4) = .25d0*( -1d0-uvw(2,:)/(1d0-uvw(3,:)+tol) )
+      duai(:,5) = 0d0
+      
+      dvai(:,1) = .25d0*( -1d0+uvw(1,:)/(1d0-uvw(3,:)+tol) )
+      dvai(:,2) = .25d0*( -1d0-uvw(1,:)/(1d0-uvw(3,:)+tol) )
+      dvai(:,3) = .25d0*(  1d0+uvw(1,:)/(1d0-uvw(3,:)+tol) )
+      dvai(:,4) = .25d0*(  1d0-uvw(1,:)/(1d0-uvw(3,:)+tol) )
+      dvai(:,5) = 0d0
+      
+      dwai(:,1) = .25d0*( -1d0+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:)+tol) )**2
+      dwai(:,2) = .25d0*( -1d0-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:)+tol) )**2
+      dwai(:,3) = .25d0*( -1d0+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:)+tol) )**2
+      dwai(:,4) = .25d0*( -1d0-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:)+tol) )**2
+      dwai(:,5) = 1d0
+      
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if( transpose )then
-      if( 0==0 )then
-        do i=1,size(mode,2)
-          print '(i3,1x,"uvw=",3(f12.9,1x),1x,"func=",5(f12.9,1x))',i,uvw(1:3,i),mode(1:5,i)
-        enddo
-      endif
-    endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
-    return
-  end subroutine pyramidBaseP1
+  end subroutine pyramidGradBaseP1
+  
   
   subroutine pyramidBasePi(ord,a,b,c,mode,transpose)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
