@@ -1308,9 +1308,6 @@ end subroutine pyramLebesgue
 
 subroutine pyramMaillageVisu()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#define fortran 0
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !use modDeterminant
   !use baseSimplex2D
   !use baseSimplex3D
@@ -1330,13 +1327,6 @@ subroutine pyramMaillageVisu()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   write(*,'(/"Order: ")',advance='no') ; read(*,*)ord
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-#if fortran==1
-  open(unit=150,file='nodesPyramid.f90',action='write',status='unknown')
-  write(150,'("    select case(Pi)")')
-#endif
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   do iOrd=1,ord
