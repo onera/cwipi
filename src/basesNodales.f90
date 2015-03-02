@@ -1308,6 +1308,9 @@ end subroutine pyramLebesgue
 
 subroutine pyramMaillageVisu()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#define fortran 0
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !use modDeterminant
   !use baseSimplex2D
   !use baseSimplex3D
@@ -1315,7 +1318,7 @@ subroutine pyramMaillageVisu()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
-  integer            :: ord
+  integer            :: ord,iOrd
   real(8), pointer   :: uvw(:,:)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
@@ -1328,14 +1331,32 @@ subroutine pyramMaillageVisu()
   write(*,'(/"Order: ")',advance='no') ; read(*,*)ord
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
- !call pyramidNodes   (ord=ord, uvw=uvw, display=.true.)
-  call pyramidNodesOpt(ord=ord, uvw=uvw, display=.true.)  !> Points optimises
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+#if fortran==1
+  open(unit=150,file='nodesPyramid.f90',action='write',status='unknown')
+  write(150,'("    select case(Pi)")')
+#endif
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  call pyramidSkin3D(ord=ord, uvw=uvw, display=.true.)
-  call pyramidMesh3D(ord=ord, uvw=uvw, display=.true.)
+  do iOrd=1,ord
+  !do iOrd=ord,ord
+  
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+   !call pyramidNodes   (ord=iOrd, uvw=uvw, display=.true.)
+    call pyramidNodesOpt(ord=iOrd, uvw=uvw, display=.true.)  !> Points optimises
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    call pyramidSkin3D(ord=iOrd, uvw=uvw, display=.true.)
+    call pyramidMesh3D(ord=iOrd, uvw=uvw, display=.true.)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    deallocate(uvw)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+  enddo
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   return
@@ -1369,7 +1390,7 @@ program main
   !> Test pyramids
  !call pyramBasis()
  !call pyramLebesgue()
- !call pyramMaillageVisu() !> maillages de visu pour la pyramide d'ordre élevé
- call pyramDegreesOverSides()
+ call pyramMaillageVisu() !> maillages de visu pour la pyramide d'ordre élevé
+ !call pyramDegreesOverSides()
   
 end program main

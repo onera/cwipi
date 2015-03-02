@@ -15,43 +15,37 @@ module basePyramid
   
   interface pyramiduvw2abc ; module procedure pyramiduvw2abc_0 ; end interface
   interface pyramiduvw2abc ; module procedure pyramiduvw2abc_1 ; end interface
+  interface pyramiduvw2abc ; module procedure pyramiduvw2abc_2 ; end interface
   
 contains
   
-  subroutine pyramiduvw2abc_0(uvw,a,b,c)
+  subroutine pyramiduvw2abc_0(u,v,w, a,b,c)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> a = u/(1-w) pour w=1, u=0
     !> b = v/(1-w) pour w=1  v=0
     !> c = w
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    real(8), intent(in)  , pointer :: uvw(:,:)
+    real(8), intent(in)            :: u   ,v   ,w
     real(8), intent(out) , pointer :: a(:),b(:),c(:)
     !>
-    integer                        :: i,n
     real(8), parameter             :: tol=1d-12
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    n=size(uvw,2)
+    allocate(a(1),b(1),c(1))
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    allocate(a(1:n),b(1:n),c(1:n))
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    do i=1,n
-      if( uvw(3,i)==1d0 )then
-        a(i)=0d0
-        b(i)=0d0
-        c(i)=1d0
-      else
-        a(i)=uvw(1,i)/(1d0-uvw(3,i) +tol)
-        b(i)=uvw(2,i)/(1d0-uvw(3,i) +tol)
-        c(i)=uvw(3,i)
-      endif
-    enddo
+    if( w==1d0 )then
+      a(1)=0d0
+      b(1)=0d0
+      c(1)=1d0
+    else
+      a(1)=u/(1d0-w +tol)
+      b(1)=v/(1d0-w +tol)
+      c(1)=w
+    endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
@@ -95,6 +89,46 @@ contains
     
     return
   end subroutine pyramiduvw2abc_1
+  
+  
+  subroutine pyramiduvw2abc_2(uvw,a,b,c)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> a = u/(1-w) pour w=1, u=0
+    !> b = v/(1-w) pour w=1  v=0
+    !> c = w
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    real(8), intent(in)  , pointer :: uvw(:,:)
+    real(8), intent(out) , pointer :: a(:),b(:),c(:)
+    !>
+    integer                        :: i,n
+    real(8), parameter             :: tol=1d-12
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    n=size(uvw,2)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    allocate(a(1:n),b(1:n),c(1:n))
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    do i=1,n
+      if( uvw(3,i)==1d0 )then
+        a(i)=0d0
+        b(i)=0d0
+        c(i)=1d0
+      else
+        a(i)=uvw(1,i)/(1d0-uvw(3,i) +tol)
+        b(i)=uvw(2,i)/(1d0-uvw(3,i) +tol)
+        c(i)=uvw(3,i)
+      endif
+    enddo
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine pyramiduvw2abc_2
   
   
   subroutine pyramidLagrange3Dv(ord,vand,a,b,c,lx,transpose)
@@ -1132,6 +1166,9 @@ contains
     
   subroutine pyramidMesh3D(ord,uvw,display)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#define fortran 0
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     use M_libmesh6_api
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1174,6 +1211,13 @@ contains
     if(  10<=ord .and. ord< 100 ) write(sfx,'("0" ,i2)')ord
     if( 100<=ord .and. ord<1000 ) write(sfx,'(     i3)')ord
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+#if fortran==1
+    open(unit=150,file='nodesPyramid_P'//sfx//'.f90',action='write',status='unknown')
+    !write(150,'("    select case(Pi)")')
+#endif
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Ecriture
@@ -1365,6 +1409,30 @@ contains
     res=GmfCloseMeshF77(ins)
     if( display )print '(3x,"end")'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if fortran==1
+    print '(/"Write Fortran Source Vertices")'
+    
+    write(150,'("    case(",i3,")")')ord
+    !write(150,'("      ")')
+    do iCel=1,nTetr
+      write(150,'("      nd(1:4,",i4,")=[",i4,",",i4,",",i4,",",i4,"]")')&
+      &                      iCel              ,&
+      &                      indx(tetr(1,iCel)),&
+      &                      indx(tetr(2,iCel)),&
+      &                      indx(tetr(3,iCel)),&
+      &                      indx(tetr(4,iCel))
+    enddo
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+#if fortran==1
+    !write(150,'("    end select")')
+    close(150)
+#endif
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( display )print '("end Building Pyramid Volumic Mesh")'
