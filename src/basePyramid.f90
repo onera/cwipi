@@ -8,15 +8,17 @@ module basePyramid
   !>  Pyramid ord
   !>  nn=(ord+1)*(ord+2)*(2*ord+3)/6
   !>  ne=3*ord*ord+2
-  !>  ni=(ord-1)*(ord-2)*(2*ord-3)/6
+  !>  ni=(ord-1)*(ord-2)*(2*ord-3)/6 ! sans les faces
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   implicit none
   
+  interface pyramiduvw2abc ; module procedure pyramiduvw2abc_0 ; end interface
+  interface pyramiduvw2abc ; module procedure pyramiduvw2abc_1 ; end interface
+  
 contains
   
-  
-  subroutine pyramiduvw2abc(uvw,a,b,c)
+  subroutine pyramiduvw2abc_0(uvw,a,b,c)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> a = u/(1-w) pour w=1, u=0
     !> b = v/(1-w) pour w=1  v=0
@@ -53,7 +55,47 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
-  end subroutine pyramiduvw2abc
+  end subroutine pyramiduvw2abc_0
+  
+  subroutine pyramiduvw2abc_1(u,v,w, a,b,c)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> a = u/(1-w) pour w=1, u=0
+    !> b = v/(1-w) pour w=1  v=0
+    !> c = w
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    real(8), intent(in)  , pointer :: u(:),v(:),w(:)
+    real(8), intent(out) , pointer :: a(:),b(:),c(:)
+    !>
+    integer                        :: i,n
+    real(8), parameter             :: tol=1d-12
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    n=size(u)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    allocate(a(1:n),b(1:n),c(1:n))
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    do i=1,n
+      if( w(i)==1d0 )then
+        a(i)=0d0
+        b(i)=0d0
+        c(i)=1d0
+      else
+        a(i)=u(i)/(1d0-w(i) +tol)
+        b(i)=v(i)/(1d0-w(i) +tol)
+        c(i)=w(i)
+      endif
+    enddo
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine pyramiduvw2abc_1
+  
   
   subroutine pyramidLagrange3Dv(ord,vand,a,b,c,lx,transpose)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
