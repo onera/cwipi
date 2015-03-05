@@ -133,6 +133,9 @@ contains
   
   subroutine pyramidLagrange3Dv(ord,vand,a,b,c,lx,transpose)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#define pyramidLagrange3Dv 0
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! lagrange3Dv := Inverse[Transpose[Vand]].Psi[x];
     ! transpose = .true.  => lx(1:ord+1,1:nPt)
     ! transpose = .false. => lx(1:nPt,1:ord+1)
@@ -158,7 +161,19 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if pyramidLagrange3Dv==1
+    print '(">>> pyramidLagrange3Dv size(vand)=",i3,"x",i3)',size(vand,1),size(vand,2)
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     np=(ord+1)*(ord+2)*(2*ord+3)/6 ; nPt=size(a)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if pyramidLagrange3Dv==1
+    print '("    pyramidLagrange3Dv step1 np=",i10," nPt=",i10)',np,nPt
+#endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -166,8 +181,14 @@ contains
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if pyramidLagrange3Dv==1
+    print '("    pyramidLagrange3Dv step2")'
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> mat=Transpose[Vand]
-    allocate(mat(np,np))
+    allocate(mat(1:np,1:np))
     do i=1,np
       do j=1,np
         mat(i,j)=vand(j,i)
@@ -178,7 +199,13 @@ contains
     lWork=64*(np) ; allocate(work(lWork),ipiv(np))
     call dgetrf(np,np,mat(1,1),np,ipiv(1),iErr)
     call dgetri(np,mat(1,1),np,ipiv(1),work(1),lWork,iErr)
-    deallocate(ipiv,work)
+    deallocate(ipiv,work)    
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if pyramidLagrange3Dv==1
+    print '("    pyramidLagrange3Dv step3")'
+#endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -211,8 +238,24 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if pyramidLagrange3Dv==1
+    print '("    pyramidLagrange3Dv step4")'
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     deallocate(mat)
     deallocate(psi)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if pyramidLagrange3Dv==1
+    print '("<<< pyramidLagrange3Dv")'
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#undef pyramidLagrange3Dv
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
@@ -297,19 +340,19 @@ contains
     !> vertex functions
     if( transpose )then
       
-      ai  (1,:) = .25d0*(1d0-uvw(1,:)-uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
-      ai  (2,:) = .25d0*(1d0+uvw(1,:)-uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
-      ai  (3,:) = .25d0*(1d0+uvw(1,:)+uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
-      ai  (4,:) = .25d0*(1d0-uvw(1,:)+uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
-      ai  (5,:) = uvw(3,:)
+      ai(1,:) = .25d0*(1d0-uvw(1,:)-uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      ai(2,:) = .25d0*(1d0+uvw(1,:)-uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      ai(3,:) = .25d0*(1d0+uvw(1,:)+uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      ai(4,:) = .25d0*(1d0-uvw(1,:)+uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      ai(5,:) = uvw(3,:)
       
     else
       
-      ai  (:,1) = .25d0*(1d0-uvw(1,:)-uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
-      ai  (:,2) = .25d0*(1d0+uvw(1,:)-uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
-      ai  (:,3) = .25d0*(1d0+uvw(1,:)+uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
-      ai  (:,4) = .25d0*(1d0-uvw(1,:)+uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
-      ai  (:,5) = uvw(3,:)
+      ai(:,1) = .25d0*(1d0-uvw(1,:)-uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      ai(:,2) = .25d0*(1d0+uvw(1,:)-uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      ai(:,3) = .25d0*(1d0+uvw(1,:)+uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      ai(:,4) = .25d0*(1d0-uvw(1,:)+uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) + tol))
+      ai(:,5) = uvw(3,:)
       
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -513,6 +556,9 @@ contains
   
   subroutine pyramidGradBasePi(ord,a,b,c,drMode,dsMode,dtMode,transpose)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#define pyramidGradBasePi 0
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Psi(a,b,c) = P_i^{0,0}(a) P_j^{0,0}(b) (1-c)**max(i,j) P_k^{2*max(i,j)+2,0}(2*c+1)
     !> avec {a=x/(1-z) ; b=y/(1-z) ; c=z}
     
@@ -574,10 +620,13 @@ contains
     real(8), pointer              :: fc(:),dfc(:)
     real(8), pointer              :: tmp(:),tmp1(:)
     real(8)                       :: coef
+    real(8), parameter            :: tol=1d-16
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    print '("pyramidGradBasePi")'
+#if pyramidGradBasePi==1
+    print '(">>> pyramidGradBasePi transpose=",l)',transpose
+#endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -593,7 +642,7 @@ contains
       
       iNod=0
       do iw=0,ord ; do iv=0,ord-iw ; do iu=0,ord-iw
-        iNod=iNod+1 !  print '(/"pyramidGradBasePi: iNod=",i3)',iNod
+        iNod=iNod+1 ! print '(/"pyramidGradBasePi: iNod=",i3)',iNod
         
         iM=max(iu,iv)
         
@@ -611,7 +660,7 @@ contains
         
         
         !> tmp1(1:n)=(1-c)**(max(i,j)-1)
-        tmp1(1:n)=(1d0-c(1:n))**(iM-1)
+        tmp1(1:n)=(1d0-c(1:n)+tol)**(iM-1)
         
         !> (∂Psi/∂x) = (∂P_i^{0,0}/∂a)(a) P_j^{0,0}(b) P_k^{2*max(i,j)+2,0}(2*c+1) (1-c)**(max(i,j)-1)
         tmp(1:n)=dfa(1:n)*fb(1:n)*fc(1:n)
@@ -766,7 +815,13 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    print '("end pyramidGradBasePi")'
+#if pyramidGradBasePi==1
+    print '("<<< pyramidGradBasePi")'
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#undef pyramidGradBasePi
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
