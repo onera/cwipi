@@ -1329,14 +1329,14 @@ subroutine pyramMaillageVisu()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  do iOrd=1,ord
-  !do iOrd=ord,ord
+  !do iOrd=1,ord
+  do iOrd=ord,ord
   
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
    !call pyramidNodes   (ord=iOrd, uvw=uvw, display=.true.)
     call pyramidNodesOpt(ord=iOrd, uvw=uvw, display=.true.)  !> Points optimises
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
+    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     call pyramidSkin3D(ord=iOrd, uvw=uvw, display=.true.)
     call pyramidMesh3D(ord=iOrd, uvw=uvw, display=.true.)
