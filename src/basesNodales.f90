@@ -981,7 +981,7 @@ subroutine pyramBasis()
   real(8), parameter   :: eps=1d-12
   real(8), pointer     :: a(:),b(:),c(:)
   real(8), pointer     :: vand(:,:),dVand(:,:) !,jf(:,:),dr(:,:)
-  real(8), pointer     :: drVand  (:,:),dsVand  (:,:),dtVand  (:,:)
+  real(8), pointer     :: duPsi   (:,:),dvPsi  (:,:),dwPsi  (:,:)
   real(8), pointer     :: drMatrix(:,:),dsMatrix(:,:),dtMatrix(:,:)
   real(8), pointer     :: mass(:,:)
   real(8), pointer     :: xyzOut(:,:),lxOut(:,:),drLxOut(:,:),dsLxOut(:,:),dtLxOut(:,:),leb(:,:)
@@ -1011,7 +1011,7 @@ subroutine pyramBasis()
   call pyramidSkin3D(ord=ord, uvw=uvw, display=.true.)
   call pyramidMesh3D(ord=ord, uvw=uvw, display=.true.)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+  
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   call pyramiduvw2abc(uvw=uvw,a=a,b=b,c=c)
  !write(*,'(/"Pyramid (abc):")')
@@ -1023,7 +1023,7 @@ subroutine pyramBasis()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Polynomes d'interpolation (on teste avec les points d'interpolation) => Matrice Identité
+  !> Polynomes d'interpolation (on teste avec les points d'interpolation) => Matrice Identité  
   call pyramidLagrange3Dv(ord=ord,vand=vand,a=a,b=b,c=c,lx=lxOut,transpose=.true.) !> true pour affichage
   if( ord<3 )then
     call display(title="Test avec l(uvw)",mat=lxOut)
@@ -1045,19 +1045,19 @@ subroutine pyramBasis()
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Derivees base fonctionnelle
-  call pyramidGradVandermonde3D(ord=ord,a=a,b=b,c=c,drVand=drVand,dsVand=dsVand,dtVand=dtVand)
-  call derive1D(vand=vand,dVand=drVand,dMat=drMatrix) !> drMatrix = drVand.Inverse[vand]
-  call derive1D(vand=vand,dVand=dsVand,dMat=dsMatrix) !> dsMatrix = dsVand.Inverse[vand]
-  call derive1D(vand=vand,dVand=dtVand,dMat=dtMatrix) !> dtMatrix = dtVand.Inverse[vand]
+  call pyramidGradVandermonde3D(ord=ord,a=a,b=b,c=c,dxPsi=duPsi,dyPsi=dvPsi,dzPsi=dwPsi)
+  call derive1D(vand=vand,dVand=duPsi,dMat=drMatrix) !> drMatrix = duPsi.Inverse[vand]
+  call derive1D(vand=vand,dVand=dvPsi,dMat=dsMatrix) !> dsMatrix = dvPsi.Inverse[vand]
+  call derive1D(vand=vand,dVand=dwPsi,dMat=dtMatrix) !> dtMatrix = dwPsi.Inverse[vand]
   if( ord<3 )then
-    call display(title="drVand Matrix",mat=drVand)
-    call display(title="dsVand Matrix",mat=dsVand)
-    call display(title="dtVand Matrix",mat=dtVand)
-    call display(title="drMatrix=drVand.vand^{-1}",mat=drMatrix)
-    call display(title="dsMatrix=dsVand.vand^{-1}",mat=dsMatrix)
-    call display(title="dsMatrix=dtVand.vand^{-1}",mat=dtMatrix)
+    !call display(title="duPsi Matrix",mat=duPsi)
+    !call display(title="dvPsi Matrix",mat=dvPsi)
+    !call display(title="dwPsi Matrix",mat=dwPsi)
+    call display(title="drMatrix=duPsi.vand^{-1}",mat=drMatrix)
+    call display(title="dsMatrix=dvPsi.vand^{-1}",mat=dsMatrix)
+    call display(title="dsMatrix=dwPsi.vand^{-1}",mat=dtMatrix)
   endif
-  deallocate(drVand,dsVand,dtVand)
+  deallocate(duPsi,dvPsi,dwPsi)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
     
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1113,7 +1113,7 @@ subroutine pyramLebesgue()
   real(8), parameter   :: eps=1d-12
   real(8), pointer     :: a(:),b(:),c(:)
   real(8), pointer     :: vand(:,:),dVand(:,:) !,jf(:,:),dr(:,:)
-  real(8), pointer     :: drVand  (:,:),dsVand  (:,:),dtVand  (:,:)
+  real(8), pointer     :: duPsi  (:,:),dvPsi  (:,:),dwPsi  (:,:)
   real(8), pointer     :: drMatrix(:,:),dsMatrix(:,:),dtMatrix(:,:)
   real(8), pointer     :: mass(:,:)
   real(8), pointer     :: xyzOut(:,:),lxOut(:,:),drLxOut(:,:),dsLxOut(:,:),dtLxOut(:,:),leb(:,:)
@@ -1151,19 +1151,19 @@ subroutine pyramLebesgue()
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Derivees base fonctionnelle
-  call pyramidGradVandermonde3D(ord=ord,a=a,b=b,c=c,drVand=drVand,dsVand=dsVand,dtVand=dtVand)
-  call derive1D(vand=vand,dVand=drVand,dMat=drMatrix) !> drMatrix = drVand.Inverse[vand]
-  call derive1D(vand=vand,dVand=dsVand,dMat=dsMatrix) !> dsMatrix = dsVand.Inverse[vand]
-  call derive1D(vand=vand,dVand=dtVand,dMat=dtMatrix) !> dtMatrix = dtVand.Inverse[vand]
+  call pyramidGradVandermonde3D(ord=ord,a=a,b=b,c=c,dxPsi=duPsi,dyPsi=dvPsi,dzPsi=dwPsi)
+  call derive1D(vand=vand,dVand=duPsi,dMat=drMatrix) !> drMatrix = duPsi.Inverse[vand]
+  call derive1D(vand=vand,dVand=dvPsi,dMat=dsMatrix) !> dsMatrix = dvPsi.Inverse[vand]
+  call derive1D(vand=vand,dVand=dwPsi,dMat=dtMatrix) !> dtMatrix = dwPsi.Inverse[vand]
   if( ord<3 )then
-    call display(title="drVand Matrix",mat=drVand)
-    call display(title="dsVand Matrix",mat=dsVand)
-    call display(title="dtVand Matrix",mat=dtVand)
-    call display(title="drMatrix=drVand.vand^{-1}",mat=drMatrix)
-    call display(title="dsMatrix=dsVand.vand^{-1}",mat=dsMatrix)
-    call display(title="dsMatrix=dtVand.vand^{-1}",mat=dtMatrix)
+    call display(title="duPsi Matrix",mat=duPsi)
+    call display(title="dvPsi Matrix",mat=dvPsi)
+    call display(title="dwPsi Matrix",mat=dwPsi)
+    call display(title="drMatrix=duPsi.vand^{-1}",mat=drMatrix)
+    call display(title="dsMatrix=dvPsi.vand^{-1}",mat=dsMatrix)
+    call display(title="dsMatrix=dwPsi.vand^{-1}",mat=dtMatrix)
   endif
-  deallocate(drVand,dsVand,dtVand)
+  deallocate(duPsi,dvPsi,dwPsi)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1178,10 +1178,13 @@ subroutine pyramLebesgue()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Evaluation des fonctions de Lagrange aux points xyzOut
+  !> Liste des points xyzOut  
   call pyramidReadXYZout3D(xyzOut=xyzOut, display=.true.)
   call pyramiduvw2abc(uvw=xyzOut,a=a,b=b,c=c)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Evaluation des fonctions de Lagrange aux points xyzOut
   call pyramidBasePi(ord=ord,a=a,b=b,c=c,mode=mode,transpose=.false.)                !> Psi(xyzOut)
   call pyramidLagrange3Dv(ord=ord,vand=vand,a=a,b=b,c=c,lx=lxOut,transpose=.false.)  !> lxOut= Inverse[Transpose[Vand]].Psi[xyzOut] lxOut(nPt,np)
   if( ord<3 )then
@@ -1305,7 +1308,6 @@ subroutine pyramLebesgue()
   return
 end subroutine pyramLebesgue
 
-
 subroutine pyramMaillageVisu()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !use modDeterminant
@@ -1352,6 +1354,129 @@ subroutine pyramMaillageVisu()
   return
 end subroutine pyramMaillageVisu
 
+subroutine pyramTestBasis()
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  !> Routine permettant de tester les
+  !> bases fonctionnelles sur une liste
+  !> de points
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  use modDeterminant
+  use basePyramid
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  implicit none
+  integer              :: i,j,np,nPt,cpt
+  integer              :: ord
+  real(8), pointer     :: uvw(:,:)=>null()
+  !>
+  real(8), pointer     :: a(:),b(:),c(:)
+  real(8), pointer     :: vand(:,:),dVand(:,:)
+  real(8), pointer     :: duPsi   (:,:),dvPsi   (:,:),dwPsi   (:,:)
+  real(8), pointer     :: drMatrix(:,:),dsMatrix(:,:),dtMatrix(:,:)
+  real(8), pointer     :: xyzOut(:,:),lxOut(:,:),duLxOut(:,:),dvLxOut(:,:),dwLxOut(:,:),leb(:,:)
+  real(8), pointer     :: mode(:,:)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  write(*,'("Control de la base fonctionnelle")')
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  write(*,'(/"Order: ")',advance='no') ; read(*,*)ord
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+ !call pyramidNodes   (ord=ord, uvw=uvw, display=.false.)  !> Points réguliers
+  call pyramidNodesOpt(ord=ord, uvw=uvw, display=.false.)  !> Points optimises
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  call pyramiduvw2abc(uvw=uvw,a=a,b=b,c=c)
+  call pyramidVandermonde3D(ord=ord,a=a,b=b,c=c,vand=vand)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Derivees base fonctionnelle
+  call pyramidGradVandermonde3D(ord=ord,a=a,b=b,c=c,dxPsi=duPsi,dyPsi=dvPsi,dzPsi=dwPsi)
+  call derive1D(vand=vand,dVand=duPsi,dMat=drMatrix) !> drMatrix = duPsi.Inverse[vand]
+  call derive1D(vand=vand,dVand=dvPsi,dMat=dsMatrix) !> dsMatrix = dvPsi.Inverse[vand]
+  call derive1D(vand=vand,dVand=dwPsi,dMat=dtMatrix) !> dtMatrix = dwPsi.Inverse[vand]
+  deallocate(duPsi,dvPsi,dwPsi)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  deallocate(uvw)
+  deallocate(a,b,c)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Liste des points xyzOut  
+  allocate(xyzOut(1:3,6))
+  xyzOut(1:3,1)=[ 0.00d0, 0.00d0,1.00d0]
+  xyzOut(1:3,2)=[ 0.00d0, 0.00d0,0.9999999999d0]
+  xyzOut(1:3,3)=[ 0.01d0, 0.00d0,0.99d0]
+  xyzOut(1:3,4)=[-0.01d0, 0.00d0,0.99d0]
+  xyzOut(1:3,5)=[ 0.00d0, 0.01d0,0.99d0]
+  xyzOut(1:3,6)=[ 0.00d0,-0.01d0,0.99d0]
+  call pyramiduvw2abc(uvw=xyzOut,a=a,b=b,c=c)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Evaluation des fonctions de Lagrange aux points xyzOut  
+  call pyramidBasePi(ord=ord,a=a,b=b,c=c,mode=mode,transpose=.false.)                !> Psi  (xyzOut)
+  call pyramidLagrange3Dv(ord=ord,vand=vand,a=a,b=b,c=c,lx=lxOut,transpose=.false.)  !> lxOut(xyzOut) = Inverse[Transpose[Vand]].Psi[xyzOut] lxOut(nPt,np)
+  deallocate(mode)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Evaluation des dérivées des fonctions de Lagrange aux points xyzOut
+  call dLagrange1Dv(dMat=drMatrix,lx=lxOut,dlx=duLxOut,transpose=.false.) !> duLxOut(1:nPt,1:np)=Transpose[drMatrix] lxOut
+  call dLagrange1Dv(dMat=dsMatrix,lx=lxOut,dlx=dvLxOut,transpose=.false.) !> dvLxOut(1:nPt,1:np)=Transpose[dsMatrix] lxOut
+  call dLagrange1Dv(dMat=dtMatrix,lx=lxOut,dlx=dwLxOut,transpose=.false.) !> dwLxOut(1:nPt,1:np)=Transpose[dtMatrix] lxOut
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Impression des résultats
+  nPt=size(lxOut,1)
+  np =(ord+1)*(ord+2)*(2*ord+3)/6 !> = \sum_{k=1}^{ord+1} k^2  
+  print '("nPt=",i2)',nPt
+  print '("np =",i2)',np
+  do i=1,nPt
+    print '("xyzOut(",i1,")=",3(f5.2,1x))',i,xyzOut(1:3,i)
+  enddo
+  print '()'
+  do i=1,nPt
+    print '("duLxOut(",i1,")=",14(e10.3,1x))',i,duLxOut(i,:)
+  enddo
+  print '()'
+  do i=1,nPt
+    print '("dvLxOut(",i1,")=",14(e10.3,1x))',i,dvLxOut(i,:)
+  enddo
+  print '()'
+  do i=1,nPt
+    print '("dwLxOut(",i1,")=",14(e10.3,1x))',i,dwLxOut(i,:)
+  enddo
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+    
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  deallocate(xyzOut)
+  deallocate(a,b,c)
+  !
+  deallocate(lxOut)
+  deallocate(duLxOut,dvLxOut,dwLxOut)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  deallocate(vand)
+  deallocate(drMatrix,dsMatrix,dtMatrix)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  return
+end subroutine pyramTestBasis
+
+
 
 program main
   
@@ -1380,7 +1505,8 @@ program main
   !> Test pyramids
  !call pyramBasis()
  !call pyramLebesgue()
- call pyramMaillageVisu() !> maillages de visu pour la pyramide d'ordre élevé
+ !call pyramMaillageVisu() !> maillages de visu pour la pyramide d'ordre élevé
  !call pyramDegreesOverSides()
+  call pyramTestBasis()
   
 end program main

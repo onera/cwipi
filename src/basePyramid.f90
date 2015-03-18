@@ -290,7 +290,7 @@ contains
   
   subroutine pyramidGradVandermonde3D(ord,a,b,c,dxPsi,dyPsi,dzPsi)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#define pyramidGradVandermonde3D 1
+#define pyramidGradVandermonde3D 0
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)           :: ord
@@ -368,8 +368,8 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if(      transpose )allocate( ai(5,size(uvw,2)) )
-    if( .not.transpose )allocate( ai(size(uvw,2),5) )
+    if(      transpose )allocate( ai(1:5,size(uvw,2)) )
+    if( .not.transpose )allocate( ai(size(uvw,2),1:5) )
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -423,94 +423,6 @@ contains
     
     return
   end subroutine pyramidBaseP1
-  
-  
-  subroutine pyramidGradBaseP1(uvw, ai, duai, dvai, dwai, transpose)
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    real(8), intent(in) , pointer :: uvw(:,:)
-    real(8), intent(out), pointer ::   ai(:,:)
-    real(8), intent(out), pointer :: duai(:,:)
-    real(8), intent(out), pointer :: dvai(:,:)
-    real(8), intent(out), pointer :: dwai(:,:)
-    logical, intent(in)           :: transpose
-    !>
-    integer                       :: i,nn
-    real(8), parameter            :: tol=1d-16
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Transpose = True  => mode(1:np,1:n)
-    !> Transpose = False => mode(1:n,1:np)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    nn=size(uvw,2)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if(      transpose )allocate( ai(5,nn),duai(5,nn),dvai(5,nn),dwai(5,nn) )
-    if( .not.transpose )allocate( ai(nn,5),duai(nn,5),dvai(nn,5),dwai(nn,5) )
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> vertex functions
-    if( transpose )then
-      
-      ai  (1,:) = .25d0*(1d0-uvw(1,:)-uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) +tol))
-      ai  (2,:) = .25d0*(1d0+uvw(1,:)-uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) +tol))
-      ai  (3,:) = .25d0*(1d0+uvw(1,:)+uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) +tol))
-      ai  (4,:) = .25d0*(1d0-uvw(1,:)+uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) +tol))
-      ai  (5,:) = uvw(3,:)
-      
-      duai(1,:) = .25d0*( -1d0+uvw(2,:)/(1d0-uvw(3,:)+tol) )
-      duai(2,:) = .25d0*(  1d0-uvw(2,:)/(1d0-uvw(3,:)+tol) )
-      duai(3,:) = .25d0*(  1d0+uvw(2,:)/(1d0-uvw(3,:)+tol) )
-      duai(4,:) = .25d0*( -1d0-uvw(2,:)/(1d0-uvw(3,:)+tol) )
-      duai(5,:) = 0d0
-      
-      dvai(1,:) = .25d0*( -1d0+uvw(1,:)/(1d0-uvw(3,:)+tol) )
-      dvai(2,:) = .25d0*( -1d0-uvw(1,:)/(1d0-uvw(3,:)+tol) )
-      dvai(3,:) = .25d0*(  1d0+uvw(1,:)/(1d0-uvw(3,:)+tol) )
-      dvai(4,:) = .25d0*(  1d0-uvw(1,:)/(1d0-uvw(3,:)+tol) )
-      dvai(5,:) = 0d0
-      
-      dwai(1,:) = .25d0*( -1d0+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:)+tol) )**2
-      dwai(2,:) = .25d0*( -1d0-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:)+tol) )**2
-      dwai(3,:) = .25d0*( -1d0+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:)+tol) )**2
-      dwai(4,:) = .25d0*( -1d0-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:)+tol) )**2
-      dwai(5,:) = 1d0
-      
-    else
-      
-      ai  (:,1) = .25d0*(1d0-uvw(1,:)-uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) +tol))
-      ai  (:,2) = .25d0*(1d0+uvw(1,:)-uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) +tol))
-      ai  (:,3) = .25d0*(1d0+uvw(1,:)+uvw(2,:)-uvw(3,:)+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) +tol))
-      ai  (:,4) = .25d0*(1d0-uvw(1,:)+uvw(2,:)-uvw(3,:)-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:) +tol))
-      ai  (:,5) = uvw(3,:)
-      
-      duai(:,1) = .25d0*( -1d0+uvw(2,:)/(1d0-uvw(3,:)+tol) )
-      duai(:,2) = .25d0*(  1d0-uvw(2,:)/(1d0-uvw(3,:)+tol) )
-      duai(:,3) = .25d0*(  1d0+uvw(2,:)/(1d0-uvw(3,:)+tol) )
-      duai(:,4) = .25d0*( -1d0-uvw(2,:)/(1d0-uvw(3,:)+tol) )
-      duai(:,5) = 0d0
-      
-      dvai(:,1) = .25d0*( -1d0+uvw(1,:)/(1d0-uvw(3,:)+tol) )
-      dvai(:,2) = .25d0*( -1d0-uvw(1,:)/(1d0-uvw(3,:)+tol) )
-      dvai(:,3) = .25d0*(  1d0+uvw(1,:)/(1d0-uvw(3,:)+tol) )
-      dvai(:,4) = .25d0*(  1d0-uvw(1,:)/(1d0-uvw(3,:)+tol) )
-      dvai(:,5) = 0d0
-      
-      dwai(:,1) = .25d0*( -1d0+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:)+tol) )**2
-      dwai(:,2) = .25d0*( -1d0-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:)+tol) )**2
-      dwai(:,3) = .25d0*( -1d0+uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:)+tol) )**2
-      dwai(:,4) = .25d0*( -1d0-uvw(1,:)*uvw(2,:)/(1d0-uvw(3,:)+tol) )**2
-      dwai(:,5) = 1d0
-      
-    endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    return
-  end subroutine pyramidGradBaseP1
   
   
   subroutine pyramidBasePi(ord,a,b,c,mode,transpose)
@@ -630,10 +542,9 @@ contains
     return
   end subroutine pyramidBasePi
   
-  
   subroutine pyramidGradBasePi(ord,a,b,c,dxPsi,dyPsi,dzPsi,transpose)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#define pyramidGradBasePi 1
+#define pyramidGradBasePi 0
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Psi(a,b,c) = P_i^{0,0}(a)  P_j^{0,0}(b) (1-c)^max(i,j)  P_k^{2 max(i,j)+2,0}(2c-1)
@@ -961,7 +872,7 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if( .not.associated(uvw) )allocate(uvw(3,nNod))
+    allocate(uvw(1:3,1:nNod))
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1004,11 +915,9 @@ contains
       endif
       !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       
-      
       !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       !> Traitement des faces
       if( display )print '(3x,"Nodes optimization over   pyramid")'
-      
       !> iw=0      -> Side1
       !> iv=0      -> Side2
       !> iu=ord-iw -> Side3
@@ -1019,9 +928,9 @@ contains
       do iw=0,ord
         
         sd2(1:3,0:ord-iw)=uv(1:3,jNod +1:jNod+ord-iw +1)
-        !print '(/"sd2=",12(f12.5,2x))',sd2(1,0:ord-iw)
-        !print '( 4x    ,12(f12.5,2x))',sd2(2,0:ord-iw)
-        !print '( 4x    ,12(f12.5,2x))',sd2(3,0:ord-iw)
+       !print '(/"sd2=",12(f12.5,2x))',sd2(1,0:ord-iw)
+       !print '( 4x    ,12(f12.5,2x))',sd2(2,0:ord-iw)
+       !print '( 4x    ,12(f12.5,2x))',sd2(3,0:ord-iw)
         
         do iv=0,ord-iw
           jNod=jNod+1
@@ -1120,7 +1029,6 @@ contains
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( display )then
-    !if( 0==1 )then
       print '(3x,"Vertices")'
       iNod=0
       do iw=0,ord
