@@ -224,7 +224,7 @@ subroutine test1D()
   
 end subroutine test1D
 
-subroutine test2D()
+subroutine Triangle()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use baseSimplex2D
   use modDeterminant
@@ -356,7 +356,7 @@ subroutine test2D()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   return
-end subroutine test2D
+end subroutine Triangle
 
 subroutine test1D_01()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -446,7 +446,7 @@ subroutine test1D_01()
   return
 end subroutine test1D_01
 
-subroutine test2D_01()
+subroutine Triangle_01()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use baseSimplex2D
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -527,7 +527,7 @@ subroutine test2D_01()
   enddo
   
   return
-end subroutine test2D_01
+end subroutine Triangle_01
 
 
 subroutine tetraTest()
@@ -1492,8 +1492,8 @@ program main
  !call test1D_01()
   
   !> Test Triangles
- !call test2D()
- !call test2D_01()
+  call Triangle()
+ !call Triangle_01()
   
   !> Test Tetra
   !call tetraTest()
@@ -1507,6 +1507,6 @@ program main
  !call pyramLebesgue()
  !call pyramMaillageVisu() !> maillages de visu pour la pyramide d'ordre élevé
  !call pyramDegreesOverSides()
-  call pyramTestBasis()
+ !call pyramTestBasis()
   
 end program main
