@@ -413,9 +413,9 @@ contains
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( transpose )then
-      if( 0==0 )then
+      if( 0==1 )then
         do i=1,size(ai,2)
-          print '(i6,1x,"uvw=",3(f12.9,1x),1x,"ai=",5(f12.9,1x))',i,uvw(1:3,i),ai(1:5,i)
+          print '(i6,1x,"uvw=",3(f12.9,1x),3x,"ai=",5(f12.9,1x))',i,uvw(1:3,i),ai(1:5,i)
         enddo
       endif
     endif
@@ -424,6 +424,60 @@ contains
     return
   end subroutine pyramidBaseP1
   
+  subroutine pyramideH6BaseP1(uvw, ai, transpose)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Hexa [-1,1] x [-1,1] [0,1] dégénéré
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    real(8), intent(in) , pointer :: uvw(:,:)
+    real(8), intent(out), pointer :: ai(:,:)
+    logical, intent(in)           :: transpose
+    !>
+    integer                       :: i,nn
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> b1=1/4 (1-u) (1-v) (1-w)
+    !> b2=1/4 (1+u) (1-v) (1-w)
+    !> b3=1/4 (1+u) (1+v) (1-w)
+    !> b4=1/4 (1-u) (1+v) (1-w)
+    !> b5=                   w
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Transpose = True  => ai(1:np,1:nPt)
+    !> Transpose = False => ai(1:nPt,1:np)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    nn=size(uvw,2)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> vertex functions
+    if( transpose )then
+      allocate( ai(1:5,size(uvw,2)) )
+      do i=1,nn
+        ai(1,i) = 0.25d0*(1d0-uvw(1,i))*(1d0-uvw(2,i))*(1d0-uvw(3,i))
+        ai(2,i) = 0.25d0*(1d0+uvw(1,i))*(1d0-uvw(2,i))*(1d0-uvw(3,i))
+        ai(4,i) = 0.25d0*(1d0+uvw(1,i))*(1d0+uvw(2,i))*(1d0-uvw(3,i)) !> retournement 3<->4
+        ai(3,i) = 0.25d0*(1d0-uvw(1,i))*(1d0+uvw(2,i))*(1d0-uvw(3,i)) !> retournement 3<->4
+        ai(5,i) = uvw(3,i)
+      enddo
+    else
+    allocate( ai(size(uvw,2),1:5) )
+      do i=1,nn
+        ai(i,1) = 0.25d0*(1d0-uvw(1,i))*(1d0-uvw(2,i))*(1d0-uvw(3,i))
+        ai(i,2) = 0.25d0*(1d0+uvw(1,i))*(1d0-uvw(2,i))*(1d0-uvw(3,i))
+        ai(i,4) = 0.25d0*(1d0+uvw(1,i))*(1d0+uvw(2,i))*(1d0-uvw(3,i)) !> retournement 3<->4
+        ai(i,3) = 0.25d0*(1d0-uvw(1,i))*(1d0+uvw(2,i))*(1d0-uvw(3,i)) !> retournement 3<->4
+        ai(i,5) = uvw(3,i)
+      enddo
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine pyramideH6BaseP1
   
   subroutine pyramidBasePi(ord,a,b,c,mode,transpose)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

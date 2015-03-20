@@ -1448,9 +1448,9 @@ subroutine pyramTestBasis()
   real(8), pointer     :: li(:,:),duLi(:,:),dvLi(:,:),dwLi(:,:)
   real(8), pointer     :: fi(:),dxfi(:),dyfi(:),dzfi(:)
   real(8), pointer     :: f (:),dxf (:),dyf (:),dzf (:)
-  real(8)              :: f0
-  real(8) , parameter  :: tol=1d-12
-  integer              :: cpt
+  real(8)              :: f0,dxf0,dyf0,dzf0
+  real(8) , parameter  :: tol=1d-10
+  integer              :: cpt0,cpt1,cpt2,cpt3,cpt
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1458,8 +1458,7 @@ subroutine pyramTestBasis()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-!  write(*,'(/"Order: ")',advance='no') ; read(*,*)ord
-ord=1
+  write(*,'(/"Order: ")',advance='no') ; read(*,*)ord
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1478,8 +1477,8 @@ ord=1
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> f(u,v,w),∂xf(u,v,w),∂yf(u,v,w),∂zf(u,v,w)
   nPt=size(uvw,2) ; allocate(fi(nPt),dxfi(nPt),dyfi(nPt),dzfi(nPt))
-  call FXYZ(xyz=uvw,f=fi,dxf=dxfi,dyf=dyfi,dzf=dzfi)
-  print '("ad=",i6,2x,"x=",f12.5,2x,"y=",f12.5,2x,"z=",f12.5,2x,"f=",e22.15)',(i,uvw(1:3,i),fi(i),i=1,nPt)
+  call fxyz(xyz=uvw,f=fi,dxf=dxfi,dyf=dyfi,dzf=dzfi)
+  print '(3x,"ad=",i6,2x,"x=",f12.5,2x,"y=",f12.5,2x,"z=",f12.5,4x,"fi=",e22.15)',(i,uvw(1:3,i),fi(i),i=1,nPt)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1509,7 +1508,7 @@ ord=1
   do iOrd=0,5
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    write(*,'(">>> Test basic ",i1)')iOrd
+    write(*,'(/">>> Test basic ",i1)')iOrd
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1519,19 +1518,19 @@ ord=1
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> f(u,v,w),∂xf(u,v,w),∂yf(u,v,w),∂zf(u,v,w)
-    nPt=size(uvw,2) ; allocate(f(nPt),dxf(nPt),dyf(nPt),dzf(nPt))
-    call FXYZ(xyz=uvw,f=f,dxf=dxf,dyf=dyf,dzf=dzf)
+    nPt=size(uvw,2) ; allocate(f(1:nPt),dxf(nPt),dyf(nPt),dzf(nPt))
+    call fxyz(xyz=uvw,f=f,dxf=dxf,dyf=dyf,dzf=dzf)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Evaluation des fonctions de Lagrange aux points uvw
     !> Transpose=.true. => li(np,nPt)
     
-    call pyramidBaseP1(uvw=uvw, ai=li, transpose=.true.)
-    
-    !call pyramiduvw2abc(uvw=uvw,a=a,b=b,c=c)
-    !call pyramidLagrange3Dv(ord=ord,vand=vand,a=a,b=b,c=c,lx=li,transpose=.true.)  !> li(uvw) = Inverse[Transpose[Vand]].Psi[uvw]
-    !deallocate(a,b,c)
+    !call pyramidBaseP1  (uvw=uvw, ai=li, transpose=.true.)
+    !call pyramideH6BaseP1(uvw=uvw, ai=li, transpose=.true.)
+    call pyramiduvw2abc(uvw=uvw,a=a,b=b,c=c)
+    call pyramidLagrange3Dv(ord=ord,vand=vand,a=a,b=b,c=c,lx=li,transpose=.true.)  !> li(uvw) = Inverse[Transpose[Vand]].Psi[uvw]
+    deallocate(a,b,c)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1544,35 +1543,76 @@ ord=1
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> comparaison des resultats (calcul direct et calcul interpolé)
     np =(ord+1)*(ord+2)*(2*ord+3)/6 !> = \sum_{k=1}^{ord+1} k^2
-    print'("np      =",i6)',np
-    print'("size(fi)=",i6)',size(fi)
-    print'("size(li)=",i6,"x",i6)',size(li,1),size(li,2)
-    print'("npt     =",i6)',nPt
-   !print '("ad=",i6,2x,"x=",f12.5,2x,"y=",f12.5,2x,"z=",f12.5,2x,"f=",e22.15)',(i,uvw(1:3,i),f(i),i=1,nPt)
+    print'(4x,"np x nPt =",i6," x ",i6)',np,nPt
     
-    cpt=0
+    !> test li
+    cpt0=0
     do j=1,nPt
       f0=0d0
       do i=1,np
         f0=f0+li(i,j)*fi(i)
       enddo
       if( abs(f(j)-f0)>tol )then
-        cpt=cpt+1
-        print '("ad=",i6,2x,"uvw=",3(f12.5,1x),"∆f=",e22.15," - ",e22.15," = ",e22.15)',j,uvw(1:3,j),f(j),f0,f(j)-f0
+        cpt0=cpt0+1
+        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"f(uvw)- ∑ ai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),f(j),f0,f(j)-f0
       endif
     enddo
-    print '("ecart sur f cpt=",i6,"/",i6)',cpt,nPt
+    print '(4x,"ecart sur   f cpt=",i6,"/",i6)',cpt0,nPt
+    
+    !> test duLi
+    cpt1=0
+    do j=1,nPt
+      dxf0=0d0
+      do i=1,np
+        dxf0=dxf0+duLi(i,j)*fi(i)
+      enddo
+      if( abs(dxf(j)-dxf0)>tol )then
+        cpt1=cpt1+1
+        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂u f(uvw)- ∑ ∂uai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),dxf(j),dxf0,dxf(j)-dxf0
+      endif
+    enddo
+    print '(4x,"ecart sur ∂uf cpt=",i6,"/",i6)',cpt1,nPt
+    
+    !> test dvLi
+    cpt2=0
+    do j=1,nPt
+      dyf0=0d0
+      do i=1,np
+        dyf0=dyf0+dvLi(i,j)*fi(i)
+      enddo
+      if( abs(dyf(j)-dyf0)>tol )then
+        cpt2=cpt2+1
+        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂vf(uvw)- ∑ ∂vai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),dyf(j),dyf0,dyf(j)-dyf0
+      endif
+    enddo
+    print '(4x,"ecart sur ∂vf cpt=",i6,"/",i6)',cpt2,nPt
+    
+    !> test dvLi
+    cpt3=0
+    do j=1,nPt
+      dzf0=0d0
+      do i=1,np
+        dzf0=dzf0+dwLi(i,j)*fi(i)
+      enddo
+      if( abs(dzf(j)-dzf0)>tol )then
+        cpt3=cpt3+1
+        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂wf(uvw)- ∑ ∂wai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),dzf(j),dzf0,dzf(j)-dzf0
+      endif
+    enddo
+    print '(4x,"ecart sur ∂wf cpt=",i6,"/",i6)',cpt3,nPt
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     deallocate(uvw)
-    deallocate(li,duLi,dvLi,dwLi)
+    deallocate(li)
+    deallocate(duLi,dvLi,dwLi)
     deallocate(f,dxf,dyf,dzf)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    cpt=cpt1+cpt2+cpt3
     if( .not.cpt==0 )then
-      print '("Arret sur test basic ",i1)',iOrd
+      print '("xxx Arret sur test basic ",i1)',iOrd
       stop
     else
       write(*,'("<<< Test basic ",i1)')iOrd
@@ -1582,13 +1622,12 @@ ord=1
   enddo
   
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-return
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> TEST AVANCE DES BASES
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  write(*,'("Test avancé")')
+  write(*,'(">>> Test avancé")')
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1599,18 +1638,15 @@ return
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> f(u,v,w),∂xf(u,v,w),∂yf(u,v,w),∂zf(u,v,w)
   nPt=size(uvw,2) ; allocate(f(nPt),dxf(nPt),dyf(nPt),dzf(nPt))
-  call FXYZ(xyz=uvw,f=f,dxf=dxf,dyf=dyf,dzf=dzf)
+  call fxyz(xyz=uvw,f=f,dxf=dxf,dyf=dyf,dzf=dzf)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Evaluation des fonctions de Lagrange aux points uvw
   !> Transpose=.true. => li(np,nPt)
-  
-  call pyramidBaseP1(uvw=uvw, ai=li, transpose=.true.)
-  
-  !call pyramiduvw2abc(uvw=uvw,a=a,b=b,c=c)
-  !call pyramidLagrange3Dv(ord=ord,vand=vand,a=a,b=b,c=c,lx=li,transpose=.true.)  !> li(uvw) = Inverse[Transpose[Vand]].Psi[uvw]
-  !deallocate(a,b,c)
+  call pyramiduvw2abc(uvw=uvw,a=a,b=b,c=c)
+  call pyramidLagrange3Dv(ord=ord,vand=vand,a=a,b=b,c=c,lx=li,transpose=.true.)  !> li(uvw) = Inverse[Transpose[Vand]].Psi[uvw]
+  deallocate(a,b,c)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1623,26 +1659,75 @@ return
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> comparaison des resultats (calcul direct et calcul interpolé)
   np =(ord+1)*(ord+2)*(2*ord+3)/6 !> = \sum_{k=1}^{ord+1} k^2
-  print'("np      =",i6)',np
-  print'("size(fi)=",i6)',size(fi)
-  print'("size(li)=",i6,"x",i6)',size(li,1),size(li,2)
-  print'("npt     =",i6)',nPt
- !print '("ad=",i6,2x,"x=",f12.5,2x,"y=",f12.5,2x,"z=",f12.5,2x,"f=",e22.15)',(i,uvw(1:3,i),f(i),i=1,nPt)
+  print'(4x,"np x nPt =",i6," x ",i6)',np,nPt
   
-  cpt=0
+  
+  !> test li
+  cpt0=0
   do j=1,nPt
     f0=0d0
     do i=1,np
       f0=f0+li(i,j)*fi(i)
     enddo
     if( abs(f(j)-f0)>tol )then
-      cpt=cpt+1
-      print '("ad=",i6,2x,"uvw=",3(f12.5,1x),"∆f=",e22.15," - ",e22.15," = ",e22.15)',j,uvw(1:3,j),f(j),f0,f(j)-f0
+      cpt0=cpt0+1
+      print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"f(uvw)- ∑ ai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),f(j),f0,f(j)-f0
     endif
   enddo
-  print '("ecart sur f cpt=",i6,"/",i6)',cpt,nPt
+  print '(4x,"ecart sur   f cpt=",i6,"/",i6)',cpt0,nPt
+  
+  !> test duLi
+  cpt1=0
+  do j=1,nPt
+    dxf0=0d0
+    do i=1,np
+      dxf0=dxf0+duLi(i,j)*fi(i)
+    enddo
+    if( abs(dxf(j)-dxf0)>tol )then
+      cpt1=cpt1+1
+      print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂u f(uvw)- ∑ ∂uai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),dxf(j),dxf0,dxf(j)-dxf0
+    endif
+  enddo
+  print '(4x,"ecart sur ∂uf cpt=",i6,"/",i6)',cpt1,nPt
+  
+  !> test dvLi
+  cpt2=0
+  do j=1,nPt
+    dyf0=0d0
+    do i=1,np
+      dyf0=dyf0+dvLi(i,j)*fi(i)
+    enddo
+    if( abs(dyf(j)-dyf0)>tol )then
+      cpt2=cpt2+1
+      print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂vf(uvw)- ∑ ∂vai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),dyf(j),dyf0,dyf(j)-dyf0
+    endif
+  enddo
+  print '(4x,"ecart sur ∂vf cpt=",i6,"/",i6)',cpt2,nPt
+  
+  !> test dvLi
+  cpt3=0
+  do j=1,nPt
+    dzf0=0d0
+    do i=1,np
+      dzf0=dzf0+dwLi(i,j)*fi(i)
+    enddo
+    if( abs(dzf(j)-dzf0)>tol )then
+      cpt3=cpt3+1
+      print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂wf(uvw)- ∑ ∂wai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),dzf(j),dzf0,dzf(j)-dzf0
+    endif
+  enddo
+  print '(4x,"ecart sur ∂wf cpt=",i6,"/",i6)',cpt3,nPt
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  cpt=cpt0+cpt1+cpt2+cpt3
+  if( .not.cpt==0 )then
+    print '("xxx Arret sur test avancé")'
+    stop
+  else
+    write(*,'("<<< Test avancé")')
+  endif
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   deallocate(uvw)
@@ -1664,7 +1749,7 @@ return
   
 contains
   
-  subroutine FXYZ(xyz,f,dxf,dyf,dzf)
+  subroutine fxyz(xyz,f,dxf,dyf,dzf)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     real(8) :: xyz(:,:)
     real(8) ::   f(:)
@@ -1672,26 +1757,70 @@ contains
     real(8) :: dyf(:)
     real(8) :: dzf(:)
     !>
-    integer :: n
+    real(8) :: x,y,z
+    integer :: i,n
+    integer :: power
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    n=1
+    !print '("fxyz ord=",i2)',ord
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    f(:)= (xyz(1,:)+1d0)**n * (xyz(2,:)+1d0)**n * (xyz(3,:)-5d-1)**n
     
-    dxf(:) = real(n,kind=8) * (xyz(1,:)+1)**(n-1) * (xyz(2,:)+1)**(n  ) * (xyz(3,:)-5d-1)**(n  )
-    dyf(:) = real(n,kind=8) * (xyz(1,:)+1)**(n  ) * (xyz(2,:)+1)**(n-1) * (xyz(3,:)-5d-1)**(n  )
-    dzf(:) = real(n,kind=8) * (xyz(1,:)+1)**(n  ) * (xyz(2,:)+1)**(n  ) * (xyz(3,:)-5d-1)**(n-1)
+    n=size(xyz,2) ! print '("fxyz n=",i6)',n
+    
+    do i=1,n
+      x=xyz(1,i)
+      y=xyz(2,i)
+      z=xyz(3,i)
+      
+      f  (i)=3
+      dxf(i)=0
+      dyf(i)=0
+      dzf(i)=0
+      
+      if( ord>=1 )then
+        f  (i)=1.5*x+2.5*y-3.5*z +f(i)
+        dxf(i)=1.5               +dxf(i)
+        dyf(i)=2.5               +dyf(i)
+        dzf(i)=-3.5              +dzf(i)
+      endif
+      
+      if( ord>=2 )then
+        f  (i)= 7*x**2+4*y**2-5*z**2+x*y-x*z+3*y*z +f(i)
+        dxf(i)=14*x+y-z      +dxf(i)
+        dyf(i)=8*y+x+3*z     +dyf(i)
+        dzf(i)=-10*z-x+3*y   +dzf(i)
+      endif
+      
+      if( ord>=3 )then
+        f  (i)= x**3 + 2.5*y**3 -1.5*z**3+ x**2*y+x*y*z +f(i)
+        dxf(i)=3*x**2+2*x*y+y*z   +dxf(i)
+        dyf(i)=7.5*y**2+x**2+y*z  +dyf(i)
+        dzf(i)=-4.5*z**2+x*y      +dzf(i)
+      endif
+      
+      if( ord>=4 )then
+        f  (i)= 3*x**4+7*y**4-8*z**4-x**2+y**2+3*x*y**2*z +f(i)
+      endif
+      
+      if( ord>=5 )then
+        f(i)= 3*x**5 + 7*x**2*y**2*z + z**5 +f(i)
+      endif
+      
+    enddo
+    if( ord>=6 )then
+      print '("warning ord>=6 not tested")'
+    endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return  
-  end subroutine FXYZ
+  end subroutine fxyz
   
 end subroutine pyramTestBasis
 
+  
 
 program main
   
