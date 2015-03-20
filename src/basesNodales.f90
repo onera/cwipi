@@ -1384,7 +1384,7 @@ subroutine pyramTestQuadrature()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  do iOrd=1,ord
+  do iOrd=0,ord
   
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Liste des points xyzOut
@@ -1724,7 +1724,7 @@ subroutine pyramTestBasis()
     print '("xxx Erreur sur test avancé ord=",i2)',ord
     stop
   else
-    write(*,'(/"<<< Test avancé ord=",i2)')ord
+    write(*,'("<<< Test avancé ord=",i2)')ord
   endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
@@ -1857,7 +1857,7 @@ program main
  !call pyramLebesgue()
  !call pyramMaillageVisu() !> maillages de visu pour la pyramide d'ordre élevé
  !call pyramDegreesOverSides()
- !call pyramTestQuadrature()
+  call pyramTestQuadrature()
   call pyramTestBasis()
   
 end program main
