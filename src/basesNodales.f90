@@ -1478,7 +1478,7 @@ subroutine pyramTestBasis()
   !> f(u,v,w),∂xf(u,v,w),∂yf(u,v,w),∂zf(u,v,w)
   nPt=size(uvw,2) ; allocate(fi(nPt),dxfi(nPt),dyfi(nPt),dzfi(nPt))
   call fxyz(xyz=uvw,f=fi,dxf=dxfi,dyf=dyfi,dzf=dzfi)
-  print '(3x,"ad=",i6,2x,"x=",f12.5,2x,"y=",f12.5,2x,"z=",f12.5,4x,"fi=",e22.15)',(i,uvw(1:3,i),fi(i),i=1,nPt)
+ !print '(3x,"ad=",i6,2x,"x=",f12.5,2x,"y=",f12.5,2x,"z=",f12.5,4x,"fi=",e22.15)',(i,uvw(1:3,i),fi(i),i=1,nPt)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1505,10 +1505,10 @@ subroutine pyramTestBasis()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> TEST BASIC DES BASES
   
-  do iOrd=0,5
+  do iOrd=0,10
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    write(*,'(/">>> Test basic ",i1)')iOrd
+    write(*,'(/">>> Test basic ",i2," ord=",i2)')iOrd,ord
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1557,7 +1557,7 @@ subroutine pyramTestBasis()
         print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"f(uvw)- ∑ ai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),f(j),f0,f(j)-f0
       endif
     enddo
-    print '(4x,"ecart sur   f cpt=",i6,"/",i6)',cpt0,nPt
+    print '(4x,"erreur sur   f cpt=",i6,"/",i6)',cpt0,nPt
     
     !> test duLi
     cpt1=0
@@ -1571,7 +1571,7 @@ subroutine pyramTestBasis()
         print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂u f(uvw)- ∑ ∂uai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),dxf(j),dxf0,dxf(j)-dxf0
       endif
     enddo
-    print '(4x,"ecart sur ∂uf cpt=",i6,"/",i6)',cpt1,nPt
+    print '(4x,"erreur sur ∂uf cpt=",i6,"/",i6)',cpt1,nPt
     
     !> test dvLi
     cpt2=0
@@ -1585,7 +1585,7 @@ subroutine pyramTestBasis()
         print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂vf(uvw)- ∑ ∂vai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),dyf(j),dyf0,dyf(j)-dyf0
       endif
     enddo
-    print '(4x,"ecart sur ∂vf cpt=",i6,"/",i6)',cpt2,nPt
+    print '(4x,"erreur sur ∂vf cpt=",i6,"/",i6)',cpt2,nPt
     
     !> test dvLi
     cpt3=0
@@ -1599,7 +1599,7 @@ subroutine pyramTestBasis()
         print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂wf(uvw)- ∑ ∂wai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),dzf(j),dzf0,dzf(j)-dzf0
       endif
     enddo
-    print '(4x,"ecart sur ∂wf cpt=",i6,"/",i6)',cpt3,nPt
+    print '(4x,"erreur sur ∂wf cpt=",i6,"/",i6)',cpt3,nPt
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1612,10 +1612,10 @@ subroutine pyramTestBasis()
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     cpt=cpt1+cpt2+cpt3
     if( .not.cpt==0 )then
-      print '("xxx Arret sur test basic ",i1)',iOrd
+      print '("xxx Arret sur test basic ",i2)',iOrd
       stop
     else
-      write(*,'("<<< Test basic ",i1)')iOrd
+      write(*,'("<<< Test basic ",i2," ord=",i2)')iOrd,ord
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
@@ -1627,7 +1627,7 @@ subroutine pyramTestBasis()
   !> TEST AVANCE DES BASES
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  write(*,'(">>> Test avancé")')
+  write(*,'(/">>> Test avancé ord=",i2)')ord
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1661,7 +1661,6 @@ subroutine pyramTestBasis()
   np =(ord+1)*(ord+2)*(2*ord+3)/6 !> = \sum_{k=1}^{ord+1} k^2
   print'(4x,"np x nPt =",i6," x ",i6)',np,nPt
   
-  
   !> test li
   cpt0=0
   do j=1,nPt
@@ -1674,7 +1673,7 @@ subroutine pyramTestBasis()
       print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"f(uvw)- ∑ ai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),f(j),f0,f(j)-f0
     endif
   enddo
-  print '(4x,"ecart sur   f cpt=",i6,"/",i6)',cpt0,nPt
+  print '(4x,"erreur sur   f cpt=",i6,"/",i6)',cpt0,nPt
   
   !> test duLi
   cpt1=0
@@ -1688,7 +1687,7 @@ subroutine pyramTestBasis()
       print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂u f(uvw)- ∑ ∂uai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),dxf(j),dxf0,dxf(j)-dxf0
     endif
   enddo
-  print '(4x,"ecart sur ∂uf cpt=",i6,"/",i6)',cpt1,nPt
+  print '(4x,"erreur sur ∂uf cpt=",i6,"/",i6)',cpt1,nPt
   
   !> test dvLi
   cpt2=0
@@ -1702,7 +1701,7 @@ subroutine pyramTestBasis()
       print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂vf(uvw)- ∑ ∂vai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),dyf(j),dyf0,dyf(j)-dyf0
     endif
   enddo
-  print '(4x,"ecart sur ∂vf cpt=",i6,"/",i6)',cpt2,nPt
+  print '(4x,"erreur sur ∂vf cpt=",i6,"/",i6)',cpt2,nPt
   
   !> test dvLi
   cpt3=0
@@ -1716,16 +1715,16 @@ subroutine pyramTestBasis()
       print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂wf(uvw)- ∑ ∂wai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),dzf(j),dzf0,dzf(j)-dzf0
     endif
   enddo
-  print '(4x,"ecart sur ∂wf cpt=",i6,"/",i6)',cpt3,nPt
+  print '(4x,"erreur sur ∂wf cpt=",i6,"/",i6)',cpt3,nPt
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   cpt=cpt0+cpt1+cpt2+cpt3
   if( .not.cpt==0 )then
-    print '("xxx Arret sur test avancé")'
+    print '("xxx Erreur sur test avancé ord=",i2)',ord
     stop
   else
-    write(*,'("<<< Test avancé")')
+    write(*,'(/"<<< Test avancé ord=",i2)')ord
   endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
@@ -1775,38 +1774,45 @@ contains
       y=xyz(2,i)
       z=xyz(3,i)
       
+      !> ord0
       f  (i)=3
       dxf(i)=0
       dyf(i)=0
       dzf(i)=0
       
       if( ord>=1 )then
-        f  (i)=1.5*x+2.5*y-3.5*z +f(i)
+        f  (i)=1.5*x+2.5*y-3.5*z +  f(i)
         dxf(i)=1.5               +dxf(i)
         dyf(i)=2.5               +dyf(i)
         dzf(i)=-3.5              +dzf(i)
       endif
       
       if( ord>=2 )then
-        f  (i)= 7*x**2+4*y**2-5*z**2+x*y-x*z+3*y*z +f(i)
-        dxf(i)=14*x+y-z      +dxf(i)
-        dyf(i)=8*y+x+3*z     +dyf(i)
-        dzf(i)=-10*z-x+3*y   +dzf(i)
+        f  (i)= 7*x**2+4*y**2-5*z**2+x*y-x*z+3*y*z +  f(i)
+        dxf(i)=14*x+y-z                            +dxf(i)
+        dyf(i)=8*y+x+3*z                           +dyf(i)
+        dzf(i)=-10*z-x+3*y                         +dzf(i)
       endif
       
       if( ord>=3 )then
-        f  (i)= x**3 + 2.5*y**3 -1.5*z**3+ x**2*y+x*y*z +f(i)
-        dxf(i)=3*x**2+2*x*y+y*z   +dxf(i)
-        dyf(i)=7.5*y**2+x**2+y*z  +dyf(i)
-        dzf(i)=-4.5*z**2+x*y      +dzf(i)
+        f  (i)= x**3+2.5*y**3-1.5*z**3+x**2*y+x*y*z +  f(i)
+        dxf(i)=3*x**2+2*x*y+y*z                     +dxf(i)
+        dyf(i)=7.5*y**2+x**2+x*z                    +dyf(i)
+        dzf(i)=-4.5*z**2+x*y                        +dzf(i)
       endif
       
       if( ord>=4 )then
-        f  (i)= 3*x**4+7*y**4-8*z**4-x**2+y**2+3*x*y**2*z +f(i)
+        f  (i)= 3*x**4+7*y**4-8*z**4-x**2*y**2+3*x*y**2*z +  f(i)
+        dxf(i)=12*x**3-2*x*y**2+3*y**2*z                  +dxf(i)
+        dyf(i)=28*y**3-2*x**2*y+6*x*y*z                   +dyf(i)
+        dzf(i)=-32*z**3+3*x*y**2                          +dzf(i)
       endif
       
       if( ord>=5 )then
-        f(i)= 3*x**5 + 7*x**2*y**2*z + z**5 +f(i)
+        f  (i)=3*x**5+7*x**2*y**2*z+z**5 +  f(i)
+        dxf(i)=15*x**4+14*x*y**2*z       +dxf(i)
+        dyf(i)=14*x**2*y*z               +dyf(i)
+        dzf(i)=7*x**2*y**2+5*z**4        +dzf(i)
       endif
       
     enddo
