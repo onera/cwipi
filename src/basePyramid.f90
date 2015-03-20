@@ -359,8 +359,8 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Transpose = True  => ai(1:np,1:n)
-    !> Transpose = False => ai(1:n,1:np)
+    !> Transpose = True  => ai(1:np,1:nPt)
+    !> Transpose = False => ai(1:nPt,1:np)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -379,15 +379,15 @@ contains
         if( uvw(3,i)==1d0 )then
           ai(1,i)=0d0
           ai(2,i)=0d0
-          ai(3,i)=0d0
-          ai(4,i)=0d0
+          ai(3,i)=0d0 !> retournement 3<->4
+          ai(4,i)=0d0 !> retournement 3<->4
           ai(5,i)=1d0
         else
           w0=uvw(1,i)*uvw(2,i)/(1d0-uvw(3,i))
-          ai(1,i) = .25d0*(1d0-uvw(1,i)-uvw(2,i)-uvw(3,i)+w0)
-          ai(2,i) = .25d0*(1d0+uvw(1,i)-uvw(2,i)-uvw(3,i)-w0)
-          ai(3,i) = .25d0*(1d0+uvw(1,i)+uvw(2,i)-uvw(3,i)+w0)
-          ai(4,i) = .25d0*(1d0-uvw(1,i)+uvw(2,i)-uvw(3,i)-w0)
+          ai(1,i) = 0.25d0*(1d0-uvw(1,i)-uvw(2,i)-uvw(3,i)+w0)
+          ai(2,i) = 0.25d0*(1d0+uvw(1,i)-uvw(2,i)-uvw(3,i)-w0)
+          ai(4,i) = 0.25d0*(1d0+uvw(1,i)+uvw(2,i)-uvw(3,i)+w0) !> retournement 3<->4
+          ai(3,i) = 0.25d0*(1d0-uvw(1,i)+uvw(2,i)-uvw(3,i)-w0) !> retournement 3<->4
           ai(5,i) = uvw(3,i)
         endif
       enddo
@@ -396,15 +396,15 @@ contains
         if( uvw(3,i)==1d0 )then
           ai(i,1)=0d0
           ai(i,2)=0d0
-          ai(i,3)=0d0
-          ai(i,4)=0d0
+          ai(i,3)=0d0 !> retournement 3<->4
+          ai(i,4)=0d0 !> retournement 3<->4
           ai(i,5)=1d0
         else
           w0=uvw(1,i)*uvw(2,i)/(1d0-uvw(3,i))
-          ai(i,1) = .25d0*(1d0-uvw(1,i)-uvw(2,i)-uvw(3,i)+w0)
-          ai(i,2) = .25d0*(1d0+uvw(1,i)-uvw(2,i)-uvw(3,i)-w0)
-          ai(i,3) = .25d0*(1d0+uvw(1,i)+uvw(2,i)-uvw(3,i)+w0)
-          ai(i,4) = .25d0*(1d0-uvw(1,i)+uvw(2,i)-uvw(3,i)-w0)
+          ai(i,1) = 0.25d0*(1d0-uvw(1,i)-uvw(2,i)-uvw(3,i)+w0)
+          ai(i,2) = 0.25d0*(1d0+uvw(1,i)-uvw(2,i)-uvw(3,i)-w0)
+          ai(i,4) = 0.25d0*(1d0+uvw(1,i)+uvw(2,i)-uvw(3,i)+w0) !> retournement 3<->4
+          ai(i,3) = 0.25d0*(1d0-uvw(1,i)+uvw(2,i)-uvw(3,i)-w0) !> retournement 3<->4
           ai(i,5) = uvw(3,i)
         endif
       enddo
@@ -415,7 +415,7 @@ contains
     if( transpose )then
       if( 0==0 )then
         do i=1,size(ai,2)
-          print '(i3,1x,"uvw=",3(f12.9,1x),1x,"ai=",5(f12.9,1x))',i,uvw(1:3,i),ai(1:5,i)
+          print '(i6,1x,"uvw=",3(f12.9,1x),1x,"ai=",5(f12.9,1x))',i,uvw(1:3,i),ai(1:5,i)
         enddo
       endif
     endif
@@ -1810,17 +1810,6 @@ contains
     integer, allocatable          :: TypTab(:)
     real(4)                       :: xyz(3)
     integer                       :: nFld,kind(1)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-!    open(unit=10,file='PyramidP100.mesh',status='old',action='read')
-!    do i=1,5 ; read(10,*) ; enddo
-!    read(10,*)nVert
-!    allocate(xyzOut(3,nVert))
-!    do i=1,nVert
-!      read(10,*)xyzOut(1:3,i)
-!    enddo
-!    close(10)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

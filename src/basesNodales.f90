@@ -136,7 +136,7 @@ contains
 end subroutine testQuadratureGL
 
 
-subroutine test1D()
+subroutine edge_00()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use modDeterminant
   use baseSimplex1D
@@ -222,9 +222,9 @@ subroutine test1D()
   
   return
   
-end subroutine test1D
+end subroutine edge_00
 
-subroutine Triangle()
+subroutine triangle_00()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use baseSimplex2D
   use modDeterminant
@@ -245,7 +245,7 @@ subroutine Triangle()
   real(8), parameter :: eps=1d-15
   real(8), pointer   :: eigv(:)
   character(80)      :: fileName
-  real(8)            :: node_xy(2,3) ! Triangle
+  real(8)            :: node_xy(2,3) !> Triangle
   real(8), pointer   :: node_uv(:,:)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
@@ -356,9 +356,9 @@ subroutine Triangle()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   return
-end subroutine Triangle
+end subroutine triangle_00
 
-subroutine test1D_01()
+subroutine edge_01()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use modDeterminant
   use baseSimplex1D
@@ -444,9 +444,9 @@ subroutine test1D_01()
   enddo
   
   return
-end subroutine test1D_01
+end subroutine edge_01
 
-subroutine Triangle_01()
+subroutine triangle_01()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use baseSimplex2D
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -527,7 +527,7 @@ subroutine Triangle_01()
   enddo
   
   return
-end subroutine Triangle_01
+end subroutine triangle_01
 
 
 subroutine tetraTest()
@@ -1354,6 +1354,76 @@ subroutine pyramMaillageVisu()
   return
 end subroutine pyramMaillageVisu
 
+subroutine pyramTestQuadrature()
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  !> Routine permettant de tester les
+  !> bases fonctionnelles sur une liste
+  !> de points
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  use pyramidRule, only: P5_gauss
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  implicit none
+  integer              :: i
+  integer              :: iOrd,ord
+  !>
+  integer              :: n
+  real(8), pointer     :: x(:),y(:),z(:),w(:)
+  integer              :: power
+  real(8), pointer     :: f(:)
+  real(8)              :: s
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  write(*,'("Contrôle des quadratures")')
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  write(*,'(/"Order: ")',advance='no') ; read(*,*)ord
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  do iOrd=1,ord
+  
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Liste des points xyzOut
+   !write(*,'(/"Points de Gauss:")')
+    call P5_gauss(   &
+    &    order=iOrd ,&
+    &    nGauss=n   ,&
+    &    uGauss=x   ,&
+    &    vGauss=y   ,&
+    &    wGauss=z   ,&
+    &    pGauss=w    )
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    allocate(f(1:n))
+   !print '("f(x,y,z)= (x+1)^",i1," (y+1)^",i1," z^",i1)',n,n,n
+    power=(2*iOrd+1)/3
+    do i=1,n
+      f(i)=(x(i)+1)**power *(y(i)+1)**power * z(i)**power
+    enddo
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Test des quadratures
+    s=sum([(f(i)*w(i), i=1,n)])
+    if(                 power<10  )print '("\int_0^1 \int_{-(1-z)}^{+(1-z)} \int_{-(1-z)}^{+(1-z)} (x+1)^0",i1," (y+1)^0",i1," z^0",i1," dx dy dz = ",e22.15)',power,power,power,s
+    if( 10<=power .and. power<100 )print '("\int_0^1 \int_{-(1-z)}^{+(1-z)} \int_{-(1-z)}^{+(1-z)} (x+1)^" ,i2," (y+1)^" ,i2," z^" ,i2," dx dy dz = ",e22.15)',power,power,power,s
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    deallocate(x,y,z,w,f)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+  enddo
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  return
+end subroutine pyramTestQuadrature
+
 subroutine pyramTestBasis()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !> Routine permettant de tester les
@@ -1363,41 +1433,62 @@ subroutine pyramTestBasis()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use modDeterminant
   use basePyramid
+  use pyramidRule, only: P5_gauss
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
-  integer              :: i,j,np,nPt,cpt
-  integer              :: ord
+  integer              :: i,j,np,nPt
+  integer              :: iOrd,ord
   real(8), pointer     :: uvw(:,:)=>null()
   !>
   real(8), pointer     :: a(:),b(:),c(:)
   real(8), pointer     :: vand(:,:),dVand(:,:)
   real(8), pointer     :: duPsi   (:,:),dvPsi   (:,:),dwPsi   (:,:)
   real(8), pointer     :: drMatrix(:,:),dsMatrix(:,:),dtMatrix(:,:)
-  real(8), pointer     :: xyzOut(:,:),lxOut(:,:),duLxOut(:,:),dvLxOut(:,:),dwLxOut(:,:),leb(:,:)
-  real(8), pointer     :: mode(:,:)
+  real(8), pointer     :: li(:,:),duLi(:,:),dvLi(:,:),dwLi(:,:)
+  real(8), pointer     :: fi(:),dxfi(:),dyfi(:),dzfi(:)
+  real(8), pointer     :: f (:),dxf (:),dyf (:),dzf (:)
+  real(8)              :: f0
+  real(8) , parameter  :: tol=1d-12
+  integer              :: cpt
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  write(*,'("Control de la base fonctionnelle")')
+  write(*,'("Contrôle de la base fonctionnelle pyramidale")')
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  write(*,'(/"Order: ")',advance='no') ; read(*,*)ord
+!  write(*,'(/"Order: ")',advance='no') ; read(*,*)ord
+ord=1
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> CONSTRUCTION DES BASES
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  write(*,'("Construction des bases")')
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
  !call pyramidNodes   (ord=ord, uvw=uvw, display=.false.)  !> Points réguliers
   call pyramidNodesOpt(ord=ord, uvw=uvw, display=.false.)  !> Points optimises
+  call pyramiduvw2abc(uvw=uvw,a=a,b=b,c=c)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  call pyramiduvw2abc(uvw=uvw,a=a,b=b,c=c)
+  !> f(u,v,w),∂xf(u,v,w),∂yf(u,v,w),∂zf(u,v,w)
+  nPt=size(uvw,2) ; allocate(fi(nPt),dxfi(nPt),dyfi(nPt),dzfi(nPt))
+  call FXYZ(xyz=uvw,f=fi,dxf=dxfi,dyf=dyfi,dzf=dzfi)
+  print '("ad=",i6,2x,"x=",f12.5,2x,"y=",f12.5,2x,"z=",f12.5,2x,"f=",e22.15)',(i,uvw(1:3,i),fi(i),i=1,nPt)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Preparation calcul de la base
   call pyramidVandermonde3D(ord=ord,a=a,b=b,c=c,vand=vand)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Derivees base fonctionnelle
+  !>  Preparation calcul des dérivées de la base
   call pyramidGradVandermonde3D(ord=ord,a=a,b=b,c=c,dxPsi=duPsi,dyPsi=dvPsi,dzPsi=dwPsi)
   call derive1D(vand=vand,dVand=duPsi,dMat=drMatrix) !> drMatrix = duPsi.Inverse[vand]
   call derive1D(vand=vand,dVand=dvPsi,dMat=dsMatrix) !> dsMatrix = dvPsi.Inverse[vand]
@@ -1409,64 +1500,160 @@ subroutine pyramTestBasis()
   deallocate(uvw)
   deallocate(a,b,c)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> TEST BASIC DES BASES
+  
+  do iOrd=0,5
     
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Liste des points xyzOut  
-  allocate(xyzOut(1:3,6))
-  xyzOut(1:3,1)=[ 0.00d0, 0.00d0,1.00d0]
-  xyzOut(1:3,2)=[ 0.00d0, 0.00d0,0.9999999999d0]
-  xyzOut(1:3,3)=[ 0.01d0, 0.00d0,0.99d0]
-  xyzOut(1:3,4)=[-0.01d0, 0.00d0,0.99d0]
-  xyzOut(1:3,5)=[ 0.00d0, 0.01d0,0.99d0]
-  xyzOut(1:3,6)=[ 0.00d0,-0.01d0,0.99d0]
-  call pyramiduvw2abc(uvw=xyzOut,a=a,b=b,c=c)
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Evaluation des fonctions de Lagrange aux points xyzOut  
-  call pyramidBasePi(ord=ord,a=a,b=b,c=c,mode=mode,transpose=.false.)                !> Psi  (xyzOut)
-  call pyramidLagrange3Dv(ord=ord,vand=vand,a=a,b=b,c=c,lx=lxOut,transpose=.false.)  !> lxOut(xyzOut) = Inverse[Transpose[Vand]].Psi[xyzOut] lxOut(nPt,np)
-  deallocate(mode)
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Evaluation des dérivées des fonctions de Lagrange aux points xyzOut
-  call dLagrange1Dv(dMat=drMatrix,lx=lxOut,dlx=duLxOut,transpose=.false.) !> duLxOut(1:nPt,1:np)=Transpose[drMatrix] lxOut
-  call dLagrange1Dv(dMat=dsMatrix,lx=lxOut,dlx=dvLxOut,transpose=.false.) !> dvLxOut(1:nPt,1:np)=Transpose[dsMatrix] lxOut
-  call dLagrange1Dv(dMat=dtMatrix,lx=lxOut,dlx=dwLxOut,transpose=.false.) !> dwLxOut(1:nPt,1:np)=Transpose[dtMatrix] lxOut
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Impression des résultats
-  nPt=size(lxOut,1)
-  np =(ord+1)*(ord+2)*(2*ord+3)/6 !> = \sum_{k=1}^{ord+1} k^2  
-  print '("nPt=",i2)',nPt
-  print '("np =",i2)',np
-  do i=1,nPt
-    print '("xyzOut(",i1,")=",3(f5.2,1x))',i,xyzOut(1:3,i)
-  enddo
-  print '()'
-  do i=1,nPt
-    print '("duLxOut(",i1,")=",14(e10.3,1x))',i,duLxOut(i,:)
-  enddo
-  print '()'
-  do i=1,nPt
-    print '("dvLxOut(",i1,")=",14(e10.3,1x))',i,dvLxOut(i,:)
-  enddo
-  print '()'
-  do i=1,nPt
-    print '("dwLxOut(",i1,")=",14(e10.3,1x))',i,dwLxOut(i,:)
-  enddo
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    write(*,'(">>> Test basic ",i1)')iOrd
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+   !call pyramidNodes   (ord=ord+iOrd, uvw=uvw, display=.false.)  !> Points réguliers
+    call pyramidNodesOpt(ord=ord+iOrd, uvw=uvw, display=.false.)  !> Points optimises
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> f(u,v,w),∂xf(u,v,w),∂yf(u,v,w),∂zf(u,v,w)
+    nPt=size(uvw,2) ; allocate(f(nPt),dxf(nPt),dyf(nPt),dzf(nPt))
+    call FXYZ(xyz=uvw,f=f,dxf=dxf,dyf=dyf,dzf=dzf)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Evaluation des fonctions de Lagrange aux points uvw
+    !> Transpose=.true. => li(np,nPt)
+    
+    call pyramidBaseP1(uvw=uvw, ai=li, transpose=.true.)
+    
+    !call pyramiduvw2abc(uvw=uvw,a=a,b=b,c=c)
+    !call pyramidLagrange3Dv(ord=ord,vand=vand,a=a,b=b,c=c,lx=li,transpose=.true.)  !> li(uvw) = Inverse[Transpose[Vand]].Psi[uvw]
+    !deallocate(a,b,c)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Evaluation des dérivées des fonctions de Lagrange aux points uvw
+    call dLagrange1Dv(dMat=drMatrix,lx=li,dlx=duLi,transpose=.true.) !> duLi(1:np,1:nPt)=Transpose[drMatrix] li
+    call dLagrange1Dv(dMat=dsMatrix,lx=li,dlx=dvLi,transpose=.true.) !> dvLi(1:np,1:nPt)=Transpose[dsMatrix] li
+    call dLagrange1Dv(dMat=dtMatrix,lx=li,dlx=dwLi,transpose=.true.) !> dwLi(1:np,1:nPt)=Transpose[dtMatrix] li
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> comparaison des resultats (calcul direct et calcul interpolé)
+    np =(ord+1)*(ord+2)*(2*ord+3)/6 !> = \sum_{k=1}^{ord+1} k^2
+    print'("np      =",i6)',np
+    print'("size(fi)=",i6)',size(fi)
+    print'("size(li)=",i6,"x",i6)',size(li,1),size(li,2)
+    print'("npt     =",i6)',nPt
+   !print '("ad=",i6,2x,"x=",f12.5,2x,"y=",f12.5,2x,"z=",f12.5,2x,"f=",e22.15)',(i,uvw(1:3,i),f(i),i=1,nPt)
+    
+    cpt=0
+    do j=1,nPt
+      f0=0d0
+      do i=1,np
+        f0=f0+li(i,j)*fi(i)
+      enddo
+      if( abs(f(j)-f0)>tol )then
+        cpt=cpt+1
+        print '("ad=",i6,2x,"uvw=",3(f12.5,1x),"∆f=",e22.15," - ",e22.15," = ",e22.15)',j,uvw(1:3,j),f(j),f0,f(j)-f0
+      endif
+    enddo
+    print '("ecart sur f cpt=",i6,"/",i6)',cpt,nPt
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    deallocate(uvw)
+    deallocate(li,duLi,dvLi,dwLi)
+    deallocate(f,dxf,dyf,dzf)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( .not.cpt==0 )then
+      print '("Arret sur test basic ",i1)',iOrd
+      stop
+    else
+      write(*,'("<<< Test basic ",i1)')iOrd
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  enddo
+  
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+return
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> TEST AVANCE DES BASES
+  
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  deallocate(xyzOut)
-  deallocate(a,b,c)
-  !
-  deallocate(lxOut)
-  deallocate(duLxOut,dvLxOut,dwLxOut)
+  write(*,'("Test avancé")')
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Liste des points uvw
+  call pyramidReadXYZout3D(xyzOut=uvw, display=.true.)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> f(u,v,w),∂xf(u,v,w),∂yf(u,v,w),∂zf(u,v,w)
+  nPt=size(uvw,2) ; allocate(f(nPt),dxf(nPt),dyf(nPt),dzf(nPt))
+  call FXYZ(xyz=uvw,f=f,dxf=dxf,dyf=dyf,dzf=dzf)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Evaluation des fonctions de Lagrange aux points uvw
+  !> Transpose=.true. => li(np,nPt)
+  
+  call pyramidBaseP1(uvw=uvw, ai=li, transpose=.true.)
+  
+  !call pyramiduvw2abc(uvw=uvw,a=a,b=b,c=c)
+  !call pyramidLagrange3Dv(ord=ord,vand=vand,a=a,b=b,c=c,lx=li,transpose=.true.)  !> li(uvw) = Inverse[Transpose[Vand]].Psi[uvw]
+  !deallocate(a,b,c)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Evaluation des dérivées des fonctions de Lagrange aux points uvw
+  call dLagrange1Dv(dMat=drMatrix,lx=li,dlx=duLi,transpose=.true.) !> duLi(1:np,1:nPt)=Transpose[drMatrix] li
+  call dLagrange1Dv(dMat=dsMatrix,lx=li,dlx=dvLi,transpose=.true.) !> dvLi(1:np,1:nPt)=Transpose[dsMatrix] li
+  call dLagrange1Dv(dMat=dtMatrix,lx=li,dlx=dwLi,transpose=.true.) !> dwLi(1:np,1:nPt)=Transpose[dtMatrix] li
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> comparaison des resultats (calcul direct et calcul interpolé)
+  np =(ord+1)*(ord+2)*(2*ord+3)/6 !> = \sum_{k=1}^{ord+1} k^2
+  print'("np      =",i6)',np
+  print'("size(fi)=",i6)',size(fi)
+  print'("size(li)=",i6,"x",i6)',size(li,1),size(li,2)
+  print'("npt     =",i6)',nPt
+ !print '("ad=",i6,2x,"x=",f12.5,2x,"y=",f12.5,2x,"z=",f12.5,2x,"f=",e22.15)',(i,uvw(1:3,i),f(i),i=1,nPt)
+  
+  cpt=0
+  do j=1,nPt
+    f0=0d0
+    do i=1,np
+      f0=f0+li(i,j)*fi(i)
+    enddo
+    if( abs(f(j)-f0)>tol )then
+      cpt=cpt+1
+      print '("ad=",i6,2x,"uvw=",3(f12.5,1x),"∆f=",e22.15," - ",e22.15," = ",e22.15)',j,uvw(1:3,j),f(j),f0,f(j)-f0
+    endif
+  enddo
+  print '("ecart sur f cpt=",i6,"/",i6)',cpt,nPt
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  deallocate(uvw)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  deallocate(li,duLi,dvLi,dwLi)
+  deallocate(f,dxf,dyf,dzf)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   deallocate(vand)
@@ -1474,8 +1661,36 @@ subroutine pyramTestBasis()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   return
+  
+contains
+  
+  subroutine FXYZ(xyz,f,dxf,dyf,dzf)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    real(8) :: xyz(:,:)
+    real(8) ::   f(:)
+    real(8) :: dxf(:)
+    real(8) :: dyf(:)
+    real(8) :: dzf(:)
+    !>
+    integer :: n
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    n=1
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    f(:)= (xyz(1,:)+1d0)**n * (xyz(2,:)+1d0)**n * (xyz(3,:)-5d-1)**n
+    
+    dxf(:) = real(n,kind=8) * (xyz(1,:)+1)**(n-1) * (xyz(2,:)+1)**(n  ) * (xyz(3,:)-5d-1)**(n  )
+    dyf(:) = real(n,kind=8) * (xyz(1,:)+1)**(n  ) * (xyz(2,:)+1)**(n-1) * (xyz(3,:)-5d-1)**(n  )
+    dzf(:) = real(n,kind=8) * (xyz(1,:)+1)**(n  ) * (xyz(2,:)+1)**(n  ) * (xyz(3,:)-5d-1)**(n-1)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return  
+  end subroutine FXYZ
+  
 end subroutine pyramTestBasis
-
 
 
 program main
@@ -1488,12 +1703,12 @@ program main
  !call testQuadratureGL()
   
   !> Test segments
- !call test1D()
- !call test1D_01()
+ !call edge_00()
+ !call edge_01()
   
   !> Test Triangles
-  call Triangle()
- !call Triangle_01()
+ !call triangle_00()
+ !call triangle_01()
   
   !> Test Tetra
   !call tetraTest()
@@ -1507,6 +1722,7 @@ program main
  !call pyramLebesgue()
  !call pyramMaillageVisu() !> maillages de visu pour la pyramide d'ordre élevé
  !call pyramDegreesOverSides()
- !call pyramTestBasis()
+ !call pyramTestQuadrature()
+  call pyramTestBasis()
   
 end program main

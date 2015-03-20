@@ -62,6 +62,7 @@ OBJS =  $(OBJDIR)/libmesh6.o              \
         $(OBJDIR)/libmesh6_fortran_api.o  \
         $(OBJDIR)/M_libmesh6_api.o        \
         $(OBJDIR)/modDeterminant.o        \
+        $(OBJDIR)/pyramidRule.o           \
         $(OBJDIR)/baseSimplexTools.o      \
         $(OBJDIR)/baseSimplex1D.o         \
         $(OBJDIR)/baseSimplex2D.o         \
