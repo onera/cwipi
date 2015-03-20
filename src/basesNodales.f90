@@ -1823,8 +1823,16 @@ contains
         dzf(i)=7*x**2*y**2+5*z**4        +dzf(i)
       endif
       
+      if( ord>=6 )then
+        f  (i)=3*x**6+7*x**2*y**2*z**2+x*y*z**4 +  f(i)
+        dxf(i)=18*x**5+14*x*y**2*z**2+y*z**4    +dxf(i)
+        dyf(i)=14*x**2*y*z**2+X*z**4            +dyf(i)
+        dzf(i)=14*x**2*y**2*z+4*x*y*z**3        +dzf(i)
+      endif
+      
     enddo
-    if( ord>=6 )then
+    
+    if( ord>=7 )then
       print '("warning ord>=6 not tested")'
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
