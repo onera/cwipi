@@ -1752,6 +1752,10 @@ subroutine pyramTestBasis()
   deallocate(drMatrix,dsMatrix,dtMatrix)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  write(*,'(/"Contrôle réussi"/)')
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
   return
   
 contains
