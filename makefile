@@ -68,7 +68,7 @@ OBJS =  $(OBJDIR)/libmesh6.o              \
         $(OBJDIR)/baseSimplex2D.o         \
         $(OBJDIR)/baseSimplex3D.o         \
         $(OBJDIR)/basePyramid.o           \
-        $(OBJDIR)/basePyramid.o           \
+        $(OBJDIR)/baseWedge.o             \
         $(OBJDIR)/LDLt.o                  \
         $(OBJDIR)/basesNodales.o
 

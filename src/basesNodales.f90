@@ -1385,7 +1385,7 @@ subroutine pyramTestQuadrature()
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   do iOrd=0,ord
-  
+    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Liste des points xyzOut
    !write(*,'(/"Points de Gauss:")')
@@ -1441,6 +1441,7 @@ subroutine pyramTestBasis()
   integer              :: iOrd,ord
   real(8), pointer     :: uvw(:,:)=>null()
   !>
+  real(8), pointer     :: x(:),y(:),z(:),w(:)
   real(8), pointer     :: a(:),b(:),c(:)
   real(8), pointer     :: vand(:,:),dVand(:,:)
   real(8), pointer     :: duPsi   (:,:),dvPsi   (:,:),dwPsi   (:,:)
@@ -1746,6 +1747,172 @@ subroutine pyramTestBasis()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> TEST SUR POINTS DE GAUSS DES BASES
+  
+  do iOrd=ord,ord
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    write(*,'(/">>> Test sur points de Gauss ord=",i2)')ord
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Liste des points xyzOut
+   !write(*,'(/"Points de Gauss:")')
+    call P5_gauss(   &
+    &    order=iOrd ,&
+    &    nGauss=nPt ,&
+    &    uGauss=x   ,&
+    &    vGauss=y   ,&
+    &    wGauss=z   ,&
+    &    pGauss=w    )
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    allocate(uvw(1:3,nPt))
+    do i=1,nPt
+      uvw(1:3,i)=[x(i),y(i),z(i)]
+    enddo
+    
+    print '(/4x,"uvw")'
+    do i=1,nPt
+      print '(4x,"i=",i4," uvw=",3(f9.6,1x))',i,uvw(1:3,i)
+    enddo
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    allocate(f(nPt),dxf(nPt),dyf(nPt),dzf(nPt))
+    call fxyz(xyz=uvw,f=f,dxf=dxf,dyf=dyf,dzf=dzf)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Evaluation des fonctions de Lagrange aux points uvw
+    !> Transpose=.true. => li(np,nPt)
+    call pyramiduvw2abc(uvw=uvw,a=a,b=b,c=c)
+    call pyramidLagrange3Dv(ord=ord,vand=vand,a=a,b=b,c=c,lx=li,transpose=.true.)  !> li(uvw) = Inverse[Transpose[Vand]].Psi[uvw]
+    deallocate(a,b,c)
+    
+    print '(/4x,"li(:,uvw)")'
+    do i=1,nPt
+      print '(4x,"i=",i4," li =",14(f9.6,1x))',&
+      &   i,li(:,i)
+    enddo
+    print '()'
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Evaluation des dérivées des fonctions de Lagrange aux points uvw
+    call dLagrange1Dv(dMat=drMatrix,lx=li,dlx=duLi,transpose=.true.) !> duLi(1:np,1:nPt)=Transpose[drMatrix] li
+    call dLagrange1Dv(dMat=dsMatrix,lx=li,dlx=dvLi,transpose=.true.) !> dvLi(1:np,1:nPt)=Transpose[dsMatrix] li
+    call dLagrange1Dv(dMat=dtMatrix,lx=li,dlx=dwLi,transpose=.true.) !> dwLi(1:np,1:nPt)=Transpose[dtMatrix] li
+    
+    print '(/4x,"∂uli(:,uvw)")'
+    do i=1,nPt
+      print '(4x,"i=",i4," ∂uli=",14(f9.6,1x))',&
+      &   i,duLi(:,i)
+    enddo
+    
+    print '(/4x,"∂vli(:,uvw)")'
+    do i=1,nPt
+      print '(4x,"i=",i4," ∂vli=",14(f9.6,1x))',&
+      &   i,dvLi(:,i)
+    enddo
+    
+    print '(/4x,"∂wli(:,uvw)")'
+    do i=1,nPt
+      print '(4x,"i=",i4," ∂wli=",14(f9.6,1x))',&
+      &   i,dwLi(:,i)
+    enddo
+    print '()'
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> comparaison des resultats (calcul direct et calcul interpolé)
+    np =(ord+1)*(ord+2)*(2*ord+3)/6 !> = \sum_{k=1}^{ord+1} k^2
+    print'(4x,"np x nPt =",i6," x ",i6)',np,nPt
+    
+    !> test li
+    cpt0=0 ; deltaMax=0d0
+    do j=1,nPt
+      f0=0d0
+      do i=1,np
+        f0=f0+li(i,j)*fi(i)
+      enddo
+      delta=abs(f(j)-f0) ; if( delta>deltaMax)deltaMax=delta
+      if( delta>tol )then
+        cpt0=cpt0+1
+        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"f(uvw)- ∑ ai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),f(j),f0,f(j)-f0
+      endif
+    enddo
+    print '(4x,"erreur sur   f cpt=",i6,"/",i6,3x,"deltaMax=",e22.15)',cpt0,nPt,deltaMax
+    
+    !> test duLi
+    cpt1=0 ; deltaMax=0d0
+    do j=1,nPt
+      dxf0=0d0
+      do i=1,np
+        dxf0=dxf0+duLi(i,j)*fi(i)
+      enddo
+      delta=abs(dxf(j)-dxf0) ; if( delta>deltaMax)deltaMax=delta
+      if( delta>tol )then
+        cpt1=cpt1+1
+        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"   f(uvw)- ∑   ai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),f(j),f0,f(j)-f0
+      endif
+    enddo
+    print '(4x,"erreur sur ∂uf cpt=",i6,"/",i6,3x,"deltaMax=",e22.15)',cpt1,nPt,deltaMax
+    
+    !> test dvLi
+    cpt2=0 ; deltaMax=0d0
+    do j=1,nPt
+      dyf0=0d0
+      do i=1,np
+        dyf0=dyf0+dvLi(i,j)*fi(i)
+      enddo
+      delta=abs(dyf(j)-dyf0) ; if( delta>deltaMax)deltaMax=delta
+      if( delta>tol )then
+        cpt2=cpt2+1
+        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂vf(uvw)- ∑ ∂vai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),dyf(j),dyf0,dyf(j)-dyf0
+      endif
+    enddo
+    print '(4x,"erreur sur ∂vf cpt=",i6,"/",i6,3x,"deltaMax=",e22.15)',cpt2,nPt,deltaMax
+    
+    !> test dwLi
+    cpt3=0 ; deltaMax=0d0
+    do j=1,nPt
+      dzf0=0d0
+      do i=1,np
+        dzf0=dzf0+dwLi(i,j)*fi(i)
+      enddo
+      delta=abs(dzf(j)-dzf0) ; if( delta>deltaMax)deltaMax=delta
+      if( delta>tol )then
+        cpt3=cpt3+1
+        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂wf(uvw)- ∑ ∂wai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),dzf(j),dzf0,dzf(j)-dzf0
+      endif
+    enddo
+    print '(4x,"erreur sur ∂wf cpt=",i6,"/",i6,3x,"deltaMax=",e22.15)',cpt3,nPt,deltaMax
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    cpt=cpt0+cpt1+cpt2+cpt3
+    if( .not.cpt==0 )then
+      print '("xxx Erreur Test sur points de Gauss ord=",i2)',ord
+      stop
+    else
+      write(*,'("<<< Test sur points de Gauss ord=",i2)')ord
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    deallocate(uvw)
+    deallocate(x,y,z,w,f)
+    deallocate(li,duLi,dvLi,dwLi)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+  enddo
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   deallocate(vand)
