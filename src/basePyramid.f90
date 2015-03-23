@@ -1,6 +1,8 @@
 module basePyramid
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  use ieee_arithmetic
+  use iso_fortran_env
   use baseSimplexTools
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
@@ -328,16 +330,22 @@ contains
 #if pyramidGradVandermonde3D==1
     print '(/"    pyramidGradVandermonde3D: ∂Psi/∂x(1:n ,1:nP",i1,")")',ord
     do i=1,size(dxPsi,2)
-      print '(4x,"abc=",3(e22.15,1x),2x,"∂Psi/∂x=",10(e12.5,1x))',a(i),b(i),c(i),dxPsi(i,:)
+      print '(4x,"i=",i3,2x,"∂Psi/∂x=",14(f9.6,1x))',i,dxPsi(i,:)
     enddo
     print '(/"    pyramidGradVandermonde3D: ∂Psi/∂y(1:n ,1:nP",i1,")")',ord
     do i=1,size(dyPsi,2)
-      print '(4x,"abc=",3(e22.15,1x),2x,"∂Psi/∂z=",10(e12.5,1x))',a(i),b(i),c(i),dyPsi(i,:)
+      print '(4x,"i=",i3,2x,"∂Psi/∂z=",14(f9.6,1x))',i,dyPsi(i,:)
     enddo
     print '(/"    pyramidGradVandermonde3D: ∂Psi/∂z(1:n ,1:nP",i1,")")',ord
     do i=1,size(dzPsi,2)
-      print '(4x,"abc=",3(e22.15,1x),2x,"∂Psi/∂z=",10(e12.5,1x))',a(i),b(i),c(i),dzPsi(i,:)
+      print '(4x,"i=",i3,2x,"∂Psi/∂z=",14(f9.6,1x))',i,dzPsi(i,:)
     enddo
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if pyramidGradVandermonde3D==1
+    print '("<<< pyramidGradVandermonde3D")'
 #endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     

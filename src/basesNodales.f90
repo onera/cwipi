@@ -1796,10 +1796,15 @@ subroutine pyramTestBasis()
     
     print '(/4x,"li(:,uvw)")'
     do i=1,nPt
-      print '(4x,"i=",i4," li =",14(f9.6,1x))',&
-      &   i,li(:,i)
+      print '(4x,"i=",i4," li =",14(f9.6,1x))',i,li(:,i)
     enddo
-    print '()'
+    
+    open(unit=100,file="BasisP5_ai.dat",action='write')
+    write(100,'(4x,"ai")')
+    do i=1,nPt
+      write(100,'(4x,"i=",i3,2x,14(e19.12,1x))')i,li(:,i)
+    enddo
+    close(100)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1810,28 +1815,37 @@ subroutine pyramTestBasis()
     
     print '(/4x,"∂uli(:,uvw)")'
     do i=1,nPt
-      print '(4x,"i=",i4," ∂uli=",14(f9.6,1x))',&
-      &   i,duLi(:,i)
+      print '(4x,"i=",i4," ∂uli=",14(f9.6,1x))',i,duLi(:,i)
     enddo
-    
     print '(/4x,"∂vli(:,uvw)")'
     do i=1,nPt
-      print '(4x,"i=",i4," ∂vli=",14(f9.6,1x))',&
-      &   i,dvLi(:,i)
+      print '(4x,"i=",i4," ∂vli=",14(f9.6,1x))',i,dvLi(:,i)
     enddo
-    
     print '(/4x,"∂wli(:,uvw)")'
     do i=1,nPt
-      print '(4x,"i=",i4," ∂wli=",14(f9.6,1x))',&
-      &   i,dwLi(:,i)
+      print '(4x,"i=",i4," ∂wli=",14(f9.6,1x))',i,dwLi(:,i)
     enddo
-    print '()'
+    
+    open(unit=100,file="BasisP5_grad_ai.dat",action='write')
+    write(100,'(4x,"duai")')
+    do i=1,nPt
+      write(100,'(4x,"i=",i3,2x,14(e19.12,1x))')i,duLi(:,i)
+    enddo
+    write(100,'(/4x,"dvai")')
+    do i=1,nPt
+      write(100,'(4x,"i=",i3,2x,14(e19.12,1x))')i,dvLi(:,i)
+    enddo
+    write(100,'(/4x,"dwai")')
+    do i=1,nPt
+      write(100,'(4x,"i=",i3,2x,14(e19.12,1x))'),i,dwLi(:,i)
+    enddo
+    close(100)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> comparaison des resultats (calcul direct et calcul interpolé)
     np =(ord+1)*(ord+2)*(2*ord+3)/6 !> = \sum_{k=1}^{ord+1} k^2
-    print'(4x,"np x nPt =",i6," x ",i6)',np,nPt
+    print'(/4x,"np x nPt =",i6," x ",i6)',np,nPt
     
     !> test li
     cpt0=0 ; deltaMax=0d0
