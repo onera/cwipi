@@ -36,12 +36,22 @@ module baseSimplex2D
     allocate(uvw(1:3,1:n))
     if( ord==0 )then
       uvw(1:3,1)=[1d0/3d0,1d0/3d0,1d0/3d0]
+    elseif( ord==1 )then
+      uvw(1:3,1)=[0d0,0d0,1d0]
+      uvw(1:3,2)=[1d0,0d0,0d0]
+      uvw(1:3,3)=[0d0,1d0,0d0]
+    elseif( ord==2 )then
+      uvw(1:3,1)=[0.0d0, 0.0d0, 1.0d0]
+      uvw(1:3,2)=[0.5d0, 0.0d0, 0.5d0]
+      uvw(1:3,3)=[1.0d0, 0.0d0, 0.0d0]
+      uvw(1:3,4)=[0.0d0, 0.5d0, 0.5d0]
+      uvw(1:3,5)=[0.5d0, 0.5d0, 0.0d0]
+      uvw(1:3,6)=[0.0d0, 1.0d0, 0.0d0]
     else
       do iu=0,ord
         do iv=0,ord-iu
           do iw=0,ord-iu-iv
-            ad=iu+iv*(ord+1)-(iv*(iv-1))/2 +1 ! Rangement façon space
-            
+            ad=iu+iv*(ord+1)-(iv*(iv-1))/2 +1 !> Rangement façon space            
             uvw(1:3,ad)=[real(iu,kind=8)/real(ord,kind=8),& ! u
             &            real(iv,kind=8)/real(ord,kind=8),& ! v
             &            real(iw,kind=8)/real(ord,kind=8) ] ! w
@@ -89,12 +99,12 @@ module baseSimplex2D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Total number of nodes
-    n=(ord+1)*(ord+2)/2
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if( .not.ord==0 )then
+    if( ord>2 )then
+      
+      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      !> Total number of nodes
+      n=(ord+1)*(ord+2)/2
+      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       
       !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       !> Create barycentric coordinate l1,l2,l3

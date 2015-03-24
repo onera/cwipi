@@ -1796,7 +1796,7 @@ subroutine pyramTestBasis()
     
     print '(/4x,"li(:,uvw)")'
     do i=1,nPt
-      print '(4x,"i=",i4," li =",14(f9.6,1x))',i,li(:,i)
+      print '(4x,"i=",i4," li  =",14(f9.6,1x))',i,li(:,i)
     enddo
     
     open(unit=100,file="BasisP5_ai.dat",action='write')

@@ -432,6 +432,7 @@ contains
     return
   end subroutine pyramidBaseP1
   
+  
   subroutine pyramideH6BaseP1(uvw, ai, transpose)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Hexa [-1,1] x [-1,1] [0,1] dégénéré
@@ -604,6 +605,120 @@ contains
     return
   end subroutine pyramidBasePi
   
+  
+  subroutine pyramidGradBaseP1(uvw,duai,dvai,dwai,transpose)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    real(8), intent(in) , pointer :: uvw(:,:)
+    real(8), intent(out), pointer :: duai(:,:),dvai(:,:),dwai(:,:)
+    logical, intent(in)           :: transpose
+    !>
+    integer                       :: i,nn
+    real(8)                       :: u0,v0,w0
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Transpose = True  => ai(1:np,1:nPt)
+    !> Transpose = False => ai(1:nPt,1:np)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    nn=size(uvw,2)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if(      transpose )allocate( duai(1:5,size(uvw,2)),dvai(1:5,size(uvw,2)),dwai(1:5,size(uvw,2)) )
+    if( .not.transpose )allocate( duai(size(uvw,2),1:5),dvai(size(uvw,2),1:5),dwai(size(uvw,2),1:5) )
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> vertex functions
+    if( transpose )then
+      
+      do i=1,nn
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        if( uvw(3,i)==1d0 )then
+          u0=0d0
+          v0=0d0
+          w0=0d0 !????
+        else
+          w0=1d0/(1d0-uvw(3,i))      !> w0=1d0/(1d0-w)
+          u0=uvw(1,i)*w0             !> u0=u  /(1d0-w)
+          v0=uvw(2,i)*w0             !> v0=  v/(1d0-w)
+          w0=uvw(1,i)*uvw(2,i)*w0*w0 !> w0=u*v/(1d0-w)**2
+        endif
+        !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        duai(1,i)=.25d0*(-1d0+v0)
+        duai(2,i)=.25d0*( 1d0-v0)
+        duai(4,i)=.25d0*( 1d0+v0) !> retournement 3<->4
+        duai(3,i)=.25d0*(-1d0-v0) !> retournement 3<->4
+        duai(5,i)= 0d0
+        !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        dvai(1,i)=.25d0*(-1d0+u0)
+        dvai(2,i)=.25d0*(-1d0-u0)
+        dvai(4,i)=.25d0*( 1d0+u0) !> retournement 3<->4
+        dvai(3,i)=.25d0*( 1d0-u0) !> retournement 3<->4
+        dvai(5,i)= 0d0
+        !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        dwai(1,i)=.25d0*(-1d0+w0)
+        dwai(2,i)=.25d0*(-1d0-w0)
+        dwai(4,i)=.25d0*(-1d0+w0) !> retournement 3<->4
+        dwai(3,i)=.25d0*(-1d0-w0) !> retournement 3<->4
+        dwai(5,i)= 1d0
+        !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        
+      enddo
+    else
+      do i=1,nn
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        if( uvw(3,i)==1d0 )then
+          u0=0d0
+          v0=0d0
+          w0=0d0 !????
+        else
+          w0=1d0/(1d0-uvw(3,i))      !> w0=1d0/(1d0-w)
+          u0=uvw(1,i)*w0             !> u0=u  /(1d0-w)
+          v0=uvw(2,i)*w0             !> v0=  v/(1d0-w)
+          w0=uvw(1,i)*uvw(2,i)*w0*w0 !> w0=u*v/(1d0-w)**2
+        endif
+        !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        duai(i,1)=.25d0*(-1d0+v0)
+        duai(i,2)=.25d0*( 1d0-v0)
+        duai(i,4)=.25d0*( 1d0+v0) !> retournement 3<->4
+        duai(i,3)=.25d0*(-1d0-v0) !> retournement 3<->4
+        duai(i,5)= 0d0
+        !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        dvai(i,1)=.25d0*(-1d0+u0)
+        dvai(i,2)=.25d0*(-1d0-u0)
+        dvai(i,4)=.25d0*( 1d0+u0) !> retournement 3<->4
+        dvai(i,3)=.25d0*( 1d0-u0) !> retournement 3<->4
+        dvai(i,5)= 0d0
+        !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        dwai(i,1)=.25d0*(-1d0+w0)
+        dwai(i,2)=.25d0*(-1d0-w0)
+        dwai(i,4)=.25d0*(-1d0+w0) !> retournement 3<->4
+        dwai(i,3)=.25d0*(-1d0-w0) !> retournement 3<->4
+        dwai(i,5)= 1d0
+        !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        
+      enddo
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine pyramidGradBaseP1
+  
   subroutine pyramidGradBasePi(ord,a,b,c,dxPsi,dyPsi,dzPsi,transpose)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #define pyramidGradBasePi 0
@@ -714,18 +829,15 @@ contains
         do i=1,n
           if( c(i)==1d0 )then
             if    ( iM-1<0 )then
-              tmp(i)=1d25
+              tmp(i)=1d25 ; print '("pyramidGradBasePi iM=",i2,"<1")',iM
             elseif( iM-1==0 )then
-              tmp(i)=1d0 
+              tmp(i)=1d0
             elseif( iM-1>0 )then
               tmp(i)=0d0
             endif
-            !tmp(i)=0d0
-            
           else
             tmp(i)=(1d0-c(i))**(iM-1)
           endif
-          
         enddo
         
         !> (∂Psi/∂x) = (∂P_i^{0,0}/∂a)(a)   P_j^{0,0}    (b)  P_k^{2 max(i,j)+2,0}(2c-1)  (1-c)^(max(i,j)-1)
