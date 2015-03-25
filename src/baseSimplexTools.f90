@@ -234,12 +234,14 @@ module baseSimplexTools
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     character(*) :: title
     real(8)       :: mat(:,:)
+    !>
     integer       :: i,j
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    print '(/a)',trim(title)
+    print '(/a,2x,"size="i2," x",i2)',trim(title),size(mat,1),size(mat,2)
     if( size(mat,2)<11 )then
+      print '(3x,$)'
       do i=1,size(mat,1)
         do j=1,size(mat,2)
           print '(1x,e22.15,$)',mat(i,j)
@@ -247,6 +249,7 @@ module baseSimplexTools
         print '()'
       enddo
     else
+      print '(3x,$)'
       do i=1,size(mat,1)
         do j=1,size(mat,2)
           print '(1x,e12.5,$)',mat(i,j)
@@ -269,7 +272,7 @@ module baseSimplexTools
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    print '(/a)',trim(title)
+    print '(/a,2x,"size="i3," x",i3)',trim(title),size(mat,1),size(mat,2)
     do i=1,size(mat,1)
       do j=1,size(mat,2)
         if( abs(mat(i,j))>tol )print '(1x,i6,1x,i10,2x,e22.15)',i,j,mat(i,j)
@@ -284,6 +287,7 @@ module baseSimplexTools
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     character(*) :: title
     real(8)       :: mat(:,:)
+    !>
     integer       :: i,j
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -308,14 +312,12 @@ module baseSimplexTools
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     character(*) :: title
     real(8)       :: vec(:)
+    !>
     integer       :: i
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    print '(/a)',trim(title)
-    do i=1,size(vec)
-      print '(e22.15)',vec(i)
-    enddo
+    print '(/a,2x,"size=",i3)',trim(title),size(vec)
+    print '(4x,e22.15)',(vec(i),i=1,size(vec))
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
@@ -328,17 +330,18 @@ module baseSimplexTools
     !               ( x is not equal to 0,-1,-2,˙˙˙ )
     ! Output:  GA --- ‚(x)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     implicit none
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     real(8)            :: x
     real(8)            :: ga
-    !--------------------------------------------
+    !>
     integer            :: k,m1,m
     real(8)            :: r,gr
     real(8), parameter :: pi=3.141592653589793238462643_8
     real(8)            :: z
-    !--------------------------------------------
+    !>
     real(8), parameter :: g(26)=[ 1.0d0               ,&
     &                             0.5772156649015329d0,&
     &                            -0.6558780715202538d0,&
@@ -431,8 +434,8 @@ module baseSimplexTools
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( display )then
-      print '("eigv(",i4,")=",e22.15)',(ad,w(ad),ad=1,size(w))
-      print '(/"cond(mass)=",e22.15/)',maxval(w)/minval(w)
+      print '(4x,"eigv(",i4,")=",e22.15)',(ad,w(ad),ad=1,size(w))
+      print '(/4x,"cond(mass)=",e22.15/)',maxval(w)/minval(w)
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -934,7 +937,7 @@ module baseSimplexTools
     !---
     real(8), pointer              :: ap(:)
     integer                       :: ad
-    real(8) :: t0,t1
+    real(8)                       :: t0,t1
     integer                       :: i,j,k,n
     integer                       :: iErr,iFail
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -1018,6 +1021,9 @@ module baseSimplexTools
   
   subroutine massMatrix1(vand,mass)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#define massMatrix1 0
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! mass = Inverse[Vand.Transpose[Vand]]
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -1032,8 +1038,8 @@ module baseSimplexTools
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#ifdef debug
-    print '("baseSimplexTools:massMatrix1")'
+#if massMatrix1==1
+    print '(">>> baseSimplexTools:massMatrix1")'
 #endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -1077,7 +1083,8 @@ module baseSimplexTools
       call dpptri('L',n,mass,iErr)
       !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       
-    else ! ord=0 => vand is not associated
+    else !> ord=0 => vand is not associated
+      
       allocate(mass(1)) ; mass(1)=2d0
       
     endif
@@ -1088,6 +1095,16 @@ module baseSimplexTools
     call cpu_time(t1)
     print '("massMatrix Dt=",f12.9)',t1-t0
 #endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if massMatrix1==1
+    print '("<<< baseSimplexTools:massMatrix1")'
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#undef massMatrix1
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return

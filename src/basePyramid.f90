@@ -925,6 +925,104 @@ contains
   end subroutine pyramidGradBasePi
   
   
+  subroutine pyramideMassMatrix(ord, vand, mass)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#define pyramidMass 0
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    use baseSimplexTools
+    use pyramidRule, only: P5_gauss
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer              :: ord
+    real(8), pointer     :: vand(:,:)
+    real(8), pointer     :: mass(:)
+    !>
+    integer              :: i,j,iGauss,np,nPt
+    integer              :: ad,cpt,dCpt
+    real(8), pointer     :: uvw(:,:)
+    real(8), pointer     :: x(:),y(:),z(:),w(:)
+    
+    real(8), pointer     :: a(:),b(:),c(:)
+    real(8), pointer     :: li(:,:)
+    real(8), parameter   :: eps=1d-12
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+#if pyramidMass==1
+    write(*,'(/">>> pyramideMassMatrix : Mass=\int ai aj dV   compact format ord=",i2)')ord
+#endif
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !> Liste des points de Gauss
+    call P5_gauss(   &
+    &    order=ord  ,&
+    &    nGauss=nPt ,&
+    &    uGauss=x   ,&
+    &    vGauss=y   ,&
+    &    wGauss=z   ,&
+    &    pGauss=w    )
+    
+    allocate(uvw(1:3,nPt))
+    do i=1,nPt
+      uvw(1:3,i)=[x(i),y(i),z(i)]
+    enddo
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !> Evaluation des fonctions de Lagrange aux points uvw
+    !> Transpose=.true. => li(np,nPt)
+    call pyramiduvw2abc(uvw=uvw,a=a,b=b,c=c)
+    call pyramidLagrange3Dv(ord=ord,vand=vand,a=a,b=b,c=c,lx=li,transpose=.true.)  !> li(uvw) = Inverse[Transpose[Vand]].Psi[uvw]
+    deallocate(a,b,c)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    np=size(li,1)
+    !allocate( mass(np*(np+1)/2)) ; mass(:)=0d0
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    mass(:)=0d0
+    do iGauss=1,nPt
+      ad=0 ; cpt=0 ; dCpt=0
+      do i=1,np
+        do j=1,np
+          cpt=cpt+1
+          if( cpt>dCpt )then
+            ad=ad+1 ; mass(ad)=mass(ad)+li(i,iGauss)*li(j,iGauss)*w(iGauss)
+          endif
+        enddo
+        cpt=0 ; dCpt=dCpt+1
+      enddo
+    enddo
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    deallocate(uvw)
+    deallocate(li)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+#if pyramidMass==1
+    call display(title="    Mass Matrix Compact Format",vec=mass)
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+#if pyramidMass==1
+    write(*,'("<<< pyramideMassMatrix : Mass=\int ai aj dV   compact format ord=",i2)')ord
+#endif
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+#undef pyramidMass
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    
+    return
+  end subroutine pyramideMassMatrix
+  
   subroutine pyramidNodes(ord, uvw, display)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! input: ord=polynomial order of interpolant
