@@ -1468,14 +1468,21 @@ subroutine pyramTestBasis()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Preparation calcul de la base
   call pyramidVandermonde3D(ord=ord,a=a,b=b,c=c,vand=vand)
+  call display(title="    vand Matrix",mat=vand)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !>  Preparation calcul des dérivées de la base
-  call pyramidGradVandermonde3D(ord=ord,a=a,b=b,c=c,drMode=duPsi,dsMode=dvPsi,dtMode=dwPsi)
-  call derive1D(vand=vand,dVand=duPsi,dMat=drMatrix) !> drMatrix = duPsi.Inverse[vand]
-  call derive1D(vand=vand,dVand=dvPsi,dMat=dsMatrix) !> dsMatrix = dvPsi.Inverse[vand]
-  call derive1D(vand=vand,dVand=dwPsi,dMat=dtMatrix) !> dtMatrix = dwPsi.Inverse[vand]
+  call pyramidGradVandermonde3D(ord=ord,a=a,b=b,c=c,drMode=duPsi,dsMode=dvPsi,dtMode=dwPsi) !> Modal
+  call display(title="    duPsi Matrix",mat=duPsi)
+  call display(title="    dvPsi Matrix",mat=dvPsi)
+  call display(title="    dwPsi Matrix",mat=dwPsi)
+ !call mathematica(title="    duPsi Matrix",mat=duPsi)
+ !call mathematica(title="    dvPsi Matrix",mat=dvPsi)
+ !call mathematica(title="    dwPsi Matrix",mat=dwPsi)
+  call derive1D(vand=vand,dVand=duPsi,dMat=drMatrix) !> drMatrix = duPsi.Inverse[vand] !> Nodal
+  call derive1D(vand=vand,dVand=dvPsi,dMat=dsMatrix) !> dsMatrix = dvPsi.Inverse[vand] !> Nodal
+  call derive1D(vand=vand,dVand=dwPsi,dMat=dtMatrix) !> dtMatrix = dwPsi.Inverse[vand] !> Nodal
   deallocate(duPsi,dvPsi,dwPsi)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
@@ -2257,7 +2264,7 @@ subroutine pyramTestMass()
   real(8), pointer     :: a(:),b(:),c(:)
   real(8), pointer     :: li(:,:),psi(:,:)
   real(8), pointer     :: vand(:,:)
-  real(8), pointer     :: mass0(:,:),mass1(:,:),mass2(:,:)
+  real(8), pointer     :: mass0(:,:),mass1(:,:),mass2(:,:),imas(:,:)
   real(8), pointer     :: mas1(:),mas2(:)
   real(8), pointer     :: eigv(:)
   real(8), parameter   :: eps=1d-12

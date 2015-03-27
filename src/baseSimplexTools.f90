@@ -1142,7 +1142,6 @@ module baseSimplexTools
     integer                       :: ad
     real(8) :: t0,t1
     integer                       :: i,j,k,n
-    integer                       :: iErr,iFail
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1165,6 +1164,9 @@ module baseSimplexTools
         enddo
       enddo
     enddo
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !call displayMatrix(title="inverseMassMatrix",mat=invMass)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
