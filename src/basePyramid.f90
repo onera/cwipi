@@ -181,8 +181,9 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !call pyramidBasePi(ord=ord,a=a,b=b,c=c,mode=psi,transpose=.false.) !> psi(abc,:)
     call pyramidBasePi(ord=ord,a=a,b=b,c=c,mode=psi,transpose=.false.) !> psi(abc,:)
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #if pyramidLagrange3Dv==1
@@ -273,6 +274,8 @@ contains
     real(8), intent(in) , pointer :: b(:)
     real(8), intent(in) , pointer :: c(:)
     real(8), intent(out), pointer :: vand(:,:)
+    !>
+    real(8)             , pointer :: weight(:)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -284,11 +287,13 @@ contains
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Vandermonde matrix
-    call pyramidBasePi(ord=ord,a=a,b=b,c=c,mode=vand,transpose=.false.)
+   !call pyramidBasePi(ord=ord,a=a,b=b,c=c,mode=vand,transpose=.false.) !> vand(1:nPoint,1:np)
+    call pyramidBasePi(ord=ord,a=a,b=b,c=c,mode=vand,transpose=.false.) !> vand(1:nPoint,1:np)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
   end subroutine pyramidVandermonde3D
+  
   
   subroutine pyramidGradVandermonde3D(ord,a,b,c,drMode,dsMode,dtMode)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -432,172 +437,6 @@ contains
     return
   end subroutine pyramidBaseP1
   
-  
-  subroutine pyramideH6BaseP1(uvw, ai, transpose)
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Hexa [-1,1] x [-1,1] [0,1] dégénéré
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    real(8), intent(in) , pointer :: uvw(:,:)
-    real(8), intent(out), pointer :: ai(:,:)
-    logical, intent(in)           :: transpose
-    !>
-    integer                       :: i,nn
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> b1=1/4 (1-u) (1-v) (1-w)
-    !> b2=1/4 (1+u) (1-v) (1-w)
-    !> b3=1/4 (1+u) (1+v) (1-w)
-    !> b4=1/4 (1-u) (1+v) (1-w)
-    !> b5=                   w
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Transpose = True  => ai(1:np,1:nPt)
-    !> Transpose = False => ai(1:nPt,1:np)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    nn=size(uvw,2)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> vertex functions
-    if( transpose )then
-      allocate( ai(1:5,size(uvw,2)) )
-      do i=1,nn
-        ai(1,i) = 0.25d0*(1d0-uvw(1,i))*(1d0-uvw(2,i))*(1d0-uvw(3,i))
-        ai(2,i) = 0.25d0*(1d0+uvw(1,i))*(1d0-uvw(2,i))*(1d0-uvw(3,i))
-        ai(4,i) = 0.25d0*(1d0+uvw(1,i))*(1d0+uvw(2,i))*(1d0-uvw(3,i)) !> retournement 3<->4
-        ai(3,i) = 0.25d0*(1d0-uvw(1,i))*(1d0+uvw(2,i))*(1d0-uvw(3,i)) !> retournement 3<->4
-        ai(5,i) = uvw(3,i)
-      enddo
-    else
-    allocate( ai(size(uvw,2),1:5) )
-      do i=1,nn
-        ai(i,1) = 0.25d0*(1d0-uvw(1,i))*(1d0-uvw(2,i))*(1d0-uvw(3,i))
-        ai(i,2) = 0.25d0*(1d0+uvw(1,i))*(1d0-uvw(2,i))*(1d0-uvw(3,i))
-        ai(i,4) = 0.25d0*(1d0+uvw(1,i))*(1d0+uvw(2,i))*(1d0-uvw(3,i)) !> retournement 3<->4
-        ai(i,3) = 0.25d0*(1d0-uvw(1,i))*(1d0+uvw(2,i))*(1d0-uvw(3,i)) !> retournement 3<->4
-        ai(i,5) = uvw(3,i)
-      enddo
-    endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    return
-  end subroutine pyramideH6BaseP1
-  
-  subroutine pyramidBasePi(ord,a,b,c,mode,transpose)
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#define pyramidBasePi 0
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Psi(a,b,c) = P_i^{0,0}(a)  P_j^{0,0}(b)  (1-c)^max(i,j)  P_k^{2max(i,j)+2,0}(2c-1)
-    !> avec {a=u/(1-w) ; b=v/(1/w) ; c=w}
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Transpose = True  => mode(1:np,1:n)
-    !> Transpose = False => mode(1:n,1:np)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    use ieee_arithmetic
-    use baseSimplexTools, only: jacobiP
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    integer, intent(in)           :: ord
-    real(8)             , pointer :: a(:),b(:),c(:)
-    real(8), intent(out), pointer :: mode(:,:)
-    logical, intent(in)           :: transpose
-    !>
-    real(8)                       :: alpha,beta
-    integer                       :: iu,iv,iw,iM,iMod,n,np
-    real(8), pointer              :: P_iu(:),P_iv(:),P_iw(:)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#if pyramidBasePi==1
-    print '(">>> pyramidBasePi transpose=",l)',transpose
-#endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    np=(ord+1)*(ord+2)*(2*ord+3)/6
-    n =size(a)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if( .not.transpose )then
-      
-      allocate(mode(1:n,1:np))
-      
-      iMod=0
-      do iu=0,ord ; do iv=0,ord
-        iM=max(iu,iv)
-        do iw=0,ord-iM
-          iMod=iMod+1
-          
-          alpha=0d0                 ; beta=0d0
-          call jacobiP(n=iu,alpha=alpha, beta=beta,u=a(1:n)      ,jf=P_iu)   !> J_iu^{0             ,0} (a)
-          
-          alpha=0d0                 ; beta=0d0
-          call jacobiP(n=iv,alpha=alpha, beta=beta,u=b(1:n)      ,jf=P_iv)   !> J_iv^{0             ,0} (b)
-          
-          alpha=real(2*iM+2,kind=8) ; beta=0d0
-          call jacobiP(n=iw,alpha=alpha,beta=beta,u=2d0*c(1:n)-1d0,jf=P_iw)  !> J_iw^{2*max(iu,iv)+2,0} (2c-1)
-          
-          !> Psi(a,b,c) = P_i^{0,0}(a)   P_j^{0,0}(b)  (1-c)^max(i,j)   P_k^{2max(i,j)+2,0}(2c-1)
-          mode(1:n,iMod)= P_iu(1:n) * P_iv(1:n) * (1d0-c(1:n))**iM * P_iw(1:n)
-          
-        enddo
-      enddo ; enddo
-      
-      deallocate(P_iu,P_iv,P_iw)
-      
-    else
-      
-      allocate(mode(1:np,1:n))
-      
-      iMod=0
-      do iu=0,ord ; do iv=0,ord
-        iM=max(iu,iv)
-        do iw=0,ord-iM
-          iMod=iMod+1
-          
-          alpha=0d0                 ; beta=0d0
-          call jacobiP(n=iu,alpha=alpha, beta=beta,u=a(1:n)      ,jf=P_iu)   !> J_iu^{0             ,0} (a)
-          
-          alpha=0d0                 ; beta=0d0
-          call jacobiP(n=iv,alpha=alpha, beta=beta,u=b(1:n)      ,jf=P_iv)   !> J_iv^{0             ,0} (b)
-          
-          alpha=real(2*iM+2,kind=8) ; beta=0d0
-          call jacobiP(n=iw,alpha=alpha,beta=beta,u=2d0*c(1:n)-1d0,jf=P_iw)  !> J_iw^{2*max(iu,iv)+2,0} (2c-1)
-          
-          !> Psi(a,b,c) = P_i^{0,0}(a)   P_j^{0,0}(b)  (1-c)^max(i,j)   P_k^{2max(i,j)+2,0}(2c-1)
-          mode(iMod,1:n)= P_iu(1:n) * P_iv(1:n) * (1d0-c(1:n))**iM * P_iw(1:n)
-          
-        enddo
-      enddo ; enddo
-      
-      deallocate(P_iu,P_iv,P_iw)
-      
-    endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#if pyramidBasePi==1
-    print '("<<< pyramidBasePi")'
-#endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#undef pyramidBasePi
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    return
-  end subroutine pyramidBasePi
-  
-  
   subroutine pyramidGradBaseP1(uvw,duai,dvai,dwai,transpose)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     real(8), intent(in) , pointer :: uvw(:,:)
@@ -711,9 +550,551 @@ contains
     return
   end subroutine pyramidGradBaseP1
   
+  subroutine pyramidH6BaseP1(uvw, ai, transpose)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Hexa [-1,1] x [-1,1] [0,1] dégénéré
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    real(8), intent(in) , pointer :: uvw(:,:)
+    real(8), intent(out), pointer :: ai(:,:)
+    logical, intent(in)           :: transpose
+    !>
+    integer                       :: i,nn
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> b1=1/4 (1-u) (1-v) (1-w)
+    !> b2=1/4 (1+u) (1-v) (1-w)
+    !> b3=1/4 (1+u) (1+v) (1-w)
+    !> b4=1/4 (1-u) (1+v) (1-w)
+    !> b5=                   w
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Transpose = True  => ai(1:np,1:nPt)
+    !> Transpose = False => ai(1:nPt,1:np)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    nn=size(uvw,2)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> vertex functions
+    if( transpose )then
+      allocate( ai(1:5,size(uvw,2)) )
+      do i=1,nn
+        ai(1,i) = 0.25d0*(1d0-uvw(1,i))*(1d0-uvw(2,i))*(1d0-uvw(3,i))
+        ai(2,i) = 0.25d0*(1d0+uvw(1,i))*(1d0-uvw(2,i))*(1d0-uvw(3,i))
+        ai(4,i) = 0.25d0*(1d0+uvw(1,i))*(1d0+uvw(2,i))*(1d0-uvw(3,i)) !> retournement 3<->4
+        ai(3,i) = 0.25d0*(1d0-uvw(1,i))*(1d0+uvw(2,i))*(1d0-uvw(3,i)) !> retournement 3<->4
+        ai(5,i) =                                           uvw(3,i)
+      enddo
+    else
+      allocate( ai(size(uvw,2),1:5) )
+      do i=1,nn
+        ai(i,1) = 0.25d0*(1d0-uvw(1,i))*(1d0-uvw(2,i))*(1d0-uvw(3,i))
+        ai(i,2) = 0.25d0*(1d0+uvw(1,i))*(1d0-uvw(2,i))*(1d0-uvw(3,i))
+        ai(i,4) = 0.25d0*(1d0+uvw(1,i))*(1d0+uvw(2,i))*(1d0-uvw(3,i)) !> retournement 3<->4
+        ai(i,3) = 0.25d0*(1d0-uvw(1,i))*(1d0+uvw(2,i))*(1d0-uvw(3,i)) !> retournement 3<->4
+        ai(i,5) =                                           uvw(3,i)
+      enddo
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine pyramidH6BaseP1
+  
+  subroutine pyramidH6GradBaseP1(uvw,duai,dvai,dwai,transpose)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Hexa [-1,1] x [-1,1] [0,1] dégénéré
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    real(8), intent(in) , pointer :: uvw(:,:)
+    real(8), intent(out), pointer :: duai(:,:),dvai(:,:),dwai(:,:)
+    logical, intent(in)           :: transpose
+    !>
+    integer                       :: i,nn
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> b1=1/4 (1-u) (1-v) (1-w)
+    !> b2=1/4 (1+u) (1-v) (1-w)
+    !> b3=1/4 (1+u) (1+v) (1-w)
+    !> b4=1/4 (1-u) (1+v) (1-w)
+    !> b5=                   w
+    !>
+    !> dub1=-1/4 (1-v) (1-w) ; dvb1=-1/4 (1-u) (1-w) ; dwb1=-1/4 (1-u) (1-v)
+    !> dub2= 1/4 (1-v) (1-w) ; dvb2=-1/4 (1+u) (1-w) ; dwb2=-1/4 (1+u) (1-v)
+    !> dub3= 1/4 (1+v) (1-w) ; dvb3= 1/4 (1-u) (1-w) ; dwb3=-1/4 (1+u) (1+v)
+    !> dub4=-1/4 (1+v) (1-w) ; dvb4= 1/4 (1-u) (1-w) ; dwb4=-1/4 (1-u) (1+v)
+    !> dub5= 0               ; dvb5= 0               ; dwb5= 1
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Transpose = True  => ai(1:np,1:nPt)
+    !> Transpose = False => ai(1:nPt,1:np)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    nn=size(uvw,2)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> vertex functions
+    if( transpose )then
+      allocate( duai(1:5,size(uvw,2)) )
+      allocate( dvai(1:5,size(uvw,2)) )
+      allocate( dwai(1:5,size(uvw,2)) )
+      do i=1,nn
+        
+        duai(1,i) =-0.25d0*(1d0-uvw(2,i))*(1d0-uvw(3,i))
+        duai(2,i) = 0.25d0*(1d0-uvw(2,i))*(1d0-uvw(3,i))
+        duai(4,i) = 0.25d0*(1d0+uvw(2,i))*(1d0-uvw(3,i)) !> retournement 3<->4
+        duai(3,i) =-0.25d0*(1d0+uvw(2,i))*(1d0-uvw(3,i)) !> retournement 3<->4
+        duai(5,i) = 0.00d0
+        
+        dvai(1,i) =-0.25d0*(1d0-uvw(1,i))*(1d0-uvw(3,i))
+        dvai(2,i) =-0.25d0*(1d0+uvw(1,i))*(1d0-uvw(3,i))
+        dvai(4,i) = 0.25d0*(1d0+uvw(1,i))*(1d0-uvw(3,i)) !> retournement 3<->4
+        dvai(3,i) = 0.25d0*(1d0-uvw(1,i))*(1d0-uvw(3,i)) !> retournement 3<->4
+        dvai(5,i) = 0.00d0
+        
+        dwai(1,i) =-0.25d0*(1d0-uvw(1,i))*(1d0-uvw(2,i))
+        dwai(2,i) =-0.25d0*(1d0+uvw(1,i))*(1d0-uvw(2,i))
+        dwai(4,i) =-0.25d0*(1d0+uvw(1,i))*(1d0+uvw(2,i)) !> retournement 3<->4
+        dwai(3,i) =-0.25d0*(1d0-uvw(1,i))*(1d0+uvw(2,i)) !> retournement 3<->4
+        dwai(5,i) = 1.00d0
+      enddo
+    else
+      allocate( duai(size(uvw,2),1:5) )
+      allocate( dvai(size(uvw,2),1:5) )
+      allocate( dwai(size(uvw,2),1:5) )
+      do i=1,nn
+        duai(i,1) =-0.25d0*(1d0-uvw(2,i))*(1d0-uvw(3,i))
+        duai(i,2) = 0.25d0*(1d0-uvw(2,i))*(1d0-uvw(3,i))
+        duai(i,4) = 0.25d0*(1d0+uvw(2,i))*(1d0-uvw(3,i)) !> retournement 3<->4
+        duai(i,3) =-0.25d0*(1d0+uvw(2,i))*(1d0-uvw(3,i)) !> retournement 3<->4
+        duai(i,5) = 0.00d0
+        
+        dvai(i,1) =-0.25d0*(1d0-uvw(1,i))*(1d0-uvw(3,i))
+        dvai(i,2) =-0.25d0*(1d0+uvw(1,i))*(1d0-uvw(3,i))
+        dvai(i,4) = 0.25d0*(1d0+uvw(1,i))*(1d0-uvw(3,i)) !> retournement 3<->4
+        dvai(i,3) = 0.25d0*(1d0-uvw(1,i))*(1d0-uvw(3,i)) !> retournement 3<->4
+        dvai(i,5) = 0.00d0
+        
+        dwai(i,1) =-0.25d0*(1d0-uvw(1,i))*(1d0-uvw(2,i))
+        dwai(i,2) =-0.25d0*(1d0+uvw(1,i))*(1d0-uvw(2,i))
+        dwai(i,4) =-0.25d0*(1d0+uvw(1,i))*(1d0+uvw(2,i)) !> retournement 3<->4
+        dwai(i,3) =-0.25d0*(1d0-uvw(1,i))*(1d0+uvw(2,i)) !> retournement 3<->4
+        dwai(i,5) = 1.00d0
+      enddo
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine pyramidH6GradBaseP1
+  
+  subroutine pyramidBasePiOrthogonal(ord,a,b,c,mode,transpose)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#define pyramidBasePiOrthogonal 0
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Psi(a,b,c) = P_i^{0,0}(a)  P_j^{0,0}(b)  (1-c)^max(i,j)  P_k^{2max(i,j)+2,0}(2c-1)
+    !> avec {a=u/(1-w) ; b=v/(1/w) ; c=w}
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Transpose = True  => mode(1:np,1:n)
+    !> Transpose = False => mode(1:n,1:np)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    use ieee_arithmetic
+    use baseSimplexTools, only: jacobiP
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer, intent(in)           :: ord
+    real(8)             , pointer :: a(:),b(:),c(:)
+    real(8), intent(out), pointer :: mode(:,:)
+    logical, intent(in)           :: transpose
+    !>
+    real(8)                       :: alpha,beta
+    integer                       :: iu,iv,iw,iM,iMod,n,np
+    real(8), pointer              :: P_iu(:),P_iv(:),P_iw(:)
+    !>
+    real(8), pointer              :: weight(:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if pyramidBasePiOrthogonal==1
+    print '(">>> pyramidBasePiOrthogonal transpose=",l)',transpose
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    np=(ord+1)*(ord+2)*(2*ord+3)/6
+    n =size(a)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if pyramidBasePiOrthogonal==1
+    print '(4x,"base orthogonale Psi(a,b,c) = P_i^{0,0}(a) P_j^{0,0}(b) (1-c)^max(i,j) P_k^{2max(i,j)+2,0}(2c-1)")'
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Base orthogonale
+    if( .not.transpose )then
+      
+      allocate(mode(1:n,1:np))
+      
+      iMod=0
+      do iu=0,ord ; do iv=0,ord
+        iM=max(iu,iv)
+        do iw=0,ord-iM
+          iMod=iMod+1
+          
+          alpha=0d0                 ; beta=0d0
+          call jacobiP(n=iu,alpha=alpha, beta=beta,u=a(1:n)      ,jf=P_iu)   !> J_iu^{0             ,0} (a)
+          
+          alpha=0d0                 ; beta=0d0
+          call jacobiP(n=iv,alpha=alpha, beta=beta,u=b(1:n)      ,jf=P_iv)   !> J_iv^{0             ,0} (b)
+          
+          alpha=real(2*iM+2,kind=8) ; beta=0d0
+          call jacobiP(n=iw,alpha=alpha,beta=beta,u=2d0*c(1:n)-1d0,jf=P_iw)  !> J_iw^{2*max(iu,iv)+2,0} (2c-1)
+          
+          !> Psi(a,b,c) = P_i^{0,0}(a)   P_j^{0,0}(b)  (1-c)^max(i,j)   P_k^{2max(i,j)+2,0}(2c-1)
+          mode(1:n,iMod)= P_iu(1:n) * P_iv(1:n) * (1d0-c(1:n))**iM * P_iw(1:n)
+          
+        enddo
+      enddo ; enddo
+      
+      deallocate(P_iu,P_iv,P_iw)
+      
+    else
+      
+      allocate(mode(1:np,1:n))
+      
+      iMod=0
+      do iu=0,ord ; do iv=0,ord
+        iM=max(iu,iv)
+        do iw=0,ord-iM
+          iMod=iMod+1
+          
+          alpha=0d0                 ; beta=0d0
+          call jacobiP(n=iu,alpha=alpha, beta=beta,u=a(1:n)      ,jf=P_iu)   !> J_iu^{0             ,0} (a)
+          
+          alpha=0d0                 ; beta=0d0
+          call jacobiP(n=iv,alpha=alpha, beta=beta,u=b(1:n)      ,jf=P_iv)   !> J_iv^{0             ,0} (b)
+          
+          alpha=real(2*iM+2,kind=8) ; beta=0d0
+          call jacobiP(n=iw,alpha=alpha,beta=beta,u=2d0*c(1:n)-1d0,jf=P_iw)  !> J_iw^{2*max(iu,iv)+2,0} (2c-1)
+          
+          !> Psi(a,b,c) = P_i^{0,0}(a)   P_j^{0,0}(b)  (1-c)^max(i,j)   P_k^{2max(i,j)+2,0}(2c-1)
+          mode(iMod,1:n)= P_iu(1:n) * P_iv(1:n) * (1d0-c(1:n))**iM * P_iw(1:n)
+          
+        enddo
+      enddo ; enddo
+      
+      deallocate(P_iu,P_iv,P_iw)
+      
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if pyramidBasePiOrthogonal==1
+    print '("<<< pyramidBasePiOrthogonal")'
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#undef pyramidBasePiOrthogonal
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine pyramidBasePiOrthogonal
+  
+  subroutine pyramidNormalization(ord,weight)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#define pyramidNormalization 0
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    use pyramidRule, only: P5_gauss
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer, intent(in)            :: ord
+    real(8), intent(out) , pointer :: weight(:)
+    !>
+    integer                        :: i,np
+    integer                        :: iGauss,nGauss
+    real(8), pointer               :: uGauss(:),vGauss(:),wGauss(:),pGauss(:)
+    real(8), pointer               :: a(:),b(:),c(:)
+    real(8), pointer               :: psi(:,:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if pyramidNormalization==1
+    print '(">>> pyramidNormalization")'
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    call P5_gauss(                    &
+    &    order=ord                   ,&
+    &    nGauss=nGauss               ,&
+    &    uGauss=uGauss               ,&
+    &    vGauss=vGauss               ,&
+    &    wGauss=wGauss               ,&
+    &    pGauss=pGauss                )
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    call pyramiduvw2abc(              &
+    &    u=uGauss                    ,&
+    &    v=vGauss                    ,&
+    &    w=wGauss                    ,&
+    &    a=a                         ,&
+    &    b=b                         ,&
+    &    c=c                          )
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    call pyramidBasePiOrthogonal(     &
+    &    ord=ord                     ,&
+    &    a=a                         ,&
+    &    b=b                         ,&
+    &    c=c                         ,&
+    &    mode=psi                    ,&
+    &    transpose=.false.            ) !> psi(abc,:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    deallocate(a,b,c)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    np=size(psi,2) ; allocate(weight(np)) ; weight(1:np)=0d0
+    
+    do i=1,np
+      do iGauss=1,nGauss
+        weight(i)=weight(i)+psi(iGauss,i)*psi(iGauss,i)*pGauss(iGauss)
+      enddo
+    enddo
+    
+    do i=1,np
+      weight(i)=1d0/sqrt(weight(i))
+    enddo
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    deallocate(uGauss,vGauss,wGauss,pGauss)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if pyramidNormalization==1
+    print '(4x,"weight(",i6,")=",e22.15)',(i,weight(i),i=1,np)
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if pyramidNormalization==1
+    print '("<<< pyramidNormalization")'
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#undef pyramidNormalization
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine pyramidNormalization
+  
+  subroutine pyramidBasePi(ord,a,b,c,mode,transpose)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#define debug 0
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Psi' = Psi/ int Psi Psi dV
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Transpose = True  => mode(1:np,1:n)
+    !> Transpose = False => mode(1:n,1:np)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    use ieee_arithmetic
+    use baseSimplexTools, only: jacobiP
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer, intent(in)           :: ord
+    real(8)             , pointer :: a(:),b(:),c(:)
+    real(8), intent(out), pointer :: mode(:,:)
+    logical, intent(in)           :: transpose
+    !>
+    integer                       :: i,n,np
+    real(8), pointer              :: weight(:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if debug==1
+    print '(">>> pyramidBasePi transpose=",l)',transpose
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    call pyramidBasePiOrthogonal( &
+    &    ord=ord                 ,&
+    &    a=a                     ,&
+    &    b=b                     ,&
+    &    c=c                     ,&
+    &    mode=mode               ,&
+    &    transpose=transpose      )
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Vandermonde matrix
+    call pyramidNormalization(ord=ord,weight=weight)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    np=(ord+1)*(ord+2)*(2*ord+3)/6
+    n =size(a)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if debug==1
+    print '(4x,"base orthonormale Psi'' = Psi/sqrt(int Psi^2 dV)")'
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Base orthonormale
+    if( .not.transpose )then !> mode(1:n,1:np)
+      do i=1,np
+        mode(1:n,i)=mode(1:n,i)*weight(i)
+      enddo
+    else                     !> mode(1:np,1:n)
+      do i=1,np
+        mode(i,1:n)=mode(i,1:n)*weight(i)
+      enddo
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    deallocate(weight)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if debug==1
+    print '("<<< pyramidBasePi")'
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#undef debug
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine pyramidBasePi
+  
+  
   subroutine pyramidGradBasePi(ord,a,b,c,drMode,dsMode,dtMode,transpose)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#define pyramidGradBasePi 0
+#define debug 0
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Psi' = Psi/ sqrt( int Psi^2 dV )
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Transpose = True  => mode(1:np,1:n)
+    !> Transpose = False => mode(1:n,1:np)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    use ieee_arithmetic
+    use baseSimplexTools, only: jacobiP
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer, intent(in)           :: ord
+    real(8)             , pointer :: a(:),b(:),c(:)
+    real(8), intent(out), pointer :: drMode(:,:)
+    real(8), intent(out), pointer :: dsMode(:,:)
+    real(8), intent(out), pointer :: dtMode(:,:)
+    logical, intent(in)           :: transpose
+    !>
+    integer                       :: i,n,np
+    real(8), pointer              :: weight(:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if debug==1
+    print '(">>> pyramidGradBasePi transpose=",l)',transpose
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Base orthogonale
+    call pyramidGradBasePiOrthogonal(  &
+    &    ord=ord                      ,&
+    &    a=a                          ,&
+    &    b=b                          ,&
+    &    c=c                          ,&
+    &    drMode=drMode                ,&
+    &    dsMode=dsMode                ,&
+    &    dtMode=dtMode                ,&
+    &    transpose=transpose           )
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Normalization coefficient weight=sqrt( 1/int(Psi^2 dV) )
+    call pyramidNormalization(ord=ord,weight=weight)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    np=(ord+1)*(ord+2)*(2*ord+3)/6
+    n =size(a)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if debug==1
+    print '(4x,"base orthonormale Psi'' = Psi/sqrt(int Psi^2 dV)")'
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Base orthonormale
+    if( .not.transpose )then !> mode(1:n,1:np)
+      do i=1,np
+        drMode(1:n,i)=drMode(1:n,i)*weight(i)
+        dsMode(1:n,i)=dsMode(1:n,i)*weight(i)
+        dtMode(1:n,i)=dtMode(1:n,i)*weight(i)
+      enddo
+    else                     !> mode(1:np,1:n)
+      do i=1,np
+        drMode(i,1:n)=drMode(i,1:n)*weight(i)
+        dsMode(i,1:n)=dsMode(i,1:n)*weight(i)
+        dtMode(i,1:n)=dtMode(i,1:n)*weight(i)
+      enddo
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    deallocate(weight)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if debug==1
+    print '("<<< pyramidGradBasePi")'
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#undef debug
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine pyramidGradBasePi
+  
+  subroutine pyramidGradBasePiOrthogonal(ord,a,b,c,drMode,dsMode,dtMode,transpose)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#define debug 0
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Psi(a,b,c) = P_i^{0,0}(a)  P_j^{0,0}(b) (1-c)^max(i,j)  P_k^{2 max(i,j)+2,0}(2c-1)
@@ -776,10 +1157,10 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#if pyramidGradBasePi==1
-    print '(">>> pyramidGradBasePi transpose=",l)',transpose
+#if debug==1
+    print '(">>> pyramidGradBasePiOrthogonal transpose=",l)',transpose
     do i=1,n
-      print '(4x,"pyramidGradBasePi a,b,c=",3(e22.15,1x),3x,i3,"/",i3)',a(i),b(i),c(i),i,n
+      print '(4x,"pyramidGradBasePiOrthogonal a,b,c=",3(e22.15,1x),3x,i3,"/",i3)',a(i),b(i),c(i),i,n
     enddo
 #endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -802,7 +1183,7 @@ contains
       do iu=0,ord ; do iv=0,ord
         iM=max(iu,iv)
         do iw=0,ord-iM
-          iMod=iMod+1 ! print '(/"pyramidGradBasePi: iMod=",i3)',iMod
+          iMod=iMod+1 ! print '(/"pyramidGradBasePiOrthogonal: iMod=",i3)',iMod
           
           alpha=0d0                 ; beta=0d0
           call  jacobiP(n=iu,alpha=alpha,beta=beta,u=a(1:n)        ,jf= Pi)
@@ -820,7 +1201,7 @@ contains
           do i=1,n
             if( c(i)==1d0 )then
               if    ( iM-1<0 )then
-                tmp(i)=1d25 ; print '("pyramidGradBasePi iM=",i2,"<1")',iM
+                tmp(i)=1d25 ; print '("pyramidGradBasePiOrthogonal iM=",i2,"<1")',iM
               elseif( iM-1==0 )then
                 tmp(i)=1d0
               elseif( iM-1>0 )then
@@ -859,7 +1240,7 @@ contains
       do iu=0,ord ; do iv=0,ord
         iM=max(iu,iv)
         do iw=0,ord-iM
-          iMod=iMod+1 ! print '(/"pyramidGradBasePi: iMod=",i3)',iMod
+          iMod=iMod+1 ! print '(/"pyramidGradBasePiOrthogonal: iMod=",i3)',iMod
           
           alpha=0d0                 ; beta=0d0
           call  jacobiP(n=iu,alpha=alpha,beta=beta,u=a(1:n)        ,jf= Pi)
@@ -877,7 +1258,7 @@ contains
           do i=1,n
             if( c(i)==1d0 )then
               if    ( iM-1<0 )then
-                tmp(i)=1d25 ; print '("pyramidGradBasePi iM=",i2,"<1")',iM
+                tmp(i)=1d25 ; print '("pyramidGradBasePiOrthogonal iM=",i2,"<1")',iM
               elseif( iM-1==0 )then
                 tmp(i)=1d0
               elseif( iM-1>0 )then
@@ -916,18 +1297,17 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#if pyramidGradBasePi==1
-    print '("<<< pyramidGradBasePi")'
+#if debug==1
+    print '("<<< pyramidGradBasePiOrthogonal")'
 #endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#undef pyramidGradBasePi
+#undef debug
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
-  end subroutine pyramidGradBasePi
-  
+  end subroutine pyramidGradBasePiOrthogonal
   
   subroutine pyramideMassMatrix(ord, vand, mass)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -946,7 +1326,6 @@ contains
     integer              :: ad,cpt,dCpt
     real(8), pointer     :: uvw(:,:)
     real(8), pointer     :: x(:),y(:),z(:),w(:)
-    
     real(8), pointer     :: a(:),b(:),c(:)
     real(8), pointer     :: li(:,:)
     real(8), parameter   :: eps=1d-12

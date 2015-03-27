@@ -11,6 +11,7 @@ module baseSimplexTools
   interface display       ; module procedure displayMatrix       ; end interface
   interface display       ; module procedure displayVector       ; end interface
   interface displaySparce ; module procedure displaySparceMatrix ; end interface
+  interface displaySparce ; module procedure displaySparseVector ; end interface
   
   interface mathematica ; module procedure mathematicaMatrix ; end interface
   
@@ -322,6 +323,24 @@ module baseSimplexTools
     
     return
   end subroutine displayVector
+  
+  subroutine displaySparseVector(title,vec,tol)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    character(*) :: title
+    real(8)       :: vec(:)
+    real(8)       :: tol
+    !>
+    integer       :: i
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    print '(/a,2x,"size=",i3)',trim(title),size(vec)
+    do i=1,size(vec)
+      if( abs(vec(i))>tol )print '(4x,e22.15)',vec(i)
+    enddo
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine displaySparseVector
   
   function gamma(x) result(ga)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
