@@ -1468,15 +1468,33 @@ subroutine pyramTestBasis()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Preparation calcul de la base
   call pyramidVandermonde3D(ord=ord,a=a,b=b,c=c,vand=vand)
-  call display(title="    vand Matrix",mat=vand)
+ !call display(title="    vand Matrix",mat=vand)
+  print '(/4x,"vand")'
+  do i=1,nPt
+    print '(4x,"i=",i4," vand =",14(e9.2,1x))',i,vand(i,:)
+  enddo
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !>  Preparation calcul des dérivées de la base
   call pyramidGradVandermonde3D(ord=ord,a=a,b=b,c=c,drMode=duPsi,dsMode=dvPsi,dtMode=dwPsi) !> Modal
-  call display(title="    duPsi Matrix",mat=duPsi)
-  call display(title="    dvPsi Matrix",mat=dvPsi)
-  call display(title="    dwPsi Matrix",mat=dwPsi)
+  !call display(title="    duPsi Matrix",mat=duPsi)
+  !call display(title="    dvPsi Matrix",mat=dvPsi)
+  !call display(title="    dwPsi Matrix",mat=dwPsi)
+
+  print '(/4x,"duPsi")'
+  do i=1,nPt
+    print '(4x,"i=",i4," duPsi=",14(e9.2,1x))',i,duPsi(i,:)
+  enddo
+  print '(/4x,"dvPsi")'
+  do i=1,nPt
+    print '(4x,"i=",i4," dvPsi=",14(e9.2,1x))',i,dvPsi(i,:)
+  enddo  
+  print '(/4x,"dwPsi(:,uvw)")'
+  do i=1,nPt
+    print '(4x,"i=",i4," dwPsi=",14(e9.2,1x))',i,dwPsi(i,:)
+  enddo
+  
  !call mathematica(title="    duPsi Matrix",mat=duPsi)
  !call mathematica(title="    dvPsi Matrix",mat=dvPsi)
  !call mathematica(title="    dwPsi Matrix",mat=dwPsi)
@@ -1997,7 +2015,7 @@ subroutine pyramTestBasis()
     
     print '(/4x,"uvw")'
     do i=1,nPt
-      print '(4x,"i=",i4," uvw=",3(f9.6,1x))',i,uvw(1:3,i)
+      print '(4x,"i=",i4," uvw =",3(f9.6,1x))',i,uvw(1:3,i)
     enddo
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     

@@ -2469,9 +2469,9 @@ contains
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     name="Pyramids.meshb"
-    if( display )print '(3x,"Reading Pyramid Volumic Mesh: ",a)',trim(name)
+    if( display )print '(4x,"Reading Pyramid Volumic Mesh: ",a)',trim(name)
     ins=GmfOpenMeshF77(trim(name),GmfRead,ver,geo) ! print '(3x,"ins=",i3)',ins
-    nNod0=GmfStatKwdF77(ins,GmfVertices,ver,0,TypTab) ; if( display )print '(6x,"nNod0=",i10)',nNod0
+    nNod0=GmfStatKwdF77(ins,GmfVertices,ver,0,TypTab) ; if( display )print '(4x,"nNode=",i10)',nNod0
     allocate(xyzOut(geo,nNod0))
     res=GmfGotoKwdF77(ins,GmfVertices)
     select case(ver)
@@ -2487,7 +2487,7 @@ contains
     end select
     
     res=GmfCloseMeshF77(ins)
-    if( display )print '(3x,"end Reading")'
+    if( display )print '(4x,"end Reading")'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
