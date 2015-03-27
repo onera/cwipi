@@ -72,21 +72,6 @@ subroutine testQuadratureGL()
   print '("\int_{-1}^{+1} 2 - 3x + x^2 + 2x^3 - 6x^4 + 8x^5- 19x^6 + x^7 dx = ",e22.15)',int
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  print '(/"Gauss Legendre-Lobatto Quadatures")'
-  order=4
-  call gaussLobattoQuadratures(ord=order,xGL=xGLL,wGL=wGLL)
-  print '("i=",i2," xGL=",f12.5," wGL=",f12.5)',(i,xGLL(i),wGLL(i),i=1,size(xGLL))
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  int=0d0
-  do i=1,order+1
-    int=int+wGLL(i)*func( xGLL(i) )
-  enddo
-  
-  print '("\int_{-1}^{+1} 2 - 3x + x^2 + 2x^3 - 6x^4 + 8x^5- 19x^6 + x^7 dx = ",e22.15)',int
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   print '(/"Gauss Legendre-Lobatto Quadatures")'
@@ -104,20 +89,10 @@ subroutine testQuadratureGL()
   print '("\int_{-1}^{+1} 2 - 3x + x^2 + 2x^3 - 6x^4 + 8x^5- 19x^6 + x^7 dx = ",e22.15)',int
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
-  
-  
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  int=0d0
-  do i=1,order+1
-    int=int+wGJ(i)*func( xGJ(i) )
-  enddo
-  
-  print '("\int_{-1}^{+1} 2 - 3x + x^2 + 2x^3 - 6x^4 + 8x^5- 19x^6 + x^7 dx = ",e22.15)',int
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
-  deallocate(xGL,wGL)
+  deallocate(xGL ,wGL )
   deallocate(xGLL,wGLL)
-  deallocate(xGJ,wGJ)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   return
   
@@ -196,7 +171,7 @@ subroutine edge_00()
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Polynomes d'interpolation
-  call lagrange1Dv(ord=order,vand=vand,x=xout,lx=lxout,transpose=.true.) ! true pour affichage
+  call lagrange1Dv(ord=order,vand=vand,x=xout,lx=lxout,transpose=.true.)
   call display(title="lxout",mat=lxout)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
@@ -217,8 +192,9 @@ subroutine edge_00()
   print '("i=",i2," xout=",f12.5," lebesgue=",f12.5)',(i,xout(i),leb(i,1),i=1,nVert)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
-  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   deallocate(xout,lxout,dlxout,leb)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   return
   
@@ -229,7 +205,6 @@ subroutine triangle_00()
   use baseSimplex2D
   use modDeterminant
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
   !
@@ -927,14 +902,19 @@ subroutine quadTest()
   !call display(title="Factorized(Mass)=",vec=mass)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   call massMatrix(vand=vand,mass=massL2)
   call display(title="MassL2=",mat=massL2)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   n=size(massL2,1) ; allocate(mass(n*(n+1)/2)) ; mass(:)=0d0
   call compactForm(mat0=massL2,mat1=mass)
   call display(title="MassL2=",vec=mass)
   deallocate(mass)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Produit tensoriel
   allocate(massQ4((ord+1)**2,(ord+1)**2)) ; massQ4(:,:)=0d0
   do i=1,ord+1
@@ -944,17 +924,20 @@ subroutine quadTest()
       do k=1,ord+1
         do l=1,ord+1
          !print '("row0+k=",i3,2x,"col0+l=",i3)',row0+k,col0+l
-          massQ4(row0+k,col0+l)=massL2(i,j)*massL2(k,l) ! Tenseur massQ4(i,j,k,l)
+          massQ4(row0+k,col0+l)=massL2(i,j)*massL2(k,l) !> Tenseur massQ4(i,j,k,l)
         enddo
       enddo
     enddo
   enddo
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
  !call display(title="MassQ4=",mat=massQ4)
   call compactForm(mat0=massQ4,mat1=mass)
   call display(title="MassQ4=",vec=mass)
   call factorise(n=(ord+1)**2,mat=mass)
   call display(title="Factorized(MassQ4)=",vec=mass)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   return
 end subroutine quadTest
@@ -1045,7 +1028,7 @@ subroutine pyramBasis()
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Derivees base fonctionnelle
-  call pyramidGradVandermonde3D(ord=ord,a=a,b=b,c=c,dxPsi=duPsi,dyPsi=dvPsi,dzPsi=dwPsi)
+  call pyramidGradVandermonde3D(ord=ord,a=a,b=b,c=c,drMode=duPsi,dsMode=dvPsi,dtMode=dwPsi)
   call derive1D(vand=vand,dVand=duPsi,dMat=drMatrix) !> drMatrix = duPsi.Inverse[vand]
   call derive1D(vand=vand,dVand=dvPsi,dMat=dsMatrix) !> dsMatrix = dvPsi.Inverse[vand]
   call derive1D(vand=vand,dVand=dwPsi,dMat=dtMatrix) !> dtMatrix = dwPsi.Inverse[vand]
@@ -1151,7 +1134,7 @@ subroutine pyramLebesgue()
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Derivees base fonctionnelle
-  call pyramidGradVandermonde3D(ord=ord,a=a,b=b,c=c,dxPsi=duPsi,dyPsi=dvPsi,dzPsi=dwPsi)
+  call pyramidGradVandermonde3D(ord=ord,a=a,b=b,c=c,drMode=duPsi,dsMode=dvPsi,dtMode=dwPsi)
   call derive1D(vand=vand,dVand=duPsi,dMat=drMatrix) !> drMatrix = duPsi.Inverse[vand]
   call derive1D(vand=vand,dVand=dvPsi,dMat=dsMatrix) !> dsMatrix = dvPsi.Inverse[vand]
   call derive1D(vand=vand,dVand=dwPsi,dMat=dtMatrix) !> dtMatrix = dwPsi.Inverse[vand]
@@ -1489,7 +1472,7 @@ subroutine pyramTestBasis()
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !>  Preparation calcul des dérivées de la base
-  call pyramidGradVandermonde3D(ord=ord,a=a,b=b,c=c,dxPsi=duPsi,dyPsi=dvPsi,dzPsi=dwPsi)
+  call pyramidGradVandermonde3D(ord=ord,a=a,b=b,c=c,drMode=duPsi,dsMode=dvPsi,dtMode=dwPsi)
   call derive1D(vand=vand,dVand=duPsi,dMat=drMatrix) !> drMatrix = duPsi.Inverse[vand]
   call derive1D(vand=vand,dVand=dvPsi,dMat=dsMatrix) !> dsMatrix = dvPsi.Inverse[vand]
   call derive1D(vand=vand,dVand=dwPsi,dMat=dtMatrix) !> dtMatrix = dwPsi.Inverse[vand]
@@ -2052,7 +2035,7 @@ subroutine pyramTestMass()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  write(*,'("Calcul Matrice de Masse")')
+  write(*,'(/"Calcul Matrice de Masse")')
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -2252,7 +2235,7 @@ program main
  !call jacobiTest()
   
   !> Test des quadratures
- !call testQuadratureGL()
+  !call testQuadratureGL()
   
   !> Test segments
  !call edge_00()
@@ -2275,12 +2258,14 @@ program main
  !call pyramMaillageVisu() !> maillages de visu pour la pyramide d'ordre élevé
  !call pyramDegreesOverSides()
   
-  !> Tests des bases pyramides et de leurs derivees
+  !> Tests des quadratures pour pyramides
   !call pyramTestQuadrature()
-  !call pyramTestBasis()
+  
+  !> Tests des bases pyramides et de leurs derivees
+  call pyramTestBasis()
   
   !> Test Matrice de Masse des pyramides
-  call pyramTestMass()
+  !call pyramTestMass()
   
   
   
