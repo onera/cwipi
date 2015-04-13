@@ -217,10 +217,15 @@ if test "x$cwipi_compiler_known" != "xyes" ; then
     cwipi_compiler_known=yes
 
     # Default compiler flags
-    cflags_default="-Xa -fPIC -pgf90libs"
+    cflags_default="-Xa -fPIC -pgf90libs -pgc++libs"
     cflags_default_dbg="-g"
     cflags_default_opt="-fast -fastsse"
     cflags_default_prf="-Mprof=func,lines"
+
+    fcflags_default="-fPIC -pgc++libs"
+    fcflags_default_dbg="-g"
+    fcflags_default_opt="-fast -fastsse"
+    fcflags_default_prf="-Mprof=func,lines"
 
     cxxflags_default="-Xa -fPIC -pgf90libs"
     cxxflags_default_dbg="-g"
