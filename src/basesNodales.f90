@@ -1051,29 +1051,6 @@ subroutine pyramBasis()
   return
 end subroutine pyramBasis
 
-subroutine pyramDegreesOverSides()
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  use modDeterminant
-  use basePyramid
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  implicit none
-  integer              :: ord
-  integer, allocatable :: sides(:)
-  integer              :: sidesIdx(1:6)
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  write(*,'(/"Order: ")',advance='no') ; read(*,*)ord
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  call pyramidSides3D(ord=ord, sidesIdx=sidesIdx, sides=sides, display=.true.)
-  deallocate(sides)
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
-  return
-end subroutine pyramDegreesOverSides
 
 subroutine pyramLebesgue()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1481,7 +1458,7 @@ subroutine pyramTestBasis()
   !call display(title="    duPsi Matrix",mat=duPsi)
   !call display(title="    dvPsi Matrix",mat=dvPsi)
   !call display(title="    dwPsi Matrix",mat=dwPsi)
-
+  
   print '(/4x,"duPsi")'
   do i=1,nPt
     print '(4x,"i=",i4," duPsi=",14(e9.2,1x))',i,duPsi(i,:)
@@ -1495,9 +1472,10 @@ subroutine pyramTestBasis()
     print '(4x,"i=",i4," dwPsi=",14(e9.2,1x))',i,dwPsi(i,:)
   enddo
   
- !call mathematica(title="    duPsi Matrix",mat=duPsi)
- !call mathematica(title="    dvPsi Matrix",mat=dvPsi)
- !call mathematica(title="    dwPsi Matrix",mat=dwPsi)
+  !call mathematica(title="    duPsi Matrix",mat=duPsi)
+  !call mathematica(title="    dvPsi Matrix",mat=dvPsi)
+  !call mathematica(title="    dwPsi Matrix",mat=dwPsi) ! stop
+  
   call derive1D(vand=vand,dVand=duPsi,dMat=drMatrix) !> drMatrix = duPsi.Inverse[vand] !> Nodal
   call derive1D(vand=vand,dVand=dvPsi,dMat=dsMatrix) !> dsMatrix = dvPsi.Inverse[vand] !> Nodal
   call derive1D(vand=vand,dVand=dwPsi,dMat=dtMatrix) !> dtMatrix = dwPsi.Inverse[vand] !> Nodal
@@ -1626,7 +1604,8 @@ subroutine pyramTestBasis()
   endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
   
-#ifdef Hexa
+#if 0==0 
+!Hexa
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> TEST Hexa dégénéré
   do iOrd=1,1
@@ -1687,7 +1666,7 @@ subroutine pyramTestBasis()
       delta=abs(dxf(j)-dxf0) ; if( delta>deltaMax)deltaMax=delta
       if( delta>tol )then
         cpt1=cpt1+1
-        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂u f(uvw)- ∑ ∂uai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),dxf(j),dxf0,dxf(j)-dxf0
+        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂uf(uvw)- ∑ ∂uai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),dxf(j),dxf0,dxf(j)-dxf0
       endif
     enddo
     print '(4x,"erreur sur ∂uf cpt=",i6,"/",i6,3x,"deltaMax=",e22.15)',cpt1,nPt,deltaMax
@@ -2522,7 +2501,7 @@ program main
  !call pyramDegreesOverSides()
   
   !> Tests des quadratures pour pyramides
-  call pyramTestQuadrature()
+  !call pyramTestQuadrature()
   
   !> Tests des bases pyramides et de leurs derivees
   call pyramTestBasis()

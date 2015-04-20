@@ -140,11 +140,11 @@ contains
 #define pyramidLagrange3Dv 0
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    ! lagrange3Dv := Inverse[Transpose[Vand]].Psi[x];
-    ! transpose = .true.  => lx(1:ord+1,1:nPt)
-    ! transpose = .false. => lx(1:nPt,1:ord+1)
+    !> lagrange3Dv := Inverse[Transpose[Vand]].Psi[x];
+    !> Nodes and Modes
+    !> transpose = .true.  => lx(1:nMod,1:nNod)
+    !> transpose = .false. => lx(1:nNod,1:nMod)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)            :: ord
     real(8), intent(in)  , pointer :: vand(:,:)
@@ -152,12 +152,11 @@ contains
     real(8), intent(out) , pointer :: lx  (:,:)
     logical, intent(in)            :: transpose
     !---
-    integer                        :: i,j,k,nPt,np
+    integer                        :: i,j,k,nMod,nNod
     real(8)                        :: gamma(0:ord+1)
     integer                        :: iOrd
-    real(8), pointer               :: mode1(:),mode2(:),mode3(:)
-    real(8), pointer               :: Psi(:,:),mode(:,:)
-    real(8), pointer               :: mat(:,:)
+    real(8), pointer               :: mod(:,:)
+    real(8), pointer               :: invTransVand(:,:)
     integer                        :: lWork
     integer, pointer               :: ipiv(:)
     real(8), pointer               :: work(:)
@@ -171,39 +170,40 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    np=(ord+1)*(ord+2)*(2*ord+3)/6 ; nPt=size(a)
+    nMod=(ord+1)*(ord+2)*(2*ord+3)/6 ; nNod=size(a)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #if pyramidLagrange3Dv==1
-    print '("    pyramidLagrange3Dv step1 np=",i10," nPt=",i10)',np,nPt
+    print '("    pyramidLagrange3Dv step1 nMod=",i10," nNod=",i10)',nMod,nNod
 #endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !call pyramidBasePi(ord=ord,a=a,b=b,c=c,mode=psi,transpose=.false.) !> psi(abc,:)
-    call pyramidBasePi(ord=ord,a=a,b=b,c=c,mode=psi,transpose=.false.) !> psi(abc,:)
+    call pyramidBasePi(ord=ord,a=a,b=b,c=c,mode=mod,transpose=.false.) !> mod(abc,:)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #if pyramidLagrange3Dv==1
+    print '("    size(mod)=",i3,"x",i3)',nNod,nMod
+   !call mathematica(title="    Psi Matrix",mat=mod)
     print '("    pyramidLagrange3Dv step2")'
 #endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> mat=Transpose[Vand]
-    allocate(mat(1:np,1:np))
-    do i=1,np
-      do j=1,np
-        mat(i,j)=vand(j,i)
+    !> invTransVand=Transpose[Vand]
+    allocate(invTransVand(1:nMod,1:nMod))
+    do i=1,nMod
+      do j=1,nMod
+        invTransVand(i,j)=vand(j,i)
       enddo
     enddo
     
-    !> mat=Inverse[ Transpose[Vand] ]
-    lWork=64*(np) ; allocate(work(lWork),ipiv(np))
-    call dgetrf(np,np,mat(1,1),np,ipiv(1),iErr)
-    call dgetri(np,mat(1,1),np,ipiv(1),work(1),lWork,iErr)
+    !> invTransVand=Inverse[ Transpose[Vand] ]
+    lWork=64*(nMod) ; allocate(work(lWork),ipiv(nMod))
+    call dgetrf(nMod,nMod,invTransVand(1,1),nMod,ipiv(1),iErr)
+    call dgetri(nMod,invTransVand(1,1),nMod,ipiv(1),work(1),lWork,iErr)
     deallocate(ipiv,work)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -216,41 +216,42 @@ contains
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> lx = Inverse[Transpose[Vand]].Psi
     if( transpose )then
-      allocate(lx(1:np,1:nPt)) ; lx(:,:)=0d0
-      !> psi(1:nPt,1:np)
-      
-      do i=1,nPt
-        do j=1,np
-          do k=1,np
-            lx(j,i)=lx(j,i)+mat(j,k)*Psi(i,k)  !> Attention de bien prendre Psi(i,k)
+      allocate(lx(1:nMod,1:nNod)) ; lx(:,:)=0d0
+      !> mod(1:nMod,1:nNod)
+      do i=1,nNod
+        do j=1,nMod
+          do k=1,nMod
+            lx(j,i)=lx(j,i)+invTransVand(j,k)*mod(i,k)  !> Attention de bien prendre mod(i,k)
           enddo
         enddo
       enddo
       
     else
       
-      allocate(lx(1:nPt,1:np)) ; lx(:,:)=0d0
-      ! psi(1:nPt,1:np)
-      do i=1,nPt
-        do j=1,np
-          do k=1,np
-            lx(i,j)=lx(i,j)+mat(j,k)*Psi(i,k)  !> Attention de bien prendre Psi(i,k)
+      allocate(lx(1:nNod,1:nMod)) ; lx(:,:)=0d0
+      !> mod(1:nNod,1:nMod)
+      do i=1,nNod
+        do j=1,nMod
+          do k=1,nMod
+            lx(i,j)=lx(i,j)+invTransVand(j,k)*mod(i,k)  !> Attention de bien prendre mod(i,k)
           enddo
         enddo
       enddo
     endif
-   !call displayMatrix(title="lx",mat=lx)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #if pyramidLagrange3Dv==1
+    !call displayMatrix(title="    lx",mat=lx)
+    !print '("    size(lx)=",i3,"x",i3)',nNod,nMod
+    !call mathematica(title="    lx Matrix",mat=lx)
     print '("    pyramidLagrange3Dv step4")'
 #endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    deallocate(mat)
-    deallocate(psi)
+    deallocate(invTransVand)
+    deallocate(mod)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -287,8 +288,7 @@ contains
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Vandermonde matrix
-   !call pyramidBasePi(ord=ord,a=a,b=b,c=c,mode=vand,transpose=.false.) !> vand(1:nPoint,1:np)
-    call pyramidBasePi(ord=ord,a=a,b=b,c=c,mode=vand,transpose=.false.) !> vand(1:nPoint,1:np)
+    call pyramidBasePi(ord=ord,a=a,b=b,c=c,mode=vand,transpose=.false.) !> vand(1:nPoint,1:nMod)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
@@ -372,8 +372,8 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Transpose = True  => ai(1:np,1:nPt)
-    !> Transpose = False => ai(1:nPt,1:np)
+    !> Transpose = True  => ai(1:np,1:nNod)
+    !> Transpose = False => ai(1:nNod,1:np)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -448,8 +448,8 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Transpose = True  => ai(1:np,1:nPt)
-    !> Transpose = False => ai(1:nPt,1:np)
+    !> Transpose = True  => ai(1:np,1:nNod)
+    !> Transpose = False => ai(1:nNod,1:np)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -571,8 +571,8 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Transpose = True  => ai(1:np,1:nPt)
-    !> Transpose = False => ai(1:nPt,1:np)
+    !> Transpose = True  => ai(1:np,1:nNod)
+    !> Transpose = False => ai(1:nNod,1:np)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -583,11 +583,12 @@ contains
     !> vertex functions
     if( transpose )then
       allocate( ai(1:5,size(uvw,2)) )
+      print  '("pyramidH6BaseP1")'
       do i=1,nn
         ai(1,i) = 0.25d0*(1d0-uvw(1,i))*(1d0-uvw(2,i))*(1d0-uvw(3,i))
         ai(2,i) = 0.25d0*(1d0+uvw(1,i))*(1d0-uvw(2,i))*(1d0-uvw(3,i))
-        ai(4,i) = 0.25d0*(1d0+uvw(1,i))*(1d0+uvw(2,i))*(1d0-uvw(3,i)) !> retournement 3<->4
-        ai(3,i) = 0.25d0*(1d0-uvw(1,i))*(1d0+uvw(2,i))*(1d0-uvw(3,i)) !> retournement 3<->4
+        ai(3,i) = 0.25d0*(1d0-uvw(1,i))*(1d0+uvw(2,i))*(1d0-uvw(3,i)) !> dg 3 <-> nd 4 retournement 3<->4
+        ai(4,i) = 0.25d0*(1d0+uvw(1,i))*(1d0+uvw(2,i))*(1d0-uvw(3,i)) !> dg 4 <-> nd 3 retournement 3<->4
         ai(5,i) =                                           uvw(3,i)
       enddo
     else
@@ -595,8 +596,8 @@ contains
       do i=1,nn
         ai(i,1) = 0.25d0*(1d0-uvw(1,i))*(1d0-uvw(2,i))*(1d0-uvw(3,i))
         ai(i,2) = 0.25d0*(1d0+uvw(1,i))*(1d0-uvw(2,i))*(1d0-uvw(3,i))
-        ai(i,4) = 0.25d0*(1d0+uvw(1,i))*(1d0+uvw(2,i))*(1d0-uvw(3,i)) !> retournement 3<->4
-        ai(i,3) = 0.25d0*(1d0-uvw(1,i))*(1d0+uvw(2,i))*(1d0-uvw(3,i)) !> retournement 3<->4
+        ai(i,3) = 0.25d0*(1d0-uvw(1,i))*(1d0+uvw(2,i))*(1d0-uvw(3,i)) !> dg 3 <-> nd 4 retournement 3<->4
+        ai(i,4) = 0.25d0*(1d0+uvw(1,i))*(1d0+uvw(2,i))*(1d0-uvw(3,i)) !> dg 4 <-> nd 3 retournement 3<->4
         ai(i,5) =                                           uvw(3,i)
       enddo
     endif
@@ -632,8 +633,8 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Transpose = True  => ai(1:np,1:nPt)
-    !> Transpose = False => ai(1:nPt,1:np)
+    !> Transpose = True  => ai(1:np,1:nNod)
+    !> Transpose = False => ai(1:nNod,1:np)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -695,136 +696,18 @@ contains
     return
   end subroutine pyramidH6GradBaseP1
   
-  subroutine pyramidBasePiOrthogonal(ord,a,b,c,mode,transpose)
+  subroutine pyramidNormalization(ord)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#define pyramidBasePiOrthogonal 0
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Psi(a,b,c) = P_i^{0,0}(a)  P_j^{0,0}(b)  (1-c)^max(i,j)  P_k^{2max(i,j)+2,0}(2c-1)
-    !> avec {a=u/(1-w) ; b=v/(1/w) ; c=w}
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Transpose = True  => mode(1:np,1:n)
-    !> Transpose = False => mode(1:n,1:np)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    use ieee_arithmetic
-    use baseSimplexTools, only: jacobiP
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    integer, intent(in)           :: ord
-    real(8)             , pointer :: a(:),b(:),c(:)
-    real(8), intent(out), pointer :: mode(:,:)
-    logical, intent(in)           :: transpose
-    !>
-    real(8)                       :: alpha,beta
-    integer                       :: iu,iv,iw,iM,iMod,n,np
-    real(8), pointer              :: P_iu(:),P_iv(:),P_iw(:)
-    !>
-    real(8), pointer              :: weight(:)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#if pyramidBasePiOrthogonal==1
-    print '(">>> pyramidBasePiOrthogonal transpose=",l)',transpose
-#endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    np=(ord+1)*(ord+2)*(2*ord+3)/6
-    n =size(a)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#if pyramidBasePiOrthogonal==1
-    print '(4x,"base orthogonale Psi(a,b,c) = P_i^{0,0}(a) P_j^{0,0}(b) (1-c)^max(i,j) P_k^{2max(i,j)+2,0}(2c-1)")'
-#endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Base orthogonale
-    if( .not.transpose )then
-      
-      allocate(mode(1:n,1:np))
-      
-      iMod=0
-      do iu=0,ord ; do iv=0,ord
-        iM=max(iu,iv)
-        do iw=0,ord-iM
-          iMod=iMod+1
-          
-          alpha=0d0                 ; beta=0d0
-          call jacobiP(n=iu,alpha=alpha, beta=beta,u=a(1:n)      ,jf=P_iu)   !> J_iu^{0             ,0} (a)
-          
-          alpha=0d0                 ; beta=0d0
-          call jacobiP(n=iv,alpha=alpha, beta=beta,u=b(1:n)      ,jf=P_iv)   !> J_iv^{0             ,0} (b)
-          
-          alpha=real(2*iM+2,kind=8) ; beta=0d0
-          call jacobiP(n=iw,alpha=alpha,beta=beta,u=2d0*c(1:n)-1d0,jf=P_iw)  !> J_iw^{2*max(iu,iv)+2,0} (2c-1)
-          
-          !> Psi(a,b,c) = P_i^{0,0}(a)   P_j^{0,0}(b)  (1-c)^max(i,j)   P_k^{2max(i,j)+2,0}(2c-1)
-          mode(1:n,iMod)= P_iu(1:n) * P_iv(1:n) * (1d0-c(1:n))**iM * P_iw(1:n)
-          
-        enddo
-      enddo ; enddo
-      
-      deallocate(P_iu,P_iv,P_iw)
-      
-    else
-      
-      allocate(mode(1:np,1:n))
-      
-      iMod=0
-      do iu=0,ord ; do iv=0,ord
-        iM=max(iu,iv)
-        do iw=0,ord-iM
-          iMod=iMod+1
-          
-          alpha=0d0                 ; beta=0d0
-          call jacobiP(n=iu,alpha=alpha, beta=beta,u=a(1:n)      ,jf=P_iu)   !> J_iu^{0             ,0} (a)
-          
-          alpha=0d0                 ; beta=0d0
-          call jacobiP(n=iv,alpha=alpha, beta=beta,u=b(1:n)      ,jf=P_iv)   !> J_iv^{0             ,0} (b)
-          
-          alpha=real(2*iM+2,kind=8) ; beta=0d0
-          call jacobiP(n=iw,alpha=alpha,beta=beta,u=2d0*c(1:n)-1d0,jf=P_iw)  !> J_iw^{2*max(iu,iv)+2,0} (2c-1)
-          
-          !> Psi(a,b,c) = P_i^{0,0}(a)   P_j^{0,0}(b)  (1-c)^max(i,j)   P_k^{2max(i,j)+2,0}(2c-1)
-          mode(iMod,1:n)= P_iu(1:n) * P_iv(1:n) * (1d0-c(1:n))**iM * P_iw(1:n)
-          
-        enddo
-      enddo ; enddo
-      
-      deallocate(P_iu,P_iv,P_iw)
-      
-    endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#if pyramidBasePiOrthogonal==1
-    print '("<<< pyramidBasePiOrthogonal")'
-#endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#undef pyramidBasePiOrthogonal
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    return
-  end subroutine pyramidBasePiOrthogonal
-  
-  subroutine pyramidNormalization(ord,weight)
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#define pyramidNormalization 0
+#define pyramidNormalization 1
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     use pyramidRule, only: P5_gauss
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)            :: ord
-    real(8), intent(out) , pointer :: weight(:)
     !>
-    integer                        :: i,np
+    real(8), pointer               :: weight(:)
+    integer                        :: iMod,nMod
     integer                        :: iGauss,nGauss
     real(8), pointer               :: uGauss(:),vGauss(:),wGauss(:),pGauss(:)
     real(8), pointer               :: a(:),b(:),c(:)
@@ -858,13 +741,13 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    call pyramidBasePiOrthogonal(     &
-    &    ord=ord                     ,&
-    &    a=a                         ,&
-    &    b=b                         ,&
-    &    c=c                         ,&
-    &    mode=psi                    ,&
-    &    transpose=.false.            ) !> psi(abc,:)
+    call pyramidBasePi(              &
+    &    ord=ord                    ,&
+    &    a=a                        ,&
+    &    b=b                        ,&
+    &    c=c                        ,&
+    &    mode=psi                   ,&
+    &    transpose=.false.           ) !> psi(abc,:)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -872,26 +755,26 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    np=size(psi,2) ; allocate(weight(np)) ; weight(1:np)=0d0
+    nMod=size(psi,2) ; allocate(weight(1:nMod)) ; weight(1:nMod)=0d0
     
-    do i=1,np
+    do iMod=1,nMod
       do iGauss=1,nGauss
-        weight(i)=weight(i)+psi(iGauss,i)*psi(iGauss,i)*pGauss(iGauss)
+        weight(iMod)=weight(iMod)+psi(iGauss,iMod)*psi(iGauss,iMod)*pGauss(iGauss)
       enddo
     enddo
     
-    do i=1,np
-      weight(i)=1d0/sqrt(weight(i))
+    do iMod=1,nMod
+      weight(iMod)=1d0/sqrt(weight(iMod))
     enddo
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    deallocate(uGauss,vGauss,wGauss,pGauss)
+    deallocate(uGauss,vGauss,wGauss,pGauss,psi)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #if pyramidNormalization==1
-    print '(4x,"weight(",i6,")=",e22.15)',(i,weight(i),i=1,np)
+    print '(4x,"weight(",i6,")=",e22.15)',(iMod,weight(iMod),iMod=1,nMod)
 #endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -910,14 +793,15 @@ contains
   
   subroutine pyramidBasePi(ord,a,b,c,mode,transpose)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#define debug 0
+#define pyramidBasePi 0
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Psi' = Psi/ int Psi Psi dV
+    !> Psi(a,b,c) = P_i^{0,0}(a)  P_j^{0,0}(b)  (1-c)^max(i,j)  P_k^{2max(i,j)+2,0}(2c-1)
+    !> avec {a=u/(1-w) ; b=v/(1/w) ; c=w}
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Transpose = True  => mode(1:np,1:n)
-    !> Transpose = False => mode(1:n,1:np)
+    !> Transpose = True  => mode(1:nMod,1:n)
+    !> Transpose = False => mode(1:n,1:nMod)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     use ieee_arithmetic
@@ -929,172 +813,146 @@ contains
     real(8), intent(out), pointer :: mode(:,:)
     logical, intent(in)           :: transpose
     !>
-    integer                       :: i,n,np
-    real(8), pointer              :: weight(:)
+    real(8)                       :: alpha,beta
+    integer                       :: iu,iv,iw,iM
+    integer                       :: iMod,nMod
+    integer                       :: iNod,nNod
+    real(8), pointer              :: P_iu(:),P_iv(:),P_iw(:)
+    real(8)                       :: tmp
+    !>
+    real(8)                       :: coef
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#if debug==1
+#if pyramidBasePi==1
     print '(">>> pyramidBasePi transpose=",l)',transpose
 #endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    call pyramidBasePiOrthogonal( &
-    &    ord=ord                 ,&
-    &    a=a                     ,&
-    &    b=b                     ,&
-    &    c=c                     ,&
-    &    mode=mode               ,&
-    &    transpose=transpose      )
+    nMod=(ord+1)*(ord+2)*(2*ord+3)/6
+    nNod=size(a)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Vandermonde matrix
-    call pyramidNormalization(ord=ord,weight=weight)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    np=(ord+1)*(ord+2)*(2*ord+3)/6
-    n =size(a)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#if debug==1
-    print '(4x,"base orthonormale Psi'' = Psi/sqrt(int Psi^2 dV)")'
-#endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Base orthonormale
-    if( .not.transpose )then !> mode(1:n,1:np)
-      do i=1,np
-        mode(1:n,i)=mode(1:n,i)*weight(i)
-      enddo
-    else                     !> mode(1:np,1:n)
-      do i=1,np
-        mode(i,1:n)=mode(i,1:n)*weight(i)
-      enddo
-    endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    deallocate(weight)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#if debug==1
-    print '("<<< pyramidBasePi")'
-#endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#undef debug
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    return
-  end subroutine pyramidBasePi
-  
-  
-  subroutine pyramidGradBasePi(ord,a,b,c,drMode,dsMode,dtMode,transpose)
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#define debug 0
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Psi' = Psi/ sqrt( int Psi^2 dV )
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Transpose = True  => mode(1:np,1:n)
-    !> Transpose = False => mode(1:n,1:np)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    use ieee_arithmetic
-    use baseSimplexTools, only: jacobiP
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    integer, intent(in)           :: ord
-    real(8)             , pointer :: a(:),b(:),c(:)
-    real(8), intent(out), pointer :: drMode(:,:)
-    real(8), intent(out), pointer :: dsMode(:,:)
-    real(8), intent(out), pointer :: dtMode(:,:)
-    logical, intent(in)           :: transpose
-    !>
-    integer                       :: i,n,np
-    real(8), pointer              :: weight(:)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#if debug==1
-    print '(">>> pyramidGradBasePi transpose=",l)',transpose
+#if pyramidBasePi==1
+    print '(4x,"base orthogonale Psi(a,b,c) = P_i^{0,0}(a) P_j^{0,0}(b) (1-c)^max(i,j) P_k^{2max(i,j)+2,0}(2c-1)")'
 #endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Base orthogonale
-    call pyramidGradBasePiOrthogonal(  &
-    &    ord=ord                      ,&
-    &    a=a                          ,&
-    &    b=b                          ,&
-    &    c=c                          ,&
-    &    drMode=drMode                ,&
-    &    dsMode=dsMode                ,&
-    &    dtMode=dtMode                ,&
-    &    transpose=transpose           )
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Normalization coefficient weight=sqrt( 1/int(Psi^2 dV) )
-    call pyramidNormalization(ord=ord,weight=weight)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    np=(ord+1)*(ord+2)*(2*ord+3)/6
-    n =size(a)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#if debug==1
-    print '(4x,"base orthonormale Psi'' = Psi/sqrt(int Psi^2 dV)")'
-#endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Base orthonormale
-    if( .not.transpose )then !> mode(1:n,1:np)
-      do i=1,np
-        drMode(1:n,i)=drMode(1:n,i)*weight(i)
-        dsMode(1:n,i)=dsMode(1:n,i)*weight(i)
-        dtMode(1:n,i)=dtMode(1:n,i)*weight(i)
-      enddo
-    else                     !> mode(1:np,1:n)
-      do i=1,np
-        drMode(i,1:n)=drMode(i,1:n)*weight(i)
-        dsMode(i,1:n)=dsMode(i,1:n)*weight(i)
-        dtMode(i,1:n)=dtMode(i,1:n)*weight(i)
-      enddo
+    if( .not.transpose )then
+      
+      allocate(mode(1:nNod,1:nMod))
+      
+      iMod=0
+      do iu=0,ord ; do iv=0,ord
+        iM=max(iu,iv)
+        !> Normalisation
+        coef=sqrt(2d0**(2*iM+3)) ! print '("coef=",e22.15)',coef
+        
+        do iw=0,ord-iM
+          iMod=iMod+1
+          
+          alpha=0d0                 ; beta=0d0
+          call jacobiP(n=iu,alpha=alpha, beta=beta,u=a(1:nNod)       ,jf=P_iu)   !> J_iu^{0             ,0} (a)
+          
+          alpha=0d0                 ; beta=0d0
+          call jacobiP(n=iv,alpha=alpha, beta=beta,u=b(1:nNod)       ,jf=P_iv)   !> J_iv^{0             ,0} (b)
+          
+          alpha=real(2*iM+2,kind=8) ; beta=0d0
+          call jacobiP(n=iw,alpha=alpha,beta=beta,u=2d0*c(1:nNod)-1d0,jf=P_iw)  !> J_iw^{2*max(iu,iv)+2,0} (2c-1)
+          
+          do iNod=1,nNod
+            !> tmp=(1-c)^iM
+            if( c(iNod)==1d0 )then
+              if( iM==0 )then
+                tmp=1d0
+              else
+                tmp=0d0
+              endif
+            else
+              tmp=(1d0-c(iNod))**iM
+            endif
+            !> Psi(a,b,c) = P_i^{0,0}(a)   P_j^{0,0}(b)  (1-c)^max(i,j)   P_k^{2max(i,j)+2,0}(2c-1)
+            mode(iNod,iMod)=P_iu(iNod)*P_iv(iNod)*P_iw(iNod)*tmp
+          enddo
+          
+          !> Normalisation
+          mode(1:nNod,iMod)=coef*mode(1:nNod,iMod)
+          
+        enddo
+      enddo ; enddo
+      
+      deallocate(P_iu,P_iv,P_iw)
+      
+    else
+      
+      allocate(mode(1:nMod,1:nNod))
+      
+      iMod=0
+      do iu=0,ord ; do iv=0,ord
+        iM=max(iu,iv)
+        
+        !> Normalisation
+        coef=sqrt(2d0**(2*iM+3))
+        
+        do iw=0,ord-iM
+          iMod=iMod+1
+          
+          alpha=0d0                 ; beta=0d0
+          call jacobiP(n=iu,alpha=alpha, beta=beta,u=a(1:nNod)       ,jf=P_iu)   !> J_iu^{0             ,0} (a)
+          
+          alpha=0d0                 ; beta=0d0
+          call jacobiP(n=iv,alpha=alpha, beta=beta,u=b(1:nNod)       ,jf=P_iv)   !> J_iv^{0             ,0} (b)
+          
+          alpha=real(2*iM+2,kind=8) ; beta=0d0
+          call jacobiP(n=iw,alpha=alpha,beta=beta,u=2d0*c(1:nNod)-1d0,jf=P_iw)  !> J_iw^{2*max(iu,iv)+2,0} (2c-1)
+          
+          do iNod=1,nNod
+            !> tmp=(1-c)îM
+            if( c(iNod)==1d0 )then
+              if( iM==0 )then
+                tmp=1d0
+              else
+                tmp=0d0
+              endif
+            else
+              tmp=(1d0-c(iNod))**iM
+            endif
+            !> Psi(a,b,c) = P_i^{0,0}(a)   P_j^{0,0}(b)  (1-c)^max(i,j)   P_k^{2max(i,j)+2,0}(2c-1)
+            mode(iMod,iNod)=P_iu(iNod)*P_iv(iNod)*P_iw(iNod)*tmp
+          enddo
+          
+          !> Normalisation
+          mode(iMod,1:nNod)= coef*mode(iMod,1:nNod)
+          
+        enddo
+        
+      enddo ; enddo
+      
+      deallocate(P_iu,P_iv,P_iw)
+      
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    deallocate(weight)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#if debug==1
-    print '("<<< pyramidGradBasePi")'
+#if pyramidBasePi==1
+    print '("<<< pyramidBasePi")'
 #endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#undef debug
+#undef pyramidBasePi
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
-  end subroutine pyramidGradBasePi
+  end subroutine pyramidBasePi
   
-  subroutine pyramidGradBasePiOrthogonal(ord,a,b,c,drMode,dsMode,dtMode,transpose)
+  subroutine pyramidGradBasePi(ord,a,b,c,drMode,dsMode,dtMode,transpose)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#define debug 0
+#define pyramidGradBasePi 0
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Psi(a,b,c) = P_i^{0,0}(a)  P_j^{0,0}(b) (1-c)^max(i,j)  P_k^{2 max(i,j)+2,0}(2c-1)
@@ -1127,12 +985,18 @@ contains
     !> (∂c/∂z) (∂Psi/∂c) = (∂Psi/∂c)
     !>                   =   P_i^{0,0}(a) P_j^{0,0}(b)   (∂(1-c)^max(i,j)/∂c)    P_k^{2 max(i,j)+2,0}     (2c-1)
     !>                      +P_i^{0,0}(a) P_j^{0,0}(b)     (1-c)^max(i,j)    2 (∂P_k^{2 max(i,j)+2,0}/∂2c)(2c-1)
-    !>                   =  -max(i,j) P_i^{0,0}(a) P_j^{0,0}(b)   P_k^{2 max(i,j)+2,0}       (2c-1) (1-c)^(max(i,j)-1)
-    !>                      +2        P_i^{0,0}(a) P_j^{0,0}(b) (∂P_k^{2 max(i,j)+2,0}/∂2c-1)(2c-1) (1-c)^(max(i,j)  )
+    !>   1) si max(i,j)/=0
+    !>   (∂c/∂z) (∂Psi/∂c) =  -max(i,j) P_i^{0,0}(a) P_j^{0,0}(b)   P_k^{2 max(i,j)+2,0}       (2c-1) (1-c)^(max(i,j)-1)
+    !>                        +2        P_i^{0,0}(a) P_j^{0,0}(b) (∂P_k^{2 max(i,j)+2,0}/∂2c-1)(2c-1) (1-c)^(max(i,j)  )
+    !>   2) si max(i,j)==0
+    !>   (∂c/∂z) (∂Psi/∂c) =  +P_i^{0,0}(a) P_j^{0,0}(b)     (1-c)^max(i,j)    2 (∂P_k^{2 max(i,j)+2,0}/∂2c)(2c-1)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Transpose = True  => mode(1:np,1:n)
-    !> Transpose = False => mode(1:n,1:np)
+    !> Normalization : sqrt(2**(2*iM+3))
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Transpose = True  => mode(1:nMod,1:n)
+    !> Transpose = False => mode(1:n,1:nMod)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     use ieee_arithmetic
@@ -1144,170 +1008,235 @@ contains
     real(8), intent(out), pointer :: dsMode(:,:)
     real(8), intent(out), pointer :: dtMode(:,:)
     logical, intent(in)           :: transpose
-    !
+    !>
     real(8)                       :: alpha,beta
-    integer                       :: i,n,ad
+    integer                       :: iNod,nNod,ad
     integer                       :: iu,iv,iw,iM,iMod
-    integer                       :: np
+    integer                       :: nMod
     real(8), pointer              :: Pi(:),dPi(:)
     real(8), pointer              :: Pj(:),dPj(:)
     real(8), pointer              :: Pk(:),dPk(:)
-    real(8), pointer              :: tmp(:)
+    real(8)                       :: tmp0,tmp1,tmp2
     real(8)                       :: coef
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#if debug==1
-    print '(">>> pyramidGradBasePiOrthogonal transpose=",l)',transpose
-    do i=1,n
-      print '(4x,"pyramidGradBasePiOrthogonal a,b,c=",3(e22.15,1x),3x,i3,"/",i3)',a(i),b(i),c(i),i,n
+#if pyramidGradBasePi==1
+    print '(">>> pyramidGradBasePi transpose=",l)',transpose
+    do i=1,size(a)
+      print '(4x,"pyramidGradBasePi a,b,c=",3(e22.15,1x),3x,i3,"/",i3)',a(i),b(i),c(i),i,size(a)
     enddo
 #endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    np=(ord+1)*(ord+2)*(2*ord+3)/6
-    n =size(a) ! print '("size(a),size(b),size(c)=",3(i10,1x))',size(a),size(b),size(c)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    allocate(tmp(1:n))
+    nMod=(ord+1)*(ord+2)*(2*ord+3)/6
+    nNod=size(a) ! print '("size(a),size(b),size(c)=",3(i10,1x))',size(a),size(b),size(c)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( .not.transpose )then
       
-      allocate(drMode(1:n,1:np),dsMode(1:n,1:np),dtMode(1:n,1:np))
+      allocate(drMode(1:nNod,1:nMod),dsMode(1:nNod,1:nMod),dtMode(1:nNod,1:nMod))
       
       iMod=0
       do iu=0,ord ; do iv=0,ord
         iM=max(iu,iv)
+        !> Normalization
+        coef=sqrt(2d0**(2*iM+3))
+        
         do iw=0,ord-iM
-          iMod=iMod+1 ! print '(/"pyramidGradBasePiOrthogonal: iMod=",i3)',iMod
+          iMod=iMod+1 ! print '(/"pyramidGradBasePi: iMod=",i3)',iMod
           
           alpha=0d0                 ; beta=0d0
-          call  jacobiP(n=iu,alpha=alpha,beta=beta,u=a(1:n)        ,jf= Pi)
-          call dJacobiP(n=iu,alpha=alpha,beta=beta,u=a(1:n)        ,jf=dPi)
+          call  jacobiP(n=iu,alpha=alpha,beta=beta,u=a(1:nNod)        ,jf= Pi)
+          call dJacobiP(n=iu,alpha=alpha,beta=beta,u=a(1:nNod)        ,jf=dPi)
           
           alpha=0d0                 ; beta=0d0
-          call  jacobiP(n=iv,alpha=alpha,beta=beta,u=b(1:n)        ,jf= Pj)
-          call dJacobiP(n=iv,alpha=alpha,beta=beta,u=b(1:n)        ,jf=dPj)
+          call  jacobiP(n=iv,alpha=alpha,beta=beta,u=b(1:nNod)        ,jf= Pj)
+          call dJacobiP(n=iv,alpha=alpha,beta=beta,u=b(1:nNod)        ,jf=dPj)
           
           alpha=real(2*iM+2,kind=8) ; beta=0d0
-          call  jacobiP(n=iw,alpha=alpha,beta=beta,u=2d0*c(1:n)-1d0,jf= Pk)
-          call dJacobiP(n=iw,alpha=alpha,beta=beta,u=2d0*c(1:n)-1d0,jf=dPk)
+          call  jacobiP(n=iw,alpha=alpha,beta=beta,u=2d0*c(1:nNod)-1d0,jf= Pk)
+          call dJacobiP(n=iw,alpha=alpha,beta=beta,u=2d0*c(1:nNod)-1d0,jf=dPk)
           
-          !> tmp(1:n)=(1-c)^(max(i,j)-1)
-          do i=1,n
-            if( c(i)==1d0 )then
-              if    ( iM-1<0 )then
-                tmp(i)=1d25 ; print '("pyramidGradBasePiOrthogonal iM=",i2,"<1")',iM
+          do iNod=1,nNod
+            tmp0=1d0-c(iNod)
+            
+            !> tmp1=(1-c)^(iM-1) ; tmp2=(1-c)^iM
+            if( tmp0==0d0 )then !> i.e c=1
+              !>tmp1=(1-c)^(iM-1)
+              if( iM-1<0 )then
+                tmp1=1d25
               elseif( iM-1==0 )then
-                tmp(i)=1d0
-              elseif( iM-1>0 )then
-                tmp(i)=0d0
+                tmp1=1d0
+              else
+                tmp1=0d0
+              endif
+              
+              !> tmp2=(1-c)^iM
+              if( iM==0 )then
+                tmp2=1d0
+              else
+                tmp2=0d0
               endif
             else
-              tmp(i)=(1d0-c(i))**(iM-1)
+              tmp1=tmp0**(iM-1)
+              tmp2=tmp0**(iM  )
+            endif
+            
+            !> (∂Psi/∂x) = (∂P_i^{0,0}/∂a)(a)   P_j^{0,0}    (b)  P_k^{2 max(i,j)+2,0}(2c-1)  (1-c)^(max(i,j)-1)
+            drMode(iNod,iMod)=dPi(iNod)*Pj(iNod)*Pk(iNod)*tmp1
+            
+            !> (∂Psi/∂y) =   P_i^{0,0}    (a) (∂P_j^{0,0}/∂b)(b)  P_k^{2*max(i,j)+2,0}(2c-1)  (1-c)^(max(i,j)-1)
+            dsMode(iNod,iMod)=Pi(iNod)*dPj(iNod)*Pk(iNod)*tmp1
+            
+            !> (∂Psi/∂z) = (∂a/∂z) (∂Psi/∂a) + (∂b/∂z) (∂Psi/∂b) + (∂c/∂z) (∂2c-1/∂c) (∂Psi/∂2c-1)
+            !>           =  a        (∂P_i^{0,0}/∂a)(a)   P_j^{0,0}    (b)   P_k^{2*max(i,j)+2,0}    (2c-1)   (1-c)**(max(i,j)-1)
+            !>             +b          P_i^{0,0}    (a) (∂P_j^{0,0}/∂b)(b)   P_k^{2*max(i,j)+2,0}    (2c-1)   (1-c)**(max(i,j)-1)
+            !>             -max(i,j)*  P_i^{0,0}    (a)   P_j^{0,0}    (b)   P_k^{2*max(i,j)+2,0}    (2c-1)   (1-c)**(max(i,j)-1)
+            !>             +2       *  P_i^{0,0}    (a)   P_j^{0,0}    (b) (∂P_k^{2*max(i,j)+2,0}/∂c)(2c-1)   (1-c)**(max(i,j)  )
+            
+            if( .not.iM==0 )then
+              dtMode(iNod,iMod)=( a(iNod)        *dPi(iNod)* Pj(iNod)  &
+              &                  +b(iNod)        * Pi(iNod)*dPj(iNod)  &
+              &                  -real(iM,kind=8)* Pi(iNod)* Pj(iNod)  &
+              &                  )*Pk(iNod)*tmp1                       &
+              &                  +2d0*Pi(iNod)*Pj(iNod)*dPk(iNod)*tmp2
+            else
+              dtMode(iNod,iMod)=( a(iNod)        *dPi(iNod)* Pj(iNod)  &
+              &                  +b(iNod)        * Pi(iNod)*dPj(iNod)  &
+              &                  )*Pk(iNod)*tmp1                       &
+              &                  +2d0*Pi(iNod)*Pj(iNod)*dPk(iNod)*tmp2
+            endif
+            
+            if( tmp0==0d0 )then
+              if( iM-1<0 )then
+                print '(/"WARNING pyramidGradBasePi iNod=",i6," iM=",i2,"<1")',iNod,iM
+                print '( "iu,iv,iw=",3(i6,1x)," -> iMod=",i3)',iu,iv,iw,iMod
+                print '( "(a,b,c)=",3(f9.5,1x)," => ",$)',a(iNod),b(iNod),c(iNod)
+                print '( "Dr,Ds,Dt=",3(e22.15,1x))',drMode(iNod,iMod),dsMode(iNod,iMod),dtMode(iNod,iMod)
+              endif
             endif
           enddo
           
-          !> (∂Psi/∂x) = (∂P_i^{0,0}/∂a)(a)   P_j^{0,0}    (b)  P_k^{2 max(i,j)+2,0}(2c-1)  (1-c)^(max(i,j)-1)
-          drMode(1:n,iMod)=dPi(1:n)* Pj(1:n)*Pk(1:n)*tmp(1:n)
-          
-          !> (∂Psi/∂y) =   P_i^{0,0}    (a) (∂P_j^{0,0}/∂b)(b)  P_k^{2*max(i,j)+2,0}(2c-1)  (1-c)^(max(i,j)-1)
-          dsMode(1:n,iMod)= Pi(1:n)*dPj(1:n)*Pk(1:n)*tmp(1:n)
-          
-          !> (∂Psi/∂z) = (∂a/∂z) (∂Psi/∂a) + (∂b/∂z) (∂Psi/∂b) + (∂c/∂z) (∂2c-1/∂c) (∂Psi/∂2c-1)
-          !>           =  a        (∂P_i^{0,0}/∂a)(a)   P_j^{0,0}    (b)   P_k^{2*max(i,j)+2,0}    (2c-1)  (1-c)**(max(i,j)-1)
-          !>             +b          P_i^{0,0}    (a) (∂P_j^{0,0}/∂b)(b)   P_k^{2*max(i,j)+2,0}    (2c-1)  (1-c)**(max(i,j)-1)
-          !>             -max(i,j)*  P_i^{0,0}    (a)   P_j^{0,0}    (b)   P_k^{2*max(i,j)+2,0}    (2c-1)  (1-c)**(max(i,j)-1)
-          !>             +2       *  P_i^{0,0}    (a)   P_j^{0,0}    (b) (∂P_k^{2*max(i,j)+2,0}/∂c)(2c-1)  (1-c)**(max(i,j)  )
-          
-          dtMode(1:n,iMod)=( a(1:n)          * dPi(1:n) *  Pj(1:n) *  Pk(1:n)                      &
-          &                 +b(1:n)          *  Pi(1:n) * dPj(1:n) *  Pk(1:n)                      &
-          &                 -real(iM,kind=8) *  Pi(1:n) *  Pj(1:n) *  Pk(1:n) ) * tmp(1:n)         &
-          &                 +2d0             *  Pi(1:n) *  Pj(1:n) * dPk(1:n)   * (1d0-c(1:n))**iM  
+          !> Normalization
+          drMode(1:nNod,iMod)=coef*drMode(1:nNod,iMod)
+          dsMode(1:nNod,iMod)=coef*dsMode(1:nNod,iMod)
+          dtMode(1:nNod,iMod)=coef*dtMode(1:nNod,iMod)
           
         enddo
       enddo ; enddo
       
     else
       
-      allocate(drMode(1:np,1:n),dsMode(1:np,1:n),dtMode(1:np,1:n))
+      allocate(drMode(1:nMod,1:nNod),dsMode(1:nMod,1:nNod),dtMode(1:nMod,1:nNod))
       
       iMod=0
       do iu=0,ord ; do iv=0,ord
         iM=max(iu,iv)
+        !> Normalization
+        coef=sqrt(2d0**(2*iM+3))
+        
         do iw=0,ord-iM
-          iMod=iMod+1 ! print '(/"pyramidGradBasePiOrthogonal: iMod=",i3)',iMod
+          iMod=iMod+1 ! print '(/"pyramidGradBasePi: iMod=",i3)',iMod
           
           alpha=0d0                 ; beta=0d0
-          call  jacobiP(n=iu,alpha=alpha,beta=beta,u=a(1:n)        ,jf= Pi)
-          call dJacobiP(n=iu,alpha=alpha,beta=beta,u=a(1:n)        ,jf=dPi)
+          call  jacobiP(n=iu,alpha=alpha,beta=beta,u=a(1:nNod)        ,jf= Pi)
+          call dJacobiP(n=iu,alpha=alpha,beta=beta,u=a(1:nNod)        ,jf=dPi)
           
           alpha=0d0                 ; beta=0d0
-          call  jacobiP(n=iv,alpha=alpha,beta=beta,u=b(1:n)        ,jf= Pj)
-          call dJacobiP(n=iv,alpha=alpha,beta=beta,u=b(1:n)        ,jf=dPj)
+          call  jacobiP(n=iv,alpha=alpha,beta=beta,u=b(1:nNod)        ,jf= Pj)
+          call dJacobiP(n=iv,alpha=alpha,beta=beta,u=b(1:nNod)        ,jf=dPj)
           
           alpha=real(2*iM+2,kind=8) ; beta=0d0
-          call  jacobiP(n=iw,alpha=alpha,beta=beta,u=2d0*c(1:n)-1d0,jf= Pk)
-          call dJacobiP(n=iw,alpha=alpha,beta=beta,u=2d0*c(1:n)-1d0,jf=dPk)
+          call  jacobiP(n=iw,alpha=alpha,beta=beta,u=2d0*c(1:nNod)-1d0,jf= Pk)
+          call dJacobiP(n=iw,alpha=alpha,beta=beta,u=2d0*c(1:nNod)-1d0,jf=dPk)
           
-          !> tmp(1:n)=(1-c)^(max(i,j)-1)
-          do i=1,n
-            if( c(i)==1d0 )then
-              if    ( iM-1<0 )then
-                tmp(i)=1d25 ; print '("pyramidGradBasePiOrthogonal iM=",i2,"<1")',iM
+          do iNod=1,nNod
+            !> tmp0=1-c
+            tmp0=1d0-c(iNod)
+            
+            !> tmp1=(1-c)^(iM-1) ; tmp2=(1-c)^iM
+            if( tmp0==0d0 )then !> i.e c=1
+              !>tmp1=(1-c)^(iM-1)
+              if( iM-1<0 )then
+                tmp1=1d25
               elseif( iM-1==0 )then
-                tmp(i)=1d0
-              elseif( iM-1>0 )then
-                tmp(i)=0d0
+                tmp1=1d0
+              else
+                tmp1=0d0
+              endif
+              
+              !> tmp2=(1-c)^iM
+              if( iM==0 )then
+                tmp2=1d0
+              else
+                tmp2=0d0
               endif
             else
-              tmp(i)=(1d0-c(i))**(iM-1)
+              tmp1=tmp0**(iM-1)
+              tmp2=tmp0**(iM  )
             endif
+            
+            !> (∂Psi/∂x) = (∂P_i^{0,0}/∂a)(a)   P_j^{0,0}    (b)  P_k^{2 max(i,j)+2,0}(2c-1)  (1-c)^(max(i,j)-1)
+            drMode(iMod,iNod)=dPi(iNod)*Pj(iNod)*Pk(iNod)*tmp1
+            
+            !> (∂Psi/∂y) =   P_i^{0,0}    (a) (∂P_j^{0,0}/∂b)(b)  P_k^{2*max(i,j)+2,0}(2c-1)  (1-c)^(max(i,j)-1)
+            dsMode(iMod,iNod)=Pi(iNod)*dPj(iNod)*Pk(iNod)*tmp1
+            
+            !> (∂Psi/∂z) = (∂a/∂z) (∂Psi/∂a) + (∂b/∂z) (∂Psi/∂b) + (∂c/∂z) (∂2c-1/∂c) (∂Psi/∂2c-1)
+            !>           =  a        (∂P_i^{0,0}/∂a)(a)   P_j^{0,0}    (b)   P_k^{2*max(i,j)+2,0}    (2c-1)   (1-c)**(max(i,j)-1)
+            !>             +b          P_i^{0,0}    (a) (∂P_j^{0,0}/∂b)(b)   P_k^{2*max(i,j)+2,0}    (2c-1)   (1-c)**(max(i,j)-1)
+            !>             -max(i,j)*  P_i^{0,0}    (a)   P_j^{0,0}    (b)   P_k^{2*max(i,j)+2,0}    (2c-1)   (1-c)**(max(i,j)-1)
+            !>             +2       *  P_i^{0,0}    (a)   P_j^{0,0}    (b) (∂P_k^{2*max(i,j)+2,0}/∂c)(2c-1)   (1-c)**(max(i,j)  )
+            
+            if( .not.iM==0 )then
+              dtMode(iMod,iNod)=( a(iNod)        *dPi(iNod)* Pj(iNod)  &
+              &                  +b(iNod)        * Pi(iNod)*dPj(iNod)  &
+              &                  -real(iM,kind=8)* Pi(iNod)* Pj(iNod)  &
+              &                  )*Pk(iNod)*tmp1                       &
+              &                  +2d0*Pi(iNod)*Pj(iNod)*dPk(iNod)*tmp2
+            else
+              dtMode(iMod,iNod)=( a(iNod)        *dPi(iNod)* Pj(iNod)  &
+              &                  +b(iNod)        * Pi(iNod)*dPj(iNod)  &
+              &                  )*Pk(iNod)*tmp1                       &
+              &                  +2d0*Pi(iNod)*Pj(iNod)*dPk(iNod)*tmp2
+            endif
+            
+            if( tmp0==0d0 )then
+              if( iM-1<0 )then
+                print '(/"WARNING pyramidGradBasePi iNod=",i6," iM=",i2,"<1")',iNod,iM
+                print '( "iu,iv,iw=",3(i6,1x)," -> iMod=",i3)',iu,iv,iw,iMod
+                print '( "(a,b,c)=",3(f9.5,1x)," => ",$)',a(iNod),b(iNod),c(iNod)
+                print '( "Dr,Ds,Dt=",3(e22.15,1x))',drMode(iNod,iMod),dsMode(iNod,iMod),dtMode(iNod,iMod)
+              endif
+            endif
+            
           enddo
           
-          !> (∂Psi/∂x) = (∂P_i^{0,0}/∂a)(a)   P_j^{0,0}    (b)  P_k^{2 max(i,j)+2,0}(2c-1)  (1-c)^(max(i,j)-1)
-          drMode(iMod,1:n)=dPi(1:n)* Pj(1:n)*Pk(1:n)*tmp(1:n)
-          
-          !> (∂Psi/∂y) =   P_i^{0,0}    (a) (∂P_j^{0,0}/∂b)(b)  P_k^{2*max(i,j)+2,0}(2c-1)  (1-c)^(max(i,j)-1)
-          dsMode(iMod,1:n)= Pi(1:n)*dPj(1:n)*Pk(1:n)*tmp(1:n)
-          
-          !> (∂Psi/∂z) = (∂a/∂z) (∂Psi/∂a) + (∂b/∂z) (∂Psi/∂b) + (∂c/∂z) (∂2c-1/∂c) (∂Psi/∂2c-1)
-          !>           =  a        (∂P_i^{0,0}/∂a)(a)   P_j^{0,0}    (b)   P_k^{2*max(i,j)+2,0}    (2c-1)  (1-c)**(max(i,j)-1)
-          !>             +b          P_i^{0,0}    (a) (∂P_j^{0,0}/∂b)(b)   P_k^{2*max(i,j)+2,0}    (2c-1)  (1-c)**(max(i,j)-1)
-          !>             -max(i,j)*  P_i^{0,0}    (a)   P_j^{0,0}    (b)   P_k^{2*max(i,j)+2,0}    (2c-1)  (1-c)**(max(i,j)-1)
-          !>             +2       *  P_i^{0,0}    (a)   P_j^{0,0}    (b) (∂P_k^{2*max(i,j)+2,0}/∂c)(2c-1)  (1-c)**(max(i,j)  )
-          
-          dtMode(iMod,1:n)=( a(1:n)          * dPi(1:n) *  Pj(1:n) *  Pk(1:n)                      &
-          &                 +b(1:n)          *  Pi(1:n) * dPj(1:n) *  Pk(1:n)                      &
-          &                 -real(iM,kind=8) *  Pi(1:n) *  Pj(1:n) *  Pk(1:n) ) * tmp(1:n)         &
-          &                 +2d0             *  Pi(1:n) *  Pj(1:n) * dPk(1:n)   * (1d0-c(1:n))**iM  
+          !> Normalization
+          drMode(iMod,1:nNod)=coef*drMode(iMod,1:nNod)
+          dsMode(iMod,1:nNod)=coef*dsMode(iMod,1:nNod)
+          dtMode(iMod,1:nNod)=coef*dtMode(iMod,1:nNod)
           
         enddo
       enddo ; enddo
-      
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+        
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    deallocate(tmp)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#if debug==1
-    print '("<<< pyramidGradBasePiOrthogonal")'
+#if pyramidGradBasePi==1
+    print '("<<< pyramidGradBasePi")'
 #endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#undef debug
+#undef pyramidGradBasePi
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
-  end subroutine pyramidGradBasePiOrthogonal
+  end subroutine pyramidGradBasePi
   
   subroutine pyramideMassMatrix(ord, vand, mass)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1322,7 +1251,7 @@ contains
     real(8), pointer     :: vand(:,:)
     real(8), pointer     :: mass(:)
     !>
-    integer              :: i,j,iGauss,np,nPt
+    integer              :: i,j,iGauss,nMod,nPt
     integer              :: ad,cpt,dCpt
     real(8), pointer     :: uvw(:,:)
     real(8), pointer     :: x(:),y(:),z(:),w(:)
@@ -1355,23 +1284,23 @@ contains
     
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !> Evaluation des fonctions de Lagrange aux points uvw
-    !> Transpose=.true. => li(np,nPt)
+    !> Transpose=.true. => li(nMod,nPt)
     call pyramiduvw2abc(uvw=uvw,a=a,b=b,c=c)
     call pyramidLagrange3Dv(ord=ord,vand=vand,a=a,b=b,c=c,lx=li,transpose=.true.)  !> li(uvw) = Inverse[Transpose[Vand]].Psi[uvw]
     deallocate(a,b,c)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    np=size(li,1)
-    !allocate( mass(np*(np+1)/2)) ; mass(:)=0d0
+    nMod=size(li,1)
+    !allocate( mass(nMod*(nMod+1)/2)) ; mass(:)=0d0
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     mass(:)=0d0
     do iGauss=1,nPt
       ad=0 ; cpt=0 ; dCpt=0
-      do i=1,np
-        do j=1,np
+      do i=1,nMod
+        do j=1,nMod
           cpt=cpt+1
           if( cpt>dCpt )then
             ad=ad+1 ; mass(ad)=mass(ad)+li(i,iGauss)*li(j,iGauss)*w(iGauss)
@@ -2340,114 +2269,6 @@ contains
     return
   end function pyramidIdx
   
-  subroutine pyramidSides3D(ord, sidesIdx, sides, display)
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    ! input: ord=polynomial order of interpolant
-    ! output: sidesIdx,sides (sides degrees)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !>        y
-    !>        ^
-    !>    4x--|---x3
-    !>     |\ S4 /|
-    !>     | \| / |
-    !>     |S5x-S3--->x
-    !>     | /  \ |
-    !>     |/ S2 \|
-    !>    1x------x2
-    !>
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    use baseSimplex3D, only:  permutation
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    integer             , intent(in)  :: ord
-    logical             , intent(in)  :: display
-    integer             , intent(out) :: sidesIdx(6)
-    integer, allocatable, intent(out) :: sides(:)
-    !---
-    integer                           :: iu,iv,iw
-    integer                           :: iNod,iSide,iDg
-    integer                           :: ijkToDeg(0:ord,0:ord,0:ord)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    stop "stop @ pyramidSides3D probleme avec les face"
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if( display )print '(/"Extract Pyramid List of DOF per Side")'
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    allocate(sides((ord+1)*(ord+1)+4*(ord+1)*(ord+2)/2))
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    sidesIdx(1)=0
-    sidesIdx(2)=sidesIdx(1)+(ord+1)*(ord+1)   !> square
-    sidesIdx(3)=sidesIdx(2)+(ord+1)*(ord+2)/2 !> triangle
-    sidesIdx(4)=sidesIdx(3)+(ord+1)*(ord+2)/2 !> triangle
-    sidesIdx(5)=sidesIdx(4)+(ord+1)*(ord+2)/2 !> triangle
-    sidesIdx(6)=sidesIdx(5)+(ord+1)*(ord+2)/2 !> triangle
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    iDg=0
-    do iw=0,ord ; do iv=0,ord-iw ; do iu=0,ord-iw
-      iDg=iDg+1 ; ijkToDeg(iu,iv,iw)=iDg
-    enddo ; enddo ; enddo
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Side1 square iw=0  (retournée)
-    iw=0 ; do iu=0,ord ; do iv=0,ord
-      sidesIdx(1)=sidesIdx(1)+1
-      sides( sidesIdx(1) )=ijkToDeg(iu,iv,iw)
-    enddo ; enddo
-    
-    !> Side2 triangle iv=0
-    do iw=0,ord ; iv=0 ; do iu=0,ord-iw
-      sidesIdx(2)=sidesIdx(2)+1
-      sides( sidesIdx(2) )=ijkToDeg(iu,iv,iw)
-    enddo ; enddo
-    
-    !> Side3 triangle iu=ord-iw
-    do iw=0,ord ; do iv=0,ord-iw ; iu=ord-iw
-      sidesIdx(3)=sidesIdx(3)+1
-      sides( sidesIdx(3) )=ijkToDeg(iu,iv,iw)
-    enddo ; enddo
-    
-    !> Side4 triangle iv=ord-iw (retournée)
-    do iw=0,ord ; iv=ord-iw ; do iu=ord-iw,0,-1
-      sidesIdx(4)=sidesIdx(4)+1
-      sides( sidesIdx(4) )=ijkToDeg(iu,iv,iw)
-    enddo ; enddo
-    
-    !> Side5 triangle iu=0  (retournée)
-    do iw=0,ord ; do iv=ord-iw,0,-1 ; iu=0
-      sidesIdx(5)=sidesIdx(5)+1
-      sides( sidesIdx(5) )=ijkToDeg(iu,iv,iw)
-    enddo ; enddo
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if( display )then
-      do iSide=1,5
-        print '(3x,"Side",i1,": ",$)',iSide
-        do iNod=sidesIdx(iSide)+1,sidesIdx(iSide+1)
-          print '(i5,1x,$)',sides(iNod)
-        enddo
-        print '()'
-      enddo
-    endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if( display )print '("end Extract Pyramid List of DOF per Side")'
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    return
-  end subroutine pyramidSides3D
   
   subroutine pyramidReadXYZout3D(xyzOut,display)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -2469,9 +2290,9 @@ contains
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     name="Pyramids.meshb"
-    if( display )print '(4x,"Reading Pyramid Volumic Mesh: ",a)',trim(name)
+    if( display )print '(3x,"Reading Pyramid Volumic Mesh: ",a)',trim(name)
     ins=GmfOpenMeshF77(trim(name),GmfRead,ver,geo) ! print '(3x,"ins=",i3)',ins
-    nNod0=GmfStatKwdF77(ins,GmfVertices,ver,0,TypTab) ; if( display )print '(4x,"nNode=",i10)',nNod0
+    nNod0=GmfStatKwdF77(ins,GmfVertices,ver,0,TypTab) ; if( display )print '(6x,"nNod0=",i10)',nNod0
     allocate(xyzOut(geo,nNod0))
     res=GmfGotoKwdF77(ins,GmfVertices)
     select case(ver)
@@ -2487,7 +2308,7 @@ contains
     end select
     
     res=GmfCloseMeshF77(ins)
-    if( display )print '(4x,"end Reading")'
+    if( display )print '(3x,"end Reading")'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
