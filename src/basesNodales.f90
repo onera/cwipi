@@ -1604,7 +1604,7 @@ subroutine pyramTestBasis()
   endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
   
-#if 0==0 
+#if 0==1
 !Hexa
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> TEST Hexa dégénéré
@@ -2255,8 +2255,8 @@ subroutine pyramTestMass()
   integer              :: i,j,iGauss,np,nPt
   integer              :: dim
   integer              :: ord
-  real(8), pointer     :: uvw(:,:)
-  real(8), pointer     :: x(:),y(:),z(:),w(:)
+  real(8), pointer     :: uvw(:,:),w(:)
+!  real(8), pointer     :: x(:),y(:),z(:),w(:)
   
   real(8), pointer     :: a(:),b(:),c(:)
   real(8), pointer     :: li(:,:),psi(:,:)
@@ -2298,22 +2298,15 @@ subroutine pyramTestMass()
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Liste des points de Gauss
-  call P5_gauss(   &
-  &    order=ord  ,&
-  &    nGauss=nPt ,&
-  &    uGauss=x   ,&
-  &    vGauss=y   ,&
-  &    wGauss=z   ,&
-  &    pGauss=w    )
-  
-  allocate(uvw(1:3,nPt))
-  do i=1,nPt
-    uvw(1:3,i)=[x(i),y(i),z(i)]
-  enddo
+  call P5_gauss(    &
+  &    order=ord   ,&
+  &    nGauss=nPt  ,&
+  &    uvwGauss=uvw,&
+  &    pGauss=w     )
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Evaluation des fonctions de orthonormale aux points uvw
+  !> Evaluation des fonctions de base orthonormales aux points uvw
   !> Transpose=.true. => psi(np,nPt)
   call pyramiduvw2abc(uvw=uvw,a=a,b=b,c=c)
   call pyramidBasePi(ord=ord,a=a,b=b,c=c,mode=psi,transpose=.true.) 
@@ -2321,7 +2314,7 @@ subroutine pyramTestMass()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Matrice de masse
+  !> Matrice de masse = \int_0^1 \int_{-1+w}^{1-w} \int_{-1+w}^{1-w} psi_i(u,v,w) psi_j(u,v,w) du dv dw
   np=size(psi,1)
   allocate( mass0(np,np)) ; mass0(:,:)=0d0
   do iGauss=1,nPt
@@ -2350,12 +2343,13 @@ subroutine pyramTestMass()
   
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  write(*,'(/,">>> Test1 :  Mass= (vand x vand^t )^{-1}")')
+  write(*,'(/,">>> Test1 :  Mass = (vand x vand^t )^{-1}")')
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Matrice de masse
   call massMatrix(vand=vand,mass=mass1)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   call display(title="    Mass Matrix 1",mat=mass1)
   print '(/4x,"det(mass1)=",e22.15/)',DMGT(eps=eps,n=size(mass1,1),A=mass1)
@@ -2368,26 +2362,19 @@ subroutine pyramTestMass()
   
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  write(*,'(/">>> Test2 : Mass=\int ai aj dV")')
+  write(*,'(/">>> Test2 : Mass=\int ai aj dV avec quadratures de Gauss")')
   
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !> Liste des points de Gauss
-  call P5_gauss(   &
-  &    order=ord  ,&
-  &    nGauss=nPt ,&
-  &    uGauss=x   ,&
-  &    vGauss=y   ,&
-  &    wGauss=z   ,&
-  &    pGauss=w    )
-  
-  allocate(uvw(1:3,nPt))
-  do i=1,nPt
-    uvw(1:3,i)=[x(i),y(i),z(i)]
-  enddo
+  call P5_gauss(    &
+  &    order=ord   ,&
+  &    nGauss=nPt  ,&
+  &    uvwGauss=uvw,&
+  &    pGauss=w     )
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  !> Evaluation des fonctions de Lagrange aux points uvw
+  !> Evaluation des fonctions de Lagrange aux points de Gauss uvw
   !> Transpose=.true. => li(np,nPt)
   call pyramiduvw2abc(uvw=uvw,a=a,b=b,c=c)
   call pyramidLagrange3Dv(ord=ord,vand=vand,a=a,b=b,c=c,lx=li,transpose=.true.)  !> li(uvw) = Inverse[Transpose[Vand]].Psi[uvw]
@@ -2397,7 +2384,7 @@ subroutine pyramTestMass()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Matrice de masse
   np=size(li,1)
-  allocate( mass2(np,np)) ; mass2(:,:)=0d0
+  allocate( mass2(1:np,1:np)) ; mass2(1:np,1:np)=0d0
   do iGauss=1,nPt
     do j=1,np
       do i=1,np
@@ -2460,7 +2447,7 @@ subroutine pyramTestMass()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  call displaySparce(title="    Mass2 - Mass1 Format condensé  (éléments <1d-15)",vec=mas2-mas1,tol=1d-15)
+ !call displaySparce(title="    Mass2 - Mass1 Format condensé  (éléments <1d-15)",vec=mas2-mas1,tol=1d-15)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   write(*,'(/"<<< Test 4 : Mass=\int ai aj dV Format condensé"/)')
@@ -2504,11 +2491,10 @@ program main
   !call pyramTestQuadrature()
   
   !> Tests des bases pyramides et de leurs derivees
-  call pyramTestBasis()
+  !call pyramTestBasis()
   
   !> Test Matrice de Masse des pyramides
   call pyramTestMass()
-  
   
   
 end program main

@@ -11,7 +11,6 @@ module baseSimplexTools
   interface display       ; module procedure displayMatrix       ; end interface
   interface display       ; module procedure displayVector       ; end interface
   interface displaySparce ; module procedure displaySparceMatrix ; end interface
-  interface displaySparce ; module procedure displaySparseVector ; end interface
   
   interface mathematica ; module procedure mathematicaMatrix ; end interface
   
@@ -282,7 +281,7 @@ module baseSimplexTools
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
-  end subroutine displaySparceMatrix  
+  end subroutine displaySparceMatrix
   
   subroutine mathematicaMatrix(title,mat)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -301,9 +300,10 @@ module baseSimplexTools
         if( j< size(mat,2) )print '(1x,f22.15,","$)',mat(i,j)
         if( j==size(mat,2) )print '(1x,f22.15,   $)',mat(i,j)
       enddo
-      if( i< size(mat,1) )print '("},")'
-      if( i==size(mat,1) )print '("}}")'
+      if( i< size(mat,1) )print '("},",$)'
+      if( i==size(mat,1) )print '("}}",$)'
     enddo
+    print '(";")'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
@@ -323,24 +323,6 @@ module baseSimplexTools
     
     return
   end subroutine displayVector
-  
-  subroutine displaySparseVector(title,vec,tol)
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    character(*) :: title
-    real(8)       :: vec(:)
-    real(8)       :: tol
-    !>
-    integer       :: i
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    print '(/a,2x,"size=",i3)',trim(title),size(vec)
-    do i=1,size(vec)
-      if( abs(vec(i))>tol )print '(4x,e22.15)',vec(i)
-    enddo
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    return
-  end subroutine displaySparseVector
   
   function gamma(x) result(ga)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -499,7 +481,7 @@ module baseSimplexTools
       jf0(:)=1d0/sqrt(gamma0)
       jf1(:)=5d-1/sqrt(gamma1)*(amb+(apb+2d0)*u(:))
       !
-      a2mb2=alpha*alpha-beta*beta   
+      a2mb2=alpha*alpha-beta*beta
       aold=2d0/(apb+2d0)*sqrt((alpha+1d0)*(beta+1d0)/(apb+3d0))
       do k=2,n
         h1=2d0*(k-1)+apb
@@ -1142,6 +1124,7 @@ module baseSimplexTools
     integer                       :: ad
     real(8) :: t0,t1
     integer                       :: i,j,k,n
+    integer                       :: iErr,iFail
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1164,9 +1147,6 @@ module baseSimplexTools
         enddo
       enddo
     enddo
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !call displayMatrix(title="inverseMassMatrix",mat=invMass)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -1220,7 +1200,7 @@ module baseSimplexTools
     real(8), intent(out), pointer :: dMat (:,:)
     !---
     real(8), pointer              :: iVand(:,:) ! inverse(vand)
-    integer                       :: i,j,k,n
+    integer                       :: i,j,k,nMod
     integer                       :: lWork
     integer, pointer              :: ipiv(:)
     real(8), pointer              :: work(:)
@@ -1228,26 +1208,26 @@ module baseSimplexTools
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> mat= vand.Inverse[vand]
-    n=size(vand,1) ; allocate(ipiv(1:n))
-    allocate(iVand(n,n)) ; iVand(1:n,1:n)=vand(1:n,1:n)
-    call dgetrf(n,n,iVand(1,1),n,ipiv(1),iErr)
+    !> mat= dVand.Inverse[vand]
+    nMod=size(vand,1) ; allocate(ipiv(1:nMod))
+    allocate(iVand(nMod,nMod)) ; iVand(1:nMod,1:nMod)=vand(1:nMod,1:nMod)
+    call dgetrf(nMod,nMod,iVand(1,1),nMod,ipiv(1),iErr)
     if( .not.iErr==0 )stop '("stop @ baseSimplexTools:derive1D:dgetrf unsuccessful exit")'
     
-    lWork=64*n ; allocate(work(lWork))
-    call dgetri(n,iVand(1,1),n,ipiv(1),work(1),lWork,iErr)
+    lWork=64*nMod ; allocate(work(lWork))
+    call dgetri(nMod,iVand(1,1),nMod,ipiv(1),work(1),lWork,iErr)
     if( .not.iErr==0 )stop '("stop @ baseSimplexTools:derive1D:dgetri unsuccessful exit")'
     deallocate(ipiv,work)
    !call displayMatrix(title="Inverse Vandermonde Matrix",mat=iVand)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> dMat = vand.Transpose[vand]
-    allocate(dMat(1:n,1:n))
-    dMat(1:n,1:n)=0d0
-    do i=1,n
-      do j=1,n
-        do k=1,n
+    !> dMat = dVand.Transpose[vand]
+    allocate(dMat(1:nMod,1:nMod))
+    dMat(1:nMod,1:nMod)=0d0
+    do i=1,nMod
+      do j=1,nMod
+        do k=1,nMod
           dMat(i,j)=dMat(i,j)+dvand(i,k)*iVand(k,j)
         enddo
       enddo

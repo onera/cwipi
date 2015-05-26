@@ -583,7 +583,6 @@ contains
     !> vertex functions
     if( transpose )then
       allocate( ai(1:5,size(uvw,2)) )
-      print  '("pyramidH6BaseP1")'
       do i=1,nn
         ai(1,i) = 0.25d0*(1d0-uvw(1,i))*(1d0-uvw(2,i))*(1d0-uvw(3,i))
         ai(2,i) = 0.25d0*(1d0+uvw(1,i))*(1d0-uvw(2,i))*(1d0-uvw(3,i))
@@ -706,7 +705,7 @@ contains
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)            :: ord
     !>
-    real(8), pointer               :: weight(:)
+    real(8)                        :: weight
     integer                        :: iMod,nMod
     integer                        :: iGauss,nGauss
     real(8), pointer               :: uGauss(:),vGauss(:),wGauss(:),pGauss(:)
@@ -755,27 +754,24 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    nMod=size(psi,2) ; allocate(weight(1:nMod)) ; weight(1:nMod)=0d0
+    nMod=size(psi,2) ; 
+    
     
     do iMod=1,nMod
+      weight=0d0
       do iGauss=1,nGauss
-        weight(iMod)=weight(iMod)+psi(iGauss,iMod)*psi(iGauss,iMod)*pGauss(iGauss)
+        weight=weight+psi(iGauss,iMod)*psi(iGauss,iMod)*pGauss(iGauss)
       enddo
-    enddo
-    
-    do iMod=1,nMod
-      weight(iMod)=1d0/sqrt(weight(iMod))
+      weight=1d0/sqrt(weight)
+#if pyramidNormalization==1
+      print '(4x,"weight(",i6,")=",e22.15)',iMod,weight
+#endif
+      
     enddo
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     deallocate(uGauss,vGauss,wGauss,pGauss,psi)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#if pyramidNormalization==1
-    print '(4x,"weight(",i6,")=",e22.15)',(iMod,weight(iMod),iMod=1,nMod)
-#endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -868,7 +864,7 @@ contains
             !> tmp=(1-c)^iM
             if( c(iNod)==1d0 )then
               if( iM==0 )then
-                tmp=1d0
+                tmp=1d0 !> 0^0=1
               else
                 tmp=0d0
               endif
@@ -1067,7 +1063,7 @@ contains
             if( tmp0==0d0 )then !> i.e c=1
               !>tmp1=(1-c)^(iM-1)
               if( iM-1<0 )then
-                tmp1=1d25
+                tmp1=1d25 !> 0^(iM-1)
               elseif( iM-1==0 )then
                 tmp1=1d0
               else
@@ -1112,7 +1108,7 @@ contains
             
             if( tmp0==0d0 )then
               if( iM-1<0 )then
-                print '(/"WARNING pyramidGradBasePi iNod=",i6," iM=",i2,"<1")',iNod,iM
+                print '(/"WARNING pyramidGradBasePi iNod=",i6," iM-1=",i2,"<0")',iNod,iM-1
                 print '( "iu,iv,iw=",3(i6,1x)," -> iMod=",i3)',iu,iv,iw,iMod
                 print '( "(a,b,c)=",3(f9.5,1x)," => ",$)',a(iNod),b(iNod),c(iNod)
                 print '( "Dr,Ds,Dt=",3(e22.15,1x))',drMode(iNod,iMod),dsMode(iNod,iMod),dtMode(iNod,iMod)
@@ -1206,7 +1202,7 @@ contains
             
             if( tmp0==0d0 )then
               if( iM-1<0 )then
-                print '(/"WARNING pyramidGradBasePi iNod=",i6," iM=",i2,"<1")',iNod,iM
+                print '(/"WARNING pyramidGradBasePi iNod=",i6," iM-1=",i2,"<0")',iNod,iM-1
                 print '( "iu,iv,iw=",3(i6,1x)," -> iMod=",i3)',iu,iv,iw,iMod
                 print '( "(a,b,c)=",3(f9.5,1x)," => ",$)',a(iNod),b(iNod),c(iNod)
                 print '( "Dr,Ds,Dt=",3(e22.15,1x))',drMode(iNod,iMod),dsMode(iNod,iMod),dtMode(iNod,iMod)

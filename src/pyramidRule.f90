@@ -24,7 +24,8 @@ module pyramidRule
   
   implicit none ; private
   
-  interface P5_gauss ; module procedure pyramid_handle ; end interface
+  interface P5_gauss ; module procedure pyramid_handle  ; end interface
+  interface P5_gauss ; module procedure pyramid_handle1 ; end interface
   public :: P5_gauss
   
 contains
@@ -661,7 +662,6 @@ subroutine legendre_compute ( order, xtab, weight )
   return
 end subroutine legendre_compute
 
-
 subroutine pyramid_handle(order,nGauss,uGauss,vGauss,wGauss,pGauss)
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -692,6 +692,128 @@ subroutine pyramid_handle(order,nGauss,uGauss,vGauss,wGauss,pGauss)
   real(8), pointer, intent(out) :: uGauss(:)
   real(8), pointer, intent(out) :: vGauss(:)
   real(8), pointer, intent(out) :: wGauss(:)
+  real(8), pointer, intent(out) :: pGauss(:)
+  !>
+  integer                           :: i,j,k,l
+  real(8)                           :: jacobi_alpha
+  real(8)                           :: jacobi_beta
+  integer                           :: jacobi_order
+  real(8), allocatable              :: jacobi_w(:),jacobi_x(:)
+  integer                           :: legendre_order
+  real(8), allocatable              :: legendre_w(:),legendre_x(:)
+  integer                           :: pyramid_order
+  real(8)                           :: volume
+  real(8)                           :: wi,wj,wk
+  real(8)                           :: xi,xj,xk
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  legendre_order=order+1
+  jacobi_order  =order+1
+  print '("pyramid_handle: legendre_order=",i2," jacobi_order=",i2)',legendre_order,jacobi_order
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !>  Compute the factor rules.
+  !
+  allocate( legendre_w(legendre_order) )
+  allocate( legendre_x(legendre_order) )
+  
+  call legendre_compute(    &
+  &    order=legendre_order,&
+  &    xtab=legendre_x     ,&
+  &    weight=legendre_w    )
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  allocate( jacobi_w(jacobi_order) )
+  allocate( jacobi_x(jacobi_order) )
+  
+  jacobi_alpha = 2d0
+  jacobi_beta  = 0d0
+  
+  call jacobi_compute (   &
+  &    order=jacobi_order,&
+  &    alpha=jacobi_alpha,&
+  &    beta=jacobi_beta  ,&
+  &    xtab=jacobi_x     ,&
+  &    weight=jacobi_w    )
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !>
+  !>  Compute the pyramid rule.
+  !>
+  nGauss = legendre_order * legendre_order * jacobi_order
+  
+  allocate ( uGauss(nGauss) )
+  allocate ( vGauss(nGauss) )
+  allocate ( wGauss(nGauss) )
+  allocate ( pGauss(nGauss) )
+  
+  volume = 4d0/3d0
+  
+  l = 0
+  do k = 1, jacobi_order
+    xk = (jacobi_x(k)+1d0)/2d0
+    wk =  jacobi_w(k)     /2d0
+    do j = 1, legendre_order
+      xj = legendre_x(j)
+      wj = legendre_w(j)
+      do i = 1, legendre_order
+        xi = legendre_x(i)
+        wi = legendre_w(i)
+        l = l + 1
+        
+        uGauss(l) = xi*(1d0-xk)
+        vGauss(l) = xj*(1d0-xk)
+        wGauss(l) = xk
+        pGauss(l) = wi*wj*wk/4d0
+      enddo
+    enddo
+  enddo
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  deallocate ( jacobi_w )
+  deallocate ( jacobi_x )
+  deallocate ( legendre_w )
+  deallocate ( legendre_x )
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  return
+end subroutine pyramid_handle
+
+
+subroutine pyramid_handle1(order,nGauss,uvwGauss,pGauss)
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> PYRAMID_HANDLE computes the requested pyramid rule and outputs it.
+  !>  Licensing:
+  !>    This code is distributed under the GNU LGPL license.
+  !>  Modified:
+  !>    23 July 2009
+  !>    19 Febr 2015 C. Peyret
+  !>  Author:
+  !>    John Burkardt
+  !>  Author:
+  !>    Christophe Peyret
+  !>  Parameters: 
+  !>    Input, integer ( kind = 4 ) LEGENDRE_ORDER, JACOBI_ORDER, the orders 
+  !>    of the component Legendre and Jacobi rules.
+  !>    Input, character ( len = * ) FILENAME, the rootname for the files,  
+  !>    write files 'file_w.txt' and 'file_x.txt', and 'file_r.txt', weights,
+  !>    abscissas, and region.
+  !> Modified by Christophe Peyret line 770:
+  !> old        pGauss(l) = wi*wj*wk/4d0/volume
+  !> new        pGauss(l) = wi*wj*wk/4d0
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  integer         , intent(in)  :: order
+  integer         , intent(out) :: nGauss
+  real(8), pointer, intent(out) :: uvwGauss(:,:)
   real(8), pointer, intent(out) :: pGauss(:)
   !>
   integer                           :: i,j,k,l
@@ -746,10 +868,7 @@ subroutine pyramid_handle(order,nGauss,uGauss,vGauss,wGauss,pGauss)
   !>
   nGauss = legendre_order * legendre_order * jacobi_order
   
-  allocate ( uGauss(nGauss) )
-  allocate ( vGauss(nGauss) )
-  allocate ( wGauss(nGauss) )
-  allocate ( pGauss(nGauss) )
+  allocate(uvwGauss(3,nGauss),pGauss(nGauss))
   
   volume = 4d0/3d0
   
@@ -765,10 +884,9 @@ subroutine pyramid_handle(order,nGauss,uGauss,vGauss,wGauss,pGauss)
         wi = legendre_w(i)
         l = l + 1
         
-        uGauss(l) = xi*(1d0-xk)
-        vGauss(l) = xj*(1d0-xk)
-        wGauss(l) = xk
-        pGauss(l) = wi*wj*wk/4d0
+        uvwGauss(1:3,l)=[xi*(1d0-xk), xj*(1d0-xk), xk]
+        pGauss  (    l)=wi*wj*wk/4d0
+        
       enddo
     enddo
   enddo
@@ -782,7 +900,7 @@ subroutine pyramid_handle(order,nGauss,uGauss,vGauss,wGauss,pGauss)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   return
-end subroutine pyramid_handle
+end subroutine pyramid_handle1
 
 
 function r8_epsilon ( )
