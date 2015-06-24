@@ -1356,6 +1356,11 @@ subroutine pyramTestQuadrature()
     &    vGauss=y   ,&
     &    wGauss=z   ,&
     &    pGauss=w    )
+    
+    print '(4x,"3D Quadrature")'
+    do i=1,n
+      print '(8x,"i",i3,": uvw=",3(f12.5,1x),2x,"p=",f12.5)',i,x(i),y(i),z(i),w(i)
+    enddo
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1454,32 +1459,14 @@ subroutine pyramTestBasis()
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !>  Preparation calcul des dérivées de la base
-  call pyramidGradVandermonde3D(ord=ord,a=a,b=b,c=c,drMode=duPsi,dsMode=dvPsi,dtMode=dwPsi) !> Modal
-  !call display(title="    duPsi Matrix",mat=duPsi)
-  !call display(title="    dvPsi Matrix",mat=dvPsi)
-  !call display(title="    dwPsi Matrix",mat=dwPsi)
   
-  print '(/4x,"duPsi")'
-  do i=1,nPt
-    print '(4x,"i=",i4," duPsi=",14(e9.2,1x))',i,duPsi(i,:)
-  enddo
-  print '(/4x,"dvPsi")'
-  do i=1,nPt
-    print '(4x,"i=",i4," dvPsi=",14(e9.2,1x))',i,dvPsi(i,:)
-  enddo  
-  print '(/4x,"dwPsi(:,uvw)")'
-  do i=1,nPt
-    print '(4x,"i=",i4," dwPsi=",14(e9.2,1x))',i,dwPsi(i,:)
-  enddo
-  
-  !call mathematica(title="    duPsi Matrix",mat=duPsi)
-  !call mathematica(title="    dvPsi Matrix",mat=dvPsi)
-  !call mathematica(title="    dwPsi Matrix",mat=dwPsi) ! stop
-  
-  call derive1D(vand=vand,dVand=duPsi,dMat=drMatrix) !> drMatrix = duPsi.Inverse[vand] !> Nodal
-  call derive1D(vand=vand,dVand=dvPsi,dMat=dsMatrix) !> dsMatrix = dvPsi.Inverse[vand] !> Nodal
-  call derive1D(vand=vand,dVand=dwPsi,dMat=dtMatrix) !> dtMatrix = dwPsi.Inverse[vand] !> Nodal
-  deallocate(duPsi,dvPsi,dwPsi)
+  call pyramidGradLagrange3Dv(    &
+  &    ord=ord,vand=vand         ,&
+  &    a=a,b=b,c=c               ,&
+  &    drPhi=drMatrix            ,& !> duai(np,nPt) ; nPt=size(u)  duai:= Inverse[Transpose[Vand]].duPsi[x]
+  &    dsPhi=dsMatrix            ,& !> duai(np,nPt) ; nPt=size(u)  dvai:= Inverse[Transpose[Vand]].dvPsi[x]
+  &    dtPhi=dtMatrix            ,& !> duai(np,nPt) ; nPt=size(u)  dwai:= Inverse[Transpose[Vand]].dwPsi[x]
+  &    transpose=.true.           )
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1604,124 +1591,6 @@ subroutine pyramTestBasis()
   endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
   
-#if 0==1
-!Hexa
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> TEST Hexa dégénéré
-  do iOrd=1,1
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    write(*,'(/">>> Test Hexa dégénéré ",i2," ord=",i2)')iOrd
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-   !call pyramidNodes   (ord=1, uvw=uvw, display=.false.)  !> Points réguliers
-    call pyramidNodesOpt(ord=1, uvw=uvw, display=.false.)  !> Points optimises
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> f(u,v,w),∂xf(u,v,w),∂yf(u,v,w),∂zf(u,v,w)
-    nPt=size(uvw,2) ; allocate(f(1:nPt),dxf(nPt),dyf(nPt),dzf(nPt))
-    call fxyz(xyz=uvw,f=f,dxf=dxf,dyf=dyf,dzf=dzf)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Evaluation des fonctions de Lagrange aux points uvw
-    !> Transpose=.true. => li(np,nPt)
-    call pyramidH6BaseP1(uvw=uvw, ai=li, transpose=.true.)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Evaluation des dérivées des fonctions de Lagrange aux points uvw
-    call pyramidH6GradBaseP1(uvw=uvw,duai=duLi,dvai=dvLi,dwai=dwLi,transpose=.true.)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> comparaison des resultats (calcul direct et calcul interpolé)
-    np =(ord+1)*(ord+2)*(2*ord+3)/6 !> = \sum_{k=1}^{ord+1} k^2
-    print'(4x,"np x nPt =",i6," x ",i6)',np,nPt
-    
-    !> test li
-    cpt0=0 ; deltaMax=0d0
-    do j=1,nPt
-      f0=0d0
-      do i=1,np
-        f0=f0+li(i,j)*fi(i)
-      enddo
-      delta=abs(f(j)-f0) ; if( delta>deltaMax)deltaMax=delta
-      if( delta>tol )then
-        cpt0=cpt0+1
-        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"   f(uvw)- ∑   ai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),f(j),f0,f(j)-f0
-      endif
-    enddo
-    print '(4x,"erreur sur   f cpt=",i6,"/",i6,3x,"deltaMax=",e22.15)',cpt0,nPt,deltaMax
-    
-    !> test duLi
-    cpt1=0 ; deltaMax=0d0
-    do j=1,nPt
-      dxf0=0d0
-      do i=1,np
-        dxf0=dxf0+duLi(i,j)*fi(i)
-      enddo
-      delta=abs(dxf(j)-dxf0) ; if( delta>deltaMax)deltaMax=delta
-      if( delta>tol )then
-        cpt1=cpt1+1
-        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂uf(uvw)- ∑ ∂uai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),dxf(j),dxf0,dxf(j)-dxf0
-      endif
-    enddo
-    print '(4x,"erreur sur ∂uf cpt=",i6,"/",i6,3x,"deltaMax=",e22.15)',cpt1,nPt,deltaMax
-    
-    !> test dvLi
-    cpt2=0 ; deltaMax=0d0
-    do j=1,nPt
-      dyf0=0d0
-      do i=1,np
-        dyf0=dyf0+dvLi(i,j)*fi(i)
-      enddo
-      delta=abs(dyf(j)-dyf0) ; if( delta>deltaMax)deltaMax=delta
-      if( delta>tol )then
-        cpt2=cpt2+1
-        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂vf(uvw)- ∑ ∂vai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),dyf(j),dyf0,dyf(j)-dyf0
-      endif
-    enddo
-    print '(4x,"erreur sur ∂vf cpt=",i6,"/",i6,3x,"deltaMax=",e22.15)',cpt2,nPt,deltaMax
-    
-    !> test dwLi
-    cpt3=0 ; deltaMax=0d0
-    do j=1,nPt
-      dzf0=0d0
-      do i=1,np
-        dzf0=dzf0+dwLi(i,j)*fi(i)
-      enddo
-      delta=abs(dzf(j)-dzf0) ; if( delta>deltaMax)deltaMax=delta
-      if( delta>tol )then
-        cpt3=cpt3+1
-        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂wf(uvw)- ∑ ∂wai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),dzf(j),dzf0,dzf(j)-dzf0
-      endif
-    enddo
-    print '(4x,"erreur sur ∂wf cpt=",i6,"/",i6,3x,"deltaMax=",e22.15)',cpt3,nPt,deltaMax
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    deallocate(uvw)
-    deallocate(li)
-    deallocate(duLi,dvLi,dwLi)
-    deallocate(f,dxf,dyf,dzf)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    cpt=cpt1+cpt2+cpt3
-    if( .not.cpt==0 )then
-      print '("xxx Arret sur test Hexa dégénéré ",i2)',iOrd
-      stop
-    else
-      write(*,'("<<< Test Hexa dégénéré ",i2," ord=",i2)')iOrd,ord
-    endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-  enddo
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-#endif
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> TEST BASIC DES BASES
@@ -2488,10 +2357,10 @@ program main
  !call pyramDegreesOverSides()
   
   !> Tests des quadratures pour pyramides
-  !call pyramTestQuadrature()
+  call pyramTestQuadrature()
   
   !> Tests des bases pyramides et de leurs derivees
-  !call pyramTestBasis()
+  call pyramTestBasis()
   
   !> Test Matrice de Masse des pyramides
   call pyramTestMass()
