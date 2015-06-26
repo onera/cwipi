@@ -10,15 +10,24 @@ module table_tet_mesh
   
 contains
 
-subroutine saveTetMesh(node_xyz,tetra_node)
-  real    ( kind = 8 ), pointer, intent(in)  :: node_xyz  (:,:)
-  integer ( kind = 4 ), pointer, intent(out) :: tetra_node(:,:)
+subroutine saveTetMesh(ord,node_xyz,tetra_node)
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  integer,          intent(in)  :: ord
+  real(8), pointer, intent(in)  :: node_xyz  (:,:)
+  integer, pointer, intent(out) :: tetra_node(:,:)
   !>
-  integer :: i
-  real(8) :: vec12(3),vec13(3),vec14(3),det
+  character(3)                  :: sfx
+  integer                       :: i
+  real(8)                       :: vec12(3),vec13(3),vec14(3),det
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  if(   1<=ord .and. ord<  10 ) write(sfx,'("00",i1)')ord
+  if(  10<=ord .and. ord< 100 ) write(sfx,'("0" ,i2)')ord
+  if( 100<=ord .and. ord<1000 ) write(sfx,'(     i3)')ord
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
-  open(unit=10,file="tetra.mesh",action='write')
+  open(unit=10,file="tetMeshP"//sfx//".mesh",action='write')
   write(10,'("MeshVersionFormatted 2")')
   write(10,'(/"Dimension")')
   write(10,'( "3")')
@@ -60,8 +69,8 @@ subroutine driverTetMesh(node_xyz,tetra_node)
   real    ( kind = 8 ), pointer, intent(in)  :: node_xyz  (:,:)
   integer ( kind = 4 ), pointer, intent(out) :: tetra_node(:,:)
 
-  integer ( kind = 4 ), parameter :: bf_max = 8000
-  integer ( kind = 4 ), parameter :: fc_max = 80000
+  integer ( kind = 4 ), parameter :: bf_max =  16000
+  integer ( kind = 4 ), parameter :: fc_max = 160000
 
   integer ( kind = 4 ) arg_num
   integer ( kind = 4 ), dimension (1:3,1:bf_max) :: bf

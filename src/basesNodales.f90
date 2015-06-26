@@ -1297,11 +1297,17 @@ subroutine pyramMaillageVisu()
   do iOrd=ord,ord
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    call pyramidNodes   (ord=iOrd, uvw=uvw, display=.false.)
+    call pyramidNodes   (ord=iOrd, uvw=uvw, display=.true.)
     call driverTetMesh  (node_xyz=uvw,tetra_node=tetra)
     deallocate(uvw)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     call pyramidNodesOpt(ord=iOrd, uvw=uvw, display=.true.)  !> Points optimises
-    call saveTetMesh  (node_xyz=uvw,tetra_node=tetra)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    call saveTetMesh(ord=iOrd, node_xyz=uvw,tetra_node=tetra)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1310,7 +1316,7 @@ subroutine pyramMaillageVisu()
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    deallocate(uvw)
+    deallocate(uvw,tetra)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
   enddo
