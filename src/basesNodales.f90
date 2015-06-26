@@ -1274,11 +1274,13 @@ subroutine pyramMaillageVisu()
   !use baseSimplex2D
   !use baseSimplex3D
   use basePyramid
+  use table_tet_mesh
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
-  integer            :: ord,iOrd
+  integer            :: ord,iOrd,ad
   real(8), pointer   :: uvw(:,:)
+  integer, pointer   :: tetra(:,:)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1293,15 +1295,18 @@ subroutine pyramMaillageVisu()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !do iOrd=1,ord
   do iOrd=ord,ord
-  
+    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-   !call pyramidNodes   (ord=iOrd, uvw=uvw, display=.true.)
+    call pyramidNodes   (ord=iOrd, uvw=uvw, display=.false.)
+    call driverTetMesh  (node_xyz=uvw,tetra_node=tetra)
+    deallocate(uvw)
     call pyramidNodesOpt(ord=iOrd, uvw=uvw, display=.true.)  !> Points optimises
+    call saveTetMesh  (node_xyz=uvw,tetra_node=tetra)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    call pyramidSkin3D(ord=iOrd, uvw=uvw, display=.true.)
-    call pyramidMesh3D(ord=iOrd, uvw=uvw, display=.true.)
+    !call pyramidSkin3D(ord=iOrd, uvw=uvw, display=.true.)
+    !call pyramidMesh3D(ord=iOrd, uvw=uvw, display=.true.)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -2353,7 +2358,7 @@ program main
   !> Test pyramids
  !call pyramBasis()
  !call pyramLebesgue()
- !call pyramMaillageVisu() !> maillages de visu pour la pyramide d'ordre élevé
+  call pyramMaillageVisu() !> maillages de visu pour la pyramide d'ordre élevé
  !call pyramDegreesOverSides()
   
   !> Tests des quadratures pour pyramides

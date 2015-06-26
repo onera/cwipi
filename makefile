@@ -61,6 +61,7 @@ LDFLAGS    =  # -cxxlib  # -openmp # -static-intel
 OBJS =  $(OBJDIR)/libmesh6.o              \
         $(OBJDIR)/libmesh6_fortran_api.o  \
         $(OBJDIR)/M_libmesh6_api.o        \
+        $(OBJDIR)/table_tet_mesh.o        \
         $(OBJDIR)/modDeterminant.o        \
         $(OBJDIR)/pyramidRule.o           \
         $(OBJDIR)/baseSimplexTools.o      \
