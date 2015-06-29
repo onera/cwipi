@@ -34,8 +34,10 @@ subroutine saveTetMesh(ord,node_xyz,tetra_node)
   write(10,'(/"Vertices")')
   write(10,'(i6)')size(node_xyz,2)
   do i=1,size(node_xyz,2)
-    write(10,'(3(e22.15,1x),1x,i1)')node_xyz(1:3,i),0
+    write(10,'(3(e15.8,1x),1x,i1)')node_xyz(1:3,i),0
+   !print '("node_xyz=",3(e15.8,1x))',node_xyz(1:3,i)
   enddo
+  
   write(10,'(/"Tetrahedra")')
   write(10,'(i6)')size(tetra_node,2)
   do i=1,size(tetra_node,2)
@@ -105,9 +107,9 @@ subroutine driverTetMesh(node_xyz,tetra_node)
   node_num=size(node_xyz,2)
   write ( *, '(a,i8)' ) '  Spatial dimension DIM_NUM = ', size(node_xyz,1)
   write ( *, '(a,i8)' ) '  Number of points NODE_NUM = ', size(node_xyz,2)
-
-
-
+  
+ !print '("xyz=",3(f12.5,1x))',(node_xyz(1:3,i), i=1,node_num)
+  
   call r8mat_transpose_print_some ( dim_num, node_num, node_xyz, 1, 1, 5, 5, &
     '  5 by 5 portion of node data read from file:' )
 !

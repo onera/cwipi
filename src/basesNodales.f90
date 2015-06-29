@@ -816,6 +816,69 @@ subroutine tetraMaillageVisu()
   return
 end subroutine tetraMaillageVisu
 
+subroutine tetraMaillageVisuNew()
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! Cette procedure sert à construire les maillages de visu pour le tetra d'ordre élevé
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !use modDeterminant
+  use baseSimplex3D
+  use table_tet_mesh
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  implicit none
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  integer            :: ord,iOrd,ad
+  real(8), pointer   :: uvw(:,:)
+  real(8), pointer   :: uvw0(:,:)
+  integer, pointer   :: tetra(:,:)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  write(*,'(/"Construction maillage Tetra P_i")')
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  write(*,'(/"Order: ")',advance='no') ; read(*,*)ord
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !do iOrd=1,ord
+  do iOrd=ord,ord
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    call nodes3D(ord=iOrd,uvw=uvw,display=.true.)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    allocate(uvw0(1:3,size(uvw,2)))
+    uvw0(1:3,:)=uvw(1:3,:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    call driverTetMesh(node_xyz=uvw0,tetra_node=tetra)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    call nodes3Dopt(ord=iOrd,uvw=uvw,display=.true. )
+    uvw0(1:3,:)=uvw(1:3,:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    call saveTetMesh(ord=iOrd, node_xyz=uvw0,tetra_node=tetra)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    deallocate(uvw,tetra,uvw0)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+  enddo
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  return
+end subroutine tetraMaillageVisuNew
 
 subroutine testConnectivitiesOfSides()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1285,7 +1348,6 @@ subroutine pyramMaillageVisu()
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   write(*,'(/"Construction maillage Pyramid P_i")')
-  write(*,'("Warning ghs3d is required")')
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1293,17 +1355,17 @@ subroutine pyramMaillageVisu()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !do iOrd=1,ord
-  do iOrd=ord,ord
+  do iOrd=1,ord
+  !do iOrd=ord,ord
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    call pyramidNodes   (ord=iOrd, uvw=uvw, display=.true.)
+    call pyramidNodes   (ord=iOrd, uvw=uvw, display=.false.)
     call driverTetMesh  (node_xyz=uvw,tetra_node=tetra)
     deallocate(uvw)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    call pyramidNodesOpt(ord=iOrd, uvw=uvw, display=.true.)  !> Points optimises
+    call pyramidNodesOpt(ord=iOrd, uvw=uvw, display=.false.)  !> Points optimises
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1319,6 +1381,7 @@ subroutine pyramMaillageVisu()
     deallocate(uvw,tetra)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
+    print '("nn=",i10," ne=",i10," Pi=",i3)',size(uvw,2),size(tetra,2),iOrd
   enddo
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
@@ -2357,6 +2420,7 @@ program main
   !> Test Tetra
   !call tetraTest()
   !call tetraMaillageVisu() !> maillages de visu pour le tetra d'ordre élevé
+  !call tetraMaillageVisuNew() ; stop
   
   !> Test Quad
   !call quadTest()
