@@ -1,0 +1,50 @@
+# - Build details for PTK:  Dynamic Object-oriented Library for FINite element computation
+#
+# This file has been automatically generated.
+
+# FIXME: Check that naming conforms to CMake standards
+
+# Compilers
+set(PTK_CXX_COMPILER "@CMAKE_CXX_COMPILER@")
+
+# Compiler defintions
+set(PTK_CXX_DEFINITIONS "-DPTK_VERSION=\"@PTK_VERSION@\";@PTK_CXX_DEFINITIONS@")
+
+# Compiler flags
+set(PTK_CXX_FLAGS "@CMAKE_CXX_FLAGS@")
+
+# Linker flags
+set(PTK_LINK_FLAGS "@CMAKE_EXE_LINKER_FLAGS@")
+
+# Include directories
+set(PTK_INCLUDE_DIRS "@CMAKE_INSTALL_PREFIX@/@PTK_INCLUDE_DIR@")
+
+# Third party include directories
+set(PTK_3RD_PARTY_INCLUDE_DIRS "@PTK_DEP_INCLUDE_DIRECTORIES@;@PTK_DEP_SYSTEM_INCLUDE_DIRECTORIES@")
+
+# Python include directories
+set(PTK_PYTHON_INCLUDE_DIRS "@PYTHON_INCLUDE_DIRS@;@NUMPY_INCLUDE_DIR@")
+
+# Python definitions
+set(PTK_PYTHON_DEFINITIONS "-DNUMPY_VERSION_MAJOR=@NUMPY_VERSION_MAJOR@ -DNUMPY_VERSION_MINOR=@NUMPY_VERSION_MINOR@ -DNUMPY_VERSION_MICRO=@NUMPY_VERSION_MICRO@ -DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION")
+
+# PTK library
+set(PTK_LIBRARIES "@PTK_LIBRARY@")
+
+# Third-party library directories
+set(PTK_3RD_PARTY_LIBRARY_DIRS "@PTK_TARGET_LINK_LIBRARIES_DIRS@")
+
+# Third-party libraries
+set(PTK_3RD_PARTY_LIBRARIES "@PTK_TARGET_LINK_LIBRARIES@")
+
+# Python libraries
+set(PTK_PYTHON_LIBRARIES "@PYTHON_LIBRARIES@")
+
+# Version
+set(PTK_VERSION_MAJOR "@PTK_VERSION_MAJOR@")
+set(PTK_VERSION_MINOR "@PTK_VERSION_MINOR@")
+set(PTK_VERSION_MICRO "@PTK_VERSION_MICRO@")
+set(PTK_VERSION_STR   "@PTK_VERSION@")
+
+# The location of the UsePTK.cmake file
+set(PTK_USE_FILE "@CMAKE_INSTALL_PREFIX@/@PTK_SHARE_DIR@/cmake/UsePTK.cmake")
