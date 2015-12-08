@@ -38,7 +38,6 @@ option(BASESNODALES_ENABLE_DEFAULT_FLAGS "Enable default flags" ON)
 set(BASESNODALES_CMAKE_DIR "${BASESNODALES_SOURCE_DIR}/cmake" CACHE INTERNAL "")
 set(CMAKE_MODULE_PATH "${BASESNODALES_CMAKE_DIR}/modules")
 
-
 #------------------------------------------------------------------------------
 # Activation des langages Fortran C
 #------------------------------------------------------------------------------
@@ -51,17 +50,8 @@ enable_language(C)
 #------------------------------------------------------------------------------
 
 if (NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Release" CACHE STRING
-    "Choose the type of build, options are: Debug MinSizeRel Release RelWithDebInfo." FORCE)
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug MinSizeRel Release RelWithDebInfo." FORCE)
 endif()
-
-
-# Ajout de "-DDEBUG_CLASSE" em mode DEBUG
-#----------------------------------------
-
-#if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-#  add_definitions (-DDEBUG_CLASSE)
-#endif()
 
 
 #------------------------------------------------------------------------------
@@ -74,39 +64,39 @@ get_filename_component (C_COMPILER_NAME       ${CMAKE_C_COMPILER}       NAME)
 
 if (Fortran_COMPILER_NAME MATCHES "ifort.*")
 
-  # ifort
-  # -----
-  message("je passe ici")
-
   if (BASESNODALES_ENABLE_DEFAULT_FLAGS)
-
-    message("puis passe ici")
     
     # Ajout des flags commun 
-
-    set (CMAKE_Fortran_FLAGS                          "-fpp"             CACHE STRING "Flags used by the compiler during all build types." FORCE)
-#   set (CMAKE_Fortran_FLAGS  "${CMAKE_Fortran_FLAGS} -arch x86_64"      CACHE STRING "Flags used by the compiler during all build types." FORCE)
-    set (CMAKE_Fortran_FLAGS  "${CMAKE_Fortran_FLAGS} -mkl"              CACHE STRING "Flags used by the compiler during all build types." FORCE)
-        
+    set (CMAKE_Fortran_FLAGS                          "-i4 -r8"           CACHE STRING "Flags used by the compiler during all build types." FORCE)
+    set (CMAKE_Fortran_FLAGS  "${CMAKE_Fortran_FLAGS} -xHost"             CACHE STRING "Flags used by the compiler during all build types." FORCE)
+    set (CMAKE_Fortran_FLAGS  "${CMAKE_Fortran_FLAGS} -fp-model fast=2"  CACHE STRING "Flags used by the compiler during all build types." FORCE)
+    set (CMAKE_Fortran_FLAGS  "${CMAKE_Fortran_FLAGS} -no-prec-div"       CACHE STRING "Flags used by the compiler during all build types." FORCE)
+    set (CMAKE_Fortran_FLAGS  "${CMAKE_Fortran_FLAGS} -fpp"               CACHE STRING "Flags used by the compiler during all build types." FORCE)
+    
+#    set (CMAKE_Fortran_FLAGS  "${CMAKE_Fortran_FLAGS} -mkl"               CACHE STRING "Flags used by the compiler during all build types." FORCE)
+    
+    
+    #set (CMAKE_Fortran_FLAGS  "${CMAKE_Fortran_FLAGS} --opt-report=3"  CACHE STRING "Flags used by the compiler during all build types." FORCE)
+    
     # Defintion des flags release 
     set (CMAKE_Fortran_FLAGS_RELEASE "-O3 -nogen-interfaces -zero" CACHE STRING "Flags used by the compiler during release builds." FORCE)
-    include(CheckCCompilerFlag)
     
     # Verification de la possibilite de vectorisation
+    include(CheckCCompilerFlag)
     CHECK_C_COMPILER_FLAG("-axAVX,SSE4.2" HAVE_VEC)
     if (HAVE_VEC)
       # ax option generates many versions of possible optmimizations depending on target
       set (CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -axAVX,SSE4.2" CACHE STRING "Flags used by the compiler during release builds." FORCE)
     endif ()
     
-
+    
     # Defintion des flags debug   
     #    set (CMAKE_Fortran_FLAGS_DEBUG           "-O0 -g -check all -ftrapuv -gen-interfaces" CACHE STRING "Flags used by the compiler during debug builds." FORCE)
     set (CMAKE_Fortran_FLAGS_DEBUG           "-O0 -g -check all -ftrapuv -nogen-interfaces" CACHE STRING "Flags used by the compiler during debug builds." FORCE)
-
+    
     # Defintion des flags profiling
     set (CMAKE_Fortran_FLAGS_PROFILING       "${CMAKE_Fortran_FLAGS_RELEASE} -pg" CACHE STRING "Flags used by the compiler during profiling builds." FORCE)
-
+    
     # Defintion des flags release avec info debug
     set (CMAKE_Fortran_FLAGS_RELWITHDEBINFO  "${CMAKE_Fortran_FLAGS_RELEASE} -g" CACHE STRING "Flags used by the compiler during Release with Debug Info builds." FORCE)
 
@@ -124,9 +114,6 @@ endif ()
 
 if (C_COMPILER_NAME MATCHES "icc.*")
 
-  # icc
-  # ---
-
   if (BASESNODALES_ENABLE_DEFAULT_FLAGS)
     set (CMAKE_C_FLAGS "-std=c99 -no-multibyte-chars" CACHE STRING "Flags used by the compiler during all build types." FORCE)
     set (CMAKE_C_FLAGS_RELEASE "-O3" CACHE STRING "Flags used by the compiler during release builds." FORCE)
@@ -134,10 +121,7 @@ if (C_COMPILER_NAME MATCHES "icc.*")
       # ax option generates many versions of possible optmimizations depending on target
       set (CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -axAVX,SSE4.2" CACHE STRING "Flags used by the compiler during release builds." FORCE)
     endif ()
-    if (DVD)
-      set (CMAKE_C_FLAGS_RELEASE   "${CMAKE_C_FLAGS_RELEASE} -static-intel" CACHE STRING "Flags used by the compiler during release builds." FORCE)
-    endif()
-    set (CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -vec-report1" CACHE STRING "Flags used by the compiler during release builds." FORCE)
+    #set (CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -vec-report1" CACHE STRING "Flags used by the compiler during release builds." FORCE)
     set (CMAKE_C_FLAGS_DEBUG           "-O0 -g -Wcheck" CACHE STRING "Flags used by the compiler during debug builds." FORCE)
     set (CMAKE_C_FLAGS_PROFILING       "-O3 -pg" CACHE STRING "Flags used by the compiler during profiling builds." FORCE)
     set (CMAKE_C_FLAGS_RELWITHDEBINFO  "-O3 -g" CACHE STRING "Flags used by the compiler during Release with Debug Info builds." FORCE)
@@ -146,20 +130,10 @@ if (C_COMPILER_NAME MATCHES "icc.*")
 
 endif ()
 
-#mark_as_advanced(CXX_LIBRARIES CXX_LIBRARIES_FLAG FORTRAN_LIBRARIES FORTRAN_LIBRARIES_FLAG)
 
 
-
-#------------------------------------------------------------------------------
-# Definition des bibliothèques communes à ajouter au link
-#------------------------------------------------------------------------------
-
-
-#find_package(BLAS REQUIRED)
-#find_package(LAPACK REQUIRED)
-#find_package(MKL REQUIRED)
-
-
+find_package(BLAS)
+#find_package(LAPACK)
 
 
 #------------------------------------------------------------------------------
