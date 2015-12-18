@@ -393,10 +393,10 @@ int main
   FILE *fichier_existe;
   fichier_existe = fopen(cl_savefile, "r");
   if(fichier_existe == NULL) {
-    printf("Le fichier n existe pas, creation pour stockage\n");
+    //    printf("Le fichier n existe pas, creation pour stockage\n");
     cwipi_open_location_file("c_surf_cpl_P1P0_P0P1",cl_savefile,"w"); 
   } else {
-    printf("Le fichier existe, mode lecture \n");
+    //printf("Le fichier existe, mode lecture \n");
     fclose(fichier_existe);
     cwipi_open_location_file("c_surf_cpl_P1P0_P0P1",cl_savefile,"r"); 
   }
@@ -410,7 +410,7 @@ int main
     cwipi_update_location("c_surf_cpl_P1P0_P0P1");
     
     if (codeId == 1) {
-      if (rank == 0) printf("vertex==> Angle : %d \n",angle);
+      //      if (rank == 0) printf("vertex==> Angle : %d \n",angle);
  
       mesh_rotate(coords, nVertex, ttime);
 

@@ -414,8 +414,6 @@ program testf
 
   call cwipi_dist_located_pts_get_f("test2D_3", distLocPts)
 
-  print* , "distLocPts", distLocPts
-
   call printStatus(iiunit, status)
   write(iiunit,*) "valeurs recues test2D_3"
   write(iiunit,*) (localvalues(i),i=1,nptstolocate)

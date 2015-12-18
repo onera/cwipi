@@ -237,7 +237,7 @@ program testf
 
   if (irank == 0) then
      print* 
-     print*, 'START: fortran_surf_P1P1'
+     print*, 'START: fortran_surf_P1P1_savememory'
   endif
 
   n_partition = 1
@@ -413,8 +413,6 @@ program testf
   allocate(distLocPts(nLocatedPts))
 
   call cwipi_dist_located_pts_get_f("test2D_3", distLocPts)
-
-  print* , "distLocPts", distLocPts
 
   call printStatus(iiunit, status)
   write(iiunit,*) "valeurs recues test2D_3"

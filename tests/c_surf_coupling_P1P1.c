@@ -468,18 +468,29 @@ int main
   else
     err = fabs(recvValues[0] - coords[3 * 0    ]);
  
-  for (int i = 1; i < nVertex; i++) {
-    if (codeId == 1)
+  for (int i = 0; i < nVertex; i++) {
+    if (codeId == 1) {
       err = ((fabs(recvValues[i] - coords[3 * i + 1])) < (err) ? (err) : 
              (fabs(recvValues[i] - coords[3 * i + 1])));
-    else
+      if (fabs(recvValues[i] - coords[3 * i + 1]) > 1e-6) {
+        printf ("[%d] err %d : %12.5e\n", codeId, i, err);
+      }
+    }
+    else {
       err = ((fabs(recvValues[i] - coords[3 * i    ])) < (err) ? (err) : 
              (fabs(recvValues[i] - coords[3 * i    ])));
+      if (fabs(recvValues[i] - coords[3 * i    ]) > 1e-6) {
+        printf ("[%d] err %d : %12.5e %12.5e\n", codeId, i, err, fabs(recvValues[i] - coords[3 * i    ]));
+      }
+    }
   }
 
-  if (err >= 1e-6) {
+  double err_max;
+  MPI_Allreduce(&err, &err_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+  
+  if (err_max >= 1e-6) {
     if (rank == 0) {
-      printf("        !!! Error = %12.5e\n", err);
+      printf("        !!! Error = %12.5e\n", err_max);
       return EXIT_FAILURE;
     }
   }

@@ -53,6 +53,12 @@ extern "C" {
  * Macro definitions
  *============================================================================*/
 
+#define FVMC_POLYGON_FAILURE -1
+#define FVMC_POLYGON_OUTSIDE 0
+#define FVMC_POLYGON_INSIDE 1
+#define FVMC_POLYGON_INTERSECTION 2
+#define FVMC_POLYGON_ON_LINE 3
+
 /*============================================================================
  * Type definitions
  *============================================================================*/
@@ -189,6 +195,26 @@ fvmc_point_dist_closest_polygon(const int            dim,
                                 const fvmc_coord_t   point_coords[],
                                 fvmc_lnum_t          location[],
                                 float                distance[]);
+
+
+int fvmc_point_in_polygon (double x[3], 
+                           int numPts,
+                           double *pts,
+                           double *bounds, 
+                           double *n);
+
+double fvmc_distance_to_line(double x[3], double p1[3], double p2[3],
+                             double *t, double closestPoint[3]);
+
+double fvmc_distant_to_polygon (double x[3], int numPts, double *pts,
+                                double bounds[6], double closest[3]);
+
+int fvmc_parameterize_polygon(int numPts, double *pts, double *p0, double *p10, double *l10,
+                              double *p20,double *l20, double *n);
+
+int fvmc_polygon_evaluate_Position(double x[3], int numPts, double *pts, double* closestPoint,
+                                   double pcoords[3], double* minDist2);
+
 
 /*----------------------------------------------------------------------------*/
 

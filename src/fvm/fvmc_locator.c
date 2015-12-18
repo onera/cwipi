@@ -2038,6 +2038,9 @@ fvmc_locator_create(double  tolerance)
 
   this_locator->n_exterior = 0;
   this_locator->exterior_list = NULL;
+  this_locator->distant_distribution = NULL;
+  this_locator->local_distribution = NULL;
+  this_locator->distant_point_distance = NULL;
 
   for (i = 0; i < 2; i++) {
     this_locator->location_wtime[i] = 0.;
@@ -2089,6 +2092,13 @@ fvmc_locator_destroy(fvmc_locator_t  * this_locator)
 
     if (this_locator->nblockings_recv != NULL)
       BFTC_FREE(this_locator->nblockings_recv);
+
+    if (this_locator->distant_distribution != NULL)
+      BFTC_FREE(this_locator->distant_distribution);
+    if (this_locator->local_distribution != NULL)
+      BFTC_FREE(this_locator->local_distribution);
+    if (this_locator->distant_point_distance != NULL)
+      BFTC_FREE(this_locator->distant_point_distance);
 
     BFTC_FREE(this_locator);
   }
@@ -2415,6 +2425,14 @@ fvmc_locator_set_nodal(fvmc_locator_t       *this_locator,
     BFTC_FREE(this_locator->interior_list);
   if (this_locator->exterior_list != NULL)
     BFTC_FREE(this_locator->exterior_list);
+
+  if (this_locator->distant_distribution != NULL)
+    BFTC_FREE(this_locator->distant_distribution);
+  if (this_locator->local_distribution != NULL)
+    BFTC_FREE(this_locator->local_distribution);
+  if (this_locator->distant_point_distance != NULL)
+    BFTC_FREE(this_locator->distant_point_distance);
+
 
   /* Prepare locator (MPI version) */
   /*-------------------------------*/

@@ -425,57 +425,18 @@ namespace cwipi {
     const int *barycentricCoordinatesIndex = _locationToLocalMesh->getBarycentricCoordinatesIndex();
 
     for (int ipoint = 0; ipoint <nDistantPoint; ipoint++) {
+
       int iel = distantLocation[ipoint] - 1;
       int index = barycentricCoordinatesIndex[ipoint];
       int nSom = barycentricCoordinatesIndex[ipoint+1] - index;
 
-      //TODO: Stocker le resultat de la verification dans un tableau en Npoints pour ne le faire qu'une fois
+      for (int k = 0; k < stride; k++)
+        interpolatedField[stride*ipoint + k] = 0;
 
-      bool barycentricCoordValidation = true;
       for (int isom = 0; isom <  nSom; isom++) {
-        if ( barycentricCoordinates[index+isom] != barycentricCoordinates[index+isom] ||
-             barycentricCoordinates[index+isom] < 0. ||
-             barycentricCoordinates[index+isom] > 1. )
-          barycentricCoordValidation = false;
-      }
-
-      if (barycentricCoordValidation) {
-        for (int k = 0; k < stride; k++)
-          interpolatedField[stride*ipoint + k] = 0;
-        for (int isom = 0; isom <  nSom; isom++) {
-          for (int k = 0; k < stride; k++) {
-            interpolatedField[stride*ipoint+k] += vertexField[stride*(eltsConnec[eltsConnecPointer[iel]+isom]-1)+k]
-              *barycentricCoordinates[index+isom];
-          }
-        }
-      }
-
-      else {
-        bftc_printf("Warning interpolate2D : barycentric coordinates of the number point '%i' are degenerated :\n", ipoint+1);
-
-        const int firstElementVertex = eltsConnecPointer[iel];
-        const int nElementVertex    = eltsConnecPointer[iel+1] - firstElementVertex;
-      
-        double dist = 1e33;
-        int neighborVertex = -1;
-        const double &pointCoordX = distantCoords[3*ipoint];
-        const double &pointCoordY = distantCoords[3*ipoint + 1];
-        const double &pointCoordZ = distantCoords[3*ipoint + 2];
-        for(int ivertex = firstElementVertex;  ivertex < firstElementVertex+nElementVertex; ivertex++ ) {
-          const double &vertexCoordX = _supportMesh->getVertexCoords()[3*(eltsConnec[ivertex]-1)];
-          const double &vertexCoordY = _supportMesh->getVertexCoords()[3*(eltsConnec[ivertex]-1)+1];
-          const double &vertexCoordZ = _supportMesh->getVertexCoords()[3*(eltsConnec[ivertex]-1)+2];
-          const double localDist = std::sqrt((pointCoordX-vertexCoordX)*(pointCoordX-vertexCoordX)+
-                                             (pointCoordY-vertexCoordY)*(pointCoordY-vertexCoordY)+
-                                             (pointCoordZ-vertexCoordZ)*(pointCoordZ-vertexCoordZ));
-          if (localDist < dist) {
-            neighborVertex = eltsConnec[ivertex]-1;
-            dist = localDist;
-          }
-        }
-        bftc_printf("                       the interpolated value is defined by the closest vertex ('%i') of the located cell\n", neighborVertex+1);
         for (int k = 0; k < stride; k++) {
-          interpolatedField[stride*ipoint+k] = vertexField[stride*neighborVertex+k];
+          interpolatedField[stride*ipoint+k] += vertexField[stride*(eltsConnec[eltsConnecPointer[iel]+isom]-1)+k]
+            *barycentricCoordinates[index+isom];
         }
       }
     }

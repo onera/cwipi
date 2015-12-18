@@ -402,7 +402,7 @@ int main
       cwipi_update_location("c_surf_cpl_P1P0_P0P1");
     
     if (codeId == 1) {
-      if (rank == 0) printf("vertex==> Angle : %d  location_id : %d \n",angle, location_id);
+      //  if (rank == 0) printf("vertex==> Angle : %d  location_id : %d \n",angle, location_id);
  
       mesh_rotate(coords, nVertex, ttime);
 

@@ -79,7 +79,7 @@ static void _dumpNotLocatedPoints(FILE *outputFile,
     fprintf(outputFile, "Not located points :\n");
     const int* notLocatedPoints = cwipi_get_not_located_points(coupling_id);
     for(int i = 0; i < nNotLocatedPoints; i++)
-     fprintf(outputFile, "%i ", notLocatedPoints[i]);
+      fprintf(outputFile, "%i ", notLocatedPoints[i]);
     fprintf(outputFile, "\n");
   }
 }
@@ -239,10 +239,10 @@ int main( int argc, char* argv[] ) {
 
   fileOutput = (char *) malloc((strlen("c_vol_poly_cpl_P1P1_") + 4 + 1 + 4) * sizeof(char));
   sprintf(fileOutput, "c_vol_poly_cpl_P1P1_%4.4d.txt", rank);
-  outputFile = fopen(fileOutput, "w");
+  //outputFile = fopen(fileOutput, "w");
   free(fileOutput);
-
-  cwipi_set_output_listing( outputFile );
+  outputFile = stdout;
+  //cwipi_set_output_listing( outputFile );
 
   /* Initializations
    * --------------- */
@@ -287,7 +287,7 @@ int main( int argc, char* argv[] ) {
                             CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
                             "codeC2",              // Coupled code
                             3,                            // Dimension of the geometry
-                            0.1,                          // Geometrical epsilon
+                            0.7,                          // Geometrical epsilon
                             CWIPI_STATIC_MESH,        // Static mesh
                             CWIPI_SOLVER_CELL_VERTEX, // Type of the fields
                             1,                            // Post-processing frequency
@@ -298,7 +298,7 @@ int main( int argc, char* argv[] ) {
                             CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
                             "codeC1",              // Coupled code
                             3,                            // Dimension of the geometry
-                            0.1,                          // Geometrical epsilon
+                            0.7,                          // Geometrical epsilon
                             CWIPI_STATIC_MESH,        // Static mesh
                             CWIPI_SOLVER_CELL_VERTEX, // Type of the fields
                             1,                            // Post-processing frequency
@@ -359,6 +359,23 @@ int main( int argc, char* argv[] ) {
     /* } */
     /* } */
 
+    for (int i = 0; i < 3*nVertex; i++) {
+      coords[i] = coords[i] - 0.1;
+    }
+
+     for (int i = 0; i < 3*nVertex; i++) {
+      coords[i] = 10 * coords[i];
+    }
+   
+    const double dila = 1.1;
+    
+    if (rank == 0) {
+      for (int i = 0; i < 3*nVertex; i++) {
+        coords[i] = dila * coords[i];
+      }
+    }
+
+    
     fclose(meshFile);
 
     if  (rank == 0)
@@ -384,16 +401,15 @@ int main( int argc, char* argv[] ) {
 
     const int nPts = 1;
     double *coordsPts        = (double *) malloc(3 * nPts * sizeof(double));
-    coordsPts[3*0  ] = 0.127113;
-    coordsPts[3*0+1  ] =  0.9180574119E-01; 
-    coordsPts[3*0+2  ] =  0.1829180270;
+    coordsPts[3*0  ]   = 0.127113;
+    coordsPts[3*0+1  ] = 0.9180574119E-01; 
+    coordsPts[3*0+2  ] = 0.1829180270;
 
-    /* coordsPts[3*0  ] = 1.69822e-1; */
+    /* coordsPts[3*0  ]   = 1.69822e-1; */
     /* coordsPts[3*0+1  ] =  1.875e-1; */
     /* coordsPts[3*0+2  ] =  2.e-1; */
 
     /* cwipi_set_points_to_locate ("c_vol_cpl_poly_P1P1", nPts, coordsPts); */
-
 
     /* Sending of the coordinate X
        Receiving of the coordinate Y*/

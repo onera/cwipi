@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <assert.h>
 
 #include "cwipi.h"
 
@@ -214,7 +215,7 @@ int main( int argc, char* argv[] ) {
   outputFile = fopen(fileOutput, "w");
   free(fileOutput);
 
-  cwipi_set_output_listing( outputFile );
+  //cwipi_set_output_listing( outputFile );
 
   /* Initializations
    * --------------- */
@@ -293,12 +294,21 @@ int main( int argc, char* argv[] ) {
     if  (rank == 0)
       printf("        Read mesh\n");
 
+    assert (meshFile != NULL);
     _read_mesh_dim( meshFile, &dimension, &nVertex, &nElements, &nConnecVertex );
     coords = (double *) malloc(dimension * nVertex * sizeof(double));
     eltsConnecPointer = (int *) malloc((nElements + 1) * sizeof(int));
     eltsConnec = (int *) malloc(nConnecVertex * sizeof(int));
     _read_mesh( meshFile, dimension, nVertex, nElements, coords, eltsConnecPointer, eltsConnec );
     fclose(meshFile);
+
+    const double dila = 1.01;
+    
+    if (rank == 1) {
+      for (int i = 0; i < 3*nVertex; i++) {
+        coords[i] = dila * coords[i];
+      }
+    }
 
 
     if  (rank == 0)
@@ -321,8 +331,11 @@ int main( int argc, char* argv[] ) {
     
     localValues = (double *) malloc(nVertex * sizeof(double));
 
+    cwipi_locate("c_vol_cpl_P1P1");
+
     if (rank == 0)
       printf("        Exchange\n");
+
 
     cwipi_exchange_status_t status = cwipi_exchange("c_vol_cpl_P1P1",
                                                     "echange1",
@@ -359,10 +372,8 @@ int main( int argc, char* argv[] ) {
     }
 
     if (err >= 1e-6) {
-      if (rank == 0) {
-        printf("        !!! Error = %12.5e\n", err);
-        return EXIT_FAILURE;
-      }
+      printf("        !!! Error = %12.5e\n", err);
+      return EXIT_FAILURE;
     }
 
     free(coords);

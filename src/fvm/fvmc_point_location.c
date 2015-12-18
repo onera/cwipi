@@ -35,6 +35,7 @@
 
 #include <assert.h>
 #include <math.h>
+#include <float.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -179,6 +180,78 @@ static fvmc_lnum_t  _octree_threshold = 4; /* Number of points in octree node
 /*============================================================================
  * Private function definitions
  *============================================================================*/
+
+/* VTK method */
+/*  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen */
+/*  All rights reserved. */
+/*  See Copyright.txt or http://www.kitware.com/Copyright.htm for details. */
+
+
+static void _project_point(double x[3], double origin[3],
+                    double normal[3], double xproj[3])
+{
+  double t, xo[3];
+
+  xo[0] = x[0] - origin[0];
+  xo[1] = x[1] - origin[1];
+  xo[2] = x[2] - origin[2];
+
+  t = _DOT_PRODUCT(normal,xo);
+
+  xproj[0] = x[0] - t * normal[0];
+  xproj[1] = x[1] - t * normal[1];
+  xproj[2] = x[2] - t * normal[2];
+}
+
+
+/* ---------------------------------------------------------------------------- */
+/* Compute the polygon normal from an array of points. This version assumes */
+/* that the polygon is convex, and looks for the first valid normal. */
+
+/* VTK method */
+/*  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen */
+/*  All rights reserved. */
+/*  See Copyright.txt or http://www.kitware.com/Copyright.htm for details. */
+
+static void _computeNormal (int numPts, double *pts, double n[3])
+{
+  int i;
+  double *v1, *v2, *v3;
+  double length;
+  double ax, ay, az;
+  double bx, by, bz;
+
+  //  Because some polygon vertices are colinear, need to make sure
+  //  first non-zero normal is found.
+  //
+  v1 = pts;
+  v2 = pts + 3;
+  v3 = pts + 6;
+
+  for (i=0; i<numPts-2; i++) {
+    ax = v2[0] - v1[0]; ay = v2[1] - v1[1]; az = v2[2] - v1[2];
+    bx = v3[0] - v1[0]; by = v3[1] - v1[1]; bz = v3[2] - v1[2];
+
+    n[0] = (ay * bz - az * by);
+    n[1] = (az * bx - ax * bz);
+    n[2] = (ax * by - ay * bx);
+
+    length = sqrt (n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
+    if (length != 0.0) {
+      n[0] /= length;
+      n[1] /= length;
+      n[2] /= length;
+      return;
+    }
+    else {
+      v1 = v2;
+      v2 = v3;
+      v3 += 3;
+    }
+  } //over all points
+}
+
+
 
 /*----------------------------------------------------------------------------
  * Test if two extents intersect
@@ -444,7 +517,7 @@ _locate_by_extents_1d(fvmc_lnum_t         elt_num,
         || elt_coord_max < distance[i]) {
 
       location[i] = elt_num;
-      distance[i] = elt_coord_max;
+      distance[i] = (float) elt_coord_max;
 
     }
 
@@ -514,7 +587,7 @@ _locate_in_extents(const fvmc_lnum_t    elt_num,
         || elt_coord_max < distance[j]) {
 
       location[j] = elt_num;
-      distance[j] = elt_coord_max;
+      distance[j] = (float) elt_coord_max;
 
     }
 
@@ -1453,7 +1526,7 @@ _locate_on_edge_3d(fvmc_lnum_t           elt_num,
 
     if (dist2 < epsilon2 && (dist2 < vertex_dist2 || distance[i] < 0.0)) {
       location[i] = elt_num;
-      distance[i] = sqrt(dist2);
+      distance[i] =  (float) sqrt(dist2);
     }
 
   } /* End of loop on points resulting from extent query */
@@ -1566,7 +1639,7 @@ _locate_on_edge_2d(fvmc_lnum_t           elt_num,
 
     if (dist2 < epsilon2 && (dist2 < vertex_dist2 || distance[i] < 0.0)) {
       location[i] = elt_num;
-      distance[i] = sqrt(dist2);
+      distance[i] = (float) sqrt(dist2);
     }
 
   } /* End of loop on points resulting from extent query */
@@ -1719,7 +1792,7 @@ _locate_on_triangles_3d(fvmc_lnum_t           elt_num,
 
       if (dist2 < epsilon2 && (dist2 < vertex_dist2 || distance[i] < 0.0)) {
         location[i] = elt_num;
-        distance[i] = sqrt(dist2);
+        distance[i] = (float) sqrt(dist2);
       }
 
     } /* End of loop on points resulting from extent query */
@@ -1847,7 +1920,7 @@ _locate_on_triangles_2d(fvmc_lnum_t           elt_num,
       if (   (max_dist > -0.5 && max_dist < (1. + 2.*tolerance))
           && (max_dist < distance[i] || distance[i] < 0)) {
         location[i] = elt_num;
-        distance[i] = max_dist;
+        distance[i] = (float) max_dist;
       }
 
     } /* End of loop on points resulting from extent query */
@@ -1960,7 +2033,7 @@ _locate_in_tetra(fvmc_lnum_t         elt_num,
     if (   (max_dist > -0.5 && max_dist < (1. + 2.*tolerance))
         && (max_dist < distance[i] || distance[i] < 0)) {
       location[i] = elt_num;
-      distance[i] = max_dist;
+      distance[i] = (float) max_dist;
     }
 
   }
@@ -2264,6 +2337,9 @@ _locate_in_cell_3d(fvmc_lnum_t          elt_num,
                    fvmc_lnum_t          location[],
                    float               distance[])
 {
+
+  printf("_locate_in_cell_3d\n");
+  
   int i, j, k, n_vertices;
   fvmc_lnum_t coord_idx, vertex_id;
 
@@ -2351,7 +2427,7 @@ _locate_in_cell_3d(fvmc_lnum_t          elt_num,
         if (   (max_dist > -0.5 && max_dist < (1. + 2.*tolerance))
             && (max_dist < distance[i] || distance[i] < 0)) {
           location[i] = elt_num;
-          distance[i] = max_dist;
+          distance[i] = (float) max_dist;
         }
 
       }
@@ -2402,12 +2478,13 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
                           float                       distance[])
 {
   fvmc_lnum_t  i, j, k, n_vertices, face_id, vertex_id, elt_num;
-  fvmc_coord_t  center[3];
   double elt_extents[6];
 
-  double _tolerance = tolerance * 2; /* double tolerance, as polyhedra is
-                                        split into tetrahedra, whose extents
-                                        are 1/2 the polyhedron extents */
+  printf("_polyhedra_section_locate\n");
+
+  /* double _tolerance = tolerance * 2; /\* double tolerance, as polyhedra is */
+  /*                                       split into tetrahedra, whose extents */
+  /*                                       are 1/2 the polyhedron extents *\/ */
 
   const double _eps_loc = 1e-5;
 
@@ -2443,6 +2520,9 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
 
   double* solid_angle = NULL;
   int l_solid_angle = 0;
+
+  float* min_dist = NULL;
+  int l_min_dist = 0;
 
   for (i = 0; i < this_section->n_elements; i++) {
 
@@ -2489,6 +2569,19 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
     if (n_points_in_extents < 1)
       continue;
 
+    for (int ipt = 0; ipt < n_points_in_extents; ipt++) {
+      
+      const int idx_pt = points_in_extents[ipt];
+
+      if (idx_pt == 5922) {
+        printf("  - Point 4143 : %12.5e %12.5e %12.5e\n",
+               point_coords[3*idx_pt ],
+               point_coords[3*idx_pt + 1],
+               point_coords[3*idx_pt + 2]);
+        printf("      - Elt_num : %d %d %12.5e\n", elt_num, location[idx_pt], distance[idx_pt]);
+      }
+    }
+
     if (solid_angle == NULL) {
       l_solid_angle = n_points_in_extents;
       BFTC_MALLOC(solid_angle, l_solid_angle, double);
@@ -2503,9 +2596,21 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
     for (j = 0; j < l_solid_angle; j++)
       solid_angle[j] = 0.;
 
-    /* Loop on element faces */
+    if (min_dist == NULL) {
+      l_min_dist = n_points_in_extents;
+      BFTC_MALLOC(min_dist, l_min_dist, float);
+    }
+    else {
+      if (l_min_dist < n_points_in_extents) {
+        l_min_dist = n_points_in_extents;
+        BFTC_REALLOC(min_dist, l_min_dist, float);
+      }
+    }
 
-    int ntri_t = 0;
+    for (j = 0; j < l_min_dist; j++)
+      min_dist[j] =  FLT_MAX;
+
+    /* Loop on element faces */
 
     for (j = this_section->face_index[i];
          j < this_section->face_index[i + 1];
@@ -2569,6 +2674,12 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
           coord_id[2] = parent_vertex_num[triangle_vertices[k*3 + 2] - 1] - 1;
         }
 
+        if (this_section->face_num[j] < 0) {
+          fvmc_lnum_t s1 = coord_id[0];
+          coord_id[0] = coord_id[2];
+          coord_id[2] = s1;
+        }
+        
         fvmc_coord_t ab[3]; 
         fvmc_coord_t ac[3]; 
         fvmc_coord_t bc[3];
@@ -2586,18 +2697,54 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
         double characteristic_len = FVMC_MIN(n_ab, n_ac);
         characteristic_len =  FVMC_MIN(characteristic_len, n_bc);
         
-        double eps_elt = FVMC_MAX(_eps_loc * characteristic_len, 1e-30);
+        //double eps_elt = FVMC_MAX(_eps_loc * characteristic_len, 1e-30);
+        double eps_elt = 1e-12;
+        double bounds[6];
+        double closest[3];
+        double tria_coords[9];
+        bounds[0] = DBL_MAX;
+        bounds[1] = -DBL_MAX;
+        bounds[2] = DBL_MAX;
+        bounds[3] = -DBL_MAX;
+        bounds[4] = DBL_MAX;
+        bounds[5] = -DBL_MAX;
+        
+        int m1 = 0;
+        for (int m = 0; m < 3; m++) {
+          for (l = 0; l < 3; l++) {
+            double coord = vertex_coords[3*coord_id[m] + l];
+            tria_coords[m1++] = coord;
+            if (bounds[2*l] > coord) {
+              bounds[2*l] = coord;
+            }
+            if (bounds[2*l+1] < coord) {
+              bounds[2*l+1] = coord;
+            }
 
+          }
+        }
+        
         for (int ipt = 0; ipt < n_points_in_extents; ipt++) {
 
           const int idx_pt = points_in_extents[ipt];
+
+          const double *_point_coords = point_coords + 3 * idx_pt;
+          
+          float dist = (float) fvmc_distant_to_polygon ((double *) _point_coords,
+                                                        3,
+                                                        tria_coords,
+                                                        bounds, closest);
+
+          if (min_dist[ipt] > dist) {
+            min_dist[ipt] = dist;
+          }
+
 
           if (location[idx_pt] != elt_num) {
 
             fvmc_coord_t v_pt_to_a[3]; 
             fvmc_coord_t v_pt_to_b[3]; 
             fvmc_coord_t v_pt_to_c[3];
-
 
             for (l = 0; l < 3; l++) {
               v_pt_to_a[l] = vertex_coords[3*coord_id[0] + l] - point_coords[3*idx_pt + l];  
@@ -2625,48 +2772,18 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
                            + dot_ac * n_b
                            + dot_bc * n_a;
 
-            if (fabs(det_abc) < eps_elt) {
-
-              double cross_ab[3];
-              double cross_bc[3];
-              double cross_ca[3];
-
-              _CROSS_PRODUCT(v_pt_to_a, v_pt_to_b, cross_ab);
-              _CROSS_PRODUCT(v_pt_to_b, v_pt_to_c, cross_bc);
-              _CROSS_PRODUCT(v_pt_to_c, v_pt_to_a, cross_ca);
-
-              double n1 = _DOT_PRODUCT(cross_ab, cross_bc);
-              double n2 = _DOT_PRODUCT(cross_bc, cross_ca);
-              double n3 = _DOT_PRODUCT(cross_ca, cross_ab);
-
-              int s1 = (n1 < 0.) ? -1 : 1;
-              int s2 = (n2 < 0.) ? -1 : 1;
-              int s3 = (n3 < 0.) ? -1 : 1;
-
-              int sigma = s1+s2+s3;
-
-              if (abs(sigma) == 3) {
-                location[idx_pt] = elt_num;
-                distance[idx_pt] = 1e-3;
-              }
+            double half_angle = atan2(det_abc, denom);
             
+            if ((half_angle < 0.) && (det_abc > 0)) {
+              half_angle = 2*_PI - half_angle;
             }
-
-            else {
-              double half_angle = atan2(det_abc, denom);
-              
-              if ((half_angle < 0.) && (det_abc > 0)) {
-                half_angle = 2*_PI - half_angle;
-              }
-              else if ((half_angle > 0.) && (det_abc < 0)){
-                half_angle = -2*_PI + half_angle;
-              }
-              
-              solid_angle[ipt] += 2 * half_angle;
+            else if ((half_angle > 0.) && (det_abc < 0)){
+              half_angle = -2*_PI + half_angle;
             }
-
+            
+            solid_angle[ipt] += 2 * half_angle;
           }
-
+          
         } /* End of loop on points */
 
       } /* End of loop on face triangles */
@@ -2676,35 +2793,56 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
     for (int ipt = 0; ipt < n_points_in_extents; ipt++) {
       
       const int idx_pt = points_in_extents[ipt];
-
-      if (fabs(solid_angle[ipt]) >= _eps_loc) {
-
-        if (location[idx_pt] == -1) {
+      
+      if ((location[idx_pt] == -1) || ((location[idx_pt] >= 1) && distance[idx_pt] >= 1.)) {
+        if (fabs(solid_angle[ipt]) >= _eps_loc) {
           location[idx_pt] = elt_num;
           distance[idx_pt] = 1.e-3;
+          if (idx_pt == 5922) {
+            printf("      - Mise à jour 2 : %d %d %12.5e %12.5e\n",
+                   idx_pt+1,
+                   elt_num,
+                   solid_angle[ipt],
+                   distance[idx_pt]);
+          }
+        }
+        else {
+          min_dist[ipt] += 1;
+          if ((location[idx_pt] == -1)
+              || ((location[idx_pt] >= 1) && (min_dist[ipt] < distance[idx_pt]))) {
+            location[idx_pt] = elt_num;
+            distance[idx_pt] = min_dist[ipt];
+            if (idx_pt == 5922) {
+              printf("      - Mise à jour 3 : %d %d %12.5e %12.5e\n",
+                     idx_pt+1,
+                     elt_num,
+                     solid_angle[ipt],
+                     distance[idx_pt]);
+            }
+          }
         }
 
       }
 
     }
 
-
   } /* End of loop on elements */
 
   BFTC_FREE(solid_angle);
+  BFTC_FREE(min_dist);
+  
+  /* for (i = 0; i < this_section->n_elements; i++) { */
 
-  for (i = 0; i < this_section->n_elements; i++) {
+  /*   _locate_in_extents(elt_num, */
+  /*                      3, */
+  /*                      elt_extents, */
+  /*                      point_coords, */
+  /*                      n_points_in_extents, */
+  /*                      points_in_extents, */
+  /*                      location, */
+  /*                      distance); */
 
-    _locate_in_extents(elt_num,
-                       3,
-                       elt_extents,
-                       point_coords,
-                       n_points_in_extents,
-                       points_in_extents,
-                       location,
-                       distance);
-
-  } /* End of loop on elements */
+  /* } /\* End of loop on elements *\/ */
 
   BFTC_FREE(triangle_vertices);
   state = fvmc_triangulate_state_destroy(state);
@@ -3666,6 +3804,103 @@ _nodal_section_locate_1d(const fvmc_nodal_section_t  *this_section,
 
 }
 
+
+
+static double _randomVal( double min, double max )
+{
+  double resultat = ((double)rand())/((double)RAND_MAX);
+  resultat = min + resultat * (max - min);
+
+  return resultat;
+}
+
+static double _det_2x2 (double a, double b, double c, double d) {
+    return (a * d - b * c);
+};
+
+static int _solve_2x2 (double **A, double *x)
+{
+  // if we solving something simple, just solve it
+  //
+
+  double det, y[2];
+  
+  det = _det_2x2 (A[0][0], A[0][1], A[1][0], A[1][1]);
+  
+  //TODO: geomtric epsilon
+
+  if (fabs(det) < 1e-15) {
+      // Unable to solve linear system
+    return 0;
+  }
+  
+  y[0] = (A[1][1]*x[0] - A[0][1]*x[1]) / det;
+  y[1] = (-A[1][0]*x[0] + A[0][0]*x[1]) / det;
+  
+  x[0] = y[0];
+  x[1] = y[1];
+  return 1;
+}
+
+static const int FVMC_NO_INTERSECTION=0;
+static const int FVMC_YES_INTERSECTION=2;
+static const int FVMC_ON_LINE=3;
+
+//----------------------------------------------------------------------------
+// Performs intersection of two finite 3D lines. An intersection is found if
+// the projection of the two lines onto the plane perpendicular to the cross
+// product of the two lines intersect. The parameters (u,v) are the
+// parametric coordinates of the lines at the position of closest approach.
+static int _intersection_line (double a1[3], double a2[3],
+                               double b1[3], double b2[3],
+                               double *u, double *v)
+{
+
+  // TODO a verifier
+
+  double a21[3], b21[3], b1a1[3];
+  double c[2];
+  double *A[2], row1[2], row2[2];
+
+  //  Initialize
+  *u = *v = 0.0;
+
+  //   Determine line vectors.
+  a21[0] = a2[0] - a1[0];   b21[0] = b2[0] - b1[0];   b1a1[0] = b1[0] - a1[0];
+  a21[1] = a2[1] - a1[1];   b21[1] = b2[1] - b1[1];   b1a1[1] = b1[1] - a1[1];
+  a21[2] = a2[2] - a1[2];   b21[2] = b2[2] - b1[2];   b1a1[2] = b1[2] - a1[2];
+
+  //   Compute the system (least squares) matrix.
+  A[0] = row1;
+  A[1] = row2;
+  row1[0] = _DOT_PRODUCT ( a21, a21 );
+  row1[1] = -_DOT_PRODUCT ( a21, b21 );
+  row2[0] = row1[1];
+  row2[1] = _DOT_PRODUCT( b21, b21 );
+
+  //   Compute the least squares system constant term.
+  c[0] = _DOT_PRODUCT( a21, b1a1 );
+  c[1] = - _DOT_PRODUCT( b21, b1a1 );
+
+
+  //  Solve the system of equations
+  if ( _solve_2x2 (A, c) == 0 ) {
+    return FVMC_ON_LINE;
+  }
+  else {
+    *u = c[0];
+    *v = c[1];
+  }
+  
+  //  Check parametric coordinates for intersection.
+  if ( (0.0 <= *u) && (*u <= 1.0) && (0.0 <= *v) && (*v <= 1.0) ) {
+    return FVMC_YES_INTERSECTION;
+  }
+  else {
+    return FVMC_NO_INTERSECTION;
+  }
+}
+
 /*============================================================================
  * Public function definitions
  *============================================================================*/
@@ -4018,6 +4253,454 @@ fvmc_point_dist_closest_polygon(const int            dim,
   fvmc_nodal_section_destroy(section);
 
 }
+
+#define FVMC_TOL_POLY 1.e-05
+#define FVMC_POLYGON_FAILURE -1
+#define FVMC_POLYGON_OUTSIDE 0
+#define FVMC_POLYGON_INSIDE 1
+#define FVMC_POLYGON_INTERSECTION 2
+#define FVMC_POLYGON_ON_LINE 3
+
+#define FVMC_POLYGON_CERTAIN 1
+#define FVMC_POLYGON_UNCERTAIN 0
+#define FVMC_POLYGON_RAY_TOL 1.e-03 //Tolerance for ray firing
+#define FVMC_POLYGON_MAX_ITER 10    //Maximum iterations for ray-firing
+#define FVMC_POLYGON_VOTE_THRESHOLD 2
+
+#ifndef TRUE
+#define FALSE 0
+#define TRUE 1
+#endif
+
+/* ---------------------------------------------------------------------------- */
+/* Determine whether point is inside polygon. Function uses ray-casting */
+/* to determine if point is inside polygon. Works for arbitrary polygon shape */
+/* (e.g., non-convex). Returns 0 if point is not in polygon; 1 if it is. */
+/* Can also return -1 to indicate degenerate polygon. Note: a point in */
+/* bounding box check is NOT performed prior to in/out check. You may want */
+/* to do this to improve performance. */
+
+
+/* VTK method */
+/*  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen */
+/*  All rights reserved. */
+/*  See Copyright.txt or http://www.kitware.com/Copyright.htm for details. */
+
+int fvmc_point_in_polygon (double x[3], 
+                           int numPts,
+                           double *pts,
+                           double *bounds, 
+                           double *n)
+{
+  double *x1, *x2, xray[3], u, v;
+  double rayMag, mag=1, ray[3];
+  int testResult, rayOK, status, numInts, i;
+  int iterNumber;
+  int maxComp, comps[2];
+  int deltaVotes;
+  // do a quick bounds check
+  if ( x[0] < bounds[0] || x[0] > bounds[1] ||
+       x[1] < bounds[2] || x[1] > bounds[3] ||
+       x[2] < bounds[4] || x[2] > bounds[5]) {
+
+    return FVMC_POLYGON_OUTSIDE;
+  }
+
+  //
+  //  Define a ray to fire.  The ray is a random ray normal to the
+  //  normal of the face.  The length of the ray is a function of the
+  //  size of the face bounding box.
+  //
+  for (i=0; i<3; i++) {
+    ray[i] = ( bounds[2*i+1] - bounds[2*i] )*1.1 +
+          fabs((bounds[2*i+1] + bounds[2*i])/2.0 - x[i]);
+  }
+
+  if ( (rayMag =  _MODULE(ray)) < 1.e-15 ) {
+    return FVMC_POLYGON_OUTSIDE;
+  }
+
+   /* Get the maximum component of the normal. */
+  
+  if ( fabs(n[0]) > fabs(n[1]) ) {
+    if ( fabs(n[0]) > fabs(n[2]) ) {
+      maxComp = 0;
+      comps[0] = 1;
+      comps[1] = 2;
+    }
+    else {
+      maxComp = 2;
+      comps[0] = 0;
+      comps[1] = 1;
+    }
+  }
+  else {
+    if ( fabs(n[1]) > fabs(n[2]) ) {
+      maxComp = 1;
+      comps[0] = 0;
+      comps[1] = 2;
+    }
+    else {
+      maxComp = 2;
+      comps[0] = 0;
+      comps[1] = 1;
+    }
+  }
+  
+  /* Check that max component is non-zero */
+  
+  if ( fabs(n[maxComp]) < 1.e-15 ) {
+    return FVMC_POLYGON_FAILURE;
+  }
+
+  /* Enough information has been acquired to determine the random ray. */
+  /* Random rays are generated until one is satisfactory (i.e., */
+  /* produces a ray of non-zero magnitude).  Also, since more than one */
+  /* ray may need to be fired, the ray-firing occurs in a large loop. */
+  
+  /* The variable iterNumber counts the number of iterations and is */
+  /* limited by the defined variable FVMC_POLYGON_MAX_ITER. */
+  
+  /* The variable deltaVotes keeps track of the number of votes for */
+  /* "in" versus "out" of the face.  When delta_vote > 0, more votes */
+  /* have counted for "in" than "out".  When delta_vote < 0, more votes */
+  /* have counted for "out" than "in".  When the delta_vote exceeds or */
+  /* equals the defined variable FVMC_POLYGON_VOTE_THRESHOLD, than the */
+  /* appropriate "in" or "out" status is returned. */
+  
+  for (deltaVotes = 0, iterNumber = 1;
+       (iterNumber < FVMC_POLYGON_MAX_ITER)
+         && (abs(deltaVotes) < FVMC_POLYGON_VOTE_THRESHOLD);
+       iterNumber++) {
+    
+     /* Generate ray */
+    
+    for (rayOK = FALSE; rayOK == FALSE; ) {
+      ray[comps[0]] = _randomVal (-rayMag, rayMag);
+      ray[comps[1]] = _randomVal (-rayMag, rayMag);
+      ray[maxComp] = -(n[comps[0]]*ray[comps[0]] +
+                       n[comps[1]]*ray[comps[1]]) / n[maxComp];
+      if ( (mag = _MODULE(ray)) > rayMag*FVMC_TOL_POLY ) {
+        rayOK = TRUE;
+      }
+    }
+    
+    /* The ray must be appropriately sized. */
+    
+    for (i=0; i<3; i++) {
+      xray[i] = x[i] + (rayMag/mag)*ray[i];
+    }
+    
+    /* The ray may now be fired against all the edges */
+    
+    for (numInts=0, testResult=FVMC_POLYGON_CERTAIN, i=0; i<numPts; i++) {
+      x1 = pts + 3*i;
+      x2 = pts + 3*((i+1)%numPts);
+      
+        /* Fire the ray and compute the number of intersections.  Be careful */
+        /* of degenerate cases (e.g., ray intersects at vertex). */
+      
+
+      if ((status= _intersection_line(x,xray,x1,x2, &u,&v)) == FVMC_POLYGON_INTERSECTION) {
+        /* This test checks for vertex and edge intersections */
+        /* For example */
+        /*  Vertex intersection */
+        /*    (u=0 v=0), (u=0 v=1), (u=1 v=0), (u=1 v=0) */
+        /*  Edge intersection */
+        /*    (u=0 v!=0 v!=1), (u=1 v!=0 v!=1) */
+        /*    (u!=0 u!=1 v=0), (u!=0 u!=1 v=1) */
+        
+        if ( (FVMC_POLYGON_RAY_TOL < u) && (u < 1.0-FVMC_POLYGON_RAY_TOL) &&
+             (FVMC_POLYGON_RAY_TOL < v) && (v < 1.0-FVMC_POLYGON_RAY_TOL) ) {
+          numInts++;
+        }
+        else {
+          testResult = FVMC_POLYGON_UNCERTAIN;
+        }
+      }
+      
+      else if ( status == FVMC_POLYGON_ON_LINE ) {
+        testResult = FVMC_POLYGON_UNCERTAIN;
+      }
+
+    }
+    
+    if ( testResult == FVMC_POLYGON_CERTAIN ) {
+      if ( numInts % 2 == 0) {
+        --deltaVotes;
+      }
+      else {
+        ++deltaVotes;
+      }
+    }
+  } /* try another ray */
+
+    /* If the number of intersections is odd, the point is in the polygon. */
+  
+  if ( deltaVotes < 0 ) {
+    return FVMC_POLYGON_OUTSIDE;
+  }
+  else {
+    return FVMC_POLYGON_INSIDE;
+  }
+}
+
+
+/* VTK method */
+/*  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen */
+/*  All rights reserved. */
+/*  See Copyright.txt or http://www.kitware.com/Copyright.htm for details. */
+
+
+#define FVMC_TOL_DIST 1.e-05
+double fvmc_distance_to_line(double x[3], double p1[3], double p2[3],
+                             double *t, double closestPoint[3])
+{
+  double p21[3], denom, num;
+  double *closest;
+  double tolerance;
+  //
+  //   Determine appropriate vectors
+  //
+  p21[0] = p2[0]- p1[0];
+  p21[1] = p2[1]- p1[1];
+  p21[2] = p2[2]- p1[2];
+
+  //
+  //   Get parametric location
+  //
+  num = p21[0]*(x[0]-p1[0]) + p21[1]*(x[1]-p1[1]) + p21[2]*(x[2]-p1[2]);
+  denom = _DOT_PRODUCT(p21,p21);
+
+  // trying to avoid an expensive fabs
+  tolerance = fabs (FVMC_TOL_DIST *num);
+  if ( fabs(denom) < tolerance ) {
+    closest = p1; //arbitrary, point is (numerically) far away
+  }
+  //
+  // If parametric coordinate is within 0<=p<=1, then the point is closest to
+  // the line.  Otherwise, it's closest to a point at the end of the line.
+  //
+  else if ( denom <= 0.0 || (*t=num/denom) < 0.0 ) {
+    closest = p1;
+  }
+  else if ( *t > 1.0 ) {
+    closest = p2;
+  }
+  else {
+    closest = p21;
+    p21[0] = p1[0] + (*t)*p21[0];
+    p21[1] = p1[1] + (*t)*p21[1];
+    p21[2] = p1[2] + (*t)*p21[2];
+  }
+
+  closestPoint[0] = closest[0];
+  closestPoint[1] = closest[1];
+  closestPoint[2] = closest[2];
+  double v[3] = {closest[0] - x[0],
+                 closest[1] - x[1],
+                 closest[2] - x[2]};
+  return _MODULE(v);
+}
+
+/* VTK method */
+/*  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen */
+/*  All rights reserved. */
+/*  See Copyright.txt or http://www.kitware.com/Copyright.htm for details. */
+
+double fvmc_distant_to_polygon (double x[3], int numPts, double *pts,
+                                double bounds[6], double closest[3])
+{
+  // First check to see if the point is inside the polygon
+  // do a quick bounds check
+  if ( x[0] >= bounds[0] && x[0] <= bounds[1] &&
+       x[1] >= bounds[2] && x[1] <= bounds[3] &&
+       x[2] >= bounds[4] && x[2] <= bounds[5]) {
+    double n[3];
+    _computeNormal(numPts, pts, n);
+    if (fvmc_point_in_polygon (x,numPts,pts,bounds,n) ) {
+      closest[0] = x[0];
+      closest[1] = x[1];
+      closest[2] = x[2];
+      return 0.0;
+    }
+  }
+
+  // Not inside, compute the distance of the point to the edges.
+  double minDist2=DBL_MAX;
+  double *p0, *p1, dist2, t, c[3];
+  for (int i=0; i<numPts; i++) {
+    p0 = pts + 3*i;
+    p1 = pts + 3*((i+1)%numPts);
+    dist2 = fvmc_distance_to_line (x, p0, p1, &t, c);
+    if ( dist2 < minDist2 ) {
+      minDist2 = dist2;
+      closest[0] = c[0];
+      closest[1] = c[1];
+      closest[2] = c[2];
+    }
+  }
+
+  return sqrt(minDist2);
+}
+
+
+
+
+
+int fvmc_parameterize_polygon(int numPts, double *pts, double *p0, double *p10, double *l10,
+                              double *p20,double *l20, double *n)
+{
+  int i, j;
+  double s, t, p[3], p1[3], p2[3], sbounds[2], tbounds[2];
+  double x1[3], x2[3];
+
+  if (numPts < 3)
+    {
+    return 0;
+    }
+
+  //  This is a two pass process: first create a p' coordinate system
+  //  that is then adjusted to insure that the polygon points are all in
+  //  the range 0<=s,t<=1.  The p' system is defined by the polygon normal,
+  //  first vertex and the first edge.
+  //
+  _computeNormal (numPts, pts, n);
+  x1[0] = pts[0];
+  x1[1] = pts[1];
+  x1[2] = pts[2];
+
+  for (i=0; i<3; i++) {
+    p0[i] = x1[i];
+    p10[i] = x2[i] - x1[i]; 
+  }
+
+  _CROSS_PRODUCT(p20,n,p10);
+
+  // Determine lengths of edges
+  //
+  if ( ((*l10)=_DOT_PRODUCT(p10,p10)) == 0.0
+    || ((*l20)=_DOT_PRODUCT(p20,p20)) == 0.0 ) {
+    return 0;
+  }
+
+  //  Now evalute all polygon points to determine min/max parametric
+  //  coordinate values.
+  //
+  // first vertex has (s,t) = (0,0)
+  sbounds[0] = 0.0; sbounds[1] = 0.0;
+  tbounds[0] = 0.0; tbounds[1] = 0.0;
+
+  for(i=1; i<numPts; i++) {
+    x1[0] = pts[3*i];
+    x1[1] = pts[3*i+1];
+    x1[2] = pts[3*i+2];
+    for(j=0; j<3; j++) {
+      p[j] = x1[j] - p0[j];
+    }
+#ifdef BAD_WITH_NODEBUG
+    s = _DOT_PRODUCT (p,p10) / (*l10);
+    t = _DOT_PRODUCT (p,p20) / (*l20);
+#endif
+    s = (p[0]*p10[0] + p[1]*p10[1] + p[2]*p10[2]) / (*l10);
+    t = (p[0]*p20[0] + p[1]*p20[1] + p[2]*p20[2]) / (*l20);
+    sbounds[0] = (s<sbounds[0]?s:sbounds[0]);
+    sbounds[1] = (s>sbounds[1]?s:sbounds[1]);
+    tbounds[0] = (t<tbounds[0]?t:tbounds[0]);
+    tbounds[1] = (t>tbounds[1]?t:tbounds[1]);
+  }
+
+  //  Re-evaluate coordinate system
+  //
+  for (i=0; i<3; i++) {
+    p1[i] = p0[i] + sbounds[1]*p10[i] + tbounds[0]*p20[i];
+    p2[i] = p0[i] + sbounds[0]*p10[i] + tbounds[1]*p20[i];
+    p0[i] = p0[i] + sbounds[0]*p10[i] + tbounds[0]*p20[i];
+    p10[i] = p1[i] - p0[i];
+    p20[i] = p2[i] - p0[i];
+  }
+  (*l10) = _MODULE(p10);
+  (*l20) = _MODULE(p20);
+
+  return 1;
+}
+
+
+
+int fvmc_polygon_evaluate_Position(double x[3], int numPts, double *pts, double* closestPoint,
+                                   double pcoords[3], double *minDist2)
+{
+  int i;
+  double p0[3], p10[3], l10, p20[3], l20, n[3], cp[3];
+  double ray[3];
+
+  fvmc_parameterize_polygon(numPts, pts, p0, p10, &l10, p20, &l20, n);
+  _project_point (x,p0,n,cp);
+
+  for (i=0; i<3; i++) {
+    ray[i] = cp[i] - p0[i];
+  }
+  pcoords[0] = _DOT_PRODUCT(ray,p10) / (l10*l10);
+  pcoords[1] = _DOT_PRODUCT(ray,p20) / (l20*l20);
+  pcoords[2] = 0.0;
+
+  double bounds[6] = {DBL_MAX, -DBL_MAX,
+                      DBL_MAX, -DBL_MAX,
+                      DBL_MAX, -DBL_MAX};
+  
+  for (int isom = 0; isom < numPts; isom++) {
+    for (int l = 0; l < 3; l++) {
+      double coord = pts[3*isom + l];
+      if (bounds[2*l] > coord) {
+        bounds[2*l] = coord;
+      }
+      if (bounds[2*l+1] < coord) {
+        bounds[2*l+1] = coord;
+      }
+    }
+  }
+
+  if ( pcoords[0] >= 0.0 && pcoords[0] <= 1.0 &&
+       pcoords[1] >= 0.0 && pcoords[1] <= 1.0 &&
+       (fvmc_point_in_polygon (cp, numPts, pts,
+                               bounds, n) == FVMC_POLYGON_INSIDE) ) {
+    if (closestPoint) {
+      closestPoint[0] = cp[0];
+      closestPoint[1] = cp[1];
+      closestPoint[2] = cp[2];
+      double v[3] = {x[0] - closestPoint[0], 
+                     x[1] - closestPoint[1], 
+                     x[2] - closestPoint[2]};
+
+      *minDist2 = _DOT_PRODUCT (v, v);
+    }
+    return 1;
+  }
+
+  // If here, point is outside of polygon, so need to find distance to boundary
+  //
+  else {
+    double t, dist2;
+    double closest[3];
+    double *pt1, *pt2;
+
+    if (closestPoint) {
+      for (*minDist2=DBL_MAX,i=0; i<numPts; i++) {
+        pt1 = pts + 3 * i;
+        pt2 = pts + 3 * ((i+1)%numPts);
+        dist2 = fvmc_distance_to_line (x, pt1, pt2, &t, closest);
+        if ( dist2 < *minDist2 ) {
+          closestPoint[0] = closest[0];
+          closestPoint[1] = closest[1];
+          closestPoint[2] = closest[2];
+          *minDist2 = dist2;
+        }
+      }
+    }
+    return 0;
+  }
+}
+
 
 #undef _DOT_PRODUCT
 #undef _MODULE

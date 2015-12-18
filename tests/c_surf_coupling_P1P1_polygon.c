@@ -258,12 +258,16 @@ int main
 
   for (int i = 0; i < nVertex; i++) {
     if (rank == 0)
-      sendValues[i] = coords[3*i+1];
+      sendValues[i] = coords[3*i];
     else
       sendValues[i] = coords[3*i+1];
   }
 
   int nNotLocatedPoints = 0;
+
+  cwipi_locate("c_surf_cpl_P1P1_polygon");
+  cwipi_locate("c_surf_cpl_P1P1_polygon");
+  
   cwipi_exchange_status_t status = cwipi_exchange("c_surf_cpl_P1P1_polygon",
                                                   "echange1",
                                                   1,
@@ -297,18 +301,31 @@ int main
   else
     err = fabs(recvValues[0] - coords[3 * 0    ]);
  
-  for (int i = 1; i < nVertex; i++) {
-    if (rank == 0)
+  for (int i = 0; i < nVertex; i++) {
+    if (rank == 0) {
       err = ((fabs(recvValues[i] - coords[3 * i + 1])) < (err) ? (err) : 
              (fabs(recvValues[i] - coords[3 * i + 1])));
-    else
+      if (fabs(recvValues[i] - coords[3 * i + 1]) > 1e-6) {
+        printf ("[%d] err %d : %12.5e %12.5e %12.5e\n",
+                rank, i + 1, fabs(recvValues[i] - coords[3 * i + 1]), recvValues[i], coords[3 * i + 1]);
+      }
+    }
+    else {
       err = ((fabs(recvValues[i] - coords[3 * i    ])) < (err) ? (err) : 
              (fabs(recvValues[i] - coords[3 * i    ])));
+      if (fabs(recvValues[i] - coords[3 * i ]) > 1e-6) {
+        printf ("[%d] err %d : %12.5e %12.5e %12.5e\n",
+                rank, i + 1, fabs(recvValues[i] - coords[3 * i ]), recvValues[i], coords[3 * i]);
+      }
+    }
   }
 
-  if (err >= 1e-6) {
+  double err_max;
+  MPI_Allreduce(&err, &err_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+  
+  if (err_max >= 1e-6) {
     if (rank == 0) {
-      printf("        !!! Error = %12.5e\n", err);
+      printf("        !!! Error = %12.5e\n", err_max);
       return EXIT_FAILURE;
     }
   }
