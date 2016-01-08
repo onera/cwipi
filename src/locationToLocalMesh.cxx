@@ -1336,7 +1336,7 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
              _distBarCoords[isom] > 1. ) {
 
           double closestPoint[3];
-          double dist_min = -DBL_MAX;
+          double dist_min = DBL_MAX;
           int k_min = 0;
           double t_min;
 
