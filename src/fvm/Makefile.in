@@ -66,17 +66,6 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-
-#if HAVE_MPI
-#lib_LTLIBRARIES += libfvmc_coupl.la
-#libfvmc_coupl_la_SOURCES = fvmc_coupling.c
-#endif
-@HAVE_CGNS_TRUE@am__append_1 = libfvmc_cgns.la
-@HAVE_CGNS_TRUE@@HAVE_MPI_TRUE@am__append_2 = libfvmc_cgns.la
-@HAVE_CGNS_TRUE@@HAVE_MPI_FALSE@am__append_3 = libfvmc_cgns.la
-@HAVE_MED_TRUE@am__append_4 = libfvmc_med.la
-@HAVE_MED_TRUE@@HAVE_MPI_TRUE@am__append_5 = libfvmc_med.la $(top_builddir)/src/bft/libbfto.la
-@HAVE_MED_TRUE@@HAVE_MPI_FALSE@am__append_6 = libfvmc_med.la $(top_builddir)/src/bft/libbfto.la
 subdir = src/fvm
 DIST_COMMON = $(fvminclude_HEADERS) $(noinst_HEADERS) \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in
@@ -84,15 +73,11 @@ ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/config/bft_config_info.m4 \
 	$(top_srcdir)/config/bft_config_publ.m4 \
 	$(top_srcdir)/config/bft_types.m4 \
-	$(top_srcdir)/config/bft_zlib.m4 \
 	$(top_srcdir)/config/check_mpi.m4 \
 	$(top_srcdir)/config/cwipi_config_info.m4 \
 	$(top_srcdir)/config/cwipi_config_publ.m4 \
-	$(top_srcdir)/config/fvm_cgns.m4 \
 	$(top_srcdir)/config/fvm_config_info.m4 \
 	$(top_srcdir)/config/fvm_config_publ.m4 \
-	$(top_srcdir)/config/fvm_hdf5.m4 \
-	$(top_srcdir)/config/fvm_med.m4 \
 	$(top_srcdir)/config/fvm_types.m4 \
 	$(top_srcdir)/config/libtool.m4 \
 	$(top_srcdir)/config/ltoptions.m4 \
@@ -129,8 +114,7 @@ am__base_list = \
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(fvmincludedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES) $(noinst_LTLIBRARIES)
 @HAVE_MPI_TRUE@libfvmc_la_DEPENDENCIES =  \
-@HAVE_MPI_TRUE@	$(top_builddir)/src/bft/libbftc.la \
-@HAVE_MPI_TRUE@	$(am__append_2) $(am__append_5)
+@HAVE_MPI_TRUE@	$(top_builddir)/src/bft/libbftc.la
 am__libfvmc_la_SOURCES_DIST = fvmc_block_dist.c fvmc_block_to_part.c \
 	fvmc_box.c fvmc_box_tree.c fvmc_convert_array.c fvmc_defs.c \
 	fvmc_file.c fvmc_gather.c fvmc_group.c fvmc_interface.c \
@@ -166,23 +150,8 @@ libfvmc_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(libfvmc_la_LDFLAGS) $(LDFLAGS) -o $@
 @HAVE_MPI_TRUE@am_libfvmc_la_rpath = -rpath $(libdir)
-@HAVE_CGNS_TRUE@libfvmc_cgns_la_DEPENDENCIES =  \
-@HAVE_CGNS_TRUE@	$(top_builddir)/src/bft/libbftc.la
-am__libfvmc_cgns_la_SOURCES_DIST = fvmc_to_cgns.c
-@HAVE_CGNS_TRUE@am_libfvmc_cgns_la_OBJECTS =  \
-@HAVE_CGNS_TRUE@	libfvmc_cgns_la-fvmc_to_cgns.lo
-libfvmc_cgns_la_OBJECTS = $(am_libfvmc_cgns_la_OBJECTS)
-@HAVE_CGNS_TRUE@am_libfvmc_cgns_la_rpath =
-@HAVE_MED_TRUE@libfvmc_med_la_DEPENDENCIES =  \
-@HAVE_MED_TRUE@	$(top_builddir)/src/bft/libbftc.la
-am__libfvmc_med_la_SOURCES_DIST = fvmc_to_med.c
-@HAVE_MED_TRUE@am_libfvmc_med_la_OBJECTS =  \
-@HAVE_MED_TRUE@	libfvmc_med_la-fvmc_to_med.lo
-libfvmc_med_la_OBJECTS = $(am_libfvmc_med_la_OBJECTS)
-@HAVE_MED_TRUE@am_libfvmc_med_la_rpath =
 @HAVE_MPI_FALSE@libfvmc_scal_la_DEPENDENCIES =  \
-@HAVE_MPI_FALSE@	$(top_builddir)/src/bft/libbftc.la \
-@HAVE_MPI_FALSE@	$(am__append_3) $(am__append_6)
+@HAVE_MPI_FALSE@	$(top_builddir)/src/bft/libbftc.la
 am__libfvmc_scal_la_SOURCES_DIST = fvmc_block_dist.c \
 	fvmc_block_to_part.c fvmc_box.c fvmc_box_tree.c \
 	fvmc_convert_array.c fvmc_defs.c fvmc_file.c fvmc_gather.c \
@@ -233,11 +202,8 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(libfvmc_la_SOURCES) $(libfvmc_cgns_la_SOURCES) \
-	$(libfvmc_med_la_SOURCES) $(libfvmc_scal_la_SOURCES)
+SOURCES = $(libfvmc_la_SOURCES) $(libfvmc_scal_la_SOURCES)
 DIST_SOURCES = $(am__libfvmc_la_SOURCES_DIST) \
-	$(am__libfvmc_cgns_la_SOURCES_DIST) \
-	$(am__libfvmc_med_la_SOURCES_DIST) \
 	$(am__libfvmc_scal_la_SOURCES_DIST)
 HEADERS = $(fvminclude_HEADERS) $(noinst_HEADERS)
 ETAGS = etags
@@ -254,9 +220,6 @@ CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CC_ADD = @CC_ADD@
 CFLAGS = @CFLAGS@
-CGNS_CPPFLAGS = @CGNS_CPPFLAGS@
-CGNS_LDFLAGS = @CGNS_LDFLAGS@
-CGNS_LIBS = @CGNS_LIBS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CPP_ADD = @CPP_ADD@
@@ -279,9 +242,6 @@ FC = @FC@
 FCFLAGS = @FCFLAGS@
 FGREP = @FGREP@
 GREP = @GREP@
-HDF5_CPPFLAGS = @HDF5_CPPFLAGS@
-HDF5_LDFLAGS = @HDF5_LDFLAGS@
-HDF5_LIBS = @HDF5_LIBS@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -299,9 +259,6 @@ LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
-MED_CPPFLAGS = @MED_CPPFLAGS@
-MED_LDFLAGS = @MED_LDFLAGS@
-MED_LIBS = @MED_LIBS@
 MKDIR_P = @MKDIR_P@
 MPI4PY_INCLUDE = @MPI4PY_INCLUDE@
 MPI_BIN_PATH = @MPI_BIN_PATH@
@@ -409,12 +366,15 @@ AM_LDFLAGS = @HDF5_LDFLAGS@ @MED_LDFLAGS@ @CGNS_LDFLAGS@ \
 
 
 # Conditionally compiled extensions
-@HAVE_CGNS_TRUE@libfvmc_cgns_la_CPPFLAGS = $(DEBUG_CPPFLAGS) @MPI_CPPFLAGS@ \
-@HAVE_CGNS_TRUE@                         @CGNS_CPPFLAGS@
 
-@HAVE_MED_TRUE@libfvmc_med_la_CPPFLAGS = $(DEBUG_CPPFLAGS)  @MPI_CPPFLAGS@ \
-@HAVE_MED_TRUE@                         @HDF5_CPPFLAGS@ @MED_CPPFLAGS@ 
-
+# if HAVE_CGNS
+# libfvmc_cgns_la_CPPFLAGS = $(DEBUG_CPPFLAGS) @MPI_CPPFLAGS@ \
+#                          @CGNS_CPPFLAGS@
+# endif
+# if HAVE_MED
+# libfvmc_med_la_CPPFLAGS = $(DEBUG_CPPFLAGS)  @MPI_CPPFLAGS@ \
+#                          @HDF5_CPPFLAGS@ @MED_CPPFLAGS@ 
+# endif
 
 # Public header files (to be installed)
 fvmincludedir = $(includedir)
@@ -495,12 +455,9 @@ fvmc_writer.h
 
 # Library source files
 @HAVE_MPI_TRUE@lib_LTLIBRARIES = libfvmc.la
-noinst_LTLIBRARIES = $(am__append_1) $(am__append_4)
-@HAVE_MPI_TRUE@libfvmc_la_LIBADD = $(top_builddir)/src/bft/libbftc.la \
-@HAVE_MPI_TRUE@	$(am__append_2) $(am__append_5)
-@HAVE_MPI_FALSE@libfvmc_scal_la_LIBADD =  \
-@HAVE_MPI_FALSE@	$(top_builddir)/src/bft/libbftc.la \
-@HAVE_MPI_FALSE@	$(am__append_3) $(am__append_6)
+noinst_LTLIBRARIES = 
+@HAVE_MPI_TRUE@libfvmc_la_LIBADD = $(top_builddir)/src/bft/libbftc.la
+@HAVE_MPI_FALSE@libfvmc_scal_la_LIBADD = $(top_builddir)/src/bft/libbftc.la
 @HAVE_MPI_TRUE@libfvmc_la_SOURCES = \
 @HAVE_MPI_TRUE@fvmc_block_dist.c \
 @HAVE_MPI_TRUE@fvmc_block_to_part.c \
@@ -577,10 +534,33 @@ noinst_LTLIBRARIES = $(am__append_1) $(am__append_4)
 @HAVE_MPI_FALSE@fvmc_writer.c \
 @HAVE_MPI_FALSE@fvmc_writer_helper.c
 
-@HAVE_CGNS_TRUE@libfvmc_cgns_la_SOURCES = fvmc_to_cgns.c
-@HAVE_CGNS_TRUE@libfvmc_cgns_la_LIBADD = $(top_builddir)/src/bft/libbftc.la
-@HAVE_MED_TRUE@libfvmc_med_la_SOURCES = fvmc_to_med.c
-@HAVE_MED_TRUE@libfvmc_med_la_LIBADD = $(top_builddir)/src/bft/libbftc.la
+
+#if HAVE_MPI
+#lib_LTLIBRARIES += libfvmc_coupl.la
+#libfvmc_coupl_la_SOURCES = fvmc_coupling.c
+#endif
+
+# if HAVE_CGNS
+# noinst_LTLIBRARIES += libfvmc_cgns.la
+# if HAVE_MPI
+# libfvmc_la_LIBADD += libfvmc_cgns.la
+# else
+# libfvmc_scal_la_LIBADD += libfvmc_cgns.la
+# endif
+# libfvmc_cgns_la_SOURCES = fvmc_to_cgns.c
+# libfvmc_cgns_la_LIBADD = $(top_builddir)/src/bft/libbftc.la
+# endif
+
+# if HAVE_MED
+# noinst_LTLIBRARIES += libfvmc_med.la
+# if HAVE_MPI
+# libfvmc_la_LIBADD += libfvmc_med.la $(top_builddir)/src/bft/libbfto.la
+# else
+# libfvmc_scal_la_LIBADD += libfvmc_med.la $(top_builddir)/src/bft/libbfto.la
+# endif
+# libfvmc_med_la_SOURCES = fvmc_to_med.c
+# libfvmc_med_la_LIBADD = $(top_builddir)/src/bft/libbftc.la
+# endif
 @HAVE_MPI_TRUE@libfvmc_la_LDFLAGS = -no-undefined -version-info 0:0:0
 @HAVE_MPI_FALSE@libfvmc_scal_la_LDFLAGS = -no-undefined -version-info 0:0:0
 all: all-am
@@ -659,10 +639,6 @@ clean-noinstLTLIBRARIES:
 	done
 libfvmc.la: $(libfvmc_la_OBJECTS) $(libfvmc_la_DEPENDENCIES) 
 	$(libfvmc_la_LINK) $(am_libfvmc_la_rpath) $(libfvmc_la_OBJECTS) $(libfvmc_la_LIBADD) $(LIBS)
-libfvmc_cgns.la: $(libfvmc_cgns_la_OBJECTS) $(libfvmc_cgns_la_DEPENDENCIES) 
-	$(LINK) $(am_libfvmc_cgns_la_rpath) $(libfvmc_cgns_la_OBJECTS) $(libfvmc_cgns_la_LIBADD) $(LIBS)
-libfvmc_med.la: $(libfvmc_med_la_OBJECTS) $(libfvmc_med_la_DEPENDENCIES) 
-	$(LINK) $(am_libfvmc_med_la_rpath) $(libfvmc_med_la_OBJECTS) $(libfvmc_med_la_LIBADD) $(LIBS)
 libfvmc_scal.la: $(libfvmc_scal_la_OBJECTS) $(libfvmc_scal_la_DEPENDENCIES) 
 	$(libfvmc_scal_la_LINK) $(am_libfvmc_scal_la_rpath) $(libfvmc_scal_la_OBJECTS) $(libfvmc_scal_la_LIBADD) $(LIBS)
 
@@ -708,8 +684,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fvmc_triangulate.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fvmc_writer.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fvmc_writer_helper.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libfvmc_cgns_la-fvmc_to_cgns.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libfvmc_med_la-fvmc_to_med.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -731,20 +705,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
-
-libfvmc_cgns_la-fvmc_to_cgns.lo: fvmc_to_cgns.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libfvmc_cgns_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libfvmc_cgns_la-fvmc_to_cgns.lo -MD -MP -MF $(DEPDIR)/libfvmc_cgns_la-fvmc_to_cgns.Tpo -c -o libfvmc_cgns_la-fvmc_to_cgns.lo `test -f 'fvmc_to_cgns.c' || echo '$(srcdir)/'`fvmc_to_cgns.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libfvmc_cgns_la-fvmc_to_cgns.Tpo $(DEPDIR)/libfvmc_cgns_la-fvmc_to_cgns.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='fvmc_to_cgns.c' object='libfvmc_cgns_la-fvmc_to_cgns.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libfvmc_cgns_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libfvmc_cgns_la-fvmc_to_cgns.lo `test -f 'fvmc_to_cgns.c' || echo '$(srcdir)/'`fvmc_to_cgns.c
-
-libfvmc_med_la-fvmc_to_med.lo: fvmc_to_med.c
-@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libfvmc_med_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libfvmc_med_la-fvmc_to_med.lo -MD -MP -MF $(DEPDIR)/libfvmc_med_la-fvmc_to_med.Tpo -c -o libfvmc_med_la-fvmc_to_med.lo `test -f 'fvmc_to_med.c' || echo '$(srcdir)/'`fvmc_to_med.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libfvmc_med_la-fvmc_to_med.Tpo $(DEPDIR)/libfvmc_med_la-fvmc_to_med.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='fvmc_to_med.c' object='libfvmc_med_la-fvmc_to_med.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libfvmc_med_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libfvmc_med_la-fvmc_to_med.lo `test -f 'fvmc_to_med.c' || echo '$(srcdir)/'`fvmc_to_med.c
 
 mostlyclean-libtool:
 	-rm -f *.lo

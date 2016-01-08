@@ -2411,8 +2411,6 @@ _locate_in_cell_3d(fvmc_lnum_t          elt_num,
                    fvmc_lnum_t          location[],
                    float               distance[])
 {
-
-  printf("_locate_in_cell_3d\n");
   
   int i, j, k, n_vertices;
   fvmc_lnum_t coord_idx, vertex_id;
@@ -2554,8 +2552,6 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
   fvmc_lnum_t  i, j, k, n_vertices, face_id, vertex_id, elt_num;
   double elt_extents[6];
 
-  printf("_polyhedra_section_locate\n");
-
   /* double _tolerance = tolerance * 2; /\* double tolerance, as polyhedra is */
   /*                                       split into tetrahedra, whose extents */
   /*                                       are 1/2 the polyhedron extents *\/ */
@@ -2642,19 +2638,6 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
 
     if (n_points_in_extents < 1)
       continue;
-
-    for (int ipt = 0; ipt < n_points_in_extents; ipt++) {
-      
-      const int idx_pt = points_in_extents[ipt];
-
-      if (idx_pt == 3337) {
-        printf ("  - Point 3338 : %12.5e %12.5e %12.5e\n",
-                point_coords[3*idx_pt    ],
-                point_coords[3*idx_pt + 1],
-                point_coords[3*idx_pt + 2]);
-        printf ("      - Elt_num : %d %d %12.5e\n", elt_num, location[idx_pt], distance[idx_pt]);
-      }
-    }
 
     if (solid_angle == NULL) {
       l_solid_angle = n_points_in_extents;
@@ -2879,22 +2862,11 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
     for (int ipt = 0; ipt < n_points_in_extents; ipt++) {
       
       const int idx_pt = points_in_extents[ipt];
-      if (idx_pt == 3337) {
-        printf("      - distance calculee : %12.5e %12.5e %12.5e\n",
-               distance[idx_pt], 1+ min_dist[ipt], fabs(solid_angle[ipt]));
-      }
 
       if ((location[idx_pt] == -1) || ((location[idx_pt] >= 1) && distance[idx_pt] >= 1.)) {
         if (fabs(solid_angle[ipt]) >= _eps_loc) {
           location[idx_pt] = elt_num;
           distance[idx_pt] = 1.e-3;
-          if (idx_pt == 3337) {
-            printf("      - Mise à jour 2 : %d %d %12.5e %12.5e\n",
-                   idx_pt+1,
-                   elt_num,
-                   solid_angle[ipt],
-                   distance[idx_pt]);
-          }
         }
         else {
           min_dist[ipt] += 1;
@@ -2902,13 +2874,6 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
               || ((location[idx_pt] >= 1) && (min_dist[ipt] < distance[idx_pt]))) {
             location[idx_pt] = elt_num;
             distance[idx_pt] = min_dist[ipt];
-            if (idx_pt == 3337) {
-              printf("      - Mise à jour 3 : %d %d %12.5e %12.5e\n",
-                     idx_pt+1,
-                     elt_num,
-                     solid_angle[ipt],
-                     distance[idx_pt]);
-            }
           }
         }
 
@@ -4747,21 +4712,7 @@ int fvmc_polygon_evaluate_Position(double x[3], int numPts, double *pts, double*
 
   double *_pts_p = pts_p;
 
-  /* printf("Points projetes : \n"); */
-  
-  /* for (int k = 0; k < numPts; k++) { */
-  /*   printf("%12.5e %12.5e %12.5e\n", pts_p[3*k],pts_p[3*k+1],  pts_p[3*k+2]); */
-  /* } */
-
   fvmc_parameterize_polygon(numPts, _pts_p, p0, p10, &l10, p20, &l20, n);
-
-  /* printf("n : %12.5e %12.5e %12.5e\n", n[0], n[1], n[2]); */
-  /* printf("n1 : %12.5e %12.5e %12.5e\n", n1[0], n1[1], n1[2]); */
-
-  /* printf("p0 : %12.5e %12.5e %12.5e\n", p0[0], p0[1], p0[2]); */
-  /* printf("p10 : %12.5e %12.5e %12.5e, %12.5e\n", p10[0], p10[1], p10[2], l10); */
-  /* printf("p20 : %12.5e %12.5e %12.5e, %12.5e\n", p20[0], p20[1], p20[2], l20); */
-  /* printf("n   : %12.5e %12.5e %12.5e\n", n[0],   n[1],   n[2]); */
 
   _project_point (x,p0,n,cp);
 
@@ -4801,7 +4752,6 @@ int fvmc_polygon_evaluate_Position(double x[3], int numPts, double *pts, double*
                      x[2] - closestPoint[2]};
 
       *minDist2 = _DOT_PRODUCT (v, v);
-      /* printf("closest 1 : %12.5e %12.5e %12.5e\n", closestPoint[0], closestPoint[1], closestPoint[2]); */
     }
     return 1;
   }
@@ -4824,7 +4774,6 @@ int fvmc_polygon_evaluate_Position(double x[3], int numPts, double *pts, double*
           closestPoint[0] = closest[0];
           closestPoint[1] = closest[1];
           closestPoint[2] = closest[2];
-          /* printf("closest 2 : %12.5e %12.5e %12.5e\n", closestPoint[0], closestPoint[1], closestPoint[2]); */
           *minDist2 = dist2;
         }
       }

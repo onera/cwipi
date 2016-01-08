@@ -61,15 +61,11 @@ ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/config/bft_config_info.m4 \
 	$(top_srcdir)/config/bft_config_publ.m4 \
 	$(top_srcdir)/config/bft_types.m4 \
-	$(top_srcdir)/config/bft_zlib.m4 \
 	$(top_srcdir)/config/check_mpi.m4 \
 	$(top_srcdir)/config/cwipi_config_info.m4 \
 	$(top_srcdir)/config/cwipi_config_publ.m4 \
-	$(top_srcdir)/config/fvm_cgns.m4 \
 	$(top_srcdir)/config/fvm_config_info.m4 \
 	$(top_srcdir)/config/fvm_config_publ.m4 \
-	$(top_srcdir)/config/fvm_hdf5.m4 \
-	$(top_srcdir)/config/fvm_med.m4 \
 	$(top_srcdir)/config/fvm_types.m4 \
 	$(top_srcdir)/config/libtool.m4 \
 	$(top_srcdir)/config/ltoptions.m4 \
@@ -143,9 +139,6 @@ CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CC_ADD = @CC_ADD@
 CFLAGS = @CFLAGS@
-CGNS_CPPFLAGS = @CGNS_CPPFLAGS@
-CGNS_LDFLAGS = @CGNS_LDFLAGS@
-CGNS_LIBS = @CGNS_LIBS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CPP_ADD = @CPP_ADD@
@@ -168,9 +161,6 @@ FC = @FC@
 FCFLAGS = @FCFLAGS@
 FGREP = @FGREP@
 GREP = @GREP@
-HDF5_CPPFLAGS = @HDF5_CPPFLAGS@
-HDF5_LDFLAGS = @HDF5_LDFLAGS@
-HDF5_LIBS = @HDF5_LIBS@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -188,9 +178,6 @@ LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
-MED_CPPFLAGS = @MED_CPPFLAGS@
-MED_LDFLAGS = @MED_LDFLAGS@
-MED_LIBS = @MED_LIBS@
 MKDIR_P = @MKDIR_P@
 MPI4PY_INCLUDE = @MPI4PY_INCLUDE@
 MPI_BIN_PATH = @MPI_BIN_PATH@

@@ -43,14 +43,14 @@ AM_LDFLAGS = @HDF5_LDFLAGS@ @MED_LDFLAGS@ @CGNS_LDFLAGS@ \
 
 # Conditionally compiled extensions
 
-if HAVE_CGNS
-libfvmc_cgns_la_CPPFLAGS = $(DEBUG_CPPFLAGS) @MPI_CPPFLAGS@ \
-                         @CGNS_CPPFLAGS@
-endif
-if HAVE_MED
-libfvmc_med_la_CPPFLAGS = $(DEBUG_CPPFLAGS)  @MPI_CPPFLAGS@ \
-                         @HDF5_CPPFLAGS@ @MED_CPPFLAGS@ 
-endif
+# if HAVE_CGNS
+# libfvmc_cgns_la_CPPFLAGS = $(DEBUG_CPPFLAGS) @MPI_CPPFLAGS@ \
+#                          @CGNS_CPPFLAGS@
+# endif
+# if HAVE_MED
+# libfvmc_med_la_CPPFLAGS = $(DEBUG_CPPFLAGS)  @MPI_CPPFLAGS@ \
+#                          @HDF5_CPPFLAGS@ @MED_CPPFLAGS@ 
+# endif
 
 # Public header files (to be installed)
 
@@ -228,27 +228,27 @@ endif
 #libfvmc_coupl_la_SOURCES = fvmc_coupling.c
 #endif
 
-if HAVE_CGNS
-noinst_LTLIBRARIES += libfvmc_cgns.la
-if HAVE_MPI
-libfvmc_la_LIBADD += libfvmc_cgns.la
-else
-libfvmc_scal_la_LIBADD += libfvmc_cgns.la
-endif
-libfvmc_cgns_la_SOURCES = fvmc_to_cgns.c
-libfvmc_cgns_la_LIBADD = $(top_builddir)/src/bft/libbftc.la
-endif
+# if HAVE_CGNS
+# noinst_LTLIBRARIES += libfvmc_cgns.la
+# if HAVE_MPI
+# libfvmc_la_LIBADD += libfvmc_cgns.la
+# else
+# libfvmc_scal_la_LIBADD += libfvmc_cgns.la
+# endif
+# libfvmc_cgns_la_SOURCES = fvmc_to_cgns.c
+# libfvmc_cgns_la_LIBADD = $(top_builddir)/src/bft/libbftc.la
+# endif
 
-if HAVE_MED
-noinst_LTLIBRARIES += libfvmc_med.la
-if HAVE_MPI
-libfvmc_la_LIBADD += libfvmc_med.la $(top_builddir)/src/bft/libbfto.la
-else
-libfvmc_scal_la_LIBADD += libfvmc_med.la $(top_builddir)/src/bft/libbfto.la
-endif
-libfvmc_med_la_SOURCES = fvmc_to_med.c
-libfvmc_med_la_LIBADD = $(top_builddir)/src/bft/libbftc.la
-endif
+# if HAVE_MED
+# noinst_LTLIBRARIES += libfvmc_med.la
+# if HAVE_MPI
+# libfvmc_la_LIBADD += libfvmc_med.la $(top_builddir)/src/bft/libbfto.la
+# else
+# libfvmc_scal_la_LIBADD += libfvmc_med.la $(top_builddir)/src/bft/libbfto.la
+# endif
+# libfvmc_med_la_SOURCES = fvmc_to_med.c
+# libfvmc_med_la_LIBADD = $(top_builddir)/src/bft/libbftc.la
+# endif
 
 if HAVE_MPI
 libfvmc_la_LDFLAGS = -no-undefined -version-info 0:0:0

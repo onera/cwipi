@@ -7,9 +7,6 @@
   This file is part of the CWIPI library, intended to interpolate and exchange fields between meshes distributed on many processus 
 */
 
-/* CGNS file support */
-#undef HAVE_CGNS
-
 /* HAVE_CPLUS_DEMANGLE */
 #undef HAVE_CPLUS_DEMANGLE
 
@@ -31,9 +28,6 @@
 /* HAVE_GLIBC_BACKTRACE */
 #undef HAVE_GLIBC_BACKTRACE
 
-/* HDF5 file support */
-#undef HAVE_HDF5
-
 /* Define to 1 if the system has the type `int32_t'. */
 #undef HAVE_INT32_T
 
@@ -51,9 +45,6 @@
 
 /* HAVE_MALLOC_HOOKS */
 #undef HAVE_MALLOC_HOOKS
-
-/* MED file support */
-#undef HAVE_MED
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
@@ -126,9 +117,6 @@
 
 /* Define to 1 if the system has the type `unsigned long long'. */
 #undef HAVE_UNSIGNED_LONG_LONG
-
-/* gzipped file support */
-#undef HAVE_ZLIB
 
 /* Define to 1 if the system has the type `_Bool'. */
 #undef HAVE__BOOL
