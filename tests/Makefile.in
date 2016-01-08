@@ -58,6 +58,7 @@ target_triplet = @target@
 check_PROGRAMS = c_linear_coupling$(EXEEXT) \
 	c_surf_coupling_P1P1_micron_polygon$(EXEEXT) \
 	c_surf_coupling_P1P1_polygon$(EXEEXT) \
+	c_surf_coupling_P1P1_polygon_with_external_points$(EXEEXT) \
 	c_surf_coupling_P1P1$(EXEEXT) \
 	c_surf_coupling_P1P1_asynchronous$(EXEEXT) \
 	c_surf_coupling_P1P0_P0P1$(EXEEXT) \
@@ -80,6 +81,7 @@ check_PROGRAMS = c_linear_coupling$(EXEEXT) \
 TESTS = c_linear_coupling$(EXEEXT) \
 	c_surf_coupling_P1P1_micron_polygon$(EXEEXT) \
 	c_surf_coupling_P1P1_polygon$(EXEEXT) \
+	c_surf_coupling_P1P1_polygon_with_external_points$(EXEEXT) \
 	c_surf_coupling_P1P1$(EXEEXT) \
 	c_surf_coupling_P1P1_asynchronous$(EXEEXT) \
 	c_surf_coupling_P1P0_P0P1$(EXEEXT) \
@@ -182,6 +184,14 @@ am_c_surf_coupling_P1P1_polygon_OBJECTS =  \
 c_surf_coupling_P1P1_polygon_OBJECTS =  \
 	$(am_c_surf_coupling_P1P1_polygon_OBJECTS)
 c_surf_coupling_P1P1_polygon_DEPENDENCIES =  \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
+	$(top_builddir)/src/libcwipi.la
+am_c_surf_coupling_P1P1_polygon_with_external_points_OBJECTS =  \
+	creeMaillagePolygone2D.$(OBJEXT) \
+	c_surf_coupling_P1P1_polygon_with_external_points.$(OBJEXT)
+c_surf_coupling_P1P1_polygon_with_external_points_OBJECTS = $(am_c_surf_coupling_P1P1_polygon_with_external_points_OBJECTS)
+c_surf_coupling_P1P1_polygon_with_external_points_DEPENDENCIES =  \
 	$(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
 	$(top_builddir)/src/libcwipi.la
@@ -323,6 +333,7 @@ SOURCES = $(c_linear_coupling_SOURCES) \
 	$(c_surf_coupling_P1P1_asynchronous_SOURCES) \
 	$(c_surf_coupling_P1P1_micron_polygon_SOURCES) \
 	$(c_surf_coupling_P1P1_polygon_SOURCES) \
+	$(c_surf_coupling_P1P1_polygon_with_external_points_SOURCES) \
 	$(c_surf_coupling_output_error_SOURCES) \
 	$(c_surf_coupling_simple_location_SOURCES) \
 	$(c_surf_coupling_user_interpolation_SOURCES) \
@@ -345,6 +356,7 @@ DIST_SOURCES = $(c_linear_coupling_SOURCES) \
 	$(c_surf_coupling_P1P1_asynchronous_SOURCES) \
 	$(c_surf_coupling_P1P1_micron_polygon_SOURCES) \
 	$(c_surf_coupling_P1P1_polygon_SOURCES) \
+	$(c_surf_coupling_P1P1_polygon_with_external_points_SOURCES) \
 	$(c_surf_coupling_output_error_SOURCES) \
 	$(c_surf_coupling_simple_location_SOURCES) \
 	$(c_surf_coupling_user_interpolation_SOURCES) \
@@ -537,6 +549,7 @@ LDADD = $(top_builddir)/src/bft/libbftc.la \
 c_linear_coupling_SOURCES = c_linear_coupling.c
 c_surf_coupling_P1P1_micron_polygon_SOURCES = creeMaillagePolygone2D.c c_surf_coupling_P1P1_micron_polygon.c
 c_surf_coupling_P1P1_polygon_SOURCES = creeMaillagePolygone2D.c c_surf_coupling_P1P1_polygon.c
+c_surf_coupling_P1P1_polygon_with_external_points_SOURCES = creeMaillagePolygone2D.c c_surf_coupling_P1P1_polygon_with_external_points.c
 c_surf_coupling_P1P1_SOURCES = grid_mesh.c c_surf_coupling_P1P1.c
 c_surf_coupling_P1P0_P0P1_SOURCES = grid_mesh.c c_surf_coupling_P1P0_P0P1.c
 c_surf_coupling_P1P0_P0P1_savedisk_SOURCES = grid_mesh.c c_surf_coupling_P1P0_P0P1_savedisk.c
@@ -571,6 +584,13 @@ $(top_builddir)/src/libcwipi.la \
 -lm
 
 c_surf_coupling_P1P1_polygon_LDADD = \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
+$(top_builddir)/src/libcwipi.la \
+@MPI_LIBS@ \
+-lm
+
+c_surf_coupling_P1P1_polygon_with_external_points_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
 $(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
@@ -777,6 +797,9 @@ c_surf_coupling_P1P1_micron_polygon$(EXEEXT): $(c_surf_coupling_P1P1_micron_poly
 c_surf_coupling_P1P1_polygon$(EXEEXT): $(c_surf_coupling_P1P1_polygon_OBJECTS) $(c_surf_coupling_P1P1_polygon_DEPENDENCIES) 
 	@rm -f c_surf_coupling_P1P1_polygon$(EXEEXT)
 	$(LINK) $(c_surf_coupling_P1P1_polygon_OBJECTS) $(c_surf_coupling_P1P1_polygon_LDADD) $(LIBS)
+c_surf_coupling_P1P1_polygon_with_external_points$(EXEEXT): $(c_surf_coupling_P1P1_polygon_with_external_points_OBJECTS) $(c_surf_coupling_P1P1_polygon_with_external_points_DEPENDENCIES) 
+	@rm -f c_surf_coupling_P1P1_polygon_with_external_points$(EXEEXT)
+	$(LINK) $(c_surf_coupling_P1P1_polygon_with_external_points_OBJECTS) $(c_surf_coupling_P1P1_polygon_with_external_points_LDADD) $(LIBS)
 c_surf_coupling_output_error$(EXEEXT): $(c_surf_coupling_output_error_OBJECTS) $(c_surf_coupling_output_error_DEPENDENCIES) 
 	@rm -f c_surf_coupling_output_error$(EXEEXT)
 	$(LINK) $(c_surf_coupling_output_error_OBJECTS) $(c_surf_coupling_output_error_LDADD) $(LIBS)
@@ -834,6 +857,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_surf_coupling_P1P1_asynchronous.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_surf_coupling_P1P1_micron_polygon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_surf_coupling_P1P1_polygon.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_surf_coupling_P1P1_polygon_with_external_points.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_surf_coupling_output_error.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_surf_coupling_simple_location.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/c_surf_coupling_user_interpolation.Po@am__quote@
