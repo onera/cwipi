@@ -1182,12 +1182,10 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
                                bounds, 
                                n) != 1) {
 
-      if ((n_dist_points == 1) && (dist_locations[0] == 1)) {
-        printf("   not in polygon\n");
-      }
 
       double closestPoint[3];
       double dist_min = DBL_MAX;
+      int k_min = 0;
 
       for (int k = 0; k < nbr_som_fac; k++) {
         double *p1 = &(coo_som_fac[3 * k]);
@@ -1195,14 +1193,17 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
         double closest[3];
         double t;
         
-        double dist = fvmc_distance_to_line (coo_point_dist, 
+        double dist2 = fvmc_distance_to_line (coo_point_dist, 
                                              p1, 
                                              p2,
                                              &t, 
                                              closest);
+
+        printf("   not in polygon : %12.5e\n", dist);
         
-        if (dist < dist_min) {
-          dist_min = dist;
+        if (dist2 < dist_min) {
+          dist_min = dist2;
+          k_min = k;
           closestPoint[0] = closest[0];
           closestPoint[1] = closest[1];
           closestPoint[2] = closest[2];
@@ -1213,6 +1214,8 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
       coo_point_dist[1] = closestPoint[1];
       coo_point_dist[2] = closestPoint[2];
       
+      printf("   not in polygon : %d %12.5e\n", k_min, dist_min);
+
     }
 
     /* Calcul des coordonnnees barycentriques */
@@ -1259,9 +1262,7 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
     /* Le point distant est un sommet */
 
     if (isVertex) {
-    if ((n_dist_points == 1) && (dist_locations[0] == 1)) {
       printf("   isVertex\n");
-    }
       for (int isom = 0; isom < nbr_som_fac; isom++)
         _distBarCoords[isom] = 0.;
       _distBarCoords[currentVertex] = 1.;
@@ -1271,9 +1272,7 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
 
     else if (isOnEdge) {
 
-    if ((n_dist_points == 1) && (dist_locations[0] == 1)) {
       printf("   isOnEdge\n");
-    }
     for (int isom = 0; isom < nbr_som_fac; isom++)
         _distBarCoords[isom] = 0.;
 
@@ -1293,9 +1292,7 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
     /* Cas general */
 
     else {
-    if ((n_dist_points == 1) && (dist_locations[0] == 1)) {
       printf("   cas general\n");
-    }
       double sigma = 0;
       for (int isom = 0; isom < nbr_som_fac; isom++) {
         double coef = 0.;
@@ -1329,6 +1326,10 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
 
       /* Check Result */
 
+
+      // A verifier !!!!
+
+
       for (int isom = 0; isom <  nbr_som_fac; isom++) {
         if ( _distBarCoords[isom] != _distBarCoords[isom] ||
              _distBarCoords[isom] < 0. ||
@@ -1349,12 +1350,12 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
             double closest[3];
             double t;
             
-            double dist = fvmc_distance_to_line (coo_point_dist, 
+            double dist2 = fvmc_distance_to_line (coo_point_dist, 
                                                  p1, 
                                                  p2,
                                                  &t, 
                                                  closest);
-            if (dist < dist_min) {
+            if (dist2 < dist_min) {
               t_min = t;
               k_min = k;
             }
@@ -1931,11 +1932,10 @@ void LocationToLocalMesh::compute3DMeanValuesPoly(const double point_coords[],
 
   /**** Inialisation du tableau des coordonnees temporaires a 0 ****/
 
-  int tt = (fabs(point_coords[0] - 5.5e-1) < 1e-4 ) &&
-            (fabs(point_coords[1] - (-1.1)) < 1e-4 ) &&
-            (fabs(point_coords[2] - 6.0695e-1) < 1e-4 );
+  int tt = (fabs(point_coords[0] - (-6.06954e-1)) < 1e-4 ) &&
+           (fabs(point_coords[1] - (1.1)) < 1e-4 ) &&
+    (fabs(point_coords[2] - (-1.375e-01)) < 1e-4 );
 
-  
   for (int isom = 0; isom < n_poly_vertex; isom++)
     distBarCoords[isom] = 0.; 
   
@@ -1947,13 +1947,16 @@ void LocationToLocalMesh::compute3DMeanValuesPoly(const double point_coords[],
   }
 
   if (tt) {
-    printf ("\n\n -- newpoint \n");
+    printf ("\n\n -- newpoint : %12.5e %12.5e %12.5e\n", 
+            point_coords[0], 
+            point_coords[1], 
+            point_coords[2]);
   }
     
   if (distElt > 1.) {
 
     if (tt) {
-      printf ("  - Out elt\n");
+      printf ("  - Out elt : %12.5e\n", distElt);
     }
     
     //
@@ -1966,7 +1969,6 @@ void LocationToLocalMesh::compute3DMeanValuesPoly(const double point_coords[],
     //
     // Search clostest face
     //
-    
 
     int n_vtx_max = 0;
     for (int i = 0; i < n_poly_faces; i++) {
@@ -1985,13 +1987,13 @@ void LocationToLocalMesh::compute3DMeanValuesPoly(const double point_coords[],
       const int n_vtx = faceToVertexIdx[i+1] - faceToVertexIdx[i];
       int k = 0;
       if (tt) {
-        printf ("    - face %d : ",i);
+        printf ("    - face %d : ",i+1);
       }
 
       for (int j = faceToVertexIdx[i]; j < faceToVertexIdx[i+1]; j++) {
         int i_vertex = faceToVertex[j] - 1;
         if (tt) {
-          printf (" %12.5e %12.5e %12.5e\n", vertex_coords[3 * i_vertex]
+          printf (" %d : %12.5e %12.5e %12.5e\n", i_vertex, vertex_coords[3 * i_vertex]
                   , vertex_coords[3 * i_vertex + 1]
                   , vertex_coords[3 * i_vertex + 2]);
         }
@@ -2000,32 +2002,44 @@ void LocationToLocalMesh::compute3DMeanValuesPoly(const double point_coords[],
         poly_vertex[k++] = vertex_coords[3 * i_vertex + 2];
 
       }
-      if (tt) {
-        printf ("\n");
-      }
+
       double closest[3];
       double pcoords[3];
       double dist_face;
       
+      if (tt) {
+        printf ("    - coordonnees : \n");
+        for (int j = 0; j < n_vtx; j++) {
+          printf (" %12.5e %12.5e %12.5e\n", poly_vertex[3 * j]
+                  , poly_vertex[3 * j + 1]
+                  , poly_vertex[3 * j + 2]);
+        }
+        printf ("    - pt coords : \n");
+        printf (" %12.5e %12.5e %12.5e\n", 
+                point_coords[0], 
+                point_coords[1],
+                point_coords[2]);
+      }
+
       int status = fvmc_polygon_evaluate_Position(const_cast<double *> (point_coords),
                                                   n_vtx, poly_vertex, closest,
                                                   pcoords, &dist_face);
-
+      
       if (dist_face < dist_min) {
         dist_min = dist_face;
         iface = i;
       }
 
       if (tt) {
-        printf ("    - dist : %d %12.5e %12.5e\n", iface+1, dist_face, dist_min);
+        printf ("    - dist : %d %d %12.5e %12.5e\n\n", iface+1, status, dist_face, dist_min);
       }
-
+      
     }
       
     free (poly_vertex);
 
     if (tt) {
-      printf ("  - Face la plus proche : %d %12.5e \n", iface+1, dist_min);
+      printf ("  - Face la plus proche : %d %12.5e \n\n", iface+1, dist_min);
     }
 
     //
@@ -2066,13 +2080,16 @@ void LocationToLocalMesh::compute3DMeanValuesPoly(const double point_coords[],
       for (int j = 0; j < n_poly_vertex; j++)
         distBarCoords[j] = 0.;
 
+      if (tt) {
+        printf("titit %d\n", iface);
+      }
       for (int j = 0; j < n_face_vertex; j++) {
         int vertex = faceToVertex[faceToVertexIdx[iface]+j] - 1;
-
+        printf(" %d", vertex);
         distBarCoords[vertex] = distBarCoordsFace[j];
-
       }
       if (tt) {
+        printf ("\n");
         printf ("  - coordonnees barycentriques dans la cellule : ");
         for (int j = 0; j < n_poly_vertex; j++) {
           printf (" %12.5e", distBarCoords[j]);

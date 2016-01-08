@@ -181,6 +181,41 @@ static fvmc_lnum_t  _octree_threshold = 4; /* Number of points in octree node
  * Private function definitions
  *============================================================================*/
 
+/* Compute the polygon normal from an array of points. This version assumes */
+/* that the polygon is convex, and looks for the first valid normal. */
+
+static void _computeBary (int numPts, double *pts, double bary[3])
+{
+  bary[0] = 0.;
+  bary[1] = 0.;
+  bary[2] = 0.;
+
+  for (int i = 0; i < 3; i++) {
+    for (int ipt = 0; ipt < numPts; ipt++) {
+      bary[i] += pts[3*ipt+i];
+    }
+    bary[i] /= numPts;
+  }
+
+}
+
+
+static void _project_point2(double x[3], double pt_plan[3],
+                            double normal[3], double xproj[3])
+{
+
+  double cst   = _DOT_PRODUCT(normal, pt_plan);
+  double cst1  = _DOT_PRODUCT(normal, x);
+  double norm2 = _DOT_PRODUCT(normal, normal);
+
+  double t = - (cst1 - cst)/ norm2;
+
+  xproj[0] = x[0] + t * normal[0];
+  xproj[1] = x[1] + t * normal[1];
+  xproj[2] = x[2] + t * normal[2];
+}
+
+
 /* VTK method */
 /*  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen */
 /*  All rights reserved. */
@@ -188,7 +223,7 @@ static fvmc_lnum_t  _octree_threshold = 4; /* Number of points in octree node
 
 
 static void _project_point(double x[3], double origin[3],
-                    double normal[3], double xproj[3])
+                           double normal[3], double xproj[3])
 {
   double t, xo[3];
 
@@ -203,53 +238,92 @@ static void _project_point(double x[3], double origin[3],
   xproj[2] = x[2] - t * normal[2];
 }
 
-
 /* ---------------------------------------------------------------------------- */
 /* Compute the polygon normal from an array of points. This version assumes */
 /* that the polygon is convex, and looks for the first valid normal. */
 
-/* VTK method */
-/*  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen */
-/*  All rights reserved. */
-/*  See Copyright.txt or http://www.kitware.com/Copyright.htm for details. */
-
 static void _computeNormal (int numPts, double *pts, double n[3])
 {
-  int i;
-  double *v1, *v2, *v3;
-  double length;
-  double ax, ay, az;
-  double bx, by, bz;
+  double length = 0.;
+  double bary[3]= {0., 0., 0.};
 
-  //  Because some polygon vertices are colinear, need to make sure
-  //  first non-zero normal is found.
-  //
-  v1 = pts;
-  v2 = pts + 3;
-  v3 = pts + 6;
-
-  for (i=0; i<numPts-2; i++) {
-    ax = v2[0] - v1[0]; ay = v2[1] - v1[1]; az = v2[2] - v1[2];
-    bx = v3[0] - v1[0]; by = v3[1] - v1[1]; bz = v3[2] - v1[2];
-
-    n[0] = (ay * bz - az * by);
-    n[1] = (az * bx - ax * bz);
-    n[2] = (ax * by - ay * bx);
-
-    length = sqrt (n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
-    if (length != 0.0) {
-      n[0] /= length;
-      n[1] /= length;
-      n[2] /= length;
-      return;
+  n[0] = 0.;
+  n[1] = 0.;
+  n[2] = 0.;
+  
+  _computeBary (numPts, pts, bary);
+  
+  for (int ipt = 0; ipt < numPts; ipt++) {
+    
+    double *pt1 = pts + 3 * ipt;
+    double *pt2 = pts + 3 * ((ipt+1)%numPts);
+    double vect1[3];
+    double vect2[3];
+    
+    for (int i = 0; i < 3; i++) {
+      vect1[i] = pt1[i] - bary[i];
+      vect2[i] = pt2[i] - bary[i];
     }
-    else {
-      v1 = v2;
-      v2 = v3;
-      v3 += 3;
-    }
+    
+    n[0] += vect1[1] * vect2[2] - vect1[2] * vect2[1];
+    n[1] += vect1[2] * vect2[0] - vect1[0] * vect2[2];
+    n[2] += vect1[0] * vect2[1] - vect1[1] * vect2[0];
+    
   } //over all points
+
+  length = sqrt (n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
+  if (length != 0.0) {
+    n[0] /= length;
+    n[1] /= length;
+    n[2] /= length;
+
+  }
+  return;
 }
+
+/* /\* ---------------------------------------------------------------------------- *\/ */
+/* /\* Compute the polygon normal from an array of points. This version assumes *\/ */
+/* /\* that the polygon is convex, and looks for the first valid normal. *\/ */
+
+/* static void _computeNormal1 (int numPts, double *pts, double n[3]) */
+/* { */
+/*   double length = 0.; */
+/*   double bary[3]= {0., 0., 0.}; */
+
+/*   n[0] = 0.; */
+/*   n[1] = 0.; */
+/*   n[2] = 0.; */
+  
+/*   _computeBary (numPts, pts, bary); */
+  
+/*   for (int ipt = 0; ipt < numPts; ipt++) { */
+    
+/*     double *pt1 = pts + 3 * ipt; */
+/*     double *pt2 = pts + 3 * ((ipt+1)%numPts); */
+/*     double vect1[3]; */
+/*     double vect2[3]; */
+    
+/*     for (int i = 0; i < 3; i++) { */
+/*       vect1[i] = pt1[i] - bary[i]; */
+/*       vect2[i] = pt2[i] - bary[i]; */
+/*     } */
+    
+/*     n[0] += vect1[1] * vect2[2] - vect1[2] * vect2[1]; */
+/*     n[1] += vect1[2] * vect2[0] - vect1[0] * vect2[2]; */
+/*     n[2] += vect1[0] * vect2[1] - vect1[1] * vect2[0]; */
+    
+/*   } //over all points */
+
+/*   length = sqrt (n[0] * n[0] + n[1] * n[1] + n[2] * n[2]); */
+
+/*   if (length != 0.0) { */
+/*     n[0] /= length; */
+/*     n[1] /= length; */
+/*     n[2] /= length; */
+
+/*   } */
+/*   return; */
+/* } */
 
 
 
@@ -2573,12 +2647,12 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
       
       const int idx_pt = points_in_extents[ipt];
 
-      if (idx_pt == 5922) {
-        printf("  - Point 4143 : %12.5e %12.5e %12.5e\n",
-               point_coords[3*idx_pt ],
-               point_coords[3*idx_pt + 1],
-               point_coords[3*idx_pt + 2]);
-        printf("      - Elt_num : %d %d %12.5e\n", elt_num, location[idx_pt], distance[idx_pt]);
+      if (idx_pt == 3337) {
+        printf ("  - Point 3338 : %12.5e %12.5e %12.5e\n",
+                point_coords[3*idx_pt    ],
+                point_coords[3*idx_pt + 1],
+                point_coords[3*idx_pt + 2]);
+        printf ("      - Elt_num : %d %d %12.5e\n", elt_num, location[idx_pt], distance[idx_pt]);
       }
     }
 
@@ -2730,15 +2804,27 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
 
           const double *_point_coords = point_coords + 3 * idx_pt;
           
-          float dist = (float) fvmc_distant_to_polygon ((double *) _point_coords,
-                                                        3,
-                                                        tria_coords,
-                                                        bounds, closest);
+          /* float dist = (float) fvmc_distant_to_polygon ((double *) _point_coords, */
+          /*                                               3, */
+          /*                                               tria_coords, */
+          /*                                               bounds, closest); */
+
+          double minDist2;
+          double pcoords[3];
+
+          fvmc_polygon_evaluate_Position((double *) _point_coords, 
+                                         3, 
+                                         tria_coords, 
+                                         closest,
+                                         pcoords, 
+                                         &minDist2);
+
+
+          float dist = (float) sqrt (minDist2);
 
           if (min_dist[ipt] > dist) {
             min_dist[ipt] = dist;
           }
-
 
           if (location[idx_pt] != elt_num) {
 
@@ -2793,12 +2879,16 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
     for (int ipt = 0; ipt < n_points_in_extents; ipt++) {
       
       const int idx_pt = points_in_extents[ipt];
-      
+      if (idx_pt == 3337) {
+        printf("      - distance calculee : %12.5e %12.5e %12.5e\n",
+               distance[idx_pt], 1+ min_dist[ipt], fabs(solid_angle[ipt]));
+      }
+
       if ((location[idx_pt] == -1) || ((location[idx_pt] >= 1) && distance[idx_pt] >= 1.)) {
         if (fabs(solid_angle[ipt]) >= _eps_loc) {
           location[idx_pt] = elt_num;
           distance[idx_pt] = 1.e-3;
-          if (idx_pt == 5922) {
+          if (idx_pt == 3337) {
             printf("      - Mise à jour 2 : %d %d %12.5e %12.5e\n",
                    idx_pt+1,
                    elt_num,
@@ -2812,7 +2902,7 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
               || ((location[idx_pt] >= 1) && (min_dist[ipt] < distance[idx_pt]))) {
             location[idx_pt] = elt_num;
             distance[idx_pt] = min_dist[ipt];
-            if (idx_pt == 5922) {
+            if (idx_pt == 3337) {
               printf("      - Mise à jour 3 : %d %d %12.5e %12.5e\n",
                      idx_pt+1,
                      elt_num,
@@ -4500,7 +4590,7 @@ double fvmc_distance_to_line(double x[3], double p1[3], double p2[3],
   double v[3] = {closest[0] - x[0],
                  closest[1] - x[1],
                  closest[2] - x[2]};
-  return _MODULE(v);
+  return  _DOT_PRODUCT(v,v);
 }
 
 /* VTK method */
@@ -4570,6 +4660,10 @@ int fvmc_parameterize_polygon(int numPts, double *pts, double *p0, double *p10, 
   x1[1] = pts[1];
   x1[2] = pts[2];
 
+  x2[0] = pts[3];
+  x2[1] = pts[3+1];
+  x2[2] = pts[3+2];
+
   for (i=0; i<3; i++) {
     p0[i] = x1[i];
     p10[i] = x2[i] - x1[i]; 
@@ -4630,14 +4724,48 @@ int fvmc_parameterize_polygon(int numPts, double *pts, double *p0, double *p10, 
 int fvmc_polygon_evaluate_Position(double x[3], int numPts, double *pts, double* closestPoint,
                                    double pcoords[3], double *minDist2)
 {
-  int i;
-  double p0[3], p10[3], l10, p20[3], l20, n[3], cp[3];
-  double ray[3];
+  double p0[3], p10[3], l10, p20[3], l20, n[3], cp[3], n1[3];
+  double ray[3], bary[3];
 
-  fvmc_parameterize_polygon(numPts, pts, p0, p10, &l10, p20, &l20, n);
+  double pts_p[3*numPts];
+
+  // Projection sur le plan moyen !!
+
+  _computeNormal (numPts, pts, n);
+
+  n1[0] = n[0];
+  n1[1] = n[1];
+  n1[2] = n[2];
+
+  _computeBary (numPts, pts, bary);
+  
+  for (int k = 0; k < numPts; k++) {
+    double *pt = pts + 3*k;
+    double *pt_p = pts_p + 3*k;
+    _project_point2 (pt, bary, n, pt_p);
+  }
+
+  double *_pts_p = pts_p;
+
+  /* printf("Points projetes : \n"); */
+  
+  /* for (int k = 0; k < numPts; k++) { */
+  /*   printf("%12.5e %12.5e %12.5e\n", pts_p[3*k],pts_p[3*k+1],  pts_p[3*k+2]); */
+  /* } */
+
+  fvmc_parameterize_polygon(numPts, _pts_p, p0, p10, &l10, p20, &l20, n);
+
+  /* printf("n : %12.5e %12.5e %12.5e\n", n[0], n[1], n[2]); */
+  /* printf("n1 : %12.5e %12.5e %12.5e\n", n1[0], n1[1], n1[2]); */
+
+  /* printf("p0 : %12.5e %12.5e %12.5e\n", p0[0], p0[1], p0[2]); */
+  /* printf("p10 : %12.5e %12.5e %12.5e, %12.5e\n", p10[0], p10[1], p10[2], l10); */
+  /* printf("p20 : %12.5e %12.5e %12.5e, %12.5e\n", p20[0], p20[1], p20[2], l20); */
+  /* printf("n   : %12.5e %12.5e %12.5e\n", n[0],   n[1],   n[2]); */
+
   _project_point (x,p0,n,cp);
 
-  for (i=0; i<3; i++) {
+  for (int i=0; i<3; i++) {
     ray[i] = cp[i] - p0[i];
   }
   pcoords[0] = _DOT_PRODUCT(ray,p10) / (l10*l10);
@@ -4650,7 +4778,7 @@ int fvmc_polygon_evaluate_Position(double x[3], int numPts, double *pts, double*
   
   for (int isom = 0; isom < numPts; isom++) {
     for (int l = 0; l < 3; l++) {
-      double coord = pts[3*isom + l];
+      double coord = _pts_p[3*isom + l];
       if (bounds[2*l] > coord) {
         bounds[2*l] = coord;
       }
@@ -4662,7 +4790,7 @@ int fvmc_polygon_evaluate_Position(double x[3], int numPts, double *pts, double*
 
   if ( pcoords[0] >= 0.0 && pcoords[0] <= 1.0 &&
        pcoords[1] >= 0.0 && pcoords[1] <= 1.0 &&
-       (fvmc_point_in_polygon (cp, numPts, pts,
+       (fvmc_point_in_polygon (cp, numPts, _pts_p,
                                bounds, n) == FVMC_POLYGON_INSIDE) ) {
     if (closestPoint) {
       closestPoint[0] = cp[0];
@@ -4673,19 +4801,22 @@ int fvmc_polygon_evaluate_Position(double x[3], int numPts, double *pts, double*
                      x[2] - closestPoint[2]};
 
       *minDist2 = _DOT_PRODUCT (v, v);
+      /* printf("closest 1 : %12.5e %12.5e %12.5e\n", closestPoint[0], closestPoint[1], closestPoint[2]); */
     }
     return 1;
   }
 
   // If here, point is outside of polygon, so need to find distance to boundary
   //
+
   else {
     double t, dist2;
     double closest[3];
     double *pt1, *pt2;
 
     if (closestPoint) {
-      for (*minDist2=DBL_MAX,i=0; i<numPts; i++) {
+      *minDist2=DBL_MAX;
+      for (int i=0; i<numPts; i++) {
         pt1 = pts + 3 * i;
         pt2 = pts + 3 * ((i+1)%numPts);
         dist2 = fvmc_distance_to_line (x, pt1, pt2, &t, closest);
@@ -4693,6 +4824,7 @@ int fvmc_polygon_evaluate_Position(double x[3], int numPts, double *pts, double*
           closestPoint[0] = closest[0];
           closestPoint[1] = closest[1];
           closestPoint[2] = closest[2];
+          /* printf("closest 2 : %12.5e %12.5e %12.5e\n", closestPoint[0], closestPoint[1], closestPoint[2]); */
           *minDist2 = dist2;
         }
       }
