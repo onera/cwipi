@@ -1098,6 +1098,7 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
     int isOnEdge = 0;
     int isVertex = 0;
     int ielt = dist_locations[ipoint] - 1;
+
     int nbr_som_fac =  meshConnectivityIndex[ielt+1] - 
                        meshConnectivityIndex[ielt];
     coo_point_dist[0] = dist_coords[3*ipoint];
@@ -1111,15 +1112,15 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
       aire.resize(nbr_som_fac);
       proScal.resize(nbr_som_fac);
     }
-    else
+    else {
       if (proScal.size() < nbr_som_fac) {
         coo_som_fac.resize(3 * nbr_som_fac);
         s.resize(3 * nbr_som_fac);
         dist.resize(nbr_som_fac);
-         aire.resize(nbr_som_fac);
+        aire.resize(nbr_som_fac);
         proScal.resize(nbr_som_fac);
       }
-
+    }
 
     for (int isom = 0; isom < nbr_som_fac; isom++) {
       coo_som_fac[3*isom]   = 
@@ -1160,7 +1161,6 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
                                &(coo_som_fac[0]),
                                bounds, 
                                n) != 1) {
-
 
       double closestPoint[3];
       double dist_min = DBL_MAX;

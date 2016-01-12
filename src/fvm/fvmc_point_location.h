@@ -212,6 +212,10 @@ double fvmc_distant_to_polygon (double x[3], int numPts, double *pts,
 int fvmc_parameterize_polygon(int numPts, double *pts, double *p0, double *p10, double *l10,
                               double *p20,double *l20, double *n);
 
+int  fvmc_triangle_evaluate_Position (double x[3], double *pts, double* closestPoint,
+                                      double pcoords[3],
+                                      double *dist2, double *weights);
+
 int fvmc_polygon_evaluate_Position(double x[3], int numPts, double *pts, double* closestPoint,
                                    double pcoords[3], double* minDist2);
 
