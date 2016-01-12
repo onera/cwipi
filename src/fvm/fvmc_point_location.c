@@ -3005,7 +3005,7 @@ _polygons_section_locate_3d(const fvmc_nodal_section_t   *this_section,
                                       pcoords, 
                                       &minDist2);
 
-      if (dist2 < epsilon2 && (minDist2 < dist2 || distance[j] < 0.0)) {
+      if (minDist2 < epsilon2 && (minDist2 < dist2 || distance[j] < 0.0)) {
         distance[j] = (float) sqrt(minDist2);
         location[j] = elt_num;
       } 
@@ -3853,10 +3853,12 @@ static int _solve_2x2 (double **A, double *x)
   
   //TODO: geomtric epsilon
 
-  if (fabs(det) < 1e-15) {
-      // Unable to solve linear system
+  if (det == 0.0) {
     return 0;
   }
+  /* if (fabs(det) < _epsilon_denom) { */
+  /*   return 0; */
+  /* } */
   
   y[0] = (A[1][1]*x[0] - A[0][1]*x[1]) / det;
   y[1] = (-A[1][0]*x[0] + A[0][0]*x[1]) / det;
@@ -4461,7 +4463,7 @@ int fvmc_point_in_polygon (double x[3],
 
     /* If the number of intersections is odd, the point is in the polygon. */
   
-  if ( deltaVotes < 0 ) {
+  if ( deltaVotes <= 0 ) {
     return FVMC_POLYGON_OUTSIDE;
   }
   else {

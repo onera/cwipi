@@ -67,7 +67,6 @@ c_surf_coupling_P1P0_P0P1_savedisk \
 c_surf_coupling_P1P0_P0P1_savememory \
 c_surf_coupling_user_target_points \
 c_surf_coupling_user_interpolation \
-c_surf_coupling_user_interpolation2 \
 c_surf_coupling_vector_exchange \
 c_surf_coupling_output_error \
 c_surf_coupling_simple_location \
@@ -91,7 +90,7 @@ c_surf_coupling_P1P0_P0P1_savememory_SOURCES = grid_mesh.c c_surf_coupling_P1P0_
 c_surf_coupling_P1P1_asynchronous_SOURCES = grid_mesh.c c_surf_coupling_P1P1_asynchronous.c
 c_surf_coupling_user_target_points_SOURCES = grid_mesh.c c_surf_coupling_user_target_points.c
 c_surf_coupling_user_interpolation_SOURCES = grid_mesh.c c_surf_coupling_user_interpolation.c
-c_surf_coupling_user_interpolation2_SOURCES = grid_mesh.c c_surf_coupling_user_interpolation2.c
+#c_surf_coupling_user_interpolation2_SOURCES = grid_mesh.c c_surf_coupling_user_interpolation2.c
 c_surf_coupling_vector_exchange_SOURCES = grid_mesh.c c_surf_coupling_vector_exchange.c
 c_surf_coupling_output_error_SOURCES = grid_mesh.c c_surf_coupling_output_error.c
 c_surf_coupling_simple_location_SOURCES = grid_mesh.c c_surf_coupling_simple_location.c
@@ -174,12 +173,12 @@ $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
-c_surf_coupling_user_interpolation2_LDADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-$(top_builddir)/src/libcwipi.la \
-@MPI_LIBS@ \
--lm
+# c_surf_coupling_user_interpolation2_LDADD = \
+# $(top_builddir)/src/bft/libbftc.la \
+# $(top_builddir)/src/fvm/libfvmc.la \
+# $(top_builddir)/src/libcwipi.la \
+# @MPI_LIBS@ \
+# -lm
 
 c_surf_coupling_vector_exchange_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
@@ -277,7 +276,6 @@ TESTS = c_linear_coupling \
 	c_surf_coupling_P1P0_P0P1_savememory \
 	c_surf_coupling_user_target_points \
 	c_surf_coupling_user_interpolation \
-	c_surf_coupling_user_interpolation2 \
 	c_surf_coupling_output_error \
 	c_surf_coupling_simple_location \
 	c_surf_without_partitioning_coupling \
