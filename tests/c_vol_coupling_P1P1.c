@@ -215,7 +215,7 @@ int main( int argc, char* argv[] ) {
   outputFile = fopen(fileOutput, "w");
   free(fileOutput);
 
-  //cwipi_set_output_listing( outputFile );
+  cwipi_set_output_listing( outputFile );
 
   /* Initializations
    * --------------- */

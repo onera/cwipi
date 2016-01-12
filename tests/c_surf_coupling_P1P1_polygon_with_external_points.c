@@ -16,6 +16,7 @@
   You should have received a copy of the GNU Lesser General Public
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
+#include <float.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -299,19 +300,19 @@ int main
   if (rank == 0)
     printf("        Check results\n");    
 
-  double err;
-  if (rank == 0)
-    err = fabs(recvValues[0] - coords[3 * 0 + 1]);
-  else
-    err = fabs(recvValues[0] - coords[3 * 0    ]);
+  double err = -DBL_MAX;
+  /* if (rank == 0) */
+  /*   err = fabs(recvValues[0] - coords[3 * 0 + 1]); */
+  /* else */
+  /*   err = fabs(recvValues[0] - coords[3 * 0    ]); */
  
   for (int i = 0; i < nVertex; i++) {
     if (rank == 0) {
-      err = ((fabs(recvValues[i] - coords[3 * i + 1])) < (err) ? (err) : 
-             (fabs(recvValues[i] - coords[3 * i + 1])));
-      if (fabs(recvValues[i] - coords[3 * i + 1]) > 1e-6) {
+      double val_err = fabs(recvValues[i] - coords[3 * i + 1]);
+      err = (val_err) < (err) ? (err) : (val_err);
+      if (val_err > 1e-6) {
         printf ("[%d] err %d : %12.5e %12.5e %12.5e\n",
-                rank, i + 1, fabs(recvValues[i] - coords[3 * i + 1]), recvValues[i], coords[3 * i + 1]);
+                rank, i + 1, val_err, recvValues[i], coords[3 * i + 1]);
       }
     }
     else {

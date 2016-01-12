@@ -239,10 +239,9 @@ int main( int argc, char* argv[] ) {
 
   fileOutput = (char *) malloc((strlen("c_vol_poly_cpl_P1P1_") + 4 + 1 + 4) * sizeof(char));
   sprintf(fileOutput, "c_vol_poly_cpl_P1P1_%4.4d.txt", rank);
-  //outputFile = fopen(fileOutput, "w");
+  outputFile = fopen(fileOutput, "w");
   free(fileOutput);
-  outputFile = stdout;
-  //cwipi_set_output_listing( outputFile );
+  cwipi_set_output_listing( outputFile );
 
   /* Initializations
    * --------------- */
@@ -549,21 +548,6 @@ int main( int argc, char* argv[] ) {
                   cellFace);
     
       fclose(meshFile);
-    }
-
-    if (!unique) {
-      if  (rank == 1) {
-        printf("faces de l'element 42 :\n");
-        
-        for (int k = cellFaceIdx[41]; k < cellFaceIdx[42]; k++) {
-          int iiface = abs(cellFace[k]) - 1;
-          printf(" - %d :", iiface+1, faceVertexIdx[iiface], faceVertexIdx[iiface+1]);
-          for (int j = faceVertexIdx[iiface]; j < faceVertexIdx[iiface + 1]; j++) {
-            printf(" %i ", faceVertex[j]);
-          }
-          printf("\n");
-        }
-      }
     }
 
     if (!unique) {
