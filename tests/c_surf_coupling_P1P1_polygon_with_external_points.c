@@ -235,6 +235,10 @@ int main
                          &nElts,
                          &eltsConnecPointer,
                          &eltsConnec);
+
+  if (rank == 1)
+    for (int i = 0; i < nVertex; i++)
+      coords[3*i+2] = coords[3*i+2]+ 0.01;
   
   fprintf(outputFile, "   Number of vertex : %i\n", nVertex);
   fprintf(outputFile, "   Number of elements : %i\n", nElts);
@@ -318,7 +322,7 @@ int main
     else {
       double val_err = fabs(recvValues[i] - coords[3 * i    ]);
       if (fabs(coords[3 * i    ]) > 1)
-        val_err = fabs(recvValues[i]) - 1.;
+        val_err = fabs(fabs(recvValues[i]) - 1.);
 
       err = (val_err) < (err) ? (err) : (val_err);
       if (val_err > 1e-6) {

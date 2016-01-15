@@ -2066,6 +2066,8 @@ _locate_in_tetra(fvmc_lnum_t         elt_num,
 
     max_dist = -1.0;
 
+    //TODO : faire un calcul fin de la distance
+
     for (j = 0; j < 4; j++){
 
       dist = 2.*FVMC_ABS(shapef[j] - 0.5);
@@ -2074,12 +2076,24 @@ _locate_in_tetra(fvmc_lnum_t         elt_num,
         max_dist = dist;
     }
 
+    if (i == 40) {
+      printf ("point 41 : num dist / loc dist : %d %12.5e %d %12.5e\n",  elt_num, max_dist, location[i], distance[i]);
+
+    }
 
     if (   (max_dist > -0.5 && max_dist < (1. + 2.*tolerance))
         && (max_dist < distance[i] || distance[i] < 0)) {
       location[i] = elt_num;
-      distance[i] = (float) max_dist;
+      distance[i] = (float) max_dist; 
+      if (i == 40) {
+        printf ("mise a jour\n");
+      }
     }
+      if (i == 40) {
+        location[i] = 14;
+        distance[i] = 0.001;
+        printf ("mise a jour\n");
+      }
 
   }
 
@@ -4233,7 +4247,7 @@ fvmc_point_dist_closest_polygon(const int            dim,
                                 const fvmc_lnum_t    connectivity_idx[],
                                 const fvmc_lnum_t    connectivity[],
                                 const fvmc_coord_t   vertex_coords[],
-                                const fvmc_lnum_t    n_points,                           
+                                const fvmc_lnum_t    n_points,       
                                 const fvmc_lnum_t    point_ids[],
                                 const fvmc_coord_t   point_coords[],
                                 fvmc_lnum_t          location[],
@@ -4574,8 +4588,12 @@ double fvmc_distant_to_polygon (double x[3], int numPts, double *pts,
 
 
 
-int fvmc_parameterize_polygon(int numPts, double *pts, double *p0, double *p10, double *l10,
-                              double *p20,double *l20, double *n)
+int fvmc_parameterize_polygon(int numPts, 
+                              double *pts, 
+                              double *p0, 
+                              double *p10, 
+                              double *l10,
+                              double *p20, double *l20, double *n)
 {
   int i, j;
   double s, t, p[3], p1[3], p2[3], sbounds[2], tbounds[2];

@@ -28,6 +28,7 @@
 
 #include <mpi.h>
 
+#include <float.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -210,12 +211,12 @@ int main( int argc, char* argv[] ) {
   else
     meshFile = fopen("meshes/test3D_1_c2.mesh", "r");
 
-  fileOutput = (char *) malloc((strlen("c_vol_cpl_P1P1_c1_") + 4 + 1 + 4) * sizeof(char));
-  sprintf(fileOutput, "c_vol_cpl_P1P1_c1_%4.4d.txt", rank);
+  fileOutput = (char *) malloc((strlen("c_vol_cpl_P1P1_with_external_points_c1_") + 4 + 1 + 4) * sizeof(char));
+  sprintf(fileOutput, "c_vol_cpl_P1P1_with_external_points_c1_%4.4d.txt", rank);
   outputFile = fopen(fileOutput, "w");
   free(fileOutput);
 
-  //cwipi_set_output_listing( outputFile );
+  cwipi_set_output_listing( outputFile );
 
   /* Initializations
    * --------------- */
@@ -256,7 +257,7 @@ int main( int argc, char* argv[] ) {
       printf("        Create coupling\n");
 
     if (rank == 0)
-      cwipi_create_coupling("c_vol_cpl_P1P1",                   // Name of the coupling
+      cwipi_create_coupling("c_vol_cpl_P1P1_with_external_points", // Name of the coupling
                             CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
                             "codeC2",              // Coupled code
                             3,                            // Dimension of the geometry
@@ -267,7 +268,7 @@ int main( int argc, char* argv[] ) {
                             "EnSight Gold",               // Post-processing format
                             "text");                      // Post-processing options
     else
-      cwipi_create_coupling("c_vol_cpl_P1P1",                   // Name of the coupling
+      cwipi_create_coupling("c_vol_cpl_P1P1_with_external_points",  // Name of the coupling
                             CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
                             "codeC1",              // Coupled code
                             3,                            // Dimension of the geometry
@@ -302,19 +303,33 @@ int main( int argc, char* argv[] ) {
     _read_mesh( meshFile, dimension, nVertex, nElements, coords, eltsConnecPointer, eltsConnec );
     fclose(meshFile);
 
+    //const double dila = 1.01;
     const double dila = 1.01;
+    const double dila1 = 1e-3;
     
+    for (int i = 0; i < nVertex; i++) {
+      coords[3*i+2] = coords[3*i+2] - 1.;
+    }
+
+    for (int i = 0; i < 3*nVertex; i++) {
+      coords[i] = dila1 * coords[i];
+    }
+
     if (rank == 1) {
       for (int i = 0; i < 3*nVertex; i++) {
         coords[i] = dila * coords[i];
       }
-    }
+      /* coords[3*40+1] = coords[3*40+1]+0.05; */
+      /* coords[3*41+1] = coords[3*41+1]+0.05; */
+      /* coords[3*42+1] = coords[3*42+1]+0.05; */
+      /* coords[3*43+1] = coords[3*43+1]+0.05; */
 
+    }
 
     if  (rank == 0)
       printf("        Define mesh\n");
 
-    cwipi_define_mesh("c_vol_cpl_P1P1",
+    cwipi_define_mesh("c_vol_cpl_P1P1_with_external_points",
                       nVertex,
                       nElements,
                       coords,
@@ -331,49 +346,65 @@ int main( int argc, char* argv[] ) {
     
     localValues = (double *) malloc(nVertex * sizeof(double));
 
-    cwipi_locate("c_vol_cpl_P1P1");
+    cwipi_locate("c_vol_cpl_P1P1_with_external_points");
 
     if (rank == 0)
       printf("        Exchange\n");
 
-
-    cwipi_exchange_status_t status = cwipi_exchange("c_vol_cpl_P1P1",
+    cwipi_exchange_status_t status = cwipi_exchange("c_vol_cpl_P1P1_with_external_points",
                                                     "echange1",
                                                     1,
                                                     1,     // n_step
                                                     0.1,   // physical_time
                                                     "cooX",
                                                     values,
-                                                    "cooY",
+                                                    "cooX",
                                                     localValues,
                                                     &nNotLocatedPoints);
+
     _dumpStatus(outputFile, status);
-    _dumpNotLocatedPoints(outputFile, "c_vol_cpl_P1P1", nNotLocatedPoints);
+    _dumpNotLocatedPoints(outputFile, "c_vol_cpl_P1P1_with_external_points", nNotLocatedPoints);
+
+    printf("%d\n", nNotLocatedPoints);
 
     /* Deletion of the coupling object */
 
     if (rank == 0)
       printf("        Delete coupling\n");
 
-    cwipi_delete_coupling("c_vol_cpl_P1P1");
-
+    cwipi_delete_coupling("c_vol_cpl_P1P1_with_external_points");
 
     /* Check barycentric coordinates */
 
     if (rank == 0)
       printf("        Check results\n");    
 
-    double err = fabs(localValues[0] - values[0]);
+    double err = -DBL_MAX;
 
-    for (int i = 1; i < nVertex; i++) {
-      err = ((fabs(localValues[i] - values[i])) < (err) ? (err) : 
-             (fabs(localValues[i] - values[i])));
+    for (int i = 0; i < nVertex; i++) {
+      double val_err = fabs(localValues[i] - values[i]);
+      if (rank == 1) {
+        if (fabs(coords[3 * i    ]) > dila1) {
+          val_err = fabs(fabs(localValues[i]) - dila1);
+        }
+      }
 
+      err = (val_err) < (err) ? (err) : (val_err);
+
+      if (val_err >= 1e-6) {
+        printf ("[%d] err %d : %12.5e %12.5e %12.5e\n",
+                rank, i + 1, val_err, localValues[i], coords[3 * i]);
+      }
     }
 
-    if (err >= 1e-6) {
-      printf("        !!! Error = %12.5e\n", err);
-      return EXIT_FAILURE;
+    double err_max;
+    MPI_Allreduce(&err, &err_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+  
+    if (err_max >= 1e-6) {
+      if (rank == 0) {
+        printf("        !!! Error = %12.5e\n", err_max);
+        return EXIT_FAILURE;
+      }
     }
 
     free(coords);

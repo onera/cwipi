@@ -31,51 +31,6 @@
 
 /*----------------------------------------------------------------------
  *                                                                     
- * Dump status exchange                                                
- *                                                                     
- * parameters:
- *   status              <-- Exchange status           
- *---------------------------------------------------------------------*/
-
-static void _dumpStatus(FILE* outputFile, cwipi_exchange_status_t status)
-{
-  switch(status) {
-  case CWIPI_EXCHANGE_OK :
-    fprintf(outputFile, "Exchange Ok\n");
-    break;
-  case CWIPI_EXCHANGE_BAD_RECEIVING :
-    fprintf(outputFile, "Bad receiving\n");
-    break;
-  default :
-    printf("Error : bad exchange status\n");
-    exit(1);
-  }
-}
-
-/*----------------------------------------------------------------------
- *                                                                     
- * Dump not located points                                             
- *                                                                     
- * parameters:
- *   coupling_id         <-- Coupling id               
- *   nNotLocatedPoints   <-- Number of not located points
- *---------------------------------------------------------------------*/
-
-static void _dumpNotLocatedPoints(FILE* outputFile,
-                                  const char *coupling_id,
-                                  const int nNotLocatedPoints)
-{
-  if ( nNotLocatedPoints > 0) {
-    fprintf(outputFile, "Not located points :\n");
-    const int* notLocatedPoints = cwipi_get_not_located_points(coupling_id);
-    for(int i = 0; i < nNotLocatedPoints; i++)
-     fprintf(outputFile, "%i ", notLocatedPoints[i]);
-    fprintf(outputFile, "\n");
-  }
-}
-
-/*----------------------------------------------------------------------
- *                                                                     
  * Display usage                                             
  *                                                                     
  * parameters:
@@ -100,7 +55,7 @@ _usage(int exit_code)
  * Read args from the command line                           
  *                                                                     
  * parameters:
- *   nVertex             <-- Number of vertices in bandwidth                         
+ *   nVertex             <-- Number of vertices in bandwidth                
  *   randLevel           <-- Random level
  *---------------------------------------------------------------------*/
 
@@ -186,16 +141,14 @@ int main
 
   if (n2 != commWorldSize) {
     if (rank == 0)
-      printf("      Not executed : only available if the number of processus in the form of '2 * n^2' \n");
+      printf("      Not executed : only available if the number"
+             " of processus in the form of '2 * n^2' \n");
     MPI_Finalize();
     return EXIT_SUCCESS;
   }
 
   /* Read args from command line
    * --------------------------- */
-
-/*   int nVertexSeg = 10; */
-/*   double randLevel = 0.4; */
 
   int nVertexSeg = 10;
   double randLevel = 0.1;
@@ -206,22 +159,20 @@ int main
    * -------------- */
 
   char *codeName;
-  int codeId;
   char *codeCoupledName;
 
   if (rank < commWorldSize / 2) {
     codeName = "code1";
-    codeId = 1;
     codeCoupledName = "code2";
   }
   else {
     codeName = "code2";
-    codeId = 2;
     codeCoupledName = "code1";
   }
 
   char* fileName = (char *) malloc(sizeof(char) * 41);
-  sprintf(fileName,"c_surf_coupling_simple_location_%4.4d.txt",rank);
+  sprintf(fileName,
+          "c_surf_coupling_simple_location_%4.4d.txt",rank);
 
   outputFile = fopen(fileName,"w");
 
@@ -243,7 +194,8 @@ int main
   MPI_Comm_rank(localComm, &currentRank);
   MPI_Comm_size(localComm, &localCommSize);
 
-  fprintf(outputFile, "  Surface coupling test : Simple location\n");
+  fprintf(outputFile, 
+          "  Surface coupling test : Simple location\n");
   fprintf(outputFile, "\n");
 
   fprintf(outputFile, "\nDump after initialization\n");
@@ -260,7 +212,7 @@ int main
   /* Coupling creation
    * ----------------- */
 
-  cwipi_create_coupling("c_surf_cpl_simple_location",                                // Coupling id
+  cwipi_create_coupling("c_surf_cpl_simple_location",              // Coupling id
                         CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING, // Coupling type
                         codeCoupledName,                           // Coupled application id
                         2,                                         // Geometric entities dimension
