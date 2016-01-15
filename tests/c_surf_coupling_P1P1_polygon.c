@@ -306,16 +306,16 @@ int main
       err = ((fabs(recvValues[i] - coords[3 * i + 1])) < (err) ? (err) : 
              (fabs(recvValues[i] - coords[3 * i + 1])));
       if (fabs(recvValues[i] - coords[3 * i + 1]) > 1e-6) {
-        printf ("[%d] err %d : %12.5e %12.5e %12.5e\n",
-                rank, i + 1, fabs(recvValues[i] - coords[3 * i + 1]), recvValues[i], coords[3 * i + 1]);
+        //        printf ("[%d] err %d : %12.5e %12.5e %12.5e\n",
+        //        rank, i + 1, fabs(recvValues[i] - coords[3 * i + 1]), recvValues[i], coords[3 * i + 1]);
       }
     }
     else {
       err = ((fabs(recvValues[i] - coords[3 * i    ])) < (err) ? (err) : 
              (fabs(recvValues[i] - coords[3 * i    ])));
       if (fabs(recvValues[i] - coords[3 * i ]) > 1e-6) {
-        printf ("[%d] err %d : %12.5e %12.5e %12.5e\n",
-                rank, i + 1, fabs(recvValues[i] - coords[3 * i ]), recvValues[i], coords[3 * i]);
+        // printf ("[%d] err %d : %12.5e %12.5e %12.5e\n",
+        //        rank, i + 1, fabs(recvValues[i] - coords[3 * i ]), recvValues[i], coords[3 * i]);
       }
     }
   }
