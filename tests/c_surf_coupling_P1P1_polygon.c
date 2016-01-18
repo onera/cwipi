@@ -230,6 +230,9 @@ int main
                          &eltsConnecPointer,
                          &eltsConnec);
   
+  for (int i = 0; i < nVertex; i++) {
+    coords[3*i+2]=20*sin(coords[3*i+1]/5.)*sin(coords[3*i]/5.);
+  }
   fprintf(outputFile, "   Number of vertex : %i\n", nVertex);
   fprintf(outputFile, "   Number of elements : %i\n", nElts);
 

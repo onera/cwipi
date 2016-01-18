@@ -188,6 +188,15 @@ public:
 
 private :
 
+
+  void  _computeBary (int numPts, double *pts, double bary[3]);
+
+  
+  void _project_point2(double x[3], double pt_plan[3],
+                       double normal[3], double xproj[3]);
+
+  void _computeNormal (int numPts, double *pts, double n[3]);
+
   ///
   /// \brief Compute Mean Values 2D
   ///

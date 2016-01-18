@@ -51,6 +51,91 @@
 namespace cwipi
 {
 
+
+/* Compute the polygon normal from an array of points. This version assumes */
+/* that the polygon is convex, and looks for the first valid normal. */
+
+void LocationToLocalMesh::_computeBary (int numPts, double *pts, double bary[3])
+{
+  bary[0] = 0.;
+  bary[1] = 0.;
+  bary[2] = 0.;
+
+  for (int i = 0; i < 3; i++) {
+    for (int ipt = 0; ipt < numPts; ipt++) {
+      bary[i] += pts[3*ipt+i];
+    }
+    bary[i] /= numPts;
+  }
+
+}
+
+
+void LocationToLocalMesh::_project_point2(double x[3], double pt_plan[3],
+                            double normal[3], double xproj[3])
+{
+
+  double cst   = _DOT_PRODUCT(normal, pt_plan);
+  double cst1  = _DOT_PRODUCT(normal, x);
+  double norm2 = _DOT_PRODUCT(normal, normal);
+
+  double t = - (cst1 - cst)/ norm2;
+
+  xproj[0] = x[0] + t * normal[0];
+  xproj[1] = x[1] + t * normal[1];
+  xproj[2] = x[2] + t * normal[2];
+}
+
+/* ---------------------------------------------------------------------------- */
+/* Compute the polygon normal from an array of points. This version assumes */
+/* that the polygon is convex, and looks for the first valid normal. */
+
+void LocationToLocalMesh::_computeNormal (int numPts, double *pts, double n[3])
+{
+  double length = 0.;
+  double bary[3]= {0., 0., 0.};
+
+  n[0] = 0.;
+  n[1] = 0.;
+  n[2] = 0.;
+  
+  _computeBary (numPts, pts, bary);
+  
+  for (int ipt = 0; ipt < numPts; ipt++) {
+    
+    double *pt1 = pts + 3 * ipt;
+    double *pt2 = pts + 3 * ((ipt+1)%numPts);
+    double vect1[3];
+    double vect2[3];
+    
+    for (int i = 0; i < 3; i++) {
+      vect1[i] = pt1[i] - bary[i];
+      vect2[i] = pt2[i] - bary[i];
+    }
+    
+    n[0] += vect1[1] * vect2[2] - vect1[2] * vect2[1];
+    n[1] += vect1[2] * vect2[0] - vect1[0] * vect2[2];
+    n[2] += vect1[0] * vect2[1] - vect1[1] * vect2[0];
+    
+  } //over all points
+
+  length = sqrt (n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
+  if (length != 0.0) {
+    n[0] /= length;
+    n[1] /= length;
+    n[2] /= length;
+
+  }
+  return;
+}
+
+
+
+
+
+
+
+
 LocationToLocalMesh::LocationToLocalMesh(
                                          const cwipi_solver_type_t  &solverType,
                                          const double &tolerance,
@@ -1055,9 +1140,6 @@ void LocationToLocalMesh::compute2DMeanValues()
   for (int ipoint =  0; ipoint < n_dist_points; ipoint++ ) {
     int ielt = dist_locations[ipoint] - 1;
 
-    if (ipoint == 3863)
-      printf("location : %d\n", ielt+1);
-
     int nbr_som_fac =  meshConnectivityIndex[ielt+1] - 
                        meshConnectivityIndex[ielt];
     nDistBarCoords[ipoint+1] = nDistBarCoords[ipoint] + nbr_som_fac;
@@ -1096,11 +1178,12 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
 
   /* Tableaux locaux */
 
-  const double eps_base = 1e-6;
+  const double eps_base = 1e-10;
   std::vector <double> coo_som_fac;
   std::vector <double> s; 
   std::vector <double> dist;
-  std::vector <double> tan_half_theta;
+  std::vector <double> aire;
+  std::vector <double> proScal;
 
   for (int ipoint =  0; ipoint < n_dist_points; ipoint++ ) {
     
@@ -1108,6 +1191,8 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
 
     /* Initialisation - Copie locale */
 
+    int isOnEdge = 0;
+    int isVertex = 0;
     int ielt = dist_locations[ipoint] - 1;
 
     int nbr_som_fac =  meshConnectivityIndex[ielt+1] - 
@@ -1116,26 +1201,20 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
     coo_point_dist[1] = dist_coords[3*ipoint + 1];
     coo_point_dist[2] = dist_coords[3*ipoint + 2];
 
-
-    int tt = (fabs(coo_point_dist[0] - (-4.59003e-05)) < 1e-6) && 
-             (fabs(coo_point_dist[1] - 7.44690e-05) < 1e-6)  && 
-             (fabs(coo_point_dist[2] - 0) < 1e-4);
-
-    if (tt)
-      printf ("ipoint : %d %d\n", ipoint, n_dist_points);
-
     if (ipoint == 0) {
       coo_som_fac.resize(3 * nbr_som_fac);
       s.resize(3 * nbr_som_fac);
       dist.resize(nbr_som_fac);
-      tan_half_theta.resize(nbr_som_fac);
+      aire.resize(nbr_som_fac);
+      proScal.resize(nbr_som_fac);
     }
     else {
-      if (dist.size() < nbr_som_fac) {
+      if (proScal.size() < nbr_som_fac) {
         coo_som_fac.resize(3 * nbr_som_fac);
         s.resize(3 * nbr_som_fac);
         dist.resize(nbr_som_fac);
-        tan_half_theta.resize(nbr_som_fac);
+        aire.resize(nbr_som_fac);
+        proScal.resize(nbr_som_fac);
       }
     }
 
@@ -1152,7 +1231,20 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
     
     /* Projection sur un plan moyen */
 
-    midplaneProjection(nbr_som_fac, &(coo_som_fac[0]), coo_point_dist);
+    double bary[3];
+    _computeBary (nbr_som_fac, &(coo_som_fac[0]), bary);
+
+    double n[3] = {0, 0, 1};
+    _computeNormal (nbr_som_fac, &(coo_som_fac[0]), n);
+  
+    _project_point2(coo_point_dist, bary, n, coo_point_dist);
+
+    for (int isom = 0; isom < nbr_som_fac; isom++) {
+      
+      double *pt1 = &(coo_som_fac[0]) + 3 *isom;
+      _project_point2 (pt1, bary, n, pt1);
+
+    }
 
     double bounds[6] = {DBL_MAX, -DBL_MAX,
                         DBL_MAX, -DBL_MAX,
@@ -1169,7 +1261,6 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
       bounds[5] = std::max(bounds[5], coo_som_fac[3*isom + 2]);
     }
 
-    double n[3] = {0, 0, 1};
 
     /* Verification que le point est dans l'element */
 
@@ -1178,9 +1269,6 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
                                &(coo_som_fac[0]),
                                bounds, 
                                n) != 1) {
-
-      if (tt) 
-        printf(" out poly\n");
 
       double closestPoint[3];
       double dist_min = DBL_MAX;
@@ -1207,9 +1295,6 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
         }
       }
      
-      if (tt) 
-        printf(" k_min_arre : %d %12.5e %12.5e %12.5e\n", k_min, closestPoint[0], closestPoint[1], closestPoint[2] );
- 
       coo_point_dist[0] = closestPoint[0];
       coo_point_dist[1] = closestPoint[1];
       coo_point_dist[2] = closestPoint[2];
@@ -1218,135 +1303,220 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
 
     /* Calcul des coordonnnees barycentriques */
 
+    double min_dist = DBL_MAX;
     for (int isom = 0; isom < nbr_som_fac; isom++) {
-        _distBarCoords[isom] = 0.;
+
+      int inext = (isom + 1) % nbr_som_fac;
+      double *vect = &s[0] + 3*isom;
+      double l_edge;
+      vect[0] = coo_som_fac[3*inext]   - coo_som_fac[3*isom];
+      vect[1] = coo_som_fac[3*inext+1] - coo_som_fac[3*isom+1];
+      vect[2] = coo_som_fac[3*inext+2] - coo_som_fac[3*isom+2];
+      l_edge  = _MODULE (vect);
+
+      min_dist = std::min(l_edge, min_dist);
     }
 
-    double min_edge = DBL_MAX;
+    double eps = std::max(min_dist * eps_base, 1.e-30);
+
     for (int isom = 0; isom < nbr_som_fac; isom++) {
 
-      int isom1 = (isom+1) % nbr_som_fac;
-      s[3*isom]   = coo_som_fac[3*isom]   -  coo_som_fac[3*isom1];
-      s[3*isom+1] = coo_som_fac[3*isom+1] -  coo_som_fac[3*isom1+1];
-      s[3*isom+2] = coo_som_fac[3*isom+2] -  coo_som_fac[3*isom1+2];
-      dist[isom] = _MODULE(s);
-
-      min_edge = std::min(dist[isom], min_edge);
+      int inext = (isom + 1) % nbr_som_fac;
+      double *vect = &s[0] + 3*isom;
+      vect[0] = coo_som_fac[3*isom]   - coo_point_dist[0];
+      vect[1] = coo_som_fac[3*isom+1] - coo_point_dist[1];
+      vect[2] = coo_som_fac[3*isom+2] - coo_point_dist[2];
+      dist[isom] = _MODULE (vect);
 
     }
+    if (tt)
+      printf("\n");
 
-    double eps = std::max(min_edge * eps_base, 1.e-30);
-
-    // w_i = ( tan(theta_i/2) + tan(theta_(i+1)/2) ) / dist_i
-    // To do consider the simplification of
-    // tan(alpha/2) = (1-cos(alpha))/sin(alpha)
-    //              = (d0*d1 - cross(vect1, vect2))/(2*dot(vect1,vect2))
-
-    int isVertex = 0;
-    int isEdge = 0;
-
+    int currentVertex;
     for (int isom = 0; isom < nbr_som_fac; isom++) {
+      int inext = (isom + 1) % nbr_som_fac;
+      double *vect1 = &s[0] + 3 * isom;
+      double *vect2 = &s[0] + 3 * inext;
+      double pvect[3];
 
-      s[3*isom]   = coo_som_fac[3*isom]   - coo_point_dist[0];
-      s[3*isom+1] = coo_som_fac[3*isom+1] - coo_point_dist[1];
-      s[3*isom+2] = coo_som_fac[3*isom+2] - coo_point_dist[2];
-      dist[isom] = _MODULE(s);
-      
+      proScal[isom] = _DOT_PRODUCT (vect1, vect2);
+      _CROSS_PRODUCT(pvect, vect1, vect2);
+
+      double sign = _DOT_PRODUCT (pvect, n);
+      aire[isom] = _MODULE(pvect);
+
+      if (sign < 0) {
+        aire[isom] = -aire[isom];
+      }
+
+      if (tt) 
+        printf("aire_som %12.5e\n", aire[isom]);
+
       if (dist[isom] <= eps) {
-        printf ("sommet 2\n");
-        _distBarCoords[isom] = 1.;
+
         isVertex = 1;
+        currentVertex = isom;
         break;
       }
 
-      s[3*isom]   /= dist[isom];
-      s[3*isom+1] /= dist[isom];
-      s[3*isom+2] /= dist[isom];
+      else if (fabs(aire[isom]) <= eps) {
 
+        double t;
+        double closest[3];
+        int inext = (isom + 1) % nbr_som_fac;
+        double *p1 = &(coo_som_fac[0]) + 3 * isom;
+        double *p2 = &(coo_som_fac[0]) + 3 * inext;
+
+        double dist_edge = sqrt (fvmc_distance_to_line (coo_point_dist, 
+                                                        p1, 
+                                                        p2,
+                                                        &t, 
+                                                        closest));
+        if (dist_edge <= eps) {
+        
+          isOnEdge = 1;
+          currentVertex = isom;
+          break;
+
+        }
+
+      }
     }
+
+    /* Le point distant est un sommet */
 
     if (isVertex) {
-      continue;
+      if (tt) 
+        printf("  sommet\n");
+      for (int isom = 0; isom < nbr_som_fac; isom++)
+        _distBarCoords[isom] = 0.;
+      _distBarCoords[currentVertex] = 1.;
     }
 
-    for (int isom = 0; isom < nbr_som_fac; isom++) {
+    /* Le point distant est sur arete */
 
-      int isuiv = (isom+1) % nbr_som_fac;
-      double *vect1 = &(s[0]) + 3 * isom;
-      double *vect2 = &(s[0]) + 3 * isuiv;
-      
-      double vect[3];
+    else if (isOnEdge) {
+      if (tt) 
+        printf("  arrete\n");
 
-      vect[0] = vect1[0] - vect2[0];
-      vect[1] = vect1[1] - vect2[1];
-      vect[2] = vect1[2] - vect2[2];
+      for (int isom = 0; isom < nbr_som_fac; isom++)
+        _distBarCoords[isom] = 0.;
 
-      double l = _MODULE(vect);
-      double theta = 2.0*asin(l/2.0);
-      
-      if (_PI - theta < 0.001) {
-        printf ("arete\n");
-        _distBarCoords[isom]  = dist[isuiv] / (dist[isom] + dist[isuiv]);
-        _distBarCoords[isuiv] = 1 - _distBarCoords[isom];
-        isEdge = 1;
-        break;
-      }
+      int nextPoint = (currentVertex + 1) % nbr_som_fac;
 
-      tan_half_theta[isom] = tan(theta/2.0);
+      _distBarCoords[currentVertex] = 
+        dist[nextPoint]     / (dist[nextPoint]+dist[currentVertex]);
+      _distBarCoords[nextPoint]     = 
+        dist[currentVertex] / (dist[nextPoint]+dist[currentVertex]);
 
-    }
-
-    if (isEdge) {
-      continue;
-    }
-
-    printf ("general\n");
-    double sigma = 0;
-    for (int isom = 0; isom < nbr_som_fac; isom++) {
-      printf ("general\n");
-      
-      int inext = isom;
-      int ipre = (isom + (nbr_som_fac - 1)) % nbr_som_fac;
-      _distBarCoords[isom]  = (tan_half_theta[inext] + tan_half_theta[ipre]) / dist[isom];
-      sigma +=  _distBarCoords[isom];
-
-    }
-
-    if (fabs(sigma) >= eps ) {
-      for (int isom = 0; isom < nbr_som_fac; isom++) {
-        _distBarCoords[isom] /= sigma;
+      if (tt) {
+        printf("  arrete : %12.5e %12.5e\n", _distBarCoords[currentVertex], _distBarCoords[nextPoint]);
+        printf("  arrete : %12.5e %12.5e %12.5e \n", _distBarCoords[0], _distBarCoords[1], _distBarCoords[2]);
       }
     }
+
+    /* Cas general */
 
     else {
-      double abs_sigma = fabs(sigma);
-      printf("Warning : Mise à NAN %12.5e %12.5e\n", abs_sigma,  eps);
+      if (tt) 
+        printf("  general\n");
+      double sigma = 0;
       for (int isom = 0; isom < nbr_som_fac; isom++) {
-        _distBarCoords[isom] = NAN;
+        double coef = 0.;
+        int previousVertex = (isom - 1 + nbr_som_fac) % nbr_som_fac;
+        int nextVertex = (isom + 1) % nbr_som_fac;
+
+        if (fabs(aire[previousVertex]) > eps)
+          coef += (dist[previousVertex] - proScal[previousVertex]/dist[isom]) / aire[previousVertex];
+        if (fabs(aire[isom]) > eps)
+          coef += (dist[nextVertex]     - proScal[isom]/dist[isom])           / aire[isom];
+        sigma += coef;
+        _distBarCoords[isom] = coef;
+
       }
+      
+      if (fabs(sigma) >= eps ) {
+        for (int isom = 0; isom < nbr_som_fac; isom++) {
+          _distBarCoords[isom] /= sigma;
+        }
+      }
+
+      else {
+
+        double abs_sigma = fabs(sigma);
+        printf("Warning : Mise à NAN %f %f\n", abs_sigma,  eps);
+        for (int isom = 0; isom < nbr_som_fac; isom++) {
+          _distBarCoords[isom] = NAN;
+        }
+      }
+
+      /* Check Result */
+
+      for (int isom = 0; isom <  nbr_som_fac; isom++) {
+        if ( _distBarCoords[isom] != _distBarCoords[isom] ||
+             _distBarCoords[isom] < 0. ||
+             _distBarCoords[isom] > 1. ) {
+
+          double closestPoint[3];
+          double dist_min = DBL_MAX;
+          int k_min = 0;
+          double t_min;
+
+          for (int k = 0; k < nbr_som_fac; k++) {
+            _distBarCoords[k] = 0.0;
+          }
+
+          for (int k = 0; k < nbr_som_fac; k++) {
+            double *p1 = &(coo_som_fac[3 * k]);
+            double *p2 = &(coo_som_fac[3 * ((k+1) % nbr_som_fac)]);
+            double closest[3];
+            double t;
+            
+            double dist2 = fvmc_distance_to_line (coo_point_dist, 
+                                                 p1, 
+                                                 p2,
+                                                 &t, 
+                                                 closest);
+            if (dist2 < dist_min) {
+              t_min = t;
+              k_min = k;
+            }
+          }
+
+          _distBarCoords[k_min] = 1 - t_min;
+          _distBarCoords[(k_min + 1) % nbr_som_fac] = t_min;
+
+          break;
+
+        }
+
+      }
+      
     }
 
-    if (1 == 1) {
+    if (0 == 1) {
+      if ((n_dist_points == 1) && (dist_locations[0] == 1)) {
       
-        printf("coord %i %i :", ipoint+1, ielt+1);
-        printf(" %12.5e %12.5e %12.5e", dist_coords[3*ipoint], 
+        bftc_printf("coord %i %i :", ipoint+1, ielt+1);
+        bftc_printf(" %12.5e %12.5e %12.5e", dist_coords[3*ipoint], 
                     dist_coords[3*ipoint+1], 
                     dist_coords[3*ipoint+2] );
-        printf("\n");
+        bftc_printf("\n");
 
-        printf("coo b %i :", ipoint+1);
+        bftc_printf("coo b %i :", ipoint+1);
         for (int isom = 0; isom < nbr_som_fac; isom++) {
-          printf(" %f", _distBarCoords[isom]);
+          bftc_printf(" %f", _distBarCoords[isom]);
         }
-        printf("\n");
+        bftc_printf("\n");
+      }
     }
   }
 
   coo_som_fac.clear();
   s.clear();
-  tan_half_theta.clear();
+  aire.clear();
   dist.clear();
-
+  proScal.clear();
 }
 
 
