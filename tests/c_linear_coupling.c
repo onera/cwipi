@@ -113,7 +113,7 @@ int main
     if (rank == 0)
       printf("      Not executed : only available for 2 processus\n");
     MPI_Finalize();
-    return 0;
+    return 1;
   }
 
   /* Initialization

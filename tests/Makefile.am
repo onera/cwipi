@@ -19,10 +19,19 @@
 # To disable dependency tracking
 # AUTOMAKE_OPTIONS = no-dependencies
 
-c_vol_coupling_P1P1.o: copy-data
+#c_vol_coupling_P1P1.o: $(top_builddir)/tests/meshes/mesh_poly_d1
 
-copy-data:
-	@cp -r $(top_srcdir)/tests/meshes $(top_builddir)/tests
+#c_vol_coupling_P1P1_with_external_points.o:  $(top_builddir)/tests/meshes/mesh_poly_d1
+
+#c_vol_coupling_micro_polyhedra_P1P1.o: $(top_builddir)/tests/meshes/mesh_poly_d1
+
+#c_vol_coupling_polyhedra_P1P1.o:  $(top_builddir)/tests/meshes/mesh_poly_d1
+
+#c_vol_coupling_polyhedra_P1P1_with_external_points.o:  $(top_builddir)/tests/meshes/mesh_poly_d1
+
+#$(top_builddir)/tests/meshes/mesh_poly_d1:
+#	echo toto
+#	cp -r $(top_srcdir)/tests/meshes $(top_builddir)/tests
 
 AUTOMAKE_OPTIONS = foreign
 
@@ -49,6 +58,11 @@ AM_LDFLAGS  = @MPI_LDFLAGS@
 
 AM_FCFLAGS = -I$(top_builddir)/src -I$(top_srcdir)/src
 
+AM_TESTS_ENVIRONMENT = \
+    cp -r $(top_srcdir)/tests/meshes $(top_builddir)/tests;
+
+AM_TESTS_FD_REDIRECT = 2>&1
+
 LDADD = $(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
 	$(top_builddir)/src/libcwipi.la \
@@ -59,6 +73,7 @@ check_PROGRAMS = \
 c_linear_coupling \
 c_surf_coupling_P1P1_micron_polygon \
 c_surf_coupling_P1P1_polygon \
+c_surf_coupling_P1P1_polygon2 \
 c_surf_coupling_P1P1_polygon_with_external_points \
 c_surf_coupling_P1P1 \
 c_surf_coupling_P1P1_asynchronous \
@@ -84,6 +99,7 @@ fortran_surf_P1P1_savememory
 c_linear_coupling_SOURCES = c_linear_coupling.c
 c_surf_coupling_P1P1_micron_polygon_SOURCES = creeMaillagePolygone2D.c c_surf_coupling_P1P1_micron_polygon.c
 c_surf_coupling_P1P1_polygon_SOURCES = creeMaillagePolygone2D.c c_surf_coupling_P1P1_polygon.c
+c_surf_coupling_P1P1_polygon2_SOURCES = creeMaillagePolygone2D.c c_surf_coupling_P1P1_polygon2.c
 c_surf_coupling_P1P1_polygon_with_external_points_SOURCES = creeMaillagePolygone2D.c c_surf_coupling_P1P1_polygon_with_external_points.c
 c_surf_coupling_P1P1_SOURCES = grid_mesh.c c_surf_coupling_P1P1.c
 c_surf_coupling_P1P0_P0P1_SOURCES = grid_mesh.c c_surf_coupling_P1P0_P0P1.c
@@ -122,6 +138,13 @@ $(top_builddir)/src/libcwipi.la \
 -lm
 
 c_surf_coupling_P1P1_polygon_LDADD = \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
+$(top_builddir)/src/libcwipi.la \
+@MPI_LIBS@ \
+-lm
+
+c_surf_coupling_P1P1_polygon2_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
 $(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
@@ -286,6 +309,7 @@ TESTS_ENVIRONMENT = ${MPI_EXEC} ${MPI_NP} ${NP} ${VALGRIND}
 TESTS = c_linear_coupling \
 	c_surf_coupling_P1P1_micron_polygon \
 	c_surf_coupling_P1P1_polygon \
+	c_surf_coupling_P1P1_polygon2 \
 	c_surf_coupling_P1P1_polygon_with_external_points \
 	c_surf_coupling_P1P1 \
 	c_surf_coupling_P1P1_asynchronous \

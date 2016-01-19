@@ -52,6 +52,14 @@ echo "====================================================== libtoolize"
 libtoolize --force --copy --automake || exit 1
 
 # ____________________________________________________________________
+# autoheader creates config_priv.h.and config.h.in from configure.ac
+# output:
+#   configure
+echo "====================================================== autoheader"
+
+autoheader -I . -I config  || exit 1
+
+# ____________________________________________________________________
 # autoconf creates the configure script from the file configure.ac (or
 # configure.in if configure.ac doesn't exist)
 # output:
@@ -59,14 +67,6 @@ libtoolize --force --copy --automake || exit 1
 echo "====================================================== autoconf"
 
 autoconf  || exit 1
-
-# ____________________________________________________________________
-# autoheader creates config_priv.h.and config.h.in from configure.ac
-# output:
-#   configure
-echo "====================================================== autoheader"
-
-autoheader -I . -I config  || exit 1
 
 # ____________________________________________________________________
 # automake creates some scripts used in building process

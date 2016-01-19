@@ -2076,24 +2076,11 @@ _locate_in_tetra(fvmc_lnum_t         elt_num,
         max_dist = dist;
     }
 
-    if (i == 40) {
-      printf ("point 41 : num dist / loc dist : %d %12.5e %d %12.5e\n",  elt_num, max_dist, location[i], distance[i]);
-
-    }
-
     if (   (max_dist > -0.5 && max_dist < (1. + 2.*tolerance))
         && (max_dist < distance[i] || distance[i] < 0)) {
       location[i] = elt_num;
       distance[i] = (float) max_dist; 
-      if (i == 40) {
-        printf ("mise a jour\n");
-      }
     }
-      if (i == 40) {
-        location[i] = 14;
-        distance[i] = 0.001;
-        printf ("mise a jour\n");
-      }
 
   }
 

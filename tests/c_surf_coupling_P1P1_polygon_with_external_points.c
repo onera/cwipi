@@ -338,8 +338,9 @@ int main
   if (err_max >= 1e-6) {
     if (rank == 0) {
       printf("        !!! Error = %12.5e\n", err_max);
-      return EXIT_FAILURE;
     }
+    MPI_Finalize();
+    return EXIT_FAILURE;
   }
 
   /* Free

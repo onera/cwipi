@@ -361,10 +361,16 @@ int main( int argc, char* argv[] ) {
 
     }
 
-    if (err >= 1e-6) {
-      printf("        !!! Error = %12.5e\n", err);
+    double err_max;
+    MPI_Allreduce(&err, &err_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+
+    if (err_max >= 1e-6) {
+      if (rank == 0) {
+        printf("        !!! Error = %12.5e\n", err_max);
+      }
+      MPI_Finalize();
       return EXIT_FAILURE;
-    }
+     }
 
     free(coords);
     free(eltsConnec);

@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <float.h>
 
 #include "cwipi.h"
 
@@ -432,19 +433,29 @@ int main( int argc, char* argv[] ) {
     if (rank == 0)
       printf("        Check results\n");    
 
-    double err = fabs(localValues[0] - values[0]);
+    double err = -DBL_MAX;
 
-    for (int i = 1; i < nVertex; i++) {
-      err = ((fabs(localValues[i] - values[i])) < (err) ? (err) : 
-             (fabs(localValues[i] - values[i])));
+    for (int i = 0; i < nVertex; i++) {
 
-    }
+      double val_err = fabs(localValues[i] - values[i]);
+      
+      err = (val_err) < (err) ? (err) : (val_err);
 
-    if (err >= 1e-6) {
-      if (rank == 0) {
-        printf("        !!! Error = %12.5e\n", err);
-        return EXIT_FAILURE;
+      if (val_err >= 1e-6) {
+        printf ("[%d] err %d : %12.5e %12.5e %12.5e\n",
+                rank, i + 1, val_err, localValues[i], values[i]);
       }
+   }
+
+    double err_max;
+    MPI_Allreduce(&err, &err_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+
+    if (err_max >= 1.1e-5) {
+      if (rank == 0) {
+        printf("        !!! Error = %12.5e\n", err_max);
+      }
+      MPI_Finalize();
+      return EXIT_FAILURE;
     }
 
     free(coords);

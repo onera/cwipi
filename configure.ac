@@ -200,14 +200,20 @@ AC_PROG_CXX(icpc g++)
 
 AC_PROG_FC(ifort gfortran)
 
-AC_PROG_LD(icpc g++)
+LT_PATH_LD([icpc g++])
 
 AC_PROG_INSTALL
 
 AC_PROG_LN_S
 
-#AC_LIBTOOL_DLOPEN
-#AC_PROG_LIBTOOL
+#_LT_SET_OPTION([LT_INIT],[dlopen])
+AC_DIAGNOSE([obsolete],[_LT_SET_OPTION([LT_INIT],[dlopen])
+AC_DIAGNOSE([obsolete],[AC_LIBTOOL_DLOPEN: Remove this warning and the call to _LT_SET_OPTION when you
+put the 'dlopen' option into LT_INIT's first parameter.])
+: Remove this warning and the call to _LT_SET_OPTION when you
+put the `dlopen' option into LT_INIT's first parameter.])
+
+#LT_INIT
 
 # Debug or production compilation mode (debug by default) ?
 

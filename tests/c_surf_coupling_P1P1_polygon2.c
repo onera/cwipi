@@ -108,9 +108,8 @@ int main
   else
     srcBaseName = srcName;
 
-  if (rank == 0) {
+  if (rank == 0)
     printf("\nSTART: %s\n", srcBaseName);
-  }
 
   if (comm_world_size != 2) {
     if (rank == 0)
@@ -136,9 +135,9 @@ int main
 
   char* fileName = NULL;
   if (rank == 0) 
-    fileName = "c_surf_coupling_P1P1_micron_polygon_0000.txt";
+    fileName = "c_surf_coupling_P1P1_polygon_0000.txt";
   else
-    fileName = "c_surf_coupling_P1P1_micron_polygon_0001.txt";
+    fileName = "c_surf_coupling_P1P1_polygon_0001.txt";
 
   outputFile = fopen(fileName,"w");
 
@@ -158,7 +157,7 @@ int main
   MPI_Comm_rank(localComm, &currentRank);
   MPI_Comm_size(localComm, &localCommSize);
 
-  fprintf(outputFile, "  Surface coupling test : P1P1 with polygon of size of micron\n");
+  fprintf(outputFile, "  Surface coupling test : P1P1 with polygon\n");
   fprintf(outputFile, "\n");
 
   fprintf(outputFile, "\nDump after initialization\n");
@@ -175,11 +174,11 @@ int main
   /* Coupling creation
    * ----------------- */
 
-  cwipi_create_coupling("c_surf_cpl_P1P1_micron_polygon",                                // Coupling id
+  cwipi_create_coupling("c_surf_cpl_P1P1_polygon",                 // Coupling id
                         CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING, // Coupling type
                         codeCoupledName,                           // Coupled application id
                         2,                                         // Geometric entities dimension
-                        0.1,                                       // Geometric tolerance
+                        1,                                         // Geometric tolerance
                         CWIPI_STATIC_MESH,                         // Mesh type
                         solver_type,                               // Solver type
                         1,                                         // Postprocessing frequency
@@ -198,22 +197,20 @@ int main
   int *eltsConnecPointer = NULL; // Connectivity index
   int *eltsConnec = NULL;        // Connectivity
   
-  //TODO : probleme sur des tailles d'ordre 1e-5 dans la tesselation FVM a voir
-
-  const double xmin = -1e-4;
-  const double xmax =  1e-4;
-  const double ymin = -1e-4;
-  const double ymax =  1e-4;
+  const double xmin = -1;
+  const double xmax =  1;
+  const double ymin = -1;
+  const double ymax =  1;
   int    nx;
   int    ny;
 
   if (rank == 0) {
-    nx = 68;
-    ny = 68;
+    nx = 20;
+    ny = 16;
   }
-  else{
-    nx = 24;
-    ny = 28;
+  else {
+    nx = 56;
+    ny = 60;
   } 
 
   const int   order = 1;
@@ -224,7 +221,7 @@ int main
                          xmax,
                          ymin,
                          ymax,
-                         1,
+                         rank+1,
                          nx,
                          ny,
                          &nVertex,
@@ -233,10 +230,13 @@ int main
                          &eltsConnecPointer,
                          &eltsConnec);
   
+  for (int i = 0; i < nVertex; i++) {
+    coords[3*i+2]=20*sin(coords[3*i+1]/5.)*sin(coords[3*i]/5.);
+  }
   fprintf(outputFile, "   Number of vertex : %i\n", nVertex);
   fprintf(outputFile, "   Number of elements : %i\n", nElts);
 
-  cwipi_define_mesh("c_surf_cpl_P1P1_micron_polygon",
+  cwipi_define_mesh("c_surf_cpl_P1P1_polygon",
                     nVertex,
                     nElts,
                     coords,
@@ -249,9 +249,10 @@ int main
    *     - Proc 1 : Send Y coordinates
    *                Recv X coordinates
    * --------------------------------- */
+
   if (rank == 0)
     printf("        Exchange Proc 0 <-> Proc 1\n");
-
+  
   double *sendValues = NULL;
   double *recvValues = NULL;
   
@@ -260,25 +261,29 @@ int main
 
   for (int i = 0; i < nVertex; i++) {
     if (rank == 0)
-      sendValues[i] = coords[3 * i];
+      sendValues[i] = coords[3*i];
     else
-      sendValues[i] = coords[3 * i + 1];
+      sendValues[i] = coords[3*i+1];
   }
 
   int nNotLocatedPoints = 0;
-  cwipi_exchange_status_t status = cwipi_exchange("c_surf_cpl_P1P1_micron_polygon",
+
+  cwipi_locate("c_surf_cpl_P1P1_polygon");
+  cwipi_locate("c_surf_cpl_P1P1_polygon");
+  
+  cwipi_exchange_status_t status = cwipi_exchange("c_surf_cpl_P1P1_polygon",
                                                   "echange1",
                                                   1,
                                                   1,     // n_step
                                                   0.1,   // physical_time
-                                                  "cooX",
+                                                  "cooY",
                                                   sendValues,
                                                   "cooY",
                                                   recvValues,
                                                   &nNotLocatedPoints);
 
   _dumpStatus(outputFile, status);
-  _dumpNotLocatedPoints(outputFile, "c_surf_cpl_P1P1_micron_polygon", nNotLocatedPoints);
+  _dumpNotLocatedPoints(outputFile, "c_surf_cpl_P1P1_polygon", nNotLocatedPoints);
 
   /* Coupling deletion
    * ----------------- */
@@ -286,7 +291,7 @@ int main
   if (rank == 0)
     printf("        Delete coupling\n");
 
-  cwipi_delete_coupling("c_surf_cpl_P1P1_micron_polygon");
+  cwipi_delete_coupling("c_surf_cpl_P1P1_polygon");
 
   /* Check barycentric coordinates */
 
@@ -299,19 +304,29 @@ int main
   else
     err = fabs(recvValues[0] - coords[3 * 0    ]);
  
-  for (int i = 1; i < nVertex; i++) {
-    if (rank == 0)
+  for (int i = 0; i < nVertex; i++) {
+    if (rank == 0) {
       err = ((fabs(recvValues[i] - coords[3 * i + 1])) < (err) ? (err) : 
              (fabs(recvValues[i] - coords[3 * i + 1])));
-    else
+      if (fabs(recvValues[i] - coords[3 * i + 1]) > 5e-3) {
+               printf ("[%d] err %d : %12.5e %12.5e %12.5e\n",
+               rank, i + 1, fabs(recvValues[i] - coords[3 * i + 1]), recvValues[i], coords[3 * i + 1]);
+      }
+    }
+    else {
       err = ((fabs(recvValues[i] - coords[3 * i    ])) < (err) ? (err) : 
              (fabs(recvValues[i] - coords[3 * i    ])));
+      if (fabs(recvValues[i] - coords[3 * i ]) > 5e-3) {
+        printf ("[%d] err %d : %12.5e %12.5e %12.5e\n",
+               rank, i + 1, fabs(recvValues[i] - coords[3 * i ]), recvValues[i], coords[3 * i]);
+      }
+    }
   }
 
   double err_max;
   MPI_Allreduce(&err, &err_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-
-  if (err_max >= 1e-6) {
+  
+  if (err_max >= 5e-3) {
     if (rank == 0) {
       printf("        !!! Error = %12.5e\n", err_max);
     }
