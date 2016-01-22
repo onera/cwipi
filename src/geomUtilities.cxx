@@ -20,13 +20,13 @@
 #include <algorithm>
 #include <vector>
 #include <cstdio>
+#include <cstdlib>
 
 #include <bftc_printf.h>
 
 #include <geomUtilities.hxx>
 
 namespace cwipi {
-
 
   ///
   /// \brief Quadrangle properties
