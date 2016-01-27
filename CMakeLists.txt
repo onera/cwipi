@@ -74,7 +74,7 @@ if (Fortran_COMPILER_NAME MATCHES "ifort.*")
     set (CMAKE_Fortran_FLAGS  "${CMAKE_Fortran_FLAGS} -fpp"               CACHE STRING "Flags used by the compiler during all build types." FORCE)
     
 #    set (CMAKE_Fortran_FLAGS  "${CMAKE_Fortran_FLAGS} -mkl"               CACHE STRING "Flags used by the compiler during all build types." FORCE)
-    
+        
     
     #set (CMAKE_Fortran_FLAGS  "${CMAKE_Fortran_FLAGS} --opt-report=3"  CACHE STRING "Flags used by the compiler during all build types." FORCE)
     
@@ -116,7 +116,12 @@ if (C_COMPILER_NAME MATCHES "icc.*")
 
   if (BASESNODALES_ENABLE_DEFAULT_FLAGS)
     set (CMAKE_C_FLAGS "-std=c99 -no-multibyte-chars" CACHE STRING "Flags used by the compiler during all build types." FORCE)
+    
+    #libmesh7 (provisoire)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DF77API "     CACHE STRING "Flags used by the compiler during all build types." FORCE) 
+    
     set (CMAKE_C_FLAGS_RELEASE "-O3" CACHE STRING "Flags used by the compiler during release builds." FORCE)
+    
     if (HAVE_VEC)
       # ax option generates many versions of possible optmimizations depending on target
       set (CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -axAVX,SSE4.2" CACHE STRING "Flags used by the compiler during release builds." FORCE)

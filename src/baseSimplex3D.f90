@@ -12,6 +12,9 @@ module baseSimplex3D
   
   subroutine nodes3DOpt_2D(ord,uvw,display)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#define nodes3DOpt_2D 0
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)           :: ord
     real(8), intent(out), pointer :: uvw(:,:)
     logical, intent(in)           :: display
@@ -22,12 +25,14 @@ module baseSimplex3D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !print '("nodes3DOpt_2D")'
+#if nodes3DOpt_2D==1
+    print '(">>> baseSimplex3D:nodes3DOpt_2D ord=",i3," display=",l)',ord,display
+#endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    call nodes3D   (ord=ord,uvw=uvw0,display=.false.)
-    call nodes3Dopt(ord=ord,uvw=uvw0,display=.false.)
+    call nodes3D   (ord=ord,uvw=uvw0,display=display)
+    call nodes3Dopt(ord=ord,uvw=uvw0,display=display)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -57,11 +62,24 @@ module baseSimplex3D
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if nodes3DOpt_2D==1
+    print '("<<< baseSimplex3D:nodes3DOpt_2D ord=",i3," display=",l)',ord,display
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#undef nodes3DOpt_2D
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
     return
   end subroutine nodes3DOpt_2D
   
   
   subroutine nodes3D(ord, uvw, display)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#define nodes3D 0
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! input: ord=polynomial order of interpolant
     ! output: uvw(:,:) node coordinates in unity tetrahedron
@@ -78,28 +96,47 @@ module baseSimplex3D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if nodes3D==1
+    print '(">>> baseSimplex3D:nodes3D ord=",i3," display=",l)',ord,display
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Total number of nodes
-    np=(ord+1)*(ord+2)*(ord+3)/6
+    np=(ord+1)*(ord+2)*(ord+3)/6 ; allocate(uvw(1:4,1:np))
+    if( display )print '(4x,"np=",i3)',np
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    call index3D(ord=ord,idx=idx)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Create equidistributed nodes on unity triangle
-    allocate(uvw(1:4,1:np))
-    do ad=1,np
-      iu=idx(1,ad) ; iv=idx(2,ad) ; iw=idx(3,ad) ; ix=ord-iu-iv-iw
-      uvw(1:4,ad)=[real(iu,kind=8)/real(ord,kind=8),& ! u
-      &            real(iv,kind=8)/real(ord,kind=8),& ! v
-      &            real(iw,kind=8)/real(ord,kind=8),& ! w
-      &            real(ix,kind=8)/real(ord,kind=8) ] ! x
-    enddo
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    deallocate(idx)
+    if( ord==0 )then
+      uvw(1:4,1)=[.25d0,.25d0,.25d0,.25d0]
+    elseif( ord==1 )then
+      uvw(1:4,1)=[0d0,0d0,0d0,1d0]
+      uvw(1:4,2)=[1d0,0d0,0d0,0d0]
+      uvw(1:4,3)=[0d0,1d0,0d0,0d0]
+      uvw(1:4,4)=[0d0,0d0,1d0,0d0]
+    else
+      
+      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      call index3D(ord=ord,idx=idx)
+      if( display )print '(4x,"idx=",10(i3,1x))',idx
+      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+      
+      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      !> Create equidistributed nodes on unity tetra
+      do ad=1,np
+        iu=idx(1,ad) ; iv=idx(2,ad) ; iw=idx(3,ad) ; ix=ord-iu-iv-iw
+        uvw(1:4,ad)=[real(iu,kind=8)/real(ord,kind=8),& ! u
+        &            real(iv,kind=8)/real(ord,kind=8),& ! v
+        &            real(iw,kind=8)/real(ord,kind=8),& ! w
+        &            real(ix,kind=8)/real(ord,kind=8) ] ! x
+      enddo
+      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+      
+      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      deallocate(idx)
+      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -110,10 +147,23 @@ module baseSimplex3D
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if nodes3D==1
+    print '("<<< baseSimplex3D:nodes3D ord=",i3)',ord
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#undef nodes3D
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
     return
   end subroutine nodes3D
   
   subroutine nodes3Dopt(ord,uvw,display)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+#define nodes3Dopt 0
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     ! input: ord=polynomial order of interpolant
     ! output: uvw(:,:) node coordinates in unity triangle
@@ -155,291 +205,306 @@ module baseSimplex3D
     &                                   0.6080d0, 0.4523d0, 0.8856d0, 0.8717d0, 0.96550d0 ]
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !call nodes3D(ord=ord,uvw=uvw,display=.false.)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Total number of nodes
-    n=size(uvw,2) ! print '("n=",i6)',n
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> alpha
-    if( ord<16 )then
-      alpha=alpOpt(ord)
-    else
-      alpha=1d0
-    endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Create barycentric coordinate l1,l2,l3,l4
-    allocate(l1(1:n),l2(1:n),l3(1:n),l4(1:n))
-    l1(1:n)=uvw(3,1:n) ! w
-    l2(1:n)=uvw(2,1:n) ! v
-    l3(1:n)=uvw(4,1:n) ! x
-    l4(1:n)=uvw(1,1:n) ! u
-   !print '(/"[L1 L2 L3 L4]")'
-   !print '(4(f12.5,2x))',(l1(ad),l2(ad),l3(ad),l4(ad),ad=1,n)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> set vertices of equilateral tetrahedron
-    v1(1:3)=[-1d0,-1d0/sqr3,-1d0/sqr6]
-    v2(1:3)=[ 1d0,-1d0/sqr3,-1d0/sqr6]
-    v3(1:3)=[ 0d0, 2d0/sqr3,-1d0/sqr6]
-    v4(1:3)=[ 0d0, 0d0     , 3d0/sqr6]
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#if 0==1
-    open (unit=10,file='NormalizedTetra.mesh',action='write')
-    write(10,'("MeshVersionFormatted 1")')
-    write(10,'(/"Dimension")')
-    write(10,'("3")')
-    write(10,'(/"Vertices")')
-    write(10,'("4")')
-    write(10,'(3(f12.5,1x),2x,i1)')v1(1:3),1
-    write(10,'(3(f12.5,1x),2x,i1)')v2(1:3),1
-    write(10,'(3(f12.5,1x),2x,i1)')v3(1:3),1
-    write(10,'(3(f12.5,1x),2x,i1)')v4(1:3),1
-    write(10,'(/"Triangles")')
-    write(10,'("4")')
-    write(10,'("2 3 4  1")')
-    write(10,'("1 4 3  2")')
-    write(10,'("1 2 4  3")')
-    write(10,'("1 3 2  4")')
-    write(10,'(/"Tetrahedra")')
-    write(10,'("1")')
-    write(10,'("1 2 3 4  0")')
-    write(10,'(/"End")')
-    close(10)
+#if nodes3Dopt==1
+     print '(">>> baseSimplex3D:nodes3Dopt ord=",i3)',ord
 #endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> orthogonal axis tangents on faces 1-4
-    t1(1:3,1) = v2(1:3)-v1(1:3)
-    t1(1:3,2) = v2(1:3)-v1(1:3)
-    t1(1:3,3) = v3(1:3)-v2(1:3)
-    t1(1:3,4) = v3(1:3)-v1(1:3)
-    !-
-    t2(1:3,1) = v3(1:3)-5d-1*(v1(1:3)+v2(1:3))
-    t2(1:3,2) = v4(1:3)-5d-1*(v1(1:3)+v2(1:3))
-    t2(1:3,3) = v4(1:3)-5d-1*(v2(1:3)+v3(1:3))
-    t2(1:3,4) = v4(1:3)-5d-1*(v1(1:3)+v3(1:3))
-    !
-    !> normalize tangents
-    do ad=1,4
-      t1(1:3,ad)=t1(1:3,ad)/norm2(t1(1:3,ad))
-      t2(1:3,ad)=t2(1:3,ad)/norm2(t2(1:3,ad))
-    enddo
-    
-#if 0==1
-    print '(/"t1_1=",3(f12.5,1x))',t1(1:3,1)
-    print '( "t1_2=",3(f12.5,1x))',t1(1:3,2)
-    print '( "t1_3=",3(f12.5,1x))',t1(1:3,3)
-    print '( "t1_4=",3(f12.5,1x))',t1(1:3,4)
-    print '(/"t2_1=",3(f12.5,1x))',t2(1:3,1)
-    print '( "t2_2=",3(f12.5,1x))',t2(1:3,2)
-    print '( "t2_3=",3(f12.5,1x))',t2(1:3,3)
-    print '( "t2_4=",3(f12.5,1x))',t2(1:3,4)
-#endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Warp and blend for each face (accumulated in shiftXYZ)
-    !
-    ! [x]   [v1(1) v2(1) v3(1) v4(1)]
-    ! [y] = [v1(2) v2(2) v3(2) v4(2)] x [13,14,12,l1]^t
-    ! [z]   [v1(3) v2(3) v3(3) v4(3)]
-    !
-    allocate(x(1:n)) ; x(1:n)=l3(1:n)*v1(1)+l4(1:n)*v2(1)+l2(1:n)*v3(1)+l1(1:n)*v4(1) ! form undeformed coordinates
-    allocate(y(1:n)) ; y(1:n)=l3(1:n)*v1(2)+l4(1:n)*v2(2)+l2(1:n)*v3(2)+l1(1:n)*v4(2) ! form undeformed coordinates
-    allocate(z(1:n)) ; z(1:n)=l3(1:n)*v1(3)+l4(1:n)*v2(3)+l2(1:n)*v3(3)+l1(1:n)*v4(3) ! form undeformed coordinates
-    
-#if 0==1
-    print '(/"[x y z]")'
-    print '(3(f12.5,2x))',(x(ad),y(ad),z(ad),ad=1,n)
-#endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    allocate(shiftX(1:n)) ; shiftX(1:n)=0d0
-    allocate(shiftY(1:n)) ; shiftY(1:n)=0d0
-    allocate(shiftZ(1:n)) ; shiftZ(1:n)=0d0
-    allocate(blend(1:n))
-    allocate(denom(1:n))
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    call gaussLegendreLobatto(ord=ord,xGLL=xGLL)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    do iFace=1,4
+    if( ord>2 )then
       
       !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-      select case(iFace)
-      case(1) ; la=>l1 ; lb=>l2 ; lc=>l3 ; ld=>l4
-      case(2) ; la=>l2 ; lb=>l1 ; lc=>l3 ; ld=>l4
-      case(3) ; la=>l3 ; lb=>l1 ; lc=>l4 ; ld=>l2
-      case(4) ; la=>l4 ; lb=>l1 ; lc=>l3 ; ld=>l2
-      end select
+      !> Total number of nodes
+      n=size(uvw,2) ! print '("n=",i6)',n
       !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       
       !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-      !> compute warp tangential to face
-      call evalShift(ord=ord, alpha=alpha, l1=lb, l2=lc, l3=ld,xGLL=xGLL, dx=warp1, dy=warp2)
+      !> alpha
+      if( ord<16 )then
+        alpha=alpOpt(ord)
+      else
+        alpha=1d0
+      endif
+      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       
-#if 0==1
-      print'(/"[warp1 warp2]")'
-      print '(2(f12.6,2x))',(warp1(ad),warp2(ad),ad=1,n)
+      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      !> Create barycentric coordinate l1,l2,l3,l4
+      allocate(l1(1:n),l2(1:n),l3(1:n),l4(1:n))
+      l1(1:n)=uvw(3,1:n) ! w
+      l2(1:n)=uvw(2,1:n) ! v
+      l3(1:n)=uvw(4,1:n) ! x
+      l4(1:n)=uvw(1,1:n) ! u
+     !print '(/"[L1 L2 L3 L4]")'
+     !print '(4(f12.5,2x))',(l1(ad),l2(ad),l3(ad),l4(ad),ad=1,n)
+      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+      
+      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      !> set vertices of equilateral tetrahedron
+      v1(1:3)=[-1d0,-1d0/sqr3,-1d0/sqr6]
+      v2(1:3)=[ 1d0,-1d0/sqr3,-1d0/sqr6]
+      v3(1:3)=[ 0d0, 2d0/sqr3,-1d0/sqr6]
+      v4(1:3)=[ 0d0, 0d0     , 3d0/sqr6]
+      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+      
+      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if nodes3Dopt==1
+      open (unit=10,file='NormalizedTetra.mesh',action='write')
+      write(10,'("MeshVersionFormatted 1")')
+      write(10,'(/"Dimension")')
+      write(10,'("3")')
+      write(10,'(/"Vertices")')
+      write(10,'("4")')
+      write(10,'(3(f12.5,1x),2x,i1)')v1(1:3),1
+      write(10,'(3(f12.5,1x),2x,i1)')v2(1:3),1
+      write(10,'(3(f12.5,1x),2x,i1)')v3(1:3),1
+      write(10,'(3(f12.5,1x),2x,i1)')v4(1:3),1
+      write(10,'(/"Triangles")')
+      write(10,'("4")')
+      write(10,'("2 3 4  1")')
+      write(10,'("1 4 3  2")')
+      write(10,'("1 2 4  3")')
+      write(10,'("1 3 2  4")')
+      write(10,'(/"Tetrahedra")')
+      write(10,'("1")')
+      write(10,'("1 2 3 4  0")')
+      write(10,'(/"End")')
+      close(10)
 #endif
       !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       
       !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-      !> compute volume blending
-      blend(1:n)=lb(1:n)*lc(1:n)*ld(1:n)
-      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-      
-      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-      !> modify linear blend
-      denom(1:n)= (lb(1:n)+5d-1*la(1:n)) &
-      &          *(lc(1:n)+5d-1*la(1:n)) &
-      &          *(ld(1:n)+5d-1*la(1:n))
-      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-      
-      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-      do i=1,n
-        if( denom(i)>tol )blend(i)=(1d0+(alpha*la(i))**2)*blend(i)/denom(i)
+      !> orthogonal axis tangents on faces 1-4
+      t1(1:3,1) = v2(1:3)-v1(1:3)
+      t1(1:3,2) = v2(1:3)-v1(1:3)
+      t1(1:3,3) = v3(1:3)-v2(1:3)
+      t1(1:3,4) = v3(1:3)-v1(1:3)
+      !-
+      t2(1:3,1) = v3(1:3)-5d-1*(v1(1:3)+v2(1:3))
+      t2(1:3,2) = v4(1:3)-5d-1*(v1(1:3)+v2(1:3))
+      t2(1:3,3) = v4(1:3)-5d-1*(v2(1:3)+v3(1:3))
+      t2(1:3,4) = v4(1:3)-5d-1*(v1(1:3)+v3(1:3))
+      !
+      !> normalize tangents
+      do ad=1,4
+        t1(1:3,ad)=t1(1:3,ad)/norm2(t1(1:3,ad))
+        t2(1:3,ad)=t2(1:3,ad)/norm2(t2(1:3,ad))
       enddo
       
 #if 0==1
-      print'(/"[blend]")'
-      print '(1(f12.4,2x))',(blend(ad),ad=1,n)
+      print '(/"t1_1=",3(f12.5,1x))',t1(1:3,1)
+      print '( "t1_2=",3(f12.5,1x))',t1(1:3,2)
+      print '( "t1_3=",3(f12.5,1x))',t1(1:3,3)
+      print '( "t1_4=",3(f12.5,1x))',t1(1:3,4)
+      print '(/"t2_1=",3(f12.5,1x))',t2(1:3,1)
+      print '( "t2_2=",3(f12.5,1x))',t2(1:3,2)
+      print '( "t2_3=",3(f12.5,1x))',t2(1:3,3)
+      print '( "t2_4=",3(f12.5,1x))',t2(1:3,4)
 #endif
       !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       
       !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-      !> compute warp & blend
-      shiftX(1:n)= shiftX(1:n) +(blend(1:n)*warp1(1:n))*t1(1,iFace) +(blend(1:n)*warp2(1:n))*t2(1,iFace) ! x
-      shiftY(1:n)= shiftY(1:n) +(blend(1:n)*warp1(1:n))*t1(2,iFace) +(blend(1:n)*warp2(1:n))*t2(2,iFace) ! y
-      shiftZ(1:n)= shiftZ(1:n) +(blend(1:n)*warp1(1:n))*t1(3,iFace) +(blend(1:n)*warp2(1:n))*t2(3,iFace) ! z
+      !> Warp and blend for each face (accumulated in shiftXYZ)
+      !
+      ! [x]   [v1(1) v2(1) v3(1) v4(1)]
+      ! [y] = [v1(2) v2(2) v3(2) v4(2)] x [13,14,12,l1]^t
+      ! [z]   [v1(3) v2(3) v3(3) v4(3)]
+      !
+      allocate(x(1:n)) ; x(1:n)=l3(1:n)*v1(1)+l4(1:n)*v2(1)+l2(1:n)*v3(1)+l1(1:n)*v4(1) ! form undeformed coordinates
+      allocate(y(1:n)) ; y(1:n)=l3(1:n)*v1(2)+l4(1:n)*v2(2)+l2(1:n)*v3(2)+l1(1:n)*v4(2) ! form undeformed coordinates
+      allocate(z(1:n)) ; z(1:n)=l3(1:n)*v1(3)+l4(1:n)*v2(3)+l2(1:n)*v3(3)+l1(1:n)*v4(3) ! form undeformed coordinates
+      
+#if 0==1
+      print '(/"[x y z]")'
+      print '(3(f12.5,2x))',(x(ad),y(ad),z(ad),ad=1,n)
+#endif
       !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       
       !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-      !> fix face warp 
-      !ids = find(La<tol & ( (Lb>tol) + (Lc>tol) + (Ld>tol) < 3));
-      !  if( la(i)<tol .and. .not.(lb(i)>tol.and.lc(i)>tol.and.ld(i)>tol) )then
-      !shift(ids,:) = warp1(ids)*t1(face,:) + warp2(ids)*t2(face,:);
-      do i=1,n
-        if( la(i)<tol .and. .not.(lb(i)>tol.and.lc(i)>tol.and.ld(i)>tol) )then
-          shiftX(i) = warp1(i)*t1(1,iFace) + warp2(i)*t2(1,iFace)
-          shiftY(i) = warp1(i)*t1(2,iFace) + warp2(i)*t2(2,iFace)
-          shiftZ(i) = warp1(i)*t1(3,iFace) + warp2(i)*t2(3,iFace)
-        endif
+      allocate(shiftX(1:n)) ; shiftX(1:n)=0d0
+      allocate(shiftY(1:n)) ; shiftY(1:n)=0d0
+      allocate(shiftZ(1:n)) ; shiftZ(1:n)=0d0
+      allocate(blend(1:n))
+      allocate(denom(1:n))
+      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+      
+      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      call gaussLegendreLobatto(ord=ord,xGLL=xGLL)
+      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+      
+      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      do iFace=1,4
+        
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        select case(iFace)
+        case(1) ; la=>l1 ; lb=>l2 ; lc=>l3 ; ld=>l4
+        case(2) ; la=>l2 ; lb=>l1 ; lc=>l3 ; ld=>l4
+        case(3) ; la=>l3 ; lb=>l1 ; lc=>l4 ; ld=>l2
+        case(4) ; la=>l4 ; lb=>l1 ; lc=>l3 ; ld=>l2
+        end select
+        !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        !> compute warp tangential to face
+        call evalShift(ord=ord, alpha=alpha, l1=lb, l2=lc, l3=ld,xGLL=xGLL, dx=warp1, dy=warp2)
+        
+#if 0==1
+        print'(/"[warp1 warp2]")'
+        print '(2(f12.6,2x))',(warp1(ad),warp2(ad),ad=1,n)
+#endif
+        !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        !> compute volume blending
+        blend(1:n)=lb(1:n)*lc(1:n)*ld(1:n)
+        !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        !> modify linear blend
+        denom(1:n)= (lb(1:n)+5d-1*la(1:n)) &
+        &          *(lc(1:n)+5d-1*la(1:n)) &
+        &          *(ld(1:n)+5d-1*la(1:n))
+        !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        do i=1,n
+          if( denom(i)>tol )blend(i)=(1d0+(alpha*la(i))**2)*blend(i)/denom(i)
+        enddo
+        
+#if 0==1
+        print'(/"[blend]")'
+        print '(1(f12.4,2x))',(blend(ad),ad=1,n)
+#endif
+        !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        !> compute warp & blend
+        shiftX(1:n)= shiftX(1:n) +(blend(1:n)*warp1(1:n))*t1(1,iFace) +(blend(1:n)*warp2(1:n))*t2(1,iFace) ! x
+        shiftY(1:n)= shiftY(1:n) +(blend(1:n)*warp1(1:n))*t1(2,iFace) +(blend(1:n)*warp2(1:n))*t2(2,iFace) ! y
+        shiftZ(1:n)= shiftZ(1:n) +(blend(1:n)*warp1(1:n))*t1(3,iFace) +(blend(1:n)*warp2(1:n))*t2(3,iFace) ! z
+        !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        !> fix face warp 
+        !ids = find(La<tol & ( (Lb>tol) + (Lc>tol) + (Ld>tol) < 3));
+        !  if( la(i)<tol .and. .not.(lb(i)>tol.and.lc(i)>tol.and.ld(i)>tol) )then
+        !shift(ids,:) = warp1(ids)*t1(face,:) + warp2(ids)*t2(face,:);
+        do i=1,n
+          if( la(i)<tol .and. .not.(lb(i)>tol.and.lc(i)>tol.and.ld(i)>tol) )then
+            shiftX(i) = warp1(i)*t1(1,iFace) + warp2(i)*t2(1,iFace)
+            shiftY(i) = warp1(i)*t1(2,iFace) + warp2(i)*t2(2,iFace)
+            shiftZ(i) = warp1(i)*t1(3,iFace) + warp2(i)*t2(3,iFace)
+          endif
+        enddo
+        !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        
+        !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        deallocate(warp1,warp2)
+        !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        
       enddo
       !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       
       !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-      deallocate(warp1,warp2)
+      deallocate(xGLL)
       !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       
-    enddo
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    deallocate(xGLL)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> XYZ( = XYZ + shift
-    x(1:n)=x(1:n)+shiftX(1:n)
-    y(1:n)=y(1:n)+shiftY(1:n)
-    z(1:n)=z(1:n)+shiftZ(1:n)
-    
+      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      !> XYZ( = XYZ + shift
+      x(1:n)=x(1:n)+shiftX(1:n)
+      y(1:n)=y(1:n)+shiftY(1:n)
+      z(1:n)=z(1:n)+shiftZ(1:n)
+      
 #if 0==1
-    print '("[x y z]")'
-    print '(3(f12.4,2x))',(x(ad),y(ad),z(ad),ad=1,n)
+      print '("[x y z]")'
+      print '(3(f12.4,2x))',(x(ad),y(ad),z(ad),ad=1,n)
 #endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    deallocate(blend)
-    deallocate(denom)
-    deallocate(shiftX,shiftY,shiftZ)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+      
+      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      deallocate(blend)
+      deallocate(denom)
+      deallocate(shiftX,shiftY,shiftZ)
+      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+      
+      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #if 0==1
-    open(unit=10,file="nodes3D.dat",action='write',status='unknown')
-    do ad=1,n
-      write(10,'(i3,1x,3(f12.5,2x))')ad,x(ad),y(ad),z(ad)
-    enddo
-    close(10)
+      open(unit=10,file="nodes3D.dat",action='write',status='unknown')
+      do ad=1,n
+        write(10,'(i3,1x,3(f12.5,2x))')ad,x(ad),y(ad),z(ad)
+      enddo
+      close(10)
 #endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> back out right tet nodes
-    
-    !rhs = [X';Y';Z'] - 0.5*(v2'+v3'+v4'-v1')*ones(1,length(X));
-    allocate(rhs(1:3,1:n)) ; rhs(1:3,1:n)=0d0
-    rhs(1,1:n)=x(1:n)-5d-1*(v2(1)+v3(1)+v4(1)-v1(1))
-    rhs(2,1:n)=y(1:n)-5d-1*(v2(2)+v3(2)+v4(2)-v1(2))
-    rhs(3,1:n)=z(1:n)-5d-1*(v2(3)+v3(3)+v4(3)-v1(3))
-    
+      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+      
+      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      !> back out right tet nodes
+      
+      !>rhs = [X';Y';Z'] - 0.5*(v2'+v3'+v4'-v1')*ones(1,length(X));
+      allocate(rhs(1:3,1:n)) ; rhs(1:3,1:n)=0d0
+      rhs(1,1:n)=x(1:n)-5d-1*(v2(1)+v3(1)+v4(1)-v1(1))
+      rhs(2,1:n)=y(1:n)-5d-1*(v2(2)+v3(2)+v4(2)-v1(2))
+      rhs(3,1:n)=z(1:n)-5d-1*(v2(3)+v3(3)+v4(3)-v1(3))
+      
 #if 0==1
-    print '("rhs")'
-    print '(3(f12.4,2x))',(rhs(1:3,ad),ad=1,n)
+      print '("rhs")'
+      print '(3(f12.4,2x))',(rhs(1:3,ad),ad=1,n)
 #endif
-    
-    !> array = [0.5*(v2-v1)',0.5*(v3-v1)',0.5*(v4-v1)'];  definition colonne par colonne
-    array(1:3,1) = 5d-1*(v2(1:3)-v1(1:3)) ! colonne 1
-    array(1:3,2) = 5d-1*(v3(1:3)-v1(1:3)) ! colonne 2
-    array(1:3,3) = 5d-1*(v4(1:3)-v1(1:3)) ! colonne 3
-    
+      
+      !> array = [0.5*(v2-v1)',0.5*(v3-v1)',0.5*(v4-v1)'];  definition colonne par colonne
+      array(1:3,1) = 5d-1*(v2(1:3)-v1(1:3)) !> colonne 1
+      array(1:3,2) = 5d-1*(v3(1:3)-v1(1:3)) !> colonne 2
+      array(1:3,3) = 5d-1*(v4(1:3)-v1(1:3)) !> colonne 3
+      
 #if 0==1
-   !print '("array")'
-   !print '(3(f12.4,2x))',(array(ad,1:3),ad=1,3)
+     !print '("array")'
+     !print '(3(f12.4,2x))',(array(ad,1:3),ad=1,3)
 #endif
-    
-    lWork=64*3
-    call dgetrf(3,3,array(1,1),3,ipiv(1)              ,iErr)
-    call dgetri(3  ,array(1,1),3,ipiv(1),work(1),lWork,iErr)
-    
+      
+      lWork=64*3
+      call dgetrf(3,3,array(1,1),3,ipiv(1)              ,iErr)
+      call dgetri(3  ,array(1,1),3,ipiv(1),work(1),lWork,iErr)
+      
 #if 0==1
-   !print '("array^-1")'
-   !print '(3(f12.4,2x))',(array(ad,1:3),ad=1,3)
+     !print '("array^-1")'
+     !print '(3(f12.4,2x))',(array(ad,1:3),ad=1,3)
 #endif
-    
-    !> rst = array\[rhs]; = array Inverse[rhs]
-    allocate(rst(1:n,1:3)) ; rst(1:n,1:3)=0d0
-    do i=1,n
-      do j=1,3
-        do k=1,3
-          rst(i,j)=rst(i,j)+array(j,k)*rhs(k,i)
+      
+      !> rst = array\[rhs]; = array Inverse[rhs]
+      allocate(rst(1:n,1:3)) ; rst(1:n,1:3)=0d0
+      do i=1,n
+        do j=1,3
+          do k=1,3
+            rst(i,j)=rst(i,j)+array(j,k)*rhs(k,i)
+          enddo
         enddo
       enddo
-    enddo
-    
+      
 #if 0==1
-   print '("rst")'
-   print '(3(f12.4,2x))',(rst(ad,1:3),ad=1,n)
+     print '("rst")'
+     print '(3(f12.4,2x))',(rst(ad,1:3),ad=1,n)
 #endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    uvw(1,1:n)= 5d-1*( rst(:,1)                  +1d0) ! l3(1:n)
-    uvw(2,1:n)= 5d-1*(          rst(:,2)         +1d0) ! l2(1:n)
-    uvw(3,1:n)= 5d-1*(                   rst(:,3)+1d0) ! l4(1:n)
-    uvw(4,1:n)=-5d-1*( rst(:,1)+rst(:,2)+rst(:,3)+1d0) ! l1(1:n)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    deallocate(rhs,rst)
+      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+      
+      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      uvw(1,1:n)= 5d-1*( rst(:,1)                  +1d0) ! l3(1:n)
+      uvw(2,1:n)= 5d-1*(          rst(:,2)         +1d0) ! l2(1:n)
+      uvw(3,1:n)= 5d-1*(                   rst(:,3)+1d0) ! l4(1:n)
+      uvw(4,1:n)=-5d-1*( rst(:,1)+rst(:,2)+rst(:,3)+1d0) ! l1(1:n)
+      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+      
+      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      deallocate(rhs,rst)
+      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+      
+      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      deallocate(l1)
+      deallocate(l2)
+      deallocate(l3)
+      deallocate(l4)
+      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+      
+    endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -450,11 +515,14 @@ module baseSimplex3D
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    deallocate(l1)
-    deallocate(l2)
-    deallocate(l3)
-    deallocate(l4)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+#if nodes3Dopt==1
+     print '("<<< baseSimplex3D:nodes3Dopt ord=",i3)',ord
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+#undef nodes3Dopt
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
@@ -1318,7 +1386,7 @@ module baseSimplex3D
   
   subroutine writeMeshSkin3D(ord)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    use M_libmesh6_api
+    include 'libmesh7.ins'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)          :: ord
@@ -1341,7 +1409,8 @@ module baseSimplex3D
     real(4)                      :: dist(1)
     !> libmesh
     character(256)               :: name
-    integer                      :: ins,ver,res,geo
+    integer(8)                   :: unit
+    integer                      :: ver,res,geo
     integer , allocatable        :: TypTab(:)
     real(4)                      :: xyz(3)
     integer                      :: nFld,kind(1)
@@ -1405,40 +1474,35 @@ module baseSimplex3D
       !> yams2_V2 va creer la peau TetraSkinPi.mesh en utilisant TetraSkinP1.meh et DEFAULT.yams
       name="TetraSkinP"//sfx//".mesh" ; print '(/"Building ",a)',trim(name)
       call system("yams2_V2 -O 4 -f TetraP1.mesh "// trim(name) // " >> ./yams.log")
-      ins=GmfOpenMeshF77(trim(name),GmfRead,ver,geo) ! print '(3x,"ins=",i3)',ins
-      print '(3x,"nVert=",i10)',GmfStatKwdF77(ins,GmfVertices,ver,0,TypTab)
-      print '(3x,"nTetr=",i10)',GmfStatKwdF77(ins,GmfTetrahedra,0,0,TypTab)
-      print '(3x,"nTria=",i10)',GmfStatKwdF77(ins,GmfTriangles,0,0,TypTab)
-      res=GmfCloseMeshF77(ins)
+      unit=GmfOpenMesh(trim(name),GmfRead,ver,geo) ! print '(3x,"unit=",i3)',unit
+      print '(3x,"nVert=",i10)',GmfStatKwd(unit,GmfVertices  )
+      print '(3x,"nTetr=",i10)',GmfStatKwd(unit,GmfTetrahedra)
+      print '(3x,"nTria=",i10)',GmfStatKwd(unit,GmfTriangles )
+      res=GmfCloseMesh(unit)
       !<<<<<<<<
       
       !>>>>>>>>
       !> Lecture de la peau TetraSkinPi.mesh
       print '(/"Reading: ",a)',trim(name)
-      ins=GmfOpenMeshF77(trim(name),GmfRead,ver,geo) ! print '(3x,"ins=",i3)',ins
-      nVert=GmfStatKwdF77(ins,GmfVertices,ver,0,TypTab) ; print '(3x,"nVert=",i10)',nVert
-      allocate(vert(geo+1,nVert),mark(nVert))
-      res=GmfGotoKwdF77(ins,GmfVertices)
-      select case(ver)
-      case(1) ! real(4)
-        do iVert=1,nVert
-          call GmfGetVertex3dr4(ins,xyz(1),xyz(2),xyz(3),mark(iVert))
-          vert(1:3,iVert)=xyz(1:3)
-          vert(4,iVert)=1d0-vert(1,iVert)-vert(2,iVert)-vert(3,iVert)
-        enddo
-      case(2) ! real(8)
-        do iVert=1,nVert
-          call GmfGetVertex3dr8(ins,vert(1,iVert),vert(2,iVert),vert(3,iVert),mark(iVert))
-          vert(4,iVert)=1d0-vert(1,iVert)-vert(2,iVert)-vert(3,iVert)
-        enddo
-      end select
-      nTria=GmfStatKwdF77(ins,GmfTriangles,0,0,TypTab) ; print '(3x,"nTria=",i10)',nTria
-      allocate(tria(4,nTria))
-      res=GmfGotoKwdF77(ins,GmfTriangles)
-      do iTria=1,nTria
-        call GmfGetTriangle(ins,tria(1,iTria),tria(2,iTria),tria(3,iTria),tria(4,iTria))
+      unit=GmfOpenMesh(trim(name),GmfRead,ver,geo) ! print '(3x,"unit=",i3)',unit
+      nVert=GmfStatKwd(unit,GmfVertices) ; print '(3x,"nVert=",i10)',nVert
+      allocate(vert(1:geo+1,1:nVert),mark(1:nVert))
+      res=GmfGotoKwd(unit,GmfVertices)
+      do iVert=1,nVert
+        res=GmfGetLin(unit,GmfVertices,vert(1,iVert),vert(2,iVert),vert(3,iVert),mark(iVert))     
+        vert(4,iVert)=1d0-vert(1,iVert)-vert(2,iVert)-vert(3,iVert)
       enddo
-      res=GmfCloseMeshF77(ins)
+            
+      nTria=GmfStatKwd(unit,GmfTriangles) ; print '(3x,"nTria=",i10)',nTria
+      allocate(tria(1:4,1:nTria))
+      
+      res=GmfGetBlock(unit, GmfTriangles,& ! <=
+      &   GmfInt, tria(1,1), tria(1,2)  ,&
+      &   GmfInt, tria(2,1), tria(2,2)  ,&
+      &   GmfInt, tria(3,1), tria(3,2)  ,&
+      &   GmfInt, tria(4,1), tria(4,2)   )
+      
+      res=GmfCloseMesh(unit)
       !<<<<<<<<
       
       !>>>>>>>>
@@ -1480,31 +1544,31 @@ module baseSimplex3D
       if( .not.nVertVol==0 )then
         name="nodes3DP"//sfx//".mesh" ; print '(/"Writing: ",a)',trim(name)
         ver=1
-        ins=GmfOpenMeshF77(trim(name),GmfWrite,ver,geo) ; print '(3x,"nVert=",i10)',nVertVol
-        res=GmfSetKwdF77(ins,GmfVertices,nVertVol,0,TypTab)
+        unit=GmfOpenMesh(trim(name),GmfWrite,ver,geo) ; print '(3x,"nVert=",i10)',nVertVol
+        res=GmfSetKwd(unit,GmfVertices,nVertVol)
         do iVert0=1,nVert0
           if( indx(iVert0)==0 )then
-            call GmfSetVertex3dr4(ins                         ,&
-            &                     real(vert0(1,iVert0),kind=4),&
-            &                     real(vert0(2,iVert0),kind=4),&
-            &                     real(vert0(3,iVert0),kind=4),&
-            &                     i3=0                         )
+            res=GmfSetLin(unit, GmfVertices             ,&
+            &             real(vert0(1,iVert0),kind=4)  ,&
+            &             real(vert0(2,iVert0),kind=4)  ,&
+            &             real(vert0(3,iVert0),kind=4),0 )
           endif
         enddo
-        res=GmfCloseMeshF77(ins)
+        res=GmfCloseMesh(unit)
         !<<<<<<<<
         !>>>>>>>>
         nFld=1 ; kind(1)=1 ; dist(1)=1e0/real(iOrd,kind=4)
         name="nodes3DP"//sfx//".sol" ; print '(/"Writing: ",a)',trim(name)
         ver=1
-        ins=GmfOpenMeshF77(trim(name),GmfWrite,ver,geo) ; print '(3x,"nSolu=",i10)',nVertVol
-        res=GmfSetKwdF77(ins,GmfSolAtVertices,nVertVol,nFld,kind(1:1))
+        unit=GmfOpenMesh(trim(name),GmfWrite,ver,geo) ; print '(3x,"nSolu=",i10)',nVertVol
+        
+        res=GmfSetKwd(unit,GmfSolAtVertices,nVertVol,nFld,kind(1:1))
         do iVert0=1,nVert0
           if( indx(iVert0)==0 )then
-            call gmfSetSolAtVertexR4(ins,dist(1))
+            res=GmfSetLin(unit,GmfSolAtVertices,dist(1))            
           endif
         enddo
-        res=GmfCloseMeshF77(ins)
+        res=GmfCloseMesh(unit)
       endif
       nVert0=0
       nVert =0
@@ -1526,36 +1590,40 @@ module baseSimplex3D
       !>>>>>>>>
       name="TetraP"//sfx//".mesh"
       print '(/"Reading: ",a)',trim(name)
-      ins=GmfOpenMeshF77(trim(name),GmfRead,ver,geo) ! print '(3x,"ins=",i3)',ins
-      nVert=GmfStatKwdF77(ins,GmfVertices,ver,0,TypTab) ; print '(3x,"nVert=",i10)',nVert
+      unit=GmfOpenMesh(trim(name),GmfRead,ver,geo) ! print '(3x,"unit=",i3)',unit
+      
+      nVert=GmfStatKwd(unit,GmfVertices,ver,0,TypTab) ; print '(3x,"nVert=",i10)',nVert
       allocate(vert(geo+1,nVert),mark(nVert))  ! il faut mettre geo+1 pour ensuite optimiser les noeuds
-      res=GmfGotoKwdF77(ins,GmfVertices)
+      res=GmfGotoKwd(unit,GmfVertices)
       select case(ver)
       case(1) ! real(4)
         do iVert=1,nVert
-          call GmfGetVertex3dr4(ins,xyz(1),xyz(2),xyz(3),mark(iVert))
+          res=GmfGetLin(unit,GmfVertices,xyz(1),xyz(2),xyz(3),mark(iVert))
           vert(1:3,iVert)=xyz(1:3)
           vert(4,iVert)=1d0-vert(1,iVert)-vert(2,iVert)-vert(3,iVert)
         enddo
       case(2) ! real(8)
         do iVert=1,nVert
-          call GmfGetVertex3dr8(ins,vert(1,iVert),vert(2,iVert),vert(3,iVert),mark(iVert))
+          res=GmfGetLin(unit,GmfVertices,vert(1,iVert),vert(2,iVert),vert(3,iVert),mark(iVert))
           vert(4,iVert)=1d0-vert(1,iVert)-vert(2,iVert)-vert(3,iVert)
         enddo
       end select
-      nTetr=GmfStatKwdF77(ins,GmfTetrahedra,0,0,TypTab) ; print '(3x,"nTetr=",i10)',nTetr
+      
+      nTetr=GmfStatKwd(unit,GmfTetrahedra) ; print '(3x,"nTetr=",i10)',nTetr
       allocate(tetr(5,nTetr))
-      res=GmfGotoKwdF77(ins,GmfTetrahedra)
+      res=GmfGotoKwd(unit,GmfTetrahedra)
       do iTetr=1,nTetr
-        call GmfGetTetrahedron(ins,tetr(1,iTetr),tetr(2,iTetr),tetr(3,iTetr),tetr(4,iTetr),tetr(5,iTetr))
+        res=GmfGetLin(unit,GmfTetrahedra,tetr(1,iTetr),tetr(2,iTetr),tetr(3,iTetr),tetr(4,iTetr),tetr(5,iTetr))
       enddo
-      nTria=GmfStatKwdF77(ins,GmfTriangles,0,0,TypTab) ; print '(3x,"nTria=",i10)',nTria
+      
+      nTria=GmfStatKwd(unit,GmfTriangles) ; print '(3x,"nTria=",i10)',nTria
       allocate(tria(4,nTria))
-      res=GmfGotoKwdF77(ins,GmfTriangles)
+      res=GmfGotoKwd(unit,GmfTriangles)
       do iTria=1,nTria
-        call GmfGetTriangle(ins,tria(1,iTria),tria(2,iTria),tria(3,iTria),tria(4,iTria))
+        res=GmfGetLin(unit, GmfTriangles,tria(1,iTria),tria(2,iTria),tria(3,iTria),tria(4,iTria))
       enddo
-      res=GmfCloseMeshF77(ins)
+      
+      res=GmfCloseMesh(unit)
       !<<<<<<<<
       
       !>>>>>>>>
@@ -1602,33 +1670,34 @@ module baseSimplex3D
       !>>>>>>>>
       !> Reecriture de TetraPi.mesh
       name="TetraP"//sfx//".mesh" ; print '(/"OverWriting: ",a)',trim(name)
-      ins=GmfOpenMeshF77(trim(name),GmfWrite,1,3) ; print '(3x,"nVert=",i10)',nVert0
-      res=GmfSetKwdF77(ins,GmfVertices,nVert0,0,TypTab)
+      unit=GmfOpenMesh(trim(name),GmfWrite,1,3) ; print '(3x,"nVert=",i10)',nVert0
+      res=GmfSetKwd(unit,GmfVertices,nVert0)
+      
       do iVert0=1,nVert0
-        call GmfSetVertex3dr4(ins                         ,&
-        &                     real(vert0(1,iVert0),kind=4),&
-        &                     real(vert0(2,iVert0),kind=4),&
-        &                     real(vert0(3,iVert0),kind=4),&
-        &                     i3=0                         )
+        res=GmfSetLin(unit,GmfVertices            ,&
+        &             real(vert0(1,iVert0),kind=4),&
+        &             real(vert0(2,iVert0),kind=4),&
+        &             real(vert0(3,iVert0),kind=4),&
+        &             0                            )
       enddo
-      res=GmfSetKwdF77(ins,GmfTetrahedra,nTetr,0,TypTab) ; print '(3x,"nTetr=",i10)',nTetr
+      res=GmfSetKwd(unit,GmfTetrahedra,nTetr) ; print '(3x,"nTetr=",i10)',nTetr
       do iTetr=1,nTetr
-        call GmfSetTetrahedron(ins                ,&
-        &                      indx(tetr(1,iTetr)),&
-        &                      indx(tetr(2,iTetr)),&
-        &                      indx(tetr(3,iTetr)),&
-        &                      indx(tetr(4,iTetr)),&
-        &                           tetr(5,iTetr)  )
+        res=GmfSetLin(unit,GmfTetrahedra ,&  
+        &             indx(tetr(1,iTetr)),&
+        &             indx(tetr(2,iTetr)),&
+        &             indx(tetr(3,iTetr)),&
+        &             indx(tetr(4,iTetr)),&
+        &                  tetr(5,iTetr)  )
       enddo
-      res=GmfSetKwdF77(ins,GmfTriangles,nTria,0,TypTab) ; print '(3x,"nTria=",i10)',nTria
+      res=GmfSetKwd(unit,GmfTriangles,nTria) ; print '(3x,"nTria=",i10)',nTria
       do iTria=1,nTria
-        call GmfSetTriangle(ins               ,&
-        &                  indx(tria(1,iTria)),&
-        &                  indx(tria(2,iTria)),&
-        &                  indx(tria(3,iTria)),&
-        &                       tria(4,iTria)  )
+        res=GmfSetLin(unit,GmfTriangles  ,&  
+        &             indx(tria(1,iTria)),&
+        &             indx(tria(2,iTria)),&
+        &             indx(tria(3,iTria)),&
+        &                  tria(4,iTria)  )
       enddo
-      res=GmfCloseMeshF77(ins)
+      res=GmfCloseMesh(unit)
       !<<<<<<<<
       
       !>>>>>>>>
@@ -1655,33 +1724,33 @@ module baseSimplex3D
       
       !>>>>>>>>
       name="TetraP"//sfx//"Opt.mesh" ; print '(/"Writing: ",a)',trim(name)
-      ins=GmfOpenMeshF77(trim(name),GmfWrite,1,3) ; print '(3x,"nVert=",i10)',nVert0
-      res=GmfSetKwdF77(ins,GmfVertices,nVert0,0,TypTab)
+      unit=GmfOpenMesh(trim(name),GmfWrite,1,3) ; print '(3x,"nVert=",i10)',nVert0
+      res=GmfSetKwd(unit,GmfVertices,nVert0)
       do iVert0=1,nVert0
-        call GmfSetVertex3dr4(ins                         ,&
-        &                     real(vert0(1,iVert0),kind=4),&
-        &                     real(vert0(2,iVert0),kind=4),&
-        &                     real(vert0(3,iVert0),kind=4),&
-        &                     i3=0                         )
+        res=GmfSetLin(unit,GmfVertices            ,&
+        &             real(vert0(1,iVert0),kind=4),&
+        &             real(vert0(2,iVert0),kind=4),&
+        &             real(vert0(3,iVert0),kind=4),&
+        &             0                            )
       enddo
-      res=GmfSetKwdF77(ins,GmfTetrahedra,nTetr,0,TypTab) ; print '(3x,"nTetr=",i10)',nTetr
+      res=GmfSetKwd(unit,GmfTetrahedra,nTetr) ; print '(3x,"nTetr=",i10)',nTetr
       do iTetr=1,nTetr
-        call GmfSetTetrahedron(ins                ,&
-        &                      indx(tetr(1,iTetr)),&
-        &                      indx(tetr(2,iTetr)),&
-        &                      indx(tetr(3,iTetr)),&
-        &                      indx(tetr(4,iTetr)),&
-        &                           tetr(5,iTetr)  )
+        res=GmfSetLin(unit,GmfTetrahedra  ,&
+        &             indx(tetr(1,iTetr)) ,&
+        &             indx(tetr(2,iTetr)) ,&
+        &             indx(tetr(3,iTetr)) ,&
+        &             indx(tetr(4,iTetr)) ,&
+        &                  tetr(5,iTetr)   )
       enddo
-      res=GmfSetKwdF77(ins,GmfTriangles,nTria,0,TypTab) ; print '(3x,"nTria=",i10)',nTria
+      res=GmfSetKwd(unit,GmfTriangles,nTria) ; print '(3x,"nTria=",i10)',nTria
       do iTria=1,nTria
-        call GmfSetTriangle(ins               ,&
-        &                  indx(tria(1,iTria)),&
-        &                  indx(tria(2,iTria)),&
-        &                  indx(tria(3,iTria)),&
-        &                       tria(4,iTria)  )
+        res=GmfSetLin(unit,GmfTriangles  ,&
+        &             indx(tria(1,iTria)),&
+        &             indx(tria(2,iTria)),&
+        &             indx(tria(3,iTria)),&
+        &                  tria(4,iTria)  )
       enddo
-      res=GmfCloseMeshF77(ins)
+      res=GmfCloseMesh(unit)
       !<<<<<<<<
       
       !>>>>>>>>

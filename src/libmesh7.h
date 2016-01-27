@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------*/
 /*															*/
-/*						LIBMESH V 6.02						*/
+/*						LIBMESH V 7.0						*/
 /*															*/
 /*----------------------------------------------------------*/
 /*															*/
 /*	Description:		handle .meshb file format I/O		*/
 /*	Author:				Loic MARECHAL						*/
-/*	Creation date:		feb 16 2007							*/
-/*	Last modification:	apr 01 2014							*/
+/*	Creation date:		dec 08 2015							*/
+/*	Last modification:	jan 18 2015							*/
 /*															*/
 /*----------------------------------------------------------*/
 
@@ -117,23 +117,35 @@ enum GmfKwdCod
 	GmfFault_SmallTri, \
 	GmfCoarseHexahedra, \
 	GmfComments, \
+	GmfPeriodicVertices, \
+	GmfPeriodicEdges, \
+	GmfPeriodicTriangles, \
+	GmfPeriodicQuadrilaterals, \
+	GmfPrismsP2, \
+	GmfPyramidsP2, \
+	GmfQuadrilateralsQ3, \
+	GmfQuadrilateralsQ4, \
+	GmfTrianglesP3, \
+	GmfTrianglesP4, \
+	GmfEdgesP3, \
+	GmfEdgesP4, \
 	GmfLastKeyword
 };
 
 
 /*----------------------------------------------------------*/
-/* External procedures										*/
+/* Public procedures										*/
 /*----------------------------------------------------------*/
 
-extern int GmfOpenMesh(char *, int, ...);
-extern int GmfCloseMesh(int);
-extern long GmfStatKwd(int, int, ...);
-extern int GmfGotoKwd(int, int);
-extern long GmfSetKwd(int, int, ...);
-extern int GmfGetLin(int, int, ...);
-extern void GmfSetLin(int, int, ...);
-extern int GmfGetBlock(int, int, ...);
-extern int GmfSetBlock(int, int, ...);
+extern long long GmfOpenMesh(char *, int, ...);
+extern int       GmfCloseMesh(long long);
+extern long long GmfStatKwd(long long, int, ...);
+extern int       GmfSetKwd(long long, int, ...);
+extern int       GmfGotoKwd(long long, int);
+extern int       GmfGetLin(long long, int, ...);
+extern int       GmfSetLin(long long, int, ...);
+extern int       GmfGetBlock(long long, int, ...);
+extern int       GmfSetBlock(long long, int, ...);
 
 
 /*----------------------------------------------------------*/

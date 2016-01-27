@@ -2,16 +2,44 @@
 
 /*----------------------------------------------------------*/
 /*															*/
-/*						LIBMESH V 6.02						*/
+/*						LIBMESH V 7.0						*/
 /*															*/
 /*----------------------------------------------------------*/
 /*															*/
 /*	Description:		handle .meshb file format I/O		*/
 /*	Author:				Loic MARECHAL						*/
-/*	Creation date:		feb 16 2007							*/
-/*	Last modification:	nov 14 2014							*/
+/*	Creation date:		dec 08 2015							*/
+/*	Last modification:	jan 19 2016							*/
 /*															*/
 /*----------------------------------------------------------*/
+
+
+/*----------------------------------------------------------*/
+/* Headers' macros											*/
+/*----------------------------------------------------------*/
+
+#ifdef F77API
+
+#ifdef F77_NO_UNDER_SCORE
+#define NAMF77(c,f) f
+#define APIF77(x) x
+#else
+#define NAMF77(c,f) f ## _
+#define APIF77(x) x ## _
+#endif
+
+#define VALF77(v) *v
+#define TYPF77(t) t*
+#define PRCF77(p) *((int *)p)
+
+#else
+
+#define NAMF77(c,f) c
+#define VALF77(v) v
+#define TYPF77(t) t
+#define PRCF77(p) p
+
+#endif
 
 
 /*----------------------------------------------------------*/
@@ -26,7 +54,9 @@
 #include <math.h>
 #include <ctype.h>
 #include <setjmp.h>
-#include "libmesh6.h"
+#include <fcntl.h>
+#include <unistd.h>
+#include "libmesh7.h"
 
 
 /*----------------------------------------------------------*/
@@ -37,7 +67,6 @@
 #define Bin 2
 #define MshFil 4
 #define SolFil 8
-#define MaxMsh 100
 #define InfKwd 1
 #define RegKwd 2
 #define SolKwd 3
@@ -45,6 +74,7 @@
 #define WrdSiz 4
 #define FilStrSiz 64
 #define BufSiz 10000
+#define MaxArg 20
 
 
 /*----------------------------------------------------------*/
@@ -54,15 +84,15 @@
 typedef struct
 {
 	int typ, SolSiz, NmbWrd, NmbTyp, TypTab[ GmfMaxTyp ];
-	long NmbLin;
-	long pos;
+	long long NmbLin, pos;
 	char fmt[ GmfMaxTyp*9 ];
 }KwdSct;
 
 typedef struct
 {
-	int dim, ver, mod, typ, cod;
-	long NexKwdPos, siz, pos;
+	int dim, ver, mod, typ, cod, FilDes;
+	long long NexKwdPos, siz, pos;
+	jmp_buf err;
 	KwdSct KwdTab[ GmfMaxKwd + 1 ];
 	FILE *hdl;
 	int *IntBuf;
@@ -78,9 +108,6 @@ typedef struct
 /* Global variables											*/
 /*----------------------------------------------------------*/
 
-static jmp_buf GmfEnv;
-static int GmfIniFlg=0;
-static GmfMshSct *GmfMshTab[ MaxMsh + 1 ];
 const char *GmfKwdFmt[ GmfMaxKwd + 1 ][4] = 
 {	{"Reserved", "", "", ""},
 	{"MeshVersionFormatted", "", "", "i"},
@@ -163,7 +190,19 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][4] =
 	{"Time", "","","r"},
 	{"Fault_SmallTri", "Fault_SmallTri","i","i"},
 	{"CoarseHexahedra", "CoarseHexahedron", "i", "i"},
-	{"Comments", "Comment", "i", "c"}
+	{"Comments", "Comment", "i", "c"},
+	{"PeriodicVertices", "PeriodicVertex", "i", "ii"},
+	{"PeriodicEdges", "PeriodicEdge", "i", "ii"},
+	{"PeriodicTriangles", "PeriodicTriangle", "i", "ii"},
+	{"PeriodicQuadrilaterals", "PeriodicQuadrilateral", "i", "ii"},
+	{"PrismsP2", "PrismP2", "i", "iiiiiiiiiiiiiiiiiii"},
+	{"PyramidsP2", "PyramidP2", "i", "iiiiiiiiiiiiiii"},
+	{"QuadrilateralsQ3", "QuadrilateralQ3", "i", "iiiiiiiiiiiiiiiii"},
+	{"QuadrilateralsQ4", "QuadrilateralQ4", "i", "iiiiiiiiiiiiiiiiiiiiiiiiii"},
+	{"TrianglesP3", "TriangleP3", "i", "iiiiiiiiiii"},
+	{"TrianglesP4", "TriangleP4", "i", "iiiiiiiiiiiiiiii"},
+	{"EdgesP3", "EdgeP3", "i", "iiiii"},
+	{"EdgesP4", "EdgeP4", "i", "iiiiii"}
  };
 
 
@@ -173,20 +212,36 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][4] =
 
 static void ScaWrd(GmfMshSct *, void *);
 static void ScaDblWrd(GmfMshSct *, void *);
-static long GetPos(GmfMshSct *);
+static long long GetPos(GmfMshSct *);
 static void RecWrd(GmfMshSct *, const void *);
 static void RecDblWrd(GmfMshSct *, const void *);
 static void RecBlk(GmfMshSct *, const void *, int);
-static void SetPos(GmfMshSct *, long);
+static void SetPos(GmfMshSct *, long long);
 static int ScaKwdTab(GmfMshSct *);
 static void ExpFmt(GmfMshSct *, int);
 static void ScaKwdHdr(GmfMshSct *, int);
 static void SwpWrd(char *, int);
+static int SetFilPos(GmfMshSct *, long long);
+static long long GetFilPos(GmfMshSct *msh);
+static long long GetFilSiz(GmfMshSct *);
+static void CalF77Prc(long long, long long, void *, int, void **);
 
-#define safe_fscanf(hdl, format, ptr) \
+
+/*----------------------------------------------------------*/
+/* Fscanf and fgets checking for errors						*/
+/*----------------------------------------------------------*/
+
+#define safe_fscanf(hdl, format, ptr, JmpErr) \
 	do { \
 		if( fscanf(hdl, format, ptr) != 1 ) \
-			longjmp(GmfEnv, -1); \
+			longjmp( JmpErr, -1); \
+	} while(0)
+
+
+#define safe_fgets(ptr, siz, hdl, JmpErr) \
+	do { \
+		if( fgets(ptr, siz, hdl) == NULL ) \
+			longjmp( JmpErr, -1); \
 	} while(0)
 
 
@@ -194,41 +249,33 @@ static void SwpWrd(char *, int);
 /* Open a mesh file in read or write mod					*/
 /*----------------------------------------------------------*/
 
-int GmfOpenMesh(char *FilNam, int mod, ...)
+long long GmfOpenMesh(char *FilNam, int mod, ...)
 {
-	int i, KwdCod, res, *PtrVer, *PtrDim, MshIdx=0;
+	int KwdCod, res, *PtrVer, *PtrDim;
+	long long MshIdx;
 	char str[ GmfStrSiz ];
 	va_list VarArg;
 	GmfMshSct *msh;
-
-	if(!GmfIniFlg)
-	{
-		for(i=0;i<=MaxMsh;i++)
-			GmfMshTab[i] = NULL;
-
-		GmfIniFlg = 1;
-	}
 
 	/*---------------------*/
 	/* MESH STRUCTURE INIT */
 	/*---------------------*/
 
-	for(i=1;i<=MaxMsh;i++)
-		if(!GmfMshTab[i])
-		{
-			MshIdx = i;
-			break;
-		}
-
-	if( !MshIdx || !(msh = calloc(1, sizeof(GmfMshSct))) )
+	if(!(msh = calloc(1, sizeof(GmfMshSct))))
 		return(0);
+
+	MshIdx = (long long)msh;
 
 	/* Save the current stack environment for longjmp */
 
-	if(setjmp(GmfEnv) != 0)
+	if(setjmp(msh->err) != 0)
 	{
 		if(msh->hdl != NULL)
 			fclose(msh->hdl);
+
+		if(msh->FilDes != 0)
+			close(msh->FilDes);
+
 		free(msh);
 		return(0);
 	}
@@ -236,7 +283,7 @@ int GmfOpenMesh(char *FilNam, int mod, ...)
 	/* Copy the FilNam into the structure */
 
 	if(strlen(FilNam) + 7 >= GmfStrSiz)
-		longjmp(GmfEnv, -1);
+		longjmp(msh->err, -1);
 
 	strcpy(msh->FilNam, FilNam);
 
@@ -256,7 +303,7 @@ int GmfOpenMesh(char *FilNam, int mod, ...)
 	else if(strstr(msh->FilNam, ".sol"))
 		msh->typ |= (Asc | SolFil);
 	else
-		longjmp(GmfEnv, -1);
+		longjmp(msh->err, -1);
 
 	/* Open the file in the required mod and initialyse the mesh structure */
 
@@ -272,51 +319,60 @@ int GmfOpenMesh(char *FilNam, int mod, ...)
 		PtrDim = va_arg(VarArg, int *);
 		va_end(VarArg);
 
-		/* Create the name string and open the file */
-
-		if(!(msh->hdl = fopen(msh->FilNam, "rb")))
-			longjmp(GmfEnv, -1);
-
 		/* Read the endian coding tag, the mesh version and the mesh dimension (mandatory kwd) */
 
 		if(msh->typ & Bin)
 		{
-			if( fread(&msh->cod, WrdSiz, 1, msh->hdl) != 1 )
-				longjmp(GmfEnv, -1);
+			/* Create the name string and open the file */
+
+			msh->FilDes = open(msh->FilNam, O_RDONLY, 0666);
+
+			if(msh->FilDes <= 0)
+				longjmp(msh->err, -1);
+
+			/* Read the endian coding tag, the mesh version and the mesh dimension (mandatory kwd) */
+
+			if(read(msh->FilDes, &msh->cod, WrdSiz) != WrdSiz)
+				longjmp(msh->err, -1);
 
 			if( (msh->cod != 1) && (msh->cod != 16777216) )
-				longjmp(GmfEnv, -1);
+				longjmp(msh->err, -1);
 
 			ScaWrd(msh, (unsigned char *)&msh->ver);
 
 			if( (msh->ver < 1) || (msh->ver > 4) )
-				longjmp(GmfEnv, -1);
+				longjmp(msh->err, -1);
 
-			if( (msh->ver >= 3) && (sizeof(long) == 4) )
-				longjmp(GmfEnv, -1);
+			if( (msh->ver >= 3) && (sizeof(long long) != 8) )
+				longjmp(msh->err, -1);
 
 			ScaWrd(msh, (unsigned char *)&KwdCod);
 
 			if(KwdCod != GmfDimension)
-				longjmp(GmfEnv, -1);
+				longjmp(msh->err, -1);
 
 			GetPos(msh);
 			ScaWrd(msh, (unsigned char *)&msh->dim);
 		}
 		else
 		{
+			/* Create the name string and open the file */
+
+			if(!(msh->hdl = fopen(msh->FilNam, "rb")))
+				longjmp(msh->err, -1);
+
 			do
 			{
 				res = fscanf(msh->hdl, "%s", str);
 			}while( (res != EOF) && strcmp(str, "MeshVersionFormatted") );
 
 			if(res == EOF)
-				longjmp(GmfEnv, -1);
+				longjmp(msh->err, -1);
 
-			safe_fscanf(msh->hdl, "%d", &msh->ver);
+			safe_fscanf(msh->hdl, "%d", &msh->ver, msh->err);
 
 			if( (msh->ver < 1) || (msh->ver > 4) )
-				longjmp(GmfEnv, -1);
+				longjmp(msh->err, -1);
 
 			do
 			{
@@ -324,13 +380,13 @@ int GmfOpenMesh(char *FilNam, int mod, ...)
 			}while( (res != EOF) && strcmp(str, "Dimension") );
 
 			if(res == EOF)
-				longjmp(GmfEnv, -1);
+				longjmp(msh->err, -1);
 
-			safe_fscanf(msh->hdl, "%d", &msh->dim);
+			safe_fscanf(msh->hdl, "%d", &msh->dim, msh->err);
 		}
 
 		if( (msh->dim != 2) && (msh->dim != 3) )
-			longjmp(GmfEnv, -1);
+			longjmp(msh->err, -1);
 
 		(*PtrVer) = msh->ver;
 		(*PtrDim) = msh->dim;
@@ -343,8 +399,6 @@ int GmfOpenMesh(char *FilNam, int mod, ...)
 
 		if(!ScaKwdTab(msh))
 			return(0);
-
-		GmfMshTab[ MshIdx ] = msh;
 
 		return(MshIdx);
 	}
@@ -365,20 +419,25 @@ int GmfOpenMesh(char *FilNam, int mod, ...)
 		va_end(VarArg);
 
 		if( (msh->ver < 1) || (msh->ver > 4) )
-			longjmp(GmfEnv, -1);
+			longjmp(msh->err, -1);
 
-		if( (msh->ver >= 3) && (sizeof(long) == 4) )
-			longjmp(GmfEnv, -1);
+		if( (msh->ver >= 3) && (sizeof(long long) != 8) )
+			longjmp(msh->err, -1);
 
 		if( (msh->dim != 2) && (msh->dim != 3) )
-			longjmp(GmfEnv, -1);
+			longjmp(msh->err, -1);
 
 		/* Create the mesh file */
 
-		if(!(msh->hdl = fopen(msh->FilNam, "wb")))
-			longjmp(GmfEnv, -1);
+		if(msh->typ & Bin)
+		{
+			msh->FilDes = creat(msh->FilNam, 0666);
 
-		GmfMshTab[ MshIdx ] = msh;
+			if(msh->FilDes <= 0)
+				longjmp(msh->err, -1);
+		}
+		else if(!(msh->hdl = fopen(msh->FilNam, "wb")))
+			longjmp(msh->err, -1);
 
 
 		/*------------*/
@@ -414,15 +473,11 @@ int GmfOpenMesh(char *FilNam, int mod, ...)
 /* Close a meshfile in the right way						*/
 /*----------------------------------------------------------*/
 
-int GmfCloseMesh(int MshIdx)
+int GmfCloseMesh(long long MshIdx)
 {
 	int res = 1;
-	GmfMshSct *msh;
+	GmfMshSct *msh = (GmfMshSct *)MshIdx;
 
-	if( (MshIdx < 1) || (MshIdx > MaxMsh) )
-		return(0);
-
-	msh = GmfMshTab[ MshIdx ];
 	RecBlk(msh, msh->buf, 0);
 
 	/* In write down the "End" kw in write mode */
@@ -437,11 +492,12 @@ int GmfCloseMesh(int MshIdx)
 
 	/* Close the file and free the mesh structure */
 
-	if(fclose(msh->hdl))
+	if(msh->typ & Bin)
+		close(msh->FilDes);
+	else if(fclose(msh->hdl))
 		res = 0;
 
 	free(msh);
-	GmfMshTab[ MshIdx ] = NULL;
 
 	return(res);
 }
@@ -451,17 +507,12 @@ int GmfCloseMesh(int MshIdx)
 /* Read the number of lines and set the position to this kwd*/
 /*----------------------------------------------------------*/
 
-long GmfStatKwd(int MshIdx, int KwdCod, ...)
+long long GmfStatKwd(long long MshIdx, int KwdCod, ...)
 {
 	int i, *PtrNmbTyp, *PtrSolSiz, *TypTab;
-	GmfMshSct *msh;
+	GmfMshSct *msh = (GmfMshSct *)MshIdx;
 	KwdSct *kwd;
 	va_list VarArg;
-
-	if( (MshIdx < 1) || (MshIdx > MaxMsh) )
-		return(0);
-
-	msh = GmfMshTab[ MshIdx ];
 
 	if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) )
 		return(0);
@@ -499,25 +550,15 @@ long GmfStatKwd(int MshIdx, int KwdCod, ...)
 /* Set the current file position to a given kwd				*/
 /*----------------------------------------------------------*/
 
-int GmfGotoKwd(int MshIdx, int KwdCod)
+int GmfGotoKwd(long long MshIdx, int KwdCod)
 {
-	GmfMshSct *msh;
-	KwdSct *kwd;
+	GmfMshSct *msh = (GmfMshSct *)MshIdx;
+	KwdSct *kwd = &msh->KwdTab[ KwdCod ];
 
-	if( (MshIdx < 1) || (MshIdx > MaxMsh) )
+	if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) || !kwd->NmbLin )
 		return(0);
 
-	msh = GmfMshTab[ MshIdx ];
-
-	if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) )
-		return(0);
-
-	kwd = &msh->KwdTab[ KwdCod ];
-
-	if(!kwd->NmbLin)
-		return(0);
-
-	return(fseek(msh->hdl, kwd->pos, SEEK_SET) == 0);
+	return(SetFilPos(msh, kwd->pos));
 }
 
 
@@ -525,18 +566,14 @@ int GmfGotoKwd(int MshIdx, int KwdCod)
 /* Write the kwd and set the number of lines				*/
 /*----------------------------------------------------------*/
 
-long GmfSetKwd(int MshIdx, int KwdCod, ...)
+int GmfSetKwd(long long MshIdx, int KwdCod, ...)
 {
 	int i, *TypTab;
-	long NmbLin=0, CurPos;
+	long long NmbLin=0, CurPos;
 	va_list VarArg;
-	GmfMshSct *msh;
+	GmfMshSct *msh = (GmfMshSct *)MshIdx;
 	KwdSct *kwd;
 
-	if( (MshIdx < 1) || (MshIdx > MaxMsh) )
-		return(0);
-
-	msh = GmfMshTab[ MshIdx ];
 	RecBlk(msh, msh->buf, 0);
 
 	if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) )
@@ -549,7 +586,7 @@ long GmfSetKwd(int MshIdx, int KwdCod, ...)
 	if(strlen(GmfKwdFmt[ KwdCod ][2]))
 	{
 		va_start(VarArg, KwdCod);
-		NmbLin = va_arg(VarArg, long);
+		NmbLin = va_arg(VarArg, long long);
 
 		if(!strcmp(GmfKwdFmt[ KwdCod ][3], "sr"))
 		{
@@ -578,14 +615,14 @@ long GmfSetKwd(int MshIdx, int KwdCod, ...)
 
 	if( (msh->typ & Bin) && msh->NexKwdPos )
 	{
-		CurPos = ftell(msh->hdl);
+		CurPos = GetFilPos(msh);
 
-		if(fseek(msh->hdl, msh->NexKwdPos, SEEK_SET) != 0)
+		if(!SetFilPos(msh, msh->NexKwdPos))
 			return(0);
 
 		SetPos(msh, CurPos);
 
-		if(fseek(msh->hdl, CurPos, SEEK_SET) != 0)
+		if(!SetFilPos(msh, CurPos))
 			return(0);
 	}
 
@@ -596,7 +633,7 @@ long GmfSetKwd(int MshIdx, int KwdCod, ...)
 		fprintf(msh->hdl, "\n%s\n", GmfKwdFmt[ KwdCod ][0]);
 
 		if(kwd->typ != InfKwd)
-			fprintf(msh->hdl, "%ld\n", kwd->NmbLin);
+			fprintf(msh->hdl, "%zd\n", kwd->NmbLin);
 
 		/* In case of solution field, write the extended header */
 
@@ -613,7 +650,7 @@ long GmfSetKwd(int MshIdx, int KwdCod, ...)
 	else
 	{
 		RecWrd(msh, (unsigned char *)&KwdCod);
-		msh->NexKwdPos = ftell(msh->hdl);
+		msh->NexKwdPos = GetFilPos(msh);
 		SetPos(msh, 0);
 
 		if(kwd->typ != InfKwd)
@@ -642,9 +679,9 @@ long GmfSetKwd(int MshIdx, int KwdCod, ...)
 	msh->pos = 0;
 
 	/* Estimate the total file size and check whether it crosses the 2GB threshold */
-
 	msh->siz += kwd->NmbLin * kwd->NmbWrd * WrdSiz;
-	return(kwd->NmbLin);
+
+	return(1);
 }
 
 
@@ -652,18 +689,21 @@ long GmfSetKwd(int MshIdx, int KwdCod, ...)
 /* Read a full line from the current kwd					*/
 /*----------------------------------------------------------*/
 
-int GmfGetLin(int MshIdx, int KwdCod, ...)
+extern int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(long long) MshIdx, TYPF77(int) KwdCod, ...)
 {
 	int i, j;
 	float *FltSolTab;
 	double *DblSolTab;
 	va_list VarArg;
-	GmfMshSct *msh = GmfMshTab[ MshIdx ];
-	KwdSct *kwd = &msh->KwdTab[ KwdCod ];
+	GmfMshSct *msh = (GmfMshSct *) VALF77(MshIdx);
+	KwdSct *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
+
+	if( (VALF77(KwdCod) < 1) || (VALF77(KwdCod) > GmfMaxKwd) )
+		return(0);
 
 	/* Save the current stack environment for longjmp */
 
-	if(setjmp(GmfEnv) != 0)
+	if(setjmp(msh->err) != 0)
 		return(0);
 
 	/* Start decoding the arguments */
@@ -679,16 +719,16 @@ int GmfGetLin(int MshIdx, int KwdCod, ...)
 				for(i=0;i<kwd->SolSiz;i++)
 					if(kwd->fmt[i] == 'r')
 						if(msh->ver <= 1)
-							safe_fscanf(msh->hdl, "%f", va_arg(VarArg, float *));
+							safe_fscanf(msh->hdl, "%f", va_arg(VarArg, float *), msh->err);
 						else
-							safe_fscanf(msh->hdl, "%lf", va_arg(VarArg, double *));
+							safe_fscanf(msh->hdl, "%lf", va_arg(VarArg, double *), msh->err);
 					else if(kwd->fmt[i] == 'i')
 						if(msh->ver <= 3)
-							safe_fscanf(msh->hdl, "%d", va_arg(VarArg, int *));
+							safe_fscanf(msh->hdl, "%d", va_arg(VarArg, int *), msh->err);
 						else
-							safe_fscanf(msh->hdl, "%ld", va_arg(VarArg, long *));
+							safe_fscanf(msh->hdl, "%ld", va_arg(VarArg, long *), msh->err);
 					else if(kwd->fmt[i] == 'c')
-						safe_fscanf(msh->hdl, "%s", va_arg(VarArg, char *));
+						safe_fgets(va_arg(VarArg, char *), WrdSiz * FilStrSiz, msh->hdl, msh->err);
 			}
 			else
 			{
@@ -716,7 +756,7 @@ int GmfGetLin(int MshIdx, int KwdCod, ...)
 
 				if(msh->typ & Asc)
 					for(j=0;j<kwd->SolSiz;j++)
-						safe_fscanf(msh->hdl, "%f", &FltSolTab[j]);
+						safe_fscanf(msh->hdl, "%f", &FltSolTab[j], msh->err);
 				else
 					for(j=0;j<kwd->SolSiz;j++)
 						ScaWrd(msh, (unsigned char *)&FltSolTab[j]);
@@ -727,7 +767,7 @@ int GmfGetLin(int MshIdx, int KwdCod, ...)
 
 				if(msh->typ & Asc)
 					for(j=0;j<kwd->SolSiz;j++)
-						safe_fscanf(msh->hdl, "%lf", &DblSolTab[j]);
+						safe_fscanf(msh->hdl, "%lf", &DblSolTab[j], msh->err);
 				else
 					for(j=0;j<kwd->SolSiz;j++)
 						ScaDblWrd(msh, (unsigned char *)&DblSolTab[j]);
@@ -745,15 +785,18 @@ int GmfGetLin(int MshIdx, int KwdCod, ...)
 /* Write a full line from the current kwd					*/
 /*----------------------------------------------------------*/
 
-void GmfSetLin(int MshIdx, int KwdCod, ...)
+extern int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(long long) MshIdx, TYPF77(int) KwdCod, ...)
 {
 	int i, j, pos, *IntBuf;
 	long *LngBuf;
 	float *FltSolTab, *FltBuf;
 	double *DblSolTab, *DblBuf;
 	va_list VarArg;
-	GmfMshSct *msh = GmfMshTab[ MshIdx ];
-	KwdSct *kwd = &msh->KwdTab[ KwdCod ];
+	GmfMshSct *msh = (GmfMshSct *) VALF77(MshIdx);
+	KwdSct *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
+
+	if( ( VALF77(KwdCod) < 1) || ( VALF77(KwdCod) > GmfMaxKwd) )
+		return(0);
 
 	/* Start decoding the arguments */
 
@@ -768,16 +811,16 @@ void GmfSetLin(int MshIdx, int KwdCod, ...)
 				if(kwd->fmt[i] == 'r')
 				{
 					if(msh->ver <= 1)
-						fprintf(msh->hdl, "%g ", va_arg(VarArg, double));
+						fprintf(msh->hdl, "%g ", VALF77(va_arg(VarArg, TYPF77(double))));
 					else
-						fprintf(msh->hdl, "%.15g ", va_arg(VarArg, double));
+						fprintf(msh->hdl, "%.15g ", VALF77(va_arg(VarArg, TYPF77(double))));
 				}
 				else if(kwd->fmt[i] == 'i')
 				{
 					if(msh->ver <= 3)
-						fprintf(msh->hdl, "%d ", va_arg(VarArg, int));
+						fprintf(msh->hdl, "%d ", VALF77(va_arg(VarArg, TYPF77(int))));
 					else
-						fprintf(msh->hdl, "%ld ", va_arg(VarArg, long));
+						fprintf(msh->hdl, "%ld ", VALF77(va_arg(VarArg, TYPF77(long))));
 				}
 				else if(kwd->fmt[i] == 'c')
 					fprintf(msh->hdl, "%s", va_arg(VarArg, char *));
@@ -794,13 +837,13 @@ void GmfSetLin(int MshIdx, int KwdCod, ...)
 					if(msh->ver <= 1)
 					{
 						FltBuf = (void *)&msh->buf[ pos ];
-						*FltBuf = (float)va_arg(VarArg, double);
+						*FltBuf = (float) VALF77(va_arg(VarArg, TYPF77(double)));
 						pos += 4;
 					}
 					else
 					{
 						DblBuf = (void *)&msh->buf[ pos ];
-						*DblBuf = va_arg(VarArg, double);
+						*DblBuf = VALF77(va_arg(VarArg, TYPF77(double)));
 						pos += 8;
 					}
 				}
@@ -809,13 +852,13 @@ void GmfSetLin(int MshIdx, int KwdCod, ...)
 					if(msh->ver <= 3)
 					{
 						IntBuf = (void *)&msh->buf[ pos ];
-						*IntBuf = va_arg(VarArg, int);
+						*IntBuf = VALF77(va_arg(VarArg, TYPF77(int)));
 						pos += 4;
 					}
 					else
 					{
 						LngBuf = (void *)&msh->buf[ pos ];
-						*LngBuf = va_arg(VarArg, long);
+						*LngBuf = VALF77(va_arg(VarArg, TYPF77(long)));
 						pos += 8;
 					}
 				}
@@ -858,6 +901,8 @@ void GmfSetLin(int MshIdx, int KwdCod, ...)
 
 	if(msh->typ & Asc)
 		fprintf(msh->hdl, "\n");
+
+	return(1);
 }
 
 
@@ -865,19 +910,21 @@ void GmfSetLin(int MshIdx, int KwdCod, ...)
 /* Private procedure for transmesh : copy a whole line		*/
 /*----------------------------------------------------------*/
 
+#ifdef TRANSMESH
+
 int GmfCpyLin(int InpIdx, int OutIdx, int KwdCod)
 {
 	char s[ WrdSiz * FilStrSiz ];
 	double d;
 	float f;
 	int i, a;
-	long l;
+	long long l;
 	GmfMshSct *InpMsh = GmfMshTab[ InpIdx ], *OutMsh = GmfMshTab[ OutIdx ];
 	KwdSct *kwd = &InpMsh->KwdTab[ KwdCod ];
 
 	/* Save the current stack environment for longjmp */
 
-	if(setjmp(GmfEnv) != 0)
+	if(setjmp(InpMsh->err) != 0)
 		return(0);
 
 	for(i=0;i<kwd->SolSiz;i++)
@@ -887,7 +934,7 @@ int GmfCpyLin(int InpIdx, int OutIdx, int KwdCod)
 			if(InpMsh->ver == 1)
 			{
 				if(InpMsh->typ & Asc)
-					safe_fscanf(InpMsh->hdl, "%f", &f);
+					safe_fscanf(InpMsh->hdl, "%f", &f, InpMsh->err);
 				else
 					ScaWrd(InpMsh, (unsigned char *)&f);
 
@@ -896,7 +943,7 @@ int GmfCpyLin(int InpIdx, int OutIdx, int KwdCod)
 			else
 			{
 				if(InpMsh->typ & Asc)
-					safe_fscanf(InpMsh->hdl, "%lf", &d);
+					safe_fscanf(InpMsh->hdl, "%lf", &d, InpMsh->err);
 				else
 					ScaDblWrd(InpMsh, (unsigned char *)&d);
 
@@ -919,16 +966,16 @@ int GmfCpyLin(int InpIdx, int OutIdx, int KwdCod)
 			if(InpMsh->ver <= 3)
 			{
 				if(InpMsh->typ & Asc)
-					safe_fscanf(InpMsh->hdl, "%d", &a);
+					safe_fscanf(InpMsh->hdl, "%d", &a, InpMsh->err);
 				else
 					ScaWrd(InpMsh, (unsigned char *)&a);
 
-				l = (long)a;
+				l = (long long)a;
 			}
 			else
 			{
 				if(InpMsh->typ & Asc)
-					safe_fscanf(InpMsh->hdl, "%ld", &l);
+					safe_fscanf(InpMsh->hdl, "%zd", &l, InpMsh->err);
 				else
 					ScaDblWrd(InpMsh, (unsigned char *)&l);
 
@@ -945,7 +992,7 @@ int GmfCpyLin(int InpIdx, int OutIdx, int KwdCod)
 			else
 			{
 				if(OutMsh->typ & Asc)
-					fprintf(OutMsh->hdl, "%ld ", l);
+					fprintf(OutMsh->hdl, "%zd ", l);
 				else
 					RecDblWrd(OutMsh, (unsigned char *)&l);
 			}
@@ -955,14 +1002,14 @@ int GmfCpyLin(int InpIdx, int OutIdx, int KwdCod)
 			memset(s, 0, FilStrSiz * WrdSiz);
 
 			if(InpMsh->typ & Asc)
-				safe_fscanf(InpMsh->hdl, "%s", s);
+				safe_fgets(s, WrdSiz * FilStrSiz, InpMsh->hdl, InpMsh->err);
 			else
-				fread(s, WrdSiz, FilStrSiz, InpMsh->hdl);
+				read(InpMsh->FilDes, s, WrdSiz * FilStrSiz);
 
 			if(OutMsh->typ & Asc)
 				fprintf(OutMsh->hdl, "%s", s);
 			else
-				fwrite(s, WrdSiz, FilStrSiz, OutMsh->hdl);
+				write(OutMsh->FilDes, s, WrdSiz * FilStrSiz);
 		}
 	}
 
@@ -972,27 +1019,30 @@ int GmfCpyLin(int InpIdx, int OutIdx, int KwdCod)
 	return(1);
 }
 
+#endif
+
 
 /*----------------------------------------------------------*/
 /* Bufferized reading of all keyword's lines				*/
 /*----------------------------------------------------------*/
 
-extern int GmfGetBlock(int MshIdx, int KwdCod, ...)
+extern int NAMF77(GmfGetBlock, gmfgetblock)(TYPF77(long long) MshIdx, TYPF77(int) KwdCod, /*void *prc,*/ ...)
 {
 	char *UsrDat[ GmfMaxTyp ], *FilBuf=NULL, *FilPos;
-	char *StrTab[5] = { "", "%f", "%lf", "%d", "%ld" };
-	int b, i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ], UsrTyp[ GmfMaxTyp ], SizTab[5] = {0,4,8,4,8};
-	long NmbLin, *FilPtrI64, *UsrPtrI64;
+	char *StrTab[5] = { "", "%f", "%lf", "%d", "%lld" };
+	int b, i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ], UsrTyp[ GmfMaxTyp ];
+	int NmbBlk, NmbArg, SizTab[5] = {0,4,8,4,8};
+	long long NmbLin, *FilPtrI64, *UsrPtrI64, BegIdx, EndIdx=0;
 	float *FilPtrR32, *UsrPtrR32;
 	double *FilPtrR64, *UsrPtrR64;
+	void (*UsrPrc)(long long, long long, void *) = NULL, *UsrArg, *ArgTab[ MaxArg ];
 	size_t UsrLen[ GmfMaxTyp ];
 	va_list VarArg;
-	GmfMshSct *msh = GmfMshTab[ MshIdx ];
-	KwdSct *kwd = &msh->KwdTab[ KwdCod ];
+	GmfMshSct *msh = (GmfMshSct *) VALF77(MshIdx);
+	KwdSct *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
 
 	/* Save the current stack environment for longjmp */
-
-	if(setjmp(GmfEnv) != 0)
+	if(setjmp(msh->err) != 0)
 	{
 		if(FilBuf)
 			free(FilBuf);
@@ -1001,115 +1051,64 @@ extern int GmfGetBlock(int MshIdx, int KwdCod, ...)
 	}
 
 	/* Check mesh and keyword */
-
-	if( (MshIdx < 1) || (MshIdx > MaxMsh) )
+	if( (VALF77(KwdCod) < 1) || (VALF77(KwdCod) > GmfMaxKwd) || !kwd->NmbLin )
 		return(0);
 
-	if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) )
-		return(0);
-
-	if(!kwd->NmbLin)
-		return(0);
-
-	/* Make shure it's not a simple information keyword */
-
+	/* Make sure it's not a simple information keyword */
 	if( (kwd->typ != RegKwd) && (kwd->typ != SolKwd) )
 		return(0);
 
 	/* Start decoding the arguments */
-
+	//va_start(VarArg, prc);
 	va_start(VarArg, KwdCod);
 	LinSiz = 0;
 
-	if(kwd->typ == RegKwd)
+	/* Get the user's preporcessing procedure and argument adresses, if any */
+	/*
+#ifdef F77API
+	if(PRCF77(prc))
 	{
-		for(i=0;i<kwd->SolSiz;i++)
-		{
-			/* Get the user's data type */
+		UsrPrc = (void (*)(long long, long long, void *))prc;
+		NmbArg = *(va_arg(VarArg, int *));
 
-			UsrTyp[i] = va_arg(VarArg, int);
-
-			if(kwd->fmt[i] == 'r')
-			{
-				/* Get the data pointer */
-
-				if(UsrTyp[i] == GmfFloat)
-					UsrDat[i] = (char *)va_arg(VarArg, float *);
-				else if(UsrTyp[i] == GmfDouble)
-					UsrDat[i] = (char *)va_arg(VarArg, double *);
-				else
-					return(0);
-
-				/* Get the file's data type */
-
-				if(msh->ver <= 1)
-					FilTyp[i] = GmfFloat;
-				else
-					FilTyp[i] = GmfDouble;
-			}
-			else
-			{
-				/* Get the data pointer */
-
-				if(UsrTyp[i] == GmfInt)
-					UsrDat[i] = (char *)va_arg(VarArg, int *);
-				else if(UsrTyp[i] == GmfLong)
-					UsrDat[i] = (char *)va_arg(VarArg, long *);
-				else
-					return(0);
-
-				/* Get the file's data type */
-
-				if(msh->ver <= 3)
-					FilTyp[i] = GmfInt;
-				else
-					FilTyp[i] = GmfLong;
-			}
-
-			/* Then get the data second adress and compute the stride */
-
-			UsrLen[i] = (size_t)(va_arg(VarArg, char *) - UsrDat[i]);
-			LinSiz += SizTab[ FilTyp[i] ];
-		}
+		for(i=0;i<NmbArg;i++)
+			ArgTab[i] = va_arg(VarArg, void *);
 	}
-	else
+#else
+	if(prc)
 	{
-		/* Get the user's data type */
-
-		UsrTyp[0] = va_arg(VarArg, int);
-
-		/* Get the data pointer */
-
-		if(UsrTyp[0] == GmfFloat)
-			UsrDat[0] = (char *)va_arg(VarArg, float *);
-		else if(UsrTyp[0] == GmfDouble)
-			UsrDat[0] = (char *)va_arg(VarArg, double *);
-		else
-			return(0);
+		UsrPrc = (void (*)(long long, long long, void *))prc;
+		UsrArg = va_arg(VarArg, void *);
+	}
+#endif
+	*/
+	for(i=0;i<kwd->SolSiz;i++)
+	{
+		/* Get the user's data type and pointers to first and second adress to compute the stride */
+		UsrTyp[i] = VALF77(va_arg(VarArg, TYPF77(int)));
+		UsrDat[i] = va_arg(VarArg, char *);
+		UsrLen[i] = (size_t)(va_arg(VarArg, char *) - UsrDat[i]);
 
 		/* Get the file's data type */
-
-		if(msh->ver <= 1)
-			FilTyp[0] = GmfFloat;
+		if(kwd->fmt[i] == 'r')
+			if(msh->ver <= 1)
+				FilTyp[i] = GmfFloat;
+			else
+				FilTyp[i] = GmfDouble;
 		else
-			FilTyp[0] = GmfDouble;
+			if(msh->ver <= 3)
+				FilTyp[i] = GmfInt;
+			else
+				FilTyp[i] = GmfLong;
 
-		/* Then get the data second adress and compute the stride */
-
-		UsrLen[0] = (size_t)(va_arg(VarArg, char *) - UsrDat[0]);
-
-		for(i=1;i<kwd->SolSiz;i++)
-		{
-			UsrTyp[i] = UsrTyp[0];
-			UsrDat[i] = UsrDat[i-1] + SizTab[ UsrTyp[0] ];
-			UsrLen[i] = UsrLen[0];
-			FilTyp[i] = FilTyp[0];
-		}
-
-		LinSiz = kwd->SolSiz * SizTab[ FilTyp[0] ];
+		/* Compute the file stride */
+		LinSiz += SizTab[ FilTyp[i] ];
 	}
 
 	va_end(VarArg);
+
+	/* Move file pointer to the keyword data */
+	SetFilPos(msh, kwd->pos);
 
 	/* Read the whole kwd data */
 
@@ -1118,9 +1117,18 @@ extern int GmfGetBlock(int MshIdx, int KwdCod, ...)
 		for(i=0;i<kwd->NmbLin;i++)
 			for(j=0;j<kwd->SolSiz;j++)
 			{
-				safe_fscanf(msh->hdl, StrTab[ UsrTyp[j] ], UsrDat[j]);
+				safe_fscanf(msh->hdl, StrTab[ UsrTyp[j] ], UsrDat[j], msh->err);
 				UsrDat[j] += UsrLen[j];
 			}
+
+		/* Call the user's preprocessing procedure */
+/*			if(UsrPrc)
+#ifdef F77API
+				CalF77Prc(1, kwd->NmbLin, UsrPrc, NmbArg, ArgTab);
+#else
+				UsrPrc(1, kwd->NmbLin, UsrArg);
+#endif
+*/
 	}
 	else
 	{
@@ -1129,19 +1137,23 @@ extern int GmfGetBlock(int MshIdx, int KwdCod, ...)
 		if(!(FilBuf = malloc((size_t)(BufSiz * LinSiz))))
 			return(0);
 
-		for(b=0;b<=kwd->NmbLin/BufSiz;b++)
+		NmbBlk = kwd->NmbLin / BufSiz;
+
+		for(b=0;b<=NmbBlk;b++)
 		{
-			if(b == kwd->NmbLin/BufSiz)
+			if(b == NmbBlk)
 				NmbLin = kwd->NmbLin - b * BufSiz;
 			else
 				NmbLin = BufSiz;
  
 			/* Read a chunk of data */
 
-			if(fread(FilBuf, (size_t)LinSiz, (size_t)NmbLin, msh->hdl) != NmbLin)
-				longjmp(GmfEnv, -1);
+			if(read(msh->FilDes, FilBuf, (size_t)(LinSiz * NmbLin)) == -1)
+				longjmp(msh->err, -1);
 
 			FilPos = FilBuf;
+			BegIdx = EndIdx+1;
+			EndIdx += NmbLin;
 
 			/* Then decode it and store it in the user's data structure */
 
@@ -1162,17 +1174,17 @@ extern int GmfGetBlock(int MshIdx, int KwdCod, ...)
 						}
 						else
 						{
-							UsrPtrI64 = (long *)UsrDat[j];
-							*UsrPtrI64 = (long)*FilPtrI32;
+							UsrPtrI64 = (long long *)UsrDat[j];
+							*UsrPtrI64 = (long long)*FilPtrI32;
 						}
 					}
 					else if(FilTyp[j] == GmfLong)
 					{
-						FilPtrI64 = (long *)FilPos;
+						FilPtrI64 = (long long *)FilPos;
 
 						if(UsrTyp[j] == GmfLong)
 						{
-							UsrPtrI64 = (long *)UsrDat[j];
+							UsrPtrI64 = (long long *)UsrDat[j];
 							*UsrPtrI64 = *FilPtrI64;
 						}
 						else
@@ -1215,7 +1227,15 @@ extern int GmfGetBlock(int MshIdx, int KwdCod, ...)
 					FilPos += SizTab[ FilTyp[j] ];
 					UsrDat[j] += UsrLen[j];
 				}
-		}
+
+			/* Call the user's preprocessing procedure */
+/*			if(UsrPrc)
+#ifdef F77API
+				CalF77Prc(BegIdx, EndIdx, UsrPrc, NmbArg, ArgTab);
+#else
+				UsrPrc(BegIdx, EndIdx, UsrArg);
+#endif
+*/		}
 
 		free(FilBuf);
 	}
@@ -1228,125 +1248,83 @@ extern int GmfGetBlock(int MshIdx, int KwdCod, ...)
 /* Bufferized writing of all keyword's lines				*/
 /*----------------------------------------------------------*/
 
-extern int GmfSetBlock(int MshIdx, int KwdCod, ...)
+extern int NAMF77(GmfSetBlock, gmfsetblock)(TYPF77(long long) MshIdx, TYPF77(int) KwdCod, /*void *prc,*/ ...)
 {
-	char *UsrDat[ GmfMaxTyp ], *FilBuf, *FilPos;
-	char *StrTab[5] = { "", "%f", "%lf", "%d", "%ld" };
+	char *UsrDat[ GmfMaxTyp ], *FilBuf=NULL, *FilPos;
+	char *StrTab[5] = { "", "%g", "%.15g", "%d", "%lld" };
 	int i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ], UsrTyp[ GmfMaxTyp ];
-	int SizTab[5] = {0,4,8,4,8};
-	long NmbLin, b, *FilPtrI64, *UsrPtrI64;
+	int NmbBlk, NmbLin, b, SizTab[5] = {0,4,8,4,8}, NmbArg;
+	long long *FilPtrI64, *UsrPtrI64, BegIdx, EndIdx=0;
 	float *FilPtrR32, *UsrPtrR32;
 	double *FilPtrR64, *UsrPtrR64;
+	void (*UsrPrc)(long long, long long, void *) = NULL, *UsrArg, *ArgTab[ MaxArg ];
 	size_t UsrLen[ GmfMaxTyp ];
 	va_list VarArg;
-	GmfMshSct *msh = GmfMshTab[ MshIdx ];
-	KwdSct *kwd = &msh->KwdTab[ KwdCod ];
+	GmfMshSct *msh = (GmfMshSct *) VALF77(MshIdx);
+	KwdSct *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
+
+	/* Save the current stack environment for longjmp */
+	if(setjmp(msh->err) != 0)
+	{
+		if(FilBuf)
+			free(FilBuf);
+
+		return(0);
+	}
 
 	/* Check mesh and keyword */
-
-	if( (MshIdx < 1) || (MshIdx > MaxMsh) )
+	if( (VALF77(KwdCod) < 1) || (VALF77(KwdCod) > GmfMaxKwd) || !kwd->NmbLin )
 		return(0);
 
-	if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) )
-		return(0);
-
-	if(!kwd->NmbLin)
-		return(0);
-
+	/* Make sure it's not a simple information keyword */
 	if( (kwd->typ != RegKwd) && (kwd->typ != SolKwd) )
 		return(0);
 
 	/* Start decoding the arguments */
-
+	//va_start(VarArg, prc);
 	va_start(VarArg, KwdCod);
 	LinSiz = 0;
 
-	if(kwd->typ == RegKwd)
+	/* Get the user's postprocessing procedure and argument adresses, if any */
+	/*
+#ifdef F77API
+	if(PRCF77(prc))
 	{
-		for(i=0;i<kwd->SolSiz;i++)
-		{
-			/* Get the user's data type */
+		UsrPrc = (void (*)(long long, long long, void *))prc;
+		NmbArg = *(va_arg(VarArg, int *));
 
-			UsrTyp[i] = va_arg(VarArg, int);
-
-			if(kwd->fmt[i] == 'r')
-			{
-				/* Get the data pointer */
-
-				if(UsrTyp[i] == GmfFloat)
-					UsrDat[i] = (char *)va_arg(VarArg, float *);
-				else if(UsrTyp[i] == GmfDouble)
-					UsrDat[i] = (char *)va_arg(VarArg, double *);
-				else
-					return(0);
-
-				/* Get the file's data type */
-
-				if(msh->ver <= 1)
-					FilTyp[i] = GmfFloat;
-				else
-					FilTyp[i] = GmfDouble;
-			}
-			else
-			{
-				/* Get the data pointer */
-
-				if(UsrTyp[i] == GmfInt)
-					UsrDat[i] = (char *)va_arg(VarArg, int *);
-				else if(UsrTyp[i] == GmfLong)
-					UsrDat[i] = (char *)va_arg(VarArg, long *);
-				else
-					return(0);
-
-				/* Get the file's data type */
-
-				if(msh->ver <= 3)
-					FilTyp[i] = GmfInt;
-				else
-					FilTyp[i] = GmfLong;
-			}
-
-			/* Then get the data second adress and compute the stride */
-
-			UsrLen[i] = (size_t)(va_arg(VarArg, char *) - UsrDat[i]);
-			LinSiz += SizTab[ FilTyp[i] ];
-		}
+		for(i=0;i<NmbArg;i++)
+			ArgTab[i] = va_arg(VarArg, void *);
 	}
-	else
+#else
+	if(prc)
 	{
-		/* Get the user's data type */
-
-		UsrTyp[0] = va_arg(VarArg, int);
-
-		/* Get the data pointer */
-
-		if(UsrTyp[0] == GmfFloat)
-			UsrDat[0] = (char *)va_arg(VarArg, float *);
-		else if(UsrTyp[0] == GmfDouble)
-			UsrDat[0] = (char *)va_arg(VarArg, double *);
-		else
-			return(0);
+		UsrPrc = (void (*)(long long, long long, void *))prc;
+		UsrArg = va_arg(VarArg, void *);
+	}
+#endif
+	*/
+	for(i=0;i<kwd->SolSiz;i++)
+	{
+		/* Get the user's data type and pointers to first and second adress to compute the stride */
+		UsrTyp[i] = VALF77(va_arg(VarArg, TYPF77(int)));
+		UsrDat[i] = va_arg(VarArg, char *);
+		UsrLen[i] = (size_t)(va_arg(VarArg, char *) - UsrDat[i]);
 
 		/* Get the file's data type */
-
-		if(msh->ver <= 1)
-			FilTyp[0] = GmfFloat;
+		if(kwd->fmt[i] == 'r')
+			if(msh->ver <= 1)
+				FilTyp[i] = GmfFloat;
+			else
+				FilTyp[i] = GmfDouble;
 		else
-			FilTyp[0] = GmfDouble;
+			if(msh->ver <= 3)
+				FilTyp[i] = GmfInt;
+			else
+				FilTyp[i] = GmfLong;
 
-		/* Then get the data second adress and compute the stride */
-
-		UsrLen[0] = (size_t)(va_arg(VarArg, char *) - UsrDat[0]);
-
-		for(i=1;i<kwd->SolSiz;i++)
-		{
-			UsrTyp[i] = UsrTyp[0];
-			UsrDat[i] = UsrDat[i-1] + SizTab[ UsrTyp[0] ];
-			UsrLen[i] = UsrLen[0];
-			FilTyp[i] = FilTyp[0];
-		}
-
-		LinSiz = kwd->SolSiz * SizTab[ FilTyp[0] ];
+		/* Compute the file stride */
+		LinSiz += SizTab[ FilTyp[i] ];
 	}
 
 	va_end(VarArg);
@@ -1355,6 +1333,14 @@ extern int GmfSetBlock(int MshIdx, int KwdCod, ...)
     
 	if(msh->typ & Asc)
 	{
+		/*
+		if(UsrPrc)
+#ifdef F77API
+			CalF77Prc(1, kwd->NmbLin, UsrPrc, NmbArg, ArgTab);
+#else
+			UsrPrc(1, kwd->NmbLin, UsrArg);
+#endif
+*/
 		for(i=0;i<kwd->NmbLin;i++)
 			for(j=0;j<kwd->SolSiz;j++)
 			{
@@ -1375,7 +1361,7 @@ extern int GmfSetBlock(int MshIdx, int KwdCod, ...)
 				}
 				else if(UsrTyp[j] == GmfLong)
 				{
-					UsrPtrI64 = (long *)UsrDat[j];
+					UsrPtrI64 = (long long *)UsrDat[j];
 					fprintf(msh->hdl, StrTab[ UsrTyp[j] ], *UsrPtrI64);
 				}
 
@@ -1392,15 +1378,26 @@ extern int GmfSetBlock(int MshIdx, int KwdCod, ...)
 		if(!(FilBuf = malloc((size_t)BufSiz * (size_t)LinSiz)))
 			return(0);
 
-		for(b=0;b<=kwd->NmbLin/BufSiz;b++)
+		NmbBlk = kwd->NmbLin / BufSiz;
+
+		for(b=0;b<=NmbBlk;b++)
 		{
-			if(b == kwd->NmbLin/BufSiz)
+			if(b == NmbBlk)
 				NmbLin = kwd->NmbLin - b * BufSiz;
 			else
 				NmbLin = BufSiz;
 
 			FilPos = FilBuf;
-
+			BegIdx = EndIdx+1;
+			EndIdx += NmbLin;
+			/*
+			if(UsrPrc)
+#ifdef F77API
+				CalF77Prc(BegIdx, EndIdx, UsrPrc, NmbArg, ArgTab);
+#else
+				UsrPrc(BegIdx, EndIdx, UsrArg);
+#endif
+			*/
 			for(i=0;i<NmbLin;i++)
 				for(j=0;j<kwd->SolSiz;j++)
 				{
@@ -1415,23 +1412,23 @@ extern int GmfSetBlock(int MshIdx, int KwdCod, ...)
 						}
 						else
 						{
-							UsrPtrI64 = (long *)UsrDat[j];
+							UsrPtrI64 = (long long *)UsrDat[j];
 							*FilPtrI32 = (int)*UsrPtrI64;
 						}
 					}
 					else if(FilTyp[j] == GmfLong)
 					{
-						FilPtrI64 = (long *)FilPos;
+						FilPtrI64 = (long long *)FilPos;
 
 						if(UsrTyp[j] == GmfLong)
 						{
-							UsrPtrI64 = (long *)UsrDat[j];
+							UsrPtrI64 = (long long *)UsrDat[j];
 							*FilPtrI64 = *UsrPtrI64;
 						}
 						else
 						{
 							UsrPtrI32 = (int *)UsrDat[j];
-							*FilPtrI64 = (long)*UsrPtrI32;
+							*FilPtrI64 = (long long)*UsrPtrI32;
 						}
 					}
 					else if(FilTyp[j] == GmfFloat)
@@ -1469,11 +1466,11 @@ extern int GmfSetBlock(int MshIdx, int KwdCod, ...)
 					UsrDat[j] += UsrLen[j];
 				}
 
-			if(fwrite(FilBuf, (size_t)LinSiz, (size_t)NmbLin, msh->hdl) != NmbLin)
-			{
-				free(FilBuf);
-				return(0);
-			}
+				if(write(msh->FilDes, FilBuf, (size_t)(LinSiz * NmbLin)) == -1)
+				{
+					free(FilBuf);
+					return(0);
+				}
 		}
 
 		free(FilBuf);
@@ -1490,7 +1487,7 @@ extern int GmfSetBlock(int MshIdx, int KwdCod, ...)
 static int ScaKwdTab(GmfMshSct *msh)
 {
 	int KwdCod, c;
-	long  NexPos, CurPos, EndPos;
+	long long  NexPos, EndPos;
 	char str[ GmfStrSiz ];
 
 	if(msh->typ & Asc)
@@ -1521,15 +1518,7 @@ static int ScaKwdTab(GmfMshSct *msh)
 	{
 		/* Get file size */
 
-		CurPos = ftell(msh->hdl);
-
-		if(fseek(msh->hdl, 0, SEEK_END) != 0)
-			longjmp(GmfEnv, -1);
-
-		EndPos = ftell(msh->hdl);
-
-		if(fseek(msh->hdl, CurPos, SEEK_SET) != 0)
-			longjmp(GmfEnv, -1);
+		EndPos = GetFilSiz(msh);
 
 		/* Jump through kwd positions in the file */
 
@@ -1537,11 +1526,11 @@ static int ScaKwdTab(GmfMshSct *msh)
 		{
 			/* Get the kwd code and the next kwd position */
 
-			ScaWrd(msh, (unsigned char *)&KwdCod);
+			ScaWrd(msh, ( char *)&KwdCod);
 			NexPos = GetPos(msh);
 
 			if(NexPos > EndPos)
-				longjmp(GmfEnv, -1);
+				longjmp(msh->err, -1);
 
 			/* Check if this kwd belongs to this mesh version */
 
@@ -1550,8 +1539,8 @@ static int ScaKwdTab(GmfMshSct *msh)
 
 			/* Go to the next kwd */
 
-			if(NexPos && (fseek(msh->hdl, NexPos, SEEK_SET) != 0))
-				longjmp(GmfEnv, -1);
+			if(NexPos && !(SetFilPos(msh, NexPos)))
+				longjmp(msh->err, -1);
 		}while(NexPos && (KwdCod != GmfEnd));
 	}
 
@@ -1570,7 +1559,7 @@ static void ScaKwdHdr(GmfMshSct *msh, int KwdCod)
 
 	if(!strcmp("i", GmfKwdFmt[ KwdCod ][2]))
 		if(msh->typ & Asc)
-			safe_fscanf(msh->hdl, "%ld", &kwd->NmbLin);
+			safe_fscanf(msh->hdl, "%zd", &kwd->NmbLin, msh->err);
 		else
 			if(msh->ver <= 3)
 			{
@@ -1586,10 +1575,10 @@ static void ScaKwdHdr(GmfMshSct *msh, int KwdCod)
 	{
 		if(msh->typ & Asc)
 		{
-			safe_fscanf(msh->hdl, "%d", &kwd->NmbTyp);
+			safe_fscanf(msh->hdl, "%d", &kwd->NmbTyp, msh->err);
 
 			for(i=0;i<kwd->NmbTyp;i++)
-				safe_fscanf(msh->hdl, "%d", &kwd->TypTab[i]);
+				safe_fscanf(msh->hdl, "%d", &kwd->TypTab[i], msh->err);
 		}
 		else
 		{
@@ -1601,7 +1590,7 @@ static void ScaKwdHdr(GmfMshSct *msh, int KwdCod)
 	}
 
 	ExpFmt(msh, KwdCod);
-	kwd->pos = ftell(msh->hdl);
+	kwd->pos = GetFilPos(msh);
 }
 
 
@@ -1689,8 +1678,8 @@ static void ExpFmt(GmfMshSct *msh, int KwdCod)
 
 static void ScaWrd(GmfMshSct *msh, void *ptr)
 {
-	if( fread(ptr, WrdSiz, 1, msh->hdl) != 1)
-		longjmp(GmfEnv, -1);
+	if(read(msh->FilDes, ptr, WrdSiz) != WrdSiz)
+		longjmp(msh->err, -1);
 
 	if(msh->cod != 1)
 		SwpWrd((char *)ptr, WrdSiz);
@@ -1703,8 +1692,8 @@ static void ScaWrd(GmfMshSct *msh, void *ptr)
 
 static void ScaDblWrd(GmfMshSct *msh, void *ptr)
 {
-	if( fread(ptr, WrdSiz, 2, msh->hdl) != 2 )
-		longjmp(GmfEnv, -1);
+	if(read(msh->FilDes, ptr, WrdSiz * 2) != WrdSiz * 2)
+		longjmp(msh->err, -1);
 
 	if(msh->cod != 1)
 		SwpWrd((char *)ptr, 2 * WrdSiz);
@@ -1715,17 +1704,17 @@ static void ScaDblWrd(GmfMshSct *msh, void *ptr)
 /* Read a 4 or 8 bytes position in mesh file				*/
 /*----------------------------------------------------------*/
 
-static long GetPos(GmfMshSct *msh)
+static long long GetPos(GmfMshSct *msh)
 {
 	int IntVal;
-	long pos;
+	long long pos;
 
 	if(msh->ver >= 3)
 		ScaDblWrd(msh, (unsigned char*)&pos);
 	else
 	{
 		ScaWrd(msh, (unsigned char*)&IntVal);
-		pos = (long)IntVal;
+		pos = (long long)IntVal;
 	}
 
 	return(pos);
@@ -1738,7 +1727,7 @@ static long GetPos(GmfMshSct *msh)
 
 static void RecWrd(GmfMshSct *msh, const void *wrd)
 {
-	fwrite(wrd, WrdSiz, 1, msh->hdl);
+	write(msh->FilDes, wrd, WrdSiz);
 }
 
 
@@ -1748,7 +1737,7 @@ static void RecWrd(GmfMshSct *msh, const void *wrd)
 
 static void RecDblWrd(GmfMshSct *msh, const void *wrd)
 {
-	fwrite(wrd, WrdSiz, 2, msh->hdl);
+	write(msh->FilDes, wrd, WrdSiz * 2);
 }
 
 
@@ -1766,11 +1755,11 @@ static void RecBlk(GmfMshSct *msh, const void *blk, int siz)
 		msh->pos += siz * WrdSiz;
 	}
 
-	/* When the buffer is full or this procedure is called with a 0 size, flush the cache on disk */
+	/* When the buffer is full or this procedure is APIF77ed with a 0 size, flush the cache on disk */
 
 	if( (msh->pos > BufSiz) || (!siz && msh->pos) )
 	{
-		fwrite(msh->blk, 1, (size_t)msh->pos, msh->hdl);
+		write(msh->FilDes, msh->blk, (size_t)msh->pos);
 		msh->pos = 0;
 	}
 }
@@ -1780,7 +1769,7 @@ static void RecBlk(GmfMshSct *msh, const void *blk, int siz)
 /* Write a 4 or 8 bytes position in a mesh file				*/
 /*----------------------------------------------------------*/
 
-static void SetPos(GmfMshSct *msh, long pos)
+static void SetPos(GmfMshSct *msh, long long pos)
 {
 	int IntVal;
 
@@ -1810,3 +1799,314 @@ static void SwpWrd(char *wrd, int siz)
 		wrd[i] = swp;
 	}
 }
+
+
+/*----------------------------------------------------------*/
+/* Set current position in a file							*/
+/*----------------------------------------------------------*/
+
+static int SetFilPos(GmfMshSct *msh, long long pos)
+{
+	if(msh->typ & Bin)
+		return((lseek(msh->FilDes, pos, 0) != -1));
+	else
+		return((fseek(msh->hdl, pos, SEEK_SET) == 0));
+}
+
+
+/*----------------------------------------------------------*/
+/* Get current position in a file							*/
+/*----------------------------------------------------------*/
+
+static long long GetFilPos(GmfMshSct *msh)
+{
+	if(msh->typ & Bin)
+		return(lseek(msh->FilDes, 0, 1));
+	else
+		return(ftell(msh->hdl));
+}
+
+
+/*----------------------------------------------------------*/
+/* Move the position to the end of file and return the size */
+/*----------------------------------------------------------*/
+
+static long long GetFilSiz(GmfMshSct *msh)
+{
+	long long CurPos, EndPos = 0;
+
+	if(msh->typ & Bin)
+	{
+		CurPos = lseek(msh->FilDes, 0, 1);
+		EndPos = lseek(msh->FilDes, 0, 2);
+		lseek(msh->FilDes, CurPos, 0);
+	}
+	else
+	{
+		CurPos = ftell(msh->hdl);
+
+		if(fseek(msh->hdl, 0, SEEK_END) != 0)
+			longjmp(msh->err, -1);
+
+		EndPos = ftell(msh->hdl);
+
+		if(fseek(msh->hdl, CurPos, SEEK_SET) != 0)
+			longjmp(msh->err, -1);
+	}
+
+	return(EndPos);
+}
+
+
+/*----------------------------------------------------------*/
+/* Fortran 77 API											*/
+/*----------------------------------------------------------*/
+
+#ifdef F77API
+
+long long APIF77(gmfopenmesh)(char *FilNam, int *mod, int *ver, int *dim, int StrSiz)
+{
+	int i;
+	char TmpNam[ GmfStrSiz ];
+
+	for(i=0;i<StrSiz;i++)
+		TmpNam[i] = FilNam[i];
+
+	TmpNam[ StrSiz ] = 0;
+
+	if(*mod == GmfRead)
+		return(GmfOpenMesh(TmpNam, *mod, ver, dim));
+	else
+		return(GmfOpenMesh(TmpNam, *mod, *ver, *dim));
+}
+
+int APIF77(gmfclosemesh)(long long *idx)
+{
+	return(GmfCloseMesh(*idx));
+}
+
+int APIF77(gmfgotokwd)(long long *MshIdx, int *KwdIdx)
+{
+	return(GmfGotoKwd(*MshIdx, *KwdIdx));
+}
+
+int APIF77(gmfstatkwd)(long long *MshIdx, int *KwdIdx, int *NmbTyp, int *SolSiz, int *TypTab)
+{
+	if(!strcmp(GmfKwdFmt[ *KwdIdx ][3], "sr"))
+		return(GmfStatKwd(*MshIdx, *KwdIdx, NmbTyp, SolSiz, TypTab));
+	else
+		return(GmfStatKwd(*MshIdx, *KwdIdx));
+}
+
+int APIF77(gmfsetkwd)(long long *MshIdx, int *KwdIdx, int *NmbLin, int *NmbTyp, int *TypTab)
+{
+	if(!strcmp(GmfKwdFmt[ *KwdIdx ][3], "sr"))
+		return(GmfSetKwd(*MshIdx, *KwdIdx, *NmbLin, *NmbTyp, TypTab));
+	else if(strlen(GmfKwdFmt[ *KwdIdx ][2]))
+		return(GmfSetKwd(*MshIdx, *KwdIdx, *NmbLin));
+	else
+		return(GmfSetKwd(*MshIdx, *KwdIdx));
+}
+
+
+/*----------------------------------------------------------*/
+/* Duplication macros										*/
+/*----------------------------------------------------------*/
+
+#define DUP(s,n) DUP ## n (s)
+#define DUP1(s) s
+#define DUP2(s) DUP1(s),s
+#define DUP3(s) DUP2(s),s
+#define DUP4(s) DUP3(s),s
+#define DUP5(s) DUP4(s),s
+#define DUP6(s) DUP5(s),s
+#define DUP7(s) DUP6(s),s
+#define DUP8(s) DUP7(s),s
+#define DUP9(s) DUP8(s),s
+#define DUP10(s) DUP9(s),s
+#define DUP11(s) DUP10(s),s
+#define DUP12(s) DUP11(s),s
+#define DUP13(s) DUP12(s),s
+#define DUP14(s) DUP13(s),s
+#define DUP15(s) DUP14(s),s
+#define DUP16(s) DUP15(s),s
+#define DUP17(s) DUP16(s),s
+#define DUP18(s) DUP17(s),s
+#define DUP19(s) DUP18(s),s
+#define DUP20(s) DUP19(s),s
+
+
+#define ARG(a,n) ARG ## n (a)
+#define ARG1(a) a[0]
+#define ARG2(a) ARG1(a),a[1]
+#define ARG3(a) ARG2(a),a[2]
+#define ARG4(a) ARG3(a),a[3]
+#define ARG5(a) ARG4(a),a[4]
+#define ARG6(a) ARG5(a),a[5]
+#define ARG7(a) ARG6(a),a[6]
+#define ARG8(a) ARG7(a),a[7]
+#define ARG9(a) ARG8(a),a[8]
+#define ARG10(a) ARG9(a),a[9]
+#define ARG11(a) ARG10(a),a[10]
+#define ARG12(a) ARG11(a),a[11]
+#define ARG13(a) ARG12(a),a[12]
+#define ARG14(a) ARG13(a),a[13]
+#define ARG15(a) ARG14(a),a[14]
+#define ARG16(a) ARG15(a),a[15]
+#define ARG17(a) ARG16(a),a[16]
+#define ARG18(a) ARG17(a),a[17]
+#define ARG19(a) ARG18(a),a[18]
+#define ARG20(a) ARG19(a),a[19]
+
+
+/*----------------------------------------------------------*/
+/* Call a fortran thread with 1 to 20 arguments				*/
+/*----------------------------------------------------------*/
+
+static void CalF77Prc(long long BegIdx, long long EndIdx, void *prc, int NmbArg, void **ArgTab)
+{
+	switch(NmbArg)
+	{
+		case 1 :
+		{
+			void (*prc1)(long long *, long long *, DUP(void *, 1)) = \
+				(void (*)(long long *, long long *, DUP(void *, 1)))prc;
+			prc1(&BegIdx, &EndIdx, ARG(ArgTab, 1));
+		}break;
+
+		case 2 :
+		{
+			void (*prc1)(long long *, long long *, DUP(void *, 2)) = \
+				(void (*)(long long *, long long *, DUP(void *, 2)))prc;
+			prc1(&BegIdx, &EndIdx, ARG(ArgTab, 2));
+		}break;
+
+		case 3 :
+		{
+			void (*prc1)(long long *, long long *, DUP(void *, 3)) = \
+				(void (*)(long long *, long long *, DUP(void *, 3)))prc;
+			prc1(&BegIdx, &EndIdx, ARG(ArgTab, 3));
+		}break;
+
+		case 4 :
+		{
+			void (*prc1)(long long *, long long *, DUP(void *, 4)) = \
+				(void (*)(long long *, long long *, DUP(void *, 4)))prc;
+			prc1(&BegIdx, &EndIdx, ARG(ArgTab, 4));
+		}break;
+
+		case 5 :
+		{
+			void (*prc1)(long long *, long long *, DUP(void *, 5)) = \
+				(void (*)(long long *, long long *, DUP(void *, 5)))prc;
+			prc1(&BegIdx, &EndIdx, ARG(ArgTab, 5));
+		}break;
+
+		case 6 :
+		{
+			void (*prc1)(long long *, long long *, DUP(void *, 6)) = \
+				(void (*)(long long *, long long *, DUP(void *, 6)))prc;
+			prc1(&BegIdx, &EndIdx, ARG(ArgTab, 6));
+		}break;
+
+		case 7 :
+		{
+			void (*prc1)(long long *, long long *, DUP(void *, 7)) = \
+				(void (*)(long long *, long long *, DUP(void *, 7)))prc;
+			prc1(&BegIdx, &EndIdx, ARG(ArgTab, 7));
+		}break;
+
+		case 8 :
+		{
+			void (*prc1)(long long *, long long *, DUP(void *, 8)) = \
+				(void (*)(long long *, long long *, DUP(void *, 8)))prc;
+			prc1(&BegIdx, &EndIdx, ARG(ArgTab, 8));
+		}break;
+
+		case 9 :
+		{
+			void (*prc1)(long long *, long long *, DUP(void *, 9)) = \
+				(void (*)(long long *, long long *, DUP(void *, 9)))prc;
+			prc1(&BegIdx, &EndIdx, ARG(ArgTab, 9));
+		}break;
+
+		case 10 :
+		{
+			void (*prc1)(long long *, long long *, DUP(void *, 10)) = \
+				(void (*)(long long *, long long *, DUP(void *, 10)))prc;
+			prc1(&BegIdx, &EndIdx, ARG(ArgTab, 10));
+		}break;
+
+		case 11 :
+		{
+			void (*prc1)(long long *, long long *, DUP(void *, 11)) = \
+				(void (*)(long long *, long long *, DUP(void *, 11)))prc;
+			prc1(&BegIdx, &EndIdx, ARG(ArgTab, 11));
+		}break;
+
+		case 12 :
+		{
+			void (*prc1)(long long *, long long *, DUP(void *, 12)) = \
+				(void (*)(long long *, long long *, DUP(void *, 12)))prc;
+			prc1(&BegIdx, &EndIdx, ARG(ArgTab, 12));
+		}break;
+
+		case 13 :
+		{
+			void (*prc1)(long long *, long long *, DUP(void *, 13)) = \
+				(void (*)(long long *, long long *, DUP(void *, 13)))prc;
+			prc1(&BegIdx, &EndIdx, ARG(ArgTab, 13));
+		}break;
+
+		case 14 :
+		{
+			void (*prc1)(long long *, long long *, DUP(void *, 14)) = \
+				(void (*)(long long *, long long *, DUP(void *, 14)))prc;
+			prc1(&BegIdx, &EndIdx, ARG(ArgTab, 14));
+		}break;
+
+		case 15 :
+		{
+			void (*prc1)(long long *, long long *, DUP(void *, 15)) = \
+				(void (*)(long long *, long long *, DUP(void *, 15)))prc;
+			prc1(&BegIdx, &EndIdx, ARG(ArgTab, 15));
+		}break;
+
+		case 16 :
+		{
+			void (*prc1)(long long *, long long *, DUP(void *, 16)) = \
+				(void (*)(long long *, long long *, DUP(void *, 16)))prc;
+			prc1(&BegIdx, &EndIdx, ARG(ArgTab, 16));
+		}break;
+
+		case 17 :
+		{
+			void (*prc1)(long long *, long long *, DUP(void *, 17)) = \
+				(void (*)(long long *, long long *, DUP(void *, 17)))prc;
+			prc1(&BegIdx, &EndIdx, ARG(ArgTab, 17));
+		}break;
+
+		case 18 :
+		{
+			void (*prc1)(long long *, long long *, DUP(void *, 18)) = \
+				(void (*)(long long *, long long *, DUP(void *, 18)))prc;
+			prc1(&BegIdx, &EndIdx, ARG(ArgTab, 18));
+		}break;
+
+		case 19 :
+		{
+			void (*prc1)(long long *, long long *, DUP(void *, 19)) = \
+				(void (*)(long long *, long long *, DUP(void *, 19)))prc;
+			prc1(&BegIdx, &EndIdx, ARG(ArgTab, 19));
+		}break;
+
+		case 20 :
+		{
+			void (*prc1)(long long *, long long *, DUP(void *, 20)) = \
+				(void (*)(long long *, long long *, DUP(void *, 20)))prc;
+			prc1(&BegIdx, &EndIdx, ARG(ArgTab, 20));
+		}break;
+	}
+}
+
+#endif

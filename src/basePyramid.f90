@@ -1264,7 +1264,6 @@ contains
     real(8), pointer     :: x(:),y(:),z(:),w(:)
     real(8), pointer     :: a(:),b(:),c(:)
     real(8), pointer     :: li(:,:)
-    real(8), parameter   :: eps=1d-12
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -1760,7 +1759,7 @@ contains
 #define fortran 0
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    use M_libmesh6_api
+    include 'libmesh7.ins'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)           :: ord
@@ -1775,8 +1774,8 @@ contains
     !> libmesh
     character(256)                :: name
     
-    integer                       :: ins,ver,res,geo
-    integer, allocatable          :: TypTab(:)
+    integer(8)                    :: unit
+    integer                       :: ver,res,geo
     real(4)                       :: xyz(3)
     integer                       :: nFld,kind(1)
     integer                       :: iNod0,nNod0
@@ -1787,7 +1786,6 @@ contains
     integer                       :: nTria
     integer, allocatable          :: tria(:,:)
     !> Reordering
-    real(8), parameter            :: eps=1d-10
     integer, allocatable          :: indx(:)
     integer                       :: iNod0Min,iNodMin
     real(8)                       :: d2,d2Min
@@ -1879,41 +1877,59 @@ contains
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     name="PyramidP"//sfx//".mesh"
     if( display )print '(3x,"Reading Pyramid Volumic Mesh: ",a)',trim(name)
-    ins=GmfOpenMeshF77(trim(name),GmfRead,ver,geo) ! print '(3x,"ins=",i3)',ins
-    nNod0=GmfStatKwdF77(ins,GmfVertices,ver,0,TypTab) ; if( display )print '(6x,"nNod0=",i10)',nNod0
-    allocate(uvw0(geo+1,nNod0),mark(nNod0))  ! il faut mettre geo+1 pour ensuite reoordonner les noeuds
-    res=GmfGotoKwdF77(ins,GmfVertices)
+    
+    !>>> opening File
+    unit=GmfOpenMesh(trim(name),GmfRead,ver,geo) ! print '(3x,"unit=",i10)',unit
+    !<<<
+    
+    !>>> Vertices
+    nNod0=GmfStatKwd(unit,GmfVertices) ; if( display )print '(6x,"nNod0=",i10)',nNod0
+    allocate(uvw0(1:geo+1,1:nNod0),mark(1:nNod0))  ! il faut mettre geo+1 pour ensuite reoordonner les noeuds
+    
+    
+    res=GmfGotoKwd(unit,GmfVertices)
     select case(ver)
     case(1) !> real(4)
       do iNod0=1,nNod0
-        call GmfGetVertex3dr4(ins,xyz(1),xyz(2),xyz(3),mark(iNod0))
+        res=GmfGetLin(unit,xyz(1),xyz(2),xyz(3),mark(iNod0))
         uvw0(1:3,iNod0)=xyz(1:3)
-        uvw0(4,iNod0)=1d0-uvw0(1,iNod0)-uvw0(2,iNod0)-uvw0(3,iNod0)
+        uvw0(  4,iNod0)=1d0-uvw0(1,iNod0)-uvw0(2,iNod0)-uvw0(3,iNod0)
       enddo
     case(2) !> real(8)
       do iNod0=1,nNod0
-        call GmfGetVertex3dr8(ins,uvw0(1,iNod0),uvw0(2,iNod0),uvw0(3,iNod0),mark(iNod0))
+        res=gmfgetlin(unit,uvw0(1,iNod0),uvw0(2,iNod0),uvw0(3,iNod0),mark(iNod0))
         uvw0(4,iNod0)=1d0-uvw0(1,iNod0)-uvw0(2,iNod0)-uvw0(3,iNod0)
       enddo
     end select
+    !<<<
     
-    nTetr=GmfStatKwdF77(ins,GmfTetrahedra,0,0,TypTab) ; if( display )print '(6x,"nTetr=",i10)',nTetr
-    allocate(tetr(5,nTetr))
-    res=GmfGotoKwdF77(ins,GmfTetrahedra)
-    do iCel=1,nTetr
-      call GmfGetTetrahedron(ins,tetr(1,iCel),tetr(2,iCel),tetr(3,iCel),tetr(4,iCel),tetr(5,iCel))
-    enddo
+    !>>> Tetra
+    nTetr=GmfStatKwd(unit,GmfTetrahedra) ; if( display )print '(6x,"nTetr=",i10)',nTetr
+    allocate(tetr(1:5,1:nTetr))
     
-    nTria=GmfStatKwdF77(ins,GmfTriangles,0,0,TypTab) ; if( display )print '(6x,"nTria=",i10)',nTria
-    allocate(tria(4,nTria))
-    res=GmfGotoKwdF77(ins,GmfTriangles)
-    do iCel=1,nTria
-      call GmfGetTriangle(ins,tria(1,iCel),tria(2,iCel),tria(3,iCel),tria(4,iCel))
-    enddo
+    res=GmfGetBlock(unit, GmfTetrahedra ,& ! <=
+    &   GmfInt, tetr(1,1), tetr(1,2)    ,&
+    &   GmfInt, tetr(2,1), tetr(2,2)    ,&
+    &   GmfInt, tetr(3,1), tetr(3,2)    ,&
+    &   GmfInt, tetr(4,1), tetr(4,2)    ,&
+    &   GmfInt, tetr(5,1), tetr(5,2)     )
+    !<<<
     
-    res=GmfCloseMeshF77(ins)
+    !>>> Triangles
+    nTria=GmfStatKwd(unit,GmfTriangles) ; if( display )print '(6x,"nTria=",i10)',nTria
+    allocate(tria(1:4,1:nTria))
+    
+    res=GmfGetBlock(unit, GmfTriangles,& ! <=
+    &   GmfInt, tria(1,1), tria(1,2)  ,&
+    &   GmfInt, tria(2,1), tria(2,2)  ,&
+    &   GmfInt, tria(3,1), tria(3,2)  ,&
+    &   GmfInt, tria(4,1), tria(4,2)   )
+    !<<<
+    
+    !>>> Closing File
+    res=GmfCloseMesh(unit)
     if( display )print '(3x,"end Reading")'
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( display )print '(3x,"Reordering Nodes")'
@@ -1934,7 +1950,7 @@ contains
           iNod0Min=iNod0 ; d2Min=d2
         endif
         
-        if( d2<eps )then
+        if( d2<epsilon(1d0)  )then
           indx(iNod0)=iNod
           exit loop1
         endif
@@ -1966,38 +1982,39 @@ contains
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Reecriture de TetraPi.mesh
+    
     name="PyramidP"//sfx//".mesh" ; if( display )print '(3x,"Writing Reordered Pyramid Volumic Mesh: ",a)',trim(name)
-    ins=GmfOpenMeshF77(trim(name),GmfWrite,1,3) ; if( display )print '(6x,"nNod =",i10)',nNod
+    unit=GmfOpenMesh(trim(name),GmfWrite,1,3) ; if( display )print '(6x,"nNod =",i10)',nNod
     
-    res=GmfSetKwdF77(ins,GmfVertices,nNod,0,TypTab)
+    res=GmfSetKwd(unit,GmfVertices,nNod)
     do iNod=1,nNod
-      call GmfSetVertex3dr4(ins                     ,&
-      &                     real(uvw(1,iNod),kind=4),&
-      &                     real(uvw(2,iNod),kind=4),&
-      &                     real(uvw(3,iNod),kind=4),&
-      &                     i3=0                     )
+      res=GmfSetLin(unit, GmfVertices        ,&
+      &             real(uvw(1,iNod),kind=4) ,&
+      &             real(uvw(2,iNod),kind=4) ,&
+      &             real(uvw(3,iNod),kind=4) ,&
+      &             0                         )
     enddo
     
-    res=GmfSetKwdF77(ins,GmfTetrahedra,nTetr,0,TypTab) ; if( display )print '(6x,"nTetr=",i10)',nTetr
+    res=GmfSetKwd(unit,GmfTetrahedra,nTetr) ; if( display )print '(6x,"nTetr=",i10)',nTetr
     do iCel=1,nTetr
-      call GmfSetTetrahedron(ins               ,&
-      &                      indx(tetr(1,iCel)),&
-      &                      indx(tetr(2,iCel)),&
-      &                      indx(tetr(3,iCel)),&
-      &                      indx(tetr(4,iCel)),&
-      &                           tetr(5,iCel)  )
+      res= GmfSetLin(unit, GmfTetrahedra,&
+      &              indx(tetr(1,iCel)) ,&
+      &              indx(tetr(2,iCel)) ,&
+      &              indx(tetr(3,iCel)) ,&
+      &              indx(tetr(4,iCel)) ,&
+      &                   tetr(5,iCel)   )
     enddo
     
-    res=GmfSetKwdF77(ins,GmfTriangles,nTria,0,TypTab) ;  if( display )print '(6x,"nTria=",i10)',nTria
+    res=GmfSetKwd(unit,GmfTriangles,nTria) ;  if( display )print '(6x,"nTria=",i10)',nTria
     do iCel=1,nTria
-      call GmfSetTriangle(ins               ,&
+      res= GmfSetLin(unit, GmfTriangles    ,&
       &                  indx(tria(1,iCel)),&
       &                  indx(tria(2,iCel)),&
       &                  indx(tria(3,iCel)),&
       &                       tria(4,iCel)  )
     enddo
     
-    res=GmfCloseMeshF77(ins)
+    res=GmfCloseMesh(unit)
     if( display )print '(3x,"end")'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -2279,7 +2296,7 @@ contains
   
   subroutine pyramidReadXYZout3D(xyzOut,display)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    use M_libmesh6_api
+    include 'libmesh7.ins'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     real(8), intent(out), pointer :: xyzOut (:,:)
@@ -2288,9 +2305,9 @@ contains
     integer                       :: i,j,nVert
     character(256)                :: name
     integer                       :: iNod0,nNod0
-    integer                       :: mark
-    integer                       :: ins,ver,res,geo
-    integer, allocatable          :: TypTab(:)
+    integer, pointer              :: mark(:)
+    integer(8)                    :: unit
+    integer                       :: ver,res,geo
     real(4)                       :: xyz(3)
     integer                       :: nFld,kind(1)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -2298,23 +2315,22 @@ contains
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     name="Pyramids.meshb"
     if( display )print '(3x,"Reading Pyramid Volumic Mesh: ",a)',trim(name)
-    ins=GmfOpenMeshF77(trim(name),GmfRead,ver,geo) ! print '(3x,"ins=",i3)',ins
-    nNod0=GmfStatKwdF77(ins,GmfVertices,ver,0,TypTab) ; if( display )print '(6x,"nNod0=",i10)',nNod0
-    allocate(xyzOut(geo,nNod0))
-    res=GmfGotoKwdF77(ins,GmfVertices)
-    select case(ver)
-    case(1) !> real(4)
-      do iNod0=1,nNod0
-        call GmfGetVertex3dr4(ins,xyz(1),xyz(2),xyz(3),mark)
-        xyzOut(1:3,iNod0)=xyz(1:3)
-      enddo
-    case(2) !> real(8)
-      do iNod0=1,nNod0
-        call GmfGetVertex3dr8(ins,xyzOut(1,iNod0),xyzOut(2,iNod0),xyzOut(3,iNod0),mark)
-      enddo
-    end select
     
-    res=GmfCloseMeshF77(ins)
+    unit=GmfOpenMesh(trim(name),GmfRead,ver,geo) ! print '(3x,"unit=",i3)',unit
+    
+    nNod0=GmfStatKwd(unit,GmfVertices) ; if( display )print '(6x,"nNod0=",i10)',nNod0
+    allocate(xyzOut(1:3,1:nNod0),mark(1:nNod0))
+    
+    res = GmfGetBlock(unit, GmfVertices                   ,&
+    &                 GmfDouble, xyzOut(1,1), xyzOut(1,2) ,&
+    &                 GmfDouble, xyzOut(2,1), xyzOut(2,2) ,&
+    &                 GmfDouble, xyzOut(3,1), xyzOut(3,2) ,&
+    &                 GmfInt   , mark  (  1), mark  (  2) )
+    
+    res=GmfCloseMesh(unit)
+    
+    deallocate(mark)
+    
     if( display )print '(3x,"end Reading")'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -2323,7 +2339,7 @@ contains
   
   subroutine pyramidWriteSolOut3D(title,solOut)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    use M_libmesh6_api
+    include 'libmesh7.ins'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     character(*)                 :: title
@@ -2335,7 +2351,8 @@ contains
     integer , parameter          :: iFile=100
     
     character(256)               :: name
-    integer                      :: ins,ver,res,geo
+    integer(8)                   :: unit
+    integer                      :: ver,res,geo
     integer                      :: nFld,kind(1)
     real(8) , allocatable        :: sol(:)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -2384,12 +2401,13 @@ contains
       nFld=1 ; kind(1)=1 ; sol(1:nSol)=solOut(1:nSol,iOrd)
       name=title//"_"//sfx//".solb" ; print '(/"Writing: ",a)',trim(name)
       ver=2
-      ins=GmfOpenMeshF77(trim(name),GmfWrite,ver,geo) ; print '(3x,"nSolu=",i10)',nSol
-      res=GmfSetKwdF77(ins,GmfSolAtVertices,nSol,nFld,kind(1:1))
-      do i=1,nSol ! print '("i=",i6,2x,"sol=",e22.15)',i,sol(i)
-        call gmfSetSolAtVertexR8(MshIdx=ins,SolTab=sol(i))
-      enddo
-      res=GmfCloseMeshF77(ins)
+      unit=GmfOpenMesh(trim(name),GmfWrite,ver,geo) ; print '(3x,"nSolu=",i10)',nSol
+      res=GmfSetKwd(unit,GmfSolAtVertices,nSol,nFld,kind(1:1))
+      
+      res = GmfSetBlock(unit, GmfSolAtVertices    ,&
+      &                 GmfDouble, sol(1), sol(2)  )
+      
+      res=GmfCloseMesh(unit)
       
     enddo
     deallocate(sol)
