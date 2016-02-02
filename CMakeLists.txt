@@ -138,7 +138,7 @@ endif ()
 
 
 find_package(BLAS)
-#find_package(LAPACK)
+find_package(LAPACK)
 
 
 #------------------------------------------------------------------------------
