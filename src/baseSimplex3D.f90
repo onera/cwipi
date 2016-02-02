@@ -310,9 +310,9 @@ module baseSimplex3D
       ! [y] = [v1(2) v2(2) v3(2) v4(2)] x [13,14,12,l1]^t
       ! [z]   [v1(3) v2(3) v3(3) v4(3)]
       !
-      allocate(x(1:n)) ; x(1:n)=l3(1:n)*v1(1)+l4(1:n)*v2(1)+l2(1:n)*v3(1)+l1(1:n)*v4(1) ! form undeformed coordinates
-      allocate(y(1:n)) ; y(1:n)=l3(1:n)*v1(2)+l4(1:n)*v2(2)+l2(1:n)*v3(2)+l1(1:n)*v4(2) ! form undeformed coordinates
-      allocate(z(1:n)) ; z(1:n)=l3(1:n)*v1(3)+l4(1:n)*v2(3)+l2(1:n)*v3(3)+l1(1:n)*v4(3) ! form undeformed coordinates
+      allocate(x(1:n)) ; x(1:n)=l3(1:n)*v1(1)+l4(1:n)*v2(1)+l2(1:n)*v3(1)+l1(1:n)*v4(1) !> form undeformed coordinates
+      allocate(y(1:n)) ; y(1:n)=l3(1:n)*v1(2)+l4(1:n)*v2(2)+l2(1:n)*v3(2)+l1(1:n)*v4(2) !> form undeformed coordinates
+      allocate(z(1:n)) ; z(1:n)=l3(1:n)*v1(3)+l4(1:n)*v2(3)+l2(1:n)*v3(3)+l1(1:n)*v4(3) !> form undeformed coordinates
       
 #if 0==1
       print '(/"[x y z]")'
@@ -494,6 +494,7 @@ module baseSimplex3D
       !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       
       !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      deallocate(x,y,z)
       deallocate(rhs,rst)
       !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       
@@ -617,6 +618,10 @@ module baseSimplex3D
   
   subroutine nodes3Drst2abc(rst,a,b,c)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> IN  a,b,c not allocated
+    !> OUT a,b,c     allocated    
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! a= -2 (1+r)/(s+t) -1
     ! b=  2 (1+s)/(1-t) -1
     ! c=  t
@@ -633,7 +638,9 @@ module baseSimplex3D
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     n=size(rst,2) ; allocate(a(1:n),b(1:n),c(1:n))
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     do i=1,n
       d=rst(2,i)+rst(3,i)
       if( d==0d0 )then ! Hesthaven p174
@@ -659,8 +666,11 @@ module baseSimplex3D
   subroutine nodes3Duvw2abc(u,v,w,a,b,c,display)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Tetra (0,0,0)-(1,0,0)-(0,1,0) To Tetra (-1,-1,-1)-(1,-1,-1)-(1,1,-1)-(-1,-1,1)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    
+    !> IN  a,b,c not allocated
+    !> OUT a,b,c     allocated    
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Variables globales
     real(8), intent(in)           :: u,v,w
@@ -669,8 +679,7 @@ module baseSimplex3D
     !> Variables locales
     integer                       :: i,n
     real(8)                       :: d,r,s,t
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     allocate(a(1),b(1),c(1))
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -712,7 +721,10 @@ module baseSimplex3D
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Tetra (0,0,0)-(1,0,0)-(0,1,0) To Tetra (-1,-1,-1)-(1,-1,-1)-(1,1,-1)-(-1,-1,1)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> IN  a,b,c not allocated
+    !> OUT a,b,c     allocated    
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Variables globales
     real(8), intent(in) , pointer :: uvw(:,:)
@@ -1077,6 +1089,11 @@ module baseSimplex3D
         drMode(1:n,ad) = drMode(1:n,ad)*coef
         dsMode(1:n,ad) = dsMode(1:n,ad)*coef
         dtMode(1:n,ad) = dtMode(1:n,ad)*coef
+        
+        !> deallocate memory
+        deallocate(fa,dfa)
+        deallocate(fb,dfb)
+        deallocate(fc,dfc)
       enddo
       deallocate(tmp)
       
@@ -1162,12 +1179,11 @@ module baseSimplex3D
     integer                        :: i,j,k,nPt,np
     real(8)                        :: gamma(0:ord+1)
     integer                        :: iOrd
-    real(8), pointer               :: mode1(:),mode2(:),mode3(:)
-    real(8), pointer               :: Psi(:,:),mode(:,:)
+    real(8), pointer               :: psi(:,:)
     real(8), pointer               :: mat(:,:)
     integer                        :: lWork
-    integer, pointer               :: ipiv(:)
-    real(8), pointer               :: work(:)
+    integer, allocatable           :: ipiv(:)
+    real(8), allocatable           :: work(:)
     integer                        :: iErr
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -1176,12 +1192,12 @@ module baseSimplex3D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    call simplex3D(ord=ord,a=a,b=b,c=c,mode=psi,transpose=.false.) ! psi(1:nPt,1:np)
+    call simplex3D(ord=ord,a=a,b=b,c=c,mode=psi,transpose=.false.) !> psi(1:nPt,1:np)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> mat=Transpose[Vand]
-    allocate(mat(np,np))
+    allocate(mat(1:np,1:np))
     do i=1,np
       do j=1,np
         mat(i,j)=vand(j,i)
@@ -1189,7 +1205,7 @@ module baseSimplex3D
     enddo
     
     !> mat=Inverse[mat]
-    lWork=64*(np) ; allocate(work(lWork),ipiv(np))
+    lWork=64*(np) ; allocate(work(1:lWork),ipiv(1:np))
     call dgetrf(np,np,mat(1,1),np,ipiv(1),iErr)
     call dgetri(np,mat(1,1),np,ipiv(1),work(1),lWork,iErr)
     deallocate(ipiv,work)
@@ -1198,21 +1214,23 @@ module baseSimplex3D
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> lx = Inverse[Transpose[Vand]].Psi
     if( transpose )then
-      allocate(lx(1:np,1:nPt)) ; lx(:,:)=0d0
-      ! psi(1:nPt,1:np)
       
+     !allocate(lx(1:np,1:nPt)) ; lx(1:np,1:nPt)=0d0
+      lx(:,:)=0d0
+      !> psi(1:nPt,1:np)      
       do i=1,nPt
         do j=1,np
           do k=1,np
-            lx(j,i)=lx(j,i)+mat(j,k)*Psi(i,k)  ! Attention de bien prendre Psi(i,k)
+            lx(j,i)=lx(j,i)+mat(j,k)*psi(i,k)  ! Attention de bien prendre psi(i,k)
           enddo
         enddo
       enddo
       
     else
       
-      allocate(lx(1:nPt,1:np)) ; lx(:,:)=0d0
-      ! psi(1:nPt,1:np)
+     !allocate(lx(1:nPt,1:np)) ; lx(:,:)=0d0
+      lx(:,:)=0d0
+      !> psi(1:nPt,1:np)
       do i=1,nPt
         do j=1,np
           do k=1,np

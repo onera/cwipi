@@ -442,9 +442,12 @@ module baseSimplexTools
     
     return
   end subroutine eigenVectors
-  
-  
+    
   subroutine jacobiP(alpha,beta,n,u,jf)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> IN  jf is not allocated
+    !> OUT jf is     allocated
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     real(8)           :: alpha
     real(8)           :: beta
@@ -463,7 +466,9 @@ module baseSimplexTools
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     nVert=size(u) ; allocate(jf(1:nVert))
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    
     apb=alpha+beta
     gamma0=2d0**(apb+1d0)*gamma(alpha+1d0)*gamma(beta+1d0) /( (apb+1d0)*gamma(apb+1d0) )
     if( n==0 )then
@@ -501,6 +506,10 @@ module baseSimplexTools
   
   subroutine dJacobiP(alpha,beta,n,u,jf)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> IN  jf is not allocated
+    !> OUT jf is     allocated
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     real(8)           :: alpha
     real(8)           :: beta
     integer           :: n
@@ -514,7 +523,9 @@ module baseSimplexTools
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     nVert=size(u) ; allocate(jf(1:nVert))
-    !
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( n==0 )then
       jf(:)=0d0
     else
@@ -533,7 +544,7 @@ module baseSimplexTools
     real(8)           :: alpha
     real(8)           :: beta
     integer           :: n
-    real(8)           :: u(:)
+    real(8)           :: u (  :)
     real(8) , pointer :: jf(:,:)
     !-
     integer           :: k
@@ -578,12 +589,12 @@ module baseSimplexTools
     return
   end subroutine jacobiPtab
   
-  subroutine gradjacobiPtab(alpha,beta,n,u,jf)
+  subroutine gradJacobiPtab(alpha,beta,n,u,jf)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     real(8)           :: alpha
     real(8)           :: beta
     integer           :: n
-    real(8)           :: u(:)
+    real(8)           :: u(   :)
     real(8) , pointer :: jf(:,:)
     !--
     integer           :: nVert
@@ -607,7 +618,7 @@ module baseSimplexTools
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
-  end subroutine gradjacobiPtab  
+  end subroutine gradJacobiPtab  
     
   subroutine jacobi(u,alpha,beta,n,jf)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1020,7 +1031,7 @@ module baseSimplexTools
     return
   end subroutine massMatrix0
   
-  subroutine massMatrix1(vand,mass)
+  subroutine massMatrix1(vand, mass)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #define massMatrix1 0
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -1062,7 +1073,8 @@ module baseSimplexTools
       !> [a11        ]
       !> [a21 a22    ]  => [a11 a21 a31 a22 a32 a33]
       !> [a31 a32 a33]
-      allocate(mass(n*(n+1)/2)) ; mass(:)=0d0
+     !allocate(mass(1:n*(n+1)/2)) ; mass(:)=0d0
+      mass(:)=0d0
       ad=0
       do j=1,n
         do i=j,n
@@ -1086,7 +1098,7 @@ module baseSimplexTools
       
     else !> ord=0 => vand is not associated
       
-      allocate(mass(1)) ; mass(1)=2d0
+      allocate(mass(1:1)) ; mass(1:1)=2d0
       
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -1256,7 +1268,8 @@ module baseSimplexTools
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( .not.transpose )then
       n=size(lx,1) ; np=size(lx,2)
-      allocate(dlx(1:n,1:np)) ; dlx(:,:)=0d0
+     !allocate(dlx(1:n,1:np)) ; dlx(1:n,1:np)=0d0
+      dlx(:,:)=0d0
       do i=1,n
         do j=1,np
           do k=1,np
@@ -1266,7 +1279,8 @@ module baseSimplexTools
       enddo
     else
       n=size(lx,2) ; np=size(lx,1)
-      allocate(dlx(1:np,1:n)) ; dlx(:,:)=0d0
+     !allocate(dlx(1:np,1:n)) ; dlx(1:n,1:np)=0d0
+      dlx(:,:)=0d0
       do i=1,n
         do j=1,np
           do k=1,np

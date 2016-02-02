@@ -52,9 +52,9 @@ module baseSimplex2D
         do iv=0,ord-iu
           do iw=0,ord-iu-iv
             ad=iu+iv*(ord+1)-(iv*(iv-1))/2 +1 !> Rangement façon space            
-            uvw(1:3,ad)=[real(iu,kind=8)/real(ord,kind=8),& ! u
-            &            real(iv,kind=8)/real(ord,kind=8),& ! v
-            &            real(iw,kind=8)/real(ord,kind=8) ] ! w
+            uvw(1:3,ad)=[real(iu,kind=8)/real(ord,kind=8),& !> u
+            &            real(iv,kind=8)/real(ord,kind=8),& !> v
+            &            real(iw,kind=8)/real(ord,kind=8) ] !> w
           enddo
         enddo
       enddo
@@ -662,13 +662,16 @@ module baseSimplex2D
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Vandermonde matrix
-    call gradSimplex2D(ord=ord,a=a,b=b,drMode=drVand,dsMode=dsVand,transpose=.false.)
+    call gradSimplex2D(ord=ord,a=a,b=b,drMode=drVand,dsMode=dsVand,transpose=.false.) !> drVand,dsVand Memory allocated in gradSimplex2D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
   end subroutine gradVandermonde2D
   
   subroutine lagrange2Dv(ord,vand,a,b,lx,transpose)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#define lagrange2Dv 0
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! lagrange1D := Inverse[Transpose[Vand]].Psi[x];
     ! transpose = .true.  => lx(1:ord+1,1:nPt)
@@ -694,11 +697,26 @@ module baseSimplex2D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if lagrange2Dv==1
+    print '(">>> baseSimplex2D:lagrange2Dv")'
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     np=(ord+1)*(ord+2)/2 ; nPt=size(a)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     call simplex2D(ord=ord,a=a,b=b,mode=psi,transpose=.false.)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if lagrange2Dv==1
+    print '("    baseSimplex2D:lagrange2Dv: np=",i10," nPt=",i10)',np,nPt
+    print '("    baseSimplex2D:lagrange2Dv: size(psi) =",i10," x ",i10)',size(psi,1),size(psi,2)
+    print '("    baseSimplex2D:lagrange2Dv: size(vand)=",i10," x ",i10)',size(vand,1),size(vand,2)
+    print '("    baseSimplex2D:lagrange2Dv: step1 OK")'
+#endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -717,9 +735,16 @@ module baseSimplex2D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if lagrange2Dv==1
+    print '(">>> baseSimplex2D:lagrange2Dv: step2 OK")'
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> lx = Inverse[Transpose[Vand]].psi
     if( .not.transpose )then
-      allocate(lx(1:nPt,1:np)) ; lx(:,:)=0d0
+     !allocate(lx(1:nPt,1:np)) ; lx(:,:)=0d0
+      lx(:,:)=0d0
       do i=1,nPt
         do j=1,np
           do k=1,np
@@ -728,7 +753,8 @@ module baseSimplex2D
         enddo
       enddo
     else
-      allocate(lx(1:np,1:nPt)) ; lx(:,:)=0d0
+     !allocate(lx(1:np,1:nPt)) ; lx(:,:)=0d0
+      lx(:,:)=0d0
       do i=1,nPt
         do j=1,np
           do k=1,np
@@ -741,8 +767,24 @@ module baseSimplex2D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if lagrange2Dv==1
+    print '(">>> baseSimplex2D:lagrange2Dv: step3 OK")'
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     deallocate(mat)
     deallocate(psi)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if lagrange2Dv==1
+    print '("<<< baseSimplex2D:lagrange2Dv")'
+#endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#undef lagrange2Dv
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return

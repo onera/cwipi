@@ -218,7 +218,8 @@ module baseSimplex1D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    allocate(li(1:nVert,1:ord)) ; li(1:nVert,1:ord)=1d0
+   !allocate(li(1:nVert,1:ord)) ; li(1:nVert,1:ord)=1d0
+    li(:,:)=1d0
     do i=1,ord+1
       do j=1,ord+1
         if( .not.i==j )then
@@ -241,7 +242,6 @@ module baseSimplex1D
     ! transpose = .true.  => lx(1:ord+1,1:nPt)
     ! transpose = .false. => lx(1:nPt,1:ord+1)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)            :: ord
     real(8), intent(in)  , pointer :: vand(:,:)
@@ -252,7 +252,7 @@ module baseSimplex1D
     integer                        :: i,j,k,nPt
     real(8)                        :: gamma(0:ord+1)
     integer                        :: iOrd,np
-    real(8), pointer               :: Psi(:,:)
+    real(8), pointer               :: psi(:,:)
     real(8), pointer               :: mat(:,:)
     integer                        :: lWork
     integer, pointer               :: ipiv(:)
@@ -260,10 +260,15 @@ module baseSimplex1D
     integer                        :: iErr
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     np=ord+1 ; nPt=size(x)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    
     gamma(0:np) = [(sqrt(real(2*iOrd+1,kind=8)/2d0), iOrd=0,np)]
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    
     !> Polynomes de Legendre normalisés :
     !> p_{0}= gamma(0) && p_{1}= gamma(1) x
     !> pour k>= 2 : gamma(k+1) (k+1) p_{k+1} = (2k+1) gamma(k) p_{k} x - k gamma(k-1) p_{k-1}
@@ -278,7 +283,9 @@ module baseSimplex1D
       enddo
     endif
    !call displayMatrix(title="Psi",mat=psi)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> mat=Inverse[Transpose[Vand]]
     allocate(mat(np,np))
     do i=1,np
@@ -292,31 +299,38 @@ module baseSimplex1D
     call dgetri(np,mat(1,1),np,ipiv(1),work(1),lWork,iErr)
     deallocate(ipiv,work)
    !call displayMatrix(title="Inverse[Transpose[Vand]]",mat=mat)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
-    !> lx = Inverse[Transpose[Vand]].Psi
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    
+    !> lx = Inverse[Transpose[Vand]].psi
     if( .not.transpose )then
-      allocate(lx(1:nPt,1:np)) ; lx(:,:)=0d0
+     !allocate(lx(1:nPt,1:np)) ; lx(:,:)=0d0
+      lx(:,:)=0d0
       do i=1,nPt
         do j=1,np
           do k=1,np
-            lx(i,j)=lx(i,j)+mat(j,k)*Psi(k-1,i)  ! Attention de bien prendre Psi(k-1,i)
+            lx(i,j)=lx(i,j)+mat(j,k)*psi(k-1,i)  ! Attention de bien prendre psi(k-1,i)
           enddo
         enddo
       enddo
     else
-      allocate(lx(1:np,1:nPt)) ; lx(:,:)=0d0
+     !allocate(lx(1:np,1:nPt)) ; lx(:,:)=0d0
+      lx(:,:)=0d0
       do i=1,nPt
         do j=1,np
           do k=1,np
-            lx(j,i)=lx(j,i)+mat(j,k)*Psi(k-1,i)  ! Attention de bien prendre Psi(k-1,i)
+            lx(j,i)=lx(j,i)+mat(j,k)*psi(k-1,i)  ! Attention de bien prendre psi(k-1,i)
           enddo
         enddo
       enddo
     endif
    !call displayMatrix(title="lx",mat=lx)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>        
     deallocate(mat)
     deallocate(psi)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
   end subroutine lagrange1Dv

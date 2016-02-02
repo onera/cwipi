@@ -230,7 +230,9 @@ contains
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> lx = Inverse[Transpose[Vand]].Psi
     if( transpose )then
-      allocate(lx(1:nMod,1:nNod)) ; lx(:,:)=0d0
+      
+     !allocate(lx(1:nMod,1:nNod)) ; lx(:,:)=0d0
+      lx(:,:)=0d0
       !> mod(1:nMod,1:nNod)
       do i=1,nNod
         do j=1,nMod
@@ -242,7 +244,8 @@ contains
       
     else
       
-      allocate(lx(1:nNod,1:nMod)) ; lx(:,:)=0d0
+     !allocate(lx(1:nNod,1:nMod)) ; lx(:,:)=0d0
+      lx(:,:)=0d0
       !> mod(1:nNod,1:nMod)
       do i=1,nNod
         do j=1,nMod
@@ -251,6 +254,7 @@ contains
           enddo
         enddo
       enddo
+      
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -383,23 +387,27 @@ contains
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> drPhi = Inverse[Transpose[Vand]].drPsi
     if( transpose )then
-      allocate(drPhi(1:nMod,1:nNod)) ; drPhi(:,:)=0d0
-      allocate(dsPhi(1:nMod,1:nNod)) ; dsPhi(:,:)=0d0
-      allocate(dtPhi(1:nMod,1:nNod)) ; dtPhi(:,:)=0d0
-      !> drmod(1:nMod,1:nNod)
+      
+      !> drPhi(1:nMod,1:nNod)
+      drPhi(:,:)=0d0
+      dsPhi(:,:)=0d0
+      dtPhi(:,:)=0d0
       do i=1,nNod
         do j=1,nMod
           do k=1,nMod
-            drPhi(j,i)=drPhi(j,i)+invTransVand(j,k)*drPsi(i,k)  !> Attention de bien prendre mod(i,k)
-            dsPhi(j,i)=dsPhi(j,i)+invTransVand(j,k)*dsPsi(i,k)  !> Attention de bien prendre mod(i,k)
-            dtPhi(j,i)=dtPhi(j,i)+invTransVand(j,k)*dtPsi(i,k)  !> Attention de bien prendre mod(i,k)
+            drPhi(j,i)=drPhi(j,i)+invTransVand(j,k)*drPsi(i,k)  !> Attention de bien prendre drPsi(i,k)
+            dsPhi(j,i)=dsPhi(j,i)+invTransVand(j,k)*dsPsi(i,k)  !> Attention de bien prendre dsPsi(i,k)
+            dtPhi(j,i)=dtPhi(j,i)+invTransVand(j,k)*dtPsi(i,k)  !> Attention de bien prendre dtPsi(i,k)
           enddo
         enddo
       enddo
       
     else
       
-      allocate(drPhi(1:nNod,1:nMod)) ; drPhi(:,:)=0d0
+      !> drPhi(1:nNod,1:nMod)
+      drPhi(:,:)=0d0
+      dsPhi(:,:)=0d0
+      dtPhi(:,:)=0d0
       !> mod(1:nNod,1:nMod)
       do i=1,nNod
         do j=1,nMod
@@ -410,6 +418,7 @@ contains
           enddo
         enddo
       enddo
+      
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -1379,7 +1388,7 @@ contains
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     iNod=0
-    do iw=0,ord ; print '("iw=",i3)',iw
+    do iw=0,ord ! print '("iw=",i3)',iw
       
       !>>>>>> square [-a,+a]x[-a,+a] @ level iw
       if( ord==0 )then
@@ -1897,7 +1906,7 @@ contains
       enddo
     case(2) !> real(8)
       do iNod0=1,nNod0
-        res=gmfgetlin(unit,uvw0(1,iNod0),uvw0(2,iNod0),uvw0(3,iNod0),mark(iNod0))
+        res=GmfGetLin(unit,uvw0(1,iNod0),uvw0(2,iNod0),uvw0(3,iNod0),mark(iNod0))
         uvw0(4,iNod0)=1d0-uvw0(1,iNod0)-uvw0(2,iNod0)-uvw0(3,iNod0)
       enddo
     end select
