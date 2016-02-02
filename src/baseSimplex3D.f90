@@ -1164,9 +1164,9 @@ module baseSimplex3D
   
   subroutine lagrange3Dv(ord,vand,a,b,c,lx,transpose)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    ! lagrange3Dv := Inverse[Transpose[Vand]].Psi[x];
-    ! transpose = .true.  => lx(1:ord+1,1:nPt)
-    ! transpose = .false. => lx(1:nPt,1:ord+1)
+    !! lagrange3Dv := Inverse[Transpose[Vand]].Psi[x];
+    !! transpose = .true.  => lx(1:ord+1,1:nPt)
+    !! transpose = .false. => lx(1:nPt,1:ord+1)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

@@ -165,14 +165,15 @@ subroutine edge_00()
   !> Points solution
   nVert=05 ; allocate(xout(1:nVert)) ; xout(1:nVert)=[( (-1d0+2d0*real(i-1,kind=8)/real(nVert-1,kind=8)), i=1,nVert)]
  !nVert=01 ; allocate(xout(1:nVert)) ; xout(1:nVert)=-5d-1
-  print '(/"size(xout)=",i3)',size(xout)
-  print '("xout(",i2,")=",f12.5)',(i,xout(i),i=1,nVert)
+  print '(/"size(xOut)=",i3)',size(xout)
+  print '("xOut(",i2,")=",f12.5)',(i,xOut(i),i=1,nVert)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Polynomes d'interpolation
-  call lagrange1Dv(ord=order,vand=vand,x=xout,lx=lxout,transpose=.true.)
-  call display(title="lxout",mat=lxout)
+  allocate(lxOut(1:order+1,1:nVert))
+  call lagrange1Dv(ord=order,vand=vand,x=xOut,lx=lxOut,transpose=.true.)
+  call display(title="lxOut",mat=lxOut)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -183,17 +184,20 @@ subroutine edge_00()
   call derive1D(vand=vand,dVand=dVand,dMat=dr)
   call display(title="Dr Matrix",mat=dr)
   
-  call dLagrange1Dv(dMat=dr,lx=lxout,dlx=dlxout,transpose=.true.) ! <= true pour affichage
-  call display(title="d lx=Dr^T lx",mat=dlxout)
+  allocate(dlXout(1:order+1,1:nVert))
+  call dLagrange1Dv(dMat=dr,lx=lxOut,dlx=dlXout,transpose=.true.) ! <= true pour affichage
+  call display(title="d lx=Dr^T lx",mat=dlXout)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  call lebesgue(lx=lxout,l=leb,transpose=.false.)  
-  print '("i=",i2," xout=",f12.5," lebesgue=",f12.5)',(i,xout(i),leb(i,1),i=1,nVert)
+  allocate(leb(1,1:nVert))
+  call lebesgue(lx=lxOut,l=leb,transpose=.true.)
+  print '("i=",i2," xout=",f12.5," lebesgue=",f12.5)',(i,xOut(i),leb(1,i),i=1,nVert)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  deallocate(xout,lxout,dlxout,leb)
+  print '("Cleanning Memory")'
+  deallocate(xOut,lxOut,dlXout,leb)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   return
@@ -213,7 +217,7 @@ subroutine triangle_00()
   real(8), pointer   :: drVand  (:,:),dsVand  (:,:)
   real(8), pointer   :: drMatrix(:,:),dsMatrix(:,:)
   real(8), pointer   :: mass(:,:)
-  real(8), pointer   :: mode(:,:)
+  real(8), pointer   :: psi (:,:)
   real(8), pointer   :: xyout(:,:),lxout(:,:),drLxout(:,:),dsLxout(:,:)
   real(8), pointer   :: leb(:,:)
   real(8), pointer   :: uvw(:,:),rs(:,:),a(:),b(:)
@@ -236,8 +240,10 @@ subroutine triangle_00()
   write(*,'(/"Points d''interpolation")')
   call nodes2D   (ord=order,uvw=uvw,display=.true.)
   call nodes2Dopt(ord=order,uvw=uvw,display=.true.)
-  call nodes2Duv2rs(uv=uvw,rs=rs ,display=.true.) ! rs(1:2,:)=2d0*uv(1:2,:)-1d0
-  call nodes2Drs2ab(rs=rs,a=a,b=b,display=.true.) ! a=2 (1+r)/(1-s)-1 && b=s
+  call nodes2Duv2rs(uv=uvw,rs=rs ,display=.true.) !> rs(1:2,:)=2d0*uv(1:2,:)-1d0
+  call nodes2Drs2ab(rs=rs,a=a,b=b,display=.true.) !> a=2 (1+r)/(1-s)-1 && b=s
+  
+  nVert=size(uvw,2)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -252,9 +258,9 @@ subroutine triangle_00()
   &    file_name=fileName   ,&
   &    node_xy=node_xy      ,&
   &    node_show=0          ,&
-  &    point_num=size(uvw,2),&
+  &    point_num=nVert      ,&
   &    point_xy=rs          ,&
-  &    point_show=1          ) ! 2, show the points and number them
+  &    point_show=2          ) !> point_show=2, shows the points and number them
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -266,9 +272,11 @@ subroutine triangle_00()
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Polynomes d'interpolation (on teste avec les points d'interpolation
-  call lagrange2Dv(ord=order,vand=vand,a=a,b=b,lx=lxout,transpose=.true.) ! true pour affichage
+  
+  allocate(lxOut(1:(order+1)*(order+2)/2,1:nVert))
+  call lagrange2Dv(ord=order,vand=vand,a=a,b=b,lx=lxOut,transpose=.true.) !> true pour affichage
   if( order<10 )then
-    call display(title="Test avec l(uvw)",mat=lxout)
+    call display(title="Test avec l(uvw)",mat=lxOut)
   endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
@@ -306,24 +314,31 @@ subroutine triangle_00()
   !> Points solution
   call readXYout2D(xyout=xyout)
   call nodes2Drs2ab(rs=xyout,a=a,b=b,display=.false.)
+  nVert=size(xyOut,2)
   
-  call simplex2D(ord=order,a=a,b=b,mode=mode,transpose=.false.)
+  call simplex2D(ord=order,a=a,b=b,mode=psi,transpose=.false.)
   
+  allocate(  lxOut(1:nVert,1:(order+1)*(order+2)/2))
   call lagrange2Dv(ord=order,vand=vand,a=a,b=b,lx=lxout,transpose=.false.)
+  
+  allocate(drLxout(1:nVert,1:(order+1)*(order+2)/2))
   call dLagrange1Dv(dMat=drMatrix,lx=lxout,dlx=drLxout,transpose=.false.)
+  
+  allocate(dsLxout(1:nVert,1:(order+1)*(order+2)/2))
   call dLagrange1Dv(dMat=dsMatrix,lx=lxout,dlx=dsLxout,transpose=.false.)
   
   if( order<6 )then
-    call writeSolOut2D(title="simplex2D"   ,solOut=mode   )
+    call writeSolOut2D(title="simplex2D"   ,solOut=psi    )
     call writeSolOut2D(title="lagrange2D"  ,solOut=lxout  )
     call writeSolOut2D(title="drLagrange2D",solOut=drLxout)
     call writeSolOut2D(title="dsLagrange2D",solOut=dsLxout)
   endif
   
+  allocate(leb(1:nVert,1))
   call lebesgue(lx=lxout,l=leb,transpose=.false.)
   call writeSolOut2D(title="lebesgue2D",solOut=leb)
   
-  deallocate(mode)
+  deallocate(psi)
   deallocate(a,b)
   deallocate(xyout)
   deallocate(lxout,drLxout,dsLxout)
@@ -338,10 +353,10 @@ subroutine edge_01()
   use modDeterminant
   use baseSimplex1D
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
-  !
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   integer          :: i,j,order,nVert,ad,iOrd
   real(8), pointer :: vand(:,:)
   real(8), pointer :: drVand  (:,:),dsVand  (:,:)
@@ -386,7 +401,6 @@ subroutine edge_01()
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     deallocate(r,mass,vand,eigv)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     call nodes1Dopt(ord=iOrd,uvw=r,display=.false.)
@@ -449,8 +463,8 @@ subroutine triangle_01()
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     call nodes2D   (ord=iOrd,uvw=uvw,display=.false.)
    !call nodes2Dopt(ord=iOrd,uvw=uvw,display=.false.)
-    call nodes2Duv2rs(uv=uvw,rs=rs  ,display=.false.)  ! rs(1:2,:)=2d0*uv(1:2,:)-1d0
-    call nodes2Drs2ab(rs=rs,a=a,b=b ,display=.false.) ! a=2 (1+r)/(1-s)-1 && b=s
+    call nodes2Duv2rs(uv=uvw,rs=rs  ,display=.false.) !> rs(1:2,:)=2d0*uv(1:2,:)-1d0
+    call nodes2Drs2ab(rs=rs,a=a,b=b ,display=.false.) !> a=2 (1+r)/(1-s)-1 && b=s
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -471,12 +485,11 @@ subroutine triangle_01()
     deallocate(uvw,a,b,rs,mass,vand,eigv)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     call nodes2D   (ord=iOrd,uvw=uvw,display=.false.)
     call nodes2Dopt(ord=iOrd,uvw=uvw,display=.false.)
-    call nodes2Duv2rs(uv=uvw,rs=rs  ,display=.false.)  ! rs(1:2,:)=2d0*uv(1:2,:)-1d0
-    call nodes2Drs2ab(rs=rs,a=a,b=b ,display=.false.) ! a=2 (1+r)/(1-s)-1 && b=s
+    call nodes2Duv2rs(uv=uvw,rs=rs  ,display=.false.)  !> rs(1:2,:)=2d0*uv(1:2,:)-1d0
+    call nodes2Drs2ab(rs=rs,a=a,b=b ,display=.false.)  !> a=2 (1+r)/(1-s)-1 && b=s
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -554,15 +567,16 @@ subroutine tetraTest()
   call nodes3D   (ord=order,uvw=uvw,display=.false.)
   call nodes3Dopt(ord=order,uvw=uvw,display=.true. )
   
-  call nodes3Duvw2rst(uvw=uvw,rst=rst) ! rst(1:3,:)=2d0*uvw(1:3,:)-1d0
+  call nodes3Duvw2rst(uvw=uvw,rst=rst) !> rst(1:3,:)=2d0*uvw(1:3,:)-1d0
  !write(*,'(/"Tetra (rst):")')
  !print '("rst(1:3,",i2,")=",f12.5,2x,f12.5,2x,f12.5)',(ad,rst(1:3,ad),ad=1,size(rst,2))
   
   call nodes3Drst2abc(rst=rst,a=a,b=b,c=c)
  !write(*,'(/"Tetra (abc):")')
  !print '("a,b,c(",i2,")=",f12.5,2x,f12.5,2x,f12.5)',(ad,a(ad),b(ad),c(ad),ad=1,size(a))
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
+  nVert=size(uvw,2)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Extraction des faces et vérification des coordonnées barycentriques
@@ -614,7 +628,8 @@ subroutine tetraTest()
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Polynomes d'interpolation (on teste avec les points d'interpolation) => Matrice Identité
-  call lagrange3Dv(ord=order,vand=vand,a=a,b=b,c=c,lx=lxOut,transpose=.true.) ! true pour affichage
+  allocate(lxOut(1:(order+1)*(order+2)*(order+3)/6,1:nVert))                  !> allocation pour true
+  call lagrange3Dv(ord=order,vand=vand,a=a,b=b,c=c,lx=lxOut,transpose=.true.) !> true pour affichage
   if( order<3 )then
     call display(title="Test avec l(uvw)",mat=lxOut)
   else
@@ -825,13 +840,12 @@ subroutine tetraMaillageVisuNew()
   use baseSimplex3D
   use table_tet_mesh
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  integer            :: ord,iOrd,ad
+  integer            :: ord,iOrd,ad,nVert
   real(8), pointer   :: uvw(:,:)
   real(8), pointer   :: uvw0(:,:)
   integer, pointer   :: tetra(:,:)
@@ -851,10 +865,11 @@ subroutine tetraMaillageVisuNew()
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     call nodes3D(ord=iOrd,uvw=uvw,display=.true.)
+    nVert=size(uvw,2)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    allocate(uvw0(1:3,size(uvw,2)))
+    allocate(uvw0(1:3,1:nVert))
     uvw0(1:3,:)=uvw(1:3,:)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -884,10 +899,10 @@ subroutine testConnectivitiesOfSides()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use baseSimplex2D, only: edgesConnectivity
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
-  !
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   integer              :: i,j,order,nVert,ad
   integer, allocatable :: conec(:,:)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -1365,7 +1380,7 @@ subroutine pyramMaillageVisu()
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    call pyramidNodesOpt(ord=iOrd, uvw=uvw, display=.false.)  !> Points optimises
+    call pyramidNodesOpt(ord=iOrd, uvw=uvw, display=.true.)  !> Points optimises
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -2402,9 +2417,10 @@ end subroutine pyramTestMass
 
 program main
   
-  !> Connectivite 
- !call testConnectivitiesOfSides()
- !call jacobiTest()
+  !> Connectivite
+  !call testConnectivitiesOfSides()
+  !call jacobiTest()
+  !stop
   
   !> Test des quadratures
   !call testQuadratureGL()
@@ -2418,18 +2434,20 @@ program main
  !call triangle_01()
   
   !> Test Tetra
-  !call tetraTest()
+  call tetraTest()
   !call tetraMaillageVisu() !> maillages de visu pour le tetra d'ordre élevé
-  !call tetraMaillageVisuNew() ; stop
+  call tetraMaillageVisuNew() ; stop
+  stop
   
   !> Test Quad
   !call quadTest()
   
   !> Test pyramids
- !call pyramBasis()
- !call pyramLebesgue()
-  call pyramMaillageVisu() !> maillages de visu pour la pyramide d'ordre élevé
- !call pyramDegreesOverSides()
+  !call pyramBasis()
+  !call pyramLebesgue()
+  !call pyramMaillageVisu() !> maillages de visu pour la pyramide d'ordre élevé
+  !call pyramDegreesOverSides()
+  
   
   !> Tests des quadratures pour pyramides
   call pyramTestQuadrature()

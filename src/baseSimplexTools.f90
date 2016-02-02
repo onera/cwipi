@@ -1300,23 +1300,33 @@ module baseSimplexTools
     real(8), intent(out), pointer :: l  (:,:)
     logical, intent(in)           :: transpose
     !--
-    integer                       :: i,n,np
+    integer                       :: i,nNod,np
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+   !print '(">>> subroutine lebesgue")'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( .not.transpose )then
-      n=size(lx,1) ; np=size(lx,2)
-      allocate(l(1:n,1)) ; l(1:n,1)=0d0
+      nNod=size(lx,1) ; np=size(lx,2)
+     !allocate(l(1:nNod,1)) ; l(1:nNod,1)=0d0
+      l(1:nNod,1)=0d0
       do i=1,np
-        l(1:n,1)=l(1:n,1)+abs( lx(1:n,i) )
+        l(1:nNod,1)=l(1:nNod,1)+abs( lx(1:nNod,i) )
       enddo
     else
-      n=size(lx,2) ; np=size(lx,1)
-      allocate(l(1,1:n)) ; l(1,1:n)=0d0
+      nNod=size(lx,2) ; np=size(lx,1)
+     !allocate(l(1,1:nNod)) ; l(1,1:nNod)=0d0
+      l(1,1:nNod)=0d0
       do i=1,np
-        l(1,1:n)=l(1,1:n)+abs( lx(i,1:n) )
+        l(1,1:nNod)=l(1,1:nNod)+abs( lx(i,1:nNod) )
       enddo
     endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+   !print '("<<< subroutine lebesgue")'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return

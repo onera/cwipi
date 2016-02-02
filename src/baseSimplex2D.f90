@@ -64,7 +64,7 @@ module baseSimplex2D
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( display )then
       write(*,'(/"Triangle unité initial:")')
-      print '("ad=",i5,2x,"u=",f12.5,2x,"v=",f12.5,2x,"w=",f12.5)',(ad,uvw(1:3,ad),ad=1,n)
+      print '("ad=",i5,2x,"u=",f19.16,2x,"v=",f19.16,2x,"w=",f19.16)',(ad,uvw(1:3,ad),ad=1,n)
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -99,12 +99,12 @@ module baseSimplex2D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Total number of nodes
+    n=(ord+1)*(ord+2)/2
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( ord>2 )then
-      
-      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-      !> Total number of nodes
-      n=(ord+1)*(ord+2)/2
-      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       
       !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       !> Create barycentric coordinate l1,l2,l3
@@ -229,14 +229,17 @@ module baseSimplex2D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    allocate(rs(2,size(uv,2)))
+    allocate(rs(1:2,1:size(uv,2)))
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     rs(1:2,:)=2d0*uv(1:2,:)-1d0
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( display )then
       write(*,'(/"Triangle (uv2rs):")')
-      print '("r,s(",i4,")=",f12.5,2x,f12.5)',(i,rs(1:2,i),i=1,size(uv,2))
+      print '("r,s(",i4,")=",f19.16,2x,f19.16)',(i,rs(1:2,i),i=1,size(uv,2))
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -257,7 +260,10 @@ module baseSimplex2D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    allocate(rs(2,size(u)))
+    allocate(rs(1:2,1:size(u)))
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     do i=1,size(u)
       rs(1:2,i)=2d0*[u(i),v(i)]-1d0
     enddo
@@ -266,7 +272,7 @@ module baseSimplex2D
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( display )then
       write(*,'(/"Triangle (uv2rs):")')
-      print '("r,s(",i4,")=",f12.5,2x,f12.5)',(i,rs(1:2,i),i=1,size(u))
+      print '("r,s(",i4,")=",f19.16,2x,f19.16)',(i,rs(1:2,i),i=1,size(u))
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -959,11 +965,11 @@ module baseSimplex2D
     character(80), intent(in) :: file_name
     real(8)      , intent(in) :: node_xy(2,3)
     integer      , intent(in) :: node_show
-    real(8)      , intent(in) :: point_xy(2,3)
+    integer      , intent(in) :: point_num
+    real(8)      , intent(in) :: point_xy(2,point_num)
     integer      , intent(in) :: point_show
     
     integer, parameter :: node_num = 3
-    integer            :: point_num
     
     integer            :: circle_size
     integer            :: delta
