@@ -212,12 +212,12 @@ module baseSimplex3D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Total number of nodes
+    n=size(uvw,2) ! print '("n=",i6)',n
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( ord>2 )then
-      
-      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-      !> Total number of nodes
-      n=size(uvw,2) ! print '("n=",i6)',n
-      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       
       !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       !> alpha
@@ -882,8 +882,8 @@ module baseSimplex3D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Transpose = True  => mode(1:np,1:n)
-    !> Transpose = False => mode(1:n,1:np)
+    !> Transpose = True  => mode(1:nMod,1:n)
+    !> Transpose = False => mode(1:n,1:nMod)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -892,9 +892,9 @@ module baseSimplex3D
     real(8), intent(out), pointer :: mode(:,:)
     logical, intent(in)           :: transpose
     !-
-    integer                       :: i,n,ad
+    integer                       :: i,ad
     integer                       :: iu,iv,iw
-    integer                       :: np
+    integer                       :: nMod,nNod
     real(8), pointer              :: mode1(:),mode2(:),mode3(:)
     integer, pointer              :: idx(:,:)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -907,7 +907,7 @@ module baseSimplex3D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    np=(ord+1)*(ord+2)*(ord+3)/6 ; n=size(a)
+    nMod=(ord+1)*(ord+2)*(ord+3)/6 ; nNod=size(a)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -917,34 +917,34 @@ module baseSimplex3D
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( .not.transpose )then
       
-      allocate(mode(1:n,1:np))
-      do ad=1,np
+      allocate(mode(1:nNod,1:nMod))
+      do ad=1,nMod
         iu=idx(1,ad) ; iv=idx(2,ad) ; iw=idx(3,ad)
-        call jacobiP(n=iu,alpha=0d0                ,beta=0d0,u=a(1:n),jf=mode1)
-        call jacobiP(n=iv,alpha=2d0*real(iu   )+1d0,beta=0d0,u=b(1:n),jf=mode2)
-        call jacobiP(n=iw,alpha=2d0*real(iu+iv)+2d0,beta=0d0,u=c(1:n),jf=mode3)
+        call jacobiP(n=iu,alpha=0d0                ,beta=0d0,u=a(1:nNod),jf=mode1)
+        call jacobiP(n=iv,alpha=2d0*real(iu   )+1d0,beta=0d0,u=b(1:nNod),jf=mode2)
+        call jacobiP(n=iw,alpha=2d0*real(iu+iv)+2d0,beta=0d0,u=c(1:nNod),jf=mode3)
         
-        mode(1:n,ad)= 2d0*sqr2                         &
-        &            *mode1(1:n)                       &
-        &            *mode2(1:n)*(1d0-b(1:n))**(iu   ) &
-        &            *mode3(1:n)*(1d0-c(1:n))**(iu+iv)
+        mode(1:nNod,ad)= 2d0*sqr2                               &
+        &               *mode1(1:nNod)                          &
+        &               *mode2(1:nNod)*(1d0-b(1:nNod))**(iu   ) &
+        &               *mode3(1:nNod)*(1d0-c(1:nNod))**(iu+iv)
         
         deallocate(mode1,mode2,mode3)
       enddo
       
     else
       
-      allocate(mode(1:np,1:n))
-      do ad=1,np
+      allocate(mode(1:nMod,1:nNod))
+      do ad=1,nMod
         iu=idx(1,ad) ; iv=idx(2,ad) ; iw=idx(3,ad)
-        call jacobiP(n=iu,alpha=0d0                ,beta=0d0,u=a(1:n),jf=mode1)
-        call jacobiP(n=iv,alpha=2d0*real(iu   )+1d0,beta=0d0,u=b(1:n),jf=mode2)
-        call jacobiP(n=iw,alpha=2d0*real(iu+iv)+2d0,beta=0d0,u=c(1:n),jf=mode3)
+        call jacobiP(n=iu,alpha=0d0                ,beta=0d0,u=a(1:nNod),jf=mode1)
+        call jacobiP(n=iv,alpha=2d0*real(iu   )+1d0,beta=0d0,u=b(1:nNod),jf=mode2)
+        call jacobiP(n=iw,alpha=2d0*real(iu+iv)+2d0,beta=0d0,u=c(1:nNod),jf=mode3)
         
-        mode(ad,1:n)= 2d0*sqr2                         &
-        &            *mode1(1:n)                       &
-        &            *mode2(1:n)*(1d0-b(1:n))**(iu   ) &
-        &            *mode3(1:n)*(1d0-c(1:n))**(iu+iv)
+        mode(ad,1:nNod)= 2d0*sqr2                            &
+        &            *mode1(1:nNod)                          &
+        &            *mode2(1:nNod)*(1d0-b(1:nNod))**(iu   ) &
+        &            *mode3(1:nNod)*(1d0-c(1:nNod))**(iu+iv)
         
         deallocate(mode1,mode2,mode3)
       enddo
@@ -1176,7 +1176,8 @@ module baseSimplex3D
     real(8), intent(out) , pointer :: lx(:,:)
     logical, intent(in)            :: transpose
     !>
-    integer                        :: i,j,k,nNod,nMod
+    integer                        :: nMod,nNod
+    integer                        :: i,j,k
     integer                        :: iOrd
     real(8), pointer               :: psi(:,:)
     real(8), pointer               :: mat(:,:)

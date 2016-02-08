@@ -530,12 +530,12 @@ subroutine tetraTest()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  integer              :: i,j,order,nVert,ad,np,nPt,cpt
+  integer              :: i,j,order,nMod,nNod,ad,np,nPt,cpt
   real(8), pointer     :: vand(:,:),dVand(:,:),jf(:,:),dr(:,:)
   real(8), pointer     :: drVand  (:,:),dsVand  (:,:),dtVand  (:,:)
   real(8), pointer     :: drMatrix(:,:),dsMatrix(:,:),dtMatrix(:,:)
   real(8), pointer     :: mass(:,:)
-  real(8), pointer     :: mode(:,:)
+  real(8), pointer     :: psi(:,:)
   real(8), pointer     :: xyzOut(:,:),lxOut(:,:),drLxOut(:,:),dsLxOut(:,:),dtLxOut(:,:),leb(:,:)
   real(8), pointer     :: uvw(:,:),rst(:,:),a(:),b(:),c(:)
   real(8), parameter   :: eps=1d-12
@@ -575,7 +575,7 @@ subroutine tetraTest()
  !write(*,'(/"Tetra (abc):")')
  !print '("a,b,c(",i2,")=",f12.5,2x,f12.5,2x,f12.5)',(ad,a(ad),b(ad),c(ad),ad=1,size(a))
   
-  nVert=size(uvw,2)
+  nNod=size(uvw,2)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -628,7 +628,8 @@ subroutine tetraTest()
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Polynomes d'interpolation (on teste avec les points d'interpolation) => Matrice Identité
-  allocate(lxOut(1:(order+1)*(order+2)*(order+3)/6,1:nVert))                  !> allocation pour true
+  nMod=(order+1)*(order+2)*(order+3)/6
+  allocate(lxOut(1:nMod,1:nNod))                  !> allocation pour true
   call lagrange3Dv(ord=order,vand=vand,a=a,b=b,c=c,lx=lxOut,transpose=.true.) !> true pour affichage
   if( order<3 )then
     call display(title="Test avec l(uvw)",mat=lxOut)
@@ -673,21 +674,29 @@ subroutine tetraTest()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Evaluation des fonctions de Lagrange aux points xyzOut
   call readXYZout3D(xyzOut=xyzOut)
-  call nodes3Drst2abc(rst=xyzOut,a=a,b=b,c=c)
   
-  call simplex3D  (ord=order,a=a,b=b,c=c,mode=mode,transpose=.false.)           !> Psi(xyzOut)
+  nMod=(order+1)*(order+2)*(order+3)/6 ; nNod=size(xyzOut,2)
+  
+  call nodes3Drst2abc(rst=xyzOut,a=a,b=b,c=c)
+  call simplex3D  (ord=order,a=a,b=b,c=c,mode=psi,transpose=.false.)           !> Psi(xyzOut)
+  
+  
+  allocate(lxOut(1:nNod,1:nMod))
   call lagrange3Dv(ord=order,vand=vand,a=a,b=b,c=c,lx=lxOut,transpose=.false.)  !> lxOut= Inverse[Transpose[Vand]].Psi[xyzOut] lxOut(nPt,np)
   if( order<3 )then
-    call writeSolOut3D(title="simplex3D"//sfx,solOut=mode   )
+    call writeSolOut3D(title="simplex3D"//sfx,solOut=psi)
     call writeSolOut3D(title="lagrange3D"//sfx  ,solOut=lxOut  )
   endif
-  deallocate(mode)
+  deallocate(psi)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Evaluation des dérivées des fonctions de Lagrange aux points xyzOut
+  allocate(drLxOut(1:nNod,1:nMod))
   call dLagrange1Dv(dMat=drMatrix,lx=lxOut,dlx=drLxOut,transpose=.false.) !> drLxOut(1:nPt,1:np)= Transpose[drMatrix] lxOut
+  allocate(dsLxOut(1:nNod,1:nMod))
   call dLagrange1Dv(dMat=dsMatrix,lx=lxOut,dlx=dsLxOut,transpose=.false.) !> dsLxOut= Transpose[dsMatrix] lxOut
+  allocate(dtLxOut(1:nNod,1:nMod))
   call dLagrange1Dv(dMat=dtMatrix,lx=lxOut,dlx=dtLxOut,transpose=.false.) !> dtLxOut= Transpose[dtMatrix] lxOut
   
 !  drLxOut=2d0*drLxOut ! car u'=2u-1
@@ -705,17 +714,15 @@ subroutine tetraTest()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Test des fonctions : preliminaires
   print '("size(lxOut)=",i6," x ",i3)',size(lxOut,1),size(lxOut,2)
-  nPt=size(lxOut,1)
-  np =(order+1)*(order+2)*(order+3)/6 ! =size(lxOut,2)
-  allocate(fi(1:np)) ; fi(1:np)=1d0
+  allocate(fi(1:nMod)) ; fi(1:nMod)=1d0
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Test des fonctions lxOut : f(xyzOut) = \sum_{i=1,np} lxOut(xyzOut,i) f_i
+  !> Test des fonctions lxOut : f(xyzOut) = \sum_{i=1,nMod} lxOut(xyzOut,i) f_i
   cPt=0
-  do i=1,nPt
+  do i=1,nNod
     f0=0d0
-    do j=1,np
+    do j=1,nMod
       f0=f0+lxOut(i,j)*fi(j)
     enddo
     if( abs(f0-1d0)>eps )then
@@ -727,11 +734,11 @@ subroutine tetraTest()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Test des fonctions drLxOut : df/dr(xyzOut) = \sum_{i=1,np} drLxOut(xyzOut,i) f_i
+  !> Test des fonctions drLxOut : df/dr(xyzOut) = \sum_{i=1,nMod} drLxOut(xyzOut,i) f_i
   cPt=0
-  do i=1,nPt
+  do i=1,nNod
     f0=0d0
-    do j=1,np
+    do j=1,nMod
       f0=f0+drLxOut(i,j)*fi(j)
     enddo
     if( abs(f0)>eps )then
@@ -743,11 +750,11 @@ subroutine tetraTest()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Test des fonctions dsLxOut : df/ds(xyzOut) = \sum_{i=1,np} dsLxOut(xyzOut,i) f_i
+  !> Test des fonctions dsLxOut : df/ds(xyzOut) = \sum_{i=1,nMod} dsLxOut(xyzOut,i) f_i
   cPt=0
-  do i=1,nPt
+  do i=1,nNod
     f0=0d0
-    do j=1,np
+    do j=1,nMod
       f0=f0+dsLxOut(i,j)*fi(j)
     enddo
     if( abs(f0)>eps )then
@@ -759,11 +766,11 @@ subroutine tetraTest()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Test des fonctions drLxOut : df/dt(xyzOut) = \sum_{i=1,np} dtLxOut(xyzOut,i) f_i
+  !> Test des fonctions dtLxOut : df/dt(xyzOut) = \sum_{i=1,nMod} dtLxOut(xyzOut,i) f_i
   cPt=0
-  do i=1,nPt
+  do i=1,nNod
     f0=0d0
-    do j=1,np
+    do j=1,nMod
       f0=f0+dtLxOut(i,j)*fi(j)
     enddo
     if( abs(f0)>eps )then
@@ -779,9 +786,11 @@ subroutine tetraTest()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  allocate(leb(1:nNod,1))
   call lebesgue(lx=lxout,l=leb,transpose=.false.)
   call writeSolOut3D(title="lebesgue3DP"//sfx,solOut=leb)
   
+  deallocate(leb)
   deallocate(xyzOut)
   deallocate(a,b,c)
   !

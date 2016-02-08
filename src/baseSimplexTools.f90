@@ -1262,29 +1262,30 @@ module baseSimplexTools
     real(8), intent(out) , pointer :: dlx (:,:)
     logical, intent(in)            :: transpose
     !-
-    integer                        :: i,j,k,n,np
+    integer                        :: i,j,k
+    integer                        :: nMod,nNod
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if( .not.transpose )then
-      n=size(lx,1) ; np=size(lx,2)
-     !allocate(dlx(1:n,1:np)) ; dlx(1:n,1:np)=0d0
+    if( transpose )then
+      nMod=size(lx,1) ; nNod=size(lx,2)
+     !allocate(dlx(1:nMod,1:n)) ; dlx(1:n,1:nMod)=0d0
       dlx(:,:)=0d0
-      do i=1,n
-        do j=1,np
-          do k=1,np
-            dlx(i,j)=dlx(i,j)+dMat(k,j)*lx(i,k)
+      do i=1,nNod
+        do j=1,nMod
+          do k=1,nMod
+            dlx(j,i)=dlx(j,i)+dMat(k,j)*lx(k,i)
           enddo
         enddo
       enddo
     else
-      n=size(lx,2) ; np=size(lx,1)
-     !allocate(dlx(1:np,1:n)) ; dlx(1:n,1:np)=0d0
+      nMod=size(lx,2) ; nNod=size(lx,1)
+     !allocate(dlx(1:n,1:nMod)) ; dlx(1:n,1:nMod)=0d0
       dlx(:,:)=0d0
-      do i=1,n
-        do j=1,np
-          do k=1,np
-            dlx(j,i)=dlx(j,i)+dMat(k,j)*lx(k,i)
+      do i=1,nNod
+        do j=1,nMod
+          do k=1,nMod
+            dlx(i,j)=dlx(i,j)+dMat(k,j)*lx(i,k)
           enddo
         enddo
       enddo
@@ -1300,7 +1301,7 @@ module baseSimplexTools
     real(8), intent(out), pointer :: l  (:,:)
     logical, intent(in)           :: transpose
     !--
-    integer                       :: i,nNod,np
+    integer                       :: i,nNod,nMod
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1308,20 +1309,24 @@ module baseSimplexTools
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if( .not.transpose )then
-      nNod=size(lx,1) ; np=size(lx,2)
-     !allocate(l(1:nNod,1)) ; l(1:nNod,1)=0d0
-      l(1:nNod,1)=0d0
-      do i=1,np
-        l(1:nNod,1)=l(1:nNod,1)+abs( lx(1:nNod,i) )
-      enddo
-    else
-      nNod=size(lx,2) ; np=size(lx,1)
+    if( transpose )then
+      
+      nMod=size(lx,1) ;nNod=size(lx,2)
      !allocate(l(1,1:nNod)) ; l(1,1:nNod)=0d0
       l(1,1:nNod)=0d0
-      do i=1,np
+      do i=1,nMod
         l(1,1:nNod)=l(1,1:nNod)+abs( lx(i,1:nNod) )
       enddo
+      
+    else
+      
+      nMod=size(lx,2) ; nNod=size(lx,1)
+     !allocate(l(1:nNod,1)) ; l(1:nNod,1)=0d0
+      l(1:nNod,1)=0d0
+      do i=1,nMod
+        l(1:nNod,1)=l(1:nNod,1)+abs( lx(1:nNod,i) )
+      enddo
+            
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
