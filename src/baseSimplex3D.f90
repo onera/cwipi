@@ -1165,19 +1165,18 @@ module baseSimplex3D
   subroutine lagrange3Dv(ord,vand,a,b,c,lx,transpose)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !! lagrange3Dv := Inverse[Transpose[Vand]].Psi[x];
-    !! transpose = .true.  => lx(1:ord+1,1:nPt)
-    !! transpose = .false. => lx(1:nPt,1:ord+1)
+    !! transpose = .true.  => lx(1:nMod,1:nNod)
+    !! transpose = .false. => lx(1:nNod,1:nMod)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)            :: ord
     real(8), intent(in)  , pointer :: vand(:,:)
     real(8), intent(in)  , pointer :: a(:),b(:),c(:)
-    real(8), intent(out) , pointer :: lx  (:,:)
+    real(8), intent(out) , pointer :: lx(:,:)
     logical, intent(in)            :: transpose
-    !---
-    integer                        :: i,j,k,nPt,np
-    real(8)                        :: gamma(0:ord+1)
+    !>
+    integer                        :: i,j,k,nNod,nMod
     integer                        :: iOrd
     real(8), pointer               :: psi(:,:)
     real(8), pointer               :: mat(:,:)
@@ -1188,26 +1187,31 @@ module baseSimplex3D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    np=(ord+1)*(ord+2)*(ord+3)/6 ; nPt=size(a)
+    nMod=(ord+1)*(ord+2)*(ord+3)/6
+    nNod=size(a)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    call simplex3D(ord=ord,a=a,b=b,c=c,mode=psi,transpose=.false.) !> psi(1:nPt,1:np)
+    !> Computing Modes(a,b,c)
+    call simplex3D(ord=ord,a=a,b=b,c=c,mode=psi,transpose=.false.) !> psi(1:nNod,1:nMod)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> mat=Transpose[Vand]
-    allocate(mat(1:np,1:np))
-    do i=1,np
-      do j=1,np
+    allocate(mat(1:nMod,1:nMod))
+    do i=1,nMod
+      do j=1,nMod
         mat(i,j)=vand(j,i)
       enddo
     enddo
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> mat=Inverse[mat]
-    lWork=64*(np) ; allocate(work(1:lWork),ipiv(1:np))
-    call dgetrf(np,np,mat(1,1),np,ipiv(1),iErr)
-    call dgetri(np,mat(1,1),np,ipiv(1),work(1),lWork,iErr)
+    lWork=64*nMod
+    allocate(work(1:lWork),ipiv(1:nMod))
+    call dgetrf(nMod,nMod,mat(1,1),nMod,ipiv(1),iErr)
+    call dgetri(nMod,mat(1,1),nMod,ipiv(1),work(1),lWork,iErr)
     deallocate(ipiv,work)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -1215,12 +1219,12 @@ module baseSimplex3D
     !> lx = Inverse[Transpose[Vand]].Psi
     if( transpose )then
       
-     !allocate(lx(1:np,1:nPt)) ; lx(1:np,1:nPt)=0d0
+     !allocate(lx(1:nMod,1:nNod)) ; lx(1:nMod,1:nNod)=0d0
       lx(:,:)=0d0
-      !> psi(1:nPt,1:np)      
-      do i=1,nPt
-        do j=1,np
-          do k=1,np
+      !> psi(1:nNod,1:nMod)      
+      do i=1,nNod
+        do j=1,nMod
+          do k=1,nMod
             lx(j,i)=lx(j,i)+mat(j,k)*psi(i,k)  ! Attention de bien prendre psi(i,k)
           enddo
         enddo
@@ -1228,12 +1232,12 @@ module baseSimplex3D
       
     else
       
-     !allocate(lx(1:nPt,1:np)) ; lx(:,:)=0d0
+     !allocate(lx(1:nNod,1:nMod)) ; lx(:,:)=0d0
       lx(:,:)=0d0
-      !> psi(1:nPt,1:np)
-      do i=1,nPt
-        do j=1,np
-          do k=1,np
+      !> psi(1:nNod,1:nMod)
+      do i=1,nNod
+        do j=1,nMod
+          do k=1,nMod
             lx(i,j)=lx(i,j)+mat(j,k)*Psi(i,k)  ! Attention de bien prendre Psi(i,k)
           enddo
         enddo
@@ -1243,8 +1247,7 @@ module baseSimplex3D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    deallocate(mat)
-    deallocate(psi)
+    deallocate(psi,mat)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
@@ -1503,22 +1506,26 @@ module baseSimplex3D
       !> Lecture de la peau TetraSkinPi.mesh
       print '(/"Reading: ",a)',trim(name)
       unit=GmfOpenMesh(trim(name),GmfRead,ver,geo) ! print '(3x,"unit=",i3)',unit
+      
       nVert=GmfStatKwd(unit,GmfVertices) ; print '(3x,"nVert=",i10)',nVert
       allocate(vert(1:geo+1,1:nVert),mark(1:nVert))
-      res=GmfGotoKwd(unit,GmfVertices)
+      res = GmfGetBlock(unit, GmfVertices, 0           ,&
+      &                 GmfDouble, vert(1,1), vert(1,2),&
+      &                 GmfDouble, vert(2,1), vert(2,2),&
+      &                 GmfDouble, vert(3,1), vert(3,2),&
+      &                 GmfInt,    mark(  1), mark(  2) )
+      
       do iVert=1,nVert
-        res=GmfGetLin(unit,GmfVertices,vert(1,iVert),vert(2,iVert),vert(3,iVert),mark(iVert))     
         vert(4,iVert)=1d0-vert(1,iVert)-vert(2,iVert)-vert(3,iVert)
       enddo
-            
+      
       nTria=GmfStatKwd(unit,GmfTriangles) ; print '(3x,"nTria=",i10)',nTria
       allocate(tria(1:4,1:nTria))
-      
-      res=GmfGetBlock(unit, GmfTriangles,& ! <=
-      &   GmfInt, tria(1,1), tria(1,2)  ,&
-      &   GmfInt, tria(2,1), tria(2,2)  ,&
-      &   GmfInt, tria(3,1), tria(3,2)  ,&
-      &   GmfInt, tria(4,1), tria(4,2)   )
+      res=GmfGetBlock(unit, GmfTriangles,0         ,& ! <=
+      &               GmfInt, tria(1,1), tria(1,2) ,&
+      &               GmfInt, tria(2,1), tria(2,2) ,&
+      &               GmfInt, tria(3,1), tria(3,2) ,&
+      &               GmfInt, tria(4,1), tria(4,2)  )
       
       res=GmfCloseMesh(unit)
       !<<<<<<<<
@@ -1612,34 +1619,42 @@ module baseSimplex3D
       
       nVert=GmfStatKwd(unit,GmfVertices,ver,0,TypTab) ; print '(3x,"nVert=",i10)',nVert
       allocate(vert(geo+1,nVert),mark(nVert))  ! il faut mettre geo+1 pour ensuite optimiser les noeuds
-      res=GmfGotoKwd(unit,GmfVertices)
       select case(ver)
       case(1) ! real(4)
+        res=GmfGotoKwd(unit,GmfVertices)
         do iVert=1,nVert
           res=GmfGetLin(unit,GmfVertices,xyz(1),xyz(2),xyz(3),mark(iVert))
           vert(1:3,iVert)=xyz(1:3)
           vert(4,iVert)=1d0-vert(1,iVert)-vert(2,iVert)-vert(3,iVert)
         enddo
       case(2) ! real(8)
+        res = GmfGetBlock(unit, GmfVertices, 0           , &
+        &                 GmfDouble, vert(1,1), vert(1,2), &
+        &                 GmfDouble, vert(2,1), vert(2,2), &
+        &                 GmfDouble, vert(3,1), vert(3,2), &
+        &                 GmfInt,    mark(  1), mark(  2)  )
+        
         do iVert=1,nVert
-          res=GmfGetLin(unit,GmfVertices,vert(1,iVert),vert(2,iVert),vert(3,iVert),mark(iVert))
           vert(4,iVert)=1d0-vert(1,iVert)-vert(2,iVert)-vert(3,iVert)
         enddo
       end select
       
       nTetr=GmfStatKwd(unit,GmfTetrahedra) ; print '(3x,"nTetr=",i10)',nTetr
-      allocate(tetr(5,nTetr))
-      res=GmfGotoKwd(unit,GmfTetrahedra)
-      do iTetr=1,nTetr
-        res=GmfGetLin(unit,GmfTetrahedra,tetr(1,iTetr),tetr(2,iTetr),tetr(3,iTetr),tetr(4,iTetr),tetr(5,iTetr))
-      enddo
+      allocate(tetr(1:5,1:nTetr))
+      res = GmfGetBlock(unit, GmfTetrahedra, 0      , &
+      &                 GmfInt, tetr(1,1), tetr(1,2), &
+      &                 GmfInt, tetr(2,1), tetr(2,2), &
+      &                 GmfInt, tetr(3,1), tetr(3,2), &
+      &                 GmfInt, tetr(4,1), tetr(4,2), &
+      &                 GmfInt, tetr(5,1), tetr(5,2)  )
       
       nTria=GmfStatKwd(unit,GmfTriangles) ; print '(3x,"nTria=",i10)',nTria
       allocate(tria(4,nTria))
-      res=GmfGotoKwd(unit,GmfTriangles)
-      do iTria=1,nTria
-        res=GmfGetLin(unit, GmfTriangles,tria(1,iTria),tria(2,iTria),tria(3,iTria),tria(4,iTria))
-      enddo
+      res = GmfGetBlock(unit, GmfTriangles, 0       , &
+      &                 GmfInt, tria(1,1), tria(1,2), &
+      &                 GmfInt, tria(2,1), tria(2,2), &
+      &                 GmfInt, tria(3,1), tria(3,2), &
+      &                 GmfInt, tria(4,1), tria(4,2), )
       
       res=GmfCloseMesh(unit)
       !<<<<<<<<

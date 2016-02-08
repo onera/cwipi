@@ -476,16 +476,16 @@ module baseSimplexTools
     else if( n==1 )then
       gamma1=(alpha+1d0)*(beta+1d0)/(apb+3d0)*gamma0
       amb=alpha-beta
-      !
+      
       jf(:)=5d-1/sqrt(gamma1)*(amb+(apb+2d0)*u(:))
     else
       allocate(jf0(1:nVert),jf1(1:nVert))
       gamma1=(alpha+1d0)*(beta+1d0)/(apb+3d0)*gamma0
       amb=alpha-beta
-      !
+      
       jf0(:)=1d0/sqrt(gamma0)
       jf1(:)=5d-1/sqrt(gamma1)*(amb+(apb+2d0)*u(:))
-      !
+      
       a2mb2=alpha*alpha-beta*beta
       aold=2d0/(apb+2d0)*sqrt((alpha+1d0)*(beta+1d0)/(apb+3d0))
       do k=2,n
