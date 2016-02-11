@@ -23,7 +23,7 @@ import numpy as np
 cimport numpy as np
 
 cimport mpi4py.MPI as MPI
-from mpi4py.mpi_c cimport *
+from mpi4py.libmpi cimport *
 from libc.stdlib cimport malloc, free
 
 interp_f={}

@@ -3843,7 +3843,7 @@ static double _det_2x2 (double a, double b, double c, double d) {
     return (a * d - b * c);
 };
 
-static int _solve_2x2 (double **A, double *x)
+static int _solve_2x2 (double A[2][2], double x[2])
 {
   // if we solving something simple, just solve it
   //
@@ -3883,8 +3883,7 @@ static int _intersection_line (double a1[3], double a2[3],
                                double *u, double *v)
 {
 
-  // TODO a verifier
-
+ 
   double a21[3], b21[3], b1a1[3];
   double c[2];
   double *A[2], row1[2], row2[2];
