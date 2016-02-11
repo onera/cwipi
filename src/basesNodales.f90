@@ -956,6 +956,7 @@ subroutine quadTest()
   implicit none
   integer            :: ord
   integer            :: i,j,k,l,n,row0,col0
+  integer            :: nMod
   real(8), pointer   :: vand(:,:),dVand(:,:)
   real(8), pointer   :: r(:)=>null()
   real(8), pointer   :: mass(:)
@@ -981,7 +982,11 @@ subroutine quadTest()
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Matrice de masse compacte
+  
+  nMod=ord+1
+     !allocate(mass(1:n*(n+1)/2)) ; mass(:)=0d0  
   call massMatrix(vand=vand,mass=mass)
+  
   call display(title="Mass=",vec=mass)
   deallocate(mass)
   !> Factorisation de la matrice
@@ -2443,13 +2448,13 @@ program main
  !call triangle_01()
   
   !> Test Tetra
-  call tetraTest()
-  !call tetraMaillageVisu() !> maillages de visu pour le tetra d'ordre élevé
-  call tetraMaillageVisuNew() ; stop
-  stop
+  !call tetraTest()
+  !!call tetraMaillageVisu() !> maillages de visu pour le tetra d'ordre élevé
+  !call tetraMaillageVisuNew() ; stop
   
   !> Test Quad
-  !call quadTest()
+  call quadTest()
+  stop
   
   !> Test pyramids
   !call pyramBasis()

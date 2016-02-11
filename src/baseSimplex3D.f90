@@ -832,16 +832,16 @@ module baseSimplex3D
     integer, intent(in)           :: ord
     integer, intent(out), pointer :: idx(:,:)
     !
-    integer                       :: np
+    integer                       :: nMod
     integer                       :: iu,iv,iw,ix,ad
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    np=(ord+1)*(ord+2)*(ord+3)/6
+    nMod=(ord+1)*(ord+2)*(ord+3)/6
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    allocate(idx(1:3,np))
+    allocate(idx(1:3,1:nMod))
     ad=0
     do iw=0,ord
       do ix=ord,0,-1
@@ -860,7 +860,7 @@ module baseSimplex3D
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Verif Matlab
 !    print '("index3D: WARNING TESTING MATLAB")'
-!    allocate(idx(1:3,np))
+!    allocate(idx(1:3,nMod))
 !    ad=0
 !    do iw=0,ord
 !      do iv=0,ord-iw
@@ -879,11 +879,9 @@ module baseSimplex3D
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> psi_{ij}(a,b) = sqr8 P_i^{0,0}(a) P_j^{2i+1,0}(b) (1-b)**i P_k^{2i+2j+2,0}(c) (1-c)**(i+j)
     !> avec {a=-2(1+r)/(s+t)-1 et b=2(1+s)/(1-t)-1 et c=t}
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Transpose = True  => mode(1:nMod,1:n)
-    !> Transpose = False => mode(1:n,1:nMod)
+    !>
+    !> Transpose = True  => mode(1:nMod,1:nNod)
+    !> Transpose = False => mode(1:nNod,1:nMod)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -915,25 +913,7 @@ module baseSimplex3D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if( .not.transpose )then
-      
-      allocate(mode(1:nNod,1:nMod))
-      do ad=1,nMod
-        iu=idx(1,ad) ; iv=idx(2,ad) ; iw=idx(3,ad)
-        call jacobiP(n=iu,alpha=0d0                ,beta=0d0,u=a(1:nNod),jf=mode1)
-        call jacobiP(n=iv,alpha=2d0*real(iu   )+1d0,beta=0d0,u=b(1:nNod),jf=mode2)
-        call jacobiP(n=iw,alpha=2d0*real(iu+iv)+2d0,beta=0d0,u=c(1:nNod),jf=mode3)
-        
-        mode(1:nNod,ad)= 2d0*sqr2                               &
-        &               *mode1(1:nNod)                          &
-        &               *mode2(1:nNod)*(1d0-b(1:nNod))**(iu   ) &
-        &               *mode3(1:nNod)*(1d0-c(1:nNod))**(iu+iv)
-        
-        deallocate(mode1,mode2,mode3)
-      enddo
-      
-    else
-      
+    if( transpose )then
       allocate(mode(1:nMod,1:nNod))
       do ad=1,nMod
         iu=idx(1,ad) ; iv=idx(2,ad) ; iw=idx(3,ad)
@@ -948,7 +928,21 @@ module baseSimplex3D
         
         deallocate(mode1,mode2,mode3)
       enddo
-      
+    else
+      allocate(mode(1:nNod,1:nMod))
+      do ad=1,nMod
+        iu=idx(1,ad) ; iv=idx(2,ad) ; iw=idx(3,ad)
+        call jacobiP(n=iu,alpha=0d0                ,beta=0d0,u=a(1:nNod),jf=mode1)
+        call jacobiP(n=iv,alpha=2d0*real(iu   )+1d0,beta=0d0,u=b(1:nNod),jf=mode2)
+        call jacobiP(n=iw,alpha=2d0*real(iu+iv)+2d0,beta=0d0,u=c(1:nNod),jf=mode3)
+        
+        mode(1:nNod,ad)= 2d0*sqr2                               &
+        &               *mode1(1:nNod)                          &
+        &               *mode2(1:nNod)*(1d0-b(1:nNod))**(iu   ) &
+        &               *mode3(1:nNod)*(1d0-c(1:nNod))**(iu+iv)
+        
+        deallocate(mode1,mode2,mode3)
+      enddo
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -1004,8 +998,8 @@ module baseSimplex3D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Transpose = True  => mode(1:np,1:n)
-    !> Transpose = False => mode(1:n,1:np)
+    !> Transpose = True  => mode(1:nMod,1:nNod)
+    !> Transpose = False => mode(1:nNod,1:nMod)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1015,11 +1009,11 @@ module baseSimplex3D
     real(8), intent(out), pointer :: dsMode(:,:)
     real(8), intent(out), pointer :: dtMode(:,:)
     logical, intent(in)           :: transpose
-    !
+    !>
+    integer                       :: nMod,nNod
     real(8)                       :: alpha,beta
-    integer                       :: i,n,ad
+    integer                       :: i,ad
     integer                       :: iu,iv,iw
-    integer                       :: np
     integer, pointer              :: idx(:,:)
     real(8), pointer              :: fa(:),dfa(:)
     real(8), pointer              :: fb(:),dfb(:)
@@ -1033,7 +1027,7 @@ module baseSimplex3D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    np=(ord+1)*(ord+2)*(ord+3)/6 ; n=size(a)
+    nMod=(ord+1)*(ord+2)*(ord+3)/6 ; nNod=size(a)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1041,114 +1035,122 @@ module baseSimplex3D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if( .not.transpose )then
+    allocate(tmp(1:nNod))
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( transpose )then
       
-      allocate(tmp(1:n))
-      allocate(drMode(1:n,1:np),dsMode(1:n,1:np),dtMode(1:n,1:np))
-      do ad=1,np
+      allocate(drMode(1:nMod,1:nNod),dsMode(1:nMod,1:nNod),dtMode(1:nMod,1:nNod))
+      do ad=1,nMod
         iu=idx(1,ad) ; iv=idx(2,ad) ; iw=idx(3,ad)
-        !print '("iu=",i3," iv=",i3," iw=",i3)',iu,iv,iw
         
-        alpha=0d0                      ; beta=0d0
-        call  jacobiP(n=iu,alpha=alpha,beta=beta,u=a(1:n),jf= fa)
-        call dJacobiP(n=iu,alpha=alpha,beta=beta,u=a(1:n),jf=dfa)
+        alpha=0d0 ; beta=0d0
+        call  jacobiP(n=iu,alpha=alpha,beta=beta,u=a(1:nNod),jf= fa)
+        call dJacobiP(n=iu,alpha=alpha,beta=beta,u=a(1:nNod),jf=dfa)
         
-        alpha=real(2*iu+1,kind=8)      ; beta=0d0
-        call  jacobiP(n=iv,alpha=alpha,beta=beta,u=b(1:n),jf= fb)
-        call dJacobiP(n=iv,alpha=alpha,beta=beta,u=b(1:n),jf=dfb)
+        alpha=real(2*iu+1) ; beta=0d0
+        call  jacobiP(n=iv,alpha=alpha,beta=beta,u=b(1:nNod),jf= fb)
+        call dJacobiP(n=iv,alpha=alpha,beta=beta,u=b(1:nNod),jf=dfb)
         
-        alpha=real(2*(iu+iv)+2,kind=8) ; beta=0d0
-        call  jacobiP(n=iw,alpha=alpha,beta=beta,u=c(1:n),jf= fc)
-        call dJacobiP(n=iw,alpha=alpha,beta=beta,u=c(1:n),jf=dfc)
+        alpha=real(2*(iu+iv)+2) ; beta=0d0
+        call  jacobiP(n=iw,alpha=alpha,beta=beta,u=c(1:nNod),jf= fc)
+        call dJacobiP(n=iw,alpha=alpha,beta=beta,u=c(1:nNod),jf=dfc)
         
         !> drMode
-        drMode(1:n,ad)=dfa(1:n)*fb(1:n)*fc(1:n)
-        if( iu   >0 ) drMode(1:n,ad)=drMode(1:n,ad)* (5d-1*(1d0-b(1:n)))**(iu   -1)
-        if( iu+iv>0 ) drMode(1:n,ad)=drMode(1:n,ad)* (5d-1*(1d0-c(1:n)))**(iu+iv-1)
+        drMode(ad,1:nNod)=dfa(1:nNod)*fb(1:nNod)*fc(1:nNod)
+        if( iu   >0 ) drMode(ad,1:nNod)=drMode(ad,1:nNod)* (5d-1*(1d0-b))**(iu   -1)
+        if( iu+iv>0 ) drMode(ad,1:nNod)=drMode(ad,1:nNod)* (5d-1*(1d0-c))**(iu+iv-1)
         
         !> dsMode
-        dsMode(1:n,ad)=5d-1*(1d0+a(1:n))*drMode(1:n,ad)
-        tmp(1:n) = dfb(1:n)*(5d-1*(1d0-b(1:n)))**iu
-        if( iu   >0 ) tmp(1:n)=tmp(1:n)+(-5d-1*iu)*(fb(1:n)*(5d-1*(1d0-b(1:n)))**(iu-1d0))
-        if( iu+iv>0 ) tmp(1:n)=tmp(1:n)*(5d-1*(1d0-c(1:n)))**(iu+iv-1)
-        tmp(1:n)=fa(1:n)*tmp(1:n)*fc(1:n)
-        dsMode(1:n,ad) =dsMode(1:n,ad)+tmp(1:n)
+        dsMode(ad,1:nNod)=5d-1*(1d0+a(1:nNod))*drMode(ad,1:nNod)
+        tmp(1:nNod) = dfb(1:nNod)*(5d-1*(1d0-b(1:nNod)))**iu
+        if( iu   >0 ) tmp(1:nNod)=tmp(1:nNod)+(-5d-1*iu)*(fb(1:nNod)*(5d-1*(1d0-b(1:nNod)))**(iu-1   ))
+        if( iu+iv>0 ) tmp(1:nNod)=tmp(1:nNod)*(                      (5d-1*(1d0-c(1:nNod)))**(iu+iv-1))
+        tmp(1:nNod)=fa(1:nNod)*tmp(1:nNod)*fc(1:nNod)
+        dsMode(ad,1:nNod) =dsMode(ad,1:nNod)+tmp(1:nNod)
         
         !> dtMode
-        dtMode(1:n,ad)=5d-1*(1d0+a(1:n))*drMode(1:n,ad)+5d-1*(1d0+b(1:n))*tmp(1:n)
-        tmp(1:n)=dfc(1:n) *(5d-1*(1d0-c(1:n)))**(iu+iv)
-        if( iu+iv>0 )then
-          tmp(1:n)=tmp(1:n)-(5d-1*(iu+iv))*(fc(1:n)*(5d-1*(1d0-c(1:n)))**(iu+iv-1))
+        dtMode(ad,1:nNod)=5d-1*(1d0+a(1:nNod))*drMode(ad,1:nNod)+5d-1*(1d0+b(1:nNod))*tmp(1:nNod)
+        tmp(1:nNod)=dfc(1:nNod) *(5d-1*(1d0-c(1:nNod)))**(iu+iv)
+        if(iu+iv>0)then
+          tmp(1:nNod)=tmp(1:nNod)-(5d-1*real(iu+iv,kind=8))*(fc(1:nNod)*((5d-1*(1d0-c(1:nNod)))**(iu+iv-1)))
         endif
-        tmp(1:n)=fa(1:n)*fb(1:n)*tmp(1:n)
-        tmp(1:n)=tmp(1:n)*(5d-1*(1d0-b(1:n)))**iu
-        dtMode(1:n,ad)=dtMode(1:n,ad)+tmp(1:n)
+        tmp(1:nNod)=fa(1:nNod)*fb(1:nNod)*tmp(1:nNod)
+        tmp(1:nNod)=tmp(1:nNod)*((5d-1*(1d0-b(1:nNod)))**iu)
+        dtMode(ad,1:nNod)=dtMode(ad,1:nNod)+tmp(1:nNod)
         
         !> Normalize
-        coef=(2d0**( real(2*iu+iv,kind=8)+1.5d0 ) )
-        drMode(1:n,ad) = drMode(1:n,ad)*coef
-        dsMode(1:n,ad) = dsMode(1:n,ad)*coef
-        dtMode(1:n,ad) = dtMode(1:n,ad)*coef
+        coef=(2d0**(2*iu+iv+1.5d0))
+        drMode(ad,1:nNod) = drMode(ad,1:nNod)*coef
+        dsMode(ad,1:nNod) = dsMode(ad,1:nNod)*coef
+        dtMode(ad,1:nNod) = dtMode(ad,1:nNod)*coef
         
         !> deallocate memory
         deallocate(fa,dfa)
         deallocate(fb,dfb)
         deallocate(fc,dfc)
       enddo
-      deallocate(tmp)
       
     else
       
-      allocate(tmp(1:n))
-      allocate(drMode(1:np,1:n),dsMode(1:np,1:n),dtMode(1:np,1:n))
-      do ad=1,np
+      allocate(drMode(1:nNod,1:nMod),dsMode(1:nNod,1:nMod),dtMode(1:nNod,1:nMod))
+      do ad=1,nMod
         iu=idx(1,ad) ; iv=idx(2,ad) ; iw=idx(3,ad)
+        !print '("iu=",i3," iv=",i3," iw=",i3)',iu,iv,iw
         
-        alpha=0d0 ; beta=0d0
-        call  jacobiP(n=iu,alpha=alpha,beta=beta,u=a(1:n),jf= fa)
-        call dJacobiP(n=iu,alpha=alpha,beta=beta,u=a(1:n),jf=dfa)
+        alpha=0d0                      ; beta=0d0
+        call  jacobiP(n=iu,alpha=alpha,beta=beta,u=a(1:nNod),jf= fa)
+        call dJacobiP(n=iu,alpha=alpha,beta=beta,u=a(1:nNod),jf=dfa)
         
-        alpha=real(2*iu+1) ; beta=0d0
-        call  jacobiP(n=iv,alpha=alpha,beta=beta,u=b(1:n),jf= fb)
-        call dJacobiP(n=iv,alpha=alpha,beta=beta,u=b(1:n),jf=dfb)
+        alpha=real(2*iu+1,kind=8)      ; beta=0d0
+        call  jacobiP(n=iv,alpha=alpha,beta=beta,u=b(1:nNod),jf= fb)
+        call dJacobiP(n=iv,alpha=alpha,beta=beta,u=b(1:nNod),jf=dfb)
         
-        alpha=real(2*(iu+iv)+2) ; beta=0d0
-        call  jacobiP(n=iw,alpha=alpha,beta=beta,u=c(1:n),jf= fc)
-        call dJacobiP(n=iw,alpha=alpha,beta=beta,u=c(1:n),jf=dfc)
+        alpha=real(2*(iu+iv)+2,kind=8) ; beta=0d0
+        call  jacobiP(n=iw,alpha=alpha,beta=beta,u=c(1:nNod),jf= fc)
+        call dJacobiP(n=iw,alpha=alpha,beta=beta,u=c(1:nNod),jf=dfc)
         
         !> drMode
-        drMode(ad,1:n)=dfa(1:n)*fb(1:n)*fc(1:n)
-        if( iu   >0 ) drMode(ad,1:n)=drMode(ad,1:n)* (5d-1*(1d0-b))**(iu   -1)
-        if( iu+iv>0 ) drMode(ad,1:n)=drMode(ad,1:n)* (5d-1*(1d0-c))**(iu+iv-1)
+        drMode(1:nNod,ad)=dfa(1:nNod)*fb(1:nNod)*fc(1:nNod)
+        if( iu   >0 ) drMode(1:nNod,ad)=drMode(1:nNod,ad)* (5d-1*(1d0-b(1:nNod)))**(iu   -1)
+        if( iu+iv>0 ) drMode(1:nNod,ad)=drMode(1:nNod,ad)* (5d-1*(1d0-c(1:nNod)))**(iu+iv-1)
         
         !> dsMode
-        dsMode(ad,1:n)=5d-1*(1d0+a(1:n))*drMode(ad,1:n)
-        tmp(1:n) = dfb(1:n)*(5d-1*(1d0-b(1:n)))**iu
-        if( iu   >0 ) tmp(1:n)=tmp(1:n)+(-5d-1*iu)*(fb(1:n)*(5d-1*(1d0-b(1:n)))**(iu-1   ))
-        if( iu+iv>0 ) tmp(1:n)=tmp(1:n)*(                   (5d-1*(1d0-c(1:n)))**(iu+iv-1))
-        tmp(1:n)=fa(1:n)*tmp(1:n)*fc(1:n)
-        dsMode(ad,1:n) =dsMode(ad,1:n)+tmp(1:n)
+        dsMode(1:nNod,ad)=5d-1*(1d0+a(1:nNod))*drMode(1:nNod,ad)
+        tmp(1:nNod) = dfb(1:nNod)*(5d-1*(1d0-b(1:nNod)))**iu
+        if( iu   >0 ) tmp(1:nNod)=tmp(1:nNod)+(-5d-1*iu)*(fb(1:nNod)*(5d-1*(1d0-b(1:nNod)))**(iu-1d0))
+        if( iu+iv>0 ) tmp(1:nNod)=tmp(1:nNod)                       *(5d-1*(1d0-c(1:nNod)))**(iu+iv-1)
+        tmp(1:nNod)=fa(1:nNod)*tmp(1:nNod)*fc(1:nNod)
+        dsMode(1:nNod,ad) =dsMode(1:nNod,ad)+tmp(1:nNod)
         
         !> dtMode
-        dtMode(ad,1:n)=5d-1*(1d0+a(1:n))*drMode(ad,1:n)+5d-1*(1d0+b(1:n))*tmp(1:n)
-        tmp(1:n)=dfc(1:n) *(5d-1*(1d0-c(1:n)))**(iu+iv)
-        if(iu+iv>0)then
-          tmp(1:n)=tmp(1:n)-(5d-1*real(iu+iv,kind=8))*(fc(1:n)*((5d-1*(1d0-c(1:n)))**(iu+iv-1)))
+        dtMode(1:nNod,ad)=5d-1*(1d0+a(1:nNod))*drMode(1:nNod,ad)+5d-1*(1d0+b(1:nNod))*tmp(1:nNod)
+        tmp(1:nNod)=dfc(1:nNod) *(5d-1*(1d0-c(1:nNod)))**(iu+iv)
+        if( iu+iv>0 )then
+          tmp(1:nNod)=tmp(1:nNod)-(5d-1*(iu+iv))*(fc(1:nNod)*(5d-1*(1d0-c(1:nNod)))**(iu+iv-1))
         endif
-        tmp(1:n)=fa(1:n)*fb(1:n)*tmp(1:n)
-        tmp(1:n)=tmp(1:n)*((5d-1*(1d0-b(1:n)))**iu)
-        dtMode(ad,1:n)=dtMode(ad,1:n)+tmp(1:n)
+        tmp(1:nNod)=fa(1:nNod)*fb(1:nNod)*tmp(1:nNod)
+        tmp(1:nNod)=tmp(1:nNod)*(5d-1*(1d0-b(1:nNod)))**iu
+        dtMode(1:nNod,ad)=dtMode(1:nNod,ad)+tmp(1:nNod)
         
         !> Normalize
-        coef=(2d0**(2*iu+iv+1.5d0))
-        drMode(ad,1:n) = drMode(ad,1:n)*coef
-        dsMode(ad,1:n) = dsMode(ad,1:n)*coef
-        dtMode(ad,1:n) = dtMode(ad,1:n)*coef
+        coef=(2d0**( real(2*iu+iv,kind=8)+1.5d0 ) )
+        drMode(1:nNod,ad) = drMode(1:nNod,ad)*coef
+        dsMode(1:nNod,ad) = dsMode(1:nNod,ad)*coef
+        dtMode(1:nNod,ad) = dtMode(1:nNod,ad)*coef
+        
+        !> deallocate memory
+        deallocate(fa,dfa)
+        deallocate(fb,dfb)
+        deallocate(fc,dfc)
       enddo
       
-      deallocate(tmp)
-      
     endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    deallocate(tmp)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1193,7 +1195,8 @@ module baseSimplex3D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Computing Modes(a,b,c)
+    !> Computing psi(a,b,c) 
+    !> transpose=.false. pour les perfos
     call simplex3D(ord=ord,a=a,b=b,c=c,mode=psi,transpose=.false.) !> psi(1:nNod,1:nMod)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     
@@ -1208,7 +1211,7 @@ module baseSimplex3D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> mat=Inverse[mat]
+    !> mat=Inverse[mat]=Inverse[Transpose[Vand]]
     lWork=64*nMod
     allocate(work(1:lWork),ipiv(1:nMod))
     call dgetrf(nMod,nMod,mat(1,1),nMod,ipiv(1),iErr)
@@ -1226,7 +1229,7 @@ module baseSimplex3D
       do i=1,nNod
         do j=1,nMod
           do k=1,nMod
-            lx(j,i)=lx(j,i)+mat(j,k)*psi(i,k)  ! Attention de bien prendre psi(i,k)
+            lx(j,i)=lx(j,i)+mat(j,k)*psi(i,k)  !> Attention de bien prendre psi(i,k)
           enddo
         enddo
       enddo
@@ -1239,7 +1242,7 @@ module baseSimplex3D
       do i=1,nNod
         do j=1,nMod
           do k=1,nMod
-            lx(i,j)=lx(i,j)+mat(j,k)*Psi(i,k)  ! Attention de bien prendre Psi(i,k)
+            lx(i,j)=lx(i,j)+mat(j,k)*psi(i,k)  !> Attention de bien prendre psi(i,k)
           enddo
         enddo
       enddo
@@ -1257,6 +1260,11 @@ module baseSimplex3D
   
   subroutine vandermonde3D(ord,a,b,c,vand)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !>     [Phi_0(xi_1) ... Phi_{n-1}(xi_1)]
+    !> V = [                               ] 
+    !>     [Phi_0(xi_n) ... Phi_{n-1}(xi_n)]
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)           :: ord
     real(8), intent(in) , pointer :: a(:)
     real(8), intent(in) , pointer :: b(:)
@@ -1272,8 +1280,13 @@ module baseSimplex3D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Vandermonde matrix
-    call simplex3D(ord=ord,a=a,b=b,c=c,mode=vand,transpose=.false.)
+    !> vand(i,j) = Phi_j(xi_i) 
+    !> vand(1:nNod,1:nMod) => Transpose=.false.
+    call simplex3D(        &
+    &    ord=ord          ,&
+    &    a=a,b=b,c=c      ,&
+    &    mode=vand        ,& !> vand(1:Nod,1:nMod) allocated in simplex3D
+    &    transpose=.false. )
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
@@ -1281,9 +1294,22 @@ module baseSimplex3D
   
   subroutine gradVandermonde3D(ord,a,b,c,drVand,dsVand,dtVand)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !>          [drPhi_0(xi_1) ... drPhi_{n-1}(xi_1)]
+    !> drVand = [                                   ] 
+    !>          [drPhi_0(xi_n) ... drPhi_{n-1}(xi_n)]
+    !>
+    !>          [dsPhi_0(xi_1) ... dsPhi_{n-1}(xi_1)]
+    !> dsVand = [                                   ] 
+    !>          [dsPhi_0(xi_n) ... dsPhi_{n-1}(xi_n)]
+    !>
+    !>          [dtPhi_0(xi_1) ... dtPhi_{n-1}(xi_1)]
+    !> dtVand = [                                   ] 
+    !>          [dtPhi_0(xi_n) ... dtPhi_{n-1}(xi_n)]
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)           :: ord
     real(8), intent(in) , pointer :: a(:),b(:),c(:)
-    real(8), intent(out), pointer :: drVand(:,:),dsVand(:,:),dtVand(:,:)
+    real(8), intent(out), pointer :: drVand(:,:),dsVand(:,:),dtVand(:,:) !> (1:nMod,1:nNod)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1294,13 +1320,15 @@ module baseSimplex3D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Grad Vandermonde matrix
+    !> drVand(i,j) = drPhi_j(xi_i)
+    !> dsVand(i,j) = dsPhi_j(xi_i)
+    !> dtVand(i,j) = dtPhi_j(xi_i)
     call gradSimplex3D(    &
     &    ord=ord          ,&
     &    a=a,b=b,c=c      ,&
-    &    drMode=drVand    ,&
-    &    dsMode=dsVand    ,&
-    &    dtMode=dtVand    ,&
+    &    drMode=drVand    ,& !> drVand(1:Nod,1:nMod) allocated in gradSimplex3D
+    &    dsMode=dsVand    ,& !> dsVand(1:Nod,1:nMod) allocated in gradSimplex3D
+    &    dtMode=dtVand    ,& !> dtVand(1:Nod,1:nMod) allocated in gradSimplex3D
     &    transpose=.false. )
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     

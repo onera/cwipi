@@ -71,8 +71,9 @@ module baseSimplex1D
     real(8), intent(in) , pointer :: r(:)
     real(8), intent(out), pointer :: mode(:,:)
     logical, intent(in)           :: transpose
-    !---
-    integer                       :: k,n,np
+    !>
+    integer                       :: nMod,nNod
+    integer                       :: k
     real(8), pointer              :: jf(:)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -84,24 +85,26 @@ module baseSimplex1D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    np=ord+1 ; n=size(r)
+    nMod=ord+1 ; nNod=size(r)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
-    if( .not.transpose )then
-      allocate(mode(1:n,1:np))
-      do k=0,np-1
-        call jacobiP(n=k,alpha=0d0,beta=0d0,u=r(1:n),jf=jf)
-        mode(1:n,k+1)=jf(1:n)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( transpose )then
+      allocate(mode(1:nMod,1:nNod))
+      do k=0,nMod-1
+        call jacobiP(n=k,alpha=0d0,beta=0d0,u=r(1:nNod),jf=jf)
+        mode(k+1,1:nNod)=jf(1:nNod)
         deallocate(jf)
       enddo
     else
-      allocate(mode(1:np,1:n))
-      do k=0,np-1
-        call jacobiP(n=k,alpha=0d0,beta=0d0,u=r(1:n),jf=jf)
-        mode(k+1,1:n)=jf(1:n)
+      allocate(mode(1:nNod,1:nMod))
+      do k=0,nMod-1
+        call jacobiP(n=k,alpha=0d0,beta=0d0,u=r(1:nNod),jf=jf)
+        mode(1:nNod,k+1)=jf(1:nNod)
         deallocate(jf)
       enddo
     endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
   end subroutine simplex1D

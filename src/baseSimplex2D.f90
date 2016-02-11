@@ -555,65 +555,65 @@ module baseSimplex2D
     real(8), intent(out), pointer :: drMode(:,:),dsMode(:,:)
     logical, intent(in)           :: transpose
     !---
-    integer                       :: i,n,ad
-    integer                       :: np
+    integer                       :: i,ad
+    integer                       :: nMod,nNod
     integer                       :: iu,iv,iw
     real(8), pointer              :: fa(:),dfa(:)
     real(8), pointer              :: fb(:),dfb(:)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    np=(ord+1)*(ord+2)/2 ; n=size(a)
+    nMod=(ord+1)*(ord+2)/2 ; nNod=size(a)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( .not.transpose )then
       
-      allocate(drMode(1:n,1:np),dsMode(1:n,1:np))
+      allocate(drMode(1:nNod,1:nMod),dsMode(1:nNod,1:nMod))
       
       do iu=0,ord
-        call  jacobiP(n=iu,alpha=0d0,beta=0d0,u=a(1:n),jf= fa)
-        call djacobiP(n=iu,alpha=0d0,beta=0d0,u=a(1:n),jf=dfa)
+        call  jacobiP(n=iu,alpha=0d0,beta=0d0,u=a(1:nNod),jf= fa)
+        call djacobiP(n=iu,alpha=0d0,beta=0d0,u=a(1:nNod),jf=dfa)
         do iv=0,ord-iu
           ad=iu+iv*(ord+1)-(iv*(iv-1))/2 +1 ! Rangement façon space
-          call  jacobiP(n=iv,alpha=2d0*real(iu,kind=8)+1d0,beta=0d0,u=b(1:n),jf= fb)
-          call djacobiP(n=iv,alpha=2d0*real(iu,kind=8)+1d0,beta=0d0,u=b(1:n),jf=dfb)
+          call  jacobiP(n=iv,alpha=2d0*real(iu,kind=8)+1d0,beta=0d0,u=b(1:nNod),jf= fb)
+          call djacobiP(n=iv,alpha=2d0*real(iu,kind=8)+1d0,beta=0d0,u=b(1:nNod),jf=dfb)
           
           !> drMode
           if( iu==0 )then
-            drMode(1:n,ad)=(2d0*sqr2)*dfa(1:n)* fb(1:n)
+            drMode(1:nNod,ad)=(2d0*sqr2)*dfa(1:nNod)* fb(1:nNod)
           else
-            drMode(1:n,ad)=(2d0*sqr2)*dfa(1:n)* fb(1:n) *(1d0-b(1:n))**(iu-1)
+            drMode(1:nNod,ad)=(2d0*sqr2)*dfa(1:nNod)* fb(1:nNod) *(1d0-b(1:nNod))**(iu-1)
           endif
           
           !> dsMode
-          !dsMode(1:n,ad)= dfa(1:n)*fb(1:n)*(1d0+a(1:n))*(1d0-b(1:n))**(iu-1)
+          !dsMode(1:nNod,ad)= dfa(1:nNod)*fb(1:nNod)*(1d0+a(1:nNod))*(1d0-b(1:nNod))**(iu-1)
           
           if( iu==0 )then
-            dsMode(1:n,ad)= dfa(1:n)* fb(1:n)*(1d0+a(1:n)) &
-            &              + fa(1:n)*dfb(1:n)
+            dsMode(1:nNod,ad)= dfa(1:nNod)* fb(1:nNod)*(1d0+a(1:nNod)) &
+            &                 + fa(1:nNod)*dfb(1:nNod)
           elseif( iu==1 )then
-            dsMode(1:n,ad)= dfa(1:n)* fb(1:n)*(1d0+a(1:n))                  &
-            &              - fa(1:n)* fb(1:n)*real(iu,kind=8)               &
-            &              + fa(1:n)*dfb(1:n)                *(1d0-b(1:n))
+            dsMode(1:nNod,ad)= dfa(1:nNod)* fb(1:nNod)*(1d0+a(1:nNod))                &
+            &                 - fa(1:nNod)* fb(1:nNod)*real(iu,kind=8)                &
+            &                 + fa(1:nNod)*dfb(1:nNod)                 *(1d0-b(1:nNod))
           else
-            dsMode(1:n,ad)= dfa(1:n)* fb(1:n)*(1d0+a(1:n))    *(1d0-b(1:n))**(iu-1) &
-            &              - fa(1:n)* fb(1:n)*real(iu,kind=8) *(1d0-b(1:n))**(iu-1) &
-            &              + fa(1:n)*dfb(1:n)                 *(1d0-b(1:n))**iu
+            dsMode(1:nNod,ad)= dfa(1:nNod)* fb(1:nNod)*(1d0+a(1:nNod)) *(1d0-b(1:nNod))**(iu-1) &
+            &                 - fa(1:nNod)* fb(1:nNod)*real(iu,kind=8) *(1d0-b(1:nNod))**(iu-1) &
+            &                 + fa(1:nNod)*dfb(1:nNod)                 *(1d0-b(1:nNod))**iu
           endif
           
           
-!            dsMode(1:n,ad)=( dsMode(1:n,ad)                  &
-!            &               -fa(1:n)*fb(1:n)*real(iu,kind=8) &
-!            &              )*(1d0-b(1:n))**(iu-1)
+!            dsMode(1:nNod,ad)=( dsMode(1:nNod,ad)                  &
+!            &               -fa(1:nNod)*fb(1:nNod)*real(iu,kind=8) &
+!            &              )*(1d0-b(1:nNod))**(iu-1)
 !          else
-!            dsMode(1:n,ad)=( dsMode(1:n,ad)                  &
-!            &               -fa(1:n)*fb(1:n)*real(iu,kind=8) &
-!            &              )*(1d0-b(1:n))**(iu-1)
+!            dsMode(1:nNod,ad)=( dsMode(1:nNod,ad)                  &
+!            &               -fa(1:nNod)*fb(1:nNod)*real(iu,kind=8) &
+!            &              )*(1d0-b(1:nNod))**(iu-1)
 !          endif
 !          
-!          dsMode(1:n,ad)=dsMode(1:n,ad)+fa(1:n)*dfb(1:n)*(1d0-b(1:n))**iu
-          dsMode(1:n,ad)=sqr2*dsMode(1:n,ad)
+!          dsMode(1:nNod,ad)=dsMode(1:nNod,ad)+fa(1:nNod)*dfb(1:nNod)*(1d0-b(1:nNod))**iu
+          dsMode(1:nNod,ad)=sqr2*dsMode(1:nNod,ad)
           
           deallocate(fb,dfb)
         enddo
@@ -621,8 +621,8 @@ module baseSimplex2D
       enddo
     else
       
-      allocate(drMode(1:np,1:n),dsMode(1:np,1:n))
-      
+      allocate(drMode(1:nMod,1:nNod),dsMode(1:nMod,1:nNod))
+      stop "stop@gradSimplex2D"
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -630,6 +630,11 @@ module baseSimplex2D
   end subroutine gradSimplex2D
   
   subroutine vandermonde2D(ord,a,b,vand)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !>     [Phi_0(xi_1) ... Phi_{n-1}(xi_1)]
+    !> V = [                               ] 
+    !>     [Phi_0(xi_n) ... Phi_{n-1}(xi_n)]
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)           :: ord
     real(8), intent(in) , pointer :: a(:)
@@ -645,14 +650,28 @@ module baseSimplex2D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Vandermonde matrix
-    call simplex2D(ord=ord,a=a,b=b,mode=vand,transpose=.false.)
+    !> V(i,j) = Phi_j(xi_i) 
+    !> vand(1:nNod,1:nMod) => Transpose=.false.
+    call simplex2D(        &
+    &    ord=ord          ,&
+    &    a=a,b=b          ,&
+    &    mode=vand        ,& !> vand(1:Nod,1:nMod) allocated in simplex2D
+    &    transpose=.false. )
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
   end subroutine vandermonde2D
   
   subroutine gradVandermonde2D(ord,a,b,drVand,dsVand)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !>          [drPhi_0(xi_1) ... drPhi_{n-1}(xi_1)]
+    !> drVand = [                                   ] 
+    !>          [drPhi_0(xi_n) ... drPhi_{n-1}(xi_n)]
+    !>
+    !>          [dsPhi_0(xi_1) ... dsPhi_{n-1}(xi_1)]
+    !> dsVand = [                                   ] 
+    !>          [dsPhi_0(xi_n) ... dsPhi_{n-1}(xi_n)]
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)           :: ord
     real(8), intent(in) , pointer :: a(:),b(:)
@@ -667,8 +686,14 @@ module baseSimplex2D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Vandermonde matrix
-    call gradSimplex2D(ord=ord,a=a,b=b,drMode=drVand,dsMode=dsVand,transpose=.false.) !> drVand,dsVand Memory allocated in gradSimplex2D
+    !> drVand(i,j) = drPhi_j(xi_i) => transpose=.false.
+    !> dsVand(i,j) = dsPhi_j(xi_i) => transpose=.false. 
+    call gradSimplex2D(    &
+    &    ord=ord          ,&
+    &    a=a,b=b          ,&
+    &    drMode=drVand    ,& !> drVand(1:Nod,1:nMod) allocated in gradSimplex2D
+    &    dsMode=dsVand    ,& !> drVand(1:Nod,1:nMod) allocated in gradSimplex2D
+    &    transpose=.false. )
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
@@ -691,7 +716,8 @@ module baseSimplex2D
     real(8), intent(out) , pointer :: lx  (:,:)
     logical, intent(in)            :: transpose
     !---
-    integer                        :: iu,iv,ad,i,j,k,nPt,np
+    integer                        :: nMod,nNod
+    integer                        :: iu,iv,ad,i,j,k
     real(8)                        :: gamma(0:ord+1)
     integer                        :: iOrd
     real(8), pointer               :: psi(:,:)
@@ -709,16 +735,18 @@ module baseSimplex2D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    np=(ord+1)*(ord+2)/2 ; nPt=size(a)
+    nMod=(ord+1)*(ord+2)/2 ; nNod=size(a)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Computing psi(a,b) 
+    !> transpose=.false. pour les perfos
     call simplex2D(ord=ord,a=a,b=b,mode=psi,transpose=.false.)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #if lagrange2Dv==1
-    print '("    baseSimplex2D:lagrange2Dv: np=",i10," nPt=",i10)',np,nPt
+    print '("    baseSimplex2D:lagrange2Dv: nMod=",i10," nNod=",i10)',nMod,nNod
     print '("    baseSimplex2D:lagrange2Dv: size(psi) =",i10," x ",i10)',size(psi,1),size(psi,2)
     print '("    baseSimplex2D:lagrange2Dv: size(vand)=",i10," x ",i10)',size(vand,1),size(vand,2)
     print '("    baseSimplex2D:lagrange2Dv: step1 OK")'
@@ -727,16 +755,16 @@ module baseSimplex2D
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> mat=Inverse[Transpose[Vand]]
-    allocate(mat(np,np))
-    do i=1,np
-      do j=1,np
+    allocate(mat(1:nMod,1:nMod))
+    do i=1,nMod
+      do j=1,nMod
         mat(i,j)=vand(j,i)
       enddo
     enddo
     
-    lWork=64*(np) ; allocate(work(lWork),ipiv(np))
-    call dgetrf(np,np,mat(1,1),np,ipiv(1),iErr)
-    call dgetri(np,mat(1,1),np,ipiv(1),work(1),lWork,iErr)
+    lWork=64*(nMod) ; allocate(work(lWork),ipiv(nMod))
+    call dgetrf(nMod,nMod,mat(1,1),nMod,ipiv(1),iErr)
+    call dgetri(nMod,mat(1,1),nMod,ipiv(1),work(1),lWork,iErr)
     deallocate(ipiv,work)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -748,23 +776,23 @@ module baseSimplex2D
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> lx = Inverse[Transpose[Vand]].psi
-    if( .not.transpose )then
-     !allocate(lx(1:nPt,1:np)) ; lx(:,:)=0d0
+    if( transpose )then
+     !allocate(lx(1:nMod,1:nNod)) ; lx(:,:)=0d0
       lx(:,:)=0d0
-      do i=1,nPt
-        do j=1,np
-          do k=1,np
-            lx(i,j)=lx(i,j)+mat(j,k)*psi(i,k)  ! Attention de bien prendre psi(i,k)
+      do i=1,nNod
+        do j=1,nMod
+          do k=1,nMod
+            lx(j,i)=lx(j,i)+mat(j,k)*psi(i,k)  !> Attention de bien prendre psi(i,k)
           enddo
         enddo
       enddo
     else
-     !allocate(lx(1:np,1:nPt)) ; lx(:,:)=0d0
+     !allocate(lx(1:nNod,1:nMod)) ; lx(:,:)=0d0
       lx(:,:)=0d0
-      do i=1,nPt
-        do j=1,np
-          do k=1,np
-            lx(j,i)=lx(j,i)+mat(j,k)*psi(i,k)  ! Attention de bien prendre psi(i,k)
+      do i=1,nNod
+        do j=1,nMod
+          do k=1,nMod
+            lx(i,j)=lx(i,j)+mat(j,k)*psi(i,k)  !> Attention de bien prendre psi(i,k)
           enddo
         enddo
       enddo

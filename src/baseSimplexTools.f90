@@ -1310,23 +1310,19 @@ module baseSimplexTools
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( transpose )then
-      
       nMod=size(lx,1) ;nNod=size(lx,2)
      !allocate(l(1,1:nNod)) ; l(1,1:nNod)=0d0
       l(1,1:nNod)=0d0
       do i=1,nMod
         l(1,1:nNod)=l(1,1:nNod)+abs( lx(i,1:nNod) )
       enddo
-      
     else
-      
       nMod=size(lx,2) ; nNod=size(lx,1)
      !allocate(l(1:nNod,1)) ; l(1:nNod,1)=0d0
       l(1:nNod,1)=0d0
       do i=1,nMod
         l(1:nNod,1)=l(1:nNod,1)+abs( lx(1:nNod,i) )
-      enddo
-            
+      enddo    
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
