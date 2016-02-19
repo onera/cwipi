@@ -680,6 +680,24 @@ void cwipi_create_coupling
   const char  *output_format_option,
   ...);
 
+//TODO : ajouter un deuxieme coupling permettant d'eliminer certains procs
+// du couplage
+
+/* void cwipi_create_coupling_select_proc */
+/* ( const char  *coupling_name, */
+/*   const cwipi_coupling_type_t coupling_type, */
+/*   const char  *coupled_application, */
+/*   const int    entitiesDim, */
+/*   const double tolerance, */
+/*   const cwipi_mesh_type_t mesh_type, */
+/*   const cwipi_solver_type_t solver_type, */
+/*   const int    output_frequency, */
+/*   const char  *output_format, */
+/*   const char  *output_format_option, */
+/*   int   isCoupled (TRUE/FALSE), */
+/*   ...); */
+
+
 /*----------------------------------------------------------------------------
  *
  * Set the index location for multiple location with CWIPI_CYCLIC_MESH
