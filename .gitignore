@@ -17,6 +17,7 @@ chr*
 logmem.txt
 autom4te.cache/*
 autoscan.log
-cython/cwipi.c
+Cython/cwipi.c
 \#*
+nbproject
 
