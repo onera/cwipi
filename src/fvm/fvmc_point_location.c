@@ -3843,7 +3843,7 @@ static double _det_2x2 (double a, double b, double c, double d) {
     return (a * d - b * c);
 };
 
-static int _solve_2x2 (double A[2][2], double x[2])
+static int _solve_2x2 (double **A, double *x)
 {
   // if we solving something simple, just solve it
   //
