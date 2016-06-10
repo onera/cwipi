@@ -1583,6 +1583,7 @@ contains
       if( display )print '(3x,"Nodes optimization inside pyramid")'
       
       nNodi=(ord-1)*(ord-2)*(2*ord-3)/6 !> internal nodes
+      iNod1=0
       nodesInside: if( .not.nNodi==0 )then
         
         iNod =0
@@ -2226,7 +2227,7 @@ contains
     !> Removing Extra vertices
     if( display ) print '(3x,"Removing Extra vertices")'
     
-    allocate(keep(nNod)) ; keep(:)=.false.
+    allocate(keep(1:nNod)) ; keep(:)=.false.
     do iCel=1,nQuadr
       do iNod=1,4
         keep( quadr(iNod,iCel) )=.true.
@@ -2238,7 +2239,7 @@ contains
       enddo
     enddo
     
-    allocate(indx(nNod) )
+    allocate(indx(1:nNod) )
     iNod0=0
     do iNod=1,nNod
       if( keep(iNod) )then
@@ -2251,7 +2252,8 @@ contains
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Ecriture
-    name="PyramidSkinP"//sfx//".mesh"       
+    name="PyramidSkinP"//sfx//".mesh"
+    if( display ) print '(3x,"writing file:",a)',trim(name)
     open(unit=10,file=trim(name),action='write')
     write(10,'( "MeshVersionFormatted 1")' )
     write(10,'(/"Dimension"/,"3")')

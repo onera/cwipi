@@ -60,12 +60,10 @@ module baseSimplex1D
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> psi_i(r) = P_i^{0,0}(r) , i=0,ord
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Transpose = True  => mode(1:np,1:n)
-    !> Transpose = False => mode(1:n,1:np)
+    !> Transpose = True  => mode(1:nMod,1:nNod)
+    !> Transpose = False => mode(1:nNod,1:nMod)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)           :: ord
     real(8), intent(in) , pointer :: r(:)
@@ -76,18 +74,15 @@ module baseSimplex1D
     integer                       :: k
     real(8), pointer              :: jf(:)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( .not.associated(r) )then
       print '("r not associated")'
       stop "@simplex1D"
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     nMod=ord+1 ; nNod=size(r)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( transpose )then
       allocate(mode(1:nMod,1:nNod))
@@ -105,55 +100,49 @@ module baseSimplex1D
       enddo
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     return
   end subroutine simplex1D
   
   subroutine gradSimplex1D(ord,r,drMode,transpose)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Transpose = True  => drMode(1:np,1:n)
-    !> Transpose = False => drMode(1:n,1:np)
+    !> Transpose = True  => drMode(1:nMod,1:nNod)
+    !> Transpose = False => drMode(1:nNod,1:nMod)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)           :: ord
     real(8), intent(in) , pointer :: r(:)
     real(8), intent(out), pointer :: drMode(:,:)
     logical, intent(in)           :: transpose
-    !---
-    integer                       :: k,n,np
+    !>
+    integer                       :: k,nMod,nNod
     real(8), pointer              :: jf(:)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( .not.associated(r) )then
       print '("r not associated")'
       stop "@simplex1D"
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    np=ord+1 ; n=size(r)
+    nMod=ord+1 ; nNod=size(r)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( .not.transpose )then
-      allocate(drMode(1:n,1:np))
-      do k=0,np-1
-        call djacobiP(n=k,alpha=0d0,beta=0d0,u=r(1:n),jf=jf)
-        drMode(1:n,k+1)=jf(1:n)
+      allocate(drMode(1:nNod,1:nMod))
+      do k=0,nMod-1
+        call djacobiP(n=k,alpha=0d0,beta=0d0,u=r(1:nNod),jf=jf)
+        drMode(1:nNod,k+1)=jf(1:nNod)
         deallocate(jf)
       enddo
     else
-      allocate(drMode(1:np,1:n))
-      do k=0,np-1
-        call djacobiP(n=k,alpha=0d0,beta=0d0,u=r(1:n),jf=jf)
-        drMode(k+1,1:n)=jf(1:n)
+      allocate(drMode(1:nMod,1:nNod))
+      do k=0,nMod-1
+        call djacobiP(n=k,alpha=0d0,beta=0d0,u=r(1:nNod),jf=jf)
+        drMode(k+1,1:nNod)=jf(1:nNod)
         deallocate(jf)
       enddo
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     return
   end subroutine gradSimplex1D
   
@@ -162,21 +151,19 @@ module baseSimplex1D
     integer, intent(in)           :: ord
     real(8), intent(in) , pointer :: a(:)
     real(8), intent(out), pointer :: vand(:,:)
-    !---
-    integer                       :: np
-    real(8)                       :: gamma(0:ord+1)
-    real(8), pointer              :: jf(:)
-    integer                       :: i,j,k
-    real(8), pointer              :: x0(:)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( .not.associated(a) )then
       print '("ord=",i2)',ord
       print '("Interpolation Points not associated")'
       stop "@vandermonde1D"
     endif
-    
-    !> Gauss-Legendre Vandermonde matrix
-    call simplex1D(ord=ord,r=a,mode=vand,transpose=.false.)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> V(i,j) = Phi_j(xi_i) 
+    !> vand(1:nNod,1:nMod) => Transpose=.false.
+    call simplex1D(ord=ord,r=a,mode=vand,transpose=.false.) !> (nNod,nMod)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
   end subroutine vandermonde1D

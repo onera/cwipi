@@ -951,7 +951,6 @@ subroutine quadTest()
   use baseSimplex1D
   use baseSimplexTools, only: massMatrix,display,compactForm
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
   integer            :: ord
@@ -982,9 +981,8 @@ subroutine quadTest()
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Matrice de masse compacte
-  
   nMod=ord+1
-     !allocate(mass(1:n*(n+1)/2)) ; mass(:)=0d0  
+  allocate(mass(1:nMod*(nMod+1)/2)) ; mass(:)=0d0 
   call massMatrix(vand=vand,mass=mass)
   
   call display(title="Mass=",vec=mass)
@@ -995,12 +993,14 @@ subroutine quadTest()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  nMod=ord+1
+  allocate(massL2(1:(nMod+1),1:(nMod+1))) ; massL2(:,:)=0d0 
   call massMatrix(vand=vand,mass=massL2)
   call display(title="MassL2=",mat=massL2)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  n=size(massL2,1) ; allocate(mass(n*(n+1)/2)) ; mass(:)=0d0
+  allocate(mass(1:nMod*(nMod+1)/2)) ; mass(:)=0d0 
   call compactForm(mat0=massL2,mat1=mass)
   call display(title="MassL2=",vec=mass)
   deallocate(mass)
@@ -1008,27 +1008,35 @@ subroutine quadTest()
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Produit tensoriel
-  allocate(massQ4((ord+1)**2,(ord+1)**2)) ; massQ4(:,:)=0d0
-  do i=1,ord+1
-    row0=(i-1)*(ord+1)
-    do j=1,ord+1
-      col0=(j-1)*(ord+1)
-      do k=1,ord+1
-        do l=1,ord+1
+  nMod=ord+1
+  allocate(massQ4(1:nMod*nMod,1:nMod*nMod)) ; massQ4(:,:)=0d0
+  do i=1,nMod
+    row0=(i-1)*nMod
+    do j=1,nMod
+      col0=(j-1)*nMod
+      do k=1,nMod
+        do l=1,nMod
          !print '("row0+k=",i3,2x,"col0+l=",i3)',row0+k,col0+l
           massQ4(row0+k,col0+l)=massL2(i,j)*massL2(k,l) !> Tenseur massQ4(i,j,k,l)
         enddo
       enddo
     enddo
   enddo
+  
+  deallocate(massL2)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
- !call display(title="MassQ4=",mat=massQ4)
+  call display(title="MassQ4=",mat=massQ4)
+  nMod=ord+1
+  allocate(mass(1:nMod*nMod*(nMod*nMod+1)/2)) ; mass(:)=0d0
   call compactForm(mat0=massQ4,mat1=mass)
-  call display(title="MassQ4=",vec=mass)
-  call factorise(n=(ord+1)**2,mat=mass)
+  call display(title="CompactedForm(MassQ4)=",vec=mass)
+  
+  call factorise(n=nMod*nMod,mat=mass)
+ !call factorise(n=nMod*nMod,mat=mass)
   call display(title="Factorized(MassQ4)=",vec=mass)
+  deallocate(massQ4)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   return
@@ -1042,8 +1050,8 @@ subroutine pyramBasis()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
-  integer              :: i,j,order,np,nPt,cpt
-  integer              :: ord
+  integer              :: i,j,nPt,cpt
+  integer              :: ord,nMod
   real(8), pointer     :: uv (:,:)
   real(8), pointer     :: uvw(:,:)
   integer              :: ad,iSide
@@ -1094,11 +1102,18 @@ subroutine pyramBasis()
   call pyramidVandermonde3D(ord=ord,a=a,b=b,c=c,vand=vand)
   if( ord<3 )then
     call display(title="Vandermonde Matrix",mat=vand)
+  else
+    call displaySparce(title="Test avec l(uvw)",mat=lxOut,tol=1d-14)
   endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Polynomes d'interpolation (on teste avec les points d'interpolation) => Matrice Identité  
+  !> Polynomes d'interpolation (on teste avec les points d'interpolation) => Matrice Identité
+  
+  nMod=(ord+1)*(ord+2)*(2*ord+3)/6
+  nNod=size(a)
+  
+  allocate(lxOut(1:nMod,1:nNod))
   call pyramidLagrange3Dv(ord=ord,vand=vand,a=a,b=b,c=c,lx=lxOut,transpose=.true.) !> true pour affichage
   if( ord<3 )then
     call display(title="Test avec l(uvw)",mat=lxOut)
@@ -2453,14 +2468,14 @@ program main
   !call tetraMaillageVisuNew() ; stop
   
   !> Test Quad
-  call quadTest()
-  stop
+ !call quadTest()
   
   !> Test pyramids
-  !call pyramBasis()
+  call pyramBasis()
   !call pyramLebesgue()
   !call pyramMaillageVisu() !> maillages de visu pour la pyramide d'ordre élevé
   !call pyramDegreesOverSides()
+  stop
   
   
   !> Tests des quadratures pour pyramides

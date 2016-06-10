@@ -9,7 +9,7 @@
 /*	Description:		handle .meshb file format I/O		*/
 /*	Author:				Loic MARECHAL						*/
 /*	Creation date:		dec 08 2015							*/
-/*	Last modification:	jan 18 2015							*/
+/*	Last modification:	jan 19 2015							*/
 /*															*/
 /*----------------------------------------------------------*/
 
@@ -144,8 +144,8 @@ extern int       GmfSetKwd(long long, int, ...);
 extern int       GmfGotoKwd(long long, int);
 extern int       GmfGetLin(long long, int, ...);
 extern int       GmfSetLin(long long, int, ...);
-extern int       GmfGetBlock(long long, int, ...);
-extern int       GmfSetBlock(long long, int, ...);
+extern int       GmfGetBlock(long long, int, void *, ...);
+extern int       GmfSetBlock(long long, int, void *, ...);
 
 
 /*----------------------------------------------------------*/

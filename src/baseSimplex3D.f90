@@ -727,7 +727,7 @@ module baseSimplex3D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Variables globales
-    real(8), intent(in) , pointer :: uvw(:,:)
+    real(8), intent(in)           :: uvw(:,:)
     real(8), intent(out), pointer :: a(:),b(:),c(:)
     logical, intent(in)           :: display
     !> Variables locales
@@ -781,7 +781,7 @@ module baseSimplex3D
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Variables globales
-    real(8), intent(in) , pointer :: u(:),v(:),w(:)
+    real(8), intent(in)           :: u(:),v(:),w(:)
     real(8), intent(out), pointer :: a(:),b(:),c(:)
     logical, intent(in)           :: display
     !> Variables locales

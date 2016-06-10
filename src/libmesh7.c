@@ -1026,7 +1026,7 @@ int GmfCpyLin(int InpIdx, int OutIdx, int KwdCod)
 /* Bufferized reading of all keyword's lines				*/
 /*----------------------------------------------------------*/
 
-extern int NAMF77(GmfGetBlock, gmfgetblock)(TYPF77(long long) MshIdx, TYPF77(int) KwdCod, /*void *prc,*/ ...)
+extern int NAMF77(GmfGetBlock, gmfgetblock)(TYPF77(long long) MshIdx, TYPF77(int) KwdCod, void *prc, ...)
 {
 	char *UsrDat[ GmfMaxTyp ], *FilBuf=NULL, *FilPos;
 	char *StrTab[5] = { "", "%f", "%lf", "%d", "%lld" };
@@ -1059,12 +1059,10 @@ extern int NAMF77(GmfGetBlock, gmfgetblock)(TYPF77(long long) MshIdx, TYPF77(int
 		return(0);
 
 	/* Start decoding the arguments */
-	//va_start(VarArg, prc);
-	va_start(VarArg, KwdCod);
+	va_start(VarArg, prc);
 	LinSiz = 0;
 
 	/* Get the user's preporcessing procedure and argument adresses, if any */
-	/*
 #ifdef F77API
 	if(PRCF77(prc))
 	{
@@ -1081,7 +1079,7 @@ extern int NAMF77(GmfGetBlock, gmfgetblock)(TYPF77(long long) MshIdx, TYPF77(int
 		UsrArg = va_arg(VarArg, void *);
 	}
 #endif
-	*/
+
 	for(i=0;i<kwd->SolSiz;i++)
 	{
 		/* Get the user's data type and pointers to first and second adress to compute the stride */
@@ -1122,13 +1120,13 @@ extern int NAMF77(GmfGetBlock, gmfgetblock)(TYPF77(long long) MshIdx, TYPF77(int
 			}
 
 		/* Call the user's preprocessing procedure */
-/*			if(UsrPrc)
+			if(UsrPrc)
 #ifdef F77API
 				CalF77Prc(1, kwd->NmbLin, UsrPrc, NmbArg, ArgTab);
 #else
 				UsrPrc(1, kwd->NmbLin, UsrArg);
 #endif
-*/
+
 	}
 	else
 	{
@@ -1229,13 +1227,13 @@ extern int NAMF77(GmfGetBlock, gmfgetblock)(TYPF77(long long) MshIdx, TYPF77(int
 				}
 
 			/* Call the user's preprocessing procedure */
-/*			if(UsrPrc)
+			if(UsrPrc)
 #ifdef F77API
 				CalF77Prc(BegIdx, EndIdx, UsrPrc, NmbArg, ArgTab);
 #else
 				UsrPrc(BegIdx, EndIdx, UsrArg);
 #endif
-*/		}
+		}
 
 		free(FilBuf);
 	}
@@ -1248,7 +1246,7 @@ extern int NAMF77(GmfGetBlock, gmfgetblock)(TYPF77(long long) MshIdx, TYPF77(int
 /* Bufferized writing of all keyword's lines				*/
 /*----------------------------------------------------------*/
 
-extern int NAMF77(GmfSetBlock, gmfsetblock)(TYPF77(long long) MshIdx, TYPF77(int) KwdCod, /*void *prc,*/ ...)
+extern int NAMF77(GmfSetBlock, gmfsetblock)(TYPF77(long long) MshIdx, TYPF77(int) KwdCod, void *prc, ...)
 {
 	char *UsrDat[ GmfMaxTyp ], *FilBuf=NULL, *FilPos;
 	char *StrTab[5] = { "", "%g", "%.15g", "%d", "%lld" };
@@ -1281,12 +1279,10 @@ extern int NAMF77(GmfSetBlock, gmfsetblock)(TYPF77(long long) MshIdx, TYPF77(int
 		return(0);
 
 	/* Start decoding the arguments */
-	//va_start(VarArg, prc);
-	va_start(VarArg, KwdCod);
+	va_start(VarArg, prc);
 	LinSiz = 0;
 
 	/* Get the user's postprocessing procedure and argument adresses, if any */
-	/*
 #ifdef F77API
 	if(PRCF77(prc))
 	{
@@ -1303,7 +1299,7 @@ extern int NAMF77(GmfSetBlock, gmfsetblock)(TYPF77(long long) MshIdx, TYPF77(int
 		UsrArg = va_arg(VarArg, void *);
 	}
 #endif
-	*/
+
 	for(i=0;i<kwd->SolSiz;i++)
 	{
 		/* Get the user's data type and pointers to first and second adress to compute the stride */
@@ -1333,14 +1329,13 @@ extern int NAMF77(GmfSetBlock, gmfsetblock)(TYPF77(long long) MshIdx, TYPF77(int
     
 	if(msh->typ & Asc)
 	{
-		/*
 		if(UsrPrc)
 #ifdef F77API
 			CalF77Prc(1, kwd->NmbLin, UsrPrc, NmbArg, ArgTab);
 #else
 			UsrPrc(1, kwd->NmbLin, UsrArg);
 #endif
-*/
+
 		for(i=0;i<kwd->NmbLin;i++)
 			for(j=0;j<kwd->SolSiz;j++)
 			{
@@ -1390,14 +1385,14 @@ extern int NAMF77(GmfSetBlock, gmfsetblock)(TYPF77(long long) MshIdx, TYPF77(int
 			FilPos = FilBuf;
 			BegIdx = EndIdx+1;
 			EndIdx += NmbLin;
-			/*
+
 			if(UsrPrc)
 #ifdef F77API
 				CalF77Prc(BegIdx, EndIdx, UsrPrc, NmbArg, ArgTab);
 #else
 				UsrPrc(BegIdx, EndIdx, UsrArg);
 #endif
-			*/
+
 			for(i=0;i<NmbLin;i++)
 				for(j=0;j<kwd->SolSiz;j++)
 				{

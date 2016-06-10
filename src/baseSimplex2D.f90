@@ -324,7 +324,7 @@ module baseSimplex2D
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    real(8), intent(in) , pointer :: uv(:,:)
+    real(8), intent(in)           :: uv(:,:)
     real(8), intent(out), pointer :: a(:),b(:)
     logical, intent(in)           :: display
     !
@@ -366,7 +366,7 @@ module baseSimplex2D
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    real(8), intent(in) , pointer :: u(:),v(:)
+    real(8), intent(in)           :: u(:),v(:)
     real(8), intent(out), pointer :: a(:),b(:)
     logical, intent(in)           :: display
     !
@@ -450,7 +450,8 @@ module baseSimplex2D
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)           :: ord
-    real(8), intent(in) , pointer :: a(:),b(:)
+   !real(8), intent(in) , pointer :: a(:),b(:)
+    real(8), intent(in)           :: a(:),b(:)
     real(8), intent(out), pointer :: mode(:,:)
     logical, intent(in)           :: transpose
     !---
@@ -461,7 +462,7 @@ module baseSimplex2D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if( .not.associated(a).or..not.associated(b) )then
+    if( size(a)==0.or.size(b)==0 )then
       print '("a or/and b not associated")'
       stop "@simplex2D"
     endif
@@ -640,15 +641,13 @@ module baseSimplex2D
     real(8), intent(in) , pointer :: a(:)
     real(8), intent(in) , pointer :: b(:)
     real(8), intent(out), pointer :: vand(:,:)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( .not.associated(a) .or. .not.associated(b) )then
       print '("2D Nodes a or/and b not associated")'
       stop "@vandermonde2D"
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> V(i,j) = Phi_j(xi_i) 
     !> vand(1:nNod,1:nMod) => Transpose=.false.
@@ -658,7 +657,6 @@ module baseSimplex2D
     &    mode=vand        ,& !> vand(1:Nod,1:nMod) allocated in simplex2D
     &    transpose=.false. )
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     return
   end subroutine vandermonde2D
   
