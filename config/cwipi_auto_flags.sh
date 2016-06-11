@@ -154,8 +154,8 @@ if test "x$cwipi_gcc" = "xgcc"; then
       cflags_default="$cflags_default -Wno-long-long"
       ;;
 
-    gcc-3.*|gcc-4.*)
-      cflags_default="`echo $cflags_default | sed -e 's/-ansi/-std=c99/g'`"
+    gcc-3.*|gcc-4.*|gcc-5.*)
+      cflags_default="`echo $cflags_default | sed -e 's/-ansi/-std=gnu99/g'`"
       cflags_default="$cflags_default -Wfloat-equal -Wpadded"
       ;;
 
@@ -176,7 +176,7 @@ elif test "x$cwipi_gcc" = "xicc"; then
   cwipi_compiler_known=yes
 
   # Default compiler flags
-  cflags_default="-std=c99 -funsigned-char -Wall -Wcheck -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused"
+  cflags_default="-std=gnu99 -funsigned-char -Wall -Wcheck -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused"
   cflags_default_dbg="-g -O0 -traceback"
   cflags_default_opt="-O2"
   cflags_default_prf="-p"
