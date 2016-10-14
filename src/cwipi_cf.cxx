@@ -1090,7 +1090,7 @@ void PROCF(cwipi_add_polyhedra_cf,
   char *coupling_nameC =
     _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
 
-  cwipi_add_polyhedra(coupling_name,
+  cwipi_add_polyhedra(coupling_nameC,
                       *n_element,
                       face_index,
                       cell_to_face_connectivity,
