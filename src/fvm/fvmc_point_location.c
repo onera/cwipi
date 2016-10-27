@@ -3101,15 +3101,30 @@ _polygons_section_closest_3d(const fvmc_nodal_section_t   *this_section,
                   - this_section->vertex_index[i]);
     vertex_id = this_section->vertex_index[i];
 
-    n_triangles = fvmc_triangulate_polygon(3,
-                                          n_vertices,
-                                          vertex_coords,
-                                          parent_vertex_num,
-                                          (  this_section->vertex_num
-                                           + vertex_id),
-                                          FVMC_TRIANGULATE_MESH_DEF,
-                                          triangle_vertices,
-                                          state);
+    //TODO: Correction provisoire bug triangulation si que des triangles dans le bloc polygons
+    
+    if (n_vertices > 3) {
+    
+      n_triangles = fvmc_triangulate_polygon(3,
+                                             n_vertices,
+                                             vertex_coords,
+                                             parent_vertex_num,
+                                             (  this_section->vertex_num
+                                                + vertex_id),
+                                             FVMC_TRIANGULATE_MESH_DEF,
+                                             triangle_vertices,
+                                             state);
+    }
+
+    else {
+      n_triangles = 1;
+      triangle_vertices = malloc (3 * sizeof(fvmc_lnum_t));
+
+      triangle_vertices[0] = 1;
+      triangle_vertices[1] = 2;
+      triangle_vertices[2] = 3;
+      
+    }
 
     /* Locate on triangulated polygon */
 
