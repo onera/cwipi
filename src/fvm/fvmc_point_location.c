@@ -3118,7 +3118,6 @@ _polygons_section_closest_3d(const fvmc_nodal_section_t   *this_section,
 
     else {
       n_triangles = 1;
-      triangle_vertices = malloc (3 * sizeof(fvmc_lnum_t));
 
       triangle_vertices[0] = 1;
       triangle_vertices[1] = 2;
