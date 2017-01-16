@@ -373,6 +373,17 @@ _polygon_vertex_is_ear(const int          n_vertices,
 
       surf_2 = vect2[0]*vect3[1] - vect3[0]*vect2[1];
 
+      /* 
+       * FIXME : Fonction _polygon_vertex_is_ear, add a temporary constant epsilon (1e-32) 
+       *         to protect jacobian computation. It must be variable
+       */
+
+      const double eps_surf2 = 1e-32;
+       
+      if (surf_2 <= eps_surf2) {
+        return true;
+      }
+      
       for (i = list_next[next]; i != previous; i = list_next[i]) {
 
         if (concave[i] == true) {
@@ -910,7 +921,7 @@ fvmc_triangulate_state_destroy(fvmc_triangulate_state_t  *this_state)
 
 int
 fvmc_triangulate_polygon(int                             dim,
-                        int                             n_vertices,
+                        int                              n_vertices,
                         const fvmc_coord_t               coords[],
                         const fvmc_lnum_t                parent_vertex_num[],
                         const fvmc_lnum_t                polygon_vertices[],
@@ -1122,6 +1133,8 @@ fvmc_triangulate_quadrangle(int                dim,
   fvmc_lnum_t  vertex_id[4] = {0, 1, 2, 3};
   double v1[3] = {0.0, 0.0, 0.0}, v2[3] = {0.0, 0.0, 0.0};
   double n0[3] = {0.0, 0.0, 0.0}, ni[3] = {0.0, 0.0, 0.0};
+  int    min_angle_idx;
+  double min_cos;
 
   if (quadrangle_vertices != NULL) {
     for (i = 0; i < 4 ; i++)
@@ -1141,13 +1154,22 @@ fvmc_triangulate_quadrangle(int                dim,
   }
 
   _CROSS_PRODUCT_3D(n0, v1, v2);
-
+  min_cos = _DOT_PRODUCT_3D(v1, v2);
+  min_angle_idx = 0;
+  
   for (j = 1; j < 4; j++) {
     for (i = 0; i < dim; i++) {
       v1[i] = coords[vertex_id[(j+1)%4]*dim + i] - coords[vertex_id[j]*dim + i];
       v2[i] = coords[vertex_id[ j-1   ]*dim + i] - coords[vertex_id[j]*dim + i];
     }
+
     _CROSS_PRODUCT_3D(ni, v1, v2);
+    double curr_cos = _DOT_PRODUCT_3D(v1, v2);
+    if (curr_cos < min_cos) {
+      min_cos = curr_cos;
+      min_angle_idx = j;
+    }
+    
     if (_DOT_PRODUCT_3D(n0, ni) < 0) {
       o_count++;
       o_id = j;
@@ -1158,9 +1180,10 @@ fvmc_triangulate_quadrangle(int                dim,
      we define it as "shorter" */
 
   if (o_count > 0) {
-
-    if (o_count > 1)
+    
+    if (o_count > 1) {
       o_id = 0;
+    }
 
     if (o_id%2 == 0) {
       d2_02 = 0.;
@@ -1173,23 +1196,22 @@ fvmc_triangulate_quadrangle(int                dim,
 
   }
 
-  /* With no obtuse angle, we choose the true shortest diagonal */
+  /* With no obtuse angle, we choose the largest angle */
 
   else {
-
-    for (i = 0; i < dim; i++) {
-      v1[i] = coords[vertex_id[2]*dim + i] - coords[vertex_id[0]*dim + i];
-      v2[i] = coords[vertex_id[3]*dim + i] - coords[vertex_id[1]*dim + i];
+    
+    if ((min_angle_idx == 0) || (min_angle_idx == 2)) {
+      d2_02 = 0.;
+      d2_13 = 1.;      
+    }
+    else {
+      d2_02 = 1.;
+      d2_13 = 0.;
     }
 
-    /* Now compute diagonal lengths (squared) */
+  }    
 
-    d2_02 = v1[0]*v1[0] + v1[1]*v1[1] + v1[2]*v1[2];
-    d2_13 = v2[0]*v2[0] + v2[1]*v2[1] + v2[2]*v2[2];
-
-  }
-
-  /* Now define triangulation */
+  /* Now define first triangulation */
 
   if (quadrangle_vertices != NULL) {
     if (d2_02 < d2_13) {
@@ -1227,7 +1249,7 @@ fvmc_triangulate_quadrangle(int                dim,
       triangle_vertices[5] = 2;
     }
   }
-
+  
   /* Return number of triangles (for consistency with polygon triangulation) */
 
   return 2;

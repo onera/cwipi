@@ -203,19 +203,25 @@ static void _computeBary (int numPts, double *pts, double bary[3])
 }
 
 
-static void _project_point2(double x[3], double pt_plan[3],
+static int _project_point2(double x[3], double pt_plan[3],
                             double normal[3], double xproj[3])
 {
 
   double cst   = _DOT_PRODUCT(normal, pt_plan);
   double cst1  = _DOT_PRODUCT(normal, x);
   double norm2 = _DOT_PRODUCT(normal, normal);
+  
+  if (norm2 < 1e-15) {
+    return 1;
+  }
 
   double t = - (cst1 - cst)/ norm2;
 
   xproj[0] = x[0] + t * normal[0];
   xproj[1] = x[1] + t * normal[1];
   xproj[2] = x[2] + t * normal[2];
+  
+  return 0;
 }
 
 
@@ -3103,7 +3109,7 @@ _polygons_section_closest_3d(const fvmc_nodal_section_t   *this_section,
 
     //TODO: Correction provisoire bug triangulation si que des triangles dans le bloc polygons
     
-    if (n_vertices > 3) {
+    if (n_vertices > 4)  {
     
       n_triangles = fvmc_triangulate_polygon(3,
                                              n_vertices,
@@ -3116,17 +3122,32 @@ _polygons_section_closest_3d(const fvmc_nodal_section_t   *this_section,
                                              state);
     }
 
+    else if (n_vertices == 4) {
+    
+ 
+      n_triangles = fvmc_triangulate_quadrangle(3,
+                                                vertex_coords,
+                                                parent_vertex_num,
+                                             (  this_section->vertex_num
+                                                + vertex_id),
+                                                triangle_vertices);
+
+    }
+
     else {
       n_triangles = 1;
 
-      triangle_vertices[0] = 1;
-      triangle_vertices[1] = 2;
-      triangle_vertices[2] = 3;
+      fvmc_lnum_t *ptCur = this_section->vertex_num + vertex_id;
+      
+ 
+      triangle_vertices[0] = ptCur[0];
+      triangle_vertices[1] = ptCur[1];
+      triangle_vertices[2] = ptCur[2];
       
     }
 
     /* Locate on triangulated polygon */
-
+    
     _locate_on_triangles_3d(elt_num,
                             n_triangles,
                             triangle_vertices,
@@ -4703,7 +4724,11 @@ int  fvmc_triangle_evaluate_Position (double x[3], double *pts, double* closestP
   // Project point to plane
   //
 
-  _project_point2 (x, pt1, n, cp);
+   int error = _project_point2 (x, pt1, n, cp);
+
+   if (error == 1) {
+     assert (0==1);
+   }
 
   // Construct matrices.  Since we have over determined system, need to find
   // which 2 out of 3 equations to use to develop equations. (Any 2 should
@@ -4879,7 +4904,7 @@ int fvmc_polygon_evaluate_Position(double x[3], int numPts, double *pts, double*
   _computeNormal (numPts, pts, n);
 
   _computeBary (numPts, pts, bary);
-  
+
   for (int k = 0; k < numPts; k++) {
     double *pt = pts + 3*k;
     double *pt_p = pts_p + 3*k;
