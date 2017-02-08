@@ -760,8 +760,8 @@ namespace cwipi {
       int signeVol = (volume[ipoly] < 0.) ? -1 : 1 ;
 
       if (signeVol == -1) {
-        bftc_printf("Warning polyhedraProperties : volume < 0 for polyhedron '%i'\n", 
-                    ipoly + 1);
+        bftc_printf("Warning polyhedraProperties : volume < 0 for polyhedron '%i' : %12.5e\n", 
+                    ipoly + 1, volume[ipoly]);
       } 
 
       double denomVol = 1 / std::max(fabs(volume[ipoly]), GEOM_EPS_MIN);

@@ -721,7 +721,7 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
   MPI_Status status;
 
   double comm_timing[4] = {0., 0., 0., 0.};
-
+  
   /* Initialization */
 
   stride = dim * 2;
@@ -742,10 +742,35 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
   /* First loop on possibly intersecting distant ranks */
   /*---------------------------------------------------*/
 
-  for (i = 0; i < this_locator->n_intersects; i++) {
+  //  int curr_rank;
+  //MPI_Comm_rank (this_locator->comm, &curr_rank);
+  
+  /* for (i = 0; i < this_locator->n_intersects; i++) { */
 
+  /*   dist_index = i; /\* Ordering (communication schema) not yet optimized *\/ */
+  /*   dist_rank  = this_locator->intersect_rank[dist_index]; */
+  /*   printf ("d %d ---> %d\n", curr_rank, dist_rank); */
+
+  /*   fvmc_lnum_t ll1 = 0; */
+  /*   fvmc_lnum_t ll2 = 0; */
+    
+  /*   MPI_Sendrecv(&ll1, 1, FVMC_MPI_LNUM, dist_rank, 10, */
+  /*                &ll2, 1, FVMC_MPI_LNUM, dist_rank, */
+  /*                10, this_locator->comm, &status); */
+
+  /*   printf ("f %d ---> %d\n", curr_rank, dist_rank); */
+  /* } */
+  /* fflush(stdout); */
+
+  /* MPI_Barrier(this_locator->comm); */
+  
+  for (i = 0; i < this_locator->n_intersects; i++) {
+    
     dist_index = i; /* Ordering (communication schema) not yet optimized */
     dist_rank  = this_locator->intersect_rank[dist_index];
+
+    /* printf ("%3.3d d_boucle 1 %d ---> %d\n", curr_rank, curr_rank, dist_rank); */
+    /* fflush(stdout); */
 
     /* Prepare and send coords that should fit in each send buffer */
     /* Reset buffers for current intersect rank */

@@ -554,7 +554,7 @@ _triangle_by_sorted_vertices(int triangle_vertices[])
  *   coords            <-- coordinates of the triangulation's vertices (2d).
  *----------------------------------------------------------------------------*/
 
-static void
+static int
 _polygon_delaunay_flip(const int          n_vertices,
                        int                triangle_vertices[],
                        int                edge_vertices[],
@@ -562,6 +562,8 @@ _polygon_delaunay_flip(const int          n_vertices,
                        _Bool              edge_is_delaunay[],
                        const fvmc_coord_t  coords[])
 {
+  int is_delaunay = 1;
+  
   int    triangle_id, edge_id, vertex_id;
   int    triangle_id_0, triangle_id_1;
 
@@ -660,6 +662,9 @@ _polygon_delaunay_flip(const int          n_vertices,
   restart = false;
   face_is_delaunay = false;
 
+  int n_restart = 0;
+  const int max_n_restart = 1000;
+  
   while(face_is_delaunay == false) {
 
     if (edge_is_delaunay[edge_id] == false) {
@@ -805,6 +810,14 @@ _polygon_delaunay_flip(const int          n_vertices,
     if (edge_id == n_edges - 1 && restart == true) {
       restart = false;
       edge_id = 0;
+      n_restart += 1;
+
+      //FIXME: Interruption de la boucle infinie du flip delaunay en ajoutant un nb de restart max (Reecrire l'algo de triangulation)
+
+      if (n_restart > max_n_restart) {
+        is_delaunay = 0; 
+        break;
+      }
     }
     else if (edge_id == n_edges - 1 && restart == false)
       face_is_delaunay = true;
@@ -814,6 +827,7 @@ _polygon_delaunay_flip(const int          n_vertices,
 
   } /* End of flip algorithm */
 
+  return is_delaunay;
 }
 
 /*============================================================================
@@ -1077,25 +1091,81 @@ fvmc_triangulate_polygon(int                             dim,
   /* Now that we have an initial triangulation, apply flip algorithm
      to obtain a Delaunay triangulation */
 
-  if (n_triangles == n_vertices - 2)
-    _polygon_delaunay_flip(n_vertices,
-                           state->triangle_vertices,
-                           state->edge_vertices,
-                           state->edge_neighbors,
-                           state->edge_is_delaunay,
-                           state->coords);
+  int *_triangle_vertices;
+  BFTC_MALLOC(_triangle_vertices, (state->n_vertices_max - 2) * 3, int);
+
+  for (int iii = 0; iii <  (state->n_vertices_max - 2) * 3; iii++) {
+    _triangle_vertices[iii] =  state->triangle_vertices[iii];
+  }
+  
+  int *__triangle_vertices = state->triangle_vertices;
+  if (n_triangles == n_vertices - 2) {
+    int is_delaunay = _polygon_delaunay_flip(n_vertices,
+                                             state->triangle_vertices,
+                                             state->edge_vertices,
+                                             state->edge_neighbors,
+                                             state->edge_is_delaunay,
+                                             state->coords);
+    if (!is_delaunay) {
+
+      printf("Warning fvmc_triangulate_polygon : Impossible to obtain a delaunay triangulation, keep initial triangulation from the 'ear' algortihm\n");
+      printf("Coord des sommets : ");
+      if (parent_vertex_num != NULL) {
+        if (polygon_vertices != NULL) {
+          for (i = 0; i < n_vertices; i++) {
+            int vertex_id = parent_vertex_num[polygon_vertices[i]-1] - 1;
+            printf("%16.9e %16.9e %16.9e ;", coords[3* vertex_id],
+                   coords[3* vertex_id + 1],
+                   coords[3* vertex_id + 2]);
+          }
+        }
+        else {
+          for (i = 0; i < n_vertices; i++) {
+            int vertex_id = parent_vertex_num[i] - 1;
+            printf("%16.9e %16.9e %16.9e ;", coords[3* vertex_id],
+                   coords[3* vertex_id + 1],
+                   coords[3* vertex_id + 2]);
+          }
+        }
+      }
+      else { /* (if parent_vertex_num == NULL) */
+        
+        if (polygon_vertices != NULL) {
+          for (i = 0; i < n_vertices; i++) {
+            int vertex_id = polygon_vertices[i]-1;
+            printf("%16.9e %16.9e %16.9e ;", coords[3* vertex_id],
+                   coords[3* vertex_id + 1],
+                   coords[3* vertex_id + 2]);
+          }
+        }
+        else {
+          for (i = 0; i < n_vertices; i++) {
+            printf("%16.9e %16.9e %16.9e ;", coords[3* i],
+                   coords[3*i + 1],
+                   coords[3*i + 2]);
+          }
+        }
+        
+      }
+
+      printf("\n");
+      __triangle_vertices = _triangle_vertices;
+    }
+
+  }
 
   /* Update triangle_vertices argument */
 
   if (polygon_vertices != NULL && mode == FVMC_TRIANGULATE_MESH_DEF) {
     for (i = 0; i < n_triangles * 3; i++)
-      triangle_vertices[i] = polygon_vertices[state->triangle_vertices[i]];
+      triangle_vertices[i] = polygon_vertices[__triangle_vertices[i]];
   }
   else {
     for (i = 0; i < n_triangles * 3; i++)
-      triangle_vertices[i] = state->triangle_vertices[i] + 1;
+      triangle_vertices[i] = __triangle_vertices[i] + 1;
   }
 
+  free (_triangle_vertices);
   return n_triangles;
 }
 

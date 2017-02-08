@@ -2733,7 +2733,6 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
         characteristic_len =  FVMC_MIN(characteristic_len, n_bc);
         
         //double eps_elt = FVMC_MAX(_eps_loc * characteristic_len, 1e-30);
-        double eps_elt = 1e-12;
         double bounds[6];
         double closest[3];
         double tria_coords[9];
@@ -3137,8 +3136,7 @@ _polygons_section_closest_3d(const fvmc_nodal_section_t   *this_section,
     else {
       n_triangles = 1;
 
-      fvmc_lnum_t *ptCur = this_section->vertex_num + vertex_id;
-      
+      fvmc_lnum_t *ptCur = (fvmc_lnum_t *) this_section->vertex_num + vertex_id;
  
       triangle_vertices[0] = ptCur[0];
       triangle_vertices[1] = ptCur[1];
@@ -4727,7 +4725,11 @@ int  fvmc_triangle_evaluate_Position (double x[3], double *pts, double* closestP
    int error = _project_point2 (x, pt1, n, cp);
 
    if (error == 1) {
-     assert (0==1);
+     printf ("Warning fvmc_triangle_evaluate_Position : degenerated triangle :");
+     for (int iii = 0; iii < 3; iii++) {
+       printf (" %16.9e %16.9e %16.9e\n", pts[3*iii], pts[3*iii+1], pts[3*iii+2]);
+     }
+     printf ("\n");
    }
 
   // Construct matrices.  Since we have over determined system, need to find
