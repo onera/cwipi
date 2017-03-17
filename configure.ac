@@ -27,7 +27,7 @@ m4_define([cwipi_licence_c_comment],
 [/*
   This file is part of the CWIPI library. 
 
-  Copyright (C) 2011-2016  ONERA
+  Copyright (C) 2011-2017  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -71,7 +71,7 @@ m4_define([fvmc_licence_c_comment],
   library, intended to provide finite volume mesh and associated 
   fields I/O and manipulation services.
 
-  Copyright (C) 2011-2016  ONERA
+  Copyright (C) 2011-2017  ONERA
 
   Copyright (C) 2004-2010  EDF   
 
@@ -91,8 +91,8 @@ m4_define([fvmc_licence_c_comment],
 
 m4_define([cwipi_major_version], [0])
 m4_define([cwipi_minor_version], [9])
-m4_define([cwipi_release_version], [6])
-m4_define([cwipi_version_extra], [])
+m4_define([cwipi_release_version], [7])
+m4_define([cwipi_version_extra], [-rc1])
 m4_define([cwipi_version_string],
           [cwipi_major_version.cwipi_minor_version.cwipi_release_version@&t@cwipi_version_extra])
 

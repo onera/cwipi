@@ -495,7 +495,7 @@ _elt_extents_finalize(int               dim,
  * Compute extents of a point set
  *
  * parameters:
- *   dim          <-- space dimension of points to locate
+ *   dim          <-- space dimension of points to locate_3d
  *   n_points     <-- number of points to locate
  *   point_index  <-- optional indirection array to point_coords
  *                    (1 to n_points numbering)
@@ -2433,55 +2433,88 @@ _locate_in_cell_3d(fvmc_lnum_t          elt_num,
 
       i = points_in_extents[k];
 
-      if (_compute_uvw(elt_type,
-                       point_coords + 3*i,
-                       _vertex_coords,
-                       tolerance,
-                       uvw)) {
 
-        max_dist = -1.0;
+      /* Check vertices (To not have a problem with pyramids) */
 
-        /* For hexahedra, no need to compute shape functions, as
-           the 3 parametric coordinates are simpler to use */
+      int onVtx = 0;
+      for (int k1 = 0; k1 < n_vertices; k1++) {
+        const double *_pt =  point_coords + 3*i;
+        double v[3] = {_vertex_coords[k1][0] - _pt[0],
+                       _vertex_coords[k1][1] - _pt[1],
+                       _vertex_coords[k1][2] - _pt[2]};
+        
+        double _dist = _MODULE(v);
 
-        if (elt_type == FVMC_CELL_HEXA) {
-
-          for (j = 0; j < 3; j++){
-
-            dist = 2.*FVMC_ABS(uvw[j] - 0.5);
-
-            if (max_dist < dist)
-              max_dist = dist;
-          }
-
-        }
-
-        /* For pyramids ands prisms, we need to compute shape functions */
-
-        else {
-
-          _compute_shapef_3d(elt_type, uvw, shapef, NULL);
-
-          for (j = 0; j < n_vertices; j++){
-
-            dist = 2.*FVMC_ABS(shapef[j] - 0.5);
-
-          if (max_dist < dist)
-            max_dist = dist;
-          }
-
-        }
-
-        /* For all element types, update location and distance arrays */
-
-        if (   (max_dist > -0.5 && max_dist < (1. + 2.*tolerance))
-            && (max_dist < distance[i] || distance[i] < 0)) {
+        if (_dist < 1e-6 * tolerance) {
           location[i] = elt_num;
-          distance[i] = (float) max_dist;
+          distance[i] = 0.;
+          onVtx = 1;
+          break;
         }
-
       }
 
+      if (!onVtx) {
+        
+        if (_compute_uvw(elt_type,
+                         point_coords + 3*i,
+                         _vertex_coords,
+                         tolerance,
+                         uvw)) {
+          
+          max_dist = -1.0;
+          
+          /* For hexahedra, no need to compute shape functions, as
+             the 3 parametric coordinates are simpler to use */
+          
+          if (elt_type == FVMC_CELL_HEXA) {
+            
+            for (j = 0; j < 3; j++){
+              
+              dist = 2.*FVMC_ABS(uvw[j] - 0.5);
+            
+              if (max_dist < dist)
+                max_dist = dist;
+            }
+            
+          }
+          
+          /* For pyramids ands prisms, we need to compute shape functions */
+          
+          else {
+            
+            _compute_shapef_3d(elt_type, uvw, shapef, NULL);
+            
+            for (j = 0; j < n_vertices; j++){
+              
+              dist = 2.*FVMC_ABS(shapef[j] - 0.5);
+              
+              if (max_dist < dist)
+                max_dist = dist;
+            }
+            
+          }
+          
+          /* For all element types, update location and distance arrays */
+          
+          if ((   (max_dist > -0.5 && max_dist < (1. + 2.*tolerance))
+                  && (max_dist < distance[i] || distance[i] < 0)) || (location[i] == -1)) {
+            location[i] = elt_num;
+            distance[i] = (float) max_dist;
+          }
+          
+        }
+        
+        else {
+          
+          if (location[i] == -1) {
+            location[i] = elt_num;
+            distance[i] = 1.e12; // Pour les pyramides pb de convergence
+          }
+          
+        }
+        
+      }
+      
     } /* End of loop on points in extents */
 
   }

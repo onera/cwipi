@@ -1553,10 +1553,23 @@ void LocationToLocalMesh::compute3DMeanValues()
   std::vector <int> nFaceDistBarCoords(2);
   std::vector <double> faceDistBarCoords(8);
 
-  for (int ipoint =  0; ipoint < n_dist_points; ipoint++ ) {
-
+  //  for (int ipoint =  0; ipoint < n_dist_points; ipoint++ ) {
+  int ipoint = 0;
+  int ipoint_old = -1;
+  while (ipoint < n_dist_points) {
     int ielt = dist_locations[ipoint] - 1; // numero de l'element le plus proche du point
-    float dist = dist_distances[ipoint]; // numero de l'element le plus proche du point
+
+    float dist;
+
+    if (ipoint != ipoint_old)
+
+      dist = dist_distances[ipoint]; // numero de l'element le plus proche du point
+
+    else
+
+      dist = 1.1;  //
+
+    ipoint_old = ipoint;
 
     /* Coordonnees du point distant */
 
@@ -1566,9 +1579,6 @@ void LocationToLocalMesh::compute3DMeanValues()
     coo_point_dist[1] = dist_coords[3 * ipoint + 1];
     coo_point_dist[2] = dist_coords[3 * ipoint + 2];
  
-    int tt = (fabs(coo_point_dist[0] - 4.03955e-01) < 1e-4) && 
-             (fabs(coo_point_dist[1] - 4.06046e-01) < 1e-4) && 
-             (fabs(coo_point_dist[2] - 1.01000e+00) < 1e-4);
 
     //
     // Adjust table length
@@ -1596,6 +1606,8 @@ void LocationToLocalMesh::compute3DMeanValues()
 
       for (int ivertex = 0; ivertex < nbr_som; ivertex++) 
         distBarCoords[nDistBarCoords[ipoint] + ivertex] = 1./nbr_som;
+
+      ipoint++;
     }
 
     else {
@@ -1773,6 +1785,8 @@ void LocationToLocalMesh::compute3DMeanValues()
             distBarCoords[nDistBarCoords[ipoint] + _localFaceConnectivity[k]] = faceDistBarCoords[k];
           }
 
+          ipoint++;
+          
         }
         
         else {
@@ -1818,18 +1832,42 @@ void LocationToLocalMesh::compute3DMeanValues()
             //
             // Pyramid             
             //
+
+            // Check if not a vertex for stability
             
-            ierr = compute_uvw(CWIPI_CELL_PYRAM5,
-                               coo_point_dist,
-                               vertex_coords,
-                               1e-6,
-                               uvw);
-            
-            compute_shapef_3d(CWIPI_CELL_PYRAM5,
-                              uvw,
-                              &(distBarCoords[0]) + nDistBarCoords[ipoint],
-                              deriv);
-            
+            int onVtx = 0;
+            for (int k1 = 0; k1 < nbr_som; k1++) {
+              double v[3] = {vertex_coords[k1][0] - coo_point_dist[0],
+                             vertex_coords[k1][1] - coo_point_dist[1],
+                             vertex_coords[k1][2] - coo_point_dist[2]};
+              
+              double _dist = _MODULE(v);
+              
+              if (_dist < 1e-6 * _tolerance) {
+                double *_bar = &(distBarCoords[0]) + nDistBarCoords[ipoint];
+                for (int k2 = 0; k2 < nbr_som; k2++) {
+                  _bar[k2] = 0.;
+                }
+                _bar[k1] = 1.;
+                onVtx = 1;
+                ierr = 1;
+                break;
+              }
+            }
+
+            if (!onVtx) {
+
+              ierr = compute_uvw(CWIPI_CELL_PYRAM5,
+                                 coo_point_dist,
+                                 vertex_coords,
+                                 1e-6,
+                                 uvw);
+              
+              compute_shapef_3d(CWIPI_CELL_PYRAM5,
+                                uvw,
+                                &(distBarCoords[0]) + nDistBarCoords[ipoint],
+                                deriv);
+            }
             break;
 
           case 6 :
@@ -1875,9 +1913,9 @@ void LocationToLocalMesh::compute3DMeanValues()
 
           }
 
-          if (ierr == 0) 
-            bftc_error(__FILE__, __LINE__, 0,
-                       "compute3DMeanValues: Error to barycentric coordinates\n");
+          if (ierr != 0) { 
+            ipoint++;
+          }
         }
       }
 
@@ -1954,7 +1992,8 @@ void LocationToLocalMesh::compute3DMeanValues()
         delete[] faceToVertexElt;
         delete[] faceToVertexEltIdx;
         delete[] faceDirection;
-        
+      
+        ipoint++;
       }
     }
   }
