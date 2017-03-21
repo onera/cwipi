@@ -1828,7 +1828,7 @@ void LocationToLocalMesh::compute3DMeanValues()
             break;
           
           case 5 : 
-            
+          { 
             //
             // Pyramid             
             //
@@ -1869,7 +1869,7 @@ void LocationToLocalMesh::compute3DMeanValues()
                                 deriv);
             }
             break;
-
+          }
           case 6 :
             
             //
@@ -2743,6 +2743,10 @@ LocationToLocalMesh::compute_uvw(const cwipi_element_t elt_type,
   case CWIPI_CELL_PYRAM5:
     n_elt_vertices = 5;
     break;
+  
+  default:
+    break;  
+          
   }
 
   if (elt_type == CWIPI_CELL_TETRA4) {
