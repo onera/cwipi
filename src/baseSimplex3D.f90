@@ -1436,7 +1436,7 @@ module baseSimplex3D
   
   subroutine writeMeshSkin3D(ord)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    include 'libmesh7.ins'
+    include 'libmeshb7.ins'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)          :: ord
@@ -1538,11 +1538,13 @@ module baseSimplex3D
       
       nVert=GmfStatKwd(unit,GmfVertices) ; print '(3x,"nVert=",i10)',nVert
       allocate(vert(1:geo+1,1:nVert),mark(1:nVert))
-      res = GmfGetBlock(unit, GmfVertices, 0           ,&
-      &                 GmfDouble, vert(1,1), vert(1,2),&
-      &                 GmfDouble, vert(2,1), vert(2,2),&
-      &                 GmfDouble, vert(3,1), vert(3,2),&
-      &                 GmfInt,    mark(  1), mark(  2) )
+      
+      res=GmfGetBlock(                                        &
+      &   unit,GmfVertices,1_8,int(nVert,kind=8),0,0,%val(0) ,&
+      &   GmfDouble, vert(1,1), vert(1,nVert)                ,&
+      &   GmfDouble, vert(2,1), vert(2,nVert)                ,&
+      &   GmfDouble, vert(3,1), vert(3,nVert)                ,&
+      &   GmfInt,    mark(  1), mark(  nVert)                 )
       
       do iVert=1,nVert
         vert(4,iVert)=1d0-vert(1,iVert)-vert(2,iVert)-vert(3,iVert)
@@ -1550,11 +1552,13 @@ module baseSimplex3D
       
       nTria=GmfStatKwd(unit,GmfTriangles) ; print '(3x,"nTria=",i10)',nTria
       allocate(tria(1:4,1:nTria))
-      res=GmfGetBlock(unit, GmfTriangles,0         ,& ! <=
-      &               GmfInt, tria(1,1), tria(1,2) ,&
-      &               GmfInt, tria(2,1), tria(2,2) ,&
-      &               GmfInt, tria(3,1), tria(3,2) ,&
-      &               GmfInt, tria(4,1), tria(4,2)  )
+      
+      res=GmfGetBlock(                                         &
+      &   unit,GmfTriangles,1_8,int(nTria,kind=8),0,0,%val(0) ,&
+      &   GmfInt, tria(1,1), tria(1,nTria)                    ,&
+      &   GmfInt, tria(2,1), tria(2,nTria)                    ,&
+      &   GmfInt, tria(3,1), tria(3,nTria)                    ,&
+      &   GmfInt, tria(4,1), tria(4,nTria)                     )
       
       res=GmfCloseMesh(unit)
       !<<<<<<<<
@@ -1657,11 +1661,13 @@ module baseSimplex3D
           vert(4,iVert)=1d0-vert(1,iVert)-vert(2,iVert)-vert(3,iVert)
         enddo
       case(2) ! real(8)
-        res = GmfGetBlock(unit, GmfVertices, 0           , &
-        &                 GmfDouble, vert(1,1), vert(1,2), &
-        &                 GmfDouble, vert(2,1), vert(2,2), &
-        &                 GmfDouble, vert(3,1), vert(3,2), &
-        &                 GmfInt,    mark(  1), mark(  2)  )
+      
+        res=GmfGetBlock(                                        &
+        &   unit,GmfVertices,1_8,int(nVert,kind=8),0,0,%val(0) ,&
+        &   GmfDouble, vert(1,1), vert(1,nVert)                ,&
+        &   GmfDouble, vert(2,1), vert(2,nVert)                ,&
+        &   GmfDouble, vert(3,1), vert(3,nVert)                ,&
+        &   GmfInt,    mark(  1), mark(  nVert)                 )
         
         do iVert=1,nVert
           vert(4,iVert)=1d0-vert(1,iVert)-vert(2,iVert)-vert(3,iVert)
@@ -1670,20 +1676,25 @@ module baseSimplex3D
       
       nTetr=GmfStatKwd(unit,GmfTetrahedra) ; print '(3x,"nTetr=",i10)',nTetr
       allocate(tetr(1:5,1:nTetr))
-      res = GmfGetBlock(unit, GmfTetrahedra, 0      , &
-      &                 GmfInt, tetr(1,1), tetr(1,2), &
-      &                 GmfInt, tetr(2,1), tetr(2,2), &
-      &                 GmfInt, tetr(3,1), tetr(3,2), &
-      &                 GmfInt, tetr(4,1), tetr(4,2), &
-      &                 GmfInt, tetr(5,1), tetr(5,2)  )
+      
+      res=GmfGetBlock(                                          &
+      &   unit,GmfTetrahedra,1_8,int(nTetr,kind=8),0,0,%val(0) ,&
+      &   GmfInt, tetr(1,1), tetr(1,nTetr)                     ,&
+      &   GmfInt, tetr(2,1), tetr(2,nTetr)                     ,&
+      &   GmfInt, tetr(3,1), tetr(3,nTetr)                     ,&
+      &   GmfInt, tetr(4,1), tetr(4,nTetr)                     ,&
+      &   GmfInt, tetr(5,1), tetr(5,nTetr)                      )
       
       nTria=GmfStatKwd(unit,GmfTriangles) ; print '(3x,"nTria=",i10)',nTria
       allocate(tria(4,nTria))
-      res = GmfGetBlock(unit, GmfTriangles, 0       , &
-      &                 GmfInt, tria(1,1), tria(1,2), &
-      &                 GmfInt, tria(2,1), tria(2,2), &
-      &                 GmfInt, tria(3,1), tria(3,2), &
-      &                 GmfInt, tria(4,1), tria(4,2), )
+      
+      res=GmfGetBlock(                                 &
+      &   unit,GmfTriangles,1_8,int(nTria,kind=8),0,0 ,&
+      &   %val(0)                                     ,&
+      &   GmfInt, tria(1,1), tria(1,nTria)            ,&
+      &   GmfInt, tria(2,1), tria(2,nTria)            ,&
+      &   GmfInt, tria(3,1), tria(3,nTria)            ,&
+      &   GmfInt, tria(4,1), tria(4,nTria)             )
       
       res=GmfCloseMesh(unit)
       !<<<<<<<<

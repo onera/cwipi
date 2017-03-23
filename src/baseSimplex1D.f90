@@ -8,7 +8,6 @@ module baseSimplex1D
     ! input: ord=polynomial order of interpolant
     ! output: uvw(:,:) node coordinates in unity triangle
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)           :: ord
     real(8), intent(out), pointer :: uvw(:)
@@ -16,20 +15,17 @@ module baseSimplex1D
     !---
     integer                       :: i
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Setting uvw
     allocate(uvw(1:ord+1))
     uvw(1:ord+1)=[( (-1d0+2d0*real(i-1,kind=8)/real(ord,kind=8)), i=1,ord+1)]
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( display )then
       write(*,'(/"Points d''interpolation")')
       print '("uvw(",i2,")=",f22.15)',(i,uvw(i),i=1,ord+1)
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     return
   end subroutine nodes1D
   

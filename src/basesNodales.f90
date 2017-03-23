@@ -229,7 +229,7 @@ subroutine triangle_00()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  write(*,'("Calcul des bases polynômiales 2D")')
+  write(*,'("Calcul des bases polynômiales 2D (Triangle)")')
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -240,8 +240,8 @@ subroutine triangle_00()
   write(*,'(/"Points d''interpolation")')
   call nodes2D   (ord=order,uvw=uvw,display=.true.)
   call nodes2Dopt(ord=order,uvw=uvw,display=.true.)
-  call nodes2Duv2rs(uv=uvw,rs=rs ,display=.true.) !> rs(1:2,:)=2d0*uv(1:2,:)-1d0
-  call nodes2Drs2ab(rs=rs,a=a,b=b,display=.true.) !> a=2 (1+r)/(1-s)-1 && b=s
+  call nodes2Duv2rs(uv=uvw,rs=rs   ,display=.true.) !> rs(1:2,:)=2d0*uv(1:2,:)-1d0
+  call nodes2Drs2ab(rs=rs,a=a,b=b  ,display=.true.) !> a=2 (1+r)/(1-s)-1 && b=s
   
   nVert=size(uvw,2)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -271,7 +271,7 @@ subroutine triangle_00()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Polynomes d'interpolation (on teste avec les points d'interpolation
+  !> Polynomes d'interpolation (on teste avec les points d'interpolation)
   
   allocate(lxOut(1:(order+1)*(order+2)/2,1:nVert))
   call lagrange2Dv(ord=order,vand=vand,a=a,b=b,lx=lxOut,transpose=.true.) !> true pour affichage
@@ -281,7 +281,7 @@ subroutine triangle_00()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Matrice de masse
+  !> Matrice de masse (\intt ai aj dV)
   call massMatrix(vand=vand,mass=mass)
   if( order<10 )then
     call display(title="Mass Matrix",mat=mass)
@@ -292,7 +292,7 @@ subroutine triangle_00()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Derivees base fonctionnelle
+  !> Derivees bases fonctionnelles en (a,b)
   call gradVandermonde2D(ord=order,a=a,b=b,drVand=drVand,dsVand=dsVand)
   call derive1D(vand=vand,dVand=drVand,dMat=drMatrix)
   call derive1D(vand=vand,dVand=dsVand,dMat=dsMatrix)
@@ -2459,8 +2459,9 @@ program main
  !call edge_01()
   
   !> Test Triangles
- !call triangle_00()
- !call triangle_01()
+  call triangle_00()
+  call triangle_01()
+  stop
   
   !> Test Tetra
   !call tetraTest()

@@ -702,11 +702,11 @@ module baseSimplex2D
 #define lagrange2Dv 0
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    ! lagrange1D := Inverse[Transpose[Vand]].Psi[x];
-    ! transpose = .true.  => lx(1:ord+1,1:nPt)
-    ! transpose = .false. => lx(1:nPt,1:ord+1)
+    ! calcule les nMod fonctions de base pour l'ensemble des nNod points (a,b)
+    ! lagrange2D := Inverse[Transpose[Vand]].Psi[x]
+    ! transpose = .true.  => lx(1:nMod,1:nNod)
+    ! transpose = .false. => lx(1:nNod,1:nMod)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)            :: ord
     real(8), intent(in)  , pointer :: vand(:,:)
@@ -760,7 +760,7 @@ module baseSimplex2D
       enddo
     enddo
     
-    lWork=64*(nMod) ; allocate(work(lWork),ipiv(nMod))
+    lWork=64*(nMod) ; allocate(work(1:lWork),ipiv(1:nMod))
     call dgetrf(nMod,nMod,mat(1,1),nMod,ipiv(1),iErr)
     call dgetri(nMod,mat(1,1),nMod,ipiv(1),work(1),lWork,iErr)
     deallocate(ipiv,work)
@@ -773,26 +773,22 @@ module baseSimplex2D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> lx = Inverse[Transpose[Vand]].psi
+    !> lx = Inverse[Transpose[Vand]].psi = mat.psi
     if( transpose )then
      !allocate(lx(1:nMod,1:nNod)) ; lx(:,:)=0d0
       lx(:,:)=0d0
       do i=1,nNod
-        do j=1,nMod
-          do k=1,nMod
-            lx(j,i)=lx(j,i)+mat(j,k)*psi(i,k)  !> Attention de bien prendre psi(i,k)
-          enddo
-        enddo
+        do j=1,nMod ; do k=1,nMod
+          lx(j,i)=lx(j,i)+mat(j,k)*psi(i,k)  !> Attention de bien prendre psi(i,k)
+        enddo ; enddo
       enddo
     else
      !allocate(lx(1:nNod,1:nMod)) ; lx(:,:)=0d0
       lx(:,:)=0d0
       do i=1,nNod
-        do j=1,nMod
-          do k=1,nMod
-            lx(i,j)=lx(i,j)+mat(j,k)*psi(i,k)  !> Attention de bien prendre psi(i,k)
-          enddo
-        enddo
+        do j=1,nMod ; do k=1,nMod
+          lx(i,j)=lx(i,j)+mat(j,k)*psi(i,k)  !> Attention de bien prendre psi(i,k)
+        enddo ; enddo
       enddo
     endif
    !call displayMatrix(title="lx",mat=lx)

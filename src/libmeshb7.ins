@@ -1,16 +1,16 @@
 
 
 !----------------------------------------------------------
-!														   
-!						LIBMESH V 7.0					   
-!														   
+!
+!                     LIBMESH V 7.26
+! 
 !----------------------------------------------------------
-!														   
-!	Description:		handle .meshb file format I/O	   
-!	Author:				Loic MARECHAL					   
-!	Creation date:		dec 08 2015						   
-!	Last modification:	jan 18 2016						   
-!														   
+!
+!   Description:         handles .meshb file format I/O
+!   Author:              Loic MARECHAL
+!   Creation date:       dec 08 2015
+!   Last modification:   mar 15 2017
+!
 !----------------------------------------------------------
 
 
@@ -19,9 +19,9 @@
       external gmfclosemesh
       external gmfstatkwd
       external gmfsetkwd
-	  external gmfgotokwd
-	  external gmfgetlin
-	  external gmfsetlin
+      external gmfgotokwd
+      external gmfgetlin
+      external gmfsetlin
       external gmfgetblock
       external gmfsetblock
 
@@ -47,11 +47,11 @@
       integer gmfmat
       integer gmffloat
       integer gmfdouble
-	  integer gmfint
-	  integer gmflong
+      integer gmfint
+      integer gmflong
 
       parameter (gmfmaxtyp=1000)
-      parameter (gmfmaxkwd=93)
+      parameter (gmfmaxkwd=103)
       parameter (gmfread=1)
       parameter (gmfwrite=2)
       parameter (gmfsca=1)
@@ -60,8 +60,8 @@
       parameter (gmfmat=4)
       parameter (gmffloat=1)
       parameter (gmfdouble=2)
-	  parameter (gmfint=3)
-	  parameter (gmflong=4)
+      parameter (gmfint=3)
+      parameter (gmflong=4)
 
 
 !     Keywords list
@@ -145,18 +145,29 @@
       integer gmffault_smalltri
       integer gmfcoarsehexahedra
       integer gmfcomments
-  	  integer gmfperiodicvertices
-  	  integer gmfperiodicedges
-  	  integer gmfperiodictriangles
-  	  integer gmfperiodicquadrilaterals
-  	  integer gmfprismsp2
-  	  integer gmfpyramidsp2
-  	  integer gmfquadrilateralsq3
-  	  integer gmfquadrilateralsq4
-  	  integer gmftrianglesp3
-  	  integer gmftrianglesp4
-  	  integer gmfedgesp3
-  	  integer gmfedgesp4
+      integer gmfperiodicvertices
+      integer gmfperiodicedges
+      integer gmfperiodictriangles
+      integer gmfperiodicquadrilaterals
+      integer gmfprismsp2
+      integer gmfpyramidsp2
+      integer gmfquadrilateralsq3
+      integer gmfquadrilateralsq4
+      integer gmftrianglesp3
+      integer gmftrianglesp4
+      integer gmfedgesp3
+      integer gmfedgesp4
+      integer gmfirefgroups
+      integer gmfdrefgroups
+      integer gmftetrahedrap3
+      integer gmftetrahedrap4
+      integer gmfhexahedraq3
+      integer gmfhexahedraq4
+      integer gmfpyramidsp3
+      integer gmfpyramidsp4
+      integer gmfprismsp3
+      integer gmfprismsp4
+      
 
       parameter (gmfmeshversionformatted=1)
       parameter (gmfdimension=3)
@@ -238,15 +249,25 @@
       parameter (gmffault_smalltri=79)
       parameter (gmfcoarsehexahedra=80)
       parameter (gmfcomments=81)
-  	  parameter (gmfperiodicvertices=82)
-  	  parameter (gmfperiodicedges=83)
-  	  parameter (gmfperiodictriangles=84)
-  	  parameter (gmfperiodicquadrilaterals=85)
-  	  parameter (gmfprismsp2=86)
-  	  parameter (gmfpyramidsp2=87)
-  	  parameter (gmfquadrilateralsq3=88)
-  	  parameter (gmfquadrilateralsq4=89)
-  	  parameter (gmftrianglesp3=90)
-  	  parameter (gmftrianglesp4=91)
-  	  parameter (gmfedgesp3=92)
-  	  parameter (gmfedgesp4=93)
+      parameter (gmfperiodicvertices=82)
+      parameter (gmfperiodicedges=83)
+      parameter (gmfperiodictriangles=84)
+      parameter (gmfperiodicquadrilaterals=85)
+      parameter (gmfprismsp2=86)
+      parameter (gmfpyramidsp2=87)
+      parameter (gmfquadrilateralsq3=88)
+      parameter (gmfquadrilateralsq4=89)
+      parameter (gmftrianglesp3=90)
+      parameter (gmftrianglesp4=91)
+      parameter (gmfedgesp3=92)
+      parameter (gmfedgesp4=93)
+      parameter (gmfirefgroups=94)
+      parameter (gmfdrefgroups=95)
+      parameter (gmftetrahedrap3=96)
+      parameter (gmftetrahedrap4=97)
+      parameter (gmfhexahedraq3=98)
+      parameter (gmfhexahedraq4=99)
+      parameter (gmfpyramidsp3=100)
+      parameter (gmfpyramidsp4=101)
+      parameter (gmfprismsp3=102)
+      parameter (gmfprismsp4=103)

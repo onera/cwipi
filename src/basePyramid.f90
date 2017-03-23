@@ -1583,7 +1583,6 @@ contains
       if( display )print '(3x,"Nodes optimization inside pyramid")'
       
       nNodi=(ord-1)*(ord-2)*(2*ord-3)/6 !> internal nodes
-      iNod1=0
       nodesInside: if( .not.nNodi==0 )then
         
         iNod =0
@@ -1769,7 +1768,7 @@ contains
 #define fortran 0
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    include 'libmesh7.ins'
+    include 'libmeshb7.ins'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)           :: ord
@@ -1906,11 +1905,13 @@ contains
       enddo
     case(2) !> real(8)
       
-      res = GmfGetBlock(unit, GmfVertices, 0           , &
-      &                 GmfDouble, uvw0(1,1), uvw0(1,2), &
-      &                 GmfDouble, uvw0(2,1), uvw0(2,2), &
-      &                 GmfDouble, uvw0(3,1), uvw0(3,2), &
-      &                 GmfInt,    mark(  1), mark(  2)  )
+      res=GmfGetBlock(                                        &
+      &   unit,GmfVertices,1_8,int(nNod0,kind=8),0,0,%val(0) ,&
+      &   0                                                  ,&
+      &   GmfDouble, uvw0(1,1), uvw0(1,nNod0)                ,&
+      &   GmfDouble, uvw0(2,1), uvw0(2,nNod0)                ,&
+      &   GmfDouble, uvw0(3,1), uvw0(3,nNod0)                ,&
+      &   GmfInt,    mark(  1), mark(  nNod0)                 )
       
       do iNod0=1,nNod0
         uvw0(4,iNod0)=1d0-uvw0(1,iNod0)-uvw0(2,iNod0)-uvw0(3,iNod0)
@@ -1925,23 +1926,25 @@ contains
     nTetr=GmfStatKwd(unit,GmfTetrahedra) ; if( display )print '(6x,"nTetr=",i10)',nTetr
     allocate(tetr(1:5,1:nTetr))
     
-    res=GmfGetBlock(unit, GmfTetrahedra , 0, & ! <=
-    &   GmfInt, tetr(1,1), tetr(1,2)        ,&
-    &   GmfInt, tetr(2,1), tetr(2,2)        ,&
-    &   GmfInt, tetr(3,1), tetr(3,2)        ,&
-    &   GmfInt, tetr(4,1), tetr(4,2)        ,&
-    &   GmfInt, tetr(5,1), tetr(5,2)         )
+    res=GmfGetBlock(                                           &
+    &   unit,GmfTetrahedra,1_8,int(nTetr,kind=8), 0,0,%val(0) ,&
+    &   GmfInt, tetr(1,1), tetr(1,nTetr)                      ,&
+    &   GmfInt, tetr(2,1), tetr(2,nTetr)                      ,&
+    &   GmfInt, tetr(3,1), tetr(3,nTetr)                      ,&
+    &   GmfInt, tetr(4,1), tetr(4,nTetr)                      ,&
+    &   GmfInt, tetr(5,1), tetr(5,nTetr)                       )
     !<<<
     
     !>>> Triangles
     nTria=GmfStatKwd(unit,GmfTriangles) ; if( display )print '(6x,"nTria=",i10)',nTria
     allocate(tria(1:4,1:nTria))
     
-    res=GmfGetBlock(unit, GmfTriangles, 0, & ! <=
-    &   GmfInt, tria(1,1), tria(1,2)      ,&
-    &   GmfInt, tria(2,1), tria(2,2)      ,&
-    &   GmfInt, tria(3,1), tria(3,2)      ,&
-    &   GmfInt, tria(4,1), tria(4,2)       )
+    res=GmfGetBlock(                                          &
+    &   unit,GmfTriangles,1_8,int(nTria,kind=8), 0,0,%val(0) ,&
+    &   GmfInt, tria(1,1), tria(1,nTria)                     ,&
+    &   GmfInt, tria(2,1), tria(2,nTria)                     ,&
+    &   GmfInt, tria(3,1), tria(3,nTria)                     ,&
+    &   GmfInt, tria(4,1), tria(4,nTria)                      )
     !<<<
     
     !>>> Closing File
@@ -2006,11 +2009,12 @@ contains
     
     allocate(mark(1:nNod)) ; mark(1:nNod)=0
     
-    res=GmfSetBlock(unit, GmfVertices, 0            ,& ! <=
-    &               GmfDouble, uvw (1,1), uvw (1,2) ,&
-    &               GmfDouble, uvw (2,1), uvw (2,2) ,&
-    &               GmfDouble, uvw (3,1), uvw (3,2) ,&
-    &               GmfInt,    mark(  1), mark(  2)  )
+    res=GmfSetBlock(                                        &
+    &   unit,GmfVertices,1_8,int(nNod,kind=8), 0,0,%val(0) ,&
+    &   GmfDouble, uvw (1,1), uvw (1,nNod)                 ,&
+    &   GmfDouble, uvw (2,1), uvw (2,nNod)                 ,&
+    &   GmfDouble, uvw (3,1), uvw (3,nNod)                 ,&
+    &   GmfInt,    mark(  1), mark(  nNod)                  )
     
     res=GmfSetKwd(unit,GmfTetrahedra,nTetr) ; if( display )print '(6x,"nTetr=",i10)',nTetr
     do iCel=1,nTetr
@@ -2252,8 +2256,7 @@ contains
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Ecriture
-    name="PyramidSkinP"//sfx//".mesh"
-    if( display ) print '(3x,"writing file:",a)',trim(name)
+    name="PyramidSkinP"//sfx//".mesh"       
     open(unit=10,file=trim(name),action='write')
     write(10,'( "MeshVersionFormatted 1")' )
     write(10,'(/"Dimension"/,"3")')
@@ -2318,7 +2321,7 @@ contains
   
   subroutine pyramidReadXYZout3D(xyzOut,display)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    include 'libmesh7.ins'
+    include 'libmeshb7.ins'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     real(8), intent(out), pointer :: xyzOut (:,:)
@@ -2343,11 +2346,12 @@ contains
     nNod0=GmfStatKwd(unit,GmfVertices) ; if( display )print '(6x,"nNod0=",i10)',nNod0
     allocate(xyzOut(1:3,1:nNod0),mark(1:nNod0))
     
-    res = GmfGetBlock(unit, GmfVertices, 0                ,&
-    &                 GmfDouble, xyzOut(1,1), xyzOut(1,2) ,&
-    &                 GmfDouble, xyzOut(2,1), xyzOut(2,2) ,&
-    &                 GmfDouble, xyzOut(3,1), xyzOut(3,2) ,&
-    &                 GmfInt   , mark  (  1), mark  (  2) )
+    res=GmfGetBlock(                                        &
+    &   unit,GmfVertices,1_8,int(nNod0,kind=8), 0,0,%val(0),&
+    &   GmfDouble, xyzOut(1,1), xyzOut(1,nNod0)            ,&
+    &   GmfDouble, xyzOut(2,1), xyzOut(2,nNod0)            ,&
+    &   GmfDouble, xyzOut(3,1), xyzOut(3,nNod0)            ,&
+    &   GmfInt   , mark  (  1), mark  (  nNod0)             )
     
     res=GmfCloseMesh(unit)
     
@@ -2361,7 +2365,7 @@ contains
   
   subroutine pyramidWriteSolOut3D(title,solOut)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    include 'libmesh7.ins'
+    include 'libmeshb7.ins'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     character(*)                 :: title

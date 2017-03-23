@@ -4,17 +4,17 @@ toto
 *.mod
 space*
 basesNodales
-*.mesh
-*.meshb
-*.sol
-*.solb
-*.vtk
-*.vtu
-*.log
-*.yams
+#*.mesh
+#*.meshb
+#*.sol
+#*.solb
+#*.vtk
+#*.vtu
+#*.log
+#*.yams
 *.medit
-*.i90
-*.ppm
+#*.i90
+#*.ppm
 
 
 
