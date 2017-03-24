@@ -22,8 +22,16 @@ cimport cython
 import numpy as np
 cimport numpy as np
 
+#
+# Import for mpi4py >= 2.0
+# ------------------------
+
 cimport mpi4py.MPI as MPI
 from mpi4py.libmpi cimport *
+
+#
+# Import for mpi4py < 2.0
+# -----------------------
 
 #cimport mpi4py.MPI as MPI
 #from mpi4py.mpi_c cimport *
