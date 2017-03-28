@@ -32,19 +32,6 @@ enable_language(C)
 enable_language(CXX)
 
 #------------------------------------------------------------------------------
-# Enable
-#------------------------------------------------------------------------------
-
-check_type_size("size_t"  SIZEOF_SIZE_T)
-check_type_size("ssize_t"  SIZEOF_SSIZE_T)
-check_type_size("long long"  SIZEOF_LONG_LONG)
-check_type_size("long"  SIZEOF_LONG)
-check_type_size("short"  SIZEOF_SHORT)
-check_type_size("int"  SIZEOF_INT)
-check_type_size("long double"  SIZEOF_LONG_DOUBLE)
-check_type_size("time_t"  SIZEOF_TIME_T)
-
-#------------------------------------------------------------------------------
 # User option Definition
 #------------------------------------------------------------------------------
 
@@ -61,12 +48,12 @@ option(CWP_ENABLE_OPENMP "Enable OpenMP" OFF)
 # Pt-scotch
 # ---------
 
-option(CWP_ENABLE_PTSCOTCH "Compile with support for Pt-SCOTCH." ON)
+option(CWP_ENABLE_PTSCOTCH "Compile with support for Pt-SCOTCH." OFF)
 
 # ParMetis
 # --------
 
-option(CWP_ENABLE_PARMETIS "Compile with support for ParMetis." ON)
+option(CWP_ENABLE_PARMETIS "Compile with support for ParMetis." OFF)
 
 # Shared libraries
 # ----------------
@@ -111,19 +98,58 @@ if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING  "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel" FORCE)
 endif()
 
+#------------------------------------------------------------------------------
 # ADD "-DDEBUG_CLASSE" in Debug
-#------------------------------
+#------------------------------------------------------------------------------
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
   add_definitions (-DDEBUG_CLASSE)
 endif()
 
-# Add "-DHAVE_GETRUSAGE" if function getrusage and gettimeofday exist
-#--------------------------------------------------------------------
+#------------------------------------------------------------------------------
+# Check include file
+#------------------------------------------------------------------------------
+
+check_include_file_concat("inttypes.h"        HAVE_INTTYPES_H)
+check_include_file_concat("memory.h"        HAVE_MEMORY_H)
+check_include_file_concat("stdbool.h"        HAVE_STDBOOL_H)
+check_include_file_concat("stdint.h"        HAVE_STDINT_H)
+check_include_file_concat("stdlib.h"        HAVE_STDLIB_H)
+check_include_file_concat("strings.h"        HAVE_STRINGS_H)
+check_include_file_concat("string.h"        HAVE_STRING_H)
+check_include_file_concat("sys/stat.h"        HAVE_SYS_STAT_H)
+check_include_file_concat("sys/types.h"        HAVE_SYS_TYPES_H)
+check_include_file_concat("sys/unistd.h"        HAVE_UNISTD_H)
+
+#------------------------------------------------------------------------------
+# Check type size
+#------------------------------------------------------------------------------
+
+check_type_size("size_t"  SIZEOF_SIZE_T)
+check_type_size("ssize_t"  SIZEOF_SSIZE_T)
+check_type_size("long long"  SIZEOF_LONG_LONG)
+check_type_size("long"  SIZEOF_LONG)
+check_type_size("short"  SIZEOF_SHORT)
+check_type_size("int"  SIZEOF_INT)
+check_type_size("int32_t"  SIZEOF_INT32_T)
+check_type_size("int64_t"  SIZEOF_INT64_T)
+check_type_size("float"  SIZEOF_FLOAT)
+check_type_size("double"  SIZEOF_DOUBLE)
+check_type_size("long double"  SIZEOF_LONG_DOUBLE)
+check_type_size("void *"  SIZEOF_VOID_P)
+check_type_size("off_t"  SIZEOF_OFF_T)
+
+#------------------------------------------------------------------------------
+# Check C internal functions
+#------------------------------------------------------------------------------
 
 include(CheckFunctionExists)
+CHECK_FUNCTION_EXISTS(backtrace CWP_HAVE_BACKTRACE)
+CHECK_FUNCTION_EXISTS(fseeko CWP_HAVE_FSEEKO)
 CHECK_FUNCTION_EXISTS(getrusage CWP_HAVE_GETRUSAGE)
 CHECK_FUNCTION_EXISTS(gettimeofday CWP_HAVE_GETTIMEOFDAY)
+CHECK_FUNCTION_EXISTS(vprintf CWP_HAVE_VPRINTF)
+CHECK_FUNCTION_EXISTS(vnprintf CWP_HAVE_VNPRINTF)
 
 #------------------------------------------------------------------------------
 # Default compiler flags 
@@ -142,23 +168,18 @@ set(COMMON_LIBRARIES)
 #------------------------------------------------------------------------------
 
 # Check MPI (TODO : check MPI wrapper function check )
-# -------------
+# ----------------------------------------------------
 
 find_package(MPI REQUIRED COMPONENTS MPI_C_FOUND MPI_CXX_FOUND MPI_Fortran_FOUND)
 
 mark_as_advanced (MPI_EXTRA_LIBRARY MPI_LIBRARY)
 
-# ---------------------
 # Check MPI Wrapper
-# ---------------------
+# -----------------
 
 if (CWP_ENABLE_MPI_CHECK)
   include(${CMAKE_MODULE_PATH}/CheckMPI.cmake)
 endif()
-
-#------------------------------------------------------------------------------
-# Check dependencies
-#------------------------------------------------------------------------------
 
 # Checck SCOTCH an ParMETIS
 # -------------------------
@@ -207,11 +228,9 @@ endif()
 # Store variable in configure file
 #------------------------------------------------------------------------------
 
-if (CWP_ENABLE_LONG_G_NUM)
-   set(CWP_LONG_G_NUM 1)
-endif ()
-
 configure_file(cwp_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/cwp_config.h")
+configure_file(bftc_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/bftc_config.h")
+configure_file(fvmc_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/fvmc_config.h")
 
 if (CWP_ENABLE_STATIC_Fortran_INTERFACE OR CWP_ENABLE_SHARED_Fortran_INTERFACE)
 
@@ -224,7 +243,7 @@ function(fortranize file)
         string(REGEX REPLACE "^/\\* (#undef .*) \\*/$" "! \\1" i "${i}")
         set(result "${result}${i}\n")
     endforeach()
-    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/${basename}_f.h" "${result}")
+    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/${basename}f.h" "${result}")
 endfunction()
 
 fortranize(${CMAKE_CURRENT_BINARY_DIR}/cwp_config.h)

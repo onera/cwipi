@@ -1,4 +1,51 @@
+#ifndef __CWP_CONFIG_H__
+#define __CWP_CONFIG_H__
+
+#------------------------------------------------------------------------------
+# Version
+#------------------------------------------------------------------------------
+
 #define CWP_VERSION_MAJOR "@CWP_VERSION_MAJOR@"
 #define CWP_VERSION_MINOR "@CWP_VERSION_MINOR@"
 #define CWP_VERSION_PATCH "@CWP_VERSION_PATCH@"
 #define CWP_VERSION       "@CWP_VERSION@"
+
+#------------------------------------------------------------------------------
+# Dependance
+#------------------------------------------------------------------------------
+
+#cmakedefine HAVE_INTTYPES_H   "@HAVE_INTTYPES_H@"
+#cmakedefine HAVE_MEMORY_H     "@HAVE_MEMORY_H@"
+#cmakedefine HAVE_STDBOOL_H    "@HAVE_STDBOOL_H@"
+#cmakedefine HAVE_STDINT_H     "@HAVE_STDINT_H@"
+#cmakedefine HAVE_STDLIB_H     "@HAVE_STDLIB_H@"
+#cmakedefine HAVE_STRING_H     "@HAVE_STRING_H@"
+#cmakedefine HAVE_SYS_STAT_H   "@HAVE_SYS_STAT_H@"
+#cmakedefine HAVE_SYS_TYPES_H  "@HAVE_SYS_TYPES_H@"
+#cmakedefine HAVE_UNISTD_H     "@HAVE_UNISTD_H@"
+
+#cmakedefine CWP_HAVE_BACKTRACE    "@CWP_HAVE_BACKTRACE@"
+#cmakedefine CWP_HAVE_FSEEKO       "@CWP_HAVE_FSEEKO@"
+#cmakedefine CWP_HAVE_GETRUSAGE    "@CWP_HAVE_GETRUSAGE@"
+#cmakedefine CWP_HAVE_GETTIMEOFDAY "@CWP_HAVE_GETTIMEOFDAY@"
+#cmakedefine CWP_HAVE_VPRINTF      "@CWP_HAVE_VPRINTF@"
+#cmakedefine CWP_HAVE_VNPRINTF     "@CWP_HAVE_VNPRINTF@"
+
+#------------------------------------------------------------------------------
+# Check type size
+#------------------------------------------------------------------------------
+
+#define SIZEOF_SIZE_T        "@SIZEOF_SIZE_T@"
+#define SIZEOF_SSIZE_T       "@SIZEOF_SSIZE_T@"
+#define SIZEOF_LONG_LONG     "@SIZEOF_LONG_LONG@"
+#define SIZEOF_LONG          "@SIZEOF_LONG@"
+#define SIZEOF_SHORT         "@SIZEOF_SHORT@"
+#define SIZEOF_INT           "@SIZEOF_INT@"
+#define SIZEOF_INT32_T       "@SIZEOF_INT32_T@"
+#define SIZEOF_INT64_T       "@SIZEOF_INT64_T@"
+#define SIZEOF_FLOAT         "@SIZEOF_FLOAT@"
+#define SIZEOF_DOUBLE        "@SIZEOF_DOUBLE@"
+#define SIZEOF_LONG_DOUBLE   "@SIZEOF_LONG_DOUBLE@"
+#define SIZEOF_VOID_P        "@SIZEOF_VOID_P@"
+
+#endif /* __CWP_CONFIG_H__ */
