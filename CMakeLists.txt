@@ -32,6 +32,19 @@ enable_language(C)
 enable_language(CXX)
 
 #------------------------------------------------------------------------------
+# Enable
+#------------------------------------------------------------------------------
+
+check_type_size("size_t"  SIZEOF_SIZE_T)
+check_type_size("ssize_t"  SIZEOF_SSIZE_T)
+check_type_size("long long"  SIZEOF_LONG_LONG)
+check_type_size("long"  SIZEOF_LONG)
+check_type_size("short"  SIZEOF_SHORT)
+check_type_size("int"  SIZEOF_INT)
+check_type_size("long double"  SIZEOF_LONG_DOUBLE)
+check_type_size("time_t"  SIZEOF_TIME_T)
+
+#------------------------------------------------------------------------------
 # User option Definition
 #------------------------------------------------------------------------------
 
