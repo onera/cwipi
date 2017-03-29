@@ -41,11 +41,11 @@ subroutine printfort (chaine, taille )
      chloc(ii:ii) = chaine(ii)
   enddo
   !
-  write(ifile, 1000) chloc(1:taille)
+  write(ifile, 1000, advance='no') chloc(1:taille)
   !
   return
   
-1000 format(a, $)
+1000 format(a)
   !
 end subroutine printfort
 

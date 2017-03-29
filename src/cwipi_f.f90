@@ -1827,7 +1827,7 @@ contains
 
     character (len = *) :: couplingName
     integer (kind = cwipi_int_l) :: lcouplingname
-    real*4, dimension(*) :: distance
+    real(kind=4), dimension(*) :: distance
 
     lCouplingName = len(couplingName)
 
@@ -2125,7 +2125,7 @@ contains
          integer (kind = 4), dimension(*) :: localPolyFaceConnec
          double precision, dimension(*) :: disPtsCoordinates
          integer (kind = 4), dimension(*) :: disPtsLocation
-         real*4, dimension(*) :: disPtsDistance
+         real(kind=4), dimension(*) :: disPtsDistance
          integer (kind = 4), dimension(*) :: disPtsBaryCoordIdx
          double precision, dimension(*) :: disPtsBaryCoord
          integer (kind = 4) :: stride
@@ -2288,7 +2288,7 @@ contains
          integer (kind = 4), dimension(*) :: localPolyFaceConnec
          double precision, dimension(*) :: disPtsCoordinates
          integer (kind = 4), dimension(*) :: disPtsLocation
-         real*4, dimension(*) :: disPtsDistance
+         real(kind=4), dimension(*) :: disPtsDistance
          integer (kind = 4), dimension(*) :: disPtsBaryCoordIdx
          double precision, dimension(*) :: disPtsBaryCoord
          integer (kind = 4) :: stride
@@ -2583,7 +2583,7 @@ contains
          integer (kind = 4), dimension(*) :: localPolyFaceConnec
          double precision, dimension(*) :: disPtsCoordinates
          integer (kind = 4), dimension(*) :: disPtsLocation
-         real*4, dimension(*) :: disPtsDistance
+         real(kind=4), dimension(*) :: disPtsDistance
          integer (kind = 4), dimension(*) :: disPtsBaryCoordIdx
          double precision, dimension(*) :: disPtsBaryCoord
          integer (kind = 4) :: stride

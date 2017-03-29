@@ -78,7 +78,7 @@ subroutine callfortinterpfct(entities_dim, &
        integer, dimension(*) :: local_poly_face_connec
        double precision, dimension(*) :: dist_pts_coord
        integer, dimension(*) :: dist_pts_location
-       real*4, dimension(*)  :: dist_pts_distance
+       real(kind=4), dimension(*)  :: dist_pts_distance
        integer, dimension(*) :: dist_pts_barycentric_coord_idx
        double precision, dimension(*) :: dist_pts_barycentric_coord
        integer :: stride
@@ -102,7 +102,7 @@ subroutine callfortinterpfct(entities_dim, &
   integer, dimension(*) :: local_poly_face_connec
   double precision, dimension(*) :: dist_pts_coord
   integer, dimension(*) :: dist_pts_location
-  real*4, dimension(*) :: dist_pts_distance
+  real(kind=4), dimension(*) :: dist_pts_distance
   integer, dimension(*) :: dist_pts_barycentric_coord_idx
   double precision, dimension(*) :: dist_pts_barycentric_coord
   integer :: stride

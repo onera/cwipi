@@ -29,6 +29,7 @@ target_include_directories(pdm
                            INTERFACE ${CMAKE_CURRENT_BINARY_DIR}
                            PRIVATE   ${CMAKE_CURRENT_BINARY_DIR}
                            PRIVATE  ${CMAKE_BINARY_DIR}
+                           PRIVATE  ${PDM_BINARY_DIR}
                            PUBLIC  ${CMAKE_SOURCE_DIR}
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/pario
@@ -44,6 +45,7 @@ target_include_directories(pdmf
                            INTERFACE ${CMAKE_CURRENT_BINARY_DIR}
                            PRIVATE   ${CMAKE_CURRENT_BINARY_DIR}
                            PRIVATE   ${CMAKE_BINARY_DIR}
+                           PRIVATE  ${PDM_BINARY_DIR}
                            PUBLIC    ${CMAKE_SOURCE_DIR}
                            PUBLIC    ${CMAKE_CURRENT_SOURCE_DIR}
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/pario
@@ -97,12 +99,6 @@ endif ()
 
 unset(LINK_LIBRARIES)
 list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
-#if (${PARMETIS_FOUND})
-#  list(APPEND LINK_LIBRARIES ${METIS_LIBRARIES})
-#endif ()
-#if (${PTSCOTCH_FOUND})
-#  list(APPEND LINK_LIBRARIES ${SCOTCH_LIBRARIES})
-#endif ()
 
 message(STATUS "Add library pdm - Succes")
 

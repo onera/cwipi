@@ -1,6 +1,6 @@
 #==============================================================================
 #
-#                Top level CMakeLists.txt file for PDM
+#             Top level CMakeLists.txt file for ParaDiGM
 #
 #==============================================================================
 
@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 3.0)
 cmake_policy(VERSION 3.0)
 
 #------------------------------------------------------------------------------
-# Internal CMake module (shared with pk)
+# Internal CMake module (shared with ParaDiGMA or CWIPI)
 #------------------------------------------------------------------------------
 
 if (NOT (PDM_IN_PDMA OR PDM_IN_CWP))
@@ -96,45 +96,44 @@ elseif (PDM_IN_CWP)
   # Enable long for absolute number
   # -------------------------------
 
-  set(PDM_ENABLE_LONG_G_NUM "ON" "Enable long for global number" FORCE)
+  set(PDM_ENABLE_LONG_G_NUM ON)
 
   # Pt-scotch
   # ---------
 
-  set(PDM_ENABLE_PTSCOTCH ${CWP_ENABLE_PTSCOTCH} "Compile with support for SCOTCH." FORCE)
+  set(PDM_ENABLE_PTSCOTCH ${CWP_ENABLE_PTSCOTCH})
 
   # ParMetis
   # --------
 
-  set(PDM_ENABLE_PARMETIS ${CWP_ENABLE_PARMETIS} "Compile with support for SCOTCH." FORCE)
+  set(PDM_ENABLE_PARMETIS ${CWP_ENABLE_PARMETIS})
 
   # Shared libraries
   # ----------------
 
-  set(PDM_ENABLE_SHARED ${CWP_ENABLE_SHARED} "Build Shared Libraries" FORCE)
+  set(PDM_ENABLE_SHARED ${CWP_ENABLE_SHARED})
 
   # Static libraries
   # ----------------
 
-  set(PDM_ENABLE_STATIC ${CWP_ENABLE_STATIC} "Build Static Libraries" FORCE)
+  set(PDM_ENABLE_STATIC ${CWP_ENABLE_STATIC})
 
   # Check MPI Wrapper
   # -----------------
 
-  set(PDM_ENABLE_MPI_CHECK ${CWP_ENABLE_MPI_CHECK} "Check MPI Wrapper" FORCE)
+  set(PDM_ENABLE_MPI_CHECK ${CWP_ENABLE_MPI_CHECK})
 
   # Python Bindings
   # ---------------
 
-  set(PDM_ENABLE_PYTHON_BINDINGS ${CWP_ENABLE_PYTHON_BINDINGS} "Build Python module" FORCE)
+  set(PDM_ENABLE_PYTHON_BINDINGS ${CWP_ENABLE_PYTHON_BINDINGS})
 
   # Fortran interface
   # -----------------
 
-  set(PDM_ENABLE_SHARED_Fortran_INTERFACE ${CWP_ENABLE_SHARED_Fortran_INTERFACE}
-                                          "Build Shared Fortran Interface" FORCE)
-  set(PDM_ENABLE_STATIC_Fortran_INTERFACE ${CWP_ENABLE_STATIC_Fortran_INTERFACE}
-                                          "Build Static Fortran Interface" FORCE)
+  set(PDM_ENABLE_SHARED_Fortran_INTERFACE ${CWP_ENABLE_SHARED_Fortran_INTERFACE})
+
+  set(PDM_ENABLE_STATIC_Fortran_INTERFACE ${CWP_ENABLE_STATIC_Fortran_INTERFACE})
 
 endif ()
 
@@ -144,7 +143,7 @@ endif ()
 
 if (NOT PDM_IN_PDMA)
 
-   if (PDM_ENABLE_PYTHON_BINDINGS AND (NOT PDM_ENABLE_SHARED))
+    if (PDM_ENABLE_PYTHON_BINDINGS AND (NOT PDM_ENABLE_SHARED))
       set (PDM_ENABLE_SHARED "ON" CACHE STRING "Build Shared Libraries" FORCE )
     endif()
 

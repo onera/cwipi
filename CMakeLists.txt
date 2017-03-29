@@ -18,7 +18,7 @@ set(CWP_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/paradigm/cmake")
 set(CMAKE_MODULE_PATH "${CWP_CMAKE_DIR}/modules")
 
 include(${CMAKE_MODULE_PATH}/version.cmake)
-project(CWP VERSION 1.0.0-rc1 LANGUAGES C CXX Fortran)
+project(CWP VERSION 1.0.0 LANGUAGES C CXX Fortran)
 
 set(PDM_IN_CWP 1)
 set(PDM_VERSION "${PDM_VERSION_MAJOR}.${PDM_VERSION_MINOR}.${PDM_VERSION_PATCH}")
@@ -110,21 +110,23 @@ endif()
 # Check include file
 #------------------------------------------------------------------------------
 
-check_include_file_concat("inttypes.h"        HAVE_INTTYPES_H)
-check_include_file_concat("memory.h"        HAVE_MEMORY_H)
-check_include_file_concat("stdbool.h"        HAVE_STDBOOL_H)
-check_include_file_concat("stdint.h"        HAVE_STDINT_H)
-check_include_file_concat("stdlib.h"        HAVE_STDLIB_H)
-check_include_file_concat("strings.h"        HAVE_STRINGS_H)
-check_include_file_concat("string.h"        HAVE_STRING_H)
-check_include_file_concat("sys/stat.h"        HAVE_SYS_STAT_H)
-check_include_file_concat("sys/types.h"        HAVE_SYS_TYPES_H)
-check_include_file_concat("sys/unistd.h"        HAVE_UNISTD_H)
+include(CheckIncludeFile)
+check_include_file("inttypes.h"        HAVE_INTTYPES_H)
+check_include_file("memory.h"        HAVE_MEMORY_H)
+check_include_file("stdbool.h"        HAVE_STDBOOL_H)
+check_include_file("stdint.h"        HAVE_STDINT_H)
+check_include_file("stdlib.h"        HAVE_STDLIB_H)
+check_include_file("strings.h"        HAVE_STRINGS_H)
+check_include_file("string.h"        HAVE_STRING_H)
+check_include_file("sys/stat.h"        HAVE_SYS_STAT_H)
+check_include_file("sys/types.h"        HAVE_SYS_TYPES_H)
+check_include_file("sys/unistd.h"        HAVE_UNISTD_H)
 
 #------------------------------------------------------------------------------
 # Check type size
 #------------------------------------------------------------------------------
 
+include(CheckTypeSize)
 check_type_size("size_t"  SIZEOF_SIZE_T)
 check_type_size("ssize_t"  SIZEOF_SSIZE_T)
 check_type_size("long long"  SIZEOF_LONG_LONG)
