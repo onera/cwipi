@@ -1,6 +1,8 @@
 #ifndef __BFTC_CONFIG_H__
 #define __BFTC_CONFIG_H__
 
+#include "cwp_config_priv.h"
+
 /* Complete version number */
 #define BFTC_VERSION "1.1.3"
 

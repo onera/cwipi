@@ -1,0 +1,56 @@
+#ifndef __CWP_CONFIG_PRIV_H__
+#define __CWP_CONFIG_PRIV_H__
+
+#------------------------------------------------------------------------------
+# Dependance
+#------------------------------------------------------------------------------
+
+#cmakedefine HAVE_INTTYPES_H      @HAVE_INTTYPES_H@
+#cmakedefine HAVE_MEMORY_H        @HAVE_MEMORY_H@
+#cmakedefine HAVE_STDBOOL_H       @HAVE_STDBOOL_H@
+#cmakedefine HAVE_STDINT_H        @HAVE_STDINT_H@
+#cmakedefine HAVE_STDLIB_H        @HAVE_STDLIB_H@
+#cmakedefine HAVE_STRING_H        @HAVE_STRING_H@
+#cmakedefine HAVE_SYS_STAT_H      @HAVE_SYS_STAT_H@
+#cmakedefine HAVE_SYS_TYPES_H     @HAVE_SYS_TYPES_H@
+#cmakedefine HAVE_UNISTD_H        @HAVE_UNISTD_H@
+
+#cmakedefine HAVE_GLIBC_BACKTRACE @CWP_HAVE_BACKTRACE@
+#cmakedefine HAVE_FSEEKO          @CWP_HAVE_FSEEKO@
+#cmakedefine HAVE_GETRUSAGE       @CWP_HAVE_GETRUSAGE@
+#cmakedefine HAVE_GETTIMEOFDAY    @CWP_HAVE_GETTIMEOFDAY@
+#cmakedefine HAVE_VPRINTF         @CWP_HAVE_VPRINTF@
+#cmakedefine HAVE_SNPRINTF        @CWP_HAVE_SNPRINTF@
+
+#------------------------------------------------------------------------------
+# Check type size
+#------------------------------------------------------------------------------
+
+#define SIZEOF_SIZE_T        @SIZEOF_SIZE_T@
+#define SIZEOF_SSIZE_T       @SIZEOF_SSIZE_T@
+#define SIZEOF_LONG_LONG     @SIZEOF_LONG_LONG@
+#define SIZEOF_LONG          @SIZEOF_LONG@
+#define SIZEOF_SHORT         @SIZEOF_SHORT@
+#define SIZEOF_INT           @SIZEOF_INT@
+#define SIZEOF_INT32_T       @SIZEOF_INT32_T@
+#define SIZEOF_INT64_T       @SIZEOF_INT64_T@
+#define SIZEOF_FLOAT         @SIZEOF_FLOAT@
+#define SIZEOF_DOUBLE        @SIZEOF_DOUBLE@
+#define SIZEOF_LONG_DOUBLE   @SIZEOF_LONG_DOUBLE@
+#define SIZEOF_VOID_P        @SIZEOF_VOID_P@
+
+#------------------------------------------------------------------------------
+# System : only for bft
+#------------------------------------------------------------------------------
+
+#cmakedefine bftc_OS_Linux @OS_Linux@ 
+#cmakedefine bftc_OS_AIX @OS_AIX@
+#cmakedefine bftc_OS_HP_UX @HP_UX@
+#cmakedefine bftc_OS_IRIX64 @IRIX64@ 
+#cmakedefine bftc_OS_OSF1 @OSF1@
+#cmakedefine bftc_OS_Solaris @OS_Solaris@  
+#cmakedefine bftc_OS_System_V @OS_System_V@
+
+
+
+#endif /* __CWP_CONFIG_PRIV_H__ */

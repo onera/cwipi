@@ -1,6 +1,8 @@
 #ifndef __FVMC_CONFIG_H__
 #define __FVMC_CONFIG_H__
 
+#include "cwp_config_priv.h"
+
 /* Complete version number */
 #define FVMC_VERSION "0.15.1-onera-6"
 

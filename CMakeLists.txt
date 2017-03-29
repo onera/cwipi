@@ -111,16 +111,26 @@ endif()
 #------------------------------------------------------------------------------
 
 include(CheckIncludeFile)
-check_include_file("inttypes.h"        HAVE_INTTYPES_H)
-check_include_file("memory.h"        HAVE_MEMORY_H)
-check_include_file("stdbool.h"        HAVE_STDBOOL_H)
-check_include_file("stdint.h"        HAVE_STDINT_H)
-check_include_file("stdlib.h"        HAVE_STDLIB_H)
-check_include_file("strings.h"        HAVE_STRINGS_H)
-check_include_file("string.h"        HAVE_STRING_H)
-check_include_file("sys/stat.h"        HAVE_SYS_STAT_H)
-check_include_file("sys/types.h"        HAVE_SYS_TYPES_H)
-check_include_file("sys/unistd.h"        HAVE_UNISTD_H)
+check_include_file("dlfcn.h"        HAVE_DLFCN_H)
+check_include_file("fcntl.h"        HAVE_FCNTL_H)
+check_include_file("malloc.h"       HAVE_MALLOC_H)
+check_include_file("stddef.h"       HAVE_STDDEF_H)
+
+check_include_file("inttypes.h"     HAVE_INTTYPES_H)
+check_include_file("memory.h"       HAVE_MEMORY_H)
+check_include_file("stdbool.h"      HAVE_STDBOOL_H)
+check_include_file("stdint.h"       HAVE_STDINT_H)
+check_include_file("stdlib.h"       HAVE_STDLIB_H)
+check_include_file("strings.h"      HAVE_STRINGS_H)
+check_include_file("string.h"       HAVE_STRING_H)
+check_include_file("sys/stat.h"     HAVE_SYS_STAT_H)
+check_include_file("sys/types.h"    HAVE_SYS_TYPES_H)
+check_include_file("sys/unistd.h"   HAVE_UNISTD_H)
+
+check_include_file("sys/procfs.h"   HAVE_SYS_PROCFS_H)
+check_include_file("sys/signal.h"   HAVE_SYS_SIGNAL_H)
+check_include_file("sys/sysinfo.h"  HAVE_SYS_SYSINFO_H)
+check_include_file("sys/utsname.h"  HAVE_SYS_UTSNAME_H)
 
 #------------------------------------------------------------------------------
 # Check type size
@@ -140,18 +150,23 @@ check_type_size("double"  SIZEOF_DOUBLE)
 check_type_size("long double"  SIZEOF_LONG_DOUBLE)
 check_type_size("void *"  SIZEOF_VOID_P)
 check_type_size("off_t"  SIZEOF_OFF_T)
+check_type_size("ptrdiff_t"  SIZEOF_PTRDIFF_T)
 
 #------------------------------------------------------------------------------
 # Check C internal functions
 #------------------------------------------------------------------------------
 
 include(CheckFunctionExists)
-CHECK_FUNCTION_EXISTS(backtrace CWP_HAVE_BACKTRACE)
-CHECK_FUNCTION_EXISTS(fseeko CWP_HAVE_FSEEKO)
-CHECK_FUNCTION_EXISTS(getrusage CWP_HAVE_GETRUSAGE)
-CHECK_FUNCTION_EXISTS(gettimeofday CWP_HAVE_GETTIMEOFDAY)
-CHECK_FUNCTION_EXISTS(vprintf CWP_HAVE_VPRINTF)
-CHECK_FUNCTION_EXISTS(vnprintf CWP_HAVE_VNPRINTF)
+CHECK_FUNCTION_EXISTS(sysinfo HAVE_SYSINFO)
+CHECK_FUNCTION_EXISTS(srbk HAVE_SRBK)
+CHECK_FUNCTION_EXISTS(mkdir HAVE_MKDIR)
+CHECK_FUNCTION_EXISTS(posix_memalign HAVE_POSIX_MEMALIGN)
+CHECK_FUNCTION_EXISTS(backtrace HAVE_GLIBC_BACKTRACE)
+CHECK_FUNCTION_EXISTS(fseeko HAVE_FSEEKO)
+CHECK_FUNCTION_EXISTS(getrusage HAVE_GETRUSAGE)
+CHECK_FUNCTION_EXISTS(gettimeofday HAVE_GETTIMEOFDAY)
+CHECK_FUNCTION_EXISTS(vprintf HAVE_VPRINTF)
+CHECK_FUNCTION_EXISTS(snprintf HAVE_SNPRINTF)
 
 #------------------------------------------------------------------------------
 # Default compiler flags 
@@ -230,7 +245,7 @@ endif()
 # Store variable in configure file
 #------------------------------------------------------------------------------
 
-configure_file(cwp_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/cwp_config.h")
+configure_file(cwp_config_priv.h.in "${CMAKE_CURRENT_BINARY_DIR}/cwp_config_priv.h")
 configure_file(bftc_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/bftc_config.h")
 configure_file(fvmc_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/fvmc_config.h")
 
@@ -251,6 +266,26 @@ endfunction()
 fortranize(${CMAKE_CURRENT_BINARY_DIR}/cwp_config.h)
 
 endif ()
+
+#------------------------------------------------------------------------------
+# System for bft
+#------------------------------------------------------------------------------
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux") 
+  set(OS_Linux 1)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "AIX")
+  set(OS_AIX 1)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "HP_UX")
+  set(OS_HP_UX 1)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "IRIX64")
+  set(OS_IRIX64 1)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "OSF1")
+  set(OS_OSF1 1)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "SunOS")
+  set(OS_Solaris 1)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "System_V")
+  set(OS_System_V 1)
+endif()
 
 #------------------------------------------------------------------------------
 # Doc
