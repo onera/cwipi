@@ -1,4 +1,4 @@
-#include "pdm_config_f.h"
+#include "pdm_configf.h"
 #ifdef PDM_LONG_G_NUM
   integer, parameter :: pdm_g_num_s = 8
 #else

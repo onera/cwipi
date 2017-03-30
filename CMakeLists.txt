@@ -174,7 +174,6 @@ if (HAVE_SIZEOF_INT)
   set (HAVE_INT 1)
 endif()
 check_type_size("int32_t"      SIZEOF_INT32_T)
-message("SIZEOF_INT32_T ${SIZEOF_INT32_T}  ${HAVE_SIZEOF_INT32_T}")
 if (HAVE_SIZEOF_INT32_T)
   set (HAVE_INT32_T 1)
 endif()
@@ -219,7 +218,6 @@ if (HAVE_SIZEOF_PTRDIFF_T)
   set (HAVE_PTRDIFF_T 1)
 endif()
 
-message("HAVE_SIZEOF__Boll  : ${HAVE_SIZEOF__BOOL} : ${HAVE_SYS_UTSNAME_H}")
 #------------------------------------------------------------------------------
 # Check C internal functions
 #------------------------------------------------------------------------------
@@ -312,9 +310,7 @@ endif()
 #------------------------------------------------------------------------------
 # System for bft
 #------------------------------------------------------------------------------
-message("CMAKE_SYSTEM_NAME" ${CMAKE_SYSTEM_NAME})
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  message("Toto") 
   set(bftc_OS_Linux 1)
 elseif (CMAKE_SYSTEM_NAME STREQUAL "AIX")
   set(bftc_OS_AIX 1)

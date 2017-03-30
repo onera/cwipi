@@ -35,14 +35,14 @@ target_include_directories(cwpf
 # ----------------
 
 set (LIST_HEADER "")
-list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/cwp.h")
-list(APPEND LIST_HEADER "${CMAKE_BINARY_DIR}/cwp_config.h")
+list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/cwipi.h")
+list(APPEND LIST_HEADER "${CMAKE_BINARY_DIR}/cwipi_config.h")
 
 if (CWP_ENABLE_STATIC_Fortran_INTERFACE OR CWP_ENABLE_SHARED_Fortran_INTERFACE)
 
   set (LIST_HEADERF "")
-  list(APPEND LIST_HEADERF "${CMAKE_BINARY_DIR}/cwp_configf.h")
-  list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/cwp.mod")
+  list(APPEND LIST_HEADERF "${CMAKE_BINARY_DIR}/cwipi_configf.h")
+  list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/cwipi.mod")
 
 endif ()
 
