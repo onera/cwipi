@@ -1,8 +1,6 @@
 #ifndef __FVMC_CONFIG_H__
 #define __FVMC_CONFIG_H__
 
-#include "cwp_config_priv.h"
-
 /* Complete version number */
 #define FVMC_VERSION "0.15.1-onera-6"
 
@@ -15,55 +13,35 @@
 /* Release version number */
 #define FVMC_RELEASE_VERSION 1
 
-#cmakedefine HAVE_INT32_T       "@HAVE_INT32_T@"
-#cmakedefine HAVE_INT64_T       "@HAVE_INT64_T@"
-#cmakedefine HAVE_UINT32_T      "@HAVE_UINT32_T@"
-#cmakedefine HAVE_UINT64_T      "@HAVE_UINT64_T@"
-
-#define SIZEOF_SIZE_T        "@SIZEOF_SIZE_T@"
-#define SIZEOF_SSIZE_T       "@SIZEOF_SSIZE_T@"
-#define SIZEOF_LONG_LONG     "@SIZEOF_LONG_LONG@"
-#define SIZEOF_LONG          "@SIZEOF_LONG@"
-#define SIZEOF_SHORT         "@SIZEOF_SHORT@"
-#define SIZEOF_INT           "@SIZEOF_INT@"
-#define SIZEOF_INT32_T       "@SIZEOF_INT32_T@"
-#define SIZEOF_INT64_T       "@SIZEOF_INT64_T@"
-#define SIZEOF_UINT32_T      "@SIZEOF_UINT32_T@"
-#define SIZEOF_UINT64_T      "@SIZEOF_UINT64_T@"
-#define SIZEOF_FLOAT         "@SIZEOF_FLOAT@"
-#define SIZEOF_DOUBLE        "@SIZEOF_DOUBLE@"
-#define SIZEOF_LONG_DOUBLE   "@SIZEOF_LONG_DOUBLE@"
-#define SIZEOF_VOID_P        "@SIZEOF_VOID_P@"
-
 /* The size of a 'void *', as computed by sizeof. */
-#define FVMC_SIZEOF_VOID_P "@SIZEOF_VOID_P@"
+#define FVMC_SIZEOF_VOID_P @SIZEOF_VOID_P@
 
 /* The size of a 'short', as computed by sizeof. */
-#define FVMC_SIZEOF_SHORT "@SIZEOF_SHORT@"
+#define FVMC_SIZEOF_SHORT @SIZEOF_SHORT@
 
 /* The size of a 'int', as computed by sizeof. */
-#define FVMC_SIZEOF_INT "@SIZEOF_INT@"
+#define FVMC_SIZEOF_INT @SIZEOF_INT@
 
 /* The size of a 'long', as computed by sizeof. */
-#define FVMC_SIZEOF_LONG "@SIZEOF_LONG@"
+#define FVMC_SIZEOF_LONG @SIZEOF_LONG@
 
 /* The size of a 'long long', as computed by sizeof. */
-#define FVMC_SIZEOF_LONG_LONG "@SIZEOF_LONG_LONG@"
+#define FVMC_SIZEOF_LONG_LONG @SIZEOF_LONG_LONG@
 
 /* The size of a 'float', as computed by sizeof. */
-#define FVMC_SIZEOF_FLOAT "@SIZEOF_FLOAT@"
+#define FVMC_SIZEOF_FLOAT @SIZEOF_FLOAT@
 
 /* The size of a 'double', as computed by sizeof. */
-#define FVMC_SIZEOF_DOUBLE "@SIZEOF_DOUBLE@"
+#define FVMC_SIZEOF_DOUBLE @SIZEOF_DOUBLE@
 
 /* FVM library configured with MPI support ? */
-#define FVMC_HAVE_MPI "@MPI_C_FOUND@"
+#define FVMC_HAVE_MPI @MPI_C_FOUND@
 
 /* FVM library configured with MPI IO support ? */
-#define FVMC_HAVE_MPI_IO "@MPI_C_FOUND@"
+#define FVMC_HAVE_MPI_IO @MPI_C_FOUND@
 
 /* FVM library configured with MPI One-sided support ? */
-#define FVMC_HAVE_MPI_ONE_SIDED "@MPI_C_FOUND@"
+#define FVMC_HAVE_MPI_ONE_SIDED @MPI_C_FOUND@
 
 #endif /* __FVMC_CONFIG_H__ */
 
