@@ -59,7 +59,8 @@ if (CWP_ENABLE_SHARED)
   add_library(cwp_shared SHARED  $<TARGET_OBJECTS:cwp>)
   set_target_properties(cwp_shared PROPERTIES OUTPUT_NAME "cwp")
   set_target_properties(cwp_shared PROPERTIES VERSION ${CWP_VERSION})
-  target_link_libraries(cwp_shared ${LINK_LIBRARIES} cwp_mpi_shared)
+  target_link_libraries(cwp_shared ${LINK_LIBRARIES} pdm_shared)
+  target_link_libraries(cwp_shared ${LINK_LIBRARIES} pdm_mpi_shared)
   set_target_properties(cwp_shared PROPERTIES
                         PUBLIC_HEADER "${LIST_HEADER}")
 
@@ -73,8 +74,8 @@ if (CWP_ENABLE_STATIC)
   add_library(cwp_static STATIC  $<TARGET_OBJECTS:cwp>)
   set_target_properties(cwp_static PROPERTIES OUTPUT_NAME "cwp")
   set_target_properties(cwp_static PROPERTIES VERSION ${CWP_VERSION})
-
-  target_link_libraries(cwp_static ${LINK_LIBRARIES} cwp_mpi_static)
+  target_link_libraries(cwp_static ${LINK_LIBRARIES} pdm_static)
+  target_link_libraries(cwp_static ${LINK_LIBRARIES} pdm_mpi_static)
   set_target_properties(cwp_static PROPERTIES
                              PUBLIC_HEADER "${LIST_HEADER}")
   get_target_property(CWP_INC cwp INCLUDE_DIRECTORIES)

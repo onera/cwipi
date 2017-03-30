@@ -302,7 +302,6 @@ if (CWP_ENABLE_PYTHON_BINDINGS)
      set (CMAKE_CWP_INSTALL_PYTHON_DIR  "${CMAKE_INSTALL_PREFIX}")
      set (CMAKE_CWP_INSTALL_PYTHON_DIR
          ${CMAKE_CWP_INSTALL_PYTHON_DIR} CACHE STRING "Install path directory for Python packages")
-
   endif ()
 
 endif()
@@ -389,9 +388,9 @@ add_subdirectory(paradigm)
 
 add_subdirectory(src)
 
-#if (PDM_ENABLE_PYTHON_BINDINGS)
-#  add_subdirectory(Cython)
-#endif()
+if (CWP_ENABLE_PYTHON_BINDINGS)
+   add_subdirectory(Cython)
+endif()
 
 #add_subdirectory(tests)
 

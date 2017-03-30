@@ -121,12 +121,12 @@ elseif (PDM_IN_CWP)
   # Check MPI Wrapper
   # -----------------
 
-  set(PDM_ENABLE_MPI_CHECK ${CWP_ENABLE_MPI_CHECK})
+  #set(PDM_ENABLE_MPI_CHECK ${CWP_ENABLE_MPI_CHECK})
 
   # Python Bindings
   # ---------------
 
-  set(PDM_ENABLE_PYTHON_BINDINGS ${CWP_ENABLE_PYTHON_BINDINGS})
+  #set(PDM_ENABLE_PYTHON_BINDINGS ${CWP_ENABLE_PYTHON_BINDINGS})
 
   # Fortran interface
   # -----------------
