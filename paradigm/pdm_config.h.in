@@ -1,3 +1,6 @@
+#ifndef __PDM_CONFIG_H__
+#define __PDM_CONFIG_H__
+
 #cmakedefine PDM_HAVE_PARMETIS
 #cmakedefine PDM_HAVE_PTSCOTCH
 #cmakedefine PDM_HAVE_GETRUSAGE
@@ -7,3 +10,5 @@
 #define PDM_VERSION_MINOR "@PDM_VERSION_MINOR@"
 #define PDM_VERSION_PATCH "@PDM_VERSION_PATCH@"
 #define PDM_VERSION       "@PDM_VERSION@"
+
+#endif /*__PDM_CONFIG_H__*/

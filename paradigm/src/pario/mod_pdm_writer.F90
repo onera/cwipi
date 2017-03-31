@@ -1,7 +1,8 @@
 module mod_pdm_writer
+  
+  use mod_pdm
+  
   implicit none
-
-#include "pdmf.h"
 
   !
   ! Statut

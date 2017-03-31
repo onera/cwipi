@@ -1,4 +1,7 @@
-#include "pdmf.h"
+
+module pdm_part
+
+  use mod_pdm
 
   integer, parameter :: PDM_part_SPLIT_PARMETIS = 1
   integer, parameter :: PDM_part_SPLIT_PTSCOTCH = 2
@@ -91,6 +94,8 @@ interface
                           dFaceGroupIdx,&
                           dFaceGroup)
 
+    use mod_pdm
+
     implicit none
 
     integer                     ::  ppartId
@@ -156,6 +161,7 @@ interface
                                   sCellFace, &
                                   sFaceVtx, &
                                   sFaceGroup)
+     use mod_pdm
 
      implicit none
      
@@ -253,6 +259,8 @@ interface
                                 faceGroupIdx, &
                                 faceGroup, &
                                 faceGroupLNToGN)
+
+   use mod_pdm
 
    implicit none
 
@@ -354,6 +362,7 @@ interface
                             bound_part_faces_max, &
                             bound_part_faces_sum)
       
+   use mod_pdm
    implicit none
 
    integer      :: ppartId
@@ -373,3 +382,5 @@ interface
 
  
 end interface
+
+end module pdm_part
