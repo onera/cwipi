@@ -1,5 +1,4 @@
-
-module pdm_part
+module mod_pdm_part
 
   use mod_pdm
 
@@ -380,7 +379,6 @@ interface
 
  end subroutine pdm_part_stat_get
 
- 
 end interface
 
-end module pdm_part
+end module mod_pdm_part

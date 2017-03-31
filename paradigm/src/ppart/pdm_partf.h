@@ -150,13 +150,12 @@ interface
                                   nCell, &
                                   nFace, &
                                   nFacePartBound, &
+                                  nVtx, &
                                   nProc, &
                                   nTPart, &
-                                  nVtx, &
                                   sCellFace, &
                                   sFaceVtx, &
                                   sFaceGroup)
-
      implicit none
      
      integer :: ppartId
@@ -164,9 +163,9 @@ interface
      integer :: nCell
      integer :: nFace
      integer :: nFacePartBound
+     integer :: nVtx
      integer :: nProc
      integer :: nTPart
-     integer :: nVtx
      integer :: sCellFace
      integer :: sFaceVtx
      integer :: sFaceGroup
@@ -261,21 +260,21 @@ interface
    integer                       :: cellTag(*)
    integer                       :: cellFaceIdx(*)
    integer                       :: cellFace(*)
-   integer (kind = PDM_g_num_s) :: cellLNToGN(*)
+   integer (kind = PDM_g_num_s)  :: cellLNToGN(*)
    integer                       :: faceTag(*)
    integer                       :: faceCell(*)
    integer                       :: faceVtxIdx(*)
    integer                       :: faceVtx(*)
-   integer (kind = PDM_g_num_s) :: faceLNToGN(*)
+   integer (kind = PDM_g_num_s)  :: faceLNToGN(*)
    integer                       :: facePartBoundProcIdx(*)
    integer                       :: facePartBoundPartIdx(*)
    integer                       :: facePartBound(*)
    integer                       :: vtxTag(*)
    double precision              :: vtx(*)
-   integer (kind = PDM_g_num_s) :: vtxLNToGN(*)
+   integer (kind = PDM_g_num_s)  :: vtxLNToGN(*)
    integer                       :: faceGroupIdx(*)
    integer                       :: faceGroup(*)
-   integer (kind = PDM_g_num_s) :: faceGroupLNToGN(*)
+   integer (kind = PDM_g_num_s)  :: faceGroupLNToGN(*)
  
  end subroutine pdm_part_part_val_get
 
@@ -312,7 +311,6 @@ interface
                             cpu, &
                             cpu_user, &
                             cpu_sys)
-
    implicit none
 
    integer           :: ppartId
