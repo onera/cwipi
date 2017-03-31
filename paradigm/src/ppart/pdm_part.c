@@ -3200,12 +3200,6 @@ PDM_part_create
     free(cellPart);
     cellPart = NULL;
   }
-  else {
-    if (sizeof (int) != sizeof (PDM_g_num_t)) {
-      free(cellPart);
-      cellPart = NULL;
-    }
-  }
 
   /*
    * Face distribution to build local connectivities
