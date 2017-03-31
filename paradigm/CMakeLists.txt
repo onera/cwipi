@@ -288,7 +288,6 @@ if (NOT (PDM_IN_PDMA))
   configure_file(pdm_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/pdm_config.h")
 
   if (PDM_ENABLE_STATIC_Fortran_INTERFACE OR PDM_ENABLE_SHARED_Fortran_INTERFACE)
-
      function(fortranize file)
         unset(result)
         unset(basename)
