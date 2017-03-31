@@ -8,9 +8,17 @@ file(GLOB_RECURSE SOURCES
      *.[ch]
      *.[ch]xx)
 
+if (NOT CWP_HAVE_NOT_FORTRAN_IN_C)
+   list(APPEND SOURCES 
+        ${CMAKE_SOURCE_DIR}/src/printfort.f90
+        ${CMAKE_SOURCE_DIR}/src/callfortinterpfct.f90
+        ${CMAKE_SOURCE_DIR}/src/cwipi_set_output_logical_unit.f90)
+endif()
+
+message ("${SOURCES}")
+
 file(GLOB_RECURSE SOURCESF 
-     *.[fF] 
-     *.[fF]90)
+     cwipi_f.f90)
 
 add_library(cwp OBJECT ${SOURCES})
 

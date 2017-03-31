@@ -51,6 +51,7 @@
 #define PROCF(x, y) x
 #endif
 
+#ifndef CWP_HAVE_NOT_FORTRAN_IN_C
 extern "C" {
   void PROCF(callfortinterpfct, CALLFORTINTERPFCT)
   ( int *entities_dim,
@@ -77,6 +78,7 @@ extern "C" {
       void *ptFortranInterpolationFct
   );
 }
+#endif
 
 namespace cwipi {
 
@@ -1059,6 +1061,7 @@ namespace cwipi {
         // Callback Fortran
 
         if (ptFortranInterpolationFct != NULL)
+#ifndef CWP_HAVE_NOT_FORTRAN_IN_C            
           PROCF(callfortinterpfct, CALLFORTINTERPFCT) (
                                                        const_cast <int *> (&_entitiesDim),
                                                        const_cast <int *> (&nVertex),
@@ -1083,7 +1086,9 @@ namespace cwipi {
                                                        const_cast <double *> (&tmpDistantField[0]),
                                                        ptFortranInterpolationFct
                                                        );
-
+#else
+      printf("CWIPI Error : impossible to output into a FORTRAN File");  
+#endif
         //
         // Callback C
 
@@ -1114,6 +1119,7 @@ namespace cwipi {
         // Callback Fortran appele en C
 
         else if (_interpolationFct_f != NULL)
+#ifndef CWP_HAVE_NOT_FORTRAN_IN_C            
           PROCF(callfortinterpfct, CALLFORTINTERPFCT) (
                                                        const_cast <int *> (&_entitiesDim),
                                                        const_cast <int *> (&nVertex),
@@ -1138,7 +1144,9 @@ namespace cwipi {
                                                        const_cast <double *> (&tmpDistantField[0]),
                                                        _interpolationFct_f
                                                        );
-
+#else
+        fprintf("CWIPI Error : impossible to use a Fortran user interpolation function");
+#endif
         else
           _interpolate((double* )sendingField,
                        tmpDistantField,
@@ -1319,6 +1327,7 @@ namespace cwipi {
         // Callback Fortran
 
         if (ptFortranInterpolationFct != NULL)
+#ifndef CWP_HAVE_NOT_FORTRAN_IN_C                        
           PROCF(callfortinterpfct, CALLFORTINTERPFCT) (
                                                        const_cast <int *> (&_entitiesDim),
                                                        const_cast <int *> (&nVertex),
@@ -1344,6 +1353,9 @@ namespace cwipi {
                                                        ptFortranInterpolationFct
                                                        );
 
+#else
+        fprintf("CWIPI Error : impossible to use a Fortran user interpolation function");
+#endif
         //
         // Callback C
 
@@ -1374,6 +1386,7 @@ namespace cwipi {
         // Callback Fortran appele en C
 
         else if (_interpolationFct_f != NULL)
+#ifndef CWP_HAVE_NOT_FORTRAN_IN_C                        
           PROCF(callfortinterpfct, CALLFORTINTERPFCT) (
                                                        const_cast <int *> (&_entitiesDim),
                                                        const_cast <int *> (&nVertex),
@@ -1399,6 +1412,9 @@ namespace cwipi {
                                                        _interpolationFct_f
                                                        );
 
+#else
+        fprintf("CWIPI Error : impossible to use a Fortran user interpolation function");
+#endif
         else
           _interpolate((double* )sendingField,
                        tmpDistantField,

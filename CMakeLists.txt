@@ -78,9 +78,14 @@ option(CWP_ENABLE_PYTHON_BINDINGS "Build Python module" OFF)
 # Fortran interface
 # -----------------
 
-option(CWP_ENABLE_SHARED_Fortran_INTERFACE "Build Shared Fortran Interface" OFF)
+option(CWP_ENABLE_SHARED_Fortran_LIB "Build Shared Fortran Interface" OFF)
 
-option(CWP_ENABLE_STATIC_Fortran_INTERFACE "Build Static Fortran Interface" ON)
+option(CWP_ENABLE_STATIC_Fortran_LIB "Build Static Fortran Interface" ON)
+
+# Allow Fortran call from C
+# --------------------------
+
+option(CWP_ENABLE_Fortran_CALL_FROM_C "Allow to call Fortran function (IO) from C " ON)
 
 #------------------------------------------------------------------------------
 # Default build : Release
@@ -309,6 +314,7 @@ endif()
 #------------------------------------------------------------------------------
 # System for bft
 #------------------------------------------------------------------------------
+
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(bftc_OS_Linux 1)
 elseif (CMAKE_SYSTEM_NAME STREQUAL "AIX")
@@ -325,6 +331,13 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "System_V")
   set(bftc_OS_System_V 1)
 endif()
 
+#------------------------------------------------------------------------------
+# Call Fortran in C
+#------------------------------------------------------------------------------
+
+if (NOT CWP_ENABLE_Fortran_CALL_FROM_C)
+  set (CWP_HAVE_NOT_FORTRAN_IN_C 1)  
+endif()
 
 #------------------------------------------------------------------------------
 # Store variable in configure file

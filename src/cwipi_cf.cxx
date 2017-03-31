@@ -70,7 +70,9 @@ extern "C" {
  * Fortran printing
  *----------------------------------------------------------------------------*/
 
+#ifndef CWP_HAVE_NOT_FORTRAN_IN_C
   void PROCF (printfort, PRINTFORT) (char *buf_print_f, int *msgsize);
+#endif
 
 /*============================================================================
  * Local macro definitions
@@ -146,6 +148,7 @@ static char *_cwipi_fortran_to_c_string(const char *application_name_f,
  *
  *----------------------------------------------------------------------------*/
 
+#ifndef CWP_HAVE_NOT_FORTRAN_IN_C
 int _cwipi_print_with_fortran
 (
  const char     *const format,
@@ -195,9 +198,9 @@ int _cwipi_print_with_fortran
   /* Impression effective par le code Fortran */
 
   PROCF (printfort, PRINTFORT) (buf_print_f, &msgsize);
-
   return msgsize;
 }
+#endif
 
 /*============================================================================
  * Public function definitions
@@ -255,10 +258,12 @@ void PROCF(cwipi_init_cf, CWIPI_INIT_CF)
  *
  *----------------------------------------------------------------------------*/
 
+#ifndef CWP_HAVE_NOT_FORTRAN_IN_C
 void PROCF(cwipi_set_output_listing_cf, CWIPI_SET_OUTPUT_LISTING_CF)()
 {
   bftc_printf_proxy_set(_cwipi_print_with_fortran);
 }
+#endif
 
 /*----------------------------------------------------------------------------
  *
