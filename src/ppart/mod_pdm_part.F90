@@ -1,4 +1,6 @@
-#include "pdmf.h"
+module mod_pdm_part
+
+  use mod_pdm
 
   integer, parameter :: PDM_part_SPLIT_PARMETIS = 1
   integer, parameter :: PDM_part_SPLIT_PTSCOTCH = 2
@@ -91,6 +93,8 @@ interface
                           dFaceGroupIdx,&
                           dFaceGroup)
 
+    use mod_pdm
+
     implicit none
 
     integer                     ::  ppartId
@@ -150,12 +154,14 @@ interface
                                   nCell, &
                                   nFace, &
                                   nFacePartBound, &
-                                  nVtx, &
                                   nProc, &
                                   nTPart, &
+                                  nVtx, &
                                   sCellFace, &
                                   sFaceVtx, &
                                   sFaceGroup)
+     use mod_pdm
+
      implicit none
      
      integer :: ppartId
@@ -163,9 +169,9 @@ interface
      integer :: nCell
      integer :: nFace
      integer :: nFacePartBound
-     integer :: nVtx
      integer :: nProc
      integer :: nTPart
+     integer :: nVtx
      integer :: sCellFace
      integer :: sFaceVtx
      integer :: sFaceGroup
@@ -253,6 +259,8 @@ interface
                                 faceGroup, &
                                 faceGroupLNToGN)
 
+   use mod_pdm
+
    implicit none
 
    integer                       :: ppartId
@@ -260,21 +268,21 @@ interface
    integer                       :: cellTag(*)
    integer                       :: cellFaceIdx(*)
    integer                       :: cellFace(*)
-   integer (kind = PDM_g_num_s)  :: cellLNToGN(*)
+   integer (kind = PDM_g_num_s) :: cellLNToGN(*)
    integer                       :: faceTag(*)
    integer                       :: faceCell(*)
    integer                       :: faceVtxIdx(*)
    integer                       :: faceVtx(*)
-   integer (kind = PDM_g_num_s)  :: faceLNToGN(*)
+   integer (kind = PDM_g_num_s) :: faceLNToGN(*)
    integer                       :: facePartBoundProcIdx(*)
    integer                       :: facePartBoundPartIdx(*)
    integer                       :: facePartBound(*)
    integer                       :: vtxTag(*)
    double precision              :: vtx(*)
-   integer (kind = PDM_g_num_s)  :: vtxLNToGN(*)
+   integer (kind = PDM_g_num_s) :: vtxLNToGN(*)
    integer                       :: faceGroupIdx(*)
    integer                       :: faceGroup(*)
-   integer (kind = PDM_g_num_s)  :: faceGroupLNToGN(*)
+   integer (kind = PDM_g_num_s) :: faceGroupLNToGN(*)
  
  end subroutine pdm_part_part_val_get
 
@@ -311,6 +319,7 @@ interface
                             cpu, &
                             cpu_user, &
                             cpu_sys)
+
    implicit none
 
    integer           :: ppartId
@@ -352,6 +361,7 @@ interface
                             bound_part_faces_max, &
                             bound_part_faces_sum)
       
+   use mod_pdm
    implicit none
 
    integer      :: ppartId
@@ -369,5 +379,6 @@ interface
 
  end subroutine pdm_part_stat_get
 
- 
 end interface
+
+end module mod_pdm_part

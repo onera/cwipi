@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include "pdm_config.h"
+#include "pdm_mpi.h"
 
 /*=============================================================================
  * Macro definitions

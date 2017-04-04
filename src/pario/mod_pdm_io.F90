@@ -1,9 +1,10 @@
 
 module mod_pdm_io
+  
+  use mod_pdm
+  
   implicit none
 
-#include "pdmf.h"
-  
   !
   ! Parametres
   ! ----------

@@ -229,9 +229,9 @@ PROCF (pdm_part_part_dim_get, PDM_PART_PART_DIM_GET)
  int           *nCell,
  int           *nFace,
  int           *nFacePartBound,
+ int           *nVtx,
  int           *nProc,
  int           *nTPart,
- int           *nVtx,
  int           *sCellFace,
  int           *sFaceVtx,
  int           *sFaceGroup

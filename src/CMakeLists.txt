@@ -23,12 +23,15 @@ file(GLOB_RECURSE SOURCESF
 
 add_library(pdm OBJECT ${SOURCES})
 
-add_library(pdmf OBJECT ${SOURCESF})
+if (PDM_ENABLE_STATIC_Fortran_INTERFACE OR PDM_ENABLE_SHARED_Fortran_INTERFACE)
+  add_library(pdmf OBJECT ${SOURCESF})
+endif()
 
 target_include_directories(pdm
                            INTERFACE ${CMAKE_CURRENT_BINARY_DIR}
                            PRIVATE   ${CMAKE_CURRENT_BINARY_DIR}
                            PRIVATE  ${CMAKE_BINARY_DIR}
+                           PRIVATE  ${PDM_BINARY_DIR}
                            PUBLIC  ${CMAKE_SOURCE_DIR}
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/pario
@@ -40,10 +43,12 @@ target_include_directories(pdm
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/struct
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/util)
 
-target_include_directories(pdmf
+if (PDM_ENABLE_STATIC_Fortran_INTERFACE OR PDM_ENABLE_SHARED_Fortran_INTERFACE)
+  target_include_directories(pdmf
                            INTERFACE ${CMAKE_CURRENT_BINARY_DIR}
                            PRIVATE   ${CMAKE_CURRENT_BINARY_DIR}
                            PRIVATE   ${CMAKE_BINARY_DIR}
+                           PRIVATE  ${PDM_BINARY_DIR}
                            PUBLIC    ${CMAKE_SOURCE_DIR}
                            PUBLIC    ${CMAKE_CURRENT_SOURCE_DIR}
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/pario
@@ -54,6 +59,7 @@ target_include_directories(pdmf
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/meshgen
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/struct
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/util)
+endif()
 
 if (PTSCOTCH_FOUND)
     target_include_directories(pdm 
@@ -78,17 +84,29 @@ list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/util/pdm_mpi_node_first_ran
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/ppart/pdm_part.h")
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/util/pdm_timer.h")
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/meshgen/pdm_dcube_gen.h")
-list(APPEND LIST_HEADER "${CMAKE_BINARY_DIR}/pdm_config.h")
+if (PDM_IN_PDMA)
+  list(APPEND LIST_HEADER "${CMAKE_BINARY_DIR}/pdm_config.h")
+else() 
+  list(APPEND LIST_HEADER "${PDM_BINARY_DIR}/pdm_config.h")
+endif()
 
 if (PDM_ENABLE_STATIC_Fortran_INTERFACE OR PDM_ENABLE_SHARED_Fortran_INTERFACE)
 
   set (LIST_HEADERF "")
   list(APPEND LIST_HEADERF "${CMAKE_CURRENT_SOURCE_DIR}/pario/mod_pdm_io.F90")
   list(APPEND LIST_HEADERF "${CMAKE_CURRENT_SOURCE_DIR}/pario/mod_pdm_writer.F90")
+  list(APPEND LIST_HEADERF "${CMAKE_CURRENT_SOURCE_DIR}/mod_pdm.F90")
+  list(APPEND LIST_HEADERF "${CMAKE_CURRENT_SOURCE_DIR}/ppart/mod_pdm_part.F90")
   list(APPEND LIST_HEADERF "${CMAKE_CURRENT_SOURCE_DIR}/ppart/pdm_partf.h")
-  list(APPEND LIST_HEADERF "${CMAKE_BINARY_DIR}/pdm_config_f.h")
+  if (PDM_IN_PDMA)
+    list(APPEND LIST_HEADERF "${CMAKE_BINARY_DIR}/pdm_configf.h")
+  else() 
+    list(APPEND LIST_HEADERF "${PDM_BINARY_DIR}/pdm_configf.h")
+  endif()
   list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/mod_pdm_io.mod")
   list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/mod_pdm_writer.mod")
+  list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/mod_pdm.mod")
+  list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/mod_pdm_part.mod")
 
 endif ()
 
@@ -97,12 +115,6 @@ endif ()
 
 unset(LINK_LIBRARIES)
 list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
-#if (${PARMETIS_FOUND})
-#  list(APPEND LINK_LIBRARIES ${METIS_LIBRARIES})
-#endif ()
-#if (${PTSCOTCH_FOUND})
-#  list(APPEND LINK_LIBRARIES ${SCOTCH_LIBRARIES})
-#endif ()
 
 message(STATUS "Add library pdm - Succes")
 
