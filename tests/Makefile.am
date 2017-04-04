@@ -134,6 +134,9 @@ $(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
+if HAVE_FORTRAN
+  c_linear_coupling_LDADD += $(top_builddir)/src/libcwipi_f.la
+endif
 
 c_surf_coupling_P1P1_micron_polygon_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
@@ -141,6 +144,9 @@ $(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
+if HAVE_FORTRAN
+  c_surf_coupling_P1P1_micron_polygon_LDADD += $(top_builddir)/src/libcwipi_f.la
+endif
 
 c_surf_coupling_P1P1_polygon_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
@@ -148,6 +154,9 @@ $(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
+if HAVE_FORTRAN
+  c_surf_coupling_P1P1_polygon_LDADD += $(top_builddir)/src/libcwipi_f.la
+endif
 
 c_surf_coupling_P1P1_polygon2_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
@@ -155,6 +164,9 @@ $(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
+if HAVE_FORTRAN
+  c_surf_coupling_P1P1_polygon2_LDADD += $(top_builddir)/src/libcwipi_f.la
+endif
 
 c_surf_coupling_P1P1_polygon_with_external_points_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
@@ -162,6 +174,9 @@ $(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
+if HAVE_FORTRAN
+  c_surf_coupling_P1P1_polygon_with_external_points_LDADD += $(top_builddir)/src/libcwipi_f.la
+endif
 
 c_surf_coupling_P1P1_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
@@ -169,6 +184,9 @@ $(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
+if HAVE_FORTRAN
+  c_surf_coupling_P1P1_LDADD += $(top_builddir)/src/libcwipi_f.la
+endif
 
 c_surf_coupling_P1P0_P0P1_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
@@ -176,6 +194,9 @@ $(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
+if HAVE_FORTRAN
+  c_surf_coupling_P1P0_P0P1_LDADD += $(top_builddir)/src/libcwipi_f.la
+endif
 
 c_surf_coupling_P1P0_P0P1_savedisk_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
@@ -183,6 +204,9 @@ $(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
+if HAVE_FORTRAN
+  c_surf_coupling_P1P0_P0P1_savedisk_LDADD += $(top_builddir)/src/libcwipi_f.la
+endif
 
 c_surf_coupling_P1P0_P0P1_savememory_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
@@ -190,6 +214,19 @@ $(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
+if HAVE_FORTRAN
+  c_surf_coupling_P1P0_P0P1_savememory_LDADD += $(top_builddir)/src/libcwipi_f.la
+endif
+
+c_surf_coupling_P1P1_asynchronous_LDADD = \
+$(top_builddir)/src/bft/libbftc.la \
+$(top_builddir)/src/fvm/libfvmc.la \
+$(top_builddir)/src/libcwipi.la \
+@MPI_LIBS@ \
+-lm
+if HAVE_FORTRAN
+  c_surf_coupling_P1P1_asynchronous_LDADD += $(top_builddir)/src/libcwipi_f.la
+endif
 
 c_surf_coupling_user_target_points_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
@@ -197,6 +234,9 @@ $(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
+if HAVE_FORTRAN
+  c_surf_coupling_user_target_points_LDADD += $(top_builddir)/src/libcwipi_f.la
+endif
 
 c_surf_coupling_user_interpolation_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
@@ -204,6 +244,9 @@ $(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
+if HAVE_FORTRAN
+  c_surf_coupling_user_interpolation_LDADD += $(top_builddir)/src/libcwipi_f.la
+endif
 
 # c_surf_coupling_user_interpolation2_LDADD = \
 # $(top_builddir)/src/bft/libbftc.la \
@@ -218,6 +261,9 @@ $(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
+if HAVE_FORTRAN
+  c_surf_coupling_vector_exchange_LDADD += $(top_builddir)/src/libcwipi_f.la
+endif
 
 c_surf_coupling_output_error_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
@@ -225,6 +271,9 @@ $(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
+if HAVE_FORTRAN
+  c_surf_coupling_output_error_LDADD += $(top_builddir)/src/libcwipi_f.la
+endif
 
 c_surf_coupling_simple_location_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
@@ -232,6 +281,9 @@ $(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
+if HAVE_FORTRAN
+  c_surf_coupling_simple_location_LDADD += $(top_builddir)/src/libcwipi_f.la
+endif
 
 c_surf_without_partitioning_coupling_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
@@ -239,6 +291,9 @@ $(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
+if HAVE_FORTRAN
+  c_surf_without_partitioning_coupling_LDADD += $(top_builddir)/src/libcwipi_f.la
+endif
 
 c_surf_without_partitioning_coupling2_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
@@ -246,6 +301,9 @@ $(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
+if HAVE_FORTRAN
+  c_surf_without_partitioning_coupling2_LDADD += $(top_builddir)/src/libcwipi_f.la
+endif
 
 c_surf_sequential_coupling_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
@@ -253,6 +311,9 @@ $(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
+if HAVE_FORTRAN
+  c_surf_sequential_coupling_LDADD += $(top_builddir)/src/libcwipi_f.la
+endif
 
 c_vol_coupling_P1P1_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
@@ -260,6 +321,9 @@ $(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
+if HAVE_FORTRAN
+  c_vol_coupling_P1P1_LDADD += $(top_builddir)/src/libcwipi_f.la
+endif
 
 c_vol_coupling_P1P1_with_external_points_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
@@ -267,6 +331,9 @@ $(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
+if HAVE_FORTRAN
+  c_vol_coupling_P1P1_with_external_points_LDADD += $(top_builddir)/src/libcwipi_f.la
+endif
 
 c_vol_coupling_polyhedra_P1P1_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
@@ -274,6 +341,9 @@ $(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
+if HAVE_FORTRAN
+  c_vol_coupling_polyhedra_P1P1_LDADD += $(top_builddir)/src/libcwipi_f.la
+endif
 
 c_vol_coupling_polyhedra_P1P1_with_external_points_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
@@ -281,6 +351,9 @@ $(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
+if HAVE_FORTRAN
+  c_vol_coupling_polyhedra_P1P1_with_external_points_LDADD += $(top_builddir)/src/libcwipi_f.la
+endif
 
 c_vol_coupling_micro_polyhedra_P1P1_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
@@ -288,6 +361,9 @@ $(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
+if HAVE_FORTRAN
+  c_vol_coupling_micro_polyhedra_P1P1_LDADD += $(top_builddir)/src/libcwipi_f.la
+endif
 
 if HAVE_FORTRAN
   fortran_surf_P1P1_LDADD = \

@@ -91,7 +91,7 @@ elseif (PDM_IN_CWP)
   # OpenMP
   # ------
 
-  set(PDM_ENABLE_OPENMP "Enable OpenMP" ${CWP_ENABLE_OPENMP})
+  set(PDM_ENABLE_OPENMP ${CWP_ENABLE_OPENMP})
 
   # Enable long for absolute number
   # -------------------------------

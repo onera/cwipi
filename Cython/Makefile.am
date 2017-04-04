@@ -38,6 +38,9 @@ cwipi_la_LIBADD = \
 $(top_builddir)/src/bft/libbftc.la \
 $(top_builddir)/src/fvm/libfvmc.la \
 $(top_builddir)/src/libcwipi.la 
+if HAVE_FORTRAN
+  cwipi_la_LIBADD += $(top_builddir)/src/libcwipi_f.la
+endif
 
 cwipi_la_LDFLAGS = _avoid_version -module
 

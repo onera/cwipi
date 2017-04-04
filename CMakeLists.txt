@@ -40,11 +40,6 @@ enable_language(CXX)
 
 option(CWP_ENABLE_OPENMP "Enable OpenMP" OFF)
 
-# Enable long for absolute number
-# -------------------------------
-
-#option(CWP_ENABLE_LONG_G_NUM "Enable long for global number" OFF)
-
 # Pt-scotch
 # ---------
 
@@ -78,9 +73,7 @@ option(CWP_ENABLE_PYTHON_BINDINGS "Build Python module" OFF)
 # Fortran interface
 # -----------------
 
-option(CWP_ENABLE_SHARED_Fortran_LIB "Build Shared Fortran Interface" OFF)
-
-option(CWP_ENABLE_STATIC_Fortran_LIB "Build Static Fortran Interface" ON)
+option(CWP_ENABLE_Fortran  "Build Shared Fortran Interface" OFF)
 
 # Allow Fortran call from C
 # --------------------------
@@ -89,8 +82,16 @@ option(CWP_ENABLE_STATIC_Fortran_LIB "Build Static Fortran Interface" ON)
 # Default build : Release
 #------------------------------------------------------------------------------
 
-if ((CWP_ENABLE_PYTHON_BINDINGS OR CWP_ENABLE_SHARED_Fortran_LIB) AND (NOT CWP_ENABLE_SHARED))
+if (CWP_ENABLE_PYTHON_BINDINGS AND (NOT CWP_ENABLE_SHARED))
    set (CWP_ENABLE_SHARED "ON" CACHE STRING "Build Shared Libraries" FORCE )
+endif()
+
+if (CWP_ENABLE_SHARED AND CWP_ENABLE_Fortran)
+   set (CWP_ENABLE_SHARED_Fortran_LIB ON)
+endif()
+
+if (CWP_ENABLE_STATIC AND CWP_ENABLE_Fortran)
+   set (CWP_ENABLE_STATIC_Fortran_LIB ON)
 endif()
 
 if ((NOT CWP_ENABLE_STATIC) AND (NOT CWP_ENABLE_SHARED))
@@ -346,7 +347,7 @@ configure_file(bftc_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/bftc_config.h")
 configure_file(fvmc_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/fvmc_config.h")
 configure_file(cwp_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/cwipi_config.h")
 
-if (CWP_ENABLE_STATIC_Fortran_INTERFACE OR CWP_ENABLE_SHARED_Fortran_INTERFACE)
+if (CWP_ENABLE_Fortran)
 
 function(fortranize file)
     unset(result)
@@ -403,7 +404,7 @@ if (CWP_ENABLE_PYTHON_BINDINGS)
    add_subdirectory(Cython)
 endif()
 
-#add_subdirectory(tests)
+add_subdirectory(tests)
 
 #------------------------------------------------------------------------------
 # Affichage du message de fin d'installation

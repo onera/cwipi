@@ -27,8 +27,6 @@ file(GLOB_RECURSE SOURCESF
 
 add_library(cwp OBJECT ${SOURCES})
 
-add_library(cwpf OBJECT ${SOURCESF})
-
 target_include_directories(cwp
                            INTERFACE ${CMAKE_CURRENT_BINARY_DIR}
                            PRIVATE   ${CMAKE_CURRENT_BINARY_DIR}
@@ -38,7 +36,10 @@ target_include_directories(cwp
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/fvm
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/bft)
 
-target_include_directories(cwpf
+if (CWP_ENABLE_Fortran)
+ add_library(cwpf OBJECT ${SOURCESF})
+
+ target_include_directories(cwpf
                            INTERFACE ${CMAKE_CURRENT_BINARY_DIR}
                            PRIVATE   ${CMAKE_CURRENT_BINARY_DIR}
                            PRIVATE   ${CMAKE_BINARY_DIR}
@@ -47,6 +48,8 @@ target_include_directories(cwpf
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/fvm
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/bft)
 
+endif()
+
 # Liste des header
 # ----------------
 
@@ -54,7 +57,7 @@ set (LIST_HEADER "")
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/cwipi.h")
 list(APPEND LIST_HEADER "${CMAKE_BINARY_DIR}/cwipi_config.h")
 
-if (CWP_ENABLE_STATIC_Fortran_INTERFACE OR CWP_ENABLE_SHARED_Fortran_INTERFACE)
+if (CWP_ENABLE_Fortran)
 
   set (LIST_HEADERF "")
   list(APPEND LIST_HEADERF "${CMAKE_BINARY_DIR}/cwipi_configf.h")
@@ -94,6 +97,19 @@ if (CWP_ENABLE_SHARED)
   get_target_property(CWP_INC cwp INCLUDE_DIRECTORIES)                          
   target_include_directories(cwp_shared PUBLIC ${CWP_INC})
 
+  if (CWP_ENABLE_Fortran)
+    set_property(TARGET ${cwpf} PROPERTY POSITION_INDEPENDENT_CODE 1)
+    add_library(cwpf_shared SHARED  $<TARGET_OBJECTS:cwpf>)
+    set_target_properties(cwpf_shared PROPERTIES OUTPUT_NAME "cwpf")
+    set_target_properties(cwpf_shared PROPERTIES VERSION ${CWP_VERSION})
+    target_link_libraries(cwpf_shared cwp_shared)
+    set_target_properties(cwpf_shared PROPERTIES
+                            PUBLIC_HEADER "${LIST_HEADERF}")
+
+    get_target_property(CWP_INC cwpf INCLUDE_DIRECTORIES)
+    target_include_directories(cwpf_shared PUBLIC ${CWP_INC})
+
+  endif()
 endif()
 
 if (CWP_ENABLE_STATIC)
@@ -108,34 +124,20 @@ if (CWP_ENABLE_STATIC)
   get_target_property(CWP_INC cwp INCLUDE_DIRECTORIES)
   target_include_directories(cwp_static PUBLIC ${CWP_INC})
 
-endif()
+  if (CWP_ENABLE_Fortran)
+    set_property(TARGET ${cwpf} PROPERTY POSITION_INDEPENDENT_CODE 1)
+    add_library(cwpf_static STATIC  $<TARGET_OBJECTS:cwpf>)
+    set_target_properties(cwpf_static PROPERTIES OUTPUT_NAME "cwpf")
+    set_target_properties(cwpf_static PROPERTIES VERSION ${CWP_VERSION})
 
-if (CWP_ENABLE_SHARED_Fortran_INTERFACE)
-  set_property(TARGET ${cwpf} PROPERTY POSITION_INDEPENDENT_CODE 1)
-  add_library(cwpf_shared SHARED  $<TARGET_OBJECTS:cwpf>)
-  set_target_properties(cwpf_shared PROPERTIES OUTPUT_NAME "cwpf")
-  set_target_properties(cwpf_shared PROPERTIES VERSION ${CWP_VERSION})
-  target_link_libraries(cwpf_shared cwp_shared)
-  set_target_properties(cwpf_shared PROPERTIES
-                            PUBLIC_HEADER "${LIST_HEADERF}")
-
-  get_target_property(CWP_INC cwpf INCLUDE_DIRECTORIES)
-  target_include_directories(cwpf_shared PUBLIC ${CWP_INC})
-
-endif()
-
-if (CWP_ENABLE_STATIC_Fortran_INTERFACE)
-  set_property(TARGET ${cwpf} PROPERTY POSITION_INDEPENDENT_CODE 1)
-  add_library(cwpf_static STATIC  $<TARGET_OBJECTS:cwpf>)
-  set_target_properties(cwpf_static PROPERTIES OUTPUT_NAME "cwpf")
-  set_target_properties(cwpf_static PROPERTIES VERSION ${CWP_VERSION})
-
-  target_link_libraries(cwpf_static cwp_static)
-  set_target_properties(cwpf_static PROPERTIES
+    target_link_libraries(cwpf_static cwp_static)
+    set_target_properties(cwpf_static PROPERTIES
                              PUBLIC_HEADER "${LIST_HEADERF}")
 
-  get_target_property(CWP_INC cwpf INCLUDE_DIRECTORIES)
-  target_include_directories(cwpf_static PUBLIC ${CWP_INC})
+    get_target_property(CWP_INC cwpf INCLUDE_DIRECTORIES)
+    target_include_directories(cwpf_static PUBLIC ${CWP_INC})
+
+  endif()
 
 endif()
 
@@ -146,18 +148,16 @@ set (_targets "")
 
 if (CWP_ENABLE_SHARED)
   list (APPEND _targets cwp_shared)
+  if (CWP_ENABLE_Fortran)
+    list (APPEND _targets cwpf_shared)
+  endif()
 endif()
 
 if (CWP_ENABLE_STATIC)
   list (APPEND _targets cwp_static)
-endif()
-
-if (CWP_ENABLE_SHARED_Fortran_INTERFACE)
-  list (APPEND _targets cwpf_shared)
-endif()
-
-if (CWP_ENABLE_STATIC_Fortran_INTERFACE)
-  list (APPEND _targets cwpf_static)
+  if (CWP_ENABLE_Fortran)
+    list (APPEND _targets cwpf_static)
+  endif()
 endif()
 
 install(TARGETS ${_targets}

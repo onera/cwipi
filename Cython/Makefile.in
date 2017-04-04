@@ -108,6 +108,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
+@HAVE_FORTRAN_TRUE@am__append_1 = $(top_builddir)/src/libcwipi_f.la
 subdir = Cython
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/config/bft_config_info.m4 \
@@ -163,7 +164,7 @@ am__installdirs = "$(DESTDIR)$(pyexecdir)" "$(DESTDIR)$(pythondir)"
 LTLIBRARIES = $(pyexec_LTLIBRARIES)
 cwipi_la_DEPENDENCIES = $(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
-	$(top_builddir)/src/libcwipi.la
+	$(top_builddir)/src/libcwipi.la $(am__append_1)
 am_cwipi_la_OBJECTS = cwipi.lo
 cwipi_la_OBJECTS = $(am_cwipi_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
@@ -407,11 +408,9 @@ AM_LDFLAGS = @MPI_LDFLAGS@
 python_PYTHON = __init__.py
 pyexec_LTLIBRARIES = cwipi.la
 cwipi_la_SOURCES = cwipi.c
-cwipi_la_LIBADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-$(top_builddir)/src/libcwipi.la 
-
+cwipi_la_LIBADD = $(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
+	$(top_builddir)/src/libcwipi.la $(am__append_1)
 cwipi_la_LDFLAGS = _avoid_version -module
 all: all-am
 

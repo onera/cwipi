@@ -147,6 +147,29 @@ check_PROGRAMS = c_linear_coupling$(EXEEXT) \
 	c_vol_coupling_polyhedra_P1P1_with_external_points$(EXEEXT) \
 	c_vol_coupling_micro_polyhedra_P1P1$(EXEEXT) $(am__EXEEXT_1)
 @HAVE_FORTRAN_TRUE@am__append_1 = fortran_surf_P1P1 fortran_surf_P1P1_savememory
+@HAVE_FORTRAN_TRUE@am__append_2 = $(top_builddir)/src/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_3 = $(top_builddir)/src/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_4 = $(top_builddir)/src/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_5 = $(top_builddir)/src/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_6 = $(top_builddir)/src/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_7 = $(top_builddir)/src/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_8 = $(top_builddir)/src/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_9 = $(top_builddir)/src/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_10 = $(top_builddir)/src/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_11 = $(top_builddir)/src/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_12 = $(top_builddir)/src/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_13 = $(top_builddir)/src/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_14 = $(top_builddir)/src/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_15 = $(top_builddir)/src/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_16 = $(top_builddir)/src/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_17 = $(top_builddir)/src/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_18 = $(top_builddir)/src/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_19 = $(top_builddir)/src/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_20 = $(top_builddir)/src/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_21 = $(top_builddir)/src/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_22 = $(top_builddir)/src/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_23 = $(top_builddir)/src/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_24 = $(top_builddir)/src/libcwipi_f.la
 TESTS = c_linear_coupling$(EXEEXT) \
 	c_surf_coupling_P1P1_micron_polygon$(EXEEXT) \
 	c_surf_coupling_P1P1_polygon$(EXEEXT) \
@@ -169,9 +192,9 @@ TESTS = c_linear_coupling$(EXEEXT) \
 	c_vol_coupling_polyhedra_P1P1$(EXEEXT) \
 	c_vol_coupling_polyhedra_P1P1_with_external_points$(EXEEXT) \
 	c_vol_coupling_micro_polyhedra_P1P1$(EXEEXT) $(am__EXEEXT_1) \
-	$(am__append_3)
-@HAVE_FORTRAN_TRUE@am__append_2 = fortran_surf_P1P1 fortran_surf_P1P1_savememory
-@ENABLE_PYTHON_TRUE@am__append_3 = python_api.py
+	$(am__append_26)
+@HAVE_FORTRAN_TRUE@am__append_25 = fortran_surf_P1P1 fortran_surf_P1P1_savememory
+@ENABLE_PYTHON_TRUE@am__append_26 = python_api.py
 subdir = tests
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/config/bft_config_info.m4 \
@@ -201,7 +224,7 @@ am_c_linear_coupling_OBJECTS = c_linear_coupling.$(OBJEXT)
 c_linear_coupling_OBJECTS = $(am_c_linear_coupling_OBJECTS)
 c_linear_coupling_DEPENDENCIES = $(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
-	$(top_builddir)/src/libcwipi.la
+	$(top_builddir)/src/libcwipi.la $(am__append_2)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
@@ -213,7 +236,7 @@ c_surf_coupling_P1P0_P0P1_OBJECTS =  \
 c_surf_coupling_P1P0_P0P1_DEPENDENCIES =  \
 	$(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
-	$(top_builddir)/src/libcwipi.la
+	$(top_builddir)/src/libcwipi.la $(am__append_8)
 am_c_surf_coupling_P1P0_P0P1_savedisk_OBJECTS = grid_mesh.$(OBJEXT) \
 	c_surf_coupling_P1P0_P0P1_savedisk.$(OBJEXT)
 c_surf_coupling_P1P0_P0P1_savedisk_OBJECTS =  \
@@ -221,7 +244,7 @@ c_surf_coupling_P1P0_P0P1_savedisk_OBJECTS =  \
 c_surf_coupling_P1P0_P0P1_savedisk_DEPENDENCIES =  \
 	$(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
-	$(top_builddir)/src/libcwipi.la
+	$(top_builddir)/src/libcwipi.la $(am__append_9)
 am_c_surf_coupling_P1P0_P0P1_savememory_OBJECTS = grid_mesh.$(OBJEXT) \
 	c_surf_coupling_P1P0_P0P1_savememory.$(OBJEXT)
 c_surf_coupling_P1P0_P0P1_savememory_OBJECTS =  \
@@ -229,23 +252,22 @@ c_surf_coupling_P1P0_P0P1_savememory_OBJECTS =  \
 c_surf_coupling_P1P0_P0P1_savememory_DEPENDENCIES =  \
 	$(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
-	$(top_builddir)/src/libcwipi.la
+	$(top_builddir)/src/libcwipi.la $(am__append_10)
 am_c_surf_coupling_P1P1_OBJECTS = grid_mesh.$(OBJEXT) \
 	c_surf_coupling_P1P1.$(OBJEXT)
 c_surf_coupling_P1P1_OBJECTS = $(am_c_surf_coupling_P1P1_OBJECTS)
 c_surf_coupling_P1P1_DEPENDENCIES =  \
 	$(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
-	$(top_builddir)/src/libcwipi.la
+	$(top_builddir)/src/libcwipi.la $(am__append_7)
 am_c_surf_coupling_P1P1_asynchronous_OBJECTS = grid_mesh.$(OBJEXT) \
 	c_surf_coupling_P1P1_asynchronous.$(OBJEXT)
 c_surf_coupling_P1P1_asynchronous_OBJECTS =  \
 	$(am_c_surf_coupling_P1P1_asynchronous_OBJECTS)
-c_surf_coupling_P1P1_asynchronous_LDADD = $(LDADD)
 c_surf_coupling_P1P1_asynchronous_DEPENDENCIES =  \
 	$(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
-	$(top_builddir)/src/libcwipi.la
+	$(top_builddir)/src/libcwipi.la $(am__append_11)
 am_c_surf_coupling_P1P1_micron_polygon_OBJECTS =  \
 	creeMaillagePolygone2D.$(OBJEXT) \
 	c_surf_coupling_P1P1_micron_polygon.$(OBJEXT)
@@ -254,7 +276,7 @@ c_surf_coupling_P1P1_micron_polygon_OBJECTS =  \
 c_surf_coupling_P1P1_micron_polygon_DEPENDENCIES =  \
 	$(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
-	$(top_builddir)/src/libcwipi.la
+	$(top_builddir)/src/libcwipi.la $(am__append_3)
 am_c_surf_coupling_P1P1_polygon_OBJECTS =  \
 	creeMaillagePolygone2D.$(OBJEXT) \
 	c_surf_coupling_P1P1_polygon.$(OBJEXT)
@@ -263,7 +285,7 @@ c_surf_coupling_P1P1_polygon_OBJECTS =  \
 c_surf_coupling_P1P1_polygon_DEPENDENCIES =  \
 	$(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
-	$(top_builddir)/src/libcwipi.la
+	$(top_builddir)/src/libcwipi.la $(am__append_4)
 am_c_surf_coupling_P1P1_polygon2_OBJECTS =  \
 	creeMaillagePolygone2D.$(OBJEXT) \
 	c_surf_coupling_P1P1_polygon2.$(OBJEXT)
@@ -272,7 +294,7 @@ c_surf_coupling_P1P1_polygon2_OBJECTS =  \
 c_surf_coupling_P1P1_polygon2_DEPENDENCIES =  \
 	$(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
-	$(top_builddir)/src/libcwipi.la
+	$(top_builddir)/src/libcwipi.la $(am__append_5)
 am_c_surf_coupling_P1P1_polygon_with_external_points_OBJECTS =  \
 	creeMaillagePolygone2D.$(OBJEXT) \
 	c_surf_coupling_P1P1_polygon_with_external_points.$(OBJEXT)
@@ -280,7 +302,7 @@ c_surf_coupling_P1P1_polygon_with_external_points_OBJECTS = $(am_c_surf_coupling
 c_surf_coupling_P1P1_polygon_with_external_points_DEPENDENCIES =  \
 	$(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
-	$(top_builddir)/src/libcwipi.la
+	$(top_builddir)/src/libcwipi.la $(am__append_6)
 am_c_surf_coupling_output_error_OBJECTS = grid_mesh.$(OBJEXT) \
 	c_surf_coupling_output_error.$(OBJEXT)
 c_surf_coupling_output_error_OBJECTS =  \
@@ -288,7 +310,7 @@ c_surf_coupling_output_error_OBJECTS =  \
 c_surf_coupling_output_error_DEPENDENCIES =  \
 	$(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
-	$(top_builddir)/src/libcwipi.la
+	$(top_builddir)/src/libcwipi.la $(am__append_15)
 am_c_surf_coupling_simple_location_OBJECTS = grid_mesh.$(OBJEXT) \
 	c_surf_coupling_simple_location.$(OBJEXT)
 c_surf_coupling_simple_location_OBJECTS =  \
@@ -296,7 +318,7 @@ c_surf_coupling_simple_location_OBJECTS =  \
 c_surf_coupling_simple_location_DEPENDENCIES =  \
 	$(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
-	$(top_builddir)/src/libcwipi.la
+	$(top_builddir)/src/libcwipi.la $(am__append_16)
 am_c_surf_coupling_user_interpolation_OBJECTS = grid_mesh.$(OBJEXT) \
 	c_surf_coupling_user_interpolation.$(OBJEXT)
 c_surf_coupling_user_interpolation_OBJECTS =  \
@@ -304,7 +326,7 @@ c_surf_coupling_user_interpolation_OBJECTS =  \
 c_surf_coupling_user_interpolation_DEPENDENCIES =  \
 	$(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
-	$(top_builddir)/src/libcwipi.la
+	$(top_builddir)/src/libcwipi.la $(am__append_13)
 am_c_surf_coupling_user_target_points_OBJECTS = grid_mesh.$(OBJEXT) \
 	c_surf_coupling_user_target_points.$(OBJEXT)
 c_surf_coupling_user_target_points_OBJECTS =  \
@@ -312,7 +334,7 @@ c_surf_coupling_user_target_points_OBJECTS =  \
 c_surf_coupling_user_target_points_DEPENDENCIES =  \
 	$(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
-	$(top_builddir)/src/libcwipi.la
+	$(top_builddir)/src/libcwipi.la $(am__append_12)
 am_c_surf_coupling_vector_exchange_OBJECTS = grid_mesh.$(OBJEXT) \
 	c_surf_coupling_vector_exchange.$(OBJEXT)
 c_surf_coupling_vector_exchange_OBJECTS =  \
@@ -320,7 +342,7 @@ c_surf_coupling_vector_exchange_OBJECTS =  \
 c_surf_coupling_vector_exchange_DEPENDENCIES =  \
 	$(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
-	$(top_builddir)/src/libcwipi.la
+	$(top_builddir)/src/libcwipi.la $(am__append_14)
 am_c_surf_sequential_coupling_OBJECTS = grid_mesh.$(OBJEXT) \
 	c_surf_sequential_coupling.$(OBJEXT)
 c_surf_sequential_coupling_OBJECTS =  \
@@ -328,7 +350,7 @@ c_surf_sequential_coupling_OBJECTS =  \
 c_surf_sequential_coupling_DEPENDENCIES =  \
 	$(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
-	$(top_builddir)/src/libcwipi.la
+	$(top_builddir)/src/libcwipi.la $(am__append_19)
 am_c_surf_without_partitioning_coupling_OBJECTS = grid_mesh.$(OBJEXT) \
 	c_surf_without_partitioning_coupling.$(OBJEXT)
 c_surf_without_partitioning_coupling_OBJECTS =  \
@@ -336,7 +358,7 @@ c_surf_without_partitioning_coupling_OBJECTS =  \
 c_surf_without_partitioning_coupling_DEPENDENCIES =  \
 	$(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
-	$(top_builddir)/src/libcwipi.la
+	$(top_builddir)/src/libcwipi.la $(am__append_17)
 am_c_surf_without_partitioning_coupling2_OBJECTS =  \
 	grid_mesh.$(OBJEXT) \
 	c_surf_without_partitioning_coupling2.$(OBJEXT)
@@ -345,12 +367,12 @@ c_surf_without_partitioning_coupling2_OBJECTS =  \
 c_surf_without_partitioning_coupling2_DEPENDENCIES =  \
 	$(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
-	$(top_builddir)/src/libcwipi.la
+	$(top_builddir)/src/libcwipi.la $(am__append_18)
 am_c_vol_coupling_P1P1_OBJECTS = c_vol_coupling_P1P1.$(OBJEXT)
 c_vol_coupling_P1P1_OBJECTS = $(am_c_vol_coupling_P1P1_OBJECTS)
 c_vol_coupling_P1P1_DEPENDENCIES = $(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
-	$(top_builddir)/src/libcwipi.la
+	$(top_builddir)/src/libcwipi.la $(am__append_20)
 am_c_vol_coupling_P1P1_with_external_points_OBJECTS =  \
 	c_vol_coupling_P1P1_with_external_points.$(OBJEXT)
 c_vol_coupling_P1P1_with_external_points_OBJECTS =  \
@@ -358,7 +380,7 @@ c_vol_coupling_P1P1_with_external_points_OBJECTS =  \
 c_vol_coupling_P1P1_with_external_points_DEPENDENCIES =  \
 	$(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
-	$(top_builddir)/src/libcwipi.la
+	$(top_builddir)/src/libcwipi.la $(am__append_21)
 am_c_vol_coupling_micro_polyhedra_P1P1_OBJECTS =  \
 	c_vol_coupling_micro_polyhedra_P1P1.$(OBJEXT)
 c_vol_coupling_micro_polyhedra_P1P1_OBJECTS =  \
@@ -366,7 +388,7 @@ c_vol_coupling_micro_polyhedra_P1P1_OBJECTS =  \
 c_vol_coupling_micro_polyhedra_P1P1_DEPENDENCIES =  \
 	$(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
-	$(top_builddir)/src/libcwipi.la
+	$(top_builddir)/src/libcwipi.la $(am__append_24)
 am_c_vol_coupling_polyhedra_P1P1_OBJECTS =  \
 	c_vol_coupling_polyhedra_P1P1.$(OBJEXT)
 c_vol_coupling_polyhedra_P1P1_OBJECTS =  \
@@ -374,14 +396,14 @@ c_vol_coupling_polyhedra_P1P1_OBJECTS =  \
 c_vol_coupling_polyhedra_P1P1_DEPENDENCIES =  \
 	$(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
-	$(top_builddir)/src/libcwipi.la
+	$(top_builddir)/src/libcwipi.la $(am__append_22)
 am_c_vol_coupling_polyhedra_P1P1_with_external_points_OBJECTS =  \
 	c_vol_coupling_polyhedra_P1P1_with_external_points.$(OBJEXT)
 c_vol_coupling_polyhedra_P1P1_with_external_points_OBJECTS = $(am_c_vol_coupling_polyhedra_P1P1_with_external_points_OBJECTS)
 c_vol_coupling_polyhedra_P1P1_with_external_points_DEPENDENCIES =  \
 	$(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
-	$(top_builddir)/src/libcwipi.la
+	$(top_builddir)/src/libcwipi.la $(am__append_23)
 am__fortran_surf_P1P1_SOURCES_DIST = grid_mesh.c fortran_surf_P1P1.f90
 @HAVE_FORTRAN_TRUE@am_fortran_surf_P1P1_OBJECTS = grid_mesh.$(OBJEXT) \
 @HAVE_FORTRAN_TRUE@	fortran_surf_P1P1.$(OBJEXT)
@@ -938,83 +960,55 @@ c_vol_coupling_polyhedra_P1P1_SOURCES = c_vol_coupling_polyhedra_P1P1.c
 c_vol_coupling_polyhedra_P1P1_with_external_points_SOURCES = c_vol_coupling_polyhedra_P1P1_with_external_points.c
 @HAVE_FORTRAN_TRUE@fortran_surf_P1P1_SOURCES = grid_mesh.c fortran_surf_P1P1.f90
 @HAVE_FORTRAN_TRUE@fortran_surf_P1P1_savememory_SOURCES = grid_mesh.c fortran_surf_P1P1_savememory.f90
-c_linear_coupling_LDADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-$(top_builddir)/src/libcwipi.la \
-@MPI_LIBS@ \
--lm
-
-c_surf_coupling_P1P1_micron_polygon_LDADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-$(top_builddir)/src/libcwipi.la \
-@MPI_LIBS@ \
--lm
-
-c_surf_coupling_P1P1_polygon_LDADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-$(top_builddir)/src/libcwipi.la \
-@MPI_LIBS@ \
--lm
-
-c_surf_coupling_P1P1_polygon2_LDADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-$(top_builddir)/src/libcwipi.la \
-@MPI_LIBS@ \
--lm
-
-c_surf_coupling_P1P1_polygon_with_external_points_LDADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-$(top_builddir)/src/libcwipi.la \
-@MPI_LIBS@ \
--lm
-
-c_surf_coupling_P1P1_LDADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-$(top_builddir)/src/libcwipi.la \
-@MPI_LIBS@ \
--lm
-
-c_surf_coupling_P1P0_P0P1_LDADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-$(top_builddir)/src/libcwipi.la \
-@MPI_LIBS@ \
--lm
-
-c_surf_coupling_P1P0_P0P1_savedisk_LDADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-$(top_builddir)/src/libcwipi.la \
-@MPI_LIBS@ \
--lm
-
-c_surf_coupling_P1P0_P0P1_savememory_LDADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-$(top_builddir)/src/libcwipi.la \
-@MPI_LIBS@ \
--lm
-
-c_surf_coupling_user_target_points_LDADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-$(top_builddir)/src/libcwipi.la \
-@MPI_LIBS@ \
--lm
-
-c_surf_coupling_user_interpolation_LDADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-$(top_builddir)/src/libcwipi.la \
-@MPI_LIBS@ \
--lm
-
+c_linear_coupling_LDADD = $(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
+	$(top_builddir)/src/libcwipi.la @MPI_LIBS@ -lm $(am__append_2)
+c_surf_coupling_P1P1_micron_polygon_LDADD =  \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
+	$(top_builddir)/src/libcwipi.la @MPI_LIBS@ -lm $(am__append_3)
+c_surf_coupling_P1P1_polygon_LDADD =  \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
+	$(top_builddir)/src/libcwipi.la @MPI_LIBS@ -lm $(am__append_4)
+c_surf_coupling_P1P1_polygon2_LDADD =  \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
+	$(top_builddir)/src/libcwipi.la @MPI_LIBS@ -lm $(am__append_5)
+c_surf_coupling_P1P1_polygon_with_external_points_LDADD =  \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
+	$(top_builddir)/src/libcwipi.la @MPI_LIBS@ -lm $(am__append_6)
+c_surf_coupling_P1P1_LDADD = $(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
+	$(top_builddir)/src/libcwipi.la @MPI_LIBS@ -lm $(am__append_7)
+c_surf_coupling_P1P0_P0P1_LDADD = $(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
+	$(top_builddir)/src/libcwipi.la @MPI_LIBS@ -lm $(am__append_8)
+c_surf_coupling_P1P0_P0P1_savedisk_LDADD =  \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
+	$(top_builddir)/src/libcwipi.la @MPI_LIBS@ -lm $(am__append_9)
+c_surf_coupling_P1P0_P0P1_savememory_LDADD =  \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
+	$(top_builddir)/src/libcwipi.la @MPI_LIBS@ -lm \
+	$(am__append_10)
+c_surf_coupling_P1P1_asynchronous_LDADD =  \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
+	$(top_builddir)/src/libcwipi.la @MPI_LIBS@ -lm \
+	$(am__append_11)
+c_surf_coupling_user_target_points_LDADD =  \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
+	$(top_builddir)/src/libcwipi.la @MPI_LIBS@ -lm \
+	$(am__append_12)
+c_surf_coupling_user_interpolation_LDADD =  \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
+	$(top_builddir)/src/libcwipi.la @MPI_LIBS@ -lm \
+	$(am__append_13)
 
 # c_surf_coupling_user_interpolation2_LDADD = \
 # $(top_builddir)/src/bft/libbftc.la \
@@ -1022,83 +1016,59 @@ $(top_builddir)/src/libcwipi.la \
 # $(top_builddir)/src/libcwipi.la \
 # @MPI_LIBS@ \
 # -lm
-c_surf_coupling_vector_exchange_LDADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-$(top_builddir)/src/libcwipi.la \
-@MPI_LIBS@ \
--lm
-
-c_surf_coupling_output_error_LDADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-$(top_builddir)/src/libcwipi.la \
-@MPI_LIBS@ \
--lm
-
-c_surf_coupling_simple_location_LDADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-$(top_builddir)/src/libcwipi.la \
-@MPI_LIBS@ \
--lm
-
-c_surf_without_partitioning_coupling_LDADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-$(top_builddir)/src/libcwipi.la \
-@MPI_LIBS@ \
--lm
-
-c_surf_without_partitioning_coupling2_LDADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-$(top_builddir)/src/libcwipi.la \
-@MPI_LIBS@ \
--lm
-
-c_surf_sequential_coupling_LDADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-$(top_builddir)/src/libcwipi.la \
-@MPI_LIBS@ \
--lm
-
-c_vol_coupling_P1P1_LDADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-$(top_builddir)/src/libcwipi.la \
-@MPI_LIBS@ \
--lm
-
-c_vol_coupling_P1P1_with_external_points_LDADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-$(top_builddir)/src/libcwipi.la \
-@MPI_LIBS@ \
--lm
-
-c_vol_coupling_polyhedra_P1P1_LDADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-$(top_builddir)/src/libcwipi.la \
-@MPI_LIBS@ \
--lm
-
-c_vol_coupling_polyhedra_P1P1_with_external_points_LDADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-$(top_builddir)/src/libcwipi.la \
-@MPI_LIBS@ \
--lm
-
-c_vol_coupling_micro_polyhedra_P1P1_LDADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-$(top_builddir)/src/libcwipi.la \
-@MPI_LIBS@ \
--lm
-
+c_surf_coupling_vector_exchange_LDADD =  \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
+	$(top_builddir)/src/libcwipi.la @MPI_LIBS@ -lm \
+	$(am__append_14)
+c_surf_coupling_output_error_LDADD =  \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
+	$(top_builddir)/src/libcwipi.la @MPI_LIBS@ -lm \
+	$(am__append_15)
+c_surf_coupling_simple_location_LDADD =  \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
+	$(top_builddir)/src/libcwipi.la @MPI_LIBS@ -lm \
+	$(am__append_16)
+c_surf_without_partitioning_coupling_LDADD =  \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
+	$(top_builddir)/src/libcwipi.la @MPI_LIBS@ -lm \
+	$(am__append_17)
+c_surf_without_partitioning_coupling2_LDADD =  \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
+	$(top_builddir)/src/libcwipi.la @MPI_LIBS@ -lm \
+	$(am__append_18)
+c_surf_sequential_coupling_LDADD = $(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
+	$(top_builddir)/src/libcwipi.la @MPI_LIBS@ -lm \
+	$(am__append_19)
+c_vol_coupling_P1P1_LDADD = $(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
+	$(top_builddir)/src/libcwipi.la @MPI_LIBS@ -lm \
+	$(am__append_20)
+c_vol_coupling_P1P1_with_external_points_LDADD =  \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
+	$(top_builddir)/src/libcwipi.la @MPI_LIBS@ -lm \
+	$(am__append_21)
+c_vol_coupling_polyhedra_P1P1_LDADD =  \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
+	$(top_builddir)/src/libcwipi.la @MPI_LIBS@ -lm \
+	$(am__append_22)
+c_vol_coupling_polyhedra_P1P1_with_external_points_LDADD =  \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
+	$(top_builddir)/src/libcwipi.la @MPI_LIBS@ -lm \
+	$(am__append_23)
+c_vol_coupling_micro_polyhedra_P1P1_LDADD =  \
+	$(top_builddir)/src/bft/libbftc.la \
+	$(top_builddir)/src/fvm/libfvmc.la \
+	$(top_builddir)/src/libcwipi.la @MPI_LIBS@ -lm \
+	$(am__append_24)
 @HAVE_FORTRAN_TRUE@fortran_surf_P1P1_LDADD = \
 @HAVE_FORTRAN_TRUE@  $(top_builddir)/src/bft/libbftc.la \
 @HAVE_FORTRAN_TRUE@  $(top_builddir)/src/fvm/libfvmc.la \

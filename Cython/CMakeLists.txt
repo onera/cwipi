@@ -56,8 +56,11 @@ if (${PTSCOTCH_FOUND})
   list(APPEND LINK_LIBRARIES ${SCOTCH_LIBRARIES})
 endif ()
 
-
 target_link_libraries(cwipi ${LINK_LIBRARIES} pdm_shared pdm_mpi_shared)
+
+if (CWP_ENABLE_Fortran)
+  target_link_libraries(cwipi cwpf_shared)
+endif()
 
 if ((NOT MPI_C_COMPILER) AND MPI_C_COMPILE_FLAGS)
    set_target_properties(cwipi PROPERTIES

@@ -491,16 +491,6 @@ $(top_builddir)/src/bft/libbftc.la \
 $(top_builddir)/src/fvm/libfvmc.la \
 @MPI_LIBS@
 
-
-#if HAVE_FORTRAN
-#  FORTRAN_IN_C=cwipi_printfort.f90 \
-#                 callfortinterpfct.f90 \
-#                 printfort.f90 \
-#                 cwipi_printfort_cf.cxx \
-#                 cwipi_set_output_logical_unit.f90
-#else
-#  FORTRAN_IN_C=
-#endif  
 libcwipi_la_SOURCES = applicationProperties.cxx \
 applicationPropertiesDataBase.cxx \
 locationToLocalMesh.cxx \
