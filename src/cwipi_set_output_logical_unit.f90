@@ -10,11 +10,13 @@
 !
 subroutine cwipi_set_output_logical_unit (outputUnit)
 
-  use cwipi
+  use cwipi_printfort
 
   implicit none
 
   integer :: outputUnit
+  
+  ifile = outputUnit
 
   call cwipi_set_output_listing_f(outputUnit)
 

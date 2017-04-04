@@ -56,11 +56,6 @@ module cwipi
   ! exchange status
   integer (kind = cwipi_int_l), parameter :: cwipi_exchange_ok = 0
   integer (kind = cwipi_int_l), parameter :: cwipi_exchange_bad_receiving = 1
-
-  !
-  ! Logical unit for listing
-  integer (kind = cwipi_int_l), save :: ifile
-
   !
   ! Public interfaces
   interface cwipi_exchange_f ; module procedure &
@@ -88,10 +83,6 @@ module cwipi
 
   interface cwipi_init_f                  ; module procedure &
     cwipi_init_f_
-  end interface
-
-  interface cwipi_set_output_listing_f    ; module procedure &
-    cwipi_set_output_listing_f_
   end interface
 
   interface cwipi_add_loc_int_ctrl_param_f ; module procedure &
@@ -318,7 +309,6 @@ module cwipi
   ! Private
 
   private :: cwipi_init_f_,                   &
-             cwipi_set_output_listing_f_,     &
              cwipi_exch_without_user_itp_f_,  &
              cwipi_exch_with_user_itp_f_,     &
              cwipi_send_without_user_itp_f_,  &
@@ -430,28 +420,6 @@ contains
 
   end subroutine cwipi_init_f_
 
-!
-!*******************************************************************************
-!
-!  Set up the file used for the output listing
-!
-!  parameters:
-!    output_listing      <-- Output listing file
-!
-!*******************************************************************************
-!
-
-  subroutine cwipi_set_output_listing_f_ (outputUnit)
-
-  implicit none
-
-  integer (kind = cwipi_int_l) :: outputUnit
-
-  ifile =  outputUnit
-
-  call cwipi_set_output_listing_cf
-
-  end subroutine cwipi_set_output_listing_f_
 
 !
 !********************************************************************************

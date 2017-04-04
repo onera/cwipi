@@ -85,13 +85,11 @@ option(CWP_ENABLE_STATIC_Fortran_LIB "Build Static Fortran Interface" ON)
 # Allow Fortran call from C
 # --------------------------
 
-option(CWP_ENABLE_Fortran_CALL_FROM_C "Allow to call Fortran function (IO) from C " ON)
-
 #------------------------------------------------------------------------------
 # Default build : Release
 #------------------------------------------------------------------------------
 
-if (CWP_ENABLE_PYTHON_BINDINGS AND (NOT CWP_ENABLE_SHARED))
+if ((CWP_ENABLE_PYTHON_BINDINGS OR CWP_ENABLE_SHARED_Fortran_LIB) AND (NOT CWP_ENABLE_SHARED))
    set (CWP_ENABLE_SHARED "ON" CACHE STRING "Build Shared Libraries" FORCE )
 endif()
 
@@ -335,8 +333,8 @@ endif()
 # Call Fortran in C
 #------------------------------------------------------------------------------
 
-if (NOT CWP_ENABLE_Fortran_CALL_FROM_C)
-  set (CWP_HAVE_NOT_FORTRAN_IN_C 1)  
+if (NOT (CWP_ENABLE_SHARED_Fortran_LIB OR CWP_ENABLE_STATIC_Fortran_LIB))
+   set (CWP_HAVE_NOT_FORTRAN_IN_C 1)  
 endif()
 
 #------------------------------------------------------------------------------

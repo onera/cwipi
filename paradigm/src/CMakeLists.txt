@@ -23,7 +23,9 @@ file(GLOB_RECURSE SOURCESF
 
 add_library(pdm OBJECT ${SOURCES})
 
-add_library(pdmf OBJECT ${SOURCESF})
+if (PDM_ENABLE_STATIC_Fortran_INTERFACE OR PDM_ENABLE_SHARED_Fortran_INTERFACE)
+  add_library(pdmf OBJECT ${SOURCESF})
+endif()
 
 target_include_directories(pdm
                            INTERFACE ${CMAKE_CURRENT_BINARY_DIR}
@@ -41,7 +43,8 @@ target_include_directories(pdm
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/struct
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/util)
 
-target_include_directories(pdmf
+if (PDM_ENABLE_STATIC_Fortran_INTERFACE OR PDM_ENABLE_SHARED_Fortran_INTERFACE)
+  target_include_directories(pdmf
                            INTERFACE ${CMAKE_CURRENT_BINARY_DIR}
                            PRIVATE   ${CMAKE_CURRENT_BINARY_DIR}
                            PRIVATE   ${CMAKE_BINARY_DIR}
@@ -56,6 +59,7 @@ target_include_directories(pdmf
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/meshgen
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/struct
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/util)
+endif()
 
 if (PTSCOTCH_FOUND)
     target_include_directories(pdm 

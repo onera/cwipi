@@ -145,9 +145,8 @@ check_PROGRAMS = c_linear_coupling$(EXEEXT) \
 	c_vol_coupling_P1P1_with_external_points$(EXEEXT) \
 	c_vol_coupling_polyhedra_P1P1$(EXEEXT) \
 	c_vol_coupling_polyhedra_P1P1_with_external_points$(EXEEXT) \
-	c_vol_coupling_micro_polyhedra_P1P1$(EXEEXT) \
-	fortran_surf_P1P1$(EXEEXT) \
-	fortran_surf_P1P1_savememory$(EXEEXT)
+	c_vol_coupling_micro_polyhedra_P1P1$(EXEEXT) $(am__EXEEXT_1)
+@HAVE_FORTRAN_TRUE@am__append_1 = fortran_surf_P1P1 fortran_surf_P1P1_savememory
 TESTS = c_linear_coupling$(EXEEXT) \
 	c_surf_coupling_P1P1_micron_polygon$(EXEEXT) \
 	c_surf_coupling_P1P1_polygon$(EXEEXT) \
@@ -169,10 +168,10 @@ TESTS = c_linear_coupling$(EXEEXT) \
 	c_vol_coupling_P1P1_with_external_points$(EXEEXT) \
 	c_vol_coupling_polyhedra_P1P1$(EXEEXT) \
 	c_vol_coupling_polyhedra_P1P1_with_external_points$(EXEEXT) \
-	c_vol_coupling_micro_polyhedra_P1P1$(EXEEXT) \
-	fortran_surf_P1P1$(EXEEXT) \
-	fortran_surf_P1P1_savememory$(EXEEXT) $(am__append_1)
-@ENABLE_PYTHON_TRUE@am__append_1 = python_api.py
+	c_vol_coupling_micro_polyhedra_P1P1$(EXEEXT) $(am__EXEEXT_1) \
+	$(am__append_3)
+@HAVE_FORTRAN_TRUE@am__append_2 = fortran_surf_P1P1 fortran_surf_P1P1_savememory
+@ENABLE_PYTHON_TRUE@am__append_3 = python_api.py
 subdir = tests
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/config/bft_config_info.m4 \
@@ -196,6 +195,8 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config_priv.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
+@HAVE_FORTRAN_TRUE@am__EXEEXT_1 = fortran_surf_P1P1$(EXEEXT) \
+@HAVE_FORTRAN_TRUE@	fortran_surf_P1P1_savememory$(EXEEXT)
 am_c_linear_coupling_OBJECTS = c_linear_coupling.$(OBJEXT)
 c_linear_coupling_OBJECTS = $(am_c_linear_coupling_OBJECTS)
 c_linear_coupling_DEPENDENCIES = $(top_builddir)/src/bft/libbftc.la \
@@ -381,22 +382,27 @@ c_vol_coupling_polyhedra_P1P1_with_external_points_DEPENDENCIES =  \
 	$(top_builddir)/src/bft/libbftc.la \
 	$(top_builddir)/src/fvm/libfvmc.la \
 	$(top_builddir)/src/libcwipi.la
-am_fortran_surf_P1P1_OBJECTS = grid_mesh.$(OBJEXT) \
-	fortran_surf_P1P1.$(OBJEXT)
+am__fortran_surf_P1P1_SOURCES_DIST = grid_mesh.c fortran_surf_P1P1.f90
+@HAVE_FORTRAN_TRUE@am_fortran_surf_P1P1_OBJECTS = grid_mesh.$(OBJEXT) \
+@HAVE_FORTRAN_TRUE@	fortran_surf_P1P1.$(OBJEXT)
 fortran_surf_P1P1_OBJECTS = $(am_fortran_surf_P1P1_OBJECTS)
-fortran_surf_P1P1_DEPENDENCIES = $(top_builddir)/src/bft/libbftc.la \
-	$(top_builddir)/src/fvm/libfvmc.la \
-	$(top_builddir)/src/libcwipi.la \
-	$(top_builddir)/src/libcwipi_f.la
-am_fortran_surf_P1P1_savememory_OBJECTS = grid_mesh.$(OBJEXT) \
-	fortran_surf_P1P1_savememory.$(OBJEXT)
+@HAVE_FORTRAN_TRUE@fortran_surf_P1P1_DEPENDENCIES =  \
+@HAVE_FORTRAN_TRUE@	$(top_builddir)/src/bft/libbftc.la \
+@HAVE_FORTRAN_TRUE@	$(top_builddir)/src/fvm/libfvmc.la \
+@HAVE_FORTRAN_TRUE@	$(top_builddir)/src/libcwipi.la \
+@HAVE_FORTRAN_TRUE@	$(top_builddir)/src/libcwipi_f.la
+am__fortran_surf_P1P1_savememory_SOURCES_DIST = grid_mesh.c \
+	fortran_surf_P1P1_savememory.f90
+@HAVE_FORTRAN_TRUE@am_fortran_surf_P1P1_savememory_OBJECTS =  \
+@HAVE_FORTRAN_TRUE@	grid_mesh.$(OBJEXT) \
+@HAVE_FORTRAN_TRUE@	fortran_surf_P1P1_savememory.$(OBJEXT)
 fortran_surf_P1P1_savememory_OBJECTS =  \
 	$(am_fortran_surf_P1P1_savememory_OBJECTS)
-fortran_surf_P1P1_savememory_DEPENDENCIES =  \
-	$(top_builddir)/src/bft/libbftc.la \
-	$(top_builddir)/src/fvm/libfvmc.la \
-	$(top_builddir)/src/libcwipi.la \
-	$(top_builddir)/src/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@fortran_surf_P1P1_savememory_DEPENDENCIES =  \
+@HAVE_FORTRAN_TRUE@	$(top_builddir)/src/bft/libbftc.la \
+@HAVE_FORTRAN_TRUE@	$(top_builddir)/src/fvm/libfvmc.la \
+@HAVE_FORTRAN_TRUE@	$(top_builddir)/src/libcwipi.la \
+@HAVE_FORTRAN_TRUE@	$(top_builddir)/src/libcwipi_f.la
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -494,8 +500,8 @@ DIST_SOURCES = $(c_linear_coupling_SOURCES) \
 	$(c_vol_coupling_micro_polyhedra_P1P1_SOURCES) \
 	$(c_vol_coupling_polyhedra_P1P1_SOURCES) \
 	$(c_vol_coupling_polyhedra_P1P1_with_external_points_SOURCES) \
-	$(fortran_surf_P1P1_SOURCES) \
-	$(fortran_surf_P1P1_savememory_SOURCES)
+	$(am__fortran_surf_P1P1_SOURCES_DIST) \
+	$(am__fortran_surf_P1P1_savememory_SOURCES_DIST)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -894,7 +900,7 @@ $(DEBUG_CPPFLAGS) \
 @MPI_CPPFLAGS@
 
 AM_CFLAGS = 
-AM_LDFLAGS = @MPI_LDFLAGS@
+AM_LDFLAGS = @MPI_LDFLAGS@ 
 AM_FCFLAGS = -I$(top_builddir)/src -I$(top_srcdir)/src
 AM_TESTS_ENVIRONMENT = \
     cp -r $(top_srcdir)/tests/meshes $(top_builddir)/tests;
@@ -930,8 +936,8 @@ c_vol_coupling_P1P1_with_external_points_SOURCES = c_vol_coupling_P1P1_with_exte
 c_vol_coupling_micro_polyhedra_P1P1_SOURCES = c_vol_coupling_micro_polyhedra_P1P1.c
 c_vol_coupling_polyhedra_P1P1_SOURCES = c_vol_coupling_polyhedra_P1P1.c
 c_vol_coupling_polyhedra_P1P1_with_external_points_SOURCES = c_vol_coupling_polyhedra_P1P1_with_external_points.c
-fortran_surf_P1P1_SOURCES = grid_mesh.c fortran_surf_P1P1.f90
-fortran_surf_P1P1_savememory_SOURCES = grid_mesh.c fortran_surf_P1P1_savememory.f90
+@HAVE_FORTRAN_TRUE@fortran_surf_P1P1_SOURCES = grid_mesh.c fortran_surf_P1P1.f90
+@HAVE_FORTRAN_TRUE@fortran_surf_P1P1_savememory_SOURCES = grid_mesh.c fortran_surf_P1P1_savememory.f90
 c_linear_coupling_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
 $(top_builddir)/src/fvm/libfvmc.la \
@@ -1093,21 +1099,21 @@ $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
-fortran_surf_P1P1_LDADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-$(top_builddir)/src/libcwipi.la \
-$(top_builddir)/src/libcwipi_f.la \
- @MPI_LIBS@ \
- -lm
+@HAVE_FORTRAN_TRUE@fortran_surf_P1P1_LDADD = \
+@HAVE_FORTRAN_TRUE@  $(top_builddir)/src/bft/libbftc.la \
+@HAVE_FORTRAN_TRUE@  $(top_builddir)/src/fvm/libfvmc.la \
+@HAVE_FORTRAN_TRUE@  $(top_builddir)/src/libcwipi.la \
+@HAVE_FORTRAN_TRUE@  $(top_builddir)/src/libcwipi_f.la \
+@HAVE_FORTRAN_TRUE@   @MPI_LIBS@ \
+@HAVE_FORTRAN_TRUE@   -lm
 
-fortran_surf_P1P1_savememory_LDADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-$(top_builddir)/src/libcwipi.la \
-$(top_builddir)/src/libcwipi_f.la \
- @MPI_LIBS@ \
- -lm
+@HAVE_FORTRAN_TRUE@fortran_surf_P1P1_savememory_LDADD = \
+@HAVE_FORTRAN_TRUE@  $(top_builddir)/src/bft/libbftc.la \
+@HAVE_FORTRAN_TRUE@  $(top_builddir)/src/fvm/libfvmc.la \
+@HAVE_FORTRAN_TRUE@  $(top_builddir)/src/libcwipi.la \
+@HAVE_FORTRAN_TRUE@  $(top_builddir)/src/libcwipi_f.la \
+@HAVE_FORTRAN_TRUE@  @MPI_LIBS@ \
+@HAVE_FORTRAN_TRUE@  -lm
 
 VALGRIND = 
 MPI_EXEC = mpiexec

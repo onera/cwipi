@@ -92,6 +92,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
+@HAVE_FORTRAN_TRUE@am__append_1 = cwipi.mod cwipi_f.f90
 subdir = src
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/config/bft_config_info.m4 \
@@ -110,7 +111,7 @@ am__aclocal_m4_deps = $(top_srcdir)/config/bft_config_info.m4 \
 	$(top_srcdir)/config/lt~obsolete.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
-DIST_COMMON = $(srcdir)/Makefile.am $(cwipiinclude_HEADERS) \
+DIST_COMMON = $(srcdir)/Makefile.am $(am__cwipiinclude_HEADERS_DIST) \
 	$(noinst_HEADERS) $(am__DIST_COMMON)
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config_priv.h
@@ -151,17 +152,28 @@ am_libcwipi_la_OBJECTS = applicationProperties.lo \
 	applicationPropertiesDataBase.lo locationToLocalMesh.lo \
 	locationToDistantMesh.lo cwipi.lo quickSort.lo solve_ax_b_4.lo \
 	mesh.lo conservativeMesh.lo coupling.lo couplingDataBase.lo \
-	geomUtilities.lo callfortinterpfct.lo cwipi_timer.lo
+	geomUtilities.lo cwipi_timer.lo
 libcwipi_la_OBJECTS = $(am_libcwipi_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-libcwipi_f_la_DEPENDENCIES = $(top_builddir)/src/bft/libbftc.la \
-	$(top_builddir)/src/fvm/libfvmc.la libcwipi.la
-am_libcwipi_f_la_OBJECTS = cwipi_cf.lo cwipi_f.lo printfort.lo \
-	cwipi_set_output_logical_unit.lo
+@HAVE_FORTRAN_FALSE@am_libcwipi_la_rpath = -rpath $(libdir)
+@HAVE_FORTRAN_TRUE@am_libcwipi_la_rpath = -rpath $(libdir)
+@HAVE_FORTRAN_TRUE@libcwipi_f_la_DEPENDENCIES =  \
+@HAVE_FORTRAN_TRUE@	$(top_builddir)/src/bft/libbftc.la \
+@HAVE_FORTRAN_TRUE@	$(top_builddir)/src/fvm/libfvmc.la \
+@HAVE_FORTRAN_TRUE@	libcwipi.la
+am__libcwipi_f_la_SOURCES_DIST = cwipi_printfort.f90 \
+	callfortinterpfct.f90 printfort.f90 cwipi_printfort_cf.cxx \
+	cwipi_set_output_logical_unit.f90 cwipi_cf.cxx cwipi_f.f90
+@HAVE_FORTRAN_TRUE@am_libcwipi_f_la_OBJECTS = cwipi_printfort.lo \
+@HAVE_FORTRAN_TRUE@	callfortinterpfct.lo printfort.lo \
+@HAVE_FORTRAN_TRUE@	cwipi_printfort_cf.lo \
+@HAVE_FORTRAN_TRUE@	cwipi_set_output_logical_unit.lo \
+@HAVE_FORTRAN_TRUE@	cwipi_cf.lo cwipi_f.lo
 libcwipi_f_la_OBJECTS = $(am_libcwipi_f_la_OBJECTS)
+@HAVE_FORTRAN_TRUE@am_libcwipi_f_la_rpath = -rpath $(libdir)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -230,7 +242,8 @@ am__v_FCLD_ = $(am__v_FCLD_@AM_DEFAULT_V@)
 am__v_FCLD_0 = @echo "  FCLD    " $@;
 am__v_FCLD_1 = 
 SOURCES = $(libcwipi_la_SOURCES) $(libcwipi_f_la_SOURCES)
-DIST_SOURCES = $(libcwipi_la_SOURCES) $(libcwipi_f_la_SOURCES)
+DIST_SOURCES = $(libcwipi_la_SOURCES) \
+	$(am__libcwipi_f_la_SOURCES_DIST)
 RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
 	ctags-recursive dvi-recursive html-recursive info-recursive \
 	install-data-recursive install-dvi-recursive \
@@ -244,6 +257,7 @@ am__can_run_installinfo = \
     n|no|NO) false;; \
     *) (install-info --version) >/dev/null 2>&1;; \
   esac
+am__cwipiinclude_HEADERS_DIST = cwipi.h cwipi.mod cwipi_f.f90
 HEADERS = $(cwipiinclude_HEADERS) $(noinst_HEADERS)
 RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
   distclean-recursive maintainer-clean-recursive
@@ -460,28 +474,34 @@ AM_LDFLAGS = @MPI_LDFLAGS@
 
 # Public header files (to be installed)
 cwipiincludedir = $(includedir)
-cwipiinclude_HEADERS = \
-cwipi.mod \
-cwipi_f.f90 \
-cwipi.h 
-
+cwipiinclude_HEADERS = cwipi.h $(am__append_1)
 noinst_HEADERS = \
 cwipi_cf.h \
 quickSort.h \
 cwipi_timer.h \
 solve_ax_b_4.h
 
+@HAVE_FORTRAN_FALSE@lib_LTLIBRARIES = libcwipi.la
 
 # Library source files
-lib_LTLIBRARIES = libcwipi.la libcwipi_f.la
+@HAVE_FORTRAN_TRUE@lib_LTLIBRARIES = libcwipi.la libcwipi_f.la
 noinst_LTLIBRARIES = 
 libcwipi_la_LIBADD = \
 $(top_builddir)/src/bft/libbftc.la \
 $(top_builddir)/src/fvm/libfvmc.la \
 @MPI_LIBS@
 
-libcwipi_la_SOURCES = \
-applicationProperties.cxx \
+
+#if HAVE_FORTRAN
+#  FORTRAN_IN_C=cwipi_printfort.f90 \
+#                 callfortinterpfct.f90 \
+#                 printfort.f90 \
+#                 cwipi_printfort_cf.cxx \
+#                 cwipi_set_output_logical_unit.f90
+#else
+#  FORTRAN_IN_C=
+#endif  
+libcwipi_la_SOURCES = applicationProperties.cxx \
 applicationPropertiesDataBase.cxx \
 locationToLocalMesh.cxx \
 locationToDistantMesh.cxx \
@@ -493,20 +513,24 @@ conservativeMesh.cxx \
 coupling.cxx \
 couplingDataBase.cxx \
 geomUtilities.cxx \
-callfortinterpfct.f90 \
 cwipi_timer.c
 
-libcwipi_f_la_LIBADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-libcwipi.la \
-@MPI_LIBS@
 
-libcwipi_f_la_SOURCES = \
-cwipi_cf.cxx \
-cwipi_f.f90 \
-printfort.f90 \
-cwipi_set_output_logical_unit.f90
+#cwipi_timer.c $(FORTRAN_IN_C)
+@HAVE_FORTRAN_TRUE@libcwipi_f_la_LIBADD = \
+@HAVE_FORTRAN_TRUE@  $(top_builddir)/src/bft/libbftc.la \
+@HAVE_FORTRAN_TRUE@  $(top_builddir)/src/fvm/libfvmc.la \
+@HAVE_FORTRAN_TRUE@  libcwipi.la \
+@HAVE_FORTRAN_TRUE@  @MPI_LIBS@
+
+@HAVE_FORTRAN_TRUE@libcwipi_f_la_SOURCES = \
+@HAVE_FORTRAN_TRUE@  cwipi_printfort.f90 \
+@HAVE_FORTRAN_TRUE@  callfortinterpfct.f90 \
+@HAVE_FORTRAN_TRUE@  printfort.f90 \
+@HAVE_FORTRAN_TRUE@  cwipi_printfort_cf.cxx \
+@HAVE_FORTRAN_TRUE@  cwipi_set_output_logical_unit.f90 \
+@HAVE_FORTRAN_TRUE@  cwipi_cf.cxx \
+@HAVE_FORTRAN_TRUE@  cwipi_f.f90
 
 all: all-recursive
 
@@ -589,10 +613,10 @@ clean-noinstLTLIBRARIES:
 	}
 
 libcwipi.la: $(libcwipi_la_OBJECTS) $(libcwipi_la_DEPENDENCIES) $(EXTRA_libcwipi_la_DEPENDENCIES) 
-	$(AM_V_CXXLD)$(CXXLINK) -rpath $(libdir) $(libcwipi_la_OBJECTS) $(libcwipi_la_LIBADD) $(LIBS)
+	$(AM_V_CXXLD)$(CXXLINK) $(am_libcwipi_la_rpath) $(libcwipi_la_OBJECTS) $(libcwipi_la_LIBADD) $(LIBS)
 
 libcwipi_f.la: $(libcwipi_f_la_OBJECTS) $(libcwipi_f_la_DEPENDENCIES) $(EXTRA_libcwipi_f_la_DEPENDENCIES) 
-	$(AM_V_CXXLD)$(CXXLINK) -rpath $(libdir) $(libcwipi_f_la_OBJECTS) $(libcwipi_f_la_LIBADD) $(LIBS)
+	$(AM_V_CXXLD)$(CXXLINK) $(am_libcwipi_f_la_rpath) $(libcwipi_f_la_OBJECTS) $(libcwipi_f_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -607,6 +631,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/couplingDataBase.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwipi.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwipi_cf.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwipi_printfort_cf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwipi_timer.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/geomUtilities.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/locationToDistantMesh.Plo@am__quote@

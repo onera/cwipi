@@ -73,8 +73,6 @@ add_custom_command(OUTPUT ${OUTPUT}
                        COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
                        DEPENDS ${DEPS})
 
-message( "${CMAKE_CWP_INSTALL_PYTHON_DIR}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages/cwipi")
-
 set (SITE_PACKAGES_CWP "${CMAKE_CWP_INSTALL_PYTHON_DIR}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages/cwipi")
 
 add_custom_target(target ALL DEPENDS ${OUTPUT})

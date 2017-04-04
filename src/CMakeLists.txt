@@ -8,16 +8,21 @@ file(GLOB_RECURSE SOURCES
      *.[ch]
      *.[ch]xx)
 
-if (NOT CWP_HAVE_NOT_FORTRAN_IN_C)
-   list(APPEND SOURCES 
-        ${CMAKE_SOURCE_DIR}/src/printfort.f90
-        ${CMAKE_SOURCE_DIR}/src/callfortinterpfct.f90
-        ${CMAKE_SOURCE_DIR}/src/cwipi_set_output_logical_unit.f90)
-endif()
-
-message ("${SOURCES}")
+#if (NOT CWP_HAVE_NOT_FORTRAN_IN_C)
+#   list(APPEND SOURCES 
+#        ${CMAKE_SOURCE_DIR}/src/printfort.f90
+#        ${CMAKE_SOURCE_DIR}/src/cwipi_printfort.f90
+#        ${CMAKE_SOURCE_DIR}/src/callfortinterpfct.f90
+#        ${CMAKE_SOURCE_DIR}/src/cwipi_printfort_cf.cxx
+#        ${CMAKE_SOURCE_DIR}/src/cwipi_set_output_logical_unit.f90)
+#endif()
 
 file(GLOB_RECURSE SOURCESF 
+     printfort.f90
+     cwipi_printfort.f90
+     callfortinterpfct.f90
+     cwipi_printfort_cf.cxx
+     cwipi_set_output_logical_unit.f90
      cwipi_f.f90)
 
 add_library(cwp OBJECT ${SOURCES})
@@ -38,7 +43,10 @@ target_include_directories(cwpf
                            PRIVATE   ${CMAKE_CURRENT_BINARY_DIR}
                            PRIVATE   ${CMAKE_BINARY_DIR}
                            PUBLIC    ${CMAKE_SOURCE_DIR}
-                           PUBLIC    ${CMAKE_CURRENT_SOURCE_DIR})
+                           PUBLIC    ${CMAKE_CURRENT_SOURCE_DIR}
+                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/fvm
+                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/bft)
+
 # Liste des header
 # ----------------
 
@@ -59,6 +67,17 @@ endif ()
 
 unset(LINK_LIBRARIES)
 list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
+
+# Add Fortran dependencies if Fortran is called in C 
+# --------------------------------------------------
+
+if ((NOT CWP_HAVE_NOT_FORTRAN_IN_C) AND FORTRAN_LIBRARIES)
+    list(APPEND LINK_LIBRARIES ${FORTRAN_LIBRARIES})
+endif()
+
+if ((NOT CWP_HAVE_NOT_FORTRAN_IN_C) AND FORTRAN_LIBRARIES_FLAG)
+   set_target_properties(cwp PROPERTIES COMPILE_FLAGS ${FORTRAN_LIBRARIES_FLAG})
+endif ()
 
 message(STATUS "Add library cwp - Succes")
 

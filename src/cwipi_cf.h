@@ -94,15 +94,6 @@ void PROCF(cwipi_init_cf, CWIPI_INIT_CF)
 
 /*----------------------------------------------------------------------------
  *
- * Set up the file used for the output listing
- *
- *----------------------------------------------------------------------------*/
-
-void PROCF(cwipi_set_output_listing_cf, CWIPI_SET_OUTPUT_LISTING_CF)
-     ();
-
-/*----------------------------------------------------------------------------
- *
  * Add a integer control parameter
  *
  * parameters

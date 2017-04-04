@@ -17,9 +17,11 @@ AM_LDFLAGS = @MPI_LDFLAGS@
 
 cwipiincludedir = $(includedir)
 cwipiinclude_HEADERS = \
-cwipi.mod \
-cwipi_f.f90 \
 cwipi.h 
+
+if HAVE_FORTRAN
+ cwipiinclude_HEADERS += cwipi.mod cwipi_f.f90
+endif
 
 noinst_HEADERS = \
 cwipi_cf.h \
@@ -29,16 +31,20 @@ solve_ax_b_4.h
 
 # Library source files
 
-lib_LTLIBRARIES = libcwipi.la libcwipi_f.la
+if HAVE_FORTRAN
+  lib_LTLIBRARIES = libcwipi.la libcwipi_f.la
+else
+  lib_LTLIBRARIES = libcwipi.la
+endif
+
 noinst_LTLIBRARIES =
+
 libcwipi_la_LIBADD = \
 $(top_builddir)/src/bft/libbftc.la \
 $(top_builddir)/src/fvm/libfvmc.la \
 @MPI_LIBS@
 
-
-libcwipi_la_SOURCES = \
-applicationProperties.cxx \
+libcwipi_la_SOURCES = applicationProperties.cxx \
 applicationPropertiesDataBase.cxx \
 locationToLocalMesh.cxx \
 locationToDistantMesh.cxx \
@@ -50,19 +56,24 @@ conservativeMesh.cxx \
 coupling.cxx \
 couplingDataBase.cxx \
 geomUtilities.cxx \
-callfortinterpfct.f90 \
 cwipi_timer.c
 
-libcwipi_f_la_LIBADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-libcwipi.la \
-@MPI_LIBS@
+#cwipi_timer.c $(FORTRAN_IN_C)
 
-libcwipi_f_la_SOURCES = \
-cwipi_cf.cxx \
-cwipi_f.f90 \
-printfort.f90 \
-cwipi_set_output_logical_unit.f90
+if HAVE_FORTRAN
+  libcwipi_f_la_LIBADD = \
+  $(top_builddir)/src/bft/libbftc.la \
+  $(top_builddir)/src/fvm/libfvmc.la \
+  libcwipi.la \
+  @MPI_LIBS@
 
+  libcwipi_f_la_SOURCES = \
+  cwipi_printfort.f90 \
+  callfortinterpfct.f90 \
+  printfort.f90 \
+  cwipi_printfort_cf.cxx \
+  cwipi_set_output_logical_unit.f90 \
+  cwipi_cf.cxx \
+  cwipi_f.f90
+endif
 

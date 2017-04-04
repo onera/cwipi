@@ -668,6 +668,8 @@ ENABLE_CYTHON_FALSE
 ENABLE_CYTHON_TRUE
 ENABLE_PYTHON_FALSE
 ENABLE_PYTHON_TRUE
+HAVE_FORTRAN_FALSE
+HAVE_FORTRAN_TRUE
 DEBUG_FALSE
 DEBUG_TRUE
 ac_ct_FC
@@ -816,6 +818,7 @@ with_gnu_ld
 with_sysroot
 enable_libtool_lock
 enable_debug
+enable_fortran
 enable_auto_flags
 enable_python_bindings
 enable_rebuild_bindings
@@ -1485,6 +1488,7 @@ Optional Features:
                           speeds up one-time build
   --disable-libtool-lock  avoid locking (might break parallel builds)
   --enable-debug          enable debugging (reduces optimization)
+  --enable-fortran          enable Fortran library
   --disable-auto-flags    Do not define *FLAGS on known systems
   --enable-python-bindings
                           build with Python interface
@@ -20568,6 +20572,31 @@ else
 fi
 
 
+# Debug or production compilation mode (debug by default) ?
+
+# Check whether --enable-fortran was given.
+if test "${enable_fortran+set}" = set; then :
+  enableval=$enable_fortran;
+    case "${enableval}" in
+      yes) fortlib=true ;;
+      no)  fortlib=false ;;
+      *)   as_fn_error $? "bad value ${enableval} for --enable-fortran" "$LINENO" 5 ;;
+    esac
+
+else
+   fortlib=true
+
+fi
+
+ if test x$fortlib = xtrue; then
+  HAVE_FORTRAN_TRUE=
+  HAVE_FORTRAN_FALSE='#'
+else
+  HAVE_FORTRAN_TRUE='#'
+  HAVE_FORTRAN_FALSE=
+fi
+
+
 # Optionally deactivate automatic determination of flags on known systems
 
 # Check whether --enable-auto-flags was given.
@@ -24724,6 +24753,32 @@ unset saved_LIBS
 
 # Whether we used mpicc or $CC, we now know if we have MPI support
 
+if test "x$fortlib" = "xtrue" ; then
+  nofortlib=no
+else
+  nofortlib=yes
+fi
+
+
+
+# First arg is variable name, second arg is value, optional third arg is comment
+
+
+unset cwipi_ac_lower
+unset cwipi_ac_upper
+if test "build Fortran library ?" != "" ; then
+  echo "/* build Fortran library ? */" >> "$cwipi_ac_config_publ_h"-tmp
+fi
+if test "$nofortlib" = "yes" ; then
+  echo "#define CWP_HAVE_NOT_FORTRAN_IN_C 1" >> "$cwipi_ac_config_publ_h"-tmp
+else
+  echo "#undef CWP_HAVE_NOT_FORTRAN_IN_C" >> "$cwipi_ac_config_publ_h"-tmp
+fi
+echo >> "$cwipi_ac_config_publ_h"-tmp
+
+
+
+
 
 # First arg is variable name, second arg is value, optional third arg is comment
 
@@ -25545,6 +25600,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${DEBUG_TRUE}" && test -z "${DEBUG_FALSE}"; then
   as_fn_error $? "conditional \"DEBUG\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${HAVE_FORTRAN_TRUE}" && test -z "${HAVE_FORTRAN_FALSE}"; then
+  as_fn_error $? "conditional \"HAVE_FORTRAN\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${ENABLE_PYTHON_TRUE}" && test -z "${ENABLE_PYTHON_FALSE}"; then

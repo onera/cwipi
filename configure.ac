@@ -230,6 +230,21 @@ AC_ARG_ENABLE(debug,
 )
 AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
 
+# Debug or production compilation mode (debug by default) ?
+
+AC_ARG_ENABLE(fortran,
+  [  --enable-fortran          enable Fortran library],
+  [
+    case "${enableval}" in
+      yes) fortlib=true ;;
+      no)  fortlib=false ;;
+      *)   AC_MSG_ERROR([bad value ${enableval} for --enable-fortran]) ;;
+    esac
+  ],
+  [ fortlib=true ]
+)
+AM_CONDITIONAL(HAVE_FORTRAN, test x$fortlib = xtrue)
+
 # Optionally deactivate automatic determination of flags on known systems
 
 AC_ARG_ENABLE(auto-flags,
@@ -869,6 +884,16 @@ MPI_LIBS=""
 CHECK_MPI
 
 # Whether we used mpicc or $CC, we now know if we have MPI support
+
+if test "x$fortlib" = "xtrue" ; then
+  nofortlib=no
+else
+  nofortlib=yes
+fi
+
+CWIPI_AC_CONFIG_PUBL_SET(CWP_HAVE_NOT_FORTRAN_IN_C, $nofortlib,
+                       [build Fortran library ?])
+
 CWIPI_AC_CONFIG_PUBL_SET(HAVE_MPI, $have_mpi,
                        [cwipi library configured with MPI support ?])
 if test "x$have_mpi" = "xyes" ; then

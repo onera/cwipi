@@ -56,8 +56,7 @@ elseif (CMAKE_Fortran_COMPILER_ID MATCHES "XL")
   set (CMAKE_Fortran_FLAGS_RELWITHDEBINFO  "-O3 -qhot -g")
   set (CMAKE_Fortran_FLAGS_MINSIZEREL      "-O3")
   
-  set(IBM_LIB stdc++ ibmc++)
-  set(XL_LIB xl xlf90 xlsmp xlopt)
+  set(FORTRAN_LIBRARIES xl xlf90_r xlsmp xlopt ${FORTRAN_LIBRARIES})
   link_directories(/opt/ibmcmp/xlsmp/3.1/lib64 /opt/ibmcmp/vacpp/12.1/lib64 /opt/ibmcmp/xlf/14.1/lib64)
 
 elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "PGI")
@@ -290,6 +289,9 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "XL")
   set (CMAKE_CXX_FLAGS_PROFILING       "${CMAKE_CXX_FLAGS_RELEASE} -pg -qfullpath")
   set (CMAKE_CXX_FLAGS_RELWITHDEBINFO  "-O3 -g")
   set (CMAKE_CXX_FLAGS_MINSIZEREL      "-O2")
+
+  set(CXX_LIBRARIES stdc++ ibmc++ ${CXX_LIBRARIES})
+  link_directories(/opt/ibm/xlC/13.1.0/lib64)
 
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "PGI")
 

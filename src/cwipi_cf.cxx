@@ -142,65 +142,6 @@ static char *_cwipi_fortran_to_c_string(const char *application_name_f,
   return application_name_c;
 }
 
-/*----------------------------------------------------------------------------
- *
- * Set bftc_printf proxy for Fortran interface
- *
- *----------------------------------------------------------------------------*/
-
-#ifndef CWP_HAVE_NOT_FORTRAN_IN_C
-int _cwipi_print_with_fortran
-(
- const char     *const format,
-       va_list         arg_ptr
-)
-{
- int  line;
- int  msgsize;
-
- /* Tampon pour impressions depuis du code C : on imprime dans un chaîne
-    de caractères, qui sera imprimée vers un fichier par du code Fortran.
-    Une fois les impressions Fortran totalement remplacées par des impressions
-    C, on pourra supprimer cette étape, mais elle est nécessaire pour l'instant
-    afin de pouvoir utiliser les mêmes fichiers de sortie */
-
-#undef BUF_PRINT_F_SIZE
-#define BUF_PRINT_F_SIZE 16384
-
- static char buf_print_f[BUF_PRINT_F_SIZE];
-
- /* Impression dans le tampon */
-
-#if defined  __STDC_VERSION__
-  msgsize = vsprintf (buf_print_f, format, arg_ptr);
-#else
-  msgsize = vsnprintf (buf_print_f, BUF_PRINT_F_SIZE, format, arg_ptr);
-#endif
-
-  line = __LINE__ - 1;
-
-  if (msgsize == -1 || msgsize > BUF_PRINT_F_SIZE - 1) {
-    fprintf(stderr,
-            "Fatal error: printf() called on a message of size %d\n"
-            "whereas the print buffer is of size %d.",
-            msgsize, BUF_PRINT_F_SIZE);
-
-    /* Try to force segmentation fault (to call signal handlers);
-       as stack has most likely been corrupted, this is the most
-       "similar" error that allows for portable handling. */
-    {
-      int *_force_err = NULL;
-      *_force_err = 0;
-    }
-    exit(1);
-  }
-
-  /* Impression effective par le code Fortran */
-
-  PROCF (printfort, PRINTFORT) (buf_print_f, &msgsize);
-  return msgsize;
-}
-#endif
 
 /*============================================================================
  * Public function definitions
@@ -251,19 +192,6 @@ void PROCF(cwipi_init_cf, CWIPI_INIT_CF)
 
   delete[] application_name_c;
 }
-
-/*----------------------------------------------------------------------------
- *
- * Set up the file used for the output listing
- *
- *----------------------------------------------------------------------------*/
-
-#ifndef CWP_HAVE_NOT_FORTRAN_IN_C
-void PROCF(cwipi_set_output_listing_cf, CWIPI_SET_OUTPUT_LISTING_CF)()
-{
-  bftc_printf_proxy_set(_cwipi_print_with_fortran);
-}
-#endif
 
 /*----------------------------------------------------------------------------
  *

@@ -17,7 +17,7 @@
 ! License along with this library. If not, see <http://www.gnu.org/licenses/>.
 !-----------------------------------------------------------------------------
 
-subroutine printfort (chaine, taille )
+subroutine printfort (chaine, taille)
 
 !***********************************************************************
 !  fonction  : 
@@ -25,15 +25,15 @@ subroutine printfort (chaine, taille )
 !      impression d'une chaine de caracteres (issue d'une fonction c)
 !
 !-----------------------------------------------------------------------
-  use cwipi
-  implicit none
+  use cwipi_printfort
   
+  implicit none
+
   character, dimension(*) :: chaine
   integer   ::    taille
   character(len = 16384) :: chloc
   character(len = 64) ::  nom
   integer       ii
-
 
   taille = min(taille, 16384 - 1)
   !
@@ -44,8 +44,32 @@ subroutine printfort (chaine, taille )
   write(ifile, 1000, advance='no') chloc(1:taille)
   !
   return
-  
-1000 format(a)
-  !
+
+  1000 format(a)
+
 end subroutine printfort
 
+!
+!*******************************************************************************
+!
+!  Set up the file used for the output listing
+!
+!  parameters:
+!    output_listing      <-- Output listing file
+!
+!*******************************************************************************
+!
+
+subroutine cwipi_set_output_listing_f (outputUnit)
+
+    use cwipi_printfort
+    
+    implicit none
+
+    integer :: outputUnit
+
+    ifile =  outputUnit
+
+    call cwipi_set_output_listing_cf
+
+end subroutine cwipi_set_output_listing_f

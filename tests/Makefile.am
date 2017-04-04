@@ -54,7 +54,7 @@ $(DEBUG_CPPFLAGS) \
 @MPI_CPPFLAGS@
 
 AM_CFLAGS   =
-AM_LDFLAGS  = @MPI_LDFLAGS@
+AM_LDFLAGS  = @MPI_LDFLAGS@ 
 
 AM_FCFLAGS = -I$(top_builddir)/src -I$(top_srcdir)/src
 
@@ -92,9 +92,11 @@ c_vol_coupling_P1P1 \
 c_vol_coupling_P1P1_with_external_points \
 c_vol_coupling_polyhedra_P1P1 \
 c_vol_coupling_polyhedra_P1P1_with_external_points \
-c_vol_coupling_micro_polyhedra_P1P1 \
-fortran_surf_P1P1 \
-fortran_surf_P1P1_savememory
+c_vol_coupling_micro_polyhedra_P1P1 $(FORT_PROGRAMS)
+
+if HAVE_FORTRAN
+ check_PROGRAMS += fortran_surf_P1P1 fortran_surf_P1P1_savememory
+endif
 
 c_linear_coupling_SOURCES = c_linear_coupling.c
 c_surf_coupling_P1P1_micron_polygon_SOURCES = creeMaillagePolygone2D.c c_surf_coupling_P1P1_micron_polygon.c
@@ -120,8 +122,11 @@ c_vol_coupling_P1P1_with_external_points_SOURCES = c_vol_coupling_P1P1_with_exte
 c_vol_coupling_micro_polyhedra_P1P1_SOURCES = c_vol_coupling_micro_polyhedra_P1P1.c
 c_vol_coupling_polyhedra_P1P1_SOURCES = c_vol_coupling_polyhedra_P1P1.c
 c_vol_coupling_polyhedra_P1P1_with_external_points_SOURCES = c_vol_coupling_polyhedra_P1P1_with_external_points.c
-fortran_surf_P1P1_SOURCES = grid_mesh.c fortran_surf_P1P1.f90
-fortran_surf_P1P1_savememory_SOURCES = grid_mesh.c fortran_surf_P1P1_savememory.f90
+
+if HAVE_FORTRAN
+  fortran_surf_P1P1_SOURCES = grid_mesh.c fortran_surf_P1P1.f90
+  fortran_surf_P1P1_savememory_SOURCES = grid_mesh.c fortran_surf_P1P1_savememory.f90
+endif
 
 c_linear_coupling_LDADD = \
 $(top_builddir)/src/bft/libbftc.la \
@@ -284,21 +289,23 @@ $(top_builddir)/src/libcwipi.la \
 @MPI_LIBS@ \
 -lm
 
-fortran_surf_P1P1_LDADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-$(top_builddir)/src/libcwipi.la \
-$(top_builddir)/src/libcwipi_f.la \
- @MPI_LIBS@ \
- -lm
+if HAVE_FORTRAN
+  fortran_surf_P1P1_LDADD = \
+  $(top_builddir)/src/bft/libbftc.la \
+  $(top_builddir)/src/fvm/libfvmc.la \
+  $(top_builddir)/src/libcwipi.la \
+  $(top_builddir)/src/libcwipi_f.la \
+   @MPI_LIBS@ \
+   -lm
 
-fortran_surf_P1P1_savememory_LDADD = \
-$(top_builddir)/src/bft/libbftc.la \
-$(top_builddir)/src/fvm/libfvmc.la \
-$(top_builddir)/src/libcwipi.la \
-$(top_builddir)/src/libcwipi_f.la \
- @MPI_LIBS@ \
- -lm
+  fortran_surf_P1P1_savememory_LDADD = \
+  $(top_builddir)/src/bft/libbftc.la \
+  $(top_builddir)/src/fvm/libfvmc.la \
+  $(top_builddir)/src/libcwipi.la \
+  $(top_builddir)/src/libcwipi_f.la \
+  @MPI_LIBS@ \
+  -lm
+endif
 
 VALGRIND =
 MPI_EXEC = mpiexec
@@ -327,9 +334,11 @@ TESTS = c_linear_coupling \
 	c_vol_coupling_P1P1_with_external_points \
 	c_vol_coupling_polyhedra_P1P1 \
 	c_vol_coupling_polyhedra_P1P1_with_external_points \
-	c_vol_coupling_micro_polyhedra_P1P1 \
-	fortran_surf_P1P1 \
-	fortran_surf_P1P1_savememory
+	c_vol_coupling_micro_polyhedra_P1P1
+
+if HAVE_FORTRAN
+  TESTS += fortran_surf_P1P1 fortran_surf_P1P1_savememory
+endif
 
 if ENABLE_PYTHON 
   TESTS += python_api.py
