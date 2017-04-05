@@ -237,6 +237,29 @@ struct _PDM_writer_geom_t {
 } ;
 
 /*----------------------------------------------------------------------------
+ * Mapping des noms de variable
+ *----------------------------------------------------------------------------*/
+
+typedef struct PDM_writer_name_t {
+
+  char          *public_name;         /* Nom public */
+  char          *private_name;        /* Nom privé */
+  
+} PDM_writer_name_map_t;
+
+
+/*----------------------------------------------------------------------------
+ * Description d'une option : couple nom/valeur
+ *----------------------------------------------------------------------------*/
+
+typedef struct {
+
+  char *nom;
+  char *val;
+  
+} PDM_writer_option_t;
+
+/*----------------------------------------------------------------------------
  * Description de la variable
  *----------------------------------------------------------------------------*/
 
@@ -250,7 +273,8 @@ struct _PDM_writer_var_t{
                                         (par partition) mapping mémoire */ 
   PDM_writer_t   *_cs;                /* Pointeur sur la structure cs parente */
   void          *var_fmt;            /* Description propre au format fmt */
-
+  char          *private_name;       /* Nom privé de la variable (si mapping) */
+ 
 } ;
 
 
@@ -277,7 +301,12 @@ struct _PDM_writer_t {
   double         physical_time; /* Temps physique de la simulation */
   PDM_io_acces_t acces;    /* Type d'acces au fichier (MPIIIO,...) */
   double         prop_noeuds_actifs; /* Proportion des noeuds actifs */
-};
+  int            l_name_map;  /* Taille du tableau name_map */
+  int            n_name_map;  /* Nombre de valeurs mappee */
+  PDM_writer_name_map_t  **name_map;   /* Stockage du mapping des noms */
+  int            n_options; /* Nombre d'options */
+  PDM_writer_option_t    *options; /* Options complementaire */
+ };
 
 
 

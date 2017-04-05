@@ -184,12 +184,19 @@ typedef enum {
  *
  * parameters :
  *   fmt             <-- Format de sortie
+ *   fmt_fic         <-- Binary or ASCII
  *   topologie       <-- Indique le maillage est mobile ou non
  *   st_reprise      <-- Complete les sorties des calculs precedents en reprise
  *   rep_sortie      <-- Repertoire de sortie                  
  *   nom_sortie      <-- Nom de la sortie                       
  *   pdm_mpi_com         <-- Communicateur MSG                      
  *   acces           <-- Type d'acces                           
+ *   prop_noeuds_actifs <-- Proportion des noeuds actifs dans les acces au fichier
+ *                            *  -1 : tous les processus actifs
+ *                            *   1 : un processus par noeud
+ *                            * 0 < val < 1 : un processus par noeud actif
+ *   options         <-- Options complementaires propres au format sous
+ *                       la forme ("nom_1 = val_1 : ... : nom_n = val_n")                          
  *
  * return :
  *                   --> Identificateur de l'objet cree
@@ -211,6 +218,8 @@ const int           *l_nom_sortie,
 const PDM_MPI_Fint  *pdm_mpi_comm,   
 const int           *acces,
 const double        *prop_noeuds_actifs,
+const char          *options,
+const int           *l_options,
 int                 *id_cs     
 ARGF_SUPP_CHAINE
 );
@@ -226,7 +235,8 @@ const char                  *rep_sortie,
 const char                  *nom_sortie,
 const PDM_MPI_Comm           pdm_mpi_comm,
 const PDM_io_acces_t         acces,
-const double                 prop_noeuds_actifs
+const double                 prop_noeuds_actifs,
+const char                  *options
 );  
 
 /*----------------------------------------------------------------------------
@@ -910,6 +920,38 @@ const PDM_writer_statut_t  st_dep_tps,
 const PDM_writer_var_dim_t dim,
 const PDM_writer_var_loc_t loc,
 const char        *nom_var
+);
+
+/*----------------------------------------------------------------------------
+ * Mapping des noms de variable                                                     
+ *
+ * parameters :
+ *   id_cs           <-- Identificateur de l'objet cs
+ *   public_name     <-- Nom Public de la variable
+ *   pivate_name     <-- Nom privé de la variable
+ *
+ * return :
+ *                   --> Identificateur de l'objet variable     
+ *
+ *----------------------------------------------------------------------------*/
+
+void
+PROCF (pdm_writer_name_map_add_cf, PDM_WRITER_NAME_MAP_ADD_CF)
+(
+int         *id_cs,
+char        *public_name,
+int         *l_public_name,
+char        *private_name,
+int         *l_private_name
+ARGF_SUPP_CHAINE
+);
+
+void
+PDM_writer_name_map_add
+(
+const int   id_cs,
+const char *public_name,
+const char *private_name
 );
 
 /*----------------------------------------------------------------------------

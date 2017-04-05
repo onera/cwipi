@@ -297,7 +297,8 @@ int main(int argc, char *argv[])
                                 "chrd3d",
                                 PDM_MPI_COMM_WORLD,
                                 PDM_IO_ACCES_MPI_SIMPLE,
-                                1.);
+                                1.,
+                                NULL);
 
   /* Creation de la geometrie */
 

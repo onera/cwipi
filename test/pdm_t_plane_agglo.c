@@ -484,7 +484,8 @@ _export_ini_mesh
                               "fine_mesh",
                               pdm_mpi_comm,
                               PDM_IO_ACCES_MPI_SIMPLE,
-                              1.);
+                              1.,
+                              NULL );
 
   /*
    * Creation des variables
@@ -867,7 +868,8 @@ _export_coarse_mesh
                               "coarse_mesh",
                               pdm_mpi_comm,
                               PDM_IO_ACCES_MPI_SIMPLE,
-                              1.);
+                              1.,
+                              NULL);
   
   /*
    * Creation des variables

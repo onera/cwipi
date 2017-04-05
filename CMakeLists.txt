@@ -82,9 +82,15 @@ if (NOT (PDM_IN_PDMA OR PDM_IN_CWP))
    # Fortran interface
    # -----------------
 
-   option(PDM_ENABLE_SHARED_Fortran_INTERFACE "Build Shared Fortran Interface" OFF)
+   option(PDM_ENABLE_Fortran "Build Fortran Interface" ON)
 
-   option(PDM_ENABLE_STATIC_Fortran_INTERFACE "Build Static Fortran Interface" ON)
+   if (PDM_ENABLE_STATIC AND PDM_ENABLE_Fortran) 
+      set(PDM_ENABLE_STATIC_Fortran_INTERFACE ON)
+   endif ()
+
+   if (PDM_ENABLE_SHARED AND PDM_ENABLE_Fortran) 
+      set(PDM_ENABLE_SHARED_Fortran_INTERFACE ON)
+   endif ()
 
 elseif (PDM_IN_CWP)
 
