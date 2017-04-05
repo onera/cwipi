@@ -27,6 +27,7 @@
 #include "pdm.h"
 #include "pdm_priv.h"
 #include "pdm_fortran_to_c_string.h"
+#include "pdm_remove_blank.h"
 
 // validation gnum
 #include "pdm_gnum.h"
@@ -2762,6 +2763,73 @@ _type_cell_3D
 
 }
 
+/*----------------------------------------------------------------------------
+ * 
+ * Parse la chaine options pour construire la structure CS correspondante
+ *
+ * parameters :
+ *   options_str           <-- options_str : chaine provenant de cs_cree
+ *   n_options             --> nombre d'options trouvees
+ *   options               --> liste des options parsees
+ *
+ *----------------------------------------------------------------------------*/
+
+static void
+_parse_options
+(
+ const char *options_str,
+ int  *n_options,
+ PDM_writer_option_t **options
+)
+{
+  
+  if (options_str == NULL) {
+    *n_options = 0;
+    *options = NULL;
+  }
+  
+  char *_options_str  = malloc (sizeof(char) * (strlen(options_str) + 1));
+  strcpy(_options_str, options_str);
+  
+  *n_options = 0;
+  char *str2 = _options_str;
+  char *pch;
+  
+  do {
+    pch = strtok (str2,"=");
+    str2 = NULL;
+    if (pch != NULL) {
+      pch = strtok (str2, ":");
+      if (pch == NULL) {
+        fprintf (stderr, "CS_cree : Erreur dans le parsing des options specifiques :"
+                 "verifier les separateurs dans la chaine 'options'\n");
+        exit(1);
+      }
+      *n_options += 1;
+    }
+  } while (pch != NULL);
+
+  strcpy(_options_str, options_str);
+  str2 = _options_str;
+  *options = malloc (sizeof(PDM_writer_option_t) * (*n_options));
+  PDM_writer_option_t *_curr = *options;
+    
+  do {
+    pch = strtok (str2,"=");
+    str2 = NULL;
+    if (pch != NULL) {
+      _curr->nom = PDM_remove_blank (pch);
+      pch = strtok (str2, ":");
+      if (pch != NULL) {
+        _curr->val = PDM_remove_blank (pch);
+      }
+    }
+    _curr += 1;
+  } while (pch != NULL);
+
+
+  free (_options_str);
+}
 
 /*----------------------------------------------------------------------------
  * 
@@ -2810,11 +2878,19 @@ _load_intern_fmt (void)
  *
  * parameters :
  *   fmt             <-- Format de sortie
+ *   fmt_fic         <-- Format binaire ou actif
  *   topologie       <-- Indique le maillage est mobile ou non
  *   st_reprise      <-- Complete les sorties des calcul precedents en reprise
  *   rep_sortie      <-- Repertoire de sortie                  
  *   nom_sortie      <-- Nom de la sortie                       
  *   pdm_mpi_com         <-- Communicateur MSG                      
+ *   acces           <-- Type d'acces
+ *   prop_noeuds_actifs <-- Proportion des noeuds actifs dans les acces au fichier
+ *                            *  -1 : tous les processus actifs
+ *                            *   1 : un processus par noeud
+ *                            * 0 < val < 1 : un processus par noeud actif
+ *   options         <-- Options complementaires propres au format sous
+ *                       la forme ("nom_1 = val_1 : ... : nom_n = val_n")                          
  *
  * return :
  *                   --> Identificateur de l'objet cree
@@ -2836,6 +2912,8 @@ const int           *l_nom_sortie,
 const PDM_MPI_Fint      *pdm_mpi_comm,   
 const int           *acces,
 const double        *prop_noeuds_actifs,
+const char          *options,
+const int           *l_options,
 int                 *id_cs     
 ARGF_SUPP_CHAINE
 )
@@ -2843,6 +2921,9 @@ ARGF_SUPP_CHAINE
   char *rep_sortie_c        = PDM_fortran_to_c_string(rep_sortie, *l_rep_sortie);
   char *nom_sortie_c        = PDM_fortran_to_c_string(nom_sortie, *l_nom_sortie);
   char *fmt_c        = PDM_fortran_to_c_string(fmt, *l_fmt);
+  char *options_c           = NULL;
+  if (*l_options > 0)
+    options_c = PDM_fortran_to_c_string(options, *l_options);
 
   const PDM_MPI_Comm pdm_mpi_comm_c = PDM_MPI_Comm_f2c(*pdm_mpi_comm);
 
@@ -2854,11 +2935,24 @@ ARGF_SUPP_CHAINE
                              nom_sortie_c,
                              pdm_mpi_comm_c,  
                              (PDM_io_acces_t) *acces,
-                             *prop_noeuds_actifs);
+                             *prop_noeuds_actifs,
+                              options_c);
 
-  free(rep_sortie_c);
-  free(nom_sortie_c);
-  free(fmt_c);
+  if (rep_sortie_c != NULL) {
+    free(rep_sortie_c);
+  }
+
+  if (nom_sortie_c != NULL) {
+    free(nom_sortie_c);
+  }
+
+  if (options_c != NULL) {
+    free(options_c);
+  }
+  
+  if (fmt_c != NULL) {
+    free(fmt_c);
+  }
 }
 
 int
@@ -2872,7 +2966,8 @@ const char          *rep_sortie,
 const char          *nom_sortie,
 const PDM_MPI_Comm       pdm_mpi_comm,
 const PDM_io_acces_t acces,
-const double         prop_noeuds_actifs
+const double         prop_noeuds_actifs,
+const char          *options
 )  
 {
 
@@ -2941,6 +3036,13 @@ const double         prop_noeuds_actifs
   size_t l_rep_sortie = strlen(rep_sortie);
   cs->rep_sortie = (char *) malloc(sizeof(char) * (l_rep_sortie + 1));
   strcpy(cs->rep_sortie, rep_sortie);  /* Nom du repertoire de sortie */
+  // Gestion des options
+  
+  cs->n_options = 0;
+  cs->options = NULL;
+  if (options != NULL) {
+    _parse_options (options, &(cs->n_options), &(cs->options));
+  }
 
   size_t l_nom_sortie = strlen(nom_sortie);
   cs->nom_sortie = (char *) malloc(sizeof(char) * (l_nom_sortie + 1));
@@ -2958,7 +3060,10 @@ const double         prop_noeuds_actifs
   cs->physical_time = 0;       /* Temps physique de simulation */
   cs->acces       = acces;
   cs->prop_noeuds_actifs = prop_noeuds_actifs;
-
+  cs->l_name_map = 0;
+  cs->n_name_map = 0;
+  cs->name_map   = NULL;
+ 
   cs_tab[id_cs] = cs;
 
   /* Appel de la fonction complementaire propre au format */
@@ -3018,6 +3123,18 @@ const int   id_cs
       PDM_writer_var_free(id_cs, i);
     }
   }
+  
+  if (cs->options != NULL) {
+    for (int i = 0; i < cs->n_options; i++) {
+      if ((cs->options[i]).nom != NULL) {
+        free ((cs->options[i]).nom);
+      }
+      if ((cs->options[i]).val != NULL) {
+        free ((cs->options[i]).val);
+      }
+    }
+    free (cs->options);
+  }
 
   if (cs->var_tab != NULL) {
     free(cs->var_tab);
@@ -3040,6 +3157,17 @@ const int   id_cs
   }
   cs->l_geom_tab = 0;
 
+  if (cs->name_map != NULL) {
+    for (int i = 0; i < cs->l_name_map; i++) {
+      if (cs->name_map[i] != NULL) {
+        free (cs->name_map[i]->public_name);
+        free (cs->name_map[i]->private_name);
+        free (cs->name_map[i]);
+      }
+    }
+    free (cs->name_map);
+  }
+ 
   /* Liberation de la structure */
 
   free(cs);
@@ -3172,7 +3300,9 @@ ARGF_SUPP_CHAINE
                           (PDM_writer_statut_t) *st_decoup_poly3d,
                           *n_part);
 
-  free(nom_geom_c);
+  if (nom_geom_c != NULL) {
+    free(nom_geom_c);
+  }
 }
 
 int 
@@ -4773,9 +4903,9 @@ PDM_g_num_t   *numabs
     PDM_l_num_t elts[3];
     PDM_l_num_t som_elts[3];
 
-    elts[0] = geom->prepa_blocs->n_tria_proc;
-    elts[1] = geom->prepa_blocs->n_quad_proc;
-    elts[2] = geom->prepa_blocs->n_poly2d_proc;
+    elts[0] = geom->prepa_blocs->n_tria_proc > 0;
+    elts[1] = geom->prepa_blocs->n_quad_proc > 0;
+    elts[2] = geom->prepa_blocs->n_poly2d_proc > 0;
 
     PDM_MPI_Allreduce(elts, som_elts, 3, PDM_MPI_INT, PDM_MPI_SUM, cs->pdm_mpi_comm);
 
@@ -5143,9 +5273,9 @@ PDM_g_num_t   *numabs
     PDM_l_num_t elts[3];
     PDM_l_num_t som_elts[3];
 
-    elts[0] = geom->prepa_blocs->n_tria_proc;
-    elts[1] = geom->prepa_blocs->n_quad_proc;
-    elts[2] = geom->prepa_blocs->n_poly2d_proc;
+    elts[0] = geom->prepa_blocs->n_tria_proc > 0;
+    elts[1] = geom->prepa_blocs->n_quad_proc > 0;
+    elts[2] = geom->prepa_blocs->n_poly2d_proc > 0;
     
     PDM_MPI_Allreduce(elts, som_elts, 3, PDM_MPI_INT, PDM_MPI_SUM, cs->pdm_mpi_comm);
 
@@ -5583,6 +5713,93 @@ const int      id_geom
     _bloc_poly3d_free_partial(_bloc_poly3d);
   }
 }
+/*----------------------------------------------------------------------------
+ * Mapping des noms de variable                                                     
+ *
+ * parameters :
+ *   id_cs           <-- Identificateur de l'objet cs
+ *   public_name     <-- Nom Public de la variable
+ *   pivate_name     <-- Nom privé de la variable
+ *
+ * return :
+ *                   --> Identificateur de l'objet variable     
+ *
+ *----------------------------------------------------------------------------*/
+
+void
+PROCF (pdm_writer_name_map_add_cf, PDM_WRITER_NAME_MAP_ADD_CF)
+(
+int         *id_cs,
+char        *public_name,
+int         *l_public_name,
+char        *private_name,
+int         *l_private_name
+ARGF_SUPP_CHAINE
+)
+{
+  char *private_name_c = PDM_fortran_to_c_string(private_name, *l_private_name);
+  char *public_name_c = PDM_fortran_to_c_string(public_name, *l_public_name);
+
+  PDM_writer_name_map_add (*id_cs,
+                   public_name_c,
+                   private_name_c);
+
+  if (private_name_c != NULL) {
+    free (private_name_c);
+  }
+
+  if (public_name_c != NULL) {
+    free (public_name_c);
+  }
+}
+
+void
+PDM_writer_name_map_add
+(
+const int   id_cs,
+const char *public_name,
+const char *private_name
+)
+{
+  /* Recherche de l'objet cs courant */
+
+  PDM_writer_t *cs = _PDM_writer_get(id_cs);
+
+  /* Mise a jour du tableau de stockage */
+
+  if (cs->name_map == NULL) {
+    cs->l_name_map = 3;
+    cs->name_map = (PDM_writer_name_map_t **) malloc(cs->l_name_map * sizeof(PDM_writer_name_map_t *));
+    for (int i = 0; i < cs->l_name_map; i++) 
+      cs->name_map[i] = NULL;
+  } 
+  
+  if (cs->l_name_map <= cs->n_name_map) {
+    int p_l_name_map = cs->l_name_map;
+    cs->l_name_map = 2 * cs->l_name_map;
+    cs->name_map = (PDM_writer_name_map_t**) realloc((void*) cs->name_map,
+                                             cs->l_name_map * sizeof(PDM_writer_name_map_t *));
+    
+    for (int i = p_l_name_map; i < cs->l_name_map; i++) 
+      cs->name_map[i] = NULL;
+  }
+
+  int id_map = 0;
+  while (cs->name_map[id_map] != NULL) 
+    id_map++;
+
+  PDM_writer_name_map_t * name_map = (PDM_writer_name_map_t *) malloc (sizeof(PDM_writer_name_map_t));  
+
+  cs->n_name_map += 1;
+  cs->name_map[id_map] = name_map;
+
+  name_map->public_name = malloc ((strlen(public_name) + 1) * sizeof(char)); 
+  name_map->private_name = malloc ((strlen(private_name) + 1) * sizeof(char)); 
+
+  strcpy(name_map->public_name, public_name);
+  strcpy(name_map->private_name, private_name);
+  
+}
 
 /*----------------------------------------------------------------------------
  * Creation d'une variable                                                     
@@ -5620,7 +5837,9 @@ ARGF_SUPP_CHAINE
                                    (PDM_writer_var_loc_t) *loc,   
                                    nom_var_c);
 
-  free(nom_var_c);
+  if (nom_var_c != NULL) {
+    free(nom_var_c);
+  }
 }
 
 int
@@ -5681,6 +5900,13 @@ const char        *nom_var
   var->dim        = dim;           /* Dimension de la variable */
   var->loc        = loc;           /* Dimension de la variable */
   var->_cs        = cs;
+  var->private_name = NULL;
+
+  for (int i = 0; i < cs->n_name_map; i++) {
+    if (!strcmp(nom_var, cs->name_map[i]->public_name)) {
+      var->private_name = cs->name_map[i]->private_name;
+    }
+  }
 
   /* Appel de la fonction complementaire propre au format */
 

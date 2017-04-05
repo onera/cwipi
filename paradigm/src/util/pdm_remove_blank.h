@@ -1,5 +1,5 @@
-#ifndef __PDM_FORTRAN_TO_C_STRING_H__
-#define __PDM_FORTRAN_TO_C_STRING_H__
+#ifndef __PDM_REMOVE_BLANK_H__
+#define __PDM_REMOVE_BLANK_H__
 
 /*----------------------------------------------------------------------------
  * Standard C library headers
@@ -35,14 +35,13 @@ extern "C" {
  *----------------------------------------------------------------------------*/
 
 char *
-PDM_fortran_to_c_string
+PDM_remove_blank
 (
- const char *chaine_f,
- const PDM_l_num_t l_chaine_f
-);
+const char *str1
+ );
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif  /* __PDM_FORTRAN_TO_C_STRING_H__ */
+#endif  /* REMOVE_BLANK */
