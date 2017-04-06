@@ -53,7 +53,7 @@ option(CWP_ENABLE_PARMETIS "Compile with support for ParMetis." OFF)
 # Shared libraries
 # ----------------
 
-option(CWP_ENABLE_SHARED "Build Shared Libraries" OFF)
+option(CWP_ENABLE_SHARED "Build Shared Libraries" ON)
 
 # Static libraries
 # ----------------
@@ -348,22 +348,10 @@ configure_file(fvmc_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/fvmc_config.h")
 configure_file(cwp_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/cwipi_config.h")
 
 if (CWP_ENABLE_Fortran)
-
-function(fortranize file)
-    unset(result)
-    unset(basename)
-    file(STRINGS "${file}" lines)
-    get_filename_component(basename ${file} NAME_WE)
-    foreach(i IN LISTS lines)
-        string(REGEX REPLACE "^/\\* (#undef .*) \\*/$" "! \\1" i "${i}")
-        set(result "${result}${i}\n")
-    endforeach()
-    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/${basename}f.h" "${result}")
-endfunction()
-
-fortranize(${CMAKE_CURRENT_BINARY_DIR}/cwipi_config.h)
-
+  include (FortranizeFile)
+  fortranize(${CMAKE_CURRENT_BINARY_DIR}/cwipi_config.h)
 endif ()
+
 #------------------------------------------------------------------------------
 # Doc
 #------------------------------------------------------------------------------

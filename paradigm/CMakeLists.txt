@@ -137,6 +137,8 @@ elseif (PDM_IN_CWP)
   # Fortran interface
   # -----------------
 
+  set(PDM_ENABLE_SHARED_Fortran ${CWP_ENABLE_Fortran})    
+
   set(PDM_ENABLE_SHARED_Fortran_INTERFACE ${CWP_ENABLE_SHARED_Fortran_LIB})
 
   set(PDM_ENABLE_STATIC_Fortran_INTERFACE ${CWP_ENABLE_STATIC_Fortran_LIB})
@@ -294,18 +296,7 @@ if (NOT (PDM_IN_PDMA))
   configure_file(pdm_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/pdm_config.h")
 
   if (PDM_ENABLE_STATIC_Fortran_INTERFACE OR PDM_ENABLE_SHARED_Fortran_INTERFACE)
-     function(fortranize file)
-        unset(result)
-        unset(basename)
-        file(STRINGS "${file}" lines)
-        get_filename_component(basename ${file} NAME_WE)
-        foreach(i IN LISTS lines)
-          string(REGEX REPLACE "^/\\* (#undef .*) \\*/$" "! \\1" i "${i}")
-          set(result "${result}${i}\n")
-        endforeach()
-        file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/${basename}f.h" "${result}")
-     endfunction()
-
+     include (FortranizeFile)
      fortranize(${CMAKE_CURRENT_BINARY_DIR}/pdm_config.h)
 
   endif ()

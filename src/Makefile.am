@@ -56,7 +56,9 @@ conservativeMesh.cxx \
 coupling.cxx \
 couplingDataBase.cxx \
 geomUtilities.cxx \
-cwipi_timer.c
+cwipi_timer.c \
+creeMaillagePolygone2D.c \
+grid_mesh.c
 
 #cwipi_timer.c $(FORTRAN_IN_C)
 
