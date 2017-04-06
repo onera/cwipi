@@ -79,6 +79,11 @@ module mod_pdm_writer
   interface pdm_writer_var_create   ; module procedure &
     pdm_writer_var_create_
   end interface
+  
+  interface pdm_writer_name_map_add   ; module procedure &
+    pdm_writer_name_map_add_
+  end interface
+  
   !
   ! Fonctions Privees
   ! -----------------
@@ -86,6 +91,7 @@ module mod_pdm_writer
   private :: pdm_writer_create_
   private :: pdm_writer_geom_create_
   private :: pdm_writer_var_create_
+  private :: pdm_writer_name_map_add_
 
 contains 
 
@@ -107,57 +113,63 @@ contains
   !
   !----------------------------------------------------------------------------
 
-  subroutine pdm_writer_create_ (fmt,                &
-                       fmt_fic,            &
-                       topologie,          &
-                       st_reprise,         &
-                       rep_sortie,         &
-                       nom_sortie,         &
-                       msg_comm,           &
-                       acces,              &
-                       prop_noeuds_actifs, &
-                       id_cs)
+  subroutine pdm_writer_create_ ( &
+    fmt,                &
+    fmt_fic,            &
+    topologie,          &
+    st_reprise,         &
+    rep_sortie,         &
+    nom_sortie,         &
+    msg_comm,           &
+    acces,              &
+    prop_noeuds_actifs, &
+	options,            &
+    id_cs)
 
     implicit none
-
-    !
     ! Arguments
 
-    integer (kind = pdm_l_num_s), intent(in)    :: fmt
+    character (len = *),          intent(in)    :: fmt
     integer (kind = pdm_l_num_s), intent(in)    :: fmt_fic
     integer (kind = pdm_l_num_s), intent(in)    :: topologie
     integer (kind = pdm_l_num_s), intent(in)    :: st_reprise
-    character (len = *),       intent(in)    :: rep_sortie
-    character (len = *),       intent(in)    :: nom_sortie
+    character (len = *),          intent(in)    :: rep_sortie
+    character (len = *),          intent(in)    :: nom_sortie
     integer (kind = pdm_l_num_s), intent(in)    :: msg_comm   
     integer (kind = pdm_l_num_s), intent(in)    :: acces      
     real (kind = 8),              intent(in)    :: prop_noeuds_actifs
+    character (len = *),          intent(in)    :: options
     integer (kind = pdm_l_num_s), intent(inout) :: id_cs     
-    
-    !
-    ! Variables locales
 
+    ! Variables locales
+    integer :: l_fmt
     integer :: l_rep_sortie
     integer :: l_nom_sortie
+    integer :: l_options
 
     !
     ! Calcul de la longueur des chaines pour la conversion en string C 
-
+    l_fmt = len(fmt)
     l_rep_sortie = len(rep_sortie)
     l_nom_sortie = len(nom_sortie)
+    l_options= len(options)
 
-    call pdm_writer_create_cf(fmt,                &
-                     fmt_fic,            &
-                     topologie,          &
-                     st_reprise,         &
-                     rep_sortie,         &
-                     nom_sortie,         &
-                     l_rep_sortie,       &
-                     l_nom_sortie,       &
-                     msg_comm,           &
-                     acces,              &
-                     prop_noeuds_actifs, &
-                     id_cs)
+    call pdm_writer_create_cf( &
+         fmt,                &
+         l_fmt,              &
+         fmt_fic,            &
+         topologie,          &
+         st_reprise,         &
+         rep_sortie,         &
+         nom_sortie,         &
+         l_rep_sortie,       &
+         l_nom_sortie,       &
+         msg_comm,           &
+         acces,              &
+         prop_noeuds_actifs, &
+         options,            &
+         l_options,          &
+         id_cs)
 
   end subroutine pdm_writer_create_
 
@@ -571,6 +583,48 @@ contains
 
   end subroutine pdm_writer_var_create_
   
+
+  !----------------------------------------------------------------------------
+  ! Mapping des noms de variable                                                     
+  !
+  ! parameters :
+  !   id_cs           <-- Identificateur de l'objet cs
+  !   public_name     <-- Nom Public de la variable
+  !   pivate_name     <-- Nom privé de la variable
+  !
+  ! return :
+  !                   --> Identificateur de l'objet variable     
+  !
+  !----------------------------------------------------------------------------
+
+  subroutine pdm_writer_name_map_add_ ( &
+    id_cs,        &
+    public_name,  &
+    private_name )
+    implicit none
+    ! Arguments
+    integer (kind = pdm_l_num_s), intent(in)    :: id_cs     
+    character (len = *),          intent(in)    :: public_name
+    character (len = *),          intent(in)    :: private_name
+
+    ! Variables locales
+    integer :: l_public_name
+    integer :: l_private_name
+
+    ! Calcul de la longueur des chaines pour la conversion en string C 
+    l_public_name = len(public_name)
+    l_private_name = len(private_name)
+
+    call pdm_writer_name_map_add_cf ( &
+         id_cs,           &
+         public_name,     &
+         l_public_name,   &
+         private_name,    &
+         l_private_name)
+
+  end subroutine pdm_writer_name_map_add_
+
+
   !----------------------------------------------------------------------------
   ! Mise a jour des valeurs de la variable
   !

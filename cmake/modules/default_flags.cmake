@@ -4,11 +4,13 @@
 #
 #------------------------------------------------------------------------------
 
+cmake_host_system_information(RESULT HOSTNAME QUERY HOSTNAME)
+
 #------------------------------------------------------------------------------
 # Fortran default flags
 #------------------------------------------------------------------------------
 
-if (NOT CMAKE_Fortran_FLAGS)
+if (NOT PASS_DEFAULT_FLAGS)
 
 if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 
@@ -57,7 +59,9 @@ elseif (CMAKE_Fortran_COMPILER_ID MATCHES "XL")
   set (CMAKE_Fortran_FLAGS_MINSIZEREL      "-O3")
   
   set(FORTRAN_LIBRARIES xl xlf90_r xlsmp xlopt ${FORTRAN_LIBRARIES})
-  link_directories(/opt/ibmcmp/xlsmp/3.1/lib64 /opt/ibmcmp/vacpp/12.1/lib64 /opt/ibmcmp/xlf/14.1/lib64)
+  if (${HOSTNAME} STREQUAL "tanit")
+    link_directories(/opt/ibmcmp/xlsmp/3.1/lib64 /opt/ibmcmp/vacpp/12.1/lib64 /opt/ibmcmp/xlf/14.1/lib64)
+  endif()   
 
 elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "PGI")
 
@@ -132,14 +136,10 @@ set (FORTRAN_LIBRARIES_FLAG "${FORTRAN_LIBRARIES_FLAG}" CACHE STRING "Fortran li
 
 mark_as_advanced (CMAKE_Fortran_FLAGS_PROFILING FORTRAN_LIBRARIES FORTRAN_LIBRARIES_FLAG)
 
-endif()
-
 
 #------------------------------------------------------------------------------
 # C Default Flags
 #------------------------------------------------------------------------------
-
-if (NOT CMAKE_C_FLAGS)
 
 if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
 
@@ -232,15 +232,10 @@ set (CMAKE_C_FLAGS_MINSIZEREL      "${CMAKE_C_FLAGS_MINSIZEREL}" CACHE STRING "F
 
 mark_as_advanced (CMAKE_C_FLAGS_PROFILING)
 
-endif()
-
 
 #------------------------------------------------------------------------------
 # C++ Default Flags
 #------------------------------------------------------------------------------
-
-
-if (NOT CMAKE_CXX_FLAGS)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 
@@ -291,7 +286,9 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "XL")
   set (CMAKE_CXX_FLAGS_MINSIZEREL      "-O2")
 
   set(CXX_LIBRARIES stdc++ ibmc++ ${CXX_LIBRARIES})
-  link_directories(/opt/ibm/xlC/13.1.0/lib64)
+  if (${HOSTNAME} STREQUAL "tanit")
+    link_directories(/opt/ibm/xlC/13.1.0/lib64)
+  endif()
 
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "PGI")
 
@@ -346,7 +343,6 @@ else ()
   set (CXX_LIBRARIES             )
   set (CXX_LIBRARIES_FLAG        )
 
-endif ()
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}" CACHE STRING "Flags used by the compiler during all build types." FORCE)
 set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}" CACHE STRING "Flags used by the compiler during release builds." FORCE)
@@ -361,3 +357,9 @@ set (CXX_LIBRARIES_FLAG "${CXX_LIBRARIES_FLAG}" CACHE STRING "C++ flags" FORCE)
 mark_as_advanced (CMAKE_CXX_FLAGS_PROFILING CXX_LIBRARIES CXX_LIBRARIES_FLAG)
 
 endif()
+endif()
+
+if (NOT PASS_DEFAULT_FLAGS)
+  set (PASS_DEFAULT_FLAGS 1 CACHE STRING "")
+endif ()
+
