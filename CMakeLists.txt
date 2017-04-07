@@ -20,16 +20,12 @@ set(CMAKE_MODULE_PATH "${CWP_CMAKE_DIR}/modules")
 include(${CMAKE_MODULE_PATH}/version.cmake)
 project(CWP VERSION 1.0.0 LANGUAGES C CXX Fortran)
 
-set(PDM_IN_CWP 1)
-set(PDM_VERSION "${PDM_VERSION_MAJOR}.${PDM_VERSION_MINOR}.${PDM_VERSION_PATCH}")
-
 #------------------------------------------------------------------------------
 # Enable languages
 #------------------------------------------------------------------------------
 
-enable_language(Fortran)
-enable_language(C)
-enable_language(CXX)
+set(PDM_IN_CWP 1)
+set(PDM_VERSION "${PDM_VERSION_MAJOR}.${PDM_VERSION_MINOR}.${PDM_VERSION_PATCH}")
 
 #------------------------------------------------------------------------------
 # User option Definition
@@ -101,6 +97,12 @@ endif()
 if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING  "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel" FORCE)
 endif()
+
+#------------------------------------------------------------------------------
+# Default compiler flags 
+#------------------------------------------------------------------------------
+
+include(${CMAKE_MODULE_PATH}/default_flags.cmake)
 
 #------------------------------------------------------------------------------
 # ADD "-DDEBUG_CLASSE" in Debug
@@ -239,12 +241,6 @@ CHECK_FUNCTION_EXISTS(vprintf HAVE_VPRINTF)
 CHECK_FUNCTION_EXISTS(snprintf HAVE_SNPRINTF)
 
 #------------------------------------------------------------------------------
-# Default compiler flags 
-#------------------------------------------------------------------------------
-
-include(${CMAKE_MODULE_PATH}/default_flags.cmake)
-
-#------------------------------------------------------------------------------
 # Libraries to add to link 
 #------------------------------------------------------------------------------
 
@@ -353,12 +349,6 @@ if (CWP_ENABLE_Fortran)
 endif ()
 
 #------------------------------------------------------------------------------
-# Doc
-#------------------------------------------------------------------------------
-
-find_package(Doxygen)       
-
-#------------------------------------------------------------------------------
 # Print summary of found and not found optional packages
 #------------------------------------------------------------------------------
 
@@ -393,6 +383,7 @@ if (CWP_ENABLE_PYTHON_BINDINGS)
 endif()
 
 add_subdirectory(tests)
+add_subdirectory(doc)
 
 #------------------------------------------------------------------------------
 # Affichage du message de fin d'installation

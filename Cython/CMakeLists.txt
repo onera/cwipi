@@ -37,6 +37,7 @@ list (APPEND include_dirs ${NumPy_INCLUDE_DIR})
 list (APPEND include_dirs ${CMAKE_CURRENT_BINARY_DIR})
 list (APPEND include_dirs ${CMAKE_BINARY_DIR})
 
+include(UseCython)
 cython_add_module (cwipi 
                    PYX_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/cwipi.pyx"
                    OTHER_SOURCES $<TARGET_OBJECTS:cwp>

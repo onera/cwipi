@@ -23,14 +23,6 @@ if (NOT (PDM_IN_PDMA))
    set(PDM_VERSION "${PDM_VERSION_MAJOR}.${PDM_VERSION_MINOR}.${PDM_VERSION_PATCH}")
 endif()
 
-#------------------------------------------------------------------------------
-# Enable languages
-#------------------------------------------------------------------------------
-
-enable_language(Fortran)
-enable_language(C)
-enable_language(CXX)
-
 enable_testing ()
 
 #------------------------------------------------------------------------------
