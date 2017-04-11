@@ -349,13 +349,6 @@ if (CWP_ENABLE_Fortran)
 endif ()
 
 #------------------------------------------------------------------------------
-# Print summary of found and not found optional packages
-#------------------------------------------------------------------------------
-
-include(FeatureSummary)
-FEATURE_SUMMARY(WHAT ALL)
-
-#------------------------------------------------------------------------------
 # Installation de PDM 
 #------------------------------------------------------------------------------
 
@@ -384,6 +377,13 @@ endif()
 
 add_subdirectory(tests)
 add_subdirectory(doc)
+
+#------------------------------------------------------------------------------
+# Print summary of found and not found optional packages
+#------------------------------------------------------------------------------
+
+include(FeatureSummary)
+FEATURE_SUMMARY(WHAT ALL)
 
 #------------------------------------------------------------------------------
 # Affichage du message de fin d'installation

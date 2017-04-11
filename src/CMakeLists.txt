@@ -82,8 +82,6 @@ if ((NOT CWP_HAVE_NOT_FORTRAN_IN_C) AND FORTRAN_LIBRARIES_FLAG)
    set_target_properties(cwp PROPERTIES COMPILE_FLAGS ${FORTRAN_LIBRARIES_FLAG})
 endif ()
 
-message(STATUS "Add library cwp - Succes")
-
 if (CWP_ENABLE_SHARED)
   set_property(TARGET ${cwp} PROPERTY POSITION_INDEPENDENT_CODE 1)
   add_library(cwp_shared SHARED  $<TARGET_OBJECTS:cwp>)

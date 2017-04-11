@@ -116,8 +116,6 @@ endif ()
 unset(LINK_LIBRARIES)
 list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
 
-message(STATUS "Add library pdm - Succes")
-
 if (PDM_ENABLE_SHARED)
   set_property(TARGET ${pdm} PROPERTY POSITION_INDEPENDENT_CODE 1)
   add_library(pdm_shared SHARED  $<TARGET_OBJECTS:pdm>)

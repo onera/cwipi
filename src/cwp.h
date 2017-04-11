@@ -1341,10 +1341,11 @@ CWP_Field_create
  const CWP_Type_t             data_type,
  const CWP_Field_storage_t    storage,
  const int                    n_component,
- const CWP_Field_value_t   nature,
+ const CWP_Field_value_t      nature,
  const CWP_Field_exch_t       exch_type,
  const CWP_Status_t           visu_status
 );
+
 
 /**
  *
@@ -1363,6 +1364,31 @@ CWP_Field_mapping_set
  const char                  *cpl_id,
  const char                  *field_id,
  const int                    i_part,
+ double                       data[]
+);
+
+
+/**
+ *
+ * \brief Set data mapping
+ * 
+ * \TODO Define gradient storage
+ * 
+ * \param [in]  cpl_id         Coupling identifier
+ * \param [in]  field_id       Field identifier
+ * \param [in]  i_part         Current partition
+ * \param [in]  order          Order
+ * \param [in]  data           Storage array (Mapping)
+ * 
+ */
+
+void
+CWP_Field_gradient_mapping_set
+(
+ const char                  *cpl_id,
+ const char                  *field_id,
+ const int                    i_part,
+ const int                    order,
  double                       data[]
 );
 

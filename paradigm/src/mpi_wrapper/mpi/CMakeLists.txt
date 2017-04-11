@@ -68,8 +68,6 @@ if (${PTSCOTCH_FOUND})
   list(APPEND LINK_LIBRARIES ${PTSCOTCH_LIBRARIES})
 endif ()
 
-message(STATUS "Add library pdm_mpi - Succes")
-
 if (PDM_ENABLE_SHARED)
   set_property(TARGET ${pdm_mpi} PROPERTY POSITION_INDEPENDENT_CODE 1)
   add_library(pdm_mpi_shared SHARED  $<TARGET_OBJECTS:pdm_mpi>)
