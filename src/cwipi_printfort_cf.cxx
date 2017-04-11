@@ -51,8 +51,8 @@
 #include "couplingDataBase_i.hxx"
 #include "cwipi.h"
 #include "cwipi_config.h"
-#include "coupling.hxx"
-#include "coupling_i.hxx"
+#include "oldCoupling.hxx"
+#include "oldCoupling_i.hxx"
 
 /*----------------------------------------------------------------------------*/
 

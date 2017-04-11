@@ -30,8 +30,8 @@
 
 #include <fvmc_parall.h>
 
-#include "coupling.hxx"
-#include "coupling_i.hxx"
+#include "oldCoupling.hxx"
+#include "oldCoupling_i.hxx"
 
 #include "mesh.hxx"
 #include "applicationProperties.hxx"

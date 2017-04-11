@@ -53,7 +53,7 @@ quickSort.c \
 solve_ax_b_4.c \
 mesh.cxx \
 conservativeMesh.cxx \
-coupling.cxx \
+oldCoupling.cxx \
 couplingDataBase.cxx \
 geomUtilities.cxx \
 cwipi_timer.c \

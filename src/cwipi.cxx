@@ -48,8 +48,8 @@
 #include "applicationPropertiesDataBase_i.hxx"
 #include "couplingDataBase.hxx"
 #include "couplingDataBase_i.hxx"
-#include "coupling.hxx"
-#include "coupling_i.hxx"
+#include "oldCoupling.hxx"
+#include "oldCoupling_i.hxx"
 //#include "conservativeMesh.hxx"
 
 

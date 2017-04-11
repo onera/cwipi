@@ -24,7 +24,7 @@
 #include "couplingDataBase.hxx"
 #include "couplingDataBase_i.hxx"
 #include "applicationProperties.hxx"
-#include "coupling.hxx"
+#include "oldCoupling.hxx"
 
 namespace cwipi {
 
