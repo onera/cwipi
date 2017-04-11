@@ -123,7 +123,7 @@ contains
     msg_comm,           &
     acces,              &
     prop_noeuds_actifs, &
-	options,            &
+    options,            &
     id_cs)
 
     implicit none
