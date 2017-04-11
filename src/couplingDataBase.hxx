@@ -30,13 +30,13 @@
 #include "cwipi.h"
 
 namespace cwipi {
-  class Coupling;
+  class oldCoupling;
   class ApplicationProperties;
   
   class CouplingDataBase : public Singleton <CouplingDataBase>
   {
     friend class Singleton <CouplingDataBase>;
-    friend class Coupling;
+    friend class oldCoupling;
     
   public:
     void createCoupling(const std::string &name, 
@@ -53,7 +53,7 @@ namespace cwipi {
     
     void deleteCoupling(const std::string &name);
     
-    inline Coupling& getCoupling(const std::string &name);
+    inline oldCoupling& getCoupling(const std::string &name);
     
     
   private:
@@ -63,7 +63,7 @@ namespace cwipi {
     virtual ~CouplingDataBase();
     
   private:
-    std::map <std::string, Coupling * > & _couplingDataBase;
+    std::map <std::string, oldCoupling * > & _couplingDataBase;
     MPI_Comm  _fvmComm;
 
   };

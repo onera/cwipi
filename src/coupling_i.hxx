@@ -25,83 +25,83 @@
 namespace cwipi {
 
 
-  const float *Coupling::distance() const
+  const float *oldCoupling::distance() const
   {
     return &(_distance[0]);
   }
 
 
-  void  Coupling::set_interpolation_function(cwipi_interpolation_fct_t fct)
+  void  oldCoupling::set_interpolation_function(cwipi_interpolation_fct_t fct)
   {
     _interpolationFct = fct;
   }
 
-  void  Coupling::set_interpolation_function_f(void * fct)
+  void  oldCoupling::set_interpolation_function_f(void * fct)
   {
     _interpolationFct_f = fct;
   }
 
-  const int * Coupling::getDistantLocation() const
+  const int * oldCoupling::getDistantLocation() const
   {
     return _locationToLocalMesh->getLocation();
   }
 
-  const float * Coupling::getDistantDistance() const
+  const float * oldCoupling::getDistantDistance() const
   {
     return _locationToLocalMesh->getDistance();
   }
 
-  int Coupling::getNNotlocatedPoint() const
+  int oldCoupling::getNNotlocatedPoint() const
   {
     return _locationToDistantMesh->getNUnlocatedPoint();
   }
 
-  const int *Coupling::getNotlocatedPoint() const
+  const int *oldCoupling::getNotlocatedPoint() const
   {
     return _locationToDistantMesh->getUnlocatedPoint();
   }
 
-  int Coupling::getNLocatedPoint() const
+  int oldCoupling::getNLocatedPoint() const
   {
     return _locationToDistantMesh->getNLocatedPoint();
   }
 
-  const int *Coupling::getLocatedPoint() const
+  const int *oldCoupling::getLocatedPoint() const
   {
     return _locationToDistantMesh->getLocatedPoint();
   }
 
-  const int *Coupling::getDistantBarycentricCoordinatesIndex() const
+  const int *oldCoupling::getDistantBarycentricCoordinatesIndex() const
   {
     return &_locationToLocalMesh->getBarycentricCoordinatesIndex()[0];
   }
 
-  const double *Coupling::getDistantBarycentricCoordinates() const
+  const double *oldCoupling::getDistantBarycentricCoordinates() const
   {
     return &_locationToLocalMesh->getBarycentricCoordinates()[0];
   }
 
-  int Coupling::getNDistantPoint() const
+  int oldCoupling::getNDistantPoint() const
   {
     return _locationToLocalMesh->getNLocatedDistantPoint();
   }
 
-  const double *Coupling::getDistantPointCoordinates() const
+  const double *oldCoupling::getDistantPointCoordinates() const
   {
     return &_locationToLocalMesh->getPointCoordinates()[0];
   }
 
-  int Coupling::getNDistantRank() const
+  int oldCoupling::getNDistantRank() const
   {
     return _locationToLocalMesh->getNDistantRank();
   }
 
-  const int *Coupling::getLocatedPointsDistribution() const
+  const int *oldCoupling::getLocatedPointsDistribution() const
   {
     return _locationToLocalMesh->getLocatedPointsDistribution();
   }
 
-  const int *Coupling::getDistantDistribution() const
+  const int *oldCoupling::getDistantDistribution() const
   {
     return _locationToLocalMesh->getDistantDistribution();
   }
@@ -112,7 +112,7 @@ namespace cwipi {
   ///   @param information
   ///
 
-  void Coupling::setInfo(cwipi_located_point_info_t info)
+  void oldCoupling::setInfo(cwipi_located_point_info_t info)
   {
       return _locationToDistantMesh->setInfo(info);
   }
@@ -121,7 +121,7 @@ namespace cwipi {
   /// \brief Get list of number of vertices of containing element
   ///
 
-  const int *Coupling::getElementContainingNVertex() const
+  const int *oldCoupling::getElementContainingNVertex() const
   {
     return _locationToDistantMesh->getElementContainingNVertex();
   }
@@ -130,7 +130,7 @@ namespace cwipi {
   /// \brief Get connectivity of element that contains each located point
   ///
 
-  const int *Coupling::getElementContainingVertex() const
+  const int *oldCoupling::getElementContainingVertex() const
   {
     return _locationToDistantMesh->getElementContainingVertex();
   }
@@ -139,7 +139,7 @@ namespace cwipi {
   /// \brief Get vertices coordinates of the element that contains each located point
   ///
 
-  const double *Coupling::getElementContainingVertexCoords() const
+  const double *oldCoupling::getElementContainingVertexCoords() const
   {
     return _locationToDistantMesh->getElementContainingVertexCoords();
   }
@@ -148,7 +148,7 @@ namespace cwipi {
   /// \brief Get barycentric coordinates for the element that contains each located point
   ///
 
-  const double *Coupling::getElementContainingBarycentricCoordinates() const
+  const double *oldCoupling::getElementContainingBarycentricCoordinates() const
   {
     return _locationToDistantMesh->getElementContainingBarycentricCoordinates();
   }
@@ -157,7 +157,7 @@ namespace cwipi {
   /// \brief Get MPI rank that contains each located point
   ///
 
-  const int *Coupling::getElementContainingMPIrank() const
+  const int *oldCoupling::getElementContainingMPIrank() const
   {
     return _locationToDistantMesh->getElementContainingMPIrank();
   }
@@ -167,7 +167,7 @@ namespace cwipi {
   /// \brief Get distant element that contain located point
   ///
 
-  const int *Coupling::getElementContaining() const
+  const int *oldCoupling::getElementContaining() const
   {
     return _locationToDistantMesh->getElementContaining();
   }

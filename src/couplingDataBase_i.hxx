@@ -25,9 +25,9 @@
 
 namespace cwipi {
 
-  Coupling& CouplingDataBase::getCoupling(const std::string &name) 
+  oldCoupling& CouplingDataBase::getCoupling(const std::string &name) 
   {
-    const std::map <std::string, Coupling * >::iterator p = _couplingDataBase.find(name);
+    const std::map <std::string, oldCoupling * >::iterator p = _couplingDataBase.find(name);
     if (p == _couplingDataBase.end())
       bftc_error(__FILE__, __LINE__, 0, 
                 "'%s' coupling not found \n", name.c_str());

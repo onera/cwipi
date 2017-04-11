@@ -38,11 +38,11 @@ namespace cwipi {
 
   class LocationToLocalMesh;
 
-  class Coupling {
+  class oldCoupling {
 
   public:
 
-    Coupling(const std::string& name,
+    oldCoupling(const std::string& name,
              const cwipi_coupling_type_t couplingType,
              const ApplicationProperties& localApplicationProperties,
              const ApplicationProperties& coupledApplicationProperties,
@@ -54,7 +54,7 @@ namespace cwipi {
              const char  *outputFormatOption,
              const int nb_Locations);
 
-    virtual ~Coupling();
+    virtual ~oldCoupling();
 
     void defineMesh(const int nVertex,
                     const int nElement,
@@ -208,9 +208,9 @@ namespace cwipi {
 
   private:
 
-    Coupling();
+    oldCoupling();
 
-    Coupling &operator=(const Coupling &other);
+    oldCoupling &operator=(const oldCoupling &other);
 
     std::vector<double> &  _extrapolate(double *cellCenterField, const int stride);
 

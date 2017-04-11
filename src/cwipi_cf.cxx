@@ -1055,7 +1055,7 @@ void PROCF(cwipi_locate_cf, CWIPI_LOCATE_CF) (const char *coupling_name,
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.locate();
 
@@ -1083,7 +1083,7 @@ void PROCF(cwipi_set_location_index_cf,
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.setLocationIndex(*index);
 
@@ -1113,7 +1113,7 @@ void PROCF(cwipi_load_location_cf,
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.loadLocation();
 
@@ -1135,7 +1135,7 @@ void PROCF(cwipi_save_location_cf,
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.saveLocation();
 
@@ -1178,7 +1178,7 @@ void PROCF(cwipi_open_location_file_cf,
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.openLocationFile(filenameC, modeC);
 
@@ -1208,7 +1208,7 @@ void PROCF(cwipi_open_location_file_cf,
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.closeLocationFile();
 
@@ -1241,7 +1241,7 @@ void PROCF(cwipi_dist_located_pts_get_cf, CWIPI_DIST_LOCATED_PTS_GET_CF)
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
   const int npts = coupling.getNLocatedPoint();
 
   const float *dist_c = coupling.distance();
@@ -1272,7 +1272,7 @@ void PROCF(cwipi_update_location_cf, CWIPI_UPDATE_LOCATION_CF) (const char *coup
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.updateLocation();
 
@@ -1302,7 +1302,7 @@ void PROCF(cwipi_get_distant_location_cf,
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   const unsigned int *locationC = (const unsigned int *) coupling.getDistantLocation();
   const int nDistantPoint = coupling.getNDistantPoint();
@@ -1335,7 +1335,7 @@ void PROCF(cwipi_get_distant_distance_cf,
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   const float* distanceC = (const float *) coupling.getDistantDistance();
   const int nDistantPoint = coupling.getNDistantPoint();
@@ -1369,7 +1369,7 @@ void PROCF(cwipi_get_n_located_dist_pts_cf,
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   *n_located_distant_Points = coupling.getNDistantPoint();
 
@@ -1401,7 +1401,7 @@ void PROCF(cwipi_get_dis_coord_cf,
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   const double* coordinatesC = coupling.getDistantPointCoordinates();
   const int nDistantPoint = coupling.getNDistantPoint();
@@ -1437,7 +1437,7 @@ void PROCF(cwipi_get_dis_bary_coord_idx_cf,
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   const int* barycentricCoordinatesIndexC = coupling.getDistantBarycentricCoordinatesIndex();
   const int nDistantPoint = coupling.getNDistantPoint();
@@ -1471,7 +1471,7 @@ void PROCF(cwipi_get_n_located_pts_cf,
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   *n_located_points = coupling.getNLocatedPoint();
 
@@ -1501,7 +1501,7 @@ void PROCF(cwipi_get_n_not_located_pts_cf,
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   *n_not_located_points = coupling.getNNotlocatedPoint();
 
@@ -1532,7 +1532,7 @@ void PROCF(cwipi_get_dis_bary_coord_cf,
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling =
+  cwipi::oldCoupling& coupling =
     couplingDataBase.getCoupling(coupling_name_str);
 
   const int* barycentricCoordinatesIndexC = coupling.getDistantBarycentricCoordinatesIndex();
@@ -1571,7 +1571,7 @@ void PROCF(cwipi_get_n_dis_ranks_cf, CWIPI_GET_N_DIS_RANKS_CF)
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling =
+  cwipi::oldCoupling& coupling =
     couplingDataBase.getCoupling(coupling_name_str);
 
   *n_dis_ranks = coupling.getNDistantRank();
@@ -1606,7 +1606,7 @@ void PROCF(cwipi_get_dis_distrib_cf, CWIPI_GET_DIS_DISTRIB_CF)
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling =
+  cwipi::oldCoupling& coupling =
     couplingDataBase.getCoupling(coupling_name_str);
 
   const int n_dis_ranks = coupling.getNDistantRank();
@@ -1645,7 +1645,7 @@ void PROCF(cwipi_get_loc_pts_distrib_cf, CWIPI_GET_LOC_PTS_DISTRIB_CF)
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling =
+  cwipi::oldCoupling& coupling =
     couplingDataBase.getCoupling(coupling_name_str);
 
   const int n_dis_ranks = coupling.getNDistantRank();
@@ -1721,7 +1721,7 @@ void PROCF(cwipi_exch_with_user_itp_cf,
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   *exchange_status =  coupling.exchange(exchange_nameC,
                                         *stride,
@@ -1779,7 +1779,7 @@ void PROCF(cwipi_exchange_cf,
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   *exchange_status =  coupling.exchange(exchange_nameC,
                                         *stride,
@@ -1830,7 +1830,7 @@ void PROCF(cwipi_receive_cf,
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   *exchange_status =  coupling.exchange(exchange_nameC,
                                         *stride,
@@ -1878,7 +1878,7 @@ void PROCF(cwipi_send_with_user_itp_cf,
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   *exchange_status =  coupling.exchange(exchange_nameC,
                                         *stride,
@@ -1923,7 +1923,7 @@ void PROCF(cwipi_send_cf,
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   *exchange_status =  coupling.exchange(exchange_nameC,
                                         *stride,
@@ -1970,7 +1970,7 @@ void PROCF(cwipi_issend_cf,
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.issend(exchange_nameC,
                   *tag,
@@ -2018,7 +2018,7 @@ void PROCF(cwipi_issend_with_user_itp_cf,
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.issend(exchange_nameC,
                   *tag,
@@ -2065,7 +2065,7 @@ void PROCF(cwipi_ireceive_cf,
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.irecv(exchange_nameC,
                  *tag,
@@ -2096,7 +2096,7 @@ void PROCF(cwipi_wait_irecv_cf, CWIPI_WAIT_IRECV_CF)
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.waitIrecv(*request);
 
@@ -2117,7 +2117,7 @@ void PROCF(cwipi_wait_issend_cf, CWIPI_WAIT_ISSEND_CF)
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.waitIssend(*request);
 
@@ -2197,7 +2197,7 @@ void PROCF(cwipi_get_not_located_pts_cf,
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   const int n_not_located_points = coupling.getNNotlocatedPoint();
   const int *notLocatedPointsC = coupling.getNotlocatedPoint();
@@ -2233,7 +2233,7 @@ void PROCF(cwipi_get_located_pts_cf,
 
   const std::string &coupling_name_str = coupling_nameC;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   const int n_located_points = coupling.getNLocatedPoint();
   const int *locatedPointsC = coupling.getLocatedPoint();

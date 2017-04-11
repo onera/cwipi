@@ -86,7 +86,7 @@ namespace cwipi {
   //TODO: Faire une factory sur le type de couplage
   //TODO: Voir l'utilite de _fvmComm (A supprimer ?)
 
-  Coupling::Coupling(const std::string& name,
+  oldCoupling::oldCoupling(const std::string& name,
                      const cwipi_coupling_type_t couplingType,
                      const ApplicationProperties& localApplicationProperties,
                      const ApplicationProperties& coupledApplicationProperties,
@@ -161,7 +161,7 @@ namespace cwipi {
 
   }
 
-  std::vector<double> &  Coupling::_extrapolate(double *cellCenterField, const int stride)
+  std::vector<double> &  oldCoupling::_extrapolate(double *cellCenterField, const int stride)
   {
     if (_tmpVertexField == NULL)
       _tmpVertexField = new  std::vector<double>(_supportMesh->getNVertex()*stride,0.);
@@ -259,7 +259,7 @@ namespace cwipi {
     return vertexField;
   }
 
-  Coupling::~Coupling()
+  oldCoupling::~oldCoupling()
   {
 #if defined(DEBUG) && 0
     std::cout << "destroying '" << _name << "' coupling" << std::endl;
@@ -338,7 +338,7 @@ namespace cwipi {
 
   }
 
-  void Coupling::_interpolate(double *referenceField,
+  void oldCoupling::_interpolate(double *referenceField,
                               std::vector<double>& interpolatedField,
                               const int stride)
   {
@@ -385,7 +385,7 @@ namespace cwipi {
     }
   }
 
-  void Coupling::_interpolate1D(double *referenceVertexField,
+  void oldCoupling::_interpolate1D(double *referenceVertexField,
                                 std::vector<double>& interpolatedField,
                                 const int stride)
   {
@@ -412,7 +412,7 @@ namespace cwipi {
     }
   }
 
-  void Coupling::_interpolate2D (double *vertexField,
+  void oldCoupling::_interpolate2D (double *vertexField,
                                  std::vector<double>& interpolatedField,
                                  const int stride)
   {
@@ -446,7 +446,7 @@ namespace cwipi {
   }
 
 
-  void Coupling::_interpolate3D(double *vertexField,
+  void oldCoupling::_interpolate3D(double *vertexField,
                                 std::vector<double>& interpolatedField,
                                 const int stride)
   {
@@ -649,7 +649,7 @@ namespace cwipi {
   }
 
 
-  void Coupling::defineMesh(const int nVertex,
+  void oldCoupling::defineMesh(const int nVertex,
                             const int nElement,
                             double coordinates[],
                             int connectivity_index[],
@@ -673,7 +673,7 @@ namespace cwipi {
   }
 
 
-  void Coupling::defineMesh(fvmc_nodal_t* fvmc_nodal)
+  void oldCoupling::defineMesh(fvmc_nodal_t* fvmc_nodal)
   {
     if (_supportMesh  != NULL)
       bftc_error(__FILE__, __LINE__, 0, "coupling mesh is already created\n");
@@ -687,7 +687,7 @@ namespace cwipi {
 
   }
 
-  void Coupling::setPointsToLocate(const int    n_points,
+  void oldCoupling::setPointsToLocate(const int    n_points,
                                    double coordinate[])
   {
     _toLocate = true;
@@ -695,7 +695,7 @@ namespace cwipi {
   }
 
 
-  void Coupling::defineMeshAddPolyhedra(const int n_element,
+  void oldCoupling::defineMeshAddPolyhedra(const int n_element,
                                         int face_index[],
                                         int cell_to_face_connectivity[],
                                         const int nFace,
@@ -721,7 +721,7 @@ namespace cwipi {
   }
 
 
-  void Coupling::updateLocation()
+  void oldCoupling::updateLocation()
   {
     if (_isCoupledRank) {
       _toLocate = true;
@@ -731,7 +731,7 @@ namespace cwipi {
                  " updateLocation must be called only by the root rank\n");
   }
 
-  void Coupling::setLocationIndex(const int index)
+  void oldCoupling::setLocationIndex(const int index)
   {
     if (_isCoupledRank) {
       _locationToDistantMesh = _tablelocationToDistantMesh[index];
@@ -743,7 +743,7 @@ namespace cwipi {
   }
 
 
-  void Coupling::openLocationFile(char *file, const char *moderwa)
+  void oldCoupling::openLocationFile(char *file, const char *moderwa)
   {
   
     int mode;
@@ -764,14 +764,14 @@ namespace cwipi {
   
   }
 
-  void Coupling::closeLocationFile()
+  void oldCoupling::closeLocationFile()
   {
     MPI_File_close(&_locationsFile);
   }
 
 
 
-  void Coupling::saveLocation()
+  void oldCoupling::saveLocation()
   {
     if (_toLocate)
       bftc_error(__FILE__, __LINE__, 0, "trying to save a not located locator");
@@ -857,7 +857,7 @@ namespace cwipi {
 
 
 
-  void Coupling::loadLocation()
+  void oldCoupling::loadLocation()
   {
     if (_isCoupledRank) {
       int currentRank, nbRank;
@@ -920,7 +920,7 @@ namespace cwipi {
   }
 
 
-  cwipi_exchange_status_t Coupling::exchange(const char    *exchangeName,
+  cwipi_exchange_status_t oldCoupling::exchange(const char    *exchangeName,
                                              const int     stride,
                                              const int     timeStep,
                                              const double  timeValue,
@@ -1259,7 +1259,7 @@ namespace cwipi {
   }
 
 
-  void Coupling::issend(const char    *exchangeName,
+  void oldCoupling::issend(const char    *exchangeName,
                         const int     tag,
                         const int     stride,
                         const int     timeStep,
@@ -1475,7 +1475,7 @@ namespace cwipi {
   }
 
 
-  void Coupling::waitIssend(int request)
+  void oldCoupling::waitIssend(int request)
   {
     if (_isCoupledRank) {
       fvmc_locator_issend_wait(_locationToLocalMesh->getFVMLocator(), request);
@@ -1486,7 +1486,7 @@ namespace cwipi {
   }
 
 
-  void Coupling::irecv(const char    *exchangeName,
+  void oldCoupling::irecv(const char    *exchangeName,
                        const int     tag,
                        const int     stride,
                        const int     timeStep,
@@ -1535,7 +1535,7 @@ namespace cwipi {
   }
 
 
-  void Coupling::waitIrecv(int request)    
+  void oldCoupling::waitIrecv(int request)    
   {
 
     if (_isCoupledRank) {
@@ -1577,7 +1577,7 @@ namespace cwipi {
   }
 
 
-  void Coupling::_initVisualization()
+  void oldCoupling::_initVisualization()
   {
     if (_fvmWriter == NULL && _outputFrequency > 0) {
 
@@ -1700,7 +1700,7 @@ namespace cwipi {
   }
 
 
-  void Coupling::_fieldsVisualization(const char *exchangeName,
+  void oldCoupling::_fieldsVisualization(const char *exchangeName,
                                       const int stride,
                                       const int timeStep,
                                       const double timeValue,
@@ -1851,7 +1851,7 @@ namespace cwipi {
   }
 
 
-  void Coupling::locate()
+  void oldCoupling::locate()
   {
 
     const MPI_Comm& localComm = _localApplicationProperties.getLocalComm();
@@ -1909,7 +1909,7 @@ namespace cwipi {
   }
 
 
-  void Coupling::_createCouplingComm()
+  void oldCoupling::_createCouplingComm()
   {
 
     const MPI_Comm& localComm = _localApplicationProperties.getLocalComm();
@@ -2133,7 +2133,7 @@ namespace cwipi {
   /// \brief Exchange field on vertices of cells that contain each located points
   ///
 
-  void Coupling::exchangeCellVertexFieldOfElementContaining (double *sendingField,  double *receivingField, const int stride)
+  void oldCoupling::exchangeCellVertexFieldOfElementContaining (double *sendingField,  double *receivingField, const int stride)
   {
     _locationToLocalMesh->exchangeCellVertexFieldOfElementContaining(sendingField, receivingField, stride);
   }
@@ -2142,7 +2142,7 @@ namespace cwipi {
   /// \brief Exchange field on cells that contain each located points
   ///
 
-  void Coupling::exchangeCellCenterFieldOfElementContaining (double *sendingField,  double *receivingField, const int stride)
+  void oldCoupling::exchangeCellCenterFieldOfElementContaining (double *sendingField,  double *receivingField, const int stride)
   {
     _locationToLocalMesh->exchangeCellCenterFieldOfElementContaining(sendingField, receivingField, stride);
   }
