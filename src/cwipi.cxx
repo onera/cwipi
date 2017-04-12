@@ -134,7 +134,7 @@ void cwipi_init
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
-  bftc_printf("\ncwipi "CWIPI_VERSION" initializing\n");
+  bftc_printf("\ncwipi " CWIPI_VERSION " initializing\n");
   bftc_printf("------------------------\n\n");
 
   *application_comm = properties.init(application_name,
