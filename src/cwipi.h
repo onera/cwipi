@@ -54,7 +54,7 @@ typedef enum {
 
   CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
   CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING,
-  CWIPI_COUPLING_SEQUENTIAL,
+  CWIPI_COUPLING_SEQUENTIAL
 
 } cwipi_coupling_type_t;
 
@@ -65,7 +65,7 @@ typedef enum {
 typedef enum {
 
   CWIPI_BASIC_INFO,
-  CWIPI_DISTANT_MESH_INFO,
+  CWIPI_DISTANT_MESH_INFO
 
 } cwipi_located_point_info_t;
 
@@ -77,7 +77,7 @@ typedef enum {
 
   CWIPI_STATIC_MESH,
   CWIPI_MOBILE_MESH,
-  CWIPI_CYCLIC_MESH,
+  CWIPI_CYCLIC_MESH
 
 } cwipi_mesh_type_t;
 
@@ -88,7 +88,7 @@ typedef enum {
 typedef enum {
 
   CWIPI_SOLVER_CELL_CENTER,
-  CWIPI_SOLVER_CELL_VERTEX,
+  CWIPI_SOLVER_CELL_VERTEX
 
 } cwipi_solver_type_t;
 
@@ -99,7 +99,7 @@ typedef enum {
 typedef enum {
 
   CWIPI_FIELD_TYPE_FLOAT,
-  CWIPI_FIELD_TYPE_DOUBLE,
+  CWIPI_FIELD_TYPE_DOUBLE
 
 } cwipi_field_type_t;
 
@@ -110,7 +110,7 @@ typedef enum {
 typedef enum {
 
   CWIPI_INTERPOLATION_DEFAULT,
-  CWIPI_INTERPOLATION_USER,
+  CWIPI_INTERPOLATION_USER
 
 } cwipi_interpolation_t;
 
@@ -121,7 +121,7 @@ typedef enum {
 typedef enum {
 
   CWIPI_EXCHANGE_OK,
-  CWIPI_EXCHANGE_BAD_RECEIVING,
+  CWIPI_EXCHANGE_BAD_RECEIVING
 
 } cwipi_exchange_status_t;
 
@@ -141,7 +141,7 @@ typedef enum {
   CWIPI_CELL_HEXA8,
   CWIPI_CELL_PRISM6,
   CWIPI_CELL_PYRAM5,
-  CWIPI_CELL_POLY,
+  CWIPI_CELL_POLY
 
 } cwipi_element_t;
 

@@ -80,7 +80,7 @@ typedef int PDM_l_num_t;
 typedef enum {
 
   PDM_INT    = 0,  /*!< Integer */
-  PDM_DOUBLE = 1,  /*!< Double */
+  PDM_DOUBLE = 1   /*!< Double */
 
 } PDM_data_t;
 
@@ -93,7 +93,7 @@ typedef enum {
 typedef enum {
 
   PDM_STRIDE_CST = 0,  /*!< Constant stride element */
-  PDM_STRIDE_VAR = 1,  /*!< Variable stride element */               
+  PDM_STRIDE_VAR = 1   /*!< Variable stride element */               
 
 } PDM_stride_t;
 
@@ -106,7 +106,7 @@ typedef enum {
 typedef enum {
 
   PDM_TRUE  = 0,  /*!< True  */
-  PDM_FALSE = 1,  /*!< False */               
+  PDM_FALSE = 1   /*!< False */               
 
 } PDM_bool_t;
 
@@ -122,7 +122,7 @@ typedef enum {
   PDM_MESH_ENTITY_CELL    = 0,  /*!< Cell entity  */
   PDM_MESH_ENTITY_FACE    = 1,  /*!< Face entity  */
   PDM_MESH_ENTITY_EDGE    = 2,  /*!< Edge entity  */
-  PDM_MESH_ENTITY_VERTEX  = 3,  /*!< Vertex entity  */
+  PDM_MESH_ENTITY_VERTEX  = 3   /*!< Vertex entity  */
 
 } PDM_mesh_entities_t;
 

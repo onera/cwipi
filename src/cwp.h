@@ -67,7 +67,7 @@ typedef enum {
 
   CWP_DOUBLE,      /*!< Double precision type */
   CWP_INT,         /*!< Integer type */ 
-  CWP_CHAR,         /*!< String type */ 
+  CWP_CHAR         /*!< String type */ 
 
 } CWP_Type_t;
 
@@ -89,7 +89,7 @@ typedef enum {
   CWP_COMM_SEQ,              /*!< Parallel communcation 
                                   on unpartitioned source defined on 
                                   master process */
-  CWP_COMM_INTERNAL,         /*!< Internal communcation within a process */
+  CWP_COMM_INTERNAL         /*!< Internal communcation within a process */
 
 } CWP_Comm_t;
 
@@ -108,7 +108,7 @@ typedef enum {
   CWP_FREQ_CPL_TIME_STEP,       /*!< Coupling time step        */ 
   CWP_FREQ_ASYNCHRONOUS,        /*!< Exchanges are asynchronous */ 
   CWP_FREQ_SLAVE,               /*!< Give a converged state    */ 
-  CWP_FREQ_MASTER,              /*!< Request a converged state */ 
+  CWP_FREQ_MASTER               /*!< Request a converged state */ 
 
 } CWP_Freq_t;
 
@@ -125,7 +125,7 @@ typedef enum {
   CWP_FIELD_VALUE_CELL_MEAN,   /*!< Cell mean value */
   CWP_FIELD_VALUE_CELL_POINT,  /*!< Field defined in cell point  */
   CWP_FIELD_VALUE_NODE,        /*!< Cell vertex field */
-  CWP_FIELD_VALUE_USER,        /*!< User defined field */ 
+  CWP_FIELD_VALUE_USER         /*!< User defined field */ 
 
 } CWP_Field_value_t ;
 
@@ -141,7 +141,7 @@ typedef enum {
 
   CWP_FIELD_EXCH_SEND,        /*!< Send */
   CWP_FIELD_EXCH_RECV,        /*!< Receive */
-  CWP_FIELD_EXCH_SENDRECV,    /*!< Send and receive */ 
+  CWP_FIELD_EXCH_SENDRECV    /*!< Send and receive */ 
 
 } CWP_Field_exch_t ;
 
@@ -156,7 +156,7 @@ typedef enum {
 typedef enum {
 
   CWP_FIELD_STORAGE_INTERLACED,  /*!< Interlaced storage */
-  CWP_FIELD_STORAGE_BLOCK,       /*!< Block storage */
+  CWP_FIELD_STORAGE_BLOCK        /*!< Block storage */
 
 } CWP_Field_storage_t ;
 
@@ -173,7 +173,7 @@ typedef enum {
 typedef enum {
 
   CWP_INTERPOLATION_DEFAULT,  /*!< Default interpolation */
-  CWP_INTERPOLATION_USER,     /*!< User interpolation */
+  CWP_INTERPOLATION_USER      /*!< User interpolation */
 
 } CWP_Interpolation_t;
 
@@ -187,7 +187,7 @@ typedef enum {
 typedef enum {
 
   CWP_STATUS_OFF,           /*!< output with error */
-  CWP_STATUS_ON,            /*!< Output without error */
+  CWP_STATUS_ON             /*!< Output without error */
 
 } CWP_Status_t;
 
@@ -201,7 +201,7 @@ typedef enum {
 typedef enum {
 
   CWP_ERR_NO_ERROR,       /*!< Output without error */
-  CWP_ERR_DEFAULT,        /*!< Output with default error */
+  CWP_ERR_DEFAULT         /*!< Output with default error */
 
 } CWP_Err_t;
 
@@ -223,7 +223,7 @@ typedef enum {
   CWP_BLOCK_CELL_HEXA8,    /*!< Hexahedron with eight nodes */
   CWP_BLOCK_CELL_PRISM6,   /*!< Prism with six nodes */
   CWP_BLOCK_CELL_PYRAM5,   /*!< Pyramid with five nodes */
-  CWP_BLOCK_CELL_POLY,     /*!< Generic polyhedron */
+  CWP_BLOCK_CELL_POLY      /*!< Generic polyhedron */
 
 } CWP_Block_t;
 
@@ -238,7 +238,7 @@ typedef enum {
 typedef enum {
 
   CWP_SUPPORT_MESH,         /*!< Mesh */
-  CWP_SUPPORT_POINT_CLOUD,  /*!< Point cloud */
+  CWP_SUPPORT_POINT_CLOUD   /*!< Point cloud */
 
 } CWP_Support_t;
 
@@ -254,7 +254,7 @@ typedef enum {
   CWP_DISPLACEMENT_STATIC,       /*!< Static */ 
   CWP_DISPLACEMENT_UNSPECIFIED,  /*!< Unspecified displacement */ 
   CWP_DISPLACEMENT_TRANSLATION,  /*!< Translation */ 
-  CWP_DISPLACEMENT_ROTATION,     /*!< Rotation */ 
+  CWP_DISPLACEMENT_ROTATION      /*!< Rotation */ 
 
 } CWP_Displacement_t;
 
@@ -270,7 +270,7 @@ typedef enum {
 
   CWP_GEOM_CLOSEST_POINT, /*!< Closest points */
   CWP_GEOM_INTERSECTION,  /*!< Meshes intersection */
-  CWP_GEOM_LOCATION,      /*!< Location into a mesh */
+  CWP_GEOM_LOCATION       /*!< Location into a mesh */
 
 } CWP_Geom_t;
 
@@ -286,7 +286,7 @@ typedef enum{
   CWP_INTERFACE_POINT,    /*!< Point interface */ 
   CWP_INTERFACE_LINEAR,   /*!< Linear interface */ 
   CWP_INTERFACE_SURFACE,  /*!< Surface interface */ 
-  CWP_INTERFACE_VOLUME,   /*!< Volume interface */ 
+  CWP_INTERFACE_VOLUME    /*!< Volume interface */ 
 
 } CWP_Interface_t;
 
@@ -302,7 +302,7 @@ typedef enum {
 
   CWP_STATE_IN_PROGRESS,         /*!< Code running */
   CWP_STATE_END,                 /*!< Computation end */
-  CWP_STATE_OUTPUT_ERROR,        /*!< Output one error */
+  CWP_STATE_OUTPUT_ERROR         /*!< Output one error */
 
 } CWP_State_t;
 
@@ -316,7 +316,7 @@ typedef enum {
 
   CWP_OP_MIN,            /*!< output with error */
   CWP_OP_MAX,            /*!< Output without error */
-  CWP_OP_SUM,            /*!< Output without error */
+  CWP_OP_SUM             /*!< Output without error */
 
 } CWP_Op_t;
 
@@ -401,7 +401,7 @@ typedef void (*CWP_Interp_from_location_t)
  const int                   tgt_pts_bary_coords_idx[],
  const double                tgt_pts_bary_coords[],
  const int                   stride,
- const CWP_Field_value_   t  src_field_location,
+ const CWP_Field_value_t     src_field_location,
  const void                 *src_field,
  const CWP_Field_value_t     tgt_field_location,
  void                       *tgt_field
@@ -1290,7 +1290,7 @@ void
 CWP_Support_del
 (
  const char *cpl_id,
- const char            *code_name,
+ const char *code_name
 );
 
 /**
@@ -1307,10 +1307,10 @@ CWP_Support_del
 void 
 CWP_Support_shared_fvm_nodal
 (
- const char    *cpl_id,
- const char            *code_name,
- const int      i_part,
- void          *fvmc_nodal
+ const char  *cpl_id,
+ const char  *code_name,
+ const int   i_part,
+ void        *fvmc_nodal
 );
 
 /*----------------------------------------------------------------------------*
@@ -1615,7 +1615,7 @@ CWP_Wait_irecv
  * Functions about user interpolation                                         *
  *----------------------------------------------------------------------------*/
 
-/* TODO: associer l'interpolation utilisateur au champ plutot qu'au couplage
+/* /TODO: associer l'interpolation utilisateur au champ plutot qu'au couplage */
 
 /**
  *
