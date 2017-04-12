@@ -402,6 +402,7 @@ namespace cwipi {
     int
     ctrlParamIs
     (
+     const string &name
     ) const;
 
 
@@ -884,7 +885,7 @@ namespace cwipi {
     char **names = new char * [ctrlParamNGet <T> ()];
     if (typeid(T) == typeid(string)) { 
       int i = 0;
-      for(map < string, T >::iterator p = _strCtrlParam.begin(); 
+      for(typename map < string, T >::iterator p = _strCtrlParam.begin(); 
           p != _strCtrlParam.end(); 
           ++p) {
         names[i] = new char [p->first.size() + 1];
@@ -894,7 +895,7 @@ namespace cwipi {
     } 
     else if (typeid(T) == typeid(int)) {
       int i = 0;
-      for(map < string, T >::iterator p = _intCtrlParam.begin(); 
+      for(typename map < string, T >::iterator p = _intCtrlParam.begin(); 
           p != _intCtrlParam.end(); 
           ++p) {
         names[i] = new char [p->first.size() + 1];
@@ -904,7 +905,7 @@ namespace cwipi {
     }
     else if (typeid(T) == typeid(double)) {
       int i = 0;
-      for(map < string, T >::iterator p = _dblCtrlParam.begin(); 
+      for(typename map < string, T >::iterator p = _dblCtrlParam.begin(); 
           p != _dblCtrlParam.end(); 
           ++p) {
         names[i] = new char [p->first.size() + 1];
@@ -932,10 +933,11 @@ namespace cwipi {
   int
   CodeProperties::ctrlParamIs
   (
+   const string &name 
   )  const
   {
-    map < string, T >::iterator  p;
-    map < string, T >::iterator  p_end;
+    typename map < string, T >::iterator  p;
+    typename map < string, T >::iterator  p_end;
     if (typeid(T) == typeid(string)) { 
       p     = _strCtrlParam.find(name);
       p_end = _strCtrlParam.end();
