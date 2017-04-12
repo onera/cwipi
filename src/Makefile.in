@@ -151,7 +151,7 @@ libcwipi_la_DEPENDENCIES = $(top_builddir)/src/bft/libbftc.la \
 am_libcwipi_la_OBJECTS = applicationProperties.lo \
 	applicationPropertiesDataBase.lo locationToLocalMesh.lo \
 	locationToDistantMesh.lo cwipi.lo quickSort.lo solve_ax_b_4.lo \
-	mesh.lo conservativeMesh.lo coupling.lo couplingDataBase.lo \
+	mesh.lo conservativeMesh.lo oldCoupling.lo couplingDataBase.lo \
 	geomUtilities.lo cwipi_timer.lo creeMaillagePolygone2D.lo \
 	grid_mesh.lo
 libcwipi_la_OBJECTS = $(am_libcwipi_la_OBJECTS)
@@ -501,7 +501,7 @@ quickSort.c \
 solve_ax_b_4.c \
 mesh.cxx \
 conservativeMesh.cxx \
-coupling.cxx \
+oldCoupling.cxx \
 couplingDataBase.cxx \
 geomUtilities.cxx \
 cwipi_timer.c \
@@ -620,7 +620,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/applicationProperties.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/applicationPropertiesDataBase.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/conservativeMesh.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/coupling.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/couplingDataBase.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/creeMaillagePolygone2D.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwipi.Plo@am__quote@
@@ -632,6 +631,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/locationToDistantMesh.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/locationToLocalMesh.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mesh.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/oldCoupling.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/quickSort.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/solve_ax_b_4.Plo@am__quote@
 
