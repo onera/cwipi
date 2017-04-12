@@ -32,7 +32,6 @@ subroutine printfort (chaine, taille)
   character, dimension(*) :: chaine
   integer   ::    taille
   character(len = 16384) :: chloc
-  character(len = 64) ::  nom
   integer       ii
 
   taille = min(taille, 16384 - 1)

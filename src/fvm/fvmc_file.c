@@ -901,14 +901,13 @@ fvmc_file_t *
 fvmc_file_free(fvmc_file_t  *f)
 {
   fvmc_file_t  *_f = f;
-  int errcode = 0;
 
   if (_f->sh != NULL)
-    errcode = _file_close(_f);
+    _file_close(_f);
 
 #if defined(FVMC_HAVE_MPI_IO)
   else if (_f->fh != MPI_FILE_NULL)
-    errcode = _mpi_file_close(_f);
+     _mpi_file_close(_f);
 #endif
 
 #if defined(FVMC_HAVE_MPI)

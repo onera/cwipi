@@ -145,7 +145,6 @@ void  grid_mesh(double xmin,
 
   /* Number of vertices and elements in the partition */
 
-  const int nVertex = nVertexSeg * nVertexSeg;
   const int nElts   = (nVertexSeg - 1) * (nVertexSeg - 1);
 
   /* Define coordinates */
@@ -243,7 +242,7 @@ void mesh_rotate(double *coords, int npt, double alpha) {
 }
 
 void carre2rond(double xmin, double xmax, double ymin, double ymax, double *coords, int nVertex)  {
-  double xc, yc , x , y, z;
+  double xc, yc , x , y;
   double hyp, l;
   // tolerance pour eviter division par ZERO
   const double toler = 0.00000001;

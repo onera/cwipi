@@ -1731,7 +1731,6 @@ fvmc_io_num_create_from_coords(const fvmc_coord_t  coords[],
 
     size_t n_block_ents = 0;
     fvmc_gnum_t current_global_num = 0, global_num_shift = 0;
-    double fit = 0.;
 
     int *c_rank = NULL;
     int *send_count = NULL, *send_shift = NULL;
@@ -1747,14 +1746,14 @@ fvmc_io_num_create_from_coords(const fvmc_coord_t  coords[],
     for (i = 0; i < n_entities; i++)
       weight[i] = 1;
 
-    fit = fvmc_morton_build_rank_index(dim,
-                                      level,
-                                      n_entities,
-                                      m_code,
-                                      weight,
-                                      order,
-                                      morton_index,
-                                      comm);
+    fvmc_morton_build_rank_index(dim,
+                                 level,
+                                 n_entities,
+                                 m_code,
+                                 weight,
+                                 order,
+                                 morton_index,
+                                 comm);
 
     BFTC_FREE(order);
     BFTC_FREE(weight);

@@ -1998,7 +1998,7 @@ contains
     implicit none
 
     character (len = *) :: couplingName, exchangeName, sendingFieldName
-    integer (kind = cwipi_int_l) :: stride, nStep, status, tag, request
+    integer (kind = cwipi_int_l) :: stride, nStep, tag, request
     double precision :: timeValue
     double precision, dimension(*) :: sendingField
 
@@ -2389,7 +2389,7 @@ contains
     implicit none
 
     character (len = *) :: couplingName, exchangeName, receivingFieldName
-    integer (kind = cwipi_int_l) :: stride, nStep, status, tag, request
+    integer (kind = cwipi_int_l) :: stride, nStep, tag, request
     double precision :: timeValue
     double precision, dimension(*) :: receivingField
 

@@ -380,7 +380,7 @@ _convert_array_double_to_float(const int                     src_dim,
       for (i = 0, j = src_idx_start ; j < src_idx_end ; i++, j++) {
         for (k = 0, l = src_dim_shift ; k < min_dim ; k++, l++)
           dest_data[i*dest_dim + k]
-            = src_data[0][j*src_dim + l];
+            = (float) src_data[0][j*src_dim + l];
       }
     }
     else if (parent_num != NULL) {
@@ -392,7 +392,7 @@ _convert_array_double_to_float(const int                     src_dim,
         parent_id -= parent_num_shift[pl];
         for (k = 0, l = src_dim_shift ; k < min_dim ; k++, l++)
           dest_data[i*dest_dim + k]
-            = src_data[pl][parent_id*src_dim + l];
+            = (float) src_data[pl][parent_id*src_dim + l];
       }
     }
     else { /* parent_num == NULL: implicit parent numbering */
@@ -404,7 +404,7 @@ _convert_array_double_to_float(const int                     src_dim,
         parent_id -= parent_num_shift[pl];
         for (k = 0, l = src_dim_shift ; k < min_dim ; k++, l++)
           dest_data[i*dest_dim + k]
-            = src_data[pl][parent_id*src_dim + l];
+            = (float) src_data[pl][parent_id*src_dim + l];
       }
     }
 
@@ -417,7 +417,7 @@ _convert_array_double_to_float(const int                     src_dim,
     if (n_parent_lists == 0) {
       for (i = 0, j = src_idx_start ; j < src_idx_end ; i++, j++) {
         for (k = 0, l = src_dim_shift ; k < min_dim ; k++, l++)
-          dest_data[i*dest_dim + k] = src_data[l][j];
+          dest_data[i*dest_dim + k] = (float) src_data[l][j];
       }
     }
     else if (parent_num != NULL) {
@@ -429,7 +429,7 @@ _convert_array_double_to_float(const int                     src_dim,
         parent_id -= parent_num_shift[pl];
         for (k = 0, l = src_dim_shift ; k < min_dim ; k++, l++)
           dest_data[i*dest_dim + k]
-            = src_data[src_dim*pl + l][parent_id];
+            = (float) src_data[src_dim*pl + l][parent_id];
       }
     }
     else { /* parent_num == NULL: implicit parent numbering */
@@ -441,7 +441,7 @@ _convert_array_double_to_float(const int                     src_dim,
         parent_id -= parent_num_shift[pl];
         for (k = 0, l = src_dim_shift ; k < min_dim ; k++, l++)
           dest_data[i*dest_dim + k]
-            = src_data[src_dim*pl + l][parent_id];
+            = (float) src_data[src_dim*pl + l][parent_id];
       }
     }
 
@@ -621,7 +621,7 @@ _convert_array_int32_to_float(const fvmc_lnum_t              src_idx_start,
 
   if (n_parent_lists == 0) {
     for (i = 0, j = src_idx_start ; j < src_idx_end ; i++, j++)
-      dest_data[i] = src_data[0][j];
+      dest_data[i] = (float) src_data[0][j];
   }
   else if (parent_num != NULL) {
     for (i = 0, j = src_idx_start ; j < src_idx_end ; i++, j++) {
@@ -630,7 +630,7 @@ _convert_array_int32_to_float(const fvmc_lnum_t              src_idx_start,
            pl--);
       assert(pl > -1);
       parent_id -= parent_num_shift[pl];
-      dest_data[i] = src_data[pl][parent_id];
+      dest_data[i] = (float) src_data[pl][parent_id];
     }
   }
   else { /* parent_num == NULL: implicit parent numbering */
@@ -640,7 +640,7 @@ _convert_array_int32_to_float(const fvmc_lnum_t              src_idx_start,
            pl--);
       assert(pl > -1);
       parent_id -= parent_num_shift[pl];
-      dest_data[i] = src_data[pl][parent_id];
+      dest_data[i] = (float) src_data[pl][parent_id];
     }
   }
 
@@ -963,7 +963,7 @@ _convert_array_int64_to_float(const fvmc_lnum_t              src_idx_start,
 
   if (n_parent_lists == 0) {
     for (i = 0, j = src_idx_start ; j < src_idx_end ; i++, j++)
-      dest_data[i] = src_data[0][j];
+      dest_data[i] = (float) src_data[0][j];
   }
   else if (parent_num != NULL) {
     for (i = 0, j = src_idx_start ; j < src_idx_end ; i++, j++) {
@@ -972,7 +972,7 @@ _convert_array_int64_to_float(const fvmc_lnum_t              src_idx_start,
            pl--);
       assert(pl > -1);
       parent_id -= parent_num_shift[pl];
-      dest_data[i] = src_data[pl][parent_id];
+      dest_data[i] = (float) src_data[pl][parent_id];
     }
   }
   else { /* parent_num == NULL: implicit parent numbering */
@@ -982,7 +982,7 @@ _convert_array_int64_to_float(const fvmc_lnum_t              src_idx_start,
            pl--);
       assert(pl > -1);
       parent_id -= parent_num_shift[pl];
-      dest_data[i] = src_data[pl][parent_id];
+      dest_data[i] = (float) src_data[pl][parent_id];
     }
   }
 
@@ -1020,7 +1020,7 @@ _convert_array_int64_to_double(const fvmc_lnum_t              src_idx_start,
 
   if (n_parent_lists == 0) {
     for (i = 0, j = src_idx_start ; j < src_idx_end ; i++, j++)
-      dest_data[i] = src_data[0][j];
+      dest_data[i] = (double) src_data[0][j];
   }
   else if (parent_num != NULL) {
     for (i = 0, j = src_idx_start ; j < src_idx_end ; i++, j++) {
@@ -1029,7 +1029,7 @@ _convert_array_int64_to_double(const fvmc_lnum_t              src_idx_start,
            pl--);
       assert(pl > -1);
       parent_id -= parent_num_shift[pl];
-      dest_data[i] = src_data[pl][parent_id];
+      dest_data[i] = (double) src_data[pl][parent_id];
     }
   }
   else { /* parent_num == NULL: implicit parent numbering */
@@ -1039,7 +1039,7 @@ _convert_array_int64_to_double(const fvmc_lnum_t              src_idx_start,
            pl--);
       assert(pl > -1);
       parent_id -= parent_num_shift[pl];
-      dest_data[i] = src_data[pl][parent_id];
+      dest_data[i] = (double) src_data[pl][parent_id];
     }
   }
 
@@ -1305,7 +1305,7 @@ _convert_array_uint32_to_float(const fvmc_lnum_t              src_idx_start,
 
   if (n_parent_lists == 0) {
     for (i = 0, j = src_idx_start ; j < src_idx_end ; i++, j++)
-      dest_data[i] = src_data[0][j];
+      dest_data[i] = (float) src_data[0][j];
   }
   else if (parent_num != NULL) {
     for (i = 0, j = src_idx_start ; j < src_idx_end ; i++, j++) {
@@ -1314,7 +1314,7 @@ _convert_array_uint32_to_float(const fvmc_lnum_t              src_idx_start,
            pl--);
       assert(pl > -1);
       parent_id -= parent_num_shift[pl];
-      dest_data[i] = src_data[pl][parent_id];
+      dest_data[i] = (float) src_data[pl][parent_id];
     }
   }
   else { /* parent_num == NULL: implicit parent numbering */
@@ -1324,7 +1324,7 @@ _convert_array_uint32_to_float(const fvmc_lnum_t              src_idx_start,
            pl--);
       assert(pl > -1);
       parent_id -= parent_num_shift[pl];
-      dest_data[i] = src_data[pl][parent_id];
+      dest_data[i] = (float) src_data[pl][parent_id];
     }
   }
 
@@ -1647,7 +1647,7 @@ _convert_array_uint64_to_float(const fvmc_lnum_t              src_idx_start,
 
   if (n_parent_lists == 0) {
     for (i = 0, j = src_idx_start ; j < src_idx_end ; i++, j++)
-      dest_data[i] = src_data[0][j];
+      dest_data[i] = (float) src_data[0][j];
   }
   else if (parent_num != NULL) {
     for (i = 0, j = src_idx_start ; j < src_idx_end ; i++, j++) {
@@ -1656,7 +1656,7 @@ _convert_array_uint64_to_float(const fvmc_lnum_t              src_idx_start,
            pl--);
       assert(pl > -1);
       parent_id -= parent_num_shift[pl];
-      dest_data[i] = src_data[pl][parent_id];
+      dest_data[i] = (float) src_data[pl][parent_id];
     }
   }
   else { /* parent_num == NULL: implicit parent numbering */
@@ -1666,7 +1666,7 @@ _convert_array_uint64_to_float(const fvmc_lnum_t              src_idx_start,
            pl--);
       assert(pl > -1);
       parent_id -= parent_num_shift[pl];
-      dest_data[i] = src_data[pl][parent_id];
+      dest_data[i] = (float) src_data[pl][parent_id];
     }
   }
 
@@ -1704,7 +1704,7 @@ _convert_array_uint64_to_double(const fvmc_lnum_t              src_idx_start,
 
   if (n_parent_lists == 0) {
     for (i = 0, j = src_idx_start ; j < src_idx_end ; i++, j++)
-      dest_data[i] = src_data[0][j];
+      dest_data[i] = (double) src_data[0][j];
   }
   else if (parent_num != NULL) {
     for (i = 0, j = src_idx_start ; j < src_idx_end ; i++, j++) {
@@ -1713,7 +1713,7 @@ _convert_array_uint64_to_double(const fvmc_lnum_t              src_idx_start,
            pl--);
       assert(pl > -1);
       parent_id -= parent_num_shift[pl];
-      dest_data[i] = src_data[pl][parent_id];
+      dest_data[i] = (double) src_data[pl][parent_id];
     }
   }
   else { /* parent_num == NULL: implicit parent numbering */
@@ -1723,7 +1723,7 @@ _convert_array_uint64_to_double(const fvmc_lnum_t              src_idx_start,
            pl--);
       assert(pl > -1);
       parent_id -= parent_num_shift[pl];
-      dest_data[i] = src_data[pl][parent_id];
+      dest_data[i] = (double) src_data[pl][parent_id];
     }
   }
 

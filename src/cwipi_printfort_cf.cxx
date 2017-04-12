@@ -98,13 +98,13 @@ extern "C" {
  *----------------------------------------------------------------------------*/
 
 #ifndef CWP_HAVE_NOT_FORTRAN_IN_C
-int _cwipi_print_with_fortran
+int static
+_cwipi_print_with_fortran
 (
  const char     *const format,
        va_list         arg_ptr
 )
 {
- int  line;
  int  msgsize;
 
  /* Tampon pour impressions depuis du code C : on imprime dans un chaîne
@@ -125,8 +125,6 @@ int _cwipi_print_with_fortran
 #else
   msgsize = vsnprintf (buf_print_f, BUF_PRINT_F_SIZE, format, arg_ptr);
 #endif
-
-  line = __LINE__ - 1;
 
   if (msgsize == -1 || msgsize > BUF_PRINT_F_SIZE - 1) {
     fprintf(stderr,

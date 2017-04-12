@@ -105,7 +105,7 @@
 #cmakedefine HAVE_UINT64_T @HAVE_UINT64_T@
 
 /* Define to 1 if you have the <unistd.h> header file. */
-#cmakedefine HAVE_UNISTD_T @HAVE_UNISTD_T@
+#cmakedefine HAVE_UNISTD_H @HAVE_UNISTD_H@
 
 /* Define to 1 if the system has the type `unsigned long long'. */
 #cmakedefine HAVE_UNSIGNED_LONG_LONG @HAVE_UNSIGNED_LONG_LONG@

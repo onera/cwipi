@@ -357,7 +357,8 @@ bftc_backtrace_demangle(bftc_backtrace_t  *bt)
     }
 
   }
-
+#else
+  bt;
 #endif /* defined(HAVE_GLIBC_BACKTRACE) && defined(HAVE_CPLUS_DEMANGLE) */
 }
 

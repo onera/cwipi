@@ -252,8 +252,6 @@ namespace cwipi {
         double normV1V3 = norm(vectV1V3);
         double normV2V3 = norm(vectV2V3);
         double normV1V4 = norm(vectV1V4);
-        double normV2V4 = norm(vectV2V4);
-        double normV3V4 = norm(vectV3V4);
 
         characteristicLength[itet] = std::min(normV1V2,                    normV1V3);
         characteristicLength[itet] = std::min(characteristicLength[itet],  normV2V3);
@@ -678,6 +676,7 @@ namespace cwipi {
 
   {
 
+    nVertices;
     for (int iedge = 0; iedge < nEdges; iedge++) {
 
       const int *connectivityEdge = connectivity + 2*iedge;

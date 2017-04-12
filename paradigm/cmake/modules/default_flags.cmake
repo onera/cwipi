@@ -29,7 +29,7 @@ elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
  
   if (NOT CMAKE_Fortran_FLAGS)
 
-  set (CMAKE_Fortran_FLAGS "-cpp -fpic -warn")
+  set (CMAKE_Fortran_FLAGS "-cpp -fpic -warn -diag-disable 7712")
 
   set (CMAKE_Fortran_FLAGS_RELEASE "-O3")
 
@@ -240,7 +240,7 @@ mark_as_advanced (CMAKE_C_FLAGS_PROFILING)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ansi -fPIC -funsigned-char -W -Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wunused -Wno-long-long -Wfloat-equal")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC -funsigned-char -W -Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wunused -Wno-long-long -Wfloat-equal")
 
   set (CMAKE_CXX_FLAGS_RELEASE         "-O3")
   set (CMAKE_CXX_FLAGS_DEBUG           "-O0 -g")
@@ -253,7 +253,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
 
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -strict-ansi -fpic -funsigned-char -Wall -Wcheck -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fpic -funsigned-char -Wall -Wcheck -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused")
 
   set (CMAKE_CXX_FLAGS_RELEASE "-O3")
 
@@ -267,7 +267,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
 
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
 
-  set (CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} -Wall -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused")
+  set (CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused")
   set (CMAKE_CXX_FLAGS_RELEASE "-O3")
   set (CMAKE_CXX_FLAGS_DEBUG "-g -O0")
   set (CMAKE_CXX_FLAGS_PROFILING       "${CMAKE_CXX_FLAGS_RELEASE} -p")
@@ -279,7 +279,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
 
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "XL")
 
-  set (CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} -q64 -qlanglvl=redefmac")
+  set (CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} -q64 -qlanglvl=extended0x")
   set (CMAKE_CXX_FLAGS_RELEASE "-O3 -qhot")
   set (CMAKE_CXX_FLAGS_DEBUG "-g -qfullpath")
   set (CMAKE_CXX_FLAGS_PROFILING       "${CMAKE_CXX_FLAGS_RELEASE} -pg -qfullpath")

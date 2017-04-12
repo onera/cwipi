@@ -2286,17 +2286,18 @@ fvmc_nodal_get_coords(const fvmc_nodal_t  *this_nodal,
 } 
 
 
-void
-fvmc_nodal_get_poly_vertex(const fvmc_nodal_t  *this_nodal,
-                          fvmc_lnum_t *n_elts,
-                          fvmc_lnum_t **faces,  
-                          fvmc_lnum_t **faces_index, 
-                          fvmc_lnum_t **vertices, 
-                          fvmc_lnum_t **vertices_index)
-{
-  bftc_error(__FILE__, __LINE__, 0,
-            _("fvmc_nodal_get_poly_verte : This function is not implemented yet"));
-/*   int s_faces = 0; */
+//void
+//fvmc_nodal_get_poly_vertex(const fvmc_nodal_t  *this_nodal,
+//                          fvmc_lnum_t *n_elts,
+//                          fvmc_lnum_t **faces,  
+//                          fvmc_lnum_t **faces_index, 
+//                          fvmc_lnum_t **vertices, 
+//                          fvmc_lnum_t **vertices_index)
+//{
+//  bftc_error(__FILE__, __LINE__, 0,
+//            _("fvmc_nodal_get_poly_verte : This function is not implemented yet"));
+//
+  /*   int s_faces = 0; */
 /*   int s_vertices = 0; */
 
 /*   *n_elts = 0; */
@@ -2322,7 +2323,7 @@ fvmc_nodal_get_poly_vertex(const fvmc_nodal_t  *this_nodal,
 /*         vertices[vertices_index[j] + k] = section->vertex_num[k]; */
 /*     } */
 /*   } */
-}
+//}
 
 
 /*----------------------------------------------------------------------------*/
