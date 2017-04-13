@@ -77,8 +77,8 @@ namespace cwipi {
 
 #if defined(__INTEL_COMPILER)
 #pragma warning(push)
-#pragma warning(disable:2259)
-#elseif defined(__clang__)	
+#pragma warning(disable:869)
+#elif defined(__clang__)	
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-value" 	
 #endif
@@ -274,7 +274,7 @@ namespace cwipi {
 
 #if defined(__INTEL_COMPILER)
 #pragma warning(pop)
-#elseif defined(__clang__)	
+#elif defined(__clang__)	
 #pragma clang diagnostic pop
 #endif
 

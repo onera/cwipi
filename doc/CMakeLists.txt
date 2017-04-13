@@ -1,5 +1,5 @@
 find_package(Doxygen 1.8.9)
-option(CWP_BUILD_DOCUMENTATION "Create and install the HTML based API documentation (requires Doxygen)" ${DOXYGEN_FOUND})
+option(CWP_BUILD_DOCUMENTATION "Create and install the HTML based API documentation (requires Doxygen)" OFF)
 if(CWP_BUILD_DOCUMENTATION)
     if(NOT DOXYGEN_FOUND)
         message(FATAL_ERROR "Doxygen is needed to build the documentation.")
