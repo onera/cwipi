@@ -2047,6 +2047,8 @@ fvmc_convert_array(const int                     src_dim,
                                      (double *const) dest_data);
       break;
 
+    case FVMC_INT16:
+    case FVMC_UINT16:
     case FVMC_INT32:
     case FVMC_INT64:
     case FVMC_UINT32:
@@ -2057,6 +2059,7 @@ fvmc_convert_array(const int                     src_dim,
       break;
 
     case FVMC_CHAR:
+    case FVMC_UCHAR:
     case FVMC_DATATYPE_NULL:
       break;
 
@@ -2095,6 +2098,8 @@ fvmc_convert_array(const int                     src_dim,
                                       (double *const) dest_data);
       break;
 
+    case FVMC_INT16:
+    case FVMC_UINT16:
     case FVMC_INT32:
     case FVMC_INT64:
     case FVMC_UINT32:
@@ -2105,6 +2110,7 @@ fvmc_convert_array(const int                     src_dim,
       break;
 
     case FVMC_CHAR:
+    case FVMC_UCHAR:
     case FVMC_DATATYPE_NULL:
       break;
 
@@ -2183,8 +2189,14 @@ fvmc_convert_array(const int                     src_dim,
       break;
 
     case FVMC_CHAR:
+    case FVMC_UCHAR:
     case FVMC_DATATYPE_NULL:
       break;
+		case FVMC_INT16:
+    case FVMC_UINT16:
+      bftc_error(__FILE__, __LINE__, 0,
+                _("fvmc_writer_convert_array() may not be used to convert "
+                  "from int16 or uint16"));
 
     }
     break;
@@ -2260,7 +2272,15 @@ fvmc_convert_array(const int                     src_dim,
                                      (uint64_t *const)dest_data);
       break;
 
+		case FVMC_INT16:
+    case FVMC_UINT16:
+      bftc_error(__FILE__, __LINE__, 0,
+                _("fvmc_writer_convert_array() may not be used to convert "
+                  "to int16 or uint16"));
+      break;
+	
     case FVMC_CHAR:
+    case FVMC_UCHAR:
     case FVMC_DATATYPE_NULL:
       break;
 
@@ -2339,8 +2359,14 @@ fvmc_convert_array(const int                     src_dim,
       break;
 
     case FVMC_CHAR:
+    case FVMC_UCHAR:
     case FVMC_DATATYPE_NULL:
       break;
+		case FVMC_INT16:
+    case FVMC_UINT16:
+      bftc_error(__FILE__, __LINE__, 0,
+                _("fvmc_writer_convert_array() may not be used to convert "
+                  "to int16 or uint16"));
 
     }
     break;
@@ -2417,15 +2443,27 @@ fvmc_convert_array(const int                     src_dim,
       break;
 
     case FVMC_CHAR:
+    case FVMC_UCHAR:
     case FVMC_DATATYPE_NULL:
       break;
+		case FVMC_INT16:
+    case FVMC_UINT16:
+      bftc_error(__FILE__, __LINE__, 0,
+                _("fvmc_writer_convert_array() may not be used to convert "
+                  "to int16 or uint16"));
 
     }
     break;
 
   case FVMC_CHAR:
+  case FVMC_UCHAR:
   case FVMC_DATATYPE_NULL:
     break;
+	case FVMC_INT16:
+	case FVMC_UINT16:
+		bftc_error(__FILE__, __LINE__, 0,
+							_("fvmc_writer_convert_array() may not be used to convert "
+								"from int16 or uint16"));
   }
 }
 

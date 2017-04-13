@@ -642,6 +642,14 @@ namespace cwipi {
   }
 
 
+#if defined(__INTEL_COMPILER)
+#pragma warning(push)
+#pragma warning(disable:2259)
+#elseif defined(__clang__)	
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-value" 	
+#endif
+
   ///
   /// \brief Edges properties 
   /// 
@@ -666,7 +674,6 @@ namespace cwipi {
 
   {
 
-    nVertices;
     for (int iedge = 0; iedge < nEdges; iedge++) {
 
       const int *connectivityEdge = connectivity + 2*iedge;
@@ -696,8 +703,7 @@ namespace cwipi {
       }
     }    
   }
-
-
+  
   ///
   /// \brief Triangle properties
   /// 
@@ -721,8 +727,6 @@ namespace cwipi {
                                   int         *isDegenerated)
 
   {
-
-    nVertices; //To remove warning never referenced 
       
     triangleSurfaceVector (nTriangle,
                            connectivity,
@@ -738,6 +742,11 @@ namespace cwipi {
 
   }
 
+#if defined(__INTEL_COMPILER)
+#pragma warning(pop)
+#elseif defined(__clang__)	
+#pragma clang diagnostic pop
+#endif
 
   ///
   /// \brief Quadrangle properties
@@ -791,6 +800,15 @@ namespace cwipi {
                           int         *isDegenerated);
 
 
+
+#if defined(__INTEL_COMPILER)
+#pragma warning(push)
+#pragma warning(disable:2259)
+#elseif defined(__clang__)	
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-value" 	
+#endif
+
   ///
   /// \brief Tetrahedra properties
   /// 
@@ -804,6 +822,7 @@ namespace cwipi {
   /// @param [out] isDegenerated         Degenerated edge indicator (active if != NULL)             
   ///
 
+
   inline void tetrahedraProperties (const int     nTetrahedra,
                                     const int    *connectivity,
                                     const int     nVertices,
@@ -814,8 +833,6 @@ namespace cwipi {
                                     int         *isDegenerated)
 
   {
-
-    nVertices; //To remove warning never referenced 
 
     tetrahedraOrientedVolume (nTetrahedra,
                               connectivity,
@@ -830,6 +847,11 @@ namespace cwipi {
                       center);
   }
   
+#if defined(__INTEL_COMPILER)
+#pragma warning(pop)
+#elseif defined(__clang__)	
+#pragma clang diagnostic pop
+#endif
   
   ///
   /// \brief Hexahedra properties

@@ -164,6 +164,15 @@ namespace cwipi {
 
   }
 
+
+#if defined(__INTEL_COMPILER)
+#pragma warning(push)
+#pragma warning(disable:2259)
+#elseif defined(__clang__)	
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-value" 	
+#endif
+
   /**
    *
    * \brief Synchronise.
@@ -181,8 +190,10 @@ namespace cwipi {
     //
     // Nothing to do
     //
-    tab;
-    tabSize;
-    mpiType;
   }
+#if defined(__INTEL_COMPILER)
+#pragma warning(pop)
+#elseif defined(__clang__)	
+#pragma clang diagnostic pop
+#endif
 }

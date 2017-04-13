@@ -1806,7 +1806,7 @@ int PDM_MPI_get_max_error_string(void)
 
 int PDM_MPI_Comm_free(PDM_MPI_Comm *comm)
 {
-  int code;
+ int code = 0;
   if ((*comm != PDM_MPI_COMM_NULL) || (*comm != PDM_MPI_COMM_WORLD)) {
     
     MPI_Comm mpi_comm_loc = _pdm_mpi_2_mpi_comm(*comm);

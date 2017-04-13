@@ -75,6 +75,14 @@ namespace cwipi {
   }
 
 
+#if defined(__INTEL_COMPILER)
+#pragma warning(push)
+#pragma warning(disable:2259)
+#elseif defined(__clang__)	
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-value" 	
+#endif
+
   ///
   /// \brief Polygon properties
   /// 
@@ -102,9 +110,6 @@ namespace cwipi {
                          int          *isDegenerated)
 
   {
-
-    nVertices; //To remove warning never referenced 
-
     int convergence = 1;
     
     const double dispMin = 1e-9; // Minimum displacement
@@ -267,6 +272,11 @@ namespace cwipi {
     return convergence;
   }
 
+#if defined(__INTEL_COMPILER)
+#pragma warning(pop)
+#elseif defined(__clang__)	
+#pragma clang diagnostic pop
+#endif
 
   ///
   /// \brief Hexahedra properties

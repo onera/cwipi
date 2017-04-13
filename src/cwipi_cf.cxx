@@ -178,7 +178,7 @@ void PROCF(cwipi_init_cf, CWIPI_INIT_CF)
   char *application_name_c = _cwipi_fortran_to_c_string(application_name_f,
                                                             *l_application_name);
 
-  bftc_printf("\ncwipi "CWIPI_VERSION" initializing\n");
+  bftc_printf("\ncwipi " CWIPI_VERSION " initializing\n");
   bftc_printf("------------------------\n\n");
 
   cwipi::ApplicationPropertiesDataBase & properties =

@@ -53,7 +53,7 @@ namespace cwipi {
       _polyhedraFaceConnectivityIndex(NULL), _polyhedraFaceConnectivity(NULL), 
       _polyhedraCellToVertexConnectivity(NULL),
       _polyhedraCellToVertexConnectivityIndex(NULL), _cellCenterCoords(NULL),
-      _cellVolume(NULL), _normalFace(NULL),_fvmNodal(NULL), 
+      _cellVolume(NULL),_fvmNodal(NULL), _normalFace(NULL), 
       _polygonIndex(NULL), _isNodalFinalized(false),
       _characteristicLength(NULL),
       _isDegenerated(NULL)

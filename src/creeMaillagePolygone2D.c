@@ -71,41 +71,6 @@ static double random01()
   return resultat;
 }
 
-
-static int _partitionner(int tableau[], int p, int r)
-{
-  int pivot = tableau[p], i = p-1, j = r+1;
-  int temp;
-  while(1) {
-    do
-      j--;
-    while(tableau[j] > pivot);
-    do
-      i++;
-    while(tableau[i] < pivot);
-    if(i<j) {
-      temp = tableau[i];
-      tableau[i] = tableau[j];
-      tableau[j] = temp;
-    }
-    else
-      return j;
-  }
-}
-
-/* Fonctions publiques */
-
-static void _quickSort(int tableau[], int p, int r)
-{
-  int q;
-  if(p<r) {
-    q = _partitionner(tableau, p, r);
-    _quickSort(tableau, p, q);
-    _quickSort(tableau, q+1, r);
-  }
-  return;
-}
-
 void creeMaillagePolygone2D(int order,
                             MPI_Comm localComm,
                             double xmin,

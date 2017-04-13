@@ -102,6 +102,10 @@ const int nPart,
 int *part
 )
 {
+#if defined(__clang__)	
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-value" 	
+#endif
   dNCell;
   dDualGraphIdx;
   dDualGraph;        
@@ -111,6 +115,9 @@ int *part
   comm;
   nPart;        
   part;
+#if defined(__clang__)	
+#pragma clang diagnostic pop
+#endif
 
   fprintf(stderr,"PDM_SCOTCH_dpart : Unavailable function with pdm_no_mpi library\n" );
   abort();

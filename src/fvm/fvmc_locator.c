@@ -1400,8 +1400,8 @@ _issend_point_var_distant(fvmc_locator_t     *this_locator,
   nblocking_send->reverse = reverse;
 
   /* Check extent of datatype */
-
-  MPI_Type_extent(datatype, &extent);
+  MPI_Aint lb;
+  MPI_Type_get_extent(datatype, &lb, &extent);
   MPI_Type_size(datatype, &size);
 
   if (extent != size)
@@ -1555,7 +1555,8 @@ _irecv_point_var_distant(fvmc_locator_t     *this_locator,
 
   /* Check extent of datatype */
 
-  MPI_Type_extent(datatype, &extent);
+	MPI_Aint lb;
+  MPI_Type_get_extent(datatype, &lb, &extent);
   MPI_Type_size(datatype, &size);
 
   nblocking_recv->size = size;
@@ -1598,6 +1599,9 @@ _irecv_point_var_distant(fvmc_locator_t     *this_locator,
     else { /* if (reverse == true) */
 
       void *distant_var = var;
+
+      n_points_dist =   this_locator->distant_points_idx[i+1]
+                      - this_locator->distant_points_idx[i];
 
       dist_v_idx = this_locator->distant_points_idx[i] * stride*size;
       dist_v_count = n_points_dist * stride;
@@ -1670,7 +1674,8 @@ _exchange_point_var_distant(fvmc_locator_t     *this_locator,
 
   /* Check extent of datatype */
 
-  MPI_Type_extent(datatype, &extent);
+	MPI_Aint lb;
+  MPI_Type_get_extent(datatype, &lb, &extent);
   MPI_Type_size(datatype, &size);
 
   if (extent != size)
