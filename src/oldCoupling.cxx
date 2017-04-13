@@ -97,21 +97,21 @@ namespace cwipi {
                      const char  *outputFormat,
                      const char  *outputFormatOption,
                      const int nbLocations)
- :_localApplicationProperties(localApplicationProperties),
+ :_name(name), _couplingType(couplingType), 
+  _localApplicationProperties(localApplicationProperties),
   _coupledApplicationProperties(coupledApplicationProperties),
   _entitiesDim(entitiesDim),_tolerance(tolerance), _solverType(solverType),
   _outputFormat(outputFormat), _outputFormatOption(outputFormatOption),
-  _fvmWriter(NULL), _outputFrequency(outputFrequency), _name(name),
-  _couplingType(couplingType),
+  _outputFrequency(outputFrequency), _fvmWriter(NULL),    
+  _tablelocationToDistantMesh(*new std::vector<LocationToDistantMesh *>(nbLocations)),
+  _tablelocationToLocalMesh(*new std::vector<LocationToLocalMesh *>(nbLocations)),
   _tmpDistantFieldsIssend(*new std::map<int, std::vector<double> * > ()),
   _tmpLocalFieldsIrecv(*new std::map<int, const double * > ()),
   _tmpExchangeNameIrecv(*new  std::map<int, std::string > ()),
   _tmpStrideIrecv(*new  std::map<int, int > ()),
   _tmpTimeStepIrecv(*new  std::map<int, int > ()),
   _tmpTimeValueIrecv(*new  std::map<int, double > ()),
-  _tmpFieldNameIrecv(*new  std::map<int, std::string > ()),
-  _tablelocationToDistantMesh(*new std::vector<LocationToDistantMesh *>(nbLocations)),
-  _tablelocationToLocalMesh(*new std::vector<LocationToLocalMesh *>(nbLocations))
+  _tmpFieldNameIrecv(*new  std::map<int, std::string > ())
 
   {
     _tmpVertexField = NULL;
@@ -740,7 +740,7 @@ namespace cwipi {
   void oldCoupling::openLocationFile(char *file, const char *moderwa)
   {
   
-    int mode;
+    int mode = MPI_MODE_CREATE+MPI_MODE_WRONLY;
     _locationsFile_position = 0;
   
   
@@ -2004,7 +2004,7 @@ namespace cwipi {
           distantCouplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING) {
 
         int *rankList = new int[coupledApplicationCommSize];
-        int nRankList;
+        int nRankList = -1;
 
         if (_couplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING &&
             distantCouplingType != CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING) {

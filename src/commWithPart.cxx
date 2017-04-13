@@ -144,6 +144,13 @@ namespace cwipi {
    *
    */
 
+#if defined(__INTEL_COMPILER)
+#pragma warning(push)
+#pragma warning(disable:869)
+#elif defined(__clang__)	
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-value" 	
+#endif
   void
   CommWithPart::sync
   (
@@ -152,8 +159,10 @@ namespace cwipi {
    int tabSize
   )
   {
-   tab; // To remove never referenced warning
-   mpiType; // To remove never referenced warning 
-   tabSize; // To remove never referenced warning
   }
+#if defined(__INTEL_COMPILER)
+#pragma warning(pop)
+#elif defined(__clang__)	
+#pragma clang diagnostic pop
+#endif
 }

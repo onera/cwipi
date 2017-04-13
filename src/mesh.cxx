@@ -48,16 +48,16 @@ namespace cwipi {
              )
     : _localComm(localComm),
       _nDim(nDim), _nVertex(nVertex), _nElts(nElts), _nPolyhedra(0), _coords(coords),
-      _eltConnectivityIndex(eltConnectivityIndex), _eltConnectivity(eltConnectivity),
+      _polygonIndex(NULL), _eltConnectivityIndex(eltConnectivityIndex), _eltConnectivity(eltConnectivity),
       _polyhedraFaceIndex(NULL), _polyhedraCellToFaceConnectivity(NULL), _polyhedraNFace(0),
       _polyhedraFaceConnectivityIndex(NULL), _polyhedraFaceConnectivity(NULL), 
       _polyhedraCellToVertexConnectivity(NULL),
-      _polyhedraCellToVertexConnectivityIndex(NULL), _cellCenterCoords(NULL),
+      _polyhedraCellToVertexConnectivityIndex(NULL), 
+      _isNodalFinalized(false), _cellCenterCoords(NULL),
       _cellVolume(NULL),_fvmNodal(NULL), _normalFace(NULL), 
-      _polygonIndex(NULL), _isNodalFinalized(false),
       _characteristicLength(NULL),
       _isDegenerated(NULL)
-      
+
   {
 
     MPI_Comm oldFVMComm = fvmc_parall_get_mpi_comm();
@@ -515,13 +515,17 @@ namespace cwipi {
     : _localComm(localComm),
       _nDim(fvmc_nodal_get_dim(fvmc_nodal)), _nVertex(0),
       _nElts(0), _nPolyhedra(0), _coords(NULL),
+      _polygonIndex(NULL),    
       _eltConnectivityIndex(NULL), _eltConnectivity(NULL),
       _polyhedraFaceIndex(NULL), _polyhedraCellToFaceConnectivity(NULL),
-      _polyhedraFaceConnectivityIndex(NULL), _polyhedraFaceConnectivity(NULL), _polyhedraCellToVertexConnectivity(NULL), 
-      _polyhedraCellToVertexConnectivityIndex(NULL), _cellCenterCoords(NULL),
-      _cellVolume(NULL), _normalFace(NULL),_fvmNodal(NULL), _polygonIndex(NULL), _isNodalFinalized(true)
-
-
+      _polyhedraNFace(0),
+      _polyhedraFaceConnectivityIndex(NULL), _polyhedraFaceConnectivity(NULL), 
+      _polyhedraCellToVertexConnectivity(NULL), 
+      _polyhedraCellToVertexConnectivityIndex(NULL),
+      _isNodalFinalized(false), _cellCenterCoords(NULL),
+      _cellVolume(NULL), _fvmNodal(NULL), _normalFace(NULL),
+      _characteristicLength(NULL),
+      _isDegenerated(NULL)
   {
     //
     // Copy

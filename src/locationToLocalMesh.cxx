@@ -147,13 +147,13 @@ LocationToLocalMesh::LocationToLocalMesh(
                                          const ApplicationProperties& localApplicationProperties,
                                          LocationToDistantMesh &locationToDistantMesh)
 
-: _solverType(solverType),  _tolerance(tolerance),
-  _locationToDistantMesh(locationToDistantMesh), _couplingComm(couplingComm),
+: _supportMesh(NULL), _solverType(solverType),  _tolerance(tolerance),
+  _couplingComm(couplingComm),
   _coupledApplicationNRankCouplingComm(coupledApplicationNRankCouplingComm),
   _coupledApplicationBeginningRankCouplingComm(coupledApplicationBeginningRankCouplingComm),
   _isCoupledRank(isCoupledRank), _entitiesDim(entitiesDim), _localApplicationProperties(localApplicationProperties),
+  _locationToDistantMesh(locationToDistantMesh), 
   _locatedPointsDistribution(NULL), _distantDistribution(NULL)
-
 {
   _fvmLocator = NULL;
   _barycentricCoordinatesIndex = NULL;

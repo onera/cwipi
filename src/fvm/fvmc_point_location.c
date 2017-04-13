@@ -3908,7 +3908,7 @@ static double _randomVal( double min, double max )
 
 static double _det_2x2 (double a, double b, double c, double d) {
     return (a * d - b * c);
-};
+}
 
 static int _solve_2x2 (double **A, double *x)
 {

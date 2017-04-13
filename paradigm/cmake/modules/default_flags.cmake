@@ -144,7 +144,7 @@ mark_as_advanced (CMAKE_Fortran_FLAGS_PROFILING FORTRAN_LIBRARIES FORTRAN_LIBRAR
 
 if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
 
-  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -fPIC -fms-extensions -funsigned-char -pedantic -W -Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wunused -Wfloat-equal")
+  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -fPIC -funsigned-char -pedantic -W -Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wunused -Wfloat-equal")
 
   set (CMAKE_C_FLAGS_RELEASE         "-O3")
   set (CMAKE_C_FLAGS_DEBUG           "-O0 -g")
@@ -158,16 +158,16 @@ elseif (CMAKE_C_COMPILER_ID STREQUAL "Intel")
 
   set (CMAKE_C_FLAGS_RELEASE "-O3")
 
-  set (CMAKE_C_FLAGS_DEBUG           "-g -O0 -traceback -w2 -Wp64")
+  set (CMAKE_C_FLAGS_DEBUG           "-g -O0 -traceback -w2")
   set (CMAKE_C_FLAGS_PROFILING       "${CMAKE_C_FLAGS_RELEASE} -p")
   set (CMAKE_C_FLAGS_RELWITHDEBINFO  "${CMAKE_C_FLAGS_RELEASE} -g")
   set (CMAKE_C_FLAGS_MINSIZEREL      "-O2 -g")
 
 elseif (CMAKE_C_COMPILER_ID STREQUAL "AppleClang")
 
-  set (CMAKE_C_FLAGS " ${CMAKE_C_FLAGS} -std=c99 -fPIC -funsigned-char -Wall -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused")
+  set (CMAKE_C_FLAGS " ${CMAKE_C_FLAGS} -std=c99 -fPIC -funsigned-char -Wall -pedantic -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused")
   set (CMAKE_C_FLAGS_RELEASE "-O3")
-  set (CMAKE_C_FLAGS_DEBUG "-g -O0")
+  set (CMAKE_C_FLAGS_DEBUG "-g -O0 -w2")
   set (CMAKE_C_FLAGS_PROFILING       "${CMAKE_C_FLAGS_RELEASE} -p")
   set (CMAKE_C_FLAGS_RELWITHDEBINFO  "-O3 -g")
   set (CMAKE_C_FLAGS_MINSIZEREL      "-O2")
@@ -257,7 +257,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
 
   set (CMAKE_CXX_FLAGS_RELEASE "-O3")
 
-  set (CMAKE_CXX_FLAGS_DEBUG           "-g -O0 -traceback -w2 -Wp64")
+  set (CMAKE_CXX_FLAGS_DEBUG           "-g -O0 -traceback -w2")
   set (CMAKE_CXX_FLAGS_PROFILING       "${CMAKE_CXX_FLAGS_RELEASE} -p")
   set (CMAKE_CXX_FLAGS_RELWITHDEBINFO  "${CMAKE_CXX_FLAGS_RELEASE} -g")
   set (CMAKE_CXX_FLAGS_MINSIZEREL      "-O2 -g")
@@ -267,7 +267,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
 
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
 
-  set (CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused")
+  set (CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} -std=c++11 -Wall -pedantic -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused")
   set (CMAKE_CXX_FLAGS_RELEASE "-O3")
   set (CMAKE_CXX_FLAGS_DEBUG "-g -O0")
   set (CMAKE_CXX_FLAGS_PROFILING       "${CMAKE_CXX_FLAGS_RELEASE} -p")
