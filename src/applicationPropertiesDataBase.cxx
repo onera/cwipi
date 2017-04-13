@@ -237,13 +237,10 @@ namespace cwipi {
     int NLocalControlParameters = localControlParameters.size();
     int NDistantControlParameters = distantControlParameters.size();
 
-    int localBeginningRank = _localApplicationProperties->getBeginningRank();
-    int localEndRank       = _localApplicationProperties->getEndRank();
     const MPI_Comm& localComm    = _localApplicationProperties->getLocalComm();
     const MPI_Comm& globalComm   = _localApplicationProperties->getGlobalComm();
 
     int distantBeginningRank = p->second->_beginningRank;
-    int distantEndRank       = p->second->_endRank;
 
     //
     // Clear distant parameters copy
@@ -261,10 +258,10 @@ namespace cwipi {
 
     if (localCommSize > 1) {
 
-      for (Iterator p = localControlParameters.begin(); p != localControlParameters.end(); p++) {
-        int value             = p->second;
-        const char *paramName = p->first.c_str();
-        int nameSize    = p->first.size();
+      for (Iterator p1 = localControlParameters.begin(); p1 != localControlParameters.end(); p1++) {
+        int value             = p1->second;
+        const char *paramName = p1->first.c_str();
+        int nameSize    = p1->first.size();
 
         if (currentRank == 0) {
           for (int irank = 1; irank < localCommSize; irank++){
@@ -311,15 +308,15 @@ namespace cwipi {
 
       int NParameterMax = MAX(NLocalControlParameters, NDistantControlParameters);
 
-      Iterator p = localControlParameters.begin();
+      Iterator p1 = localControlParameters.begin();
 
       for (int i = 0; i < NParameterMax; i++ ) {
 
         if (i >= NDistantControlParameters) {
 
-          int value             = p->second;
-          const char *paramName = p->first.c_str();
-          int nameSize          = p->first.size();
+          int value             = p1->second;
+          const char *paramName = p1->first.c_str();
+          int nameSize          = p1->first.size();
 
           MPI_Send(&nameSize, 1, MPI_INT, distantBeginningRank, 0, globalComm);
           MPI_Send(const_cast <char *> (paramName), nameSize+1, MPI_CHAR, distantBeginningRank, 0, globalComm);
@@ -327,7 +324,7 @@ namespace cwipi {
 
         }
 
-        else if (p == localControlParameters.end()){
+        else if (p1 == localControlParameters.end()){
 
           int   distantNameSize = 0;
           char *distantParamName = NULL;
@@ -348,9 +345,9 @@ namespace cwipi {
 
         else {
 
-          int value             = p->second;
-          const char *paramName = p->first.c_str();
-          int nameSize          = p->first.size();
+          int value             = p1->second;
+          const char *paramName = p1->first.c_str();
+          int nameSize          = p1->first.size();
 
           int   distantNameSize = 0;
           char *distantParamName = NULL;
@@ -375,8 +372,8 @@ namespace cwipi {
           delete[] distantParamName;
         }
 
-        if (p != localControlParameters.end())
-          p++;
+        if (p1 != localControlParameters.end())
+          p1++;
       }
     }
 
@@ -391,9 +388,9 @@ namespace cwipi {
 
       MPI_Bcast(&size, 1, MPI_INT, 0, localComm);
 
-      Iterator p;
+      Iterator p1;
       if (currentRank == 0)
-        p = distantControlParameters.begin();
+        p1 = distantControlParameters.begin();
 
       for (int i = 0 ; i < size; i++) {
 
@@ -402,10 +399,10 @@ namespace cwipi {
         int nameSize;
 
         if (currentRank == 0) {
-          value     = p->second;
-          paramName = const_cast <char *> (p->first.c_str());
-          nameSize  = p->first.size();
-          p++;
+          value     = p1->second;
+          paramName = const_cast <char *> (p1->first.c_str());
+          nameSize  = p1->first.size();
+          p1++;
         }
 
         MPI_Bcast(&nameSize, 1, MPI_INT, 0, localComm);
@@ -446,13 +443,10 @@ namespace cwipi {
     int NLocalControlParameters = localControlParameters.size();
     int NDistantControlParameters = distantControlParameters.size();
 
-    int localBeginningRank = _localApplicationProperties->getBeginningRank();
-    int localEndRank       = _localApplicationProperties->getEndRank();
     const MPI_Comm& localComm    = _localApplicationProperties->getLocalComm();
     const MPI_Comm& globalComm   = _localApplicationProperties->getGlobalComm();
 
     int distantBeginningRank = p->second->_beginningRank;
-    int distantEndRank       = p->second->_endRank;
 
     //
     // Clear distant parameters copy
@@ -471,10 +465,10 @@ namespace cwipi {
 
     if (localCommSize > 1) {
 
-      for (Iterator p = localControlParameters.begin(); p != localControlParameters.end(); p++) {
-        double value             = p->second;
-        const char *paramName = p->first.c_str();
-        int nameSize    = p->first.size();
+      for (Iterator p1 = localControlParameters.begin(); p1 != localControlParameters.end(); p1++) {
+        double value             = p1->second;
+        const char *paramName = p1->first.c_str();
+        int nameSize    = p1->first.size();
 
         if (currentRank == 0) {
           for (int irank = 1; irank < localCommSize; irank++){
@@ -521,15 +515,15 @@ namespace cwipi {
 
       int NParameterMax = MAX(NLocalControlParameters, NDistantControlParameters);
 
-      Iterator p = localControlParameters.begin();
+      Iterator p1 = localControlParameters.begin();
 
       for (int i = 0; i < NParameterMax; i++ ) {
 
         if (i >= NDistantControlParameters) {
 
-          double value             = p->second;
-          const char *paramName = p->first.c_str();
-          int nameSize          = p->first.size();
+          double value             = p1->second;
+          const char *paramName = p1->first.c_str();
+          int nameSize          = p1->first.size();
 
           MPI_Send(&nameSize, 1, MPI_INT, distantBeginningRank, 0, globalComm);
           MPI_Send(const_cast <char *> (paramName), nameSize+1, MPI_CHAR, distantBeginningRank, 0, globalComm);
@@ -537,7 +531,7 @@ namespace cwipi {
 
         }
 
-        else if (p == localControlParameters.end()){
+        else if (p1 == localControlParameters.end()){
 
           int   distantNameSize = 0;
           char *distantParamName = NULL;
@@ -557,9 +551,9 @@ namespace cwipi {
 
         else {
 
-          double value             = p->second;
-          const char *paramName = p->first.c_str();
-          int nameSize          = p->first.size();
+          double value             = p1->second;
+          const char *paramName = p1->first.c_str();
+          int nameSize          = p1->first.size();
 
           int   distantNameSize = 0;
           char *distantParamName = NULL;
@@ -583,8 +577,8 @@ namespace cwipi {
 
         }
 
-        if (p != localControlParameters.end())
-          p++;
+        if (p1 != localControlParameters.end())
+          p1++;
       }
     }
 
@@ -599,9 +593,9 @@ namespace cwipi {
 
       MPI_Bcast(&size, 1, MPI_INT, 0, localComm);
 
-      Iterator p;
+      Iterator p1;
       if (currentRank == 0)
-        p = distantControlParameters.begin();
+        p1 = distantControlParameters.begin();
 
       for (int i = 0 ; i < size; i++) {
         double value;
@@ -609,10 +603,10 @@ namespace cwipi {
         int nameSize;
 
         if (currentRank == 0) {
-          value     = p->second;
-          paramName = const_cast <char *> (p->first.c_str());
-          nameSize  = p->first.size();
-          p++;
+          value     = p1->second;
+          paramName = const_cast <char *> (p1->first.c_str());
+          nameSize  = p1->first.size();
+          p1++;
         }
 
         MPI_Bcast(&nameSize, 1, MPI_INT, 0, localComm);
@@ -650,13 +644,10 @@ namespace cwipi {
     int NLocalControlParameters = localControlParameters.size();
     int NDistantControlParameters = distantControlParameters.size();
 
-    int localBeginningRank = _localApplicationProperties->getBeginningRank();
-    int localEndRank       = _localApplicationProperties->getEndRank();
     const MPI_Comm& localComm    = _localApplicationProperties->getLocalComm();
     const MPI_Comm& globalComm   = _localApplicationProperties->getGlobalComm();
 
     int distantBeginningRank = p->second->_beginningRank;
-    int distantEndRank       = p->second->_endRank;
 
     //
     // Clear distant parameters copy
@@ -675,13 +666,13 @@ namespace cwipi {
 
     if (localCommSize > 1) {
 
-      for (Iterator p = localControlParameters.begin(); p != localControlParameters.end(); p++) {
-        std::string value     = p->second;
+      for (Iterator p1 = localControlParameters.begin(); p1 != localControlParameters.end(); p1++) {
+        std::string value     = p1->second;
         const char *valueCStr  = value.c_str();
         int valueSize = value.size();
 
-        const char *paramName = p->first.c_str();
-        int nameSize          = p->first.size();
+        const char *paramName = p1->first.c_str();
+        int nameSize          = p1->first.size();
 
         if (currentRank == 0) {
           for (int irank = 1; irank < localCommSize; irank++){
@@ -739,18 +730,18 @@ namespace cwipi {
 
       int NParameterMax = MAX(NLocalControlParameters, NDistantControlParameters);
 
-      Iterator p = localControlParameters.begin();
+      Iterator p1 = localControlParameters.begin();
 
       for (int i = 0; i < NParameterMax; i++ ) {
 
 
         if (i >= NDistantControlParameters) {
 
-          const char *valueCStr  = p->second.c_str();
-          int valueSize = p->second.size();
+          const char *valueCStr  = p1->second.c_str();
+          int valueSize = p1->second.size();
 
-          const char *paramName = p->first.c_str();
-          int nameSize          = p->first.size();
+          const char *paramName = p1->first.c_str();
+          int nameSize          = p1->first.size();
 
           MPI_Send(&nameSize, 1, MPI_INT, distantBeginningRank, 0, globalComm);
           MPI_Send(const_cast <char *> (paramName), nameSize+1, MPI_CHAR, distantBeginningRank, 0, globalComm);
@@ -759,7 +750,7 @@ namespace cwipi {
           MPI_Send(const_cast <char *> (valueCStr), valueSize+1, MPI_CHAR, distantBeginningRank, 0, globalComm);
         }
 
-        else if (p == localControlParameters.end()){
+        else if (p1 == localControlParameters.end()){
 
           int   distantNameSize = 0;
           char *distantParamName = NULL;
@@ -784,10 +775,10 @@ namespace cwipi {
 
         else {
 
-          const char *paramName = p->first.c_str();
-          int nameSize          = p->first.size();
-          const char *valueCStr  = p->second.c_str();
-          int valueSize = p->second.size();
+          const char *paramName = p1->first.c_str();
+          int nameSize          = p1->first.size();
+          const char *valueCStr  = p1->second.c_str();
+          int valueSize = p1->second.size();
 
           int   distantNameSize = 0;
           char *distantParamName = NULL;
@@ -819,8 +810,8 @@ namespace cwipi {
         }
 
 
-        if (p != localControlParameters.end())
-          p++;
+        if (p1 != localControlParameters.end())
+          p1++;
       }
     }
 
@@ -835,9 +826,9 @@ namespace cwipi {
 
       MPI_Bcast(&size, 1, MPI_INT, 0, localComm);
 
-      Iterator p;
+      Iterator p1;
       if (currentRank == 0)
-        p = distantControlParameters.begin();
+        p1 = distantControlParameters.begin();
 
       for (int i = 0 ; i < size; i++) {
         char *paramName = NULL;
@@ -846,12 +837,12 @@ namespace cwipi {
         int valueSize;
 
         if (currentRank == 0) {
-          valueCStr = const_cast <char *> (p->second.c_str());
-          valueSize = p->second.size() ;
+          valueCStr = const_cast <char *> (p1->second.c_str());
+          valueSize = p1->second.size() ;
 
-          paramName = const_cast <char *> (p->first.c_str());
-          nameSize  = p->first.size();
-          p++;
+          paramName = const_cast <char *> (p1->first.c_str());
+          nameSize  = p1->first.size();
+          p1++;
         }
 
         MPI_Bcast(&nameSize, 1, MPI_INT, 0, localComm);

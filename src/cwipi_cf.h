@@ -757,11 +757,27 @@ void PROCF(cwipi_get_n_located_pts_cf,
  *   n_not_located_Points --> Number of not located points
  *----------------------------------------------------------------------------*/
 
-void PROCF(cwipi_get_n_located_pts_cf,
-           CWIPI_GET_N_LOCATED_PTS_CF) (const char *coupling_name,
+void PROCF(cwipi_get_n_not_located_pts_cf,
+           CWIPI_GET_N_NOT_LOCATED_PTS_CF) (const char *coupling_name,
                                                    const int  *l_coupling_name,
                                                    int *n_not_located_points
                                                    ARGF_SUPP_CHAINE);
+
+/*----------------------------------------------------------------------------
+ *
+ * Get located points barycentric coordinates
+ *
+ * parameters
+ *   coupling_name                <-- Coupling identifier
+ *   barycentricCoordinatesIndex  --> located points barycentric
+ *                                    coordinates
+ *----------------------------------------------------------------------------*/
+
+void PROCF(cwipi_get_dis_bary_coord_cf,
+           CWIPI_GET_DIS_BARY_COORD_CF) (const char *coupling_name,
+                                       const int  *l_coupling_name,
+                                       double *barycentricCoordinates
+                                       ARGF_SUPP_CHAINE);
 
 /*----------------------------------------------------------------------------
  *
@@ -963,6 +979,23 @@ void PROCF(cwipi_receive_cf,
    const int       *l_receiving_field_name,
    double          *receiving_field,
    int             *n_not_located_points,
+   int             *exchange_status
+   ARGF_SUPP_CHAINE);
+
+
+void PROCF(cwipi_send_with_user_itp_cf,
+           CWIPI_SEND_WITH_USER_ITP_CF)
+  (const char      *coupling_name,
+   const int       *l_coupling_name,
+   const char      *exchange_name,
+   const int       *l_exchange_name,
+   const int       *stride,
+   const int       *n_step,
+   const double    *time_value,
+   const char      *sending_field_name,
+   const int       *l_sending_field_name,
+   const double    *sending_field,
+   void            *ptFortranInterpolationFct,
    int             *exchange_status
    ARGF_SUPP_CHAINE);
 

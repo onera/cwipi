@@ -252,7 +252,6 @@ size_t LocationToDistantMesh::locationSize()
 void LocationToDistantMesh::packLocation(unsigned char *buff)
 {
   int s;
-  size_t cur_pos;
   void *p;
   size_t s_pack;
 

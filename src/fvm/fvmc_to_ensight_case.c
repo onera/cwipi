@@ -452,7 +452,7 @@ _add_var(fvmc_to_ensight_case_t       *const this_case,
       case '/':
         var->file_name[i] = '_';
       default:
-        var->file_name[i] = tolower(var->file_name[i]);
+        var->file_name[i] = (char) tolower(var->file_name[i]);
       }
     }
   }
@@ -618,7 +618,7 @@ fvmc_to_ensight_case_create(const char                   *const name,
     this_case->case_file_name[0] = '\0';
 
   for (i = 0 ; i < name_len ; i++)
-    this_case->case_file_name[prefix_len + i] = toupper(name[i]);
+    this_case->case_file_name[prefix_len + i] = (char) toupper(name[i]);
   this_case->case_file_name[prefix_len + name_len] = '\0';
 
   BFTC_MALLOC(this_case->file_name_prefix,
@@ -627,7 +627,7 @@ fvmc_to_ensight_case_create(const char                   *const name,
   strcpy(this_case->file_name_prefix, this_case->case_file_name);
   for (i = 0 ; i < name_len ; i++)
     this_case->file_name_prefix[prefix_len + i]
-      = tolower(this_case->case_file_name[prefix_len + i]);
+      = (char) tolower(this_case->case_file_name[prefix_len + i]);
 
   strcat(this_case->case_file_name, ".case");
 

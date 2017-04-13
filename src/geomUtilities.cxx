@@ -103,6 +103,8 @@ namespace cwipi {
 
   {
 
+    nVertices; //To remove warning never referenced 
+
     int convergence = 1;
     
     const double dispMin = 1e-9; // Minimum displacement
@@ -296,7 +298,6 @@ namespace cwipi {
     const int nTriangle = 0;
     const int nHexahedraFaces = nQuadrangle + nTriangle;
     const int nFaces = nHexahedraFaces * nHexahedra;
-    const int nHexahedraVertices = 6;
 
     int *faceConnectivity          = new int [(nQuadrangle*4 + nTriangle*3) * nHexahedra];
     int *faceConnectivityIdx       = new int [nFaces + 1];
@@ -381,7 +382,6 @@ namespace cwipi {
     const int nTriangle = 2;
     const int nPrismFaces = nQuadrangle + nTriangle;
     const int nFaces = nPrismFaces * nPrism;
-    const int nPrismVertices = 6;
 
     int *faceConnectivity          = new int [(nQuadrangle*4 + nTriangle*3) * nPrism];
     int *faceConnectivityIdx       = new int [nFaces + 1];
@@ -557,8 +557,6 @@ namespace cwipi {
     // int *tmpCellToFaceConnectivity = NULL;
     // if (nPolyhedra > 0 )
     //   tmpCellToFaceConnectivity = new int[cellToFaceConnectivityIdx[nPolyhedra]];
-
-    int  nColorVertice = 0;
 
     for (int i = 0; i < nVertices; i++)
       colorVertice[i] = false;
@@ -768,28 +766,6 @@ namespace cwipi {
       
       for (int i = 0; i < 3; i++)
         polyCenter[i] =  polyCenter[i] + signeVol * denomVol * disp[i];
-
-
-      for (int iface = 0; iface < nPolyFace; iface++) {
-
-        const int face          = abs(cellToFaceConnectivity[polyIdx + iface]) - 1;
-        const int direction     = (cellToFaceConnectivity[polyIdx + iface] < 0) ? -1 : 1;
-        const double*surfaceVector_f = surfaceVector + 3*face;
-
-        const double vectCCFC[3] = 
-          {faceCenter[3 * face    ] - polyCenter[0],
-           faceCenter[3 * face + 1] - polyCenter[1],
-           faceCenter[3 * face + 2] - polyCenter[2]};
-     
-        double dd = direction * dotProduct (vectCCFC, surfaceVector_f);
-        
-        // if (dd < 0) {
-        //   printf("probleme de sens %i %i\n",ipoly+1, iface);
-        //   tmpCellToFaceConnectivity[polyIdx + iface] = -cellToFaceConnectivity[polyIdx + iface];
-        // }
-        // else
-        //   tmpCellToFaceConnectivity[polyIdx + iface] = cellToFaceConnectivity[polyIdx + iface];
-      }
 
       volume_t += volume[ipoly];
 

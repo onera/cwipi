@@ -54,28 +54,6 @@ static void _dumpStatus(FILE* outputFile, cwipi_exchange_status_t status)
 
 /*----------------------------------------------------------------------
  *                                                                     
- * Dump not located points                                             
- *                                                                     
- * parameters:
- *   coupling_id         <-- Coupling id               
- *   nNotLocatedPoints   <-- Number of not located points
- *---------------------------------------------------------------------*/
-
-static void _dumpNotLocatedPoints(FILE* outputFile,
-                                  const char *coupling_id,
-                                  const int nNotLocatedPoints)
-{
-  if ( nNotLocatedPoints > 0) {
-    fprintf(outputFile, "Not located points :\n");
-    const int* notLocatedPoints = cwipi_get_not_located_points(coupling_id);
-    for(int i = 0; i < nNotLocatedPoints; i++)
-     fprintf(outputFile, "%i ", notLocatedPoints[i]);
-    fprintf(outputFile, "\n");
-  }
-}
-
-/*----------------------------------------------------------------------
- *                                                                     
  * Display usage                                             
  *                                                                     
  * parameters:

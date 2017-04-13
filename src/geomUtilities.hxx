@@ -238,16 +238,6 @@ namespace cwipi {
            coords[3*i4 + 1] - coords[3*i1 + 1],
            coords[3*i4 + 2] - coords[3*i1 + 2]};
 
-        double vectV2V4[3] =
-          {coords[3*i4    ] - coords[3*i2    ],
-           coords[3*i4 + 1] - coords[3*i2 + 1],
-           coords[3*i4 + 2] - coords[3*i2 + 2]};
-
-        double vectV3V4[3] =
-          {coords[3*i4    ] - coords[3*i3    ],
-           coords[3*i4 + 1] - coords[3*i3 + 1],
-           coords[3*i4 + 2] - coords[3*i3 + 2]};
-
         double normV1V2 = norm(vectV1V2);
         double normV1V3 = norm(vectV1V3);
         double normV2V3 = norm(vectV2V3);
@@ -731,7 +721,9 @@ namespace cwipi {
                                   int         *isDegenerated)
 
   {
-  
+
+    nVertices; //To remove warning never referenced 
+      
     triangleSurfaceVector (nTriangle,
                            connectivity,
                            coords,
@@ -822,6 +814,9 @@ namespace cwipi {
                                     int         *isDegenerated)
 
   {
+
+    nVertices; //To remove warning never referenced 
+
     tetrahedraOrientedVolume (nTetrahedra,
                               connectivity,
                               coords,

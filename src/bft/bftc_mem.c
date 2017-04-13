@@ -849,7 +849,7 @@ bftc_mem_realloc(void        *ptr,
     }
 
     if (_bftc_mem_global_file != NULL) {
-      char sgn = (size_diff > 0) ? '+' : '-';
+      char sgn = (char) ((size_diff > 0) ? '+' : '-');
       fprintf(_bftc_mem_global_file, "\nrealloc: %-27s:%6d : %-39s: %9lu",
               _bftc_mem_basename(file_name), line_num,
               var_name, (unsigned long)new_size);

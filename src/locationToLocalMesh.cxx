@@ -1272,7 +1272,6 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
 
       double closestPoint[3];
       double dist_min = DBL_MAX;
-      int k_min = 0;
 
       for (int k = 0; k < nbr_som_fac; k++) {
         double *p1 = &(coo_som_fac[3 * k]);
@@ -1288,7 +1287,6 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
         
         if (dist2 < dist_min) {
           dist_min = dist2;
-          k_min = k;
           closestPoint[0] = closest[0];
           closestPoint[1] = closest[1];
           closestPoint[2] = closest[2];
@@ -1321,7 +1319,6 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
 
     for (int isom = 0; isom < nbr_som_fac; isom++) {
 
-      int inext = (isom + 1) % nbr_som_fac;
       double *vect = &s[0] + 3*isom;
       vect[0] = coo_som_fac[3*isom]   - coo_point_dist[0];
       vect[1] = coo_som_fac[3*isom+1] - coo_point_dist[1];
@@ -1429,7 +1426,6 @@ void LocationToLocalMesh::computePolygonMeanValues(const int           n_dist_po
              _distBarCoords[isom] < 0. ||
              _distBarCoords[isom] > 1. ) {
 
-          double closestPoint[3];
           double dist_min = DBL_MAX;
           int k_min = 0;
           double t_min;
@@ -1547,7 +1543,6 @@ void LocationToLocalMesh::compute3DMeanValues()
   int faceConnectivityIndex[n_face_max + 1];
   int faceConnectivity[n_vtx_max];
   double faceVtxCoords[3*n_vtx_max];
-  double bounds[6*n_face_max];
   int localConnec[8] = {0, 1, 2, 3, 4, 5, 6, 7};
   int localFaceConnectivity[n_vtx_max];
   std::vector <int> nFaceDistBarCoords(2);
@@ -1629,7 +1624,6 @@ void LocationToLocalMesh::compute3DMeanValues()
           //
 
           int n_face = 0;
-          int n_vtx = 0;
 
           switch(nbr_som){
           
@@ -1640,7 +1634,6 @@ void LocationToLocalMesh::compute3DMeanValues()
             //
 
             n_face = 4;
-            n_vtx = 12;
             
             tetrahedraFaces (1,
                              0,
@@ -1663,7 +1656,6 @@ void LocationToLocalMesh::compute3DMeanValues()
             //
 
             n_face = 5;
-            n_vtx = 16;
 
             pyramidFaces (1,
                           0,
@@ -1686,7 +1678,6 @@ void LocationToLocalMesh::compute3DMeanValues()
             //
 
             n_face = 5;
-            n_vtx = 18;
 
             prismFaces (1,
                         0,
@@ -1709,7 +1700,6 @@ void LocationToLocalMesh::compute3DMeanValues()
             //
 
             n_face = 6;
-            n_vtx = 24;
 
             hexahedraFaces (1,
                             0,
@@ -1741,14 +1731,13 @@ void LocationToLocalMesh::compute3DMeanValues()
           int k_min = 0;
           
           for (int k = 0; k < n_face; k++) {
-            double *_bounds = bounds + 6 * k;
             const int nVtx = faceConnectivityIndex[k+1] - faceConnectivityIndex[k];
             double closest[3];
             double pcoords[3];
             double dist_face;
 
-            int status = fvmc_polygon_evaluate_Position(coo_point_dist, nVtx, _faceVtxCoords, closest,
-                                                        pcoords, &dist_face);
+            fvmc_polygon_evaluate_Position(coo_point_dist, nVtx, _faceVtxCoords, closest,
+                                           pcoords, &dist_face);
 
              _faceVtxCoords += 3*nVtx;
  
@@ -1759,7 +1748,7 @@ void LocationToLocalMesh::compute3DMeanValues()
 
           }
 
-          int dist_locations = k_min + 1;
+          int dist_locations1 = k_min + 1;
           const int nVtx = faceConnectivityIndex[k_min+1] - faceConnectivityIndex[k_min];
           
           nFaceDistBarCoords[0] = 0;
@@ -1767,7 +1756,7 @@ void LocationToLocalMesh::compute3DMeanValues()
           
           
           computePolygonMeanValues (1,
-                                    &dist_locations,
+                                    &dist_locations1,
                                     coo_point_dist,
                                     faceConnectivityIndex,
                                     faceConnectivity,
@@ -2036,7 +2025,6 @@ void LocationToLocalMesh::compute3DMeanValuesPoly(const double point_coords[],
   for (int isom = 0; isom < n_poly_vertex; isom++)
     distBarCoords[isom] = 0.; 
   
-  int isOnVertex = 0;
   for (int isom = 0; isom < n_poly_vertex; isom++) {
     s[3 * isom    ] = vertex_coords[3 * isom    ] - point_coords[0];
     s[3 * isom + 1] = vertex_coords[3 * isom + 1] - point_coords[1];
@@ -2044,13 +2032,6 @@ void LocationToLocalMesh::compute3DMeanValuesPoly(const double point_coords[],
   }
 
   if (distElt > 1.) {
-
-    //
-    // Check if point is on a face
-    // 
-    
-    const int   n_points  = 1;
-    fvmc_lnum_t point_ids = 0;
     
     //
     // Search clostest face
@@ -2085,7 +2066,7 @@ void LocationToLocalMesh::compute3DMeanValuesPoly(const double point_coords[],
       double pcoords[3];
       double dist_face;
       
-      int status = fvmc_polygon_evaluate_Position(const_cast<double *> (point_coords),
+      fvmc_polygon_evaluate_Position(const_cast<double *> (point_coords),
                                                   n_vtx, poly_vertex, closest,
                                                   pcoords, &dist_face);
       
@@ -2193,8 +2174,6 @@ void LocationToLocalMesh::compute3DMeanValuesPoly(const double point_coords[],
     //
     // Compute mean value for this face if point is on face
     //
-    
-    double eps_loc = geometricEpsilon(characteristicLength, GEOM_EPS_SURF);
 
     if (face_location > 0 && face_distance < eps_loc) {
 
@@ -2241,8 +2220,6 @@ void LocationToLocalMesh::compute3DMeanValuesPoly(const double point_coords[],
     // 
 
     if (!isOnFace) {
-      
-      int ind_som;
       
       for (int isom = 0; isom < n_poly_vertex; isom++) {
         
@@ -2350,8 +2327,6 @@ void LocationToLocalMesh::compute3DMeanValuesPoly(const double point_coords[],
           double eps_face = geometricEpsilon(characteristicLength, GEOM_EPS_SURF);
           
           if (fabs(areaTri_ijk) > eps_face) { 
-            
-            std::vector <double> normale(9); //normale 
 
             for (int isom = 0; isom < 3; isom++) {
               
@@ -2752,10 +2727,9 @@ LocationToLocalMesh::compute_uvw(const cwipi_element_t elt_type,
   if (elt_type == CWIPI_CELL_TETRA4) {
 
     double vol6;
-    int i, j, k;
     
     double t00, t10, t20, t01, t02, t03, t11, t12, t13, t21, t22, t23;
-    double v01[3], v02[3], v03[3], shapef[4];
+    double v01[3], v02[3], v03[3];
     double v12[3], v13[3];
     double v23[3];
     double n_v[6];

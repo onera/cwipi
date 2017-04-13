@@ -31,29 +31,6 @@
 
 /*----------------------------------------------------------------------
  *                                                                     
- * Dump status exchange                                                
- *                                                                     
- * parameters:
- *   status              <-- Exchange status           
- *---------------------------------------------------------------------*/
-
-static void _dumpStatus(FILE* outputFile, cwipi_exchange_status_t status)
-{
-  switch(status) {
-  case CWIPI_EXCHANGE_OK :
-    fprintf(outputFile, "Exchange Ok\n");
-    break;
-  case CWIPI_EXCHANGE_BAD_RECEIVING :
-    fprintf(outputFile, "Bad receiving\n");
-    break;
-  default :
-    printf("Error : bad exchange status\n");
-    exit(1);
-  }
-}
-
-/*----------------------------------------------------------------------
- *                                                                     
  * Dump not located points                                             
  *                                                                     
  * parameters:

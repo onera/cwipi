@@ -231,9 +231,9 @@ namespace cwipi {
 
           int ivertex = -1;
 
-          for (int j = 0; j < vertexPoly.size(); j++) {
-            if (ivertex < vertexPoly[j]) {
-              ivertex = vertexPoly[j];
+          for (int j1 = 0; j1 < vertexPoly.size(); j1++) {
+            if (ivertex < vertexPoly[j1]) {
+              ivertex = vertexPoly[j1];
               volumeVertex[ivertex - 1] += cellVolume[i];
               if (volumeVertex[ivertex - 1] < 0.)
                 std::cout << "Volume : " << i << " " << cellVolume[i] << " " << volumeVertex[ivertex - 1] << std::endl;
@@ -349,8 +349,6 @@ namespace cwipi {
     if (_solverType == CWIPI_SOLVER_CELL_CENTER) {
       const int nDistantPoint      = _locationToLocalMesh->getNLocatedDistantPoint() ;
       const int *distantLocation   = _locationToLocalMesh->getLocation();
-      const int *eltsConnecPointer = _supportMesh->getEltConnectivityIndex();
-      const int *eltsConnec        = _supportMesh->getEltConnectivity();
       for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
         int iel = distantLocation[ipoint] - 1;
         for (int k = 0; k < stride; k++)
@@ -391,10 +389,8 @@ namespace cwipi {
   {
     const int nDistantPoint      =  _locationToLocalMesh->getNLocatedDistantPoint() ;
     const int *distantLocation   = _locationToLocalMesh->getLocation();
-    const double *distantCoords   = _locationToLocalMesh->getPointCoordinates();
     const int *eltsConnecPointer = _supportMesh->getEltConnectivityIndex();
     const int *eltsConnec        = _supportMesh->getEltConnectivity();
-    const double *coords         = _supportMesh->getVertexCoords();
     const double *barycentricCoordinates = _locationToLocalMesh->getBarycentricCoordinates();
     const int *barycentricCoordinatesIndex = _locationToLocalMesh->getBarycentricCoordinatesIndex();
 
@@ -419,7 +415,6 @@ namespace cwipi {
 
     const int nDistantPoint      =  _locationToLocalMesh->getNLocatedDistantPoint() ;
     const int *distantLocation   = _locationToLocalMesh->getLocation();
-    const double *distantCoords   = _locationToLocalMesh->getPointCoordinates();
 
     const int *eltsConnecPointer = _supportMesh->getEltConnectivityIndex();
     const int *eltsConnec        = _supportMesh->getEltConnectivity();
@@ -563,7 +558,6 @@ namespace cwipi {
           const int *polyhedraFaceConnectivityIndex = _supportMesh->getPolyhedraFaceConnectivityIndex() ;
           const int *polyhedraFaceConnectivity = _supportMesh->getPolyhedraFaceConnectivity();
         
-          int ipoly = iel - nStandardElt;
           int nFacePolyhedra = polyhedraFaceIndex[iel+1] - polyhedraFaceIndex[iel];
           int faceIndex = polyhedraCellToFaceConnectivity[iel];
           int nVertexFace = 0;
@@ -1036,13 +1030,11 @@ namespace cwipi {
       const float *distantDistance   = _locationToLocalMesh->getDistance();
       const double *distantCoords  = _locationToLocalMesh->getPointCoordinates();
 
-      const int* interiorList     = _locationToDistantMesh->getLocatedPoint();
       const int nInteriorList     = _locationToDistantMesh->getNLocatedPoint();
       const double *barycentricCoordinates = _locationToLocalMesh->getBarycentricCoordinates();
       const int *barycentricCoordinatesIndex = _locationToLocalMesh->getBarycentricCoordinatesIndex();
 
       int lDistantField = stride * nDistantPoint;
-      int lReceivingField = stride * _locationToDistantMesh->getNpointsToLocate();
 
       if (_tmpDistantField == NULL)
         _tmpDistantField = new std::vector<double> (lDistantField);
@@ -1271,11 +1263,6 @@ namespace cwipi {
 
 
   {
-    cwipi_exchange_status_t status = CWIPI_EXCHANGE_OK;
-
-    const MPI_Comm& localComm = _localApplicationProperties.getLocalComm();
-
-    int rootRank;
 
     if (!_isCoupledRank && sendingField != NULL )
       bftc_printf("Warning : sendingField != NULL, "
@@ -1308,14 +1295,10 @@ namespace cwipi {
       const float *distantDistance   = _locationToLocalMesh->getDistance();
       const double *distantCoords   = _locationToLocalMesh->getPointCoordinates();
 
-      const int* interiorList     = _locationToDistantMesh->getLocatedPoint();
-      const int nInteriorList     = _locationToDistantMesh->getNLocatedPoint();
       const double *barycentricCoordinates = _locationToLocalMesh->getBarycentricCoordinates();
       const int *barycentricCoordinatesIndex = _locationToLocalMesh->getBarycentricCoordinatesIndex();
 
       int lDistantField = stride * nDistantPoint;
-      int lReceivingField = stride * _locationToDistantMesh->getNpointsToLocate();
-    
 
       // plutot mettre request comme clé du map
 

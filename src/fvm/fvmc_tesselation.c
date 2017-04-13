@@ -810,10 +810,10 @@ _vertex_field_of_real_values(const fvmc_tesselation_t  *this_tesselation,
 
       switch(dest_datatype) {
       case FVMC_FLOAT:
-        ((float *const)dest_data)[i] = interpolated_value;
+        ((float *const)dest_data)[i] = (float) interpolated_value;
         break;
       case FVMC_DOUBLE:
-        ((double *const)dest_data)[i] = interpolated_value;
+        ((double *const)dest_data)[i] = (double) interpolated_value;
         break;
       default:
         assert(0);

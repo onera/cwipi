@@ -733,7 +733,6 @@ void cwipi_create_coupling
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
-  const std::string &coupling_name_str = coupling_name;
   const std::string &coupled_application_str = coupled_application;
 
   couplingDataBase.createCoupling(coupling_name,
@@ -990,11 +989,6 @@ void cwipi_define_mesh(const char *coupling_name,
   cwipi::CouplingDataBase & couplingDataBase =
     cwipi::CouplingDataBase::getInstance();
 
-  cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::getInstance();
-
-  const MPI_Comm &localComm = properties.getLocalApplicationProperties().getLocalComm();
-
   const std::string &coupling_name_str = coupling_name;
 
   cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
@@ -1014,11 +1008,6 @@ void cwipi_shared_fvmc_nodal(const char *coupling_name,
   cwipi::CouplingDataBase & couplingDataBase =
     cwipi::CouplingDataBase::getInstance();
 
-  cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::getInstance();
-
-  const MPI_Comm &localComm = properties.getLocalApplicationProperties().getLocalComm();
-
   const std::string &coupling_name_str = coupling_name;
 
   cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
@@ -1037,9 +1026,6 @@ void cwipi_add_polyhedra(const char *coupling_name,
 {
   cwipi::CouplingDataBase & couplingDataBase =
     cwipi::CouplingDataBase::getInstance();
-
-  cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::getInstance();
 
   const std::string &coupling_name_str = coupling_name;
 
@@ -1524,7 +1510,6 @@ void cwipi_finalize(void)
   if (flag != 0) {
     bftc_printf_flush();
     MPI_Barrier(globalComm);
-    MPI_Comm oldFVMComm = fvmc_parall_get_mpi_comm();
   }
 
 }

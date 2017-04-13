@@ -152,5 +152,8 @@ namespace cwipi {
    int tabSize
   )
   {
+   tab; // To remove never referenced warning
+   mpiType; // To remove never referenced warning 
+   tabSize; // To remove never referenced warning
   }
 }

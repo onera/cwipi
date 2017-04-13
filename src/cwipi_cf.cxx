@@ -1169,9 +1169,9 @@ void PROCF(cwipi_open_location_file_cf,
   char *coupling_nameC =
     _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
   char *filenameC =
-    _cwipi_fortran_to_c_string(coupling_name, *l_filename);
+    _cwipi_fortran_to_c_string(filename, *l_filename);
   char *modeC =
-    _cwipi_fortran_to_c_string(coupling_name, *l_mode);
+    _cwipi_fortran_to_c_string(mode, *l_mode);
 
   cwipi::CouplingDataBase & couplingDataBase =
     cwipi::CouplingDataBase::getInstance();

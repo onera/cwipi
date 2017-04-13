@@ -628,55 +628,56 @@ _locate_by_extents_1d(fvmc_lnum_t         elt_num,
  *                          > 1 if outside (size: n_points)
  *----------------------------------------------------------------------------*/
 
-static void
-_locate_in_extents(const fvmc_lnum_t    elt_num,
-                   const int           dim,
-                   const double        extents[],
-                   const fvmc_coord_t   point_coords[],
-                   fvmc_lnum_t          n_points_in_extents,
-                   const fvmc_lnum_t    points_in_extents[],
-                   fvmc_lnum_t          location[],
-                   float               distance[])
-{
-  fvmc_lnum_t  i, j, k;
-
-  /* For now, we base a minimal location test on the element extents */
-  /* The behavior is quadradic, nothing is optimized yet */
-
-  for (i = 0; i < n_points_in_extents; i++) {
-
-    double elt_coord_max = -1;
-    double elt_coord = -1;
-
-    j = points_in_extents[i];
-
-    for (k = 0; k < dim; k++) {
-
-      double cur_coord = point_coords[j*dim + k];
-
-      elt_coord =   (cur_coord - 0.5*(extents[k+dim] + extents[k]))
-                  / (            0.5*(extents[k+dim] - extents[k]));
-
-      elt_coord = FVMC_ABS(elt_coord);
-
-      if (elt_coord > elt_coord_max)
-        elt_coord_max = elt_coord;
-
-    }
-
-    elt_coord_max += 1.;
-
-    if (  (distance[j] < 0 && elt_coord_max < 2.)
-        || elt_coord_max < distance[j]) {
-
-      location[j] = elt_num;
-      distance[j] = (float) elt_coord_max;
-
-    }
-
-  }
-
-}
+//FIXME: Delete _locate_in_extents or not ?
+//static void
+//_locate_in_extents(const fvmc_lnum_t    elt_num,
+//                   const int           dim,
+//                   const double        extents[],
+//                   const fvmc_coord_t   point_coords[],
+//                   fvmc_lnum_t          n_points_in_extents,
+//                   const fvmc_lnum_t    points_in_extents[],
+//                   fvmc_lnum_t          location[],
+//                   float               distance[])
+//{
+//  fvmc_lnum_t  i, j, k;
+//
+//  /* For now, we base a minimal location test on the element extents */
+//  /* The behavior is quadradic, nothing is optimized yet */
+//
+//  for (i = 0; i < n_points_in_extents; i++) {
+//
+//    double elt_coord_max = -1;
+//    double elt_coord = -1;
+//
+//    j = points_in_extents[i];
+//
+//    for (k = 0; k < dim; k++) {
+//
+//      double cur_coord = point_coords[j*dim + k];
+//
+//      elt_coord =   (cur_coord - 0.5*(extents[k+dim] + extents[k]))
+//                  / (            0.5*(extents[k+dim] - extents[k]));
+//
+//      elt_coord = FVMC_ABS(elt_coord);
+//
+//      if (elt_coord > elt_coord_max)
+//        elt_coord_max = elt_coord;
+//
+//    }
+//
+//    elt_coord_max += 1.;
+//
+//    if (  (distance[j] < 0 && elt_coord_max < 2.)
+//        || elt_coord_max < distance[j]) {
+//
+//      location[j] = elt_num;
+//      distance[j] = (float) elt_coord_max;
+//
+//    }
+//
+//  }
+//
+//}
 
 /*----------------------------------------------------------------------------
  * Compare points coordinates to check if it is a multi point
