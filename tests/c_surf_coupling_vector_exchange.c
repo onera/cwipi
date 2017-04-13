@@ -220,7 +220,7 @@ int main
     codeCoupledName = "code1";
   }
 
-  char* fileName = (char *) malloc(sizeof(char) * 39);
+  char* fileName = (char *) malloc(sizeof(char) * 41);
   sprintf(fileName,"c_surf_coupling_vector_exchange_%4.4d.txt",rank);
 
   outputFile = fopen(fileName,"w");
