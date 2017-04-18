@@ -692,6 +692,41 @@ int PDM_io_mkdir
 const char* path
 );
 
+
+/*----------------------------------------------------------------------------
+ * Calcul de la taille totale d'un champ de donnees
+ *
+ * parameters :
+ *   unite             <-- Unite du fichier
+ *   t_n_composantes   <-- Type de tailles composantes 
+ *                        (PDM_IO_N_COMPOSANTE_CONSTANT
+ *                     ou PDM_IO_N_COMPOSANTE_VARIABLE)
+ *   n_composantes     <-- Nombre de composantes pour chaque donnee         
+ *   n_donnees         <-- Nombre de donnees a lire
+ *   indirection       <-- Indirection de redistribition des donnees
+ *                       Attention cet argument est un int64
+ *   t_n_donnee        --> Nombre total de donnees (Elimination des doublons)
+ *  
+ *----------------------------------------------------------------------------*/
+
+void PROCF (PDM_io_n_donnees_get, PDM_IO_N_DONNEES_GET)
+(const PDM_l_num_t  *unite,
+ const int             *t_n_composantes,         
+ const PDM_l_num_t  *n_composantes,         
+ const PDM_l_num_t  *n_donnees,
+ const PDM_g_num_t *indirection,
+       PDM_g_num_t *t_n_donnees
+ );
+
+PDM_g_num_t PDM_io_n_donnees_get
+(const PDM_l_num_t           unite,
+ const PDM_io_n_composantes_t t_n_composantes,
+ const PDM_l_num_t          *n_composantes,         
+ const PDM_l_num_t           n_donnees,
+ const PDM_g_num_t         *indirection
+ );
+
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
