@@ -27,8 +27,6 @@ list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/../pdm_mpi_ext_dependencies
 unset(LINK_LIBRARIES)
 list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
 
-message(STATUS "Add library pdm_no_mpi - Succes")
-
 if (PDM_ENABLE_SHARED)
   set_property(TARGET ${pdm_no_mpi} PROPERTY POSITION_INDEPENDENT_CODE 1)
   add_library(pdm_no_mpi_shared SHARED  $<TARGET_OBJECTS:pdm_no_mpi>)

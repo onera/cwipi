@@ -176,60 +176,6 @@ const char* path
 
 }
 
-
-/*----------------------------------------------------------------------------
- * Partitionnement pour le tri quick sort
- *
- * parameters :
- *   tableau          <-> tableau a trier
- *   p                <-- Indice de debut
- *   r                <-- Indice de fin
- * return
- *   PDM_io_version      Description version CEDRE      
- *----------------------------------------------------------------------------*/
-
-static int _PDM_io_quicksort_part(int tableau[], int p, int r) {
-  int pivot = tableau[p], i = p-1, j = r+1;
-  int temp;
-  while(1) {
-    do
-      j--;
-    while(tableau[j] > pivot);
-    do
-      i++;
-    while(tableau[i] < pivot);
-    if(i < j) {
-      temp = tableau[i];
-      tableau[i] = tableau[j];
-      tableau[j] = temp;
-    }
-    else
-      return j;
-  }
-}
-
-/*----------------------------------------------------------------------------
- * Tri quick sort
- *
- * parameters :
- *   tableau          <-> tableau a trier
- *   p                <-- Indice de debut
- *   r                <-- Indice de fin
- * return
- *   PDM_io_version      Description version CEDRE      
- *----------------------------------------------------------------------------*/
-
-static void _PDM_io_quicksort(int tableau[], int p, int r) {
-  int q;
-
-  if(p < r) {
-    q = _PDM_io_quicksort_part(tableau, p, r);
-    _PDM_io_quicksort(tableau, p, q);
-    _PDM_io_quicksort(tableau, q+1, r);
-  }
-  return;
-}
-
 /*----------------------------------------------------------------------------
  * Detemination de liste des rangs actifs qui accedent reellement aux fichiers
  * et le nombre de donnees traitees par chaque rang (0 pour les rangs inactifs)
@@ -1327,7 +1273,7 @@ void PROCF (pdm_io_lec_par_entrelacee, PDM_IO_LEC_PAR_ENTRELACEE)
  void                  *donnees
 )
 {
-  PDM_io_n_composantes_t _t_n_composantes;
+  PDM_io_n_composantes_t _t_n_composantes = PDM_IO_N_COMPOSANTE_CONSTANT;
 
   if (*t_n_composantes == 0) 
     _t_n_composantes = PDM_IO_N_COMPOSANTE_CONSTANT;
@@ -1433,6 +1379,11 @@ void PDM_io_lec_par_entrelacee
                                          taille_donnee *
                                          _n_donnees_buff);
       }
+			
+			else {
+				fprintf (stderr,"PDM_io_lec_par_entrelacee Error : unknown PDM_io_n_composantes_t \n");
+				abort();
+			}
      
       PDM_timer_hang_on(timer_distribution);
       PDM_timer_hang_on(timer_total);
@@ -2121,7 +2072,7 @@ void PROCF (pdm_io_lec_par_bloc, PDM_IO_LEC_PAR_BLOC)
  void                  *donnees
 )
 {
-  PDM_io_n_composantes_t _t_n_composantes;
+  PDM_io_n_composantes_t _t_n_composantes = PDM_IO_N_COMPOSANTE_CONSTANT;
 
   if (*t_n_composantes == 0) 
     _t_n_composantes = PDM_IO_N_COMPOSANTE_CONSTANT;
@@ -2586,7 +2537,7 @@ void PROCF (pdm_io_ecr_par_entrelacee, PDM_IO_ECR_PAR_ENTRELACEE)
  const void            *donnees
 )
 {
-  PDM_io_n_composantes_t _t_n_composantes;
+  PDM_io_n_composantes_t _t_n_composantes = PDM_IO_N_COMPOSANTE_CONSTANT;
 
   if (*t_n_composantes == 0) 
     _t_n_composantes = PDM_IO_N_COMPOSANTE_CONSTANT;
@@ -3570,7 +3521,7 @@ void PROCF (pdm_io_ecr_par_bloc, PDM_IO_ECR_PAR_BLOC)
  const void            *donnees
 )
 {
-  PDM_io_n_composantes_t _t_n_composantes;
+  PDM_io_n_composantes_t _t_n_composantes = PDM_IO_N_COMPOSANTE_CONSTANT;
 
   if (*t_n_composantes == 0) 
     _t_n_composantes = PDM_IO_N_COMPOSANTE_CONSTANT;

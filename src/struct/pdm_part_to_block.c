@@ -719,8 +719,8 @@ PDM_part_to_block_exch
 
     for (int j = 0; j < _ptb->n_elt[i]; j++) {
       int iProc = _ptb->destProc[++idx];
-      int s_octet_elt; 
-      int i_part_elt;
+      int s_octet_elt = 0; 
+      int i_part_elt = 0;
 
       if (t_stride == PDM_STRIDE_CST) {
         s_octet_elt = cst_stride * (int) s_data;

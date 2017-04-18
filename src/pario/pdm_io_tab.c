@@ -250,7 +250,7 @@ void PROCF (pdm_io_tab_ecr_debut, PDM_IO_TAB_ECR_DEBUT)
  const PDM_l_num_t *n_partition_local
 )
 {
-  PDM_io_rangement_t __t_rangement;
+  PDM_io_rangement_t __t_rangement = PDM_IO_RANGEMENT_BLOC;
 
   if (*t_rangement == 0) 
     __t_rangement = PDM_IO_RANGEMENT_BLOC;
@@ -360,7 +360,7 @@ void PROCF (pdm_io_tab_ecr_def_var, PDM_IO_TAB_ECR_DEF_VAR)
  const PDM_l_num_t  *taille_donnee
  )
 {
-  PDM_io_n_composantes_t _t_n_composantes;
+  PDM_io_n_composantes_t _t_n_composantes = PDM_IO_N_COMPOSANTE_CONSTANT;
 
   if (*t_n_composantes == 0) 
     _t_n_composantes = PDM_IO_N_COMPOSANTE_CONSTANT;
@@ -709,7 +709,7 @@ void PROCF (pdm_io_tab_lec_debut, PDM_IO_TAB_LEC_DEBUT)
  const PDM_l_num_t *n_partition_local
 )
 {
-  PDM_io_rangement_t __t_rangement;
+  PDM_io_rangement_t __t_rangement = PDM_IO_RANGEMENT_BLOC;
 
   if (*t_rangement == 0) 
     __t_rangement = PDM_IO_RANGEMENT_BLOC;
@@ -825,7 +825,7 @@ void PROCF (pdm_io_tab_lec_def_var, PDM_IO_TAB_LEC_DEF_VAR)
  const PDM_l_num_t  *taille_donnee
  )
 {
-  PDM_io_n_composantes_t _t_n_composantes;
+  PDM_io_n_composantes_t _t_n_composantes = PDM_IO_N_COMPOSANTE_CONSTANT;
 
   if (*t_n_composantes == 0) 
     _t_n_composantes = PDM_IO_N_COMPOSANTE_CONSTANT;

@@ -1406,8 +1406,15 @@ _calcul_numabs_split_poly3d
 )
 {
   fprintf(stderr, "_calcul_numabs_split_poly3d : Not yet impelemented\n");
+#if defined(__clang__)	
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-value" 	
+#endif
   geom;
   abort();
+#if defined(__clang__)	
+#pragma clang diagnostic pop
+#endif
 }
 
 /*----------------------------------------------------------------------------

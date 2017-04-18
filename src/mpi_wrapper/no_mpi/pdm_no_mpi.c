@@ -1,7 +1,10 @@
 /*============================================================================
  * No MPI
  *============================================================================*/
-
+#if defined(__clang__)	
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-value" 	
+#endif
 /*----------------------------------------------------------------------------
  * Standard C library headers
  *----------------------------------------------------------------------------*/
@@ -906,3 +909,6 @@ int PDM_MPI_Comm_split(PDM_MPI_Comm comm, int color, int key, PDM_MPI_Comm *newc
 }
 #endif /* __cplusplus */
 
+#if defined(__clang__)	
+#pragma clang diagnostic pop
+#endif

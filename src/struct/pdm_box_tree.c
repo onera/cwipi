@@ -835,7 +835,7 @@ _boxes_intersect_node (const PDM_box_tree_t     *bt,
                        int                       boxB_id,
                        int                       node_id)
 {
-  _Bool is_intersect;
+  _Bool is_intersect = false;
   if (boxesB->dim == 3) {
     is_intersect = _boxes_intersect_node_3d (bt, boxesB, boxB_id, node_id);
   }

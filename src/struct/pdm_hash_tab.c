@@ -122,7 +122,7 @@ void           *data
 )
 {
   _hash_tab_t *_ht = (_hash_tab_t *) ht;
-  PDM_g_num_t _key;
+  PDM_g_num_t _key = -1;;
   
   if (_ht->tKey == PDM_HASH_TAB_KEY_INT) {
     _key = (PDM_g_num_t) *((int *) (key));
@@ -130,7 +130,11 @@ void           *data
   else if (_ht->tKey == PDM_HASH_TAB_KEY_LONG) {
     _key = *((PDM_g_num_t *) (key));
   }  
-
+  else {
+	  fprintf(stderr, "PDM_hash_tab_data_add error : unknown PDM_hash_tab_key_t\n");
+		abort();
+	}
+	
   if (_ht->nDataKey[_key] >= _ht->mDataKey[_key]) {
     _ht->mDataKey[_key] *= 2;
     _ht->data[_key] = realloc (_ht->data[_key], sizeof(void *) *
@@ -160,7 +164,7 @@ void           *key
 )
 {
   _hash_tab_t *_ht = (_hash_tab_t *) ht;
-  PDM_g_num_t _key;
+  PDM_g_num_t _key = -1;
   
   if (_ht->tKey == PDM_HASH_TAB_KEY_INT) {
     _key = (PDM_g_num_t) *((int *) (key));
@@ -168,6 +172,10 @@ void           *key
   else if (_ht->tKey == PDM_HASH_TAB_KEY_LONG) {
     _key = *((PDM_g_num_t *) (key));
   }
+  else {
+	  fprintf(stderr, "PDM_hash_tab_data_free error : unknown PDM_hash_tab_key_t\n");
+		abort();
+	}
   
   _ht->nDataKey[_key] = 0;
   
@@ -194,7 +202,7 @@ void           *key
 )
 {
   _hash_tab_t *_ht = (_hash_tab_t *) ht;
-  PDM_g_num_t _key;
+  PDM_g_num_t _key = -1;
   
   if (_ht->tKey == PDM_HASH_TAB_KEY_INT) {
     _key = (PDM_g_num_t) *((int *) (key));
@@ -202,6 +210,10 @@ void           *key
   else if (_ht->tKey == PDM_HASH_TAB_KEY_LONG) {
     _key = *((PDM_g_num_t *) (key));
   }  
+  else {
+	  fprintf(stderr, "PDM_hash_tab_data_get error : unknown PDM_hash_tab_key_t\n");
+		abort();
+	}
   return _ht->nDataKey[_key];
 }
 
@@ -226,7 +238,7 @@ void           *key
 )
 {
   _hash_tab_t *_ht = (_hash_tab_t *) ht;
-  PDM_g_num_t _key;
+  PDM_g_num_t _key = -1;
   
   if (_ht->tKey == PDM_HASH_TAB_KEY_INT) {
     _key = (PDM_g_num_t) *((int *) (key));
@@ -234,6 +246,10 @@ void           *key
   else if (_ht->tKey == PDM_HASH_TAB_KEY_LONG) {
     _key = *((PDM_g_num_t *) (key));
   }  
+  else {
+	  fprintf(stderr, "PDM_hash_tab_data_get error : unknown PDM_hash_tab_key_t\n");
+		abort();
+	}
   return _ht->data[_key];
 }
 
