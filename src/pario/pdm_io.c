@@ -4642,6 +4642,346 @@ const char* path
   return err;
 }
 
+/*----------------------------------------------------------------------------
+ * Calcul de la taille totale d'un champ de donnees
+ *
+ * parameters :
+ *   unite             <-- Unite du fichier
+ *   t_n_composantes   <-- Type de tailles composantes 
+ *                        (PDM_IO_N_COMPOSANTE_CONSTANT
+ *                     ou PDM_IO_N_COMPOSANTE_VARIABLE)
+ *   n_composantes     <-- Nombre de composantes pour chaque donnee         
+ *   n_donnees         <-- Nombre de donnees a lire
+ *   indirection       <-- Indirection de redistribition des donnees
+ *                       Attention cet argument est un int64
+ *   t_n_donnee        --> Nombre total de donnees (Elimination des doublons)
+ *  
+ *----------------------------------------------------------------------------*/
+
+void PROCF (PDM_io_n_donnees_get, PDM_IO_N_DONNEES_GET)
+(const PDM_l_num_t  *unite,
+ const int             *t_n_composantes,         
+ const PDM_l_num_t  *n_composantes,         
+ const PDM_l_num_t  *n_donnees,
+ const PDM_g_num_t *indirection,
+       PDM_g_num_t *t_n_donnees
+)
+{
+  PDM_io_n_composantes_t _t_n_composantes;
+
+  if (*t_n_composantes == 0) 
+    _t_n_composantes = PDM_IO_N_COMPOSANTE_CONSTANT;
+  else if (*t_n_composantes == 1) 
+    _t_n_composantes = PDM_IO_N_COMPOSANTE_VARIABLE;
+
+  *t_n_donnees = PDM_io_n_donnees_get (*unite,
+                                         _t_n_composantes,
+                                         n_composantes,
+                                         *n_donnees,
+                                         indirection);
+}
+
+PDM_g_num_t
+PDM_io_n_donnees_get
+(const PDM_l_num_t           unite,
+ const PDM_io_n_composantes_t t_n_composantes,
+ const PDM_l_num_t          *n_composantes,         
+ const PDM_l_num_t           n_donnees,
+ const PDM_g_num_t         *indirection
+)
+{
+ 
+  PDM_g_num_t t_n_donnees = 0;
+  
+  int err_code = 0;
+  PDM_io_fichier_t *fichier = PDM_io_get_fichier(unite);
+
+  int *n_composante_trie = NULL;
+
+  if (fichier != NULL) {
+
+    
+    PDM_timer_t *timer_total = fichier->timer_total;
+    PDM_timer_t *timer_distribution = fichier->timer_distribution;
+    PDM_timer_t *timer_fichier = fichier->timer_fichier;
+     
+    PDM_timer_resume(timer_total);
+      
+    if (fichier->n_rangs == 1) {
+
+      PDM_timer_resume(timer_distribution);
+      
+      int _n_donnees = 0;
+
+      if (t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
+        
+        for (int i = 0; i < n_donnees; i++) {
+          _n_donnees += n_composantes[i];
+        }
+        
+      }
+        
+      else if (t_n_composantes == PDM_IO_N_COMPOSANTE_CONSTANT) {
+        _n_donnees = n_donnees * n_composantes[0];
+      }
+      
+      PDM_timer_hang_on(timer_distribution);
+
+      t_n_donnees = (PDM_g_num_t) _n_donnees;
+
+    }
+
+    else {
+        
+      PDM_timer_resume(timer_distribution);
+        
+      /*---------------------------------------------------------- 
+       *  Determination des rangs actifs qui accedent reellement
+       *  aux fichiers et du nombre de donnee traitee par
+       *  chaque rang 
+       *----------------------------------------------------------*/
+        
+      PDM_g_num_t *n_donnees_rangs = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * (fichier->n_rangs + 1));
+        
+      int  n_donnees_rang_min = 0;
+      int  n_donnees_rang_max = 0;
+        
+      PDM_g_num_t _id_max = 0;
+      PDM_g_num_t _id_max_max = 0;
+
+      for (int i = 0; i < n_donnees; i++) {
+        _id_max = PDM_IO_MAX(_id_max, indirection[i]);
+      }
+
+      PDM_MPI_Allreduce(&_id_max,
+                    &_id_max_max, 
+                    1, 
+                    PDM_MPI_LONG, 
+                    PDM_MPI_MAX, 
+                    fichier->comm);
+
+      if (t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
+        
+        _n_donnees_rang(fichier,
+                        _id_max_max,
+                        n_donnees_rangs,
+                        &n_donnees_rang_min,
+                        &n_donnees_rang_max);
+
+        /*---------------------------------------
+         *  Envoi/Reception des numeros absolus 
+         *  decrits par l'indirection 
+         *---------------------------------------*/
+      
+        int *n_donnees_a_envoyer = (int *) malloc(sizeof(int) * fichier->n_rangs);
+        int *n_donnees_a_recevoir = (int *) malloc(sizeof(int) * fichier->n_rangs);
+        
+        /* Pour chaque donnee le proc ou elle va etre envoyee */
+   
+        int *donnees_proc = (int *) malloc(sizeof(int) * n_donnees); 
+        int *indirection_locale = (int *) malloc(sizeof(int) * n_donnees);
+        
+        /* Calcul du nombre de donnees a envoyer a chaque procesus */
+        
+        for (int i = 0; i < fichier->n_rangs; i++)
+          n_donnees_a_envoyer[i] = 0;
+        
+        for (int i = 0; i < n_donnees; i++) {
+          
+          /* Recherche du processus le plus probable */
+        
+          PDM_g_num_t n_absolu = indirection[i] - 1;
+          int irang_actif = fichier->n_rangs_actifs - 1;
+
+          if (n_donnees_rang_min > 0) { 
+            irang_actif = PDM_IO_MIN((int) (n_absolu / 
+                                              (PDM_g_num_t) n_donnees_rang_min), 
+                                       fichier->n_rangs_actifs - 1) ;
+          }
+        
+          /* Ajustement */
+   
+          while (n_absolu < n_donnees_rangs[fichier->rangs_actifs[irang_actif]])
+            irang_actif -= 1;
+
+          assert(n_absolu < (n_donnees_rangs[fichier->rangs_actifs[irang_actif] + 1])); 
+          
+          n_donnees_a_envoyer[fichier->rangs_actifs[irang_actif]] += 1;
+          donnees_proc[i] = fichier->rangs_actifs[irang_actif];
+        }
+        
+        PDM_MPI_Alltoall(n_donnees_a_envoyer,  1, PDM_MPI_INT, 
+                     n_donnees_a_recevoir, 1, PDM_MPI_INT, 
+                     fichier->comm);
+
+        int *i_donnees_a_envoyer  = (int *) malloc(sizeof(int) * 
+                                                   fichier->n_rangs);
+        int *i_donnees_a_recevoir = (int *) malloc(sizeof(int) * 
+                                                   fichier->n_rangs);
+        
+        i_donnees_a_envoyer[0] = 0;
+        for (int i = 1; i < fichier->n_rangs; i++)
+          i_donnees_a_envoyer[i] = i_donnees_a_envoyer[i-1] + 
+            n_donnees_a_envoyer[i-1];
+       
+        i_donnees_a_recevoir[0] = 0;
+        for (int i = 1; i < fichier->n_rangs; i++)
+          i_donnees_a_recevoir[i] = i_donnees_a_recevoir[i-1] + 
+            n_donnees_a_recevoir[i-1];
+      
+        PDM_g_num_t *num_absolue_envoyee = 
+          (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * 
+                                     (i_donnees_a_envoyer[fichier->n_rangs - 1] + 
+                                      n_donnees_a_envoyer[fichier->n_rangs - 1]));
+ 
+        for (int i = 0; i < fichier->n_rangs; i++)
+          n_donnees_a_envoyer[i] = 0;
+      
+        for (int i = 0; i < n_donnees; i++) {
+          int iproc = donnees_proc[i];
+          num_absolue_envoyee[i_donnees_a_envoyer[iproc]+
+                              n_donnees_a_envoyer[iproc]] = indirection[i];
+          indirection_locale[i_donnees_a_envoyer[iproc] + 
+                             n_donnees_a_envoyer[iproc]]  = i;
+          n_donnees_a_envoyer[iproc] += 1;
+        }      
+
+        int _n_quantites = i_donnees_a_recevoir[fichier->n_rangs - 1] +
+          n_donnees_a_recevoir[fichier->n_rangs - 1];
+
+        PDM_g_num_t *num_absolue_recues = 
+          (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * _n_quantites);
+
+        PDM_MPI_Alltoallv(num_absolue_envoyee, 
+                      n_donnees_a_envoyer,
+                      i_donnees_a_envoyer,
+                      PDM_MPI_LONG,
+                      num_absolue_recues,
+                      n_donnees_a_recevoir,
+                      i_donnees_a_recevoir,
+                      PDM_MPI_LONG,
+                      fichier->comm);
+
+        free (num_absolue_envoyee);
+        
+        int *n_composantes_recues  = NULL;
+        int *n_composantes_envoyee = NULL;
+        
+        unsigned char* donnees_alltoall = NULL;
+        unsigned char* blocs_alltoall = NULL;
+        
+        int l_blocs_alltoall;
+
+        int l_data_recv = n_donnees_a_recevoir[fichier->n_rangs-1] + i_donnees_a_recevoir[fichier->n_rangs-1];
+        int l_bloc = n_donnees_rangs[fichier->rang+1] - n_donnees_rangs[fichier->rang];
+      
+        int *n_comp_bloc = (int *) malloc(sizeof(int) * l_bloc);
+
+        for (int i = 0; i < l_bloc; i++) {
+          n_comp_bloc[i] = 0;
+        }
+        
+        /*------------------------------------------------------------
+         * Envoi/reception du nombre de composantes
+         *------------------------------------------------------------ */
+
+        n_composantes_envoyee = 
+          (int *) malloc(sizeof(int) * 
+                         (i_donnees_a_envoyer[fichier->n_rangs - 1] + 
+                          n_donnees_a_envoyer[fichier->n_rangs - 1]));
+        
+        for (int i = 0; i < fichier->n_rangs; i++)
+          n_donnees_a_envoyer[i] = 0;
+          
+        for (int i = 0; i < n_donnees; i++) {
+          int iproc = donnees_proc[i];
+          n_composantes_envoyee[i_donnees_a_envoyer[iproc] + 
+                                n_donnees_a_envoyer[iproc]] = 
+            n_composantes[i];
+          n_donnees_a_envoyer[iproc] += 1;
+        }      
+
+        n_composantes_recues = (int *) malloc(sizeof(int) * l_data_recv);
+
+        PDM_MPI_Alltoallv(n_composantes_envoyee,
+                      n_donnees_a_envoyer,
+                      i_donnees_a_envoyer,
+                      PDM_MPI_INT, 
+                      n_composantes_recues,
+                      n_donnees_a_recevoir,
+                      i_donnees_a_recevoir,
+                      PDM_MPI_INT, 
+                      fichier->comm);
+
+        free(n_composantes_envoyee);
+          
+        /*---------------------------------------------------------- 
+         *  Rangement des donnees pour l'echange croise
+         *  (regroupement des donnees par rang)
+         *----------------------------------------------------------*/
+          
+        for (int i = 0; i < l_data_recv; i++) {
+          int j = (int) (num_absolue_recues[i] - n_donnees_rangs[fichier->rang]) - 1;
+          n_comp_bloc[j] = n_composantes_recues[i];
+        }
+
+        PDM_g_num_t sum_n_comp = 0;
+        for (int i = 0; i < l_bloc; i++) {
+          sum_n_comp += n_comp_bloc[i];
+        }
+
+        PDM_MPI_Allreduce(&sum_n_comp, &t_n_donnees, 1,
+                      PDM_MPI_LONG, PDM_MPI_SUM, fichier->comm); 
+
+        
+        free(donnees_proc);
+        free(indirection_locale);
+        
+        free(donnees_alltoall);
+        free(n_donnees_a_envoyer);
+        free(i_donnees_a_envoyer);
+        
+        free(n_donnees_a_recevoir);
+        free(i_donnees_a_recevoir);
+
+        free (n_comp_bloc);
+        free (num_absolue_recues);
+        free (n_composantes_recues);
+        
+      }
+      
+      else if (t_n_composantes == PDM_IO_N_COMPOSANTE_CONSTANT) {
+  
+        const int _n_composantes = n_composantes[0];
+          
+        t_n_donnees = _n_composantes * _id_max_max;
+
+          
+      }
+
+      PDM_timer_hang_on(timer_distribution);
+  
+      free (n_donnees_rangs);
+
+    }
+
+    PDM_timer_hang_on(timer_total);
+
+  }
+
+  else { 
+    err_code = 1;
+  }
+  
+  if (err_code){
+    fprintf(stderr,"Erreur PDM_io_n_donnees_get :"
+            " unite '%d' non valide\n", unite);
+    abort();
+  }
+
+  return t_n_donnees;
+}
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
