@@ -30,6 +30,7 @@ list (APPEND include_dirs ${NumPy_INCLUDE_DIR})
 list (APPEND include_dirs ${CMAKE_CURRENT_BINARY_DIR})
 list (APPEND include_dirs ${CMAKE_BINARY_DIR})
 
+include(UseCython)
 cython_add_module (Pypdm 
                    PYX_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/Pypdm.pyx"
                    OTHER_SOURCES $<TARGET_OBJECTS:pdm>

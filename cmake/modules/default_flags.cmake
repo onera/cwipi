@@ -59,6 +59,7 @@ elseif (CMAKE_Fortran_COMPILER_ID MATCHES "XL")
   set (CMAKE_Fortran_FLAGS_MINSIZEREL      "-O3")
   
   set(FORTRAN_LIBRARIES xl xlf90_r xlsmp xlopt ${FORTRAN_LIBRARIES})
+
   if (${HOSTNAME} STREQUAL "tanit")
     link_directories(/opt/ibmcmp/xlsmp/3.1/lib64 /opt/ibmcmp/vacpp/12.1/lib64 /opt/ibmcmp/xlf/14.1/lib64)
   endif()   
@@ -266,7 +267,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
 
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
 
-  set (CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} -strict-ansi -funsigned-char -Wall -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused")
+  set (CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} -Wall -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused")
   set (CMAKE_CXX_FLAGS_RELEASE "-O3")
   set (CMAKE_CXX_FLAGS_DEBUG "-g -O0")
   set (CMAKE_CXX_FLAGS_PROFILING       "${CMAKE_CXX_FLAGS_RELEASE} -p")
@@ -343,6 +344,7 @@ else ()
   set (CXX_LIBRARIES             )
   set (CXX_LIBRARIES_FLAG        )
 
+endif()
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}" CACHE STRING "Flags used by the compiler during all build types." FORCE)
 set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}" CACHE STRING "Flags used by the compiler during release builds." FORCE)
@@ -354,12 +356,7 @@ set (CMAKE_CXX_FLAGS_MINSIZEREL      "${CMAKE_CXX_FLAGS_MINSIZEREL}" CACHE STRIN
 set (CXX_LIBRARIES "${CXX_LIBRARIES}" CACHE STRING "C++ libraries" FORCE)
 set (CXX_LIBRARIES_FLAG "${CXX_LIBRARIES_FLAG}" CACHE STRING "C++ flags" FORCE)
 
-mark_as_advanced (CMAKE_CXX_FLAGS_PROFILING CXX_LIBRARIES CXX_LIBRARIES_FLAG)
-
+set (PASS_DEFAULT_FLAGS 1 CACHE STRING "")
+mark_as_advanced (CMAKE_CXX_FLAGS_PROFILING CXX_LIBRARIES CXX_LIBRARIES_FLAG PASS_DEFAULT_FLAGS)
 endif()
-endif()
-
-if (NOT PASS_DEFAULT_FLAGS)
-  set (PASS_DEFAULT_FLAGS 1 CACHE STRING "")
-endif ()
 
