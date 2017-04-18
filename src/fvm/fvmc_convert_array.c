@@ -2029,8 +2029,8 @@ fvmc_convert_array(const int                     src_dim,
                                     n_parent_lists,
                                     parent_num_shift,
                                     parent_num,
-                                    (const float *const *const)src_data,
-                                    (float *const) dest_data);
+                                    (const float **)src_data,
+                                    (float *) dest_data);
       break;
 
     case FVMC_DOUBLE:
@@ -2043,8 +2043,8 @@ fvmc_convert_array(const int                     src_dim,
                                      n_parent_lists,
                                      parent_num_shift,
                                      parent_num,
-                                     (const float *const *const)src_data,
-                                     (double *const) dest_data);
+                                     (const float **)src_data,
+                                     (double *) dest_data);
       break;
 
     case FVMC_INT16:
@@ -2080,8 +2080,8 @@ fvmc_convert_array(const int                     src_dim,
                                      n_parent_lists,
                                      parent_num_shift,
                                      parent_num,
-                                     (const double *const *const)src_data,
-                                     (float *const) dest_data);
+                                     (const double **)src_data,
+                                     (float *) dest_data);
       break;
 
     case FVMC_DOUBLE:
@@ -2094,8 +2094,8 @@ fvmc_convert_array(const int                     src_dim,
                                       n_parent_lists,
                                       parent_num_shift,
                                       parent_num,
-                                      (const double *const *const)src_data,
-                                      (double *const) dest_data);
+                                      (const double **)src_data,
+                                      (double *) dest_data);
       break;
 
     case FVMC_INT16:
@@ -2134,8 +2134,8 @@ fvmc_convert_array(const int                     src_dim,
                                     n_parent_lists,
                                     parent_num_shift,
                                     parent_num,
-                                    (const int32_t *const *const)src_data,
-                                    (float *const) dest_data);
+                                    (const int32_t **)src_data,
+                                    (float *) dest_data);
       break;
 
     case FVMC_DOUBLE:
@@ -2144,8 +2144,8 @@ fvmc_convert_array(const int                     src_dim,
                                      n_parent_lists,
                                      parent_num_shift,
                                      parent_num,
-                                     (const int32_t *const *const)src_data,
-                                     (double *const) dest_data);
+                                     (const int32_t **)src_data,
+                                     (double *) dest_data);
       break;
 
     case FVMC_INT32:
@@ -2154,8 +2154,8 @@ fvmc_convert_array(const int                     src_dim,
                                     n_parent_lists,
                                     parent_num_shift,
                                     parent_num,
-                                    (const int32_t *const *const) src_data,
-                                    (int32_t *const) dest_data);
+                                    (const int32_t **) src_data,
+                                    (int32_t *) dest_data);
       break;
 
     case FVMC_INT64:
@@ -2164,8 +2164,8 @@ fvmc_convert_array(const int                     src_dim,
                                     n_parent_lists,
                                     parent_num_shift,
                                     parent_num,
-                                    (const int32_t *const *const)src_data,
-                                    (int64_t *const) dest_data);
+                                    (const int32_t **)src_data,
+                                    (int64_t *) dest_data);
       break;
 
     case FVMC_UINT32:
@@ -2174,8 +2174,8 @@ fvmc_convert_array(const int                     src_dim,
                                      n_parent_lists,
                                      parent_num_shift,
                                      parent_num,
-                                     (const int32_t *const *const)src_data,
-                                     (uint32_t *const) dest_data);
+                                     (const int32_t **)src_data,
+                                     (uint32_t *) dest_data);
       break;
 
     case FVMC_UINT64:
@@ -2184,8 +2184,8 @@ fvmc_convert_array(const int                     src_dim,
                                      n_parent_lists,
                                      parent_num_shift,
                                      parent_num,
-                                     (const int32_t *const *const)src_data,
-                                     (uint64_t *const) dest_data);
+                                     (const int32_t **)src_data,
+                                     (uint64_t *) dest_data);
       break;
 
     case FVMC_CHAR:
@@ -2218,8 +2218,8 @@ fvmc_convert_array(const int                     src_dim,
                                     n_parent_lists,
                                     parent_num_shift,
                                     parent_num,
-                                    (const int64_t *const *const)src_data,
-                                    (float *const) dest_data);
+                                    (const int64_t **)src_data,
+                                    (float *) dest_data);
       break;
 
     case FVMC_DOUBLE:
@@ -2228,8 +2228,8 @@ fvmc_convert_array(const int                     src_dim,
                                      n_parent_lists,
                                      parent_num_shift,
                                      parent_num,
-                                     (const int64_t *const *const)src_data,
-                                     (double *const) dest_data);
+                                     (const int64_t **)src_data,
+                                     (double *) dest_data);
       break;
 
     case FVMC_INT32:
@@ -2238,8 +2238,8 @@ fvmc_convert_array(const int                     src_dim,
                                     n_parent_lists,
                                     parent_num_shift,
                                     parent_num,
-                                    (const int64_t *const *const)src_data,
-                                    (int32_t *const) dest_data);
+                                    (const int64_t **)src_data,
+                                    (int32_t *) dest_data);
       break;
 
     case FVMC_INT64:
@@ -2248,8 +2248,8 @@ fvmc_convert_array(const int                     src_dim,
                                     n_parent_lists,
                                     parent_num_shift,
                                     parent_num,
-                                    (const int64_t *const *const)src_data,
-                                    (int64_t *const) dest_data);
+                                    (const int64_t **)src_data,
+                                    (int64_t *) dest_data);
       break;
 
     case FVMC_UINT32:
@@ -2258,8 +2258,8 @@ fvmc_convert_array(const int                     src_dim,
                                      n_parent_lists,
                                      parent_num_shift,
                                      parent_num,
-                                     (const int64_t *const *const)src_data,
-                                     (uint32_t *const) dest_data);
+                                     (const int64_t **)src_data,
+                                     (uint32_t *) dest_data);
       break;
 
     case FVMC_UINT64:
@@ -2268,8 +2268,8 @@ fvmc_convert_array(const int                     src_dim,
                                      n_parent_lists,
                                      parent_num_shift,
                                      parent_num,
-                                     (const int64_t *const *const)src_data,
-                                     (uint64_t *const)dest_data);
+                                     (const int64_t **)src_data,
+                                     (uint64_t *)dest_data);
       break;
 
 		case FVMC_INT16:
@@ -2304,8 +2304,8 @@ fvmc_convert_array(const int                     src_dim,
                                      n_parent_lists,
                                      parent_num_shift,
                                      parent_num,
-                                     (const uint32_t *const *const)src_data,
-                                     (float *const) dest_data);
+                                     (const uint32_t **)src_data,
+                                     (float *) dest_data);
       break;
 
     case FVMC_DOUBLE:
@@ -2314,8 +2314,8 @@ fvmc_convert_array(const int                     src_dim,
                                       n_parent_lists,
                                       parent_num_shift,
                                       parent_num,
-                                      (const uint32_t *const *const)src_data,
-                                      (double *const) dest_data);
+                                      (const uint32_t **)src_data,
+                                      (double *) dest_data);
       break;
 
     case FVMC_INT32:
@@ -2324,8 +2324,8 @@ fvmc_convert_array(const int                     src_dim,
                                      n_parent_lists,
                                      parent_num_shift,
                                      parent_num,
-                                     (const uint32_t *const *const)src_data,
-                                     (int32_t *const) dest_data);
+                                     (const uint32_t **)src_data,
+                                     (int32_t *) dest_data);
       break;
 
     case FVMC_INT64:
@@ -2334,8 +2334,8 @@ fvmc_convert_array(const int                     src_dim,
                                      n_parent_lists,
                                      parent_num_shift,
                                      parent_num,
-                                     (const uint32_t *const *const)src_data,
-                                     (int64_t *const) dest_data);
+                                     (const uint32_t **)src_data,
+                                     (int64_t *) dest_data);
       break;
 
     case FVMC_UINT32:
@@ -2344,8 +2344,8 @@ fvmc_convert_array(const int                     src_dim,
                                       n_parent_lists,
                                       parent_num_shift,
                                       parent_num,
-                                      (const uint32_t *const *const)src_data,
-                                      (uint32_t *const) dest_data);
+                                      (const uint32_t **)src_data,
+                                      (uint32_t *) dest_data);
       break;
 
     case FVMC_UINT64:
@@ -2354,8 +2354,8 @@ fvmc_convert_array(const int                     src_dim,
                                       n_parent_lists,
                                       parent_num_shift,
                                       parent_num,
-                                      (const uint32_t *const *const)src_data,
-                                      (uint64_t *const) dest_data);
+                                      (const uint32_t **)src_data,
+                                      (uint64_t *) dest_data);
       break;
 
     case FVMC_CHAR:
@@ -2388,8 +2388,8 @@ fvmc_convert_array(const int                     src_dim,
                                      n_parent_lists,
                                      parent_num_shift,
                                      parent_num,
-                                     (const uint64_t *const *const)src_data,
-                                     (float *const) dest_data);
+                                     (const uint64_t **)src_data,
+                                     (float *) dest_data);
       break;
 
     case FVMC_DOUBLE:
@@ -2398,8 +2398,8 @@ fvmc_convert_array(const int                     src_dim,
                                       n_parent_lists,
                                       parent_num_shift,
                                       parent_num,
-                                      (const uint64_t *const *const)src_data,
-                                      (double *const) dest_data);
+                                      (const uint64_t **)src_data,
+                                      (double *) dest_data);
       break;
 
     case FVMC_INT32:
@@ -2408,8 +2408,8 @@ fvmc_convert_array(const int                     src_dim,
                                      n_parent_lists,
                                      parent_num_shift,
                                      parent_num,
-                                     (const uint64_t *const *const)src_data,
-                                     (int32_t *const) dest_data);
+                                     (const uint64_t **)src_data,
+                                     (int32_t *) dest_data);
       break;
 
     case FVMC_INT64:
@@ -2418,8 +2418,8 @@ fvmc_convert_array(const int                     src_dim,
                                      n_parent_lists,
                                      parent_num_shift,
                                      parent_num,
-                                     (const uint64_t *const *const)src_data,
-                                     (int64_t *const) dest_data);
+                                     (const uint64_t **)src_data,
+                                     (int64_t *) dest_data);
       break;
 
     case FVMC_UINT32:
@@ -2428,8 +2428,8 @@ fvmc_convert_array(const int                     src_dim,
                                       n_parent_lists,
                                       parent_num_shift,
                                       parent_num,
-                                      (const uint64_t *const *const)src_data,
-                                      (uint32_t *const) dest_data);
+                                      (const uint64_t **)src_data,
+                                      (uint32_t *) dest_data);
       break;
 
     case FVMC_UINT64:
@@ -2438,8 +2438,8 @@ fvmc_convert_array(const int                     src_dim,
                                       n_parent_lists,
                                       parent_num_shift,
                                       parent_num,
-                                      (const uint64_t *const *const)src_data,
-                                      (uint64_t *const) dest_data);
+                                      (const uint64_t **)src_data,
+                                      (uint64_t *) dest_data);
       break;
 
     case FVMC_CHAR:
