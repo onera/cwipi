@@ -4696,14 +4696,11 @@ PDM_io_n_donnees_get
   int err_code = 0;
   PDM_io_fichier_t *fichier = PDM_io_get_fichier(unite);
 
-  int *n_composante_trie = NULL;
-
   if (fichier != NULL) {
 
     
     PDM_timer_t *timer_total = fichier->timer_total;
     PDM_timer_t *timer_distribution = fichier->timer_distribution;
-    PDM_timer_t *timer_fichier = fichier->timer_fichier;
      
     PDM_timer_resume(timer_total);
       
@@ -4868,9 +4865,7 @@ PDM_io_n_donnees_get
         int *n_composantes_envoyee = NULL;
         
         unsigned char* donnees_alltoall = NULL;
-        unsigned char* blocs_alltoall = NULL;
         
-        int l_blocs_alltoall;
 
         int l_data_recv = n_donnees_a_recevoir[fichier->n_rangs-1] + i_donnees_a_recevoir[fichier->n_rangs-1];
         int l_bloc = n_donnees_rangs[fichier->rang+1] - n_donnees_rangs[fichier->rang];
