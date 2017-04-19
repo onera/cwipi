@@ -12,6 +12,12 @@ endif()
 
 unset(LINK_LIBRARIES)
 
+if (NOT MPI_C_COMPILER)
+  if (MPI_C_LIBRARIES)
+    list(APPEND LINK_LIBRARIES ${MPI_C_LIBRARIES})   
+  endif()
+endif ()
+
 if (PDM_ENABLE_STATIC)
  list(APPEND LINK_LIBRARIES
       pdm_static

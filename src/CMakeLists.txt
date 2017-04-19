@@ -1,3 +1,30 @@
+if (MPI_C_COMPILER)
+  set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
+endif() 
+
+if (MPI_CXX_COMPILER)
+  set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
+endif() 
+
+if (MPI_Fortran_COMPILER)
+  set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER})
+endif(MPI_Fortran_COMPILER) 
+
+# Flags pour MPI
+# --------------
+
+if ((NOT MPI_C_COMPILER) AND MPI_C_COMPILE_FLAGS)
+   set (CMAKE_C_FLAGS " ${CMAKE_C_FLAGS} ${MPI_C_COMPILE_FLAGS}")
+endif()
+
+if ((NOT MPI_CXX_COMPILER) AND MPI_CXX_COMPILE_FLAGS)
+   set (CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS}")
+endif()
+
+if ((NOT MPI_Fortran_COMPILER) AND MPI_Fortran_COMPILE_FLAGS)
+   set (CMAKE_Fortran_FLAGS " ${CMAKE_Fortran_FLAGS} ${MPI_Fortran_COMPILE_FLAGS}")
+endif()
+
 
 # Sources list
 # ------------

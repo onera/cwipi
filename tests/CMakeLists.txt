@@ -12,6 +12,12 @@ endif()
 
 unset(LINK_LIBRARIES)
 
+if (NOT MPI_C_COMPILER)
+  if (MPI_C_LIBRARIES)
+    list(APPEND LINK_LIBRARIES ${MPI_C_LIBRARIES})   
+  endif()
+endif ()
+
 if (CWP_ENABLE_SHARED)
  list(APPEND LINK_LIBRARIES
       cwp_shared
@@ -35,6 +41,7 @@ else ()
    list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
 
 endif()
+
 
 get_target_property(TEST_INC cwp INCLUDE_DIRECTORIES)                          
 

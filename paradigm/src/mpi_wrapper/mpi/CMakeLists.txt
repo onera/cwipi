@@ -78,6 +78,11 @@ if (PDM_ENABLE_SHARED)
                             PUBLIC_HEADER "${LIST_HEADER}")
 
   get_target_property(PDM_INC pdm_mpi INCLUDE_DIRECTORIES)
+  if (NOT MPI_C_COMPILER)
+    if (MPI_C_LIBRARIES)
+      target_link_libraries(pdm_mpi_shared ${MPI_C_LIBRARIES})   
+    endif()
+  endif ()
   target_include_directories(pdm_mpi_shared PUBLIC ${PDM_INC})
 endif()
 
