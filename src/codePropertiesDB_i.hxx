@@ -470,6 +470,7 @@ namespace cwipi {
 
         ival=0;
 
+// FIXME: Il doit y avoir une double boucle IteratorMapT
         for (IteratorMapT p1 = locCtrlParam.begin(); 
                           p1 != locCtrlParam.end(); 
                           p1++) {

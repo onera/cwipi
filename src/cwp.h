@@ -1,5 +1,5 @@
-#ifndef __CWIPI_H__
-#define __CWIPI_H__
+#ifndef __CWP_H__
+#define __CWP_H__
 /*
   This file is part of the CWIPI library. 
 
@@ -512,7 +512,7 @@ CWP_Finalize
 void 
 CWP_State_update
 (
- const char* code_name,
+ const char* local_code_name,
  const CWP_State_t state
 );
 
@@ -529,7 +529,7 @@ CWP_State_update
 void 
 CWP_Time_update
 (
- const char* code_name,
+ const char* local_code_name,
  const double current_time
 );
 
@@ -639,8 +639,9 @@ CWP_Properties_dump
  * This function creates a coupling object and defines its properties.
  *
  * \param [in]  cpl_id              Coupling identifier
+ * \param [in]  local_code_name     Local code name
+ * \param [in]  coupled_code_name   Distant or local coupled code name
  * \param [in]  comm_type           Communication type
- * \param [in]  coupled_appli       Coupled code name
  * \param [in]  geom_algo           Geometric algorithm
  * \param [in]  support_type        Support type
  * \param [in]  n_part              Number of interface partition 
@@ -653,8 +654,8 @@ void
 CWP_Cpl_create
 (
  const char               *cpl_id,
- const char               *local_code,
- const char               *coupled_code,
+ const char               *local_code_name,
+ const char               *coupled_code_name,
  const CWP_Comm_t          comm_type, 
  const CWP_Geom_t          geom_algo,
  const CWP_Support_t       support_type,
@@ -1739,17 +1740,18 @@ CWP_Interp_from_closest_set_f
  *
  * \brief Add a control parameter
  * 
- * \param [in] name           Parameter name
- * \param [in] data_type      Parameter type,
- * \param [in] init_value     Initial value
+ * \param [in] local_code_name  Local code name
+ * \param [in] param_name       Parameter name
+ * \param [in] data_type        Parameter type
+ * \param [in] init_value       Initial value
  *
  */
 
 void 
 CWP_Param_add
 (
- const char             *code_name,
- const char             *name,
+ const char             *local_code_name,
+ const char             *param_name,
  const CWP_Type_t       data_type,
  void                   *initial_value
 );
@@ -1759,8 +1761,9 @@ CWP_Param_add
  *
  * \brief Set a control parameter
  * 
- * \param [in] name           Parameter name
- * \param [in] data_type      Parameter type,
+ * \param [in] local_code_name  Local code name
+ * \param [in] param_name       Parameter name
+ * \param [in] data_type        Parameter type
  * \param [in] value          Value
  *
  */
@@ -1768,8 +1771,8 @@ CWP_Param_add
 void 
 CWP_Param_set
 (
- const char             *code_name,
- const char             *name, 
+ const char             *local_code_name,
+ const char             *param_name,
  const CWP_Type_t        data_type,
  void                   *value
 );
@@ -1779,16 +1782,17 @@ CWP_Param_set
  *
  * \brief Removing a local int control parameter
  * 
- * \param [in] name           Parameter name
- * \param [in] data_type      Parameter type,
+ * \param [in] local_code_name  Local code name
+ * \param [in] param_name       Parameter name
+ * \param [in] data_type        Parameter type,
  *
  */
 
 void 
 CWP_Param_del
 (
- const char             *code_name,
- const char       *name,
+ const char       *local_code_name,
+ const char       *param_name,
  const CWP_Type_t  data_type
 );
 
@@ -1801,8 +1805,8 @@ CWP_Param_del
  *
  * \brief Return the number of parameters of a code
  * 
- * \param [in] code_name      Code name
- * \param [in] data_type      Parameter type,
+ * \param [in] code_name       Local or distant code name
+ * \param [in] data_type       Parameter type,
  *
  * return  Number of parameters
  *
@@ -1838,8 +1842,8 @@ CWP_Param_list_get
  *
  * \brief Is a parameter ?
  * 
- * \param [in] code_name      Code name
- * \param [in] name           Parameter name
+ * \param [in] code_name      Local or distant code name
+ * \param [in] param_name     Parameter name
  * \param [in] data_type      Parameter type,
  *
  * return  1 : true / 0 : false
@@ -1850,7 +1854,7 @@ int
 CWP_Param_is
 (
  const char             *code_name,
- const char             *name,
+ const char             *param_name,
  const CWP_Type_t        data_type
 );
 
@@ -1858,10 +1862,10 @@ CWP_Param_is
  *
  * \brief Return the value of a int control parameter from "code_name" code
  * 
- * \param [in]  code_name      Code name
- * \param [in]  name           Parameter name
- * \param [in] data_type       Parameter type
- * \param [out] value          Parameter value       
+ * \param [in]  code_name  Local or distant code name
+ * \param [in]  param_name Parameter name
+ * \param [in]  data_type  Parameter type
+ * \param [out] value      Parameter value       
  *
  */
 

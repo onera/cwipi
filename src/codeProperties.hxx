@@ -885,7 +885,7 @@ namespace cwipi {
     char **names = new char * [ctrlParamNGet <T> ()];
     if (typeid(T) == typeid(string)) { 
       int i = 0;
-      for(typename map < string, T >::iterator p = _strCtrlParam.begin(); 
+      for(typename map < string, string >::iterator p = _strCtrlParam.begin(); 
           p != _strCtrlParam.end(); 
           ++p) {
         names[i] = new char [p->first.size() + 1];
@@ -895,7 +895,7 @@ namespace cwipi {
     } 
     else if (typeid(T) == typeid(int)) {
       int i = 0;
-      for(typename map < string, T >::iterator p = _intCtrlParam.begin(); 
+      for(typename map < string, int >::iterator p = _intCtrlParam.begin(); 
           p != _intCtrlParam.end(); 
           ++p) {
         names[i] = new char [p->first.size() + 1];
@@ -905,7 +905,7 @@ namespace cwipi {
     }
     else if (typeid(T) == typeid(double)) {
       int i = 0;
-      for(typename map < string, T >::iterator p = _dblCtrlParam.begin(); 
+      for(typename map < string, double >::iterator p = _dblCtrlParam.begin(); 
           p != _dblCtrlParam.end(); 
           ++p) {
         names[i] = new char [p->first.size() + 1];
@@ -936,27 +936,40 @@ namespace cwipi {
    const string &name 
   )  const
   {
-    typename map < string, T >::iterator  p;
-    typename map < string, T >::iterator  p_end;
     if (typeid(T) == typeid(string)) { 
+      typename map < string, string >::iterator  p;
+      typename map < string, string >::iterator  p_end;
       p     = _strCtrlParam.find(name);
       p_end = _strCtrlParam.end();
+      if (p != p_end)
+        return 1;
+      else
+        return 0;
     }
     else if (typeid(T) == typeid(int)) {
+      typename map < string, int >::iterator  p;
+      typename map < string, int >::iterator  p_end;
       p     = _intCtrlParam.find(name);
       p_end = _intCtrlParam.end();
+      if (p != p_end)
+        return 1;
+      else
+        return 0;
     }
     else if (typeid(T) == typeid(double)) {
+      typename map < string, double >::iterator  p;
+      typename map < string, double >::iterator  p_end;
       p     = _dblCtrlParam.find(name);
       p_end = _dblCtrlParam.end();
+      if (p != p_end)
+        return 1;
+      else
+        return 0;
     }
     else
       bftc_error(__FILE__, __LINE__, 0,
                 "Type not taken into account \n");
-    if (p != p_end)
-      return 1;
-    else
-      return 0;
+    return 0;
   }
 }
 

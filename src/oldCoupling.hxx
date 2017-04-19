@@ -1,5 +1,5 @@
-#ifndef __COUPLING_PROPERTIES_H__
-#define __COUPLING_PROPERTIES_H__
+#ifndef __OLDCOUPLING_H__
+#define __OLDCOUPLING_H__
 /*
   This file is part of the CWIPI library. 
 

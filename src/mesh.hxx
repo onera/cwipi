@@ -1,5 +1,5 @@
-#ifndef __COUPLING_MESH_H__
-#define __COUPLING_MESH_H__
+#ifndef __MESH_H__
+#define __MESH_H__
 /*
   This file is part of the CWIPI library. 
 

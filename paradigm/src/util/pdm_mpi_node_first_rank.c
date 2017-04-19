@@ -109,6 +109,8 @@ PDM_MPI_Comm comm
   char * hostname = NULL;
   size_t hostnameLength = 0;
 
+// TODO: Use MPI_Get_processor_name instead of PDM_io_get_hostname 
+//  int MPI_Get_processor_name(char *name, int *resultlen)
   PDM_io_get_hostname(&hostname, &hostnameLength);
 
   /* Détermine la clé de hachage */
