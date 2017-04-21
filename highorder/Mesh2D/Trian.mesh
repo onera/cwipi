@@ -1,0 +1,27 @@
+MeshVersionFormatted 1
+# Mesh converted from Emc2 .msh format to Medit .mesh format
+ 
+Dimension
+2
+ 
+# Set of mesh vertices
+
+Vertices
+   3
+  -1.000000 -1.000000  1
+   1.000000 -1.000000  1
+  -1.000000  1.000000  1
+  
+# Set of Triangles
+  
+Triangles
+   1
+   1  2  3  0
+
+Edges
+   3
+   1 2 1
+   2 3 1
+   3 1 1
+  
+End
