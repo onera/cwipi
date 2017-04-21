@@ -77,7 +77,7 @@ namespace cwipi {
   CouplingDB::couplingCreate
   (
    const string                &cplId,
-   const CWP_Comm_t  commType,
+   const CWP_Comm_t            commType,
    const CodeProperties        &localCodeProperties,
    const CodeProperties        &coupledCodeProperties,
    const CWP_Geom_t           geomAlgo,

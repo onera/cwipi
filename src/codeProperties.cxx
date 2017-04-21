@@ -39,13 +39,20 @@ namespace cwipi
    const MPI_Comm globalComm
   ): _name(name), 
      _globalComm(globalComm),
+     _coupledRanks(*(new vector <int>())), 
+     _isCoupledRank(false), 
      _intCtrlParam(*(new map <string, int>())),
      _dblCtrlParam(*(new map <string, double>())),
      _strCtrlParam(*(new map <string, string>()))
   {
     _intraComm = MPI_COMM_NULL;
-    _firstRank = -999;
-    _lastRank  = -999;
+    _groupInGlobalComm = MPI_GROUP_NULL;
+    
+    int globalCommSize;
+    MPI_Comm_size(globalComm, &globalCommSize);
+    
+    _coupledRanks.reserve(globalCommSize);
+
   }
 
   /**
@@ -61,8 +68,9 @@ namespace cwipi
   ): _name(other._name), 
      _globalComm(other._globalComm), 
      _intraComm(other._intraComm),
-     _firstRank(other._firstRank), 
-     _lastRank(other._lastRank),
+     _coupledRanks(other._coupledRanks), 
+     _isCoupledRank(other._isCoupledRank), 
+     _groupInGlobalComm(other._groupInGlobalComm),
      _intCtrlParam(other._intCtrlParam),
      _dblCtrlParam(other._dblCtrlParam),
      _strCtrlParam(other._strCtrlParam)
@@ -78,9 +86,9 @@ namespace cwipi
   CodeProperties::dump()
   {
     bftc_printf("'%s' properties\n",_name.c_str());
-    bftc_printf("  - Ranks in global MPI_comm : %i <= ranks <= %i \n",
-               _firstRank,
-               _lastRank);
+//    bftc_printf("  - Ranks in global MPI_comm : %i <= ranks <= %i \n",
+//               _firstRank,
+//               _lastRank);
     bftc_printf("  - Int Control Parameter :\n");
 
     typedef map <string, int>::iterator Iterator1;

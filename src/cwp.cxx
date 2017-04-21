@@ -201,10 +201,7 @@ CWP_Init
 //TODO: Coder le cas n_code : pour l'instant limitation a 1 !
     
    assert (1 == n_code);
-    
-   const char *code_name = *code_names;
-   MPI_Comm *intra_comm = *intra_comms;
-    
+        
   /*
    * Get application properties
    */
@@ -219,8 +216,11 @@ CWP_Init
    * Builds application communicator
    */
 
-  *intra_comm = properties.init(code_name,
-                                inter_comm);
+  properties.init (inter_comm,
+                   n_code,
+                   code_names,
+                   is_coupled_rank,
+                   intra_comms);
 
   /*
    * Create default parameters
@@ -487,10 +487,11 @@ CWP_Cpl_create
 
   const string &coupling_name_str = cpl_id;
   const string &coupled_application_str = coupled_code_name;
+  const string &local_application_str = coupled_code_name;
 
   couplingDB.couplingCreate(coupling_name_str,
                             comm_type,
-                            properties.locCodePropertiesGet(),
+                            properties.locCodePropertiesGet(local_application_str),
                             properties.distCodePropertiesGet(coupled_application_str),
                             geom_algo,
                             support_type,

@@ -79,107 +79,107 @@ namespace cwipi {
     _cplCodeProperties = &cplCodeProperties;
     _localCodeProperties = &localCodeProperties;
 
-    const MPI_Comm& localComm = localCodeProperties.intraCommGet();
-
-    if (_cplComm == MPI_COMM_NULL) {
-
-      const int localFirstRank = localCodeProperties.firstRankGet();
-      const int localLastRank  = localCodeProperties.lastRankGet();
-      
-      const MPI_Comm& globalComm = localCodeProperties.globalCommGet();
-      
-      int currentRank;
-      MPI_Comm_rank(globalComm, &currentRank);
-
-      const int cplCodeFirstRank = cplCodeProperties.firstRankGet();
-      const int cplCodeLastRank = cplCodeProperties.lastRankGet();
-      
-      //
-      // Define coupling communicator
-      
-      int nLocalRank   = localLastRank - localFirstRank + 1;
-      int nCplCodeRank = cplCodeLastRank - cplCodeFirstRank + 1;
-
-      assert(localFirstRank != cplCodeFirstRank);
-
-      const int tag = 'm'+'e'+'r'+'g'+'e'+'I'+'n'+'t'+'e'+'r'+'C'+'o'+'m'+'m';
-
-      //
-      // Build the inter communicator between the two coupled codes
-
-      MPI_Comm tmpInterComm;
-
-      MPI_Intercomm_create(localComm, 0, globalComm, cplCodeFirstRank, tag, &tmpInterComm);
-
-      //
-      // Merge the inter communicator to obtain an intra communicator
-
-      int sorting;
-      if (localFirstRank < cplCodeFirstRank) {
-        sorting = 0;
-        _cplCodeFirstRankCplComm = nLocalRank ;
-      }
-      else {
-        sorting = 1;
-        _cplCodeFirstRankCplComm = 0 ;
-      }
-
-      MPI_Intercomm_merge(tmpInterComm, sorting, &_mergeInterComm);
-
-      if (tmpInterComm != MPI_COMM_NULL)
-        MPI_Comm_free(&tmpInterComm);
-
-      int mergeInterCommSize;
-
-      MPI_Comm_size(_mergeInterComm, &mergeInterCommSize);
-      
-      CWP_Comm_t* commTypes =
-        new CWP_Comm_t[mergeInterCommSize];
-
-      CWP_Comm_t commType = commTypeGet();
-
-      MPI_Allgather((void*)& commType,
-                    1,
-                    MPI_INT,
-                    commTypes,
-                    1,
-                    MPI_INT,
-                    _mergeInterComm);
-
-      //
-      // Check coupling type
-      
-      int firstRank = 0;
-      int lastRank = 0;
-      
-      if (localFirstRank < cplCodeFirstRank) {
-        firstRank = 0;
-        lastRank = nLocalRank;
-      }
-      else {
-        firstRank = nCplCodeRank;
-        lastRank = nLocalRank + nCplCodeRank;
-      }
-      
-      for (int i = firstRank; i < lastRank; i++)
-        if (commTypes[i] != commType)
-          bftc_error(__FILE__, __LINE__, 0,
-                     "Two different communication types for the '%s' application\n",
-                     localCodeProperties.nameGet().c_str());
-
-      CWP_Comm_t cplCodeCommType;
-      
-      if (localFirstRank < cplCodeFirstRank)
-        cplCodeCommType = commTypes[nLocalRank];
-      else
-        cplCodeCommType= commTypes[0];
-      
-      delete [] commTypes;
-
-      _cplCommCreate(cplCodeCommType);
-
-    }
-  }
+//    const MPI_Comm& localComm = localCodeProperties.intraCommGet();
+//
+//    if (_cplComm == MPI_COMM_NULL) {
+//
+//      const int localFirstRank = localCodeProperties.firstRankGet();
+//      const int localLastRank  = localCodeProperties.lastRankGet();
+//      
+//      const MPI_Comm& globalComm = localCodeProperties.globalCommGet();
+//      
+//      int currentRank;
+//      MPI_Comm_rank(globalComm, &currentRank);
+//
+//      const int cplCodeFirstRank = cplCodeProperties.firstRankGet();
+//      const int cplCodeLastRank = cplCodeProperties.lastRankGet();
+//      
+//      //
+//      // Define coupling communicator
+//      
+//      int nLocalRank   = localLastRank - localFirstRank + 1;
+//      int nCplCodeRank = cplCodeLastRank - cplCodeFirstRank + 1;
+//
+//      assert(localFirstRank != cplCodeFirstRank);
+//
+//      const int tag = 'm'+'e'+'r'+'g'+'e'+'I'+'n'+'t'+'e'+'r'+'C'+'o'+'m'+'m';
+//
+//      //
+//      // Build the inter communicator between the two coupled codes
+//
+//      MPI_Comm tmpInterComm;
+//
+//      MPI_Intercomm_create(localComm, 0, globalComm, cplCodeFirstRank, tag, &tmpInterComm);
+//
+//      //
+//      // Merge the inter communicator to obtain an intra communicator
+//
+//      int sorting;
+//      if (localFirstRank < cplCodeFirstRank) {
+//        sorting = 0;
+//        _cplCodeFirstRankCplComm = nLocalRank ;
+//      }
+//      else {
+//        sorting = 1;
+//        _cplCodeFirstRankCplComm = 0 ;
+//      }
+//
+//      MPI_Intercomm_merge(tmpInterComm, sorting, &_mergeInterComm);
+//
+//      if (tmpInterComm != MPI_COMM_NULL)
+//        MPI_Comm_free(&tmpInterComm);
+//
+//      int mergeInterCommSize;
+//
+//      MPI_Comm_size(_mergeInterComm, &mergeInterCommSize);
+//      
+//      CWP_Comm_t* commTypes =
+//        new CWP_Comm_t[mergeInterCommSize];
+//
+//      CWP_Comm_t commType = commTypeGet();
+//
+//      MPI_Allgather((void*)& commType,
+//                    1,
+//                    MPI_INT,
+//                    commTypes,
+//                    1,
+//                    MPI_INT,
+//                    _mergeInterComm);
+//
+//      //
+//      // Check coupling type
+//      
+//      int firstRank = 0;
+//      int lastRank = 0;
+//      
+//      if (localFirstRank < cplCodeFirstRank) {
+//        firstRank = 0;
+//        lastRank = nLocalRank;
+//      }
+//      else {
+//        firstRank = nCplCodeRank;
+//        lastRank = nLocalRank + nCplCodeRank;
+//      }
+//      
+//      for (int i = firstRank; i < lastRank; i++)
+//        if (commTypes[i] != commType)
+//          bftc_error(__FILE__, __LINE__, 0,
+//                     "Two different communication types for the '%s' application\n",
+//                     localCodeProperties.nameGet().c_str());
+//
+//      CWP_Comm_t cplCodeCommType;
+//      
+//      if (localFirstRank < cplCodeFirstRank)
+//        cplCodeCommType = commTypes[nLocalRank];
+//      else
+//        cplCodeCommType= commTypes[0];
+//      
+//      delete [] commTypes;
+//
+//      _cplCommCreate(cplCodeCommType);
+//
+//    }
+//  }
 
   //     _isCplRank = localCodeProperties.getFirstRank() == currentRank ||
   //       _couplingType == CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING;
@@ -299,5 +299,6 @@ namespace cwipi {
       
   //   }
   // }
+  }
 }
 

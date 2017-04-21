@@ -64,19 +64,25 @@ namespace cwipi {
      * the current name and the MPI communicator containing all processes of
      * all codes.
      *
-     * \param [in]  name         Current code name
-     * \param [in]  globalComm   MPI communicator containing all processes 
-     *                           of all codes
+     * \param [in]  globalComm      MPI communicator containing all processes 
+     *                              of all codes
+     * \param [in]  n_codes         Number of codes on the current rank
+     * \param [in]  code_names      Codes names on the current rank
+     * \param [in]  is_coupled_rank Current rank is it a coupled rank
+     * \param [out] 
      *
      * \return                   Current code intra-communicator
      *
      */
 
-    MPI_Comm 
+    void 
     init
     (
-     const char* name, 
-     const MPI_Comm globalComm
+     const MPI_Comm     globalComm,
+     const int          n_codes,
+     const char**       code_names, 
+     const CWP_Status_t is_coupled_rank,
+     MPI_Comm           **intra_comms       
     );
 
     /**
@@ -93,15 +99,21 @@ namespace cwipi {
     );
 
     /**
-     * \brief Return local code MPI intra communicator.
-     *
-     * \return  MPI Intra communicator
-     *
-     */
+      * \brief Return local code MPI intra communicator.
+      *
+      * \parm[in]   localCodeName  Local code name
+      * 
+      * \return  MPI Intra communicator
+      *
+      */
 
-    inline const MPI_Comm &
-    intraCommGet() const;
+     inline const MPI_Comm &
+     intraCommGet
+     (
+     const string & localCodeName
+     ) const;
 
+     
     /**
      * \brief Return MPI communicator containing all processes of all codes.
      *
@@ -187,7 +199,10 @@ namespace cwipi {
      */
 
     inline const CodeProperties &
-    locCodePropertiesGet() const ;
+    locCodePropertiesGet
+    (   
+    const string &codeName
+    ) const; 
 
     /**
      * \brief Return number of local parameters
@@ -641,9 +656,10 @@ namespace cwipi {
     );
 
   private:
-    map <string, CodeProperties * > & _distCodePropertiesDB;       /*!< Distant code 
+    MPI_Comm                          _globalComm;             /*!< Global communicator */  
+    map <string, CodeProperties * > & _codePropertiesDB;       /*!< Distant code 
                                                                            properties data base */
-    CodeProperties                  * _locCodeProperties;           /*!< Local code properties */
+    map <string, CodeProperties * > & _locCodeProperties;       /*!< Local code properties */
 
     map < string, map < string, vector<MPI_Request> * > > _issendMPIrequest; /*!< MPI Request for 
                                                                                   parameter sending */
@@ -655,7 +671,7 @@ namespace cwipi {
                                                                            distant parameter names */
     vector<unsigned char>             _recvValBuff;                   /*!< Receive buffer to storage 
                                                                            distant parameter values */
-    map <string, int>                 _distLockStatus;             /*!< Parameters lock status of
+    map <string, int>                 _distLockStatus;                /*!< Parameters lock status of
                                                                            distant applications */ 
     map <string, MPI_Request >        _issendLockMPIrequest;          /*!< MPI request for parameter 
                                                                            lock status sending */ 

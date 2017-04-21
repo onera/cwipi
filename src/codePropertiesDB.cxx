@@ -22,6 +22,8 @@
 #include <cstring>
 #include <ctime>
 #include <cstdlib>
+#include <list>
+#include <map>
 
 #include <bftc_mem.h>
 
@@ -43,8 +45,8 @@ namespace cwipi {
    */
 
   CodePropertiesDB::CodePropertiesDB()
-    : _distCodePropertiesDB(*(new map <string, CodeProperties * > ())),
-      _locCodeProperties(NULL)
+    : _codePropertiesDB(*(new map <string, CodeProperties * > ())),
+      _locCodeProperties(*(new map <string, CodeProperties * > ()))
   {
   }
 
@@ -58,20 +60,19 @@ namespace cwipi {
 #if defined(DEBUG) && 0
     cout << "destroying CodePropertiesDB." << endl;
 #endif
-    if (_locCodeProperties != NULL)
-      delete _locCodeProperties;
 
-    if (!_distCodePropertiesDB.empty()) {
+    if (!_codePropertiesDB.empty()) {
       typedef map <string, CodeProperties * >::iterator CI;
-      for (CI p = _distCodePropertiesDB.begin();
-           p != _distCodePropertiesDB.end(); p++) {
+      for (CI p = _codePropertiesDB.begin();
+           p != _codePropertiesDB.end(); p++) {
         if (p->second != NULL)
           delete p->second;
       }
-      _distCodePropertiesDB.clear();
+      _codePropertiesDB.clear();
 
     }
-    delete &_distCodePropertiesDB;
+    delete &_codePropertiesDB;
+    delete &_locCodeProperties;
 
     if (!_issendMPIrequest.empty()) {
       typedef map <string, vector<MPI_Request> * >::iterator CI;
@@ -127,6 +128,7 @@ namespace cwipi {
     
   }
 
+  
   /**
    * \brief MPI Communicator Initialization.
    *
@@ -134,7 +136,8 @@ namespace cwipi {
    * the current name and the MPI communicator containing all processes of
    * all codes.
    *
-   * \param [in]  name         Current code name
+   * \param [in]  n_codes      Number of codes on the current rank
+   * \param [in]  code_names   Codes names on the current rank
    * \param [in]  globalComm   MPI communicator containing all processes 
    *                           of all codes
    *
@@ -142,12 +145,15 @@ namespace cwipi {
    *
    */
 
-  MPI_Comm 
+  void 
   CodePropertiesDB::init
   (
-   const char* name, 
-   const MPI_Comm globalComm
-  )
+  const MPI_Comm     globalComm,
+  const int          n_codes,
+  const char**       code_names, 
+  const CWP_Status_t is_coupled_rank,
+  MPI_Comm           **intra_comms       
+ )
   {
 
     // Initialize MPI
@@ -156,152 +162,160 @@ namespace cwipi {
     int currentRank;
     int globalCommSize;
     int color = 0;
+    
+    _globalComm = globalComm;
 
-    {
-      int flag;
+    int flag;
 
-      MPI_Initialized(&flag);
-      if (!flag)
-        bftc_error(__FILE__, __LINE__, 0, "MPI is not initialized\n");
+    MPI_Initialized(&flag);
+    if (!flag)
+      bftc_error(__FILE__, __LINE__, 0, "MPI is not initialized\n");
 
-      MPI_Comm_rank(globalComm, &currentRank);
-      MPI_Comm_size(globalComm, &globalCommSize);
-
-    }
+    MPI_Comm_rank(globalComm, &currentRank);
+    MPI_Comm_size(globalComm, &globalCommSize);
 
     // Search codes
     // ------------
 
-    {
-      int j = 0;
-      int index = 0;
-      int totalLength = 0;
-      int nameLength = 0;
+    int j = 0;
+    int index = 0;
+    int totalLength = 0;
+    int properties[3]; /* The first property is the number of rank codes
+                        * The second is the length of concatenated code names 
+                        * The third is coupled rank state */
 
-      string currentString = "";
+    properties[0] = n_codes;
+    for (int i = 0; i < n_codes; i++) {
+      properties[1] += strlen(code_names[i]) + 1;
+    }
+    properties[2] = is_coupled_rank;
 
-      nameLength = strlen(name) + 1;
+    MPI_Allreduce (&properties, &totalLength, 1, MPI_INT, MPI_SUM,
+                   globalComm);
 
-      MPI_Allreduce (&nameLength, &totalLength, 1, MPI_INT, MPI_SUM,
-                     globalComm);
+    char *mergeNames = new char[totalLength];
+    char *concatenateNames = new char[properties[1]];
 
-      char *mergeNames = new char[totalLength];
+    char *_concatenateNames = concatenateNames;
+    for (int i = 0; i < n_codes; i++) {
+      strcpy(_concatenateNames, code_names[i]);
+      _concatenateNames += strlen(code_names[i]) + 1;
+    }
 
-      int *namesLength = new int[globalCommSize];
-      int *iproc = new int[globalCommSize];
+    int *allProperties = new int[3*globalCommSize];
 
-      MPI_Allgather(&nameLength,
-                    1,
-                    MPI_INT,
-                    namesLength,
-                    1,
-                    MPI_INT,
-                    globalComm);
+    MPI_Allgather(&properties,
+                  3,
+                  MPI_INT,
+                  allProperties,
+                  3,
+                  MPI_INT,
+                  globalComm);
 
-      iproc[0] = 0;
-      for(int i = 1; i < globalCommSize; i++)
-        iproc[i] = namesLength[i-1] + iproc[i-1];
+    int *iproc = new int[globalCommSize + 1];
+    int *codesLengthName = new int[globalCommSize];
+    iproc[0] = 0;
+    for(int i = 0; i < globalCommSize; i++) {
+      codesLengthName[i] = allProperties[3*i+1];
+      iproc[i+1] = allProperties[3*i+1] + iproc[i];
+    }
 
-      MPI_Allgatherv((void*) const_cast <char*> (name),
-                     nameLength,
-                     MPI_CHAR,
-                     mergeNames,
-                     namesLength,
-                     iproc,
-                     MPI_CHAR,
-                     globalComm);
+    MPI_Allgatherv((void*) _concatenateNames,
+                   properties[1],
+                   MPI_CHAR,
+                   mergeNames,
+                   codesLengthName,
+                   iproc,
+                   MPI_CHAR,
+                   globalComm);
 
-      delete[] iproc;
-      delete[] namesLength;
+    delete[] allProperties;
+    delete[] concatenateNames;
+    delete[] codesLengthName;
 
-      for (int irank = 0; irank < globalCommSize; irank++) {
+    map < string, list < int > * >  coupledRank;
+    for (int irank = 0; irank < globalCommSize; irank++) {
 
+      for (int k = 0; k < allProperties[3*irank]; k++) {
         assert(index <= totalLength);
 
         const char *ptCurrentName = mergeNames + index;
+
         string currentName(ptCurrentName);
 
-        if (currentString != currentName) {
+        if (_codePropertiesDB.find(currentName) ==
+            _codePropertiesDB.end()) {
 
           CodeProperties *currentCodeProperties =
             new CodeProperties(currentName, globalComm);
 
-          if (!strcmp(currentName.c_str(), name)) {
-            _locCodeProperties = currentCodeProperties;
-            color = j+1;
-          }
-          else {
-            pair<string, CodeProperties *>
-              newPair(string(currentName), currentCodeProperties);
+          coupledRank[currentName] = new list <int>();
 
-            pair<map<string, CodeProperties *>::iterator, bool>
-              p = _distCodePropertiesDB.insert(newPair);
+          pair<string, CodeProperties *>
+            newPair(currentName, currentCodeProperties);
 
-            if (!p.second)
-              bftc_error(__FILE__, __LINE__, 0,
-                        "The MPI ranks range is not continous or\n"
-                        "There are two codes with the same name '%s'  \n", 
-                         currentName.c_str());
+          _codePropertiesDB.insert(newPair);
 
-            //
-            // issend int param MPI request storage
-
-            _issendMPIrequest[typeid(int).name()][string(currentName)] =  
-              new vector<MPI_Request>(_nIssend, MPI_REQUEST_NULL);
-
-            _issendMPIrequest[typeid(double).name()][string(currentName)] =  
-              new vector<MPI_Request>(_nIssend, MPI_REQUEST_NULL);
-
-            _issendMPIrequest[typeid(string).name()][string(currentName)] =  
-              new vector<MPI_Request>(_nIssend, MPI_REQUEST_NULL);
-
-            //
-            // issend lock MPI request storage
-
-            _issendLockMPIrequest[string(currentName)] = MPI_REQUEST_NULL;
-            _distLockStatus[string(currentName)] = 0;
-
+          if (currentRank == irank) {
+            _locCodeProperties.insert(newPair);
           }
 
-          currentCodeProperties->firstRankSet(irank);
+          _issendMPIrequest[typeid(int).name()][string(currentName)] =  
+            new vector<MPI_Request>(_nIssend, MPI_REQUEST_NULL);
 
-          if (currentString != "") {
-            if (!strcmp(currentString.c_str(), name))
-              _locCodeProperties->lastRankSet(irank-1);
-            else
-              _distCodePropertiesDB[currentString]->lastRankSet(irank-1);
-          }
+          _issendMPIrequest[typeid(double).name()][string(currentName)] =  
+            new vector<MPI_Request>(_nIssend, MPI_REQUEST_NULL);
 
-          currentString = currentName;
+          _issendMPIrequest[typeid(string).name()][string(currentName)] =  
+            new vector<MPI_Request>(_nIssend, MPI_REQUEST_NULL);
 
-          j += 1;
+          _issendLockMPIrequest[string(currentName)] = MPI_REQUEST_NULL;
+          _distLockStatus[string(currentName)] = 0;
         }
 
-        if (currentString != "") {
-          if (!strcmp(currentString.c_str(), name))
-            _locCodeProperties->lastRankSet(globalCommSize-1);
-          else
-            _distCodePropertiesDB[currentString]->lastRankSet(globalCommSize-1);
+        if (allProperties[3*irank+2]) {
+          coupledRank[currentName]->push_back(irank);
+        }
+
+        if (currentRank == irank) {
+          _codePropertiesDB[currentName]->isCoupledRankset(is_coupled_rank);
         }
 
         index += currentName.size() + 1;
         assert(index <= totalLength);
       }
-
-      delete [] mergeNames;
-
-      // Create current code communicator
-      // ---------------------------------------
-
-      MPI_Comm intraComm = MPI_COMM_NULL ;
-      MPI_Comm_split(globalComm, color, currentRank, &intraComm);
-      _locCodeProperties->intraCommSet(intraComm);
-
-      _issendLockStatus = 0;
-      _issendLock();
-
-      return intraComm;
     }
+
+    delete [] iproc;
+    delete [] mergeNames;
+
+    // Create current code communicator
+    // --------------------------------    
+
+    index = 0;
+    for (int irank = 0; irank < globalCommSize; irank++) {
+
+      for (int k = 0; k < allProperties[3*irank]; k++) {
+        assert(index <= totalLength);
+
+        const char *ptCurrentName = mergeNames + index;
+
+        string currentName(ptCurrentName);
+
+      }
+
+    }
+
+    MPI_Comm intraComm = MPI_COMM_NULL ;
+    MPI_Comm_split(globalComm, color, currentRank, &intraComm);
+
+    //    _locCodeProperties[]->intraCommSet(intraComm);
+
+    _issendLockStatus = 0;
+    _issendLock();
+
+    return intraComm;
+
   }
 
   /**

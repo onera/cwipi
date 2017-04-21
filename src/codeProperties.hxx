@@ -24,6 +24,7 @@
 #include <cstring>
 
 #include <map>
+#include <vector>
 #include <string>
 #include <typeinfo>
 
@@ -55,6 +56,30 @@ namespace cwipi {
     friend class CodePropertiesDB;
 
   public:
+
+    /**
+     * \brief Return if the current rank is a coupled rank
+     *
+     * \return  isCoupledRank
+     *
+     */
+
+    inline bool
+    isCoupledRank() const;
+
+
+    /**
+     * \brief Set if the current rank is coupled
+     *
+     * \param[in] status   Coupled rank status 
+     *
+     */
+
+    inline void
+    isCoupledRankset 
+    (
+    bool status
+    );
 
     /**
      * \brief Constructor.
@@ -132,53 +157,31 @@ namespace cwipi {
     (
      MPI_Comm localComm
     );
-
+    
     /**
-     * \brief Get the first code rank into the global communicator
+     * \brief Get MPI Group in global communicator
      *
-     * \return    First code rank into the global communicator
+     * \return    MPI group
      *
      */
 
-    inline const int &
-    firstRankGet() const;
+    inline const MPI_Group &
+    groupGet() const;
+
 
     /**
-     * \brief Get the last code rank into the global communicator
+     * \brief Set MPI intra-communicator
      *
-     * \return   First code rank into the global communicator
+     * \param[in] localComm    MPI intra-communicator
      *
      */
 
-    inline const int &
-    lastRankGet() const;
-
-    /**
-     * \brief Set the first code rank into the global communicator
-     *
-     * \param[in] value    First rank number
-     *
-     */
-
-    inline void 
-    firstRankSet
+    void 
+    groupSet
     (
-     const int value
+     MPI_Group group
     );
-
-    /**
-     * \brief Set the last code rank into the global communicator
-     *
-     * \param[in] value    Last rank number
-     *
-     */
-
-    inline void 
-    lastRankSet
-    (
-     const int value
-    );
-
+    
     /**
      * \brief Get int control parameters map
      *
@@ -431,15 +434,51 @@ namespace cwipi {
     string                 _name;          /*!< Name */
     MPI_Comm               _globalComm;    /*!< MPI global communicator */
     MPI_Comm               _intraComm;     /*!< MPI intra communicator */
-    int                    _firstRank;     /*!< Current code first rank into
-                                                MPI global communicator */
-    int                    _lastRank;      /*!< Current code last rank into
-                                                MPI global communicator */
+    bool                   _isCoupledRank;  /*!< Is a coupled rank */
+    vector <int>         & _coupledRanks;   /*!< coupled ranks */
+    MPI_Group              _groupInGlobalComm; /*!< coupled MPI group in 
+                                                    the global communicator */
+    //    int                    _firstRank;     /*!< Current code first rank into
+//                                                MPI global communicator */
+//    int                    _lastRank;      /*!< Current code last rank into
+//                                                MPI global communicator */
     map <string, int>    & _intCtrlParam;  /*!< Integer control parameters */ 
     map <string, double> & _dblCtrlParam;  /*!< Double control parameters */
     map <string, string> & _strCtrlParam;  /*!< String control parameters */
   };
 
+  
+  /**
+   * \brief Return if the current rank is a coupled rank
+   *
+   * \return  isCoupledRank
+   *
+   */
+
+  bool
+  CodeProperties::isCoupledRank() const
+  {
+    return _isCoupledRank;
+  }
+
+
+  /**
+   * \brief Set if the current rank is coupled
+   *
+   * \param[in] status   Coupled rank status 
+   *
+   */
+
+  void
+  CodeProperties::isCoupledRankset
+  (
+  bool status
+  )
+  {
+    _isCoupledRank = status;
+  }
+
+  
   /**
    * \brief Get code name
    *
@@ -496,61 +535,32 @@ namespace cwipi {
   }
 
   /**
-   * \brief Get the first code rank into the global communicator
+   * \brief Get MPI Group in global communicator
    *
-   * \return    First code rank into the global communicator
-   *
-   */
-
-  const int &
-  CodeProperties::firstRankGet() const
-  {
-    return _firstRank;
-  }
-
-  /**
-   * \brief Get the last code rank into the global communicator
-   *
-   * \return   First code rank into the global communicator
+   * \return    MPI group
    *
    */
 
-  const int &
-  CodeProperties::lastRankGet() const
+  const MPI_Group &
+  CodeProperties::groupGet() const
   {
-    return _lastRank;
+    return _groupInGlobalComm;
   }
 
   /**
-   * \brief Set the first code rank into the global communicator
+   * \brief Set MPI intra-communicator
    *
-   * \param[in] value    First rank number
+   * \param[in] localComm    MPI intra-communicator
    *
    */
 
   void 
-  CodeProperties::firstRankSet
+  CodeProperties::groupSet
   (
-   const int value
+   MPI_Group group
   )
   {
-    _firstRank = value;
-  }
-
-  /**
-   * \brief Set the last code rank into the global communicator
-   *
-   * \param[in] value    Last rank number
-   *
-   */
-
-  void 
-  CodeProperties::lastRankSet
-  (
-   const int value
-  )
-  {
-    _lastRank = value;
+    _groupInGlobalComm = group;
   }
 
   /**

@@ -24,6 +24,7 @@
 #include <typeinfo>
 
 #include "codeProperties.hxx"
+#include "codePropertiesDB.hxx"
 
 using namespace std;
 
@@ -49,14 +50,16 @@ namespace cwipi {
   /**
    * \brief Return local code MPI intra communicator.
    *
+   * \parm[in]   localCodeName  Local code name
+   * 
    * \return  MPI Intra communicator
    *
    */
 
   const MPI_Comm &
-  CodePropertiesDB::intraCommGet() const
+  CodePropertiesDB::intraCommGet(const string & localCodeName) const
   {
-    return _locCodeProperties->intraCommGet();
+    return _locCodeProperties[localCodeName]->intraCommGet();
   }
 
   /**
@@ -69,79 +72,8 @@ namespace cwipi {
   const MPI_Comm &
   CodePropertiesDB::globalCommGet() const
   {
-    return _locCodeProperties->globalCommGet();
-  }
-
-  /**
-   * \brief Return the current code first rank into the global communicator.
-   *
-   * \return MPI rank
-   *
-   */
-
-  const int &
-  CodePropertiesDB::locFirstRankGet() const
-  {
-    return _locCodeProperties->firstRankGet();
-  }
-
-  /**
-   * \brief Return the current code last rank into the global communicator.
-   *
-   * \return MPI rank
-   *
-   */
-
-  const int &
-  CodePropertiesDB::locLastRankGet() const
-  {
-    return _locCodeProperties->lastRankGet();
-  }
-
-  /**
-   * \brief Return the distant code first rank into the global communicator.
-   *
-   * \param [in]  codeName  Code name
-   *
-   * \return      MPI rank
-   *
-   */
-
-  inline const int &
-  CodePropertiesDB::distFirstRankGet
-  (
-   const string &codeName
-  ) const
-  {
-    const map <string, CodeProperties * >::iterator p = 
-      _distCodePropertiesDB.find(codeName);
-    if (p == _distCodePropertiesDB.end())
-      bftc_error(__FILE__, __LINE__, 0,
-                "'%s' code not found \n", codeName.c_str());
-    return p->second->firstRankGet();
-  }
-
-  /**
-   * \brief Return the distant code last rank into the global communicator.
-   *
-   * \param [in]  codeName  Code name
-   *
-   * \return      MPI rank
-   *
-   */
-  
-  inline const int &
-  CodePropertiesDB::distLastRankGet
-  (
-   const string &codeName
-  ) const
-  {
-    const map <string, CodeProperties * >::iterator p = 
-      _distCodePropertiesDB.find(codeName);
-    if (p == _distCodePropertiesDB.end())
-      bftc_error(__FILE__, __LINE__, 0,
-                "'%s' code not found \n", codeName.c_str());
-    return p->second->lastRankGet();
+      
+    return _globalComm;
   }
 
   /**
@@ -160,8 +92,8 @@ namespace cwipi {
   ) const
   {
     const map <string, CodeProperties * >::iterator p = 
-      _distCodePropertiesDB.find(codeName);
-    if (p == _distCodePropertiesDB.end())
+      _codePropertiesDB.find(codeName);
+    if (p == _codePropertiesDB.end())
       bftc_error(__FILE__, __LINE__, 0,
                 "'%s' code not found \n", codeName.c_str());
     assert(p->second != NULL);
@@ -178,10 +110,12 @@ namespace cwipi {
    */
 
   const CodeProperties &
-  CodePropertiesDB::locCodePropertiesGet() const 
+  CodePropertiesDB::locCodePropertiesGet
+  (   
+  const string &codeName
+  ) const 
   {
-    assert(_locCodeProperties != NULL);
-    return *_locCodeProperties;
+    return *_locCodeProperties[codeName];
   }
 
   /**
@@ -280,9 +214,9 @@ namespace cwipi {
     _irecvParameters<T>(codeName);
 
     const map <string, CodeProperties * >::iterator p = 
-      _distCodePropertiesDB.find(codeName);
+      _codePropertiesDB.find(codeName);
 
-    if (p == _distCodePropertiesDB.end())
+    if (p == _codePropertiesDB.end())
       bftc_error(__FILE__, __LINE__, 0,
                  "'%s' code not found \n", codeName.c_str());
     T *value;
@@ -326,9 +260,9 @@ namespace cwipi {
       cout << "reduce " << typeid(T).name() << " " << codeName.c_str() << endl;
 
       const map <string, CodeProperties * >::iterator p = 
-        _distCodePropertiesDB.find(codeName);
+        _codePropertiesDB.find(codeName);
 
-      if (p == _distCodePropertiesDB.end())
+      if (p == _codePropertiesDB.end())
         bftc_error(__FILE__, __LINE__, 0,
                    "'%s' code not found \n", codeName.c_str());
 
@@ -422,7 +356,7 @@ namespace cwipi {
 
       if (currentRank == 0) {
 
-        int nAppli = _distCodePropertiesDB.size() + 1;
+        int nAppli = _codePropertiesDB.size() + 1;
 
         //
         // Kill Existing messages
@@ -481,8 +415,8 @@ namespace cwipi {
         //
         // Issend
 
-        for (IteratorMapAppli p = _distCodePropertiesDB.begin(); 
-                              p != _distCodePropertiesDB.end(); 
+        for (IteratorMapAppli p = _codePropertiesDB.begin(); 
+                              p != _codePropertiesDB.end(); 
                               p++) {
 
           int distFirstRank = p->second->firstRankGet();
@@ -531,7 +465,7 @@ namespace cwipi {
   {
     typedef map <string, CodeProperties * >::iterator IteratorMapAppli;
 
-    int nAppli         = _distCodePropertiesDB.size() + 1;
+    int nAppli         = _codePropertiesDB.size() + 1;
     int locFirstRank = _locCodeProperties->firstRankGet();
     
     const MPI_Comm& intraComm  = _locCodeProperties->intraCommGet();
@@ -545,8 +479,8 @@ namespace cwipi {
 
     if (currentRank == 0) {
 
-      for (IteratorMapAppli p  = _distCodePropertiesDB.begin(); 
-                            p != _distCodePropertiesDB.end(); 
+      for (IteratorMapAppli p  = _codePropertiesDB.begin(); 
+                            p != _codePropertiesDB.end(); 
                             p++) {
 
         //
@@ -838,8 +772,8 @@ namespace cwipi {
     typedef map <string, CodeProperties * >::iterator IteratorMapAppli;
 
     const map <string, CodeProperties * >::iterator p = 
-      _distCodePropertiesDB.find(codeName);
-    if (p == _distCodePropertiesDB.end())
+      _codePropertiesDB.find(codeName);
+    if (p == _codePropertiesDB.end())
       bftc_error(__FILE__, __LINE__, 0,
                 "'%s' code not found \n", codeName.c_str());
 
@@ -860,7 +794,7 @@ namespace cwipi {
     MPI_Comm_rank(intraComm, &currentRank);
     MPI_Comm_size(intraComm, &locCommSize);
 
-    int nAppli = _distCodePropertiesDB.size() + 1;
+    int nAppli = _codePropertiesDB.size() + 1;
     
     int flag;
     int NDistControlParameters;
@@ -1113,9 +1047,9 @@ namespace cwipi {
    ) const
   {
     const map <string, CodeProperties * >::iterator p = 
-      _distCodePropertiesDB.find(codeName);
+      _codePropertiesDB.find(codeName);
 
-    if (p == _distCodePropertiesDB.end())
+    if (p == _codePropertiesDB.end())
       bftc_error(__FILE__, __LINE__, 0,
                  "'%s' code not found \n", codeName.c_str());
 
@@ -1140,9 +1074,9 @@ namespace cwipi {
    ) const
   {
     const map <string, CodeProperties * >::iterator p = 
-      _distCodePropertiesDB.find(codeName);
+      _codePropertiesDB.find(codeName);
 
-    if (p == _distCodePropertiesDB.end())
+    if (p == _codePropertiesDB.end())
       bftc_error(__FILE__, __LINE__, 0,
                  "'%s' code not found \n", codeName.c_str());
 
@@ -1168,9 +1102,9 @@ namespace cwipi {
    ) const
   {
     const map <string, CodeProperties * >::iterator p = 
-      _distCodePropertiesDB.find(codeName);
+      _codePropertiesDB.find(codeName);
 
-    if (p == _distCodePropertiesDB.end())
+    if (p == _codePropertiesDB.end())
       bftc_error(__FILE__, __LINE__, 0,
                  "'%s' code not found \n", codeName.c_str());
 
