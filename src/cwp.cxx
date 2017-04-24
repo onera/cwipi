@@ -1923,40 +1923,48 @@ CWP_Param_get
 
   if (codeNameStr == properties.locCodePropertiesGet().nameGet()) {
     switch(data_type) {
-    case CWP_INT :
+    case CWP_INT : {
       int *intValue = (int *) value;
       *intValue = properties.locCtrlParamGet<int>(nameStr);
       break;
-    case CWP_DOUBLE :
+    }
+    case CWP_DOUBLE : {
       double *dblValue = (double *) value;
       *dblValue = properties.locCtrlParamGet<double>(nameStr);
       break;
-    case CWP_CHAR :
+    }
+    case CWP_CHAR : {
       char **strValue = (char **) value;
       *strValue = const_cast < char * > (properties.locCtrlParamGet<string>(nameStr).c_str());
       break;
-    default :
+    }
+    default : {
       bftc_error(__FILE__, __LINE__, 0,
                  "Not yet implemented data type\n");
+    }
     }
   }
   else {
     switch(data_type) {
-    case CWP_INT :
+    case CWP_INT : {
       int *intValue = (int *) value;
       *intValue = properties.distCtrlParamGet<int>(codeNameStr, nameStr);
       break;
-    case CWP_DOUBLE :
+    }
+    case CWP_DOUBLE : {
       double *dblValue = (double *) value;
       *dblValue = properties.distCtrlParamGet<double>(codeNameStr, nameStr);
       break;
-    case CWP_CHAR :
+    }
+    case CWP_CHAR : {
       char **charValue = (char **) value;
       *charValue = const_cast < char * > (properties.distCtrlParamGet<string>(codeNameStr, nameStr).c_str());
       break;
-    default :
+    }
+    default : {
       bftc_error(__FILE__, __LINE__, 0,
                  "Not yet implemented data type\n");
+    }
     }
   }
 }

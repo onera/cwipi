@@ -184,7 +184,7 @@ namespace cwipi {
 
     const CWP_Field_storage_t  _storage;      /*!< Storage type */ 
     const int                    _nComponent;   /*!< Number of component */
-    const CWP_Type_t     _data_type;    /*!< Data type */
+    const CWP_Type_t     _dataType;    /*!< Data type */
     const CWP_Field_value_t   _nature;       /*!< Nature */
     const CWP_Field_exch_t     _exchangeType; /*!< Exchange type */
     const CWP_Status_t         _visuStatus;   /*!< Visualization status */
