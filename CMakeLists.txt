@@ -1,8 +1,18 @@
-# Top level CMakeLists.txt file for PTK
+#==============================================================================
+#
+#                Top level CMakeLists.txt file for BASESNODALES
+#
+#==============================================================================
 
 # Require CMake 3.0
 cmake_minimum_required(VERSION 3.0)
 cmake_policy(VERSION 3.0)
+
+enable_testing()
+
+#------------------------------------------------------------------------------
+# Internal CMake module (shared with paradigm)
+#------------------------------------------------------------------------------
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 project(BASESNODALES VERSION 2015.0.0 LANGUAGES C Fortran)
@@ -13,6 +23,7 @@ message("Compilation du projet: ${BASESNODALES_BINARY_DIR}")
 #------------------------------------------------------------------------------
 # Definition de la version BASESNODALES
 #------------------------------------------------------------------------------
+
 set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY TRUE)
 
 set(BASESNODALES_VERSION "${BASESNODALES_VERSION_MAJOR}.${BASESNODALES_VERSION_MINOR}.${BASESNODALES_VERSION_MICRO}")
@@ -51,9 +62,9 @@ include(${CMAKE_MODULE_PATH}/default_flags.cmake)
 # Flags de compilation C par defaut suivant le compilateur
 #------------------------------------------------------------------------------
 
-add_definitions (-DF77API)
+add_definitions (-DF77API) # pour la libmesh INRIA
 
-find_package(BLAS REQUIRED)
+find_package(BLAS   REQUIRED)
 find_package(LAPACK REQUIRED)
 
 #------------------------------------------------------------------------------
@@ -61,5 +72,12 @@ find_package(LAPACK REQUIRED)
 # En fonction des top_targets a installer
 #------------------------------------------------------------------------------
 
-add_subdirectory(src)
+add_subdirectory(./src)
+
+#------------------------------------------------------------------------------
+# Print summary of found and not found optional packages
+#------------------------------------------------------------------------------
+
+include(FeatureSummary)
+FEATURE_SUMMARY(WHAT ALL)
 
