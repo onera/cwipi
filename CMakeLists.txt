@@ -377,6 +377,7 @@ if (CWP_ENABLE_PYTHON_BINDINGS)
    add_subdirectory(Cython)
 endif()
 
+add_subdirectory(highorder)
 add_subdirectory(tests)
 add_subdirectory(doc)
 

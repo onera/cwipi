@@ -1,9 +1,11 @@
 # Top level CMakeLists.txt file for PTK
 
 # Require CMake 2.8
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
+cmake_policy(VERSION 3.0)
 
-project(BASESNODALES C Fortran)
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+project(BASESNODALES VERSION 2015.0.0 LANGUAGES C Fortran)
 
 message("Source du projet:      ${BASESNODALES_SOURCE_DIR}")
 message("Compilation du projet: ${BASESNODALES_BINARY_DIR}")
@@ -16,10 +18,10 @@ set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY TRUE)
 # Defintion de la version pour le futur
 # CMake pilotera l'ensemble via la generation de fichier de configuration
 # Ces fichiers seront ensuite inclus dans les sources de BASESNODALES
-set(BASESNODALES_VERSION_MAJOR "2015")
-set(BASESNODALES_VERSION_MINOR "0")
-set(BASESNODALES_VERSION_MICRO "0")
-set(BASESNODALES_VERSION "${BASESNODALES_VERSION_MAJOR}.${BASESNODALES_VERSION_MINOR}.${BASESNODALES_VERSION_MICRO}")
+#set(BASESNODALES_VERSION_MAJOR "2015")
+#set(BASESNODALES_VERSION_MINOR "0")
+#set(BASESNODALES_VERSION_MICRO "0")
+#set(BASESNODALES_VERSION "${BASESNODALES_VERSION_MAJOR}.${BASESNODALES_VERSION_MINOR}.${BASESNODALES_VERSION_MICRO}")
 
 message("Version du projet: ${BASESNODALES_VERSION}")
 
@@ -112,33 +114,37 @@ endif ()
 # Flags de compilation C par defaut suivant le compilateur
 #------------------------------------------------------------------------------
 
-if (C_COMPILER_NAME MATCHES "icc.*")
+include(${CMAKE_MODULE_PATH}/default_flags.cmake)
 
-  if (BASESNODALES_ENABLE_DEFAULT_FLAGS)
-    set (CMAKE_C_FLAGS "-std=c99 -no-multibyte-chars" CACHE STRING "Flags used by the compiler during all build types." FORCE)
-    
-    #libmesh7 (provisoire)
-    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DF77API "     CACHE STRING "Flags used by the compiler during all build types." FORCE) 
-    
-    set (CMAKE_C_FLAGS_RELEASE "-O3" CACHE STRING "Flags used by the compiler during release builds." FORCE)
-    
-    if (HAVE_VEC)
-      # ax option generates many versions of possible optmimizations depending on target
-      set (CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -axAVX,SSE4.2" CACHE STRING "Flags used by the compiler during release builds." FORCE)
-    endif ()
-    #set (CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -vec-report1" CACHE STRING "Flags used by the compiler during release builds." FORCE)
-    set (CMAKE_C_FLAGS_DEBUG           "-O0 -g -Wcheck" CACHE STRING "Flags used by the compiler during debug builds." FORCE)
-    set (CMAKE_C_FLAGS_PROFILING       "-O3 -pg" CACHE STRING "Flags used by the compiler during profiling builds." FORCE)
-    set (CMAKE_C_FLAGS_RELWITHDEBINFO  "-O3 -g" CACHE STRING "Flags used by the compiler during Release with Debug Info builds." FORCE)
-    set (CMAKE_C_FLAGS_MINSIZEREL      "-O2 -g" CACHE STRING "Flags used by the compiler during release minsize builds." FORCE)
-  endif()
+add_definitions (-DF77API)
 
-endif ()
+#if (C_COMPILER_NAME MATCHES "icc.*")
+#
+#  if (BASESNODALES_ENABLE_DEFAULT_FLAGS)
+#    set (CMAKE_C_FLAGS "-std=c99 -no-multibyte-chars" CACHE STRING "Flags used by the compiler during all build types." FORCE)
+#    
+#    #libmesh7 (provisoire)
+#    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DF77API "     CACHE STRING "Flags used by the compiler during all build types." FORCE) 
+#    
+#    set (CMAKE_C_FLAGS_RELEASE "-O3" CACHE STRING "Flags used by the compiler during release builds." FORCE)
+#    
+#    if (HAVE_VEC)
+#      # ax option generates many versions of possible optmimizations depending on target
+#      set (CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -axAVX,SSE4.2" CACHE STRING "Flags used by the compiler during release builds." FORCE)
+#    endif ()
+#    #set (CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -vec-report1" CACHE STRING "Flags used by the compiler during release builds." FORCE)
+#    set (CMAKE_C_FLAGS_DEBUG           "-O0 -g -Wcheck" CACHE STRING "Flags used by the compiler during debug builds." FORCE)
+#    set (CMAKE_C_FLAGS_PROFILING       "-O3 -pg" CACHE STRING "Flags used by the compiler during profiling builds." FORCE)
+#    set (CMAKE_C_FLAGS_RELWITHDEBINFO  "-O3 -g" CACHE STRING "Flags used by the compiler during Release with Debug Info builds." FORCE)
+#    set (CMAKE_C_FLAGS_MINSIZEREL      "-O2 -g" CACHE STRING "Flags used by the compiler during release minsize builds." FORCE)
+#  endif()
+#
+#endif ()
 
 
 
-find_package(BLAS)
-find_package(LAPACK)
+find_package(BLAS REQUIRED)
+find_package(LAPACK REQUIRED)
 
 
 #------------------------------------------------------------------------------

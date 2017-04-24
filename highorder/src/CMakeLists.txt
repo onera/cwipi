@@ -25,6 +25,10 @@ if (BLAS_FOUND)
 	target_link_libraries(BasesNodales ${BLAS_LIBRARIES})
 endif (BLAS_FOUND)
 
+if (LAPACK_FOUND)
+	target_include_directories(BasesNodales PRIVATE ${LAPACK_INCLUDE_DIRS})
+	target_link_libraries(BasesNodales ${LAPACK_LIBRARIES})
+endif (LAPACK_FOUND)
 
 
 install(TARGETS BasesNodales RUNTIME DESTINATION .)
