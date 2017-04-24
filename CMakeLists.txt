@@ -71,6 +71,18 @@ option(CWP_ENABLE_PYTHON_BINDINGS "Build Python module" OFF)
 
 option(CWP_ENABLE_Fortran  "Build Shared Fortran Interface" OFF)
 
+# High order (Nodal bases from SPACE)
+# -----------------
+
+find_package(BLAS)
+find_package(LAPACK)
+if (${BLAS_FOUND} AND ${LAPACK_FOUND})
+  set (ENABLE_SPACE_NODAL_BASES ON)
+else()
+  set (ENABLE_SPACE_NODAL_BASES OFF)
+endif()
+option(CWP_ENABLE_SPACE_NODAL_BASES  "Enable nodal bases from SPACE" ${ENABLE_SPACE_NODAL_BASES})
+
 # Allow Fortran call from C
 # --------------------------
 
@@ -377,7 +389,9 @@ if (CWP_ENABLE_PYTHON_BINDINGS)
    add_subdirectory(Cython)
 endif()
 
-add_subdirectory(highorder)
+if (CWP_ENABLE_SPACE_NODAL_BASES)
+  add_subdirectory(highorder)
+endif ()
 add_subdirectory(tests)
 add_subdirectory(doc)
 
