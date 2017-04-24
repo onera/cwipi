@@ -18,14 +18,6 @@ set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY TRUE)
 set(BASESNODALES_VERSION "${BASESNODALES_VERSION_MAJOR}.${BASESNODALES_VERSION_MINOR}.${BASESNODALES_VERSION_MICRO}")
 
 #------------------------------------------------------------------------------
-# Utilisation des flags de compilation par dÈfaut du projet
-# (Flags par dÈfaut sont dÈfinis plus bas dans le fichier) 
-#------------------------------------------------------------------------------
-
-option(BASESNODALES_ENABLE_DEFAULT_FLAGS "Enable default flags" ON)
-
-
-#------------------------------------------------------------------------------
 # Localisation des fonctions cmake du projet
 #------------------------------------------------------------------------------
 
