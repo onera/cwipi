@@ -1,0 +1,17 @@
+# Absolute actif pour calcul adaptatif
+#Absolute
+
+# rapport rayon de courbure a la corde
+GeomApp   0.10
+
+# Facteur de dilation
+Gradation 1.3
+
+# ecart a la corde
+Tolerance 0.001
+
+# pour mille de la bounding box
+#MinSize    10
+#MaxSize    20
+
+Nbiter 128

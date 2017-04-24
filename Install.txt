@@ -1,0 +1,2 @@
+cmake ~/Developer/Space/BasesNodales  \
+   -DCMAKE_INSTALL_PREFIX=~/Developer/Space/BasesNodales/

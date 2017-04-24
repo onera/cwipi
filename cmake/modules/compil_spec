@@ -1,0 +1,110 @@
+######################################################################
+# 
+# Ce script des flag de la commande de compilation par défaut. Il est
+# appelé dans la fonction set_target_properties function :
+#   set_target_properties(target_name PROPERTIES RULE_LAUNCH_COMPILE
+#   "bash ${CMAKE_SOURCE_DIR}/compil_spec <SOURCE> sources_list -- flags_list --")
+#
+# Les flag peuvent être constitués de 1 ou 2 mots comme '-g' ou '-warn interfaces'
+#
+######################################################################
+
+SOURCE="$1"; shift
+
+#
+# Liste des fichiers avec des flags de compilation en moins
+
+unset FILES
+while [ "$1" != "--" ]; do
+    FILES[${#FILES[@]}]="$1"; 
+    shift;
+done
+shift
+
+#
+# Liste des flags a retirer (FLAGS_SPLIT indique si le flag est coupe en 2 mots")
+
+unset FLAGS
+unset FLAGS_SPLIT
+unset FLAGS_PREFIX
+unset FLAGS_POSTFIX
+while [ "$1" != "--" ]; do
+    FLAGS="${FLAGS} $1"
+#    FLAGS[${#FLAGS[@]}]="$1"
+    SEARCH_BLANK=x`echo $1 | grep -i " "`
+    if [ "${SEARCH_BLANK}" == "x" ]; then
+       FLAGS_SPLIT[${#FLAGS_SPLIT[@]}]="no"
+       FLAGS_PREFIX[${#FLAGS_PREFIX[@]}]="$1"
+       FLAGS_POSTFIX[${#FLAGS_POSTFIX[@]}]="$1"
+    else
+       FLAGS_SPLIT[${#FLAGS_SPLIT[@]}]="yes"
+       FLAGS_PREFIX[${#FLAGS_PREFIX[@]}]=`echo $1 | sed -e 's/\(^[^ ]*\)[ ]\([^ ]*\)/\1/'`
+       FLAGS_POSTFIX[${#FLAGS_POSTFIX[@]}]=`echo $1 | sed -e 's/\(^[^ ]*\)[ ]\([^ ]*\)/\2/'`
+    fi
+    shift
+done
+shift
+
+#
+# Construction de la ligne de commande de compilation sans les flags à supprimer CMDLINE1
+# et celle par défaut CMDLINE0
+
+CMDLINE0=("$1"); CMDLINE1=("$1"); shift
+
+#for i in "$@"; do
+while (test $# -ge 1); do
+    CMDLINE0[${#CMDLINE0[@]}]="$1"
+
+    ACTION="-keep-"
+    k=0
+    for j in "${FLAGS[@]}"; do
+
+       if [ "${FLAGS_SPLIT[k]}" == "no" ]; then  
+
+#        Cas d'un flag sur un mot
+
+         if [ "$1" == "$j" ]; then
+            ACTION="-remove-"
+            break
+         fi
+
+       else
+
+#        Cas d'un flag sur deux mots
+
+         if [ "$1" == "${FLAGS_PREFIX[k]}" ]; then
+            shift
+            CMDLINE0[${#CMDLINE0[@]}]="$1"
+            if [ "$1" == "${FLAGS_POSTFIX[k]}" ]; then
+               ACTION="-remove-"
+               break
+            else
+               CMDLINE1[${#CMDLINE1[@]}]="${FLAGS_PREFIX[k]}"
+            fi
+         fi
+       fi
+       k+=1
+    done
+
+    if [ ${ACTION} == "-keep-" ]; then CMDLINE1[${#CMDLINE1[@]}]="$1"; fi
+
+    shift
+done
+
+# On applique CMDLINE1 aux fichiers en arguments
+
+for i in "${FILES[@]}"; do
+    if [ "$i" == "$SOURCE" ]; then
+       if [ "x${VERBOSE}" == "x1" ]; then
+          echo "Executing ${CMDLINE1[@]}"
+       fi
+       exec "${CMDLINE1[@]}"
+    fi
+done
+
+# On applique CMDLINE0 aux autres
+
+if [ "x${VERBOSE}" == "x1" ]; then
+  echo "Executing ${CMDLINE0[@]}"
+fi
+exec "${CMDLINE0[@]}"
