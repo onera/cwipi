@@ -212,7 +212,7 @@ CWP_Init
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
 
-  bftc_printf("\ncwipi "CWIPI_VERSION" initializing\n");
+  bftc_printf("\ncwipi " CWIPI_VERSION " initializing\n");
   bftc_printf("------------------------\n\n");
 
   /*
