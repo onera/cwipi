@@ -390,7 +390,7 @@ if (CWP_ENABLE_PYTHON_BINDINGS)
 endif()
 
 if (CWP_ENABLE_SPACE_NODAL_BASES)
-  add_subdirectory(spaceBases)
+  add_subdirectory(spaceBasis)
 endif ()
 add_subdirectory(tests)
 add_subdirectory(doc)
