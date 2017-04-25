@@ -239,7 +239,7 @@ module baseSimplexTools
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    print '(/a,2x,"size="i2," x",i2)',trim(title),size(mat,1),size(mat,2)
+    print '(/a,2x,"size=",i2," x",i2)',trim(title),size(mat,1),size(mat,2)
     if( size(mat,2)<11 )then
       print '(3x,$)'
       do i=1,size(mat,1)

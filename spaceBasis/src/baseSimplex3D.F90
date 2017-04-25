@@ -564,9 +564,17 @@ module baseSimplex3D
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> amount of warp for each node, for each edge
     allocate(xout(1:n))
-    xout(1:n)=l3(1:n)-l2(1:n) ; call warpFactor(ord=ord,xnodes=xGLL,xout=xout,warp=warpFactor1) ; warpFactor1(1:n)=4d0*warpFactor1(1:n)
-    xout(1:n)=l1(1:n)-l3(1:n) ; call warpFactor(ord=ord,xnodes=xGLL,xout=xout,warp=warpFactor2) ; warpFactor2(1:n)=4d0*warpFactor2(1:n)
-    xout(1:n)=l2(1:n)-l1(1:n) ; call warpFactor(ord=ord,xnodes=xGLL,xout=xout,warp=warpFactor3) ; warpFactor3(1:n)=4d0*warpFactor3(1:n)
+    xout(1:n)=l3(1:n)-l2(1:n)
+    call warpFactor(ord=ord,xnodes=xGLL,xout=xout,warp=warpFactor1) 
+    warpFactor1(1:n)=4d0*warpFactor1(1:n)
+    
+    xout(1:n)=l1(1:n)-l3(1:n)
+    call warpFactor(ord=ord,xnodes=xGLL,xout=xout,warp=warpFactor2)
+    warpFactor2(1:n)=4d0*warpFactor2(1:n)
+    
+    xout(1:n)=l2(1:n)-l1(1:n)
+    call warpFactor(ord=ord,xnodes=xGLL,xout=xout,warp=warpFactor3)
+    warpFactor3(1:n)=4d0*warpFactor3(1:n)
    !print'(/"[warpFactor1 warpFactor2 warpFactor3]")'
    !print '(3(f12.6,2x))',(warpFactor1(ad),warpFactor2(ad),warpFactor3(ad),ad=1,n)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -1419,7 +1427,7 @@ module baseSimplex3D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    open(unit=iFile,name="mesh3D_P" // trim(sfx) // ".mesh",status='unknown',action='write')
+    open(unit=iFile, file="mesh3D_P" // trim(sfx) // ".mesh",status='unknown',action='write')
     write(iFile,'("MeshVersionFormatted 2"/)')
     write(iFile,'("Dimension 3"/)')
     write(iFile,'("Vertices")')
@@ -1473,7 +1481,7 @@ module baseSimplex3D
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Point de depart : Tetra P1
     print '(/"writing TetraP1.mesh")'
-    open(unit=iFile,name="TetraP1.mesh",status='unknown',action='write')
+    open(unit=iFile,file="TetraP1.mesh",status='unknown',action='write')
     write(iFile,'( "MeshVersionFormatted 1")')
     write(iFile,'( "Dimension")')
     write(iFile,'( "3")')
@@ -1515,7 +1523,7 @@ module baseSimplex3D
       !>>>>>>>>
       !> Ecriture DEFAULT.yams pour imposer Nbiter = iOrd
       print '(/"Writing DEFAULT.yams")'
-      open(unit=iFile,name="DEFAULT.yams",status='unknown',action='write')
+      open(unit=iFile,file="DEFAULT.yams",status='unknown',action='write')
       write(iFile,'("Nbiter",i6)')iOrd
       close(iFile)
       !<<<<<<<<
@@ -1636,9 +1644,11 @@ module baseSimplex3D
       
       !>>>>>>>>
       if( nVertVol==0 )then
-        call system("ghs3d -O 1  -exit 3 -in TetraSkinP"//sfx//".mesh                          -out TetraP"//sfx//".mesh > ghs3d.log")
+        call system("ghs3d -O 1  -exit 3 -in TetraSkinP"//sfx// &
+                    ".mesh                          -out TetraP"//sfx//".mesh > ghs3d.log")
       else
-        call system("ghs3d -O 1  -exit 3 -in TetraSkinP"//sfx//".mesh -force nodes3DP"//sfx//" -out TetraP"//sfx//".mesh > ghs3d.log")
+        call system("ghs3d -O 1  -exit 3 -in TetraSkinP"//sfx// &
+                    ".mesh -force nodes3DP"//sfx//" -out TetraP"//sfx//".mesh > ghs3d.log")
         call system("rm -f nodes3DP"//sfx//".mesh")
         call system("rm -f nodes3DP"//sfx//".sol")
       endif
@@ -1726,7 +1736,7 @@ module baseSimplex3D
           if( iVert0>nVert0 )then
             print '("vert (",i6,")=",3(f12.5,1x),1x,"d2Min=",e12.5)',iVert    ,vert (1:3,iVert    ),d2Min
             print '("vert0(",i6,")=",3(f12.5,1x),1x,"d2Min=",e12.5)',iVert0Min,vert0(1:3,iVert0Min),d2Min
-            stop"problem @ writeMeshSkin3D"
+            stop "problem @ writeMeshSkin3D"
           endif
         enddo loop1
       enddo
@@ -1736,7 +1746,7 @@ module baseSimplex3D
       !> Test pour verifier que tous les noeuds sont en correspondance
       if( .not.count( indx(:)==0 )==0 )then
         print '("count(indx==0)=",i10)',count(indx(:)==0)
-        stop"problem @ writeMeshSkin3D"
+        stop "problem @ writeMeshSkin3D"
       endif
       !<<<<<<<<
       
