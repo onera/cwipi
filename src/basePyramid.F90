@@ -211,11 +211,11 @@ contains
     
     !> LU Factorization
     call dgetrf(nMod,nMod,invTransVand(1,1),nMod,ipiv(1),iErr)
-    if( .not.ierr==0 )stop("pyramidLagrange3Dv: Error during factorization")
+    if( .not.ierr==0 ) stop "pyramidLagrange3Dv: Error during factorization"
     
     !> Matrix Inversion
     call dgetri(nMod,invTransVand(1,1),nMod,ipiv(1),work(1),lWork,iErr)
-    if( .not.ierr==0 )stop("pyramidLagrange3Dv: Error during inversion")
+    if( .not.ierr==0 )stop "pyramidLagrange3Dv: Error during inversion"
     
     !> Cleanning Memory
     deallocate(ipiv,work)
@@ -368,11 +368,11 @@ contains
     
     !> LU Factorization
     call dgetrf(nMod,nMod,invTransVand(1,1),nMod,ipiv(1),iErr)
-    if( .not.ierr==0 )stop("pyramidGradLagrange3Dv: Error during factorization")
+    if( .not.ierr==0 )stop "pyramidGradLagrange3Dv: Error during factorization"
     
     !> Matrix Inversion
     call dgetri(nMod,invTransVand(1,1),nMod,ipiv(1),work(1),lWork,iErr)
-    if( .not.ierr==0 )stop("pyramidGradLagrange3Dv: Error during inversion")
+    if( .not.ierr==0 )stop "pyramidGradLagrange3Dv: Error during inversion"
     
     !> Cleanning Memory
     deallocate(ipiv,work)
@@ -1740,7 +1740,7 @@ contains
       do iw=0,ord
         do iv=0,ord-iw
           iNod=iNod+1
-          write(10,'(3(e22.15,1x),i3)'),uv(1,iNod),uv(2,iNod),uv(3,iNod),0
+          write(10,'(3(e22.15,1x),i3)') uv(1,iNod),uv(2,iNod),uv(3,iNod),0
         enddo
       enddo
       write(10,'(/"Triangles"/,i6)' )ord*ord
@@ -1867,9 +1867,11 @@ contains
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( display )print '(3x,"Building Pyramid Volumic Mesh with ghs3d: ",a)',"PyramidP"//sfx//".mesh"
     if( nNod==0 )then
-      call system("ghs3d -O 1  -exit 3 -in PyramidSkinP"//sfx//".mesh                          -out PyramidP"//sfx//".mesh > ghs3d.log")
+      call system("ghs3d -O 1  -exit 3 -in PyramidSkinP"//sfx// &
+                  ".mesh                          -out PyramidP"//sfx//".mesh > ghs3d.log")
     else
-      call system("ghs3d -O 1  -exit 3 -in PyramidSkinP"//sfx//".mesh -force nodes3DP"//sfx//" -out PyramidP"//sfx//".mesh > ghs3d.log")
+      call system("ghs3d -O 1  -exit 3 -in PyramidSkinP"//sfx// &
+                  ".mesh -force nodes3DP"//sfx//" -out PyramidP"//sfx//".mesh > ghs3d.log")
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -1980,7 +1982,7 @@ contains
         if( iNod0>nNod0 )then
           print '("uvw (",i6,")=",3(f12.5,1x),1x,"d2Min=",e12.5)',iNod    ,uvw (1:3,iNod    ),d2Min
           print '("uvw0(",i6,")=",3(f12.5,1x),1x,"d2Min=",e12.5)',iNod0Min,uvw0(1:3,iNod0Min),d2Min
-          stop"problem @ writeMeshSkin3D"
+          stop "problem @ writeMeshSkin3D"
         endif
       enddo loop1
     enddo

@@ -1493,8 +1493,14 @@ subroutine pyramTestQuadrature()
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Test des quadratures
     s=sum([(f(i)*w(i), i=1,n)])
-    if(                 power<10  )print '("\int_0^1 \int_{-(1-z)}^{+(1-z)} \int_{-(1-z)}^{+(1-z)} (x+1)^0",i1," (y+1)^0",i1," z^0",i1," dx dy dz = ",e22.15)',power,power,power,s
-    if( 10<=power .and. power<100 )print '("\int_0^1 \int_{-(1-z)}^{+(1-z)} \int_{-(1-z)}^{+(1-z)} (x+1)^" ,i2," (y+1)^" ,i2," z^" ,i2," dx dy dz = ",e22.15)',power,power,power,s
+    if(                 power<10  ) then 
+      print '("\int_0^1 \int_{-(1-z)}^{+(1-z)} \int_{-(1-z)}^{+(1-z)} (x+1)^0",i1," (y+1)^0",i1," z^0",i1," dx dy dz = ",e22.15)', &
+            power,power,power,s
+    endif        
+    if( 10<=power .and. power<100 ) then 
+      print '("\int_0^1 \int_{-(1-z)}^{+(1-z)} \int_{-(1-z)}^{+(1-z)} (x+1)^" ,i2," (y+1)^" ,i2," z^" ,i2," dx dy dz = ",e22.15)', &
+             power,power,power,s
+    endif         
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1638,7 +1644,8 @@ subroutine pyramTestBasis()
       delta=abs(f(j)-f0) ; if( delta>deltaMax)deltaMax=delta
       if( delta>tol )then
         cpt0=cpt0+1
-        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"   f(uvw)- ∑   ai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),f(j),f0,f(j)-f0
+        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"   f(uvw)- ∑   ai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)', &
+              j,uvw(1:3,j),f(j),f0,f(j)-f0
       endif
     enddo
     print '(4x,"erreur sur   f cpt=",i6,"/",i6,3x,"deltaMax=",e22.15)',cpt0,nPt,deltaMax
@@ -1653,7 +1660,8 @@ subroutine pyramTestBasis()
       delta=abs(dxf(j)-dxf0) ; if( delta>deltaMax)deltaMax=delta
       if( delta>tol )then
         cpt1=cpt1+1
-        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂u f(uvw)- ∑ ∂uai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),dxf(j),dxf0,dxf(j)-dxf0
+        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂u f(uvw)- ∑ ∂uai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)', &
+        j,uvw(1:3,j),dxf(j),dxf0,dxf(j)-dxf0
       endif
     enddo
     print '(4x,"erreur sur ∂uf cpt=",i6,"/",i6,3x,"deltaMax=",e22.15)',cpt1,nPt,deltaMax
@@ -1668,7 +1676,8 @@ subroutine pyramTestBasis()
       delta=abs(dyf(j)-dyf0) ; if( delta>deltaMax)deltaMax=delta
       if( delta>tol )then
         cpt2=cpt2+1
-        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂vf(uvw)- ∑ ∂vai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),dyf(j),dyf0,dyf(j)-dyf0
+        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂vf(uvw)- ∑ ∂vai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)', &
+        j,uvw(1:3,j),dyf(j),dyf0,dyf(j)-dyf0
       endif
     enddo
     print '(4x,"erreur sur ∂vf cpt=",i6,"/",i6,3x,"deltaMax=",e22.15)',cpt2,nPt,deltaMax
@@ -1683,7 +1692,8 @@ subroutine pyramTestBasis()
       delta=abs(dzf(j)-dzf0) ; if( delta>deltaMax)deltaMax=delta
       if( delta>tol )then
         cpt3=cpt3+1
-        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂wf(uvw)- ∑ ∂wai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),dzf(j),dzf0,dzf(j)-dzf0
+        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂wf(uvw)- ∑ ∂wai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)', &
+        j,uvw(1:3,j),dzf(j),dzf0,dzf(j)-dzf0
       endif
     enddo
     print '(4x,"erreur sur ∂wf cpt=",i6,"/",i6,3x,"deltaMax=",e22.15)',cpt3,nPt,deltaMax
@@ -1760,7 +1770,8 @@ subroutine pyramTestBasis()
       delta=abs(f(j)-f0) ; if( delta>deltaMax)deltaMax=delta
       if( delta>tol )then
         cpt0=cpt0+1
-        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"   f(uvw)- ∑   ai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),f(j),f0,f(j)-f0
+        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"   f(uvw)- ∑   ai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',&
+        j,uvw(1:3,j),f(j),f0,f(j)-f0
       endif
     enddo
     print '(4x,"erreur sur   f cpt=",i6,"/",i6,3x,"deltaMax=",e22.15)',cpt0,nPt,deltaMax
@@ -1775,7 +1786,8 @@ subroutine pyramTestBasis()
       delta=abs(dxf(j)-dxf0) ; if( delta>deltaMax)deltaMax=delta
       if( delta>tol )then
         cpt1=cpt1+1
-        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂u f(uvw)- ∑ ∂uai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),dxf(j),dxf0,dxf(j)-dxf0
+        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂u f(uvw)- ∑ ∂uai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',&
+        j,uvw(1:3,j),dxf(j),dxf0,dxf(j)-dxf0
       endif
     enddo
     print '(4x,"erreur sur ∂uf cpt=",i6,"/",i6,3x,"deltaMax=",e22.15)',cpt1,nPt,deltaMax
@@ -1790,7 +1802,8 @@ subroutine pyramTestBasis()
       delta=abs(dyf(j)-dyf0) ; if( delta>deltaMax)deltaMax=delta
       if( delta>tol )then
         cpt2=cpt2+1
-        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂vf(uvw)- ∑ ∂vai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),dyf(j),dyf0,dyf(j)-dyf0
+        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂vf(uvw)- ∑ ∂vai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',&
+        j,uvw(1:3,j),dyf(j),dyf0,dyf(j)-dyf0
       endif
     enddo
     print '(4x,"erreur sur ∂vf cpt=",i6,"/",i6,3x,"deltaMax=",e22.15)',cpt2,nPt,deltaMax
@@ -1805,7 +1818,8 @@ subroutine pyramTestBasis()
       delta=abs(dzf(j)-dzf0) ; if( delta>deltaMax)deltaMax=delta
       if( delta>tol )then
         cpt3=cpt3+1
-        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂wf(uvw)- ∑ ∂wai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),dzf(j),dzf0,dzf(j)-dzf0
+        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂wf(uvw)- ∑ ∂wai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',&
+        j,uvw(1:3,j),dzf(j),dzf0,dzf(j)-dzf0
       endif
     enddo
     print '(4x,"erreur sur ∂wf cpt=",i6,"/",i6,3x,"deltaMax=",e22.15)',cpt3,nPt,deltaMax
@@ -1879,7 +1893,8 @@ subroutine pyramTestBasis()
     delta=abs(f(j)-f0) ; if( delta>deltaMax)deltaMax=delta
     if( delta>tol )then
       cpt0=cpt0+1
-      print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"f(uvw)- ∑ ai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),f(j),f0,f(j)-f0
+      print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"f(uvw)- ∑ ai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',&
+      j,uvw(1:3,j),f(j),f0,f(j)-f0
     endif
   enddo
   print '(4x,"erreur sur   f cpt=",i6,"/",i6,3x,"deltaMax=",e22.15)',cpt0,nPt,deltaMax
@@ -1894,7 +1909,8 @@ subroutine pyramTestBasis()
     delta=abs(dxf(j)-dxf0) ; if( delta>deltaMax)deltaMax=delta
     if( delta>tol )then
       cpt1=cpt1+1
-      print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"   f(uvw)- ∑   ai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),f(j),f0,f(j)-f0
+      print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"   f(uvw)- ∑   ai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',&
+      j,uvw(1:3,j),f(j),f0,f(j)-f0
     endif
   enddo
   print '(4x,"erreur sur ∂uf cpt=",i6,"/",i6,3x,"deltaMax=",e22.15)',cpt1,nPt,deltaMax
@@ -1909,7 +1925,8 @@ subroutine pyramTestBasis()
     delta=abs(dyf(j)-dyf0) ; if( delta>deltaMax)deltaMax=delta
     if( delta>tol )then
       cpt2=cpt2+1
-      print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂vf(uvw)- ∑ ∂vai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),dyf(j),dyf0,dyf(j)-dyf0
+      print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂vf(uvw)- ∑ ∂vai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',&
+      j,uvw(1:3,j),dyf(j),dyf0,dyf(j)-dyf0
     endif
   enddo
   print '(4x,"erreur sur ∂vf cpt=",i6,"/",i6,3x,"deltaMax=",e22.15)',cpt2,nPt,deltaMax
@@ -1924,7 +1941,8 @@ subroutine pyramTestBasis()
     delta=abs(dzf(j)-dzf0) ; if( delta>deltaMax)deltaMax=delta
     if( delta>tol )then
       cpt3=cpt3+1
-      print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂wf(uvw)- ∑ ∂wai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),dzf(j),dzf0,dzf(j)-dzf0
+      print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂wf(uvw)- ∑ ∂wai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',&
+      j,uvw(1:3,j),dzf(j),dzf0,dzf(j)-dzf0
     endif
   enddo
   print '(4x,"erreur sur ∂wf cpt=",i6,"/",i6,3x,"deltaMax=",e22.15)',cpt3,nPt,deltaMax
@@ -2060,7 +2078,8 @@ subroutine pyramTestBasis()
       delta=abs(f(j)-f0) ; if( delta>deltaMax)deltaMax=delta
       if( delta>tol )then
         cpt0=cpt0+1
-        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"f(uvw)- ∑ ai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),f(j),f0,f(j)-f0
+        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"f(uvw)- ∑ ai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',&
+        j,uvw(1:3,j),f(j),f0,f(j)-f0
       endif
     enddo
     print '(4x,"erreur sur   f cpt=",i6,"/",i6,3x,"deltaMax=",e22.15)',cpt0,nPt,deltaMax
@@ -2075,7 +2094,8 @@ subroutine pyramTestBasis()
       delta=abs(dxf(j)-dxf0) ; if( delta>deltaMax)deltaMax=delta
       if( delta>tol )then
         cpt1=cpt1+1
-        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"   f(uvw)- ∑   ai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),f(j),f0,f(j)-f0
+        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"   f(uvw)- ∑   ai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',&
+        j,uvw(1:3,j),f(j),f0,f(j)-f0
       endif
     enddo
     print '(4x,"erreur sur ∂uf cpt=",i6,"/",i6,3x,"deltaMax=",e22.15)',cpt1,nPt,deltaMax
@@ -2090,7 +2110,8 @@ subroutine pyramTestBasis()
       delta=abs(dyf(j)-dyf0) ; if( delta>deltaMax)deltaMax=delta
       if( delta>tol )then
         cpt2=cpt2+1
-        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂vf(uvw)- ∑ ∂vai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),dyf(j),dyf0,dyf(j)-dyf0
+        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂vf(uvw)- ∑ ∂vai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',&
+        j,uvw(1:3,j),dyf(j),dyf0,dyf(j)-dyf0
       endif
     enddo
     print '(4x,"erreur sur ∂vf cpt=",i6,"/",i6,3x,"deltaMax=",e22.15)',cpt2,nPt,deltaMax
@@ -2105,7 +2126,8 @@ subroutine pyramTestBasis()
       delta=abs(dzf(j)-dzf0) ; if( delta>deltaMax)deltaMax=delta
       if( delta>tol )then
         cpt3=cpt3+1
-        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂wf(uvw)- ∑ ∂wai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',j,uvw(1:3,j),dzf(j),dzf0,dzf(j)-dzf0
+        print '(4x,"ad=",i6,2x,"uvw=",3(f12.5,1x),"∂wf(uvw)- ∑ ∂wai fi= ",e22.15," - ",e22.15,"  =  ",e22.15)',&
+        j,uvw(1:3,j),dzf(j),dzf0,dzf(j)-dzf0
       endif
     enddo
     print '(4x,"erreur sur ∂wf cpt=",i6,"/",i6,3x,"deltaMax=",e22.15)',cpt3,nPt,deltaMax
