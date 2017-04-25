@@ -1,0 +1,2 @@
+yams2 -m 50 -O 4 Tetra.mesh skin.mesh
+ghs3d -O 1 -m 500 -in skin.mesh -out Tetras.mesh
