@@ -107,11 +107,11 @@ namespace cwipi {
       *
       */
 
-     inline const MPI_Comm &
-     intraCommGet
-     (
+    inline const MPI_Comm &
+    intraCommGet
+    (
      const string & localCodeName
-     ) const;
+    ) const;
 
      
     /**
@@ -124,58 +124,9 @@ namespace cwipi {
     inline const MPI_Comm &
     globalCommGet() const;
 
+    
     /**
-     * \brief Return the current code first rank into the global communicator.
-     *
-     * \return MPI rank
-     *
-     */
-
-    inline const int &
-    locFirstRankGet() const;
-
-    /**
-     * \brief Return the current code last rank into the global communicator.
-     *
-     * \return MPI rank
-     *
-     */
-
-    inline const int &
-    locLastRankGet() const;
-
-    /**
-     * \brief Return the distant code first rank into the global communicator.
-     *
-     * \param [in]  codeName  Code name
-     *
-     * \return      MPI rank
-     *
-     */
-
-    inline const int &
-    distFirstRankGet
-    (
-     const string &codeName
-    ) const;
-
-    /**
-     * \brief Return the distant code last rank into the global communicator.
-     *
-     * \param [in]  codeName  Code name
-     *
-     * \return      MPI rank
-     *
-     */
-
-    inline const int &
-    distLastRankGet
-    (
-     const string &codeName
-    ) const;
-
-    /**
-     * \brief Return the distant code properties.
+     * \brief Return the code properties.
      *
      * \param [in]  codeName  Code name
      *
@@ -184,128 +135,68 @@ namespace cwipi {
      */
 
     inline const CodeProperties &
-    distCodePropertiesGet
+    codePropertiesGet
     (
      const string &codeName
     ) const;
 
-    /**
-     * \brief Return the current code properties.
-     *
-     * \param [in]  codeName  Code name
-     *
-     * \return      Properties
-     *
-     */
-
-    inline const CodeProperties &
-    locCodePropertiesGet
-    (   
-    const string &codeName
-    ) const; 
-
-    /**
-     * \brief Return number of local parameters
-     *
-     * \return  Number of parameters
-     *
-     */
-
-    template < typename T > 
-    int 
-    locCtrlParamNGet() const;
-
-    /**
-     * \brief Return of local parameters
-     *
-     * \return  List of parameters
-     *
-     */
-
-    template < typename T > 
-    char **
-    locCtrlParamListGet() const;
-
-    /**
-     * \brief Chek name parameter
-     *
-     * \param [in]  name  Parameter name to check
-     *
-     * \return  1 : true / 0 : false
-     *
-     */
-
-    template < typename T > 
-    int
-    locCtrlParamIs
-    (
-     const string &name
-    ) const;
-
-    /**
-     * \brief Add a control paramater.
-     *
-     * \param [in]  name   Parameter name
-     * \param [in]  value  Initial value 
-     *
-     */
-
-    template < typename T > 
-    void 
-    locCtrlParamAdd
-    (
-     const string &name, 
-     const T       value
-    );
 
     /**
      * \brief Set a control paramater.
      *
-     * \param [in]  name   Parameter name
-     * \param [in]  value  Initial value 
+     * \param [in]  localCodeName   Local code name
+     * \param [in]  name            Parameter name
+     * \param [in]  value           Initial value 
      *
      */
-
+    
     template < typename T > 
     void 
-    locCtrlParamSet
+    ctrlParamAdd
     (
+     const string &localCodeName, 
      const string &name, 
      const T       value
     );
 
+
     /**
-     * \brief Get a control paramater.
+     * \brief Set a control paramater.
      *
-     * \param [in]  name   Parameter name
-     *
-     * \return             Value           
+     * \param [in]  localCodeName   Local code name
+     * \param [in]  name            Parameter name
+     * \param [in]  value           Initial value 
      *
      */
-
+    
     template < typename T > 
-    const T &
-    locCtrlParamGet
+    void 
+    ctrlParamSet
     (
-     const string &name
+     const string &localCodeName, 
+     const string &name, 
+     const T       value
     );
 
+    
     /**
      * \brief Cancel a control paramater.
      *
-     * \param [in]  name   Parameter name
+     * \param [in]  localCodeName   Local code name
+     * \param [in]  name            Parameter name
      *
      */
 
     template < typename T > 
     void 
-    locCtrlParamCancel
+    ctrlParamCancel
     (
+     const string &localCodeName, 
      const string &name
     );
 
     /**
-     * \brief Return number of local parameters
+     * \brief Return the number of parameters
      *
      * \param [in]  codeName  Code name
      *
@@ -315,14 +206,14 @@ namespace cwipi {
 
     template < typename T > 
     int 
-    distCtrlParamNGet
+    ctrlParamNGet
     (
      const string &codeName
     ) const;
 
 
     /**
-     * \brief Return of local parameters
+     * \brief Return of the list of parameters
      *
      * \param [in]  codeName  Code name
      *
@@ -332,17 +223,17 @@ namespace cwipi {
 
     template < typename T > 
     char **
-    distCtrlParamListGet
+    ctrlParamListGet
     (
      const string &codeName
     ) const;
 
 
     /**
-     * \brief Chek name parameter
+     * \brief Chek name parameter existence
      *
-     * \param [in]  codeName  Code name
-     * \param [in]  name  Parameter name to check
+     * \param [in]  codeName   Code name
+     * \param [in]  name       Parameter to check
      *
      * \return  1 : true / 0 : false
      *
@@ -350,7 +241,7 @@ namespace cwipi {
 
     template < typename T > 
     int
-    distCtrlParamIs
+    ctrlParamIs
     (
      const string &codeName,
      const string &name
@@ -358,7 +249,7 @@ namespace cwipi {
 
 
     /**
-     * \brief Get a distant control paramater.
+     * \brief Get the value of a control paramater.
      *
      * \param [in]  codeName  Code name
      * \param [in]  name      Parameter name
@@ -369,14 +260,15 @@ namespace cwipi {
 
     template < typename T > 
     const T &
-    distCtrlParamGet
+    ctrlParamGet
     (
       const string &codeName,
       const string &name
     );
 
     /**
-     * \brief Reduce a parameter.
+     * \brief Reduce a parameter through a list of codes. The available processes
+     *        are sum, max and min. 
      *
      * \param [in]  op     Operator from \ref CWP_Op_t
      * \param [in]  name   Parameter name
@@ -391,7 +283,7 @@ namespace cwipi {
     void
     ctrlParamReduce
     (
-     const CWP_Op_t op, 
+     const CWP_Op_t  op, 
      const string    &name,
      T               *res,
      const int        nCode,
@@ -409,6 +301,8 @@ namespace cwipi {
     /**
      * \brief Lock access to local parameters from a distant code  
      *
+     * \param [in]  codeName  Code name
+     *
      */
 
     inline void 
@@ -416,6 +310,8 @@ namespace cwipi {
 
     /**
      * \brief unlock access to local parameters from a distant code  
+     *
+     * \param [in]  codeName  Code name
      *
      */
 

@@ -71,13 +71,13 @@ namespace cwipi {
 
   const MPI_Comm &
   CodePropertiesDB::globalCommGet() const
-  {
-      
+  {    
     return _globalComm;
   }
 
+    
   /**
-   * \brief Return the distant code properties.
+   * \brief Return the code properties.
    *
    * \param [in]  codeName  Code name
    *
@@ -85,8 +85,8 @@ namespace cwipi {
    *
    */
 
-  const CodeProperties &
-  CodePropertiesDB::distCodePropertiesGet
+  inline const CodeProperties &
+  CodePropertiesDB::codePropertiesGet
   (
    const string &codeName
   ) const
@@ -100,82 +100,76 @@ namespace cwipi {
     return *(p->second);
   }
 
-  /**
-   * \brief Return the current code properties.
-   *
-   * \param [in]  codeName  Code name
-   *
-   * \return      Properties
-   *
-   */
-
-  const CodeProperties &
-  CodePropertiesDB::locCodePropertiesGet
-  (   
-  const string &codeName
-  ) const 
-  {
-    return *_locCodeProperties[codeName];
-  }
 
   /**
    * \brief Add a control paramater.
    *
-   * \param [in]  name   Parameter name
-   * \param [in]  value  Initial value 
+   * \param [in]  localCodeName   Local code name
+   * \param [in]  name            Parameter name
+   * \param [in]  value           Initial value 
    *
    */
 
   template < typename T > 
   void 
-  CodePropertiesDB::locCtrlParamAdd
+  CodePropertiesDB::ctrlParamAdd
   (
+   const string &localCodeName, 
    const string &name, 
    const T       value
   )
   {
-    _locCodeProperties->ctrlParamAdd(name, value);
+    const map <string, CodeProperties * >::iterator p = 
+      _locCodeProperties.find(localCodeName);
+    if (p == _locCodeProperties.end())
+      bftc_error(__FILE__, __LINE__, 0,
+                "'%s' code not found \n", localCodeName.c_str());
+    p->second->ctrlParamAdd(name, value);
   }
 
+
   /**
-   * \brief Set a control paramater.
+   * \brief set a control paramater.
    *
-   * \param [in]  name   Parameter name
-   * \param [in]  value  Initial value 
+   * \param [in]  localCodeName   Local code name
+   * \param [in]  name            Parameter name
+   * \param [in]  value           Initial value 
    *
    */
 
   template < typename T > 
   void 
-  CodePropertiesDB::locCtrlParamSet
+  CodePropertiesDB::ctrlParamSet
   (
+   const string &localCodeName, 
    const string &name, 
    const T       value
   )
   {
-    _locCodeProperties->ctrlParamSet(name, value);
+    const map <string, CodeProperties * >::iterator p = 
+      _locCodeProperties.find(localCodeName);
+    if (p == _locCodeProperties.end())
+      bftc_error(__FILE__, __LINE__, 0,
+                "'%s' code not found \n", localCodeName.c_str());
+    p->second->ctrlParamSet(name, value);
   }
 
+    
   /**
-   * \brief Get a control paramater.
+   * \brief Cancel a control paramater.
    *
-   * \param [in]  name   Parameter name
-   *
-   * \return             Value           
+   * \param [in]  localCodeName   Local code name
+   * \param [in]  name            Parameter name
    *
    */
 
   template < typename T > 
-  const T &
-  CodePropertiesDB::locCtrlParamGet
+  void 
+  ctrlParamCancel
   (
+   const string &localCodeName, 
    const string &name
-  )
-  {
-    T *value;
-    _locCodeProperties->ctrlParamGet(name, &value);
-    return *value;
-  }
+  );
 
   /**
    * \brief Cancel a control paramater.
