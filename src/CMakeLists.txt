@@ -14,30 +14,23 @@ file(GLOB_RECURSE SOURCES
 )
 
 
-add_executable(BasesNodales ${SOURCES})
+#add_executable(BasesNodales ${SOURCES})
 
+#set_target_properties(BasesNodales PROPERTIES LINKER_LANGUAGE Fortran)
 
-set_target_properties(BasesNodales PROPERTIES LINKER_LANGUAGE Fortran)
-
-target_include_directories(BasesNodales
-	INTERFACE ${CMAKE_CURRENT_BINARY_DIR}
-	PRIVATE   ${CMAKE_CURRENT_BINARY_DIR}
-	PRIVATE   ${CMAKE_BINARY_DIR}
-	PUBLIC    ${CMAKE_CURRENT_SOURCE_DIR}
-)
-
-
-
-
-add_library(spaceBasis STATIC ${SOURCES})
-#add_library(spaceBasis SHARED ${SOURCES})
-
-
-
-#set(HEADER_FILES 
-#   "${CMAKE_CURRENT_BINARY_DIR}/*.mod"
+#target_include_directories(BasesNodales
+#	INTERFACE ${CMAKE_CURRENT_BINARY_DIR}
+#	PRIVATE   ${CMAKE_CURRENT_BINARY_DIR}
+#	PRIVATE   ${CMAKE_BINARY_DIR}
+#	PUBLIC    ${CMAKE_CURRENT_SOURCE_DIR}
 #)
-#message("HEADER_FILES:       ${HEADER_FILES}")
+
+
+
+
+#add_library(spaceBasis STATIC ${SOURCES})
+add_library(spaceBasis SHARED ${SOURCES})
+
 
 
 set (LIST_HEADERF "")
@@ -61,56 +54,38 @@ get_target_property(spaceBasis_INC spaceBasis INCLUDE_DIRECTORIES)
 target_include_directories(spaceBasis PUBLIC ${CWP_INC})
 
 
-#install(PUBLIC_HEADER DESTINATION include)
 
-#install(TARGETS ${_targets}
-#        RUNTIME DESTINATION bin
-#        LIBRARY DESTINATION lib
-#        PUBLIC_HEADER DESTINATION include
-#        ARCHIVE DESTINATION lib)
+target_include_directories(spaceBasis
+                           INTERFACE ${CMAKE_CURRENT_BINARY_DIR}
+                           PRIVATE   ${CMAKE_CURRENT_BINARY_DIR}
+                           PRIVATE  ${CMAKE_BINARY_DIR}
+                           PUBLIC  ${CMAKE_SOURCE_DIR}
+                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR})
 
-
-#target_include_directories(spaceBasis
-#                           INTERFACE ${CMAKE_CURRENT_BINARY_DIR}
-#                           PRIVATE   ${CMAKE_CURRENT_BINARY_DIR}
-#                           PRIVATE  ${CMAKE_BINARY_DIR}
-#                           PUBLIC  ${CMAKE_SOURCE_DIR}
-#                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR})
-
-#target_include_directories (spaceBasis PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories (spaceBasis PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 
 
 
 
-target_include_directories(BasesNodales PRIVATE ${BLAS_INCLUDE_DIRS})
-target_link_libraries(BasesNodales ${BLAS_LIBRARIES})
+#target_include_directories(BasesNodales PRIVATE ${BLAS_INCLUDE_DIRS})
+#target_link_libraries(BasesNodales ${BLAS_LIBRARIES})
 
-target_include_directories(BasesNodales PRIVATE ${LAPACK_INCLUDE_DIRS})
-target_link_libraries(BasesNodales ${LAPACK_LIBRARIES})
-
-
-#install(TARGETS spaceBasis DESTINATION lib)
-#message("LIBRARY:       ${LIBRARY}")
-#install(TARGETS LIBRARY DESTINATION lib)
+#target_include_directories(BasesNodales PRIVATE ${LAPACK_INCLUDE_DIRS})
+#target_link_libraries(BasesNodales ${LAPACK_LIBRARIES})
 
 
+target_include_directories(spaceBasis PRIVATE ${BLAS_INCLUDE_DIRS})
+target_link_libraries(spaceBasis ${BLAS_LIBRARIES})
 
-
-#install(TARGETS spaceBasis 
-#        LIBRARY DESTINATION lib
-#        PUBLIC_HEADER DESTINATION include/library_name)
-
-
-
-#install(TARGETS BasesNodales RUNTIME DESTINATION .)
-#install(TARGETS RUNTIME DESTINATION .)
+target_include_directories(spaceBasis PRIVATE ${LAPACK_INCLUDE_DIRS})
+target_link_libraries(spaceBasis ${LAPACK_LIBRARIES})
 	
 
 set (_targets "")
 
 list (APPEND _targets spaceBasis)
-list (APPEND _targets BasesNodales)
+#list (APPEND _targets BasesNodales)
 
 install(TARGETS ${_targets}
         RUNTIME DESTINATION bin
