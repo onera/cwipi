@@ -34,17 +34,25 @@ add_library(spaceBasis STATIC ${SOURCES})
 
 
 
-set(HEADER_FILES 
-   "${CMAKE_CURRENT_BINARY_DIR}/*.mod"
-)
-
-message("HEADER_FILES:       ${HEADER_FILES}")
+#set(HEADER_FILES 
+#   "${CMAKE_CURRENT_BINARY_DIR}/*.mod"
+#)
+#message("HEADER_FILES:       ${HEADER_FILES}")
 
 
 set (LIST_HEADERF "")
 list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/basewedge.mod")
+list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/basesimplex1d.mod")
+list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/basesimplex2d.mod")
+list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/basesimplex3d.mod")
+list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/pyramidrule.mod")
+list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/basewedge.mod")
+list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/basesimplextools.mod")
+list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/moddeterminant.mod")
+list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/space_ldlt.mod")
+list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/table_tet_mesh.mod")
 
-message("LIST_HEADERF:       ${LIST_HEADERF}")
+#message("LIST_HEADERF:       ${LIST_HEADERF}")
 
 
 set_target_properties(spaceBasis PROPERTIES PUBLIC_HEADER "${LIST_HEADERF}")
@@ -95,17 +103,17 @@ target_link_libraries(BasesNodales ${LAPACK_LIBRARIES})
 
 
 
-install(TARGETS BasesNodales RUNTIME DESTINATION .)
+#install(TARGETS BasesNodales RUNTIME DESTINATION .)
 #install(TARGETS RUNTIME DESTINATION .)
 	
 
-#set (_targets "")
-#
-#list (APPEND _targets BasesNodales)
-#list (APPEND _targets spaceBasis)
-#
-#install(TARGETS ${_targets}
-#        RUNTIME DESTINATION bin
-#        LIBRARY DESTINATION lib
-#        PUBLIC_HEADER DESTINATION include
-#        ARCHIVE DESTINATION lib)
+set (_targets "")
+
+list (APPEND _targets spaceBasis)
+list (APPEND _targets BasesNodales)
+
+install(TARGETS ${_targets}
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        PUBLIC_HEADER DESTINATION include
+        ARCHIVE DESTINATION lib)
