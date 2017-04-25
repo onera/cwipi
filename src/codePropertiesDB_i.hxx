@@ -20,6 +20,7 @@
 */
 
 #include <cassert>
+#include <cstdarg>
 #include <vector>
 #include <typeinfo>
 
@@ -165,59 +166,78 @@ namespace cwipi {
 
   template < typename T > 
   void 
-  ctrlParamCancel
+  CodePropertiesDB::ctrlParamCancel
   (
    const string &localCodeName, 
    const string &name
-  );
+  )
+  {
+    const map <string, CodeProperties * >::iterator p = 
+      _locCodeProperties.find(localCodeName);
+    if (p == _locCodeProperties.end())
+      bftc_error(__FILE__, __LINE__, 0,
+                "'%s' code not found \n", localCodeName.c_str());
+    p->second->ctrlParamCancel<T>(name);
+  }
+
 
   /**
-   * \brief Cancel a control paramater.
+   * \brief Return the number of parameters
    *
-   * \param [in]  name   Parameter name
+   * \param [in]  codeName  Code name
+   *
+   * \return  Number of parameters
    *
    */
 
   template < typename T > 
-  void 
-  CodePropertiesDB::locCtrlParamCancel
+  int 
+  CodePropertiesDB::ctrlParamNGet
   (
-   const string &name
-  )
+   const string &codeName
+  ) const
   {
-    _locCodeProperties->ctrlParamCancel<T>(name);
+    const map <string, CodeProperties * >::iterator p = 
+      _codePropertiesDB.find(codeName);
+    if (p == _codePropertiesDB.end())
+      bftc_error(__FILE__, __LINE__, 0,
+                "'%s' code not found \n", codeName.c_str());
+    return p->second->ctrlParamNGet<T>();    
   }
 
+
   /**
-   * \brief Get a distant control paramater.
+   * \brief Get the value of a control paramater.
    *
-   * \param [in]  name   Parameter name
+   * \param [in]  codeName  Code name
+   * \param [in]  name      Parameter name
    *
    * \return             Value           
    *
    */
-  
+
   template < typename T > 
   const T &
-  CodePropertiesDB::distCtrlParamGet
+  CodePropertiesDB::ctrlParamGet
   (
-   const string &codeName,
-   const string &name
-  ) 
+    const string &codeName,
+    const string &name
+  )
   {
+//TODO: Faire test si local code
     _irecvParameters<T>(codeName);
 
     const map <string, CodeProperties * >::iterator p = 
       _codePropertiesDB.find(codeName);
-
     if (p == _codePropertiesDB.end())
       bftc_error(__FILE__, __LINE__, 0,
-                 "'%s' code not found \n", codeName.c_str());
+                "'%s' code not found \n", codeName.c_str());
     T *value;
     p->second->ctrlParamGet(name, &value);
     return *value;
   }
 
+  
   /**
    * \brief Reduce a parameter.
    *
@@ -243,8 +263,10 @@ namespace cwipi {
   )
   {
 
+    //TODO: Continuer ici pour le reduce !!
+    
     T *valLoc;
-    _locCodeProperties->ctrlParamGet(name, &valLoc);
+    _codePropertiesDB->ctrlParamGet(name, &valLoc);
     *res =  *valLoc;
 
     for (int k = 0; k < nCode; k++) {
@@ -751,6 +773,9 @@ namespace cwipi {
    const string &codeName
   )
   {
+    
+    //TODO: Faire un test si le code est local _irecvParameters
+    
     MPI_Status status;
 
     string nameType = typeid(T).name();
@@ -976,20 +1001,7 @@ namespace cwipi {
     }
   }
 
-  /**
-   * \brief Return number of local parameters
-   *
-   * \return  Number of parameters
-   *
-   */
   
-  template < typename T > 
-  int 
-  CodePropertiesDB::locCtrlParamNGet() const
-  {
-    return _locCodeProperties->ctrlParamNGet<T>();
- }
-
   /**
    * \brief Return of local parameters
    *
