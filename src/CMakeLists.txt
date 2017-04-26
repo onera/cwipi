@@ -8,7 +8,7 @@ include_directories(include)
 
 
 file(GLOB_RECURSE SOURCES
-	${PROJECT_SOURCE_DIR}/src/*.f90
+	${PROJECT_SOURCE_DIR}/src/*.F90
 	${PROJECT_SOURCE_DIR}/src/*.c
 )
 
