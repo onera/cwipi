@@ -47,6 +47,7 @@
 #include "cwp.h"
 #include "cwipi_config.h"
 #include "factory.hpp"
+#include "codeProperties.hxx"
 #include "codePropertiesDB.hxx"
 #include "codePropertiesDB_i.hxx"
 #include "couplingDB.hxx"
@@ -226,9 +227,11 @@ CWP_Init
    * Create default parameters
    */
 
-  properties.locCtrlParamAdd<double>("time", time_init);
-  properties.locCtrlParamAdd<int>("state", CWP_STATE_IN_PROGRESS);
-
+  for (int i = 0; i < n_code; i++) {
+    const string &codeNameStr = code_names[i]; 
+    properties.ctrlParamAdd <double> (codeNameStr, "time", time_init);
+    properties.ctrlParamAdd <int> (codeNameStr, "state", CWP_STATE_IN_PROGRESS);
+  }
   /*
    * Create communication abstract factory 
    */
@@ -343,13 +346,11 @@ CWP_State_update
  const char* local_code_name,
  const CWP_State_t state
 )
-{
-
-//TODO: Take into account code_name
-    
+{    
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
-  properties.locCtrlParamSet<int>("state", state);
+  
+  properties.ctrlParamSet<int>(string(local_code_name), "state", state);
 }
 
 /**
@@ -369,15 +370,11 @@ CWP_State_get
  const char* code_name
 )
 {
-
-//TODO: Take into account code_name and distant code name
-//  cwipi::CodePropertiesDB & properties =
-//    cwipi::CodePropertiesDB::getInstance();
-//  return static_cast<CWP_State_t>(properties.distCtrlParamGet<int>(code_name, "state"));
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
 
-  return static_cast<CWP_State_t>(properties.locCtrlParamGet<int>("state"));
+  return static_cast<CWP_State_t> (
+      properties.ctrlParamGet<int>(string(code_name), "state"));
 }
 
 /**
@@ -397,10 +394,9 @@ CWP_Time_update
  const double current_time
 )
 {
-//TODO: Take into account code_name and distant code name
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
-  properties.locCtrlParamSet<double>("time", current_time);
+  properties.ctrlParamSet<double>(string(local_code_name),"time", current_time);
 }
 
 /**
@@ -487,12 +483,12 @@ CWP_Cpl_create
 
   const string &coupling_name_str = cpl_id;
   const string &coupled_application_str = coupled_code_name;
-  const string &local_application_str = coupled_code_name;
+  const string &local_application_str = local_code_name;
 
   couplingDB.couplingCreate(coupling_name_str,
                             comm_type,
-                            properties.locCodePropertiesGet(local_application_str),
-                            properties.distCodePropertiesGet(coupled_application_str),
+                            properties.codePropertiesGet(local_application_str),
+                            properties.codePropertiesGet(coupled_application_str),
                             geom_algo,
                             support_type,
                             n_part,
@@ -1611,17 +1607,18 @@ CWP_Param_add
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
 
+  const string &codeNameStr = local_code_name;
   const string &nameStr = param_name;
 
   switch(data_type) {
   case CWP_INT :
-    properties.locCtrlParamAdd<int>(nameStr, *(int *)initial_value);
+    properties.ctrlParamAdd<int>(codeNameStr,nameStr, *(int *)initial_value);
     break;
   case CWP_DOUBLE :
-    properties.locCtrlParamAdd<double>(nameStr, *(double *)initial_value);
+    properties.ctrlParamAdd<double>(codeNameStr,nameStr, *(double *)initial_value);
     break;
   case CWP_CHAR :
-    properties.locCtrlParamAdd<string>(nameStr, *(string *)initial_value);
+    properties.ctrlParamAdd<string>(codeNameStr,nameStr, *(string *)initial_value);
     break;
   default :
     bftc_error(__FILE__, __LINE__, 0,
@@ -1653,16 +1650,17 @@ CWP_Param_set
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
 
+  const string &codeNameStr = local_code_name;
   const string &nameStr = param_name;
   switch(data_type) {
   case CWP_INT :
-    properties.locCtrlParamSet<int>(nameStr, * (int *) value);
+    properties.ctrlParamSet<int>(codeNameStr, nameStr, * (int *) value);
     break;
   case CWP_DOUBLE :
-    properties.locCtrlParamSet<double>(nameStr, * (double *) value);
+    properties.ctrlParamSet<double>(codeNameStr, nameStr, * (double *) value);
     break;
   case CWP_CHAR :
-    properties.locCtrlParamSet<string>(nameStr, * (string *) value);
+    properties.ctrlParamSet<string>(codeNameStr, nameStr, * (string *) value);
     break;
   default :
     bftc_error(__FILE__, __LINE__, 0,
@@ -1691,16 +1689,17 @@ CWP_Param_del
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
 
+  const string &codeNameStr = local_code_name;
   const string &nameStr = param_name;
   switch(data_type) {
   case CWP_INT :
-    properties.locCtrlParamCancel<int>(nameStr);
+    properties.ctrlParamCancel<int>(codeNameStr, nameStr);
     break;
   case CWP_DOUBLE :
-    properties.locCtrlParamCancel<double>(nameStr);
+    properties.ctrlParamCancel<double>(codeNameStr, nameStr);
     break;
   case CWP_CHAR :
-    properties.locCtrlParamCancel<string>(nameStr);
+    properties.ctrlParamCancel<string>(codeNameStr, nameStr);
     break;
   default :
     bftc_error(__FILE__, __LINE__, 0,
@@ -1736,38 +1735,19 @@ CWP_Param_n_get
 
   const string &codeNameStr = code_name;
   int nParam;
-
-  if (codeNameStr == properties.locCodePropertiesGet().nameGet()) {
-    switch(data_type) {
-    case CWP_INT :
-      nParam = properties.locCtrlParamNGet<int>();
-      break;
-    case CWP_DOUBLE :
-      nParam = properties.locCtrlParamNGet<double>();
-      break;
-    case CWP_CHAR :
-      nParam = properties.locCtrlParamNGet<double>();
-      break;
-    default :
-      bftc_error(__FILE__, __LINE__, 0,
-                 "Not yet implemented data type\n");
-    }
-  }
-  else {
-    switch(data_type) {
-    case CWP_INT :
-      nParam = properties.distCtrlParamNGet<int>(codeNameStr);
-      break;
-    case CWP_DOUBLE :
-      nParam = properties.distCtrlParamNGet<double>(codeNameStr);
-      break;
-    case CWP_CHAR :
-      nParam = properties.distCtrlParamNGet<string>(codeNameStr);
-      break;
-    default :
-      bftc_error(__FILE__, __LINE__, 0,
-                 "Not yet implemented data type\n");
-    }
+  switch(data_type) {
+  case CWP_INT :
+    nParam = properties.ctrlParamNGet<int>(codeNameStr);
+    break;
+  case CWP_DOUBLE :
+    nParam = properties.ctrlParamNGet<double>(codeNameStr);
+    break;
+  case CWP_CHAR :
+    nParam = properties.ctrlParamNGet<string>(codeNameStr);
+    break;
+  default :
+    bftc_error(__FILE__, __LINE__, 0,
+                "Not yet implemented data type\n");
   }
   return nParam;
 }
@@ -1797,37 +1777,19 @@ CWP_Param_list_get
   const string &codeNameStr = code_name;
   char **paramList;
 
-  if (codeNameStr == properties.locCodePropertiesGet().nameGet()) {
-    switch(data_type) {
-    case CWP_INT :
-      paramList = properties.locCtrlParamListGet<int>();
-      break;
-    case CWP_DOUBLE :
-      paramList = properties.locCtrlParamListGet<double>();
-      break;
-    case CWP_CHAR :
-      paramList = properties.locCtrlParamListGet<double>();
-      break;
-    default :
-      bftc_error(__FILE__, __LINE__, 0,
-                 "Not yet implemented data type\n");
-    }
-  }
-  else {
-    switch(data_type) {
-    case CWP_INT :
-      paramList = properties.distCtrlParamListGet<int>(codeNameStr);
-      break;
-    case CWP_DOUBLE :
-      paramList = properties.distCtrlParamListGet<double>(codeNameStr);
-      break;
-    case CWP_CHAR :
-      paramList = properties.distCtrlParamListGet<string>(codeNameStr);
-      break;
-    default :
-      bftc_error(__FILE__, __LINE__, 0,
-                 "Not yet implemented data type\n");
-    }
+  switch(data_type) {
+  case CWP_INT :
+    paramList = properties.ctrlParamListGet<int>(codeNameStr);
+    break;
+  case CWP_DOUBLE :
+    paramList = properties.ctrlParamListGet<double>(codeNameStr);
+    break;
+  case CWP_CHAR :
+    paramList = properties.ctrlParamListGet<string>(codeNameStr);
+    break;
+  default :
+    bftc_error(__FILE__, __LINE__, 0,
+               "Not yet implemented data type\n");
   }
   return paramList;
 }
@@ -1859,38 +1821,19 @@ CWP_Param_is
   const string &codeNameStr = code_name;
   const string &nameStr     = param_name;
   int isParam;
-
-  if (codeNameStr == properties.locCodePropertiesGet().nameGet()) {
-    switch(data_type) {
-    case CWP_INT :
-      isParam = properties.locCtrlParamIs<int>(nameStr);
-      break;
-    case CWP_DOUBLE :
-      isParam = properties.locCtrlParamIs<double>(nameStr);
-      break;
-    case CWP_CHAR :
-      isParam = properties.locCtrlParamIs<string>(nameStr);
-      break;
-    default :
-      bftc_error(__FILE__, __LINE__, 0,
-                 "Not yet implemented data type\n");
-    }
-  }
-  else {
-    switch(data_type) {
-    case CWP_INT :
-      isParam = properties.distCtrlParamIs<int>(codeNameStr, nameStr);
-      break;
-    case CWP_DOUBLE :
-      isParam = properties.distCtrlParamIs<double>(codeNameStr, nameStr);
-      break;
-    case CWP_CHAR :
-      isParam = properties.distCtrlParamIs<string>(codeNameStr, nameStr);
-      break;
-    default :
-      bftc_error(__FILE__, __LINE__, 0,
-                 "Not yet implemented data type\n");
-    }
+  switch(data_type) {
+  case CWP_INT :
+    isParam = properties.ctrlParamIs<int>(codeNameStr, nameStr);
+    break;
+  case CWP_DOUBLE :
+    isParam = properties.ctrlParamIs<double>(codeNameStr, nameStr);
+    break;
+  case CWP_CHAR :
+    isParam = properties.ctrlParamIs<string>(codeNameStr, nameStr);
+    break;
+  default :
+    bftc_error(__FILE__, __LINE__, 0,
+               "Not yet implemented data type\n");
   }
   return isParam;
 }
@@ -1921,52 +1864,27 @@ CWP_Param_get
 
   const string &codeNameStr = code_name;
   const string &nameStr     = param_name;
-
-  if (codeNameStr == properties.locCodePropertiesGet().nameGet()) {
-    switch(data_type) {
-    case CWP_INT : {
-      int *intValue = (int *) value;
-      *intValue = properties.locCtrlParamGet<int>(nameStr);
-      break;
-    }
-    case CWP_DOUBLE : {
-      double *dblValue = (double *) value;
-      *dblValue = properties.locCtrlParamGet<double>(nameStr);
-      break;
-    }
-    case CWP_CHAR : {
-      char **strValue = (char **) value;
-      *strValue = const_cast < char * > (properties.locCtrlParamGet<string>(nameStr).c_str());
-      break;
-    }
-    default : {
-      bftc_error(__FILE__, __LINE__, 0,
-                 "Not yet implemented data type\n");
-    }
-    }
+  switch(data_type) {
+  case CWP_INT : {
+    int *intValue = (int *) value;
+    *intValue = properties.ctrlParamGet<int>(codeNameStr, nameStr);
+    break;
   }
-  else {
-    switch(data_type) {
-    case CWP_INT : {
-      int *intValue = (int *) value;
-      *intValue = properties.distCtrlParamGet<int>(codeNameStr, nameStr);
-      break;
-    }
-    case CWP_DOUBLE : {
-      double *dblValue = (double *) value;
-      *dblValue = properties.distCtrlParamGet<double>(codeNameStr, nameStr);
-      break;
-    }
-    case CWP_CHAR : {
-      char **charValue = (char **) value;
-      *charValue = const_cast < char * > (properties.distCtrlParamGet<string>(codeNameStr, nameStr).c_str());
-      break;
-    }
-    default : {
-      bftc_error(__FILE__, __LINE__, 0,
-                 "Not yet implemented data type\n");
-    }
-    }
+  case CWP_DOUBLE : {
+    double *dblValue = (double *) value;
+    *dblValue = properties.ctrlParamGet<double>(codeNameStr, nameStr);
+    break;
+  }
+  case CWP_CHAR : {
+    char **charValue = (char **) value;
+    *charValue = const_cast < char * > 
+        (properties.ctrlParamGet<string>(codeNameStr, nameStr).c_str());
+    break;
+  }
+  default : {
+    bftc_error(__FILE__, __LINE__, 0,
+               "Not yet implemented data type\n");
+  }
   }
 }
 

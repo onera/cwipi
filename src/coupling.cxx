@@ -87,6 +87,8 @@ namespace cwipi {
 ////!!!!!   A poursuivre ici
 ////!!!!!!!
 //   
+//  Verifier que localCodeProperties correspond a un code local
+//  
 // _entitiesDim(entitiesDim),_tolerance(tolerance), _solverType(solverType),
 // _outputFormat(outputFormat), _outputFormatOption(outputFormatOption),
 // _fvmWriter(NULL), _outputFrequency(outputFrequency), _name(name),

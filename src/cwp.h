@@ -578,7 +578,7 @@ PROCF (cwp_output_fortran_unit_set, CWP_OUTPUT_FORTRAN_UNIT_SET)
  */
 
 CWP_State_t
-CWP_Code_state_get
+CWP_State_get
 (
  const char    *code_name
 );

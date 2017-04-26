@@ -85,6 +85,7 @@ namespace cwipi {
      * \brief Constructor.
      *
      * \param [in]  name         Current code name
+     * \param [in]  isLocal      Is a local code
      * \param [in]  globalComm   MPI communicator containing all processes 
      *                           of all codes
      *
@@ -93,6 +94,7 @@ namespace cwipi {
     CodeProperties
     (
      string         &name,
+     bool            isLocal,
      const MPI_Comm  globalComm
     );
 
@@ -410,6 +412,19 @@ namespace cwipi {
 
 
     /**
+     * \brief  Is a local code ?
+     *
+     * \return  1 : true / 0 : false
+     *
+     */
+
+    bool
+    localCodeIs
+    (
+    ) const;
+
+    
+    /**
      * \brief Dump properties
      *
      */
@@ -432,16 +447,13 @@ namespace cwipi {
 
   private:
     string                 _name;          /*!< Name */
+    bool                   _isLocal;       /*!< Is a local code */
     MPI_Comm               _globalComm;    /*!< MPI global communicator */
     MPI_Comm               _intraComm;     /*!< MPI intra communicator */
     bool                   _isCoupledRank;  /*!< Is a coupled rank */
     vector <int>         & _coupledRanks;   /*!< coupled ranks */
     MPI_Group              _groupInGlobalComm; /*!< coupled MPI group in 
                                                     the global communicator */
-    //    int                    _firstRank;     /*!< Current code first rank into
-//                                                MPI global communicator */
-//    int                    _lastRank;      /*!< Current code last rank into
-//                                                MPI global communicator */
     map <string, int>    & _intCtrlParam;  /*!< Integer control parameters */ 
     map <string, double> & _dblCtrlParam;  /*!< Double control parameters */
     map <string, string> & _strCtrlParam;  /*!< String control parameters */
@@ -981,6 +993,23 @@ namespace cwipi {
                 "Type not taken into account \n");
     return 0;
   }
+
+  
+  /**
+   * \brief  Is a local code ?
+   *
+   * \return  1 : true / 0 : false
+   *
+   */
+
+  bool
+  CodeProperties::localCodeIs
+  (
+  ) const
+  {
+    return _isLocal;    
+  }
+
 }
 
 

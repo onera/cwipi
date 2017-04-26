@@ -28,6 +28,7 @@ namespace cwipi
    * \brief Constructor.
    *
    * \param [in]  name         Current code name
+   * \param [in]  isLocal      Is a local code
    * \param [in]  globalComm   MPI communicator containing all processes 
    *                           of all codes
    *
@@ -36,8 +37,9 @@ namespace cwipi
   CodeProperties::CodeProperties
   (
    string &name,
+   bool   isLocal,   
    const MPI_Comm globalComm
-  ): _name(name), 
+  ): _name(name), _isLocal(isLocal), 
      _globalComm(globalComm),
      _coupledRanks(*(new vector <int>())), 
      _isCoupledRank(false), 
@@ -65,7 +67,7 @@ namespace cwipi
   CodeProperties::CodeProperties
   (
    const CodeProperties& other
-  ): _name(other._name), 
+  ): _name(other._name), _isLocal(other._isLocal), 
      _globalComm(other._globalComm), 
      _intraComm(other._intraComm),
      _coupledRanks(other._coupledRanks), 
