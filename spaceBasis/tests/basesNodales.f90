@@ -233,7 +233,8 @@ subroutine triangle_00()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  write(*,'(/"Order: ")',advance='no') ; read(*,*)order
+  order=2
+ !write(*,'(/"Order: ")',advance='no') ; read(*,*)order
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -2461,6 +2462,8 @@ program main
   !> Test Triangles
   call triangle_00()
   call triangle_01()
+  
+#if 0==1
   stop
   
   !> Test Tetra
@@ -2487,6 +2490,6 @@ program main
   
   !> Test Matrice de Masse des pyramides
   call pyramTestMass()
-  
+#endif
   
 end program main

@@ -15,7 +15,7 @@ enable_testing()
 #------------------------------------------------------------------------------
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-project(BASESNODALES VERSION 2015.0.0 LANGUAGES C Fortran)
+project(BASESNODALES VERSION 2017.1.1 LANGUAGES C Fortran)
 
 message("Source du projet:      ${BASESNODALES_SOURCE_DIR}")
 message("Compilation du projet: ${BASESNODALES_BINARY_DIR}")
@@ -72,7 +72,10 @@ find_package(LAPACK REQUIRED)
 # En fonction des top_targets a installer
 #------------------------------------------------------------------------------
 
-add_subdirectory(./src)
+add_subdirectory(src)
+
+add_subdirectory(tests)
+
 
 #------------------------------------------------------------------------------
 # Print summary of found and not found optional packages
