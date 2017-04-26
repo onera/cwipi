@@ -48,7 +48,7 @@ namespace cwipi
      _strCtrlParam(*(new map <string, string>()))
   {
     _intraComm = MPI_COMM_NULL;
-    _groupInGlobalComm = MPI_GROUP_NULL;
+    _intraGroup = MPI_GROUP_NULL;
     
     int globalCommSize;
     MPI_Comm_size(globalComm, &globalCommSize);
@@ -72,7 +72,7 @@ namespace cwipi
      _intraComm(other._intraComm),
      _coupledRanks(other._coupledRanks), 
      _isCoupledRank(other._isCoupledRank), 
-     _groupInGlobalComm(other._groupInGlobalComm),
+     _intraGroup(other._intraGroup),
      _intCtrlParam(other._intCtrlParam),
      _dblCtrlParam(other._dblCtrlParam),
      _strCtrlParam(other._strCtrlParam)

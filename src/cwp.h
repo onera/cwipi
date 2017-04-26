@@ -480,7 +480,7 @@ CWP_Init
  const char             **code_name,
  const CWP_Status_t       is_coupled_rank,
  const double             time_init,
- MPI_Comm               **intra_comm
+ MPI_Comm                *intra_comm
 );
 
 /**

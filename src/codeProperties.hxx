@@ -178,7 +178,7 @@ namespace cwipi {
      *
      */
 
-    void 
+    inline void 
     groupSet
     (
      MPI_Group group
@@ -418,7 +418,7 @@ namespace cwipi {
      *
      */
 
-    bool
+    inline bool
     localCodeIs
     (
     ) const;
@@ -452,7 +452,7 @@ namespace cwipi {
     MPI_Comm               _intraComm;     /*!< MPI intra communicator */
     bool                   _isCoupledRank;  /*!< Is a coupled rank */
     vector <int>         & _coupledRanks;   /*!< coupled ranks */
-    MPI_Group              _groupInGlobalComm; /*!< coupled MPI group in 
+    MPI_Group              _intraGroup; /*!< coupled MPI group in 
                                                     the global communicator */
     map <string, int>    & _intCtrlParam;  /*!< Integer control parameters */ 
     map <string, double> & _dblCtrlParam;  /*!< Double control parameters */
@@ -556,7 +556,7 @@ namespace cwipi {
   const MPI_Group &
   CodeProperties::groupGet() const
   {
-    return _groupInGlobalComm;
+    return _intraGroup;
   }
 
   /**
@@ -572,7 +572,7 @@ namespace cwipi {
    MPI_Group group
   )
   {
-    _groupInGlobalComm = group;
+    _intraGroup = group;
   }
 
   /**

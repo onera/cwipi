@@ -82,7 +82,7 @@ namespace cwipi {
      const int          n_codes,
      const char**       code_names, 
      const CWP_Status_t is_coupled_rank,
-     MPI_Comm           **intra_comms       
+     MPI_Comm           *intra_comms       
     );
 
     /**

@@ -152,7 +152,7 @@ namespace cwipi {
   const int          n_codes,
   const char**       code_names, 
   const CWP_Status_t is_coupled_rank,
-  MPI_Comm           **intra_comms       
+  MPI_Comm           *intra_comms       
  )
   {
 
@@ -233,7 +233,7 @@ namespace cwipi {
     delete[] concatenateNames;
     delete[] codesLengthName;
 
-    map < string, list < int > * >  coupledRank;
+    map < string, vector < int > * >  coupledRank;
     for (int irank = 0; irank < globalCommSize; irank++) {
 
       for (int k = 0; k < allProperties[3*irank]; k++) {
@@ -249,7 +249,8 @@ namespace cwipi {
           CodeProperties *currentCodeProperties =
             new CodeProperties(currentName, currentRank == irank, globalComm);
 
-          coupledRank[currentName] = new list <int>();
+          coupledRank[currentName] = new vector <int> ();
+          coupledRank[currentName]->reserve(globalCommSize);
 
           pair<string, CodeProperties *>
             newPair(currentName, currentCodeProperties);
@@ -288,36 +289,35 @@ namespace cwipi {
 
     delete [] iproc;
     delete [] mergeNames;
-
-    // Continuer ici
     
+    // Create local code groups
+    // ------------------------
+
+    MPI_Group globalGroup;
+    MPI_Comm_group (globalComm, &globalGroup);
     
-    // Create current code communicator
-    // --------------------------------    
+    typedef map <string, vector < int > * >::iterator Iterator;
 
-    index = 0;
-    for (int irank = 0; irank < globalCommSize; irank++) {
-
-      for (int k = 0; k < allProperties[3*irank]; k++) {
-        assert(index <= totalLength);
-
-        const char *ptCurrentName = mergeNames + index;
-
-        string currentName(ptCurrentName);
-
-      }
-
+    for (Iterator p = coupledRank.begin(); 
+                  p != coupledRank.end(); p++){
+      const int *_ranks = &((*p->second)[0]);
+      int _n_ranks = p->second->size();
+      MPI_Group_incl (globalGroup, _n_ranks, _ranks, 
+                     &(_codePropertiesDB[p->first]->_intraGroup));
+      MPI_Comm_create (globalComm, 
+                       _codePropertiesDB[p->first]->_intraGroup,
+                       &(_codePropertiesDB[p->first]->_intraComm));
     }
-
-    MPI_Comm intraComm = MPI_COMM_NULL ;
-    MPI_Comm_split(globalComm, color, currentRank, &intraComm);
 
     //    _locCodeProperties[]->intraCommSet(intraComm);
 
     _issendLockStatus = 0;
     _issendLock();
 
-    return intraComm;
+    for (int i = 0; i < n_codes; i++) {
+      const string &nameStr = code_names[i];
+      intra_comms[i] = _codePropertiesDB[nameStr]->_intraComm;
+    }
 
   }
 
