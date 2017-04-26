@@ -1905,15 +1905,22 @@ contains
         uvw0(1:3,iNod0)=xyz(1:3)
         uvw0(  4,iNod0)=1d0-uvw0(1,iNod0)-uvw0(2,iNod0)-uvw0(3,iNod0)
       enddo
+      
     case(2) !> real(8)
       
-      res=GmfGetBlock(                                        &
-      &   unit,GmfVertices,1_8,int(nNod0,kind=8),0,0,%val(0) ,&
-      &   0                                                  ,&
-      &   GmfDouble, uvw0(1,1), uvw0(1,nNod0)                ,&
-      &   GmfDouble, uvw0(2,1), uvw0(2,nNod0)                ,&
-      &   GmfDouble, uvw0(3,1), uvw0(3,nNod0)                ,&
-      &   GmfInt,    mark(  1), mark(  nNod0)                 )
+     !do iNod0=1,nNod0
+     !  res=GmfGetLin(unit,uvw0(1,nNod0),uvw0(2,nNod0),uvw0(3,nNod0),mark(iNod0))
+     !  uvw0(1:3,iNod0)=xyz(1:3)
+     !  uvw0(  4,iNod0)=1d0-uvw0(1,iNod0)-uvw0(2,iNod0)-uvw0(3,iNod0)
+     !enddo
+      
+      res=GmfGetBlock(                                    &
+      &   unit,GmfVertices,1_8,int(nNod0,kind=8),%val(0) ,&
+      &   0                                              ,&
+      &   GmfDouble, uvw0(1,1), uvw0(1,nNod0)            ,&
+      &   GmfDouble, uvw0(2,1), uvw0(2,nNod0)            ,&
+      &   GmfDouble, uvw0(3,1), uvw0(3,nNod0)            ,&
+      &   GmfInt,    mark(  1), mark(  nNod0)             )
       
       do iNod0=1,nNod0
         uvw0(4,iNod0)=1d0-uvw0(1,iNod0)-uvw0(2,iNod0)-uvw0(3,iNod0)
@@ -1928,25 +1935,25 @@ contains
     nTetr=GmfStatKwd(unit,GmfTetrahedra) ; if( display )print '(6x,"nTetr=",i10)',nTetr
     allocate(tetr(1:5,1:nTetr))
     
-    res=GmfGetBlock(                                           &
-    &   unit,GmfTetrahedra,1_8,int(nTetr,kind=8), 0,0,%val(0) ,&
-    &   GmfInt, tetr(1,1), tetr(1,nTetr)                      ,&
-    &   GmfInt, tetr(2,1), tetr(2,nTetr)                      ,&
-    &   GmfInt, tetr(3,1), tetr(3,nTetr)                      ,&
-    &   GmfInt, tetr(4,1), tetr(4,nTetr)                      ,&
-    &   GmfInt, tetr(5,1), tetr(5,nTetr)                       )
+    res=GmfGetBlock(                                       &
+    &   unit,GmfTetrahedra,1_8,int(nTetr,kind=8), %val(0) ,&
+    &   GmfInt, tetr(1,1), tetr(1,nTetr)                  ,&
+    &   GmfInt, tetr(2,1), tetr(2,nTetr)                  ,&
+    &   GmfInt, tetr(3,1), tetr(3,nTetr)                  ,&
+    &   GmfInt, tetr(4,1), tetr(4,nTetr)                  ,&
+    &   GmfInt, tetr(5,1), tetr(5,nTetr)                   )
     !<<<
     
     !>>> Triangles
     nTria=GmfStatKwd(unit,GmfTriangles) ; if( display )print '(6x,"nTria=",i10)',nTria
     allocate(tria(1:4,1:nTria))
     
-    res=GmfGetBlock(                                          &
-    &   unit,GmfTriangles,1_8,int(nTria,kind=8), 0,0,%val(0) ,&
-    &   GmfInt, tria(1,1), tria(1,nTria)                     ,&
-    &   GmfInt, tria(2,1), tria(2,nTria)                     ,&
-    &   GmfInt, tria(3,1), tria(3,nTria)                     ,&
-    &   GmfInt, tria(4,1), tria(4,nTria)                      )
+    res=GmfGetBlock(                                      &
+    &   unit,GmfTriangles,1_8,int(nTria,kind=8), %val(0) ,&
+    &   GmfInt, tria(1,1), tria(1,nTria)                 ,&
+    &   GmfInt, tria(2,1), tria(2,nTria)                 ,&
+    &   GmfInt, tria(3,1), tria(3,nTria)                 ,&
+    &   GmfInt, tria(4,1), tria(4,nTria)                  )
     !<<<
     
     !>>> Closing File
