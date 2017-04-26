@@ -827,7 +827,7 @@ module baseSimplex2D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    open(unit=10,file='Triangles.mesh',status='old',action='read')
+    open(unit=10,file='Mesh2D/Triangles.mesh',status='old',action='read')
     do i=1,8 ; read(10,*) ; enddo
     read(10,*)nVert
     allocate(xyout(2,nVert))
@@ -860,7 +860,7 @@ module baseSimplex2D
       if( 100<=iOrd .and. iOrd<1000 ) write(sfx,'(     i3)')iOrd
       print '(3x,"saving ",a,"_",a)',title,sfx
       
-      call system("ln -fs Triangles.mesh "// title // "_" //sfx//".mesh")
+      call system("ln -fs Mesh2D/Triangles.mesh "// title // "_" //sfx//".mesh")
       
       open(unit=iFile,file=title//"_"//sfx//".sol",status='unknown',action='write')
       write(iFile,'("MeshVersionFormatted 2"/)')
