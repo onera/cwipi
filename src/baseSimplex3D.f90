@@ -1351,7 +1351,7 @@ module baseSimplex3D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    open(unit=10,file='Tetras.mesh',status='old',action='read')
+    open(unit=10,file='Mesh3D/Tetras.mesh',status='old',action='read')
     do i=1,5 ; read(10,*) ; enddo
     read(10,*)nVert
     allocate(xyzOut(3,nVert))
@@ -1384,7 +1384,7 @@ module baseSimplex3D
       if( 100<=iOrd .and. iOrd<1000 ) write(sfx,'(     i3)')iOrd
       print '(3x,"saving ",a,"_",a)',title,sfx
       
-      call system("ln -fs Tetras.mesh "// title // "_" //sfx//".mesh")
+      call system("ln -fs Mesh3D/Tetras.mesh "// title // "_" //sfx//".mesh")
       
       open(unit=iFile,file=title//"_"//sfx//".sol",status='unknown',action='write')
       write(iFile,'("MeshVersionFormatted 2"/)')

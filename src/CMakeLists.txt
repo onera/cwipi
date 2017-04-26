@@ -3,7 +3,6 @@
 
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
-
 #Bring the headers, such as Student.h into the project
 include_directories(include)
 

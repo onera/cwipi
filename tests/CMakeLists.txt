@@ -2,13 +2,13 @@
 # Build tests
 # ------------
 
-if (MPI_C_COMPILER)
-    set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
-endif() 
+#if (MPI_C_COMPILER)
+#    set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
+#endif() 
 
-if (MPI_Fortran_COMPILER)
-    set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER})
-endif() 
+#if (MPI_Fortran_COMPILER)
+#    set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER})
+#endif() 
 
 unset(LINK_LIBRARIES)
 
@@ -19,6 +19,8 @@ list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
 get_target_property(TEST_INC spaceBasis INCLUDE_DIRECTORIES)                          
 
 file (COPY ${CMAKE_CURRENT_SOURCE_DIR}/Mesh2D DESTINATION ${CMAKE_CURRENT_BINARY_DIR}) 
+file (COPY ${CMAKE_CURRENT_SOURCE_DIR}/Mesh3D DESTINATION ${CMAKE_CURRENT_BINARY_DIR}) 
+
 
 # Test list
 # ---------
@@ -34,6 +36,10 @@ SET (CTEST_ENVIRONMENT
 
 
 include(TestCreate)
-test_fortran_create (basesNodales)
+#test_fortran_create (basesNodales)
+test_fortran_create (test_Triangles00)
+test_fortran_create (test_Triangles01)
+test_fortran_create (test_Tetra00)
 
-#add_test( basesNodales basesNodales 2)
+#add_test(basesNodales   basesNodales)
+#add_test(test_Triangles test_Triangles)
