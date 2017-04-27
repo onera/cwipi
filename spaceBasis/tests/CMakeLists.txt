@@ -37,10 +37,18 @@ SET (CTEST_ENVIRONMENT
 
 include(TestCreate)
 #test_fortran_create (basesNodales)
+test_fortran_create (test_ConnectivitiesOfSides)
+test_fortran_create (test_Jacobi)
+
+test_fortran_create (test_Edges00)
+test_fortran_create (test_Edges01)
+
 test_fortran_create (test_Triangles00)
 test_fortran_create (test_Triangles01)
+
 #test_fortran_create (test_Tetra00)
 test_fortran_create (test_Pyramid00)
+
 
 #add_test(basesNodales   basesNodales)
 #add_test(test_Triangles test_Triangles)
