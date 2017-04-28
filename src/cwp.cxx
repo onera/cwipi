@@ -199,9 +199,6 @@ CWP_Init
 
 {
 
-//TODO: Coder le cas n_code : pour l'instant limitation a 1 !
-    
-   assert (1 == n_code);
         
   /*
    * Get application properties

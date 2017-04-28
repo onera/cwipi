@@ -448,11 +448,14 @@ namespace cwipi {
   private:
     string                 _name;          /*!< Name */
     bool                   _isLocal;       /*!< Is a local code */
+    int                    _rootRankInglobalComm; /*!< Root rank 
+                                                   *   in MPI global communicator */ 
     MPI_Comm               _globalComm;    /*!< MPI global communicator */
     MPI_Comm               _intraComm;     /*!< MPI intra communicator */
     bool                   _isCoupledRank;  /*!< Is a coupled rank */
-    vector <int>         & _coupledRanks;   /*!< coupled ranks */
-    MPI_Group              _intraGroup; /*!< coupled MPI group in 
+    MPI_Group              _intraGroup;     /*!< MPI group in 
+                                                    the global communicator */
+    MPI_Group              _intraCoupledGroup; /*!< coupled MPI group in 
                                                     the global communicator */
     map <string, int>    & _intCtrlParam;  /*!< Integer control parameters */ 
     map <string, double> & _dblCtrlParam;  /*!< Double control parameters */
@@ -556,7 +559,7 @@ namespace cwipi {
   const MPI_Group &
   CodeProperties::groupGet() const
   {
-    return _intraGroup;
+    return _intraCoupledGroup;
   }
 
   /**
@@ -572,7 +575,7 @@ namespace cwipi {
    MPI_Group group
   )
   {
-    _intraGroup = group;
+    _intraCoupledGroup = group;
   }
 
   /**

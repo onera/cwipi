@@ -66,6 +66,7 @@ else()
 endif()
 
 include(TestCreate)
+test_c_create (c_new_api)
 test_c_create (c_linear_coupling)
 test_c_create (c_surf_coupling_P1P1_micron_polygon)
 test_c_create (c_surf_coupling_P1P1_polygon)

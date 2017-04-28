@@ -39,22 +39,21 @@ namespace cwipi
    string &name,
    bool   isLocal,   
    const MPI_Comm globalComm
-  ): _name(name), _isLocal(isLocal), 
+  ): _name(name), _isLocal(isLocal),
+     _rootRankInglobalComm(-1), 
      _globalComm(globalComm),
-     _coupledRanks(*(new vector <int>())), 
      _isCoupledRank(false), 
      _intCtrlParam(*(new map <string, int>())),
      _dblCtrlParam(*(new map <string, double>())),
      _strCtrlParam(*(new map <string, string>()))
   {
     _intraComm = MPI_COMM_NULL;
-    _intraGroup = MPI_GROUP_NULL;
+    _intraCoupledGroup = MPI_GROUP_NULL;
+    _intraGroup        = MPI_GROUP_NULL;
     
     int globalCommSize;
     MPI_Comm_size(globalComm, &globalCommSize);
     
-    _coupledRanks.reserve(globalCommSize);
-
   }
 
   /**
@@ -67,11 +66,12 @@ namespace cwipi
   CodeProperties::CodeProperties
   (
    const CodeProperties& other
-  ): _name(other._name), _isLocal(other._isLocal), 
+  ): _name(other._name), _isLocal(other._isLocal),
+     _rootRankInglobalComm(other._rootRankInglobalComm),  
      _globalComm(other._globalComm), 
      _intraComm(other._intraComm),
-     _coupledRanks(other._coupledRanks), 
      _isCoupledRank(other._isCoupledRank), 
+     _intraCoupledGroup(other._intraCoupledGroup),
      _intraGroup(other._intraGroup),
      _intCtrlParam(other._intCtrlParam),
      _dblCtrlParam(other._dblCtrlParam),
@@ -121,6 +121,7 @@ namespace cwipi
 
   CodeProperties::~CodeProperties()
   {
+    printf("~CodeProperties\n");
     if (!_intCtrlParam.empty())
       _intCtrlParam.clear();
     delete &_intCtrlParam;
@@ -132,5 +133,9 @@ namespace cwipi
     delete &_strCtrlParam;
     if (_intraComm != MPI_COMM_NULL)
       MPI_Comm_free(&_intraComm);
+    if (_intraGroup != MPI_GROUP_NULL)
+      MPI_Group_free(&_intraGroup);
+    if (_intraCoupledGroup != MPI_GROUP_NULL)
+      MPI_Group_free(&_intraCoupledGroup);
   }
 }
