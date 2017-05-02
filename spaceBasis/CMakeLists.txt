@@ -57,12 +57,9 @@ endif()
 
 include(${CMAKE_MODULE_PATH}/default_flags.cmake)
 
+add_definitions (-DF77API)
 
-#------------------------------------------------------------------------------
-# Flags de compilation C par defaut suivant le compilateur
-#------------------------------------------------------------------------------
 
-add_definitions (-DF77API) # pour la libmesh INRIA
 
 find_package(BLAS   REQUIRED)
 find_package(LAPACK REQUIRED)
@@ -73,7 +70,6 @@ find_package(LAPACK REQUIRED)
 #------------------------------------------------------------------------------
 
 add_subdirectory(src)
-
 add_subdirectory(tests)
 
 
