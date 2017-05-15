@@ -831,6 +831,21 @@ void PDM_io_open
   nouveau_fichier->comm = comm;
   nouveau_fichier->prop_noeuds_actifs = prop_noeuds_actifs;
 
+  /* Test d'existence du fichier en lecture */
+
+  if (mode == PDM_IO_MODE_LECTURE) {
+    FILE *testf2 = fopen (nouveau_fichier->nom, "r");
+    if (testf2 == NULL) {
+      *ierr = 1;
+      free (nouveau_fichier->nom);
+      free (nouveau_fichier);
+      return;
+    }
+    else {
+      fclose (testf2);
+    }
+  }
+
   _rangs_actifs(nouveau_fichier);
  
   /* Ouverture du fichier en parallele ou sequentiel suivant la situation.
@@ -2625,10 +2640,12 @@ void PDM_io_ecr_par_entrelacee
         
         if (fichier->fmt_t == PDM_IO_FMT_TXT) {
           n_composante_trie =  (int*) malloc(sizeof(int) * _id_max);
-        }
-        for (int i = 0; i < _id_max; i++){
-          n_composante_trie[i] = 0;
-        }
+
+	  for (int i = 0; i < _id_max; i++){
+	    n_composante_trie[i] = 0;
+	  }
+	}
+
         int k = 0;
         for (int i = 0; i < n_donnees; i++){
           if (fichier->fmt_t == PDM_IO_FMT_TXT) {
@@ -4658,7 +4675,8 @@ const char* path
  *  
  *----------------------------------------------------------------------------*/
 
-void PROCF (PDM_io_n_donnees_get, PDM_IO_N_DONNEES_GET)
+void PROCF (pdm_io_n_donnees_get, PDM_IO_N_DONNEES_GET)
+
 (const PDM_l_num_t  *unite,
  const int             *t_n_composantes,         
  const PDM_l_num_t  *n_composantes,         

@@ -716,6 +716,29 @@ int PDM_MPI_Allgatherv(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype,
   return 1;
 }
 
+
+/*----------------------------------------------------------------------------
+ * PDM_MPI_Reduce (wrapping de la fonction MPI_Reduce)
+ *
+ *----------------------------------------------------------------------------*/
+
+int PDM_MPI_Reduce(void *sendbuf, void *recvbuf, int count, 
+		   PDM_MPI_Datatype datatype, PDM_MPI_Op op,
+		   int root, PDM_MPI_Comm comm) 
+{
+  sendbuf;
+  recvbuf;
+  count;
+  datatype;
+  op;
+  root;
+  comm;
+
+  fprintf(stderr, "PDM_MPI_Reduce : Unavailable function with pdm_no_mpi library\n" );
+  abort();
+  return 1;
+}
+
 /*----------------------------------------------------------------------------
  * PDM_MPI_Allreduce (wrapping de la fonction MPI_Allreduce)
  *
@@ -845,9 +868,8 @@ int PDM_MPI_Error_string(int errorcode, char *string, int *resultlen)
 int PDM_MPI_Comm_rank(PDM_MPI_Comm comm, int *rank)
 {
   comm;
-  rank;
-  
-  return 0;
+  *rank=0; 
+  return 1;
 }
 
 /*----------------------------------------------------------------------------
@@ -858,8 +880,7 @@ int PDM_MPI_Comm_rank(PDM_MPI_Comm comm, int *rank)
 int PDM_MPI_Comm_size(PDM_MPI_Comm comm, int *size)
 {
   comm;
-  size;
-  
+  *size=1;  
   return 1;
 }
 
@@ -898,11 +919,10 @@ int PDM_MPI_Comm_split(PDM_MPI_Comm comm, int color, int key, PDM_MPI_Comm *newc
   comm;
   color;
   key;
-  newcomm;
-  
-  fprintf(stderr, "PDM_MPI_Comm_split : Unavailable function with pdm_no_mpi library\n" );
-  abort();
-  return 1;
+
+  *newcomm = PDM_MPI_COMM_NULL;
+
+  return 0;
 }
 
 #ifdef __cplusplus

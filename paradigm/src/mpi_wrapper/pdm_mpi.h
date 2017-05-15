@@ -472,6 +472,15 @@ int PDM_MPI_Allgatherv(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype,
                    int *displs, PDM_MPI_Datatype recvtype, PDM_MPI_Comm comm);
 
 /*----------------------------------------------------------------------------
+ * PDM_MPI_Reduce (wrapping de la fonction MPI_Reduce)
+ *
+ *----------------------------------------------------------------------------*/
+
+int PDM_MPI_Reduce(void *sendbuf, void *recvbuf, int count, 
+		   PDM_MPI_Datatype datatype, PDM_MPI_Op op,
+		   int root, PDM_MPI_Comm comm); 
+
+/*----------------------------------------------------------------------------
  * PDM_MPI_Allreduce (wrapping de la fonction MPI_Allreduce)
  *
  *----------------------------------------------------------------------------*/

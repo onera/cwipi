@@ -709,7 +709,7 @@ const char* path
  *  
  *----------------------------------------------------------------------------*/
 
-void PROCF (PDM_io_n_donnees_get, PDM_IO_N_DONNEES_GET)
+void PROCF (pdm_io_n_donnees_get, PDM_IO_N_DONNEES_GET)
 (const PDM_l_num_t  *unite,
  const int             *t_n_composantes,         
  const PDM_l_num_t  *n_composantes,         
