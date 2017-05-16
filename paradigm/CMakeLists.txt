@@ -288,9 +288,10 @@ if (NOT (PDM_IN_PDMA))
   configure_file(pdm_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/pdm_config.h")
 
   if (PDM_ENABLE_STATIC_Fortran_INTERFACE OR PDM_ENABLE_SHARED_Fortran_INTERFACE)
+    if ("${CMAKE_CURRENT_BINARY_DIR}/pdm_config.h" IS_NEWER_THAN  "${CMAKE_CURRENT_BINARY_DIR}/pdm_configf.h")
      include (FortranizeFile)
-     fortranize(${CMAKE_CURRENT_BINARY_DIR}/pdm_config.h)
-
+     fortranize ("${CMAKE_CURRENT_BINARY_DIR}/pdm_config.h")
+    endif ()
   endif ()
 
 endif ()
