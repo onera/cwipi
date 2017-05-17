@@ -301,22 +301,28 @@ namespace cwipi {
     /**
      * \brief Lock access to local parameters from a distant code  
      *
-     * \param [in]  codeName  Code name
+     * \param [in]  codeName  Code name to lock
      *
      */
 
     inline void 
-    lock();
+    lock
+    (
+    const string &codeName
+    );
 
     /**
      * \brief unlock access to local parameters from a distant code  
      *
-     * \param [in]  codeName  Code name
+     * \param [in]  codeName  Code name to unlock
      *
      */
 
     inline void 
-    unLock();
+    unLock
+    (
+    const string &codeName
+    );
 
   private:
 
@@ -510,10 +516,15 @@ namespace cwipi {
     /**
      * \brief Lock status non blocking sending
      *
+     * \param [in]  codeName  Local code name
+     *
      */
 
     void 
-    _issendLock();
+    _issendLock
+    (
+    const string &codeName
+    );
 
     /**
      * \brief Non blocking sending of parameters issend cancellation
@@ -555,7 +566,7 @@ namespace cwipi {
     MPI_Comm                          _globalComm;             /*!< Global communicator */  
     map <string, CodeProperties * > & _codePropertiesDB;       /*!< Distant code 
                                                                            properties data base */
-    map <string, CodeProperties * > & _locCodeProperties;       /*!< Local code properties */
+    map <string, CodeProperties * > & _locCodePropertiesDB;       /*!< Local code properties */
 
     map < string, map < string, vector<MPI_Request> * > > _issendMPIrequest; /*!< MPI Request for 
                                                                                   parameter sending */

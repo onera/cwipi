@@ -60,7 +60,7 @@ namespace cwipi {
   const MPI_Comm &
   CodePropertiesDB::intraCommGet(const string & localCodeName) const
   {
-    return _locCodeProperties[localCodeName]->intraCommGet();
+    return _locCodePropertiesDB[localCodeName]->intraCommGet();
   }
 
   /**
@@ -121,8 +121,8 @@ namespace cwipi {
   )
   {
     const map <string, CodeProperties * >::iterator p = 
-      _locCodeProperties.find(localCodeName);
-    if (p == _locCodeProperties.end())
+      _locCodePropertiesDB.find(localCodeName);
+    if (p == _locCodePropertiesDB.end())
       bftc_error(__FILE__, __LINE__, 0,
                 "'%s' is not a local code \n", localCodeName.c_str());
     p->second->ctrlParamAdd(name, value);
@@ -148,8 +148,8 @@ namespace cwipi {
   )
   {
     const map <string, CodeProperties * >::iterator p = 
-      _locCodeProperties.find(localCodeName);
-    if (p == _locCodeProperties.end())
+      _locCodePropertiesDB.find(localCodeName);
+    if (p == _locCodePropertiesDB.end())
       bftc_error(__FILE__, __LINE__, 0,
                 "'%s' is not a local code \n", localCodeName.c_str());
     p->second->ctrlParamSet(name, value);
@@ -173,8 +173,8 @@ namespace cwipi {
   )
   {
     const map <string, CodeProperties * >::iterator p = 
-      _locCodeProperties.find(localCodeName);
-    if (p == _locCodeProperties.end())
+      _locCodePropertiesDB.find(localCodeName);
+    if (p == _locCodePropertiesDB.end())
       bftc_error(__FILE__, __LINE__, 0,
                 "'%s' code not found \n", localCodeName.c_str());
     p->second->ctrlParamCancel<T>(name);
@@ -224,7 +224,6 @@ namespace cwipi {
     const string &name
   )
   {
-//TODO: Faire test si local code
     _irecvParameters<T>(codeName);
 
     const map <string, CodeProperties * >::iterator p = 
@@ -305,31 +304,41 @@ namespace cwipi {
   /**
    * \brief Lock access to local parameters from a distant code  
    *
+   * \param [in]  codeName  Local code name to lock
+   *
    */
   
   void 
-  CodePropertiesDB::lock()
+  CodePropertiesDB::lock
+  (
+   const string &codeName
+  )
   {
     _issendParameterCancel<int>();
     _issendParameterCancel<double>();
     _issendParameterCancel<string>();
     _issendLockStatus = 1;
-    _issendLock();
+    _issendLock(codeName);
   }
   
   /**
    * \brief unlock access to local parameters from a distant code  
    *
+   * \param [in]  codeName  Local code name to unlock
+   *
    */
 
   void 
-  CodePropertiesDB::unLock()
+  CodePropertiesDB::unLock
+  (
+   const string &codeName
+  )
   {
     _issendLockStatus = 0;
     _issendParameters<int>();
     _issendParameters<double>();
     _issendParameters<string>();
-    _issendLock();
+    _issendLock(codeName);
   }
 
   /**

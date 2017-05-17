@@ -40,7 +40,7 @@ namespace cwipi
    bool   isLocal,   
    const MPI_Comm globalComm
   ): _name(name), _isLocal(isLocal),
-     _rootRankInglobalComm(-1), 
+     _rootRankInGlobalComm(-1), 
      _globalComm(globalComm),
      _isCoupledRank(false), 
      _intCtrlParam(*(new map <string, int>())),
@@ -67,7 +67,7 @@ namespace cwipi
   (
    const CodeProperties& other
   ): _name(other._name), _isLocal(other._isLocal),
-     _rootRankInglobalComm(other._rootRankInglobalComm),  
+     _rootRankInGlobalComm(other._rootRankInGlobalComm),  
      _globalComm(other._globalComm), 
      _intraComm(other._intraComm),
      _isCoupledRank(other._isCoupledRank), 

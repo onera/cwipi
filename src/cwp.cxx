@@ -1949,32 +1949,46 @@ CWP_Param_reduce
 /**
  *
  * \brief Lock access to local parameters from a distant code 
+ *
+ * \param [in]  code_name  Code to lock
  * 
  */
 
 void          
-CWP_Param_lock()
+CWP_Param_lock
+(
+const char *code_name
+)
 {
+  const string &nameStr = code_name;
+
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
 
-  properties.lock();
+  properties.lock(nameStr);
 }
 
 
 /**
  *
  * \brief unlock access to local parameters from a distant code 
+ *
+ * \param [in]  code_name  Code to lock
  * 
  */
 
 void          
-CWP_Param_unlock()
+CWP_Param_unlock
+(
+const char *code_name
+)
 {
+  const string &nameStr = code_name;
+
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
 
-  properties.unLock();
+  properties.unLock(nameStr);
 }
 
 /*-----------------------------------------------------------------------------*/

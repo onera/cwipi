@@ -46,7 +46,7 @@ namespace cwipi {
 
   CodePropertiesDB::CodePropertiesDB()
     : _codePropertiesDB(*(new map <string, CodeProperties * > ())),
-      _locCodeProperties(*(new map <string, CodeProperties * > ()))
+      _locCodePropertiesDB(*(new map <string, CodeProperties * > ()))
   {
   }
 
@@ -73,7 +73,7 @@ namespace cwipi {
 
     }
     delete &_codePropertiesDB;
-    delete &_locCodeProperties;
+    delete &_locCodePropertiesDB;
 
     if (!_issendMPIrequest.empty()) {
       typedef map <string, vector<MPI_Request> * >::iterator CI;
@@ -159,8 +159,6 @@ namespace cwipi {
 
     // Initialize MPI
     // --------------
-
-    printf("pass 1\n");
     
     int currentRank;
     int globalCommSize;
@@ -179,7 +177,6 @@ namespace cwipi {
     // Search codes
     // ------------
 
-    int j = 0;
     int index = 0;
     int properties[3]; /* The first property is the number of rank codes
                         * The second is the length of concatenated code names 
@@ -264,8 +261,7 @@ namespace cwipi {
           _codePropertiesDB.insert(newPair);
 
           if (currentRank == irank) {
-            _locCodeProperties.insert(newPair);
-            currentCodeProperties->_rootRankInglobalComm = currentRank;
+            _locCodePropertiesDB.insert(newPair);
           }
 
           _issendMPIrequest[typeid(int).name()][string(currentName)] =  
@@ -284,9 +280,8 @@ namespace cwipi {
         else {
           
           if (currentRank == irank) {
-            if (_locCodeProperties.find(currentName) == _locCodeProperties.end()) {
-               _locCodeProperties[currentName] = p->second;
-               p->second->_rootRankInglobalComm = currentRank;
+            if (_locCodePropertiesDB.find(currentName) == _locCodePropertiesDB.end()) {
+               _locCodePropertiesDB[currentName] = p->second;
             }
           }
         
@@ -327,6 +322,7 @@ namespace cwipi {
       MPI_Comm_create (globalComm, 
                        _codePropertiesDB[p->first]->_intraGroup,
                        &(_codePropertiesDB[p->first]->_intraComm));
+      _codePropertiesDB[p->first]->_rootRankInGlobalComm = _ranks[0];
       delete p->second;
     }
     
@@ -346,12 +342,10 @@ namespace cwipi {
 
     coupledRankCode.clear();
 
-    _issendLockStatus = 0;
-    _issendLock();
-
     for (int i = 0; i < n_codes; i++) {
       const string &nameStr = code_names[i];
       intra_comms[i] = _codePropertiesDB[nameStr]->_intraComm;
+      _issendLock(nameStr);
     }
 
   }
@@ -391,17 +385,30 @@ namespace cwipi {
    const string &codeName
   )
   {
-//    int locFirstRank = _locCodeProperties->firstRankGet();
+    
+    //
+    // Find codeName in local codes
+    
+    const map <string, CodeProperties * >::iterator p = 
+      _locCodePropertiesDB.find(codeName);
+    if (p == _locCodePropertiesDB.end()) {
+      bftc_error(__FILE__, __LINE__, 0,
+              "'%s' code not found \n", codeName.c_str());
+    }
+    
+    CodeProperties * _locCodeProperties = p->second;
+
+    int locFirstRank   = _locCodeProperties->_rootRankInGlobalComm;
 //    int nAppli         = _distCodePropertiesDB.size() + 1;
 //    
-//    const MPI_Comm& intraComm  = _locCodeProperties->intraCommGet();
-//    const MPI_Comm& globalComm = _locCodeProperties->globalCommGet();
-//
-//    int locCommSize = -1;
-//    int currentRank   = -1;
-//    
-//    MPI_Comm_rank(intraComm, &currentRank);
-//    MPI_Comm_size(intraComm, &locCommSize);
+    const MPI_Comm& intraComm  = _locCodeProperties->intraCommGet();
+    const MPI_Comm& globalComm = _locCodeProperties->globalCommGet();
+
+    int locCommSize = -1;
+    int currentRank   = -1;
+    
+    MPI_Comm_rank(intraComm, &currentRank);
+    MPI_Comm_size(intraComm, &locCommSize);
 //
 //    const map <string, CodeProperties * >::iterator p = 
 //      _distCodePropertiesDB.find(codeName);
@@ -461,67 +468,91 @@ namespace cwipi {
   /**
    * \brief Lock status non blocking sending
    *
+   * \param [in]  codeName  Local code name
+   *
    */
   
   void 
-   CodePropertiesDB::_issendLock()
+  CodePropertiesDB::_issendLock
+  (
+   const string &codeName
+  )
   {
-//    typedef map <string, CodeProperties * >::iterator IteratorMapAppli;
-//
-//    int nAppli         = _distCodePropertiesDB.size() + 1;
-//    int locFirstRank = _locCodeProperties->firstRankGet();
-//    
-//    const MPI_Comm& intraComm  = _locCodeProperties->intraCommGet();
-//    const MPI_Comm& globalComm = _locCodeProperties->globalCommGet();
-//    
-//    int locCommSize = -1;
-//    int currentRank = -1;
-//    
-//    MPI_Comm_rank(intraComm, &currentRank);
-//    MPI_Comm_size(intraComm, &locCommSize);
-//
-//    //
-//    // Kill Existing messages
-//
-//    if (currentRank == 0) {
-//
-//      for (IteratorMapAppli p = _distCodePropertiesDB.begin(); 
-//                            p != _distCodePropertiesDB.end(); 
-//                            p++) {
-//
-//        int distFirstRank = p->second->_firstRank;
-//
-//        if (_issendLockMPIrequest[p->first] != MPI_REQUEST_NULL) {
-//          
-//          int flag;
-//          MPI_Test(&(_issendLockMPIrequest[p->first]), 
-//                   &flag, 
-//                   MPI_STATUS_IGNORE);
-//
-//          if (!flag) {
-//            MPI_Cancel(&(_issendLockMPIrequest[p->first]));
-//            MPI_Request_free(&(_issendLockMPIrequest[p->first]));
-//          }
-//        }
-//      }
-//
-//      for (IteratorMapAppli p = _distCodePropertiesDB.begin(); 
-//                            p != _distCodePropertiesDB.end(); 
-//                            p++) {
-//
-//        int distFirstRank = p->second->_firstRank;
-//        int tag = 'l'+'o'+'c'+'k'+'_'+'s'+'t'+'a'+'t'+'u'+'s'+ 
-//          nAppli * locFirstRank + distFirstRank;
-//
-//        MPI_Issend(&_issendLockStatus, 
-//                   1, 
-//                   MPI_INT, 
-//                   distFirstRank, 
-//                   tag,
-//                   globalComm, 
-//                   &(_issendLockMPIrequest[p->first]));
-//      }
-//    }
+    typedef map <string, CodeProperties * >::iterator IteratorMapCP;
+
+    const IteratorMapCP p = _locCodePropertiesDB.find(codeName);
+    if (p == _locCodePropertiesDB.end()) {
+      bftc_error(__FILE__, __LINE__, 0,
+              "'%s' code not found \n", codeName.c_str());
+    }
+    
+    CodeProperties * locCodeProperties = p->second;
+
+    int nAppli       = _codePropertiesDB.size();
+    int locRootRank = locCodeProperties->_rootRankInGlobalComm;
+    
+    const MPI_Comm& intraComm  = locCodeProperties->intraCommGet();
+    const MPI_Comm& globalComm = locCodeProperties->globalCommGet();
+    
+    int intraCommSize = -1;
+    int intraRank = -1;
+    
+    MPI_Comm_rank(intraComm, &intraRank);
+    MPI_Comm_size(intraComm, &intraCommSize);
+
+    int globalCommSize = -1;
+    int globalRank = -1;
+    
+    MPI_Comm_rank(globalComm, &globalRank);
+    MPI_Comm_size(globalComm, &globalCommSize);
+
+    //
+    // Kill Existing messages
+
+    if (intraRank == 0) {
+
+      for (IteratorMapCP p1  = _codePropertiesDB.begin(); 
+                         p1 != _codePropertiesDB.end(); 
+                         p1++) {
+
+        if (locCodeProperties != p1->second) {
+          int distRootRank = p1->second->_rootRankInGlobalComm;
+          if (distRootRank != locRootRank) {
+            if (_issendLockMPIrequest[p1->first] != MPI_REQUEST_NULL) {
+
+              int flag;
+              MPI_Test(&(_issendLockMPIrequest[p1->first]), 
+                       &flag, 
+                       MPI_STATUS_IGNORE);
+
+              if (!flag) {
+                MPI_Cancel(&(_issendLockMPIrequest[p1->first]));
+                MPI_Request_free(&(_issendLockMPIrequest[p1->first]));
+              }
+            }
+          }
+        }
+      }
+
+      for (IteratorMapCP p1  = _codePropertiesDB.begin(); 
+                         p1 != _codePropertiesDB.end(); 
+                         p1++) {
+
+        if (locCodeProperties != p1->second) {
+          int distRootRank = p1->second->_rootRankInGlobalComm;
+          int tag = 'l'+'o'+'c'+'k'+'_'+'s'+'t'+'a'+'t'+'u'+'s'+ 
+            nAppli * locRootRank + distRootRank;
+
+          MPI_Issend(&_issendLockStatus, 
+                     1, 
+                     MPI_INT, 
+                     distRootRank, 
+                     tag,
+                     globalComm, 
+                     &(_issendLockMPIrequest[p1->first]));
+        }
+      }
+    }
   }
 
 }

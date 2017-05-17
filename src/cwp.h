@@ -1906,20 +1906,30 @@ CWP_Param_reduce
 /**
  *
  * \brief Lock access to local parameters from a distant code 
+ *
+ * \param [in]  code_name  Code to lock
  * 
  */
 
 void          
-CWP_Param_lock(void);
+CWP_Param_lock
+(
+const char *code_name
+);
 
 /**
  *
  * \brief unlock access to local parameters from a distant code 
+ *
+ * \param [in]  code_name  Code to unlock
  * 
  */
 
 void          
-CWP_Param_unlock(void);
+CWP_Param_unlock
+(
+const char *code_name
+);
 
 #ifdef __cplusplus
 }

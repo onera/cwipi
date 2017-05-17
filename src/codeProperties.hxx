@@ -448,7 +448,7 @@ namespace cwipi {
   private:
     string                 _name;          /*!< Name */
     bool                   _isLocal;       /*!< Is a local code */
-    int                    _rootRankInglobalComm; /*!< Root rank 
+    int                    _rootRankInGlobalComm; /*!< Root rank 
                                                    *   in MPI global communicator */ 
     MPI_Comm               _globalComm;    /*!< MPI global communicator */
     MPI_Comm               _intraComm;     /*!< MPI intra communicator */
