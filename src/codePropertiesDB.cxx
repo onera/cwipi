@@ -164,7 +164,6 @@ namespace cwipi {
     
     int currentRank;
     int globalCommSize;
-    int color = 0;
     
     _globalComm = globalComm;
 
@@ -311,8 +310,8 @@ namespace cwipi {
     delete [] iproc;
     delete [] mergeNames;
     
-    // Create intra code group
-    // -----------------------
+    // Create intra code communicators
+    // -------------------------------
 
     MPI_Group globalGroup;
     MPI_Comm_group (globalComm, &globalGroup);

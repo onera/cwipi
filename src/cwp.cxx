@@ -181,7 +181,7 @@ _cpl_get
  * \param [in]  inter_comm      MPI inter communicator
  * \param [in]  code_name       Name of this code
  * \param [in]  is_couple_rank  Is coupled rank
- * \param [in]  time_init       Time init
+ * \param [in]  time_init       Initial time for each code
  * \param [out] intra_comm      MPI intra communicator
  *
  */
@@ -190,10 +190,10 @@ void
 CWP_Init
 (
  const MPI_Comm           inter_comm,
+ const CWP_Status_t       is_coupled_rank,
  const int                n_code,
  const char             **code_names,
- const CWP_Status_t       is_coupled_rank,
- const double             time_init,
+ const double            *time_init,
  MPI_Comm                *intra_comms
 )
 
@@ -226,7 +226,7 @@ CWP_Init
 
   for (int i = 0; i < n_code; i++) {
     const string &codeNameStr = code_names[i]; 
-    properties.ctrlParamAdd <double> (codeNameStr, "time", time_init);
+    properties.ctrlParamAdd <double> (codeNameStr, "time", time_init[i]);
     properties.ctrlParamAdd <int> (codeNameStr, "state", CWP_STATE_IN_PROGRESS);
   }
   /*

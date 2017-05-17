@@ -70,6 +70,7 @@ int main
 
   int n_code_name;
   char **codeNames;
+  double *times_init;
 
   if (rank == 0) {
     n_code_name = 1;
@@ -139,14 +140,20 @@ int main
 
   outputFile = fopen(fileName,"w");
 
+  times_init = malloc(sizeof(double) * n_code_name);
+
   //  cwipi_set_output_listing(outputFile);
 
+  for (int i = 0; i < n_code_name; i++) {
+    times_init[i] = 0; 
+  }
+  
   MPI_Comm *localComm = malloc(sizeof(MPI_Comm)*n_code_name);
   CWP_Init(MPI_COMM_WORLD,
-           n_code_name,
-           codeNames,
            1,
-           0.,
+           n_code_name,
+           (const char **) codeNames,
+           times_init,
            localComm);
 
   /* Output redirection

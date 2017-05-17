@@ -463,11 +463,11 @@ typedef void (*CWP_Interp_from_closest_pts_t)
  * the MPI inter communicator that contains all code process. It is a
  * synchronization point between all codes
  *
- * \param [in]  inter_comm        MPI inter communicator
+ * \param [in]  inter_comm        MPI global communicator
+ * \param [in]  is_coupled_rank   Current rank is it used for coupling
  * \param [in]  n_code            Number of codes on the current rank
  * \param [in]  code_name         Names of codes on the current rank
- * \param [in]  is_couple_rank    Is coupled rank
- * \param [in]  time_init    Time init
+ * \param [in]  time_init         Time init
  * \param [out] intra_comm        MPI intra communicators of each code
  *
  */
@@ -476,10 +476,10 @@ void
 CWP_Init
 (
  const MPI_Comm           inter_comm,
+ const CWP_Status_t       is_coupled_rank,
  const int                n_code,
  const char             **code_name,
- const CWP_Status_t       is_coupled_rank,
- const double             time_init,
+ const double            *time_init,
  MPI_Comm                *intra_comm
 );
 
