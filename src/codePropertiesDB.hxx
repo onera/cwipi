@@ -578,11 +578,17 @@ namespace cwipi {
                                                                            distant parameter names */
     vector<unsigned char>             _recvValBuff;                   /*!< Receive buffer to storage 
                                                                            distant parameter values */
-    map <string, int>                 _distLockStatus;                /*!< Parameters lock status of
+    map <string, int>                 _lockStatus;                    /*!< Parameters lock status of
                                                                            distant applications */ 
-    map <string, MPI_Request >        _issendLockMPIrequest;          /*!< MPI request for parameter 
+    map <string, map <string, MPI_Request > > _issendLockMPIrequest;          /*!< MPI request for parameter 
                                                                            lock status sending */ 
-    int                               _issendLockStatus;              /*!< Parameter lock status */
+
+    int                               _tagLockStatusBase;             /*!< The MPI tag base for lock status exchanges */          
+
+    int                               _tagParameterBase;              /*!< The MPI tag base for parameter exchanges */
+    
+    bool                               _isLocalCodeRootrank;          /*!< Current is it a local root rank 
+                                                                      *   in the global communicator */ 
   private:
     static const int _nIssend;                                        /*!< Number of issend 
                                                                            to send parameters */

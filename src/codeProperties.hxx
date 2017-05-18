@@ -85,6 +85,8 @@ namespace cwipi {
      * \brief Constructor.
      *
      * \param [in]  name         Current code name
+     * \param [in]  id           Identifier
+     * \param [in]  rootRank     Root rank in global communicator
      * \param [in]  isLocal      Is a local code
      * \param [in]  globalComm   MPI communicator containing all processes 
      *                           of all codes
@@ -94,6 +96,8 @@ namespace cwipi {
     CodeProperties
     (
      string         &name,
+     int            id,
+     int            rootRank,
      bool            isLocal,
      const MPI_Comm  globalComm
     );
@@ -447,6 +451,7 @@ namespace cwipi {
 
   private:
     string                 _name;          /*!< Name */
+    int                    _id;            /*!< Identifier */ 
     bool                   _isLocal;       /*!< Is a local code */
     int                    _rootRankInGlobalComm; /*!< Root rank 
                                                    *   in MPI global communicator */ 

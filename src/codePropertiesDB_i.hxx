@@ -317,7 +317,7 @@ namespace cwipi {
     _issendParameterCancel<int>();
     _issendParameterCancel<double>();
     _issendParameterCancel<string>();
-    _issendLockStatus = 1;
+    _lockStatus[codeName] = 1;
     _issendLock(codeName);
   }
   
@@ -334,7 +334,7 @@ namespace cwipi {
    const string &codeName
   )
   {
-    _issendLockStatus = 0;
+    _lockStatus[codeName] = 0;
     _issendParameters<int>();
     _issendParameters<double>();
     _issendParameters<string>();

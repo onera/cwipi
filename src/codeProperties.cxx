@@ -28,6 +28,8 @@ namespace cwipi
    * \brief Constructor.
    *
    * \param [in]  name         Current code name
+   * \param [in]  id           Identifier
+   * \param [in]  rootRank     Root rank in global communicator
    * \param [in]  isLocal      Is a local code
    * \param [in]  globalComm   MPI communicator containing all processes 
    *                           of all codes
@@ -37,10 +39,12 @@ namespace cwipi
   CodeProperties::CodeProperties
   (
    string &name,
+   int    id,   
+   int    rootRank,   
    bool   isLocal,   
    const MPI_Comm globalComm
-  ): _name(name), _isLocal(isLocal),
-     _rootRankInGlobalComm(-1), 
+  ): _name(name), _id(id), _isLocal(isLocal),
+     _rootRankInGlobalComm(rootRank),  
      _globalComm(globalComm),
      _isCoupledRank(false), 
      _intCtrlParam(*(new map <string, int>())),
@@ -66,7 +70,7 @@ namespace cwipi
   CodeProperties::CodeProperties
   (
    const CodeProperties& other
-  ): _name(other._name), _isLocal(other._isLocal),
+  ): _name(other._name), _id(other._id), _isLocal(other._isLocal),
      _rootRankInGlobalComm(other._rootRankInGlobalComm),  
      _globalComm(other._globalComm), 
      _intraComm(other._intraComm),
@@ -91,6 +95,7 @@ namespace cwipi
 //    bftc_printf("  - Ranks in global MPI_comm : %i <= ranks <= %i \n",
 //               _firstRank,
 //               _lastRank);
+    bftc_printf("  - Identifier %d :\n", _id);
     bftc_printf("  - Int Control Parameter :\n");
 
     typedef map <string, int>::iterator Iterator1;
