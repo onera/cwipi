@@ -124,18 +124,30 @@ namespace cwipi {
     _lockStatus.clear();
 
     typedef map <string, string >::iterator CI4;
-    for (CI4 p4  = _issendNameBuffs.begin();
-             p4 != _issendNameBuffs.end(); 
-             p4++) {
-      p4->second.clear();
+    typedef map <string, map <string, string > >::iterator CI41;
+    for (CI41 p41  = _issendNameBuffs.begin();
+              p41 != _issendNameBuffs.end(); 
+              p41++) {
+      for (CI4 p4  = p41->second.begin();
+               p4 != p41->second.end(); 
+               p4++) {
+        p4->second.clear();
+      }
+      p41->second.clear();
     }
     _issendNameBuffs.clear();
 
     typedef map <string, vector<unsigned char > >::iterator CI5;
-    for (CI5 p5  = _issendValBuffs.begin();
-             p5 != _issendValBuffs.end(); 
-             p5++) {
-      p5->second.clear();
+    typedef map <string, map <string, vector<unsigned char > > >::iterator CI51;
+    for (CI51 p51  = _issendValBuffs.begin();
+              p51 != _issendValBuffs.end(); 
+              p51++) {
+      for (CI5 p5  = p51->second.begin();
+               p5 != p51->second.end(); 
+               p5++) {
+        p5->second.clear();
+      }
+      p51->second.clear();
     }
     _issendValBuffs.clear();
 

@@ -580,9 +580,9 @@ namespace cwipi {
 
     map < string, map < string, map < string, vector<MPI_Request> * > > > _issendMPIrequest; /*!< MPI Request for 
                                                                                   parameter sending */
-    map<string, string>               _issendNameBuffs;               /*!< Issend buffers to storage 
+    map < string, map<string, string> >               _issendNameBuffs;               /*!< Issend buffers to storage 
                                                                            parameter names */
-    map<string, vector<unsigned char > > _issendValBuffs;             /*!< Issend buffers to storage 
+    map < string, map<string, vector<unsigned char > > >_issendValBuffs;             /*!< Issend buffers to storage 
                                                                            parameter values */
     string                            _recvNameBuff;                  /*!< Receive buffer to storage 
                                                                            distant parameter names */
