@@ -314,9 +314,9 @@ namespace cwipi {
    const string &codeName
   )
   {
-    _issendParameterCancel<int>();
-    _issendParameterCancel<double>();
-    _issendParameterCancel<string>();
+    _issendParameterCancel<int>(codeName);
+    _issendParameterCancel<double>(codeName);
+    _issendParameterCancel<string>(codeName);
     _lockStatus[codeName] = 1;
     _issendLock(codeName);
   }
@@ -335,22 +335,27 @@ namespace cwipi {
   )
   {
     _lockStatus[codeName] = 0;
-    _issendParameters<int>();
-    _issendParameters<double>();
-    _issendParameters<string>();
+    _issendParameters<int>(codeName);
+    _issendParameters<double>(codeName);
+    _issendParameters<string>(codeName);
     _issendLock(codeName);
   }
 
   /**
    * \brief Parameters non blocking send
    *
+   * \param [in]  codeName  Local code name
+   *
    */
   
   template < typename T > 
   void 
-  CodePropertiesDB::_issendParameters()
+  CodePropertiesDB::_issendParameters
+  (
+   const string &codeName
+  )
   {
-//    if (!_issendLockStatus) {
+    if (!_lockStatus[codeName]) {
 //
 //      typedef typename map <string, T>::iterator IteratorMapT;
 //      typedef map <string, CodeProperties * >::iterator IteratorMapAppli;
@@ -477,6 +482,7 @@ namespace cwipi {
 //        }
 //      }
 //    }
+    }
   }
 
   /**
@@ -486,7 +492,10 @@ namespace cwipi {
   
   template < typename T > 
   void 
-  CodePropertiesDB::_issendParameterCancel()
+  CodePropertiesDB::_issendParameterCancel
+  (
+   const string &codeName
+  )
   {
 //    typedef map <string, CodeProperties * >::iterator IteratorMapAppli;
 //

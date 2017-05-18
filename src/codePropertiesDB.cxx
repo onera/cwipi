@@ -77,21 +77,27 @@ namespace cwipi {
     if (!_issendMPIrequest.empty()) {
       typedef map <string, vector<MPI_Request> * >::iterator CI;
       typedef map <string, map <string, vector<MPI_Request> * > >::iterator CI2;
+      typedef map <string, map <string, map <string, vector<MPI_Request> * > > >::iterator CI1;
 
-      for (CI2 p2  = _issendMPIrequest.begin();
-               p2 != _issendMPIrequest.end(); 
-               p2++) {
-        for (CI p  = p2->second.begin();
-                p != p2->second.end(); 
-                p++) {
-          if (p->second != NULL) {
-            for (int k = 0; k < p->second->size(); k++)
-              if ((*(p->second))[k] != MPI_REQUEST_NULL)
-                MPI_Request_free(&(*(p->second))[k]);
-            delete p->second;
+      for (CI1 p1  = _issendMPIrequest.begin();
+               p1 != _issendMPIrequest.end(); 
+               p1++) {
+        for (CI2 p2  = p1->second.begin();
+                 p2 != p1->second.end(); 
+                 p2++) {
+          for (CI p  = p2->second.begin();
+                  p != p2->second.end(); 
+                  p++) {
+            if (p->second != NULL) {
+              for (int k = 0; k < p->second->size(); k++)
+                if ((*(p->second))[k] != MPI_REQUEST_NULL)
+                  MPI_Request_free(&(*(p->second))[k]);
+              delete p->second;
+            }
           }
+          p2->second.clear();
         }
-        p2->second.clear();
+        p1->second.clear();
       }
       _issendMPIrequest.clear();
     }
@@ -281,16 +287,6 @@ namespace cwipi {
             _locCodePropertiesDB.insert(newPair);
           }
 
-          _issendMPIrequest[typeid(int).name()][string(currentName)] =  
-            new vector<MPI_Request>(_nIssend, MPI_REQUEST_NULL);
-
-          _issendMPIrequest[typeid(double).name()][string(currentName)] =  
-            new vector<MPI_Request>(_nIssend, MPI_REQUEST_NULL);
-
-          _issendMPIrequest[typeid(string).name()][string(currentName)] =  
-            new vector<MPI_Request>(_nIssend, MPI_REQUEST_NULL);
-
-//          _issendLockMPIrequest[string(currentName)] = MPI_REQUEST_NULL;
           _lockStatus[string(currentName)] = 0;
         }
 
@@ -330,6 +326,14 @@ namespace cwipi {
             (p1->second->_rootRankInGlobalComm != p2->second->_rootRankInGlobalComm)) {
         
           _issendLockMPIrequest[p1->first][p2->first] = MPI_REQUEST_NULL;
+          _issendMPIrequest[p1->first][typeid(int).name()][p2->first] =  
+            new vector<MPI_Request>(_nIssend, MPI_REQUEST_NULL);
+
+          _issendMPIrequest[p1->first][typeid(double).name()][p2->first] =  
+            new vector<MPI_Request>(_nIssend, MPI_REQUEST_NULL);
+
+          _issendMPIrequest[p1->first][typeid(string).name()][p2->first] =  
+            new vector<MPI_Request>(_nIssend, MPI_REQUEST_NULL);
         }
       }
     }
@@ -541,16 +545,10 @@ namespace cwipi {
           if (distRootRank != globRootRank) {
             if (_issendLockMPIrequest[p->first][p1->first] != MPI_REQUEST_NULL) {
               
-              printf("toto1 %s %s\n", p->first.c_str(), p1->first.c_str());
-              fflush(stdout);
-              
               int flag;
               MPI_Test(&(_issendLockMPIrequest[p->first][p1->first]), 
                        &flag, 
                        MPI_STATUS_IGNORE);
-
-              printf("toto2\n");
-              fflush(stdout);
 
               if (!flag) {
                 MPI_Cancel(&(_issendLockMPIrequest[p->first][p1->first]));

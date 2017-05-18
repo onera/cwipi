@@ -364,11 +364,16 @@ namespace cwipi {
     /**
      * \brief Parameters non blocking send
      *
+     * \param [in]  codeName  Local code name
+     *
      */
 
     template < typename T > 
     void 
-    _issendParameters();
+    _issendParameters
+    (
+     const string &codeName
+    );
 
     /**
      * \brief Compute the buffer length to send int values
@@ -529,11 +534,16 @@ namespace cwipi {
     /**
      * \brief Non blocking sending of parameters issend cancellation
      *
+     * \param [in]  codeName  Local code name
+     *
      */
 
     template < typename T > 
     void 
-    _issendParameterCancel();
+    _issendParameterCancel
+    (
+     const string &codeName
+    );
 
     /**
      * \brief Get parameter lock status of a distant code
@@ -568,7 +578,7 @@ namespace cwipi {
                                                                            properties data base */
     map <string, CodeProperties * > & _locCodePropertiesDB;       /*!< Local code properties */
 
-    map < string, map < string, vector<MPI_Request> * > > _issendMPIrequest; /*!< MPI Request for 
+    map < string, map < string, map < string, vector<MPI_Request> * > > > _issendMPIrequest; /*!< MPI Request for 
                                                                                   parameter sending */
     map<string, string>               _issendNameBuffs;               /*!< Issend buffers to storage 
                                                                            parameter names */
