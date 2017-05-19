@@ -391,8 +391,10 @@ namespace cwipi {
 
     coupledRankCode.clear();
 
-    _tagLockStatusBase = 1000;
-    _tagParameterBase = _tagLockStatusBase + _codePropertiesDB.size();
+    _tagLockStatusBase      = 100;
+    _tagIntParameterBase    = _tagLockStatusBase + _codePropertiesDB.size() + 1;
+    _tagDoubleParameterBase = _tagIntParameterBase + 2 * _codePropertiesDB.size();
+    _tagStringParameterBase = _tagDoubleParameterBase + 2 * _codePropertiesDB.size();
         
     for (int i = 0; i < n_codes; i++) {
       const string &nameStr = code_names[i];
@@ -458,33 +460,38 @@ namespace cwipi {
       const MPI_Comm& globalComm = p->second->globalCommGet();
 
       int locCommSize = -1;
-      int flag;
+      int flag = 0;
 
       MPI_Comm_size(intraComm, &locCommSize);
 
       if (_isLocalCodeRootrank) {
         int distFirstRank = p->second->_rootRankInGlobalComm;
 
-        int tag = _tagLockStatusBase + p->second->_id; 
+        if (_isLocalCodeRootrank != distFirstRank) {
+          int tag = _tagLockStatusBase + p->second->_id; 
 
-        MPI_Iprobe(distFirstRank, 
-                   tag, 
-                   globalComm, 
-                   &flag, 
-                   MPI_STATUS_IGNORE);
+          MPI_Iprobe(distFirstRank, 
+                     tag, 
+                     globalComm, 
+                     &flag, 
+                     MPI_STATUS_IGNORE);
 
-        if (flag) {
+          if (flag) {
 
-          MPI_Recv(&(_lockStatus[p->first]),
-                   1, 
-                   MPI_INT, 
-                   distFirstRank, 
-                   tag,
-                   globalComm, 
-                   MPI_STATUS_IGNORE);
-        }     
+            MPI_Recv(&(_lockStatus[p->first]),
+                     1, 
+                     MPI_INT, 
+                     distFirstRank, 
+                     tag,
+                     globalComm, 
+                     MPI_STATUS_IGNORE);
+          }
+        }
+        else {
+          flag = 1; 
+        }
       }
-
+      
       if (locCommSize > 1) {
         MPI_Bcast(&flag, 
                   1, 

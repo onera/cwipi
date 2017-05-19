@@ -23,6 +23,7 @@
 #include <cstdarg>
 #include <vector>
 #include <typeinfo>
+#include <type_traits>
 
 #include "codeProperties.hxx"
 #include "codePropertiesDB.hxx"
@@ -355,138 +356,165 @@ namespace cwipi {
    const string &codeName
   )
   {
+    const map <string, CodeProperties * >::iterator p1 = 
+    _locCodePropertiesDB.find(codeName);
+    
+    if (p1 == _locCodePropertiesDB.end()) {
+      bftc_error(__FILE__, __LINE__, 0,
+              "'%s' code not found \n", codeName.c_str());
+    }
+
+    CodeProperties *cp = p1->second;
+    
     if (!_lockStatus[codeName]) {
-//
-//      typedef typename map <string, T>::iterator IteratorMapT;
-//      typedef map <string, CodeProperties * >::iterator IteratorMapAppli;
-//  
-//      string nameType = typeid(T).name();
-//
-//      int tagInit = 0;
-//      for (int k = 0; k < nameType.size(); k++)
-//        tagInit += nameType[k];
-//
-//      map <string, T> *locCtrlParamPt; 
-//      _locCodeProperties->ctrlParamGet(&locCtrlParamPt);
-//
-//      map <string, T> &locCtrlParam = *locCtrlParamPt;
-//
-//      int NLocCtrlParam = locCtrlParamPt->size();
-//
-//      int locFirstRank = _locCodeProperties->firstRankGet();
-//
-//      const MPI_Comm& intraComm  = _locCodeProperties->intraCommGet();
-//      const MPI_Comm& globalComm = _locCodeProperties->globalCommGet();
-//
-//      int intraCommSize = -1;
-//      int currentRank   = -1;
-//
-//      MPI_Comm_rank(intraComm, &currentRank);
-//      MPI_Comm_size(intraComm, &intraCommSize);
-//
-//      if (currentRank == 0) {
-//
-//        int nAppli = _codePropertiesDB.size() + 1;
-//
-//        //
-//        // Kill Existing messages
-//
-//        _issendParameterCancel<T>();
-//
-//        //
-//        // Define name parameters buffer
-//
-//        int lStrings = locCtrlParam.size(); // To take into account '\0'
-//        for (IteratorMapT p1 = locCtrlParam.begin(); 
-//                          p1 != locCtrlParam.end(); 
-//                              p1++) {
-//          lStrings += p1->first.size();
-//        }
-//        
-//        if (_issendNameBuffs[typeid(T).name()].size() < lStrings) 
-//          _issendNameBuffs[typeid(T).name()].resize(lStrings);
-//
-//        lStrings = 0;
-//        for (IteratorMapT p1 = locCtrlParam.begin(); 
-//                          p1 != locCtrlParam.end(); 
-//                          p1++) {
-//          for (int k = 0; k <  p1->first.size(); k++) 
-//            _issendNameBuffs[typeid(T).name()][lStrings + k] =  p1->first[k];
-//            
-//          lStrings += p1->first.size();
-// 
-//          _issendNameBuffs[typeid(T).name()][lStrings] = '\0';
-//            
-//          lStrings += 1;
-//        }
-//
-//        //
-//        // Define values parameters buffer
-//
-//        size_t sizeT = sizeof(T);
-//        int lBuff    = _issendLBuffGet(locCtrlParam);
-//
-//        if (_issendValBuffs[typeid(T).name()].size() < lBuff) 
-//          _issendValBuffs[typeid(T).name()].resize(lBuff);
-//
-//        int ival = 0 ;
-//        unsigned char *issendValBuff = &(_issendValBuffs[typeid(T).name()][0]);
-//
-//        ival=0;
-//
-//// FIXME: Il doit y avoir une double boucle IteratorMapT
-//        for (IteratorMapT p1 = locCtrlParam.begin(); 
-//                          p1 != locCtrlParam.end(); 
-//                          p1++) {
-//
-//          _issendBuffCopy(issendValBuff, locCtrlParam);
-//        }
-//
-//        //
-//        // Issend
-//
-//        for (IteratorMapAppli p = _codePropertiesDB.begin(); 
-//                              p != _codePropertiesDB.end(); 
-//                              p++) {
-//
-//          int distFirstRank = p->second->firstRankGet();
-//
-//          vector<MPI_Request> & vectRequest = 
-//            *(_issendMPIrequest[typeid(T).name()][p->first]);
-//
-//          //
-//          // Parameters name
-//
-//
-//          int tag = tagInit+'_'+'n'+'a'+'m'+'e'+'_'+'p'+'a'+'r'+'a'+'m'+ 
-//            nAppli * locFirstRank + distFirstRank;
-//
-//          MPI_Issend(&(_issendNameBuffs[typeid(T).name()][0]), 
-//                     lStrings, MPI_CHAR, distFirstRank, tag,
-//                     globalComm, &(vectRequest[0]));
-//
-//          //
-//          // Values
-//
-//          tag = tagInit+'_'+'v'+'a'+'l'+'_'+'p'+'a'+'r'+'a'+'m'+ 
-//            nAppli * locFirstRank + distFirstRank;
-//
-//          MPI_Issend(issendValBuff, 
-//                     lBuff, 
-//                     MPI_UNSIGNED_CHAR, 
-//                     distFirstRank,
-//                     tag,
-//                     globalComm,
-//                     &(vectRequest[1]));
-//
-//        }
-//      }
-//    }
+
+      typedef typename map <string, T>::iterator IteratorMapT;
+      typedef map <string, CodeProperties * >::iterator IteratorMapAppli;
+  
+      string nameType = typeid(T).name();
+
+      int tagInit;
+      if (is_same < int, T >::value) {
+        tagInit = _tagIntParameterBase;
+      }
+      else if (is_same < double, T >::value) {
+        tagInit = _tagIntParameterBase;
+      }
+      else if (is_same < string, T >::value) {
+        tagInit = _tagIntParameterBase;
+      }
+      else {
+          bftc_error(__FILE__, __LINE__, 0,
+             "Not yet implemented data type\n");
+      }
+      
+      for (int k = 0; k < nameType.size(); k++)
+        tagInit += nameType[k];
+
+      map <string, T> *locCtrlParamPt; 
+      cp->ctrlParamGet(&locCtrlParamPt);
+
+      map <string, T> &locCtrlParam = *locCtrlParamPt;
+
+      int NLocCtrlParam = locCtrlParamPt->size();
+
+      int rootRank = cp->rootRankGet();
+
+      const MPI_Comm& intraComm  = cp->intraCommGet();
+      const MPI_Comm& globalComm = cp->globalCommGet();
+
+      int intraCommSize = -1;
+      int intraCurrentRank   = -1;
+
+      MPI_Comm_rank(intraComm, &intraCurrentRank);
+      MPI_Comm_size(intraComm, &intraCommSize);
+
+      int globalCommSize = -1;
+      int globalCurrentRank   = -1;
+
+      MPI_Comm_rank(globalComm, &globalCurrentRank);
+      MPI_Comm_size(globalComm, &globalCommSize);
+
+      if (globalCurrentRank == rootRank) {
+
+        int nAppli = _codePropertiesDB.size();
+
+        //
+        // Kill Existing messages
+
+        _issendParameterCancel<T>(codeName);
+
+        //
+        // Define name parameters buffer
+
+        int lStrings = locCtrlParam.size(); // To take into account '\0'
+        for (IteratorMapT p2 = locCtrlParam.begin(); 
+                          p2 != locCtrlParam.end(); 
+                              p2++) {
+          lStrings += p2->first.size();
+        }
+        
+        if (_issendNameBuffs[codeName][typeid(T).name()].size() < lStrings) 
+          _issendNameBuffs[codeName][typeid(T).name()].resize(lStrings);
+
+        lStrings = 0;
+        for (IteratorMapT p2 = locCtrlParam.begin(); 
+                          p2 != locCtrlParam.end(); 
+                          p2++) {
+          for (int k = 0; k <  p2->first.size(); k++) 
+            _issendNameBuffs[codeName][typeid(T).name()][lStrings + k] =  p2->first[k];
+            
+          lStrings += p2->first.size();
+ 
+          _issendNameBuffs[codeName][typeid(T).name()][lStrings] = '\0';
+            
+          lStrings += 1;
+        }
+
+        //
+        // Define values parameters buffer
+
+        size_t sizeT = sizeof(T);
+        int lBuff    = _issendLBuffGet(locCtrlParam);
+
+        if (_issendValBuffs[codeName][typeid(T).name()].size() < lBuff) 
+          _issendValBuffs[codeName][typeid(T).name()].resize(lBuff);
+
+        int ival = 0 ;
+        unsigned char *issendValBuff = &(_issendValBuffs[codeName][typeid(T).name()][0]);
+
+        ival=0;
+        
+        for (IteratorMapT p2 = locCtrlParam.begin(); 
+                          p2 != locCtrlParam.end(); 
+                          p2++) {
+
+          _issendBuffCopy(issendValBuff, locCtrlParam);
+        }
+
+        //
+        // Issend
+
+        for (IteratorMapAppli p = _codePropertiesDB.begin(); 
+                              p != _codePropertiesDB.end(); 
+                              p++) { 
+
+          int distRootRank = p->second->rootRankGet();
+
+          vector<MPI_Request> & vectRequest = 
+            *(_issendMPIrequest[codeName][typeid(T).name()][p->first]);
+
+          //
+          // Parameters name
+
+          int tag = tagInit + 2 * p->second->_id;  
+
+          MPI_Issend(&(_issendNameBuffs[typeid(T).name()][0]), 
+                     lStrings, MPI_CHAR, distRootRank, tag,
+                     globalComm, &(vectRequest[0]));
+
+          //
+          // Values
+
+          tag = tagInit + 2 * p->second->_id + 1;  
+
+          MPI_Issend(issendValBuff, 
+                     lBuff, 
+                     MPI_UNSIGNED_CHAR, 
+                     distRootRank,
+                     tag,
+                     globalComm,
+                     &(vectRequest[1]));
+
+        }
+      }
     }
   }
 
   /**
    * \brief Cancel current parameters non blocking send
+   *
+   * \param [in]  codeName  Local code name
    *
    */
   
@@ -497,44 +525,58 @@ namespace cwipi {
    const string &codeName
   )
   {
-//    typedef map <string, CodeProperties * >::iterator IteratorMapAppli;
-//
-//    int nAppli       = _codePropertiesDB.size() + 1;
-//    int locFirstRank = _locCodeProperties->firstRankGet();
-//    
-//    const MPI_Comm& intraComm  = _locCodeProperties->intraCommGet();
-//    const MPI_Comm& globalComm = _locCodeProperties->globalCommGet();
-//    
-//    int locCommSize = -1;
-//    int currentRank = -1;
-//    
-//    MPI_Comm_rank(intraComm, &currentRank);
-//    MPI_Comm_size(intraComm, &locCommSize);
-//
-//    if (currentRank == 0) {
-//
-//      for (IteratorMapAppli p  = _codePropertiesDB.begin(); 
-//                            p != _codePropertiesDB.end(); 
-//                            p++) {
-//
-//        //
-//        // Kill Existing messages
-//
-//        int flag;
-//        vector<MPI_Request> & vectRequest = 
-//          *(_issendMPIrequest[typeid(T).name()][p->first]);
-//
-//        for(int k = 0; k < _nIssend; k++) {
-//
-//          MPI_Test(&(vectRequest[k]), &flag, MPI_STATUS_IGNORE);
-//
-//          if (!flag) {
-//            MPI_Cancel(&(vectRequest[k]));
-//            MPI_Request_free(&(vectRequest[k]));
-//          }
-//        }
-//      }
-//    }
+    const map <string, CodeProperties * >::iterator p1 = 
+    _locCodePropertiesDB.find(codeName);
+    
+    if (p1 == _locCodePropertiesDB.end()) {
+      bftc_error(__FILE__, __LINE__, 0,
+              "'%s' code not found \n", codeName.c_str());
+    }
+
+    CodeProperties *cp = p1->second;
+    typedef map <string, CodeProperties * >::iterator IteratorMapAppli;
+
+    int locRootRank = cp->rootRankGet();
+
+    const MPI_Comm& intraComm  = cp->intraCommGet();
+    const MPI_Comm& globalComm = cp->globalCommGet();
+
+    int intraCommSize = -1;
+    int intraCurrentRank   = -1;
+
+    MPI_Comm_rank(intraComm, &intraCurrentRank);
+    MPI_Comm_size(intraComm, &intraCommSize);
+
+    int globalCommSize = -1;
+    int globalCurrentRank   = -1;
+
+    MPI_Comm_rank(globalComm, &globalCurrentRank);
+    MPI_Comm_size(globalComm, &globalCommSize);
+
+    if (locRootRank == globalCurrentRank) {
+
+      for (IteratorMapAppli p  = _codePropertiesDB.begin(); 
+                            p != _codePropertiesDB.end(); 
+                            p++) {
+
+        //
+        // Kill Existing messages
+
+        int flag;
+        vector<MPI_Request> & vectRequest = 
+          *(_issendMPIrequest[codeName][typeid(T).name()][p->first]);
+
+        for(int k = 0; k < _nIssend; k++) {
+
+          MPI_Test(&(vectRequest[k]), &flag, MPI_STATUS_IGNORE);
+
+          if (!flag) {
+            MPI_Cancel(&(vectRequest[k]));
+            MPI_Request_free(&(vectRequest[k]));
+          }
+        }
+      }
+    }
   }
 
   /**
@@ -791,9 +833,42 @@ namespace cwipi {
    const string &codeName
   )
   {
+
+    //TODO: Poursuivre _irecvParameters !!!!
     
-    //TODO: Faire un test si le code est local _irecvParameters
+    const map <string, CodeProperties * >::iterator p1 = 
+    _codePropertiesDB.find(codeName);
     
+    if (p1 == _codePropertiesDB.end()) {
+      bftc_error(__FILE__, __LINE__, 0,
+                "'%s' code not found \n", codeName.c_str());
+    }
+
+    const MPI_Comm& globalComm = p1->second->globalCommGet();
+    int rootRank = p1->second->rootRankGet();
+    int globalCommSize = -1;
+    int globalRank = -1;
+
+    MPI_Comm_rank(globalComm, &globalRank);
+    MPI_Comm_size(globalComm, &globalCommSize);
+
+    map <string, T> *distCtrlParamPt; 
+    p1->second->ctrlParamGet(&distCtrlParamPt);
+
+    map <string, T> &distCtrlParam = *distCtrlParamPt;
+    
+    int lStrings;
+    int flag;
+
+    if (rootRank == globalRank) {
+
+      //TODO: Si les deux codes ont le meme root rank, on en remplit à la main
+      //      les buffer avant de faire les bcast
+
+      flag = 0;
+    }
+
+    else {
 //    MPI_Status status;
 //
 //    string nameType = typeid(T).name();
@@ -814,10 +889,6 @@ namespace cwipi {
 //      bftc_error(__FILE__, __LINE__, 0,
 //                "'%s' code not found \n", codeName.c_str());
 //
-//    map <string, T> *distCtrlParamPt; 
-//    p->second->ctrlParamGet(&distCtrlParamPt);
-//
-//    map <string, T> &distCtrlParam = *distCtrlParamPt;
 //    
 //    int locFirstRank = _locCodeProperties->firstRankGet();
 //    int locLastRank  = _locCodeProperties->lastRankGet();
@@ -835,7 +906,6 @@ namespace cwipi {
 //    
 //    int flag;
 //    int NDistControlParameters;
-//    int lStrings;
 //
 //    int lBuff;
 //
@@ -1008,15 +1078,17 @@ namespace cwipi {
 //      }
 //    }
 //
-//    if (flag) {
-//
-//      unsigned char *recvValBuff = (unsigned char *) &(_recvValBuff[0]);
-//
-//      _irecvBuffCopy(lStrings,
-//                     recvValBuff, 
-//                     distCtrlParam);
-//
-//    }
+    }
+    
+    if (flag) {
+
+      unsigned char *recvValBuff = (unsigned char *) &(_recvValBuff[0]);
+
+      _irecvBuffCopy(lStrings,
+                     recvValBuff, 
+                     distCtrlParam);
+
+    }
   }
   
 

@@ -132,6 +132,26 @@ namespace cwipi {
     nameGet() const;
 
     /**
+     * \brief Get root rank in global communicator
+     *
+     * \return    Root rank
+     *
+     */
+
+    inline int
+    rootRankGet() const;
+
+    /**
+     * \brief Get identifier
+     *
+     * \return    Identifier
+     *
+     */
+
+    inline int
+    idGet() const;
+
+    /**
      * \brief Get global MPI communicator
      *
      * \return    Global MPI communicator
@@ -510,6 +530,32 @@ namespace cwipi {
   CodeProperties::nameGet() const
   {
     return _name;
+  }
+
+  /**
+   * \brief Get root rank in global communicator
+   *
+   * \return    Root rank
+   *
+   */
+
+  int
+  CodeProperties::rootRankGet() const
+  {
+    return _rootRankInGlobalComm;
+  }
+
+  /**
+   * \brief Get identifier
+   *
+   * \return    Identifier
+   *
+   */
+
+  int
+  CodeProperties::idGet() const
+  {
+    return _id;
   }
 
   /**

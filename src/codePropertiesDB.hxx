@@ -595,7 +595,9 @@ namespace cwipi {
 
     int                               _tagLockStatusBase;             /*!< The MPI tag base for lock status exchanges */          
 
-    int                               _tagParameterBase;              /*!< The MPI tag base for parameter exchanges */
+    int                               _tagIntParameterBase;              /*!< The MPI tag base for int parameter exchanges */
+    int                               _tagDoubleParameterBase;              /*!< The MPI tag base for double parameter exchanges */
+    int                               _tagStringParameterBase;              /*!< The MPI tag base for string parameter exchanges */
     
     bool                               _isLocalCodeRootrank;          /*!< Current is it a local root rank 
                                                                       *   in the global communicator */ 
