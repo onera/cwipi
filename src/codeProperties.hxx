@@ -542,9 +542,6 @@ namespace cwipi {
     int                   *_winStrParamIdxValueData; /* Data of \ref _winStrParamIdxValue window */
     char                  *_winStrParamValueData; /* Data of \ref _winStrParamValue window */
 
-    map <string, int>    & _intCtrlParam;  /*!< Integer control parameters only defined if (rank == _rootRankInGlobalComm) */ 
-    map <string, double> & _dblCtrlParam;  /*!< Double control parameters only defined if (rank == _rootRankInGlobalComm) */
-    map <string, string> & _strCtrlParam;  /*!< String control parameters only defined if (rank == _rootRankInGlobalComm) */
   };
 
   

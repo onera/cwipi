@@ -82,9 +82,8 @@ namespace cwipi
      _isCoupledRank(other._isCoupledRank), 
      _intraCoupledGroup(other._intraCoupledGroup),
      _intraGroup(other._intraGroup),
-     _intCtrlParam(other._intCtrlParam),
-     _dblCtrlParam(other._dblCtrlParam),
-     _strCtrlParam(other._strCtrlParam)
+
+
   {
     
     memcpy(_winGlobData, other._winGlobData);
