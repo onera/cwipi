@@ -58,6 +58,11 @@ namespace cwipi
     int globalCommSize;
     MPI_Comm_size(globalComm, &globalCommSize);
     
+    _winGlobData[0] = 0; // Unlock parameters access
+    _winGlobData[1] = 0; // 0 int param
+    _winGlobData[2] = 0; // 0 doube param
+    _winGlobData[3] = 0; // 0 str param
+    
   }
 
   /**
@@ -81,6 +86,12 @@ namespace cwipi
      _dblCtrlParam(other._dblCtrlParam),
      _strCtrlParam(other._strCtrlParam)
   {
+    
+    memcpy(_winGlobData, other._winGlobData);
+    
+    //TODO: Continuer ici !!!!!
+    
+    
   }
 
   /**

@@ -456,6 +456,25 @@ namespace cwipi {
     void 
     dump();
 
+    
+    /**
+     * \brief Lock access to the control parameters
+     *
+     */
+
+    void
+    paramLock();
+
+    
+    /**
+     * \brief Unlock access to the control parameters
+     *
+     */
+
+    void
+    paramUnLock();
+
+
   private:
 
     /**
@@ -482,10 +501,75 @@ namespace cwipi {
                                                     the global communicator */
     MPI_Group              _intraCoupledGroup; /*!< coupled MPI group in 
                                                     the global communicator */
-    map <string, int>    & _intCtrlParam;  /*!< Integer control parameters */ 
-    map <string, double> & _dblCtrlParam;  /*!< Double control parameters */
-    map <string, string> & _strCtrlParam;  /*!< String control parameters */
+
+    MPI_Win                _winGlob;        /*!< MPI window to store general parameters informations */
+    int                    _winGlobData[4]; /*!< \ref _winGlob data (defined only on \ref _rootRankInGlobalComm :
+                                             *      - lock Param Status
+                                             *      - Number of int parameters
+                                             *      - Number of double parameters
+                                             *      - Number of string parameters */
+    
+    MPI_Win               _winIntParamIdxName; /*!< Window to store indexes of int param names 
+                                                 * size = Number of int parameters + 1 */
+    MPI_Win               _winIntParamName; /*!< Window to store param names 
+                                                 * size = \ref _winIntParamIdxName[Number of int parameter] */
+    MPI_Win               _winIntParamValue; /*!< Window to store int param values 
+                                                 * size = \re Number of int parameters */
+    int                   *_winIntParamIdxNameData; /* Data of \ref _winIntParamIdxName window */
+    char                  *_winIntParamNameData; /* Data of \ref _winIntParamName window */
+    int                   *_winIntParamValueData; /* Data of \ref _winIntParamValue window */
+
+    MPI_Win               _winDoubleParamIdxName;/*!< Window to store indexes of double param names 
+                                                   * size = Number of double parameters + 1 */
+    MPI_Win               _winDoubleParamName;/*!< Window to store param names 
+                                                * size = \ref _winDoubleParamIdxName[Number of double parameter] */
+    MPI_Win               _winDoubleParamValue; /*!< Window to store double param values 
+                                                  * size = \ref Number of int parameters */
+    int                   *_winDoubleParamIdxNameData; /* Data of \ref _winDoubleParamIdxName window */
+    char                  *_winDoubleParamNameData; /* Data of \ref _winDoubleParamName window */
+    double                *_winDoubleParamValueData; /* Data of \ref _winDoubleParamValue window */
+                                             
+    MPI_Win               _winStrParamIdxName; /*!< Window to store indexes of string param names 
+                                                   * size = Number of string parameters + 1 */
+    MPI_Win               _winStrParamName; /*!< Window to store param names 
+                                                * size = \ref _winDoubleParamIdxName[Number of double parameter] */
+    MPI_Win               _winStrParamIdxValue; /*!< Window to store indexes of string param values 
+                                                   * size = Number of string parameters + 1 */
+    MPI_Win               _winStrParamValue; /*!< Window to store string param values 
+                                                  * size = \ref Number of string parameters */
+    int                   *_winStrParamIdxNameData;  /* Data of \ref _winStrParamIdxName window */
+    char                  *_winStrParamNameData; /* Data of \ref _winStrParamName window */
+    int                   *_winStrParamIdxValueData; /* Data of \ref _winStrParamIdxValue window */
+    char                  *_winStrParamValueData; /* Data of \ref _winStrParamValue window */
+
+    map <string, int>    & _intCtrlParam;  /*!< Integer control parameters only defined if (rank == _rootRankInGlobalComm) */ 
+    map <string, double> & _dblCtrlParam;  /*!< Double control parameters only defined if (rank == _rootRankInGlobalComm) */
+    map <string, string> & _strCtrlParam;  /*!< String control parameters only defined if (rank == _rootRankInGlobalComm) */
   };
+
+  
+  /**
+   * \brief Lock access to the control parameters
+   *
+   */
+
+  void
+  CodeProperties::paramLock()
+  {
+    _winGlobData[0] = 1;
+  }
+
+  
+  /**
+   * \brief Unlock access to the control parameters
+   *
+   */
+
+  void
+  CodeProperties::paramUnLock()
+  {
+    _winGlobData[0] = 0;
+  }
 
   
   /**
