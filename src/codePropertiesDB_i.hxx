@@ -388,8 +388,8 @@ namespace cwipi {
              "Not yet implemented data type\n");
       }
       
-      for (int k = 0; k < nameType.size(); k++)
-        tagInit += nameType[k];
+//      for (int k = 0; k < nameType.size(); k++)
+//        tagInit += nameType[k];
 
       map <string, T> *locCtrlParamPt; 
       cp->ctrlParamGet(&locCtrlParamPt);
@@ -823,6 +823,7 @@ namespace cwipi {
    * \brief Get the parameter lock status of a distant code
    *
    * \param [in]  Code name 
+   * \param [in]  Distant code name 
    *
    */
 
@@ -831,6 +832,7 @@ namespace cwipi {
   CodePropertiesDB::_irecvParameters
   (
    const string &codeName
+   const string &distCodeName
   )
   {
 
@@ -859,14 +861,6 @@ namespace cwipi {
     
     int lStrings;
     int flag;
-
-    if (rootRank == globalRank) {
-
-      //TODO: Si les deux codes ont le meme root rank, on en remplit à la main
-      //      les buffer avant de faire les bcast
-
-      flag = 0;
-    }
 
     else {
 //    MPI_Status status;
