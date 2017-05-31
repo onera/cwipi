@@ -73,86 +73,6 @@ namespace cwipi {
     }
     delete &_codePropertiesDB;
     delete &_locCodePropertiesDB;
-
-    if (!_issendMPIrequest.empty()) {
-      typedef map <string, vector<MPI_Request> * >::iterator CI;
-      typedef map <string, map <string, vector<MPI_Request> * > >::iterator CI2;
-      typedef map <string, map <string, map <string, vector<MPI_Request> * > > >::iterator CI1;
-
-      for (CI1 p1  = _issendMPIrequest.begin();
-               p1 != _issendMPIrequest.end(); 
-               p1++) {
-        for (CI2 p2  = p1->second.begin();
-                 p2 != p1->second.end(); 
-                 p2++) {
-          for (CI p  = p2->second.begin();
-                  p != p2->second.end(); 
-                  p++) {
-            if (p->second != NULL) {
-              for (int k = 0; k < p->second->size(); k++)
-                if ((*(p->second))[k] != MPI_REQUEST_NULL)
-                  MPI_Request_free(&(*(p->second))[k]);
-              delete p->second;
-            }
-          }
-          p2->second.clear();
-        }
-        p1->second.clear();
-      }
-      _issendMPIrequest.clear();
-    }
-
-
-    typedef map <string, map <string, MPI_Request > >::iterator CI33;
-    typedef map <string, MPI_Request >::iterator CI3;
-    for (CI33 p33  = _issendLockMPIrequest.begin();
-              p33 != _issendLockMPIrequest.end(); 
-              p33++) {
-      
-      for (CI3 p3  = p33->second.begin();
-               p3 != p33->second.end(); 
-               p3++) {
-      
-        if (p3->second != MPI_REQUEST_NULL) {
-          MPI_Request_free(&(p3->second));
-        }
-      }
-      p33->second.clear();
-    }
-    _issendLockMPIrequest.clear();
-
-    _lockStatus.clear();
-
-    typedef map <string, string >::iterator CI4;
-    typedef map <string, map <string, string > >::iterator CI41;
-    for (CI41 p41  = _issendNameBuffs.begin();
-              p41 != _issendNameBuffs.end(); 
-              p41++) {
-      for (CI4 p4  = p41->second.begin();
-               p4 != p41->second.end(); 
-               p4++) {
-        p4->second.clear();
-      }
-      p41->second.clear();
-    }
-    _issendNameBuffs.clear();
-
-    typedef map <string, vector<unsigned char > >::iterator CI5;
-    typedef map <string, map <string, vector<unsigned char > > >::iterator CI51;
-    for (CI51 p51  = _issendValBuffs.begin();
-              p51 != _issendValBuffs.end(); 
-              p51++) {
-      for (CI5 p5  = p51->second.begin();
-               p5 != p51->second.end(); 
-               p5++) {
-        p5->second.clear();
-      }
-      p51->second.clear();
-    }
-    _issendValBuffs.clear();
-
-    _recvValBuff.clear();
-    _recvNameBuff.clear();
     
   }
 
@@ -298,8 +218,6 @@ namespace cwipi {
           if (currentRank == irank) {
             _locCodePropertiesDB.insert(newPair);
           }
-
-          _lockStatus[string(currentName)] = 0;
         }
 
         else {
@@ -327,27 +245,52 @@ namespace cwipi {
     }
 
     typedef map <string, CodeProperties *>::iterator IteratorCP;
-     
-    for (IteratorCP p1  = _locCodePropertiesDB.begin(); 
-                    p1 != _locCodePropertiesDB.end(); 
-                    p1++) {
-      for (IteratorCP p2  = _codePropertiesDB.begin(); 
-                      p2 != _codePropertiesDB.end(); 
-                      p2++) {
-        if ((p1->second != p2->second) && 
-            (p1->second->_rootRankInGlobalComm != p2->second->_rootRankInGlobalComm)) {
+      
+    for (IteratorCP p2  = _codePropertiesDB.begin(); 
+                    p2 != _codePropertiesDB.end(); 
+                    p2++) {
         
-          _issendLockMPIrequest[p1->first][p2->first] = MPI_REQUEST_NULL;
-          _issendMPIrequest[p1->first][typeid(int).name()][p2->first] =  
-            new vector<MPI_Request>(_nIssend, MPI_REQUEST_NULL);
-
-          _issendMPIrequest[p1->first][typeid(double).name()][p2->first] =  
-            new vector<MPI_Request>(_nIssend, MPI_REQUEST_NULL);
-
-          _issendMPIrequest[p1->first][typeid(string).name()][p2->first] =  
-            new vector<MPI_Request>(_nIssend, MPI_REQUEST_NULL);
-        }
+      if (p2->second->_rootRankInGlobalComm == currentRank) {
+        MPI_Win_create(p2->second->_winGlobData, 
+                       4 * sizeof(int),
+                       sizeof(int), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winGlob);
       }
+      else {
+        MPI_Win_create(NULL, 
+                       0, 
+                       0, 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winGlob);
+      }
+      
+      MPI_Win_create_dynamic(MPI_INFO_NULL, 
+                             p2->second->_globalComm, 
+                             &p2->second->_winIntParamIdxName);   
+      
+      MPI_Win_create_dynamic(MPI_INFO_NULL, 
+                             p2->second->_globalComm, 
+                             &p2->second->_winIntParamName);   
+      
+      MPI_Win_create_dynamic(MPI_INFO_NULL, 
+                             p2->second->_globalComm, 
+                             &p2->second->_winIntParamValue);   
+      
+      MPI_Win_create_dynamic(MPI_INFO_NULL, 
+                             p2->second->_globalComm, 
+                             &p2->second->_winDoubleParamIdxName);   
+      
+      MPI_Win_create_dynamic(MPI_INFO_NULL, 
+                             p2->second->_globalComm, 
+                             &p2->second->_winDoubleParamName);   
+      
+      MPI_Win_create_dynamic(MPI_INFO_NULL, 
+                             p2->second->_globalComm, 
+                             &p2->second->_winDoubleParamValue);   
+
     }
          
     delete [] allProperties;
@@ -391,15 +334,11 @@ namespace cwipi {
 
     coupledRankCode.clear();
 
-    _tagLockStatusBase      = 100;
-    _tagIntParameterBase    = _tagLockStatusBase + _codePropertiesDB.size() + 1;
-    _tagDoubleParameterBase = _tagIntParameterBase + 2 * _codePropertiesDB.size();
-    _tagStringParameterBase = _tagDoubleParameterBase + 2 * _codePropertiesDB.size();
-        
+    //TODO
+    
     for (int i = 0; i < n_codes; i++) {
       const string &nameStr = code_names[i];
       intra_comms[i] = _codePropertiesDB[nameStr]->_intraComm;
-      _issendLock(nameStr);
     }
 
   }
@@ -415,187 +354,7 @@ namespace cwipi {
     typedef map <string, CodeProperties *>::iterator Iterator;
 
     bftc_printf("\nCode properties\n\n");
-    for (Iterator p = _codePropertiesDB.begin(); 
-                  p != _codePropertiesDB.end(); p++){
-      _irecvParameters<int>(p->first);
-      _irecvParameters<double>(p->first);
-      _irecvParameters<string>(p->first);
-      p->second->dump();
-      bftc_printf("\n");
-    }
     bftc_printf_flush();
-  }
-
-  /**
-   * \brief Get the parameter lock status of a distant code
-   *
-   * \param [in]  Code name 
-   *
-   */
-
-  void 
-  CodePropertiesDB::_lockStatusGet
-  (
-   const string &codeName
-  )
-  {
-
-    //
-    // Find codeName in local codes
-    
-    const map <string, CodeProperties * >::iterator p1 = 
-      _codePropertiesDB.find(codeName);
-    
-    if (p1 == _codePropertiesDB.end()) {
-      bftc_error(__FILE__, __LINE__, 0,
-              "'%s' code not found \n", codeName.c_str());
-    }
-
-    const map <string, CodeProperties * >::iterator p = 
-      _locCodePropertiesDB.find(codeName);
-
-    if (p == _locCodePropertiesDB.end()) {
-    
-      const MPI_Comm& intraComm  = p->second->intraCommGet();
-      const MPI_Comm& globalComm = p->second->globalCommGet();
-
-      int locCommSize = -1;
-      int flag = 0;
-
-      MPI_Comm_size(intraComm, &locCommSize);
-
-      if (_isLocalCodeRootrank) {
-        int distFirstRank = p->second->_rootRankInGlobalComm;
-
-        if (_isLocalCodeRootrank != distFirstRank) {
-          int tag = _tagLockStatusBase + p->second->_id; 
-
-          MPI_Iprobe(distFirstRank, 
-                     tag, 
-                     globalComm, 
-                     &flag, 
-                     MPI_STATUS_IGNORE);
-
-          if (flag) {
-
-            MPI_Recv(&(_lockStatus[p->first]),
-                     1, 
-                     MPI_INT, 
-                     distFirstRank, 
-                     tag,
-                     globalComm, 
-                     MPI_STATUS_IGNORE);
-          }
-        }
-        else {
-          flag = 1; 
-        }
-      }
-      
-      if (locCommSize > 1) {
-        MPI_Bcast(&flag, 
-                  1, 
-                  MPI_INT, 
-                  0, 
-                  intraComm);
-
-        if (flag) {
-          MPI_Bcast(&(_lockStatus[p->first]), 
-                    1, 
-                    MPI_INT, 
-                    0, 
-                    intraComm);
-        }
-      }
-    }
-  }
-   
-  /**
-   * \brief Lock status non blocking sending
-   *
-   * \param [in]  codeName  Local code name
-   *
-   */
-  
-  void 
-  CodePropertiesDB::_issendLock
-  (
-   const string &codeName
-  )
-  {
-    typedef map <string, CodeProperties * >::iterator IteratorMapCP;
-
-    const IteratorMapCP p = _locCodePropertiesDB.find(codeName); 
-    if (p == _locCodePropertiesDB.end()) {
-      bftc_error(__FILE__, __LINE__, 0,
-              "'%s' code not found \n", codeName.c_str());
-    }
-    
-    CodeProperties * locCodeProperties = p->second;
-
-    int globRootRank = locCodeProperties->_rootRankInGlobalComm;
-    
-    const MPI_Comm& intraComm  = locCodeProperties->intraCommGet();
-    const MPI_Comm& globalComm = locCodeProperties->globalCommGet();
-    
-    int intraCommSize = -1;
-    int intraRank = -1;
-    
-    MPI_Comm_rank(intraComm, &intraRank);
-    MPI_Comm_size(intraComm, &intraCommSize);
-
-    int globalCommSize = -1;
-    int globalRank = -1;
-    
-    MPI_Comm_rank(globalComm, &globalRank);
-    MPI_Comm_size(globalComm, &globalCommSize);
-
-    //
-    // Kill Existing messages
-
-    if (globRootRank == globalRank) {
-
-      for (IteratorMapCP p1  = _codePropertiesDB.begin(); 
-                         p1 != _codePropertiesDB.end(); 
-                         p1++) {
-
-        if (locCodeProperties != p1->second) {
-          int distRootRank = p1->second->_rootRankInGlobalComm;
-          if (distRootRank != globRootRank) {
-            if (_issendLockMPIrequest[p->first][p1->first] != MPI_REQUEST_NULL) {
-              
-              int flag;
-              MPI_Test(&(_issendLockMPIrequest[p->first][p1->first]), 
-                       &flag, 
-                       MPI_STATUS_IGNORE);
-
-              if (!flag) {
-                MPI_Cancel(&(_issendLockMPIrequest[p->first][p1->first]));
-                MPI_Request_free(&(_issendLockMPIrequest[p->first][p1->first]));
-              }
-            }
-          }
-        }
-      }
-
-      for (IteratorMapCP p1  = _codePropertiesDB.begin(); 
-                         p1 != _codePropertiesDB.end(); 
-                         p1++) {
-
-        if (locCodeProperties != p1->second) {
-          int distRootRank = p1->second->_rootRankInGlobalComm;
-          int tag = _tagLockStatusBase + p->second->_id; 
-
-          MPI_Issend(&_lockStatus[codeName], 
-                     1, 
-                     MPI_INT, 
-                     distRootRank, 
-                     tag,
-                     globalComm, 
-                     &(_issendLockMPIrequest[p->first][p1->first]));
-        }
-      }
-    }
   }
 
 }

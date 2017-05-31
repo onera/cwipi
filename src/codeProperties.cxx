@@ -46,17 +46,31 @@ namespace cwipi
   ): _name(name), _id(id), _isLocal(isLocal),
      _rootRankInGlobalComm(rootRank),  
      _globalComm(globalComm),
-     _isCoupledRank(false), 
-     _intCtrlParam(*(new map <string, int>())),
-     _dblCtrlParam(*(new map <string, double>())),
-     _strCtrlParam(*(new map <string, string>()))
+     _isCoupledRank(false),
+     _winIntParamIdxName(MPI_WIN_NULL),
+     _winIntParamName(MPI_WIN_NULL),
+     _winIntParamValue(MPI_WIN_NULL),
+     _winIntParamIdxNameData(NULL),
+     _winIntParamNameData(NULL),
+     _winIntParamValueData(NULL),
+     _winDoubleParamIdxName(MPI_WIN_NULL),
+     _winDoubleParamName(MPI_WIN_NULL),
+     _winDoubleParamValue(MPI_WIN_NULL),
+     _winDoubleParamIdxNameData(NULL),
+     _winDoubleParamNameData(NULL),
+     _winDoubleParamValueData(NULL),
+     _winStrParamIdxName(MPI_WIN_NULL),
+     _winStrParamName(MPI_WIN_NULL),
+     _winStrParamIdxValue(MPI_WIN_NULL),
+     _winStrParamValue(MPI_WIN_NULL),
+     _winStrParamIdxNameData(NULL),
+     _winStrParamNameData(NULL),
+     _winStrParamIdxValueData(NULL),
+     _winStrParamValueData(NULL)
   {
     _intraComm = MPI_COMM_NULL;
     _intraCoupledGroup = MPI_GROUP_NULL;
     _intraGroup        = MPI_GROUP_NULL;
-    
-    int globalCommSize;
-    MPI_Comm_size(globalComm, &globalCommSize);
     
     _winGlobData[0] = 0; // Unlock parameters access
     _winGlobData[1] = 0; // 0 int param
@@ -82,14 +96,30 @@ namespace cwipi
      _isCoupledRank(other._isCoupledRank), 
      _intraCoupledGroup(other._intraCoupledGroup),
      _intraGroup(other._intraGroup),
-
+     _winIntParamIdxName(other._winIntParamIdxName),
+     _winIntParamName(other._winIntParamName),
+     _winIntParamValue(other._winIntParamValue),
+     _winIntParamIdxNameData(other._winIntParamIdxNameData),
+     _winIntParamNameData(other._winIntParamNameData),
+     _winIntParamValueData(other._winIntParamValueData),
+     _winDoubleParamIdxName(other._winDoubleParamIdxName),
+     _winDoubleParamName(other._winDoubleParamName),
+     _winDoubleParamValue(other._winDoubleParamValue),
+     _winDoubleParamIdxNameData(other._winDoubleParamIdxNameData),
+     _winDoubleParamNameData(other._winDoubleParamNameData),
+     _winDoubleParamValueData(other._winDoubleParamValueData),
+     _winStrParamIdxName(other._winStrParamIdxName),
+     _winStrParamName(other._winStrParamName),
+     _winStrParamIdxValue(other._winStrParamIdxValue),
+     _winStrParamValue(other._winStrParamValue),
+     _winStrParamIdxNameData(other._winStrParamIdxNameData),
+     _winStrParamNameData(other._winStrParamNameData),
+     _winStrParamIdxValueData(other._winStrParamIdxValueData),
+     _winStrParamValueData(other._winStrParamValueData)
 
   {
     
-    memcpy(_winGlobData, other._winGlobData);
-    
-    //TODO: Continuer ici !!!!!
-    
+    memcpy(_winGlobData, other._winGlobData, 4 *sizeof(int));
     
   }
 
@@ -106,25 +136,7 @@ namespace cwipi
 //               _firstRank,
 //               _lastRank);
     bftc_printf("  - Identifier %d :\n", _id);
-    bftc_printf("  - Int Control Parameter :\n");
 
-    typedef map <string, int>::iterator Iterator1;
-    for (Iterator1 p = _intCtrlParam.begin(); 
-                   p != _intCtrlParam.end(); p++)
-      bftc_printf("   * '%s' : %i\n", p->first.c_str(), p->second);
-    bftc_printf("  - Double Control Parameter :\n");
-
-    typedef map <string, double>::iterator Iterator2;
-    for (Iterator2 p = _dblCtrlParam.begin(); 
-                   p != _dblCtrlParam.end(); p++)
-      bftc_printf("   * '%s' : %12.5e\n", p->first.c_str(), p->second);
-
-    bftc_printf("  - String Control Parameter :\n");
-
-    typedef map <string, string>::iterator Iterator3;
-    for (Iterator3 p = _strCtrlParam.begin(); 
-                   p != _strCtrlParam.end(); p++)
-      bftc_printf("   * '%s' : '%s'\n", p->first.c_str(), p->second.c_str());
 
     bftc_printf_flush();
   }
@@ -137,20 +149,95 @@ namespace cwipi
   CodeProperties::~CodeProperties()
   {
     printf("~CodeProperties\n");
-    if (!_intCtrlParam.empty())
-      _intCtrlParam.clear();
-    delete &_intCtrlParam;
-    if (!_dblCtrlParam.empty())
-      _dblCtrlParam.clear();
-    delete &_dblCtrlParam;
-    if (!_strCtrlParam.empty())
-      _strCtrlParam.clear();
-    delete &_strCtrlParam;
-    if (_intraComm != MPI_COMM_NULL)
+    if (_winIntParamIdxName != MPI_WIN_NULL) {
+      MPI_Win_free(&_winIntParamIdxName);
+    }
+    if (_winIntParamName != MPI_WIN_NULL) {
+      MPI_Win_free(&_winIntParamName);
+    }
+    if (_winIntParamValue != MPI_WIN_NULL) {
+      MPI_Win_free(&_winIntParamValue);
+    }
+    if (_winDoubleParamIdxName != MPI_WIN_NULL) {
+      MPI_Win_free(&_winDoubleParamIdxName);
+    }
+    if (_winDoubleParamName != MPI_WIN_NULL) {
+      MPI_Win_free(&_winDoubleParamName);
+    }
+    if (_winDoubleParamValue != MPI_WIN_NULL) {
+      MPI_Win_free(&_winDoubleParamValue);
+    }
+    if (_winStrParamIdxName != MPI_WIN_NULL) {
+      MPI_Win_free(&_winStrParamIdxName);
+    }
+    if (_winStrParamName != MPI_WIN_NULL) {
+      MPI_Win_free(&_winStrParamName);
+    }
+    if (_winStrParamIdxValue != MPI_WIN_NULL) {
+      MPI_Win_free(&_winStrParamIdxValue);
+    }
+    if (_winStrParamValue != MPI_WIN_NULL) {
+      MPI_Win_free(&_winStrParamValue);
+    }
+
+    if (_winIntParamIdxNameData != NULL) {
+      free (_winIntParamIdxNameData);
+      _winIntParamIdxNameData = NULL;
+    }
+
+    if (_winIntParamNameData != NULL) {
+      free (_winIntParamNameData);
+      _winIntParamNameData = NULL;
+    }
+
+    if (_winIntParamValueData != NULL) {
+      free (_winIntParamValueData);
+      _winIntParamValueData = NULL;
+    }
+
+    if (_winDoubleParamIdxNameData != NULL) {
+      free (_winDoubleParamIdxNameData);
+      _winDoubleParamIdxNameData = NULL;
+    }
+
+    if (_winDoubleParamNameData != NULL) {
+      free (_winDoubleParamNameData);
+      _winDoubleParamNameData = NULL;
+    }
+
+    if (_winDoubleParamValueData != NULL) {
+      free (_winDoubleParamValueData);
+      _winDoubleParamValueData = NULL;
+    }
+
+    if (_winStrParamIdxNameData != NULL) {
+      free (_winStrParamIdxNameData);
+      _winStrParamIdxNameData = NULL;
+    }
+
+    if (_winStrParamNameData != NULL) {
+      free (_winStrParamNameData);
+      _winStrParamNameData = NULL;
+    }
+
+    if (_winStrParamIdxValueData != NULL) {
+      free (_winStrParamIdxValueData);
+      _winStrParamIdxValueData = NULL;
+    }
+
+    if (_winStrParamValueData != NULL) {
+      free (_winStrParamValueData);
+      _winStrParamValueData = NULL;
+    }
+    
+    if (_intraComm != MPI_COMM_NULL) {
       MPI_Comm_free(&_intraComm);
-    if (_intraGroup != MPI_GROUP_NULL)
+    }
+    if (_intraGroup != MPI_GROUP_NULL) {
       MPI_Group_free(&_intraGroup);
-    if (_intraCoupledGroup != MPI_GROUP_NULL)
+    }
+    if (_intraCoupledGroup != MPI_GROUP_NULL) {
       MPI_Group_free(&_intraCoupledGroup);
+    }
   }
 }

@@ -207,39 +207,6 @@ namespace cwipi {
     (
      MPI_Group group
     );
-    
-    /**
-     * \brief Get int control parameters map
-     *
-     */
-
-    inline void
-    ctrlParamGet
-    (
-     map <string, int> ** params
-    ) const;
-    
-    /**
-     * \brief Get double control parameters map
-     *
-     */
-
-    inline void
-    ctrlParamGet
-    (
-     map <string, double> ** params
-    ) const;
-
-    /**
-     * \brief Get string control parameters map
-     *
-     */
-
-    inline void
-    ctrlParamGet
-    (
-     map <string, string> ** params
-    ) const;
 
     /**
      * \brief Get a integer control parameter value
@@ -252,7 +219,7 @@ namespace cwipi {
     ctrlParamGet
     (
      const string &name,
-     int          **value
+     int          *value
     ) const;
 
     /**
@@ -266,7 +233,7 @@ namespace cwipi {
     ctrlParamGet
     (
      const string &name,
-     double       **value
+     double       *value
     ) const;
 
     /**
@@ -280,7 +247,7 @@ namespace cwipi {
     ctrlParamGet
     (
      const string &name,
-     string       **value
+     string       *value
     ) const;
 
     /**
@@ -504,7 +471,7 @@ namespace cwipi {
 
     MPI_Win                _winGlob;        /*!< MPI window to store general parameters informations */
     int                    _winGlobData[4]; /*!< \ref _winGlob data (defined only on \ref _rootRankInGlobalComm :
-                                             *      - lock Param Status
+                                             *      - Lock Param Status
                                              *      - Number of int parameters
                                              *      - Number of double parameters
                                              *      - Number of string parameters */
@@ -711,48 +678,6 @@ namespace cwipi {
   }
 
   /**
-   * \brief Get int control parameters map
-   *
-   */
-  
-  void
-  CodeProperties::ctrlParamGet
-  (
-   map <string, int> **params
-  ) const
-  {
-    *params = &_intCtrlParam;
-  }
-  
-  /**
-   * \brief Get double control parameters map
-   *
-   */
-
-  void
-  CodeProperties::ctrlParamGet
-  (
-   map <string, double> ** params
-  ) const
-  {
-    *params = &_dblCtrlParam;
-  }
-
-  /**
-   * \brief Get string control parameters map
-   *
-   */
-
-  void
-  CodeProperties::ctrlParamGet
-  (
-   map <string, string> ** params
-  ) const
-  {
-    *params = &_strCtrlParam;
-  }
-
-  /**
    * \brief Get a integer control parameter value
    *
    * \param[in] name   Control parameter name  
@@ -763,14 +688,103 @@ namespace cwipi {
   CodeProperties::ctrlParamGet
   (
    const string &name,
-   int          **value
+   int          *value
   ) const
   {
-    map <string, int>::iterator p = _intCtrlParam.find(name);
-    if (p == _intCtrlParam.end())
+    int rank;
+    MPI_Comm_rank(_globalComm, &rank);
+
+    int oldLockStatus   = _winGlobData[0];
+    int oldNIntParam    = _winGlobData[1];
+    int oldNDoubleParam = _winGlobData[2];
+    int oldNStrParam    = _winGlobData[3];
+    int lockStatus      = oldLockStatus;
+    int nIntParam       = oldNIntParam;
+    int nDoubleParam    = oldNDoubleParam;
+    int nStrParam       = oldNStrParam;
+
+    MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
+
+    if (rank != _rootRankInGlobalComm) {
+
+      do {
+        MPI_Request rq1;
+        MPI_Rget (_winGlobData, 4, MPI_INT, _rootRankInGlobalComm, 0, 4, MPI_INT, _winGlob, &rq1);
+        MPI_Wait (rq1, MPI_STATUS_IGNORE);
+        lockStatus = _winGlobData[0];
+        if (lockStatus) {
+          MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
+          MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
+        }
+      }  while (lockStatus); 
+
+      nIntParam    = _winGlobData[1];
+      nDoubleParam = _winGlobData[2];
+      nStrParam    = _winGlobData[3];
+      
+      if (nIntParam > oldNIntParam) {
+        _winIntParamIdxNameData = realloc(_winIntParamIdxNameData, sizeof(int) * (nIntParam + 1));        
+        _winIntParamValueData = realloc(_winIntParamValueData, sizeof(int) * nIntParam);        
+      }
+      
+      int oldSParamNameData = 0;
+      if (oldNIntParam > 0) {
+        oldSParamNameData = _winIntParamIdxNameData[oldNIntParam];
+      }
+      
+      MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winIntParamIdxName);
+      MPI_Get (_winIntParamIdxNameData, nIntParam + 1, 
+               MPI_INT, _rootRankInGlobalComm, 0, nIntParam + 1, MPI_INT, _winIntParamIdxName);      
+      MPI_Win_unlock (_rootRankInGlobalComm, _winIntParamIdxName);
+   
+      if (_winIntParamIdxNameData[nIntParam] > oldSParamNameData) {
+        _winIntParamNameData = realloc(_winIntParamNameData, 
+                                       sizeof(char) * _winIntParamIdxNameData[nIntParam]);          
+      }
+      
+      MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winIntParamName);
+      MPI_Get (_winIntParamNameData, _winIntParamIdxNameData[nIntParam], 
+               MPI_INT, _rootRankInGlobalComm, 0, _winIntParamIdxNameData[nIntParam], MPI_INT, _winIntParamName);      
+      MPI_Win_unlock (_rootRankInGlobalComm, _winIntParamName);
+
+      MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winIntParamValue);
+      MPI_Get (_winIntParamValueData, nIntParam, 
+               MPI_INT, _rootRankInGlobalComm, 0, nIntParam, MPI_INT, _winIntParamValue);      
+      MPI_Win_unlock (_rootRankInGlobalComm, _winIntParamValue);
+      
+    }
+    
+    else {
+      if (lockStatus) {
+        bftc_error(__FILE__, __LINE__, 0,
+                   "Unlock parameters before read its on the current rank\n");      
+      }
+      
+    }
+
+    int sName = name.size();
+    int found = 0;
+    int i;
+    for (i = 0; i < nIntParam; i++) {
+      int sParam = _winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i];
+      if (sName == sParam) {
+       found = !strncmp(name.c_str(), 
+               _winIntParamNameData + _winIntParamIdxNameData[i], 
+               sName);
+      }
+      if (found) break;
+    }
+
+    if (!found) {
       bftc_error(__FILE__, __LINE__, 0,
-                 "'%s' int control parameter not found \n", name.c_str());
-    *value = &(p->second);
+                 "'%s' Unknown parameter on '%s' code\n", name.c_str(), 
+                                                         _name.c_str());      
+    }
+    
+    *value = _winIntParamValueData[i];
+
+    MPI_Win_unlock ( _rootRankInGlobalComm, _winGlob);
+
   }
 
 
@@ -785,14 +799,102 @@ namespace cwipi {
   CodeProperties::ctrlParamGet
   (
    const string &name,
-   double       **value
+   double       *value
   ) const
   {
-    map <string, double>::iterator p = _dblCtrlParam.find(name);
-    if (p == _dblCtrlParam.end())
+    int rank;
+    MPI_Comm_rank(_globalComm, &rank);
+
+    int oldLockStatus   = _winGlobData[0];
+    int oldNIntParam    = _winGlobData[1];
+    int oldNDoubleParam = _winGlobData[2];
+    int oldNStrParam    = _winGlobData[3];
+    int lockStatus      = oldLockStatus;
+    int nIntParam       = oldNIntParam;
+    int nDoubleParam    = oldNDoubleParam;
+    int nStrParam       = oldNStrParam;
+
+    MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
+
+    if (rank != _rootRankInGlobalComm) {
+      
+      do {
+        MPI_Request rq1;
+        MPI_Rget (_winGlobData, 4, MPI_INT, _rootRankInGlobalComm, 0, 4, MPI_INT, _winGlob, &rq1);
+        MPI_Wait (rq1, MPI_STATUS_IGNORE);
+        lockStatus = _winGlobData[0];
+        if (lockStatus) {
+          MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
+          MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
+        }
+      }  while (lockStatus); 
+
+      nIntParam    = _winGlobData[1];
+      nDoubleParam = _winGlobData[2];
+      nStrParam    = _winGlobData[3];
+      
+      if (nDoubleParam > oldNDoubleParam) {
+        _winDoubleParamIdxNameData = realloc(_winDoubleParamIdxNameData, sizeof(int) * (nDoubleParam + 1));        
+        _winDoubleParamValueData = realloc(_winDoubleParamValueData, sizeof(double) * nDoubleParam);        
+      }
+      
+      int oldSParamNameData = 0;
+      if (oldNDoubleParam > 0) {
+        oldSParamNameData = _winDoubleParamIdxNameData[oldNDoubleParam];
+      }
+      
+      MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winDoubleParamIdxName);
+      MPI_Get (_winDoubleParamIdxNameData, nDoubleParam + 1, 
+               MPI_INT, _rootRankInGlobalComm, 0, nDoubleParam + 1, MPI_INT, _winDoubleParamIdxName);      
+      MPI_Win_unlock (_rootRankInGlobalComm, _winDoubleParamIdxName);
+   
+      if (_winDoubleParamIdxNameData[nDoubleParam] > oldSParamNameData) {
+        _winDoubleParamNameData = realloc(_winDoubleParamNameData, 
+                                       sizeof(char) * _winDoubleParamIdxNameData[nDoubleParam]);          
+      }
+      
+      MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winDoubleParamName);
+      MPI_Get (_winDoubleParamNameData, _winDoubleParamIdxNameData[nDoubleParam], 
+               MPI_INT, _rootRankInGlobalComm, 0, _winDoubleParamIdxNameData[nDoubleParam], MPI_INT, _winDoubleParamName);      
+      MPI_Win_unlock (_rootRankInGlobalComm, _winDoubleParamName);
+
+      MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winDoubleParamValue);
+      MPI_Get (_winDoubleParamValueData, nDoubleParam, 
+               MPI_INT, _rootRankInGlobalComm, 0, nDoubleParam, MPI_DOUBLE, _winDoubleParamValue);      
+      MPI_Win_unlock (_rootRankInGlobalComm, _winDoubleParamValue);
+      
+    }
+    
+    else {
+      if (lockStatus) {
+        bftc_error(__FILE__, __LINE__, 0,
+                   "Unlock parameters before read its on the current rank\n");      
+      }
+      
+    }
+
+    int sName = name.size();
+    int found = 0;
+    int i;
+    for (i = 0; i < nDoubleParam; i++) {
+      int sParam = _winDoubleParamIdxNameData[i+1] - _winDoubleParamIdxNameData[i];
+      if (sName == sParam) {
+       found = !strncmp(name.c_str(), 
+               _winDoubleParamNameData + _winDoubleParamIdxNameData[i], 
+               sName);
+      }
+      if (found) break;
+    }
+
+    if (!found) {
       bftc_error(__FILE__, __LINE__, 0,
-                 "'%s' double control parameter not found \n", name.c_str());
-    *value = &(p->second);
+                 "'%s' Unknown parameter on '%s' code\n", name.c_str(), 
+                                                         _name.c_str());      
+    }
+    
+    *value = _winDoubleParamValueData[i];
+
+    MPI_Win_unlock ( _rootRankInGlobalComm, _winGlob);
   }
 
   /**
@@ -806,14 +908,126 @@ namespace cwipi {
   CodeProperties::ctrlParamGet
   (
    const string &name,
-   string       **value
+   string       *value
   ) const
   {
-    map <string, string>::iterator p = _strCtrlParam.find(name);
-    if (p == _strCtrlParam.end())
+    int rank;
+    MPI_Comm_rank(_globalComm, &rank);
+
+    int oldLockStatus   = _winGlobData[0];
+    int oldNIntParam    = _winGlobData[1];
+    int oldNDoubleParam = _winGlobData[2];
+    int oldNStrParam    = _winGlobData[3];
+    int lockStatus      = oldLockStatus;
+    int nIntParam       = oldNIntParam;
+    int nDoubleParam    = oldNDoubleParam;
+    int nStrParam       = oldNStrParam;
+
+    MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
+
+    if (rank != _rootRankInGlobalComm) {
+
+      do {
+        MPI_Request rq1;
+        MPI_Rget (_winGlobData, 4, MPI_INT, _rootRankInGlobalComm,
+                  0, 4, MPI_INT, _winGlob, &rq1);
+        MPI_Wait (rq1, MPI_STATUS_IGNORE);
+        lockStatus = _winGlobData[0];
+        if (lockStatus) {
+          MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
+          MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
+        }
+      }  while (lockStatus); 
+
+      nIntParam    = _winGlobData[1];
+      nDoubleParam = _winGlobData[2];
+      nStrParam    = _winGlobData[3];
+      
+      if (nStrParam > oldNStrParam) {
+        _winStrParamIdxNameData = realloc(_winStrParamIdxNameData, 
+                                          sizeof(int) * (nStrParam + 1));        
+        _winStrParamIdxValueData = realloc(_winStrParamValueData, 
+                                        sizeof(int) * (nStrParam + 1));        
+      }
+      
+      int oldSParamNameData = 0;
+      int oldSParamValueData = 0;
+      if (oldNStrParam > 0) {
+        oldSParamNameData = _winStrParamIdxNameData[oldNStrParam];
+        oldSParamValueData = _winStrParamIdxValueData[oldNStrParam];
+      }
+      
+      MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winStrParamIdxName);
+      MPI_Get (_winStrParamIdxNameData, nStrParam + 1, 
+               MPI_INT, _rootRankInGlobalComm, 0, 
+               nStrParam + 1, MPI_INT, _winStrParamIdxName);      
+      MPI_Win_unlock (_rootRankInGlobalComm, _winStrParamIdxName);
+   
+      if (_winStrParamIdxNameData[nStrParam] > oldSParamNameData) {
+        _winStrParamNameData = realloc(_winStrParamNameData, 
+                                       sizeof(char) * _winStrParamIdxNameData[nStrParam]);          
+      }
+
+      MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winStrParamIdxValue);
+      MPI_Get (_winStrParamIdxValueData, nStrParam + 1, 
+               MPI_INT, _rootRankInGlobalComm, 0, 
+               nStrParam + 1, MPI_INT, _winStrParamIdxValue);      
+      MPI_Win_unlock (_rootRankInGlobalComm, _winStrParamIdxValue);
+   
+      if (_winStrParamIdxValueData[nStrParam] > oldSParamValueData) {
+        _winStrParamValueData = realloc(_winStrParamValueData, 
+                                       sizeof(char) * _winStrParamIdxValueData[nStrParam]);          
+      }
+      
+      MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winStrParamName);
+      MPI_Get (_winStrParamNameData, _winStrParamIdxNameData[nStrParam], 
+               MPI_INT, _rootRankInGlobalComm, 0, 
+               _winStrParamIdxNameData[nStrParam], MPI_INT, _winStrParamName);      
+      MPI_Win_unlock (_rootRankInGlobalComm, _winStrParamName);
+
+      MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winStrParamValue);
+      MPI_Get (_winStrParamValueData, _winStrParamIdxValueData[nStrParam], 
+               MPI_INT, _rootRankInGlobalComm, 0, 
+               _winStrParamIdxValueData[nStrParam], MPI_INT, _winStrParamValue);      
+      MPI_Win_unlock (_rootRankInGlobalComm, _winStrParamValue);
+      
+    }
+    
+    else {
+      if (lockStatus) {
+        bftc_error(__FILE__, __LINE__, 0,
+                   "Unlock parameters before read its on the current rank\n");      
+      }
+      
+    }
+
+    int sName = name.size();
+    int found = 0;
+    int i;
+    for (i = 0; i < nStrParam; i++) {
+      int sParam = _winStrParamIdxNameData[i+1] - _winStrParamIdxNameData[i];
+      if (sName == sParam) {
+       found = !strncmp(name.c_str(), 
+               _winStrParamNameData + _winStrParamIdxNameData[i], 
+               sName);
+      }
+      if (found) break;
+    }
+
+    if (!found) {
       bftc_error(__FILE__, __LINE__, 0,
-                 "'%s' str control parameter not found \n", name.c_str());
-    *value = &(p->second);
+                 "'%s' Unknown parameter on '%s' code\n", name.c_str(), 
+                                                         _name.c_str());      
+    }
+
+    int sValue = _winStrParamIdxValueData[i+1] - _winStrParamIdxValueData[i];
+    value->resize(sValue);
+    strncpy (value->c_str(),
+             _winStrParamValueData + _winStrParamIdxValueData[i], 
+             sValue);
+    value->c_str()[sValue] = '\0';
+    
+    MPI_Win_unlock ( _rootRankInGlobalComm, _winGlob);
   }
 
   /**
@@ -831,11 +1045,49 @@ namespace cwipi {
    const int     value
   )
   {
-    map <string, int>::iterator p = _intCtrlParam.find(name);
-    if (p == _intCtrlParam.end())
+    if (!_isLocal) {
       bftc_error(__FILE__, __LINE__, 0,
-                 "'%s' int control parameter not found \n", name.c_str());
-    p->second = value;
+           "'%s' is a distant code. Set a distant code parameter is unallowed\n", 
+                                                   _name.c_str());      
+    }
+
+    int rank;
+    MPI_Comm_rank(_globalComm, &rank);
+
+    if (_rootRankInGlobalComm == rank) {
+      MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winGlob);
+      MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winIntParamValue);
+    
+      int sName = strlen(name);
+      int found = 0;
+      int i;
+      
+      int lockStatus   = _winGlobData[0];
+      int nIntParam    = _winGlobData[1];
+      int nDoubleParam = _winGlobData[2];
+      int nStrParam    = _winGlobData[3];
+      
+      for (i = 0; i < nIntParam; i++) {
+        int sParam = _winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i];
+        if (sName = sParam) {
+         found = !strncmp(name.c_str(), 
+                 _winIntParamNameData + _winIntParamIdxNameData[i], 
+                 sName);
+        }
+        if (found) break;
+      }
+
+      if (!found) {
+        bftc_error(__FILE__, __LINE__, 0,
+                   "'%s' Unknown parameter on '%s' code\n", name.c_str(), 
+                                                           _name.c_str());      
+      }
+
+      _winIntParamValueData[i] = value;
+    
+      MPI_Win_unlock (_rootRankInGlobalComm, _winIntParamValue);
+      MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
+    }
   }
 
   /**
@@ -853,11 +1105,49 @@ namespace cwipi {
    const double  value
   )
   {
-    map <string, double>::iterator p = _dblCtrlParam.find(name);
-    if (p == _dblCtrlParam.end())
+    if (!_isLocal) {
       bftc_error(__FILE__, __LINE__, 0,
-                 "'%s' dbl control parameter not found \n", name.c_str());
-    p->second = value;
+           "'%s' is a distant code. Set a distant code parameter is unallowed\n", 
+                                                   _name.c_str());      
+    }
+
+    int rank;
+    MPI_Comm_rank(_globalComm, &rank);
+
+    if (_rootRankInGlobalComm == rank) {
+      MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winGlob);
+      MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winDoubleParamValue);
+    
+      int sName = strlen(name);
+      int found = 0;
+      int i;
+      
+      int lockStatus   = _winGlobData[0];
+      int nIntParam    = _winGlobData[1];
+      int nDoubleParam = _winGlobData[2];
+      int nStrParam    = _winGlobData[3];
+      
+      for (i = 0; i < nDoubleParam; i++) {
+        int sParam = _winDoubleParamIdxNameData[i+1] - _winDoubleParamIdxNameData[i];
+        if (sName = sParam) {
+         found = !strncmp(name.c_str(), 
+                 _winDoubleParamNameData + _winDoubleParamIdxNameData[i], 
+                 sName);
+        }
+        if (found) break;
+      }
+
+      if (!found) {
+        bftc_error(__FILE__, __LINE__, 0,
+                   "'%s' Unknown parameter on '%s' code\n", name.c_str(), 
+                                                           _name.c_str());      
+      }
+
+      _winDoubleParamValueData[i] = value;
+    
+      MPI_Win_unlock (_rootRankInGlobalComm, _winDoubleParamValue);
+      MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
+    }
   }
 
   /**
@@ -875,11 +1165,85 @@ namespace cwipi {
    const string  value
   )
   {
-    map <string, string>::iterator p = _strCtrlParam.find(name);
-    if (p == _strCtrlParam.end())
+    if (!_isLocal) {
       bftc_error(__FILE__, __LINE__, 0,
-                   "'%s' string control parameter not found \n", name.c_str());
-    p->second = value;
+           "'%s' is a distant code. Set a distant code parameter is unallowed\n", 
+                                                   _name.c_str());      
+    }
+
+    int rank;
+    MPI_Comm_rank(_globalComm, &rank);
+
+    if (_rootRankInGlobalComm == rank) {
+      MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winGlob);
+      MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winStrParamValue);
+      MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winStrParamIdxValue);
+    
+      int sName = strlen(name);
+      int found = 0;
+      int i;
+      
+      int lockStatus   = _winGlobData[0];
+      int nIntParam    = _winGlobData[1];
+      int nDoubleParam = _winGlobData[2];
+      int nStrParam    = _winGlobData[3];
+      
+      for (i = 0; i < nStrParam; i++) {
+        int sParam = _winStrParamIdxNameData[i+1] - _winStrParamIdxNameData[i];
+        if (sName = sParam) {
+         found = !strncmp(name.c_str(), 
+                 _winStrParamNameData + _winStrParamIdxNameData[i], 
+                 sName);
+        }
+        if (found) break;
+      }
+
+      if (!found) {
+        bftc_error(__FILE__, __LINE__, 0,
+                   "'%s' Unknown parameter on '%s' code\n", name.c_str(), 
+                                                           _name.c_str());      
+      }
+
+      int sValue = _winStrParamIdxValueData[i+1] - _winStrParamIdxValueData[i];
+      int gap = value.size() - sValue;
+      if (gap > 0) {
+        MPI_Win_detach(_winStrParamValue, _winStrParamValueData);
+        _winStrParamValueData = realloc (_winStrParamValueData, 
+   (_winStrParamIdxValueData[nStrParam] + value.size() - sValue) * sizeof(char));
+        MPI_Aint swin = _winStrParamIdxValueData[nStrParam] + value.size() - sValue;
+        MPI_Win_attach (_winStrParamValue, _winStrParamValueData, swin);
+      }
+      
+      if (gap != 0) {
+        if (gap > 0) {
+          for (int i1 = _winStrParamIdxValueData[nStrParam] - 1; i1 >= _winStrParamIdxValueData[i+1]; i1--) {
+            _winStrParamValueData[i1+gap] = _winStrParamValueData[i1]; 
+          }
+        }
+        else {
+          for (int i1 = _winStrParamIdxValueData[i+1]; i1 < _winStrParamIdxValueData[nStrParam]; i1++) {
+            _winStrParamValueData[i1+gap] = _winStrParamValueData[i1]; 
+          }          
+        }
+        for (int i1 = i+1; i1 < nStrParam; i1++) {
+          _winStrParamIdxValueData[i1] += gap; 
+        }                
+      }
+
+      if (gap < 0) {
+       MPI_Win_detach(_winStrParamValue, _winStrParamValueData);
+       _winStrParamValueData = realloc (_winStrParamValueData, 
+                                _winStrParamIdxValueData[nStrParam] * sizeof(char));
+       MPI_Win_attach (_winStrParamValue, _winStrParamValueData, _winStrParamIdxValueData[nStrParam]);
+      }
+
+      strncpy(_winStrParamValueData + _winStrParamIdxValueData[i], 
+              value.c_str(), value.size()); 
+      
+      MPI_Win_unlock (_rootRankInGlobalComm, _winStrParamIdxValue);
+      MPI_Win_unlock (_rootRankInGlobalComm, _winStrParamValue);
+      MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
+    }
   }
 
   /**
@@ -897,12 +1261,78 @@ namespace cwipi {
    const int     value
   )
   {
-    pair<string, int> parameter(name, value);
-    pair<map<string, int>::iterator, bool> p = 
-      _intCtrlParam.insert(parameter);
-    if (!p.second)
+    if (!_isLocal) {
       bftc_error(__FILE__, __LINE__, 0,
-                 "'%s' is already an integer control parameter\n", name.c_str());
+           "'%s' is a distant code. Add a distant code parameter is unallowed\n", 
+                                                   _name.c_str());      
+    }
+
+    int rank;
+    MPI_Comm_rank(_globalComm, &rank);
+
+    if (_rootRankInGlobalComm == rank) {
+      MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winGlob);
+      MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winIntParamValue);
+      MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winIntParamName);
+      MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winIntParamIdxName);
+    
+      int sName = strlen(name);
+      int found = 0;
+      int i;
+      
+      int lockStatus   = _winGlobData[0];
+      int nIntParam    = _winGlobData[1];
+      int nDoubleParam = _winGlobData[2];
+      int nStrParam    = _winGlobData[3];
+      
+      for (i = 0; i < nIntParam; i++) {
+        int sParam = _winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i];
+        if (sName = sParam) {
+         found = !strncmp(name.c_str(), 
+                 _winIntParamNameData + _winIntParamIdxNameData[i], 
+                 sName);
+        }
+        if (found) break;
+      }
+
+      if (found) {
+        bftc_error(__FILE__, __LINE__, 0,
+                   "'%s' is already a parameter off '%s' code\n", name.c_str(), 
+                                                                 _name.c_str());      
+      }
+
+      if (nIntParam > 0) {
+        MPI_Win_detach(_winIntParamValue, _winIntParamValueData);
+        MPI_Win_detach(_winIntParamIdxName, _winIntParamIdxNameData);
+        MPI_Win_detach(_winIntParamName, _winIntParamNameData);
+      }
+      
+      int sWin1 = (nIntParam + 1) * sizeof(int);
+      int sWinName1 = (_winIntParamIdxNameData[nIntParam] + name.size()) * sizeof(char);
+      _winIntParamValueData = realloc (_winIntParamValueData, sWin1);
+      _winIntParamIdxNameData = realloc (_winIntParamIdxNameData, sWin1);
+      _winIntParamNameData = realloc (_winIntParamNameData, sWinName1);
+
+      MPI_Aint sWin = (MPI_Aint) sWin1;
+      MPI_Aint sWinName = (MPI_Aint) sWinName1;
+      MPI_Win_attach (_winStrParamValue, _winStrParamValueData, sWin);
+      MPI_Win_attach (_winStrParamIdxName, _winStrParamIdxNameData, sWin);
+      MPI_Win_attach (_winStrParamName, _winStrParamNameData, sWinName);
+      
+      _winIntParamIdxNameData[nIntParam+1] = _winIntParamIdxNameData[nIntParam] + name.size();
+
+      strncpy(_winIntParamNameData + _winIntParamIdxNameData[nIntParam], 
+              name.c_str(), name.size()); 
+
+      _winIntParamValueData[nIntParam] = value;
+      
+      nIntParam += 1;
+    
+      MPI_Win_unlock (_rootRankInGlobalComm, _winIntParamValue);
+      MPI_Win_unlock (_rootRankInGlobalComm, _winIntParamIdxName);
+      MPI_Win_unlock (_rootRankInGlobalComm, _winIntParamName);
+      MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
+    }
   }
 
 
@@ -921,12 +1351,78 @@ namespace cwipi {
    const double  value
   )
   {
-    pair<string, double> parameter(name, value);
-    pair<map<string, double>::iterator, bool> p = 
-      _dblCtrlParam.insert(parameter);
-    if (!p.second)
+    if (!_isLocal) {
       bftc_error(__FILE__, __LINE__, 0,
-                 "'%s' is already a double control parameter\n", name.c_str());
+           "'%s' is a distant code. Add a distant code parameter is unallowed\n", 
+                                                   _name.c_str());      
+    }
+
+    int rank;
+    MPI_Comm_rank(_globalComm, &rank);
+
+    if (_rootRankInGlobalComm == rank) {
+      MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winGlob);
+      MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winDoubleParamValue);
+      MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winDoubleParamName);
+      MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winDoubleParamIdxName);
+    
+      int sName = strlen(name);
+      int found = 0;
+      int i;
+      
+      int lockStatus   = _winGlobData[0];
+      int nIntParam    = _winGlobData[1];
+      int nDoubleParam = _winGlobData[2];
+      int nStrParam    = _winGlobData[3];
+      
+      for (i = 0; i < nDoubleParam; i++) {
+        int sParam = _winDoubleParamIdxNameData[i+1] - _winDoubleParamIdxNameData[i];
+        if (sName == sParam) {
+         found = !strncmp(name.c_str(), 
+                 _winDoubleParamNameData + _winDoubleParamIdxNameData[i], 
+                 sName);
+        }
+        if (found) break;
+      }
+
+      if (found) {
+        bftc_error(__FILE__, __LINE__, 0,
+                   "'%s' is already a parameter off '%s' code\n", name.c_str(), 
+                                                                 _name.c_str());      
+      }
+
+      if (nDoubleParam > 0) {
+        MPI_Win_detach(_winDoubleParamValue, _winDoubleParamValueData);
+        MPI_Win_detach(_winDoubleParamIdxName, _winDoubleParamIdxNameData);
+        MPI_Win_detach(_winDoubleParamName, _winDoubleParamNameData);
+      }
+      
+      int sWin1 = (nDoubleParam + 1) * sizeof(int);
+      int sWinName1 = (_winDoubleParamIdxNameData[nDoubleParam] + name.size()) * sizeof(char);
+      _winDoubleParamValueData = realloc (_winDoubleParamValueData, sWin1);
+      _winDoubleParamIdxNameData = realloc (_winDoubleParamIdxNameData, sWin1);
+      _winDoubleParamNameData = realloc (_winDoubleParamNameData, sWinName1);
+
+      MPI_Aint sWin = (MPI_Aint) sWin1;
+      MPI_Aint sWinName = (MPI_Aint) sWinName1;
+      MPI_Win_attach (_winStrParamValue, _winStrParamValueData, sWin);
+      MPI_Win_attach (_winStrParamIdxName, _winStrParamIdxNameData, sWin);
+      MPI_Win_attach (_winStrParamName, _winStrParamNameData, sWinName);
+      
+      _winDoubleParamIdxNameData[nDoubleParam+1] = _winDoubleParamIdxNameData[nDoubleParam] + name.size();
+
+      strncpy(_winDoubleParamNameData + _winDoubleParamIdxNameData[nDoubleParam], 
+              name.c_str(), name.size()); 
+
+      _winDoubleParamValueData[nDoubleParam] = value;
+      
+      nDoubleParam += 1;
+    
+      MPI_Win_unlock (_rootRankInGlobalComm, _winDoubleParamValue);
+      MPI_Win_unlock (_rootRankInGlobalComm, _winDoubleParamIdxName);
+      MPI_Win_unlock (_rootRankInGlobalComm, _winDoubleParamName);
+      MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
+    }
   }
 
   /**
@@ -944,12 +1440,92 @@ namespace cwipi {
    const string  value
   )
   {
-    pair<string, string> parameter(name, value);
-    pair<map<string, string>::iterator, bool> p = 
-      _strCtrlParam.insert(parameter);
-    if (!p.second)
+    
+    if (!_isLocal) {
       bftc_error(__FILE__, __LINE__, 0,
-                 "'%s' is already a string control parameter\n", name.c_str());
+           "'%s' is a distant code. Add a distant code parameter is unallowed\n", 
+                                                   _name.c_str());      
+    }
+
+    int rank;
+    MPI_Comm_rank(_globalComm, &rank);
+
+    if (_rootRankInGlobalComm == rank) {
+      MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winGlob);
+      MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winStrParamValue);
+      MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winStrParamIdxValue);
+      MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winStrParamName);
+      MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winStrParamIdxName);
+    
+      int sName = strlen(name);
+      int found = 0;
+      int i;
+      
+      int lockStatus   = _winGlobData[0];
+      int nIntParam    = _winGlobData[1];
+      int nDoubleParam = _winGlobData[2];
+      int nStrParam    = _winGlobData[3];
+      
+      for (i = 0; i < nStrParam; i++) {
+        int sParam = _winStrParamIdxNameData[i+1] - _winStrParamIdxNameData[i];
+        if (sName = sParam) {
+         found = !strncmp(name.c_str(), 
+                 _winStrParamNameData + _winStrParamIdxNameData[i], 
+                 sName);
+        }
+        if (found) break;
+      }
+
+      if (found) {
+        bftc_error(__FILE__, __LINE__, 0,
+                   "'%s' is already a parameter off '%s' code\n", name.c_str(), 
+                                                                 _name.c_str());      
+      }
+
+      if (nStrParam > 0) {
+        MPI_Win_detach(_winStrParamValue, _winStrParamIdxValueData);
+        MPI_Win_detach(_winStrParamValue, _winStrParamValueData);
+        MPI_Win_detach(_winStrParamIdxName, _winStrParamIdxNameData);
+        MPI_Win_detach(_winStrParamName, _winStrParamNameData);
+      }
+      
+      int sWin1 = (nStrParam + 1) * sizeof(int);
+      _winStrParamIdxValueData = realloc (_winStrParamValueData, sWin1);
+      _winStrParamIdxNameData = realloc (_winStrParamIdxNameData, sWin1);
+
+      int sWinName1 = (_winStrParamIdxNameData[nStrParam] + name.size()) * sizeof(char);
+      _winStrParamNameData = realloc (_winStrParamNameData, sWinName1);
+
+      int sWinValue1 = (_winStrParamIdxValueData[nStrParam] + value.size()) * sizeof(char);
+      _winStrParamValueData = realloc (_winStrParamValueData, sWinValue1);
+
+      MPI_Aint sWin = (MPI_Aint) sWin1;
+      MPI_Win_attach (_winStrParamIdxValue, _winStrParamIdxValueData, sWin);
+      _winStrParamIdxValueData[nStrParam+1] = _winStrParamIdxValueData[nStrParam] + value.size();
+
+      MPI_Win_attach (_winStrParamIdxName, _winStrParamIdxNameData, sWin);
+      _winStrParamIdxNameData[nStrParam+1] = _winStrParamIdxNameData[nStrParam] + name.size();
+
+      MPI_Aint sWinName = (MPI_Aint) sWinName1;
+      MPI_Win_attach (_winStrParamName, _winStrParamNameData, sWinName);
+      
+      MPI_Aint sWinValue = (MPI_Aint) sWinValue1;
+      MPI_Win_attach (_winStrParamValue, _winStrParamValueData, sWinValue);
+
+      strncpy(_winStrParamNameData + _winStrParamIdxNameData[nStrParam], 
+              name.c_str(), name.size()); 
+
+      strncpy(_winStrParamValueData + _winStrParamIdxValueData[nStrParam], 
+              value.c_str(), value.size()); 
+      
+      nStrParam += 1;
+    
+      MPI_Win_unlock (_rootRankInGlobalComm, _winStrParamIdxName);
+      MPI_Win_unlock (_rootRankInGlobalComm, _winStrParamName);
+      MPI_Win_unlock (_rootRankInGlobalComm, _winStrParamIdxValue);
+      MPI_Win_unlock (_rootRankInGlobalComm, _winStrParamValue);
+      MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
+    }
   }
 
   /**
@@ -967,33 +1543,192 @@ namespace cwipi {
    const string &name
   )
   {
-    if (typeid(T) == typeid(string)) { 
-      map <string, string>::iterator p = _strCtrlParam.find(name);
-      if (p != _strCtrlParam.end())
-        _strCtrlParam.erase(p);
-      else
-        bftc_error(__FILE__, __LINE__, 0,
-                   "'%s' string control parameter not found \n", name.c_str());
-    }
-    else if (typeid(T) == typeid(int)) {
-      map <string, int>::iterator p = _intCtrlParam.find(name);
-      if (p != _intCtrlParam.end())
-        _intCtrlParam.erase(p);
-      else
-        bftc_error(__FILE__, __LINE__, 0,
-                   "'%s' int control parameter not found \n", name.c_str());
-    }
-    else if (typeid(T) == typeid(double)) {
-      map <string, double>::iterator p = _dblCtrlParam.find(name);
-      if (p != _dblCtrlParam.end())
-        _dblCtrlParam.erase(p);
-      else
-        bftc_error(__FILE__, __LINE__, 0,
-                   "'%s' double control parameter not found \n", name.c_str());
-    }
-    else
+    if (!_isLocal) {
       bftc_error(__FILE__, __LINE__, 0,
-                "Type not taken into account \n");
+           "'%s' is a distant code. Delete a distant code parameter is unallowed\n", 
+                                                   _name.c_str());      
+    }
+
+    int rank;
+    MPI_Comm_rank(_globalComm, &rank);
+
+    if (_rootRankInGlobalComm == rank) {
+    
+      MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winGlob);
+
+      int lockStatus   = _winGlobData[0];
+      int nIntParam    = _winGlobData[1];
+      int nDoubleParam = _winGlobData[2];
+      int nStrParam    = _winGlobData[3];
+
+      MPI_Win  *winTypeParamIdxValue = NULL;
+      MPI_Win  *winTypeParamValue = NULL;
+      MPI_Win  *winTypeParamIdxName = NULL;
+      MPI_Win  *winTypeParamName = NULL;
+
+      int nTypeParam;
+      int  *winTypeParamIdxValueData = NULL;
+      T *winTypeParamValueData = NULL;
+      int  *winTypeParamIdxNameData = NULL;
+      char *winTypeParamNameData = NULL;
+
+      if (typeid(T) == typeid(string)) {
+        nTypeParam               = nStrParam;
+        winTypeParamIdxValue     = &_winStrParamIdxValue;
+        winTypeParamValue        = &_winStrParamValue;
+        winTypeParamIdxName      = &_winStrParamIdxName;
+        winTypeParamName         = &_winStrParamName;
+        winTypeParamIdxValueData = _winStrParamIdxValueData;
+        winTypeParamValueData    = _winStrParamValueData;
+        winTypeParamIdxNameData  = _winStrParamIdxNameData; 
+        winTypeParamNameData     = _winStrParamNameData; 
+      }
+      else if (typeid(T) == typeid(int)) {
+        nTypeParam              = nIntParam;
+        winTypeParamValue       = &_winIntParamValue;
+        winTypeParamIdxName     = &_winIntParamIdxName;
+        winTypeParamName        = &_winIntParamName;
+        winTypeParamValueData   = _winIntParamValueData;
+        winTypeParamIdxNameData = _winIntParamIdxNameData; 
+        winTypeParamNameData    = _winIntParamNameData; 
+      }
+      else if (typeid(T) == typeid(double)) {
+        nTypeParam              = nDoubleParam;
+        winTypeParamValue       = &_winDoubleParamValue;
+        winTypeParamIdxName     = &_winDoubleParamIdxName;
+        winTypeParamName        = &_winDoubleParamName;
+        winTypeParamValueData   = _winDoubleParamValueData;
+        winTypeParamIdxNameData = _winDoubleParamIdxNameData; 
+        winTypeParamNameData    = _winDoubleParamNameData; 
+      }
+      else {
+        bftc_error(__FILE__, __LINE__, 0,
+                  "Type not taken into account \n");
+      }
+      
+      int i;
+      int found;
+      
+      for (i = 0; i < nTypeParam; i++) {
+        int sParam = winTypeParamIdxNameData[i+1] - winTypeParamIdxNameData[i];
+        if (name.size() == sParam) {
+         found = !strncmp(name.c_str(), 
+                 winTypeParamNameData + winTypeParamIdxNameData[i], 
+                 name.size());
+        }
+        if (found) break;
+      }
+
+      if (found) {
+        if (winTypeParamIdxValueData != NULL) {
+          MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, 
+                        *winTypeParamIdxValue);
+          MPI_Win_detach(*winTypeParamIdxValue, winTypeParamIdxValueData);
+        }
+        MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, 
+                      *winTypeParamValue);
+        MPI_Win_detach(*winTypeParamValue, winTypeParamValueData);
+        MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, 
+                      *winTypeParamName);
+        MPI_Win_detach(*winTypeParamName, winTypeParamNameData);
+        MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, 
+                      *winTypeParamIdxName);
+        MPI_Win_detach(*winTypeParamIdxName, winTypeParamIdxNameData);
+        
+        if (winTypeParamIdxValueData != NULL) {
+          int gap = winTypeParamIdxValueData[i+] - winTypeParamIdxValueData[i];
+          for (int i1 = winTypeParamIdxValueData[i]; i1 < winTypeParamIdxValueData[nTypeParam] - gap; i1++) {
+            winTypeParamValueData[i1] = winTypeParamValueData[i1+gap]; 
+          }
+          for (int i1 = i; i1 < nTypeParam - 1; i1++) {
+            winTypeParamIdxValueData[i1] = winTypeParamIdxValueData[i1+1] - gap; 
+          }                  
+        }
+        else {
+          for (int i1 = i; i1 < nTypeParam - 1; i1++) {
+            winTypeParamValueData[i1] = winTypeParamValueData[i1+1]; 
+          }        
+        }
+        
+        int gap2 = winTypeParamIdxNameData[i+] - winTypeParamIdxNameData[i];
+        for (int i1 = winTypeParamIdxNameData[i]; i1 < winTypeParamIdxNameData[nTypeParam] - gap2; i1++) {
+          winTypeParamNameData[i1] = winTypeParamNameData[i1+gap2]; 
+        }        
+        
+        for (int i1 = i; i1 < nTypeParam - 1; i1++) {
+          winTypeParamIdxNameData[i1] = winTypeParamIdxNameData[i1+1] - gap2; 
+        }                  
+        
+        nTypeParam += -1; 
+
+        int sWin1 = (nTypeParam + 1) * sizeof(int);
+        if (winTypeParamIdxValueData != NULL) {
+          winTypeParamIdxValueData = realloc (winTypeParamValueData, sWin1);
+        }
+        winTypeParamIdxNameData = realloc (winTypeParamIdxNameData, sWin1);
+
+        int sWinName1 = (winTypeParamIdxNameData[nStrParam] + name.size()) * sizeof(char);
+        winTypeParamNameData = realloc (winTypeParamNameData, sWinName1);
+
+        int sWinValue1;
+        if (winTypeParamIdxValueData != NULL) {
+          sWinValue1 = winTypeParamIdxValueData[nStrParam] * sizeof(T);
+        }
+        else {
+          sWinValue1 = nTypeParam * sizeof(T);          
+        }
+        
+        winTypeParamValueData = realloc (_winStrParamValueData, sWinValue1);
+
+        MPI_Aint sWin = (MPI_Aint) sWin1;
+        if (winTypeParamIdxValueData != NULL) {
+          MPI_Win_attach (*winTypeParamIdxValue, winTypeParamIdxValueData, sWin);
+        }
+        MPI_Win_attach (*winTypeParamIdxName, winTypeParamIdxNameData, sWin);
+        winTypeParamIdxNameData[nStrParam+1] = winTypeParamIdxNameData[nStrParam] + name.size();
+
+        MPI_Aint sWinName = (MPI_Aint) sWinName1;
+        MPI_Win_attach (*winTypeParamName, winTypeParamNameData, sWinName);
+
+        MPI_Aint sWinValue = (MPI_Aint) sWinValue1;
+        MPI_Win_attach (winTypeParamValue, winTypeParamValueData, sWinValue);
+        
+        if (typeid(T) == typeid(string)) {
+          nStrParam = nTypeParam;
+          _winStrParamIdxValueData = winTypeParamIdxValueData;
+          _winStrParamValueData    = winTypeParamValueData;
+          _winStrParamIdxNameData  = winTypeParamIdxNameData; 
+          _winStrParamNameData     = winTypeParamNameData; 
+        }
+        else if (typeid(T) == typeid(int)) {
+          nIntParam = nTypeParam;
+          _winIntParamValueData    = winTypeParamValueData;
+          _winIntParamIdxNameData  = winTypeParamIdxNameData; 
+          _winIntParamNameData     = winTypeParamNameData; 
+        }
+        else if (typeid(T) == typeid(double)) {
+          nDoubleParam = nTypeParam;
+          _winDoubleParamValueData    = winTypeParamValueData;
+          _winDoubleParamIdxNameData  = winTypeParamIdxNameData; 
+          _winDoubleParamNameData     = winTypeParamNameData; 
+        }
+        else {
+          bftc_error(__FILE__, __LINE__, 0,
+                    "Type not taken into account \n");
+        }
+
+        if (winTypeParamIdxValueData != NULL) {
+          MPI_Win_unlock (_rootRankInGlobalComm, *winTypeParamIdxValue);
+        }
+        MPI_Win_unlock (_rootRankInGlobalComm, *winTypeParamValue);
+        MPI_Win_unlock (_rootRankInGlobalComm, *winTypeParamName);
+        MPI_Win_unlock (_rootRankInGlobalComm, *winTypeParamIdxName);
+
+      } 
+      
+      MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
+    }
+
   }
 
   /**
@@ -1009,20 +1744,63 @@ namespace cwipi {
   (
    )  const
   {
+    int rank;
+    MPI_Comm_rank(_globalComm, &rank);
+
+    int oldLockStatus   = _winGlobData[0];
+    int oldNIntParam    = _winGlobData[1];
+    int oldNDoubleParam = _winGlobData[2];
+    int oldNStrParam    = _winGlobData[3];
+    int lockStatus      = oldLockStatus;
+    int nIntParam       = oldNIntParam;
+    int nDoubleParam    = oldNDoubleParam;
+    int nStrParam       = oldNStrParam;
+
+    MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
+
+    if (rank != _rootRankInGlobalComm) {
+
+      do {
+        MPI_Request rq1;
+        MPI_Rget (_winGlobData, 4, MPI_INT, _rootRankInGlobalComm,
+                  0, 4, MPI_INT, _winGlob, &rq1);
+        MPI_Wait (rq1, MPI_STATUS_IGNORE);
+        lockStatus = _winGlobData[0];
+        if (lockStatus) {
+          MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
+          MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
+        }
+      }  while (lockStatus); 
+
+      nIntParam    = _winGlobData[1];
+      nDoubleParam = _winGlobData[2];
+      nStrParam    = _winGlobData[3];
+    }
+    
+    else {
+      if (lockStatus) {
+        bftc_error(__FILE__, __LINE__, 0,
+                   "Unlock parameters before read its on the current rank\n");      
+      }
+      
+    }
+
+    MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
+
     if (typeid(T) == typeid(string)) { 
-      return _strCtrlParam.size();
+      return nStrParam;
     }
     else if (typeid(T) == typeid(int)) {
-      return _intCtrlParam.size();
+      return nIntParam;
     }
     else if (typeid(T) == typeid(double)) {
-      return _dblCtrlParam.size();
+      return nDoubleParam;
     }
     else {
       bftc_error(__FILE__, __LINE__, 0,
                 "Type not taken into account \n");
     }
-    return 0;
+    
   }
 
 
@@ -1034,46 +1812,114 @@ namespace cwipi {
    */
   
   template<typename T>
-  char ** 
+  void  
   CodeProperties::ctrlParamListGet
   (
+   int  *nParam, 
+   char ***names
   )  const
   {
-    char **names = new char * [ctrlParamNGet <T> ()];
-    if (typeid(T) == typeid(string)) { 
-      int i = 0;
-      for(typename map < string, string >::iterator p = _strCtrlParam.begin(); 
-          p != _strCtrlParam.end(); 
-          ++p) {
-        names[i] = new char [p->first.size() + 1];
-        strcpy(names[i], p->first.c_str());
-        i += 1;
+    int rank;
+    MPI_Comm_rank(_globalComm, &rank);
+
+    int oldLockStatus   = _winGlobData[0];
+    int oldNIntParam    = _winGlobData[1];
+    int oldNDoubleParam = _winGlobData[2];
+    int oldNStrParam    = _winGlobData[3];
+    int lockStatus      = oldLockStatus;
+    int nIntParam       = oldNIntParam;
+    int nDoubleParam    = oldNDoubleParam;
+    int nStrParam       = oldNStrParam;
+
+    MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
+
+    if (rank != _rootRankInGlobalComm) {
+
+      do {
+        MPI_Request rq1;
+        MPI_Rget (_winGlobData, 4, MPI_INT, _rootRankInGlobalComm,
+                  0, 4, MPI_INT, _winGlob, &rq1);
+        MPI_Wait (rq1, MPI_STATUS_IGNORE);
+        lockStatus = _winGlobData[0];
+        if (lockStatus) {
+          MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
+          MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
+        }
+      }  while (lockStatus); 
+
+      nIntParam    = _winGlobData[1];
+      nDoubleParam = _winGlobData[2];
+      nStrParam    = _winGlobData[3];
+
+    }
+    
+    else {
+      if (lockStatus) {
+        bftc_error(__FILE__, __LINE__, 0,
+                   "Unlock parameters before read its on the current rank\n");      
       }
-    } 
+      
+    }
+
+    MPI_Win  *winTypeParamIdxName = NULL;
+    MPI_Win  *winTypeParamName = NULL;
+
+    int nTypeParam;
+    int  *winTypeParamIdxNameData = NULL;
+    char *winTypeParamNameData = NULL;
+
+    if (typeid(T) == typeid(string)) {
+      nTypeParam               = nStrParam;
+      winTypeParamIdxName      = &_winStrParamIdxName;
+      winTypeParamName         = &_winStrParamName;
+      winTypeParamIdxNameData  = _winStrParamIdxNameData; 
+      winTypeParamNameData     = _winStrParamNameData; 
+    }
     else if (typeid(T) == typeid(int)) {
-      int i = 0;
-      for(typename map < string, int >::iterator p = _intCtrlParam.begin(); 
-          p != _intCtrlParam.end(); 
-          ++p) {
-        names[i] = new char [p->first.size() + 1];
-        strcpy(names[i], p->first.c_str());
-        i += 1;
-      }
+      nTypeParam              = nIntParam;
+      winTypeParamIdxName     = &_winIntParamIdxName;
+      winTypeParamName        = &_winIntParamName;
+      winTypeParamIdxNameData = _winIntParamIdxNameData; 
+      winTypeParamNameData    = _winIntParamNameData; 
     }
     else if (typeid(T) == typeid(double)) {
-      int i = 0;
-      for(typename map < string, double >::iterator p = _dblCtrlParam.begin(); 
-          p != _dblCtrlParam.end(); 
-          ++p) {
-        names[i] = new char [p->first.size() + 1];
-        strcpy(names[i], p->first.c_str());
-        i += 1;
-      }
+      nTypeParam              = nDoubleParam;
+      winTypeParamIdxName     = &_winDoubleParamIdxName;
+      winTypeParamName        = &_winDoubleParamName;
+      winTypeParamIdxNameData = _winDoubleParamIdxNameData; 
+      winTypeParamNameData    = _winDoubleParamNameData; 
     }
-    else
+    else {
       bftc_error(__FILE__, __LINE__, 0,
-                 "Type not taken into account \n");
-    return names;
+                "Type not taken into account \n");
+    }
+
+    MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, 
+                  *winTypeParamName);
+    MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, 
+                  *winTypeParamIdxName);
+
+    *names = malloc(sizeof(char **) * nTypeParam);
+
+    for (int i = 0; i < nTypeParam; i++) {
+      int sParam = winTypeParamIdxNameData[i+1] - winTypeParamIdxNameData[i];
+      (*names)[i] = malloc(sizeof(char *) * (sParam + 1));
+      char *curName = (*names)[i];
+
+      strncpy(curName,
+              winTypeParamNameData + winTypeParamIdxNameData[i], 
+              sParam);
+
+      curName[sParam] = '\0';
+
+    }
+
+    *nParam = nTypeParam;
+
+    MPI_Win_unlock (_rootRankInGlobalComm, *winTypeParamName);
+    MPI_Win_unlock (_rootRankInGlobalComm, *winTypeParamIdxName);
+    MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
+
   }
 
 
@@ -1093,40 +1939,103 @@ namespace cwipi {
    const string &name 
   )  const
   {
-    if (typeid(T) == typeid(string)) { 
-      typename map < string, string >::iterator  p;
-      typename map < string, string >::iterator  p_end;
-      p     = _strCtrlParam.find(name);
-      p_end = _strCtrlParam.end();
-      if (p != p_end)
-        return 1;
-      else
-        return 0;
+    int rank;
+    MPI_Comm_rank(_globalComm, &rank);
+
+    int oldLockStatus   = _winGlobData[0];
+    int oldNIntParam    = _winGlobData[1];
+    int oldNDoubleParam = _winGlobData[2];
+    int oldNStrParam    = _winGlobData[3];
+    int lockStatus      = oldLockStatus;
+    int nIntParam       = oldNIntParam;
+    int nDoubleParam    = oldNDoubleParam;
+    int nStrParam       = oldNStrParam;
+
+    MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
+
+    if (rank != _rootRankInGlobalComm) {
+
+      do {
+        MPI_Request rq1;
+        MPI_Rget (_winGlobData, 4, MPI_INT, _rootRankInGlobalComm,
+                  0, 4, MPI_INT, _winGlob, &rq1);
+        MPI_Wait (rq1, MPI_STATUS_IGNORE);
+        lockStatus = _winGlobData[0];
+        if (lockStatus) {
+          MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
+          MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
+        }
+      }  while (lockStatus); 
+
+      nIntParam    = _winGlobData[1];
+      nDoubleParam = _winGlobData[2];
+      nStrParam    = _winGlobData[3];
+
+    }
+    
+    else {
+      if (lockStatus) {
+        bftc_error(__FILE__, __LINE__, 0,
+                   "Unlock parameters before read its on the current rank\n");      
+      }
+      
+    }
+
+    MPI_Win  *winTypeParamIdxName = NULL;
+    MPI_Win  *winTypeParamName = NULL;
+
+    int nTypeParam;
+    int  *winTypeParamIdxNameData = NULL;
+    char *winTypeParamNameData = NULL;
+
+    if (typeid(T) == typeid(string)) {
+      nTypeParam               = nStrParam;
+      winTypeParamIdxName      = &_winStrParamIdxName;
+      winTypeParamName         = &_winStrParamName;
+      winTypeParamIdxNameData  = _winStrParamIdxNameData; 
+      winTypeParamNameData     = _winStrParamNameData; 
     }
     else if (typeid(T) == typeid(int)) {
-      typename map < string, int >::iterator  p;
-      typename map < string, int >::iterator  p_end;
-      p     = _intCtrlParam.find(name);
-      p_end = _intCtrlParam.end();
-      if (p != p_end)
-        return 1;
-      else
-        return 0;
+      nTypeParam              = nIntParam;
+      winTypeParamIdxName     = &_winIntParamIdxName;
+      winTypeParamName        = &_winIntParamName;
+      winTypeParamIdxNameData = _winIntParamIdxNameData; 
+      winTypeParamNameData    = _winIntParamNameData; 
     }
     else if (typeid(T) == typeid(double)) {
-      typename map < string, double >::iterator  p;
-      typename map < string, double >::iterator  p_end;
-      p     = _dblCtrlParam.find(name);
-      p_end = _dblCtrlParam.end();
-      if (p != p_end)
-        return 1;
-      else
-        return 0;
+      nTypeParam              = nDoubleParam;
+      winTypeParamIdxName     = &_winDoubleParamIdxName;
+      winTypeParamName        = &_winDoubleParamName;
+      winTypeParamIdxNameData = _winDoubleParamIdxNameData; 
+      winTypeParamNameData    = _winDoubleParamNameData; 
     }
-    else
+    else {
       bftc_error(__FILE__, __LINE__, 0,
                 "Type not taken into account \n");
-    return 0;
+    }
+
+    MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, 
+                  *winTypeParamName);
+    MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, 
+                  *winTypeParamIdxName);
+
+    int sName = name.size();
+    int found = 0;
+    for (int i = 0; i < nIntParam; i++) {
+      int sParam = winTypeParamIdxNameData[i+1] - winTypeParamIdxNameData[i];
+      if (sName == sParam) {
+       found = !strncmp(name.c_str(), 
+               winTypeParamNameData + winTypeParamIdxNameData[i], 
+               sName);
+      }
+      if (found) break;
+    }
+
+    MPI_Win_unlock (_rootRankInGlobalComm, *winTypeParamName);
+    MPI_Win_unlock (_rootRankInGlobalComm, *winTypeParamIdxName);
+    MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
+
+    return found;
   }
 
   
