@@ -220,7 +220,7 @@ namespace cwipi {
     (
      const string &name,
      int          *value
-    ) const;
+    );
 
     /**
      * \brief Get a double control parameter value
@@ -234,7 +234,7 @@ namespace cwipi {
     (
      const string &name,
      double       *value
-    ) const;
+    );
 
     /**
      * \brief Get a string control parameter value
@@ -248,7 +248,7 @@ namespace cwipi {
     (
      const string &name,
      string       *value
-    ) const;
+    );
 
     /**
      * \brief Set an integer control parameter value
@@ -368,7 +368,7 @@ namespace cwipi {
     int 
     ctrlParamNGet
     (
-    ) const;
+    );
 
 
     /**
@@ -379,10 +379,12 @@ namespace cwipi {
      */
 
     template<typename T>
-    char ** 
+    void 
     ctrlParamListGet
     (
-    ) const;
+    int  *nParam, 
+    char ***names
+    );
 
 
     /**
@@ -399,7 +401,7 @@ namespace cwipi {
     ctrlParamIs
     (
      const string &name
-    ) const;
+    );
 
 
     /**
@@ -429,7 +431,7 @@ namespace cwipi {
      *
      */
 
-    void
+    inline void
     paramLock();
 
     
@@ -438,7 +440,7 @@ namespace cwipi {
      *
      */
 
-    void
+    inline void
     paramUnLock();
 
 
@@ -689,19 +691,15 @@ namespace cwipi {
   (
    const string &name,
    int          *value
-  ) const
+  )
   {
     int rank;
     MPI_Comm_rank(_globalComm, &rank);
 
     int oldLockStatus   = _winGlobData[0];
     int oldNIntParam    = _winGlobData[1];
-    int oldNDoubleParam = _winGlobData[2];
-    int oldNStrParam    = _winGlobData[3];
     int lockStatus      = oldLockStatus;
     int nIntParam       = oldNIntParam;
-    int nDoubleParam    = oldNDoubleParam;
-    int nStrParam       = oldNStrParam;
 
     MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
 
@@ -709,8 +707,8 @@ namespace cwipi {
 
       do {
         MPI_Request rq1;
-        MPI_Rget (_winGlobData, 4, MPI_INT, _rootRankInGlobalComm, 0, 4, MPI_INT, _winGlob, &rq1);
-        MPI_Wait (rq1, MPI_STATUS_IGNORE);
+        MPI_Rget ((void *) _winGlobData, 4, MPI_INT, _rootRankInGlobalComm, 0, 4, MPI_INT, _winGlob, &rq1);
+        MPI_Wait (&rq1, MPI_STATUS_IGNORE);
         lockStatus = _winGlobData[0];
         if (lockStatus) {
           MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
@@ -719,12 +717,10 @@ namespace cwipi {
       }  while (lockStatus); 
 
       nIntParam    = _winGlobData[1];
-      nDoubleParam = _winGlobData[2];
-      nStrParam    = _winGlobData[3];
       
       if (nIntParam > oldNIntParam) {
-        _winIntParamIdxNameData = realloc(_winIntParamIdxNameData, sizeof(int) * (nIntParam + 1));        
-        _winIntParamValueData = realloc(_winIntParamValueData, sizeof(int) * nIntParam);        
+        _winIntParamIdxNameData = (int *) realloc(_winIntParamIdxNameData, sizeof(int) * (nIntParam + 1));        
+        _winIntParamValueData = (int *) realloc(_winIntParamValueData, sizeof(int) * nIntParam);        
       }
       
       int oldSParamNameData = 0;
@@ -738,7 +734,7 @@ namespace cwipi {
       MPI_Win_unlock (_rootRankInGlobalComm, _winIntParamIdxName);
    
       if (_winIntParamIdxNameData[nIntParam] > oldSParamNameData) {
-        _winIntParamNameData = realloc(_winIntParamNameData, 
+        _winIntParamNameData = (char *) realloc(_winIntParamNameData, 
                                        sizeof(char) * _winIntParamIdxNameData[nIntParam]);          
       }
       
@@ -800,19 +796,15 @@ namespace cwipi {
   (
    const string &name,
    double       *value
-  ) const
+  )
   {
     int rank;
     MPI_Comm_rank(_globalComm, &rank);
 
     int oldLockStatus   = _winGlobData[0];
-    int oldNIntParam    = _winGlobData[1];
     int oldNDoubleParam = _winGlobData[2];
-    int oldNStrParam    = _winGlobData[3];
     int lockStatus      = oldLockStatus;
-    int nIntParam       = oldNIntParam;
     int nDoubleParam    = oldNDoubleParam;
-    int nStrParam       = oldNStrParam;
 
     MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
 
@@ -820,8 +812,8 @@ namespace cwipi {
       
       do {
         MPI_Request rq1;
-        MPI_Rget (_winGlobData, 4, MPI_INT, _rootRankInGlobalComm, 0, 4, MPI_INT, _winGlob, &rq1);
-        MPI_Wait (rq1, MPI_STATUS_IGNORE);
+        MPI_Rget ((void *) _winGlobData, 4, MPI_INT, _rootRankInGlobalComm, 0, 4, MPI_INT, _winGlob, &rq1);
+        MPI_Wait (&rq1, MPI_STATUS_IGNORE);
         lockStatus = _winGlobData[0];
         if (lockStatus) {
           MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
@@ -829,13 +821,11 @@ namespace cwipi {
         }
       }  while (lockStatus); 
 
-      nIntParam    = _winGlobData[1];
       nDoubleParam = _winGlobData[2];
-      nStrParam    = _winGlobData[3];
       
       if (nDoubleParam > oldNDoubleParam) {
-        _winDoubleParamIdxNameData = realloc(_winDoubleParamIdxNameData, sizeof(int) * (nDoubleParam + 1));        
-        _winDoubleParamValueData = realloc(_winDoubleParamValueData, sizeof(double) * nDoubleParam);        
+        _winDoubleParamIdxNameData = (int *) realloc(_winDoubleParamIdxNameData, sizeof(int) * (nDoubleParam + 1));        
+        _winDoubleParamValueData = (double *) realloc(_winDoubleParamValueData, sizeof(double) * nDoubleParam);        
       }
       
       int oldSParamNameData = 0;
@@ -849,7 +839,7 @@ namespace cwipi {
       MPI_Win_unlock (_rootRankInGlobalComm, _winDoubleParamIdxName);
    
       if (_winDoubleParamIdxNameData[nDoubleParam] > oldSParamNameData) {
-        _winDoubleParamNameData = realloc(_winDoubleParamNameData, 
+        _winDoubleParamNameData = (char *) realloc(_winDoubleParamNameData, 
                                        sizeof(char) * _winDoubleParamIdxNameData[nDoubleParam]);          
       }
       
@@ -909,18 +899,14 @@ namespace cwipi {
   (
    const string &name,
    string       *value
-  ) const
+  )
   {
     int rank;
     MPI_Comm_rank(_globalComm, &rank);
 
     int oldLockStatus   = _winGlobData[0];
-    int oldNIntParam    = _winGlobData[1];
-    int oldNDoubleParam = _winGlobData[2];
     int oldNStrParam    = _winGlobData[3];
     int lockStatus      = oldLockStatus;
-    int nIntParam       = oldNIntParam;
-    int nDoubleParam    = oldNDoubleParam;
     int nStrParam       = oldNStrParam;
 
     MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
@@ -929,9 +915,9 @@ namespace cwipi {
 
       do {
         MPI_Request rq1;
-        MPI_Rget (_winGlobData, 4, MPI_INT, _rootRankInGlobalComm,
+        MPI_Rget ((void *) _winGlobData, 4, MPI_INT, _rootRankInGlobalComm,
                   0, 4, MPI_INT, _winGlob, &rq1);
-        MPI_Wait (rq1, MPI_STATUS_IGNORE);
+        MPI_Wait (&rq1, MPI_STATUS_IGNORE);
         lockStatus = _winGlobData[0];
         if (lockStatus) {
           MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
@@ -939,14 +925,12 @@ namespace cwipi {
         }
       }  while (lockStatus); 
 
-      nIntParam    = _winGlobData[1];
-      nDoubleParam = _winGlobData[2];
       nStrParam    = _winGlobData[3];
       
       if (nStrParam > oldNStrParam) {
-        _winStrParamIdxNameData = realloc(_winStrParamIdxNameData, 
+        _winStrParamIdxNameData = (int *) realloc(_winStrParamIdxNameData, 
                                           sizeof(int) * (nStrParam + 1));        
-        _winStrParamIdxValueData = realloc(_winStrParamValueData, 
+        _winStrParamIdxValueData = (int *) realloc(_winStrParamValueData, 
                                         sizeof(int) * (nStrParam + 1));        
       }
       
@@ -964,7 +948,7 @@ namespace cwipi {
       MPI_Win_unlock (_rootRankInGlobalComm, _winStrParamIdxName);
    
       if (_winStrParamIdxNameData[nStrParam] > oldSParamNameData) {
-        _winStrParamNameData = realloc(_winStrParamNameData, 
+        _winStrParamNameData = (char *) realloc(_winStrParamNameData, 
                                        sizeof(char) * _winStrParamIdxNameData[nStrParam]);          
       }
 
@@ -975,7 +959,7 @@ namespace cwipi {
       MPI_Win_unlock (_rootRankInGlobalComm, _winStrParamIdxValue);
    
       if (_winStrParamIdxValueData[nStrParam] > oldSParamValueData) {
-        _winStrParamValueData = realloc(_winStrParamValueData, 
+        _winStrParamValueData = (char *) realloc(_winStrParamValueData, 
                                        sizeof(char) * _winStrParamIdxValueData[nStrParam]);          
       }
       
@@ -1022,10 +1006,10 @@ namespace cwipi {
 
     int sValue = _winStrParamIdxValueData[i+1] - _winStrParamIdxValueData[i];
     value->resize(sValue);
-    strncpy (value->c_str(),
+    strncpy ((char *) value->c_str(),
              _winStrParamValueData + _winStrParamIdxValueData[i], 
              sValue);
-    value->c_str()[sValue] = '\0';
+    ((char *)value->c_str())[sValue] = '\0';
     
     MPI_Win_unlock ( _rootRankInGlobalComm, _winGlob);
   }
@@ -1058,14 +1042,11 @@ namespace cwipi {
       MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winGlob);
       MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winIntParamValue);
     
-      int sName = strlen(name);
+      int sName = name.size();
       int found = 0;
       int i;
       
-      int lockStatus   = _winGlobData[0];
       int nIntParam    = _winGlobData[1];
-      int nDoubleParam = _winGlobData[2];
-      int nStrParam    = _winGlobData[3];
       
       for (i = 0; i < nIntParam; i++) {
         int sParam = _winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i];
@@ -1118,14 +1099,11 @@ namespace cwipi {
       MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winGlob);
       MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winDoubleParamValue);
     
-      int sName = strlen(name);
+      int sName = name.size();
       int found = 0;
       int i;
       
-      int lockStatus   = _winGlobData[0];
-      int nIntParam    = _winGlobData[1];
       int nDoubleParam = _winGlobData[2];
-      int nStrParam    = _winGlobData[3];
       
       for (i = 0; i < nDoubleParam; i++) {
         int sParam = _winDoubleParamIdxNameData[i+1] - _winDoubleParamIdxNameData[i];
@@ -1179,13 +1157,10 @@ namespace cwipi {
       MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winStrParamValue);
       MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winStrParamIdxValue);
     
-      int sName = strlen(name);
+      int sName = name.size();
       int found = 0;
       int i;
       
-      int lockStatus   = _winGlobData[0];
-      int nIntParam    = _winGlobData[1];
-      int nDoubleParam = _winGlobData[2];
       int nStrParam    = _winGlobData[3];
       
       for (i = 0; i < nStrParam; i++) {
@@ -1208,7 +1183,7 @@ namespace cwipi {
       int gap = value.size() - sValue;
       if (gap > 0) {
         MPI_Win_detach(_winStrParamValue, _winStrParamValueData);
-        _winStrParamValueData = realloc (_winStrParamValueData, 
+        _winStrParamValueData = (char *) realloc (_winStrParamValueData, 
    (_winStrParamIdxValueData[nStrParam] + value.size() - sValue) * sizeof(char));
         MPI_Aint swin = _winStrParamIdxValueData[nStrParam] + value.size() - sValue;
         MPI_Win_attach (_winStrParamValue, _winStrParamValueData, swin);
@@ -1232,7 +1207,7 @@ namespace cwipi {
 
       if (gap < 0) {
        MPI_Win_detach(_winStrParamValue, _winStrParamValueData);
-       _winStrParamValueData = realloc (_winStrParamValueData, 
+       _winStrParamValueData = (char *) realloc (_winStrParamValueData, 
                                 _winStrParamIdxValueData[nStrParam] * sizeof(char));
        MPI_Win_attach (_winStrParamValue, _winStrParamValueData, _winStrParamIdxValueData[nStrParam]);
       }
@@ -1276,14 +1251,11 @@ namespace cwipi {
       MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winIntParamName);
       MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winIntParamIdxName);
     
-      int sName = strlen(name);
+      int sName = name.size();
       int found = 0;
       int i;
       
-      int lockStatus   = _winGlobData[0];
       int nIntParam    = _winGlobData[1];
-      int nDoubleParam = _winGlobData[2];
-      int nStrParam    = _winGlobData[3];
       
       for (i = 0; i < nIntParam; i++) {
         int sParam = _winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i];
@@ -1309,9 +1281,9 @@ namespace cwipi {
       
       int sWin1 = (nIntParam + 1) * sizeof(int);
       int sWinName1 = (_winIntParamIdxNameData[nIntParam] + name.size()) * sizeof(char);
-      _winIntParamValueData = realloc (_winIntParamValueData, sWin1);
-      _winIntParamIdxNameData = realloc (_winIntParamIdxNameData, sWin1);
-      _winIntParamNameData = realloc (_winIntParamNameData, sWinName1);
+      _winIntParamValueData = (int *) realloc (_winIntParamValueData, sWin1);
+      _winIntParamIdxNameData = (int *) realloc (_winIntParamIdxNameData, sWin1);
+      _winIntParamNameData = (char * ) realloc (_winIntParamNameData, sWinName1);
 
       MPI_Aint sWin = (MPI_Aint) sWin1;
       MPI_Aint sWinName = (MPI_Aint) sWinName1;
@@ -1366,14 +1338,11 @@ namespace cwipi {
       MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winDoubleParamName);
       MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winDoubleParamIdxName);
     
-      int sName = strlen(name);
+      int sName = name.size();
       int found = 0;
       int i;
       
-      int lockStatus   = _winGlobData[0];
-      int nIntParam    = _winGlobData[1];
       int nDoubleParam = _winGlobData[2];
-      int nStrParam    = _winGlobData[3];
       
       for (i = 0; i < nDoubleParam; i++) {
         int sParam = _winDoubleParamIdxNameData[i+1] - _winDoubleParamIdxNameData[i];
@@ -1399,9 +1368,9 @@ namespace cwipi {
       
       int sWin1 = (nDoubleParam + 1) * sizeof(int);
       int sWinName1 = (_winDoubleParamIdxNameData[nDoubleParam] + name.size()) * sizeof(char);
-      _winDoubleParamValueData = realloc (_winDoubleParamValueData, sWin1);
-      _winDoubleParamIdxNameData = realloc (_winDoubleParamIdxNameData, sWin1);
-      _winDoubleParamNameData = realloc (_winDoubleParamNameData, sWinName1);
+      _winDoubleParamValueData = (double *) realloc (_winDoubleParamValueData, sWin1);
+      _winDoubleParamIdxNameData = (int *) realloc (_winDoubleParamIdxNameData, sWin1);
+      _winDoubleParamNameData = (char *) realloc (_winDoubleParamNameData, sWinName1);
 
       MPI_Aint sWin = (MPI_Aint) sWin1;
       MPI_Aint sWinName = (MPI_Aint) sWinName1;
@@ -1457,13 +1426,10 @@ namespace cwipi {
       MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winStrParamName);
       MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winStrParamIdxName);
     
-      int sName = strlen(name);
+      int sName = name.size();
       int found = 0;
       int i;
       
-      int lockStatus   = _winGlobData[0];
-      int nIntParam    = _winGlobData[1];
-      int nDoubleParam = _winGlobData[2];
       int nStrParam    = _winGlobData[3];
       
       for (i = 0; i < nStrParam; i++) {
@@ -1490,14 +1456,14 @@ namespace cwipi {
       }
       
       int sWin1 = (nStrParam + 1) * sizeof(int);
-      _winStrParamIdxValueData = realloc (_winStrParamValueData, sWin1);
-      _winStrParamIdxNameData = realloc (_winStrParamIdxNameData, sWin1);
+      _winStrParamIdxValueData = (int *) realloc (_winStrParamValueData, sWin1);
+      _winStrParamIdxNameData = (int *) realloc (_winStrParamIdxNameData, sWin1);
 
       int sWinName1 = (_winStrParamIdxNameData[nStrParam] + name.size()) * sizeof(char);
-      _winStrParamNameData = realloc (_winStrParamNameData, sWinName1);
+      _winStrParamNameData = (char *) realloc (_winStrParamNameData, sWinName1);
 
       int sWinValue1 = (_winStrParamIdxValueData[nStrParam] + value.size()) * sizeof(char);
-      _winStrParamValueData = realloc (_winStrParamValueData, sWinValue1);
+      _winStrParamValueData = (char *) realloc (_winStrParamValueData, sWinValue1);
 
       MPI_Aint sWin = (MPI_Aint) sWin1;
       MPI_Win_attach (_winStrParamIdxValue, _winStrParamIdxValueData, sWin);
@@ -1556,7 +1522,6 @@ namespace cwipi {
     
       MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, _winGlob);
 
-      int lockStatus   = _winGlobData[0];
       int nIntParam    = _winGlobData[1];
       int nDoubleParam = _winGlobData[2];
       int nStrParam    = _winGlobData[3];
@@ -1579,7 +1544,7 @@ namespace cwipi {
         winTypeParamIdxName      = &_winStrParamIdxName;
         winTypeParamName         = &_winStrParamName;
         winTypeParamIdxValueData = _winStrParamIdxValueData;
-        winTypeParamValueData    = _winStrParamValueData;
+        winTypeParamValueData    = (T *) _winStrParamValueData;
         winTypeParamIdxNameData  = _winStrParamIdxNameData; 
         winTypeParamNameData     = _winStrParamNameData; 
       }
@@ -1588,7 +1553,7 @@ namespace cwipi {
         winTypeParamValue       = &_winIntParamValue;
         winTypeParamIdxName     = &_winIntParamIdxName;
         winTypeParamName        = &_winIntParamName;
-        winTypeParamValueData   = _winIntParamValueData;
+        winTypeParamValueData   = (T *) _winIntParamValueData;
         winTypeParamIdxNameData = _winIntParamIdxNameData; 
         winTypeParamNameData    = _winIntParamNameData; 
       }
@@ -1597,7 +1562,7 @@ namespace cwipi {
         winTypeParamValue       = &_winDoubleParamValue;
         winTypeParamIdxName     = &_winDoubleParamIdxName;
         winTypeParamName        = &_winDoubleParamName;
-        winTypeParamValueData   = _winDoubleParamValueData;
+        winTypeParamValueData   = (T *) _winDoubleParamValueData;
         winTypeParamIdxNameData = _winDoubleParamIdxNameData; 
         winTypeParamNameData    = _winDoubleParamNameData; 
       }
@@ -1636,7 +1601,7 @@ namespace cwipi {
         MPI_Win_detach(*winTypeParamIdxName, winTypeParamIdxNameData);
         
         if (winTypeParamIdxValueData != NULL) {
-          int gap = winTypeParamIdxValueData[i+] - winTypeParamIdxValueData[i];
+          int gap = winTypeParamIdxValueData[i+1] - winTypeParamIdxValueData[i];
           for (int i1 = winTypeParamIdxValueData[i]; i1 < winTypeParamIdxValueData[nTypeParam] - gap; i1++) {
             winTypeParamValueData[i1] = winTypeParamValueData[i1+gap]; 
           }
@@ -1650,7 +1615,7 @@ namespace cwipi {
           }        
         }
         
-        int gap2 = winTypeParamIdxNameData[i+] - winTypeParamIdxNameData[i];
+        int gap2 = winTypeParamIdxNameData[i+1] - winTypeParamIdxNameData[i];
         for (int i1 = winTypeParamIdxNameData[i]; i1 < winTypeParamIdxNameData[nTypeParam] - gap2; i1++) {
           winTypeParamNameData[i1] = winTypeParamNameData[i1+gap2]; 
         }        
@@ -1663,12 +1628,12 @@ namespace cwipi {
 
         int sWin1 = (nTypeParam + 1) * sizeof(int);
         if (winTypeParamIdxValueData != NULL) {
-          winTypeParamIdxValueData = realloc (winTypeParamValueData, sWin1);
+          winTypeParamIdxValueData = (int *) realloc (winTypeParamValueData, sWin1);
         }
-        winTypeParamIdxNameData = realloc (winTypeParamIdxNameData, sWin1);
+        winTypeParamIdxNameData = (int *) realloc (winTypeParamIdxNameData, sWin1);
 
         int sWinName1 = (winTypeParamIdxNameData[nStrParam] + name.size()) * sizeof(char);
-        winTypeParamNameData = realloc (winTypeParamNameData, sWinName1);
+        winTypeParamNameData = (char *) realloc (winTypeParamNameData, sWinName1);
 
         int sWinValue1;
         if (winTypeParamIdxValueData != NULL) {
@@ -1678,7 +1643,7 @@ namespace cwipi {
           sWinValue1 = nTypeParam * sizeof(T);          
         }
         
-        winTypeParamValueData = realloc (_winStrParamValueData, sWinValue1);
+        winTypeParamValueData = (T *) realloc (_winStrParamValueData, sWinValue1);
 
         MPI_Aint sWin = (MPI_Aint) sWin1;
         if (winTypeParamIdxValueData != NULL) {
@@ -1691,24 +1656,24 @@ namespace cwipi {
         MPI_Win_attach (*winTypeParamName, winTypeParamNameData, sWinName);
 
         MPI_Aint sWinValue = (MPI_Aint) sWinValue1;
-        MPI_Win_attach (winTypeParamValue, winTypeParamValueData, sWinValue);
+        MPI_Win_attach (*winTypeParamValue, winTypeParamValueData, sWinValue);
         
         if (typeid(T) == typeid(string)) {
           nStrParam = nTypeParam;
           _winStrParamIdxValueData = winTypeParamIdxValueData;
-          _winStrParamValueData    = winTypeParamValueData;
+          _winStrParamValueData    = (char *) winTypeParamValueData;
           _winStrParamIdxNameData  = winTypeParamIdxNameData; 
           _winStrParamNameData     = winTypeParamNameData; 
         }
         else if (typeid(T) == typeid(int)) {
           nIntParam = nTypeParam;
-          _winIntParamValueData    = winTypeParamValueData;
+          _winIntParamValueData    = (int *) winTypeParamValueData;
           _winIntParamIdxNameData  = winTypeParamIdxNameData; 
           _winIntParamNameData     = winTypeParamNameData; 
         }
         else if (typeid(T) == typeid(double)) {
           nDoubleParam = nTypeParam;
-          _winDoubleParamValueData    = winTypeParamValueData;
+          _winDoubleParamValueData    = (double *) winTypeParamValueData;
           _winDoubleParamIdxNameData  = winTypeParamIdxNameData; 
           _winDoubleParamNameData     = winTypeParamNameData; 
         }
@@ -1742,7 +1707,7 @@ namespace cwipi {
   int 
   CodeProperties::ctrlParamNGet
   (
-   )  const
+   )
   {
     int rank;
     MPI_Comm_rank(_globalComm, &rank);
@@ -1762,9 +1727,9 @@ namespace cwipi {
 
       do {
         MPI_Request rq1;
-        MPI_Rget (_winGlobData, 4, MPI_INT, _rootRankInGlobalComm,
+        MPI_Rget ((void *) _winGlobData, 4, MPI_INT, _rootRankInGlobalComm,
                   0, 4, MPI_INT, _winGlob, &rq1);
-        MPI_Wait (rq1, MPI_STATUS_IGNORE);
+        MPI_Wait (&rq1, MPI_STATUS_IGNORE);
         lockStatus = _winGlobData[0];
         if (lockStatus) {
           MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
@@ -1787,20 +1752,22 @@ namespace cwipi {
 
     MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
 
+    int nParam;
     if (typeid(T) == typeid(string)) { 
-      return nStrParam;
+      nParam = nStrParam;
     }
     else if (typeid(T) == typeid(int)) {
-      return nIntParam;
+      nParam = nIntParam;
     }
     else if (typeid(T) == typeid(double)) {
-      return nDoubleParam;
+      nParam = nDoubleParam;
     }
     else {
       bftc_error(__FILE__, __LINE__, 0,
                 "Type not taken into account \n");
     }
     
+    return nParam;
   }
 
 
@@ -1817,7 +1784,7 @@ namespace cwipi {
   (
    int  *nParam, 
    char ***names
-  )  const
+  )
   {
     int rank;
     MPI_Comm_rank(_globalComm, &rank);
@@ -1837,9 +1804,9 @@ namespace cwipi {
 
       do {
         MPI_Request rq1;
-        MPI_Rget (_winGlobData, 4, MPI_INT, _rootRankInGlobalComm,
+        MPI_Rget ((void *) _winGlobData, 4, MPI_INT, _rootRankInGlobalComm,
                   0, 4, MPI_INT, _winGlob, &rq1);
-        MPI_Wait (rq1, MPI_STATUS_IGNORE);
+        MPI_Wait (&rq1, MPI_STATUS_IGNORE);
         lockStatus = _winGlobData[0];
         if (lockStatus) {
           MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
@@ -1899,11 +1866,11 @@ namespace cwipi {
     MPI_Win_lock (MPI_LOCK_EXCLUSIVE, _rootRankInGlobalComm, 0, 
                   *winTypeParamIdxName);
 
-    *names = malloc(sizeof(char **) * nTypeParam);
+    *names = (char **) malloc(sizeof(char *) * nTypeParam);
 
     for (int i = 0; i < nTypeParam; i++) {
       int sParam = winTypeParamIdxNameData[i+1] - winTypeParamIdxNameData[i];
-      (*names)[i] = malloc(sizeof(char *) * (sParam + 1));
+      (*names)[i] = (char *) malloc(sizeof(char) * (sParam + 1));
       char *curName = (*names)[i];
 
       strncpy(curName,
@@ -1937,7 +1904,7 @@ namespace cwipi {
   CodeProperties::ctrlParamIs
   (
    const string &name 
-  )  const
+  )
   {
     int rank;
     MPI_Comm_rank(_globalComm, &rank);
@@ -1957,9 +1924,9 @@ namespace cwipi {
 
       do {
         MPI_Request rq1;
-        MPI_Rget (_winGlobData, 4, MPI_INT, _rootRankInGlobalComm,
+        MPI_Rget ((void *) _winGlobData, 4, MPI_INT, _rootRankInGlobalComm,
                   0, 4, MPI_INT, _winGlob, &rq1);
-        MPI_Wait (rq1, MPI_STATUS_IGNORE);
+        MPI_Wait (&rq1, MPI_STATUS_IGNORE);
         lockStatus = _winGlobData[0];
         if (lockStatus) {
           MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
@@ -1984,26 +1951,22 @@ namespace cwipi {
     MPI_Win  *winTypeParamIdxName = NULL;
     MPI_Win  *winTypeParamName = NULL;
 
-    int nTypeParam;
     int  *winTypeParamIdxNameData = NULL;
     char *winTypeParamNameData = NULL;
 
     if (typeid(T) == typeid(string)) {
-      nTypeParam               = nStrParam;
       winTypeParamIdxName      = &_winStrParamIdxName;
       winTypeParamName         = &_winStrParamName;
       winTypeParamIdxNameData  = _winStrParamIdxNameData; 
       winTypeParamNameData     = _winStrParamNameData; 
     }
     else if (typeid(T) == typeid(int)) {
-      nTypeParam              = nIntParam;
       winTypeParamIdxName     = &_winIntParamIdxName;
       winTypeParamName        = &_winIntParamName;
       winTypeParamIdxNameData = _winIntParamIdxNameData; 
       winTypeParamNameData    = _winIntParamNameData; 
     }
     else if (typeid(T) == typeid(double)) {
-      nTypeParam              = nDoubleParam;
       winTypeParamIdxName     = &_winDoubleParamIdxName;
       winTypeParamName        = &_winDoubleParamName;
       winTypeParamIdxNameData = _winDoubleParamIdxNameData; 

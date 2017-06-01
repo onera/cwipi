@@ -222,12 +222,13 @@ namespace cwipi {
      */
 
     template < typename T > 
-    char **
+    void
     ctrlParamListGet
     (
-     const string &codeName
+     const string &codeName,
+     int  *nParam,
+     char ***paramNames
     ) const;
-
 
     /**
      * \brief Chek name parameter existence

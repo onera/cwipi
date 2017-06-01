@@ -1754,41 +1754,42 @@ CWP_Param_n_get
  *
  * \brief Return the parameter list of a code
  * 
- * \param [in] code_name      Local or distant code name
- * \param [in] data_type      Parameter type,
+ * \param [in]  code_name      Local or distant code name
+ * \param [in]  data_type      Parameter type,
+ * \param [out] nParam         Number of parameters
+ * \param [out] paramNames     Parameter names
  *
- * \return  list of param names
  *
  */
 
-char**
+void
 CWP_Param_list_get
 (
  const char             *code_name,
- const CWP_Type_t        data_type
+ const CWP_Type_t        data_type,
+ int                    *nParam,
+ char                 ***paramNames   
 )
 {
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
 
   const string &codeNameStr = code_name;
-  char **paramList;
 
   switch(data_type) {
   case CWP_INT :
-    paramList = properties.ctrlParamListGet<int>(codeNameStr);
+    properties.ctrlParamListGet<int>(codeNameStr, nParam, paramNames);
     break;
   case CWP_DOUBLE :
-    paramList = properties.ctrlParamListGet<double>(codeNameStr);
+    properties.ctrlParamListGet<double>(codeNameStr, nParam, paramNames);
     break;
   case CWP_CHAR :
-    paramList = properties.ctrlParamListGet<string>(codeNameStr);
+    properties.ctrlParamListGet<string>(codeNameStr, nParam, paramNames);
     break;
   default :
     bftc_error(__FILE__, __LINE__, 0,
                "Not yet implemented data type\n");
   }
-  return paramList;
 }
 
 

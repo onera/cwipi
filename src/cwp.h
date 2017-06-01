@@ -1819,23 +1819,25 @@ CWP_Param_n_get
  const CWP_Type_t        data_type
 );
 
-
 /**
  *
  * \brief Return the parameter list of a code
  * 
- * \param [in] code_name      Code name
- * \param [in] data_type      Parameter type,
+ * \param [in]  code_name      Local or distant code name
+ * \param [in]  data_type      Parameter type,
+ * \param [out] nParam         Number of parameters
+ * \param [out] paramNames     Parameter names
  *
- * return  list of param names
  *
  */
 
-char**
+void
 CWP_Param_list_get
 (
  const char             *code_name,
- const CWP_Type_t        data_type
+ const CWP_Type_t        data_type,
+ int                    *nParam,
+ char                 ***paramNames   
 );
 
 /**
