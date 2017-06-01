@@ -177,7 +177,7 @@ namespace cwipi {
       _locCodePropertiesDB.find(localCodeName);
     if (p == _locCodePropertiesDB.end())
       bftc_error(__FILE__, __LINE__, 0,
-                "'%s' code not found \n", localCodeName.c_str());
+                "'%s' is not a local code \n", localCodeName.c_str());
     p->second->ctrlParamCancel<T>(name);
   }
 
@@ -231,7 +231,7 @@ namespace cwipi {
     if (p == _codePropertiesDB.end())
       bftc_error(__FILE__, __LINE__, 0,
                 "'%s' code not found \n", codeName.c_str());
-    T *value;
+    T *value = NULL;
     p->second->ctrlParamGet(name, value);
     return *value;
   }
@@ -261,19 +261,13 @@ namespace cwipi {
    va_list          *pa
   )
   {
-
-    //TODO: Continuer ici pour le reduce !!
-
     string codeName1 = string((char*)va_arg(*pa, char *));
 
     *res = this->ctrlParamGet < T > (codeName1, name);
 
-
     for (int k = 1; k < nCode; k++) {
 
       string codeName = string((char*)va_arg(*pa, char *));
-
-      cout << "reduce " << typeid(T).name() << " " << codeName.c_str() << endl;
 
       const map <string, CodeProperties * >::iterator p = 
         _codePropertiesDB.find(codeName);
@@ -287,7 +281,6 @@ namespace cwipi {
       switch (op) {
       case CWP_OP_MIN:
         *res = max(distParam, *res);
-        
         break;
       
       case CWP_OP_MAX:
@@ -314,7 +307,12 @@ namespace cwipi {
    const string &codeName
   )
   {
-    //TODO: LockcodePropDB
+    const map <string, CodeProperties * >::iterator p = 
+      _locCodePropertiesDB.find(codeName);
+    if (p == _locCodePropertiesDB.end())
+      bftc_error(__FILE__, __LINE__, 0,
+                "'%s' is not a local code \n", codeName.c_str());
+    p->second->paramLock();
   }
   
   /**
@@ -330,7 +328,12 @@ namespace cwipi {
    const string &codeName
   )
   {
-    //TODO: LockcodePropDB
+    const map <string, CodeProperties * >::iterator p = 
+      _locCodePropertiesDB.find(codeName);
+    if (p == _locCodePropertiesDB.end())
+      bftc_error(__FILE__, __LINE__, 0,
+                "'%s' is not a local code \n", codeName.c_str());
+    p->second->paramUnLock();
   }
   
   /**

@@ -1953,20 +1953,25 @@ namespace cwipi {
 
     int  *winTypeParamIdxNameData = NULL;
     char *winTypeParamNameData = NULL;
+    
+    int nTypeParam;
 
     if (typeid(T) == typeid(string)) {
+      nTypeParam = nStrParam;
       winTypeParamIdxName      = &_winStrParamIdxName;
       winTypeParamName         = &_winStrParamName;
       winTypeParamIdxNameData  = _winStrParamIdxNameData; 
       winTypeParamNameData     = _winStrParamNameData; 
     }
     else if (typeid(T) == typeid(int)) {
+      nTypeParam = nIntParam;
       winTypeParamIdxName     = &_winIntParamIdxName;
       winTypeParamName        = &_winIntParamName;
       winTypeParamIdxNameData = _winIntParamIdxNameData; 
       winTypeParamNameData    = _winIntParamNameData; 
     }
     else if (typeid(T) == typeid(double)) {
+      nTypeParam = nDoubleParam;
       winTypeParamIdxName     = &_winDoubleParamIdxName;
       winTypeParamName        = &_winDoubleParamName;
       winTypeParamIdxNameData = _winDoubleParamIdxNameData; 
@@ -1984,7 +1989,7 @@ namespace cwipi {
 
     int sName = name.size();
     int found = 0;
-    for (int i = 0; i < nIntParam; i++) {
+    for (int i = 0; i < nTypeParam; i++) {
       int sParam = winTypeParamIdxNameData[i+1] - winTypeParamIdxNameData[i];
       if (sName == sParam) {
        found = !strncmp(name.c_str(), 
