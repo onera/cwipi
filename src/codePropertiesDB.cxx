@@ -185,6 +185,8 @@ namespace cwipi {
     
     for (int irank = 0; irank < globalCommSize; irank++) {
 
+   
+      
       for (int k = 0; k < allProperties[3*irank]; k++) {
         assert(index <= totalLength);
 
@@ -195,7 +197,7 @@ namespace cwipi {
         typedef map <string, CodeProperties *>::iterator Iterator;
 
         Iterator p = _codePropertiesDB.find(currentName);
-        
+
         if (p == _codePropertiesDB.end()) {
 
           if (!_isLocalCodeRootrank) {
@@ -225,6 +227,7 @@ namespace cwipi {
           if (currentRank == irank) {
             if (_locCodePropertiesDB.find(currentName) == _locCodePropertiesDB.end()) {
                _locCodePropertiesDB[currentName] = p->second;
+               p->second->isLocalSet(true);
             }
           }
         
@@ -261,7 +264,7 @@ namespace cwipi {
       else {
         MPI_Win_create(NULL, 
                        0, 
-                       0, 
+                       sizeof(int), 
                        MPI_INFO_NULL, 
                        p2->second->_globalComm, 
                        &p2->second->_winGlob);

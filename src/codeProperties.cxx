@@ -17,9 +17,13 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 #include <mpi.h>
+#include <sstream>
+#include <iostream>
 
 #include "codeProperties.hxx"
 #include "bftc_printf.h"
+
+using namespace std;
 
 namespace cwipi
 {
@@ -76,6 +80,18 @@ namespace cwipi
     _winGlobData[1] = 0; // 0 int param
     _winGlobData[2] = 0; // 0 doube param
     _winGlobData[3] = 0; // 0 str param
+    
+    _winIntParamIdxNameData = (int *) malloc(sizeof(int));
+    _winDoubleParamIdxNameData = (int *) malloc(sizeof(int));
+    _winStrParamIdxNameData = (int *) malloc(sizeof(int));
+    _winStrParamIdxValueData = (int *) malloc(sizeof(int));
+
+    _winIntParamIdxNameData[0] = 0;
+    _winDoubleParamIdxNameData[0] = 0;
+    _winStrParamIdxNameData[0] = 0;
+    _winStrParamIdxValueData[0] = 0;
+    
+    cout << "toto : " << name << " " << isLocal << endl;
     
   }
 
