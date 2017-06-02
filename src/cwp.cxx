@@ -226,7 +226,7 @@ CWP_Init
 
   for (int i = 0; i < n_code; i++) {
     const string &codeNameStr = code_names[i]; 
-    properties.ctrlParamAdd <double> (codeNameStr, "time", time_init[i]);
+    //properties.ctrlParamAdd <double> (codeNameStr, "time", time_init[i]);
     properties.ctrlParamAdd <int> (codeNameStr, "state", CWP_STATE_IN_PROGRESS);
   }
   /*
@@ -312,7 +312,8 @@ CWP_Finalize
     cwipi::CodePropertiesDB::getInstance();
 
   const MPI_Comm globalComm = properties.globalCommGet();
-
+  printf("CWP_Finalize\n");
+  fflush(stdout);
   if (flag != 0) {
     bftc_printf_flush();
     MPI_Barrier(globalComm);

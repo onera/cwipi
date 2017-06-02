@@ -272,27 +272,65 @@ namespace cwipi {
       
       MPI_Win_create_dynamic(MPI_INFO_NULL, 
                              p2->second->_globalComm, 
-                             &p2->second->_winIntParamIdxName);   
+                             &p2->second->_winIntParamIdxName);
+      MPI_Win_attach(p2->second->_winIntParamIdxName,
+                     p2->second->_winIntParamIdxNameData, sizeof(int));
       
       MPI_Win_create_dynamic(MPI_INFO_NULL, 
                              p2->second->_globalComm, 
                              &p2->second->_winIntParamName);   
+      MPI_Win_attach(p2->second->_winIntParamName,
+                     p2->second->_winIntParamNameData, 0);
       
       MPI_Win_create_dynamic(MPI_INFO_NULL, 
                              p2->second->_globalComm, 
                              &p2->second->_winIntParamValue);   
+      MPI_Win_attach(p2->second->_winIntParamValue,
+                     p2->second->_winIntParamValueData, 0);
       
       MPI_Win_create_dynamic(MPI_INFO_NULL, 
                              p2->second->_globalComm, 
                              &p2->second->_winDoubleParamIdxName);   
+      MPI_Win_attach(p2->second->_winDoubleParamIdxName,
+                     p2->second->_winDoubleParamIdxNameData, sizeof(int));
       
       MPI_Win_create_dynamic(MPI_INFO_NULL, 
                              p2->second->_globalComm, 
                              &p2->second->_winDoubleParamName);   
+      MPI_Win_attach(p2->second->_winDoubleParamName,
+                     p2->second->_winDoubleParamNameData, 0);
       
       MPI_Win_create_dynamic(MPI_INFO_NULL, 
                              p2->second->_globalComm, 
-                             &p2->second->_winDoubleParamValue);   
+                             &p2->second->_winDoubleParamValue);
+      MPI_Win_attach(p2->second->_winDoubleParamValue,
+                     p2->second->_winDoubleParamValueData, 0);
+      
+
+      MPI_Win_create_dynamic(MPI_INFO_NULL, 
+                             p2->second->_globalComm, 
+                             &p2->second->_winStrParamIdxName);   
+      MPI_Win_attach(p2->second->_winStrParamIdxName,
+                     p2->second->_winStrParamIdxNameData, sizeof(int));
+      
+      MPI_Win_create_dynamic(MPI_INFO_NULL, 
+                             p2->second->_globalComm, 
+                             &p2->second->_winStrParamName);   
+      MPI_Win_attach(p2->second->_winStrParamName,
+                     p2->second->_winStrParamNameData, 0);
+      
+      MPI_Win_create_dynamic(MPI_INFO_NULL, 
+                             p2->second->_globalComm, 
+                             &p2->second->_winStrParamIdxValue);
+      MPI_Win_attach(p2->second->_winStrParamIdxValue,
+                     p2->second->_winStrParamIdxValueData, 0);
+      
+      MPI_Win_create_dynamic(MPI_INFO_NULL, 
+                             p2->second->_globalComm, 
+                             &p2->second->_winStrParamIdxValue);
+      MPI_Win_attach(p2->second->_winStrParamIdxValue,
+                     p2->second->_winStrParamIdxValueData, 0);
+      
 
     }
          

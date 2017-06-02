@@ -19,6 +19,7 @@
 #include <mpi.h>
 #include <sstream>
 #include <iostream>
+#include <algorithm>
 
 #include "codeProperties.hxx"
 #include "bftc_printf.h"
@@ -147,11 +148,54 @@ namespace cwipi
   void 
   CodeProperties::dump()
   {
-    bftc_printf("'%s' properties\n",_name.c_str());
-//    bftc_printf("  - Ranks in global MPI_comm : %i <= ranks <= %i \n",
-//               _firstRank,
-//               _lastRank);
-    bftc_printf("  - Identifier %d :\n", _id);
+    bftc_printf ("'%s' properties\n",_name.c_str());
+    bftc_printf ("  - Identifier : %d\n", _id);
+    bftc_printf ("  - Is it a local code : %d\n", _isLocal);
+    bftc_printf ("  - Root rank in global communicator : %d\n", _rootRankInGlobalComm);
+    bftc_printf ("  - Root rank in global communicator : %d\n", _rootRankInGlobalComm);
+    bftc_printf ("  - Is local code : %d\n", _isLocal);
+    bftc_printf ("  - Is it a coupled rank : %d\n", _isCoupledRank);
+
+    MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
+
+    _updateIntValues ();   
+    //_updateDoubleValues ();   
+    //_updateStrValues ();   
+
+    bftc_printf ("  - Integer control parameters \n");
+    bftc_printf ("     * Number : %d\n", _winGlobData[1]);
+
+    int sParamMax = -1;
+    for (int i = 0; i < _winGlobData[1]; i++) {
+      int sParam = _winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i];
+      sParamMax = max(sParam, sParamMax);
+    }
+
+    if (sParamMax > 99) sParamMax == 99;
+
+    char fmtName[24];
+    sprintf(fmtName, "     * '%%%d.%ds' : %%d\n",sParamMax, sParamMax);
+    char *tmpName = (char *) malloc (sizeof(char) * (sParamMax + 1));
+    for (int i = 0; i < _winGlobData[1]; i++) {
+      int sParam = _winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i];
+      strncpy (tmpName, 
+               _winIntParamNameData + _winIntParamIdxNameData[i], 
+               min (sParam, sParamMax));
+      tmpName[sParam] = '\0';
+      
+      bftc_printf (fmtName, tmpName, _winIntParamValueData[i]);
+      
+    }
+    free (tmpName);
+
+
+
+
+
+    MPI_Win_unlock ( _rootRankInGlobalComm, _winGlob);
+
+    
+    
 
 
     bftc_printf_flush();
@@ -164,35 +208,47 @@ namespace cwipi
 
   CodeProperties::~CodeProperties()
   {
-    printf("~CodeProperties\n");
+    printf("~CodeProperties %s\n", _name.c_str());
+    fflush(stdout);
+
     if (_winIntParamIdxName != MPI_WIN_NULL) {
+      MPI_Win_detach(_winIntParamIdxName, _winIntParamIdxNameData);
       MPI_Win_free(&_winIntParamIdxName);
     }
     if (_winIntParamName != MPI_WIN_NULL) {
+      MPI_Win_detach(_winIntParamName, _winIntParamNameData);
       MPI_Win_free(&_winIntParamName);
     }
     if (_winIntParamValue != MPI_WIN_NULL) {
+      MPI_Win_detach(_winIntParamValue, _winIntParamValueData);      
       MPI_Win_free(&_winIntParamValue);
     }
     if (_winDoubleParamIdxName != MPI_WIN_NULL) {
+      MPI_Win_detach(_winDoubleParamIdxName, _winDoubleParamIdxNameData);
       MPI_Win_free(&_winDoubleParamIdxName);
     }
     if (_winDoubleParamName != MPI_WIN_NULL) {
+      MPI_Win_detach(_winDoubleParamName, _winDoubleParamNameData);
       MPI_Win_free(&_winDoubleParamName);
     }
     if (_winDoubleParamValue != MPI_WIN_NULL) {
+      MPI_Win_detach(_winDoubleParamValue, _winDoubleParamValueData);
       MPI_Win_free(&_winDoubleParamValue);
     }
     if (_winStrParamIdxName != MPI_WIN_NULL) {
+      MPI_Win_detach(_winStrParamIdxName, _winStrParamIdxNameData);
       MPI_Win_free(&_winStrParamIdxName);
     }
     if (_winStrParamName != MPI_WIN_NULL) {
+      MPI_Win_detach(_winStrParamName, _winStrParamNameData);
       MPI_Win_free(&_winStrParamName);
     }
     if (_winStrParamIdxValue != MPI_WIN_NULL) {
+      MPI_Win_detach(_winStrParamIdxValue, _winStrParamIdxValueData);
       MPI_Win_free(&_winStrParamIdxValue);
     }
     if (_winStrParamValue != MPI_WIN_NULL) {
+      MPI_Win_detach(_winStrParamValue, _winStrParamValueData);
       MPI_Win_free(&_winStrParamValue);
     }
 
