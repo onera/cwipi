@@ -210,14 +210,19 @@ CWP_Init
   if (pPath!=NULL) {
     n_param_max = atoi(pPath);
   }
+
+  if (pPath != NULL) {  
+   printf ("environment variable 'CWP_N_PARAM_MAX'"
+           "is define to: %s\n",pPath);
+  }
   pPath = getenv ("CWP_STR_SIZE_MAX");
   if (pPath!=NULL) {
     str_size_max = atoi(pPath);
   }
-
-  printf ("The current path is: %s",pPath);
-
-
+  if (pPath != NULL) {  
+   printf ("environment variable 'CWP_STR_SIZE_MAX'"
+           "is define to: %s\n",pPath);
+  }
   
   /*
    * Get application properties

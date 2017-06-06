@@ -261,6 +261,7 @@ namespace cwipi {
                     p2++) {
         
       if (p2->second->_rootRankInGlobalComm == currentRank) {
+        
         MPI_Win_create(p2->second->_winGlobData, 
                        4 * sizeof(int),
                        sizeof(int), 
@@ -270,6 +271,7 @@ namespace cwipi {
         
         p2->second->_winIntParamIdxNameData = 
             (int *) malloc (sizeof(int) * (n_param_max + 1));
+        p2->second->_winIntParamIdxNameData[0] = 0;
         MPI_Win_create(p2->second->_winIntParamIdxNameData, 
                        (n_param_max + 1) * sizeof(int),
                        sizeof(int), 
@@ -297,6 +299,7 @@ namespace cwipi {
         
         p2->second->_winDoubleParamIdxNameData = 
             (int *) malloc (sizeof(int) * (n_param_max + 1));
+        p2->second->_winDoubleParamIdxNameData[0] = 0;
         MPI_Win_create(p2->second->_winDoubleParamIdxNameData, 
                        (n_param_max + 1) * sizeof(int),
                        sizeof(int), 
@@ -324,6 +327,7 @@ namespace cwipi {
         
         p2->second->_winStrParamIdxNameData = 
             (int *) malloc (sizeof(int) * (n_param_max + 1));
+        p2->second->_winStrParamIdxNameData[0] = 0;
         MPI_Win_create(p2->second->_winStrParamIdxNameData, 
                        (n_param_max + 1) * sizeof(int),
                        sizeof(int), 
@@ -342,6 +346,7 @@ namespace cwipi {
         
         p2->second->_winStrParamIdxValueData = 
             (int *) malloc (sizeof(int) * (n_param_max + 1));
+        p2->second->_winStrParamIdxValueData[0] = 0;
         MPI_Win_create(p2->second->_winStrParamIdxValueData, 
                        (n_param_max + 1) * sizeof(int),
                        sizeof(int), 

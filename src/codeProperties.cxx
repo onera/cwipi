@@ -88,16 +88,6 @@ namespace cwipi
     _winGlobData[2] = 0; // 0 doube param
     _winGlobData[3] = 0; // 0 str param
     
-    _winIntParamIdxNameData = (int *) malloc(sizeof(int));
-    _winDoubleParamIdxNameData = (int *) malloc(sizeof(int));
-    _winStrParamIdxNameData = (int *) malloc(sizeof(int));
-    _winStrParamIdxValueData = (int *) malloc(sizeof(int));
-
-    _winIntParamIdxNameData[0] = 0;
-    _winDoubleParamIdxNameData[0] = 0;
-    _winStrParamIdxNameData[0] = 0;
-    _winStrParamIdxValueData[0] = 0;
-    
     cout << "toto : " << name << " " << isLocal << endl;
     
   }
@@ -170,20 +160,36 @@ namespace cwipi
     _updateDoubleValues ();   
     _updateStrValues ();   
 
-    bftc_printf ("  - Integer control parameters \n");
-    bftc_printf ("     * Number : %d\n", _winGlobData[1]);
+    bftc_printf ("  - %d integer control parameters \n", _winGlobData[1]);
 
     int sParamMax = -1;
     for (int i = 0; i < _winGlobData[1]; i++) {
       int sParam = _winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i];
       sParamMax = max(sParam, sParamMax);
     }
+    for (int i = 0; i < _winGlobData[2]; i++) {
+      int sParam = _winDoubleParamIdxNameData[i+1] - _winDoubleParamIdxNameData[i];
+      sParamMax = max(sParam, sParamMax);
+    }
+    for (int i = 0; i < _winGlobData[3]; i++) {
+      int sParam = _winStrParamIdxNameData[i+1] - _winStrParamIdxNameData[i];
+      sParamMax = max(sParam, sParamMax);
+    }
+    
 
-    if (sParamMax > 99) sParamMax == 99;
+    if (sParamMax > 80) sParamMax == 80;
 
-    char fmtName[24];
-    sprintf(fmtName, "     * '%%%d.%ds' : %%d\n",sParamMax, sParamMax);
+    char fmtIntName[22];
+    sprintf(fmtIntName, "     * %%%d.%ds : %%d\n",sParamMax, sParamMax);
+
+    char fmtDoubleName[26];
+    sprintf(fmtDoubleName, "     * %%%d.%ds : %%12.5e\n",sParamMax, sParamMax);
+
+    char fmtStrName[22];
+    sprintf(fmtStrName, "     * %%%d.%ds : %%s\n",sParamMax, sParamMax);
+
     char *tmpName = (char *) malloc (sizeof(char) * (sParamMax + 1));
+
     for (int i = 0; i < _winGlobData[1]; i++) {
       int sParam = _winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i];
       strncpy (tmpName, 
@@ -191,9 +197,25 @@ namespace cwipi
                min (sParam, sParamMax));
       tmpName[sParam] = '\0';
       
-      bftc_printf (fmtName, tmpName, _winIntParamValueData[i]);
+      bftc_printf (fmtIntName, tmpName, _winIntParamValueData[i]);
       
     }
+
+    bftc_printf ("  - %d double control parameters \n", _winGlobData[2]);
+
+    for (int i = 0; i < _winGlobData[2]; i++) {
+      int sParam = _winDoubleParamIdxNameData[i+1] - _winDoubleParamIdxNameData[i];
+      strncpy (tmpName, 
+               _winDoubleParamNameData + _winDoubleParamIdxNameData[i], 
+               min (sParam, sParamMax));
+      tmpName[sParam] = '\0';
+      
+      bftc_printf (fmtDoubleName, tmpName, _winDoubleParamValueData[i]);
+      
+    }
+
+
+
     free (tmpName);
 
     MPI_Win_unlock ( _rootRankInGlobalComm, _winGlob);
