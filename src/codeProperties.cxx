@@ -185,10 +185,13 @@ namespace cwipi
     char fmtDoubleName[26];
     sprintf(fmtDoubleName, "     * %%%d.%ds : %%12.5e\n",sParamMax, sParamMax);
 
-    char fmtStrName[22];
-    sprintf(fmtStrName, "     * %%%d.%ds : %%s\n",sParamMax, sParamMax);
+    char fmtStrName[27];
+    sprintf(fmtStrName, "     * %%%d.%ds : %%%d.%ds\n",
+            sParamMax, sParamMax,
+            sParamMax, sParamMax);
 
     char *tmpName = (char *) malloc (sizeof(char) * (sParamMax + 1));
+    char *tmpValue = (char *) malloc (sizeof(char) * (sParamMax + 1));
 
     for (int i = 0; i < _winGlobData[1]; i++) {
       int sParam = _winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i];
@@ -214,9 +217,26 @@ namespace cwipi
       
     }
 
+    bftc_printf ("  - %d string control parameters \n", _winGlobData[2]);
 
+    for (int i = 0; i < _winGlobData[3]; i++) {
+      int sParam = _winStrParamIdxNameData[i+1] - _winStrParamIdxNameData[i];
+      strncpy (tmpName, 
+               _winStrParamNameData + _winStrParamIdxNameData[i], 
+               min (sParam, sParamMax));
+      tmpName[sParam] = '\0';
+
+      int sValue = _winStrParamIdxValueData[i+1] - _winStrParamIdxValueData[i];
+      strncpy (tmpValue, 
+               _winStrParamNameData + _winStrParamIdxNameData[i], 
+               min (sValue, sParamMax));
+      
+      bftc_printf (fmtDoubleName, tmpValue, _winDoubleParamValueData[i]);
+      
+    }
 
     free (tmpName);
+    free (tmpValue);
 
     MPI_Win_unlock ( _rootRankInGlobalComm, _winGlob);
 
