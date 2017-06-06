@@ -23,6 +23,7 @@
  *----------------------------------------------------------------------------*/
 
 #include <cstring>
+#include <cstdlib>
 
 /*----------------------------------------------------------------------------
  * BFT library headers
@@ -198,8 +199,26 @@ CWP_Init
 )
 
 {
+  const int n_param_max_default = 100;
+  const int str_size_max_default = 80;
+  
+  int n_param_max = n_param_max_default;
+  int str_size_max = str_size_max_default;
+      
+  char* pPath;
+  pPath = getenv ("CWP_N_PARAM_MAX");
+  if (pPath!=NULL) {
+    n_param_max = atoi(pPath);
+  }
+  pPath = getenv ("CWP_STR_SIZE_MAX");
+  if (pPath!=NULL) {
+    str_size_max = atoi(pPath);
+  }
 
-        
+  printf ("The current path is: %s",pPath);
+
+
+  
   /*
    * Get application properties
    */
@@ -218,6 +237,8 @@ CWP_Init
                    n_code,
                    code_names,
                    is_coupled_rank,
+                   n_param_max,
+                   str_size_max,
                    intra_comms);
 
   /*
@@ -226,7 +247,7 @@ CWP_Init
 
   for (int i = 0; i < n_code; i++) {
     const string &codeNameStr = code_names[i]; 
-    //properties.ctrlParamAdd <double> (codeNameStr, "time", time_init[i]);
+    properties.ctrlParamAdd <double> (codeNameStr, "time", time_init[i]);
     properties.ctrlParamAdd <int> (codeNameStr, "state", CWP_STATE_IN_PROGRESS);
   }
   /*

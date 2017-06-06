@@ -121,6 +121,7 @@ namespace cwipi {
    const T       value
   )
   {
+    
     const map <string, CodeProperties * >::iterator p = 
       _locCodePropertiesDB.find(localCodeName);
     if (p == _locCodePropertiesDB.end())

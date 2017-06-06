@@ -69,9 +69,9 @@ namespace cwipi {
      * \param [in]  n_codes         Number of codes on the current rank
      * \param [in]  code_names      Codes names on the current rank
      * \param [in]  is_coupled_rank Current rank is it a coupled rank
-     * \param [out] 
-     *
-     * \return                   Current code intra-communicator
+     * \param [in]  n_param_max     Maximum number of parameters
+     * \param [in]  str_size_max    Maximum size for a string
+     * \param [out] intra_coms      Current code intra-communicators
      *
      */
 
@@ -82,7 +82,9 @@ namespace cwipi {
      const int          n_codes,
      const char**       code_names, 
      const CWP_Status_t is_coupled_rank,
-     MPI_Comm           *intra_comms       
+     const int          n_param_max,
+     const int          str_size_max,      
+     MPI_Comm           *intra_comms
     );
 
     /**
@@ -365,11 +367,14 @@ namespace cwipi {
   private:
     MPI_Comm                          _globalComm;             /*!< Global communicator */  
     map <string, CodeProperties * > & _codePropertiesDB;       /*!< Distant code 
-                                                                           properties data base */
-    map <string, CodeProperties * > & _locCodePropertiesDB;       /*!< Local code properties */
+                                                                    properties data base */
+    map <string, CodeProperties * > & _locCodePropertiesDB;    /*!< Local code properties */
     
-    bool                               _isLocalCodeRootrank;          /*!< Current is it a local root rank 
-                                                                      *   in the global communicator */ 
+    bool                               _isLocalCodeRootrank;   /*!< Current is it a local root rank 
+                                                                *   in the global communicator */ 
+    int                                _n_param_max;           /*!< Maximum number of parameters */  
+    int                                _str_size_max;          /*!< Maximum size for a string */
+
   private:
     static const int _nIssend;                                        /*!< Number of issend 
                                                                            to send parameters */

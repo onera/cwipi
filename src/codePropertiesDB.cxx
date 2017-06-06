@@ -84,12 +84,12 @@ namespace cwipi {
    * the current name and the MPI communicator containing all processes of
    * all codes.
    *
-   * \param [in]  n_codes      Number of codes on the current rank
-   * \param [in]  code_names   Codes names on the current rank
-   * \param [in]  globalComm   MPI communicator containing all processes 
-   *                           of all codes
-   *
-   * \return                   Current code intra-communicator
+   * \param [in]  n_codes         Number of codes on the current rank
+   * \param [in]  code_names      Codes names on the current rank
+   * \param [in]  is_coupled_rank Current rank is it a coupled rank
+   * \param [in]  n_param_max     Maximum number of parameters
+   * \param [in]  str_size_max    Maximum size for a string
+   * \param [out] intra_coms      Current code intra-communicators
    *
    */
 
@@ -100,6 +100,8 @@ namespace cwipi {
   const int          n_codes,
   const char**       code_names, 
   const CWP_Status_t is_coupled_rank,
+  const int          n_param_max,
+  const int          str_size_max,      
   MPI_Comm           *intra_comms       
  )
   {
@@ -111,13 +113,17 @@ namespace cwipi {
     int globalCommSize;
     
     _globalComm = globalComm;
+    
+    _n_param_max = n_param_max;
+    _str_size_max = str_size_max;
 
     int flag;
 
     MPI_Initialized(&flag);
-    if (!flag)
+    if (!flag) {
       bftc_error(__FILE__, __LINE__, 0, "MPI is not initialized\n");
-
+    }
+      
     MPI_Comm_rank(globalComm, &currentRank);
     MPI_Comm_size(globalComm, &globalCommSize);
 
@@ -205,7 +211,8 @@ namespace cwipi {
           }
           CodeProperties *currentCodeProperties =
             new CodeProperties(currentName, id++, irank, 
-                               currentRank == irank, globalComm);
+                               currentRank == irank, globalComm,
+                               _n_param_max, _str_size_max);
 
           coupledRankCode[currentName] = new vector <int> ();
           coupledRankCode[currentName]->reserve(globalCommSize);
@@ -260,6 +267,96 @@ namespace cwipi {
                        MPI_INFO_NULL, 
                        p2->second->_globalComm, 
                        &p2->second->_winGlob);
+        
+        p2->second->_winIntParamIdxNameData = 
+            (int *) malloc (sizeof(int) * (n_param_max + 1));
+        MPI_Win_create(p2->second->_winIntParamIdxNameData, 
+                       (n_param_max + 1) * sizeof(int),
+                       sizeof(int), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winIntParamIdxName);
+        
+        p2->second->_winIntParamNameData = 
+            (char *) malloc (sizeof(char) * n_param_max * str_size_max);
+        MPI_Win_create(p2->second->_winIntParamNameData, 
+                       n_param_max * str_size_max * sizeof(char),
+                       sizeof(char), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winIntParamName);
+        
+        p2->second->_winIntParamValueData = 
+            (int *) malloc (sizeof(int) * n_param_max);
+        MPI_Win_create(p2->second->_winIntParamValueData, 
+                       n_param_max * sizeof(int),
+                       sizeof(int), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winIntParamValue);
+        
+        p2->second->_winDoubleParamIdxNameData = 
+            (int *) malloc (sizeof(int) * (n_param_max + 1));
+        MPI_Win_create(p2->second->_winDoubleParamIdxNameData, 
+                       (n_param_max + 1) * sizeof(int),
+                       sizeof(int), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winDoubleParamIdxName);
+        
+        p2->second->_winDoubleParamNameData = 
+            (char *) malloc (sizeof(char) * n_param_max * str_size_max);
+        MPI_Win_create(p2->second->_winDoubleParamNameData, 
+                       n_param_max * str_size_max * sizeof(char),
+                       sizeof(char), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winDoubleParamName);
+        
+        p2->second->_winDoubleParamValueData = 
+            (double *) malloc (sizeof(double) * n_param_max);
+        MPI_Win_create(p2->second->_winDoubleParamValueData, 
+                       n_param_max * sizeof(double),
+                       sizeof(double), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winDoubleParamValue);
+        
+        p2->second->_winStrParamIdxNameData = 
+            (int *) malloc (sizeof(int) * (n_param_max + 1));
+        MPI_Win_create(p2->second->_winStrParamIdxNameData, 
+                       (n_param_max + 1) * sizeof(int),
+                       sizeof(int), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winStrParamIdxName);
+        
+        p2->second->_winStrParamNameData = 
+            (char *) malloc (sizeof(char) * n_param_max * str_size_max);
+        MPI_Win_create(p2->second->_winStrParamNameData, 
+                       n_param_max * str_size_max * sizeof(char),
+                       sizeof(char), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winStrParamName);
+        
+        p2->second->_winStrParamIdxValueData = 
+            (int *) malloc (sizeof(int) * (n_param_max + 1));
+        MPI_Win_create(p2->second->_winStrParamIdxValueData, 
+                       (n_param_max + 1) * sizeof(int),
+                       sizeof(int), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winStrParamIdxValue);
+        
+        p2->second->_winStrParamValueData = 
+            (char *) malloc (sizeof(char) * n_param_max * str_size_max);
+        MPI_Win_create(p2->second->_winStrParamValueData, 
+                       n_param_max * str_size_max * sizeof(char),
+                       sizeof(char), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winStrParamValue);
       }
       else {
         MPI_Win_create(NULL, 
@@ -268,69 +365,97 @@ namespace cwipi {
                        MPI_INFO_NULL, 
                        p2->second->_globalComm, 
                        &p2->second->_winGlob);
-      }
-      
-      MPI_Win_create_dynamic(MPI_INFO_NULL, 
-                             p2->second->_globalComm, 
-                             &p2->second->_winIntParamIdxName);
-      MPI_Win_attach(p2->second->_winIntParamIdxName,
-                     p2->second->_winIntParamIdxNameData, sizeof(int));
-      
-      MPI_Win_create_dynamic(MPI_INFO_NULL, 
-                             p2->second->_globalComm, 
-                             &p2->second->_winIntParamName);   
-      MPI_Win_attach(p2->second->_winIntParamName,
-                     p2->second->_winIntParamNameData, 0);
-      
-      MPI_Win_create_dynamic(MPI_INFO_NULL, 
-                             p2->second->_globalComm, 
-                             &p2->second->_winIntParamValue);   
-      MPI_Win_attach(p2->second->_winIntParamValue,
-                     p2->second->_winIntParamValueData, 0);
-      
-      MPI_Win_create_dynamic(MPI_INFO_NULL, 
-                             p2->second->_globalComm, 
-                             &p2->second->_winDoubleParamIdxName);   
-      MPI_Win_attach(p2->second->_winDoubleParamIdxName,
-                     p2->second->_winDoubleParamIdxNameData, sizeof(int));
-      
-      MPI_Win_create_dynamic(MPI_INFO_NULL, 
-                             p2->second->_globalComm, 
-                             &p2->second->_winDoubleParamName);   
-      MPI_Win_attach(p2->second->_winDoubleParamName,
-                     p2->second->_winDoubleParamNameData, 0);
-      
-      MPI_Win_create_dynamic(MPI_INFO_NULL, 
-                             p2->second->_globalComm, 
-                             &p2->second->_winDoubleParamValue);
-      MPI_Win_attach(p2->second->_winDoubleParamValue,
-                     p2->second->_winDoubleParamValueData, 0);
-      
 
-      MPI_Win_create_dynamic(MPI_INFO_NULL, 
-                             p2->second->_globalComm, 
-                             &p2->second->_winStrParamIdxName);   
-      MPI_Win_attach(p2->second->_winStrParamIdxName,
-                     p2->second->_winStrParamIdxNameData, sizeof(int));
-      
-      MPI_Win_create_dynamic(MPI_INFO_NULL, 
-                             p2->second->_globalComm, 
-                             &p2->second->_winStrParamName);   
-      MPI_Win_attach(p2->second->_winStrParamName,
-                     p2->second->_winStrParamNameData, 0);
-      
-      MPI_Win_create_dynamic(MPI_INFO_NULL, 
-                             p2->second->_globalComm, 
-                             &p2->second->_winStrParamIdxValue);
-      MPI_Win_attach(p2->second->_winStrParamIdxValue,
-                     p2->second->_winStrParamIdxValueData, 0);
-      
-      MPI_Win_create_dynamic(MPI_INFO_NULL, 
-                             p2->second->_globalComm, 
-                             &p2->second->_winStrParamIdxValue);
-      MPI_Win_attach(p2->second->_winStrParamIdxValue,
-                     p2->second->_winStrParamIdxValueData, 0);
-      
+        p2->second->_winIntParamIdxNameData = 
+            (int *) malloc (sizeof(int) * (n_param_max + 1));
+        MPI_Win_create(NULL, 
+                       0, 
+                       sizeof(int), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winIntParamIdxName);
+
+        p2->second->_winIntParamNameData = 
+            (char *) malloc (sizeof(char) * n_param_max *str_size_max);
+        MPI_Win_create(NULL, 
+                       0, 
+                       sizeof(char), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winIntParamName);
+
+        p2->second->_winIntParamValueData = 
+            (int *) malloc (sizeof(int) * n_param_max);
+        MPI_Win_create(NULL, 
+                       0, 
+                       sizeof(int), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winIntParamValue);
+
+        p2->second->_winDoubleParamIdxNameData = 
+            (int *) malloc (sizeof(int) * (n_param_max + 1));
+        MPI_Win_create(NULL, 
+                       0, 
+                       sizeof(int), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winDoubleParamIdxName);
+
+        p2->second->_winDoubleParamNameData = 
+            (char *) malloc (sizeof(char) * n_param_max *str_size_max);
+        MPI_Win_create(NULL, 
+                       0, 
+                       sizeof(char), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winDoubleParamName);
+
+        p2->second->_winDoubleParamValueData = 
+            (double *) malloc (sizeof(double) * n_param_max);
+        MPI_Win_create(NULL, 
+                       0, 
+                       sizeof(double), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winDoubleParamValue);
+
+        p2->second->_winStrParamIdxNameData = 
+            (int *) malloc (sizeof(int) * (n_param_max + 1));
+        MPI_Win_create(NULL, 
+                       0, 
+                       sizeof(int), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winStrParamIdxName);
+        
+        p2->second->_winStrParamNameData = 
+            (char *) malloc (sizeof(char) * n_param_max * str_size_max);
+        MPI_Win_create(NULL, 
+                       0, 
+                       sizeof(char), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winStrParamName);
+        
+        p2->second->_winStrParamIdxValueData = 
+            (int *) malloc (sizeof(int) * (n_param_max + 1));
+        MPI_Win_create(NULL, 
+                       0, 
+                       sizeof(int), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winStrParamIdxValue);
+        
+        p2->second->_winStrParamValueData = 
+            (char *) malloc (sizeof(char) * n_param_max * str_size_max);
+        MPI_Win_create(NULL, 
+                       0, 
+                       sizeof(char), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winStrParamValue);
+      }      
 
     }
          

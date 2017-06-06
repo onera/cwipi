@@ -38,6 +38,8 @@ namespace cwipi
    * \param [in]  isLocal      Is a local code
    * \param [in]  globalComm   MPI communicator containing all processes 
    *                           of all codes
+   * \param [in]  n_param_max  Maximum number of parameters
+   * \param [in]  str_size_max Maximum string size 
    *
    */
 
@@ -47,11 +49,15 @@ namespace cwipi
    int    id,   
    int    rootRank,   
    bool   isLocal,   
-   const MPI_Comm globalComm
+   const MPI_Comm globalComm,
+   int            n_param_max,
+   int            str_size_max      
   ): _name(name), _id(id), _isLocal(isLocal),
      _rootRankInGlobalComm(rootRank),  
      _globalComm(globalComm),
      _isCoupledRank(false),
+     _n_param_max(n_param_max),
+     _str_size_max(str_size_max), 
      _winIntParamIdxName(MPI_WIN_NULL),
      _winIntParamName(MPI_WIN_NULL),
      _winIntParamValue(MPI_WIN_NULL),
@@ -111,6 +117,8 @@ namespace cwipi
      _globalComm(other._globalComm), 
      _intraComm(other._intraComm),
      _isCoupledRank(other._isCoupledRank), 
+     _n_param_max(other._n_param_max),
+     _str_size_max(other._str_size_max), 
      _intraCoupledGroup(other._intraCoupledGroup),
      _intraGroup(other._intraGroup),
      _winIntParamIdxName(other._winIntParamIdxName),
@@ -159,8 +167,8 @@ namespace cwipi
     MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
 
     _updateIntValues ();   
-    //_updateDoubleValues ();   
-    //_updateStrValues ();   
+    _updateDoubleValues ();   
+    _updateStrValues ();   
 
     bftc_printf ("  - Integer control parameters \n");
     bftc_printf ("     * Number : %d\n", _winGlobData[1]);
@@ -188,15 +196,7 @@ namespace cwipi
     }
     free (tmpName);
 
-
-
-
-
     MPI_Win_unlock ( _rootRankInGlobalComm, _winGlob);
-
-    
-    
-
 
     bftc_printf_flush();
   }
@@ -212,43 +212,33 @@ namespace cwipi
     fflush(stdout);
 
     if (_winIntParamIdxName != MPI_WIN_NULL) {
-      MPI_Win_detach(_winIntParamIdxName, _winIntParamIdxNameData);
       MPI_Win_free(&_winIntParamIdxName);
     }
     if (_winIntParamName != MPI_WIN_NULL) {
-      MPI_Win_detach(_winIntParamName, _winIntParamNameData);
       MPI_Win_free(&_winIntParamName);
     }
     if (_winIntParamValue != MPI_WIN_NULL) {
-      MPI_Win_detach(_winIntParamValue, _winIntParamValueData);      
       MPI_Win_free(&_winIntParamValue);
     }
     if (_winDoubleParamIdxName != MPI_WIN_NULL) {
-      MPI_Win_detach(_winDoubleParamIdxName, _winDoubleParamIdxNameData);
       MPI_Win_free(&_winDoubleParamIdxName);
     }
     if (_winDoubleParamName != MPI_WIN_NULL) {
-      MPI_Win_detach(_winDoubleParamName, _winDoubleParamNameData);
       MPI_Win_free(&_winDoubleParamName);
     }
     if (_winDoubleParamValue != MPI_WIN_NULL) {
-      MPI_Win_detach(_winDoubleParamValue, _winDoubleParamValueData);
       MPI_Win_free(&_winDoubleParamValue);
     }
     if (_winStrParamIdxName != MPI_WIN_NULL) {
-      MPI_Win_detach(_winStrParamIdxName, _winStrParamIdxNameData);
       MPI_Win_free(&_winStrParamIdxName);
     }
     if (_winStrParamName != MPI_WIN_NULL) {
-      MPI_Win_detach(_winStrParamName, _winStrParamNameData);
       MPI_Win_free(&_winStrParamName);
     }
     if (_winStrParamIdxValue != MPI_WIN_NULL) {
-      MPI_Win_detach(_winStrParamIdxValue, _winStrParamIdxValueData);
       MPI_Win_free(&_winStrParamIdxValue);
     }
     if (_winStrParamValue != MPI_WIN_NULL) {
-      MPI_Win_detach(_winStrParamValue, _winStrParamValueData);
       MPI_Win_free(&_winStrParamValue);
     }
 
