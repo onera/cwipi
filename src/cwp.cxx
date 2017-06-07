@@ -249,12 +249,17 @@ CWP_Init
   /*
    * Create default parameters
    */
-
+  
+  MPI_Barrier(inter_comm);
+  
   for (int i = 0; i < n_code; i++) {
     const string &codeNameStr = code_names[i]; 
     properties.ctrlParamAdd <double> (codeNameStr, "time", time_init[i]);
     properties.ctrlParamAdd <int> (codeNameStr, "state", CWP_STATE_IN_PROGRESS);
   }
+
+  MPI_Barrier(inter_comm);
+
   /*
    * Create communication abstract factory 
    */
@@ -304,6 +309,8 @@ CWP_Init
   // factoryBlock.Register<BlockCellPrism6>(CWP_BLOCK_CELL_PRISM6);
   // factoryBlock.Register<BlockCellPyram5>(CWP_BLOCK_CELL_PYRAM5);
   // factoryBlock.Register<BlockCellPoly>(CWP_BLOCK_CELL_POLY);
+
+  MPI_Barrier(inter_comm);
 
 }
 
@@ -1642,7 +1649,7 @@ CWP_Param_add
     properties.ctrlParamAdd<double>(codeNameStr,nameStr, *(double *)initial_value);
     break;
   case CWP_CHAR :
-    properties.ctrlParamAdd<string>(codeNameStr,nameStr, *(string *)initial_value);
+    properties.ctrlParamAdd<char *>(codeNameStr,nameStr, *(char **)initial_value);
     break;
   default :
     bftc_error(__FILE__, __LINE__, 0,
@@ -1684,7 +1691,7 @@ CWP_Param_set
     properties.ctrlParamSet<double>(codeNameStr, nameStr, * (double *) value);
     break;
   case CWP_CHAR :
-    properties.ctrlParamSet<string>(codeNameStr, nameStr, * (string *) value);
+    properties.ctrlParamSet<char *>(codeNameStr, nameStr, * (char **) value);
     break;
   default :
     bftc_error(__FILE__, __LINE__, 0,
@@ -1902,8 +1909,7 @@ CWP_Param_get
   }
   case CWP_CHAR : {
     char **charValue = (char **) value;
-    *charValue = const_cast < char * > 
-        (properties.ctrlParamGet<string>(codeNameStr, nameStr).c_str());
+    *charValue = properties.ctrlParamGet<char *>(codeNameStr, nameStr);
     break;
   }
   default : {
@@ -1955,14 +1961,6 @@ CWP_Param_reduce
   case CWP_DOUBLE : {
     double *doubleRes = (double *) res;
     properties.ctrlParamReduce<double>(op, nameStr, doubleRes, nCode, &pa);
-    break;
-  }
-  case CWP_CHAR : {
-    char **charRes = (char **) res;
-    string resStr;
-    properties.ctrlParamReduce<string>(op, nameStr, &resStr, nCode, &pa);
-    *charRes = (char*) malloc(sizeof(char) * (resStr.size() + 1));  
-    strcpy(*charRes, resStr.c_str()); 
     break;
   }
   default :

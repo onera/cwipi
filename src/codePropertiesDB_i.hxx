@@ -219,7 +219,7 @@ namespace cwipi {
    */
 
   template < typename T > 
-  const T &
+  const T
   CodePropertiesDB::ctrlParamGet
   (
     const string &codeName,
@@ -232,9 +232,9 @@ namespace cwipi {
     if (p == _codePropertiesDB.end())
       bftc_error(__FILE__, __LINE__, 0,
                 "'%s' code not found \n", codeName.c_str());
-    T *value = NULL;
-    p->second->ctrlParamGet(name, value);
-    return *value;
+    T value;
+    p->second->ctrlParamGet(name, &value);
+    return value;
   }
 
   

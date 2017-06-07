@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
+#include <assert.h>
 
 #include <mpi.h>
 
@@ -170,7 +171,32 @@ int main
 
   /* Finalize
    * -------- */
-  CWP_Properties_dump();
+  
+  if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) {
+    int toto = 111;
+    CWP_Param_lock ("code1");    
+    MPI_Barrier (MPI_COMM_WORLD);
+    CWP_Param_add ("code1", "toto", CWP_INT, &toto);
+    char *A = "Bonjour !";
+    CWP_Param_add ("code1", "toto2", CWP_CHAR, &A);
+    CWP_Param_unlock ("code1");    
+  }
+  else {
+    MPI_Barrier (MPI_COMM_WORLD);
+    
+  }
+  int titi;
+
+  CWP_Param_get ("code1", "toto", CWP_INT, &titi);
+  
+  char *titi2;
+  CWP_Param_get ("code1", "toto2", CWP_CHAR, &titi2);
+
+  printf("titi : %d\n", titi);
+  printf("titi2 : %s\n", titi2);
+  
+  free (titi2);
+  assert(titi == 111);
 
   CWP_Finalize();
 

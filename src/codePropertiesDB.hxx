@@ -262,7 +262,7 @@ namespace cwipi {
      */
 
     template < typename T > 
-    const T &
+    const T
     ctrlParamGet
     (
       const string &codeName,

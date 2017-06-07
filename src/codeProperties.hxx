@@ -251,7 +251,7 @@ namespace cwipi {
     ctrlParamGet
     (
      const string &name,
-     string       *value
+     char        **value
     );
 
     /**
@@ -297,7 +297,7 @@ namespace cwipi {
     ctrlParamSet
     (
      const string &name, 
-     const string  value
+     const char   *value
     );
 
     /**
@@ -342,7 +342,7 @@ namespace cwipi {
     ctrlParamAdd
     (
      const string &name, 
-     const string  value
+     const char   *value
     );
 
     /**
@@ -1056,7 +1056,7 @@ namespace cwipi {
   CodeProperties::ctrlParamGet
   (
    const string &name,
-   string       *value
+   char        **value
   )
   {
 
@@ -1086,11 +1086,11 @@ namespace cwipi {
     }
 
     int sValue = _winStrParamIdxValueData[i+1] - _winStrParamIdxValueData[i];
-    value->resize(sValue);
-    strncpy ((char *) value->c_str(),
+    *value = (char * ) malloc(sizeof(char) * (sValue + 1));
+    strncpy (*value,
              _winStrParamValueData + _winStrParamIdxValueData[i], 
              sValue);
-    ((char *)value->c_str())[sValue] = '\0';
+    (*value)[sValue] = '\0';
     
     MPI_Win_unlock ( _rootRankInGlobalComm, _winGlob);
   }
@@ -1221,7 +1221,7 @@ namespace cwipi {
   CodeProperties::ctrlParamSet
   (
    const string &name, 
-   const string  value
+   const char  *value
   )
   {
     if (!_isLocal) {
@@ -1261,7 +1261,7 @@ namespace cwipi {
       }
 
       int sValue = _winStrParamIdxValueData[i+1] - _winStrParamIdxValueData[i];
-      int gap = value.size() - sValue;
+      int gap = strlen(value) - sValue;
       
       if (gap != 0) {
         if (gap > 0) {
@@ -1281,7 +1281,7 @@ namespace cwipi {
 
 
       strncpy(_winStrParamValueData + _winStrParamIdxValueData[i], 
-              value.c_str(), value.size()); 
+              value, strlen(value)); 
       
       MPI_Win_unlock (_rootRankInGlobalComm, _winStrParamIdxValue);
       MPI_Win_unlock (_rootRankInGlobalComm, _winStrParamValue);
@@ -1479,7 +1479,7 @@ namespace cwipi {
   CodeProperties::ctrlParamAdd
   (
    const string &name, 
-   const string  value
+   const char   *value
   )
   {
     
@@ -1523,7 +1523,7 @@ namespace cwipi {
                     name.c_str());      
       }
       
-      if (value.size() >= _str_size_max)  {
+      if (strlen(value) >= _str_size_max)  {
         bftc_error(__FILE__, __LINE__, 0,
                    "Impossible to create the string '%s' parameter. \n"
                    "The maximum string size is exceeded. \n" 
@@ -1550,7 +1550,7 @@ namespace cwipi {
 
       nStrParam += 1;
 
-      _winStrParamIdxValueData[nStrParam] = _winStrParamIdxValueData[nStrParam-1] + value.size();
+      _winStrParamIdxValueData[nStrParam] = _winStrParamIdxValueData[nStrParam-1] + strlen(value);
 
       _winStrParamIdxNameData[nStrParam] = _winStrParamIdxNameData[nStrParam-1] + name.size();
 
@@ -1558,7 +1558,7 @@ namespace cwipi {
               name.c_str(), name.size()); 
 
       strncpy(_winStrParamValueData + _winStrParamIdxValueData[nStrParam-1], 
-              value.c_str(), value.size()); 
+              value, strlen(value)); 
     
       MPI_Win_unlock (_rootRankInGlobalComm, _winStrParamIdxName);
       MPI_Win_unlock (_rootRankInGlobalComm, _winStrParamName);
