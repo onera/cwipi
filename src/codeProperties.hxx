@@ -43,7 +43,7 @@ namespace cwipi {
    *
    * \brief Code properties management.
    *
-   *  This class manages a code properties :
+   *  This class manages code properties :
    *  - Local control parameters,
    *  - Distant control parameters,
    *  - MPI communicators
@@ -894,7 +894,7 @@ namespace cwipi {
         }
       }  while (lockStatus); 
 
-      int nDoubleParam    = _winGlobData[1];
+      int nDoubleParam    = _winGlobData[2];
       
       if (nDoubleParam > 0) {
       
@@ -1005,7 +1005,7 @@ namespace cwipi {
         }
       }  while (lockStatus); 
 
-      int nStrParam    = _winGlobData[1];
+      int nStrParam    = _winGlobData[3];
       
       if (nStrParam > 0) {
       
@@ -1376,8 +1376,6 @@ namespace cwipi {
       MPI_Win_unlock (_rootRankInGlobalComm, _winIntParamName);
       MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
     }
-    printf("[%d] nIntParam : %d\n", rank, _winGlobData[1] );
-    dump();
   }
 
 

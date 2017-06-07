@@ -170,6 +170,7 @@ int main
 
   /* Finalize
    * -------- */
+  CWP_Properties_dump();
 
   CWP_Finalize();
 

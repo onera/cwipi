@@ -88,8 +88,6 @@ namespace cwipi
     _winGlobData[2] = 0; // 0 doube param
     _winGlobData[3] = 0; // 0 str param
     
-    cout << "toto : " << name << " " << isLocal << endl;
-    
   }
 
   /**
@@ -150,8 +148,6 @@ namespace cwipi
     bftc_printf ("  - Identifier : %d\n", _id);
     bftc_printf ("  - Is it a local code : %d\n", _isLocal);
     bftc_printf ("  - Root rank in global communicator : %d\n", _rootRankInGlobalComm);
-    bftc_printf ("  - Root rank in global communicator : %d\n", _rootRankInGlobalComm);
-    bftc_printf ("  - Is local code : %d\n", _isLocal);
     bftc_printf ("  - Is it a coupled rank : %d\n", _isCoupledRank);
 
     MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
@@ -217,7 +213,7 @@ namespace cwipi
       
     }
 
-    bftc_printf ("  - %d string control parameters \n", _winGlobData[2]);
+    bftc_printf ("  - %d string control parameters \n", _winGlobData[3]);
 
     for (int i = 0; i < _winGlobData[3]; i++) {
       int sParam = _winStrParamIdxNameData[i+1] - _winStrParamIdxNameData[i];
@@ -250,9 +246,6 @@ namespace cwipi
 
   CodeProperties::~CodeProperties()
   {
-    printf("~CodeProperties %s\n", _name.c_str());
-    fflush(stdout);
-
     if (_winIntParamIdxName != MPI_WIN_NULL) {
       MPI_Win_free(&_winIntParamIdxName);
     }

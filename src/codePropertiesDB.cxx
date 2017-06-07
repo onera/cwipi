@@ -522,10 +522,12 @@ namespace cwipi {
   void 
   CodePropertiesDB::dump()
   {
-    typedef map <string, CodeProperties *>::iterator Iterator;
-
-    bftc_printf("\nCode properties\n\n");
-    bftc_printf_flush();
+    typedef map <string, CodeProperties * >::iterator CI;
+    for (CI p = _codePropertiesDB.begin();
+         p != _codePropertiesDB.end(); p++) {
+      if (p->second != NULL)
+        p->second->dump();
+    }
   }
 
 }
