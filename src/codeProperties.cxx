@@ -146,10 +146,12 @@ namespace cwipi
   {
     bftc_printf ("'%s' properties\n",_name.c_str());
     bftc_printf ("  - Identifier : %d\n", _id);
-    bftc_printf ("  - Is it a local code : %d\n", _isLocal);
     bftc_printf ("  - Root rank in global communicator : %d\n", _rootRankInGlobalComm);
-    bftc_printf ("  - Is it a coupled rank : %d\n", _isCoupledRank);
-
+    bftc_printf ("  - Is it a local code : %d\n", _isLocal);
+    if (_isLocal) {
+      bftc_printf ("  - Is it a coupled rank : %d\n", _isCoupledRank);
+    }
+    
     MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
 
     _updateIntValues ();   

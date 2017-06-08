@@ -269,7 +269,7 @@ namespace cwipi {
         rankCode[currentName]->push_back(irank);
 
         if (currentRank == irank) {
-          _codePropertiesDB[currentName]->isCoupledRankset(is_coupled_rank);
+          _codePropertiesDB[currentName]->isCoupledRankset(is_coupled_rank[k]);
         }
 
         index += currentName.size() + 1;
