@@ -82,6 +82,8 @@ namespace cwipi
     _intraComm = MPI_COMM_NULL;
     _intraCoupledGroup = MPI_GROUP_NULL;
     _intraGroup        = MPI_GROUP_NULL;
+    _intraRanks        = NULL;
+    _coupledRanks      = NULL;
     
     _winGlobData[0] = 0; // Unlock parameters access
     _winGlobData[1] = 0; // 0 int param
@@ -109,6 +111,8 @@ namespace cwipi
      _str_size_max(other._str_size_max), 
      _intraCoupledGroup(other._intraCoupledGroup),
      _intraGroup(other._intraGroup),
+     _intraRanks(other._intraRanks), 
+     _coupledRanks(other._coupledRanks), 
      _winIntParamIdxName(other._winIntParamIdxName),
      _winIntParamName(other._winIntParamName),
      _winIntParamValue(other._winIntParamValue),
@@ -151,6 +155,17 @@ namespace cwipi
     if (_isLocal) {
       bftc_printf ("  - Is it a coupled rank : %d\n", _isCoupledRank);
     }
+    bftc_printf ("  - Ranks in global communicator :");
+    for (int i = 0; i < _intraRanks->size(); i++) {
+      bftc_printf (" %d", (*_intraRanks)[i]);
+    }    
+    bftc_printf ("\n");
+    
+    bftc_printf ("  - Coupled ranks in global communicator :");
+    for (int i = 0; i < _coupledRanks->size(); i++) {
+      bftc_printf (" %d", (*_coupledRanks)[i]);
+    }    
+    bftc_printf ("\n");
     
     MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
 
@@ -193,7 +208,7 @@ namespace cwipi
             sValueMax, sValueMax);
 
     char *tmpName = (char *) malloc (sizeof(char) * (sParamMax + 1));
-    char *tmpValue = (char *) malloc (sizeof(char) * (sParamMax + 1));
+    char *tmpValue = (char *) malloc (sizeof(char) * (sValueMax + 1));
 
     for (int i = 0; i < _winGlobData[1]; i++) {
       int sParam = _winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i];
@@ -341,6 +356,14 @@ namespace cwipi
     }
     if (_intraCoupledGroup != MPI_GROUP_NULL) {
       MPI_Group_free(&_intraCoupledGroup);
+    }
+    
+    if (_intraRanks != NULL) {
+      delete _intraRanks;
+    }
+
+    if (_coupledRanks != NULL) {
+      delete _coupledRanks;
     }
   }
 }

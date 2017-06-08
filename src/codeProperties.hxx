@@ -524,8 +524,10 @@ namespace cwipi {
     bool      _isCoupledRank;  /*!< Is a coupled rank */
     MPI_Group _intraGroup;     /*!< MPI group in 
                                                     the global communicator */
+    vector <int> *_intraRanks;  /*!< Code ranks in global communicator */
     MPI_Group _intraCoupledGroup; /*!< coupled MPI group in 
                                                     the global communicator */
+    vector <int> *_coupledRanks;  /*!< Coupled code ranks in global communicator */
 
     MPI_Win   _winGlob;        /*!< MPI window to store general parameters informations */
     int       _winGlobData[4]; /*!< \ref _winGlob data (defined only on \ref _rootRankInGlobalComm :

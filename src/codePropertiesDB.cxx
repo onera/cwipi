@@ -504,7 +504,9 @@ namespace cwipi {
 
     for (Iterator p = rankCode.begin(); 
                   p != rankCode.end(); p++){
+      p->second->resize(p->second->size());
       const int *_ranks = &((*p->second)[0]);
+      _codePropertiesDB[p->first]->_intraRanks = p->second;
       int _n_ranks = p->second->size();
       MPI_Group_incl (globalGroup, _n_ranks, _ranks, 
                      &(_codePropertiesDB[p->first]->_intraGroup));
@@ -512,7 +514,6 @@ namespace cwipi {
                        _codePropertiesDB[p->first]->_intraGroup,
                        &(_codePropertiesDB[p->first]->_intraComm));
       _codePropertiesDB[p->first]->_rootRankInGlobalComm = _ranks[0];
-      delete p->second;
     }
     
     rankCode.clear();
@@ -522,16 +523,15 @@ namespace cwipi {
 
     for (Iterator p = coupledRankCode.begin(); 
                   p != coupledRankCode.end(); p++){
+      p->second->resize(p->second->size());
       const int *_ranks = &((*p->second)[0]);
+      _codePropertiesDB[p->first]->_coupledRanks = p->second;
       int _n_ranks = p->second->size();
       MPI_Group_incl (globalGroup, _n_ranks, _ranks, 
                      &(_codePropertiesDB[p->first]->_intraCoupledGroup));
-      delete p->second;
     }
 
     coupledRankCode.clear();
-
-    //TODO
     
     for (int i = 0; i < n_codes; i++) {
       const string &nameStr = code_names[i];
