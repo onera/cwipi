@@ -179,21 +179,22 @@ _cpl_get
  * the MPI inter communicator that contains all code process. It is a
  * synchronization point between all codes
  *
- * \param [in]  inter_comm      MPI inter communicator
- * \param [in]  code_name       Name of this code
- * \param [in]  is_couple_rank  Is coupled rank
- * \param [in]  time_init       Initial time for each code
- * \param [out] intra_comm      MPI intra communicator
+ * \param [in]  global_comm       MPI global communicator
+ * \param [in]  n_code            Number of codes on the current rank
+ * \param [in]  is_coupled_rank   Is current rank used for coupling (size = \ref n_code)
+ * \param [in]  code_name         Names of codes on the current rank (size = \ref n_code)
+ * \param [in]  time_init         Time init (size = \ref n_code)
+ * \param [out] intra_comm        MPI intra communicators of each code
  *
  */
 
 void 
 CWP_Init
 (
- const MPI_Comm           inter_comm,
- const CWP_Status_t       is_coupled_rank,
+ const MPI_Comm           global_comm,
  const int                n_code,
  const char             **code_names,
+ const CWP_Status_t      *is_coupled_rank,
  const double            *time_init,
  MPI_Comm                *intra_comms
 )
@@ -238,7 +239,7 @@ CWP_Init
    * Builds application communicator
    */
 
-  properties.init (inter_comm,
+  properties.init (global_comm,
                    n_code,
                    code_names,
                    is_coupled_rank,
@@ -250,7 +251,7 @@ CWP_Init
    * Create default parameters
    */
   
-  MPI_Barrier(inter_comm);
+  MPI_Barrier(global_comm);
   
   for (int i = 0; i < n_code; i++) {
     const string &codeNameStr = code_names[i]; 
@@ -258,7 +259,7 @@ CWP_Init
     properties.ctrlParamAdd <int> (codeNameStr, "state", CWP_STATE_IN_PROGRESS);
   }
 
-  MPI_Barrier(inter_comm);
+  MPI_Barrier(global_comm);
 
   /*
    * Create communication abstract factory 
@@ -310,7 +311,7 @@ CWP_Init
   // factoryBlock.Register<BlockCellPyram5>(CWP_BLOCK_CELL_PYRAM5);
   // factoryBlock.Register<BlockCellPoly>(CWP_BLOCK_CELL_POLY);
 
-  MPI_Barrier(inter_comm);
+  MPI_Barrier(global_comm);
 
 }
 

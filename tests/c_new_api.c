@@ -72,17 +72,23 @@ int main
   int n_code_name;
   char **codeNames;
   double *times_init;
+  int *is_coupled_rank;
 
   if (rank == 0) {
     n_code_name = 1;
     codeNames = malloc(sizeof(char *) * n_code_name);
     codeNames[0] ="code1";
+    is_coupled_rank = malloc(sizeof(int) * n_code_name);
+    is_coupled_rank[0] = 1;
   }
   else if (rank == 1) {
     n_code_name = 2;
     codeNames = malloc(sizeof(char *) * n_code_name);
     codeNames[0] ="code1";
     codeNames[1] ="code2";
+    is_coupled_rank = malloc(sizeof(int) * n_code_name);
+    is_coupled_rank[0] = 1;
+    is_coupled_rank[1] = 1;
   }
   else if (rank == 2) {
     n_code_name = 4;
@@ -91,28 +97,43 @@ int main
     codeNames[1] ="code2";
     codeNames[2] ="code3";
     codeNames[3] ="code4";
+    is_coupled_rank = malloc(sizeof(int) * n_code_name);
+    is_coupled_rank[0] = 1;
+    is_coupled_rank[1] = 1;
+    is_coupled_rank[2] = 1;
+    is_coupled_rank[3] = 1;
   }
   else if (rank == 3) {
     n_code_name = 1;
     codeNames = malloc(sizeof(char *) * n_code_name);
     codeNames[0] ="code3";
+    is_coupled_rank = malloc(sizeof(int) * n_code_name);
+    is_coupled_rank[0] = 1;
   }
   else if (rank == 4) {
     n_code_name = 2;
     codeNames = malloc(sizeof(char *) * n_code_name);
     codeNames[0] ="code3";
     codeNames[1] ="code4";
+    is_coupled_rank = malloc(sizeof(int) * n_code_name);
+    is_coupled_rank[0] = 1;
+    is_coupled_rank[1] = 1;
   }
   else if (rank == 5) {
     n_code_name = 2;
     codeNames = malloc(sizeof(char *) * n_code_name);
     codeNames[0] ="code1";
     codeNames[1] ="code3";
+    is_coupled_rank = malloc(sizeof(int) * n_code_name);
+    is_coupled_rank[0] = 1;
+    is_coupled_rank[1] = 1;
   }
   else if (rank == 6) {
     n_code_name = 1;
     codeNames = malloc(sizeof(char *) * n_code_name);
     codeNames[0] ="code2";
+    is_coupled_rank = malloc(sizeof(int) * n_code_name);
+    is_coupled_rank[0] = 1;
   }
   else if (rank == 7) {
     n_code_name = 3;
@@ -120,17 +141,26 @@ int main
     codeNames[0] ="code1";
     codeNames[1] ="code2";
     codeNames[2] ="code3";
+    is_coupled_rank = malloc(sizeof(int) * n_code_name);
+    is_coupled_rank[0] = 1;
+    is_coupled_rank[1] = 1;
+    is_coupled_rank[2] = 1;
   }
   else if (rank == 8) {
     n_code_name = 1;
     codeNames = malloc(sizeof(char *) * n_code_name);
     codeNames[0] ="code4";
+    is_coupled_rank = malloc(sizeof(int) * n_code_name);
+    is_coupled_rank[0] = 1;
   }
   else if (rank == 9) {
     n_code_name = 2;
     codeNames = malloc(sizeof(char *) * n_code_name);
     codeNames[0] ="code2";
     codeNames[1] ="code3";
+    is_coupled_rank = malloc(sizeof(int) * n_code_name);
+    is_coupled_rank[0] = 1;
+    is_coupled_rank[1] = 1;
   }
 
   char* fileName = NULL;
@@ -151,9 +181,9 @@ int main
   
   MPI_Comm *localComm = malloc(sizeof(MPI_Comm)*n_code_name);
   CWP_Init(MPI_COMM_WORLD,
-           1,
            n_code_name,
            (const char **) codeNames,
+           is_coupled_rank,
            times_init,
            localComm);
 
@@ -166,7 +196,6 @@ int main
   for (int i = 0; i < n_code_name; i++ ) {
     MPI_Comm_rank(localComm[i], &currentRank);
     MPI_Comm_size(localComm[i], &localCommSize);
-    printf ("[%d] '%s' : %d %d\n", rank, codeNames[i], currentRank, localCommSize);
   }
 
   /* Finalize
@@ -185,15 +214,12 @@ int main
     MPI_Barrier (MPI_COMM_WORLD);
     
   }
+  
   int titi;
-
   CWP_Param_get ("code1", "toto", CWP_INT, &titi);
   
   char *titi2;
   CWP_Param_get ("code1", "toto2", CWP_CHAR, &titi2);
-
-  printf("titi : %d\n", titi);
-  printf("titi2 : %s\n", titi2);
   
   free (titi2);
   assert(titi == 111);
@@ -205,6 +231,8 @@ int main
   free (srcName);
   free (localComm);
   free (codeNames);
+  free (is_coupled_rank);
+  free (times_init);
   fclose (outputFile);
 
   return 0;

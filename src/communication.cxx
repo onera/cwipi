@@ -79,35 +79,29 @@ namespace cwipi {
     _cplCodeProperties = &cplCodeProperties;
     _localCodeProperties = &localCodeProperties;
 
-//    const MPI_Comm& localComm = localCodeProperties.intraCommGet();
-//
-//    if (_cplComm == MPI_COMM_NULL) {
-//
-//      const int localFirstRank = localCodeProperties.firstRankGet();
-//      const int localLastRank  = localCodeProperties.lastRankGet();
-//      
-//      const MPI_Comm& globalComm = localCodeProperties.globalCommGet();
-//      
-//      int currentRank;
-//      MPI_Comm_rank(globalComm, &currentRank);
-//
-//      const int cplCodeFirstRank = cplCodeProperties.firstRankGet();
-//      const int cplCodeLastRank = cplCodeProperties.lastRankGet();
-//      
-//      //
-//      // Define coupling communicator
-//      
-//      int nLocalRank   = localLastRank - localFirstRank + 1;
-//      int nCplCodeRank = cplCodeLastRank - cplCodeFirstRank + 1;
-//
-//      assert(localFirstRank != cplCodeFirstRank);
-//
-//      const int tag = 'm'+'e'+'r'+'g'+'e'+'I'+'n'+'t'+'e'+'r'+'C'+'o'+'m'+'m';
-//
-//      //
-//      // Build the inter communicator between the two coupled codes
-//
-//      MPI_Comm tmpInterComm;
+    const MPI_Comm& localComm = localCodeProperties.intraCommGet();
+
+    if (_cplComm == MPI_COMM_NULL) {
+
+      const int localRootRank = localCodeProperties.rootRankGet();
+      
+      const MPI_Comm& globalComm = localCodeProperties.globalCommGet();
+      
+      int currentRank;
+      MPI_Comm_rank(globalComm, &currentRank);
+
+      const int cplCodeRootRank = cplCodeProperties.rootRankGet();
+      
+      //
+      // Define coupling communicator
+      
+
+      const int tag = 'm'+'e'+'r'+'g'+'e'+'I'+'n'+'t'+'e'+'r'+'C'+'o'+'m'+'m';
+
+      //
+      // Build the inter communicator between the two coupled codes
+
+      MPI_Comm tmpInterComm;
 //
 //      MPI_Intercomm_create(localComm, 0, globalComm, cplCodeFirstRank, tag, &tmpInterComm);
 //
@@ -179,7 +173,7 @@ namespace cwipi {
 //      _cplCommCreate(cplCodeCommType);
 //
 //    }
-//  }
+  }
 
   //     _isCplRank = localCodeProperties.getFirstRank() == currentRank ||
   //       _couplingType == CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING;

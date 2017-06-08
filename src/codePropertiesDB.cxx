@@ -84,12 +84,14 @@ namespace cwipi {
    * the current name and the MPI communicator containing all processes of
    * all codes.
    *
+   * \param [in]  globalComm      MPI communicator containing all processes 
+   *                              of all codes
    * \param [in]  n_codes         Number of codes on the current rank
-   * \param [in]  code_names      Codes names on the current rank
-   * \param [in]  is_coupled_rank Current rank is it a coupled rank
+   * \param [in]  code_names      Codes names on the current rank  (\ref n_codes)
+   * \param [in]  is_coupled_rank Current rank is it a coupled rank (\ref n_codes)
    * \param [in]  n_param_max     Maximum number of parameters
    * \param [in]  str_size_max    Maximum size for a string
-   * \param [out] intra_coms      Current code intra-communicators
+   * \param [out] intra_coms      Current codes intra-communicators  (\ref n_codes)
    *
    */
 
@@ -99,7 +101,7 @@ namespace cwipi {
   const MPI_Comm     globalComm,
   const int          n_codes,
   const char**       code_names, 
-  const CWP_Status_t is_coupled_rank,
+  const CWP_Status_t *is_coupled_rank,
   const int          n_param_max,
   const int          str_size_max,      
   MPI_Comm           *intra_comms       
@@ -131,7 +133,7 @@ namespace cwipi {
     // ------------
 
     int index = 0;
-    int properties[3]; /* The first property is the number of rank codes
+    int properties[2]; /* The first property is the number of rank codes
                         * The second is the length of concatenated code names 
                         * The third is coupled rank state */
 
@@ -140,15 +142,15 @@ namespace cwipi {
     for (int i = 0; i < n_codes; i++) {
       properties[1] += strlen(code_names[i]) + 1;
     }
-    properties[2] = is_coupled_rank;
+    //properties[2] = is_coupled_rank;
 
-    int *allProperties = new int[3*globalCommSize];
+    int *allProperties = new int[2*globalCommSize];
 
     MPI_Allgather(&properties,
-                  3,
+                  2,
                   MPI_INT,
                   allProperties,
-                  3,
+                  2,
                   MPI_INT,
                   globalComm);
 
@@ -161,14 +163,24 @@ namespace cwipi {
 
     int *iproc = new int[globalCommSize + 1];
     int *codesLengthName = new int[globalCommSize];
+
+    int *iproc2 = new int[globalCommSize + 1];
+    int *n_codes_rank = new int[globalCommSize];
+    
     iproc[0] = 0;
+    iproc2[0] = 0;
     for(int i = 0; i < globalCommSize; i++) {
-      codesLengthName[i] = allProperties[3*i+1];
-      iproc[i+1] = allProperties[3*i+1] + iproc[i];
+      codesLengthName[i] = allProperties[2*i+1];
+      n_codes_rank[i] = allProperties[2*i];
+      iproc[i+1] = allProperties[2*i+1] + iproc[i];
+      iproc2[i+1] = allProperties[2*i] + iproc2[i];
     }
 
     int totalLength = iproc[globalCommSize];
+    int totalCode = iproc2[globalCommSize];
+    
     char *mergeNames = new char[totalLength];
+    int *mergeIsCoupled = new int[totalCode];
     
     MPI_Allgatherv((void*) concatenateNames,
                    properties[1],
@@ -179,8 +191,19 @@ namespace cwipi {
                    MPI_CHAR,
                    globalComm);
 
+    MPI_Allgatherv((void*) is_coupled_rank,
+                   properties[0],
+                   MPI_INT,
+                   mergeIsCoupled,
+                   n_codes_rank,
+                   iproc2,
+                   MPI_INT,
+                   globalComm);
+
     delete[] concatenateNames;
     delete[] codesLengthName;
+
+    delete[] n_codes_rank;
 
     map < string, vector < int > * >  coupledRankCode;
     map < string, vector < int > * >  rankCode;
@@ -189,11 +212,10 @@ namespace cwipi {
      
     _isLocalCodeRootrank = false;
     
-    for (int irank = 0; irank < globalCommSize; irank++) {
-
-   
+    int icode = 0;
+    for (int irank = 0; irank < globalCommSize; irank++) {   
       
-      for (int k = 0; k < allProperties[3*irank]; k++) {
+      for (int k = 0; k < allProperties[2*irank]; k++) {
         assert(index <= totalLength);
 
         const char *ptCurrentName = mergeNames + index;
@@ -240,9 +262,10 @@ namespace cwipi {
         
         }
         
-        if (allProperties[3*irank+2]) {
+        if (mergeIsCoupled[icode++]) {        
           coupledRankCode[currentName]->push_back(irank);
         }
+      
         rankCode[currentName]->push_back(irank);
 
         if (currentRank == irank) {
@@ -466,7 +489,10 @@ namespace cwipi {
          
     delete [] allProperties;
     delete [] iproc;
+    delete [] iproc2;
     delete [] mergeNames;
+    delete [] mergeIsCoupled;
+    
     
     // Create intra code communicators
     // -------------------------------
