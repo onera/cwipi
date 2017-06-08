@@ -224,6 +224,8 @@ int main
   free (titi2);
   assert(titi == 111);
 
+  CWP_Properties_dump ();
+  
   CWP_Finalize();
 
   MPI_Finalize();
