@@ -122,15 +122,17 @@ namespace cwipi {
 
   protected:
 
-    bool     _isCplRank;                /*!< Is that the current rank is coupled */
-    MPI_Comm _mergeInterComm;           /*!< Merge inter communicator */
-    MPI_Comm _fvmComm;                  /*!< FVM communicator 
+    bool      _isCplRank;               /*!< Is the current rank coupled */
+    MPI_Comm  _unionComm;               /*!< Union communicator between coupled codes */
+    MPI_Comm  _fvmComm;                 /*!< FVM communicator 
                                           (part of local communicator) */
+    MPI_Comm _cplGroup;                  /*!< Coupling group 
+                                          (part of merger inter communicator */
     MPI_Comm _cplComm;                  /*!< Coupling communicator 
                                           (part of merger inter communicator */
-    int      _cplCodeNRankCplComm;      /*!< Ranks number associated to the coupled code
+    int      _locCodeRootRankCplComm;  /*!< Root rank associated to the coupled code
                                           into the coupling communicator */
-    int      _cplCodeFirstRankCplComm;  /*!< First rank associated to the coupled code
+    int      _cplCodeRootRankCplComm;  /*!< Root rank associated to the coupled code
                                           into the coupling communicator */
     CodeProperties *_localCodeProperties; /*!< Pointer to the local code properties */
     CodeProperties *_cplCodeProperties;   /*!< Pointer to the coupled code properties */

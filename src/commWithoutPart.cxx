@@ -59,15 +59,49 @@ namespace cwipi {
     int mergeInterCommSize;
 //    MPI_Comm_size(_mergeInterComm, &mergeInterCommSize);
 //
-//    const int localFirstRank = _localCodeProperties->firstRankGet();
-//    const int localLastRank  = _localCodeProperties->lastRankGet();
-//    
-//    const MPI_Comm& globalComm = _localCodeProperties->globalCommGet();
-//
-//    int currentRank;
-//    MPI_Comm_rank(globalComm, &currentRank);
-//
-//    _isCplRank = localFirstRank == currentRank;
+    const int localRootRank = _localCodeProperties->rootRankGet();
+    const int cplRootRank   = _cplCodeProperties->rootRankGet();
+    
+    const MPI_Comm& globalComm = _localCodeProperties->globalCommGet();
+
+    int currentRank;
+    MPI_Comm_rank(globalComm, &currentRank);
+
+    _isCplRank = localRootRank == currentRank;
+    
+    if (cplCodeCommType != CWP_COMM_PAR_WITH_PART) {
+
+      MPI_Group globalGroup;
+      MPI_Comm_group(globalComm, &globalGroup);
+
+      MPI_Group unionGroup;
+      MPI_Comm_group(_unionComm, &unionGroup);      
+
+      int cplRanks[2];
+      int gap1 = 0;
+      int gap2 = 1;
+      
+      if (_localCodeProperties->idGet() < _cplCodeProperties->idGet()) {
+        gap1 = 1;
+        gap2 = 0;
+      }
+      
+      MPI_Group_translate_ranks (globalGroup, 1, &localRootRank, 
+                                 unionGroup, cplRanks + gap1);
+
+      MPI_Group_translate_ranks (globalGroup, 1, &cplRootRank, 
+                                 unionGroup, cplRanks + gap2);
+      
+      MPI_Group_incl(unionGroup, 2, cplRanks, &_cplGroup);
+      
+      MPI_Comm_create (_unionComm, _cplGroup, &_cplComm);
+      
+    }
+    else {
+      
+      //TODO
+      
+    }
 // 
 //    const int nLocalRank = localLastRank
 //                         - localFirstRank

@@ -525,10 +525,13 @@ namespace cwipi {
                   p != coupledRankCode.end(); p++){
       p->second->resize(p->second->size());
       const int *_ranks = &((*p->second)[0]);
-      _codePropertiesDB[p->first]->_coupledRanks = p->second;
+      _codePropertiesDB[p->first]->_connectableRanks = p->second;
       int _n_ranks = p->second->size();
       MPI_Group_incl (globalGroup, _n_ranks, _ranks, 
-                     &(_codePropertiesDB[p->first]->_intraCoupledGroup));
+                     &(_codePropertiesDB[p->first]->_intraConnectableGroup));
+      MPI_Comm_create (globalComm, 
+                       _codePropertiesDB[p->first]->_intraConnectableGroup,
+                       &(_codePropertiesDB[p->first]->_intraConnectableComm));
     }
 
     coupledRankCode.clear();

@@ -271,7 +271,6 @@ CWP_Init
   factoryComm.Register<cwipi::CommWithPart>(CWP_COMM_PAR_WITH_PART);
   factoryComm.Register<cwipi::CommWithoutPart>(CWP_COMM_PAR_WITHOUT_PART);
   factoryComm.Register<cwipi::CommSeq>(CWP_COMM_SEQ);
-  // factoryComm.Register<CommInternal>(CWP_COMM_INTERNAL);
 
   /*
    * Create geometry abstract factory 

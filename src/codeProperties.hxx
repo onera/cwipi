@@ -211,6 +211,37 @@ namespace cwipi {
     (
      MPI_Group group
     );
+    
+    /**
+     * \brief Get coupled MPI Group in global communicator
+     *
+     * \return    MPI group
+     *
+     */
+
+    inline const MPI_Group &
+    connectableGroupGet() const;
+    
+    
+    /**
+     * \brief Get connectable ranks in global communicator
+     *
+     * \return    Connectable ranks
+     *
+     */
+
+    inline const vector <int> *
+    connectableRanksGet() const;
+    
+    /**
+     * \brief Get connectable MPI Communicator
+     *
+     * \return    Connectable communicator
+     *
+     */
+
+    inline const MPI_Comm &
+    connectableCommGet() const;
 
     /**
      * \brief Get a integer control parameter value
@@ -525,9 +556,11 @@ namespace cwipi {
     MPI_Group _intraGroup;     /*!< MPI group in 
                                                     the global communicator */
     vector <int> *_intraRanks;  /*!< Code ranks in global communicator */
-    MPI_Group _intraCoupledGroup; /*!< coupled MPI group in 
-                                                    the global communicator */
-    vector <int> *_coupledRanks;  /*!< Coupled code ranks in global communicator */
+    MPI_Group _intraConnectableGroup; /*!< coupled MPI group in 
+                                       the global communicator */
+    MPI_Group _intraConnectableComm; /*!< coupled MPI intra communicator */
+    
+    vector <int> *_connectableRanks;  /*!< Coupled code ranks in global communicator */
 
     MPI_Win   _winGlob;        /*!< MPI window to store general parameters informations */
     int       _winGlobData[4]; /*!< \ref _winGlob data (defined only on \ref _rootRankInGlobalComm :
@@ -549,7 +582,7 @@ namespace cwipi {
     MPI_Win   _winDoubleParamIdxName;/*!< Window to store indexes of double param names 
                                                    * size = Number of double parameters + 1 */
     MPI_Win   _winDoubleParamName;/*!< Window to store param names 
-                                                * size = \ref _winDoubleParamIdxName[Number of double parameter] */
+                                                * size = /stck/equemera/workspace/cwipi/cwipi/src/commWithPart.cxx(64): error: expression must have class type\ref _winDoubleParamIdxName[Number of double parameter] */
     MPI_Win   _winDoubleParamValue; /*!< Window to store double param values 
                                                   * size = \ref Number of int parameters */
     int      *_winDoubleParamIdxNameData; /* Data of \ref _winDoubleParamIdxName window */
@@ -669,6 +702,19 @@ namespace cwipi {
   {
     return _rootRankInGlobalComm;
   }
+    
+  /**
+   * \brief Get connectable ranks in global communicator
+   *
+   * \return    Connectable ranks
+   *
+   */
+
+  const vector <int> *
+  CodeProperties::connectableRanksGet() const
+  {
+    return _connectableRanks;
+  }
 
   /**
    * \brief Get identifier
@@ -735,9 +781,35 @@ namespace cwipi {
   const MPI_Group &
   CodeProperties::groupGet() const
   {
-    return _intraCoupledGroup;
+    return _intraGroup;
   }
+    
+  /**
+   * \brief Get connectable MPI Group in global communicator
+   *
+   * \return    MPI group
+   *
+   */
 
+  const MPI_Group &
+  CodeProperties::connectableGroupGet() const
+  {
+    return _intraConnectableGroup;    
+  }
+    
+  /**
+   * \brief Get connectable MPI communicator in global communicator
+   *   
+   * \return    MPI group
+   *
+   */
+
+  const MPI_Comm &
+  CodeProperties::connectableCommGet() const
+  {
+    return _intraConnectableComm;    
+  }
+  
   /**
    * \brief Set MPI intra-communicator
    *
@@ -751,7 +823,7 @@ namespace cwipi {
    MPI_Group group
   )
   {
-    _intraCoupledGroup = group;
+    _intraGroup = group;
   }
 
   
