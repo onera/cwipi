@@ -37,15 +37,16 @@ namespace cwipi {
   Coupling& 
   CouplingDB::couplingGet
   (
-   const string &cplId
+   const string         &cplId,
+   const CodeProperties &localCodeProperties
   ) 
   {
-    const map <string, Coupling * >::iterator p = _couplingDB.find(cplId);
-    if (p == _couplingDB.end())
-      bftc_error(__FILE__, __LINE__, 0, 
-                "'%s' coupling not found \n", cplId.c_str());
-    assert( p->second != NULL);
-    return *p->second;
+//    const map< CodeProperties *, map <string, Coupling * > > ::iterator p = _couplingDB.find(&localCodeProperties);
+//    if (p == _couplingDB.end()) {
+//      bftc_error(__FILE__, __LINE__, 0, 
+//                "'%s' coupling not found \n", cplId.c_str());
+//    assert( p->second != NULL);
+//    return *p->second;
   }
 
 }

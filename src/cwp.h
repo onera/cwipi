@@ -638,8 +638,8 @@ CWP_Properties_dump
  *
  * This function creates a coupling object and defines its properties.
  *
- * \param [in]  cpl_id              Coupling identifier
  * \param [in]  local_code_name     Local code name
+ * \param [in]  cpl_id              Coupling identifier
  * \param [in]  coupled_code_name   Distant or local coupled code name
  * \param [in]  comm_type           Communication type
  * \param [in]  geom_algo           Geometric algorithm
@@ -653,8 +653,8 @@ CWP_Properties_dump
 void 
 CWP_Cpl_create
 (
- const char               *cpl_id,
  const char               *local_code_name,
+ const char               *cpl_id,
  const char               *coupled_code_name,
  const CWP_Comm_t          comm_type, 
  const CWP_Geom_t          geom_algo,
@@ -673,14 +673,16 @@ CWP_Cpl_create
  * Two coupled codes have to define the same properties. The distant code is always
  * considered as a static interface 
  * 
- * \param [in]  cpl_id      Coupling identifier
- * \param [in]  vect        Direction
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  vect             Direction
  *
  */
 
 void 
 CWP_Cpl_trans_init
 (
+ const char      *local_code_name,
  const char      *cpl_id,
  const double     vect[3]
 );
@@ -694,14 +696,16 @@ CWP_Cpl_trans_init
  * geometric algorithm is launched from previous results. 
  *  
  * 
- * \param [in]  cpl_id      Coupling identifier
- * \param [in]  dist        Relative distance from previous displacement
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  dist             Relative distance from previous displacement
  *
  */
 
 void 
 CWP_Cpl_trans_update
 (
+ const char      *local_code_name,
  const char      *cpl_id,
  const double     dist
 );
@@ -715,15 +719,17 @@ CWP_Cpl_trans_update
  * Two coupled codes have to define the same properties. The distant code is always
  * considered as a static interface 
  * 
- * \param [in]  cpl_id      Coupling identifier
- * \param [in]  vect        Direction
- * \param [in]  center      Center
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  vect             Direction
+ * \param [in]  center           Center
  *
  */
 
 void 
 CWP_Cpl_rotation_init
 (
+ const char      *local_code_name,
  const char      *cpl_id,
  const double     vect[3],
  const double     center[3]
@@ -737,14 +743,16 @@ CWP_Cpl_rotation_init
  * it is a known position, Geometric algorithm is not reprocessed. Otherwise, 
  * geometric algorithm is launched from previous results. 
  *  
- * \param [in]  cpl_id      Coupling identifier
- * \param [in]  angle       Relative angle from previous displacement
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  angle            Relative angle from previous displacement
  *
  */
 
 void 
 CWP_Cpl_rotation_update
 (
+ const char      *local_code_name,
  const char      *cpl_id,
  const double     dist
 );
@@ -757,6 +765,7 @@ CWP_Cpl_rotation_update
  * or translation of the coupling interface.
  * 
  * \param [in] cpl_id              Coupling identifier
+ * \param [in] local_code_name     Local code name
  * \param [in] buffer_size         Size of buffer (Mo) on each coupling 
  *                                 communicator rank (same value for each)
  * \param [in] disk_storage_size   Total size of disk storage when the buffer 
@@ -767,6 +776,7 @@ CWP_Cpl_rotation_update
 void 
 CWP_Cpl_storage_properties_set
 (
+ const char     *local_code_name,
  const char     *cpl_id,
  const int       buffer_size,
  const int       disk_storage_size
@@ -779,13 +789,15 @@ CWP_Cpl_storage_properties_set
  *
  * This function delete a coupling abject
  * 
- * \param [in] cpl_id     Coupling identifier
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
  *
  */
 
 void 
 CWP_Cpl_del
 (
+ const char *local_code_name,
  const char *cpl_id
 );
 
@@ -793,7 +805,8 @@ CWP_Cpl_del
  *
  * \brief Return the number of uncomputed targets
  * 
- * \param [in] cpl_id     Coupling identifier
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
  *
  * \return                Number of uncomputed targets
  */
@@ -801,6 +814,7 @@ CWP_Cpl_del
 int 
 CWP_N_uncomputed_tgts_get
 (
+ const char *local_code_name,
  const char *cpl_id
 );
 
@@ -808,7 +822,8 @@ CWP_N_uncomputed_tgts_get
  *
  * \brief Return uncomputed targets
  * 
- * \param [in] cpl_id     Coupling identifier
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
  *
  * \return                Uncomputed targets
  */
@@ -816,6 +831,7 @@ CWP_N_uncomputed_tgts_get
 const int *
 CWP_Uncomputed_tgts_get
 (
+ const char *local_code_name,
  const char *cpl_id
 );
 
@@ -823,7 +839,8 @@ CWP_Uncomputed_tgts_get
  *
  * \brief Return the number of computed targets
  * 
- * \param [in] cpl_id     Coupling identifier
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
  *
  * \return                Number of computed targets
  */
@@ -831,6 +848,7 @@ CWP_Uncomputed_tgts_get
 int 
 CWP_N_computed_tgts_get
 (
+ const char *local_code_name,
  const char *cpl_id
 );
 
@@ -838,7 +856,8 @@ CWP_N_computed_tgts_get
  *
  * \brief Return computed targets
  * 
- * \param [in] cpl_id     Coupling identifier
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
  *
  * \return                Computed targets
  */
@@ -846,13 +865,15 @@ CWP_N_computed_tgts_get
 const int *
 CWP_Computed_tgts_get
 (
+ const char *local_code_name,
  const char *cpl_id
 );
 
 /**
  * \brief Return distance from each target to the geometric interface                 
  *
- * \param [in]  cpl_id   Coupling identifier
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
  *
  * \return               Distance
  *
@@ -861,6 +882,7 @@ CWP_Computed_tgts_get
 const double *
 CWP_Computed_tgts_dist_to_geom_get
 (
+ const char *local_code_name,
  const char *cpl_id
 );
 
@@ -874,16 +896,18 @@ CWP_Computed_tgts_dist_to_geom_get
  * This function set receiving frequency. It must be used when
  * the type of receiving frequency is \ref FREQ_RELATED_N_TIME_STEP
  *
- * \param [in]  cpl_id     Coupling identifier
- * \param [in]  n_step     Frequency in steps number
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  n_step           Frequency in steps number
  *
  */
 
 void 
 CWP_Recv_freq_set
 (
- const char                 *cpl_id,
- const int                   n_step
+ const char      *local_code_name,
+ const char      *cpl_id,
+ const int        n_step
 );
 
 /**
@@ -892,16 +916,18 @@ CWP_Recv_freq_set
  * This function set the next receiving time. It must be used when
  * the type of receiving frequency is \ref FREQ_ASYNCHRONOUS
  *
- * \param [in]  cpl_id        Coupling identifier
- * \param [in]  next_time     Next receiving time
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  next_time        Next receiving time
  *
  */
 
 void 
 CWP_Next_recv_time_set
 (
- const char                 *cpl_id,
- const double                next_time
+ const char      *local_code_name,
+ const char      *cpl_id,
+ const double     next_time
 );
 
 
@@ -911,16 +937,18 @@ CWP_Next_recv_time_set
  * This function set the coupling time step. It must be used when
  * the type of receiving frequency is \ref FREQ_CPL_TIME_STEP
  *
- * \param [in]  cpl_id        Coupling identifier
- * \param [in]  time step     Coupling time step
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  time step        Coupling time step
  *
  */
 
 void 
 CWP_Cpl_time_step_set
 (
- const char                 *cpl_id,
- const int                   next_time_step
+ const char      *local_code_name,
+ const char      *cpl_id,
+ const int        next_time_step
 );
 
 /*----------------------------------------------------------------------------*
@@ -932,6 +960,7 @@ CWP_Cpl_time_step_set
  *
  * This function compute geometry 
  *
+ * \param [in]  local_code_name     Local code name
  * \param [in]  cpl_id              Coupling identifier
  * \param [out] n_uncomputed_tgt    Number of uncomputed target
  *
@@ -940,6 +969,7 @@ CWP_Cpl_time_step_set
 void 
 CWP_Geom_compute
 (
+ const char     *local_code_name,
  const char     *cpl_id,
  int            *n_uncomputed_tgt
 );
@@ -950,15 +980,17 @@ CWP_Geom_compute
  * This function set the location algorithm properties. It must be only used
  * when the type of geometric algorithm is \ref CWP_GEOM_LOCATION
  *
- * \param [in]  cpl_id        Coupling identifier
- * \param [in]  fmt           Format with the syntax : "prop1, prop2, ..."
- * \param       ...           Values of each properties
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  fmt              Format with the syntax : "prop1, prop2, ..."
+ * \param       ...              Values of each properties
  *
  */
 
 void 
 CWP_Geom_properties_set
 (
+ const char     *local_code_name,
  const char     *cpl_id,
  const char     *fmt,
  ...
@@ -973,6 +1005,7 @@ CWP_Geom_properties_set
  *
  * This function enable visualization output.
  *
+ * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
  * \param [in]  freq             Output frequency
  * \param [in]  format           Output format to visualize exchanged fields
@@ -1003,6 +1036,7 @@ CWP_Geom_properties_set
 void 
 CWP_Visu_set
 (
+ const char    *local_code_name,
  const char    *cpl_id,
  const int      freq,
  const char    *format,
@@ -1019,15 +1053,17 @@ CWP_Visu_set
  * This function must be called if the nature of receiving fields 
  * is \ref CWP_FIELD_LOCATION_USER
  *
- * \param [in]  cpl_id  Coupling identifier
- * \param [in]  n_pts   Number of points
- * \param [in]  coord   Coordinates (size = 3 * \ref n_pts)          
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  n_pts            Number of points
+ * \param [in]  coord            Coordinates (size = 3 * \ref n_pts)          
  *
  */
 
 void 
 CWP_User_tgt_pts_set
 (
+ const char    *local_code_name,
  const char    *cpl_id,
  const int      n_pts,
  double         coord[]
@@ -1042,19 +1078,20 @@ CWP_User_tgt_pts_set
  *
  * This function set partition vertices
  *
- * \param [in]  cpl_id      Coupling identifier
- * \param [in]  i_part      Current partition
- * \param [in]  n_pts       Number of points
- * \param [in]  coord       Coordinates (size = 3 * \ref n_pts)          
- * \param [in]  global_num  Pointer to parent element number (or NULL)
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  i_part           Current partition
+ * \param [in]  n_pts            Number of points
+ * \param [in]  coord            Coordinates (size = 3 * \ref n_pts)          
+ * \param [in]  global_num       Pointer to parent element number (or NULL)
  *
  */
 
 void 
 CWP_Support_vtx_set
 (
+ const char           *local_code_name,
  const char             *cpl_id,
- const char            *code_name,
  const int               i_part,
  const int               n_pts,
  const double            coord[],
@@ -1066,15 +1103,16 @@ CWP_Support_vtx_set
  *
  * This function finalizes the support building
  *
- * \param [in]  cpl_id      Coupling identifier
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
  *
  */
 
 void 
 CWP_Support_end_set
 (
- const char            *cpl_id,
- const char            *code_name
+ const char        *local_code_name,
+ const char        *cpl_id
 );
 
 /**
@@ -1161,38 +1199,40 @@ CWP_Support_end_set
  *       1 x-------x 2
  *   \endcode
  *
- * \param [in]  cpl_id      Coupling identifier
- * \param [in]  i_part      Current partition
- * \param [in]  block_type  Block type
- * \param [in]  n_elts      Number of elements
- * \param [in]  connec      Connectivity (size = n_vertex_elt * \ref n_elts)          
- * \param [in]  global_num  Pointer to parent element number (or NULL)
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  i_part           Current partition
+ * \param [in]  block_type       Block type
+ * \param [in]  n_elts           Number of elements
+ * \param [in]  connec           Connectivity (size = n_vertex_elt * \ref n_elts)          
+ * \param [in]  global_num       Pointer to parent element number (or NULL)
  *
  */
 
 void 
 CWP_Support_std_block_add
 (
- const char            *cpl_id,
- const char            *code_name,
- const int              i_part,
- const CWP_Block_t      block_type,
- const int              n_elts,
- const int              connec[],
- const CWP_g_num_t       global_num[]
+ const char        *local_code_name,
+ const char        *cpl_id,
+ const int          i_part,
+ const CWP_Block_t  block_type,
+ const int          n_elts,
+ const int          connec[],
+ const CWP_g_num_t  global_num[]
 );
 
 
 /**
  * \brief Add a generic high order elements block
  *
- * \param [in]  cpl_id      Coupling identifier
- * \param [in]  i_part      Current partition
- * \param [in]  block_type  Block type
- * \param [in]  n_elts      Number of elements
- * \param [in]  order       Element order
- * \param [in]  connec      Connectivity (size = n_vertex_elt * \ref n_elts)          
- * \param [in]  global_num  Pointer to parent element number (or NULL)
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  i_part           Current partition
+ * \param [in]  block_type       Block type
+ * \param [in]  n_elts           Number of elements
+ * \param [in]  order            Element order
+ * \param [in]  connec           Connectivity (size = n_vertex_elt * \ref n_elts)          
+ * \param [in]  global_num       Pointer to parent element number (or NULL)
  *
  */
 
@@ -1200,13 +1240,13 @@ CWP_Support_std_block_add
 void 
 CWP_Support_h_order_block_add
 (
- const char            *cpl_id,
- const char            *code_name,
- const int              i_part,
- const CWP_Block_t      block_type,
- const int              n_elts,
- const int              connec[],
- const CWP_g_num_t       global_num[]
+ const char        *local_code_name,
+ const char        *cpl_id,
+ const int          i_part,
+ const CWP_Block_t  block_type,
+ const int          n_elts,
+ const int          connec[],
+ const CWP_g_num_t  global_num[]
 );
 
 
@@ -1216,27 +1256,28 @@ CWP_Support_h_order_block_add
  * This function adds a polygon connectivity block to the geometric support for
  * \ref CWP_SUPPORT_MESH support type.
  *
- * \param [in]  cpl_id      Coupling identifier
- * \param [in]  i_part      Current partition
- * \param [in]  n_elts      Number of elements
- * \param [in]  connec_idx  Connectivity index (connec_id[0] = 0 and 
- *                          size = \ref n_elts + 1)          
- * \param [in]  connec      Connectivity (size = connec_id[n_elts] * \ref n_elts)          
- * \param [in]  parent_num  Pointer to parent element number (or NULL)
+ * \param [in]  local_code_name  Local code name
+ * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  i_part           Current partition
+ * \param [in]  n_elts           Number of elements
+ * \param [in]  connec_idx       Connectivity index (connec_id[0] = 0 and 
+ *                               size = \ref n_elts + 1)          
+ * \param [in]  connec           Connectivity (size = connec_id[n_elts] * \ref n_elts)          
+ * \param [in]  parent_num       Pointer to parent element number (or NULL)
  *
  */
 
 void 
 CWP_Support_f_poly_block_add
 (
- const char                 *cpl_id,
- const char                 *code_name,
- const int                   i_part,
- const CWP_Block_t           block_type,
- const int                   n_elts,
- const int                   connec_idx[],
- const int                   connec[],
- const CWP_g_num_t            parent_num[]
+ const char             *local_code_name,
+ const char             *cpl_id,
+ const int               i_part,
+ const CWP_Block_t       block_type,
+ const int               n_elts,
+ const int               connec_idx[],
+ const int               connec[],
+ const CWP_g_num_t       parent_num[]
 );
 
 /**
@@ -1245,6 +1286,7 @@ CWP_Support_f_poly_block_add
  * This function add a connectivity block to the geometric support if support
  * type is only \ref CWP_SUPPORT_MESH. Definition of element connectivity is :
  *
+ * \param [in]  local_code_name   Local code name
  * \param [in]  cpl_id            Coupling identifier
  * \param [in]  i_part            Current partition
  * \param [in]  n_elts            Number of elements
@@ -1266,8 +1308,8 @@ CWP_Support_f_poly_block_add
 void 
 CWP_Support_c_poly_block_add
 (
+ const char         *local_code_name,
  const char           *cpl_id,
- const char            *code_name,
  const int             i_part,
  const int             n_elts,
  const int             cell_face_idx[],
@@ -1283,15 +1325,16 @@ CWP_Support_c_poly_block_add
  *
  * This function delete the geometric support  
  *
- * \param [in]  cpl_id    Coupling identifier
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
  *
  */
 
 void 
 CWP_Support_del
 (
- const char *cpl_id,
- const char *code_name
+ const char *local_code_name,
+ const char *cpl_id
 );
 
 /**
@@ -1299,17 +1342,18 @@ CWP_Support_del
  *
  * This function  map a fvm nodal as support mesh
  *
- * \param [in]  cpl_id            Coupling identifier
- * \param [in]  i_part            Current partition
- * \param [in]  fvmc_nodal        fvm nodal mes     
+ * \param [in] local_code_name   Local code name
+ * \param [in] cpl_id            Coupling identifier
+ * \param [in] i_part            Current partition
+ * \param [in] fvmc_nodal        fvm nodal mes     
  *
  */
 
 void 
 CWP_Support_shared_fvm_nodal
 (
+ const char  *local_code_name,
  const char  *cpl_id,
- const char  *code_name,
  const int   i_part,
  void        *fvmc_nodal
 );
@@ -1322,6 +1366,7 @@ CWP_Support_shared_fvm_nodal
  *
  * \brief Creating a new field
  * 
+ * \param [in] local_code_name Local code name
  * \param [in]  cpl_id         Coupling identifier
  * \param [in]  field_id       Field id
  * \param [in]  data_type      Data type          
@@ -1336,8 +1381,8 @@ CWP_Support_shared_fvm_nodal
 void
 CWP_Field_create
 (
+ const char                  *local_code_name,
  const char                  *cpl_id,
- const char                  *code_name,
  const char                  *field_id,
  const CWP_Type_t             data_type,
  const CWP_Field_storage_t    storage,
@@ -1352,20 +1397,22 @@ CWP_Field_create
  *
  * \brief Set data mapping
  * 
- * \param [in]  cpl_id         Coupling identifier
- * \param [in]  field_id       Field identifier
- * \param [in]  i_part         Current partition
- * \param [in]  data           Storage array (Mapping)
+ * \param [in] local_code_name   Local code name
+ * \param [in] cpl_id            Coupling identifier
+ * \param [in] field_id          Field identifier
+ * \param [in] i_part            Current partition
+ * \param [in] data              Storage array (Mapping)
  * 
  */
 
 void
 CWP_Field_mapping_set
 (
- const char                  *cpl_id,
- const char                  *field_id,
- const int                    i_part,
- double                       data[]
+ const char      *local_code_name,
+ const char      *cpl_id,
+ const char      *field_id,
+ const int        i_part,
+ double           data[]
 );
 
 
@@ -1375,30 +1422,33 @@ CWP_Field_mapping_set
  * 
  * \TODO Define gradient storage
  * 
- * \param [in]  cpl_id         Coupling identifier
- * \param [in]  field_id       Field identifier
- * \param [in]  i_part         Current partition
- * \param [in]  order          Order
- * \param [in]  data           Storage array (Mapping)
+ * \param [in] local_code_name Local code name
+ * \param [in] cpl_id          Coupling identifier
+ * \param [in] field_id        Field identifier
+ * \param [in] i_part          Current partition
+ * \param [in] order           Order
+ * \param [in] data            Storage array (Mapping)
  * 
  */
 
 void
 CWP_Field_gradient_mapping_set
 (
- const char                  *cpl_id,
- const char                  *field_id,
- const int                    i_part,
- const int                    order,
- double                       data[]
+ const char      *local_code_name,
+ const char      *cpl_id,
+ const char      *field_id,
+ const int        i_part,
+ const int        order,
+ double           data[]
 );
 
 /**
  *
  * \brief Get nunmber of field components
  * 
- * \param [in]   cpl_id         Coupling identifier
- * \param [in]   field_id       Field identifier
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] field_id         Field identifier
  *
  * \return                      number of field components
  * 
@@ -1407,16 +1457,18 @@ CWP_Field_gradient_mapping_set
 int
 CWP_Field_n_component_get
 (
- const char                  *cpl_id,
- const char                  *field_id
+ const char      *local_code_name,
+ const char      *cpl_id,
+ const char      *field_id
 );
 
 /**
  *
  * \brief Get field nature
  * 
- * \param [in]   cpl_id         Coupling identifier
- * \param [in]   field_id       Field identifier
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] field_id         Field identifier
  *
  * \return                      Field nature
  * 
@@ -1425,16 +1477,18 @@ CWP_Field_n_component_get
 CWP_Field_value_t
 CWP_Field_location_get
 (
- const char                  *cpl_id,
- const char                  *field_id
+ const char      *local_code_name,
+ const char      *cpl_id,
+ const char      *field_id
 );
 
 /**
  *
  * \brief Get field data type
  * 
- * \param [in]   cpl_id         Coupling identifier
- * \param [in]   field_id       Field identifier
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] field_id         Field identifier
  *
  * \return                      Field data type
  * 
@@ -1443,16 +1497,18 @@ CWP_Field_location_get
 CWP_Type_t
 CWP_Field_value_type_get
 (
- const char                  *cpl_id,
- const char                  *field_id
+ const char      *local_code_name,
+ const char      *cpl_id,
+ const char      *field_id
 );
 
 /**
  *
  * \brief Get field storage type
  * 
- * \param [in]   cpl_id         Coupling identifier
- * \param [in]   field_id       Field identifier
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] field_id         Field identifier
  * 
  * \return                      Field storage type
  */
@@ -1460,14 +1516,16 @@ CWP_Field_value_type_get
 CWP_Field_storage_t
 CWP_Field_storage_get
 (
- const char                  *cpl_id,
- const char                  *field_id
+ const char      *local_code_name,
+ const char      *cpl_id,
+ const char      *field_id
 );
 
 /**
  *
  * \brief Removing a field
  * 
+ * \param [in] local_code_name Local code name
  * \param [in]  cpl_id         Coupling identifier
  * \param [in]  field_id       Field identifier
  * 
@@ -1476,8 +1534,9 @@ CWP_Field_storage_get
 void
 CWP_Field_del
 (
- const char                  *cpl_id,
- const char                  *field_id
+ const char      *local_code_name,
+ const char      *cpl_id,
+ const char      *field_id
 );
 
 /*----------------------------------------------------------------------------*
@@ -1490,12 +1549,15 @@ CWP_Field_del
  *
  * This function exchanges for each coupling depending on exchange frequency
  * 
+ * \param [in] local_code_name      Local code name
  * \param [in] cpl_id     Coupling identifier
+ *
  */
 
 void
 CWP_Exch
 (
+ const char *local_code_name,
  const char *cpl_id
  );
 
@@ -1510,6 +1572,7 @@ CWP_Exch
  *           If \f$ n\_uncomputed\_tgt \ne n\_tgt\_pts \f$,
  *           user himself must set values for uncomputed target points.
  *
+ * \param [in] local_code_name      Local code name
  * \param [in]  cpl_id              Coupling identifier
  * \param [in]  src_field_id        Source field id (0 -> no sending)
  * \param [in]  tgt_field_id        Target field id (0 -> no receiving)
@@ -1522,6 +1585,7 @@ CWP_Exch
 CWP_Err_t 
 CWP_Sendrecv
 (
+ const char   *local_code_name,
  const char   *cpl_id,
  const char   *src_field_id,
  const char   *tgt_field_id,
@@ -1535,6 +1599,7 @@ CWP_Sendrecv
  *
  * This function sends interpolated field to the coupled code. 
  * 
+ * \param [in] local_code_name  Local code name
  * \param [in]  cpl_id          Coupling identifier
  * \param [in]  src_field_id    Source field id
  *
@@ -1546,6 +1611,7 @@ CWP_Sendrecv
 void 
 CWP_Issend
 (
+ const char     *local_code_name,
  const char     *cpl_id,
  const char     *src_field_id,
  int            *request
@@ -1558,6 +1624,7 @@ CWP_Issend
  *
  * This function receives interpolated field from the coupled code 
  * 
+ * \param [in] local_code_name  Local code name
  * \param [in]  cpl_id          Coupling identifier
  * \param [in]  tgt_field_id    Target field id
  *
@@ -1569,6 +1636,7 @@ CWP_Issend
 void 
 CWP_Irecv
 (
+ const char   *local_code_name,
  const char   *cpl_id,
  const char   *tgt_field_id,
  int          *request
@@ -1581,14 +1649,16 @@ CWP_Irecv
  * This function waits the end of exchange related to \ref request
  * from \ref CWP_issend
  * 
- * \param [in] cpl_id     Coupling identifier
- * \param [in] request    Request to wait the end of exchange
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] request          Request to wait the end of exchange
  *
  */
 
 void 
 CWP_Wait_issend
 (
+ const char  *local_code_name,
  const char  *cpl_id,
  int          request
 );
@@ -1600,14 +1670,16 @@ CWP_Wait_issend
  * This function waits the end of exchange related to \ref request 
  * from \ref CWP_irecv
  * 
- * \param [in] cpl_id     Coupling identifier
- * \param [in] request    Request to wait the end of exchange
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] request          Request to wait the end of exchange
  *
  */
 
 void 
 CWP_Wait_irecv
 (
+ const char  *local_code_name,
  const char  *cpl_id,
  int          request
 );
@@ -1625,15 +1697,17 @@ CWP_Wait_irecv
  * This function takes into account an user interpolation function written with
  * \ref void (*CWP_interp_from_location_t) interface.
  * 
- * \param [in] cpl_id     Coupling identifier
- * \param [in] fct        Function
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] fct              Function
  *
  */
 
 void 
 CWP_Interp_from_loc_set
 (
- const char                  *cpl_id,
+ const char                 *local_code_name,
+ const char                 *cpl_id,
  CWP_Interp_from_location_t fct
 );
 
@@ -1644,14 +1718,16 @@ CWP_Interp_from_loc_set
  * This function takes into account an user interpolation function written
  * in FORTRAN.
  * 
- * \param [in] cpl_id     Coupling identifier
- * \param [in] fct        Function
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] fct              Function
  *
  */
 
 void 
 CWP_Interp_from_loc_set_f
 (
+ const char *local_code_name,
  const char *cpl_id,
  void       *fct
 );
@@ -1663,15 +1739,17 @@ CWP_Interp_from_loc_set_f
  * This function takes into account an user interpolation function written with
  * \ref void (*CWP_interp_from_intersec_t) interface.
  * 
- * \param [in] cpl_id     Coupling identifier
- * \param [in] fct        Function
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] fct              Function
  *
  */
 
 void 
 CWP_Interp_from_inter_set
 (
- const char                  *cpl_id,
+ const char                *local_code_name,
+ const char                *cpl_id,
  CWP_Interp_from_intersec_t fct
 );
 
@@ -1682,14 +1760,16 @@ CWP_Interp_from_inter_set
  * This function takes into account an user interpolation function written
  * in FORTRAN .
  * 
- * \param [in] cpl_id     Coupling identifier
- * \param [in] fct        Function
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] fct              Function
  *
  */
 
 void 
 CWP_Interp_from_inter_set_f
 (
+ const char *local_code_name,
  const char *cpl_id,
  void       *fct
 );
@@ -1701,14 +1781,16 @@ CWP_Interp_from_inter_set_f
  * This function takes into account an user interpolation function written with
  * \ref void (*CWP_interp_from_closest_pts_t) interface.
  * 
- * \param [in] cpl_id     Coupling identifier
- * \param [in] fct        Function
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] fct              Function
  *
  */
 
 void 
 CWP_interp_from_closest_set
 (
+ const char                    *local_code_name,
  const char                     *cpl_id,
  CWP_Interp_from_closest_pts_t fct
 );
@@ -1720,14 +1802,16 @@ CWP_interp_from_closest_set
  * This function takes into account an user interpolation function written
  * in FORTRAN .
  * 
- * \param [in] cpl_id     Coupling identifier
- * \param [in] fct        Function
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] fct              Function
  *
  */
 
 void 
 CWP_Interp_from_closest_set_f
 (
+ const char *local_code_name,
  const char *cpl_id,
  void       *fct
 );

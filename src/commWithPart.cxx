@@ -57,6 +57,8 @@ namespace cwipi {
   )
   {
 
+    printf("_cplCommCreate commWithPart\n");
+    
     _isCplRank = true;
     
     if (cplCodeCommType != CWP_COMM_PAR_WITH_PART) {

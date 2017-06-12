@@ -35,7 +35,7 @@ namespace cwipi {
    */
 
   CouplingDB::CouplingDB()
-    : _couplingDB(*new map <string, Coupling * > ())
+    : _couplingDB(*new map < const CodeProperties *, map <string, Coupling * > > ())
   {
   }
 
@@ -46,14 +46,19 @@ namespace cwipi {
 
   CouplingDB::~CouplingDB()
   {
-    typedef map <string, Coupling * >::iterator Iterator;
-    for (Iterator p = _couplingDB.begin();
-         p != _couplingDB.end(); p++) {
-      if (p->second != NULL)
-        delete p->second;
+    typedef map < const CodeProperties *, map <string, Coupling * > >::iterator Iterator;
+    typedef map < string, Coupling * > ::iterator Iterator2;
+
+    for (Iterator p1 = _couplingDB.begin();
+           p1 != _couplingDB.end(); p1++) {
+      for (Iterator2 p = p1->second.begin();
+           p != p1->second.end(); p++) {
+        if (p->second != NULL)
+          delete p->second;
+      }
+      p1->second.clear();
     }
     _couplingDB.clear();
-
     delete &_couplingDB;
   }
 
@@ -63,8 +68,8 @@ namespace cwipi {
    * This function creates a coupling object and defines its properties.
    *
    * \param [in]  cplId              Coupling identifier
-   * \param [in]  commType           Communication type
    * \param [in]  cplCodeProperties  Coupled code properties
+   * \param [in]  commType           Communication type
    * \param [in]  geomAlgo           Geometric algorithm
    * \param [in]  supportType        Support type
    * \param [in]  nPart              Number of interface partition 
@@ -76,10 +81,10 @@ namespace cwipi {
   void  
   CouplingDB::couplingCreate
   (
-   const string                &cplId,
-   const CWP_Comm_t            commType,
    const CodeProperties        &localCodeProperties,
+   const string                &cplId,
    const CodeProperties        &coupledCodeProperties,
+   const CWP_Comm_t            commType,
    const CWP_Geom_t           geomAlgo,
    const CWP_Support_t   supportType,
    const int                    nPart,
@@ -103,15 +108,23 @@ namespace cwipi {
 //                                         movingStatus,
 //                                         recvFreqType);
 
-    pair<string, Coupling* >
-      newPair(string(cplId), newCoupling);
-
-    pair<map<string, Coupling* >::iterator, bool>
-      p = _couplingDB.insert(newPair);
-
-    if (!p.second)
-      bftc_error(__FILE__, __LINE__, 0,
-                "'%s' existing coupling\n", cplId.c_str());
+//    const map <string, CodeProperties * >::iterator p = 
+//      _couplingDB.find(cplId);
+    
+//    if (p == _couplingDB.end()) {
+//      pair<string, Coupling* >
+//        newPair(string(cplId), newCoupling);
+//
+//      _couplingDB.insert(newPair);
+//    }
+//    
+//    else {
+//      
+//      if (p->second->)
+//      
+//      bftc_error(__FILE__, __LINE__, 0,
+//                "'%s' existing coupling\n", cplId.c_str());
+//    }
 
   }
 
@@ -125,17 +138,18 @@ namespace cwipi {
   void  
   CouplingDB::couplingDel
   (
+   const CodeProperties &localCodeProperties,
    const string &cplId
   )
   {
-    const map <string, Coupling * >::iterator p = _couplingDB.find(cplId);
-    if (p == _couplingDB.end())
-      bftc_error(__FILE__, __LINE__, 0,
-                "'%s' coupling not found \n", cplId.c_str());
-
-    if (p->second != NULL)
-      delete p->second;
-
-    _couplingDB.erase(p);
+//    const map <string, Coupling * >::iterator p = _couplingDB.find(cplId);
+//    if (p == _couplingDB.end())
+//      bftc_error(__FILE__, __LINE__, 0,
+//                "'%s' coupling not found \n", cplId.c_str());
+//
+//    if (p->second != NULL)
+//      delete p->second;
+//
+//    _couplingDB.erase(p);
   }
 }

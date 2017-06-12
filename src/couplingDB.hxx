@@ -53,8 +53,8 @@ namespace cwipi {
      * This function creates a coupling object and defines its properties.
      *
      * \param [in]  cplId              Coupling identifier
-     * \param [in]  commType           Communication type
      * \param [in]  cplCodeProperties  Coupled code properties
+     * \param [in]  commType           Communication type
      * \param [in]  geomAlgo           Geometric algorithm
      * \param [in]  supportType        Support type
      * \param [in]  nPart              Number of interface partition 
@@ -66,10 +66,10 @@ namespace cwipi {
     void 
     couplingCreate
     (
-     const string                &cplId,
-     const CWP_Comm_t           commType,
      const CodeProperties        &localCodeProperties,
+     const string                &cplId,
      const CodeProperties        &coupledCodeProperties,
+     const CWP_Comm_t           commType,
      const CWP_Geom_t           geomAlgo,
      const CWP_Support_t        supportType,
      const int                    nPart,
@@ -87,7 +87,8 @@ namespace cwipi {
     void 
     couplingDel
     (
-     const string &cplId
+     const CodeProperties &localCodeProperties,
+     const string         &cplId
     );
     
     /**
@@ -100,7 +101,8 @@ namespace cwipi {
     inline Coupling& 
     couplingGet
     (
-     const string &cplId
+     const string &cplId,
+     const CodeProperties &localCodeProperties
     );
     
   private:
@@ -141,7 +143,7 @@ namespace cwipi {
     virtual ~CouplingDB();
     
   private:
-    map < string, Coupling * > & _couplingDB; /*!< Couplings storage */
+    map < const CodeProperties *, map < string, Coupling * > > & _couplingDB; /*!< Couplings storage for each local Code */
 
   };
 }

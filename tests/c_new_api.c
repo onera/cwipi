@@ -226,6 +226,21 @@ int main
 
   CWP_Properties_dump ();
   
+  char cpl_id1[] = "cpl_code1_code2";
+  if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) {
+    CWP_Cpl_create (cpl_id1, "code1", "code2", CWP_COMM_PAR_WITH_PART,
+                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
+  }
+  
+          
+  if (rank == 1 || rank == 2 || rank == 6 || rank == 7 || rank == 9) {
+    CWP_Cpl_create (cpl_id1, "code2", "code1", CWP_COMM_PAR_WITH_PART,
+                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
+  }
+  
+  
   CWP_Finalize();
 
   MPI_Finalize();

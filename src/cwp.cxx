@@ -128,17 +128,23 @@ _cwipi_print_with_c
  * \return                Coupling instance from it identifier
  */
 
+
 static cwipi::Coupling&
 _cpl_get
 (
- const char     *cpl_id
+ const char *local_code_name,
+ const char *cpl_id
  )
 {
   cwipi::CouplingDB & couplingDB =
     cwipi::CouplingDB::getInstance();
   
+  cwipi::CodePropertiesDB & properties =
+    cwipi::CodePropertiesDB::getInstance();
+
   const string &cpl_name_str = cpl_id;
-  return couplingDB.couplingGet(cpl_name_str);
+  return couplingDB.couplingGet(cpl_name_str, 
+                                properties.codePropertiesGet(string(local_code_name)));
 }
 
 
@@ -480,8 +486,8 @@ CWP_Properties_dump
  *
  * This function creates a coupling object and defines its properties.
  *
-  * \param [in]  cpl_id              Coupling identifier
  * \param [in]  local_code_name     Local code name
+ * \param [in]  cpl_id              Coupling identifier
  * \param [in]  coupled_code_name   Distant or local coupled code name
  * \param [in]  comm_type           Communication type
  * \param [in]  geom_algo           Geometric algorithm
@@ -495,8 +501,8 @@ CWP_Properties_dump
 void 
 CWP_Cpl_create
 (
- const char               *cpl_id,
  const char               *local_code_name,
+ const char               *cpl_id,
  const char               *coupled_code_name,
  const CWP_Comm_t          comm_type, 
  const CWP_Geom_t          geom_algo,
@@ -516,10 +522,10 @@ CWP_Cpl_create
   const string &coupled_application_str = coupled_code_name;
   const string &local_application_str = local_code_name;
 
-  couplingDB.couplingCreate(coupling_name_str,
-                            comm_type,
-                            properties.codePropertiesGet(local_application_str),
+  couplingDB.couplingCreate(properties.codePropertiesGet(local_application_str),
+                            coupling_name_str,
                             properties.codePropertiesGet(coupled_application_str),
+                            comm_type,
                             geom_algo,
                             support_type,
                             n_part,
@@ -533,21 +539,28 @@ CWP_Cpl_create
  *
  * This function delete a coupling abject
  * 
- * \param [in] cpl_id     Coupling identifier
+ * \param [in] local_code_name   Local code name
+ * \param [in] cpl_id            Coupling identifier
  *
  */
 
 void 
 CWP_Cpl_del
-(const char *cpl_id
+(
+const char *local_code_name,
+const char *cpl_id
 )
 {
   cwipi::CouplingDB & couplingDB =
     cwipi::CouplingDB::getInstance();
+    
+  cwipi::CodePropertiesDB & properties =
+    cwipi::CodePropertiesDB::getInstance();
 
   const string &cpl_id_str = cpl_id;
 
-  couplingDB.couplingDel(cpl_id_str);
+  couplingDB.couplingDel(properties.codePropertiesGet(string(local_code_name)),
+                         cpl_id_str);
 }
 
 /**
