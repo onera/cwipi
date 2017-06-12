@@ -56,112 +56,73 @@ namespace cwipi {
    CWP_Comm_t cplCodeCommType
   )
   {
-      
-//FIXME: Check that CommSeq::_cplCommCreate is same that CommWithoutPart::_cplCommCreate
-      
-//    int mergeInterCommSize;
-//    MPI_Comm_size(_mergeInterComm, &mergeInterCommSize);
-//
-//    const int localFirstRank = _localCodeProperties->firstRankGet();
-//    const int localLastRank  = _localCodeProperties->lastRankGet();
-//    
-//    const MPI_Comm& globalComm = _localCodeProperties->globalCommGet();
-//
-//    int currentRank;
-//    MPI_Comm_rank(globalComm, &currentRank);
-//
-//    _isCplRank = localFirstRank == currentRank;
-// 
-//    const int nLocalRank = localLastRank
-//                         - localFirstRank
-//                         + 1;
-//
-//    const int cplCodeFirstRank = _cplCodeProperties->firstRankGet();
-//    const int cplCodeLastRank  = _cplCodeProperties->lastRankGet();
-//   
-//    const int nCplCodeRank = cplCodeLastRank
-//                           - cplCodeFirstRank
-//                           + 1;
-//
-//    int  nRankList = 0;
-//    int *rankList = NULL;
-//    
-//    //
-//    // Store coupling active ranks to create the coupling communicator
-//
-//    if (cplCodeCommType == CWP_COMM_PAR_WITH_PART) {
-//
-//      _cplCodeNRankCplComm = 1;
-//
-//      nRankList = 1 + nCplCodeRank;
-//      rankList  = new int[nRankList]; 
-//
-//      if (localFirstRank < cplCodeFirstRank) {
-//        rankList[0] = 0;
-//        _cplCodeFirstRankCplComm = 1;
-//        for (int i = 0; i < nCplCodeRank; i++)
-//          rankList[i+1] = nLocalRank + i;
-//      }
-//      else {
-//        _cplCodeFirstRankCplComm = 0;
-//        for (int i = 0; i < nCplCodeRank; i++)
-//          rankList[i] = i;
-//        rankList[nCplCodeRank] = nCplCodeRank;
-//      }
-//
-//    }
-//
-//    else {
-//
-//      nRankList = 2;
-//      rankList[0] = 0;
-//          
-//      _cplCodeNRankCplComm = 1;
-//      if (localFirstRank < cplCodeFirstRank) {
-//        rankList[1] = nLocalRank;
-//        _cplCodeFirstRankCplComm = 1;
-//      }
-//      else {
-//        rankList[1] = nCplCodeRank;
-//        _cplCodeFirstRankCplComm = 0;
-//      }
-//
-//    }
-//
-//    //
-//    // Create the coupling communicator from rankList
-//
-//    MPI_Group mergeGroup = MPI_GROUP_NULL;
-//    MPI_Group cplGroup   = MPI_GROUP_NULL;
-//        
-//    MPI_Comm_group(_mergeInterComm, &mergeGroup);
-//        
-//    MPI_Group_incl(mergeGroup, nRankList, rankList, &cplGroup);
-//        
-//    MPI_Comm_create(_mergeInterComm, cplGroup, &_cplComm);
-//        
-//    MPI_Group_free(&cplGroup);
-//    MPI_Group_free(&mergeGroup);
-//        
-//    delete [] rankList;
-//
-//    //
-//    // Build the fvm communicator from the local communicator 
-//    // (Only the master rank is into fvm communicator)
-//
-//    int list1 = 0;
-//    MPI_Group localGroup = MPI_GROUP_NULL;
-//    MPI_Group fvmGroup   = MPI_GROUP_NULL;
-//    MPI_Comm localComm   = _localCodeProperties->intraCommGet();
-//    
-//    MPI_Comm_group(localComm, &localGroup);
-//    MPI_Group_incl(localGroup, 1, &list1, &fvmGroup);
-//    MPI_Comm_create(localComm,
-//                    fvmGroup,
-//                    &_fvmComm);
-//    MPI_Group_free(&localGroup);
-//    MPI_Group_free(&fvmGroup);
+    const int localRootRank = _localCodeProperties->rootRankGet();
+    const int cplRootRank   = _cplCodeProperties->rootRankGet();
+    
+    const MPI_Comm& globalComm = _localCodeProperties->globalCommGet();
 
+    int currentRank;
+    MPI_Comm_rank(globalComm, &currentRank);
+
+    _isCplRank = localRootRank == currentRank;
+    
+    if (cplCodeCommType != CWP_COMM_PAR_WITH_PART) {
+
+      MPI_Group globalGroup;
+      MPI_Comm_group(globalComm, &globalGroup);
+
+      MPI_Group unionGroup;
+      MPI_Comm_group(_unionComm, &unionGroup);      
+
+      int cplRanks[2];
+      int gap1 = 0;
+      int gap2 = 1;
+      
+      if (_localCodeProperties->idGet() < _cplCodeProperties->idGet()) {
+        gap1 = 1;
+        gap2 = 0;
+      }
+      
+      MPI_Group_translate_ranks (globalGroup, 1, &localRootRank, 
+                                 unionGroup, cplRanks + gap1);
+
+      MPI_Group_translate_ranks (globalGroup, 1, &cplRootRank, 
+                                 unionGroup, cplRanks + gap2);
+      
+      MPI_Group_incl(unionGroup, 2, cplRanks, &_cplGroup);
+      
+      MPI_Comm_create (_unionComm, _cplGroup, &_cplComm);
+      
+    }
+    
+    else {
+      
+      const vector <int> &cplRanks = *(_localCodeProperties->connectableRanksGet());
+      
+      vector <int> exRanks(cplRanks.size()-1);
+      
+      int j = 0;
+      for (int i = 0; i < cplRanks.size(); i++) {
+        if (cplRanks[i] != _localCodeProperties->rootRankGet()) {
+          exRanks[j++] = cplRanks[i]; 
+        }      
+      }
+      
+      vector <int> tExRanks(exRanks.size());
+      
+      MPI_Group globalGroup;
+      MPI_Comm_group(_localCodeProperties->globalCommGet(), &globalGroup);
+      
+      MPI_Group unionGroup;
+      MPI_Comm_group(_unionComm, &unionGroup);      
+      
+      MPI_Group_translate_ranks(globalGroup, exRanks.size(), &(exRanks[0]),
+                                unionGroup, &(tExRanks[0]));
+      MPI_Group_excl(unionGroup, exRanks.size(), &(tExRanks[0]), &_cplGroup);
+      
+      MPI_Comm_create(_unionComm, _cplGroup, &_cplComm);
+      
+    }
   }
 
 
