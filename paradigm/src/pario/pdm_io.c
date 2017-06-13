@@ -1699,9 +1699,15 @@ void PDM_io_lec_par_entrelacee
        *---------------------------------------------------------*/
         
       PDM_timer_resume(timer_fichier);
-        
-      buffer = (unsigned char*) malloc(taille_donnee * max_n_composantes 
-                                       * _n_donnees_rang);
+
+      int max_n_donnees_bloc = n_donnees_bloc;
+
+      if (fichier->n_rangs > 1) { 
+          PDM_MPI_Allreduce(&n_donnees_bloc, &max_n_donnees_bloc, 1, 
+                        PDM_MPI_INT, PDM_MPI_MAX, fichier->comm);
+      } 
+      
+      buffer = (unsigned char*) malloc(taille_donnee * max_n_donnees_bloc);
 
       switch (fichier->acces) {
           
