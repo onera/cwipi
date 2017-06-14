@@ -52,14 +52,15 @@ namespace cwipi {
      *
      * This function creates a coupling object and defines its properties.
      *
-     * \param [in]  cplId              Coupling identifier
-     * \param [in]  cplCodeProperties  Coupled code properties
-     * \param [in]  commType           Communication type
-     * \param [in]  geomAlgo           Geometric algorithm
-     * \param [in]  supportType        Support type
-     * \param [in]  nPart              Number of interface partition 
-     * \param [in]  movingStatus       Support moving status
-     * \param [in]  recvFreqType       Type of receiving frequency
+     * \param [in]  localCodeProperties  Source code
+     * \param [in]  cplId                Coupling identifier
+     * \param [in]  cplCodeProperties    Coupled code properties
+     * \param [in]  commType             Communication type
+     * \param [in]  geomAlgo             Geometric algorithm
+     * \param [in]  supportType          Support type
+     * \param [in]  nPart                Number of interface partition 
+     * \param [in]  movingStatus         Support moving status
+     * \param [in]  recvFreqType         Type of receiving frequency
      *
      */
 
@@ -80,7 +81,8 @@ namespace cwipi {
     /**
      * \brief Deletion a coupling object int the database.
      *
-     * \param [in]  cplId              Coupling identifier
+     * \param [in]  localCodeProperties  Source code
+     * \param [in]  cplId                Coupling identifier
      *
      */
 
@@ -94,15 +96,32 @@ namespace cwipi {
     /**
      * \brief Return a coupling object from it identifier
      *
-     * \param [in]  cplId              Coupling identifier
+     * \param [in]  localCodeProperties  Source code
+     * \param [in]  cplId                Coupling identifier
      *
      */
 
     inline Coupling& 
     couplingGet
     (
-     const string &cplId,
-     const CodeProperties &localCodeProperties
+     const CodeProperties &localCodeProperties,
+     const string &cplId
+    );
+    
+    /**
+     * \brief Return if a coupling identifier exists  
+     *
+     * \param [in]  localCodeProperties  Source code
+     * \param [in]  cplId                Coupling identifier
+     *
+     * \return status
+     */
+
+    inline bool 
+    couplingIs
+    (
+     const CodeProperties &localCodeProperties,
+     const string &cplId
     );
     
   private:

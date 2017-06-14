@@ -28,6 +28,9 @@
 #include "cwp.h"
 #include "bftc_printf.h"
 #include "communication.hxx"
+#include "couplingDB.hxx"
+#include "couplingDB_i.hxx"
+
 //#include "geometry.hxx"
 //#include "visualization.hxx"
 //#include "support.hxx"
@@ -72,6 +75,7 @@ namespace cwipi {
      * \param [in]  n_part                       Number of interface partitions 
      * \param [in]  moving_status                Support moving status
      * \param [in]  recv_freq_type               Type of receiving frequency
+     * \param [in]  cplDB                        Coupling data base where it coupling is stored
      *
      */
 
@@ -85,7 +89,8 @@ namespace cwipi {
      const CWP_Support_t        supportType,
      const int                    nPart,
      const CWP_Displacement_t  movingStatus,
-     const CWP_Freq_t           recvFreqType
+     const CWP_Freq_t           recvFreqType,
+     CouplingDB                 &cplDB 
     );
 
     /**
@@ -867,7 +872,8 @@ namespace cwipi {
     Coupling();
 
   private:
-    const string                      _cplId;                 /*!< Coupling identifier */
+    const string                     _cplId;                 /*!< Coupling identifier */
+    CWP_Comm_t                       _commType;              /*!< Communication type */ 
           Communication              &_communication;         /*!< Communication */ 
     const CodeProperties             &_localCodeProperties;   /*!< Local code properties */
     const CodeProperties             &_coupledCodeProperties; /*!< Coupled code properties */
@@ -878,6 +884,7 @@ namespace cwipi {
           double                      _recvFreq;              /*!< Receiving frequency */
           double                      _recvNextTime;          /*!< Next receiving time */
     //map < string, Field<double> * >  &_fields;                /*!< Fields storage */
+          CouplingDB                 &_cplDB;                  /*!< Coupling Data base */
   }; 
 
 }

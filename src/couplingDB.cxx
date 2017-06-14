@@ -67,14 +67,15 @@ namespace cwipi {
    *
    * This function creates a coupling object and defines its properties.
    *
-   * \param [in]  cplId              Coupling identifier
-   * \param [in]  cplCodeProperties  Coupled code properties
-   * \param [in]  commType           Communication type
-   * \param [in]  geomAlgo           Geometric algorithm
-   * \param [in]  supportType        Support type
-   * \param [in]  nPart              Number of interface partition 
-   * \param [in]  movingStatus       Support moving status
-   * \param [in]  recvFreqType       Type of receiving frequency
+   * \param [in]  localCodeProperties  Source code
+   * \param [in]  cplId                Coupling identifier
+   * \param [in]  cplCodeProperties    Coupled code properties
+   * \param [in]  commType             Communication type
+   * \param [in]  geomAlgo             Geometric algorithm
+   * \param [in]  supportType          Support type
+   * \param [in]  nPart                Number of interface partition 
+   * \param [in]  movingStatus         Support moving status
+   * \param [in]  recvFreqType         Type of receiving frequency
    *
    */
 
@@ -85,28 +86,27 @@ namespace cwipi {
    const string                &cplId,
    const CodeProperties        &coupledCodeProperties,
    const CWP_Comm_t            commType,
-   const CWP_Geom_t           geomAlgo,
-   const CWP_Support_t   supportType,
-   const int                    nPart,
-   const CWP_Displacement_t  movingStatus,
-   const CWP_Freq_t           recvFreqType
+   const CWP_Geom_t            geomAlgo,
+   const CWP_Support_t         supportType,
+   const int                   nPart,
+   const CWP_Displacement_t    movingStatus,
+   const CWP_Freq_t            recvFreqType
   )
   {
 
     //
     // Create the new coupling
 
-    Coupling *newCoupling = NULL;
-    //TODO: Call new Coupling when the constructor will be available
-//    Coupling *newCoupling = new Coupling(cplId,
-//                                         commType,
-//                                         localCodeProperties,
-//                                         coupledCodeProperties,
-//                                         geomAlgo,
-//                                         supportType,
-//                                         nPart,
-//                                         movingStatus,
-//                                         recvFreqType);
+    Coupling *newCoupling = new Coupling(cplId,
+                                         commType,
+                                         localCodeProperties,
+                                         coupledCodeProperties,
+                                         geomAlgo,
+                                         supportType,
+                                         nPart,
+                                         movingStatus,
+                                         recvFreqType,
+                                         *this);
 
 //    const map <string, CodeProperties * >::iterator p = 
 //      _couplingDB.find(cplId);
@@ -142,14 +142,28 @@ namespace cwipi {
    const string &cplId
   )
   {
-//    const map <string, Coupling * >::iterator p = _couplingDB.find(cplId);
-//    if (p == _couplingDB.end())
-//      bftc_error(__FILE__, __LINE__, 0,
-//                "'%s' coupling not found \n", cplId.c_str());
-//
-//    if (p->second != NULL)
-//      delete p->second;
-//
-//    _couplingDB.erase(p);
+    typedef const map < const cwipi::CodeProperties *, map <string, Coupling * > > ::iterator Iterator;
+    typedef map <string, Coupling * > ::iterator Iterator2;
+    Iterator p = _couplingDB.find(&localCodeProperties);
+    Iterator2 p1;
+    if (p == _couplingDB.end()) {
+      bftc_error(__FILE__, __LINE__, 0, 
+                "'%s' coupling not found for '%s' code\n", cplId.c_str(), 
+                localCodeProperties.nameGet().c_str());
+    }
+    else {
+      p1 = p->second.find(cplId);
+      if (p1 == p->second.end()) {
+        bftc_error(__FILE__, __LINE__, 0, 
+                    "'%s' coupling not found '%s' code\n", cplId.c_str(),
+                   localCodeProperties.nameGet().c_str());
+      }
+      if (p1->second != NULL) {
+        delete p1->second;
+      }
+
+      p->second.erase(p1);
+
+    }
   }
 }

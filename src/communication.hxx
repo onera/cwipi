@@ -21,6 +21,8 @@
 
 #include "codeProperties.hxx"
 
+using namespace std;
+
 namespace cwipi {
 
   /** 
@@ -56,15 +58,31 @@ namespace cwipi {
      *
      * \param [in]  localCodeProperties   Local code properties
      * \param [in]  cplCodeProperties     Coupled code properties
+     * \param [in]  cplId                 Coupling identifier
      *
      */
 
     void 
     init
     (
-     CodeProperties &localCodeProperties, 
-     CodeProperties &cplCodeProperties 
+     const CodeProperties &localCodeProperties, 
+     const CodeProperties &cplCodeProperties,
+     const string         &cplId
      );
+
+    /**
+     *
+     * \brief Initialize coupling communicators.
+     *
+     * \param [in]  cplCodeComm           Coupled code communication
+     *
+     */
+
+    void 
+    init
+    (
+     Communication &cplCodeComm 
+    );
 
     /**
      *
@@ -122,11 +140,14 @@ namespace cwipi {
 
   protected:
 
-    bool      _isCplRank;               /*!< Is the current rank coupled */
+    const CodeProperties *_localCodeProperties; /*!< Pointer to the local code properties */
+    const CodeProperties *_cplCodeProperties;   /*!< Pointer to the coupled code properties */
+
+    int       _tag;                     /*!< Tag for MPI */
+    MPI_Group _unionGroup;              /*!< Union grou between coupled codes */
     MPI_Comm  _unionComm;               /*!< Union communicator between coupled codes */
-    MPI_Comm  _fvmComm;                 /*!< FVM communicator 
-                                          (part of local communicator) */
-    MPI_Comm _cplGroup;                  /*!< Coupling group 
+
+    MPI_Group _cplGroup;                  /*!< Coupling group 
                                           (part of merger inter communicator */
     MPI_Comm _cplComm;                  /*!< Coupling communicator 
                                           (part of merger inter communicator */
@@ -134,8 +155,7 @@ namespace cwipi {
                                           into the coupling communicator */
     int      _cplCodeRootRankCplComm;  /*!< Root rank associated to the coupled code
                                           into the coupling communicator */
-    CodeProperties *_localCodeProperties; /*!< Pointer to the local code properties */
-    CodeProperties *_cplCodeProperties;   /*!< Pointer to the coupled code properties */
+    bool      _isCplRank;               /*!< Is a current rank coupled */
   };
 }
 #endif //__COMMUNICATION_H__

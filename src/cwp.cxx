@@ -143,8 +143,8 @@ _cpl_get
     cwipi::CodePropertiesDB::getInstance();
 
   const string &cpl_name_str = cpl_id;
-  return couplingDB.couplingGet(cpl_name_str, 
-                                properties.codePropertiesGet(string(local_code_name)));
+  return couplingDB.couplingGet (properties.codePropertiesGet(string(local_code_name)),
+                                 cpl_name_str);
 }
 
 

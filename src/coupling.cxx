@@ -64,158 +64,51 @@ namespace cwipi {
   typedef Factory<Support, CWP_Support_t> FS;
 
   
-//TODO: Nouveau Coupling a faire  
-//  Coupling::Coupling
-//  (
-//   const string                &cplId,
-//   const CWP_Comm_t           cplType,
-//   const CodeProperties        &localCodeProperties,
-//   const CodeProperties        &coupledCodeProperties,
-//   const CWP_Geom_t           geomAlgo,
-//   const CWP_Support_t        supportType,
-//   const int                    nPart,
-//   const CWP_Displacement_t  movingStatus,
-//   const CWP_Freq_t           recvFreqType
-//   )
-//  :_cplId(cplId),
-//   _communication(*(FC::getInstance().CreateObject(cplType))),
-//   _localCodeProperties(localCodeProperties),
-//   _coupledCodeProperties(coupledCodeProperties),
+  Coupling::Coupling
+  (
+   const string                &cplId,
+   const CWP_Comm_t           cplType,
+   const CodeProperties        &localCodeProperties,
+   const CodeProperties        &coupledCodeProperties,
+   const CWP_Geom_t           geomAlgo,
+   const CWP_Support_t        supportType,
+   const int                    nPart,
+   const CWP_Displacement_t  movingStatus,
+   const CWP_Freq_t           recvFreqType,
+   CouplingDB                 &cplDB          
+   )
+  :_cplId(cplId),
+   _commType(cplType),
+   _communication(*(FC::getInstance().CreateObject(cplType))),
+   _localCodeProperties(localCodeProperties),
+   _coupledCodeProperties(coupledCodeProperties),
+   _recvFreqType (recvFreqType),
+   _cplDB(cplDB)   
 //   _geometry(*(FG::getInstance().CreateObject(geomAlgo))),
-//
-////!!!!!!!!!
-////!!!!!   A poursuivre ici
-////!!!!!!!
-//   
-//  Verifier que localCodeProperties correspond a un code local
-//  
-// _entitiesDim(entitiesDim),_tolerance(tolerance), _solverType(solverType),
-// _outputFormat(outputFormat), _outputFormatOption(outputFormatOption),
-// _fvmWriter(NULL), _outputFrequency(outputFrequency), _name(name),
-// _couplingType(couplingType),
-// _tmpDistantFieldsIssend(*new map<int, vector<double> * > ()),
-// _tmpLocalFieldsIrecv(*new map<int, const double * > ()),
-// _tmpExchangeNameIrecv(*new  map<int, const char * > ()),
-// _tmpStrideIrecv(*new  map<int, int > ()),
-// _tmpTimeStepIrecv(*new  map<int, int > ()),
-// _tmpTimeValueIrecv(*new  map<int, double > ()),
-// _tmpFieldNameIrecv(*new  map<int, const char * > ())
-//
-//{
-//  _tmpVertexField = NULL;
-//  _tmpDistantField = NULL;
-//  _supportMesh = NULL;
-//  _couplingComm = MPI_COMM_NULL;
-//  _coupledCodeNRankCouplingComm = -1;
-//  _coupledCodeBeginningRankCouplingComm = -1;
-//  _mergeComm = MPI_COMM_NULL;
-//  _fvmComm = MPI_COMM_NULL;
-//  _interpolationFct = NULL;
-//  _interpolationFct_f = NULL;
-//  _toLocate = true;
-//  _isCoupledRank = false;
-//  
-//
-//  //
-//  // Create coupling comm
-//
-//  _createCouplingComm();
-//
-//  //
-//  //
-//
-//  _locationToDistantMesh = new LocationToDistantMesh(_isCoupledRank,
-//                                                     _couplingType,
-//                                                     _localCodeProperties);
-//
-//  _locationToLocalMesh = new LocationToLocalMesh(_solverType,
-//                                                 _tolerance,
-//                                                 _couplingComm,
-//                                                 _coupledCodeNRankCouplingComm,
-//                                                 _coupledCodeBeginningRankCouplingComm,
-//                                                 _isCoupledRank,
-//                                                 _entitiesDim,
-//                                                 _localCodeProperties,
-//                                                 *_locationToDistantMesh);
-//
-//
-//#ifndef NAN
-//  bftc_printf("Warning : NAN macro is undefined -> receiving checking deactivation\n");
-//#endif
-//
-//}
-//
-//
-//Coupling::~Coupling()
-//{
-//#if defined(DEBUG) && 0
-//  cout << "destroying '" << _name << "' coupling" << endl;
-//#endif
-//
-//  typedef map <int, vector<double> * >::iterator Iterator1;
-//  for (Iterator1 p = _tmpDistantFieldsIssend.begin();
-//       p != _tmpDistantFieldsIssend.end(); p++) {
-//    if (p->second != NULL)
-//      delete p->second;
-//  }
-//
-//  _tmpDistantFieldsIssend.clear();
-//  delete &_tmpDistantFieldsIssend;
-//
-//  _tmpLocalFieldsIrecv.clear();
-//  delete &_tmpLocalFieldsIrecv;
-//
-//  _tmpExchangeNameIrecv.clear();
-//  delete &_tmpExchangeNameIrecv;
-//
-//  _tmpFieldNameIrecv.clear();
-//  delete &_tmpFieldNameIrecv;
-//
-//  _tmpStrideIrecv.clear();
-//  delete &_tmpStrideIrecv;
-//
-//  _tmpTimeStepIrecv.clear();
-//  delete &_tmpTimeStepIrecv;
-//
-//  _tmpTimeValueIrecv.clear();
-//  delete &_tmpTimeValueIrecv;
-//
-//  if (_isCoupledRank ) {
-//
-//    delete _tmpVertexField;
-//
-//    delete _tmpDistantField;
-//
-//    delete _supportMesh;
-//
-//    delete _locationToDistantMesh;
-//
-//    delete _locationToLocalMesh;
-//
-//    MPI_Comm oldFVMComm = fvmc_parall_get_mpi_comm();
-//    if (oldFVMComm != MPI_COMM_NULL)
-//      MPI_Barrier(oldFVMComm);
-//    fvmc_parall_set_mpi_comm(_fvmComm);
-//
-//    if (_fvmWriter != NULL)
-//      fvmc_writer_finalize(_fvmWriter);
-//
-//    if (_fvmComm != MPI_COMM_NULL)
-//      MPI_Barrier(_fvmComm);
-//    fvmc_parall_set_mpi_comm(oldFVMComm);
-//
-//  }
-//
-//  if (_mergeComm != MPI_COMM_NULL)
-//    MPI_Comm_free(&_mergeComm);
-//
-//  if (_couplingComm != MPI_COMM_NULL)
-//    MPI_Comm_free(&_couplingComm);
-//
-//  if (_fvmComm != MPI_COMM_NULL)
-//    MPI_Comm_free(&_fvmComm);
-//
-//}
+{
+  
+  if (coupledCodeProperties.localCodeIs()) {
+    if (cplDB.couplingIs(coupledCodeProperties, cplId)) {
+      _communication.init(_localCodeProperties, _coupledCodeProperties, cplId);
+      Coupling &distCpl = cplDB.couplingGet(coupledCodeProperties, cplId);
+      distCpl._communication.init(_communication);
+    }
+  }
+  
+  else {
+    _communication.init(_localCodeProperties, _coupledCodeProperties, cplId);
+  }
+    
+}
+
+
+Coupling::~Coupling()
+{
+#if defined(DEBUG) && 0
+  cout << "destroying '" << _name << "' coupling : TODO" << endl;
+#endif
+
+}
 
 
 } // namespace cwipi

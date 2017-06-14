@@ -527,11 +527,18 @@ namespace cwipi {
       const int *_ranks = &((*p->second)[0]);
       _codePropertiesDB[p->first]->_connectableRanks = p->second;
       int _n_ranks = p->second->size();
+      printf ("[%d] Connectable ranks : %s %d\n", currentRank, p->first.c_str(), _n_ranks);
       MPI_Group_incl (globalGroup, _n_ranks, _ranks, 
                      &(_codePropertiesDB[p->first]->_intraConnectableGroup));
+      if (MPI_GROUP_EMPTY == _codePropertiesDB[p->first]->_intraConnectableGroup) {
+        printf ("[%d] Group empty : %s\n", currentRank, p->first.c_str()); 
+      }
       MPI_Comm_create (globalComm, 
                        _codePropertiesDB[p->first]->_intraConnectableGroup,
                        &(_codePropertiesDB[p->first]->_intraConnectableComm));
+      if (MPI_COMM_NULL == _codePropertiesDB[p->first]->_intraConnectableComm) {
+        printf ("[%d] Comm null : %s %d %d \n", currentRank, p->first.c_str(), _ranks[0], _n_ranks);
+      }
     }
 
     coupledRankCode.clear();

@@ -23,6 +23,8 @@
 
 #include <bftc_error.h>
 
+#include "codeProperties.hxx"
+
 using namespace std;
 
 namespace cwipi {
@@ -37,18 +39,68 @@ namespace cwipi {
   Coupling& 
   CouplingDB::couplingGet
   (
-   const string         &cplId,
-   const CodeProperties &localCodeProperties
+   const CodeProperties &localCodeProperties,
+   const string         &cplId
   ) 
   {
-//    const map< CodeProperties *, map <string, Coupling * > > ::iterator p = _couplingDB.find(&localCodeProperties);
-//    if (p == _couplingDB.end()) {
-//      bftc_error(__FILE__, __LINE__, 0, 
-//                "'%s' coupling not found \n", cplId.c_str());
-//    assert( p->second != NULL);
-//    return *p->second;
-  }
+    typedef const map < const cwipi::CodeProperties *, map <string, Coupling * > > ::iterator Iterator;
+    typedef map <string, Coupling * > ::iterator Iterator2;
+    Iterator p = _couplingDB.find(&localCodeProperties);
+    Iterator2 p1;
+    if (p == _couplingDB.end()) {
+      bftc_error(__FILE__, __LINE__, 0, 
+                "'%s' coupling not found for '%s' code\n", cplId.c_str(), 
+                localCodeProperties.nameGet().c_str());
+    }
+    else {
+      p1 = p->second.find(cplId);
+      if (p1 == p->second.end()) {
+        bftc_error(__FILE__, __LINE__, 0, 
+                    "'%s' coupling not found '%s' code\n", cplId.c_str(),
+                   localCodeProperties.nameGet().c_str());
+      }
 
+    }
+    assert( p1->second != NULL);
+    return *p1->second;
+  }
+    
+  /**
+   * \brief Return if a coupling identifier exists  
+   *
+   * \param [in]  localCodeProperties  Source code
+   * \param [in]  cplId                Coupling identifier
+   *
+   * \return status
+   */
+
+  bool 
+  CouplingDB::couplingIs
+  (
+   const CodeProperties &localCodeProperties,
+   const string &cplId
+  )
+  {
+    bool status = true;
+    typedef const map < const cwipi::CodeProperties *, map <string, Coupling * > > ::iterator Iterator;
+    typedef map <string, Coupling * > ::iterator Iterator2;
+    Iterator p = _couplingDB.find(&localCodeProperties);
+    Iterator2 p1;
+    if (p == _couplingDB.end()) {
+      status = false;
+    }
+    else {
+      p1 = p->second.find(cplId);
+      if (p1 == p->second.end()) {
+        status = false;
+      }
+
+    }
+    return status;
+  }
+  
+  
+  
 }
 
 #endif
