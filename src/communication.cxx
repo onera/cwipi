@@ -18,6 +18,7 @@
 */
 
 #include "communication.hxx"
+#include "coupling.hxx"
 #include "bftc_printf.h"
 
 using namespace std;
@@ -78,9 +79,12 @@ namespace cwipi {
   (
    const CodeProperties &localCodeProperties, 
    const CodeProperties &cplCodeProperties,
-   const string         &cplId 
+   const string         &cplId,
+   CouplingDB           &cplDB
   )
   {
+        printf("step0\n");
+        fflush(stdout);
     if (_cplComm == MPI_COMM_NULL) {
       _cplCodeProperties = &cplCodeProperties;
       _localCodeProperties = &localCodeProperties;
@@ -102,6 +106,8 @@ namespace cwipi {
       }
 
       else {
+        printf("step1\n");
+        fflush(stdout);
       
         //
         // Define coupling communicator
@@ -128,10 +134,15 @@ namespace cwipi {
                            localCodeProperties.connectableGroupGet(),
                            &_unionGroup);          
         }
-      
+
+        printf("step2\n");
+        fflush(stdout);
+        
         MPI_Comm_create_group(globalComm, _unionGroup, tag, &_unionComm);
 
         int mergeInterCommSize;
+        printf("step3\n");
+        fflush(stdout);
 
         MPI_Comm_size(_unionComm, &mergeInterCommSize);
 
@@ -143,11 +154,30 @@ namespace cwipi {
         fflush(stdout);
 
         if (globalRank == localRootRank) {
-          MPI_Sendrecv (&commType, 1, MPI_INT,
-                        cplRootRank, tag,
-                        &cplCommType, 1, MPI_INT,
-                        cplRootRank, tag,
-                        globalComm, MPI_STATUS_IGNORE);
+          printf("%d %d %d\n", globalRank, localRootRank, cplRootRank);
+          if (cplCodeProperties.localCodeIs()) {
+            printf("pass 1\n");
+            if (localRootRank == cplRootRank) {
+              Coupling &distCpl = cplDB.couplingGet(cplCodeProperties, cplId);
+              cplCommType = distCpl.commTypeGet() ;
+            }
+            else {
+              MPI_Sendrecv (&commType, 1, MPI_INT,
+                          cplRootRank, tag,
+                          &cplCommType, 1, MPI_INT,
+                           cplRootRank, tag,
+                           globalComm, MPI_STATUS_IGNORE);            
+            }
+          }
+          
+          else {
+            printf("pass 2\n");
+            MPI_Sendrecv (&commType, 1, MPI_INT,
+                          cplRootRank, tag,
+                          &cplCommType, 1, MPI_INT,
+                           cplRootRank, tag,
+                           globalComm, MPI_STATUS_IGNORE);
+          }
         }
 
         printf("step5\n");
@@ -155,6 +185,11 @@ namespace cwipi {
         
         MPI_Bcast(&cplCommType, 1, MPI_INT, 0, 
                   localCodeProperties.connectableCommGet());
+        
+        if (cplCodeProperties.localCodeIs()) {
+          MPI_Bcast(&commType, 1, MPI_INT, 0, 
+                    cplCodeProperties.connectableCommGet());          
+        }
         
         printf("step6\n");
         fflush(stdout);

@@ -224,23 +224,101 @@ int main
   free (titi2);
   assert(titi == 111);
 
-  CWP_Properties_dump ();
+  //CWP_Properties_dump ();
   
+  
+   
   char cpl_id1[] = "cpl_code1_code2";
+  char cpl_id2[] = "cpl_code1_code3";
+  char cpl_id3[] = "cpl_code2_code3";
+  char cpl_id4[] = "cpl_code4_code3";
+  char cpl_id5[] = "cpl_code1_code4";
+  char cpl_id6[] = "cpl_code2_code4";
+
+  // cpl1
+  
   if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) {
     CWP_Cpl_create ("code1", cpl_id1, "code2", CWP_COMM_PAR_WITH_PART,
                     CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   }
-  
-          
+   
   if (rank == 1 || rank == 2 || rank == 6 || rank == 7 || rank == 9) {
     CWP_Cpl_create ("code2", cpl_id1, "code1", CWP_COMM_PAR_WITH_PART,
                     CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   }
   
+  // cpl2
+
+  if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) {
+    CWP_Cpl_create ("code1", cpl_id2, "code3", CWP_COMM_PAR_WITH_PART,
+                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
+  }
+   
+  if (rank == 2 || rank == 3 || rank == 4 || rank == 5 || rank == 7  || rank == 9) {
+    CWP_Cpl_create ("code3", cpl_id2, "code1", CWP_COMM_PAR_WITH_PART,
+                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
+  }
   
+  // cpl3
+     
+  if (rank == 1 || rank == 2 || rank == 6 || rank == 7 || rank == 9) {
+    CWP_Cpl_create ("code2", cpl_id3, "code3", CWP_COMM_PAR_WITH_PART,
+                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
+  }
+  
+  if (rank == 2 || rank == 3 || rank == 4 || rank == 5 || rank == 7  || rank == 9) {
+    CWP_Cpl_create ("code3", cpl_id3, "code2", CWP_COMM_PAR_WITH_PART,
+                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
+  }
+
+  // cpl4
+     
+  if (rank == 2 || rank == 4 || rank == 8) {
+    CWP_Cpl_create ("code4", cpl_id4, "code3", CWP_COMM_PAR_WITH_PART,
+                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
+  }
+  
+  if (rank == 2 || rank == 3 || rank == 4 || rank == 5 || rank == 7  || rank == 9) {
+    CWP_Cpl_create ("code3", cpl_id4, "code4", CWP_COMM_PAR_WITH_PART,
+                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
+  }
+  
+  // cpl5
+  
+  if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) {
+    CWP_Cpl_create ("code1", cpl_id5, "code4", CWP_COMM_PAR_WITH_PART,
+                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
+  }
+     
+  if (rank == 2 || rank == 4 || rank == 8) {
+    CWP_Cpl_create ("code4", cpl_id5, "code1", CWP_COMM_PAR_WITH_PART,
+                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
+  }
+  
+  // cpl6
+     
+  if (rank == 1 || rank == 2 || rank == 6 || rank == 7 || rank == 9) {
+    CWP_Cpl_create ("code2", cpl_id6, "code4", CWP_COMM_PAR_WITH_PART,
+                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
+  } 
+     
+  if (rank == 2 || rank == 4 || rank == 8) {
+    CWP_Cpl_create ("code4", cpl_id6, "code2", CWP_COMM_PAR_WITH_PART,
+                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
+  }
+
   CWP_Finalize();
 
   MPI_Finalize();

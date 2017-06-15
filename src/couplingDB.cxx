@@ -94,6 +94,11 @@ namespace cwipi {
   )
   {
 
+    if (couplingIs(localCodeProperties, cplId)) {
+      bftc_error(__FILE__, __LINE__, 0,
+                "'%s' existing coupling\n", cplId.c_str());
+    }
+    
     //
     // Create the new coupling
 
@@ -108,23 +113,11 @@ namespace cwipi {
                                          recvFreqType,
                                          *this);
 
-//    const map <string, CodeProperties * >::iterator p = 
-//      _couplingDB.find(cplId);
-    
-//    if (p == _couplingDB.end()) {
-//      pair<string, Coupling* >
-//        newPair(string(cplId), newCoupling);
-//
-//      _couplingDB.insert(newPair);
-//    }
-//    
-//    else {
-//      
-//      if (p->second->)
-//      
-//      bftc_error(__FILE__, __LINE__, 0,
-//                "'%s' existing coupling\n", cplId.c_str());
-//    }
+    map < string, Coupling * > & codeMap = _couplingDB[&localCodeProperties];
+
+    pair<string, Coupling* > newPair(string(cplId), newCoupling);
+
+    codeMap.insert(newPair);
 
   }
 

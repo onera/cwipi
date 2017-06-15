@@ -867,6 +867,24 @@ namespace cwipi {
      void *fct
     );
 
+
+    /**
+     *
+     * \brief Return communication type
+     *
+     * 
+     * \param [in] fct        Function
+     *
+     */
+
+    inline CWP_Comm_t 
+    commTypeGet      
+    (
+    );
+    
+    
+    
+    
   private:
 
     Coupling();
@@ -886,6 +904,26 @@ namespace cwipi {
     //map < string, Field<double> * >  &_fields;                /*!< Fields storage */
           CouplingDB                 &_cplDB;                  /*!< Coupling Data base */
   }; 
+
+  
+  
+
+  /**
+   *
+   * \brief Return communication type
+   *
+   * 
+   * \param [in] fct        Function
+   *
+   */
+
+  CWP_Comm_t 
+  Coupling::commTypeGet      
+  (
+  )
+  {
+    return _commType;
+  }
 
 }
 

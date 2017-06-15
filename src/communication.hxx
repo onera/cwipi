@@ -20,6 +20,7 @@
 */
 
 #include "codeProperties.hxx"
+#include "couplingDB.hxx"
 
 using namespace std;
 
@@ -67,7 +68,8 @@ namespace cwipi {
     (
      const CodeProperties &localCodeProperties, 
      const CodeProperties &cplCodeProperties,
-     const string         &cplId
+     const string         &cplId,
+     CouplingDB           &cplDB    
      );
 
     /**
