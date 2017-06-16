@@ -56,8 +56,6 @@ namespace cwipi {
    CWP_Comm_t cplCodeCommType
   )
   {
-
-    printf("_cplCommCreate commWithPart\n");
     
     _isCplRank = true;
     
@@ -73,7 +71,7 @@ namespace cwipi {
           exRanks[j++] = cplRanks[i]; 
         }      
       }
-      
+
       vector <int> tExRanks(exRanks.size());
       
       MPI_Group globalGroup;

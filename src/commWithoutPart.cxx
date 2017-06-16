@@ -31,7 +31,7 @@ namespace cwipi {
   
   CommWithoutPart::CommWithoutPart()
     : Communication::Communication(), 
-      _commType(CWP_COMM_PAR_WITH_PART)
+      _commType(CWP_COMM_PAR_WITHOUT_PART)
   {
   }
 

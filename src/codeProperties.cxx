@@ -196,7 +196,7 @@ namespace cwipi
     }
     
 
-    if (sParamMax > 80) sParamMax == 80;
+    if (sParamMax > 80) sParamMax = 80;
 
     char fmtIntName[22];
     sprintf(fmtIntName, "     * %%%d.%ds : %%d\n",sParamMax, sParamMax);

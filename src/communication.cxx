@@ -83,8 +83,6 @@ namespace cwipi {
    CouplingDB           &cplDB
   )
   {
-        printf("step0\n");
-        fflush(stdout);
     if (_cplComm == MPI_COMM_NULL) {
       _cplCodeProperties = &cplCodeProperties;
       _localCodeProperties = &localCodeProperties;
@@ -106,8 +104,6 @@ namespace cwipi {
       }
 
       else {
-        printf("step1\n");
-        fflush(stdout);
       
         //
         // Define coupling communicator
@@ -134,29 +130,19 @@ namespace cwipi {
                            localCodeProperties.connectableGroupGet(),
                            &_unionGroup);          
         }
-
-        printf("step2\n");
-        fflush(stdout);
         
         MPI_Comm_create_group(globalComm, _unionGroup, tag, &_unionComm);
 
         int mergeInterCommSize;
-        printf("step3\n");
-        fflush(stdout);
 
         MPI_Comm_size(_unionComm, &mergeInterCommSize);
 
         CWP_Comm_t commType = commTypeGet();
         
         CWP_Comm_t cplCommType;
-        
-        printf("step4\n");
-        fflush(stdout);
 
         if (globalRank == localRootRank) {
-          printf("%d %d %d\n", globalRank, localRootRank, cplRootRank);
           if (cplCodeProperties.localCodeIs()) {
-            printf("pass 1\n");
             if (localRootRank == cplRootRank) {
               Coupling &distCpl = cplDB.couplingGet(cplCodeProperties, cplId);
               cplCommType = distCpl.commTypeGet() ;
@@ -171,7 +157,6 @@ namespace cwipi {
           }
           
           else {
-            printf("pass 2\n");
             MPI_Sendrecv (&commType, 1, MPI_INT,
                           cplRootRank, tag,
                           &cplCommType, 1, MPI_INT,
@@ -179,36 +164,35 @@ namespace cwipi {
                            globalComm, MPI_STATUS_IGNORE);
           }
         }
-
-        printf("step5\n");
-        fflush(stdout);
         
         MPI_Bcast(&cplCommType, 1, MPI_INT, 0, 
                   localCodeProperties.connectableCommGet());
         
         if (cplCodeProperties.localCodeIs()) {
-          MPI_Bcast(&commType, 1, MPI_INT, 0, 
+          CWP_Comm_t &cplcommType2 = commType;
+          MPI_Bcast(&cplcommType2, 1, MPI_INT, 0, 
                     cplCodeProperties.connectableCommGet());          
         }
         
-        printf("step6\n");
-        fflush(stdout);
+        //
+        // Build the coupling communicator
 
         _cplCommCreate(cplCommType);
-        
-        printf("step7\n");
-        fflush(stdout);
+
         MPI_Group globalGroup;
         MPI_Comm_group(globalComm, &globalGroup);
-        
-        MPI_Group cplGroup;
-        MPI_Comm_group(_cplComm, &cplGroup);
-        
-        MPI_Group_translate_ranks (globalGroup, 1, &localRootRank, 
-                                   cplGroup, &_locCodeRootRankCplComm);
 
-        MPI_Group_translate_ranks (globalGroup, 1, &cplRootRank, 
-                                   cplGroup, &_cplCodeRootRankCplComm);
+        MPI_Group cplGroup;
+        
+        if (_isCplRank) {
+          MPI_Comm_group(_cplComm, &cplGroup);
+        
+          MPI_Group_translate_ranks (globalGroup, 1, &localRootRank, 
+                                     cplGroup, &_locCodeRootRankCplComm);
+
+          MPI_Group_translate_ranks (globalGroup, 1, &cplRootRank, 
+                                     cplGroup, &_cplCodeRootRankCplComm);
+        }
 
       }
     }

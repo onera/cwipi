@@ -88,9 +88,7 @@ namespace cwipi {
 {
   
   if (coupledCodeProperties.localCodeIs()) {
-    printf("coupling cpl is local\n");
     if (cplDB.couplingIs(coupledCodeProperties, cplId)) {
-      printf("coupling code exist\n");
       _communication.init(_localCodeProperties, _coupledCodeProperties, cplId, cplDB);
       Coupling &distCpl = cplDB.couplingGet(coupledCodeProperties, cplId);
       distCpl._communication.init(_communication);
@@ -98,7 +96,6 @@ namespace cwipi {
   }
   
   else {
-      printf("coupling defaut\n");
     _communication.init(_localCodeProperties, _coupledCodeProperties, cplId, cplDB);
   }
     
