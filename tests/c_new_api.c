@@ -1,7 +1,7 @@
 /*
   This file is part of the CWIPI library. 
 
-  Copyright (C) 2011  ONERA
+  Copyright (C) 2017  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -251,73 +251,73 @@ int main
   
   // cpl2
 
-//  if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) {
-//    CWP_Cpl_create ("code1", cpl_id2, "code3", CWP_COMM_PAR_WITH_PART,
-//                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
-//                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
-//  }
-//   
-//  if (rank == 2 || rank == 3 || rank == 4 || rank == 5 || rank == 7  || rank == 9) {
-//    CWP_Cpl_create ("code3", cpl_id2, "code1", CWP_COMM_PAR_WITH_PART,
-//                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
-//                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
-//  }
-//  
-//  // cpl3
-//     
-//  if (rank == 1 || rank == 2 || rank == 6 || rank == 7 || rank == 9) {
-//    CWP_Cpl_create ("code2", cpl_id3, "code3", CWP_COMM_PAR_WITH_PART,
-//                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
-//                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
-//  }
-//  
-//  if (rank == 2 || rank == 3 || rank == 4 || rank == 5 || rank == 7  || rank == 9) {
-//    CWP_Cpl_create ("code3", cpl_id3, "code2", CWP_COMM_PAR_WITH_PART,
-//                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
-//                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
-//  }
-//
-//  // cpl4
-//     
-//  if (rank == 2 || rank == 4 || rank == 8) {
-//    CWP_Cpl_create ("code4", cpl_id4, "code3", CWP_COMM_PAR_WITH_PART,
-//                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
-//                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
-//  }
-//  
-//  if (rank == 2 || rank == 3 || rank == 4 || rank == 5 || rank == 7  || rank == 9) {
-//    CWP_Cpl_create ("code3", cpl_id4, "code4", CWP_COMM_PAR_WITH_PART,
-//                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
-//                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
-//  }
-//  
-//  // cpl5
-//  
-//  if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) {
-//    CWP_Cpl_create ("code1", cpl_id5, "code4", CWP_COMM_PAR_WITH_PART,
-//                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
-//                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
-//  }
-//     
-//  if (rank == 2 || rank == 4 || rank == 8) {
-//    CWP_Cpl_create ("code4", cpl_id5, "code1", CWP_COMM_PAR_WITH_PART,
-//                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
-//                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
-//  }
-//  
-//  // cpl6
-//     
-//  if (rank == 1 || rank == 2 || rank == 6 || rank == 7 || rank == 9) {
-//    CWP_Cpl_create ("code2", cpl_id6, "code4", CWP_COMM_PAR_WITH_PART,
-//                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
-//                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
-//  } 
-//     
-//  if (rank == 2 || rank == 4 || rank == 8) {
-//    CWP_Cpl_create ("code4", cpl_id6, "code2", CWP_COMM_PAR_WITH_PART,
-//                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
-//                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
-//  }
+  if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) {
+    CWP_Cpl_create ("code1", cpl_id2, "code3", CWP_COMM_PAR_WITH_PART,
+                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
+  }
+   
+  if (rank == 2 || rank == 3 || rank == 4 || rank == 5 || rank == 7  || rank == 9) {
+    CWP_Cpl_create ("code3", cpl_id2, "code1", CWP_COMM_PAR_WITH_PART,
+                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
+  }
+  
+  // cpl3
+     
+  if (rank == 1 || rank == 2 || rank == 6 || rank == 7 || rank == 9) {
+    CWP_Cpl_create ("code2", cpl_id3, "code3", CWP_COMM_PAR_WITH_PART,
+                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
+  }
+  
+  if (rank == 2 || rank == 3 || rank == 4 || rank == 5 || rank == 7  || rank == 9) {
+    CWP_Cpl_create ("code3", cpl_id3, "code2", CWP_COMM_PAR_WITH_PART,
+                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
+  }
+
+  // cpl4
+     
+  if (rank == 2 || rank == 4 || rank == 8) {
+    CWP_Cpl_create ("code4", cpl_id4, "code3", CWP_COMM_PAR_WITH_PART,
+                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
+  }
+  
+  if (rank == 2 || rank == 3 || rank == 4 || rank == 5 || rank == 7  || rank == 9) {
+    CWP_Cpl_create ("code3", cpl_id4, "code4", CWP_COMM_PAR_WITH_PART,
+                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
+  }
+  
+  // cpl5
+  
+  if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) {
+    CWP_Cpl_create ("code1", cpl_id5, "code4", CWP_COMM_PAR_WITH_PART,
+                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
+  }
+     
+  if (rank == 2 || rank == 4 || rank == 8) {
+    CWP_Cpl_create ("code4", cpl_id5, "code1", CWP_COMM_PAR_WITH_PART,
+                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
+  }
+  
+  // cpl6
+     
+  if (rank == 1 || rank == 2 || rank == 6 || rank == 7 || rank == 9) {
+    CWP_Cpl_create ("code2", cpl_id6, "code4", CWP_COMM_PAR_WITH_PART,
+                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
+  } 
+     
+  if (rank == 2 || rank == 4 || rank == 8) {
+    CWP_Cpl_create ("code4", cpl_id6, "code2", CWP_COMM_PAR_WITH_PART,
+                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
+  }
 
   CWP_Finalize();
 

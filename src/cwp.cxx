@@ -2,7 +2,7 @@
 /*
   This file is part of the CWIPI library. 
 
-  Copyright (C) 2011  ONERA
+  Copyright (C) 2011-2017  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -35,7 +35,7 @@
 /*----------------------------------------------------------------------------
  * FVM library headers
  *----------------------------------------------------------------------------*/
-#include <fvmc_parall.h>
+//#include <fvmc_parall.h>
 
 /*----------------------------------------------------------------------------
  *  Local headers
@@ -353,11 +353,11 @@ CWP_Finalize
   const MPI_Comm globalComm = properties.globalCommGet();
   printf("CWP_Finalize\n");
   fflush(stdout);
-  if (flag != 0) {
-    bftc_printf_flush();
-    MPI_Barrier(globalComm);
-    MPI_Comm oldFVMComm = fvmc_parall_get_mpi_comm();
-  }
+//  if (flag != 0) {
+//    bftc_printf_flush();
+//    MPI_Barrier(globalComm);
+//    MPI_Comm oldFVMComm = fvmc_parall_get_mpi_comm();
+//  }
 
   properties.kill();
 
