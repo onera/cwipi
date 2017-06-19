@@ -1479,24 +1479,6 @@ void PDM_io_lec_par_entrelacee
                       &n_donnees_rang_min,
                       &n_donnees_rang_max);
 
-      /* Calcul de la longueur du buffer - On surestime en se basant  
-         sur le max de n_composante. Si cela s'avere necessaire, 
-         on pourra optimiser cela  */
-  
-      int max_n_composantes_rang = n_composantes[0];
-      int max_n_composantes = max_n_composantes_rang; 
- 
-      if (t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
-          
-        for (int i = 0; i < n_donnees; i++) 
-          max_n_composantes_rang = PDM_IO_MAX(max_n_composantes_rang, 
-                                                n_composantes[i]); 
-          
-        if (fichier->n_rangs > 1) 
-          PDM_MPI_Allreduce(&max_n_composantes_rang, &max_n_composantes, 1, 
-                        PDM_MPI_INT, PDM_MPI_MAX, fichier->comm);
-      } 
-
       /* Allocation du buffer si le rang est actif */
         
       PDM_g_num_t __n_donnees_rang = (n_donnees_rangs[fichier->rang + 1] - 
@@ -1758,10 +1740,8 @@ void PDM_io_lec_par_entrelacee
               etat_lecture = 0;
 
             unsigned char *buffer_tmp = 
-              (unsigned char*) malloc(taille_donnee * 
-                                      max_n_composantes *
-                                      _n_donnees_rang);
-              
+              (unsigned char*) malloc(taille_donnee * max_n_donnees_bloc);
+               
             for (int i = 1; i < fichier->n_rangs_actifs; i++) {
               int l_buffer = n_donnees_blocs[fichier->rangs_actifs[i]] * taille_donnee;
               _n_donnees_lues = 
@@ -1816,15 +1796,10 @@ void PDM_io_lec_par_entrelacee
       unsigned char *buffer_ordonne = NULL;
       
       PDM_g_num_t _n_donnees_rang1 = n_donnees_rangs[fichier->rang + 1] - 
-                                    n_donnees_rangs[fichier->rang];
+                                     n_donnees_rangs[fichier->rang];
 
       int n_donnees_rang = (int) _n_donnees_rang1;
-
-      buffer_ordonne = (unsigned char*) malloc(sizeof(unsigned char) * 
-                                               taille_donnee * 
-                                               max_n_composantes * 
-                                               l_num_absolue_recues);
-      
+     
       if (t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
           
         int *n_composantes_ordonnees = NULL;
@@ -1845,6 +1820,10 @@ void PDM_io_lec_par_entrelacee
         for (int i = 1; i < n_donnees_rang + 1; i++) 
           n_composantes_ordonnees[i] = n_composantes_ordonnees[i] + 
             n_composantes_ordonnees[i-1];
+
+        
+        buffer_ordonne = (unsigned char*) malloc(sizeof(unsigned char) *
+                                                 n_composantes_ordonnees[n_donnees_rang]);
           
         /* Ordonnancement du buffer pour echange alltoall */
           
@@ -1947,6 +1926,9 @@ void PDM_io_lec_par_entrelacee
       else if (t_n_composantes == PDM_IO_N_COMPOSANTE_CONSTANT) {
         const int _n_octet_composantes = *n_composantes * taille_donnee;
           
+        buffer_ordonne = (unsigned char*) malloc(sizeof(unsigned char) *
+                                                 l_num_absolue_recues  * _n_octet_composantes);
+
         for (int i = 0; i < l_num_absolue_recues; i++) {
           const PDM_g_num_t _idx = 
             num_absolue_recues[i] - 1 - n_donnees_rangs[fichier->rang];
