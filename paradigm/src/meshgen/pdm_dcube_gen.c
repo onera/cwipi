@@ -7,6 +7,8 @@
 #include "pdm_part.h"
 #include "pdm_dcube_gen.h"
 #include "pdm_mpi.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
 
 
 /*============================================================================
@@ -64,12 +66,12 @@ _get_from_id
 )
 {
   if (id >= _l_dcubes) {
-    printf("PDM_part_dcube error : Bad dcube identifier\n");
+    PDM_printf("PDM_part_dcube error : Bad dcube identifier\n");
     exit(1);
   }
     
   if (_dcubes[id] == NULL) {
-    printf("PDM_part_dcube error : Bad dcube identifier\n");
+    PDM_printf("PDM_part_dcube error : Bad dcube identifier\n");
     exit(1);
   }
 

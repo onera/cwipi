@@ -22,6 +22,8 @@
 #include "pdm_box_tree.h"
 #include "pdm_dbbtree.h"
 #include "pdm_dbbtree_priv.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -157,17 +159,17 @@ _PDM_dbbtree_t      *dbbt
   _update_bt_statistics(&(dbbt->btsCoarse), coarse_tree);
 
   if (1 == 0) {
-    printf ("-- dump stats\n");
+    PDM_printf ("-- dump stats\n");
     
     PDM_box_tree_dump_statistics(coarse_tree);
     
-    printf ("-- fin dump stats\n");
+    PDM_printf ("-- fin dump stats\n");
 
-    printf ("-- dump \n");
+    PDM_printf ("-- dump \n");
     
     PDM_box_tree_dump(coarse_tree);
 
-    printf ("-- fin dump\n");
+    PDM_printf ("-- fin dump\n");
   }
 
   /*
@@ -187,17 +189,17 @@ _PDM_dbbtree_t      *dbbt
      encoding index */
 
   if (1 == 0) {
-    printf("affichage 1\n");
+    PDM_printf("affichage 1\n");
     PDM_box_set_dump( dbbt->boxes,1);
-    printf("fin affichage 1\n");
+    PDM_printf("fin affichage 1\n");
   }
 
   PDM_box_set_redistribute (distrib, dbbt->boxes);
 
   if (1 == 0) {
-    printf("affichage 2\n");
+    PDM_printf("affichage 2\n");
     PDM_box_set_dump( dbbt->boxes,1);
-    printf("fin affichage 2\n");
+    PDM_printf("fin affichage 2\n");
   }
 
   /* Delete intermediate structures */
@@ -328,7 +330,7 @@ const PDM_g_num_t **gNum
     nEltsProc += nElts[i];
   }
 
-  printf ("nEltsProc : %d \n", nEltsProc);
+  PDM_printf ("nEltsProc : %d \n", nEltsProc);
 
   PDM_g_num_t *_boxGnum = (PDM_g_num_t *) malloc (sizeof(PDM_g_num_t) * nEltsProc);
   double *_extents      = (double *) malloc (sizeof(double) * nEltsProc * sExtents);
@@ -419,18 +421,18 @@ const PDM_g_num_t **gNum
                    allGExtents, sExtents, PDM__PDM_MPI_REAL, 
                    _dbbt->comm);
     
-    printf ("_extents shared :");
+    PDM_printf ("_extents shared :");
     idx1 = 0;
     for (int i = 0; i < lComm; i++) {
-      printf (" %12.5e", allGExtents[idx1++]);
-      printf (" %12.5e", allGExtents[idx1++]);
-      printf (" %12.5e", allGExtents[idx1++]);
-      printf (" %12.5e", allGExtents[idx1++]);
-      printf (" %12.5e", allGExtents[idx1++]);
-      printf (" %12.5e", allGExtents[idx1++]);
-      printf ("\n");
+      PDM_printf (" %12.5e", allGExtents[idx1++]);
+      PDM_printf (" %12.5e", allGExtents[idx1++]);
+      PDM_printf (" %12.5e", allGExtents[idx1++]);
+      PDM_printf (" %12.5e", allGExtents[idx1++]);
+      PDM_printf (" %12.5e", allGExtents[idx1++]);
+      PDM_printf (" %12.5e", allGExtents[idx1++]);
+      PDM_printf ("\n");
     }
-    printf ("\n");
+    PDM_printf ("\n");
 
 
     PDM_g_num_t *numProc = (PDM_g_num_t *) malloc (sizeof(PDM_g_num_t) * nUsedRank);
@@ -573,36 +575,36 @@ int              *box_l_num[]
 
   if (1 == 0) {
 
-    printf ("nEltsProc : %d", nEltsProc);
+    PDM_printf ("nEltsProc : %d", nEltsProc);
     
-    printf ("_boxGnum :");
+    PDM_printf ("_boxGnum :");
     for (int i = 0; i < nEltsProc; i++) {
-      printf (" "PDM_FMT_G_NUM, _boxGnum[i]);
+      PDM_printf (" "PDM_FMT_G_NUM, _boxGnum[i]);
     }
-    printf ("\n");
+    PDM_printf ("\n");
     
-    printf ("_extents :");
+    PDM_printf ("_extents :");
     idx1 = 0;
     for (int i = 0; i < nEltsProc; i++) {
-      printf (" %12.5e", _extents[idx1++]);
-      printf (" %12.5e", _extents[idx1++]);
-      printf (" %12.5e", _extents[idx1++]);
-      printf (" %12.5e", _extents[idx1++]);
-      printf (" %12.5e", _extents[idx1++]);
-      printf (" %12.5e", _extents[idx1++]);
-      printf ("\n");
+      PDM_printf (" %12.5e", _extents[idx1++]);
+      PDM_printf (" %12.5e", _extents[idx1++]);
+      PDM_printf (" %12.5e", _extents[idx1++]);
+      PDM_printf (" %12.5e", _extents[idx1++]);
+      PDM_printf (" %12.5e", _extents[idx1++]);
+      PDM_printf (" %12.5e", _extents[idx1++]);
+      PDM_printf ("\n");
     }
-    printf ("\n");
+    PDM_printf ("\n");
     
-    printf ("_initLocation :");
+    PDM_printf ("_initLocation :");
     idx1 = 0;
     for (int i = 0; i < nEltsProc; i++) {
-      printf (" %d", _initLocation[idx1++]);
-      printf (" %d", _initLocation[idx1++]);
-      printf (" %d", _initLocation[idx1++]);
-      printf ("\n");
+      PDM_printf (" %d", _initLocation[idx1++]);
+      PDM_printf (" %d", _initLocation[idx1++]);
+      PDM_printf (" %d", _initLocation[idx1++]);
+      PDM_printf ("\n");
     }
-    printf ("\n");
+    PDM_printf ("\n");
   }
 
   PDM_box_set_t  *boxes = PDM_box_set_create (3,
@@ -638,12 +640,12 @@ int              *box_l_num[]
      * Distribute boxes on intersection ranks
      */
     
-    printf ("box_l_num_shared : ");
+    PDM_printf ("box_l_num_shared : ");
     for (int i = 0; i < nUsedRank; i++) {
       for (int j = (*box_index)[i]; j < (*box_index)[i+1]; j++) {
-        printf (" %d", (*box_l_num)[j]);
+        PDM_printf (" %d", (*box_l_num)[j]);
       }
-      printf ("\n");
+      PDM_printf ("\n");
     }
     
     PDM_box_distrib_t  *distrib = NULL;

@@ -27,6 +27,8 @@
 #include "pdm_config.h"
 #include "pdm.h"
 #include "pdm_mpi.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
 
 #define ABS(a)     ((a) <  0  ? -(a) : (a))
 #define MIN(a,b)   ((a) > (b) ?  (b) : (a))
@@ -960,17 +962,17 @@ PDM_g_num_t **dEdgeGroup
 /*                          &dFaceVtx); */
 
 /*   if (dNVtx_f < *dNVtx) { */
-/*     printf("Augmenter le nombre de sommets Fortran a : %i \n", *dNVtx); */
+/*     PDM_printf("Augmenter le nombre de sommets Fortran a : %i \n", *dNVtx); */
 /*     exit(1); */
 /*   } */
 
 /*   if (dNFace_f < *dNFace) { */
-/*     printf("Augmenter le nombre d'elements a : %i \n", *dNFace); */
+/*     PDM_printf("Augmenter le nombre d'elements a : %i \n", *dNFace); */
 /*     exit(1); */
 /*   } */
 
 /*   if (*lEltsConnecPointer_f < dFaceVtxIdx[*dNFace]) { */
-/*     printf("Augmenter la taille du tableau de connectivite a : %i \n", dFaceVtxIdx[*dNFace]); */
+/*     PDM_printf("Augmenter la taille du tableau de connectivite a : %i \n", dFaceVtxIdx[*dNFace]); */
 /*     exit(1); */
 /*   } */
 

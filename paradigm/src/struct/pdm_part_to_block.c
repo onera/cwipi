@@ -20,6 +20,8 @@
 #include "pdm_priv.h"
 #include "pdm_binary_search.h"
 #include "pdm_sort.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -145,7 +147,7 @@ _active_ranks
     }
 
     default : {
-      fprintf(stderr,"Error cs_part_to_bloc : unknown distribute type\n");
+      PDM_error(__FILE__, __LINE__, 0,"Error cs_part_to_bloc : unknown distribute type\n");
       abort();
     }
     }
@@ -153,10 +155,10 @@ _active_ranks
     /* Dump */
 
     if (0 == 1) {
-      printf("active ranks : ");
+      PDM_printf("active ranks : ");
       for(int i = 0; i < ptb->n_activeRanks; i++)
-        printf("%i ", ptb->activeRanks[i]);
-      printf("\n");
+        PDM_printf("%i ", ptb->activeRanks[i]);
+      PDM_printf("\n");
     }
   }
 }
@@ -233,10 +235,10 @@ _distrib_data
 
   if (0 == 1) {
     if (ptb->myRank == 0) {
-      printf("dataDistribIndex : ");
+      PDM_printf("dataDistribIndex : ");
       for(int i = 0; i < ptb->s_comm + 1; i++)
-        printf(PDM_FMT_G_NUM" ", ptb->dataDistribIndex[i]);
-      printf("\n");
+        PDM_printf(PDM_FMT_G_NUM" ", ptb->dataDistribIndex[i]);
+      PDM_printf("\n");
     }
   }
 
@@ -590,7 +592,7 @@ PDM_part_to_block_exch
 
   if ((_ptb->t_post == PDM_writer_POST_MERGE) && 
       (t_stride ==  PDM_STRIDE_CST)) {
-    fprintf (stderr,"PDM_part_to_block_exch : PDM_writer_STRIDE_CST is not compatible PDM_writer_POST_MERGE post\n");
+    PDM_error(__FILE__, __LINE__, 0,"PDM_part_to_block_exch : PDM_writer_STRIDE_CST is not compatible PDM_writer_POST_MERGE post\n");
     abort ();
   }
 

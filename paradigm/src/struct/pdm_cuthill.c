@@ -23,6 +23,8 @@
 
 #include "pdm_part.h"
 #include "pdm_cuthill.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
 
 /*----------------------------------------------------------------------------*/
 
@@ -143,17 +145,17 @@ _dual_graph_firstrank
   }
     
   if (0 == 1) {
-    printf("Content of cellCellN after looping over cellFace: ");
+    PDM_printf("Content of cellCellN after looping over cellFace: ");
     for(int i = 0; i < part_ini->nCell; i++) {
-      printf(" %d ", cellCellN[i]);
+      PDM_printf(" %d ", cellCellN[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
       
-    printf("Content of cellCell after looping over cellFace: ");
+    PDM_printf("Content of cellCell after looping over cellFace: ");
     for(int i = 0; i < part_ini->cellFaceIdx[part_ini->nCell]; i++) {
-      printf(" %d ", cellCell[i]);
+      PDM_printf(" %d ", cellCell[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
   //cellCellIdx is rebuilt
@@ -167,28 +169,28 @@ _dual_graph_firstrank
   //We compress the dual graph since cellCellIdx was built from cellFaceIdx
   //We have then nFace elements in cellCell whereas it needs to be composed of nCell elements
  
-  //    printf("(*cellCellIdxCompressed)[part_ini->nCell] : %d \n", (*cellCellIdxCompressed)[part_ini->nCell]);
+  //    PDM_printf("(*cellCellIdxCompressed)[part_ini->nCell] : %d \n", (*cellCellIdxCompressed)[part_ini->nCell]);
   *cellCellCompressed = malloc((*cellCellIdxCompressed)[part_ini->nCell] * sizeof(int));
     
   int cpt_cellCellCompressed = 0;
   for(int i = 0; i < part_ini->cellFaceIdx[part_ini->nCell]; i++) {
-    //        printf("I am testing a value for the %d time! \n", i);
+    //        PDM_printf("I am testing a value for the %d time! \n", i);
       
     //We have an information to store when a neighboring cell exists
     if(cellCell[i] > -1){
-      //            printf("I am storing a value for the %d time! \n", i);
+      //            PDM_printf("I am storing a value for the %d time! \n", i);
       //We add a -1 to have the graph vertices numbered from 0 to n (C numbering)
       (*cellCellCompressed)[cpt_cellCellCompressed++] = cellCell[i] - 1; 
-      //            printf("Valeur stockee : %d \n ", (*cellCellCompressed)[cpt_cellCellCompressed - 1]);
+      //            PDM_printf("Valeur stockee : %d \n ", (*cellCellCompressed)[cpt_cellCellCompressed - 1]);
     }        
   }
     
   if( 0 == 1) {
-    printf("Content of cellCellCompressed after compression and renumbering: ");
+    PDM_printf("Content of cellCellCompressed after compression and renumbering: ");
     for(int i = 0; i < (*cellCellIdxCompressed)[part_ini->nCell]; i++) {
-      printf(" %d ", (*cellCellCompressed)[i]);
+      PDM_printf(" %d ", (*cellCellCompressed)[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
   /* Free temporary arrays*/
@@ -225,37 +227,37 @@ _dual_graph_firstrank
     }
 
     if (0 == 1) {
-      printf("\n Contenu de cellCellCompressed apres reecriture: \n");
+      PDM_printf("\n Contenu de cellCellCompressed apres reecriture: \n");
       for(int i1 = 0; i1 < (*cellCellIdxCompressed)[part_ini->nCell]; i1++) {
-        printf(" %d ", (*cellCellCompressed)[i1]);
+        PDM_printf(" %d ", (*cellCellCompressed)[i1]);
       }
-      printf("\n");
+      PDM_printf("\n");
     }
         
     tabIdxTemp = (*cellCellIdxCompressed)[i + 1];
     (*cellCellIdxCompressed)[i + 1] = idx_write;
       
     if (0 == 1) {
-      printf("\n Contenu de cellCellIdxCompressed apres reecriture: \n");
+      PDM_printf("\n Contenu de cellCellIdxCompressed apres reecriture: \n");
       for(int i1 = 0; i1 < part_ini->nCell + 1; i1++) {
-        printf(" %d ", (*cellCellIdxCompressed)[i1]);
+        PDM_printf(" %d ", (*cellCellIdxCompressed)[i1]);
       }
-      printf("\n");
+      PDM_printf("\n");
     }
   }
     
   if (0 == 1) {
-    printf("Content of cellCellIdxCompressed after compression: ");
+    PDM_printf("Content of cellCellIdxCompressed after compression: ");
     for(int i1 = 0; i1 < part_ini->nCell + 1; i1++) {
-      printf(" %d ", (*cellCellIdxCompressed)[i1]);
+      PDM_printf(" %d ", (*cellCellIdxCompressed)[i1]);
     }
-    printf("\n");
+    PDM_printf("\n");
       
-    printf("Content of cellCellCompressed after compression: ");
+    PDM_printf("Content of cellCellCompressed after compression: ");
     for(int i1 = 0; i1 < (*cellCellIdxCompressed)[part_ini->nCell]; i1++) {
-      printf(" %d ", (*cellCellCompressed)[i1]);
+      PDM_printf(" %d ", (*cellCellCompressed)[i1]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
   //We reallocate the memory in case of duplicated values removed
@@ -684,9 +686,9 @@ int node_num
 
   if ( node_num < 1 )
   {
-    printf( "\n");
-    printf( "RCM - Fatal error!\n");
-    printf( "  Unacceptable input value of NODE_NUM = %d \n ", node_num);
+    PDM_printf( "\n");
+    PDM_printf( "RCM - Fatal error!\n");
+    PDM_printf( "  Unacceptable input value of NODE_NUM = %d \n ", node_num);
     exit ( 1 );
   }
 
@@ -694,10 +696,10 @@ int node_num
 
   if ( root < 1 || node_num < root )
   {
-    printf("\n");
-    printf("RCM - Fatal error!\n");
-    printf("  Unacceptable input value of ROOT = %d \n ",root);
-    printf("  Acceptable values are between 1 and %d inclusive \n",node_num);
+    PDM_printf("\n");
+    PDM_printf("RCM - Fatal error!\n");
+    PDM_printf("  Unacceptable input value of ROOT = %d \n ",root);
+    PDM_printf("  Acceptable values are between 1 and %d inclusive \n",node_num);
     exit ( 1 );
   }
 
@@ -712,9 +714,9 @@ int node_num
 
   if ( *iccsze < 1 )
   {
-    printf("\n");
-    printf("RCM - Fatal error!\n");
-    printf("  Connected component size ICCSZE returned from DEGREE as %d \n ", *iccsze);
+    PDM_printf("\n");
+    PDM_printf("RCM - Fatal error!\n");
+    PDM_printf("  Connected component size ICCSZE returned from DEGREE as %d \n ", *iccsze);
     exit ( 1 );
   }
 
@@ -982,11 +984,11 @@ PDM_cuthill_generate
 
   /** Verbose **/
   if (0 == 1) {
-      printf("\n Contenu de perm : \n");
+      PDM_printf("\n Contenu de perm : \n");
       for(int i = 0; i < ppart->nCell; i++) {
-        printf(" %d ", perm[i]);
+        PDM_printf(" %d ", perm[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
 
   /** Free memory **/

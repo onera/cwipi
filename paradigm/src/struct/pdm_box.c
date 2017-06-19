@@ -48,6 +48,8 @@
 #include "pdm_priv.h"
 #include "pdm_box.h"
 #include "pdm_box_priv.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
 
 /*---------------------------------------------------------------------------*/
 
@@ -720,17 +722,17 @@ PDM_box_set_dump(const PDM_box_set_t  *boxes,
   /* Print basic information */
 
   if (boxes->dim == 3)
-    fprintf(stdout,"\nBox set (3D layout):\n\n"
+    PDM_printf("\nBox set (3D layout):\n\n"
                "global min/max on selected faces:\n"
                "  [%7.5e %7.5e %7.5e] --> [%7.5e %7.5e %7.5e]\n",
                boxes->gmin[0], boxes->gmin[1], boxes->gmin[2],
                boxes->gmax[0], boxes->gmax[1], boxes->gmax[2]);
 
   else if (boxes->dim == 2) {
-    fprintf(stdout,"\nBox set (2D layout, selected axes [%c, %c]\n\n",
+    PDM_printf("\nBox set (2D layout, selected axes [%c, %c]\n\n",
                XYZ[boxes->dimensions[0]],
                XYZ[boxes->dimensions[1]]);
-    fprintf(stdout,"global min/max on selected faces:\n"
+    PDM_printf("global min/max on selected faces:\n"
                "  [%7.5e %7.5e] --> [%7.5e %7.5e]\n",
                boxes->gmin[boxes->dimensions[0]],
                boxes->gmin[boxes->dimensions[1]],
@@ -739,9 +741,9 @@ PDM_box_set_dump(const PDM_box_set_t  *boxes,
   }
 
   else if (boxes->dim == 1) {
-    fprintf(stdout,"\nBox set (1D layout, selected axis [%c]\n\n",
+    PDM_printf("\nBox set (1D layout, selected axis [%c]\n\n",
                XYZ[boxes->dimensions[0]]);
-    fprintf(stdout,"global min/max on selected faces:\n"
+    PDM_printf("global min/max on selected faces:\n"
                "  [%7.5e %7.5e] --> [%7.5e %7.5e]\n",
                boxes->gmin[boxes->dimensions[0]],
                boxes->gmin[boxes->dimensions[1]],
@@ -759,7 +761,7 @@ PDM_box_set_dump(const PDM_box_set_t  *boxes,
     for (i = 0; i < boxes->n_boxes; i++) {
       const double *bmin = boxes->extents + i*6;
       const double *bmax = boxes->extents + i*6 + 3;
-      fprintf(stdout,"  id %8d, num %9llu: "
+      PDM_printf("  id %8d, num %9llu: "
                  "[%7.5e %7.5e %7.5e] --> [%7.5e %7.5e %7.5e]\n",
                  i, (unsigned long long)(boxes->g_num[i]),
                  bmin[0], bmin[1], bmin[2],
@@ -771,7 +773,7 @@ PDM_box_set_dump(const PDM_box_set_t  *boxes,
     for (i = 0; i < boxes->n_boxes; i++) {
       const double *bmin = boxes->extents + i*4;
       const double *bmax = boxes->extents + i*4 + 2;
-      fprintf(stdout,"  id %8d, num %9llu: "
+      PDM_printf("  id %8d, num %9llu: "
                  "[%7.5e %7.5e] --> [%7.5e %7.5e]\n",
                  i, (unsigned long long)(boxes->g_num[i]),
                  bmin[0], bmin[1], bmax[0], bmax[1]);
@@ -782,7 +784,7 @@ PDM_box_set_dump(const PDM_box_set_t  *boxes,
     for (i = 0; i < boxes->n_boxes; i++) {
       const double *bmin = boxes->extents + i*2;
       const double *bmax = boxes->extents + i*2 + 1;
-      fprintf(stdout,"  id %8d, num %9llu: "
+      PDM_printf("  id %8d, num %9llu: "
                  "[%7.5e] --> [%7.5e]\n",
                  i, (unsigned long long)(boxes->g_num[i]),
                  bmin[0], bmax[0]);
@@ -797,7 +799,7 @@ PDM_box_set_dump(const PDM_box_set_t  *boxes,
     const double *bmax = boxes->extents + boxes->dim*(2*i + 1);
     for (j = 0; j < boxes->dim; j++) {
       if (bmin[j] > bmax[j]) {
-        fprintf(stderr,
+        PDM_error(__FILE__, __LINE__, 0,
                   "PDM_box_set_dump error : Inconsistent box found (min > max):\n"
                     "  global number:  %llu\n"
                     "  min       :  %10.4g\n"
@@ -1699,12 +1701,12 @@ PDM_box_distrib_dump_statistics(const PDM_box_distrib_t  *distrib,
                           &n_ranks,
                           comm);
 
-  fprintf(stdout,"\n"
+  PDM_printf("\n"
              "- Box distribution statistics -\n\n");
 
-  fprintf(stdout,"   Distribution imbalance:              %10.4g\n",
+  PDM_printf("   Distribution imbalance:              %10.4g\n",
              distrib->fit);
-  fprintf(stdout,"   Number of ranks in distribution:     %8d\n\n",
+  PDM_printf("   Number of ranks in distribution:     %8d\n\n",
              n_ranks);
 
   /* Print histogram to show the distribution of boxes */
@@ -1712,11 +1714,11 @@ PDM_box_distrib_dump_statistics(const PDM_box_distrib_t  *distrib,
   if (n_quantiles > 0) {
 
     for (i = 0; i < n_quantiles - 1; i++)
-      fprintf(stdout,"    %3d : [ %10d ; %10d [ = %10d\n",
+      PDM_printf("    %3d : [ %10d ; %10d [ = %10d\n",
                  i+1, quantile_start[i], quantile_start[i+1], n_boxes[i]);
 
     i = n_quantiles -1;
-    fprintf(stdout,"    %3d : [ %10d ; %10d ] = %10d\n",
+    PDM_printf("    %3d : [ %10d ; %10d ] = %10d\n",
                i+1, quantile_start[i], quantile_start[i+1] - 1, n_boxes[i]);
 
   }

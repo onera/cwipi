@@ -27,6 +27,8 @@
 
 #include "pdm_part_geom.h"
 #include "pdm_part_renum.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
 
 /*----------------------------------------------------------------------------
  *  Optional headers
@@ -250,14 +252,14 @@ static int
 )
 {
   if (elt > array[id2]) {
-    printf("PPART error : Element not in initial distributed array "
+    PDM_printf("PPART error : Element not in initial distributed array "
            PDM_FMT_G_NUM" "PDM_FMT_G_NUM" "PDM_FMT_G_NUM"\n", 
            elt, array[id1], array[id2]);
     exit(1);
   } 
 
   if (elt < array[id1]) {
-    printf("PPART error : Element not in initial distributed array "
+    PDM_printf("PPART error : Element not in initial distributed array "
            PDM_FMT_G_NUM" "PDM_FMT_G_NUM" "PDM_FMT_G_NUM"\n",
            elt, array[id1], array[id2]);
     exit(1);
@@ -342,12 +344,12 @@ _get_from_id
 )
 {
   if (ppartId >= _l_pparts) {
-    printf("PPART error : Bad ppart identifier\n");
+    PDM_printf("PPART error : Bad ppart identifier\n");
     exit(1);
   }
     
   if (_pparts[ppartId] == NULL) {
-    printf("PPART error : Bad ppart identifier\n");
+    PDM_printf("PPART error : Bad ppart identifier\n");
     exit(1);
   }
 
@@ -699,11 +701,11 @@ _dual_graph_from_face_cell
 
   if (1 == 0) {
     if (!have_dCellFace) {
-      printf("ppart->_dCellFace : \n");
+      PDM_printf("ppart->_dCellFace : \n");
       for (int i = 0; i < ppart->dNCell; i++) {
         for (int j = ppart->_dCellFaceIdx[i]; j < ppart->_dCellFaceIdx[i+1]; j++)
-          printf(" "PDM_FMT_G_NUM, ppart->_dCellFace[j]);
-        printf("\n");
+          PDM_printf(" "PDM_FMT_G_NUM, ppart->_dCellFace[j]);
+        PDM_printf("\n");
       }
     }
   }
@@ -869,7 +871,7 @@ _dual_graph_from_cell_face
       else if (ppart->dFaceCell[2*lFace + 1] == -1)
         ppart->dFaceCell[2*lFace + 1] = gCell;
       else {
-        printf("PPART internal error : Face already defined in ppart->dFaceCell connectivity\n");
+        PDM_printf("PPART internal error : Face already defined in ppart->dFaceCell connectivity\n");
         exit(1);
       }
     }
@@ -892,7 +894,7 @@ _dual_graph_from_cell_face
     else if (ppart->dFaceCell[2*lFace + 1] == gCell1)
       gCell2 =  ppart->dFaceCell[2*lFace];
     else {
-      printf("PPART internal error : Problem in dual grah building "
+      PDM_printf("PPART internal error : Problem in dual grah building "
               PDM_FMT_G_NUM" "
               PDM_FMT_G_NUM" "
               PDM_FMT_G_NUM" \n",
@@ -1088,7 +1090,7 @@ _split
 
 #else
       if(myRank == 0) {
-        printf("PPART error : ParMETIS unavailable\n");
+        PDM_printf("PPART error : ParMETIS unavailable\n");
         exit(1);
       }
 #endif
@@ -1112,7 +1114,7 @@ _split
 
 #else
       if(myRank == 0) {
-        printf("PPART error : PT-Scotch unavailable\n");
+        PDM_printf("PPART error : PT-Scotch unavailable\n");
         exit(1);
       }
 #endif
@@ -1120,7 +1122,7 @@ _split
     }
   case PDM_PART_SPLIT_HILBERT:
     {
-      fprintf(stderr, "PPART error : Error in PT-Scotch graph check\n");
+      PDM_error(__FILE__, __LINE__, 0, "PPART error : Error in PT-Scotch graph check\n");
       exit(1);
 
       PDM_part_geom (PDM_PART_GEOM_HILBERT,
@@ -1140,7 +1142,7 @@ _split
     }
   default: 
     if(myRank == 0) {
-      printf("PPART error : '%i' unknown partioning choice\n", ppart->split_method);
+      PDM_printf("PPART error : '%i' unknown partioning choice\n", ppart->split_method);
       exit(1);
     }
   }
@@ -1361,11 +1363,11 @@ _distrib_cell
     /* Sort faceLNToGN */
 
     if (1 == 0) {
-      printf("meshPart->nFace 1 : %i\n", meshPart->nFace);
-      printf("meshPart->faceLNToGN 1 : ");
+      PDM_printf("meshPart->nFace 1 : %i\n", meshPart->nFace);
+      PDM_printf("meshPart->faceLNToGN 1 : ");
       for (int i1 = 0; i1 < meshPart->nFace; i1++)
-        printf(" "PDM_FMT_G_NUM, meshPart->faceLNToGN[i1]);
-      printf("\n");
+        PDM_printf(" "PDM_FMT_G_NUM, meshPart->faceLNToGN[i1]);
+      PDM_printf("\n");
     }
 
     _quickSort_pdm_part_long_t(meshPart->faceLNToGN, /* tableau a trier */
@@ -1402,26 +1404,26 @@ _distrib_cell
                                                     meshPart->nFace * sizeof(PDM_g_num_t));
 
     if (1 == 0) {
-      printf("meshPart->nCell : %i\n", meshPart->nCell);
+      PDM_printf("meshPart->nCell : %i\n", meshPart->nCell);
       
-      printf("meshPart->cellLNToGN : ");
+      PDM_printf("meshPart->cellLNToGN : ");
       for (int i1 = 0; i1 < meshPart->nCell; i1++)
-        printf(" "PDM_FMT_G_NUM, meshPart->cellLNToGN[i1]);
-      printf("\n");
+        PDM_printf(" "PDM_FMT_G_NUM, meshPart->cellLNToGN[i1]);
+      PDM_printf("\n");
       
-      printf("meshPart->cellFace : \n");
+      PDM_printf("meshPart->cellFace : \n");
       for (int i1 = 0; i1 < meshPart->nCell; i1++) {
         for (int j = meshPart->cellFaceIdx[i1]; j < meshPart->cellFaceIdx[i1+1]; j++)
-          printf(" %i", meshPart->cellFace[j]);
-        printf("\n");
+          PDM_printf(" %i", meshPart->cellFace[j]);
+        PDM_printf("\n");
       }
 
-      printf("meshPart->nFace : %i\n", meshPart->nFace);
+      PDM_printf("meshPart->nFace : %i\n", meshPart->nFace);
 
-      printf("meshPart->faceLNToGN : ");
+      PDM_printf("meshPart->faceLNToGN : ");
       for (int i1 = 0; i1 < meshPart->nFace; i1++)
-        printf(" "PDM_FMT_G_NUM, meshPart->faceLNToGN[i1]);
-      printf("\n");
+        PDM_printf(" "PDM_FMT_G_NUM, meshPart->faceLNToGN[i1]);
+      PDM_printf("\n");
     }
 
     /* Free */
@@ -1708,17 +1710,17 @@ _distrib_face
       meshPart->gFaceVtx = NULL;
 
       if (1 == 0) {
-        printf("meshPart->nVtx 1 : %i\n", meshPart->nVtx);
-        printf("meshPart->vtxLNToGN 1 : ");
+        PDM_printf("meshPart->nVtx 1 : %i\n", meshPart->nVtx);
+        PDM_printf("meshPart->vtxLNToGN 1 : ");
         for (int i1 = 0; i1 < meshPart->nVtx; i1++)
-          printf(" "PDM_FMT_G_NUM, meshPart->vtxLNToGN[i1]);
-        printf("\n");
+          PDM_printf(" "PDM_FMT_G_NUM, meshPart->vtxLNToGN[i1]);
+        PDM_printf("\n");
         
-        printf("meshPart->faceVtx : \n");
+        PDM_printf("meshPart->faceVtx : \n");
         for (int i1 = 0; i1 < meshPart->nFace; i1++) {
           for (int j = meshPart->faceVtxIdx[i1]; j < meshPart->faceVtxIdx[i1+1]; j++)
-            printf(" %i", meshPart->faceVtx[j]);
-          printf("\n");
+            PDM_printf(" %i", meshPart->faceVtx[j]);
+          PDM_printf("\n");
         }
       }
 
@@ -1937,10 +1939,10 @@ _distrib_vtx
       }
       
       if (1 == 0) {
-        printf("meshPart->vtx : \n");
+        PDM_printf("meshPart->vtx : \n");
         for (int i1 = 0; i1 < meshPart->nVtx; i1++) {
-          printf(" %12.5e %12.5e %12.5e", meshPart->vtx[3*i1 ], meshPart->vtx[3*i1+1], meshPart->vtx[3*i1+2]);
-          printf("\n");
+          PDM_printf(" %12.5e %12.5e %12.5e", meshPart->vtx[3*i1 ], meshPart->vtx[3*i1+1], meshPart->vtx[3*i1+2]);
+          PDM_printf("\n");
         }
       }
         
@@ -1995,10 +1997,10 @@ _build_faceCell
       }
     }
     if (1 == 0) {
-      printf("meshPart->faceCell : \n");
+      PDM_printf("meshPart->faceCell : \n");
       for (int i1 = 0; i1 < meshPart->nFace; i1++) {
-        printf(" %i %i", meshPart->faceCell[2*i1],  meshPart->faceCell[2*i1+1]);
-        printf("\n");
+        PDM_printf(" %i %i", meshPart->faceCell[2*i1],  meshPart->faceCell[2*i1+1]);
+        PDM_printf("\n");
       }
     } 
   }
@@ -2390,14 +2392,14 @@ _search_part_bound_face
   if (0 == 1) {
     for (int i = 0; i < ppart->nPart; i++) {
       _part_t *meshPart  = ppart->meshParts[i];
-      printf("[%i] meshPart->nFacePartBound : %i\n",myRank, meshPart->nFacePartBound);
-      printf("[%i] meshPart->facePartBound : \n", myRank);
+      PDM_printf("[%i] meshPart->nFacePartBound : %i\n",myRank, meshPart->nFacePartBound);
+      PDM_printf("[%i] meshPart->facePartBound : \n", myRank);
       for (int i1 = 0; i1 < meshPart->nFacePartBound; i1++) {
-        printf("[%i] %i %i %i %i", myRank, meshPart->facePartBound[4*i1    ], 
+        PDM_printf("[%i] %i %i %i %i", myRank, meshPart->facePartBound[4*i1    ], 
                meshPart->facePartBound[4*i1 + 1],
                meshPart->facePartBound[4*i1 + 2],
                meshPart->facePartBound[4*i1 + 3]);
-        printf("\n");
+        PDM_printf("\n");
       }
     }
   }
@@ -2723,18 +2725,18 @@ _distrib_face_groups
       
       _part_t *meshPart  = ppart->meshParts[ipart];
       
-      printf("meshPart->nFaceGroup : %i\n",  ppart->nFaceGroup);
-      printf("meshPart->faceGroup : \n");
+      PDM_printf("meshPart->nFaceGroup : %i\n",  ppart->nFaceGroup);
+      PDM_printf("meshPart->faceGroup : \n");
       for (int i1 = 0; i1 < ppart->nFaceGroup; i1++) {
         for (int i2 = meshPart->faceGroupIdx[i1]; i2 < meshPart->faceGroupIdx[i1+1]; i2++) 
-          printf(" %i", meshPart->faceGroup[i2]);
-        printf(" --\n");
+          PDM_printf(" %i", meshPart->faceGroup[i2]);
+        PDM_printf(" --\n");
       }
-      printf("meshPart->faceGroupLNToGN : \n");
+      PDM_printf("meshPart->faceGroupLNToGN : \n");
       for (int i1 = 0; i1 < ppart->nFaceGroup; i1++) {
         for (int i2 = meshPart->faceGroupIdx[i1]; i2 < meshPart->faceGroupIdx[i1+1]; i2++) 
-          printf(" "PDM_FMT_G_NUM, meshPart->faceGroupLNToGN[i2]);
-        printf(" --\n");
+          PDM_printf(" "PDM_FMT_G_NUM, meshPart->faceGroupLNToGN[i2]);
+        PDM_printf(" --\n");
       }
     }
   }
@@ -3012,11 +3014,11 @@ PDM_part_create
   }
 
   if (1 == 0) {
-    printf("ppart->dCellProc : "PDM_FMT_G_NUM,  ppart->dCellProc[0]);
+    PDM_printf("ppart->dCellProc : "PDM_FMT_G_NUM,  ppart->dCellProc[0]);
     for (int i = 1; i < nRank+1; i++) {
-      printf(" "PDM_FMT_G_NUM, ppart->dCellProc[i]);
+      PDM_printf(" "PDM_FMT_G_NUM, ppart->dCellProc[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
 
   /* Face definitions */
@@ -3134,7 +3136,7 @@ PDM_part_create
   else if (dFaceCell != NULL)
     _dual_graph_from_face_cell(ppart);
   else {
-    printf("PDM_part_part_create error : dCellFace and dFaceCell are undefined, define one of two\n");
+    PDM_printf("PDM_part_part_create error : dCellFace and dFaceCell are undefined, define one of two\n");
     exit(1);
   }
 
@@ -3168,10 +3170,10 @@ PDM_part_create
   }
     
   if (1 == 0) {
-    printf("cellPart : ");
+    PDM_printf("cellPart : ");
     for (int i = 0; i <dNCell; i++)
-      printf(" %d", cellPart[i]);
-    printf("\n");
+      PDM_printf(" %d", cellPart[i]);
+    PDM_printf("\n");
   }
   
   PDM_timer_hang_on(ppart->timer);
@@ -3397,7 +3399,7 @@ const   int  ipart,
     meshPart  = ppart->meshParts[ipart];
   
   if (meshPart == NULL) {
-    printf("PDM_part_part_get error : unknown partition\n");
+    PDM_printf("PDM_part_part_get error : unknown partition\n");
     exit(1);
   }
 
@@ -3509,7 +3511,7 @@ const  int      ipart,
     meshPart  = ppart->meshParts[ipart];
   
   if (meshPart == NULL) {
-    printf("PDM_part_part_val_get error : unknown partition\n");
+    PDM_printf("PDM_part_part_val_get error : unknown partition\n");
     exit(1);
   }
 
@@ -3568,7 +3570,7 @@ PROCF (pdm_part_part_val_get, PDM_PART_PART_VAL_GET)
     meshPart  = ppart->meshParts[*ipart];
   
   if (meshPart == NULL) {
-    printf("PDM_part_part_val_get error : unknown partition\n");
+    PDM_printf("PDM_part_part_val_get error : unknown partition\n");
     exit(1);
   }
 

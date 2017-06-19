@@ -22,6 +22,8 @@
  *----------------------------------------------------------------------------*/
 
 #include "pdm_hilbert.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
 
 /*----------------------------------------------------------------------------*/
 
@@ -569,7 +571,7 @@ _evaluate_distribution(int          n_ranges,
 
 #if 0 && defined(DEBUG) && !defined(NDEBUG)
   if (cs_glob_rank_id <= 0)
-    fprintf(stdout, "<DISTRIBUTION EVALUATION> optim: %g, fit: %g\n",
+    PDM_printf( "<DISTRIBUTION EVALUATION> optim: %g, fit: %g\n",
                optim, fit);
 #endif
 
@@ -726,7 +728,7 @@ _define_rank_distrib(int                       dim,
       sum += g_distrib[rank_id];
 
     if (sum != gsum_weight)
-      fprintf(stderr,
+      PDM_error(__FILE__, __LINE__, 0,
                 "Error while computing global distribution.\n"
                 "sum = %u and gsum_weight = %u\n",
                 sum, gsum_weight);
@@ -802,7 +804,7 @@ _update_sampling(int                  dim,
       new_sampling[i+1] = s_low + 0.5 * (s_low + s_high);
 
 #if 0 && defined(DEBUG) && !defined(NDEBUG)
-    fprintf(stdout, " <_update_distrib> (rank: %d) delta: %g, target: %g,"
+    PDM_printf( " <_update_distrib> (rank: %d) delta: %g, target: %g,"
                " next_id: %d, f_low: %g, f_high: %g, s_low: %g, s_high: %g\n"
                "\t => new_sampling: %g\n",
                cs_glob_rank_id, delta, target_freq, next_id,
@@ -950,7 +952,7 @@ _bucket_sampling(int                       dim,
 
 #if 0 && defined(DEBUG) && !defined(NDEBUG)
   if (cs_glob_rank_id <= 0) {
-    fprintf(stdout, "\n  <_bucket_sampling> n_iter: %d, opt: %g, best_fit: %g\n",
+    PDM_printf( "\n  <_bucket_sampling> n_iter: %d, opt: %g, best_fit: %g\n",
                n_iters, optim, best_fit);
 #endif
 
@@ -1066,7 +1068,7 @@ PDM_hilbert_encode_coords(int                 dim,
   case PDM_HILBERT_GRIEBEL:
 
     if (dim == 2) {
-      fprintf(stderr, "pdm_hilbert_encode_coords : No data for griebel 2D\n");
+      PDM_error(__FILE__, __LINE__, 0, "pdm_hilbert_encode_coords : No data for griebel 2D\n");
       exit(0);
     }
     else if (dim == 3) {
@@ -1099,7 +1101,7 @@ PDM_hilbert_encode_coords(int                 dim,
     break;
 
   default:
-    fprintf(stderr, "pdm_hilbert_encode_coords : Unknow encode type\n");
+    PDM_error(__FILE__, __LINE__, 0, "pdm_hilbert_encode_coords : Unknow encode type\n");
     exit(0);
    
   }
@@ -1377,15 +1379,15 @@ PDM_hilbert_build_rank_index(int                       dim,
 
 #if 0 && defined(DEBUG) && !defined(NDEBUG)
   { /* Dump Hilbert index and associated sampling on rank 0 */
-    fprintf(stdout, "\nHilbert rank index:\n\n");
+    PDM_printf( "\nHilbert rank index:\n\n");
     for (rank_id = 0; rank_id < n_ranks + 1; rank_id++) {
       id = sampling_factor * rank_id;
-      fprintf(stdout, "rank: %5d (sampling:   %f)\n"
+      PDM_printf( "rank: %5d (sampling:   %f)\n"
                  "           rank_index: %f\n",
                  rank_id,
                  (double)sampling[id], (double)rank_index[rank_id]);
     }
-    fprintf(stdout, "\n");
+    PDM_printf( "\n");
     fflush(stdout);
   }
 #endif

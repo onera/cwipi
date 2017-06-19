@@ -32,6 +32,8 @@
 #include "pdm_geom_elem.h"
 #include "pdm_sort.h"
 #include "pdm_cuthill.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -505,8 +507,8 @@ double  *cellCenter
       /* Verbose */
       if(0 == 1){
         for(int iCell = 0; iCell < part->nCell; iCell++) {
-          printf("cellCenter (X,Y,Z) : %f - %f - %f \n", cellCenter[3*iCell  ], cellCenter[3*iCell+1], cellCenter[3*iCell+2]);
-          printf("cellWeight         : %f  \n", cellWeight[iCell  ]);
+          PDM_printf("cellCenter (X,Y,Z) : %f - %f - %f \n", cellCenter[3*iCell  ], cellCenter[3*iCell+1], cellCenter[3*iCell+2]);
+          PDM_printf("cellWeight         : %f  \n", cellWeight[iCell  ]);
         }
       }
 
@@ -768,7 +770,7 @@ _PDM_part_t* ppart
 
     /** Verbose bandwidth **/
     // dualBandWidth = PDM_checkbandwidth(part);
-    // printf("Bandwidth of graph before reordering : %d \n", dualBandWidth);
+    // PDM_printf("Bandwidth of graph before reordering : %d \n", dualBandWidth);
 
     /** Compute reordering **/
     PDM_cuthill_generate(part, order);
@@ -778,7 +780,7 @@ _PDM_part_t* ppart
 
     /** Verbose bandwidth **/
     // dualBandWidth = PDM_checkbandwidth(part);
-    // printf("Bandwidth of graph after reordering : %d \n", dualBandWidth);
+    // PDM_printf("Bandwidth of graph after reordering : %d \n", dualBandWidth);
 
     /** Free memory **/
     free(order);
@@ -930,7 +932,7 @@ PDM_part_renum_cell
     _renum_cells_cuthill(ppart); 
     break;
   default:
-    fprintf (stderr, "PDM_part_renum Error : unavailable face renumbering method\n");
+    PDM_error(__FILE__, __LINE__, 0, "PDM_part_renum Error : unavailable face renumbering method\n");
     exit (1);    
   }
 }
@@ -964,7 +966,7 @@ PDM_part_renum_face
       _renum_faces_lexicographic(ppart);
       break;
     default:
-      fprintf (stderr, "PDM_part_renum Error : unavailable face renumbering method\n");
+      PDM_error(__FILE__, __LINE__, 0, "PDM_part_renum Error : unavailable face renumbering method\n");
       exit (1);    
   }
 }

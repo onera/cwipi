@@ -55,6 +55,8 @@
 #include "pdm_priv.h"
 #include "pdm_config.h"
 #include "pdm_morton.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
 
 /*----------------------------------------------------------------------------
  *  Header for the current file
@@ -123,12 +125,12 @@ _get_from_id
 )
 {
   if (id >= _l_gnums) {
-    printf("PDM_gnum error : Bad identifier\n");
+    PDM_printf("PDM_gnum error : Bad identifier\n");
     exit(1);
   }
     
   if (_gnums[id] == NULL) {
-    printf("PDM_gnum error : Bad identifier\n");
+    PDM_printf("PDM_gnum error : Bad identifier\n");
     exit(1);
   }
 

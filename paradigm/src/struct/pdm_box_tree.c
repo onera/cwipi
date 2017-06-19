@@ -43,6 +43,8 @@
 #include "pdm_priv.h"
 #include "pdm_mpi.h"
 #include "pdm_box_priv.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
 
 /*----------------------------------------------------------------------------
  *  Header for the current file
@@ -1067,7 +1069,7 @@ _new_node(PDM_box_tree_t     *bt,
   node = bt->nodes + node_id;
 
   if ((int)(morton_code.L) > bt->max_level) {
-    fprintf(stderr,
+    PDM_error(__FILE__, __LINE__, 0,
             "Error adding a new node in box tree (%p).\n"
             "Max level reached. Current level: %u and Max level: %d\n",
             (void *)bt, morton_code.L, bt->max_level);
@@ -2302,7 +2304,7 @@ _dump_node(const PDM_box_tree_t  *bt,
   const _node_t  *node = bt->nodes + node_id;
   const PDM_morton_code_t  m_code = node->morton_code;
 
-  fprintf(stdout,"\n"
+  PDM_printf("\n"
              "  node %10d (%s)\n"
              "    level:   %3u - anchor: [ %10u %10u %10u ]\n"
              "    n_boxes: %3d - start_id: %u\n"
@@ -2312,21 +2314,21 @@ _dump_node(const PDM_box_tree_t  *bt,
              node->n_boxes, node->start_id);
 
   for (i = 0; i < node->n_boxes; i++)
-    fprintf(stdout,"        %d\n", (int)(bt->box_ids[node->start_id + i]));
+    PDM_printf("        %d\n", (int)(bt->box_ids[node->start_id + i]));
 
   if (node->is_leaf == false) {
 
     const int *c_id = bt->child_ids + bt->n_children*node_id;
 
     if (bt->n_children == 8)
-      fprintf(stdout,"  children_id:  %d %d %d %d %d %d %d %d\n",
+      PDM_printf("  children_id:  %d %d %d %d %d %d %d %d\n",
                  (int)c_id[0], (int)c_id[1], (int)c_id[2], (int)c_id[3],
                  (int)c_id[4], (int)c_id[5], (int)c_id[6], (int)c_id[7]);
     else if (bt->n_children == 4)
-      fprintf(stdout,"  children_id:  %d %d %d %d\n",
+      PDM_printf("  children_id:  %d %d %d %d\n",
                  (int)c_id[0], (int)c_id[1], (int)c_id[2], (int)c_id[3]);
     else if (bt->n_children == 2)
-      fprintf(stdout,"  children_id:  %d %d\n",
+      PDM_printf("  children_id:  %d %d\n",
                  (int)c_id[0], (int)c_id[1]);
 
     for (i = 0; i < bt->n_children; i++)
@@ -2363,21 +2365,21 @@ PDM_box_tree_create(int    max_level,
   /* Sanity checks */
 
   if (max_level < 0) {
-    fprintf(stderr,
+    PDM_error(__FILE__, __LINE__, 0,
             "  Forbidden max_level value (%d) in the tree structure\n",
             max_level);
     abort();
   }
 
   if (threshold < 1) {
-    fprintf(stderr, 
+    PDM_error(__FILE__, __LINE__, 0, 
             "  Forbidden threshold value (%d) in the tree structure\n",
            threshold);
     abort();
   }
 
   if (max_box_ratio < 1.0) {
-    fprintf(stderr,
+    PDM_error(__FILE__, __LINE__, 0,
             "  Forbidden max_box_ratio value (%f) in the tree structure\n",
             (double)max_box_ratio);
     abort();
@@ -2573,7 +2575,7 @@ PDM_box_tree_set_boxes(PDM_box_tree_t       *bt,
     _get_box_tree_stats(bt);
 
 #if 0 && defined(DEBUG) && !defined(NDEBUG)
-    fprintf(stdout,"  - New box tree level -\n");
+    PDM_printf("  - New box tree level -\n");
     PDM_box_tree_dump_statistics(bt);
 #endif
 
@@ -3156,16 +3158,16 @@ PDM_box_tree_dump_statistics(const PDM_box_tree_t  *bt)
 
   /* Print statistics and bounding boxes histogram */
 
-  fprintf(stdout,"\n"
+  PDM_printf("\n"
              "Box tree statistics:\n\n");
-  fprintf(stdout,"  Number of children per leaf:              %d\n"
+  PDM_printf("  Number of children per leaf:              %d\n"
              "  Max number of bounding boxes for a leaf:  %d\n"
              "  Max value for box ratio (final/init):     %f\n"
              "  Max level allowed:                        %d\n\n",
              bt->n_children, (int)(bt->threshold),
              (double)(bt->max_box_ratio), (int)(bt->max_level));
 
-  fprintf(stdout,"  Max level reached:                  %5u\n"
+  PDM_printf("  Max level reached:                  %5u\n"
              "  Number of leaves:                   %10llu\n"
              "  Leaves with n_boxes > max_n_boxes:  %10llu\n"
              "  Initial number of boxes:            %10llu\n"
@@ -3175,7 +3177,7 @@ PDM_box_tree_dump_statistics(const PDM_box_tree_t  *bt)
              (unsigned long long)n_g_spill_leaves, (unsigned long long)n_g_boxes,
              (unsigned long long)n_g_linked_boxes,  box_ratio);
 
-  fprintf(stdout,"Number of linked boxes per box tree leaf:\n"
+  PDM_printf("Number of linked boxes per box tree leaf:\n"
              "  Mean value:         %10.4g\n"
              "  min. value:         %10llu\n"
              "  max. value:         %10llu\n\n",
@@ -3186,13 +3188,13 @@ PDM_box_tree_dump_statistics(const PDM_box_tree_t  *bt)
   if (delta > 0) { /* Number of elements in each subdivision */
 
     for (i = 0, j = 1; i < n_steps - 1; i++, j++)
-      fprintf(stdout,"    %3d : [ %10llu; %10llu [ = %10llu\n",
+      PDM_printf("    %3d : [ %10llu; %10llu [ = %10llu\n",
                  i+1,
                  (unsigned long long)(g_min_linked_boxes + i*step),
                  (unsigned long long)(g_min_linked_boxes + j*step),
                  (unsigned long long)(count[i]));
 
-    fprintf(stdout,"    %3d : [ %10llu; %10llu ] = %10llu\n",
+    PDM_printf("    %3d : [ %10llu; %10llu ] = %10llu\n",
                n_steps,
                (unsigned long long)(g_min_linked_boxes + (n_steps - 1)*step),
                (unsigned long long)(g_max_linked_boxes),
@@ -3214,13 +3216,13 @@ PDM_box_tree_dump(PDM_box_tree_t  *bt)
   PDM_box_tree_stats_t s;
 
   if (bt == NULL) {
-    fprintf(stdout,"\nBox tree: nil\n");
+    PDM_printf("\nBox tree: nil\n");
     return;
   }
 
-  fprintf(stdout,"\nBox tree: %p\n\n", (void *)bt);
+  PDM_printf("\nBox tree: %p\n\n", (void *)bt);
 
-  fprintf(stdout,"  n_max_nodes:  %d\n\n"
+  PDM_printf("  n_max_nodes:  %d\n\n"
              "  n_nodes:      %d\n",
              (int)(bt->n_max_nodes), (int)(bt->n_nodes));
 
@@ -3228,14 +3230,14 @@ PDM_box_tree_dump(PDM_box_tree_t  *bt)
 
   /* Print statistics and bounding boxes histogram */
 
-  fprintf(stdout,"  Number of children per leaf:              %d\n"
+  PDM_printf("  Number of children per leaf:              %d\n"
              "  Max number of bounding boxes for a leaf:  %d\n"
              "  Max value for box ratio (linked/init):    %f\n"
              "  Max level allowed:                        %d\n\n",
              bt->n_children, (int)(bt->threshold),
              (double)(bt->max_box_ratio), (int)(bt->max_level));
 
-  fprintf(stdout,"  Max level reached:                  %5u\n"
+  PDM_printf("  Max level reached:                  %5u\n"
              "  Number of leaves:                   %10llu\n"
              "  Leaves with n_boxes > max_n_boxes:  %10llu\n"
              "  Initial number of boxes:            %10llu\n"
@@ -3246,7 +3248,7 @@ PDM_box_tree_dump(PDM_box_tree_t  *bt)
              (unsigned long long)(s.n_boxes),
              (unsigned long long)(s.n_linked_boxes));
 
-  fprintf(stdout,"Bounding boxes related to each leaf of the box tree.\n"
+  PDM_printf("Bounding boxes related to each leaf of the box tree.\n"
              "  min. value:         %10llu\n"
              "  max. value:         %10llu\n\n",
              (unsigned long long)(s.min_linked_boxes),

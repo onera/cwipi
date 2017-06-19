@@ -15,6 +15,8 @@
 #include "pdm_dcube_gen.h"
 
 #include "pdm_writer.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
 
 /*============================================================================
  * Type definitions
@@ -33,7 +35,7 @@
 static void
 _usage(int exit_code)
 {
-  printf
+  PDM_printf
     ("\n"
      "  Usage: \n\n"
      "  -n      <level>  Number of vertices on the cube side.\n\n"
@@ -255,25 +257,25 @@ int main(int argc, char *argv[])
                     &cpu_user,
                     &cpu_sys);
 
-  printf("[%i]   - elapsed total                    : %12.5e\n", myRank, elapsed[0]);
-  printf("[%i]   - elapsed building graph           : %12.5e\n", myRank, elapsed[1]);
-  printf("[%i]   - elapsed splitting graph          : %12.5e\n", myRank, elapsed[2]);
-  printf("[%i]   - elapsed building mesh partitions : %12.5e\n", myRank, elapsed[3]);
+  PDM_printf("[%i]   - elapsed total                    : %12.5e\n", myRank, elapsed[0]);
+  PDM_printf("[%i]   - elapsed building graph           : %12.5e\n", myRank, elapsed[1]);
+  PDM_printf("[%i]   - elapsed splitting graph          : %12.5e\n", myRank, elapsed[2]);
+  PDM_printf("[%i]   - elapsed building mesh partitions : %12.5e\n", myRank, elapsed[3]);
 
-  printf("[%i]   - cpu total                        : %12.5e\n", myRank, cpu[0]);
-  printf("[%i]   - cpu building graph               : %12.5e\n", myRank, cpu[1]);
-  printf("[%i]   - cpu splitting graph              : %12.5e\n", myRank, cpu[2]);
-  printf("[%i]   - cpu building mesh partitions     : %12.5e\n", myRank, cpu[3]);
+  PDM_printf("[%i]   - cpu total                        : %12.5e\n", myRank, cpu[0]);
+  PDM_printf("[%i]   - cpu building graph               : %12.5e\n", myRank, cpu[1]);
+  PDM_printf("[%i]   - cpu splitting graph              : %12.5e\n", myRank, cpu[2]);
+  PDM_printf("[%i]   - cpu building mesh partitions     : %12.5e\n", myRank, cpu[3]);
 
-  printf("[%i]   - cpu_user total                   : %12.5e\n", myRank, cpu_user[0]);
-  printf("[%i]   - cpu_user building graph          : %12.5e\n", myRank, cpu_user[1]);
-  printf("[%i]   - cpu_user splitting graph         : %12.5e\n", myRank, cpu_user[2]);
-  printf("[%i]   - cpu_user building mesh partitions: %12.5e\n", myRank, cpu_user[3]);
+  PDM_printf("[%i]   - cpu_user total                   : %12.5e\n", myRank, cpu_user[0]);
+  PDM_printf("[%i]   - cpu_user building graph          : %12.5e\n", myRank, cpu_user[1]);
+  PDM_printf("[%i]   - cpu_user splitting graph         : %12.5e\n", myRank, cpu_user[2]);
+  PDM_printf("[%i]   - cpu_user building mesh partitions: %12.5e\n", myRank, cpu_user[3]);
 
-  printf("[%i]   - cpu_sys total                    : %12.5e\n", myRank, cpu_sys[0]);
-  printf("[%i]   - cpu_sys building graph           : %12.5e\n", myRank, cpu_sys[1]);
-  printf("[%i]   - cpu_sys splitting graph          : %12.5e\n", myRank, cpu_sys[2]);
-  printf("[%i]   - cpu_sys building mesh partitions : %12.5e\n", myRank, cpu_sys[3]);
+  PDM_printf("[%i]   - cpu_sys total                    : %12.5e\n", myRank, cpu_sys[0]);
+  PDM_printf("[%i]   - cpu_sys building graph           : %12.5e\n", myRank, cpu_sys[1]);
+  PDM_printf("[%i]   - cpu_sys splitting graph          : %12.5e\n", myRank, cpu_sys[2]);
+  PDM_printf("[%i]   - cpu_sys building mesh partitions : %12.5e\n", myRank, cpu_sys[3]);
 
   struct timeval t_elaps_fin;
   gettimeofday(&t_elaps_fin, NULL);
@@ -290,7 +292,7 @@ int main(int argc, char *argv[])
 #if defined(__INTEL_COMPILER)
 #pragma warning(pop)  
 #endif
-  printf("[%i]   - TEMPS DANS PART_CUBE  : %12.5e\n", myRank,  t_elapsed);
+  PDM_printf("[%i]   - TEMPS DANS PART_CUBE  : %12.5e\n", myRank,  t_elapsed);
 
   int id_cs = PDM_writer_create("Ensight",
                                 PDM_WRITER_FMT_ASCII,
@@ -642,7 +644,7 @@ int main(int argc, char *argv[])
           else if (isom_pre == _connec[1])
             premier_som_opp = isom_suiv;
           else {
-            printf("Erreur face opposee\n");
+            PDM_printf("Erreur face opposee\n");
             abort();
           }
         }
@@ -807,20 +809,20 @@ int main(int argc, char *argv[])
                  &bound_part_faces_sum);
 
   if (myRank == 0) {
-    printf("Statistics :\n");
-    printf("  - Number of cells :\n");
-    printf("       * average            : %i\n", cells_average);
-    printf("       * median             : %i\n", cells_median);
-    printf("       * standard deviation : %12.5e\n", cells_std_deviation);
-    printf("       * min                : %i\n", cells_min);
-    printf("       * max                : %i\n", cells_max);
-    printf("  - Number of faces exchanging with another partition :\n");
-    printf("       * average            : %i\n", bound_part_faces_average);
-    printf("       * median             : %i\n", bound_part_faces_median);
-    printf("       * standard deviation : %12.5e\n", bound_part_faces_std_deviation);
-    printf("       * min                : %i\n", bound_part_faces_min);
-    printf("       * max                : %i\n", bound_part_faces_max);
-    printf("       * total              : %i\n", bound_part_faces_sum);
+    PDM_printf("Statistics :\n");
+    PDM_printf("  - Number of cells :\n");
+    PDM_printf("       * average            : %i\n", cells_average);
+    PDM_printf("       * median             : %i\n", cells_median);
+    PDM_printf("       * standard deviation : %12.5e\n", cells_std_deviation);
+    PDM_printf("       * min                : %i\n", cells_min);
+    PDM_printf("       * max                : %i\n", cells_max);
+    PDM_printf("  - Number of faces exchanging with another partition :\n");
+    PDM_printf("       * average            : %i\n", bound_part_faces_average);
+    PDM_printf("       * median             : %i\n", bound_part_faces_median);
+    PDM_printf("       * standard deviation : %12.5e\n", bound_part_faces_std_deviation);
+    PDM_printf("       * min                : %i\n", bound_part_faces_min);
+    PDM_printf("       * max                : %i\n", bound_part_faces_max);
+    PDM_printf("       * total              : %i\n", bound_part_faces_sum);
   }
 
   PDM_part_free(ppartId);

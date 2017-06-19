@@ -17,6 +17,8 @@
 
 #include "pdm_writer.h"
 #include "pdm_writer_ensight_case.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
 
 /*----------------------------------------------------------------------------*/
 
@@ -313,7 +315,7 @@ _add_var(PDM_writer_ensight_case_t       *const this_case,
   /* Finally, associate variable entry in case file */
 
   if (strlen(var->case_line) > 1024) {
-    printf ("Line of the EnSight case file \"%s\"\n"
+    PDM_printf ("Line of the EnSight case file \"%s\"\n"
             "for variable \"%s\",\n"
             "exceeds 1024 characters, so this file must be edited and variable\n"
             "descriptions or referenced files renamed so as to be readable.\n",
@@ -506,7 +508,7 @@ const PDM_writer_topologie_t                time_dependency
       }
  
       if (fmt_ensight == 0) {
-        fprintf(stderr, "Error in %s line %d : "
+        PDM_error(__FILE__, __LINE__, 0, "Error in %s line %d : "
                 "File \"%s\" does not seem to be a valid\n"
                 "EnSight 6 or Gold case file.",
                 __FILE__, __LINE__, this_case->case_file_name);
@@ -538,7 +540,7 @@ const PDM_writer_topologie_t                time_dependency
                      &geom_timeset, nom_fic_geo_base) != 2) {
             if (sscanf(ligne, "%*s %s",
                        nom_fic_geo_base) != 1) {
-              fprintf(stderr, "Error in %s line %d : "
+              PDM_error(__FILE__, __LINE__, 0, "Error in %s line %d : "
                       "The \"%s\" case file does not seem to\n"
                       "indicate a geometry file",
                       __FILE__, __LINE__,
@@ -551,7 +553,7 @@ const PDM_writer_topologie_t                time_dependency
 
       if (((time_dependency != PDM_writer_TOPO_CONSTANTE) && (geom_timeset == -1)) ||
           ((time_dependency == PDM_writer_TOPO_CONSTANTE) && (geom_timeset != -1))) {
-        fprintf(stderr, "Error in %s line %d : Inconsistency geom time dependency between "
+        PDM_error(__FILE__, __LINE__, 0, "Error in %s line %d : Inconsistency geom time dependency between "
                 "The \"%s\" case and the function argument\n",
                 __FILE__, __LINE__,
                 this_case->case_file_name);
@@ -605,7 +607,7 @@ const PDM_writer_topologie_t                time_dependency
               var_dim = PDM_WRITER_VAR_TENSEUR_ASYM;
             }
             else {
-              fprintf(stderr, "Error in %s line %d : "
+              PDM_error(__FILE__, __LINE__, 0, "Error in %s line %d : "
                       "The dimension \"%s\" is not yet implemented", 
                       __FILE__, __LINE__,
                       ligne);
@@ -629,7 +631,7 @@ const PDM_writer_topologie_t                time_dependency
               var_loc = PDM_WRITER_VAR_PARTICULES;
             }
             else {
-              fprintf(stderr, "Error in %s line %d : "
+              PDM_error(__FILE__, __LINE__, 0, "Error in %s line %d : "
                       "The location \"%s\" is not yet implemented", 
                       __FILE__, __LINE__,
                       ligne_ss_dim);
@@ -645,7 +647,7 @@ const PDM_writer_topologie_t                time_dependency
             if (sscanf(ligne_ss_loc, "%d %d %s", &var_time_set, &var_file_set, nom_var) != 3) {
               if (sscanf(ligne_ss_loc, "%d %s", &var_time_set, nom_var) != 2) {
                 if (sscanf(ligne_ss_loc, "%s", nom_var) != 1) {
-                  fprintf(stderr, "Error in %s line %d\n",
+                  PDM_error(__FILE__, __LINE__, 0, "Error in %s line %d\n",
                           __FILE__, __LINE__);
                   abort();
                 }
@@ -688,7 +690,7 @@ const PDM_writer_topologie_t                time_dependency
               
         if (retval != NULL) {
           if (sscanf(ligne, "%*s %d", time_set_num) != 1) {
-            fprintf(stderr, "Error in %s line %d\n",
+            PDM_error(__FILE__, __LINE__, 0, "Error in %s line %d\n",
                     __FILE__, __LINE__);
             abort();
           }
@@ -700,7 +702,7 @@ const PDM_writer_topologie_t                time_dependency
 
         if (retval != NULL) {
           if (sscanf(ligne, "%*s %d", time_set_n_step) != 1) {
-            fprintf(stderr, "Error in %s line %d\n",
+            PDM_error(__FILE__, __LINE__, 0, "Error in %s line %d\n",
                     __FILE__, __LINE__);
             abort();
           }
@@ -726,7 +728,7 @@ const PDM_writer_topologie_t                time_dependency
           
             if (retval == NULL) {
             
-              fprintf(stderr, "Error in %s line %d : "
+              PDM_error(__FILE__, __LINE__, 0, "Error in %s line %d : "
                       "The dimension \"%s\" is not yet implemented", 
                       __FILE__, __LINE__,
                       ligne);
@@ -834,7 +836,7 @@ PDM_writer_ensight_case_var_time_dep_get
   }
 
   if (i >= this_case->n_vars) {
-    fprintf(stderr, "Error in %s line %d : Unknown variable \"%s\":\n\n",
+    PDM_error(__FILE__, __LINE__, 0, "Error in %s line %d : Unknown variable \"%s\":\n\n",
            __FILE__, __LINE__, name);
     abort();
   }
@@ -869,7 +871,7 @@ const char* name
   }
 
   if (i >= this_case->n_vars) {
-    fprintf(stderr, "Error in %s line %d : Unknown variable \"%s\":\n\n",
+    PDM_error(__FILE__, __LINE__, 0, "Error in %s line %d : Unknown variable \"%s\":\n\n",
            __FILE__, __LINE__, name);
     abort();
   }
@@ -1027,7 +1029,7 @@ PDM_writer_ensight_case_write(PDM_writer_ensight_case_t  *const this_case,
   f = fopen(this_case->case_file_name, "w");
 
   if (f == NULL) {
-    fprintf(stderr, "Error in %s line %d : Error opening file \"%s\":\n\n",
+    PDM_error(__FILE__, __LINE__, 0, "Error in %s line %d : Error opening file \"%s\":\n\n",
            __FILE__, __LINE__, this_case->case_file_name);
     abort();
   }
@@ -1096,7 +1098,7 @@ PDM_writer_ensight_case_write(PDM_writer_ensight_case_t  *const this_case,
   /* Close case file */
 
   if (fclose(f) != 0) {
-    fprintf(stderr, "Error in %s line %d : Error closing file \"%s\":\n\n",
+    PDM_error(__FILE__, __LINE__, 0, "Error in %s line %d : Error closing file \"%s\":\n\n",
            __FILE__, __LINE__, this_case->case_file_name);
     abort();
   }

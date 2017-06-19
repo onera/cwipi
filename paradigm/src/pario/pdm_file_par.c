@@ -16,6 +16,8 @@
  *----------------------------------------------------------------------------*/
 
 #include "pdm_file_par.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
 
 /*----------------------------------------------------------------------------*/
 
@@ -72,7 +74,7 @@ _pdm_mpi_io_error_message
   
   PDM_MPI_Error_string(code_erreur, buffer, &buffer_len);
   
-  fprintf(stderr, "Erreur MPI IO pour le fichier: %s\n"
+  PDM_error(__FILE__, __LINE__, 0, "Erreur MPI IO pour le fichier: %s\n"
           "Error type: %s", nom_fichier, buffer);
   
   exit(EXIT_FAILURE);
@@ -123,7 +125,7 @@ PDM_file_par_t
     _mode = PDM_MPI_MODE_RDONLY;
     break;
   default:
-    fprintf(stderr,"Erreur Fichier_par_open : mode inconnu\n");
+    PDM_error(__FILE__, __LINE__, 0,"Erreur Fichier_par_open : mode inconnu\n");
     exit(EXIT_FAILURE);
   }
 
@@ -218,7 +220,7 @@ PDM_file_par_lecture_globale
     break;
 
   default:
-    fprintf(stderr,"Erreur Fichier_par_lecture : type d'acces inconnu\n");
+    PDM_error(__FILE__, __LINE__, 0,"Erreur Fichier_par_lecture : type d'acces inconnu\n");
     exit(EXIT_FAILURE);
 
   }
@@ -308,7 +310,7 @@ PDM_file_par_ecriture_globale
     break;
 
   default:
-    fprintf(stderr,"Erreur Fichier_par_ecriture_global : type d'acces inconnu\n");
+    PDM_error(__FILE__, __LINE__, 0,"Erreur Fichier_par_ecriture_global : type d'acces inconnu\n");
     exit(EXIT_FAILURE);
 
   }
@@ -409,7 +411,7 @@ PDM_file_par_lecture_parallele
     break;
     
   default:
-    fprintf(stderr,"Erreur Fichier_par_lecture_parallele : type d'acces inconnu\n");
+    PDM_error(__FILE__, __LINE__, 0,"Erreur Fichier_par_lecture_parallele : type d'acces inconnu\n");
     exit(EXIT_FAILURE);
     
   }  
@@ -516,7 +518,7 @@ PDM_file_par_ecriture_parallele
     break;
     
   default:
-    fprintf(stderr,"Erreur Fichier_par_ecriture_parallele : type d'acces inconnu\n");
+    PDM_error(__FILE__, __LINE__, 0,"Erreur Fichier_par_ecriture_parallele : type d'acces inconnu\n");
     exit(EXIT_FAILURE);
     
   }
@@ -580,7 +582,7 @@ void PDM_file_par_seek
     }
     break;
   default :
-    fprintf(stderr, "Erreur PDM_file_par_seek : whence non reconnu\n");
+    PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_file_par_seek : whence non reconnu\n");
     exit(EXIT_FAILURE);
   }
 
@@ -601,7 +603,7 @@ void PDM_file_par_seek
       _whence = PDM_MPI_SEEK_END;
       break;
     default :
-      fprintf(stderr, "Erreur PDM_file_par_seek : whence non reconnu\n");
+      PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_file_par_seek : whence non reconnu\n");
       exit(EXIT_FAILURE);
     }
 

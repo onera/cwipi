@@ -20,6 +20,8 @@
 #include "pdm_writer.h"
 #include "pdm_part_to_block.h"
 #include "pdm_poly_surf_gen.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
 
 
 /*============================================================================
@@ -42,7 +44,7 @@ _usage
 int exit_code
 )
 {
-  printf
+  PDM_printf
     ("\n"
      "  Usage: \n\n"
      "  -n      <level>  Number of vertices on the cube side.\n\n"
@@ -217,7 +219,7 @@ PDM_part_split_t           method,
   const PDM_g_num_t *_numabs = PDM_gnum_get (id, 0);
     
   for (int j = 0; j < dNVtx; j++) {
-    printf (PDM_FMT_G_NUM" %12.5e %12.5e %12.5e\n", _numabs[j], dVtxCoord[3*j], 
+    PDM_printf (PDM_FMT_G_NUM" %12.5e %12.5e %12.5e\n", _numabs[j], dVtxCoord[3*j], 
                                                      dVtxCoord[3*j+1], 
                                                      dVtxCoord[3*j+2]);
   }
@@ -241,44 +243,44 @@ PDM_part_split_t           method,
 #pragma warning(pop)
 #endif
   if (myRank == 0)
-    printf("[%d] Temps dans creeMaillagePolygone2D %d : %12.5e\n",
+    PDM_printf("[%d] Temps dans creeMaillagePolygone2D %d : %12.5e\n",
            myRank, imesh, t_elapsed);
 
   if (0 == 1) {
 
-    printf ("edgegroup : ");
+    PDM_printf ("edgegroup : ");
     for (int i = 0; i < *nEdgeGroup; i++) {
       for (int j = dEdgeGroupIdx[i]; j <  dEdgeGroupIdx[i+1]; j++)
-        printf (" "PDM_FMT_G_NUM, dEdgeGroup[j]);
-      printf ("\n");
+        PDM_printf (" "PDM_FMT_G_NUM, dEdgeGroup[j]);
+      PDM_printf ("\n");
     }
 
-    printf ("dfacevtx : ");
+    PDM_printf ("dfacevtx : ");
     for (int i = 0; i < dNFace; i++) {
       for (int j = dFaceVtxIdx[i]; j <  dFaceVtxIdx[i+1]; j++)
-        printf (" "PDM_FMT_G_NUM, dFaceVtx[j]);
-      printf ("\n");
+        PDM_printf (" "PDM_FMT_G_NUM, dFaceVtx[j]);
+      PDM_printf ("\n");
     }
 
-    printf ("dfaceedge : ");
+    PDM_printf ("dfaceedge : ");
     for (int i = 0; i < dNFace; i++) {
       for (int j = dFaceVtxIdx[i]; j <  dFaceVtxIdx[i+1]; j++)
-        printf (" "PDM_FMT_G_NUM, dFaceEdge[j]);
-      printf ("\n");
+        PDM_printf (" "PDM_FMT_G_NUM, dFaceEdge[j]);
+      PDM_printf ("\n");
     }
 
-    printf ("dedgevtx : ");
+    PDM_printf ("dedgevtx : ");
     for (int i = 0; i < dNEdge; i++) {
-      printf (" "PDM_FMT_G_NUM, dEdgeVtx[2*i]);
-      printf (" "PDM_FMT_G_NUM, dEdgeVtx[2*i+1]);
-      printf ("\n");
+      PDM_printf (" "PDM_FMT_G_NUM, dEdgeVtx[2*i]);
+      PDM_printf (" "PDM_FMT_G_NUM, dEdgeVtx[2*i+1]);
+      PDM_printf ("\n");
     }
 
-    printf ("dedgeface : ");
+    PDM_printf ("dedgeface : ");
     for (int i = 0; i < dNEdge; i++) {
-      printf (" "PDM_FMT_G_NUM, dEdgeVtx[2*i]);
-      printf (" "PDM_FMT_G_NUM, dEdgeVtx[2*i+1]);
-      printf ("\n");
+      PDM_printf (" "PDM_FMT_G_NUM, dEdgeVtx[2*i]);
+      PDM_printf (" "PDM_FMT_G_NUM, dEdgeVtx[2*i+1]);
+      PDM_printf ("\n");
     }
   }
 
@@ -341,7 +343,7 @@ PDM_part_split_t           method,
                   &cpu_sys);
 
   if (myRank == 0)
-    printf("[%d] Temps dans ppart %d : %12.5e\n",
+    PDM_printf("[%d] Temps dans ppart %d : %12.5e\n",
            myRank, imesh, elapsed[0]);
 
   /* Statistiques */
@@ -372,20 +374,20 @@ PDM_part_split_t           method,
                   &bound_part_faces_sum);
 
   /* if (myRank == 0) { */
-  /*   printf ("Statistics :\n"); */
-  /*   printf ("  - Number of cells :\n"); */
-  /*   printf ("       * average            : %i\n", cells_average);    */
-  /*   printf ("       * median             : %i\n", cells_median);    */
-  /*   printf ("       * standard deviation : %12.5e\n", cells_std_deviation);    */
-  /*   printf ("       * min                : %i\n", cells_min);    */
-  /*   printf ("       * max                : %i\n", cells_max);    */
-  /*   printf ("  - Number of faces exchanging with another partition :\n"); */
-  /*   printf ("       * average            : %i\n", bound_part_faces_average);    */
-  /*   printf ("       * median             : %i\n", bound_part_faces_median);    */
-  /*   printf ("       * standard deviation : %12.5e\n", bound_part_faces_std_deviation);    */
-  /*   printf ("       * min                : %i\n", bound_part_faces_min);    */
-  /*   printf ("       * max                : %i\n", bound_part_faces_max);    */
-  /*   printf ("       * total              : %i\n", bound_part_faces_sum);    */
+  /*   PDM_printf ("Statistics :\n"); */
+  /*   PDM_printf ("  - Number of cells :\n"); */
+  /*   PDM_printf ("       * average            : %i\n", cells_average);    */
+  /*   PDM_printf ("       * median             : %i\n", cells_median);    */
+  /*   PDM_printf ("       * standard deviation : %12.5e\n", cells_std_deviation);    */
+  /*   PDM_printf ("       * min                : %i\n", cells_min);    */
+  /*   PDM_printf ("       * max                : %i\n", cells_max);    */
+  /*   PDM_printf ("  - Number of faces exchanging with another partition :\n"); */
+  /*   PDM_printf ("       * average            : %i\n", bound_part_faces_average);    */
+  /*   PDM_printf ("       * median             : %i\n", bound_part_faces_median);    */
+  /*   PDM_printf ("       * standard deviation : %12.5e\n", bound_part_faces_std_deviation);    */
+  /*   PDM_printf ("       * min                : %i\n", bound_part_faces_min);    */
+  /*   PDM_printf ("       * max                : %i\n", bound_part_faces_max);    */
+  /*   PDM_printf ("       * total              : %i\n", bound_part_faces_sum);    */
   /* } */
 
   free (dVtxCoord);
@@ -493,7 +495,7 @@ char *argv[]
   
  PDM_MPI_Finalize ();
  
- printf ("\nfin Test\n");
+ PDM_printf ("\nfin Test\n");
  
  return 0;
 

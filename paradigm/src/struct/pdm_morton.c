@@ -47,6 +47,8 @@
 
 #include "pdm_priv.h"
 #include "pdm_morton.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
 
 /*----------------------------------------------------------------------------*/
 
@@ -429,7 +431,7 @@ _evaluate_distribution(int          n_ranges,
 
 #if 0 && defined(DEBUG) && !defined(NDEBUG)
   /* if (cs_glob_rank_id <= 0) */
-  /*   fprintf(stdout,"<DISTRIBUTION EVALUATION> optim: %g, fit: %g\n", */
+  /*   PDM_printf("<DISTRIBUTION EVALUATION> optim: %g, fit: %g\n", */
   /*              optim, fit); */
 #endif
 
@@ -590,7 +592,7 @@ _define_rank_distrib(int                      dim,
       sum += g_distrib[rank_id];
 
     if (sum != gsum_weight) {
-      fprintf(stderr,
+      PDM_error(__FILE__, __LINE__, 0,
                 "Error while computing global distribution.\n"
                 "sum = %u and gsum_weight = %u\n",
                 sum, gsum_weight);
@@ -666,7 +668,7 @@ _update_sampling(int      dim,
       new_sampling[i+1] = s_low + 0.5 * (s_low + s_high);
 
 #if 0 && defined(DEBUG) && !defined(NDEBUG)
-    /* fprintf(stdout," <_update_distrib> (rank: %d) delta: %g, target: %g," */
+    /* PDM_printf(" <_update_distrib> (rank: %d) delta: %g, target: %g," */
     /*            " next_id: %d, f_low: %g, f_high: %g, s_low: %g, s_high: %g\n" */
     /*            "\t => new_sampling: %g\n", */
     /*            cs_glob_rank_id, delta, target_freq, next_id, */
@@ -817,7 +819,7 @@ _bucket_sampling(int                      dim,
 
 #if 0 && defined(DEBUG) && !defined(NDEBUG)
   /* if (cs_glob_rank_id <= 0) */
-  /*   fprintf(stdout,"\n  <_bucket_sampling> n_iter: %d, opt: %g, best_fit: %g\n", */
+  /*   PDM_printf("\n  <_bucket_sampling> n_iter: %d, opt: %g, best_fit: %g\n", */
   /*              n_iters, optim, best_fit); */
 #endif
 
@@ -1136,7 +1138,7 @@ PDM_morton_local_order(int                n_codes,
 #if 0 && defined(DEBUG) && !defined(NDEBUG)   /* Check ordering */
   for (i = 1; i < n_codes; i++) {
     if (_a_gt_b(morton_codes[order[i-1]], morton_codes[order[i]])) {
-      fprintf(stderr,
+      PDM_error(__FILE__, __LINE__, 0,
               "Id: %u inconsistent: bad ordering of Morton codes.",
               (unsigned)i);
       abort();
@@ -1180,7 +1182,7 @@ PDM_morton_local_sort(int          n_codes,
 #if 0 && defined(DEBUG) && !defined(NDEBUG)   /* Check good ordering */
   for (i = 1; i < n_codes; i++) {
     if (_a_gt_b(dim, morton_codes[i - 1], morton_codes[i])) {
-      fprintf(stderr,
+      PDM_error(__FILE__, __LINE__, 0,
               "Id: %u inconsistent: bad ordering of Morton codes.",
               (unsigned)i);
       abort();
@@ -1430,14 +1432,14 @@ PDM_morton_build_rank_index(int                      dim,
 
 #if 0 && defined(DEBUG) && !defined(NDEBUG)
   { /* Dump Morton index and associated sampling on rank 0 */
-    fprintf(stdout,"\nMorton rank index:\n\n");
+    PDM_printf("\nMorton rank index:\n\n");
     for (rank_id = 0; rank_id < n_ranks + 1; rank_id++) {
       id = sampling_factor * rank_id;
-      fprintf(stdout,"rank: %5d (sampling: %7.4g)- ", rank_id, sampling[id]);
+      PDM_printf("rank: %5d (sampling: %7.4g)- ", rank_id, sampling[id]);
       PDM_morton_dump(dim, rank_index[rank_id]);
 
     }
-    fprintf(stdout,"\n");
+    PDM_printf("\n");
     fflush(stdout);
   }
 #endif
@@ -1478,14 +1480,14 @@ PDM_morton_dump(int                dim,
     coord[i] = stride * code.X[i];
 
   if (dim == 3)
-    fprintf(stdout,"Morton Code:\n"
+    PDM_printf("Morton Code:\n"
                "L =  %3u [X, Y, Z] - [%5u %5u %5u]"
                "[%6.5lf %6.5lf %6.5lf]\n",
                code.L, code.X[0], code.X[1], code.X[2],
                coord[0], coord[1], coord[2]);
 
   else if (dim == 2)
-    fprintf(stdout,"Morton Code\n"
+    PDM_printf("Morton Code\n"
                "L =  %3u [X, Y] - [%5u %5u] [%6.5lf %6.5lf]\n",
                code.L, code.X[0], code.X[1], coord[0], coord[1]);
 
