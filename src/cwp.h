@@ -549,6 +549,7 @@ CWP_Output_file_set
 FILE *output_file
 );
 
+
 /**
  * \brief Writing output to fortran file.
  *
@@ -585,11 +586,9 @@ CWP_State_get
 
 
 /**
- * \brief Number of codes known by CWP
+ * \brief Number of codes known to CWIPI
  *
- * This function return the number of codes known by CWP
- *
- * \param [in]  code_name    Code name
+ * \return Number of codes
  *
  */
 
@@ -598,19 +597,44 @@ CWP_Codes_nb_get
 (
 );
 
+
 /**
- * \brief list of codes known by CWP
+ * \brief list of codes known to CWIPI
  *
- * This function return the list of codes known by CWP
- *
- * \param [in]  code_name    Code name
+ * \return Names list of codes
  *
  */
 
-void
+const char **
 CWP_Codes_list_get
 (
- char **names
+void
+);
+
+
+/**
+ * \brief Number of codes known to CWIPI
+ *
+ * \return Number of local codes
+ *
+ */
+
+int
+CWP_Loc_codes_nb_get
+(
+);
+
+
+/**
+ * \brief list of codes known to CWIPI
+ *
+ * \return Names list of local codes
+ *
+ */
+
+const char **
+CWP_Loc_codes_list_get
+(
 );
 
 /*----------------------------------------------------------------------------*

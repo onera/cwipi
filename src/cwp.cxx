@@ -58,6 +58,10 @@
 #include "commWithPart.hxx"
 #include "commWithoutPart.hxx"
 #include "commSeq.hxx"
+#include "pdm.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
+
 // #include "geometry.hxx"
 // #include "location.hxx"
 
@@ -353,11 +357,11 @@ CWP_Finalize
   const MPI_Comm globalComm = properties.globalCommGet();
   printf("CWP_Finalize\n");
   fflush(stdout);
-//  if (flag != 0) {
-//    bftc_printf_flush();
-//    MPI_Barrier(globalComm);
+  if (flag != 0) {
+    bftc_printf_flush();
+    MPI_Barrier(globalComm);
 //    MPI_Comm oldFVMComm = fvmc_parall_get_mpi_comm();
-//  }
+  }
 
   properties.kill();
 
@@ -414,6 +418,81 @@ CWP_State_get
       properties.ctrlParamGet<int>(string(code_name), "state"));
 }
 
+
+/**
+ * \brief Number of codes known to CWIPI
+ *
+ * \return Number of codes
+ *
+ */
+
+int
+CWP_Codes_nb_get
+(
+)
+{
+  cwipi::CodePropertiesDB & properties =
+    cwipi::CodePropertiesDB::getInstance();
+
+  return properties.codesNbGet();
+}
+
+
+/**
+ * \brief list of codes known to CWIPI
+ *
+ * \return Names list of codes
+ *
+ */
+
+const char **
+CWP_Codes_list_get
+(
+)
+{
+  cwipi::CodePropertiesDB & properties =
+    cwipi::CodePropertiesDB::getInstance();
+  return properties.codesListGet();
+}
+
+
+/**
+ * \brief Number of codes known to CWIPI
+ *
+ * \return Number of local codes
+ *
+ */
+
+int
+CWP_Loc_codes_nb_get
+(
+)
+{
+  cwipi::CodePropertiesDB & properties =
+    cwipi::CodePropertiesDB::getInstance();
+
+  return properties.localCodesNbGet();
+}
+
+
+/**
+ * \brief list of codes known to CWIPI
+ *
+ * \return Names list of local codes
+ *
+ */
+
+const char **
+CWP_Loc_codes_list_get
+(
+)
+{
+  cwipi::CodePropertiesDB & properties =
+    cwipi::CodePropertiesDB::getInstance();
+  return properties.localCodesListGet();
+}
+
+
 /**
  * \brief Update application time
  *
@@ -436,6 +515,7 @@ CWP_Time_update
   properties.ctrlParamSet<double>(string(local_code_name),"time", current_time);
 }
 
+
 /**
  * \brief Writing output to file.
  *
@@ -452,8 +532,24 @@ CWP_Output_file_set
 )
 {
   _cwipi_output_listing = output_file;
-  bftc_printf_proxy_set(_cwipi_print_with_c);
+  PDM_printf_proxy_set(_cwipi_print_with_c);
 }
+
+//
+///**
+// * \brief Writing output to fortran file.
+// *
+// * This function set the file fortran logical unit for writing output.
+// *
+// * \param [in]  iunit        File fortan logical unit
+// *
+// */
+//
+//void 
+//PROCF (cwp_output_fortran_unit_set, CWP_OUTPUT_FORTRAN_UNIT_SET)
+//(
+// int *iunit
+//);
 
 /*----------------------------------------------------------------------------*
  * Functions about properties                                                 *

@@ -103,6 +103,88 @@ namespace cwipi {
   }
 
 
+    
+  /**
+   * \brief Return the number of codes known to CWIPI
+   *
+   * \return   Number of codes
+   *
+   */
+
+  int
+  CodePropertiesDB::codesNbGet
+  (
+  ) const
+  {
+    return _codePropertiesDB.size();
+  }
+
+    
+  /**
+   * \brief Return the number of localccodes known to CWIPI
+   *
+   * \return   Number of local codes
+   *
+   */
+
+  int
+  CodePropertiesDB::localCodesNbGet
+  (
+  ) const
+  {
+    return _locCodePropertiesDB.size();    
+  }
+
+    
+  /**
+   * \brief Return the number of codes known to CWIPI
+   *
+   * \return   Number of codes
+   *
+   */
+
+  const char **
+  CodePropertiesDB::codesListGet
+  (
+  ) const
+  {
+    const int nCodes = _codePropertiesDB.size();
+    const char **list = (const char **) malloc(sizeof(char *) * nCodes);
+    
+    typedef map <string, CodeProperties * >::iterator CI;
+    int i = 0;
+    for (CI p = _codePropertiesDB.begin();
+         p != _codePropertiesDB.end(); p++) {
+      list[i++] = p->first.c_str();
+    }
+    return list;
+  }
+
+    
+  /**
+   * \brief Return the number of localccodes known to CWIPI
+   *
+   * \return   Number of local codes
+   *
+   */
+
+  const char **
+  CodePropertiesDB::localCodesListGet
+  (
+  ) const
+  {
+    const int nCodes = _locCodePropertiesDB.size();
+    const char **list = (const char **) malloc(sizeof(char *) * nCodes);
+    
+    typedef map <string, CodeProperties * >::iterator CI;
+    int i = 0;
+    for (CI p = _locCodePropertiesDB.begin();
+         p != _locCodePropertiesDB.end(); p++) {
+      list[i++] = p->first.c_str();
+    }
+    return list;
+  }
+
   /**
    * \brief Add a control paramater.
    *

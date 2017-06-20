@@ -142,6 +142,58 @@ namespace cwipi {
      const string &codeName
     ) const;
 
+    
+    /**
+     * \brief Return the number of codes known to CWIPI
+     *
+     * \return   Number of codes
+     *
+     */
+
+    inline int
+    codesNbGet
+    (
+    ) const;
+
+    
+    /**
+     * \brief Return the number of localccodes known to CWIPI
+     *
+     * \return   Number of local codes
+     *
+     */
+
+    inline int
+    localCodesNbGet
+    (
+    ) const;
+
+    
+    /**
+     * \brief Return the number of codes known to CWIPI
+     *
+     * \return   Number of codes
+     *
+     */
+
+    inline const char **
+    codesListGet
+    (
+    ) const;
+
+    
+    /**
+     * \brief Return the number of localccodes known to CWIPI
+     *
+     * \return   Number of local codes
+     *
+     */
+
+    inline const char **
+    localCodesListGet
+    (
+    ) const;
+
 
     /**
      * \brief Set a control paramater.

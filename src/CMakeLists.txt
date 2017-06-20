@@ -44,6 +44,8 @@ file(GLOB_RECURSE SOURCES
 #        ${CMAKE_SOURCE_DIR}/src/cwipi_set_output_logical_unit.f90)
 #endif()
 
+get_target_property(PDM_INC pdm INCLUDE_DIRECTORIES)
+
 file(GLOB_RECURSE SOURCESF 
      printfort.f90
      cwipi_printfort.f90
@@ -61,7 +63,10 @@ target_include_directories(cwp
                            PUBLIC  ${CMAKE_SOURCE_DIR}
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/fvm
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/bft)
+                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/bft
+                           PRIVATE ${PDM_INC}) 
+
+ add_dependencies(cwp pdm)
 
 if (CWP_ENABLE_Fortran)
  add_library(cwpf OBJECT ${SOURCESF})
@@ -73,7 +78,10 @@ if (CWP_ENABLE_Fortran)
                            PUBLIC    ${CMAKE_SOURCE_DIR}
                            PUBLIC    ${CMAKE_CURRENT_SOURCE_DIR}
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/fvm
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/bft)
+                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/bft
+                           PRIVATE ${PDM_INC}) 
+
+ add_dependencies(cwpf pdmf)
 
 endif()
 
