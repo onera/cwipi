@@ -51,7 +51,9 @@ file(GLOB_RECURSE SOURCESF
      cwipi_printfort.f90
      callfortinterpfct.f90
      cwipi_printfort_cf.cxx
+     cwp_printfort_cf.cxx
      cwipi_set_output_logical_unit.f90
+     cwp_set_output_logical_unit_set.f90
      cwipi_f.f90)
 
 add_library(cwp OBJECT ${SOURCES})
