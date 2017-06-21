@@ -29,9 +29,6 @@
  * BFT library headers
  *----------------------------------------------------------------------------*/
 
-#include <bftc_mem.h>
-#include <bftc_printf.h>
-
 /*----------------------------------------------------------------------------
  * FVM library headers
  *----------------------------------------------------------------------------*/
@@ -242,8 +239,8 @@ CWP_Init
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
 
-  bftc_printf("\ncwipi " CWIPI_VERSION " initializing\n");
-  bftc_printf("------------------------\n\n");
+  PDM_printf("\ncwipi " CWIPI_VERSION " initializing\n");
+  PDM_printf("------------------------\n\n");
 
   /*
    * Builds application communicator
@@ -355,10 +352,10 @@ CWP_Finalize
     cwipi::CodePropertiesDB::getInstance();
 
   const MPI_Comm globalComm = properties.globalCommGet();
-  printf("CWP_Finalize\n");
+  PDM_printf("CWP_Finalize\n");
   fflush(stdout);
   if (flag != 0) {
-    bftc_printf_flush();
+    PDM_printf_flush();
     MPI_Barrier(globalComm);
 //    MPI_Comm oldFVMComm = fvmc_parall_get_mpi_comm();
   }
@@ -1761,7 +1758,7 @@ CWP_Param_add
     properties.ctrlParamAdd<char *>(codeNameStr,nameStr, *(char **)initial_value);
     break;
   default :
-    bftc_error(__FILE__, __LINE__, 0,
+    PDM_error(__FILE__, __LINE__, 0,
                "Not yet implemented data type\n");
   }
 }
@@ -1803,7 +1800,7 @@ CWP_Param_set
     properties.ctrlParamSet<char *>(codeNameStr, nameStr, * (char **) value);
     break;
   default :
-    bftc_error(__FILE__, __LINE__, 0,
+    PDM_error(__FILE__, __LINE__, 0,
                "Not yet implemented data type\n");
   }
 }
@@ -1842,7 +1839,7 @@ CWP_Param_del
     properties.ctrlParamCancel<string>(codeNameStr, nameStr);
     break;
   default :
-    bftc_error(__FILE__, __LINE__, 0,
+    PDM_error(__FILE__, __LINE__, 0,
                "Not yet implemented data type\n");
   }
 }
@@ -1886,7 +1883,7 @@ CWP_Param_n_get
     nParam = properties.ctrlParamNGet<string>(codeNameStr);
     break;
   default :
-    bftc_error(__FILE__, __LINE__, 0,
+    PDM_error(__FILE__, __LINE__, 0,
                 "Not yet implemented data type\n");
   }
   return nParam;
@@ -1930,7 +1927,7 @@ CWP_Param_list_get
     properties.ctrlParamListGet<string>(codeNameStr, nParam, paramNames);
     break;
   default :
-    bftc_error(__FILE__, __LINE__, 0,
+    PDM_error(__FILE__, __LINE__, 0,
                "Not yet implemented data type\n");
   }
 }
@@ -1973,7 +1970,7 @@ CWP_Param_is
     isParam = properties.ctrlParamIs<string>(codeNameStr, nameStr);
     break;
   default :
-    bftc_error(__FILE__, __LINE__, 0,
+    PDM_error(__FILE__, __LINE__, 0,
                "Not yet implemented data type\n");
   }
   return isParam;
@@ -2022,7 +2019,7 @@ CWP_Param_get
     break;
   }
   default : {
-    bftc_error(__FILE__, __LINE__, 0,
+    PDM_error(__FILE__, __LINE__, 0,
                "Not yet implemented data type\n");
   }
   }
@@ -2073,7 +2070,7 @@ CWP_Param_reduce
     break;
   }
   default :
-    bftc_error(__FILE__, __LINE__, 0,
+    PDM_error(__FILE__, __LINE__, 0,
                "Not yet implemented data type\n");
     
     va_end(pa);

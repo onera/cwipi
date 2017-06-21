@@ -28,7 +28,7 @@
 #include <string>
 #include <typeinfo>
 
-#include <bftc_error.h>
+#include "pdm_error.h"
 
 #include "cwp.h"
 
@@ -885,7 +885,7 @@ namespace cwipi {
     else {
       int lockStatus = _winGlobData[0];
       if (lockStatus) {
-        bftc_error(__FILE__, __LINE__, 0,
+        PDM_error(__FILE__, __LINE__, 0,
                    "Unlock parameters before read its on the current rank\n");      
       }      
     }
@@ -926,7 +926,7 @@ namespace cwipi {
     }
 
     if (!found) {
-      bftc_error(__FILE__, __LINE__, 0,
+      PDM_error(__FILE__, __LINE__, 0,
                  "'%s' Unknown parameter on '%s' code\n", name.c_str(), 
                                                          _name.c_str());      
     }
@@ -996,7 +996,7 @@ namespace cwipi {
     else {
       int lockStatus = _winGlobData[0];
       if (lockStatus) {
-        bftc_error(__FILE__, __LINE__, 0,
+        PDM_error(__FILE__, __LINE__, 0,
                    "Unlock parameters before read its on the current rank\n");      
       }      
     }
@@ -1038,7 +1038,7 @@ namespace cwipi {
     }
 
     if (!found) {
-      bftc_error(__FILE__, __LINE__, 0,
+      PDM_error(__FILE__, __LINE__, 0,
                  "'%s' Unknown parameter on '%s' code\n", name.c_str(), 
                                                          _name.c_str());      
     }
@@ -1113,7 +1113,7 @@ namespace cwipi {
     else {
       int lockStatus = _winGlobData[0];
       if (lockStatus) {
-        bftc_error(__FILE__, __LINE__, 0,
+        PDM_error(__FILE__, __LINE__, 0,
                    "Unlock parameters before read its on the current rank\n");      
       }      
     }
@@ -1154,7 +1154,7 @@ namespace cwipi {
     }
 
     if (!found) {
-      bftc_error(__FILE__, __LINE__, 0,
+      PDM_error(__FILE__, __LINE__, 0,
                  "'%s' Unknown parameter on '%s' code\n", name.c_str(), 
                                                          _name.c_str());      
     }
@@ -1185,7 +1185,7 @@ namespace cwipi {
   )
   {
     if (!_isLocal) {
-      bftc_error(__FILE__, __LINE__, 0,
+      PDM_error(__FILE__, __LINE__, 0,
            "'%s' is a distant code. Set a distant code parameter is not allowed\n", 
                                                    _name.c_str());      
     }
@@ -1214,7 +1214,7 @@ namespace cwipi {
       }
 
       if (!found) {
-        bftc_error(__FILE__, __LINE__, 0,
+        PDM_error(__FILE__, __LINE__, 0,
                    "'%s' Unknown parameter on '%s' code\n", name.c_str(), 
                                                            _name.c_str());      
       }
@@ -1242,7 +1242,7 @@ namespace cwipi {
   )
   {
     if (!_isLocal) {
-      bftc_error(__FILE__, __LINE__, 0,
+      PDM_error(__FILE__, __LINE__, 0,
            "'%s' is a distant code. Set a distant code parameter is not allowed\n", 
                                                    _name.c_str());      
     }
@@ -1271,7 +1271,7 @@ namespace cwipi {
       }
 
       if (!found) {
-        bftc_error(__FILE__, __LINE__, 0,
+        PDM_error(__FILE__, __LINE__, 0,
                    "'%s' Unknown parameter on '%s' code\n", name.c_str(), 
                                                            _name.c_str());      
       }
@@ -1299,7 +1299,7 @@ namespace cwipi {
   )
   {
     if (!_isLocal) {
-      bftc_error(__FILE__, __LINE__, 0,
+      PDM_error(__FILE__, __LINE__, 0,
            "'%s' is a distant code. Set a distant code parameter is not allowed\n", 
                                                    _name.c_str());      
     }
@@ -1329,7 +1329,7 @@ namespace cwipi {
       }
 
       if (!found) {
-        bftc_error(__FILE__, __LINE__, 0,
+        PDM_error(__FILE__, __LINE__, 0,
                    "'%s' Unknown parameter on '%s' code\n", name.c_str(), 
                                                            _name.c_str());      
       }
@@ -1380,7 +1380,7 @@ namespace cwipi {
   {
       
     if (!_isLocal) {
-      bftc_error(__FILE__, __LINE__, 0,
+      PDM_error(__FILE__, __LINE__, 0,
            "'%s' is a distant code. Add a distant code parameter is not allowed\n", 
                                                    _name.c_str());      
     }
@@ -1401,7 +1401,7 @@ namespace cwipi {
       int nIntParam    = _winGlobData[1];
 
       if (nIntParam >= _n_param_max) {
-        bftc_error(__FILE__, __LINE__, 0,
+        PDM_error(__FILE__, __LINE__, 0,
                    "Impossible to create the '%s' parameter. \n"
                    "The maximum number of parameters is exceeded. \n" 
                    "To increase the maximum number of parameters : "
@@ -1410,7 +1410,7 @@ namespace cwipi {
       }
       
       if (name.size() >= _str_size_max)  {
-        bftc_error(__FILE__, __LINE__, 0,
+        PDM_error(__FILE__, __LINE__, 0,
                    "Impossible to create the '%s' parameter. \n"
                    "The maximum name size is exceeded. \n" 
                    "To allow longer parameter names : "
@@ -1429,7 +1429,7 @@ namespace cwipi {
       }
 
       if (found) { 
-        bftc_error(__FILE__, __LINE__, 0,
+        PDM_error(__FILE__, __LINE__, 0,
                    "'%s' is already a parameter off '%s' code\n", name.c_str(), 
                                                                  _name.c_str());      
       }
@@ -1469,7 +1469,7 @@ namespace cwipi {
   )
   {
     if (!_isLocal) {
-      bftc_error(__FILE__, __LINE__, 0,
+      PDM_error(__FILE__, __LINE__, 0,
            "'%s' is a distant code. Add a distant code parameter is not allowed\n", 
                                                    _name.c_str());      
     }
@@ -1490,7 +1490,7 @@ namespace cwipi {
       int nDoubleParam = _winGlobData[2];
 
       if (nDoubleParam >= _n_param_max) {
-        bftc_error(__FILE__, __LINE__, 0,
+        PDM_error(__FILE__, __LINE__, 0,
                    "Impossible to create the '%s' parameter. \n"
                    "The maximum number of parameters is exceeded. \n" 
                    "To increase the maximum number of parameters : "
@@ -1499,7 +1499,7 @@ namespace cwipi {
       }
       
       if (name.size() >= _str_size_max)  {
-        bftc_error(__FILE__, __LINE__, 0,
+        PDM_error(__FILE__, __LINE__, 0,
                    "Impossible to create the '%s' parameter. \n"
                    "The maximum name size is exceeded. \n" 
                    "To allow longer parameter names : "
@@ -1518,7 +1518,7 @@ namespace cwipi {
       }
 
       if (found) {
-        bftc_error(__FILE__, __LINE__, 0,
+        PDM_error(__FILE__, __LINE__, 0,
                    "'%s' is already a parameter off '%s' code\n", name.c_str(), 
                                                                  _name.c_str());      
       }
@@ -1558,7 +1558,7 @@ namespace cwipi {
   {
     
     if (!_isLocal) {
-      bftc_error(__FILE__, __LINE__, 0,
+      PDM_error(__FILE__, __LINE__, 0,
            "'%s' is a distant code. Add a distant code parameter is not allowed\n", 
                                                    _name.c_str());      
     }
@@ -1580,7 +1580,7 @@ namespace cwipi {
       int nStrParam    = _winGlobData[3];
 
       if (nStrParam >= _n_param_max) {
-        bftc_error(__FILE__, __LINE__, 0,
+        PDM_error(__FILE__, __LINE__, 0,
                    "Impossible to create the '%s' parameter. \n"
                    "The maximum number of parameters is exceeded. \n" 
                    "To increase the maximum number of parameters : "
@@ -1589,7 +1589,7 @@ namespace cwipi {
       }
       
       if (name.size() >= _str_size_max)  {
-        bftc_error(__FILE__, __LINE__, 0,
+        PDM_error(__FILE__, __LINE__, 0,
                    "Impossible to create the '%s' parameter. \n"
                    "The maximum name size is exceeded. \n" 
                    "To allow longer parameter names : "
@@ -1598,7 +1598,7 @@ namespace cwipi {
       }
       
       if (strlen(value) >= _str_size_max)  {
-        bftc_error(__FILE__, __LINE__, 0,
+        PDM_error(__FILE__, __LINE__, 0,
                    "Impossible to create the string '%s' parameter. \n"
                    "The maximum string size is exceeded. \n" 
                    "To allow longer parameters : "
@@ -1617,7 +1617,7 @@ namespace cwipi {
       }
 
       if (found) {
-        bftc_error(__FILE__, __LINE__, 0,
+        PDM_error(__FILE__, __LINE__, 0,
                    "'%s' is already a parameter off '%s' code\n", name.c_str(), 
                                                                  _name.c_str());      
       }
@@ -1661,7 +1661,7 @@ namespace cwipi {
   )
   {
     if (!_isLocal) {
-      bftc_error(__FILE__, __LINE__, 0,
+      PDM_error(__FILE__, __LINE__, 0,
                  "'%s' is a distant code. Delete a distant"
                  " code parameter is not allowed\n", 
                                                    _name.c_str());      
@@ -1719,7 +1719,7 @@ namespace cwipi {
         winTypeParamNameData    = _winDoubleParamNameData; 
       }
       else {
-        bftc_error(__FILE__, __LINE__, 0,
+        PDM_error(__FILE__, __LINE__, 0,
                   "Type not taken into account \n");
       }
       
@@ -1838,7 +1838,7 @@ namespace cwipi {
     
     else {
       if (lockStatus) {
-        bftc_error(__FILE__, __LINE__, 0,
+        PDM_error(__FILE__, __LINE__, 0,
                    "Unlock parameters before read its on the current rank\n");      
       }
       
@@ -1857,7 +1857,7 @@ namespace cwipi {
       nParam = nDoubleParam;
     }
     else {
-      bftc_error(__FILE__, __LINE__, 0,
+      PDM_error(__FILE__, __LINE__, 0,
                 "Type not taken into account \n");
     }
     
@@ -1916,7 +1916,7 @@ namespace cwipi {
     
     else {
       if (lockStatus) {
-        bftc_error(__FILE__, __LINE__, 0,
+        PDM_error(__FILE__, __LINE__, 0,
                    "Unlock parameters before read its on the current rank\n");      
       }
       
@@ -1951,7 +1951,7 @@ namespace cwipi {
       winTypeParamNameData    = _winDoubleParamNameData; 
     }
     else {
-      bftc_error(__FILE__, __LINE__, 0,
+      PDM_error(__FILE__, __LINE__, 0,
                 "Type not taken into account \n");
     }
 
@@ -2036,7 +2036,7 @@ namespace cwipi {
     
     else {
       if (lockStatus) {
-        bftc_error(__FILE__, __LINE__, 0,
+        PDM_error(__FILE__, __LINE__, 0,
                    "Unlock parameters before read its on the current rank\n");      
       }
       
@@ -2072,7 +2072,7 @@ namespace cwipi {
       winTypeParamNameData    = _winDoubleParamNameData; 
     }
     else {
-      bftc_error(__FILE__, __LINE__, 0,
+      PDM_error(__FILE__, __LINE__, 0,
                 "Type not taken into account \n");
     }
 

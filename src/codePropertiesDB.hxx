@@ -23,7 +23,7 @@
 #include <map>
 #include <vector>
 
-#include <bftc_printf.h>
+#include "pdm_printf.h"
 
 #include "cwp.h"
 #include "singleton.hpp"
@@ -97,7 +97,7 @@ namespace cwipi {
     inline void 
     printfProxySet
     (
-     bftc_printf_proxy_t *const proxyFunction
+     PDM_printf_proxy_t *const proxyFunction
     );
 
     /**

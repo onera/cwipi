@@ -22,7 +22,7 @@
 #include <algorithm>
 
 #include "codeProperties.hxx"
-#include "bftc_printf.h"
+#include "pdm_printf.h"
 
 using namespace std;
 
@@ -150,24 +150,24 @@ namespace cwipi
   void 
   CodeProperties::dump()
   {
-    bftc_printf ("'%s' properties\n",_name.c_str());
-    bftc_printf ("  - Identifier : %d\n", _id);
-    bftc_printf ("  - Root rank in global communicator : %d\n", _rootRankInGlobalComm);
-    bftc_printf ("  - Is it a local code : %d\n", _isLocal);
+    PDM_printf ("'%s' properties\n",_name.c_str());
+    PDM_printf ("  - Identifier : %d\n", _id);
+    PDM_printf ("  - Root rank in global communicator : %d\n", _rootRankInGlobalComm);
+    PDM_printf ("  - Is it a local code : %d\n", _isLocal);
     if (_isLocal) {
-      bftc_printf ("  - Is it a coupled rank : %d\n", _isCoupledRank);
+      PDM_printf ("  - Is it a coupled rank : %d\n", _isCoupledRank);
     }
-    bftc_printf ("  - Ranks in global communicator :");
+    PDM_printf ("  - Ranks in global communicator :");
     for (int i = 0; i < _intraRanks->size(); i++) {
-      bftc_printf (" %d", (*_intraRanks)[i]);
+      PDM_printf (" %d", (*_intraRanks)[i]);
     }    
-    bftc_printf ("\n");
+    PDM_printf ("\n");
     
-    bftc_printf ("  - Coupled ranks in global communicator :");
+    PDM_printf ("  - Coupled ranks in global communicator :");
     for (int i = 0; i < _connectableRanks->size(); i++) {
-      bftc_printf (" %d", (*_connectableRanks)[i]);
+      PDM_printf (" %d", (*_connectableRanks)[i]);
     }    
-    bftc_printf ("\n");
+    PDM_printf ("\n");
     
     MPI_Win_lock (MPI_LOCK_SHARED, _rootRankInGlobalComm, 0, _winGlob);
 
@@ -175,7 +175,7 @@ namespace cwipi
     _updateDoubleValues ();   
     _updateStrValues ();   
 
-    bftc_printf ("  - %d integer control parameters \n", _winGlobData[1]);
+    PDM_printf ("  - %d integer control parameters \n", _winGlobData[1]);
 
     int sParamMax = -1;
     for (int i = 0; i < _winGlobData[1]; i++) {
@@ -219,11 +219,11 @@ namespace cwipi
                min (sParam, sParamMax));
       tmpName[sParam] = '\0';
       
-      bftc_printf (fmtIntName, tmpName, _winIntParamValueData[i]);
+      PDM_printf (fmtIntName, tmpName, _winIntParamValueData[i]);
       
     }
 
-    bftc_printf ("  - %d double control parameters \n", _winGlobData[2]);
+    PDM_printf ("  - %d double control parameters \n", _winGlobData[2]);
 
     for (int i = 0; i < _winGlobData[2]; i++) {
       int sParam = _winDoubleParamIdxNameData[i+1] - _winDoubleParamIdxNameData[i];
@@ -232,11 +232,11 @@ namespace cwipi
                min (sParam, sParamMax));
       tmpName[sParam] = '\0';
       
-      bftc_printf (fmtDoubleName, tmpName, _winDoubleParamValueData[i]);
+      PDM_printf (fmtDoubleName, tmpName, _winDoubleParamValueData[i]);
       
     }
 
-    bftc_printf ("  - %d string control parameters \n", _winGlobData[3]);
+    PDM_printf ("  - %d string control parameters \n", _winGlobData[3]);
 
     for (int i = 0; i < _winGlobData[3]; i++) {
       int sParam = _winStrParamIdxNameData[i+1] - _winStrParamIdxNameData[i];
@@ -250,7 +250,7 @@ namespace cwipi
                _winStrParamValueData + _winStrParamIdxValueData[i], 
                min (sValue, sValueMax));
       
-      bftc_printf (fmtStrName, tmpName, tmpValue);
+      PDM_printf (fmtStrName, tmpName, tmpValue);
       
     }
 
@@ -259,7 +259,7 @@ namespace cwipi
 
     MPI_Win_unlock ( _rootRankInGlobalComm, _winGlob);
 
-    bftc_printf_flush();
+    PDM_printf_flush();
   }
 
   /**

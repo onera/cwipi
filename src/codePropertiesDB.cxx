@@ -25,7 +25,7 @@
 #include <list>
 #include <map>
 
-#include <bftc_mem.h>
+#include "pdm_error.h"
 
 #include <fvmc_parall.h>
 
@@ -123,7 +123,7 @@ namespace cwipi {
 
     MPI_Initialized(&flag);
     if (!flag) {
-      bftc_error(__FILE__, __LINE__, 0, "MPI is not initialized\n");
+      PDM_error(__FILE__, __LINE__, 0, "MPI is not initialized\n");
     }
       
     MPI_Comm_rank(globalComm, &currentRank);

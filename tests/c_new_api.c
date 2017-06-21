@@ -165,15 +165,31 @@ int main
 
   char* fileName = NULL;
   if (rank == 0) 
-    fileName="c_linear_coupling_0000.txt";
-  else
-    fileName="c_linear_coupling_0001.txt";
+    fileName="c_new_api_0000.txt";
+  else if (rank == 1)
+    fileName="c_new_api_0001.txt";
+  else if (rank == 2)
+    fileName="c_new_api_0002.txt";
+  else if (rank == 3)
+    fileName="c_new_api_0003.txt";
+  else if (rank == 4)
+    fileName="c_new_api_0004.txt";
+  else if (rank == 5)
+    fileName="c_new_api_0005.txt";
+  else if (rank == 6)
+    fileName="c_new_api_0006.txt";
+  else if (rank == 7)
+    fileName="c_new_api_0007.txt";
+  else if (rank == 8)
+    fileName="c_new_api_0008.txt";
+  else if (rank == 9)
+    fileName="c_new_api_0009.txt";
 
   outputFile = fopen(fileName,"w");
 
   times_init = malloc(sizeof(double) * n_code_name);
 
-  //  cwipi_set_output_listing(outputFile);
+  CWP_Output_file_set (outputFile);
 
   for (int i = 0; i < n_code_name; i++) {
     times_init[i] = 0; 
@@ -224,9 +240,7 @@ int main
   free (titi2);
   assert(titi == 111);
 
-  //CWP_Properties_dump ();
-  
-  
+  CWP_Properties_dump ();
    
   char cpl_id1[] = "cpl_code1_code2";
   char cpl_id2[] = "cpl_code1_code3";

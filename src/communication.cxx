@@ -19,7 +19,7 @@
 
 #include "communication.hxx"
 #include "coupling.hxx"
-#include "bftc_printf.h"
+#include "pdm_printf.h"
 
 using namespace std;
 
@@ -96,7 +96,7 @@ namespace cwipi {
       MPI_Comm_rank(globalComm, &globalRank);
       
       if (!localCodeProperties.isCoupledRank()) {
-        bftc_printf(
+        PDM_printf(
            "Warning CWP_Cpl_create : Call CWP_Cpl_create function"
            " on an uncoupled rank (%d) of the '%s' code\n",
             globalRank,
