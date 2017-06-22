@@ -1,5 +1,5 @@
-#ifndef __SUPPORT_H__
-#define __SUPPORT_H__
+#ifndef __MESH_H__
+#define __MESH_H__
 /*
   This file is part of the CWIPI library. 
 
@@ -29,7 +29,7 @@ namespace cwipi {
    * 
    */
 
-  class Support {
+  class Mesh {
     
   public:
 
@@ -38,14 +38,14 @@ namespace cwipi {
      *
      */
 
-    Support();
+    Mesh ();
 
     /**
      * \brief Destructor
      *
      */
 
-    virtual ~Support();
+    virtual ~Mesh();
 
 
   private:

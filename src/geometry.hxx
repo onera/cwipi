@@ -19,10 +19,12 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "mesh.hxx"
 #include "field.hpp"
-#include "support.hxx"
 
 namespace cwipi {
+
+  class Mesh;
 
   /** 
    * \class Geometry geometry.hxx "geometry.hxx"
@@ -53,13 +55,13 @@ namespace cwipi {
     virtual ~Geometry();
 
     /**
-     * \brief Set support
+     * \brief Set meshInterf
      *
-     * This function defines the geometry support geometry.
+     * This function defines the geometry meshInterf geometry.
      */
 
     inline void 
-    supportSet
+    meshInterfSet
     (const char            *cpl_id,
      const int              i_part,
      const int              n_pts,
@@ -67,10 +69,10 @@ namespace cwipi {
      const CWP_g_num_t     parent_num[]);
 
     /**
-     * \brief Adding a connectivity block to the geometric support
+     * \brief Adding a connectivity block to the geometric meshInterf
      *
-     * This function adds a connectivity block to the geometric support for
-     * \ref CWIPI_support_mesh support type. Definition of element connectivity is :
+     * This function adds a connectivity block to the geometric meshInterf for
+     * \ref CWIPI_meshInterf_mesh meshInterf type. Definition of element connectivity is :
      *
      *  - edge (\ref CWIPI_BLOCK_EDGE2) :
      *
@@ -159,7 +161,7 @@ namespace cwipi {
      */
 
     inline void 
-    supportBlockAdd
+    meshInterfBlockAdd
     (const int                   i_part,
      const CWP_Block_t         block_type,
      const int                   n_elts,
@@ -167,10 +169,10 @@ namespace cwipi {
      const CWP_g_num_t          parent_num[]);
 
     /**
-     * \brief Adding a polygon connectivity block to the geometric support
+     * \brief Adding a polygon connectivity block to the geometric meshInterf
      *
-     * This function adds a polygon connectivity block to the geometric support for
-     * \ref CWIPI_SUPPORT_MESH support type.
+     * This function adds a polygon connectivity block to the geometric meshInterf for
+     * \ref CWIPI_SUPPORT_MESH meshInterf type.
      *
      * \param [in]  i_part      Current partition
      * \param [in]  n_elts      Number of elements
@@ -182,7 +184,7 @@ namespace cwipi {
      */
 
     inline void 
-    supportFPolyBlockAdd
+    meshInterfFPolyBlockAdd
     (const int            i_part,
      const CWP_Block_t  block_type,
      const int            n_elts,
@@ -191,9 +193,9 @@ namespace cwipi {
 
     /**
      *
-     * \brief Adding a polyhedron connectivity block to the geometric support
+     * \brief Adding a polyhedron connectivity block to the geometric meshInterf
      *
-     * This function add a connectivity block to the geometric support if support
+     * This function add a connectivity block to the geometric meshInterf if meshInterf
      * type is only \ref CWIPI_SUPPORT_MESH. Definition of element connectivity is :
      *
      * \param [in]  i_part            Current partition
@@ -214,7 +216,7 @@ namespace cwipi {
      */
 
     inline void 
-    supportCPolyBlockAdd
+    meshInterfCPolyBlockAdd
     (const int           i_part,
      const int           n_elts,
      const int           cell_face_idx[],
@@ -226,9 +228,9 @@ namespace cwipi {
 
     /**
      *
-     * \brief Map a fvm nodal as support mesh                                  
+     * \brief Map a fvm nodal as meshInterf mesh                                  
      *
-     * This function  map a fvm nodal as support mesh
+     * This function  map a fvm nodal as meshInterf mesh
      *
      * \param [in]  i_part            Current partition
      * \param [in]  fvmc_nodal        fvm nodal mes     
@@ -431,7 +433,7 @@ namespace cwipi {
     std::map<int, int >                   &_tmpTimeStepIrecv;
     std::map<int, double >                &_tmpTimeValueIrecv;
     std::map<int, const char * >          &_tmpFieldNameIrecv;
-    Support                                *support;
+    Mesh                                 *meshInterf;
   };
 
 }

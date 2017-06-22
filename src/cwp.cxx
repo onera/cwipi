@@ -205,7 +205,6 @@ CWP_Init
  const double            *time_init,
  MPI_Comm                *intra_comms
 )
-
 {
   const int n_param_max_default = 100;
   const int str_size_max_default = 80;
