@@ -71,7 +71,6 @@ namespace cwipi {
      * \param [in]  localCodeProperties          Local code properties
      * \param [in]  coupledCodeProperties        Coupled code properties
      * \param [in]  geom_algo                    Geometric algorithm
-     * \param [in]  support_type                 Support type
      * \param [in]  n_part                       Number of interface partitions 
      * \param [in]  moving_status                Support moving status
      * \param [in]  recv_freq_type               Type of receiving frequency
@@ -85,8 +84,7 @@ namespace cwipi {
      const CWP_Comm_t           commType,
      const CodeProperties        &localCodeProperties,
      const CodeProperties        &coupledCodeProperties,
-     const CWP_Geom_t           geomAlgo,
-     const CWP_Support_t        supportType,
+     const CWP_Geom_algo_t           geomAlgo,
      const int                    nPart,
      const CWP_Displacement_t  movingStatus,
      const CWP_Freq_t           recvFreqType,

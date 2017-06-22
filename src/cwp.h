@@ -235,12 +235,12 @@ typedef enum {
  * are defined  
  */
 
-typedef enum {
-
-  CWP_SUPPORT_MESH,         /*!< Mesh */
-//  CWP_SUPPORT_CAD_MESH      /*!< CAD + MESH */
-
-} CWP_Support_t;
+//typedef enum {
+//
+//  CWP_SUPPORT_MESH,         /*!< Mesh */
+////  CWP_SUPPORT_CAD_MESH      /*!< CAD + MESH */
+//
+//} CWP_Support_t;
 
 /**
  * \enum CWP_Displacement_t
@@ -272,7 +272,7 @@ typedef enum {
   CWP_GEOM_INTERSECTION,  /*!< Meshes intersection */
   CWP_GEOM_LOCATION       /*!< Location into a mesh */
 
-} CWP_Geom_t;
+} CWP_Geom_algo_t;
 
 /**
  * \enum CWP_Interface_t
@@ -667,7 +667,6 @@ CWP_Properties_dump
  * \param [in]  coupled_code_name   Distant or local coupled code name
  * \param [in]  comm_type           Communication type
  * \param [in]  geom_algo           Geometric algorithm
- * \param [in]  support_type        Support type
  * \param [in]  n_part              Number of interface partition 
  * \param [in]  moving_status       Support moving status
  * \param [in]  recv_freq_type      Type of receiving frequency
@@ -681,8 +680,7 @@ CWP_Cpl_create
  const char               *cpl_id,
  const char               *coupled_code_name,
  const CWP_Comm_t          comm_type, 
- const CWP_Geom_t          geom_algo,
- const CWP_Support_t       support_type,
+ const CWP_Geom_algo_t     geom_algo,
  const int                 n_part,
  const CWP_Displacement_t  displacement,   
  const CWP_Freq_t          recv_freq_type 
@@ -1112,7 +1110,7 @@ CWP_User_tgt_pts_set
  */
 
 void 
-CWP_Support_vtx_set
+CWP_Mesh_interf_vtx_set
 (
  const char           *local_code_name,
  const char             *cpl_id,
@@ -1133,7 +1131,7 @@ CWP_Support_vtx_set
  */
 
 void 
-CWP_Support_end_set
+CWP_Mesh_interf_end_set
 (
  const char        *local_code_name,
  const char        *cpl_id
@@ -1234,7 +1232,7 @@ CWP_Support_end_set
  */
 
 void 
-CWP_Support_std_block_add
+CWP_Mesh_interf_std_block_add
 (
  const char        *local_code_name,
  const char        *cpl_id,
@@ -1262,7 +1260,7 @@ CWP_Support_std_block_add
 
 
 void 
-CWP_Support_h_order_block_add
+CWP_Mesh_interf_h_order_block_add
 (
  const char        *local_code_name,
  const char        *cpl_id,
@@ -1276,10 +1274,7 @@ CWP_Support_h_order_block_add
 
 
 /**
- * \brief Adding a polygon connectivity block to the geometric support
- *
- * This function adds a polygon connectivity block to the geometric support for
- * \ref CWP_SUPPORT_MESH support type.
+ * \brief Adding a polygon connectivity block to the mesh interface
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
@@ -1293,7 +1288,7 @@ CWP_Support_h_order_block_add
  */
 
 void 
-CWP_Support_f_poly_block_add
+CWP_Mesh_interf_f_poly_block_add
 (
  const char             *local_code_name,
  const char             *cpl_id,
@@ -1306,10 +1301,7 @@ CWP_Support_f_poly_block_add
 );
 
 /**
- * \brief Adding a polyhedron connectivity block to the geometric support
- *
- * This function add a connectivity block to the geometric support if support
- * type is only \ref CWP_SUPPORT_MESH. Definition of element connectivity is :
+ * \brief Adding a polyhedron connectivity block to the interface mesh
  *
  * \param [in]  local_code_name   Local code name
  * \param [in]  cpl_id            Coupling identifier
@@ -1331,7 +1323,7 @@ CWP_Support_f_poly_block_add
  */
 
 void 
-CWP_Support_c_poly_block_add
+CWP_Mesh_interf_c_poly_block_add
 (
  const char         *local_code_name,
  const char           *cpl_id,
@@ -1346,26 +1338,24 @@ CWP_Support_c_poly_block_add
 );
 
 /**
- * \brief Geometric support removal                                  
- *
- * This function delete the geometric support  
- *
+ * \brief Interface mesh delation                                  
+ * *
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
  *
  */
 
 void 
-CWP_Support_del
+CWP_Mesh_interf_del
 (
  const char *local_code_name,
  const char *cpl_id
 );
 
 /**
- * \brief Map a fvm nodal as support mesh                                  
+ * \brief Map a fvm nodal as mesh interface                                
  *
- * This function  map a fvm nodal as support mesh
+ * This function  map a fvm nodal as mesh interface
  *
  * \param [in] local_code_name   Local code name
  * \param [in] cpl_id            Coupling identifier
@@ -1375,7 +1365,7 @@ CWP_Support_del
  */
 
 void 
-CWP_Support_shared_fvm_nodal
+CWP_Mesh_interf_shared_fvm_nodal
 (
  const char  *local_code_name,
  const char  *cpl_id,
@@ -1407,7 +1397,7 @@ CWP_Support_shared_fvm_nodal
  */
 
 void 
-CWP_Support_cell3d_from_cellface_set
+CWP_Mesh_interf_from_cellface_set
 (
  const char           *local_code_name,
  const char           *cpl_id,
@@ -1445,7 +1435,7 @@ CWP_Support_cell3d_from_cellface_set
  */
 
 void 
-CWP_Support_cell3d_from_faceedge_set
+CWP_Mesh_interf_from_faceedge_set
 (
  const char           *local_code_name,
  const char           *cpl_id,

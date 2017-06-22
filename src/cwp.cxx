@@ -291,16 +291,7 @@ CWP_Init
   // factoryGeom.Register<ClosestPoint>(CWP_GEOM_CLOSEST_POINT);
 
   /*
-   * Create support abstract factory 
-   */
-
-  // Factory<Support, CWP_support_t> &factorySupport = 
-  //   cwipi::Factory<Support, CWP_support_t>::getInstance();
-
-  // factorySupport.Register<Mesh>(CWP_SUPPORT_MESH);
-
-  /*
-   * Create support abstract factory 
+   * Create block abstract factory 
    */
 
   // Factory<Block, CWP_block_t> &factoryBlock = 
@@ -583,7 +574,6 @@ CWP_Properties_dump
  * \param [in]  coupled_code_name   Distant or local coupled code name
  * \param [in]  comm_type           Communication type
  * \param [in]  geom_algo           Geometric algorithm
- * \param [in]  support_type        Support type
  * \param [in]  n_part              Number of interface partition 
  * \param [in]  moving_status       Support moving status
  * \param [in]  recv_freq_type      Type of receiving frequency
@@ -597,8 +587,7 @@ CWP_Cpl_create
  const char               *cpl_id,
  const char               *coupled_code_name,
  const CWP_Comm_t          comm_type, 
- const CWP_Geom_t          geom_algo,
- const CWP_Support_t       support_type,
+ const CWP_Geom_algo_t     geom_algo,
  const int                 n_part,
  const CWP_Displacement_t  displacement,   
  const CWP_Freq_t          recv_freq_type 
@@ -619,7 +608,6 @@ CWP_Cpl_create
                             properties.codePropertiesGet(coupled_application_str),
                             comm_type,
                             geom_algo,
-                            support_type,
                             n_part,
                             displacement,
                             recv_freq_type);

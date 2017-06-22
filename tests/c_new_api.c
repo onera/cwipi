@@ -72,23 +72,23 @@ int main
   int n_code_name;
   char **codeNames;
   double *times_init;
-  int *is_coupled_rank;
+  CWP_Status_t *is_coupled_rank;
 
   if (rank == 0) {
     n_code_name = 1;
     codeNames = malloc(sizeof(char *) * n_code_name);
     codeNames[0] ="code1";
-    is_coupled_rank = malloc(sizeof(int) * n_code_name);
-    is_coupled_rank[0] = 1;
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
+    is_coupled_rank[0] = CWP_STATUS_ON;
   }
   else if (rank == 1) {
     n_code_name = 2;
     codeNames = malloc(sizeof(char *) * n_code_name);
     codeNames[0] ="code1";
     codeNames[1] ="code2";
-    is_coupled_rank = malloc(sizeof(int) * n_code_name);
-    is_coupled_rank[0] = 1;
-    is_coupled_rank[1] = 1;
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
+    is_coupled_rank[0] = CWP_STATUS_ON;
+    is_coupled_rank[1] = CWP_STATUS_ON;
   }
   else if (rank == 2) {
     n_code_name = 4;
@@ -97,43 +97,43 @@ int main
     codeNames[1] ="code2";
     codeNames[2] ="code3";
     codeNames[3] ="code4";
-    is_coupled_rank = malloc(sizeof(int) * n_code_name);
-    is_coupled_rank[0] = 1;
-    is_coupled_rank[1] = 1;
-    is_coupled_rank[2] = 1;
-    is_coupled_rank[3] = 1;
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
+    is_coupled_rank[0] = CWP_STATUS_ON;
+    is_coupled_rank[1] = CWP_STATUS_ON;
+    is_coupled_rank[2] = CWP_STATUS_ON;
+    is_coupled_rank[3] = CWP_STATUS_ON;
   }
   else if (rank == 3) {
     n_code_name = 1;
     codeNames = malloc(sizeof(char *) * n_code_name);
     codeNames[0] ="code3";
-    is_coupled_rank = malloc(sizeof(int) * n_code_name);
-    is_coupled_rank[0] = 1;
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
+    is_coupled_rank[0] = CWP_STATUS_ON;
   }
   else if (rank == 4) {
     n_code_name = 2;
     codeNames = malloc(sizeof(char *) * n_code_name);
     codeNames[0] ="code3";
     codeNames[1] ="code4";
-    is_coupled_rank = malloc(sizeof(int) * n_code_name);
-    is_coupled_rank[0] = 1;
-    is_coupled_rank[1] = 1;
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
+    is_coupled_rank[0] = CWP_STATUS_ON;
+    is_coupled_rank[1] = CWP_STATUS_ON;
   }
   else if (rank == 5) {
     n_code_name = 2;
     codeNames = malloc(sizeof(char *) * n_code_name);
     codeNames[0] ="code1";
     codeNames[1] ="code3";
-    is_coupled_rank = malloc(sizeof(int) * n_code_name);
-    is_coupled_rank[0] = 1;
-    is_coupled_rank[1] = 1;
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
+    is_coupled_rank[0] = CWP_STATUS_ON;
+    is_coupled_rank[1] = CWP_STATUS_ON;
   }
   else if (rank == 6) {
     n_code_name = 1;
     codeNames = malloc(sizeof(char *) * n_code_name);
     codeNames[0] ="code2";
-    is_coupled_rank = malloc(sizeof(int) * n_code_name);
-    is_coupled_rank[0] = 1;
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
+    is_coupled_rank[0] = CWP_STATUS_ON;
   }
   else if (rank == 7) {
     n_code_name = 3;
@@ -141,26 +141,26 @@ int main
     codeNames[0] ="code1";
     codeNames[1] ="code2";
     codeNames[2] ="code3";
-    is_coupled_rank = malloc(sizeof(int) * n_code_name);
-    is_coupled_rank[0] = 1;
-    is_coupled_rank[1] = 1;
-    is_coupled_rank[2] = 1;
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
+    is_coupled_rank[0] = CWP_STATUS_ON;
+    is_coupled_rank[1] = CWP_STATUS_ON;
+    is_coupled_rank[2] = CWP_STATUS_ON;
   }
   else if (rank == 8) {
     n_code_name = 1;
     codeNames = malloc(sizeof(char *) * n_code_name);
     codeNames[0] ="code4";
-    is_coupled_rank = malloc(sizeof(int) * n_code_name);
-    is_coupled_rank[0] = 1;
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
+    is_coupled_rank[0] = CWP_STATUS_ON;
   }
   else if (rank == 9) {
     n_code_name = 2;
     codeNames = malloc(sizeof(char *) * n_code_name);
     codeNames[0] ="code2";
     codeNames[1] ="code3";
-    is_coupled_rank = malloc(sizeof(int) * n_code_name);
-    is_coupled_rank[0] = 1;
-    is_coupled_rank[1] = 1;
+    is_coupled_rank = malloc(sizeof(CWP_Status_t) * n_code_name);
+    is_coupled_rank[0] = CWP_STATUS_ON;
+    is_coupled_rank[1] = CWP_STATUS_ON;
   }
 
   char* fileName = NULL;
@@ -253,13 +253,13 @@ int main
   
   if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) {
     CWP_Cpl_create ("code1", cpl_id1, "code2", CWP_COMM_PAR_WITH_PART,
-                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_GEOM_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   }
    
   if (rank == 1 || rank == 2 || rank == 6 || rank == 7 || rank == 9) {
     CWP_Cpl_create ("code2", cpl_id1, "code1", CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_GEOM_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   }
   
@@ -267,13 +267,13 @@ int main
 
   if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) {
     CWP_Cpl_create ("code1", cpl_id2, "code3", CWP_COMM_PAR_WITH_PART,
-                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_GEOM_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   }
    
   if (rank == 2 || rank == 3 || rank == 4 || rank == 5 || rank == 7  || rank == 9) {
     CWP_Cpl_create ("code3", cpl_id2, "code1", CWP_COMM_PAR_WITH_PART,
-                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_GEOM_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   }
   
@@ -281,13 +281,13 @@ int main
      
   if (rank == 1 || rank == 2 || rank == 6 || rank == 7 || rank == 9) {
     CWP_Cpl_create ("code2", cpl_id3, "code3", CWP_COMM_PAR_WITH_PART,
-                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_GEOM_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   }
   
   if (rank == 2 || rank == 3 || rank == 4 || rank == 5 || rank == 7  || rank == 9) {
     CWP_Cpl_create ("code3", cpl_id3, "code2", CWP_COMM_PAR_WITH_PART,
-                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_GEOM_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   }
 
@@ -295,13 +295,13 @@ int main
      
   if (rank == 2 || rank == 4 || rank == 8) {
     CWP_Cpl_create ("code4", cpl_id4, "code3", CWP_COMM_PAR_WITH_PART,
-                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_GEOM_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   }
   
   if (rank == 2 || rank == 3 || rank == 4 || rank == 5 || rank == 7  || rank == 9) {
     CWP_Cpl_create ("code3", cpl_id4, "code4", CWP_COMM_PAR_WITH_PART,
-                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_GEOM_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   }
   
@@ -309,13 +309,13 @@ int main
   
   if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) {
     CWP_Cpl_create ("code1", cpl_id5, "code4", CWP_COMM_PAR_WITH_PART,
-                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_GEOM_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   }
      
   if (rank == 2 || rank == 4 || rank == 8) {
     CWP_Cpl_create ("code4", cpl_id5, "code1", CWP_COMM_PAR_WITH_PART,
-                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_GEOM_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   }
   
@@ -323,13 +323,13 @@ int main
      
   if (rank == 1 || rank == 2 || rank == 6 || rank == 7 || rank == 9) {
     CWP_Cpl_create ("code2", cpl_id6, "code4", CWP_COMM_PAR_WITH_PART,
-                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_GEOM_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   } 
      
   if (rank == 2 || rank == 4 || rank == 8) {
     CWP_Cpl_create ("code4", cpl_id6, "code2", CWP_COMM_PAR_WITH_PART,
-                    CWP_GEOM_LOCATION, CWP_SUPPORT_MESH, 1,
+                    CWP_GEOM_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   }
 

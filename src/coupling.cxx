@@ -60,8 +60,7 @@ using namespace std;
 namespace cwipi {
 
   typedef Factory<Communication, CWP_Comm_t> FC;
-  typedef Factory<Geometry, CWP_Geom_t> FG;
-  typedef Factory<Support, CWP_Support_t> FS;
+  typedef Factory<Geometry, CWP_Geom_algo_t> FG;
 
   
   Coupling::Coupling
@@ -70,8 +69,7 @@ namespace cwipi {
    const CWP_Comm_t           cplType,
    const CodeProperties        &localCodeProperties,
    const CodeProperties        &coupledCodeProperties,
-   const CWP_Geom_t           geomAlgo,
-   const CWP_Support_t        supportType,
+   const CWP_Geom_algo_t           geomAlgo,
    const int                    nPart,
    const CWP_Displacement_t  movingStatus,
    const CWP_Freq_t           recvFreqType,
