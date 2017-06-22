@@ -42,7 +42,7 @@ namespace cwipi {
 
   class CodeProperties;
 
-  class Mesh;
+  class oldMesh;
 
   class LocationToDistantMesh;
 

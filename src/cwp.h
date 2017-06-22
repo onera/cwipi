@@ -238,7 +238,7 @@ typedef enum {
 typedef enum {
 
   CWP_SUPPORT_MESH,         /*!< Mesh */
-  CWP_SUPPORT_POINT_CLOUD   /*!< Point cloud */
+//  CWP_SUPPORT_CAD_MESH      /*!< CAD + MESH */
 
 } CWP_Support_t;
 
@@ -1269,6 +1269,7 @@ CWP_Support_h_order_block_add
  const int          i_part,
  const CWP_Block_t  block_type,
  const int          n_elts,
+ const int          order, 
  const int          connec[],
  const CWP_g_num_t  global_num[]
 );
@@ -1286,7 +1287,7 @@ CWP_Support_h_order_block_add
  * \param [in]  n_elts           Number of elements
  * \param [in]  connec_idx       Connectivity index (connec_id[0] = 0 and 
  *                               size = \ref n_elts + 1)          
- * \param [in]  connec           Connectivity (size = connec_id[n_elts] * \ref n_elts)          
+ * \param [in]  connec           Connectivity (size = connec_idx[n_elts])          
  * \param [in]  parent_num       Pointer to parent element number (or NULL)
  *
  */
@@ -1315,16 +1316,16 @@ CWP_Support_f_poly_block_add
  * \param [in]  i_part            Current partition
  * \param [in]  n_elts            Number of elements
  * \param [in]  cell_face_idx     Polyhedron to face index 
- *                                (src_poly_cell_face_idx[0] = 0 and
+ *                                (cell_face_idx[0] = 0 and
  *                                 size = n_elts + 1)
  * \param [in]  cell_face_connec  Polyhedron to face connectivity 
  *                                (size = cell_face_idx[n_elts])
  * \param [in]  n_faces           Number of faces      
  * \param [in]  face_vtx_idx      Polyhedron face to vertex index 
- *                                (face_vertex_idx[0] = 0 and
- *                                 size_idx = max(cell_face_connec) + 1)
+ *                                (face_vtx_idx[0] = 0 and
+ *                                 size = n_faces + 1
  * \param [in]  face_vtx_connec   Polyhedron face to vertex connectivity
- *                                (size = face_vertex_idx[size_idx - 1])
+ *                                (size = face_vtx_idx[n_faces])
  * \param [in]  parent_num        Pointer to parent element number (or NULL)
  *
  */
@@ -1380,6 +1381,82 @@ CWP_Support_shared_fvm_nodal
  const char  *cpl_id,
  const int   i_part,
  void        *fvmc_nodal
+);
+
+
+/**
+ * \brief Define the volume interface mesh from a cell to face connectivity 
+ *
+ * \param [in]  local_code_name   Local code name
+ * \param [in]  cpl_id            Coupling identifier
+ * \param [in]  i_part            Current partition
+ * \param [in]  n_cells           Number of cells
+ * \param [in]  cell_face_idx     Polyhedron to face index 
+ *                                (src_poly_cell_face_idx[0] = 0 and
+ *                                 size = n_elts + 1)
+ * \param [in]  cell_face         Cell to face connectivity 
+ *                                (size = cell_face_idx[n_elts])
+ * \param [in]  n_faces           Number of faces      
+ * \param [in]  face_vtx_idx      Polyhedron face to vertex index 
+ *                                (face_vertex_idx[0] = 0 and
+ *                                 size_idx = max(cell_face_connec) + 1)
+ * \param [in]  face_vtx          Face to vertex connectivity
+ *                                (size = face_vertex_idx[size_idx - 1])
+ * \param [in]  parent_num        Pointer to parent element number (or NULL)
+ *
+ */
+
+void 
+CWP_Support_cell3d_from_cellface_set
+(
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const int             i_part,
+ const int             n_cells,
+ const int             cell_face_idx[],
+ const int             cell_face[],
+ const int             n_faces,
+ const int             face_vtx_idx[],
+ const int             face_vtx[],
+ const CWP_g_num_t     parent_num[]
+);
+
+
+/**
+ * \brief Define the surface interface mesh from a face to edge connectivity 
+ *
+ * \param [in]  local_code_name   Local code name
+ * \param [in]  cpl_id            Coupling identifier
+ * \param [in]  i_part            Current partition
+ * \param [in]  n_faces           Number of cells
+ * \param [in]  face_edge_idx     Polygon to edge index 
+ *                                (face_edge_idx[0] = 0 and
+ *                                 size = \ref n_faces + 1)
+ * \param [in]  face_edge         Face to edge connectivity 
+ *                                (size = \ref face_edge_idx[\ref n_faces])
+ * \param [in]  n_edges           Number of faces      
+ * \param [in]  edge_vtx_idx      Polyhedron face to vertex index 
+ *                                (edge_vtx_idx[0] = 0 and
+ *                                 size_idx = max(edge__connec) + 1)
+ * \param [in]  edge_vtx          Face to vertex connectivity
+ *                                (size = \ref edge_vtx_idx[\ref n_edges])
+ * \param [in]  parent_num        Pointer to parent element number (or NULL)
+ *
+ */
+
+void 
+CWP_Support_cell3d_from_faceedge_set
+(
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const int             i_part,
+ const int             n_faces,
+ const int             face_edge_idx[],
+ const int             face_edge[],
+ const int             n_edges,
+ const int             edge_vtx_idx[],
+ const int             edge_vtx[],
+ const CWP_g_num_t     parent_num[]
 );
 
 /*----------------------------------------------------------------------------*

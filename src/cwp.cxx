@@ -298,7 +298,6 @@ CWP_Init
   //   cwipi::Factory<Support, CWP_support_t>::getInstance();
 
   // factorySupport.Register<Mesh>(CWP_SUPPORT_MESH);
-  // factorySupport.Register<PointCloud>(CWP_SUPPORT_POINT_CLOUD);
 
   /*
    * Create support abstract factory 

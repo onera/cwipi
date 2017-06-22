@@ -29,10 +29,10 @@
 
 namespace cwipi {
 
-  class Mesh {
+  class oldMesh {
 
   public:
-    Mesh(const MPI_Comm &localComm,
+    oldMesh(const MPI_Comm &localComm,
          const int nDim,
          const int nVertex,
          const int nElts,
@@ -40,10 +40,10 @@ namespace cwipi {
          int *eltConnectivityIndex,
          int *eltConnectivity);
 
-    Mesh(const MPI_Comm &localComm,
+    oldMesh(const MPI_Comm &localComm,
          fvmc_nodal_t* fvmc_nodal);
 
-    virtual ~Mesh();
+    virtual ~oldMesh();
 
     void addPolyhedra(const int nElt,
                       int *faceIndex,
@@ -93,11 +93,11 @@ namespace cwipi {
     void update();
 
   private :
-    Mesh();
+    oldMesh();
 
-    Mesh(const Mesh&);
+    oldMesh(const oldMesh&);
 
-    Mesh& operator=(const Mesh&);
+    oldMesh& operator=(const oldMesh&);
 
   protected :
 
@@ -153,23 +153,23 @@ namespace cwipi {
     std::vector<int>     *_isDegenerated;
   };
 
-  const int& Mesh::getNVertex()  const
+  const int& oldMesh::getNVertex()  const
   {
     return _nVertex;
   }
 
-  const double* Mesh::getVertexCoords()  const
+  const double* oldMesh::getVertexCoords()  const
   {
     return _coords;
   }
 
-  fvmc_nodal_t& Mesh::getFvmNodal()
+  fvmc_nodal_t& oldMesh::getFvmNodal()
   {
     _finalizeNodal();
     return *_fvmNodal;
   }
 
-  fvmc_nodal_t& Mesh::getFvmNodal() const 
+  fvmc_nodal_t& oldMesh::getFvmNodal() const 
   {
     if (! _isNodalFinalized) {
       bftc_error(__FILE__, __LINE__, 0, "'%i' bad dimension\n", _nDim);
@@ -177,34 +177,34 @@ namespace cwipi {
     return *_fvmNodal;
   }
 
-  const int& Mesh::getNElts() const
+  const int& oldMesh::getNElts() const
   {
     return _nElts;
   }
 
-  const int& Mesh::getNPolyhedra() const
+  const int& oldMesh::getNPolyhedra() const
   {
     return _nPolyhedra;
   }
 
-  const int* Mesh::getEltConnectivityIndex() const
+  const int* oldMesh::getEltConnectivityIndex() const
   {
     return _eltConnectivityIndex;
   }
 
-  const int* Mesh::getEltConnectivity() const
+  const int* oldMesh::getEltConnectivity() const
   {
     return _eltConnectivity;
   }
 
-  const std::vector<double>& Mesh::getVolume()
+  const std::vector<double>& oldMesh::getVolume()
   {
     if (_cellVolume == NULL)
       _computeMeshProperties();
     return *_cellVolume;
   }
 
-  const std::vector<double>& Mesh::getCellCenterCoords()
+  const std::vector<double>& oldMesh::getCellCenterCoords()
   {
     if (_cellCenterCoords == NULL)
       _computeMeshProperties();
@@ -212,7 +212,7 @@ namespace cwipi {
     return *_cellCenterCoords;
   }
 
-  const std::vector<double>& Mesh::getNormalFace()
+  const std::vector<double>& oldMesh::getNormalFace()
   {
     if (_normalFace == NULL)
       _computeMeshProperties();
@@ -220,7 +220,7 @@ namespace cwipi {
     return *_normalFace;
   }
 
-  inline const std::vector<double>& Mesh::getCharacteristicLength()
+  inline const std::vector<double>& oldMesh::getCharacteristicLength()
   {
     if (_characteristicLength == NULL)
       _computeMeshProperties();
@@ -228,7 +228,7 @@ namespace cwipi {
     return *_characteristicLength;
   }
 
-  inline const std::vector<int>& Mesh::getIsDegenerated()
+  inline const std::vector<int>& oldMesh::getIsDegenerated()
   {
     if (_isDegenerated == NULL)
       _computeMeshProperties();
@@ -236,27 +236,27 @@ namespace cwipi {
     return *_isDegenerated;
   }
 
-  const int *Mesh::getPolyhedraFaceIndex() const
+  const int *oldMesh::getPolyhedraFaceIndex() const
   {
     return _polyhedraFaceIndex;
   }
 
-  const int *Mesh::getPolyhedraCellToFaceConnectivity() const
+  const int *oldMesh::getPolyhedraCellToFaceConnectivity() const
   {
     return _polyhedraCellToFaceConnectivity;
   }
 
-  const int *Mesh::getPolyhedraFaceConnectivityIndex() const
+  const int *oldMesh::getPolyhedraFaceConnectivityIndex() const
   {
     return _polyhedraFaceConnectivityIndex;
   }
 
-  const int *Mesh::getPolyhedraFaceConnectivity() const
+  const int *oldMesh::getPolyhedraFaceConnectivity() const
   {
     return _polyhedraFaceConnectivity;
   }
 
-  const std::vector<int>& Mesh::getPolyhedraCellToVertexConnectivity()
+  const std::vector<int>& oldMesh::getPolyhedraCellToVertexConnectivity()
   {
     if (_polyhedraCellToVertexConnectivity == NULL)
       _computeMeshPolyhedraProperties();
@@ -264,7 +264,7 @@ namespace cwipi {
     return *_polyhedraCellToVertexConnectivity;
   }
   
-  const std::vector<int>& Mesh::getPolyhedraCellToVertexConnectivityIndex()
+  const std::vector<int>& oldMesh::getPolyhedraCellToVertexConnectivityIndex()
   {
     if (_polyhedraCellToVertexConnectivityIndex == NULL)
       _computeMeshPolyhedraProperties();

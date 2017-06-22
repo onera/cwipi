@@ -33,7 +33,7 @@
 #include "oldCoupling.hxx"
 #include "oldCoupling_i.hxx"
 
-#include "mesh.hxx"
+#include "oldMesh.hxx"
 #include "applicationProperties.hxx"
 
 #include "solve_ax_b_4.h"
@@ -653,7 +653,7 @@ namespace cwipi {
       bftc_error(__FILE__, __LINE__, 0, "coupling mesh is already created\n");
 
     if (_isCoupledRank)
-      _supportMesh = new Mesh(_fvmComm,
+      _supportMesh = new oldMesh(_fvmComm,
                               _entitiesDim,
                               nVertex,
                               nElement,
@@ -673,7 +673,7 @@ namespace cwipi {
       bftc_error(__FILE__, __LINE__, 0, "coupling mesh is already created\n");
 
     if (_isCoupledRank)
-      _supportMesh = new Mesh(_fvmComm,
+      _supportMesh = new oldMesh(_fvmComm,
                               fvmc_nodal);
     else
       bftc_error(__FILE__, __LINE__, 0, "for a coupling without parallel partitionning,"

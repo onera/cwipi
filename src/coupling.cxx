@@ -32,7 +32,7 @@
 #include "coupling.hxx"
 #include "coupling_i.hxx"
 
-#include "mesh.hxx"
+#include "oldMesh.hxx"
 #include "codeProperties.hxx"
 
 #include "solve_ax_b_4.h"

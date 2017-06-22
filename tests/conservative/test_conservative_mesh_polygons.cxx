@@ -25,7 +25,7 @@
 
 
 #include "cwipi.h"
-#include "mesh.hxx"
+#include "oldMesh.hxx"
 #include "conservativeMesh.hxx"
 #include "fvm_writer.h"
 #include "creeMaillagePolygone2D.h"
@@ -277,8 +277,8 @@ int main(
   
   MPI_Comm fvmComm = MPI_COMM_WORLD;
 
-  cwipi::Mesh* sourceMesh;
-  cwipi::Mesh* targetMesh;
+  cwipi::oldMesh* sourceMesh;
+  cwipi::oldMesh* targetMesh;
   cwipi::ConservativeMesh* intersMesh;
 
   fvm::fvm_writer_t *fvmWriterIM;
@@ -354,7 +354,7 @@ int main(
                                            &eltsConnecPointerSM,
                                            &eltsConnecSM);
                     
-                    sourceMesh = new cwipi::Mesh(fvmComm,
+                    sourceMesh = new cwipi::oldMesh(fvmComm,
                                                  2 ,
                                                  nVertexSM,
                                                  nEltsSM,
@@ -393,7 +393,7 @@ int main(
                                            &eltsConnecTM);
                     
                     
-                    targetMesh = new cwipi::Mesh(fvmComm,
+                    targetMesh = new cwipi::oldMesh(fvmComm,
                                                  2 ,
                                                  nVertexTM,
                                                  nEltsTM,

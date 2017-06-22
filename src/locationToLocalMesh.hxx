@@ -28,7 +28,7 @@
 #include <bftc_error.h>
 #include <fvmc_triangulate.h>
 
-#include "mesh.hxx"
+#include "oldMesh.hxx"
 #include "cwipi.h"
 
 namespace cwipi
@@ -184,7 +184,7 @@ public:
   ///   @param [in]      supportMesh location support mesh
   ///
 
-  inline void setSupportMesh(Mesh *supportMesh, bool lb_tolocate);
+  inline void setSupportMesh(oldMesh *supportMesh, bool lb_tolocate);
 
 private :
 
@@ -297,7 +297,7 @@ private :
 
 private :
 
-  Mesh                       *_supportMesh;                                 ///< Mesh where distant points are localized
+  oldMesh                       *_supportMesh;                                 ///< Mesh where distant points are localized
   const cwipi_solver_type_t  &_solverType;                                  ///< Solver type of current application
   const double               &_tolerance;                                   ///< Geometric tolerance for localization
   const MPI_Comm             &_couplingComm;                                ///< Coupling MPI communicator
@@ -457,7 +457,7 @@ fvmc_locator_t *LocationToLocalMesh::getFVMLocator() const
 ///   @param [in]      supportMesh  location support mesh
 ///
 
-void LocationToLocalMesh::setSupportMesh(Mesh *supportMesh, bool lb_tolocate = true)
+void LocationToLocalMesh::setSupportMesh(oldMesh *supportMesh, bool lb_tolocate = true)
 {
   _toLocate = lb_tolocate;
   _supportMesh = supportMesh;
