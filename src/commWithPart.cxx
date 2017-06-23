@@ -90,7 +90,7 @@ namespace cwipi {
     else {
 
       _cplComm = _unionComm;
-      _cplGroup = MPI_Comm_group(_cplComm, &_cplGroup);
+      MPI_Comm_group(_cplComm, &_cplGroup);
       
     }
   }

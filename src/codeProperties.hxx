@@ -558,7 +558,7 @@ namespace cwipi {
     vector <int> *_intraRanks;  /*!< Code ranks in global communicator */
     MPI_Group _intraConnectableGroup; /*!< coupled MPI group in 
                                        the global communicator */
-    MPI_Group _intraConnectableComm; /*!< coupled MPI intra communicator */
+    MPI_Comm _intraConnectableComm; /*!< coupled MPI intra communicator */
     
     vector <int> *_connectableRanks;  /*!< Coupled code ranks in global communicator */
 
@@ -1205,7 +1205,7 @@ namespace cwipi {
       
       for (i = 0; i < nIntParam; i++) {
         int sParam = _winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i];
-        if (sName = sParam) {
+        if (sName == sParam) {
          found = !strncmp(name.c_str(), 
                  _winIntParamNameData + _winIntParamIdxNameData[i], 
                  sName);
@@ -1262,7 +1262,7 @@ namespace cwipi {
       
       for (i = 0; i < nDoubleParam; i++) {
         int sParam = _winDoubleParamIdxNameData[i+1] - _winDoubleParamIdxNameData[i];
-        if (sName = sParam) {
+        if (sName == sParam) {
          found = !strncmp(name.c_str(), 
                  _winDoubleParamNameData + _winDoubleParamIdxNameData[i], 
                  sName);
@@ -1320,7 +1320,7 @@ namespace cwipi {
       
       for (i = 0; i < nStrParam; i++) {
         int sParam = _winStrParamIdxNameData[i+1] - _winStrParamIdxNameData[i];
-        if (sName = sParam) {
+        if (sName == sParam) {
          found = !strncmp(name.c_str(), 
                  _winStrParamNameData + _winStrParamIdxNameData[i], 
                  sName);
@@ -1420,7 +1420,7 @@ namespace cwipi {
       
       for (i = 0; i < nIntParam; i++) {
         int sParam = _winIntParamIdxNameData[i+1] - _winIntParamIdxNameData[i];
-        if (sName = sParam) {
+        if (sName == sParam) {
          found = !strncmp(name.c_str(), 
                  _winIntParamNameData + _winIntParamIdxNameData[i], 
                  sName);
@@ -1608,7 +1608,7 @@ namespace cwipi {
 
       for (i = 0; i < nStrParam; i++) {
         int sParam = _winStrParamIdxNameData[i+1] - _winStrParamIdxNameData[i];
-        if (sName = sParam) {
+        if (sName == sParam) {
          found = !strncmp(name.c_str(), 
                  _winStrParamNameData + _winStrParamIdxNameData[i], 
                  sName);
