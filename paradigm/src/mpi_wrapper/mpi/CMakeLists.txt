@@ -37,7 +37,7 @@ target_include_directories(pdm_mpi
                            PRIVATE  ${PDM_BINARY_DIR}
                            PRIVATE  ${CMAKE_BINARY_DIR}
                            PUBLIC  ${CMAKE_SOURCE_DIR}
-                           PUBLIC  ${PDM_SOURCE_DIR}/src/util
+                           PUBLIC  ${PDM_SOURCE_DIR}/src/io
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/..
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/../..)
@@ -74,7 +74,7 @@ if (PDM_ENABLE_SHARED)
   add_library(pdm_mpi_shared SHARED  $<TARGET_OBJECTS:pdm_mpi>)
   set_target_properties(pdm_mpi_shared PROPERTIES OUTPUT_NAME "pdm_mpi")
   set_target_properties(pdm_mpi_shared PROPERTIES VERSION ${PDM_VERSION})
-  target_link_libraries(pdm_mpi_shared ${LINK_LIBRARIES})
+  target_link_libraries(pdm_mpi_shared ${LINK_LIBRARIES} pdm_io_shared)
   set_target_properties(pdm_mpi_shared PROPERTIES
                             PUBLIC_HEADER "${LIST_HEADER}")
 
@@ -92,7 +92,7 @@ if (PDM_ENABLE_STATIC)
   add_library(pdm_mpi_static STATIC  $<TARGET_OBJECTS:pdm_mpi>)
   set_target_properties(pdm_mpi_static PROPERTIES OUTPUT_NAME "pdm_mpi")
   set_target_properties(pdm_mpi_static PROPERTIES VERSION ${PDM_VERSION})
-  target_link_libraries(pdm_mpi_static ${LINK_LIBRARIES})
+  target_link_libraries(pdm_mpi_static ${LINK_LIBRARIES} pdm_io_static)
   set_target_properties(pdm_mpi_static PROPERTIES
                             PUBLIC_HEADER "${LIST_HEADER}")
 
