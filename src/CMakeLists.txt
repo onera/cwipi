@@ -35,6 +35,10 @@ file(GLOB_RECURSE SOURCES
      *.[ch]
      *.[ch]xx)
 
+file(GLOB SOURCES2 
+     *.[ch]
+     *.[ch]xx)
+
 #if (NOT CWP_HAVE_NOT_FORTRAN_IN_C)
 #   list(APPEND SOURCES 
 #        ${CMAKE_SOURCE_DIR}/src/printfort.f90
@@ -46,15 +50,19 @@ file(GLOB_RECURSE SOURCES
 
 get_target_property(PDM_INC pdm INCLUDE_DIRECTORIES)
 
-file(GLOB_RECURSE SOURCESF 
-     printfort.f90
-     cwipi_printfort.f90
-     callfortinterpfct.f90
-     cwipi_printfort_cf.cxx
-     cwp_printfort_cf.cxx
-     cwipi_set_output_logical_unit.f90
-     cwp_set_output_logical_unit_set.f90
-     cwipi_f.f90)
+#file(GLOB_RECURSE SOURCESF 
+#     printfort.f90
+#     cwipi_printfort.f90
+#     callfortinterpfct.f90
+#     cwipi_printfort_cf.cxx
+#     cwp_printfort_cf.cxx
+#     cwipi_set_output_logical_unit.f90
+#     cwp_set_output_logical_unit_set.f90
+#     cwipi_f.f90)
+
+file(GLOB_RECURSE SOURCESF
+     fortran/*.[ch]xx
+     fortran/*.f90)
 
 add_library(cwp OBJECT ${SOURCES})
 

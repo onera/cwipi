@@ -25384,7 +25384,7 @@ fi
 # AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile doc/Makefile
 #                  intl/Makefile po/Makefile.in m4/Makefile])
 
-ac_config_files="$ac_config_files Makefile src/Makefile src/bft/Makefile src/fvm/Makefile Cython/Makefile tests/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile src/bft/Makefile src/fvm/Makefile src/fortran/Makefile Cython/Makefile tests/Makefile"
 
 
 #------------------------------------------------------------------------------
@@ -26704,6 +26704,7 @@ do
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
     "src/bft/Makefile") CONFIG_FILES="$CONFIG_FILES src/bft/Makefile" ;;
     "src/fvm/Makefile") CONFIG_FILES="$CONFIG_FILES src/fvm/Makefile" ;;
+    "src/fortran/Makefile") CONFIG_FILES="$CONFIG_FILES src/fortran/Makefile" ;;
     "Cython/Makefile") CONFIG_FILES="$CONFIG_FILES Cython/Makefile" ;;
     "tests/Makefile") CONFIG_FILES="$CONFIG_FILES tests/Makefile" ;;
 
