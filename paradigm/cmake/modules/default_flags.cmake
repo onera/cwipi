@@ -169,7 +169,7 @@ elseif (CMAKE_C_COMPILER_ID STREQUAL "AppleClang")
 
   set (CMAKE_C_FLAGS " ${CMAKE_C_FLAGS} -std=c99 -fPIC -funsigned-char -Wall -pedantic -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused")
   set (CMAKE_C_FLAGS_RELEASE "-O3")
-  set (CMAKE_C_FLAGS_DEBUG "-g -O0 -w2")
+  set (CMAKE_C_FLAGS_DEBUG "-g -O0")
   set (CMAKE_C_FLAGS_PROFILING       "${CMAKE_C_FLAGS_RELEASE} -p")
   set (CMAKE_C_FLAGS_RELWITHDEBINFO  "-O3 -g")
   set (CMAKE_C_FLAGS_MINSIZEREL      "-O2")

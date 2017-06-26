@@ -113,8 +113,10 @@ namespace cwipi {
           tag += cplId[i];
         }
 
-        tag = tag % MPI_TAG_UB;
-
+        if (MPI_TAG_UB > 0) {
+          tag = tag % MPI_TAG_UB;
+        }
+    
         //
         // Build the union communicator between the two coupled codes
 

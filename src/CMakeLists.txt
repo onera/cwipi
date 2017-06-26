@@ -29,13 +29,9 @@ endif()
 # Sources list
 # ------------
 
-file(GLOB_RECURSE SOURCES 
+file(GLOB SOURCES 
      bft/*.[ch]
      fvm/*.[ch]
-     *.[ch]
-     *.[ch]xx)
-
-file(GLOB SOURCES2 
      *.[ch]
      *.[ch]xx)
 
