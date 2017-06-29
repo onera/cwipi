@@ -31,14 +31,14 @@
 #include <fvmc_nodal_order.h>
 #include <fvmc_parall.h>
 
-#include "mesh.hxx"
+#include "oldMesh.hxx"
 #include "quickSort.h"
 #include "vectorUtilities.hxx"
 #include "geomUtilities.hxx"
 
 namespace cwipi {
 
-  Mesh::Mesh(const MPI_Comm &localComm,
+  oldMesh::oldMesh(const MPI_Comm &localComm,
              const int nDim,
              const int nVertex,
              const int nElts,
@@ -411,7 +411,7 @@ namespace cwipi {
 
   }
 
-  void Mesh::_finalizeNodal()
+  void oldMesh::_finalizeNodal()
   {
 
     if (!_isNodalFinalized) {
@@ -510,7 +510,7 @@ namespace cwipi {
   ///////////
   /////////
 
-  Mesh::Mesh(const MPI_Comm &localComm,
+  oldMesh::oldMesh(const MPI_Comm &localComm,
              fvmc_nodal_t* fvmc_nodal)
     : _localComm(localComm),
       _nDim(fvmc_nodal_get_dim(fvmc_nodal)), _nVertex(0),
@@ -978,7 +978,7 @@ namespace cwipi {
 
   }
 
-  Mesh::~Mesh()
+  oldMesh::~oldMesh()
   {
     delete _cellCenterCoords;
     delete _cellVolume;
@@ -993,7 +993,7 @@ namespace cwipi {
   }
 
 
-  void Mesh::addPolyhedra(const int nElt,
+  void oldMesh::addPolyhedra(const int nElt,
                           int *faceIndex,
                           int *cellToFaceConnectivity,
                           const int nFace,
@@ -1048,14 +1048,14 @@ namespace cwipi {
   }
 
 
-  void Mesh::update()
+  void oldMesh::update()
   {
     if (_cellCenterCoords != NULL || _cellVolume != NULL)
       _computeMeshProperties();
   }
 
 
-  void Mesh::_computeCellCenterCoordsWithVertex(const int i,
+  void oldMesh::_computeCellCenterCoordsWithVertex(const int i,
                                                 const int nCurrentEltVertex,
                                                 const int index,
                                                 const int *eltConnectivity,
@@ -1080,7 +1080,7 @@ namespace cwipi {
     refCellCenterCoords[3*i+2] /= nCurrentEltVertex;
   }
 
-  void Mesh::_computeMeshProperties1D()
+  void oldMesh::_computeMeshProperties1D()
   {
     std::vector<double> &refCellVolume           = *_cellVolume;
     std::vector<double> &refCharacteristicLength = *_characteristicLength;
@@ -1098,7 +1098,7 @@ namespace cwipi {
   }
 
 
-  void Mesh::_computeMeshProperties2D()
+  void oldMesh::_computeMeshProperties2D()
   {
 
     std::vector<double> &refCellVolume           = *_cellVolume;
@@ -1163,7 +1163,7 @@ namespace cwipi {
 
   }
 
-  void Mesh::_computeMeshProperties3D()
+  void oldMesh::_computeMeshProperties3D()
   {
 
     // TODO: Refaire completement les calcul des centres cellules et volume (comme dans CEDRE)
@@ -1249,7 +1249,7 @@ namespace cwipi {
 
   }
 
-  void Mesh::_computeMeshProperties()
+  void oldMesh::_computeMeshProperties()
   {
     if (_cellCenterCoords == NULL) {
       _cellCenterCoords = new std::vector<double>(3*_nElts);
@@ -1278,7 +1278,7 @@ namespace cwipi {
 
   }
   
-  void Mesh::_computeMeshPolyhedraProperties(){
+  void oldMesh::_computeMeshPolyhedraProperties(){
     
     int nbrVertex = 0;
     int nbrVertexOld = 0;

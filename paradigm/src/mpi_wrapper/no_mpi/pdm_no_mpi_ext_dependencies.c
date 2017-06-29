@@ -13,6 +13,8 @@
 #include "pdm_config.h"
 #include "pdm_mpi.h"
 #include "pdm_mpi_ext_dependencies.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
 
 /*=============================================================================
  * Macro definitions
@@ -78,7 +80,7 @@ const PDM_MPI_Comm comm
   part; 
   comm;
 
-  fprintf(stderr,"PDM_ParMETIS_V3_PartKway : Unavailable function with pdm_no_mpi library\n" );
+  PDM_error(__FILE__, __LINE__, 0,"PDM_ParMETIS_V3_PartKway : Unavailable function with pdm_no_mpi library\n" );
   abort();
   return 0;
 }
@@ -119,7 +121,7 @@ int *part
 #pragma clang diagnostic pop
 #endif
 
-  fprintf(stderr,"PDM_SCOTCH_dpart : Unavailable function with pdm_no_mpi library\n" );
+  PDM_error(__FILE__, __LINE__, 0,"PDM_SCOTCH_dpart : Unavailable function with pdm_no_mpi library\n" );
   abort();
 }
 

@@ -14,6 +14,8 @@
 #include "pdm_config.h"
 #include "pdm_mpi.h"
 #include "pdm_mpi_ext_dependencies.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
 
 /*----------------------------------------------------------------------------
  *  Optional headers
@@ -307,7 +309,7 @@ int *part
 
   ierr = SCOTCH_dgraphInit (&graph, mpi_comm);
   if (ierr) {
-    fprintf (stderr,"PPART error : Error in PT-Scotch graph initialization\n");
+    PDM_error(__FILE__, __LINE__, 0,"PPART error : Error in PT-Scotch graph initialization\n");
     exit(1);
   }
     
@@ -407,7 +409,7 @@ int *part
                               _edloloctab);
 
   if (ierr) {
-    fprintf(stderr, "PPART error : Error in SCOTCH_dgraphBuild\n");
+    PDM_error(__FILE__, __LINE__, 0, "PPART error : Error in SCOTCH_dgraphBuild\n");
     exit(1);
   }
 
@@ -419,7 +421,7 @@ int *part
   }
 
   if (ierr) {
-    fprintf(stderr, "PPART error : Error in PT-Scotch graph check\n");
+    PDM_error(__FILE__, __LINE__, 0, "PPART error : Error in PT-Scotch graph check\n");
     exit(1);
   }
 

@@ -14,6 +14,8 @@
 #include "pdm_surf_part.h"
 #include "pdm_surf_part_priv.h"
 #include "pdm_part_bound.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -246,13 +248,13 @@ PDM_surf_part_t *part
   free(nHashTable);
 
   if (1 == 0) {
-    printf("hashtable :\n");
+    PDM_printf("hashtable :\n");
     
     for (int i = 0; i < 2 * part->nVtx; i++) {
-      printf("[%d] : ", i);
+      PDM_printf("[%d] : ", i);
       for (int k = hashTableIdx[i]; k < hashTableIdx[i+1]; k++)
-        printf(" %d", hashTable[k]);
-      printf("\n");
+        PDM_printf(" %d", hashTable[k]);
+      PDM_printf("\n");
     }
   }
   /*
@@ -334,13 +336,13 @@ PDM_surf_part_t *part
   free(nVtxEdge);
 
   if (1 == 0) {
-    printf ("part->vtxEdge\n");
+    PDM_printf ("part->vtxEdge\n");
     for (int i = 0; i < part->nVtx; i++) {
-      printf ("[%d] :", i);
+      PDM_printf ("[%d] :", i);
       for (int j = part->vtxEdgeIdx[i]; j < part->vtxEdgeIdx[i+1]; j++) {
-        printf (" %d", part->vtxEdge[j]);
+        PDM_printf (" %d", part->vtxEdge[j]);
       }
-      printf ("\n");
+      PDM_printf ("\n");
     }
   }
   
@@ -372,15 +374,15 @@ PDM_surf_part_t *part
     else if (part->edgeFace[ifac2] == -1)
       part->edgeFace[ifac2] = edgeFaceUncompress[i] + 1;
     else {
-      fprintf(stderr, "Error _build_edges_part : Error in edgeFace computing\n");
+      PDM_error(__FILE__, __LINE__, 0, "Error _build_edges_part : Error in edgeFace computing\n");
       abort();
     }
   }
    
   if (1 == 0) {
-    printf("edgeface : \n");
+    PDM_printf("edgeface : \n");
     for (int i = 0; i < part->nEdge; i++) {
-      printf("%d %d\n", part->edgeFace[2*i], part->edgeFace[2*i+1]);
+      PDM_printf("%d %d\n", part->edgeFace[2*i], part->edgeFace[2*i+1]);
     }
   }
 

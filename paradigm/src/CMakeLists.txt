@@ -1,4 +1,5 @@
 
+add_subdirectory(io)
 add_subdirectory(mpi_wrapper)
 
 
@@ -36,6 +37,7 @@ target_include_directories(pdm
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/pario
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/ppart
+                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/io
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/mpi_wrapper
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/ext_wrapper
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/mesh
@@ -53,6 +55,7 @@ if (PDM_ENABLE_STATIC_Fortran_INTERFACE OR PDM_ENABLE_SHARED_Fortran_INTERFACE)
                            PUBLIC    ${CMAKE_CURRENT_SOURCE_DIR}
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/pario
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/ppart
+                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/io                           
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/mpi_wrapper
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/ext_wrapper
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/mesh
@@ -82,6 +85,7 @@ list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/struct/pdm_gnum.h")
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/ppart/pdm_part_coarse_mesh.h")
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/pario/pdm_io_tab.h")
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/pario/pdm_writer.h")
+list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/pario/pdm_writer_priv.h")
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/util/pdm_mpi_node_first_rank.h")
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/ppart/pdm_part.h")
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/util/pdm_timer.h")
@@ -125,7 +129,7 @@ if (PDM_ENABLE_SHARED)
   add_library(pdm_shared SHARED  $<TARGET_OBJECTS:pdm>)
   set_target_properties(pdm_shared PROPERTIES OUTPUT_NAME "pdm")
   set_target_properties(pdm_shared PROPERTIES VERSION ${PDM_VERSION})
-  target_link_libraries(pdm_shared ${LINK_LIBRARIES} pdm_mpi_shared)
+  target_link_libraries(pdm_shared ${LINK_LIBRARIES} pdm_io_shared pdm_mpi_shared)
   set_target_properties(pdm_shared PROPERTIES
                             PUBLIC_HEADER "${LIST_HEADER}")
 
@@ -140,7 +144,7 @@ if (PDM_ENABLE_STATIC)
   set_target_properties(pdm_static PROPERTIES OUTPUT_NAME "pdm")
   set_target_properties(pdm_static PROPERTIES VERSION ${PDM_VERSION})
 
-  target_link_libraries(pdm_static ${LINK_LIBRARIES} pdm_mpi_static)
+  target_link_libraries(pdm_static ${LINK_LIBRARIES} pdm_io_static pdm_mpi_static)
   set_target_properties(pdm_static PROPERTIES
                              PUBLIC_HEADER "${LIST_HEADER}")
   get_target_property(PDM_INC pdm INCLUDE_DIRECTORIES)

@@ -32,7 +32,7 @@ namespace cwipi {
 
   class ApplicationProperties;
 
-  class Mesh;
+  class oldMesh;
 
   class LocationToDistantMesh;
 
@@ -270,7 +270,7 @@ namespace cwipi {
     cwipi_interpolation_fct_t _interpolationFct;
     void * _interpolationFct_f;
     bool                 _toLocate;
-    Mesh                *_supportMesh;
+    oldMesh                *_supportMesh;
     MPI_File _locationsFile;
     size_t _locationsFile_position;
 

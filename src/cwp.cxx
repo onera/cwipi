@@ -2,7 +2,7 @@
 /*
   This file is part of the CWIPI library. 
 
-  Copyright (C) 2011  ONERA
+  Copyright (C) 2011-2017  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -23,18 +23,16 @@
  *----------------------------------------------------------------------------*/
 
 #include <cstring>
+#include <cstdlib>
 
 /*----------------------------------------------------------------------------
  * BFT library headers
  *----------------------------------------------------------------------------*/
 
-#include <bftc_mem.h>
-#include <bftc_printf.h>
-
 /*----------------------------------------------------------------------------
  * FVM library headers
  *----------------------------------------------------------------------------*/
-#include <fvmc_parall.h>
+//#include <fvmc_parall.h>
 
 /*----------------------------------------------------------------------------
  *  Local headers
@@ -47,6 +45,7 @@
 #include "cwp.h"
 #include "cwipi_config.h"
 #include "factory.hpp"
+#include "codeProperties.hxx"
 #include "codePropertiesDB.hxx"
 #include "codePropertiesDB_i.hxx"
 #include "couplingDB.hxx"
@@ -56,6 +55,10 @@
 #include "commWithPart.hxx"
 #include "commWithoutPart.hxx"
 #include "commSeq.hxx"
+#include "pdm.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
+
 // #include "geometry.hxx"
 // #include "location.hxx"
 
@@ -126,17 +129,23 @@ _cwipi_print_with_c
  * \return                Coupling instance from it identifier
  */
 
+
 static cwipi::Coupling&
 _cpl_get
 (
- const char     *cpl_id
+ const char *local_code_name,
+ const char *cpl_id
  )
 {
   cwipi::CouplingDB & couplingDB =
     cwipi::CouplingDB::getInstance();
   
+  cwipi::CodePropertiesDB & properties =
+    cwipi::CodePropertiesDB::getInstance();
+
   const string &cpl_name_str = cpl_id;
-  return couplingDB.couplingGet(cpl_name_str);
+  return couplingDB.couplingGet (properties.codePropertiesGet(string(local_code_name)),
+                                 cpl_name_str);
 }
 
 
@@ -177,34 +186,51 @@ _cpl_get
  * the MPI inter communicator that contains all code process. It is a
  * synchronization point between all codes
  *
- * \param [in]  inter_comm      MPI inter communicator
- * \param [in]  code_name       Name of this code
- * \param [in]  is_couple_rank  Is coupled rank
- * \param [in]  time_init       Time init
- * \param [out] intra_comm      MPI intra communicator
+ * \param [in]  global_comm       MPI global communicator
+ * \param [in]  n_code            Number of codes on the current rank
+ * \param [in]  is_coupled_rank   Is current rank used for coupling (size = \ref n_code)
+ * \param [in]  code_name         Names of codes on the current rank (size = \ref n_code)
+ * \param [in]  time_init         Time init (size = \ref n_code)
+ * \param [out] intra_comm        MPI intra communicators of each code
  *
  */
 
 void 
 CWP_Init
 (
- const MPI_Comm           inter_comm,
+ const MPI_Comm           global_comm,
  const int                n_code,
  const char             **code_names,
- const CWP_Status_t       is_coupled_rank,
- const double             time_init,
- MPI_Comm               **intra_comms
+ const CWP_Status_t      *is_coupled_rank,
+ const double            *time_init,
+ MPI_Comm                *intra_comms
 )
-
 {
+  const int n_param_max_default = 100;
+  const int str_size_max_default = 80;
+  
+  int n_param_max = n_param_max_default;
+  int str_size_max = str_size_max_default;
+      
+  char* pPath;
+  pPath = getenv ("CWP_N_PARAM_MAX");
+  if (pPath!=NULL) {
+    n_param_max = atoi(pPath);
+  }
 
-//TODO: Coder le cas n_code : pour l'instant limitation a 1 !
-    
-   assert (1 == n_code);
-    
-   const char *code_name = *code_names;
-   MPI_Comm *intra_comm = *intra_comms;
-    
+  if (pPath != NULL) {  
+   printf ("environment variable 'CWP_N_PARAM_MAX'"
+           "is define to: %s\n",pPath);
+  }
+  pPath = getenv ("CWP_STR_SIZE_MAX");
+  if (pPath!=NULL) {
+    str_size_max = atoi(pPath);
+  }
+  if (pPath != NULL) {  
+   printf ("environment variable 'CWP_STR_SIZE_MAX'"
+           "is define to: %s\n",pPath);
+  }
+  
   /*
    * Get application properties
    */
@@ -212,22 +238,34 @@ CWP_Init
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
 
-  bftc_printf("\ncwipi " CWIPI_VERSION " initializing\n");
-  bftc_printf("------------------------\n\n");
+  PDM_printf("\ncwipi " CWIPI_VERSION " initializing\n");
+  PDM_printf("------------------------\n\n");
 
   /*
    * Builds application communicator
    */
 
-  *intra_comm = properties.init(code_name,
-                                inter_comm);
+  properties.init (global_comm,
+                   n_code,
+                   code_names,
+                   is_coupled_rank,
+                   n_param_max,
+                   str_size_max,
+                   intra_comms);
 
   /*
    * Create default parameters
    */
+  
+  MPI_Barrier(global_comm);
+  
+  for (int i = 0; i < n_code; i++) {
+    const string &codeNameStr = code_names[i]; 
+    properties.ctrlParamAdd <double> (codeNameStr, "time", time_init[i]);
+    properties.ctrlParamAdd <int> (codeNameStr, "state", CWP_STATE_IN_PROGRESS);
+  }
 
-  properties.locCtrlParamAdd<double>("time", time_init);
-  properties.locCtrlParamAdd<int>("state", CWP_STATE_IN_PROGRESS);
+  MPI_Barrier(global_comm);
 
   /*
    * Create communication abstract factory 
@@ -239,7 +277,6 @@ CWP_Init
   factoryComm.Register<cwipi::CommWithPart>(CWP_COMM_PAR_WITH_PART);
   factoryComm.Register<cwipi::CommWithoutPart>(CWP_COMM_PAR_WITHOUT_PART);
   factoryComm.Register<cwipi::CommSeq>(CWP_COMM_SEQ);
-  // factoryComm.Register<CommInternal>(CWP_COMM_INTERNAL);
 
   /*
    * Create geometry abstract factory 
@@ -253,17 +290,7 @@ CWP_Init
   // factoryGeom.Register<ClosestPoint>(CWP_GEOM_CLOSEST_POINT);
 
   /*
-   * Create support abstract factory 
-   */
-
-  // Factory<Support, CWP_support_t> &factorySupport = 
-  //   cwipi::Factory<Support, CWP_support_t>::getInstance();
-
-  // factorySupport.Register<Mesh>(CWP_SUPPORT_MESH);
-  // factorySupport.Register<PointCloud>(CWP_SUPPORT_POINT_CLOUD);
-
-  /*
-   * Create support abstract factory 
+   * Create block abstract factory 
    */
 
   // Factory<Block, CWP_block_t> &factoryBlock = 
@@ -278,6 +305,8 @@ CWP_Init
   // factoryBlock.Register<BlockCellPrism6>(CWP_BLOCK_CELL_PRISM6);
   // factoryBlock.Register<BlockCellPyram5>(CWP_BLOCK_CELL_PYRAM5);
   // factoryBlock.Register<BlockCellPoly>(CWP_BLOCK_CELL_POLY);
+
+  MPI_Barrier(global_comm);
 
 }
 
@@ -312,11 +341,12 @@ CWP_Finalize
     cwipi::CodePropertiesDB::getInstance();
 
   const MPI_Comm globalComm = properties.globalCommGet();
-
+  PDM_printf("CWP_Finalize\n");
+  fflush(stdout);
   if (flag != 0) {
-    bftc_printf_flush();
+    PDM_printf_flush();
     MPI_Barrier(globalComm);
-    MPI_Comm oldFVMComm = fvmc_parall_get_mpi_comm();
+//    MPI_Comm oldFVMComm = fvmc_parall_get_mpi_comm();
   }
 
   properties.kill();
@@ -343,13 +373,11 @@ CWP_State_update
  const char* local_code_name,
  const CWP_State_t state
 )
-{
-
-//TODO: Take into account code_name
-    
+{    
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
-  properties.locCtrlParamSet<int>("state", state);
+  
+  properties.ctrlParamSet<int>(string(local_code_name), "state", state);
 }
 
 /**
@@ -369,16 +397,87 @@ CWP_State_get
  const char* code_name
 )
 {
-
-//TODO: Take into account code_name and distant code name
-//  cwipi::CodePropertiesDB & properties =
-//    cwipi::CodePropertiesDB::getInstance();
-//  return static_cast<CWP_State_t>(properties.distCtrlParamGet<int>(code_name, "state"));
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
 
-  return static_cast<CWP_State_t>(properties.locCtrlParamGet<int>("state"));
+  return static_cast<CWP_State_t> (
+      properties.ctrlParamGet<int>(string(code_name), "state"));
 }
+
+
+/**
+ * \brief Number of codes known to CWIPI
+ *
+ * \return Number of codes
+ *
+ */
+
+int
+CWP_Codes_nb_get
+(
+)
+{
+  cwipi::CodePropertiesDB & properties =
+    cwipi::CodePropertiesDB::getInstance();
+
+  return properties.codesNbGet();
+}
+
+
+/**
+ * \brief list of codes known to CWIPI
+ *
+ * \return Names list of codes
+ *
+ */
+
+const char **
+CWP_Codes_list_get
+(
+)
+{
+  cwipi::CodePropertiesDB & properties =
+    cwipi::CodePropertiesDB::getInstance();
+  return properties.codesListGet();
+}
+
+
+/**
+ * \brief Number of codes known to CWIPI
+ *
+ * \return Number of local codes
+ *
+ */
+
+int
+CWP_Loc_codes_nb_get
+(
+)
+{
+  cwipi::CodePropertiesDB & properties =
+    cwipi::CodePropertiesDB::getInstance();
+
+  return properties.localCodesNbGet();
+}
+
+
+/**
+ * \brief list of codes known to CWIPI
+ *
+ * \return Names list of local codes
+ *
+ */
+
+const char **
+CWP_Loc_codes_list_get
+(
+)
+{
+  cwipi::CodePropertiesDB & properties =
+    cwipi::CodePropertiesDB::getInstance();
+  return properties.localCodesListGet();
+}
+
 
 /**
  * \brief Update application time
@@ -397,11 +496,11 @@ CWP_Time_update
  const double current_time
 )
 {
-//TODO: Take into account code_name and distant code name
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
-  properties.locCtrlParamSet<double>("time", current_time);
+  properties.ctrlParamSet<double>(string(local_code_name),"time", current_time);
 }
+
 
 /**
  * \brief Writing output to file.
@@ -419,8 +518,24 @@ CWP_Output_file_set
 )
 {
   _cwipi_output_listing = output_file;
-  bftc_printf_proxy_set(_cwipi_print_with_c);
+  PDM_printf_proxy_set(_cwipi_print_with_c);
 }
+
+//
+///**
+// * \brief Writing output to fortran file.
+// *
+// * This function set the file fortran logical unit for writing output.
+// *
+// * \param [in]  iunit        File fortan logical unit
+// *
+// */
+//
+//void 
+//PROCF (cwp_output_fortran_unit_set, CWP_OUTPUT_FORTRAN_UNIT_SET)
+//(
+// int *iunit
+//);
 
 /*----------------------------------------------------------------------------*
  * Functions about properties                                                 *
@@ -453,12 +568,11 @@ CWP_Properties_dump
  *
  * This function creates a coupling object and defines its properties.
  *
-  * \param [in]  cpl_id              Coupling identifier
  * \param [in]  local_code_name     Local code name
+ * \param [in]  cpl_id              Coupling identifier
  * \param [in]  coupled_code_name   Distant or local coupled code name
  * \param [in]  comm_type           Communication type
  * \param [in]  geom_algo           Geometric algorithm
- * \param [in]  support_type        Support type
  * \param [in]  n_part              Number of interface partition 
  * \param [in]  moving_status       Support moving status
  * \param [in]  recv_freq_type      Type of receiving frequency
@@ -468,12 +582,11 @@ CWP_Properties_dump
 void 
 CWP_Cpl_create
 (
- const char               *cpl_id,
  const char               *local_code_name,
+ const char               *cpl_id,
  const char               *coupled_code_name,
  const CWP_Comm_t          comm_type, 
- const CWP_Geom_t          geom_algo,
- const CWP_Support_t       support_type,
+ const CWP_Geom_algo_t     geom_algo,
  const int                 n_part,
  const CWP_Displacement_t  displacement,   
  const CWP_Freq_t          recv_freq_type 
@@ -487,13 +600,13 @@ CWP_Cpl_create
 
   const string &coupling_name_str = cpl_id;
   const string &coupled_application_str = coupled_code_name;
+  const string &local_application_str = local_code_name;
 
-  couplingDB.couplingCreate(coupling_name_str,
+  couplingDB.couplingCreate(properties.codePropertiesGet(local_application_str),
+                            coupling_name_str,
+                            properties.codePropertiesGet(coupled_application_str),
                             comm_type,
-                            properties.locCodePropertiesGet(),
-                            properties.distCodePropertiesGet(coupled_application_str),
                             geom_algo,
-                            support_type,
                             n_part,
                             displacement,
                             recv_freq_type);
@@ -505,21 +618,28 @@ CWP_Cpl_create
  *
  * This function delete a coupling abject
  * 
- * \param [in] cpl_id     Coupling identifier
+ * \param [in] local_code_name   Local code name
+ * \param [in] cpl_id            Coupling identifier
  *
  */
 
 void 
 CWP_Cpl_del
-(const char *cpl_id
+(
+const char *local_code_name,
+const char *cpl_id
 )
 {
   cwipi::CouplingDB & couplingDB =
     cwipi::CouplingDB::getInstance();
+    
+  cwipi::CodePropertiesDB & properties =
+    cwipi::CodePropertiesDB::getInstance();
 
   const string &cpl_id_str = cpl_id;
 
-  couplingDB.couplingDel(cpl_id_str);
+  couplingDB.couplingDel(properties.codePropertiesGet(string(local_code_name)),
+                         cpl_id_str);
 }
 
 /**
@@ -1610,20 +1730,21 @@ CWP_Param_add
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
 
+  const string &codeNameStr = local_code_name;
   const string &nameStr = param_name;
 
   switch(data_type) {
   case CWP_INT :
-    properties.locCtrlParamAdd<int>(nameStr, *(int *)initial_value);
+    properties.ctrlParamAdd<int>(codeNameStr,nameStr, *(int *)initial_value);
     break;
   case CWP_DOUBLE :
-    properties.locCtrlParamAdd<double>(nameStr, *(double *)initial_value);
+    properties.ctrlParamAdd<double>(codeNameStr,nameStr, *(double *)initial_value);
     break;
   case CWP_CHAR :
-    properties.locCtrlParamAdd<string>(nameStr, *(string *)initial_value);
+    properties.ctrlParamAdd<char *>(codeNameStr,nameStr, *(char **)initial_value);
     break;
   default :
-    bftc_error(__FILE__, __LINE__, 0,
+    PDM_error(__FILE__, __LINE__, 0,
                "Not yet implemented data type\n");
   }
 }
@@ -1652,19 +1773,20 @@ CWP_Param_set
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
 
+  const string &codeNameStr = local_code_name;
   const string &nameStr = param_name;
   switch(data_type) {
   case CWP_INT :
-    properties.locCtrlParamSet<int>(nameStr, * (int *) value);
+    properties.ctrlParamSet<int>(codeNameStr, nameStr, * (int *) value);
     break;
   case CWP_DOUBLE :
-    properties.locCtrlParamSet<double>(nameStr, * (double *) value);
+    properties.ctrlParamSet<double>(codeNameStr, nameStr, * (double *) value);
     break;
   case CWP_CHAR :
-    properties.locCtrlParamSet<string>(nameStr, * (string *) value);
+    properties.ctrlParamSet<char *>(codeNameStr, nameStr, * (char **) value);
     break;
   default :
-    bftc_error(__FILE__, __LINE__, 0,
+    PDM_error(__FILE__, __LINE__, 0,
                "Not yet implemented data type\n");
   }
 }
@@ -1690,19 +1812,20 @@ CWP_Param_del
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
 
+  const string &codeNameStr = local_code_name;
   const string &nameStr = param_name;
   switch(data_type) {
   case CWP_INT :
-    properties.locCtrlParamCancel<int>(nameStr);
+    properties.ctrlParamCancel<int>(codeNameStr, nameStr);
     break;
   case CWP_DOUBLE :
-    properties.locCtrlParamCancel<double>(nameStr);
+    properties.ctrlParamCancel<double>(codeNameStr, nameStr);
     break;
   case CWP_CHAR :
-    properties.locCtrlParamCancel<string>(nameStr);
+    properties.ctrlParamCancel<string>(codeNameStr, nameStr);
     break;
   default :
-    bftc_error(__FILE__, __LINE__, 0,
+    PDM_error(__FILE__, __LINE__, 0,
                "Not yet implemented data type\n");
   }
 }
@@ -1735,38 +1858,19 @@ CWP_Param_n_get
 
   const string &codeNameStr = code_name;
   int nParam;
-
-  if (codeNameStr == properties.locCodePropertiesGet().nameGet()) {
-    switch(data_type) {
-    case CWP_INT :
-      nParam = properties.locCtrlParamNGet<int>();
-      break;
-    case CWP_DOUBLE :
-      nParam = properties.locCtrlParamNGet<double>();
-      break;
-    case CWP_CHAR :
-      nParam = properties.locCtrlParamNGet<double>();
-      break;
-    default :
-      bftc_error(__FILE__, __LINE__, 0,
-                 "Not yet implemented data type\n");
-    }
-  }
-  else {
-    switch(data_type) {
-    case CWP_INT :
-      nParam = properties.distCtrlParamNGet<int>(codeNameStr);
-      break;
-    case CWP_DOUBLE :
-      nParam = properties.distCtrlParamNGet<double>(codeNameStr);
-      break;
-    case CWP_CHAR :
-      nParam = properties.distCtrlParamNGet<string>(codeNameStr);
-      break;
-    default :
-      bftc_error(__FILE__, __LINE__, 0,
-                 "Not yet implemented data type\n");
-    }
+  switch(data_type) {
+  case CWP_INT :
+    nParam = properties.ctrlParamNGet<int>(codeNameStr);
+    break;
+  case CWP_DOUBLE :
+    nParam = properties.ctrlParamNGet<double>(codeNameStr);
+    break;
+  case CWP_CHAR :
+    nParam = properties.ctrlParamNGet<string>(codeNameStr);
+    break;
+  default :
+    PDM_error(__FILE__, __LINE__, 0,
+                "Not yet implemented data type\n");
   }
   return nParam;
 }
@@ -1776,59 +1880,42 @@ CWP_Param_n_get
  *
  * \brief Return the parameter list of a code
  * 
- * \param [in] code_name      Local or distant code name
- * \param [in] data_type      Parameter type,
+ * \param [in]  code_name      Local or distant code name
+ * \param [in]  data_type      Parameter type,
+ * \param [out] nParam         Number of parameters
+ * \param [out] paramNames     Parameter names
  *
- * \return  list of param names
  *
  */
 
-char**
+void
 CWP_Param_list_get
 (
  const char             *code_name,
- const CWP_Type_t        data_type
+ const CWP_Type_t        data_type,
+ int                    *nParam,
+ char                 ***paramNames   
 )
 {
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
 
   const string &codeNameStr = code_name;
-  char **paramList;
 
-  if (codeNameStr == properties.locCodePropertiesGet().nameGet()) {
-    switch(data_type) {
-    case CWP_INT :
-      paramList = properties.locCtrlParamListGet<int>();
-      break;
-    case CWP_DOUBLE :
-      paramList = properties.locCtrlParamListGet<double>();
-      break;
-    case CWP_CHAR :
-      paramList = properties.locCtrlParamListGet<double>();
-      break;
-    default :
-      bftc_error(__FILE__, __LINE__, 0,
-                 "Not yet implemented data type\n");
-    }
+  switch(data_type) {
+  case CWP_INT :
+    properties.ctrlParamListGet<int>(codeNameStr, nParam, paramNames);
+    break;
+  case CWP_DOUBLE :
+    properties.ctrlParamListGet<double>(codeNameStr, nParam, paramNames);
+    break;
+  case CWP_CHAR :
+    properties.ctrlParamListGet<string>(codeNameStr, nParam, paramNames);
+    break;
+  default :
+    PDM_error(__FILE__, __LINE__, 0,
+               "Not yet implemented data type\n");
   }
-  else {
-    switch(data_type) {
-    case CWP_INT :
-      paramList = properties.distCtrlParamListGet<int>(codeNameStr);
-      break;
-    case CWP_DOUBLE :
-      paramList = properties.distCtrlParamListGet<double>(codeNameStr);
-      break;
-    case CWP_CHAR :
-      paramList = properties.distCtrlParamListGet<string>(codeNameStr);
-      break;
-    default :
-      bftc_error(__FILE__, __LINE__, 0,
-                 "Not yet implemented data type\n");
-    }
-  }
-  return paramList;
 }
 
 
@@ -1858,38 +1945,19 @@ CWP_Param_is
   const string &codeNameStr = code_name;
   const string &nameStr     = param_name;
   int isParam;
-
-  if (codeNameStr == properties.locCodePropertiesGet().nameGet()) {
-    switch(data_type) {
-    case CWP_INT :
-      isParam = properties.locCtrlParamIs<int>(nameStr);
-      break;
-    case CWP_DOUBLE :
-      isParam = properties.locCtrlParamIs<double>(nameStr);
-      break;
-    case CWP_CHAR :
-      isParam = properties.locCtrlParamIs<string>(nameStr);
-      break;
-    default :
-      bftc_error(__FILE__, __LINE__, 0,
-                 "Not yet implemented data type\n");
-    }
-  }
-  else {
-    switch(data_type) {
-    case CWP_INT :
-      isParam = properties.distCtrlParamIs<int>(codeNameStr, nameStr);
-      break;
-    case CWP_DOUBLE :
-      isParam = properties.distCtrlParamIs<double>(codeNameStr, nameStr);
-      break;
-    case CWP_CHAR :
-      isParam = properties.distCtrlParamIs<string>(codeNameStr, nameStr);
-      break;
-    default :
-      bftc_error(__FILE__, __LINE__, 0,
-                 "Not yet implemented data type\n");
-    }
+  switch(data_type) {
+  case CWP_INT :
+    isParam = properties.ctrlParamIs<int>(codeNameStr, nameStr);
+    break;
+  case CWP_DOUBLE :
+    isParam = properties.ctrlParamIs<double>(codeNameStr, nameStr);
+    break;
+  case CWP_CHAR :
+    isParam = properties.ctrlParamIs<string>(codeNameStr, nameStr);
+    break;
+  default :
+    PDM_error(__FILE__, __LINE__, 0,
+               "Not yet implemented data type\n");
   }
   return isParam;
 }
@@ -1920,52 +1988,26 @@ CWP_Param_get
 
   const string &codeNameStr = code_name;
   const string &nameStr     = param_name;
-
-  if (codeNameStr == properties.locCodePropertiesGet().nameGet()) {
-    switch(data_type) {
-    case CWP_INT : {
-      int *intValue = (int *) value;
-      *intValue = properties.locCtrlParamGet<int>(nameStr);
-      break;
-    }
-    case CWP_DOUBLE : {
-      double *dblValue = (double *) value;
-      *dblValue = properties.locCtrlParamGet<double>(nameStr);
-      break;
-    }
-    case CWP_CHAR : {
-      char **strValue = (char **) value;
-      *strValue = const_cast < char * > (properties.locCtrlParamGet<string>(nameStr).c_str());
-      break;
-    }
-    default : {
-      bftc_error(__FILE__, __LINE__, 0,
-                 "Not yet implemented data type\n");
-    }
-    }
+  switch(data_type) {
+  case CWP_INT : {
+    int *intValue = (int *) value;
+    *intValue = properties.ctrlParamGet<int>(codeNameStr, nameStr);
+    break;
   }
-  else {
-    switch(data_type) {
-    case CWP_INT : {
-      int *intValue = (int *) value;
-      *intValue = properties.distCtrlParamGet<int>(codeNameStr, nameStr);
-      break;
-    }
-    case CWP_DOUBLE : {
-      double *dblValue = (double *) value;
-      *dblValue = properties.distCtrlParamGet<double>(codeNameStr, nameStr);
-      break;
-    }
-    case CWP_CHAR : {
-      char **charValue = (char **) value;
-      *charValue = const_cast < char * > (properties.distCtrlParamGet<string>(codeNameStr, nameStr).c_str());
-      break;
-    }
-    default : {
-      bftc_error(__FILE__, __LINE__, 0,
-                 "Not yet implemented data type\n");
-    }
-    }
+  case CWP_DOUBLE : {
+    double *dblValue = (double *) value;
+    *dblValue = properties.ctrlParamGet<double>(codeNameStr, nameStr);
+    break;
+  }
+  case CWP_CHAR : {
+    char **charValue = (char **) value;
+    *charValue = properties.ctrlParamGet<char *>(codeNameStr, nameStr);
+    break;
+  }
+  default : {
+    PDM_error(__FILE__, __LINE__, 0,
+               "Not yet implemented data type\n");
+  }
   }
 }
 
@@ -2013,16 +2055,8 @@ CWP_Param_reduce
     properties.ctrlParamReduce<double>(op, nameStr, doubleRes, nCode, &pa);
     break;
   }
-  case CWP_CHAR : {
-    char **charRes = (char **) res;
-    string resStr;
-    properties.ctrlParamReduce<string>(op, nameStr, &resStr, nCode, &pa);
-    *charRes = (char*) malloc(sizeof(char) * (resStr.size() + 1));  
-    strcpy(*charRes, resStr.c_str()); 
-    break;
-  }
   default :
-    bftc_error(__FILE__, __LINE__, 0,
+    PDM_error(__FILE__, __LINE__, 0,
                "Not yet implemented data type\n");
     
     va_end(pa);
@@ -2033,32 +2067,46 @@ CWP_Param_reduce
 /**
  *
  * \brief Lock access to local parameters from a distant code 
+ *
+ * \param [in]  code_name  Code to lock
  * 
  */
 
 void          
-CWP_Param_lock()
+CWP_Param_lock
+(
+const char *code_name
+)
 {
+  const string &nameStr = code_name;
+
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
 
-  properties.lock();
+  properties.lock(nameStr);
 }
 
 
 /**
  *
  * \brief unlock access to local parameters from a distant code 
+ *
+ * \param [in]  code_name  Code to lock
  * 
  */
 
 void          
-CWP_Param_unlock()
+CWP_Param_unlock
+(
+const char *code_name
+)
 {
+  const string &nameStr = code_name;
+
   cwipi::CodePropertiesDB & properties =
     cwipi::CodePropertiesDB::getInstance();
 
-  properties.unLock();
+  properties.unLock(nameStr);
 }
 
 /*-----------------------------------------------------------------------------*/

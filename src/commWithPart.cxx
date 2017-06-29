@@ -1,7 +1,7 @@
 /*
   This file is part of the CWIPI library. 
 
-  Copyright (C) 2013  ONERA
+  Copyright (C) 2013-2017  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -56,86 +56,43 @@ namespace cwipi {
    CWP_Comm_t cplCodeCommType
   )
   {
-
-    _isCplRank = true;
-
-    int mergeInterCommSize;
-    MPI_Comm_size(_mergeInterComm, &mergeInterCommSize);
     
-    const int localFirstRank = _localCodeProperties->firstRankGet();
-    const int localLastRank  = _localCodeProperties->lastRankGet();
-
-    const int nLocalRank = localLastRank
-                         - localFirstRank
-                         + 1;
-
-    const int cplCodeFirstRank = _cplCodeProperties->firstRankGet();
-    const int cplCodeLastRank  = _cplCodeProperties->lastRankGet();
-   
-    const int nCplCodeRank = cplCodeLastRank
-                           - cplCodeFirstRank
-                           + 1;
-
+    _isCplRank = true;
+    
     if (cplCodeCommType != CWP_COMM_PAR_WITH_PART) {
-
-      _cplCodeNRankCplComm = 1;
-
-      //
-      // Store coupling active ranks to create the coupling communicator
-
-      int  nRankList = 1 + nLocalRank;
-      int *rankList  = new int[nRankList]; 
-
-      if (localFirstRank < cplCodeFirstRank) {
-        _cplCodeFirstRankCplComm = nLocalRank;
-        for (int i = 0; i < nLocalRank + 1; i++)
-          rankList[i] = i;
-      }
-      else {
-        rankList[0] = 0;
-        _cplCodeFirstRankCplComm = 0;
-        for (int i = 0; i < nLocalRank; i++)
-          rankList[i+1] = nCplCodeRank + i;
+      
+      const vector <int> &cplRanks = *(_cplCodeProperties->connectableRanksGet());
+      
+      vector <int> exRanks(cplRanks.size()-1);
+      
+      int j = 0;
+      for (int i = 0; i < cplRanks.size(); i++) {
+        if (cplRanks[i] != _cplCodeProperties->rootRankGet()) {
+          exRanks[j++] = cplRanks[i]; 
+        }      
       }
 
-      //
-      // Create the coupling communicator from a new group
-
-      MPI_Group mergeGroup = MPI_GROUP_NULL;
-      MPI_Group cplGroup   = MPI_GROUP_NULL;
-        
-      MPI_Comm_group(_mergeInterComm, &mergeGroup);
-        
-      MPI_Group_incl(mergeGroup, nRankList, rankList, &cplGroup);
-        
-      MPI_Comm_create(_mergeInterComm, cplGroup, &_cplComm);
-        
-      MPI_Group_free(&cplGroup);
-      MPI_Group_free(&mergeGroup);
-        
-      delete [] rankList;
+      vector <int> tExRanks(exRanks.size());
+      
+      MPI_Group globalGroup;
+      MPI_Comm_group(_localCodeProperties->globalCommGet(), &globalGroup);
+      
+      MPI_Group unionGroup;
+      MPI_Comm_group(_unionComm, &unionGroup);      
+      
+      MPI_Group_translate_ranks(globalGroup, exRanks.size(), &(exRanks[0]),
+                                unionGroup, &(tExRanks[0]));
+      MPI_Group_excl(unionGroup, exRanks.size(), &(tExRanks[0]), &_cplGroup);
+      
+      MPI_Comm_create(_unionComm, _cplGroup, &_cplComm);
     }
 
     else {
 
-      _cplComm = _mergeInterComm;
-      _cplCodeNRankCplComm = cplCodeLastRank 
-                           - cplCodeFirstRank
-                           + 1;
-
-      if (localFirstRank < cplCodeFirstRank) {
-        _cplCodeFirstRankCplComm = nLocalRank;
-      }
-      else {
-        _cplCodeFirstRankCplComm = 0;
-      }
-
+      _cplComm = _unionComm;
+      MPI_Comm_group(_cplComm, &_cplGroup);
+      
     }
-
-    //
-    // Build fvm communicator
-
-    MPI_Comm_dup(_localCodeProperties->intraCommGet(), &_fvmComm);
   }
 
   /**

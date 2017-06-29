@@ -3,7 +3,7 @@
 /*
   This file is part of the CWIPI library. 
 
-  Copyright (C) 2013  ONERA
+  Copyright (C) 2013-2017  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -20,6 +20,9 @@
 */
 
 #include "codeProperties.hxx"
+#include "couplingDB.hxx"
+
+using namespace std;
 
 namespace cwipi {
 
@@ -56,15 +59,32 @@ namespace cwipi {
      *
      * \param [in]  localCodeProperties   Local code properties
      * \param [in]  cplCodeProperties     Coupled code properties
+     * \param [in]  cplId                 Coupling identifier
      *
      */
 
     void 
     init
     (
-     CodeProperties &localCodeProperties, 
-     CodeProperties &cplCodeProperties 
+     const CodeProperties &localCodeProperties, 
+     const CodeProperties &cplCodeProperties,
+     const string         &cplId,
+     CouplingDB           &cplDB    
      );
+
+    /**
+     *
+     * \brief Initialize coupling communicators.
+     *
+     * \param [in]  cplCodeComm           Coupled code communication
+     *
+     */
+
+    void 
+    init
+    (
+     Communication &cplCodeComm 
+    );
 
     /**
      *
@@ -122,18 +142,22 @@ namespace cwipi {
 
   protected:
 
-    bool     _isCplRank;                /*!< Is that the current rank is coupled */
-    MPI_Comm _mergeInterComm;           /*!< Merge inter communicator */
-    MPI_Comm _fvmComm;                  /*!< FVM communicator 
-                                          (part of local communicator) */
+    const CodeProperties *_localCodeProperties; /*!< Pointer to the local code properties */
+    const CodeProperties *_cplCodeProperties;   /*!< Pointer to the coupled code properties */
+
+    int       _tag;                     /*!< Tag for MPI */
+    MPI_Group _unionGroup;              /*!< Union grou between coupled codes */
+    MPI_Comm  _unionComm;               /*!< Union communicator between coupled codes */
+
+    MPI_Group _cplGroup;                  /*!< Coupling group 
+                                          (part of merger inter communicator */
     MPI_Comm _cplComm;                  /*!< Coupling communicator 
                                           (part of merger inter communicator */
-    int      _cplCodeNRankCplComm;      /*!< Ranks number associated to the coupled code
+    int      _locCodeRootRankCplComm;  /*!< Root rank associated to the coupled code
                                           into the coupling communicator */
-    int      _cplCodeFirstRankCplComm;  /*!< First rank associated to the coupled code
+    int      _cplCodeRootRankCplComm;  /*!< Root rank associated to the coupled code
                                           into the coupling communicator */
-    CodeProperties *_localCodeProperties; /*!< Pointer to the local code properties */
-    CodeProperties *_cplCodeProperties;   /*!< Pointer to the coupled code properties */
+    bool      _isCplRank;               /*!< Is a current rank coupled */
   };
 }
 #endif //__COMMUNICATION_H__

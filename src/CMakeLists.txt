@@ -29,7 +29,7 @@ endif()
 # Sources list
 # ------------
 
-file(GLOB_RECURSE SOURCES 
+file(GLOB SOURCES 
      bft/*.[ch]
      fvm/*.[ch]
      *.[ch]
@@ -44,13 +44,21 @@ file(GLOB_RECURSE SOURCES
 #        ${CMAKE_SOURCE_DIR}/src/cwipi_set_output_logical_unit.f90)
 #endif()
 
-file(GLOB_RECURSE SOURCESF 
-     printfort.f90
-     cwipi_printfort.f90
-     callfortinterpfct.f90
-     cwipi_printfort_cf.cxx
-     cwipi_set_output_logical_unit.f90
-     cwipi_f.f90)
+get_target_property(PDM_INC pdm INCLUDE_DIRECTORIES)
+
+#file(GLOB_RECURSE SOURCESF 
+#     printfort.f90
+#     cwipi_printfort.f90
+#     callfortinterpfct.f90
+#     cwipi_printfort_cf.cxx
+#     cwp_printfort_cf.cxx
+#     cwipi_set_output_logical_unit.f90
+#     cwp_set_output_logical_unit_set.f90
+#     cwipi_f.f90)
+
+file(GLOB_RECURSE SOURCESF
+     fortran/*.[ch]xx
+     fortran/*.f90)
 
 add_library(cwp OBJECT ${SOURCES})
 
@@ -61,7 +69,10 @@ target_include_directories(cwp
                            PUBLIC  ${CMAKE_SOURCE_DIR}
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/fvm
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/bft)
+                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/bft
+                           PRIVATE ${PDM_INC}) 
+
+ add_dependencies(cwp pdm)
 
 if (CWP_ENABLE_Fortran)
  add_library(cwpf OBJECT ${SOURCESF})
@@ -73,7 +84,10 @@ if (CWP_ENABLE_Fortran)
                            PUBLIC    ${CMAKE_SOURCE_DIR}
                            PUBLIC    ${CMAKE_CURRENT_SOURCE_DIR}
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/fvm
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/bft)
+                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/bft
+                           PRIVATE ${PDM_INC}) 
+
+ add_dependencies(cwpf pdmf)
 
 endif()
 

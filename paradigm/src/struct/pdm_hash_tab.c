@@ -12,6 +12,8 @@
 
 #include "pdm.h"
 #include "pdm_hash_tab.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
 
 /*=============================================================================
  * Macro definitions
@@ -85,7 +87,7 @@ void                     *keyMax
     ht->keyMax = *((PDM_g_num_t *) keyMax);
   }
   else {
-    fprintf(stderr, "Error PDM_hash_tab_create : Unknown hey type");
+    PDM_error(__FILE__, __LINE__, 0, "Error PDM_hash_tab_create : Unknown hey type");
     abort();
   }
   
@@ -131,7 +133,7 @@ void           *data
     _key = *((PDM_g_num_t *) (key));
   }  
   else {
-	  fprintf(stderr, "PDM_hash_tab_data_add error : unknown PDM_hash_tab_key_t\n");
+	  PDM_error(__FILE__, __LINE__, 0, "PDM_hash_tab_data_add error : unknown PDM_hash_tab_key_t\n");
 		abort();
 	}
 	
@@ -173,7 +175,7 @@ void           *key
     _key = *((PDM_g_num_t *) (key));
   }
   else {
-	  fprintf(stderr, "PDM_hash_tab_data_free error : unknown PDM_hash_tab_key_t\n");
+	  PDM_error(__FILE__, __LINE__, 0, "PDM_hash_tab_data_free error : unknown PDM_hash_tab_key_t\n");
 		abort();
 	}
   
@@ -211,7 +213,7 @@ void           *key
     _key = *((PDM_g_num_t *) (key));
   }  
   else {
-	  fprintf(stderr, "PDM_hash_tab_data_get error : unknown PDM_hash_tab_key_t\n");
+	  PDM_error(__FILE__, __LINE__, 0, "PDM_hash_tab_data_get error : unknown PDM_hash_tab_key_t\n");
 		abort();
 	}
   return _ht->nDataKey[_key];
@@ -247,7 +249,7 @@ void           *key
     _key = *((PDM_g_num_t *) (key));
   }  
   else {
-	  fprintf(stderr, "PDM_hash_tab_data_get error : unknown PDM_hash_tab_key_t\n");
+	  PDM_error(__FILE__, __LINE__, 0, "PDM_hash_tab_data_get error : unknown PDM_hash_tab_key_t\n");
 		abort();
 	}
   return _ht->data[_key];

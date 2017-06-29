@@ -358,8 +358,10 @@ configure_file(fvmc_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/fvmc_config.h")
 configure_file(cwp_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/cwipi_config.h")
 
 if (CWP_ENABLE_Fortran)
-  include (FortranizeFile)
-  fortranize(${CMAKE_CURRENT_BINARY_DIR}/cwipi_config.h)
+  if ("${CMAKE_CURRENT_BINARY_DIR}/pdm_config.h" IS_NEWER_THAN  "${CMAKE_CURRENT_BINARY_DIR}/pdm_configf.h")
+    include (FortranizeFile)
+    fortranize(${CMAKE_CURRENT_BINARY_DIR}/cwipi_config.h)
+  endif ()
 endif ()
 
 #------------------------------------------------------------------------------

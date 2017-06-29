@@ -10,6 +10,8 @@
 
 #include "pdm_part_bound.h"
 #include "pdm_part_bound_priv.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -514,7 +516,7 @@ PDM_part_bound_distant_elt_set
     nConnectedElt = _part_bound->nConnectedElt[iBoundElt];
 
   if (iConnectedElt >= nConnectedElt) {
-    fprintf(stderr, "Error part_bound_distant_elt_set :"
+    PDM_error(__FILE__, __LINE__, 0, "Error part_bound_distant_elt_set :"
 	    "Error in edgeFace computing\n");
     abort();
   }
@@ -567,7 +569,7 @@ PDM_part_bound_distant_elt_get
     nConnectedElt = _part_bound->nConnectedElt[iBoundElt];
   
   if (iConnectedElt >= nConnectedElt) {
-    fprintf(stderr, "Error part_bound_distant_elt_get :"
+    PDM_error(__FILE__, __LINE__, 0, "Error part_bound_distant_elt_get :"
 	    "iConnectedElt > nConnectedElt\n");
     abort();
   }
@@ -602,7 +604,7 @@ PDM_part_bound_adjust_size
 {
   _part_bound_t *_part_bound = (_part_bound_t *) part_bound;
   if (nEltPartBound > _part_bound->nEltPartBound) {
-    fprintf(stderr, "Error _part_bound_adjust_size : Error this function" 
+    PDM_error(__FILE__, __LINE__, 0, "Error _part_bound_adjust_size : Error this function" 
                     "can't increase the size of part_bound structure\n");
     abort();
   }
@@ -687,9 +689,9 @@ PDM_part_bound_dump
     
     PDM_part_bound_cplx_t cplx = PDM_part_bound_cplx_get (part_bound);
     int nEltPartBound = PDM_part_bound_n_elt_bound_get (part_bound);
-    printf("PDM_part_bound :\n");
-    printf("  - cplx %d\n", cplx);
-    printf("  - nEltPartBound %d\n", nEltPartBound);
+    PDM_printf("PDM_part_bound :\n");
+    PDM_printf("  - cplx %d\n", cplx);
+    PDM_printf("  - nEltPartBound %d\n", nEltPartBound);
     for (int j = 0; j < nEltPartBound; j++) {
     
       int nConnectedElt;
@@ -700,8 +702,8 @@ PDM_part_bound_dump
                                     &localElt,
                                     &nConnectedElt);
       
-      printf("    - localElt %d\n", localElt);
-      printf("      - nConnectedElt %d\n", nConnectedElt);
+      PDM_printf("    - localElt %d\n", localElt);
+      PDM_printf("      - nConnectedElt %d\n", nConnectedElt);
       for (int k = 0; k < nConnectedElt; k++) {
         int iProc;
         int iPart;
@@ -714,11 +716,11 @@ PDM_part_bound_dump
                                         &iPart,
                                         &iElt,
                                         &iDistElt);
-        printf("        - %d %d %d %d (iproc iPart, iElt, iDistElt)\n", iProc, iPart, iElt, iDistElt);
+        PDM_printf("        - %d %d %d %d (iproc iPart, iElt, iDistElt)\n", iProc, iPart, iElt, iDistElt);
         
       }
       int nOfferElt = PDM_part_bound_n_offer_elt_get (part_bound, j+1);
-      printf("      - nOfferElt %d\n", nOfferElt);
+      PDM_printf("      - nOfferElt %d\n", nOfferElt);
       
       for (int k = 0; k < nOfferElt; k++) {
         int        lNum;
@@ -728,7 +730,7 @@ PDM_part_bound_dump
                                       k,
                                       &lNum,
                                       &gNum);
-        printf("        - %d "PDM_FMT_G_NUM" (lNum gNum)\n", lNum, gNum);
+        PDM_printf("        - %d "PDM_FMT_G_NUM" (lNum gNum)\n", lNum, gNum);
         
       }
     }

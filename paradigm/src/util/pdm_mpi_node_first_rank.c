@@ -22,6 +22,8 @@
 
 #include "pdm_mpi.h"
 #include "pdm_mpi_node_first_rank.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -118,7 +120,7 @@ PDM_MPI_Comm comm
   uint32_t checkSum = _adler32(hostname, hostnameLength);
 
   if (0 == 1)
-    fprintf(stdout, "-- hostname adlerCode %s %ud\n", hostname, checkSum);
+    PDM_printf( "-- hostname adlerCode %s %ud\n", hostname, checkSum);
 
   int commRank = -1;
   PDM_MPI_Comm_rank(comm, &commRank);
@@ -253,7 +255,7 @@ PDM_MPI_Comm comm
     int commSize;
     PDM_MPI_Comm_size(comm, &commSize);
     if (commRank == 0)
-      printf("Part of ranks for parallel IO : %d/%d\n", nbIORank, commSize);
+      PDM_printf("Part of ranks for parallel IO : %d/%d\n", nbIORank, commSize);
 
   }
 
@@ -330,7 +332,7 @@ size_t *hostname_length
     hostname = (char *)malloc(sizeof(char) * nHostname);
 
     if (hostname == NULL) {
-      fprintf(stderr, "allocating %lu bytes of memory for hostname failed: %s.\n",
+      PDM_error(__FILE__, __LINE__, 0, "allocating %lu bytes of memory for hostname failed: %s.\n",
               sizeof(char) * nHostname, strerror(errno));
       abort();
     }
@@ -348,7 +350,7 @@ size_t *hostname_length
         free(hostname);
         hostname = NULL;
 
-        fprintf(stderr, "gethostname failed with error %d: %s.\n", errno, strerror(errno));
+        PDM_error(__FILE__, __LINE__, 0, "gethostname failed with error %d: %s.\n", errno, strerror(errno));
         abort();
       }
 

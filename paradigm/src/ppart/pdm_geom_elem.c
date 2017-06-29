@@ -33,6 +33,8 @@
 #include "pdm_priv.h"
 #include "pdm_geom_elem.h"
 #include "pdm_hash_tab.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -1085,17 +1087,17 @@ PDM_geom_elem_polygon_properties
   } /* for (int ifac = 0; ifac < nPolygon; ifac++) */
  
   if (0 == 1) {
-    fprintf (stdout, "surfacevector : ");
+    PDM_printf( "surfacevector : ");
     for (int ifac = 0; ifac < 3*nPolygon; ifac++) {
-      fprintf (stdout, "%12.5e ",surfaceVector[ifac]);
+      PDM_printf( "%12.5e ",surfaceVector[ifac]);
     }
-    fprintf (stdout, "\n");
+    PDM_printf( "\n");
       
-    fprintf (stdout, "center : ");
+    PDM_printf( "center : ");
     for (int ifac = 0; ifac < 3*nPolygon; ifac++) {
-      fprintf (stdout, "%12.5e ",center[ifac]);
+      PDM_printf( "%12.5e ",center[ifac]);
     }
-    fprintf (stdout, "\n");
+    PDM_printf( "\n");
   }
   return convergence;
 }
@@ -1437,26 +1439,26 @@ PDM_geom_elem_polyhedra_properties
 
   if (0 == 1) {
 
-    fprintf (stdout, "faceConnectivity : \n");
+    PDM_printf( "faceConnectivity : \n");
     for (int ipoly = 0; ipoly < nFace; ipoly++) {
-      fprintf (stdout, "  - face %i : ", ipoly+1);
+      PDM_printf( "  - face %i : ", ipoly+1);
       for (int j = faceConnectivityIdx[ipoly]; j < faceConnectivityIdx[ipoly+1]; j++) {
-        fprintf (stdout, "%i ",faceConnectivity[j]);
+        PDM_printf( "%i ",faceConnectivity[j]);
       }
-      fprintf (stdout, "\n");
+      PDM_printf( "\n");
     }
 
-    fprintf (stdout, "surfacevector : ");
+    PDM_printf( "surfacevector : ");
     for (int ipoly = 0; ipoly < 3 * nFace; ipoly++) {
-      fprintf (stdout, "%12.5e ",surfaceVector[ipoly]);
+      PDM_printf( "%12.5e ",surfaceVector[ipoly]);
     }
-    fprintf (stdout, "\n");
+    PDM_printf( "\n");
       
-    fprintf (stdout, "facecenter : ");
+    PDM_printf( "facecenter : ");
     for (int ipoly = 0; ipoly < 3 * nFace; ipoly++) {
-      fprintf (stdout, "%12.5e ",faceCenter[ipoly]);
+      PDM_printf( "%12.5e ",faceCenter[ipoly]);
     }
-    fprintf (stdout, "\n");
+    PDM_printf( "\n");
   }
 
   /*
@@ -1795,7 +1797,7 @@ PDM_geom_elem_polyhedra_properties
       }
 
       else {
-        fprintf (stdout, "Warning polyhedraProperties : volume < 0 for polyhedron '%i'\n", 
+        PDM_printf( "Warning polyhedraProperties : volume < 0 for polyhedron '%i'\n", 
                     ipoly + 1);
       }
     } 
@@ -1850,41 +1852,41 @@ PDM_geom_elem_polyhedra_properties
 
   if (0 == 1) {
 
-    fprintf (stdout, "surfacevector : ");
+    PDM_printf( "surfacevector : ");
     for (int ipoly = 0; ipoly < 3 * nFace; ipoly++) {
-      fprintf (stdout, "%12.5e ",surfaceVector[ipoly]);
+      PDM_printf( "%12.5e ",surfaceVector[ipoly]);
     }
-    fprintf (stdout, "\n");
+    PDM_printf( "\n");
 
-    fprintf (stdout, "facecenter : ");
+    PDM_printf( "facecenter : ");
     for (int ipoly = 0; ipoly < 3 * nFace; ipoly++) {
-      fprintf (stdout, "%12.5e ",faceCenter[ipoly]);
+      PDM_printf( "%12.5e ",faceCenter[ipoly]);
     }
-    fprintf (stdout, "\n");
+    PDM_printf( "\n");
 
-    fprintf (stdout, "isDegenrated : ");
+    PDM_printf( "isDegenrated : ");
     for (int ipoly = 0; ipoly < nPolyhedra; ipoly++) {
-      fprintf (stdout, "%i ",isDegenerated[ipoly]);
+      PDM_printf( "%i ",isDegenerated[ipoly]);
     }
-    fprintf (stdout, "\n");
+    PDM_printf( "\n");
 
-    fprintf (stdout, "characteristicLength  : ");
+    PDM_printf( "characteristicLength  : ");
     for (int ipoly = 0; ipoly < nPolyhedra; ipoly++) {
-      fprintf (stdout, "%12.5e ",characteristicLength[ipoly]);
+      PDM_printf( "%12.5e ",characteristicLength[ipoly]);
     }
-    fprintf (stdout, "\n");
+    PDM_printf( "\n");
 
-    fprintf (stdout, "volume  : ");
+    PDM_printf( "volume  : ");
     for (int ipoly = 0; ipoly < nPolyhedra; ipoly++) {
-      fprintf (stdout, "%12.5e ",volume[ipoly]);
+      PDM_printf( "%12.5e ",volume[ipoly]);
     }
-    fprintf (stdout, "\n");
+    PDM_printf( "\n");
 
-    fprintf (stdout, "center  : ");
+    PDM_printf( "center  : ");
     for (int ipoly = 0; ipoly < 3 * nPolyhedra; ipoly++) {
-      fprintf (stdout, "%12.5e ",center[ipoly]);
+      PDM_printf( "%12.5e ",center[ipoly]);
     }
-    fprintf (stdout, "\n");
+    PDM_printf( "\n");
 
   }
 
@@ -1893,7 +1895,7 @@ PDM_geom_elem_polyhedra_properties
   free (colorVertice);
 
   if (!convergence)
-    fprintf (stdout, "Warning polyhedraProperties : some polyhedra faces are not planar\n");
+    PDM_printf( "Warning polyhedraProperties : some polyhedra faces are not planar\n");
     
 }
 

@@ -3,7 +3,7 @@
 /*
   This file is part of the CWIPI library. 
 
-  Copyright (C) 2011  ONERA
+  Copyright (C) 2011-2017  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -23,7 +23,7 @@
 #include <map>
 #include <vector>
 
-#include <bftc_printf.h>
+#include "pdm_printf.h"
 
 #include "cwp.h"
 #include "singleton.hpp"
@@ -64,19 +64,27 @@ namespace cwipi {
      * the current name and the MPI communicator containing all processes of
      * all codes.
      *
-     * \param [in]  name         Current code name
-     * \param [in]  globalComm   MPI communicator containing all processes 
-     *                           of all codes
-     *
-     * \return                   Current code intra-communicator
+     * \param [in]  globalComm      MPI communicator containing all processes 
+     *                              of all codes
+     * \param [in]  n_codes         Number of codes on the current rank
+     * \param [in]  code_names      Codes names on the current rank  (\ref n_codes)
+     * \param [in]  is_coupled_rank Current rank is it a coupled rank (\ref n_codes)
+     * \param [in]  n_param_max     Maximum number of parameters
+     * \param [in]  str_size_max    Maximum size for a string
+     * \param [out] intra_coms      Current codes intra-communicators  (\ref n_codes)
      *
      */
 
-    MPI_Comm 
+    void 
     init
     (
-     const char* name, 
-     const MPI_Comm globalComm
+     const MPI_Comm     globalComm,
+     const int          n_codes,
+     const char**       code_names, 
+     const CWP_Status_t *is_coupled_rank,
+     const int          n_param_max,
+     const int          str_size_max,      
+     MPI_Comm           *intra_comms
     );
 
     /**
@@ -89,19 +97,25 @@ namespace cwipi {
     inline void 
     printfProxySet
     (
-     bftc_printf_proxy_t *const proxyFunction
+     PDM_printf_proxy_t *const proxyFunction
     );
 
     /**
-     * \brief Return local code MPI intra communicator.
-     *
-     * \return  MPI Intra communicator
-     *
-     */
+      * \brief Return local code MPI intra communicator.
+      *
+      * \parm[in]   localCodeName  Local code name
+      * 
+      * \return  MPI Intra communicator
+      *
+      */
 
     inline const MPI_Comm &
-    intraCommGet() const;
+    intraCommGet
+    (
+     const string & localCodeName
+    ) const;
 
+     
     /**
      * \brief Return MPI communicator containing all processes of all codes.
      *
@@ -112,58 +126,9 @@ namespace cwipi {
     inline const MPI_Comm &
     globalCommGet() const;
 
+    
     /**
-     * \brief Return the current code first rank into the global communicator.
-     *
-     * \return MPI rank
-     *
-     */
-
-    inline const int &
-    locFirstRankGet() const;
-
-    /**
-     * \brief Return the current code last rank into the global communicator.
-     *
-     * \return MPI rank
-     *
-     */
-
-    inline const int &
-    locLastRankGet() const;
-
-    /**
-     * \brief Return the distant code first rank into the global communicator.
-     *
-     * \param [in]  codeName  Code name
-     *
-     * \return      MPI rank
-     *
-     */
-
-    inline const int &
-    distFirstRankGet
-    (
-     const string &codeName
-    ) const;
-
-    /**
-     * \brief Return the distant code last rank into the global communicator.
-     *
-     * \param [in]  codeName  Code name
-     *
-     * \return      MPI rank
-     *
-     */
-
-    inline const int &
-    distLastRankGet
-    (
-     const string &codeName
-    ) const;
-
-    /**
-     * \brief Return the distant code properties.
+     * \brief Return the code properties.
      *
      * \param [in]  codeName  Code name
      *
@@ -172,125 +137,120 @@ namespace cwipi {
      */
 
     inline const CodeProperties &
-    distCodePropertiesGet
+    codePropertiesGet
     (
      const string &codeName
     ) const;
 
+    
     /**
-     * \brief Return the current code properties.
+     * \brief Return the number of codes known to CWIPI
      *
-     * \param [in]  codeName  Code name
-     *
-     * \return      Properties
+     * \return   Number of codes
      *
      */
 
-    inline const CodeProperties &
-    locCodePropertiesGet() const ;
-
-    /**
-     * \brief Return number of local parameters
-     *
-     * \return  Number of parameters
-     *
-     */
-
-    template < typename T > 
-    int 
-    locCtrlParamNGet() const;
-
-    /**
-     * \brief Return of local parameters
-     *
-     * \return  List of parameters
-     *
-     */
-
-    template < typename T > 
-    char **
-    locCtrlParamListGet() const;
-
-    /**
-     * \brief Chek name parameter
-     *
-     * \param [in]  name  Parameter name to check
-     *
-     * \return  1 : true / 0 : false
-     *
-     */
-
-    template < typename T > 
-    int
-    locCtrlParamIs
+    inline int
+    codesNbGet
     (
-     const string &name
     ) const;
 
+    
     /**
-     * \brief Add a control paramater.
+     * \brief Return the number of localccodes known to CWIPI
      *
-     * \param [in]  name   Parameter name
-     * \param [in]  value  Initial value 
+     * \return   Number of local codes
      *
      */
 
-    template < typename T > 
-    void 
-    locCtrlParamAdd
+    inline int
+    localCodesNbGet
     (
-     const string &name, 
-     const T       value
-    );
+    ) const;
+
+    
+    /**
+     * \brief Return the number of codes known to CWIPI
+     *
+     * \return   Number of codes
+     *
+     */
+
+    inline const char **
+    codesListGet
+    (
+    ) const;
+
+    
+    /**
+     * \brief Return the number of localccodes known to CWIPI
+     *
+     * \return   Number of local codes
+     *
+     */
+
+    inline const char **
+    localCodesListGet
+    (
+    ) const;
+
 
     /**
      * \brief Set a control paramater.
      *
-     * \param [in]  name   Parameter name
-     * \param [in]  value  Initial value 
+     * \param [in]  localCodeName   Local code name
+     * \param [in]  name            Parameter name
+     * \param [in]  value           Initial value 
      *
      */
-
+    
     template < typename T > 
     void 
-    locCtrlParamSet
+    ctrlParamAdd
     (
+     const string &localCodeName, 
      const string &name, 
      const T       value
     );
 
+
     /**
-     * \brief Get a control paramater.
+     * \brief Set a control paramater.
      *
-     * \param [in]  name   Parameter name
-     *
-     * \return             Value           
+     * \param [in]  localCodeName   Local code name
+     * \param [in]  name            Parameter name
+     * \param [in]  value           Initial value 
      *
      */
-
+    
     template < typename T > 
-    const T &
-    locCtrlParamGet
+    void 
+    ctrlParamSet
     (
-     const string &name
+     const string &localCodeName, 
+     const string &name, 
+     const T       value
     );
 
+    
     /**
      * \brief Cancel a control paramater.
      *
-     * \param [in]  name   Parameter name
+     * \param [in]  localCodeName   Local code name
+     * \param [in]  name            Parameter name
      *
      */
 
     template < typename T > 
     void 
-    locCtrlParamCancel
+    ctrlParamCancel
     (
+     const string &localCodeName, 
      const string &name
     );
 
     /**
-     * \brief Return number of local parameters
+     * \brief Return the number of parameters
      *
      * \param [in]  codeName  Code name
      *
@@ -300,14 +260,14 @@ namespace cwipi {
 
     template < typename T > 
     int 
-    distCtrlParamNGet
+    ctrlParamNGet
     (
      const string &codeName
     ) const;
 
 
     /**
-     * \brief Return of local parameters
+     * \brief Return of the list of parameters
      *
      * \param [in]  codeName  Code name
      *
@@ -316,18 +276,19 @@ namespace cwipi {
      */
 
     template < typename T > 
-    char **
-    distCtrlParamListGet
+    void
+    ctrlParamListGet
     (
-     const string &codeName
+     const string &codeName,
+     int  *nParam,
+     char ***paramNames
     ) const;
 
-
     /**
-     * \brief Chek name parameter
+     * \brief Chek name parameter existence
      *
-     * \param [in]  codeName  Code name
-     * \param [in]  name  Parameter name to check
+     * \param [in]  codeName   Code name
+     * \param [in]  name       Parameter to check
      *
      * \return  1 : true / 0 : false
      *
@@ -335,7 +296,7 @@ namespace cwipi {
 
     template < typename T > 
     int
-    distCtrlParamIs
+    ctrlParamIs
     (
      const string &codeName,
      const string &name
@@ -343,7 +304,7 @@ namespace cwipi {
 
 
     /**
-     * \brief Get a distant control paramater.
+     * \brief Get the value of a control paramater.
      *
      * \param [in]  codeName  Code name
      * \param [in]  name      Parameter name
@@ -353,15 +314,16 @@ namespace cwipi {
      */
 
     template < typename T > 
-    const T &
-    distCtrlParamGet
+    const T
+    ctrlParamGet
     (
       const string &codeName,
       const string &name
     );
 
     /**
-     * \brief Reduce a parameter.
+     * \brief Reduce a parameter through a list of codes. The available processes
+     *        are sum, max and min. 
      *
      * \param [in]  op     Operator from \ref CWP_Op_t
      * \param [in]  name   Parameter name
@@ -376,7 +338,7 @@ namespace cwipi {
     void
     ctrlParamReduce
     (
-     const CWP_Op_t op, 
+     const CWP_Op_t  op, 
      const string    &name,
      T               *res,
      const int        nCode,
@@ -394,18 +356,28 @@ namespace cwipi {
     /**
      * \brief Lock access to local parameters from a distant code  
      *
-     */
-
-    inline void 
-    lock();
-
-    /**
-     * \brief unlock access to local parameters from a distant code  
+     * \param [in]  codeName  Code name to lock
      *
      */
 
     inline void 
-    unLock();
+    lock
+    (
+    const string &codeName
+    );
+
+    /**
+     * \brief unlock access to local parameters from a distant code  
+     *
+     * \param [in]  codeName  Code name to unlock
+     *
+     */
+
+    inline void 
+    unLock
+    (
+    const string &codeName
+    );
 
   private:
 
@@ -444,222 +416,17 @@ namespace cwipi {
 
     virtual ~CodePropertiesDB();
 
-    /**
-     * \brief Parameters non blocking send
-     *
-     */
-
-    template < typename T > 
-    void 
-    _issendParameters();
-
-    /**
-     * \brief Compute the buffer length to send int values
-     *
-     * \param[in] locCtrlParam  Local control parameters  
-     *
-     * \return   Buffer length
-     *
-     */
-
-    inline int 
-    _issendLBuffGet
-    (
-     map <string, int> &locCtrlParam
-     );
-
-    /**
-     * \brief Compute the buffer length to send double values
-     *
-     * \param[in] locCtrlParam  Local control parameters  
-     *
-     * \return   Buffer length
-     *
-     */
-
-    inline int
-    _issendLBuffGet
-    (
-     map <string, double> &locCtrlParam
-    );
-
-    /**
-     * \brief Compute the buffer length to send string values
-     *
-     * \param[in] locCtrlParam  Local control parameters  
-     *
-     * \return   Buffer length
-     *
-     */
-
-    inline int
-    _issendLBuffGet
-    (
-     map <string, string> &locCtrlParam
-    );
-
-    /**
-     * \brief Copy int values into the buffer
-     *
-     * \param[in] buff            Buffer  
-     * \param[in] locCtrlParam  Local control parameters  
-     *
-     */
-
-    inline void
-    _issendBuffCopy
-    (
-     unsigned char      *buff,
-     map <string, int> &locCtrlParam
-     );
-
-    /**
-     * \brief Copy double values into the buffer
-     *
-     * \param[in] buff            Buffer  
-     * \param[in] locCtrlParam  Local control parameters  
-     *
-     */
-
-    inline void
-    _issendBuffCopy
-    (
-     unsigned char        *buff,
-     map <string, double> &locCtrlParam
-     );
-    
-    /**
-     * \brief Copy double values into the buffer
-     *
-     * \param[in] buff            Buffer  
-     * \param[in] locCtrlParam  Local control parameters  
-     *
-     */
-
-    inline void
-    _issendBuffCopy
-    (
-     unsigned char        *buff,
-     map <string, string> &locCtrlParam
-    );
-
-
-    /**
-     * \brief Define int values from the received buffer
-     *
-     * \param[in] lNames          Total length of parameters names 
-     * \param[in] buff            Buffer  
-     * \param[in] distCtrlParam   Distant control parameters  
-     *
-     */
-
-    inline void
-    _irecvBuffCopy
-    (
-     const int            lNames,
-     const unsigned char *buff,
-     map <string, int>   &distCtrlParam
-     );
-
-
-    /**
-     * \brief Define double values from the received buffer
-     *
-     * \param[in] lNames          Total length of parameters names 
-     * \param[in] buff            Buffer  
-     * \param[in] distCtrlParam   Distant control parameters  
-     *
-     */
-
-    inline void
-    _irecvBuffCopy
-    (
-     const int             lNames,
-     const unsigned char  *buff,
-     map <string, double> &distCtrlParam
-     );
-
-    /**
-     * \brief Define string values from the received buffer
-     *
-     * \param[in] lNames          Total length of parameters names 
-     * \param[in] buff            Buffer  
-     * \param[in] distCtrlParam   Distant control parameters  
-     *
-     */
-
-    inline void
-    _irecvBuffCopy
-    (
-     const int             lNames,
-     const unsigned char  *buff,
-     map <string, string> &distCtrlParam
-     );
-
-    /**
-     * \brief Lock status non blocking sending
-     *
-     */
-
-    void 
-    _issendLock();
-
-    /**
-     * \brief Non blocking sending of parameters issend cancellation
-     *
-     */
-
-    template < typename T > 
-    void 
-    _issendParameterCancel();
-
-    /**
-     * \brief Get parameter lock status of a distant code
-     *
-     * \param [in]  codeName   Distant code name
-     *
-     */
-
-    void 
-    _lockStatusGet
-    (
-     const string &codeName
-    );
-
-    /**
-     * \brief Receive parameter from a distant code
-     *
-     * \param [in]  codeName   Distant code name
-     *
-     */
-
-    template < typename T > 
-    void 
-    _irecvParameters
-    (
-     const string &codeName
-    );
-
   private:
-    map <string, CodeProperties * > & _distCodePropertiesDB;       /*!< Distant code 
-                                                                           properties data base */
-    CodeProperties                  * _locCodeProperties;           /*!< Local code properties */
+    MPI_Comm                          _globalComm;             /*!< Global communicator */  
+    map <string, CodeProperties * > & _codePropertiesDB;       /*!< Distant code 
+                                                                    properties data base */
+    map <string, CodeProperties * > & _locCodePropertiesDB;    /*!< Local code properties */
+    
+    bool                               _isLocalCodeRootrank;   /*!< Current is it a local root rank 
+                                                                *   in the global communicator */ 
+    int                                _n_param_max;           /*!< Maximum number of parameters */  
+    int                                _str_size_max;          /*!< Maximum size for a string */
 
-    map < string, map < string, vector<MPI_Request> * > > _issendMPIrequest; /*!< MPI Request for 
-                                                                                  parameter sending */
-    map<string, string>               _issendNameBuffs;               /*!< Issend buffers to storage 
-                                                                           parameter names */
-    map<string, vector<unsigned char > > _issendValBuffs;             /*!< Issend buffers to storage 
-                                                                           parameter values */
-    string                            _recvNameBuff;                  /*!< Receive buffer to storage 
-                                                                           distant parameter names */
-    vector<unsigned char>             _recvValBuff;                   /*!< Receive buffer to storage 
-                                                                           distant parameter values */
-    map <string, int>                 _distLockStatus;             /*!< Parameters lock status of
-                                                                           distant applications */ 
-    map <string, MPI_Request >        _issendLockMPIrequest;          /*!< MPI request for parameter 
-                                                                           lock status sending */ 
-    int                               _issendLockStatus;              /*!< Parameter lock status */
   private:
     static const int _nIssend;                                        /*!< Number of issend 
                                                                            to send parameters */

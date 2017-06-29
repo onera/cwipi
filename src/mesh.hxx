@@ -3,7 +3,7 @@
 /*
   This file is part of the CWIPI library. 
 
-  Copyright (C) 2011  ONERA
+  Copyright (C) 2012  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -19,259 +19,55 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <algorithm>
-#include <vector>
-
-#include <mpi.h>
-
-#include <fvmc_nodal.h>
-#include <bftc_error.h>
-
 namespace cwipi {
 
+  /** 
+   * \class Support support.hxx "support.hxx"
+   * \brief Geometry support
+   *
+   *  This class computes defines th geometry support (mesh)
+   * 
+   */
+
   class Mesh {
-
+    
   public:
-    Mesh(const MPI_Comm &localComm,
-         const int nDim,
-         const int nVertex,
-         const int nElts,
-         double* coords,
-         int *eltConnectivityIndex,
-         int *eltConnectivity);
 
-    Mesh(const MPI_Comm &localComm,
-         fvmc_nodal_t* fvmc_nodal);
+    /**
+     * \brief Constructor
+     *
+     */
+
+    Mesh ();
+
+    /**
+     * \brief Destructor
+     *
+     */
 
     virtual ~Mesh();
 
-    void addPolyhedra(const int nElt,
-                      int *faceIndex,
-                      int *cellToFaceConnectivity,
-                      const int nFace,
-                      int *faceConnectivityIndex,
-                      int *faceConnectivity);
-
-    inline const int& getNVertex() const;
-
-    inline const double* getVertexCoords() const;
-
-    inline fvmc_nodal_t& getFvmNodal() const;
-
-    inline fvmc_nodal_t& getFvmNodal();
-
-    inline const int& getNElts() const;
-
-    inline const int& getNPolyhedra() const;
-
-    inline const int* getEltConnectivityIndex() const;
-
-    inline const int* getEltConnectivity() const;
-
-    inline const std::vector<double>& getVolume();
-
-    inline const std::vector<double>& getCellCenterCoords();
-
-    inline const std::vector<double>& getNormalFace();    
-
-    inline const std::vector<double>& getCharacteristicLength();    
-
-    inline const std::vector<int>& getIsDegenerated();    
-
-    inline const int *getPolyhedraFaceIndex() const;
-
-    inline const int *getPolyhedraCellToFaceConnectivity() const;
-
-    inline const int *getPolyhedraFaceConnectivityIndex() const;
-
-    inline const int *getPolyhedraFaceConnectivity() const;
-
-    inline const std::vector<int>& getPolyhedraCellToVertexConnectivity();
-
-    inline const std::vector<int>& getPolyhedraCellToVertexConnectivityIndex();
-
-    void update();
-
-  private :
-    Mesh();
-
-    Mesh(const Mesh&);
-
-    Mesh& operator=(const Mesh&);
-
-  protected :
-
-    void _computeCellCenterCoordsWithVertex(const int i,
-                                            const int nCurrentEltVertex,
-                                            const int index,
-                                            const int *eltConnectivity,
-                                            std::vector<double> *cellCenterCoords) ;
-
-    void _computeMeshProperties1D() ;
-
-    void _computeMeshProperties2D();
-
-    void _computeMeshProperties3D();
-
-    void _computeMeshProperties();
-
-    void _finalizeNodal();
-
-    void _computeMeshPolyhedraProperties();
-
 
   private:
-    // TODO: renommer _nDim par entitesDim
-    const MPI_Comm & _localComm;
-    int            _nDim;
-    int           _nVertex;
-    int           _nElts;
-    int           _nPolyhedra;
-    double       *_coords;
-    int          *_polygonIndex;
+    
+  //   Support &operator=(const Support &other);  /*!< Assigment operator not available */
+  //   Support (const Support& other);            /*!< Copy constructor not available */
 
-    int          *_eltConnectivityIndex;
-    int          *_eltConnectivity;
-
-    int              *_polyhedraFaceIndex;
-    int              *_polyhedraCellToFaceConnectivity;
-
-    int              _polyhedraNFace;
-    int              *_polyhedraFaceConnectivityIndex;
-    int              *_polyhedraFaceConnectivity;
-
-    std::vector<int> *_polyhedraCellToVertexConnectivity;
-    std::vector<int> *_polyhedraCellToVertexConnectivityIndex;
-
-    bool         _isNodalFinalized;
-
-    std::vector<double>  *_cellCenterCoords;
-    std::vector<double>  *_cellVolume;
-    fvmc_nodal_t *_fvmNodal;
-    std::vector<double>  *_normalFace;
-    std::vector<double>  *_characteristicLength;
-    std::vector<int>     *_isDegenerated;
+  // private:
+  //   std::vector<double>         *_tmpVertexField;  // Evite une allocation a chaque extrapolation
+  //   std::vector<double>         *_tmpDistantField; //TODO: Fusionner _tmpDistantField utiliser pour exchange
+  //                                          // et les comm asynchrones
+  //   std::map<int, std::vector<double> * > &_tmpDistantFieldsIssend; //TODO: temporaire : A revoir lors
+  //                                                                   // de la restructuration
+  //   std::map<int, const double * >        &_tmpLocalFieldsIrecv;
+  //   std::map<int, const char * >          &_tmpExchangeNameIrecv;
+  //   std::map<int, int >                   &_tmpStrideIrecv;
+  //   std::map<int, int >                   &_tmpTimeStepIrecv;
+  //   std::map<int, double >                &_tmpTimeValueIrecv;
+  //   std::map<int, const char * >          &_tmpFieldNameIrecv;
+  //   Support                                *support;
   };
-
-  const int& Mesh::getNVertex()  const
-  {
-    return _nVertex;
-  }
-
-  const double* Mesh::getVertexCoords()  const
-  {
-    return _coords;
-  }
-
-  fvmc_nodal_t& Mesh::getFvmNodal()
-  {
-    _finalizeNodal();
-    return *_fvmNodal;
-  }
-
-  fvmc_nodal_t& Mesh::getFvmNodal() const 
-  {
-    if (! _isNodalFinalized) {
-      bftc_error(__FILE__, __LINE__, 0, "'%i' bad dimension\n", _nDim);
-    }
-    return *_fvmNodal;
-  }
-
-  const int& Mesh::getNElts() const
-  {
-    return _nElts;
-  }
-
-  const int& Mesh::getNPolyhedra() const
-  {
-    return _nPolyhedra;
-  }
-
-  const int* Mesh::getEltConnectivityIndex() const
-  {
-    return _eltConnectivityIndex;
-  }
-
-  const int* Mesh::getEltConnectivity() const
-  {
-    return _eltConnectivity;
-  }
-
-  const std::vector<double>& Mesh::getVolume()
-  {
-    if (_cellVolume == NULL)
-      _computeMeshProperties();
-    return *_cellVolume;
-  }
-
-  const std::vector<double>& Mesh::getCellCenterCoords()
-  {
-    if (_cellCenterCoords == NULL)
-      _computeMeshProperties();
-
-    return *_cellCenterCoords;
-  }
-
-  const std::vector<double>& Mesh::getNormalFace()
-  {
-    if (_normalFace == NULL)
-      _computeMeshProperties();
-
-    return *_normalFace;
-  }
-
-  inline const std::vector<double>& Mesh::getCharacteristicLength()
-  {
-    if (_characteristicLength == NULL)
-      _computeMeshProperties();
-
-    return *_characteristicLength;
-  }
-
-  inline const std::vector<int>& Mesh::getIsDegenerated()
-  {
-    if (_isDegenerated == NULL)
-      _computeMeshProperties();
-
-    return *_isDegenerated;
-  }
-
-  const int *Mesh::getPolyhedraFaceIndex() const
-  {
-    return _polyhedraFaceIndex;
-  }
-
-  const int *Mesh::getPolyhedraCellToFaceConnectivity() const
-  {
-    return _polyhedraCellToFaceConnectivity;
-  }
-
-  const int *Mesh::getPolyhedraFaceConnectivityIndex() const
-  {
-    return _polyhedraFaceConnectivityIndex;
-  }
-
-  const int *Mesh::getPolyhedraFaceConnectivity() const
-  {
-    return _polyhedraFaceConnectivity;
-  }
-
-  const std::vector<int>& Mesh::getPolyhedraCellToVertexConnectivity()
-  {
-    if (_polyhedraCellToVertexConnectivity == NULL)
-      _computeMeshPolyhedraProperties();
-    
-    return *_polyhedraCellToVertexConnectivity;
-  }
-  
-  const std::vector<int>& Mesh::getPolyhedraCellToVertexConnectivityIndex()
-  {
-    if (_polyhedraCellToVertexConnectivityIndex == NULL)
-      _computeMeshPolyhedraProperties();
-    
-    return *_polyhedraCellToVertexConnectivityIndex;
-  }
 
 }
 
-#endif //__COUPLING_MESH_H__
+#endif //__SUPPORT_H__

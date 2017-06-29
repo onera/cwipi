@@ -147,29 +147,29 @@ check_PROGRAMS = c_linear_coupling$(EXEEXT) \
 	c_vol_coupling_polyhedra_P1P1_with_external_points$(EXEEXT) \
 	c_vol_coupling_micro_polyhedra_P1P1$(EXEEXT) $(am__EXEEXT_1)
 @HAVE_FORTRAN_TRUE@am__append_1 = fortran_surf_P1P1 fortran_surf_P1P1_savememory
-@HAVE_FORTRAN_TRUE@am__append_2 = $(top_builddir)/src/libcwipi_f.la
-@HAVE_FORTRAN_TRUE@am__append_3 = $(top_builddir)/src/libcwipi_f.la
-@HAVE_FORTRAN_TRUE@am__append_4 = $(top_builddir)/src/libcwipi_f.la
-@HAVE_FORTRAN_TRUE@am__append_5 = $(top_builddir)/src/libcwipi_f.la
-@HAVE_FORTRAN_TRUE@am__append_6 = $(top_builddir)/src/libcwipi_f.la
-@HAVE_FORTRAN_TRUE@am__append_7 = $(top_builddir)/src/libcwipi_f.la
-@HAVE_FORTRAN_TRUE@am__append_8 = $(top_builddir)/src/libcwipi_f.la
-@HAVE_FORTRAN_TRUE@am__append_9 = $(top_builddir)/src/libcwipi_f.la
-@HAVE_FORTRAN_TRUE@am__append_10 = $(top_builddir)/src/libcwipi_f.la
-@HAVE_FORTRAN_TRUE@am__append_11 = $(top_builddir)/src/libcwipi_f.la
-@HAVE_FORTRAN_TRUE@am__append_12 = $(top_builddir)/src/libcwipi_f.la
-@HAVE_FORTRAN_TRUE@am__append_13 = $(top_builddir)/src/libcwipi_f.la
-@HAVE_FORTRAN_TRUE@am__append_14 = $(top_builddir)/src/libcwipi_f.la
-@HAVE_FORTRAN_TRUE@am__append_15 = $(top_builddir)/src/libcwipi_f.la
-@HAVE_FORTRAN_TRUE@am__append_16 = $(top_builddir)/src/libcwipi_f.la
-@HAVE_FORTRAN_TRUE@am__append_17 = $(top_builddir)/src/libcwipi_f.la
-@HAVE_FORTRAN_TRUE@am__append_18 = $(top_builddir)/src/libcwipi_f.la
-@HAVE_FORTRAN_TRUE@am__append_19 = $(top_builddir)/src/libcwipi_f.la
-@HAVE_FORTRAN_TRUE@am__append_20 = $(top_builddir)/src/libcwipi_f.la
-@HAVE_FORTRAN_TRUE@am__append_21 = $(top_builddir)/src/libcwipi_f.la
-@HAVE_FORTRAN_TRUE@am__append_22 = $(top_builddir)/src/libcwipi_f.la
-@HAVE_FORTRAN_TRUE@am__append_23 = $(top_builddir)/src/libcwipi_f.la
-@HAVE_FORTRAN_TRUE@am__append_24 = $(top_builddir)/src/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_2 = $(top_builddir)/src/fortran/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_3 = $(top_builddir)/src/fortran/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_4 = $(top_builddir)/src/fortran/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_5 = $(top_builddir)/src/fortran/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_6 = $(top_builddir)/src/fortran/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_7 = $(top_builddir)/src/fortran/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_8 = $(top_builddir)/src/fortran/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_9 = $(top_builddir)/src/fortran/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_10 = $(top_builddir)/src/fortran/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_11 = $(top_builddir)/src/fortran/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_12 = $(top_builddir)/src/fortran/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_13 = $(top_builddir)/src/fortran/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_14 = $(top_builddir)/src/fortran/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_15 = $(top_builddir)/src/fortran/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_16 = $(top_builddir)/src/fortran/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_17 = $(top_builddir)/src/fortran/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_18 = $(top_builddir)/src/fortran/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_19 = $(top_builddir)/src/fortran/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_20 = $(top_builddir)/src/fortran/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_21 = $(top_builddir)/src/fortran/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_22 = $(top_builddir)/src/fortran/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_23 = $(top_builddir)/src/fortran/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@am__append_24 = $(top_builddir)/src/fortran/libcwipi_f.la
 TESTS = c_linear_coupling$(EXEEXT) \
 	c_surf_coupling_P1P1_micron_polygon$(EXEEXT) \
 	c_surf_coupling_P1P1_polygon$(EXEEXT) \
@@ -406,7 +406,7 @@ fortran_surf_P1P1_OBJECTS = $(am_fortran_surf_P1P1_OBJECTS)
 @HAVE_FORTRAN_TRUE@	$(top_builddir)/src/bft/libbftc.la \
 @HAVE_FORTRAN_TRUE@	$(top_builddir)/src/fvm/libfvmc.la \
 @HAVE_FORTRAN_TRUE@	$(top_builddir)/src/libcwipi.la \
-@HAVE_FORTRAN_TRUE@	$(top_builddir)/src/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@	$(top_builddir)/src/fortran/libcwipi_f.la
 am__fortran_surf_P1P1_savememory_SOURCES_DIST =  \
 	fortran_surf_P1P1_savememory.f90
 @HAVE_FORTRAN_TRUE@am_fortran_surf_P1P1_savememory_OBJECTS =  \
@@ -417,7 +417,7 @@ fortran_surf_P1P1_savememory_OBJECTS =  \
 @HAVE_FORTRAN_TRUE@	$(top_builddir)/src/bft/libbftc.la \
 @HAVE_FORTRAN_TRUE@	$(top_builddir)/src/fvm/libfvmc.la \
 @HAVE_FORTRAN_TRUE@	$(top_builddir)/src/libcwipi.la \
-@HAVE_FORTRAN_TRUE@	$(top_builddir)/src/libcwipi_f.la
+@HAVE_FORTRAN_TRUE@	$(top_builddir)/src/fortran/libcwipi_f.la
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -908,6 +908,7 @@ AUTOMAKE_OPTIONS = foreign
 # Main part
 AM_CPPFLAGS = \
 -I$(top_builddir)/src \
+-I$(top_builddir)/src/fortran \
 -I$(top_srcdir)/src \
 -I$(top_srcdir)/src/bft \
 -I$(top_srcdir)/src/fvm \
@@ -916,7 +917,7 @@ $(DEBUG_CPPFLAGS) \
 
 AM_CFLAGS = 
 AM_LDFLAGS = @MPI_LDFLAGS@ 
-AM_FCFLAGS = -I$(top_builddir)/src -I$(top_srcdir)/src
+AM_FCFLAGS = -I$(top_builddir)/src -I$(top_builddir)/src/fortran -I$(top_srcdir)/src
 AM_TESTS_ENVIRONMENT = \
     cp -r $(top_srcdir)/tests/meshes $(top_builddir)/tests;
 
@@ -1066,7 +1067,7 @@ c_vol_coupling_micro_polyhedra_P1P1_LDADD =  \
 @HAVE_FORTRAN_TRUE@  $(top_builddir)/src/bft/libbftc.la \
 @HAVE_FORTRAN_TRUE@  $(top_builddir)/src/fvm/libfvmc.la \
 @HAVE_FORTRAN_TRUE@  $(top_builddir)/src/libcwipi.la \
-@HAVE_FORTRAN_TRUE@  $(top_builddir)/src/libcwipi_f.la \
+@HAVE_FORTRAN_TRUE@  $(top_builddir)/src/fortran/libcwipi_f.la \
 @HAVE_FORTRAN_TRUE@   @MPI_LIBS@ \
 @HAVE_FORTRAN_TRUE@   -lm
 
@@ -1074,7 +1075,7 @@ c_vol_coupling_micro_polyhedra_P1P1_LDADD =  \
 @HAVE_FORTRAN_TRUE@  $(top_builddir)/src/bft/libbftc.la \
 @HAVE_FORTRAN_TRUE@  $(top_builddir)/src/fvm/libfvmc.la \
 @HAVE_FORTRAN_TRUE@  $(top_builddir)/src/libcwipi.la \
-@HAVE_FORTRAN_TRUE@  $(top_builddir)/src/libcwipi_f.la \
+@HAVE_FORTRAN_TRUE@  $(top_builddir)/src/fortran/libcwipi_f.la \
 @HAVE_FORTRAN_TRUE@  @MPI_LIBS@ \
 @HAVE_FORTRAN_TRUE@  -lm
 

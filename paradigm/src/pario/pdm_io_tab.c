@@ -14,6 +14,8 @@
  *----------------------------------------------------------------------------*/
 
 #include "pdm_io_tab.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
 
 /*----------------------------------------------------------------------------*/
 
@@ -129,7 +131,7 @@ static void _ajout_donnees
  )
 {
   if (PDM_io_tabs == NULL) {   
-    fprintf(stderr, "Erreur _ajout_donnees :"
+    PDM_error(__FILE__, __LINE__, 0, "Erreur _ajout_donnees :"
             "La phase d'acces n'a pas été initialisée\n");
     exit(EXIT_FAILURE);
   }
@@ -140,7 +142,7 @@ static void _ajout_donnees
   /* Au premier appel : création du tableau lié à la variable CEDRE num_var_cedre */
 
   if (tab == NULL) {
-    fprintf(stderr, "Erreur _ajout_donnees :"
+    PDM_error(__FILE__, __LINE__, 0, "Erreur _ajout_donnees :"
             "La variable n'a pas ete initialisee\n");
     exit(EXIT_FAILURE);
   }
@@ -148,7 +150,7 @@ static void _ajout_donnees
   int _i_part = i_part - 1;
   
   if (tab->partitions_locales[_i_part] != NULL) {
-    fprintf(stderr, "Erreur _ajout_donnees : "
+    PDM_error(__FILE__, __LINE__, 0, "Erreur _ajout_donnees : "
             "partition '%i' déjà traitée\n", i_part);
     exit(EXIT_FAILURE);
   }
@@ -197,7 +199,7 @@ static void _def_var
  )
 {
   if (PDM_io_tabs == NULL) {   
-    fprintf(stderr, "Erreur _def_var : "                       
+    PDM_error(__FILE__, __LINE__, 0, "Erreur _def_var : "                       
             "La phase d'acces n'a pas été initialisée\n");
     exit(EXIT_FAILURE);
   }
@@ -284,7 +286,7 @@ void  PDM_io_tab_ecr_debut
   }
 
   else {
-    fprintf(stderr, "Erreur PDM_io_tab_ecr_debut :"
+    PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_io_tab_ecr_debut :"
             "Une phase de lecture ou d'écriture est déjà en cours\n");
     exit(EXIT_FAILURE);
   }
@@ -407,7 +409,7 @@ void PDM_io_tab_ecr_fin
 (void)
 {
   if (PDM_io_tabs == NULL) {   
-    fprintf(stderr, "Erreur PDM_io_tab_ecr_fin :"
+    PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_io_tab_ecr_fin :"
             "La phase d'écriture n'a pas été initialisée\n");
     exit(EXIT_FAILURE);
   }
@@ -743,7 +745,7 @@ void PDM_io_tab_lec_debut
   }
 
   else {
-    fprintf(stderr, "Erreur PDM_io_tab_lec_debut :"
+    PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_io_tab_lec_debut :"
             "Une phase de lecture ou d'écriture est déjà en cours\n");
     exit(EXIT_FAILURE);
   }
@@ -871,7 +873,7 @@ void PDM_io_tab_lec_fin
 (void)
 {
   if (PDM_io_tabs == NULL) {   
-    fprintf(stderr, "Erreur PDM_io_tab_lec_fin :"
+    PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_io_tab_lec_fin :"
             "La phase de lecture n'a pas été initialisée\n");
     exit(EXIT_FAILURE);
   }

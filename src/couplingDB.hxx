@@ -3,7 +3,7 @@
 /*
   This file is part of the CWIPI library. 
 
-  Copyright (C) 2011  ONERA
+  Copyright (C) 2011-2017  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -52,26 +52,25 @@ namespace cwipi {
      *
      * This function creates a coupling object and defines its properties.
      *
-     * \param [in]  cplId              Coupling identifier
-     * \param [in]  commType           Communication type
-     * \param [in]  cplCodeProperties  Coupled code properties
-     * \param [in]  geomAlgo           Geometric algorithm
-     * \param [in]  supportType        Support type
-     * \param [in]  nPart              Number of interface partition 
-     * \param [in]  movingStatus       Support moving status
-     * \param [in]  recvFreqType       Type of receiving frequency
+     * \param [in]  localCodeProperties  Source code
+     * \param [in]  cplId                Coupling identifier
+     * \param [in]  cplCodeProperties    Coupled code properties
+     * \param [in]  commType             Communication type
+     * \param [in]  geomAlgo             Geometric algorithm
+     * \param [in]  nPart                Number of interface partition 
+     * \param [in]  movingStatus         Support moving status
+     * \param [in]  recvFreqType         Type of receiving frequency
      *
      */
 
     void 
     couplingCreate
     (
-     const string                &cplId,
-     const CWP_Comm_t           commType,
      const CodeProperties        &localCodeProperties,
+     const string                &cplId,
      const CodeProperties        &coupledCodeProperties,
-     const CWP_Geom_t           geomAlgo,
-     const CWP_Support_t        supportType,
+     const CWP_Comm_t           commType,
+     const CWP_Geom_algo_t           geomAlgo,
      const int                    nPart,
      const CWP_Displacement_t  movingStatus,
      const CWP_Freq_t           recvFreqType
@@ -80,26 +79,46 @@ namespace cwipi {
     /**
      * \brief Deletion a coupling object int the database.
      *
-     * \param [in]  cplId              Coupling identifier
+     * \param [in]  localCodeProperties  Source code
+     * \param [in]  cplId                Coupling identifier
      *
      */
 
     void 
     couplingDel
     (
-     const string &cplId
+     const CodeProperties &localCodeProperties,
+     const string         &cplId
     );
     
     /**
      * \brief Return a coupling object from it identifier
      *
-     * \param [in]  cplId              Coupling identifier
+     * \param [in]  localCodeProperties  Source code
+     * \param [in]  cplId                Coupling identifier
      *
      */
 
     inline Coupling& 
     couplingGet
     (
+     const CodeProperties &localCodeProperties,
+     const string &cplId
+    );
+    
+    /**
+     * \brief Return if a coupling identifier exists  
+     *
+     * \param [in]  localCodeProperties  Source code
+     * \param [in]  cplId                Coupling identifier
+     *
+     * \return status
+     */
+
+    inline bool 
+    couplingIs
+    (
+     const CodeProperties &localCodeProperties,
      const string &cplId
     );
     
@@ -141,7 +160,7 @@ namespace cwipi {
     virtual ~CouplingDB();
     
   private:
-    map < string, Coupling * > & _couplingDB; /*!< Couplings storage */
+    map < const CodeProperties *, map < string, Coupling * > > & _couplingDB; /*!< Couplings storage for each local Code */
 
   };
 }

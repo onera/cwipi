@@ -28,6 +28,8 @@
 #include "pdm_priv.h"
 #include "pdm_fortran_to_c_string.h"
 #include "pdm_remove_blank.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
 
 // validation gnum
 #include "pdm_gnum.h"
@@ -278,14 +280,14 @@ const int  id_cs
   PDM_writer_t *cs = NULL;
 
   if (id_cs >= l_cs_tab) {
-    fprintf(stderr, "Erreur PDM_writer_get : Identificateur de l'objet CS trop grand\n");
+    PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_writer_get : Identificateur de l'objet CS trop grand\n");
     abort();
   }
 
   cs = cs_tab[id_cs];
 
   if (cs == NULL) {
-    fprintf(stderr, "Erreur PDM_writer_get : Identificateur de l'objet CS non defini\n");
+    PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_writer_get : Identificateur de l'objet CS non defini\n");
     abort();
   }
 
@@ -314,14 +316,14 @@ _geom_get
   PDM_writer_geom_t *geom = NULL;
 
   if (id_geom >= cs->l_geom_tab) {
-    fprintf(stderr, "Erreur _geom_get : Identificateur de geometrie trop grand\n");
+    PDM_error(__FILE__, __LINE__, 0, "Erreur _geom_get : Identificateur de geometrie trop grand\n");
     abort();
   }
  
   geom = cs->geom_tab[id_geom];
 
   if (geom == NULL) {
-    fprintf(stderr, "Erreur _geom_get : Identificateur de geometrie incorrect\n");
+    PDM_error(__FILE__, __LINE__, 0, "Erreur _geom_get : Identificateur de geometrie incorrect\n");
     abort();
   }
 
@@ -350,14 +352,14 @@ _var_get
   PDM_writer_var_t *var = NULL;
 
   if (id_var >= cs->l_var_tab) {
-    fprintf(stderr, "Erreur _var_get : Identificateur de variable trop grand\n");
+    PDM_error(__FILE__, __LINE__, 0, "Erreur _var_get : Identificateur de variable trop grand\n");
     abort();
   }
  
   var = cs->var_tab[id_var];
 
   if (var == NULL) {
-    fprintf(stderr, "Erreur _var_get : Identificateur de variable incorrect\n");
+    PDM_error(__FILE__, __LINE__, 0, "Erreur _var_get : Identificateur de variable incorrect\n");
     abort();
   }
 
@@ -387,14 +389,14 @@ _bloc_std_get
   PDM_writer_bloc_std_t *bloc = NULL;
 
   if (id_bloc >= geom->l_blocs_std) {
-    fprintf(stderr, "Erreur _bloc_get : Identificateur de bloc standard trop grand\n");
+    PDM_error(__FILE__, __LINE__, 0, "Erreur _bloc_get : Identificateur de bloc standard trop grand\n");
     abort();
   }
  
   bloc = geom->blocs_std[id_bloc];
 
   if (bloc == NULL) {
-    fprintf(stderr, "Erreur _bloc_get : Identificateur de bloc standard incorrect\n");
+    PDM_error(__FILE__, __LINE__, 0, "Erreur _bloc_get : Identificateur de bloc standard incorrect\n");
     abort();
   }
 
@@ -426,14 +428,14 @@ _bloc_poly2d_get
   int _id_bloc = id_bloc - PDM_writer_DEB_ID_BLOC_POLY2D;
 
   if (_id_bloc >= geom->l_blocs_poly2d) {
-    fprintf(stderr, "Erreur _bloc_poly2d_get : Identificateur de bloc standard trop grand\n");
+    PDM_error(__FILE__, __LINE__, 0, "Erreur _bloc_poly2d_get : Identificateur de bloc standard trop grand\n");
     abort();
   }
  
   bloc = geom->blocs_poly2d[_id_bloc];
 
   if (bloc == NULL) {
-    fprintf(stderr, "Erreur _bloc_poly2d_get : Identificateur de bloc standard incorrect\n");
+    PDM_error(__FILE__, __LINE__, 0, "Erreur _bloc_poly2d_get : Identificateur de bloc standard incorrect\n");
     abort();
   }
 
@@ -465,14 +467,14 @@ _bloc_poly3d_get
   int _id_bloc = id_bloc - PDM_writer_DEB_ID_BLOC_POLY3D;
 
   if (_id_bloc >= geom->l_blocs_poly3d) {
-    fprintf(stderr, "Erreur _bloc_poly3d_get : Identificateur de bloc standard trop grand\n");
+    PDM_error(__FILE__, __LINE__, 0, "Erreur _bloc_poly3d_get : Identificateur de bloc standard trop grand\n");
     abort();
   }
  
   bloc = geom->blocs_poly3d[_id_bloc];
 
   if (bloc == NULL) {
-    fprintf(stderr, "Erreur _bloc_poly3d_get : Identificateur de bloc standard incorrect\n");
+    PDM_error(__FILE__, __LINE__, 0, "Erreur _bloc_poly3d_get : Identificateur de bloc standard incorrect\n");
     abort();
   }
 
@@ -687,14 +689,14 @@ const int    *connec,
   }
 
   if (1 == 1) {
-    printf("centres : ");
+    PDM_printf("centres : ");
     for (int i = 0; i < ipoint; i++) {
-      printf("%12.5e %12.5e %12.5e\n", 
+      PDM_printf("%12.5e %12.5e %12.5e\n", 
              centre_face[3*i  ],
              centre_face[3*i+1],
              centre_face[3*i+2]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
 }
 
@@ -1405,7 +1407,7 @@ _calcul_numabs_split_poly3d
  PDM_writer_geom_t *geom 
 )
 {
-  fprintf(stderr, "_calcul_numabs_split_poly3d : Not yet impelemented\n");
+  PDM_error(__FILE__, __LINE__, 0, "_calcul_numabs_split_poly3d : Not yet impelemented\n");
 #if defined(__clang__)	
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-value" 	
@@ -1444,7 +1446,7 @@ PDM_writer_geom_t *geom
       if (_bloc_poly2d->som_sup == NULL)
         _bloc_poly2d->som_sup = (PDM_writer_som_sup_t *) malloc(sizeof(PDM_writer_som_sup_t));
       else {
-        fprintf(stderr, "Erreur _split_poly2d : Polygones deja decoupes\n");
+        PDM_error(__FILE__, __LINE__, 0, "Erreur _split_poly2d : Polygones deja decoupes\n");
         abort();
       }
 
@@ -1460,7 +1462,7 @@ PDM_writer_geom_t *geom
       if (_bloc_poly2d->bloc_tri == NULL)
         _bloc_poly2d->bloc_tri = (PDM_writer_bloc_std_t *) malloc(sizeof(PDM_writer_bloc_std_t));
       else {
-        fprintf(stderr, "Erreur _split_poly2d : Polygones deja decoupes\n");
+        PDM_error(__FILE__, __LINE__, 0, "Erreur _split_poly2d : Polygones deja decoupes\n");
         abort();
       }
       PDM_writer_bloc_std_t  *_bloc_tri = _bloc_poly2d->bloc_tri;
@@ -1475,7 +1477,7 @@ PDM_writer_geom_t *geom
       if (_bloc_poly2d->tri_idx == NULL)
         _bloc_poly2d->tri_idx = (PDM_l_num_t **) malloc(sizeof(PDM_l_num_t *) * _bloc_poly2d->n_part);
       else {
-        fprintf(stderr, "Erreur _split_poly2d : Polygones deja decoupes\n");
+        PDM_error(__FILE__, __LINE__, 0, "Erreur _split_poly2d : Polygones deja decoupes\n");
         abort();
       }
       PDM_l_num_t  **_tri_idx = _bloc_poly2d->tri_idx;
@@ -1485,7 +1487,7 @@ PDM_writer_geom_t *geom
       if (_bloc_poly2d->bloc_quad == NULL)
         _bloc_poly2d->bloc_quad = (PDM_writer_bloc_std_t *) malloc(sizeof(PDM_writer_bloc_std_t));
       else {
-        fprintf(stderr, "Erreur _split_poly2d : Polygones deja decoupes\n");
+        PDM_error(__FILE__, __LINE__, 0, "Erreur _split_poly2d : Polygones deja decoupes\n");
         abort();
       }
       PDM_writer_bloc_std_t  *_bloc_quad = _bloc_poly2d->bloc_quad;
@@ -1500,7 +1502,7 @@ PDM_writer_geom_t *geom
       if (_bloc_poly2d->quad_idx == NULL)
         _bloc_poly2d->quad_idx = (PDM_l_num_t **) malloc(sizeof(PDM_l_num_t *) * _bloc_poly2d->n_part);
       else {
-        fprintf(stderr, "Erreur _split_poly2d : Polygones deja decoupes\n");
+        PDM_error(__FILE__, __LINE__, 0, "Erreur _split_poly2d : Polygones deja decoupes\n");
         abort();
       }
       PDM_l_num_t  **_quad_idx = _bloc_poly2d->quad_idx;
@@ -1643,7 +1645,7 @@ PDM_writer_geom_t *geom
       if (_bloc_poly3d->som_sup == NULL)
         _bloc_poly3d->som_sup = (PDM_writer_som_sup_t *) malloc(sizeof(PDM_writer_som_sup_t));
       else {
-        fprintf(stderr, "Erreur _split_poly3d : Polyedres deja decoupes\n");
+        PDM_error(__FILE__, __LINE__, 0, "Erreur _split_poly3d : Polyedres deja decoupes\n");
         abort();
       }
 
@@ -1659,7 +1661,7 @@ PDM_writer_geom_t *geom
       if (_bloc_poly3d->bloc_tetra == NULL)
         _bloc_poly3d->bloc_tetra = (PDM_writer_bloc_std_t *) malloc(sizeof(PDM_writer_bloc_std_t));
       else {
-        fprintf(stderr, "Erreur _split_poly3d : Polyedres deja decoupes\n");
+        PDM_error(__FILE__, __LINE__, 0, "Erreur _split_poly3d : Polyedres deja decoupes\n");
         abort();
       }
       PDM_writer_bloc_std_t  *_bloc_tetra = _bloc_poly3d->bloc_tetra;
@@ -1674,7 +1676,7 @@ PDM_writer_geom_t *geom
       if (_bloc_poly3d->tetra_idx == NULL)
         _bloc_poly3d->tetra_idx = (PDM_l_num_t **) malloc(sizeof(PDM_l_num_t *) * _bloc_poly3d->n_part);
       else {
-        fprintf(stderr, "Erreur _split_poly3d : Polyedres deja decoupes\n");
+        PDM_error(__FILE__, __LINE__, 0, "Erreur _split_poly3d : Polyedres deja decoupes\n");
         abort();
       }
 
@@ -1683,7 +1685,7 @@ PDM_writer_geom_t *geom
       if (_bloc_poly3d->bloc_pyra == NULL)
         _bloc_poly3d->bloc_pyra = (PDM_writer_bloc_std_t *) malloc(sizeof(PDM_writer_bloc_std_t));
       else {
-        fprintf(stderr, "Erreur _split_poly3d : Polygones deja decoupes\n");
+        PDM_error(__FILE__, __LINE__, 0, "Erreur _split_poly3d : Polygones deja decoupes\n");
         abort();
       }
       PDM_writer_bloc_std_t  *_bloc_pyra = _bloc_poly3d->bloc_pyra;
@@ -1698,7 +1700,7 @@ PDM_writer_geom_t *geom
       if (_bloc_poly3d->pyra_idx == NULL)
         _bloc_poly3d->pyra_idx = (PDM_l_num_t **) malloc(sizeof(PDM_l_num_t *) * _bloc_poly3d->n_part);
       else {
-        fprintf(stderr, "Erreur _split_poly3d : Polyedres deja decoupes\n");
+        PDM_error(__FILE__, __LINE__, 0, "Erreur _split_poly3d : Polyedres deja decoupes\n");
         abort();
       }
 
@@ -1731,7 +1733,7 @@ PDM_writer_geom_t *geom
    */
     }
   }
-  fprintf(stderr, "_split_poly3d not yet implemented\n");
+  PDM_error(__FILE__, __LINE__, 0, "_split_poly3d not yet implemented\n");
   abort();
 }
 
@@ -2134,7 +2136,7 @@ PDM_l_num_t connec_hexa_courant[]
   }
 
   if (k1 == -1) {
-    printf("Error connect_hexa : %d %d %d %d %d %d %d %d\n",
+    PDM_printf("Error connect_hexa : %d %d %d %d %d %d %d %d\n",
            connec_hexa_courant[0],
            connec_hexa_courant[1],
            connec_hexa_courant[2],
@@ -2145,7 +2147,7 @@ PDM_l_num_t connec_hexa_courant[]
            connec_hexa_courant[7]);
 
     for (int i10 = 0; i10 < 4; i10++) {
-      printf("   face %d : %d %d %d %d\n", i10+1, cell_som_quad[4*i10],  
+      PDM_printf("   face %d : %d %d %d %d\n", i10+1, cell_som_quad[4*i10],  
                                                   cell_som_quad[4*i10+1],
                                                   cell_som_quad[4*i10+2],
                                                   cell_som_quad[4*i10+3]);
@@ -2808,7 +2810,7 @@ _parse_options
     if (pch != NULL) {
       pch = strtok (str2, ":");
       if (pch == NULL) {
-        fprintf (stderr, "CS_cree : Erreur dans le parsing des options specifiques :"
+        PDM_error(__FILE__, __LINE__, 0, "CS_cree : Erreur dans le parsing des options specifiques :"
                  "verifier les separateurs dans la chaine 'options'\n");
         exit(1);
       }
@@ -2993,7 +2995,7 @@ const char          *options
   }
 
   if (fmt_id == -1) {
-    fprintf(stderr, "Error PDM_writer_create : unknown format '%s'", fmt);
+    PDM_error(__FILE__, __LINE__, 0, "Error PDM_writer_create : unknown format '%s'", fmt);
     abort();
   }
   
@@ -3325,13 +3327,13 @@ const int               n_part
   /* Erreur si le d�coupage des polygones ou polyedres est choisi */
   
   if (n_part <= 0) {
-    fprintf(stderr, "Erreur cs_geom_create : Le nombre de partition doit etre >\n"
+    PDM_error(__FILE__, __LINE__, 0, "Erreur cs_geom_create : Le nombre de partition doit etre >\n"
                     "                      Ajuster le communicateur MPI ou\n"
                     "                      Creer un sous-domaine avec 0 element\n");
   }
 
   if ((st_decoup_poly2d == 1) || (st_decoup_poly3d == 1)) {
-    fprintf(stderr, "Erreur cs_geom_create : Les fonctions de decoupage ne sont pas operationnelles\n");
+    PDM_error(__FILE__, __LINE__, 0, "Erreur cs_geom_create : Les fonctions de decoupage ne sont pas operationnelles\n");
     abort();
   }
 
@@ -3462,7 +3464,7 @@ const PDM_g_num_t *numabs
   PDM_writer_geom_t *geom = _geom_get(cs, id_geom);
 
   if (geom->n_part == 0) {
-    fprintf(stderr, "Erreur PDM_writer_geom_coord_set : Le nombre de partitions n'a pas ete defini\n");
+    PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_writer_geom_coord_set : Le nombre de partitions n'a pas ete defini\n");
     abort();
   } 
   
@@ -3470,7 +3472,7 @@ const PDM_g_num_t *numabs
 
   if ((som->_coords != NULL) ||
       (som->_numabs != NULL)) {
-    fprintf(stderr, "Erreur PDM_writer_geom_coord_set : Les sommets de la partition ont deja ete definis\n");
+    PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_writer_geom_coord_set : Les sommets de la partition ont deja ete definis\n");
     abort();
   }
 
@@ -3548,7 +3550,7 @@ const PDM_g_num_t *numabs_parent
   PDM_writer_geom_t *geom = _geom_get(cs, id_geom);
 
   if (geom->n_part == 0) {
-    fprintf(stderr, "Erreur PDM_writer_geom_coord_from_parent_set : Le nombre de partitions n'a pas ete defini\n");
+    PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_writer_geom_coord_from_parent_set : Le nombre de partitions n'a pas ete defini\n");
     abort();
   } 
   
@@ -3556,7 +3558,7 @@ const PDM_g_num_t *numabs_parent
   
   if ((som->_coords != NULL) ||
       (som->_numabs != NULL)) {
-    fprintf(stderr, "Erreur PDM_writer_geom_coord_from_parent_set : Les sommets de la partition ont deja ete definis\n");
+    PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_writer_geom_coord_from_parent_set : Les sommets de la partition ont deja ete definis\n");
     abort();
   }
 
@@ -3699,7 +3701,7 @@ const PDM_writer_elt_geom_t  t_elt
       
       id_bloc += PDM_writer_DEB_ID_BLOC_STD;
       if (id_bloc >= PDM_writer_DEB_ID_BLOC_POLY2D) {
-        fprintf(stderr, "Erreur PDM_writer_geom_bloc_add : Le nombre de blocs d'elements standard doit etre inferieur a %d\n", 
+        PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_writer_geom_bloc_add : Le nombre de blocs d'elements standard doit etre inferieur a %d\n", 
                PDM_writer_DEB_ID_BLOC_POLY2D);
         abort();
       }
@@ -3785,7 +3787,7 @@ const PDM_writer_elt_geom_t  t_elt
 
       id_bloc += PDM_writer_DEB_ID_BLOC_POLY2D;
       if (id_bloc >= PDM_writer_DEB_ID_BLOC_POLY3D) {
-        fprintf(stderr, "Erreur PDM_writer_geom_bloc_add :"
+        PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_writer_geom_bloc_add :"
                " Le nombre de blocs d'elements poly2d doit etre inferieur a %d\n",
                PDM_writer_DEB_ID_BLOC_POLY3D - PDM_writer_DEB_ID_BLOC_POLY2D);
         abort();
@@ -3879,7 +3881,7 @@ const PDM_writer_elt_geom_t  t_elt
     break;
 
   default :
-    fprintf(stderr, "Erreur PDM_writer_geom_bloc_add : Type d'element inconnu\n");
+    PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_writer_geom_bloc_add : Type d'element inconnu\n");
     abort();
 
   }
@@ -4014,7 +4016,7 @@ const int            n_elt,
   PDM_writer_bloc_std_t *bloc = _bloc_std_get(geom, id_bloc);
   
   if (id_part >= bloc->n_part) {
-    fprintf(stderr, "Erreur PDM_writer_geom_bloc_std_set : Numero de partition trop grand\n");
+    PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_writer_geom_bloc_std_set : Numero de partition trop grand\n");
     abort();
   }
  
@@ -4093,7 +4095,7 @@ const PDM_l_num_t       n_elt,
   PDM_writer_bloc_poly2d_t *bloc = _bloc_poly2d_get(geom, id_bloc);
   
   if (id_part >= bloc->n_part) {
-    fprintf(stderr, "Erreur PDM_writer_geom_bloc_poly2d_set : Numero de partition trop grand\n");
+    PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_writer_geom_bloc_poly2d_set : Numero de partition trop grand\n");
     abort();
   }
  
@@ -4184,7 +4186,7 @@ const PDM_l_num_t   n_face,
   PDM_writer_bloc_poly3d_t *bloc = _bloc_poly3d_get(geom, id_bloc);
   
   if (id_part >= bloc->n_part) {
-    fprintf(stderr, "Erreur PDM_writer_geom_bloc_poly3d_set : Numero de partition trop grand\n");
+    PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_writer_geom_bloc_poly3d_set : Numero de partition trop grand\n");
     abort();
   }
  
@@ -4325,7 +4327,7 @@ PDM_g_num_t   *numabs
   }
 
   if (geom->prepa_blocs->t_add != 1) {
-    fprintf(stderr, "Erreur Cs_geom_cell3d_cellface_add : Un autre type d'ajout est en cours\n");
+    PDM_error(__FILE__, __LINE__, 0, "Erreur Cs_geom_cell3d_cellface_add : Un autre type d'ajout est en cours\n");
     abort();
   }
 
@@ -4855,7 +4857,7 @@ PDM_g_num_t   *numabs
   }
 
   if (geom->prepa_blocs->t_add != 2) {
-    fprintf(stderr, "Erreur Cs_geom_cell2d_cellface_add : Un autre type d'ajout est en cours\n");
+    PDM_error(__FILE__, __LINE__, 0, "Erreur Cs_geom_cell2d_cellface_add : Un autre type d'ajout est en cours\n");
     abort();
   }
 
@@ -5229,7 +5231,7 @@ PDM_g_num_t   *numabs
   }
 
   if (geom->prepa_blocs->t_add != 3) {
-    fprintf(stderr, "Erreur Cs_geom_cell2d_cellface_add : Un autre type d'ajout est en cours\n");
+    PDM_error(__FILE__, __LINE__, 0, "Erreur Cs_geom_cell2d_cellface_add : Un autre type d'ajout est en cours\n");
     abort();
   }
 
@@ -5484,7 +5486,7 @@ const int            id_geom
   
   // validation gnum
 //  int id = PDM_gnum_create (3, geom->n_part, geom->pdm_mpi_comm);
-//  printf("1\n");
+//  PDM_printf("1\n");
 //
 //  for (int i = 0; i < geom->n_part; i++) {
 //    
@@ -5492,20 +5494,20 @@ const int            id_geom
 //
 //  }
 //  
-//  printf("2\n");
+//  PDM_printf("2\n");
 //  PDM_gnum_compute (id);
-//    printf("3\n");
+//    PDM_printf("3\n");
 //
 //  for (int i = 0; i < geom->n_part; i++) {
 //    
 //    geom->som[i]->_numabs = PDM_gnum_get (id, i);
-//    printf ("pp %ld\n", PDM_gnum_get (id, i));
+//    PDM_printf ("pp %ld\n", PDM_gnum_get (id, i));
 //    
 //  }
-//    printf("4\n");
+//    PDM_printf("4\n");
 //
 //  PDM_gnum_free (id, 1);
-//    printf("5\n");
+//    PDM_printf("5\n");
 
   // fin validation gnum
 
@@ -6030,7 +6032,7 @@ const PDM_real_t *val
   }
 
   if (cs->l_geom_tab <= id_geom) {
-    fprintf(stderr, "Erreur cs_var_set    : Indice de geometrie incorrect\n");
+    PDM_error(__FILE__, __LINE__, 0, "Erreur cs_var_set    : Indice de geometrie incorrect\n");
     abort();
   }
 
@@ -6043,7 +6045,7 @@ const PDM_real_t *val
   double **val_geom = var->_val[id_geom];
 
   if (geom->n_part <= id_part) {
-    fprintf(stderr, "Erreur cs_var_set    : Indice de partition incorrect\n");
+    PDM_error(__FILE__, __LINE__, 0, "Erreur cs_var_set    : Indice de partition incorrect\n");
     abort();
   }
 
@@ -6231,12 +6233,12 @@ PDM_writer_fmt_add
   }
 
   if (geom_write_fct == NULL) {
-    fprintf (stderr, "Error PDM_writer_fmt_add : Undefined geom write function\n");
+    PDM_error(__FILE__, __LINE__, 0, "Error PDM_writer_fmt_add : Undefined geom write function\n");
     abort ();
   }
 
   if (var_write_fct == NULL) {
-    fprintf (stderr, "Error PDM_writer_fmt_add : Undefined var write function\n");
+    PDM_error(__FILE__, __LINE__, 0, "Error PDM_writer_fmt_add : Undefined var write function\n");
     abort ();
   }
   

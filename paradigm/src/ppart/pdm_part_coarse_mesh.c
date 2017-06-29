@@ -20,6 +20,8 @@
 #include "pdm_block_to_part.h"
 
 #include "pdm_ext_wrapper.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
 
 /*=============================================================================
  * Macro definitions
@@ -87,12 +89,12 @@ _get_from_id
 )
 {
   if (cmId >= _l_cm) {
-    printf("PPART error : Bad cm identifier\n");
+    PDM_printf("PPART error : Bad cm identifier\n");
     exit(1);
   }
     
   if (_cm[cmId] == NULL) {
-    printf("PPART error : Bad cm identifier\n");
+    PDM_printf("PPART error : Bad cm identifier\n");
     exit(1);
   }
 
@@ -198,17 +200,17 @@ _dual_graph_from_face_cell
   }
     
   if (0 == 1) {
-    printf("Content of cellCellN after looping over cellFace: ");
+    PDM_printf("Content of cellCellN after looping over cellFace: ");
     for(int i = 0; i < part_ini->nCell; i++) {
-      printf(" %d ", cellCellN[i]);
+      PDM_printf(" %d ", cellCellN[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
       
-    printf("Content of cellCell after looping over cellFace: ");
+    PDM_printf("Content of cellCell after looping over cellFace: ");
     for(int i = 0; i < part_ini->cellFaceIdx[part_ini->nCell]; i++) {
-      printf(" %d ", cellCell[i]);
+      PDM_printf(" %d ", cellCell[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
   //cellCellIdx is rebuilt
@@ -222,28 +224,28 @@ _dual_graph_from_face_cell
   //We compress the dual graph since cellCellIdx was built from cellFaceIdx
   //We have then nFace elements in cellCell whereas it needs to be composed of nCell elements
  
-  //    printf("(*cellCellIdxCompressed)[part_ini->nCell] : %d \n", (*cellCellIdxCompressed)[part_ini->nCell]);
+  //    PDM_printf("(*cellCellIdxCompressed)[part_ini->nCell] : %d \n", (*cellCellIdxCompressed)[part_ini->nCell]);
   *cellCellCompressed = malloc((*cellCellIdxCompressed)[part_ini->nCell] * sizeof(int));
     
   int cpt_cellCellCompressed = 0;
   for(int i = 0; i < part_ini->cellFaceIdx[part_ini->nCell]; i++) {
-    //        printf("I am testing a value for the %d time! \n", i);
+    //        PDM_printf("I am testing a value for the %d time! \n", i);
       
     //We have an information to store when a neighboring cell exists
     if(cellCell[i] > -1){
-      //            printf("I am storing a value for the %d time! \n", i);
+      //            PDM_printf("I am storing a value for the %d time! \n", i);
       //We add a -1 to have the graph vertices numbered from 0 to n (C numbering)
       (*cellCellCompressed)[cpt_cellCellCompressed++] = cellCell[i] - 1; 
-      //            printf("Valeur stockee : %d \n ", (*cellCellCompressed)[cpt_cellCellCompressed - 1]);
+      //            PDM_printf("Valeur stockee : %d \n ", (*cellCellCompressed)[cpt_cellCellCompressed - 1]);
     }        
   }
     
   if( 0 == 1) {
-    printf("Content of cellCellCompressed after compression and renumbering: ");
+    PDM_printf("Content of cellCellCompressed after compression and renumbering: ");
     for(int i = 0; i < (*cellCellIdxCompressed)[part_ini->nCell]; i++) {
-      printf(" %d ", (*cellCellCompressed)[i]);
+      PDM_printf(" %d ", (*cellCellCompressed)[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
   /* Free temporary arrays*/
@@ -280,37 +282,37 @@ _dual_graph_from_face_cell
     }
 
     if (0 == 1) {
-      printf("\n Contenu de cellCellCompressed apres reecriture: \n");
+      PDM_printf("\n Contenu de cellCellCompressed apres reecriture: \n");
       for(int i1 = 0; i1 < (*cellCellIdxCompressed)[part_ini->nCell]; i1++) {
-        printf(" %d ", (*cellCellCompressed)[i1]);
+        PDM_printf(" %d ", (*cellCellCompressed)[i1]);
       }
-      printf("\n");
+      PDM_printf("\n");
     }
         
     tabIdxTemp = (*cellCellIdxCompressed)[i + 1];
     (*cellCellIdxCompressed)[i + 1] = idx_write;
       
     if (0 == 1) {
-      printf("\n Contenu de cellCellIdxCompressed apres reecriture: \n");
+      PDM_printf("\n Contenu de cellCellIdxCompressed apres reecriture: \n");
       for(int i1 = 0; i1 < part_ini->nCell + 1; i1++) {
-        printf(" %d ", (*cellCellIdxCompressed)[i1]);
+        PDM_printf(" %d ", (*cellCellIdxCompressed)[i1]);
       }
-      printf("\n");
+      PDM_printf("\n");
     }
   }
     
   if (0 == 1) {
-    printf("Content of cellCellIdxCompressed after compression: ");
+    PDM_printf("Content of cellCellIdxCompressed after compression: ");
     for(int i1 = 0; i1 < part_ini->nCell + 1; i1++) {
-      printf(" %d ", (*cellCellIdxCompressed)[i1]);
+      PDM_printf(" %d ", (*cellCellIdxCompressed)[i1]);
     }
-    printf("\n");
+    PDM_printf("\n");
       
-    printf("Content of cellCellCompressed after compression: ");
+    PDM_printf("Content of cellCellCompressed after compression: ");
     for(int i1 = 0; i1 < (*cellCellIdxCompressed)[part_ini->nCell]; i1++) {
-      printf(" %d ", (*cellCellCompressed)[i1]);
+      PDM_printf(" %d ", (*cellCellCompressed)[i1]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
   //We reallocate the memory in case of duplicated values removed
@@ -427,11 +429,11 @@ _split
       }
           
       if (0 == 1) {
-        printf("\n Contenu de cellPart : \n");            
+        PDM_printf("\n Contenu de cellPart : \n");            
         for (int i = 0; i < part_ini->nCell; i++) {
-          printf(" %d ", (*cellPart)[i]);
+          PDM_printf(" %d ", (*cellPart)[i]);
         }
-        printf("\n");
+        PDM_printf("\n");
       }
         
       if (flag_weights != 0) {
@@ -441,7 +443,7 @@ _split
       }          
 
 #else
-      printf("PDM_part error : METIS unavailable\n");
+      PDM_printf("PDM_part error : METIS unavailable\n");
       exit(1);
                 
 #endif
@@ -463,14 +465,14 @@ _split
                        *cellPart);
           
 #else
-      printf("PDM_part error : Scotch unavailable\n");
+      PDM_printf("PDM_part error : Scotch unavailable\n");
       exit(1);
 #endif
           
       break;
     }
   default:
-    printf("PART error : '%i' unknown partitioning method\n", method);
+    PDM_printf("PART error : '%i' unknown partitioning method\n", method);
     exit(1);        
   }
 }
@@ -510,11 +512,11 @@ _partCell_from_cellPart
   }
     
   if(0 == 1) {
-    printf("\n Contenu de cptCellsPerPartitions : \n");
+    PDM_printf("\n Contenu de cptCellsPerPartitions : \n");
     for(int i = 0; i < nCoarseCell; i++) {
-      printf(" %d ", cptCellsPerPartitions[i]);
+      PDM_printf(" %d ", cptCellsPerPartitions[i]);
     }  
-    printf("\n");
+    PDM_printf("\n");
   }
     
   //Allocation of an array for counter indexes    
@@ -525,11 +527,11 @@ _partCell_from_cellPart
   }
     
   if (0 == 1) {
-    printf("\n Contenu de partCellIdx : \n");
+    PDM_printf("\n Contenu de partCellIdx : \n");
     for(int i = 0; i < nCoarseCell + 1; i++) {
-      printf(" %d ", (*partCellIdx)[i]);
+      PDM_printf(" %d ", (*partCellIdx)[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
   *partCell = (int *) malloc((*partCellIdx)[nCoarseCell] * sizeof(int));
@@ -548,15 +550,15 @@ _partCell_from_cellPart
   }
     
   if (0 == 1) {
-    printf("\nContenu de partCell \n");
+    PDM_printf("\nContenu de partCell \n");
     for (int i = 0; i < nCoarseCell; i++){
-      printf("Valeur de i + 1 : %d \n", i + 1);
+      PDM_printf("Valeur de i + 1 : %d \n", i + 1);
       for (int j = (*partCellIdx)[i]; j < (*partCellIdx)[i + 1]; j++){
-        printf("%d " ,(*partCell)[j]);              
+        PDM_printf("%d " ,(*partCell)[j]);              
       }
-      printf("\n");
+      PDM_printf("\n");
     }
-    printf("\n");
+    PDM_printf("\n");
   }
         
   //Free
@@ -680,22 +682,22 @@ _adapt_Connectedness
   int nCoarseCellWanted = (*nCoarseCellChecked);
  
   if (0 == 1) {
-    printf("Valeur finale de (*nCoarseCellChecked) : %d %d\n", (*nCoarseCellChecked), nCell);
+    PDM_printf("Valeur finale de (*nCoarseCellChecked) : %d %d\n", (*nCoarseCellChecked), nCell);
 
-    printf("partCell : \n");
+    PDM_printf("partCell : \n");
     for (int i = 0; i < nCoarseCellWanted; i++) {
       for (int j = partCellIdx[i]; j < partCellIdx[i+1]; j++) {
-        printf(" %d ", partCell[j]);
+        PDM_printf(" %d ", partCell[j]);
       }
-      printf("\n");
+      PDM_printf("\n");
     }
 
-    printf("cellCell : \n");
+    PDM_printf("cellCell : \n");
     for (int i = 0; i < nCell; i++) {
       for (int j = cellCellIdx[i]; j < cellCellIdx[i+1]; j++) {
-        printf(" %d ", cellCell[j]);
+        PDM_printf(" %d ", cellCell[j]);
       }
-      printf("\n");
+      PDM_printf("\n");
     }
 
   }
@@ -789,19 +791,19 @@ _adapt_Connectedness
   }
   
   if (0 == 1) {
-    printf("Valeur finale de (*nCoarseCellChecked) : %d %d\n", (*nCoarseCellChecked), nCell);
+    PDM_printf("Valeur finale de (*nCoarseCellChecked) : %d %d\n", (*nCoarseCellChecked), nCell);
         
-    printf("Affichage de *coarseCellCellIdx");
+    PDM_printf("Affichage de *coarseCellCellIdx");
     for (int i = 0; i < (*nCoarseCellChecked) + 1; i++) {
-      printf(" %d ", (*coarseCellCellIdx)[i]);
+      PDM_printf(" %d ", (*coarseCellCellIdx)[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
 
-    printf("Content of cellCoarseCell: ");
+    PDM_printf("Content of cellCoarseCell: ");
     for (int i = 0; i < nCell; i++) {
-      printf(" %d ", (*cellCoarseCell)[i]);
+      PDM_printf(" %d ", (*cellCoarseCell)[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
   /*
@@ -894,14 +896,14 @@ _build_faceCoarseCell
   }
     
   if (0 == 1) {
-    printf("Content of faceCellTemp: |");
+    PDM_printf("Content of faceCellTemp: |");
     for (int i = 0; i < 2 * nFace; i++) {
-      printf(" %d ", faceCellTemp[i]);
+      PDM_printf(" %d ", faceCellTemp[i]);
       if (i % 2 == 1) {
-        printf("|");
+        PDM_printf("|");
       }
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
   *faceCoarseCell = (int *) malloc(2 * nFace * sizeof(int));
@@ -966,29 +968,29 @@ _build_faceCoarseCell
   *coarseFaceToFineFace = realloc((*coarseFaceToFineFace), idx_coarseFaceToFineFace * sizeof(int));
     
   if(0 == 1) {
-    printf("Valeur finale de (*nFaceChecked) : %d \n", (*nFaceChecked));
+    PDM_printf("Valeur finale de (*nFaceChecked) : %d \n", (*nFaceChecked));
 
-    printf("Final content of faceCoarseCell: |");
+    PDM_printf("Final content of faceCoarseCell: |");
     for (int i = 0; i < 2 * (*nFaceChecked); i++) {
-      printf(" %d ", (*faceCoarseCell)[i]);
+      PDM_printf(" %d ", (*faceCoarseCell)[i]);
       if (i % 2 == 1) {
-        printf("|");
+        PDM_printf("|");
       }
     }
-    printf("\n");
+    PDM_printf("\n");
 
-    printf("Final content of fineFaceToCoarseFace: \n");
+    PDM_printf("Final content of fineFaceToCoarseFace: \n");
     for (int i = 0; i < nFace; i++) {
-      printf(" %d ", (*fineFaceToCoarseFace)[i]);
+      PDM_printf(" %d ", (*fineFaceToCoarseFace)[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
 
 
-    printf("Affichage final de (*coarseFaceToFineFace) \n");
+    PDM_printf("Affichage final de (*coarseFaceToFineFace) \n");
     for (int i = 0; i < (*nFaceChecked); i++) {
-      printf(" %d ", (*coarseFaceToFineFace)[i]);
+      PDM_printf(" %d ", (*coarseFaceToFineFace)[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
         
   free(faceCellTemp);
@@ -1046,11 +1048,11 @@ _coarseCellFace_from_faceCoarseCell
   }
     
   if(0 == 1) {
-    printf("\n Contenu de cptFacesPerCoarseCell : \n");
+    PDM_printf("\n Contenu de cptFacesPerCoarseCell : \n");
     for(int i = 0; i < nCoarseCellChecked; i++) {
-      printf(" %d ", cptFacesPerCoarseCell[i]);
+      PDM_printf(" %d ", cptFacesPerCoarseCell[i]);
     }  
-    printf("\n");
+    PDM_printf("\n");
   }
     
   /*
@@ -1107,19 +1109,19 @@ _coarseCellFace_from_faceCoarseCell
   }
     
   if(0 == 1) {
-    printf("Contenu de (*coarseCellFace) \n");
+    PDM_printf("Contenu de (*coarseCellFace) \n");
     for (int i = 0; i < (*coarseCellFaceIdx)[nCoarseCellChecked]; i++) {
-      printf(" %d ", (*coarseCellFace)[i]);
+      PDM_printf(" %d ", (*coarseCellFace)[i]);
       if (i % (*coarseCellFaceIdx)[1] == (*coarseCellFaceIdx)[1] - 1) {
-        printf("|");
+        PDM_printf("|");
       }
     }       
 
-    printf("\n Contenu de (*coarseCellFaceIdx) : \n");
+    PDM_printf("\n Contenu de (*coarseCellFaceIdx) : \n");
     for (int i = 0; i < nCoarseCellChecked + 1; i++) {
-      printf(" %d ", (*coarseCellFaceIdx)[i]);
+      PDM_printf(" %d ", (*coarseCellFaceIdx)[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
   free(cptFacesPerCoarseCell);
@@ -1184,7 +1186,7 @@ _build_faceVtx
   *faceVtx = realloc((*faceVtx), (*faceVtxIdx)[nFaceChecked] * sizeof(int));     
   
   if (0 == 1) {
-    printf("Valeur de (*faceVtxIdx)[nFaceChecked] : %d \n", (*faceVtxIdx)[nFaceChecked]);
+    PDM_printf("Valeur de (*faceVtxIdx)[nFaceChecked] : %d \n", (*faceVtxIdx)[nFaceChecked]);
 
     for (int i = 0; i < nFaceChecked; i++) {
       for (int j = (*faceVtxIdx)[i]; j < (*faceVtxIdx)[i + 1]; j++) {            
@@ -1195,13 +1197,13 @@ _build_faceVtx
           //If the face studied has been removed, I skip it
           int vtx1 = (*faceVtx)[j1];                
           if (j != j1 && vtx == vtx1) {
-            printf("Error multiple vertex in a face\n");
+            PDM_printf("Error multiple vertex in a face\n");
             abort();
           }
         }
       }
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
   /* 
@@ -1244,11 +1246,11 @@ _build_faceVtx
   (*coarseVtxToFineVtx) = realloc((*coarseVtxToFineVtx), (*nVtxChecked) * sizeof(int));
     
   if (0 == 1) {
-    printf("\nFinal content of coarseVtxToFineVtx: ");
+    PDM_printf("\nFinal content of coarseVtxToFineVtx: ");
     for (int i = 0; i < (*nVtxChecked); i++) {
-      printf(" %d ", (*coarseVtxToFineVtx)[i]);     
+      PDM_printf(" %d ", (*coarseVtxToFineVtx)[i]);     
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
   /*
@@ -1267,16 +1269,16 @@ _build_faceVtx
 
   for (int i = 0; i < (*nVtxChecked); i++) {
     int fineVtx = (*coarseVtxToFineVtx)[i];
-    //        printf("Valeur de fineVtx : %d \n", fineVtx);
+    //        PDM_printf("Valeur de fineVtx : %d \n", fineVtx);
     (*fineVtxToCoarseVtx)[fineVtx - 1] = i + 1;
   }
     
   if(0 == 1) {
-    printf("Content of fineVtxToCoarseVtx: ");
+    PDM_printf("Content of fineVtxToCoarseVtx: ");
     for (int i = 0; i < nVtx; i++) {
-      printf(" %d ", (*fineVtxToCoarseVtx)[i]);        
+      PDM_printf(" %d ", (*fineVtxToCoarseVtx)[i]);        
     }
-    printf("\n");      
+    PDM_printf("\n");      
   }
         
   //Loop over faceVtx to re-number faceVtx thanks to (*coarseVtxToFineVtx)
@@ -1285,23 +1287,23 @@ _build_faceVtx
   }   
     
   if (0 == 1) {
-    printf("Valeur de (*nVtxChecked) : %d \n", (*nVtxChecked));    
-    printf("Valeur de idx_write_faceVtx : %d \n", idx_write_faceVtx);
+    PDM_printf("Valeur de (*nVtxChecked) : %d \n", (*nVtxChecked));    
+    PDM_printf("Valeur de idx_write_faceVtx : %d \n", idx_write_faceVtx);
 
-    printf("Final content of faceVtxIdx: ");
+    PDM_printf("Final content of faceVtxIdx: ");
     for(int i = 0; i < nFaceChecked + 1; i++) {
-      printf(" %d ", (*faceVtxIdx)[i]);
+      PDM_printf(" %d ", (*faceVtxIdx)[i]);
     }  
-    printf("\n");
+    PDM_printf("\n");
 
-    printf("Final content of faceVtx: |");
+    PDM_printf("Final content of faceVtx: |");
     for (int i = 0; i < (*faceVtxIdx)[nFaceChecked]; i++) {
-      printf(" %d ", (*faceVtx)[i]);
+      PDM_printf(" %d ", (*faceVtx)[i]);
       if (i % (*faceVtxIdx)[1] == (*faceVtxIdx)[1] - 1) {
-        printf("|");
+        PDM_printf("|");
       }
     }
-    printf("\n");
+    PDM_printf("\n");
   }
         
 }
@@ -1354,14 +1356,14 @@ _build_vtx
   assert(3 * nVtxChecked == idx_write);
 
   if(0 == 1) {
-    printf("Contenu final de vtx\n");
+    PDM_printf("Contenu final de vtx\n");
     for (int i = 0; i < 3 * nVtxChecked; i++) {        
-      printf(" %.1f ", (*vtx)[i]);
+      PDM_printf(" %.1f ", (*vtx)[i]);
       if (i % 3 == 2) {
-          printf("|");
+          PDM_printf("|");
       }
     }
-    printf("\n");
+    PDM_printf("\n");
   }
 }
 
@@ -1403,9 +1405,9 @@ _build_coarseCellTag
     for (int j = coarseCellCellIdx[i]; j < coarseCellCellIdx[i + 1]; j++) {
       //If any fine cell does not have the same tag as the previous one, the cellTag array is incorrect
       if (cellTag[coarseCellCell[j] - 1] != tag) {
-        printf("Incorrect cellTag array provided!\n");
-        printf("Please check the fine cell %d\n", j + 1);
-        printf("A default tag of 0 will be written in the coarse cell %d\n", i + 1);
+        PDM_printf("Incorrect cellTag array provided!\n");
+        PDM_printf("Please check the fine cell %d\n", j + 1);
+        PDM_printf("A default tag of 0 will be written in the coarse cell %d\n", i + 1);
         tag = 0;
         break;
       }
@@ -1415,11 +1417,11 @@ _build_coarseCellTag
   }
 
   if(0 == 1) {
-    printf("Affichage de (*coarseCellTag)\n");
+    PDM_printf("Affichage de (*coarseCellTag)\n");
     for (int i = 0; i < nCoarseCellChecked; i++) {
-      printf(" %d ", (*coarseCellTag)[i]);
+      PDM_printf(" %d ", (*coarseCellTag)[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
 }
 
@@ -1454,11 +1456,11 @@ _build_faceTag
   (*faceTag) = realloc((*faceTag), nFaceChecked * sizeof(int));
 
   if(0 == 1) {
-    printf("Contenu de (*faceTag)\n");
+    PDM_printf("Contenu de (*faceTag)\n");
     for (int i = 0; i < nFaceChecked; i++) {
-        printf(" %d ", (*faceTag)[i]);
+        PDM_printf(" %d ", (*faceTag)[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }    
 }
 
@@ -1493,11 +1495,11 @@ _build_vtxTag
   (*vtxTag) = realloc((*vtxTag), nVtxChecked * sizeof(int));
 
   if(0 == 1) {
-    printf("Contenu de (*vtxTag)\n");
+    PDM_printf("Contenu de (*vtxTag)\n");
     for (int i = 0; i < nVtxChecked; i++) {
-      printf(" %d ", (*vtxTag)[i]);
+      PDM_printf(" %d ", (*vtxTag)[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }    
 }
 
@@ -1536,11 +1538,11 @@ _build_faceGroup
 //  }
     
   if (0 == 1) {
-    printf("Content of faceGroup after renumbering: |");
+    PDM_printf("Content of faceGroup after renumbering: |");
     for (int i = 0; i < (*faceGroupIdx)[nFaceGroup]; i++) {
-      printf(" %d ", (*faceGroup)[i]);
+      PDM_printf(" %d ", (*faceGroup)[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
   int idx = 0;
@@ -1569,11 +1571,11 @@ _build_faceGroup
   }
 
   if (0 == 1) {
-    printf("Contenu de cptFacesPerGroup apres remplissage\n");
+    PDM_printf("Contenu de cptFacesPerGroup apres remplissage\n");
     for (int i = 0; i < nFaceGroup; i++) {
-      printf(" %d ", cptFacesPerGroup[i]);
+      PDM_printf(" %d ", cptFacesPerGroup[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
   //Update of faceGroupIdx
@@ -1588,23 +1590,23 @@ _build_faceGroup
   (*coarseFaceGroupToFineFaceGroup) = realloc((*coarseFaceGroupToFineFaceGroup), (*faceGroupIdx)[nFaceGroup] * sizeof(int));
     
   if (0 == 1) {
-    printf("Final content of faceGroupIdx: ");
+    PDM_printf("Final content of faceGroupIdx: ");
     for (int i = 0; i < nFaceGroup + 1; i++) {
-      printf(" %d ", (*faceGroupIdx)[i]);
+      PDM_printf(" %d ", (*faceGroupIdx)[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
     
-    printf("Final content of faceGroup: |");
+    PDM_printf("Final content of faceGroup: |");
     for (int i = 0; i < (*faceGroupIdx)[nFaceGroup]; i++){
-      printf(" %d ", (*faceGroup)[i]);        
+      PDM_printf(" %d ", (*faceGroup)[i]);        
     }
-    printf("\n");
+    PDM_printf("\n");
 
-    printf("Final content of coarseFaceGroupToFineFaceGroup: ");
+    PDM_printf("Final content of coarseFaceGroupToFineFaceGroup: ");
     for (int i = 0; i < (*faceGroupIdx)[nFaceGroup]; i++) {
-      printf(" %d ", (*coarseFaceGroupToFineFaceGroup)[i]);        
+      PDM_printf(" %d ", (*coarseFaceGroupToFineFaceGroup)[i]);        
     }
-    printf("\n\n");
+    PDM_printf("\n\n");
   }
   free(cptFacesPerGroup);
 }
@@ -2044,7 +2046,7 @@ _build_coarseCellLNToGN
     nCellProc += cm->part_res[i]->part->nCell;
   }    
   
-  //    printf("\nValeur de nCellProc : %d \n", nCellProc);
+  //    PDM_printf("\nValeur de nCellProc : %d \n", nCellProc);
   
   //Global numbering of the cells
   PDM_g_num_t beg_NumAbs;
@@ -2071,11 +2073,11 @@ _build_coarseCellLNToGN
   
   if(0 == 1) {
     for (int iPart = 0; iPart < cm->nPart; iPart++) {
-      printf("\nContenu de cm->part_res[%d]->part->cellLNToGN\n", iPart);
+      PDM_printf("\nContenu de cm->part_res[%d]->part->cellLNToGN\n", iPart);
       for (int j = 0; j < cm->part_res[iPart]->part->nCell; j++) {
-        printf(" "PDM_FMT_G_NUM" ", cm->part_res[iPart]->part->cellLNToGN[j]);
+        PDM_printf(" "PDM_FMT_G_NUM" ", cm->part_res[iPart]->part->cellLNToGN[j]);
       }
-      printf("\n\n");   
+      PDM_printf("\n\n");   
     }
   }
 }
@@ -2103,12 +2105,12 @@ _coarse_mesh_t * cm
   }
 
   if(0 == 1) {
-    printf("Contenu de faceLNToGNPart\n");
+    PDM_printf("Contenu de faceLNToGNPart\n");
     for (int i = 0; i < cm->nPart; i++) {
       for (int j = 0; j < nFacePart[i]; j++) {
-         printf(" "PDM_FMT_G_NUM" ", faceLNToGNPart[i][j]);
+         PDM_printf(" "PDM_FMT_G_NUM" ", faceLNToGNPart[i][j]);
       }
-    printf("\n");
+    PDM_printf("\n");
     }
 
   }
@@ -2142,13 +2144,13 @@ _coarse_mesh_t * cm
   }
 
   if(0 == 1) {
-    printf("Contenu de faceLNToGNTag\n");    
+    PDM_printf("Contenu de faceLNToGNTag\n");    
     for (int i = 0; i < cm->nPart; i++) {
       for (int j = 0; j < cm->part_res[i]->part->nFace; j++) {
-          printf(" "PDM_FMT_G_NUM" ", faceLNToGNTag[i][j]);
+          PDM_printf(" "PDM_FMT_G_NUM" ", faceLNToGNTag[i][j]);
       }
     }
-    printf("\n");
+    PDM_printf("\n");
   }
 
   PDM_g_num_t *b_tIntersects = NULL;
@@ -2223,14 +2225,14 @@ _coarse_mesh_t * cm
                           (void **) faceLNToGNFine);
 
   if(0 == 1) {
-    printf("\nContenu de faceLNToGNFine\n");
+    PDM_printf("\nContenu de faceLNToGNFine\n");
     for (int i = 0; i < cm->nPart; i++) {        
       //Loop over the partition faces, j = face number
       for (int j = 0; j < cm->part_ini[i]->nFace; j++) {
-        printf(" "PDM_FMT_G_NUM" ", faceLNToGNFine[i][j]);
+        PDM_printf(" "PDM_FMT_G_NUM" ", faceLNToGNFine[i][j]);
       }
     }
-    printf("\n");
+    PDM_printf("\n");
   }
 
   for (int i = 0; i < cm->nPart; i++) {
@@ -2243,14 +2245,14 @@ _coarse_mesh_t * cm
   }
 
   if(0 == 1) {
-    printf("\nContenu de faceLNToGN de la structure\n");
+    PDM_printf("\nContenu de faceLNToGN de la structure\n");
     for (int i = 0; i < cm->nPart; i++) {        
       //Loop over the partition vertices, j = vertex number
       for (int j = 0; j < cm->part_res[i]->part->nFace; j++) {
-        printf(" "PDM_FMT_G_NUM" ", cm->part_res[i]->part->faceLNToGN[j]);
+        PDM_printf(" "PDM_FMT_G_NUM" ", cm->part_res[i]->part->faceLNToGN[j]);
       }
     }
-    printf("\n");
+    PDM_printf("\n");
   }
 
   free(faceLNToGNPart);
@@ -2297,17 +2299,17 @@ _coarse_mesh_t * cm
   }
 
   if(0 == 1) {
-    printf("Contenu de vtxLNToGNPart\n");
+    PDM_printf("Contenu de vtxLNToGNPart\n");
     for (int i = 0; i < cm->nPart; i++) {
-      printf(" "PDM_FMT_G_NUM" ", *(vtxLNToGNPart[i]));
+      PDM_printf(" "PDM_FMT_G_NUM" ", *(vtxLNToGNPart[i]));
     }
-    printf("\n");
+    PDM_printf("\n");
 
-    printf("Contenu de nVtxPart\n");
+    PDM_printf("Contenu de nVtxPart\n");
     for (int i = 0; i < cm->nPart; i++) {
-      printf(" %d ", nVtxPart[i]);
+      PDM_printf(" %d ", nVtxPart[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
 
   PDM_part_to_block_t *ptb = PDM_part_to_block_create (PDM_writer_BLOCK_DISTRIB_ALL_PROC,
@@ -2340,13 +2342,13 @@ _coarse_mesh_t * cm
   }
 
   if (0 == 1) {
-    printf("Contenu de vtxLNToGNTag\n");    
+    PDM_printf("Contenu de vtxLNToGNTag\n");    
     for (int i = 0; i < cm->nPart; i++) {
       for (int j = 0; j < cm->part_res[i]->part->nVtx; j++) {
-        printf(" "PDM_FMT_G_NUM, vtxLNToGNTag[i][j]);
+        PDM_printf(" "PDM_FMT_G_NUM, vtxLNToGNTag[i][j]);
       }
     }
-    printf("\n");
+    PDM_printf("\n");
   }
 
   PDM_g_num_t *b_tIntersects = NULL;
@@ -2419,14 +2421,14 @@ _coarse_mesh_t * cm
                           (void **) vtxLNToGNFine);
 
   if(0 == 1) {
-    printf("\nContenu de vtxLNToGNFine\n");
+    PDM_printf("\nContenu de vtxLNToGNFine\n");
     for (int i = 0; i < cm->nPart; i++) {        
       //Loop over the partition vertices, j = vertex number
       for (int j = 0; j < cm->part_ini[i]->nVtx; j++) {
-        printf(" "PDM_FMT_G_NUM" ", vtxLNToGNFine[i][j]);
+        PDM_printf(" "PDM_FMT_G_NUM" ", vtxLNToGNFine[i][j]);
       }
     }
-    printf("\n");
+    PDM_printf("\n");
   }
 
   for (int i = 0; i < cm->nPart; i++) {
@@ -2439,14 +2441,14 @@ _coarse_mesh_t * cm
   }
 
   if(0 == 1) {
-    printf("\nContenu de vtxLNToGN de la structure\n");
+    PDM_printf("\nContenu de vtxLNToGN de la structure\n");
     for (int i = 0; i < cm->nPart; i++) {        
       //Loop over the partition vertices, j = vertex number
       for (int j = 0; j < cm->part_res[i]->part->nVtx; j++) {
-        printf(" "PDM_FMT_G_NUM" ", cm->part_res[i]->part->vtxLNToGN[j]);
+        PDM_printf(" "PDM_FMT_G_NUM" ", cm->part_res[i]->part->vtxLNToGN[j]);
       }
     }
-    printf("\n");
+    PDM_printf("\n");
   }
 
   free(vtxLNToGNPart);
@@ -2512,13 +2514,13 @@ _coarse_mesh_t * cm
   }
 
   if (0 == 1) {
-    printf("Contenu de faceLNToGNTag\n");    
+    PDM_printf("Contenu de faceLNToGNTag\n");    
     for (int i = 0; i < cm->nPart; i++) {
       for (int j = 0; j < cm->part_ini[i]->nFace; j++) {
-        printf(" %d ", faceLNToGNTag[i][j]);
+        PDM_printf(" %d ", faceLNToGNTag[i][j]);
       }
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
   int **faceGroupLNToGNTag = (int **) malloc(cm->nPart * sizeof(int *));
@@ -2542,13 +2544,13 @@ _coarse_mesh_t * cm
   }
 
   if(0 == 1) {
-    printf("Contenu de faceGroupLNToGNTag\n");    
+    PDM_printf("Contenu de faceGroupLNToGNTag\n");    
     for (int i = 0; i < cm->nPart; i++) {
       for (int j = 0; j < cm->part_res[i]->part->faceGroupIdx[cm->nFaceGroup]; j++) {
-        printf(" %d ", faceGroupLNToGNTag[i][j]);
+        PDM_printf(" %d ", faceGroupLNToGNTag[i][j]);
       }
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
   for (int i = 0; i < cm->nPart; i++) {
@@ -2573,19 +2575,19 @@ _coarse_mesh_t * cm
     }
 
     if(0 == 1) {
-      printf("Contenu de faceGroupLNToGNPart\n");
+      PDM_printf("Contenu de faceGroupLNToGNPart\n");
       for (int i = 0; i < cm->nPart; i++) {
         int nFaceCurrentGroup = cm->part_ini[i]->faceGroupIdx[iGroup+1] - cm->part_ini[i]->faceGroupIdx[iGroup];
         for (int j = 0; j < nFaceCurrentGroup; j++)
-          printf(" "PDM_FMT_G_NUM" ", faceGroupLNToGNPart[i][j]);
-        printf("\n");
+          PDM_printf(" "PDM_FMT_G_NUM" ", faceGroupLNToGNPart[i][j]);
+        PDM_printf("\n");
       }
 
-      printf("Contenu de nFaceGroupPart\n");
+      PDM_printf("Contenu de nFaceGroupPart\n");
       for (int i = 0; i < cm->nPart; i++) {
-        printf(" %d ", nFaceGroupPart[i]);
+        PDM_printf(" %d ", nFaceGroupPart[i]);
       }
-      printf("\n");
+      PDM_printf("\n");
     }
         
     int rank;
@@ -2618,14 +2620,14 @@ _coarse_mesh_t * cm
     }
 
     if (0 == 1) {
-      printf("Contenu de faceGroupLNToGNTagGroup\n");    
+      PDM_printf("Contenu de faceGroupLNToGNTagGroup\n");    
       for (int i = 0; i < cm->nPart; i++) {
         int nFacePerGroup = cm->part_res[i]->part->faceGroupIdx[iGroup + 1] - cm->part_res[i]->part->faceGroupIdx[iGroup];
         for (int j = 0; j < nFacePerGroup; j++) {
-          printf(" %d ", faceGroupLNToGNTag[i][j]);
+          PDM_printf(" %d ", faceGroupLNToGNTag[i][j]);
         }
       }
-      printf("\n");
+      PDM_printf("\n");
     }
         
     PDM_part_to_block_exch (ptb,
@@ -2676,7 +2678,7 @@ _coarse_mesh_t * cm
 
     PDM_g_num_t *blockDistribIdx = PDM_part_to_block_distrib_index_get (ptb);
         
-    //        printf("assert : [%d] %d %d\n", rank, size_block, blockDistribIdx[rank+1] - blockDistribIdx[rank] );
+    //        PDM_printf("assert : [%d] %d %d\n", rank, size_block, blockDistribIdx[rank+1] - blockDistribIdx[rank] );
     //        assert(blockDistribIdx[rank+1] - blockDistribIdx[rank] ==  size_block);
     
     PDM_block_to_part_t *btp = PDM_block_to_part_create (blockDistribIdx,
@@ -2704,16 +2706,16 @@ _coarse_mesh_t * cm
                             (void **) faceGroupLNToGNFine);
 
     if(0 == 1) {
-      printf("\nContenu de faceGroupLNToGNFine\n");
+      PDM_printf("\nContenu de faceGroupLNToGNFine\n");
       for (int i = 0; i < cm->nPart; i++) {
         _part_t *cmp = cm->part_ini[i];
         //Loop over the partition vertices, j = vertex number
         int nFacePerGroup = cmp->faceGroupIdx[iGroup + 1] - cmp->faceGroupIdx[iGroup];
         for (int j = 0; j < nFacePerGroup; j++) {
-          printf(" "PDM_FMT_G_NUM" ", faceGroupLNToGNFine[i][j]);
+          PDM_printf(" "PDM_FMT_G_NUM" ", faceGroupLNToGNFine[i][j]);
         }
       }
-      printf("\n");  
+      PDM_printf("\n");  
     }
 
     for (int i = 0; i < cm->nPart; i++) {
@@ -2754,14 +2756,14 @@ _coarse_mesh_t * cm
 
   if (0 == 1) {
     for (int i = 0; i < cm->nPart; i++) {
-      printf("\nContenu de faceGroupLNToGN de la structure %d\n", i);
+      PDM_printf("\nContenu de faceGroupLNToGN de la structure %d\n", i);
       _part_t *cmp = cm->part_res[i]->part;
       //Loop over the partition vertices, j = vertex number
       for (int j = 0; j < cmp->faceGroupIdx[cm->nFaceGroup]; j++) {
-        printf(" "PDM_FMT_G_NUM" ", cmp->faceGroupLNToGN[j]);
+        PDM_printf(" "PDM_FMT_G_NUM" ", cmp->faceGroupLNToGN[j]);
       }
     }
-    printf("\n"); 
+    PDM_printf("\n"); 
   }
 
 }
@@ -2825,13 +2827,13 @@ _coarse_mesh_t * cm
     }
     
     if(0 == 1) {
-      printf("Final content of fineFaceToCoarseFace[%d]: \n",iPart);
-      printf("Valeur de cm->part_ini[iPart]->nFace : %d \n", cm->part_ini[iPart]->nFace);
+      PDM_printf("Final content of fineFaceToCoarseFace[%d]: \n",iPart);
+      PDM_printf("Valeur de cm->part_ini[iPart]->nFace : %d \n", cm->part_ini[iPart]->nFace);
       for (int i = 0; i < cm->part_ini[iPart]->nFace; i++) {
-        printf(" %d ", fineFaceToCoarseFace[iPart][i]);
+        PDM_printf(" %d ", fineFaceToCoarseFace[iPart][i]);
       }
-      printf("\n");
-      printf("------------------------------------------\n\n");
+      PDM_printf("\n");
+      PDM_printf("------------------------------------------\n\n");
     }
 
   }
@@ -2894,15 +2896,15 @@ _coarse_mesh_t * cm
     }
     
     if(0 == 1) {
-      printf("Valeur de nFacePartBound : %d \n", cmp->nFacePartBound);
+      PDM_printf("Valeur de nFacePartBound : %d \n", cmp->nFacePartBound);
       
-      printf("Contenu de facePartBound initial de la partition %d\n", i);
+      PDM_printf("Contenu de facePartBound initial de la partition %d\n", i);
       for (int cpt = 0; cpt < 4* cmp->nFacePartBound; cpt++) {
         if (cpt % 4 == 0)
-          printf("|");
-        printf(" %d ", cmp->facePartBound[cpt]);    
+          PDM_printf("|");
+        PDM_printf(" %d ", cmp->facePartBound[cpt]);    
       }
-      printf("\n");
+      PDM_printf("\n");
     }
          
     for (int j = 0; j < cmp->nFacePartBound; j++) {             
@@ -2924,17 +2926,17 @@ _coarse_mesh_t * cm
     }
         
     if (0 == 1) {
-      printf("Contenu de iPartBoundToIFacLoc \n");
+      PDM_printf("Contenu de iPartBoundToIFacLoc \n");
       for (int j = 0; j < cmp->nFacePartBound; j++) { //Modif : olp->nLinkedFace = cmp->nFacePartBound
-        printf(" %d ", cmp->facePartBound[4*j    ]);
+        PDM_printf(" %d ", cmp->facePartBound[4*j    ]);
       }
-      printf("\n");
+      PDM_printf("\n");
       
-      printf("Final content of iFaceLocToIPartBound[i]: \n");
+      PDM_printf("Final content of iFaceLocToIPartBound[i]: \n");
       for (int cpt = 0; cpt < cm->part_ini[i]->nFace; cpt++) {
-        printf(" %d ", iFaceLocToIPartBound[i][cpt]);
+        PDM_printf(" %d ", iFaceLocToIPartBound[i][cpt]);
       }
-      printf("\n");
+      PDM_printf("\n");
     }
     
   }
@@ -2986,16 +2988,16 @@ _coarse_mesh_t * cm
     
   if(0 == 1) {
     for (int iPart = 0; iPart < cm->nPart; iPart++) {
-      printf("\nContent of facePartBound of part_res[%d]\n", iPart);
-      printf("Valeur de cm->part_res[%d]->part->nFace : %d\n",iPart, cm->part_res[iPart]->part->nFace);
+      PDM_printf("\nContent of facePartBound of part_res[%d]\n", iPart);
+      PDM_printf("Valeur de cm->part_res[%d]->part->nFace : %d\n",iPart, cm->part_res[iPart]->part->nFace);
       for (int i = 0; i < 4 * cm->part_res[iPart]->part->nFacePartBound; i++) {
         if (i % 4 == 0)
-          printf("|");
-        printf(" %d ", cm->part_res[iPart]->part->facePartBound[i]);
+          PDM_printf("|");
+        PDM_printf(" %d ", cm->part_res[iPart]->part->facePartBound[i]);
       }
-      printf("\n");
+      PDM_printf("\n");
     }
-    printf("\n");
+    PDM_printf("\n");
   }
 
   for (int iPart = 0; iPart < cm->nPart; iPart++) { //Modif : nPartB => cm->nPart
@@ -3036,186 +3038,186 @@ _part_display
 )
 {
   if (part == NULL) {
-    printf("Incorrect part to display\n");
+    PDM_printf("Incorrect part to display\n");
     return;        
   }
   
-  printf("Value of nVtx : %d \n", part->nVtx);
-  printf("Value of nCell : %d \n", part->nCell);
-  printf("Value of nFace : %d \n", part->nFace);
-  printf("Value of nFacePartBound : %d \n", part->nFacePartBound);
+  PDM_printf("Value of nVtx : %d \n", part->nVtx);
+  PDM_printf("Value of nCell : %d \n", part->nCell);
+  PDM_printf("Value of nFace : %d \n", part->nFace);
+  PDM_printf("Value of nFacePartBound : %d \n", part->nFacePartBound);
     
   if (part->cellFaceIdx != NULL) {
-    printf("\nContent of cellFaceIdx\n");    
+    PDM_printf("\nContent of cellFaceIdx\n");    
     for(int i = 0; i < part->nCell + 1; i++) {
-      printf(" %d ", part->cellFaceIdx[i]);
+      PDM_printf(" %d ", part->cellFaceIdx[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
   if (part->gCellFace != NULL) {
-    printf("\nContent of gCellFace\n");    
+    PDM_printf("\nContent of gCellFace\n");    
     for(int i = 0; i < part->cellFaceIdx[part->nCell]; i++) {
-      printf(" "PDM_FMT_G_NUM" ", part->gCellFace[i]);
+      PDM_printf(" "PDM_FMT_G_NUM" ", part->gCellFace[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
   if (part->cellFace != NULL) {
-    printf("\nContent of cellFace\n");    
+    PDM_printf("\nContent of cellFace\n");    
     for(int i = 0; i < part->cellFaceIdx[part->nCell]; i++) {
-      printf(" %d ", part->cellFace[i]);
+      PDM_printf(" %d ", part->cellFace[i]);
       if (i % (part->cellFaceIdx)[1] == (part->cellFaceIdx)[1] - 1) {
-        printf("|");
+        PDM_printf("|");
       }
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
   if (part->cellLNToGN != NULL) {
-    printf("\nContent of cellLNToGN\n");    
+    PDM_printf("\nContent of cellLNToGN\n");    
     for(int i = 0; i < part->nCell; i++) {
-      printf(" "PDM_FMT_G_NUM" ", part->cellLNToGN[i]);
+      PDM_printf(" "PDM_FMT_G_NUM" ", part->cellLNToGN[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
      
   if (part->cellTag != NULL) {
-    printf("\nContent of cellTag\n");    
+    PDM_printf("\nContent of cellTag\n");    
     for(int i = 0; i < part->nCell; i++) {
-      printf(" %d ", part->cellTag[i]);
+      PDM_printf(" %d ", part->cellTag[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }    
     
   if (part->faceCell != NULL) {
-    printf("\nContent of faceCell\n");    
+    PDM_printf("\nContent of faceCell\n");    
     for(int i = 0; i < 2 * part->nFace; i++) {
-      printf(" %d ", part->faceCell[i]);
+      PDM_printf(" %d ", part->faceCell[i]);
       if (i % 2 == 1) {
-        printf("|");
+        PDM_printf("|");
       }
     }
-    printf("\n");
+    PDM_printf("\n");
   }    
     
   if (part->faceVtxIdx != NULL) {        
-    printf("\nContent of faceVtxIdx\n");    
+    PDM_printf("\nContent of faceVtxIdx\n");    
     for(int i = 0; i < part->nFace + 1; i++) {
-      printf(" %d ", part->faceVtxIdx[i]);
+      PDM_printf(" %d ", part->faceVtxIdx[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }    
     
   if (part->gFaceVtx != NULL) {
-    printf("\nContent of gFaceVtx\n");    
+    PDM_printf("\nContent of gFaceVtx\n");    
     for(int i = 0; i < part->faceVtxIdx[part->nFace]; i++) {
-      printf(" "PDM_FMT_G_NUM" ", part->gFaceVtx[i]);
+      PDM_printf(" "PDM_FMT_G_NUM" ", part->gFaceVtx[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }    
     
   if (part->faceVtx != NULL) {        
-    printf("\nContent of faceVtx\n");            
+    PDM_printf("\nContent of faceVtx\n");            
     for(int i = 0; i < part->faceVtxIdx[part->nFace]; i++) {
-      printf(" %d ", part->faceVtx[i]);
+      PDM_printf(" %d ", part->faceVtx[i]);
       if (i % (part->faceVtxIdx)[1] == (part->faceVtxIdx)[1] - 1) {
-        printf("|");
+        PDM_printf("|");
       }
     }
-    printf("\n");
+    PDM_printf("\n");
   }    
   
   if (part->faceLNToGN != NULL) {
-    printf("\nContent of faceLNToGN\n");    
+    PDM_printf("\nContent of faceLNToGN\n");    
     for(int i = 0; i < part->nFace; i++) {
-      printf(" "PDM_FMT_G_NUM" ", part->faceLNToGN[i]);
+      PDM_printf(" "PDM_FMT_G_NUM" ", part->faceLNToGN[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }    
     
   if (part->faceTag != NULL) {
-    printf("\nContent of faceTag\n");    
+    PDM_printf("\nContent of faceTag\n");    
     for(int i = 0; i < part->nFace; i++) {
-      printf(" %d ", (part->faceTag)[i]);
+      PDM_printf(" %d ", (part->faceTag)[i]);
     }
-    printf("\n");        
+    PDM_printf("\n");        
   }
     
   if (part->facePartBoundPartIdx != NULL) {
-    printf("\nContent of facePartBoundPartIdx\n");    
+    PDM_printf("\nContent of facePartBoundPartIdx\n");    
     for(int i = 0; i < nPart + 1; i++) {
-      printf(" %d ", part->facePartBoundPartIdx[i]);
+      PDM_printf(" %d ", part->facePartBoundPartIdx[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
   if (part->facePartBoundProcIdx != NULL) {
-    printf("\nContent of facePartBoundProcIdx\n");    
+    PDM_printf("\nContent of facePartBoundProcIdx\n");    
     for(int i = 0; i < nTPart + 1; i++) {
-      printf(" %d ", part->facePartBoundProcIdx[i]);
+      PDM_printf(" %d ", part->facePartBoundProcIdx[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
   if (part->facePartBound != NULL) {
-    printf("\nContent of facePartBound\n");    
+    PDM_printf("\nContent of facePartBound\n");    
     for(int i = 0; i < 4 * part->nFacePartBound; i++) {
-      printf(" %d ", part->facePartBound[i]);
+      PDM_printf(" %d ", part->facePartBound[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
   if (part->faceGroupIdx != NULL) {
-    printf("\nContent of faceGroupIdx\n");    
+    PDM_printf("\nContent of faceGroupIdx\n");    
     for(int i = 0; i < nFaceGroup + 1; i++) {
-      printf(" %d ", part->faceGroupIdx[i]);
+      PDM_printf(" %d ", part->faceGroupIdx[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
   if (part->faceGroup != NULL) {       
-    printf("\nContent of faceGroup\n");    
+    PDM_printf("\nContent of faceGroup\n");    
     for(int i = 0; i < part->faceGroupIdx[nFaceGroup]; i++) {
-      printf(" %d ", part->faceGroup[i]);
+      PDM_printf(" %d ", part->faceGroup[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
   if (part->faceGroupLNToGN != NULL) {
-    printf("\nContent of faceGroupLNToGN\n");    
+    PDM_printf("\nContent of faceGroupLNToGN\n");    
     for(int i = 0; i < part->faceGroupIdx[nFaceGroup]; i++) {
-      printf(" "PDM_FMT_G_NUM" ", part->faceGroupLNToGN[i]);
+      PDM_printf(" "PDM_FMT_G_NUM" ", part->faceGroupLNToGN[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
   
   if (part->vtx != NULL) {
-    printf("\nContent of vtx\n");    
+    PDM_printf("\nContent of vtx\n");    
     for(int i = 0; i < 3 * part->nVtx; i++) {
-      printf(" %.1f ", part->vtx[i]);
+      PDM_printf(" %.1f ", part->vtx[i]);
       if (i % 3 == 2) {
-        printf("|");
+        PDM_printf("|");
       }
     }
-    printf("\n");
+    PDM_printf("\n");
   }
   
   if (part->vtxLNToGN != NULL) {
-    printf("\nContent of vtxLNToGN\n");    
+    PDM_printf("\nContent of vtxLNToGN\n");    
     for(int i = 0; i < part->nVtx; i++) {
-      printf(" "PDM_FMT_G_NUM" ", part->vtxLNToGN[i]);
+      PDM_printf(" "PDM_FMT_G_NUM" ", part->vtxLNToGN[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
     
   if (part->vtxTag != NULL) {
-    printf("\nContent of vtxTag\n");    
+    PDM_printf("\nContent of vtxTag\n");    
     for(int i = 0; i < part->nVtx; i++) {
-      printf(" %d ", part->vtxTag[i]);
+      PDM_printf(" %d ", part->vtxTag[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
 }
@@ -3240,50 +3242,50 @@ _coarse_part_display
 )
 {
   if (coarse_part == NULL) {
-    printf("Incorrect coarse part to display\n");
+    PDM_printf("Incorrect coarse part to display\n");
     return;        
   }
     
   _part_display(coarse_part->part, nPart, nTPart, nFaceGroup);
         
   if (coarse_part->coarseCellCellIdx != NULL) {
-    printf("\nContent of coarseCellCellIdx\n");    
+    PDM_printf("\nContent of coarseCellCellIdx\n");    
     for(int i = 0; i < coarse_part->part->nCell + 1; i++) {
-      printf(" %d ", coarse_part->coarseCellCellIdx[i]);
+      PDM_printf(" %d ", coarse_part->coarseCellCellIdx[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
   if (coarse_part->coarseCellCell != NULL) {
-    printf("\nContent of coarseCellCell\n");    
+    PDM_printf("\nContent of coarseCellCell\n");    
     for(int i = 0; i < coarse_part->coarseCellCellIdx[coarse_part->part->nCell]; i++) {
-      printf(" %d ", coarse_part->coarseCellCell[i]);
+      PDM_printf(" %d ", coarse_part->coarseCellCell[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
   if (coarse_part->coarseFaceGroupToFineFaceGroup != NULL) {
-    printf("\nContent of coarseFaceGroupToFineFaceGroup\n");    
+    PDM_printf("\nContent of coarseFaceGroupToFineFaceGroup\n");    
     for(int i = 0; i < coarse_part->part->faceGroupIdx[nFaceGroup]; i++) {
-      printf(" %d ", coarse_part->coarseFaceGroupToFineFaceGroup[i]);
+      PDM_printf(" %d ", coarse_part->coarseFaceGroupToFineFaceGroup[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
   if (coarse_part->coarseFaceToFineFace != NULL) {
-    printf("\nContent of coarseFaceToFineFace\n");    
+    PDM_printf("\nContent of coarseFaceToFineFace\n");    
     for(int i = 0; i < coarse_part->part->nFace; i++) {
-      printf(" %d ", coarse_part->coarseFaceToFineFace[i]);
+      PDM_printf(" %d ", coarse_part->coarseFaceToFineFace[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
     
   if (coarse_part->coarseVtxToFineVtx != NULL) {
-    printf("\nContent of coarseVtxToFineVtx\n");    
+    PDM_printf("\nContent of coarseVtxToFineVtx\n");    
     for(int i = 0; i < coarse_part->part->nVtx; i++) {
-      printf(" %d ", coarse_part->coarseVtxToFineVtx[i]);
+      PDM_printf(" %d ", coarse_part->coarseVtxToFineVtx[i]);
     }
-    printf("\n");
+    PDM_printf("\n");
   }
 }
 
@@ -3302,7 +3304,7 @@ _part_free
 )
 {
   if (part == NULL) {
-    printf("Incorrect part to free");
+    PDM_printf("Incorrect part to free");
     return;        
   }
     
@@ -3905,7 +3907,7 @@ PDM_part_coarse_mesh_part_dim_get
   }
   
   if (part_res == NULL) {
-    printf("PDM_part_coarse_mesh_part_dim_get error : unknown partition\n");
+    PDM_printf("PDM_part_coarse_mesh_part_dim_get error : unknown partition\n");
     exit(1);
   }
   
@@ -4046,7 +4048,7 @@ PDM_part_coarse_mesh_part_get
   }
   
   if (part_res == NULL) {
-    printf("PDM_part_coarse_mesh_part_get error : unknown partition\n");
+    PDM_printf("PDM_part_coarse_mesh_part_get error : unknown partition\n");
     exit(1);
   }
   
@@ -4120,7 +4122,7 @@ PROCF (pdm_part_coarse_mesh_part_get, PDM_PART_COARSE_MESH_PART_GET)
   }
   
   if (part_res == NULL) {
-    printf("PDM_part_coarse_mesh_part_get error : unknown partition\n");
+    PDM_printf("PDM_part_coarse_mesh_part_get error : unknown partition\n");
     exit(1);
   }
     
@@ -4331,24 +4333,24 @@ PDM_part_coarse_mesh_display
   
   //Display all the elements of the structure (not part of the other structures)
   
-  printf("\n");
-  printf("Value of nPart : %d \n", cm->nPart);
-  printf("Value of comm : %d \n", cm->comm);
-  printf("Value of method : %d \n", cm->method);
-  printf("Value of nTPart : %d \n", cm->nTPart);
-  printf("Value of nFaceGroup : %d \n", cm->nFaceGroup);    
+  PDM_printf("\n");
+  PDM_printf("Value of nPart : %d \n", cm->nPart);
+  PDM_printf("Value of comm : %d \n", cm->comm);
+  PDM_printf("Value of method : %d \n", cm->method);
+  PDM_printf("Value of nTPart : %d \n", cm->nTPart);
+  PDM_printf("Value of nFaceGroup : %d \n", cm->nFaceGroup);    
   
   for (int i = 0; i < cm->nPart; i++) { 
-    printf("\n=============================================\n");
-    printf("Valeur de i : %d \n", i);
-    printf("\n=============================================\n");
+    PDM_printf("\n=============================================\n");
+    PDM_printf("Valeur de i : %d \n", i);
+    PDM_printf("\n=============================================\n");
     
-    printf("\n----------Affichage de part_ini-----------------\n");
+    PDM_printf("\n----------Affichage de part_ini-----------------\n");
     _part_display(cm->part_ini[i],cm->nPart,cm->nTPart,cm->nFaceGroup);
     
-    printf("\n----------Affichage de part_res-----------------\n");
+    PDM_printf("\n----------Affichage de part_res-----------------\n");
     _coarse_part_display(cm->part_res[i], cm->nPart,cm->nTPart,cm->nFaceGroup);
-    printf("\n-----------------------------------------\n");
+    PDM_printf("\n-----------------------------------------\n");
   }
 }
 

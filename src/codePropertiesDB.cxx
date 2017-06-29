@@ -1,7 +1,7 @@
 /*
   This file is part of the CWIPI library. 
 
-  Copyright (C) 2011  ONERA
+  Copyright (C) 2011-2017  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -22,8 +22,10 @@
 #include <cstring>
 #include <ctime>
 #include <cstdlib>
+#include <list>
+#include <map>
 
-#include <bftc_mem.h>
+#include "pdm_error.h"
 
 #include <fvmc_parall.h>
 
@@ -43,8 +45,8 @@ namespace cwipi {
    */
 
   CodePropertiesDB::CodePropertiesDB()
-    : _distCodePropertiesDB(*(new map <string, CodeProperties * > ())),
-      _locCodeProperties(NULL)
+    : _codePropertiesDB(*(new map <string, CodeProperties * > ())),
+      _locCodePropertiesDB(*(new map <string, CodeProperties * > ()))
   {
   }
 
@@ -58,75 +60,23 @@ namespace cwipi {
 #if defined(DEBUG) && 0
     cout << "destroying CodePropertiesDB." << endl;
 #endif
-    if (_locCodeProperties != NULL)
-      delete _locCodeProperties;
 
-    if (!_distCodePropertiesDB.empty()) {
+    if (!_codePropertiesDB.empty()) {
       typedef map <string, CodeProperties * >::iterator CI;
-      for (CI p = _distCodePropertiesDB.begin();
-           p != _distCodePropertiesDB.end(); p++) {
+      for (CI p = _codePropertiesDB.begin();
+           p != _codePropertiesDB.end(); p++) {
         if (p->second != NULL)
           delete p->second;
       }
-      _distCodePropertiesDB.clear();
+      _codePropertiesDB.clear();
 
     }
-    delete &_distCodePropertiesDB;
-
-    if (!_issendMPIrequest.empty()) {
-      typedef map <string, vector<MPI_Request> * >::iterator CI;
-      typedef map <string, map <string, vector<MPI_Request> * > >::iterator CI2;
-
-      for (CI2 p2  = _issendMPIrequest.begin();
-               p2 != _issendMPIrequest.end(); 
-               p2++) {
-        for (CI p  = p2->second.begin();
-                p != p2->second.end(); 
-                p++) {
-          if (p->second != NULL) {
-            for (int k = 0; k < p->second->size(); k++)
-              if ((*(p->second))[k] != MPI_REQUEST_NULL)
-                MPI_Request_free(&(*(p->second))[k]);
-            delete p->second;
-          }
-        }
-        p2->second.clear();
-      }
-      _issendMPIrequest.clear();
-    }
-
-    typedef map <string, MPI_Request >::iterator CI3;
-    for (CI3 p3  = _issendLockMPIrequest.begin();
-             p3 != _issendLockMPIrequest.end(); 
-             p3++) {
-      if (p3->second != MPI_REQUEST_NULL)
-        MPI_Request_free(&(p3->second));
-    }
-    _issendLockMPIrequest.clear();
-
-    _distLockStatus.clear();
-
-    typedef map <string, string >::iterator CI4;
-    for (CI4 p4  = _issendNameBuffs.begin();
-             p4 != _issendNameBuffs.end(); 
-             p4++) {
-      p4->second.clear();
-    }
-    _issendNameBuffs.clear();
-
-    typedef map <string, vector<unsigned char > >::iterator CI5;
-    for (CI5 p5  = _issendValBuffs.begin();
-             p5 != _issendValBuffs.end(); 
-             p5++) {
-      p5->second.clear();
-    }
-    _issendValBuffs.clear();
-
-    _recvValBuff.clear();
-    _recvNameBuff.clear();
+    delete &_codePropertiesDB;
+    delete &_locCodePropertiesDB;
     
   }
 
+  
   /**
    * \brief MPI Communicator Initialization.
    *
@@ -134,174 +84,466 @@ namespace cwipi {
    * the current name and the MPI communicator containing all processes of
    * all codes.
    *
-   * \param [in]  name         Current code name
-   * \param [in]  globalComm   MPI communicator containing all processes 
-   *                           of all codes
-   *
-   * \return                   Current code intra-communicator
+   * \param [in]  globalComm      MPI communicator containing all processes 
+   *                              of all codes
+   * \param [in]  n_codes         Number of codes on the current rank
+   * \param [in]  code_names      Codes names on the current rank  (\ref n_codes)
+   * \param [in]  is_coupled_rank Current rank is it a coupled rank (\ref n_codes)
+   * \param [in]  n_param_max     Maximum number of parameters
+   * \param [in]  str_size_max    Maximum size for a string
+   * \param [out] intra_coms      Current codes intra-communicators  (\ref n_codes)
    *
    */
 
-  MPI_Comm 
+  void 
   CodePropertiesDB::init
   (
-   const char* name, 
-   const MPI_Comm globalComm
-  )
+  const MPI_Comm     globalComm,
+  const int          n_codes,
+  const char**       code_names, 
+  const CWP_Status_t *is_coupled_rank,
+  const int          n_param_max,
+  const int          str_size_max,      
+  MPI_Comm           *intra_comms       
+ )
   {
 
     // Initialize MPI
     // --------------
-
+    
     int currentRank;
     int globalCommSize;
-    int color = 0;
+    
+    _globalComm = globalComm;
+    
+    _n_param_max = n_param_max;
+    _str_size_max = str_size_max;
 
-    {
-      int flag;
+    int flag;
 
-      MPI_Initialized(&flag);
-      if (!flag)
-        bftc_error(__FILE__, __LINE__, 0, "MPI is not initialized\n");
-
-      MPI_Comm_rank(globalComm, &currentRank);
-      MPI_Comm_size(globalComm, &globalCommSize);
-
+    MPI_Initialized(&flag);
+    if (!flag) {
+      PDM_error(__FILE__, __LINE__, 0, "MPI is not initialized\n");
     }
+      
+    MPI_Comm_rank(globalComm, &currentRank);
+    MPI_Comm_size(globalComm, &globalCommSize);
 
     // Search codes
     // ------------
 
-    {
-      int j = 0;
-      int index = 0;
-      int totalLength = 0;
-      int nameLength = 0;
+    int index = 0;
+    int properties[2]; /* The first property is the number of rank codes
+                        * The second is the length of concatenated code names 
+                        * The third is coupled rank state */
 
-      string currentString = "";
+    properties[0] = n_codes;
+    properties[1] = 0;
+    for (int i = 0; i < n_codes; i++) {
+      properties[1] += strlen(code_names[i]) + 1;
+    }
+    //properties[2] = is_coupled_rank;
 
-      nameLength = strlen(name) + 1;
+    int *allProperties = new int[2*globalCommSize];
 
-      MPI_Allreduce (&nameLength, &totalLength, 1, MPI_INT, MPI_SUM,
-                     globalComm);
+    MPI_Allgather(&properties,
+                  2,
+                  MPI_INT,
+                  allProperties,
+                  2,
+                  MPI_INT,
+                  globalComm);
 
-      char *mergeNames = new char[totalLength];
+    char *concatenateNames = new char[properties[1]];
+    char *_concatenateNames = concatenateNames;
+    for (int i = 0; i < n_codes; i++) {
+      strcpy(_concatenateNames, code_names[i]);
+      _concatenateNames += strlen(code_names[i]) + 1;
+    }
 
-      int *namesLength = new int[globalCommSize];
-      int *iproc = new int[globalCommSize];
+    int *iproc = new int[globalCommSize + 1];
+    int *codesLengthName = new int[globalCommSize];
 
-      MPI_Allgather(&nameLength,
-                    1,
-                    MPI_INT,
-                    namesLength,
-                    1,
-                    MPI_INT,
-                    globalComm);
+    int *iproc2 = new int[globalCommSize + 1];
+    int *n_codes_rank = new int[globalCommSize];
+    
+    iproc[0] = 0;
+    iproc2[0] = 0;
+    for(int i = 0; i < globalCommSize; i++) {
+      codesLengthName[i] = allProperties[2*i+1];
+      n_codes_rank[i] = allProperties[2*i];
+      iproc[i+1] = allProperties[2*i+1] + iproc[i];
+      iproc2[i+1] = allProperties[2*i] + iproc2[i];
+    }
 
-      iproc[0] = 0;
-      for(int i = 1; i < globalCommSize; i++)
-        iproc[i] = namesLength[i-1] + iproc[i-1];
+    int totalLength = iproc[globalCommSize];
+    int totalCode = iproc2[globalCommSize];
+    
+    char *mergeNames = new char[totalLength];
+    int *mergeIsCoupled = new int[totalCode];
+    
+    MPI_Allgatherv((void*) concatenateNames,
+                   properties[1],
+                   MPI_CHAR,
+                   mergeNames,
+                   codesLengthName,
+                   iproc,
+                   MPI_CHAR,
+                   globalComm);
 
-      MPI_Allgatherv((void*) const_cast <char*> (name),
-                     nameLength,
-                     MPI_CHAR,
-                     mergeNames,
-                     namesLength,
-                     iproc,
-                     MPI_CHAR,
-                     globalComm);
+    MPI_Allgatherv((void*) is_coupled_rank,
+                   properties[0],
+                   MPI_INT,
+                   mergeIsCoupled,
+                   n_codes_rank,
+                   iproc2,
+                   MPI_INT,
+                   globalComm);
 
-      delete[] iproc;
-      delete[] namesLength;
+    delete[] concatenateNames;
+    delete[] codesLengthName;
 
-      for (int irank = 0; irank < globalCommSize; irank++) {
+    delete[] n_codes_rank;
 
+    map < string, vector < int > * >  coupledRankCode;
+    map < string, vector < int > * >  rankCode;
+    
+    int id = 1;
+     
+    _isLocalCodeRootrank = false;
+    
+    int icode = 0;
+    for (int irank = 0; irank < globalCommSize; irank++) {   
+      
+      for (int k = 0; k < allProperties[2*irank]; k++) {
         assert(index <= totalLength);
 
         const char *ptCurrentName = mergeNames + index;
-        string currentName(ptCurrentName);
 
-        if (currentString != currentName) {
+        string currentName = string(ptCurrentName);
 
+        typedef map <string, CodeProperties *>::iterator Iterator;
+
+        Iterator p = _codePropertiesDB.find(currentName);
+
+        if (p == _codePropertiesDB.end()) {
+
+          if (!_isLocalCodeRootrank) {
+            _isLocalCodeRootrank = currentRank == irank;
+          }
           CodeProperties *currentCodeProperties =
-            new CodeProperties(currentName, globalComm);
+            new CodeProperties(currentName, id++, irank, 
+                               currentRank == irank, globalComm,
+                               _n_param_max, _str_size_max);
 
-          if (!strcmp(currentName.c_str(), name)) {
-            _locCodeProperties = currentCodeProperties;
-            color = j+1;
+          coupledRankCode[currentName] = new vector <int> ();
+          coupledRankCode[currentName]->reserve(globalCommSize);
+          rankCode[currentName] = new vector <int> ();
+          rankCode[currentName]->reserve(globalCommSize);
+
+          pair<string, CodeProperties *>
+            newPair(currentName, currentCodeProperties);
+
+          _codePropertiesDB.insert(newPair);
+
+          if (currentRank == irank) {
+            _locCodePropertiesDB.insert(newPair);
           }
-          else {
-            pair<string, CodeProperties *>
-              newPair(string(currentName), currentCodeProperties);
-
-            pair<map<string, CodeProperties *>::iterator, bool>
-              p = _distCodePropertiesDB.insert(newPair);
-
-            if (!p.second)
-              bftc_error(__FILE__, __LINE__, 0,
-                        "The MPI ranks range is not continous or\n"
-                        "There are two codes with the same name '%s'  \n", 
-                         currentName.c_str());
-
-            //
-            // issend int param MPI request storage
-
-            _issendMPIrequest[typeid(int).name()][string(currentName)] =  
-              new vector<MPI_Request>(_nIssend, MPI_REQUEST_NULL);
-
-            _issendMPIrequest[typeid(double).name()][string(currentName)] =  
-              new vector<MPI_Request>(_nIssend, MPI_REQUEST_NULL);
-
-            _issendMPIrequest[typeid(string).name()][string(currentName)] =  
-              new vector<MPI_Request>(_nIssend, MPI_REQUEST_NULL);
-
-            //
-            // issend lock MPI request storage
-
-            _issendLockMPIrequest[string(currentName)] = MPI_REQUEST_NULL;
-            _distLockStatus[string(currentName)] = 0;
-
-          }
-
-          currentCodeProperties->firstRankSet(irank);
-
-          if (currentString != "") {
-            if (!strcmp(currentString.c_str(), name))
-              _locCodeProperties->lastRankSet(irank-1);
-            else
-              _distCodePropertiesDB[currentString]->lastRankSet(irank-1);
-          }
-
-          currentString = currentName;
-
-          j += 1;
         }
 
-        if (currentString != "") {
-          if (!strcmp(currentString.c_str(), name))
-            _locCodeProperties->lastRankSet(globalCommSize-1);
-          else
-            _distCodePropertiesDB[currentString]->lastRankSet(globalCommSize-1);
+        else {
+          
+          if (currentRank == irank) {
+            if (_locCodePropertiesDB.find(currentName) == _locCodePropertiesDB.end()) {
+               _locCodePropertiesDB[currentName] = p->second;
+               p->second->isLocalSet(true);
+            }
+          }
+        
+        }
+        
+        if (mergeIsCoupled[icode++]) {        
+          coupledRankCode[currentName]->push_back(irank);
+        }
+      
+        rankCode[currentName]->push_back(irank);
+
+        if (currentRank == irank) {
+          _codePropertiesDB[currentName]->isCoupledRankset(is_coupled_rank[k]);
         }
 
         index += currentName.size() + 1;
         assert(index <= totalLength);
       }
-
-      delete [] mergeNames;
-
-      // Create current code communicator
-      // ---------------------------------------
-
-      MPI_Comm intraComm = MPI_COMM_NULL ;
-      MPI_Comm_split(globalComm, color, currentRank, &intraComm);
-      _locCodeProperties->intraCommSet(intraComm);
-
-      _issendLockStatus = 0;
-      _issendLock();
-
-      return intraComm;
     }
+
+    typedef map <string, CodeProperties *>::iterator IteratorCP;
+      
+    for (IteratorCP p2  = _codePropertiesDB.begin(); 
+                    p2 != _codePropertiesDB.end(); 
+                    p2++) {
+        
+      if (p2->second->_rootRankInGlobalComm == currentRank) {
+        
+        MPI_Win_create(p2->second->_winGlobData, 
+                       4 * sizeof(int),
+                       sizeof(int), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winGlob);
+        
+        p2->second->_winIntParamIdxNameData = 
+            (int *) malloc (sizeof(int) * (n_param_max + 1));
+        p2->second->_winIntParamIdxNameData[0] = 0;
+        MPI_Win_create(p2->second->_winIntParamIdxNameData, 
+                       (n_param_max + 1) * sizeof(int),
+                       sizeof(int), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winIntParamIdxName);
+        
+        p2->second->_winIntParamNameData = 
+            (char *) malloc (sizeof(char) * n_param_max * str_size_max);
+        MPI_Win_create(p2->second->_winIntParamNameData, 
+                       n_param_max * str_size_max * sizeof(char),
+                       sizeof(char), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winIntParamName);
+        
+        p2->second->_winIntParamValueData = 
+            (int *) malloc (sizeof(int) * n_param_max);
+        MPI_Win_create(p2->second->_winIntParamValueData, 
+                       n_param_max * sizeof(int),
+                       sizeof(int), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winIntParamValue);
+        
+        p2->second->_winDoubleParamIdxNameData = 
+            (int *) malloc (sizeof(int) * (n_param_max + 1));
+        p2->second->_winDoubleParamIdxNameData[0] = 0;
+        MPI_Win_create(p2->second->_winDoubleParamIdxNameData, 
+                       (n_param_max + 1) * sizeof(int),
+                       sizeof(int), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winDoubleParamIdxName);
+        
+        p2->second->_winDoubleParamNameData = 
+            (char *) malloc (sizeof(char) * n_param_max * str_size_max);
+        MPI_Win_create(p2->second->_winDoubleParamNameData, 
+                       n_param_max * str_size_max * sizeof(char),
+                       sizeof(char), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winDoubleParamName);
+        
+        p2->second->_winDoubleParamValueData = 
+            (double *) malloc (sizeof(double) * n_param_max);
+        MPI_Win_create(p2->second->_winDoubleParamValueData, 
+                       n_param_max * sizeof(double),
+                       sizeof(double), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winDoubleParamValue);
+        
+        p2->second->_winStrParamIdxNameData = 
+            (int *) malloc (sizeof(int) * (n_param_max + 1));
+        p2->second->_winStrParamIdxNameData[0] = 0;
+        MPI_Win_create(p2->second->_winStrParamIdxNameData, 
+                       (n_param_max + 1) * sizeof(int),
+                       sizeof(int), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winStrParamIdxName);
+        
+        p2->second->_winStrParamNameData = 
+            (char *) malloc (sizeof(char) * n_param_max * str_size_max);
+        MPI_Win_create(p2->second->_winStrParamNameData, 
+                       n_param_max * str_size_max * sizeof(char),
+                       sizeof(char), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winStrParamName);
+        
+        p2->second->_winStrParamIdxValueData = 
+            (int *) malloc (sizeof(int) * (n_param_max + 1));
+        p2->second->_winStrParamIdxValueData[0] = 0;
+        MPI_Win_create(p2->second->_winStrParamIdxValueData, 
+                       (n_param_max + 1) * sizeof(int),
+                       sizeof(int), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winStrParamIdxValue);
+        
+        p2->second->_winStrParamValueData = 
+            (char *) malloc (sizeof(char) * n_param_max * str_size_max);
+        MPI_Win_create(p2->second->_winStrParamValueData, 
+                       n_param_max * str_size_max * sizeof(char),
+                       sizeof(char), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winStrParamValue);
+      }
+      else {
+        MPI_Win_create(NULL, 
+                       0, 
+                       sizeof(int), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winGlob);
+
+        p2->second->_winIntParamIdxNameData = 
+            (int *) malloc (sizeof(int) * (n_param_max + 1));
+        MPI_Win_create(NULL, 
+                       0, 
+                       sizeof(int), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winIntParamIdxName);
+
+        p2->second->_winIntParamNameData = 
+            (char *) malloc (sizeof(char) * n_param_max *str_size_max);
+        MPI_Win_create(NULL, 
+                       0, 
+                       sizeof(char), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winIntParamName);
+
+        p2->second->_winIntParamValueData = 
+            (int *) malloc (sizeof(int) * n_param_max);
+        MPI_Win_create(NULL, 
+                       0, 
+                       sizeof(int), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winIntParamValue);
+
+        p2->second->_winDoubleParamIdxNameData = 
+            (int *) malloc (sizeof(int) * (n_param_max + 1));
+        MPI_Win_create(NULL, 
+                       0, 
+                       sizeof(int), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winDoubleParamIdxName);
+
+        p2->second->_winDoubleParamNameData = 
+            (char *) malloc (sizeof(char) * n_param_max *str_size_max);
+        MPI_Win_create(NULL, 
+                       0, 
+                       sizeof(char), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winDoubleParamName);
+
+        p2->second->_winDoubleParamValueData = 
+            (double *) malloc (sizeof(double) * n_param_max);
+        MPI_Win_create(NULL, 
+                       0, 
+                       sizeof(double), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winDoubleParamValue);
+
+        p2->second->_winStrParamIdxNameData = 
+            (int *) malloc (sizeof(int) * (n_param_max + 1));
+        MPI_Win_create(NULL, 
+                       0, 
+                       sizeof(int), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winStrParamIdxName);
+        
+        p2->second->_winStrParamNameData = 
+            (char *) malloc (sizeof(char) * n_param_max * str_size_max);
+        MPI_Win_create(NULL, 
+                       0, 
+                       sizeof(char), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winStrParamName);
+        
+        p2->second->_winStrParamIdxValueData = 
+            (int *) malloc (sizeof(int) * (n_param_max + 1));
+        MPI_Win_create(NULL, 
+                       0, 
+                       sizeof(int), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winStrParamIdxValue);
+        
+        p2->second->_winStrParamValueData = 
+            (char *) malloc (sizeof(char) * n_param_max * str_size_max);
+        MPI_Win_create(NULL, 
+                       0, 
+                       sizeof(char), 
+                       MPI_INFO_NULL, 
+                       p2->second->_globalComm, 
+                       &p2->second->_winStrParamValue);
+      }      
+
+    }
+         
+    delete [] allProperties;
+    delete [] iproc;
+    delete [] iproc2;
+    delete [] mergeNames;
+    delete [] mergeIsCoupled;
+    
+    
+    // Create intra code communicators
+    // -------------------------------
+
+    MPI_Group globalGroup;
+    MPI_Comm_group (globalComm, &globalGroup);
+    
+    typedef map <string, vector < int > * >::iterator Iterator;
+
+    for (Iterator p = rankCode.begin(); 
+                  p != rankCode.end(); p++){
+      p->second->resize(p->second->size());
+      const int *_ranks = &((*p->second)[0]);
+      _codePropertiesDB[p->first]->_intraRanks = p->second;
+      int _n_ranks = p->second->size();
+      MPI_Group_incl (globalGroup, _n_ranks, _ranks, 
+                     &(_codePropertiesDB[p->first]->_intraGroup));
+      MPI_Comm_create (globalComm, 
+                       _codePropertiesDB[p->first]->_intraGroup,
+                       &(_codePropertiesDB[p->first]->_intraComm));
+      _codePropertiesDB[p->first]->_rootRankInGlobalComm = _ranks[0];
+    }
+    
+    rankCode.clear();
+
+    // Create intra coupled code group
+    // -------------------------------
+
+    for (Iterator p = coupledRankCode.begin(); 
+                  p != coupledRankCode.end(); p++){
+      p->second->resize(p->second->size());
+      const int *_ranks = &((*p->second)[0]);
+      _codePropertiesDB[p->first]->_connectableRanks = p->second;
+      int _n_ranks = p->second->size();
+      MPI_Group_incl (globalGroup, _n_ranks, _ranks, 
+                     &(_codePropertiesDB[p->first]->_intraConnectableGroup));
+      if (MPI_GROUP_EMPTY == _codePropertiesDB[p->first]->_intraConnectableGroup) {
+        printf ("[%d] Group empty : %s\n", currentRank, p->first.c_str()); 
+      }
+      MPI_Comm_create (globalComm, 
+                       _codePropertiesDB[p->first]->_intraConnectableGroup,
+                       &(_codePropertiesDB[p->first]->_intraConnectableComm));
+    }
+
+    coupledRankCode.clear();
+    
+    for (int i = 0; i < n_codes; i++) {
+      const string &nameStr = code_names[i];
+      intra_comms[i] = _codePropertiesDB[nameStr]->_intraComm;
+    }
+
   }
 
   /**
@@ -312,167 +554,12 @@ namespace cwipi {
   void 
   CodePropertiesDB::dump()
   {
-    bftc_printf("\nLoc code properties\n\n");
-    _locCodeProperties->dump();
-
-    typedef map <string, CodeProperties *>::iterator Iterator;
-
-    bftc_printf("\nDistant code properties\n\n");
-    for (Iterator p = _distCodePropertiesDB.begin(); 
-                  p != _distCodePropertiesDB.end(); p++){
-      _irecvParameters<int>(p->first);
-      _irecvParameters<double>(p->first);
-      _irecvParameters<string>(p->first);
-      p->second->dump();
-      bftc_printf("\n");
-    }
-    bftc_printf_flush();
-  }
-
-  /**
-   * \brief Get the parameter lock status of a distant code
-   *
-   * \param [in]  Code name 
-   *
-   */
-
-  void 
-  CodePropertiesDB::_lockStatusGet
-  (
-   const string &codeName
-  )
-  {
-    int locFirstRank = _locCodeProperties->firstRankGet();
-    int nAppli         = _distCodePropertiesDB.size() + 1;
-    
-    const MPI_Comm& intraComm  = _locCodeProperties->intraCommGet();
-    const MPI_Comm& globalComm = _locCodeProperties->globalCommGet();
-
-    int locCommSize = -1;
-    int currentRank   = -1;
-    
-    MPI_Comm_rank(intraComm, &currentRank);
-    MPI_Comm_size(intraComm, &locCommSize);
-
-    const map <string, CodeProperties * >::iterator p = 
-      _distCodePropertiesDB.find(codeName);
- 
-   if (p == _distCodePropertiesDB.end())
-      bftc_error(__FILE__, __LINE__, 0,
-                "'%s' code not found \n", codeName.c_str());
-
-    int flag;
-    _distLockStatus[p->first];
-
-    if (currentRank == 0) {
-      
-      int distFirstRank = p->second->_firstRank;
-
-      int tag = 'l'+'o'+'c'+'k'+'_'+'s'+'t'+'a'+'t'+'u'+'s'+ 
-        nAppli * distFirstRank + locFirstRank;
-          
-      MPI_Iprobe(distFirstRank, 
-                 tag, 
-                 globalComm, 
-                 &flag, 
-                 MPI_STATUS_IGNORE);
-
-      if (flag) {
-
-        //
-        // Receive lock status
-          
-        MPI_Recv(&(_distLockStatus[p->first]),
-                 1, 
-                 MPI_INT, 
-                 distFirstRank, 
-                 tag,
-                 globalComm, 
-                 MPI_STATUS_IGNORE);
-      }
-    }
-
-    if (locCommSize > 1) {
-      MPI_Bcast(&flag, 
-                1, 
-                MPI_INT, 
-                0, 
-                intraComm);
-
-      if (flag) {
-        MPI_Bcast(&(_distLockStatus[p->first]), 
-                  1, 
-                  MPI_INT, 
-                  0, 
-                  intraComm);
-      }
+    typedef map <string, CodeProperties * >::iterator CI;
+    for (CI p = _codePropertiesDB.begin();
+         p != _codePropertiesDB.end(); p++) {
+      if (p->second != NULL)
+        p->second->dump();
     }
   }
-   
-  /**
-   * \brief Lock status non blocking sending
-   *
-   */
-  
-  void 
-   CodePropertiesDB::_issendLock()
-  {
-    typedef map <string, CodeProperties * >::iterator IteratorMapAppli;
-
-    int nAppli         = _distCodePropertiesDB.size() + 1;
-    int locFirstRank = _locCodeProperties->firstRankGet();
-    
-    const MPI_Comm& intraComm  = _locCodeProperties->intraCommGet();
-    const MPI_Comm& globalComm = _locCodeProperties->globalCommGet();
-    
-    int locCommSize = -1;
-    int currentRank = -1;
-    
-    MPI_Comm_rank(intraComm, &currentRank);
-    MPI_Comm_size(intraComm, &locCommSize);
-
-    //
-    // Kill Existing messages
-
-    if (currentRank == 0) {
-
-      for (IteratorMapAppli p = _distCodePropertiesDB.begin(); 
-                            p != _distCodePropertiesDB.end(); 
-                            p++) {
-
-        int distFirstRank = p->second->_firstRank;
-
-        if (_issendLockMPIrequest[p->first] != MPI_REQUEST_NULL) {
-          
-          int flag;
-          MPI_Test(&(_issendLockMPIrequest[p->first]), 
-                   &flag, 
-                   MPI_STATUS_IGNORE);
-
-          if (!flag) {
-            MPI_Cancel(&(_issendLockMPIrequest[p->first]));
-            MPI_Request_free(&(_issendLockMPIrequest[p->first]));
-          }
-        }
-      }
-
-      for (IteratorMapAppli p = _distCodePropertiesDB.begin(); 
-                            p != _distCodePropertiesDB.end(); 
-                            p++) {
-
-        int distFirstRank = p->second->_firstRank;
-        int tag = 'l'+'o'+'c'+'k'+'_'+'s'+'t'+'a'+'t'+'u'+'s'+ 
-          nAppli * locFirstRank + distFirstRank;
-
-        MPI_Issend(&_issendLockStatus, 
-                   1, 
-                   MPI_INT, 
-                   distFirstRank, 
-                   tag,
-                   globalComm, 
-                   &(_issendLockMPIrequest[p->first]));
-      }
-    }
-   }
 
 }

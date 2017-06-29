@@ -3,7 +3,7 @@
 /*
   This file is part of the CWIPI library. 
 
-  Copyright (C) 2011  ONERA
+  Copyright (C) 2011-2017  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -22,8 +22,6 @@
 #include <mpi.h>
 
 #include <stdio.h>
-
-//#include <fvmc_nodal.h> // 
 
 /*=============================================================================
  * Macro definitions

@@ -30,6 +30,8 @@
 #include "pdm_priv.h"
 #include "pdm_mpi_node_first_rank.h" 
 #include "pdm_fortran_to_c_string.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
 
 /*----------------------------------------------------------------------------*/
 
@@ -149,12 +151,12 @@ const char* path
       struct stat buf;
 
       if (stat(path, &buf) != 0) {
-        printf("  Fichier ou repertoire existant "
+        PDM_printf("  Fichier ou repertoire existant "
                "et son statut n'est pas valable\n");
         abort();
       }
       else if (S_ISDIR(buf.st_mode) != 1) {
-        printf("  Fichier existant et ce n'est pas un repertoire\n");
+        PDM_printf("  Fichier existant et ce n'est pas un repertoire\n");
         abort();
       }
       else
@@ -164,7 +166,7 @@ const char* path
 
     }
     else {
-      printf("  Fichier existant et ce n'est pas un repertoire\n");
+      PDM_printf("  Fichier existant et ce n'est pas un repertoire\n");
       abort();
     }
 
@@ -307,10 +309,10 @@ PDM_io_fichier_t  *fichier
 
       if (0 == 1) {
         if (fichier->rang == 0) {
-          printf("rangs actifs : ");
+          PDM_printf("rangs actifs : ");
           for(int i = 0; i < fichier->n_rangs_actifs; i++)
-            printf(" %d", fichier->rangs_actifs[i]);
-          printf("\n");
+            PDM_printf(" %d", fichier->rangs_actifs[i]);
+          PDM_printf("\n");
         }
       }
       
@@ -380,10 +382,10 @@ static void _n_donnees_rang
 
   if (0 == 1) {
     if (fichier->rang == 0) {
-      printf("n_donnees_rangs : ");
+      PDM_printf("n_donnees_rangs : ");
       for(int i = 0; i < fichier->n_rangs + 1; i++)
-        printf(PDM_FMT_G_NUM" ",n_donnees_rangs[i]);
-      printf("\n");
+        PDM_printf(PDM_FMT_G_NUM" ",n_donnees_rangs[i]);
+      PDM_printf("\n");
     }
   }
 }
@@ -803,7 +805,7 @@ void PDM_io_open
         ncharint++;
       }
       if (ncharint > 9) {
-        fprintf(stderr, "Erreur PDM_io_open :"
+        PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_io_open :"
                 " en mode sequentiel le format d'ecriture limite a 1 milliard de fichier\n");
         abort();
       }
@@ -830,6 +832,21 @@ void PDM_io_open
 
   nouveau_fichier->comm = comm;
   nouveau_fichier->prop_noeuds_actifs = prop_noeuds_actifs;
+
+  /* Test d'existence du fichier en lecture */
+
+  if (mode == PDM_IO_MODE_LECTURE) {
+    FILE *testf2 = fopen (nouveau_fichier->nom, "r");
+    if (testf2 == NULL) {
+      *ierr = 1;
+      free (nouveau_fichier->nom);
+      free (nouveau_fichier);
+      return;
+    }
+    else {
+      fclose (testf2);
+    }
+  }
 
   _rangs_actifs(nouveau_fichier);
  
@@ -899,11 +916,11 @@ void PDM_io_open
         
         int s_rename = rename(nouveau_fichier->nom, fichier_backup);
         if (s_rename != 0) {
-          fprintf(stderr, "Erreur PDM_io_open : Impossible de renommer le fichier %s en %s\n",nouveau_fichier->nom, fichier_backup);
+          PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_io_open : Impossible de renommer le fichier %s en %s\n",nouveau_fichier->nom, fichier_backup);
           abort();
         }
         else {
-          printf("PDM_io_open : backup du fichier %s avant reecriture\n", nouveau_fichier->nom);
+          PDM_printf("PDM_io_open : backup du fichier %s avant reecriture\n", nouveau_fichier->nom);
         }
         free(fichier_backup);
       }
@@ -946,7 +963,7 @@ void PDM_io_open
     break;
 
   default:
-    fprintf(stderr, "Erreur PDM_io_open : Acces non valide");
+    PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_io_open : Acces non valide");
     abort();
   }
 
@@ -1009,7 +1026,7 @@ void PDM_io_lecture_globale
   if (fichier != NULL) {
     
     if (fichier->fmt_t == PDM_IO_FMT_TXT) {
-      fprintf(stderr, "Erreur PDM_io_lecture_globale :\n"
+      PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_io_lecture_globale :\n"
               "Format text non traite\n");
       abort();
     }
@@ -1054,7 +1071,7 @@ void PDM_io_lecture_globale
     /* Traitement de l'erreur de lecture */
     
     if (n_donnees_lues != n_donnees) {
-      fprintf(stderr,"Erreur PDM_io_lecture_globale :"
+      PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_lecture_globale :"
               " Erreur de lecture dans le fichier '%s' \n", fichier->nom);
       abort();
     }
@@ -1079,7 +1096,7 @@ void PDM_io_lecture_globale
     err_code = 1;
   
   if (err_code){
-    fprintf(stderr,"Erreur PDM_io_lecture_globale :"
+    PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_lecture_globale :"
             " unite '%d' non valide\n", unite);
     abort();
   }
@@ -1199,7 +1216,7 @@ void PDM_io_ecriture_globale
       /* Traitement de l'erreur de lecture */
     
       if (n_donnees_ecrites !=  l_string_donnee - 1) {
-        fprintf(stderr,"[%d] Erreur PDM_io_ecriture_globale :"
+        PDM_error(__FILE__, __LINE__, 0,"[%d] Erreur PDM_io_ecriture_globale :"
                 " Erreur d'ecriture dans le fichier '%s'\n", fichier->rang, fichier->nom);
         abort();
         PDM_file_seq_close(fichier->PDM_file_seq);
@@ -1228,7 +1245,7 @@ void PDM_io_ecriture_globale
       /* Traitement de l'erreur de lecture */
     
       if (n_donnees_ecrites != n_donnees) {
-        fprintf(stderr,"Erreur PDM_io_ecriture_globale :"
+        PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_ecriture_globale :"
               " Erreur d'ecriture dans le fichier '%s' \n", fichier->nom);
         abort();
       }
@@ -1240,7 +1257,7 @@ void PDM_io_ecriture_globale
     err_code = 1;
 
   if (err_code){
-    fprintf(stderr,"Erreur PDM_io_ecriture_globale :"
+    PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_ecriture_globale :"
             " unite '%d' non valide\n", unite);
     abort();
   }
@@ -1313,7 +1330,7 @@ void PDM_io_lec_par_entrelacee
     PDM_timer_t *timer_fichier = fichier->timer_fichier;
     
     if (fichier->fmt_t == PDM_IO_FMT_TXT) {
-      fprintf(stderr, "Erreur PDM_io_lec_par_entrelacee :\n"
+      PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_io_lec_par_entrelacee :\n"
               "Format text non traite\n");
       abort();
     }
@@ -1324,7 +1341,7 @@ void PDM_io_lec_par_entrelacee
     
     /* if (fichier->acces == PDM_IO_ACCES_SEQ) { */
       
-    /*   fprintf(stderr,"Erreur PDM_io_lec_par_entrelacee :" */
+    /*   PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_lec_par_entrelacee :" */
     /*           " Fonction indisponible en mode sÃ©quentiel\n"); */
     /*   abort(); */
       
@@ -1381,7 +1398,7 @@ void PDM_io_lec_par_entrelacee
       }
 			
 			else {
-				fprintf (stderr,"PDM_io_lec_par_entrelacee Error : unknown PDM_io_n_composantes_t \n");
+				PDM_error(__FILE__, __LINE__, 0,"PDM_io_lec_par_entrelacee Error : unknown PDM_io_n_composantes_t \n");
 				abort();
 			}
      
@@ -1463,24 +1480,6 @@ void PDM_io_lec_par_entrelacee
                       n_donnees_rangs,
                       &n_donnees_rang_min,
                       &n_donnees_rang_max);
-
-      /* Calcul de la longueur du buffer - On surestime en se basant  
-         sur le max de n_composante. Si cela s'avere necessaire, 
-         on pourra optimiser cela  */
-  
-      int max_n_composantes_rang = n_composantes[0];
-      int max_n_composantes = max_n_composantes_rang; 
- 
-      if (t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
-          
-        for (int i = 0; i < n_donnees; i++) 
-          max_n_composantes_rang = PDM_IO_MAX(max_n_composantes_rang, 
-                                                n_composantes[i]); 
-          
-        if (fichier->n_rangs > 1) 
-          PDM_MPI_Allreduce(&max_n_composantes_rang, &max_n_composantes, 1, 
-                        PDM_MPI_INT, PDM_MPI_MAX, fichier->comm);
-      } 
 
       /* Allocation du buffer si le rang est actif */
         
@@ -1684,9 +1683,15 @@ void PDM_io_lec_par_entrelacee
        *---------------------------------------------------------*/
         
       PDM_timer_resume(timer_fichier);
-        
-      buffer = (unsigned char*) malloc(taille_donnee * max_n_composantes 
-                                       * _n_donnees_rang);
+
+      int max_n_donnees_bloc = n_donnees_bloc;
+
+      if (fichier->n_rangs > 1) { 
+          PDM_MPI_Allreduce(&n_donnees_bloc, &max_n_donnees_bloc, 1, 
+                        PDM_MPI_INT, PDM_MPI_MAX, fichier->comm);
+      } 
+      
+      buffer = (unsigned char*) malloc(taille_donnee * max_n_donnees_bloc);
 
       switch (fichier->acces) {
           
@@ -1708,7 +1713,7 @@ void PDM_io_lec_par_entrelacee
                                              debut_bloc);
             
             if (n_donnees_lues != n_donnees_bloc) {
-              fprintf(stderr,"Erreur PDM_io_lec_par_entrelacee :"
+              PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_lec_par_entrelacee :"
                       " Erreur de lecture du fichier '%s' \n", fichier->nom);
               abort();
             }
@@ -1737,10 +1742,8 @@ void PDM_io_lec_par_entrelacee
               etat_lecture = 0;
 
             unsigned char *buffer_tmp = 
-              (unsigned char*) malloc(taille_donnee * 
-                                      max_n_composantes *
-                                      _n_donnees_rang);
-              
+              (unsigned char*) malloc(taille_donnee * max_n_donnees_bloc);
+               
             for (int i = 1; i < fichier->n_rangs_actifs; i++) {
               int l_buffer = n_donnees_blocs[fichier->rangs_actifs[i]] * taille_donnee;
               _n_donnees_lues = 
@@ -1769,7 +1772,7 @@ void PDM_io_lec_par_entrelacee
           PDM_MPI_Bcast(&etat_lecture, 1, PDM_MPI_INT, 0, fichier->comm);
             
           if (etat_lecture == 0) {
-            fprintf(stderr,"Erreur PDM_io_lec_par_entrelacee :"
+            PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_lec_par_entrelacee :"
                     " Erreur de lecture du fichier '%s' \n", fichier->nom);
             abort();
           }
@@ -1795,15 +1798,10 @@ void PDM_io_lec_par_entrelacee
       unsigned char *buffer_ordonne = NULL;
       
       PDM_g_num_t _n_donnees_rang1 = n_donnees_rangs[fichier->rang + 1] - 
-                                    n_donnees_rangs[fichier->rang];
+                                     n_donnees_rangs[fichier->rang];
 
       int n_donnees_rang = (int) _n_donnees_rang1;
-
-      buffer_ordonne = (unsigned char*) malloc(sizeof(unsigned char) * 
-                                               taille_donnee * 
-                                               max_n_composantes * 
-                                               l_num_absolue_recues);
-      
+     
       if (t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
           
         int *n_composantes_ordonnees = NULL;
@@ -1824,6 +1822,10 @@ void PDM_io_lec_par_entrelacee
         for (int i = 1; i < n_donnees_rang + 1; i++) 
           n_composantes_ordonnees[i] = n_composantes_ordonnees[i] + 
             n_composantes_ordonnees[i-1];
+
+        
+        buffer_ordonne = (unsigned char*) malloc(sizeof(unsigned char) *
+                                                 n_composantes_ordonnees[n_donnees_rang]);
           
         /* Ordonnancement du buffer pour echange alltoall */
           
@@ -1926,6 +1928,9 @@ void PDM_io_lec_par_entrelacee
       else if (t_n_composantes == PDM_IO_N_COMPOSANTE_CONSTANT) {
         const int _n_octet_composantes = *n_composantes * taille_donnee;
           
+        buffer_ordonne = (unsigned char*) malloc(sizeof(unsigned char) *
+                                                 l_num_absolue_recues  * _n_octet_composantes);
+
         for (int i = 0; i < l_num_absolue_recues; i++) {
           const PDM_g_num_t _idx = 
             num_absolue_recues[i] - 1 - n_donnees_rangs[fichier->rang];
@@ -2038,7 +2043,7 @@ void PDM_io_lec_par_entrelacee
     err_code = 1;
   
   if (err_code){
-    fprintf(stderr,"Erreur PDM_io_lec_par_entrelacee :"
+    PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_lec_par_entrelacee :"
             " unite '%d' non valide\n", unite);
     abort();
   }
@@ -2106,7 +2111,7 @@ void PDM_io_lec_par_bloc
   if (fichier != NULL) {
       
     if (fichier->fmt_t == PDM_IO_FMT_TXT) {
-      fprintf(stderr, "Erreur PDM_io_lec_par_bloc :\n"
+      PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_io_lec_par_bloc :\n"
               "Format text non traite\n");
       abort();
     }
@@ -2122,7 +2127,7 @@ void PDM_io_lec_par_bloc
 
     /* if (fichier->acces == PDM_IO_ACCES_SEQ) { */
 
-    /*   fprintf(stderr,"Erreur PDM_io_lec_par_bloc :" */
+    /*   PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_lec_par_bloc :" */
     /*           " Fonction indisponible en acces sequentiel (PDM_IO_ACCES_SEQ) \n"); */
     /*   abort(); */
 
@@ -2247,24 +2252,24 @@ void PDM_io_lec_par_bloc
         free(n_donnees_blocs_actifs);
 
         if (0 == 1) {
-          printf("distribution lec: %i ", fichier->rang);
-          printf("/");
+          PDM_printf("distribution lec: %i ", fichier->rang);
+          PDM_printf("/");
           for (int i = 0; i <  fichier->n_rangs; i++)
-            printf(" %i ",
+            PDM_printf(" %i ",
                    n_donnees_a_envoyer[i]);
-          printf("/");
+          PDM_printf("/");
           for (int i = 0; i <  fichier->n_rangs; i++)
-            printf(" %i ",
+            PDM_printf(" %i ",
                    i_donnees_a_envoyer[i]);
-          printf("/");
+          PDM_printf("/");
           for (int i = 0; i <  fichier->n_rangs; i++)
-            printf(" %i ",
+            PDM_printf(" %i ",
                    n_donnees_a_recevoir[i]);
-          printf("/");
+          PDM_printf("/");
           for (int i = 0; i <  fichier->n_rangs; i++)
-            printf(" %i ",
+            PDM_printf(" %i ",
                    i_donnees_a_recevoir[i]);
-          printf("\n");
+          PDM_printf("\n");
         }
 
         /*------------------------------------------------------------
@@ -2423,7 +2428,7 @@ void PDM_io_lec_par_bloc
           PDM_MPI_Bcast(&etat_lecture, 1, PDM_MPI_INT, 0, fichier->comm);
             
           if (etat_lecture == 0) {
-            fprintf(stderr,"Erreur PDM_io_lec_par_bloc :"
+            PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_lec_par_bloc :"
                     " Erreur de lecture du fichier '%s' \n", fichier->nom);
             abort();
           }
@@ -2503,7 +2508,7 @@ void PDM_io_lec_par_bloc
     err_code = 1;
   
   if (err_code){
-    fprintf(stderr,"Erreur PDM_io_lec_par_bloc :"
+    PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_lec_par_bloc :"
             " unite '%d' non valide\n", unite);
     abort();
   }
@@ -2625,10 +2630,12 @@ void PDM_io_ecr_par_entrelacee
         
         if (fichier->fmt_t == PDM_IO_FMT_TXT) {
           n_composante_trie =  (int*) malloc(sizeof(int) * _id_max);
-        }
-        for (int i = 0; i < _id_max; i++){
-          n_composante_trie[i] = 0;
-        }
+
+	  for (int i = 0; i < _id_max; i++){
+	    n_composante_trie[i] = 0;
+	  }
+	}
+
         int k = 0;
         for (int i = 0; i < n_donnees; i++){
           if (fichier->fmt_t == PDM_IO_FMT_TXT) {
@@ -2775,7 +2782,7 @@ void PDM_io_ecr_par_entrelacee
         }
         
         if (n_donnees_ecrites != l_string_donnee - 1) {
-          fprintf(stderr,"Erreur PDM_io_ecriture_globale :"
+          PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_ecriture_globale :"
                   " Erreur d'ecriture dans le fichier '%s' \n", fichier->nom);
           abort();
         }
@@ -3454,7 +3461,7 @@ void PDM_io_ecr_par_entrelacee
           PDM_MPI_Bcast(&etat_ecriture, 1, PDM_MPI_INT, 0, fichier->comm);
             
           if (etat_ecriture == 0) {
-            fprintf(stderr,"Erreur PDM_io_ecr_par_entrelacee :"
+            PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_ecr_par_entrelacee :"
                     " Erreur d'ecriture du fichier '%s' \n", fichier->nom);
             abort();
           }
@@ -3487,7 +3494,7 @@ void PDM_io_ecr_par_entrelacee
     err_code = 1;
   
   if (err_code){
-    fprintf(stderr,"Erreur PDM_io_ecr_par_entrelacee :"
+    PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_ecr_par_entrelacee :"
             " unite '%d' non valide\n", unite);
     abort();
   }
@@ -3555,7 +3562,7 @@ void PDM_io_ecr_par_bloc
   if (fichier != NULL) {
       
     if (fichier->fmt_t == PDM_IO_FMT_TXT) {
-      fprintf(stderr, "Erreur PDM_io_ecr_par_bloc :\n"
+      PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_io_ecr_par_bloc :\n"
               "Format text non traite\n");
       abort();
     }
@@ -3699,24 +3706,24 @@ void PDM_io_ecr_par_bloc
                          i_donnees_a_recevoir[fichier->n_rangs-1])); 
 
         if (0 == 1) {
-          printf("distribution ecr: %i ", fichier->rang);
-          printf("/");
+          PDM_printf("distribution ecr: %i ", fichier->rang);
+          PDM_printf("/");
           for (int i = 0; i <  fichier->n_rangs; i++)
-            printf(" %i ",
+            PDM_printf(" %i ",
                    n_donnees_a_envoyer[i]);
-          printf("/");
+          PDM_printf("/");
           for (int i = 0; i <  fichier->n_rangs; i++)
-            printf(" %i ",
+            PDM_printf(" %i ",
                    i_donnees_a_envoyer[i]);
-          printf("/");
+          PDM_printf("/");
           for (int i = 0; i <  fichier->n_rangs; i++)
-            printf(" %i ",
+            PDM_printf(" %i ",
                    n_donnees_a_recevoir[i]);
-          printf("/");
+          PDM_printf("/");
           for (int i = 0; i <  fichier->n_rangs; i++)
-            printf(" %i ",
+            PDM_printf(" %i ",
                    i_donnees_a_recevoir[i]);
-          printf("\n");
+          PDM_printf("\n");
           abort();
         }
 
@@ -3874,7 +3881,7 @@ void PDM_io_ecr_par_bloc
           PDM_MPI_Bcast(&etat_ecriture, 1, PDM_MPI_INT, 0, fichier->comm);
             
           if (etat_ecriture == 0) {
-            fprintf(stderr,"Erreur PDM_io_ecr_par_bloc :"
+            PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_ecr_par_bloc :"
                     " Erreur d'ecriture du fichier '%s' \n", fichier->nom);
             abort();
           }
@@ -3906,7 +3913,7 @@ void PDM_io_ecr_par_bloc
     err_code = 1;
   
   if (err_code){
-    fprintf(stderr,"Erreur PDM_io_ecr_par_bloc :"
+    PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_ecr_par_bloc :"
             " unite '%d' non valide\n", unite);
     abort();
   }
@@ -4002,7 +4009,7 @@ void PDM_io_close
   PDM_MPI_Barrier (fichier->comm);
   
   if (err_code){
-    fprintf(stderr,"Erreur PDM_io_close : unite '%d' non valide\n", unite);
+    PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_close : unite '%d' non valide\n", unite);
     abort();
   }
 }
@@ -4073,7 +4080,7 @@ void PDM_io_detruit
   }
 
   if (err_code){
-    fprintf(stderr,"Erreur PDM_io_detruit : unite '%d' non valide\n", unite);
+    PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_detruit : unite '%d' non valide\n", unite);
     abort();
   }
 }
@@ -4116,7 +4123,7 @@ void PDM_io_get_timer_fichier
     err_code = 1;
 
   if (err_code){
-    fprintf(stderr,"Erreur PDM_io_get_timer_fichier"
+    PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_get_timer_fichier"
             " : unite '%d' non valide\n", unite);
     abort();
   }
@@ -4161,7 +4168,7 @@ void PDM_io_get_timer_distrib
     err_code = 1;
   
   if (err_code){
-    fprintf(stderr,"Erreur PDM_io_get_timer_distribution"
+    PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_get_timer_distribution"
             " : unite '%d' non valide\n", unite);
     abort();
   }
@@ -4206,7 +4213,7 @@ void PDM_io_get_timer_swap_endian
     err_code = 1;
   
   if (err_code){
-    fprintf(stderr,"Erreur PDM_io_get_timer_distribution"
+    PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_get_timer_distribution"
             " : unite '%d' non valide\n", unite);
     abort();
   }
@@ -4251,7 +4258,7 @@ void PDM_io_get_timer_total
     err_code = 1;
   
   if (err_code){
-    fprintf(stderr,"Erreur PDM_io_get_timer_total"
+    PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_get_timer_total"
             " : unite '%d' non valide\n", unite);
     abort();
   }
@@ -4280,36 +4287,36 @@ void PDM_io_dump
   PDM_io_fichier_t *fichier = PDM_io_get_fichier(unite);
 
   if (fichier != NULL) {
-    printf("Propriete du fichier d'unite '%i'\n", unite);
-    printf("   - nom                           : %s\n", fichier->nom);
-    printf("   - mode                          : ");
+    PDM_printf("Propriete du fichier d'unite '%i'\n", unite);
+    PDM_printf("   - nom                           : %s\n", fichier->nom);
+    PDM_printf("   - mode                          : ");
     if (fichier->mode == PDM_IO_MODE_LECTURE)
-      printf("PDM_io_mode_lecture\n");
+      PDM_printf("PDM_io_mode_lecture\n");
     else if (fichier->mode == PDM_IO_MODE_ECRITURE)
-      printf("PDM_io_mode_ecriture\n");
+      PDM_printf("PDM_io_mode_ecriture\n");
     else if (fichier->mode == PDM_IO_MODE_AJOUT)
-      printf("PDM_io_mode_ajout\n");
-    printf("   - acces                         : ");
+      PDM_printf("PDM_io_mode_ajout\n");
+    PDM_printf("   - acces                         : ");
     if (fichier->acces == PDM_IO_ACCES_MPIIO_EO)
-      printf("PDM_io_acces_mpiio_eo\n");
+      PDM_printf("PDM_io_acces_mpiio_eo\n");
     else if (fichier->acces == PDM_IO_ACCES_MPIIO_IP)
-      printf("PDM_io_acces_mpiio_ip\n");
+      PDM_printf("PDM_io_acces_mpiio_ip\n");
     else if (fichier->acces == PDM_IO_ACCES_MPI_SIMPLE)
-      printf("PDM_io_acces_mpi_simple\n");
+      PDM_printf("PDM_io_acces_mpi_simple\n");
     else if (fichier->acces == PDM_IO_ACCES_SEQ)
-      printf("PDM_io_acces_seq\n");
+      PDM_printf("PDM_io_acces_seq\n");
     
-    printf("   - swap_endian                   : ");
+    PDM_printf("   - swap_endian                   : ");
     if (fichier->swap_endian == 1)
-      printf("actif\n");
+      PDM_printf("actif\n");
     else if (fichier->swap_endian == 0)
-      printf("inactif\n");
+      PDM_printf("inactif\n");
   }
   else 
     err_code = 1;
   
   if (err_code){
-    fprintf(stderr,"Erreur PDM_io_dump :"
+    PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_dump :"
             " unite '%d' non valide\n", unite);
     abort();
   }
@@ -4349,7 +4356,7 @@ void PDM_io_get_comm
     err_code = 1;
   
   if (err_code){
-    fprintf(stderr,"Erreur PDM_io_get_comm"   
+    PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_get_comm"   
             " : unite '%d' non valide\n", unite);
     abort();
   }
@@ -4386,7 +4393,7 @@ const PDM_l_num_t unite
     err_code = 1;
   
   if (err_code){
-    fprintf(stderr,"Erreur PDM_io_get_comm"   
+    PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_get_comm"   
             " : unite '%d' non valide\n", unite);
     abort();
   }
@@ -4423,7 +4430,7 @@ const PDM_l_num_t unite
     err_code = 1;
   
   if (err_code){
-    fprintf(stderr,"Erreur PDM_io_swap_endian_off"   
+    PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_swap_endian_off"   
             " : unite '%d' non valide\n", unite);
     abort();
   }
@@ -4589,7 +4596,7 @@ void PDM_io_fmt_donnee_set
     err_code = 1;
   
   if (err_code){
-    fprintf(stderr,"Erreur PDM_io_fmt_donnee_set"   
+    PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_fmt_donnee_set"   
             " : unite '%d' non valide\n", unite);
     abort();
   }
@@ -4658,7 +4665,8 @@ const char* path
  *  
  *----------------------------------------------------------------------------*/
 
-void PROCF (PDM_io_n_donnees_get, PDM_IO_N_DONNEES_GET)
+void PROCF (pdm_io_n_donnees_get, PDM_IO_N_DONNEES_GET)
+
 (const PDM_l_num_t  *unite,
  const int             *t_n_composantes,         
  const PDM_l_num_t  *n_composantes,         
@@ -4969,7 +4977,7 @@ PDM_io_n_donnees_get
   }
   
   if (err_code){
-    fprintf(stderr,"Erreur PDM_io_n_donnees_get :"
+    PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_n_donnees_get :"
             " unite '%d' non valide\n", unite);
     abort();
   }

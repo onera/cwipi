@@ -1,7 +1,7 @@
 /*
   This file is part of the CWIPI library. 
 
-  Copyright (C) 2011  ONERA
+  Copyright (C) 2011-2017  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -35,7 +35,7 @@ namespace cwipi {
    */
 
   CouplingDB::CouplingDB()
-    : _couplingDB(*new map <string, Coupling * > ())
+    : _couplingDB(*new map < const CodeProperties *, map <string, Coupling * > > ())
   {
   }
 
@@ -46,14 +46,19 @@ namespace cwipi {
 
   CouplingDB::~CouplingDB()
   {
-    typedef map <string, Coupling * >::iterator Iterator;
-    for (Iterator p = _couplingDB.begin();
-         p != _couplingDB.end(); p++) {
-      if (p->second != NULL)
-        delete p->second;
+    typedef map < const CodeProperties *, map <string, Coupling * > >::iterator Iterator;
+    typedef map < string, Coupling * > ::iterator Iterator2;
+
+    for (Iterator p1 = _couplingDB.begin();
+           p1 != _couplingDB.end(); p1++) {
+      for (Iterator2 p = p1->second.begin();
+           p != p1->second.end(); p++) {
+        if (p->second != NULL)
+          delete p->second;
+      }
+      p1->second.clear();
     }
     _couplingDB.clear();
-
     delete &_couplingDB;
   }
 
@@ -62,56 +67,54 @@ namespace cwipi {
    *
    * This function creates a coupling object and defines its properties.
    *
-   * \param [in]  cplId              Coupling identifier
-   * \param [in]  commType           Communication type
-   * \param [in]  cplCodeProperties  Coupled code properties
-   * \param [in]  geomAlgo           Geometric algorithm
-   * \param [in]  supportType        Support type
-   * \param [in]  nPart              Number of interface partition 
-   * \param [in]  movingStatus       Support moving status
-   * \param [in]  recvFreqType       Type of receiving frequency
+   * \param [in]  localCodeProperties  Source code
+   * \param [in]  cplId                Coupling identifier
+   * \param [in]  cplCodeProperties    Coupled code properties
+   * \param [in]  commType             Communication type
+   * \param [in]  geomAlgo             Geometric algorithm
+   * \param [in]  nPart                Number of interface partition 
+   * \param [in]  movingStatus         Support moving status
+   * \param [in]  recvFreqType         Type of receiving frequency
    *
    */
 
   void  
   CouplingDB::couplingCreate
   (
-   const string                &cplId,
-   const CWP_Comm_t  commType,
    const CodeProperties        &localCodeProperties,
+   const string                &cplId,
    const CodeProperties        &coupledCodeProperties,
-   const CWP_Geom_t           geomAlgo,
-   const CWP_Support_t   supportType,
-   const int                    nPart,
-   const CWP_Displacement_t  movingStatus,
-   const CWP_Freq_t           recvFreqType
+   const CWP_Comm_t            commType,
+   const CWP_Geom_algo_t            geomAlgo,
+   const int                   nPart,
+   const CWP_Displacement_t    movingStatus,
+   const CWP_Freq_t            recvFreqType
   )
   {
 
+    if (couplingIs(localCodeProperties, cplId)) {
+      bftc_error(__FILE__, __LINE__, 0,
+                "'%s' existing coupling\n", cplId.c_str());
+    }
+    
     //
     // Create the new coupling
 
-    Coupling *newCoupling = NULL;
-    //TODO: Call new Coupling when the constructor will be available
-//    Coupling *newCoupling = new Coupling(cplId,
-//                                         commType,
-//                                         localCodeProperties,
-//                                         coupledCodeProperties,
-//                                         geomAlgo,
-//                                         supportType,
-//                                         nPart,
-//                                         movingStatus,
-//                                         recvFreqType);
+    Coupling *newCoupling = new Coupling(cplId,
+                                         commType,
+                                         localCodeProperties,
+                                         coupledCodeProperties,
+                                         geomAlgo,
+                                         nPart,
+                                         movingStatus,
+                                         recvFreqType,
+                                         *this);
 
-    pair<string, Coupling* >
-      newPair(string(cplId), newCoupling);
+    map < string, Coupling * > & codeMap = _couplingDB[&localCodeProperties];
 
-    pair<map<string, Coupling* >::iterator, bool>
-      p = _couplingDB.insert(newPair);
+    pair<string, Coupling* > newPair(string(cplId), newCoupling);
 
-    if (!p.second)
-      bftc_error(__FILE__, __LINE__, 0,
-                "'%s' existing coupling\n", cplId.c_str());
+    codeMap.insert(newPair);
 
   }
 
@@ -125,17 +128,32 @@ namespace cwipi {
   void  
   CouplingDB::couplingDel
   (
+   const CodeProperties &localCodeProperties,
    const string &cplId
   )
   {
-    const map <string, Coupling * >::iterator p = _couplingDB.find(cplId);
-    if (p == _couplingDB.end())
-      bftc_error(__FILE__, __LINE__, 0,
-                "'%s' coupling not found \n", cplId.c_str());
+    typedef const map < const cwipi::CodeProperties *, map <string, Coupling * > > ::iterator Iterator;
+    typedef map <string, Coupling * > ::iterator Iterator2;
+    Iterator p = _couplingDB.find(&localCodeProperties);
+    Iterator2 p1;
+    if (p == _couplingDB.end()) {
+      bftc_error(__FILE__, __LINE__, 0, 
+                "'%s' coupling not found for '%s' code\n", cplId.c_str(), 
+                localCodeProperties.nameGet().c_str());
+    }
+    else {
+      p1 = p->second.find(cplId);
+      if (p1 == p->second.end()) {
+        bftc_error(__FILE__, __LINE__, 0, 
+                    "'%s' coupling not found '%s' code\n", cplId.c_str(),
+                   localCodeProperties.nameGet().c_str());
+      }
+      if (p1->second != NULL) {
+        delete p1->second;
+      }
 
-    if (p->second != NULL)
-      delete p->second;
+      p->second.erase(p1);
 
-    _couplingDB.erase(p);
+    }
   }
 }

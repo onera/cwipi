@@ -14,6 +14,8 @@
 #include "pdm_mpi.h"
 #include "pdm_mpi_ext_dependencies.h"
 #include "pdm_ext_wrapper.h"
+#include "pdm_printf.h"
+#include "pdm_error.h"
 
 #ifdef PDM_HAVE_PARMETIS
 #include <metis.h>
@@ -390,7 +392,7 @@ int *part
 
   ierr = SCOTCH_graphInit (&grafptr);
   if(ierr){
-    printf("PART error : Error in PT-Scotch graph initialization\n");
+    PDM_printf("PART error : Error in PT-Scotch graph initialization\n");
     exit(1);
   }
 
@@ -467,14 +469,14 @@ int *part
                            _edlotab);
   
   if (ierr) {
-    fprintf(stderr, "PART error : Error in SCOTCH_graphBuild\n");
+    PDM_error(__FILE__, __LINE__, 0, "PART error : Error in SCOTCH_graphBuild\n");
     exit(1);
   }
 
   if (check) {
     ierr = SCOTCH_graphCheck (&grafptr);
     if (ierr) {
-      fprintf(stderr, "PART error : Error in Scotch graph check\n");
+      PDM_error(__FILE__, __LINE__, 0, "PART error : Error in Scotch graph check\n");
       exit(1);
     }
   }
@@ -490,7 +492,7 @@ int *part
                            _part);
   
   if (ierr) {
-    fprintf(stderr, "PART error : Error in SCOTCH_graphPart\n");
+    PDM_error(__FILE__, __LINE__, 0, "PART error : Error in SCOTCH_graphPart\n");
     exit(1);
   }
 

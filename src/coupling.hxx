@@ -3,7 +3,7 @@
 /*
   This file is part of the CWIPI library. 
 
-  Copyright (C) 2012  ONERA
+  Copyright (C) 2012-2017  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -28,6 +28,9 @@
 #include "cwp.h"
 #include "bftc_printf.h"
 #include "communication.hxx"
+#include "couplingDB.hxx"
+#include "couplingDB_i.hxx"
+
 //#include "geometry.hxx"
 //#include "visualization.hxx"
 //#include "support.hxx"
@@ -39,7 +42,7 @@ namespace cwipi {
 
   class CodeProperties;
 
-  class Mesh;
+  class oldMesh;
 
   class LocationToDistantMesh;
 
@@ -68,10 +71,10 @@ namespace cwipi {
      * \param [in]  localCodeProperties          Local code properties
      * \param [in]  coupledCodeProperties        Coupled code properties
      * \param [in]  geom_algo                    Geometric algorithm
-     * \param [in]  support_type                 Support type
      * \param [in]  n_part                       Number of interface partitions 
      * \param [in]  moving_status                Support moving status
      * \param [in]  recv_freq_type               Type of receiving frequency
+     * \param [in]  cplDB                        Coupling data base where it coupling is stored
      *
      */
 
@@ -81,11 +84,11 @@ namespace cwipi {
      const CWP_Comm_t           commType,
      const CodeProperties        &localCodeProperties,
      const CodeProperties        &coupledCodeProperties,
-     const CWP_Geom_t           geomAlgo,
-     const CWP_Support_t        supportType,
+     const CWP_Geom_algo_t           geomAlgo,
      const int                    nPart,
      const CWP_Displacement_t  movingStatus,
-     const CWP_Freq_t           recvFreqType
+     const CWP_Freq_t           recvFreqType,
+     CouplingDB                 &cplDB 
     );
 
     /**
@@ -862,12 +865,31 @@ namespace cwipi {
      void *fct
     );
 
+
+    /**
+     *
+     * \brief Return communication type
+     *
+     * 
+     * \param [in] fct        Function
+     *
+     */
+
+    inline CWP_Comm_t 
+    commTypeGet      
+    (
+    );
+    
+    
+    
+    
   private:
 
     Coupling();
 
   private:
-    const string                      _cplId;                 /*!< Coupling identifier */
+    const string                     _cplId;                 /*!< Coupling identifier */
+    CWP_Comm_t                       _commType;              /*!< Communication type */ 
           Communication              &_communication;         /*!< Communication */ 
     const CodeProperties             &_localCodeProperties;   /*!< Local code properties */
     const CodeProperties             &_coupledCodeProperties; /*!< Coupled code properties */
@@ -878,7 +900,28 @@ namespace cwipi {
           double                      _recvFreq;              /*!< Receiving frequency */
           double                      _recvNextTime;          /*!< Next receiving time */
     //map < string, Field<double> * >  &_fields;                /*!< Fields storage */
+          CouplingDB                 &_cplDB;                  /*!< Coupling Data base */
   }; 
+
+  
+  
+
+  /**
+   *
+   * \brief Return communication type
+   *
+   * 
+   * \param [in] fct        Function
+   *
+   */
+
+  CWP_Comm_t 
+  Coupling::commTypeGet      
+  (
+  )
+  {
+    return _commType;
+  }
 
 }
 
