@@ -66,7 +66,7 @@ MODULE mod_pdm_mesh_nodal
         integer(c_int), intent (in), value :: idx
       end subroutine pdm_mesh_nodal_partial_free_c
     end interface
-    
+       
     call pdm_mesh_nodal_partial_free_c (idx)
     
   end subroutine pdm_mesh_nodal_partial_free  
@@ -96,7 +96,7 @@ MODULE mod_pdm_mesh_nodal
       end subroutine pdm_mesh_nodal_free_c
     end interface
     
-    call pdm_mesh_nodal_partial_free_c (idx)
+    call pdm_mesh_nodal_free_c (idx)
     
   end subroutine pdm_mesh_nodal_free  
 
