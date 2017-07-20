@@ -141,7 +141,7 @@ if (CWP_ENABLE_SHARED)
     add_library(cwpf_shared SHARED  $<TARGET_OBJECTS:cwpf>)
     set_target_properties(cwpf_shared PROPERTIES OUTPUT_NAME "cwpf")
     set_target_properties(cwpf_shared PROPERTIES VERSION ${CWP_VERSION})
-    target_link_libraries(cwpf_shared cwp_shared)
+    target_link_libraries(cwpf_shared cwp_shared ${CXX_LIBRARIES})
     set_target_properties(cwpf_shared PROPERTIES
                             PUBLIC_HEADER "${LIST_HEADERF}")
 
