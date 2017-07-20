@@ -22,6 +22,7 @@
 #include "pdm_ext_wrapper.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
+#include "pdm_handles.h"
 
 /*=============================================================================
  * Macro definitions
@@ -67,8 +68,7 @@ extern "C" {
  * Global variables
  *============================================================================*/
 
-static _coarse_mesh_t **_cm   = NULL;
-static int       _l_cm = 10;
+static PDM_Handles_t *_cm  = NULL;
 
 /*============================================================================
  * Private function definitions
@@ -88,17 +88,14 @@ _get_from_id
  int  cmId
 )
 {
-  if (cmId >= _l_cm) {
-    PDM_printf("PPART error : Bad cm identifier\n");
-    exit(1);
-  }
-    
-  if (_cm[cmId] == NULL) {
+  _coarse_mesh_t *cm = (_coarse_mesh_t *) PDM_Handles_get (_cm, cmId);
+      
+  if (cm == NULL) {
     PDM_printf("PPART error : Bad cm identifier\n");
     exit(1);
   }
 
-  return _cm[cmId];
+  return cm;
 }
 
 
@@ -3471,53 +3468,22 @@ PDM_part_coarse_mesh_create
 )
 {
   if (_cm == NULL) {
-    _cm = (_coarse_mesh_t **) malloc(_l_cm * sizeof(_coarse_mesh_t *));
-    for (int i = 0; i < _l_cm; i++)
-      _cm[i] = NULL;
+    _cm = PDM_Handles_create (4);
   }
 
-  _coarse_mesh_t *cm  = NULL;
-  for (int i = 0; i < _l_cm; i++) {
-    if (_cm[i] == NULL) {
-      _cm[i] = _coarse_mesh_create (comm,
-                                    method,
-                                    nPart,
-                                    nTPart,
-                                    nFaceGroup,
-                                    have_cellTag,
-                                    have_faceTag,
-                                    have_vtxTag,
-                                    have_cellWeight,
-                                    have_faceWeight,
-                                    have_faceGroup);
-      cm = _cm[i];
-      *cmId = i;
-      break;
-    }
-  }
+  _coarse_mesh_t *cm  = _coarse_mesh_create (comm,
+                                             method,
+                                             nPart,
+                                             nTPart,
+                                             nFaceGroup,
+                                             have_cellTag,
+                                             have_faceTag,
+                                             have_vtxTag,
+                                             have_cellWeight,
+                                             have_faceWeight,
+                                             have_faceGroup);
 
-  if (cm == NULL) {
-    int l_cm_old = _l_cm;
-    _l_cm = 2 * _l_cm;
-
-    _cm = (_coarse_mesh_t **) realloc(_cm, _l_cm * sizeof(_coarse_mesh_t *));
-    for (int i = l_cm_old; i < _l_cm; i++)
-      _cm[i] = NULL;
-
-    _cm[l_cm_old] = _coarse_mesh_create (comm,
-                                         method,
-                                         nPart,
-                                         nTPart,
-                                         nFaceGroup,
-                                         have_cellTag,
-                                         have_faceTag,
-                                         have_vtxTag,
-                                         have_cellWeight,
-                                         have_faceWeight,
-                                         have_faceGroup);
-    cm = _cm[l_cm_old];
-    *cmId = l_cm_old;
-  }
+  *cmId = PDM_Handles_store (_cm, cm);
 }
 
 void
@@ -4240,20 +4206,16 @@ PDM_part_coarse_mesh_free
   PDM_timer_free(cm->timer);
   cm->timer = NULL;
 
-  free(_cm[cmId]);
-  _cm[cmId] = NULL;
+  free(cm);
+  
+  PDM_Handles_handle_free (_cm, cmId, PDM_FALSE);
 
-  int toDel = 1;
-  for (int i = 0; i < _l_cm; i++) { 
-    if (_cm[i] != NULL) {
-      toDel = 0;
-      break;
-    }
+  const int n_cm = PDM_Handles_n_get (_cm);
+  
+  if (n_cm == 0) {
+    _cm = PDM_Handles_free (_cm);
   }
-  if (toDel) {
-    free(_cm);
-    _cm = NULL;
-  }
+
 }
 
 void

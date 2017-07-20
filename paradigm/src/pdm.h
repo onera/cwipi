@@ -105,8 +105,8 @@ typedef enum {
 
 typedef enum {
 
-  PDM_TRUE  = 0,  /*!< True  */
-  PDM_FALSE = 1   /*!< False */               
+  PDM_FALSE = 0,   /*!< False */               
+  PDM_TRUE  = 1  /*!< True  */
 
 } PDM_bool_t;
 

@@ -12,6 +12,7 @@
 #include "pdm.h"
 #include "pdm_mpi.h"
 #include "pdm_io.h"
+#include "pdm_mesh_nodal.h"
 
 /*=============================================================================
  * Definitions des macro
@@ -45,21 +46,8 @@ extern "C" {
 
 typedef enum {
 
-  PDM_writer_GEOM_CONNEC_BLOCS,    
-  PDM_writer_GEOM_CONNEC_3D_DESCENDANTE,
-  PDM_writer_GEOM_CONNEC_2D_DESCENDANTE,
-  PDM_writer_GEOM_CONNEC_2D_NODALE,
-
-} PDM_writer_geom_connec_t;
-
-/*----------------------------------------------------------------------------
- * Statut
- *----------------------------------------------------------------------------*/
-
-typedef enum {
-
-  PDM_writer_OFF,    
-  PDM_writer_ON
+  PDM_WRITER_OFF,    
+  PDM_WRITER_ON
 
 } PDM_writer_statut_t;
 
@@ -69,28 +57,28 @@ typedef enum {
 
 typedef enum {
 
-  PDM_writer_TOPO_CONSTANTE ,     
-  PDM_writer_TOPO_DEFORMABLE,     
-  PDM_writer_TOPO_VARIABLE     
+  PDM_WRITER_TOPO_CONSTANTE ,     
+  PDM_WRITER_TOPO_DEFORMABLE,     
+  PDM_WRITER_TOPO_VARIABLE     
 
 } PDM_writer_topologie_t;
 
 /*----------------------------------------------------------------------------
- * Type d'elements géometriques
+ * Type d'elements géometriques (It's the same than the type defined into PDM_Mesh_nodal)
  *----------------------------------------------------------------------------*/
 
 typedef enum {
 
-  PDM_writer_POINT,     
-  PDM_writer_BAR2,     
-  PDM_writer_TRIA3,     
-  PDM_writer_QUAD4,     
-  PDM_writer_POLY_2D,     
-  PDM_writer_TETRA4,     
-  PDM_writer_PYRAMID5,     
-  PDM_writer_PRISM6,     
-  PDM_writer_HEXA8,     
-  PDM_writer_POLY_3D     
+  PDM_WRITER_POINT = PDM_MESH_NODAL_POINT,     
+  PDM_WRITER_BAR2 = PDM_MESH_NODAL_BAR2,     
+  PDM_WRITER_TRIA3 = PDM_MESH_NODAL_TRIA3,     
+  PDM_WRITER_QUAD4 = PDM_MESH_NODAL_QUAD4,     
+  PDM_WRITER_POLY_2D = PDM_MESH_NODAL_POLY_2D,     
+  PDM_WRITER_TETRA4 = PDM_MESH_NODAL_TETRA4,     
+  PDM_WRITER_PYRAMID5 = PDM_MESH_NODAL_PYRAMID5,     
+  PDM_WRITER_PRISM6 = PDM_MESH_NODAL_PRISM6,     
+  PDM_WRITER_HEXA8 = PDM_MESH_NODAL_HEXA8,     
+  PDM_WRITER_POLY_3D  = PDM_MESH_NODAL_POLY_3D    
 
 } PDM_writer_elt_geom_t;
 
@@ -431,7 +419,7 @@ const PDM_g_num_t *numabs_parent
  *   t_elt           <-- Type d'element
  *
  * return :
- *                   --> Identificateur du bloc
+ *   id_bloc         --> Identificateur du bloc
  *
  *----------------------------------------------------------------------------*/
 
@@ -445,7 +433,7 @@ int   *t_elt,
 int   *id_bloc  
 ); 
 
-int 
+int
 PDM_writer_geom_bloc_add 
 (
 const int            id_cs,

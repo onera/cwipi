@@ -2,8 +2,7 @@
 #define __PDM_GNUM_H__
 
 /*
-  This file is part of the ParaDiGM library, intended to provide
-  finite volume mesh and associated fields I/O and manipulation services.
+  This file is part of the ParaDiGM library.
 
   Copyright (C) 2017       ONERA
 
@@ -50,9 +49,10 @@ extern "C" {
  * Structure defining an I/O numbering scheme
  *----------------------------------------------------------------------------*/
 
-/*
-  Pointer to an I/O numbering scheme structure. The structure
-  itself is private, and is defined in pdm_gnum.c
+/**
+  \brief Pointer to an I/O numbering scheme structure. 
+
+  The structure itself is private, and is defined in pdm_gnum.c
 */
 
 typedef struct _pdm_gnum_t pdm_gnum_t;
@@ -121,6 +121,36 @@ PROCF (pdm_gnum_set_from_coords, PDM_GNUM_SET_FROM_COORDS)
  const int *i_part,
  const int *n_elts,
  const double *coords
+);
+
+
+/**
+ *
+ * \brief Set Parent global numbering
+ *
+ * \param [in]   id           Identifier
+ * \param [in]   i_part       Current partition
+ * \param [in]   n_elts       Number of elements
+ * \param [in]   parent_gnum  Parent global numbering (size = \ref n_elts)
+ *
+ */
+
+void
+PDM_gnum_set_from_parents
+(
+ const int id,
+ const int i_part,
+ const int n_elts,
+ const PDM_g_num_t *parent_gnum
+);
+
+void
+PROCF (pdm_gnum_set_from_parents, PDM_GNUM_SET_FROM_PARENTS)
+(
+ const int *id,
+ const int *i_part,
+ const int *n_elts,
+ const PDM_g_num_t *parent_gnum
 );
 
 

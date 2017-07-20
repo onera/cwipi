@@ -1,3 +1,23 @@
+/*
+  This file is part of the ParaDiGM library.
+
+  Copyright (C) 2017       ONERA
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
 /*============================================================================
  * Main structure for an I/O numbering scheme associated with mesh entities
  * (such as cells, faces, and vertices);
@@ -14,28 +34,6 @@
  * a main index on its main associated domain, but may be present
  * as a ghost entity with another index on neighboring domains.
  *============================================================================*/
-
-/*
-  This file is part of the ParaDiGM library, intended to provide
-  finite volume mesh and associated fields I/O and manipulation services.
-
-  Copyright (C) 2017       ONERA
-  Copyright (C) 2004-2009  EDF
-
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
-
-  You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-*/
 
 /*----------------------------------------------------------------------------
  * Standard C library headers
@@ -57,6 +55,9 @@
 #include "pdm_morton.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
+#include "pdm_handles.h"
+#include "pdm_binary_search.h"
+#include "pdm_mpi.h"
 
 /*----------------------------------------------------------------------------
  *  Header for the current file
@@ -94,8 +95,9 @@ typedef struct  {
   PDM_MPI_Comm comm;        /*!< MPI communicator */
   PDM_g_num_t  n_g_elt;     /*!< Global number of elements */
   int          *n_elts;     /*!< Number of elements in partitions */
-  PDM_g_num_t **g_nums;     /*!< Global number of elements */ 
+  PDM_g_num_t **g_nums;     /*!< Global numbering of elements */ 
   double      **coords;     /*!< Coordinates of elements */
+  PDM_g_num_t **parent;     /*!< Global n */ 
 
 } _pdm_gnum_t;
 
@@ -103,8 +105,7 @@ typedef struct  {
  * Global variable
  *============================================================================*/
 
-static _pdm_gnum_t **_gnums   = NULL;
-static int         _l_gnums   = 10;
+static PDM_Handles_t *_gnums   = NULL;
 
 /*=============================================================================
  * Private function definitions
@@ -124,17 +125,14 @@ _get_from_id
  int  id
 )
 {
-  if (id >= _l_gnums) {
-    PDM_printf("PDM_gnum error : Bad identifier\n");
-    exit(1);
-  }
+  
+  _pdm_gnum_t *gnum = (_pdm_gnum_t *) PDM_Handles_get (_gnums, id);
     
-  if (_gnums[id] == NULL) {
-    PDM_printf("PDM_gnum error : Bad identifier\n");
-    exit(1);
+  if (gnum == NULL) {
+    PDM_error(__FILE__, __LINE__, 0, "PDM_gnum error : Bad identifier\n");
   }
 
-  return _gnums[id];
+  return gnum;
 }
 
 
@@ -151,7 +149,7 @@ _get_from_id
  */
 
 /*
-  This file is part of the "Finite Volume Mesh" library, intended to provide
+  This function comes from "Finite Volume Mesh" library, intended to provide
   finite volume mesh and associated fields I/O and manipulation services.
 
   Copyright (C) 2004-2009  EDF
@@ -237,7 +235,6 @@ PDM_l_num_t         order[]
  * In the case that 2 entities have a same Morton code, their global
  * number will be different, but their order is undetermined.
  *
- * parameters:
  *  \param [in]      dim        spatial dimension
  *  \param [in]      n_entities number of entities considered
  *  \param [in]      coords     pointer to entity coordinates (interlaced)
@@ -248,7 +245,7 @@ PDM_l_num_t         order[]
  */
 
 /*
-  This file is part of the "Finite Volume Mesh" library, intended to provide
+  This function comes from "Finite Volume Mesh" library, intended to provide
   finite volume mesh and associated fields I/O and manipulation services.
 
   Copyright (C) 2004-2009  EDF
@@ -309,155 +306,16 @@ PDM_l_num_t               order[]
 }
 
 
-/*=============================================================================
- * Public function definitions
- *============================================================================*/
-
 /**
  *
- * \brief Build a global numbering 
+ * \brief Compute from coords
  *
- * \param [in]   dim          Spatial dimension 
- * \param [in]   n_part       Number of local partitions 
- * \param [in]   comm         PDM_MPI communicator
- *
- * \return     Identifier    
- */
-
-int
-PDM_gnum_create
-(
- const int dim,
- const int n_part,
- const PDM_MPI_Comm comm
-)
-{
-  int id;
-  
-  /*
-   * Search a ppart free id
-   */
-
-  if (_gnums == NULL) {
-    _gnums = (_pdm_gnum_t **) malloc(_l_gnums * sizeof(_pdm_gnum_t *));
-    for (int i = 0; i < _l_gnums; i++)
-      _gnums[i] = NULL;
-  }
-
-  _pdm_gnum_t * ppart = NULL;
-  for (int i = 0; i < _l_gnums; i++) {
-    if (_gnums[i] == NULL) {
-      _gnums[i] = (_pdm_gnum_t *) malloc(sizeof(_pdm_gnum_t));
-      ppart = _gnums[i];
-      id = i;
-      break;
-    }
-  }
-
-  if (ppart == NULL) {
-    int l_gnums_old = _l_gnums;
-    _l_gnums = 2 * _l_gnums;
-
-    _gnums = (_pdm_gnum_t **) realloc(_gnums, _l_gnums * sizeof(_pdm_gnum_t *));
-    for (int i = l_gnums_old; i < _l_gnums; i++)
-      _gnums[i] = NULL;
-
-    _gnums[l_gnums_old] = (_pdm_gnum_t *) malloc(sizeof(_pdm_gnum_t));
-    ppart = _gnums[l_gnums_old];
-    id = l_gnums_old;
-  }
-
-  _pdm_gnum_t *_gnum = _gnums[id];
-
-  _gnum->n_part    = n_part;
-  _gnum->dim       = dim;  
-  _gnum->comm      = comm;
-  _gnum->n_g_elt   = -1;
-  _gnum->g_nums = (PDM_g_num_t **) malloc (sizeof(PDM_g_num_t * ) * n_part); 
-  _gnum->coords = (double **) malloc (sizeof(double * ) * n_part);
-  _gnum->n_elts = (int *) malloc (sizeof(int) * n_part);
-  
-  
-  for (int i = 0; i < n_part; i++) {
-    _gnum->g_nums[i] = NULL;
-    _gnum->coords[i] = NULL;
-  }
-
-  return id;
-
-}
-
-void
-PROCF (pdm_gnum_create, PDM_GNUM_CREATE)
-(
- const int *dim,
- const int *n_part,
- const PDM_MPI_Fint *fcomm,
-       int *id
-)
-{
-  const PDM_MPI_Comm c_comm = PDM_MPI_Comm_f2c (*fcomm);
-
-  *id = PDM_gnum_create (*dim, *n_part, c_comm);
-}
-
-
-/**
- *
- * \brief Set from coordinates
- *
- * The ordering is based on a Morton code, and it is expected that
- * entities are unique (i.e. not duplicated on 2 or more ranks).
- * In the case that 2 entities have a same Morton code, their global
- * number will be determined by lexicographical ordering of coordinates.
- *
- * \param [in]   id           Identifier
- * \param [in]   i_part       Current partition
- * \param [in]   n_elts       Number of elements
- * \param [in]   coords       Coordinates (size = 3 * \ref n_elts)
- *
- */
-
-void
-PDM_gnum_set_from_coords
-(
- const int id,
- const int i_part,
- const int n_elts,
- const double *coords
-)
-{
-  _pdm_gnum_t *_gnum = _get_from_id (id);
-  
-  _gnum->coords[i_part] = (double *) coords;
-  _gnum->n_elts[i_part] = n_elts;
-  _gnum->g_nums[i_part] = NULL;
-  
-}     
-
-void
-PROCF (pdm_gnum_set_from_coords, PDM_GNUM_SET_FROM_COORDS)
-(
- const int *id,
- const int *i_part,
- const int *n_elts,
- const double *coords
-)
-{
-  PDM_gnum_set_from_coords (*id, *i_part, *n_elts, coords);
-}
-
-
-/**
- *
- * \brief Compute
- *
- * \param [in]   id           Identifier
+ * \param [in]   _gnum          Current _pdm_gnum_t structure
  *
  */
 
 /*
-  This file is part of the "Finite Volume Mesh" library, intended to provide
+  This function comes from "Finite Volume Mesh" library, intended to provide
   finite volume mesh and associated fields I/O and manipulation services.
 
   Copyright (C) 2004-2009  EDF
@@ -477,14 +335,12 @@ PROCF (pdm_gnum_set_from_coords, PDM_GNUM_SET_FROM_COORDS)
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-void
-PDM_gnum_compute
+static void
+_gnum_from_coords_compute
 (
- const int id
+ _pdm_gnum_t *_gnum 
 )
 {
-  _pdm_gnum_t *_gnum = _get_from_id (id);
-
   size_t  i;
   double extents[6];
   PDM_l_num_t  *order = NULL;
@@ -755,6 +611,477 @@ PDM_gnum_compute
   }
 
   free (coords);
+
+}
+
+
+
+/**
+ *
+ * \brief Compute from coords
+ *
+ * \param [in]   _gnum          Current _pdm_gnum_t structure
+ *
+ */
+
+static void
+_gnum_from_parent_compute
+(
+ _pdm_gnum_t *_gnum 
+)
+{
+  
+  int n_procs = 0;
+  PDM_MPI_Comm_size(_gnum->comm, &n_procs);
+  
+  int i_proc = 0;
+  PDM_MPI_Comm_rank(_gnum->comm,
+                &i_proc);
+
+  int *sendBuffN   = (int *) malloc(sizeof(int) * n_procs);
+  int *sendBuffIdx = (int *) malloc(sizeof(int) * n_procs);
+
+  int *recvBuffN   = (int *) malloc(sizeof(int) * n_procs);
+  int *recvBuffIdx = (int *) malloc(sizeof(int) * n_procs);
+
+  /* Calcul du nombre total d'elements du bloc */
+
+  PDM_l_num_t n_elt_loc_total = 0;
+  PDM_g_num_t l_max_parent = -1;
+  
+  for (int j = 0; j < _gnum->n_part; j++) {
+    n_elt_loc_total += _gnum->n_elts[j];
+    for (int k = 0; k < _gnum->n_elts[j]; k++) {
+      l_max_parent = PDM_MAX (l_max_parent, _gnum->parent[j][k]);
+    }
+  }
+
+  PDM_g_num_t max_parent = 0;
+  PDM_MPI_Allreduce (&l_max_parent, &max_parent, 1, 
+                     PDM__PDM_MPI_G_NUM, PDM_MPI_MAX, _gnum->comm);
+  
+  
+  /* Comptage du nombre d'elements a envoyer a chaque processus */
+  
+  for (int j = 0; j < n_procs; j++) {
+    sendBuffN[j] = 0;
+    sendBuffIdx[j] = 0;
+    recvBuffN[j] = 0;
+    recvBuffIdx[j] = 0;
+  }
+
+  PDM_g_num_t *d_elt_proc = 
+          (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * (n_procs + 1));
+  
+
+  PDM_g_num_t div_entiere = max_parent / n_procs;
+  PDM_g_num_t div_reste = max_parent % n_procs;
+
+  d_elt_proc[0] = 1;
+  for (int i = 0; i < n_procs; i++) {
+    d_elt_proc[i+1] =  div_entiere;
+    if (i < div_reste) {
+      d_elt_proc[i+1] += 1;
+    }
+  }
+
+  for (int i = 0; i < n_procs; i++) {
+    d_elt_proc[i+1] += d_elt_proc[i]; 
+  }
+          
+  for (int j = 0; j < _gnum->n_part; j++) {
+    for (int k = 0; k < _gnum->n_elts[j]; k++) {
+      const int i_elt_proc = PDM_binary_search_gap_long (_gnum->parent[j][k],
+                                                         d_elt_proc,
+                                                         n_procs + 1);
+      sendBuffN[i_elt_proc] += 1;
+    }
+  }
+
+  sendBuffIdx[0] = 0;
+  for (int j = 1; j < n_procs; j++) {
+    sendBuffIdx[j] = sendBuffIdx[j-1] + sendBuffN[j-1];
+  }
+   
+  /* Determination du nombre d'elements recu de chaque processus */
+
+  PDM_MPI_Alltoall(sendBuffN, 
+               1, 
+               PDM_MPI_INT, 
+               recvBuffN, 
+               1, 
+               PDM_MPI_INT, 
+               _gnum->comm);
+
+  recvBuffIdx[0] = 0;
+  for(int j = 1; j < n_procs; j++) {
+    recvBuffIdx[j] = recvBuffIdx[j-1] + recvBuffN[j-1];
+  }
+
+  /* Transmission des numeros absolus  */
+ 
+  PDM_g_num_t _l_numabs_tmp = d_elt_proc[i_proc+1] - d_elt_proc[i_proc];
+  int l_numabs_tmp = (int) _l_numabs_tmp;
+  PDM_g_num_t *numabs_tmp = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * l_numabs_tmp);
+  
+  PDM_g_num_t *n_elt_stocke_procs = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * (n_procs+1));
+ 
+  PDM_g_num_t *sendBuffNumabs = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * 
+                                                       n_elt_loc_total);
+  PDM_g_num_t *recvBuffNumabs = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * 
+                                                      (recvBuffIdx[n_procs - 1] + 
+                                                       recvBuffN[n_procs - 1]));
+                                                          
+  for (int j = 0; j < n_procs; j++) {
+    sendBuffN[j] = 0;
+  }
+
+  for (int j = 0; j < _gnum->n_part; j++) {
+    for (int k = 0; k < _gnum->n_elts[j]; k++) {
+      const int i_elt_proc = PDM_binary_search_gap_long(_gnum->parent[j][k],
+                                                        d_elt_proc,
+                                                        n_procs+1);
+      sendBuffNumabs[sendBuffIdx[i_elt_proc] + sendBuffN[i_elt_proc]] = _gnum->parent[j][k];
+      sendBuffN[i_elt_proc] += 1;
+    }
+  }
+
+  PDM_MPI_Alltoallv((void *) sendBuffNumabs, 
+                sendBuffN, 
+                sendBuffIdx, 
+                PDM__PDM_MPI_G_NUM,
+                (void *) recvBuffNumabs, 
+                recvBuffN, 
+                recvBuffIdx,
+                PDM__PDM_MPI_G_NUM, 
+                _gnum->comm);
+  
+  /* Echange du nombre d'elements stockes sur chaque processus */
+
+  const PDM_g_num_t n_elt_stocke = 
+    (PDM_g_num_t) (recvBuffIdx[n_procs - 1] + recvBuffN[n_procs - 1]);
+
+  PDM_MPI_Allgather((void *) &n_elt_stocke, 
+                1,
+                PDM__PDM_MPI_G_NUM,
+                (void *) (n_elt_stocke_procs + 1), 
+                1,
+                PDM__PDM_MPI_G_NUM,
+                _gnum->comm);
+
+  n_elt_stocke_procs[0] = 1;
+  for (int j = 1; j < n_procs + 1; j++) {
+    n_elt_stocke_procs[j] += n_elt_stocke_procs[j-1];
+  }    
+
+  /* Stockage du resultat et determination de la nouvelle numerotation absolue
+     independante du parallelisme */
+    
+  for (int j = 0; j < l_numabs_tmp; j++) 
+    numabs_tmp[j] = 0;
+
+  for (int j = 0; j < n_procs; j++) {
+    
+    const int ideb = recvBuffIdx[j];
+    const int ifin = recvBuffIdx[j] + recvBuffN[j];
+    
+    for (int k = ideb; k < ifin; k++) {
+      
+      PDM_g_num_t _idx = recvBuffNumabs[k] - d_elt_proc[i_proc];
+      const int idx = (int) _idx;
+      assert((idx < l_numabs_tmp) && (idx >= 0));
+
+      numabs_tmp[idx] = 1; /* On marque les elements */
+    }
+  }
+
+  int cpt_elt_proc = 0;
+  for (int j = 0; j < l_numabs_tmp; j++) {
+    if (numabs_tmp[j] == 1) {
+
+      /* On fournit une numerotation independante du parallelisme */
+      
+      numabs_tmp[j] = n_elt_stocke_procs[i_proc] + cpt_elt_proc;
+      cpt_elt_proc += 1;
+    }
+  }
+
+  /* On remplit le buffer de reception qui devient le buffer d'envoi
+     Le buffer d'envoi devient lui le buffer de reception */
+
+  cpt_elt_proc = 0;
+  for (int j = 0; j < n_procs; j++) {
+    
+    const int ideb = recvBuffIdx[j];
+    const int ifin = recvBuffIdx[j] + recvBuffN[j];
+    
+    for (int k = ideb; k < ifin; k++) {
+      
+      PDM_g_num_t _idx = recvBuffNumabs[k] - d_elt_proc[i_proc];
+      const int idx = (int) _idx;
+      
+      recvBuffNumabs[cpt_elt_proc] = numabs_tmp[idx];
+      
+      cpt_elt_proc += 1;
+    }
+  }
+
+  PDM_MPI_Alltoallv((void *) recvBuffNumabs, 
+                recvBuffN, 
+                recvBuffIdx, 
+                PDM__PDM_MPI_G_NUM,
+                (void *) sendBuffNumabs, 
+                sendBuffN, 
+                sendBuffIdx,
+                PDM__PDM_MPI_G_NUM, 
+                _gnum->comm);
+
+  /* On Stocke l'information recue */
+
+  for (int j = 0; j < n_procs; j++)
+    sendBuffN[j] = 0;
+
+  for (int j = 0; j < _gnum->n_part; j++) {
+    
+    _gnum->g_nums[j] = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * _gnum->n_elts[j]);
+
+    for (int k = 0; k < _gnum->n_elts[j]; k++) {
+      const int i_elt_proc = PDM_binary_search_gap_long(_gnum->parent[j][k],
+                                                        d_elt_proc,
+                                                        n_procs+1);
+      _gnum->g_nums[j][k] = sendBuffNumabs[sendBuffIdx[i_elt_proc] + sendBuffN[i_elt_proc]];
+      sendBuffN[i_elt_proc] += 1;
+    }
+  }
+
+  /* Liberation memoire */
+
+  free(sendBuffIdx);
+  free(sendBuffN);  
+  free(recvBuffIdx);
+  free(recvBuffN);  
+  free(sendBuffNumabs);
+  free(recvBuffNumabs);
+  free(d_elt_proc);
+  free(numabs_tmp);
+  free(n_elt_stocke_procs);
+  
+}
+  
+/*=============================================================================
+ * Public function definitions
+ *============================================================================*/
+
+/**
+ *
+ * \brief Build a global numbering 
+ *
+ * \param [in]   dim          Spatial dimension 
+ * \param [in]   n_part       Number of local partitions 
+ * \param [in]   comm         PDM_MPI communicator
+ *
+ * \return     Identifier    
+ */
+
+int
+PDM_gnum_create
+(
+ const int dim,
+ const int n_part,
+ const PDM_MPI_Comm comm
+)
+{
+  
+  /*
+   * Search a ppart free id
+   */
+
+  if (_gnums == NULL) {
+    _gnums = PDM_Handles_create (4);
+  }
+
+  _pdm_gnum_t *_gnum = (_pdm_gnum_t *) malloc(sizeof(_pdm_gnum_t));
+  int id = PDM_Handles_store (_gnums, _gnum);
+
+  _gnum->n_part    = n_part;
+  _gnum->dim       = dim;  
+  _gnum->comm      = comm;
+  _gnum->n_g_elt   = -1;
+  _gnum->g_nums = (PDM_g_num_t **) malloc (sizeof(PDM_g_num_t * ) * n_part); 
+  _gnum->coords = NULL;
+  _gnum->parent = NULL;
+  _gnum->n_elts = (int *) malloc (sizeof(int) * n_part);
+  
+  
+  for (int i = 0; i < n_part; i++) {
+    _gnum->g_nums[i] = NULL;
+  }
+
+  return id;
+
+}
+
+void
+PROCF (pdm_gnum_create, PDM_GNUM_CREATE)
+(
+ const int *dim,
+ const int *n_part,
+ const PDM_MPI_Fint *fcomm,
+       int *id
+)
+{
+  const PDM_MPI_Comm c_comm = PDM_MPI_Comm_f2c (*fcomm);
+
+  *id = PDM_gnum_create (*dim, *n_part, c_comm);
+}
+
+
+/**
+ *
+ * \brief Set from coordinates
+ *
+ * The ordering is based on a Morton code, and it is expected that
+ * entities are unique (i.e. not duplicated on 2 or more ranks).
+ * In the case that 2 entities have a same Morton code, their global
+ * number will be determined by lexicographical ordering of coordinates.
+ *
+ * \param [in]   id           Identifier
+ * \param [in]   i_part       Current partition
+ * \param [in]   n_elts       Number of elements
+ * \param [in]   coords       Coordinates (size = 3 * \ref n_elts)
+ *
+ */
+
+void
+PDM_gnum_set_from_coords
+(
+ const int id,
+ const int i_part,
+ const int n_elts,
+ const double *coords
+)
+{
+  _pdm_gnum_t *_gnum = _get_from_id (id);
+  
+  if (_gnum->coords == NULL) {
+    _gnum->coords = (double **) malloc (sizeof(double * ) * _gnum->n_part);
+    for (int i = 0; i < _gnum->n_part; i++) {
+      _gnum->coords[i_part] = NULL;
+    }
+  }
+
+  _gnum->coords[i_part] = (double *) coords;
+  _gnum->n_elts[i_part] = n_elts;
+  _gnum->g_nums[i_part] = NULL;
+ 
+}     
+
+void
+PROCF (pdm_gnum_set_from_coords, PDM_GNUM_SET_FROM_COORDS)
+(
+ const int *id,
+ const int *i_part,
+ const int *n_elts,
+ const double *coords
+)
+{
+  PDM_gnum_set_from_coords (*id, *i_part, *n_elts, coords);
+}
+
+
+/**
+ *
+ * \brief Set Parent global numbering
+ *
+ * \param [in]   id           Identifier
+ * \param [in]   i_part       Current partition
+ * \param [in]   n_elts       Number of elements
+ * \param [in]   parent_gnum  Parent global numbering (size = \ref n_elts)
+ *
+ */
+
+void
+PDM_gnum_set_from_parents
+(
+ const int id,
+ const int i_part,
+ const int n_elts,
+ const PDM_g_num_t *parent_gnum
+)
+{
+  _pdm_gnum_t *_gnum = _get_from_id (id);
+  
+  if (_gnum->parent == NULL) {
+    _gnum->parent = (PDM_g_num_t **) malloc (sizeof(PDM_g_num_t * ) * _gnum->n_part);
+    for (int i = 0; i < _gnum->n_part; i++) {
+      _gnum->parent[i_part] = NULL;
+    }
+  }
+
+  _gnum->parent[i_part] = (PDM_g_num_t *) parent_gnum;
+  _gnum->n_elts[i_part] = n_elts;
+  _gnum->g_nums[i_part] = NULL;
+  
+}
+
+void
+PROCF (pdm_gnum_set_from_parents, PDM_GNUM_SET_FROM_PARENTS)
+(
+ const int *id,
+ const int *i_part,
+ const int *n_elts,
+ const PDM_g_num_t *parent_gnum
+)
+{
+  PDM_gnum_set_from_parents (*id, *i_part, *n_elts, parent_gnum);
+}
+
+
+/**
+ *
+ * \brief Compute
+ *
+ * \param [in]   id           Identifier
+ *
+ */
+
+/*
+  This function comes from "Finite Volume Mesh" library, intended to provide
+  finite volume mesh and associated fields I/O and manipulation services.
+
+  Copyright (C) 2004-2009  EDF
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+void
+PDM_gnum_compute
+(
+ const int id
+)
+{
+  _pdm_gnum_t *_gnum = _get_from_id (id);
+  
+  if (_gnum->coords != NULL) {
+    _gnum_from_coords_compute (_gnum);
+  }
+  
+  else if (_gnum->parent != NULL) {
+    _gnum_from_parent_compute (_gnum);    
+  }
+
 }
 
 void
@@ -824,8 +1151,14 @@ PDM_gnum_free
 {
   _pdm_gnum_t *_gnum = _get_from_id (id);
 
-  free (_gnum->coords);  
+  if (_gnum->coords != NULL) {
+    free (_gnum->coords);
+  }
   
+  if (_gnum->parent != NULL) {
+    free (_gnum->parent);
+  }
+
   if (partial != 1) {
     for (int i = 0; i < _gnum->n_part; i++) {
       free (_gnum->g_nums[i]);
@@ -833,20 +1166,16 @@ PDM_gnum_free
   }
   
   free (_gnum->g_nums);
+  free (_gnum->n_elts);
   
-  free(_gnums[id]);
-  _gnums[id] = NULL;
+  free (_gnum);
+  
+  PDM_Handles_handle_free (_gnums, id, PDM_FALSE);
 
-  int toDel = 1;
-  for (int i = 0; i < _l_gnums; i++) { 
-    if (_gnums[i] != NULL) {
-      toDel = 0;
-      break;
-    }
-  }
-  if (toDel) {
-    free(_gnums);
-    _gnums = NULL;
+  const int n_gnum = PDM_Handles_n_get (_gnums);
+  
+  if (n_gnum == 0) {
+    _gnums = PDM_Handles_free (_gnums);
   }
 
 }

@@ -224,7 +224,7 @@ PDM_part_split_t           method,
                                                      dVtxCoord[3*j+2]);
   }
 
-  PDM_gnum_free (id, 1);
+  PDM_gnum_free (id, 0);
 
   struct timeval t_elaps_fin; 
 

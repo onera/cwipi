@@ -29,6 +29,7 @@
 #include "pdm_part_renum.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
+#include "pdm_handles.h"
 
 /*----------------------------------------------------------------------------
  *  Optional headers
@@ -73,8 +74,7 @@ extern "C" {
  * Global variable
  *============================================================================*/
 
-static _PDM_part_t **_pparts   = NULL;
-static int         _l_pparts   = 10;
+static PDM_Handles_t *_pparts   = NULL;
 
 /*============================================================================
  * Private function definitions
@@ -287,47 +287,6 @@ static int
   return -1;
 }
 
-///**
-// *
-// * \brief Return ppart object from it identifier
-// *
-// * \param [in]   ppartId        ppart identifier
-// *
-// */
-//
-//static _part_t * 
-//_part_create
-//(
-//void
-// )
-//{
-//  _part_t *part = (_part_t *) malloc(sizeof(_part_t));
-//  part->nVtx = 0;
-//  part->nCell = 0;
-//  part->nFace = 0;
-//  part->nFacePartBound = 0;
-//  part->cellFaceIdx = NULL;
-//  part->gCellFace = NULL;
-//  part->cellFace = NULL;
-//  part->cellLNToGN = NULL;
-//  part->cellTag = NULL;
-//  part->faceCell = NULL;
-//  part->faceVtxIdx = NULL;
-//  part->gFaceVtx = NULL;
-//  part->faceVtx = NULL;
-//  part->faceLNToGN = NULL;
-//  part->faceTag = NULL;
-//  part->facePartBoundProcIdx = NULL;
-//  part->facePartBoundPartIdx = NULL;
-//  part->facePartBound = NULL;
-//  part->faceGroupIdx = NULL;
-//  part->faceGroup = NULL;
-//  part->faceGroupLNToGN = NULL;
-//  part->vtx = NULL;
-//  part->vtxLNToGN = NULL;
-//  part->vtxTag = NULL;
-//  return part;
-//}
 
 /**
  *
@@ -343,17 +302,14 @@ _get_from_id
  int  ppartId
 )
 {
-  if (ppartId >= _l_pparts) {
-    PDM_printf("PPART error : Bad ppart identifier\n");
-    exit(1);
-  }
+  _PDM_part_t *part = (_PDM_part_t *) PDM_Handles_get (_pparts, ppartId);
     
-  if (_pparts[ppartId] == NULL) {
-    PDM_printf("PPART error : Bad ppart identifier\n");
+  if (part == NULL) {
+    PDM_error (__FILE__, __LINE__, 0, "PPART error : Bad ppart identifier\n");
     exit(1);
   }
 
-  return _pparts[ppartId];
+  return part;
 }
 
 /**
@@ -2938,33 +2894,12 @@ PDM_part_create
    */
 
   if (_pparts == NULL) {
-    _pparts = (_PDM_part_t **) malloc(_l_pparts * sizeof(_PDM_part_t *));
-    for (int i = 0; i < _l_pparts; i++)
-      _pparts[i] = NULL;
+    _pparts = PDM_Handles_create (4); 
   }
 
-  _PDM_part_t * ppart = NULL;
-  for (int i = 0; i < _l_pparts; i++) {
-    if (_pparts[i] == NULL) {
-      _pparts[i] = (_PDM_part_t *) malloc(sizeof(_PDM_part_t));
-      ppart = _pparts[i];
-      *ppartId = i;
-      break;
-    }
-  }
-
-  if (ppart == NULL) {
-    int l_pparts_old = _l_pparts;
-    _l_pparts = 2 * _l_pparts;
-
-    _pparts = (_PDM_part_t **) realloc(_pparts, _l_pparts * sizeof(_PDM_part_t *));
-    for (int i = l_pparts_old; i < _l_pparts; i++)
-      _pparts[i] = NULL;
-
-    _pparts[l_pparts_old] = (_PDM_part_t *) malloc(sizeof(_PDM_part_t));
-    ppart = _pparts[l_pparts_old];
-    *ppartId = l_pparts_old;
-  }
+  _PDM_part_t *ppart = (_PDM_part_t *) malloc(sizeof(_PDM_part_t));
+  
+  *ppartId = PDM_Handles_store (_pparts, ppart);
 
   /*
    * Build ppart structure
@@ -3703,21 +3638,17 @@ PDM_part_free
   if (ppart->meshParts != NULL)
     free(ppart->meshParts);
   ppart->meshParts = NULL;
+  
+  free (ppart);
 
-  free(_pparts[ppartId]);
-  _pparts[ppartId] = NULL;
+  PDM_Handles_handle_free (_pparts, ppartId, PDM_FALSE);
 
-  int toDel = 1;
-  for (int i = 0; i < _l_pparts; i++) { 
-    if (_pparts[i] != NULL) {
-      toDel = 0;
-      break;
-    }
+  const int n_part = PDM_Handles_n_get (_pparts);
+  
+  if (n_part == 0) {
+    _pparts = PDM_Handles_free (_pparts);
   }
-  if (toDel) {
-    free(_pparts);
-    _pparts = NULL;
-  }
+  
 }
 
 void 

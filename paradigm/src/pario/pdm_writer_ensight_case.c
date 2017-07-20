@@ -551,8 +551,8 @@ const PDM_writer_topologie_t                time_dependency
         }
       }
 
-      if (((time_dependency != PDM_writer_TOPO_CONSTANTE) && (geom_timeset == -1)) ||
-          ((time_dependency == PDM_writer_TOPO_CONSTANTE) && (geom_timeset != -1))) {
+      if (((time_dependency != PDM_WRITER_TOPO_CONSTANTE) && (geom_timeset == -1)) ||
+          ((time_dependency == PDM_WRITER_TOPO_CONSTANTE) && (geom_timeset != -1))) {
         PDM_error(__FILE__, __LINE__, 0, "Error in %s line %d : Inconsistency geom time dependency between "
                 "The \"%s\" case and the function argument\n",
                 __FILE__, __LINE__,
@@ -654,10 +654,10 @@ const PDM_writer_topologie_t                time_dependency
               }
             }
             
-            PDM_writer_statut_t time_dep = PDM_writer_OFF;
+            PDM_writer_statut_t time_dep = PDM_WRITER_OFF;
 
             if (var_time_set == 1)
-              time_dep = PDM_writer_ON;
+              time_dep = PDM_WRITER_ON;
 
             _add_var(this_case,
                      nom_var,
@@ -877,7 +877,7 @@ const char* name
   }
   
   char *file_name;
-  if (var->time_dep == PDM_writer_ON) {
+  if (var->time_dep == PDM_WRITER_ON) {
     file_name = var->file_name;
   }
   else {
@@ -904,7 +904,7 @@ PDM_writer_ensight_case_t  *this_case
 )
 {
   char *name;
-  if (this_case->time_dependency != PDM_writer_TOPO_CONSTANTE) {
+  if (this_case->time_dependency != PDM_WRITER_TOPO_CONSTANTE) {
     name = this_case->geom_file_name;
   }
   else {
@@ -967,7 +967,7 @@ const double time_value
 
   _add_time(this_case->time_set,
             time_value);
-  if (this_case->time_dependency != PDM_writer_TOPO_CONSTANTE) {
+  if (this_case->time_dependency != PDM_WRITER_TOPO_CONSTANTE) {
     
     if (this_case->geom_file_name == NULL) {
       this_case->geom_file_name = (char *) malloc(sizeof(char) * strlen(this_case->geom_file_name_base) + 7);
@@ -983,7 +983,7 @@ const double time_value
   for (int i = 0; i < this_case->n_vars; i++) {
 
     PDM_writer_ensight_case_var_t  *var = this_case->var[i];
-    if (var->time_dep == PDM_writer_ON) {
+    if (var->time_dep == PDM_WRITER_ON) {
       if (var->file_name == NULL) {
         var->file_name = (char *) malloc(sizeof(char) * strlen(var->file_name_base) + 7);
       } 
@@ -1046,12 +1046,12 @@ PDM_writer_ensight_case_write(PDM_writer_ensight_case_t  *const this_case,
           "\n"
           "GEOMETRY\n");
 
-  if (this_case->time_dependency == PDM_writer_TOPO_CONSTANTE)
+  if (this_case->time_dependency == PDM_WRITER_TOPO_CONSTANTE)
     fprintf(f, "model: %s.geo\n",
             this_case->file_name_prefix + this_case->dir_name_length);
 
 
-  else if (this_case->time_dependency == PDM_writer_TOPO_DEFORMABLE)
+  else if (this_case->time_dependency == PDM_WRITER_TOPO_DEFORMABLE)
     fprintf(f, "model: %d %s.geo.*****  change_coords_only\n",
             1,
             this_case->file_name_prefix + this_case->dir_name_length);

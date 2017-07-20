@@ -296,8 +296,8 @@ int main(int argc, char *argv[])
 
   int id_cs = PDM_writer_create("Ensight",
                                 PDM_WRITER_FMT_ASCII,
-                                PDM_writer_TOPO_CONSTANTE,
-                                PDM_writer_OFF,
+                                PDM_WRITER_TOPO_CONSTANTE,
+                                PDM_WRITER_OFF,
                                 "test_3d_ens",
                                 "chrd3d",
                                 PDM_MPI_COMM_WORLD,
@@ -309,26 +309,26 @@ int main(int argc, char *argv[])
 
   int id_geom = PDM_writer_geom_create(id_cs,
                              "test3d_geom",
-                             PDM_writer_OFF,
-                             PDM_writer_OFF,
+                             PDM_WRITER_OFF,
+                             PDM_WRITER_OFF,
                              nPart);
 
   /* Creation des variables */
 
   int id_var_num_part = PDM_writer_var_create(id_cs,
-                                    PDM_writer_OFF,
+                                    PDM_WRITER_OFF,
                                     PDM_WRITER_VAR_SCALAIRE,
                                     PDM_WRITER_VAR_ELEMENTS,
                                     "num_part");
 
   int id_var_coo_x = PDM_writer_var_create(id_cs,
-                                 PDM_writer_ON,
+                                 PDM_WRITER_ON,
                                  PDM_WRITER_VAR_SCALAIRE,
                                  PDM_WRITER_VAR_SOMMETS,
                                  "coo_x");
 
   int id_var_coo_xyz = PDM_writer_var_create(id_cs,
-                                   PDM_writer_ON,
+                                   PDM_WRITER_ON,
                                    PDM_WRITER_VAR_VECTEUR,
                                    PDM_WRITER_VAR_SOMMETS,
                                    "coo_xyz");
@@ -339,8 +339,8 @@ int main(int argc, char *argv[])
 
   int id_bloc = PDM_writer_geom_bloc_add(id_cs,
                                  id_geom,
-                                 PDM_writer_OFF,
-                                 PDM_writer_HEXA8);
+                                 PDM_WRITER_OFF,
+                                 PDM_WRITER_HEXA8);
 
   PDM_l_num_t **connec = (PDM_l_num_t **) malloc(sizeof(PDM_l_num_t *) * nPart);
 
