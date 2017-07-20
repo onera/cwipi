@@ -480,8 +480,8 @@ _export_ini_mesh
 
   id_cs = PDM_writer_create ("Ensight",
                               PDM_WRITER_FMT_ASCII,
-                              PDM_writer_TOPO_CONSTANTE,
-                              PDM_writer_OFF,
+                              PDM_WRITER_TOPO_CONSTANTE,
+                              PDM_WRITER_OFF,
                               "pdm_t_plane_agglo_ens",
                               "fine_mesh",
                               pdm_mpi_comm,
@@ -500,19 +500,19 @@ _export_ini_mesh
 
 
   id_var_num_part = PDM_writer_var_create (id_cs,
-                                          PDM_writer_OFF,
+                                          PDM_WRITER_OFF,
                                           PDM_WRITER_VAR_SCALAIRE,
                                           PDM_WRITER_VAR_ELEMENTS,
                                           "num_part");
 
   id_var_coo_x = PDM_writer_var_create (id_cs,
-                                       PDM_writer_ON,
+                                       PDM_WRITER_ON,
                                        PDM_WRITER_VAR_SCALAIRE,
                                        PDM_WRITER_VAR_SOMMETS,
                                        "coo_x");
 
   id_var_coo_xyz = PDM_writer_var_create (id_cs,
-                                         PDM_writer_ON,
+                                         PDM_WRITER_ON,
                                          PDM_WRITER_VAR_VECTEUR,
                                          PDM_WRITER_VAR_SOMMETS,
                                          "coo_xyz");
@@ -525,8 +525,8 @@ _export_ini_mesh
 
   id_geom = PDM_writer_geom_create (id_cs,
                                  nom_geom,
-                                 PDM_writer_OFF,
-                                 PDM_writer_OFF,
+                                 PDM_WRITER_OFF,
+                                 PDM_WRITER_OFF,
                                  nPart);
   /*
    * Debut des ecritures
@@ -864,8 +864,8 @@ _export_coarse_mesh
 
   id_cs = PDM_writer_create ("Ensight",
                               PDM_WRITER_FMT_ASCII,
-                              PDM_writer_TOPO_CONSTANTE,
-                              PDM_writer_OFF,
+                              PDM_WRITER_TOPO_CONSTANTE,
+                              PDM_WRITER_OFF,
                               "pdm_t_plane_agglo_ens",
                               "coarse_mesh",
                               pdm_mpi_comm,
@@ -883,19 +883,19 @@ _export_coarse_mesh
   int id_geom;
 
   id_var_num_part = PDM_writer_var_create (id_cs,
-                                          PDM_writer_OFF,
+                                          PDM_WRITER_OFF,
                                           PDM_WRITER_VAR_SCALAIRE,
                                           PDM_WRITER_VAR_ELEMENTS,
                                           "num_part");
 
   id_var_coo_x = PDM_writer_var_create (id_cs,
-                                       PDM_writer_ON,
+                                       PDM_WRITER_ON,
                                        PDM_WRITER_VAR_SCALAIRE,
                                        PDM_WRITER_VAR_SOMMETS,
                                        "coo_x");
 
   id_var_coo_xyz = PDM_writer_var_create (id_cs,
-                                         PDM_writer_ON,
+                                         PDM_WRITER_ON,
                                          PDM_WRITER_VAR_VECTEUR,
                                          PDM_WRITER_VAR_SOMMETS,
                                          "coo_xyz");
@@ -908,8 +908,8 @@ _export_coarse_mesh
 
   id_geom = PDM_writer_geom_create (id_cs,
                                  nom_geom,
-                                 PDM_writer_OFF,
-                                 PDM_writer_OFF,
+                                 PDM_WRITER_OFF,
+                                 PDM_WRITER_OFF,
                                  nPart);
   /*
    * Debut des ecritures

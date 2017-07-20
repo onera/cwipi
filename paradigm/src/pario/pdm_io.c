@@ -32,6 +32,7 @@
 #include "pdm_fortran_to_c_string.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
+#include "pdm_handles.h"
 
 /*----------------------------------------------------------------------------*/
 
@@ -104,19 +105,7 @@ struct _PDM_io_fichier_t {
  * Stockage des objets PDM_io_fichiers
  *----------------------------------------------------------------------------*/
 
-static PDM_io_fichier_t **PDM_io_fichiers = NULL; 
-
-/*----------------------------------------------------------------------------
- * Taille du tableau PDM_io_fichiers
- *----------------------------------------------------------------------------*/
-
-static PDM_l_num_t l_PDM_io_fichiers = 0;
-
-/*----------------------------------------------------------------------------
- * Nombre de fichiers sotckÃ©s dans PDM_io_fichiers
- *----------------------------------------------------------------------------*/
-
-static PDM_l_num_t n_PDM_io_fichiers = 0;
+static PDM_Handles_t *PDM_io_fichiers = NULL; 
 
 /*----------------------------------------------------------------------------
  * tag pour Echanges MPI
@@ -614,12 +603,7 @@ static void _calcul_parametres_distribution_bloc
 PDM_io_fichier_t *PDM_io_get_fichier
 (const PDM_l_num_t  unite)
 {
-  PDM_io_fichier_t *fichier = NULL;
-
-  if (unite < l_PDM_io_fichiers)
-    fichier = PDM_io_fichiers[unite];
-
-  return fichier;
+  return (PDM_io_fichier_t *) PDM_Handles_get (PDM_io_fichiers, unite);
 }
 
 
@@ -638,7 +622,8 @@ const char* PDM_io_get_nom_fichier
 (const PDM_l_num_t unite)
 {
   char *nom = NULL;
-  PDM_io_fichier_t *fichier = PDM_io_get_fichier(unite);
+  PDM_io_fichier_t *fichier = 
+          (PDM_io_fichier_t *) PDM_Handles_get (PDM_io_fichiers, unite);  
   if (fichier != NULL)
     nom = fichier->nom;
   return nom;
@@ -734,37 +719,13 @@ void PDM_io_open
   *ierr = 0;
 
   if (PDM_io_fichiers == NULL) {
-    l_PDM_io_fichiers = 4;
-    PDM_io_fichiers = (PDM_io_fichier_t**) malloc(l_PDM_io_fichiers * 
-                                                  sizeof(PDM_io_fichier_t*));
-    for (PDM_l_num_t i = 0; i < l_PDM_io_fichiers; i++) 
-      PDM_io_fichiers[i] = NULL;
+    PDM_io_fichiers = PDM_Handles_create (4);
   } 
-
-  if (l_PDM_io_fichiers <= n_PDM_io_fichiers) {
-    PDM_l_num_t p_l_PDM_io_fichiers = l_PDM_io_fichiers;
-    l_PDM_io_fichiers = 2 * l_PDM_io_fichiers;
-    PDM_io_fichiers = (PDM_io_fichier_t**) realloc((void*) PDM_io_fichiers,
-                                                   l_PDM_io_fichiers * 
-                                                   sizeof(PDM_io_fichier_t*));
-    for (PDM_l_num_t i = p_l_PDM_io_fichiers; i < l_PDM_io_fichiers; i++) 
-      PDM_io_fichiers[i] = NULL;
-    
-  }
-
-  /* Recherche de la premiere place libre pour stocker le fichier */
-
-  int i = 0;
-  while (PDM_io_fichiers[i] != NULL) 
-    i++;
-  *unite = i;
 
   /* Initialisation de la structure PDM_io_fichier_t */
 
   PDM_io_fichier_t *nouveau_fichier = 
     (PDM_io_fichier_t*) malloc(sizeof(PDM_io_fichier_t));
-
-  n_PDM_io_fichiers += 1;
 
   /* Initialisation des timer */
 
@@ -982,9 +943,122 @@ void PDM_io_open
     
   /* Stockage du fichier cree */
 
-  PDM_io_fichiers[*unite] = nouveau_fichier;
+
+  *unite = PDM_Handles_store (PDM_io_fichiers, nouveau_fichier);
 
   PDM_timer_hang_on(nouveau_fichier->timer_total);
+
+}
+
+
+/*----------------------------------------------------------------------------
+ * pdm_io_seek sets the file position indicator
+ *
+ * parameters :
+ *   unite           <-- Unite du fichier
+ *   offset          <-- Adresse
+ *   seek            <-- Type d'origine
+ *  
+ *----------------------------------------------------------------------------*/
+
+void PROCF (pdm_io_seek, PDM_IO_SEEK)
+(
+const PDM_l_num_t   *unite,
+const PDM_g_num_t   *offset,
+const PDM_io_seek_t *seek 
+)
+{
+  PDM_io_seek (*unite, *offset, *seek);
+}
+
+void PDM_io_seek
+(
+const PDM_l_num_t   unite,
+const PDM_g_num_t   offset,
+const PDM_io_seek_t seek 
+)
+{
+  int err_code = 0;
+  PDM_io_fichier_t *fichier = PDM_io_get_fichier(unite);
+
+  if (fichier != NULL) {
+    if (fichier->PDM_file_seq != NULL) {
+      long _offset = (long) offset;
+      PDM_file_seq_seek (fichier->PDM_file_seq,
+                         _offset,
+                         (PDM_file_seq_seek_t) seek);
+    }
+    else if (fichier->PDM_file_par != NULL) {
+      PDM_MPI_Offset _offset = (PDM_MPI_Offset) offset;
+      PDM_file_par_seek (fichier->PDM_file_par,
+                         _offset,
+                        (PDM_file_par_seek_t) seek);
+    }
+    
+  }
+
+  else {
+    err_code = 1;
+  }
+  
+  if (err_code){
+    PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_tell :"
+            " unite '%d' non valide\n", unite);
+    abort();
+  }
+}
+
+
+/*----------------------------------------------------------------------------
+ * pdm_io_tell returns the current file position
+ *
+ * parameters :
+ *   unite           <-- Unite du fichier
+ *   offset          --> Adresse
+ *  
+ *----------------------------------------------------------------------------*/
+
+void PROCF (pdm_io_tell, PDM_IO_TELL)
+(
+const PDM_l_num_t    *unite,
+      PDM_g_num_t    *offset
+)
+{
+  PDM_g_num_t  _offset = PDM_io_tell (*unite);
+  *offset = _offset;
+}
+
+PDM_g_num_t
+PDM_io_tell
+(
+const PDM_l_num_t     unite
+)
+{
+  PDM_g_num_t offset;
+  int err_code = 0;
+  PDM_io_fichier_t *fichier = PDM_io_get_fichier(unite);
+
+  if (fichier != NULL) {
+    if (fichier->PDM_file_seq != NULL) {
+      offset = (PDM_g_num_t) PDM_file_seq_tell (fichier->PDM_file_seq);
+    }
+    else if (fichier->PDM_file_par != NULL) {
+      offset = (PDM_g_num_t) PDM_file_par_tell (fichier->PDM_file_par);      
+    }
+    
+  }
+
+  else {
+    err_code = 1;
+  }
+  
+  if (err_code){
+    PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_io_tell :"
+            " unite '%d' non valide\n", unite);
+    abort();
+  }
+    
+  return offset;
 
 }
 
@@ -1209,8 +1283,10 @@ void PDM_io_ecriture_globale
         }
       }
       
-      if ((fichier->acces == PDM_IO_ACCES_MPI_SIMPLE) || (fichier->n_rangs_inactifs > 0)) { 
-        PDM_MPI_Bcast(&n_donnees_ecrites, 1, PDM_MPI_INT, 0, fichier->comm);
+      if (fichier->acces != PDM_IO_ACCES_SEQ) {
+        if ((fichier->acces == PDM_IO_ACCES_MPI_SIMPLE) || (fichier->n_rangs_inactifs > 0)) { 
+          PDM_MPI_Bcast(&n_donnees_ecrites, 1, PDM_MPI_INT, 0, fichier->comm);
+        }
       }
       
       /* Traitement de l'erreur de lecture */
@@ -1238,10 +1314,13 @@ void PDM_io_ecriture_globale
                                                             (void *) donnees);
         }
       }
-      if ((fichier->acces == PDM_IO_ACCES_MPI_SIMPLE) || (fichier->n_rangs_inactifs > 0)) {
-        PDM_MPI_Bcast(&n_donnees_ecrites, 1, PDM_MPI_INT, 0, fichier->comm);
-      }
       
+      if (fichier->acces != PDM_IO_ACCES_SEQ) {
+        if ((fichier->acces == PDM_IO_ACCES_MPI_SIMPLE) || (fichier->n_rangs_inactifs > 0)) {
+          PDM_MPI_Bcast(&n_donnees_ecrites, 1, PDM_MPI_INT, 0, fichier->comm);
+        }
+      }
+        
       /* Traitement de l'erreur de lecture */
     
       if (n_donnees_ecrites != n_donnees) {
@@ -2777,8 +2856,10 @@ void PDM_io_ecr_par_entrelacee
           free(n_composante_trie);
         }
 
-        if ((fichier->acces == PDM_IO_ACCES_MPI_SIMPLE) || (fichier->n_rangs_inactifs > 0)) {
-          PDM_MPI_Bcast(&n_donnees_ecrites, 1, PDM_MPI_INT, 0, fichier->comm);
+        if (fichier->acces != PDM_IO_ACCES_SEQ) {
+          if ((fichier->acces == PDM_IO_ACCES_MPI_SIMPLE) || (fichier->n_rangs_inactifs > 0)) {
+            PDM_MPI_Bcast(&n_donnees_ecrites, 1, PDM_MPI_INT, 0, fichier->comm);
+          }
         }
         
         if (n_donnees_ecrites != l_string_donnee - 1) {
@@ -4071,11 +4152,12 @@ void PDM_io_detruit
 
     free(fichier);
 
-    PDM_io_fichiers[unite] = NULL;
-    n_PDM_io_fichiers -= 1;
-    if (n_PDM_io_fichiers == 0) {
-      free(PDM_io_fichiers);
-      PDM_io_fichiers = NULL;
+    PDM_Handles_handle_free (PDM_io_fichiers, unite, PDM_FALSE);
+    
+    int n_file = PDM_Handles_n_get (PDM_io_fichiers);  
+    
+    if (n_file == 0) {
+      PDM_io_fichiers = PDM_Handles_free (PDM_io_fichiers); 
     }
   }
 
@@ -4675,7 +4757,7 @@ void PROCF (pdm_io_n_donnees_get, PDM_IO_N_DONNEES_GET)
        PDM_g_num_t *t_n_donnees
 )
 {
-  PDM_io_n_composantes_t _t_n_composantes;
+  PDM_io_n_composantes_t _t_n_composantes = PDM_IO_N_COMPOSANTE_CONSTANT;
 
   if (*t_n_composantes == 0) 
     _t_n_composantes = PDM_IO_N_COMPOSANTE_CONSTANT;

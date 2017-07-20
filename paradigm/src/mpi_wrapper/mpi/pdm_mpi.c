@@ -834,6 +834,7 @@ int PDM_MPI_Finalize (void)
     for (int i = 0; i < l_mpi_comm; i++) {
       if (mpi_comm[i] != NULL) {
         MPI_Comm_free(mpi_comm[i]);
+        free (mpi_comm[i]);
         mpi_comm[i] = NULL;
       }
     }

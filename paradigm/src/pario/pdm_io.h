@@ -135,6 +135,18 @@ typedef enum {
 } PDM_io_endian_t;
 
 /*----------------------------------------------------------------------------
+ * Mode de positionnement dans le fichier
+ *----------------------------------------------------------------------------*/
+
+typedef enum {
+
+  PDM_IO_SEEK_SET,   /* Position a partir du debut du fichier */
+  PDM_IO_PAR_SEEK_CUR,   /* Position a partir de la position courante */
+  PDM_IO_PAR_SEEK_END    /* Position a partir de la fin du fichier */
+
+} PDM_io_seek_t;
+
+/*----------------------------------------------------------------------------
  * Type decrivant un fichier de type parallele io
  *----------------------------------------------------------------------------*/
 
@@ -230,6 +242,53 @@ void PDM_io_open
  PDM_l_num_t          *unite,
  PDM_l_num_t          *ierr  
  );
+
+
+/*----------------------------------------------------------------------------
+ * pdm_io_seek sets the file position indicator
+ *
+ * parameters :
+ *   unite           <-- Unite du fichier
+ *   offset          <-- Adresse
+ *   seek            <-- Type d'origine
+ *  
+ *----------------------------------------------------------------------------*/
+
+void PROCF (pdm_io_seek, PDM_IO_SEEK)
+(
+const PDM_l_num_t   *unite,
+const PDM_g_num_t   *offset,
+const PDM_io_seek_t *seek 
+);
+
+void PDM_io_seek
+(
+const PDM_l_num_t   unite,
+const PDM_g_num_t   offset,
+const PDM_io_seek_t seek 
+);
+
+
+/*----------------------------------------------------------------------------
+ * pdm_io_tell returns the current file position
+ *
+ * parameters :
+ *   unite           <-- Unite du fichier
+ *   offset          --> Adresse
+ *  
+ *----------------------------------------------------------------------------*/
+
+void PROCF (pdm_io_tell, PDM_IO_TELL)
+(
+const PDM_l_num_t    *unite,
+      PDM_g_num_t    *offset
+);
+
+PDM_g_num_t
+PDM_io_tell
+(
+const PDM_l_num_t     unite
+);
 
 
 /*----------------------------------------------------------------------------

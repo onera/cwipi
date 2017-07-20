@@ -9,6 +9,7 @@
 #include "pdm_mpi.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
+#include "pdm_handles.h"
 
 
 /*============================================================================
@@ -43,9 +44,7 @@ typedef struct  {
  * Global variable
  *============================================================================*/
 
-static _dcube_t **_dcubes  = NULL;
-static int       _l_dcubes = 10;
-
+static PDM_Handles_t *_dcubes  = NULL;
 
 /*============================================================================
  * Private function definitions
@@ -65,17 +64,13 @@ _get_from_id
  int  id
 )
 {
-  if (id >= _l_dcubes) {
-    PDM_printf("PDM_part_dcube error : Bad dcube identifier\n");
-    exit(1);
-  }
+  _dcube_t *dcube = (_dcube_t *) PDM_Handles_get (_dcubes, id); 
     
-  if (_dcubes[id] == NULL) {
-    PDM_printf("PDM_part_dcube error : Bad dcube identifier\n");
-    exit(1);
+  if (dcube == NULL) {
+    PDM_error (__FILE__, __LINE__, 0, "PDM_part_dcube error : Bad dcube identifier\n");
   }
 
-  return _dcubes[id];
+  return dcube;
 }
 
 /*=============================================================================
@@ -114,33 +109,12 @@ PDM_dcube_gen_init
    */
 
   if (_dcubes == NULL) {
-    _dcubes = (_dcube_t **) malloc(_l_dcubes * sizeof(_dcube_t *));
-    for (int i = 0; i < _l_dcubes; i++)
-      _dcubes[i] = NULL;
+    _dcubes = PDM_Handles_create (4);
   }
 
-  _dcube_t *dcube = NULL;
-  for (int i = 0; i < _l_dcubes; i++) {
-    if (_dcubes[i] == NULL) {
-      _dcubes[i] = (_dcube_t *) malloc(sizeof(_dcube_t));
-      dcube = _dcubes[i];
-      *id = i;
-      break;
-    }
-  }
-
-  if (dcube == NULL) {
-    int l_dcubes_old = _l_dcubes;
-    _l_dcubes = 2 * _l_dcubes;
-
-    _dcubes = (_dcube_t **) realloc(_dcubes, _l_dcubes * sizeof(_dcube_t *));
-    for (int i = l_dcubes_old; i < _l_dcubes; i++)
-      _dcubes[i] = NULL;
-
-    _dcubes[l_dcubes_old] = (_dcube_t *) malloc(sizeof(_dcube_t));
-    dcube = _dcubes[l_dcubes_old];
-    *id   = l_dcubes_old;
-  }
+  _dcube_t *dcube = (_dcube_t *) malloc(sizeof(_dcube_t));
+  
+  *id = PDM_Handles_store (_dcubes, dcube);
 
   /*
    * Build dcube structure
@@ -851,18 +825,16 @@ PDM_dcube_gen_free
   if (dcube->dFaceGroup  != NULL)
     free(dcube->dFaceGroup);
 
-  free(_dcubes[id]);
-  _dcubes[id] = NULL;
-
-  int toDel = 1;
-  for (int i = 0; i < _l_dcubes; i++) { 
-    if (_dcubes[i] != NULL) {
-      toDel = 0;
-      break;
-    }
+  free(dcube);
+  
+  PDM_Handles_handle_free (_dcubes, id, PDM_FALSE);
+  
+  const int n_dcube = PDM_Handles_n_get (_dcubes);
+  
+  if (n_dcube == 0) {
+    PDM_Handles_free (_dcubes);
+    
   }
-  if (toDel)
-    free(_dcubes);
 }
  
 
