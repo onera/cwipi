@@ -1,5 +1,5 @@
 module table_tet_mesh
-
+  
   implicit none ; private
   
   interface driverTetMesh ; module procedure driverTetMesh ; end interface
@@ -64,13 +64,18 @@ subroutine saveTetMesh(ord,node_xyz,tetra_node)
 end subroutine saveTetMesh
 
 
-subroutine driverTetMesh(node_xyz,tetra_node)
-
+subroutine driverTetMesh(ord,node_xyz,tetra_node)
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#define driverTetMesh 0
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
-  
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  integer ( kind = 4 )         , intent(in)  :: ord
   real    ( kind = 8 ), pointer, intent(in)  :: node_xyz  (:,:)
   integer ( kind = 4 ), pointer, intent(out) :: tetra_node(:,:)
-
+  !>
   integer ( kind = 4 ), parameter :: bf_max =  16000
   integer ( kind = 4 ), parameter :: fc_max = 160000
 
@@ -87,31 +92,43 @@ subroutine driverTetMesh(node_xyz,tetra_node)
   integer ( kind = 4 ) iarg
   integer ( kind = 4 ) iargc
   integer ( kind = 4 ) :: ierror = 0
-  character ( len = 255 ) :: node_filename = ' '
   integer ( kind = 4 ) node_num
-  character ( len = 255 ) :: element_filename = ' '
   integer ( kind = 4 ) tetra_num
   integer ( kind = 4 ) tetra_num2
-  integer ( kind = 4 ), pointer, dimension ( : ) :: vm=>null()
-
-  call timestamp ( )
-
-  write ( *, '(a)' ) ' '
-  write ( *, '(a)' ) 'TABLE_TET_MESH'
-  write ( *, '(a)' ) '  FORTRAN90 version'
-  write ( *, '(a)' ) '  Read a real TABLE dataset of N points in 3 dimensions,'
-  write ( *, '(a)' ) '  Compute the Delaunay tet mesh.'
-  write ( *, '(a)' ) '  Write an integer TABLE dataset of the tet mesh.'
-
+  integer ( kind = 4 ), pointer :: vm(:)=>null()
+  
+  character ( len = 255 ) :: node_filename = ' '
+  character ( len = 255 ) :: element_filename = ' '
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if driverTetMesh!=0
+  write ( *, '(">>> tetMesh Connectivity created ",i3)' )ord
+#endif
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !call timestamp ( )
+  
+  !write ( *, '(a)' ) ' '
+  !write ( *, '(a)' ) 'TABLE_TET_MESH'
+  !write ( *, '(a)' ) '  FORTRAN90 version'
+  !write ( *, '(a)' ) '  Read a real TABLE dataset of N points in 3 dimensions,'
+  !write ( *, '(a)' ) '  Compute the Delaunay tet mesh.'
+  !write ( *, '(a)' ) '  Write an integer TABLE dataset of the tet mesh.'
+  
   dim_num =size(node_xyz,1)
   node_num=size(node_xyz,2)
-  write ( *, '(a,i8)' ) '  Spatial dimension DIM_NUM = ', size(node_xyz,1)
-  write ( *, '(a,i8)' ) '  Number of points NODE_NUM = ', size(node_xyz,2)
+!  write ( *, '(a,i8)' ) '  Spatial dimension DIM_NUM = ', 3 !size(node_xyz,1)
+!  write ( *, '(a,i8)' ) '  Number of points NODE_NUM = ', size(node_xyz,2)
   
- !print '("xyz=",3(f12.5,1x))',(node_xyz(1:3,i), i=1,node_num)
+!  print '("xyz=",3(f12.5,1x))',(node_xyz(1:3,i), i=1,node_num)
   
-  call r8mat_transpose_print_some ( dim_num, node_num, node_xyz, 1, 1, 5, 5, &
+  call r8mat_transpose_print_some (dim_num, node_num, node_xyz, 1, 1, 5, 5, &
     '  5 by 5 portion of node data read from file:' )
+  
+  
+!  call r8mat_transpose_print_some ( dim_num, node_num, node_xyz(1:3,:), 1, 1, 5, 5, &
+!    '  5 by 5 portion of node data read from file:' )
 !
 !  Determine the tet mesh.
 !
@@ -119,15 +136,18 @@ subroutine driverTetMesh(node_xyz,tetra_node)
 
   allocate ( ht(ht_num) )
   allocate ( vm(1:node_num) )
+  
+  do i=1,node_num
+    vm(i)=i
+  enddo
+  
+  !call dtris3 ( node_num, ht_num, bf_max, fc_max, node_xyz, vm, bf_num, &
+  !  fc_num, face_num, tetra_num, bf, fc, ht, ierror )
 
-  do i = 1, node_num
-    vm(i) = i
-  end do
-
-  call dtris3 ( node_num, ht_num, bf_max, fc_max, node_xyz, vm, bf_num, &
+  call dtris3 ( node_num, ht_num, bf_max, fc_max, node_xyz(1:3,:), vm, bf_num, &
     fc_num, face_num, tetra_num, bf, fc, ht, ierror )
-
-  if ( ierror /= 0 ) then
+  
+  if( .not.ierror==0 ) then
     write ( *, '(a)' ) ' '
     write ( *, '(a)' ) 'TABLE_TET_MESH - Fatal error!'
     write ( *, '(a,i8)' ) '  DTRIS3 returned IERROR = ', ierror
@@ -137,28 +157,28 @@ subroutine driverTetMesh(node_xyz,tetra_node)
     stop
   end if
 
-  write ( *, '(a)' ) ' '
-  write ( *, '(a,i8)' ) '  BF_MAX = ', bf_max
-  write ( *, '(a,i8)' ) '  BF_NUM = ', bf_num
-  write ( *, '(a)' ) ' '
-  write ( *, '(a,i8)' ) '  FC_MAX = ', fc_max
-  write ( *, '(a,i8)' ) '  FC_NUM = ', fc_num
-  write ( *, '(a)' ) ' '
-  write ( *, '(a,i8)' ) '  HT_NUM = ', ht_num
-  write ( *, '(a)' ) ' '
-  write ( *, '(a,i8)' ) '  TETRA_NUM = ', tetra_num
+!  write ( *, '(a)' ) ' '
+!  write ( *, '(a,i8)' ) '  BF_MAX = ', bf_max
+!  write ( *, '(a,i8)' ) '  BF_NUM = ', bf_num
+!  write ( *, '(a)' ) ' '
+!  write ( *, '(a,i8)' ) '  FC_MAX = ', fc_max
+!  write ( *, '(a,i8)' ) '  FC_NUM = ', fc_num
+!  write ( *, '(a)' ) ' '
+!  write ( *, '(a,i8)' ) '  HT_NUM = ', ht_num
+!  write ( *, '(a)' ) ' '
+!  write ( *, '(a,i8)' ) '  TETRA_NUM = ', tetra_num
 
   allocate ( tetra_node(1:4,1:tetra_num) )
 
   call tetlst ( fc_max, fc_num, vm, fc, tetra_num, tetra_num2, tetra_node )
 
-  write ( *, '(a)' ) ' '
-  write ( *, '(a,i8)' ) '  TETRA_NUM2 = ', tetra_num2
+!  write ( *, '(a)' ) ' '
+!  write ( *, '(a,i8)' ) '  TETRA_NUM2 = ', tetra_num2
 !
 !  Print a portion.
 !
-  write ( *, '(a)' ) ' '
-  write ( *, '(a)' ) '  Computed the tet mesh.'
+!  write ( *, '(a)' ) ' '
+!  write ( *, '(a)' ) '  Computed the tet mesh.'
  
   call i4mat_transpose_print_some ( 4, tetra_num, tetra_node, 1, 1, &
     4, 5, '  4 by 5 portion of tetra data:' )
@@ -172,22 +192,26 @@ subroutine driverTetMesh(node_xyz,tetra_node)
 !    // trim ( element_filename ) //'".'
   
   
-!
-!  Free memory.
-!
+  !
+  !>  Free memory.
+  !
   deallocate ( ht )
 !  deallocate ( node_xyz )
 !  deallocate ( tetra_node )
   deallocate ( vm )
-!
-!  Terminate.
-!
-  write ( *, '(a)' ) ' '
-  write ( *, '(a)' ) 'TABLE_TET_MESH'
-  write ( *, '(a)' ) '  Normal end of execution.'
+  !
+  !  Terminate.
+  !
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#if driverTetMesh!=0
+   write ( *, '("<<< tetMesh Connectivity created",i3)' )
+#endif
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-  write ( *, '(a)' ) ' '
-  call timestamp ( )
+  !  call timestamp ( )
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#undef driverTetMesh
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   return
 end subroutine driverTetMesh
@@ -2546,10 +2570,10 @@ subroutine i4mat_transpose_print_some ( m, n, a, ilo, jlo, ihi, jhi, title )
   integer ( kind = 4 ) jlo
   character ( len = * ) title
 
-  if ( 0 < len_trim ( title ) ) then
-    write ( *, '(a)' ) ' '
-    write ( *, '(a)' ) trim ( title )
-  end if
+!  if ( 0 < len_trim ( title ) ) then
+!    write ( *, '(a)' ) ' '
+!    write ( *, '(a)' ) trim ( title )
+!  end if
 
   do i2lo = max ( ilo, 1 ), min ( ihi, m ), incx
 
@@ -2559,16 +2583,16 @@ subroutine i4mat_transpose_print_some ( m, n, a, ilo, jlo, ihi, jhi, title )
 
     inc = i2hi + 1 - i2lo
 
-    write ( *, '(a)' ) ' '
+!    write ( *, '(a)' ) ' '
 
     do i = i2lo, i2hi
       i2 = i + 1 - i2lo
       write ( ctemp(i2), '(i7)') i
     end do
 
-    write ( *, '(''  Row '',10a7)' ) ctemp(1:inc)
-    write ( *, '(a)' ) '  Col'
-    write ( *, '(a)' ) ' '
+!    write ( *, '(''  Row '',10a7)' ) ctemp(1:inc)
+!    write ( *, '(a)' ) '  Col'
+!    write ( *, '(a)' ) ' '
 
     j2lo = max ( jlo, 1 )
     j2hi = min ( jhi, n )
@@ -2579,11 +2603,11 @@ subroutine i4mat_transpose_print_some ( m, n, a, ilo, jlo, ihi, jhi, title )
 
         i = i2lo - 1 + i2
 
-        write ( ctemp(i2), '(i7)' ) a(i,j)
+!        write ( ctemp(i2), '(i7)' ) a(i,j)
 
       end do
 
-      write ( *, '(i5,1x,10a7)' ) j, ( ctemp(i), i = 1, inc )
+!      write ( *, '(i5,1x,10a7)' ) j, ( ctemp(i), i = 1, inc )
 
     end do
 
@@ -3319,11 +3343,11 @@ subroutine r8mat_transpose_print_some ( m, n, a, ilo, jlo, ihi, jhi, title )
   integer ( kind = 4 ) jhi
   integer ( kind = 4 ) jlo
   character ( len = * )  title
-
-  if ( 0 < len_trim ( title ) ) then
-    write ( *, '(a)' ) ' '
-    write ( *, '(a)' ) trim ( title )
-  end if
+  
+  !if ( 0 < len_trim ( title ) ) then
+  !  write ( *, '(a)' ) ' '
+  !  write ( *, '(a)' ) trim ( title )
+  !end if
 
   do i2lo = max ( ilo, 1 ), min ( ihi, m ), incx
 
@@ -3333,16 +3357,16 @@ subroutine r8mat_transpose_print_some ( m, n, a, ilo, jlo, ihi, jhi, title )
 
     inc = i2hi + 1 - i2lo
 
-    write ( *, '(a)' ) ' '
+    !write ( *, '(a)' ) ' '
 
     do i = i2lo, i2hi
       i2 = i + 1 - i2lo
-      write ( ctemp(i2), '(i8,6x)' ) i
+      !write ( ctemp(i2), '(i8,6x)' ) i
     end do
 
-    write ( *, '(''  Row   '',5a14)' ) ctemp(1:inc)
-    write ( *, '(a)' ) '  Col'
-    write ( *, '(a)' ) ' '
+    !write ( *, '(''  Row   '',5a14)' ) ctemp(1:inc)
+    !write ( *, '(a)' ) '  Col'
+    !write ( *, '(a)' ) ' '
 
     j2lo = max ( jlo, 1 )
     j2hi = min ( jhi, n )
@@ -3351,10 +3375,10 @@ subroutine r8mat_transpose_print_some ( m, n, a, ilo, jlo, ihi, jhi, title )
 
       do i2 = 1, inc
         i = i2lo - 1 + i2
-        write ( ctemp(i2), '(g14.6)' ) a(i,j)
+        !write ( ctemp(i2), '(g14.6)' ) a(i,j)
       end do
 
-      write ( *, '(i5,1x,5a14)' ) j, ( ctemp(i), i = 1, inc )
+      !write ( *, '(i5,1x,5a14)' ) j, ( ctemp(i), i = 1, inc )
 
     end do
 
@@ -4655,12 +4679,12 @@ subroutine timestamp ( )
 !
   implicit none
 
-  character ( len = 8 ) ampm
-  integer ( kind = 4 ) d
-  integer ( kind = 4 ) h
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) mm
-  character ( len = 9 ), parameter, dimension(12) :: month = (/ &
+  character ( len  = 8 ) ampm
+  integer   ( kind = 4 ) d
+  integer   ( kind = 4 ) h
+  integer   ( kind = 4 ) m
+  integer   ( kind = 4 ) mm
+  character ( len  = 9 ), parameter, dimension(12) :: month = (/ &
     'January  ', 'February ', 'March    ', 'April    ', &
     'May      ', 'June     ', 'July     ', 'August   ', &
     'September', 'October  ', 'November ', 'December ' /)
@@ -4681,30 +4705,30 @@ subroutine timestamp ( )
 
   if ( h < 12 ) then
     ampm = 'AM'
-  else if ( h == 12 ) then
+  elseif ( h == 12 ) then
     if ( n == 0 .and. s == 0 ) then
       ampm = 'Noon'
     else
       ampm = 'PM'
-    end if
+    endif
   else
     h = h - 12
     if ( h < 12 ) then
       ampm = 'PM'
-    else if ( h == 12 ) then
+    elseif ( h == 12 ) then
       if ( n == 0 .and. s == 0 ) then
         ampm = 'Midnight'
       else
         ampm = 'AM'
-      end if
-    end if
-  end if
-
-  write ( *, '(i2,1x,a,1x,i4,2x,i2,a1,i2.2,a1,i2.2,a1,i3.3,1x,a)' ) &
+      endif
+    endif
+  endif
+  
+  write ( *, '(4x,i2,1x,a,1x,i4,2x,i2,a1,i2.2,a1,i2.2,a1,i3.3,1x,a)' ) &
     d, trim ( month(m) ), y, h, ':', n, ':', s, '.', mm, trim ( ampm )
-
+  
   return
-end subroutine
+end subroutine timestamp
 
 subroutine updatf ( a, b, c, d, e, i, n, p, front, back, fc, ht, ierr )
 
@@ -4806,7 +4830,7 @@ subroutine updatf ( a, b, c, d, e, i, n, p, front, back, fc, ht, ierr )
   end if
 
   return
-end subroutine
+end subroutine updatf
 
 subroutine vbfac ( pt, ctr, vcl, vm, bf, fc, topv, topnv )
 
@@ -4897,8 +4921,8 @@ subroutine vbfac ( pt, ctr, vcl, vm, bf, fc, topv, topnv )
     if ( fc(7,nbr) == -1 ) then
       fc(7,nbr) = topt
       topt = nbr
-    end if
-  end do
+    endif
+  enddo
 
   do while ( topt /= 0 )
 
@@ -4912,7 +4936,7 @@ subroutine vbfac ( pt, ctr, vcl, vm, bf, fc, topv, topnv )
     if ( op == 2 ) then
       ierr = 301
       return
-    end if
+    endif
 
     if ( op == 1 ) then
 
@@ -4925,8 +4949,8 @@ subroutine vbfac ( pt, ctr, vcl, vm, bf, fc, topv, topnv )
         if ( fc(7,nbr) == -1 ) then
           fc(7,nbr) = topt
           topt = nbr
-        end if
-      end do
+        endif
+      enddo
 
     else
 

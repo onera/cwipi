@@ -33,11 +33,11 @@ subroutine pyramBasis()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  write(*,'("Calcul des bases polynômiales Pyram")')
+  write(*,'(/"Calcul des bases polynômiales Pyram")')
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  ord=25
+  ord=10 !25
   !write(*,'(/"Order: ")',advance='no') ; read(*,*)ord
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
@@ -337,12 +337,12 @@ subroutine pyramMaillageVisu()
   !use baseSimplex2D
   !use baseSimplex3D
   use basePyramid
-  use table_tet_mesh
+  use table_tet_mesh,only: driverTetMesh,saveTetMesh
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
   integer            :: ord,iOrd,ad
-  real(8), pointer   :: uvw(:,:)
+  real(8), pointer   :: uvw  (:,:)
   integer, pointer   :: tetra(:,:)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
@@ -351,16 +351,17 @@ subroutine pyramMaillageVisu()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  write(*,'(/"Order: ")',advance='no') ; read(*,*)ord
+ !write(*,'(/"Order: ")',advance='no') ; read(*,*)ord
+  ord=10
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   do iOrd=1,ord
-  !do iOrd=ord,ord
+ !do iOrd=ord,ord
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     call pyramidNodes   (ord=iOrd, uvw=uvw, display=.false.)
-    call driverTetMesh  (node_xyz=uvw,tetra_node=tetra)
+    call driverTetMesh  (ord=iOrd, node_xyz=uvw,tetra_node=tetra)
     deallocate(uvw)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     

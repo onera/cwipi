@@ -708,22 +708,22 @@ module baseSimplex2D
     ! transpose = .false. => lx(1:nNod,1:nMod)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    integer, intent(in)            :: ord
-    real(8), intent(in)  , pointer :: vand(:,:)
-    real(8), intent(in)  , pointer :: a(:),b(:)
-    real(8), intent(out) , pointer :: lx  (:,:)
-    logical, intent(in)            :: transpose
+    integer, intent(in)              :: ord
+    real(8), intent(in)    , pointer :: vand(:,:)
+    real(8), intent(in)    , pointer :: a(:),b(:)
+    real(8), intent(inout) , pointer :: lx  (:,:)
+    logical, intent(in)              :: transpose
     !---
-    integer                        :: nMod,nNod
-    integer                        :: iu,iv,ad,i,j,k
-    real(8)                        :: gamma(0:ord+1)
-    integer                        :: iOrd
-    real(8), pointer               :: psi(:,:)
-    real(8), pointer               :: mat(:,:)
-    integer                        :: lWork
-    integer, pointer               :: ipiv(:)
-    real(8), pointer               :: work(:)
-    integer                        :: iErr
+    integer                          :: nMod,nNod
+    integer                          :: iu,iv,ad,i,j,k
+    real(8)                          :: gamma(0:ord+1)
+    integer                          :: iOrd
+    real(8), pointer                 :: psi(:,:)
+    real(8), pointer                 :: mat(:,:)
+    integer                          :: lWork
+    integer, pointer                 :: ipiv(:)
+    real(8), pointer                 :: work(:)
+    integer                          :: iErr
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

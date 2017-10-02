@@ -8,6 +8,7 @@ module baseSimplex1D
     ! input: ord=polynomial order of interpolant
     ! output: uvw(:,:) node coordinates in unity triangle
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)           :: ord
     real(8), intent(out), pointer :: uvw(:)
@@ -15,17 +16,20 @@ module baseSimplex1D
     !---
     integer                       :: i
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Setting uvw
     allocate(uvw(1:ord+1))
     uvw(1:ord+1)=[( (-1d0+2d0*real(i-1,kind=8)/real(ord,kind=8)), i=1,ord+1)]
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( display )then
       write(*,'(/"Points d''interpolation")')
       print '("uvw(",i2,")=",f22.15)',(i,uvw(i),i=1,ord+1)
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
     return
   end subroutine nodes1D
   
@@ -56,10 +60,12 @@ module baseSimplex1D
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> psi_i(r) = P_i^{0,0}(r) , i=0,ord
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Transpose = True  => mode(1:nMod,1:nNod)
     !> Transpose = False => mode(1:nNod,1:nMod)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)           :: ord
     real(8), intent(in) , pointer :: r(:)
@@ -229,11 +235,11 @@ module baseSimplex1D
     ! transpose = .false. => lx(1:nPt,1:ord+1)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    integer, intent(in)            :: ord
-    real(8), intent(in)  , pointer :: vand(:,:)
-    real(8), intent(in)  , pointer :: x   (:)
-    real(8), intent(out) , pointer :: lx  (:,:)
-    logical, intent(in)            :: transpose
+    integer, intent(in)             :: ord
+    real(8), intent(in)   , pointer :: vand(:,:)
+    real(8), intent(in)   , pointer :: x   (:)
+    real(8), intent(inout), pointer :: lx  (:,:)
+    logical, intent(in)             :: transpose
     !---
     integer                        :: i,j,k,nPt
     real(8)                        :: gamma(0:ord+1)
