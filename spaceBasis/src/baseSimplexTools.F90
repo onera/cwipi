@@ -83,7 +83,6 @@ module baseSimplexTools
 #endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
-    
     return
   end subroutine gaussLegendreQuadratures
   
@@ -237,9 +236,8 @@ module baseSimplexTools
     !>
     integer       :: i,j
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    print '(/a,2x,"size=",i2," x",i2)',trim(title),size(mat,1),size(mat,2)
+    print '(/a,2x,"size=",i4," x",i4)',trim(title),size(mat,1),size(mat,2)
     if( size(mat,2)<11 )then
       print '(3x,$)'
       do i=1,size(mat,1)
@@ -270,7 +268,6 @@ module baseSimplexTools
     !>
     integer       :: i,j
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     print '(/a,2x,"size="i3," x",i3)',trim(title),size(mat,1),size(mat,2)
     do i=1,size(mat,1)
@@ -279,7 +276,6 @@ module baseSimplexTools
       enddo
     enddo
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     return
   end subroutine displaySparceMatrix
   
@@ -290,7 +286,6 @@ module baseSimplexTools
     !>
     integer       :: i,j
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     print '(/a)',trim(title)
     print '("{",$)'
@@ -305,19 +300,18 @@ module baseSimplexTools
     enddo
     print '(";")'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     return
   end subroutine mathematicaMatrix
   
   subroutine displayVector(title,vec)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    character(*) :: title
+    character(*)  :: title
     real(8)       :: vec(:)
     !>
     integer       :: i
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    print '(/a,2x,"size=",i3)',trim(title),size(vec)
+    print '(/a,2x,"size=",i10)',trim(title),size(vec)
     print '(4x,e22.15)',(vec(i),i=1,size(vec))
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -914,10 +908,10 @@ module baseSimplexTools
     !> [        a33]
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    real(8), intent(in) , pointer :: mat0(:,:)
-    real(8), intent(out), pointer :: mat1(:)
+    real(8), intent(in)   , pointer :: mat0(:,:)
+    real(8), intent(inout), pointer :: mat1(:)
     !>
-    integer                       :: i,j,ad,n
+    integer                         :: i,j,ad,n
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1040,13 +1034,13 @@ module baseSimplexTools
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    real(8), intent(in) , pointer :: vand(:,:)
-    real(8), intent(out), pointer :: mass(:)
-    !---
-    integer                       :: ad
-    real(8) :: t0,t1
-    integer                       :: i,j,k,n
-    integer                       :: iErr,iFail
+    real(8), intent(in)   , pointer :: vand(:,:)
+    real(8), intent(inout), pointer :: mass(  :)
+    !>
+    integer                         :: ad
+    real(8)                         :: t0,t1
+    integer                         :: i,j,k,n
+    integer                         :: iErr,iFail
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1224,10 +1218,35 @@ module baseSimplexTools
     nMod=size(vand,1) ; allocate(ipiv(1:nMod))
     allocate(iVand(nMod,nMod)) ; iVand(1:nMod,1:nMod)=vand(1:nMod,1:nMod)
     call dgetrf(nMod,nMod,iVand(1,1),nMod,ipiv(1),iErr)
-    if( .not.iErr==0 )stop '("stop @ baseSimplexTools:derive1D:dgetrf unsuccessful exit")'
     
-    lWork=64*nMod ; allocate(work(lWork))
-    call dgetri(nMod,iVand(1,1),nMod,ipiv(1),work(1),lWork,iErr)
+    if( .not.iErr==0 )then
+      print '("XXX baseSimplexTools:derive1D:dgetrf iErr=",i10)',iErr
+      
+      if( iErr> 0 )then
+        print '(/4x,"iErr = ",i3," > 0, U(i,i) is exactly zero. The factorization")',iErr
+        print '( 4x,"has been completed, but the factor U is exactly")'
+        print '( 4x,"singular, and division by zero will occur if it is used")'
+        print '( 4x,"to solve a system of equations.")'
+        print '( 4x,"vand(",i3,",",i3,")=",e22.15)',iErr,iErr,vand(iErr,iErr)
+        print '()'
+      else
+        print '(/4x,"iErr < 0:  if iErr = -i, the i-th argument had an illegal value")'
+        print '()'
+      endif
+      
+      call displayMatrix(title="vand",mat=vand)
+      call displayMatrix(title="iVand",mat=iVand)
+      
+      print '(/4x,"Mathematica Matrix Vand")'
+      call mathematicaMatrix(title="vand=",mat=vand)
+      print '()'
+      
+      stop '("stop @ baseSimplexTools:derive1D:dgetrf unsuccessful exit")'
+    endif
+    
+    
+    lWork=64*nMod ; allocate(work(1:lWork))
+    call dgetri(nMod,iVand(1,1),nMod,ipiv(1),work(1),lWork,iErr)    
     if( .not.iErr==0 )stop '("stop @ baseSimplexTools:derive1D:dgetri unsuccessful exit")'
     deallocate(ipiv,work)
    !call displayMatrix(title="Inverse Vandermonde Matrix",mat=iVand)
@@ -1257,13 +1276,13 @@ module baseSimplexTools
     ! transpose = .true.  => dlx(1:np,1:nPt)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    real(8), intent(in)  , pointer :: dMat(:,:)
-    real(8), intent(in)  , pointer :: lx  (:,:)
-    real(8), intent(out) , pointer :: dlx (:,:)
-    logical, intent(in)            :: transpose
+    real(8), intent(in)    , pointer :: dMat(:,:)
+    real(8), intent(in)    , pointer :: lx  (:,:)
+    real(8), intent(inout) , pointer :: dlx (:,:)
+    logical, intent(in)              :: transpose
     !-
-    integer                        :: i,j,k
-    integer                        :: nMod,nNod
+    integer                          :: i,j,k
+    integer                          :: nMod,nNod
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

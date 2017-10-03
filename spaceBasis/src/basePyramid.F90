@@ -148,21 +148,21 @@ contains
     !> transpose = .false. => lx(1:nNod,1:nMod)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    integer, intent(in)            :: ord
-    real(8), intent(in)  , pointer :: vand(:,:)
-    real(8), intent(in)  , pointer :: a(:),b(:),c(:)
-    real(8), intent(out) , pointer :: lx  (:,:)
-    logical, intent(in)            :: transpose
+    integer, intent(in)              :: ord
+    real(8), intent(in)    , pointer :: vand(:,:)
+    real(8), intent(in)    , pointer :: a(:),b(:),c(:)
+    real(8), intent(inout) , pointer :: lx  (:,:)
+    logical, intent(in)              :: transpose
     !---
-    integer                        :: i,j,k,nMod,nNod
-    real(8)                        :: gamma(0:ord+1)
-    integer                        :: iOrd
-    real(8), pointer               :: mod(:,:)
-    real(8), pointer               :: invTransVand(:,:)
-    integer                        :: lWork
-    integer, pointer               :: ipiv(:) !> pivot
-    real(8), pointer               :: work(:)
-    integer                        :: iErr
+    integer                          :: i,j,k,nMod,nNod
+    real(8)                          :: gamma(0:ord+1)
+    integer                          :: iOrd
+    real(8), pointer                 :: mod(:,:)
+    real(8), pointer                 :: invTransVand(:,:)
+    integer                          :: lWork
+    integer, pointer                 :: ipiv(:) !> pivot
+    real(8), pointer                 :: work(:)
+    integer                          :: iErr
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -177,7 +177,7 @@ contains
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #if pyramidLagrange3Dv==1
-    print '("    pyramidLagrange3Dv step1 nMod=",i10," nNod=",i10)',nMod,nNod
+    print '(4x,"pyramidLagrange3Dv step1 nMod=",i10," nNod=",i10)',nMod,nNod
 #endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -187,9 +187,9 @@ contains
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #if pyramidLagrange3Dv==1
-    print '("    size(mod)=",i3,"x",i3)',nNod,nMod
+    print '(4x,"size(mod)=",i10,"x",i10)',nNod,nMod
    !call mathematica(title="    Psi Matrix",mat=mod)
-    print '("    pyramidLagrange3Dv step2")'
+    print '(4x,"pyramidLagrange3Dv step2")'
 #endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -223,7 +223,7 @@ contains
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #if pyramidLagrange3Dv==1
-    print '("    pyramidLagrange3Dv step3")'
+    print '(4x,"pyramidLagrange3Dv step3")'
 #endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -296,25 +296,25 @@ contains
     !> transpose = .false. => Phi(1:nNod,1:nMod)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    integer, intent(in)            :: ord
-    real(8), intent(in)  , pointer :: vand(:,:)
-    real(8), intent(in)  , pointer :: a(:),b(:),c(:)
-    real(8), intent(out) , pointer :: drPhi(:,:)
-    real(8), intent(out) , pointer :: dsPhi(:,:)
-    real(8), intent(out) , pointer :: dtPhi(:,:)
-    logical, intent(in)            :: transpose
+    integer, intent(in)              :: ord
+    real(8), intent(in)    , pointer :: vand(:,:)
+    real(8), intent(in)    , pointer :: a(:),b(:),c(:)
+    real(8), intent(inout) , pointer :: drPhi(:,:)
+    real(8), intent(inout) , pointer :: dsPhi(:,:)
+    real(8), intent(inout) , pointer :: dtPhi(:,:)
+    logical, intent(in)              :: transpose
     !---
-    integer                        :: i,j,k,nMod,nNod
-    real(8)                        :: gamma(0:ord+1)
-    integer                        :: iOrd
-    real(8), pointer               :: drPsi(:,:)
-    real(8), pointer               :: dsPsi(:,:)
-    real(8), pointer               :: dtPsi(:,:)
-    real(8), pointer               :: invTransVand(:,:)
-    integer                        :: lWork
-    integer, pointer               :: ipiv(:)
-    real(8), pointer               :: work(:)
-    integer                        :: iErr
+    integer                          :: i,j,k,nMod,nNod
+    real(8)                          :: gamma(0:ord+1)
+    integer                          :: iOrd
+    real(8), pointer                 :: drPsi(:,:)
+    real(8), pointer                 :: dsPsi(:,:)
+    real(8), pointer                 :: dtPsi(:,:)
+    real(8), pointer                 :: invTransVand(:,:)
+    integer                          :: lWork
+    integer, pointer                 :: ipiv(:)
+    real(8), pointer                 :: work(:)
+    integer                          :: iErr
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1263,16 +1263,20 @@ contains
     use pyramidRule, only: P5_gauss
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    integer              :: ord
-    real(8), pointer     :: vand(:,:)
-    real(8), pointer     :: mass(:)
+    integer         , intent(in)    :: ord
+    real(8), pointer, intent(in)    :: vand(:,:)
+    real(8), pointer, intent(inout) :: mass(:)
     !>
-    integer              :: i,j,iGauss,nMod,nPt
-    integer              :: ad,cpt,dCpt
-    real(8), pointer     :: uvw(:,:)
-    real(8), pointer     :: x(:),y(:),z(:),w(:)
-    real(8), pointer     :: a(:),b(:),c(:)
-    real(8), pointer     :: li(:,:)
+    integer                         :: i,j,iGauss,nMod,nPt
+    integer                         :: ad,cpt,dCpt
+    real(8), pointer                :: uvw(:,:)
+    real(8), pointer                :: x(:),y(:),z(:),w(:)
+    real(8), pointer                :: a(:),b(:),c(:)
+    real(8), pointer                :: li(:,:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    nMod=(ord+1)*(ord+2)*(2*ord+3)/6
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -1300,14 +1304,10 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !> Evaluation des fonctions de Lagrange aux points uvw
     !> Transpose=.true. => li(nMod,nPt)
+    allocate(li(1:nMod,1:nPt)) ; li(:,:)=0d0
     call pyramiduvw2abc(uvw=uvw,a=a,b=b,c=c)
     call pyramidLagrange3Dv(ord=ord,vand=vand,a=a,b=b,c=c,lx=li,transpose=.true.)  !> li(uvw) = Inverse[Transpose[Vand]].Psi[uvw]
     deallocate(a,b,c)
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    nMod=size(li,1)
-    !allocate( mass(nMod*(nMod+1)/2)) ; mass(:)=0d0
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -1584,8 +1584,8 @@ contains
       
       nNodi=(ord-1)*(ord-2)*(2*ord-3)/6 !> internal nodes
       nodesInside: if( .not.nNodi==0 )then
-        
         iNod =0
+        iNod1=0
         do iw=0,ord
           if( display )print '(6x,"level:",i3)',iw
           do iv=0,ord-iw
@@ -1908,19 +1908,16 @@ contains
       
     case(2) !> real(8)
       
-     !do iNod0=1,nNod0
-     !  res=GmfGetLin(unit,uvw0(1,nNod0),uvw0(2,nNod0),uvw0(3,nNod0),mark(iNod0))
-     !  uvw0(1:3,iNod0)=xyz(1:3)
-     !  uvw0(  4,iNod0)=1d0-uvw0(1,iNod0)-uvw0(2,iNod0)-uvw0(3,iNod0)
-     !enddo
-      
-      res=GmfGetBlock(                                    &
-      &   unit,GmfVertices,1_8,int(nNod0,kind=8),%val(0) ,&
-      &   0                                              ,&
-      &   GmfDouble, uvw0(1,1), uvw0(1,nNod0)            ,&
-      &   GmfDouble, uvw0(2,1), uvw0(2,nNod0)            ,&
-      &   GmfDouble, uvw0(3,1), uvw0(3,nNod0)            ,&
-      &   GmfInt,    mark(  1), mark(  nNod0)             )
+      res=GmfGetBlock(                                        &
+      &   unit,&
+      &   GmfVertices,&
+      &   1_8,&
+      &   int(nNod0,kind=8),&
+      &   %val(0) ,&
+      &   GmfDouble, uvw0(1,1), uvw0(1,nNod0)                ,&
+      &   GmfDouble, uvw0(2,1), uvw0(2,nNod0)                ,&
+      &   GmfDouble, uvw0(3,1), uvw0(3,nNod0)                ,&
+      &   GmfInt,    mark(  1), mark(  nNod0)                 )
       
       do iNod0=1,nNod0
         uvw0(4,iNod0)=1d0-uvw0(1,iNod0)-uvw0(2,iNod0)-uvw0(3,iNod0)
@@ -1935,25 +1932,35 @@ contains
     nTetr=GmfStatKwd(unit,GmfTetrahedra) ; if( display )print '(6x,"nTetr=",i10)',nTetr
     allocate(tetr(1:5,1:nTetr))
     
-    res=GmfGetBlock(                                       &
-    &   unit,GmfTetrahedra,1_8,int(nTetr,kind=8), %val(0) ,&
-    &   GmfInt, tetr(1,1), tetr(1,nTetr)                  ,&
-    &   GmfInt, tetr(2,1), tetr(2,nTetr)                  ,&
-    &   GmfInt, tetr(3,1), tetr(3,nTetr)                  ,&
-    &   GmfInt, tetr(4,1), tetr(4,nTetr)                  ,&
-    &   GmfInt, tetr(5,1), tetr(5,nTetr)                   )
+    res=GmfGetBlock(                                           &
+    &   unit                                                  ,&
+    &   GmfTetrahedra                                         ,&
+    &   1_8                                                   ,&
+    &   int(nTetr,kind=8)                                     ,&
+    &   %val(0)                                               ,&
+    &   GmfInt, tetr(1,1), tetr(1,nTetr)                      ,&
+    &   GmfInt, tetr(2,1), tetr(2,nTetr)                      ,&
+    &   GmfInt, tetr(3,1), tetr(3,nTetr)                      ,&
+    &   GmfInt, tetr(4,1), tetr(4,nTetr)                      ,&
+    &                                                          &
+    &   GmfInt, tetr(5,1), tetr(5,nTetr)                       )
     !<<<
     
     !>>> Triangles
     nTria=GmfStatKwd(unit,GmfTriangles) ; if( display )print '(6x,"nTria=",i10)',nTria
     allocate(tria(1:4,1:nTria))
     
-    res=GmfGetBlock(                                      &
-    &   unit,GmfTriangles,1_8,int(nTria,kind=8), %val(0) ,&
-    &   GmfInt, tria(1,1), tria(1,nTria)                 ,&
-    &   GmfInt, tria(2,1), tria(2,nTria)                 ,&
-    &   GmfInt, tria(3,1), tria(3,nTria)                 ,&
-    &   GmfInt, tria(4,1), tria(4,nTria)                  )
+    res=GmfGetBlock(                                          &
+    &   unit                                                 ,&
+    &   GmfTriangles                                         ,&
+    &   1_8                                                  ,&
+    &   int(nTria,kind=8)                                    ,&
+    &   %val(0)                                              ,&
+    &   GmfInt, tria(1,1), tria(1,nTria)                     ,&
+    &   GmfInt, tria(2,1), tria(2,nTria)                     ,&
+    &   GmfInt, tria(3,1), tria(3,nTria)                     ,&
+    &                                                         &
+    &   GmfInt, tria(4,1), tria(4,nTria)                      )
     !<<<
     
     !>>> Closing File
@@ -2105,6 +2112,7 @@ contains
     integer, allocatable          :: indx(:)
     integer                       :: iNod0,nNod0
     real(8), pointer              :: uvw0(:,:)
+    integer                       :: conec(1:4)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -2119,8 +2127,8 @@ contains
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     nNod=size(uvw,2)
-    allocate(quadr(5,  ord*ord))
-    allocate(trian(4,4*ord*ord))
+    allocate(quadr(1:5,1:  ord*ord))
+    allocate(trian(1:4,1:4*ord*ord))
     nQuadr=0
     nTrian=0
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -2266,6 +2274,8 @@ contains
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Ecriture
     name="PyramidSkinP"//sfx//".mesh"       
+    
+    print '("Writing:",a)',trim(name)
     open(unit=10,file=trim(name),action='write')
     write(10,'( "MeshVersionFormatted 1")' )
     write(10,'(/"Dimension"/,"3")')
@@ -2275,11 +2285,17 @@ contains
     enddo
     write(10,'(/"Quadrilaterals"/,i10)' )nQuadr
     do iCel=1,nQuadr
-      write(10,'(4(i6,1x),i3)')indx(quadr(1:4,iCel)),quadr(5,iCel)
+      do iNod=1,4
+        conec(iNod)=indx(quadr(iNod,iCel))
+      enddo
+      write(10,'(4(i6,1x),i3)')conec(1:4),quadr(5,iCel)
     enddo
     write(10,'(/"Triangles"/,i10)' )nTrian
     do iCel=1,nTrian
-      write(10,'(3(i6,1x),i3)')indx(trian(1:3,iCel)),trian(4,iCel)
+      do iNod=1,3
+        conec(iNod)=indx(trian(iNod,iCel))
+      enddo
+      write(10,'(3(i6,1x),i3)')conec(1:3),trian(4,iCel)
     enddo
     write(10,'(/"End")')
     close(10)
@@ -2356,10 +2372,15 @@ contains
     allocate(xyzOut(1:3,1:nNod0),mark(1:nNod0))
     
     res=GmfGetBlock(                                        &
-    &   unit,GmfVertices,1_8,int(nNod0,kind=8), 0,0,%val(0),&
+    &   unit                                               ,&
+    &   GmfVertices                                        ,&
+    &   1_8                                                ,&
+    &   int(nNod0,kind=8)                                  ,&
+    &   %val(0)                                            ,&
     &   GmfDouble, xyzOut(1,1), xyzOut(1,nNod0)            ,&
     &   GmfDouble, xyzOut(2,1), xyzOut(2,nNod0)            ,&
     &   GmfDouble, xyzOut(3,1), xyzOut(3,nNod0)            ,&
+    &                                                       &
     &   GmfInt   , mark  (  1), mark  (  nNod0)             )
     
     res=GmfCloseMesh(unit)

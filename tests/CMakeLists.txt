@@ -93,9 +93,9 @@ test_c_create (c_vol_coupling_polyhedra_P1P1 ${MPIEXEC_MAX_NUMPROCS})
 test_c_create (c_vol_coupling_polyhedra_P1P1_with_external_points ${MPIEXEC_MAX_NUMPROCS})
 
 if (CWP_ENABLE_Fortran)
-  test_fortran_create (fortran_surf_P1P1 ${MPIEXEC_MAX_NUMPROCS})
+  test_fortran_create (fortran_surf_P1P1            ${MPIEXEC_MAX_NUMPROCS})
   test_fortran_create (fortran_surf_P1P1_savememory ${MPIEXEC_MAX_NUMPROCS})
-  test_fortran_create (fortran_surf_PiPj ${MPIEXEC_MAX_NUMPROCS})
+  test_fortran_create (fortran_surf_PiPj            ${MPIEXEC_MAX_NUMPROCS})
 endif()
 
 if (CWP_ENABLE_PYTHON_BINDINGS)

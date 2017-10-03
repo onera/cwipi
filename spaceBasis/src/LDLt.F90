@@ -53,12 +53,11 @@ contains
     ! mat(n-1)  mat(2n-2) mat(3n-3)
     ! mat(n  )  mat(2n-1) mat(3n-2) ... mat(nn-n)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)  :: n
     real(8)              :: mat(:)
     !>
-    integer              :: i,j,k,l
+    integer              :: i,j,k,l,iRow,jRow
     integer              :: ki,kj
     real(8), allocatable :: tmp(:)
     integer              :: row0,row1,drow,drow1
@@ -82,7 +81,12 @@ contains
       ! operations on col i
       mat(row0)=1d0/mat(row0)
       drow=drow-1
-      call dscal(drow,mat(row0),mat(row0+1),1) ! mat(row+1:row0+drow)=mat(row0)*mat(row0+1:row0+drow)
+      ! mat(row+1:row0+drow)=mat(row0)*mat(row0+1:row0+drow)
+      do iRow=1,drow
+        jRow=row0+iRow
+        mat(jRow)=mat(row0)*mat(jRow)
+      enddo
+     !call dscal(drow,mat(row0),mat(row0+1),1) ! mat(row+1:row0+drow)=mat(row0)*mat(row0+1:row0+drow)
       ki=row0+1
       row0=row0+drow+1
       ! operations on col i+1 to n
@@ -93,6 +97,7 @@ contains
         row1=row1+drow1
         drow1=drow1-1
       enddo
+     !print '("LDLt_factorise_r i=",i6," row0=",i," drow=",i6," size(mat)=",i6)',i,row0,drow,size(mat)
     enddo
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     

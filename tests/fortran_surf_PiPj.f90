@@ -19,6 +19,7 @@
 
 subroutine printStatus(iiunit, status)
   use cwipi
+  
   implicit none
   integer :: status
   integer :: iiunit
@@ -72,22 +73,22 @@ subroutine  userInterpolation(entitiesDim, &
   integer :: nLocalElement
   integer :: nLocalPolyhedra
   integer :: nDistantPoint
-  double precision, dimension(*) :: localCoordinates
-  integer, dimension(*) :: localConnectivityIndex
-  integer, dimension(*) :: localConnectivity
-  integer, dimension(*) :: localPolyFaceIndex
-  integer, dimension(*) :: localPolyCellToFaceConnec
-  integer, dimension(*) :: localPolyFaceConnecIdx
-  integer, dimension(*) :: localPolyFaceConnec
-  double precision, dimension(*) :: disPtsCoordinates
-  integer, dimension(*) :: disPtsLocation
-  real*4, dimension(*) :: disPtsDistance
-  integer, dimension(*) :: disPtsBaryCoordIdx
-  double precision, dimension(*) :: disPtsBaryCoord
+  real(8) :: localCoordinates(*)
+  integer :: localConnectivityIndex(*)
+  integer :: localConnectivity(*)
+  integer :: localPolyFaceIndex(*)
+  integer :: localPolyCellToFaceConnec(*)
+  integer :: localPolyFaceConnecIdx(*)
+  integer :: localPolyFaceConnec(*)
+  real(8) :: disPtsCoordinates(*)
+  integer :: disPtsLocation(*)
+  real(4) :: disPtsDistance(*)
+  integer :: disPtsBaryCoordIdx(*)
+  real(8) :: disPtsBaryCoord(*)
   integer :: stride
   integer :: solverType
-  double precision, dimension(*) :: localField
-  double precision, dimension(*) :: distantField
+  real(8) :: localField(*)
+  real(8) :: distantField(*)
 
   integer :: i
 
@@ -111,8 +112,12 @@ end subroutine userInterpolation
 program testf
 
   use mpi
-
+  
   use cwipi
+  
+  use modDeterminant
+  use baseSimplex2D
+  use baseSimplex3D
 
   implicit none
 
@@ -143,101 +148,102 @@ program testf
          integer :: nLocalElement
          integer :: nLocalPolyhedra
          integer :: nDistantPoint
-         double precision, dimension(*) :: localCoordinates
-         integer, dimension(*) :: localConnectivityIndex
-         integer, dimension(*) :: localConnectivity
-         integer, dimension(*) :: localPolyFaceIndex
-         integer, dimension(*) :: localPolyCellToFaceConnec
-         integer, dimension(*) :: localPolyFaceConnecIdx
-         integer, dimension(*) :: localPolyFaceConnec
-         double precision, dimension(*) :: disPtsCoordinates
-         integer, dimension(*) :: disPtsLocation
-         real*4, dimension(*) :: disPtsDistance
-         integer, dimension(*) :: disPtsBaryCoordIdx
-         double precision, dimension(*) :: disPtsBaryCoord
+         real(8) :: localCoordinates(*)
+         integer :: localConnectivityIndex(*)
+         integer :: localConnectivity(*)
+         integer :: localPolyFaceIndex(*)
+         integer :: localPolyCellToFaceConnec(*)
+         integer :: localPolyFaceConnecIdx(*)
+         integer :: localPolyFaceConnec(*)
+         real(8) :: disPtsCoordinates(*)
+         integer :: disPtsLocation(*)
+         real(4) :: disPtsDistance(*)
+         integer :: disPtsBaryCoordIdx(*)
+         real(8) :: disPtsBaryCoord(*)
          integer :: stride
          integer :: solverType
-         double precision, dimension(*) :: localField
-         double precision, dimension(*) :: distantField
+         real(8) :: localField(*)
+         real(8) :: distantField(*)
        end subroutine userInterpolation
     end interface
 
-!  integer, allocatable, dimension(:) :: location
-!  integer, allocatable, dimension(:) :: baryCooIdx
-!  double precision, allocatable, dimension(:) :: baryCoo
-!  double precision, allocatable, dimension(:) :: tmpDbl
+!  integer, pointer :: location(:)
+!  integer, pointer :: baryCooIdx(:)
+!  real(8), pointer :: baryCoo(:)
+!  real(8), pointer :: tmpDbl(:)
   integer :: nLocatedPoints
   integer :: nNotLocatedPoints
   integer :: nDistantPoints
 
   integer :: localcom, localGroup, p1Group, p1Comm
-  integer :: irank, currentRank, localcommsize
+  integer :: iRank, currentRank, localcommsize
   character (len = 4) :: proc
   character (len = 5) :: codeName, codeCoupledName
   integer :: code
   integer :: iiunit
   integer :: ivalue
-  double precision :: dvalue
+  real(8) :: dvalue
 
-  double precision :: xmin = -100.d0
-  double precision :: xmax =  100.d0
-  double precision :: ymin = -100.d0
-  double precision :: ymax =  100.d0
+  real(8) :: xmin = -100.d0
+  real(8) :: xmax =  100.d0
+  real(8) :: ymin = -100.d0
+  real(8) :: ymax =  100.d0
   integer :: nx   = 24
-  integer  :: ny   = 28
-  integer  :: initrandom = 2
+  integer :: ny   = 28
+  integer :: initrandom = 2
 
-  integer nvertex, nelts, lconnecindex
-
-  integer, parameter :: nvertexm = 4000
-  integer, parameter :: neltsm = 4000
+  integer nVert, nCell, lconnecindex
+  character(10)      :: name
+  
+  integer, parameter :: nVertm = 4000
+  integer, parameter :: nCellm = 4000
   integer, parameter :: lconnecindexm = 12000
   integer, parameter :: nptstolocate = 21
 
-  double precision, allocatable, dimension(:) :: coordstolocate
+  real(8), pointer :: coordstolocate(:)
 
-  double precision, allocatable, dimension(:) :: coords
-  integer, allocatable, dimension(:) :: connecindex
-  integer, allocatable, dimension(:) :: connec
+  real(8), pointer :: vertx(:)
+  integer, pointer :: connecindex(:)
+  integer, pointer :: connec     (:)
 
-  double precision, allocatable, dimension(:) :: values
-  double precision, allocatable, dimension(:) :: localvalues
+  real(8), pointer :: values(:)
+  real(8), pointer :: localvalues(:)
 
-  real*4, allocatable, dimension(:) :: distLocPts
+  real(4), pointer :: distLocPts(:)
 
   integer status
 
   integer i, order, k
 
   integer :: vpar = 10
-  character (len = 6) :: cpar = "niterf"
+  character (len =  6) :: cpar = "niterf"
   character (len = 30) :: disstr = ""
 
   integer :: stride = 1
-  integer, dimension(1) :: rl
+  integer :: rl(1)
   integer :: dislocalcommsize
   integer :: commWorldSize
 
   integer :: n_partition, n2, codeId
-
-  integer :: nVertexSeg
+  
+  integer :: nVertSeg
 
   integer :: nLocatedPts
 
-  double precision :: randLevel
+  real(8) :: randLevel
 
   call mpi_init(code)
-  call mpi_comm_rank(mpi_comm_world, irank, code)
+  call mpi_comm_rank(mpi_comm_world, iRank, code)
   call mpi_comm_size(mpi_comm_world, commWorldSize, code)
 
-  write(proc,'(i4.4)') irank
+  write(proc,'(i4.4)') iRank
   iiunit = 9
+  
   open(unit=iiunit, file='fortran_surf_PiPj_'//proc//'.txt', &
        form='formatted', status='unknown')
 
-  if (irank == 0) then
-     print* 
-     print*, 'START: fortran_surf_PiPj'
+  if (iRank == 0) then
+     print '(/"START: fortran_surf_PiPj")'
   endif
 
   n_partition = 1
@@ -246,14 +252,88 @@ program testf
   enddo
 
   n2 = 2 * n_partition**2
-
+  
   if (n2 /= commWorldSize) then
-     if (irank == 0) then
+     if (iRank == 0) then
         print *, '      Not executed : only available if the number of processus in the form of 2 * n_partition**2'
      endif
      call mpi_finalize(code)
      stop;
   endif
+
+
+  ! -----------------------------------------
+  ! Initialisation des maillages
+  ! -----------------------------------------
+
+  !>  Vertices
+  !>  5
+  !>  0.   0.   0.    1
+  !>  1.   0.   0.    1
+  !>  0.   1.   0.    1
+  !>  0.   0.   1.    1
+  !>  0.73 0.73 0.73  1
+  
+  !>  Tetrahedra
+  !>  2
+  !>  1 2 3 4  1
+  !>  5 2 4 3  1
+
+
+  if( iRank==0 )then
+    
+    nVert=4
+    nCell=1
+    allocate( vertx(1:3*nVert) )  !> 4 sommets
+    allocate( connecindex(1:2) )  !> 1 tetra
+    allocate( connec     (1:4) )  !> 1 tetra
+    
+    coord(01:03)=[0d0,0d0,0d0]    
+    coord(04:06)=[1d0,0d0,0d0]    
+    coord(07:09)=[0d0,1d0,0d0]    
+    coord(10:12)=[0d0,0d0,1d0]    
+    
+    connec(1:4)=[1,2,3,4]
+    connecindex(1:2)=[0,4]
+    
+  else( iRank==1 )then
+  
+    nVert=1
+    nCell=1
+    allocate( vertx(1:4*3) )  !> 4 sommets
+    allocate( connecindex(1:2  ) )  !> 1 tetra
+    allocate( connec     (1:4  ) )  !> 1 tetra
+    
+    coord(01:03)=[0.73d0,0.73d0,0.73d0]    
+    coord(04:06)=[1.00d0,0.00d0,0.00d0]    
+    coord(07:09)=[0.00d0,0.00d0,1.00d0]    
+    coord(10:12)=[0.00d0,1.00d0,0.00d0]    
+    
+    connec(1:4)=[1,2,3,4]
+    connecindex(1:2)=[0,4]
+    
+  endif
+  
+  !> Ecriture des maillages au format mesh de l'inria
+  write(name,'("Tetra",i1,".mesh")')iRank
+  open(unit=100,file=trim(name),action='write',status='unknown')
+  write(100,'("MeshVersionFormatted 1"/)')
+  write(100,'("Dimension 3"/)')
+  write(100,'("Vertices")')
+  write(100,*)nVert
+  j=0
+  do iVert=1,nVert
+    write(100,'(3(e22.15,1x),i2)')coord(j+1:j+3),0  ; j=j+3
+  enddo
+  write(100,'(/"Tetrahedra")')
+  write(100,*)nCell
+  do iCell=1,nCell
+    write(100,'(*(i6,1x))')connec(connecindex(iCell)+1:connecindex(iCell+1)),0
+  enddo
+  write(100,'(/"End")')
+  close(100)
+
+
 
 !
 ! -----------------------------------------
@@ -263,7 +343,7 @@ program testf
  
   call cwipi_set_output_listing_f(iiunit)
 
-  if (irank < commWorldSize / 2) then
+  if (iRank < commWorldSize / 2) then
      codeName = 'code1'
      codeId = 1
      codeCoupledName = 'code2'
@@ -306,7 +386,7 @@ program testf
   write(iiunit, *) " Test 3"
   write(iiunit, *)
 
-  if (irank == 0) then
+  if (iRank == 0) then
      print*, '       Create coupling'  
   endif
 
@@ -324,21 +404,21 @@ program testf
 !
 ! Construction du maillage
 
-  nVertexSeg   = 10
+  nVertSeg   = 10
   randLevel    = 0.1d0
-  nvertex      = nVertexSeg * nVertexSeg
-  nelts        = (nVertexSeg - 1) * (nVertexSeg - 1)
+  nVert      = nVertSeg * nVertSeg
+  nCell        = (nVertSeg - 1) * (nVertSeg - 1)
 
-  allocate(coords(3 * nvertex))
-  allocate(coordstolocate(3 * nvertex))
+  allocate(vertx(3 * nVert))
+  allocate(coordstolocate(3 * nVert))
 
-  allocate(connecindex(nelts + 1))
-  allocate(connec(4 * nelts))
+  allocate(connecindex(nCell + 1))
+  allocate(connec(4 * nCell))
 
-  allocate(values(nelts))
-  allocate(localvalues(nvertex))
+  allocate(values(nCell))
+  allocate(localvalues(nVert))
 
-  if (irank == 0) then
+  if (iRank == 0) then
      print*, '       Create mesh'
   endif
 
@@ -347,7 +427,7 @@ program testf
                    ymin, &
                    ymax, &
                    randLevel, &
-                   nVertexSeg, &
+                   nVertSeg, &
                    n_partition, & 
                    coords,  &
                    connecindex,&
@@ -355,8 +435,8 @@ program testf
                    localcom)
 
   call cwipi_define_mesh_f("test2D_3", &
-                           nvertex, &
-                           nelts, &
+                           nVert, &
+                           nCell, &
                            coords, &
                            connecindex, &
                            connec)
@@ -364,11 +444,11 @@ program testf
 !
 ! Definition des points a localiser
 
-  do i = 1, 3 * nVertex
-     coordstolocate(i) = 0.75 * coords(i)
+  do i = 1, 3 * nVert
+     coordstolocate(i) = 0.75 * vertx(i)
   enddo
 
-  if (irank == 0) then
+  if (iRank == 0) then
      print*, '       Set points to locate'
   endif
 
@@ -381,17 +461,17 @@ program testf
 ! Envoi de la coordonnee Y a codeC
 ! Reception de la coordonnee Y provenant de codec
 
-  do i = 1, nelts
+  do i = 1, nCell
      if (codeId == 1) then
-        values(i) = coords(3*(i-1) + 1)
+        values(i) = vertx(3*(i-1) + 1)
      else
-        values(i) = coords(3*(i-1) + 2)
+        values(i) = vertx(3*(i-1) + 2)
      endif
   enddo
 
   stride = 1
 
-  if (irank == 0) then
+  if (iRank == 0) then
      print*, '       Exchange'
   endif
 
@@ -421,7 +501,7 @@ program testf
 !
 ! Suppression de l'objet couplage
 
-  if (irank == 0) then
+  if (iRank == 0) then
      print*, '       Delete coupling'
   endif
 

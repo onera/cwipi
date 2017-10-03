@@ -883,7 +883,7 @@ subroutine tetraMaillageVisuNew()
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    call driverTetMesh(node_xyz=uvw0,tetra_node=tetra)
+    call driverTetMesh(ord=iOrd,node_xyz=uvw0,tetra_node=tetra)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1404,7 +1404,7 @@ subroutine pyramMaillageVisu()
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     call pyramidNodes   (ord=iOrd, uvw=uvw, display=.false.)
-    call driverTetMesh  (node_xyz=uvw,tetra_node=tetra)
+    call driverTetMesh  (ord=iOrd,node_xyz=uvw,tetra_node=tetra)
     deallocate(uvw)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     

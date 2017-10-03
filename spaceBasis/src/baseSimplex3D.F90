@@ -15,13 +15,13 @@ module baseSimplex3D
 #define nodes3DOpt_2D 0
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    integer, intent(in)           :: ord
-    real(8), intent(out), pointer :: uvw(:,:)
-    logical, intent(in)           :: display
+    integer, intent(in)             :: ord
+    real(8), intent(inout), pointer :: uvw(:,:)
+    logical, intent(in)             :: display
     !>
-    integer                       :: i,ad,np
-    real(8)             , pointer :: uvw0(:,:)
-    integer, allocatable          :: conec(:,:)
+    integer                         :: i,ad,np
+    real(8)               , pointer :: uvw0(:,:)
+    integer, allocatable            :: conec(:,:)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -86,13 +86,13 @@ module baseSimplex3D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    integer, intent(in)           :: ord
-    real(8), intent(out), pointer :: uvw(:,:)
-    logical, intent(in)           :: display
+    integer, intent(in)             :: ord
+    real(8), intent(inout), pointer :: uvw(:,:)
+    logical, intent(in)             :: display
     !---
-    integer                       :: iu,iv,iw,ix,ad
-    integer                       :: np
-    integer, pointer              :: idx(:,:)
+    integer                         :: iu,iv,iw,ix,ad
+    integer                         :: np
+    integer, pointer                :: idx(:,:)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -531,20 +531,20 @@ module baseSimplex3D
   
   subroutine evalShift(ord, alpha, l1, l2, l3, xGLL, dx,dy)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    integer, intent(in)            :: ord
-    real(8), intent(in)            :: alpha
-    real(8), intent(in) , pointer  :: l1(:)
-    real(8), intent(in) , pointer  :: l2(:)
-    real(8), intent(in) , pointer  :: l3(:)
-    real(8), intent(in) , pointer  :: xGLL(:)
-    real(8), intent(out), pointer  :: dx(:) ! doit être alloué puisqu'on incrémente dx
-    real(8), intent(out), pointer  :: dy(:) ! doit être alloué puisqu'on incrémente dy
+    integer, intent(in)              :: ord
+    real(8), intent(in)              :: alpha
+    real(8), intent(in)   , pointer  :: l1(:)
+    real(8), intent(in)   , pointer  :: l2(:)
+    real(8), intent(in)   , pointer  :: l3(:)
+    real(8), intent(in)   , pointer  :: xGLL(:)
+    real(8), intent(inout), pointer  :: dx(:) ! doit être alloué puisqu'on incrémente dx
+    real(8), intent(inout), pointer  :: dy(:) ! doit être alloué puisqu'on incrémente dy
     
-    integer                         :: ad,n
-    real(8), pointer                :: xout(:)
-    real(8), pointer                :: blend1(:),warpFactor1(:)
-    real(8), pointer                :: blend2(:),warpFactor2(:)
-    real(8), pointer                :: blend3(:),warpFactor3(:)
+    integer                           :: ad,n
+    real(8), pointer                  :: xout(:)
+    real(8), pointer                  :: blend1(:),warpFactor1(:)
+    real(8), pointer                  :: blend2(:),warpFactor2(:)
+    real(8), pointer                  :: blend3(:),warpFactor3(:)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1180,21 +1180,21 @@ module baseSimplex3D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    integer, intent(in)            :: ord
-    real(8), intent(in)  , pointer :: vand(:,:)
-    real(8), intent(in)  , pointer :: a(:),b(:),c(:)
-    real(8), intent(out) , pointer :: lx(:,:)
-    logical, intent(in)            :: transpose
+    integer, intent(in)              :: ord
+    real(8), intent(in)    , pointer :: vand(:,:)
+    real(8), intent(in)    , pointer :: a(:),b(:),c(:)
+    real(8), intent(inout) , pointer :: lx(:,:)
+    logical, intent(in)              :: transpose
     !>
-    integer                        :: nMod,nNod
-    integer                        :: i,j,k
-    integer                        :: iOrd
-    real(8), pointer               :: psi(:,:)
-    real(8), pointer               :: mat(:,:)
-    integer                        :: lWork
-    integer, allocatable           :: ipiv(:)
-    real(8), allocatable           :: work(:)
-    integer                        :: iErr
+    integer                          :: nMod,nNod
+    integer                          :: i,j,k
+    integer                          :: iOrd
+    real(8), pointer                 :: psi(:,:)
+    real(8), pointer                 :: mat(:,:)
+    integer                          :: lWork
+    integer, allocatable             :: ipiv(:)
+    real(8), allocatable             :: work(:)
+    integer                          :: iErr
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1481,7 +1481,7 @@ module baseSimplex3D
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Point de depart : Tetra P1
     print '(/"writing TetraP1.mesh")'
-    open(unit=iFile,file="TetraP1.mesh",status='unknown',action='write')
+    open(unit=iFile,name="TetraP1.mesh",status='unknown',action='write')
     write(iFile,'( "MeshVersionFormatted 1")')
     write(iFile,'( "Dimension")')
     write(iFile,'( "3")')
@@ -1523,7 +1523,7 @@ module baseSimplex3D
       !>>>>>>>>
       !> Ecriture DEFAULT.yams pour imposer Nbiter = iOrd
       print '(/"Writing DEFAULT.yams")'
-      open(unit=iFile,file="DEFAULT.yams",status='unknown',action='write')
+      open(unit=iFile,name="DEFAULT.yams",status='unknown',action='write')
       write(iFile,'("Nbiter",i6)')iOrd
       close(iFile)
       !<<<<<<<<
