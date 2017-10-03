@@ -56,9 +56,19 @@ get_target_property(PDM_INC pdm INCLUDE_DIRECTORIES)
 #     cwp_set_output_logical_unit_set.f90
 #     cwipi_f.f90)
 
-file(GLOB_RECURSE SOURCESF
-     fortran/*.[ch]xx
-     fortran/*.f90)
+if (CWP_ENABLE_Fortran)
+   list(APPEND SOURCES fortran/callfortinterpfct.f90)
+endif()
+
+file(GLOB SOURCESF
+    fortran/cwipi_cf.cxx
+    fortran/cwipi_f.f90
+    fortran/cwipi_printfort_cf.cxx
+    fortran/cwipi_printfort.f90
+    fortran/cwipi_set_output_logical_unit.f90
+    fortran/cwp_output_fortran_unit_set.f90
+    fortran/cwp_printfort_cf.cxx
+    fortran/printfort.f90)
 
 add_library(cwp OBJECT ${SOURCES})
 
