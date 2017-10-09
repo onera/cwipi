@@ -19,8 +19,7 @@ subroutine triangle_00()
   real(8), parameter :: eps=1d-15
   real(8), pointer   :: eigv(:)
   character(80)      :: fileName
-  real(8)            :: node_xy(2,3) !> Triangle
-  real(8), pointer   :: node_uv(:,:)
+  real(8)            :: node_xy(1:2,1:3) !> Triangle
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
