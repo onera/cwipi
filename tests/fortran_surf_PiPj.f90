@@ -17,508 +17,725 @@
 ! License along with this library. If not, see <http://www.gnu.org/licenses/>.
 !-----------------------------------------------------------------------------
 
-subroutine printStatus(iiunit, status)
+
+!  mpirun -n 1 ./fortran_surf_PiPj : -n 1 ./fortran_surf_PiPj
+
+
+module variablesCommunes
+  logical :: visu=.false.
+  integer :: commWorld,rankWorld,sizeWorld
+  integer :: commLocal,rankLocal,sizeLocal
+  integer :: order
+end module variablesCommunes
+
+
+subroutine  userInterpolation                        ( &
+  &           entitiesDim                             ,&
+  &           nLocalVertex                            ,&
+  &           nLocalElement                           ,&
+  &           nLocalPolhyedra                         ,&
+  &           nDistantPoint                           ,&
+  &                                                    &
+  &           localCoordinates                        ,&
+  &                                                    &
+  &           localConnectivityIndex                  ,&
+  &           localConnectivity                       ,&
+  &           localPolyFaceIndex                      ,&
+  &           localPolyCellToFaceConnec               ,&
+  &           localPolyFaceConnecIdx                  ,&
+  &           localPolyFaceConnec                     ,&
+  &                                                    &
+  &           disPtsCoordinates                       ,&
+  &           disPtsLocation                          ,&
+  &           disPtsDistance                          ,&
+  &           disPtsBaryCoordIdx                      ,&
+  &           distantPointsBarycentricCoordinates     ,&
+  &                                                    &
+  &           stride                                  ,&  ! =ker(calc)
+  &           solverType                              ,&
+  &           localField                              ,&  !   mySolu
+  &           distantField                             )  ! linkSolu
+  !---
   use cwipi
+  use modDeterminant
+  use baseSimplex3D
   
+  use variablesCommunes
+  !---
   implicit none
-  integer :: status
-  integer :: iiunit
-
-  select case (status)
-     case(cwipi_exchange_ok)
-        write(iiunit,*) "Exchange ok"
-     case(cwipi_exchange_bad_receiving)
-        write(iiunit,*) "no or bad receiving"
-     case default
-        write(iiunit,*) "Unknown receiving status"
-        stop
-  end select
-
-end subroutine printStatus
-
-!
-! ------------------------------------------------------------------------------
-! Fonction d'interpolation bidon, juste pour voir si c'est bien pris en compte
-! ------------------------------------------------------------------------------
-!
-
-subroutine  userInterpolation(entitiesDim, &
-                              nLocalVertex, &
-                              nLocalElement, &
-                              nLocalPolyhedra, &
-                              nDistantPoint, &
-                              localCoordinates, &
-                              localConnectivityIndex, &
-                              localConnectivity, &
-                              localPolyFaceIndex, &
-                              localPolyCellToFaceConnec, &
-                              localPolyFaceConnecIdx, &
-                              localPolyFaceConnec, &
-                              disPtsCoordinates, &
-                              disPtsLocation, &
-                              disPtsDistance, &
-                              disPtsBaryCoordIdx, &
-                              disPtsBaryCoord, &
-                              stride, &
-                              solverType, &
-                              localField, &
-                              distantField)
-
-  use cwipi
-
-  implicit none
-
+  !---
   integer :: entitiesDim
   integer :: nLocalVertex
   integer :: nLocalElement
-  integer :: nLocalPolyhedra
+  integer :: nLocalPolhyedra
   integer :: nDistantPoint
-  real(8) :: localCoordinates(*)
-  integer :: localConnectivityIndex(*)
-  integer :: localConnectivity(*)
-  integer :: localPolyFaceIndex(*)
-  integer :: localPolyCellToFaceConnec(*)
-  integer :: localPolyFaceConnecIdx(*)
-  integer :: localPolyFaceConnec(*)
-  real(8) :: disPtsCoordinates(*)
-  integer :: disPtsLocation(*)
-  real(4) :: disPtsDistance(*)
-  integer :: disPtsBaryCoordIdx(*)
-  real(8) :: disPtsBaryCoord(*)
+  real(8) :: localCoordinates                        (*)
+  integer :: localConnectivityIndex                  (*)
+  integer :: localConnectivity                       (*)
+  integer :: localPolyFaceIndex                      (*)
+  integer :: localPolyCellToFaceConnec               (*)
+  integer :: localPolyFaceConnecIdx                  (*)
+  integer :: localPolyFaceConnec                     (*)
+  real(8) :: disPtsCoordinates                       (*)
+  integer :: disPtsLocation                          (*)
+  real(4) :: disPtsDistance                          (*)
+  integer :: disPtsBaryCoordIdx                      (*)
+  real(8) :: distantPointsBarycentricCoordinates     (*)
   integer :: stride
   integer :: solverType
-  real(8) :: localField(*)
-  real(8) :: distantField(*)
-
-  integer :: i
-
-  if (solverType .eq. cwipi_solver_cell_center) then
-     do i = 1, nDistantPoint
-        distantField(i) = localField(disPtsLocation(i))
-     enddo
-  else
-     print*, 'Error in _userInterpolation : bad solver_type'
-     stop
+  real(8) ::   localField                            (*)
+  real(8) :: distantField                            (*)
+  !>
+  integer          :: i,j,k,iErr
+  integer          :: iNod,nNod,iMod,nMod
+  real(8), pointer :: uvw (:,:),rst(:,:),a(:),b(:),c(:),vand(:,:)
+  integer          :: iDistantPoint
+  integer          :: iBary,iVert
+  real(8), pointer :: uvwOut(:,:),lagrange(:,:)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  if( rankWorld==0 )print'(/">>> userInterpolation rankWorld=",i2)',rankWorld
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  if( visu .and. rankWorld==0 )then
+    print '()'
+    iVert=0
+    do i=1,nLocalVertex
+      print '("localCoordinates(",i3,")=",3(f12.5,1x))',i,localCoordinates(iVert+1:iVert+3)
+      iVert=iVert+3
+    enddo
   endif
-
+  
+  if( visu .and. rankWorld==0 )then
+    nMod=(order+1)*(order+2)*(order+3)/6
+    print '()'
+    j=0
+    do iMod=1,nMod
+      print '("iMod=",i3," localField       =",4(f12.5,1x),t100,"@rkw",i3)',iMod,localField(j+1:j+stride),rankWorld
+      j=j+stride
+    enddo
+  endif
+  
+  if( visu .and. rankWorld==0 )then
+    print '()'
+    iVert=0
+    do iDistantPoint=1,nDistantPoint
+      print '("iDis=",i3," disPtsCoordinates=",3(f12.5,1x),t100,"@rkw",i3)',&
+      & iDistantPoint,disPtsCoordinates(iVert+1:iVert+3),rankWorld
+      iVert=iVert+3
+    enddo
+  endif
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Test les coordonnées barycentriques
+  if( visu  .and. rankWorld==0 )then
+    print '()'
+    block 
+      real(8) :: det1,mat1(3,3)
+      real(8) :: det2,mat2(3,3)
+      real(8) :: bi(1:3)
+      real(8) :: u,v,w
+      
+      mat2(:,1)=localCoordinates( 4: 6)-localCoordinates(1:3)
+      mat2(:,2)=localCoordinates( 7: 9)-localCoordinates(1:3)
+      mat2(:,3)=localCoordinates(10:12)-localCoordinates(1:3)
+      det2 = mat2(1,1)*(mat2(2,2)*mat2(3,3)-mat2(2,3)*mat2(3,2)) &
+      &     -mat2(1,2)*(mat2(2,1)*mat2(3,3)-mat2(3,1)*mat2(2,3)) &
+      &     +mat2(1,3)*(mat2(2,1)*mat2(3,2)-mat2(3,1)*mat2(2,2))
+      det2=1d0/det2
+      
+      iVert=0
+      do iDistantPoint=1,nDistantPoint
+        
+        bi(1:3)=disPtsCoordinates(iVert+1:iVert+3)-localCoordinates(1:3)
+        
+        mat1=mat2 ; mat1(:,1)=bi(1:3)
+        det1 = mat1(1,1)*(mat1(2,2)*mat1(3,3)-mat1(2,3)*mat1(3,2)) &
+        &     -mat1(1,2)*(mat1(2,1)*mat1(3,3)-mat1(3,1)*mat1(2,3)) &
+        &     +mat1(1,3)*(mat1(2,1)*mat1(3,2)-mat1(3,1)*mat1(2,2))
+        u=det1*det2
+        
+        mat1=mat2 ; mat1(:,2)=bi(1:3)
+        det1 = mat1(1,1)*(mat1(2,2)*mat1(3,3)-mat1(2,3)*mat1(3,2)) &
+        &     -mat1(1,2)*(mat1(2,1)*mat1(3,3)-mat1(3,1)*mat1(2,3)) &
+        &     +mat1(1,3)*(mat1(2,1)*mat1(3,2)-mat1(3,1)*mat1(2,2))
+        v=det1*det2
+        
+        mat1=mat2 ; mat1(:,3)=bi(1:3)
+        det1 = mat1(1,1)*(mat1(2,2)*mat1(3,3)-mat1(2,3)*mat1(3,2)) &
+        &     -mat1(1,2)*(mat1(2,1)*mat1(3,3)-mat1(3,1)*mat1(2,3)) &
+        &     +mat1(1,3)*(mat1(2,1)*mat1(3,2)-mat1(3,1)*mat1(2,2))
+        w=det1*det2
+        
+        print '("iDis=",i3," uvw0             =",3(f12.5,1x),t100,"@rkw",i3)',&
+        & iDistantPoint,u,v,w,rankWorld
+        
+        iVert=iVert+3
+      enddo
+    end block
+    
+  endif
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Affectation des coordonées barycentriques uvwOut
+  allocate(uvwOut(1:3,1:nDistantPoint))
+  iBary=0
+  do iDistantPoint=1,nDistantPoint
+    uvwOut(1:3,iDistantPoint)=distantPointsBarycentricCoordinates(iBary+2:iBary+4) ! <= Attention 2:4
+    iBary=iBary+4
+  enddo
+  
+  if( visu .and. rankWorld==0 )then
+    print '()'
+    do iDistantPoint=1,nDistantPoint
+      print '("iDis=",i3," uvwOut           =",3(f12.5,1x),t100,"@rkw",i3)',&
+      & iDistantPoint,uvwOut(1:3,iDistantPoint),rankWorld
+    enddo
+  endif
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Base fonctionelle d'ordre order
+  
+  nMod=(order+1)*(order+2)*(order+3)/6
+  nNod=size(uvwOut,2)
+  
+  !> transpose = .true. => lagrange(1:nMod,1:nNod)
+  call lagrange3Dv(ord=order,uvwOut=uvwOut,lagrange=lagrange,transpose=.true.)
+  
+!  !> Points d'interpolation
+!  call nodes3D   (ord=order,uvw=uvw,display=.false.)
+!  call nodes3Dopt(ord=order,uvw=uvw,display=.false.)
+!  !> Calcul de Vand(:,:)
+!  call nodes3Duvw2abc(uvw=uvw,a=a,b=b,c=c,display=.false.)
+!  call vandermonde3D(ord=order,a=a,b=b,c=c,vand=vand)
+!  deallocate(uvw,a,b,c)
+!  !> Calcul des polonômes de Lagrange d'ordre order en uvwOut
+!  allocate(lagrange(1:nMod,1:nNod))
+!  call nodes3Duvw2abc(uvw=uvwOut,a=a,b=b,c=c,display=.false.)
+!  call lagrange3Dv(ord=order,vand=vand,a=a,b=b,c=c,lx=lagrange,transpose=.true.)  !> lagrange= Inverse[Transpose[Vand]].Psi[xyzOut] lxOut(nPt,np)
+  
+  if( visu .and. rankWorld==0 )then
+    print '()'
+    do iNod=1,nNod
+      print '("iNod=",i3," lagrange         =",*(f12.5,1x))',iNod,lagrange(1:nMod,iNod)
+    enddo
+  endif
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Calcul de distantField
+  j=0
+  do iDistantPoint=1,nDistantPoint
+    distantField(j+1:j+stride)=0d0
+    k=0
+    do iMod=1,nMod
+      distantField(j+1:j+stride)= distantField(j+1:j+stride)                          &
+      &                          +lagrange(iMod,iDistantPoint)*localField(k+1:k+stride)
+      k=k+stride
+    enddo
+    j=j+stride
+  enddo
+  
+  !> Visu de distantField
+  if( visu .and. rankWorld==0 )then
+    print '()'
+    j=0
+    do iDistantPoint=1,nDistantPoint
+      print '("iDis=",i3," distantField     =",4(f12.5,1x),t100,"@rkw",i3)',&
+      & iDistantPoint,distantField(j+1:j+stride),rankWorld
+      j=j+stride
+    enddo
+  endif
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  deallocate(lagrange)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  if( rankWorld==0 )print'("<<< userInterpolation rankWorld=",i2)',rankWorld
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  return
 end subroutine userInterpolation
 
-!
-! -----------------------------------------------------------------------------
-! Programme de tests
-! -----------------------------------------------------------------------------
-!
 
 program testf
-
-  use mpi
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  use iso_fortran_env
   
+  use mpi
   use cwipi
   
   use modDeterminant
   use baseSimplex2D
   use baseSimplex3D
-
+  use table_tet_mesh
+  
+  use variablesCommunes
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
-
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   interface
-       subroutine  userInterpolation(entitiesDim, &
-                                      nLocalVertex, &
-                                      nLocalElement, &
-                                      nLocalPolyhedra, &
-                                      nDistantPoint, &
-                                      localCoordinates, &
-                                      localConnectivityIndex, &
-                                      localConnectivity, &
-                                      localPolyFaceIndex, &
-                                      localPolyCellToFaceConnec, &
-                                      localPolyFaceConnecIdx, &
-                                      localPolyFaceConnec, &
-                                      disPtsCoordinates, &
-                                      disPtsLocation, &
-                                      disPtsDistance, &
-                                      disPtsBaryCoordIdx, &
-                                      disPtsBaryCoord, &
-                                      stride, &
-                                      solverType, &
-                                      localField, &
-                                      distantField)
-         integer :: entitiesDim
-         integer :: nLocalVertex
-         integer :: nLocalElement
-         integer :: nLocalPolyhedra
-         integer :: nDistantPoint
-         real(8) :: localCoordinates(*)
-         integer :: localConnectivityIndex(*)
-         integer :: localConnectivity(*)
-         integer :: localPolyFaceIndex(*)
-         integer :: localPolyCellToFaceConnec(*)
-         integer :: localPolyFaceConnecIdx(*)
-         integer :: localPolyFaceConnec(*)
-         real(8) :: disPtsCoordinates(*)
-         integer :: disPtsLocation(*)
-         real(4) :: disPtsDistance(*)
-         integer :: disPtsBaryCoordIdx(*)
-         real(8) :: disPtsBaryCoord(*)
-         integer :: stride
-         integer :: solverType
-         real(8) :: localField(*)
-         real(8) :: distantField(*)
-       end subroutine userInterpolation
-    end interface
-
-!  integer, pointer :: location(:)
-!  integer, pointer :: baryCooIdx(:)
-!  real(8), pointer :: baryCoo(:)
-!  real(8), pointer :: tmpDbl(:)
-  integer :: nLocatedPoints
-  integer :: nNotLocatedPoints
-  integer :: nDistantPoints
-
-  integer :: localcom, localGroup, p1Group, p1Comm
-  integer :: iRank, currentRank, localcommsize
-  character (len = 4) :: proc
-  character (len = 5) :: codeName, codeCoupledName
-  integer :: code
-  integer :: iiunit
-  integer :: ivalue
-  real(8) :: dvalue
-
-  real(8) :: xmin = -100.d0
-  real(8) :: xmax =  100.d0
-  real(8) :: ymin = -100.d0
-  real(8) :: ymax =  100.d0
-  integer :: nx   = 24
-  integer :: ny   = 28
-  integer :: initrandom = 2
-
-  integer nVert, nCell, lconnecindex
-  character(10)      :: name
+    subroutine  userInterpolation                      ( &
+    &           entitiesDim                             ,&
+    &           nLocalVertex                            ,&
+    &           nLocalElement                           ,&
+    &           nLocalPolhyedra                         ,&
+    &           nDistantPoint                           ,&
+    &                                                    &
+    &           localCoordinates                        ,&
+    &                                                    &
+    &           localConnectivityIndex                  ,&
+    &           localConnectivity                       ,&
+    &           localPolyFaceIndex                      ,&
+    &           localPolyCellToFaceConnec               ,&
+    &           localPolyFaceConnecIdx                  ,&
+    &           localPolyFaceConnec                     ,&
+    &                                                    &
+    &           disPtsCoordinates                       ,&
+    &           disPtsLocation                          ,&
+    &           disPtsDistance                          ,&
+    &           disPtsBaryCoordIdx                      ,&
+    &           distantPointsBarycentricCoordinates     ,&
+    &                                                    &
+    &           stride                                  ,&  ! =ker(calc)
+    &           solverType                              ,&
+    &           localField                              ,&  !   mySolu
+    &           distantField                             )  ! linkSolu
+    !---
+    integer :: entitiesDim
+    integer :: nLocalVertex
+    integer :: nLocalElement
+    integer :: nLocalPolhyedra
+    integer :: nDistantPoint
+    real(8) :: localCoordinates                        (*)
+    integer :: localConnectivityIndex                  (*)
+    integer :: localConnectivity                       (*)
+    integer :: localPolyFaceIndex                      (*)
+    integer :: localPolyCellToFaceConnec               (*)
+    integer :: localPolyFaceConnecIdx                  (*)
+    integer :: localPolyFaceConnec                     (*)
+    real(8) :: disPtsCoordinates                       (*)
+    integer :: disPtsLocation                          (*)
+    real(4) :: disPtsDistance                          (*)
+    integer :: disPtsBaryCoordIdx                      (*)
+    real(8) :: distantPointsBarycentricCoordinates     (*)
+    integer :: stride
+    integer :: solverType
+    real(8) ::   localField                            (*)
+    real(8) :: distantField                            (*)
+    end subroutine  userInterpolation
+  end interface
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  character(5)     :: codeName,codeCoupledName
   
-  integer, parameter :: nVertm = 4000
-  integer, parameter :: nCellm = 4000
-  integer, parameter :: lconnecindexm = 12000
-  integer, parameter :: nptstolocate = 21
-
-  real(8), pointer :: coordstolocate(:)
-
-  real(8), pointer :: vertx(:)
-  integer, pointer :: connecindex(:)
+  character(64)    :: meshName
+  character(80)    :: fileName
+  
+  integer          :: iVert,nVert
+  real(8), pointer :: vertx(:,:)
+  integer          :: iTetra,nTetra
+  integer, pointer :: tetra(:,:)
+  integer          :: iTrian,nTrian
+  integer, pointer :: trian(:,:)
+  
+  integer          :: iNod,j,k
+  integer          :: iCell,nCell
+  real(8), pointer :: vertices   (:)
   integer, pointer :: connec     (:)
-
-  real(8), pointer :: values(:)
-  real(8), pointer :: localvalues(:)
-
-  real(4), pointer :: distLocPts(:)
-
-  integer status
-
-  integer i, order, k
-
-  integer :: vpar = 10
-  character (len =  6) :: cpar = "niterf"
-  character (len = 30) :: disstr = ""
-
-  integer :: stride = 1
-  integer :: rl(1)
-  integer :: dislocalcommsize
-  integer :: commWorldSize
-
-  integer :: n_partition, n2, codeId
+  integer, pointer :: connecIndex(:)
+  integer, pointer :: tetraNodes(:,:)
   
-  integer :: nVertSeg
-
-  integer :: nLocatedPts
-
-  real(8) :: randLevel
-
-  call mpi_init(code)
-  call mpi_comm_rank(mpi_comm_world, iRank, code)
-  call mpi_comm_size(mpi_comm_world, commWorldSize, code)
-
-  write(proc,'(i4.4)') iRank
-  iiunit = 9
+  real(8), pointer :: lagrange(:,:)
+  real(8)          :: lagrangeTrianP1(1:3)
+ !real(8)          :: lagrangeTetraP1(1:4)
+  real(8)          :: xyz(1:3)
   
-  open(unit=iiunit, file='fortran_surf_PiPj_'//proc//'.txt', &
-       form='formatted', status='unknown')
-
-  if (iRank == 0) then
-     print '(/"START: fortran_surf_PiPj")'
-  endif
-
-  n_partition = 1
-  do while ((2 * n_partition**2) < commWorldSize)
-     n_partition = n_partition + 1
-  enddo
-
-  n2 = 2 * n_partition**2
+  integer          :: linkVertSize
+  real(8), pointer :: linkVert(:)
+  integer          :: notLocatedPoints
   
-  if (n2 /= commWorldSize) then
-     if (iRank == 0) then
-        print *, '      Not executed : only available if the number of processus in the form of 2 * n_partition**2'
-     endif
-     call mpi_finalize(code)
-     stop;
-  endif
-
-
-  ! -----------------------------------------
-  ! Initialisation des maillages
-  ! -----------------------------------------
-
-  !>  Vertices
-  !>  5
-  !>  0.   0.   0.    1
-  !>  1.   0.   0.    1
-  !>  0.   1.   0.    1
-  !>  0.   0.   1.    1
-  !>  0.73 0.73 0.73  1
+  integer          :: stride
+  real(8), pointer ::   myValues(:)
+  real(8), pointer :: linkValues(:)
   
-  !>  Tetrahedra
-  !>  2
-  !>  1 2 3 4  1
-  !>  5 2 4 3  1
-
-
-  if( iRank==0 )then
-    
+  integer          :: nNod
+  real(8), pointer :: uvw  (:,:),a(:),b(:),c(:)
+  real(8), pointer :: uv   (:,:),rs (:,:)
+  real(8), pointer :: vand (:,:)
+  
+  real(8)          :: node_xy(1:2,1:3) !> Triangle
+  
+  integer          :: iRank,iErr
+  
+  real(8)          :: delta,deltaMax
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  call mpi_init(iErr)
+  commWorld=mpi_comm_world
+  
+  call mpi_comm_rank(commWorld, rankWorld, iErr)
+  call mpi_comm_size(commWorld, sizeWorld, iErr)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  if( rankWorld==0) print '(/"START: fortran_surf_PiPj")'
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! Initialisation de l'interface de couplage
+  
+  select case(rankWorld)
+  case(0)
+     codeName        = "code1"
+     codeCoupledName = "code2"
+  case(1)
+     codeName        = "code2"
+     codeCoupledName = "code1"
+  end select
+  
+  call cwipi_init_f(           &
+  &    globalComm=commWorld   ,&
+  &    appliName=codeName     ,&
+  &    appliComm=commLocal     )
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  call mpi_comm_rank(commLocal,rankLocal,iErr)
+  call mpi_comm_size(commLocal,sizeLocal,iErr)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  select case(rankWorld)
+  case(0) ; order=07
+  case(1) ; order=10
+  end select
+  print '("fortran_surf_PiPj : Order=",i2,t100,"@rkw",i3)',order,rankWorld
+  call mpi_barrier(commWorld,iErr)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! Create coupling
+  
+  if( rankWorld==0 )print '(/"Create coupling")'
+  
+  call cwipi_create_coupling_f(                  &
+  &    couplingName="testPiPj"                  ,&
+  &    couplingType=cwipi_cpl_parallel_with_part,&
+  &    cplAppli=codeCoupledName                 ,&
+  &    entitiesDim=3                            ,& !> Nature du couplage
+  &    tolerance=1d-1                           ,& !> Tolerance geometrique 1d-1 par defaut
+  &    meshT=cwipi_static_mesh                  ,&
+  &    solvert=cwipi_solver_cell_vertex         ,&
+  &    outputfreq=1                             ,& !> Frequence du post-traitement
+  &    outputfmt="Ensight Gold"                 ,&
+  &    outputfmtopt="binary"                     )
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! Create Geometric Mesh
+  
+  if( rankWorld==0 )print '(/"Create Geometric Mesh (inria mesh format")'
+  
+  select case(rankWorld)
+  case(0)
+    !> Vertices
     nVert=4
-    nCell=1
-    allocate( vertx(1:3*nVert) )  !> 4 sommets
-    allocate( connecindex(1:2) )  !> 1 tetra
-    allocate( connec     (1:4) )  !> 1 tetra
-    
-    coord(01:03)=[0d0,0d0,0d0]    
-    coord(04:06)=[1d0,0d0,0d0]    
-    coord(07:09)=[0d0,1d0,0d0]    
-    coord(10:12)=[0d0,0d0,1d0]    
-    
-    connec(1:4)=[1,2,3,4]
-    connecindex(1:2)=[0,4]
-    
-  else( iRank==1 )then
+    allocate(vertx(1:3,1:nVert))
+    vertx(1:3,1)=[0.00d0,0.00d0,0.00d0]
+    vertx(1:3,2)=[1.00d0,0.00d0,0.00d0]
+    vertx(1:3,3)=[0.00d0,1.00d0,0.00d0]
+    vertx(1:3,4)=[0.00d0,0.00d0,1.00d0]
+    !> Tetrahedra
+    nTetra=1
+    allocate(tetra(1:5,1:nTetra)) !> 4 sommets + 1 marquer
+    tetra(1:5,1)=[1,2,3,4, 1]
+    !>  Triangles
+    nTrian=4
+    allocate(trian(1:4,1:nTrian)) !> 3 sommets + 1 marquer
+    trian(1:4,1)=[2,3,4, 1]
+    trian(1:4,2)=[1,4,3, 2]
+    trian(1:4,3)=[1,2,4, 3]
+    trian(1:4,4)=[1,3,2, 4]
+  case(1)
+    !> Vertices
+    nVert=4
+    allocate(vertx(1:3,1:nVert))
+    vertx(1:3,1)=[0.73d0,0.73d0,0.73d0]
+    vertx(1:3,2)=[1.00d0,0.00d0,0.00d0]
+    vertx(1:3,3)=[0.00d0,0.00d0,1.00d0]
+    vertx(1:3,4)=[0.00d0,1.00d0,0.00d0]
+    !> Tetrahedra
+    nTetra=1
+    allocate(tetra(1:5,1:nTetra)) !> 4 sommets + 1 marquer
+    tetra(1:5,1)=[1,2,3,4, 1]
+    !>  Triangles
+    nTrian=4
+    allocate(trian(1:4,1:nTrian)) !> 3 sommets + 1 marquer
+    trian(1:4,1)=[2,3,4, 1]
+    trian(1:4,2)=[1,4,3, 2]
+    trian(1:4,3)=[1,2,4, 3]
+    trian(1:4,4)=[1,3,2, 4]
+  end select
   
-    nVert=1
-    nCell=1
-    allocate( vertx(1:4*3) )  !> 4 sommets
-    allocate( connecindex(1:2  ) )  !> 1 tetra
-    allocate( connec     (1:4  ) )  !> 1 tetra
+  
+  if( visu )then
+    !> Ecriture des maillages au format mesh de l'inria
+    if( rankWorld==0)then
+      do iRank=0,sizeWorld-1
+        print '(/"Writing mesh file: Tetra",i1,".mesh")',iRank
+      enddo
+    endif
     
-    coord(01:03)=[0.73d0,0.73d0,0.73d0]    
-    coord(04:06)=[1.00d0,0.00d0,0.00d0]    
-    coord(07:09)=[0.00d0,0.00d0,1.00d0]    
-    coord(10:12)=[0.00d0,1.00d0,0.00d0]    
-    
-    connec(1:4)=[1,2,3,4]
-    connecindex(1:2)=[0,4]
-    
+    write(meshName,'("Tetra",i1,".mesh")')rankWorld
+    open(unit=100,file=trim(meshName),action='write',status='unknown')
+    write(100,'("MeshVersionFormatted 1"/)')
+    write(100,'("Dimension 3"/)')
+    write(100,'("Vertices")')
+    write(100,'(i1)')nVert
+    do iVert=1,nVert
+      write(100,'(3(e22.15,1x),i2)')vertx(1:3,iVert),0
+    enddo
+    write(100,'(/"Tetrahedra")')
+    write(100,'(i1)')nTetra
+    do iTetra=1,nTetra
+      write(100,'(*(i6,1x))')tetra(1:5,iTetra)
+    enddo
+    write(100,'(/"Triangles")')
+    write(100,'(i1)')nTrian
+    do iTrian=1,nTrian
+      write(100,'(*(i6,1x))')trian(1:4,iTrian)
+    enddo
+    write(100,'(/"End")')
+    close(100)
   endif
   
-  !> Ecriture des maillages au format mesh de l'inria
-  write(name,'("Tetra",i1,".mesh")')iRank
-  open(unit=100,file=trim(name),action='write',status='unknown')
-  write(100,'("MeshVersionFormatted 1"/)')
-  write(100,'("Dimension 3"/)')
-  write(100,'("Vertices")')
-  write(100,*)nVert
+  !> Mise au format pour cwipi
+  
+  nVert=4
+  nCell=1
+  allocate( vertices   (1:3*nVert)    )  !> sommets
+  allocate( connec     (1:4*nCell)    )  !> tetra
+  allocate( connecIndex(1:nCell+1)    )  !> tetra
+  
+  connec     (1:4)=tetra(1:4,1)
+  connecIndex(1:2)=[0,4]
+  
   j=0
-  do iVert=1,nVert
-    write(100,'(3(e22.15,1x),i2)')coord(j+1:j+3),0  ; j=j+3
+  do iNod=1,4
+    vertices(j+1:j+3)=vertx(1:3,tetra(iNod,1))
+    j=j+3
   enddo
-  write(100,'(/"Tetrahedra")')
-  write(100,*)nCell
-  do iCell=1,nCell
-    write(100,'(*(i6,1x))')connec(connecindex(iCell)+1:connecindex(iCell+1)),0
-  enddo
-  write(100,'(/"End")')
-  close(100)
-
-
-
-!
-! -----------------------------------------
-! Initialisation de l'interface de couplage
-! -----------------------------------------
-!
- 
-  call cwipi_set_output_listing_f(iiunit)
-
-  if (iRank < commWorldSize / 2) then
-     codeName = 'code1'
-     codeId = 1
-     codeCoupledName = 'code2'
-  else 
-     codeName = 'code2'
-     codeId = 2
-     codeCoupledName = 'code1'
-  endif
-
-  call cwipi_init_f (mpi_comm_world, &
-                     codeName, &
-                     localcom)
-
-!
-! ------------------------------------------------
-! Creation du fichier de sortie listing
-! (en parallele, un fichier listing par processus)
-! ------------------------------------------------
-!
-
-  call mpi_comm_rank(localcom, currentRank, code)
-  call mpi_comm_size(localcom, localcommsize, code)
-
-  write(iiunit,*)
-  write(iiunit,*) "dump apres initialisation"
-  write(iiunit,*) "-------------------------"
-  write(iiunit,*)
-
-  call cwipi_dump_appli_properties_f
-
-!
-! -------------------------------------
-! Test de definition des points
-! a interpoler
-! -------------------------------------
-!
-  write(iiunit, *)
-  write(iiunit, *) "--------------------------------------------------------"
-  write(iiunit, *)
-  write(iiunit, *) " Test 3"
-  write(iiunit, *)
-
-  if (iRank == 0) then
-     print*, '       Create coupling'  
-  endif
-
-  call cwipi_create_coupling_f("test2D_3", &
-                               cwipi_cpl_parallel_with_part,&
-                               codeCoupledName, &
-                               2,     & ! Dimension des entites geometriques
-                               0.1d0, & ! Tolerance geometrique
-                               cwipi_static_mesh, &
-                               cwipi_solver_cell_center, &
-                               1, &
-                               "Ensight Gold",&
-                               "text")
-
-!
-! Construction du maillage
-
-  nVertSeg   = 10
-  randLevel    = 0.1d0
-  nVert      = nVertSeg * nVertSeg
-  nCell        = (nVertSeg - 1) * (nVertSeg - 1)
-
-  allocate(vertx(3 * nVert))
-  allocate(coordstolocate(3 * nVert))
-
-  allocate(connecindex(nCell + 1))
-  allocate(connec(4 * nCell))
-
-  allocate(values(nCell))
-  allocate(localvalues(nVert))
-
-  if (iRank == 0) then
-     print*, '       Create mesh'
-  endif
-
-  call grid_mesh_f(xmin, &
-                   xmax, &
-                   ymin, &
-                   ymax, &
-                   randLevel, &
-                   nVertSeg, &
-                   n_partition, & 
-                   coords,  &
-                   connecindex,&
-                   connec,&
-                   localcom)
-
-  call cwipi_define_mesh_f("test2D_3", &
-                           nVert, &
-                           nCell, &
-                           coords, &
-                           connecindex, &
-                           connec)
-
-!
-! Definition des points a localiser
-
-  do i = 1, 3 * nVert
-     coordstolocate(i) = 0.75 * vertx(i)
-  enddo
-
-  if (iRank == 0) then
-     print*, '       Set points to locate'
-  endif
-
-  call cwipi_set_points_to_locate_f("test2D_3", &
-                                     nptstolocate, &
-                                     coordstolocate)
-
-
-!
-! Envoi de la coordonnee Y a codeC
-! Reception de la coordonnee Y provenant de codec
-
-  do i = 1, nCell
-     if (codeId == 1) then
-        values(i) = vertx(3*(i-1) + 1)
-     else
-        values(i) = vertx(3*(i-1) + 2)
-     endif
-  enddo
-
-  stride = 1
-
-  if (iRank == 0) then
-     print*, '       Exchange'
-  endif
-
-  call cwipi_exchange_f ("test2D_3", &
-                         "echange1", &
-                         stride, &
-                         1, &
-                         0.1d0, &
-                         "cooy", &
-                         values, &
-                         "coox", &
-                         localvalues, &
-                         userInterpolation, &
-                         nNotLocatedPoints, &
-                         status)
   
-  call cwipi_get_n_located_pts_f("test2D_3", nLocatedPts)
-
-  allocate(distLocPts(nLocatedPts))
-
-  call cwipi_dist_located_pts_get_f("test2D_3", distLocPts)
-
-  call printStatus(iiunit, status)
-  write(iiunit,*) "valeurs recues test2D_3"
-  write(iiunit,*) (localvalues(i),i=1,nptstolocate)
-
-!
-! Suppression de l'objet couplage
-
-  if (iRank == 0) then
-     print*, '       Delete coupling'
+  !> Transmission des maillages à cwipi
+  call cwipi_define_mesh_f(     &
+  &   couplingName="testPiPj"  ,&
+  &   nVertex     =nVert       ,&
+  &   nElts       =nCell       ,&
+  &   coords      =vertices    ,&
+  &   connecIndex =connecIndex ,&
+  &   connec      =connec       )
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Points de couplage situés Triangle avec le marqueur de peau 1 => face commune aux deux tetras <=
+  
+  if( rankWorld==0 ) print'(/"Calcul des coordonnees des points de couplage")'
+  
+  !> Calcul des coordonnees barycentriques
+  call nodes3Dopt_2D(ord=order,uvw=uvw,display=.false.)
+  
+  !> Visu des coordonnees barycentriques dans le triangle unité
+  if( visu )then
+    if(  0<=order .and. order< 10 )write(fileName,'("pointInterpolationP0",i1,".eps")')order
+    if( 10<=order .and. order<100 )write(fileName,'("pointInterpolationP" ,i2,".eps")')order
+   !print '("writing File: ",a)',trim(fileName)
+    node_xy(1:2,1)=[0,0]
+    node_xy(1:2,2)=[1,0]
+    node_xy(1:2,3)=[0,1]
+    call trianglePointsPlot(   &
+    &    file_name=fileName   ,&
+    &    node_xy=node_xy      ,&
+    &    node_show=0          ,&
+    &    point_num=size(uvw,2),&
+    &    point_xy=uvw         ,&
+    &    point_show=2          ) !> point_show=2, shows the points and number them
   endif
-
-  call cwipi_delete_coupling_f("test2D_3");
-  write(iiunit, *)
-  write(iiunit, *) "--------------------------------------------------------"
-  write(iiunit, *)
-
+  
+  !> Calculs des coordonnées des points de couplage
+  linkVertSize=size(uvw,2)
+  allocate(linkVert(1:3*linkVertSize))
+  j=0
+  do iVert=1,linkVertSize
+    !> Fonction
+    lagrangeTrianP1(1)=1d0-uvw(1,iVert)-uvw(2,iVert)
+    lagrangeTrianP1(2)=    uvw(1,iVert)
+    lagrangeTrianP1(3)=                 uvw(2,iVert)
+    
+    linkVert(j+1:j+3)= lagrangeTrianP1(1)*vertx(1:3,trian(1,1)) &
+    &                 +lagrangeTrianP1(2)*vertx(1:3,trian(2,1)) &
+    &                 +lagrangeTrianP1(3)*vertx(1:3,trian(3,1))
+    j=j+3
+  enddo
+  deallocate(uvw)
+  
+  
+  !> Visu des coordonnees barycentriques dans le triangle unité
+  if( visu )then
+    do iRank=0,sizeWorld-1
+      if( iRank==rankWorld )then
+        print '()'
+        j=0
+        do iVert=1,linkVertSize
+          print '("linkVert(",i2,")=",3(f12.5,1x),t100,"@rkw",i3)',iVert,linkVert(j+1:j+3),rankWorld
+          j=j+3
+        enddo
+      endif
+      call mpi_barrier(commWorld,iErr)
+    enddo
+  endif
+  
+  
+  call cwipi_set_points_to_locate_f( &
+  &    couplingName="testPiPj"      ,&
+  &    nPts  =linkVertSize          ,&
+  &    coords=linkVert               )
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! Localisation
+  
+  if( rankWorld==0 )print '(/"Localisation")'
+  
+  call cwipi_locate_f(couplingName="testPiPj")
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Initialisation of myValues
+  
+  if( rankWorld==0 )print '(/"Initialisation of myValues")'
+  
+  call nodes3D   (ord=order,uvw=uvw,display=.false.)
+  if( visu )then
+    call driverTetMesh(ord=order,node_xyz=uvw,tetra_node=tetraNodes)
+  endif
+  
+  call nodes3Dopt(ord=order,uvw=uvw,display=.false.)
+  if( visu )then
+    call saveTetMesh  (ord=order,node_xyz=uvw,tetra_node=tetraNodes)
+    deallocate(tetraNodes)
+  endif
+  
+  stride=4 ; nNod=size(uvw,2)
+  allocate(myValues(1:stride*nNod))
+  
+  !> lagrange(1:Mod,1:Nod)
+  call lagrange3Dv(ord=1,uvwOut=uvw,lagrange=lagrange,transpose=.true.)
+  
+  j=0
+  do iNod=1,nNod
+    xyz(1:3)= lagrange(1,iNod)*vertx(1:3,tetra(1,1)) &
+    &        +lagrange(2,iNod)*vertx(1:3,tetra(2,1)) &
+    &        +lagrange(3,iNod)*vertx(1:3,tetra(3,1)) &
+    &        +lagrange(4,iNod)*vertx(1:3,tetra(4,1))
+    
+    myValues(j+1:j+stride)=[xyz(1),xyz(2),xyz(3),real(rankWorld,kind=8)]
+    j=j+stride
+  enddo
+  deallocate(uvw,lagrange)
+  
+  if( visu .and. rankWorld==0 )then
+    print '()'
+    j=0
+    do iNod=1,nNod
+      print '("iMod=",i3," myValues         =",4(f12.5,1x),t100,"@rkw",i3)',iNod,myValues(j+1:j+stride),rankWorld
+      j=j+stride
+    enddo
+  endif
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  allocate(linkValues(1:stride*linkVertSize))
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  if( rankWorld==0 )print '(/"cwipi_exchange_f")'
+  
+  call cwipi_exchange_f(                       &
+  &    couplingName=          "testPiPj"      ,&
+  &    exchangeName="exch1_"//"testPiPj"      ,&
+  &    exchangeDim=stride                     ,&  ! scalar
+  &    ptInterpolationFct=userInterpolation   ,&  ! utilisation de la procedure plug
+  &                                            &
+  &    sendingFieldName="mySolu"              ,&  ! solution calculee localement
+  &    sendingField=myValues                  ,&
+  &                                            &
+  &    receivingFieldName="linkSolu"          ,&
+  &    receivingField=linkValues              ,&  ! solution de raccord
+  &                                            &
+  &    nStep=1                                ,&  ! pas utilisee juste pour visu cwipi
+  &    timeValue=0d0                          ,&  ! pas utilisee juste pour visu cwipi
+  &    nNotLocatedPoints=notLocatedPoints     ,&
+  &    status=iErr                             )
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  if( rankWorld==0 )print '(/"Delete coupling")'
+  call cwipi_delete_coupling_f("testPiPj")
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  if( rankWorld==0 )print '(/"Controling Coupling Results")'
+  
+  deltaMax=-1d0
+  j=0
+  k=0
+  do iVert=1,linkVertSize
+    delta=norm2(linkVert(j+1:j+3)-linkValues(k+1:k+3)) !+( real(rankWorld,kind=8)-linkValues(k+4) )**2
+    if( deltaMax<delta )deltaMax=delta
+   !print'("Delta=",e22.15)',delta
+    j=j+3
+    k=k+4
+  enddo
+  delta=deltaMax
+  
+  call mpi_allreduce(delta,deltaMax,1,mpi_real8,mpi_max,commWorld,iErr)
+  
+  if( rankWorld==0 )then
+    print '(/"deltaMax=",e22.15/)',deltaMax
+  endif
+  
+  if( deltaMax<1d-12 )then
+    if( rankWorld==0 )print '(/"SUCCESS: fortran_surf_PiPj"/)'
+  else
+    if( rankWorld==0 )print '(/"FAILED: fortran_surf_PiPj"/)'
+    stop
+  endif
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  deallocate(vertx,tetra,trian)
+  deallocate(linkVert,linkValues)
+  deallocate(vertices,connecIndex,connec,myValues)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   call cwipi_finalize_f()
-
-  deallocate(coords)
-  deallocate(coordstolocate)
-  deallocate(connecindex)
-  deallocate(connec)
-  deallocate(values)
-  deallocate(localvalues)
-
-  call mpi_finalize(code)
-
+  call mpi_finalize(iErr)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
 end program testf

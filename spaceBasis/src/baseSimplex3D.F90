@@ -8,7 +8,12 @@ module baseSimplex3D
   
   interface trianConnectivity ; module procedure trianglesConnectivity  ; end interface
   
+  interface lagrange3Dv       ; module procedure lagrange3Dv_1          ; end interface
+  interface lagrange3Dv       ; module procedure lagrange3Dv_2          ; end interface
+  
   contains
+  
+  
   
   subroutine nodes3DOpt_2D(ord,uvw,display)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -41,10 +46,10 @@ module baseSimplex3D
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     np=size(conec,1)
-    allocate(uvw(3,np))
+    allocate(uvw(1:3,1:np))
     
     do i=1,size(conec,1)
-      ad=conec(i,3) ! Triangle3
+      ad=conec(i,3)                   !> Triangle3
       uvw(1,i)=uvw0(1,ad)
       uvw(2,i)=uvw0(3,ad)
       uvw(3,i)=1d0-uvw(1,i)-uvw(2,i)
@@ -1172,13 +1177,15 @@ module baseSimplex3D
     return
   end subroutine gradSimplex3D
   
-  subroutine lagrange3Dv(ord,vand,a,b,c,lx,transpose)
+  subroutine lagrange3Dv_1(ord,vand,a,b,c,lx,transpose)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !! lagrange3Dv := Inverse[Transpose[Vand]].Psi[x];
+    !! procedure moins directe mais plus performante
+    !! car a,b,c et vand ne sont pas recalculés à chaque appel
+    !!
+    !! lagrange3Dv_1 := Inverse[Transpose[Vand]].Psi[x];
     !! transpose = .true.  => lx(1:nMod,1:nNod)
     !! transpose = .false. => lx(1:nNod,1:nMod)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)              :: ord
     real(8), intent(in)    , pointer :: vand(:,:)
@@ -1196,18 +1203,15 @@ module baseSimplex3D
     real(8), allocatable             :: work(:)
     integer                          :: iErr
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     nMod=(ord+1)*(ord+2)*(ord+3)/6
     nNod=size(a)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Computing psi(a,b,c) 
     !> transpose=.false. pour les perfos
     call simplex3D(ord=ord,a=a,b=b,c=c,mode=psi,transpose=.false.) !> psi(1:nNod,1:nMod)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> mat=Transpose[Vand]
     allocate(mat(1:nMod,1:nMod))
@@ -1217,7 +1221,6 @@ module baseSimplex3D
       enddo
     enddo
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> mat=Inverse[mat]=Inverse[Transpose[Vand]]
     lWork=64*nMod
@@ -1226,12 +1229,10 @@ module baseSimplex3D
     call dgetri(nMod,mat(1,1),nMod,ipiv(1),work(1),lWork,iErr)
     deallocate(ipiv,work)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> lx = Inverse[Transpose[Vand]].Psi
     if( transpose )then
       
-     !allocate(lx(1:nMod,1:nNod)) ; lx(1:nMod,1:nNod)=0d0
       lx(:,:)=0d0
       !> psi(1:nNod,1:nMod)      
       do i=1,nNod
@@ -1244,7 +1245,6 @@ module baseSimplex3D
       
     else
       
-     !allocate(lx(1:nNod,1:nMod)) ; lx(:,:)=0d0
       lx(:,:)=0d0
       !> psi(1:nNod,1:nMod)
       do i=1,nNod
@@ -1257,13 +1257,72 @@ module baseSimplex3D
     endif
    !call displayMatrix(title="lx",mat=lx)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     deallocate(psi,mat)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     return
-  end subroutine lagrange3Dv
+  end subroutine lagrange3Dv_1
+  
+  subroutine lagrange3Dv_2(ord,uvwOut,lagrange,transpose)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !! procedure plus directe mais moins performante
+    !! car uvw et vand doivent être recalculé à chaque appel
+    !!
+    !! lagrange3Dv_2 := Inverse[Transpose[Vand]].Psi[x];
+    !! transpose = .true.  => lx(1:nMod,1:nNod)
+    !! transpose = .false. => lx(1:nNod,1:nMod)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer         , intent(in)  :: ord
+    real(8)         , intent(in)  :: uvwOut(:,:)
+    real(8), pointer, intent(out) :: lagrange(:,:)
+    logical         , intent(in)  :: transpose
+    !>
+    integer                       :: nMod,nNod
+    real(8), pointer              :: uvw(:,:),a(:),b(:),c(:)
+    real(8), pointer              :: vand(:,:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    nMod=(ord+1)*(ord+2)*(ord+3)/6
+    nNod=size(uvwOut,2)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( transpose )then
+      allocate(lagrange(1:nMod,1:nNod))
+    else
+      allocate(lagrange(1:nNod,1:nMod))
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( ord==1 )then
+      if( transpose )then
+        lagrange(1,1:nNod)=1d0-uvwOut(1,1:nNod)-uvwOut(2,1:nNod)-uvwOut(3,1:nNod)
+        lagrange(2,1:nNod)=    uvwOut(1,1:nNod)
+        lagrange(3,1:nNod)=                     uvwOut(2,1:nNod)
+        lagrange(4,1:nNod)=                                      uvwOut(3,1:nNod)
+      else
+        lagrange(1:nNod,1)=1d0-uvwOut(1,1:nNod)-uvwOut(2,1:nNod)-uvwOut(3,1:nNod)
+        lagrange(1:nNod,2)=    uvwOut(1,1:nNod)
+        lagrange(1:nNod,3)=                     uvwOut(2,1:nNod)
+        lagrange(1:nNod,4)=                                      uvwOut(3,1:nNod)
+      endif
+    else
+      !> Calcul de Vand(:,:)
+      call nodes3D   (ord=ord,uvw=uvw,display=.false.)
+      call nodes3Dopt(ord=ord,uvw=uvw,display=.false.)
+      call nodes3Duvw2abc(uvw=uvw,a=a,b=b,c=c,display=.false.)
+      !> calcul de la matrice de Vandermonde
+      call vandermonde3D(ord=ord,a=a,b=b,c=c,vand=vand)
+      !> Calcul des polonômes de Lagrange d'ordre ord en uvwOut
+      call nodes3Duvw2abc(uvw=uvwOut,a=a,b=b,c=c,display=.false.)
+      call lagrange3Dv_1(ord=ord,vand=vand,a=a,b=b,c=c,lx=lagrange,transpose=.true.)  !> lagrange= Inverse[Transpose[Vand]].Psi[xyzOut] lxOut(nPt,np)
+      !> Nettoyage memoire
+      deallocate(uvw,a,b,c,vand)
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+  return
+  end subroutine lagrange3Dv_2
   
   
   subroutine vandermonde3D(ord,a,b,c,vand)

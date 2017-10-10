@@ -1,5 +1,4 @@
 
-
 subroutine tetraMaillageVisuNew()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! Cette procedure sert à construire les maillages de visu pour le tetra d'ordre élevé
@@ -14,12 +13,9 @@ subroutine tetraMaillageVisuNew()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  integer            :: ord,iOrd,ad,nVert
+  integer            :: ord,iOrd
   real(8), pointer   :: uvw  (:,:)
   integer, pointer   :: tetra(:,:)
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -29,12 +25,13 @@ subroutine tetraMaillageVisuNew()
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   do iOrd=1,ord
-    if(  0<=iOrd .and. iOrd< 10 )write(fileName,'("TetraP0",i1")')iOrd
-    if( 10<=iOrd .and. iOrd<100 )write(fileName,'("TetraP" ,i2")')iOrd
+    if(   0<=iOrd .and. iOrd<  10 )write(*,'("TetraP00",i1)')iOrd
+    if(  10<=iOrd .and. iOrd< 100 )write(*,'("TetraP0" ,i2)')iOrd
+    if( 100<=iOrd .and. iOrd<1000 )write(*,'("TetraP" ,i3)')iOrd
     
-    call nodes3D(ord=iOrd,uvw=uvw,display=.true.)
+    call nodes3D(ord=iOrd,uvw=uvw,display=.false.)
     call driverTetMesh(ord=iOrd,node_xyz=uvw,tetra_node=tetra) !> c'est plus joli en construisant la connectivité avec les points reguliers
-    call nodes3Dopt(ord=iOrd,uvw=uvw,display=.true. )
+    call nodes3Dopt(ord=iOrd,uvw=uvw,display=.false. )
     call saveTetMesh(ord=iOrd,node_xyz=uvw,tetra_node=tetra)
     deallocate(uvw,tetra)
   enddo
@@ -46,7 +43,6 @@ end subroutine tetraMaillageVisuNew
 
 program main
   
-  !> Test Tetra
   call tetraMaillageVisuNew()
   
 end program main

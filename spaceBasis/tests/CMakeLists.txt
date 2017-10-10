@@ -45,10 +45,12 @@ test_fortran_create (test_Edges01)
 
 test_fortran_create (test_Triangles00)
 test_fortran_create (test_Triangles01)
+test_fortran_create (test_Triangles02)
 
 test_fortran_create (test_Quad00)
 
-#test_fortran_create (test_Tetra00)
+test_fortran_create (test_Tetra00)
+test_fortran_create (test_Tetra01)
 
 test_fortran_create (test_Pyramid00)
 test_fortran_create (test_Pyramid01)

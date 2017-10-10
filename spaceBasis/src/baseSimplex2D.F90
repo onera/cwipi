@@ -985,10 +985,10 @@ module baseSimplex2D
     !    2, show the points and number them.
     !
     character(80), intent(in) :: file_name
-    real(8)      , intent(in) :: node_xy(2,3)
+    real(8)      , intent(in) :: node_xy(1:2,1:3)
     integer      , intent(in) :: node_show
     integer      , intent(in) :: point_num
-    real(8)      , intent(in) :: point_xy(2,point_num)
+    real(8)      , intent(in) :: point_xy(1:3,1:point_num)
     integer      , intent(in) :: point_show
     
     integer, parameter :: node_num = 3
@@ -1021,9 +1021,9 @@ module baseSimplex2D
   !  the range of the data, and hence the height and width
   !  of the piece of paper.
   !
-    x_max = max ( maxval ( node_xy(1,1:node_num) ), &
+    x_max = max ( maxval (  node_xy(1,1:node_num) ), &
                   maxval ( point_xy(1,1:point_num) ) )
-    x_min = min ( minval ( node_xy(1,1:node_num) ), &
+    x_min = min ( minval (  node_xy(1,1:node_num) ), &
                   minval ( point_xy(1,1:point_num) ) )
     x_scale = x_max - x_min
   
@@ -1031,9 +1031,9 @@ module baseSimplex2D
     x_min = x_min - 0.05D+00 * x_scale
     x_scale = x_max - x_min
   
-    y_max = max ( maxval ( node_xy(2,1:node_num) ), &
+    y_max = max ( maxval (  node_xy(2,1:node_num) ), &
                   maxval ( point_xy(2,1:point_num) ) )
-    y_min = min ( minval ( node_xy(2,1:node_num) ), &
+    y_min = min ( minval (  node_xy(2,1:node_num) ), &
                   minval ( point_xy(2,1:point_num) ) )
     y_scale = y_max - y_min
   

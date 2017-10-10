@@ -6,11 +6,9 @@ subroutine tetraTest()
   use baseSimplex2D
   use baseSimplex3D
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   integer              :: i,j,order,nMod,nNod,ad,np,nPt,cpt
   real(8), pointer     :: vand(:,:),dVand(:,:),jf(:,:),dr(:,:)
@@ -99,7 +97,7 @@ subroutine tetraTest()
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  call writeMesh3D(ord=order,uvw=uvw)
+ !call writeMesh3D(ord=order,uvw=uvw)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -156,19 +154,18 @@ subroutine tetraTest()
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Evaluation des fonctions de Lagrange aux points xyzOut
-  call readXYZout3D(xyzOut=xyzOut)
+  call readXYZout3D(xyzOut=xyzOut) !> xyz \in [-1,+1]^3 (rst)
   
   nMod=(order+1)*(order+2)*(order+3)/6 ; nNod=size(xyzOut,2)
   
   call nodes3Drst2abc(rst=xyzOut,a=a,b=b,c=c)
   call simplex3D  (ord=order,a=a,b=b,c=c,mode=psi,transpose=.false.)           !> Psi(xyzOut)
   
-  
   allocate(lxOut(1:nNod,1:nMod))
   call lagrange3Dv(ord=order,vand=vand,a=a,b=b,c=c,lx=lxOut,transpose=.false.)  !> lxOut= Inverse[Transpose[Vand]].Psi[xyzOut] lxOut(nPt,np)
   if( order<3 )then
-    call writeSolOut3D(title="simplex3D"//sfx,solOut=psi)
-    call writeSolOut3D(title="lagrange3D"//sfx  ,solOut=lxOut  )
+    call writeSolOut3D(title="simplex3D" //sfx, solOut=psi  )
+    call writeSolOut3D(title="lagrange3D"//sfx, solOut=lxOut)
   endif
   deallocate(psi)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -192,7 +189,6 @@ subroutine tetraTest()
     call writeSolOut3D(title="dtLagrange3D"//sfx,solOut=dtLxOut)
   endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Test des fonctions : preliminaires
@@ -289,110 +285,11 @@ subroutine tetraTest()
   return
 end subroutine tetraTest
 
-subroutine tetraMaillageVisu()
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  ! Cette procedure sert à construire les maillages de visu pour le tetra d'ordre élevé
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  use modDeterminant
-  use baseSimplex3D
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  implicit none
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  integer            :: order
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  write(*,'(/"Construction maillage Tetra P_i")')
-  write(*,'("Warning ghs3d is required")')
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  write(*,'(/"Order: ")',advance='no') ; read(*,*)order
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Building Mesh for Tetra P_{ord}
-  call writeMeshSkin3D(ord=order)
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
-  return
-end subroutine tetraMaillageVisu
-
-subroutine tetraMaillageVisuNew()
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  ! Cette procedure sert à construire les maillages de visu pour le tetra d'ordre élevé
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !use modDeterminant
-  use baseSimplex3D
-  use table_tet_mesh
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  implicit none
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  integer            :: ord,iOrd,ad,nVert
-  real(8), pointer   :: uvw(:,:)
-  real(8), pointer   :: uvw0(:,:)
-  integer, pointer   :: tetra(:,:)
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  write(*,'(/"Construction maillage Tetra P_i")')
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  write(*,'(/"Order: ")',advance='no') ; read(*,*)ord
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !do iOrd=1,ord
-  do iOrd=ord,ord
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    call nodes3D(ord=iOrd,uvw=uvw,display=.true.)
-    nVert=size(uvw,2)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    allocate(uvw0(1:3,1:nVert))
-    uvw0(1:3,:)=uvw(1:3,:)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    call driverTetMesh(node_xyz=uvw0,tetra_node=tetra)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    call nodes3Dopt(ord=iOrd,uvw=uvw,display=.true. )
-    uvw0(1:3,:)=uvw(1:3,:)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    call saveTetMesh(ord=iOrd, node_xyz=uvw0,tetra_node=tetra)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    deallocate(uvw,tetra,uvw0)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-  enddo
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  return
-end subroutine tetraMaillageVisuNew
 
 
 program main
   
   !> Test Tetra
   call tetraTest()
- !call tetraMaillageVisu() !> maillages de visu pour le tetra d'ordre élevé
-  call tetraMaillageVisuNew()
   
 end program main

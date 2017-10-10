@@ -32,14 +32,14 @@ subroutine saveTetMesh(ord,node_xyz,tetra_node)
   write(10,'(/"Dimension")')
   write(10,'( "3")')
   write(10,'(/"Vertices")')
-  write(10,'(i6)')size(node_xyz,2)
+  write(10,'(i10)')size(node_xyz,2)
   do i=1,size(node_xyz,2)
     write(10,'(3(e15.8,1x),1x,i1)')node_xyz(1:3,i),0
    !print '("node_xyz=",3(e15.8,1x))',node_xyz(1:3,i)
   enddo
   
   write(10,'(/"Tetrahedra")')
-  write(10,'(i6)')size(tetra_node,2)
+  write(10,'(i10)')size(tetra_node,2)
   do i=1,size(tetra_node,2)
     vec12(1:3)=node_xyz(1:3,tetra_node(2,i))-node_xyz(1:3,tetra_node(1,i))
     vec13(1:3)=node_xyz(1:3,tetra_node(3,i))-node_xyz(1:3,tetra_node(1,i))
