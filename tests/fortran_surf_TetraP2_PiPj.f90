@@ -20,12 +20,124 @@
 
 !  mpirun -n 1 ./fortran_surf_PiPj : -n 1 ./fortran_surf_PiPj
 
+module additionnal_Functions
+
+contains
+
+  subroutine setT3MeshBasis_P1(u,v,ai)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Numerotation des sommets
+    !>   3
+    !>   1 2
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    ! delcaration des variables passees en argument
+    real(8), intent(in)    :: u,v
+    real(8), intent(inout) :: ai(:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    ai(1)=1d0-u-v
+    ai(2)=    u
+    ai(3)=      v
+   !write(*,'("u,v=",2(f12.5,1x),"li=",3(f12.5,1x))')u,v,ai(1:3)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end subroutine setT3MeshBasis_P1
+  
+  subroutine setT3MeshBasis_P2(u,v,ai)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Numerotation des sommets
+    !>   3
+    !>   6 5
+    !>   1 4 2
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    ! delcaration des variables passees en argument
+    real(8), intent(in)    :: u,v
+    real(8), intent(inout) :: ai(:)
+    !>
+    real(8)                :: w
+    real(8)                :: u2,v2,w2
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    w=1d0-u-v
+    u2=2d0*u ; v2=2d0*v ; w2=2d0*w
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    ai(1)=w*(-1d0+w2)    !> (i,j,k)=(0,0,2)
+    ai(2)=u*(-1d0+u2)    !> (i,j,k)=(2,0,0)
+    ai(3)=v*(-1d0+v2)    !> (i,j,k)=(0,2,0)
+    ai(4)=u2*w2          !> (i,j,k)=(1,0,1)
+    ai(5)=u2*v2          !> (i,j,k)=(1,1,0)
+    ai(6)=v2*w2          !> (i,j,k)=(0,1,1)
+   !write(*,'("u,v=",2(f12.5,1x),"li=",6(f12.5,1x))')u,v,ai(1:6)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end subroutine setT3MeshBasis_P2
+
+  subroutine setT4MeshBasisP1(u,v,w,ai)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Numerotation des sommets
+    !> 01 03  04
+    !> 02
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    ! delcaration des variables passees en argument
+    real(8), intent(in)    :: u,v,w
+    real(8), intent(inout) :: ai(:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    ai(1)=1d0-u-v-w
+    ai(2)=    u
+    ai(3)=      v
+    ai(4)=        w
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end subroutine setT4MeshBasisP1
+  
+  subroutine setT4MeshBasisP2(u,v,w,ai)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Numerotation des sommets
+    !> 01 07 03  08 10  04
+    !> 05 06     09
+    !> 02
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    ! delcaration des variables passees en argument
+    real(8), intent(in)    :: u,v,w
+    real(8), intent(inout) :: ai(:)
+    !>
+    real(8)                :: x
+    real(8)                :: u2,v2,w2,x2
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    x=1d0-u-v-w
+    u2=2d0*u ; v2=2d0*v ; w2=2d0*w ; x2=2d0*x
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>        
+    ai(01)=(-1d0+x2)*x  !> (i,j,k)=(000)
+    ai(02)=(-1d0+u2)*u  !> (i,j,k)=(200)
+    ai(03)=(-1d0+v2)*v  !> (i,j,k)=(020) 
+    ai(04)=(-1d0+w2)*w  !> (i,j,k)=(002)
+    ai(05)=u2      *x2  !> (i,j,k)=(100)
+    ai(06)=u2*v2        !> (i,j,k)=(110)
+    ai(07)=   v2   *x2  !> (i,j,k)=(010)
+    ai(08)=      w2*x2  !> (i,j,k)=(001)
+    ai(09)=u2   *w2     !> (i,j,k)=(101)    
+    ai(10)=   v2*w2     !> (i,j,k)=(011) 
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end subroutine setT4MeshBasisP2  
+
+end module additionnal_Functions
+
 
 module variablesCommunes
-  logical :: visu=.false.
+  logical :: visu=.true.
   integer :: commWorld,rankWorld,sizeWorld
   integer :: commLocal,rankLocal,sizeLocal
   integer :: order
+  integer :: meshOrder=2
 end module variablesCommunes
 
 
@@ -60,6 +172,8 @@ subroutine  userInterpolation                        ( &
   use modDeterminant
   use baseSimplex3D
   
+  use additionnal_Functions
+  
   use variablesCommunes
   !---
   implicit none
@@ -92,6 +206,7 @@ subroutine  userInterpolation                        ( &
   integer          :: iDistantPoint
   integer          :: iBary,iVert
   real(8), pointer :: uvwOut(:,:),lagrange(:,:)
+  real(8)          :: lagrangeMesh(1:10)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -100,17 +215,20 @@ subroutine  userInterpolation                        ( &
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   if( visu .and. rankWorld==0 )then
-    print '()'
+    print '(/"Mon maillage surfasique de couplage")'
     iVert=0
     do i=1,nLocalVertex
-      print '("localCoordinates(",i3,")=",3(f12.5,1x))',i,localCoordinates(iVert+1:iVert+3)
+      print '("localCoordinates (",i3,")=",3(f12.5,1x))',i,localCoordinates(iVert+1:iVert+3)
       iVert=iVert+3
+    enddo
+    do i=1,nLocalElement
+      print '("localConnectivity(",i3,")=",*(i3,1x))',i,localConnectivity(localConnectivityIndex(i)+1:localConnectivityIndex(i+1))
     enddo
   endif
   
   if( visu .and. rankWorld==0 )then
     nMod=(order+1)*(order+2)*(order+3)/6
-    print '()'
+    print '(/"Mon Champ Volumique")'
     j=0
     do iMod=1,nMod
       print '("iMod=",i3," localField       =",4(f12.5,1x),t100,"@rkw",i3)',iMod,localField(j+1:j+stride),rankWorld
@@ -122,67 +240,70 @@ subroutine  userInterpolation                        ( &
     print '()'
     iVert=0
     do iDistantPoint=1,nDistantPoint
-      print '("iDis=",i3," disPtsCoordinates=",3(f12.5,1x),t100,"@rkw",i3)',&
-      & iDistantPoint,disPtsCoordinates(iVert+1:iVert+3),rankWorld
+      print '("iDis=",i3," disPtsCoordinates=",3(f12.5,1x)," inside Cell: ",i3,t100,"@rkw",i3)',&
+      & iDistantPoint,disPtsCoordinates(iVert+1:iVert+3),disPtsLocation(iDistantPoint),rankWorld
       iVert=iVert+3
     enddo
   endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Test les coordonnées barycentriques
-  if( visu  .and. rankWorld==0 )then
-    print '()'
-    block 
-      real(8) :: det1,mat1(3,3)
-      real(8) :: det2,mat2(3,3)
-      real(8) :: bi(1:3)
-      real(8) :: u,v,w
+  !> Calcul des coordonnées barycentriques dans le triangle P2
+  print '()'
+  block
+    real(8) :: xyz0(1:3)
+    
+    allocate(uvwOut(1:2,1:nDistantPoint))
+    iBary=0
+    do iDistantPoint=1,nDistantPoint
+      uvwOut(1:2,iDistantPoint)=distantPointsBarycentricCoordinates(iBary+2:iBary+3) ! <= Attention 2:3
+      iBary=iBary+3
+    enddo
+    
+    if( visu .and. rankWorld==0 )then
+      print '(/"Coordonnées barycentriques")'
+      do iDistantPoint=1,nDistantPoint
+        print '("uvwOut=",*(f12.5,1x))',uvwOut(1:2,iDistantPoint)
+      enddo
       
-      mat2(:,1)=localCoordinates( 4: 6)-localCoordinates(1:3)
-      mat2(:,2)=localCoordinates( 7: 9)-localCoordinates(1:3)
-      mat2(:,3)=localCoordinates(10:12)-localCoordinates(1:3)
-      det2 = mat2(1,1)*(mat2(2,2)*mat2(3,3)-mat2(2,3)*mat2(3,2)) &
-      &     -mat2(1,2)*(mat2(2,1)*mat2(3,3)-mat2(3,1)*mat2(2,3)) &
-      &     +mat2(1,3)*(mat2(2,1)*mat2(3,2)-mat2(3,1)*mat2(2,2))
-      det2=1d0/det2
-      
-      iVert=0
+      print '(/"Coordonnées calculées")'
       do iDistantPoint=1,nDistantPoint
         
-        bi(1:3)=disPtsCoordinates(iVert+1:iVert+3)-localCoordinates(1:3)
+        !> Avec maillage dégradé ordre 1
+        nMod=4                               !> TriangleP1
+        !> Avec maillage dégradé ordre 2
+        !nMod=(meshOrder+1)*(meshOrder+2)/2  !> TriangleP2
         
-        mat1=mat2 ; mat1(:,1)=bi(1:3)
-        det1 = mat1(1,1)*(mat1(2,2)*mat1(3,3)-mat1(2,3)*mat1(3,2)) &
-        &     -mat1(1,2)*(mat1(2,1)*mat1(3,3)-mat1(3,1)*mat1(2,3)) &
-        &     +mat1(1,3)*(mat1(2,1)*mat1(3,2)-mat1(3,1)*mat1(2,2))
-        u=det1*det2
+        call setT3MeshBasis_P2(u=uvwOut(1,iDistantPoint),v=uvwOut(2,iDistantPoint),ai=lagrangeMesh)
         
-        mat1=mat2 ; mat1(:,2)=bi(1:3)
-        det1 = mat1(1,1)*(mat1(2,2)*mat1(3,3)-mat1(2,3)*mat1(3,2)) &
-        &     -mat1(1,2)*(mat1(2,1)*mat1(3,3)-mat1(3,1)*mat1(2,3)) &
-        &     +mat1(1,3)*(mat1(2,1)*mat1(3,2)-mat1(3,1)*mat1(2,2))
-        v=det1*det2
+        xyz0(1:3)=0d0
+        iVert=0
+        do iMod=1,nMod
+          xyz0(1:3)=xyz0(1:3)+lagrangeMesh(iMod)*localCoordinates(iVert+1:iVert+3)
+          iVert=iVert+3
+        enddo
         
-        mat1=mat2 ; mat1(:,3)=bi(1:3)
-        det1 = mat1(1,1)*(mat1(2,2)*mat1(3,3)-mat1(2,3)*mat1(3,2)) &
-        &     -mat1(1,2)*(mat1(2,1)*mat1(3,3)-mat1(3,1)*mat1(2,3)) &
-        &     +mat1(1,3)*(mat1(2,1)*mat1(3,2)-mat1(3,1)*mat1(2,2))
-        w=det1*det2
+        print '("iDis=",i3," xyz0=",3(f12.5,1x),t100,"@rkw",i3)',&
+        & iDistantPoint,xyz0(1:3),rankWorld
         
-        print '("iDis=",i3," uvw0             =",3(f12.5,1x),t100,"@rkw",i3)',&
-        & iDistantPoint,u,v,w,rankWorld
-        
-        iVert=iVert+3
       enddo
-    end block
+    endif
     
-  endif
+  end block
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  
+call mpi_barrier(commWorld,iErr)
+call cwipi_finalize_f()
+call mpi_finalize(iErr)
+stop 'A POURSUIVRE'
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Affectation des coordonées barycentriques uvwOut
   allocate(uvwOut(1:3,1:nDistantPoint))
+  
+  
+  
   iBary=0
   do iDistantPoint=1,nDistantPoint
     uvwOut(1:3,iDistantPoint)=distantPointsBarycentricCoordinates(iBary+2:iBary+4) ! <= Attention 2:4
@@ -279,6 +400,8 @@ program testf
   use baseSimplex3D
   use table_tet_mesh
   
+  use additionnal_Functions
+  
   use variablesCommunes
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -350,7 +473,9 @@ program testf
   integer          :: iTrian,nTrian
   integer, pointer :: trian(:,:)
   
-  integer          :: iNod,j,k
+  integer          :: j,k
+  integer          :: iMod,nMod
+  integer          :: iNod,nNod
   integer          :: iCell,nCell
   real(8), pointer :: vertices   (:)
   integer, pointer :: connec     (:)
@@ -358,10 +483,9 @@ program testf
   integer, pointer :: tetraNodes(:,:)
   
   real(8), pointer :: lagrange(:,:)
-  real(8)          :: lagrangeTrianP1(1:3)
- !real(8)          :: lagrangeTetraP1(1:4)
-  real(8)          :: xyz(1:3)
+  real(8)          :: lagrangeMesh(1:10)
   
+  real(8)          :: xyz(1:3)
   integer          :: linkVertSize
   real(8), pointer :: linkVert(:)
   integer          :: notLocatedPoints
@@ -370,7 +494,6 @@ program testf
   real(8), pointer ::   myValues(:)
   real(8), pointer :: linkValues(:)
   
-  integer          :: nNod
   real(8), pointer :: uvw  (:,:),a(:),b(:),c(:)
   real(8), pointer :: uv   (:,:),rs (:,:)
   real(8), pointer :: vand (:,:)
@@ -396,7 +519,6 @@ program testf
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! Initialisation de l'interface de couplage
-  
   select case(rankWorld)
   case(0)
      codeName        = "code1"
@@ -419,10 +541,10 @@ program testf
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   select case(rankWorld)
-  case(0) ; order=07
-  case(1) ; order=10
+  case(0) ; order=1 !07
+  case(1) ; order=1 !10
   end select
-  print '("fortran_surf_PiPj : Order=",i2,t100,"@rkw",i3)',order,rankWorld
+  print '("fortran_surf_PiPj : meshOrder=",i2," Order=",i2,t100,"@rkw",i3)',meshOrder,order,rankWorld
   call mpi_barrier(commWorld,iErr)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
@@ -435,7 +557,7 @@ program testf
   &    couplingName="testPiPj"                  ,&
   &    couplingType=cwipi_cpl_parallel_with_part,&
   &    cplAppli=codeCoupledName                 ,&
-  &    entitiesDim=3                            ,& !> Nature du couplage
+  &    entitiesDim=2                            ,& !> Nature du couplage
   &    tolerance=1d-1                           ,& !> Tolerance geometrique 1d-1 par defaut
   &    meshT=cwipi_static_mesh                  ,&
   &    solvert=cwipi_solver_cell_vertex         ,&
@@ -448,48 +570,70 @@ program testf
   ! Create Geometric Mesh
   
   if( rankWorld==0 )print '(/"Create Geometric Mesh (inria mesh format")'
-  
+  !
+  !  04        niveau2
+  !
+  !  10
+  !  08 09     niveau1
+  !
+  !  03
+  !  07 06
+  !  01 05 02  niveau0
+  !
   select case(rankWorld)
   case(0)
     !> Vertices
-    nVert=4
-    allocate(vertx(1:3,1:nVert))
-    vertx(1:3,1)=[0.00d0,0.00d0,0.00d0]
-    vertx(1:3,2)=[1.00d0,0.00d0,0.00d0]
-    vertx(1:3,3)=[0.00d0,1.00d0,0.00d0]
-    vertx(1:3,4)=[0.00d0,0.00d0,1.00d0]
+    nVert=10
+    allocate(vertx(1:3,1:nVert))    
+    vertx(1:3,01)=[0.00, 0.00, 0.00]
+    vertx(1:3,02)=[0.00,-1.00, 0.00]
+    vertx(1:3,03)=[1.00, 0.00, 0.00]
+    vertx(1:3,04)=[0.00, 0.00, 1.00]
+    !>
+    vertx(1:3,05)=[0.00,-0.50, 0.00]
+    vertx(1:3,06)=[0.50,-0.50, 0.00]
+    vertx(1:3,07)=[0.50, 0.00, 0.00]
+    vertx(1:3,08)=[0.00, 0.00, 0.50]
+    vertx(1:3,09)=[0.00,-0.50, 0.50]
+    vertx(1:3,10)=[0.50, 0.00, 0.50]
     !> Tetrahedra
     nTetra=1
-    allocate(tetra(1:5,1:nTetra)) !> 4 sommets + 1 marquer
-    tetra(1:5,1)=[1,2,3,4, 1]
+    allocate(tetra(1:11,1:nTetra)) !> 10 sommets + 1 marqueur
+    tetra(1:11,1)=[01,02,03,04,05,06,07,08,09,10, 1]
     !>  Triangles
     nTrian=4
-    allocate(trian(1:4,1:nTrian)) !> 3 sommets + 1 marquer
-    trian(1:4,1)=[2,3,4, 1]
-    trian(1:4,2)=[1,4,3, 2]
-    trian(1:4,3)=[1,2,4, 3]
-    trian(1:4,4)=[1,3,2, 4]
+    allocate(trian(1:7,1:nTrian)) !> 6 sommets + 1 marqueur
+    trian(1:7,1)=[02,03,04,06,10,09,1]
+    trian(1:7,2)=[01,03,02,07,06,05,1]
+    trian(1:7,3)=[01,04,03,08,10,07,3] !> Couplage
+    trian(1:7,4)=[01,02,04,05,09,08,1]
   case(1)
     !> Vertices
-    nVert=4
+    nVert=10
     allocate(vertx(1:3,1:nVert))
-    vertx(1:3,1)=[0.73d0,0.73d0,0.73d0]
-    vertx(1:3,2)=[1.00d0,0.00d0,0.00d0]
-    vertx(1:3,3)=[0.00d0,0.00d0,1.00d0]
-    vertx(1:3,4)=[0.00d0,1.00d0,0.00d0]
+    vertx(1:3,01)=[0.00, 0.00, 0.00]
+    vertx(1:3,02)=[1.00, 0.00, 0.00]
+    vertx(1:3,03)=[0.00, 1.00, 0.00]
+    !>
+    vertx(1:3,04)=[0.00, 0.00, 1.00]
+    vertx(1:3,05)=[0.50, 0.00, 0.00]
+    vertx(1:3,06)=[0.50, 0.50, 0.00]
+    vertx(1:3,07)=[0.00, 0.50, 0.00]
+    vertx(1:3,08)=[0.00, 0.00, 0.50]
+    vertx(1:3,09)=[0.50, 0.00, 0.50]
+    vertx(1:3,10)=[0.00, 0.50, 0.50]
     !> Tetrahedra
     nTetra=1
-    allocate(tetra(1:5,1:nTetra)) !> 4 sommets + 1 marquer
-    tetra(1:5,1)=[1,2,3,4, 1]
+    allocate(tetra(1:11,1:nTetra)) !> 10 sommets + 1 marquer
+    tetra(1:11,1)=[1,2,3,4,5,6,7,8,9,10, 1]
     !>  Triangles
     nTrian=4
-    allocate(trian(1:4,1:nTrian)) !> 3 sommets + 1 marquer
-    trian(1:4,1)=[2,3,4, 1]
-    trian(1:4,2)=[1,4,3, 2]
-    trian(1:4,3)=[1,2,4, 3]
-    trian(1:4,4)=[1,3,2, 4]
+    allocate(trian(1:7,1:nTrian)) !> 6 sommets + 1 marquer
+    trian(1:7,1)=[02,03,04,06,10,09, 1]
+    trian(1:7,2)=[01,03,02,07,06,05, 1]
+    trian(1:7,3)=[01,04,03,08,10,07, 1]
+    trian(1:7,4)=[01,02,04,05,09,08, 3] !> Couplage
   end select
-  
   
   if( visu )then
     !> Ecriture des maillages au format mesh de l'inria
@@ -498,46 +642,119 @@ program testf
         print '(/"Writing mesh file: Tetra",i1,".mesh")',iRank
       enddo
     endif
-    
     write(meshName,'("Tetra",i1,".mesh")')rankWorld
     open(unit=100,file=trim(meshName),action='write',status='unknown')
     write(100,'("MeshVersionFormatted 1"/)')
     write(100,'("Dimension 3"/)')
     write(100,'("Vertices")')
-    write(100,'(i1)')nVert
+    write(100,'(i2)')nVert
     do iVert=1,nVert
       write(100,'(3(e22.15,1x),i2)')vertx(1:3,iVert),0
     enddo
-    write(100,'(/"Tetrahedra")')
+    write(100,'(/"TetrahedraP2")')
     write(100,'(i1)')nTetra
     do iTetra=1,nTetra
-      write(100,'(*(i6,1x))')tetra(1:5,iTetra)
+      write(100,'(*(i6,1x))')tetra(:,iTetra)
     enddo
-    write(100,'(/"Triangles")')
+    write(100,'(/"TrianglesP2")')
     write(100,'(i1)')nTrian
     do iTrian=1,nTrian
-      write(100,'(*(i6,1x))')trian(1:4,iTrian)
+      write(100,'(*(i6,1x))')trian(:,iTrian)
     enddo
     write(100,'(/"End")')
     close(100)
   endif
   
-  !> Mise au format pour cwipi
+  !> On se couple sur le triangle commun aux deux tetraP2 (y=0) qui va servir de maillage pour le couplage
+  !
+  !  03
+  !  06 05
+  !  01 04 02
+  !
   
-  nVert=4
-  nCell=1
-  allocate( vertices   (1:3*nVert)    )  !> sommets
-  allocate( connec     (1:4*nCell)    )  !> tetra
-  allocate( connecIndex(1:nCell+1)    )  !> tetra
+  !> rkw0:Triangle3 <=> rkw1:Triangle4
+  select case(rankWorld)
+  case(0) ; iTrian=3  !> on se couple sur le triangle 3
+  case(1) ; iTrian=4  !> on se couple sur le triangle 4
+  end select
   
-  connec     (1:4)=tetra(1:4,1)
-  connecIndex(1:2)=[0,4]
-  
-  j=0
-  do iNod=1,4
-    vertices(j+1:j+3)=vertx(1:3,tetra(iNod,1))
-    j=j+3
-  enddo
+  if( 0==0 )then
+    
+    !> On degrade le maillage à l'ordre 1
+    nVert=03
+    nCell=01
+    allocate( vertices   (1:3*nVert)    )  !> sommets
+    allocate( connec     (1:3*nCell)    )  !> triangle P1
+    allocate( connecIndex(1:nCell+1)    )  !> triangle
+    connec(1:3)=[1,2,3]
+    connecIndex(1:2)=[0,3]
+    
+    j=0
+    do iNod=1,nVert
+      vertices(j+1:j+3)=vertx(1:3,trian(iNod,iTrian))
+      j=j+3
+    enddo
+    
+    if( visu )then
+      write(meshName,'("Triangle",i1,".mesh")')rankWorld
+      open(unit=100,file=trim(meshName),action='write',status='unknown')
+      write(100,'("MeshVersionFormatted 1"/)')
+      write(100,'("Dimension 3"/)')
+      write(100,'("Vertices")')
+      write(100,'(i2)')nVert
+      j=0
+      do iVert=1,nVert
+        write(100,'(3(e22.15,1x),i2)')vertices(j+1:j+3),0
+        j=j+3
+      enddo
+      write(100,'(/"Triangles")')
+      write(100,'(i1)')nCell
+      do iCell=1,nCell
+        write(100,'(*(i6,1x))')connec( connecIndex(iCell)+1:connecIndex(iCell+1) ),0
+      enddo
+      write(100,'(/"End")')
+      close(100)
+    endif
+    
+  else
+    
+    !> On conserve un maillage d'ordre 2
+    nVert=06
+    nCell=01
+    allocate( vertices   (1:3*nVert)    )  !> sommets
+    allocate( connec     (1:6*nCell)    )  !> triangle P2
+    allocate( connecIndex(1:nCell+1)    )  !> triangle
+    connec(1:6)=[1,2,3,4,5,6]
+    connecIndex(1:2)=[0,6]
+    
+    j=0
+    do iNod=1,nVert
+      vertices(j+1:j+3)=vertx(1:3,trian(iNod,iTrian))
+      j=j+3
+    enddo
+    
+    if( visu )then
+      write(meshName,'("Triangle",i1,".mesh")')rankWorld
+      open(unit=100,file=trim(meshName),action='write',status='unknown')
+      write(100,'("MeshVersionFormatted 1"/)')
+      write(100,'("Dimension 3"/)')
+      write(100,'("Vertices")')
+      write(100,'(i2)')nVert
+      j=0
+      do iVert=1,nVert
+        write(100,'(3(e22.15,1x),i2)')vertices(j:j+3),0
+        j=j+3
+      enddo
+      write(100,'(/"TrianglesP2")')
+      write(100,'(i1)')nCell
+      do iCell=1,nCell
+        write(100,'(*(i6,1x))')connec( connecIndex(iCell)+1:connecIndex(iCell+1) ),0
+      enddo
+      write(100,'(/"End")')
+      close(100)
+    endif
+    
+  endif
   
   !> Transmission des maillages à cwipi
   call cwipi_define_mesh_f(     &
@@ -555,39 +772,27 @@ program testf
   
   if( rankWorld==0 ) print'(/"Calcul des coordonnees des points de couplage")'
   
-  !> Calcul des coordonnees barycentriques
-  call nodes3Dopt_2D(ord=order,uvw=uvw,display=.false.)
-  
-  !> Visu des coordonnees barycentriques dans le triangle unité
-  if( visu )then
-    if(  0<=order .and. order< 10 )write(fileName,'("pointInterpolationP0",i1,".eps")')order
-    if( 10<=order .and. order<100 )write(fileName,'("pointInterpolationP" ,i2,".eps")')order
-   !print '("writing File: ",a)',trim(fileName)
-    node_xy(1:2,1)=[0,0]
-    node_xy(1:2,2)=[1,0]
-    node_xy(1:2,3)=[0,1]
-    call trianglePointsPlot(   &
-    &    file_name=fileName   ,&
-    &    node_xy=node_xy      ,&
-    &    node_show=0          ,&
-    &    point_num=size(uvw,2),&
-    &    point_xy=uvw         ,&
-    &    point_show=2          ) !> point_show=2, shows the points and number them
-  endif
+  !> Calcul des coordonnees barycentriques sur face trianglulaire
+  call nodes3Dopt_2D(ord=order,uvw=uvw,display=.false.) !> ordre du calcul
   
   !> Calculs des coordonnées des points de couplage
   linkVertSize=size(uvw,2)
-  allocate(linkVert(1:3*linkVertSize))
+  allocate(linkVert(1:6*linkVertSize))
+  
+  nMod=(meshOrder+1)*(meshOrder+2)/2  !> TriangleP2
+  nNod=size(uvw,2)
+  
+  !> transpose = .true. => lagrange(1:nMod,1:nNod)
+  !call lagrange2Dv(ord=meshOrder,uvwOut=uvw,lagrange=lagrange,transpose=.true.)
+  
   j=0
   do iVert=1,linkVertSize
     !> Fonction
-    lagrangeTrianP1(1)=1d0-uvw(1,iVert)-uvw(2,iVert)
-    lagrangeTrianP1(2)=    uvw(1,iVert)
-    lagrangeTrianP1(3)=                 uvw(2,iVert)
-    
-    linkVert(j+1:j+3)= lagrangeTrianP1(1)*vertx(1:3,trian(1,1)) &
-    &                 +lagrangeTrianP1(2)*vertx(1:3,trian(2,1)) &
-    &                 +lagrangeTrianP1(3)*vertx(1:3,trian(3,1))
+    call setT3MeshBasis_P2(u=uvw(1,iVert),v=uvw(2,iVert),ai=lagrangeMesh)
+    linkVert(j+1:j+3)=0d0
+    do iMod=1,nMod
+      linkVert(j+1:j+3)=linkVert(j+1:j+3)+lagrangeMesh(iMod)*vertx(1:3,trian(iMod,iTrian))
+    enddo
     j=j+3
   enddo
   deallocate(uvw)
@@ -607,7 +812,6 @@ program testf
       call mpi_barrier(commWorld,iErr)
     enddo
   endif
-  
   
   call cwipi_set_points_to_locate_f( &
   &    couplingName="testPiPj"      ,&
@@ -643,23 +847,21 @@ program testf
   stride=4 ; nNod=size(uvw,2)
   allocate(myValues(1:stride*nNod))
   
-  !> lagrange(1:Mod,1:Nod)
-  call lagrange3Dv(ord=1,uvwOut=uvw,lagrange=lagrange,transpose=.true.)
-  
+  nMod=(meshOrder+1)*(meshOrder+2)*(meshOrder+3)/6 !> Tetra P2
   j=0
   do iNod=1,nNod
-    xyz(1:3)= lagrange(1,iNod)*vertx(1:3,tetra(1,1)) &
-    &        +lagrange(2,iNod)*vertx(1:3,tetra(2,1)) &
-    &        +lagrange(3,iNod)*vertx(1:3,tetra(3,1)) &
-    &        +lagrange(4,iNod)*vertx(1:3,tetra(4,1))
-    
+    call setT4MeshBasisP2(u=uvw(1,iNod),v=uvw(2,iNod),w=uvw(3,iNod),ai=lagrangeMesh)    
+    xyz(1:3)=0d0
+    do iMod=1,nMod
+      xyz(1:3)=xyz(1:3)+lagrangeMesh(iMod)*vertx(1:3,tetra(iMod,1))
+    enddo
     myValues(j+1:j+stride)=[xyz(1),xyz(2),xyz(3),real(rankWorld,kind=8)]
     j=j+stride
   enddo
-  deallocate(uvw,lagrange)
+  deallocate(uvw)
   
   if( visu .and. rankWorld==0 )then
-    print '()'
+    print '("nMod=",i3,2x,"nNod=",i3)',nMod,nNod
     j=0
     do iNod=1,nNod
       print '("iMod=",i3," myValues         =",4(f12.5,1x),t100,"@rkw",i3)',iNod,myValues(j+1:j+stride),rankWorld

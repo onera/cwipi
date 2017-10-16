@@ -9,6 +9,9 @@ module baseSimplex2D
   interface nodes2Duv2ab ; module procedure nodes2Duv2ab_0 ; end interface
   interface nodes2Duv2ab ; module procedure nodes2Duv2ab_1 ; end interface
   
+  interface lagrange2Dv  ; module procedure lagrange2Dv_1  ; end interface
+  interface lagrange2Dv  ; module procedure lagrange2Dv_2  ; end interface
+  
   contains
   
   subroutine nodes2D(ord, uvw,display)
@@ -322,7 +325,6 @@ module baseSimplex2D
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Triangle (0,0)-(1,0)-(0,1) To Triangle (-1,-1)-(1,-1)-(1,1)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     real(8), intent(in)           :: uv(:,:)
     real(8), intent(out), pointer :: a(:),b(:)
@@ -697,11 +699,13 @@ module baseSimplex2D
     return
   end subroutine gradVandermonde2D
   
-  subroutine lagrange2Dv(ord,vand,a,b,lx,transpose)
+  subroutine lagrange2Dv_1(ord,vand,a,b,lx,transpose)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#define lagrange2Dv 0
+#define lagrange2Dv_1 0
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !! procedure moins directe mais plus performante
+    !! car a,b et vand ne sont pas recalculés à chaque appel
     ! calcule les nMod fonctions de base pour l'ensemble des nNod points (a,b)
     ! lagrange2D := Inverse[Transpose[Vand]].Psi[x]
     ! transpose = .true.  => lx(1:nMod,1:nNod)
@@ -727,8 +731,8 @@ module baseSimplex2D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#if lagrange2Dv==1
-    print '(">>> baseSimplex2D:lagrange2Dv")'
+#if lagrange2Dv_1==1
+    print '(">>> baseSimplex2D:lagrange2Dv_1")'
 #endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -743,11 +747,11 @@ module baseSimplex2D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#if lagrange2Dv==1
-    print '("    baseSimplex2D:lagrange2Dv: nMod=",i10," nNod=",i10)',nMod,nNod
-    print '("    baseSimplex2D:lagrange2Dv: size(psi) =",i10," x ",i10)',size(psi,1),size(psi,2)
-    print '("    baseSimplex2D:lagrange2Dv: size(vand)=",i10," x ",i10)',size(vand,1),size(vand,2)
-    print '("    baseSimplex2D:lagrange2Dv: step1 OK")'
+#if lagrange2Dv_1==1
+    print '("    baseSimplex2D:lagrange2Dv_1: nMod=",i10," nNod=",i10)',nMod,nNod
+    print '("    baseSimplex2D:lagrange2Dv_1: size(psi) =",i10," x ",i10)',size(psi,1),size(psi,2)
+    print '("    baseSimplex2D:lagrange2Dv_1: size(vand)=",i10," x ",i10)',size(vand,1),size(vand,2)
+    print '("    baseSimplex2D:lagrange2Dv_1: step1 OK")'
 #endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -767,8 +771,8 @@ module baseSimplex2D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#if lagrange2Dv==1
-    print '(">>> baseSimplex2D:lagrange2Dv: step2 OK")'
+#if lagrange2Dv_1==1
+    print '(">>> baseSimplex2D:lagrange2Dv_1: step2 OK")'
 #endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -795,8 +799,8 @@ module baseSimplex2D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#if lagrange2Dv==1
-    print '(">>> baseSimplex2D:lagrange2Dv: step3 OK")'
+#if lagrange2Dv_1==1
+    print '(">>> baseSimplex2D:lagrange2Dv_1: step3 OK")'
 #endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -806,17 +810,79 @@ module baseSimplex2D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#if lagrange2Dv==1
-    print '("<<< baseSimplex2D:lagrange2Dv")'
+#if lagrange2Dv_1==1
+    print '("<<< baseSimplex2D:lagrange2Dv_1")'
 #endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#undef lagrange2Dv
+#undef lagrange2Dv_1
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
-  end subroutine lagrange2Dv
+  end subroutine lagrange2Dv_1
+  
+  
+  subroutine lagrange2Dv_2(ord,uvwOut,lagrange,transpose)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !! procedure plus directe mais moins performante
+    !! car uv et vand doivent être recalculé à chaque appel
+    ! calcule les nMod fonctions de base pour l'ensemble des nNod points (a,b)
+    ! lagrange2D := Inverse[Transpose[Vand]].Psi[x]
+    ! transpose = .true.  => lx(1:nMod,1:nNod)
+    ! transpose = .false. => lx(1:nNod,1:nMod)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer         , intent(in)  :: ord
+    real(8)         , intent(in)  :: uvwOut(:,:)
+    real(8), pointer, intent(out) :: lagrange(:,:)
+    logical         , intent(in)  :: transpose
+    !>
+    integer                       :: nMod,nNod
+    real(8), pointer              :: uvw(:,:),a(:),b(:),c(:)
+    real(8), pointer              :: vand(:,:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    nMod=(ord+1)*(ord+2)/2
+    nNod=size(uvwOut,2)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( transpose )then
+      allocate(lagrange(1:nMod,1:nNod))
+    else
+      allocate(lagrange(1:nNod,1:nMod))
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( ord==1 )then
+      if( transpose )then
+        lagrange(1,1:nNod)=1d0-uvwOut(1,1:nNod)-uvwOut(2,1:nNod)
+        lagrange(2,1:nNod)=    uvwOut(1,1:nNod)
+        lagrange(3,1:nNod)=                     uvwOut(2,1:nNod)
+      else
+        lagrange(1:nNod,1)=1d0-uvwOut(1,1:nNod)-uvwOut(2,1:nNod)
+        lagrange(1:nNod,2)=    uvwOut(1,1:nNod)
+        lagrange(1:nNod,3)=                     uvwOut(2,1:nNod)
+      endif
+    else
+      !> Calcul de Vand(:,:)
+      call nodes2D    (ord=ord,uvw=uvw,display=.false.)
+      call nodes2Dopt (ord=ord,uvw=uvw,display=.false.)
+      call nodes2Duv2ab(uv=uvw,a=a,b=b,display=.false.)
+      !> calcul de la matrice de Vandermonde
+      call vandermonde2D(ord=ord,a=a,b=b,vand=vand)
+      !> Calcul des polonômes de Lagrange d'ordre ord en uvwOut
+      call nodes2Duv2ab(uv=uvwOut,a=a,b=b,display=.false.)
+      call lagrange2Dv_1(ord=ord,vand=vand,a=a,b=b,lx=lagrange,transpose=.true.)  !> lagrange= Inverse[Transpose[Vand]].Psi[xyzOut] lxOut(nPt,np)
+      !> Nettoyage memoire
+      deallocate(uvw,a,b,vand)
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        
+    return
+  end subroutine lagrange2Dv_2
+  
   
   
   subroutine readXYout2D(xyout)
