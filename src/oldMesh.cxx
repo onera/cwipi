@@ -44,7 +44,8 @@ namespace cwipi {
              const int nElts,
              double* coords,
              int *eltConnectivityIndex,
-             int *eltConnectivity
+             int *eltConnectivity,
+             int order
              )
     : _localComm(localComm),
       _nDim(nDim), _nVertex(nVertex), _nElts(nElts), _nPolyhedra(0), _coords(coords),

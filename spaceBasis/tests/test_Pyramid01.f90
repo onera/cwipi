@@ -61,8 +61,15 @@ subroutine pyramTestQuadrature()
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Test des quadratures
     s=sum([(f(i)*w(i), i=1,n)])
-    if(                 power<10  )print '("\int_0^1 \int_{-(1-z)}^{+(1-z)} \int_{-(1-z)}^{+(1-z)} (x+1)^0",i1," (y+1)^0",i1," z^0",i1," dx dy dz = ",e22.15)',power,power,power,s
-    if( 10<=power .and. power<100 )print '("\int_0^1 \int_{-(1-z)}^{+(1-z)} \int_{-(1-z)}^{+(1-z)} (x+1)^" ,i2," (y+1)^" ,i2," z^" ,i2," dx dy dz = ",e22.15)',power,power,power,s
+    if(                 power<10  ) then
+       print '("\int_0^1 \int_{-(1-z)}^{+(1-z)} \int_{-(1-z)}^{+(1-z)} (x+1)^0",i1," (y+1)^0",i1," z^0",i1," dx dy dz = ",e22.15)'&
+              ,power,power,power,s
+    endif
+    
+    if( 10<=power .and. power<100 ) then
+       print '("\int_0^1 \int_{-(1-z)}^{+(1-z)} \int_{-(1-z)}^{+(1-z)} (x+1)^" ,i2," (y+1)^" ,i2," z^" ,i2," dx dy dz = ",e22.15)',&
+              power,power,power,s
+    endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

@@ -1000,6 +1000,29 @@ void cwipi_define_mesh(const char *coupling_name,
                       connectivity);
 }
 
+void cwipi_define_high_order_mesh(const char *coupling_name,
+                                  const int n_vertex,
+                                  const int n_element,
+                                  const int order,
+                                  double coordinates[],
+                                  int connectivity_index[],
+                                  int connectivity[])
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.defineMesh(n_vertex,
+                      n_element,
+                      coordinates,
+                      connectivity_index,
+                      connectivity,
+                      order);
+}
+
 
 
 void cwipi_shared_fvmc_nodal(const char *coupling_name,

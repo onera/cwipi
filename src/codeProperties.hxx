@@ -1683,7 +1683,7 @@ namespace cwipi {
       MPI_Win  *winTypeParamIdxName = NULL;
       MPI_Win  *winTypeParamName = NULL;
 
-      int nTypeParam;
+      int nTypeParam = -1;
       int  *winTypeParamIdxValueData = NULL;
       T *winTypeParamValueData = NULL;
       int  *winTypeParamIdxNameData = NULL;
