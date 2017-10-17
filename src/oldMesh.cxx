@@ -61,6 +61,13 @@ namespace cwipi {
 
   {
 
+    const int n_vtx_tria = (order+1)*(order+2)/2; 
+    const int n_vtx_quad = (order+1)*(order+1); 
+    const int n_vtx_tetra = (order+1)*(order+2)*(order+3)/6; 
+    const int n_vtx_hexa = (order+1)*(order+1)*(order+1); 
+    const int n_vtx_prism = (order+1)*(order+1)*(order+2)/2; 
+    const int n_vtx_pyramid = (order+1)*(order+2)*(2*order+3)/6;
+
     MPI_Comm oldFVMComm = fvmc_parall_get_mpi_comm();
     if (oldFVMComm != MPI_COMM_NULL)
       MPI_Barrier(oldFVMComm);
@@ -91,34 +98,39 @@ namespace cwipi {
       if (_nDim == 2) {
         for (int i = 0; i < _nElts; i++) {
           int nCurrentEltVertex = eltConnectivityIndex[i+1] - eltConnectivityIndex[i];
-          if (nCurrentEltVertex == 3) {
+          if (nCurrentEltVertex == n_vtx_tria) {
             if (nbQuadrangle != 0 ||
                 nbPoly       != 0)
               sorted = false;
             ++nbTriangle;
           }
 
-          else if (nCurrentEltVertex == 4) {
+          else if (nCurrentEltVertex == n_vtx_quad) {
             if (nbPoly != 0)
               sorted = false;
             ++nbQuadrangle;
           }
 
-          else if (nCurrentEltVertex > 4) {
-            ++nbPoly;
+          else if (nCurrentEltVertex > n_vtx_quad) {
+            if (order == 1) {
+              ++nbPoly;
+            }
+            else {
+              bftc_error(__FILE__, __LINE__, 0, "order > 1 for a polygon is not available\n");
+            }
           }
 
           else
             bftc_error(__FILE__, __LINE__, 0, "Erreur dans l'index de connectivite\n");
-          
+
         }
       }
 
       else if (_nDim == 3) {
-
+        
         for (int i = 0; i < _nElts; i++) {
           int nCurrentEltVertex = eltConnectivityIndex[i+1] - eltConnectivityIndex[i];
-          if (nCurrentEltVertex == 4) {
+          if (nCurrentEltVertex == n_vtx_tetra) {
             if (nbPyramid  != 0  ||
                 nbPrism    != 0  ||
                 nbHexaedra != 0  ||
@@ -127,7 +139,7 @@ namespace cwipi {
             ++nbTetra;
           }
 
-          else if (nCurrentEltVertex == 5) {
+          else if (nCurrentEltVertex == n_vtx_pyramid) {
             if (nbPrism    != 0  ||
                 nbHexaedra != 0  ||
                 nbPoly     != 0)
@@ -135,27 +147,30 @@ namespace cwipi {
             ++nbPyramid;
           }
 
-          else if (nCurrentEltVertex == 6) {
+          else if (nCurrentEltVertex == n_vtx_prism) {
             if (nbHexaedra != 0  ||
                 nbPoly     != 0)
               sorted = false;
             ++nbPrism;
           }
 
-          else if (nCurrentEltVertex == 8) {
+          else if (nCurrentEltVertex == n_vtx_hexa) {
             if (nbPoly     != 0)
               sorted = false;
             ++nbHexaedra;
           }
 
-          else if (nCurrentEltVertex > 8) {
-            bftc_error(__FILE__, __LINE__, 0, "Erreur dans l'index de connectivite\n");
-            ++nbPoly;
-          }
+//          else if (nCurrentEltVertex > 8) {
+//            bftc_error(__FILE__, __LINE__, 0, "Erreur dans l'index de connectivite\n");
+//            ++nbPoly;
+//          }
 
           else
             bftc_error(__FILE__, __LINE__, 0, "Erreur dans l'index de connectivite\n");
         }
+      }
+      else {
+        bftc_error(__FILE__, __LINE__, 0, "order > 1 : not implemented yet\n");          
       }
     }
 
@@ -200,15 +215,16 @@ namespace cwipi {
 
     case 1 :
 
-
       fvmc_nodal_append_shared(_fvmNodal,
                               _nElts,
                               FVMC_EDGE,
+                              order,
                               NULL,
                               NULL,
                               NULL,
                               _eltConnectivity,
                               NULL);
+      
       break;
 
     case 2 :
@@ -228,11 +244,12 @@ namespace cwipi {
       MPI_Allreduce (&nbPoly, &nPolySum,
                      1, MPI_INT, MPI_SUM,
                      localComm);
-
+      
       if (nbTriangle != 0)
         fvmc_nodal_append_shared(_fvmNodal,
                                 nbTriangle,
                                 FVMC_FACE_TRIA,
+                                order,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -243,6 +260,7 @@ namespace cwipi {
         fvmc_nodal_append_shared(_fvmNodal,
                                 0,
                                 FVMC_FACE_TRIA,
+                                order,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -253,6 +271,7 @@ namespace cwipi {
         fvmc_nodal_append_shared(_fvmNodal,
                                 nbQuadrangle,
                                 FVMC_FACE_QUAD,
+                                order,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -264,6 +283,7 @@ namespace cwipi {
         fvmc_nodal_append_shared(_fvmNodal,
                                 0,
                                 FVMC_FACE_QUAD,
+                                order,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -279,6 +299,7 @@ namespace cwipi {
         fvmc_nodal_append_shared(_fvmNodal,
                                 nbPoly,
                                 FVMC_FACE_POLY,
+                                order,
                                 NULL,
                                 NULL,
                                 _polygonIndex,
@@ -293,12 +314,14 @@ namespace cwipi {
         fvmc_nodal_append_shared(_fvmNodal,
                                 0,
                                 FVMC_FACE_POLY,
+                                order,
                                 NULL,
                                 NULL,
                                 NULL,
                                 NULL,
                                 NULL);
       }
+      
     break;
 
     case 3 :
@@ -327,6 +350,7 @@ namespace cwipi {
         fvmc_nodal_append_shared(_fvmNodal,
                                 nbTetra,
                                 FVMC_CELL_TETRA,
+                                order,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -337,6 +361,7 @@ namespace cwipi {
         fvmc_nodal_append_shared(_fvmNodal,
                                 0,
                                 FVMC_CELL_TETRA,
+                                order,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -347,6 +372,7 @@ namespace cwipi {
         fvmc_nodal_append_shared(_fvmNodal,
                                 nbPyramid,
                                 FVMC_CELL_PYRAM,
+                                order,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -357,6 +383,7 @@ namespace cwipi {
         fvmc_nodal_append_shared(_fvmNodal,
                                 0,
                                 FVMC_CELL_PYRAM,
+                                order,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -367,6 +394,7 @@ namespace cwipi {
         fvmc_nodal_append_shared(_fvmNodal,
                                 nbPrism,
                                 FVMC_CELL_PRISM,
+                                order,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -377,6 +405,7 @@ namespace cwipi {
         fvmc_nodal_append_shared(_fvmNodal,
                                 0,
                                 FVMC_CELL_PRISM,
+                                order,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -387,6 +416,7 @@ namespace cwipi {
         fvmc_nodal_append_shared(_fvmNodal,
                                 nbHexaedra,
                                 FVMC_CELL_HEXA,
+                                order,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -397,6 +427,7 @@ namespace cwipi {
         fvmc_nodal_append_shared(_fvmNodal,
                                 0,
                                 FVMC_CELL_HEXA,
+                                order,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -528,6 +559,9 @@ namespace cwipi {
       _characteristicLength(NULL),
       _isDegenerated(NULL)
   {
+
+    int order = 1;
+    
     //
     // Copy
     
@@ -695,6 +729,7 @@ namespace cwipi {
       fvmc_nodal_append_shared(_fvmNodal,
                               _nElts,
                               FVMC_EDGE,
+                              order,
                               NULL,
                               NULL,
                               NULL,
@@ -724,6 +759,7 @@ namespace cwipi {
         fvmc_nodal_append_shared(_fvmNodal,
                                 nbTriangle,
                                 FVMC_FACE_TRIA,
+                              order,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -734,6 +770,7 @@ namespace cwipi {
         fvmc_nodal_append_shared(_fvmNodal,
                                 0,
                                 FVMC_FACE_TRIA,
+                              order,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -744,6 +781,7 @@ namespace cwipi {
         fvmc_nodal_append_shared(_fvmNodal,
                                 nbQuadrangle,
                                 FVMC_FACE_QUAD,
+                              order,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -755,6 +793,7 @@ namespace cwipi {
         fvmc_nodal_append_shared(_fvmNodal,
                                 0,
                                 FVMC_FACE_QUAD,
+                              order,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -770,6 +809,7 @@ namespace cwipi {
         fvmc_nodal_append_shared(_fvmNodal,
                                 nbPoly,
                                 FVMC_FACE_POLY,
+                              order,
                                 NULL,
                                 NULL,
                                 _polygonIndex,
@@ -784,6 +824,7 @@ namespace cwipi {
         fvmc_nodal_append_shared(_fvmNodal,
                                 0,
                                 FVMC_FACE_POLY,
+                              order,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -818,6 +859,7 @@ namespace cwipi {
         fvmc_nodal_append_shared(_fvmNodal,
                                 nbTetra,
                                 FVMC_CELL_TETRA,
+                              order,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -828,6 +870,7 @@ namespace cwipi {
         fvmc_nodal_append_shared(_fvmNodal,
                                 0,
                                 FVMC_CELL_TETRA,
+                              order,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -838,6 +881,7 @@ namespace cwipi {
         fvmc_nodal_append_shared(_fvmNodal,
                                 nbPyramid,
                                 FVMC_CELL_PYRAM,
+                              order,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -848,6 +892,7 @@ namespace cwipi {
         fvmc_nodal_append_shared(_fvmNodal,
                                 0,
                                 FVMC_CELL_PYRAM,
+                              order,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -858,6 +903,7 @@ namespace cwipi {
         fvmc_nodal_append_shared(_fvmNodal,
                                 nbPrism,
                                 FVMC_CELL_PRISM,
+                              order,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -868,6 +914,7 @@ namespace cwipi {
         fvmc_nodal_append_shared(_fvmNodal,
                                 0,
                                 FVMC_CELL_PRISM,
+                              order,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -878,6 +925,7 @@ namespace cwipi {
         fvmc_nodal_append_shared(_fvmNodal,
                                 nbHexaedra,
                                 FVMC_CELL_HEXA,
+                              order,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -888,6 +936,7 @@ namespace cwipi {
         fvmc_nodal_append_shared(_fvmNodal,
                                 0,
                                 FVMC_CELL_HEXA,
+                              order,
                                 NULL,
                                 NULL,
                                 NULL,
@@ -1001,6 +1050,9 @@ namespace cwipi {
                           int *faceConnectivityIndex,
                           int *faceConnectivity)
   {
+
+    int order = 1;
+
     MPI_Comm oldFVMComm = fvmc_parall_get_mpi_comm();
     if (oldFVMComm != MPI_COMM_NULL)
       MPI_Barrier(oldFVMComm);
@@ -1021,8 +1073,9 @@ namespace cwipi {
     if (nElt > 0)
 
       fvmc_nodal_append_shared(_fvmNodal,
-                              nElt,
+                              nElt, 
                               FVMC_CELL_POLY,
+                              order,
                               faceIndex,
                               cellToFaceConnectivity,
                               faceConnectivityIndex,
@@ -1035,6 +1088,7 @@ namespace cwipi {
       fvmc_nodal_append_shared(_fvmNodal,
                                  0,
                                  FVMC_CELL_POLY,
+                                 order,
                                  NULL,
                                  NULL,
                                  NULL,
