@@ -1373,7 +1373,8 @@ fvmc_nodal_from_desc_add_cells(fvmc_nodal_t        *this_nodal,
        cell_type_i <= cell_type_i_f;
        cell_type_i++) {
     if (n_g_elements_type[cell_type_i] > 0) {
-      sections[cell_type_i] = fvmc_nodal_section_create((fvmc_element_t) cell_type_i);
+      int order = 1;
+      sections[cell_type_i] = fvmc_nodal_section_create((fvmc_element_t) cell_type_i, order);
       sections[cell_type_i]->n_elements = n_elements_type[cell_type_i];
       this_nodal->n_cells += n_elements_type[cell_type_i];
     }
@@ -1627,7 +1628,8 @@ fvmc_nodal_from_desc_add_faces(fvmc_nodal_t        *this_nodal,
        face_type_i <= face_type_i_f;
        face_type_i++) {
     if (n_g_elements_type[face_type_i] > 0) {
-      sections[face_type_i] = fvmc_nodal_section_create((fvmc_element_t) face_type_i);
+      int order = 1;
+      sections[face_type_i] = fvmc_nodal_section_create((fvmc_element_t) face_type_i, order);
       sections[face_type_i]->n_elements = n_elements_type[face_type_i];
       this_nodal->n_faces += n_elements_type[face_type_i];
     }

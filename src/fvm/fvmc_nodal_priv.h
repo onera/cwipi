@@ -67,7 +67,8 @@ typedef struct _fvmc_nodal_section_t {
   fvmc_lnum_t  n_elements;          /* Number of elements */
 
   fvmc_element_t  type;             /* Element types */
-
+  int             order;            /* Element order */
+  
   /* Connectivity */
   /*--------------*/
 
@@ -217,7 +218,7 @@ struct _fvmc_nodal_t {
  *----------------------------------------------------------------------------*/
 
 fvmc_nodal_section_t *
-fvmc_nodal_section_create(const fvmc_element_t  type);
+fvmc_nodal_section_create(const fvmc_element_t  type, int order);
 
 /*----------------------------------------------------------------------------
  * Destruction of a nodal mesh section representation structure.

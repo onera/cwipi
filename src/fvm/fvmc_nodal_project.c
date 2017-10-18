@@ -120,10 +120,16 @@ _faces_to_edges(int                         dim,
 
   n_elements = base_section->n_elements;
 
+  if (base_section->order > 1) {
+    bftc_error(__FILE__, __LINE__, 0, "element order > 1 is not tanking into account\n");
+  }
+  
   /* Create new section */
   /*--------------------*/
 
-  ret_section = fvmc_nodal_section_create(FVMC_EDGE);
+  int order = 1;
+  
+  ret_section = fvmc_nodal_section_create(FVMC_EDGE, order);
 
   ret_section->n_elements = base_section->n_elements;
   ret_section->stride = 2;

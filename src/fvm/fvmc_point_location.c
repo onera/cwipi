@@ -4306,8 +4306,8 @@ fvmc_point_dist_closest_polygon(const int            dim,
                                 fvmc_lnum_t          location[],
                                 float                distance[])
 {
-
-  fvmc_nodal_section_t* section = fvmc_nodal_section_create(FVMC_FACE_POLY);
+ int order = 1;
+  fvmc_nodal_section_t* section = fvmc_nodal_section_create(FVMC_FACE_POLY, order);
   section->entity_dim        = dim;
   section->n_elements        = n_poly;
   section->type              = FVMC_FACE_POLY;

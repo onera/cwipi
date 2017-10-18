@@ -108,7 +108,7 @@ _transfer_to_section(fvmc_lnum_t      n_elements,
 {
   fvmc_nodal_section_t  *this_section = NULL;
 
-  this_section = fvmc_nodal_section_create(type);
+  this_section = fvmc_nodal_section_create(type, order);
 
   this_section->n_elements = n_elements;
 
@@ -200,7 +200,7 @@ _map_to_section(fvmc_lnum_t      n_elements,
 {
   fvmc_nodal_section_t  *this_section = NULL;
 
-  this_section = fvmc_nodal_section_create(type);
+  this_section = fvmc_nodal_section_create(type, order);
 
   this_section->n_elements = n_elements;
 
