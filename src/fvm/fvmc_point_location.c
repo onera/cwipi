@@ -1841,7 +1841,7 @@ _locate_on_triangles_3d(fvmc_lnum_t           elt_num,
       double pcoords[3];
       double weights[3];
 
-      fvmc_triangle_evaluate_Position (x, coords, closestPoint,
+      fvmc_triangle_evaluate_Position (x, coords, order, closestPoint,
                                        pcoords, &dist2, weights);
 
       if (dist2 < epsilon2 && (dist2 < vertex_dist2 || distance[i] < 0.0)) {
@@ -4743,7 +4743,8 @@ int fvmc_parameterize_polygon(int numPts,
 }
 
 
-int  fvmc_triangle_evaluate_Position (double x[3], double *pts, double* closestPoint,
+int  fvmc_triangle_evaluate_Position (double x[3], double *pts, int order, 
+                                      double* closestPoint,
                                       double pcoords[3],
                                       double *dist2, double *weights)
 {
@@ -4757,6 +4758,9 @@ int  fvmc_triangle_evaluate_Position (double x[3], double *pts, double* closestP
   double dist2Point, dist2Line1, dist2Line2;
   double *closest, closestPoint1[3], closestPoint2[3], cp[3];
 
+  
+  assert (order == 1);
+  
   pcoords[2] = 0.0;
 
   // Get normal for triangle, only the normal direction is needed, i.e. the
