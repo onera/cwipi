@@ -1641,6 +1641,7 @@ _locate_on_edge_3d(fvmc_lnum_t           elt_num,
 
 static void
 _locate_on_edge_2d(fvmc_lnum_t           elt_num,
+                   int order,
                    const fvmc_lnum_t     element_vertex_num[],
                    const fvmc_lnum_t    *parent_vertex_num,
                    const fvmc_coord_t    vertex_coords[],
@@ -1757,6 +1758,7 @@ _locate_on_edge_2d(fvmc_lnum_t           elt_num,
 
 static void
 _locate_on_triangles_3d(fvmc_lnum_t           elt_num,
+                        int                   order,
                         int                   n_triangles,
                         const fvmc_lnum_t     triangle_vertices[],
                         const fvmc_lnum_t    *parent_vertex_num,
@@ -1882,6 +1884,7 @@ _locate_on_triangles_3d(fvmc_lnum_t           elt_num,
 
 static void
 _locate_on_triangles_2d(fvmc_lnum_t           elt_num,
+                        int                   order,  
                         int                  n_triangles,
                         const fvmc_lnum_t     triangle_vertices[],
                         const fvmc_lnum_t    *parent_vertex_num,
@@ -2003,6 +2006,7 @@ _locate_on_triangles_2d(fvmc_lnum_t           elt_num,
 
 static void
 _locate_in_tetra(fvmc_lnum_t         elt_num,
+                 int                   order,  
                  fvmc_coord_t        tetra_coords[4][3],
                  const fvmc_coord_t  point_coords[],
                  fvmc_lnum_t         n_points_in_extents,
@@ -2421,6 +2425,7 @@ _locate_in_cell_3d(fvmc_lnum_t          elt_num,
   if (elt_type == FVMC_CELL_TETRA)
 
     _locate_in_tetra(elt_num,
+                     order,
                      _vertex_coords,
                      point_coords,
                      n_points_in_extents,
@@ -2487,7 +2492,7 @@ _locate_in_cell_3d(fvmc_lnum_t          elt_num,
           
           else {
             
-            _compute_shapef_3d(elt_type, uvw, shapef, NULL);
+            _compute_shapef_3d(elt_type, order, uvw, shapef, NULL);
             
             for (j = 0; j < n_vertices; j++){
               
@@ -3183,8 +3188,9 @@ _polygons_section_closest_3d(const fvmc_nodal_section_t   *this_section,
     }
 
     /* Locate on triangulated polygon */
-    
+    const int order = 1;
     _locate_on_triangles_3d(elt_num,
+                            order,
                             n_triangles,
                             triangle_vertices,
                             parent_vertex_num,
@@ -3356,6 +3362,7 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
         }
 
         _locate_on_triangles_3d(elt_num,
+                                this_section->order,
                                 n_triangles,
                                 triangle_vertices,
                                 parent_vertex_num,
@@ -3479,6 +3486,7 @@ _nodal_section_closest_3d(const fvmc_nodal_section_t  *this_section,
         }
 
         _locate_on_triangles_3d(elt_num,
+                                this_section->order,
                                 n_triangles,
                                 triangle_vertices,
                                 parent_vertex_num,
@@ -3702,6 +3710,7 @@ _nodal_section_locate_2d(const fvmc_nodal_section_t  *this_section,
     if (this_section->entity_dim == 2)
 
       _locate_on_triangles_2d(elt_num,
+                              this_section->order,
                               n_triangles,
                               triangle_vertices,
                               parent_vertex_num,
@@ -3718,6 +3727,7 @@ _nodal_section_locate_2d(const fvmc_nodal_section_t  *this_section,
       assert(this_section->type == FVMC_EDGE);
 
       _locate_on_edge_2d(elt_num,
+                         this_section->order,
                          this_section->vertex_num + i*this_section->stride,
                          parent_vertex_num,
                          vertex_coords,
@@ -3801,6 +3811,7 @@ _nodal_section_closest_2d(const fvmc_nodal_section_t  *this_section,
     /* Locate on edge */
 
     _locate_on_edge_2d(elt_num,
+                       this_section->order,
                        this_section->vertex_num + i*this_section->stride,
                        parent_vertex_num,
                        vertex_coords,
