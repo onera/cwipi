@@ -73,15 +73,15 @@ extern "C" {
 
 /* Number of vertices associated with each "nodal" element type */
 
-const int  fvmc_nodal_n_vertices_element[] = {2,   /* Edge */
-                                             3,   /* Triangle */
-                                             4,   /* Quadrangle */
-                                             0,   /* Simple polygon */
-                                             4,   /* Tetrahedron */
-                                             5,   /* Pyramid */
-                                             6,   /* Prism */
-                                             8,   /* Hexahedron */
-                                             0};  /* Simple polyhedron */
+//const int  fvmc_nodal_n_vertices_element[] = {2,   /* Edge */
+//                                             3,   /* Triangle */
+//                                             4,   /* Quadrangle */
+//                                             0,   /* Simple polygon */
+//                                             4,   /* Tetrahedron */
+//                                             5,   /* Pyramid */
+//                                             6,   /* Prism */
+//                                             8,   /* Hexahedron */
+//                                             0};  /* Simple polyhedron */
 
 /* Number of vertices associated with each "nodal" element type */
 
@@ -98,52 +98,6 @@ static int  fvmc_nodal_n_edges_element[] = {1,   /* Edge */
 /*============================================================================
  * Private function definitions
  *============================================================================*/
-
-/*----------------------------------------------------------------------------
- * Get number of vertices.
- *
- * returns:
- *   Number of vertices
- *----------------------------------------------------------------------------*/
-
-static int
-_fvmc_nodal_n_vertices_element (fvmc_element_t type, int order)
-{
- int n_vtx = 0;
- 
- switch(type) {
- case FVMC_EDGE:               /* Edge */
-   n_vtx = (order+1);
-   break;
- case FVMC_FACE_TRIA:          /* Triangle */
-   n_vtx = (order+1)*(order+2)/2; 
-   break;
- case FVMC_FACE_QUAD:          /* Quadrangle */
-   n_vtx = (order+1)*(order+1); 
-   break;
- case FVMC_FACE_POLY:          /* Simple Polygon */
-   n_vtx = 0;
-   break;
- case FVMC_CELL_TETRA:         /* Tetrahedron */
-   n_vtx = (order+1)*(order+2)*(order+3)/6; 
-   break;
- case FVMC_CELL_PYRAM:         /* Pyramid */
-   n_vtx = (order+1)*(order+2)*(2*order+3)/6;
-   break;
- case FVMC_CELL_PRISM:         /* Prism (pentahedron) */
-   n_vtx = (order+1)*(order+1)*(order+2)/2; 
-   break;
- case FVMC_CELL_HEXA:         /* Hexahedron (brick) */
-   n_vtx = (order+1)*(order+1)*(order+1); 
-   break;
- case FVMC_CELL_POLY:          /* Simple Polyhedron (convex or quasi-convex) */
-   n_vtx = 0;
-   break;
-
- }
-
- return n_vtx;
-}
 
 
 /*----------------------------------------------------------------------------
@@ -681,6 +635,53 @@ _fvmc_nodal_section_dump(const fvmc_nodal_section_t  *this_section)
  * Semi-private function definitions (prototypes in fvmc_nodal_priv.h)
  *============================================================================*/
 
+
+/*----------------------------------------------------------------------------
+ * Get number of vertices.
+ *
+ * returns:
+ *   Number of vertices
+ *----------------------------------------------------------------------------*/
+
+int
+fvmc_nodal_n_vertices_element (fvmc_element_t type, int order)
+{
+ int n_vtx = 0;
+ 
+ switch(type) {
+ case FVMC_EDGE:               /* Edge */
+   n_vtx = (order+1);
+   break;
+ case FVMC_FACE_TRIA:          /* Triangle */
+   n_vtx = (order+1)*(order+2)/2; 
+   break;
+ case FVMC_FACE_QUAD:          /* Quadrangle */
+   n_vtx = (order+1)*(order+1); 
+   break;
+ case FVMC_FACE_POLY:          /* Simple Polygon */
+   n_vtx = 0;
+   break;
+ case FVMC_CELL_TETRA:         /* Tetrahedron */
+   n_vtx = (order+1)*(order+2)*(order+3)/6; 
+   break;
+ case FVMC_CELL_PYRAM:         /* Pyramid */
+   n_vtx = (order+1)*(order+2)*(2*order+3)/6;
+   break;
+ case FVMC_CELL_PRISM:         /* Prism (pentahedron) */
+   n_vtx = (order+1)*(order+1)*(order+2)/2; 
+   break;
+ case FVMC_CELL_HEXA:         /* Hexahedron (brick) */
+   n_vtx = (order+1)*(order+1)*(order+1); 
+   break;
+ case FVMC_CELL_POLY:          /* Simple Polyhedron (convex or quasi-convex) */
+   n_vtx = 0;
+   break;
+
+ }
+
+ return n_vtx;
+}
+
 /*----------------------------------------------------------------------------
  * Creation of a nodal mesh section representation structure.
  *
@@ -716,7 +717,7 @@ fvmc_nodal_section_create(const fvmc_element_t  type, int order)
   this_section->connectivity_size = 0;
 
   if (type != FVMC_FACE_POLY && type != FVMC_CELL_POLY)
-    this_section->stride = fvmc_nodal_n_vertices_element[type];
+    this_section->stride = fvmc_nodal_n_vertices_element(type, order);
   else
     this_section->stride = 0;
 

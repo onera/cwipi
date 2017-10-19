@@ -372,7 +372,7 @@ _triangulate_section_polygons(int                         dim,
       int order = 1;
       _section = fvmc_nodal_section_create(element_type[type_id], order);
       _section->n_elements = n_elements_tot[type_id];
-      _section->stride = fvmc_nodal_n_vertices_element[element_type[type_id]];
+      _section->stride = fvmc_nodal_n_vertices_element((fvmc_element_t)element_type[type_id], _section->order);
       _section->connectivity_size =   _section->stride
                                     * _section->n_elements;
       BFTC_MALLOC(_section->_vertex_num,

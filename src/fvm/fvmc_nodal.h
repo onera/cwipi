@@ -62,13 +62,12 @@ typedef struct _fvmc_nodal_t fvmc_nodal_t;
  * Static global variables
  *============================================================================*/
 
-/* Number of vertices associated with each "nodal" element type */
-
-extern const int  fvmc_nodal_n_vertices_element[];
 
 /*=============================================================================
  * Public function prototypes
  *============================================================================*/
+int
+fvmc_nodal_n_vertices_element (fvmc_element_t type, int order);
 
 /*----------------------------------------------------------------------------
  * Creation of a nodal mesh representation structure.

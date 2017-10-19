@@ -444,7 +444,7 @@ fvmc_writer_def_nodal_buf_size(const fvmc_nodal_t  *this_nodal,
                                           NULL,
                                           &n_sub_elements_max);
 
-          stride = fvmc_nodal_n_vertices_element[sub_type];
+          stride = fvmc_nodal_n_vertices_element(sub_type, 1);
 
 
           connect_size = FVMC_MAX(connect_size,

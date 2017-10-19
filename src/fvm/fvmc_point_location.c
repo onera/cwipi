@@ -2157,6 +2157,7 @@ _inverse_3x3(double  m[3][3],
 
 static void
 _compute_shapef_3d(fvmc_element_t  elt_type,
+                   int order,
                    const double   uvw[3],
                    double         shapef[8],
                    double         deriv[8][3])
@@ -2288,6 +2289,7 @@ _compute_shapef_3d(fvmc_element_t  elt_type,
 *----------------------------------------------------------------------------*/
 static int
 _compute_uvw(fvmc_element_t       elt_type,
+             int                  order,   
              const fvmc_coord_t   point_coords[],
              double              vertex_coords[8][3],
              double              tolerance,
@@ -2299,7 +2301,7 @@ _compute_uvw(fvmc_element_t       elt_type,
   double dist;
   double a[3][3], b[3], x[3], shapef[8], dw[8][3];
 
-  n_elt_vertices = fvmc_nodal_n_vertices_element[elt_type];
+  n_elt_vertices = fvmc_nodal_n_vertices_element(elt_type, order);
 
   assert(   elt_type == FVMC_CELL_HEXA
          || elt_type == FVMC_CELL_PRISM
@@ -2312,7 +2314,7 @@ _compute_uvw(fvmc_element_t       elt_type,
 
   for (iter = 0; iter < max_iter; iter++) {
 
-    _compute_shapef_3d(elt_type, uvw, shapef, dw);
+    _compute_shapef_3d(elt_type, order, uvw, shapef, dw);
 
     b[0] = - point_coords[0];
     b[1] = - point_coords[1];
@@ -2380,6 +2382,7 @@ _compute_uvw(fvmc_element_t       elt_type,
 static void
 _locate_in_cell_3d(fvmc_lnum_t          elt_num,
                    fvmc_element_t       elt_type,
+                   int order,
                    const fvmc_lnum_t    element_vertex_num[],
                    const fvmc_lnum_t   *parent_vertex_num,
                    const fvmc_coord_t   vertex_coords[],
@@ -2397,7 +2400,7 @@ _locate_in_cell_3d(fvmc_lnum_t          elt_num,
   double uvw[3], dist, shapef[8],max_dist;
   double  _vertex_coords[8][3];
 
-  n_vertices = fvmc_nodal_n_vertices_element[elt_type];
+  n_vertices = fvmc_nodal_n_vertices_element(elt_type, order);
 
   /* Initialize local element coordinates copy */
 
@@ -2457,6 +2460,7 @@ _locate_in_cell_3d(fvmc_lnum_t          elt_num,
       if (!onVtx) {
         
         if (_compute_uvw(elt_type,
+                         order,
                          point_coords + 3*i,
                          _vertex_coords,
                          tolerance,
@@ -3317,6 +3321,7 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
 
         _locate_in_cell_3d(elt_num,
                            this_section->type,
+                           this_section->order,
                            this_section->vertex_num + i*this_section->stride,
                            parent_vertex_num,
                            vertex_coords,
