@@ -241,15 +241,15 @@ module baseSimplex1D
     real(8), intent(inout), pointer :: lx  (:,:)
     logical, intent(in)             :: transpose
     !---
-    integer                        :: i,j,k,nPt
-    real(8)                        :: gamma(0:ord+1)
-    integer                        :: iOrd,np
-    real(8), pointer               :: psi(:,:)
-    real(8), pointer               :: mat(:,:)
-    integer                        :: lWork
-    integer, pointer               :: ipiv(:)
-    real(8), pointer               :: work(:)
-    integer                        :: iErr
+    integer                         :: i,j,k,nPt
+    real(8)                         :: gamma(0:ord+1)
+    integer                         :: iOrd,np
+    real(8), pointer                :: psi(:,:)
+    real(8), pointer                :: mat(:,:)
+    integer                         :: lWork
+    integer, pointer                :: ipiv(:)
+    real(8), pointer                :: work(:)
+    integer                         :: iErr
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
