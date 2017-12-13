@@ -129,29 +129,12 @@ subroutine  userInterpolation                        ( &
   endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Calcul des coordonnées barycentriques dans le triangle P2
-  print '()'
-  block
-    
-    allocate(uvwOut(1:3,1:nDistantPoint))
-    iBary=0
-    do iDistantPoint=1,nDistantPoint
-      uvwOut(1:3,iDistantPoint)=distantPointsBarycentricCoordinates(iBary+2:iBary+4) ! <= Attention 2:4
-      iBary=iBary+4
-    enddo
-    
-    
-    
-    
-  end block
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Calcul des coordonnées barycentriques dans la cellule mitoyenne
   if( visu  .and. rankWorld==0 )then
     print '()'
-    block 
+    block
       real(8) :: det1,mat1(3,3)
       real(8) :: det2,mat2(3,3)
       real(8) :: bi(1:3)

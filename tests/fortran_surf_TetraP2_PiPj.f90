@@ -215,7 +215,7 @@ subroutine  userInterpolation                        ( &
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   if( visu .and. rankWorld==0 )then
-    print '(/"Mon maillage surfasique de couplage")'
+    print '(/"Mon maillage surfacique de couplage")'
     iVert=0
     do i=1,nLocalVertex
       print '("localCoordinates (",i3,")=",3(f12.5,1x))',i,localCoordinates(iVert+1:iVert+3)
@@ -271,7 +271,7 @@ subroutine  userInterpolation                        ( &
         
         !> Avec maillage dégradé ordre 1
         nMod=4                               !> TriangleP1
-        !> Avec maillage dégradé ordre 2
+        !> Avec maillage ordre 2
         !nMod=(meshOrder+1)*(meshOrder+2)/2  !> TriangleP2
         
         call setT3MeshBasis_P2(u=uvwOut(1,iDistantPoint),v=uvwOut(2,iDistantPoint),ai=lagrangeMesh)
@@ -289,6 +289,8 @@ subroutine  userInterpolation                        ( &
       enddo
     endif
     
+    deallocate(uvwOut)
+
   end block
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
@@ -298,11 +300,10 @@ call cwipi_finalize_f()
 call mpi_finalize(iErr)
 stop 'A POURSUIVRE'
   
+  
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Affectation des coordonées barycentriques uvwOut
   allocate(uvwOut(1:3,1:nDistantPoint))
-  
-  
   
   iBary=0
   do iDistantPoint=1,nDistantPoint
@@ -514,7 +515,7 @@ program testf
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  if( rankWorld==0) print '(/"START: fortran_surf_PiPj")'
+  if( rankWorld==0) print '(/"START: fortran_surf_TetraP2_PiPj")'
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -570,7 +571,7 @@ program testf
   ! Create Geometric Mesh
   
   if( rankWorld==0 )print '(/"Create Geometric Mesh (inria mesh format")'
-  !
+  
   !  04        niveau2
   !
   !  10
@@ -579,7 +580,7 @@ program testf
   !  03
   !  07 06
   !  01 05 02  niveau0
-  !
+  
   select case(rankWorld)
   case(0)
     !> Vertices
