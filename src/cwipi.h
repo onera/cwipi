@@ -1070,7 +1070,7 @@ void cwipi_irecv
  const int                 stride,
  const int                 time_step,
  const double              time_value,
- char                      *receiving_field_name,
+ const char                *receiving_field_name,
  double                    *receiving_field,
  int                       *request);
 
