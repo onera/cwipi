@@ -1773,6 +1773,8 @@ _locate_on_triangles_3d(fvmc_lnum_t           elt_num,
 
   fvmc_lnum_t  i, j, k, tria_id, coord_idx_0, coord_idx_1, coord_idx_2;
 
+  const int n_vtx_tria = (order+1)*(order+2)/2; 
+
   double u[3], v[3], w[3];
   double uu, vv, ww, tmp_max;
   double epsilon2, dist2, vertex_dist2;
@@ -1791,14 +1793,14 @@ _locate_on_triangles_3d(fvmc_lnum_t           elt_num,
     /* vertex index of the triangle studied */
 
     if (parent_vertex_num == NULL) {
-      coord_idx_0 = triangle_vertices[tria_id*3]     - 1;
-      coord_idx_1 = triangle_vertices[tria_id*3 + 1] - 1;
-      coord_idx_2 = triangle_vertices[tria_id*3 + 2] - 1;
+      coord_idx_0 = triangle_vertices[tria_id*n_vtx_tria]     - 1;
+      coord_idx_1 = triangle_vertices[tria_id*n_vtx_tria + 1] - 1;
+      coord_idx_2 = triangle_vertices[tria_id*n_vtx_tria + 2] - 1;
     }
     else {
-      coord_idx_0 = parent_vertex_num[triangle_vertices[tria_id*3]    - 1] - 1;
-      coord_idx_1 = parent_vertex_num[triangle_vertices[tria_id*3+ 1] - 1] - 1;
-      coord_idx_2 = parent_vertex_num[triangle_vertices[tria_id*3+ 2] - 1] - 1;
+      coord_idx_0 = parent_vertex_num[triangle_vertices[tria_id*n_vtx_tria]    - 1] - 1;
+      coord_idx_1 = parent_vertex_num[triangle_vertices[tria_id*n_vtx_tria+ 1] - 1] - 1;
+      coord_idx_2 = parent_vertex_num[triangle_vertices[tria_id*n_vtx_tria+ 2] - 1] - 1;
     }
 
     /* Calculate triangle-constant values for barycentric coordinates */
@@ -4759,7 +4761,8 @@ int  fvmc_triangle_evaluate_Position (double x[3], double *pts, int order,
   double *closest, closestPoint1[3], closestPoint2[3], cp[3];
 
   
-  assert (order == 1);
+  printf ("Attention : fvmc_triangle_evaluate_Position ne considere qu'un triangle "
+          "lineaire, c'est ici qu'il faut prendre en compte l'ordre !\n");
   
   pcoords[2] = 0.0;
 
@@ -4954,6 +4957,10 @@ int fvmc_polygon_evaluate_Position(double x[3], int numPts, double *pts, double*
   double ray[3], bary[3];
 
   double pts_p[3*numPts];
+
+  printf ("Attention : fvmc_polygon_evaluate_Position ne considere qu'un polygone "
+          "lineaire, c'est ici qu'il faut prendre en compte l'ordre pour les \n"
+          "quadrangle en créant une fonction propre !\n");
 
   // Projection sur le plan moyen !!
 

@@ -165,6 +165,10 @@ module cwipi
    cwipi_define_mesh_f_
   end interface
 
+  interface cwipi_define_high_order_mesh_f ; module procedure &
+   cwipi_define_high_order_mesh_f_
+  end interface
+  
   interface cwipi_add_polyhedra_f          ; module procedure &
     cwipi_add_polyhedra_f_
   end interface
@@ -1491,6 +1495,41 @@ contains
 
   end subroutine cwipi_define_mesh_f_
 
+  
+
+  subroutine cwipi_define_high_order_mesh_f_ (couplingName, &
+                                       nVertex, &
+                                       nElts, &
+                                       order, &
+                                       coords, &
+                                       connecIndex, &
+                                       connec)
+
+    implicit none
+
+    character (len = *) :: couplingName
+    integer (kind = cwipi_int_l) :: lCouplingName
+
+    integer (kind = cwipi_int_l) :: nElts, nVertex, order
+    integer (kind = cwipi_int_l), dimension (nelts+1) :: connecIndex(nelts+1)
+
+    integer (kind = cwipi_int_l), dimension (*) ::  connec
+    double precision, dimension(3 * nVertex) :: coords
+
+    lCouplingName    = len(couplingName)
+
+    call cwipi_define_high_order_mesh_cf(couplingName, &
+                                  lCouplingName, &
+                                  nVertex, &
+                                  nElts, &
+                                  order, &
+                                  coords, &
+                                  connecindex, &
+                                  connec)
+
+  end subroutine cwipi_define_high_order_mesh_f_
+  
+  
 !
 !********************************************************************************
 !

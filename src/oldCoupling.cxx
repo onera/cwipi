@@ -650,6 +650,9 @@ namespace cwipi {
                             int connectivity[],
                             int order)
   {
+    printf("defineMesh : %d %d\n", nElement, order);
+    
+    
     if (_supportMesh  != NULL)
       bftc_error(__FILE__, __LINE__, 0, "coupling mesh is already created\n");
 

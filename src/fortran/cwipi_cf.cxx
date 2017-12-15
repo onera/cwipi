@@ -960,8 +960,6 @@ void PROCF(cwipi_set_points_to_locate_cf,
 }
 
 
-
-
 /*----------------------------------------------------------------------------
  *
  * Define the support mesh for a coupling. The connectivity is ordered if
@@ -1004,6 +1002,31 @@ void PROCF(cwipi_define_mesh_cf,
                         coordinates,
                         connectivity_index,
                         connectivity);
+  delete[] coupling_nameC;
+}
+
+void PROCF(cwipi_define_high_order_mesh_cf,
+           CWIPI_DEFINE_HIGH_ORDER_MESH_CF)
+  (const char *coupling_name,
+   const int  *l_coupling_name,
+   const int *n_vertex,
+   const int *n_element,
+   const int *order, 
+   double *coordinates,
+   int *connectivity_index,
+   int *connectivity
+   ARGF_SUPP_CHAINE)
+{
+  char *coupling_nameC =
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
+
+  cwipi_define_high_order_mesh(coupling_nameC,
+                              *n_vertex,
+                              *n_element,
+                              *order,
+                               coordinates,
+                               connectivity_index,
+                               connectivity);
   delete[] coupling_nameC;
 }
 

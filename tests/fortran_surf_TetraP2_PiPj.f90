@@ -679,7 +679,7 @@ program testf
   case(1) ; iTrian=4  !> on se couple sur le triangle 4
   end select
   
-  if( 0==0 )then
+  if( 1==0 )then
     
     !> On degrade le maillage à l'ordre 1
     nVert=03
@@ -695,6 +695,16 @@ program testf
       vertices(j+1:j+3)=vertx(1:3,trian(iNod,iTrian))
       j=j+3
     enddo
+  
+  !> Transmission des maillages à cwipi
+  call cwipi_define_mesh_f(     &
+  &   couplingName="testPiPj"  ,&
+  &   nVertex     =nVert       ,&
+  &   nElts       =nCell       ,&
+  &   coords      =vertices    ,&
+  &   connecIndex =connecIndex ,&
+  &   connec      =connec       )
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     if( visu )then
       write(meshName,'("Triangle",i1,".mesh")')rankWorld
@@ -718,6 +728,9 @@ program testf
     endif
     
   else
+
+   
+  
     
     !> On conserve un maillage d'ordre 2
     nVert=06
@@ -734,7 +747,18 @@ program testf
       j=j+3
     enddo
     
-    if( visu )then
+  !> Transmission des maillages à cwipi
+  call cwipi_define_high_order_mesh_f(     &
+  &   couplingName="testPiPj"  ,&
+  &   nVertex     =nVert       ,&
+  &   nElts       =nCell       ,&
+  &   order       =2           ,&  
+  &   coords      =vertices    ,&
+  &   connecIndex =connecIndex ,&
+  &   connec      =connec       )
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+  if( visu )then
       write(meshName,'("Triangle",i1,".mesh")')rankWorld
       open(unit=100,file=trim(meshName),action='write',status='unknown')
       write(100,'("MeshVersionFormatted 1"/)')
@@ -743,7 +767,7 @@ program testf
       write(100,'(i2)')nVert
       j=0
       do iVert=1,nVert
-        write(100,'(3(e22.15,1x),i2)')vertices(j:j+3),0
+        write(100,'(3(e22.15,1x),i2)')vertices(j+1:j+3),0
         j=j+3
       enddo
       write(100,'(/"TrianglesP2")')
@@ -756,16 +780,6 @@ program testf
     endif
     
   endif
-  
-  !> Transmission des maillages à cwipi
-  call cwipi_define_mesh_f(     &
-  &   couplingName="testPiPj"  ,&
-  &   nVertex     =nVert       ,&
-  &   nElts       =nCell       ,&
-  &   coords      =vertices    ,&
-  &   connecIndex =connecIndex ,&
-  &   connec      =connec       )
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
