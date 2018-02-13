@@ -2,7 +2,6 @@ subroutine testQuadratureGL()
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use baseSimplexTools, only: gaussLobattoQuadratures,gaussLegendreQuadratures
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
   real(8), pointer   :: xGL (:),wGL (:)
