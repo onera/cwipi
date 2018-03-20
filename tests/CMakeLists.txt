@@ -43,6 +43,7 @@ test_fortran_create (test_Jacobi)
 
 test_fortran_create (test_Edges00)
 test_fortran_create (test_Edges01)
+test_fortran_create (test_Edges02)
 
 test_fortran_create (test_Triangles00)
 test_fortran_create (test_Triangles01)

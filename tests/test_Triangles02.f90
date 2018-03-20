@@ -79,7 +79,6 @@ end subroutine triangle_02
 program test_triangles
   
   !> Test Triangles
- !call triangle_00()
   call triangle_02()
     
 end program test_triangles
