@@ -209,10 +209,10 @@ PDM_part_split_t           method,
                      &dEdgeGroup);
   
   // validation
-  int id = PDM_gnum_create (3, 1, pdm_mpi_comm);
+  int id = PDM_gnum_create (3, 1, PDM_FALSE, 1e-3, pdm_mpi_comm);
 // fin validation
        
-  PDM_gnum_set_from_coords (id, 0, dNVtx, dVtxCoord);
+  PDM_gnum_set_from_coords (id, 0, dNVtx, dVtxCoord, NULL);
   
   PDM_gnum_compute (id);
 
@@ -278,8 +278,8 @@ PDM_part_split_t           method,
 
     PDM_printf ("dedgeface : ");
     for (int i = 0; i < dNEdge; i++) {
-      PDM_printf (" "PDM_FMT_G_NUM, dEdgeVtx[2*i]);
-      PDM_printf (" "PDM_FMT_G_NUM, dEdgeVtx[2*i+1]);
+      PDM_printf (" "PDM_FMT_G_NUM, dEdgeFace[2*i]);
+      PDM_printf (" "PDM_FMT_G_NUM, dEdgeFace[2*i+1]);
       PDM_printf ("\n");
     }
   }
@@ -304,30 +304,39 @@ PDM_part_split_t           method,
 
   int ppartId;
 
+  int nPropertyCell = 0;
+  int *renum_properties_cell = NULL;
+  int nPropertyFace = 0;
+  int *renum_properties_face = NULL;
+
   PDM_part_create (&ppartId,
-                pdm_mpi_comm,
-                method,
-                PDM_PART_RENUM_CELL_NONE,
-                PDM_PART_RENUM_FACE_NONE,
-                nPart,
-                dNFace,
-                dNEdge,
-                dNVtx,
-                *nEdgeGroup,
-                NULL,
-                NULL,
-                NULL,
-                NULL,
-                have_dCellPart,
-                dCellPart,
-                dEdgeFace,
-                dEdgeVtxIdx,
-                dEdgeVtx,
-                NULL,
-                dVtxCoord,
-                NULL,
-                dEdgeGroupIdx,
-                dEdgeGroup);
+                   pdm_mpi_comm,
+                   method,
+                   "PDM_PART_RENUM_CELL_NONE",
+                   "PDM_PART_RENUM_FACE_NONE",
+                   nPropertyCell,
+                   renum_properties_cell,
+                   nPropertyFace,
+                   renum_properties_face,
+                   nPart,
+                   dNFace,
+                   dNEdge,
+                   dNVtx,
+                   *nEdgeGroup,
+                   NULL,
+                   NULL,
+                   NULL,
+                   NULL,
+                   have_dCellPart,
+                   dCellPart,
+                   dEdgeFace,
+                   dEdgeVtxIdx,
+                   dEdgeVtx,
+                   NULL,
+                   dVtxCoord,
+                   NULL,
+                   dEdgeGroupIdx,
+                   dEdgeGroup);
 
   free (dCellPart);
 
@@ -410,6 +419,7 @@ PDM_part_split_t           method,
     int sFaceEdge;
     int sEdgeVtx;
     int sEdgeGroup;
+    int nEdgeGroup2;
     
     PDM_part_part_dim_get (ppartId,
                            ipart,
@@ -421,7 +431,8 @@ PDM_part_split_t           method,
                            nTPart,
                            &sFaceEdge,
                            &sEdgeVtx,
-                           &sEdgeGroup);
+                           &sEdgeGroup,
+                           &nEdgeGroup2);
     
   }
   
@@ -451,7 +462,13 @@ char *argv[]
   PDM_g_num_t   nVtxSeg = 4;
   double        length  = 1.;
   int           nPart   = 1;
+#ifdef PDM_HAVE_PARMETIS  
+  PDM_part_split_t method  = PDM_PART_SPLIT_PARMETIS;
+#else
+#ifdef PDM_HAVE_PTSCOTCH  
   PDM_part_split_t method  = PDM_PART_SPLIT_PTSCOTCH;
+#endif
+#endif  
   int           haveRandom = 0;
 
   int           myRank;

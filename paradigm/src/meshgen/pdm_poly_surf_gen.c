@@ -486,7 +486,7 @@ PDM_g_num_t **dEdgeGroup
         (*dEdgeVtx)[2*dNEdgeTmp]     = n2+ix;
         (*dEdgeVtx)[2*dNEdgeTmp + 1] = n1+ix1;
         (*dEdgeFace)[2*dNEdgeTmp]       = dNFaceAbs;
-        (*dEdgeFace)[2*dNEdgeTmp + 1]   = -1;
+        (*dEdgeFace)[2*dNEdgeTmp + 1]   = 0;
         dNEdgeTmp += 1;
       }
       dNEdgeAbs += 1;
@@ -496,7 +496,7 @@ PDM_g_num_t **dEdgeGroup
       (*dEdgeVtx)[2*dNEdgeTmp]     = n1+ix1;
       (*dEdgeVtx)[2*dNEdgeTmp + 1] = n1+ix1+1;
       (*dEdgeFace)[2*dNEdgeTmp]       = dNFaceAbs;
-      (*dEdgeFace)[2*dNEdgeTmp + 1]   = -1;
+      (*dEdgeFace)[2*dNEdgeTmp + 1]   = 0;
       dNEdgeTmp += 1;
     }
     dNEdgeAbs += 1;
@@ -506,7 +506,7 @@ PDM_g_num_t **dEdgeGroup
         (*dEdgeVtx)[2*dNEdgeTmp]     = n1+ix1+1;
         (*dEdgeVtx)[2*dNEdgeTmp + 1] = n2+ix;
         (*dEdgeFace)[2*dNEdgeTmp]       = dNFaceAbs;
-        (*dEdgeFace)[2*dNEdgeTmp + 1]   = -1;
+        (*dEdgeFace)[2*dNEdgeTmp + 1]   = 0;
         dNEdgeTmp += 1;
       }
       dNEdgeAbs += 1;
@@ -545,7 +545,7 @@ PDM_g_num_t **dEdgeGroup
       (*dEdgeVtx)[2*dNEdgeTmp]     = n3;
       (*dEdgeVtx)[2*dNEdgeTmp + 1] = n1;
       (*dEdgeFace)[2*dNEdgeTmp]       = dNFaceAbs;
-      (*dEdgeFace)[2*dNEdgeTmp + 1]   = -1;
+      (*dEdgeFace)[2*dNEdgeTmp + 1]   = 0;
       dNEdgeTmp += 1;
     }
     dNEdgeAbs += 1;
@@ -570,7 +570,7 @@ PDM_g_num_t **dEdgeGroup
       (*dEdgeVtx)[2*dNEdgeTmp]     = n4;
       (*dEdgeVtx)[2*dNEdgeTmp + 1] = n6;
       (*dEdgeFace)[2*dNEdgeTmp]       = dNFaceAbs;
-      (*dEdgeFace)[2*dNEdgeTmp + 1]   = -1;
+      (*dEdgeFace)[2*dNEdgeTmp + 1]   = 0;
       dNEdgeTmp += 1;
     }
     dNEdgeAbs += 1;
@@ -616,7 +616,7 @@ PDM_g_num_t **dEdgeGroup
         (*dEdgeVtx)[2*dNEdgeTmp]     = n2 + ix1;
         (*dEdgeVtx)[2*dNEdgeTmp + 1] = n1 + ix;
         (*dEdgeFace)[2*dNEdgeTmp]       = dNFaceAbs;
-        (*dEdgeFace)[2*dNEdgeTmp + 1]   = -1;
+        (*dEdgeFace)[2*dNEdgeTmp + 1]   = 0;
         dNEdgeTmp += 1;
       }
       dNEdgeAbs += 1;
@@ -626,7 +626,7 @@ PDM_g_num_t **dEdgeGroup
       (*dEdgeVtx)[2*dNEdgeTmp]     = n2 + ix1;
       (*dEdgeVtx)[2*dNEdgeTmp + 1] = n2 + ix1 + 1;
       (*dEdgeFace)[2*dNEdgeTmp]       = dNFaceAbs;
-      (*dEdgeFace)[2*dNEdgeTmp + 1]   = -1;
+      (*dEdgeFace)[2*dNEdgeTmp + 1]   = 0;
       dNEdgeTmp += 1;
     }
     dNEdgeAbs += 1;
@@ -636,7 +636,7 @@ PDM_g_num_t **dEdgeGroup
         (*dEdgeVtx)[2*dNEdgeTmp]     = n1 + ix;
         (*dEdgeVtx)[2*dNEdgeTmp + 1] = n2 + ix1 + 1;
         (*dEdgeFace)[2*dNEdgeTmp]       = dNFaceAbs;
-        (*dEdgeFace)[2*dNEdgeTmp + 1]   = -1;
+        (*dEdgeFace)[2*dNEdgeTmp + 1]   = 0;
         dNEdgeTmp += 1;
       }
       dNEdgeAbs += 1;
@@ -754,7 +754,7 @@ PDM_g_num_t **dEdgeGroup
             (*dEdgeFace)[2*dNEdgeTmp]       = nTri + nQuad + ipoLy;
             if (k == 0) {
               if (iy == 0)
-                (*dEdgeFace)[2*dNEdgeTmp + 1] = -1;
+                (*dEdgeFace)[2*dNEdgeTmp + 1] = 0;
               else
                 (*dEdgeFace)[2*dNEdgeTmp + 1] = nTri + nQuad + ipoLy - nxPoly;
             }
@@ -769,7 +769,7 @@ PDM_g_num_t **dEdgeGroup
               }
             }
             else if (k == 2) {
-              (*dEdgeFace)[2*dNEdgeTmp + 1] = -1;
+              (*dEdgeFace)[2*dNEdgeTmp + 1] = 0;
             }
             else if (k == 3) {
               if (iy == (nyPoly - 1))
@@ -782,7 +782,7 @@ PDM_g_num_t **dEdgeGroup
               }
             }
             else if (k == 4) {
-              (*dEdgeFace)[2*dNEdgeTmp + 1] = -1;
+              (*dEdgeFace)[2*dNEdgeTmp + 1] = 0;
             }
             else if (k == 5) {
               if (iy == (nyPoly - 1))
@@ -796,7 +796,7 @@ PDM_g_num_t **dEdgeGroup
             }
             else if (k == 6) {
               if (ix == 0)
-                (*dEdgeFace)[2*dNEdgeTmp + 1] = -1;
+                (*dEdgeFace)[2*dNEdgeTmp + 1] = 0;
               else
                 (*dEdgeFace)[2*dNEdgeTmp + 1] = nTri + nQuad + ipoLy - 1;
             }

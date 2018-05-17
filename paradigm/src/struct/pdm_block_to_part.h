@@ -72,11 +72,11 @@ typedef struct _pdm_block_to_part_t PDM_block_to_part_t;
 PDM_block_to_part_t *
 PDM_block_to_part_create
 (
- PDM_g_num_t    *blockDistribIdx,
- PDM_g_num_t    **gnum_elt,
- int            *n_elt,
- int             n_part,
- PDM_MPI_Comm        comm
+ const PDM_g_num_t    *blockDistribIdx,
+ const PDM_g_num_t    **gnum_elt,
+ const int            *n_elt,
+ const int             n_part,
+ const PDM_MPI_Comm        comm
 );
 
 

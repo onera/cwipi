@@ -58,7 +58,8 @@ typedef struct {
   int                         n_part;            /*!< Number of parts */
   int                        *n_elt;             /*!< Number of elements for any part */
   int                         n_eltProc;         /*!< Number of elements on the current processus */
-  PDM_g_num_t                 **gnum_elt;          /*!< Global numbering of elements for any part */
+  float                       **weight;          /*!< Weight of elements */
+  PDM_g_num_t                 **gnum_elt;        /*!< Global numbering of elements for any part */
   int                        *destProc;          /*!< Destination process for any element (size = n_eltProc) */
   int                        *idxInSendData;     /*!< Index in send data for any element (size = n_eltProc) */
 

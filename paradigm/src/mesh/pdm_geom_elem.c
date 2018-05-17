@@ -1427,7 +1427,18 @@ PDM_geom_elem_polyhedra_properties
 
   double *surfaceVector = (double *) malloc (sizeof(double) * 3 *nFace); 
   double *faceCenter    = (double *) malloc (sizeof(double) * 3 *nFace); 
-
+  
+  // PDM_printf( "faceConnectivity : \n");
+  // for (int ipoly = 0; ipoly < nFace; ipoly++) {
+  //   PDM_printf( "  - face %i : ", ipoly+1);
+  //   for (int j = faceConnectivityIdx[ipoly]; j < faceConnectivityIdx[ipoly+1]; j++) {
+  //     PDM_printf( "%i ",faceConnectivity[j]);
+  //   }
+  //   PDM_printf( "\n");
+  // }
+  
+  
+  
   int convergenceFace = PDM_geom_elem_polygon_properties (nFace,
                                                           faceConnectivityIdx,
                                                           faceConnectivity,
@@ -1555,7 +1566,8 @@ PDM_geom_elem_polyhedra_properties
 
           if (nPolyhedraVertices >= lPolyhedraVertices) {
             lPolyhedraVertices *= 2;
-            polyhedraVertices = (int *) realloc(polyhedraVertices, lPolyhedraVertices*sizeof(int));
+            polyhedraVertices = 
+                    (int *) realloc(polyhedraVertices, lPolyhedraVertices*sizeof(int));
           }
           polyhedraVertices[nPolyhedraVertices++] = vertex;
         }
@@ -1564,13 +1576,13 @@ PDM_geom_elem_polyhedra_properties
 
     if (!isOriented) {
       int nStack = -1;
-      stack[nStack++] = 0;
-      tagFace[nStack] = IN_STACK;
+      stack[++nStack] = 0;
+      tagFace[0] = IN_STACK;
       
       while (nStack >= 0) {
 
         int iFace = stack[nStack--]; 
-
+      
         const int face          = abs(cellToFaceConnectivity[polyIdx + iFace]) - 1;
         const int faceIdx       = faceConnectivityIdx[face];
         const int nFaceVertices = faceConnectivityIdx[face+1] - faceIdx;
@@ -1607,13 +1619,15 @@ PDM_geom_elem_polyhedra_properties
               int isSameEdge    = (vertex == _edge[0]) && (vertexNext == _edge[1]);
               int isSameFace    = iFace == _edge[2];
               
+              int neighbour = _edge[2];
+              
               if (!isSameFace) {
                 if (isSameEdge || isInverseEdge) {
                   
                   if (tagFace[iFace] < UNCHANGED_CYCLE) { 
                   
-                    if (tagFace[_edge[2]] >= UNCHANGED_CYCLE) {
-                      if (tagFace[_edge[2]] == UNCHANGED_CYCLE) {
+                    if (tagFace[neighbour] >= UNCHANGED_CYCLE) {
+                      if (tagFace[neighbour] == UNCHANGED_CYCLE) {
                         if (isSameEdge) {
                           tagFace[iFace] = CHANGED_CYCLE;
                         }
@@ -1638,9 +1652,9 @@ PDM_geom_elem_polyhedra_properties
                     }
                   }
         
-                  if (tagFace[_edge[2]] == NOT_DEFINE) {
-                    stack[nStack++] = _edge[2];
-                    tagFace[_edge[2]] = IN_STACK;
+                  if (tagFace[neighbour] == NOT_DEFINE) {
+                    stack[++nStack] = neighbour;
+                    tagFace[neighbour] = IN_STACK;
                   }
                   
                   break;
@@ -1677,8 +1691,6 @@ PDM_geom_elem_polyhedra_properties
       for (int i = 0; i < 3; i++)
         polyCenter[i] += coords[3*vertex + i];
     }
-
-    free (polyhedraVertices);
     
     for (int i = 0; i < 3; i++)
       polyCenter[i] /= nPolyhedraVertices;
@@ -1826,22 +1838,12 @@ PDM_geom_elem_polyhedra_properties
     }
 
     if (!isOriented) {
-      for (int i = 0; i < nKeyPoly; i++) {
-        int key = keyPoly[i];
-
-        int nData = PDM_hash_tab_n_data_get (hashOrient, &key);
-        int **data = (int **) PDM_hash_tab_data_get (hashOrient, &key);
-
-        for (int j = 0; j < nData; j++) {
-          if (data[j] != NULL) {
-            free (data[j]);
-          }
-        }
-        PDM_hash_tab_data_free (hashOrient, &key);
-      }
+      PDM_hash_tab_purge (hashOrient, PDM_TRUE);
     }
 
   }
+  
+  free (polyhedraVertices);
     
   if (!isOriented) {
     free (keyPoly);

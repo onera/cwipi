@@ -151,6 +151,7 @@ endif ()
 #
 # Standard package handling
 #
+INCLUDE(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(PTSCOTCH
                                   "PTSCOTCH could not be found. Be sure to set PTSCOTCH_DIR."
                                   PTSCOTCH_LIBRARIES

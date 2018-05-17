@@ -24,13 +24,13 @@ from    mpi4py      cimport MPI
 
 # MANDATORY :
 # ---------
-
 NPY.import_array()
 
 # PDM Specific type :
 # -----------------
 
 ctypedef @PYX_NPY_G_NUM@ npy_pdm_gnum_t
+npy_pdm_gnum_dtype = @PYX_NPY_G_NUM_DTYPE@ 
 ctypedef @PYX_G_NUM@ PDM_g_num_t
 ctypedef @PYX_L_NUM@ PDM_l_num_t
 
@@ -41,14 +41,30 @@ ctypedef enum PDM_g_num_npy_t:
 
 
 # -----------------------------------------------------------------
+
+cdef extern from "pdm_config.h":
+    cdef int PDM_IN_PDMA_BOOL
+
+PDM_IN_PDMA = PDM_IN_PDMA_BOOL
+
 cdef extern from "pdm.h":
     ctypedef enum PDM_stride_t:
         pass
+    void PDM_Finalize ()
+
+def Finalize ():
+    PDM_Finalize
 
 cdef extern from "pdm_mpi.h":
     ctypedef int PDM_MPI_Comm
     PDM_MPI_Comm PDM_MPI_mpi_2_pdm_mpi_comm(void *pt_comm)
 # -----------------------------------------------------------------
+
+@COMMENT_NOT_PDMA@
+@COMMENT_NOT_PDMA@cdef extern from "pdm_plugin.h":
+@COMMENT_NOT_PDMA@    void PDM_plugin_load ()
+@COMMENT_NOT_PDMA@PDM_plugin_load() 
+@COMMENT_NOT_PDMA@       
 
 # PDM_part :
 # ----------
@@ -66,6 +82,26 @@ include "pdm_part_to_block.pxi"
 # ------------------
 include "pdm_block_to_part.pxi"
 
+# PDM_block_to_block :
+# ------------------
+include "pdm_block_to_block.pxi"
+
+# PDM_cellface_orient :
+# --------------------
+include "pdm_cellface_orient.pxi" 
+
+# PDM_dmesh_nodal :
+# ----------------
+include "pdm_dmesh_nodal.pxi" 
+
+
+
+
+
+
+
 
 # TODO: PDM_writer, ...
+
+
 

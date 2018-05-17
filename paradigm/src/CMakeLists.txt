@@ -11,6 +11,7 @@ file(GLOB_RECURSE SOURCES
      meshgen/*.[ch]
      pario/*.[ch]
      ppart/*.[ch]
+     ppart/*.cxx
      struct/*.[ch]
      util/*.[ch]
      ext_wrapper/*.[ch]
@@ -44,6 +45,11 @@ target_include_directories(pdm
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/meshgen
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/struct
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/util)
+if (PDM_IN_PDMA)
+  target_include_directories(pdm
+                             PUBLIC ${PDMA_SOURCE_DIR}/src/plugins/renum
+                             PUBLIC ${PDMA_SOURCE_DIR}/src/overlay)
+endif()
 
 if (PDM_ENABLE_STATIC_Fortran_INTERFACE OR PDM_ENABLE_SHARED_Fortran_INTERFACE)
   target_include_directories(pdmf
@@ -62,6 +68,11 @@ if (PDM_ENABLE_STATIC_Fortran_INTERFACE OR PDM_ENABLE_SHARED_Fortran_INTERFACE)
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/meshgen
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/struct
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/util)
+    if (PDM_IN_PDMA)
+      target_include_directories(pdmf
+                                 PUBLIC ${PDMA_SOURCE_DIR}/src/plugins/renum
+                                 PUBLIC ${PDMA_SOURCE_DIR}/src/overlay)
+    endif()
 endif()
 
 if (PTSCOTCH_FOUND)
@@ -85,6 +96,7 @@ list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/ppart/pdm_part_coarse_mesh.
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/ppart/pdm_part.h")
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/pario/pdm_io_tab.h")
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/pario/pdm_writer.h")
+list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/mesh/pdm_mesh_nodal.h")
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/pario/pdm_writer_priv.h")
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/util/pdm_mpi_node_first_rank.h")
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/util/pdm_timer.h")
@@ -95,6 +107,8 @@ list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/struct/pdm_part_to_block.h"
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/struct/pdm_block_to_part.h")
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/struct/pdm_hash_tab.h")
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/struct/pdm_handles.h")
+list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/struct/pdm_global_mean.h")
+list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/mesh/pdm_cellface_orient.h")
 if (PDM_IN_PDMA)
   list(APPEND LIST_HEADER "${CMAKE_BINARY_DIR}/pdm_config.h")
 else() 

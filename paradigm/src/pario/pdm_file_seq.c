@@ -121,9 +121,9 @@ PDM_file_seq_t *PDM_file_seq_open(const char *nom,
  *
  *----------------------------------------------------------------------------*/
 
-int PDM_file_seq_write(PDM_file_seq_t *fichier,
+PDM_g_num_t PDM_file_seq_write(PDM_file_seq_t *fichier,
                       const size_t   taille_donnee,
-                      const int      n_donnees,
+                      const PDM_g_num_t n_donnees,
                       void          *donnees)
 {
   
@@ -135,11 +135,10 @@ int PDM_file_seq_write(PDM_file_seq_t *fichier,
     exit(EXIT_FAILURE);
   }
 
+  size_t _n_donnees = (size_t) n_donnees ;
   size_t _n_donnees_ecrites = fwrite(donnees, taille_donnee, 
-                                       n_donnees, fichier->fichier);
-  int n_donnees_ecrites = (int) _n_donnees_ecrites;
-  /* if (ferror (fichier->fichier)) */
-  /*   PDM_printf ("Error Writing to myfile.txt\n"); */
+                                       _n_donnees, fichier->fichier);
+  PDM_g_num_t n_donnees_ecrites = (PDM_g_num_t) _n_donnees_ecrites;
 
   return n_donnees_ecrites;
 
@@ -158,9 +157,9 @@ int PDM_file_seq_write(PDM_file_seq_t *fichier,
  *
  *----------------------------------------------------------------------------*/
 
-int PDM_file_seq_read(PDM_file_seq_t *fichier,
+PDM_g_num_t PDM_file_seq_read(PDM_file_seq_t *fichier,
                      const size_t   taille_donnee,
-                     const int      n_donnees,
+                     const PDM_g_num_t n_donnees,
                      void          *donnees)
 {
 
@@ -173,9 +172,10 @@ int PDM_file_seq_read(PDM_file_seq_t *fichier,
     exit(EXIT_FAILURE);
   }
 
+  size_t _n_donnees = (size_t) n_donnees ;
   size_t _n_donnees_lues = fread(donnees, taille_donnee, 
-                                   n_donnees, fichier->fichier);
-  int n_donnees_lues = (int) _n_donnees_lues;
+                                   _n_donnees, fichier->fichier);
+  PDM_g_num_t n_donnees_lues = (PDM_g_num_t) _n_donnees_lues;
   
   return n_donnees_lues;
 

@@ -21,6 +21,8 @@
  *  Header for the current file
  *----------------------------------------------------------------------------*/
 
+#include "pdm.h"
+#include "pdm_priv.h"
 #include "pdm_part.h"
 #include "pdm_cuthill.h"
 #include "pdm_printf.h"
@@ -130,10 +132,10 @@ _dual_graph_firstrank
   }
         
   for (int i = 0; i < part_ini->nFace; i++) {
-    int iCell1 = part_ini->faceCell[2*i    ] - 1;
-    int iCell2 = part_ini->faceCell[2*i + 1] - 1;
+    int iCell1 = PDM_ABS (part_ini->faceCell[2*i    ]) - 1;
+    int iCell2 = PDM_ABS (part_ini->faceCell[2*i + 1]) - 1;
     //Only the non-boundary faces are stored
-    if (iCell2 > -1) {
+    if (iCell2 > 0) {
       int idx1 = cellCellIdx[iCell1] + cellCellN[iCell1];
       cellCell[idx1] = iCell2 + 1;
       cellCellN[iCell1] += 1;

@@ -235,9 +235,9 @@ const int         dim
   _dbbt->maxBoxRatio          = 10.;
   _dbbt->maxBoxesLeaf         = 30;
 
-  _dbbt->maxTreeDepthShared   = 30;
+  _dbbt->maxTreeDepthShared   = 10;
   _dbbt->maxBoxRatioShared    = 6;
-  _dbbt->maxBoxesLeafShared   = 10;
+  _dbbt->maxBoxesLeafShared   = 5;
 
   _dbbt->maxTreeDepthCoarse   = 30;
   _dbbt->maxBoxRatioCoarse    =  6.;
@@ -246,6 +246,9 @@ const int         dim
   _dbbt->rankBoxes            = NULL;
   _dbbt->btShared             = NULL;
 
+  _dbbt->nUsedRank            = 0;
+  _dbbt->usedRank             = NULL;
+    
   _dbbt->boxes                = NULL;
   _dbbt->btLoc                = NULL;
 
@@ -275,6 +278,8 @@ PDM_dbbtree_t     *dbbt
     
     PDM_box_set_destroy (&_dbbt->rankBoxes);
     PDM_box_set_destroy (&_dbbt->boxes);
+    
+    free (_dbbt->usedRank);
     
     PDM_box_tree_destroy (&_dbbt->btShared);
     PDM_box_tree_destroy (&_dbbt->btLoc);
@@ -435,11 +440,18 @@ const PDM_g_num_t **gNum
     PDM_printf ("\n");
 
 
-    PDM_g_num_t *numProc = (PDM_g_num_t *) malloc (sizeof(PDM_g_num_t) * nUsedRank);
+    int *numProc = (int *) malloc (sizeof(int *) * nUsedRank);
+    
+    _dbbt->usedRank = numProc;
+    _dbbt->nUsedRank = nUsedRank;
+    
+    PDM_g_num_t *gNumProc = (PDM_g_num_t *) malloc (sizeof(PDM_g_num_t) * nUsedRank);
+    
     idx = 0;
     for (int i = 0; i < lComm; i++) {
       if (allNBoxes[i] > 0) {
-        numProc[idx] = i+1;
+        gNumProc[idx] = idx;
+        numProc[idx] = i;
         for (int j = 0; j < sExtents; j++) {
           allGExtents[idx*sExtents + j] = allGExtents[i*sExtents + j];
         }
@@ -447,24 +459,29 @@ const PDM_g_num_t **gNum
       }
     }
 
-    allGExtents = (double *) realloc (allGExtents, sizeof(double) * sExtents * lComm);
+    allGExtents = (double *) realloc (allGExtents, sizeof(double) * sExtents * nUsedRank);
     
     int *initLocationProc = (int *) malloc (sizeof(int) * 3 * nUsedRank);
     for (int i = 0; i < 3 * nUsedRank; i++) {
       initLocationProc[i] = 0;
     }
 
+    //TODO: Faire un PDM_box_set et PDM_box_tree_create sequentiel ! Le comm split a u n 1 proc ici : pas terrible
+    
+    PDM_MPI_Comm rankComm;
+    PDM_MPI_Comm_split(_dbbt->comm, myRank, 0, &rankComm);
+       
     _dbbt->rankBoxes = PDM_box_set_create(3,
                                           0,  // No normalization to preserve initial extents
                                           0,  // No projection to preserve initial extents
                                           nUsedRank,
-                                          numProc,
+                                          gNumProc,
                                           allGExtents,
                                           1,
                                           &nUsedRank,
                                           initLocationProc,
-                                          _dbbt->comm);
-  
+                                          rankComm); 
+      
     _dbbt->btShared = PDM_box_tree_create (_dbbt->maxTreeDepthShared,
                                            _dbbt->maxBoxesLeafShared,
                                            _dbbt->maxBoxRatioShared);
@@ -478,7 +495,7 @@ const PDM_g_num_t **gNum
     _update_bt_statistics(&(_dbbt->btsShared), _dbbt->btShared);
 
     free (allGExtents);
-    free (numProc);
+    free (gNumProc);
     free (initLocationProc);
 
   }
@@ -634,7 +651,7 @@ int              *box_l_num[]
                                        box_l_num);
     
     int nUsedRank = PDM_box_set_get_size (_dbbt->rankBoxes);
-    const PDM_g_num_t *usedRanks = PDM_box_set_get_g_num (_dbbt->rankBoxes);
+    const int *usedRanks = _dbbt->usedRank;
     
     /*
      * Distribute boxes on intersection ranks
@@ -743,6 +760,107 @@ int              *box_l_num[]
   return boxes;
 
 }
+
+/**
+ *
+ * Get minimum of maximum distance of boxes
+ *
+ *   \param [in] bt               Pointer to box tree structure
+ *   \param [in] n_pts            Number of points
+ *   \param [in] pts              Point coordinates (size = 3 * n_pts)
+ *   \param [in] pts_g_num        Point global numbers
+ *   \param [in] upper_bound_dist Upper bound distance (size = n_pts)
+ *   \param [out] i_boxes         Index of boxes (size = n_pts + 1)
+ *   \param [out] Boxes           (size = i_boxes[n_pts])
+ *
+ */
+
+void
+PDM_dbbtree_closest_upper_bound_dist_boxes_get
+(
+PDM_dbbtree_t    *dbbt,
+const int        n_pts,        
+double           pts[],
+PDM_g_num_t      pts_g_num[],
+double           upper_bound_dist[],
+int             *i_boxes[],  
+PDM_g_num_t     *boxes[]
+)
+{
+  assert (dbbt != NULL);
+  _PDM_dbbtree_t *_dbbt = (_PDM_dbbtree_t *) dbbt;
+
+  int myRank;
+  PDM_MPI_Comm_rank (_dbbt->comm, &myRank);
+  int lComm;
+  PDM_MPI_Comm_size (_dbbt->comm, &lComm);
+
+  /* 
+   * Determination de liste des procs concernes pour chaque sommet 
+   */
+
+/* void */
+/* PDM_box_tree_closest_upper_bound_dist_boxes_get */
+/* ( */
+/* PDM_box_tree_t  *bt, */
+/* const int        n_pts,         */
+/* double          pts[], */
+/* double          upper_bound_dist[], */
+/* int             *i_boxes[],   */
+/* int             *boxes[] */
+/* ); */
+
+  /* 
+   * Envoi des points a chaque sommet (en un seul coup) la distance 
+   */
+
+
+/* PDM_MPI_Alltoall (n_send_pts, 1, PDM_MPI_INT,  */
+/*                  n_recv_pts, 1, PDM_MPI_INT,  */
+/*                  octree->comm); */
+
+/* PDM_MPI_Alltoallv (send_pts, n_send_pts, i_send_pts, PDM_MPI_DOUBLE, */
+/*                    recv_pts, n_recv_pts, i_recv_pts, PDM_MPI_DOUBLE, */
+/*                    lComm);   */
+ 
+  /* 
+   * Determination des candidats
+   */
+
+/* void */
+/* PDM_box_tree_closest_upper_bound_dist_boxes_get */
+/* ( */
+/* PDM_box_tree_t  *bt, */
+/* const int        n_pts,         */
+/* double          pts[], */
+/* double          upper_bound_dist[], */
+/* int             *i_boxes[],   */
+/* int             *boxes[] */
+/* ); */
+
+  /* 
+   * Retour des resultats (AlltoAll inverse)
+   */
+
+/* PDM_MPI_Alltoall (n_send_pts, 1, PDM_MPI_INT,  */
+/*                  n_recv_pts, 1, PDM_MPI_INT,  */
+/*                  octree->comm); */
+
+/* PDM_MPI_Alltoallv (send_pts, n_send_pts, i_send_pts, PDM_MPI_DOUBLE, */
+/*                    recv_pts, n_recv_pts, i_recv_pts, PDM_MPI_DOUBLE, */
+/*                    lComm);   */
+  
+  /* 
+   * Tri du tableau de retour
+   */
+  
+  
+}
+
+
+
+
+
 
 #undef _MIN
 #undef _MAX

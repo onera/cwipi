@@ -51,7 +51,13 @@ PDM_part_coarse_mesh_create
 (
  int                *cmId,
  PDM_MPI_Comm        comm,        
- const int           method,
+ const char*         method,
+ const char         *renum_cell_method,
+ const char         *renum_face_method,
+ const int           nPropertyCell,
+ const int          *renum_properties_cell,
+ const int           nPropertyFace,
+ const int          *renum_properties_face,
  const int           nPart, 
  const int           nTPart,
  const int           nFaceGroup,
@@ -64,11 +70,20 @@ PDM_part_coarse_mesh_create
 );
 
 void
-PROCF (pdm_part_coarse_mesh_create, PDM_PART_COARSE_MESH_CREATE)
+PROCF (pdm_part_coarse_mesh_create_cf, PDM_PART_COARSE_MESH_CREATE_CF)
 (
  int                *cmId,
  PDM_MPI_Fint       *fcomm,        
- const int          *method,
+ const char         *method,
+ const int          *l_method,
+ const char         *renum_cell_method,
+ const int          *l_renum_cell_method,
+ const char         *renum_face_method,
+ const int          *l_renum_face_method,
+ const int          *nPropertyCell,
+ const int          *renum_properties_cell,
+ const int          *nPropertyFace,
+ const int          *renum_properties_face,
  const int          *nPart, 
  const int          *nTPart, 
  const int          *nFaceGroup,
@@ -79,6 +94,7 @@ PROCF (pdm_part_coarse_mesh_create, PDM_PART_COARSE_MESH_CREATE)
  const int          *have_faceWeight,
  const int          *have_faceGroup
  );
+
 
 /**
  *
@@ -141,18 +157,18 @@ PDM_part_coarse_mesh_input
  const int          *cellTag,
  const int          *cellWeight,
  const int          *faceWeight,
- const PDM_g_num_t *cellLNToGN,       
+ const PDM_g_num_t  *cellLNToGN,       
  const int          *faceCell,
  const int          *faceVtxIdx,
  const int          *faceVtx,
  const int          *faceTag,       
- const PDM_g_num_t *faceLNToGN,       
+ const PDM_g_num_t  *faceLNToGN,       
  const double       *vtxCoord,
  const int          *vtxTag,
- const PDM_g_num_t *vtxLNToGN,       
+ const PDM_g_num_t  *vtxLNToGN,       
  const int          *faceGroupIdx,
  const int          *faceGroup,
- const PDM_g_num_t *faceGroupLNToGN,
+ const PDM_g_num_t  *faceGroupLNToGN,
  const int          *facePartBoundProcIdx,       
  const int          *facePartBoundPartIdx,
  const int          *facePartBound
@@ -358,7 +374,7 @@ PROCF (pdm_part_coarse_mesh_part_get, PDM_PART_COARSE_MESH_PART_GET)
  int          *cellFaceIdx,
  int          *cellFace,
  int          *cellTag,
- PDM_g_num_t *cellLNToGN,
+ PDM_g_num_t  *cellLNToGN,
  int          *cellInitCellIdx,                  
  int          *cellInitCell,          
  int          *faceCell,
@@ -378,6 +394,24 @@ PROCF (pdm_part_coarse_mesh_part_get, PDM_PART_COARSE_MESH_PART_GET)
  int          *facePartBoundProcIdx,
  int          *facePartBoundPartIdx,
  int          *facePartBound
+);
+
+/**
+ *
+ * \brief Return a mesh partition
+ * 
+ * \param [in]   ppartId               ppart identifier
+ * \param [in]   ipart                 Current partition
+ * \param [out]  cellColor             Cell Color (size = nCell)
+ * \param [out]  faceColor             Face Color (size = nFace)
+ */
+
+void PDM_part_coarse_color_get
+(
+ const int   cmId,
+ const int   iPart,      
+       int **cellColor,
+       int **faceColor
 );
 
 /**
@@ -451,6 +485,7 @@ PROCF (pdm_part_coarse_mesh_display, PDM_PART_COARSE_MESH_DISPLAY)
   int *cmId
 );
   
+
 #ifdef	__cplusplus
 }
 #endif

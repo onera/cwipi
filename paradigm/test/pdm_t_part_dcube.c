@@ -8,6 +8,7 @@
 #include <string.h>
 
 #include "pdm.h"
+#include "pdm_config.h"
 #include "pdm_mpi.h"
 #include "pdm_part.h"
 #include "pdm_dcube_gen.h"
@@ -135,7 +136,13 @@ int main(int argc, char *argv[])
   double             length  = 1.;
   int                nPart   = 1;
   int                post    = 0;
-  PDM_part_split_t   method  = PDM_PART_SPLIT_PTSCOTCH;
+#ifdef PDM_HAVE_PARMETIS  
+  PDM_part_split_t method  = PDM_PART_SPLIT_PARMETIS;
+#else
+#ifdef PDM_HAVE_PTSCOTCH  
+  PDM_part_split_t method  = PDM_PART_SPLIT_PTSCOTCH;
+#endif
+#endif  
 
   /*
    *  Read args
@@ -185,7 +192,10 @@ int main(int argc, char *argv[])
   PDM_dcube_gen_init(&id,
                       comm,
                       nVtxSeg,
-                      length);
+                      length,
+            		      0.,
+		                  0.,
+		                  0.);
 
   PDM_dcube_gen_dim_get(id,
                          &nFaceGroup,
@@ -252,12 +262,20 @@ int main(int argc, char *argv[])
   int have_dCellPart = 0;
 
   int *dCellPart = (int *) malloc(dNCell*sizeof(int));
+  int *renum_properties_cell = NULL;
+  int *renum_properties_face = NULL;
+  int nPropertyCell = 0;
+  int nPropertyFace = 0;
 
   PDM_part_create(&ppartId,
                   comm,
                   method,
-                  PDM_PART_RENUM_CELL_NONE,
-                  PDM_PART_RENUM_FACE_NONE,
+                  "PDM_PART_RENUM_CELL_NONE",
+                  "PDM_PART_RENUM_FACE_NONE",
+                  nPropertyCell,
+                  renum_properties_cell,
+                  nPropertyFace,
+                  renum_properties_face,
                   nPart,
                   dNCell,
                   dNFace,
@@ -339,6 +357,7 @@ int main(int argc, char *argv[])
       int sCellFace;
       int sFaceVtx;
       int sFaceGroup;
+      int nFaceGroup2;
 
       PDM_part_part_dim_get(ppartId,
                          ipart,
@@ -350,7 +369,8 @@ int main(int argc, char *argv[])
                          &nTPart,
                          &sCellFace,
                          &sFaceVtx,
-                         &sFaceGroup);
+                         &sFaceGroup,
+                         &nFaceGroup2);
 
       int          *cellTag;
       int          *cellFaceIdx;

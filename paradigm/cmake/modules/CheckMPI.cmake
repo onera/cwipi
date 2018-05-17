@@ -1,4 +1,4 @@
-  
+
 set(WRAPPER_COMPILER_SCRIPT  "checkWrapperCompiler.sh")
 
 if (MPI_C_COMPILER)

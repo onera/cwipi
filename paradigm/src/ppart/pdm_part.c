@@ -27,9 +27,11 @@
 
 #include "pdm_part_geom.h"
 #include "pdm_part_renum.h"
+#include "pdm_fortran_to_c_string.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
 #include "pdm_handles.h"
+
 
 /*----------------------------------------------------------------------------
  *  Optional headers
@@ -255,14 +257,14 @@ static int
     PDM_printf("PPART error : Element not in initial distributed array "
            PDM_FMT_G_NUM" "PDM_FMT_G_NUM" "PDM_FMT_G_NUM"\n", 
            elt, array[id1], array[id2]);
-    exit(1);
+    abort();
   } 
 
   if (elt < array[id1]) {
     PDM_printf("PPART error : Element not in initial distributed array "
            PDM_FMT_G_NUM" "PDM_FMT_G_NUM" "PDM_FMT_G_NUM"\n",
            elt, array[id1], array[id2]);
-    exit(1);
+    abort();
   } 
 
   if (id2 == id1 + 1) {
@@ -414,13 +416,13 @@ _dual_graph_from_face_cell
   }
 
   for (int i = 0; i < ppart->dNFace; i++) {
-    PDM_g_num_t iCell1 = ppart->_dFaceCell[2*i    ];
-    PDM_g_num_t iCell2 = ppart->_dFaceCell[2*i + 1];
+    PDM_g_num_t iCell1 = PDM_ABS (ppart->_dFaceCell[2*i    ]);
+    PDM_g_num_t iCell2 = PDM_ABS (ppart->_dFaceCell[2*i + 1]);
 
     int irank1 = _search_rank(iCell1, ppart->dCellProc, 0, nRank);      
     cellToSendN[irank1] += nData;
 
-    if (iCell2 > -1) {
+    if (iCell2 > 0) {
       int irank2 = _search_rank(iCell2, ppart->dCellProc, 0, nRank);
       cellToSendN[irank2] += nData;
     }
@@ -445,8 +447,8 @@ _dual_graph_from_face_cell
    */
 
   for (int i = 0; i < ppart->dNFace ; i++) {
-    PDM_g_num_t iCell1 = ppart->_dFaceCell[2*i    ];
-    PDM_g_num_t iCell2 = ppart->_dFaceCell[2*i + 1];
+    PDM_g_num_t iCell1 = PDM_ABS (ppart->_dFaceCell[2*i    ]);
+    PDM_g_num_t iCell2 = PDM_ABS (ppart->_dFaceCell[2*i + 1]);
     int irank1 = _search_rank(iCell1, ppart->dCellProc, 0, nRank);
 
     int idx1             = cellToSendIdx[irank1] + cellToSendN[irank1];
@@ -455,7 +457,7 @@ _dual_graph_from_face_cell
     cellToSend[idx1+2]   = ppart->dFaceProc[myRank] + i;
     cellToSendN[irank1] += nData;
 
-    if (iCell2 > -1) {
+    if (iCell2 > 0) {
       int irank2 = _search_rank(iCell2, ppart->dCellProc, 0, nRank);
       int idx2             = cellToSendIdx[irank2] + cellToSendN[irank2];
       cellToSend[idx2  ]   = iCell2;
@@ -544,7 +546,7 @@ _dual_graph_from_face_cell
     PDM_g_num_t  _lElt1 = gElt1 - ppart->dCellProc[myRank];
     int          lElt1 = (int) _lElt1;      // Switch to local numbering
 
-    if (gElt2 > -1) {
+    if (gElt2 > 0) {
       nNeighbour[lElt1] += 1;
     }
     if (!have_dCellFace) {
@@ -610,7 +612,7 @@ _dual_graph_from_face_cell
      * Search if cel2 is already stored (To optimize for polyhedra (lot of neighbours) ?)
      */
 
-    if (gCel2 > -1) {
+    if (gCel2 > 0) {
 
       PDM_g_num_t k;
       for (k = ppart->dDualGraphIdx[lCel1]; k < ppart->dDualGraphIdx[lCel1] + nNeighbour[lCel1]; k++) {
@@ -711,7 +713,7 @@ _dual_graph_from_cell_face
 
   for (int i = 0; i < ppart->dNCell; i++) {
     for (int j = ppart->_dCellFaceIdx[i]; j < ppart->_dCellFaceIdx[i+1]; j++) {
-      PDM_g_num_t iFace = ppart->_dCellFace[j];
+      PDM_g_num_t iFace = PDM_ABS(ppart->_dCellFace[j]);
 
       int irank = _search_rank(iFace, ppart->dFaceProc, 0, nRank);      
       faceToSendN[irank] += nData;
@@ -739,7 +741,7 @@ _dual_graph_from_cell_face
 
   for (int i = 0; i < ppart->dNCell; i++) {
     for (int j = ppart->_dCellFaceIdx[i]; j < ppart->_dCellFaceIdx[i+1]; j++) {
-      PDM_g_num_t iFace = ppart->_dCellFace[j];
+      PDM_g_num_t iFace = PDM_ABS (ppart->_dCellFace[j]);
 
       int irank = _search_rank(iFace, ppart->dFaceProc, 0, nRank);      
       int idx   = faceToSendIdx[irank] + faceToSendN[irank];
@@ -813,7 +815,7 @@ _dual_graph_from_cell_face
     ppart->dFaceCell = 
       (PDM_g_num_t *)  malloc((2*ppart->dNFace) * sizeof(PDM_g_num_t));
     for (int i = 0; i < 2*ppart->dNFace; i++) {
-      ppart->dFaceCell[i] = -1;
+      ppart->dFaceCell[i] = 0;
     }
 
     for (int i = 0; i < nRecvFace; i++) {
@@ -822,9 +824,9 @@ _dual_graph_from_cell_face
       PDM_g_num_t  _lFace = gFace - ppart->dFaceProc[myRank]; 
       int          lFace = (int) _lFace; // Switch to local numbering
 
-      if (ppart->dFaceCell[2*lFace] == -1)
+      if (ppart->dFaceCell[2*lFace] == 0)
         ppart->dFaceCell[2*lFace] = gCell;
-      else if (ppart->dFaceCell[2*lFace + 1] == -1)
+      else if (ppart->dFaceCell[2*lFace + 1] == 0)
         ppart->dFaceCell[2*lFace + 1] = gCell;
       else {
         PDM_printf("PPART internal error : Face already defined in ppart->dFaceCell connectivity\n");
@@ -846,9 +848,9 @@ _dual_graph_from_cell_face
     PDM_g_num_t gCell2;
 
     if (ppart->dFaceCell[2*lFace] == gCell1)
-      gCell2 = ppart->dFaceCell[2*lFace + 1];
+      gCell2 = PDM_ABS (ppart->dFaceCell[2*lFace + 1]);
     else if (ppart->dFaceCell[2*lFace + 1] == gCell1)
-      gCell2 =  ppart->dFaceCell[2*lFace];
+      gCell2 = PDM_ABS (ppart->dFaceCell[2*lFace]);
     else {
       PDM_printf("PPART internal error : Problem in dual grah building "
               PDM_FMT_G_NUM" "
@@ -910,7 +912,7 @@ _dual_graph_from_cell_face
      * Search if cel2 is already stored (To optimize for polyhedra (lot of neighbours) ?)
      */
 
-    if (gCel2 > -1) {
+    if (gCel2 > 0) {
 
       int k;
       for (k = ppart->_dCellFaceIdx[lCel1]; 
@@ -1078,8 +1080,6 @@ _split
     }
   case PDM_PART_SPLIT_HILBERT:
     {
-      PDM_error(__FILE__, __LINE__, 0, "PPART error : Error in PT-Scotch graph check\n");
-      exit(1);
 
       PDM_part_geom (PDM_PART_GEOM_HILBERT,
                      ppart->nPart,
@@ -1089,8 +1089,8 @@ _split
                      ppart->_dCellFace,
                      ppart->_dCellWeight,
                      ppart->_dFaceVtxIdx,
-                     ppart->dFaceProc,
                      ppart->_dFaceVtx,
+                     ppart->dFaceProc,
                      ppart->_dVtxCoord,
                      ppart->dVtxProc,
                      cellPart);
@@ -1193,7 +1193,7 @@ _distrib_cell
     faceToSendN[rankToSend] += 1;
 
     for (int j = ppart->_dCellFaceIdx[i]; j < ppart->_dCellFaceIdx[i+1]; j++) {
-      faceToSend[place++] = ppart->_dCellFace[j];   /* Numero global de ses faces */
+      faceToSend[place++] = PDM_ABS(ppart->_dCellFace[j]);   /* Numero global de ses faces */
       faceToSendN[rankToSend] += 1;
     }
 
@@ -1941,12 +1941,12 @@ _build_faceCell
     meshPart->faceCell = (int *) malloc(2*meshPart->nFace * sizeof(int));
 
     for (int i = 0; i < 2 * meshPart->nFace; i++)
-      meshPart->faceCell[i] = -1;
+      meshPart->faceCell[i] = 0;
   
     for (int i = 0; i < meshPart->nCell; i++) {
       for (int j = meshPart->cellFaceIdx[i]; j < meshPart->cellFaceIdx[i+1]; j++) {
-        int idx = 2 * (meshPart->cellFace[j]-1);
-        if (meshPart->faceCell[idx] == -1) 
+        int idx = 2 * (PDM_ABS(meshPart->cellFace[j])-1);
+        if (meshPart->faceCell[idx] == 0) 
           meshPart->faceCell[idx] = i + 1;
         else 
           meshPart->faceCell[idx + 1] = i + 1;
@@ -2026,8 +2026,8 @@ _search_part_bound_face
       int nBoundFace = 0;
 
       for (int i = 0; i < meshPart->nFace; i++) {
-        int icell2 = meshPart->faceCell[2*i + 1];
-        if (icell2 == -1) {
+        int icell2 = PDM_ABS (meshPart->faceCell[2*i + 1]);
+        if (icell2 == 0) {
           PDM_g_num_t iFace = meshPart->faceLNToGN[i];
           int irank = _search_rank(iFace, ppart->dFaceProc, 0, nRank);
           faceToSendIdx[irank+1] += nData;
@@ -2043,8 +2043,8 @@ _search_part_bound_face
 
       for (int i = 0; i < meshPart->nFace; i++) {
 
-        int icell2 = meshPart->faceCell[2*i + 1];
-        if (icell2 == -1) {
+        int icell2 = PDM_ABS (meshPart->faceCell[2*i + 1]);
+        if (icell2 == 0) {
           PDM_g_num_t gFace = meshPart->faceLNToGN[i];
           int irank = _search_rank(gFace, ppart->dFaceProc, 0, nRank);
 
@@ -2798,6 +2798,22 @@ _part_free
   if (part->vtxTag != NULL)
     free(part->vtxTag);
   part->vtxTag = NULL;    
+  
+  if (part->cellColor != NULL)
+    free(part->cellColor);
+  part->cellColor = NULL;    
+  
+  if (part->faceColor != NULL)
+    free(part->faceColor);
+  part->faceColor = NULL;    
+  
+  if (part->newToOldOrderCell != NULL)
+    free(part->newToOldOrderCell);
+  part->newToOldOrderCell = NULL;    
+  
+  if (part->newToOldOrderFace != NULL)
+    free(part->newToOldOrderFace);
+  part->newToOldOrderFace = NULL;    
 
   free(part);
 }
@@ -2822,6 +2838,10 @@ _part_free
  * \param [in]   comm           Communicator
  * \param [in]   split_method   Split method
  * \param [in]   renum_cell_method Cell renumbering method
+ * \param [in]   renum_face_method Cell renumbering method
+ * \param [in]   renum_properties_cell  For cache blocking [ nCellPerCacheWanted, isAsynchrone, isVectorisation ] \ref PDM_renum_cacheblocking 
+ * \param [in]   renum_face_method Cell renumbering method
+ * \param [in]   renum_properties_face  NOT USE
  * \param [in]   nPart          Number of partition to build on this process
  * \param [in]   dNCell         Number of distributed cells
  * \param [in]   dNFace         Number of distributed faces
@@ -2860,8 +2880,12 @@ PDM_part_create
  int                         *ppartId,
  const PDM_MPI_Comm           comm,
  const PDM_part_split_t       split_method,
- const PDM_part_renum_cell_t  renum_cell_method,
- const PDM_part_renum_face_t  renum_face_method,
+ const char                  *renum_cell_method,
+ const char                  *renum_face_method,
+ const int                    nPropertyCell,
+ const int                   *renum_properties_cell,
+ const int                    nPropertyFace,
+ const int                   *renum_properties_face,
  const int                    nPart,
  const int                    dNCell,
  const int                    dNFace,
@@ -2888,6 +2912,9 @@ PDM_part_create
   
   PDM_MPI_Comm_rank(comm, &myRank);
   PDM_MPI_Comm_size(comm, &nRank);
+
+
+  PDM_part_renum_method_load_local();
 
   /*
    * Search a ppart free id
@@ -2931,6 +2958,12 @@ PDM_part_create
   ppart->dCellFaceIdx  = NULL;
   ppart->dCellFace     = NULL;
   ppart->dFaceCell     = NULL;
+  
+  /* Set up for renumbering */
+  ppart->nPropertyCell          = nPropertyCell;
+  ppart->renum_properties_cell  = renum_properties_cell;
+  ppart->nPropertyFace          = nPropertyFace;
+  ppart->renum_properties_face  = renum_properties_face;
 
   ppart->dCellProc = (PDM_g_num_t *) malloc((nRank+1) * sizeof(PDM_g_num_t));
   PDM_g_num_t _dNCell = (PDM_g_num_t) dNCell;
@@ -3057,8 +3090,20 @@ PDM_part_create
 
   ppart->split_method = split_method;
 
-  ppart->renum_cell_method = renum_cell_method;
-  ppart->renum_face_method = renum_face_method;
+  int _method = PDM_part_renum_method_cell_idx_get(renum_cell_method);
+  
+  if (_method == -1) {
+    PDM_error (__FILE__, __LINE__, 0, "'%s' is an unknown renumbering cell method\n", renum_cell_method);
+  }
+  
+  ppart->renum_cell_method = _method;
+  
+  _method = PDM_part_renum_method_face_idx_get(renum_face_method);
+  
+  if (_method == -1) {
+    PDM_error (__FILE__, __LINE__, 0, "'%s' is an unknown renumbering face method\n", renum_face_method);
+  }
+  ppart->renum_face_method = _method;
 
   ppart->dPartBound = NULL;
 
@@ -3159,14 +3204,21 @@ PDM_part_create
    * Cell renumbering
    */
 
-  PDM_part_renum_cell (ppart, (PDM_part_renum_cell_t) renum_cell_method); 
+  // PDM_part_renum_cell (ppart); 
+  PDM_part_renum_cell (        ppart->meshParts, 
+                               ppart->nPart, 
+                               ppart->renum_cell_method, 
+                       (void*) ppart->renum_properties_cell); 
     
   /*
    * Face renumbering
    */
 
-  // PDM_part_renum_face (ppart, PDM_PART_RENUM_FACE_NONE); 
-  PDM_part_renum_face (ppart, (PDM_part_renum_face_t) renum_face_method); 
+  // PDM_part_renum_face (ppart); 
+  PDM_part_renum_face (         ppart->meshParts, 
+                                ppart->nPart, 
+                                ppart->renum_face_method, 
+                        (void*) ppart->renum_properties_face); 
 
   /*
    * Look for partitioning boundary faces
@@ -3201,13 +3253,19 @@ PDM_part_create
 
 
 void
-PROCF (pdm_part_create, PDM_PART_CREATE)
+PROCF (pdm_part_create_cf, PDM_PART_CREATE_CF)
 (
  int                *ppartId,
  const PDM_MPI_Fint *fcomm,
  const int          *split_method,
- const int          *renum_cell_method,
- const int          *renum_face_method,
+ const char         *renum_cell_method,
+ const int          *l_renum_cell_method,
+ const char         *renum_face_method,
+ const int          *l_renum_face_method,
+ const int          *nPropertyCell,
+ const int          *renum_properties_cell,
+ const int          *nPropertyFace,
+ const int          *renum_properties_face,
  const int          *nPart,
  const int          *dNCell,
  const int          *dNFace,
@@ -3264,11 +3322,21 @@ PROCF (pdm_part_create, PDM_PART_CREATE)
   if (*have_dFaceCell == 0)
     _dFaceCell = NULL;
 
+  char *_renum_cell_method = 
+      PDM_fortran_to_c_string(renum_cell_method, *l_renum_cell_method); 
+
+  char *_renum_face_method = 
+      PDM_fortran_to_c_string(renum_face_method, *l_renum_face_method); 
+  
   PDM_part_create(ppartId,
                   c_comm,
                   (PDM_part_split_t) *split_method,
-                  (PDM_part_renum_cell_t) *renum_cell_method,
-                  (PDM_part_renum_face_t) *renum_face_method,
+                  _renum_cell_method,
+                  _renum_face_method,
+                  *nPropertyCell,
+                   renum_properties_cell,
+                  *nPropertyFace,
+                   renum_properties_face,
                   *nPart,
                   *dNCell,
                   *dNFace,
@@ -3288,6 +3356,10 @@ PROCF (pdm_part_create, PDM_PART_CREATE)
                   _dVtxTag,
                   dFaceGroupIdx,
                   dFaceGroup);
+
+  free (_renum_cell_method); 
+  free (_renum_face_method);
+  
 }
 
 /**
@@ -3306,6 +3378,7 @@ PROCF (pdm_part_create, PDM_PART_CREATE)
  * \param [out]  sFaceVtx           Size of face-vertex connectivity
  * \param [out]  sFacePartBound     Size of facePartBound array
  * \param [out]  sFaceGroup         Size of faceGroup array 
+ * \param [out]  nFaceGroup         Number of boundary
  *
  */
 
@@ -3322,7 +3395,8 @@ const   int  ipart,
  int        *nTPart,
  int        *sCellFace,
  int        *sFaceVtx,
- int        *sFaceGroup
+ int        *sFaceGroup,
+ int        *nFaceGroup
 )
 {
   _PDM_part_t *ppart = _get_from_id(ppartId);
@@ -3349,6 +3423,7 @@ const   int  ipart,
   *sFaceGroup      = 0;
   if (ppart->nFaceGroup > 0)
     *sFaceGroup    = meshPart->faceGroupIdx[ppart->nFaceGroup];
+    *nFaceGroup    = ppart->nFaceGroup;
 }
 
 void 
@@ -3364,7 +3439,8 @@ PROCF (pdm_part_part_dim_get, PDM_PART_PART_DIM_GET)
  int           *nTPart,
  int           *sCellFace,
  int           *sFaceVtx,
- int           *sFaceGroup
+ int           *sFaceGroup,
+ int           *nFaceGroup
 )
 {
   PDM_part_part_dim_get(*ppartId,
@@ -3377,7 +3453,8 @@ PROCF (pdm_part_part_dim_get, PDM_PART_PART_DIM_GET)
                         nTPart,
                         sCellFace,
                         sFaceVtx,
-                        sFaceGroup
+                        sFaceGroup,
+                        nFaceGroup
                         );
 }
 
@@ -3565,6 +3642,75 @@ PROCF (pdm_part_part_val_get, PDM_PART_PART_VAL_GET)
   }
 }
 
+/**
+ *
+ * \brief Return a mesh partition
+ * 
+ * \param [in]   ppartId            ppart identifier
+ * \param [in]   ipart              Current partition
+ * \param [out]  cellColor          Cell Color (size = nCell)
+ * \param [out]  faceColor          Face Color (size = nFace)
+
+ */
+
+void PDM_part_part_color_get
+(
+const  int      ppartId,
+const  int      ipart,
+ int          **cellColor,
+ int          **faceColor
+)
+{
+  _PDM_part_t *ppart = _get_from_id(ppartId);
+
+  _part_t *meshPart = NULL;
+  if (ipart < ppart->nPart)
+    meshPart  = ppart->meshParts[ipart];
+  
+  if (meshPart == NULL) {
+    PDM_printf("PDM_part_part_val_get error : unknown partition\n");
+    exit(1);
+  }
+
+  *cellColor = meshPart->cellColor;
+  *faceColor = meshPart->faceColor;
+}
+
+void 
+PROCF (pdm_part_part_color_get, PDM_PART_PART_COLOR_GET)
+(
+ int           *ppartId,
+ int           *ipart,
+ int           *cellColor,
+ int           *faceColor
+)
+{
+  _PDM_part_t *ppart = _get_from_id(*ppartId);
+  int numProcs;
+  PDM_MPI_Comm_size(ppart->comm, &numProcs);
+
+  _part_t *meshPart = NULL;
+  if (*ipart < ppart->nPart)
+    meshPart  = ppart->meshParts[*ipart];
+  
+  if (meshPart == NULL) {
+    PDM_printf("PDM_part_part_val_get error : unknown partition\n");
+    exit(1);
+  }
+
+  if (meshPart->cellColor != NULL){
+    for (int i = 0; i < meshPart->nCell; i++){
+        cellColor[i]    = meshPart->cellColor[i];
+    }
+  }
+  
+  if (meshPart->faceColor != NULL){
+    for (int i = 0; i < meshPart->nFace; i++){
+        faceColor[i]    = meshPart->faceColor[i];
+    }
+  }
+  
+}
 
 /**
  *

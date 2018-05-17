@@ -29,6 +29,9 @@ extern "C" {
  * \param [in]   comm           Communicator
  * \param [in]   nVtxSeg        Number of vertices in segments
  * \param [in]   length         Segment length
+ * \param [in]   zero_x         Coordinates of the origin
+ * \param [in]   zero_y         Coordinates of the origin
+ * \param [in]   zero_z         Coordinates of the origin
  *
  */
 
@@ -37,8 +40,11 @@ PDM_dcube_gen_init
 (
  int                *id,
  PDM_MPI_Comm        comm,
- const PDM_g_num_t  nVtxSeg, 
- const double        length
+ const PDM_g_num_t   nVtxSeg, 
+ const double        length,
+ const double        zero_x,
+ const double        zero_y,
+ const double        zero_z
  );
 
 void
@@ -47,7 +53,10 @@ PROCF (pdm_dcube_gen_init, PDM_DCUBE_GEN_INIT)
  int                *id,
  const PDM_MPI_Fint *comm,
  const PDM_g_num_t  *nVtxSeg, 
- const double       *length
+ const double       *length,
+ const double       *zero_x,
+ const double       *zero_y,
+ const double       *zero_z
 );
 
 

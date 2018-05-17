@@ -29,6 +29,8 @@
 
 #define PDM_FMT_L_NUM "%d"
 
+#define PDM_MAX_CHAR_LENGTH 100
+
 #ifdef __cplusplus
 extern "C" {
 #if 0
@@ -39,6 +41,7 @@ extern "C" {
 /*============================================================================
  * Type
  *============================================================================*/
+
 
 /**
  * \enum PDM_g_num_t
@@ -126,6 +129,24 @@ typedef enum {
 
 } PDM_mesh_entities_t;
 
+
+/*=============================================================================
+ * Public function prototypes 
+ *============================================================================*/
+
+
+/**
+ * \brief Finalize PDM
+ * 
+ * This function frees all allocated global variables 
+ * 
+ */
+
+void 
+PDM_Finalize
+(
+void
+);
 
 #ifdef __cplusplus
 }

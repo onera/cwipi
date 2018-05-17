@@ -1,6 +1,8 @@
 #ifndef __PDM_PART_PRIV_H__
 #define __PDM_PART_PRIV_H__
 
+#include <stdlib.h>
+
 #include "pdm.h"
 #include "pdm_priv.h"
 #include "pdm_timer.h"
@@ -10,6 +12,36 @@
 /*============================================================================
  * Type definitions
  *============================================================================*/
+
+
+/**
+ * \struct _subpartlayout_t
+ * \brief  Partition object
+ * 
+ * _subpartlayout_t define a mesh partition layouts base on sudomaine
+ *
+ */
+
+typedef struct  _subpartlayout_t {
+  
+  int           nSdom;                  /*!< Number of subDomain                     */
+  int           nFaceInt;               /*!< Number of Interior face                 */
+  int           nFaceExt;               /*!< Number of Exterior face                 */
+  
+  /* Idx array of displacement */
+  int*          cellTileIdx;           /*!< Cell Tile Index     (Size = nSdom + 1)   */
+  int*          faceTileIdx;           /*!< Face Tile Index     (Size = nSdom + 1)   */
+  int*          faceBndTileIdx;        /*!< Face Bnd Tile Index (Size = nSdom + 1)   */
+  
+  /* Idx array of displacement */
+  int*          maskTileIdx;           /*!< Mask Tile Index   (Size = nSdom + 1)     */
+  int*          cellVectTileIdx;       /*!< Cell Tile Index   (Size = nSdom + 1)     */
+  int*          maskTileN;             /*!< Mask Tile number  (Size = nSdom + 1)     */
+  int*          cellVectTileN;         /*!< Cell Tile number  (Size = nSdom + 1)     */
+  int*          maskTile;              /*!< Mask Tile number                         */
+  
+  
+} _subpartlayout_t;
 
 
 /**
@@ -25,6 +57,7 @@ typedef struct  _part_t {
   int           nCell;              /*!< Number of cells                      */
   int           nFace;              /*!< Number of faces                      */
   int           nFacePartBound;     /*!< Number of partitioning boundary faces*/
+  int           nFaceGroup;         /*!< Number of boundary faces             */
 
   int          *cellFaceIdx;        /*!< Cell face connectivity index 
                                       (size = nCell + 1)                      */
@@ -80,6 +113,24 @@ typedef struct  _part_t {
                                       (size = nVtx)                           */
   int          *vtxTag;             /*!< Tag vertex            
                                       (size = nVtx)                           */
+  
+  
+  const int          *cellWeight;             /*!< Cell weight - For coarse mesh             
+                                            (size = nCel)                           */
+  const int          *faceWeight;             /*!< Face weight - For coarse mesh            
+                                            (size = nFac)                           */
+  
+  int          *cellColor;             /*!< Cell color - For cache blocking            
+                                            (size = nCel)                           */
+  int          *faceColor;             /*!< Face color - For cache blocking            
+                                            (size = nFac)                           */
+    
+  int          *newToOldOrderCell;   /*!< Cell reordering        
+                                         (size = nCel)                           */
+  int          *newToOldOrderFace;   /*!< Face reordering              
+                                            (size = nFac)                        */
+  
+  _subpartlayout_t *subpartlayout;    /*!< Layouts of subdomain                     */
 
 } _part_t;
 
@@ -130,7 +181,7 @@ typedef struct _PDM_part_t {
   const PDM_g_num_t *_dFaceCell;    /*!< Face-cell connectivity of distributed
                                        faces (size = 2 * dNFace, shared array)
                                        if iface is a boundary face, 
-                                       _dFaceCell[2*iface + 1] = -1           */
+                                       _dFaceCell[2*iface + 1] = 0           */
   const int          *_dFaceVtxIdx;  /*!< Face-vertex connectivity index of 
                                        distributed faces (size = dNFace + 1,
                                        shared array)                          */
@@ -144,7 +195,7 @@ typedef struct _PDM_part_t {
   PDM_g_num_t       *dFaceCell;    /*!< Face-cell connectivity of distributed
                                        faces (size = 2 * dNFace,) computed
                                        if iface is a boundary face, 
-                                       _dFaceCell[2*iface + 1] = -1           */
+                                       _dFaceCell[2*iface + 1] = 0           */
   /* Vertex definitions */
 
   const double       *_dVtxCoord;    /*!< Coordinates of ditributed vertices 
@@ -211,9 +262,15 @@ typedef struct _PDM_part_t {
 
   PDM_part_split_t split_method;             /*!< Partitioning method */
 
-  PDM_part_renum_face_t renum_face_method;   /*!< Renumbering face method */
+  int renum_face_method;                     /*!< Renumbering face method */
 
-  PDM_part_renum_cell_t renum_cell_method;   /*!< Renumbering cell method */
+  int renum_cell_method;                     /*!< Renumbering cell method */
+  
+  int  nPropertyCell;                         /*!< Size of cells properties      */
+  int  nPropertyFace;                         /*!< Size of faces properties      */
+  const int* renum_properties_cell;           /*!< Renumbering cells properties  */
+  const int* renum_properties_face;           /*!< Renumbering faces properties  */
+  
 
   int          nPart;               /*!< Number of partitions to define
                                       on this process */
@@ -270,6 +327,10 @@ void
   part->vtx = NULL;
   part->vtxLNToGN = NULL;
   part->vtxTag = NULL;
+  part->cellColor = NULL;
+  part->faceColor = NULL;
+  part->newToOldOrderCell = NULL;
+  part->newToOldOrderFace = NULL;
   return part;
 }
 

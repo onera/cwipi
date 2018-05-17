@@ -45,18 +45,6 @@ extern "C" {
  * Type definitions
  *============================================================================*/
 
-/*----------------------------------------------------------------------------
- * Structure defining an I/O numbering scheme
- *----------------------------------------------------------------------------*/
-
-/**
-  \brief Pointer to an I/O numbering scheme structure. 
-
-  The structure itself is private, and is defined in pdm_gnum.c
-*/
-
-typedef struct _pdm_gnum_t pdm_gnum_t;
-
 /*=============================================================================
  * Static global variables
  *============================================================================*/
@@ -67,10 +55,12 @@ typedef struct _pdm_gnum_t pdm_gnum_t;
 
 /**
  *
- * \brief Build a global numbering 
+ * \brief Build a global numbering structure
  *
  * \param [in]   dim          Spatial dimension 
  * \param [in]   n_part       Number of local partitions 
+ * \param [in]   merge        Merge double points or not
+ * \param [in]   tolerance    Geometric tolerance (if merge double points is activated)
  * \param [in]   comm         PDM_MPI communicator
  *
  * \return     Identifier    
@@ -79,8 +69,10 @@ typedef struct _pdm_gnum_t pdm_gnum_t;
 int
 PDM_gnum_create
 (
- const int dim,
- const int n_part,
+ const int          dim,
+ const int          n_part,
+ const PDM_bool_t   merge,
+ const double       tolerance,       
  const PDM_MPI_Comm comm
 );
 
@@ -89,6 +81,8 @@ PROCF (pdm_gnum_create, PDM_GNUM_CREATE)
 (
  const int *dim,
  const int *n_part,
+ const int *merge,  
+ const double *tolerance,  
  const PDM_MPI_Fint *fcomm,
        int *id
 );
@@ -102,6 +96,8 @@ PROCF (pdm_gnum_create, PDM_GNUM_CREATE)
  * \param [in]   i_part       Current partition
  * \param [in]   n_elts       Number of elements
  * \param [in]   coords       Coordinates (size = 3 * \ref n_elts)
+ * \param [in]   char_length  Characteristic length (or NULL) 
+ *                            (used if merge double points is activated)
  *
  */
 
@@ -111,7 +107,8 @@ PDM_gnum_set_from_coords
  const int id,
  const int i_part,
  const int n_elts,
- const double *coords
+ const double *coords,
+ const double *char_length
 );
 
 void
@@ -120,7 +117,9 @@ PROCF (pdm_gnum_set_from_coords, PDM_GNUM_SET_FROM_COORDS)
  const int *id,
  const int *i_part,
  const int *n_elts,
- const double *coords
+ const double *coords,
+ const double *char_length
+
 );
 
 

@@ -1,6 +1,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <assert.h>
 #include <unistd.h>
 
@@ -8,12 +9,15 @@
 #include "pdm_mpi.h"
 #include "pdm_priv.h"
 #include "pdm_config.h"
+#include "pdm_geom_elem.h"
 #include "pdm_part_coarse_mesh.h"
 #include "pdm_part_coarse_mesh_priv.h"
 #include "pdm_part_priv.h"
 #include "pdm_timer.h"
 
 #include "pdm_part.h"
+#include "pdm_part_renum.h"
+#include "pdm_order.h"
 #include "pdm_mpi.h"
 
 #include "pdm_part_to_block.h"
@@ -71,8 +75,293 @@ extern "C" {
 static PDM_Handles_t *_cm  = NULL;
 
 /*============================================================================
+ * Global variable
+ *============================================================================*/
+
+/**
+ * Storage of face renumbering methods
+ */
+
+static PDM_Handles_t *_coarse_mesh_methods = NULL;
+
+/*============================================================================
  * Private function definitions
  *============================================================================*/
+  
+
+    
+/**
+ *
+ * \brief Return an initialized coarse part object
+ * 
+ * \param [in]   pt_comm           Communicator
+ * \param [in]   method            Choice between (1 for ParMETIS or 2 for PT-Scotch)
+ * \param [in]   nPart             Number of partitions
+ * \param [in]   nTPart            Total number of partitions
+ * \param [in]   nFaceGroup        Number of boundaries
+ * \param [in]   have_cellTag      Presence d'un tableau de tags pour les cellules
+ * \param [in]   have_faceTag      Presence d'un tableau de tags pour les faces
+ * \param [in]   have_vtxTag       Presence d'un tableau de tags pour les sommets
+ * \param [in]   have_cellWeight   Presence d'un tableau de poids pour les cellules
+ * \param [in]   have_faceWeight   Presence d'un tableau de poids pour les faces
+ * \param [in]   have_faceGroup    Presence des tableaux de groupes de faces
+ */
+
+static _coarse_mesh_t * 
+_coarse_mesh_create
+(
+ const PDM_MPI_Comm  comm,        
+ const char         *method,
+ const char         *renum_cell_method,
+ const char         *renum_face_method,
+ const int           nPropertyCell,
+ const int          *renum_properties_cell,
+ const int           nPropertyFace,
+ const int          *renum_properties_face,
+ const int           nPart,
+ const int           nTPart,
+ const int           nFaceGroup,
+ const int           have_cellTag,
+ const int           have_faceTag,
+ const int           have_vtxTag,
+ const int           have_cellWeight,
+ const int           have_faceWeight,
+ const int           have_faceGroup
+
+ )
+{     
+   _coarse_mesh_t *cm = (_coarse_mesh_t *) malloc(sizeof(_coarse_mesh_t));
+
+   cm->nPart = nPart;
+   cm->comm  = comm; 
+   
+   int _method = PDM_coarse_mesh_method_idx_get(method);
+  
+   if (_method == -1) {
+     PDM_error (__FILE__, __LINE__, 0, "'%s' is an unknown coarse mesh method\n", method);
+   }
+   
+   cm->method = _method;
+   
+   /* Reordering */
+   _method = PDM_part_renum_method_cell_idx_get(renum_cell_method);
+  
+   if (_method == -1) {
+     PDM_error (__FILE__, __LINE__, 0, "'%s' is an unknown renumbering cell method\n", renum_cell_method);
+   }
+   
+   cm->renum_cell_method = _method;
+   
+   _method = PDM_part_renum_method_face_idx_get(renum_face_method);
+   
+   if (_method == -1) {
+     PDM_error (__FILE__, __LINE__, 0, "'%s' is an unknown renumbering face method\n", renum_face_method);
+   }
+   cm->renum_face_method = _method;
+   
+   cm->nPropertyCell          = nPropertyCell;
+   cm->renum_properties_cell  = renum_properties_cell;
+   cm->nPropertyFace          = nPropertyFace;
+   cm->renum_properties_face  = renum_properties_face;
+   
+
+   cm->nTPart = nTPart;
+   
+   cm->nFaceGroup = nFaceGroup;
+
+   cm->have_cellTag    = have_cellTag;
+   cm->have_faceTag    = have_faceTag;
+   cm->have_vtxTag     = have_vtxTag;
+   cm->have_cellWeight = have_cellWeight;
+   cm->have_faceWeight = have_faceWeight;
+   cm->have_faceGroup  = have_faceGroup;
+   
+   cm->part_ini = malloc(sizeof(_part_t *) * nPart); //On déclare un tableau de partitions
+   
+   cm->part_res = malloc(sizeof(_coarse_part_t *) * nPart);
+
+   cm->specific_data = NULL;
+   cm->specific_func = NULL;
+   
+   for (int i = 0; i < nPart; i++) {
+     cm->part_ini[i] = _part_create(); 
+     
+     cm->part_res[i] = _coarse_part_create(); 
+     
+     cm->part_res[i]->part->nFaceGroup = cm->nFaceGroup;
+     
+   }   
+    
+   return cm;
+}
+
+/**
+ *
+ * \brief Perform the coarse mesh from the SCOTCH graph method
+ *
+ * \param [in,out]  ppart    Current PPART structure
+ *
+ */
+
+static void
+_coarse_from_scotch
+(
+_coarse_mesh_t* cm,
+const int       iPart,
+int            *nCoarseCellComputed,
+int            *cellCellIdx,
+int            *cellCell,
+int            *cellPart
+)
+{
+#ifdef PDM_HAVE_PTSCOTCH
+
+      int check = 0;
+      int nPart  = cm->part_res[iPart]->nCoarseCellWanted;
+
+      PDM_SCOTCH_part (cm->part_ini[iPart]->nCell,
+                       cellCellIdx,
+                       cellCell,
+                       (int *) cm->part_ini[iPart]->cellWeight,
+                       (int *) cm->part_ini[iPart]->faceWeight,
+                       check,
+                       nPart,
+                       cellPart);
+
+      (*nCoarseCellComputed) = nPart;
+
+      if (0 == 1) {
+        PDM_printf("\nContent of cellPart\n");
+        for(int i = 0; i < cm->part_ini[iPart]->nCell ; i++) {
+          PDM_printf(" %d ", cellPart[i]);
+        }
+        PDM_printf("\n");
+      }
+
+#else
+      PDM_printf("PDM_part error : Scotch unavailable\n");
+      exit(1);
+#endif
+}
+
+
+/**
+ *
+ * \brief Perform the coarse mesh from the SCOTCH graph method
+ *
+ * \param [in,out]  ppart    Current PPART structure
+ *
+ */
+
+static void
+_coarse_from_metis
+(
+_coarse_mesh_t* cm,
+const int       iPart,
+int            *nCoarseCellComputed,
+int            *cellCellIdx,
+int            *cellCell,
+int            *cellPart
+)
+{
+#ifdef PDM_HAVE_PARMETIS
+      _part_t * part_ini       = cm->part_ini[iPart];
+      _coarse_part_t *part_res = cm->part_res[iPart];
+
+      int *cellWeight = (int *) part_ini->cellWeight;
+      int *faceWeight = (int *) part_ini->faceWeight;
+
+      int nPart  = part_res->nCoarseCellWanted;
+      //            Define Metis properties
+
+      //          int flag_weights = 0; //0 = False -> weights are unused
+
+      int flag_weights = 1; //0 = False -> weights are unused
+
+      int ncon = 1; //The number of balancing constraints
+
+      int *vwgt = cellWeight; //Weights of the vertices of the graph (NULL if unused)
+
+      int *adjwgt = faceWeight; //Weights of the edges of the graph (NULL if unused)
+
+      if (flag_weights != 0) {
+        double *tpwgts = (double *) malloc(ncon * nPart * sizeof(double));
+        for (int i = 0; i < ncon * nPart; i++){
+          tpwgts[i] = (double) (1./nPart);
+        }
+      }
+
+      double *tpwgts = NULL;
+
+      if (flag_weights != 0) {
+        double *ubvec = (double *) malloc(ncon * sizeof(double));
+        for (int i = 0; i < ncon; i++) {
+          ubvec[i] = 1.05;
+        }
+      }
+
+      double *ubvec = NULL;
+
+      //TO ADD: USE OF ADJWGT IN AN IF STATEMENT
+
+      //This value is solely a memory space to be filled by METIS
+
+      int edgecut;
+
+      if (nPart < 8) {
+
+        PDM_printf("\n \t\t\t\t PDM_METIS_PartGraphRecursive\n");
+        PDM_METIS_PartGraphRecursive (&(part_ini->nCell),
+                                      &ncon,
+                                      cellCellIdx,
+                                      cellCell,
+                                      vwgt,
+                                      adjwgt,
+                                      &nPart,
+                                      tpwgts,
+                                      ubvec,
+                                      &edgecut,
+                                      cellPart);
+      }
+
+      else {
+
+        PDM_printf("\n \t\t\t\tPDM_METIS_PartGraphKway \n");
+        PDM_METIS_PartGraphKway (&(part_ini->nCell),
+                                 &ncon,
+                                 cellCellIdx,
+                                 cellCell,
+                                 vwgt,
+                                 adjwgt,
+                                 &nPart,
+                                 tpwgts,
+                                 ubvec,
+                                 &edgecut,
+                                 cellPart);
+      }
+
+      if (1 == 0) {
+        PDM_printf("\n Contenu de cellPart : \n");
+        for (int i = 0; i < part_ini->nCell; i++) {
+          PDM_printf(" %d ", cellPart[i]);
+        }
+        PDM_printf("\n");
+      }
+
+      if (flag_weights != 0) {
+          free(ubvec);
+          free(tpwgts);
+          free(adjwgt);
+      }
+
+      (*nCoarseCellComputed) = nPart;
+
+#else
+      PDM_printf("PDM_part error : METIS unavailable\n");
+      exit(1);
+
+#endif
+}
 
 /**
  *
@@ -182,17 +471,17 @@ _dual_graph_from_face_cell
   }
         
   for (int i = 0; i < part_ini->nFace; i++) {
-    int iCell1 = part_ini->faceCell[2*i    ] - 1;
-    int iCell2 = part_ini->faceCell[2*i + 1] - 1;
+    int iCell1 = PDM_ABS (part_ini->faceCell[2*i    ]);
+    int iCell2 = PDM_ABS (part_ini->faceCell[2*i + 1]);
     //Only the non-boundary faces are stored
-    if (iCell2 > -1) {
-      int idx1 = cellCellIdx[iCell1] + cellCellN[iCell1];
-      cellCell[idx1] = iCell2 + 1;
-      cellCellN[iCell1] += 1;
+    if (iCell2 > 0) {
+      int idx1 = cellCellIdx[iCell1-1] + cellCellN[iCell1-1];
+      cellCell[idx1] = iCell2;
+      cellCellN[iCell1-1] += 1;
             
-      int idx2 = cellCellIdx[iCell2] + cellCellN[iCell2];
-      cellCell[idx2] = iCell1 + 1;
-      cellCellN[iCell2] += 1;
+      int idx2 = cellCellIdx[iCell2-1] + cellCellN[iCell2-1];
+      cellCell[idx2] = iCell1;
+      cellCellN[iCell2-1] += 1;
     }
   }
     
@@ -339,139 +628,38 @@ _dual_graph_from_face_cell
 static void 
 _split
 (
- int         method,
- int         nPart,
- _part_t    *part_ini,
- int        *cellCellIdx,
- int        *cellCell,
- int        *cellWeight,
- int        *faceWeight,
- int       **cellPart
-)
+_coarse_mesh_t *cm,
+const int       iPart,
+int            *nCoarseCellComputed,
+int            *cellCellIdx,
+int            *cellCell,
+int            **cellPart)
 {    
+
+  _part_t * part_ini       = cm->part_ini[iPart];
+  
+  int method = cm->method;
+
   *cellPart = (int *) malloc(part_ini->nCell * sizeof(int));
     
   for (int i = 0; i < part_ini->nCell; i++){
     (*cellPart)[i] = 0;    
   }
-    
-  switch(method) {
-  case 1:
-    {
-#ifdef PDM_HAVE_PARMETIS
-      //            Define Metis properties
-          
-      //          int flag_weights = 0; //0 = False -> weights are unused
-
-      int flag_weights = 1; //0 = False -> weights are unused
-          
-      int ncon = 1; //The number of balancing constraints
-            
-      int *vwgt = cellWeight; //Weights of the vertices of the graph (NULL if unused)
-                    
-      int *adjwgt = faceWeight; //Weights of the edges of the graph (NULL if unused)
-
-      if (flag_weights != 0) {
-        double *tpwgts = (double *) malloc(ncon * nPart * sizeof(double));
-        for (int i = 0; i < ncon * nPart; i++){
-          tpwgts[i] = (double) (1./nPart);
-        }
-      }
-          
-      double *tpwgts = NULL;
-          
-      if (flag_weights != 0) {
-        double *ubvec = (double *) malloc(ncon * sizeof(double));
-        for (int i = 0; i < ncon; i++) {
-          ubvec[i] = 1.05;
-        }
-      }
-          
-      double *ubvec = NULL;
-          
-      //TO ADD: USE OF ADJWGT IN AN IF STATEMENT                
-        
-      //This value is solely a memory space to be filled by METIS
-
-      int edgecut;
-          
-      if (nPart < 8) {             
-              
-        PDM_METIS_PartGraphRecursive (&(part_ini->nCell),
-                                      &ncon, 
-                                      cellCellIdx,
-                                      cellCell,
-                                      vwgt, 
-                                      adjwgt, 
-                                      &nPart, 
-                                      tpwgts, 
-                                      ubvec, 
-                                      &edgecut,
-                                      *cellPart);
-      }
-          
-      else {
-              
-        PDM_METIS_PartGraphKway (&(part_ini->nCell),
-                                 &ncon, 
-                                 cellCellIdx,
-                                 cellCell,
-                                 vwgt, 
-                                 adjwgt, 
-                                 &nPart, 
-                                 tpwgts, 
-                                 ubvec, 
-                                 &edgecut,
-                                 *cellPart);
-      }
-          
-      if (0 == 1) {
-        PDM_printf("\n Contenu de cellPart : \n");            
-        for (int i = 0; i < part_ini->nCell; i++) {
-          PDM_printf(" %d ", (*cellPart)[i]);
-        }
-        PDM_printf("\n");
-      }
-        
-      if (flag_weights != 0) {
-          free(ubvec);
-          free(tpwgts);
-          free(adjwgt);
-      }          
-
-#else
-      PDM_printf("PDM_part error : METIS unavailable\n");
-      exit(1);
-                
-#endif
-      break;
-    }                
-  case 2:
-    {
-#ifdef PDM_HAVE_PTSCOTCH
-
-      int check = 0;
-      
-      PDM_SCOTCH_part (part_ini->nCell,
-                       cellCellIdx,
-                       cellCell,        
-                       cellWeight,
-                       faceWeight,
-                       check,        
-                       nPart,        
-                       *cellPart);
-          
-#else
-      PDM_printf("PDM_part error : Scotch unavailable\n");
-      exit(1);
-#endif
-          
-      break;
-    }
-  default:
-    PDM_printf("PART error : '%i' unknown partitioning method\n", method);
-    exit(1);        
+  
+  const _coarse_mesh_method_t *method_ptr = (const _coarse_mesh_method_t *) 
+                                      PDM_Handles_get (_coarse_mesh_methods, method);
+  
+  PDM_coarse_mesh_fct_t fct = method_ptr->fct;
+  
+  if (fct != NULL) {
+    (fct) (cm,
+           iPart,
+           nCoarseCellComputed,
+           cellCellIdx,
+           cellCell,
+           *cellPart);
   }
+
 }
 
 /**
@@ -872,7 +1060,7 @@ _build_faceCoarseCell
   }
     
   for (int i = 0; i < 2 * nFace; i++) {
-    faceCellTemp[i] = -1;
+    faceCellTemp[i] = 0;
   }
     
   /*
@@ -887,8 +1075,8 @@ _build_faceCoarseCell
      * If we have a "real" neighboring cell, we store its coarse cell
      */
     
-    if (faceCell[i] != -1) {
-      faceCellTemp[i] = cellCoarseCell[faceCell[i] - 1];
+    if (faceCell[i] != 0) {
+      faceCellTemp[i] = cellCoarseCell[PDM_ABS (faceCell[i]) - 1];
     }
   }
     
@@ -911,8 +1099,8 @@ _build_faceCoarseCell
 
   int idx = 0;
   for (int i = 0; i < nFace; i++) {
-    int iCell1 = faceCellTemp[2 * i    ];
-    int iCell2 = faceCellTemp[2 * i + 1];        
+    int iCell1 = PDM_ABS (faceCellTemp[2 * i    ]);
+    int iCell2 = PDM_ABS (faceCellTemp[2 * i + 1]);        
         
     /* 
      * If a face is surrounded by the same coarse cell, it is not stored
@@ -1039,7 +1227,7 @@ _coarseCellFace_from_faceCoarseCell
      * A non-boarder cell touches two coarse cells
      */
 
-    if(coarseCell2 != -1) {
+    if(coarseCell2 != 0) {
       cptFacesPerCoarseCell[coarseCell2 - 1]++;
     }
   }
@@ -1088,7 +1276,7 @@ _coarseCellFace_from_faceCoarseCell
      * If the face is not on the boarder, we store it
      */
 
-    if (coarseCell2 != -1) {
+    if (coarseCell2 != 0) {
       idx2 = (*coarseCellFaceIdx)[coarseCell2 - 1] + cptFacesPerCoarseCell[coarseCell2 - 1];          
     }
         
@@ -1525,7 +1713,6 @@ _build_faceGroup
   if(*faceGroup == NULL || *faceGroupIdx == NULL || nFaceGroup == 0) {
     return;
   }
-  
   *coarseFaceGroupToFineFaceGroup = malloc((*faceGroupIdx)[nFaceGroup] * sizeof(int));
     
   //Renumbering of partGroup from the fine numbering to the coarse one
@@ -1610,7 +1797,7 @@ _build_faceGroup
 
 /**
  *
- * \brief Build a coarse grid
+ * \brief SetUp data array fo r coarse mesh
  *
  * \param [out] cgId              Coarse grid identifier
  * 
@@ -1655,7 +1842,7 @@ _build_faceGroup
  */
 
 static void 
-_coarse_grid_create
+_coarse_grid_mesh_input
 ( 
  _coarse_mesh_t     *cm,
  const int           iPart,       
@@ -1670,18 +1857,18 @@ _coarse_grid_create
  const int          *cellTag,
  const int          *cellWeight,
  const int          *faceWeight,
- const PDM_g_num_t *cellLNToGN,
+ const PDM_g_num_t  *cellLNToGN,
  const int          *faceCell,
  const int          *faceVtxIdx,
  const int          *faceVtx,
  const int          *faceTag,
- const PDM_g_num_t *faceLNToGN,
+ const PDM_g_num_t  *faceLNToGN,
  const double       *vtxCoord,
  const int          *vtxTag,
- const PDM_g_num_t *vtxLNToGN,
+ const PDM_g_num_t  *vtxLNToGN,
  const int          *faceGroupIdx,
  const int          *faceGroup,
- const PDM_g_num_t *faceGroupLNToGN,
+ const PDM_g_num_t  *faceGroupLNToGN,
  const int          *facePartBoundProcIdx,       
  const int          *facePartBoundPartIdx,
  const int          *facePartBound      
@@ -1690,13 +1877,16 @@ _coarse_grid_create
   _part_t * part_ini = cm->part_ini[iPart];
   _coarse_part_t *part_res = cm->part_res[iPart];
 
-  const int *_cellWeight = cellWeight;
-
-  const int *_faceWeight = faceWeight;
+  // const int *_cellWeight = cellWeight;
+  // const int *_faceWeight = faceWeight;
+  
+  part_ini->cellWeight = cellWeight;
+  part_ini->faceWeight = faceWeight;
   
   part_ini->nVtx = nVtx;
   part_ini->nCell = nCell;
   part_ini->nFace = nFace;
+  part_ini->nFaceGroup = nFaceGroup;
   part_ini->nFacePartBound = nFacePartBound;
   part_ini->cellFaceIdx = (int *) cellFaceIdx;
   part_ini->cellFace = (int *) cellFace;
@@ -1724,6 +1914,35 @@ _coarse_grid_create
 #ifdef __INTEL_COMPILER
 #pragma warning(pop)
 #endif
+  
+  part_res->nCoarseCellWanted = nCoarseCellWanted;
+  
+}
+
+
+
+/**
+ *
+ * \brief Build a coarse grid prealably setUp with _coarse_grid_mesh_input
+ *
+ * \param [out] cgId              Coarse grid identifier
+ * 
+ * \param [in]  iPart              Partition identifier
+ * \param [in]  nCoarseCellWanted  Number of cells in the coarse grid wanted by the user
+ */
+
+static void 
+_coarse_grid_compute
+( 
+ _coarse_mesh_t     *cm,
+ const int           iPart
+)
+{
+
+  _part_t * part_ini = cm->part_ini[iPart];
+  _coarse_part_t *part_res = cm->part_res[iPart];
+
+  
 
   cm->timer = PDM_timer_create();
   for (int i = 0; i < 18; i++) {
@@ -1757,13 +1976,13 @@ _coarse_grid_create
   
   int *cellPart = NULL;   
   
-  _split(cm->method,
-         nCoarseCellWanted,
-         part_ini,
+  int nCoarseCellComputed;
+
+  _split( cm, 
+          iPart,
+         &nCoarseCellComputed,
          dualGraphIdx, 
          dualGraph, 
-         (int *) _cellWeight,
-         (int *) _faceWeight,
          (int **) &cellPart);
   
   PDM_timer_hang_on(cm->timer);
@@ -1775,11 +1994,15 @@ _coarse_grid_create
   
   PDM_timer_resume(cm->timer);
   
-//  From the cellPart array, get the partCell
+  /* Assign size of multigrid */
+  part_res->part->nCell = nCoarseCellComputed;
+  
+  //  From the cellPart array, get the partCell
   int *partCellIdx = NULL;
   int *partCell = NULL;  
   
-  _partCell_from_cellPart(nCoarseCellWanted,
+  // _partCell_from_cellPart(nCoarseCellWanted,
+  _partCell_from_cellPart(part_res->part->nCell,
                           part_ini->nCell, 
                           cellPart, 
                           (int **) &partCellIdx,
@@ -1798,7 +2021,7 @@ _coarse_grid_create
   
   int *cellCoarseCell = NULL; 
   
-  part_res->part->nCell = nCoarseCellWanted;
+  // part_res->part->nCell = nCoarseCellWanted;
     
   _adapt_Connectedness(&(part_res->part->nCell),
                        part_ini->nCell,
@@ -1853,18 +2076,18 @@ _coarse_grid_create
   part_res->part->faceGroup = NULL;
   part_res->part->faceGroupLNToGN = NULL;
 
-  if (nFaceGroup > 0) {
-    part_res->part->faceGroupIdx = malloc((nFaceGroup + 1) * sizeof(int));
-    for (int i = 0; i < (nFaceGroup + 1); i++) {
+  if (part_ini->nFaceGroup > 0) {
+    part_res->part->faceGroupIdx = malloc((part_ini->nFaceGroup + 1) * sizeof(int));
+    for (int i = 0; i < (part_ini->nFaceGroup + 1); i++) {
       part_res->part->faceGroupIdx[i] = part_ini->faceGroupIdx[i];
     }
-    part_res->part->faceGroup = malloc(part_res->part->faceGroupIdx[nFaceGroup] * sizeof(int));
-    for (int i = 0; i < part_ini->faceGroupIdx[nFaceGroup]; i++) {
+    part_res->part->faceGroup = malloc(part_res->part->faceGroupIdx[part_ini->nFaceGroup] * sizeof(int));
+    for (int i = 0; i < part_ini->faceGroupIdx[part_ini->nFaceGroup]; i++) {
       part_res->part->faceGroup[i] = fineFaceToCoarseFace[part_ini->faceGroup[i] - 1]; 
     }
   }
   
-  _build_faceGroup(nFaceGroup,
+  _build_faceGroup(part_ini->nFaceGroup,
                    &(part_res->part->faceGroup),
                    &(part_res->part->faceGroupIdx),
                    &(part_res->coarseFaceGroupToFineFaceGroup));
@@ -2112,10 +2335,11 @@ _coarse_mesh_t * cm
 
   }
 
-  PDM_part_to_block_t *ptb = PDM_part_to_block_create (PDM_writer_BLOCK_DISTRIB_ALL_PROC,
-                                                     PDM_writer_POST_CLEANUP,
+  PDM_part_to_block_t *ptb = PDM_part_to_block_create (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
+                                                     PDM_PART_TO_BLOCk_POST_CLEANUP,
                                                      1.,
                                                      (PDM_g_num_t **) faceLNToGNPart,
+                                                       NULL,
                                                      nFacePart,
                                                      cm->nPart,
                                                      cm->comm);    
@@ -2200,7 +2424,7 @@ _coarse_mesh_t * cm
   PDM_g_num_t *blockDistribIdx = PDM_part_to_block_distrib_index_get (ptb); 
 
   PDM_block_to_part_t *btp = PDM_block_to_part_create (blockDistribIdx,
-                                                       (PDM_g_num_t **) faceLNToGNPart,
+                                                       (const PDM_g_num_t **) faceLNToGNPart,
                                                        nFacePart,
                                                        cm->nPart,
                                                        cm->comm);
@@ -2309,10 +2533,11 @@ _coarse_mesh_t * cm
     PDM_printf("\n");
   }
 
-  PDM_part_to_block_t *ptb = PDM_part_to_block_create (PDM_writer_BLOCK_DISTRIB_ALL_PROC,
-                                                     PDM_writer_POST_CLEANUP,
+  PDM_part_to_block_t *ptb = PDM_part_to_block_create (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
+                                                     PDM_PART_TO_BLOCk_POST_CLEANUP,
                                                      1.,
                                                      (PDM_g_num_t **) vtxLNToGNPart,
+                                                       NULL,  
                                                      nVtxPart,
                                                      cm->nPart,
                                                      cm->comm);    
@@ -2396,7 +2621,7 @@ _coarse_mesh_t * cm
   PDM_g_num_t *blockDistribIdx = PDM_part_to_block_distrib_index_get (ptb); 
 
   PDM_block_to_part_t *btp = PDM_block_to_part_create (blockDistribIdx,
-                                                       (PDM_g_num_t **) vtxLNToGNPart,
+                                                       (const PDM_g_num_t **) vtxLNToGNPart,
                                                        nVtxPart,
                                                        cm->nPart,
                                                        cm->comm);
@@ -2590,10 +2815,11 @@ _coarse_mesh_t * cm
     int rank;
     PDM_MPI_Comm_rank(cm->comm, &rank);
 
-    PDM_part_to_block_t *ptb = PDM_part_to_block_create (PDM_writer_BLOCK_DISTRIB_ALL_PROC,
-                                                         PDM_writer_POST_CLEANUP,
+    PDM_part_to_block_t *ptb = PDM_part_to_block_create (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
+                                                         PDM_PART_TO_BLOCk_POST_CLEANUP,
                                                          1.,
                                                          (PDM_g_num_t **) faceGroupLNToGNPart,
+                                                         NULL,
                                                          nFaceGroupPart,
                                                          cm->nPart,
                                                          cm->comm);    
@@ -2679,7 +2905,7 @@ _coarse_mesh_t * cm
     //        assert(blockDistribIdx[rank+1] - blockDistribIdx[rank] ==  size_block);
     
     PDM_block_to_part_t *btp = PDM_block_to_part_create (blockDistribIdx,
-                                                         (PDM_g_num_t **) faceGroupLNToGNPart,
+                                                         (const PDM_g_num_t **) faceGroupLNToGNPart,
                                                          nFaceGroupPart,
                                                          cm->nPart,
                                                          cm->comm);
@@ -2779,6 +3005,7 @@ _build_facePartBound
 _coarse_mesh_t * cm
 )
 {
+  PDM_printf("_build_facePartBound \n");
   //Number of processors
   int nProc;
   PDM_MPI_Comm_size(cm->comm, &nProc);
@@ -3403,7 +3630,11 @@ _coarse_part_free
 )
 {
   _part_free(coarse_part->part);
-    
+
+  if (coarse_part->specific_data != NULL) {
+    free (coarse_part->specific_data);
+  }
+  
   if (coarse_part->coarseCellCell != NULL)
     free(coarse_part->coarseCellCell);
   coarse_part->coarseCellCell = NULL;    
@@ -3455,7 +3686,13 @@ PDM_part_coarse_mesh_create
 (
  int                *cmId,
  PDM_MPI_Comm        comm, 
- const int           method,
+ const char*         method,
+ const char         *renum_cell_method,
+ const char         *renum_face_method,
+ const int           nPropertyCell,
+ const int          *renum_properties_cell,
+ const int           nPropertyFace,
+ const int          *renum_properties_face,
  const int           nPart,
  const int           nTPart,
  const int           nFaceGroup,
@@ -3473,6 +3710,12 @@ PDM_part_coarse_mesh_create
 
   _coarse_mesh_t *cm  = _coarse_mesh_create (comm,
                                              method,
+                                             renum_cell_method,
+                                             renum_face_method,
+                                             nPropertyCell,
+                                             renum_properties_cell,
+                                             nPropertyFace,
+                                             renum_properties_face,
                                              nPart,
                                              nTPart,
                                              nFaceGroup,
@@ -3487,11 +3730,20 @@ PDM_part_coarse_mesh_create
 }
 
 void
-PROCF (pdm_part_coarse_mesh_create, PDM_PART_COARSE_MESH_CREATE)
+PROCF (pdm_part_coarse_mesh_create_cf, PDM_PART_COARSE_MESH_CREATE_CF)
 (
  int                *cmId,
  PDM_MPI_Fint       *fcomm,        
- const int          *method,
+ const char         *method,
+ const int          *l_method,
+ const char         *renum_cell_method,
+ const int          *l_renum_cell_method,
+ const char         *renum_face_method,
+ const int          *l_renum_face_method,
+ const int          *nPropertyCell,
+ const int          *renum_properties_cell,
+ const int          *nPropertyFace,
+ const int          *renum_properties_face,
  const int          *nPart, 
  const int          *nTPart, 
  const int          *nFaceGroup,
@@ -3505,10 +3757,24 @@ PROCF (pdm_part_coarse_mesh_create, PDM_PART_COARSE_MESH_CREATE)
 {
   
   PDM_MPI_Comm comm = PDM_MPI_Comm_f2c (*fcomm);
+
+  char *_method = PDM_fortran_to_c_string (method, *l_method); 
+  
+  char *_renum_cell_method = 
+      PDM_fortran_to_c_string(renum_cell_method, *l_renum_cell_method); 
+
+  char *_renum_face_method = 
+      PDM_fortran_to_c_string(renum_face_method, *l_renum_face_method); 
   
   PDM_part_coarse_mesh_create (cmId,
                                comm,
-                               *method,
+                               _method,
+                               _renum_cell_method,
+                               _renum_face_method,
+                               *nPropertyCell,
+                               renum_properties_cell,
+                               *nPropertyFace,
+                               renum_properties_face,
                                *nPart,
                                *nTPart,
                                *nFaceGroup,
@@ -3518,6 +3784,9 @@ PROCF (pdm_part_coarse_mesh_create, PDM_PART_COARSE_MESH_CREATE)
                                *have_cellWeight,
                                *have_faceWeight,
                                *have_faceGroup);
+
+  free (_method);
+  
 }
 
 /**
@@ -3556,7 +3825,7 @@ PDM_part_coarse_mesh_input
 (
  int                 cmId,
  int                 iPart,
- const int           nCoarseCell,
+ const int           nCoarseCellWanted,
  const int           nCell,
  const int           nFace,
  const int           nVtx,
@@ -3567,15 +3836,15 @@ PDM_part_coarse_mesh_input
  const int          *cellTag,
  const int          *cellWeight,
  const int          *faceWeight,
- const PDM_g_num_t *cellLNToGN,       
+ const PDM_g_num_t  *cellLNToGN,       
  const int          *faceCell,
  const int          *faceVtxIdx,
  const int          *faceVtx,
  const int          *faceTag,       
- const PDM_g_num_t *faceLNToGN,       
+ const PDM_g_num_t  *faceLNToGN,       
  const double       *vtxCoord,
  const int          *vtxTag,
- const PDM_g_num_t *vtxLNToGN,       
+ const PDM_g_num_t  *vtxLNToGN,       
  const int          *faceGroupIdx,
  const int          *faceGroup,
  const PDM_g_num_t  *faceGroupLNToGN,
@@ -3586,34 +3855,34 @@ PDM_part_coarse_mesh_input
 {   
   _coarse_mesh_t * cm = _get_from_id (cmId);  
     
-   _coarse_grid_create (cm,
-                        iPart,
-                        nCoarseCell,
-                        nCell,
-                        nFace,
-                        nVtx,
-                        nFaceGroup,
-                        nFacePartBound,
-                        cellFaceIdx,
-                        cellFace,
-                        cellTag,
-                        cellWeight,
-                        faceWeight,
-                        cellLNToGN,
-                        faceCell,
-                        faceVtxIdx,
-                        faceVtx,
-                        faceTag,
-                        faceLNToGN,
-                        vtxCoord,
-                        vtxTag,
-                        vtxLNToGN,
-                        faceGroupIdx,
-                        faceGroup,
-                        faceGroupLNToGN,
-                        facePartBoundProcIdx,
-                        facePartBoundPartIdx,
-                        facePartBound);   
+  _coarse_grid_mesh_input (cm,
+                           iPart,
+                           nCoarseCellWanted,
+                           nCell,
+                           nFace,
+                           nVtx,
+                           nFaceGroup,
+                           nFacePartBound,
+                           cellFaceIdx,
+                           cellFace,
+                           cellTag,
+                           cellWeight,
+                           faceWeight,
+                           cellLNToGN,
+                           faceCell,
+                           faceVtxIdx,
+                           faceVtx,
+                           faceTag,
+                           faceLNToGN,
+                           vtxCoord,
+                           vtxTag,
+                           vtxLNToGN,
+                           faceGroupIdx,
+                           faceGroup,
+                           faceGroupLNToGN,
+                           facePartBoundProcIdx,
+                           facePartBoundPartIdx,
+                           facePartBound);   
 }
 
 void 
@@ -3621,7 +3890,7 @@ PROCF (pdm_part_coarse_mesh_input, PDM_PART_COARSE_MESH_INPUT)
 (
  int                *cmId,
  int                *iPart,
- const int          *nCoarseCell,
+ const int          *nCoarseCellWanted,
  const int          *nCell,
  const int          *nFace,
  const int          *nVtx,
@@ -3700,7 +3969,7 @@ PROCF (pdm_part_coarse_mesh_input, PDM_PART_COARSE_MESH_INPUT)
 
   PDM_part_coarse_mesh_input(*cmId,
                              *iPart,
-                             *nCoarseCell,
+                             *nCoarseCellWanted,
                              *nCell,
                              *nFace,
                              *nVtx,
@@ -3738,11 +4007,18 @@ PROCF (pdm_part_coarse_mesh_input, PDM_PART_COARSE_MESH_INPUT)
 void 
 PDM_part_coarse_mesh_compute
 (
-int cmId
+                                int cmId
 )
 {    
   _coarse_mesh_t * cm = _get_from_id (cmId);
   
+  /* First step : Manage independently coarse grid generation */
+  
+  for (int iPart = 0; iPart < cm->nPart; iPart++) {
+    _coarse_grid_compute(cm, iPart);
+  }
+  
+  /* Second step : Manage MPI */
   int itime = 13;
   
   //    PDM_part_coarse_mesh_display(cmId); 
@@ -3791,6 +4067,90 @@ int cmId
   itime += 1;
   
   PDM_timer_resume(cm->timer);
+  
+  // PDM_printf(" ------------------------------------------- \n");
+  // for (int i = 0; i < part->faceGroupIdx[part->nFaceGroup]; i++) {
+  //   PDM_printf("part->faceGroup[%i] = %i  \n", i, part->faceGroup[i]);  
+  //   int iFace = part->faceGroup[i];    
+  //   PDM_printf("part->faceCell = %i/%i  \n", i, part->faceCell[2*iFace],part->faceCell[2*iFace+1] );
+  // }
+  /* Renumbering */
+  
+  // Demander a Eric : 
+  // Il va manquer le reordering des tableau specific au multigrille ?
+  // coarseCellCell, coarseCellCellIdx
+  // coarseCellCell, coarseVtxToFineVtx
+  printf("Renumbering Coarse mesh \n");
+    
+  for (int iPart = 0; iPart < cm->nPart; iPart++) {
+    
+    /* Cell renumbering */
+    PDM_part_renum_cell (        &cm->part_res[iPart]->part, 
+                                 1, 
+                                 cm->renum_cell_method, 
+                         (void*) cm->renum_properties_cell); 
+    
+    printf("PDM_part_renum_connectivities \n");
+    if(cm->part_res[iPart]->part->newToOldOrderCell != NULL)
+    {
+      /* Verbose */
+      if( 0 == 1){
+        printf("PDM_part_renum_connectivities end %i \n", cm->part_res[iPart]->part->nCell);
+        for (int i = 0; i < cm->part_res[iPart]->part->nCell; i++){
+          printf("part->newToOldOrderCell[%i] = %i\n ", i,cm->part_res[iPart]->part->newToOldOrderCell[i] );
+        }
+      }
+      
+      /* Renum CoarseGrid connectivity */
+      PDM_part_renum_connectivities(cm->part_res[iPart]->part->nCell,
+                                    cm->part_res[iPart]->part->newToOldOrderCell,
+                                    cm->part_res[iPart]->coarseCellCellIdx, 
+                                    cm->part_res[iPart]->coarseCellCell);
+      
+      /* Si agglomeration method = 3 il faut changer les tableaux */
+      // _coarse_part_t *part_res = cm->part_res[iPart];
+      // _part_aniso_agglo_data_t *part_aniso_agglo_data  = (_part_aniso_agglo_data_t *) part_res->specific_data;
+
+      
+      
+    }
+    
+    /* Face renumbering */
+    PDM_part_renum_face (        &cm->part_res[iPart]->part, 
+                                 1, 
+                                 cm->renum_face_method, 
+                         (void*) cm->renum_properties_face); 
+    
+    if(cm->part_res[iPart]->part->newToOldOrderFace != NULL)
+    {
+      /* Verbose */
+      if( 0 == 1){
+        printf("PDM_part_renum_connectivities end %i \n", cm->part_res[iPart]->part->nFace);
+        for (int i = 0; i < cm->part_res[iPart]->part->nFace; i++){
+          printf("part->newToOldOrderFace[%i] = %i\n ", i,cm->part_res[iPart]->part->newToOldOrderFace[i] );
+        }
+      }
+      
+      // printf("PDM_order_array \n");
+      
+      /* Renum CoarseGrid connectivity */
+      PDM_order_array(cm->part_res[iPart]->part->nFace,
+                      sizeof(PDM_l_num_t),
+                      cm->part_res[iPart]->part->newToOldOrderFace,
+                      cm->part_res[iPart]->coarseFaceToFineFace);
+      // printf("PDM_order_array end\n");
+      
+    }
+    
+    /* Compute renumbering to specific agglomeration method */    
+    if(cm->specific_func != NULL){
+      (*cm->specific_func)(cm->part_res[iPart]);
+    }
+    
+    
+  }
+  
+  printf("Renumbering Coarse mesh end ... \n");
   
   _build_facePartBound(cm);
   
@@ -4176,6 +4536,42 @@ PROCF (pdm_part_coarse_mesh_part_get, PDM_PART_COARSE_MESH_PART_GET)
 
 /**
  *
+ * \brief Return a mesh partition
+ * 
+ * \param [in]   ppartId            ppart identifier
+ * \param [in]   ipart              Current partition
+ * \param [out]  cellColor          Cell tag (size = nCell)
+ * \param [out]  faceColor          Face tag (size = nFace)
+
+ */
+
+void PDM_part_coarse_color_get
+(
+ const int   cmId,
+ const int   iPart,      
+       int **cellColor,
+       int **faceColor
+)
+{
+  _coarse_mesh_t * cm = _get_from_id (cmId); 
+  
+  _coarse_part_t *part_res = NULL;   
+  
+  if (iPart < cm->nPart) {        
+    part_res = cm->part_res[iPart]; 
+  }
+  
+  if (part_res == NULL) {
+    PDM_printf("PDM_part_coarse_mesh_part_get error : unknown partition\n");
+    exit(1);
+  }
+
+  *cellColor = part_res->part->cellColor;
+  *faceColor = part_res->part->faceColor;
+}
+
+/**
+ *
  * \brief Free coarse mesh
  *
  * \param [in]   cmId        Coarse mesh identifier
@@ -4195,6 +4591,10 @@ PDM_part_coarse_mesh_free
     _coarse_part_free(cm->part_res[i]);
     cm->part_ini[i] = NULL;
     cm->part_res[i] = NULL;
+  }
+
+  if (cm->specific_data != NULL) {
+    free (cm->specific_data);
   }
   
   free(cm->part_ini);
@@ -4324,3 +4724,253 @@ PROCF (pdm_part_coarse_mesh_display, PDM_PART_COARSE_MESH_DISPLAY)
 {
   PDM_part_coarse_mesh_display (*cmId);
 }
+
+
+/**
+ *
+ * \brief Add a new coarse mesh method
+ *
+ * \param [in]      name          Mesh entity to renumber
+ * \param [in]      fct           Function
+ *
+ */
+
+int
+PDM_coarse_mesh_method_add
+(
+ const char                 *name,     /*!< Name          */
+ PDM_coarse_mesh_fct_t       fct       /*!< Function      */
+)
+{
+  if (_coarse_mesh_methods == NULL) {
+      PDM_coarse_mesh_method_load_local();
+  }
+
+  _coarse_mesh_method_t *method_ptr = malloc (sizeof(_coarse_mesh_method_t));
+
+  int idx = PDM_Handles_store  (_coarse_mesh_methods, method_ptr);
+
+  method_ptr->name = malloc (sizeof(char) * (strlen(name) + 1));
+  strcpy (method_ptr->name, name);
+
+  method_ptr->fct = fct;
+
+  return idx;
+}
+
+
+/**
+ *
+ * \brief Get index of a coarse mesh method from it's name
+ *
+ * \param [in]  name   Name of the method
+ *
+ * \return Index (-1 if not found)
+ */
+
+void
+PROCF (pdm_coarse_mesh_method_idx_get_cf, PDM_COARSE_MESH_METHOD_IDX_GET_CF)
+(
+ char *name,
+ int  *l_name,
+ int  *idx
+ )
+{
+  char *_name = PDM_fortran_to_c_string (name, *l_name); 
+
+  *idx = PDM_coarse_mesh_method_idx_get (_name);
+  
+  free (_name);
+
+}
+
+int
+PDM_coarse_mesh_method_idx_get
+(
+const char *name
+)
+{
+  if (_coarse_mesh_methods == NULL) {
+    PDM_coarse_mesh_method_load_local();
+  }
+  int idx = -1;
+  
+  if (_coarse_mesh_methods != NULL) {
+    int n_methods = PDM_Handles_n_get (_coarse_mesh_methods);
+    const int *index =  PDM_Handles_idx_get (_coarse_mesh_methods);
+
+    for (int i = 0; i < n_methods; i++) {
+      _coarse_mesh_method_t *method_ptr = 
+              (_coarse_mesh_method_t *) PDM_Handles_get (_coarse_mesh_methods, index[i]);
+      if (!strcmp(method_ptr->name, name)) {
+        idx = index[i];
+        break;
+      }      
+    }
+  }
+  return idx;
+}
+
+
+/**
+ *
+ * \brief Get name of a coarse mesh method from it's index
+ *
+ * \param [in]  name   Name of the method
+ *
+ * \return Index (-1 if not found)
+ */
+
+void
+PROCF (pdm_coarse_mesh_method_name_get_cf, PDM_COARSE_MESH_METHOD_NAME_GET_CF)
+(
+ char *name,
+ int  *l_name,
+ int  *idx
+ )
+{
+  const char *_name = PDM_coarse_mesh_method_name_get (*idx);
+
+  const int _l_name = strlen(_name);
+
+  *l_name = PDM_MAX (_l_name, PDM_MAX_CHAR_LENGTH);
+
+  strncpy (name, _name, *l_name);
+}
+
+char *
+PDM_coarse_mesh_method_name_get
+(
+const int id
+)
+{
+  if (_coarse_mesh_methods == NULL) {
+    PDM_coarse_mesh_method_load_local();
+  }
+
+  int n_methods = PDM_Handles_n_get (_coarse_mesh_methods);
+
+  if (id >= n_methods) {
+    return NULL;
+  }
+
+  const int *index =  PDM_Handles_idx_get (_coarse_mesh_methods);
+
+  _coarse_mesh_method_t *method_ptr = 
+            (_coarse_mesh_method_t *) PDM_Handles_get (_coarse_mesh_methods, index[id]);
+
+  return method_ptr->name;
+}
+
+
+/**
+ *
+ * \brief Get the number of coarse mesh method
+ *
+ * \return Number of methods
+ *
+ */
+
+void
+PROCF (pdm_coarse_mesh_method_n_get, PDM_COARSE_MESH_METHOD_N_GET)
+(
+ int  *n_method
+ )
+{
+  *n_method = PDM_coarse_mesh_method_n_get ();
+}
+
+int
+PDM_coarse_mesh_method_n_get
+(
+void
+)
+{
+  if (_coarse_mesh_methods == NULL) {
+    PDM_coarse_mesh_method_load_local();
+  }
+  
+  return PDM_Handles_n_get (_coarse_mesh_methods);
+  
+}
+
+/**
+ *
+ * \brief Purge coarse mesh methods catalog
+ *
+ */
+
+void
+PDM_coarse_mesh_method_purge
+(
+void
+)
+{
+  if (_coarse_mesh_methods != NULL) {
+
+    const int *index =  PDM_Handles_idx_get (_coarse_mesh_methods);
+    int n_methods = PDM_Handles_n_get (_coarse_mesh_methods);
+    
+    while (n_methods > 0) {
+      int idx = index[0];
+      _coarse_mesh_method_t *method_ptr = 
+              (_coarse_mesh_method_t *) PDM_Handles_get (_coarse_mesh_methods, idx);
+      free (method_ptr->name);
+      PDM_Handles_handle_free (_coarse_mesh_methods, idx, PDM_TRUE);
+      n_methods = PDM_Handles_n_get (_coarse_mesh_methods);
+    }
+
+    _coarse_mesh_methods = PDM_Handles_free (_coarse_mesh_methods);
+    
+  }
+}
+
+/**
+ *
+ * \brief Load local coarse mesh methods
+ *
+ */
+
+void
+PDM_coarse_mesh_method_load_local
+(
+void
+)
+{
+  if (_coarse_mesh_methods == NULL)  {
+    
+    const int n_default_methods = 2;
+    _coarse_mesh_methods = PDM_Handles_create (n_default_methods);
+    
+    PDM_coarse_mesh_method_add ("PDM_COARSE_MESH_SCOTCH",
+                             _coarse_from_scotch);
+    PDM_coarse_mesh_method_add ("PDM_COARSE_MESH_METIS",
+                             _coarse_from_metis);
+
+  }
+
+}
+
+
+
+/**
+ *
+ * \brief Return coarse mesh object from its identifier
+ *
+ * \param [in]   cmId        Coarse mesh identifier
+ *
+ */
+
+_coarse_mesh_t *
+PDM_part_coarse_mesh_get_from_id
+(
+ int  cmId
+ )
+{
+  return _get_from_id (cmId);
+}
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+

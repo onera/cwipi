@@ -72,16 +72,16 @@ PDM_part_geom
 (
  PDM_part_geom_t     method,
  const int           nPart,       
- const PDM_MPI_Comm      comm,       
+ const PDM_MPI_Comm  comm,       
  const int           dNCell,
  const int          *dCellFaceIdx,
- const PDM_g_num_t *dCellFace,
+ const PDM_g_num_t  *dCellFace,
  const int          *dCellWeight,
  const int          *dFaceVtxIdx,
- const PDM_g_num_t *dFaceVtx,
- const PDM_g_num_t *dFaceProc,       
- const double       *dVtxCoord,
- const PDM_g_num_t *dVtxProc,       
+ const PDM_g_num_t  *dFaceVtx,
+ const PDM_g_num_t  *dFaceProc,       
+ const double        *dVtxCoord,
+ const PDM_g_num_t  *dVtxProc,       
  int                *dcellPart
 );
 

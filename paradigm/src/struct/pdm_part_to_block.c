@@ -79,7 +79,7 @@ _active_ranks
 
     switch (ptb->t_distrib) {
     
-    case PDM_writer_BLOCK_DISTRIB_ALL_PROC : {
+    case PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC : {
       ptb->isMyRankActive = 1;
       ptb->n_activeRanks = ptb->s_comm;
       ptb->activeRanks   = (int *) malloc(sizeof(int) * ptb->n_activeRanks);
@@ -89,8 +89,8 @@ _active_ranks
       break;
     }
 
-    case PDM_writer_BLOCK_DISTRIB_ONE_PROC_PER_NODE :
-    case PDM_writer_BLOCK_DISTRIB_PART_OF_NODE : {
+    case PDM_PART_TO_BLOCK_DISTRIB_ONE_PROC_PER_NODE :
+    case PDM_PART_TO_BLOCK_DISTRIB_PART_OF_NODE : {
 
       ptb->isMyRankActive = 0; 
 
@@ -120,7 +120,7 @@ _active_ranks
         }
       }
       
-      if (ptb->t_distrib == PDM_writer_BLOCK_DISTRIB_ONE_PROC_PER_NODE) {
+      if (ptb->t_distrib == PDM_PART_TO_BLOCK_DISTRIB_ONE_PROC_PER_NODE) {
         break;
       }
       
@@ -341,7 +341,7 @@ _distrib_data
    * Cleanup
    */
 
-  if (ptb->t_post != PDM_writer_POST_NOTHING) {
+  if (ptb->t_post != PDM_PART_TO_BLOCK_POST_NOTHING) {
 
     int n_eltBlock = 0;
     
@@ -382,6 +382,7 @@ _distrib_data
  * \param [in]   t_post          Post processing type
  * \param [in]   partActiveNode  Part of active nodes (\ref PDM_writer_BLOCK_DISTRIB_PART_OF_NODE mode)
  * \param [in]   gnum_elt        Element global number
+ * \param [in]   weight          Weight of elements (or NULL)
  * \param [in]   n_elt           Local number of elements
  * \param [in]   n_part          Number of partition      
  * \param [in]   comm            MPI communicator         
@@ -397,6 +398,7 @@ PDM_part_to_block_create
  PDM_part_to_block_post_t      t_post,
  float                        partActiveNode,
  PDM_g_num_t                  **gnum_elt,
+ float                       **weight,
  int                         *n_elt,
  int                          n_part,
  PDM_MPI_Comm                     comm
@@ -421,6 +423,7 @@ PDM_part_to_block_create
   ptb->n_elt            = n_elt;        /*!< Number of elements for any part */
   ptb->n_eltProc        = 0;            /*!< Number of elements on the current rank */
   ptb->gnum_elt         = gnum_elt;     /*!< Global numbering of elements for any part */
+  ptb->weight           = weight;
   ptb->destProc         = NULL;
   ptb->dataDistribIndex = 
     (PDM_g_num_t *) malloc (sizeof(PDM_g_num_t) * (ptb->s_comm + 1));   /*!< Data distribution on ranks */
@@ -590,7 +593,7 @@ PDM_part_to_block_exch
 {
   _cs_part_to_block_t *_ptb = (_cs_part_to_block_t *) ptb;
 
-  if ((_ptb->t_post == PDM_writer_POST_MERGE) && 
+  if ((_ptb->t_post == PDM_PART_TO_BLOCK_POST_MERGE) && 
       (t_stride ==  PDM_STRIDE_CST)) {
     PDM_error(__FILE__, __LINE__, 0,"PDM_part_to_block_exch : PDM_writer_STRIDE_CST is not compatible PDM_writer_POST_MERGE post\n");
     abort ();
@@ -813,7 +816,7 @@ PDM_part_to_block_exch
      * post processing
      */
 
-    if (_ptb->t_post != PDM_writer_POST_NOTHING) {
+    if (_ptb->t_post != PDM_PART_TO_BLOCK_POST_NOTHING) {
 
       int idx1 = 0;
       int idx2 = 0;
@@ -829,14 +832,14 @@ PDM_part_to_block_exch
         if (_ptb->block_gnum[idx1] != _ptb->sorted_recvGnum[i]) {
           idx1 += 1;
           _block_stride[idx1] = _block_stride[i];
-          if (_ptb->t_post == PDM_writer_POST_CLEANUP) {
+          if (_ptb->t_post == PDM_PART_TO_BLOCk_POST_CLEANUP) {
             for (int k = i_block_stride[i]; k < i_block_stride[i+1]; k++) {
               _block_data[idx2++] = _block_data[k];
             }
           }
         }
         else {
-          if (_ptb->t_post == PDM_writer_POST_MERGE) {
+          if (_ptb->t_post == PDM_PART_TO_BLOCK_POST_MERGE) {
             _block_stride[idx1] += _block_stride[i];
           }
         }
@@ -844,7 +847,7 @@ PDM_part_to_block_exch
       
       /* Cleanup */
 
-      if (_ptb->t_post == PDM_writer_POST_CLEANUP) {
+      if (_ptb->t_post == PDM_PART_TO_BLOCk_POST_CLEANUP) {
         _block_data = realloc (_block_data, sizeof(unsigned char) * idx2);
         *block_data = _block_data;
 
@@ -881,11 +884,11 @@ PDM_part_to_block_exch
      * Post processing
      */
 
-    if (_ptb->t_post != PDM_writer_POST_NOTHING) {
+    if (_ptb->t_post != PDM_PART_TO_BLOCK_POST_NOTHING) {
       int idx2 = 0;
       int idx1 = 0;
 
-      assert (_ptb->t_post != PDM_writer_POST_MERGE);
+      assert (_ptb->t_post != PDM_PART_TO_BLOCK_POST_MERGE);
           
       if (_ptb->tn_recvData == 1) {
         idx2 =  cst_stride * (int) s_data;
@@ -898,7 +901,7 @@ PDM_part_to_block_exch
         }
         if (_ptb->block_gnum[idx1] != _ptb->sorted_recvGnum[i]) {
           idx1 += 1;
-          if (_ptb->t_post == PDM_writer_POST_CLEANUP) {
+          if (_ptb->t_post == PDM_PART_TO_BLOCk_POST_CLEANUP) {
             int idx3 = i * cst_stride * (int) s_data;
             for (int k = 0; k < n_octet; k++) {
               _block_data[idx2++] = _block_data[idx3++];
@@ -907,7 +910,7 @@ PDM_part_to_block_exch
         }
       }
 
-      if (_ptb->t_post == PDM_writer_POST_CLEANUP) {
+      if (_ptb->t_post == PDM_PART_TO_BLOCk_POST_CLEANUP) {
         _block_data = realloc (_block_data, sizeof(unsigned char) * idx2);
         *block_data = _block_data;
         s_block_data = idx2 / (int) s_data;
@@ -975,7 +978,8 @@ PDM_part_to_block_free
     free (_ptb->order);
     _ptb->order = NULL;
   }
-  if (_ptb->block_gnum != NULL) {  
+  
+  if ((_ptb->t_post != PDM_PART_TO_BLOCK_POST_NOTHING) && (_ptb->block_gnum != NULL)) {  
     free (_ptb->block_gnum);
     _ptb->block_gnum = NULL;
   }

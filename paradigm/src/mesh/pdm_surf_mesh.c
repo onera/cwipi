@@ -217,8 +217,8 @@ PDM_surf_mesh_build_edges_gn_and_edge_part_bound
   for (int i = 0; i < nPart; i++) {
     PDM_surf_part_t *part = mesh->part[i];
     for (int j = 0; j < part->nEdge; j++) {
-      if ((part->edgeFace[2*j] == -1) || 
-          (part->edgeFace[2*j + 1] == -1)) {
+      if ((part->edgeFace[2*j] == 0) || 
+          (part->edgeFace[2*j + 1] == 0)) {
         int vtx1 = part->edgeVtx[2*j];
         int vtx2 = part->edgeVtx[2*j + 1];
         PDM_g_num_t _keyEdge = (part->vtxLnToGn[vtx1-1] + part->vtxLnToGn[vtx2-1]) % keyMax;
@@ -245,8 +245,8 @@ PDM_surf_mesh_build_edges_gn_and_edge_part_bound
     PDM_surf_part_t *part = mesh->part[i];
     nEdgeBoundPart[i] = 0;
     for (int j = 0; j < part->nEdge; j++) {
-      if ((part->edgeFace[2*j] == -1) || 
-          (part->edgeFace[2*j + 1] == -1)) {
+      if ((part->edgeFace[2*j] == 0) || 
+          (part->edgeFace[2*j + 1] == 0)) {
         int vtx1 = part->edgeVtx[2*j];
         int vtx2 = part->edgeVtx[2*j + 1];
         PDM_g_num_t _keyEdge =
@@ -336,8 +336,8 @@ PDM_surf_mesh_build_edges_gn_and_edge_part_bound
               PDM_part_bound_offer_elt_set (edgePartBound,
                                             edgePartCur[iPart],
                                             0,
-                                            part->edgeFace[2*iEdge],
-                                            part->faceLnToGn[part->edgeFace[2*iEdge]-1]);
+                                            PDM_ABS (part->edgeFace[2*iEdge]),
+                                            part->faceLnToGn[PDM_ABS(part->edgeFace[2*iEdge])-1]);
              
               PDM_part_bound_distant_elt_set (edgePartBound,
                                               edgePartCur[iPart],
@@ -354,8 +354,8 @@ PDM_surf_mesh_build_edges_gn_and_edge_part_bound
               PDM_part_bound_offer_elt_set (edgePartBound1,
                                             edgePartCur[iPart1],
                                             0,
-                                            part1->edgeFace[2*iEdge1],
-                                            part1->faceLnToGn[part1->edgeFace[2*iEdge1]-1]);
+                                            PDM_ABS (part1->edgeFace[2*iEdge1]),
+                                            part1->faceLnToGn[PDM_ABS (part1->edgeFace[2*iEdge1])-1]);
 
               PDM_part_bound_distant_elt_set (edgePartBound1,
                                               edgePartCur[iPart1],
@@ -755,8 +755,8 @@ PDM_surf_mesh_build_edges_gn_and_edge_part_bound
         PDM_part_bound_offer_elt_set (edgePartBound,
                                       edgePartCur[iPart],
                                       0,
-                                      part->edgeFace[2*iEdgePart],
-                                      part->faceLnToGn[part->edgeFace[2*iEdgePart]-1]);
+                                      PDM_ABS (part->edgeFace[2*iEdgePart]),
+                                      part->faceLnToGn[PDM_ABS (part->edgeFace[2*iEdgePart])-1]);
 
         PDM_part_bound_distant_elt_set(edgePartBound,
                                        edgePartCur[iPart],
@@ -892,8 +892,8 @@ PDM_surf_mesh_t *mesh
   for (int i = 0; i < nPart; i++) {
     PDM_surf_part_t *part = mesh->part[i];
     for (int j = 0; j < part->nEdge; j++) {
-      if ((part->edgeFace[2*j] == -1) || 
-          (part->edgeFace[2*j + 1] == -1)) {
+      if ((part->edgeFace[2*j] == 0) || 
+          (part->edgeFace[2*j + 1] == 0)) {
         int vtx1 = part->edgeVtx[2*j] - 1;
         int vtx2 = part->edgeVtx[2*j + 1] -1;
         if (tagVtx[vtx1] == 0) {
@@ -935,8 +935,8 @@ PDM_surf_mesh_t *mesh
   for (int i = 0; i < nPart; i++) {
     PDM_surf_part_t *part = mesh->part[i];
     for (int j = 0; j < part->nEdge; j++) {
-      if ((part->edgeFace[2*j    ] == -1) || 
-          (part->edgeFace[2*j + 1] == -1)) {
+      if ((part->edgeFace[2*j    ] == 0) || 
+          (part->edgeFace[2*j + 1] == 0)) {
         int vtx1 = part->edgeVtx[2*j] - 1;
         int vtx2 = part->edgeVtx[2*j + 1] -1;
         

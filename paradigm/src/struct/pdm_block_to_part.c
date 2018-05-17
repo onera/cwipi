@@ -59,11 +59,11 @@ extern "C" {
 PDM_block_to_part_t *
 PDM_block_to_part_create
 (
- PDM_g_num_t     *blockDistribIdx,
- PDM_g_num_t    **gnum_elt,
- int            *n_elt,
- int             n_part,
- PDM_MPI_Comm        comm
+ const PDM_g_num_t     *blockDistribIdx,
+ const PDM_g_num_t    **gnum_elt,
+ const int            *n_elt,
+ const int             n_part,
+ const PDM_MPI_Comm        comm
 )
 {
 
@@ -100,7 +100,7 @@ PDM_block_to_part_create
     btp->n_elt[i] = n_elt[i];
     btp->ind[i] = malloc (sizeof(int) * n_elt[i]);
     
-    PDM_g_num_t *_gnum_elt = gnum_elt[i];
+    const PDM_g_num_t *_gnum_elt = gnum_elt[i];
     
     for (int j = 0; j < n_elt[i]; j++) {
     
@@ -121,14 +121,18 @@ PDM_block_to_part_create
                         btp->requested_data_idx[btp->s_comm - 1] + 
                         btp->requested_data_n[btp->s_comm - 1]));
   
+  
+  // printf("requested_data_size = %i \n", btp->requested_data_idx[btp->s_comm - 1] + btp->requested_data_n[btp->s_comm - 1] );
+  
   for (int i = 0; i < btp->s_comm; i++) {
     btp->requested_data_n[i] = 0;
   }
   
   for (int i = 0; i < n_part; i++) {
 
-    PDM_g_num_t *_gnum_elt = gnum_elt[i];
+    const PDM_g_num_t *_gnum_elt = gnum_elt[i];
     
+    // printf("n_elt[%i] = %i \n", i, (int) n_elt[i]);
     for (int j = 0; j < n_elt[i]; j++) {
     
       int ind = PDM_binary_search_gap_long (_gnum_elt[j] - 1,
@@ -139,6 +143,7 @@ PDM_block_to_part_create
       btp->ind[i][j] = idx;
       
       PDM_g_num_t _requested_data = _gnum_elt[j] - 1 - blockDistribIdx[ind];
+      // printf("requested_data[%i] = %i \n", idx, (int) _requested_data);
       requested_data[idx] = (int) _requested_data;
 
     }
@@ -147,8 +152,8 @@ PDM_block_to_part_create
   btp->distributed_data_n = malloc (sizeof(int) * btp->s_comm);
   
   PDM_MPI_Alltoall (btp->requested_data_n,   1, PDM_MPI_INT, 
-                btp->distributed_data_n, 1, PDM_MPI_INT, 
-                comm);
+                    btp->distributed_data_n, 1, PDM_MPI_INT, 
+                    comm);
   
   btp->distributed_data_idx = malloc (sizeof(int) * (btp->s_comm + 1));
   btp->distributed_data_idx[0] = 0;
@@ -162,14 +167,14 @@ PDM_block_to_part_create
                                   btp->distributed_data_idx[btp->s_comm]);
 
   PDM_MPI_Alltoallv (requested_data,
-                 btp->requested_data_n,
-                 btp->requested_data_idx,
-                 PDM_MPI_INT,
-                 btp->distributed_data,
-                 btp->distributed_data_n,
-                 btp->distributed_data_idx,
-                 PDM_MPI_INT,
-                 comm);
+                     btp->requested_data_n,
+                     btp->requested_data_idx,
+                     PDM_MPI_INT,
+                     btp->distributed_data,
+                     btp->distributed_data_n,
+                     btp->distributed_data_idx,
+                     PDM_MPI_INT,
+                     comm);
 
   free (requested_data);
   
@@ -251,15 +256,15 @@ PDM_block_to_part_exch
     }
 
     PDM_MPI_Alltoallv (sendStride,
-                   _btp->distributed_data_idx,
-                   _btp->distributed_data_n,
-                   PDM_MPI_INT, 
-                   recvStride,
-                   _btp->requested_data_idx,
-                   _btp->requested_data_n,
-                   PDM_MPI_INT, 
-                   _btp->comm);
-
+                       _btp->distributed_data_n,
+                       _btp->distributed_data_idx,
+                       PDM_MPI_INT, 
+                       recvStride,
+                       _btp->requested_data_n,
+                       _btp->requested_data_idx,
+                       PDM_MPI_INT, 
+                       _btp->comm);
+    
     for (int i = 0; i < _btp->n_part; i++) {
 
       for (int j = 0; j < _btp->n_elt[i]; j++) {
@@ -313,17 +318,11 @@ PDM_block_to_part_exch
 
     }
 
-    free(sendStride);
-
     s_sendBuffer = i_sendBuffer[s_comm1] + n_sendBuffer[s_comm1];
     s_recvBuffer = i_recvBuffer[s_comm1] + n_recvBuffer[s_comm1];
 
     sendBuffer = (unsigned char *) malloc(sizeof(unsigned char) * s_sendBuffer);
     recvBuffer = (unsigned char *) malloc(sizeof(unsigned char) * s_recvBuffer);
-
-    for (int i = 0; i < _btp->s_comm; i++) {
-      n_sendBuffer[i] = 0;
-    }
 
     int *sendStride_idx = (int *) malloc(sizeof(int) * (s_distributed_data+1));
     sendStride_idx[0] = 0;
@@ -333,14 +332,18 @@ PDM_block_to_part_exch
     
     int idx1 = 0;
     for (int i = 0; i < s_distributed_data; i++) {
+      
       int ind = sendStride_idx[_btp->distributed_data[i]] * (int) s_data;
-      int s_block_unit = (sendStride_idx[_btp->distributed_data[i+1]] 
-                        - sendStride_idx[_btp->distributed_data[i]]) * (int) s_data;
+      
+      int s_block_unit = sendStride[_btp->distributed_data[i]] * (int) s_data;
+      
       unsigned char *_block_data_deb = _block_data + ind;  
+      
       for (int k = 0; k < s_block_unit; k++) {
         sendBuffer[idx1++] = _block_data_deb[k];
       }
     }
+    free(sendStride);
   }
       
   else if (t_stride == PDM_STRIDE_CST) {
@@ -379,14 +382,14 @@ PDM_block_to_part_exch
    */
   
   PDM_MPI_Alltoallv(sendBuffer,
-                n_sendBuffer,
-                i_sendBuffer,
-                PDM_MPI_BYTE, 
-                recvBuffer,
-                n_recvBuffer,
-                i_recvBuffer,
-                PDM_MPI_BYTE, 
-                _btp->comm);
+                    n_sendBuffer,
+                    i_sendBuffer,
+                    PDM_MPI_BYTE, 
+                    recvBuffer,
+                    n_recvBuffer,
+                    i_recvBuffer,
+                    PDM_MPI_BYTE, 
+                    _btp->comm);
     
   free(sendBuffer);
   free(n_sendBuffer);

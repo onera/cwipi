@@ -823,6 +823,30 @@ int PDM_MPI_Alltoall(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype,
 }
 
 /*----------------------------------------------------------------------------
+ * PDM_MPI_Ialltoall (wrapping de la fonction MPI_Ialltoall)
+ *
+ *----------------------------------------------------------------------------*/
+
+int PDM_MPI_Ialltoall(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype,
+                 void *recvbuf, int recvcount,
+                 PDM_MPI_Datatype recvtype, PDM_MPI_Comm comm,
+                 PDM_MPI_Request *request)
+{
+  sendbuf;
+  sendcount;
+  sendtype;
+  recvbuf;
+  recvcount;
+  recvtype;
+  comm;
+  request;
+
+  PDM_error(__FILE__, __LINE__, 0, "PDM_MPI_Ialltoall : Unavailable function with pdm_no_mpi library\n" );
+  abort();
+  return 1;
+}
+
+/*----------------------------------------------------------------------------
  * PDM_MPI_Alltoallv (wrapping de la fonction MPI_Alltoallv)
  *
  *----------------------------------------------------------------------------*/
@@ -842,6 +866,32 @@ int PDM_MPI_Alltoallv(void *sendbuf, int *sendcounts, int *sdispls,
   comm;
 
   PDM_error(__FILE__, __LINE__, 0, "PDM_MPI_Alltoallv : Unavailable function with pdm_no_mpi library\n" );
+  abort();
+  return 1;
+}
+
+/*----------------------------------------------------------------------------
+ * PDM_MPI_Ialltoallv (wrapping de la fonction MPI_Ialltoallv)
+ *
+ *----------------------------------------------------------------------------*/
+
+int PDM_MPI_Ialltoallv(void *sendbuf, int *sendcounts, int *sdispls,
+                  PDM_MPI_Datatype sendtype, void *recvbuf, int *recvcounts,
+                  int *rdispls, PDM_MPI_Datatype recvtype, PDM_MPI_Comm comm,
+                  PDM_MPI_Request *request)
+{
+  sendbuf;
+  sendcounts;
+  sdispls;
+  rdispls;
+  sendtype;
+  recvbuf;
+  recvcounts;
+  recvtype;
+  comm;
+  request;
+
+  PDM_error(__FILE__, __LINE__, 0, "PDM_MPI_Ialltoallv : Unavailable function with pdm_no_mpi library\n" );
   abort();
   return 1;
 }

@@ -14,7 +14,7 @@
 #include "pdm_io.h"
 
 /*=============================================================================
- * Definitions des macro
+ * Macro definition
  *============================================================================*/
 
 #ifdef __cplusplus
@@ -25,7 +25,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /*============================================================================
- * Definition des types
+ * Types definition
  *============================================================================*/
 
 /*----------------------------------------------------------------------------
@@ -51,11 +51,11 @@ typedef enum {
 typedef struct _PDM_Mesh_nodal_t PDM_Mesh_nodal_t;
 
 /*=============================================================================
- * Variables globales
+ * Global variables
  *============================================================================*/
 
 /*=============================================================================
- * Prototypes des fonctions publiques
+ * Public function interfaces
  *============================================================================*/
 
 /**
@@ -164,6 +164,23 @@ PDM_Mesh_nodal_vertices_get
 
 
 /**
+ * \brief  Return parent num of vertices
+ *
+ * \param [in]  mesh           Nodal mesh
+ *
+ * \return  Parent of vertices
+ *
+ */
+
+const int *
+PDM_Mesh_nodal_vertices_parent_get
+(
+ const int          idx,
+ const int          id_part 
+ );
+
+
+/**
  * \brief  Return global numbering of vertices
  *
  * \param [in]  idx       Nodal mesh handle
@@ -179,6 +196,21 @@ PDM_Mesh_nodal_vertices_g_num_get
  const int          idx,
  const int          id_part 
 );
+
+
+/**
+ * \brief Extract vertices from parent vertices
+ *
+ * \param [in]  mesh           Nodal mesh
+ *
+ * \return true if the vertices are defined from parents
+ */
+
+int
+PDM_Mesh_nodal_is_set_coord_from_parent
+(
+ const int          idx
+ );
 
 
 /**
@@ -833,6 +865,23 @@ PDM_Mesh_nodal_n_cell_get
 const int  idx,
 const int  id_part 
 ); 
+
+
+/**
+ * \brief  Return parent  absolute number
+ *
+ * \param [in]  mesh           Nodal mesh
+ *
+ * \return  Parent of vertices
+ *
+ */
+
+const PDM_g_num_t *
+PDM_Mesh_nodal_vertices_g_num_parent_get
+(
+ const int          idx,
+ const int          id_part 
+);
 
 
 #ifdef __cplusplus

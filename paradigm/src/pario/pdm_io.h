@@ -305,14 +305,14 @@ const PDM_l_num_t     unite
 void PROCF (pdm_io_lecture_globale, PDM_IO_LECTURE_GLOBALE)
 (const PDM_l_num_t *unite,
  const PDM_l_num_t *taille_donnee,
- const PDM_l_num_t *n_donnees,
+ const PDM_g_num_t *n_donnees,
  void                 *donnees
 );
 
 void PDM_io_lecture_globale
 (const PDM_l_num_t  unite,
  const PDM_l_num_t  taille_donnee,
- const PDM_l_num_t  n_donnees,
+ const PDM_g_num_t  n_donnees,
  void                 *donnees
  );
 
@@ -330,14 +330,14 @@ void PDM_io_lecture_globale
 void PROCF (pdm_io_ecriture_globale, PDM_IO_ECRITURE_GLOBALE)
 (const PDM_l_num_t *unite,
  const PDM_l_num_t *taille_donnee,
- const PDM_l_num_t *n_donnees,
+ const PDM_g_num_t *n_donnees,
  const void           *donnees
 );
 
 void PDM_io_ecriture_globale
 (const PDM_l_num_t  unite,
  const PDM_l_num_t  taille_donnee,
- const PDM_l_num_t  n_donnees,
+ const PDM_g_num_t  n_donnees,
  const void           *donnees
 );
 
@@ -696,10 +696,10 @@ const PDM_l_num_t unite
 
  void PROCF (pdm_io_swap_endian, PDM_IO_SWAP_ENDIAN) 
  (
-  const int    *taille_donnee,
-  const int    *n_donnees, 
-  const void   *donnees, 
-  void         *resultats 
+  const int         *taille_donnee,
+  const PDM_g_num_t *n_donnees, 
+  const void        *donnees, 
+  void              *resultats 
 );
 
 void PDM_io_swap_endian

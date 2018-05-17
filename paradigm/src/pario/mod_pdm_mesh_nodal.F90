@@ -130,12 +130,12 @@ MODULE mod_pdm_mesh_nodal
 
         implicit none
 
-        integer, intent(in), value   :: idx
-        integer, intent(in), value   :: id_part
-        integer, intent(in), value   :: n_vtx
+        integer (c_int), intent(in), value   :: idx
+        integer (c_int), intent(in), value   :: id_part
+        integer (c_int), intent(in), value   :: n_vtx
 
         real (c_double)         :: coords(*)
-        integer (pdm_g_num_s)   :: numabs(*)
+        integer (kind=pdm_g_num_s)   :: numabs(*)
       end subroutine pdm_mesh_nodal_coord_set_c
     end interface
     

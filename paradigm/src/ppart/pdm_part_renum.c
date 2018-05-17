@@ -12,16 +12,18 @@
 #include <stdio.h>
 #include <assert.h>
 #include <time.h>
+#include <string.h>
 
-#include "pdm.h"
-#include "pdm_mpi.h"
-#include "pdm_priv.h"
-#include "pdm_config.h"
 
 /*----------------------------------------------------------------------------
  *  Local headers
  *----------------------------------------------------------------------------*/
 
+#include "pdm.h"
+#include "pdm_mpi.h"
+#include "pdm_fortran_to_c_string.h"
+#include "pdm_priv.h"
+#include "pdm_config.h"
 #include "pdm_part.h"
 #include "pdm_part_priv.h"
 #include "pdm_timer.h"
@@ -29,11 +31,13 @@
 #include "pdm_part_geom.h"
 #include "pdm_part_renum.h"
 #include "pdm_hilbert.h"
+#include "pdm_handles.h"
 #include "pdm_geom_elem.h"
 #include "pdm_sort.h"
 #include "pdm_cuthill.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
+#include "pdm_order.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -56,11 +60,34 @@ extern "C" {
  * Type definitions
  *============================================================================*/
 
+/**
+ * \struct _renum_method_t
+ * \brief Renumbering method
+ *
+ */
+
+typedef struct _renum_method_t {
+
+  char                  *name; /*!< Name of method */
+  PDM_part_renum_fct_t   fct;  /*!< Renumbering function */
+
+} _renum_method_t;
 
 /*============================================================================
  * Global variable
  *============================================================================*/
 
+/**
+ * Storage of face renumbering methods   
+ */
+
+static PDM_Handles_t *face_methods = NULL; 
+
+/**
+ * Storage of cell renumbering methods   
+ */
+
+static PDM_Handles_t *cell_methods = NULL; 
 
 /*============================================================================
  * Private function definitions
@@ -231,67 +258,23 @@ _renum_faceCell
 (
 const int  nCell,
 const int  nFace,
-const int *cellFaceIdx, 
-const int *cellFace, 
-      int *faceCell 
+      int *faceCell, 
+      int *newToOldOrder 
 )
 {
-
-  for (int i = 0; i < 2 * nFace; i++) {
-    faceCell[i] = -1;
+  
+  int *oldToNewOrder = (int *) malloc (nCell * sizeof(int));
+  
+  for(int i = 0; i < nCell; i++) {
+   oldToNewOrder[newToOldOrder[i]] = i;
   }
-
-  for (int i = 0; i < nCell; ++i) {
-    for (int j = cellFaceIdx[i]; j < cellFaceIdx[i+1]; j++) {
-      int idx = 2 * (cellFace[j]-1);
-      if (faceCell[idx] == -1) { 
-        faceCell[idx] = i + 1;
-      }
-      else { 
-        faceCell[idx + 1] = i + 1;
-      }
-    }
-  }
+    
+  PDM_part_renum_array_face_cell (nFace, 
+                                  oldToNewOrder,
+                                  faceCell);
+  free (oldToNewOrder);
  
 }
-
-
-/**
- * \brief Order an array
- * 
- * \param [in]      sizeArray       Number of elements
- * \param [in]      newToOldOrder        New order (size = \ref nElt
- * \param [in, out] Array         	Array to renumber
- *
- */
-
-static void 
-_order_array 
-(
-const int     sizeArray,
-const size_t  elt_size,        
-const int    *newToOldOrder,
-void         *array
-)
-{
-  unsigned char *oldArray = (unsigned char *) malloc (sizeArray * elt_size);
-  unsigned char *_array = (unsigned char *) array;
-  
-  for (int i = 0; i < sizeArray; ++i) {
-    for (int j = 0; j < elt_size; ++j) {
-      oldArray[elt_size * i + j] = _array[elt_size * i + j];
-    }
-  }
-  
-  for (int i = 0; i < sizeArray; ++i) {
-    for (int j = 0; j < elt_size; ++j) {
-      _array[elt_size * i + j] = oldArray[elt_size * newToOldOrder[i] +j];
-    }
-  }
-  
-  free(oldArray);
-}
-
 
 /**
  * \brief Order faceCell array
@@ -334,8 +317,8 @@ int         *faceCell
  *
  */
 
-static void 
-_renum_array 
+void 
+PDM_part_renum_array 
 (
 const int  sizeArray,
 const int *olToNewOrder,
@@ -357,6 +340,46 @@ int       *array
 
 
 /**
+ * \brief Order an array
+ * 
+ * \param [in]      sizeArray       Number of elements
+ * \param [in]      newToOldOrder   New order (size = \ref nElt
+ * \param [in, out] Array           Array to renumber
+ *
+ */
+
+void 
+PDM_part_renum_array_face_cell
+(
+const int  nFace,
+const int *olToNewOrder,
+int       *array
+)
+{
+  int *oldArray = (int *) malloc (sizeof(int) * 2 * nFace);
+  
+  for (int i = 0; i < 2*nFace; ++i) {
+    oldArray[i] = array[i];
+  }
+  
+  for (int i = 0; i < 2*nFace; ++i) {
+    if(PDM_ABS(oldArray[i]) == 0 ){
+      array[i] = 0;
+      // printf("[%i] BND \n", i);
+    }
+    else{
+      int signe = (oldArray[i] < 0 ) ? -1 : 1 ;
+      int iCel  = PDM_ABS(oldArray[i])-1;
+      // array[i] = olToNewOrder[oldArray[i]-1] + 1;
+      // printf("[%i] = %i/%i - %i  \n", i,signe, iCel, oldArray[i]);
+      array[i] = signe * (olToNewOrder[iCel] + 1);
+    }
+  }
+  
+  free(oldArray);
+}
+
+/**
  * \brief Renumber connectivities 
  * 
  * \param [in]      nElt            Number of elements
@@ -366,8 +389,8 @@ int       *array
  *
  */
  
-static void 
-_renum_connectivities 
+void 
+PDM_part_renum_connectivities 
 (
 const int nElt,
 const int *newToOldOrder,
@@ -477,7 +500,7 @@ double  *cellCenter
         for(int iFac = 0; iFac < nFac; iFac++) {
           
           /* Face composé de nVtx */
-          int lFac = abs(part->cellFace[aFac + iFac]) - 1;
+          int lFac = PDM_ABS(part->cellFace[aFac + iFac]) - 1;
   
           int aVtx = part->faceVtxIdx[lFac];
           int nVtx = part->faceVtxIdx[lFac+1] - aVtx;
@@ -530,14 +553,14 @@ double  *cellCenter
     
     int idx = 0;    
     for (int icell = 0; icell < part->nCell; icell++) {
-      int faceCurr = part->cellFace[part->cellFaceIdx[icell]] - 1;
+      int faceCurr = PDM_ABS(part->cellFace[part->cellFaceIdx[icell]]) - 1;
       int deb  = part->faceVtx[part->faceVtxIdx[faceCurr]];
       int next = part->faceVtx[part->faceVtxIdx[faceCurr]+1];
       connectivity[idx++] = deb;
       connectivity[idx++] = next;
       while (next != deb) {
         for (int j = part->cellFaceIdx[icell]; j < part->cellFaceIdx[icell+1]; ++j) {
-          int face = part->cellFace[j] - 1;
+          int face = PDM_ABS(part->cellFace[j]) - 1;
           if (faceCurr != face) {
             int s1 = part->faceVtx[part->faceVtxIdx[face]  ];
             int s2 = part->faceVtx[part->faceVtxIdx[face]+1];
@@ -578,116 +601,6 @@ double  *cellCenter
 
 }
 
-
-/**
- *
- * \brief Perform cells renumbering from a new order
- *
- * \param [in,out]  part        Current partition
- * \param [in]      newToOldOrder    NewOrder
- *
- */
-
-static void 
-_renum_cells
-(
- _part_t *part, 
- int     *newToOldOrder
-)
-{
-  /*
-   * Cell Renumbering
-   */
-   
-  _renum_connectivities (part->nCell,
-                         newToOldOrder,
-                         part->cellFaceIdx, 
-                         part->cellFace); 
-  
-  if (part->cellTag != NULL) {
-    _order_array (part->nCell,
-                  sizeof(int),
-                  newToOldOrder,
-                  part->cellTag);
-  }
-   
-  _order_array (part->nCell,
-                sizeof(PDM_g_num_t),
-                newToOldOrder,
-                part->cellLNToGN); 
-   
-  _renum_faceCell (part->nCell,
-                   part->nFace,
-                   part->cellFaceIdx, 
-                   part->cellFace, 
-                   part->faceCell); 
-   
-}
-
-
-/**
- *
- * \brief Perform faces renumbering from a new order
- *
- * \param [in,out]  part        Current partition
- * \param [in]      newToOldOrder    NewOrder
- *
- */
-
-static void 
-_renum_faces
-(
-_part_t *part, 
-int     *newToOldOrder
-)
-{
-  
-  /** Renum FaceVtx / FaceVtxIdx **/
-
-  _renum_connectivities (part->nFace, 
-                         newToOldOrder, 
-                         part->faceVtxIdx, 
-                         part->faceVtx);
-
-  /** CellFace **/
-  
-   int *oldToNewOrder = (int *) malloc (part->nFace * sizeof(int));
-  
-   for(int i = 0; i < part->nFace; i++) {
-    oldToNewOrder[newToOldOrder[i]] = i;
-   }
- 
-  _renum_array (part->cellFaceIdx[part->nCell], 
-                oldToNewOrder,
-                part->cellFace);
-  
-  free (oldToNewOrder);
-    
-    /** FaceTag **/
-
-  if (part->faceTag != NULL) {
-    _order_array (part->nFace,
-                  sizeof(int),
-                  newToOldOrder,
-                  part->faceTag); 
-  }
-    
-   /** FaceLNToGN **/
-
-  _order_array (part->nFace,
-                sizeof(PDM_g_num_t),
-                newToOldOrder,
-                part->faceLNToGN); // OK
-    
-    /** FaceCell Face **/
-  
-  _order_faceCell (part->nFace, 
-                   newToOldOrder,
-                   part->faceCell);  
-
-}
-
-
 /**
  *
  * \brief Perform a cells renumbering from a Hilbert curve
@@ -695,16 +608,22 @@ int     *newToOldOrder
  * \param [in,out]  ppart    Current PPART structure
  *
  */
+#ifdef __INTEL_COMPILER
+#pragma warning(push)
+#pragma warning(disable:869)
+#endif
 
 static void 
 _renum_cells_hilbert 
 (
-_PDM_part_t* ppart
+ _part_t **meshParts, 
+ int       nPart, 
+ void     *specific_data
 )
 {
   
-  for(int ipart = 0; ipart < ppart->nPart; ++ipart) {
-    _part_t *part = ppart->meshParts[ipart];       
+  for(int ipart = 0; ipart < nPart; ++ipart) {
+    _part_t *part = meshParts[ipart];       
     double *cellCenter = 
         (double *) malloc (part->nCell * 3 * sizeof(double ));
     PDM_hilbert_code_t *hilbertCodes = 
@@ -735,13 +654,16 @@ _PDM_part_t* ppart
       
     PDM_sort_double (hilbertCodes, newToOldOrder, part->nCell);
 	  
-    _renum_cells (part, newToOldOrder);
+    PDM_part_reorder_cell (part, newToOldOrder);
           
     free (hilbertCodes);
     free (newToOldOrder);
     
   }
 }
+#ifdef __INTEL_COMPILER
+#pragma warning(pop)
+#endif
 
 /**
  *
@@ -750,19 +672,24 @@ _PDM_part_t* ppart
  * \param [in,out]  ppart    Current PPART structure
  *
  */
+#ifdef __INTEL_COMPILER
+#pragma warning(push)
+#pragma warning(disable:869)
+#endif
 
 static void
 _renum_cells_cuthill
 (
-_PDM_part_t* ppart
+ _part_t **meshParts, 
+ int       nPart,
+ void     *specific_data
 )
 {
 
   /** Loop over all part of the current process **/
-  for(int ipart = 0; ipart < ppart->nPart; ++ipart) 
-  {
+  for(int ipart = 0; ipart < nPart; ++ipart) {
     /** Get current part id **/
-    _part_t *part = ppart->meshParts[ipart];
+    _part_t *part = meshParts[ipart];
     const int nCell = part->nCell;
     
     /** Allocate reoerdering/permutation array **/
@@ -771,22 +698,33 @@ _PDM_part_t* ppart
     /** Verbose bandwidth **/
     // dualBandWidth = PDM_checkbandwidth(part);
     // PDM_printf("Bandwidth of graph before reordering : %d \n", dualBandWidth);
+    // PDM_printf("Bandwidth of graph before reordering \n");
 
     /** Compute reordering **/
     PDM_cuthill_generate(part, order);
   
     /** Apply renumbering **/
-    _renum_cells(part, order);
+    PDM_part_reorder_cell(part, order);
 
     /** Verbose bandwidth **/
     // dualBandWidth = PDM_checkbandwidth(part);
     // PDM_printf("Bandwidth of graph after reordering : %d \n", dualBandWidth);
+    
+    /* Copy in partition */
+    if(part->newToOldOrderCell == NULL)
+      part->newToOldOrderCell = (int *) malloc (sizeof(int) * nCell);
+    
+    for (int i = 0; i < nCell; i++){
+      part->newToOldOrderCell[i] = order[i];
+    }
 
     /** Free memory **/
     free(order);
   }
 }
-
+#ifdef __INTEL_COMPILER
+#pragma warning(pop)
+#endif
 
 /**
  *
@@ -796,26 +734,43 @@ _PDM_part_t* ppart
  *
  */
 
+#ifdef __INTEL_COMPILER
+#pragma warning(push)
+#pragma warning(disable:869)
+#endif
+
 static void 
 _renum_cells_random 
 (
-_PDM_part_t* ppart
+ _part_t **meshParts, 
+ int       nPart, 
+ void     *specific_data
 )
 {
-  for(int ipart = 0; ipart < ppart->nPart; ++ipart) {
-    _part_t *part = ppart->meshParts[ipart];       
+  for(int ipart = 0; ipart < nPart; ++ipart) {
+    _part_t *part = meshParts[ipart];       
     const int nCell = part->nCell;
     
     int *order = (int *) malloc (sizeof(int) * nCell);
     
     _random_order (nCell, order);
     
-    _renum_cells (part, order);
+    PDM_part_reorder_cell (part, order);
+    
+    /* Copy in partition */
+    if(part->newToOldOrderCell == NULL)
+      part->newToOldOrderCell = (int *) malloc (sizeof(int) * nCell);
+    
+    for (int i = 0; i < nCell; i++){
+      part->newToOldOrderCell[i] = order[i];
+    }
       
     free (order);
   }
 }
-
+#ifdef __INTEL_COMPILER
+#pragma warning(pop)
+#endif
 
 /**
  *
@@ -825,25 +780,47 @@ _PDM_part_t* ppart
  *
  */
 
+#ifdef __INTEL_COMPILER
+#pragma warning(push)
+#pragma warning(disable:869)
+#endif
+
 static void 
 _renum_faces_random 
 (
-_PDM_part_t* ppart
+ _part_t **meshParts, 
+ int       nPart,
+ void     *specific_data
 )
 {
-  for(int ipart = 0; ipart < ppart->nPart; ++ipart) {
-    _part_t *part = ppart->meshParts[ipart];       
+#ifdef __INTEL_COMPILER
+#pragma warning(push)
+#pragma warning(disable:869)
+#endif
+  for(int ipart = 0; ipart < nPart; ++ipart) {
+    _part_t *part = meshParts[ipart];       
     const int nFace = part->nFace;
     
     int *order = (int *) malloc (sizeof(int) * nFace);
     
     _random_order (nFace, order);
     
-    _renum_faces (part, order);
+    PDM_part_reorder_face (part, order);
+    
+    /* Copy in partition */
+    if(part->newToOldOrderFace == NULL)
+      part->newToOldOrderFace = (int *) malloc (sizeof(int) * nFace);
+    
+    for (int i = 0; i < nFace; i++){
+      part->newToOldOrderFace[i] = order[i];
+    }
       
     free (order);
   }
 }
+#ifdef __INTEL_COMPILER
+#pragma warning(pop)
+#endif
 
 /**
  *
@@ -852,16 +829,21 @@ _PDM_part_t* ppart
  * \param [in,out]  ppart    Current PPART structure
  *
  */
+#ifdef __INTEL_COMPILER
+#pragma warning(push)
+#pragma warning(disable:869)
+#endif
 
 static void
 _renum_faces_lexicographic
 (
-_PDM_part_t* ppart
+ _part_t** meshParts, 
+ int       nPart, 
+ void     *specific_data
 )
 {
-  for(int ipart = 0; ipart < ppart->nPart; ++ipart) 
-  {
-    _part_t *part = ppart->meshParts[ipart];
+  for(int ipart = 0; ipart < nPart; ++ipart) {
+    _part_t *part = meshParts[ipart];
     const int nFace = part->nFace;
 
     int *order = (int *) malloc (sizeof(int) * nFace);
@@ -869,10 +851,9 @@ _PDM_part_t* ppart
     /** Build a pre-array face cell ordered */
     int *faceCellTmp = (int *) malloc(2*nFace * sizeof(int)); 
 
-    for(int i = 0; i < nFace; i++)
-    {
-       int iL = part->faceCell[2*i  ];
-       int iR = part->faceCell[2*i+1];
+    for(int i = 0; i < nFace; i++) {
+       int iL = PDM_ABS (part->faceCell[2*i  ]);
+       int iR = PDM_ABS (part->faceCell[2*i+1]);
        if(iL < iR )
        {
           faceCellTmp[2*i  ] = iR;
@@ -889,88 +870,646 @@ _PDM_part_t* ppart
     _order_lnum_s (faceCellTmp, 2, order, nFace);
 
     /** Update face array with the new array **/
-    _renum_faces (part, order);
+    PDM_part_reorder_face (part, order);
 
+    if(part->newToOldOrderFace == NULL)
+      part->newToOldOrderFace = (int *) malloc (sizeof(int) * nFace);
+    
+    for (int i = 0; i < nFace; i++){
+      part->newToOldOrderFace[i] = order[i];
+    }
+    
     /** Free memory **/
     free (order);
     free (faceCellTmp);
   }
 }
+#ifdef __INTEL_COMPILER
+#pragma warning(pop)
+#endif
+
 
 /*=============================================================================
  * Public function definitions
  *============================================================================*/
 
+/**
+ *
+ * \brief Purge renumbering methods 
+ *
+ */
+
+void 
+PDM_part_renum_method_purge
+(
+ void
+)        
+{
+  if (face_methods != NULL) {
+
+    const int *index =  PDM_Handles_idx_get (face_methods);
+    int n_methods = PDM_Handles_n_get (face_methods);
+    
+    while (n_methods > 0) {
+      int idx = index[0];
+      _renum_method_t *method_ptr = 
+              (_renum_method_t *) PDM_Handles_get (face_methods, idx);
+      free (method_ptr->name);
+      PDM_Handles_handle_free (face_methods, idx, PDM_TRUE);
+      n_methods = PDM_Handles_n_get (face_methods);
+    }
+
+    face_methods = PDM_Handles_free (face_methods);
+    
+  }
+
+  if (cell_methods != NULL) {
+
+    const int *index =  PDM_Handles_idx_get (cell_methods);
+    int n_methods = PDM_Handles_n_get (cell_methods);
+    
+    while (n_methods > 0) {
+      int idx = index[0];
+      _renum_method_t *method_ptr = 
+              (_renum_method_t *) PDM_Handles_get (cell_methods, idx);
+      free (method_ptr->name);
+      PDM_Handles_handle_free (cell_methods, idx, PDM_TRUE);
+      n_methods = PDM_Handles_n_get (cell_methods);
+    }
+
+    cell_methods = PDM_Handles_free (cell_methods);
+    
+  }
+}
+
 
 /**
  *
- * \brief Perform mesh entities renumbering
+ * \brief Get index of a renumbering cell method
+ * 
+ * \param [in]  name   Name of the method
+ * 
+ * \return Index (-1 if not found)
+ */
+
+void
+PROCF (pdm_part_renum_method_cell_idx_get_cf, PDM_PART_RENUM_METHOD_CELL_IDX_GET_CF)
+(
+ char *name,
+ int  *l_name,
+ int  *idx
+ )
+{
+  char *_name = PDM_fortran_to_c_string (name, *l_name); 
+
+  *idx = PDM_part_renum_method_cell_idx_get (_name);
+  
+  free (_name);
+
+}
+
+
+int 
+PDM_part_renum_method_cell_idx_get
+(
+const char *name
+)        
+{
+  if (cell_methods == NULL) {
+    PDM_part_renum_method_load_local();
+  }
+  int idx = -1;
+  
+  if (cell_methods != NULL) {
+    int n_methods = PDM_Handles_n_get (cell_methods);
+    const int *index =  PDM_Handles_idx_get (cell_methods);
+
+    for (int i = 0; i < n_methods; i++) {
+      _renum_method_t *method_ptr = 
+              (_renum_method_t *) PDM_Handles_get (cell_methods, index[i]);
+      if (!strcmp(method_ptr->name, name)) {
+        idx = index[i];
+        break;
+      }      
+    }
+  }
+  return idx;
+
+}
+
+/**
  *
- * \param [in,out]  ppart       ppart structure
- * \param [in]      entity      Mesh entity to renumber
- * \param [in]      method      Renumbering method
+ * \brief Get index of a renumbering face method
+ * 
+ * \param [in]  name   Name of the method
+ * 
+ * \return Index (-1 if not found)
+ */
+
+void
+PROCF (pdm_part_renum_method_face_idx_get_cf, PDM_PART_RENUM_METHOD_FACE_IDX_GET_CF)
+(
+ char *name,
+ int  *l_name,
+ int  *idx
+ )
+{
+  char *_name = PDM_fortran_to_c_string (name, *l_name); 
+
+  *idx = PDM_part_renum_method_face_idx_get (_name);
+  
+  free (_name);
+
+}
+
+int 
+PDM_part_renum_method_face_idx_get
+(
+const char *name
+)        
+{
+  if (face_methods == NULL) {
+    PDM_part_renum_method_load_local();
+  }
+  int idx = -1;
+  int n_methods = PDM_Handles_n_get (face_methods);
+  const int *index =  PDM_Handles_idx_get (face_methods);
+
+  for (int i = 0; i < n_methods; i++) {
+    _renum_method_t *method_ptr = 
+            (_renum_method_t *) PDM_Handles_get (face_methods, index[i]);
+    if (!strcmp(method_ptr->name, name)) {
+      idx = index[i];
+      break;
+    }      
+  }
+  return idx;
+}
+
+
+/**
+ *
+ * \brief Get name of the cell renumbering method 
+ * 
+ * \param [in]  idx     Index of the method
+ * 
+ * \return Name of the method
+ *
+ */
+
+void
+PROCF (pdm_part_renum_method_cell_name_get_cf, PDM_PART_RENUM_METHOD_CELL_NAME_GET_CF)
+(
+ char *name,
+ int  *l_name,
+ int  *idx
+ )
+{
+  const char *_name = PDM_part_renum_method_cell_name_get (*idx);
+
+  const int _l_name = strlen(_name);
+
+  *l_name = PDM_MAX (_l_name, PDM_MAX_CHAR_LENGTH);
+
+  strncpy (name, _name, *l_name);
+}
+
+const char * 
+PDM_part_renum_method_cell_name_get
+(
+const int idx
+)
+{
+  if (cell_methods == NULL) {
+    PDM_part_renum_method_load_local();
+  }
+
+  int n_methods = PDM_Handles_n_get (cell_methods);
+
+  if (idx >= n_methods) {
+    return NULL;
+  }
+
+  const int *index =  PDM_Handles_idx_get (cell_methods);
+
+  _renum_method_t *method_ptr = 
+            (_renum_method_t *) PDM_Handles_get (cell_methods, index[idx]);
+
+  return method_ptr->name;
+}
+
+
+/**
+ *
+ * \brief Get the number of renumbering cell methods 
+ * 
+ * \return Number of methods
+ *
+ */
+
+void
+PROCF (pdm_part_n_renum_method_cell_get, PDM_PART_N_RENUM_METHOD_CELL_GET)
+(
+ int  *n_method
+ )
+{
+  *n_method = PDM_part_n_renum_method_cell_get ();
+}
+
+int  
+PDM_part_n_renum_method_cell_get
+(
+void 
+)
+{
+  if (cell_methods == NULL) {
+    PDM_part_renum_method_load_local();
+  }
+  
+  return PDM_Handles_n_get (cell_methods);
+  
+}
+
+
+/**
+ *
+ * \brief Get the number of renumbering face methods 
+ * 
+ * \return Name of the method
+ *
+ */
+
+void
+PROCF (pdm_part_n_renum_method_face_get, PDM_PART_N_RENUM_METHOD_FACE_GET)
+(
+ int  *n_method
+ )
+{
+  *n_method = PDM_part_n_renum_method_face_get ();
+}
+
+int  
+PDM_part_n_renum_method_face_get
+(
+void 
+)
+{
+  if (face_methods == NULL) {
+    PDM_part_renum_method_load_local();
+  }
+
+  return PDM_Handles_n_get (face_methods);
+
+}
+
+/**
+ *
+ * \brief Add a new method for cell renumbering 
+ *
+ * \param [in]      name           Mesh entity to renumber
+ * \param [in]      renum_fct      Renumbering function
+ *
+ */
+
+int 
+PDM_part_renum_method_cell_add
+(
+ const char                 *name,     /*!< Name          */ 
+ const PDM_part_renum_fct_t  renum_fct /*!< Customize \ref PDM_part_renum_cell function for the format */             
+)
+{
+  if (cell_methods == NULL) {
+    PDM_part_renum_method_load_local ();
+  }
+
+  _renum_method_t *method_ptr = malloc (sizeof(_renum_method_t));
+  
+  int idx = PDM_Handles_store  (cell_methods, method_ptr);
+
+  method_ptr->name = malloc (sizeof(char) * (strlen(name) + 1));
+  strcpy (method_ptr->name, name);
+  method_ptr->fct = renum_fct;
+
+  return idx;
+}
+
+/**
+ *
+ * \brief Add a new method for face renumbering 
+ *
+ * \param [in]      name           Mesh entity to renumber
+ * \param [in]      renum_fct      Renumbering function
+ *
+ */
+
+int 
+PDM_part_renum_method_face_add
+(
+ const char                 *name,     /*!< Name          */ 
+ const PDM_part_renum_fct_t  renum_fct /*!< Customize \ref PDM_part_renum_face function for the format */             
+)
+{
+  if (face_methods == NULL) {
+    PDM_part_renum_method_load_local ();
+  }
+
+  _renum_method_t *method_ptr = malloc (sizeof(_renum_method_t));
+  
+  int idx = PDM_Handles_store  (face_methods, method_ptr);
+
+  method_ptr->name = malloc (sizeof(char) * (strlen(name) + 1));
+  strcpy (method_ptr->name, name);
+  
+  method_ptr->fct = renum_fct;
+
+  return idx;
+}
+
+
+/**
+ *
+ * \brief Load local renumbering methods 
+ *
+ */
+
+void 
+PDM_part_renum_method_load_local
+(
+void
+)
+{
+  if (cell_methods == NULL)  {
+    
+    const int n_default_methods = 4;
+    cell_methods = PDM_Handles_create (n_default_methods);
+    
+    PDM_part_renum_method_cell_add ("PDM_PART_RENUM_CELL_NONE",
+                             NULL);
+    PDM_part_renum_method_cell_add ("PDM_PART_RENUM_CELL_RANDOM",
+                             _renum_cells_random);
+    PDM_part_renum_method_cell_add ("PDM_PART_RENUM_CELL_HILBERT",
+                             _renum_cells_hilbert);
+    PDM_part_renum_method_cell_add ("PDM_PART_RENUM_CELL_CUTHILL",
+                             _renum_cells_cuthill);
+  }
+
+  if (face_methods == NULL)  {
+    const int n_default_methods = 3;
+    face_methods = PDM_Handles_create (n_default_methods);
+
+    PDM_part_renum_method_face_add ("PDM_PART_RENUM_FACE_NONE",
+                             NULL);
+    PDM_part_renum_method_face_add ("PDM_PART_RENUM_FACE_RANDOM",
+                             _renum_faces_random);
+    PDM_part_renum_method_face_add ("PDM_PART_RENUM_FACE_LEXICOGRAPHIC",
+                             _renum_faces_lexicographic);
+  }
+  
+}
+
+  
+/**
+ *
+ * \brief Perform cell renumbering
+ *
+ * \param [in,out]  part       part structure
  *
  */
 
 void 
 PDM_part_renum_cell
 (
- _PDM_part_t           *ppart,
- PDM_part_renum_cell_t  method                 
-)
+ _part_t **meshParts, 
+ int       nPart, 
+ int       renum_cell_method, 
+ void     *specific_data               
+)      
 {
-  switch (method) {
-  case PDM_PART_RENUM_CELL_NONE :
-    break;
-  case PDM_PART_RENUM_CELL_RANDOM :
-    _renum_cells_random(ppart); 
-    break;
-  case PDM_PART_RENUM_CELL_HILBERT :
-    _renum_cells_hilbert(ppart); 
-    break;
-  case PDM_PART_RENUM_CELL_CUTHILL :
-    _renum_cells_cuthill(ppart); 
-    break;
-  default:
-    PDM_error(__FILE__, __LINE__, 0, "PDM_part_renum Error : unavailable face renumbering method\n");
-    exit (1);    
+  
+  if (cell_methods == NULL)  {
+    PDM_part_renum_method_load_local ();
   }
+  
+  const _renum_method_t *method_ptr = (const _renum_method_t *) 
+                                    PDM_Handles_get (cell_methods, renum_cell_method);
+                                    // PDM_Handles_get (cell_methods, ppart->renum_cell_method);
+  
+  PDM_part_renum_fct_t fct = method_ptr->fct;
+  
+  if (fct != NULL) {
+    (fct) (meshParts, nPart, specific_data);
+  }
+  
 }
 
+
+/**
+ *
+ * \brief Get name of the face renumbering method 
+ * 
+ * \param [in]  idx     Index of the method
+ * 
+ * \return Name of the method (NULL otherwise)
+ *
+ */
+
+void
+PROCF (pdm_part_renum_method_face_name_get_cf, PDM_PART_RENUM_METHOD_FACE_NAME_GET_CF)
+(
+ char *name,
+ int  *l_name,
+ int  *idx
+ )
+{
+  const char *_name = PDM_part_renum_method_face_name_get (*idx);
+
+  const int _l_name = strlen(_name);
+
+  *l_name = PDM_MAX (_l_name, PDM_MAX_CHAR_LENGTH);
+
+  strncpy (name, _name, *l_name);
+}
+
+
+const char * 
+PDM_part_renum_method_face_name_get
+(
+const int idx
+)
+{
+  if (face_methods == NULL) {
+    PDM_part_renum_method_load_local();
+  }
+
+  int n_methods = PDM_Handles_n_get (face_methods);
+
+  if (idx >= n_methods) {
+    return NULL;
+  }
+
+  const int *index =  PDM_Handles_idx_get (face_methods);
+
+  _renum_method_t *method_ptr = 
+            (_renum_method_t *) PDM_Handles_get (face_methods, index[idx]);
+
+  return method_ptr->name;
+}
 
 
 /**
  *
  * \brief Perform mesh entities renumbering
  *
- * \param [in,out]  ppart       ppart structure
- * \param [in]      entity      Mesh entity to renumber
- * \param [in]      method      Renumbering method
+ * \param [in,out]  part       part structure
  *
  */
 
 void 
 PDM_part_renum_face
 (
- _PDM_part_t           *ppart,
- PDM_part_renum_face_t  method                 
+ _part_t **meshParts, 
+ int       nPart, 
+ int       renum_face_method, 
+ void     *specific_data      
 )
 {
-  switch (method) {
-    case PDM_PART_RENUM_FACE_NONE :
-      break;
-    case PDM_PART_RENUM_FACE_RANDOM :
-      _renum_faces_random (ppart); 
-      break;
-    case PDM_PART_RENUM_FACE_LEXICOGRAPHIC :
-      _renum_faces_lexicographic(ppart);
-      break;
-    default:
-      PDM_error(__FILE__, __LINE__, 0, "PDM_part_renum Error : unavailable face renumbering method\n");
-      exit (1);    
+  if (face_methods == NULL)  {
+    PDM_part_renum_method_load_local ();
+  }
+  
+  const _renum_method_t *method_ptr = (const _renum_method_t *) 
+                                      PDM_Handles_get (face_methods, renum_face_method);
+                                      // PDM_Handles_get (face_methods, ppart->renum_face_method);
+  
+  PDM_part_renum_fct_t fct = method_ptr->fct;
+  
+  if (fct != NULL) {
+    (fct) (meshParts, nPart, specific_data);
   }
 }
 
+
+/**
+ *
+ * \brief Perform cells renumbering from a new order
+ *
+ * \param [in,out]  part        Current partition
+ * \param [in]      newToOldOrder    NewOrder
+ *
+ */
+void 
+PDM_part_reorder_cell
+(
+ _part_t *part, 
+ int     *newToOldOrder
+)
+{
+  /*
+   * Cell Renumbering
+   */
+   
+  PDM_part_renum_connectivities (part->nCell,
+                                 newToOldOrder,
+                                 part->cellFaceIdx, 
+                                 part->cellFace); 
+  
+  if (part->cellTag != NULL) {
+    PDM_order_array (part->nCell,
+                     sizeof(int),
+                     newToOldOrder,
+                     part->cellTag);
+  }
+  
+  if (part->cellColor != NULL) {
+    PDM_order_array (part->nCell,
+                     sizeof(int),
+                     newToOldOrder,
+                     part->cellColor);
+  }
+   
+  PDM_order_array (part->nCell,
+                   sizeof(PDM_g_num_t),
+                   newToOldOrder,
+                   part->cellLNToGN); 
+   
+  _renum_faceCell (part->nCell,
+                   part->nFace,
+                   part->faceCell, 
+                   newToOldOrder); 
+   
+}
+
+
+/**
+ *
+ * \brief Perform faces renumbering from a new order
+ *
+ * \param [in,out]  part        Current partition
+ * \param [in]      newToOldOrder    NewOrder
+ *
+ */
+void 
+PDM_part_reorder_face
+(
+_part_t *part, 
+int     *newToOldOrder
+)
+{
+  
+  /** Renum FaceVtx / FaceVtxIdx **/
+  PDM_part_renum_connectivities (part->nFace, 
+                                 newToOldOrder, 
+                                 part->faceVtxIdx, 
+                                 part->faceVtx);
+
+  /** CellFace **/
+  int *oldToNewOrder = (int *) malloc (part->nFace * sizeof(int));
+  for(int i = 0; i < part->nFace; i++) {
+   oldToNewOrder[newToOldOrder[i]] = i;
+  }
+ 
+  PDM_part_renum_array (part->cellFaceIdx[part->nCell], 
+                        oldToNewOrder,
+                        part->cellFace);
+    
+  /** FaceTag **/
+  if (part->faceTag != NULL) {
+    PDM_order_array (part->nFace,
+                     sizeof(int),
+                     newToOldOrder,
+                     part->faceTag); 
+  }
+  
+  /** FaceColor **/
+  if (part->faceColor != NULL) {
+    PDM_order_array (part->nFace,
+                     sizeof(int),
+                     newToOldOrder,
+                     part->faceColor); 
+  }
+    
+   /** FaceLNToGN **/
+  PDM_order_array (part->nFace,
+                   sizeof(PDM_g_num_t),
+                   newToOldOrder,
+                   part->faceLNToGN); // OK
+  
+  /** FaceGroup **/
+  if (part->faceGroup != NULL) {
+    PDM_part_renum_array (part->faceGroupIdx[part->nFaceGroup],
+                          oldToNewOrder,
+                          part->faceGroup); // OK
+  }
+    
+  /** FaceCell Face **/
+  _order_faceCell (part->nFace, 
+                   newToOldOrder,
+                   part->faceCell);  
+  
+  /* Free */
+  free (oldToNewOrder);
+
+}
 
 #ifdef __cplusplus
 }

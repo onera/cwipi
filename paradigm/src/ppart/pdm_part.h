@@ -39,33 +39,6 @@ typedef enum {
 } PDM_part_split_t;
 
 
-/**
- * \enum PDM_part_renum_face_t
- * \brief Renum face method 
- *
- */
-
-typedef enum {
-  PDM_PART_RENUM_FACE_RANDOM        = 1,
-  PDM_PART_RENUM_FACE_NONE          = 2,
-  PDM_PART_RENUM_FACE_LEXICOGRAPHIC = 3
-} PDM_part_renum_face_t;
-
-
-/**
- * \enum PDM_part_renum_cell_t
- * \brief Renum cell method 
- *
- */
-
-typedef enum {
-  PDM_PART_RENUM_CELL_HILBERT = 1,
-  PDM_PART_RENUM_CELL_RANDOM  = 2,
-  PDM_PART_RENUM_CELL_NONE    = 3,
-  PDM_PART_RENUM_CELL_CUTHILL = 4
-} PDM_part_renum_cell_t;
-
-
 /*=============================================================================
  * Static global variables
  *============================================================================*/
@@ -89,7 +62,11 @@ typedef enum {
  * \param [out]  ppartId        ppart identifier
  * \param [in]   pt_comm        MPI Comminicator
  * \param [in]   split_method   Split method
- * \param [in]   renum_face_method Face renumbering method
+ * \param [in]   renum_cell_method Cell renumbering method
+ * \param [in]   renum_face_method Cell renumbering method
+ * \param [in]   renum_properties_cell  For cache blocking [ nCellPerCacheWanted, isAsynchrone, isVectorisation ] \ref PDM_renum_cacheblocking 
+ * \param [in]   renum_face_method Cell renumbering method
+ * \param [in]   renum_properties_face  NOT USE
  * \param [in]   nPart          Number of partition to build on this process
  * \param [in]   dNCell         Number of distributed cells
  * \param [in]   dNFace         Number of distributed faces
@@ -128,8 +105,12 @@ PDM_part_create
  int                         *ppartId,
  const PDM_MPI_Comm           comm,
  const PDM_part_split_t       split_method,
- const PDM_part_renum_cell_t  renum_cell_method,
- const PDM_part_renum_face_t  renum_face_method,
+ const char                  *renum_cell_method,
+ const char                  *renum_face_method,
+ const int                    nPropertyCell,
+ const int                   *renum_properties_cell,
+ const int                    nPropertyFace,
+ const int                   *renum_properties_face,
  const int                    nPart,
  const int                    dNCell,
  const int                    dNFace,
@@ -152,13 +133,19 @@ PDM_part_create
  );
 
 void
-PROCF (pdm_part_create, PDM_PART_CREATE)
+PROCF (pdm_part_create_cf, PDM_PART_CREATE_CF)
 (
  int                *ppartId,
  const PDM_MPI_Fint *fcomm,
  const int          *split_method,
- const int          *renum_cell_method,
- const int          *renum_face_method,
+ const char         *renum_cell_method,
+ const int          *l_renum_cell_method, 
+ const char         *renum_face_method,
+ const int          *l_renum_face_method, 
+ const int          *nPropertyCell,
+ const int          *renum_properties_cell,
+ const int          *nPropertyFace,
+ const int          *renum_properties_face,
  const int          *nPart,
  const int          *dNCell,
  const int          *dNFace,
@@ -218,7 +205,8 @@ const  int    ipart,
        int   *nTPart,
        int   *sCellFace,
        int   *sFaceVtx,
-       int   *sFaceGroup
+       int   *sFaceGroup,
+       int   *nFaceGroup
 );
 
 void 
@@ -234,7 +222,8 @@ PROCF (pdm_part_part_dim_get, PDM_PART_PART_DIM_GET)
  int           *nTPart,
  int           *sCellFace,
  int           *sFaceVtx,
- int           *sFaceGroup
+ int           *sFaceGroup,
+ int           *nFaceGroup
 );
 
 /**
@@ -322,6 +311,33 @@ PROCF (pdm_part_part_val_get, PDM_PART_PART_VAL_GET)
  int           *faceGroupIdx,
  int           *faceGroup,
  PDM_g_num_t   *faceGroupLNToGN
+);
+
+/**
+ *
+ * \brief Return a mesh partition
+ * 
+ * \param [in]   ppartId               ppart identifier
+ * \param [in]   ipart                 Current partition
+ * \param [out]  cellColor             Cell Color (size = nCell)
+ * \param [out]  faceColor             Face Color (size = nFace)
+ */
+
+void PDM_part_part_color_get
+(
+const int            ppartId,
+const int            ipart,
+      int          **cellColor,
+      int          **faceColor
+);
+
+void 
+PROCF (pdm_part_part_color_get, PDM_PART_PART_COLOR_GET)
+(
+ int           *ppartId,
+ int           *ipart,
+ int           *cellColor,
+ int           *faceColor
 );
 
 /**

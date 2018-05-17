@@ -111,7 +111,7 @@ const PDM_MPI_Comm comm
   
   idx_t _edgecut = (idx_t) *edgecut;
   
-	real_t *_tpwgts, *__tpwgts; 
+  real_t *_tpwgts, *__tpwgts; 
   real_t *_ubvec, *__ubvec;  
 
   __tpwgts = NULL;

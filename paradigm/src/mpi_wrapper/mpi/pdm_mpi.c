@@ -1754,6 +1754,27 @@ int PDM_MPI_Alltoall(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype,
   return _mpi_2_pdm_mpi_err(code);
 }
 
+
+/*----------------------------------------------------------------------------
+ * PDM_MPI_Ialltoall (wrapping de la fonction MPI_Ialltoall)
+ *
+ *----------------------------------------------------------------------------*/
+
+int PDM_MPI_Ialltoall(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype,
+                 void *recvbuf, int recvcount,
+                 PDM_MPI_Datatype recvtype, PDM_MPI_Comm comm, PDM_MPI_Request *request)
+{
+  MPI_Request _mpi_request = MPI_REQUEST_NULL;
+
+  int code = MPI_Ialltoall(sendbuf, sendcount,
+                          _pdm_mpi_2_mpi_datatype(sendtype),
+                          recvbuf, recvcount,
+                          _pdm_mpi_2_mpi_datatype(recvtype),
+                          _pdm_mpi_2_mpi_comm(comm), &_mpi_request);
+  *request = _mpi_2_pdm_mpi_request(_mpi_request);
+  return _mpi_2_pdm_mpi_err(code);
+}
+
 /*----------------------------------------------------------------------------
  * PDM_MPI_Alltoallv (wrapping de la fonction MPI_Alltoallv)
  *
@@ -1772,6 +1793,34 @@ int PDM_MPI_Alltoallv(void *sendbuf, int *sendcounts, int *sdispls,
                            rdispls, 
                            _pdm_mpi_2_mpi_datatype(recvtype), 
                            _pdm_mpi_2_mpi_comm(comm));
+  return _mpi_2_pdm_mpi_err(code);
+}
+
+
+/*----------------------------------------------------------------------------
+ * PDM_MPI_Ialltoallv (wrapping de la fonction MPI_Ialltoallv)
+ *
+ *----------------------------------------------------------------------------*/
+
+int PDM_MPI_Ialltoallv(void *sendbuf, int *sendcounts, int *sdispls,
+                  PDM_MPI_Datatype sendtype, void *recvbuf, int *recvcounts,
+                  int *rdispls, PDM_MPI_Datatype recvtype, PDM_MPI_Comm comm,
+                  PDM_MPI_Request *request)
+{
+  MPI_Request _mpi_request = MPI_REQUEST_NULL;
+
+  int code = MPI_Ialltoallv(sendbuf,
+                           sendcounts,
+                           sdispls,
+                           _pdm_mpi_2_mpi_datatype(sendtype),
+                           recvbuf,
+                           recvcounts,
+                           rdispls,
+                           _pdm_mpi_2_mpi_datatype(recvtype),
+                           _pdm_mpi_2_mpi_comm(comm), &_mpi_request);
+
+  *request = _mpi_2_pdm_mpi_request(_mpi_request);
+
   return _mpi_2_pdm_mpi_err(code);
 }
 

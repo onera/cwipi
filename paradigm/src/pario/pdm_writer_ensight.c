@@ -1507,7 +1507,7 @@ PDM_writer_ensight_geom_write
         for (int k = 0; k < n_elt; k++) {
           for (int j = cellfac_idx[k]; j < cellfac_idx[k+1]; j++) {
             int ifac = cellfac[j] - 1;
-            for (int j2 = facvtx_idx[ifac]; j2 < facvtx[ifac+1]; j2++) {
+            for (int j2 = facvtx_idx[ifac]; j2 < facvtx_idx[ifac+1]; j2++) {
               int isom = facvtx[j2] - 1;
               buff_int32[l_connec] =  (int32_t) g_num_vtx[isom];
               l_connec += 1;
@@ -1719,7 +1719,7 @@ PDM_writer_ensight_var_write
         const int *blocks_id = PDM_Mesh_nodal_blocks_id_get (geom->idx_mesh);
         
         int n_elt_max_bloc = 0;
-        
+                
         for (int iblock = 0; iblock < n_blocks; iblock++) {
  
           int n_elt_bloc = 0;
@@ -1733,7 +1733,7 @@ PDM_writer_ensight_var_write
 
           n_elt_max_bloc = _max_int(n_elt_max_bloc, n_elt_bloc);
         }
-
+        
         float       *buff = (float *) malloc(sizeof(float) * n_elt_max_bloc);
         PDM_g_num_t *numabs = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_elt_max_bloc);
        
@@ -1787,26 +1787,24 @@ PDM_writer_ensight_var_write
               for (int j = 0; j < n_elt; j++) {
                 buff[n_val_buff++] = (float) (var->_val[igeom][i][(ideb[i] + j)*var->dim + comp_a_ecrire]);
               }
-
-              PDM_l_num_t un = 1;
-
-              _ecr_entrelace_float(cs,
-                                   s_ecr_n_val,
-                                   unite,
-                                   PDM_IO_N_COMPOSANTE_CONSTANT,
-                                   &un,
-                                   n_val_buff,
-                                   numabs,
-                                   buff);
             }
-            
-            
-            for (int i = 0; i < n_part; i++) {
 
-              ideb[i] += PDM_Mesh_nodal_block_n_elt_get (geom->idx_mesh,    
-                                                    blocks_id[iblock],     
-                                                    i); 
-            }
+            PDM_l_num_t un = 1;
+
+            _ecr_entrelace_float(cs,
+                                 s_ecr_n_val,
+                                 unite,
+                                 PDM_IO_N_COMPOSANTE_CONSTANT,
+                                 &un,
+                                 n_val_buff,
+                                 numabs,
+                                 buff);
+          }
+          for (int i = 0; i < n_part; i++) {
+
+            ideb[i] += PDM_Mesh_nodal_block_n_elt_get (geom->idx_mesh,    
+                                                  blocks_id[iblock],     
+                                                  i); 
           }
         }          
 

@@ -11,6 +11,8 @@
  *  Header for the current file
  *----------------------------------------------------------------------------*/
 
+#include "pdm.h"
+#include "pdm_priv.h"
 #include "pdm_surf_part.h"
 #include "pdm_surf_part_priv.h"
 #include "pdm_part_bound.h"
@@ -362,16 +364,16 @@ PDM_surf_part_t *part
 
   part->edgeFace = (int *) malloc(sizeof(int) * 2 * nEdge);
   for (int i = 0; i <  2 * nEdge; i++)
-    part->edgeFace[i] = -1;
+    part->edgeFace[i] = 0;
 
   for (int i = 0; i < nEdgesFaces; i++) {
     int iEdge = edgesToCompressEdges[i];
     int ifac1 = 2*iEdge;
     int ifac2 = 2*iEdge + 1;
       
-    if (part->edgeFace[ifac1] == -1)
+    if (part->edgeFace[ifac1] == 0)
       part->edgeFace[ifac1] = edgeFaceUncompress[i] + 1;
-    else if (part->edgeFace[ifac2] == -1)
+    else if (part->edgeFace[ifac2] == 0)
       part->edgeFace[ifac2] = edgeFaceUncompress[i] + 1;
     else {
       PDM_error(__FILE__, __LINE__, 0, "Error _build_edges_part : Error in edgeFace computing\n");
@@ -401,12 +403,12 @@ PDM_surf_part_t *part
     n_faceEdge[i] = 0;
   
   for (int i = 0; i < nEdge; i++) {
-    int face1 = part->edgeFace[2*i] - 1;
-    int face2 = part->edgeFace[2*i+1] -1;
-    if (face1 >= 0)
-      part->faceEdge[faceEdgeIdx[face1] + n_faceEdge[face1]++] = i + 1;
-    if (face2 >= 0)
-      part->faceEdge[faceEdgeIdx[face2] + n_faceEdge[face2]++] = i + 1;
+    int face1 = PDM_ABS (part->edgeFace[2*i]);
+    int face2 = PDM_ABS (part->edgeFace[2*i+1]);
+    if (face1 > 0)
+      part->faceEdge[faceEdgeIdx[face1-1] + n_faceEdge[face1-1]++] = i + 1;
+    if (face2 > 0)
+      part->faceEdge[faceEdgeIdx[face2-1] + n_faceEdge[face2-1]++] = i + 1;
   }
 
   free(edgeFaceUncompress);

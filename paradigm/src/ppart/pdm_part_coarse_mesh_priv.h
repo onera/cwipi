@@ -1,3 +1,6 @@
+#ifndef PDM_PART_COARSE_MESH_PRIV_H
+#define	PDM_PART_COARSE_MESH_PRIV_H
+
 /* 
  * File:   pdm_part_coarse_mesh_priv.h
  * Author: jmagnene
@@ -7,10 +10,8 @@
 
 #include "pdm_part_priv.h"
 #include "pdm_timer.h"
+#include "pdm_fortran_to_c_string.h"
 #include "pdm_mpi.h"
-
-#ifndef PDM_PART_COARSE_MESH_PRIV_H
-#define	PDM_PART_COARSE_MESH_PRIV_H
 
 #ifdef	__cplusplus
 extern "C" {
@@ -19,8 +20,6 @@ extern "C" {
 /*============================================================================
  * Type definitions
  *============================================================================*/
-
-    
 
 /**
  * \struct _coarse_part_t
@@ -34,6 +33,11 @@ typedef struct  {
   
   _part_t      *part;        //Coarse mesh
   
+  int           nCoarseCellWanted;    /*!< Number Cell wanted for agglomeration     */ 
+  
+  // int *cellWeight;    /*!< Integer weight for graoh partitionning  */ 
+  // int *faceWeight;    /*!< Number Cell wanted for agglomeration     */ 
+  
   int *coarseCellCellIdx;    //Array of indexes of the connected partitions (size : nCoarseCell + 1)
   
   int *coarseCellCell;       //Partitioning array (size : coarseCellCellIdx[nCoarseCell]) 
@@ -44,7 +48,19 @@ typedef struct  {
 
   int *coarseVtxToFineVtx;   //Coarse vertex - fine vertex connectivity (size = nCoarseVtx)
 
+  void *specific_data;       /*!< Specific data      */
+  
 } _coarse_part_t;
+
+/**
+ * \struct PDM_part_renum_fct_t
+ *
+ * \brief  Function pointer used to define a renumbering specific to agglomeration array
+ *
+ */
+
+typedef void (*PDM_coarse_mesh_renum_fct_t) (_coarse_part_t  *part);
+
 
 
 /**
@@ -73,6 +89,18 @@ typedef struct  {
   int have_faceWeight;
   int have_faceGroup;
 
+  void *specific_data;
+  
+  PDM_coarse_mesh_renum_fct_t specific_func;       /*!< Specific function  */
+  
+  /* Reordering */
+  int        renum_face_method;               /*!< Renumbering face method       */
+  int        renum_cell_method;               /*!< Renumbering cell method       */
+  int        nPropertyCell;                   /*!< Size of cells properties      */
+  int        nPropertyFace;                   /*!< Size of faces properties      */
+  const int* renum_properties_cell;           /*!< Renumbering cells properties  */
+  const int* renum_properties_face;           /*!< Renumbering faces properties  */
+  
   //TIMER
   
   PDM_timer_t *timer;             /*!< Timer */ 
@@ -110,8 +138,38 @@ typedef struct  {
   
   _coarse_part_t **part_res;               //Coarse mesh
   
+
+
 } _coarse_mesh_t;
     
+
+/**
+ * \struct PDM_part_renum_fct_t
+ *
+ * \brief  Function pointer used to define a coarse mesh method
+ *
+ */
+
+typedef void (*PDM_coarse_mesh_fct_t) (_coarse_mesh_t  *cm,
+                                       const int       ipart,
+                                       int             *nCoarseCellComputed,
+                                       int             *cellCellIdx,
+                                       int             *cellCell,
+                                       int             *cellPart);
+
+/**
+ * \struct _coarse_mesh_method_t
+ * \brief coarse mesh method
+ *
+ */
+
+typedef struct _renum_method_t {
+
+  char                  *name;  /*!< Name of method          */
+  PDM_coarse_mesh_fct_t   fct;  /*!< Agglometration function */
+
+} _coarse_mesh_method_t;
+
 
 /*============================================================================
  * Private function definitions
@@ -142,75 +200,146 @@ void
   cp->coarseFaceToFineFace = NULL; 
 
   cp->coarseVtxToFineVtx = NULL;
+
+  cp->specific_data = NULL;
   
   return cp;
   
 }
 
-    
+
+/*============================================================================
+ * Public function prototypes
+ *============================================================================*/
+
+
+
 /**
  *
- * \brief Return an initialized coarse part object
- * 
- * \param [in]   pt_comm           Communicator
- * \param [in]   method            Choice between (1 for ParMETIS or 2 for PT-Scotch)
- * \param [in]   nPart             Number of partitions
- * \param [in]   nTPart            Total number of partitions
- * \param [in]   nFaceGroup        Number of boundaries
- * \param [in]   have_cellTag      Presence d'un tableau de tags pour les cellules
- * \param [in]   have_faceTag      Presence d'un tableau de tags pour les faces
- * \param [in]   have_vtxTag       Presence d'un tableau de tags pour les sommets
- * \param [in]   have_cellWeight   Presence d'un tableau de poids pour les cellules
- * \param [in]   have_faceWeight   Presence d'un tableau de poids pour les faces
- * \param [in]   have_faceGroup    Presence des tableaux de groupes de faces
+ * \brief Add a new coarse mesh method
+ *
+ * \param [in]      name          Mesh entity to renumber
+ * \param [in]      fct           Function
+ *
  */
 
-static inline _coarse_mesh_t * 
-_coarse_mesh_create
+int
+PDM_coarse_mesh_method_add
 (
- const PDM_MPI_Comm  comm,        
- const int           method,
- const int           nPart,
- const int           nTPart,
- const int           nFaceGroup,
- const int           have_cellTag,
- const int           have_faceTag,
- const int           have_vtxTag,
- const int           have_cellWeight,
- const int           have_faceWeight,
- const int           have_faceGroup
+ const char                 *name,     /*!< Name          */
+ PDM_coarse_mesh_fct_t       fct       /*!< Function      */
+ );
 
- )
-{     
-   _coarse_mesh_t *cm = (_coarse_mesh_t *) malloc(sizeof(_coarse_mesh_t));
+  
+/**
+ *
+ * \brief Get index of a coarse mesh method from it's name
+ *
+ * \param [in]  name   Name of the method
+ *
+ * \return Index (-1 if not found)
+ */
 
-   cm->nPart = nPart;
-   cm->comm = comm; 
-   
-   cm->method = method;
-   cm->nTPart = nTPart;
-   cm->nFaceGroup = nFaceGroup;
+void
+PROCF (pdm_coarse_mesh_method_idx_get_cf, PDM_COARSE_MESH_METHOD_IDX_GET_CF)
+(
+ char *name,
+ int  *l_name,
+ int  *idx
+ );
 
-   cm->have_cellTag = have_cellTag;
-   cm->have_faceTag = have_faceTag;
-   cm->have_vtxTag = have_vtxTag;
-   cm->have_cellWeight = have_cellWeight;
-   cm->have_faceWeight = have_faceWeight;
-   cm->have_faceGroup = have_faceGroup;
-   
-   cm->part_ini = malloc(sizeof(_part_t *) * nPart); //On déclare un tableau de partitions
-   
-   cm->part_res = malloc(sizeof(_coarse_part_t *) * nPart);
-   
-   for (int i = 0; i < nPart; i++) {
-     cm->part_ini[i] = _part_create(); 
-     
-     cm->part_res[i] = _coarse_part_create();     
-     
-   }   
-    
-   return cm;
-}
+int
+PDM_coarse_mesh_method_idx_get
+(
+const char *name
+ );
+
+
+/**
+ *
+ * \brief Get name of a coarse mesh method from it's index
+ *
+ * \param [in]  name   Name of the method
+ *
+ * \return Index (-1 if not found)
+ */
+
+void
+PROCF (pdm_coarse_mesh_method_name_get_cf, PDM_COARSE_MESH_METHOD_NAME_GET_CF)
+(
+ char *name,
+ int  *l_name,
+ int  *idx
+ );
+
+char *
+PDM_coarse_mesh_method_name_get
+(
+const int id
+ );
+  
+
+/**
+ *
+ * \brief Get the number of coarse mesh method
+ *
+ * \return Number of methods
+ *
+ */
+
+void
+PROCF (pdm_coarse_mesh_method_n_get, PDM_COARSE_MESH_METHOD_N_GET)
+(
+ int  *n_method
+ );
+  
+int
+PDM_coarse_mesh_method_n_get
+(
+void
+);
+  
+
+/**
+ *
+ * \brief Purge coarse mesh methods catalog
+ *
+ */
+
+void
+PDM_coarse_mesh_method_purge
+(
+void
+ );
+
+
+/**
+ *
+ * \brief Load local coarse mesh methods
+ *
+ */
+
+void
+PDM_coarse_mesh_method_load_local
+(
+void
+ );
+
+
+/**
+ *
+ * \brief Return coarse mesh object from its identifier
+ *
+ * \param [in]   cmId        Coarse mesh identifier
+ *
+ */
+
+_coarse_mesh_t *
+PDM_part_coarse_mesh_get_from_id
+(
+ int  cmId
+ );
+
 
 #ifdef	__cplusplus
 }

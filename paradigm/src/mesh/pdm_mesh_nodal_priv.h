@@ -38,11 +38,11 @@ typedef struct PDM_Mesh_nodal_vtx_t PDM_Mesh_nodal_vtx_t;
 
 struct PDM_Mesh_nodal_vtx_t {
 
-  PDM_Mesh_nodal_vtx_t *parent;  /*!< Parent vertices if they are extraxted from an other mesh partition */
-  PDM_l_num_t           n_vtx;   /*!< Number of vertices */
-  double               *coords;  /*!< Coordinates (Locally allocated) */
-  const double        *_coords;  /*!< Coordinates (Mapping) */
-  const PDM_g_num_t   *_numabs;  /*!< Global numbering */
+  PDM_Mesh_nodal_vtx_t *parent;    /*!< Parent vertices if they are extraxted from an other mesh partition */
+  PDM_l_num_t           n_vtx;     /*!< Number of vertices */
+  double               *coords;    /*!< Coordinates (Locally allocated) */
+  const double        *_coords;    /*!< Coordinates (Mapping) */
+  const PDM_g_num_t   *_numabs;    /*!< Global numbering */
   const int           *_numparent; /*!< Numbering in the parent vertices (mapping) */
 };
 
@@ -183,6 +183,7 @@ struct _PDM_Mesh_nodal_t {
                                                                  *   imposed by blocks */
   int                                 *blocks_id;               /*!< Blocks identifier */
   int                                  n_blocks;                /*!< Total number of blocks */
+  int                      is_vtx_def_from_parent; /*< Are the points defined from parents */
 } ;
 
 #ifdef __cplusplus

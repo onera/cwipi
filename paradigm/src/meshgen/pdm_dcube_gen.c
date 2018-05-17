@@ -28,6 +28,9 @@ typedef struct  {
   PDM_MPI_Comm       comm;          /*!< MPI communicator                          */
   PDM_g_num_t   nVtxSeg;       /*!< Number of vertices in segments            */
   double         length;        /*!< Segment length                            */
+  double         zero_x;          /*!< Coordinates of the origin                 */
+  double         zero_y;          /*!< Coordinates of the origin                 */
+  double         zero_z;          /*!< Coordinates of the origin                 */
   int            nFaceGroup;    /*!< Number of faces groups                    */
   int            dNCell;        /*!< Number of cells stored in this process    */
   int            dNFace;        /*!< Number of faces stored in this process    */
@@ -85,6 +88,9 @@ _get_from_id
  * \param [in]   comm           Communicator
  * \param [in]   nVtxSeg        Number of vertices in segments
  * \param [in]   length         Segment length
+ * \param [in]   zero_x         Coordinates of the origin 
+ * \param [in]   zero_y         Coordinates of the origin 
+ * \param [in]   zero_z         Coordinates of the origin 
  *
  */
 
@@ -94,7 +100,10 @@ PDM_dcube_gen_init
  int                *id,
  PDM_MPI_Comm        comm, 
  const PDM_g_num_t  nVtxSeg, 
- const double        length
+ const double        length,
+ const double        zero_x,
+ const double        zero_y,
+ const double        zero_z
 )
 {
 
@@ -122,7 +131,10 @@ PDM_dcube_gen_init
 
   dcube->comm    = comm;
   dcube->nVtxSeg = nVtxSeg;
-  dcube->length  = length; 
+  dcube->length  = length;
+  dcube->zero_x  = zero_x;
+  dcube->zero_y  = zero_y;
+  dcube->zero_z  = zero_z;
 
   PDM_g_num_t nVtx      = nVtxSeg * nVtxSeg * nVtxSeg;
   PDM_g_num_t nFaceSeg  = nVtxSeg - 1;
@@ -237,9 +249,9 @@ PDM_dcube_gen_init
       if ((k == bVtxZ) && (j == bVtxY))
         _bVtxX = bVtxX; 
       for(PDM_g_num_t i = _bVtxX; i < nVtxSeg; i++) {
-        _dVtxCoord[3 * iVtx    ] = i * step; 
-        _dVtxCoord[3 * iVtx + 1] = j * step;
-        _dVtxCoord[3 * iVtx + 2] = k * step;
+        _dVtxCoord[3 * iVtx    ] = i * step + zero_x; 
+        _dVtxCoord[3 * iVtx + 1] = j * step + zero_y;
+        _dVtxCoord[3 * iVtx + 2] = k * step + zero_z;
         cpt += 1;
         iVtx += 1;
         if (cpt == dcube->dNVtx)
@@ -295,11 +307,11 @@ PDM_dcube_gen_init
           _dFaceVtx[cpt * 4 + 3] = k * nVtxSeg * nVtxSeg + (    j * nVtxSeg + i + 2);
           if (k == 0) {
             _dFaceCell[2*cpt + 0] = j * nFaceSeg + i + 1;
-            _dFaceCell[2*cpt + 1] = -1;
+            _dFaceCell[2*cpt + 1] = 0;
           }
           else if (k == nFaceSeg) {
             _dFaceCell[2*cpt + 0] = (k-1) * nFaceSeg * nFaceSeg + j * nFaceSeg + i + 1;
-            _dFaceCell[2*cpt + 1] = -1;
+            _dFaceCell[2*cpt + 1] = 0;
           }
           else {
             _dFaceCell[2*cpt + 0] = (k-1) * nFaceSeg * nFaceSeg + j * nFaceSeg + i + 1;
@@ -343,12 +355,12 @@ PDM_dcube_gen_init
           _dFaceVtx[cpt * 4 + 3] = (k+1) * nVtxSeg * nVtxSeg +     j * nVtxSeg + i + 1;
           if (i == 0) {
             _dFaceCell[2*cpt + 0] = k * nFaceSeg * nFaceSeg + j * nFaceSeg + i + 1;
-            _dFaceCell[2*cpt + 1] = -1;
+            _dFaceCell[2*cpt + 1] = 0;
           }
           
           else if (i == nFaceSeg) {
             _dFaceCell[2*cpt + 0] = k * nFaceSeg * nFaceSeg + j * nFaceSeg + i;
-            _dFaceCell[2*cpt + 1] = -1;
+            _dFaceCell[2*cpt + 1] = 0;
           }
           
           else {
@@ -393,12 +405,12 @@ PDM_dcube_gen_init
           _dFaceVtx[cpt * 4 + 3] = (k+1) * nVtxSeg * nVtxSeg + j * nVtxSeg + i + 1    ;
           if (j == 0) {
             _dFaceCell[2*cpt + 0] = k * nFaceSeg * nFaceSeg + j * nFaceSeg + i + 1;
-            _dFaceCell[2*cpt + 1] = -1;
+            _dFaceCell[2*cpt + 1] = 0;
           }
           
           else if (j == nFaceSeg) {
             _dFaceCell[2*cpt + 0] =  k * nFaceSeg * nFaceSeg + (j-1) * nFaceSeg + i + 1;
-            _dFaceCell[2*cpt + 1] = -1;
+            _dFaceCell[2*cpt + 1] = 0;
           }
           
           else {
@@ -440,23 +452,34 @@ PDM_dcube_gen_init
     //
     // Faces zmin 
 
+    if (cpt == 0)
+      firstGroup = 1;
+    
+    cpt1 = cpt;
+
     bFace = 0;
 
+    cpt3 = 0;
     for(PDM_g_num_t j = 0; j < nFaceSeg; j++) {
       for(PDM_g_num_t i = 0; i < nFaceSeg; i++) {
-        _dFaceGroup[cpt] = bFace + j * nFaceSeg + i + 1;
-        cpt += 1;
-        if (cpt == dNFaceLim)
-          break;
+        cpt3 += 1;
+        if (!firstGroup || (firstGroup && ((cpt3 - 1)  >= rSerie))) {
+          _dFaceGroup[cpt] = bFace + j * nFaceSeg + i + 1;
+          cpt += 1;
+	  if (cpt == dNFaceLim)
+	    break;
+	}
       }
       if (cpt == dNFaceLim)
         break;
     }
     
-    _dFaceGroupIdx[1] = cpt;
+    _dFaceGroupIdx[1] = cpt - cpt1;
 
     if (cpt == dNFaceLim)
       break;
+
+    firstGroup = 0;
 
   case 1 :
 
@@ -646,7 +669,10 @@ PROCF (pdm_dcube_gen_init, PDM_DCUBE_GEN_INIT)
  int                *id,
  const PDM_MPI_Fint *comm,
  const PDM_g_num_t  *nVtxSeg, 
- const double       *length
+ const double       *length,
+ const double       *zero_x,
+ const double       *zero_y,
+ const double       *zero_z
 )
 {
 
@@ -657,7 +683,10 @@ PROCF (pdm_dcube_gen_init, PDM_DCUBE_GEN_INIT)
   PDM_dcube_gen_init (id,
                       c_comm,
                       *nVtxSeg, 
-                      *length);
+                      *length,
+		      *zero_x,
+		      *zero_y,
+		      *zero_z);
 }
 
 

@@ -158,6 +158,26 @@ void           *key
 
 
 /**
+ * \brief Purge a \ref PDM_hash_table_t object
+ *
+ * This function empties an \ref PDM_hash_table_t object
+ *
+ * \param [in]  hash_table    Hash table to purge
+ * \param [in]  remove_data   \ref PDM_FALSE or \ref PDM_TRUE
+ *
+ *
+ */
+
+void
+PDM_hash_tab_purge
+(
+PDM_hash_tab_t *ht,
+PDM_bool_t remove_data
+
+);
+
+
+/**
  * \brief Free a \ref PDM_hash_table_t object
  *
  * This function frees an \ref PDM_hash_table_t object

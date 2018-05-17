@@ -55,8 +55,8 @@ typedef struct _PDM_dbbtree_t PDM_dbbtree_t;
 PDM_dbbtree_t *
 PDM_dbbtree_create
 (
- PDM_MPI_Comm          comm,
- int               dim
+ PDM_MPI_Comm  comm,
+ int           dim
  );
 
 
@@ -133,6 +133,33 @@ const double     **extents,
 const PDM_g_num_t **gNum,
 int              *box_index[],
 int              *box_l_num[]
+);
+
+
+/**
+ *
+ * Get minimum of maximum distance of boxes
+ *
+ *   \param [in] bt               Pointer to box tree structure
+ *   \param [in] n_pts            Number of points
+ *   \param [in] pts              Point coordinates (size = 3 * n_pts)
+ *   \param [in] pts_g_num        Point global numbers
+ *   \param [in] upper_bound_dist Upper bound distance (size = n_pts)
+ *   \param [out] i_boxes         Index of boxes (size = n_pts + 1)
+ *   \param [out] Boxes           (size = i_boxes[n_pts])
+ *
+ */
+
+void
+PDM_dbbtree_closest_upper_bound_dist_boxes_get
+(
+PDM_dbbtree_t    *dbbt,
+const int        n_pts,        
+double           pts[],
+PDM_g_num_t      pts_g_num[],
+double           upper_bound_dist[],
+int             *i_boxes[],  
+PDM_g_num_t     *boxes[]
 );
 
 

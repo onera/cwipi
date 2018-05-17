@@ -49,8 +49,10 @@ int exit_code
      "  -n      <level>  Number of vertices on the cube side.\n\n"
      "  -l      <level>  Cube length.\n\n"
      "  -n_part <level>  Number of partitions par process.\n\n"
-     "  -parmetis        Call ParMETIS.\n\n"
-     "  -pt-scocth       Call PT-Scotch.\n\n"
+     "  -parmetis        Call ParMETIS for split.\n\n"
+     "  -pt-scocth       Call PT-Scotch for split.\n\n"
+     "  -agglo_metis     Call METIS for agglo.\n\n"
+     "  -agglo_scocth    Call Scotch for agglo.\n\n"
      "  -cr     <level>  Coarse rate\n\n"
      "  -h               This message.\n\n");
      
@@ -84,6 +86,7 @@ _read_args
  double         *cr,
  int           *post,
  int           *method,
+ char         **method_agglo,
  int           *haveRandom
 )
 {
@@ -140,6 +143,14 @@ _read_args
     else if (strcmp (argv[i], "-parmetis") == 0) {
       *method = 1;
     }
+    else if (strcmp (argv[i], "-agglo_scotch") == 0) {
+      *method_agglo = (char *) malloc (sizeof (char) * (strlen("PDM_COARSE_MESH_SCOTCH") + 1));
+      strcpy(*method_agglo, "PDM_COARSE_MESH_SCOTCH");
+    }
+    else if (strcmp (argv[i], "-agglo_metis") == 0) {
+      *method_agglo = (char *) malloc (sizeof (char) * (strlen("PDM_COARSE_MESH_METIS") + 1));
+      strcpy(*method_agglo, "PDM_COARSE_MESH_METIS");
+    }
     else
       _usage (EXIT_FAILURE);
     i++;
@@ -169,7 +180,7 @@ _create_split_mesh
  PDM_g_num_t  nVtxSeg,
  double        length,
  int           nPart,
-PDM_part_split_t           method,
+ PDM_part_split_t   method,
  int           haveRandom,
  PDM_g_num_t   *nGFace,
  PDM_g_num_t   *nGVtx,
@@ -321,31 +332,39 @@ PDM_part_split_t           method,
    */
 
   int ppartId;
+  int *renum_properties_cell = NULL;
+  int *renum_properties_face = NULL;
+  int nPropertyCell = 0;
+  int nPropertyFace = 0;
 
   PDM_part_create (&ppartId,
-                pdm_mpi_comm,
-                method,
-                PDM_PART_RENUM_CELL_NONE,
-                PDM_PART_RENUM_FACE_NONE,
-                nPart,
-                dNFace,
-                dNEdge,
-                dNVtx,
-                *nEdgeGroup,
-                NULL,
-                NULL,
-                NULL,
-                NULL,
-                have_dCellPart,
-                dCellPart,
-                dEdgeFace,
-                dEdgeVtxIdx,
-                dEdgeVtx,
-                NULL,
-                dVtxCoord,
-                NULL,
-                dEdgeGroupIdx,
-                dEdgeGroup);
+                   pdm_mpi_comm,
+                   method,
+                   "PDM_PART_RENUM_CELL_NONE",
+                   "PDM_PART_RENUM_FACE_NONE",
+                   nPropertyCell,
+                   renum_properties_cell,
+                   nPropertyFace,
+                   renum_properties_face,
+                   nPart,
+                   dNFace,
+                   dNEdge,
+                   dNVtx,
+                   *nEdgeGroup,
+                   NULL,
+                   NULL,
+                   NULL,
+                   NULL,
+                   have_dCellPart,
+                   dCellPart,
+                   dEdgeFace,
+                   dEdgeVtxIdx,
+                   dEdgeVtx,
+                   NULL,
+                   dVtxCoord,
+                   NULL,
+                   dEdgeGroupIdx,
+                   dEdgeGroup);
 
   free (dCellPart);
 
@@ -428,6 +447,7 @@ PDM_part_split_t           method,
     int sFaceEdge;
     int sEdgeVtx;
     int sEdgeGroup;
+    int nEdgeGroup2;
     
     PDM_part_part_dim_get (ppartId,
                            ipart,
@@ -439,7 +459,8 @@ PDM_part_split_t           method,
                            nTPart,
                            &sFaceEdge,
                            &sEdgeVtx,
-                           &sEdgeGroup);
+                           &sEdgeGroup,
+                           &nEdgeGroup2);
     
   }
   
@@ -567,6 +588,7 @@ _export_ini_mesh
     int sFaceEdge;
     int sEdgeVtx;
     int sEdgeGroup;
+    int nEdgeGroup2;
 
     PDM_part_part_dim_get (ppartId,
                         ipart,
@@ -578,7 +600,8 @@ _export_ini_mesh
                         &nTPart,
                         &sFaceEdge,
                         &sEdgeVtx,
-                        &sEdgeGroup);
+                        &sEdgeGroup,
+                        &nEdgeGroup2);
 
     int          *faceTag;
     int          *faceEdgeIdx;
@@ -695,6 +718,7 @@ _export_ini_mesh
     int sFaceEdge;
     int sEdgeVtx;
     int sEdgeGroup;
+    int nEdgeGroup2;
 
     PDM_part_part_dim_get (ppartId,
                         ipart,
@@ -706,7 +730,8 @@ _export_ini_mesh
                         &nTPart,
                         &sFaceEdge,
                         &sEdgeVtx,
-                        &sEdgeGroup);
+                        &sEdgeGroup,
+                        &nEdgeGroup2);
 
     int          *faceTag;
     int          *faceEdgeIdx;
@@ -1094,6 +1119,7 @@ _export_coarse_mesh
     int sFaceEdge;
     int sEdgeVtx;
     int sEdgeGroup;
+    int nEdgeGroup2;
 
     PDM_part_part_dim_get (cmId,
                         ipart,
@@ -1105,7 +1131,8 @@ _export_coarse_mesh
                         &nTPart,
                         &sFaceEdge,
                         &sEdgeVtx,
-                        &sEdgeGroup);
+                        &sEdgeGroup,
+                        &nEdgeGroup2);
 
     int          *faceTag;
     int          *faceEdgeIdx;
@@ -1253,7 +1280,16 @@ char *argv[]
   int           nPart   = 1;
   double         cr   = 0.5;
   int           post    = 0;
-  PDM_part_split_t method  = PDM_PART_SPLIT_PTSCOTCH;
+#ifdef PDM_HAVE_PTSCOTCH  
+ PDM_part_split_t  method  = PDM_PART_SPLIT_PTSCOTCH;
+  char *agglo_method = "PDM_COARSE_MESH_SCOTCH";
+#else
+#ifdef PDM_HAVE_PARMETIS  
+  PDM_part_split_t method  =  PDM_PART_SPLIT_PARMETIS;
+  char *agglo_method = "PDM_COARSE_MESH_METIS";
+#endif
+#endif  
+  
   int           haveRandom = 0;
   int           myRank;
   int           numProcs;
@@ -1261,7 +1297,8 @@ char *argv[]
   /*
    *  Read args
    */
-  
+
+  char *_agglo_method = NULL;
   _read_args (argc,
               argv,
               &nVtxSeg,
@@ -1270,8 +1307,13 @@ char *argv[]
               &cr,
               &post,
               (int *) &method,
+              &_agglo_method,
               &haveRandom);
 
+  if (_agglo_method != NULL) {
+    agglo_method = _agglo_method;
+  }
+  
   PDM_MPI_Comm_rank (PDM_MPI_COMM_WORLD, &myRank);
   PDM_MPI_Comm_size (PDM_MPI_COMM_WORLD, &numProcs);
 
@@ -1315,9 +1357,20 @@ char *argv[]
   const int  have_faceWeight = 0;
   const int  have_faceGroup = 0;
   
+  int *renum_properties_cell = NULL;
+  int *renum_properties_face = NULL;
+  int nPropertyCell = 0;
+  int nPropertyFace = 0;
+
   PDM_part_coarse_mesh_create (&cmId,
                                PDM_MPI_COMM_WORLD,
-                               method,
+                               agglo_method,
+                               "PDM_PART_RENUM_CELL_NONE",
+                               "PDM_PART_RENUM_FACE_NONE",
+                               nPropertyCell,
+                               renum_properties_cell,
+                               nPropertyFace,
+                               renum_properties_face,
                                nPart, 
                                nTPart,
                                nEdgeGroup,
@@ -1327,6 +1380,10 @@ char *argv[]
                                have_cellWeight,
                                have_faceWeight,
                                have_faceGroup);
+
+  if (_agglo_method != NULL) {
+    free (_agglo_method);
+  }
   
   for (int ipart = 0; ipart < nPart; ipart++) {
     
@@ -1339,6 +1396,7 @@ char *argv[]
     int sFaceEdge;
     int sEdgeVtx;
     int sEdgeGroup;
+    int nEdgeGroup2;
     
     PDM_part_part_dim_get (id_ppart,
                            ipart,
@@ -1350,7 +1408,8 @@ char *argv[]
                            &nTPart1,
                            &sFaceEdge,
                            &sEdgeVtx,
-                           &sEdgeGroup);
+                           &sEdgeGroup,
+                           &nEdgeGroup2);
 
     int          *faceTag;
     int          *faceEdgeIdx;

@@ -68,6 +68,9 @@ typedef struct {
 
 typedef struct {
 
+
+  int     maxBoxesLeaf;       /*!< Max number of boxes in a leaf for local BBTree */
+
   int     maxTreeDepth;    /*!< Max tree depth for local BBTree */ 
 
   float   maxBoxRatio;     /*!< Max ratio for local BBTree (nConnectedBoxe < ratio * nBoxes) 
@@ -80,16 +83,17 @@ typedef struct {
   float   maxBoxRatioShared;  /*!< Max ratio for local BBTree (nConnectedBoxe < ratio * nBoxes) 
                                for local BBTree */
 
-  int     maxBoxesLeaf;       /*!< Max number of boxes in a leaf for local BBTree */
+  int     maxBoxesLeafCoarse; /*!<  Max number of boxes in a leaf for coarse shared BBTree */
 
   int     maxTreeDepthCoarse; /*!< Max tree depth for coarse shared BBTree */
 
   float   maxBoxRatioCoarse;  /*!< Max ratio for local BBTree (nConnectedBoxe < ratio * nBoxes) 
                                 for coarse shared BBTree */
 
-  int     maxBoxesLeafCoarse; /*!<  Max number of boxes in a leaf for coarse shared BBTree */
-
   PDM_box_set_t  *rankBoxes;  /*!< Rank Boxes */
+  int             nUsedRank;  /*!< Number of used ranks */
+  int            *usedRank;   /*!< used ranks */
+
   PDM_box_tree_t *btShared;   /*!< Shared Boundary box tree */
   _box_tree_stats_t btsShared;/*!< Shared Boundary box tree statistic */
 

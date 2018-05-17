@@ -111,6 +111,7 @@ int main() {
 
 endif()
 
+INCLUDE(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(ParMETIS
                                   "ParMETIS could not be found/configured."
                                   PARMETIS_LIBRARIES

@@ -16,6 +16,11 @@
 #include "pdm_printf.h"
 #include "pdm_error.h"
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-value"
+#endif
+
 /*=============================================================================
  * Macro definitions
  *============================================================================*/
@@ -104,10 +109,6 @@ const int nPart,
 int *part
 )
 {
-#if defined(__clang__)	
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-value" 	
-#endif
   dNCell;
   dDualGraphIdx;
   dDualGraph;        
@@ -117,9 +118,6 @@ int *part
   comm;
   nPart;        
   part;
-#if defined(__clang__)	
-#pragma clang diagnostic pop
-#endif
 
   PDM_error(__FILE__, __LINE__, 0,"PDM_SCOTCH_dpart : Unavailable function with pdm_no_mpi library\n" );
   abort();
@@ -134,3 +132,6 @@ int *part
 }
 #endif /* __cplusplus */
 
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif

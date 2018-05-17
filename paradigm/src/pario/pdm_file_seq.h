@@ -1,6 +1,8 @@
 #ifndef __PDM_FILE_SEQ_H__
 #define __PDM_FILE_SEQ_H__
 
+#include "pdm.h"
+
 /*============================================================================
  * Description d'un fichier sequentiel
  *============================================================================*/
@@ -75,10 +77,10 @@ PDM_file_seq_t *PDM_file_seq_open(const char *nom,
  *
  *----------------------------------------------------------------------------*/
 
-int PDM_file_seq_write(PDM_file_seq_t *fichier,
-                      const size_t   taille_donnee,
-                      const int      n_donnees,
-                      void          *donnees);
+PDM_g_num_t PDM_file_seq_write(PDM_file_seq_t *fichier,
+                      const size_t      taille_donnee,
+                      const PDM_g_num_t n_donnees,
+                      void              *donnees);
 
 /*----------------------------------------------------------------------------
  *  Fonction de lecture
@@ -93,10 +95,10 @@ int PDM_file_seq_write(PDM_file_seq_t *fichier,
  *
  *----------------------------------------------------------------------------*/
 
-int PDM_file_seq_read(PDM_file_seq_t *fichier,
-                     const size_t   taille_donnee,
-                     const int      n_donnees,
-                     void          *donnees);
+PDM_g_num_t PDM_file_seq_read(PDM_file_seq_t *fichier,
+                     const size_t           taille_donnee,
+                     const PDM_g_num_t      n_donnees,
+                     void                   *donnees);
 
 /*----------------------------------------------------------------------------
  *  Defini la position courante du fichier

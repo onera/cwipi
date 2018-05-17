@@ -820,6 +820,14 @@ const PDM_g_num_t *numabs
   }
 
   PDM_Mesh_nodal_coord_set (geom->idx_mesh, id_part, n_som, coords, numabs);
+  
+  if (0 == 1) {
+    printf("nvtx : %d\n", n_som);
+    for (int i = 0; i < n_som; i++) {
+      printf ("%d "PDM_FMT_G_NUM" : %12.5e %12.5e %12.5e\n", i+1, numabs[i], 
+              coords[3*i], coords[3*i+1], coords[3*i+2]);
+    }
+  }
 
 }
 
@@ -1354,6 +1362,25 @@ PDM_g_num_t   *numabs
                                       cell_face_nb, 
                                       cell_face, 
                                       numabs);
+  if (0 == 1) {
+    printf("ncell : %d\n", n_cell);
+    for (int i = 0; i < n_cell; i++) {
+      printf ("%d "PDM_FMT_G_NUM" : \n", i+1, numabs[i]); 
+      for (int j = cell_face_idx[i]; j < cell_face_idx[i+1]; j++) {
+        printf (" %d", cell_face[j]);
+      }
+      printf ("\n");
+    }
+    printf("nface : %d\n", n_face);
+    for (int i = 0; i < n_face; i++) {
+      printf ("%d: \n", i+1); 
+      for (int j = face_som_idx[i]; j < face_som_idx[i+1]; j++) {
+        printf (" %d", face_som[j]);
+      }
+      printf ("\n");
+    }
+  }
+
 
 } 
 
@@ -2272,7 +2299,9 @@ PDM_writer_fmt_add
   
   PDM_Handles_store  (fmt_tab, fmt_ptr);
   
-  fmt_ptr->name            = name;
+  fmt_ptr->name            = malloc(sizeof(char) * (strlen(name) + 1));
+  strcpy (fmt_ptr->name, name);
+
   fmt_ptr->create_fct      = create_fct;
   fmt_ptr->free_fct        = free_fct;
   fmt_ptr->beg_step_fct    = beg_step_fct;
@@ -2305,6 +2334,8 @@ PDM_writer_fmt_free
     
     while (n_fmt > 0) {
       int idx = index[0];
+      PDM_writer_fmt_t *fmt_ptr = (PDM_writer_fmt_t *) PDM_Handles_get (fmt_tab, idx);
+      free (fmt_ptr->name);
       PDM_Handles_handle_free (fmt_tab, idx, PDM_TRUE);
       n_fmt = PDM_Handles_n_get (fmt_tab);
     }
