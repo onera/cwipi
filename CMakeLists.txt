@@ -14,7 +14,8 @@ enable_testing()
 # Internal CMake module (shared with paradigm)
 #------------------------------------------------------------------------------
 
-set(CWP_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/paradigm/cmake")
+#set(CWP_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/paradigm/cmake")
+set(CWP_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(CMAKE_MODULE_PATH "${CWP_CMAKE_DIR}/modules")
 
 include(${CMAKE_MODULE_PATH}/version.cmake)
