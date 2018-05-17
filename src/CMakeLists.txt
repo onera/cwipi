@@ -32,6 +32,8 @@ endif()
 file(GLOB SOURCES 
      bft/*.[ch]
      fvm/*.[ch]
+     new/*.[ch]
+     new/*.[ch]xx
      *.[ch]
      *.[ch]xx)
 
@@ -78,6 +80,7 @@ target_include_directories(cwp
                            PRIVATE  ${CMAKE_BINARY_DIR}
                            PUBLIC  ${CMAKE_SOURCE_DIR}
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}
+                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/new
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/fvm
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/bft
                            PRIVATE ${PDM_INC}) 
@@ -93,6 +96,7 @@ if (CWP_ENABLE_Fortran)
                            PRIVATE   ${CMAKE_BINARY_DIR}
                            PUBLIC    ${CMAKE_SOURCE_DIR}
                            PUBLIC    ${CMAKE_CURRENT_SOURCE_DIR}
+                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/new
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/fvm
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/bft
                            PRIVATE ${PDM_INC}) 

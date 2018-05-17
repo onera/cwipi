@@ -261,7 +261,7 @@ program testf
 ! -----------------------------------------
 !
  
-  call cwipi_set_output_listing_f(iiunit)
+  !call cwipi_set_output_listing_f(iiunit)
 
   if (irank < commWorldSize / 2) then
      codeName = 'code1'
