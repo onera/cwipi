@@ -20,7 +20,6 @@
 #include "pdm_writer.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
-#include "src/plugins/pdm_plugin.h"
 
 /*============================================================================
  * Type definitions
