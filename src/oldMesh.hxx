@@ -133,6 +133,7 @@ namespace cwipi {
 
     int          *_eltConnectivityIndex;
     int          *_eltConnectivity;
+    int          *_hoEltConnectivity;
 
     int              *_polyhedraFaceIndex;
     int              *_polyhedraCellToFaceConnectivity;

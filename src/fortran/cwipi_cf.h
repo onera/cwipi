@@ -649,8 +649,8 @@ void PROCF(cwipi_define_mesh_cf,
    int *connectivity
    ARGF_SUPP_CHAINE);
 
-void PROCF(cwipi_define_high_order_mesh_cf,
-           CWIPI_DEFINE_HIGH_ORDER_MESH_CF)
+void PROCF(cwipi_define_ho_mesh_cf,
+           CWIPI_DEFINE_HO_MESH_CF)
   (const char *coupling_name,
    const int  *l_coupling_name,
    const int *n_vertex,

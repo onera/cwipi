@@ -1000,13 +1000,13 @@ void cwipi_define_mesh(const char *coupling_name,
                       connectivity);
 }
 
-void cwipi_define_high_order_mesh(const char *coupling_name,
-                                  const int n_vertex,
-                                  const int n_element,
-                                  const int order,
-                                  double coordinates[],
-                                  int connectivity_index[],
-                                  int connectivity[])
+void cwipi_define_ho_mesh(const char *coupling_name,
+                          const int n_vertex,
+                          const int n_element,
+                          const int order,
+                          double coordinates[],
+                          int connectivity_index[],
+                          int connectivity[])
 {
   cwipi::CouplingDataBase & couplingDataBase =
     cwipi::CouplingDataBase::getInstance();
@@ -1060,6 +1060,54 @@ void cwipi_add_polyhedra(const char *coupling_name,
                                   n_faces,
                                   face_connectivity_index,
                                   face_connectivity);
+}
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Define ho element ordering
+ *
+ * parameters:
+ *   coupling_id        <-- coupling name
+ *   t_elt              <-- element type
+ *   ordering           <-- ordering (n_node * )
+ *                                TODO: decrire ici les elements de reference
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_ho_ordering_set (const char *coupling_id,
+                            const cwipi_element_t t_elt,
+                            const int *ordering)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_id;
+
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Define ho element ordering from reference element (definition between 0 - 1)
+ *
+ *   coupling_id        <-- coupling name
+ *   t_elt              <-- element type
+ *   coords             <-- node coordinates of reference element
+ *                                TODO: decrire ici les elements de reference
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_ho_ordering_from_ref_elt_set (const char   *coupling_id,
+                                         const cwipi_element_t t_elt,
+                                         const double *coords)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_id;
+
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 }
 
 /*----------------------------------------------------------------------------

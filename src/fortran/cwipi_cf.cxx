@@ -1005,8 +1005,8 @@ void PROCF(cwipi_define_mesh_cf,
   delete[] coupling_nameC;
 }
 
-void PROCF(cwipi_define_high_order_mesh_cf,
-           CWIPI_DEFINE_HIGH_ORDER_MESH_CF)
+void PROCF(cwipi_define_ho_mesh_cf,
+           CWIPI_DEFINE_HO_MESH_CF)
   (const char *coupling_name,
    const int  *l_coupling_name,
    const int *n_vertex,
@@ -1020,13 +1020,13 @@ void PROCF(cwipi_define_high_order_mesh_cf,
   char *coupling_nameC =
     _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
 
-  cwipi_define_high_order_mesh(coupling_nameC,
-                              *n_vertex,
-                              *n_element,
-                              *order,
-                               coordinates,
-                               connectivity_index,
-                               connectivity);
+  cwipi_define_ho_mesh(coupling_nameC,
+                       *n_vertex,
+                       *n_element,
+                       *order,
+                       coordinates,
+                       connectivity_index,
+                       connectivity);
   delete[] coupling_nameC;
 }
 

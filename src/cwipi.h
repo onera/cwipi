@@ -132,13 +132,18 @@ typedef enum {
   CWIPI_NODE,
   CWIPI_EDGE2,
   CWIPI_FACE_TRIA3,
-  CWIPI_FACE_TRIA6,
+  CWIPI_FACE_TRIAHO,
   CWIPI_FACE_QUAD4,
+  CWIPI_FACE_QUADHO,  
   CWIPI_FACE_POLY,
   CWIPI_CELL_TETRA4,
+  CWIPI_CELL_TETRAHO,
   CWIPI_CELL_HEXA8,
+  CWIPI_CELL_HEXAHO,
   CWIPI_CELL_PRISM6,
+  CWIPI_CELL_PRISMHO,
   CWIPI_CELL_PYRAM5,
+  CWIPI_CELL_PYRAMHO,
   CWIPI_CELL_POLY
 
 } cwipi_element_t;
@@ -868,18 +873,48 @@ void cwipi_define_mesh(const char *coupling_id,
                        int connectivity_index[],
                        int connectivity[]);
 
-void cwipi_define_high_order_mesh(const char *coupling_id,
-                                  const int n_vertex,
-                                  const int n_element,
-                                  const int order,
-                                  double coordinates[],
-                                  int connectivity_index[],
-                                  int connectivity[]);
+void cwipi_define_ho_mesh(const char *coupling_id,
+                          const int n_vertex,
+                          const int n_element,
+                          const int order,
+                          double coordinates[],
+                          int connectivity_index[],
+                          int connectivity[]);
 
 void cwipi_shared_fvmc_nodal(const char *coupling_name,
                             void * fvmc_nodal);
 
+/*----------------------------------------------------------------------------
+ *
+ * Define ho element ordering
+ *
+ * parameters:
+ *   coupling_id        <-- coupling name
+ *   t_elt              <-- element type
+ *   ordering           <-- ordering (n_node * )
+ *                                TODO: decrire ici les elements de reference
+ *
+ *----------------------------------------------------------------------------*/
 
+void cwipi_ho_ordering_set (const char *coupling_id,
+                            const cwipi_element_t t_elt,
+                            const int *ordering);
+
+/*----------------------------------------------------------------------------
+ *
+ * Define ho element ordering from reference element (definition between 0 - 1)
+ *
+ *   coupling_id        <-- coupling name
+ *   t_elt              <-- element type
+ *   coords             <-- node coordinates of reference element
+ *                                TODO: decrire ici les elements de reference
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_ho_ordering_from_ref_elt_set (const char   *coupling_id,
+                                         const cwipi_element_t t_elt,
+                                         const double *coords);
+                            
 /*----------------------------------------------------------------------------
  *
  * Add polyhedra to the mesh

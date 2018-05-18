@@ -748,7 +748,7 @@ program testf
     enddo
     
   !> Transmission des maillages à cwipi
-  call cwipi_define_high_order_mesh_f(     &
+  call cwipi_define_ho_mesh_f(  &
   &   couplingName="testPiPj"  ,&
   &   nVertex     =nVert       ,&
   &   nElts       =nCell       ,&
