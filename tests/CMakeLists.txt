@@ -19,22 +19,33 @@ if (NOT MPI_C_COMPILER)
 endif ()
 
 if (CWP_ENABLE_SHARED)
- list(APPEND LINK_LIBRARIES
-      cwp_shared
-      pdm_shared
-      pdm_mpi_shared ${COMMON_LIBRARIES})
+  list(APPEND LINK_LIBRARIES
+       cwp_shared)
+  if (EXISTS ${CWP_SOURCE_DIR}/paradigm)
+      list (APPEND LINK_LIBRARIES 
+            pdm_shared
+            pdm_mpi_shared)
+  endif()
+  list(APPEND LINK_LIBRARIES
+       ${COMMON_LIBRARIES})
+
  if (CWP_ENABLE_Fortran)
-    list(APPEND LINK_LIBRARIES cwpf_shared)
+   list(APPEND LINK_LIBRARIES cwpf_shared)
  endif()
 
 else ()
    if (CWP_ENABLE_Fortran)
-      list(APPEND LINK_LIBRARIES pdmf_static cwpf_static)
+     if (EXISTS ${CWP_SOURCE_DIR}/paradigm)
+       list(APPEND LINK_LIBRARIES pdmf_static)
+     endif()  
+     list(APPEND LINK_LIBRARIES cwpf_static)
    endif()
-   list(APPEND LINK_LIBRARIES
-      pdm_mpi_static
-      pdm_static
-      cwp_static)
+   if (EXISTS ${CWP_SOURCE_DIR}/paradigm)
+     list(APPEND LINK_LIBRARIES
+          pdm_mpi_static
+          pdm_static)
+   endif()          
+   list(APPEND LINK_LIBRARIES cwp_static)
    if (CWP_ENABLE_Fortran)
     list(APPEND LINK_LIBRARIES cwpf_static)
    endif()
@@ -66,7 +77,10 @@ else()
 endif()
 
 include(TestCreate)
-test_c_create (c_new_api 10)
+
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api.c")
+  test_c_create (c_new_api 10)
+endif ()  
 test_c_create (c_linear_coupling ${MPIEXEC_MAX_NUMPROCS})
 test_c_create (c_surf_coupling_P1P1_micron_polygon ${MPIEXEC_MAX_NUMPROCS})
 test_c_create (c_surf_coupling_P1P1_polygon ${MPIEXEC_MAX_NUMPROCS})

@@ -31,7 +31,8 @@
  * BFT library headers
  *----------------------------------------------------------------------------*/
 
-#include "pdm_printf.h"
+//#include "pdm_printf.h"
+#include "bftc_printf.h"
 
 /*----------------------------------------------------------------------------
  * FVM library headers
@@ -155,7 +156,9 @@ _cwp_print_with_fortran
 #ifndef CWP_HAVE_NOT_FORTRAN_IN_C
 void PROCF(cwp_set_output_listing_cf, CWP_SET_OUTPUT_LISTING_CF)()
 {
-  PDM_printf_proxy_set(_cwp_print_with_fortran);
+  //  PDM_printf_proxy_set(_cwp_print_with_fortran);
+
+  bftc_printf_proxy_set(_cwp_print_with_fortran);
 }
 #endif
 

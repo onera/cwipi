@@ -29,34 +29,23 @@ endif()
 # Sources list
 # ------------
 
-file(GLOB SOURCES 
-     bft/*.[ch]
-     fvm/*.[ch]
-     new/*.[ch]
-     new/*.[ch]xx
-     *.[ch]
-     *.[ch]xx)
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new") 
+  file(GLOB SOURCES 
+       bft/*.[ch]
+       fvm/*.[ch]
+       new/*.[ch]
+       new/*.[ch]xx
+       *.[ch]
+       *.[ch]xx)
+  get_target_property(PDM_INC pdm INCLUDE_DIRECTORIES)
+else()
+  file(GLOB SOURCES 
+       bft/*.[ch]
+       fvm/*.[ch]
+       *.[ch]
+       *.[ch]xx)
+endif()
 
-#if (NOT CWP_HAVE_NOT_FORTRAN_IN_C)
-#   list(APPEND SOURCES 
-#        ${CMAKE_SOURCE_DIR}/src/printfort.f90
-#        ${CMAKE_SOURCE_DIR}/src/cwipi_printfort.f90
-#        ${CMAKE_SOURCE_DIR}/src/callfortinterpfct.f90
-#        ${CMAKE_SOURCE_DIR}/src/cwipi_printfort_cf.cxx
-#        ${CMAKE_SOURCE_DIR}/src/cwipi_set_output_logical_unit.f90)
-#endif()
-
-get_target_property(PDM_INC pdm INCLUDE_DIRECTORIES)
-
-#file(GLOB_RECURSE SOURCESF 
-#     printfort.f90
-#     cwipi_printfort.f90
-#     callfortinterpfct.f90
-#     cwipi_printfort_cf.cxx
-#     cwp_printfort_cf.cxx
-#     cwipi_set_output_logical_unit.f90
-#     cwp_set_output_logical_unit_set.f90
-#     cwipi_f.f90)
 
 if (CWP_ENABLE_Fortran)
    list(APPEND SOURCES fortran/callfortinterpfct.f90)
@@ -82,10 +71,13 @@ target_include_directories(cwp
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/new
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/fvm
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/bft
-                           PRIVATE ${PDM_INC}) 
+                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/bft)
 
- add_dependencies(cwp pdm)
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new") 
+  add_dependencies(cwp pdm)
+  target_include_directories(cwp
+                             PRIVATE ${PDM_INC}) 
+endif ()
 
 if (CWP_ENABLE_Fortran)
  add_library(cwpf OBJECT ${SOURCESF})
@@ -98,11 +90,12 @@ if (CWP_ENABLE_Fortran)
                            PUBLIC    ${CMAKE_CURRENT_SOURCE_DIR}
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/new
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/fvm
-                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/bft
-                           PRIVATE ${PDM_INC}) 
+                           PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/bft) 
 
- add_dependencies(cwpf pdmf)
-
+  if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new")
+    add_dependencies(cwpf pdmf)
+    target_include_directories(cwpf PRIVATE ${PDM_INC}) 
+  endif()
 endif()
 
 # Liste des header
@@ -142,8 +135,10 @@ if (CWP_ENABLE_SHARED)
   add_library(cwp_shared SHARED  $<TARGET_OBJECTS:cwp>)
   set_target_properties(cwp_shared PROPERTIES OUTPUT_NAME "cwp")
   set_target_properties(cwp_shared PROPERTIES VERSION ${CWP_VERSION})
-  target_link_libraries(cwp_shared ${LINK_LIBRARIES} pdm_shared)
-  target_link_libraries(cwp_shared ${LINK_LIBRARIES} pdm_mpi_shared)
+  if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new")
+    target_link_libraries(cwp_shared ${LINK_LIBRARIES} pdm_shared)
+    target_link_libraries(cwp_shared ${LINK_LIBRARIES} pdm_mpi_shared)
+  endif()
   set_target_properties(cwp_shared PROPERTIES
                         PUBLIC_HEADER "${LIST_HEADER}")
 
@@ -170,8 +165,10 @@ if (CWP_ENABLE_STATIC)
   add_library(cwp_static STATIC  $<TARGET_OBJECTS:cwp>)
   set_target_properties(cwp_static PROPERTIES OUTPUT_NAME "cwp")
   set_target_properties(cwp_static PROPERTIES VERSION ${CWP_VERSION})
-  target_link_libraries(cwp_static ${LINK_LIBRARIES} pdm_static)
-  target_link_libraries(cwp_static ${LINK_LIBRARIES} pdm_mpi_static)
+  if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new")
+    target_link_libraries(cwp_static ${LINK_LIBRARIES} pdm_static)
+    target_link_libraries(cwp_static ${LINK_LIBRARIES} pdm_mpi_static)
+  endif()
   set_target_properties(cwp_static PROPERTIES
                              PUBLIC_HEADER "${LIST_HEADER}")
   get_target_property(CWP_INC cwp INCLUDE_DIRECTORIES)

@@ -384,16 +384,18 @@ set(CWP_ETC_DIR "etc")
 # En fonction des top_targets a installer
 #------------------------------------------------------------------------------
 
-add_subdirectory(paradigm)
+if (IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/paradigm") 
+  add_subdirectory(paradigm)
+endif()
 
 add_subdirectory(src)
 
 if (CWP_ENABLE_PYTHON_BINDINGS)
-   add_subdirectory(Cython)
+  add_subdirectory(Cython)
 endif()
 
 if (CWP_ENABLE_SPACE_NODAL_BASES)
-  add_subdirectory(spaceBasis)
+ add_subdirectory(spaceBasis)
 endif ()
 add_subdirectory(tests)
 add_subdirectory(doc)
