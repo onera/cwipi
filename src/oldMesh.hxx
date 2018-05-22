@@ -21,11 +21,14 @@
 
 #include <algorithm>
 #include <vector>
+#include <map>
 
 #include <mpi.h>
 
 #include <fvmc_nodal.h>
 #include <bftc_error.h>
+
+#include "cwipi.h"
 
 namespace cwipi {
 
@@ -45,6 +48,12 @@ namespace cwipi {
          fvmc_nodal_t* fvmc_nodal);
 
     virtual ~oldMesh();
+
+    void hoOrderingSet (const cwipi_element_t t_elt,
+                        const int *ordering);
+    
+    void hoOrderingFromRefEltSet (const cwipi_element_t t_elt,
+                                  const double *coords);
 
     void addPolyhedra(const int nElt,
                       int *faceIndex,
@@ -125,6 +134,7 @@ namespace cwipi {
     // TODO: renommer _nDim par entitesDim
     const MPI_Comm & _localComm;
     int            _nDim;
+    int            _order;
     int           _nVertex;
     int           _nElts;
     int           _nPolyhedra;
@@ -133,7 +143,8 @@ namespace cwipi {
 
     int          *_eltConnectivityIndex;
     int          *_eltConnectivity;
-    int          *_hoEltConnectivity;
+
+    std::map <cwipi_element_t, std::vector <int> * > * _hoOrdering;
 
     int              *_polyhedraFaceIndex;
     int              *_polyhedraCellToFaceConnectivity;

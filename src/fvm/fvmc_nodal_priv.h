@@ -68,6 +68,7 @@ typedef struct _fvmc_nodal_section_t {
 
   fvmc_element_t  type;             /* Element types */
   int             order;            /* Element order */
+  int             *ho_ordering;     /* Local element ordering */
   
   /* Connectivity */
   /*--------------*/
@@ -106,6 +107,8 @@ typedef struct _fvmc_nodal_section_t {
   fvmc_lnum_t  *_face_num;          /* face_num if owner, NULL if shared */
   fvmc_lnum_t  *_vertex_index;      /* vertex_index if owner, NULL if shared */
   fvmc_lnum_t  *_vertex_num;        /* vertex numbers if owner, NULL if shared */
+
+  fvmc_lnum_t  *_ho_vertex_num;     /* vertex numbers odered from _ho_ordering */
 
   /* Auxiliary structure used to define subdivision of elements into
      simpler element types (usually polygons to triangles and

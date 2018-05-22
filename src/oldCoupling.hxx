@@ -63,8 +63,13 @@ namespace cwipi {
                     int connectivity[],
                     int order = 1);
 
-    void defineMesh(fvmc_nodal_t* fvmc_nodal); 
+    void defineMesh(fvmc_nodal_t* fvmc_nodal);
 
+    void hoOrderingSet (const cwipi_element_t t_elt,
+                          const int *ordering);
+
+    void hoOrderingFromRefEltSet (const cwipi_element_t t_elt,
+                                       const double *coords);
 
     void defineMeshAddPolyhedra(const int n_element,
                                 int face_index[],

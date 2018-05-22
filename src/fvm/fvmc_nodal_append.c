@@ -112,6 +112,7 @@ _transfer_to_section(fvmc_lnum_t      n_elements,
 
   this_section->n_elements = n_elements;
 
+
   /* Connectivity */
 
   if (type == FVMC_CELL_POLY) {

@@ -1085,6 +1085,9 @@ void cwipi_ho_ordering_set (const char *coupling_id,
   const std::string &coupling_name_str = coupling_id;
 
   cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.hoOrderingSet (t_elt, ordering);
+
 }
 
 /*----------------------------------------------------------------------------
@@ -1108,6 +1111,9 @@ void cwipi_ho_ordering_from_ref_elt_set (const char   *coupling_id,
   const std::string &coupling_name_str = coupling_id;
 
   cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.hoOrderingFromRefEltSet (t_elt, coords);
+
 }
 
 /*----------------------------------------------------------------------------

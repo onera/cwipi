@@ -659,7 +659,7 @@ fvmc_nodal_n_vertices_element (fvmc_element_t type, int order)
    n_vtx = (order+1)*(order+1); 
    break;
  case FVMC_FACE_POLY:          /* Simple Polygon */
-   n_vtx = 0;
+   n_vtx = -1;
    break;
  case FVMC_CELL_TETRA:         /* Tetrahedron */
    n_vtx = (order+1)*(order+2)*(order+3)/6; 
@@ -674,9 +674,10 @@ fvmc_nodal_n_vertices_element (fvmc_element_t type, int order)
    n_vtx = (order+1)*(order+1)*(order+1); 
    break;
  case FVMC_CELL_POLY:          /* Simple Polyhedron (convex or quasi-convex) */
-   n_vtx = 0;
+   n_vtx = -1;
    break;
-
+ default:  
+   n_vtx = -1;
  }
 
  return n_vtx;
@@ -712,6 +713,9 @@ fvmc_nodal_section_create(const fvmc_element_t  type, int order)
   this_section->type = type;
   this_section->order = order;
 
+  this_section->ho_ordering = NULL;
+  this_section->_ho_vertex_num = NULL;
+  
   /* Connectivity */
 
   this_section->connectivity_size = 0;
@@ -2382,6 +2386,39 @@ fvmc_nodal_get_coords(const fvmc_nodal_t  *this_nodal,
 /*   } */
 //}
 
+/*----------------------------------------------------------------------------
+ * Set high order ordering
+ *
+ * parameters:
+ *   this_nodal <-- pointer to structure that should be dumped
+ *   t_elt      <-- type of element
+ *   ordering   <-- ordering
+ *
+ *----------------------------------------------------------------------------*/
+
+void
+fvmc_nodal_ho_ordering_set (fvmc_nodal_t  *this_nodal,
+                            const fvmc_element_t t_elt,
+                            const int *ordering)
+{
+}
+
+/*----------------------------------------------------------------------------
+ * Set high order ordering from the coordinates of the nodes of the reference element
+ *
+ * parameters:
+ *   this_nodal <-- pointer to structure that should be dumped
+ *   t_elt      <-- type of element
+ *   ordering   <-- coordinates of the nodes of the reference element
+ *
+ *----------------------------------------------------------------------------*/
+
+void
+fvmc_nodal_ho_ordering_from_ref_elt_set (fvmc_nodal_t  *this_nodal,
+                                         const fvmc_element_t t_elt,
+                                         const double *coords)
+{
+}
 
 /*----------------------------------------------------------------------------*/
 

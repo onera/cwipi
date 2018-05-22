@@ -48,8 +48,9 @@ namespace cwipi {
              int order
              )
     : _localComm(localComm),
-      _nDim(nDim), _nVertex(nVertex), _nElts(nElts), _nPolyhedra(0), _coords(coords),
+      _nDim(nDim), _order(order), _nVertex(nVertex), _nElts(nElts), _nPolyhedra(0), _coords(coords),
       _polygonIndex(NULL), _eltConnectivityIndex(eltConnectivityIndex), _eltConnectivity(eltConnectivity),
+      _hoOrdering (NULL),
       _polyhedraFaceIndex(NULL), _polyhedraCellToFaceConnectivity(NULL), _polyhedraNFace(0),
       _polyhedraFaceConnectivityIndex(NULL), _polyhedraFaceConnectivity(NULL), 
       _polyhedraCellToVertexConnectivity(NULL),
@@ -61,12 +62,12 @@ namespace cwipi {
 
   {
 
-    const int n_vtx_tria = (order+1)*(order+2)/2; 
-    const int n_vtx_quad = (order+1)*(order+1); 
-    const int n_vtx_tetra = (order+1)*(order+2)*(order+3)/6; 
-    const int n_vtx_hexa = (order+1)*(order+1)*(order+1); 
-    const int n_vtx_prism = (order+1)*(order+1)*(order+2)/2; 
-    const int n_vtx_pyramid = (order+1)*(order+2)*(2*order+3)/6;
+    int n_vtx_tria = (order+1)*(order+2)/2; 
+    int n_vtx_quad = (order+1)*(order+1); 
+    int n_vtx_tetra = (order+1)*(order+2)*(order+3)/6; 
+    int n_vtx_hexa = (order+1)*(order+1)*(order+1); 
+    int n_vtx_prism = (order+1)*(order+1)*(order+2)/2; 
+    int n_vtx_pyramid = (order+1)*(order+2)*(2*order+3)/6;
 
     MPI_Comm oldFVMComm = fvmc_parall_get_mpi_comm();
     if (oldFVMComm != MPI_COMM_NULL)
@@ -1039,6 +1040,17 @@ namespace cwipi {
     delete _polyhedraCellToVertexConnectivity;
     delete _polyhedraCellToVertexConnectivityIndex; 
 
+    if (_hoOrdering != NULL) {
+      typedef std::map <cwipi_element_t, std::vector <int> * >::iterator Iterator;
+      for (Iterator p = _hoOrdering->begin();
+           p != _hoOrdering->end(); p++) {
+        if (p->second != NULL)
+          delete p->second;
+      }
+      _hoOrdering->clear();
+      delete _hoOrdering;
+    }
+    
     fvmc_nodal_destroy(_fvmNodal);
   }
 
@@ -1102,7 +1114,108 @@ namespace cwipi {
     fvmc_parall_set_mpi_comm(oldFVMComm);
   }
 
+  
+  void oldMesh::hoOrderingSet (const cwipi_element_t t_elt,
+                               const int *ordering)
+  {
 
+    fvmc_element_t _t_elt;
+    
+    switch(t_elt) {
+    case CWIPI_NODE:
+      bftc_error(__FILE__, __LINE__, 0,
+                "'%s' Element not taking into account by fvm \n");
+      break;
+    case CWIPI_EDGE2:         
+      _t_elt = FVMC_EDGE;
+      break;
+    case CWIPI_FACE_TRIA3:    
+    case CWIPI_FACE_TRIAHO:   
+      _t_elt = FVMC_FACE_TRIA;
+      break;
+    case CWIPI_FACE_QUAD4:
+    case CWIPI_FACE_QUADHO:
+      _t_elt = FVMC_FACE_QUAD;
+      break;
+    case CWIPI_FACE_POLY:
+      _t_elt = FVMC_FACE_POLY;
+      break;
+    case CWIPI_CELL_TETRA4:
+    case CWIPI_CELL_TETRAHO:
+      _t_elt = FVMC_CELL_TETRA;
+      break;
+    case CWIPI_CELL_PYRAM5:
+    case CWIPI_CELL_PYRAMHO:
+      _t_elt = FVMC_CELL_PYRAM;
+      break;
+    case CWIPI_CELL_PRISM6:
+    case CWIPI_CELL_PRISMHO:
+      _t_elt = FVMC_CELL_PRISM;
+      break;
+    case CWIPI_CELL_HEXA8:
+    case CWIPI_CELL_HEXAHO:
+      _t_elt = FVMC_CELL_HEXA;
+      break;
+    case CWIPI_CELL_POLY:
+      _t_elt = FVMC_CELL_POLY;
+      break;
+    }
+    
+    fvmc_nodal_ho_ordering_set (_fvmNodal, _t_elt, ordering);
+    
+  }
+  
+  void oldMesh::hoOrderingFromRefEltSet (const cwipi_element_t t_elt,
+                                         const double *coords)
+  {
+
+    fvmc_element_t _t_elt;
+    
+    switch(t_elt) {
+    case CWIPI_NODE:
+      bftc_error(__FILE__, __LINE__, 0,
+                "'%s' Element not taking into account by fvm \n");
+      break;
+    case CWIPI_EDGE2:         
+      _t_elt = FVMC_EDGE;
+      break;
+    case CWIPI_FACE_TRIA3:    
+    case CWIPI_FACE_TRIAHO:   
+      _t_elt = FVMC_FACE_TRIA;
+      break;
+    case CWIPI_FACE_QUAD4:
+    case CWIPI_FACE_QUADHO:
+      _t_elt = FVMC_FACE_QUAD;
+      break;
+    case CWIPI_FACE_POLY:
+      _t_elt = FVMC_FACE_POLY;
+      break;
+    case CWIPI_CELL_TETRA4:
+    case CWIPI_CELL_TETRAHO:
+      _t_elt = FVMC_CELL_TETRA;
+      break;
+    case CWIPI_CELL_PYRAM5:
+    case CWIPI_CELL_PYRAMHO:
+      _t_elt = FVMC_CELL_PYRAM;
+      break;
+    case CWIPI_CELL_PRISM6:
+    case CWIPI_CELL_PRISMHO:
+      _t_elt = FVMC_CELL_PRISM;
+      break;
+    case CWIPI_CELL_HEXA8:
+    case CWIPI_CELL_HEXAHO:
+      _t_elt = FVMC_CELL_HEXA;
+      break;
+    case CWIPI_CELL_POLY:
+      _t_elt = FVMC_CELL_POLY;
+      break;
+    }
+
+    fvmc_nodal_ho_ordering_from_ref_elt_set (_fvmNodal, _t_elt, coords);
+
+  }
+
+  
   void oldMesh::update()
   {
     if (_cellCenterCoords != NULL || _cellVolume != NULL)

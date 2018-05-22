@@ -418,6 +418,7 @@ fvmc_nodal_get_vertex(const fvmc_nodal_t  *this_nodal,
                      fvmc_lnum_t *n_elts,
                      fvmc_lnum_t **vertices_index, 
                      fvmc_lnum_t **vertices);
+
 void
 fvmc_nodal_get_coords(const fvmc_nodal_t  *this_nodal,
                      fvmc_lnum_t *n_vertex,
@@ -429,6 +430,36 @@ fvmc_nodal_get_poly_vertex(const fvmc_nodal_t  *this_nodal,
                           fvmc_lnum_t **faces_index, 
                           fvmc_lnum_t **vertices, 
                           fvmc_lnum_t **vertices_index);
+
+/*----------------------------------------------------------------------------
+ * Set high order ordering
+ *
+ * parameters:
+ *   this_nodal <-- pointer to structure that should be dumped
+ *   t_elt      <-- type of element
+ *   ordering   <-- ordering
+ *
+ *----------------------------------------------------------------------------*/
+
+void
+fvmc_nodal_ho_ordering_set (fvmc_nodal_t  *this_nodal,
+                            const fvmc_element_t t_elt,
+                            const int *ordering);
+
+/*----------------------------------------------------------------------------
+ * Set high order ordering from the coordinates of the nodes of the reference element
+ *
+ * parameters:
+ *   this_nodal <-- pointer to structure that should be dumped
+ *   t_elt      <-- type of element
+ *   ordering   <-- coordinates of the nodes of the reference element
+ *
+ *----------------------------------------------------------------------------*/
+
+void
+fvmc_nodal_ho_ordering_from_ref_elt_set (fvmc_nodal_t  *this_nodal,
+                                         const fvmc_element_t t_elt,
+                                         const double *coords);
 
 /*----------------------------------------------------------------------------*/
 

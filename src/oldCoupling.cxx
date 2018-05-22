@@ -686,6 +686,31 @@ namespace cwipi {
 
   }
 
+ void oldCoupling::hoOrderingSet (const cwipi_element_t t_elt,
+                                    const int *ordering)
+ {
+   if (_supportMesh == NULL) {
+     bftc_error(__FILE__, __LINE__, 0, "Define a mesh before setting ho ordering\n");
+   }
+   
+   _supportMesh->hoOrderingSet (t_elt, ordering);
+   
+ }
+
+ void oldCoupling::hoOrderingFromRefEltSet (const cwipi_element_t t_elt,
+                                                 const double *coords)
+
+ {
+   if (_supportMesh == NULL) {
+     bftc_error(__FILE__, __LINE__, 0, "Define a mesh before setting ho ordering\n");
+   }
+
+   _supportMesh->hoOrderingFromRefEltSet (t_elt, coords);
+
+ }
+
+
+  
   void oldCoupling::setPointsToLocate(const int    n_points,
                                    double coordinate[])
   {
