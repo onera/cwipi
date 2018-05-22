@@ -2401,6 +2401,7 @@ fvmc_nodal_ho_ordering_set (fvmc_nodal_t  *this_nodal,
                             const fvmc_element_t t_elt,
                             const int *ordering)
 {
+  
 }
 
 /*----------------------------------------------------------------------------
@@ -2418,6 +2419,22 @@ fvmc_nodal_ho_ordering_from_ref_elt_set (fvmc_nodal_t  *this_nodal,
                                          const fvmc_element_t t_elt,
                                          const double *coords)
 {
+  
+  bftc_error(__FILE__, __LINE__, 0,
+             _("Not yet implemented"));
+  abort();
+
+  //
+  // fvmc_nodal_ho_ref_elt_coords (t_elt, coords_ref);
+
+  /* Merge coords and coords_ref to find _ordering */
+  
+  int *_ordering;
+
+  fvmc_nodal_ho_ordering_set (this_nodal, t_elt, _ordering);
+
+  // free (_ordering);
+  
 }
 
 /*----------------------------------------------------------------------------*/
