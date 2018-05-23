@@ -891,14 +891,15 @@ void cwipi_shared_fvmc_nodal(const char *coupling_name,
  * parameters:
  *   coupling_id        <-- coupling name
  *   t_elt              <-- element type
- *   ordering           <-- ordering (n_node * )
- *                                TODO: decrire ici les elements de reference
+ *   n_nodes            <-- number of nodes
+ *   uvw_ordering       <-- user ordering to (u, v, w) ordering (elt_dim * n_nodes)
  *
  *----------------------------------------------------------------------------*/
 
 void cwipi_ho_ordering_set (const char *coupling_id,
                             const cwipi_element_t t_elt,
-                            const int *ordering);
+                            const int n_nodes,
+                            const int *uvw_ordering);
 
 /*----------------------------------------------------------------------------
  *
@@ -906,6 +907,7 @@ void cwipi_ho_ordering_set (const char *coupling_id,
  *
  *   coupling_id        <-- coupling name
  *   t_elt              <-- element type
+ *   n_nodes            <-- number of nodes
  *   coords             <-- node coordinates of reference element
  *                                TODO: decrire ici les elements de reference
  *
@@ -913,6 +915,7 @@ void cwipi_ho_ordering_set (const char *coupling_id,
 
 void cwipi_ho_ordering_from_ref_elt_set (const char   *coupling_id,
                                          const cwipi_element_t t_elt,
+                                         const int n_nodes,
                                          const double *coords);
                             
 /*----------------------------------------------------------------------------

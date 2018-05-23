@@ -73,8 +73,9 @@ fvmc_nodal_n_vertices_element (fvmc_element_t type, int order);
  * Creation of a nodal mesh representation structure.
  *
  * parameters:
- *   name <-- name that should be assigned to the nodal mesh
- *   dim  <-- spatial dimension
+ *   name  <-- name that should be assigned to the nodal mesh
+ *   dim   <-- spatial dimension
+ *   order <-- order
  *
  * returns:
  *  pointer to created nodal mesh representation structure
@@ -82,7 +83,8 @@ fvmc_nodal_n_vertices_element (fvmc_element_t type, int order);
 
 fvmc_nodal_t *
 fvmc_nodal_create(const char  *name,
-                 int          dim);
+                  int          dim,
+                  int          order);
 
 /*----------------------------------------------------------------------------
  * Destruction of a nodal mesh representation structure.
@@ -437,6 +439,7 @@ fvmc_nodal_get_poly_vertex(const fvmc_nodal_t  *this_nodal,
  * parameters:
  *   this_nodal <-- pointer to structure that should be dumped
  *   t_elt      <-- type of element
+ *   n_nodes    <-- number of nodes
  *   ordering   <-- ordering
  *
  *----------------------------------------------------------------------------*/
@@ -444,7 +447,8 @@ fvmc_nodal_get_poly_vertex(const fvmc_nodal_t  *this_nodal,
 void
 fvmc_nodal_ho_ordering_set (fvmc_nodal_t  *this_nodal,
                             const fvmc_element_t t_elt,
-                            const int *ordering);
+                            const int n_nodes,
+                            const int *uvw_grid);
 
 /*----------------------------------------------------------------------------
  * Set high order ordering from the coordinates of the nodes of the reference element
@@ -452,13 +456,15 @@ fvmc_nodal_ho_ordering_set (fvmc_nodal_t  *this_nodal,
  * parameters:
  *   this_nodal <-- pointer to structure that should be dumped
  *   t_elt      <-- type of element
- *   ordering   <-- coordinates of the nodes of the reference element
+ *   n_nodes    <-- number of nodes
+ *   coords     <-- coordinates of the nodes of the reference element
  *
  *----------------------------------------------------------------------------*/
 
 void
 fvmc_nodal_ho_ordering_from_ref_elt_set (fvmc_nodal_t  *this_nodal,
                                          const fvmc_element_t t_elt,
+                                         const int n_nodes,
                                          const double *coords);
 
 /*----------------------------------------------------------------------------*/

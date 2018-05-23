@@ -50,9 +50,11 @@ namespace cwipi {
     virtual ~oldMesh();
 
     void hoOrderingSet (const cwipi_element_t t_elt,
+                        const int n_nodes,
                         const int *ordering);
     
     void hoOrderingFromRefEltSet (const cwipi_element_t t_elt,
+                                  const int n_nodes,
                                   const double *coords);
 
     void addPolyhedra(const int nElt,
@@ -144,7 +146,7 @@ namespace cwipi {
     int          *_eltConnectivityIndex;
     int          *_eltConnectivity;
 
-    std::map <cwipi_element_t, std::vector <int> * > * _hoOrdering;
+    //std::map <cwipi_element_t, std::vector <int> * > * _hoOrdering;
 
     int              *_polyhedraFaceIndex;
     int              *_polyhedraCellToFaceConnectivity;

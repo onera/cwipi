@@ -66,10 +66,12 @@ namespace cwipi {
     void defineMesh(fvmc_nodal_t* fvmc_nodal);
 
     void hoOrderingSet (const cwipi_element_t t_elt,
-                          const int *ordering);
+                        const int n_nodes,
+                        const int *ordering);
 
     void hoOrderingFromRefEltSet (const cwipi_element_t t_elt,
-                                       const double *coords);
+                                  const int n_nodes,
+                                  const double *coords);
 
     void defineMeshAddPolyhedra(const int n_element,
                                 int face_index[],

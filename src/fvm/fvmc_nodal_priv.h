@@ -68,7 +68,7 @@ typedef struct _fvmc_nodal_section_t {
 
   fvmc_element_t  type;             /* Element types */
   int             order;            /* Element order */
-  int             *ho_ordering;     /* Local element ordering */
+  int             *ho_ordering;     /* Local element ordering (local to user ordering) */
   
   /* Connectivity */
   /*--------------*/
@@ -160,6 +160,10 @@ struct _fvmc_nodal_t {
   int    num_dom;              /* Local domain number */
   int    n_doms;               /* Global number of domains */
   int    n_sections;           /* Number of sections */
+
+  int    order;                /* orrder */
+  int   **ho_uvw_to_local_ordering;  /* (U, V, W) ordering to local element ordering for each reference element type */
+  double   **ho_ref_nodes_coords;  /* coordinates of the nodes of the reference element for each type */
 
   /* Local dimensions */
   /*------------------*/

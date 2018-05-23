@@ -99,6 +99,283 @@ static int  fvmc_nodal_n_edges_element[] = {1,   /* Edge */
  * Private function definitions
  *============================================================================*/
 
+/*----------------------------------------------------------------------------
+ * compute the idirection (u, v, w) to local ordering
+ *
+ * parameters:
+ *   this_nodal           <-- pointer to nodal mesh structure
+ *   t_elt                <-- element type
+ *
+ * returns:
+ *   indirection
+ *----------------------------------------------------------------------------*/
+
+static int* _uvw_to_local_ordering (const fvmc_nodal_t *this_nodal,
+                                    const fvmc_element_t t_elt)
+{
+  int s_ordering = 0;
+
+  int order = this_nodal->order;
+  
+  int n_vtx = fvmc_nodal_n_vertices_element (t_elt, this_nodal->order);
+  
+  switch(t_elt) {
+  case FVMC_EDGE:               /* Edge */
+    s_ordering = order + 1;
+    break;
+  case FVMC_FACE_TRIA:          /* Triangle */
+  case FVMC_FACE_QUAD:          /* Quadrangle */
+    s_ordering = (order + 1) * (order + 1);
+    break;
+  case FVMC_CELL_TETRA:         /* Tetrahedron */
+  case FVMC_CELL_PYRAM:         /* Pyramid */
+  case FVMC_CELL_PRISM:         /* Prism (pentahedron) */
+  case FVMC_CELL_HEXA:         /* Hexahedron (brick) */
+    s_ordering = (order + 1) * (order + 1) * (order + 1);
+    break;
+  default:  
+    bftc_error(__FILE__, __LINE__, 0,
+                  _("_uvw_to_local_ordering : high order unavailable "));
+  }
+
+  int *_uvw_to_local = (int *) malloc (sizeof(int) * s_ordering); 
+
+  for (int i = 0; i < s_ordering; i++) {
+    _uvw_to_local[i] = -1;
+  }
+
+  switch(t_elt) {
+  case FVMC_EDGE: {
+    int _cpt_vtx = 0;
+    for (int u = 0; u < order + 1; u++) {
+      _uvw_to_local[u] = _cpt_vtx++;
+    }
+    assert (_cpt_vtx == n_vtx);
+    break;
+  }
+  case FVMC_FACE_TRIA: {
+    int _cpt_vtx = 0;
+    for (int v = 0; v < order + 1; v++) {
+      for (int u = 0; u < order + 1 - v; u++) {
+        int idx = (order + 1) * v + u;
+
+        _uvw_to_local[idx] = _cpt_vtx++;
+      }
+    }
+    assert (_cpt_vtx == n_vtx);
+    break;
+  }
+  case FVMC_FACE_QUAD: {
+    int _cpt_vtx = 0;
+    for (int v = 0; v < order + 1; v++) {
+      for (int u = 0; u < order + 1; u++) {
+        int idx = (order + 1) * v + u;
+
+        _uvw_to_local[idx] = _cpt_vtx++;
+      }
+    }
+    assert (_cpt_vtx == n_vtx);
+    break;
+  }
+  case FVMC_CELL_TETRA: {
+    int _cpt_vtx = 0;
+    for (int w = 0; w < order + 1; w++) {
+      for (int v = 0; v < order + 1 - w; v++) {
+        for (int u = 0; u < order + 1 - v - w; u++) {
+          int idx =   (order + 1) * (order + 1) * w 
+                    + (order + 1) * v
+                    + u;
+
+          _uvw_to_local[idx] = _cpt_vtx++;
+        }
+      }
+    }
+    assert (_cpt_vtx == n_vtx);
+    break;
+  }
+  case FVMC_CELL_PYRAM: {
+    int _cpt_vtx = 0;
+    for (int w = 0; w < order + 1; w++) {
+      for (int v = 0; v < order + 1 - w; v++) {
+        for (int u = 0; u < order + 1 - w; u++) {
+          int idx =   (order + 1) * (order + 1) * w 
+                    + (order + 1) * v
+                    + u;
+
+          _uvw_to_local[idx] = _cpt_vtx++;
+        }
+      }
+    }
+    assert (_cpt_vtx == n_vtx);
+    break;
+  }
+  case FVMC_CELL_PRISM: {
+    int _cpt_vtx = 0;
+    for (int w = 0; w < order + 1; w++) {
+      for (int v = 0; v < order + 1; v++) {
+        for (int u = 0; u < order + 1 - v ; u++) {
+          int idx =   (order + 1) * (order + 1) * w 
+                    + (order + 1) * v
+                    + u;
+
+          _uvw_to_local[idx] = _cpt_vtx++;
+        }
+      }
+    }
+    assert (_cpt_vtx == n_vtx);
+    break;
+  }
+  case FVMC_CELL_HEXA: {
+    int _cpt_vtx = 0;
+    for (int w = 0; w < order + 1; w++) {
+      for (int v = 0; v < order + 1; v++) {
+        for (int u = 0; u < order + 1; u++) {
+          int idx =   (order + 1) * (order + 1) * w 
+                    + (order + 1) * v
+                    + u;
+
+          _uvw_to_local[idx] = _cpt_vtx++;
+        }
+      }
+    }
+    assert (_cpt_vtx == n_vtx);
+    break;
+  }
+  default:  
+    bftc_error(__FILE__, __LINE__, 0,
+                  _("_uvw_to_local_ordering : high order unavailable "));
+  }
+
+  return _uvw_to_local;
+
+}
+
+
+/*----------------------------------------------------------------------------
+ * compute the coordinates of the nodes of the reference element
+ *
+ * parameters:
+ *   this_nodal           <-- pointer to nodal mesh structure
+ *   t_elt                <-- element type
+ *
+ * returns:
+ *   coordinates
+ *----------------------------------------------------------------------------*/
+
+static double* _local_ref_nodes (const fvmc_nodal_t *this_nodal,
+                                 const fvmc_element_t t_elt)
+{
+  int order = this_nodal->order;
+  
+  int n_vtx = fvmc_nodal_n_vertices_element (t_elt, this_nodal->order);
+  
+  double *_coords = (double *) malloc (sizeof(double) * 3 * n_vtx); 
+
+  double step = 1. / (double) order;
+  
+  switch(t_elt) {
+  case FVMC_EDGE: {
+    int _cpt_vtx = 0;
+    for (int u = 0; u < order + 1; u++) {
+      _coords[3 * _cpt_vtx    ] = u * step;
+      _coords[3 * _cpt_vtx + 1] = 0;
+      _coords[3 * _cpt_vtx + 2] = 0;
+    }
+    break;
+  }
+  case FVMC_FACE_TRIA: {
+    int _cpt_vtx = 0;
+    for (int v = 0; v < order + 1; v++) {
+      for (int u = 0; u < order + 1 - v; u++) {
+        _coords[3 * _cpt_vtx    ] = u * step;
+        _coords[3 * _cpt_vtx + 1] = v * step;
+        _coords[3 * _cpt_vtx + 2] = 0;
+      }
+    }
+    assert (_cpt_vtx == n_vtx);
+    break;
+  }
+  case FVMC_FACE_QUAD: {
+    int _cpt_vtx = 0;
+    for (int v = 0; v < order + 1; v++) {
+      for (int u = 0; u < order + 1; u++) {
+        _coords[3 * _cpt_vtx    ] = u * step;
+        _coords[3 * _cpt_vtx + 1] = v * step;
+        _coords[3 * _cpt_vtx + 2] = 0;
+      }
+    }
+    assert (_cpt_vtx == n_vtx);
+    break;
+  }
+  case FVMC_CELL_TETRA: {
+    int _cpt_vtx = 0;
+    for (int w = 0; w < order + 1; w++) {
+      for (int v = 0; v < order + 1 - w; v++) {
+        for (int u = 0; u < order + 1 - v - w; u++) {
+          _coords[3 * _cpt_vtx    ] = u * step;
+          _coords[3 * _cpt_vtx + 1] = v * step;
+          _coords[3 * _cpt_vtx + 2] = w * step;
+
+        }
+      }
+    }
+    assert (_cpt_vtx == n_vtx);
+    break;
+  }
+  case FVMC_CELL_PYRAM: {
+    int _cpt_vtx = 0;
+    for (int w = 0; w < order + 1; w++) {
+      for (int v = 0; v < order + 1 - w; v++) {
+        for (int u = 0; u < order + 1 - w; u++) {
+          _coords[3 * _cpt_vtx    ] = u * step;
+          _coords[3 * _cpt_vtx + 1] = v * step;
+          _coords[3 * _cpt_vtx + 2] = w * step;
+
+        }
+      }
+    }
+    assert (_cpt_vtx == n_vtx);
+    break;
+  }
+  case FVMC_CELL_PRISM: {
+    int _cpt_vtx = 0;
+    for (int w = 0; w < order + 1; w++) {
+      for (int v = 0; v < order + 1; v++) {
+        for (int u = 0; u < order + 1 - v ; u++) {
+          _coords[3 * _cpt_vtx    ] = u * step;
+          _coords[3 * _cpt_vtx + 1] = v * step;
+          _coords[3 * _cpt_vtx + 2] = w * step;
+
+        }
+      }
+    }
+    assert (_cpt_vtx == n_vtx);
+    break;
+  }
+  case FVMC_CELL_HEXA: {
+    int _cpt_vtx = 0;
+    for (int w = 0; w < order + 1; w++) {
+      for (int v = 0; v < order + 1; v++) {
+        for (int u = 0; u < order + 1; u++) {
+          _coords[3 * _cpt_vtx    ] = u * step;
+          _coords[3 * _cpt_vtx + 1] = v * step;
+          _coords[3 * _cpt_vtx + 2] = w * step;
+
+        }
+      }
+    }
+    assert (_cpt_vtx == n_vtx);
+    break;
+  }
+  default:  
+    bftc_error(__FILE__, __LINE__, 0,
+                  _("_local_ref_nodes : high order unavailable "));
+  }
+
+  return _coords;
+
+}
+
 
 /*----------------------------------------------------------------------------
  * Compare edges (qsort function).
@@ -1028,8 +1305,9 @@ fvmc_nodal_cell_face_connect(fvmc_element_t   element_type,
  * Creation of a nodal mesh representation structure.
  *
  * parameters:
- *   name <-- name that should be assigned to the nodal mesh
- *   dim  <-- spatial dimension
+ *   name   <-- name that should be assigned to the nodal mesh
+ *   dim    <-- spatial dimension
+ *   order  <-- order
  *
  * returns:
  *  pointer to created nodal mesh representation structure
@@ -1037,7 +1315,8 @@ fvmc_nodal_cell_face_connect(fvmc_element_t   element_type,
 
 fvmc_nodal_t *
 fvmc_nodal_create(const char  *name,
-                 int          dim)
+                  int          dim,
+                  int          order)
 {
   fvmc_nodal_t  *this_nodal;
 
@@ -1053,10 +1332,15 @@ fvmc_nodal_create(const char  *name,
     this_nodal->name = NULL;
 
   this_nodal->dim     = dim;
+  this_nodal->order   = order;
   this_nodal->num_dom = fvmc_parall_get_rank() + 1;
   this_nodal->n_doms  = fvmc_parall_get_size();
   this_nodal->n_sections = 0;
 
+  this_nodal->order = 1;
+  this_nodal->ho_uvw_to_local_ordering = NULL;
+  this_nodal->ho_ref_nodes_coords = NULL;
+    
   /* Local dimensions */
 
   this_nodal->n_cells = 0;
@@ -1093,7 +1377,6 @@ fvmc_nodal_create(const char  *name,
 fvmc_nodal_t *
 fvmc_nodal_destroy(fvmc_nodal_t  * this_nodal)
 {
-  int           i;
 
   /* Local structures */
 
@@ -1111,13 +1394,31 @@ fvmc_nodal_destroy(fvmc_nodal_t  * this_nodal)
   if (this_nodal->global_vertex_num != NULL)
     fvmc_io_num_destroy(this_nodal->global_vertex_num);
 
-  for (i = 0; i < this_nodal->n_sections; i++)
+  for (int i = 0; i < this_nodal->n_sections; i++)
     fvmc_nodal_section_destroy(this_nodal->sections[i]);
 
   if (this_nodal->sections != NULL)
     BFTC_FREE(this_nodal->sections);
 
   /* Main structure destroyed and NULL returned */
+
+  if (this_nodal->ho_uvw_to_local_ordering != NULL) {
+    for (int i = 0; i <  FVMC_N_ELEMENT_TYPES; i++) {
+      if (this_nodal->ho_uvw_to_local_ordering[i] != NULL) {
+        free (this_nodal->ho_uvw_to_local_ordering[i]);
+      }
+    }
+    free (this_nodal->ho_uvw_to_local_ordering);
+  }
+  
+  if (this_nodal->ho_ref_nodes_coords != NULL) {
+    for (int i = 0; i <  FVMC_N_ELEMENT_TYPES; i++) {
+      if (this_nodal->ho_ref_nodes_coords[i] != NULL) {
+        free (this_nodal->ho_ref_nodes_coords[i]);
+      }
+    }
+    free (this_nodal->ho_ref_nodes_coords);
+  }
 
   BFTC_FREE(this_nodal);
 
@@ -2389,18 +2690,61 @@ fvmc_nodal_get_coords(const fvmc_nodal_t  *this_nodal,
 /*----------------------------------------------------------------------------
  * Set high order ordering
  *
+ * TODO: doc about orderin for each element
+ *
+ *
  * parameters:
  *   this_nodal <-- pointer to structure that should be dumped
  *   t_elt      <-- type of element
- *   ordering   <-- ordering
+ *   n_nodes    <-- number of nodes
+ *   uvw_grid   <-- uvw grid 
  *
  *----------------------------------------------------------------------------*/
 
 void
 fvmc_nodal_ho_ordering_set (fvmc_nodal_t  *this_nodal,
                             const fvmc_element_t t_elt,
-                            const int *ordering)
+                            const int n_nodes,
+                            const int *uvw_grid)
 {
+
+  int expected_n_nodes = fvmc_nodal_n_vertices_element (t_elt, this_nodal->order);
+  
+  if (n_nodes != expected_n_nodes) {
+    bftc_error(__FILE__, __LINE__, 0,
+               _("The number of nodes is not that expected\n"));
+  }
+  
+  if (this_nodal->ho_uvw_to_local_ordering == NULL) {
+    this_nodal->ho_uvw_to_local_ordering = (int **) malloc (sizeof(int *) * FVMC_N_ELEMENT_TYPES);
+    for (int i = 0; i < FVMC_N_ELEMENT_TYPES; i++) {
+      this_nodal->ho_uvw_to_local_ordering[i] = NULL;
+    }
+  }
+  
+  if (this_nodal->ho_uvw_to_local_ordering[t_elt] == NULL) {
+    this_nodal->ho_uvw_to_local_ordering[t_elt] = _uvw_to_local_ordering (this_nodal, t_elt);
+  }
+  
+  // memcpy(this_nodal->ho_ordering, ordering, s_ordering * sizeof(int));
+
+  for (int i = 0; i < this_nodal->n_sections; i++) {
+    fvmc_nodal_section_t  *_section = this_nodal->sections[i];
+
+    if (_section->type == t_elt) {
+      if (_section->_ho_vertex_num == NULL) {
+        _section->_ho_vertex_num = malloc (sizeof(int) * n_nodes * _section->n_elements);
+      }
+
+      for (int j = 0; j < _section->n_elements; j++) {
+        for (int k = 0; k < n_nodes; k++) {
+
+          //TODO: pas si simple
+          //_section->_ho_vertex_num[k] = _section->vertex_num[];
+        }
+      }
+    }
+  }
   
 }
 
@@ -2410,13 +2754,15 @@ fvmc_nodal_ho_ordering_set (fvmc_nodal_t  *this_nodal,
  * parameters:
  *   this_nodal <-- pointer to structure that should be dumped
  *   t_elt      <-- type of element
- *   ordering   <-- coordinates of the nodes of the reference element
+ *   n_nodes    <-- number of nodes
+ *   coords     <-- coordinates of the nodes of the reference element
  *
  *----------------------------------------------------------------------------*/
 
 void
 fvmc_nodal_ho_ordering_from_ref_elt_set (fvmc_nodal_t  *this_nodal,
                                          const fvmc_element_t t_elt,
+                                         const int n_nodes,
                                          const double *coords)
 {
   
@@ -2431,7 +2777,7 @@ fvmc_nodal_ho_ordering_from_ref_elt_set (fvmc_nodal_t  *this_nodal,
   
   int *_ordering;
 
-  fvmc_nodal_ho_ordering_set (this_nodal, t_elt, _ordering);
+  fvmc_nodal_ho_ordering_set (this_nodal, t_elt, n_nodes, _ordering);
 
   // free (_ordering);
   
