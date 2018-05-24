@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 /*----------------------------------------------------------------------------
  * BFT library headers
@@ -2709,6 +2710,7 @@ fvmc_nodal_ho_ordering_set (fvmc_nodal_t  *this_nodal,
 {
 
   int expected_n_nodes = fvmc_nodal_n_vertices_element (t_elt, this_nodal->order);
+  int order = this_nodal->order;
   
   if (n_nodes != expected_n_nodes) {
     bftc_error(__FILE__, __LINE__, 0,
@@ -2725,9 +2727,9 @@ fvmc_nodal_ho_ordering_set (fvmc_nodal_t  *this_nodal,
   if (this_nodal->ho_uvw_to_local_ordering[t_elt] == NULL) {
     this_nodal->ho_uvw_to_local_ordering[t_elt] = _uvw_to_local_ordering (this_nodal, t_elt);
   }
-  
-  // memcpy(this_nodal->ho_ordering, ordering, s_ordering * sizeof(int));
 
+
+  int *_ho_uvw_to_local_ordering = this_nodal->ho_uvw_to_local_ordering[t_elt];
   for (int i = 0; i < this_nodal->n_sections; i++) {
     fvmc_nodal_section_t  *_section = this_nodal->sections[i];
 
@@ -2736,11 +2738,19 @@ fvmc_nodal_ho_ordering_set (fvmc_nodal_t  *this_nodal,
         _section->_ho_vertex_num = malloc (sizeof(int) * n_nodes * _section->n_elements);
       }
 
+      int stride = _section->entity_dim;
       for (int j = 0; j < _section->n_elements; j++) {
+        int *_ho_vertex_num = _section->_ho_vertex_num + j * n_nodes;
+        const int *_vertex_num = _section->vertex_num + j * n_nodes;
+               
         for (int k = 0; k < n_nodes; k++) {
-
-          //TODO: pas si simple
-          //_section->_ho_vertex_num[k] = _section->vertex_num[];
+          const int *_uvw = uvw_grid + k * stride;
+          int idx = 0; 
+          for (int l = 0; l < stride; l++) {
+            idx += (int) pow((order+1),l) * _uvw[l];
+          }
+          int local_num = _ho_uvw_to_local_ordering[idx];
+          _ho_vertex_num[local_num] = _vertex_num[k];
         }
       }
     }
@@ -2777,7 +2787,7 @@ fvmc_nodal_ho_ordering_from_ref_elt_set (fvmc_nodal_t  *this_nodal,
   
   int *_ordering;
 
-  fvmc_nodal_ho_ordering_set (this_nodal, t_elt, n_nodes, _ordering);
+  //fvmc_nodal_ho_ordering_set (this_nodal, t_elt, n_nodes, _ordering);
 
   // free (_ordering);
   
