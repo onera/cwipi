@@ -991,7 +991,7 @@ fvmc_nodal_section_create(const fvmc_element_t  type, int order)
   this_section->type = type;
   this_section->order = order;
 
-  this_section->ho_ordering = NULL;
+  this_section->ho_local_to_user_ordering = NULL;
   this_section->_ho_vertex_num = NULL;
   
   /* Connectivity */
@@ -1067,6 +1067,14 @@ fvmc_nodal_section_destroy(fvmc_nodal_section_t  * this_section)
 
   if (this_section->global_element_num != NULL)
     fvmc_io_num_destroy(this_section->global_element_num);
+
+  
+  if (this_section->ho_local_to_user_ordering != NULL)
+    free (this_section->ho_local_to_user_ordering);
+  
+  if (this_section->_ho_vertex_num != NULL)
+    free (this_section->_ho_vertex_num);
+
 
   /* Main structure destroyed and NULL returned */
 
@@ -1340,8 +1348,8 @@ fvmc_nodal_create(const char  *name,
 
   this_nodal->order = 1;
   this_nodal->ho_uvw_to_local_ordering = NULL;
-  this_nodal->ho_ref_nodes_coords = NULL;
-    
+  this_nodal->ho_user_to_uvw = NULL;
+  
   /* Local dimensions */
 
   this_nodal->n_cells = 0;
@@ -1412,13 +1420,13 @@ fvmc_nodal_destroy(fvmc_nodal_t  * this_nodal)
     free (this_nodal->ho_uvw_to_local_ordering);
   }
   
-  if (this_nodal->ho_ref_nodes_coords != NULL) {
+  if (this_nodal->ho_user_to_uvw != NULL) {
     for (int i = 0; i <  FVMC_N_ELEMENT_TYPES; i++) {
-      if (this_nodal->ho_ref_nodes_coords[i] != NULL) {
-        free (this_nodal->ho_ref_nodes_coords[i]);
+      if (this_nodal->ho_user_to_uvw[i] != NULL) {
+        free (this_nodal->ho_user_to_uvw[i]);
       }
     }
-    free (this_nodal->ho_ref_nodes_coords);
+    free (this_nodal->ho_user_to_uvw);
   }
 
   BFTC_FREE(this_nodal);
@@ -2724,10 +2732,44 @@ fvmc_nodal_ho_ordering_set (fvmc_nodal_t  *this_nodal,
     }
   }
   
+  if (this_nodal->ho_user_to_uvw == NULL) {
+    this_nodal->ho_user_to_uvw = (int **) malloc (sizeof(int *) * FVMC_N_ELEMENT_TYPES);
+    for (int i = 0; i < FVMC_N_ELEMENT_TYPES; i++) {
+      this_nodal->ho_user_to_uvw[i] = NULL;
+    }
+  }
+
   if (this_nodal->ho_uvw_to_local_ordering[t_elt] == NULL) {
     this_nodal->ho_uvw_to_local_ordering[t_elt] = _uvw_to_local_ordering (this_nodal, t_elt);
   }
 
+  if (this_nodal->ho_user_to_uvw[t_elt] == NULL) {
+    
+    int stride;
+
+    switch(t_elt) {
+    case FVMC_EDGE:               /* Edge */
+      stride = 1;
+      break;
+    case FVMC_FACE_TRIA:          /* Triangle */
+    case FVMC_FACE_QUAD:          /* Quadrangle */
+      stride = 2;
+      break;
+    case FVMC_CELL_TETRA:         /* Tetrahedron */
+    case FVMC_CELL_PYRAM:         /* Pyramid */
+    case FVMC_CELL_PRISM:         /* Prism (pentahedron) */
+    case FVMC_CELL_HEXA:         /* Hexahedron (brick) */
+      stride = 3;
+      break;
+    default:  
+      bftc_error(__FILE__, __LINE__, 0,
+                 _("fvmc_nodal_ho_ordering_set : high order unavailable for this element type\n"));
+    }
+
+    this_nodal->ho_user_to_uvw[t_elt] = malloc (sizeof(int) * n_nodes * stride);
+    memcpy(this_nodal->ho_user_to_uvw[t_elt], uvw_grid, n_nodes * stride);
+    
+  }
 
   int *_ho_uvw_to_local_ordering = this_nodal->ho_uvw_to_local_ordering[t_elt];
   for (int i = 0; i < this_nodal->n_sections; i++) {
@@ -2738,21 +2780,30 @@ fvmc_nodal_ho_ordering_set (fvmc_nodal_t  *this_nodal,
         _section->_ho_vertex_num = malloc (sizeof(int) * n_nodes * _section->n_elements);
       }
 
+      if (_section->_ho_vertex_num == NULL) {
+        _section->ho_local_to_user_ordering = malloc (sizeof(int) * n_nodes);
+      }
+      
       int stride = _section->entity_dim;
+
+      for (int k = 0; k < n_nodes; k++) {
+        const int *_uvw = uvw_grid + k * stride;
+        int idx = 0; 
+        for (int l = 0; l < stride; l++) {
+          idx += (int) pow((order+1),l) * _uvw[l];
+        }
+        int local_num = _ho_uvw_to_local_ordering[idx];
+        _section->ho_local_to_user_ordering[local_num] = k;
+      }
+
       for (int j = 0; j < _section->n_elements; j++) {
         int *_ho_vertex_num = _section->_ho_vertex_num + j * n_nodes;
         const int *_vertex_num = _section->vertex_num + j * n_nodes;
-               
         for (int k = 0; k < n_nodes; k++) {
-          const int *_uvw = uvw_grid + k * stride;
-          int idx = 0; 
-          for (int l = 0; l < stride; l++) {
-            idx += (int) pow((order+1),l) * _uvw[l];
-          }
-          int local_num = _ho_uvw_to_local_ordering[idx];
-          _ho_vertex_num[local_num] = _vertex_num[k];
+          _ho_vertex_num[k] = _vertex_num[_section->ho_local_to_user_ordering[k]];
         }
       }
+      
     }
   }
   
@@ -2775,21 +2826,107 @@ fvmc_nodal_ho_ordering_from_ref_elt_set (fvmc_nodal_t  *this_nodal,
                                          const int n_nodes,
                                          const double *coords)
 {
+
+  int stride = 0;
+  int order = this_nodal->order;
   
-  bftc_error(__FILE__, __LINE__, 0,
-             _("Not yet implemented"));
-  abort();
+  switch(t_elt) {
+  case FVMC_EDGE:               /* Edge */
+    stride = 1;
+    break;
+  case FVMC_FACE_TRIA:          /* Triangle */
+  case FVMC_FACE_QUAD:          /* Quadrangle */
+    stride = 2;
+    break;
+  case FVMC_CELL_TETRA:         /* Tetrahedron */
+  case FVMC_CELL_PYRAM:         /* Pyramid */
+  case FVMC_CELL_PRISM:         /* Prism (pentahedron) */
+  case FVMC_CELL_HEXA:         /* Hexahedron (brick) */
+    stride = 3;
+    break;
+  default:  
+    bftc_error(__FILE__, __LINE__, 0,
+                  _("_uvw_to_local_ordering : high order unavailable "));
+  }
+
+  int *_uvw_grid = malloc(sizeof(int) * stride * n_nodes);
+
+  double *_local_coords = _local_ref_nodes (this_nodal, t_elt);
+  int* _uvw_to_local = _uvw_to_local_ordering (this_nodal, t_elt);
+  int* _local_to_uvw = malloc(sizeof(int) * stride * n_nodes);
+
+  for (int i = 0; i < stride * n_nodes; i++) {
+    if (_uvw_to_local[i] > -1) {
+      int w = 0;
+      int v = 0;
+      int u = 0;
+      int restw = _uvw_to_local[i];
+      int restv = _uvw_to_local[i];
+
+      if (stride > 2) {
+        w = _uvw_to_local[i] / ((order+1) * (order+1));
+        restw = _uvw_to_local[i] % ((order+1) * (order+1));
+      }
+      
+      if (stride > 1) {
+        v = restw / (order+1);
+        restv = restw % (order+1);
+      }
+
+      u = restv % (order+1);
+      
+      _local_to_uvw [stride * _uvw_to_local[i]]     = u;
+      if (stride > 1) {
+        _local_to_uvw [stride * _uvw_to_local[i] + 1] = v;
+        if (stride > 2) {
+          _local_to_uvw [stride * _uvw_to_local[i] + 2] = w;
+        }
+      }
+    }  
+  }
+  
+  //TODO: n^2 complexity call pdm_merge_points for a n*log(n) complexity
+
+  for (int i = 0; i < n_nodes; i++) {
+    double x1 = coords[3*i];
+    double y1 = coords[3*i+1];
+    double z1 = coords[3*i+2];
+    int is_find = 0;
+    
+    for (int j = 0; j < n_nodes; j++) {
+      double x2 = _local_coords[3*i];
+      double y2 = _local_coords[3*i+1];
+      double z2 = _local_coords[3*i+2];
+
+      double dist2 = (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2);
+
+      if ( dist2 <= 1e-8) {
+        for (int k = 0; k < stride; k++) {
+          _uvw_grid[i * stride + k] = _local_to_uvw[j * stride + k];
+        }
+        is_find = 1;
+        break;
+      }
+    }
+    if (!is_find) {
+      bftc_error(__FILE__, __LINE__, 0,
+                 _("fvmc_nodal_ho_ordering_from_ref_elt_set : the node (%12.5e, %12.5e, %12.5e) is not a node of the reference element\n"), x1, y1, z1);
+
+    }
+  }
+  
+  fvmc_nodal_ho_ordering_set (this_nodal,
+                              t_elt,
+                              n_nodes,
+                              _uvw_grid);
 
   //
   // fvmc_nodal_ho_ref_elt_coords (t_elt, coords_ref);
 
-  /* Merge coords and coords_ref to find _ordering */
-  
-  int *_ordering;
-
-  //fvmc_nodal_ho_ordering_set (this_nodal, t_elt, n_nodes, _ordering);
-
-  // free (_ordering);
+  free (_uvw_grid);
+  free (_local_coords);
+  free (_uvw_to_local);
+  free (_local_to_uvw);
   
 }
 

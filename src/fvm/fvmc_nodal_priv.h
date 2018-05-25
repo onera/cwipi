@@ -68,7 +68,7 @@ typedef struct _fvmc_nodal_section_t {
 
   fvmc_element_t  type;             /* Element types */
   int             order;            /* Element order */
-  int             *ho_ordering;     /* Local element ordering (local to user ordering) */
+  int             *ho_local_to_user_ordering;     /* Local element ordering (local to user ordering) */
   
   /* Connectivity */
   /*--------------*/
@@ -162,13 +162,15 @@ struct _fvmc_nodal_t {
   int    n_sections;           /* Number of sections */
 
   int    order;                /* orrder */
-  int   **ho_uvw_to_local_ordering;  /* (U, V, W) ordering to local element ordering for each reference element type */
-  double   **ho_ref_nodes_coords;  /* coordinates of the nodes of the reference element for each type */
+  int   **ho_uvw_to_local_ordering;  /* (U, V, W) ordering to local element ordering 
+                                        for each reference element type */
+  int   **ho_user_to_uvw;            /* user ordering to (U, V, W) */
 
   /* Local dimensions */
   /*------------------*/
 
   /* Total number of cells, faces, edges, and vertices */
+  
   fvmc_lnum_t  n_cells;
   fvmc_lnum_t  n_faces;
   fvmc_lnum_t  n_edges;
