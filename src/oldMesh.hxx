@@ -42,7 +42,7 @@ namespace cwipi {
          double* coords,
          int *eltConnectivityIndex,
          int *eltConnectivity,
-         int order = 1);
+         int order = -1);
 
     oldMesh(const MPI_Comm &localComm,
          fvmc_nodal_t* fvmc_nodal);

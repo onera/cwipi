@@ -62,13 +62,26 @@ namespace cwipi {
 
   {
 
-    int n_vtx_tria = (order+1)*(order+2)/2; 
-    int n_vtx_quad = (order+1)*(order+1); 
-    int n_vtx_tetra = (order+1)*(order+2)*(order+3)/6; 
-    int n_vtx_hexa = (order+1)*(order+1)*(order+1); 
-    int n_vtx_prism = (order+1)*(order+1)*(order+2)/2; 
-    int n_vtx_pyramid = (order+1)*(order+2)*(2*order+3)/6;
+    printf("order : %d\n", order);
+    
+    int n_vtx_tria = 3; 
+    int n_vtx_quad = 4; 
+    int n_vtx_tetra = 4; 
+    int n_vtx_hexa = 8; 
+    int n_vtx_prism = 6;
+    int n_vtx_pyramid = 5;
 
+    if (order >= 1) { 
+    
+      n_vtx_tria = (order+1)*(order+2)/2; 
+      n_vtx_quad = (order+1)*(order+1); 
+      n_vtx_tetra = (order+1)*(order+2)*(order+3)/6; 
+      n_vtx_hexa = (order+1)*(order+1)*(order+1); 
+      n_vtx_prism = (order+1)*(order+1)*(order+2)/2; 
+      n_vtx_pyramid = (order+1)*(order+2)*(2*order+3)/6;
+
+    }
+    
     MPI_Comm oldFVMComm = fvmc_parall_get_mpi_comm();
     if (oldFVMComm != MPI_COMM_NULL)
       MPI_Barrier(oldFVMComm);
@@ -113,7 +126,7 @@ namespace cwipi {
           }
 
           else if (nCurrentEltVertex > n_vtx_quad) {
-            if (order == 1) {
+            if (order == -1) {
               ++nbPoly;
             }
             else {
@@ -546,7 +559,7 @@ namespace cwipi {
       _isDegenerated(NULL)
   {
 
-    int order = 1;
+    int order = -1;
     
     //
     // Copy
@@ -1010,17 +1023,6 @@ namespace cwipi {
     delete _polyhedraCellToVertexConnectivity;
     delete _polyhedraCellToVertexConnectivityIndex; 
 
-    // if (_hoOrdering != NULL) {
-    //   typedef std::map <cwipi_element_t, std::vector <int> * >::iterator Iterator;
-    //   for (Iterator p = _hoOrdering->begin();
-    //        p != _hoOrdering->end(); p++) {
-    //     if (p->second != NULL)
-    //       delete p->second;
-    //   }
-    //   _hoOrdering->clear();
-    //   delete _hoOrdering;
-    // }
-    
     fvmc_nodal_destroy(_fvmNodal);
   }
 

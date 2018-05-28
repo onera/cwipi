@@ -925,31 +925,35 @@ int
 fvmc_nodal_n_vertices_element (fvmc_element_t type, int order)
 {
  int n_vtx = 0;
+ int _order = order;
+ if (order == -1) {
+   _order = 1;
+ }
  
  switch(type) {
  case FVMC_EDGE:               /* Edge */
-   n_vtx = (order+1);
+   n_vtx = (_order+1);
    break;
  case FVMC_FACE_TRIA:          /* Triangle */
-   n_vtx = (order+1)*(order+2)/2; 
+   n_vtx = (_order+1)*(_order+2)/2; 
    break;
  case FVMC_FACE_QUAD:          /* Quadrangle */
-   n_vtx = (order+1)*(order+1); 
+   n_vtx = (_order+1)*(_order+1); 
    break;
  case FVMC_FACE_POLY:          /* Simple Polygon */
    n_vtx = -1;
    break;
  case FVMC_CELL_TETRA:         /* Tetrahedron */
-   n_vtx = (order+1)*(order+2)*(order+3)/6; 
+   n_vtx = (_order+1)*(_order+2)*(_order+3)/6; 
    break;
  case FVMC_CELL_PYRAM:         /* Pyramid */
-   n_vtx = (order+1)*(order+2)*(2*order+3)/6;
+   n_vtx = (_order+1)*(_order+2)*(2*_order+3)/6;
    break;
  case FVMC_CELL_PRISM:         /* Prism (pentahedron) */
-   n_vtx = (order+1)*(order+1)*(order+2)/2; 
+   n_vtx = (_order+1)*(_order+1)*(_order+2)/2; 
    break;
  case FVMC_CELL_HEXA:         /* Hexahedron (brick) */
-   n_vtx = (order+1)*(order+1)*(order+1); 
+   n_vtx = (_order+1)*(_order+1)*(_order+1); 
    break;
  case FVMC_CELL_POLY:          /* Simple Polyhedron (convex or quasi-convex) */
    n_vtx = -1;
@@ -1346,7 +1350,6 @@ fvmc_nodal_create(const char  *name,
   this_nodal->n_doms  = fvmc_parall_get_size();
   this_nodal->n_sections = 0;
 
-  this_nodal->order = 1;
   this_nodal->ho_uvw_to_local_ordering = NULL;
   this_nodal->ho_user_to_uvw = NULL;
   
@@ -2219,7 +2222,7 @@ fvmc_nodal_copy_edges(const char         *name,
 
   BFTC_MALLOC(new_nodal->sections, 1, fvmc_nodal_section_t *);
 
-  int order = 1;
+  int order = -1;
   
   new_section = fvmc_nodal_section_create(FVMC_EDGE,order);
   new_nodal->sections[0] = new_section;
@@ -2232,7 +2235,7 @@ fvmc_nodal_copy_edges(const char         *name,
 
     const fvmc_nodal_section_t *this_section = this_nodal->sections[i];
 
-    if (this_section-> order > 1) {
+    if (this_section->order != -1) {
         bftc_error(__FILE__, __LINE__, 0,
                   _("fvmc_nodal_copy_edges : element order > 1 is not taking into account"));
     }

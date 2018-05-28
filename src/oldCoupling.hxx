@@ -61,7 +61,7 @@ namespace cwipi {
                     double coordinates[],
                     int connectivity_index[],
                     int connectivity[],
-                    int order = 1);
+                    int order = -1);
 
     void defineMesh(fvmc_nodal_t* fvmc_nodal);
 

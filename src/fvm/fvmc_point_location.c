@@ -1641,7 +1641,6 @@ _locate_on_edge_3d(fvmc_lnum_t           elt_num,
 
 static void
 _locate_on_edge_2d(fvmc_lnum_t           elt_num,
-                   int order,
                    const fvmc_lnum_t     element_vertex_num[],
                    const fvmc_lnum_t    *parent_vertex_num,
                    const fvmc_coord_t    vertex_coords[],
@@ -1653,7 +1652,7 @@ _locate_on_edge_2d(fvmc_lnum_t           elt_num,
                    float                distance[])
 {
   fvmc_lnum_t  i, j, k, coord_idx_0, coord_idx_1;
-
+  
   double u[2], v[2];
   double uv, len2, isop_0;
   double dist2, epsilon2, vertex_dist2;
@@ -1758,7 +1757,6 @@ _locate_on_edge_2d(fvmc_lnum_t           elt_num,
 
 static void
 _locate_on_triangles_3d(fvmc_lnum_t           elt_num,
-                        int                   order,
                         int                   n_triangles,
                         const fvmc_lnum_t     triangle_vertices[],
                         const fvmc_lnum_t    *parent_vertex_num,
@@ -1773,7 +1771,9 @@ _locate_on_triangles_3d(fvmc_lnum_t           elt_num,
 
   fvmc_lnum_t  i, j, k, tria_id, coord_idx_0, coord_idx_1, coord_idx_2;
 
-  const int n_vtx_tria = (order+1)*(order+2)/2; 
+  const int _order = 1;
+  
+  const int n_vtx_tria = (_order+1)*(_order+2)/2; 
 
   double u[3], v[3], w[3];
   double uu, vv, ww, tmp_max;
@@ -1843,7 +1843,7 @@ _locate_on_triangles_3d(fvmc_lnum_t           elt_num,
       double pcoords[3];
       double weights[3];
 
-      fvmc_triangle_evaluate_Position (x, coords, order, closestPoint,
+      fvmc_triangle_evaluate_Position (x, coords, closestPoint,
                                        pcoords, &dist2, weights);
 
       if (dist2 < epsilon2 && (dist2 < vertex_dist2 || distance[i] < 0.0)) {
@@ -1886,7 +1886,6 @@ _locate_on_triangles_3d(fvmc_lnum_t           elt_num,
 
 static void
 _locate_on_triangles_2d(fvmc_lnum_t           elt_num,
-                        int                   order,  
                         int                  n_triangles,
                         const fvmc_lnum_t     triangle_vertices[],
                         const fvmc_lnum_t    *parent_vertex_num,
@@ -2008,7 +2007,6 @@ _locate_on_triangles_2d(fvmc_lnum_t           elt_num,
 
 static void
 _locate_in_tetra(fvmc_lnum_t         elt_num,
-                 int                   order,  
                  fvmc_coord_t        tetra_coords[4][3],
                  const fvmc_coord_t  point_coords[],
                  fvmc_lnum_t         n_points_in_extents,
@@ -2163,12 +2161,12 @@ _inverse_3x3(double  m[3][3],
 
 static void
 _compute_shapef_3d(fvmc_element_t  elt_type,
-                   int order,
                    const double   uvw[3],
                    double         shapef[8],
                    double         deriv[8][3])
 
 {
+
   switch (elt_type) {
 
   case FVMC_CELL_HEXA:
@@ -2295,7 +2293,6 @@ _compute_shapef_3d(fvmc_element_t  elt_type,
 *----------------------------------------------------------------------------*/
 static int
 _compute_uvw(fvmc_element_t       elt_type,
-             int                  order,   
              const fvmc_coord_t   point_coords[],
              double              vertex_coords[8][3],
              double              tolerance,
@@ -2307,6 +2304,8 @@ _compute_uvw(fvmc_element_t       elt_type,
   double dist;
   double a[3][3], b[3], x[3], shapef[8], dw[8][3];
 
+  const int order = 1;
+  
   n_elt_vertices = fvmc_nodal_n_vertices_element(elt_type, order);
 
   assert(   elt_type == FVMC_CELL_HEXA
@@ -2320,7 +2319,7 @@ _compute_uvw(fvmc_element_t       elt_type,
 
   for (iter = 0; iter < max_iter; iter++) {
 
-    _compute_shapef_3d(elt_type, order, uvw, shapef, dw);
+    _compute_shapef_3d(elt_type, uvw, shapef, dw);
 
     b[0] = - point_coords[0];
     b[1] = - point_coords[1];
@@ -2388,7 +2387,6 @@ _compute_uvw(fvmc_element_t       elt_type,
 static void
 _locate_in_cell_3d(fvmc_lnum_t          elt_num,
                    fvmc_element_t       elt_type,
-                   int order,
                    const fvmc_lnum_t    element_vertex_num[],
                    const fvmc_lnum_t   *parent_vertex_num,
                    const fvmc_coord_t   vertex_coords[],
@@ -2406,6 +2404,8 @@ _locate_in_cell_3d(fvmc_lnum_t          elt_num,
   double uvw[3], dist, shapef[8],max_dist;
   double  _vertex_coords[8][3];
 
+  const int order = 1;
+  
   n_vertices = fvmc_nodal_n_vertices_element(elt_type, order);
 
   /* Initialize local element coordinates copy */
@@ -2427,7 +2427,6 @@ _locate_in_cell_3d(fvmc_lnum_t          elt_num,
   if (elt_type == FVMC_CELL_TETRA)
 
     _locate_in_tetra(elt_num,
-                     order,
                      _vertex_coords,
                      point_coords,
                      n_points_in_extents,
@@ -2467,7 +2466,6 @@ _locate_in_cell_3d(fvmc_lnum_t          elt_num,
       if (!onVtx) {
         
         if (_compute_uvw(elt_type,
-                         order,
                          point_coords + 3*i,
                          _vertex_coords,
                          tolerance,
@@ -2494,7 +2492,7 @@ _locate_in_cell_3d(fvmc_lnum_t          elt_num,
           
           else {
             
-            _compute_shapef_3d(elt_type, order, uvw, shapef, NULL);
+            _compute_shapef_3d(elt_type, uvw, shapef, NULL);
             
             for (j = 0; j < n_vertices; j++){
               
@@ -3190,9 +3188,8 @@ _polygons_section_closest_3d(const fvmc_nodal_section_t   *this_section,
     }
 
     /* Locate on triangulated polygon */
-    const int order = 1;
+
     _locate_on_triangles_3d(elt_num,
-                            order,
                             n_triangles,
                             triangle_vertices,
                             parent_vertex_num,
@@ -3254,9 +3251,13 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
 
   fvmc_lnum_t n_points_in_extents = 0;
 
+  printf("this section order : %d\n", this_section->order);
+  
   /* If section contains polyhedra */
 
-  if (this_section->type == FVMC_CELL_POLY)
+  if (this_section->type == FVMC_CELL_POLY) {
+
+    assert(this_section->order == -1);
 
     _polyhedra_section_locate(this_section,
                               parent_vertex_num,
@@ -3268,10 +3269,13 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
                               points_in_extents,
                               location,
                               distance);
+  }
 
   /* If section contains polygons */
 
-  else if (this_section->type == FVMC_FACE_POLY)
+  else if (this_section->type == FVMC_FACE_POLY)  {
+
+    assert(this_section->order == -1);
 
     _polygons_section_locate_3d(this_section,
                                 parent_vertex_num,
@@ -3284,6 +3288,8 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
                                 location,
                                 distance);
 
+  }
+  
   /* If section contains regular elements */
 
   else {
@@ -3325,72 +3331,154 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
                     &n_points_in_extents,
                     points_in_extents);
 
-      if (this_section->entity_dim == 3)
+      if (this_section->entity_dim == 3) {
 
-        _locate_in_cell_3d(elt_num,
-                           this_section->type,
-                           this_section->order,
-                           this_section->vertex_num + i*this_section->stride,
-                           parent_vertex_num,
-                           vertex_coords,
-                           point_coords,
-                           n_points_in_extents,
-                           points_in_extents,
-                           tolerance,
-                           location,
-                           distance);
+        if (this_section->order == -1) {
 
-      else if (this_section->entity_dim == 2) {
-
-        if (this_section->type == FVMC_FACE_QUAD)
-
-          n_triangles = fvmc_triangulate_quadrangle(3,
-                                                   vertex_coords,
-                                                   parent_vertex_num,
-                                                   (  this_section->vertex_num
-                                                    + i*this_section->stride),
-                                                   triangle_vertices);
+          _locate_in_cell_3d(elt_num,
+                             this_section->type,
+                             this_section->vertex_num + i*this_section->stride,
+                             parent_vertex_num,
+                             vertex_coords,
+                             point_coords,
+                             n_points_in_extents,
+                             points_in_extents,
+                             tolerance,
+                             location,
+                             distance);
+        }
 
         else {
 
-          assert(this_section->type == FVMC_FACE_TRIA);
-
-          n_triangles = 1;
-          for (j = 0; j < 3; j++)
-            triangle_vertices[j]
-              = this_section->vertex_num[i*this_section->stride + j];
-
+          /* _locate_in_ho_cell_3d(elt_num, */
+          /*                       this_section->type, */
+          /*                       this_section->order, */
+          /*                       this_section->vertex_num + i*this_section->stride, */
+          /*                       parent_vertex_num, */
+          /*                       vertex_coords, */
+          /*                       point_coords, */
+          /*                       n_points_in_extents, */
+          /*                       points_in_extents, */
+          /*                       tolerance, */
+          /*                       location, */
+          /*                       distance); */
 
         }
+      } 
+      
+      else if (this_section->entity_dim == 2) {
 
-        _locate_on_triangles_3d(elt_num,
-                                this_section->order,
-                                n_triangles,
-                                triangle_vertices,
-                                parent_vertex_num,
-                                vertex_coords,
-                                point_coords,
-                                n_points_in_extents,
-                                points_in_extents,
-                                tolerance,
-                                location,
-                                distance);
+        if (this_section->order == -1) {
+
+
+          if (this_section->type == FVMC_FACE_QUAD)
+
+            n_triangles = fvmc_triangulate_quadrangle(3,
+                                                      vertex_coords,
+                                                      parent_vertex_num,
+                                                      (  this_section->vertex_num
+                                                         + i*this_section->stride),
+                                                      triangle_vertices);
+
+          else {
+
+            assert(this_section->type == FVMC_FACE_TRIA);
+
+            n_triangles = 1;
+            for (j = 0; j < 3; j++)
+              triangle_vertices[j]
+                = this_section->vertex_num[i*this_section->stride + j];
+
+
+          }
+
+          _locate_on_triangles_3d(elt_num,
+                                  n_triangles,
+                                  triangle_vertices,
+                                  parent_vertex_num,
+                                  vertex_coords,
+                                  point_coords,
+                                  n_points_in_extents,
+                                  points_in_extents,
+                                  tolerance,
+                                  location,
+                                  distance);
+        }
+
+        else {
+
+          if (this_section->type == FVMC_FACE_QUAD) {
+
+            /* _locate_on_ho_quadrangles_3d(elt_num, */
+            /*                              this_section->order, */
+            /*                              n_quadrangles, */
+            /*                              quadrangles_vertices, */
+            /*                              parent_vertex_num, */
+            /*                              vertex_coords, */
+            /*                              point_coords, */
+            /*                              n_points_in_extents, */
+            /*                              points_in_extents, */
+            /*                              tolerance, */
+            /*                              location, */
+            /*                              distance); */
+
+          }
+
+          else {
+         
+            /* _locate_on_ho_triangles_3d(elt_num, */
+            /*                            this_section->order, */
+            /*                            n_quadrangles, */
+            /*                            quadrangles_vertices, */
+            /*                            parent_vertex_num, */
+            /*                            vertex_coords, */
+            /*                            point_coords, */
+            /*                            n_points_in_extents, */
+            /*                            points_in_extents, */
+            /*                            tolerance, */
+            /*                            location, */
+            /*                            distance); */
+            
+          }
+          
+        }
+        
       }
 
       else if (this_section->entity_dim == 1) {
 
         assert(this_section->type == FVMC_EDGE);
 
-        _locate_on_edge_3d(elt_num,
-                           this_section->vertex_num + i*this_section->stride,
-                           parent_vertex_num,
-                           vertex_coords,
-                           point_coords,
-                           n_points_in_extents,
-                           points_in_extents,
-                           tolerance,
-                           location,
-                           distance);
+        if (this_section->order == -1) {
+
+          _locate_on_edge_3d(elt_num,
+                             this_section->vertex_num + i*this_section->stride,
+                             parent_vertex_num,
+                             vertex_coords,
+                             point_coords,
+                             n_points_in_extents,
+                             points_in_extents,
+                             tolerance,
+                             location,
+                             distance);
+        }
+
+        else {
+
+          /* _locate_on_ho_edge_3d(elt_num, */
+          /*                       this_section->vertex_num + i*this_section->stride, */
+          /*                       parent_vertex_num, */
+          /*                       vertex_coords, */
+          /*                       point_coords, */
+          /*                       n_points_in_extents, */
+          /*                       points_in_extents, */
+          /*                       tolerance, */
+          /*                       location, */
+          /*                       distance); */
+          
+          
+
+        }
 
       }
     }
@@ -3488,7 +3576,6 @@ _nodal_section_closest_3d(const fvmc_nodal_section_t  *this_section,
         }
 
         _locate_on_triangles_3d(elt_num,
-                                this_section->order,
                                 n_triangles,
                                 triangle_vertices,
                                 parent_vertex_num,
@@ -3712,7 +3799,6 @@ _nodal_section_locate_2d(const fvmc_nodal_section_t  *this_section,
     if (this_section->entity_dim == 2)
 
       _locate_on_triangles_2d(elt_num,
-                              this_section->order,
                               n_triangles,
                               triangle_vertices,
                               parent_vertex_num,
@@ -3729,7 +3815,6 @@ _nodal_section_locate_2d(const fvmc_nodal_section_t  *this_section,
       assert(this_section->type == FVMC_EDGE);
 
       _locate_on_edge_2d(elt_num,
-                         this_section->order,
                          this_section->vertex_num + i*this_section->stride,
                          parent_vertex_num,
                          vertex_coords,
@@ -3813,7 +3898,6 @@ _nodal_section_closest_2d(const fvmc_nodal_section_t  *this_section,
     /* Locate on edge */
 
     _locate_on_edge_2d(elt_num,
-                       this_section->order,
                        this_section->vertex_num + i*this_section->stride,
                        parent_vertex_num,
                        vertex_coords,
@@ -4324,7 +4408,7 @@ fvmc_point_dist_closest_polygon(const int            dim,
                                 fvmc_lnum_t          location[],
                                 float                distance[])
 {
- int order = 1;
+  int order = -1;
   fvmc_nodal_section_t* section = fvmc_nodal_section_create(FVMC_FACE_POLY, order);
   section->entity_dim        = dim;
   section->n_elements        = n_poly;
@@ -4745,7 +4829,7 @@ int fvmc_parameterize_polygon(int numPts,
 }
 
 
-int  fvmc_triangle_evaluate_Position (double x[3], double *pts, int order, 
+int  fvmc_triangle_evaluate_Position (double x[3], double *pts, 
                                       double* closestPoint,
                                       double pcoords[3],
                                       double *dist2, double *weights)
@@ -4761,8 +4845,8 @@ int  fvmc_triangle_evaluate_Position (double x[3], double *pts, int order,
   double *closest, closestPoint1[3], closestPoint2[3], cp[3];
 
   
-  printf ("Attention : fvmc_triangle_evaluate_Position ne considere qu'un triangle "
-          "lineaire, c'est ici qu'il faut prendre en compte l'ordre !\n");
+  // printf ("Attention : fvmc_triangle_evaluate_Position ne considere qu'un triangle "
+  //        "lineaire, c'est ici qu'il faut prendre en compte l'ordre !\n");
   
   pcoords[2] = 0.0;
 
@@ -4958,9 +5042,9 @@ int fvmc_polygon_evaluate_Position(double x[3], int numPts, double *pts, double*
 
   double pts_p[3*numPts];
 
-  printf ("Attention : fvmc_polygon_evaluate_Position ne considere qu'un polygone "
-          "lineaire, c'est ici qu'il faut prendre en compte l'ordre pour les \n"
-          "quadrangle en créant une fonction propre !\n");
+  //printf ("Attention : fvmc_polygon_evaluate_Position ne considere qu'un polygone "
+  //        "lineaire, c'est ici qu'il faut prendre en compte l'ordre pour les \n"
+  //        "quadrangle en créant une fonction propre !\n");
 
   // Projection sur le plan moyen !!
 
