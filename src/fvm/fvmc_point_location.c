@@ -55,6 +55,7 @@
 #include "fvmc_config_defs.h"
 #include "fvmc_defs.h"
 #include "fvmc_nodal.h"
+#include "fvmc_ho.h"
 #include "fvmc_nodal_priv.h"
 #include "fvmc_triangulate.h"
 
@@ -3335,6 +3336,7 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
 
         if (this_section->order == -1) {
 
+          
           _locate_in_cell_3d(elt_num,
                              this_section->type,
                              this_section->vertex_num + i*this_section->stride,
@@ -3350,19 +3352,30 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
 
         else {
 
-          /* _locate_in_ho_cell_3d(elt_num, */
-          /*                       this_section->type, */
-          /*                       this_section->order, */
-          /*                       this_section->vertex_num + i*this_section->stride, */
-          /*                       parent_vertex_num, */
-          /*                       vertex_coords, */
-          /*                       point_coords, */
-          /*                       n_points_in_extents, */
-          /*                       points_in_extents, */
-          /*                       tolerance, */
-          /*                       location, */
-          /*                       distance); */
+          assert (parent_vertex_num == NULL);
 
+          for (int k = 0; k < n_points_in_extents; k++) {
+
+            int point_in_extents = points_in_extents[k];
+            const double *_point_coords = point_coords + 3 * point_in_extents;
+            double *projected_coords = NULL;
+            
+            double _distance = fvmc_ho_location_in_cell_3d (this_section->type,
+                                                            this_section->order,
+                                                            this_section->_ho_vertex_num + i*this_section->stride,
+                                                            vertex_coords,
+                                                            _point_coords,
+                                                            projected_coords);
+
+            if (distance[point_in_extents] <= _distance) {
+
+              // TODO: Ajouter un test faisant intervenir la tolerance pour restreinde la localisation 
+              
+              location[point_in_extents] = elt_num;
+              distance[point_in_extents] = (float) _distance;
+            }
+
+          }
         }
       } 
       
