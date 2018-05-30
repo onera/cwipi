@@ -378,6 +378,8 @@ void LocationToLocalMesh::locate()
 
   //  _locationToDistantMesh.clear();
 
+  printf("-- LocationToLocalMesh::locate : deb --\n");
+
   if (_toLocate || _locationToDistantMesh.getToLocateStatus()) {
 
     _locationToDistantMesh.clear();
@@ -845,6 +847,7 @@ void LocationToLocalMesh::locate()
       
   }
   //  _locationToDistantMesh.synchronize();
+  printf("-- LocationToLocalMesh::locate : fin --\n");
     
 }
   

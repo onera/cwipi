@@ -3226,6 +3226,7 @@ _polygons_section_closest_3d(const fvmc_nodal_section_t   *this_section,
  *   octree            <-- point octree
  *   points_in_extents <-- array for query of ids of points in extents
  *                         (size: octree->n_points, less usually needed)
+ *   projected_point_coords   <-> projected point coordinates (or NULL)
  *   location          <-> number of element containing or closest to each
  *                         point (size: n_points)
  *   distance          <-> distance from point to element indicated by
@@ -3243,6 +3244,7 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
                          const fvmc_coord_t           point_coords[],
                          _octree_t                  *octree,
                          fvmc_lnum_t                  points_in_extents[],
+                         fvmc_coord_t                 projected_coords[],
                          fvmc_lnum_t                  location[],
                          float                       distance[])
 {
@@ -3252,6 +3254,7 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
 
   fvmc_lnum_t n_points_in_extents = 0;
 
+  printf("-- _nodal_section_locate_3d : deb --\n");
   printf("this section order : %d\n", this_section->order);
   
   /* If section contains polyhedra */
@@ -3358,18 +3361,21 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
 
             int point_in_extents = points_in_extents[k];
             const double *_point_coords = point_coords + 3 * point_in_extents;
-            double *projected_coords = NULL;
+            double *_projected_coords = NULL;
+            if (projected_coords != NULL) {
+              _projected_coords = projected_coords + 3 * point_in_extents;
+            }
             
             double _distance = fvmc_ho_location_in_cell_3d (this_section->type,
                                                             this_section->order,
                                                             this_section->_ho_vertex_num + i*this_section->stride,
                                                             vertex_coords,
                                                             _point_coords,
-                                                            projected_coords);
+                                                            _projected_coords);
 
             if (distance[point_in_extents] <= _distance) {
 
-              // TODO: Ajouter un test faisant intervenir la tolerance pour restreinde la localisation 
+              // TODO: Ajouter un test faisant intervenir la tolerance pour restreindre la localisation 
               
               location[point_in_extents] = elt_num;
               distance[point_in_extents] = (float) _distance;
@@ -3420,38 +3426,32 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
 
         else {
 
-          if (this_section->type == FVMC_FACE_QUAD) {
+          assert (parent_vertex_num == NULL);
 
-            /* _locate_on_ho_quadrangles_3d(elt_num, */
-            /*                              this_section->order, */
-            /*                              n_quadrangles, */
-            /*                              quadrangles_vertices, */
-            /*                              parent_vertex_num, */
-            /*                              vertex_coords, */
-            /*                              point_coords, */
-            /*                              n_points_in_extents, */
-            /*                              points_in_extents, */
-            /*                              tolerance, */
-            /*                              location, */
-            /*                              distance); */
+          for (int k = 0; k < n_points_in_extents; k++) {
 
-          }
-
-          else {
-         
-            /* _locate_on_ho_triangles_3d(elt_num, */
-            /*                            this_section->order, */
-            /*                            n_quadrangles, */
-            /*                            quadrangles_vertices, */
-            /*                            parent_vertex_num, */
-            /*                            vertex_coords, */
-            /*                            point_coords, */
-            /*                            n_points_in_extents, */
-            /*                            points_in_extents, */
-            /*                            tolerance, */
-            /*                            location, */
-            /*                            distance); */
+            int point_in_extents = points_in_extents[k];
+            const double *_point_coords = point_coords + 3 * point_in_extents;
+            double *_projected_coords = NULL;
+            if (projected_coords != NULL) {
+              _projected_coords = projected_coords + 3 * point_in_extents;
+            }
             
+            double _distance = fvmc_ho_location_on_cell_2d (this_section->type,
+                                                            this_section->order,
+                                                            this_section->_ho_vertex_num + i*this_section->stride,
+                                                            vertex_coords,
+                                                            _point_coords,
+                                                            _projected_coords);
+
+            if (distance[point_in_extents] <= _distance) {
+
+              // TODO: Ajouter un test faisant intervenir la tolerance pour restreindre la localisation 
+              
+              location[point_in_extents] = elt_num;
+              distance[point_in_extents] = (float) _distance;
+            }
+
           }
           
         }
@@ -3478,18 +3478,31 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
 
         else {
 
-          /* _locate_on_ho_edge_3d(elt_num, */
-          /*                       this_section->vertex_num + i*this_section->stride, */
-          /*                       parent_vertex_num, */
-          /*                       vertex_coords, */
-          /*                       point_coords, */
-          /*                       n_points_in_extents, */
-          /*                       points_in_extents, */
-          /*                       tolerance, */
-          /*                       location, */
-          /*                       distance); */
-          
-          
+          for (int k = 0; k < n_points_in_extents; k++) {
+
+            int point_in_extents = points_in_extents[k];
+            const double *_point_coords = point_coords + 3 * point_in_extents;
+            double *_projected_coords = NULL;
+            if (projected_coords != NULL) {
+              _projected_coords = projected_coords + 3 * point_in_extents;
+            }
+            
+            double _distance = fvmc_ho_location_on_cell_1d (this_section->type,
+                                                            this_section->order,
+                                                            this_section->_ho_vertex_num + i*this_section->stride,
+                                                            vertex_coords,
+                                                            _point_coords,
+                                                            _projected_coords);
+
+            if (distance[point_in_extents] <= _distance) {
+
+              // TODO: Ajouter un test faisant intervenir la tolerance pour restreindre la localisation 
+              
+              location[point_in_extents] = elt_num;
+              distance[point_in_extents] = (float) _distance;
+            }
+
+          }
 
         }
 
@@ -3497,6 +3510,7 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
     }
 
   }
+  printf("-- _nodal_section_locate_3d : fin --\n");
 }
 
 /*----------------------------------------------------------------------------
@@ -4137,17 +4151,20 @@ static int _intersection_line (double a1[3], double a2[3],
 
 void
 fvmc_point_location_nodal(const fvmc_nodal_t  *this_nodal,
-                         double              tolerance,
-                         _Bool               locate_on_parents,
-                         fvmc_lnum_t          n_points,
-                         const fvmc_coord_t   point_coords[],
-                         fvmc_lnum_t          location[],
-                         float               distance[])
+                          double              tolerance,
+                          _Bool               locate_on_parents,
+                          fvmc_lnum_t          n_points,
+                          const fvmc_coord_t   point_coords[],
+                          fvmc_coord_t        *projected_coords,
+                          fvmc_lnum_t          location[],
+                          float               distance[])
 {
   int i;
   int max_entity_dim;
   fvmc_lnum_t   base_element_num;
   fvmc_lnum_t  *points_in_extents = NULL;
+
+  printf("-- fvmc_point_location_nodal : deb --\n");
 
   if (this_nodal == NULL)
     return;
@@ -4186,6 +4203,7 @@ fvmc_point_location_nodal(const fvmc_nodal_t  *this_nodal,
                                  point_coords,
                                  &octree,
                                  points_in_extents,
+                                 projected_coords,
                                  location,
                                  distance);
 
@@ -4263,6 +4281,7 @@ fvmc_point_location_nodal(const fvmc_nodal_t  *this_nodal,
 
   }
 
+  printf("-- fvmc_point_location_nodal : fin --\n");
   BFTC_FREE(points_in_extents);
 }
 

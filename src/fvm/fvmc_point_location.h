@@ -99,6 +99,7 @@ fvmc_point_location_nodal(const fvmc_nodal_t  *this_nodal,
                           _Bool                 locate_on_parents,
                           fvmc_lnum_t           n_points,
                           const fvmc_coord_t    point_coords[],
+                          fvmc_coord_t        *projected_coords,
                           fvmc_lnum_t           location[],
                           float                 distance[]);
 
@@ -133,37 +134,6 @@ fvmc_point_location_closest_nodal(const fvmc_nodal_t  *this_nodal,
                                  fvmc_lnum_t          location[],
                                  float               distance[]);
 
-
-/*----------------------------------------------------------------------------
- * Find elements in a given nodal mesh containing points: updates the
- * location[] and distance[] arrays associated with a set of points
- * for points that are in an element of this mesh, or closer to one
- * than to previously encountered elements.
- *
- * parameters:
- *   this_nodal        <-- pointer to nodal mesh representation structure
- *   tolerance         <-- associated tolerance
- *   locate_on_parents <-- location relative to parent element numbers if
- *                         true, id of element + 1 in concatenated sections
- *                         of same element dimension if false
- *   n_points          <-- number of points to locate
- *   point_coords      <-- point coordinates
- *   location          <-> number of element containing or closest to each
- *                         point (size: n_points)
- *   distance          <-> distance from point to element indicated by
- *                         location[]: < 0 if unlocated, 0 - 1 if inside,
- *                         and > 1 if outside a volume element, or absolute
- *                         distance to a surface element (size: n_points)
- *----------------------------------------------------------------------------*/
-
-void
-fvmc_point_location_nodal(const fvmc_nodal_t  *this_nodal,
-                          double                tolerance,
-                          _Bool                 locate_on_parents,
-                          fvmc_lnum_t           n_points,
-                          const fvmc_coord_t    point_coords[],
-                          fvmc_lnum_t           location[],
-                          float                 distance[]);
 
 /*----------------------------------------------------------------------------
  * Compute distance to polygons

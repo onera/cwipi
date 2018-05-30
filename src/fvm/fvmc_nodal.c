@@ -2933,6 +2933,24 @@ fvmc_nodal_ho_ordering_from_ref_elt_set (fvmc_nodal_t  *this_nodal,
   
 }
 
+/*----------------------------------------------------------------------------
+ * Return order
+ *
+ * parameters:
+ *   this_nodal <-- pointer to structure that should be dumped
+ *
+ * return:
+ *   order
+ *
+ *----------------------------------------------------------------------------*/
+
+int 
+fvmc_nodal_order_get (const fvmc_nodal_t  *this_nodal)
+{
+  return this_nodal->order;
+}
+
+
 /*----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus

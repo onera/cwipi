@@ -143,7 +143,7 @@ _default_location_in_cell_3d (const fvmc_element_t type,
 {
   double dist = 0.;
   bftc_error(__FILE__, __LINE__, 0,
-             _("_default_location_in_cell_3d : Not implement yet\n"));
+             _("_default_location_in_cell_3d : Not implemented yet\n"));
   return dist;
 }
 
@@ -174,7 +174,7 @@ _default_location_on_cell_2d (const fvmc_element_t type,
 {
   double dist = 0.;
   bftc_error(__FILE__, __LINE__, 0,
-             _("_default_location_on_cell_2d : Not implement yet\n"));
+             _("_default_location_on_cell_2d : Not implemented yet\n"));
   return dist;
 }
 
@@ -205,7 +205,7 @@ _default_location_on_cell_1d (const fvmc_element_t type,
 {
   double dist = 0.;
   bftc_error(__FILE__, __LINE__, 0,
-             _("_default_location_on_cell_1d : Not implement yet\n"));
+             _("_default_location_on_cell_1d : Not implemented yet\n"));
   return dist;
 }
 
@@ -285,7 +285,7 @@ static _default_shape_on_cell_1d (const fvmc_element_t type,
                           double *shape)
 {
   bftc_error(__FILE__, __LINE__, 0,
-             _("_default_shape_on_cell_1d : Not implement yet\n"));
+             _("_default_shape_on_cell_1d : Not implemented yet\n"));
 }
 
 
@@ -356,7 +356,7 @@ _default_interp_on_cell_2d (const fvmc_element_t type,
                            double *target_field)
 {
   bftc_error(__FILE__, __LINE__, 0,
-             _("_default_interp_on_cell_2d : Not implement yet\n"));
+             _("_default_interp_on_cell_2d : Not implemented yet\n"));
 }
 
 
@@ -391,7 +391,7 @@ _default_interp_on_cell_1d (const fvmc_element_t type,
                            double *target_field)
 {
   bftc_error(__FILE__, __LINE__, 0,
-             _("_default_shape_on_cell_1d : Not implement yet\n"));
+             _("_default_shape_on_cell_1d : Not implemented yet\n"));
 }
 
 /*============================================================================
@@ -524,6 +524,9 @@ fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
                              double *projected_coords)
 {
 
+
+  printf("-- fvmc_ho_location_in_cell_3d -- deb\n"); 
+
   if (_user_fcts != NULL) {
 
     switch (type) {
@@ -577,6 +580,8 @@ fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
                                          projected_coords);
     
   }
+
+  printf("-- fvmc_ho_location_in_cell_3d -- fin\n"); 
 }
 
 /*----------------------------------------------------------------------------

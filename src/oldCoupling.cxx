@@ -958,6 +958,9 @@ namespace cwipi {
 
 
   {
+
+    printf("-- oldCoupling::exchange : deb --\n");
+    
     cwipi_exchange_status_t status = CWIPI_EXCHANGE_OK;
 
     const MPI_Comm& localComm = _localApplicationProperties.getLocalComm();
@@ -1487,6 +1490,7 @@ namespace cwipi {
                            NULL);
 
     } 
+    printf("-- oldCoupling::exchange : fin --\n");
   }
 
 
@@ -1868,6 +1872,7 @@ namespace cwipi {
 
   void oldCoupling::locate()
   {
+    printf("-- oldCoupling::locate : deb --\n");
 
     const MPI_Comm& localComm = _localApplicationProperties.getLocalComm();
 
@@ -1921,6 +1926,7 @@ namespace cwipi {
     fvmc_parall_set_mpi_comm(oldFVMComm);
 
     _toLocate = false;
+    printf("-- oldCoupling::locate : fin --\n");
   }
 
 
