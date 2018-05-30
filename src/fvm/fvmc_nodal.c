@@ -1349,6 +1349,7 @@ fvmc_nodal_create(const char  *name,
   this_nodal->num_dom = fvmc_parall_get_rank() + 1;
   this_nodal->n_doms  = fvmc_parall_get_size();
   this_nodal->n_sections = 0;
+  this_nodal->sections_idx = NULL;
 
   this_nodal->ho_uvw_to_local_ordering = NULL;
   this_nodal->ho_user_to_uvw = NULL;
@@ -1412,6 +1413,9 @@ fvmc_nodal_destroy(fvmc_nodal_t  * this_nodal)
   if (this_nodal->sections != NULL)
     BFTC_FREE(this_nodal->sections);
 
+  if (this_nodal->sections_idx != NULL)
+    BFTC_FREE(this_nodal->sections_idx);
+    
   /* Main structure destroyed and NULL returned */
 
   if (this_nodal->ho_uvw_to_local_ordering != NULL) {
@@ -1846,6 +1850,34 @@ fvmc_nodal_transfer_vertices(fvmc_nodal_t  *this_nodal,
   this_nodal->vertex_coords = _vertex_coords;
 
   return _vertex_coords;
+}
+
+
+/*----------------------------------------------------------------------------
+ * return type of an element
+ *
+ * parameters:
+ *   this_nodal           <-- pointer to nodal mesh structure
+ *   element              <-- element (1 to n numbering).
+ *
+ * returns:
+ *   type
+ *----------------------------------------------------------------------------*/
+
+fvmc_element_t
+fvmc_nodal_get_type_elt(const fvmc_nodal_t  *this_nodal, const int elt)
+{
+  assert(this_nodal != NULL);
+
+  int _elt = elt-1;
+
+  int elt_section = 0;
+  
+  while (_elt >= this_nodal->sections_idx[++elt_section]);
+
+  elt_section -= 1 ;
+
+  return this_nodal->sections[elt_section]->type;
 }
 
 /*----------------------------------------------------------------------------

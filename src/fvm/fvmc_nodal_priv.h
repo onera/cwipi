@@ -161,7 +161,7 @@ struct _fvmc_nodal_t {
   int    n_doms;               /* Global number of domains */
   int    n_sections;           /* Number of sections */
 
-  int    order;                /* orrder */
+  int    order;                /* order */
   int   **ho_uvw_to_local_ordering;  /* (U, V, W) ordering to local element ordering 
                                         for each reference element type */
   int   **ho_user_to_uvw;            /* user ordering to (U, V, W) */
@@ -176,6 +176,8 @@ struct _fvmc_nodal_t {
   fvmc_lnum_t  n_edges;
   fvmc_lnum_t  n_vertices;
 
+  fvmc_lnum_t *sections_idx;
+  
   /* Vertex definitions; */
   /*---------------------*/
 

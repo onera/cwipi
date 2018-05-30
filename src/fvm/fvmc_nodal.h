@@ -481,6 +481,19 @@ fvmc_nodal_ho_ordering_from_ref_elt_set (fvmc_nodal_t  *this_nodal,
 int
 fvmc_nodal_order_get (const fvmc_nodal_t  *this_nodal);
 
+/*----------------------------------------------------------------------------
+ * return type of an element
+ *
+ * parameters:
+ *   this_nodal           <-- pointer to nodal mesh structure
+ *   element              <-- element (1 to n numbering).
+ *
+ * returns:
+ *   type
+ *----------------------------------------------------------------------------*/
+
+fvmc_element_t
+fvmc_nodal_get_type_elt(const fvmc_nodal_t  *this_nodal, const int elt);
 
 /*----------------------------------------------------------------------------*/
 

@@ -66,6 +66,8 @@ namespace cwipi {
 
     inline const int& getNVertex() const;
 
+    inline const int& getOrder() const;
+
     inline const double* getVertexCoords() const;
 
     inline fvmc_nodal_t& getFvmNodal() const;
@@ -146,8 +148,6 @@ namespace cwipi {
     int          *_eltConnectivityIndex;
     int          *_eltConnectivity;
 
-    //std::map <cwipi_element_t, std::vector <int> * > * _hoOrdering;
-
     int              *_polyhedraFaceIndex;
     int              *_polyhedraCellToFaceConnectivity;
 
@@ -173,6 +173,11 @@ namespace cwipi {
     return _nVertex;
   }
 
+  const int& oldMesh::getOrder()  const
+  {
+    return _order;
+  }
+  
   const double* oldMesh::getVertexCoords()  const
   {
     return _coords;

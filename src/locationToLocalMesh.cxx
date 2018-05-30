@@ -1132,6 +1132,8 @@ void LocationToLocalMesh::compute2DMeanValues()
   const int *meshConnectivity = _supportMesh->getEltConnectivity();
   const double *meshVertexCoords = _supportMesh->getVertexCoords();
 
+  const int order = _supportMesh->getOrder();
+  
   _barycentricCoordinatesIndex = new std::vector <int> (n_dist_points + 1);
   std::vector <int>& nDistBarCoords = *_barycentricCoordinatesIndex;
 
@@ -1151,14 +1153,28 @@ void LocationToLocalMesh::compute2DMeanValues()
   _barycentricCoordinates = new std::vector <double> (nDistBarCoords[n_dist_points]);
   std::vector <double>& distBarCoords = *_barycentricCoordinates;
 
-  computePolygonMeanValues(n_dist_points,
-                           dist_locations,
-                           dist_coords,
-                           meshConnectivityIndex,
-                           meshConnectivity,
-                           meshVertexCoords,
-                           nDistBarCoords,
-                           distBarCoords);
+  if (order == -1) {
+  
+    computePolygonMeanValues(n_dist_points,
+                             dist_locations,
+                             dist_coords,
+                             meshConnectivityIndex,
+                             meshConnectivity,
+                             meshVertexCoords,
+                             nDistBarCoords,
+                             distBarCoords);
+  }
+
+  else {
+
+    // fvmc_ho_location_in_cell_3d (this_section->type,
+    //                              order,
+    //                              this_section->_ho_vertex_num + i*this_section->stride,
+    //                              vertex_coords,
+    //                              _point_coords,
+    //                              _projected_coords);
+    
+  }
 }
 
 ///
