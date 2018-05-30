@@ -79,15 +79,31 @@ extern "C" {
  *============================================================================*/
 
 typedef struct _fvmc_ho_user_fcts_t {
-  fvmc_ho_location_fct_t location_3d;
-  fvmc_ho_location_fct_t location_2d;
-  fvmc_ho_location_fct_t location_1d;
-  fvmc_ho_shape_fct_t    shape_3d;
-  fvmc_ho_shape_fct_t    shape_2d;
-  fvmc_ho_shape_fct_t    shape_1d;
-  fvmc_ho_interp_fct_t   interp_3d;
-  fvmc_ho_interp_fct_t   interp_2d;
-  fvmc_ho_interp_fct_t   interp_1d;
+  fvmc_ho_location_fct_t location_tetra;
+  fvmc_ho_location_fct_t location_prism;
+  fvmc_ho_location_fct_t location_pyramid;
+  fvmc_ho_location_fct_t location_hexa;
+  fvmc_ho_location_fct_t location_tria;
+  fvmc_ho_location_fct_t location_quad;
+  fvmc_ho_location_fct_t location_edge;
+  
+  fvmc_ho_shape_fct_t shape_tetra;
+  fvmc_ho_shape_fct_t shape_prism;
+  fvmc_ho_shape_fct_t shape_pyramid;
+  fvmc_ho_shape_fct_t shape_hexa;
+  fvmc_ho_shape_fct_t shape_tria;
+  fvmc_ho_shape_fct_t shape_quad;
+  fvmc_ho_shape_fct_t shape_edge;
+
+
+  fvmc_ho_interp_fct_t interp_tetra;
+  fvmc_ho_interp_fct_t interp_prism;
+  fvmc_ho_interp_fct_t interp_pyramid;
+  fvmc_ho_interp_fct_t interp_hexa;
+  fvmc_ho_interp_fct_t interp_tria;
+  fvmc_ho_interp_fct_t interp_quad;
+  fvmc_ho_interp_fct_t interp_edge;
+
 } fvmc_ho_user_fcts_t;
 
 /*============================================================================
@@ -392,55 +408,93 @@ _default_interp_on_cell_1d (const fvmc_element_t type,
 void
 fvmc_ho_user_elementary_functions_unset (void)
 {
-  free (_user_fcts);
-  _user_fcts = NULL;
+  if (_user_fcts != NULL) {
+    free (_user_fcts);
+    _user_fcts = NULL;
+  }
 }
+
 
 /*----------------------------------------------------------------------------
  * 
  * Set elementary functions
  * 
  * parameters:
- *   location_3d  <-- Location in a 3d element
- *   location_2d  <-- Location on a 2d element
- *   location_1d  <-- Location on a 1d element
- *   shape_3d     <-- Shape computation in a 3d element
- *   shape_2d     <-- Shape computation on a 2d element
- *   shape_1d     <-- Shape computation on a 1d element
- *   interp_3d    <-- Interpolation in a 3d element
- *   interp_2d    <-- Interpolation on a 2d element
- *   interp_1d    <-- Interpolation on a 1d element
+ *   location_tetra    <-- Location in a tetrahedron
+ *   location_prism    <-- Location in a prism
+ *   location_pyramid  <-- Location in a pyramid
+ *   location_hexa     <-- Location in a hexaedron
+ *   location_tria     <-- Location on a triangle
+ *   location_quad     <-- Location on a quandragle
+ *   location_edge     <-- Location on a edge
+ *   shape_tetra       <-- Shape computation in a tetrahedron
+ *   shape_prism       <-- Shape computation in a prism
+ *   shape_pyramid     <-- Shape computation in a pyramid
+ *   shape_hexa        <-- Shape computation in a hexaedron
+ *   shape_tria        <-- Shape computation on a triangle
+ *   shape_quad        <-- Shape computation on a quandragle
+ *   shape_edge        <-- Shape computation on a edge
+ *   interp_tetra       <-- Interpolation in a tetrahedron
+ *   interp_prism       <-- Interpolation in a prism
+ *   interp_pyramid     <-- Interpolation in a pyramid
+ *   interp_hexa        <-- Interpolation in a hexaedron
+ *   interp_tria        <-- Interpolation on a triangle
+ *   interp_quad        <-- Interpolation on a quandragle
+ *   interp_edge        <-- Interpolation on a edge
  *
  *----------------------------------------------------------------------------*/
 
 void
-fvmc_ho_user_elementary_functions_set (fvmc_ho_location_fct_t location_3d,
-                                       fvmc_ho_location_fct_t location_2d,
-                                       fvmc_ho_location_fct_t location_1d,
-                                       fvmc_ho_shape_fct_t shape_3d,
-                                       fvmc_ho_shape_fct_t shape_2d,
-                                       fvmc_ho_shape_fct_t shape_1d,
-                                       fvmc_ho_interp_fct_t interp_3d,
-                                       fvmc_ho_interp_fct_t interp_2d,
-                                       fvmc_ho_interp_fct_t interp_1d)
+fvmc_ho_user_elementary_functions_set (fvmc_ho_location_fct_t location_tetra,
+                                       fvmc_ho_location_fct_t location_prism,
+                                       fvmc_ho_location_fct_t location_pyramid,
+                                       fvmc_ho_location_fct_t location_hexa,
+                                       fvmc_ho_location_fct_t location_tria,
+                                       fvmc_ho_location_fct_t location_quad,
+                                       fvmc_ho_location_fct_t location_edge,
+                                       fvmc_ho_shape_fct_t shape_tetra,
+                                       fvmc_ho_shape_fct_t shape_prism,
+                                       fvmc_ho_shape_fct_t shape_pyramid,
+                                       fvmc_ho_shape_fct_t shape_hexa,
+                                       fvmc_ho_shape_fct_t shape_tria,
+                                       fvmc_ho_shape_fct_t shape_quad,
+                                       fvmc_ho_shape_fct_t shape_edge,
+                                       fvmc_ho_interp_fct_t interp_tetra,
+                                       fvmc_ho_interp_fct_t interp_prism,
+                                       fvmc_ho_interp_fct_t interp_pyramid,
+                                       fvmc_ho_interp_fct_t interp_hexa,
+                                       fvmc_ho_interp_fct_t interp_tria,
+                                       fvmc_ho_interp_fct_t interp_quad,
+                                       fvmc_ho_interp_fct_t interp_edge)
 {
 
   if (_user_fcts == NULL) {
     _user_fcts = (fvmc_ho_user_fcts_t *) malloc (sizeof(fvmc_ho_user_fcts_t));
   }
 
-  _user_fcts->location_3d = location_3d;
-  _user_fcts->location_2d = location_2d;
-  _user_fcts->location_1d = location_1d;
+  _user_fcts->location_tetra   = location_tetra;
+  _user_fcts->location_prism   = location_prism;
+  _user_fcts->location_pyramid = location_pyramid;
+  _user_fcts->location_hexa    = location_hexa;
+  _user_fcts->location_tria    = location_tria;
+  _user_fcts->location_quad    = location_quad;
+  _user_fcts->location_edge    = location_edge;
 
-  _user_fcts->shape_3d = shape_3d;
-  _user_fcts->shape_2d = shape_2d;
-  _user_fcts->shape_1d = shape_1d;
+  _user_fcts->shape_tetra   = shape_tetra;
+  _user_fcts->shape_prism   = shape_prism;
+  _user_fcts->shape_pyramid = shape_pyramid;
+  _user_fcts->shape_hexa    = shape_hexa;
+  _user_fcts->shape_tria    = shape_tria;
+  _user_fcts->shape_quad    = shape_quad;
+  _user_fcts->shape_edge    = shape_edge;
 
-  _user_fcts->interp_3d = interp_3d;
-  _user_fcts->interp_2d = interp_2d;
-  _user_fcts->interp_1d = interp_1d;
-
+  _user_fcts->interp_tetra   = interp_tetra;
+  _user_fcts->interp_prism   = interp_prism;
+  _user_fcts->interp_pyramid = interp_pyramid;
+  _user_fcts->interp_hexa    = interp_hexa;
+  _user_fcts->interp_tria    = interp_tria;
+  _user_fcts->interp_quad    = interp_quad;
+  _user_fcts->interp_edge    = interp_edge;
 }
 
 
@@ -471,12 +525,46 @@ fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
 {
 
   if (_user_fcts != NULL) {
-    return (_user_fcts->location_3d) (type,
-                                      order,
-                                      ho_vertex_num,
-                                      vertex_coords,
-                                      point_coords,
-                                      projected_coords);
+
+    switch (type) {
+      
+    case FVMC_CELL_TETRA:
+      return (_user_fcts->location_tetra) (order,
+                                           ho_vertex_num,
+                                           vertex_coords,
+                                           point_coords,
+                                           projected_coords);
+      break;
+      
+    case FVMC_CELL_PRISM:
+      return (_user_fcts->location_prism) (order,
+                                           ho_vertex_num,
+                                           vertex_coords,
+                                           point_coords,
+                                           projected_coords);
+      break;
+      
+    case FVMC_CELL_PYRAM:
+      return (_user_fcts->location_pyramid) (order,
+                                             ho_vertex_num,
+                                             vertex_coords,
+                                             point_coords,
+                                             projected_coords);
+      break;
+
+    case FVMC_CELL_HEXA:
+      return (_user_fcts->location_hexa) (order,
+                                          ho_vertex_num,
+                                          vertex_coords,
+                                          point_coords,
+                                          projected_coords);
+      break;
+
+    default:
+
+      bftc_error(__FILE__, __LINE__, 0,
+                 _("fvmc_ho_location_in_cell_3d : Not a high order 3D element type\n"));
+    } 
   }
 
   else {
@@ -518,12 +606,29 @@ fvmc_ho_location_on_cell_2d (const fvmc_element_t type,
 {
 
   if (_user_fcts != NULL) {
-    return (_user_fcts->location_2d) (type,
-                                      order,
-                                      ho_vertex_num,
-                                      vertex_coords,
-                                      point_coords,
-                                      projected_coords);
+    switch (type) {
+      
+    case FVMC_FACE_TRIA:
+      return (_user_fcts->location_tria) (order,
+                                          ho_vertex_num,
+                                          vertex_coords,
+                                          point_coords,
+                                          projected_coords);
+      break;
+      
+    case FVMC_FACE_QUAD:
+      return (_user_fcts->location_quad) (order,
+                                          ho_vertex_num,
+                                          vertex_coords,
+                                          point_coords,
+                                          projected_coords);
+      break;
+      
+    default:
+
+      bftc_error(__FILE__, __LINE__, 0,
+                 _("fvmc_ho_location_on_cell_2d : Not a high order 2D element type\n"));
+    }
   }
 
   else {
@@ -565,12 +670,21 @@ fvmc_ho_location_on_cell_1d (const fvmc_element_t type,
 {
 
   if (_user_fcts != NULL) {
-    return (_user_fcts->location_1d) (type,
-                                      order,
-                                      ho_vertex_num,
-                                      vertex_coords,
-                                      point_coords,
-                                      projected_coords);
+    switch (type) {
+      
+    case FVMC_EDGE:
+      return (_user_fcts->location_edge) (order,
+                                          ho_vertex_num,
+                                          vertex_coords,
+                                          point_coords,
+                                          projected_coords);
+      break;
+      
+    default:
+
+      bftc_error(__FILE__, __LINE__, 0,
+                 _("fvmc_ho_location_on_cell_1d : Not a high order 1D element type\n"));
+    }
   }
 
   else {
@@ -610,12 +724,47 @@ fvmc_ho_shape_in_cell_3d (const fvmc_element_t type,
                           double *shape)
 {
   if (_user_fcts != NULL) {
-    (_user_fcts->shape_3d) (type,
-                            order,
-                            ho_vertex_num,
-                            vertex_coords,
-                            point_coords,
-                            shape);
+
+    switch (type) {
+      
+    case FVMC_CELL_TETRA:
+      (_user_fcts->shape_tetra) (order,
+                                 ho_vertex_num,
+                                 vertex_coords,
+                                 point_coords,
+                                 shape);
+      break;
+      
+    case FVMC_CELL_PRISM:
+      (_user_fcts->shape_prism) (order,
+                                 ho_vertex_num,
+                                 vertex_coords,
+                                 point_coords,
+                                 shape);
+      break;
+      
+    case FVMC_CELL_PYRAM:
+      (_user_fcts->shape_pyramid) (order,
+                                   ho_vertex_num,
+                                   vertex_coords,
+                                   point_coords,
+                                   shape);
+      break;
+
+    case FVMC_CELL_HEXA:
+      (_user_fcts->shape_hexa) (order,
+                                ho_vertex_num,
+                                vertex_coords,
+                                point_coords,
+                                shape);
+      break;
+
+    default:
+
+      bftc_error(__FILE__, __LINE__, 0,
+                 _("fvmc_ho_shape_in_cell_3d : Not a high order 3D element type\n"));
+    } 
+
   }
 
   else {
@@ -653,12 +802,29 @@ fvmc_ho_shape_on_cell_2d (const fvmc_element_t type,
                           double *shape)
 {
   if (_user_fcts != NULL) {
-    (_user_fcts->shape_2d) (type,
-                            order,
-                            ho_vertex_num,
-                            vertex_coords,
-                            point_coords,
-                            shape);
+    switch (type) {
+      
+    case FVMC_FACE_TRIA:
+      (_user_fcts->shape_tria) (order,
+                                ho_vertex_num,
+                                vertex_coords,
+                                point_coords,
+                                shape);
+      break;
+      
+    case FVMC_FACE_QUAD:
+      (_user_fcts->shape_quad) (order,
+                                ho_vertex_num,
+                                vertex_coords,
+                                point_coords,
+                                shape);
+      break;
+      
+    default:
+
+      bftc_error(__FILE__, __LINE__, 0,
+                 _("fvmc_ho_shape_on_cell_2d : Not a high order 2D element type\n"));
+    }
   }
 
   else {
@@ -696,12 +862,22 @@ fvmc_ho_shape_on_cell_1d (const fvmc_element_t type,
                           double *shape)
 {
   if (_user_fcts != NULL) {
-    (_user_fcts->shape_1d) (type,
-                            order,
-                            ho_vertex_num,
-                            vertex_coords,
-                            point_coords,
-                            shape);
+    switch (type) {
+      
+    case FVMC_EDGE:
+      (_user_fcts->shape_edge) (order,
+                                ho_vertex_num,
+                                vertex_coords,
+                                point_coords,
+                                shape);
+      break;
+      
+    default:
+
+      bftc_error(__FILE__, __LINE__, 0,
+                 _("fvmc_ho_shape_on_cell_1d : Not a high order 1D element type\n"));
+    }
+
   }
 
   else {
@@ -749,16 +925,67 @@ fvmc_ho_interp_in_cell_3d (const fvmc_element_t type,
                            
 {
   if (_user_fcts != NULL) {
-    (_user_fcts->interp_3d) (type,
-                             order,
-                             ho_vertex_num,
-                             local_to_user,
-                             vertex_coords,
-                             point_coords,
-                             shape,
-                             stride_field,
-                             src_field,
-                             target_field);
+
+    switch (type) {
+      
+    case FVMC_CELL_TETRA:
+      (_user_fcts->interp_tetra) (order,
+                                  ho_vertex_num,
+                                  local_to_user, 
+                                  vertex_coords,
+                                  point_coords,
+                                  shape,
+                                  stride_field,
+                                  src_field,
+                                  target_field);
+
+      break;
+      
+    case FVMC_CELL_PRISM:
+
+      (_user_fcts->interp_prism) (order,
+                                  ho_vertex_num,
+                                  local_to_user, 
+                                  vertex_coords,
+                                  point_coords,
+                                  shape,
+                                  stride_field,
+                                  src_field,
+                                  target_field);
+
+      break;
+      
+    case FVMC_CELL_PYRAM:
+      (_user_fcts->interp_pyramid ) (order,
+                                     ho_vertex_num,
+                                     local_to_user, 
+                                     vertex_coords,
+                                     point_coords,
+                                     shape,
+                                     stride_field,
+                                     src_field,
+                                     target_field);
+
+      break;
+
+    case FVMC_CELL_HEXA:
+      (_user_fcts->interp_hexa) (order,
+                                 ho_vertex_num,
+                                 local_to_user, 
+                                 vertex_coords,
+                                 point_coords,
+                                 shape,
+                                 stride_field,
+                                 src_field,
+                                 target_field);
+      break;
+
+    default:
+
+      bftc_error(__FILE__, __LINE__, 0,
+                 _("fvmc_ho_interp_in_cell_3d : Not a high order 3D element type\n"));
+    } 
+
   }
 
   else {
@@ -809,16 +1036,38 @@ fvmc_ho_interp_on_cell_2d (const fvmc_element_t type,
                            double *target_field)
 {
   if (_user_fcts != NULL) {
-    (_user_fcts->interp_2d) (type,
-                             order,
-                             ho_vertex_num,
-                             local_to_user,
-                             vertex_coords,
-                             point_coords,
-                             shape,
-                             stride_field,
-                             src_field,
-                             target_field);
+    switch (type) {
+      
+    case FVMC_FACE_TRIA:
+      (_user_fcts->interp_tria) (order,
+                                 ho_vertex_num,
+                                 local_to_user, 
+                                 vertex_coords,
+                                 point_coords,
+                                 shape,
+                                 stride_field,
+                                 src_field,
+                                 target_field);
+      break;
+      
+    case FVMC_FACE_QUAD:
+      (_user_fcts->interp_quad) (order,
+                                 ho_vertex_num,
+                                 local_to_user, 
+                                 vertex_coords,
+                                 point_coords,
+                                 shape,
+                                 stride_field,
+                                 src_field,
+                                 target_field);
+      break;
+      
+    default:
+
+      bftc_error(__FILE__, __LINE__, 0,
+                 _("fvmc_ho_interp_on_cell_2d : Not a high order 2D element type\n"));
+    }
+
   }
 
   else {
@@ -868,16 +1117,26 @@ fvmc_ho_interp_on_cell_1d (const fvmc_element_t type,
                            double *target_field)
 {
   if (_user_fcts != NULL) {
-    (_user_fcts->interp_1d) (type,
-                             order,
-                             ho_vertex_num,
-                             local_to_user,
-                             vertex_coords,
-                             point_coords,
-                             shape,
-                             stride_field,
-                             src_field,
-                             target_field);
+    switch (type) {
+      
+    case FVMC_EDGE:
+      (_user_fcts->interp_edge) (order,
+                                 ho_vertex_num,
+                                 local_to_user, 
+                                 vertex_coords,
+                                 point_coords,
+                                 shape,
+                                 stride_field,
+                                 src_field,
+                                 target_field);
+      break;
+      
+    default:
+
+      bftc_error(__FILE__, __LINE__, 0,
+                 _("fvmc_ho_interp_on_cell_1d : Not a high order 1D element type\n"));
+    }
+
   }
 
   else {

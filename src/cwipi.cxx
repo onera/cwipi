@@ -26,13 +26,15 @@
  * BFT library headers
  *----------------------------------------------------------------------------*/
 
-#include <bftc_mem.h>
-#include <bftc_printf.h>
+#include "bftc_mem.h"
+#include "bftc_printf.h"
 
 /*----------------------------------------------------------------------------
  * FVM library headers
  *----------------------------------------------------------------------------*/
-#include <fvmc_parall.h>
+
+#include "fvmc_parall.h"
+#include "fvmc_ho.h"
 
 /*----------------------------------------------------------------------------
  *  Local headers
@@ -1120,6 +1122,82 @@ void cwipi_ho_ordering_from_ref_elt_set (const char   *coupling_id,
 }
 
 /*----------------------------------------------------------------------------
+ * 
+ * Set elementary functions
+ * 
+ * parameters:
+ *   location_tetra    <-- Location in a tetrahedron
+ *   location_prism    <-- Location in a prism
+ *   location_pyramid  <-- Location in a pyramid
+ *   location_hexa     <-- Location in a hexaedron
+ *   location_tria     <-- Location on a triangle
+ *   location_quad     <-- Location on a quandragle
+ *   location_edge     <-- Location on a edge
+ *   shape_tetra       <-- Shape computation in a tetrahedron
+ *   shape_prism       <-- Shape computation in a prism
+ *   shape_pyramid     <-- Shape computation in a pyramid
+ *   shape_hexa        <-- Shape computation in a hexaedron
+ *   shape_tria        <-- Shape computation on a triangle
+ *   shape_quad        <-- Shape computation on a quandragle
+ *   shape_edge        <-- Shape computation on a edge
+ *   interp_tetra      <-- Interpolation in a tetrahedron
+ *   interp_prism      <-- Interpolation in a prism
+ *   interp_pyramid    <-- Interpolation in a pyramid
+ *   interp_hexa       <-- Interpolation in a hexaedron
+ *   interp_tria       <-- Interpolation on a triangle
+ *   interp_quad       <-- Interpolation on a quandragle
+ *   interp_edge       <-- Interpolation on a edge
+ *
+ *----------------------------------------------------------------------------*/
+
+void
+cwipi_ho_user_elementary_functions_set (cwipi_ho_location_fct_t location_tetra,
+                                        cwipi_ho_location_fct_t location_prism,
+                                        cwipi_ho_location_fct_t location_pyramid,
+                                        cwipi_ho_location_fct_t location_hexa,
+                                        cwipi_ho_location_fct_t location_tria,
+                                        cwipi_ho_location_fct_t location_quad,
+                                        cwipi_ho_location_fct_t location_edge,
+                                        cwipi_ho_shape_fct_t shape_tetra,
+                                        cwipi_ho_shape_fct_t shape_prism,
+                                        cwipi_ho_shape_fct_t shape_pyramid,
+                                        cwipi_ho_shape_fct_t shape_hexa,
+                                        cwipi_ho_shape_fct_t shape_tria,
+                                        cwipi_ho_shape_fct_t shape_quad,
+                                        cwipi_ho_shape_fct_t shape_edge,
+                                        cwipi_ho_interp_fct_t interp_tetra,
+                                        cwipi_ho_interp_fct_t interp_prism,
+                                        cwipi_ho_interp_fct_t interp_pyramid,
+                                        cwipi_ho_interp_fct_t interp_hexa,
+                                        cwipi_ho_interp_fct_t interp_tria,
+                                        cwipi_ho_interp_fct_t interp_quad,
+                                        cwipi_ho_interp_fct_t interp_edge)
+{
+
+  fvmc_ho_user_elementary_functions_set ((fvmc_ho_location_fct_t) location_tetra,
+                                         (fvmc_ho_location_fct_t) location_prism,
+                                         (fvmc_ho_location_fct_t) location_pyramid,
+                                         (fvmc_ho_location_fct_t) location_hexa,
+                                         (fvmc_ho_location_fct_t) location_tria,
+                                         (fvmc_ho_location_fct_t) location_quad,
+                                         (fvmc_ho_location_fct_t) location_edge,
+                                         (fvmc_ho_shape_fct_t) shape_tetra,
+                                         (fvmc_ho_shape_fct_t) shape_prism,
+                                         (fvmc_ho_shape_fct_t) shape_pyramid,
+                                         (fvmc_ho_shape_fct_t) shape_hexa,
+                                         (fvmc_ho_shape_fct_t) shape_tria,
+                                         (fvmc_ho_shape_fct_t) shape_quad,
+                                         (fvmc_ho_shape_fct_t) shape_edge,
+                                         (fvmc_ho_interp_fct_t) interp_tetra,
+                                         (fvmc_ho_interp_fct_t) interp_prism,
+                                         (fvmc_ho_interp_fct_t) interp_pyramid,
+                                         (fvmc_ho_interp_fct_t) interp_hexa,
+                                         (fvmc_ho_interp_fct_t) interp_tria,
+                                         (fvmc_ho_interp_fct_t) interp_quad,
+                                         (fvmc_ho_interp_fct_t) interp_edge);
+}
+
+/*----------------------------------------------------------------------------
  *
  * Location completion.
  * This is a synchronization point with the coupled application
@@ -1580,6 +1658,8 @@ void cwipi_finalize(void)
 
   const MPI_Comm globalComm = properties.getGlobalComm();
 
+  fvmc_ho_user_elementary_functions_unset();
+  
   bftc_printf("Finalize cwipi\n");
   couplingDataBase.kill();
   properties.kill();

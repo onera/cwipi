@@ -68,8 +68,7 @@ extern "C" {
  *----------------------------------------------------------------------------*/
 
 typedef double (*fvmc_ho_location_fct_t)
-(const fvmc_element_t type,
- const int order,
+(const int order,
  const int *ho_vertex_num,
  const double *vertex_coords,
  const double *point_coords,
@@ -90,8 +89,7 @@ typedef double (*fvmc_ho_location_fct_t)
  *----------------------------------------------------------------------------*/
 
 typedef double (*fvmc_ho_shape_fct_t)
-(const fvmc_element_t type,
- const int order,
+(const int order,
  const int *ho_vertex_num,
  const double *vertex_coords,
  const double *point_coords,
@@ -115,8 +113,7 @@ typedef double (*fvmc_ho_shape_fct_t)
  *----------------------------------------------------------------------------*/
 
 typedef void (*fvmc_ho_interp_fct_t)
-(const fvmc_element_t type,
- const int order,
+(const int order,
  const int *ho_vertex_num,
  const int *local_to_user,
  const double *vertex_coords,
@@ -134,6 +131,58 @@ typedef void (*fvmc_ho_interp_fct_t)
  * Public function prototypes
  *============================================================================*/
 
+/*----------------------------------------------------------------------------
+ * 
+ * Set elementary functions
+ * 
+ * parameters:
+ *   location_tetra    <-- Location in a tetrahedron
+ *   location_prism    <-- Location in a prism
+ *   location_pyramid  <-- Location in a pyramid
+ *   location_hexa     <-- Location in a hexaedron
+ *   location_tria     <-- Location on a triangle
+ *   location_quad     <-- Location on a quandragle
+ *   location_edge     <-- Location on a edge
+ *   shape_tetra       <-- Shape computation in a tetrahedron
+ *   shape_prism       <-- Shape computation in a prism
+ *   shape_pyramid     <-- Shape computation in a pyramid
+ *   shape_hexa        <-- Shape computation in a hexaedron
+ *   shape_tria        <-- Shape computation on a triangle
+ *   shape_quad        <-- Shape computation on a quandragle
+ *   shape_edge        <-- Shape computation on a edge
+ *   interp_tetra       <-- Interpolation in a tetrahedron
+ *   interp_prism       <-- Interpolation in a prism
+ *   interp_pyramid     <-- Interpolation in a pyramid
+ *   interp_hexa        <-- Interpolation in a hexaedron
+ *   interp_tria        <-- Interpolation on a triangle
+ *   interp_quad        <-- Interpolation on a quandragle
+ *   interp_edge        <-- Interpolation on a edge
+ *
+ *----------------------------------------------------------------------------*/
+
+void
+fvmc_ho_user_elementary_functions_set (fvmc_ho_location_fct_t location_tetra,
+                                       fvmc_ho_location_fct_t location_prism,
+                                       fvmc_ho_location_fct_t location_pyramid,
+                                       fvmc_ho_location_fct_t location_hexa,
+                                       fvmc_ho_location_fct_t location_tria,
+                                       fvmc_ho_location_fct_t location_quad,
+                                       fvmc_ho_location_fct_t location_edge,
+                                       fvmc_ho_shape_fct_t shape_tetra,
+                                       fvmc_ho_shape_fct_t shape_prism,
+                                       fvmc_ho_shape_fct_t shape_pyramid,
+                                       fvmc_ho_shape_fct_t shape_hexa,
+                                       fvmc_ho_shape_fct_t shape_tria,
+                                       fvmc_ho_shape_fct_t shape_quad,
+                                       fvmc_ho_shape_fct_t shape_edge,
+                                       fvmc_ho_interp_fct_t interp_tetra,
+                                       fvmc_ho_interp_fct_t interp_prism,
+                                       fvmc_ho_interp_fct_t interp_pyramid,
+                                       fvmc_ho_interp_fct_t interp_hexa,
+                                       fvmc_ho_interp_fct_t interp_tria,
+                                       fvmc_ho_interp_fct_t interp_quad,
+                                       fvmc_ho_interp_fct_t interp_edge);
+
 
 /*----------------------------------------------------------------------------
  * 
@@ -143,35 +192,6 @@ typedef void (*fvmc_ho_interp_fct_t)
 
 void
 fvmc_ho_user_elementary_functions_unset (void);
-
-/*----------------------------------------------------------------------------
- * 
- * Set elementary functions
- * 
- * parameters:
- *   location_3d  <-- Location in a 3d element
- *   location_2d  <-- Location on a 2d element
- *   location_1d  <-- Location on a 1d element
- *   shape_3d     <-- Shape computation in a 3d element
- *   shape_2d     <-- Shape computation on a 2d element
- *   shape_1d     <-- Shape computation on a 1d element
- *   interp_3d    <-- Interpolation in a 3d element
- *   interp_2d    <-- Interpolation on a 2d element
- *   interp_1d    <-- Interpolation on a 1d element
- *
- *----------------------------------------------------------------------------*/
-
-void
-fvmc_ho_user_elementary_functions_set (fvmc_ho_location_fct_t location_3d,
-                                       fvmc_ho_location_fct_t location_2d,
-                                       fvmc_ho_location_fct_t location_1d,
-                                       fvmc_ho_shape_fct_t shape_3d,
-                                       fvmc_ho_shape_fct_t shape_2d,
-                                       fvmc_ho_shape_fct_t shape_1d,
-                                       fvmc_ho_interp_fct_t interp_3d,
-                                       fvmc_ho_interp_fct_t interp_2d,
-                                       fvmc_ho_interp_fct_t interp_1d);
-
 
 /*----------------------------------------------------------------------------
  * 

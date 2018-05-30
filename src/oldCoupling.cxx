@@ -658,13 +658,13 @@ namespace cwipi {
 
     if (_isCoupledRank)
       _supportMesh = new oldMesh(_fvmComm,
-                              _entitiesDim,
-                              nVertex,
-                              nElement,
-                              coordinates,
-                              connectivity_index, 
-                              connectivity,
-                              order);
+                                 _entitiesDim,
+                                 nVertex,
+                                 nElement,
+                                 coordinates,
+                                 connectivity_index, 
+                                 connectivity,
+                                 order);
     else
       bftc_error(__FILE__, __LINE__, 0, "for a coupling without parallel partitionning,"
                  " the coupling mesh must be defined only by the root rank\n");

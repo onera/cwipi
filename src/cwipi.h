@@ -131,6 +131,7 @@ typedef enum {
 
   CWIPI_NODE,
   CWIPI_EDGE2,
+  CWIPI_EDGEHO,
   CWIPI_FACE_TRIA3,
   CWIPI_FACE_TRIAHO,
   CWIPI_FACE_QUAD4,
@@ -213,6 +214,82 @@ typedef void (*cwipi_interpolation_fct_t)
    const void *local_field,
    void *distant_field
    );
+
+/*----------------------------------------------------------------------------
+ * 
+ * Function pointer to locate in a high order cell 3d
+ * 
+ * parameters:
+ *   type             <-- element type
+ *   order            <-- element order
+ *   ho_vertex_num    <-- high order vertex num (internal ordering)
+ *   vertex_coords    <-- vertex coordinates
+ *   point_coords     <-- point to locate coordinates
+ *   projected_coords --> projected point coordinates (if point is outside) 
+ * 
+ * return: 
+ *   distance to the cell (distance <= 0 if point is inside)
+ *
+ *----------------------------------------------------------------------------*/
+
+typedef double (*cwipi_ho_location_fct_t)
+(const cwipi_element_t type,
+ const int order,
+ const int *ho_vertex_num,
+ const double *vertex_coords,
+ const double *point_coords,
+ double *projected_coords);
+
+/*----------------------------------------------------------------------------
+ * 
+ * Function pointer to compute shape in a high order cell 3d
+ * 
+ * parameters:
+ *   type             <-- element type
+ *   order            <-- element order
+ *   ho_vertex_num    <-- high order vertex num (internal ordering)
+ *   vertex_coords    <-- vertex coordinates
+ *   point_coords     <-- point on cell  
+ *   shape            --> barycenter's coordinates
+ * 
+ *----------------------------------------------------------------------------*/
+
+typedef double (*cwipi_ho_shape_fct_t)
+(const cwipi_element_t type,
+ const int order,
+ const int *ho_vertex_num,
+ const double *vertex_coords,
+ const double *point_coords,
+ double *shape);
+
+/*----------------------------------------------------------------------------
+ * Function pointer to define an high order interpolation
+ *
+ * parameters:
+ *   type              <-- element type
+ *   order             <-- element order
+ *   ho_vertex_num     <-- high order vertex num (internal ordering)
+ *   local_to_user     <-- local to user ordering (for type)
+ *   vertex_coords     <-- vertex coordinates
+ *   point_coords      <-- point inside cell (or on boundary) 
+ *   shape             <-- barycenter's coordinates
+ *   stride_field      <-- field stride
+ *   source_field      <-- source field (user ordering) 
+ *   target_field      --> target field (defined to point_coords)
+ *
+ *----------------------------------------------------------------------------*/
+
+typedef void (*cwipi_ho_interp_fct_t)
+(const cwipi_element_t type,
+ const int order,
+ const int *ho_vertex_num,
+ const int *local_to_user,
+ const double *vertex_coords,
+ const double *point_coords,
+ const double *shape,
+ const int stride_field,
+ const double *src_field,
+ double *target_field);
 
 /*=============================================================================
  * Static global variables
@@ -917,7 +994,68 @@ void cwipi_ho_ordering_from_ref_elt_set (const char   *coupling_id,
                                          const cwipi_element_t t_elt,
                                          const int n_nodes,
                                          const double *coords);
-                            
+
+/*----------------------------------------------------------------------------
+ * 
+ * Set elementary functions
+ * 
+ * parameters:
+ *   location_tetra    <-- Location in a tetrahedron
+ *   location_prism    <-- Location in a prism
+ *   location_pyramid  <-- Location in a pyramid
+ *   location_hexa     <-- Location in a hexaedron
+ *   location_tria     <-- Location on a triangle
+ *   location_quad     <-- Location on a quandragle
+ *   location_edge     <-- Location on a edge
+ *   shape_tetra       <-- Shape computation in a tetrahedron
+ *   shape_prism       <-- Shape computation in a prism
+ *   shape_pyramid     <-- Shape computation in a pyramid
+ *   shape_hexa        <-- Shape computation in a hexaedron
+ *   shape_tria        <-- Shape computation on a triangle
+ *   shape_quad        <-- Shape computation on a quandragle
+ *   shape_edge        <-- Shape computation on a edge
+ *   interp_tetra      <-- Interpolation in a tetrahedron
+ *   interp_prism      <-- Interpolation in a prism
+ *   interp_pyramid    <-- Interpolation in a pyramid
+ *   interp_hexa       <-- Interpolation in a hexaedron
+ *   interp_tria       <-- Interpolation on a triangle
+ *   interp_quad       <-- Interpolation on a quandragle
+ *   interp_edge       <-- Interpolation on a edge
+ *
+ *----------------------------------------------------------------------------*/
+
+void
+cwipi_ho_user_elementary_functions_set (cwipi_ho_location_fct_t location_tetra,
+                                        cwipi_ho_location_fct_t location_prism,
+                                        cwipi_ho_location_fct_t location_pyramid,
+                                        cwipi_ho_location_fct_t location_hexa,
+                                        cwipi_ho_location_fct_t location_tria,
+                                        cwipi_ho_location_fct_t location_quad,
+                                        cwipi_ho_location_fct_t location_edge,
+                                        cwipi_ho_shape_fct_t shape_tetra,
+                                        cwipi_ho_shape_fct_t shape_prism,
+                                        cwipi_ho_shape_fct_t shape_pyramid,
+                                        cwipi_ho_shape_fct_t shape_hexa,
+                                        cwipi_ho_shape_fct_t shape_tria,
+                                        cwipi_ho_shape_fct_t shape_quad,
+                                        cwipi_ho_shape_fct_t shape_edge,
+                                        cwipi_ho_interp_fct_t interp_tetra,
+                                        cwipi_ho_interp_fct_t interp_prism,
+                                        cwipi_ho_interp_fct_t interp_pyramid,
+                                        cwipi_ho_interp_fct_t interp_hexa,
+                                        cwipi_ho_interp_fct_t interp_tria,
+                                        cwipi_ho_interp_fct_t interp_quad,
+                                        cwipi_ho_interp_fct_t interp_edge);
+
+/*----------------------------------------------------------------------------
+ * 
+ * Unset elementary functions
+ * 
+ *----------------------------------------------------------------------------*/
+
+void
+cwipi_ho_user_elementary_functions_unset (void);
+
 /*----------------------------------------------------------------------------
  *
  * Add polyhedra to the mesh
