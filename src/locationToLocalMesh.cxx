@@ -1167,7 +1167,9 @@ void LocationToLocalMesh::compute2DMeanValues()
 
   else {
 
-    // fvmc_ho_location_in_cell_3d (this_section->type,
+    // fvmc_nodal_get_type_elt : continuer ici
+    //
+    // fvmc_ho_shape_in_cell_3d (this_section->type,
     //                              order,
     //                              this_section->_ho_vertex_num + i*this_section->stride,
     //                              vertex_coords,
