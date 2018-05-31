@@ -1951,6 +1951,33 @@ fvmc_nodal_get_connec_elt(const fvmc_nodal_t  *this_nodal, const int elt)
 }
 
 /*----------------------------------------------------------------------------
+ * return the number of nodes of an element
+ *
+ * parameters:
+ *   this_nodal           <-- pointer to nodal mesh structure
+ *   element              <-- element (1 to n numbering).
+ *
+ * returns:
+ *   number of nodes
+ *----------------------------------------------------------------------------*/
+
+int
+fvmc_nodal_get_n_node_elt(const fvmc_nodal_t  *this_nodal, const int elt)
+{
+  assert(this_nodal != NULL);
+
+  int _elt = elt-1;
+
+  int elt_section = 0;
+  
+  while (_elt >= this_nodal->sections_idx[++elt_section]);
+
+  elt_section -= 1 ;
+
+  return this_nodal->sections[elt_section]->stride;
+}
+
+/*----------------------------------------------------------------------------
  * Obtain the name of a nodal mesh.
  *
  * parameters:
