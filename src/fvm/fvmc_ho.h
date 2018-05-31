@@ -57,6 +57,7 @@ extern "C" {
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
+ *   n_node           <-- number of nodes
  *   ho_vertex_num    <-- high order vertex num (internal ordering)
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point to locate coordinates
@@ -69,6 +70,7 @@ extern "C" {
 
 typedef double (*fvmc_ho_location_fct_t)
 (const int order,
+ const int n_node,
  const int *ho_vertex_num,
  const double *vertex_coords,
  const double *point_coords,
@@ -81,6 +83,7 @@ typedef double (*fvmc_ho_location_fct_t)
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
+ *   n_node           <-- number of nodes
  *   ho_vertex_num    <-- high order vertex num (internal ordering)
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point on cell  
@@ -90,6 +93,7 @@ typedef double (*fvmc_ho_location_fct_t)
 
 typedef double (*fvmc_ho_shape_fct_t)
 (const int order,
+ const int n_node,
  const int *ho_vertex_num,
  const double *vertex_coords,
  const double *point_coords,
@@ -101,6 +105,7 @@ typedef double (*fvmc_ho_shape_fct_t)
  * parameters:
  *   type              <-- element type
  *   order             <-- element order
+ *   n_node           <-- number of nodes
  *   ho_vertex_num     <-- high order vertex num (internal ordering)
  *   local_to_user     <-- local to user ordering (for type)
  *   vertex_coords     <-- vertex coordinates
@@ -114,6 +119,7 @@ typedef double (*fvmc_ho_shape_fct_t)
 
 typedef void (*fvmc_ho_interp_fct_t)
 (const int order,
+ const int n_node,
  const int *ho_vertex_num,
  const int *local_to_user,
  const double *vertex_coords,
@@ -200,6 +206,7 @@ fvmc_ho_user_elementary_functions_unset (void);
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
+ *   n_node           <-- number of nodes
  *   ho_vertex_num    <-- high order vertex num (internal ordering)
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point to locate coordinates
@@ -213,6 +220,7 @@ fvmc_ho_user_elementary_functions_unset (void);
 double 
 fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
                              const int order,
+                             const int n_node,
                              const int *ho_vertex_num,
                              const double *vertex_coords,
                              const double *point_coords,
@@ -225,6 +233,7 @@ fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
+ *   n_node           <-- number of nodes
  *   ho_vertex_num    <-- high order vertex num (internal ordering)
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point to locate coordinates
@@ -238,6 +247,7 @@ fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
 double 
 fvmc_ho_location_on_cell_2d (const fvmc_element_t type,
                              const int order,
+                             const int n_node,
                              const int *ho_vertex_num,
                              const double *vertex_coords,
                              const double *point_coords,
@@ -250,6 +260,7 @@ fvmc_ho_location_on_cell_2d (const fvmc_element_t type,
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
+ *   n_node           <-- number of nodes
  *   ho_vertex_num    <-- high order vertex num (internal ordering)
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point to locate coordinates
@@ -263,6 +274,7 @@ fvmc_ho_location_on_cell_2d (const fvmc_element_t type,
 double 
 fvmc_ho_location_on_cell_1d (const fvmc_element_t type,
                              const int order,
+                             const int n_node,
                              const int *ho_vertex_num,
                              const double *vertex_coords,
                              const double *point_coords,
@@ -275,6 +287,7 @@ fvmc_ho_location_on_cell_1d (const fvmc_element_t type,
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
+ *   n_node           <-- number of nodes
  *   ho_vertex_num    <-- high order vertex num (internal ordering)
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point inside cell  
@@ -285,6 +298,7 @@ fvmc_ho_location_on_cell_1d (const fvmc_element_t type,
 void 
 fvmc_ho_shape_in_cell_3d (const fvmc_element_t type,
                           const int order,
+                          const int n_node,
                           const int *ho_vertex_num,
                           const double *vertex_coords,
                           const double *point_coords,
@@ -297,6 +311,7 @@ fvmc_ho_shape_in_cell_3d (const fvmc_element_t type,
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
+ *   n_node           <-- number of nodes
  *   ho_vertex_num    <-- high order vertex num (internal ordering)
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point on cell  
@@ -307,6 +322,7 @@ fvmc_ho_shape_in_cell_3d (const fvmc_element_t type,
 void 
 fvmc_ho_shape_on_cell_2d (const fvmc_element_t type,
                           const int order,
+                          const int n_node,
                           const int *ho_vertex_num,
                           const double *vertex_coords,
                           const double *point_coords,
@@ -319,6 +335,7 @@ fvmc_ho_shape_on_cell_2d (const fvmc_element_t type,
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
+ *   n_node           <-- number of nodes
  *   ho_vertex_num    <-- high order vertex num (internal ordering)
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point on cell  
@@ -329,6 +346,7 @@ fvmc_ho_shape_on_cell_2d (const fvmc_element_t type,
 void 
 fvmc_ho_shape_on_cell_1d (const fvmc_element_t type,
                           const int order,
+                          const int n_node,
                           const int *ho_vertex_num,
                           const double *vertex_coords,
                           const double *point_coords,
@@ -343,6 +361,7 @@ fvmc_ho_shape_on_cell_1d (const fvmc_element_t type,
  * parameters:
  *   type              <-- element type
  *   order             <-- element order
+ *   n_node            <-- number of nodes
  *   ho_vertex_num     <-- high order vertex num (internal ordering)
  *   local_to_user     <-- local to user ordering (for type)
  *   vertex_coords     <-- vertex coordinates
@@ -357,6 +376,7 @@ fvmc_ho_shape_on_cell_1d (const fvmc_element_t type,
 void 
 fvmc_ho_interp_in_cell_3d (const fvmc_element_t type,
                            const int order,
+                           const int n_node,
                            const int *ho_vertex_num,
                            const int *local_to_user,
                            const double *vertex_coords,
@@ -373,6 +393,7 @@ fvmc_ho_interp_in_cell_3d (const fvmc_element_t type,
  * parameters:
  *   type              <-- element type
  *   order             <-- element order
+ *   n_node            <-- number of nodes
  *   ho_vertex_num     <-- high order vertex num (internal ordering)
  *   local_to_user     <-- local to user ordering (for type)
  *   vertex_coords     <-- vertex coordinates
@@ -387,6 +408,7 @@ fvmc_ho_interp_in_cell_3d (const fvmc_element_t type,
 void 
 fvmc_ho_interp_on_cell_2d (const fvmc_element_t type,
                            const int order,
+                           const int n_node,
                            const int *ho_vertex_num,
                            const int *local_to_user,
                            const double *vertex_coords,
@@ -404,6 +426,7 @@ fvmc_ho_interp_on_cell_2d (const fvmc_element_t type,
  * parameters:
  *   type              <-- element type
  *   order             <-- element order
+ *   n_node            <-- number of nodes
  *   ho_vertex_num     <-- high order vertex num (internal ordering)
  *   local_to_user     <-- local to user ordering (for type)
  *   vertex_coords     <-- vertex coordinates
@@ -418,6 +441,7 @@ fvmc_ho_interp_on_cell_2d (const fvmc_element_t type,
 void 
 fvmc_ho_interp_on_cell_1d (const fvmc_element_t type,
                            const int order,
+                           const int n_node,
                            const int *ho_vertex_num,
                            const int *local_to_user,
                            const double *vertex_coords,

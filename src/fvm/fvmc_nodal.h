@@ -495,6 +495,34 @@ fvmc_nodal_order_get (const fvmc_nodal_t  *this_nodal);
 fvmc_element_t
 fvmc_nodal_get_type_elt(const fvmc_nodal_t  *this_nodal, const int elt);
 
+/*----------------------------------------------------------------------------
+ * return internal connectivity
+ *
+ * parameters:
+ *   this_nodal           <-- pointer to nodal mesh structure
+ *   element              <-- element (1 to n numbering).
+ *
+ * returns:
+ *   type
+ *----------------------------------------------------------------------------*/
+
+const int *
+fvmc_nodal_get_internal_connec_elt(const fvmc_nodal_t  *this_nodal, const int elt);
+
+/*----------------------------------------------------------------------------
+ * return connectivity
+ *
+ * parameters:
+ *   this_nodal           <-- pointer to nodal mesh structure
+ *   element              <-- element (1 to n numbering).
+ *
+ * returns:
+ *   type
+ *----------------------------------------------------------------------------*/
+
+const int *
+fvmc_nodal_get_connec_elt(const fvmc_nodal_t  *this_nodal, const int elt);
+
 /*----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus

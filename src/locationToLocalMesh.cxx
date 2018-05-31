@@ -1169,12 +1169,12 @@ void LocationToLocalMesh::compute2DMeanValues()
 
     // fvmc_nodal_get_type_elt : continuer ici
     //
-    // fvmc_ho_shape_in_cell_3d (this_section->type,
-    //                              order,
-    //                              this_section->_ho_vertex_num + i*this_section->stride,
-    //                              vertex_coords,
-    //                              _point_coords,
-    //                              _projected_coords);
+    // fvmc_ho_shape_on_cell_2d (this_section->type,
+    //                           order,
+    //                           this_section->_ho_vertex_num + i*this_section->stride,
+    //                           vertex_coords,
+    //                           _point_coords,
+    //                           _projected_coords);
     
   }
 }

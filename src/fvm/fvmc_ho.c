@@ -123,6 +123,7 @@ static fvmc_ho_user_fcts_t *_user_fcts = NULL;
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
+ *   n_node           <-- number of nodes
  *   ho_vertex_num    <-- high order vertex num (internal ordering)
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point to locate coordinates
@@ -136,6 +137,7 @@ static fvmc_ho_user_fcts_t *_user_fcts = NULL;
 static double 
 _default_location_in_cell_3d (const fvmc_element_t type,
                              const int order,
+                             const int n_node,
                              const int *ho_vertex_num,
                              const double *vertex_coords,
                              const double *point_coords,
@@ -154,6 +156,7 @@ _default_location_in_cell_3d (const fvmc_element_t type,
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
+ *   n_node           <-- number of nodes
  *   ho_vertex_num    <-- high order vertex num (internal ordering)
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point to locate coordinates
@@ -167,6 +170,7 @@ _default_location_in_cell_3d (const fvmc_element_t type,
 static double 
 _default_location_on_cell_2d (const fvmc_element_t type,
                              const int order,
+                             const int n_node,
                              const int *ho_vertex_num,
                              const double *vertex_coords,
                              const double *point_coords,
@@ -185,6 +189,7 @@ _default_location_on_cell_2d (const fvmc_element_t type,
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
+ *   n_node           <-- number of nodes
  *   ho_vertex_num    <-- high order vertex num (internal ordering)
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point to locate coordinates
@@ -198,6 +203,7 @@ _default_location_on_cell_2d (const fvmc_element_t type,
 static double 
 _default_location_on_cell_1d (const fvmc_element_t type,
                              const int order,
+                             const int n_node,
                              const int *ho_vertex_num,
                              const double *vertex_coords,
                              const double *point_coords,
@@ -216,6 +222,7 @@ _default_location_on_cell_1d (const fvmc_element_t type,
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
+ *   n_node           <-- number of nodes
  *   ho_vertex_num    <-- high order vertex num (internal ordering)
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point inside cell  
@@ -223,13 +230,14 @@ _default_location_on_cell_1d (const fvmc_element_t type,
  * 
  *----------------------------------------------------------------------------*/
 
-void 
-static _default_shape_in_cell_3d (const fvmc_element_t type,
-                          const int order,
-                          const int *ho_vertex_num,
-                          const double *vertex_coords,
-                          const double *point_coords,
-                          double *shape)
+static void
+_default_shape_in_cell_3d (const fvmc_element_t type,
+                           const int order,
+                           const int n_node,
+                           const int *ho_vertex_num,
+                           const double *vertex_coords,
+                           const double *point_coords,
+                           double *shape)
 {
   bftc_error(__FILE__, __LINE__, 0,
              _("_default_shape_in_cell_3d : Not implement yet\n"));
@@ -243,6 +251,7 @@ static _default_shape_in_cell_3d (const fvmc_element_t type,
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
+ *   n_node           <-- number of nodes
  *   ho_vertex_num    <-- high order vertex num (internal ordering)
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point on cell  
@@ -250,13 +259,14 @@ static _default_shape_in_cell_3d (const fvmc_element_t type,
  * 
  *----------------------------------------------------------------------------*/
 
-void 
-static _default_shape_on_cell_2d (const fvmc_element_t type,
-                          const int order,
-                          const int *ho_vertex_num,
-                          const double *vertex_coords,
-                          const double *point_coords,
-                          double *shape)
+static void 
+ _default_shape_on_cell_2d (const fvmc_element_t type,
+                            const int order,
+                            const int n_node,
+                            const int *ho_vertex_num,
+                            const double *vertex_coords,
+                            const double *point_coords,
+                            double *shape)
 {
   bftc_error(__FILE__, __LINE__, 0,
              _("_default_shape_on_cell_2d : Not implement yet\n"));
@@ -269,6 +279,7 @@ static _default_shape_on_cell_2d (const fvmc_element_t type,
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
+ *   n_node           <-- number of nodes
  *   ho_vertex_num    <-- high order vertex num (internal ordering)
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point on cell  
@@ -276,13 +287,14 @@ static _default_shape_on_cell_2d (const fvmc_element_t type,
  * 
  *----------------------------------------------------------------------------*/
 
-void 
-static _default_shape_on_cell_1d (const fvmc_element_t type,
-                          const int order,
-                          const int *ho_vertex_num,
-                          const double *vertex_coords,
-                          const double *point_coords,
-                          double *shape)
+static void 
+_default_shape_on_cell_1d (const fvmc_element_t type,
+                           const int order,
+                           const int n_node,
+                           const int *ho_vertex_num,
+                           const double *vertex_coords,
+                           const double *point_coords,
+                           double *shape)
 {
   bftc_error(__FILE__, __LINE__, 0,
              _("_default_shape_on_cell_1d : Not implemented yet\n"));
@@ -296,6 +308,7 @@ static _default_shape_on_cell_1d (const fvmc_element_t type,
  * parameters:
  *   type              <-- element type
  *   order             <-- element order
+ *   n_node            <-- number of nodes
  *   ho_vertex_num     <-- high order vertex num (internal ordering)
  *   local_to_user     <-- local to user ordering (for type)
  *   vertex_coords     <-- vertex coordinates
@@ -307,17 +320,18 @@ static _default_shape_on_cell_1d (const fvmc_element_t type,
  *
  *----------------------------------------------------------------------------*/
 
-void 
-static _default_interp_in_cell_3d (const fvmc_element_t type,
-                           const int order,
-                           const int *ho_vertex_num,
-                           const int *local_to_user,
-                           const double *vertex_coords,
-                           const double *point_coords,
-                           const double *shape,
-                           const int stride_field,
-                           const double *src_field,
-                           double *target_field)
+static void 
+_default_interp_in_cell_3d (const fvmc_element_t type,
+                            const int order,
+                            const int n_node,
+                            const int *ho_vertex_num,
+                            const int *local_to_user,
+                            const double *vertex_coords,
+                            const double *point_coords,
+                            const double *shape,
+                            const int stride_field,
+                            const double *src_field,
+                            double *target_field)
                            
 {
   bftc_error(__FILE__, __LINE__, 0,
@@ -332,6 +346,7 @@ static _default_interp_in_cell_3d (const fvmc_element_t type,
  * parameters:
  *   type              <-- element type
  *   order             <-- element order
+ *   n_node            <-- number of nodes
  *   ho_vertex_num     <-- high order vertex num (internal ordering)
  *   local_to_user     <-- local to user ordering (for type)
  *   vertex_coords     <-- vertex coordinates
@@ -345,15 +360,16 @@ static _default_interp_in_cell_3d (const fvmc_element_t type,
 
 static void 
 _default_interp_on_cell_2d (const fvmc_element_t type,
-                           const int order,
-                           const int *ho_vertex_num,
-                           const int *local_to_user,
-                           const double *vertex_coords,
-                           const double *point_coords,
-                           const double *shape,
-                           const int stride_field,
-                           const double *src_field,
-                           double *target_field)
+                            const int order,
+                            const int n_node,
+                            const int *ho_vertex_num,
+                            const int *local_to_user,
+                            const double *vertex_coords,
+                            const double *point_coords,
+                            const double *shape,
+                            const int stride_field,
+                            const double *src_field,
+                            double *target_field)
 {
   bftc_error(__FILE__, __LINE__, 0,
              _("_default_interp_on_cell_2d : Not implemented yet\n"));
@@ -367,6 +383,7 @@ _default_interp_on_cell_2d (const fvmc_element_t type,
  * parameters:
  *   type              <-- element type
  *   order             <-- element order
+ *   n_node            <-- number of nodes
  *   ho_vertex_num     <-- high order vertex num (internal ordering)
  *   local_to_user     <-- local to user ordering (for type)
  *   vertex_coords     <-- vertex coordinates
@@ -380,15 +397,16 @@ _default_interp_on_cell_2d (const fvmc_element_t type,
 
 static void 
 _default_interp_on_cell_1d (const fvmc_element_t type,
-                           const int order,
-                           const int *ho_vertex_num,
-                           const int *local_to_user,
-                           const double *vertex_coords,
-                           const double *point_coords,
-                           const double *shape,
-                           const int stride_field,
-                           const double *src_field,
-                           double *target_field)
+                            const int order,
+                            const int n_node,
+                            const int *ho_vertex_num,
+                            const int *local_to_user,
+                            const double *vertex_coords,
+                            const double *point_coords,
+                            const double *shape,
+                            const int stride_field,
+                            const double *src_field,
+                            double *target_field)
 {
   bftc_error(__FILE__, __LINE__, 0,
              _("_default_shape_on_cell_1d : Not implemented yet\n"));
@@ -505,6 +523,7 @@ fvmc_ho_user_elementary_functions_set (fvmc_ho_location_fct_t location_tetra,
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
+ *   n_node            <-- number of nodes
  *   ho_vertex_num    <-- high order vertex num (internal ordering)
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point to locate coordinates
@@ -518,6 +537,7 @@ fvmc_ho_user_elementary_functions_set (fvmc_ho_location_fct_t location_tetra,
 double 
 fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
                              const int order,
+                             const int n_node,
                              const int *ho_vertex_num,
                              const double *vertex_coords,
                              const double *point_coords,
@@ -533,6 +553,7 @@ fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
       
     case FVMC_CELL_TETRA:
       return (_user_fcts->location_tetra) (order,
+                                           n_node,
                                            ho_vertex_num,
                                            vertex_coords,
                                            point_coords,
@@ -541,6 +562,7 @@ fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
       
     case FVMC_CELL_PRISM:
       return (_user_fcts->location_prism) (order,
+                                           n_node,
                                            ho_vertex_num,
                                            vertex_coords,
                                            point_coords,
@@ -549,6 +571,7 @@ fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
       
     case FVMC_CELL_PYRAM:
       return (_user_fcts->location_pyramid) (order,
+                                             n_node,
                                              ho_vertex_num,
                                              vertex_coords,
                                              point_coords,
@@ -557,6 +580,7 @@ fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
 
     case FVMC_CELL_HEXA:
       return (_user_fcts->location_hexa) (order,
+                                          n_node,
                                           ho_vertex_num,
                                           vertex_coords,
                                           point_coords,
@@ -574,6 +598,7 @@ fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
 
     return _default_location_in_cell_3d (type,
                                          order,
+                                         n_node,
                                          ho_vertex_num,
                                          vertex_coords,
                                          point_coords,
@@ -591,6 +616,7 @@ fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
+ *   n_node            <-- number of nodes
  *   ho_vertex_num    <-- high order vertex num (internal ordering)
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point to locate coordinates
@@ -604,6 +630,7 @@ fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
 double 
 fvmc_ho_location_on_cell_2d (const fvmc_element_t type,
                              const int order,
+                             const int n_node,
                              const int *ho_vertex_num,
                              const double *vertex_coords,
                              const double *point_coords,
@@ -615,6 +642,7 @@ fvmc_ho_location_on_cell_2d (const fvmc_element_t type,
       
     case FVMC_FACE_TRIA:
       return (_user_fcts->location_tria) (order,
+                                          n_node,
                                           ho_vertex_num,
                                           vertex_coords,
                                           point_coords,
@@ -623,6 +651,7 @@ fvmc_ho_location_on_cell_2d (const fvmc_element_t type,
       
     case FVMC_FACE_QUAD:
       return (_user_fcts->location_quad) (order,
+                                          n_node,
                                           ho_vertex_num,
                                           vertex_coords,
                                           point_coords,
@@ -640,6 +669,7 @@ fvmc_ho_location_on_cell_2d (const fvmc_element_t type,
 
     return _default_location_on_cell_2d (type,
                                          order,
+                                         n_node,
                                          ho_vertex_num,
                                          vertex_coords,
                                          point_coords,
@@ -655,6 +685,7 @@ fvmc_ho_location_on_cell_2d (const fvmc_element_t type,
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
+ *   n_node            <-- number of nodes
  *   ho_vertex_num    <-- high order vertex num (internal ordering)
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point to locate coordinates
@@ -668,6 +699,7 @@ fvmc_ho_location_on_cell_2d (const fvmc_element_t type,
 double 
 fvmc_ho_location_on_cell_1d (const fvmc_element_t type,
                              const int order,
+                             const int n_node,
                              const int *ho_vertex_num,
                              const double *vertex_coords,
                              const double *point_coords,
@@ -679,6 +711,7 @@ fvmc_ho_location_on_cell_1d (const fvmc_element_t type,
       
     case FVMC_EDGE:
       return (_user_fcts->location_edge) (order,
+                                          n_node,
                                           ho_vertex_num,
                                           vertex_coords,
                                           point_coords,
@@ -696,6 +729,7 @@ fvmc_ho_location_on_cell_1d (const fvmc_element_t type,
 
     return _default_location_on_cell_1d (type,
                                          order,
+                                         n_node,
                                          ho_vertex_num,
                                          vertex_coords,
                                          point_coords,
@@ -713,6 +747,7 @@ fvmc_ho_location_on_cell_1d (const fvmc_element_t type,
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
+ *   n_node            <-- number of nodes
  *   ho_vertex_num    <-- high order vertex num (internal ordering)
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point inside cell  
@@ -723,6 +758,7 @@ fvmc_ho_location_on_cell_1d (const fvmc_element_t type,
 void 
 fvmc_ho_shape_in_cell_3d (const fvmc_element_t type,
                           const int order,
+                          const int n_node,
                           const int *ho_vertex_num,
                           const double *vertex_coords,
                           const double *point_coords,
@@ -734,6 +770,7 @@ fvmc_ho_shape_in_cell_3d (const fvmc_element_t type,
       
     case FVMC_CELL_TETRA:
       (_user_fcts->shape_tetra) (order,
+                                 n_node,
                                  ho_vertex_num,
                                  vertex_coords,
                                  point_coords,
@@ -742,6 +779,7 @@ fvmc_ho_shape_in_cell_3d (const fvmc_element_t type,
       
     case FVMC_CELL_PRISM:
       (_user_fcts->shape_prism) (order,
+                                 n_node,
                                  ho_vertex_num,
                                  vertex_coords,
                                  point_coords,
@@ -750,6 +788,7 @@ fvmc_ho_shape_in_cell_3d (const fvmc_element_t type,
       
     case FVMC_CELL_PYRAM:
       (_user_fcts->shape_pyramid) (order,
+                                   n_node,
                                    ho_vertex_num,
                                    vertex_coords,
                                    point_coords,
@@ -758,6 +797,7 @@ fvmc_ho_shape_in_cell_3d (const fvmc_element_t type,
 
     case FVMC_CELL_HEXA:
       (_user_fcts->shape_hexa) (order,
+                                n_node,
                                 ho_vertex_num,
                                 vertex_coords,
                                 point_coords,
@@ -776,6 +816,7 @@ fvmc_ho_shape_in_cell_3d (const fvmc_element_t type,
 
     _default_shape_in_cell_3d (type,
                                order,
+                               n_node,
                                ho_vertex_num,
                                vertex_coords,
                                point_coords,
@@ -791,6 +832,7 @@ fvmc_ho_shape_in_cell_3d (const fvmc_element_t type,
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
+ *   n_node            <-- number of nodes
  *   ho_vertex_num    <-- high order vertex num (internal ordering)
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point on cell  
@@ -801,6 +843,7 @@ fvmc_ho_shape_in_cell_3d (const fvmc_element_t type,
 void 
 fvmc_ho_shape_on_cell_2d (const fvmc_element_t type,
                           const int order,
+                          const int n_node,
                           const int *ho_vertex_num,
                           const double *vertex_coords,
                           const double *point_coords,
@@ -811,6 +854,7 @@ fvmc_ho_shape_on_cell_2d (const fvmc_element_t type,
       
     case FVMC_FACE_TRIA:
       (_user_fcts->shape_tria) (order,
+                                n_node,
                                 ho_vertex_num,
                                 vertex_coords,
                                 point_coords,
@@ -819,6 +863,7 @@ fvmc_ho_shape_on_cell_2d (const fvmc_element_t type,
       
     case FVMC_FACE_QUAD:
       (_user_fcts->shape_quad) (order,
+                                n_node,
                                 ho_vertex_num,
                                 vertex_coords,
                                 point_coords,
@@ -836,6 +881,7 @@ fvmc_ho_shape_on_cell_2d (const fvmc_element_t type,
 
     _default_shape_on_cell_2d (type,
                                order,
+                               n_node,
                                ho_vertex_num,
                                vertex_coords,
                                point_coords,
@@ -851,6 +897,7 @@ fvmc_ho_shape_on_cell_2d (const fvmc_element_t type,
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
+ *   n_node            <-- number of nodes
  *   ho_vertex_num    <-- high order vertex num (internal ordering)
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point on cell  
@@ -861,6 +908,7 @@ fvmc_ho_shape_on_cell_2d (const fvmc_element_t type,
 void 
 fvmc_ho_shape_on_cell_1d (const fvmc_element_t type,
                           const int order,
+                          const int n_node,
                           const int *ho_vertex_num,
                           const double *vertex_coords,
                           const double *point_coords,
@@ -871,6 +919,7 @@ fvmc_ho_shape_on_cell_1d (const fvmc_element_t type,
       
     case FVMC_EDGE:
       (_user_fcts->shape_edge) (order,
+                                n_node,
                                 ho_vertex_num,
                                 vertex_coords,
                                 point_coords,
@@ -889,6 +938,7 @@ fvmc_ho_shape_on_cell_1d (const fvmc_element_t type,
 
     _default_shape_on_cell_1d (type,
                                order,
+                               n_node,
                                ho_vertex_num,
                                vertex_coords,
                                point_coords,
@@ -905,6 +955,7 @@ fvmc_ho_shape_on_cell_1d (const fvmc_element_t type,
  * parameters:
  *   type              <-- element type
  *   order             <-- element order
+ *   n_node            <-- number of nodes
  *   ho_vertex_num     <-- high order vertex num (internal ordering)
  *   local_to_user     <-- local to user ordering (for type)
  *   vertex_coords     <-- vertex coordinates
@@ -919,6 +970,7 @@ fvmc_ho_shape_on_cell_1d (const fvmc_element_t type,
 void 
 fvmc_ho_interp_in_cell_3d (const fvmc_element_t type,
                            const int order,
+                           const int n_node,
                            const int *ho_vertex_num,
                            const int *local_to_user,
                            const double *vertex_coords,
@@ -935,6 +987,7 @@ fvmc_ho_interp_in_cell_3d (const fvmc_element_t type,
       
     case FVMC_CELL_TETRA:
       (_user_fcts->interp_tetra) (order,
+                                  n_node,
                                   ho_vertex_num,
                                   local_to_user, 
                                   vertex_coords,
@@ -949,6 +1002,7 @@ fvmc_ho_interp_in_cell_3d (const fvmc_element_t type,
     case FVMC_CELL_PRISM:
 
       (_user_fcts->interp_prism) (order,
+                                  n_node,
                                   ho_vertex_num,
                                   local_to_user, 
                                   vertex_coords,
@@ -962,6 +1016,7 @@ fvmc_ho_interp_in_cell_3d (const fvmc_element_t type,
       
     case FVMC_CELL_PYRAM:
       (_user_fcts->interp_pyramid ) (order,
+                                     n_node,
                                      ho_vertex_num,
                                      local_to_user, 
                                      vertex_coords,
@@ -975,6 +1030,7 @@ fvmc_ho_interp_in_cell_3d (const fvmc_element_t type,
 
     case FVMC_CELL_HEXA:
       (_user_fcts->interp_hexa) (order,
+                                 n_node,
                                  ho_vertex_num,
                                  local_to_user, 
                                  vertex_coords,
@@ -997,6 +1053,7 @@ fvmc_ho_interp_in_cell_3d (const fvmc_element_t type,
 
     _default_interp_in_cell_3d (type,
                                 order,
+                                n_node,
                                 ho_vertex_num,
                                 local_to_user,
                                 vertex_coords,
@@ -1017,6 +1074,7 @@ fvmc_ho_interp_in_cell_3d (const fvmc_element_t type,
  * parameters:
  *   type              <-- element type
  *   order             <-- element order
+ *   n_node            <-- number of nodes
  *   ho_vertex_num     <-- high order vertex num (internal ordering)
  *   local_to_user     <-- local to user ordering (for type)
  *   vertex_coords     <-- vertex coordinates
@@ -1031,6 +1089,7 @@ fvmc_ho_interp_in_cell_3d (const fvmc_element_t type,
 void 
 fvmc_ho_interp_on_cell_2d (const fvmc_element_t type,
                            const int order,
+                           const int n_node,
                            const int *ho_vertex_num,
                            const int *local_to_user,
                            const double *vertex_coords,
@@ -1045,6 +1104,7 @@ fvmc_ho_interp_on_cell_2d (const fvmc_element_t type,
       
     case FVMC_FACE_TRIA:
       (_user_fcts->interp_tria) (order,
+                                 n_node,
                                  ho_vertex_num,
                                  local_to_user, 
                                  vertex_coords,
@@ -1057,6 +1117,7 @@ fvmc_ho_interp_on_cell_2d (const fvmc_element_t type,
       
     case FVMC_FACE_QUAD:
       (_user_fcts->interp_quad) (order,
+                                 n_node,
                                  ho_vertex_num,
                                  local_to_user, 
                                  vertex_coords,
@@ -1079,6 +1140,7 @@ fvmc_ho_interp_on_cell_2d (const fvmc_element_t type,
 
     _default_interp_on_cell_2d (type,
                                 order,
+                                n_node,
                                 ho_vertex_num,
                                 local_to_user,
                                 vertex_coords,
@@ -1098,6 +1160,7 @@ fvmc_ho_interp_on_cell_2d (const fvmc_element_t type,
  * parameters:
  *   type              <-- element type
  *   order             <-- element order
+ *   n_node            <-- number of nodes
  *   ho_vertex_num     <-- high order vertex num (internal ordering)
  *   local_to_user     <-- local to user ordering (for type)
  *   vertex_coords     <-- vertex coordinates
@@ -1112,6 +1175,7 @@ fvmc_ho_interp_on_cell_2d (const fvmc_element_t type,
 void 
 fvmc_ho_interp_on_cell_1d (const fvmc_element_t type,
                            const int order,
+                           const int n_node,
                            const int *ho_vertex_num,
                            const int *local_to_user,
                            const double *vertex_coords,
@@ -1126,6 +1190,7 @@ fvmc_ho_interp_on_cell_1d (const fvmc_element_t type,
       
     case FVMC_EDGE:
       (_user_fcts->interp_edge) (order,
+                                 n_node,
                                  ho_vertex_num,
                                  local_to_user, 
                                  vertex_coords,
@@ -1148,6 +1213,7 @@ fvmc_ho_interp_on_cell_1d (const fvmc_element_t type,
 
     _default_interp_on_cell_1d (type,
                                 order,
+                                n_node,
                                 ho_vertex_num,
                                 local_to_user,
                                 vertex_coords,

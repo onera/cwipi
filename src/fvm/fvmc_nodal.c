@@ -1880,6 +1880,76 @@ fvmc_nodal_get_type_elt(const fvmc_nodal_t  *this_nodal, const int elt)
   return this_nodal->sections[elt_section]->type;
 }
 
+
+/*----------------------------------------------------------------------------
+ * return internal connectivity
+ *
+ * parameters:
+ *   this_nodal           <-- pointer to nodal mesh structure
+ *   element              <-- element (1 to n numbering).
+ *
+ * returns:
+ *   type
+ *----------------------------------------------------------------------------*/
+
+const int *
+fvmc_nodal_get_internal_connec_elt(const fvmc_nodal_t  *this_nodal, const int elt)
+{
+  assert(this_nodal != NULL);
+
+  int _elt = elt-1;
+
+  int elt_section = 0;
+
+  int *_vertex_num = NULL;
+  
+  while (_elt >= this_nodal->sections_idx[++elt_section]);
+
+  elt_section -= 1 ;
+  int elt_loc = _elt - this_nodal->sections_idx[elt_section];
+
+  if (this_nodal->sections[elt_section]->_ho_vertex_num != NULL) {
+    _vertex_num = this_nodal->sections[elt_section]->_ho_vertex_num +
+      elt_loc * this_nodal->sections[elt_section]->stride;
+  }
+  else {
+    _vertex_num = this_nodal->sections[elt_section]->_vertex_num +
+      elt_loc * this_nodal->sections[elt_section]->stride;
+  }
+  
+  return _vertex_num;
+}
+
+/*----------------------------------------------------------------------------
+ * return connectivity
+ *
+ * parameters:
+ *   this_nodal           <-- pointer to nodal mesh structure
+ *   element              <-- element (1 to n numbering).
+ *
+ * returns:
+ *   type
+ *----------------------------------------------------------------------------*/
+
+const int *
+fvmc_nodal_get_connec_elt(const fvmc_nodal_t  *this_nodal, const int elt)
+{
+  assert(this_nodal != NULL);
+
+  int _elt = elt-1;
+
+  int elt_section = 0;
+  
+  while (_elt >= this_nodal->sections_idx[++elt_section]);
+
+  elt_section -= 1 ;
+  int elt_loc = _elt - this_nodal->sections_idx[elt_section];
+
+  return this_nodal->sections[elt_section]->_vertex_num +
+    elt_loc * this_nodal->sections[elt_section]->stride;
+
+}
+
 /*----------------------------------------------------------------------------
  * Obtain the name of a nodal mesh.
  *
