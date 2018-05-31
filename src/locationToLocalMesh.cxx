@@ -1167,6 +1167,17 @@ void LocationToLocalMesh::compute2DMeanValues()
 
   else {
 
+    for (int ipoint =  0; ipoint < n_dist_points; ipoint++ ) {
+      int ielt = dist_locations[ipoint] - 1;
+
+      const int *inter_connec = fvmc_nodal_get_internal_connec_elt (&(_supportMesh->getFvmNodal()), ielt+1);
+
+      const int order = fvmc_nodal_order_get (&(_supportMesh->getFvmNodal()));
+      
+      int nbr_som_fac =  meshConnectivityIndex[ielt+1] - 
+                         meshConnectivityIndex[ielt];
+
+    
     // fvmc_nodal_get_type_elt : continuer ici
     //
     // fvmc_ho_shape_on_cell_2d (this_section->type,
@@ -1175,7 +1186,9 @@ void LocationToLocalMesh::compute2DMeanValues()
     //                           vertex_coords,
     //                           _point_coords,
     //                           _projected_coords);
-    
+
+    }
+      
   }
 }
 
