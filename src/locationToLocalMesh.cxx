@@ -26,7 +26,8 @@
 #include <cfloat>
 
 #include <bftc_printf.h>
-#include <fvmc_point_location.h>
+#include "fvmc_point_location.h"
+#include "fvmc_ho.h"
 
 #include "locationToLocalMesh.hxx"
 #include "locationToDistantMesh.hxx"
@@ -465,39 +466,76 @@ void LocationToLocalMesh::locate()
           const int *eltsConnecPointer = _supportMesh->getEltConnectivityIndex();
           const int *eltsConnec = _supportMesh->getEltConnectivity();
           const double *localCoords    = _supportMesh->getVertexCoords();
+
+          const int order = _supportMesh->getOrder();
+          const fvmc_coord_t *proj_coords = fvmc_locator_get_dist_projected_coords(_fvmLocator);
+
+          if (order == -1) {
           
-          if ( nDistantPoint > 0 ) {
+            if ( nDistantPoint > 0 ) {
+              _barycentricCoordinatesIndex = new std::vector <int> (nDistantPoint + 1);
+              _barycentricCoordinates = new std::vector <double> (2 * nDistantPoint);
+              std::vector <int> &  _refBarycentricCoordinatesIndex = *_barycentricCoordinatesIndex;
+              std::vector <double> &  _refBarycentricCoordinates = *_barycentricCoordinates;
+              
+              _refBarycentricCoordinatesIndex[0] = 0;
+              
+              for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
+                int iel = distantLocation[ipoint] - 1;
+                _refBarycentricCoordinatesIndex[ipoint+1] = _refBarycentricCoordinatesIndex[ipoint] + 2;
+                int index = eltsConnecPointer[iel];
+                int nVertex = eltsConnecPointer[iel+1] - eltsConnecPointer[iel];
+                assert(nVertex == 2);
+                int pt1 = eltsConnec[index] - 1;
+                int pt2 = eltsConnec[index+1] - 1;
+                double coef1 = sqrt((localCoords[3*pt1]-distantCoords[3*ipoint])
+                                    *(localCoords[3*pt1]-distantCoords[3*ipoint])+
+                                    (localCoords[3*pt1+1]-distantCoords[3*ipoint+1])
+                                    *(localCoords[3*pt1+1]-distantCoords[3*ipoint+1])+
+                                    (localCoords[3*pt1+2]-distantCoords[3*ipoint+2])
+                                    *(localCoords[3*pt1+2]-distantCoords[3*ipoint+2]));
+                double coef2 = sqrt((localCoords[3*pt2]-distantCoords[3*ipoint])
+                                    *(localCoords[3*pt2]-distantCoords[3*ipoint])+
+                                    (localCoords[3*pt2+1]-distantCoords[3*ipoint+1])
+                                    *(localCoords[3*pt2+1]-distantCoords[3*ipoint+1])+
+                                    (localCoords[3*pt2+2]-distantCoords[3*ipoint+2])
+                                    *(localCoords[3*pt2+2]-distantCoords[3*ipoint+2]));
+                _refBarycentricCoordinates[_refBarycentricCoordinatesIndex[ipoint]] = 
+                  coef2/(coef1+coef2);
+                _refBarycentricCoordinates[_refBarycentricCoordinatesIndex[ipoint]+1] = 
+                  coef1/(coef1+coef2);
+              }
+            }
+          }
+
+          else {
             _barycentricCoordinatesIndex = new std::vector <int> (nDistantPoint + 1);
-            _barycentricCoordinates = new std::vector <double> (2 * nDistantPoint);
+            _barycentricCoordinates = new std::vector <double> ((order+ 1) * nDistantPoint);
             std::vector <int> &  _refBarycentricCoordinatesIndex = *_barycentricCoordinatesIndex;
             std::vector <double> &  _refBarycentricCoordinates = *_barycentricCoordinates;
             
             _refBarycentricCoordinatesIndex[0] = 0;
-            
             for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
-              int iel = distantLocation[ipoint] - 1;
-              _refBarycentricCoordinatesIndex[ipoint+1] = _refBarycentricCoordinatesIndex[ipoint] + 2;
-              int index = eltsConnecPointer[iel];
-              int nVertex = eltsConnecPointer[iel+1] - eltsConnecPointer[iel];
-              assert(nVertex == 2);
-              int pt1 = eltsConnec[index] - 1;
-              int pt2 = eltsConnec[index+1] - 1;
-              double coef1 = sqrt((localCoords[3*pt1]-distantCoords[3*ipoint])
-                                  *(localCoords[3*pt1]-distantCoords[3*ipoint])+
-                                  (localCoords[3*pt1+1]-distantCoords[3*ipoint+1])
-                                  *(localCoords[3*pt1+1]-distantCoords[3*ipoint+1])+
-                                  (localCoords[3*pt1+2]-distantCoords[3*ipoint+2])
-                                  *(localCoords[3*pt1+2]-distantCoords[3*ipoint+2]));
-              double coef2 = sqrt((localCoords[3*pt2]-distantCoords[3*ipoint])
-                                  *(localCoords[3*pt2]-distantCoords[3*ipoint])+
-                                  (localCoords[3*pt2+1]-distantCoords[3*ipoint+1])
-                                  *(localCoords[3*pt2+1]-distantCoords[3*ipoint+1])+
-                                  (localCoords[3*pt2+2]-distantCoords[3*ipoint+2])
-                                  *(localCoords[3*pt2+2]-distantCoords[3*ipoint+2]));
-              _refBarycentricCoordinates[_refBarycentricCoordinatesIndex[ipoint]] = 
-                coef2/(coef1+coef2);
-              _refBarycentricCoordinates[_refBarycentricCoordinatesIndex[ipoint]+1] = 
-                coef1/(coef1+coef2);
+              _refBarycentricCoordinatesIndex[ipoint + 1] =
+                _refBarycentricCoordinatesIndex[ipoint] + (order +1);
+            }
+
+            for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
+              int ielt = distantLocation[ipoint] - 1;
+              const fvmc_element_t elt_t =
+                fvmc_nodal_get_type_elt (&(_supportMesh->getFvmNodal()), ielt + 1);
+      
+              const int *intern_connec =
+                fvmc_nodal_get_internal_connec_elt (&(_supportMesh->getFvmNodal()), ielt+1);
+              fvmc_ho_shape_on_cell_1d (elt_t,
+                                        order,
+                                        order + 1,
+                                        intern_connec,
+                                        localCoords,
+                                        proj_coords + 3 * ipoint,
+                                        &(_refBarycentricCoordinates[0]) +
+                                        _refBarycentricCoordinatesIndex[ipoint]);
+       
             }
           }
         }
@@ -1127,6 +1165,7 @@ void LocationToLocalMesh::compute2DMeanValues()
   const int n_dist_points = fvmc_locator_get_n_dist_points(_fvmLocator);
   const fvmc_lnum_t *dist_locations = fvmc_locator_get_dist_locations(_fvmLocator);
   const fvmc_coord_t *dist_coords = fvmc_locator_get_dist_coords(_fvmLocator);
+  const fvmc_coord_t *proj_coords = fvmc_locator_get_dist_projected_coords(_fvmLocator);
 
   const int *meshConnectivityIndex = _supportMesh->getEltConnectivityIndex();
   const int *meshConnectivity = _supportMesh->getEltConnectivity();
@@ -1170,22 +1209,19 @@ void LocationToLocalMesh::compute2DMeanValues()
     for (int ipoint =  0; ipoint < n_dist_points; ipoint++ ) {
       int ielt = dist_locations[ipoint] - 1;
 
-      const int *inter_connec = fvmc_nodal_get_internal_connec_elt (&(_supportMesh->getFvmNodal()), ielt+1);
+      const int *intern_connec = fvmc_nodal_get_internal_connec_elt (&(_supportMesh->getFvmNodal()), ielt+1);
 
-      const int order = fvmc_nodal_order_get (&(_supportMesh->getFvmNodal()));
-      
-      int nbr_som_fac =  meshConnectivityIndex[ielt+1] - 
-                         meshConnectivityIndex[ielt];
+      const fvmc_element_t elt_t =  fvmc_nodal_get_type_elt (&(_supportMesh->getFvmNodal()), ielt + 1);
 
-    
-    // fvmc_nodal_get_type_elt : continuer ici
-    //
-    // fvmc_ho_shape_on_cell_2d (this_section->type,
-    //                           order,
-    //                           this_section->_ho_vertex_num + i*this_section->stride,
-    //                           vertex_coords,
-    //                           _point_coords,
-    //                           _projected_coords);
+      int nbr_som_fac =  meshConnectivityIndex[ielt+1] - meshConnectivityIndex[ielt];
+
+      fvmc_ho_shape_on_cell_2d (elt_t,
+                                order,
+                                nbr_som_fac,
+                                intern_connec,
+                                meshVertexCoords,
+                                proj_coords + 3 * ipoint,
+                                &(distBarCoords[0]) + nDistBarCoords[ipoint]);
 
     }
       
@@ -1529,6 +1565,7 @@ void LocationToLocalMesh::compute3DMeanValues()
   const fvmc_lnum_t *dist_locations = fvmc_locator_get_dist_locations(_fvmLocator);
   const float *dist_distances       = fvmc_locator_get_dist_distances(_fvmLocator);
   const fvmc_coord_t *dist_coords   = fvmc_locator_get_dist_coords(_fvmLocator);
+  const fvmc_coord_t *proj_coords = fvmc_locator_get_dist_projected_coords(_fvmLocator);
 
 
   /**** Tableaux barycentriques ****/
@@ -1583,441 +1620,480 @@ void LocationToLocalMesh::compute3DMeanValues()
   std::vector <double> faceDistBarCoords(8);
 
   //  for (int ipoint =  0; ipoint < n_dist_points; ipoint++ ) {
-  int ipoint = 0;
-  int ipoint_old = -1;
-  while (ipoint < n_dist_points) {
-    int ielt = dist_locations[ipoint] - 1; // numero de l'element le plus proche du point
 
-    float dist;
+  const int order = _supportMesh->getOrder();
+ 
+  if (order == -1) {
 
-    if (ipoint != ipoint_old)
+    int ipoint = 0;
+    int ipoint_old = -1;
+    while (ipoint < n_dist_points) {
+      int ielt = dist_locations[ipoint] - 1; // numero de l'element le plus proche du point
 
-      dist = dist_distances[ipoint]; // numero de l'element le plus proche du point
+      float dist;
 
-    else
+      if (ipoint != ipoint_old)
 
-      dist = 1.1;  //
+        dist = dist_distances[ipoint]; // numero de l'element le plus proche du point
 
-    ipoint_old = ipoint;
+      else
 
-    /* Coordonnees du point distant */
+        dist = 1.1;  //
 
-    fvmc_coord_t coo_point_dist[3];
+      ipoint_old = ipoint;
 
-    coo_point_dist[0] = dist_coords[3 * ipoint    ];
-    coo_point_dist[1] = dist_coords[3 * ipoint + 1];
-    coo_point_dist[2] = dist_coords[3 * ipoint + 2];
+      /* Coordonnees du point distant */
+
+      fvmc_coord_t coo_point_dist[3];
+
+      coo_point_dist[0] = dist_coords[3 * ipoint    ];
+      coo_point_dist[1] = dist_coords[3 * ipoint + 1];
+      coo_point_dist[2] = dist_coords[3 * ipoint + 2];
  
 
-    //
-    // Adjust table length
-    //
+      //
+      // Adjust table length
+      //
 
-    int nbr_som;
-    if (ielt < nEltStd) 
-      nbr_som = meshConnectivityIndex[ielt + 1] - meshConnectivityIndex[ielt];
-    else {
-      int i = ielt - nEltStd;
-      nbr_som = polyMeshConnectivityIndex[i+1] - polyMeshConnectivityIndex[i];
-    }
+      int nbr_som;
+      if (ielt < nEltStd) 
+        nbr_som = meshConnectivityIndex[ielt + 1] - meshConnectivityIndex[ielt];
+      else {
+        int i = ielt - nEltStd;
+        nbr_som = polyMeshConnectivityIndex[i+1] - polyMeshConnectivityIndex[i];
+      }
 
-    //
-    // If element is degenerated
-    //
+      //
+      // If element is degenerated
+      //
 
-    nDistBarCoords[ipoint + 1] = nDistBarCoords[ipoint] + nbr_som;
+      nDistBarCoords[ipoint + 1] = nDistBarCoords[ipoint] + nbr_som;
 
-    while (distBarCoords.size() <= nDistBarCoords[ipoint + 1]) {
-      distBarCoords.resize(2 * distBarCoords.size());
-    }
+      while (distBarCoords.size() <= nDistBarCoords[ipoint + 1]) {
+        distBarCoords.resize(2 * distBarCoords.size());
+      }
 
-    if (isDegenerated[ielt]) {
+      if (isDegenerated[ielt]) {
 
-      for (int ivertex = 0; ivertex < nbr_som; ivertex++) 
-        distBarCoords[nDistBarCoords[ipoint] + ivertex] = 1./nbr_som;
+        for (int ivertex = 0; ivertex < nbr_som; ivertex++) 
+          distBarCoords[nDistBarCoords[ipoint] + ivertex] = 1./nbr_som;
 
-      ipoint++;
-    }
+        ipoint++;
+      }
 
-    else {
+      else {
 
-      if (ielt < nEltStd) { 
+        if (ielt < nEltStd) { 
 
-        //
-        // Standard element    
-        //
+          //
+          // Standard element    
+          //
         
-        int ierr = 0;
+          int ierr = 0;
 
-        if (dist > 1.) {
+          if (dist > 1.) {
     
-          int *_cellConnectivity = const_cast<int *> (&(meshConnectivity[meshConnectivityIndex[ielt]]));
+            int *_cellConnectivity = const_cast<int *> (&(meshConnectivity[meshConnectivityIndex[ielt]]));
 
-          //
-          // If point is not in element : Closest face projection
-          //
+            //
+            // If point is not in element : Closest face projection
+            //
 
-          int n_face = 0;
+            int n_face = 0;
 
-          switch(nbr_som){
+            switch(nbr_som){
           
-          case 4 :
+            case 4 :
           
-            //
-            // Tetraedra :            
-            //
+              //
+              // Tetraedra :            
+              //
 
-            n_face = 4;
+              n_face = 4;
             
-            tetrahedraFaces (1,
-                             0,
-                             _cellConnectivity,
-                             faceConnectivityIndex,
-                             faceConnectivity); 
+              tetrahedraFaces (1,
+                               0,
+                               _cellConnectivity,
+                               faceConnectivityIndex,
+                               faceConnectivity); 
 
-            tetrahedraFaces (1,
-                             0,
-                             localConnec,
-                             faceConnectivityIndex,
-                             localFaceConnectivity);           
+              tetrahedraFaces (1,
+                               0,
+                               localConnec,
+                               faceConnectivityIndex,
+                               localFaceConnectivity);           
 
-            break;
+              break;
           
-          case 5 : 
+            case 5 : 
 
-            //
-            // Pyramid             
-            //
+              //
+              // Pyramid             
+              //
 
-            n_face = 5;
+              n_face = 5;
 
-            pyramidFaces (1,
-                          0,
-                          _cellConnectivity,
-                          faceConnectivityIndex,
-                          faceConnectivity);           
-
-            pyramidFaces (1,
-                          0,
-                          localConnec,
-                          faceConnectivityIndex,
-                          localFaceConnectivity);           
-
-            break;
-            
-          case 6 :
-            
-            //
-            // Prism               
-            //
-
-            n_face = 5;
-
-            prismFaces (1,
-                        0,
-                        _cellConnectivity,
-                        faceConnectivityIndex,
-                        faceConnectivity);           
-
-            prismFaces (1,
-                        0,
-                        localConnec,
-                        faceConnectivityIndex,
-                        localFaceConnectivity);           
-
-            break;
-
-          case 8 :
-            
-            //
-            // Hexahedron          
-            //
-
-            n_face = 6;
-
-            hexahedraFaces (1,
+              pyramidFaces (1,
                             0,
                             _cellConnectivity,
                             faceConnectivityIndex,
-                            faceConnectivity);
-           
-            hexahedraFaces (1,
+                            faceConnectivity);           
+
+              pyramidFaces (1,
                             0,
                             localConnec,
                             faceConnectivityIndex,
                             localFaceConnectivity);           
 
-            break;
+              break;
+            
+            case 6 :
+            
+              //
+              // Prism               
+              //
 
-          }
+              n_face = 5;
 
-          for (int k = 0; k < n_face; k++) {
-            for (int k1 = faceConnectivityIndex[k]; k1 < faceConnectivityIndex[k+1]; k1++) {
-              int iVtx = faceConnectivity[k1] - 1;
-              faceVtxCoords[3*k1  ] = meshVertexCoords[3*iVtx  ]; 
-              faceVtxCoords[3*k1+1] = meshVertexCoords[3*iVtx+1]; 
-              faceVtxCoords[3*k1+2] = meshVertexCoords[3*iVtx+2]; 
+              prismFaces (1,
+                          0,
+                          _cellConnectivity,
+                          faceConnectivityIndex,
+                          faceConnectivity);           
+
+              prismFaces (1,
+                          0,
+                          localConnec,
+                          faceConnectivityIndex,
+                          localFaceConnectivity);           
+
+              break;
+
+            case 8 :
+            
+              //
+              // Hexahedron          
+              //
+
+              n_face = 6;
+
+              hexahedraFaces (1,
+                              0,
+                              _cellConnectivity,
+                              faceConnectivityIndex,
+                              faceConnectivity);
+           
+              hexahedraFaces (1,
+                              0,
+                              localConnec,
+                              faceConnectivityIndex,
+                              localFaceConnectivity);           
+
+              break;
+
             }
-          }
-          
-          double *_faceVtxCoords = faceVtxCoords;
-          double dist_min = DBL_MAX;
-          int k_min = 0;
-          
-          for (int k = 0; k < n_face; k++) {
-            const int nVtx = faceConnectivityIndex[k+1] - faceConnectivityIndex[k];
-            double closest[3];
-            double pcoords[3];
-            double dist_face;
 
-            fvmc_polygon_evaluate_Position(coo_point_dist, nVtx, _faceVtxCoords, closest,
-                                           pcoords, &dist_face);
-
-             _faceVtxCoords += 3*nVtx;
- 
-            if (dist_face < dist_min) {
-              dist_min = dist_face;
-              k_min = k;
-            }
-
-          }
-
-          int dist_locations1 = k_min + 1;
-          const int nVtx = faceConnectivityIndex[k_min+1] - faceConnectivityIndex[k_min];
-          
-          nFaceDistBarCoords[0] = 0;
-          nFaceDistBarCoords[1] = nVtx;
-          
-          
-          computePolygonMeanValues (1,
-                                    &dist_locations1,
-                                    coo_point_dist,
-                                    faceConnectivityIndex,
-                                    faceConnectivity,
-                                    meshVertexCoords,
-                                    nFaceDistBarCoords,
-                                    faceDistBarCoords);
-
-          int *_localFaceConnectivity = localFaceConnectivity + faceConnectivityIndex[k_min];
-
-          for (int isom = 0; isom < nbr_som; isom++) {
-            distBarCoords[nDistBarCoords[ipoint] + isom] = 0.;
-          }
-
-          for (int k = 0; k < nVtx; k++) {
-            distBarCoords[nDistBarCoords[ipoint] + _localFaceConnectivity[k]] = faceDistBarCoords[k];
-          }
-
-          ipoint++;
-          
-        }
-        
-        else {
-
-          double uvw[3];
-          double vertex_coords[8][3];
-          double deriv[8][3];
-
-          for (int ivertex = 0; ivertex < nbr_som; ivertex++) {
-            vertex_coords[ivertex][0] = 
-              meshVertexCoords[3 * (meshConnectivity[meshConnectivityIndex[ielt] + ivertex] - 1) ];
-            vertex_coords[ivertex][1] = 
-              meshVertexCoords[3 * (meshConnectivity[meshConnectivityIndex[ielt] + ivertex] - 1) + 1];
-            vertex_coords[ivertex][2] = 
-              meshVertexCoords[3 * (meshConnectivity[meshConnectivityIndex[ielt] + ivertex] - 1) + 2];
-          }
-
-          switch(nbr_som){
-      
-          case 4 :
-            
-            //
-            // Tetraedra :            
-            //
-            
-            ierr = compute_uvw(CWIPI_CELL_TETRA4,
-                               coo_point_dist,
-                               vertex_coords,
-                               1e-6,
-                               uvw);
-            
-            compute_shapef_3d(CWIPI_CELL_TETRA4,
-                              uvw,
-                              &distBarCoords[0] + nDistBarCoords[ipoint],
-                              deriv);        
-            
-
-          
-            break;
-          
-          case 5 : 
-          { 
-            //
-            // Pyramid             
-            //
-
-            // Check if not a vertex for stability
-            
-            int onVtx = 0;
-            for (int k1 = 0; k1 < nbr_som; k1++) {
-              double v[3] = {vertex_coords[k1][0] - coo_point_dist[0],
-                             vertex_coords[k1][1] - coo_point_dist[1],
-                             vertex_coords[k1][2] - coo_point_dist[2]};
-              
-              double _dist = _MODULE(v);
-              
-              if (_dist < 1e-6 * _tolerance) {
-                double *_bar = &(distBarCoords[0]) + nDistBarCoords[ipoint];
-                for (int k2 = 0; k2 < nbr_som; k2++) {
-                  _bar[k2] = 0.;
-                }
-                _bar[k1] = 1.;
-                onVtx = 1;
-                ierr = 1;
-                break;
+            for (int k = 0; k < n_face; k++) {
+              for (int k1 = faceConnectivityIndex[k]; k1 < faceConnectivityIndex[k+1]; k1++) {
+                int iVtx = faceConnectivity[k1] - 1;
+                faceVtxCoords[3*k1  ] = meshVertexCoords[3*iVtx  ]; 
+                faceVtxCoords[3*k1+1] = meshVertexCoords[3*iVtx+1]; 
+                faceVtxCoords[3*k1+2] = meshVertexCoords[3*iVtx+2]; 
               }
             }
+          
+            double *_faceVtxCoords = faceVtxCoords;
+            double dist_min = DBL_MAX;
+            int k_min = 0;
+          
+            for (int k = 0; k < n_face; k++) {
+              const int nVtx = faceConnectivityIndex[k+1] - faceConnectivityIndex[k];
+              double closest[3];
+              double pcoords[3];
+              double dist_face;
 
-            if (!onVtx) {
+              fvmc_polygon_evaluate_Position(coo_point_dist, nVtx, _faceVtxCoords, closest,
+                                             pcoords, &dist_face);
 
-              ierr = compute_uvw(CWIPI_CELL_PYRAM5,
+              _faceVtxCoords += 3*nVtx;
+ 
+              if (dist_face < dist_min) {
+                dist_min = dist_face;
+                k_min = k;
+              }
+
+            }
+
+            int dist_locations1 = k_min + 1;
+            const int nVtx = faceConnectivityIndex[k_min+1] - faceConnectivityIndex[k_min];
+          
+            nFaceDistBarCoords[0] = 0;
+            nFaceDistBarCoords[1] = nVtx;
+          
+          
+            computePolygonMeanValues (1,
+                                      &dist_locations1,
+                                      coo_point_dist,
+                                      faceConnectivityIndex,
+                                      faceConnectivity,
+                                      meshVertexCoords,
+                                      nFaceDistBarCoords,
+                                      faceDistBarCoords);
+
+            int *_localFaceConnectivity = localFaceConnectivity + faceConnectivityIndex[k_min];
+
+            for (int isom = 0; isom < nbr_som; isom++) {
+              distBarCoords[nDistBarCoords[ipoint] + isom] = 0.;
+            }
+
+            for (int k = 0; k < nVtx; k++) {
+              distBarCoords[nDistBarCoords[ipoint] + _localFaceConnectivity[k]] = faceDistBarCoords[k];
+            }
+
+            ipoint++;
+          
+          }
+        
+          else {
+
+            double uvw[3];
+            double vertex_coords[8][3];
+            double deriv[8][3];
+
+            for (int ivertex = 0; ivertex < nbr_som; ivertex++) {
+              vertex_coords[ivertex][0] = 
+                meshVertexCoords[3 * (meshConnectivity[meshConnectivityIndex[ielt] + ivertex] - 1) ];
+              vertex_coords[ivertex][1] = 
+                meshVertexCoords[3 * (meshConnectivity[meshConnectivityIndex[ielt] + ivertex] - 1) + 1];
+              vertex_coords[ivertex][2] = 
+                meshVertexCoords[3 * (meshConnectivity[meshConnectivityIndex[ielt] + ivertex] - 1) + 2];
+            }
+
+            switch(nbr_som){
+      
+            case 4 :
+            
+              //
+              // Tetraedra :            
+              //
+            
+              ierr = compute_uvw(CWIPI_CELL_TETRA4,
                                  coo_point_dist,
                                  vertex_coords,
                                  1e-6,
                                  uvw);
+            
+              compute_shapef_3d(CWIPI_CELL_TETRA4,
+                                uvw,
+                                &distBarCoords[0] + nDistBarCoords[ipoint],
+                                deriv);        
+            
+
+          
+              break;
+          
+            case 5 : 
+              { 
+                //
+                // Pyramid             
+                //
+
+                // Check if not a vertex for stability
+            
+                int onVtx = 0;
+                for (int k1 = 0; k1 < nbr_som; k1++) {
+                  double v[3] = {vertex_coords[k1][0] - coo_point_dist[0],
+                                 vertex_coords[k1][1] - coo_point_dist[1],
+                                 vertex_coords[k1][2] - coo_point_dist[2]};
               
-              compute_shapef_3d(CWIPI_CELL_PYRAM5,
+                  double _dist = _MODULE(v);
+              
+                  if (_dist < 1e-6 * _tolerance) {
+                    double *_bar = &(distBarCoords[0]) + nDistBarCoords[ipoint];
+                    for (int k2 = 0; k2 < nbr_som; k2++) {
+                      _bar[k2] = 0.;
+                    }
+                    _bar[k1] = 1.;
+                    onVtx = 1;
+                    ierr = 1;
+                    break;
+                  }
+                }
+
+                if (!onVtx) {
+
+                  ierr = compute_uvw(CWIPI_CELL_PYRAM5,
+                                     coo_point_dist,
+                                     vertex_coords,
+                                     1e-6,
+                                     uvw);
+              
+                  compute_shapef_3d(CWIPI_CELL_PYRAM5,
+                                    uvw,
+                                    &(distBarCoords[0]) + nDistBarCoords[ipoint],
+                                    deriv);
+                }
+                break;
+              }
+            case 6 :
+            
+              //
+              // Prism               
+              //
+            
+              ierr = compute_uvw(CWIPI_CELL_PRISM6,
+                                 coo_point_dist,
+                                 vertex_coords,
+                                 1e-6,
+                                 uvw);
+
+              compute_shapef_3d(CWIPI_CELL_PRISM6,
                                 uvw,
                                 &(distBarCoords[0]) + nDistBarCoords[ipoint],
-                                deriv);
-            }
-            break;
-          }
-          case 6 :
+                                deriv);        
+              break;
             
-            //
-            // Prism               
-            //
+            case 8 :
             
-            ierr = compute_uvw(CWIPI_CELL_PRISM6,
-                               coo_point_dist,
-                               vertex_coords,
-                               1e-6,
-                               uvw);
-
-            compute_shapef_3d(CWIPI_CELL_PRISM6,
-                              uvw,
-                              &(distBarCoords[0]) + nDistBarCoords[ipoint],
-                              deriv);        
-            break;
+              //
+              // Hexahedron          
+              //
             
-          case 8 :
+              ierr = compute_uvw(CWIPI_CELL_HEXA8,
+                                 coo_point_dist,
+                                 vertex_coords,
+                                 1e-6,
+                                 uvw);
             
-            //
-            // Hexahedron          
-            //
+              compute_shapef_3d(CWIPI_CELL_HEXA8,
+                                uvw,
+                                &(distBarCoords[0]) + nDistBarCoords[ipoint],
+                                deriv);        
+              break;
             
-            ierr = compute_uvw(CWIPI_CELL_HEXA8,
-                               coo_point_dist,
-                               vertex_coords,
-                               1e-6,
-                               uvw);
-            
-            compute_shapef_3d(CWIPI_CELL_HEXA8,
-                              uvw,
-                              &(distBarCoords[0]) + nDistBarCoords[ipoint],
-                              deriv);        
-            break;
-            
-          default:
-            bftc_error(__FILE__, __LINE__, 0,
-                       "compute3DMeanValues: unhandled element type\n");
+            default:
+              bftc_error(__FILE__, __LINE__, 0,
+                         "compute3DMeanValues: unhandled element type\n");
           
 
-          }
+            }
 
-          if (ierr != 0) { 
-            ipoint++;
+            if (ierr != 0) { 
+              ipoint++;
+            }
           }
         }
-      }
 
-      else {
+        else {
 
-        //
-        // Polyhedron          
-        //
+          //
+          // Polyhedron          
+          //
 
-        const int ipoly = ielt - nEltStd;
+          const int ipoly = ielt - nEltStd;
 
-        const int *polyCellToFaceIdx   =  _supportMesh->getPolyhedraFaceIndex(); 
-        const int *polyCellToFace      = _supportMesh->getPolyhedraCellToFaceConnectivity();
-        const int *polyFaceToVertex    =  _supportMesh->getPolyhedraFaceConnectivity();
-        const int *polyFaceToVertexIdx = _supportMesh->getPolyhedraFaceConnectivityIndex();
-        const int  n_poly_vertex       =  polyMeshConnectivityIndex[ipoly + 1] 
-                                        - polyMeshConnectivityIndex[ipoly];
-        const int  vertexIdx           =  polyMeshConnectivityIndex[ipoly];
-        const int  n_poly_face         =  polyCellToFaceIdx[ipoly + 1] - polyCellToFaceIdx[ipoly];
-        const int  faceIdx             =  polyCellToFaceIdx[ipoly];
+          const int *polyCellToFaceIdx   =  _supportMesh->getPolyhedraFaceIndex(); 
+          const int *polyCellToFace      = _supportMesh->getPolyhedraCellToFaceConnectivity();
+          const int *polyFaceToVertex    =  _supportMesh->getPolyhedraFaceConnectivity();
+          const int *polyFaceToVertexIdx = _supportMesh->getPolyhedraFaceConnectivityIndex();
+          const int  n_poly_vertex       =  polyMeshConnectivityIndex[ipoly + 1]
+                                          - polyMeshConnectivityIndex[ipoly];
+          const int  vertexIdx           =  polyMeshConnectivityIndex[ipoly];
+          const int  n_poly_face         =  polyCellToFaceIdx[ipoly + 1] - polyCellToFaceIdx[ipoly];
+          const int  faceIdx             =  polyCellToFaceIdx[ipoly];
          
-        std::map <int, int> indirection;
-        for (int i = 0; i < n_poly_vertex; i++)
-          indirection[polyMeshConnectivity[vertexIdx + i]] = i+1;
+          std::map <int, int> indirection;
+          for (int i = 0; i < n_poly_vertex; i++)
+            indirection[polyMeshConnectivity[vertexIdx + i]] = i+1;
 
 
-        // TODO : A optimiser : faire une allocation unique sur le nombre de faces max
-        //  d'un polyedre et le nombre de sommet max par face
+          // TODO : A optimiser : faire une allocation unique sur le nombre de faces max
+          //  d'un polyedre et le nombre de sommet max par face
 
-        int *faceToVertexEltIdx = new int[n_poly_face + 1];
+          int *faceToVertexEltIdx = new int[n_poly_face + 1];
 
-        faceToVertexEltIdx[0] = 0;
-        for (int i = 0; i < n_poly_face; i++) {
-          int iface = abs(polyCellToFace[faceIdx + i]) - 1;
-          faceToVertexEltIdx[i+1] = faceToVertexEltIdx[i]
-                                  + polyFaceToVertexIdx[iface+1]
-                                  - polyFaceToVertexIdx[iface];
-        }
+          faceToVertexEltIdx[0] = 0;
+          for (int i = 0; i < n_poly_face; i++) {
+            int iface = abs(polyCellToFace[faceIdx + i]) - 1;
+            faceToVertexEltIdx[i+1] = faceToVertexEltIdx[i]
+              + polyFaceToVertexIdx[iface+1]
+              - polyFaceToVertexIdx[iface];
+          }
  
-        int *faceToVertexElt = new int[faceToVertexEltIdx[n_poly_face]];
-        int *faceDirection = new int[n_poly_face];
-        int k = 0;
-        for (int i = 0; i < n_poly_face; i++) {
-          const int iface          = abs(polyCellToFace[faceIdx + i]) - 1;
-          const int direction     =     (polyCellToFace[faceIdx + i] < 0) ? -1 : 1;
-          faceDirection[i] = direction;
-          for (int j = polyFaceToVertexIdx[iface]; j < polyFaceToVertexIdx[iface+1]; j++) {
-            faceToVertexElt[k++] = indirection[polyFaceToVertex[j]];
+          int *faceToVertexElt = new int[faceToVertexEltIdx[n_poly_face]];
+          int *faceDirection = new int[n_poly_face];
+          int k = 0;
+          for (int i = 0; i < n_poly_face; i++) {
+            const int iface          = abs(polyCellToFace[faceIdx + i]) - 1;
+            const int direction     =     (polyCellToFace[faceIdx + i] < 0) ? -1 : 1;
+            faceDirection[i] = direction;
+            for (int j = polyFaceToVertexIdx[iface]; j < polyFaceToVertexIdx[iface+1]; j++) {
+              faceToVertexElt[k++] = indirection[polyFaceToVertex[j]];
+            }
           }
-        }
         
-        double* vertex_coords_Elts = new double[3*n_poly_vertex];
-        for (int i = 0; i < n_poly_vertex; i++) {
-          int ivertex = polyMeshConnectivity[vertexIdx + i] - 1;
-          for (int j = 0; j < 3; j++) {
-            vertex_coords_Elts[3 * i + j] = meshVertexCoords[3 * ivertex + j];
+          double* vertex_coords_Elts = new double[3*n_poly_vertex];
+          for (int i = 0; i < n_poly_vertex; i++) {
+            int ivertex = polyMeshConnectivity[vertexIdx + i] - 1;
+            for (int j = 0; j < 3; j++) {
+              vertex_coords_Elts[3 * i + j] = meshVertexCoords[3 * ivertex + j];
+            }
           }
-        }
 
-        indirection.clear();
+          indirection.clear();
 
-        compute3DMeanValuesPoly(coo_point_dist,
-                                n_poly_face,
-                                n_poly_vertex,
-                                faceDirection,
-                                faceToVertexEltIdx,
-                                faceToVertexElt,
-                                vertex_coords_Elts,
-                                characteristicLength[ielt],
-                                dist_distances[ipoint],
-                                &distBarCoords[0] + nDistBarCoords[ipoint]);
+          compute3DMeanValuesPoly(coo_point_dist,
+                                  n_poly_face,
+                                  n_poly_vertex,
+                                  faceDirection,
+                                  faceToVertexEltIdx,
+                                  faceToVertexElt,
+                                  vertex_coords_Elts,
+                                  characteristicLength[ielt],
+                                  dist_distances[ipoint],
+                                  &distBarCoords[0] + nDistBarCoords[ipoint]);
 
-        delete[] vertex_coords_Elts;
-        delete[] faceToVertexElt;
-        delete[] faceToVertexEltIdx;
-        delete[] faceDirection;
+          delete[] vertex_coords_Elts;
+          delete[] faceToVertexElt;
+          delete[] faceToVertexEltIdx;
+          delete[] faceDirection;
       
-        ipoint++;
+          ipoint++;
+        }
       }
+    }
+  }
+
+  else {
+
+    nDistBarCoords.resize(n_dist_points + 1);
+
+    nDistBarCoords[0] = 0;
+    for (int ipoint =  0; ipoint < n_dist_points; ipoint++ ) {
+      int ielt = dist_locations[ipoint] - 1;
+      int nbr_som_fac =  meshConnectivityIndex[ielt+1] - meshConnectivityIndex[ielt];
+      nDistBarCoords[ipoint+1] = nDistBarCoords[ipoint] + nbr_som_fac;
+    }
+    
+    distBarCoords.resize(nDistBarCoords[n_dist_points]);
+
+    for (int ipoint =  0; ipoint < n_dist_points; ipoint++ ) {
+      int ielt = dist_locations[ipoint] - 1;
+
+      const int *intern_connec = fvmc_nodal_get_internal_connec_elt (&(_supportMesh->getFvmNodal()), ielt+1);
+
+      const fvmc_element_t elt_t =  fvmc_nodal_get_type_elt (&(_supportMesh->getFvmNodal()), ielt + 1);
+
+      int nbr_som_fac =  meshConnectivityIndex[ielt+1] - meshConnectivityIndex[ielt];
+
+      fvmc_ho_shape_in_cell_3d (elt_t,
+                                order,
+                                nbr_som_fac,
+                                intern_connec,
+                                meshVertexCoords,
+                                proj_coords + 3 * ipoint,
+                                &(distBarCoords[0]) + nDistBarCoords[ipoint]);
+
     }
   }
 }
