@@ -510,6 +510,20 @@ fvmc_element_t
 fvmc_nodal_get_type_elt(const fvmc_nodal_t  *this_nodal, const int elt);
 
 /*----------------------------------------------------------------------------
+ * return local to user numbering
+ *
+ * parameters:
+ *   this_nodal           <-- pointer to nodal mesh structure
+ *   element              <-- element (1 to n numbering).
+ *
+ * returns:
+ *   local to user numbering
+ *----------------------------------------------------------------------------*/
+
+const int*
+fvmc_nodal_get_local_to_user_numbering_elt (const fvmc_nodal_t  *this_nodal, const int elt);
+
+/*----------------------------------------------------------------------------
  * return internal connectivity
  *
  * parameters:

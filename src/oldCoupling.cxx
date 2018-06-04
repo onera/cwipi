@@ -28,7 +28,8 @@
 #include <bftc_file.h>
 #include <bftc_mem.h>
 
-#include <fvmc_parall.h>
+#include "fvmc_parall.h"
+#include "fvmc_ho.h"
 
 #include "oldCoupling.hxx"
 #include "oldCoupling_i.hxx"
@@ -339,8 +340,8 @@ namespace cwipi {
   }
 
   void oldCoupling::_interpolate(double *referenceField,
-                              std::vector<double>& interpolatedField,
-                              const int stride)
+                                 std::vector<double>& interpolatedField,
+                                 const int stride)
   {
 
     //
@@ -384,8 +385,8 @@ namespace cwipi {
   }
 
   void oldCoupling::_interpolate1D(double *referenceVertexField,
-                                std::vector<double>& interpolatedField,
-                                const int stride)
+                                   std::vector<double>& interpolatedField,
+                                   const int stride)
   {
     const int nDistantPoint      =  _locationToLocalMesh->getNLocatedDistantPoint() ;
     const int *distantLocation   = _locationToLocalMesh->getLocation();
@@ -394,23 +395,61 @@ namespace cwipi {
     const double *barycentricCoordinates = _locationToLocalMesh->getBarycentricCoordinates();
     const int *barycentricCoordinatesIndex = _locationToLocalMesh->getBarycentricCoordinatesIndex();
 
-    for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
-      int iel = distantLocation[ipoint] - 1;
-      double coef1 = barycentricCoordinates[barycentricCoordinatesIndex[ipoint]];
-      double coef2 = barycentricCoordinates[barycentricCoordinatesIndex[ipoint]+1];
-      int index = eltsConnecPointer[iel];
-      int pt1 = eltsConnec[index] - 1;
-      int pt2 = eltsConnec[index+1] - 1;
+    const int order = _supportMesh->getOrder();
+ 
+    if (order == -1) {
+      for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
+        int iel = distantLocation[ipoint] - 1;
+        double coef1 = barycentricCoordinates[barycentricCoordinatesIndex[ipoint]];
+        double coef2 = barycentricCoordinates[barycentricCoordinatesIndex[ipoint]+1];
+        int index = eltsConnecPointer[iel];
+        int pt1 = eltsConnec[index] - 1;
+        int pt2 = eltsConnec[index+1] - 1;
 
-      for (int k = 0; k < stride; k++)
-        interpolatedField[stride*ipoint+k] = coef1 * referenceVertexField[stride*pt1+k] +
-          coef2 * referenceVertexField[stride*pt2+k];
+        for (int k = 0; k < stride; k++)
+          interpolatedField[stride*ipoint+k] = coef1 * referenceVertexField[stride*pt1+k] +
+            coef2 * referenceVertexField[stride*pt2+k];
+      }
     }
+
+    else {
+      const double *meshVertexCoords = _supportMesh->getVertexCoords();
+
+      const fvmc_coord_t *proj_coords =
+        fvmc_locator_get_dist_projected_coords(_locationToLocalMesh->getFVMLocator());
+
+      for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
+        int iel = distantLocation[ipoint] - 1;
+
+        const int *intern_connec =
+          fvmc_nodal_get_internal_connec_elt (&(_supportMesh->getFvmNodal()), iel+1);
+
+        const fvmc_element_t elt_t = fvmc_nodal_get_type_elt (&(_supportMesh->getFvmNodal()), iel + 1);
+
+        const int *local_to_user_numbering =
+          fvmc_nodal_get_local_to_user_numbering_elt (&(_supportMesh->getFvmNodal()), elt_t);
+
+        const int n_node =  eltsConnecPointer[iel+1] - eltsConnecPointer[iel];
+
+        fvmc_ho_interp_on_cell_1d (elt_t,
+                                   order,
+                                   n_node,
+                                   intern_connec,
+                                   local_to_user_numbering,
+                                   meshVertexCoords,
+                                   proj_coords + 3 * ipoint,
+                                   barycentricCoordinates + barycentricCoordinatesIndex[ipoint],
+                                   stride,
+                                   referenceVertexField,
+                                   &(interpolatedField[0]) + stride * ipoint);
+      }
+    }
+    
   }
 
   void oldCoupling::_interpolate2D (double *vertexField,
-                                 std::vector<double>& interpolatedField,
-                                 const int stride)
+                                    std::vector<double>& interpolatedField,
+                                    const int stride)
   {
 
     const int nDistantPoint      =  _locationToLocalMesh->getNLocatedDistantPoint() ;
@@ -422,28 +461,68 @@ namespace cwipi {
     const double *barycentricCoordinates = _locationToLocalMesh->getBarycentricCoordinates();
     const int *barycentricCoordinatesIndex = _locationToLocalMesh->getBarycentricCoordinatesIndex();
 
-    for (int ipoint = 0; ipoint <nDistantPoint; ipoint++) {
+    const int order = _supportMesh->getOrder();
+ 
+    if (order == -1) {
 
-      int iel = distantLocation[ipoint] - 1;
-      int index = barycentricCoordinatesIndex[ipoint];
-      int nSom = barycentricCoordinatesIndex[ipoint+1] - index;
+      for (int ipoint = 0; ipoint <nDistantPoint; ipoint++) {
 
-      for (int k = 0; k < stride; k++)
-        interpolatedField[stride*ipoint + k] = 0;
-
-      for (int isom = 0; isom <  nSom; isom++) {
-        for (int k = 0; k < stride; k++) {
-          interpolatedField[stride*ipoint+k] += vertexField[stride*(eltsConnec[eltsConnecPointer[iel]+isom]-1)+k]
-            *barycentricCoordinates[index+isom];
+        int iel = distantLocation[ipoint] - 1;
+        int index = barycentricCoordinatesIndex[ipoint];
+        int nSom = barycentricCoordinatesIndex[ipoint+1] - index;
+        
+        for (int k = 0; k < stride; k++)
+          interpolatedField[stride*ipoint + k] = 0;
+        
+        for (int isom = 0; isom <  nSom; isom++) {
+          for (int k = 0; k < stride; k++) {
+            interpolatedField[stride*ipoint+k] +=
+              vertexField[stride*(eltsConnec[eltsConnecPointer[iel]+isom]-1)+k]
+              *barycentricCoordinates[index+isom];
+          }
         }
       }
     }
+
+    else {
+      const double *meshVertexCoords = _supportMesh->getVertexCoords();
+
+      const fvmc_coord_t *proj_coords =
+        fvmc_locator_get_dist_projected_coords(_locationToLocalMesh->getFVMLocator());
+
+      for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
+        int iel = distantLocation[ipoint] - 1;
+
+        const int *intern_connec =
+          fvmc_nodal_get_internal_connec_elt (&(_supportMesh->getFvmNodal()), iel+1);
+
+        const fvmc_element_t elt_t = fvmc_nodal_get_type_elt (&(_supportMesh->getFvmNodal()), iel + 1);
+
+        const int *local_to_user_numbering =
+          fvmc_nodal_get_local_to_user_numbering_elt (&(_supportMesh->getFvmNodal()), elt_t);
+
+        const int n_node =  eltsConnecPointer[iel+1] - eltsConnecPointer[iel];
+
+        fvmc_ho_interp_on_cell_2d (elt_t,
+                                   order,
+                                   n_node,
+                                   intern_connec,
+                                   local_to_user_numbering,
+                                   meshVertexCoords,
+                                   proj_coords + 3 * ipoint,
+                                   barycentricCoordinates + barycentricCoordinatesIndex[ipoint],
+                                   stride,
+                                   vertexField,
+                                   &(interpolatedField[0]) + stride * ipoint);
+      }
+    }
+    
   }
 
 
   void oldCoupling::_interpolate3D(double *vertexField,
-                                std::vector<double>& interpolatedField,
-                                const int stride)
+                                   std::vector<double>& interpolatedField,
+                                   const int stride)
   {
 
     const int nDistantPoint      =  _locationToLocalMesh->getNLocatedDistantPoint() ;
@@ -466,28 +545,68 @@ namespace cwipi {
     const bool useMeanValues = true;
 
     if (useMeanValues) {
-    
-      for (int ipoint = 0; ipoint <nDistantPoint; ipoint++) {
-        int iel = distantLocation[ipoint] - 1;
-        int index = barycentricCoordinatesIndex[ipoint];
-        int nSom = barycentricCoordinatesIndex[ipoint+1] - index;
-      
-        for (int k = 0; k < stride; k++)
-          interpolatedField[stride*ipoint + k] = 0;
-      
-        for (int isom = 0; isom <  nSom; isom++) {
-          for (int k = 0; k < stride; k++) {
-            if (iel < nStandardElt) {
-              interpolatedField[stride*ipoint+k] += 
-                vertexField[stride*(eltsConnec[eltsConnecPointer[iel]+isom]-1)+k]
-                *barycentricCoordinates[index+isom];
-            }
-            else {
-              interpolatedField[stride*ipoint+k] += 
-                vertexField[stride*(polyEltsConnec[polyEltsConnecPointer[iel -  nStandardElt]+isom]-1)+k]
-                *barycentricCoordinates[index+isom];
+
+      const int order = _supportMesh->getOrder();
+ 
+      if (order == -1) {
+
+        for (int ipoint = 0; ipoint <nDistantPoint; ipoint++) {
+          int iel = distantLocation[ipoint] - 1;
+          int index = barycentricCoordinatesIndex[ipoint];
+          int nSom = barycentricCoordinatesIndex[ipoint+1] - index;
+          
+          for (int k = 0; k < stride; k++)
+            interpolatedField[stride*ipoint + k] = 0;
+          
+          for (int isom = 0; isom <  nSom; isom++) {
+            for (int k = 0; k < stride; k++) {
+              if (iel < nStandardElt) {
+                interpolatedField[stride*ipoint+k] += 
+                  vertexField[stride*(eltsConnec[eltsConnecPointer[iel]+isom]-1)+k]
+                  *barycentricCoordinates[index+isom];
+              }
+              else {
+                interpolatedField[stride*ipoint+k] += 
+                  vertexField[stride*(polyEltsConnec[polyEltsConnecPointer[iel -  nStandardElt]+isom]-1)+k]
+                  *barycentricCoordinates[index+isom];
+              }
             }
           }
+        }
+
+      }
+
+      else {
+
+        const double *meshVertexCoords = _supportMesh->getVertexCoords();
+        
+        const fvmc_coord_t *proj_coords =
+          fvmc_locator_get_dist_projected_coords(_locationToLocalMesh->getFVMLocator());
+        
+        for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
+          int iel = distantLocation[ipoint] - 1;
+          
+          const int *intern_connec =
+            fvmc_nodal_get_internal_connec_elt (&(_supportMesh->getFvmNodal()), iel+1);
+          
+          const fvmc_element_t elt_t = fvmc_nodal_get_type_elt (&(_supportMesh->getFvmNodal()), iel + 1);
+          
+          const int *local_to_user_numbering =
+            fvmc_nodal_get_local_to_user_numbering_elt (&(_supportMesh->getFvmNodal()), elt_t);
+          
+          const int n_node =  eltsConnecPointer[iel+1] - eltsConnecPointer[iel];
+          
+          fvmc_ho_interp_in_cell_3d (elt_t,
+                                     order,
+                                     n_node,
+                                     intern_connec,
+                                     local_to_user_numbering,
+                                     meshVertexCoords,
+                                     proj_coords + 3 * ipoint,
+                                     barycentricCoordinates + barycentricCoordinatesIndex[ipoint],
+                                     stride,
+                                     vertexField,
+                                     &(interpolatedField[0]) + stride * ipoint);
         }
       }
     }

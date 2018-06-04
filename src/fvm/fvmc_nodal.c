@@ -1880,6 +1880,33 @@ fvmc_nodal_get_type_elt(const fvmc_nodal_t  *this_nodal, const int elt)
   return this_nodal->sections[elt_section]->type;
 }
 
+/*----------------------------------------------------------------------------
+ * return local to user numbering
+ *
+ * parameters:
+ *   this_nodal           <-- pointer to nodal mesh structure
+ *   element              <-- element (1 to n numbering).
+ *
+ * returns:
+ *   local to user numbering
+ *----------------------------------------------------------------------------*/
+
+const int*
+fvmc_nodal_get_local_to_user_numbering_elt (const fvmc_nodal_t  *this_nodal, const int elt)
+{
+  assert(this_nodal != NULL);
+
+  int _elt = elt-1;
+
+  int elt_section = 0;
+  
+  while (_elt >= this_nodal->sections_idx[++elt_section]);
+
+  elt_section -= 1 ;
+
+  return this_nodal->sections[elt_section]->ho_local_to_user_ordering;
+}
+
 
 /*----------------------------------------------------------------------------
  * return internal connectivity
