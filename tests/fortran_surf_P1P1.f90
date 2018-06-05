@@ -225,11 +225,11 @@ program testf
   integer :: nLocatedPts
 
   double precision :: randLevel
-
+  
   call mpi_init(code)
   call mpi_comm_rank(mpi_comm_world, irank, code)
   call mpi_comm_size(mpi_comm_world, commWorldSize, code)
-
+  
   write(proc,'(i4.4)') irank
   iiunit = 9
   open(unit=iiunit, file='fortran_surf_P1P1_'//proc//'.txt', &

@@ -18,8 +18,8 @@
 !-----------------------------------------------------------------------------
 
 
-!  mpirun -n 1 ./fortran_surf_PiPj : -n 1 ./fortran_surf_PiPj
-
+!  mpirun -n 1 ./fortran_surf_TetraP1_PiPj : -n 1 ./fortran_surf_TetraP1_PiPj
+!  mpirun -n 1 tests/fortran_surf_TetraP1_PiPj : -n 1 tests/fortran_surf_TetraP1_PiPj
 
 module variablesCommunes
   logical :: visu=.false.
@@ -392,7 +392,7 @@ program testf
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  if( rankWorld==0) print '(/"START: fortran_surf_PiPj")'
+  if( rankWorld==0) print '(/"START: fortran_surf_TetraP1_PiPj")'
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -423,7 +423,7 @@ program testf
   case(0) ; order=07
   case(1) ; order=10
   end select
-  print '("fortran_surf_PiPj : Order=",i2,t100,"@rkw",i3)',order,rankWorld
+  print '("fortran_surf_TetraP1_PiPj : Order=",i2,t100,"@rkw",i3)',order,rankWorld
   call mpi_barrier(commWorld,iErr)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
@@ -721,9 +721,9 @@ program testf
   endif
   
   if( deltaMax<1d-12 )then
-    if( rankWorld==0 )print '(/"SUCCESS: fortran_surf_PiPj"/)'
+    if( rankWorld==0 )print '(/"SUCCESS: fortran_surf_TetraP1_PiPj"/)'
   else
-    if( rankWorld==0 )print '(/"FAILED: fortran_surf_PiPj"/)'
+    if( rankWorld==0 )print '(/"FAILED: fortran_surf_TetraP1_PiPj"/)'
     stop
   endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
