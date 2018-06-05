@@ -16,6 +16,7 @@ subroutine tetraMaillageVisuNew()
   integer            :: ord,iOrd
   real(8), pointer   :: uvw  (:,:)
   integer, pointer   :: tetra(:,:)
+  integer            :: iVert,iCell
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -35,6 +36,48 @@ subroutine tetraMaillageVisuNew()
     call saveTetMesh(ord=iOrd,node_xyz=uvw,tetra_node=tetra)
     deallocate(uvw,tetra)
   enddo
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Le tetra P2 geometrique
+  
+  write(*,'("TetraGeoP2.mesh")')
+  allocate(uvw(1:3,1:10))
+  uvw(1:3,01)=[0d0,0d0,0d0]
+  uvw(1:3,02)=[1d0,0d0,0d0]
+  uvw(1:3,03)=[0d0,1d0,0d0]
+  uvw(1:3,04)=[0d0,0d0,1d0]
+  uvw(1:3,05)=[5d-1,0d0 ,0d0]
+  uvw(1:3,06)=[5d-1,5d-1,0d0]
+  uvw(1:3,07)=[0d0 ,5d-1,0d0]
+  uvw(1:3,08)=[0d0 ,0d0 ,5d-1]
+  uvw(1:3,09)=[5d-1,0d0 ,5d-1]
+  uvw(1:3,10)=[0d0 ,5d-1,5d-1]
+  call driverTetMesh(ord=iOrd,node_xyz=uvw,tetra_node=tetra)
+  
+  open(unit=100,name="TetraGeoP2.mesh",action='write')
+  write(100,'("MeshVersionFormatted 2")')
+  write(100,'(/"Dimension")')
+  write(100,'( "3")')
+
+  write(100,'(/"Vertices")')
+  write(100,'( "10")')
+  do iVert=1,10
+    write(100,'(3(f6.2,1x),1x,i1)')uvw(1:3,iVert),0
+  enddo
+  
+  write(100,'(/"Tetrahedra")')
+  write(100,'(i1)')size(tetra,2)
+  do iCell=1,size(tetra,2)
+    write(100,'(4(i2,1x),1x,i1)')tetra(1:4,iCell),iCell
+  enddo
+  
+  write(100,'(/"End")')
+  
+  deallocate(uvw,tetra)
+  
+  close(100)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   return
