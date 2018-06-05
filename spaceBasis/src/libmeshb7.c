@@ -722,10 +722,10 @@ int GmfGotoKwd(int64_t MshIdx, int KwdCod)
 /* Write the kwd and set the number of lines                                  */
 /*----------------------------------------------------------------------------*/
 
-int GmfSetKwd(int64_t MshIdx, int KwdCod, int64_t NmbLin, ...)
+int GmfSetKwd(int64_t MshIdx, int KwdCod, ...)
 {
    int i, *TypTab;
-   int64_t CurPos;
+   int64_t NmbLin=0, CurPos;
    va_list VarArg;
    GmfMshSct *msh = (GmfMshSct *)MshIdx;
    KwdSct *kwd;
@@ -737,16 +737,24 @@ int GmfSetKwd(int64_t MshIdx, int KwdCod, int64_t NmbLin, ...)
 
    kwd = &msh->KwdTab[ KwdCod ];
 
-   // Read further arguments if this kw is a solution
-   if(!strcmp(GmfKwdFmt[ KwdCod ][3], "sr"))
+   // Read further arguments if this kw has a header
+   if(strlen(GmfKwdFmt[ KwdCod ][2]))
    {
-      va_start(VarArg, NmbLin);
+      va_start(VarArg, KwdCod);
 
-      kwd->NmbTyp = va_arg(VarArg, int);
-      TypTab = va_arg(VarArg, int *);
+      if(msh->ver < 4)
+         NmbLin = va_arg(VarArg, int);
+      else
+         NmbLin = va_arg(VarArg, int64_t);
 
-      for(i=0;i<kwd->NmbTyp;i++)
-         kwd->TypTab[i] = TypTab[i];
+      if(!strcmp(GmfKwdFmt[ KwdCod ][3], "sr"))
+      {
+         kwd->NmbTyp = va_arg(VarArg, int);
+         TypTab = va_arg(VarArg, int *);
+
+         for(i=0;i<kwd->NmbTyp;i++)
+            kwd->TypTab[i] = TypTab[i];
+      }
 
       va_end(VarArg);
    }
@@ -2436,8 +2444,10 @@ int APIF77(gmfsetkwd)(  int64_t *MshIdx, int *KwdIdx, int *NmbLin, \
 {
    if(!strcmp(GmfKwdFmt[ *KwdIdx ][3], "sr"))
       return(GmfSetKwd(*MshIdx, *KwdIdx, *NmbLin, *NmbTyp, TypTab));
-   else
+   else if(strlen(GmfKwdFmt[ *KwdIdx ][2]))
       return(GmfSetKwd(*MshIdx, *KwdIdx, *NmbLin));
+   else
+      return(GmfSetKwd(*MshIdx, *KwdIdx));
 }
 
 

@@ -1540,7 +1540,7 @@ module baseSimplex3D
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Point de depart : Tetra P1
     print '(/"writing TetraP1.mesh")'
-    open(unit=iFile,file="TetraP1.mesh",status='unknown',action='write')
+    open(unit=iFile,name="TetraP1.mesh",status='unknown',action='write')
     write(iFile,'( "MeshVersionFormatted 1")')
     write(iFile,'( "Dimension")')
     write(iFile,'( "3")')
@@ -1582,7 +1582,7 @@ module baseSimplex3D
       !>>>>>>>>
       !> Ecriture DEFAULT.yams pour imposer Nbiter = iOrd
       print '(/"Writing DEFAULT.yams")'
-      open(unit=iFile,file="DEFAULT.yams",status='unknown',action='write')
+      open(unit=iFile,name="DEFAULT.yams",status='unknown',action='write')
       write(iFile,'("Nbiter",i6)')iOrd
       close(iFile)
       !<<<<<<<<
