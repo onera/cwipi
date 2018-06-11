@@ -527,7 +527,7 @@ void LocationToLocalMesh::locate()
       
               const int *intern_connec =
                 fvmc_nodal_get_internal_connec_elt (&(_supportMesh->getFvmNodal()), ielt+1);
-              fvmc_ho_shape_on_cell_1d (elt_t,
+              fvmc_ho_weight_on_cell_1d (elt_t,
                                         order,
                                         order + 1,
                                         intern_connec,
@@ -1215,7 +1215,7 @@ void LocationToLocalMesh::compute2DMeanValues()
 
       int nbr_som_fac =  meshConnectivityIndex[ielt+1] - meshConnectivityIndex[ielt];
 
-      fvmc_ho_shape_on_cell_2d (elt_t,
+      fvmc_ho_weight_on_cell_2d (elt_t,
                                 order,
                                 nbr_som_fac,
                                 intern_connec,
@@ -2086,7 +2086,7 @@ void LocationToLocalMesh::compute3DMeanValues()
 
       int nbr_som_fac =  meshConnectivityIndex[ielt+1] - meshConnectivityIndex[ielt];
 
-      fvmc_ho_shape_in_cell_3d (elt_t,
+      fvmc_ho_weight_in_cell_3d (elt_t,
                                 order,
                                 nbr_som_fac,
                                 intern_connec,

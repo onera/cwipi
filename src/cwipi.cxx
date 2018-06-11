@@ -1077,10 +1077,10 @@ void cwipi_add_polyhedra(const char *coupling_name,
  *
  *----------------------------------------------------------------------------*/
 
-void cwipi_ho_ordering_from_uvw_grid_set (const char *coupling_id,
-                                          const cwipi_element_t t_elt,
-                                          const int n_nodes,
-                                          const int *uvw_ordering)
+void cwipi_ho_ordering_from_IJK_set (const char *coupling_id,
+                                     const cwipi_element_t t_elt,
+                                     const int n_nodes,
+                                     const int *uvw_ordering)
 {
   cwipi::CouplingDataBase & couplingDataBase =
     cwipi::CouplingDataBase::getInstance();
@@ -1133,13 +1133,13 @@ void cwipi_ho_ordering_from_ref_elt_set (const char   *coupling_id,
  *   location_tria     <-- Location on a triangle
  *   location_quad     <-- Location on a quandragle
  *   location_edge     <-- Location on a edge
- *   shape_tetra       <-- Shape computation in a tetrahedron
- *   shape_prism       <-- Shape computation in a prism
- *   shape_pyramid     <-- Shape computation in a pyramid
- *   shape_hexa        <-- Shape computation in a hexaedron
- *   shape_tria        <-- Shape computation on a triangle
- *   shape_quad        <-- Shape computation on a quandragle
- *   shape_edge        <-- Shape computation on a edge
+ *   weight_tetra       <-- Weight computation in a tetrahedron
+ *   weight_prism       <-- Weight computation in a prism
+ *   weight_pyramid     <-- Weight computation in a pyramid
+ *   weight_hexa        <-- Weight computation in a hexaedron
+ *   weight_tria        <-- Weight computation on a triangle
+ *   weight_quad        <-- Weight computation on a quandragle
+ *   weight_edge        <-- Weight computation on a edge
  *   interp_tetra      <-- Interpolation in a tetrahedron
  *   interp_prism      <-- Interpolation in a prism
  *   interp_pyramid    <-- Interpolation in a pyramid
@@ -1158,13 +1158,13 @@ cwipi_ho_user_elementary_functions_set (cwipi_ho_location_fct_t location_tetra,
                                         cwipi_ho_location_fct_t location_tria,
                                         cwipi_ho_location_fct_t location_quad,
                                         cwipi_ho_location_fct_t location_edge,
-                                        cwipi_ho_shape_fct_t shape_tetra,
-                                        cwipi_ho_shape_fct_t shape_prism,
-                                        cwipi_ho_shape_fct_t shape_pyramid,
-                                        cwipi_ho_shape_fct_t shape_hexa,
-                                        cwipi_ho_shape_fct_t shape_tria,
-                                        cwipi_ho_shape_fct_t shape_quad,
-                                        cwipi_ho_shape_fct_t shape_edge,
+                                        cwipi_ho_weight_fct_t weight_tetra,
+                                        cwipi_ho_weight_fct_t weight_prism,
+                                        cwipi_ho_weight_fct_t weight_pyramid,
+                                        cwipi_ho_weight_fct_t weight_hexa,
+                                        cwipi_ho_weight_fct_t weight_tria,
+                                        cwipi_ho_weight_fct_t weight_quad,
+                                        cwipi_ho_weight_fct_t weight_edge,
                                         cwipi_ho_interp_fct_t interp_tetra,
                                         cwipi_ho_interp_fct_t interp_prism,
                                         cwipi_ho_interp_fct_t interp_pyramid,
@@ -1181,13 +1181,13 @@ cwipi_ho_user_elementary_functions_set (cwipi_ho_location_fct_t location_tetra,
                                          (fvmc_ho_location_fct_t) location_tria,
                                          (fvmc_ho_location_fct_t) location_quad,
                                          (fvmc_ho_location_fct_t) location_edge,
-                                         (fvmc_ho_shape_fct_t) shape_tetra,
-                                         (fvmc_ho_shape_fct_t) shape_prism,
-                                         (fvmc_ho_shape_fct_t) shape_pyramid,
-                                         (fvmc_ho_shape_fct_t) shape_hexa,
-                                         (fvmc_ho_shape_fct_t) shape_tria,
-                                         (fvmc_ho_shape_fct_t) shape_quad,
-                                         (fvmc_ho_shape_fct_t) shape_edge,
+                                         (fvmc_ho_weight_fct_t) weight_tetra,
+                                         (fvmc_ho_weight_fct_t) weight_prism,
+                                         (fvmc_ho_weight_fct_t) weight_pyramid,
+                                         (fvmc_ho_weight_fct_t) weight_hexa,
+                                         (fvmc_ho_weight_fct_t) weight_tria,
+                                         (fvmc_ho_weight_fct_t) weight_quad,
+                                         (fvmc_ho_weight_fct_t) weight_edge,
                                          (fvmc_ho_interp_fct_t) interp_tetra,
                                          (fvmc_ho_interp_fct_t) interp_prism,
                                          (fvmc_ho_interp_fct_t) interp_pyramid,

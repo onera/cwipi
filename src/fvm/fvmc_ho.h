@@ -78,7 +78,7 @@ typedef double (*fvmc_ho_location_fct_t)
 
 /*----------------------------------------------------------------------------
  * 
- * Function pointer to compute shape in a high order cell 3d
+ * Function pointer to compute weight in a high order cell 3d
  * 
  * parameters:
  *   type             <-- element type
@@ -87,17 +87,17 @@ typedef double (*fvmc_ho_location_fct_t)
  *   ho_vertex_num    <-- high order vertex num (internal ordering)
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point on cell  
- *   shape            --> barycenter's coordinates
+ *   weight            --> barycenter's coordinates
  * 
  *----------------------------------------------------------------------------*/
 
-typedef double (*fvmc_ho_shape_fct_t)
+typedef double (*fvmc_ho_weight_fct_t)
 (const int order,
  const int n_node,
  const int *ho_vertex_num,
  const double *vertex_coords,
  const double *point_coords,
- double *shape);
+ double *weight);
 
 /*----------------------------------------------------------------------------
  * Function pointer to define an high order interpolation
@@ -110,7 +110,7 @@ typedef double (*fvmc_ho_shape_fct_t)
  *   local_to_user     <-- local to user ordering (for type)
  *   vertex_coords     <-- vertex coordinates
  *   point_coords      <-- point inside cell (or on boundary) 
- *   shape             <-- barycenter's coordinates
+ *   weight             <-- weights
  *   stride_field      <-- field stride
  *   source_field      <-- source field (user ordering) 
  *   target_field      --> target field (defined to point_coords)
@@ -124,7 +124,7 @@ typedef void (*fvmc_ho_interp_fct_t)
  const int *local_to_user,
  const double *vertex_coords,
  const double *point_coords,
- const double *shape,
+ const double *weight,
  const int stride_field,
  const double *src_field,
  double *target_field);
@@ -149,13 +149,13 @@ typedef void (*fvmc_ho_interp_fct_t)
  *   location_tria     <-- Location on a triangle
  *   location_quad     <-- Location on a quandragle
  *   location_edge     <-- Location on a edge
- *   shape_tetra       <-- Shape computation in a tetrahedron
- *   shape_prism       <-- Shape computation in a prism
- *   shape_pyramid     <-- Shape computation in a pyramid
- *   shape_hexa        <-- Shape computation in a hexaedron
- *   shape_tria        <-- Shape computation on a triangle
- *   shape_quad        <-- Shape computation on a quandragle
- *   shape_edge        <-- Shape computation on a edge
+ *   weight_tetra       <-- Weight computation in a tetrahedron
+ *   weight_prism       <-- Weight computation in a prism
+ *   weight_pyramid     <-- Weight computation in a pyramid
+ *   weight_hexa        <-- Weight computation in a hexaedron
+ *   weight_tria        <-- Weight computation on a triangle
+ *   weight_quad        <-- Weight computation on a quandragle
+ *   weight_edge        <-- Weight computation on a edge
  *   interp_tetra       <-- Interpolation in a tetrahedron
  *   interp_prism       <-- Interpolation in a prism
  *   interp_pyramid     <-- Interpolation in a pyramid
@@ -174,13 +174,13 @@ fvmc_ho_user_elementary_functions_set (fvmc_ho_location_fct_t location_tetra,
                                        fvmc_ho_location_fct_t location_tria,
                                        fvmc_ho_location_fct_t location_quad,
                                        fvmc_ho_location_fct_t location_edge,
-                                       fvmc_ho_shape_fct_t shape_tetra,
-                                       fvmc_ho_shape_fct_t shape_prism,
-                                       fvmc_ho_shape_fct_t shape_pyramid,
-                                       fvmc_ho_shape_fct_t shape_hexa,
-                                       fvmc_ho_shape_fct_t shape_tria,
-                                       fvmc_ho_shape_fct_t shape_quad,
-                                       fvmc_ho_shape_fct_t shape_edge,
+                                       fvmc_ho_weight_fct_t weight_tetra,
+                                       fvmc_ho_weight_fct_t weight_prism,
+                                       fvmc_ho_weight_fct_t weight_pyramid,
+                                       fvmc_ho_weight_fct_t weight_hexa,
+                                       fvmc_ho_weight_fct_t weight_tria,
+                                       fvmc_ho_weight_fct_t weight_quad,
+                                       fvmc_ho_weight_fct_t weight_edge,
                                        fvmc_ho_interp_fct_t interp_tetra,
                                        fvmc_ho_interp_fct_t interp_prism,
                                        fvmc_ho_interp_fct_t interp_pyramid,
@@ -282,7 +282,7 @@ fvmc_ho_location_on_cell_1d (const fvmc_element_t type,
 
 /*----------------------------------------------------------------------------
  * 
- * Compute shape in a high order cell 3d
+ * Compute weight in a high order cell 3d
  * 
  * parameters:
  *   type             <-- element type
@@ -291,22 +291,22 @@ fvmc_ho_location_on_cell_1d (const fvmc_element_t type,
  *   ho_vertex_num    <-- high order vertex num (internal ordering)
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point inside cell  
- *   shape            --> barycenter's coordinates
+ *   weight            --> barycenter's coordinates
  * 
  *----------------------------------------------------------------------------*/
 
 void 
-fvmc_ho_shape_in_cell_3d (const fvmc_element_t type,
+fvmc_ho_weight_in_cell_3d (const fvmc_element_t type,
                           const int order,
                           const int n_node,
                           const int *ho_vertex_num,
                           const double *vertex_coords,
                           const double *point_coords,
-                          double *shape);
+                          double *weight);
 
 /*----------------------------------------------------------------------------
  * 
- * Compute shape on a high order cell 2d
+ * Compute weight on a high order cell 2d
  * 
  * parameters:
  *   type             <-- element type
@@ -315,22 +315,22 @@ fvmc_ho_shape_in_cell_3d (const fvmc_element_t type,
  *   ho_vertex_num    <-- high order vertex num (internal ordering)
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point on cell  
- *   shape            --> barycenter's coordinates
+ *   weight            --> barycenter's coordinates
  * 
  *----------------------------------------------------------------------------*/
 
 void 
-fvmc_ho_shape_on_cell_2d (const fvmc_element_t type,
+fvmc_ho_weight_on_cell_2d (const fvmc_element_t type,
                           const int order,
                           const int n_node,
                           const int *ho_vertex_num,
                           const double *vertex_coords,
                           const double *point_coords,
-                          double *shape);
+                          double *weight);
 
 /*----------------------------------------------------------------------------
  * 
- * Compute shape on a high order cell 1d
+ * Compute weight on a high order cell 1d
  * 
  * parameters:
  *   type             <-- element type
@@ -339,18 +339,18 @@ fvmc_ho_shape_on_cell_2d (const fvmc_element_t type,
  *   ho_vertex_num    <-- high order vertex num (internal ordering)
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point on cell  
- *   shape            --> barycenter's coordinates
+ *   weight            --> barycenter's coordinates
  * 
  *----------------------------------------------------------------------------*/
 
 void 
-fvmc_ho_shape_on_cell_1d (const fvmc_element_t type,
+fvmc_ho_weight_on_cell_1d (const fvmc_element_t type,
                           const int order,
                           const int n_node,
                           const int *ho_vertex_num,
                           const double *vertex_coords,
                           const double *point_coords,
-                          double *shape);
+                          double *weight);
 
 
 
@@ -366,7 +366,7 @@ fvmc_ho_shape_on_cell_1d (const fvmc_element_t type,
  *   local_to_user     <-- local to user ordering (for type)
  *   vertex_coords     <-- vertex coordinates
  *   point_coords      <-- point inside cell (or on boundary) 
- *   shape             <-- barycenter's coordinates
+ *   weight             <-- weights
  *   stride_field      <-- field stride
  *   source_field      <-- source field (user ordering) 
  *   target_field      --> target field (defined to point_coords)
@@ -381,7 +381,7 @@ fvmc_ho_interp_in_cell_3d (const fvmc_element_t type,
                            const int *local_to_user,
                            const double *vertex_coords,
                            const double *point_coords,
-                           const double *shape,
+                           const double *weight,
                            const int stride_field,
                            const double *src_field,
                            double *target_field);
@@ -398,7 +398,7 @@ fvmc_ho_interp_in_cell_3d (const fvmc_element_t type,
  *   local_to_user     <-- local to user ordering (for type)
  *   vertex_coords     <-- vertex coordinates
  *   point_coords      <-- point inside cell (or on boundary) 
- *   shape             <-- barycenter's coordinates
+ *   weight             <-- weights
  *   stride_field      <-- field stride
  *   source_field      <-- source field (user ordering) 
  *   target_field      --> target field (defined to point_coords)
@@ -413,7 +413,7 @@ fvmc_ho_interp_on_cell_2d (const fvmc_element_t type,
                            const int *local_to_user,
                            const double *vertex_coords,
                            const double *point_coords,
-                           const double *shape,
+                           const double *weight,
                            const int stride_field,
                            const double *src_field,
                            double *target_field);
@@ -431,7 +431,7 @@ fvmc_ho_interp_on_cell_2d (const fvmc_element_t type,
  *   local_to_user     <-- local to user ordering (for type)
  *   vertex_coords     <-- vertex coordinates
  *   point_coords      <-- point inside cell (or on boundary) 
- *   shape             <-- barycenter's coordinates
+ *   weight             <-- barycenter's coordinates
  *   stride_field      <-- field stride
  *   source_field      <-- source field (user ordering) 
  *   target_field      --> target field (defined to point_coords)
@@ -446,7 +446,7 @@ fvmc_ho_interp_on_cell_1d (const fvmc_element_t type,
                            const int *local_to_user,
                            const double *vertex_coords,
                            const double *point_coords,
-                           const double *shape,
+                           const double *weight,
                            const int stride_field,
                            const double *src_field,
                            double *target_field);

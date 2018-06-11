@@ -235,6 +235,7 @@ typedef void (*cwipi_interpolation_fct_t)
 typedef double (*cwipi_ho_location_fct_t)
 (const cwipi_element_t type,
  const int order,
+ const int n_node,
  const int *ho_vertex_num,
  const double *vertex_coords,
  const double *point_coords,
@@ -242,7 +243,7 @@ typedef double (*cwipi_ho_location_fct_t)
 
 /*----------------------------------------------------------------------------
  * 
- * Function pointer to compute shape in a high order cell 3d
+ * Function pointer to compute weight in a high order cell 3d
  * 
  * parameters:
  *   type             <-- element type
@@ -250,17 +251,18 @@ typedef double (*cwipi_ho_location_fct_t)
  *   ho_vertex_num    <-- high order vertex num (internal ordering)
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point on cell  
- *   shape            --> barycenter's coordinates
+ *   weight            --> barycenter's coordinates
  * 
  *----------------------------------------------------------------------------*/
 
-typedef double (*cwipi_ho_shape_fct_t)
+typedef double (*cwipi_ho_weight_fct_t)
 (const cwipi_element_t type,
  const int order,
+ const int n_node,
  const int *ho_vertex_num,
  const double *vertex_coords,
  const double *point_coords,
- double *shape);
+ double *weight);
 
 /*----------------------------------------------------------------------------
  * Function pointer to define an high order interpolation
@@ -272,7 +274,7 @@ typedef double (*cwipi_ho_shape_fct_t)
  *   local_to_user     <-- local to user ordering (for type)
  *   vertex_coords     <-- vertex coordinates
  *   point_coords      <-- point inside cell (or on boundary) 
- *   shape             <-- barycenter's coordinates
+ *   weight            <-- weights
  *   stride_field      <-- field stride
  *   source_field      <-- source field (user ordering) 
  *   target_field      --> target field (defined to point_coords)
@@ -282,11 +284,12 @@ typedef double (*cwipi_ho_shape_fct_t)
 typedef void (*cwipi_ho_interp_fct_t)
 (const cwipi_element_t type,
  const int order,
+ const int n_node,
  const int *ho_vertex_num,
  const int *local_to_user,
  const double *vertex_coords,
  const double *point_coords,
- const double *shape,
+ const double *weight,
  const int stride_field,
  const double *src_field,
  double *target_field);
@@ -973,10 +976,10 @@ void cwipi_shared_fvmc_nodal(const char *coupling_name,
  *
  *----------------------------------------------------------------------------*/
 
-void cwipi_ho_ordering_from_uvw_grid_set (const char *coupling_id,
-                                          const cwipi_element_t t_elt,
-                                          const int n_nodes,
-                                          const int *uvw_grid);
+void cwipi_ho_ordering_from_IJK_set (const char *coupling_id,
+                                     const cwipi_element_t t_elt,
+                                     const int n_nodes,
+                                     const int *uvw_grid);
 
 /*----------------------------------------------------------------------------
  *
@@ -1007,13 +1010,13 @@ void cwipi_ho_ordering_from_ref_elt_set (const char   *coupling_id,
  *   location_tria     <-- Location on a triangle
  *   location_quad     <-- Location on a quandragle
  *   location_edge     <-- Location on a edge
- *   shape_tetra       <-- Shape computation in a tetrahedron
- *   shape_prism       <-- Shape computation in a prism
- *   shape_pyramid     <-- Shape computation in a pyramid
- *   shape_hexa        <-- Shape computation in a hexaedron
- *   shape_tria        <-- Shape computation on a triangle
- *   shape_quad        <-- Shape computation on a quandragle
- *   shape_edge        <-- Shape computation on a edge
+ *   weight_tetra       <-- Weight computation in a tetrahedron
+ *   weight_prism       <-- Weight computation in a prism
+ *   weight_pyramid     <-- Weight computation in a pyramid
+ *   weight_hexa        <-- Weight computation in a hexaedron
+ *   weight_tria        <-- Weight computation on a triangle
+ *   weight_quad        <-- Weight computation on a quandragle
+ *   weight_edge        <-- Weight computation on a edge
  *   interp_tetra      <-- Interpolation in a tetrahedron
  *   interp_prism      <-- Interpolation in a prism
  *   interp_pyramid    <-- Interpolation in a pyramid
@@ -1032,13 +1035,13 @@ cwipi_ho_user_elementary_functions_set (cwipi_ho_location_fct_t location_tetra,
                                         cwipi_ho_location_fct_t location_tria,
                                         cwipi_ho_location_fct_t location_quad,
                                         cwipi_ho_location_fct_t location_edge,
-                                        cwipi_ho_shape_fct_t shape_tetra,
-                                        cwipi_ho_shape_fct_t shape_prism,
-                                        cwipi_ho_shape_fct_t shape_pyramid,
-                                        cwipi_ho_shape_fct_t shape_hexa,
-                                        cwipi_ho_shape_fct_t shape_tria,
-                                        cwipi_ho_shape_fct_t shape_quad,
-                                        cwipi_ho_shape_fct_t shape_edge,
+                                        cwipi_ho_weight_fct_t weight_tetra,
+                                        cwipi_ho_weight_fct_t weight_prism,
+                                        cwipi_ho_weight_fct_t weight_pyramid,
+                                        cwipi_ho_weight_fct_t weight_hexa,
+                                        cwipi_ho_weight_fct_t weight_tria,
+                                        cwipi_ho_weight_fct_t weight_quad,
+                                        cwipi_ho_weight_fct_t weight_edge,
                                         cwipi_ho_interp_fct_t interp_tetra,
                                         cwipi_ho_interp_fct_t interp_prism,
                                         cwipi_ho_interp_fct_t interp_pyramid,
