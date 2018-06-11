@@ -418,6 +418,11 @@ namespace cwipi {
       const fvmc_coord_t *proj_coords =
         fvmc_locator_get_dist_projected_coords(_locationToLocalMesh->getFVMLocator());
 
+      const fvmc_coord_t *dist_coords =
+        fvmc_locator_get_dist_coords(_locationToLocalMesh->getFVMLocator());
+
+      const float *distances = fvmc_locator_get_dist_distances(_locationToLocalMesh->getFVMLocator());
+
       for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
         int iel = distantLocation[ipoint] - 1;
 
@@ -437,6 +442,8 @@ namespace cwipi {
                                    intern_connec,
                                    local_to_user_numbering,
                                    meshVertexCoords,
+                                   dist_coords + 3 * ipoint,
+                                   distances + ipoint,
                                    proj_coords + 3 * ipoint,
                                    barycentricCoordinates + barycentricCoordinatesIndex[ipoint],
                                    stride,
@@ -490,6 +497,11 @@ namespace cwipi {
       const fvmc_coord_t *proj_coords =
         fvmc_locator_get_dist_projected_coords(_locationToLocalMesh->getFVMLocator());
 
+      const fvmc_coord_t *dist_coords =
+        fvmc_locator_get_dist_coords(_locationToLocalMesh->getFVMLocator());
+
+      const float *distances = fvmc_locator_get_dist_distances(_locationToLocalMesh->getFVMLocator());
+
       for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
         int iel = distantLocation[ipoint] - 1;
 
@@ -509,6 +521,8 @@ namespace cwipi {
                                    intern_connec,
                                    local_to_user_numbering,
                                    meshVertexCoords,
+                                   dist_coords + 3 * ipoint,
+                                   distances + ipoint,
                                    proj_coords + 3 * ipoint,
                                    barycentricCoordinates + barycentricCoordinatesIndex[ipoint],
                                    stride,
@@ -583,6 +597,11 @@ namespace cwipi {
         const fvmc_coord_t *proj_coords =
           fvmc_locator_get_dist_projected_coords(_locationToLocalMesh->getFVMLocator());
         
+        const fvmc_coord_t *dist_coords =
+          fvmc_locator_get_dist_coords(_locationToLocalMesh->getFVMLocator());
+        
+        const float *distances = fvmc_locator_get_dist_distances(_locationToLocalMesh->getFVMLocator());
+        
         for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
           int iel = distantLocation[ipoint] - 1;
           
@@ -602,6 +621,8 @@ namespace cwipi {
                                      intern_connec,
                                      local_to_user_numbering,
                                      meshVertexCoords,
+                                     dist_coords + 3 * ipoint,
+                                     distances + ipoint,
                                      proj_coords + 3 * ipoint,
                                      barycentricCoordinates + barycentricCoordinatesIndex[ipoint],
                                      stride,

@@ -587,7 +587,9 @@ _default_weight_on_cell_1d (const fvmc_element_t type,
  *   ho_vertex_num     <-- high order vertex num (internal ordering)
  *   local_to_user     <-- local to user ordering (for type)
  *   vertex_coords     <-- vertex coordinates
- *   point_coords      <-- point inside cell (or on boundary) 
+ *   point_coords      <-- point coordinates
+ *   distance          <-- distance to the element
+ *   point_proj_coords  <-- projected point coordinates
  *   weight             <-- weights
  *   stride_field      <-- field stride
  *   source_field      <-- source field (user ordering) 
@@ -603,6 +605,8 @@ _default_interp_in_cell_3d (const fvmc_element_t type,
                             const int *local_to_user,
                             const double *vertex_coords,
                             const double *point_coords,
+                            const float *distance,
+                           const double *point_proj_coords,
                             const double *weight,
                             const int stride_field,
                             const double *src_field,
@@ -625,7 +629,9 @@ _default_interp_in_cell_3d (const fvmc_element_t type,
  *   ho_vertex_num     <-- high order vertex num (internal ordering)
  *   local_to_user     <-- local to user ordering (for type)
  *   vertex_coords     <-- vertex coordinates
- *   point_coords      <-- point inside cell (or on boundary) 
+ *   point_coords      <-- point coordinates
+ *   distance          <-- distance to the element
+ *   point_proj_coords  <-- projected point coordinates
  *   weight             <-- weights
  *   stride_field      <-- field stride
  *   source_field      <-- source field (user ordering) 
@@ -641,6 +647,8 @@ _default_interp_on_cell_2d (const fvmc_element_t type,
                             const int *local_to_user,
                             const double *vertex_coords,
                             const double *point_coords,
+                            const float *distance,
+                           const double *point_proj_coords,
                             const double *weight,
                             const int stride_field,
                             const double *src_field,
@@ -662,7 +670,9 @@ _default_interp_on_cell_2d (const fvmc_element_t type,
  *   ho_vertex_num     <-- high order vertex num (internal ordering)
  *   local_to_user     <-- local to user ordering (for type)
  *   vertex_coords     <-- vertex coordinates
- *   point_coords      <-- point inside cell (or on boundary) 
+ *   point_coords      <-- point coordinates
+ *   distance          <-- distance to the element
+ *   point_proj_coords  <-- projected point coordinates
  *   weight             <-- weights
  *   stride_field      <-- field stride
  *   source_field      <-- source field (user ordering) 
@@ -678,6 +688,8 @@ _default_interp_on_cell_1d (const fvmc_element_t type,
                             const int *local_to_user,
                             const double *vertex_coords,
                             const double *point_coords,
+                            const float *distance,
+                            const double *point_proj_coords,
                             const double *weight,
                             const int stride_field,
                             const double *src_field,
@@ -1234,7 +1246,9 @@ fvmc_ho_weight_on_cell_1d (const fvmc_element_t type,
  *   ho_vertex_num     <-- high order vertex num (internal ordering)
  *   local_to_user     <-- local to user ordering (for type)
  *   vertex_coords     <-- vertex coordinates
- *   point_coords      <-- point inside cell (or on boundary) 
+ *   point_coords      <-- point coordinates 
+ *   distance          <-- distance to the element
+ *   point_proj_coords  <-- projected point coordinates
  *   weight             <-- weights
  *   stride_field      <-- field stride
  *   source_field      <-- source field (user ordering) 
@@ -1250,7 +1264,9 @@ fvmc_ho_interp_in_cell_3d (const fvmc_element_t type,
                            const int *local_to_user,
                            const double *vertex_coords,
                            const double *point_coords,
-                           const double *weight,
+                            const float *distance,
+                           const double *point_proj_coords,
+                          const double *weight,
                            const int stride_field,
                            const double *src_field,
                            double *target_field)
@@ -1267,6 +1283,8 @@ fvmc_ho_interp_in_cell_3d (const fvmc_element_t type,
                                   local_to_user, 
                                   vertex_coords,
                                   point_coords,
+                                  distance,
+                                  point_proj_coords,
                                   weight,
                                   stride_field,
                                   src_field,
@@ -1282,6 +1300,8 @@ fvmc_ho_interp_in_cell_3d (const fvmc_element_t type,
                                   local_to_user, 
                                   vertex_coords,
                                   point_coords,
+                                  distance,
+                                  point_proj_coords,
                                   weight,
                                   stride_field,
                                   src_field,
@@ -1296,6 +1316,8 @@ fvmc_ho_interp_in_cell_3d (const fvmc_element_t type,
                                      local_to_user, 
                                      vertex_coords,
                                      point_coords,
+                                     distance,
+                                     point_proj_coords,
                                      weight,
                                      stride_field,
                                      src_field,
@@ -1310,6 +1332,8 @@ fvmc_ho_interp_in_cell_3d (const fvmc_element_t type,
                                  local_to_user, 
                                  vertex_coords,
                                  point_coords,
+                                 distance,
+                                 point_proj_coords,
                                  weight,
                                  stride_field,
                                  src_field,
@@ -1333,6 +1357,8 @@ fvmc_ho_interp_in_cell_3d (const fvmc_element_t type,
                                 local_to_user,
                                 vertex_coords,
                                 point_coords,
+                                distance,
+                                point_proj_coords,
                                 weight,
                                 stride_field,
                                 src_field,
@@ -1353,7 +1379,9 @@ fvmc_ho_interp_in_cell_3d (const fvmc_element_t type,
  *   ho_vertex_num     <-- high order vertex num (internal ordering)
  *   local_to_user     <-- local to user ordering (for type)
  *   vertex_coords     <-- vertex coordinates
- *   point_coords      <-- point inside cell (or on boundary) 
+ *   point_coords      <-- point coordinates 
+ *   distance          <-- distance to the element
+ *   point_proj_coords  <-- projected point coordinates
  *   weight             <-- weights
  *   stride_field      <-- field stride
  *   source_field      <-- source field (user ordering) 
@@ -1369,6 +1397,8 @@ fvmc_ho_interp_on_cell_2d (const fvmc_element_t type,
                            const int *local_to_user,
                            const double *vertex_coords,
                            const double *point_coords,
+                           const float *distance,
+                           const double *point_proj_coords,
                            const double *weight,
                            const int stride_field,
                            const double *src_field,
@@ -1384,6 +1414,8 @@ fvmc_ho_interp_on_cell_2d (const fvmc_element_t type,
                                  local_to_user, 
                                  vertex_coords,
                                  point_coords,
+                                 distance,
+                                 point_proj_coords,
                                  weight,
                                  stride_field,
                                  src_field,
@@ -1397,6 +1429,8 @@ fvmc_ho_interp_on_cell_2d (const fvmc_element_t type,
                                  local_to_user, 
                                  vertex_coords,
                                  point_coords,
+                                 distance,
+                                 point_proj_coords,
                                  weight,
                                  stride_field,
                                  src_field,
@@ -1420,6 +1454,8 @@ fvmc_ho_interp_on_cell_2d (const fvmc_element_t type,
                                 local_to_user,
                                 vertex_coords,
                                 point_coords,
+                                distance,
+                                point_proj_coords,
                                 weight,
                                 stride_field,
                                 src_field,
@@ -1439,7 +1475,9 @@ fvmc_ho_interp_on_cell_2d (const fvmc_element_t type,
  *   ho_vertex_num     <-- high order vertex num (internal ordering)
  *   local_to_user     <-- local to user ordering (for type)
  *   vertex_coords     <-- vertex coordinates
- *   point_coords      <-- point inside cell (or on boundary) 
+ *   point_coords      <-- point coordinates 
+ *   distance          <-- distance to the element
+ *   point_proj_coords  <-- projected point coordinates
  *   weight             <-- weights
  *   stride_field      <-- field stride
  *   source_field      <-- source field (user ordering) 
@@ -1455,6 +1493,8 @@ fvmc_ho_interp_on_cell_1d (const fvmc_element_t type,
                            const int *local_to_user,
                            const double *vertex_coords,
                            const double *point_coords,
+                           const float *distance,
+                           const double *point_proj_coords,
                            const double *weight,
                            const int stride_field,
                            const double *src_field,
@@ -1470,6 +1510,8 @@ fvmc_ho_interp_on_cell_1d (const fvmc_element_t type,
                                  local_to_user, 
                                  vertex_coords,
                                  point_coords,
+                                 distance,
+                                 point_proj_coords,
                                  weight,
                                  stride_field,
                                  src_field,
@@ -1493,6 +1535,8 @@ fvmc_ho_interp_on_cell_1d (const fvmc_element_t type,
                                 local_to_user,
                                 vertex_coords,
                                 point_coords,
+                                distance,
+                                point_proj_coords,
                                 weight,
                                 stride_field,
                                 src_field,
