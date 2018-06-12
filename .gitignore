@@ -20,4 +20,5 @@ autoscan.log
 Cython/cwipi.c
 \#*
 nbproject
+CMakeLists.txt.user
 

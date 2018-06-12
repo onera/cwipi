@@ -56,6 +56,26 @@ module cwipi
   ! exchange status
   integer (kind = cwipi_int_l), parameter :: cwipi_exchange_ok = 0
   integer (kind = cwipi_int_l), parameter :: cwipi_exchange_bad_receiving = 1
+
+
+  integer (kind = cwipi_int_l), parameter :: cwipi_node = 0
+  integer (kind = cwipi_int_l), parameter :: cwipi_edge2 = 1
+  integer (kind = cwipi_int_l), parameter :: cwipi_edgeho = 2
+  integer (kind = cwipi_int_l), parameter :: cwipi_face_tria3 = 3
+  integer (kind = cwipi_int_l), parameter :: cwipi_face_triaho = 4
+  integer (kind = cwipi_int_l), parameter :: cwipi_face_quad4 = 5
+  integer (kind = cwipi_int_l), parameter :: cwipi_face_quadho = 6
+  integer (kind = cwipi_int_l), parameter :: cwipi_face_poly = 7
+  integer (kind = cwipi_int_l), parameter :: cwipi_cell_tetra4 = 8
+  integer (kind = cwipi_int_l), parameter :: cwipi_cell_tetraho = 9
+  integer (kind = cwipi_int_l), parameter :: cwipi_cell_hexa8 = 10
+  integer (kind = cwipi_int_l), parameter :: cwipi_cell_hexaho = 11
+  integer (kind = cwipi_int_l), parameter :: cwipi_cell_prism6 = 12
+  integer (kind = cwipi_int_l), parameter :: cwipi_cell_prismho = 13
+  integer (kind = cwipi_int_l), parameter :: cwipi_cell_pyram5 = 14
+  integer (kind = cwipi_int_l), parameter :: cwipi_cell_pyramho = 15
+  integer (kind = cwipi_int_l), parameter :: cwipi_cell_poly = 16
+
   !
   ! Public interfaces
   interface cwipi_exchange_f ; module procedure &
@@ -165,10 +185,18 @@ module cwipi
    cwipi_define_mesh_f_
   end interface
 
-  interface cwipi_define_ho_mesh_f ; module procedure &
-   cwipi_define_ho_mesh_f_
+  interface cwipi_ho_define_mesh_f ; module procedure &
+   cwipi_ho_define_mesh_f_
   end interface
-  
+
+  interface cwipi_ho_ordering_from_IJK_set_f ; module procedure &
+   cwipi_ho_ordering_from_IJK_set_f_
+  end interface
+
+  interface cwipi_ho_ordering_from_ref_elt_set_f ; module procedure &
+   cwipi_ho_ordering_from_ref_elt_set_f_
+  end interface
+
   interface cwipi_add_polyhedra_f          ; module procedure &
     cwipi_add_polyhedra_f_
   end interface
@@ -344,7 +372,9 @@ module cwipi
              cwipi_synch_ctrl_param_f_,       &
              cwipi_create_coupling_f_,        &
              cwipi_set_points_to_locate_f_,   &
-             cwipi_define_mesh_f_,            &
+             cwipi_ho_define_mesh_f_,          &
+             cwipi_ho_ordering_from_IJK_set_f_,&
+             cwipi_ho_ordering_from_ref_elt_set_f_,&
              cwipi_add_polyhedra_f_,          &
              cwipi_locate_f_,                 &
              cwipi_update_location_f_,        &
@@ -1497,7 +1527,7 @@ contains
 
   
 
-  subroutine cwipi_define_ho_mesh_f_ (couplingName, &
+  subroutine cwipi_ho_define_mesh_f_ (couplingName, &
                                        nVertex, &
                                        nElts, &
                                        order, &
@@ -1518,7 +1548,7 @@ contains
 
     lCouplingName    = len(couplingName)
 
-    call cwipi_define_ho_mesh_cf(couplingName, &
+    call cwipi_ho_define_mesh_cf(couplingName, &
                                   lCouplingName, &
                                   nVertex, &
                                   nElts, &
@@ -1527,9 +1557,72 @@ contains
                                   connecindex, &
                                   connec)
 
-  end subroutine cwipi_define_ho_mesh_f_
+  end subroutine cwipi_ho_define_mesh_f_
   
-  
+
+ !********************************************************************************
+ !
+ ! Define ho element ordering from the location in the (u, v, w) grid
+ !
+ ! parameters:
+ !   coupling_id     <-- coupling name
+ !   t_elt           <-- element type
+ !   n_nodes         <-- number of nodes
+ !   IJK             <-- user ordering to (I, J, K) grid (size = elt_dim * n_nodes)
+ !
+ !********************************************************************************
+
+  subroutine cwipi_ho_ordering_from_IJK_set_f_ (couplingName, &
+                                               tElt,       &
+                                               nNodes,     &
+                                               IJK)
+
+    implicit none
+
+    character (len = *) :: couplingName
+    integer (kind = cwipi_int_l) :: lCouplingName
+    integer (kind = cwipi_int_l) :: tElt, nNodes
+
+    integer (kind = cwipi_int_l), dimension (*) :: IJK
+
+    lCouplingName    = len(couplingName)
+
+    call cwipi_ho_ordering_from_IJK_set_cf (couplingName, lCouplingName, tElt, nNodes, IJK)
+
+  end subroutine cwipi_ho_ordering_from_IJK_set_f_
+
+
+!********************************************************************************
+!
+! Define ho element ordering from reference element (definition between 0 - 1)
+!
+!   couplingId        <-- coupling name
+!   tElt              <-- element type
+!   nNodes            <-- number of nodes
+!   coords            <-- node coordinates of reference element
+!                                TODO: decrire ici les elements de reference
+!
+!********************************************************************************
+
+ subroutine cwipi_ho_ordering_from_ref_elt_set_f_ (couplingName, &
+                                                   tElt,       &
+                                                   nNodes,     &
+                                                   coords)
+
+   implicit none
+
+   character (len = *) :: couplingName
+   integer (kind = cwipi_int_l) :: lCouplingName
+   integer (kind = cwipi_int_l) :: tElt, nNodes
+
+   double precision, dimension(*) :: coords
+
+   lCouplingName    = len(couplingName)
+
+   call cwipi_ho_ordering_from_ref_elt_set_cf (couplingName, lCouplingName, tElt, nNodes, coords)
+
+ end subroutine cwipi_ho_ordering_from_ref_elt_set_f_
+
 !
 !********************************************************************************
 !

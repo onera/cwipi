@@ -1002,7 +1002,7 @@ void cwipi_define_mesh(const char *coupling_name,
                       connectivity);
 }
 
-void cwipi_define_ho_mesh(const char *coupling_name,
+void cwipi_ho_define_mesh(const char *coupling_name,
                           const int n_vertex,
                           const int n_element,
                           const int order,

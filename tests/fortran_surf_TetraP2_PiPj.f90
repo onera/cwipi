@@ -501,6 +501,7 @@ program testf
   integer          :: iCell,nCell
   real(8), pointer :: vertices   (:)
   integer, pointer :: connec     (:)
+  integer, pointer :: ijk     (:)
   integer, pointer :: connecIndex(:)
   integer, pointer :: tetraNodes(:,:)
   
@@ -771,7 +772,7 @@ program testf
     enddo
     
   !> Transmission des maillages à cwipi
-    call cwipi_define_ho_mesh_f(  &
+    call cwipi_ho_define_mesh_f(  &
     &   couplingName="testPiPj"  ,&
     &   nVertex     =nVert       ,&
     &   nElts       =nCell       ,&
@@ -781,26 +782,28 @@ program testf
     &   connec      =connec       )
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-  block
+!  block
 
-  integer :: uvw(2,6)  
-  uvw(1:2,1)=[0,0]
-  uvw(1:2,2)=[2,0]
-  uvw(1:2,3)=[0,2]
-  uvw(1:2,4)=[1,0]
-  uvw(1:2,5)=[1,1]
-  uvw(1:2,6)=[0,1]
+allocate( ijk  (12)    )  !> sommets
+  ijk(1:2)=[0,0]
+  ijk(3:4)=[2,0]
+  ijk(5:6)=[0,2]
+  ijk(7:8)=[1,0]
+  ijk(9:10)=[1,1]
+  ijk(11:12)=[0,1]
 
   ! 3
   ! 6 5
   ! 1 4 2
   
-!  call cwipi_ho_ordering_from_uvw_grid_set (couplingName ="testPiPj", &
-!                                            t_elt        = CWIPI_FACE_TRIAHO, &
-!                                            n_nodes      = 
-  !                                          const int *uvw_grid)
+call cwipi_ho_ordering_from_IJK_set_f (couplingName ="testPiPj", &
+                                          tElt        = CWIPI_FACE_TRIAHO, &
+                                          nNodes      = 6, &
+                                         IJK          = ijk)
 
-  end block
+deallocate (ijk)
+
+!  end block
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   if( visu )then
       

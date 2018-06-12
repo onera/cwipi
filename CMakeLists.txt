@@ -268,7 +268,7 @@ set(COMMON_LIBRARIES)
 # Check MPI (TODO : check MPI wrapper function check )
 # ----------------------------------------------------
 
-find_package(MPI REQUIRED COMPONENTS MPI_C_FOUND MPI_CXX_FOUND MPI_Fortran_FOUND)
+find_package(MPI REQUIRED)
 
 mark_as_advanced (MPI_EXTRA_LIBRARY MPI_LIBRARY)
 

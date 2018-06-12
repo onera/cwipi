@@ -649,8 +649,8 @@ void PROCF(cwipi_define_mesh_cf,
    int *connectivity
    ARGF_SUPP_CHAINE);
 
-void PROCF(cwipi_define_ho_mesh_cf,
-           CWIPI_DEFINE_HO_MESH_CF)
+void PROCF(cwipi_ho_define_mesh_cf,
+           CWIPI_HO_DEFINE_MESH_CF)
   (const char *coupling_name,
    const int  *l_coupling_name,
    const int *n_vertex,
@@ -672,6 +672,101 @@ void PROCF(cwipi_add_polyhedra_cf,
    int *face_connectivity_index,
    int *face_connectivity
    ARGF_SUPP_CHAINE);
+
+/*----------------------------------------------------------------------------
+ *
+ * Define ho element ordering from the location in the (u, v, w) grid
+ *
+ * parameters:
+ *   coupling_id     <-- coupling name
+ *   t_elt           <-- element type
+ *   n_nodes         <-- number of nodes
+ *   uvw_grid        <-- user ordering to (u, v, w) grid (size = elt_dim * n_nodes)
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF (cwipi_ho_ordering_from_ijk_set_cf,
+            CWIPI_HO_ORDERING_FROM_IJK_SET_CF)
+(const char *coupling_id,
+ const int *l_coupling_id,
+ const int *t_elt,
+ const int *n_nodes,
+ const int *uvw_grid
+ ARGF_SUPP_CHAINE);
+
+/*----------------------------------------------------------------------------
+ *
+ * Define ho element ordering from reference element (definition between 0 - 1)
+ *
+ *   coupling_id        <-- coupling name
+ *   t_elt              <-- element type
+ *   n_nodes            <-- number of nodes
+ *   coords             <-- node coordinates of reference element
+ *                                TODO: decrire ici les elements de reference
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF (cwipi_ho_ordering_from_ref_elt_set_cf,
+            CWIPI_HO_ORDERING_FROM_REF_ELT_SET_CF)
+(const char   *coupling_id,
+ const int *l_coupling_id,
+ const int *t_elt,
+ const int *n_nodes,
+ const double *coords
+ ARGF_SUPP_CHAINE);
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Set elementary functions
+ *
+ * parameters:
+ *   location_tetra    <-- Location in a tetrahedron
+ *   location_prism    <-- Location in a prism
+ *   location_pyramid  <-- Location in a pyramid
+ *   location_hexa     <-- Location in a hexaedron
+ *   location_tria     <-- Location on a triangle
+ *   location_quad     <-- Location on a quandragle
+ *   location_edge     <-- Location on a edge
+ *   weight_tetra       <-- Weight computation in a tetrahedron
+ *   weight_prism       <-- Weight computation in a prism
+ *   weight_pyramid     <-- Weight computation in a pyramid
+ *   weight_hexa        <-- Weight computation in a hexaedron
+ *   weight_tria        <-- Weight computation on a triangle
+ *   weight_quad        <-- Weight computation on a quandragle
+ *   weight_edge        <-- Weight computation on a edge
+ *   interp_tetra      <-- Interpolation in a tetrahedron
+ *   interp_prism      <-- Interpolation in a prism
+ *   interp_pyramid    <-- Interpolation in a pyramid
+ *   interp_hexa       <-- Interpolation in a hexaedron
+ *   interp_tria       <-- Interpolation on a triangle
+ *   interp_quad       <-- Interpolation on a quandragle
+ *   interp_edge       <-- Interpolation on a edge
+ *
+ *----------------------------------------------------------------------------*/
+
+//void
+//cwipi_ho_user_elementary_functions_set (cwipi_ho_location_fct_t location_tetra,
+//                                        cwipi_ho_location_fct_t location_prism,
+//                                        cwipi_ho_location_fct_t location_pyramid,
+//                                        cwipi_ho_location_fct_t location_hexa,
+//                                        cwipi_ho_location_fct_t location_tria,
+//                                        cwipi_ho_location_fct_t location_quad,
+//                                        cwipi_ho_location_fct_t location_edge,
+//                                        cwipi_ho_weight_fct_t weight_tetra,
+//                                        cwipi_ho_weight_fct_t weight_prism,
+//                                        cwipi_ho_weight_fct_t weight_pyramid,
+//                                        cwipi_ho_weight_fct_t weight_hexa,
+//                                        cwipi_ho_weight_fct_t weight_tria,
+//                                        cwipi_ho_weight_fct_t weight_quad,
+//                                        cwipi_ho_weight_fct_t weight_edge,
+//                                        cwipi_ho_interp_fct_t interp_tetra,
+//                                        cwipi_ho_interp_fct_t interp_prism,
+//                                        cwipi_ho_interp_fct_t interp_pyramid,
+//                                        cwipi_ho_interp_fct_t interp_hexa,
+//                                        cwipi_ho_interp_fct_t interp_tria,
+//                                        cwipi_ho_interp_fct_t interp_quad,
+//                                        cwipi_ho_interp_fct_t interp_edge);
 
 /*----------------------------------------------------------------------------
  *

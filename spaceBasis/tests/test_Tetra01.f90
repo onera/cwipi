@@ -56,7 +56,7 @@ subroutine tetraMaillageVisuNew()
   uvw(1:3,10)=[0d0 ,5d-1,5d-1]
   call driverTetMesh(ord=iOrd,node_xyz=uvw,tetra_node=tetra)
   
-  open(unit=100,name="TetraGeoP2.mesh",action='write')
+  open(unit=100,file="TetraGeoP2.mesh",action='write')
   write(100,'("MeshVersionFormatted 2")')
   write(100,'(/"Dimension")')
   write(100,'( "3")')

@@ -1005,8 +1005,8 @@ void PROCF(cwipi_define_mesh_cf,
   delete[] coupling_nameC;
 }
 
-void PROCF(cwipi_define_ho_mesh_cf,
-           CWIPI_DEFINE_HO_MESH_CF)
+void PROCF(cwipi_ho_define_mesh_cf,
+           CWIPI_ho_DEFINE_MESH_CF)
   (const char *coupling_name,
    const int  *l_coupling_name,
    const int *n_vertex,
@@ -1020,7 +1020,7 @@ void PROCF(cwipi_define_ho_mesh_cf,
   char *coupling_nameC =
     _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
 
-  cwipi_define_ho_mesh(coupling_nameC,
+  cwipi_ho_define_mesh(coupling_nameC,
                        *n_vertex,
                        *n_element,
                        *order,
@@ -1054,6 +1054,71 @@ void PROCF(cwipi_add_polyhedra_cf,
                       face_connectivity_index,
                       face_connectivity);
   delete[] coupling_nameC;
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Define ho element ordering from the location in the (u, v, w) grid
+ *
+ * parameters:
+ *   coupling_id     <-- coupling name
+ *   t_elt           <-- element type
+ *   n_nodes         <-- number of nodes
+ *   uvw_grid        <-- user ordering to (u, v, w) grid (size = elt_dim * n_nodes)
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF (cwipi_ho_ordering_from_ijk_set_cf,
+            CWIPI_HO_ORDERING_FROM_IJK_SET_CF)
+(const char *coupling_id,
+ const int *l_coupling_id,
+ const int *t_elt,
+ const int *n_nodes,
+ const int *ijk
+ ARGF_SUPP_CHAINE)
+{
+  char *coupling_idC =
+    _cwipi_fortran_to_c_string(coupling_id, *l_coupling_id);
+
+  cwipi_ho_ordering_from_IJK_set (coupling_idC,
+                                 (cwipi_element_t) *t_elt,
+                                 *n_nodes,
+                                 ijk);
+
+  delete[] coupling_idC;
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Define ho element ordering from reference element (definition between 0 - 1)
+ *
+ *   coupling_id        <-- coupling name
+ *   t_elt              <-- element type
+ *   n_nodes            <-- number of nodes
+ *   coords             <-- node coordinates of reference element
+ *                                TODO: decrire ici les elements de reference
+ *
+ *----------------------------------------------------------------------------*/
+
+void PROCF (cwipi_ho_ordering_from_ref_elt_set_cf,
+            CWIPI_HO_ORDERING_FROM_REF_ELT_SET_CF)
+(const char   *coupling_id,
+ const int *l_coupling_id,
+ const int *t_elt,
+ const int *n_nodes,
+ const double *coords
+ ARGF_SUPP_CHAINE)
+{
+  char *coupling_idC =
+    _cwipi_fortran_to_c_string(coupling_id, *l_coupling_id);
+
+  cwipi_ho_ordering_from_ref_elt_set (coupling_idC,
+                                     (cwipi_element_t) *t_elt,
+                                     *n_nodes,
+                                     coords);
+
+  delete[] coupling_idC;
+
 }
 
 /*----------------------------------------------------------------------------
