@@ -451,6 +451,22 @@ _default_location_on_cell_2d (const fvmc_element_t type,
                              const double *point_coords,
                              double *projected_coords)
 {
+
+  printf("in _default_location_on_cell_2d\n");
+  printf("order : %d\n", order);
+  printf("n_node : %d\n", n_node);
+
+  printf("ho_vertex_num :");
+  for (int i = 0; i < n_node; i++) {
+    printf(" %d", ho_vertex_num[i]);
+  }
+  printf("\n");
+
+  printf("point coords : %12.5e %12.5e %12.5e\n",
+         point_coords[0],
+         point_coords[1],
+         point_coords[2]);
+  
   double dist = 0.;
   bftc_error(__FILE__, __LINE__, 0,
              _("_default_location_on_cell_2d : Not implemented yet\n"));

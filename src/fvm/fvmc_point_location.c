@@ -3257,6 +3257,16 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
   printf("-- _nodal_section_locate_3d : deb --\n");
   printf("this section order : %d\n", this_section->order);
   
+  if (this_section->order == -1) {
+    assert (parent_vertex_num == NULL);
+
+    if (this_section->_ho_vertex_num == NULL)  {
+      bftc_error(__FILE__, __LINE__, 0,
+                 _("fvmc_point_location : Internal connectivity is not available : call fvmc_nodal_ho_ordering_set to build it\n"));
+      
+    }
+  }
+  
   /* If section contains polyhedra */
 
   if (this_section->type == FVMC_CELL_POLY) {
@@ -3355,8 +3365,6 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
 
         else {
 
-          assert (parent_vertex_num == NULL);
-
           for (int k = 0; k < n_points_in_extents; k++) {
 
             int point_in_extents = points_in_extents[k];
@@ -3427,8 +3435,6 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
 
         else {
 
-          assert (parent_vertex_num == NULL);
-
           for (int k = 0; k < n_points_in_extents; k++) {
 
             int point_in_extents = points_in_extents[k];
@@ -3479,7 +3485,7 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
         }
 
         else {
-
+          
           for (int k = 0; k < n_points_in_extents; k++) {
 
             int point_in_extents = points_in_extents[k];
