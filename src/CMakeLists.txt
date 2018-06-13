@@ -79,6 +79,10 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new")
                              PRIVATE ${PDM_INC}) 
 endif ()
 
+if (CWP_ENABLE_SPACE_NODAL_BASES)
+  add_dependencies(cwp spaceBasis)
+endif()
+
 if (CWP_ENABLE_Fortran)
  add_library(cwpf OBJECT ${SOURCESF})
 

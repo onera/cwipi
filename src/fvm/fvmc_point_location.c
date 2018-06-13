@@ -3257,7 +3257,7 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
   printf("-- _nodal_section_locate_3d : deb --\n");
   printf("this section order : %d\n", this_section->order);
   
-  if (this_section->order == -1) {
+  if (this_section->order != -1) {
     assert (parent_vertex_num == NULL);
 
     if (this_section->_ho_vertex_num == NULL)  {

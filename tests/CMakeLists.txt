@@ -19,19 +19,37 @@ if (NOT MPI_C_COMPILER)
 endif ()
 
 if (CWP_ENABLE_SHARED)
-  list(APPEND LINK_LIBRARIES
-       cwp_shared)
-  if (EXISTS ${CWP_SOURCE_DIR}/paradigm)
-      list (APPEND LINK_LIBRARIES 
-            pdm_shared
-            pdm_mpi_shared)
-  endif()
-  list(APPEND LINK_LIBRARIES
-       ${COMMON_LIBRARIES})
 
- if (CWP_ENABLE_Fortran)
-   list(APPEND LINK_LIBRARIES cwpf_shared)
- endif()
+   if (CWP_ENABLE_Fortran)
+     if (EXISTS ${CWP_SOURCE_DIR}/paradigm)
+       list(APPEND LINK_LIBRARIES pdmf_shared)
+     endif()  
+     list(APPEND LINK_LIBRARIES cwpf_shared)
+   endif()
+   if (EXISTS ${CWP_SOURCE_DIR}/paradigm)
+     list(APPEND LINK_LIBRARIES
+          pdm_mpi_shared
+          pdm_shared)
+   endif()          
+   list(APPEND LINK_LIBRARIES cwp_shared)
+   if (CWP_ENABLE_Fortran)
+    list(APPEND LINK_LIBRARIES cwpf_shared)
+   endif()
+   list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
+
+# list(APPEND LINK_LIBRARIES
+#       cwp_shared)
+#  if (EXISTS ${CWP_SOURCE_DIR}/paradigm)
+#      list (APPEND LINK_LIBRARIES 
+#            pdm_shared
+#            pdm_mpi_shared)
+#  endif()
+#  list(APPEND LINK_LIBRARIES
+#       ${COMMON_LIBRARIES})
+#
+# if (CWP_ENABLE_Fortran)
+#   list(APPEND LINK_LIBRARIES cwpf_shared)
+# endif()
 
 else ()
    if (CWP_ENABLE_Fortran)
@@ -110,11 +128,13 @@ if (CWP_ENABLE_Fortran)
   test_fortran_create (fortran_surf_P1P1            ${MPIEXEC_MAX_NUMPROCS})
   test_fortran_create (fortran_surf_P1P1_savememory ${MPIEXEC_MAX_NUMPROCS})
   
+   list(APPEND LINK_LIBRARIES spaceBasis)
   test_fortran_create  (fortran_surf_TetraP1_PiPj   ${MPIEXEC_MAX_NUMPROCS})
-  target_link_libraries(fortran_surf_TetraP1_PiPj   spaceBasis)
+#  target_link_libraries(fortran_surf_TetraP1_PiPj   spaceBasis)
+#   add_dependencies(fortran_surf_TetraP1_PiPj   spaceBasis)
 
   test_fortran_create  (fortran_surf_TetraP2_PiPj   ${MPIEXEC_MAX_NUMPROCS})
-  target_link_libraries(fortran_surf_TetraP2_PiPj   spaceBasis)
+#  target_link_libraries(fortran_surf_TetraP2_PiPj   spaceBasis)
 endif()
 
 if (CWP_ENABLE_PYTHON_BINDINGS)

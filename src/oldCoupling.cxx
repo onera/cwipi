@@ -939,6 +939,7 @@ namespace cwipi {
 
   void oldCoupling::saveLocation()
   {
+      printf("saveLocation\n");
     if (_toLocate)
       bftc_error(__FILE__, __LINE__, 0, "trying to save a not located locator");
     if (_isCoupledRank) {
@@ -1049,6 +1050,9 @@ namespace cwipi {
 
       // allocation d'un buffer pour la lecture 
       il_size = records_size[currentRank];
+
+      printf("records_size[currentRank] %ld\n",  records_size[currentRank]);
+
       BFTC_MALLOC(copybuf,il_size, unsigned char);
 
       // lecture du tampon 

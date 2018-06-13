@@ -381,6 +381,8 @@ program testf
   integer          :: iRank,iErr
   
   real(8)          :: delta,deltaMax
+
+  integer          :: order
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
