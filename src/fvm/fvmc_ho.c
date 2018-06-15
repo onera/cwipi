@@ -461,7 +461,7 @@ _default_location_on_cell_2d (const fvmc_element_t type,
     printf(" %d", ho_vertex_num[i]);
   }
   printf("\n");
-
+  
   printf("point coords : %12.5e %12.5e %12.5e\n",
          point_coords[0],
          point_coords[1],
@@ -792,7 +792,7 @@ fvmc_ho_user_elementary_functions_set (fvmc_ho_location_fct_t location_tetra,
   if (_user_fcts == NULL) {
     _user_fcts = (fvmc_ho_user_fcts_t *) malloc (sizeof(fvmc_ho_user_fcts_t));
   }
-
+  
   _user_fcts->location_tetra   = location_tetra;
   _user_fcts->location_prism   = location_prism;
   _user_fcts->location_pyramid = location_pyramid;

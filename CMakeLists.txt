@@ -19,7 +19,7 @@ set(CWP_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(CMAKE_MODULE_PATH "${CWP_CMAKE_DIR}/modules")
 
 include(${CMAKE_MODULE_PATH}/version.cmake)
-project(CWP VERSION 1.0.0 LANGUAGES C CXX Fortran)
+project(CWP VERSION 0.10.0 LANGUAGES C CXX Fortran)
 
 #------------------------------------------------------------------------------
 # Enable languages

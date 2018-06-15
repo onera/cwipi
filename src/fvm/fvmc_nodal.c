@@ -2939,7 +2939,7 @@ fvmc_nodal_ho_ordering_set (fvmc_nodal_t  *this_nodal,
         _section->_ho_vertex_num = malloc (sizeof(int) * n_nodes * _section->n_elements);
       }
 
-      if (_section->_ho_vertex_num == NULL) {
+      if (_section->ho_local_to_user_ordering == NULL) {
         _section->ho_local_to_user_ordering = malloc (sizeof(int) * n_nodes);
       }
       
@@ -2952,6 +2952,7 @@ fvmc_nodal_ho_ordering_set (fvmc_nodal_t  *this_nodal,
           idx += (int) pow((order+1),l) * _uvw[l];
         }
         int local_num = _ho_uvw_to_local_ordering[idx];
+        printf ("local_num : %d %d\n",local_num, idx);
         _section->ho_local_to_user_ordering[local_num] = k;
       }
 
