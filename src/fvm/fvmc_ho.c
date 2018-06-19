@@ -452,6 +452,29 @@ _default_location_on_cell_2d (const fvmc_element_t type,
                              double *projected_coords)
 {
 
+  switch (type) {
+
+  case (FVMC_FACE_TRIA) {
+
+    const int n_tria = order * order; 
+
+    int *connec_tria = (int *) malloc (sizeof(int) * 3 * n_tria);
+
+    
+    
+    free (connec_tria);
+    
+  }
+
+  case (FVMC_FACE_QUAD) {
+
+    const int n_tria = order * order * 2; 
+
+
+  }
+
+  }
+  
   printf("in _default_location_on_cell_2d\n");
   printf("order : %d\n", order);
   printf("n_node : %d\n", n_node);
@@ -466,6 +489,9 @@ _default_location_on_cell_2d (const fvmc_element_t type,
          point_coords[0],
          point_coords[1],
          point_coords[2]);
+
+  
+  
   
   double dist = 0.;
   bftc_error(__FILE__, __LINE__, 0,
