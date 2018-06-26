@@ -220,12 +220,13 @@ typedef void (*cwipi_interpolation_fct_t)
  * Function pointer to locate in a high order cell 3d
  * 
  * parameters:
- *   type             <-- element type
- *   order            <-- element order
- *   ho_vertex_num    <-- high order vertex num (internal ordering)
- *   vertex_coords    <-- vertex coordinates
- *   point_coords     <-- point to locate coordinates
- *   projected_coords --> projected point coordinates (if point is outside) 
+ *   type              <-- element type
+ *   order             <-- element order
+ *   ho_vertex_num     <-- high order vertex num (internal ordering)
+ *   vertex_coords     <-- vertex coordinates
+ *   point_coords      <-- point to locate coordinates
+ *   projected_coords  --> projected point coordinates (if point is outside) 
+ *   projected_weights --> Weights for projected point
  * 
  * return: 
  *   distance to the cell (distance <= 0 if point is inside)
@@ -239,7 +240,8 @@ typedef double (*cwipi_ho_location_fct_t)
  const int *ho_vertex_num,
  const double *vertex_coords,
  const double *point_coords,
- double *projected_coords);
+ double *projected_coords,
+ double *projected_weights);
 
 /*----------------------------------------------------------------------------
  * Function pointer to define an high order interpolation

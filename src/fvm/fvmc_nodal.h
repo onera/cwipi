@@ -551,6 +551,22 @@ fvmc_nodal_get_internal_connec_elt(const fvmc_nodal_t  *this_nodal, const int el
 const int *
 fvmc_nodal_get_connec_elt(const fvmc_nodal_t  *this_nodal, const int elt);
 
+
+
+/*----------------------------------------------------------------------------
+ * Return maximum number of nodes in an element
+ *
+ * parameters:
+ *   this_nodal <-- pointer to structure that should be dumped
+ *
+ * return:
+ *   max_stride
+ *
+ *----------------------------------------------------------------------------*/
+
+int 
+fvmc_nodal_max_n_node_elt (const fvmc_nodal_t  *this_nodal);
+
 /*----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus

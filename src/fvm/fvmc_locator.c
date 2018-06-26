@@ -173,6 +173,10 @@ struct _fvmc_locator_t {
                                                     element (with blocs starting at
                                                     distant_points_idx[]*dim indexes) */
 
+  double  *distant_point_weights;   /* weights of the distant points projected on location
+                                       element (with blocs starting at
+                                       distant_points_idx[]*max_n_node_elt indexes) */
+  
   fvmc_lnum_t    n_interior;         /* Number of local points located */
   fvmc_lnum_t   *interior_list;      /* List (1 to n numbering) of points
                                        located */
@@ -743,6 +747,12 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
     BFTC_MALLOC(projected_coords, n_points*dim, fvmc_coord_t); 
   }
 
+  double *weights = NULL;
+  int max_n_node_elt = fvmc_nodal_max_n_node_elt (this_nodal);
+  if (fvmc_nodal_order_get (this_nodal) != -1) {
+    BFTC_MALLOC(weights, n_points*max_n_node_elt, double); 
+  }
+  
   for (j = 0; j < n_points; j++) {
     location[j] = -1;
     location_rank_id[j] = -1;
@@ -852,12 +862,19 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
       BFTC_MALLOC(projected_coords_dist, n_coords_dist*dim, fvmc_coord_t);
     }
 
+    double *weights_dist = NULL;
+    
+    if (fvmc_nodal_order_get (this_nodal) != -1) {
+      BFTC_MALLOC(weights_dist, n_coords_dist * max_n_node_elt, double);
+    }
+
     fvmc_point_location_nodal(this_nodal,
                               this_locator->tolerance,
                               this_locator->locate_on_parents,
                               n_coords_dist,
                               coords_dist,
-                              projected_coords_dist, 
+                              projected_coords_dist,
+                              weights_dist,
                               location_dist,
                               distance_dist);
 
@@ -883,6 +900,8 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
                  this_locator->comm, &status);
 
     fvmc_coord_t *projected_coords_loc = NULL;
+    double *weights_loc = NULL;
+    
     if (fvmc_nodal_order_get (this_nodal) != -1) {
       BFTC_MALLOC(projected_coords_loc, n_coords_loc * dim, fvmc_coord_t);
       MPI_Sendrecv(projected_coords_dist, (int)n_coords_dist * dim,
@@ -890,6 +909,15 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
                    projected_coords_loc, (int)n_coords_loc * dim,
                    FVMC_MPI_COORD, dist_rank, FVMC_MPI_TAG,
                    this_locator->comm, &status);
+
+      BFTC_MALLOC(weights_loc, n_coords_loc * max_n_node_elt, double);
+      MPI_Sendrecv(weights_dist, (int)n_coords_dist * max_n_node_elt,
+                   MPI_DOUBLE, dist_rank, FVMC_MPI_TAG,
+                   weights_loc, (int)n_coords_loc * max_n_node_elt,
+                   MPI_DOUBLE, dist_rank, FVMC_MPI_TAG,
+                   this_locator->comm, &status);
+
+      
     }
 
     _locator_trace_end_comm(_fvmc_locator_log_end_p_comm, comm_timing);
@@ -898,6 +926,9 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
     BFTC_FREE(distance_dist);
     if (projected_coords_dist != NULL) {
       BFTC_FREE(projected_coords_dist);
+    }
+    if (weights_dist != NULL) {
+      BFTC_FREE(weights_dist);
     }
 
     /* Now update location information */
@@ -916,6 +947,11 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
             projected_coords[l*dim + l1] = projected_coords_loc[j*dim + l1];
           }
         }
+        if (weights != NULL) {
+          for (int l1 = 0; l1 < max_n_node_elt; l1++) {
+            weights[l*max_n_node_elt + l1] = weights_loc[j*max_n_node_elt + l1];
+          }
+        }
       }
 
     }
@@ -924,6 +960,9 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
     BFTC_FREE(distance_loc);
     if (projected_coords_loc != NULL) {
       BFTC_FREE(projected_coords_loc);
+    }
+    if (weights_loc != NULL) {
+      BFTC_FREE(weights_loc);
     }
 
   }
@@ -977,6 +1016,11 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
     BFTC_MALLOC(send_projected_coords, n_points * dim, fvmc_coord_t);
   }
   
+  fvmc_coord_t *send_weights = NULL;
+  if (fvmc_nodal_order_get (this_nodal) != -1) {
+    BFTC_MALLOC(send_weights, n_points * max_n_node_elt , double);
+  }
+
   n_interior = 0;
   n_exterior = 0;
   for (j = 0; j < n_points; j++) {
@@ -1084,6 +1128,16 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
                 this_locator->distant_points_idx[this_locator->n_intersects] * dim,
                 fvmc_coord_t);
   }
+
+  this_locator->distant_point_weights = NULL;
+
+  if (fvmc_nodal_order_get (this_nodal) != -1) {
+
+    BFTC_MALLOC(this_locator->distant_point_weights,
+                this_locator->distant_points_idx[this_locator->n_intersects] * max_n_node_elt,
+                double);
+    
+  }
   
   for (i = 0; i < this_locator->n_intersects; i++) {
 
@@ -1107,6 +1161,11 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
       if (send_projected_coords != NULL) {
         for (k = 0; k < dim; k++) {
           send_projected_coords[j*dim + k] = projected_coords[dim*coord_idx + k];
+        }
+      }
+      if (send_weights != NULL) {
+        for (k = 0; k < max_n_node_elt; k++) {
+          send_weights[j*dim + k] = weights[max_n_node_elt*coord_idx + k];
         }
       }
       if (point_list != NULL) {
@@ -1154,6 +1213,16 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
                    FVMC_MPI_COORD, dist_rank, FVMC_MPI_TAG,
                    this_locator->comm, &status);
     }
+
+    if (send_weights != NULL) {
+      MPI_Sendrecv(send_weights, (int)(n_coords_loc*max_n_node_elt),
+                   MPI_DOUBLE, dist_rank, FVMC_MPI_TAG,
+                   (this_locator->distant_point_weights
+                    + (this_locator->distant_points_idx[i]*max_n_node_elt)),
+                   (int)(n_coords_dist*max_n_node_elt),
+                   MPI_DOUBLE, dist_rank, FVMC_MPI_TAG,
+                   this_locator->comm, &status);
+    }
     
     _locator_trace_end_comm(_fvmc_locator_log_end_p_comm, comm_timing);
 
@@ -1169,6 +1238,9 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
   if (send_projected_coords != NULL) {
     BFTC_FREE(send_projected_coords);
   }
+  if (send_weights != NULL) {
+    BFTC_FREE(send_weights);
+  }
   
   BFTC_FREE(location_rank_id);
 
@@ -1176,6 +1248,9 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
   BFTC_FREE(distance);
   if (projected_coords != NULL) {
     BFTC_FREE(projected_coords);
+  }
+  if (weights != NULL) {
+    BFTC_FREE(weights);
   }
 
   this_locator->location_wtime[1] += comm_timing[0];
@@ -1270,7 +1345,8 @@ _locate_all_local(fvmc_locator_t       *this_locator,
                             this_locator->locate_on_parents,
                             n_coords,
                             coords,
-                            NULL, 
+                            NULL,
+                            NULL,
                             location,
                             distance);
 
@@ -2137,6 +2213,7 @@ fvmc_locator_create(double  tolerance)
   this_locator->distant_point_location = NULL;
   this_locator->distant_point_coords = NULL;
   this_locator->distant_point_projected_coords = NULL;
+  this_locator->distant_point_weights = NULL;
   this_locator->distant_point_distance = NULL;
 
   this_locator->n_interior = 0;
@@ -2209,6 +2286,9 @@ fvmc_locator_destroy(fvmc_locator_t  * this_locator)
     if (this_locator->distant_point_projected_coords != NULL)
       BFTC_FREE(this_locator->distant_point_projected_coords);
     
+    if (this_locator->distant_point_weights != NULL)
+      BFTC_FREE(this_locator->distant_point_weights);
+
     BFTC_FREE(this_locator);
   }
 
@@ -2532,6 +2612,8 @@ fvmc_locator_set_nodal(fvmc_locator_t       *this_locator,
     BFTC_FREE(this_locator->distant_point_coords);
   if (this_locator->distant_point_projected_coords != NULL)
     BFTC_FREE(this_locator->distant_point_projected_coords);
+  if (this_locator->distant_point_weights != NULL)
+    BFTC_FREE(this_locator->distant_point_weights);
 
   if (this_locator->interior_list != NULL)
     BFTC_FREE(this_locator->interior_list);
@@ -2917,6 +2999,7 @@ fvmc_locator_get_dist_coords(const fvmc_locator_t  *this_locator)
   return retval;
 }
 
+
 /*----------------------------------------------------------------------------
  * Return an array of coordinates of each distant point projected on the closest element.
  * (or NULL), available for high order nodal
@@ -2936,6 +3019,32 @@ fvmc_locator_get_dist_projected_coords(const fvmc_locator_t  *this_locator)
   if (this_locator != NULL) {
     if (this_locator->n_intersects != 0)
       retval = this_locator->distant_point_projected_coords;
+  }
+
+  return retval;
+
+}
+
+
+/*----------------------------------------------------------------------------
+ * Return an array of weights of each distant point in the closest element.
+ * (or NULL), available for high order nodal
+ *
+ * parameters:
+ *   this_locator <-- pointer to locator structure
+ *
+ * returns:
+ *   weights (size = max_n_node_elt * n_dist_point, interlaced)
+ *----------------------------------------------------------------------------*/
+
+const double *
+fvmc_locator_get_dist_weights(const fvmc_locator_t  *this_locator)
+{
+  const double * retval = NULL;
+
+  if (this_locator != NULL) {
+    if (this_locator->n_intersects != 0)
+      retval = this_locator->distant_point_weights;
   }
 
   return retval;

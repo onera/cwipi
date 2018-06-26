@@ -801,9 +801,11 @@ _default_location_on_tria_2d
     double comp = _projected_coords[j] - point_coords[j];
     dist2 += comp * comp; 
   }
-  
-  for (int j = 0; j < 3; j++) {
-    projected_coords[j] = _projected_coords[j];
+
+  if (projected_coords != NULL) {
+    for (int j = 0; j < 3; j++) {
+      projected_coords[j] = _projected_coords[j];
+    }
   }
   
   free (weightsPn);

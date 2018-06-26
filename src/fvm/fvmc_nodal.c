@@ -3118,6 +3118,30 @@ fvmc_nodal_order_get (const fvmc_nodal_t  *this_nodal)
 }
 
 
+/*----------------------------------------------------------------------------
+ * Return maximum number of nodes in an element
+ *
+ * parameters:
+ *   this_nodal <-- pointer to structure that should be dumped
+ *
+ * return:
+ *   max_stride
+ *
+ *----------------------------------------------------------------------------*/
+
+int 
+fvmc_nodal_max_n_node_elt (const fvmc_nodal_t  *this_nodal)
+{
+  int max_stride = 0;
+
+  for (int i = 0; i < this_nodal->n_sections; i++) {
+    fvmc_nodal_section_t  *_section = this_nodal->sections[i];
+    max_stride = FVMC_MAX (max_stride, _section->stride);
+  }
+    
+  return max_stride;
+}
+
 /*----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus

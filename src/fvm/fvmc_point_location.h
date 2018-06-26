@@ -85,6 +85,10 @@ extern "C" {
  *                         of same element dimension if false
  *   n_points          <-- number of points to locate
  *   point_coords      <-- point coordinates
+ *   projected_coords  <-> coordinates of projected points in location elements
+ *                         point (size: n_points * dim)
+ *   weights           <-> weights of projected points in location elements
+ *                         point (size: n_points * max_n_node_elt)
  *   location          <-> number of element containing or closest to each
  *                         point (size: n_points)
  *   distance          <-> distance from point to element indicated by
@@ -99,7 +103,8 @@ fvmc_point_location_nodal(const fvmc_nodal_t  *this_nodal,
                           _Bool                 locate_on_parents,
                           fvmc_lnum_t           n_points,
                           const fvmc_coord_t    point_coords[],
-                          fvmc_coord_t        *projected_coords,
+                          fvmc_coord_t         *projected_coords,
+                          double               *weights,
                           fvmc_lnum_t           location[],
                           float                 distance[]);
 
