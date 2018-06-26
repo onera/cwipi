@@ -1510,6 +1510,12 @@ fvmc_nodal_copy(const fvmc_nodal_t *this_nodal)
   for (i = 0; i < new_nodal->n_sections; i++)
     new_nodal->sections[i] = _fvmc_nodal_section_copy(this_nodal->sections[i]);
 
+  BFTC_MALLOC(new_nodal->sections_idx,
+             new_nodal->n_sections + 1,
+             int);
+  for (i = 0; i < new_nodal->n_sections+1; i++)
+    new_nodal->sections_idx[i] = this_nodal->sections_idx[i];
+
   return (new_nodal);
 }
 
@@ -1929,8 +1935,12 @@ fvmc_nodal_get_internal_connec_elt(const fvmc_nodal_t  *this_nodal, const int el
   int elt_section = 0;
 
   int *_vertex_num = NULL;
+
+  //  printf("this_nodal->sections_idx %d\n", this_nodal->sections_idx[_elt]);
   
-  while (_elt >= this_nodal->sections_idx[++elt_section]);
+  while (_elt >= this_nodal->sections_idx[++elt_section]) {
+    printf("this_nodal->sections_idx %d %d\n", _elt, this_nodal->sections_idx[elt_section]);
+  }
 
   elt_section -= 1 ;
   int elt_loc = _elt - this_nodal->sections_idx[elt_section];

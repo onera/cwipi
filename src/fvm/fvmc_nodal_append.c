@@ -364,7 +364,7 @@ fvmc_nodal_append_by_transfer(fvmc_nodal_t    *this_nodal,
   BFTC_REALLOC(this_nodal->sections, n_sections + 1, fvmc_nodal_section_t *);
   BFTC_REALLOC(this_nodal->sections_idx, n_sections + 2, int);
   if (n_sections == 0) {
-    this_nodal->sections_idx[0];
+    this_nodal->sections_idx[0] = 0;
   }
   this_nodal->sections_idx[n_sections+1] = this_nodal->sections_idx[n_sections] + n_elements; 
 
@@ -456,10 +456,10 @@ fvmc_nodal_append_shared(fvmc_nodal_t    *this_nodal,
   BFTC_REALLOC(this_nodal->sections, n_sections + 1, fvmc_nodal_section_t *);
   BFTC_REALLOC(this_nodal->sections_idx, n_sections + 2, int);
   if (n_sections == 0) {
-    this_nodal->sections_idx[0];
+    this_nodal->sections_idx[0] = 0;
   }
   this_nodal->sections_idx[n_sections+1] = this_nodal->sections_idx[n_sections] + n_elements; 
-  
+
   int  *ho_uvw_to_local_ordering = NULL;
   
   int  *ho_user_to_uvw = NULL;

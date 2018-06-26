@@ -419,11 +419,569 @@ _default_location_in_cell_3d (const fvmc_element_t type,
                              const double *point_coords,
                              double *projected_coords)
 {
+  type;
+  order;
+  n_node;
+  ho_vertex_num;
+  vertex_coords;
+  point_coords;
+  projected_coords;
+  
   double dist = 0.;
   bftc_error(__FILE__, __LINE__, 0,
              _("_default_location_in_cell_3d : Not implemented yet\n"));
   return dist;
 }
+
+
+/*----------------------------------------------------------------------------
+ * 
+ * Get uv coordinates of ho triangle nodes
+ * 
+ * parameters:
+ *   order            <-- element order
+ *   umin             <-- u min
+ *   umax             <-- u max
+ *   vmin             <-- v min
+ *   vmax             <-- v max
+ *   uv               --> uv (size = 2*n_node)
+ *
+ *----------------------------------------------------------------------------*/
+
+static void
+_uv_ho_tria_nodes
+(
+ const int order,
+ const double umin,
+ const double umax,
+ const double vmin,
+ const double vmax,
+ double *uv
+)
+{
+  int k = 0;
+  int _order = order+1;
+
+  double ustep = (umax - umin) / order;
+  double vstep = (vmax - vmin) / order;
+  
+  for (int j = 0; j < _order; j++) {
+    double v = vmin + j * vstep; 
+    for (int i = 0; i < _order - j; i++) {
+      double u = umin + i * ustep;
+
+      uv[k++] = u;
+      uv[k++] = v;
+      
+    }
+  }
+}
+
+
+/*----------------------------------------------------------------------------
+ * 
+ * Get uv coordinates of ho quadrangle nodes
+ * 
+ * parameters:
+ *   order            <-- element order
+ *   umin             <-- u min
+ *   umax             <-- u max
+ *   vmin             <-- v min
+ *   vmax             <-- v max
+ *   uv               --> uv (size = 2*n_node)
+ *
+ *----------------------------------------------------------------------------*/
+
+static void
+_default_uv_ho_quad_nodes
+(
+ const int order,
+ const double umin,
+ const double umax,
+ const double vmin,
+ const double vmax,
+ double *uv
+)
+{
+  int k = 0;
+  int _order = order+1;
+
+  double ustep = (umax - umin) / order;
+  double vstep = (vmax - vmin) / order;
+  
+  for (int j = 0; j < _order; j++) {
+    double v = vmin + j * vstep; 
+    for (int i = 0; i < _order; i++) {
+      double u = umin + i * ustep;
+
+      uv[k++] = u;
+      uv[k++] = v;
+      
+    }
+  }
+}
+
+
+/*----------------------------------------------------------------------------
+ * 
+ * Triangle Pn basis
+ * 
+ * parameters:
+ *   order           <-- order
+ *   u               <-- u
+ *   v               <-- v
+ *   weights         --> weights (size = n_nodes)
+ *
+ *
+ *----------------------------------------------------------------------------*/
+
+static void
+_base_tria_pn
+(
+ const int order,
+ const double u,
+ const double v,
+ double *weights
+)
+{
+
+  if (order == 1) {
+
+    weights[0] = 1. - u - v;
+    weights[1] = u;
+    weights[2] = v;
+
+  }
+
+  else if (order == 2) {
+
+    double w  = 1. - u - v; 
+    double u2 = 2. * u;
+    double v2 = 2. * v;
+    double w2 = 2. * w;
+    
+    weights[0] = w * (-1. + w2);  /* (i,j,k)=(0,0,2) */
+    weights[1] = u2 * w2;         /* (i,j,k)=(1,0,1) */
+    weights[2] = u * (-1. + u2);  /* (i,j,k)=(2,0,0) */
+    weights[3] = u2 * v2;         /* (i,j,k)=(1,1,0) */
+    weights[4] = v * (-1. + v2);  /* (i,j,k)=(0,2,0) */
+    weights[5] = v2 * w2;         /* (i,j,k)=(0,1,1) */
+  
+  }
+
+  else {
+
+    bftc_error(__FILE__, __LINE__, 0,
+               _("_base_tria_pn not yet implemented for order > 2\n"));
+
+  }
+}
+
+
+
+/*----------------------------------------------------------------------------
+ * 
+ * Default point location on a high order triangle
+ * 
+ * parameters:
+ *   order            <-- element order
+ *   n_node           <-- number of nodes
+ *   ho_vertex_num    <-- high order vertex num (internal ordering)
+ *   vertex_coords    <-- vertex coordinates
+ *   point_coords     <-- point to locate coordinates
+ *   projected_coords --> projected point coordinates (or NULL)
+ * 
+ * return: 
+ *   distance to the cell
+ *
+ *----------------------------------------------------------------------------*/
+
+static double 
+_default_location_on_tria_2d
+(
+ const int order,
+ const int n_node,
+ const int *ho_vertex_num,
+ const double *vertex_coords,
+ const double *point_coords,
+ double *projected_coords
+)
+{
+  int _order = order;
+  const double *_vertex_coords = vertex_coords;
+  
+  /* Build sub-triangles */
+
+  double uvP1[3];
+  double weightsP1[3];
+  double closest_pointP1[3];
+
+  int selected_triaP1[3];
+  
+  double min_dist2 = HUGE_VAL;
+
+  int ibeg = 0;
+  int iend = _order;
+
+  int proj_pt_in_selected_tria = 0;
+  
+  for (int j = 0; j < _order; j++) {
+    int k1 = 0;
+    for (int i = ibeg; i < iend - 1; i++) {
+
+      int _vtx1 = ho_vertex_num[i] - 1;
+      int _vtx2 = ho_vertex_num[i + 1] - 1;
+      int _vtx3 = ho_vertex_num[iend + 1 + k1] - 1;
+      int _vtx4 = ho_vertex_num[iend + 2 + k1] - 1;
+
+      double x1 = _vertex_coords[3*_vtx1];
+      double y1 = _vertex_coords[3*_vtx1 + 1];
+      double z1 = _vertex_coords[3*_vtx1 + 2];
+
+      double x2 = _vertex_coords[3*_vtx2];
+      double y2 = _vertex_coords[3*_vtx2 + 1];
+      double z2 = _vertex_coords[3*_vtx2 + 2];
+
+      double x3 = _vertex_coords[3*_vtx3];
+      double y3 = _vertex_coords[3*_vtx3 + 1];
+      double z3 = _vertex_coords[3*_vtx3 + 2];
+
+      double x4 = _vertex_coords[3*_vtx4];
+      double y4 = _vertex_coords[3*_vtx4 + 1];
+      double z4 = _vertex_coords[3*_vtx4 + 2];
+        
+      double __vertex_coords[9] = {x1, y1, z1,
+                                  x2, y2, z2,
+                                  x3, y3, z3};
+      double _uvP1[3];
+      double _weightsP1[3];
+      double _closest_pointP1[3];
+      double _uvClosestPointP1[3];
+      double _weightsClosestPointP1[3];
+      double _dist2;
+
+      int proj_in_tria = fvmc_triangle_evaluate_Position ((double *)point_coords,
+                                                          __vertex_coords,
+                                                          _closest_pointP1,
+                                                          _uvClosestPointP1,
+                                                          _uvP1,
+                                                          &_dist2,
+                                                          _weightsClosestPointP1,
+                                                          _weightsP1);
+
+      if (_dist2 <= min_dist2) {
+        min_dist2 = _dist2;
+        for (int i1 = 0; i1 < 3; i1++) {
+          uvP1[i1] = _uvClosestPointP1[i1];
+          weightsP1[i1] = _weightsClosestPointP1[i1];
+          closest_pointP1[i1] = _closest_pointP1[i1];
+        }
+        selected_triaP1[0] = _vtx1;
+        selected_triaP1[1] = _vtx2;
+        selected_triaP1[2] = _vtx3;
+        proj_pt_in_selected_tria = proj_in_tria;
+      }
+
+      __vertex_coords[0] = x2;
+      __vertex_coords[1] = y2;
+      __vertex_coords[2] = z2;
+      __vertex_coords[3] = x4;
+      __vertex_coords[4] = y4;
+      __vertex_coords[5] = z4;
+      __vertex_coords[6] = x3;
+      __vertex_coords[7] = y3;
+      __vertex_coords[8] = z3;
+
+       proj_in_tria = fvmc_triangle_evaluate_Position ((double *) point_coords,
+                                                       __vertex_coords,
+                                                       _closest_pointP1,
+                                                       _uvClosestPointP1,
+                                                       _uvP1,
+                                                       &_dist2,
+                                                       _weightsClosestPointP1,
+                                                       _weightsP1);
+
+      if (_dist2 <= min_dist2) {
+        min_dist2 = _dist2;
+        for (int i1 = 0; i1 < 3; i1++) {
+          uvP1[i1] = _uvClosestPointP1[i1];
+          weightsP1[i1] = _weightsClosestPointP1[i1];
+          closest_pointP1[i1] = _closest_pointP1[i1];
+        }
+        selected_triaP1[0] = _vtx2;
+        selected_triaP1[1] = _vtx4;
+        selected_triaP1[2] = _vtx3;
+        proj_pt_in_selected_tria = proj_in_tria;
+      }
+
+      k1++;
+    }
+
+    int _vtx1 = ho_vertex_num[iend - 1] - 1;
+    int _vtx2 = ho_vertex_num[iend - 1 + 1] - 1;
+    int _vtx3 = ho_vertex_num[iend + 1 + k1]- 1;
+      
+    double x1 = vertex_coords[3*_vtx1];
+    double y1 = vertex_coords[3*_vtx1 + 1];
+    double z1 = vertex_coords[3*_vtx1 + 2];
+      
+    double x2 = vertex_coords[3*_vtx2];
+    double y2 = vertex_coords[3*_vtx2 + 1];
+    double z2 = vertex_coords[3*_vtx2 + 2];
+      
+    double x3 = vertex_coords[3*_vtx3];
+    double y3 = vertex_coords[3*_vtx3 + 1];
+    double z3 = vertex_coords[3*_vtx3 + 2];
+      
+    double __vertex_coords[9] = {x1, y1, z1,
+                                x2, y2, z2,
+                                x3, y3, z3};
+      
+    double _uvP1[3];
+    double _weightsP1[3];
+    double _closest_pointP1[3];
+    double _uvClosestPointP1[3];
+    double _weightsClosestPointP1[3];
+   
+    double _dist2;
+      
+    int proj_in_tria =fvmc_triangle_evaluate_Position ((double *)point_coords,
+                                                       __vertex_coords,
+                                                       _closest_pointP1,
+                                                       _uvClosestPointP1,
+                                                       _uvP1,
+                                                       &_dist2,
+                                                       _weightsClosestPointP1,
+                                                       _weightsP1);
+      
+    if (_dist2 <= min_dist2) {
+      min_dist2 = _dist2;
+      for (int i1 = 0; i1 < 3; i1++) {
+        uvP1[i1] = _uvClosestPointP1[i1];
+        weightsP1[i1] = _weightsClosestPointP1[i1];
+        closest_pointP1[i1] = _closest_pointP1[i1];
+      }
+      selected_triaP1[0] = _vtx1;
+      selected_triaP1[1] = _vtx2;
+      selected_triaP1[2] = _vtx3;
+      proj_pt_in_selected_tria = proj_in_tria;
+    }
+
+    ibeg = iend + 1;
+    iend += _order - j;
+  }
+
+  /* uv proj P1 -> uv proj P2 */ 
+
+  //_base_tria_pn (1    , uvP1[0], uvP1[1], weightsP1);
+
+  double *uvNodes   = malloc (sizeof(double) * 2 * n_node);
+
+  double uvP1inP2[2];
+  
+  _uv_ho_tria_nodes (order, 0., 1., 0, 1., uvNodes);
+
+  for (int i = 0; i < 2; i++) {
+    uvP1inP2[i] = weightsP1[0] * uvNodes[i] + weightsP1[1] * uvNodes[2+i];
+  }
+  
+  free (uvNodes);
+  
+  double *weightsPn = malloc (sizeof(double) * n_node);
+  _base_tria_pn (order   , uvP1inP2[0], uvP1inP2[1], weightsPn);
+
+  double _projected_coords[3];
+  for (int j = 0; j < 3; j++) {
+    _projected_coords[j] = 0;
+  }
+
+  for (int i = 0; i < n_node; i++) {
+
+    const double *node_coords = vertex_coords + 3 * (ho_vertex_num[i] - 1);
+    
+    for (int j = 0; j < 3; j++) {
+      _projected_coords[j] += weightsPn[i] * node_coords[j]; 
+    }
+  }
+
+  double dist2 = 0;
+
+  for (int j = 0; j < 3; j++) {
+    double comp = _projected_coords[j] - point_coords[j];
+    dist2 += comp * comp; 
+  }
+  
+  for (int j = 0; j < 3; j++) {
+    projected_coords[j] = _projected_coords[j];
+  }
+  
+  free (weightsPn);
+  
+  return dist2;
+  
+}
+
+
+/*----------------------------------------------------------------------------
+ * 
+ * Default point location on a high order quadrangle
+ * 
+ * parameters:
+ *   order            <-- element order
+ *   n_node           <-- number of nodes
+ *   ho_vertex_num    <-- high order vertex num (internal ordering)
+ *   vertex_coords    <-- vertex coordinates
+ *   point_coords     <-- point to locate coordinates
+ *   projected_coords --> projected point coordinates (or NULL)
+ * 
+ * return: 
+ *   distance to the cell
+ *
+ *----------------------------------------------------------------------------*/
+
+static double 
+_default_location_on_quad_2d
+(
+ const int order,
+ const int n_node,
+ const int *ho_vertex_num,
+ const double *vertex_coords,
+ const double *point_coords,
+ double *projected_coords
+)
+{
+  bftc_error(__FILE__, __LINE__, 0,
+             _("_default_location_on_quad_2d : Not implemented yet\n"));
+
+  int _order = order;
+
+  double dist2 = HUGE_VAL;
+
+  /* Build sub-triangles */
+
+  double uvP1[3];
+  double weightsP1[3];
+  double closest_pointP1[3];
+
+  int selected_triaP1[3];
+  
+  double min_dist2 = HUGE_VAL;
+
+  int ibeg = 0;
+  int iend = _order;
+
+  for (int j = 0; j < _order; j++) {
+    int k1 = 0;
+      
+    for (int i = ibeg; i < iend; i++) {
+
+      int _vtx1 = ho_vertex_num[i] - 1;
+      int _vtx2 = ho_vertex_num[i + 1] - 1;
+      int _vtx3 = ho_vertex_num[iend + 1 + k1] - 1;
+      int _vtx4 = ho_vertex_num[iend + 2 + k1] - 1;
+
+      double x1 = vertex_coords[3*_vtx1];
+      double y1 = vertex_coords[3*_vtx1 + 1];
+      double z1 = vertex_coords[3*_vtx1 + 2];
+
+      double x2 = vertex_coords[3*_vtx2];
+      double y2 = vertex_coords[3*_vtx2 + 1];
+      double z2 = vertex_coords[3*_vtx2 + 2];
+
+      double x3 = vertex_coords[3*_vtx3];
+      double y3 = vertex_coords[3*_vtx3 + 1];
+      double z3 = vertex_coords[3*_vtx3 + 2];
+
+      double x4 = vertex_coords[3*_vtx4];
+      double y4 = vertex_coords[3*_vtx4 + 1];
+      double z4 = vertex_coords[3*_vtx4 + 2];
+        
+      double _vertex_coords[9] = {x1, y1, z1,
+                                  x2, y2, z2,
+                                  x3, y3, z3};
+      double _uvP1[3];
+      double _weightsP1[3];
+      double _closest_pointP1[3];
+      double _uvClosestPointP1[3];
+      double _weightsClosestPointP1[3];
+      double _dist2;
+
+      fvmc_triangle_evaluate_Position ((double *) point_coords,
+                                       _vertex_coords,
+                                       _closest_pointP1,
+                                       _uvClosestPointP1,
+                                       _uvP1,
+                                       &_dist2,
+                                       _weightsClosestPointP1,
+                                       _weightsP1);
+
+      if (_dist2 <= min_dist2) {
+        min_dist2 = _dist2;
+        for (int i1 = 0; i1 < 3; i1++) {
+          uvP1[i1] = _uvClosestPointP1[i1];
+          weightsP1[i1] = _weightsClosestPointP1[i1];
+          closest_pointP1[i1] = _closest_pointP1[i1];
+        }
+        selected_triaP1[0] = _vtx1;
+        selected_triaP1[1] = _vtx2;
+        selected_triaP1[2] = _vtx3;
+      }
+
+      _vertex_coords[0] = x2;
+      _vertex_coords[1] = y2;
+      _vertex_coords[2] = z2;
+      _vertex_coords[3] = x4;
+      _vertex_coords[4] = y4;
+      _vertex_coords[5] = z4;
+      _vertex_coords[6] = x3;
+      _vertex_coords[7] = y3;
+      _vertex_coords[8] = z3;
+
+      fvmc_triangle_evaluate_Position ((double *) point_coords,
+                                       _vertex_coords,
+                                       _closest_pointP1,
+                                       _uvClosestPointP1,
+                                       _uvP1,
+                                       &_dist2,
+                                       _weightsClosestPointP1,
+                                       _weightsP1);
+
+      if (_dist2 <= min_dist2) {
+        min_dist2 = _dist2;
+        for (int i1 = 0; i1 < 3; i1++) {
+          uvP1[i1] = _uvClosestPointP1[i1];
+          weightsP1[i1] = _weightsClosestPointP1[i1];
+          closest_pointP1[i1] = _closest_pointP1[i1];
+        }
+        selected_triaP1[0] = _vtx1;
+        selected_triaP1[1] = _vtx2;
+        selected_triaP1[2] = _vtx3;
+      }
+        
+      k1++;
+    }
+
+    ibeg = iend + 1;
+    iend = ibeg + _order ;
+
+  }
+
+  /* uv P1 -> uv P2 */
+
+  /* call baseTrianP1(u=uv1(1),v=uv1(2),ai=ai(1:3)) */
+  
+  /*         uv1_(1:2,iTria)= uvTriangle(1:2,tria1(1,iTria))*ai(1) & */
+  /*         &               +uvTriangle(1:2,tria1(2,iTria))*ai(2) & */
+  /*         &               +uvTriangle(1:2,tria1(3,iTria))*ai(3) */
+  /*         call baseTrianP2(u=uv1_(1,iTria),v=uv1_(2,iTria),ai=ai(1:6)) */
+
+  /* calcul des coordonnees et faire la nomrme L2 (voir base geom avec christophe) */
+
+  return dist2;
+  
+}
+
+
 
 /*----------------------------------------------------------------------------
  * 
@@ -452,309 +1010,36 @@ _default_location_on_cell_2d (const fvmc_element_t type,
                              const double *point_coords,
                              double *projected_coords)
 {
-
-  int _order = order;
   fvmc_element_t _type = type;
-
-  /* Build sub-triangles */
-
-  double uvP1[3];
-  double weightsP1[3];
-  double closest_pointP1[3];
-
-  int selected_triaP1[3];
+  double dist2;
   
-  double min_dist2 = HUGE_VAL;
-
   switch (_type) {
 
-  case FVMC_FACE_TRIA: {
+  case FVMC_FACE_TRIA:
 
-    int ibeg = 0;
-    int iend = _order;
+    dist2 = _default_location_on_tria_2d (order,
+                                         n_node,
+                                         ho_vertex_num,
+                                         vertex_coords,
+                                         point_coords,
+                                         projected_coords);
 
-    int k = 0;
-    int k2 = 0;
-    
-    for (int j = 0; j < _order; j++) {
-      int k1 = 0;
-      for (int i = ibeg; i < iend - 1; i++) {
-
-        int _vtx1 = ho_vertex_num[i] - 1;
-        int _vtx2 = ho_vertex_num[i + 1] - 1;
-        int _vtx3 = ho_vertex_num[iend + 1 + k1] - 1;
-        int _vtx4 = ho_vertex_num[iend + 2 + k1] - 1;
-
-        double x1 = vertex_coords[3*_vtx1];
-        double y1 = vertex_coords[3*_vtx1 + 1];
-        double z1 = vertex_coords[3*_vtx1 + 2];
-
-        double x2 = vertex_coords[3*_vtx2];
-        double y2 = vertex_coords[3*_vtx2 + 1];
-        double z2 = vertex_coords[3*_vtx2 + 2];
-
-        double x3 = vertex_coords[3*_vtx3];
-        double y3 = vertex_coords[3*_vtx3 + 1];
-        double z3 = vertex_coords[3*_vtx3 + 2];
-
-        double x4 = vertex_coords[3*_vtx4];
-        double y4 = vertex_coords[3*_vtx4 + 1];
-        double z4 = vertex_coords[3*_vtx4 + 2];
-        
-        double _vertex_coords[9] = {x1, y1, z1,
-                                    x2, y2, z2,
-                                    x3, y3, z3};
-        double _uvP1[3];
-        double _weightsP1[3];
-        double _closest_pointP1[3];
-        double _dist2;
-
-        fvmc_triangle_evaluate_Position (point_coords,
-                                         _vertex_coords,
-                                         _closest_pointP1,
-                                         _uvP1,
-                                         &_dist2,
-                                         _weightsP1);
-
-        if (_dist2 <= min_dist2) {
-          min_dist2 = _dist2;
-          for (int i1 = 0; i1 < 3; i1++) {
-            uvP1[i1] = _uvP1[i1];
-            weightsP1[i1] = _weightsP1[i1];
-            closest_pointP1[i1] = _closest_pointP1[i1];
-          }
-          selected_triaP1[0] = _vtx1;
-          selected_triaP1[1] = _vtx2;
-          selected_triaP1[2] = _vtx3;
-        }
-
-        _vertex_coords[0] = x2;
-        _vertex_coords[1] = y2;
-        _vertex_coords[2] = z2;
-        _vertex_coords[3] = x4;
-        _vertex_coords[4] = y4;
-        _vertex_coords[5] = z4;
-        _vertex_coords[6] = x3;
-        _vertex_coords[7] = y3;
-        _vertex_coords[8] = z3;
-
-        fvmc_triangle_evaluate_Position (point_coords,
-                                         _vertex_coords,
-                                         _closest_pointP1,
-                                         _uvP1,
-                                         &_dist2,
-                                         _weightsP1);
-
-        if (_dist2 <= min_dist2) {
-          min_dist2 = _dist2;
-          for (int i1 = 0; i1 < 3; i1++) {
-            uvP1[i1] = _uvP1[i1];
-            weightsP1[i1] = _weightsP1[i1];
-            closest_pointP1[i1] = _closest_pointP1[i1];
-          }
-          selected_triaP1[0] = _vtx2;
-          selected_triaP1[1] = _vtx4;
-          selected_triaP1[2] = _vtx3;
-        }
-
-        /* printf ("triaa %d : %d %d %d\n", tria++, i+1, iend + 2 + k1, iend + 1 + k1); */
-        
-        k1++;
-      }
-
-      int _vtx1 = ho_vertex_num[iend - 1] - 1;
-      int _vtx2 = ho_vertex_num[iend - 1 + 1] - 1;
-      int _vtx3 = ho_vertex_num[iend + 1 + k1]- 1;
-      
-      double x1 = vertex_coords[3*_vtx1];
-      double y1 = vertex_coords[3*_vtx1 + 1];
-      double z1 = vertex_coords[3*_vtx1 + 2];
-      
-      double x2 = vertex_coords[3*_vtx2];
-      double y2 = vertex_coords[3*_vtx2 + 1];
-      double z2 = vertex_coords[3*_vtx2 + 2];
-      
-      double x3 = vertex_coords[3*_vtx3];
-      double y3 = vertex_coords[3*_vtx3 + 1];
-      double z3 = vertex_coords[3*_vtx3 + 2];
-      
-      double _vertex_coords[9] = {x1, y1, z1,
-                                  x2, y2, z2,
-                                  x3, y3, z3};
-      
-      double _uvP1[3];
-      double _weightsP1[3];
-      double _closest_pointP1[3];
-      double _dist2;
-      
-      fvmc_triangle_evaluate_Position (point_coords,
-                                       _vertex_coords,
-                                       _closest_pointP1,
-                                       _uvP1,
-                                       &_dist2,
-                                       _weightsP1);
-      
-      if (_dist2 <= min_dist2) {
-        min_dist2 = _dist2;
-        for (int i1 = 0; i1 < 3; i1++) {
-          uvP1[i1] = _uvP1[i1];
-          weightsP1[i1] = _weightsP1[i1];
-          closest_pointP1[i1] = _closest_pointP1[i1];
-        }
-        selected_triaP1[0] = _vtx1;
-        selected_triaP1[1] = _vtx2;
-        selected_triaP1[2] = _vtx3;
-      }
-
-      /* printf ("triaad %d : %d %d %d\n", tria++, iend - 1, iend - 1 + 1, iend + 1 + k1); */
-
-      ibeg = iend + 1;
-      iend += _order - j;
-    }
     break;
-  }
 
-  case FVMC_FACE_QUAD: {
+  case FVMC_FACE_QUAD: 
 
-    int ibeg = 0;
-    int iend = _order;
-
-    int k = 0;
-    int k2 = 0;
-    
-    for (int j = 0; j < _order; j++) {
-      int k1 = 0;
-      int last_vtx2;
-      int last_vtx4;
-      
-      for (int i = ibeg; i < iend; i++) {
-
-        int _vtx1 = ho_vertex_num[i] - 1;
-        int _vtx2 = ho_vertex_num[i + 1] - 1;
-        int _vtx3 = ho_vertex_num[iend + 1 + k1] - 1;
-        int _vtx4 = ho_vertex_num[iend + 2 + k1] - 1;
-
-        double x1 = vertex_coords[3*_vtx1];
-        double y1 = vertex_coords[3*_vtx1 + 1];
-        double z1 = vertex_coords[3*_vtx1 + 2];
-
-        double x2 = vertex_coords[3*_vtx2];
-        double y2 = vertex_coords[3*_vtx2 + 1];
-        double z2 = vertex_coords[3*_vtx2 + 2];
-
-        double x3 = vertex_coords[3*_vtx3];
-        double y3 = vertex_coords[3*_vtx3 + 1];
-        double z3 = vertex_coords[3*_vtx3 + 2];
-
-        double x4 = vertex_coords[3*_vtx4];
-        double y4 = vertex_coords[3*_vtx4 + 1];
-        double z4 = vertex_coords[3*_vtx4 + 2];
-        
-        double _vertex_coords[9] = {x1, y1, z1,
-                                    x2, y2, z2,
-                                    x3, y3, z3};
-        double _uvP1[3];
-        double _weightsP1[3];
-        double _closest_pointP1[3];
-        double _dist2;
-
-        fvmc_triangle_evaluate_Position (point_coords,
-                                         _vertex_coords,
-                                         _closest_pointP1,
-                                         _uvP1,
-                                         &_dist2,
-                                         _weightsP1);
-
-        if (_dist2 <= min_dist2) {
-          min_dist2 = _dist2;
-          for (int i1 = 0; i1 < 3; i1++) {
-            uvP1[i1] = _uvP1[i1];
-            weightsP1[i1] = _weightsP1[i1];
-            closest_pointP1[i1] = _closest_pointP1[i1];
-          }
-          selected_triaP1[0] = _vtx1;
-          selected_triaP1[1] = _vtx2;
-          selected_triaP1[2] = _vtx3;
-        }
-
-        _vertex_coords[0] = x2;
-        _vertex_coords[1] = y2;
-        _vertex_coords[2] = z2;
-        _vertex_coords[3] = x4;
-        _vertex_coords[4] = y4;
-        _vertex_coords[5] = z4;
-        _vertex_coords[6] = x3;
-        _vertex_coords[7] = y3;
-        _vertex_coords[8] = z3;
-
-        fvmc_triangle_evaluate_Position (point_coords,
-                                         _vertex_coords,
-                                         _closest_pointP1,
-                                         _uvP1,
-                                         &_dist2,
-                                         _weightsP1);
-
-        if (_dist2 <= min_dist2) {
-          min_dist2 = _dist2;
-          for (int i1 = 0; i1 < 3; i1++) {
-            uvP1[i1] = _uvP1[i1];
-            weightsP1[i1] = _weightsP1[i1];
-            closest_pointP1[i1] = _closest_pointP1[i1];
-          }
-          selected_triaP1[0] = _vtx1;
-          selected_triaP1[1] = _vtx2;
-          selected_triaP1[2] = _vtx3;
-        }
-        
-        k1++;
-      }
-
-      ibeg = iend + 1;
-      iend = ibeg + _order ;
-
-    }
-
-  }
+    dist2 = _default_location_on_quad_2d (order,
+                                         n_node,
+                                         ho_vertex_num,
+                                         vertex_coords,
+                                         point_coords,
+                                         projected_coords);
     break;
-    
+
   }
-
-  /* uv P1 -> uv P2 */
-
-  /* call baseTrianP1(u=uv1(1),v=uv1(2),ai=ai(1:3)) */
-  
- /*         uv1_(1:2,iTria)= uvTriangle(1:2,tria1(1,iTria))*ai(1) & */
-/*         &               +uvTriangle(1:2,tria1(2,iTria))*ai(2) & */
-/*         &               +uvTriangle(1:2,tria1(3,iTria))*ai(3) */
-/*         call baseTrianP2(u=uv1_(1,iTria),v=uv1_(2,iTria),ai=ai(1:6)) */
-
-  
-
-  /* Error */
-
-  /* calcul des coordonnees et faire la nomrme L2 (voir base geom avec christophe) */
  
-  printf("\n\n\n");
-  printf("in _default_location_on_cell_2d\n");
-  printf("_order : %d\n", _order);
-  printf("n_node : %d\n", n_node);
+  return dist2;
 
-  printf("ho_vertex_num :");
-  for (int i = 0; i < n_node; i++) {
-    printf(" %d", ho_vertex_num[i]);
-  }
-  printf("\n");
-  
-  printf("point coords : %12.5e %12.5e %12.5e\n",
-         point_coords[0],
-         point_coords[1],
-         point_coords[2]);
-  
-  
-  double dist = 0.;
-  bftc_error(__FILE__, __LINE__, 0,
-             _("_default_location_on_cell_2d : Not implemented yet\n"));
-  return dist;
 }
 
 /*----------------------------------------------------------------------------
@@ -784,6 +1069,15 @@ _default_location_on_cell_1d (const fvmc_element_t type,
                              const double *point_coords,
                              double *projected_coords)
 {
+
+  type;
+  order;
+  n_node;
+  ho_vertex_num;
+  vertex_coords;
+  point_coords;
+  projected_coords;
+    
   double dist = 0.;
   bftc_error(__FILE__, __LINE__, 0,
              _("_default_location_on_cell_1d : Not implemented yet\n"));
@@ -843,8 +1137,6 @@ static void
                             const double *point_coords,
                             double *weight)
 {
-  bftc_error(__FILE__, __LINE__, 0,
-             _("_default_weight_on_cell_2d : Not implement yet\n"));
 }
 
 /*----------------------------------------------------------------------------
@@ -913,8 +1205,18 @@ _default_interp_in_cell_3d (const fvmc_element_t type,
                             double *target_field)
                            
 {
-  bftc_error(__FILE__, __LINE__, 0,
-             _("_default_interp_in_cell_3d : Not implement yet\n"));
+  for (int j = 0; j < stride_field; j++) {
+    target_field[j] += 0.;
+  }
+
+  for (int i = 0; i < n_node; i++) {
+
+    int i_node = ho_vertex_num[i] - 1;
+    
+    for (int j = 0; j < stride_field; j++) {
+      target_field[j] += weight[i] * src_field[stride_field * i_node + j];
+    }
+  }
 }
 
 
@@ -948,14 +1250,24 @@ _default_interp_on_cell_2d (const fvmc_element_t type,
                             const double *vertex_coords,
                             const double *point_coords,
                             const float *distance,
-                           const double *point_proj_coords,
+                            const double *point_proj_coords,
                             const double *weight,
                             const int stride_field,
                             const double *src_field,
                             double *target_field)
 {
-  bftc_error(__FILE__, __LINE__, 0,
-             _("_default_interp_on_cell_2d : Not implemented yet\n"));
+  for (int j = 0; j < stride_field; j++) {
+    target_field[j] += 0.;
+  }
+
+  for (int i = 0; i < n_node; i++) {
+
+    int i_node = ho_vertex_num[i] - 1;
+    
+    for (int j = 0; j < stride_field; j++) {
+      target_field[j] += weight[i] * src_field[stride_field * i_node + j];
+    }
+  }
 }
 
 
@@ -995,8 +1307,18 @@ _default_interp_on_cell_1d (const fvmc_element_t type,
                             const double *src_field,
                             double *target_field)
 {
-  bftc_error(__FILE__, __LINE__, 0,
-             _("_default_weight_on_cell_1d : Not implemented yet\n"));
+  for (int j = 0; j < stride_field; j++) {
+    target_field[j] += 0.;
+  }
+
+  for (int i = 0; i < n_node; i++) {
+
+    int i_node = ho_vertex_num[i] - 1;
+    
+    for (int j = 0; j < stride_field; j++) {
+      target_field[j] += weight[i] * src_field[stride_field * i_node + j];
+    }
+  }
 }
 
 /*============================================================================
@@ -1131,9 +1453,6 @@ fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
                              double *projected_coords)
 {
 
-
-  printf("-- fvmc_ho_location_in_cell_3d -- deb\n"); 
-
   if (_user_fcts != NULL) {
 
     switch (type) {
@@ -1225,11 +1544,13 @@ fvmc_ho_location_on_cell_2d (const fvmc_element_t type,
                              double *projected_coords)
 {
 
+  double dist2 = HUGE_VAL;
+  
   if (_user_fcts != NULL) {
     switch (type) {
       
     case FVMC_FACE_TRIA:
-      return (_user_fcts->location_tria) (order,
+      dist2 = (_user_fcts->location_tria) (order,
                                           n_node,
                                           ho_vertex_num,
                                           vertex_coords,
@@ -1238,7 +1559,7 @@ fvmc_ho_location_on_cell_2d (const fvmc_element_t type,
       break;
       
     case FVMC_FACE_QUAD:
-      return (_user_fcts->location_quad) (order,
+      dist2 =  (_user_fcts->location_quad) (order,
                                           n_node,
                                           ho_vertex_num,
                                           vertex_coords,
@@ -1255,16 +1576,16 @@ fvmc_ho_location_on_cell_2d (const fvmc_element_t type,
 
   else {
 
-    return _default_location_on_cell_2d (type,
-                                         order,
-                                         n_node,
-                                         ho_vertex_num,
-                                         vertex_coords,
-                                         point_coords,
-                                         projected_coords);
+    dist2 = _default_location_on_cell_2d (type,
+                                          order,
+                                          n_node,
+                                          ho_vertex_num,
+                                          vertex_coords,
+                                          point_coords,
+                                          projected_coords);
     
   }
-  return HUGE_VAL;
+  return dist2;
 }
 
 /*----------------------------------------------------------------------------
