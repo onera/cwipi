@@ -77,29 +77,6 @@ typedef double (*fvmc_ho_location_fct_t)
  double *projected_coords);
 
 /*----------------------------------------------------------------------------
- * 
- * Function pointer to compute weight in a high order cell 3d
- * 
- * parameters:
- *   type             <-- element type
- *   order            <-- element order
- *   n_node           <-- number of nodes
- *   ho_vertex_num    <-- high order vertex num (internal ordering)
- *   vertex_coords    <-- vertex coordinates
- *   point_coords     <-- point on cell  
- *   weight            --> barycenter's coordinates
- * 
- *----------------------------------------------------------------------------*/
-
-typedef double (*fvmc_ho_weight_fct_t)
-(const int order,
- const int n_node,
- const int *ho_vertex_num,
- const double *vertex_coords,
- const double *point_coords,
- double *weight);
-
-/*----------------------------------------------------------------------------
  * Function pointer to define an high order interpolation
  *
  * parameters:
@@ -153,13 +130,6 @@ const double *weight,
  *   location_tria     <-- Location on a triangle
  *   location_quad     <-- Location on a quandragle
  *   location_edge     <-- Location on a edge
- *   weight_tetra       <-- Weight computation in a tetrahedron
- *   weight_prism       <-- Weight computation in a prism
- *   weight_pyramid     <-- Weight computation in a pyramid
- *   weight_hexa        <-- Weight computation in a hexaedron
- *   weight_tria        <-- Weight computation on a triangle
- *   weight_quad        <-- Weight computation on a quandragle
- *   weight_edge        <-- Weight computation on a edge
  *   interp_tetra       <-- Interpolation in a tetrahedron
  *   interp_prism       <-- Interpolation in a prism
  *   interp_pyramid     <-- Interpolation in a pyramid
@@ -178,13 +148,6 @@ fvmc_ho_user_elementary_functions_set (fvmc_ho_location_fct_t location_tetra,
                                        fvmc_ho_location_fct_t location_tria,
                                        fvmc_ho_location_fct_t location_quad,
                                        fvmc_ho_location_fct_t location_edge,
-                                       fvmc_ho_weight_fct_t weight_tetra,
-                                       fvmc_ho_weight_fct_t weight_prism,
-                                       fvmc_ho_weight_fct_t weight_pyramid,
-                                       fvmc_ho_weight_fct_t weight_hexa,
-                                       fvmc_ho_weight_fct_t weight_tria,
-                                       fvmc_ho_weight_fct_t weight_quad,
-                                       fvmc_ho_weight_fct_t weight_edge,
                                        fvmc_ho_interp_fct_t interp_tetra,
                                        fvmc_ho_interp_fct_t interp_prism,
                                        fvmc_ho_interp_fct_t interp_pyramid,
@@ -283,80 +246,6 @@ fvmc_ho_location_on_cell_1d (const fvmc_element_t type,
                              const double *vertex_coords,
                              const double *point_coords,
                              double *projected_coords);
-
-/*----------------------------------------------------------------------------
- * 
- * Compute weight in a high order cell 3d
- * 
- * parameters:
- *   type             <-- element type
- *   order            <-- element order
- *   n_node           <-- number of nodes
- *   ho_vertex_num    <-- high order vertex num (internal ordering)
- *   vertex_coords    <-- vertex coordinates
- *   point_coords     <-- point inside cell  
- *   weight            --> barycenter's coordinates
- * 
- *----------------------------------------------------------------------------*/
-
-void 
-fvmc_ho_weight_in_cell_3d (const fvmc_element_t type,
-                          const int order,
-                          const int n_node,
-                          const int *ho_vertex_num,
-                          const double *vertex_coords,
-                          const double *point_coords,
-                          double *weight);
-
-/*----------------------------------------------------------------------------
- * 
- * Compute weight on a high order cell 2d
- * 
- * parameters:
- *   type             <-- element type
- *   order            <-- element order
- *   n_node           <-- number of nodes
- *   ho_vertex_num    <-- high order vertex num (internal ordering)
- *   vertex_coords    <-- vertex coordinates
- *   point_coords     <-- point on cell  
- *   weight            --> barycenter's coordinates
- * 
- *----------------------------------------------------------------------------*/
-
-void 
-fvmc_ho_weight_on_cell_2d (const fvmc_element_t type,
-                          const int order,
-                          const int n_node,
-                          const int *ho_vertex_num,
-                          const double *vertex_coords,
-                          const double *point_coords,
-                          double *weight);
-
-/*----------------------------------------------------------------------------
- * 
- * Compute weight on a high order cell 1d
- * 
- * parameters:
- *   type             <-- element type
- *   order            <-- element order
- *   n_node           <-- number of nodes
- *   ho_vertex_num    <-- high order vertex num (internal ordering)
- *   vertex_coords    <-- vertex coordinates
- *   point_coords     <-- point on cell  
- *   weight            --> barycenter's coordinates
- * 
- *----------------------------------------------------------------------------*/
-
-void 
-fvmc_ho_weight_on_cell_1d (const fvmc_element_t type,
-                          const int order,
-                          const int n_node,
-                          const int *ho_vertex_num,
-                          const double *vertex_coords,
-                          const double *point_coords,
-                          double *weight);
-
-
 
 /*----------------------------------------------------------------------------
  * 

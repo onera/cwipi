@@ -242,29 +242,6 @@ typedef double (*cwipi_ho_location_fct_t)
  double *projected_coords);
 
 /*----------------------------------------------------------------------------
- * 
- * Function pointer to compute weight in a high order cell 3d
- * 
- * parameters:
- *   type             <-- element type
- *   order            <-- element order
- *   ho_vertex_num    <-- high order vertex num (internal ordering)
- *   vertex_coords    <-- vertex coordinates
- *   point_coords     <-- point on cell  
- *   weight            --> barycenter's coordinates
- * 
- *----------------------------------------------------------------------------*/
-
-typedef double (*cwipi_ho_weight_fct_t)
-(const cwipi_element_t type,
- const int order,
- const int n_node,
- const int *ho_vertex_num,
- const double *vertex_coords,
- const double *point_coords,
- double *weight);
-
-/*----------------------------------------------------------------------------
  * Function pointer to define an high order interpolation
  *
  * parameters:
@@ -1035,13 +1012,6 @@ cwipi_ho_user_elementary_functions_set (cwipi_ho_location_fct_t location_tetra,
                                         cwipi_ho_location_fct_t location_tria,
                                         cwipi_ho_location_fct_t location_quad,
                                         cwipi_ho_location_fct_t location_edge,
-                                        cwipi_ho_weight_fct_t weight_tetra,
-                                        cwipi_ho_weight_fct_t weight_prism,
-                                        cwipi_ho_weight_fct_t weight_pyramid,
-                                        cwipi_ho_weight_fct_t weight_hexa,
-                                        cwipi_ho_weight_fct_t weight_tria,
-                                        cwipi_ho_weight_fct_t weight_quad,
-                                        cwipi_ho_weight_fct_t weight_edge,
                                         cwipi_ho_interp_fct_t interp_tetra,
                                         cwipi_ho_interp_fct_t interp_prism,
                                         cwipi_ho_interp_fct_t interp_pyramid,
