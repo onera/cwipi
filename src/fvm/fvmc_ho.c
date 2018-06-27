@@ -109,280 +109,6 @@ static fvmc_ho_user_fcts_t *_user_fcts = NULL;
  * Private function definitions
  *============================================================================*/
 
-
-/*   subroutine outsideTrian2(trian2,xyz, uv,max_dist2) */
-/*     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
-/* #define outsideTrian2 0 */
-/*     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
-/*     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
-/*     ! Calcul distance point xyz à trian2 (1,2,3,4,5,6) */
-/*     ! 3 */
-/*     ! 6 5 */
-/*     ! 1 4 2 */
-/*     ! 4 triangles : */
-/*     ! 6    5    3    6 5 */
-/*     ! 1 4  4 2  6 5  4  */
-/*     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
-/*     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
-/*     use space_cell_vertices, only: uvTriangle */
-/*     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
-/*     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
-/*     real(8), intent(in)    :: trian2(1:3,1:6) */
-/*     real(8), intent(in)    :: xyz  (1:3) */
-/*     real(8), intent(out)   :: uv   (1:2) */
-/*     real(8), intent(out)   :: max_dist2 */
-/*     !> */
-/*     integer                :: iVert,nVert */
-/*     integer                :: nTria,iTria,tria1 (1:3,1:4) */
-/*     integer                :: nLine,iLine,lines (1:3,1:9) */
-/*     real(8)                :: dist2    , dist2_ (    1:9) */
-/*     logical                :: inside   , inside_(    1:9) */
-/*     real(8)                :: uv1 (1:2), uv1_   (1:2,1:9) */
-/*     real(8)                :: trian1(1:3,1:3) */
-/*     real(8)                :: xyzP(1:3) */
-/*     real(8)                :: ai  (1:6) */
-/*     real(8)                :: pt0(1:3) */
-/*     real(8)                :: pt1(1:3),pt2(1:3),pt3(1:3) */
-/*     real(8)                :: u */
-/*     real(8)                :: dxyz     (    1:3) */
-/*     real(8)                :: dist2Vert(    1:6) */
-/*     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
-/*     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
-/* #if outsideTrian2!=0 */
-/*     print '(">>> outsideTrian2")' */
-/*     do iVert=1,6 */
-/*       print '(4x,"outsideTrian2 trian",i1,"=",3(f12.5,1x))',iVert,trian2(1:3,iVert) */
-/*     enddo */
-/*     print '(4x,"outsideTrian2    xyz=",3(f12.5,1x))',xyz(1:3) */
-/* #endif */
-/*     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
-    
-/*     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
-/*     max_dist2=hugeD2 */
-/*     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
-    
-/*     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
-/*     !> Triangle P2 */
-/*     !>  3 */
-/*     !>  6 5 */
-/*     !>  1 4 2 */
-/*     !> */
-/*     !> -> 4 Triangles P1 */
-/*     !> 6    5    3    6 5 */
-/*     !> 1 4  4 2  6 5  4 */
-    
-/*     tria1(1:3,1)=[1,4,6] */
-/*     tria1(1:3,2)=[4,2,5] */
-/*     tria1(1:3,3)=[6,5,3] */
-/*     tria1(1:3,4)=[4,5,6] */
-/*     nTria=4 */
-/*     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
-    
-/*     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
-/*     !> xyz is projected on Triangles P1 => xyzP */
-/*     !> if xyzP \in TriangleP1 dist2=|xyz,xyzP|^2 */
-/*     inside_(1:nTria)=.false. */
-/*     loopTriangles: do iTria=1,nTria */
-/*       pt1(1:3)=trian2(1:3,tria1(1,iTria)) */
-/*       pt2(1:3)=trian2(1:3,tria1(2,iTria)) */
-/*       pt3(1:3)=trian2(1:3,tria1(3,iTria)) */
-
-/*                         // Projection du point sur le plan du triangle                   */
-/*       call projectPlan3D(pt1=pt1,pt2=pt2,pt3=pt3,xyz=xyz(1:3), xyzP=xyzP(1:3),dist2=dist2) */
-      
-/*       trian1(1:3,1)=pt1(1:3) */
-/*       trian1(1:3,2)=pt2(1:3) */
-/*       trian1(1:3,3)=pt3(1:3) */
-/*                         // Dans triangle P1 courant */
-/*       call trian1_xyz_uv(trian1=trian1,xyz=xyzP, uv=uv1) */
-      
-/*       call baseTrianP1(u=uv1(1),v=uv1(2),ai=ai(1:3)) ! print '("outsideTrian2 xyzP=",3(e12.5,1x)," ai=",3(e12.5,1x),"dist2=",e12.5)',xyzP(1:3),ai(1:3),dist2 */
-/*       if( 0d0<=ai(1) .and. 0d0<=ai(2) .and. 0d0<=ai(3) )then */
-/*         dist2_  (iTria)=dist2 */
-/*         inside_ (iTria)=.true. */
-
-/*           // uv1_ coeff interpolés dans trian                                                    */
-/*         uv1_(1:2,iTria)= uvTriangle(1:2,tria1(1,iTria))*ai(1) & */
-/*         &               +uvTriangle(1:2,tria1(2,iTria))*ai(2) & */
-/*         &               +uvTriangle(1:2,tria1(3,iTria))*ai(3) */
-       
-/* #if outsideTrian2=!0 */
-/*         call baseTrianP2(u=uv1_(1,iTria),v=uv1_(2,iTria),ai=ai(1:6)) */
-/*         pt0(1:3)=matmul(trian2(1:3,1:6),ai(1:6)) */
-/*         !if( 1d-15<norm2(pt0(1:3)-xyzP(1:3)) )then */
-/*           print '(/4x,"outsideTrian2 2D Lagrange")' */
-/*           print '( 4x,"outsideTrian2 uv  =",3(e12.5,1x))',uv(1:2) */
-/*           print '( 4x,"outsideTrian2 xyzP=",3(e12.5,1x))',xyzP(1:3) */
-/*           print '( 4x,"outsideTrian2 pt0 =",3(e12.5,1x))',pt0(1:3) */
-/*           print '( 4x,"outsideTrian2 dist(pt0,xyzP)=",e12.5)',norm2(pt0(1:3)-xyzP(1:3)) */
-/*          !print '(4x,"Stop File: ",a," line: ",i6)',__FILE__,__LINE__+1 ; stop */
-/*         !endif */
-/* #endif */
-        
-/*       else */
-/*         inside_(iTria)=.false. */
-/*       endif */
-      
-/* #if outsideTrian2!=0 */
-/*       if( inside_(iTria) )then */
-/*         print '(4x,"outsideTrian2:projectPlan3D in: ",l," xyz=",3(e12.5,1x),"xyzP=",3(e12.5,1x),"dist2=",e12.5)',inside_(iTria),xyz(1:3),xyzP(1:3),dist2 */
-/*       endif */
-/* #endif */
-/*     enddo loopTriangles */
-    
-/*     !> max_dist2 = min( |xyz,xyzP|^2 ) where inside_(:)==.true. */
-/*     do iTria=1,nTria */
-/*       if( inside_(iTria) )max_dist2=min(max_dist2,dist2_(iTria)) */
-/*     enddo */
-    
-/*     !> Keeping iEdge where inside_=true and dist2=max_dist2 */
-/*     do iTria=1,nTria */
-/*       if( inside_(iTria) .and. max_dist2==dist2_(iTria) )then */
-/*         uv(1:2)=uv1_(1:2,iTria) */
-/*       endif */
-/*     enddo */
-/*     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
-    
-/*     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
-/*     !> Connectivity of lines */
-/*     lines(1:2,1)=[1,4] */
-/*     lines(1:2,2)=[2,4] */
-/*     lines(1:2,3)=[2,5] */
-/*     lines(1:2,4)=[5,3] */
-/*     lines(1:2,5)=[3,6] */
-/*     lines(1:2,6)=[6,1] */
-/*     lines(1:2,7)=[4,5] !> internal line */
-/*     lines(1:2,8)=[5,6] !> internal line */
-/*     lines(1:2,9)=[6,4] !> internal line */
-/*     nLine=9 */
-/*     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
-    
-/*     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
-/*     !> point is projected on trian2 lines */
-    
-/*     inside_(1:nLine)=.false. */
-/*     loopLines: do iLine=1,nLine */
-/*       pt1(1:3)=trian2(1:3,lines(1,iLine)) */
-/*       pt2(1:3)=trian2(1:3,lines(2,iLine)) */
-      
-/*       call projectLine3D(pt1=pt1(1:3),pt2=pt2(1:3),xyz=xyz(1:3) ,xyzP=xyzP(1:3),dist2=dist2) */
-      
-/*       pt2(1:3)=pt2 (1:3)-pt1(1:3) */
-/*       pt0(1:3)=xyzP(1:3)-pt1(1:3) */
-/*       u=dot_product(pt0,pt2)/dot_product(pt2,pt2) ; u=2d0*u-1d0 ! u \in [-1,+1] */
-/*       call baseEdgeP1(u=u,ai=ai(1:2)) */
-/*       if( 0d0<=ai(1) .and. 0d0<=ai(2) )then */
-/*         dist2_ (    iLine)=dist2 */
-/*         uv1_   (1:2,iLine)= uvTriangle(1:2,lines(1,iLine))*ai(1) & */
-/*         &                  +uvTriangle(1:2,lines(2,iLine))*ai(2) */
-/*         inside_(    iLine)=.true. */
-        
-/* #if outsideTrian2=!0 */
-/*         call baseTrianP2(u=uv1_(1,iLine),v=uv1_(2,iLine),ai=ai) */
-/*         pt0(1:3)=matmul(trian2(1:3,1:6),ai(1:6)) */
-        
-/*         if( 1d-15<norm2(pt0(1:3)-xyzP(1:3)) )then */
-/*           pt1(1:3)=trian2(1:3,lines(1,iLine)) */
-/*           pt2(1:3)=trian2(1:3,lines(2,iLine)) */
-          
-/*           pt0(1:3)=5d-1*((1d0-u)*pt1(1:3)+(1+u)*pt2(1:3)) */
-/*           print '(/4x,"outsideTrian2 1D Lagrange")' */
-/*           print '( 4x,"outsideTrian2 u   =",1(e12.5,1x))',u */
-/*           print '( 4x,"outsideTrian2 pt1 =",3(e12.5,1x))',pt1(1:3) */
-/*           print '( 4x,"outsideTrian2 pt2 =",3(e12.5,1x))',pt2(1:3) */
-/*           print '( 4x,"outsideTrian2 xyzP=",3(e12.5,1x))',xyzP(1:3) */
-/*           print '( 4x,"outsideTrian2 pt0 =",3(e12.5,1x))',pt0(1:3) */
-/*           print '( 4x,"outsideTrian2 dist(pt0,xyzP)=",e12.5)',norm2(pt0(1:3)-xyzP(1:3)) */
-          
-/*           pt0(1:3)=matmul(trian2(1:3,1:6),ai(1:6)) */
-/*           print '(/4x,"outsideTrian2 2D Lagrange")' */
-/*           print '( 4x,"outsideTrian2 uv  =",3(e12.5,1x))',uv1_(1:2,iLine) */
-/*           print '( 4x,"outsideTrian2 pt1 =",3(e12.5,1x))',trian2(1:3,1) */
-/*           print '( 4x,"outsideTrian2 pt2 =",3(e12.5,1x))',trian2(1:3,2) */
-/*           print '( 4x,"outsideTrian2 pt3 =",3(e12.5,1x))',trian2(1:3,3) */
-/*           print '( 4x,"outsideTrian2 pt4 =",3(e12.5,1x))',trian2(1:3,4) */
-/*           print '( 4x,"outsideTrian2 pt5 =",3(e12.5,1x))',trian2(1:3,5) */
-/*           print '( 4x,"outsideTrian2 pt6 =",3(e12.5,1x))',trian2(1:3,6) */
-/*           print '( 4x,"outsideTrian2 xyzP=",3(e12.5,1x))',xyzP(1:3) */
-/*           print '( 4x,"outsideTrian2 pt0 =",3(e12.5,1x))',pt0(1:3) */
-/*           print '( 4x,"outsideTrian2 dist(pt0,xyzP)=",e12.5)',norm2(pt0(1:3)-xyzP(1:3)) */
-          
-/*          !print '(4x,"Stop File: ",a," line: ",i6)',__FILE__,__LINE__+1 ; stop */
-/*         endif */
-/* #endif */
-        
-/*       endif */
-      
-/* #if outsideTrian2!=0 */
-/*       if( inside_(iLine) )then */
-/*         print '(4x,"outsideTrian2:projectLine3D in: ",l," xyz=",3(e12.5,1x),"xyzP=",3(e12.5,1x),"dist2=",e12.5)',inside_(iLine),xyz(1:3),xyzP(1:3),dist2 */
-/*       endif */
-/* #endif */
-/*     enddo loopLines */
-    
-/*     !> Computing max_dist2 */
-/*     do iLine=1,nLine */
-/*       if( inside_(iLine) )max_dist2=min(max_dist2,dist2_(iLine)) */
-/*     enddo */
-    
-/*     !> Keeping iEdge where inside_=true and dist2=max_dist2 */
-/*     do iLine=1,nLine */
-/*       if( inside_(iLine) .and. max_dist2==dist2_(iLine) )then */
-/*         uv (1:2)=uv1_(1:2,iLine) */
-/*       endif */
-/*     enddo */
-/*     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
-    
-    
-/*     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
-/*     !> min distance(point, tetra vertices) */
-    
-/*     nVert=size(trian2,2) */
-/*     do iVert=1,nVert */
-/*       dxyz(1:3)=xyz(1:3)-trian2(1:3,iVert) */
-/*       dist2Vert(iVert)=dot_product(dxyz,dxyz) */
-/*      !print '("iVert=",i1," dist2Vert=",e12.5)',iVert,dist2Vert(iVert) */
-/*     enddo */
-    
-/*     dist2=minval(dist2Vert(1:nVert)) */
-/*     do iVert=1,nVert */
-/*       if( dist2Vert(iVert)==dist2 )then */
-/*         uv1 (1:2)=uvTriangle(1:2,iVert) */
-/*         xyzP(1:3)=trian2    (1:3,iVert) */
-/*       endif */
-/*     enddo */
-    
-/* #if outsideTrian2!=0 */
-/*     print '(/4x,"outsideTrian2:projectVert3D in: ",l," xyz=",3(e12.5,1x),"xyzP=",3(e12.5,1x),"dist2=",e12.5)',.true.,xyz(1:3),xyzP(1:3),dist2 */
-/* #endif */
-     
-/*     if( dist2<max_dist2 )then */
-/*       max_dist2=dist2 */
-/*       uv(1:2)=uv1(1:2) */
-      
-/* #if outsideTrian2!=0 */
-/*       print '(4x,"outsideTrian2:projectVert3D xyz=",3(e12.5,1x),"xyzP=",3(e12.5,1x),"dist2=",e12.5)',xyz(1:3),xyzP(1:3),max_dist2 */
-/* #endif */
-      
-/*     endif */
-/*     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
-    
-/*     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
-/* #if outsideTrian2!=0 */
-/*    !print '(4x,"outsideTrian2 max_dist2=",e12.5," uvw=",3(e12.5,1x))',max_dist2,uvw(1:3) */
-/*     print '(4x,"outsideTrian2 max_dist2=",e12.5)',max_dist2 */
-/*     print '("<<< outsideTrian2")' */
-/* #endif */
-/*     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
-/*     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
-/* #undef outsideTrian2 */
-/*     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
-/*     return */
-/*   end subroutine outsideTrian2 */
-
-
-
-
 /*----------------------------------------------------------------------------
  * 
  * Default point location in a high order cell 3d
@@ -608,6 +334,32 @@ _default_location_on_tria_2d
 {
   int _order = order;
   const double *_vertex_coords = vertex_coords;
+
+  printf (" \n\n === _default_location_on_tria_2d === \n\n");
+  
+  if (1 == 1) {
+    printf("order : %d\n", order);
+    printf("n_node : %d\n", n_node);
+    printf("ho_vertex_node : ");
+    for (int i = 0; i < n_node; i++) {
+      printf (" %d", ho_vertex_num[i]);
+    }
+    printf("\n");
+    printf("vertex_coords : \n");
+    for (int i = 0; i < n_node; i++) {
+      int j = ho_vertex_num[i] - 1;
+      printf ("%12.5e %12.5e %12.5e",
+              vertex_coords[3*j],
+              vertex_coords[3*j+1],
+              vertex_coords[3*j+2]);
+      printf("\n");
+    }
+    printf("\n");
+    printf("point_coords : %12.5e %12.5e %12.5e\n",
+           point_coords[0],
+           point_coords[1],
+           point_coords[2]);
+  }
   
   /* Build sub-triangles */
 
@@ -623,6 +375,7 @@ _default_location_on_tria_2d
   int iend = _order;
 
   int proj_pt_in_selected_tria = 0;
+  int itria = 0;
   
   for (int j = 0; j < _order; j++) {
     int k1 = 0;
@@ -650,14 +403,16 @@ _default_location_on_tria_2d
       double z4 = _vertex_coords[3*_vtx4 + 2];
         
       double __vertex_coords[9] = {x1, y1, z1,
-                                  x2, y2, z2,
-                                  x3, y3, z3};
+                                   x2, y2, z2,
+                                   x3, y3, z3};
       double _uvP1[3];
       double _weightsP1[3];
       double _closest_pointP1[3];
       double _uvClosestPointP1[3];
       double _weightsClosestPointP1[3];
       double _dist2;
+
+      printf ("   * itria : %d\n", ++itria);
 
       int proj_in_tria = fvmc_triangle_evaluate_Position ((double *)point_coords,
                                                           __vertex_coords,
@@ -667,6 +422,43 @@ _default_location_on_tria_2d
                                                           &_dist2,
                                                           _weightsClosestPointP1,
                                                           _weightsP1);
+
+      printf ("     * _vertex_coords \n");
+      for (int i1 = 0; i1 < 3; i1++) {
+        printf ("        %12.5e %12.5e %12.5e",
+                __vertex_coords[3*i1],
+                __vertex_coords[3*i1+1],
+                __vertex_coords[3*i1+2]);
+        printf("\n");
+      }
+
+      printf("     * _closest_pointP1 : %12.5e %12.5e %12.5e\n",
+             _closest_pointP1[0],
+             _closest_pointP1[1],
+             _closest_pointP1[2]);
+
+      printf("     * _uvClosestPointP1 : %12.5e %12.5e\n",
+             _uvClosestPointP1[0],
+             _uvClosestPointP1[1]);
+      
+      printf("     * _uvP1 : %12.5e %12.5e\n",
+             _uvP1[0],
+             _uvP1[1]);
+
+      printf("     * _dist2 : %12.5e\n", _dist2);
+
+      
+      printf("     * _weightsClosestPointP1 :");
+      for (int i1 = 0; i1 < n_node; i1++) {
+        printf (" %12.5e ", _weightsClosestPointP1[i1]);
+      }
+      printf("\n");
+
+      printf("     * _weightsP1 :");
+      for (int i1 = 0; i1 < n_node; i1++) {
+        printf (" %12.5e ", _weightsP1[i1]);
+      }
+      printf("\n");
 
       if (_dist2 <= min_dist2) {
         min_dist2 = _dist2;
@@ -691,7 +483,9 @@ _default_location_on_tria_2d
       __vertex_coords[7] = y3;
       __vertex_coords[8] = z3;
 
-       proj_in_tria = fvmc_triangle_evaluate_Position ((double *) point_coords,
+      printf ("   * itria : %d\n", ++itria);
+
+      proj_in_tria = fvmc_triangle_evaluate_Position ((double *) point_coords,
                                                        __vertex_coords,
                                                        _closest_pointP1,
                                                        _uvClosestPointP1,
@@ -699,6 +493,42 @@ _default_location_on_tria_2d
                                                        &_dist2,
                                                        _weightsClosestPointP1,
                                                        _weightsP1);
+      printf ("     * _vertex_coords \n");
+      for (int i1 = 0; i1 < 3; i1++) {
+        printf ("        %12.5e %12.5e %12.5e",
+                __vertex_coords[3*i1],
+                __vertex_coords[3*i1+1],
+                __vertex_coords[3*i1+2]);
+        printf("\n");
+      }
+
+      printf("     * _closest_pointP1 : %12.5e %12.5e %12.5e\n",
+             _closest_pointP1[0],
+             _closest_pointP1[1],
+             _closest_pointP1[2]);
+
+      printf("     * _uvClosestPointP1 : %12.5e %12.5e\n",
+             _uvClosestPointP1[0],
+             _uvClosestPointP1[1]);
+      
+      printf("     * _uvP1 : %12.5e %12.5e\n",
+             _uvP1[0],
+             _uvP1[1]);
+
+      printf("     * _dist2 : %12.5e\n", _dist2);
+
+      
+      printf("     * _weightsClosestPointP1 :");
+      for (int i1 = 0; i1 < n_node; i1++) {
+        printf (" %12.5e ", _weightsClosestPointP1[i1]);
+      }
+      printf("\n");
+
+      printf("     * _weightsP1 :");
+      for (int i1 = 0; i1 < n_node; i1++) {
+        printf (" %12.5e ", _weightsP1[i1]);
+      }
+      printf("\n");
 
       if (_dist2 <= min_dist2) {
         min_dist2 = _dist2;
@@ -744,6 +574,8 @@ _default_location_on_tria_2d
    
     double _dist2;
       
+    printf ("   * itria : %d\n", ++itria);
+
     int proj_in_tria =fvmc_triangle_evaluate_Position ((double *)point_coords,
                                                        __vertex_coords,
                                                        _closest_pointP1,
@@ -753,7 +585,44 @@ _default_location_on_tria_2d
                                                        _weightsClosestPointP1,
                                                        _weightsP1);
       
-    if (_dist2 <= min_dist2) {
+      printf ("     * _vertex_coords \n");
+      for (int i1 = 0; i1 < 3; i1++) {
+        printf ("        %12.5e %12.5e %12.5e",
+                __vertex_coords[3*i1],
+                __vertex_coords[3*i1+1],
+                __vertex_coords[3*i1+2]);
+        printf("\n");
+      }
+
+      printf("     * _closest_pointP1 : %12.5e %12.5e %12.5e\n",
+             _closest_pointP1[0],
+             _closest_pointP1[1],
+             _closest_pointP1[2]);
+
+      printf("     * _uvClosestPointP1 : %12.5e %12.5e\n",
+             _uvClosestPointP1[0],
+             _uvClosestPointP1[1]);
+      
+      printf("     * _uvP1 : %12.5e %12.5e\n",
+             _uvP1[0],
+             _uvP1[1]);
+
+      printf("     * _dist2 : %12.5e\n", _dist2);
+
+      
+      printf("     * _weightsClosestPointP1 :");
+      for (int i1 = 0; i1 < n_node; i1++) {
+        printf (" %12.5e ", _weightsClosestPointP1[i1]);
+      }
+      printf("\n");
+
+      printf("     * _weightsP1 :");
+      for (int i1 = 0; i1 < n_node; i1++) {
+        printf (" %12.5e ", _weightsP1[i1]);
+      }
+      printf("\n");
+
+      if (_dist2 <= min_dist2) {
       min_dist2 = _dist2;
       for (int i1 = 0; i1 < 3; i1++) {
         uvP1[i1] = _uvClosestPointP1[i1];
@@ -814,9 +683,27 @@ _default_location_on_tria_2d
       projected_coords[j] = _projected_coords[j];
     }
   }
+
+  if (1 == 1) {
+    printf(" --- resultats ---\n\n");
+    printf("weights : ");
+    for (int i = 0; i < n_node; i++) {
+      printf (" %12.5e", weights[i]);
+    }
+    printf("\n");
+    printf("min_dist2 : %12.5e\n", min_dist2);
+    printf("projected_coords : %12.5e %12.5e %12.5e\n",
+           projected_coords[0],
+           projected_coords[1],
+           projected_coords[2]);
+  }
    
-  return dist2;
   
+  printf ("\n\n === _default_location_on_tria_2d === \n\n");
+  exit(1);
+  return dist2;
+
+ 
 }
 
 
@@ -1437,7 +1324,6 @@ fvmc_ho_location_in_cell_3d
   }
 
   return HUGE_VAL;
-  printf("-- fvmc_ho_location_in_cell_3d -- fin\n"); 
 }
 
 /*----------------------------------------------------------------------------

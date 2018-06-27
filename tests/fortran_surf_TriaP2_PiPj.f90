@@ -335,10 +335,10 @@ subroutine  userInterpolation                        ( &
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   
-call mpi_barrier(commWorld,iErr)
-call cwipi_finalize_f()
-call mpi_finalize(iErr)
-stop 'A POURSUIVRE'
+!call mpi_barrier(commWorld,iErr)
+!call cwipi_finalize_f()
+!call mpi_finalize(iErr)
+!stop 'A POURSUIVRE'
   
   
   
@@ -584,7 +584,7 @@ program testf
   &    tolerance=1d-1                           ,& !> Tolerance geometrique 1d-1 par defaut
   &    meshT=cwipi_static_mesh                  ,&
   &    solvert=cwipi_solver_cell_vertex         ,&
-  &    outputfreq=1                             ,& !> Frequence du post-traitement
+  &    outputfreq=-1                             ,& !> Frequence du post-traitement
   &    outputfmt="Ensight Gold"                 ,&
   &    outputfmtopt="binary"                     )
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -719,6 +719,7 @@ program testf
       vertices(j+1:j+3)=vertx(1:3,trian(iNod,iTrian))
       j=j+3
     enddo
+
   
     !> Transmission des maillages à cwipi
     call cwipi_define_mesh_f(     &
@@ -770,6 +771,10 @@ program testf
       vertices(j+1:j+3)=vertx(1:3,trian(iNod,iTrian))
       j=j+3
     enddo
+
+    print*, "vertices = "
+    print*, vertices
+    print*, "connec = ", connec 
     
   !> Transmission des maillages à cwipi
     call cwipi_ho_define_mesh_f(  &
@@ -797,9 +802,9 @@ allocate( ijk  (12)    )  !> sommets
   ! 1 4 2
   
 call cwipi_ho_ordering_from_IJK_set_f (couplingName ="testPiPj", &
-                                          tElt        = CWIPI_FACE_TRIAHO, &
-                                          nNodes      = 6, &
-                                         IJK          = ijk)
+                                       tElt         = CWIPI_FACE_TRIAHO, &
+                                       nNodes       = 6, &
+                                       IJK          = ijk)
 
 deallocate (ijk)
 
