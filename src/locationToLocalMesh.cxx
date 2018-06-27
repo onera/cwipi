@@ -468,7 +468,7 @@ void LocationToLocalMesh::locate()
           const double *localCoords    = _supportMesh->getVertexCoords();
 
           const int order = _supportMesh->getOrder();
-          const fvmc_coord_t *proj_coords = fvmc_locator_get_dist_projected_coords(_fvmLocator);
+          //          const fvmc_coord_t *proj_coords = fvmc_locator_get_dist_projected_coords(_fvmLocator);
 
           if (order == -1) {
           
@@ -508,36 +508,39 @@ void LocationToLocalMesh::locate()
             }
           }
 
-          // else {
-          //   _barycentricCoordinatesIndex = new std::vector <int> (nDistantPoint + 1);
-          //   _barycentricCoordinates = new std::vector <double> ((order+ 1) * nDistantPoint);
-          //   std::vector <int> &  _refBarycentricCoordinatesIndex = *_barycentricCoordinatesIndex;
-          //   std::vector <double> &  _refBarycentricCoordinates = *_barycentricCoordinates;
+          else {
+            _barycentricCoordinatesIndex = new std::vector <int> (nDistantPoint + 1);
+            _barycentricCoordinates = new std::vector <double> ((order+ 1) * nDistantPoint);
+            std::vector <int> &  _refBarycentricCoordinatesIndex = *_barycentricCoordinatesIndex;
+            std::vector <double> &  _refBarycentricCoordinates = *_barycentricCoordinates;
             
-          //   _refBarycentricCoordinatesIndex[0] = 0;
-          //   for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
-          //     _refBarycentricCoordinatesIndex[ipoint + 1] =
-          //       _refBarycentricCoordinatesIndex[ipoint] + (order +1);
-          //   }
+            _refBarycentricCoordinatesIndex[0] = 0;
+            for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
+              _refBarycentricCoordinatesIndex[ipoint + 1] =
+                _refBarycentricCoordinatesIndex[ipoint] + (order +1);
+            }
 
-          //   for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
-          //     int ielt = distantLocation[ipoint] - 1;
-          //     const fvmc_element_t elt_t =
-          //       fvmc_nodal_get_type_elt (&(_supportMesh->getFvmNodal()), ielt + 1);
-      
-          //     const int *intern_connec =
-          //       fvmc_nodal_get_internal_connec_elt (&(_supportMesh->getFvmNodal()), ielt+1);
-          //     fvmc_ho_weight_on_cell_1d (elt_t,
-          //                               order,
-          //                               order + 1,
-          //                               intern_connec,
-          //                               localCoords,
-          //                               proj_coords + 3 * ipoint,
-          //                               &(_refBarycentricCoordinates[0]) +
-          //                               _refBarycentricCoordinatesIndex[ipoint]);
-       
-          //   }
-          // }
+            const int *meshConnectivityIndex = _supportMesh->getEltConnectivityIndex();
+            
+            const double *weights = fvmc_locator_get_dist_weights (_fvmLocator);
+     
+            const int max_n_node_elt = fvmc_nodal_max_n_node_elt (&(_supportMesh->getFvmNodal()));
+            
+            for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
+              
+              int ielt = locationList[ipoint] - 1;
+              
+              int n_node = meshConnectivityIndex[ielt+1] - meshConnectivityIndex[ielt];
+              
+              double *_weights_point = &(_refBarycentricCoordinates[0]) + _refBarycentricCoordinatesIndex[ipoint];
+              const double *_weights_point_fvm = weights + ipoint * max_n_node_elt;
+              
+              for (int k = 0; k < n_node; k++) {
+                _weights_point[k] = _weights_point_fvm[k];
+              }
+              
+            }
+          }
         }
         
         else if (_entitiesDim == 2) {
@@ -1165,7 +1168,7 @@ void LocationToLocalMesh::compute2DMeanValues()
   const int n_dist_points = fvmc_locator_get_n_dist_points(_fvmLocator);
   const fvmc_lnum_t *dist_locations = fvmc_locator_get_dist_locations(_fvmLocator);
   const fvmc_coord_t *dist_coords = fvmc_locator_get_dist_coords(_fvmLocator);
-  const fvmc_coord_t *proj_coords = fvmc_locator_get_dist_projected_coords(_fvmLocator);
+  // const fvmc_coord_t *proj_coords = fvmc_locator_get_dist_projected_coords(_fvmLocator);
 
   const int *meshConnectivityIndex = _supportMesh->getEltConnectivityIndex();
   const int *meshConnectivity = _supportMesh->getEltConnectivity();
@@ -1204,30 +1207,27 @@ void LocationToLocalMesh::compute2DMeanValues()
                              distBarCoords);
   }
 
-  // else {
+  else {
 
-    //Nothing to do : weights are computing in fvmc_ho_location_on_cell_2d
+    const double *weights = fvmc_locator_get_dist_weights (_fvmLocator);
+
+    const int max_n_node_elt = fvmc_nodal_max_n_node_elt (&(_supportMesh->getFvmNodal()));
     
-    // for (int ipoint =  0; ipoint < n_dist_points; ipoint++ ) {
-    //   int ielt = dist_locations[ipoint] - 1;
+    for (int ipoint = 0; ipoint < n_dist_points; ipoint++) {
 
-    //   const int *intern_connec = fvmc_nodal_get_internal_connec_elt (&(_supportMesh->getFvmNodal()), ielt+1);
+      int ielt = dist_locations[ipoint] - 1;
 
-    //   const fvmc_element_t elt_t =  fvmc_nodal_get_type_elt (&(_supportMesh->getFvmNodal()), ielt + 1);
+      int n_node = meshConnectivityIndex[ielt+1] - meshConnectivityIndex[ielt];
 
-    //   int nbr_som_fac =  meshConnectivityIndex[ielt+1] - meshConnectivityIndex[ielt];
+      double *_weights_point = &(distBarCoords[0]) + nDistBarCoords[ipoint];
+      const double *_weights_point_fvm = weights + ipoint * max_n_node_elt;
 
-    //   fvmc_ho_weight_on_cell_2d (elt_t,
-    //                             order,
-    //                             nbr_som_fac,
-    //                             intern_connec,
-    //                             meshVertexCoords,
-    //                             proj_coords + 3 * ipoint,
-    //                             &(distBarCoords[0]) + nDistBarCoords[ipoint]);
-
-    // }
+      for (int k = 0; k < n_node; k++) {
+        _weights_point[k] = _weights_point_fvm[k];
+      }
       
-  // }  
+    }
+  }
 }
 
 ///
@@ -1567,7 +1567,7 @@ void LocationToLocalMesh::compute3DMeanValues()
   const fvmc_lnum_t *dist_locations = fvmc_locator_get_dist_locations(_fvmLocator);
   const float *dist_distances       = fvmc_locator_get_dist_distances(_fvmLocator);
   const fvmc_coord_t *dist_coords   = fvmc_locator_get_dist_coords(_fvmLocator);
-  const fvmc_coord_t *proj_coords = fvmc_locator_get_dist_projected_coords(_fvmLocator);
+  //const fvmc_coord_t *proj_coords = fvmc_locator_get_dist_projected_coords(_fvmLocator);
 
 
   /**** Tableaux barycentriques ****/
@@ -2066,38 +2066,38 @@ void LocationToLocalMesh::compute3DMeanValues()
     }
   }
 
-  // else {
+  else {
 
-  //   nDistBarCoords.resize(n_dist_points + 1);
+    nDistBarCoords.resize(n_dist_points + 1);
 
-  //   nDistBarCoords[0] = 0;
-  //   for (int ipoint =  0; ipoint < n_dist_points; ipoint++ ) {
-  //     int ielt = dist_locations[ipoint] - 1;
-  //     int nbr_som_fac =  meshConnectivityIndex[ielt+1] - meshConnectivityIndex[ielt];
-  //     nDistBarCoords[ipoint+1] = nDistBarCoords[ipoint] + nbr_som_fac;
-  //   }
+    nDistBarCoords[0] = 0;
+    for (int ipoint =  0; ipoint < n_dist_points; ipoint++ ) {
+      int ielt = dist_locations[ipoint] - 1;
+      int nbr_som_fac =  meshConnectivityIndex[ielt+1] - meshConnectivityIndex[ielt];
+      nDistBarCoords[ipoint+1] = nDistBarCoords[ipoint] + nbr_som_fac;
+    }
+
+    distBarCoords.resize(nDistBarCoords[n_dist_points]);
+
+    const double *weights = fvmc_locator_get_dist_weights (_fvmLocator);
+
+    const int max_n_node_elt = fvmc_nodal_max_n_node_elt (&(_supportMesh->getFvmNodal()));
     
-  //   distBarCoords.resize(nDistBarCoords[n_dist_points]);
+    for (int ipoint = 0; ipoint < n_dist_points; ipoint++) {
 
-  //   for (int ipoint =  0; ipoint < n_dist_points; ipoint++ ) {
-  //     int ielt = dist_locations[ipoint] - 1;
+      int ielt = dist_locations[ipoint] - 1;
 
-  //     const int *intern_connec = fvmc_nodal_get_internal_connec_elt (&(_supportMesh->getFvmNodal()), ielt+1);
+      int n_node = meshConnectivityIndex[ielt+1] - meshConnectivityIndex[ielt];
 
-  //     const fvmc_element_t elt_t =  fvmc_nodal_get_type_elt (&(_supportMesh->getFvmNodal()), ielt + 1);
+      double *_weights_point = &(distBarCoords[0]) + nDistBarCoords[ipoint];
+      const double *_weights_point_fvm = weights + ipoint * max_n_node_elt;
 
-  //     int nbr_som_fac =  meshConnectivityIndex[ielt+1] - meshConnectivityIndex[ielt];
-
-  //     fvmc_ho_weight_in_cell_3d (elt_t,
-  //                               order,
-  //                               nbr_som_fac,
-  //                               intern_connec,
-  //                               meshVertexCoords,
-  //                               proj_coords + 3 * ipoint,
-  //                               &(distBarCoords[0]) + nDistBarCoords[ipoint]);
-
-  //   }
-  // }
+      for (int k = 0; k < n_node; k++) {
+        _weights_point[k] = _weights_point_fvm[k];
+      }
+      
+    }
+  }
 }
 
 
