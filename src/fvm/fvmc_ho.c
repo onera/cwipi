@@ -786,8 +786,7 @@ _default_location_on_tria_2d
   
   free (uvNodes);
   
-  double *weightsPn = malloc (sizeof(double) * n_node);
-  _base_tria_pn (order   , uvP1inP2[0], uvP1inP2[1], weightsPn);
+  _base_tria_pn (order   , uvP1inP2[0], uvP1inP2[1], weights);
 
   double _projected_coords[3];
   for (int j = 0; j < 3; j++) {
@@ -799,7 +798,7 @@ _default_location_on_tria_2d
     const double *node_coords = vertex_coords + 3 * (ho_vertex_num[i] - 1);
     
     for (int j = 0; j < 3; j++) {
-      _projected_coords[j] += weightsPn[i] * node_coords[j]; 
+      _projected_coords[j] += weights[i] * node_coords[j]; 
     }
   }
 
@@ -815,9 +814,7 @@ _default_location_on_tria_2d
       projected_coords[j] = _projected_coords[j];
     }
   }
-  
-  free (weightsPn);
-  
+   
   return dist2;
   
 }
