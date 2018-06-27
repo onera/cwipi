@@ -1838,8 +1838,12 @@ _locate_on_triangles_3d(fvmc_lnum_t           elt_num,
       double pcoords[3];
       double weights[3];
 
-      fvmc_triangle_evaluate_Position (x, coords, closestPoint,
-                                       pcoords, &dist2, weights);
+      int error = fvmc_triangle_evaluate_Position (x, coords, closestPoint,
+                                                   pcoords, &dist2, weights);
+
+      if (error == -1) {
+        continue;
+      }
 
       if (dist2 < epsilon2 && (dist2 < vertex_dist2 || distance[i] < 0.0)) {
         location[i] = elt_num;
@@ -2800,13 +2804,21 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
           
           double minDist2;
           double pcoords[3];
+          double weights[3];
 
-          fvmc_polygon_evaluate_Position((double *) _point_coords, 
-                                         3, 
-                                         tria_coords, 
-                                         closest,
-                                         pcoords, 
-                                         &minDist2);
+          int error = fvmc_triangle_evaluate_Position (_point_coords, tria_coords, closest,
+                                                       pcoords, &minDist2, weights);
+
+          if (error == -1) {
+            continue;
+          }
+
+          /* fvmc_polygon_evaluate_Position((double *) _point_coords,  */
+          /*                                3,  */
+          /*                                tria_coords,  */
+          /*                                closest, */
+          /*                                pcoords,  */
+          /*                                &minDist2); */
 
 
           float dist = (float) sqrt (minDist2);
@@ -3037,12 +3049,16 @@ _polygons_section_locate_3d(const fvmc_nodal_section_t   *this_section,
       double minDist2;
       double dist2 = distance[j] * distance[j]; 
 
-      fvmc_polygon_evaluate_Position ((double *) x, 
-                                      n_vertices, 
-                                      (double *) _vertex_coords, 
-                                      closestPoint,
-                                      pcoords, 
-                                      &minDist2);
+      int error = fvmc_polygon_evaluate_Position ((double *) x, 
+                                                n_vertices, 
+                                                (double *) _vertex_coords, 
+                                                closestPoint,
+                                                pcoords, 
+                                                &minDist2);
+
+      if (error == -1) {
+        continue;
+      }
 
       if (minDist2 < epsilon2 && (minDist2 < dist2 || distance[j] < 0.0)) {
         distance[j] = (float) sqrt(minDist2);
@@ -4763,6 +4779,7 @@ int  fvmc_triangle_evaluate_Position (double x[3], double *pts, double* closestP
        printf (" %16.9e %16.9e %16.9e\n", pts[3*iii], pts[3*iii+1], pts[3*iii+2]);
      }
      printf ("\n");
+     return - 1;
    }
 
   // Construct matrices.  Since we have over determined system, need to find
@@ -4948,7 +4965,24 @@ int fvmc_polygon_evaluate_Position(double x[3], int numPts, double *pts, double*
 
   double *_pts_p = pts_p;
 
-  fvmc_parameterize_polygon(numPts, _pts_p, p0, p10, &l10, p20, &l20, n);
+  int res = fvmc_parameterize_polygon(numPts, _pts_p, p0, p10, &l10, p20, &l20, n);
+
+  if (res == 0) {
+    printf ("fvmc_polygon_evaluate_Position Error in fvmc_parameterize_polygon");
+    printf ("polygon : ");
+    for (int k = 0; k < numPts; k++) { 
+      double *pt = pts + 3*k;
+      printf ("%12.5e %12.5e %12.5e, ", pt[0], pt[1], pt[2]);
+    }
+    printf("\n");
+    printf ("proj polygon : ");
+    for (int k = 0; k < numPts; k++) { 
+      double *pt = _pts_p + 3*k;
+      printf ("%12.5e %12.5e %12.5e, ", pt[0], pt[1], pt[2]);
+    }
+    printf("\n");
+    return -1;
+  }
 
   _project_point (x,p0,n,cp);
 
