@@ -395,6 +395,7 @@ static fvmc_ho_user_fcts_t *_user_fcts = NULL;
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point to locate coordinates
  *   projected_coords --> projected point coordinates if outside (or NULL)
+ *   weights          --> interpolation weights in the element
  * 
  * return: 
  *   distance to the cell (distance <= 0 if point is inside)
@@ -402,13 +403,17 @@ static fvmc_ho_user_fcts_t *_user_fcts = NULL;
  *----------------------------------------------------------------------------*/
 
 static double 
-_default_location_in_cell_3d (const fvmc_element_t type,
-                             const int order,
-                             const int n_node,
-                             const int *ho_vertex_num,
-                             const double *vertex_coords,
-                             const double *point_coords,
-                             double *projected_coords)
+_default_location_in_cell_3d
+(
+ const fvmc_element_t type,
+ const int order,
+ const int n_node,
+ const int *ho_vertex_num,
+ const double *vertex_coords,
+ const double *point_coords,
+ double *projected_coords,
+ double* weights
+)
 {
   type;
   order;
@@ -417,6 +422,7 @@ _default_location_in_cell_3d (const fvmc_element_t type,
   vertex_coords;
   point_coords;
   projected_coords;
+  weights;
   
   double dist = 0.;
   bftc_error(__FILE__, __LINE__, 0,
@@ -581,6 +587,7 @@ _base_tria_pn
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point to locate coordinates
  *   projected_coords --> projected point coordinates (or NULL)
+ *   weights          --> interpolation weights in the element
  * 
  * return: 
  *   distance to the cell
@@ -595,7 +602,8 @@ _default_location_on_tria_2d
  const int *ho_vertex_num,
  const double *vertex_coords,
  const double *point_coords,
- double *projected_coords
+ double *projected_coords,
+ double *weights
 )
 {
   int _order = order;
@@ -826,6 +834,7 @@ _default_location_on_tria_2d
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point to locate coordinates
  *   projected_coords --> projected point coordinates (or NULL)
+ *   weights          --> interpolation weights in the element
  * 
  * return: 
  *   distance to the cell
@@ -840,7 +849,8 @@ _default_location_on_quad_2d
  const int *ho_vertex_num,
  const double *vertex_coords,
  const double *point_coords,
- double *projected_coords
+ double *projected_coords,
+ double* weights
 )
 {
   bftc_error(__FILE__, __LINE__, 0,
@@ -988,6 +998,7 @@ _default_location_on_quad_2d
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point to locate coordinates
  *   projected_coords --> projected point coordinates (or NULL)
+ *   weights          --> interpolation weights in the element
  * 
  * return: 
  *   distance to the cell
@@ -995,13 +1006,17 @@ _default_location_on_quad_2d
  *----------------------------------------------------------------------------*/
 
 static double 
-_default_location_on_cell_2d (const fvmc_element_t type,
-                             const int order,
-                             const int n_node,
-                             const int *ho_vertex_num,
-                             const double *vertex_coords,
-                             const double *point_coords,
-                             double *projected_coords)
+_default_location_on_cell_2d
+(
+ const fvmc_element_t type,
+ const int order,
+ const int n_node,
+ const int *ho_vertex_num,
+ const double *vertex_coords,
+ const double *point_coords,
+ double *projected_coords,
+ double* weights
+)
 {
   fvmc_element_t _type = type;
   double dist2;
@@ -1011,22 +1026,24 @@ _default_location_on_cell_2d (const fvmc_element_t type,
   case FVMC_FACE_TRIA:
 
     dist2 = _default_location_on_tria_2d (order,
-                                         n_node,
-                                         ho_vertex_num,
-                                         vertex_coords,
-                                         point_coords,
-                                         projected_coords);
+                                          n_node,
+                                          ho_vertex_num,
+                                          vertex_coords,
+                                          point_coords,
+                                          projected_coords,
+                                          weights);
 
     break;
 
   case FVMC_FACE_QUAD: 
 
     dist2 = _default_location_on_quad_2d (order,
-                                         n_node,
-                                         ho_vertex_num,
-                                         vertex_coords,
-                                         point_coords,
-                                         projected_coords);
+                                          n_node,
+                                          ho_vertex_num,
+                                          vertex_coords,
+                                          point_coords,
+                                          projected_coords,
+                                          weights);
     break;
 
   }
@@ -1047,6 +1064,7 @@ _default_location_on_cell_2d (const fvmc_element_t type,
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point to locate coordinates
  *   projected_coords --> projected point coordinates (or NULL)
+ *   weights          --> interpolation weights in the element
  * 
  * return: 
  *   distance to the cell
@@ -1054,13 +1072,17 @@ _default_location_on_cell_2d (const fvmc_element_t type,
  *----------------------------------------------------------------------------*/
 
 static double 
-_default_location_on_cell_1d (const fvmc_element_t type,
-                             const int order,
-                             const int n_node,
-                             const int *ho_vertex_num,
-                             const double *vertex_coords,
-                             const double *point_coords,
-                             double *projected_coords)
+_default_location_on_cell_1d
+(
+ const fvmc_element_t type,
+ const int order,
+ const int n_node,
+ const int *ho_vertex_num,
+ const double *vertex_coords,
+ const double *point_coords,
+ double *projected_coords,
+ double* weights
+)
 {
 
   type;
@@ -1099,20 +1121,22 @@ _default_location_on_cell_1d (const fvmc_element_t type,
  *----------------------------------------------------------------------------*/
 
 static void 
-_default_interp_in_cell_3d (const fvmc_element_t type,
-                            const int order,
-                            const int n_node,
-                            const int *ho_vertex_num,
-                            const int *local_to_user,
-                            const double *vertex_coords,
-                            const double *point_coords,
-                            const float *distance,
-                           const double *point_proj_coords,
-                            const double *weight,
-                            const int stride_field,
-                            const double *src_field,
-                            double *target_field)
-                           
+_default_interp_in_cell_3d
+(
+ const fvmc_element_t type,
+ const int order,
+ const int n_node,
+ const int *ho_vertex_num,
+ const int *local_to_user,
+ const double *vertex_coords,
+ const double *point_coords,
+ const float *distance,
+ const double *point_proj_coords,
+ const double *weight,
+ const int stride_field,
+ const double *src_field,
+ double *target_field
+ )                          
 {
   for (int j = 0; j < stride_field; j++) {
     target_field[j] += 0.;
@@ -1151,19 +1175,22 @@ _default_interp_in_cell_3d (const fvmc_element_t type,
  *----------------------------------------------------------------------------*/
 
 static void 
-_default_interp_on_cell_2d (const fvmc_element_t type,
-                            const int order,
-                            const int n_node,
-                            const int *ho_vertex_num,
-                            const int *local_to_user,
-                            const double *vertex_coords,
-                            const double *point_coords,
-                            const float *distance,
-                            const double *point_proj_coords,
-                            const double *weight,
-                            const int stride_field,
-                            const double *src_field,
-                            double *target_field)
+_default_interp_on_cell_2d
+(
+ const fvmc_element_t type,
+ const int order,
+ const int n_node,
+ const int *ho_vertex_num,
+ const int *local_to_user,
+ const double *vertex_coords,
+ const double *point_coords,
+ const float *distance,
+ const double *point_proj_coords,
+ const double *weight,
+ const int stride_field,
+ const double *src_field,
+ double *target_field
+)
 {
   for (int j = 0; j < stride_field; j++) {
     target_field[j] += 0.;
@@ -1202,19 +1229,22 @@ _default_interp_on_cell_2d (const fvmc_element_t type,
  *----------------------------------------------------------------------------*/
 
 static void 
-_default_interp_on_cell_1d (const fvmc_element_t type,
-                            const int order,
-                            const int n_node,
-                            const int *ho_vertex_num,
-                            const int *local_to_user,
-                            const double *vertex_coords,
-                            const double *point_coords,
-                            const float *distance,
-                            const double *point_proj_coords,
-                            const double *weight,
-                            const int stride_field,
-                            const double *src_field,
-                            double *target_field)
+_default_interp_on_cell_1d
+(
+ const fvmc_element_t type,
+ const int order,
+ const int n_node,
+ const int *ho_vertex_num,
+ const int *local_to_user,
+ const double *vertex_coords,
+ const double *point_coords,
+ const float *distance,
+ const double *point_proj_coords,
+ const double *weight,
+ const int stride_field,
+ const double *src_field,
+ double *target_field
+)
 {
   for (int j = 0; j < stride_field; j++) {
     target_field[j] += 0.;
@@ -1263,13 +1293,6 @@ fvmc_ho_user_elementary_functions_unset (void)
  *   location_tria     <-- Location on a triangle
  *   location_quad     <-- Location on a quandragle
  *   location_edge     <-- Location on a edge
- *   weight_tetra       <-- Weight computation in a tetrahedron
- *   weight_prism       <-- Weight computation in a prism
- *   weight_pyramid     <-- Weight computation in a pyramid
- *   weight_hexa        <-- Weight computation in a hexaedron
- *   weight_tria        <-- Weight computation on a triangle
- *   weight_quad        <-- Weight computation on a quandragle
- *   weight_edge        <-- Weight computation on a edge
  *   interp_tetra       <-- Interpolation in a tetrahedron
  *   interp_prism       <-- Interpolation in a prism
  *   interp_pyramid     <-- Interpolation in a pyramid
@@ -1331,6 +1354,7 @@ fvmc_ho_user_elementary_functions_set (fvmc_ho_location_fct_t location_tetra,
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point to locate coordinates
  *   projected_coords --> projected point coordinates if outside (or NULL)
+ *   weights          --> interpolation weights in the element
  * 
  * return: 
  *   distance to the cell (distance <= 0 if point is inside)
@@ -1338,13 +1362,17 @@ fvmc_ho_user_elementary_functions_set (fvmc_ho_location_fct_t location_tetra,
  *----------------------------------------------------------------------------*/
 
 double 
-fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
-                             const int order,
-                             const int n_node,
-                             const int *ho_vertex_num,
-                             const double *vertex_coords,
-                             const double *point_coords,
-                             double *projected_coords)
+fvmc_ho_location_in_cell_3d
+(
+ const fvmc_element_t type,
+ const int order,
+ const int n_node,
+ const int *ho_vertex_num,
+ const double *vertex_coords,
+ const double *point_coords,
+ double *projected_coords,
+ double *weights
+)
 {
 
   if (_user_fcts != NULL) {
@@ -1357,7 +1385,8 @@ fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
                                            ho_vertex_num,
                                            vertex_coords,
                                            point_coords,
-                                           projected_coords);
+                                           projected_coords,
+                                           weights);
       break;
       
     case FVMC_CELL_PRISM:
@@ -1366,7 +1395,8 @@ fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
                                            ho_vertex_num,
                                            vertex_coords,
                                            point_coords,
-                                           projected_coords);
+                                           projected_coords,
+                                           weights);
       break;
       
     case FVMC_CELL_PYRAM:
@@ -1375,7 +1405,8 @@ fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
                                              ho_vertex_num,
                                              vertex_coords,
                                              point_coords,
-                                             projected_coords);
+                                             projected_coords,
+                                             weights);
       break;
 
     case FVMC_CELL_HEXA:
@@ -1384,7 +1415,8 @@ fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
                                           ho_vertex_num,
                                           vertex_coords,
                                           point_coords,
-                                          projected_coords);
+                                          projected_coords,
+                                          weights);
       break;
 
     default:
@@ -1402,7 +1434,8 @@ fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
                                          ho_vertex_num,
                                          vertex_coords,
                                          point_coords,
-                                         projected_coords);
+                                         projected_coords,
+                                         weights);
     
   }
 
@@ -1422,6 +1455,7 @@ fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point to locate coordinates
  *   projected_coords --> projected point coordinates (or NULL)
+ *   weights          --> interpolation weights in the element
  * 
  * return: 
  *   distance to the cell
@@ -1429,13 +1463,17 @@ fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
  *----------------------------------------------------------------------------*/
 
 double 
-fvmc_ho_location_on_cell_2d (const fvmc_element_t type,
-                             const int order,
-                             const int n_node,
-                             const int *ho_vertex_num,
-                             const double *vertex_coords,
-                             const double *point_coords,
-                             double *projected_coords)
+fvmc_ho_location_on_cell_2d
+(
+ const fvmc_element_t type,
+ const int order,
+ const int n_node,
+ const int *ho_vertex_num,
+ const double *vertex_coords,
+ const double *point_coords,
+ double *projected_coords,
+ double *weights
+)
 {
 
   double dist2 = HUGE_VAL;
@@ -1445,20 +1483,22 @@ fvmc_ho_location_on_cell_2d (const fvmc_element_t type,
       
     case FVMC_FACE_TRIA:
       dist2 = (_user_fcts->location_tria) (order,
-                                          n_node,
-                                          ho_vertex_num,
-                                          vertex_coords,
-                                          point_coords,
-                                          projected_coords);
+                                           n_node,
+                                           ho_vertex_num,
+                                           vertex_coords,
+                                           point_coords,
+                                           projected_coords,
+                                           weights);
       break;
       
     case FVMC_FACE_QUAD:
       dist2 =  (_user_fcts->location_quad) (order,
-                                          n_node,
-                                          ho_vertex_num,
-                                          vertex_coords,
-                                          point_coords,
-                                          projected_coords);
+                                            n_node,
+                                            ho_vertex_num,
+                                            vertex_coords,
+                                            point_coords,
+                                            projected_coords,
+                                            weights);
       break;
       
     default:
@@ -1476,7 +1516,8 @@ fvmc_ho_location_on_cell_2d (const fvmc_element_t type,
                                           ho_vertex_num,
                                           vertex_coords,
                                           point_coords,
-                                          projected_coords);
+                                          projected_coords,
+                                          weights);
     
   }
   return dist2;
@@ -1494,6 +1535,7 @@ fvmc_ho_location_on_cell_2d (const fvmc_element_t type,
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point to locate coordinates
  *   projected_coords --> projected point coordinates (or NULL)
+ *   weights          --> interpolation weights in the element
  * 
  * return: 
  *   distance to the cell
@@ -1501,13 +1543,17 @@ fvmc_ho_location_on_cell_2d (const fvmc_element_t type,
  *----------------------------------------------------------------------------*/
 
 double 
-fvmc_ho_location_on_cell_1d (const fvmc_element_t type,
-                             const int order,
-                             const int n_node,
-                             const int *ho_vertex_num,
-                             const double *vertex_coords,
-                             const double *point_coords,
-                             double *projected_coords)
+fvmc_ho_location_on_cell_1d
+(
+ const fvmc_element_t type,
+ const int order,
+ const int n_node,
+ const int *ho_vertex_num,
+ const double *vertex_coords,
+ const double *point_coords,
+ double *projected_coords,
+ double *weights
+)
 {
 
   if (_user_fcts != NULL) {
@@ -1519,7 +1565,8 @@ fvmc_ho_location_on_cell_1d (const fvmc_element_t type,
                                           ho_vertex_num,
                                           vertex_coords,
                                           point_coords,
-                                          projected_coords);
+                                          projected_coords,
+                                          weights);
       break;
       
     default:
@@ -1537,7 +1584,8 @@ fvmc_ho_location_on_cell_1d (const fvmc_element_t type,
                                          ho_vertex_num,
                                          vertex_coords,
                                          point_coords,
-                                         projected_coords);
+                                         projected_coords,
+                                         weights);
 
   }
 
@@ -1567,20 +1615,22 @@ fvmc_ho_location_on_cell_1d (const fvmc_element_t type,
  *----------------------------------------------------------------------------*/
 
 void 
-fvmc_ho_interp_in_cell_3d (const fvmc_element_t type,
-                           const int order,
-                           const int n_node,
-                           const int *ho_vertex_num,
-                           const int *local_to_user,
-                           const double *vertex_coords,
-                           const double *point_coords,
-                            const float *distance,
-                           const double *point_proj_coords,
-                          const double *weight,
-                           const int stride_field,
-                           const double *src_field,
-                           double *target_field)
-                           
+fvmc_ho_interp_in_cell_3d
+(
+ const fvmc_element_t type,
+ const int order,
+ const int n_node,
+ const int *ho_vertex_num,
+ const int *local_to_user,
+ const double *vertex_coords,
+ const double *point_coords,
+ const float *distance,
+ const double *point_proj_coords,
+ const double *weight,
+ const int stride_field,
+ const double *src_field,
+ double *target_field
+ )                          
 {
   if (_user_fcts != NULL) {
 
@@ -1700,19 +1750,22 @@ fvmc_ho_interp_in_cell_3d (const fvmc_element_t type,
  *----------------------------------------------------------------------------*/
 
 void 
-fvmc_ho_interp_on_cell_2d (const fvmc_element_t type,
-                           const int order,
-                           const int n_node,
-                           const int *ho_vertex_num,
-                           const int *local_to_user,
-                           const double *vertex_coords,
-                           const double *point_coords,
-                           const float *distance,
-                           const double *point_proj_coords,
-                           const double *weight,
-                           const int stride_field,
-                           const double *src_field,
-                           double *target_field)
+fvmc_ho_interp_on_cell_2d
+(
+ const fvmc_element_t type,
+ const int order,
+ const int n_node,
+ const int *ho_vertex_num,
+ const int *local_to_user,
+ const double *vertex_coords,
+ const double *point_coords,
+ const float *distance,
+ const double *point_proj_coords,
+ const double *weight,
+ const int stride_field,
+ const double *src_field,
+ double *target_field
+)
 {
   if (_user_fcts != NULL) {
     switch (type) {
@@ -1796,19 +1849,22 @@ fvmc_ho_interp_on_cell_2d (const fvmc_element_t type,
  *----------------------------------------------------------------------------*/
 
 void 
-fvmc_ho_interp_on_cell_1d (const fvmc_element_t type,
-                           const int order,
-                           const int n_node,
-                           const int *ho_vertex_num,
-                           const int *local_to_user,
-                           const double *vertex_coords,
-                           const double *point_coords,
-                           const float *distance,
-                           const double *point_proj_coords,
-                           const double *weight,
-                           const int stride_field,
-                           const double *src_field,
-                           double *target_field)
+fvmc_ho_interp_on_cell_1d
+(
+ const fvmc_element_t type,
+ const int order,
+ const int n_node,
+ const int *ho_vertex_num,
+ const int *local_to_user,
+ const double *vertex_coords,
+ const double *point_coords,
+ const float *distance,
+ const double *point_proj_coords,
+ const double *weight,
+ const int stride_field,
+ const double *src_field,
+ double *target_field
+ )
 {
   if (_user_fcts != NULL) {
     switch (type) {

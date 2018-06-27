@@ -3396,13 +3396,13 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
               distance[point_in_extents] = (float) _distance;
 
               if (projected_coords != NULL) {
-                _projected_coords = projected_coords + 3 * point_in_extents;
+                double *_projected_coords = projected_coords + 3 * point_in_extents;
                 for (int k1 = 0; k1 < 3; k1++) {
                   _projected_coords[k1] = tmp_projected_coords[k1];
                 }
               }
               if (weights != NULL) {
-                _weights = weights + max_n_node_elt * point_in_extents;
+                double *_weights = weights + max_n_node_elt * point_in_extents;
                 for (int k1 = 0; k1 < max_n_node_elt; k1++) {
                   _weights[k1] = tmp_weights[k1];
                 }
@@ -3482,13 +3482,13 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
               distance[point_in_extents] = (float) _distance;
 
               if (projected_coords != NULL) {
-                _projected_coords = projected_coords + 3 * point_in_extents;
+                double *_projected_coords = projected_coords + 3 * point_in_extents;
                 for (int k1 = 0; k1 < 3; k1++) {
                   _projected_coords[k1] = tmp_projected_coords[k1];
                 }
               }
               if (weights != NULL) {
-                _weights = weights + max_n_node_elt * point_in_extents;
+                double *_weights = weights + max_n_node_elt * point_in_extents;
                 for (int k1 = 0; k1 < max_n_node_elt; k1++) {
                   _weights[k1] = tmp_weights[k1];
                 }
@@ -3536,7 +3536,7 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
                                                             this_section->stride,
                                                             this_section->_ho_vertex_num + i*this_section->stride,
                                                             vertex_coords,
-                                                            tmp_point_coords,
+                                                            _point_coords,
                                                             tmp_projected_coords,
                                                             tmp_weights);
 
@@ -3547,13 +3547,13 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
               location[point_in_extents] = elt_num;
               distance[point_in_extents] = (float) _distance;
               if (projected_coords != NULL) {
-                _projected_coords = projected_coords + 3 * point_in_extents;
+                double *_projected_coords = projected_coords + 3 * point_in_extents;
                 for (int k1 = 0; k1 < 3; k1++) {
                   _projected_coords[k1] = tmp_projected_coords[k1];
                 }
               }
               if (weights != NULL) {
-                _weights = weights + max_n_node_elt * point_in_extents;
+                double *_weights = weights + max_n_node_elt * point_in_extents;
                 for (int k1 = 0; k1 < max_n_node_elt; k1++) {
                   _weights[k1] = tmp_weights[k1];
                 }

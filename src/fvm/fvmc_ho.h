@@ -62,6 +62,7 @@ extern "C" {
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point to locate coordinates
  *   projected_coords --> projected point coordinates (if point is outside) 
+ *   weights          --> interpolation weights in the element
  * 
  * return: 
  *   distance to the cell (distance <= 0 if point is inside)
@@ -74,7 +75,8 @@ typedef double (*fvmc_ho_location_fct_t)
  const int *ho_vertex_num,
  const double *vertex_coords,
  const double *point_coords,
- double *projected_coords);
+ double *projected_coords,
+ double *weights);
 
 /*----------------------------------------------------------------------------
  * Function pointer to define an high order interpolation
@@ -178,6 +180,7 @@ fvmc_ho_user_elementary_functions_unset (void);
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point to locate coordinates
  *   projected_coords --> projected point coordinates (if point is outside) 
+ *   weights          --> interpolation weights in the element
  * 
  * return: 
  *   distance to the cell (distance <= 0 if point is inside)
@@ -191,7 +194,8 @@ fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
                              const int *ho_vertex_num,
                              const double *vertex_coords,
                              const double *point_coords,
-                             double *projected_coords);
+                             double *projected_coords,
+                             double* weights);
 
 /*----------------------------------------------------------------------------
  * 
@@ -205,6 +209,7 @@ fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point to locate coordinates
  *   projected_coords --> projected point coordinates
+ *   weights          --> interpolation weights in the element
  * 
  * return: 
  *   distance to the cell
@@ -218,7 +223,8 @@ fvmc_ho_location_on_cell_2d (const fvmc_element_t type,
                              const int *ho_vertex_num,
                              const double *vertex_coords,
                              const double *point_coords,
-                             double *projected_coords);
+                             double *projected_coords,
+                             double *weights);
 
 /*----------------------------------------------------------------------------
  * 
@@ -232,6 +238,7 @@ fvmc_ho_location_on_cell_2d (const fvmc_element_t type,
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point to locate coordinates
  *   projected_coords --> projected point coordinates
+ *   weights          --> interpolation weights in the element
  * 
  * return: 
  *   distance to the cell
@@ -245,7 +252,8 @@ fvmc_ho_location_on_cell_1d (const fvmc_element_t type,
                              const int *ho_vertex_num,
                              const double *vertex_coords,
                              const double *point_coords,
-                             double *projected_coords);
+                             double *projected_coords,
+                             double *weights);
 
 /*----------------------------------------------------------------------------
  * 
