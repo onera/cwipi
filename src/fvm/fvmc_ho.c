@@ -405,8 +405,6 @@ _default_location_on_tria_2d
       double __vertex_coords[9] = {x1, y1, z1,
                                    x2, y2, z2,
                                    x3, y3, z3};
-      double _uvP1[3];
-      double _weightsP1[3];
       double _closest_pointP1[3];
       double _uvClosestPointP1[3];
       double _weightsClosestPointP1[3];
@@ -418,10 +416,8 @@ _default_location_on_tria_2d
                                                           __vertex_coords,
                                                           _closest_pointP1,
                                                           _uvClosestPointP1,
-                                                          _uvP1,
                                                           &_dist2,
-                                                          _weightsClosestPointP1,
-                                                          _weightsP1);
+                                                          _weightsClosestPointP1);
 
       printf ("     * _vertex_coords \n");
       for (int i1 = 0; i1 < 3; i1++) {
@@ -441,22 +437,12 @@ _default_location_on_tria_2d
              _uvClosestPointP1[0],
              _uvClosestPointP1[1]);
       
-      printf("     * _uvP1 : %12.5e %12.5e\n",
-             _uvP1[0],
-             _uvP1[1]);
-
       printf("     * _dist2 : %12.5e\n", _dist2);
 
       
       printf("     * _weightsClosestPointP1 :");
       for (int i1 = 0; i1 < n_node; i1++) {
         printf (" %12.5e ", _weightsClosestPointP1[i1]);
-      }
-      printf("\n");
-
-      printf("     * _weightsP1 :");
-      for (int i1 = 0; i1 < n_node; i1++) {
-        printf (" %12.5e ", _weightsP1[i1]);
       }
       printf("\n");
 
@@ -489,10 +475,8 @@ _default_location_on_tria_2d
                                                        __vertex_coords,
                                                        _closest_pointP1,
                                                        _uvClosestPointP1,
-                                                       _uvP1,
                                                        &_dist2,
-                                                       _weightsClosestPointP1,
-                                                       _weightsP1);
+                                                      _weightsClosestPointP1);
       printf ("     * _vertex_coords \n");
       for (int i1 = 0; i1 < 3; i1++) {
         printf ("        %12.5e %12.5e %12.5e",
@@ -511,22 +495,12 @@ _default_location_on_tria_2d
              _uvClosestPointP1[0],
              _uvClosestPointP1[1]);
       
-      printf("     * _uvP1 : %12.5e %12.5e\n",
-             _uvP1[0],
-             _uvP1[1]);
-
       printf("     * _dist2 : %12.5e\n", _dist2);
 
       
       printf("     * _weightsClosestPointP1 :");
       for (int i1 = 0; i1 < n_node; i1++) {
         printf (" %12.5e ", _weightsClosestPointP1[i1]);
-      }
-      printf("\n");
-
-      printf("     * _weightsP1 :");
-      for (int i1 = 0; i1 < n_node; i1++) {
-        printf (" %12.5e ", _weightsP1[i1]);
       }
       printf("\n");
 
@@ -566,8 +540,6 @@ _default_location_on_tria_2d
                                 x2, y2, z2,
                                 x3, y3, z3};
       
-    double _uvP1[3];
-    double _weightsP1[3];
     double _closest_pointP1[3];
     double _uvClosestPointP1[3];
     double _weightsClosestPointP1[3];
@@ -580,10 +552,8 @@ _default_location_on_tria_2d
                                                        __vertex_coords,
                                                        _closest_pointP1,
                                                        _uvClosestPointP1,
-                                                       _uvP1,
                                                        &_dist2,
-                                                       _weightsClosestPointP1,
-                                                       _weightsP1);
+                                                       _weightsClosestPointP1);
       
       printf ("     * _vertex_coords \n");
       for (int i1 = 0; i1 < 3; i1++) {
@@ -603,22 +573,12 @@ _default_location_on_tria_2d
              _uvClosestPointP1[0],
              _uvClosestPointP1[1]);
       
-      printf("     * _uvP1 : %12.5e %12.5e\n",
-             _uvP1[0],
-             _uvP1[1]);
-
       printf("     * _dist2 : %12.5e\n", _dist2);
 
       
       printf("     * _weightsClosestPointP1 :");
       for (int i1 = 0; i1 < n_node; i1++) {
         printf (" %12.5e ", _weightsClosestPointP1[i1]);
-      }
-      printf("\n");
-
-      printf("     * _weightsP1 :");
-      for (int i1 = 0; i1 < n_node; i1++) {
-        printf (" %12.5e ", _weightsP1[i1]);
       }
       printf("\n");
 
@@ -786,8 +746,6 @@ _default_location_on_quad_2d
       double _vertex_coords[9] = {x1, y1, z1,
                                   x2, y2, z2,
                                   x3, y3, z3};
-      double _uvP1[3];
-      double _weightsP1[3];
       double _closest_pointP1[3];
       double _uvClosestPointP1[3];
       double _weightsClosestPointP1[3];
@@ -797,10 +755,8 @@ _default_location_on_quad_2d
                                        _vertex_coords,
                                        _closest_pointP1,
                                        _uvClosestPointP1,
-                                       _uvP1,
                                        &_dist2,
-                                       _weightsClosestPointP1,
-                                       _weightsP1);
+                                       _weightsClosestPointP1);
 
       if (_dist2 <= min_dist2) {
         min_dist2 = _dist2;
@@ -828,10 +784,8 @@ _default_location_on_quad_2d
                                        _vertex_coords,
                                        _closest_pointP1,
                                        _uvClosestPointP1,
-                                       _uvP1,
                                        &_dist2,
-                                       _weightsClosestPointP1,
-                                       _weightsP1);
+                                       _weightsClosestPointP1);
 
       if (_dist2 <= min_dist2) {
         min_dist2 = _dist2;
