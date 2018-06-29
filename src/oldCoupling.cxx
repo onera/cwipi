@@ -790,7 +790,6 @@ namespace cwipi {
                             int connectivity[],
                             int order)
   {
-    printf("defineMesh : %d %d\n", nElement, order);
     
     
     if (_supportMesh  != NULL)
@@ -1103,7 +1102,6 @@ namespace cwipi {
 
   {
 
-    printf("-- oldCoupling::exchange : deb --\n");
     
     cwipi_exchange_status_t status = CWIPI_EXCHANGE_OK;
 
@@ -1634,7 +1632,6 @@ namespace cwipi {
                            NULL);
 
     } 
-    printf("-- oldCoupling::exchange : fin --\n");
   }
 
 
@@ -2016,7 +2013,6 @@ namespace cwipi {
 
   void oldCoupling::locate()
   {
-    printf("-- oldCoupling::locate : deb --\n");
 
     const MPI_Comm& localComm = _localApplicationProperties.getLocalComm();
 
@@ -2070,7 +2066,6 @@ namespace cwipi {
     fvmc_parall_set_mpi_comm(oldFVMComm);
 
     _toLocate = false;
-    printf("-- oldCoupling::locate : fin --\n");
   }
 
 

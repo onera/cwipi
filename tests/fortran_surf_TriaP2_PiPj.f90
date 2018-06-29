@@ -775,6 +775,7 @@ program testf
     print*, "vertices = "
     print*, vertices
     print*, "connec = ", connec 
+    print*, "connecIndex = ", connecIndex 
     
   !> Transmission des maillages à cwipi
     call cwipi_ho_define_mesh_f(  &
@@ -956,8 +957,7 @@ endif
   call cwipi_exchange_f(                       &
   &    couplingName=          "testPiPj"      ,&
   &    exchangeName="exch1_"//"testPiPj"      ,&
-  &    exchangeDim=stride                     ,&  ! scalar
-  &    ptInterpolationFct=userInterpolation   ,&  ! utilisation de la procedure plug
+  &    stride=stride                          ,&  ! scalar
   &                                            &
   &    sendingFieldName="mySolu"              ,&  ! solution calculee localement
   &    sendingField=myValues                  ,&
@@ -969,6 +969,24 @@ endif
   &    timeValue=0d0                          ,&  ! pas utilisee juste pour visu cwipi
   &    nNotLocatedPoints=notLocatedPoints     ,&
   &    status=iErr                             )
+
+  ! call cwipi_exchange_f(                       &
+  ! &    couplingName=          "testPiPj"      ,&
+  ! &    exchangeName="exch1_"//"testPiPj"      ,&
+  ! &    exchangeDim=stride                     ,&  ! scalar
+  ! &    ptInterpolationFct=userInterpolation   ,&  ! utilisation de la procedure plug
+  ! &                                            &
+  ! &    sendingFieldName="mySolu"              ,&  ! solution calculee localement
+  ! &    sendingField=myValues                  ,&
+  ! &                                            &
+  ! &    receivingFieldName="linkSolu"          ,&
+  ! &    receivingField=linkValues              ,&  ! solution de raccord
+  ! &                                            &
+  ! &    nStep=1                                ,&  ! pas utilisee juste pour visu cwipi
+  ! &    timeValue=0d0                          ,&  ! pas utilisee juste pour visu cwipi
+  ! &    nNotLocatedPoints=notLocatedPoints     ,&
+  ! &    status=iErr                             )
+
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

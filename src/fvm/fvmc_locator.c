@@ -732,7 +732,6 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
   
   /* Initialization */
 
-  printf("-- _locate_all_distant : deb --\n");
   stride = dim * 2;
 
   BFTC_MALLOC(send_coords, n_points * dim, fvmc_coord_t);
@@ -852,11 +851,22 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
     BFTC_MALLOC(location_dist, n_coords_dist, fvmc_lnum_t);
     BFTC_MALLOC(distance_dist, n_coords_dist, float);
 
+    
     for (j = 0; j < n_coords_dist; j++) {
       location_dist[j] = -1;
       distance_dist[j] = -1.0;
     }
-
+    if (fvmc_nodal_order_get (this_nodal) != -1) {
+      for (j = 0; j < n_coords_dist; j++) {
+        distance_dist[j] = HUGE_VAL;
+      }
+    }
+    else {
+      for (j = 0; j < n_coords_dist; j++) {
+        distance_dist[j] = -1;
+      }
+    }
+    
     fvmc_coord_t *projected_coords_dist = NULL;
     if (fvmc_nodal_order_get (this_nodal) != -1) {
       BFTC_MALLOC(projected_coords_dist, n_coords_dist*dim, fvmc_coord_t);
@@ -1165,7 +1175,7 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
       }
       if (send_weights != NULL) {
         for (k = 0; k < max_n_node_elt; k++) {
-          send_weights[j*dim + k] = weights[max_n_node_elt*coord_idx + k];
+          send_weights[j*max_n_node_elt + k] = weights[max_n_node_elt*coord_idx + k];
         }
       }
       if (point_list != NULL) {
@@ -1255,7 +1265,6 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
 
   this_locator->location_wtime[1] += comm_timing[0];
   this_locator->location_cpu_time[1] += comm_timing[1];
-  printf("-- _locate_all_distant : fin --\n");
 }
 
 #endif /* defined(FVMC_HAVE_MPI) */
@@ -2548,7 +2557,6 @@ fvmc_locator_set_nodal(fvmc_locator_t       *this_locator,
                       const fvmc_lnum_t     point_list[],
                       const fvmc_coord_t    point_coords[])
 {
-  printf("-- fvmc_locator_set_nodal : deb --\n");
   int i;
   int stride2;
   double tolerance;
@@ -2852,7 +2860,6 @@ fvmc_locator_set_nodal(fvmc_locator_t       *this_locator,
 
   this_locator->location_wtime[1] += comm_timing[0];
   this_locator->location_cpu_time[1] += comm_timing[1];
-  printf("-- fvmc_locator_set_nodal : fin --\n");
 }
 
 

@@ -104,6 +104,7 @@ typedef struct _fvmc_ho_user_fcts_t {
 
 static fvmc_ho_user_fcts_t *_user_fcts = NULL;
 
+static int idebug =0;
 
 /*============================================================================
  * Private function definitions
@@ -286,9 +287,9 @@ _base_tria_pn
     weights[0] = w * (-1. + w2);  /* (i,j,k)=(0,0,2) */
     weights[1] = u2 * w2;         /* (i,j,k)=(1,0,1) */
     weights[2] = u * (-1. + u2);  /* (i,j,k)=(2,0,0) */
-    weights[3] = u2 * v2;         /* (i,j,k)=(1,1,0) */
-    weights[4] = v * (-1. + v2);  /* (i,j,k)=(0,2,0) */
-    weights[5] = v2 * w2;         /* (i,j,k)=(0,1,1) */
+    weights[3] = v2 * w2;         /* (i,j,k)=(0,1,1) */
+    weights[4] = u2 * v2;         /* (i,j,k)=(1,1,0) */
+    weights[5] = v * (-1. + v2);  /* (i,j,k)=(0,2,0) */
   
   }
 
@@ -313,7 +314,7 @@ _base_tria_pn
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point to locate coordinates
  *   projected_coords --> projected point coordinates (or NULL)
- *   weights          --> interpolation weights in the element
+ *   weights          --> interpolation weights in the element (internal ordering)
  * 
  * return: 
  *   distance to the cell
@@ -335,9 +336,9 @@ _default_location_on_tria_2d
   int _order = order;
   const double *_vertex_coords = vertex_coords;
 
-  printf (" \n\n === _default_location_on_tria_2d === \n\n");
   
-  if (1 == 1) {
+  if (idebug == 1) {
+    printf (" \n\n === _default_location_on_tria_2d === \n\n");
     printf("order : %d\n", order);
     printf("n_node : %d\n", n_node);
     printf("ho_vertex_node : ");
@@ -381,10 +382,15 @@ _default_location_on_tria_2d
     int k1 = 0;
     for (int i = ibeg; i < iend - 1; i++) {
 
-      int _vtx1 = ho_vertex_num[i] - 1;
-      int _vtx2 = ho_vertex_num[i + 1] - 1;
-      int _vtx3 = ho_vertex_num[iend + 1 + k1] - 1;
-      int _vtx4 = ho_vertex_num[iend + 2 + k1] - 1;
+      int idx1 = i;
+      int idx2 = i+1;
+      int idx3 = iend + 1 + k1;
+      int idx4 = iend + 2 + k1;
+      
+      int _vtx1 = ho_vertex_num[idx1] - 1;
+      int _vtx2 = ho_vertex_num[idx2] - 1;
+      int _vtx3 = ho_vertex_num[idx3] - 1;
+      int _vtx4 = ho_vertex_num[idx4] - 1;
 
       double x1 = _vertex_coords[3*_vtx1];
       double y1 = _vertex_coords[3*_vtx1 + 1];
@@ -410,7 +416,7 @@ _default_location_on_tria_2d
       double _weightsClosestPointP1[3];
       double _dist2;
 
-      printf ("   * itria : %d\n", ++itria);
+  if (idebug == 1)      printf ("   * itria : %d\n", ++itria);
 
       int proj_in_tria = fvmc_triangle_evaluate_Position ((double *)point_coords,
                                                           __vertex_coords,
@@ -419,6 +425,7 @@ _default_location_on_tria_2d
                                                           &_dist2,
                                                           _weightsClosestPointP1);
 
+      if (idebug == 1) {
       printf ("     * _vertex_coords \n");
       for (int i1 = 0; i1 < 3; i1++) {
         printf ("        %12.5e %12.5e %12.5e",
@@ -441,21 +448,24 @@ _default_location_on_tria_2d
 
       
       printf("     * _weightsClosestPointP1 :");
-      for (int i1 = 0; i1 < n_node; i1++) {
+      for (int i1 = 0; i1 < 3; i1++) {
         printf (" %12.5e ", _weightsClosestPointP1[i1]);
       }
       printf("\n");
-
+      }
+      
       if (_dist2 <= min_dist2) {
         min_dist2 = _dist2;
-        for (int i1 = 0; i1 < 3; i1++) {
+        for (int i1 = 0; i1 < 2; i1++) {
           uvP1[i1] = _uvClosestPointP1[i1];
+        }
+        for (int i1 = 0; i1 < 3; i1++) {
           weightsP1[i1] = _weightsClosestPointP1[i1];
           closest_pointP1[i1] = _closest_pointP1[i1];
         }
-        selected_triaP1[0] = _vtx1;
-        selected_triaP1[1] = _vtx2;
-        selected_triaP1[2] = _vtx3;
+        selected_triaP1[0] = idx1;
+        selected_triaP1[1] = idx2;
+        selected_triaP1[2] = idx3;
         proj_pt_in_selected_tria = proj_in_tria;
       }
 
@@ -469,7 +479,7 @@ _default_location_on_tria_2d
       __vertex_coords[7] = y3;
       __vertex_coords[8] = z3;
 
-      printf ("   * itria : %d\n", ++itria);
+        if (idebug == 1) printf ("   * itria : %d\n", ++itria);
 
       proj_in_tria = fvmc_triangle_evaluate_Position ((double *) point_coords,
                                                        __vertex_coords,
@@ -477,6 +487,7 @@ _default_location_on_tria_2d
                                                        _uvClosestPointP1,
                                                        &_dist2,
                                                       _weightsClosestPointP1);
+      if (idebug == 1) {
       printf ("     * _vertex_coords \n");
       for (int i1 = 0; i1 < 3; i1++) {
         printf ("        %12.5e %12.5e %12.5e",
@@ -499,30 +510,37 @@ _default_location_on_tria_2d
 
       
       printf("     * _weightsClosestPointP1 :");
-      for (int i1 = 0; i1 < n_node; i1++) {
+      for (int i1 = 0; i1 < 3; i1++) {
         printf (" %12.5e ", _weightsClosestPointP1[i1]);
       }
       printf("\n");
+      }
 
       if (_dist2 <= min_dist2) {
         min_dist2 = _dist2;
-        for (int i1 = 0; i1 < 3; i1++) {
+        for (int i1 = 0; i1 < 2; i1++) {
           uvP1[i1] = _uvClosestPointP1[i1];
+        }
+        for (int i1 = 0; i1 < 3; i1++) {
           weightsP1[i1] = _weightsClosestPointP1[i1];
           closest_pointP1[i1] = _closest_pointP1[i1];
         }
-        selected_triaP1[0] = _vtx2;
-        selected_triaP1[1] = _vtx4;
-        selected_triaP1[2] = _vtx3;
+        selected_triaP1[0] = idx2;
+        selected_triaP1[1] = idx4;
+        selected_triaP1[2] = idx3;
         proj_pt_in_selected_tria = proj_in_tria;
       }
 
       k1++;
     }
 
-    int _vtx1 = ho_vertex_num[iend - 1] - 1;
-    int _vtx2 = ho_vertex_num[iend - 1 + 1] - 1;
-    int _vtx3 = ho_vertex_num[iend + 1 + k1]- 1;
+    int idx1 = iend - 1;
+    int idx2 = iend - 1 + 1;
+    int idx3 = iend + 1 + k1;
+
+    int _vtx1 = ho_vertex_num[idx1] - 1;
+    int _vtx2 = ho_vertex_num[idx2] - 1;
+    int _vtx3 = ho_vertex_num[idx3] - 1;
       
     double x1 = vertex_coords[3*_vtx1];
     double y1 = vertex_coords[3*_vtx1 + 1];
@@ -546,7 +564,7 @@ _default_location_on_tria_2d
    
     double _dist2;
       
-    printf ("   * itria : %d\n", ++itria);
+      if (idebug == 1)printf ("   * itria : %d\n", ++itria);
 
     int proj_in_tria =fvmc_triangle_evaluate_Position ((double *)point_coords,
                                                        __vertex_coords,
@@ -555,43 +573,46 @@ _default_location_on_tria_2d
                                                        &_dist2,
                                                        _weightsClosestPointP1);
       
-      printf ("     * _vertex_coords \n");
-      for (int i1 = 0; i1 < 3; i1++) {
-        printf ("        %12.5e %12.5e %12.5e",
-                __vertex_coords[3*i1],
-                __vertex_coords[3*i1+1],
-                __vertex_coords[3*i1+2]);
-        printf("\n");
-      }
-
-      printf("     * _closest_pointP1 : %12.5e %12.5e %12.5e\n",
-             _closest_pointP1[0],
-             _closest_pointP1[1],
-             _closest_pointP1[2]);
-
-      printf("     * _uvClosestPointP1 : %12.5e %12.5e\n",
-             _uvClosestPointP1[0],
-             _uvClosestPointP1[1]);
-      
-      printf("     * _dist2 : %12.5e\n", _dist2);
-
-      
-      printf("     * _weightsClosestPointP1 :");
-      for (int i1 = 0; i1 < n_node; i1++) {
-        printf (" %12.5e ", _weightsClosestPointP1[i1]);
-      }
+    if (idebug == 1) {
+    printf ("     * _vertex_coords \n");
+    for (int i1 = 0; i1 < 3; i1++) {
+      printf ("        %12.5e %12.5e %12.5e",
+              __vertex_coords[3*i1],
+              __vertex_coords[3*i1+1],
+              __vertex_coords[3*i1+2]);
       printf("\n");
-
-      if (_dist2 <= min_dist2) {
+    }
+    
+    printf("     * _closest_pointP1 : %12.5e %12.5e %12.5e\n",
+           _closest_pointP1[0],
+           _closest_pointP1[1],
+           _closest_pointP1[2]);
+    
+    printf("     * _uvClosestPointP1 : %12.5e %12.5e\n",
+           _uvClosestPointP1[0],
+           _uvClosestPointP1[1]);
+    
+    printf("     * _dist2 : %12.5e\n", _dist2);
+    
+    printf("     * _weightsClosestPointP1 :");
+    for (int i1 = 0; i1 < 3; i1++) {
+      printf (" %12.5e ", _weightsClosestPointP1[i1]);
+    }
+    printf("\n");
+    }
+    
+    if (_dist2 <= min_dist2) {
       min_dist2 = _dist2;
-      for (int i1 = 0; i1 < 3; i1++) {
+      for (int i1 = 0; i1 < 2; i1++) {
         uvP1[i1] = _uvClosestPointP1[i1];
+      }
+      for (int i1 = 0; i1 < 3; i1++) {
         weightsP1[i1] = _weightsClosestPointP1[i1];
         closest_pointP1[i1] = _closest_pointP1[i1];
       }
-      selected_triaP1[0] = _vtx1;
-      selected_triaP1[1] = _vtx2;
-      selected_triaP1[2] = _vtx3;
+      selected_triaP1[0] = idx1;
+      selected_triaP1[1] = idx2;
+      selected_triaP1[2] = idx3;
       proj_pt_in_selected_tria = proj_in_tria;
     }
 
@@ -608,9 +629,11 @@ _default_location_on_tria_2d
   double uvP1inP2[2];
   
   _uv_ho_tria_nodes (order, 0., 1., 0, 1., uvNodes);
-
+  
   for (int i = 0; i < 2; i++) {
-    uvP1inP2[i] = weightsP1[0] * uvNodes[i] + weightsP1[1] * uvNodes[2+i];
+    uvP1inP2[i] = weightsP1[0] * uvNodes[2*selected_triaP1[0] + i] +
+                  weightsP1[1] * uvNodes[2*selected_triaP1[1] + i] +
+                  weightsP1[2] * uvNodes[2*selected_triaP1[2] + i];
   }
   
   free (uvNodes);
@@ -644,7 +667,7 @@ _default_location_on_tria_2d
     }
   }
 
-  if (1 == 1) {
+  if (idebug == 1) {
     printf(" --- resultats ---\n\n");
     printf("weights : ");
     for (int i = 0; i < n_node; i++) {
@@ -659,8 +682,7 @@ _default_location_on_tria_2d
   }
    
   
-  printf ("\n\n === _default_location_on_tria_2d === \n\n");
-  exit(1);
+    if (idebug == 1) printf ("\n\n === _default_location_on_tria_2d === \n\n");
   return dist2;
 
  
@@ -678,7 +700,7 @@ _default_location_on_tria_2d
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point to locate coordinates
  *   projected_coords --> projected point coordinates (or NULL)
- *   weights          --> interpolation weights in the element
+ *   weights          --> interpolation weights in the element (internal ordering)
  * 
  * return: 
  *   distance to the cell
@@ -836,7 +858,7 @@ _default_location_on_quad_2d
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point to locate coordinates
  *   projected_coords --> projected point coordinates (or NULL)
- *   weights          --> interpolation weights in the element
+ *   weights          --> interpolation weights in the element (internal ordering)
  * 
  * return: 
  *   distance to the cell
@@ -902,7 +924,7 @@ _default_location_on_cell_2d
  *   vertex_coords    <-- vertex coordinates
  *   point_coords     <-- point to locate coordinates
  *   projected_coords --> projected point coordinates (or NULL)
- *   weights          --> interpolation weights in the element
+ *   weights          --> interpolation weights in the element (internal ordering)
  * 
  * return: 
  *   distance to the cell
@@ -1037,11 +1059,12 @@ _default_interp_on_cell_2d
   for (int i = 0; i < n_node; i++) {
 
     int i_node = ho_vertex_num[i] - 1;
-    
+
     for (int j = 0; j < stride_field; j++) {
       target_field[j] += weight[i] * src_field[stride_field * i_node + j];
     }
   }
+
 }
 
 
@@ -1187,12 +1210,13 @@ fvmc_ho_user_elementary_functions_set (fvmc_ho_location_fct_t location_tetra,
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
- *   n_node            <-- number of nodes
- *   ho_vertex_num    <-- high order vertex num (internal ordering)
- *   vertex_coords    <-- vertex coordinates
- *   point_coords     <-- point to locate coordinates
- *   projected_coords --> projected point coordinates if outside (or NULL)
- *   weights          --> interpolation weights in the element
+ *   n_node           <-- number of nodes
+ *   ho_vertex_num    <-- high order vertex num (internal ordering) (size = n_node)
+ *   vertex_coords    <-- vertex coordinates (size = 3 * n_node)
+ *   point_coords     <-- point to locate coordinates (size = 3)
+ *   projected_coords --> projected point coordinates if outside (size = 3)
+ *   weights          --> interpolation weights in the element (internal ordering)
+ *                        (size = n_node)
  * 
  * return: 
  *   distance to the cell (distance <= 0 if point is inside)
@@ -1288,11 +1312,12 @@ fvmc_ho_location_in_cell_3d
  *   type             <-- element type
  *   order            <-- element order
  *   n_node            <-- number of nodes
- *   ho_vertex_num    <-- high order vertex num (internal ordering)
- *   vertex_coords    <-- vertex coordinates
- *   point_coords     <-- point to locate coordinates
- *   projected_coords --> projected point coordinates (or NULL)
- *   weights          --> interpolation weights in the element
+ *   ho_vertex_num    <-- high order vertex num (internal ordering) (size = n_node)
+ *   vertex_coords    <-- vertex coordinates (size = 3 * n_node)
+ *   point_coords     <-- point to locate coordinates (size = 3)
+ *   projected_coords --> projected point coordinates (size = 3)
+ *   weights          --> interpolation weights in the element (internal ordering)
+ *                        (size = n_node)
  * 
  * return: 
  *   distance to the cell
@@ -1368,11 +1393,12 @@ fvmc_ho_location_on_cell_2d
  *   type             <-- element type
  *   order            <-- element order
  *   n_node            <-- number of nodes
- *   ho_vertex_num    <-- high order vertex num (internal ordering)
- *   vertex_coords    <-- vertex coordinates
- *   point_coords     <-- point to locate coordinates
- *   projected_coords --> projected point coordinates (or NULL)
- *   weights          --> interpolation weights in the element
+ *   ho_vertex_num    <-- high order vertex num (internal ordering) (size = n_node)
+ *   vertex_coords    <-- vertex coordinates (size = 3 * n_node)
+ *   point_coords     <-- point to locate coordinates (size = 3)
+ *   projected_coords --> projected point coordinates (size = 3)
+ *   weights          --> interpolation weights in the element (internal ordering) 
+ *                        (size = n_node)
  * 
  * return: 
  *   distance to the cell
@@ -1444,7 +1470,7 @@ fvmc_ho_location_on_cell_1d
  *   point_coords      <-- point coordinates 
  *   distance          <-- distance to the element
  *   point_proj_coords  <-- projected point coordinates
- *   weight             <-- weights
+ *   weight             <-- weights (internal ordering)
  *   stride_field      <-- field stride
  *   source_field      <-- source field (user ordering) 
  *   target_field      --> target field (defined to point_coords)
@@ -1579,7 +1605,7 @@ fvmc_ho_interp_in_cell_3d
  *   point_coords      <-- point coordinates 
  *   distance          <-- distance to the element
  *   point_proj_coords  <-- projected point coordinates
- *   weight             <-- weights
+ *   weight             <-- weights (internal ordering)
  *   stride_field      <-- field stride
  *   source_field      <-- source field (user ordering) 
  *   target_field      --> target field (defined to point_coords)
@@ -1678,7 +1704,7 @@ fvmc_ho_interp_on_cell_2d
  *   point_coords      <-- point coordinates 
  *   distance          <-- distance to the element
  *   point_proj_coords  <-- projected point coordinates
- *   weight             <-- weights
+ *   weight             <-- weights (internal ordering)
  *   stride_field      <-- field stride
  *   source_field      <-- source field (user ordering) 
  *   target_field      --> target field (defined to point_coords)

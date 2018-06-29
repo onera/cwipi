@@ -379,8 +379,6 @@ void LocationToLocalMesh::locate()
 
   //  _locationToDistantMesh.clear();
 
-  printf("-- LocationToLocalMesh::locate : deb --\n");
-
   if (_toLocate || _locationToDistantMesh.getToLocateStatus()) {
 
     _locationToDistantMesh.clear();
@@ -888,7 +886,6 @@ void LocationToLocalMesh::locate()
       
   }
   //  _locationToDistantMesh.synchronize();
-  printf("-- LocationToLocalMesh::locate : fin --\n");
     
 }
   
@@ -1225,7 +1222,6 @@ void LocationToLocalMesh::compute2DMeanValues()
       for (int k = 0; k < n_node; k++) {
         _weights_point[k] = _weights_point_fvm[k];
       }
-      
     }
   }
 }

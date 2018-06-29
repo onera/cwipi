@@ -176,11 +176,12 @@ fvmc_ho_user_elementary_functions_unset (void);
  *   type             <-- element type
  *   order            <-- element order
  *   n_node           <-- number of nodes
- *   ho_vertex_num    <-- high order vertex num (internal ordering)
- *   vertex_coords    <-- vertex coordinates
- *   point_coords     <-- point to locate coordinates
- *   projected_coords --> projected point coordinates (if point is outside) 
- *   weights          --> interpolation weights in the element
+ *   ho_vertex_num    <-- high order vertex num (internal ordering) (size = n_node)
+ *   vertex_coords    <-- vertex coordinates (size = 3 * n_node)
+ *   point_coords     <-- point to locate coordinates (size = 3)
+ *   projected_coords --> projected point coordinates if outside (size = 3)
+ *   weights          --> interpolation weights in the element (internal ordering)
+ *                        (size = n_node)
  * 
  * return: 
  *   distance to the cell (distance <= 0 if point is inside)
@@ -197,6 +198,7 @@ fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
                              double *projected_coords,
                              double* weights);
 
+
 /*----------------------------------------------------------------------------
  * 
  * Point location on a high order cell 2d
@@ -204,12 +206,13 @@ fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
- *   n_node           <-- number of nodes
- *   ho_vertex_num    <-- high order vertex num (internal ordering)
- *   vertex_coords    <-- vertex coordinates
- *   point_coords     <-- point to locate coordinates
- *   projected_coords --> projected point coordinates
- *   weights          --> interpolation weights in the element
+ *   n_node            <-- number of nodes
+ *   ho_vertex_num    <-- high order vertex num (internal ordering) (size = n_node)
+ *   vertex_coords    <-- vertex coordinates (size = 3 * n_node)
+ *   point_coords     <-- point to locate coordinates (size = 3)
+ *   projected_coords --> projected point coordinates (size = 3)
+ *   weights          --> interpolation weights in the element (internal ordering)
+ *                        (size = n_node)
  * 
  * return: 
  *   distance to the cell
@@ -226,6 +229,7 @@ fvmc_ho_location_on_cell_2d (const fvmc_element_t type,
                              double *projected_coords,
                              double *weights);
 
+
 /*----------------------------------------------------------------------------
  * 
  * Point location on a high order cell 1d
@@ -233,12 +237,13 @@ fvmc_ho_location_on_cell_2d (const fvmc_element_t type,
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
- *   n_node           <-- number of nodes
- *   ho_vertex_num    <-- high order vertex num (internal ordering)
- *   vertex_coords    <-- vertex coordinates
- *   point_coords     <-- point to locate coordinates
- *   projected_coords --> projected point coordinates
- *   weights          --> interpolation weights in the element
+ *   n_node            <-- number of nodes
+ *   ho_vertex_num    <-- high order vertex num (internal ordering) (size = n_node)
+ *   vertex_coords    <-- vertex coordinates (size = 3 * n_node)
+ *   point_coords     <-- point to locate coordinates (size = 3)
+ *   projected_coords --> projected point coordinates (size = 3)
+ *   weights          --> interpolation weights in the element (internal ordering) 
+ *                        (size = n_node)
  * 
  * return: 
  *   distance to the cell
