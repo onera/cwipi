@@ -181,7 +181,7 @@ static double      _epsilon_multi_point = 1.e-12; /* Minimum distance between
 static fvmc_lnum_t  _octree_threshold = 4; /* Number of points in octree node
                                              under which the node is final */
 
-static int idebug = 0;
+static int idebug = 1;
 /*============================================================================
  * Private function definitions
  *============================================================================*/
@@ -3489,7 +3489,7 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
 
             if ((_distance < distance[point_in_extents]) || (location[point_in_extents] == -1)) {
 
-    if (idebug == 1)              printf("fvmc_point_location mise a jour distance : %12.5e %12.5e\n", distance[point_in_extents], _distance);
+              if (idebug == 1)              printf("fvmc_point_location mise a jour distance : %12.5e %12.5e %d\n", distance[point_in_extents], _distance, elt_num);
               location[point_in_extents] = elt_num;
               distance[point_in_extents] = (float) _distance;
 

@@ -947,8 +947,8 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
 
       fvmc_lnum_t l = send_index[j];
 
-      if (   (distance_loc[j] > -0.1)
-          && (distance_loc[j] < distance[l] || distance[l] < -0.1)) {
+      if ((location_loc[j] > -1) &&  ((distance_loc[j] > -0.1)
+          && (distance_loc[j] < distance[l] || distance[l] < -0.1))) {
         location_rank_id[l] = i;
         location[l] = location_loc[j];
         distance[l] = distance_loc[j];
