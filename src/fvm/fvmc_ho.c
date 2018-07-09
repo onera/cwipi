@@ -104,7 +104,7 @@ typedef struct _fvmc_ho_user_fcts_t {
 
 static fvmc_ho_user_fcts_t *_user_fcts = NULL;
 
-static int idebug =0;
+static int idebug = 0;
 
 /*============================================================================
  * Private function definitions
@@ -338,7 +338,7 @@ _default_location_on_tria_2d
 
   
   if (idebug == 1) {
-    printf (" \n\n === _default_location_on_tria_2d === \n\n");
+    printf (" \n\n === _default_location_on_tria_2d beg === \n\n");
     printf("order : %d\n", order);
     printf("n_node : %d\n", n_node);
     printf("ho_vertex_node : ");
@@ -640,6 +640,20 @@ _default_location_on_tria_2d
   
   _base_tria_pn (order   , uvP1inP2[0], uvP1inP2[1], weights);
 
+  double _projected_coords_from_p1[3];
+  for (int j = 0; j < 3; j++) {
+    _projected_coords_from_p1[j] = 0;
+  }
+  
+  for (int i = 0; i < 3; i++) {
+
+    const double *node_coords = vertex_coords + 3 * (ho_vertex_num[selected_triaP1[i]] - 1);
+    
+    for (int j = 0; j < 3; j++) {
+      _projected_coords_from_p1[j] += weightsP1[i] * node_coords[j]; 
+    }
+  }
+
   double _projected_coords[3];
   for (int j = 0; j < 3; j++) {
     _projected_coords[j] = 0;
@@ -654,6 +668,14 @@ _default_location_on_tria_2d
     }
   }
 
+
+  double err_proj = 0;
+
+  for (int i = 0; i < 3; i++) {
+    double val = _projected_coords[i] - _projected_coords_from_p1[i];
+    err_proj += val * val;
+  }
+  
   double dist2 = 0;
 
   for (int j = 0; j < 3; j++) {
@@ -679,10 +701,15 @@ _default_location_on_tria_2d
            projected_coords[0],
            projected_coords[1],
            projected_coords[2]);
+    printf("projected_coords_from_p1 : %12.5e %12.5e %12.5e\n",
+           _projected_coords_from_p1[0],
+           _projected_coords_from_p1[1],
+           _projected_coords_from_p1[2]);
+    printf("dist 2 : proj and proj from p1 : %12.5e\n",err_proj); 
   }
    
   
-    if (idebug == 1) printf ("\n\n === _default_location_on_tria_2d === \n\n");
+    if (idebug == 1) printf ("\n\n === _default_location_on_tria_2d end === \n\n");
   return dist2;
 
  

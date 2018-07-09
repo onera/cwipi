@@ -954,38 +954,22 @@ endif
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   if( rankWorld==0 )print '(/"cwipi_exchange_f")'
   
-  call cwipi_exchange_f(                       &
-  &    couplingName=          "testPiPj"      ,&
-  &    exchangeName="exch1_"//"testPiPj"      ,&
-  &    stride=stride                          ,&  ! scalar
-  &                                            &
-  &    sendingFieldName="mySolu"              ,&  ! solution calculee localement
-  &    sendingField=myValues                  ,&
-  &                                            &
-  &    receivingFieldName="linkSolu"          ,&
-  &    receivingField=linkValues              ,&  ! solution de raccord
-  &                                            &
-  &    nStep=1                                ,&  ! pas utilisee juste pour visu cwipi
-  &    timeValue=0d0                          ,&  ! pas utilisee juste pour visu cwipi
-  &    nNotLocatedPoints=notLocatedPoints     ,&
-  &    status=iErr                             )
-
-  ! call cwipi_exchange_f(                       &
-  ! &    couplingName=          "testPiPj"      ,&
-  ! &    exchangeName="exch1_"//"testPiPj"      ,&
-  ! &    exchangeDim=stride                     ,&  ! scalar
-  ! &    ptInterpolationFct=userInterpolation   ,&  ! utilisation de la procedure plug
-  ! &                                            &
-  ! &    sendingFieldName="mySolu"              ,&  ! solution calculee localement
-  ! &    sendingField=myValues                  ,&
-  ! &                                            &
-  ! &    receivingFieldName="linkSolu"          ,&
-  ! &    receivingField=linkValues              ,&  ! solution de raccord
-  ! &                                            &
-  ! &    nStep=1                                ,&  ! pas utilisee juste pour visu cwipi
-  ! &    timeValue=0d0                          ,&  ! pas utilisee juste pour visu cwipi
-  ! &    nNotLocatedPoints=notLocatedPoints     ,&
-  ! &    status=iErr                             )
+   call cwipi_exchange_f(                       &
+   &    couplingName=          "testPiPj"      ,&
+   &    exchangeName="exch1_"//"testPiPj"      ,&
+   &    exchangeDim=stride                     ,&  ! scalar
+   &    ptInterpolationFct=userInterpolation   ,&  ! utilisation de la procedure plug
+   &                                            &
+   &    sendingFieldName="mySolu"              ,&  ! solution calculee localement
+   &    sendingField=myValues                  ,&
+   &                                            &
+   &    receivingFieldName="linkSolu"          ,&
+   &    receivingField=linkValues              ,&  ! solution de raccord
+   &                                            &
+   &    nStep=1                                ,&  ! pas utilisee juste pour visu cwipi
+   &    timeValue=0d0                          ,&  ! pas utilisee juste pour visu cwipi
+   &    nNotLocatedPoints=notLocatedPoints     ,&
+   &    status=iErr                             )
 
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   

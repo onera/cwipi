@@ -1183,8 +1183,6 @@ void LocationToLocalMesh::compute2DMeanValues()
   nDistBarCoords[0] = 0;
   for (int ipoint =  0; ipoint < n_dist_points; ipoint++ ) {
     int ielt = dist_locations[ipoint] - 1;
-
-    printf("ielt : %d\n", ielt);
     
     int nbr_som_fac =  meshConnectivityIndex[ielt+1] - 
                        meshConnectivityIndex[ielt];

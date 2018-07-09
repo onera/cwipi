@@ -2962,10 +2962,9 @@ fvmc_nodal_ho_ordering_set (fvmc_nodal_t  *this_nodal,
           idx += (int) pow((order+1),l) * _uvw[l];
         }
         int local_num = _ho_uvw_to_local_ordering[idx];
-        printf ("local_num : %d %d\n",local_num, idx);
         _section->ho_local_to_user_ordering[local_num] = k;
       }
-
+        
       for (int j = 0; j < _section->n_elements; j++) {
         int *_ho_vertex_num = _section->_ho_vertex_num + j * n_nodes;
         const int *_vertex_num = _section->vertex_num + j * n_nodes;
