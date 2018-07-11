@@ -75,6 +75,8 @@ extern "C" {
  * Local macro definitions
  *============================================================================*/
 
+#define S_HEAP 50
+
 /*============================================================================
  * Type definitions
  *============================================================================*/
@@ -98,6 +100,26 @@ typedef struct _fvmc_ho_user_fcts_t {
 
 } fvmc_ho_user_fcts_t;
 
+/*----------------------------------------------------------------------------
+ * Sorted heap for sub-triangle storage
+ *----------------------------------------------------------------------------*/
+
+typedef struct {
+
+  int idx_heap;
+
+  double vtx_tria[3*3*S_HEAP];
+  double closest_pt[3*S_HEAP]; 
+  double uvP1[2*S_HEAP];
+  double uvInPn[2*S_HEAP];
+  double dist2[S_HEAP];
+
+  int free_idx[S_HEAP];
+  int sorted_idx[S_HEAP];  
+
+} _heap_t;
+
+
 /*============================================================================
  * Static global variables
  *============================================================================*/
@@ -109,6 +131,28 @@ static int idebug = 0;
 /*============================================================================
  * Private function definitions
  *============================================================================*/
+
+/*----------------------------------------------------------------------------
+ * 
+ * Init heap
+ * 
+ * parameters:
+ *   heap             <-- heap to initialize
+ *
+ *----------------------------------------------------------------------------*/
+
+static void
+_heap_init
+(
+_heap_t *heap
+)
+{
+  heap->idx_heap = 0;
+
+  for (int i = 0; i < S_HEAP; i++) {
+    heap->free_idx[i] = i;
+  }
+}
 
 /*----------------------------------------------------------------------------
  * 
@@ -335,7 +379,6 @@ _default_location_on_tria_2d
 {
   int _order = order;
   const double *_vertex_coords = vertex_coords;
-
   
   if (idebug == 1) {
     printf (" \n\n === _default_location_on_tria_2d beg === \n\n");
@@ -416,7 +459,7 @@ _default_location_on_tria_2d
       double _weightsClosestPointP1[3];
       double _dist2;
 
-  if (idebug == 1)      printf ("   * itria : %d\n", ++itria);
+      if (idebug == 1)      printf ("   * itria : %d\n", ++itria);
 
       int proj_in_tria = fvmc_triangle_evaluate_Position ((double *)point_coords,
                                                           __vertex_coords,
@@ -426,32 +469,31 @@ _default_location_on_tria_2d
                                                           _weightsClosestPointP1);
 
       if (idebug == 1) {
-      printf ("     * _vertex_coords \n");
-      for (int i1 = 0; i1 < 3; i1++) {
-        printf ("        %12.5e %12.5e %12.5e",
-                __vertex_coords[3*i1],
-                __vertex_coords[3*i1+1],
-                __vertex_coords[3*i1+2]);
-        printf("\n");
-      }
-
-      printf("     * _closest_pointP1 : %12.5e %12.5e %12.5e\n",
-             _closest_pointP1[0],
-             _closest_pointP1[1],
-             _closest_pointP1[2]);
-
-      printf("     * _uvClosestPointP1 : %12.5e %12.5e\n",
-             _uvClosestPointP1[0],
+        printf ("     * _vertex_coords \n");
+        for (int i1 = 0; i1 < 3; i1++) {
+          printf ("        %12.5e %12.5e %12.5e",
+                  __vertex_coords[3*i1],
+                  __vertex_coords[3*i1+1],
+                  __vertex_coords[3*i1+2]);
+          printf("\n");
+        }
+        
+        printf("     * _closest_pointP1 : %12.5e %12.5e %12.5e\n",
+               _closest_pointP1[0],
+               _closest_pointP1[1],
+               _closest_pointP1[2]);
+        
+        printf("     * _uvClosestPointP1 : %12.5e %12.5e\n",
+               _uvClosestPointP1[0],
              _uvClosestPointP1[1]);
-      
-      printf("     * _dist2 : %12.5e\n", _dist2);
-
-      
-      printf("     * _weightsClosestPointP1 :");
-      for (int i1 = 0; i1 < 3; i1++) {
-        printf (" %12.5e ", _weightsClosestPointP1[i1]);
-      }
-      printf("\n");
+        
+        printf("     * _dist2 : %12.5e\n", _dist2);
+        
+        printf("     * _weightsClosestPointP1 :");
+        for (int i1 = 0; i1 < 3; i1++) {
+          printf (" %12.5e ", _weightsClosestPointP1[i1]);
+        }
+        printf("\n");
       }
       
       if (_dist2 <= min_dist2) {
@@ -479,7 +521,7 @@ _default_location_on_tria_2d
       __vertex_coords[7] = y3;
       __vertex_coords[8] = z3;
 
-        if (idebug == 1) printf ("   * itria : %d\n", ++itria);
+      if (idebug == 1) printf ("   * itria : %d\n", ++itria);
 
       proj_in_tria = fvmc_triangle_evaluate_Position ((double *) point_coords,
                                                        __vertex_coords,
@@ -488,34 +530,34 @@ _default_location_on_tria_2d
                                                        &_dist2,
                                                       _weightsClosestPointP1);
       if (idebug == 1) {
-      printf ("     * _vertex_coords \n");
-      for (int i1 = 0; i1 < 3; i1++) {
+        printf ("     * _vertex_coords \n");
+        for (int i1 = 0; i1 < 3; i1++) {
         printf ("        %12.5e %12.5e %12.5e",
                 __vertex_coords[3*i1],
                 __vertex_coords[3*i1+1],
                 __vertex_coords[3*i1+2]);
         printf("\n");
-      }
-
-      printf("     * _closest_pointP1 : %12.5e %12.5e %12.5e\n",
-             _closest_pointP1[0],
+        }
+        
+        printf("     * _closest_pointP1 : %12.5e %12.5e %12.5e\n",
+               _closest_pointP1[0],
              _closest_pointP1[1],
-             _closest_pointP1[2]);
-
-      printf("     * _uvClosestPointP1 : %12.5e %12.5e\n",
-             _uvClosestPointP1[0],
-             _uvClosestPointP1[1]);
+               _closest_pointP1[2]);
+        
+        printf("     * _uvClosestPointP1 : %12.5e %12.5e\n",
+               _uvClosestPointP1[0],
+               _uvClosestPointP1[1]);
+        
+        printf("     * _dist2 : %12.5e\n", _dist2);
+        
       
-      printf("     * _dist2 : %12.5e\n", _dist2);
-
+        printf("     * _weightsClosestPointP1 :");
+        for (int i1 = 0; i1 < 3; i1++) {
+          printf (" %12.5e ", _weightsClosestPointP1[i1]);
+        }
+        printf("\n");
+      }
       
-      printf("     * _weightsClosestPointP1 :");
-      for (int i1 = 0; i1 < 3; i1++) {
-        printf (" %12.5e ", _weightsClosestPointP1[i1]);
-      }
-      printf("\n");
-      }
-
       if (_dist2 <= min_dist2) {
         min_dist2 = _dist2;
         for (int i1 = 0; i1 < 2; i1++) {
@@ -574,31 +616,31 @@ _default_location_on_tria_2d
                                                        _weightsClosestPointP1);
       
     if (idebug == 1) {
-    printf ("     * _vertex_coords \n");
-    for (int i1 = 0; i1 < 3; i1++) {
-      printf ("        %12.5e %12.5e %12.5e",
-              __vertex_coords[3*i1],
-              __vertex_coords[3*i1+1],
-              __vertex_coords[3*i1+2]);
+      printf ("     * _vertex_coords \n");
+      for (int i1 = 0; i1 < 3; i1++) {
+        printf ("        %12.5e %12.5e %12.5e",
+                __vertex_coords[3*i1],
+                __vertex_coords[3*i1+1],
+                __vertex_coords[3*i1+2]);
+        printf("\n");
+      }
+    
+      printf("     * _closest_pointP1 : %12.5e %12.5e %12.5e\n",
+             _closest_pointP1[0],
+             _closest_pointP1[1],
+             _closest_pointP1[2]);
+      
+      printf("     * _uvClosestPointP1 : %12.5e %12.5e\n",
+             _uvClosestPointP1[0],
+             _uvClosestPointP1[1]);
+    
+      printf("     * _dist2 : %12.5e\n", _dist2);
+      
+      printf("     * _weightsClosestPointP1 :");
+      for (int i1 = 0; i1 < 3; i1++) {
+        printf (" %12.5e ", _weightsClosestPointP1[i1]);
+      }
       printf("\n");
-    }
-    
-    printf("     * _closest_pointP1 : %12.5e %12.5e %12.5e\n",
-           _closest_pointP1[0],
-           _closest_pointP1[1],
-           _closest_pointP1[2]);
-    
-    printf("     * _uvClosestPointP1 : %12.5e %12.5e\n",
-           _uvClosestPointP1[0],
-           _uvClosestPointP1[1]);
-    
-    printf("     * _dist2 : %12.5e\n", _dist2);
-    
-    printf("     * _weightsClosestPointP1 :");
-    for (int i1 = 0; i1 < 3; i1++) {
-      printf (" %12.5e ", _weightsClosestPointP1[i1]);
-    }
-    printf("\n");
     }
     
     if (_dist2 <= min_dist2) {
@@ -714,6 +756,514 @@ _default_location_on_tria_2d
 
  
 }
+
+
+
+/*----------------------------------------------------------------------------
+ * 
+ * Default point location on a high order triangle
+ * 
+ * parameters:
+ *   order            <-- element order
+ *   n_node           <-- number of nodes
+ *   ho_vertex_num    <-- high order vertex num (internal ordering)
+ *   vertex_coords    <-- vertex coordinates
+ *   point_coords     <-- point to locate coordinates
+ *   projected_coords --> projected point coordinates (or NULL)
+ *   weights          --> interpolation weights in the element (internal ordering)
+ * 
+ * return: 
+ *   distance to the cell
+ *
+ *----------------------------------------------------------------------------*/
+
+static double
+_default_location_on_tria_2d_v2
+(
+ const int order,
+ const int n_node,
+ const int *ho_vertex_num,
+ const double *vertex_coords,
+ const double *point_coords,
+ double *projected_coords,
+ double *weights
+)
+{
+  const double err_max = 1e-12;
+
+  const int idx_sub_tria[12] = {0, 3, 5,
+                                3, 4, 5,
+                                3, 1, 4,
+                                5, 4, 2};
+  _heap_t heap;
+
+  /* Initialize heap */
+  
+  _heap_init (&heap);
+  
+  /* Build initial sub-triangles and store them in the heap */
+
+  _build_pn_sub_tria (&heap,
+                      order,
+                      n_node,
+                      ho_vertex_num,
+                      vertex_coords,
+                      point_coords,
+                      projected_coords,
+                      weights);
+
+  /* 
+   *  While error > error_max
+   *    - Get closest triangle in the heap
+   *    - Cut it in sub-triangles
+   *    - Store them in the heap
+   */
+
+  int n_it = 0;
+  while (1) {
+
+    double *_vertex_coords_current;
+    double *_closest_point_current;
+    double *_uvPnClosest_point_current;
+    double _dist2_current;
+    
+    _heap_top_get (&_vertex_coords_current,
+                   &_closest_point_current,
+                   &_uvClosest_point_current,
+                   &_uvPnClosest_point_current,
+                   &_dist2_current);
+
+    double err = HUGE_VAL ; // To compute 
+    
+    if (err <= err_max || n_it++ >= N_IT_MAX) break;
+    
+    /* insert sub-triangles in the heap */
+
+    double _vertex_coords_children[18];
+
+    for (int i = 0; i < 9; i++) {
+      _vertex_coords_children[i] = _vertex_coords_current[i];
+    }
+
+    for (int i = 0; i < 3; i++) {
+      for (int j = 0; j < 3; j++) {
+        _vertex_coords_children[9+3*i+j] =
+          (_vertex_coords_current[3*i+j] + _vertex_coords_current[3*(i+1)%3+j])/2;
+      }
+    }
+
+    double _uvPnClosest_point_children[12];
+    
+    for (int i = 0; i < 6; i++) {
+      _uvPnClosest_point_children[i] = _uvPnClosest_point_current[i];
+    }
+
+    for (int i = 0; i < 3; i++) {
+      for (int j = 0; j < 2; j++) {
+        _uvPnClosest_point_children[6 + 2*i + j] =
+          (_uvPnClosest_point_current[2*i+j] + _uvPnClosest_point_current[2*(i+1)%3+j])/2;
+      }
+    }
+
+
+    for (int i = 0; i < 4; i++) {
+
+      double _vertex_coords_child[9];
+      
+      for (int j = 0; j < 3; j++) {
+        int _j = idx_sub_tria[3 * i + j];
+        for (int k = 0; k < 3; k++) {
+          _vertex_coords_child[3*j + k] = _vertex_coords_children[3*_j + k];
+        }
+      }
+      
+      double _closest_point_child[3];
+      double _uvClosest_point_child[3];
+      double _uvPnClosest_point_child[3];
+      double _dist2_child;
+      double _weightsClosest_point_child[3];
+    
+      fvmc_triangle_evaluate_Position ((double *)point_coords,
+                                       _vertex_coords_child,
+                                       _closest_point_child,
+                                       _uvClosest_point_child,
+                                       &_dist2_child,
+                                       _weightsClosest_point_child);
+    
+      //      for (int k = 0; k < 2; k++) {
+      //  _uvPnClosest_point_child[2*j + k] = _uvPnClosest_point_children[2*_j + k];
+      // }
+      
+      _heap_insert (_vertex_coords_child,
+                    _closest_point_child,
+                    _uvClosest_point_child,
+                    _uvPnClosest_point_child,
+                    _dist2_child);
+
+    }
+
+  }
+
+  if (n_it >= N_IT_MAX) {
+
+    /* Warning */
+    
+  }
+
+       /* */
+
+  
+  double uvP1[3];
+  double weightsP1[3];
+  double closest_pointP1[3];
+
+  int selected_triaP1[3];
+  
+  double min_dist2 = HUGE_VAL;
+
+  int ibeg = 0;
+  int iend = _order;
+
+  int proj_pt_in_selected_tria = 0;
+  int itria = 0;
+  
+  for (int j = 0; j < _order; j++) {
+    int k1 = 0;
+    for (int i = ibeg; i < iend - 1; i++) {
+
+      int idx1 = i;
+      int idx2 = i+1;
+      int idx3 = iend + 1 + k1;
+      int idx4 = iend + 2 + k1;
+      
+      int _vtx1 = ho_vertex_num[idx1] - 1;
+      int _vtx2 = ho_vertex_num[idx2] - 1;
+      int _vtx3 = ho_vertex_num[idx3] - 1;
+      int _vtx4 = ho_vertex_num[idx4] - 1;
+
+      double x1 = _vertex_coords[3*_vtx1];
+      double y1 = _vertex_coords[3*_vtx1 + 1];
+      double z1 = _vertex_coords[3*_vtx1 + 2];
+
+      double x2 = _vertex_coords[3*_vtx2];
+      double y2 = _vertex_coords[3*_vtx2 + 1];
+      double z2 = _vertex_coords[3*_vtx2 + 2];
+
+      double x3 = _vertex_coords[3*_vtx3];
+      double y3 = _vertex_coords[3*_vtx3 + 1];
+      double z3 = _vertex_coords[3*_vtx3 + 2];
+
+      double x4 = _vertex_coords[3*_vtx4];
+      double y4 = _vertex_coords[3*_vtx4 + 1];
+      double z4 = _vertex_coords[3*_vtx4 + 2];
+        
+      double __vertex_coords[9] = {x1, y1, z1,
+                                   x2, y2, z2,
+                                   x3, y3, z3};
+      double _closest_pointP1[3];
+      double _uvClosestPointP1[3];
+      double _weightsClosestPointP1[3];
+      double _dist2;
+
+      if (idebug == 1)      printf ("   * itria : %d\n", ++itria);
+
+      int proj_in_tria = fvmc_triangle_evaluate_Position ((double *)point_coords,
+                                                          __vertex_coords,
+                                                          _closest_pointP1,
+                                                          _uvClosestPointP1,
+                                                          &_dist2,
+                                                          _weightsClosestPointP1);
+
+      if (idebug == 1) {
+        printf ("     * _vertex_coords \n");
+        for (int i1 = 0; i1 < 3; i1++) {
+          printf ("        %12.5e %12.5e %12.5e",
+                  __vertex_coords[3*i1],
+                  __vertex_coords[3*i1+1],
+                  __vertex_coords[3*i1+2]);
+          printf("\n");
+        }
+        
+        printf("     * _closest_pointP1 : %12.5e %12.5e %12.5e\n",
+               _closest_pointP1[0],
+               _closest_pointP1[1],
+               _closest_pointP1[2]);
+        
+        printf("     * _uvClosestPointP1 : %12.5e %12.5e\n",
+               _uvClosestPointP1[0],
+             _uvClosestPointP1[1]);
+        
+        printf("     * _dist2 : %12.5e\n", _dist2);
+        
+        printf("     * _weightsClosestPointP1 :");
+        for (int i1 = 0; i1 < 3; i1++) {
+          printf (" %12.5e ", _weightsClosestPointP1[i1]);
+        }
+        printf("\n");
+      }
+      
+      if (_dist2 <= min_dist2) {
+        min_dist2 = _dist2;
+        for (int i1 = 0; i1 < 2; i1++) {
+          uvP1[i1] = _uvClosestPointP1[i1];
+        }
+        for (int i1 = 0; i1 < 3; i1++) {
+          weightsP1[i1] = _weightsClosestPointP1[i1];
+          closest_pointP1[i1] = _closest_pointP1[i1];
+        }
+        selected_triaP1[0] = idx1;
+        selected_triaP1[1] = idx2;
+        selected_triaP1[2] = idx3;
+        proj_pt_in_selected_tria = proj_in_tria;
+      }
+
+      __vertex_coords[0] = x2;
+      __vertex_coords[1] = y2;
+      __vertex_coords[2] = z2;
+      __vertex_coords[3] = x4;
+      __vertex_coords[4] = y4;
+      __vertex_coords[5] = z4;
+      __vertex_coords[6] = x3;
+      __vertex_coords[7] = y3;
+      __vertex_coords[8] = z3;
+
+      if (idebug == 1) printf ("   * itria : %d\n", ++itria);
+
+      proj_in_tria = fvmc_triangle_evaluate_Position ((double *) point_coords,
+                                                       __vertex_coords,
+                                                       _closest_pointP1,
+                                                       _uvClosestPointP1,
+                                                       &_dist2,
+                                                      _weightsClosestPointP1);
+      if (idebug == 1) {
+        printf ("     * _vertex_coords \n");
+        for (int i1 = 0; i1 < 3; i1++) {
+        printf ("        %12.5e %12.5e %12.5e",
+                __vertex_coords[3*i1],
+                __vertex_coords[3*i1+1],
+                __vertex_coords[3*i1+2]);
+        printf("\n");
+        }
+        
+        printf("     * _closest_pointP1 : %12.5e %12.5e %12.5e\n",
+               _closest_pointP1[0],
+             _closest_pointP1[1],
+               _closest_pointP1[2]);
+        
+        printf("     * _uvClosestPointP1 : %12.5e %12.5e\n",
+               _uvClosestPointP1[0],
+               _uvClosestPointP1[1]);
+        
+        printf("     * _dist2 : %12.5e\n", _dist2);
+        
+      
+        printf("     * _weightsClosestPointP1 :");
+        for (int i1 = 0; i1 < 3; i1++) {
+          printf (" %12.5e ", _weightsClosestPointP1[i1]);
+        }
+        printf("\n");
+      }
+      
+      if (_dist2 <= min_dist2) {
+        min_dist2 = _dist2;
+        for (int i1 = 0; i1 < 2; i1++) {
+          uvP1[i1] = _uvClosestPointP1[i1];
+        }
+        for (int i1 = 0; i1 < 3; i1++) {
+          weightsP1[i1] = _weightsClosestPointP1[i1];
+          closest_pointP1[i1] = _closest_pointP1[i1];
+        }
+        selected_triaP1[0] = idx2;
+        selected_triaP1[1] = idx4;
+        selected_triaP1[2] = idx3;
+        proj_pt_in_selected_tria = proj_in_tria;
+      }
+
+      k1++;
+    }
+
+    int idx1 = iend - 1;
+    int idx2 = iend - 1 + 1;
+    int idx3 = iend + 1 + k1;
+
+    int _vtx1 = ho_vertex_num[idx1] - 1;
+    int _vtx2 = ho_vertex_num[idx2] - 1;
+    int _vtx3 = ho_vertex_num[idx3] - 1;
+      
+    double x1 = vertex_coords[3*_vtx1];
+    double y1 = vertex_coords[3*_vtx1 + 1];
+    double z1 = vertex_coords[3*_vtx1 + 2];
+      
+    double x2 = vertex_coords[3*_vtx2];
+    double y2 = vertex_coords[3*_vtx2 + 1];
+    double z2 = vertex_coords[3*_vtx2 + 2];
+      
+    double x3 = vertex_coords[3*_vtx3];
+    double y3 = vertex_coords[3*_vtx3 + 1];
+    double z3 = vertex_coords[3*_vtx3 + 2];
+      
+    double __vertex_coords[9] = {x1, y1, z1,
+                                x2, y2, z2,
+                                x3, y3, z3};
+      
+    double _closest_pointP1[3];
+    double _uvClosestPointP1[3];
+    double _weightsClosestPointP1[3];
+   
+    double _dist2;
+      
+      if (idebug == 1)printf ("   * itria : %d\n", ++itria);
+
+    int proj_in_tria =fvmc_triangle_evaluate_Position ((double *)point_coords,
+                                                       __vertex_coords,
+                                                       _closest_pointP1,
+                                                       _uvClosestPointP1,
+                                                       &_dist2,
+                                                       _weightsClosestPointP1);
+      
+    if (idebug == 1) {
+      printf ("     * _vertex_coords \n");
+      for (int i1 = 0; i1 < 3; i1++) {
+        printf ("        %12.5e %12.5e %12.5e",
+                __vertex_coords[3*i1],
+                __vertex_coords[3*i1+1],
+                __vertex_coords[3*i1+2]);
+        printf("\n");
+      }
+    
+      printf("     * _closest_pointP1 : %12.5e %12.5e %12.5e\n",
+             _closest_pointP1[0],
+             _closest_pointP1[1],
+             _closest_pointP1[2]);
+      
+      printf("     * _uvClosestPointP1 : %12.5e %12.5e\n",
+             _uvClosestPointP1[0],
+             _uvClosestPointP1[1]);
+    
+      printf("     * _dist2 : %12.5e\n", _dist2);
+      
+      printf("     * _weightsClosestPointP1 :");
+      for (int i1 = 0; i1 < 3; i1++) {
+        printf (" %12.5e ", _weightsClosestPointP1[i1]);
+      }
+      printf("\n");
+    }
+    
+    if (_dist2 <= min_dist2) {
+      min_dist2 = _dist2;
+      for (int i1 = 0; i1 < 2; i1++) {
+        uvP1[i1] = _uvClosestPointP1[i1];
+      }
+      for (int i1 = 0; i1 < 3; i1++) {
+        weightsP1[i1] = _weightsClosestPointP1[i1];
+        closest_pointP1[i1] = _closest_pointP1[i1];
+      }
+      selected_triaP1[0] = idx1;
+      selected_triaP1[1] = idx2;
+      selected_triaP1[2] = idx3;
+      proj_pt_in_selected_tria = proj_in_tria;
+    }
+
+    ibeg = iend + 1;
+    iend += _order - j;
+  }
+
+  /* uv proj P1 -> uv proj P2 */
+
+  //_base_tria_pn (1    , uvP1[0], uvP1[1], weightsP1);
+
+  double *uvNodes   = malloc (sizeof(double) * 2 * n_node);
+
+  double uvP1inP2[2];
+  
+  _uv_ho_tria_nodes (order, 0., 1., 0, 1., uvNodes);
+  
+  for (int i = 0; i < 2; i++) {
+    uvP1inP2[i] = weightsP1[0] * uvNodes[2*selected_triaP1[0] + i] +
+                  weightsP1[1] * uvNodes[2*selected_triaP1[1] + i] +
+                  weightsP1[2] * uvNodes[2*selected_triaP1[2] + i];
+  }
+  
+  free (uvNodes);
+  
+  _base_tria_pn (order   , uvP1inP2[0], uvP1inP2[1], weights);
+
+  double _projected_coords_from_p1[3];
+  for (int j = 0; j < 3; j++) {
+    _projected_coords_from_p1[j] = 0;
+  }
+  
+  for (int i = 0; i < 3; i++) {
+
+    const double *node_coords = vertex_coords + 3 * (ho_vertex_num[selected_triaP1[i]] - 1);
+    
+    for (int j = 0; j < 3; j++) {
+      _projected_coords_from_p1[j] += weightsP1[i] * node_coords[j];
+    }
+  }
+
+  double _projected_coords[3];
+  for (int j = 0; j < 3; j++) {
+    _projected_coords[j] = 0;
+  }
+
+  for (int i = 0; i < n_node; i++) {
+
+    const double *node_coords = vertex_coords + 3 * (ho_vertex_num[i] - 1);
+    
+    for (int j = 0; j < 3; j++) {
+      _projected_coords[j] += weights[i] * node_coords[j];
+    }
+  }
+
+
+  double err_proj = 0;
+
+  for (int i = 0; i < 3; i++) {
+    double val = _projected_coords[i] - _projected_coords_from_p1[i];
+    err_proj += val * val;
+  }
+  
+  double dist2 = 0;
+
+  for (int j = 0; j < 3; j++) {
+    double comp = _projected_coords[j] - point_coords[j];
+    dist2 += comp * comp;
+  }
+
+  if (projected_coords != NULL) {
+    for (int j = 0; j < 3; j++) {
+      projected_coords[j] = _projected_coords[j];
+    }
+  }
+
+  if (idebug == 1) {
+    printf(" --- resultats ---\n\n");
+    printf("weights : ");
+    for (int i = 0; i < n_node; i++) {
+      printf (" %12.5e", weights[i]);
+    }
+    printf("\n");
+    printf("min_dist2 : %12.5e\n", min_dist2);
+    printf("projected_coords : %12.5e %12.5e %12.5e\n",
+           projected_coords[0],
+           projected_coords[1],
+           projected_coords[2]);
+    printf("projected_coords_from_p1 : %12.5e %12.5e %12.5e\n",
+           _projected_coords_from_p1[0],
+           _projected_coords_from_p1[1],
+           _projected_coords_from_p1[2]);
+    printf("dist 2 : proj and proj from p1 : %12.5e\n",err_proj);
+  }
+   
+  
+    if (idebug == 1) printf ("\n\n === _default_location_on_tria_2d end === \n\n");
+  return dist2;
+
+ 
+}
+
+
 
 
 /*----------------------------------------------------------------------------
@@ -855,17 +1405,6 @@ _default_location_on_quad_2d
     iend = ibeg + _order ;
 
   }
-
-  /* uv P1 -> uv P2 */
-
-  /* call baseTrianP1(u=uv1(1),v=uv1(2),ai=ai(1:3)) */
-  
-  /*         uv1_(1:2,iTria)= uvTriangle(1:2,tria1(1,iTria))*ai(1) & */
-  /*         &               +uvTriangle(1:2,tria1(2,iTria))*ai(2) & */
-  /*         &               +uvTriangle(1:2,tria1(3,iTria))*ai(3) */
-  /*         call baseTrianP2(u=uv1_(1,iTria),v=uv1_(2,iTria),ai=ai(1:6)) */
-
-  /* calcul des coordonnees et faire la nomrme L2 (voir base geom avec christophe) */
 
   return dist2;
   
