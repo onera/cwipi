@@ -791,8 +791,8 @@ _heap_top_get
     return 1;
   }
 
-  int idx = heap->sorted_idx[heap->idx--];
-  heap->free_idx[heap->idx] = idx;
+  int idx = heap->sorted_idx[heap->idx];
+  heap->free_idx[heap->idx--]= idx;
   
   double *_vtx_tria_current = heap->vtx_tria + 9 * idx;
   for (int i = 0; i < 9; i++) {
@@ -839,15 +839,101 @@ static void
 _heap_insert
 (
  _heap_t *heap,
- double *_vtx_tria_child,
- double *_uvInPn_tria_child,
- double *_closest_pt_child,
- double *_closest_pt_uvP1_child,
- double *_closest_pt_uvInPn_child,
- double _dist2_child
+ double *vtx_tria,
+ double *uvInPn_tria,
+ double *closest_pt,
+ double *closest_pt_uvP1,
+ double *closest_pt_uvInPn,
+ double dist2
 )
 {
+  /* Look for index (dicothomy) */
 
+  int curr_idx = heap->idx;
+  int *sorted_idx = heap->sorted_idx;
+  double *sorted_dist2 = heap->dist2;
+  
+  int beg = 0;
+  int end = curr_idx;
+  while (beg < end) {
+    const double dist2_beg = sorted_dist2[sorted_idx[beg]]; 
+    const double dist2_end = sorted_dist2[sorted_idx[end]];
+
+    if (dist2 >= dist2_beg) {
+      end = beg;
+    }
+    
+    else if (dist2 <= dist2_end) {
+      beg = end;
+    }
+
+    else {
+      const int middle = (end + beg) / 2;
+      if (beg == middle) {
+        beg = end;
+      }
+      else {
+        const double dist2_middle = sorted_dist2[sorted_idx[middle]];
+        if (dist2 > dist2_middle) {
+          end = middle;
+        }
+        else {
+          beg = middle;
+        }
+      }
+    }
+  }
+
+  /* If the heap is full remove the most distant */
+
+  if (curr_idx >= (S_HEAP - 1)) {
+    if (beg == 0) {
+      return;
+    }
+    else {
+      const int free_idx = sorted_idx[0];
+
+      for (int i = 1; i < S_HEAP; i++) {
+        sorted_idx[i-1] = sorted_idx[i]; 
+      }
+
+      heap->free_idx[heap->idx] = free_idx;
+      heap->idx--;
+      
+      beg = beg - 1;
+      end = end - 1;
+      
+    }
+  }
+
+  /* Add the element to the heap */
+
+  heap->idx++;
+  assert (heap->free_idx[heap->idx] != -1);
+  sorted_idx[heap->idx] = heap->free_idx[heap->idx];
+  heap->free_idx[heap->idx] = -1;
+
+  int _idx = sorted_idx[heap->idx];
+
+  for (int j = 0; j < 9; j++) {
+    heap->vtx_tria[9*_idx+j] = vtx_tria[j];
+  }
+
+  for (int j = 0; j < 6; j++) {
+    heap->uvInPn_tria[6*_idx+j] = uvInPn_tria[j]; 
+  }
+
+  for (int j = 0; j < 3; j++) {
+    heap->closest_pt[3*_idx+j]  = closest_pt[j]; 
+  }
+
+  for (int j = 0; j < 2; j++) {
+    heap->closest_pt_uvP1[2*_idx+j] = closest_pt_uvP1[j];
+    heap->closest_pt_uvInPn[2*_idx+j] = closest_pt_uvInPn[j];
+  }
+
+  heap->dist2[_idx] = dist2;
+  
 }
 
 /*----------------------------------------------------------------------------
