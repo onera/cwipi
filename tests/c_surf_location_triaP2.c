@@ -379,13 +379,17 @@ int main
                                   n_node,
                                   ijk);
   
-  const int n_pts_to_locate = 11;
+  int n_pts_to_locate = 11;
 
   double *pts_to_locate = (double *) malloc(sizeof(double) * 3 * n_pts_to_locate);
 
   pts_to_locate[0] = xmin;
   pts_to_locate[1] = 0.;
   pts_to_locate[2] = zmin;
+
+  pts_to_locate[0] = xmax;
+  pts_to_locate[1] = 0.;
+  pts_to_locate[2] = 0.;
 
   pts_to_locate[3] = xmax;
   pts_to_locate[4] = 0.;
@@ -427,6 +431,8 @@ int main
   pts_to_locate[31] = 0.;
   pts_to_locate[32] = zmax/4.;
 
+  
+  //  n_pts_to_locate = 1;
   cwipi_set_points_to_locate ("c_surf_cpl_location_triaP2",
                               n_pts_to_locate,
                               pts_to_locate);

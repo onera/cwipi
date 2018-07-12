@@ -128,7 +128,7 @@ typedef struct {
 
 static fvmc_ho_user_fcts_t *_user_fcts = NULL;
 
-static int idebug = 0;
+static int idebug = 1;
 
 /*============================================================================
  * Private function definitions
@@ -387,9 +387,7 @@ _default_location_on_tria_2d
   
   /* Build sub-triangles */
 
-  double uvP1[3];
   double weightsP1[3];
-  double closest_pointP1[3];
 
   int selected_triaP1[3];
   
@@ -398,7 +396,6 @@ _default_location_on_tria_2d
   int ibeg = 0;
   int iend = _order;
 
-  int proj_pt_in_selected_tria = 0;
   int itria = 0;
   
   for (int j = 0; j < _order; j++) {
@@ -441,12 +438,12 @@ _default_location_on_tria_2d
 
       if (idebug == 1)      printf ("   * itria : %d\n", ++itria);
 
-      int proj_in_tria = fvmc_triangle_evaluate_Position ((double *)point_coords,
-                                                          __vertex_coords,
-                                                          _closest_pointP1,
-                                                          _uvClosestPointP1,
-                                                          &_dist2,
-                                                          _weightsClosestPointP1);
+      fvmc_triangle_evaluate_Position ((double *)point_coords,
+                                       __vertex_coords,
+                                       _closest_pointP1,
+                                       _uvClosestPointP1,
+                                       &_dist2,
+                                       _weightsClosestPointP1);
 
       if (idebug == 1) {
         printf ("     * _vertex_coords \n");
@@ -478,17 +475,12 @@ _default_location_on_tria_2d
       
       if (_dist2 <= min_dist2) {
         min_dist2 = _dist2;
-        for (int i1 = 0; i1 < 2; i1++) {
-          uvP1[i1] = _uvClosestPointP1[i1];
-        }
         for (int i1 = 0; i1 < 3; i1++) {
           weightsP1[i1] = _weightsClosestPointP1[i1];
-          closest_pointP1[i1] = _closest_pointP1[i1];
         }
         selected_triaP1[0] = idx1;
         selected_triaP1[1] = idx2;
         selected_triaP1[2] = idx3;
-        proj_pt_in_selected_tria = proj_in_tria;
       }
 
       __vertex_coords[0] = x2;
@@ -503,12 +495,12 @@ _default_location_on_tria_2d
 
       if (idebug == 1) printf ("   * itria : %d\n", ++itria);
 
-      proj_in_tria = fvmc_triangle_evaluate_Position ((double *) point_coords,
-                                                       __vertex_coords,
-                                                       _closest_pointP1,
-                                                       _uvClosestPointP1,
-                                                       &_dist2,
-                                                      _weightsClosestPointP1);
+      fvmc_triangle_evaluate_Position ((double *) point_coords,
+                                       __vertex_coords,
+                                       _closest_pointP1,
+                                       _uvClosestPointP1,
+                                       &_dist2,
+                                       _weightsClosestPointP1);
       if (idebug == 1) {
         printf ("     * _vertex_coords \n");
         for (int i1 = 0; i1 < 3; i1++) {
@@ -540,17 +532,12 @@ _default_location_on_tria_2d
       
       if (_dist2 <= min_dist2) {
         min_dist2 = _dist2;
-        for (int i1 = 0; i1 < 2; i1++) {
-          uvP1[i1] = _uvClosestPointP1[i1];
-        }
         for (int i1 = 0; i1 < 3; i1++) {
           weightsP1[i1] = _weightsClosestPointP1[i1];
-          closest_pointP1[i1] = _closest_pointP1[i1];
         }
         selected_triaP1[0] = idx2;
         selected_triaP1[1] = idx4;
         selected_triaP1[2] = idx3;
-        proj_pt_in_selected_tria = proj_in_tria;
       }
 
       k1++;
@@ -586,15 +573,15 @@ _default_location_on_tria_2d
    
     double _dist2;
       
-      if (idebug == 1)printf ("   * itria : %d\n", ++itria);
-
-    int proj_in_tria =fvmc_triangle_evaluate_Position ((double *)point_coords,
-                                                       __vertex_coords,
-                                                       _closest_pointP1,
-                                                       _uvClosestPointP1,
-                                                       &_dist2,
-                                                       _weightsClosestPointP1);
-      
+    if (idebug == 1)printf ("   * itria : %d\n", ++itria);
+    
+    fvmc_triangle_evaluate_Position ((double *)point_coords,
+                                     __vertex_coords,
+                                     _closest_pointP1,
+                                     _uvClosestPointP1,
+                                     &_dist2,
+                                     _weightsClosestPointP1);
+    
     if (idebug == 1) {
       printf ("     * _vertex_coords \n");
       for (int i1 = 0; i1 < 3; i1++) {
@@ -625,17 +612,12 @@ _default_location_on_tria_2d
     
     if (_dist2 <= min_dist2) {
       min_dist2 = _dist2;
-      for (int i1 = 0; i1 < 2; i1++) {
-        uvP1[i1] = _uvClosestPointP1[i1];
-      }
       for (int i1 = 0; i1 < 3; i1++) {
         weightsP1[i1] = _weightsClosestPointP1[i1];
-        closest_pointP1[i1] = _closest_pointP1[i1];
       }
       selected_triaP1[0] = idx1;
       selected_triaP1[1] = idx2;
       selected_triaP1[2] = idx3;
-      proj_pt_in_selected_tria = proj_in_tria;
     }
 
     ibeg = iend + 1;
@@ -775,7 +757,7 @@ _heap_t *heap
  *
  *----------------------------------------------------------------------------*/
 
-const int
+static int
 _heap_top_get
 (
  _heap_t *heap,
@@ -849,40 +831,59 @@ _heap_insert
 {
   /* Look for index (dicothomy) */
 
+  /* if (idebug == 1) { */
+  /*   printf ("distances in heap deb :"); */
+  /*   for (int i = 0; i < heap->idx + 1; i++) { */
+  /*     int _idx2 = heap->sorted_idx[i]; */
+  /*     printf (" %12.5e", heap->dist2[_idx2]);  */
+
+  /*   } */
+  /*   printf ("\n"); */
+    
+
+  /* } */
+  
   int curr_idx = heap->idx;
   int *sorted_idx = heap->sorted_idx;
   double *sorted_dist2 = heap->dist2;
-  
+
   int beg = 0;
   int end = curr_idx;
-  while (beg < end) {
-    const double dist2_beg = sorted_dist2[sorted_idx[beg]]; 
-    const double dist2_end = sorted_dist2[sorted_idx[end]];
 
+  while (beg <= end) {
+    double dist2_beg = sorted_dist2[sorted_idx[beg]]; 
+    double dist2_end = sorted_dist2[sorted_idx[end]];
+    
     if (dist2 >= dist2_beg) {
-      end = beg;
+      end = beg - 1;
     }
     
     else if (dist2 <= dist2_end) {
-      beg = end;
+      beg = end + 1;
     }
-
+    
     else {
+      
       const int middle = (end + beg) / 2;
       if (beg == middle) {
-        beg = end;
+        beg = beg + 1;
+        end = beg - 1;
       }
       else {
         const double dist2_middle = sorted_dist2[sorted_idx[middle]];
         if (dist2 > dist2_middle) {
+          printf("4\n");
+
           end = middle;
         }
         else {
+
           beg = middle;
         }
       }
     }
   }
+
 
   /* If the heap is full remove the most distant */
 
@@ -910,10 +911,16 @@ _heap_insert
 
   heap->idx++;
   assert (heap->free_idx[heap->idx] != -1);
-  sorted_idx[heap->idx] = heap->free_idx[heap->idx];
+
+  for (int j = heap->idx; j > beg; j--) {
+    sorted_idx[j] = sorted_idx[j-1];
+  }
+
+  sorted_idx[beg] = heap->free_idx[heap->idx];
+  
   heap->free_idx[heap->idx] = -1;
 
-  int _idx = sorted_idx[heap->idx];
+  int _idx = sorted_idx[beg];
 
   for (int j = 0; j < 9; j++) {
     heap->vtx_tria[9*_idx+j] = vtx_tria[j];
@@ -933,6 +940,24 @@ _heap_insert
   }
 
   heap->dist2[_idx] = dist2;
+
+  
+
+  /* if (idebug == 1) { */
+  /*   printf ("distances in heap fin :"); */
+  /*   for (int i = 0; i < heap->idx + 1; i++) { */
+  /*     int _idx2 = sorted_idx[i]; */
+  /*     printf (" %12.5e", heap->dist2[_idx2]);  */
+  /*   } */
+  /*   printf ("\n"); */
+    
+  /*   for (int i = 0; i < heap->idx + 1; i++) { */
+  /*     int _idx2 = sorted_idx[i]; */
+  /*     printf (" %d", _idx2);  */
+  /*   } */
+  /*   printf ("\n\n"); */
+
+  /* } */
   
 }
 
@@ -1007,12 +1032,12 @@ _heap_fill_pn_sub_tria
       double _weightsClosestPointP1[3];
       double _dist2;
 
-      int proj_in_tria = fvmc_triangle_evaluate_Position ((double *)point_coords,
-                                                          __vertex_coords,
-                                                          _closest_pointP1,
-                                                          _uvClosestPointP1,
-                                                          &_dist2,
-                                                          _weightsClosestPointP1);
+      fvmc_triangle_evaluate_Position ((double *)point_coords,
+                                       __vertex_coords,
+                                       _closest_pointP1,
+                                       _uvClosestPointP1,
+                                       &_dist2,
+                                       _weightsClosestPointP1);
 
       double _uvPn_sub_tria[6];
 
@@ -1024,7 +1049,7 @@ _heap_fill_pn_sub_tria
       _uvPn_sub_tria[5] = uvNodes[2*idx3+1];
 
       for (int j1 = 0; j1 < 2; j1++) {
-        _uvClosestPointPn[j] = 0;
+        _uvClosestPointPn[j1] = 0;
       }
       for (int j1 = 0; j1 < 2; j1++) {
         for (int k = 0; k < 3; k++) {
@@ -1032,6 +1057,11 @@ _heap_fill_pn_sub_tria
         }
       }
 
+      printf("_uvClosestPointP1 : %12.5e %12.5e\n", _uvClosestPointP1[0], _uvClosestPointP1[1]);
+      printf("__vertex_coords 1 : %12.5e %12.5e %12.5e\n", __vertex_coords[0], __vertex_coords[1], __vertex_coords[2]);
+      printf("__vertex_coords 2: %12.5e %12.5e %12.5e\n", __vertex_coords[3], __vertex_coords[4], __vertex_coords[5]);
+      printf("__vertex_coords 3 : %12.5e %12.5e %12.5e\n", __vertex_coords[6], __vertex_coords[7], __vertex_coords[8]);
+      
       _heap_insert (heap,
                     __vertex_coords,
                     _uvPn_sub_tria,
@@ -1050,12 +1080,13 @@ _heap_fill_pn_sub_tria
       __vertex_coords[7] = y3;
       __vertex_coords[8] = z3;
 
-      proj_in_tria = fvmc_triangle_evaluate_Position ((double *) point_coords,
-                                                      __vertex_coords,
-                                                      _closest_pointP1,
-                                                      _uvClosestPointP1,
-                                                      &_dist2,
-                                                      _weightsClosestPointP1);
+      fvmc_triangle_evaluate_Position ((double *) point_coords,
+                                       __vertex_coords,
+                                       _closest_pointP1,
+                                       _uvClosestPointP1,
+                                       &_dist2,
+                                       _weightsClosestPointP1);
+
       _uvPn_sub_tria[0] = uvNodes[2*idx2];
       _uvPn_sub_tria[1] = uvNodes[2*idx2+1];
       _uvPn_sub_tria[2] = uvNodes[2*idx4];
@@ -1072,6 +1103,11 @@ _heap_fill_pn_sub_tria
         }
       }
 
+      printf("_uvClosestPointP1 : %12.5e %12.5e\n", _uvClosestPointP1[0], _uvClosestPointP1[1]);
+      printf("__vertex_coords 1 : %12.5e %12.5e %12.5e\n", __vertex_coords[0], __vertex_coords[1], __vertex_coords[2]);
+      printf("__vertex_coords 2: %12.5e %12.5e %12.5e\n", __vertex_coords[3], __vertex_coords[4], __vertex_coords[5]);
+      printf("__vertex_coords 3 : %12.5e %12.5e %12.5e\n", __vertex_coords[6], __vertex_coords[7], __vertex_coords[8]);
+      
       _heap_insert (heap,
                     __vertex_coords,
                     _uvPn_sub_tria,
@@ -1115,12 +1151,12 @@ _heap_fill_pn_sub_tria
    
     double _dist2;
       
-    int proj_in_tria =fvmc_triangle_evaluate_Position ((double *)point_coords,
-                                                       __vertex_coords,
-                                                       _closest_pointP1,
-                                                       _uvClosestPointP1,
-                                                       &_dist2,
-                                                       _weightsClosestPointP1);
+    fvmc_triangle_evaluate_Position ((double *)point_coords,
+                                     __vertex_coords,
+                                     _closest_pointP1,
+                                     _uvClosestPointP1,
+                                     &_dist2,
+                                     _weightsClosestPointP1);
       
     double _uvPn_sub_tria[6];
     
@@ -1140,6 +1176,11 @@ _heap_fill_pn_sub_tria
       }
     }
 
+    printf("_uvClosestPointP1 : %12.5e %12.5e\n", _uvClosestPointP1[0], _uvClosestPointP1[1]);
+    printf("__vertex_coords 1 : %12.5e %12.5e %12.5e\n", __vertex_coords[0], __vertex_coords[1], __vertex_coords[2]);
+    printf("__vertex_coords 2: %12.5e %12.5e %12.5e\n", __vertex_coords[3], __vertex_coords[4], __vertex_coords[5]);
+    printf("__vertex_coords 3 : %12.5e %12.5e %12.5e\n", __vertex_coords[6], __vertex_coords[7], __vertex_coords[8]);
+    
     _heap_insert (heap,
                   __vertex_coords,
                   _uvPn_sub_tria,
@@ -1195,7 +1236,7 @@ _default_location_on_tria_2d_v2
                                 3, 1, 4,
                                 5, 4, 2};
   _heap_t heap;
-  double *weightsPn = malloc(sizeof(int) * n_node);
+  double *weightsPn = malloc(sizeof(double) * n_node);
 
   /* Initialize heap */
   
@@ -1203,6 +1244,9 @@ _default_location_on_tria_2d_v2
   
   /* Build initial sub-triangles and store them in the heap */
 
+  printf("point_coords : %12.5e %12.5e %12.5e\n", point_coords[0], point_coords[1], point_coords[2]);
+
+  
   _heap_fill_pn_sub_tria (&heap,
                           order,
                           n_node,
@@ -1222,7 +1266,7 @@ _default_location_on_tria_2d_v2
 
   while (1) {
 
-    double _vtx_tria_current[3];
+    double _vtx_tria_current[9];
     double _uvPn_tria_current[2];
     
     double _closest_pt_current[3];
@@ -1256,9 +1300,13 @@ _default_location_on_tria_2d_v2
 
     double weightsP1[3];
     _base_tria_pn (1, _closest_pt_uvP1_current[0], _closest_pt_uvP1_current[1], weightsP1);
+    printf("Weights : %12.5e %12.5e %12.5e\n", weightsP1[0], weightsP1[1], weightsP1[2]);
+    printf("vtx_tria_current 1 : %12.5e %12.5e %12.5e\n", _vtx_tria_current[0], _vtx_tria_current[1], _vtx_tria_current[2]);
+    printf("vtx_tria_current 2 : %12.5e %12.5e %12.5e\n", _vtx_tria_current[3], _vtx_tria_current[4], _vtx_tria_current[5]);
+    printf("vtx_tria_current 3 : %12.5e %12.5e %12.5e\n", _vtx_tria_current[6], _vtx_tria_current[7], _vtx_tria_current[8]);
     for (int j = 0; j < 3; j++) {
       for (int k = 0; k < 3; k++) {
-        _projected_coords_from_p1[k] += weightsP1[j] * _vtx_tria_current[k]; 
+        _projected_coords_from_p1[k] += weightsP1[j] * _vtx_tria_current[3*j+k]; 
       }
     }
 
@@ -1281,13 +1329,28 @@ _default_location_on_tria_2d_v2
 
     /* Compute distance between two projected */    
 
+    err_proj = 0;
     for (int i = 0; i < 3; i++) {
       double val = _projected_coords_from_pn[i] - _projected_coords_from_p1[i];
       err_proj += val * val;
     }
 
     /* Break if error is ok */
+
+    printf("error proj : %12.5e\n", err_proj);
+
+    printf("_projected_coords_from_pn");
+    for (int i = 0; i < 3; i++) {
+      printf(" %12.5e", _projected_coords_from_pn[i]);
+    }
+    printf("\n"); 
     
+    printf("_projected_coords_from_p1");
+    for (int i = 0; i < 3; i++) {
+      printf(" %12.5e", _projected_coords_from_p1[i]);
+    }
+    printf("\n"); 
+
     if (err_proj <= err_max || n_it++ >= n_it_max) {
       
       for (int j = 0; j < 3; j++) {
@@ -1304,6 +1367,7 @@ _default_location_on_tria_2d_v2
         weights[j] = weightsPn[j];
       }
       
+      printf("sortie boucle\n");
       break;
     }
     
@@ -1423,6 +1487,9 @@ _default_location_on_quad_2d
  double* weights
 )
 {
+
+  n_node;
+  
   bftc_error(__FILE__, __LINE__, 0,
              _("_default_location_on_quad_2d : Not implemented yet\n"));
 
@@ -1578,7 +1645,7 @@ _default_location_on_cell_2d
 
   case FVMC_FACE_TRIA:
 
-    dist2 = _default_location_on_tria_2d (order,
+    dist2 = _default_location_on_tria_2d_v2 (order,
                                           n_node,
                                           ho_vertex_num,
                                           vertex_coords,
