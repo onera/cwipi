@@ -62,7 +62,7 @@ static void _dumpStatus(FILE* outputFile, cwipi_exchange_status_t status)
 
 static double _f(double x, double y, double z)
 {
-  return x*x + z*z - x*z + z - x + 2. + 3*z; 
+  return 7*x*x + z*z - x*z + z - x + 2. + 3*z; 
 }
 
 
@@ -379,7 +379,7 @@ int main
                                   n_node,
                                   ijk);
   
-  const int n_pts_to_locate = 11;
+  int n_pts_to_locate = 11;
 
   double *pts_to_locate = (double *) malloc(sizeof(double) * 3 * n_pts_to_locate);
 
@@ -407,6 +407,10 @@ int main
   pts_to_locate[31] = _f(xmax/4., 0, zmax/4.);
   pts_to_locate[32] = zmax/4.;
 
+  for (int i = 0; i < n_pts_to_locate; i++) {
+    printf("%12.5e %12.5e %12.5e\n",  pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2]); 
+  }
+  
   cwipi_set_points_to_locate ("c_surf_cpl_location_curvetriaP2",
                               n_pts_to_locate,
                               pts_to_locate);
@@ -499,9 +503,9 @@ int main
   }
   
   res[nVertex    ] = _f(0.           , 0.             , 0.             );
-  res[nVertex + 1] = _f(0.           , 0.             , 0.             );
+  res[nVertex + 1] = _f(-2.7881836406e-04          , 0.             , 1.1104162324e-03         );
   res[nVertex + 2] = res[0];  
-  res[nVertex + 3] = _f( (xmax + xmax/2.) / 2, 0., zmax/4.);
+  res[nVertex + 3] = _f(7.0503312057e-02, 0., 2.9496687943e-02);
   res[nVertex + 4] = _f( xmax/4., 0., zmax/4.);
 
   double err;

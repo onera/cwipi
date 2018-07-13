@@ -4957,9 +4957,6 @@ int  fvmc_triangle_evaluate_Position (double x[3], double *pts,
   double pcoords[3];                                      
   double weights[3];
   
-  // printf ("Attention : fvmc_triangle_evaluate_Position ne considere qu'un triangle "
-  //        "lineaire, c'est ici qu'il faut prendre en compte l'ordre !\n");
-  
   pcoords[2] = 0.0;
 
   // Get normal for triangle, only the normal direction is needed, i.e. the
