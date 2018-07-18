@@ -297,18 +297,18 @@ fvmc_locator_get_dist_projected_coords(const fvmc_locator_t  *this_locator);
 
 
 /*----------------------------------------------------------------------------
- * Return an array of weights of each distant point in the closest element.
+ * Return an array of uvw of each distant point in the closest element.
  * (or NULL), available for high order nodal
  *
  * parameters:
  *   this_locator <-- pointer to locator structure
  *
  * returns:
- *   weights (size = max_n_node_elt * n_dist_point, interlaced)
+ *   uvw (size = max_n_node_elt * n_dist_point, interlaced)
  *----------------------------------------------------------------------------*/
 
 const double *
-fvmc_locator_get_dist_weights(const fvmc_locator_t  *this_locator);
+fvmc_locator_get_dist_uvw(const fvmc_locator_t  *this_locator);
 
 
 /*----------------------------------------------------------------------------

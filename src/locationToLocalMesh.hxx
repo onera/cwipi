@@ -105,6 +105,13 @@ public:
   inline const double *getBarycentricCoordinates() const;
 
   ///
+  /// \brief Get uvw (size = 3 * nDistantPoint])
+  ///
+
+  //inline const std::vector <double> & getBarycentricCoordinates() const;
+  inline const double *getUvw() const;
+
+  ///
   /// \brief Return location result (size = nDistantpoint)
   ///
 
@@ -308,9 +315,10 @@ private :
   const ApplicationProperties&_localApplicationProperties;                  ///< Application properties
   LocationToDistantMesh      &_locationToDistantMesh;                       ///< Information about local points location in the distant mesh
 
-  fvmc_locator_t         *_fvmLocator;                                  ///< fvm structure that build the location
+  fvmc_locator_t             *_fvmLocator;                                  ///< fvm structure that build the location
   std::vector <int>          *_barycentricCoordinatesIndex;                 ///< Barycentric coordinates for each
-  std::vector <double>       *_barycentricCoordinates;                      ///< Barycentric coordinates associated to the element that contains each located distant point
+  std::vector <double>       *_barycentricCoordinates;                      ///< Barycentric coordinates associated to the eleme
+  std::vector <double>        *_uvw;                                         ///< uvw coordinates in the element (only for ho elements)
   int                         _nDistantPoint;                               ///< Number of distant points located in the local mesh
   int                        *_location;                                    ///< Local elements that contain distant points
   int                        *_locatedPointsDistribution;                   ///< Located points distribution on distant ranks
@@ -361,6 +369,16 @@ private :
       return NULL;
     else
       return &(*_barycentricCoordinates)[0];
+  }
+
+  const double *LocationToLocalMesh::getUvw() const
+  {
+    if (_toLocate)
+      bftc_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
+    if (_uvw == NULL)
+      return NULL;
+    else
+      return &(*_uvw)[0];
   }
 
 ///

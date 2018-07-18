@@ -131,12 +131,6 @@ void LocationToLocalMesh::_computeNormal (int numPts, double *pts, double n[3])
 }
 
 
-
-
-
-
-
-
 LocationToLocalMesh::LocationToLocalMesh(
                                          const cwipi_solver_type_t  &solverType,
                                          const double &tolerance,
@@ -159,6 +153,7 @@ LocationToLocalMesh::LocationToLocalMesh(
   _fvmLocator = NULL;
   _barycentricCoordinatesIndex = NULL;
   _barycentricCoordinates = NULL;
+  _uvw = NULL;
   _nDistantPoint = 0;
   _location = NULL;
   _toLocate = true;
@@ -177,6 +172,10 @@ LocationToLocalMesh::~LocationToLocalMesh()
     _barycentricCoordinates = NULL;
   }
 
+  if (_uvw != NULL) {
+    delete _uvw;
+    _uvw = NULL;
+  }
   if (_fvmLocator != NULL)
     fvmc_locator_destroy(_fvmLocator);
 
@@ -203,6 +202,12 @@ size_t LocationToLocalMesh::locationSize()
     if (_barycentricCoordinates != NULL) {
       std::vector <double> &  _refBarycentricCoordinates = *_barycentricCoordinates;
       il_size += _refBarycentricCoordinates.size()*sizeof(double);
+    }
+
+    il_size += sizeof(int);
+    if (_uvw != NULL) {
+      std::vector <double> &  _refUvw = *_uvw;
+      il_size += _refUvw.size()*sizeof(double);
     }
     
     il_size += sizeof(int);
@@ -276,6 +281,24 @@ void LocationToLocalMesh::packLocation(unsigned char *buff)
       p = (void *) ((char *) p + s_pack);
     }
 
+    if (_uvw != NULL) {
+      std::vector <double> &  _refUvw = *_uvw;
+      // calcul de la taille de _uvw 
+      s = _refUvw.size();
+      s_pack = sizeof(int);
+      memcpy(p,(void *)&s, s_pack);     
+      p = (void *) ((char *) p + s_pack);
+      s_pack = s * sizeof(double);
+      memcpy(p,(void *)&_refUvw[0], s_pack);
+      p = (void *) ((char *) p + s_pack);
+    } 
+    else {
+      s = 0;
+      s_pack = sizeof(int);
+      memcpy(p,(void *)&s, s_pack);      
+      p = (void *) ((char *) p + s_pack);
+    }
+    
     if (_nVertex != NULL) {
       s = 1;
       s_pack = sizeof(int);
@@ -354,6 +377,14 @@ void LocationToLocalMesh::unpackLocation(unsigned char *buff)
       _barycentricCoordinates = new std::vector <double> (s);
       std::vector <double> &  _refBarycentricCoordinates = *_barycentricCoordinates;
       cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&_refBarycentricCoordinates[0], s*sizeof(double));
+    }
+
+    cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));      
+    if (s != 0) {
+      if (_uvw != NULL) delete _uvw;
+      _uvw = new std::vector <double> (s);
+      std::vector <double> &  _refUvw = *_uvw;
+      cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&_refUvw[0], s*sizeof(double));
     }
 
     cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));      
@@ -451,6 +482,11 @@ void LocationToLocalMesh::locate()
         _barycentricCoordinates = NULL;
       }
       
+      if (_uvw != NULL) {
+        delete _uvw;
+        _uvw = NULL;
+      }
+
       //
       // TODO: Prevoir une fabrique pour supprimer les tests if sur _entitiesDim
       //       Le calcul des coordonnees barycentriques se fera dans cette fabrique
@@ -511,31 +547,31 @@ void LocationToLocalMesh::locate()
             _barycentricCoordinates = new std::vector <double> ((order+ 1) * nDistantPoint);
             std::vector <int> &  _refBarycentricCoordinatesIndex = *_barycentricCoordinatesIndex;
             std::vector <double> &  _refBarycentricCoordinates = *_barycentricCoordinates;
+
+            int max_entity_dim = fvmc_nodal_get_max_entity_dim (&(_supportMesh->getFvmNodal()));
             
             _refBarycentricCoordinatesIndex[0] = 0;
             for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
               _refBarycentricCoordinatesIndex[ipoint + 1] =
-                _refBarycentricCoordinatesIndex[ipoint] + (order +1);
+                _refBarycentricCoordinatesIndex[ipoint] + (order + 1);
             }
 
             const int *meshConnectivityIndex = _supportMesh->getEltConnectivityIndex();
             
-            const double *weights = fvmc_locator_get_dist_weights (_fvmLocator);
+            const double *uvw = fvmc_locator_get_dist_uvw (_fvmLocator);
      
-            const int max_n_node_elt = fvmc_nodal_max_n_node_elt (&(_supportMesh->getFvmNodal()));
-            
             for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
               
               int ielt = locationList[ipoint] - 1;
               
               int n_node = meshConnectivityIndex[ielt+1] - meshConnectivityIndex[ielt];
               
-              double *_weights_point = &(_refBarycentricCoordinates[0]) + _refBarycentricCoordinatesIndex[ipoint];
-              const double *_weights_point_fvm = weights + ipoint * max_n_node_elt;
+              double *_weights = &(_refBarycentricCoordinates[0]) +
+                                 _refBarycentricCoordinatesIndex[ipoint];
               
-              for (int k = 0; k < n_node; k++) {
-                _weights_point[k] = _weights_point_fvm[k];
-              }
+              const double *_uvw_point_fvm = uvw + ipoint * max_entity_dim;
+
+              fvmc_ho_basis_pn (FVMC_EDGE, order, _uvw_point_fvm, _weights);
               
             }
           }
@@ -1206,22 +1242,33 @@ void LocationToLocalMesh::compute2DMeanValues()
 
   else {
 
-    const double *weights = fvmc_locator_get_dist_weights (_fvmLocator);
+    const double *uvw = fvmc_locator_get_dist_uvw (_fvmLocator);
 
-    const int max_n_node_elt = fvmc_nodal_max_n_node_elt (&(_supportMesh->getFvmNodal()));
-    
+    int max_entity_dim = fvmc_nodal_get_max_entity_dim (&(_supportMesh->getFvmNodal()));
+
     for (int ipoint = 0; ipoint < n_dist_points; ipoint++) {
 
       int ielt = dist_locations[ipoint] - 1;
 
       int n_node = meshConnectivityIndex[ielt+1] - meshConnectivityIndex[ielt];
 
-      double *_weights_point = &(distBarCoords[0]) + nDistBarCoords[ipoint];
-      const double *_weights_point_fvm = weights + ipoint * max_n_node_elt;
+      double *_weights = &(distBarCoords[0]) + nDistBarCoords[ipoint];
+      const double *_uvw_point_fvm = uvw + ipoint * max_entity_dim;
 
-      for (int k = 0; k < n_node; k++) {
-        _weights_point[k] = _weights_point_fvm[k];
+      const int n_node_tria = (order+1)*(order+2)/2; 
+      const int n_node_quad = (order+1)*(order+1); 
+
+      fvmc_element_t type;
+
+      if (n_node == n_node_tria) {
+        type = FVMC_FACE_TRIA;
       }
+      else {
+        type = FVMC_FACE_QUAD;
+      }
+      
+      fvmc_ho_basis_pn (type, order, _uvw_point_fvm, _weights);
+
     }
   }
 }
@@ -1625,6 +1672,7 @@ void LocationToLocalMesh::compute3DMeanValues()
 
     int ipoint = 0;
     int ipoint_old = -1;
+
     while (ipoint < n_dist_points) {
       int ielt = dist_locations[ipoint] - 1; // numero de l'element le plus proche du point
 
@@ -2064,6 +2112,8 @@ void LocationToLocalMesh::compute3DMeanValues()
 
   else {
 
+    int max_entity_dim = fvmc_nodal_get_max_entity_dim (&(_supportMesh->getFvmNodal()));
+    
     nDistBarCoords.resize(n_dist_points + 1);
 
     nDistBarCoords[0] = 0;
@@ -2075,22 +2125,38 @@ void LocationToLocalMesh::compute3DMeanValues()
 
     distBarCoords.resize(nDistBarCoords[n_dist_points]);
 
-    const double *weights = fvmc_locator_get_dist_weights (_fvmLocator);
+    const double *uvw = fvmc_locator_get_dist_uvw (_fvmLocator);
 
-    const int max_n_node_elt = fvmc_nodal_max_n_node_elt (&(_supportMesh->getFvmNodal()));
-    
     for (int ipoint = 0; ipoint < n_dist_points; ipoint++) {
 
       int ielt = dist_locations[ipoint] - 1;
 
       int n_node = meshConnectivityIndex[ielt+1] - meshConnectivityIndex[ielt];
 
-      double *_weights_point = &(distBarCoords[0]) + nDistBarCoords[ipoint];
-      const double *_weights_point_fvm = weights + ipoint * max_n_node_elt;
+      double *_weights = &(distBarCoords[0]) + nDistBarCoords[ipoint];
+      const double *_uvw_point_fvm = uvw + ipoint * max_entity_dim;
 
-      for (int k = 0; k < n_node; k++) {
-        _weights_point[k] = _weights_point_fvm[k];
+      fvmc_element_t type;
+    
+      const int n_node_tetra = (order+1)*(order+2)*(order+3)/6; 
+      const int n_node_hexa = (order+1)*(order+1)*(order+1); 
+      const int n_node_prism = (order+1)*(order+1)*(order+2)/2; 
+      const int n_node_pyramid = (order+1)*(order+2)*(2*order+3)/6;
+
+      if (n_node == n_node_tetra) {
+        type = FVMC_CELL_TETRA;
       }
+      else if (n_node == n_node_hexa) {
+        type = FVMC_CELL_HEXA;
+      }
+      else if (n_node == n_node_pyramid) {
+        type = FVMC_CELL_PYRAM;
+      }
+      else {
+        type = FVMC_CELL_PRISM;
+      }
+      
+      fvmc_ho_basis_pn (type, order, _uvw_point_fvm, _weights);
       
     }
   }

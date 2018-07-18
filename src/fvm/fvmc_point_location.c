@@ -3246,7 +3246,8 @@ _polygons_section_closest_3d(const fvmc_nodal_section_t   *this_section,
  *   points_in_extents <-- array for query of ids of points in extents
  *                         (size: octree->n_points, less usually needed)
  *   projected_point_coords   <-> projected point coordinates (or NULL)
- *   weights           <-> projected point weights  (or NULL)
+ *   uvw               <-> parametric coordinates of the point if inside the element 
+ *                         parametric coordinates of the projected point if outside the element
  *   location          <-> number of element containing or closest to each
  *                         point (size: n_points)
  *   distance          <-> distance from point to element indicated by
@@ -3257,7 +3258,7 @@ _polygons_section_closest_3d(const fvmc_nodal_section_t   *this_section,
 
 static void
 _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
-                         const int                   max_n_node_elt,
+                         const int                   max_entity_dim,
                          const fvmc_lnum_t           *parent_vertex_num,
                          const fvmc_coord_t           vertex_coords[],
                          double                      tolerance,
@@ -3266,7 +3267,7 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
                          _octree_t                  *octree,
                          fvmc_lnum_t                  points_in_extents[],
                          fvmc_coord_t                 projected_coords[],
-                         double                       weights[],
+                         double                       uvw[],
                          fvmc_lnum_t                  location[],
                          float                       distance[])
 {
@@ -3390,7 +3391,7 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
             const double *_point_coords = point_coords + 3 * point_in_extents;
 
             double tmp_projected_coords[3];
-            double tmp_weights[max_n_node_elt];
+            double tmp_uvw[3];
             
             double _distance = fvmc_ho_location_in_cell_3d (this_section->type,
                                                             this_section->order,
@@ -3399,7 +3400,7 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
                                                             vertex_coords,
                                                             _point_coords,
                                                             tmp_projected_coords,
-                                                            tmp_weights);
+                                                            tmp_uvw);
 
             if ((_distance < distance[point_in_extents]) || (location[point_in_extents] == -1)) {
 
@@ -3414,10 +3415,10 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
                   _projected_coords[k1] = tmp_projected_coords[k1];
                 }
               }
-              if (weights != NULL) {
-                double *_weights = weights + max_n_node_elt * point_in_extents;
-                for (int k1 = 0; k1 < max_n_node_elt; k1++) {
-                  _weights[k1] = tmp_weights[k1];
+              if (uvw != NULL) {
+                double *_uvw = uvw + max_entity_dim * point_in_extents;
+                for (int k1 = 0; k1 < 3; k1++) {
+                  _uvw[k1] = tmp_uvw[k1];
                 }
               }
 
@@ -3474,7 +3475,7 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
             const double *_point_coords = point_coords + 3 * point_in_extents;
 
             double tmp_projected_coords[3];
-            double tmp_weights[max_n_node_elt];
+            double tmp_uvw[2];
             
             double _distance = fvmc_ho_location_on_cell_2d (this_section->type,
                                                             this_section->order,
@@ -3483,7 +3484,7 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
                                                             vertex_coords,
                                                             _point_coords,
                                                             tmp_projected_coords,
-                                                            tmp_weights);
+                                                            tmp_uvw);
 
     if (idebug == 1)            printf("fvmc_point_location _distance :%12.5e\n", _distance);
 
@@ -3499,10 +3500,10 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
                   _projected_coords[k1] = tmp_projected_coords[k1];
                 }
               }
-              if (weights != NULL) {
-                double *_weights = weights + max_n_node_elt * point_in_extents;
-                for (int k1 = 0; k1 < max_n_node_elt; k1++) {
-                  _weights[k1] = tmp_weights[k1];
+              if (uvw != NULL) {
+                double *_uvw = uvw + max_entity_dim * point_in_extents;
+                for (int k1 = 0; k1 < max_entity_dim; k1++) {
+                  _uvw[k1] = tmp_uvw[k1];
                 }
               }
 
@@ -3541,7 +3542,7 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
             const double *_point_coords = point_coords + 3 * point_in_extents;
  
             double tmp_projected_coords[3];
-            double tmp_weights[max_n_node_elt];
+            double tmp_uvw[1];
             
             double _distance = fvmc_ho_location_on_cell_1d (this_section->type,
                                                             this_section->order,
@@ -3550,7 +3551,7 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
                                                             vertex_coords,
                                                             _point_coords,
                                                             tmp_projected_coords,
-                                                            tmp_weights);
+                                                            tmp_uvw);
 
             if ((_distance < distance[point_in_extents]) || (location[point_in_extents] == -1)) {
 
@@ -3564,10 +3565,10 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
                   _projected_coords[k1] = tmp_projected_coords[k1];
                 }
               }
-              if (weights != NULL) {
-                double *_weights = weights + max_n_node_elt * point_in_extents;
-                for (int k1 = 0; k1 < max_n_node_elt; k1++) {
-                  _weights[k1] = tmp_weights[k1];
+              if (uvw != NULL) {
+                double *_uvw = uvw + max_entity_dim * point_in_extents;
+                for (int k1 = 0; k1 < 1; k1++) {
+                  _uvw[k1] = tmp_uvw[k1];
                 }
               }
             }
@@ -4212,8 +4213,8 @@ static int _intersection_line (double a1[3], double a2[3],
  *   point_coords      <-- point coordinates
  *   projected_coords  <-> coordinates of projected points in location elements
  *                         point (size: n_points * dim)
- *   weights           <-> weights of projected points in location elements
- *                         point (size: n_points * max_n_node_elt)
+ *   uvw               <-> parametric coordinates of the point if inside the element 
+ *                         parametric coordinates of the projected point if outside the element
  *   location          <-> number of element containing or closest to each
  *                         point (size: n_points)
  *   distance          <-> distance from point to element indicated by
@@ -4229,16 +4230,15 @@ fvmc_point_location_nodal(const fvmc_nodal_t  *this_nodal,
                           fvmc_lnum_t          n_points,
                           const fvmc_coord_t   point_coords[],
                           fvmc_coord_t        *projected_coords,
-                          double               *weights,
+                          double               *uvw,
                           fvmc_lnum_t          location[],
                           float               distance[])
 {
   int i;
-  int max_entity_dim;
   fvmc_lnum_t   base_element_num;
   fvmc_lnum_t  *points_in_extents = NULL;
 
-  const int max_n_node_elt = fvmc_nodal_max_n_node_elt (this_nodal);
+  const int max_entity_dim = fvmc_nodal_get_max_entity_dim  (this_nodal);
 
   if (this_nodal == NULL)
     return;
@@ -4247,8 +4247,6 @@ fvmc_point_location_nodal(const fvmc_nodal_t  *this_nodal,
     base_element_num = -1;
   else
     base_element_num = 1;
-
-  max_entity_dim = fvmc_nodal_get_max_entity_dim(this_nodal);
 
   /* Build point query list
      (max size: n_points, usually much less) */
@@ -4271,7 +4269,7 @@ fvmc_point_location_nodal(const fvmc_nodal_t  *this_nodal,
 
         
         _nodal_section_locate_3d(this_section,
-                                 max_n_node_elt,
+                                 max_entity_dim,
                                  this_nodal->parent_vertex_num,
                                  this_nodal->vertex_coords,
                                  tolerance,
@@ -4280,7 +4278,7 @@ fvmc_point_location_nodal(const fvmc_nodal_t  *this_nodal,
                                  &octree,
                                  points_in_extents,
                                  projected_coords,
-                                 weights,
+                                 uvw,
                                  location,
                                  distance);
 

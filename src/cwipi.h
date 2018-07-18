@@ -215,6 +215,77 @@ typedef void (*cwipi_interpolation_fct_t)
    void *distant_field
    );
 
+
+/*----------------------------------------------------------------------------
+ * Function pointer to define an user interpolation method (callback)
+ *
+ * parameters:
+ * ----------
+ *
+ * entities_dim                              <-- entities dimension of
+ *                                               the local mesh (1, 2 or 3)
+ * n_local_vertex                            <-- local mesh vertices number
+ * n_local_element                           <-- local mesh elements number
+ *                                               (without polyhedra)
+ * n_local_polyhedra                         <-- local mesh elements number
+ * n_distant_point                           <-- located distant point number
+ * local_coordinates                         <-- local mesh vertex coordinates
+ * local_parent_elt_num                      <-- pointer to parent element
+ *                                               (or NULL if sorted elements)
+ * local_connectivity_index                  <-- element -> vertices index
+ *                                               (O to n-1)
+ *                                               size:n_local_elements + 1
+ * local_connectivity                        <-- element -> vertex connectivity
+ *                                                       of the local mesh
+ *                               size:local_connectivity_index[n_local_elements]
+ * local_polyhedra_face_index                <-- polyhedra volume -> faces index
+ * local_polyhedra_cell_to_face_connectivity <-- polyhedra -> face connectivity
+ * local_polyhedra_face_connectivity_index   <-- polyhedra faces
+ *                                               face -> vertices index
+ * local_polyhedra_face_connectivity         <-- polyhedra
+ *                                               face -> vertex connectivity
+ * distant_points_coordinates                <-- distant point coordinates
+ * distant_points_location                   <-- distant point location
+ * distant_points_weights_index
+ *                                           <-- element -> weights
+ *                                                (0 to n-1)
+ *                                               size: n_distant_point + 1
+ * distant_points_weights                    <-- distant point weights
+ *                                             size: distant_points_barycentric_coordinates_index[n_distant_point]
+ * uvw_size                                  <-- size of uvw (1, 2 or 3)
+ * distant_points_uvw                        <-- parametric coordinates of distant points (size = uvw_size * n_distant_point)
+ * stride                                    <-- interlaced field number
+ * local_field                               <-- local field
+ * distant_field                             --> distant field
+ *
+ *----------------------------------------------------------------------------*/
+
+typedef void (*cwipi_user_interp_ho_fct_t)
+  (const int entities_dim,
+   const int n_local_vertex,
+   const int n_local_element,
+   const int n_local_polhyedra,
+   const int n_distant_point,
+   const double local_coordinates[],
+   const int local_connectivity_index[],
+   const int local_connectivity[],
+   const int local_polyhedra_face_index[],
+   const int local_polyhedra_cell_to_face_connectivity[],
+   const int local_polyhedra_face_connectivity_index[],
+   const int local_polyhedra_face_connectivity[],
+   const double distant_points_coordinates[],
+   const int distant_points_location[],
+   const float distant_points_distance[],
+   const int distant_points_weights_index[],
+   const double distant_points_weights[],
+   const int uvw_size,
+   const double distant_points_uvw[],
+   const int stride,
+   const cwipi_solver_type_t  solver_type,
+   const void *local_field,
+   void *distant_field
+   );
+
 /*----------------------------------------------------------------------------
  * 
  * Function pointer to locate in a high order cell 3d
@@ -226,7 +297,7 @@ typedef void (*cwipi_interpolation_fct_t)
  *   vertex_coords     <-- vertex coordinates
  *   point_coords      <-- point to locate coordinates
  *   projected_coords  --> projected point coordinates (if point is outside) 
- *   projected_weights --> Weights for projected point
+ *   projected_uvw     --> parametric coordinates of the projected point
  * 
  * return: 
  *   distance to the cell (distance <= 0 if point is inside)
@@ -241,7 +312,7 @@ typedef double (*cwipi_ho_location_fct_t)
  const double *vertex_coords,
  const double *point_coords,
  double *projected_coords,
- double *projected_weights);
+ double *projected_uvw);
 
 /*----------------------------------------------------------------------------
  * Function pointer to define an high order interpolation
@@ -1281,6 +1352,20 @@ const float *cwipi_distance_located_pts_get(const char  *coupling_name);
 void cwipi_set_interpolation_function
 (const char *coupling_id,
  cwipi_interpolation_fct_t fct);
+
+/*----------------------------------------------------------------------------
+ *
+ * Define the interpolation function for high order
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   fct                  <-- Interpolation function
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_ho_set_interpolation_function
+(const char *coupling_id,
+ cwipi_user_interp_ho_fct_t fct);
 
 /*----------------------------------------------------------------------------
  *

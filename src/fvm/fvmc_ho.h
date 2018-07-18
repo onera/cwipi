@@ -120,6 +120,29 @@ const double *weight,
  * Public function prototypes
  *============================================================================*/
 
+
+/*----------------------------------------------------------------------------
+ * 
+ * high order basis
+ * 
+ * parameters:
+ *   type            <-- element type
+ *   order           <-- order
+ *   uvw             <-- uvw
+ *   weights         --> weights (size = n_nodes)
+ *
+ *----------------------------------------------------------------------------*/
+
+void
+fvmc_ho_basis_pn
+(
+const fvmc_element_t type,
+const int order,
+const double *uvw,
+      double *weights 
+);
+
+
 /*----------------------------------------------------------------------------
  * 
  * Set elementary functions
@@ -142,7 +165,7 @@ const double *weight,
  *
  *----------------------------------------------------------------------------*/
 
-void
+void  
 fvmc_ho_user_elementary_functions_set (fvmc_ho_location_fct_t location_tetra,
                                        fvmc_ho_location_fct_t location_prism,
                                        fvmc_ho_location_fct_t location_pyramid,
@@ -180,9 +203,9 @@ fvmc_ho_user_elementary_functions_unset (void);
  *   vertex_coords    <-- vertex coordinates (size = 3 * n_node)
  *   point_coords     <-- point to locate coordinates (size = 3)
  *   projected_coords --> projected point coordinates if outside (size = 3)
- *   weights          --> interpolation weights in the element (internal ordering)
- *                        (size = n_node)
- * 
+ *   uvw              --> parametric coordinates (point if inside the element
+ *                                                projected point if outside)
+ *
  * return: 
  *   distance to the cell (distance <= 0 if point is inside)
  *
@@ -196,7 +219,7 @@ fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
                              const double *vertex_coords,
                              const double *point_coords,
                              double *projected_coords,
-                             double* weights);
+                             double* uvw);
 
 
 /*----------------------------------------------------------------------------
@@ -211,8 +234,7 @@ fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
  *   vertex_coords    <-- vertex coordinates (size = 3 * n_node)
  *   point_coords     <-- point to locate coordinates (size = 3)
  *   projected_coords --> projected point coordinates (size = 3)
- *   weights          --> interpolation weights in the element (internal ordering)
- *                        (size = n_node)
+ *   uvw              --> parametric coordinates of the projected point on the element
  * 
  * return: 
  *   distance to the cell
@@ -227,7 +249,7 @@ fvmc_ho_location_on_cell_2d (const fvmc_element_t type,
                              const double *vertex_coords,
                              const double *point_coords,
                              double *projected_coords,
-                             double *weights);
+                             double *uvw);
 
 
 /*----------------------------------------------------------------------------
@@ -242,8 +264,7 @@ fvmc_ho_location_on_cell_2d (const fvmc_element_t type,
  *   vertex_coords    <-- vertex coordinates (size = 3 * n_node)
  *   point_coords     <-- point to locate coordinates (size = 3)
  *   projected_coords --> projected point coordinates (size = 3)
- *   weights          --> interpolation weights in the element (internal ordering) 
- *                        (size = n_node)
+ *   uvw              --> parametric coordinates of the projected point on the element
  * 
  * return: 
  *   distance to the cell
@@ -258,7 +279,7 @@ fvmc_ho_location_on_cell_1d (const fvmc_element_t type,
                              const double *vertex_coords,
                              const double *point_coords,
                              double *projected_coords,
-                             double *weights);
+                             double *uvw);
 
 /*----------------------------------------------------------------------------
  * 

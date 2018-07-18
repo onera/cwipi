@@ -1576,6 +1576,30 @@ void cwipi_set_interpolation_function
   coupling.set_interpolation_function(fct);
 }
 
+/*----------------------------------------------------------------------------
+ *
+ * Define the interpolation function for high order
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   fct                  <-- Interpolation function
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_ho_set_interpolation_function
+(const char *coupling_name,
+ cwipi_user_interp_ho_fct_t fct)
+{
+  // cwipi::CouplingDataBase & couplingDataBase =
+  //   cwipi::CouplingDataBase::getInstance();
+
+  // const std::string &coupling_name_str = coupling_name;
+
+  // cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  // coupling.set_interpolation_function(fct);
+}
+
 
 /*----------------------------------------------------------------------------
  *

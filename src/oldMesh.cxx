@@ -62,8 +62,6 @@ namespace cwipi {
 
   {
 
-    printf("order : %d\n", order);
-    
     int n_vtx_tria = 3; 
     int n_vtx_quad = 4; 
     int n_vtx_tetra = 4; 

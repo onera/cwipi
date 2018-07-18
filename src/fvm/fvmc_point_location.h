@@ -9,7 +9,7 @@
   This file is part of the "Finite Volume Mesh" library, intended to provide
   finite volume mesh and associated fields I/O and manipulation services.
 
-  Copyright (C) 2011       ONERA
+  Copyright (C) 2011-2018  ONERA
 
   Copyright (C) 2007-2009  EDF
 
@@ -87,8 +87,8 @@ extern "C" {
  *   point_coords      <-- point coordinates
  *   projected_coords  <-> coordinates of projected points in location elements
  *                         point (size: n_points * dim)
- *   weights           <-> weights of projected points in location elements
- *                         point (size: n_points * max_n_node_elt)
+ *   uvw               <-> parametric coordinates of the point if inside the element 
+ *                         parametric coordinates of the projected point if outside the element
  *   location          <-> number of element containing or closest to each
  *                         point (size: n_points)
  *   distance          <-> distance from point to element indicated by
@@ -104,7 +104,7 @@ fvmc_point_location_nodal(const fvmc_nodal_t  *this_nodal,
                           fvmc_lnum_t           n_points,
                           const fvmc_coord_t    point_coords[],
                           fvmc_coord_t         *projected_coords,
-                          double               *weights,
+                          double               *uvw,
                           fvmc_lnum_t           location[],
                           float                 distance[]);
 
