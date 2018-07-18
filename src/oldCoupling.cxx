@@ -80,6 +80,35 @@ extern "C" {
       void *ptFortranInterpolationFct
   );
 }
+
+extern "C" {
+  void PROCF(callforthointerpfct, CALLFORTHOINTERPFCT)
+  ( int *entities_dim,
+      int *n_local_vertex,
+      int *n_local_element,
+      int *n_local_polhyedra,
+      int *n_distant_point,
+      double *local_coordinates,
+      int *local_connectivity_index,
+      int *local_connectivity,
+      int *local_polyhedra_face_index,
+      int *local_polyhedra_cell_to_face_connectivity,
+      int *local_polyhedra_face_connectivity_index,
+      int *local_polyhedra_face_connectivity,
+      double *distant_points_coordinates,
+      int *distant_points_location,
+      float *distant_points_distance,
+      int *distant_points_weights_index,
+      double *distant_points_weights,
+      int *uvw_size,
+      double *distant_points_uvw,
+      int *data_dimension,
+      int *solver_type,
+      double *local_field,
+      double *distant_field,
+      void *ptFortranInterpolationFct
+  );
+}
 #endif
 
 namespace cwipi {
@@ -125,6 +154,8 @@ namespace cwipi {
     _fvmComm = MPI_COMM_NULL;
     _interpolationFct = NULL;
     _interpolationFct_f = NULL;
+    _ho_interpolationFct = NULL;
+    _ho_interpolationFct_f = NULL;
     _toLocate = true;
     _isCoupledRank = false;
     _locationsFile_position = 0;
@@ -1230,101 +1261,219 @@ namespace cwipi {
         //
         // Callback Fortran
 
-        if (ptFortranInterpolationFct != NULL) {
+        
+        const int order = _supportMesh->getOrder();
+ 
+        if (order == -1) {
+          
+          if (ptFortranInterpolationFct != NULL) {
 #ifndef CWP_HAVE_NOT_FORTRAN_IN_C            
-          PROCF(callfortinterpfct, CALLFORTINTERPFCT) (
-                                                       const_cast <int *> (&_entitiesDim),
-                                                       const_cast <int *> (&nVertex),
-                                                       const_cast <int *> (&nElts),
-                                                       const_cast <int *> (&nPoly),
-                                                       const_cast <int *> (&nDistantPoint),
-                                                       const_cast <double *> (_supportMesh->getVertexCoords()),
-                                                       const_cast <int *> (localConnectivityIndex),
-                                                       const_cast <int *> (localConnectivity),
-                                                       const_cast <int *> (localPolyhedraFaceIndex),
-                                                       const_cast <int *> (localPolyhedraCellToFaceConnectivity),
-                                                       const_cast <int *> (localPolyhedraFaceConnectivity_index),
-                                                       const_cast <int *> (localPolyhedraFaceConnectivity),
-                                                       const_cast <double *> (distantCoords),
-                                                       const_cast <int *> (distantLocation),
-                                                       const_cast <float *> (distantDistance),
-                                                       const_cast <int *> (barycentricCoordinatesIndex),
-                                                       const_cast <double *> (barycentricCoordinates),
-                                                       const_cast <int *> (&stride),
-                                                       const_cast <int *> ((const int *) &_solverType),
-                                                       const_cast <double *> (sendingField),
-                                                       const_cast <double *> (&tmpDistantField[0]),
-                                                       ptFortranInterpolationFct
-                                                       );
+            PROCF(callfortinterpfct, CALLFORTINTERPFCT) (
+                                                         const_cast <int *> (&_entitiesDim),
+                                                         const_cast <int *> (&nVertex),
+                                                         const_cast <int *> (&nElts),
+                                                         const_cast <int *> (&nPoly),
+                                                         const_cast <int *> (&nDistantPoint),
+                                                         const_cast <double *> (_supportMesh->getVertexCoords()),
+                                                         const_cast <int *> (localConnectivityIndex),
+                                                         const_cast <int *> (localConnectivity),
+                                                         const_cast <int *> (localPolyhedraFaceIndex),
+                                                         const_cast <int *> (localPolyhedraCellToFaceConnectivity),
+                                                         const_cast <int *> (localPolyhedraFaceConnectivity_index),
+                                                         const_cast <int *> (localPolyhedraFaceConnectivity),
+                                                         const_cast <double *> (distantCoords),
+                                                         const_cast <int *> (distantLocation),
+                                                         const_cast <float *> (distantDistance),
+                                                         const_cast <int *> (barycentricCoordinatesIndex),
+                                                         const_cast <double *> (barycentricCoordinates),
+                                                         const_cast <int *> (&stride),
+                                                         const_cast <int *> ((const int *) &_solverType),
+                                                         const_cast <double *> (sendingField),
+                                                         const_cast <double *> (&tmpDistantField[0]),
+                                                         ptFortranInterpolationFct
+                                                         );
 #else
-          fprintf(stderr,"CWIPI Error : Impossible to use a Fortran user interpolation function");
-          abort();
+            fprintf(stderr,"CWIPI Error : Impossible to use a Fortran user interpolation function");
+            abort();
 #endif
-        }
-        //
-        // Callback C
+          }
+          
+          //
+          // Callback C
 
-        else if (_interpolationFct != NULL)
-          _interpolationFct(_entitiesDim,
-                            nVertex,
-                            nElts,
-                            nPoly,
-                            nDistantPoint,
-                            _supportMesh->getVertexCoords(),
-                            localConnectivityIndex,
-                            localConnectivity,
-                            localPolyhedraFaceIndex,
-                            localPolyhedraCellToFaceConnectivity,
-                            localPolyhedraFaceConnectivity_index,
-                            localPolyhedraFaceConnectivity,
-                            distantCoords,
-                            distantLocation,
-                            distantDistance,
-                            barycentricCoordinatesIndex,
-                            barycentricCoordinates,
-                            stride,
-                            _solverType,
-                            sendingField,
-                            &tmpDistantField[0]);
+          else if (_interpolationFct != NULL)
+            _interpolationFct(_entitiesDim,
+                              nVertex,
+                              nElts,
+                              nPoly,
+                              nDistantPoint,
+                              _supportMesh->getVertexCoords(),
+                              localConnectivityIndex,
+                              localConnectivity,
+                              localPolyhedraFaceIndex,
+                              localPolyhedraCellToFaceConnectivity,
+                              localPolyhedraFaceConnectivity_index,
+                              localPolyhedraFaceConnectivity,
+                              distantCoords,
+                              distantLocation,
+                              distantDistance,
+                              barycentricCoordinatesIndex,
+                              barycentricCoordinates,
+                              stride,
+                              _solverType,
+                              sendingField,
+                              &tmpDistantField[0]);
 
-        //
-        // Callback Fortran appele en C
-
-        else if (_interpolationFct_f != NULL) {
+          //
+          // Callback Fortran appele en C
+          
+          else if (_interpolationFct_f != NULL) {
 #ifndef CWP_HAVE_NOT_FORTRAN_IN_C            
-          PROCF(callfortinterpfct, CALLFORTINTERPFCT) (
-                                                       const_cast <int *> (&_entitiesDim),
-                                                       const_cast <int *> (&nVertex),
-                                                       const_cast <int *> (&nElts),
-                                                       const_cast <int *> (&nPoly),
-                                                       const_cast <int *> (&nDistantPoint),
-                                                       const_cast <double *> (_supportMesh->getVertexCoords()),
-                                                       const_cast <int *> (localConnectivityIndex),
-                                                       const_cast <int *> (localConnectivity),
-                                                       const_cast <int *> (localPolyhedraFaceIndex),
-                                                       const_cast <int *> (localPolyhedraCellToFaceConnectivity),
-                                                       const_cast <int *> (localPolyhedraFaceConnectivity_index),
-                                                       const_cast <int *> (localPolyhedraFaceConnectivity),
-                                                       const_cast <double *> (distantCoords),
-                                                       const_cast <int *> (distantLocation),
-                                                       const_cast <float *> (distantDistance),
-                                                       const_cast <int *> (barycentricCoordinatesIndex),
-                                                       const_cast <double *> (barycentricCoordinates),
-                                                       const_cast <int *> (&stride),
-                                                       const_cast <int *> ((const int *) &_solverType),
-                                                       const_cast <double *> (sendingField),
-                                                       const_cast <double *> (&tmpDistantField[0]),
-                                                       _interpolationFct_f
-                                                       );
+            PROCF(callfortinterpfct, CALLFORTINTERPFCT) (
+                                                         const_cast <int *> (&_entitiesDim),
+                                                         const_cast <int *> (&nVertex),
+                                                         const_cast <int *> (&nElts),
+                                                         const_cast <int *> (&nPoly),
+                                                         const_cast <int *> (&nDistantPoint),
+                                                         const_cast <double *> (_supportMesh->getVertexCoords()),
+                                                         const_cast <int *> (localConnectivityIndex),
+                                                         const_cast <int *> (localConnectivity),
+                                                         const_cast <int *> (localPolyhedraFaceIndex),
+                                                         const_cast <int *> (localPolyhedraCellToFaceConnectivity),
+                                                         const_cast <int *> (localPolyhedraFaceConnectivity_index),
+                                                         const_cast <int *> (localPolyhedraFaceConnectivity),
+                                                         const_cast <double *> (distantCoords),
+                                                         const_cast <int *> (distantLocation),
+                                                         const_cast <float *> (distantDistance),
+                                                         const_cast <int *> (barycentricCoordinatesIndex),
+                                                         const_cast <double *> (barycentricCoordinates),
+                                                         const_cast <int *> (&stride),
+                                                         const_cast <int *> ((const int *) &_solverType),
+                                                         const_cast <double *> (sendingField),
+                                                         const_cast <double *> (&tmpDistantField[0]),
+                                                         _interpolationFct_f
+                                                         );
 #else
-          fprintf(stderr,"CWIPI Error : Impossible to use a Fortran user interpolation function");
-          abort();
+            fprintf(stderr,"CWIPI Error : Impossible to use a Fortran user interpolation function");
+            abort();
 #endif
+          }
+          else
+            _interpolate((double* )sendingField,
+                         tmpDistantField,
+                         stride);
         }
-        else
-          _interpolate((double* )sendingField,
-                       tmpDistantField,
-                       stride);
+        else {
+          const int uvw_size = fvmc_nodal_get_max_entity_dim(&(_supportMesh->getFvmNodal()));
+          const double *dist_uvw = fvmc_locator_get_dist_uvw(_locationToLocalMesh->getFVMLocator());
+
+          if (ptFortranInterpolationFct != NULL) {
+#ifndef CWP_HAVE_NOT_FORTRAN_IN_C
+            
+            PROCF(callforthointerpfct, CALLFORTHOINTERPFCT) (
+                                                         const_cast <int *> (&_entitiesDim),
+                                                         const_cast <int *> (&nVertex),
+                                                         const_cast <int *> (&nElts),
+                                                         const_cast <int *> (&nPoly),
+                                                         const_cast <int *> (&nDistantPoint),
+                                                         const_cast <double *> (_supportMesh->getVertexCoords()),
+                                                         const_cast <int *> (localConnectivityIndex),
+                                                         const_cast <int *> (localConnectivity),
+                                                         const_cast <int *> (localPolyhedraFaceIndex),
+                                                         const_cast <int *> (localPolyhedraCellToFaceConnectivity),
+                                                         const_cast <int *> (localPolyhedraFaceConnectivity_index),
+                                                         const_cast <int *> (localPolyhedraFaceConnectivity),
+                                                         const_cast <double *> (distantCoords),
+                                                         const_cast <int *> (distantLocation),
+                                                         const_cast <float *> (distantDistance),
+                                                         const_cast <int *> (barycentricCoordinatesIndex),
+                                                         const_cast <double *> (barycentricCoordinates),
+                                                         const_cast <int *> (&uvw_size),
+                                                         const_cast <double *> (dist_uvw),
+                                                         const_cast <int *> (&stride),
+                                                         const_cast <int *> ((const int *) &_solverType),
+                                                         const_cast <double *> (sendingField),
+                                                         const_cast <double *> (&tmpDistantField[0]),
+                                                         ptFortranInterpolationFct
+                                                         );
+#else
+            fprintf(stderr,"CWIPI Error : Impossible to use a Fortran user interpolation function");
+            abort();
+#endif
+          }
+          
+          //
+          // Callback C
+
+          else if (_interpolationFct != NULL)
+            _ho_interpolationFct(_entitiesDim,
+                                 nVertex,
+                                 nElts,
+                                 nPoly,
+                                 nDistantPoint,
+                                 _supportMesh->getVertexCoords(),
+                                 localConnectivityIndex,
+                                 localConnectivity,
+                                 localPolyhedraFaceIndex,
+                                 localPolyhedraCellToFaceConnectivity,
+                                 localPolyhedraFaceConnectivity_index,
+                                 localPolyhedraFaceConnectivity,
+                                 distantCoords,
+                                 distantLocation,
+                                 distantDistance,
+                                 barycentricCoordinatesIndex,
+                                 barycentricCoordinates,
+                                 uvw_size,
+                                 dist_uvw,
+                                 stride,
+                                 _solverType,
+                                 sendingField,
+                                 &tmpDistantField[0]);
+
+          //
+          // Callback Fortran appele en C
+          
+          else if (_interpolationFct_f != NULL) {
+#ifndef CWP_HAVE_NOT_FORTRAN_IN_C            
+            PROCF(callforthointerpfct, CALLFORTHOINTERPFCT) (
+                                                         const_cast <int *> (&_entitiesDim),
+                                                         const_cast <int *> (&nVertex),
+                                                         const_cast <int *> (&nElts),
+                                                         const_cast <int *> (&nPoly),
+                                                         const_cast <int *> (&nDistantPoint),
+                                                         const_cast <double *> (_supportMesh->getVertexCoords()),
+                                                         const_cast <int *> (localConnectivityIndex),
+                                                         const_cast <int *> (localConnectivity),
+                                                         const_cast <int *> (localPolyhedraFaceIndex),
+                                                         const_cast <int *> (localPolyhedraCellToFaceConnectivity),
+                                                         const_cast <int *> (localPolyhedraFaceConnectivity_index),
+                                                         const_cast <int *> (localPolyhedraFaceConnectivity),
+                                                         const_cast <double *> (distantCoords),
+                                                         const_cast <int *> (distantLocation),
+                                                         const_cast <float *> (distantDistance),
+                                                         const_cast <int *> (barycentricCoordinatesIndex),
+                                                         const_cast <double *> (barycentricCoordinates),
+                                                         const_cast <int *> (&uvw_size),
+                                                         const_cast <double *> (dist_uvw),
+                                                         const_cast <int *> (&stride),
+                                                         const_cast <int *> ((const int *) &_solverType),
+                                                         const_cast <double *> (sendingField),
+                                                         const_cast <double *> (&tmpDistantField[0]),
+                                                         _ho_interpolationFct_f
+                                                         );
+#else
+            fprintf(stderr,"CWIPI Error : Impossible to use a Fortran user interpolation function");
+            abort();
+#endif
+          }
+          else
+            _interpolate((double* )sendingField,
+                         tmpDistantField,
+                         stride);
+
+        
+        }
+        
       }
 
       //
@@ -1486,108 +1635,224 @@ namespace cwipi {
 
       if (sendingField != NULL) {
 
-        assert(!(_interpolationFct != NULL && ptFortranInterpolationFct != NULL));
+        const int order = _supportMesh->getOrder();
+ 
+        if (order == -1) {
+          assert(!(_interpolationFct != NULL && ptFortranInterpolationFct != NULL));
 
-        //
-        // Callback Fortran
+          //
+          // Callback Fortran
 
-        if (ptFortranInterpolationFct != NULL) {
+          if (ptFortranInterpolationFct != NULL) {
 #ifndef CWP_HAVE_NOT_FORTRAN_IN_C                         
-          PROCF(callfortinterpfct, CALLFORTINTERPFCT) (
-                                                       const_cast <int *> (&_entitiesDim),
-                                                       const_cast <int *> (&nVertex),
-                                                       const_cast <int *> (&nElts),
-                                                       const_cast <int *> (&nPoly),
-                                                       const_cast <int *> (&nDistantPoint),
-                                                       const_cast <double *> (_supportMesh->getVertexCoords()),
-                                                       const_cast <int *> (localConnectivityIndex),
-                                                       const_cast <int *> (localConnectivity),
-                                                       const_cast <int *> (localPolyhedraFaceIndex),
-                                                       const_cast <int *> (localPolyhedraCellToFaceConnectivity),
-                                                       const_cast <int *> (localPolyhedraFaceConnectivity_index),
-                                                       const_cast <int *> (localPolyhedraFaceConnectivity),
-                                                       const_cast <double *> (distantCoords),
-                                                       const_cast <int *> (distantLocation),
-                                                       const_cast <float *> (distantDistance),
-                                                       const_cast <int *> (barycentricCoordinatesIndex),
-                                                       const_cast <double *> (barycentricCoordinates),
-                                                       const_cast <int *> (&stride),
-                                                       const_cast <int *> ((const int *) &_solverType),
-                                                       const_cast <double *> (sendingField),
-                                                       const_cast <double *> (&tmpDistantField[0]),
-                                                       ptFortranInterpolationFct
-                                                       );
+            PROCF(callfortinterpfct, CALLFORTINTERPFCT) (
+                                                         const_cast <int *> (&_entitiesDim),
+                                                         const_cast <int *> (&nVertex),
+                                                         const_cast <int *> (&nElts),
+                                                         const_cast <int *> (&nPoly),
+                                                         const_cast <int *> (&nDistantPoint),
+                                                         const_cast <double *> (_supportMesh->getVertexCoords()),
+                                                         const_cast <int *> (localConnectivityIndex),
+                                                         const_cast <int *> (localConnectivity),
+                                                         const_cast <int *> (localPolyhedraFaceIndex),
+                                                         const_cast <int *> (localPolyhedraCellToFaceConnectivity),
+                                                         const_cast <int *> (localPolyhedraFaceConnectivity_index),
+                                                         const_cast <int *> (localPolyhedraFaceConnectivity),
+                                                         const_cast <double *> (distantCoords),
+                                                         const_cast <int *> (distantLocation),
+                                                         const_cast <float *> (distantDistance),
+                                                         const_cast <int *> (barycentricCoordinatesIndex),
+                                                         const_cast <double *> (barycentricCoordinates),
+                                                         const_cast <int *> (&stride),
+                                                         const_cast <int *> ((const int *) &_solverType),
+                                                         const_cast <double *> (sendingField),
+                                                         const_cast <double *> (&tmpDistantField[0]),
+                                                         ptFortranInterpolationFct
+                                                         );
 
 #else
-          fprintf(stderr,"CWIPI Error : Impossible to use a Fortran user interpolation function");
-          abort();
+            fprintf(stderr,"CWIPI Error : Impossible to use a Fortran user interpolation function");
+            abort();
 #endif
         }
         //
         // Callback C
 
-        else if (_interpolationFct != NULL)
-          _interpolationFct(_entitiesDim,
-                            nVertex,
-                            nElts,
-                            nPoly,
-                            nDistantPoint,
-                            _supportMesh->getVertexCoords(),
-                            localConnectivityIndex,
-                            localConnectivity,
-                            localPolyhedraFaceIndex,
-                            localPolyhedraCellToFaceConnectivity,
-                            localPolyhedraFaceConnectivity_index,
-                            localPolyhedraFaceConnectivity,
-                            distantCoords,
-                            distantLocation,
-                            distantDistance,
-                            barycentricCoordinatesIndex,
-                            barycentricCoordinates,
-                            stride,
-                            _solverType,
-                            sendingField,
-                            &tmpDistantField[0]);
+          else if (_interpolationFct != NULL)
+            _interpolationFct(_entitiesDim,
+                              nVertex,
+                              nElts,
+                              nPoly,
+                              nDistantPoint,
+                              _supportMesh->getVertexCoords(),
+                              localConnectivityIndex,
+                              localConnectivity,
+                              localPolyhedraFaceIndex,
+                              localPolyhedraCellToFaceConnectivity,
+                              localPolyhedraFaceConnectivity_index,
+                              localPolyhedraFaceConnectivity,
+                              distantCoords,
+                              distantLocation,
+                              distantDistance,
+                              barycentricCoordinatesIndex,
+                              barycentricCoordinates,
+                              stride,
+                              _solverType,
+                              sendingField,
+                              &tmpDistantField[0]);
 
-        //
-        // Callback Fortran appele en C
-
-        else if (_interpolationFct_f != NULL) {
+          //
+          // Callback Fortran appele en C
+          
+          else if (_interpolationFct_f != NULL) {
 #ifndef CWP_HAVE_NOT_FORTRAN_IN_C                        
-          PROCF(callfortinterpfct, CALLFORTINTERPFCT) (
-                                                       const_cast <int *> (&_entitiesDim),
-                                                       const_cast <int *> (&nVertex),
-                                                       const_cast <int *> (&nElts),
-                                                       const_cast <int *> (&nPoly),
-                                                       const_cast <int *> (&nDistantPoint),
-                                                       const_cast <double *> (_supportMesh->getVertexCoords()),
-                                                       const_cast <int *> (localConnectivityIndex),
-                                                       const_cast <int *> (localConnectivity),
-                                                       const_cast <int *> (localPolyhedraFaceIndex),
-                                                       const_cast <int *> (localPolyhedraCellToFaceConnectivity),
-                                                       const_cast <int *> (localPolyhedraFaceConnectivity_index),
-                                                       const_cast <int *> (localPolyhedraFaceConnectivity),
-                                                       const_cast <double *> (distantCoords),
-                                                       const_cast <int *> (distantLocation),
-                                                       const_cast <float *> (distantDistance),
-                                                       const_cast <int *> (barycentricCoordinatesIndex),
-                                                       const_cast <double *> (barycentricCoordinates),
-                                                       const_cast <int *> (&stride),
-                                                       const_cast <int *> ((const int *) &_solverType),
-                                                       const_cast <double *> (sendingField),
-                                                       const_cast <double *> (&tmpDistantField[0]),
-                                                       _interpolationFct_f
-                                                       );
+            PROCF(callfortinterpfct, CALLFORTINTERPFCT) (
+                                                         const_cast <int *> (&_entitiesDim),
+                                                         const_cast <int *> (&nVertex),
+                                                         const_cast <int *> (&nElts),
+                                                         const_cast <int *> (&nPoly),
+                                                         const_cast <int *> (&nDistantPoint),
+                                                         const_cast <double *> (_supportMesh->getVertexCoords()),
+                                                         const_cast <int *> (localConnectivityIndex),
+                                                         const_cast <int *> (localConnectivity),
+                                                         const_cast <int *> (localPolyhedraFaceIndex),
+                                                         const_cast <int *> (localPolyhedraCellToFaceConnectivity),
+                                                         const_cast <int *> (localPolyhedraFaceConnectivity_index),
+                                                         const_cast <int *> (localPolyhedraFaceConnectivity),
+                                                         const_cast <double *> (distantCoords),
+                                                         const_cast <int *> (distantLocation),
+                                                         const_cast <float *> (distantDistance),
+                                                         const_cast <int *> (barycentricCoordinatesIndex),
+                                                         const_cast <double *> (barycentricCoordinates),
+                                                         const_cast <int *> (&stride),
+                                                         const_cast <int *> ((const int *) &_solverType),
+                                                         const_cast <double *> (sendingField),
+                                                         const_cast <double *> (&tmpDistantField[0]),
+                                                         _interpolationFct_f
+                                                         );
 
 #else
-          fprintf(stderr,"CWIPI Error : Impossible to use a Fortran user interpolation function");
-          abort();
+            fprintf(stderr,"CWIPI Error : Impossible to use a Fortran user interpolation function");
+            abort();
 #endif
+          }
+          else
+            _interpolate((double* )sendingField,
+                         tmpDistantField,
+                         stride);
         }
-        else
-          _interpolate((double* )sendingField,
-                       tmpDistantField,
-                       stride);
+        else {
+          const int uvw_size = fvmc_nodal_get_max_entity_dim(&(_supportMesh->getFvmNodal()));
+          const double *dist_uvw = fvmc_locator_get_dist_uvw(_locationToLocalMesh->getFVMLocator());
+
+          if (ptFortranInterpolationFct != NULL) {
+#ifndef CWP_HAVE_NOT_FORTRAN_IN_C
+            
+            PROCF(callforthointerpfct, CALLFORTHOINTERPFCT) (
+                                                         const_cast <int *> (&_entitiesDim),
+                                                         const_cast <int *> (&nVertex),
+                                                         const_cast <int *> (&nElts),
+                                                         const_cast <int *> (&nPoly),
+                                                         const_cast <int *> (&nDistantPoint),
+                                                         const_cast <double *> (_supportMesh->getVertexCoords()),
+                                                         const_cast <int *> (localConnectivityIndex),
+                                                         const_cast <int *> (localConnectivity),
+                                                         const_cast <int *> (localPolyhedraFaceIndex),
+                                                         const_cast <int *> (localPolyhedraCellToFaceConnectivity),
+                                                         const_cast <int *> (localPolyhedraFaceConnectivity_index),
+                                                         const_cast <int *> (localPolyhedraFaceConnectivity),
+                                                         const_cast <double *> (distantCoords),
+                                                         const_cast <int *> (distantLocation),
+                                                         const_cast <float *> (distantDistance),
+                                                         const_cast <int *> (barycentricCoordinatesIndex),
+                                                         const_cast <double *> (barycentricCoordinates),
+                                                         const_cast <int *> (&uvw_size),
+                                                         const_cast <double *> (dist_uvw),
+                                                         const_cast <int *> (&stride),
+                                                         const_cast <int *> ((const int *) &_solverType),
+                                                         const_cast <double *> (sendingField),
+                                                         const_cast <double *> (&tmpDistantField[0]),
+                                                         ptFortranInterpolationFct
+                                                         );
+#else
+            fprintf(stderr,"CWIPI Error : Impossible to use a Fortran user interpolation function");
+            abort();
+#endif
+          }
+          
+          //
+          // Callback C
+
+          else if (_interpolationFct != NULL)
+            _ho_interpolationFct(_entitiesDim,
+                                 nVertex,
+                                 nElts,
+                                 nPoly,
+                                 nDistantPoint,
+                                 _supportMesh->getVertexCoords(),
+                                 localConnectivityIndex,
+                                 localConnectivity,
+                                 localPolyhedraFaceIndex,
+                                 localPolyhedraCellToFaceConnectivity,
+                                 localPolyhedraFaceConnectivity_index,
+                                 localPolyhedraFaceConnectivity,
+                                 distantCoords,
+                                 distantLocation,
+                                 distantDistance,
+                                 barycentricCoordinatesIndex,
+                                 barycentricCoordinates,
+                                 uvw_size,
+                                 dist_uvw,
+                                 stride,
+                                 _solverType,
+                                 sendingField,
+                                 &tmpDistantField[0]);
+
+          //
+          // Callback Fortran appele en C
+          
+          else if (_interpolationFct_f != NULL) {
+#ifndef CWP_HAVE_NOT_FORTRAN_IN_C            
+            PROCF(callforthointerpfct, CALLFORTHOINTERPFCT) (
+                                                         const_cast <int *> (&_entitiesDim),
+                                                         const_cast <int *> (&nVertex),
+                                                         const_cast <int *> (&nElts),
+                                                         const_cast <int *> (&nPoly),
+                                                         const_cast <int *> (&nDistantPoint),
+                                                         const_cast <double *> (_supportMesh->getVertexCoords()),
+                                                         const_cast <int *> (localConnectivityIndex),
+                                                         const_cast <int *> (localConnectivity),
+                                                         const_cast <int *> (localPolyhedraFaceIndex),
+                                                         const_cast <int *> (localPolyhedraCellToFaceConnectivity),
+                                                         const_cast <int *> (localPolyhedraFaceConnectivity_index),
+                                                         const_cast <int *> (localPolyhedraFaceConnectivity),
+                                                         const_cast <double *> (distantCoords),
+                                                         const_cast <int *> (distantLocation),
+                                                         const_cast <float *> (distantDistance),
+                                                         const_cast <int *> (barycentricCoordinatesIndex),
+                                                         const_cast <double *> (barycentricCoordinates),
+                                                         const_cast <int *> (&uvw_size),
+                                                         const_cast <double *> (dist_uvw),
+                                                         const_cast <int *> (&stride),
+                                                         const_cast <int *> ((const int *) &_solverType),
+                                                         const_cast <double *> (sendingField),
+                                                         const_cast <double *> (&tmpDistantField[0]),
+                                                         _ho_interpolationFct_f
+                                                         );
+#else
+            fprintf(stderr,"CWIPI Error : Impossible to use a Fortran user interpolation function");
+            abort();
+#endif
+          }
+          else
+            _interpolate((double* )sendingField,
+                         tmpDistantField,
+                         stride);
+
+        
+        }
+
+        
       }
 
       //

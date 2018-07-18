@@ -40,6 +40,15 @@ namespace cwipi {
   {
     _interpolationFct_f = fct;
   }
+  void  oldCoupling::set_ho_interpolation_function(cwipi_user_interp_ho_fct_t fct)
+  {
+    _ho_interpolationFct = fct;
+  }
+
+  void  oldCoupling::set_ho_interpolation_function_f(void * fct)
+  {
+    _ho_interpolationFct_f = fct;
+  }
 
   const int * oldCoupling::getDistantLocation() const
   {

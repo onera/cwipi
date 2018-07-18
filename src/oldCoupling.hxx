@@ -128,6 +128,10 @@ namespace cwipi {
 
     inline void set_interpolation_function_f(void* fct);
 
+    inline void set_ho_interpolation_function(cwipi_user_interp_ho_fct_t fct);
+
+    inline void set_ho_interpolation_function_f(void* fct);
+
     inline int getNNotlocatedPoint() const;
 
     inline const int *getNotlocatedPoint() const;
@@ -276,7 +280,10 @@ namespace cwipi {
     bool                 _isCoupledRank;
 
     cwipi_interpolation_fct_t _interpolationFct;
+    cwipi_user_interp_ho_fct_t _ho_interpolationFct;
+    
     void * _interpolationFct_f;
+    void * _ho_interpolationFct_f;
     bool                 _toLocate;
     oldMesh                *_supportMesh;
     MPI_File _locationsFile;

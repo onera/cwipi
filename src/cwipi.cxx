@@ -1590,14 +1590,14 @@ void cwipi_ho_set_interpolation_function
 (const char *coupling_name,
  cwipi_user_interp_ho_fct_t fct)
 {
-  // cwipi::CouplingDataBase & couplingDataBase =
-  //   cwipi::CouplingDataBase::getInstance();
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
 
-  // const std::string &coupling_name_str = coupling_name;
+  const std::string &coupling_name_str = coupling_name;
 
-  // cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
-  // coupling.set_interpolation_function(fct);
+  coupling.set_ho_interpolation_function(fct);
 }
 
 
