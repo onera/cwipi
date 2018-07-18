@@ -80,17 +80,20 @@ module cwipi
   ! Public interfaces
   interface cwipi_exchange_f ; module procedure &
     cwipi_exch_without_user_itp_f_, &
-    cwipi_exch_with_user_itp_f_
-  end interface
+    cwipi_exch_with_user_itp_f_, &
+    cwipi_exch_with_user_ho_itp_f_
+  end interface cwipi_exchange_f
 
   interface cwipi_send_f     ; module procedure  &
     cwipi_send_without_user_itp_f_, &
-    cwipi_send_with_user_itp_f_
+    cwipi_send_with_user_itp_f_,&
+    cwipi_send_with_user_ho_itp_f_
   end interface
 
   interface cwipi_issend_f     ; module procedure  &
     cwipi_issend_without_user_itp_f_, &
-    cwipi_issend_with_user_itp_f_
+    cwipi_issend_with_user_itp_f_, &
+    cwipi_issend_with_user_ho_itp_f_
   end interface
 
   interface cwipi_wait_issend_f     ; module procedure  &
@@ -2262,6 +2265,99 @@ contains
   end subroutine cwipi_issend_with_user_itp_f_
 
 
+
+
+  
+
+  subroutine cwipi_issend_with_user_ho_itp_f_ (couplingName, &
+                                            exchangeName, &
+                                            tag, &
+                                            stride, &
+                                            nStep, &
+                                            timeValue, &
+                                            sendingFieldName, &
+                                            sendingField, &
+                                            ptInterpolationFct, &
+                                            request)
+
+    implicit none
+
+    interface
+       subroutine  ptInterpolationFct(entitiesDim, &
+                                      nLocalVertex, &
+                                      nLocalElement, &
+                                      nLocalPolyhedra, &
+                                      nDistantPoint, &
+                                      localCoordinates, &
+                                      localConnectivityIndex, &
+                                      localConnectivity, &
+                                      localPolyFaceIndex, &
+                                      localPolyCellToFaceConnec, &
+                                      localPolyFaceConnecIdx, &
+                                      localPolyFaceConnec, &
+                                      disPtsCoordinates, &
+                                      disPtsLocation, &
+                                      disPtsDistance, &
+                                      disPtsBaryCoordIdx, &
+                                      disPtsBaryCoord, &
+                                      uvw_size, &
+                                      dist_uvw, &
+                                      stride, &
+                                      solverType, &
+                                      localField, &
+                                      distantField)
+         integer (kind = 4) :: entitiesDim
+         integer (kind = 4) :: nLocalVertex
+         integer (kind = 4) :: nLocalElement
+         integer (kind = 4) :: nLocalPolyhedra
+         integer (kind = 4) :: nDistantPoint
+         double precision, dimension(*) :: localCoordinates
+         integer (kind = 4), dimension(*) :: localConnectivityIndex
+         integer (kind = 4), dimension(*) :: localConnectivity
+         integer (kind = 4), dimension(*) :: localPolyFaceIndex
+         integer (kind = 4), dimension(*) :: localPolyCellToFaceConnec
+         integer (kind = 4), dimension(*) :: localPolyFaceConnecIdx
+         integer (kind = 4), dimension(*) :: localPolyFaceConnec
+         double precision, dimension(*) :: disPtsCoordinates
+         integer (kind = 4), dimension(*) :: disPtsLocation
+         real(kind=4), dimension(*) :: disPtsDistance
+         integer (kind = 4), dimension(*) :: disPtsBaryCoordIdx
+         double precision, dimension(*) :: disPtsBaryCoord
+         integer (kind = 4) :: uvw_size
+         double precision, dimension(*) :: dist_uvw
+         integer (kind = 4) :: stride
+         integer (kind = 4) :: solverType
+         double precision, dimension(*) :: localField
+         double precision, dimension(*) :: distantField
+       end subroutine ptInterpolationFct
+    end interface
+    character (len = *) :: couplingName, exchangeName, sendingFieldName
+    integer (kind = cwipi_int_l) :: stride, nStep, tag, request
+    double precision :: timeValue
+    double precision, dimension(*) :: sendingField
+
+    integer (kind = cwipi_int_l) :: lCouplingName, lExchangeName, lSendingFieldName
+
+    lCouplingName       = len(couplingName)
+    lExchangeName       = len(exchangeName)
+    lSendingFieldName   = len(sendingFieldName)
+
+    call cwipi_issend_with_user_itp_cf(couplingName, &
+                                       lCouplingName, &
+                                       exchangeName, &
+                                       lExchangeName, &
+                                       tag, &
+                                       stride, &
+                                       nStep, &
+                                       timeValue, &
+                                       sendingFieldName, &
+                                       lSendingFieldName, &
+                                       sendingField, &
+                                       ptInterpolationFct, &
+                                       request)
+
+  end subroutine cwipi_issend_with_user_ho_itp_f_
+
 !
 !********************************************************************************
 !
@@ -2422,6 +2518,98 @@ contains
                                         status)
 
   end subroutine cwipi_send_with_user_itp_f_
+
+
+
+
+
+  subroutine cwipi_send_with_user_ho_itp_f_ (couplingName, &
+                                          exchangeName, &
+                                          stride, &
+                                          nStep, &
+                                          timeValue, &
+                                          sendingFieldName, &
+                                          sendingField, &
+                                          ptInterpolationFct, &
+                                          status)
+
+    implicit none
+
+    interface
+       subroutine  ptInterpolationFct(entitiesDim, &
+                                      nLocalVertex, &
+                                      nLocalElement, &
+                                      nLocalPolyhedra, &
+                                      nDistantPoint, &
+                                      localCoordinates, &
+                                      localConnectivityIndex, &
+                                      localConnectivity, &
+                                      localPolyFaceIndex, &
+                                      localPolyCellToFaceConnec, &
+                                      localPolyFaceConnecIdx, &
+                                      localPolyFaceConnec, &
+                                      disPtsCoordinates, &
+                                      disPtsLocation, &
+                                      disPtsDistance, &
+                                      disPtsBaryCoordIdx, &
+                                      disPtsBaryCoord, &
+                                      uvw_size, &
+                                      dist_uvw, &
+                                      stride, &
+                                      solverType, &
+                                      localField, &
+                                      distantField)
+         integer (kind = 4) :: entitiesDim
+         integer (kind = 4) :: nLocalVertex
+         integer (kind = 4) :: nLocalElement
+         integer (kind = 4) :: nLocalPolyhedra
+         integer (kind = 4) :: nDistantPoint
+         double precision, dimension(*) :: localCoordinates
+         integer (kind = 4), dimension(*) :: localConnectivityIndex
+         integer (kind = 4), dimension(*) :: localConnectivity
+         integer (kind = 4), dimension(*) :: localPolyFaceIndex
+         integer (kind = 4), dimension(*) :: localPolyCellToFaceConnec
+         integer (kind = 4), dimension(*) :: localPolyFaceConnecIdx
+         integer (kind = 4), dimension(*) :: localPolyFaceConnec
+         double precision, dimension(*) :: disPtsCoordinates
+         integer (kind = 4), dimension(*) :: disPtsLocation
+         real(kind=4), dimension(*) :: disPtsDistance
+         integer (kind = 4), dimension(*) :: disPtsBaryCoordIdx
+         double precision, dimension(*) :: disPtsBaryCoord
+         integer (kind = 4) :: uvw_size
+         double precision, dimension(*) :: dist_uvw
+         integer (kind = 4) :: stride
+         integer (kind = 4) :: solverType
+         double precision, dimension(*) :: localField
+         double precision, dimension(*) :: distantField
+       end subroutine ptInterpolationFct
+    end interface
+    character (len = *) :: couplingName, exchangeName, sendingFieldName
+    integer (kind = cwipi_int_l) :: stride, nStep, status
+    double precision :: timeValue
+    double precision, dimension(*) :: sendingField
+
+    integer (kind = cwipi_int_l) :: lCouplingName, lExchangeName, lSendingFieldName
+
+    lCouplingName       = len(couplingName)
+    lExchangeName       = len(exchangeName)
+    lSendingFieldName   = len(sendingFieldName)
+
+    call cwipi_send_with_user_itp_cf(couplingName, &
+                                        lCouplingName, &
+                                        exchangeName, &
+                                        lExchangeName, &
+                                        stride, &
+                                        nStep, &
+                                        timeValue, &
+                                        sendingFieldName, &
+                                        lSendingFieldName, &
+                                        sendingField, &
+                                        ptInterpolationFct, &
+                                        status)
+
+  end subroutine cwipi_send_with_user_ho_itp_f_
+
 
 !
 !********************************************************************************
@@ -2727,6 +2915,107 @@ contains
 
   end subroutine cwipi_exch_with_user_itp_f_
 
+
+
+  subroutine cwipi_exch_with_user_ho_itp_f_ (couplingName, &
+                                          exchangeName, &
+                                          exchangeDim, &
+                                          nStep, &
+                                          timeValue, &
+                                          sendingFieldName, &
+                                          sendingField, &
+                                          receivingFieldName, &
+                                          receivingField, &
+                                          ptInterpolationFct2, &
+                                          nNotLocatedPoints, &
+                                          status)
+
+    implicit none
+
+    interface
+       subroutine  ptInterpolationFct2(entitiesDim, &
+                                      nLocalVertex, &
+                                      nLocalElement, &
+                                      nLocalPolyhedra, &
+                                      nDistantPoint, &
+                                      localCoordinates, &
+                                      localConnectivityIndex, &
+                                      localConnectivity, &
+                                      localPolyFaceIndex, &
+                                      localPolyCellToFaceConnec, &
+                                      localPolyFaceConnecIdx, &
+                                      localPolyFaceConnec, &
+                                      disPtsCoordinates, &
+                                      disPtsLocation, &
+                                      disPtsDistance, &
+                                      disPtsBaryCoordIdx, &
+                                      disPtsBaryCoord, &
+                                      uvw_size, &
+                                      dist_uvw, &
+                                      stride, &
+                                      solverType, &
+                                      localField, &
+                                      distantField)
+         integer (kind = 4) :: entitiesDim
+         integer (kind = 4) :: nLocalVertex
+         integer (kind = 4) :: nLocalElement
+         integer (kind = 4) :: nLocalPolyhedra
+         integer (kind = 4) :: nDistantPoint
+         double precision, dimension(*) :: localCoordinates
+         integer (kind = 4), dimension(*) :: localConnectivityIndex
+         integer (kind = 4), dimension(*) :: localConnectivity
+         integer (kind = 4), dimension(*) :: localPolyFaceIndex
+         integer (kind = 4), dimension(*) :: localPolyCellToFaceConnec
+         integer (kind = 4), dimension(*) :: localPolyFaceConnecIdx
+         integer (kind = 4), dimension(*) :: localPolyFaceConnec
+         double precision, dimension(*) :: disPtsCoordinates
+         integer (kind = 4), dimension(*) :: disPtsLocation
+         real(kind=4), dimension(*) :: disPtsDistance
+         integer (kind = 4), dimension(*) :: disPtsBaryCoordIdx
+         double precision, dimension(*) :: disPtsBaryCoord
+         integer (kind = 4) :: uvw_size
+         double precision, dimension(*) :: dist_uvw
+         integer (kind = 4) :: stride
+         integer (kind = 4) :: solverType
+         double precision, dimension(*) :: localField
+         double precision, dimension(*) :: distantField
+       end subroutine ptInterpolationFct2
+    end interface
+
+    character (len = *) :: couplingName, exchangeName, sendingFieldName
+    character (len = *) :: receivingFieldName
+    integer (kind = cwipi_int_l) :: exchangeDim, nStep, status
+    integer (kind = cwipi_int_l) :: nnotlocatedpoints
+    double precision :: timeValue
+    double precision, dimension(*) ::  sendingField, receivingField
+
+    integer (kind = cwipi_int_l) :: lCouplingName, lExchangeName, lSendingFieldName
+    integer (kind = cwipi_int_l) :: lReceivingFieldName
+
+    lCouplingName       = len(couplingName)
+    lExchangeName       = len(exchangeName)
+    lSendingFieldName   = len(sendingFieldName)
+    lReceivingFieldName = len(receivingFieldName)
+
+    call cwipi_exch_with_user_itp_cf(couplingName, &
+                                     lCouplingName, &
+                                     exchangeName, &
+                                     lExchangeName, &
+                                     exchangeDim, &
+                                     nStep, &
+                                     timeValue, &
+                                     sendingFieldName, &
+                                     lSendingFieldName, &
+                                     sendingField, &
+                                     receivingFieldName, &
+                                     lReceivingFieldName, &
+                                     receivingField, &
+                                     ptInterpolationFct2, &
+                                     nnotlocatedpoints, &
+                                     status)
+
+  end subroutine cwipi_exch_with_user_ho_itp_f_
+  
 !
 !********************************************************************************
 !
