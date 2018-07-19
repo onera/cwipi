@@ -2277,13 +2277,13 @@ contains
                                             timeValue, &
                                             sendingFieldName, &
                                             sendingField, &
-                                            ptInterpolationFct, &
+                                            ptHoInterpolationFct, &
                                             request)
 
     implicit none
 
     interface
-       subroutine  ptInterpolationFct(entitiesDim, &
+       subroutine  ptHoInterpolationFct(entitiesDim, &
                                       nLocalVertex, &
                                       nLocalElement, &
                                       nLocalPolyhedra, &
@@ -2329,7 +2329,7 @@ contains
          integer (kind = 4) :: solverType
          double precision, dimension(*) :: localField
          double precision, dimension(*) :: distantField
-       end subroutine ptInterpolationFct
+       end subroutine ptHoInterpolationFct
     end interface
     character (len = *) :: couplingName, exchangeName, sendingFieldName
     integer (kind = cwipi_int_l) :: stride, nStep, tag, request
@@ -2353,7 +2353,7 @@ contains
                                        sendingFieldName, &
                                        lSendingFieldName, &
                                        sendingField, &
-                                       ptInterpolationFct, &
+                                       ptHoInterpolationFct, &
                                        request)
 
   end subroutine cwipi_issend_with_user_ho_itp_f_
@@ -2530,13 +2530,13 @@ contains
                                           timeValue, &
                                           sendingFieldName, &
                                           sendingField, &
-                                          ptInterpolationFct, &
+                                          ptHoInterpolationFct, &
                                           status)
 
     implicit none
 
     interface
-       subroutine  ptInterpolationFct(entitiesDim, &
+       subroutine  ptHoInterpolationFct(entitiesDim, &
                                       nLocalVertex, &
                                       nLocalElement, &
                                       nLocalPolyhedra, &
@@ -2582,7 +2582,7 @@ contains
          integer (kind = 4) :: solverType
          double precision, dimension(*) :: localField
          double precision, dimension(*) :: distantField
-       end subroutine ptInterpolationFct
+       end subroutine ptHoInterpolationFct
     end interface
     character (len = *) :: couplingName, exchangeName, sendingFieldName
     integer (kind = cwipi_int_l) :: stride, nStep, status
@@ -2605,7 +2605,7 @@ contains
                                         sendingFieldName, &
                                         lSendingFieldName, &
                                         sendingField, &
-                                        ptInterpolationFct, &
+                                        ptHoInterpolationFct, &
                                         status)
 
   end subroutine cwipi_send_with_user_ho_itp_f_
@@ -2926,14 +2926,14 @@ contains
                                           sendingField, &
                                           receivingFieldName, &
                                           receivingField, &
-                                          ptInterpolationFct2, &
+                                          ptHoInterpolationFct, &
                                           nNotLocatedPoints, &
                                           status)
 
     implicit none
 
     interface
-       subroutine  ptInterpolationFct2(entitiesDim, &
+       subroutine  ptHoInterpolationFct(entitiesDim, &
                                       nLocalVertex, &
                                       nLocalElement, &
                                       nLocalPolyhedra, &
@@ -2979,7 +2979,7 @@ contains
          integer (kind = 4) :: solverType
          double precision, dimension(*) :: localField
          double precision, dimension(*) :: distantField
-       end subroutine ptInterpolationFct2
+       end subroutine ptHoInterpolationFct
     end interface
 
     character (len = *) :: couplingName, exchangeName, sendingFieldName
@@ -3010,7 +3010,7 @@ contains
                                      receivingFieldName, &
                                      lReceivingFieldName, &
                                      receivingField, &
-                                     ptInterpolationFct2, &
+                                     ptHoInterpolationFct, &
                                      nnotlocatedpoints, &
                                      status)
 

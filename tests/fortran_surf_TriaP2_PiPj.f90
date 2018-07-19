@@ -163,6 +163,8 @@ subroutine  userInterpolation                        ( &
   &           disPtsDistance                          ,&
   &           disPtsBaryCoordIdx                      ,&
   &           distantPointsBarycentricCoordinates     ,&
+  &           uvw_size                                ,&
+  &           dist_uvw                                ,& 
   &                                                    &
   &           stride                                  ,&  ! =ker(calc)
   &           solverType                              ,&
@@ -196,6 +198,8 @@ subroutine  userInterpolation                        ( &
   real(4) :: disPtsDistance                          (*)
   integer :: disPtsBaryCoordIdx                      (*)
   real(8) :: distantPointsBarycentricCoordinates     (*)
+  integer :: uvw_size
+  real(8) :: dist_uvw                                (*)
   integer :: stride
   integer :: solverType
   real(8) ::   localField                            (*)
@@ -452,6 +456,8 @@ program testf
     &           disPtsDistance                          ,&
     &           disPtsBaryCoordIdx                      ,&
     &           distantPointsBarycentricCoordinates     ,&
+    &           uvw_size                                ,&
+    &           dist_uvw                                ,&
     &                                                    &
     &           stride                                  ,&  ! =ker(calc)
     &           solverType                              ,&
@@ -475,6 +481,8 @@ program testf
     real(4) :: disPtsDistance                          (*)
     integer :: disPtsBaryCoordIdx                      (*)
     real(8) :: distantPointsBarycentricCoordinates     (*)
+    integer :: uvw_size
+    real(8) :: dist_uvw(*)
     integer :: stride
     integer :: solverType
     real(8) ::   localField                            (*)
@@ -958,7 +966,7 @@ endif
    &    couplingName=          "testPiPj"      ,&
    &    exchangeName="exch1_"//"testPiPj"      ,&
    &    exchangeDim=stride                     ,&  ! scalar
-   &    ptInterpolationFct=userInterpolation   ,&  ! utilisation de la procedure plug
+   &    ptHoInterpolationFct=userInterpolation   ,&  ! utilisation de la procedure plug
    &                                            &
    &    sendingFieldName="mySolu"              ,&  ! solution calculee localement
    &    sendingField=myValues                  ,&
