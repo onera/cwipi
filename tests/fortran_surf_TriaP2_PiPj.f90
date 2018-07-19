@@ -205,7 +205,7 @@ subroutine  userInterpolation                        ( &
   real(8) ::   localField                            (*)
   real(8) :: distantField                            (*)
   !>
-  integer          :: i,j,k,iErr
+  integer          :: i,j,k,iRank,iErr
   integer          :: iNod,nNod,iMod,nMod
   real(8), pointer :: uvw (:,:),rst(:,:),a(:),b(:),c(:),vand(:,:)
   integer          :: iDistantPoint
@@ -215,56 +215,122 @@ subroutine  userInterpolation                        ( &
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  if( rankWorld==0 )print'(/">>> userInterpolation rankWorld=",i2)',rankWorld
+  call mpi_barrier(commWorld,iErr)
+  if( rankWorld==0 )print'(/3x,">>> userInterpolation")'  
+  call mpi_barrier(commWorld,iErr)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  if( visu .and. rankWorld==0 )then
-    print '(/"Maillage surfacique de couplage meshOrder=",i1,t100,"@rkw",i3)',meshOrder,rankWorld
-    iVert=0
-    do i=1,nLocalVertex
-      print '("localCoordinates (",i1,")=",3(f12.5,1x))',i,localCoordinates(iVert+1:iVert+3)
-      iVert=iVert+3
-    enddo
-    do i=1,nLocalElement
-      print '("localConnectivity(",i1,")=",*(i3,1x))',i,localConnectivity(localConnectivityIndex(i)+1:localConnectivityIndex(i+1))
-    enddo
-  endif
-  
-  if( visu .and. rankWorld==0 )then
-    nMod=(compOrder+1)*(compOrder+2)*(compOrder+3)/6
-    print '(/"Champ Volumique compOrder=",i2,t100,"@rkw",i3)',compOrder,rankWorld
-    j=0
-    do iMod=1,nMod
-      print '("iMod=",i3," localField       =",*(f12.5,1x))',iMod,localField(j+1:j+stride)
-      j=j+stride
+  !> Control localCoordinates localConnectivity
+  if( visu )then
+    call mpi_barrier(commWorld,iErr)
+    if( rankWorld==0 )print'(/3x,"Control: localCoordinates, localConnectivity")'  
+    do iRank=0,sizeWorld-1
+      if( iRank==rankWorld )then
+        print '(/3x,"meshOrder=",i1," compOrder=",i2,t100,"@rkw",i3)',meshOrder,compOrder,rankWorld
+        iVert=0
+        do i=1,nLocalVertex
+          print '(6x,"localCoordinates (",i2,")=",3(f12.5,1x))',i,localCoordinates(iVert+1:iVert+3)
+          iVert=iVert+3
+        enddo
+        do i=1,nLocalElement
+          print '(6x,"localConnectivity(",i2,")=",*(i3,1x))',i,localConnectivity(localConnectivityIndex(i)+1:localConnectivityIndex(i+1))
+        enddo
+      endif
+      call mpi_barrier(commWorld,iErr)
     enddo
   endif
-  
-  !> displaying disPtsCoordinates for rank 0
-  if( visu .and. rankWorld==0 )then
-    print '(/"disPtsCoordinates",t100,"@rkw",i3)',rankWorld
-    iVert=0
-    do iDistantPoint=1,nDistantPoint
-      print '("iDisPts=",i3," disPtsCoordinates=",3(f12.5,1x)," inside Cell: ",i3)',&
-      & iDistantPoint,disPtsCoordinates(iVert+1:iVert+3),disPtsLocation(iDistantPoint)
-      iVert=iVert+3
-    enddo
-  endif
-  
-  !> displaying distantPtsBarycentricCoordinates for rank 0
-  ! distantPointsBarycentricCoordinates => disPtsBarycentricCoordinates  
-  if( visu .and. rankWorld==0 )then
-    print '(/"disPtsBarycentricCoordinates",t100,"@rkw",i2)',rankWorld
-    iBary=0
-    do iDistantPoint=1,nDistantPoint
-      print '("iDisPts=",i3," disBarCoordinates=",4(f12.5,1x)," inside Cell: ",i3)',&
-      & iDistantPoint,distantPointsBarycentricCoordinates(iBary+1:iBary+4),disPtsLocation(iDistantPoint)
-      iBary=iBary+4
-    enddo
-  endif
+  call mpi_barrier(commWorld,iErr)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Control localField
+  if( visu )then
+    call mpi_barrier(commWorld,iErr)
+    if( rankWorld==0 )print'(/3x,"Control: localField")'
+    do iRank=0,sizeWorld-1
+      if( iRank==rankWorld )then
+        print '(/3x,"meshOrder=",i1," compOrder=",i2,t100,"@rkw",i3)',meshOrder,compOrder,rankWorld
+        nMod=(compOrder+1)*(compOrder+2)*(compOrder+3)/6
+        j=0
+        do iMod=1,nMod
+          print '(6x,"localField(",i2,")=",*(f12.5,1x))',iMod,localField(j+1:j+stride)
+          j=j+stride
+        enddo
+      endif
+      call mpi_barrier(commWorld,iErr)
+    enddo
+    call mpi_barrier(commWorld,iErr)
+  endif
+  call mpi_barrier(commWorld,iErr)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  
+  
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Control disPtsCoordinates,disPtsLocation  
+  if( visu )then
+    call mpi_barrier(commWorld,iErr)
+    if( rankWorld==0 )print'(/3x,"Control: disPtsCoordinates,disPtsLocation")'
+    do iRank=0,sizeWorld-1
+      if( iRank==rankWorld )then    
+        print '(/3x,"meshOrder=",i1," compOrder=",i2,t100,"@rkw",i3)',meshOrder,compOrder,rankWorld
+        iVert=0
+        do iDistantPoint=1,nDistantPoint
+          print '(6x,"disPtsCoordinates(",i3,")=",3(f12.5,1x)," inside Cell: ",i3)',&
+          & iDistantPoint,disPtsCoordinates(iVert+1:iVert+3),disPtsLocation(iDistantPoint)
+          iVert=iVert+3
+        enddo
+      endif
+      call mpi_barrier(commWorld,iErr)
+    enddo
+    call mpi_barrier(commWorld,iErr)
+  endif
+  call mpi_barrier(commWorld,iErr)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Control distantPointsBarycentricCoordinates   distPtsBarycentricCoordinates
+    
+  if( visu )then
+    call mpi_barrier(commWorld,iErr)
+    if( rankWorld==0 )print'(/3x,"Control: distantPointsBarycentricCoordinates,disPtsLocation (marche pas encore)")'
+    call mpi_barrier(commWorld,iErr)
+    do iRank=0,sizeWorld-1
+      if( iRank==rankWorld )then    
+        print '(/3x,"meshOrder=",i1," compOrder=",i2,t100,"@rkw",i3)',meshOrder,compOrder,rankWorld
+        call mpi_barrier(commWorld,iErr)
+      endif
+      call mpi_barrier(commWorld,iErr)
+    enddo
+    call mpi_barrier(commWorld,iErr)
+  endif
+  call mpi_barrier(commWorld,iErr)      
+  
+!  if( visu )then
+!    call mpi_barrier(commWorld,iErr)
+!    print '(/"disPtsBarycentricCoordinates",t100,"@rkw",i2)',rankWorld
+!    iBary=0
+!    do iDistantPoint=1,nDistantPoint
+!      print '("iDisPts=",i3," disBarCoordinates=",4(f12.5,1x)," inside Cell: ",i3)',&
+!      & iDistantPoint,distantPointsBarycentricCoordinates(iBary+1:iBary+4),disPtsLocation(iDistantPoint)
+!      iBary=iBary+4
+!    enddo
+!  endif
+  
+  
+  call mpi_barrier(commWorld,iErr)
+  call cwipi_finalize_f()
+  call mpi_finalize(iErr)
+  stop 'A POURSUIVRE'
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> uvw surfasic -> uvw volumic
+  
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -333,7 +399,7 @@ subroutine  userInterpolation                        ( &
     endif
     
     deallocate(uvwOut)
-
+    
   end block
   endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -349,7 +415,7 @@ subroutine  userInterpolation                        ( &
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Base fonctionelle d'ordre compOrder
   
-  nMod=(compOrder+1)*(compOrder+2)*(compOrder+3)/6
+  nMod=(compOrder+1)*(compOrder+2)*(compOrder+3)/6  !> Tetra
   nNod=size(uvwOut,2)
   
   !> transpose = .true. => lagrange(1:nMod,1:nNod)
@@ -358,14 +424,14 @@ subroutine  userInterpolation                        ( &
 !  !> Points d'interpolation
 !  call nodes3D   (ord=compOrder,uvw=uvw,display=.false.)
 !  call nodes3Dopt(ord=compOrder,uvw=uvw,display=.false.)
-!  !> Calcul de Vand(:,:)
+!  !> Calcul de vand(:,:)
 !  call nodes3Duvw2abc(uvw=uvw,a=a,b=b,c=c,display=.false.)
 !  call vandermonde3D(ord=compOrder,a=a,b=b,c=c,vand=vand)
 !  deallocate(uvw,a,b,c)
 !  !> Calcul des polonômes de Lagrange d'ordre compOrder en uvwOut
 !  allocate(lagrange(1:nMod,1:nNod))
 !  call nodes3Duvw2abc(uvw=uvwOut,a=a,b=b,c=c,display=.false.)
-!  call lagrange3Dv(ord=compOrder,vand=vand,a=a,b=b,c=c,lx=lagrange,transpose=.true.)  !> lagrange= Inverse[Transpose[Vand]].Psi[xyzOut] lxOut(nPt,np)
+!  call lagrange3Dv(ord=compOrder,vand=vand,a=a,b=b,c=c,lx=lagrange,transpose=.true.)  !> lagrange= Inverse[Transpose[Vand]].Psi[xyzOut] lagrange(nPt,np)
   
   if( visu .and. rankWorld==0 )then
     print '()'
@@ -407,7 +473,9 @@ subroutine  userInterpolation                        ( &
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  call mpi_barrier(commWorld,iErr)
   if( rankWorld==0 )print'("<<< userInterpolation rankWorld=",i2)',rankWorld
+  call mpi_barrier(commWorld,iErr)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   return
@@ -572,8 +640,8 @@ program testf
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   select case(rankWorld)
-  case(0) ; compOrder=1 !07
-  case(1) ; compOrder=1 !10
+  case(0) ; compOrder=03 !07
+  case(1) ; compOrder=01 !10
   end select
   print '("fortran_surf_PiPj : meshOrder=",i2," compOrder=",i2,t100,"@rkw",i3)',meshOrder,compOrder,rankWorld
   call mpi_barrier(commWorld,iErr)
@@ -592,7 +660,7 @@ program testf
   &    tolerance=1d-1                           ,& !> Tolerance geometrique 1d-1 par defaut
   &    meshT=cwipi_static_mesh                  ,&
   &    solvert=cwipi_solver_cell_vertex         ,&
-  &    outputfreq=-1                             ,& !> Frequence du post-traitement
+  &    outputfreq=-1                            ,& !> Frequence du post-traitement
   &    outputfmt="Ensight Gold"                 ,&
   &    outputfmtopt="binary"                     )
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -616,7 +684,7 @@ program testf
     !> Vertices
     nVert=10
     allocate(vertx(1:3,1:nVert))
-    !> 
+    !>
     vertx(1:3,01)=[0.00, 0.00, 0.00]
     vertx(1:3,02)=[0.00,-1.00, 0.00]
     vertx(1:3,03)=[1.00, 0.00, 0.00]
@@ -639,6 +707,14 @@ program testf
     trian(1:7,2)=[01,03,02,07,06,05,1]
     trian(1:7,3)=[01,04,03,08,10,07,3] !> Couplage
     trian(1:7,4)=[01,02,04,05,09,08,1]
+    
+   !uvw(1:3,01)=[0.00, 0.00, 0.00] !> 01
+   !uvw(1:3,02)=[0.00, 0.00, 1.00] !> 04
+   !uvw(1:3,03)=[0.00, 1.00, 0.00] !> 03
+   !uvw(1:3,04)=[0.00, 0.00, 0.50] !> 08
+   !uvw(1:3,05)=[0.00, 0.50, 0.50] !> 10
+   !uvw(1:3,06)=[0.00, 0.50, 0.00] !> 07
+    
   case(1)
     !> Vertices
     nVert=10
@@ -646,8 +722,8 @@ program testf
     vertx(1:3,01)=[0.00, 0.00, 0.00]
     vertx(1:3,02)=[1.00, 0.00, 0.00]
     vertx(1:3,03)=[0.00, 1.00, 0.00]
-    !>
     vertx(1:3,04)=[0.00, 0.00, 1.00]
+    !>
     vertx(1:3,05)=[0.50, 0.00, 0.00]
     vertx(1:3,06)=[0.50, 0.50, 0.00]
     vertx(1:3,07)=[0.00, 0.50, 0.00]
@@ -665,6 +741,15 @@ program testf
     trian(1:7,2)=[01,03,02,07,06,05, 1]
     trian(1:7,3)=[01,04,03,08,10,07, 1]
     trian(1:7,4)=[01,02,04,05,09,08, 3] !> Couplage
+    
+    !uvw(1:3,01)=[0.00, 0.00, 0.00] !> 01
+    !uvw(1:3,02)=[1.00, 0.00, 0.00] !> 02
+    !uvw(1:3,03)=[0.00, 0.00, 1.00] !> 04
+    !uvw(1:3,04)=[0.50, 0.00, 0.00] !> 05
+    !uvw(1:3,05)=[0.50, 0.00, 0.50] !> 09
+    !uvw(1:3,06)=[0.00, 0.00, 0.50] !> 08
+    
+    
   end select
   
   if( visu )then
@@ -698,11 +783,10 @@ program testf
   
   
   !> On se couple sur le triangle commun aux deux tetraP2 (y=0) qui va servir de maillage pour le couplage
-  !
+  
   !  03
   !  06 05
   !  01 04 02
-  !
   
   !> rkw0:Triangle3 <=> rkw1:Triangle4
   select case(rankWorld)
@@ -710,8 +794,12 @@ program testf
   case(1) ; iTrian=4  !> on se couple sur le triangle 4
   end select
   
-  if( 0==1 )then
+  if( 0==1 )then !> Ancien cwipi
     
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( rankWorld==0)print '(/"Using Cwipi"/)'
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> On degrade le maillage à l'ordre 1
     nVert=03
@@ -727,8 +815,7 @@ program testf
       vertices(j+1:j+3)=vertx(1:3,trian(iNod,iTrian))
       j=j+3
     enddo
-
-  
+    
     !> Transmission des maillages à cwipi
     call cwipi_define_mesh_f(     &
     &   couplingName="testPiPj"  ,&
@@ -762,15 +849,19 @@ program testf
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
-  else
+  else !> Nouveau cwipi
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( rankWorld==0)print '(/"Using Cwipi High Order"/)'
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> On conserve un maillage d'ordre 2
     nVert=06
     nCell=01
-    allocate( vertices   (1:3*nVert)    )  !> sommets
-    allocate( connec     (1:6*nCell)    )  !> triangle P2
-    allocate( connecIndex(1:nCell+1)    )  !> triangle
+    allocate( vertices   (1:3*nVert) )  !> sommets
+    allocate( connec     (1:6*nCell) )  !> triangle P2
+    allocate( connecIndex(1:nCell+1) )  !> triangle
     connec(1:6)=[1,2,3,4,5,6]
     connecIndex(1:2)=[0,6]
     
@@ -779,13 +870,24 @@ program testf
       vertices(j+1:j+3)=vertx(1:3,trian(iNod,iTrian))
       j=j+3
     enddo
-
-    print*, "vertices = "
-    print*, vertices
-    print*, "connec = ", connec 
-    print*, "connecIndex = ", connecIndex 
     
-  !> Transmission des maillages à cwipi
+    if( visu )then
+      do iRank=0,sizeWorld-1
+        if( iRank==rankWorld )then
+         !print '(3x,"rankWorld=",i1," meshOrder=",i1)',rankWorld,meshOrder    
+          print '(3x,"meshOrder=",i1," compOrder=",i2,t100,"@rkw",i3)',meshOrder,compOrder,rankWorld
+          do iVert=1,nVert
+            print '(3x,"iVert=",i3," xyz=",*(f12.5,1x))',iVert,vertices(3*(iVert-1)+1:3*iVert)
+          enddo
+          do iCell=1,nCell
+            print '(3x,"iCell=",i3," cel=",*(i3,1x))',iCell,connec( connecIndex(iCell)+1:connecIndex(iCell+1) )
+          enddo
+        endif
+        call mpi_barrier(commWorld,iErr)
+      enddo
+    endif
+    
+    !> Transmission des maillages à cwipi
     call cwipi_ho_define_mesh_f(  &
     &   couplingName="testPiPj"  ,&
     &   nVertex     =nVert       ,&
@@ -794,74 +896,78 @@ program testf
     &   coords      =vertices    ,&
     &   connecIndex =connecIndex ,&
     &   connec      =connec       )
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-!  block
-
-allocate( ijk  (12)    )  !> sommets
-  ijk(1:2)=[0,0]
-  ijk(3:4)=[2,0]
-  ijk(5:6)=[0,2]
-  ijk(7:8)=[1,0]
-  ijk(9:10)=[1,1]
-  ijk(11:12)=[0,1]
-
-  ! 3
-  ! 6 5
-  ! 1 4 2
-  
-call cwipi_ho_ordering_from_IJK_set_f (couplingName ="testPiPj", &
-                                       tElt         = CWIPI_FACE_TRIAHO, &
-                                       nNodes       = 6, &
-                                       IJK          = ijk)
-
-deallocate (ijk)
-
-!  end block
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  if( visu )then
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Definition du Triangle P2
+    
+    ! 3
+    ! 6 5
+    ! 1 4 2
+    allocate( ijk(1:12) )  !> sommets
+    ijk( 1: 2)=[0,0] !> 1
+    ijk( 3: 4)=[2,0] !> 2
+    ijk( 5: 6)=[0,2] !> 3
+    ijk( 7: 8)=[1,0] !> 4
+    ijk( 9:10)=[1,1] !> 5
+    ijk(11:12)=[0,1] !> 6
+    
+    call cwipi_ho_ordering_from_IJK_set_f( &
+    &   couplingName ="testPiPj"          ,&
+    &   tElt         = CWIPI_FACE_TRIAHO  ,&
+    &   nNodes       = 6                  ,&
+    &   IJK          = ijk                 )
+    
+    deallocate (ijk)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( visu )then
       
-    if( rankWorld==0)then
-      print '(/"Writing coupling mesh file: Triangle0.mesh")'
-      print '( "Writing coupling mesh file: Triangle1.mesh")'
+      if( rankWorld==0)then
+        print '(/"Writing coupling mesh file: Triangle0.mesh")'
+        print '( "Writing coupling mesh file: Triangle1.mesh")'
+      endif
+      
+      write(meshName,'("Triangle",i1,".mesh")')rankWorld
+      open(unit=100,file=trim(meshName),action='write',status='unknown')
+      write(100,'("MeshVersionFormatted 1"/)')
+      write(100,'("Dimension 3"/)')
+      write(100,'("Vertices")')
+      write(100,'(i2)')nVert
+      j=0
+      do iVert=1,nVert
+        write(100,'(3(e22.15,1x),i2)')vertices(j+1:j+3),0
+        j=j+3
+      enddo
+      write(100,'(/"TrianglesP2")')
+      write(100,'(i1)')nCell
+      do iCell=1,nCell
+        write(100,'(*(i6,1x))')connec( connecIndex(iCell)+1:connecIndex(iCell+1) ),0
+      enddo
+      write(100,'(/"End")')
+      close(100)
+      
     endif
-      
-    write(meshName,'("Triangle",i1,".mesh")')rankWorld
-    open(unit=100,file=trim(meshName),action='write',status='unknown')
-    write(100,'("MeshVersionFormatted 1"/)')
-    write(100,'("Dimension 3"/)')
-    write(100,'("Vertices")')
-    write(100,'(i2)')nVert
-    j=0
-    do iVert=1,nVert
-      write(100,'(3(e22.15,1x),i2)')vertices(j+1:j+3),0
-      j=j+3
-    enddo
-    write(100,'(/"TrianglesP2")')
-    write(100,'(i1)')nCell
-    do iCell=1,nCell
-      write(100,'(*(i6,1x))')connec( connecIndex(iCell)+1:connecIndex(iCell+1) ),0
-    enddo
-    write(100,'(/"End")')
-    close(100)
-  endif
-endif
+    
+  endif !> ordre de maillage 1 ou 2 (ancien/nouveau cwipi)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Points de couplage situés Triangle avec le marqueur de peau 1 => face commune aux deux tetras <=
   
-  if( rankWorld==0 ) print'(/"Calcul des coordonnees des points de couplage")'
+  if( rankWorld==0 ) print'(/"Calcul des coordonnees des points de couplage"/)'
   
-  !> Calcul des coordonnees barycentriques sur face trianglulaire compOrder
+  !> Calcul des coordonnees barycentriques optimisées sur face trianglulaire compOrder
   call nodes3Dopt_2D(ord=compOrder,uvw=uvw,display=.false.) !> ordre du calcul
   
-  !> Calculs des coordonnées des points de couplage
+  !> Calculs des coordonnées correspondantes aux coordonnees barycentriques
   linkVertSize=size(uvw,2)
   allocate(linkVert(1:6*linkVertSize))
   
-  nMod=(meshOrder+1)*(meshOrder+2)/2  !> TriangleP2
-  nNod=size(uvw,2)
+  nMod=(meshOrder+1)*(meshOrder+2)/2  !> Triangle meshOrder (geometric)
+  nNod=size(uvw,2)                    !> Triangle compOrder
   
   !> transpose = .true. => lagrange(1:nMod,1:nNod)
   !call lagrange2Dv(ord=meshOrder,uvwOut=uvw,lagrange=lagrange,transpose=.true.)
@@ -879,11 +985,11 @@ endif
   deallocate(uvw)
   
   
-  !> Visu des coordonnees barycentriques dans le triangle unité
+  !> Visu des coordonnees de couplage
   if( visu )then
     do iRank=0,sizeWorld-1
       if( iRank==rankWorld )then
-        print '(3x,"rankWorld=",i1," meshOrder=",i1," compOrder=",i2)',rankWorld,meshOrder,compOrder
+          print '(3x,"meshOrder=",i1," compOrder=",i2,t100,"@rkw",i3)',meshOrder,compOrder,rankWorld
         j=0
         do iVert=1,linkVertSize
           print '(6xx,"linkVert(",i2,")=",3(f12.5,1x))',iVert,linkVert(j+1:j+3)
@@ -892,8 +998,11 @@ endif
       endif
       call mpi_barrier(commWorld,iErr)
     enddo
+    call mpi_barrier(commWorld,iErr)
   endif
   
+  
+  !> Transmission à cwipi des coordonnees de couplage
   call cwipi_set_points_to_locate_f( &
   &    couplingName="testPiPj"      ,&
   &    nPts  =linkVertSize          ,&
@@ -901,27 +1010,27 @@ endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  ! Localisation
-  
+  !> Localisation par cwipi des coordonnees de couplage
   if( rankWorld==0 )print '(/"Localisation")'
   
   call cwipi_locate_f(couplingName="testPiPj")
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   
+  
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Initialisation of myValues
   
-  if( rankWorld==0 )print '(/"Initialisation of myValues")'
+  if( rankWorld==0 )print '(/"Initialisation of myValues (x,y,z,rankWorld)"/)'
   
-  !> Liste des sommets uvw(1:3,:)
+  !> Liste coordonées barycentriques uvw(1:3,:) du Tetra d'ordre compOrder
   call nodes3D   (ord=compOrder,uvw=uvw,display=.false.)
   if( visu )then
     !> construit une connectivite entre les sommets uvw(1:3,:)
     call driverTetMesh(ord=compOrder,node_xyz=uvw,tetra_node=tetraNodes) 
   endif
   
-  !> Optimisation du placement des sommets uvw(1:3,:)
+  !> Optimisation du placement des sommets uvw(1:3,:) (deplace les coordonnées uvw pour réduire phénomène de Runge
   call nodes3Dopt(ord=compOrder,uvw=uvw,display=.false.)
   if( visu )then
     !> sauvegarde maillage (sommets et connectivité)
@@ -932,7 +1041,7 @@ endif
   stride=4 ; nNod=size(uvw,2)
   allocate(myValues(1:stride*nNod))
   
-  nMod=(meshOrder+1)*(meshOrder+2)*(meshOrder+3)/6 !> Tetra P2
+  nMod=(meshOrder+1)*(meshOrder+2)*(meshOrder+3)/6 !> Tetra meshOrder
   j=0
   do iNod=1,nNod
     call setT4MeshBasisP2(u=uvw(1,iNod),v=uvw(2,iNod),w=uvw(3,iNod),ai=lagrangeMesh)    
@@ -945,13 +1054,32 @@ endif
   enddo
   deallocate(uvw)
   
-  if( visu .and. rankWorld==0 )then
-    print '("nMod=",i3,2x,"nNod=",i3)',nMod,nNod
-    j=0
-    do iNod=1,nNod
-      print '("iMod=",i3," myValues         =",4(f12.5,1x),t100,"@rkw",i3)',iNod,myValues(j+1:j+stride),rankWorld
-      j=j+stride
+  
+!  if( visu .and. rankWorld==0 )then
+!    print '("nMod=",i3,2x,"nNod=",i3)',nMod,nNod
+!    j=0
+!    do iNod=1,nNod
+!      print '("iMod=",i3," myValues         =",4(f12.5,1x),t100,"@rkw",i3)',iNod,myValues(j+1:j+stride),rankWorld
+!      j=j+stride
+!    enddo
+!  endif
+  
+  
+  !> Visu des valeurs de couplage
+  if( visu )then
+    do iRank=0,sizeWorld-1
+      if( iRank==rankWorld )then
+        print '(3x,"nMod=",i3,2x,"nNod=",i3,t100,"@rkw",i3)',nMod,nNod,rankWorld
+        j=0
+        do iNod=1,nNod
+          !print '("iMod=",i3," myValues         =",4(f12.5,1x),t100,"@rkw",i3)',iNod,myValues(j+1:j+stride),rankWorld
+          print '(6x,"myValues(",i2,")=",4(f12.5,1x))',iNod,myValues(j+1:j+stride)
+          j=j+stride
+        enddo        
+      endif
+      call mpi_barrier(commWorld,iErr)
     enddo
+    call mpi_barrier(commWorld,iErr)
   endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
@@ -960,25 +1088,26 @@ endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  if( rankWorld==0 )print '(/"cwipi_exchange_f")'
+  call mpi_barrier(commWorld,iErr)
+  if( rankWorld==0 )print '(/"cwipi_exchange_f"/)'
+  call mpi_barrier(commWorld,iErr)
   
    call cwipi_exchange_f(                       &
    &    couplingName=          "testPiPj"      ,&
    &    exchangeName="exch1_"//"testPiPj"      ,&
-   &    exchangeDim=stride                     ,&  ! scalar
-   &    ptHoInterpolationFct=userInterpolation   ,&  ! utilisation de la procedure plug
+   &    exchangeDim=stride                     ,&  !> scalar
+   &    ptHoInterpolationFct=userInterpolation ,&  !> utilisation de la procedure plug
    &                                            &
-   &    sendingFieldName="mySolu"              ,&  ! solution calculee localement
+   &    sendingFieldName="mySolu"              ,&  !> solution calculee localement
    &    sendingField=myValues                  ,&
    &                                            &
    &    receivingFieldName="linkSolu"          ,&
-   &    receivingField=linkValues              ,&  ! solution de raccord
+   &    receivingField=linkValues              ,&  !> solution de raccord
    &                                            &
-   &    nStep=1                                ,&  ! pas utilisee juste pour visu cwipi
-   &    timeValue=0d0                          ,&  ! pas utilisee juste pour visu cwipi
+   &    nStep=1                                ,&  !> pas utilisee juste pour visu cwipi
+   &    timeValue=0d0                          ,&  !> pas utilisee juste pour visu cwipi
    &    nNotLocatedPoints=notLocatedPoints     ,&
    &    status=iErr                             )
-
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
