@@ -2271,6 +2271,7 @@ contains
 
   subroutine cwipi_issend_with_user_ho_itp_f_ (couplingName, &
                                             exchangeName, &
+                                            meshOrder,&
                                             tag, &
                                             stride, &
                                             nStep, &
@@ -2331,6 +2332,9 @@ contains
          double precision, dimension(*) :: distantField
        end subroutine ptHoInterpolationFct
     end interface
+    
+    
+    integer (kind=cwipi_int_l) :: meshOrder
     character (len = *) :: couplingName, exchangeName, sendingFieldName
     integer (kind = cwipi_int_l) :: stride, nStep, tag, request
     double precision :: timeValue
@@ -2525,6 +2529,7 @@ contains
 
   subroutine cwipi_send_with_user_ho_itp_f_ (couplingName, &
                                           exchangeName, &
+                                          meshOrder,&
                                           stride, &
                                           nStep, &
                                           timeValue, &
@@ -2584,6 +2589,8 @@ contains
          double precision, dimension(*) :: distantField
        end subroutine ptHoInterpolationFct
     end interface
+    
+    integer (kind=cwipi_int_l) :: meshOrder    
     character (len = *) :: couplingName, exchangeName, sendingFieldName
     integer (kind = cwipi_int_l) :: stride, nStep, status
     double precision :: timeValue
@@ -2920,6 +2927,7 @@ contains
   subroutine cwipi_exch_with_user_ho_itp_f_ (couplingName, &
                                           exchangeName, &
                                           exchangeDim, &
+                                          meshOrder,&
                                           nStep, &
                                           timeValue, &
                                           sendingFieldName, &
@@ -2982,6 +2990,7 @@ contains
        end subroutine ptHoInterpolationFct
     end interface
 
+    integer (kind=cwipi_int_l) :: meshOrder
     character (len = *) :: couplingName, exchangeName, sendingFieldName
     character (len = *) :: receivingFieldName
     integer (kind = cwipi_int_l) :: exchangeDim, nStep, status

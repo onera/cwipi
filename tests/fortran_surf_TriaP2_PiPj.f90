@@ -24,6 +24,74 @@
 module additionnal_Functions
 
 contains
+  
+  subroutine triangleP2UV_to_TetraP2UVW(iSide,uv,uvw)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Cette procedure retourne les coordonnées barycentriques dans le tetraP2 des sommets de la face iSide du tetraP2
+    !> entree uv (1,2,;) triangleP2
+    !> sortie uvw(1,3,;) tetraP2
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer         , intent(in)  :: iSide
+    real(8), pointer, intent(in)  :: uv (:,:)
+    real(8), pointer, intent(out) :: uvw(:,:)
+    !>
+    integer                       :: iVert
+    integer                       :: iNod,jNod
+    integer                       :: nodes(1:6)
+    real(8)                       :: TetraP2(1:3,1:10)
+    real(8)                       :: TrianP2(1:3,1:06)
+    real(8)                       :: ai(1:6),u,v
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> uvw du TetraP2
+    TetraP2(1:3,01)=[0d+0,0d+0,0d+0]
+    TetraP2(1:3,02)=[1d+0,0d+0,0d+0]
+    TetraP2(1:3,03)=[0d+0,1d+0,0d+0]
+    TetraP2(1:3,04)=[0d+0,0d+0,1d+0]
+    TetraP2(1:3,05)=[5d-1,0d+0,0d+0]
+    TetraP2(1:3,06)=[5d-1,5d-1,0d+0]
+    TetraP2(1:3,07)=[0d+0,5d-1,0d+0]
+    TetraP2(1:3,08)=[0d+0,0d+0,5d-1]
+    TetraP2(1:3,09)=[5d-1,0d+0,5d-1]
+    TetraP2(1:3,10)=[0d+0,5d-1,5d-1]
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> slection des noeuds
+    select case(iSide)
+    case(1) ; nodes(1:6)=[02,03,04, 06,10,09]
+    case(2) ; nodes(1:6)=[01,04,03, 08,10,07]
+    case(3) ; nodes(1:6)=[01,02,04, 05,09,08]
+    case(4) ; nodes(1:6)=[01,03,02, 07,06,05]
+    case default ; stop "stop @ triangleP2UV_to_TetraP2UVW"
+    end select
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> uvw du TriangleP2 face iSide
+    do iNod=1,6
+      jNod=nodes(iNod)
+      TrianP2(1:3,iNod)=TetraP2(1:3,jNod)
+    enddo
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Calcul de uvw dans le TetraP2 correspond a uv dans le TriangleP2
+    allocate(uvw(1:3,size(uv,2)))
+    do iVert=1,size(uv,2)
+      u=uv(1,iVert)
+      v=uv(2,iVert)
+      call setT3MeshBasis_P2(u=u,v=v,ai=ai)
+      uvw(1:3,iVert)=0d0
+      do iNod=1,6
+        uvw(1:3,iVert)=uvw(1:3,iVert)+ai(iNod)*TrianP2(1:3,iNod)
+      enddo
+    enddo
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine triangleP2UV_to_TetraP2UVW
 
   subroutine setT3MeshBasis_P1(u,v,ai)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -163,14 +231,15 @@ subroutine  userInterpolation                        ( &
   &           disPtsDistance                          ,&
   &           disPtsBaryCoordIdx                      ,&
   &           distantPointsBarycentricCoordinates     ,&
-  &           uvw_size                                ,&
-  &           dist_uvw                                ,& 
+  &           uvw_size                                ,& !> new cwipi
+  &           dist_uvw                                ,& !> new cwipi
   &                                                    &
   &           stride                                  ,&  ! =ker(calc)
   &           solverType                              ,&
   &           localField                              ,&  !   mySolu
   &           distantField                             )  ! linkSolu
   !---
+  use iso_c_binding, only: c_loc,c_f_pointer
   use cwipi
   use modDeterminant
   use baseSimplex3D
@@ -209,8 +278,8 @@ subroutine  userInterpolation                        ( &
   integer          :: iNod,nNod,iMod,nMod
   real(8), pointer :: uvw (:,:),rst(:,:),a(:),b(:),c(:),vand(:,:)
   integer          :: iDistantPoint
-  integer          :: iBary,iVert
-  real(8), pointer :: uvwOut(:,:),lagrange(:,:)
+  integer          :: iSide,iVert,iBary
+  real(8), pointer :: uv(:,:),uvwOut(:,:),lagrange(:,:)
   real(8)          :: lagrangeMesh(1:10)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
@@ -266,9 +335,6 @@ subroutine  userInterpolation                        ( &
   call mpi_barrier(commWorld,iErr)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
-  
-  
-  
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Control disPtsCoordinates,disPtsLocation  
   if( visu )then
@@ -290,136 +356,78 @@ subroutine  userInterpolation                        ( &
   endif
   call mpi_barrier(commWorld,iErr)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
+  
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Control distantPointsBarycentricCoordinates   distPtsBarycentricCoordinates
-    
+  !> dist_uvw(:) -> uv(1:2,:) (sans dupliquer le bloc mémoire)
+  !> la commmande c_f_pointer a besoin du use iso_c_binding, only: c_loc,c_f_pointer
+  
+  call c_f_pointer(cptr=c_loc(dist_uvw), fptr=uv, shape=[2,nDistantPoint])  
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !> Control dist_uvw,uv
   if( visu )then
     call mpi_barrier(commWorld,iErr)
-    if( rankWorld==0 )print'(/3x,"Control: distantPointsBarycentricCoordinates,disPtsLocation (marche pas encore)")'
+    if( rankWorld==0 )print'(/3x,"Control: dist_uvw,disPtsLocation")'
     call mpi_barrier(commWorld,iErr)
     do iRank=0,sizeWorld-1
       if( iRank==rankWorld )then    
-        print '(/3x,"meshOrder=",i1," compOrder=",i2,t100,"@rkw",i3)',meshOrder,compOrder,rankWorld
+        print '(/3x,"meshOrder=",i1," compOrder=",i2," stride_uvw=",i2,t100,"@rkw",i3)',meshOrder,compOrder,uvw_size,rankWorld
         call mpi_barrier(commWorld,iErr)
+        iVert=0
+        do iDistantPoint=1,nDistantPoint
+         !print '(6x,"dist_uvw(",i3,")=",*(f12.5,1x))',iDistantPoint,dist_uvw(iVert+1:iVert+uvw_size)
+          print '(6x,"uv (1:2,",i3,")=",*(f12.5,1x))',iDistantPoint,uv(1:2,iDistantPoint)
+          iVert=iVert+uvw_size
+        enddo
       endif
       call mpi_barrier(commWorld,iErr)
     enddo
     call mpi_barrier(commWorld,iErr)
   endif
-  call mpi_barrier(commWorld,iErr)      
-  
-!  if( visu )then
-!    call mpi_barrier(commWorld,iErr)
-!    print '(/"disPtsBarycentricCoordinates",t100,"@rkw",i2)',rankWorld
-!    iBary=0
-!    do iDistantPoint=1,nDistantPoint
-!      print '("iDisPts=",i3," disBarCoordinates=",4(f12.5,1x)," inside Cell: ",i3)',&
-!      & iDistantPoint,distantPointsBarycentricCoordinates(iBary+1:iBary+4),disPtsLocation(iDistantPoint)
-!      iBary=iBary+4
-!    enddo
-!  endif
-  
-  
   call mpi_barrier(commWorld,iErr)
-  call cwipi_finalize_f()
-  call mpi_finalize(iErr)
-  stop 'A POURSUIVRE'
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> uvw surfasic -> uvw volumic
+  !> uv TriangleP2 -> uvw tetraP2
+  !> On passe de la face TriangleP2 au TetraP2 afin de pouvoir calculer des gradients du champs
+  !> cette étape n'est pas nécessaire si aucun gradient est calculé
   
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  allocate(uvw(1:3,1:nDistantPoint))
   
+  select case(rankWorld)
+  case(0) ; iSide=3 !> on se couple sur la face 3 du tetra
+  case(1) ; iSide=4 !> on se couple sur la face 4 du tetra
+  end select
   
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Affectation des coordonées barycentriques uvwOut
-  allocate(uvwOut(1:3,1:nDistantPoint))
+  call triangleP2UV_to_TetraP2UVW(iSide=iSide,uv=uv,uvw=uvw)
   
-  iBary=0
-  do iDistantPoint=1,nDistantPoint
-    uvwOut(1:3,iDistantPoint)=distantPointsBarycentricCoordinates(iBary+2:iBary+4) ! <= Attention 2:4
-    iBary=iBary+4
-  enddo
-  
-  if( visu .and. rankWorld==0 )then
-    print '(/"uvwOut",t100,"@rkw",i3)',rankWorld
-    do iDistantPoint=1,nDistantPoint
-      print '("iDisPts=",i3," uvwOut=",3(f12.5,1x)," inside Cell: ",i3)',&
-      & iDistantPoint,uvwOut(1:3,iDistantPoint),disPtsLocation(iDistantPoint)
-    enddo
-  endif
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-  
-  
-  
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Calcul des coordonnées barycentriques dans le triangle P2
-  if( 0==1 )then
-  print '()'
-  block
-    real(8) :: xyz0(1:3)
-    
-    allocate(uvwOut(1:2,1:nDistantPoint))
-    iBary=0
-    do iDistantPoint=1,nDistantPoint
-      uvwOut(1:2,iDistantPoint)=distantPointsBarycentricCoordinates(iBary+2:iBary+3) ! <= Attention 2:3
-      iBary=iBary+3
-    enddo
-    
-    if( visu .and. rankWorld==0 )then
-      print '(/"Coordonnées barycentriques")'
-      do iDistantPoint=1,nDistantPoint
-        print '("uvwOut=",*(f12.5,1x))',uvwOut(1:2,iDistantPoint)
-      enddo
-      
-      print '(/"Coordonnées calculées")'
-      do iDistantPoint=1,nDistantPoint
-        
-        !> Avec maillage dégradé ordre 1
-        nMod=4                               !> TriangleP1
-        !> Avec maillage ordre 2
-        !nMod=(meshOrder+1)*(meshOrder+2)/2  !> TriangleP2
-        
-        call setT3MeshBasis_P2(u=uvwOut(1,iDistantPoint),v=uvwOut(2,iDistantPoint),ai=lagrangeMesh)
-        
-        xyz0(1:3)=0d0
-        iVert=0
-        do iMod=1,nMod
-          xyz0(1:3)=xyz0(1:3)+lagrangeMesh(iMod)*localCoordinates(iVert+1:iVert+3)
-          iVert=iVert+3
+  if( visu )then
+    call mpi_barrier(commWorld,iErr)
+    if( rankWorld==0 )print'(/3x,"Calcul: uv TriangleP2 -> uvw tetraP2")'
+    call mpi_barrier(commWorld,iErr)
+    do iRank=0,sizeWorld-1
+      if( iRank==rankWorld )then    
+        print '(/3x,"meshOrder=",i1," compOrder=",i2,t100,"@rkw",i3)',meshOrder,compOrder,rankWorld
+        call mpi_barrier(commWorld,iErr)
+        do iDistantPoint=1,nDistantPoint
+          print '(6x,"uvw(",i3,")=",*(f12.5,1x))',iDistantPoint,uvw(1:3,iDistantPoint)
         enddo
-        
-        print '("iDis=",i3," xyz0=",3(f12.5,1x),t100,"@rkw",i3)',&
-        & iDistantPoint,xyz0(1:3),rankWorld
-        
-      enddo
-    endif
-    
-    deallocate(uvwOut)
-    
-  end block
+      endif
+      call mpi_barrier(commWorld,iErr)
+    enddo
+    call mpi_barrier(commWorld,iErr)
   endif
+  call mpi_barrier(commWorld,iErr)        
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
-  
-!call mpi_barrier(commWorld,iErr)
-!call cwipi_finalize_f()
-!call mpi_finalize(iErr)
-!stop 'A POURSUIVRE'
-  
-  
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Base fonctionelle d'ordre compOrder
   
   nMod=(compOrder+1)*(compOrder+2)*(compOrder+3)/6  !> Tetra
-  nNod=size(uvwOut,2)
   
-  !> transpose = .true. => lagrange(1:nMod,1:nNod)
-  call lagrange3Dv(ord=compOrder,uvwOut=uvwOut,lagrange=lagrange,transpose=.true.)
+  !> transpose = .true. => lagrange(1:nMod,1:nDistantPoint)
+  call lagrange3Dv(ord=compOrder,uvwOut=uvw,lagrange=lagrange,transpose=.true.)
   
 !  !> Points d'interpolation
 !  call nodes3D   (ord=compOrder,uvw=uvw,display=.false.)
@@ -431,14 +439,25 @@ subroutine  userInterpolation                        ( &
 !  !> Calcul des polonômes de Lagrange d'ordre compOrder en uvwOut
 !  allocate(lagrange(1:nMod,1:nNod))
 !  call nodes3Duvw2abc(uvw=uvwOut,a=a,b=b,c=c,display=.false.)
-!  call lagrange3Dv(ord=compOrder,vand=vand,a=a,b=b,c=c,lx=lagrange,transpose=.true.)  !> lagrange= Inverse[Transpose[Vand]].Psi[xyzOut] lagrange(nPt,np)
+!  call lagrange3Dv(ord=compOrder,vand=vand,a=a,b=b,c=c,lx=lagrange,transpose=.true.)  !> lagrange= Inverse[Transpose[Vand]].Psi[xyzOut] lagrange(nPt,np)  
   
-  if( visu .and. rankWorld==0 )then
-    print '()'
-    do iNod=1,nNod
-      print '("iNod=",i3," lagrange         =",*(f12.5,1x))',iNod,lagrange(1:nMod,iNod)
+  if( visu )then
+    call mpi_barrier(commWorld,iErr)
+    if( rankWorld==0 )print'(/3x,"Calcul: Bases de lagrange")'
+    call mpi_barrier(commWorld,iErr)
+    do iRank=0,sizeWorld-1
+      if( iRank==rankWorld )then    
+        print '(/3x,"meshOrder=",i1," compOrder=",i2,t100,"@rkw",i3)',meshOrder,compOrder,rankWorld
+        call mpi_barrier(commWorld,iErr)
+        do iDistantPoint=1,nDistantPoint
+          !print '(6x,"lagrange(",i3,")=",*(f12.5,1x))',iDistantPoint,lagrange(1:nMod,iDistantPoint)
+        enddo
+      endif
+      call mpi_barrier(commWorld,iErr)
     enddo
+    call mpi_barrier(commWorld,iErr)
   endif
+  call mpi_barrier(commWorld,iErr)  
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   
@@ -456,23 +475,34 @@ subroutine  userInterpolation                        ( &
     j=j+stride
   enddo
   
-  !> Visu de distantField
-  if( visu .and. rankWorld==0 )then
-    print '()'
-    j=0
-    do iDistantPoint=1,nDistantPoint
-      print '("iDis=",i3," distantField     =",4(f12.5,1x),t100,"@rkw",i3)',&
-      & iDistantPoint,distantField(j+1:j+stride),rankWorld
-      j=j+stride
+  if( visu )then
+    call mpi_barrier(commWorld,iErr)
+    if( rankWorld==0 )print'(/3x,"Calcul: distantField")'
+    call mpi_barrier(commWorld,iErr)
+    do iRank=0,sizeWorld-1
+      if( iRank==rankWorld )then    
+        print '(/3x,"meshOrder=",i1," compOrder=",i2,t100,"@rkw",i3)',meshOrder,compOrder,rankWorld
+        call mpi_barrier(commWorld,iErr)
+        j=0
+        do iDistantPoint=1,nDistantPoint
+          print '("iDis=",i3," distantField     =",4(f12.5,1x),t100,"@rkw",i3)',&
+          & iDistantPoint,distantField(j+1:j+stride),rankWorld
+          j=j+stride
+        enddo
+      endif
+      call mpi_barrier(commWorld,iErr)
     enddo
+    call mpi_barrier(commWorld,iErr)
   endif
+  call mpi_barrier(commWorld,iErr)    
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   deallocate(lagrange)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
+    
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  call mpi_barrier(commWorld,iErr)
   call mpi_barrier(commWorld,iErr)
   if( rankWorld==0 )print'("<<< userInterpolation rankWorld=",i2)',rankWorld
   call mpi_barrier(commWorld,iErr)
@@ -640,10 +670,10 @@ program testf
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   select case(rankWorld)
-  case(0) ; compOrder=03 !07
+  case(0) ; compOrder=01 !07
   case(1) ; compOrder=01 !10
   end select
-  print '("fortran_surf_PiPj : meshOrder=",i2," compOrder=",i2,t100,"@rkw",i3)',meshOrder,compOrder,rankWorld
+  print '("fortran_surf_PiPj: meshOrder=",i2," compOrder=",i2,t100,"@rkw",i3)',meshOrder,compOrder,rankWorld
   call mpi_barrier(commWorld,iErr)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
@@ -707,14 +737,7 @@ program testf
     trian(1:7,2)=[01,03,02,07,06,05,1]
     trian(1:7,3)=[01,04,03,08,10,07,3] !> Couplage
     trian(1:7,4)=[01,02,04,05,09,08,1]
-    
-   !uvw(1:3,01)=[0.00, 0.00, 0.00] !> 01
-   !uvw(1:3,02)=[0.00, 0.00, 1.00] !> 04
-   !uvw(1:3,03)=[0.00, 1.00, 0.00] !> 03
-   !uvw(1:3,04)=[0.00, 0.00, 0.50] !> 08
-   !uvw(1:3,05)=[0.00, 0.50, 0.50] !> 10
-   !uvw(1:3,06)=[0.00, 0.50, 0.00] !> 07
-    
+        
   case(1)
     !> Vertices
     nVert=10
@@ -740,16 +763,7 @@ program testf
     trian(1:7,1)=[02,03,04,06,10,09, 1]
     trian(1:7,2)=[01,03,02,07,06,05, 1]
     trian(1:7,3)=[01,04,03,08,10,07, 1]
-    trian(1:7,4)=[01,02,04,05,09,08, 3] !> Couplage
-    
-    !uvw(1:3,01)=[0.00, 0.00, 0.00] !> 01
-    !uvw(1:3,02)=[1.00, 0.00, 0.00] !> 02
-    !uvw(1:3,03)=[0.00, 0.00, 1.00] !> 04
-    !uvw(1:3,04)=[0.50, 0.00, 0.00] !> 05
-    !uvw(1:3,05)=[0.50, 0.00, 0.50] !> 09
-    !uvw(1:3,06)=[0.00, 0.00, 0.50] !> 08
-    
-    
+    trian(1:7,4)=[01,02,04,05,09,08, 3] !> Couplage    
   end select
   
   if( visu )then
@@ -892,7 +906,7 @@ program testf
     &   couplingName="testPiPj"  ,&
     &   nVertex     =nVert       ,&
     &   nElts       =nCell       ,&
-    &   order       =2           ,&  
+    &   order       =meshOrder   ,&  
     &   coords      =vertices    ,&
     &   connecIndex =connecIndex ,&
     &   connec      =connec       )
@@ -1054,17 +1068,7 @@ program testf
   enddo
   deallocate(uvw)
   
-  
-!  if( visu .and. rankWorld==0 )then
-!    print '("nMod=",i3,2x,"nNod=",i3)',nMod,nNod
-!    j=0
-!    do iNod=1,nNod
-!      print '("iMod=",i3," myValues         =",4(f12.5,1x),t100,"@rkw",i3)',iNod,myValues(j+1:j+stride),rankWorld
-!      j=j+stride
-!    enddo
-!  endif
-  
-  
+    
   !> Visu des valeurs de couplage
   if( visu )then
     do iRank=0,sizeWorld-1
@@ -1095,6 +1099,7 @@ program testf
    call cwipi_exchange_f(                       &
    &    couplingName=          "testPiPj"      ,&
    &    exchangeName="exch1_"//"testPiPj"      ,&
+   &    meshOrder=meshOrder                    ,&  !> NEW cwipi
    &    exchangeDim=stride                     ,&  !> scalar
    &    ptHoInterpolationFct=userInterpolation ,&  !> utilisation de la procedure plug
    &                                            &
