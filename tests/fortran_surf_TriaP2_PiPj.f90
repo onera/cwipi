@@ -25,14 +25,14 @@ module additionnal_Functions
 
 contains
   
-  subroutine triangleP2UV_to_TetraP2UVW(iSide,uv,uvw)
+  subroutine triangleP2UV_to_TetraP2UVW(iTrian,uv,uvw)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Cette procedure retourne les coordonnées barycentriques dans le tetraP2 des sommets de la face iSide du tetraP2
+    !> Cette procedure retourne les coordonnées barycentriques dans le tetraP2 des sommets de la face iTrian du tetraP2
     !> entree uv (1,2,;) triangleP2
     !> sortie uvw(1,3,;) tetraP2
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    integer         , intent(in)  :: iSide
+    integer         , intent(in)  :: iTrian
     real(8), pointer, intent(in)  :: uv (:,:)
     real(8), pointer, intent(out) :: uvw(:,:)
     !>
@@ -49,6 +49,7 @@ contains
     TetraP2(1:3,02)=[1d+0,0d+0,0d+0]
     TetraP2(1:3,03)=[0d+0,1d+0,0d+0]
     TetraP2(1:3,04)=[0d+0,0d+0,1d+0]
+    !>
     TetraP2(1:3,05)=[5d-1,0d+0,0d+0]
     TetraP2(1:3,06)=[5d-1,5d-1,0d+0]
     TetraP2(1:3,07)=[0d+0,5d-1,0d+0]
@@ -59,17 +60,17 @@ contains
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> slection des noeuds
-    select case(iSide)
+    select case(iTrian)
     case(1) ; nodes(1:6)=[02,03,04, 06,10,09]
-    case(2) ; nodes(1:6)=[01,04,03, 08,10,07]
-    case(3) ; nodes(1:6)=[01,02,04, 05,09,08]
-    case(4) ; nodes(1:6)=[01,03,02, 07,06,05]
+    case(2) ; nodes(1:6)=[01,03,02, 07,06,05]
+    case(3) ; nodes(1:6)=[01,04,03, 08,10,07]
+    case(4) ; nodes(1:6)=[01,02,04, 05,09,08]
     case default ; stop "stop @ triangleP2UV_to_TetraP2UVW"
     end select
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> uvw du TriangleP2 face iSide
+    !> uvw du TriangleP2 face iTrian
     do iNod=1,6
       jNod=nodes(iNod)
       TrianP2(1:3,iNod)=TetraP2(1:3,jNod)
@@ -278,7 +279,7 @@ subroutine  userInterpolation                        ( &
   integer          :: iNod,nNod,iMod,nMod
   real(8), pointer :: uvw (:,:),rst(:,:),a(:),b(:),c(:),vand(:,:)
   integer          :: iDistantPoint
-  integer          :: iSide,iVert,iBary
+  integer          :: iTrian,iVert,iBary
   real(8), pointer :: uv(:,:),uvwOut(:,:),lagrange(:,:)
   real(8)          :: lagrangeMesh(1:10)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -294,6 +295,7 @@ subroutine  userInterpolation                        ( &
   if( visu )then
     call mpi_barrier(commWorld,iErr)
     if( rankWorld==0 )print'(/3x,"Control: localCoordinates, localConnectivity")'  
+    call mpi_barrier(commWorld,iErr)
     do iRank=0,sizeWorld-1
       if( iRank==rankWorld )then
         print '(/3x,"meshOrder=",i1," compOrder=",i2,t100,"@rkw",i3)',meshOrder,compOrder,rankWorld
@@ -318,6 +320,7 @@ subroutine  userInterpolation                        ( &
   if( visu )then
     call mpi_barrier(commWorld,iErr)
     if( rankWorld==0 )print'(/3x,"Control: localField")'
+    call mpi_barrier(commWorld,iErr)
     do iRank=0,sizeWorld-1
       if( iRank==rankWorld )then
         print '(/3x,"meshOrder=",i1," compOrder=",i2,t100,"@rkw",i3)',meshOrder,compOrder,rankWorld
@@ -395,12 +398,13 @@ subroutine  userInterpolation                        ( &
   
   allocate(uvw(1:3,1:nDistantPoint))
   
+  !> rkw0:Triangle3 <=> rkw1:Triangle4
   select case(rankWorld)
-  case(0) ; iSide=3 !> on se couple sur la face 3 du tetra
-  case(1) ; iSide=4 !> on se couple sur la face 4 du tetra
+  case(0) ; iTrian=3  !> on se couple sur le triangle 3
+  case(1) ; iTrian=4  !> on se couple sur le triangle 4
   end select
   
-  call triangleP2UV_to_TetraP2UVW(iSide=iSide,uv=uv,uvw=uvw)
+  call triangleP2UV_to_TetraP2UVW(iTrian=iTrian,uv=uv,uvw=uvw)
   
   if( visu )then
     call mpi_barrier(commWorld,iErr)
@@ -485,7 +489,7 @@ subroutine  userInterpolation                        ( &
         call mpi_barrier(commWorld,iErr)
         j=0
         do iDistantPoint=1,nDistantPoint
-          print '("iDis=",i3," distantField     =",4(f12.5,1x),t100,"@rkw",i3)',&
+          print '(6x,"distantField(",i3,")=",4(f12.5,1x),t100,"@rkw",i3)',&
           & iDistantPoint,distantField(j+1:j+stride),rankWorld
           j=j+stride
         enddo
@@ -512,7 +516,7 @@ subroutine  userInterpolation                        ( &
 end subroutine userInterpolation
 
 
-program testf
+program fortran_surf_TriaP2_PiPj
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use iso_fortran_env
   
@@ -673,6 +677,8 @@ program testf
   case(0) ; compOrder=01 !07
   case(1) ; compOrder=01 !10
   end select
+  
+  call mpi_barrier(commWorld,iErr)
   print '("fortran_surf_PiPj: meshOrder=",i2," compOrder=",i2,t100,"@rkw",i3)',meshOrder,compOrder,rankWorld
   call mpi_barrier(commWorld,iErr)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -680,7 +686,9 @@ program testf
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Create coupling
   
+  call mpi_barrier(commWorld,iErr)
   if( rankWorld==0 )print '(/"Create Coupling")'
+  call mpi_barrier(commWorld,iErr)
   
   call cwipi_create_coupling_f(                  &
   &    couplingName="testPiPj"                  ,&
@@ -698,7 +706,9 @@ program testf
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Create Geometric Mesh
   
-  if( rankWorld==0 )print '(/"Create Geometric Mesh (inria mesh format)")'
+  call mpi_barrier(commWorld,iErr)
+  if( rankWorld==0 )print '(/"Creation des maillages géométriques (inria mesh format)")'
+  call mpi_barrier(commWorld,iErr)
   
   !  04        niveau2
   !
@@ -708,6 +718,8 @@ program testf
   !  03
   !  07 06
   !  01 05 02  niveau0
+  
+  ! On propose de couple deux tetras en contact suivant le plan y=0
   
   select case(rankWorld)
   case(0)
@@ -729,14 +741,14 @@ program testf
     !> Tetrahedra
     nTetra=1
     allocate(tetra(1:11,1:nTetra)) !> 10 sommets + 1 marqueur
-    tetra(1:11,1)=[01,02,03,04,05,06,07,08,09,10, 1]
+    tetra(1:11,1)=[01,02,03,04, 05,06,07,08,09,10, 1]
     !>  Triangles
     nTrian=4
     allocate(trian(1:07,1:nTrian)) !> 6 sommets + 1 marqueur
-    trian(1:7,1)=[02,03,04,06,10,09,1]
-    trian(1:7,2)=[01,03,02,07,06,05,1]
-    trian(1:7,3)=[01,04,03,08,10,07,3] !> Couplage
-    trian(1:7,4)=[01,02,04,05,09,08,1]
+    trian(1:7,1)=[02,03,04, 06,10,09, 1]
+    trian(1:7,2)=[01,03,02, 07,06,05, 1]
+    trian(1:7,3)=[01,04,03, 08,10,07, 3] !> Couplage
+    trian(1:7,4)=[01,02,04, 05,09,08, 1]
         
   case(1)
     !> Vertices
@@ -756,25 +768,26 @@ program testf
     !> Tetrahedra
     nTetra=1
     allocate(tetra(1:11,1:nTetra)) !> 10 sommets + 1 marquer
-    tetra(1:11,1)=[1,2,3,4,5,6,7,8,9,10, 1]
+    tetra(1:11,1)=[01,02,03,04, 05,06,07,08,09,10, 1]
     !>  Triangles
     nTrian=4
     allocate(trian(1:7,1:nTrian)) !> 6 sommets + 1 marquer
-    trian(1:7,1)=[02,03,04,06,10,09, 1]
-    trian(1:7,2)=[01,03,02,07,06,05, 1]
-    trian(1:7,3)=[01,04,03,08,10,07, 1]
-    trian(1:7,4)=[01,02,04,05,09,08, 3] !> Couplage    
+    trian(1:7,1)=[02,03,04, 06,10,09, 1]
+    trian(1:7,2)=[01,03,02, 07,06,05, 1]
+    trian(1:7,3)=[01,04,03, 08,10,07, 1]
+    trian(1:7,4)=[01,02,04, 05,09,08, 3] !> Couplage    
   end select
   
   if( visu )then
     !> Ecriture des maillages au format mesh de l'inria
     if( rankWorld==0)then
-      print '(/"Writing computation mesh file: Tetra0.mesh")'
-      print '( "Writing computation mesh file: Tetra1.mesh")'
+      print '(/3x,"Ecriture de : Tetra0.mesh")'
+      print '( 3x,"Ecriture de : Tetra1.mesh")'
     endif
+    
     write(meshName,'("Tetra",i1,".mesh")')rankWorld
     open(unit=100,file=trim(meshName),action='write',status='unknown')
-    write(100,'("MeshVersionFormatted 1"/)')
+    write(100,'("MeshVersionFormatted 2"/)')
     write(100,'("Dimension 3"/)')
     write(100,'("Vertices")')
     write(100,'(i2)')nVert
@@ -844,7 +857,7 @@ program testf
     if( visu )then
       write(meshName,'("Triangle",i1,".mesh")')rankWorld
       open(unit=100,file=trim(meshName),action='write',status='unknown')
-      write(100,'("MeshVersionFormatted 1"/)')
+      write(100,'("MeshVersionFormatted 2"/)')
       write(100,'("Dimension 3"/)')
       write(100,'("Vertices")')
       write(100,'(i2)')nVert
@@ -971,8 +984,6 @@ program testf
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Points de couplage situés Triangle avec le marqueur de peau 1 => face commune aux deux tetras <=
   
-  if( rankWorld==0 ) print'(/"Calcul des coordonnees des points de couplage"/)'
-  
   !> Calcul des coordonnees barycentriques optimisées sur face trianglulaire compOrder
   call nodes3Dopt_2D(ord=compOrder,uvw=uvw,display=.false.) !> ordre du calcul
   
@@ -1001,12 +1012,15 @@ program testf
   
   !> Visu des coordonnees de couplage
   if( visu )then
+  call mpi_barrier(commWorld,iErr)
+  if( rankWorld==0 ) print'(/"Calcul des coordonnees des points de couplage")'
+  call mpi_barrier(commWorld,iErr)
     do iRank=0,sizeWorld-1
       if( iRank==rankWorld )then
-          print '(3x,"meshOrder=",i1," compOrder=",i2,t100,"@rkw",i3)',meshOrder,compOrder,rankWorld
+          print '(/3x,"meshOrder=",i1," compOrder=",i2,t100,"@rkw",i3)',meshOrder,compOrder,rankWorld
         j=0
         do iVert=1,linkVertSize
-          print '(6xx,"linkVert(",i2,")=",3(f12.5,1x))',iVert,linkVert(j+1:j+3)
+          print '(6x,"linkVert(",i2,")=",3(f12.5,1x))',iVert,linkVert(j+1:j+3)
           j=j+3
         enddo
       endif
@@ -1035,7 +1049,6 @@ program testf
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Initialisation of myValues
   
-  if( rankWorld==0 )print '(/"Initialisation of myValues (x,y,z,rankWorld)"/)'
   
   !> Liste coordonées barycentriques uvw(1:3,:) du Tetra d'ordre compOrder
   call nodes3D   (ord=compOrder,uvw=uvw,display=.false.)
@@ -1071,9 +1084,12 @@ program testf
     
   !> Visu des valeurs de couplage
   if( visu )then
+    call mpi_barrier(commWorld,iErr)
+    if( rankWorld==0 )print '(/"Initialisation of myValues (x,y,z,rankWorld)")'
+    call mpi_barrier(commWorld,iErr)
     do iRank=0,sizeWorld-1
       if( iRank==rankWorld )then
-        print '(3x,"nMod=",i3,2x,"nNod=",i3,t100,"@rkw",i3)',nMod,nNod,rankWorld
+        print '(/3x,"Computing myValues nMod=",i3,2x,"nNod=",i3,t100,"@rkw",i3)',nMod,nNod,rankWorld
         j=0
         do iNod=1,nNod
           !print '("iMod=",i3," myValues         =",4(f12.5,1x),t100,"@rkw",i3)',iNod,myValues(j+1:j+stride),rankWorld
@@ -1093,7 +1109,7 @@ program testf
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   call mpi_barrier(commWorld,iErr)
-  if( rankWorld==0 )print '(/"cwipi_exchange_f"/)'
+  if( rankWorld==0 )print '(/"cwipi_exchange_f")'
   call mpi_barrier(commWorld,iErr)
   
    call cwipi_exchange_f(                       &
@@ -1160,4 +1176,4 @@ program testf
   call mpi_finalize(iErr)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
-end program testf
+end program fortran_surf_TriaP2_PiPj
