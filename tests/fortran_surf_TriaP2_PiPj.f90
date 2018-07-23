@@ -298,10 +298,10 @@ subroutine  userInterpolation                        ( &
   if( visu )then
     do iRank=0,sizeWorld-1
       if( iRank==rankWorld )then
-        print '(/3x,"meshOrder=",i1," compOrder=",i2,t100,"@rkw",i3)',meshOrder,compOrder,rankWorld
+        print '(/3x,"meshOrder=",i1," compOrder=",i2,t120,"@rkw",i3)',meshOrder,compOrder,rankWorld
         iVert=0
         do i=1,nLocalVertex
-          print '(6x,"localCoordinates (",i2,")=",3(f12.5,1x))',i,localCoordinates(iVert+1:iVert+3)
+          print '(6x,"localCoordinates (",i2,")=",3(e22.15,1x))',i,localCoordinates(iVert+1:iVert+3)
           iVert=iVert+3
         enddo
         do i=1,nLocalElement
@@ -323,11 +323,11 @@ subroutine  userInterpolation                        ( &
   if( visu )then
     do iRank=0,sizeWorld-1
       if( iRank==rankWorld )then
-        print '(/3x,"meshOrder=",i1," compOrder=",i2,t100,"@rkw",i3)',meshOrder,compOrder,rankWorld
+        print '(/3x,"meshOrder=",i1," compOrder=",i2,t120,"@rkw",i3)',meshOrder,compOrder,rankWorld
         nMod=(compOrder+1)*(compOrder+2)*(compOrder+3)/6
         j=0
         do iMod=1,nMod
-          print '(6x,"localField(",i3,")=",*(f12.5,1x))',iMod,localField(j+1:j+stride)
+          print '(6x,"localField(",i3,")=",*(e22.15,1x))',iMod,localField(j+1:j+stride)
           j=j+stride
         enddo
       endif
@@ -346,10 +346,10 @@ subroutine  userInterpolation                        ( &
   if( visu )then
     do iRank=0,sizeWorld-1
       if( iRank==rankWorld )then    
-        print '(/3x,"meshOrder=",i1," compOrder=",i2,t100,"@rkw",i3)',meshOrder,compOrder,rankWorld
+        print '(/3x,"meshOrder=",i1," compOrder=",i2,t120,"@rkw",i3)',meshOrder,compOrder,rankWorld
         iVert=0
         do iDistantPoint=1,nDistantPoint
-          print '(6x,"disPtsCoordinates(",i3,")=",3(f12.5,1x)," inside Cell: ",i3)',&
+          print '(6x,"disPtsCoordinates(",i3,")=",3(e22.15,1x)," inside Cell: ",i3)',&
           & iDistantPoint,disPtsCoordinates(iVert+1:iVert+3),disPtsLocation(iDistantPoint)
           iVert=iVert+3
         enddo
@@ -376,12 +376,12 @@ subroutine  userInterpolation                        ( &
   if( visu )then
     do iRank=0,sizeWorld-1
       if( iRank==rankWorld )then    
-        print '(/3x,"meshOrder=",i1," compOrder=",i2," stride_uvw=",i2,t100,"@rkw",i3)',meshOrder,compOrder,uvw_size,rankWorld
+        print '(/3x,"meshOrder=",i1," compOrder=",i2," stride_uvw=",i2,t120,"@rkw",i3)',meshOrder,compOrder,uvw_size,rankWorld
         call mpi_barrier(commWorld,iErr)
         iVert=0
         do iDistantPoint=1,nDistantPoint
-         !print '(6x,"dist_uvw(",i3,")=",*(f12.5,1x))',iDistantPoint,dist_uvw(iVert+1:iVert+uvw_size)
-          print '(6x,"uv (1:2,",i3,")=",*(f12.5,1x))',iDistantPoint,uv(1:2,iDistantPoint)
+         !print '(6x,"dist_uvw(",i3,")=",*(e22.15,1x))',iDistantPoint,dist_uvw(iVert+1:iVert+uvw_size)
+          print '(6x,"uv (1:2,",i3,")=",*(e22.15,1x))',iDistantPoint,uv(1:2,iDistantPoint)
           iVert=iVert+uvw_size
         enddo
       endif
@@ -413,10 +413,10 @@ subroutine  userInterpolation                        ( &
   if( visu )then
     do iRank=0,sizeWorld-1
       if( iRank==rankWorld )then    
-        print '(/3x,"meshOrder=",i1," compOrder=",i2,t100,"@rkw",i3)',meshOrder,compOrder,rankWorld
+        print '(/3x,"meshOrder=",i1," compOrder=",i2,t120,"@rkw",i3)',meshOrder,compOrder,rankWorld
         call mpi_barrier(commWorld,iErr)
         do iDistantPoint=1,nDistantPoint
-          print '(6x,"uvw(",i3,")=",*(f12.5,1x))',iDistantPoint,uvw(1:3,iDistantPoint)
+          print '(6x,"uvw(",i3,")=",*(e22.15,1x))',iDistantPoint,uvw(1:3,iDistantPoint)
         enddo
       endif
       call mpi_barrier(commWorld,iErr)
@@ -452,10 +452,10 @@ subroutine  userInterpolation                        ( &
   if( visu )then
     do iRank=0,sizeWorld-1
       if( iRank==rankWorld )then    
-        print '(/3x,"meshOrder=",i1," compOrder=",i2,t100,"@rkw",i3)',meshOrder,compOrder,rankWorld
+        print '(/3x,"meshOrder=",i1," compOrder=",i2,t120,"@rkw",i3)',meshOrder,compOrder,rankWorld
         call mpi_barrier(commWorld,iErr)
         do iDistantPoint=1,nDistantPoint
-          !print '(6x,"lagrange(",i3,")=",*(f12.5,1x))',iDistantPoint,lagrange(1:nMod,iDistantPoint)
+          !print '(6x,"lagrange(",i3,")=",*(e22.15,1x))',iDistantPoint,lagrange(1:nMod,iDistantPoint)
         enddo
       endif
       call mpi_barrier(commWorld,iErr)
@@ -486,11 +486,11 @@ subroutine  userInterpolation                        ( &
   if( visu )then
     do iRank=0,sizeWorld-1
       if( iRank==rankWorld )then    
-        print '(/3x,"meshOrder=",i1," compOrder=",i2,t100,"@rkw",i3)',meshOrder,compOrder,rankWorld
+        print '(/3x,"meshOrder=",i1," compOrder=",i2,t120,"@rkw",i3)',meshOrder,compOrder,rankWorld
         call mpi_barrier(commWorld,iErr)
         j=0
         do iDistantPoint=1,nDistantPoint
-          print '(6x,"distantField(",i3,")=",4(f12.5,1x),t100,"@rkw",i3)',&
+          print '(6x,"distantField(",i3,")=",4(e22.15,1x),t120,"@rkw",i3)',&
           & iDistantPoint,distantField(j+1:j+stride),rankWorld
           j=j+stride
         enddo
@@ -682,7 +682,7 @@ program fortran_surf_TriaP2_PiPj
   end select
   
   call mpi_barrier(commWorld,iErr)
-  print '("fortran_surf_PiPj: meshOrder=",i2," compOrder=",i2,t100,"@rkw",i3)',meshOrder,compOrder,rankWorld
+  print '("fortran_surf_PiPj: meshOrder=",i2," compOrder=",i2,t120,"@rkw",i3)',meshOrder,compOrder,rankWorld
   call mpi_barrier(commWorld,iErr)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
@@ -750,29 +750,29 @@ program fortran_surf_TriaP2_PiPj
     allocate(vertx(1:3,1:nVert))
     !>
     if( droit )then
-      vertx(1:3,01)=[0.00, 0.00, 0.00]
-      vertx(1:3,02)=[0.00,-1.00, 0.00]
-      vertx(1:3,03)=[1.00, 0.00, 0.00]
-      vertx(1:3,04)=[0.00, 0.00, 1.00]
+      vertx(1:3,01)=[0.00d0, 0.00d0, 0.00d0]
+      vertx(1:3,02)=[0.00d0,-1.00d0, 0.00d0]
+      vertx(1:3,03)=[1.00d0, 0.00d0, 0.00d0]
+      vertx(1:3,04)=[0.00d0, 0.00d0, 1.00d0]
       !>
-      vertx(1:3,05)=[0.00,-0.50, 0.00]
-      vertx(1:3,06)=[0.50,-0.50, 0.00]
-      vertx(1:3,07)=[0.50, 0.00, 0.00]
-      vertx(1:3,08)=[0.00, 0.00, 0.50]
-      vertx(1:3,09)=[0.00,-0.50, 0.50]
-      vertx(1:3,10)=[0.50, 0.00, 0.50]
+      vertx(1:3,05)=[0.00d0,-0.50d0, 0.00d0]
+      vertx(1:3,06)=[0.50d0,-0.50d0, 0.00d0]
+      vertx(1:3,07)=[0.50d0, 0.00d0, 0.00d0]
+      vertx(1:3,08)=[0.00d0, 0.00d0, 0.50d0]
+      vertx(1:3,09)=[0.00d0,-0.50d0, 0.50d0]
+      vertx(1:3,10)=[0.50d0, 0.00d0, 0.50d0]
     else
-      vertx(1:3,01)=[0.00, 0.00,-0.10]
-      vertx(1:3,02)=[0.00,-1.00, 0.00]
-      vertx(1:3,03)=[1.00, 0.00, 0.00]
-      vertx(1:3,04)=[0.00, 0.00, 1.00]
+      vertx(1:3,01)=[0.00d0, 0.00d0,-0.10d0]
+      vertx(1:3,02)=[0.00d0,-1.00d0, 0.00d0]
+      vertx(1:3,03)=[1.00d0, 0.00d0, 0.00d0]
+      vertx(1:3,04)=[0.00d0, 0.00d0, 1.00d0]
       !>
-      vertx(1:3,05)=[0.00,-0.50, 0.00]
-      vertx(1:3,06)=[0.50,-0.50, 0.00]
-      vertx(1:3,07)=[0.50, 0.00, 0.00]
-      vertx(1:3,08)=[0.00, 0.00, 0.50]
-      vertx(1:3,09)=[0.00,-0.50, 0.50]
-      vertx(1:3,10)=[0.50, 0.00, 0.50]
+      vertx(1:3,05)=[0.00d0,-0.50d0, 0.00d0]
+      vertx(1:3,06)=[0.50d0,-0.50d0, 0.00d0]
+      vertx(1:3,07)=[0.50d0, 0.00d0, 0.00d0]
+      vertx(1:3,08)=[0.00d0, 0.00d0, 0.50d0]
+      vertx(1:3,09)=[0.00d0,-0.50d0, 0.50d0]
+      vertx(1:3,10)=[0.50d0, 0.00d0, 0.50d0]
     endif
     !> Tetrahedra
     nTetra=1
@@ -790,29 +790,29 @@ program fortran_surf_TriaP2_PiPj
     nVert=10
     allocate(vertx(1:3,1:nVert))
     if( droit )then
-      vertx(1:3,01)=[0.00, 0.00, 0.00]
-      vertx(1:3,02)=[1.00, 0.00, 0.00]
-      vertx(1:3,03)=[0.00, 1.00, 0.00]
-      vertx(1:3,04)=[0.00, 0.00, 1.00]
+      vertx(1:3,01)=[0.00d0, 0.00d0, 0.00d0]
+      vertx(1:3,02)=[1.00d0, 0.00d0, 0.00d0]
+      vertx(1:3,03)=[0.00d0, 1.00d0, 0.00d0]
+      vertx(1:3,04)=[0.00d0, 0.00d0, 1.00d0]
       !>
-      vertx(1:3,05)=[0.50, 0.00, 0.00]
-      vertx(1:3,06)=[0.50, 0.50, 0.00]
-      vertx(1:3,07)=[0.00, 0.50, 0.00]
-      vertx(1:3,08)=[0.00, 0.00, 0.50]
-      vertx(1:3,09)=[0.50, 0.00, 0.50]
-      vertx(1:3,10)=[0.00, 0.50, 0.50]
+      vertx(1:3,05)=[0.50d0, 0.00d0, 0.00d0]
+      vertx(1:3,06)=[0.50d0, 0.50d0, 0.00d0]
+      vertx(1:3,07)=[0.00d0, 0.50d0, 0.00d0]
+      vertx(1:3,08)=[0.00d0, 0.00d0, 0.50d0]
+      vertx(1:3,09)=[0.50d0, 0.00d0, 0.50d0]
+      vertx(1:3,10)=[0.00d0, 0.50d0, 0.50d0]
     else
-      vertx(1:3,01)=[0.00, 0.00,-0.10]
-      vertx(1:3,02)=[1.00, 0.00, 0.00]
-      vertx(1:3,03)=[0.00, 1.00, 0.00]
-      vertx(1:3,04)=[0.00, 0.00, 1.00]
+      vertx(1:3,01)=[0.00d0, 0.00d0,-0.10d0]
+      vertx(1:3,02)=[1.00d0, 0.00d0, 0.00d0]
+      vertx(1:3,03)=[0.00d0, 1.00d0, 0.00d0]
+      vertx(1:3,04)=[0.00d0, 0.00d0, 1.00d0]
       !>
-      vertx(1:3,05)=[0.50, 0.00, 0.00]
-      vertx(1:3,06)=[0.50, 0.50, 0.00]
-      vertx(1:3,07)=[0.00, 0.50, 0.00]
-      vertx(1:3,08)=[0.00, 0.00, 0.50]
-      vertx(1:3,09)=[0.50, 0.00, 0.50]
-      vertx(1:3,10)=[0.00, 0.50, 0.50]
+      vertx(1:3,05)=[0.50d0, 0.00d0, 0.00d0]
+      vertx(1:3,06)=[0.50d0, 0.50d0, 0.00d0]
+      vertx(1:3,07)=[0.00d0, 0.50d0, 0.00d0]
+      vertx(1:3,08)=[0.00d0, 0.00d0, 0.50d0]
+      vertx(1:3,09)=[0.50d0, 0.00d0, 0.50d0]
+      vertx(1:3,10)=[0.00d0, 0.50d0, 0.50d0]
     endif
     !> Tetrahedra
     nTetra=1
@@ -951,9 +951,9 @@ program fortran_surf_TriaP2_PiPj
       do iRank=0,sizeWorld-1
         if( iRank==rankWorld )then
          !print '(3x,"rankWorld=",i1," meshOrder=",i1)',rankWorld,meshOrder    
-          print '(3x,"meshOrder=",i1," compOrder=",i2,t100,"@rkw",i3)',meshOrder,compOrder,rankWorld
+          print '(3x,"meshOrder=",i1," compOrder=",i2,t120,"@rkw",i3)',meshOrder,compOrder,rankWorld
           do iVert=1,nVert
-            print '(3x,"iVert=",i3," xyz=",*(f12.5,1x))',iVert,vertices(3*(iVert-1)+1:3*iVert)
+            print '(3x,"iVert=",i3," xyz=",*(e22.15,1x))',iVert,vertices(3*(iVert-1)+1:3*iVert)
           enddo
           do iCell=1,nCell
             print '(3x,"iCell=",i3," cel=",*(i3,1x))',iCell,connec( connecIndex(iCell)+1:connecIndex(iCell+1) )
@@ -1040,6 +1040,23 @@ program fortran_surf_TriaP2_PiPj
   !> Calcul des coordonnees barycentriques optimisées sur face trianglulaire compOrder
   call nodes3Dopt_2D(ord=compOrder,uvw=uvw,display=.false.) !> ordre du calcul
   
+  !> Visu uvw
+  if( visu )then
+    do iRank=0,sizeWorld-1
+      call mpi_barrier(commWorld,iErr)
+      if( iRank==rankWorld )then
+        print '(/3x,"meshOrder=",i1," compOrder=",i2,t120,"@rkw",i3)',meshOrder,compOrder,rankWorld
+        do iVert=1,size(uvw,2)
+          print '(6x,"uvw(",i2,")=",3(e22.15,1x))',iVert,uvw(1:3,iVert)
+        enddo
+      endif
+      call mpi_barrier(commWorld,iErr)
+    enddo
+    call mpi_barrier(commWorld,iErr)
+  endif
+  
+  
+  
   !> Calculs des coordonnées correspondantes aux coordonnees barycentriques
   linkVertSize=size(uvw,2)
   allocate(linkVert(1:6*linkVertSize))
@@ -1065,11 +1082,12 @@ program fortran_surf_TriaP2_PiPj
   !> Visu des coordonnees de couplage
   if( visu )then
     do iRank=0,sizeWorld-1
+      call mpi_barrier(commWorld,iErr)
       if( iRank==rankWorld )then
-          print '(/3x,"meshOrder=",i1," compOrder=",i2,t100,"@rkw",i3)',meshOrder,compOrder,rankWorld
+        print '(/3x,"meshOrder=",i1," compOrder=",i2,t120,"@rkw",i3)',meshOrder,compOrder,rankWorld
         j=0
         do iVert=1,linkVertSize
-          print '(6x,"linkVert(",i2,")=",3(f12.5,1x))',iVert,linkVert(j+1:j+3)
+          print '(6x,"linkVert(",i2,")=",3(e22.15,1x))',iVert,linkVert(j+1:j+3)
           j=j+3
         enddo
       endif
@@ -1130,7 +1148,7 @@ program fortran_surf_TriaP2_PiPj
   enddo
   deallocate(uvw)
   
-    
+  
   !> Visu des valeurs de couplage
   call mpi_barrier(commWorld,iErr)
   if( rankWorld==0 )print '(/"Initialisation of myValues (x,y,z,rankWorld)")'
@@ -1138,10 +1156,10 @@ program fortran_surf_TriaP2_PiPj
   if( visu )then
     do iRank=0,sizeWorld-1
       if( iRank==rankWorld )then
-        print '(/3x,"Computing myValues nMod=",i3,2x,"nNod=",i3,t100,"@rkw",i3)',nMod,nNod,rankWorld
+        print '(/3x,"Computing myValues nMod=",i3,2x,"nNod=",i3,t120,"@rkw",i3)',nMod,nNod,rankWorld
         j=0
         do iNod=1,nNod
-          print '(6x,"myValues(",i3,")=",4(f12.5,1x))',iNod,myValues(j+1:j+stride)
+          print '(6x,"myValues(",i3,")=",4(e22.15,1x))',iNod,myValues(j+1:j+stride)
           j=j+stride
         enddo        
       endif
@@ -1196,7 +1214,7 @@ program fortran_surf_TriaP2_PiPj
   k=0
   do iRank=0,sizeWorld-1
     if( iRank==rankWorld )then
-      print '(/3x,"Controling linkValues - linkVertSize=",i2,t100,"@rkw",i3)',linkVertSize,rankWorld
+      print '(/3x,"compOrder =",i2," controling linkValues - linkVertSize=",i2,t120,"@rkw",i3)',compOrder,linkVertSize,rankWorld
       do iVert=1,linkVertSize
         delta=norm2(linkVert(j+1:j+3)-linkValues(k+1:k+3)) !+( real(rankWorld,kind=8)-linkValues(k+4) )**2
         if( deltaMax<delta )deltaMax=delta
