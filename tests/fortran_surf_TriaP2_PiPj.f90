@@ -301,7 +301,7 @@ subroutine  userInterpolation                        ( &
         print '(/3x,"meshOrder=",i1," compOrder=",i2,t120,"@rkw",i3)',meshOrder,compOrder,rankWorld
         iVert=0
         do i=1,nLocalVertex
-          print '(6x,"localCoordinates (",i2,")=",3(e22.15,1x))',i,localCoordinates(iVert+1:iVert+3)
+          if( i==11.or.i==19 )print '(6x,"localCoordinates (",i2,")=",3(e22.15,1x))',i,localCoordinates(iVert+1:iVert+3)
           iVert=iVert+3
         enddo
         do i=1,nLocalElement
@@ -349,7 +349,7 @@ subroutine  userInterpolation                        ( &
         print '(/3x,"meshOrder=",i1," compOrder=",i2,t120,"@rkw",i3)',meshOrder,compOrder,rankWorld
         iVert=0
         do iDistantPoint=1,nDistantPoint
-          print '(6x,"disPtsCoordinates(",i3,")=",3(e22.15,1x)," inside Cell: ",i3)',&
+          if( iDistantPoint==11 .or.iDistantPoint==19 )print '(6x,"disPtsCoordinates(",i3,")=",3(e22.15,1x)," inside Cell: ",i3)',&
           & iDistantPoint,disPtsCoordinates(iVert+1:iVert+3),disPtsLocation(iDistantPoint)
           iVert=iVert+3
         enddo
@@ -381,7 +381,7 @@ subroutine  userInterpolation                        ( &
         iVert=0
         do iDistantPoint=1,nDistantPoint
          !print '(6x,"dist_uvw(",i3,")=",*(e22.15,1x))',iDistantPoint,dist_uvw(iVert+1:iVert+uvw_size)
-          print '(6x,"uv (1:2,",i3,")=",*(e22.15,1x))',iDistantPoint,uv(1:2,iDistantPoint)
+          if( iDistantPoint==11 .or.iDistantPoint==19 )print '(6x,"uv (1:2,",i3,")=",*(e22.15,1x))',iDistantPoint,uv(1:2,iDistantPoint)
           iVert=iVert+uvw_size
         enddo
       endif
@@ -416,7 +416,7 @@ subroutine  userInterpolation                        ( &
         print '(/3x,"meshOrder=",i1," compOrder=",i2,t120,"@rkw",i3)',meshOrder,compOrder,rankWorld
         call mpi_barrier(commWorld,iErr)
         do iDistantPoint=1,nDistantPoint
-          print '(6x,"uvw(",i3,")=",*(e22.15,1x))',iDistantPoint,uvw(1:3,iDistantPoint)
+          if( iDistantPoint==11 .or.iDistantPoint==19 )print '(6x,"uvw(",i3,")=",*(e22.15,1x))',iDistantPoint,uvw(1:3,iDistantPoint)
         enddo
       endif
       call mpi_barrier(commWorld,iErr)
@@ -490,7 +490,7 @@ subroutine  userInterpolation                        ( &
         call mpi_barrier(commWorld,iErr)
         j=0
         do iDistantPoint=1,nDistantPoint
-          print '(6x,"distantField(",i3,")=",4(e22.15,1x),t120,"@rkw",i3)',&
+          if( iDistantPoint==11 .or.iDistantPoint==19 )print '(6x,"distantField(",i3,")=",4(e22.15,1x),t120,"@rkw",i3)',&
           & iDistantPoint,distantField(j+1:j+stride),rankWorld
           j=j+stride
         enddo
@@ -1047,7 +1047,7 @@ program fortran_surf_TriaP2_PiPj
       if( iRank==rankWorld )then
         print '(/3x,"meshOrder=",i1," compOrder=",i2,t120,"@rkw",i3)',meshOrder,compOrder,rankWorld
         do iVert=1,size(uvw,2)
-          print '(6x,"uvw(",i2,")=",3(e22.15,1x))',iVert,uvw(1:3,iVert)
+          if( iVert==11.or.iVert==19 )print '(6x,"uvw(",i2,")=",3(e22.15,1x),"1-u-v-w=",e22.15)',iVert,uvw(1:3,iVert),1d0-uvw(1,iVert)-uvw(2,iVert)-uvw(3,iVert)
         enddo
       endif
       call mpi_barrier(commWorld,iErr)
@@ -1087,7 +1087,7 @@ program fortran_surf_TriaP2_PiPj
         print '(/3x,"meshOrder=",i1," compOrder=",i2,t120,"@rkw",i3)',meshOrder,compOrder,rankWorld
         j=0
         do iVert=1,linkVertSize
-          print '(6x,"linkVert(",i2,")=",3(e22.15,1x))',iVert,linkVert(j+1:j+3)
+          if( iVert==11.or.iVert==19 )print '(6x,"linkVert(",i2,")=",3(e22.15,1x))',iVert,linkVert(j+1:j+3)
           j=j+3
         enddo
       endif
@@ -1159,7 +1159,7 @@ program fortran_surf_TriaP2_PiPj
         print '(/3x,"Computing myValues nMod=",i3,2x,"nNod=",i3,t120,"@rkw",i3)',nMod,nNod,rankWorld
         j=0
         do iNod=1,nNod
-          print '(6x,"myValues(",i3,")=",4(e22.15,1x))',iNod,myValues(j+1:j+stride)
+          if( iNod==11.or.iNod==19 )print '(6x,"myValues(",i3,")=",4(e22.15,1x))',iNod,myValues(j+1:j+stride)
           j=j+stride
         enddo        
       endif

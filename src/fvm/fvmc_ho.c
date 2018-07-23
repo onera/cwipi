@@ -1088,9 +1088,9 @@ _default_location_on_tria_2d
   free (weightsPn);
 
   printf("\nCalcul distance triangle :\n");
-  printf("  point_coords : %12.5e %12.5e %12.5e\n", point_coords[0], point_coords[1], point_coords[2]);
-  printf("  project point_coords : %17.10e %17.10e %17.10e - %12.5e\n", projected_coords[0], projected_coords[1], projected_coords[2], dist2);
-  printf("  iteration number, error : %d %12.5e\n", n_it, err_proj);
+  printf("          point_coords : %22.15e %22.15e %22.15e         \n", point_coords[0]    , point_coords[1]    , point_coords[2]);
+  printf("  project point_coords : %22.15e %22.15e %22.15e - %22.15e\n", projected_coords[0], projected_coords[1], projected_coords[2], dist2);
+  printf("  iteration number, error^2 : %d %22.15e\n", n_it, err_proj);
 
   return dist2;
   

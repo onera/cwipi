@@ -181,7 +181,7 @@ static double      _epsilon_multi_point = 1.e-12; /* Minimum distance between
 static fvmc_lnum_t  _octree_threshold = 4; /* Number of points in octree node
                                              under which the node is final */
 
-static int idebug = 0;
+static int idebug = 1;
 /*============================================================================
  * Private function definitions
  *============================================================================*/
