@@ -301,7 +301,7 @@ subroutine  userInterpolation                        ( &
         print '(/3x,"meshOrder=",i1," compOrder=",i2,t120,"@rkw",i3)',meshOrder,compOrder,rankWorld
         iVert=0
         do i=1,nLocalVertex
-          if( i==11.or.i==19 )print '(6x,"localCoordinates (",i2,")=",3(e22.15,1x))',i,localCoordinates(iVert+1:iVert+3)
+          if( iRank==1 .and. i==29 )print '(6x,"localCoordinates (",i2,")=",3(e22.15,1x))',i,localCoordinates(iVert+1:iVert+3)
           iVert=iVert+3
         enddo
         do i=1,nLocalElement
@@ -320,7 +320,8 @@ subroutine  userInterpolation                        ( &
   call mpi_barrier(commWorld,iErr)
   if( rankWorld==0 )print'(/3x,"Control: localField")'
   call mpi_barrier(commWorld,iErr)
-  if( visu )then
+ !if( visu )then
+  if( 0==1 )then
     do iRank=0,sizeWorld-1
       if( iRank==rankWorld )then
         print '(/3x,"meshOrder=",i1," compOrder=",i2,t120,"@rkw",i3)',meshOrder,compOrder,rankWorld
@@ -349,7 +350,7 @@ subroutine  userInterpolation                        ( &
         print '(/3x,"meshOrder=",i1," compOrder=",i2,t120,"@rkw",i3)',meshOrder,compOrder,rankWorld
         iVert=0
         do iDistantPoint=1,nDistantPoint
-          if( iDistantPoint==11 .or.iDistantPoint==19 )print '(6x,"disPtsCoordinates(",i3,")=",3(e22.15,1x)," inside Cell: ",i3)',&
+          if(  iRank==1 .and. iDistantPoint==29 )print '(6x,"disPtsCoordinates(",i3,")=",3(e22.15,1x)," inside Cell: ",i3)',&
           & iDistantPoint,disPtsCoordinates(iVert+1:iVert+3),disPtsLocation(iDistantPoint)
           iVert=iVert+3
         enddo
@@ -365,7 +366,18 @@ subroutine  userInterpolation                        ( &
   !> dist_uvw(:) -> uv(1:2,:) (sans dupliquer le bloc mémoire)
   !> la commmande c_f_pointer a besoin du use iso_c_binding, only: c_loc,c_f_pointer
   
-  call c_f_pointer(cptr=c_loc(dist_uvw), fptr=uv, shape=[2,nDistantPoint])  
+  call c_f_pointer(cptr=c_loc(dist_uvw), fptr=uv, shape=[2,nDistantPoint])
+  
+  
+  !if( rankWorld==1 )then
+  !  print '(6x,"uv (1:2,11)=",2(e22.15,1x), " -> "$)',uv(1:2,11)  
+  !  uv(1:2,11)=[0.966503472726928d-01,0.248894314819442d+00]
+  !  print '(2(e22.15,1x))',uv(1:2,11)
+  !  print '(6x,"uv (1:2,29)=",2(e22.15,1x), " -> "$)',uv(1:2,29)  
+  !  uv(1:2,29)=[0.654455337907865d+00,0.248894314819442d+00]
+  !  print '(2(e22.15,1x))',uv(1:2,29)
+  !endif
+
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -381,7 +393,7 @@ subroutine  userInterpolation                        ( &
         iVert=0
         do iDistantPoint=1,nDistantPoint
          !print '(6x,"dist_uvw(",i3,")=",*(e22.15,1x))',iDistantPoint,dist_uvw(iVert+1:iVert+uvw_size)
-          if( iDistantPoint==11 .or.iDistantPoint==19 )print '(6x,"uv (1:2,",i3,")=",*(e22.15,1x))',iDistantPoint,uv(1:2,iDistantPoint)
+          if( iRank==1 .and. iDistantPoint==29 )print '(6x,"uv (1:2,",i3,")=",2(e22.15,1x))',iDistantPoint,uv(1:2,iDistantPoint)
           iVert=iVert+uvw_size
         enddo
       endif
@@ -416,7 +428,7 @@ subroutine  userInterpolation                        ( &
         print '(/3x,"meshOrder=",i1," compOrder=",i2,t120,"@rkw",i3)',meshOrder,compOrder,rankWorld
         call mpi_barrier(commWorld,iErr)
         do iDistantPoint=1,nDistantPoint
-          if( iDistantPoint==11 .or.iDistantPoint==19 )print '(6x,"uvw(",i3,")=",*(e22.15,1x))',iDistantPoint,uvw(1:3,iDistantPoint)
+          if( iRank==1 .and. iDistantPoint==29 )print '(6x,"uvw(",i3,")=",3(e22.15,1x))',iDistantPoint,uvw(1:3,iDistantPoint)
         enddo
       endif
       call mpi_barrier(commWorld,iErr)
@@ -452,7 +464,7 @@ subroutine  userInterpolation                        ( &
   if( visu )then
     do iRank=0,sizeWorld-1
       if( iRank==rankWorld )then    
-        print '(/3x,"meshOrder=",i1," compOrder=",i2,t120,"@rkw",i3)',meshOrder,compOrder,rankWorld
+        !print '(/3x,"meshOrder=",i1," compOrder=",i2,t120,"@rkw",i3)',meshOrder,compOrder,rankWorld
         call mpi_barrier(commWorld,iErr)
         do iDistantPoint=1,nDistantPoint
           !print '(6x,"lagrange(",i3,")=",*(e22.15,1x))',iDistantPoint,lagrange(1:nMod,iDistantPoint)
@@ -490,7 +502,7 @@ subroutine  userInterpolation                        ( &
         call mpi_barrier(commWorld,iErr)
         j=0
         do iDistantPoint=1,nDistantPoint
-          if( iDistantPoint==11 .or.iDistantPoint==19 )print '(6x,"distantField(",i3,")=",4(e22.15,1x),t120,"@rkw",i3)',&
+          if( iRank==1 .and. iDistantPoint==29 )print '(6x,"distantField(",i3,")=",4(e22.15,1x),t120,"@rkw",i3)',&
           & iDistantPoint,distantField(j+1:j+stride),rankWorld
           j=j+stride
         enddo
@@ -762,7 +774,7 @@ program fortran_surf_TriaP2_PiPj
       vertx(1:3,09)=[0.00d0,-0.50d0, 0.50d0]
       vertx(1:3,10)=[0.50d0, 0.00d0, 0.50d0]
     else
-      vertx(1:3,01)=[0.00d0, 0.00d0,-0.10d0]
+      vertx(1:3,01)=[0.00d0, 0.00d0,-0.0716092d0]  !> -0.0716092 ok -0.0716093 ko
       vertx(1:3,02)=[0.00d0,-1.00d0, 0.00d0]
       vertx(1:3,03)=[1.00d0, 0.00d0, 0.00d0]
       vertx(1:3,04)=[0.00d0, 0.00d0, 1.00d0]
@@ -802,7 +814,7 @@ program fortran_surf_TriaP2_PiPj
       vertx(1:3,09)=[0.50d0, 0.00d0, 0.50d0]
       vertx(1:3,10)=[0.00d0, 0.50d0, 0.50d0]
     else
-      vertx(1:3,01)=[0.00d0, 0.00d0,-0.10d0]
+      vertx(1:3,01)=[0.00d0, 0.00d0,-0.0716092d0]  !> -0.0716092 ok -0.0716093 ko
       vertx(1:3,02)=[1.00d0, 0.00d0, 0.00d0]
       vertx(1:3,03)=[0.00d0, 1.00d0, 0.00d0]
       vertx(1:3,04)=[0.00d0, 0.00d0, 1.00d0]
@@ -1047,7 +1059,7 @@ program fortran_surf_TriaP2_PiPj
       if( iRank==rankWorld )then
         print '(/3x,"meshOrder=",i1," compOrder=",i2,t120,"@rkw",i3)',meshOrder,compOrder,rankWorld
         do iVert=1,size(uvw,2)
-          if( iVert==11.or.iVert==19 )print '(6x,"uvw(",i2,")=",3(e22.15,1x),"1-u-v-w=",e22.15)',iVert,uvw(1:3,iVert),1d0-uvw(1,iVert)-uvw(2,iVert)-uvw(3,iVert)
+          if( iRank==0 .and. iVert==29 )print '(6x,"uvw(",i2,")=",3(e22.15,1x),"1-u-v-w=",e22.15)',iVert,uvw(1:3,iVert),1d0-uvw(1,iVert)-uvw(2,iVert)-uvw(3,iVert)
         enddo
       endif
       call mpi_barrier(commWorld,iErr)
@@ -1059,13 +1071,11 @@ program fortran_surf_TriaP2_PiPj
   
   !> Calculs des coordonnées correspondantes aux coordonnees barycentriques
   linkVertSize=size(uvw,2)
-  allocate(linkVert(1:6*linkVertSize))
+  allocate(linkVert(1:3*linkVertSize))
   
   nMod=(meshOrder+1)*(meshOrder+2)/2  !> Triangle meshOrder (geometric)
   nNod=size(uvw,2)                    !> Triangle compOrder
   
-  !> transpose = .true. => lagrange(1:nMod,1:nNod)
-  !call lagrange2Dv(ord=meshOrder,uvwOut=uvw,lagrange=lagrange,transpose=.true.)
   
   j=0
   do iVert=1,linkVertSize
@@ -1078,7 +1088,12 @@ program fortran_surf_TriaP2_PiPj
     j=j+3
   enddo
   deallocate(uvw)
-    
+  
+  
+  
+  
+  
+  
   !> Visu des coordonnees de couplage
   if( visu )then
     do iRank=0,sizeWorld-1
@@ -1087,7 +1102,7 @@ program fortran_surf_TriaP2_PiPj
         print '(/3x,"meshOrder=",i1," compOrder=",i2,t120,"@rkw",i3)',meshOrder,compOrder,rankWorld
         j=0
         do iVert=1,linkVertSize
-          if( iVert==11.or.iVert==19 )print '(6x,"linkVert(",i2,")=",3(e22.15,1x))',iVert,linkVert(j+1:j+3)
+          if( iRank==0 .and. iVert==29 )print '(6x,"linkVert(",i2,")=",3(e22.15,1x))',iVert,linkVert(j+1:j+3)
           j=j+3
         enddo
       endif
@@ -1148,7 +1163,7 @@ program fortran_surf_TriaP2_PiPj
   enddo
   deallocate(uvw)
   
-  
+if(0==1)then
   !> Visu des valeurs de couplage
   call mpi_barrier(commWorld,iErr)
   if( rankWorld==0 )print '(/"Initialisation of myValues (x,y,z,rankWorld)")'
@@ -1159,7 +1174,7 @@ program fortran_surf_TriaP2_PiPj
         print '(/3x,"Computing myValues nMod=",i3,2x,"nNod=",i3,t120,"@rkw",i3)',nMod,nNod,rankWorld
         j=0
         do iNod=1,nNod
-          if( iNod==11.or.iNod==19 )print '(6x,"myValues(",i3,")=",4(e22.15,1x))',iNod,myValues(j+1:j+stride)
+          print '(6x,"myValues(",i3,")=",4(e22.15,1x))',iNod,myValues(j+1:j+stride)
           j=j+stride
         enddo        
       endif
@@ -1167,6 +1182,7 @@ program fortran_surf_TriaP2_PiPj
     enddo
     call mpi_barrier(commWorld,iErr)
   endif
+endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
