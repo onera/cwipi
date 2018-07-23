@@ -505,7 +505,7 @@ subroutine  userInterpolation                        ( &
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   deallocate(lagrange)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+  
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   call mpi_barrier(commWorld,iErr)
   call mpi_barrier(commWorld,iErr)
@@ -599,6 +599,8 @@ program fortran_surf_TriaP2_PiPj
   character(64)    :: meshName
   character(80)    :: fileName
   
+  logical          :: droit=.false.
+ !logical          :: droit=.true.
   integer          :: iVert,nVert
   real(8), pointer :: vertx(:,:)
   integer          :: iTetra,nTetra
@@ -652,7 +654,7 @@ program fortran_surf_TriaP2_PiPj
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  ! Initialisation de l'interface de couplage
+  !> Initialisation de l'interface de couplage
   select case(rankWorld)
   case(0)
      codeName        = "code1"
@@ -675,8 +677,8 @@ program fortran_surf_TriaP2_PiPj
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   select case(rankWorld)
-  case(0) ; compOrder=07 !07
-  case(1) ; compOrder=10 !10
+  case(0) ; compOrder=07 !07 !07
+  case(1) ; compOrder=10 !07 !10
   end select
   
   call mpi_barrier(commWorld,iErr)
@@ -722,23 +724,56 @@ program fortran_surf_TriaP2_PiPj
   
   ! On propose de couple deux tetras en contact suivant le plan y=0
   
+  !> rk0-sd3
+  !> 03
+  !> 07 10 
+  !> 01 08 04 
+  
+  !> rk1-sd4
+  !> 04
+  !> 08 09
+  !> 01 05 03
+  
+  !> rk0-sd3 <-> rk1-sd4
+  !>   01    <->   01 
+  !>   04    <->   04
+  !>   03    <->   02
+  !>   08    <->   08
+  !>   10    <->   09
+  !>   07    <->   05
+  
+  
   select case(rankWorld)
   case(0)
     !> Vertices
     nVert=10
     allocate(vertx(1:3,1:nVert))
     !>
-    vertx(1:3,01)=[0.00, 0.00, 0.00]
-    vertx(1:3,02)=[0.00,-1.00, 0.00]
-    vertx(1:3,03)=[1.00, 0.00, 0.00]
-    vertx(1:3,04)=[0.00, 0.00, 1.00]
-    !>
-    vertx(1:3,05)=[0.00,-0.50, 0.00]
-    vertx(1:3,06)=[0.50,-0.50, 0.00]
-    vertx(1:3,07)=[0.50, 0.00, 0.00]
-    vertx(1:3,08)=[0.00, 0.00, 0.50]
-    vertx(1:3,09)=[0.00,-0.50, 0.50]
-    vertx(1:3,10)=[0.50, 0.00, 0.50]
+    if( droit )then
+      vertx(1:3,01)=[0.00, 0.00, 0.00]
+      vertx(1:3,02)=[0.00,-1.00, 0.00]
+      vertx(1:3,03)=[1.00, 0.00, 0.00]
+      vertx(1:3,04)=[0.00, 0.00, 1.00]
+      !>
+      vertx(1:3,05)=[0.00,-0.50, 0.00]
+      vertx(1:3,06)=[0.50,-0.50, 0.00]
+      vertx(1:3,07)=[0.50, 0.00, 0.00]
+      vertx(1:3,08)=[0.00, 0.00, 0.50]
+      vertx(1:3,09)=[0.00,-0.50, 0.50]
+      vertx(1:3,10)=[0.50, 0.00, 0.50]
+    else
+      vertx(1:3,01)=[0.00, 0.00,-0.10]
+      vertx(1:3,02)=[0.00,-1.00, 0.00]
+      vertx(1:3,03)=[1.00, 0.00, 0.00]
+      vertx(1:3,04)=[0.00, 0.00, 1.00]
+      !>
+      vertx(1:3,05)=[0.00,-0.50, 0.00]
+      vertx(1:3,06)=[0.50,-0.50, 0.00]
+      vertx(1:3,07)=[0.50, 0.00, 0.00]
+      vertx(1:3,08)=[0.00, 0.00, 0.50]
+      vertx(1:3,09)=[0.00,-0.50, 0.50]
+      vertx(1:3,10)=[0.50, 0.00, 0.50]
+    endif
     !> Tetrahedra
     nTetra=1
     allocate(tetra(1:11,1:nTetra)) !> 10 sommets + 1 marqueur
@@ -750,22 +785,35 @@ program fortran_surf_TriaP2_PiPj
     trian(1:7,2)=[01,03,02, 07,06,05, 1]
     trian(1:7,3)=[01,04,03, 08,10,07, 3] !> Couplage
     trian(1:7,4)=[01,02,04, 05,09,08, 1]
-        
   case(1)
     !> Vertices
     nVert=10
     allocate(vertx(1:3,1:nVert))
-    vertx(1:3,01)=[0.00, 0.00, 0.00]
-    vertx(1:3,02)=[1.00, 0.00, 0.00]
-    vertx(1:3,03)=[0.00, 1.00, 0.00]
-    vertx(1:3,04)=[0.00, 0.00, 1.00]
-    !>
-    vertx(1:3,05)=[0.50, 0.00, 0.00]
-    vertx(1:3,06)=[0.50, 0.50, 0.00]
-    vertx(1:3,07)=[0.00, 0.50, 0.00]
-    vertx(1:3,08)=[0.00, 0.00, 0.50]
-    vertx(1:3,09)=[0.50, 0.00, 0.50]
-    vertx(1:3,10)=[0.00, 0.50, 0.50]
+    if( droit )then
+      vertx(1:3,01)=[0.00, 0.00, 0.00]
+      vertx(1:3,02)=[1.00, 0.00, 0.00]
+      vertx(1:3,03)=[0.00, 1.00, 0.00]
+      vertx(1:3,04)=[0.00, 0.00, 1.00]
+      !>
+      vertx(1:3,05)=[0.50, 0.00, 0.00]
+      vertx(1:3,06)=[0.50, 0.50, 0.00]
+      vertx(1:3,07)=[0.00, 0.50, 0.00]
+      vertx(1:3,08)=[0.00, 0.00, 0.50]
+      vertx(1:3,09)=[0.50, 0.00, 0.50]
+      vertx(1:3,10)=[0.00, 0.50, 0.50]
+    else
+      vertx(1:3,01)=[0.00, 0.00,-0.10]
+      vertx(1:3,02)=[1.00, 0.00, 0.00]
+      vertx(1:3,03)=[0.00, 1.00, 0.00]
+      vertx(1:3,04)=[0.00, 0.00, 1.00]
+      !>
+      vertx(1:3,05)=[0.50, 0.00, 0.00]
+      vertx(1:3,06)=[0.50, 0.50, 0.00]
+      vertx(1:3,07)=[0.00, 0.50, 0.00]
+      vertx(1:3,08)=[0.00, 0.00, 0.50]
+      vertx(1:3,09)=[0.50, 0.00, 0.50]
+      vertx(1:3,10)=[0.00, 0.50, 0.50]
+    endif
     !> Tetrahedra
     nTetra=1
     allocate(tetra(1:11,1:nTetra)) !> 10 sommets + 1 marquer
@@ -978,12 +1026,16 @@ program fortran_surf_TriaP2_PiPj
       
     endif
     
-  endif !> ordre de maillage 1 ou 2 (ancien/nouveau cwipi)
+  endif !> ordre de maillage 1 ou 2 (OLD/NEW cwipi)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Points de couplage situés Triangle avec le marqueur de peau 1 => face commune aux deux tetras <=
+  !> Points de couplage situés Triangle avec le marqueur de peau 3 => face commune aux deux tetras <=
+  
+  call mpi_barrier(commWorld,iErr)
+  if( rankWorld==0 ) print'(/"Calcul des coordonnees des points de couplage")'
+  call mpi_barrier(commWorld,iErr)
   
   !> Calcul des coordonnees barycentriques optimisées sur face trianglulaire compOrder
   call nodes3Dopt_2D(ord=compOrder,uvw=uvw,display=.false.) !> ordre du calcul
@@ -1009,12 +1061,8 @@ program fortran_surf_TriaP2_PiPj
     j=j+3
   enddo
   deallocate(uvw)
-  
-  
+    
   !> Visu des coordonnees de couplage
-  call mpi_barrier(commWorld,iErr)
-  if( rankWorld==0 ) print'(/"Calcul des coordonnees des points de couplage")'
-  call mpi_barrier(commWorld,iErr)
   if( visu )then
     do iRank=0,sizeWorld-1
       if( iRank==rankWorld )then
@@ -1050,7 +1098,6 @@ program fortran_surf_TriaP2_PiPj
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Initialisation of myValues
-  
   
   !> Liste coordonées barycentriques uvw(1:3,:) du Tetra d'ordre compOrder
   call nodes3D   (ord=compOrder,uvw=uvw,display=.false.)
@@ -1094,8 +1141,7 @@ program fortran_surf_TriaP2_PiPj
         print '(/3x,"Computing myValues nMod=",i3,2x,"nNod=",i3,t100,"@rkw",i3)',nMod,nNod,rankWorld
         j=0
         do iNod=1,nNod
-          !print '("iMod=",i3," myValues         =",4(f12.5,1x),t100,"@rkw",i3)',iNod,myValues(j+1:j+stride),rankWorld
-          print '(6x,"myValues(",i2,")=",4(f12.5,1x))',iNod,myValues(j+1:j+stride)
+          print '(6x,"myValues(",i3,")=",4(f12.5,1x))',iNod,myValues(j+1:j+stride)
           j=j+stride
         enddo        
       endif
@@ -1148,14 +1194,23 @@ program fortran_surf_TriaP2_PiPj
   deltaMax=-1d0
   j=0
   k=0
-  do iVert=1,linkVertSize
-    delta=norm2(linkVert(j+1:j+3)-linkValues(k+1:k+3)) !+( real(rankWorld,kind=8)-linkValues(k+4) )**2
-    if( deltaMax<delta )deltaMax=delta
-   !print'("Delta=",e22.15)',delta
-    j=j+3
-    k=k+4
+  do iRank=0,sizeWorld-1
+    if( iRank==rankWorld )then
+      print '(/3x,"Controling linkValues - linkVertSize=",i2,t100,"@rkw",i3)',linkVertSize,rankWorld
+      do iVert=1,linkVertSize
+        delta=norm2(linkVert(j+1:j+3)-linkValues(k+1:k+3)) !+( real(rankWorld,kind=8)-linkValues(k+4) )**2
+        if( deltaMax<delta )deltaMax=delta
+        if( 1d-08<=delta )then
+          print'(6x,"iVert=",i2,1x,"linkVert=",3(e22.15,1x),"linkValues=",3(e22.15,1x),"Delta=",e22.15)',&
+          & ivert,linkVert(j+1:j+3),linkValues(k+1:k+3),delta
+        endif
+        j=j+3
+        k=k+4
+      enddo
+      delta=deltaMax
+    endif
+    call mpi_barrier(commWorld,iErr)
   enddo
-  delta=deltaMax
   
   call mpi_allreduce(delta,deltaMax,1,mpi_real8,mpi_max,commWorld,iErr)
   
@@ -1163,7 +1218,7 @@ program fortran_surf_TriaP2_PiPj
     print '(/"deltaMax=",e22.15/)',deltaMax
   endif
   
-  if( deltaMax<1d-12 )then
+  if( deltaMax<1d-08 )then
     if( rankWorld==0 )print '(/"SUCCESS: fortran_surf_PiPj"/)'
   else
     if( rankWorld==0 )print '(/"FAILED: fortran_surf_PiPj"/)'
