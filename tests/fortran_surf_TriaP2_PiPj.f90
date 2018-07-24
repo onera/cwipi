@@ -295,13 +295,14 @@ subroutine  userInterpolation                        ( &
   call mpi_barrier(commWorld,iErr)
   if( rankWorld==0 )print'(/3x,"Control: localCoordinates, localConnectivity")'  
   call mpi_barrier(commWorld,iErr)
-  if( visu )then
+  if( 0==1 )then
+ !if( visu )then
     do iRank=0,sizeWorld-1
       if( iRank==rankWorld )then
         print '(/3x,"meshOrder=",i1," compOrder=",i2,t120,"@rkw",i3)',meshOrder,compOrder,rankWorld
         iVert=0
         do i=1,nLocalVertex
-          if( iRank==1 .and. i==29 )print '(6x,"localCoordinates (",i2,")=",3(e22.15,1x))',i,localCoordinates(iVert+1:iVert+3)
+          print '(6x,"localCoordinates (",i2,")=",3(e22.15,1x))',i,localCoordinates(iVert+1:iVert+3)
           iVert=iVert+3
         enddo
         do i=1,nLocalElement
@@ -774,7 +775,7 @@ program fortran_surf_TriaP2_PiPj
       vertx(1:3,09)=[0.00d0,-0.50d0, 0.50d0]
       vertx(1:3,10)=[0.50d0, 0.00d0, 0.50d0]
     else
-      vertx(1:3,01)=[0.00d0, 0.00d0,-0.0716092d0]  !> -0.0716092 ok -0.0716093 ko
+      vertx(1:3,01)=[0.00d0, 0.00d0,-0.0716092d0]  !> -0.0716092d0 ok -0.0716093d0 ko
       vertx(1:3,02)=[0.00d0,-1.00d0, 0.00d0]
       vertx(1:3,03)=[1.00d0, 0.00d0, 0.00d0]
       vertx(1:3,04)=[0.00d0, 0.00d0, 1.00d0]
@@ -814,7 +815,7 @@ program fortran_surf_TriaP2_PiPj
       vertx(1:3,09)=[0.50d0, 0.00d0, 0.50d0]
       vertx(1:3,10)=[0.00d0, 0.50d0, 0.50d0]
     else
-      vertx(1:3,01)=[0.00d0, 0.00d0,-0.0716092d0]  !> -0.0716092 ok -0.0716093 ko
+      vertx(1:3,01)=[0.00d0, 0.00d0,-0.0716092d0]  !> -0.0716092d0 ok -0.0716093d0 ko
       vertx(1:3,02)=[1.00d0, 0.00d0, 0.00d0]
       vertx(1:3,03)=[0.00d0, 1.00d0, 0.00d0]
       vertx(1:3,04)=[0.00d0, 0.00d0, 1.00d0]
