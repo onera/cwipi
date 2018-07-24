@@ -4962,12 +4962,21 @@ int  fvmc_triangle_evaluate_Position (double x[3], double *pts,
   //
 
   _computeNormal (3, pts, n);
- 
+  
    pt1 = pts;
    pt2 = pts + 3;
    pt3 = pts + 6;
 
-  // Project point to plane
+   if (idebug == 1) {
+     printf("x : %22.15e %22.15e %22.15e\n", x[0], x[1], x[2]);
+     printf("pt1 : %22.15e %22.15e %22.15e\n", pt1[0], pt1[1], pt1[2]);
+     printf("pt2 : %22.15e %22.15e %22.15e\n", pt2[0], pt2[1], pt2[2]);
+     printf("pt3 : %22.15e %22.15e %22.15e\n", pt3[0], pt3[1], pt3[2]);
+     
+     printf("n : %22.15e %22.15e %22.15e\n", n[0], n[1], n[2]);
+   }
+   
+   // Project point to plane
   //
 
    int error = _project_point2 (x, pt1, n, cp);
@@ -5043,7 +5052,6 @@ int  fvmc_triangle_evaluate_Position (double x[3], double *pts,
     closestPoint[2] = cp[2];
     closestPointpcoords[0] = pcoords[0];
     closestPointpcoords[1] = pcoords[1];
-    if (idebug == 1) printf ("      case 1 %12.5e %12.5e\n", pcoords[0], pcoords[1]);
     closestPointweights[0] =  1 - closestPointpcoords[0] - closestPointpcoords[1];
     closestPointweights[1] =  closestPointpcoords[0];
     closestPointweights[2] =  closestPointpcoords[1];
@@ -5064,7 +5072,7 @@ int  fvmc_triangle_evaluate_Position (double x[3], double *pts,
       if (dist2Point < dist2Line1) {
         *dist2 = dist2Point;
         closest = pt1;
-    if (idebug == 1)        printf ("      case 2\n");
+        if (idebug == 1)        printf ("      case 2\n");
         closestPointpcoords[0] = 0.;
         closestPointpcoords[1] = 0.;
       }
@@ -5072,7 +5080,7 @@ int  fvmc_triangle_evaluate_Position (double x[3], double *pts,
       else {
         *dist2 = dist2Line1;
         closest = closestPoint1;
-    if (idebug == 1)        printf ("      case 3\n");
+        if (idebug == 1)        printf ("      case 3\n");
         closestPointpcoords[0] = tClosestPoint1;
         closestPointpcoords[1] = 0.;
         
@@ -5080,10 +5088,11 @@ int  fvmc_triangle_evaluate_Position (double x[3], double *pts,
       if (dist2Line2 < *dist2) {
         *dist2 = dist2Line2;
         closest = closestPoint2;
-    if (idebug == 1)        printf ("      case 4\n");
+        if (idebug == 1)        printf ("      case 4\n");
         closestPointpcoords[0] = 0.;
         closestPointpcoords[1] = tClosestPoint2;
       }
+
       for (i=0; i<3; i++) {
         closestPoint[i] = closest[i];
       }
@@ -5100,24 +5109,25 @@ int  fvmc_triangle_evaluate_Position (double x[3], double *pts,
       if (dist2Point < dist2Line1) {
         *dist2 = dist2Point;
         closest = pt2;
-    if (idebug == 1)        printf ("      case 5\n");
+        if (idebug == 1)        printf ("      case 5\n");
         closestPointpcoords[0] = 1.;
         closestPointpcoords[1] = 0.;
       }
       else {
         *dist2 = dist2Line1;
         closest = closestPoint1;
-     if (idebug == 1)       printf ("      case 6\n");
+        if (idebug == 1)       printf ("      case 6\n");
         closestPointpcoords[0] = 1.-tClosestPoint1;
         closestPointpcoords[1] = 0.;
       }
       if (dist2Line2 < *dist2) {
         *dist2 = dist2Line2;
         closest = closestPoint2;
-     if (idebug == 1)       printf ("      case 7\n");
+        if (idebug == 1)       printf ("      case 7\n");
         closestPointpcoords[0] = 1.-tClosestPoint2;
         closestPointpcoords[1] = tClosestPoint2;
       }
+
       for (i=0; i<3; i++) {
         closestPoint[i] = closest[i];
       }
@@ -5134,24 +5144,25 @@ int  fvmc_triangle_evaluate_Position (double x[3], double *pts,
       if (dist2Point < dist2Line1) {
         *dist2 = dist2Point;
         closest = pt3; 
-    if (idebug == 1)        printf ("      case 8\n");
+        if (idebug == 1)        printf ("      case 8\n");
         closestPointpcoords[0] = 0.;
         closestPointpcoords[1] = 1.;
       }
       else {
         *dist2 = dist2Line1;
         closest = closestPoint1;
-    if (idebug == 1)        printf ("      case 9\n");
+        if (idebug == 1)        printf ("      case 9\n");
         closestPointpcoords[0] = 0.;
         closestPointpcoords[1] = 1-tClosestPoint1;
       }
       if (dist2Line2 < *dist2) {
         *dist2 = dist2Line2;
         closest = closestPoint2;
-    if (idebug == 1)        printf ("      case 10\n");
+        if (idebug == 1)        printf ("      case 10\n");
         closestPointpcoords[0] = tClosestPoint2;
         closestPointpcoords[1] = 1-tClosestPoint2;
       }
+
       for (i=0; i<3; i++) {
         closestPoint[i] = closest[i];
       }
@@ -5159,25 +5170,32 @@ int  fvmc_triangle_evaluate_Position (double x[3], double *pts,
     }
     else if ( weights[0] < 0.0 ) {
       *dist2 = fvmc_distance_to_line (x, pt2, pt3, &tClosestPoint, closestPoint);
-    if (idebug == 1)      printf ("      case 11\n");
+      if (idebug == 1)      printf ("      case 11\n");
       closestPointpcoords[0] = 1-tClosestPoint;
       closestPointpcoords[1] = tClosestPoint;
       
     }
     else if ( weights[1] < 0.0 ) {
       *dist2 = fvmc_distance_to_line (x, pt1, pt3, &tClosestPoint, closestPoint);
-    if (idebug == 1)      printf ("      case 12\n");
+      if (idebug == 1)      printf ("      case 12\n");
       closestPointpcoords[0] = 0.;
       closestPointpcoords[1] = tClosestPoint;
       
     }
     else if ( weights[2] < 0.0 ) {
       *dist2 = fvmc_distance_to_line (x, pt1, pt2, &tClosestPoint, closestPoint);
-    if (idebug == 1)      printf ("      case 13\n");
+      if (idebug == 1)      printf ("      case 13\n");
       closestPointpcoords[0] = tClosestPoint;
       closestPointpcoords[1] = 0.;
       
     }
+
+    else {
+      printf ("fvmc_triangle_evaluate_Position Error\n");
+      abort();
+    }
+
+    if (idebug == 1) printf ("   pcoords  %12.5e %12.5e\n", closestPointpcoords[0],closestPointpcoords[1]);
 
     closestPointweights[0] =  1 - closestPointpcoords[0] - closestPointpcoords[1];
     closestPointweights[1] =  closestPointpcoords[0];

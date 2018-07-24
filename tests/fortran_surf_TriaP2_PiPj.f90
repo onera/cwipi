@@ -775,7 +775,8 @@ program fortran_surf_TriaP2_PiPj
       vertx(1:3,09)=[0.00d0,-0.50d0, 0.50d0]
       vertx(1:3,10)=[0.50d0, 0.00d0, 0.50d0]
     else
-      vertx(1:3,01)=[0.00d0, 0.00d0,-0.0716092d0]  !> -0.0716092d0 ok -0.0716093d0 ko
+      vertx(1:3,01)=[0.00d0, 0.00d0, -0.50d0]
+!      vertx(1:3,01)=[0.00d0, 0.00d0, 0.10d0]
       vertx(1:3,02)=[0.00d0,-1.00d0, 0.00d0]
       vertx(1:3,03)=[1.00d0, 0.00d0, 0.00d0]
       vertx(1:3,04)=[0.00d0, 0.00d0, 1.00d0]
@@ -815,7 +816,7 @@ program fortran_surf_TriaP2_PiPj
       vertx(1:3,09)=[0.50d0, 0.00d0, 0.50d0]
       vertx(1:3,10)=[0.00d0, 0.50d0, 0.50d0]
     else
-      vertx(1:3,01)=[0.00d0, 0.00d0,-0.0716092d0]  !> -0.0716092d0 ok -0.0716093d0 ko
+      vertx(1:3,01)=[0.00d0, 0.00d0,  -0.50d0]
       vertx(1:3,02)=[1.00d0, 0.00d0, 0.00d0]
       vertx(1:3,03)=[0.00d0, 1.00d0, 0.00d0]
       vertx(1:3,04)=[0.00d0, 0.00d0, 1.00d0]
@@ -1103,14 +1104,21 @@ program fortran_surf_TriaP2_PiPj
         print '(/3x,"meshOrder=",i1," compOrder=",i2,t120,"@rkw",i3)',meshOrder,compOrder,rankWorld
         j=0
         do iVert=1,linkVertSize
-          if( iRank==0 .and. iVert==29 )print '(6x,"linkVert(",i2,")=",3(e22.15,1x))',iVert,linkVert(j+1:j+3)
+          if( iVert==31 ) then
+            print '(6x,"linkVert(",i2,")=",3(e22.15,1x))',iVert,linkVert(j+1:j+3)
+!            linkVert(1) = linkVert(j+1)
+!            linkVert(2) = linkVert(j+2)
+!            linkVert(3) = linkVert(j+3)
+          endif
           j=j+3
         enddo
       endif
       call mpi_barrier(commWorld,iErr)
     enddo
     call mpi_barrier(commWorld,iErr)
+!    linkVertSize = 1
   endif
+  
   
   !> Transmission à cwipi des coordonnees de couplage
   call cwipi_set_points_to_locate_f( &

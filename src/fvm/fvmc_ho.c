@@ -116,6 +116,8 @@ typedef struct {
   double closest_pt_uvInPn[2*S_HEAP];
   double dist2[S_HEAP];
 
+  int child[S_HEAP];
+
   int free_idx[S_HEAP];
   int sorted_idx[S_HEAP];  
 
@@ -372,7 +374,8 @@ _heap_top_get
  double *closest_pt_current,
  double *closest_pt_uvP1_current,
  double *closest_pt_uvInPn_current,
- double *dist2_current
+ double *dist2_current,
+ int *child
 )
 {
   if (heap->idx < 0) {
@@ -404,6 +407,7 @@ _heap_top_get
     closest_pt_uvInPn_current[i] = _closest_pt_uvInPn_current[i];
   }
 
+  *child = heap->child[idx];
   *dist2_current = heap->dist2[idx];
 
   return 0;
@@ -432,7 +436,8 @@ _heap_insert
  double *closest_pt,
  double *closest_pt_uvP1,
  double *closest_pt_uvInPn,
- double dist2
+ double dist2,
+ int child
 )
 {
   /* Look for index (dicothomy) */
@@ -541,6 +546,8 @@ _heap_insert
   }
 
   heap->dist2[_idx] = dist2;
+  heap->child[_idx] = child;
+  
 
   if (0 == 1) {
     printf ("distances in heap fin :");
@@ -559,6 +566,7 @@ _heap_insert
   }
   
 }
+
 
 /*----------------------------------------------------------------------------
  * 
@@ -591,7 +599,8 @@ _heap_fill_pn_sub_tria
   double *uvNodes   = malloc (sizeof(double) * 2 * n_node);
 
   _uv_ho_tria_nodes (order, 0., 1., 0, 1., uvNodes);
- 
+  
+  int child = 0;
   for (int j = 0; j < order; j++) {
     int k1 = 0;
     for (int i = ibeg; i < iend - 1; i++) {
@@ -660,9 +669,9 @@ _heap_fill_pn_sub_tria
         
         if (1 == 0) {
           printf("_uvClosestPointP1 : %12.5e %12.5e\n", _uvClosestPointP1[0], _uvClosestPointP1[1]);
-          printf("__vertex_coords 1 : %12.5e %12.5e %12.5e\n", __vertex_coords[0], __vertex_coords[1], __vertex_coords[2]);
-          printf("__vertex_coords 2: %12.5e %12.5e %12.5e\n", __vertex_coords[3], __vertex_coords[4], __vertex_coords[5]);
-          printf("__vertex_coords 3 : %12.5e %12.5e %12.5e\n", __vertex_coords[6], __vertex_coords[7], __vertex_coords[8]);
+          printf("__vertex_coords + uvpn 1 : %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[0], __vertex_coords[1], __vertex_coords[2], _uvPn_sub_tria[0], _uvPn_sub_tria[1]);
+          printf("__vertex_coords + uvpn 2 : %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[3], __vertex_coords[4], __vertex_coords[5], _uvPn_sub_tria[2], _uvPn_sub_tria[3]);
+          printf("__vertex_coords + uvpn 3 : %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[6], __vertex_coords[7], __vertex_coords[8], _uvPn_sub_tria[4], _uvPn_sub_tria[5]);
         }
         
         _heap_insert (heap,
@@ -671,7 +680,7 @@ _heap_fill_pn_sub_tria
                       _closest_pointP1,
                       _uvClosestPointP1,
                       _uvClosestPointPn,
-                      _dist2);
+                      _dist2, child++);
       }
       
       __vertex_coords[0] = x2;
@@ -711,9 +720,9 @@ _heap_fill_pn_sub_tria
       
         if (1 == 0) {
           printf("_uvClosestPointP1 : %12.5e %12.5e\n", _uvClosestPointP1[0], _uvClosestPointP1[1]);
-          printf("__vertex_coords 1 : %12.5e %12.5e %12.5e\n", __vertex_coords[0], __vertex_coords[1], __vertex_coords[2]);
-          printf("__vertex_coords 2: %12.5e %12.5e %12.5e\n", __vertex_coords[3], __vertex_coords[4], __vertex_coords[5]);
-          printf("__vertex_coords 3 : %12.5e %12.5e %12.5e\n", __vertex_coords[6], __vertex_coords[7], __vertex_coords[8]);
+          printf("__vertex_coords 1 + uvpn  : %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[0], __vertex_coords[1], __vertex_coords[2], _uvPn_sub_tria[0], _uvPn_sub_tria[1]);
+          printf("__vertex_coords 2 + uvpn : %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[3], __vertex_coords[4], __vertex_coords[5], _uvPn_sub_tria[2], _uvPn_sub_tria[3]);
+          printf("__vertex_coords 3 + uvpn: %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[6], __vertex_coords[7], __vertex_coords[8], _uvPn_sub_tria[4], _uvPn_sub_tria[5]);
         }
       
         _heap_insert (heap,
@@ -722,7 +731,7 @@ _heap_fill_pn_sub_tria
                       _closest_pointP1,
                       _uvClosestPointP1,
                       _uvClosestPointPn,
-                      _dist2);
+                      _dist2, child++);
       }
 
       k1++;
@@ -789,9 +798,9 @@ _heap_fill_pn_sub_tria
       
       if (1 == 0) {
         printf("_uvClosestPointP1 : %12.5e %12.5e\n", _uvClosestPointP1[0], _uvClosestPointP1[1]);
-        printf("__vertex_coords 1 : %12.5e %12.5e %12.5e\n", __vertex_coords[0], __vertex_coords[1], __vertex_coords[2]);
-        printf("__vertex_coords 2: %12.5e %12.5e %12.5e\n", __vertex_coords[3], __vertex_coords[4], __vertex_coords[5]);
-        printf("__vertex_coords 3 : %12.5e %12.5e %12.5e\n", __vertex_coords[6], __vertex_coords[7], __vertex_coords[8]);
+        printf("__vertex_coords 1 + uvpn: %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[0], __vertex_coords[1], __vertex_coords[2], _uvPn_sub_tria[0], _uvPn_sub_tria[1]);
+        printf("__vertex_coords 2 + uvpn: %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[3], __vertex_coords[4], __vertex_coords[5], _uvPn_sub_tria[2], _uvPn_sub_tria[3]);
+        printf("__vertex_coords 3 + uvpn: %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[6], __vertex_coords[7], __vertex_coords[8], _uvPn_sub_tria[4], _uvPn_sub_tria[5]);
       }
     
       _heap_insert (heap,
@@ -800,7 +809,7 @@ _heap_fill_pn_sub_tria
                     _closest_pointP1,
                     _uvClosestPointP1,
                     _uvClosestPointPn,
-                    _dist2);
+                    _dist2, child++);
     }
       
     ibeg = iend + 1;
@@ -809,6 +818,614 @@ _heap_fill_pn_sub_tria
 
   free (uvNodes);
 }
+
+
+/*-----------------------------------------------------------------------------
+ * 
+ * Add children to a heap
+ * 
+ * parameters:
+ *   heap             <-> heap
+ *   order            <-- element order
+ *   n_node           <-- number of nodes
+ *   ho_vertex_num    <-- high order vertex num (internal ordering)
+ *   vertex_coords    <-- vertex coordinates
+ *   point_coords     <-- point to locate coordinates
+ *   weightsPn        <-> work array
+ *   vtx_tria_current <-- current triangle
+ *   uvPn_tria_current<-- uv of current triangle vertices in the on element
+ * 
+ *----------------------------------------------------------------------------*/
+
+static void
+_insert_subtria
+(
+ _heap_t *heap,
+ const int order,
+ const int n_node,
+ const int ho_vertex_num[],
+ const double vertex_coords[],
+ const double point_coords[],
+ double weightsPn[],
+ double vtx_tria_current[],
+ double uvPn_tria_current[]
+ )
+{
+  double _vtx_tria_children[18];
+  double _uvPn_tria_children[12];
+
+  const int idx_sub_tria[12] = {0, 3, 5,
+                                3, 4, 5,
+                                3, 1, 4,
+                                5, 4, 2};
+  
+  /* Compute middle vertices */
+    
+  for (int i = 0; i < 9; i++) {
+    _vtx_tria_children[i] = vtx_tria_current[i];
+  }
+  
+  for (int i = 0; i < 6; i++) {
+    _uvPn_tria_children[i] = uvPn_tria_current[i];
+  }
+  
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 2; j++) {
+      _uvPn_tria_children[6+2*i+j] =
+        (uvPn_tria_current[2*i+j] + uvPn_tria_current[2*((i+1)%3)+j])/2;
+    }
+    
+    _base_tria_pn (order   , _uvPn_tria_children[6+2*i], _uvPn_tria_children[6+2*i+1], weightsPn);
+    
+    for (int j = 0; j < 3; j++) {
+      _vtx_tria_children[9+3*i+j] = 0;
+    }
+    for (int k = 0; k < n_node; k++) {
+      const double *node_coords = vertex_coords + 3 * (ho_vertex_num[k] - 1);
+      for (int j = 0; j < 3; j++) {
+        _vtx_tria_children[9+3*i+j] += weightsPn[k] * node_coords[j];
+      }
+    }
+  }
+  
+  int child = 0;
+  for (int i = 0; i < 4; i++) {
+
+    double _vtx_tria_child[9];
+    double _uvPn_tria_child[6];
+    
+    for (int j = 0; j < 3; j++) {
+      int _j = idx_sub_tria[3 * i + j];
+      for (int k = 0; k < 3; k++) {
+        _vtx_tria_child[3*j + k] = _vtx_tria_children[3*_j + k];
+        }
+      for (int k = 0; k < 2; k++) {
+        _uvPn_tria_child[2*j + k] = _uvPn_tria_children[2*_j + k];
+      }
+    }
+    
+    double _closest_pt_child[3];
+    double _closest_pt_uvP1_child[2];
+    double _closest_pt_uvPn_child[2];
+    double _dist2_child = 0;
+    double _closest_pt_weights_child[3];
+    
+    int isDegenerated = fvmc_triangle_evaluate_Position ((double *)point_coords,
+                                                         _vtx_tria_child,
+                                                         _closest_pt_child,
+                                                         _closest_pt_uvP1_child,
+                                                         &_dist2_child,
+                                                         _closest_pt_weights_child);
+    
+    
+    if (isDegenerated == -1) {
+      continue;
+    }
+      
+    for (int j = 0; j < 2; j++) {
+      _closest_pt_uvPn_child[j] = 0;
+    }
+    for (int j = 0; j < 2; j++) {
+      for (int k = 0; k < 3; k++) {
+        _closest_pt_uvPn_child[j] += _closest_pt_weights_child[k] * _uvPn_tria_child[2*k + j];
+      }
+    }
+    
+    if (1 == 0) {
+      printf("isDegenrated : %d\n", isDegenerated);
+      printf("_closest_pt_weights_child : %12.5e %12.5e %12.5e\n"
+             ,_closest_pt_weights_child[0]
+             ,_closest_pt_weights_child[1]
+             ,_closest_pt_weights_child[2]);
+      
+      printf("_closest_pt_child : %12.5e %12.5e %12.5e\n"
+             ,_closest_pt_child[0]
+             ,_closest_pt_child[1]
+             ,_closest_pt_child[2]);
+      
+      printf("_closest_pt_uvP1_child : %12.5e %12.5e\n"
+             ,_closest_pt_uvP1_child[0]
+             ,_closest_pt_uvP1_child[1]);
+      
+      
+    }
+    
+    _heap_insert (heap,
+                  _vtx_tria_child,
+                  _uvPn_tria_child,
+                  _closest_pt_child,
+                  _closest_pt_uvP1_child,
+                  _closest_pt_uvPn_child,
+                  _dist2_child, child++);
+    
+  }
+}  
+
+
+/*-----------------------------------------------------------------------------
+ * 
+ * compute distance from closest triangle subdivision
+ * 
+ * parameters:
+ *   heap             <-> heap
+ *   order            <-- element order
+ *   n_node           <-- number of nodes
+ *   n_it_max         <-- maximum of iteration to compute distance
+ *   err_max          <-- maximum error of the projected point
+ *   err_proj         --> projected error 
+ *   ho_vertex_num    <-- high order vertex num (internal ordering)
+ *   vertex_coords    <-- vertex coordinates
+ *   point_coords     <-- point to locate coordinates
+ *   weightsPn        <-> work array
+ *   projected_coords --> current triangle
+ *   uvw              --> uvw
+ *   n_it             --> number of iterations
+ *   err_proj         --> error of the projected point
+ *   uncertain_result --> 1 if the result is uncertain
+ * 
+ *----------------------------------------------------------------------------*/
+
+static double
+_compute_dist2_from_closest_tria_subdivision
+(
+ _heap_t *heap,
+ const int order,
+ const int n_node,
+ const int n_it_max,
+ const double err_max,
+ const int ho_vertex_num[],
+ const double vertex_coords[],
+ const double point_coords[],
+ double weightsPn[],
+ double projected_coords[],
+ double uvw[],
+ int    *n_it,
+ double *err_proj,
+ int *uncertain_result
+ )
+{
+  *uncertain_result = 0;
+  *n_it = 0;
+  *err_proj = HUGE_VAL;
+  double dist2 = HUGE_VAL;
+
+  double dist2_min_min = HUGE_VAL;
+  double dist2_pre = HUGE_VAL;
+  int distance_extension = 0;
+
+  while (1) {
+
+    double _vtx_tria_current[9];
+    double _uvPn_tria_current[6];
+    
+    double _closest_pt_current[3];
+    double _closest_pt_uvP1_current[2];
+    double _closest_pt_uvPn_current[2];
+    double _dist2_current;
+    
+    /* Get closest triangle stored in the heap */
+    int _child;
+    int isEmpty = _heap_top_get (heap,
+                                 _vtx_tria_current,
+                                 _uvPn_tria_current,
+                                 _closest_pt_current,
+                                 _closest_pt_uvP1_current,
+                                 _closest_pt_uvPn_current,
+                                 &_dist2_current, &_child);
+
+      
+    if (isEmpty) {
+      bftc_error(__FILE__, __LINE__, 0,
+                 _("Heap is empty %s\n"));
+      abort();
+    }
+
+    if ((distance_extension == 0) && (_dist2_current > dist2_pre)) {
+      distance_extension = 1;
+    }
+
+    else if (distance_extension == 1) {
+      if (_dist2_current <= dist2_min_min) {
+        distance_extension = 0;
+      }
+    }
+
+    dist2_min_min = FVMC_MIN (dist2_min_min, _dist2_current);
+    dist2_pre = _dist2_current;
+
+    /* Compute projected from current P1 triangle */
+    
+    double _projected_coords_from_p1[3];
+
+    for (int j = 0; j < 3; j++) {
+      _projected_coords_from_p1[j] = 0;
+    }
+
+    double weightsP1[3];
+    
+    _base_tria_pn (1, _closest_pt_uvP1_current[0], _closest_pt_uvP1_current[1], weightsP1);
+
+    if (0 == 1) {
+      printf("\n\n ========= get heap =========\n");
+    
+      printf ("uv Pn : %22.15e %22.15e\n", _closest_pt_uvPn_current[0], _closest_pt_uvPn_current[1]);
+      printf ("uv P1 : %22.15e %22.15e\n", _closest_pt_uvP1_current[0], _closest_pt_uvP1_current[1]);
+      printf ("_dist2 child : %22.15e %d\n", _dist2_current, _child);
+    
+      printf("Weights : %12.5e %12.5e %12.5e\n", weightsP1[0], weightsP1[1], weightsP1[2]);
+      printf("vtx_tria_current 1 : %12.5e %12.5e %12.5e\n", _vtx_tria_current[0], _vtx_tria_current[1], _vtx_tria_current[2]);
+      printf("vtx_tria_current 2 : %12.5e %12.5e %12.5e\n", _vtx_tria_current[3], _vtx_tria_current[4], _vtx_tria_current[5]);
+      printf("vtx_tria_current 3 : %12.5e %12.5e %12.5e\n", _vtx_tria_current[6], _vtx_tria_current[7], _vtx_tria_current[8]);
+    }
+
+    double dist2_pt1 = (_vtx_tria_current[0] - vertex_coords[0]) * (_vtx_tria_current[0] - vertex_coords[0]) +
+                       (_vtx_tria_current[1] - vertex_coords[1]) * (_vtx_tria_current[1] - vertex_coords[1]) +
+                       (_vtx_tria_current[2] - vertex_coords[2]) * (_vtx_tria_current[2] - vertex_coords[2]);
+    
+    double dist2_pt2 = (_vtx_tria_current[3] - vertex_coords[0]) * (_vtx_tria_current[3] - vertex_coords[0]) +
+                       (_vtx_tria_current[4] - vertex_coords[1]) * (_vtx_tria_current[4] - vertex_coords[1]) +
+                       (_vtx_tria_current[5] - vertex_coords[2]) * (_vtx_tria_current[5] - vertex_coords[2]);
+
+    double dist2_pt3 = (_vtx_tria_current[6] - vertex_coords[0]) * (_vtx_tria_current[6] - vertex_coords[0]) +
+                       (_vtx_tria_current[7] - vertex_coords[1]) * (_vtx_tria_current[7] - vertex_coords[1]) +
+                       (_vtx_tria_current[8] - vertex_coords[2]) * (_vtx_tria_current[8] - vertex_coords[2]);
+
+
+    double dist2_pt = FVMC_MIN (dist2_pt1, dist2_pt2);
+
+    dist2_pt = FVMC_MIN (dist2_pt, dist2_pt3);
+    
+    if (dist2_pt <_dist2_current) {
+      printf ("Probleme calcul distance triangle %12.5e %12.5e\n", dist2_pt, _dist2_current);
+    }
+    
+    for (int j = 0; j < 3; j++) {
+      for (int k = 0; k < 3; k++) {
+        _projected_coords_from_p1[k] += weightsP1[j] * _vtx_tria_current[3*j+k]; 
+      }
+    }
+
+    /* Compute projected from current Pn triangle */
+
+    double _projected_coords_from_pn[3];
+
+    for (int j = 0; j < 3; j++) {
+      _projected_coords_from_pn[j] = 0;
+    }
+
+    _base_tria_pn (order, _closest_pt_uvPn_current[0], _closest_pt_uvPn_current[1], weightsPn);
+
+    for (int j = 0; j < n_node; j++) {
+      const double *node_coords = vertex_coords + 3 * (ho_vertex_num[j] - 1);
+      for (int k = 0; k < 3; k++) {
+        _projected_coords_from_pn[k] += weightsPn[j] * node_coords[k]; 
+      }
+    }
+
+    /* Compute distance between two projected */    
+
+    *err_proj = 0;
+    for (int i = 0; i < 3; i++) {
+      double val = _projected_coords_from_pn[i] - _projected_coords_from_p1[i];
+      *err_proj += val * val;
+    }
+
+    /* Break if error is ok */
+
+    if (*err_proj <= err_max || (*n_it)++ >= n_it_max) {
+    //    if ((*n_it)++ >= n_it_max) {
+       
+      for (int j = 0; j < 3; j++) {
+        projected_coords[j] = _projected_coords_from_pn[j];
+      }
+
+      dist2 = 0;
+      for (int j = 0; j < 3; j++) {
+        double comp = projected_coords[j] - point_coords[j];
+        dist2 += comp * comp; 
+      }
+
+      uvw[0] = _closest_pt_uvPn_current[0];
+      uvw[1] = _closest_pt_uvPn_current[1];
+        
+      break;
+    }
+    
+    /* 
+     * Insert sub-triangles in the heap 
+     */
+
+    _insert_subtria (heap,
+                     order,
+                     n_node,
+                     ho_vertex_num,
+                     vertex_coords,
+                     point_coords,
+                     weightsPn,
+                     _vtx_tria_current,
+                     _uvPn_tria_current);
+    
+  }
+
+  if (*n_it >= n_it_max) {
+
+    bftc_printf("warning _default_location_on_tria_2d_v2 : "
+                "compute of projected point has not converged (error = %12.5e > error max %17.10\n",
+                err_proj, err_max);
+  }
+
+  if (distance_extension) {
+    *uncertain_result = 1;
+  }
+  
+  return dist2;
+}
+
+
+
+/*-----------------------------------------------------------------------------
+ * 
+ * compute distance from closest triangle subdivision
+ * 
+ * parameters:
+ *   heap1            <-> heap
+ *   heap2            <-> work heap
+ *   order            <-- element order
+ *   n_node           <-- number of nodes
+ *   n_it_max         <-- maximum of iteration to compute distance
+ *   err_max          <-- maximum error of the projected point
+ *   err_proj         --> projected error 
+ *   ho_vertex_num    <-- high order vertex num (internal ordering)
+ *   vertex_coords    <-- vertex coordinates
+ *   point_coords     <-- point to locate coordinates
+ *   weightsPn        <-> work array
+ *   projected_coords --> current triangle
+ *   uvw              --> uvw
+ *   n_it             --> number of iterations
+ *   err_proj         --> error of the projected point
+ * 
+ *----------------------------------------------------------------------------*/
+
+static double
+_compute_dist2_from_uniform_tria_subdivision
+(
+ _heap_t *heap1,
+ _heap_t *heap2,
+ const int order,
+ const int n_node,
+ const int n_it_max,
+ const double err_max,
+ const int ho_vertex_num[],
+ const double vertex_coords[],
+ const double point_coords[],
+ double weightsPn[],
+ double projected_coords[],
+ double uvw[],
+ int    *n_it,
+ double *err_proj
+ )
+{
+  *n_it = 0;
+  *err_proj = HUGE_VAL;
+  double dist2 = HUGE_VAL;
+
+  double dist2_min_min = HUGE_VAL;
+  double dist2_pre = HUGE_VAL;
+
+  _heap_t *heap      = heap1;
+  _heap_t *next_heap = heap2;
+
+  while (1) {
+
+    double _vtx_tria_current[9];
+    double _uvPn_tria_current[6];
+    
+    double _closest_pt_current[3];
+    double _closest_pt_uvP1_current[2];
+    double _closest_pt_uvPn_current[2];
+    double _dist2_current;
+    
+    /* Get closest triangle stored in the heap */
+    int _child;
+    int isEmpty = _heap_top_get (heap,
+                                 _vtx_tria_current,
+                                 _uvPn_tria_current,
+                                 _closest_pt_current,
+                                 _closest_pt_uvP1_current,
+                                 _closest_pt_uvPn_current,
+                                 &_dist2_current, &_child);
+
+      
+    if (isEmpty) {
+      bftc_error(__FILE__, __LINE__, 0,
+                 _("Heap is empty %s\n"));
+      abort();
+    }
+
+    dist2_min_min = FVMC_MIN (dist2_min_min, _dist2_current);
+    dist2_pre = _dist2_current;
+
+    /* Compute projected from current P1 triangle */
+    
+    double _projected_coords_from_p1[3];
+
+    for (int j = 0; j < 3; j++) {
+      _projected_coords_from_p1[j] = 0;
+    }
+
+    double weightsP1[3];
+    
+    _base_tria_pn (1, _closest_pt_uvP1_current[0], _closest_pt_uvP1_current[1], weightsP1);
+
+    if (0 == 1) {
+      printf("\n\n ========= get heap =========\n");
+    
+      printf ("uv Pn : %22.15e %22.15e\n", _closest_pt_uvPn_current[0], _closest_pt_uvPn_current[1]);
+      printf ("uv P1 : %22.15e %22.15e\n", _closest_pt_uvP1_current[0], _closest_pt_uvP1_current[1]);
+      printf ("_dist2 child : %22.15e %d\n", _dist2_current, _child);
+    
+      printf("Weights : %12.5e %12.5e %12.5e\n", weightsP1[0], weightsP1[1], weightsP1[2]);
+      printf("vtx_tria_current 1 : %12.5e %12.5e %12.5e\n", _vtx_tria_current[0], _vtx_tria_current[1], _vtx_tria_current[2]);
+      printf("vtx_tria_current 2 : %12.5e %12.5e %12.5e\n", _vtx_tria_current[3], _vtx_tria_current[4], _vtx_tria_current[5]);
+      printf("vtx_tria_current 3 : %12.5e %12.5e %12.5e\n", _vtx_tria_current[6], _vtx_tria_current[7], _vtx_tria_current[8]);
+    }
+
+    double dist2_pt1 = (_vtx_tria_current[0] - vertex_coords[0]) * (_vtx_tria_current[0] - vertex_coords[0]) +
+                       (_vtx_tria_current[1] - vertex_coords[1]) * (_vtx_tria_current[1] - vertex_coords[1]) +
+                       (_vtx_tria_current[2] - vertex_coords[2]) * (_vtx_tria_current[2] - vertex_coords[2]);
+    
+    double dist2_pt2 = (_vtx_tria_current[3] - vertex_coords[0]) * (_vtx_tria_current[3] - vertex_coords[0]) +
+                       (_vtx_tria_current[4] - vertex_coords[1]) * (_vtx_tria_current[4] - vertex_coords[1]) +
+                       (_vtx_tria_current[5] - vertex_coords[2]) * (_vtx_tria_current[5] - vertex_coords[2]);
+
+    double dist2_pt3 = (_vtx_tria_current[6] - vertex_coords[0]) * (_vtx_tria_current[6] - vertex_coords[0]) +
+                       (_vtx_tria_current[7] - vertex_coords[1]) * (_vtx_tria_current[7] - vertex_coords[1]) +
+                       (_vtx_tria_current[8] - vertex_coords[2]) * (_vtx_tria_current[8] - vertex_coords[2]);
+
+
+    double dist2_pt = FVMC_MIN (dist2_pt1, dist2_pt2);
+
+    dist2_pt = FVMC_MIN (dist2_pt, dist2_pt3);
+    
+    if (dist2_pt <_dist2_current) {
+      printf ("Probleme calcul distance triangle %12.5e %12.5e\n", dist2_pt, _dist2_current);
+    }
+    
+
+    for (int j = 0; j < 3; j++) {
+      for (int k = 0; k < 3; k++) {
+        _projected_coords_from_p1[k] += weightsP1[j] * _vtx_tria_current[3*j+k]; 
+      }
+    }
+
+    /* Compute projected from current Pn triangle */
+
+    double _projected_coords_from_pn[3];
+
+    for (int j = 0; j < 3; j++) {
+      _projected_coords_from_pn[j] = 0;
+    }
+
+    _base_tria_pn (order, _closest_pt_uvPn_current[0], _closest_pt_uvPn_current[1], weightsPn);
+
+    for (int j = 0; j < n_node; j++) {
+      const double *node_coords = vertex_coords + 3 * (ho_vertex_num[j] - 1);
+      for (int k = 0; k < 3; k++) {
+        _projected_coords_from_pn[k] += weightsPn[j] * node_coords[k]; 
+      }
+    }
+
+    /* Compute distance between two projected */    
+
+    *err_proj = 0;
+    for (int i = 0; i < 3; i++) {
+      double val = _projected_coords_from_pn[i] - _projected_coords_from_p1[i];
+      *err_proj += val * val;
+    }
+
+    /* Break if error is ok */
+
+    if (*err_proj <= err_max || (*n_it)++ >= n_it_max) {
+    //if ((*n_it)++ >= n_it_max) {
+       
+      for (int j = 0; j < 3; j++) {
+        projected_coords[j] = _projected_coords_from_pn[j];
+      }
+
+      dist2 = 0;
+      for (int j = 0; j < 3; j++) {
+        double comp = projected_coords[j] - point_coords[j];
+        dist2 += comp * comp; 
+      }
+
+      uvw[0] = _closest_pt_uvPn_current[0];
+      uvw[1] = _closest_pt_uvPn_current[1];
+        
+      break;
+    }
+    
+    /* 
+     * Insert sub-triangles in the next heap
+     */
+    
+    _heap_init (next_heap);
+
+    _insert_subtria (next_heap,
+                     order,
+                     n_node,
+                     ho_vertex_num,
+                     vertex_coords,
+                     point_coords,
+                     weightsPn,
+                     _vtx_tria_current,
+                     _uvPn_tria_current);
+
+    double _vtx_tria_current2[9];
+    double _uvPn_tria_current2[6];
+    
+    double _closest_pt_current2[3];
+    double _closest_pt_uvP1_current2[2];
+    double _closest_pt_uvPn_current2[2];
+    double _dist2_current2;
+    int _child_current2;
+    
+    while ( !_heap_top_get (heap,
+                            _vtx_tria_current2,
+                            _uvPn_tria_current2,
+                            _closest_pt_current2,
+                            _closest_pt_uvP1_current2,
+                            _closest_pt_uvPn_current,
+                            &_dist2_current2, &_child_current2)) {
+
+
+      _insert_subtria (next_heap,
+                       order,
+                       n_node,
+                       ho_vertex_num,
+                       vertex_coords,
+                       point_coords,
+                       weightsPn,
+                       _vtx_tria_current2,
+                       _uvPn_tria_current2);
+
+    }
+
+    _heap_t *heap_tmp = heap;
+    heap = next_heap;
+    next_heap = heap_tmp;
+    
+  }
+
+  if (*n_it >= n_it_max) {
+
+    bftc_printf("warning _default_location_on_tria_2d_v2 : "
+                "compute of projected point has not converged (error = %12.5e > error max %17.10\n",
+                err_proj, err_max);
+  }
+
+  return dist2;
+}
+
 
 /*-----------------------------------------------------------------------------
  * 
@@ -840,12 +1457,26 @@ _default_location_on_tria_2d
  double *uvw
 )
 {
-  const int n_it_max = 1000;
+
+  if (1 == 0) {
+    printf ("\n\n***********\n");
+  
+    printf ("n_node %d\n", n_node);
+    printf ("ho_vertex_num :" );
+    for (int j = 0; j < n_node; j++) {
+      printf (" %d\n", ho_vertex_num[j]);
+    }
+    printf("\n");
+  }
+ 
+  const int n_it_max = 100;
   const double err_max = 1e-20;
 
   double dist2 = HUGE_VAL;
 
   _heap_t heap;
+  _heap_t heap2;
+
   double *weightsPn = malloc(sizeof(double) * n_node);
 
   /* Initialize heap */
@@ -868,229 +1499,113 @@ _default_location_on_tria_2d
    *    - Store them in the heap
    */
 
-  int n_it = 0;
+
+  const int method = 0;
+
+  int n_it;
   double err_proj = HUGE_VAL;
+  int uncertain_result = 0;;
 
-  while (1) {
-
-    double _vtx_tria_current[9];
-    double _uvPn_tria_current[6];
-    
-    double _closest_pt_current[3];
-    double _closest_pt_uvP1_current[2];
-    double _closest_pt_uvPn_current[2];
-    double _dist2_current;
-    
-    /* Get closest triangle stored in the heap */
-
-    int isEmpty = _heap_top_get (&heap,
-                                 _vtx_tria_current,
-                                 _uvPn_tria_current,
-                                 _closest_pt_current,
-                                 _closest_pt_uvP1_current,
-                                 _closest_pt_uvPn_current,
-                                 &_dist2_current);
-
-    if (isEmpty) {
-      bftc_error(__FILE__, __LINE__, 0,
-                 _("Heap is empty %s\n"));
-      abort();
-    }
-
-    /* Compute projected from current P1 triangle */
-    
-    double _projected_coords_from_p1[3];
-
-    for (int j = 0; j < 3; j++) {
-      _projected_coords_from_p1[j] = 0;
-    }
-
-    double weightsP1[3];
-    _base_tria_pn (1, _closest_pt_uvP1_current[0], _closest_pt_uvP1_current[1], weightsP1);
-    if (0 == 1) {
-      printf("Weights : %12.5e %12.5e %12.5e\n", weightsP1[0], weightsP1[1], weightsP1[2]);
-      printf("vtx_tria_current 1 : %12.5e %12.5e %12.5e\n", _vtx_tria_current[0], _vtx_tria_current[1], _vtx_tria_current[2]);
-      printf("vtx_tria_current 2 : %12.5e %12.5e %12.5e\n", _vtx_tria_current[3], _vtx_tria_current[4], _vtx_tria_current[5]);
-      printf("vtx_tria_current 3 : %12.5e %12.5e %12.5e\n", _vtx_tria_current[6], _vtx_tria_current[7], _vtx_tria_current[8]);
-    }
-    for (int j = 0; j < 3; j++) {
-      for (int k = 0; k < 3; k++) {
-        _projected_coords_from_p1[k] += weightsP1[j] * _vtx_tria_current[3*j+k]; 
-      }
-    }
-
-    /* Compute projected from current Pn triangle */
-
-    double _projected_coords_from_pn[3];
-
-    for (int j = 0; j < 3; j++) {
-      _projected_coords_from_pn[j] = 0;
-    }
-
-    _base_tria_pn (order, _closest_pt_uvPn_current[0], _closest_pt_uvPn_current[1], weightsPn);
-
-    for (int j = 0; j < n_node; j++) {
-      const double *node_coords = vertex_coords + 3 * (ho_vertex_num[j] - 1);
-      for (int k = 0; k < 3; k++) {
-        _projected_coords_from_pn[k] += weightsPn[j] * node_coords[k]; 
-      }
-    }
-
-    /* Compute distance between two projected */    
-
-    err_proj = 0;
-    for (int i = 0; i < 3; i++) {
-      double val = _projected_coords_from_pn[i] - _projected_coords_from_p1[i];
-      err_proj += val * val;
-    }
-
-    /* Break if error is ok */
-
-    if (err_proj <= err_max || n_it++ >= n_it_max) {
-      
-      for (int j = 0; j < 3; j++) {
-        projected_coords[j] = _projected_coords_from_pn[j];
-      }
-
-      dist2 = 0;
-      for (int j = 0; j < 3; j++) {
-        double comp = projected_coords[j] - point_coords[j];
-        dist2 += comp * comp; 
-      }
-
-
-      uvw[0] = _closest_pt_uvPn_current[0];
-      uvw[1] = _closest_pt_uvPn_current[1];
-        
-      break;
-    }
-    
-    /* 
-     * Insert sub-triangles in the heap 
-     */
-
-    double _vtx_tria_children[18];
-    double _uvPn_tria_children[12];
-
-    const int idx_sub_tria[12] = {0, 3, 5,
-                                  3, 4, 5,
-                                  3, 1, 4,
-                                  5, 4, 2};
-
-    /* Compute middle vertices */
-    
-    for (int i = 0; i < 9; i++) {
-      _vtx_tria_children[i] = _vtx_tria_current[i];
-    }
-
-    for (int i = 0; i < 6; i++) {
-      _uvPn_tria_children[i] = _uvPn_tria_current[i];
-    }
-
-    for (int i = 0; i < 3; i++) {
-      for (int j = 0; j < 2; j++) {
-        _uvPn_tria_children[6+2*i+j] =
-          (_uvPn_tria_current[2*i+j] + _uvPn_tria_current[2*((i+1)%3)+j])/2;
-      }
-
-      _base_tria_pn (order   , _uvPn_tria_children[6+2*i], _uvPn_tria_children[6+2*i+1], weightsPn);
-
-      for (int j = 0; j < 3; j++) {
-        _vtx_tria_children[9+3*i+j] = 0;
-      }
-      for (int k = 0; k < n_node; k++) {
-        const double *node_coords = vertex_coords + 3 * (ho_vertex_num[k] - 1);
-        for (int j = 0; j < 3; j++) {
-          _vtx_tria_children[9+3*i+j] += weightsPn[k] * node_coords[j];
-        }
-      }
-    }
-    
-    for (int i = 0; i < 4; i++) {
-
-      double _vtx_tria_child[9];
-      double _uvPn_tria_child[6];
-      
-      for (int j = 0; j < 3; j++) {
-        int _j = idx_sub_tria[3 * i + j];
-        for (int k = 0; k < 3; k++) {
-          _vtx_tria_child[3*j + k] = _vtx_tria_children[3*_j + k];
-        }
-        for (int k = 0; k < 2; k++) {
-          _uvPn_tria_child[2*j + k] = _uvPn_tria_children[2*_j + k];
-        }
-      }
-      
-      double _closest_pt_child[3];
-      double _closest_pt_uvP1_child[2];
-      double _closest_pt_uvPn_child[2];
-      double _dist2_child = 0;
-      double _closest_pt_weights_child[3];
-    
-      int isDegenerated = fvmc_triangle_evaluate_Position ((double *)point_coords,
-                                                           _vtx_tria_child,
-                                                           _closest_pt_child,
-                                                           _closest_pt_uvP1_child,
-                                                           &_dist2_child,
-                                                           _closest_pt_weights_child);
-
-      if (isDegenerated == -1) {
-        continue;
-      }
-      
-      for (int j = 0; j < 2; j++) {
-        _closest_pt_uvPn_child[j] = 0;
-      }
-      for (int j = 0; j < 2; j++) {
-        for (int k = 0; k < 3; k++) {
-          _closest_pt_uvPn_child[j] += _closest_pt_weights_child[k] * _uvPn_tria_child[2*k + j];
-        }
-      }
-
-      if (1 == 0) {
-        printf("isDegenrated : %d\n", isDegenerated);
-        printf("_closest_pt_weights_child : %12.5e %12.5e %12.5e\n"
-               ,_closest_pt_weights_child[0]
-               ,_closest_pt_weights_child[1]
-               ,_closest_pt_weights_child[2]);
-        
-        printf("_closest_pt_child : %12.5e %12.5e %12.5e\n"
-               ,_closest_pt_child[0]
-               ,_closest_pt_child[1]
-               ,_closest_pt_child[2]);
-        
-        printf("_closest_pt_uvP1_child : %12.5e %12.5e\n"
-               ,_closest_pt_uvP1_child[0]
-               ,_closest_pt_uvP1_child[1]);
-
-
-      }
-      
-      _heap_insert (&heap,
-                    _vtx_tria_child,
-                    _uvPn_tria_child,
-                    _closest_pt_child,
-                    _closest_pt_uvP1_child,
-                    _closest_pt_uvPn_child,
-                    _dist2_child);
-
-    }
-    
+  if (idebug == 1) {
+    printf ("=====================debut=========================\n");
   }
+  
+  if (method == 0) {
+    dist2 = _compute_dist2_from_closest_tria_subdivision (&heap,
+                                                          order,
+                                                          n_node,
+                                                          n_it_max,
+                                                          err_max,
+                                                          ho_vertex_num,
+                                                          vertex_coords,
+                                                          point_coords,
+                                                          weightsPn,
+                                                          projected_coords,
+                                                          uvw,
+                                                          &n_it,
+                                                          &err_proj,
+                                                          &uncertain_result);
 
-  if (n_it >= n_it_max) {
+    if (1 == 1) {
+      printf("\nCalcul distance triangle premier essai :\n");
+      printf("          point_coords : %22.15e %22.15e %22.15e         \n", point_coords[0]    , point_coords[1]    , point_coords[2]);
+      printf("  project point_coords : %22.15e %22.15e %22.15e - %22.15e\n", projected_coords[0], projected_coords[1], projected_coords[2], dist2);
+      printf("  iteration number, error^2 : %d %22.15e\n", n_it, err_proj);
+    }
+    
+    if (uncertain_result) {
+      
+      /* Initialize heap */
+  
+      _heap_init (&heap);
+      _heap_init (&heap2);
+  
+      /* Build initial sub-triangles and store them in the heap */
+  
+      _heap_fill_pn_sub_tria (&heap,
+                              order,
+                              n_node,
+                              ho_vertex_num,
+                              vertex_coords,
+                              point_coords);
 
-    bftc_printf("warning _default_location_on_tria_2d_v2 : "
-                "compute of projected point has not converged (error = %12.5e > error max %17.10\n",
-                err_proj, err_max);
+
+      dist2 = _compute_dist2_from_uniform_tria_subdivision (&heap,
+                                                            &heap2,
+                                                            order,
+                                                            n_node,
+                                                            n_it_max,
+                                                            err_max,
+                                                            ho_vertex_num,
+                                                            vertex_coords,
+                                                            point_coords,
+                                                            weightsPn,
+                                                            projected_coords,
+                                                            uvw,
+                                                            &n_it,
+                                                            &err_proj);
+
+      if (1 == 1) {
+        printf("\nCalcul distance triangle deuxieme essai :\n");
+        printf("          point_coords : %22.15e %22.15e %22.15e         \n", point_coords[0]    , point_coords[1]    , point_coords[2]);
+        printf("  project point_coords : %22.15e %22.15e %22.15e - %22.15e\n", projected_coords[0], projected_coords[1], projected_coords[2], dist2);
+        printf("  iteration number, error^2 : %d %22.15e\n", n_it, err_proj);
+      }
+
+      
+    }
+      if (idebug == 1) {
+
+        printf ("====================fin============================\n\n\n");
+      }
+  }
+  
+  else {
+
+    _heap_init (&heap2);
+    dist2 = _compute_dist2_from_uniform_tria_subdivision (&heap,
+                                                          &heap2,
+                                                          order,
+                                                          n_node,
+                                                          n_it_max,
+                                                          err_max,
+                                                          ho_vertex_num,
+                                                          vertex_coords,
+                                                          point_coords,
+                                                          weightsPn,
+                                                          projected_coords,
+                                                          uvw,
+                                                          &n_it,
+                                                          &err_proj);
+
   }
 
   free (weightsPn);
 
-  printf("\nCalcul distance triangle :\n");
-  printf("          point_coords : %22.15e %22.15e %22.15e         \n", point_coords[0]    , point_coords[1]    , point_coords[2]);
-  printf("  project point_coords : %22.15e %22.15e %22.15e - %22.15e\n", projected_coords[0], projected_coords[1], projected_coords[2], dist2);
-  printf("  iteration number, error^2 : %d %22.15e\n", n_it, err_proj);
+  //  printf("\nCalcul distance triangle :\n");
+  // printf("          point_coords : %22.15e %22.15e %22.15e         \n", point_coords[0]    , point_coords[1]    , point_coords[2]);
+  //printf("  project point_coords : %22.15e %22.15e %22.15e - %22.15e\n", projected_coords[0], projected_coords[1], projected_coords[2], dist2);
+  //printf("  iteration number, error^2 : %d %22.15e\n", n_it, err_proj);
 
   return dist2;
   
