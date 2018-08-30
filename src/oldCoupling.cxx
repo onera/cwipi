@@ -1513,7 +1513,7 @@ namespace cwipi {
 #ifdef NAN
       if (receivingField != NULL && nInteriorList > 0) {
         const int idx = 0;
-        if (isnan(receivingField[idx]))
+        if (std::isnan(receivingField[idx]))
           status = CWIPI_EXCHANGE_BAD_RECEIVING;
       }
 #endif
