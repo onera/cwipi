@@ -80,8 +80,10 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new")
                              PRIVATE ${PDM_INC}) 
 endif ()
 
-if (CWP_ENABLE_SPACE_NODAL_BASES)
+if (CWP_ENABLE_SPACE_NODAL_BASES) 
   add_dependencies(cwp spaceBasis)
+  target_include_directories(cwp PRIVATE ${CMAKE_SOURCE_DIR}/spaceBasis/src)
+  target_include_directories(cwp PRIVATE ${CMAKE_SOURCE_DIR}/spaceBasis)
 endif()
 
 if (CWP_ENABLE_Fortran)
@@ -97,9 +99,17 @@ if (CWP_ENABLE_Fortran)
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/fvm
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/bft) 
 
+  add_dependencies(cwpf cwp)        
+
+if (CWP_ENABLE_SPACE_NODAL_BASES)
+  add_dependencies(cwpf spaceBasis)        
+endif()
+
   if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new")
     add_dependencies(cwpf pdmf)
     target_include_directories(cwpf PRIVATE ${PDM_INC}) 
+    target_include_directories(cwpf PRIVATE ${CMAKE_BINARY_DIR}/spaceBasis/src)
+    target_include_directories(cwpf PRIVATE ${CMAKE_BINARY_DIR}/spaceBasis)
   endif()
 endif()
 
@@ -149,6 +159,9 @@ if (CWP_ENABLE_SHARED)
 
   get_target_property(CWP_INC cwp INCLUDE_DIRECTORIES)                          
   target_include_directories(cwp_shared PUBLIC ${CWP_INC})
+  if (CWP_ENABLE_SPACE_NODAL_BASES)
+     add_dependencies(cwp_shared spaceBasis_shared)        
+  endif()
 
   if (CWP_ENABLE_Fortran)
     set_property(TARGET ${cwpf} PROPERTY POSITION_INDEPENDENT_CODE 1)
@@ -161,6 +174,9 @@ if (CWP_ENABLE_SHARED)
 
     get_target_property(CWP_INC cwpf INCLUDE_DIRECTORIES)
     target_include_directories(cwpf_shared PUBLIC ${CWP_INC})
+    if (CWP_ENABLE_SPACE_NODAL_BASES)
+     add_dependencies(cwpf_shared spaceBasis_shared)        
+    endif()
 
   endif()
 endif()
@@ -178,6 +194,9 @@ if (CWP_ENABLE_STATIC)
                              PUBLIC_HEADER "${LIST_HEADER}")
   get_target_property(CWP_INC cwp INCLUDE_DIRECTORIES)
   target_include_directories(cwp_static PUBLIC ${CWP_INC})
+  if (CWP_ENABLE_SPACE_NODAL_BASES)
+     add_dependencies(cwp_static spaceBasis_static)        
+  endif()
 
   if (CWP_ENABLE_Fortran)
     set_property(TARGET ${cwpf} PROPERTY POSITION_INDEPENDENT_CODE 1)
@@ -191,6 +210,9 @@ if (CWP_ENABLE_STATIC)
 
     get_target_property(CWP_INC cwpf INCLUDE_DIRECTORIES)
     target_include_directories(cwpf_static PUBLIC ${CWP_INC})
+    if (CWP_ENABLE_SPACE_NODAL_BASES)
+      add_dependencies(cwp_static spaceBasis_static)        
+    endif()
 
   endif()
 

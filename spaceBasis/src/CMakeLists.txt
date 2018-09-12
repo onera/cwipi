@@ -29,7 +29,10 @@ file(GLOB_RECURSE SOURCES
 
 
 #add_library(spaceBasis STATIC ${SOURCES})
-add_library(spaceBasis SHARED ${SOURCES})
+
+#add_library(spaceBasis SHARED ${SOURCES})
+
+add_library(spaceBasis OBJECT ${SOURCES})
 
 
 
@@ -44,6 +47,7 @@ list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/basesimplextools.mod")
 list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/moddeterminant.mod")
 list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/space_ldlt.mod")
 list(APPEND LIST_HEADERF "${CMAKE_CURRENT_BINARY_DIR}/table_tet_mesh.mod")
+list(APPEND LIST_HEADERF "${CMAKE_CURRENT_SOURCE_DIR}/spacebasis.h")
 
 #message("LIST_HEADERF:       ${LIST_HEADERF}")
 
@@ -62,7 +66,10 @@ target_include_directories(spaceBasis
                            PUBLIC  ${CMAKE_SOURCE_DIR}
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_include_directories (spaceBasis PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories (spaceBasis
+                           INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+#                           PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+#                           PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 
 
@@ -74,17 +81,28 @@ target_include_directories (spaceBasis PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 #target_include_directories(BasesNodales PRIVATE ${LAPACK_INCLUDE_DIRS})
 #target_link_libraries(BasesNodales ${LAPACK_LIBRARIES})
 
-
 target_include_directories(spaceBasis PRIVATE ${BLAS_INCLUDE_DIRS})
-target_link_libraries(spaceBasis ${BLAS_LIBRARIES})
 
 target_include_directories(spaceBasis PRIVATE ${LAPACK_INCLUDE_DIRS})
-target_link_libraries(spaceBasis ${LAPACK_LIBRARIES})
-	
+
+if (SNB_ENABLE_SHARED)
+  set_property(TARGET ${spaceBasis} PROPERTY POSITION_INDEPENDENT_CODE 1)
+  add_library(spaceBasis_shared SHARED  $<TARGET_OBJECTS:spaceBasis>)
+  target_link_libraries(spaceBasis_shared ${BLAS_LIBRARIES})
+  target_link_libraries(spaceBasis_shared ${LAPACK_LIBRARIES})
+  list (APPEND _targets spaceBasis_shared)
+endif ()
+
+if (SNB_ENABLE_STATIC)
+  set_property(TARGET ${spaceBasis} PROPERTY POSITION_INDEPENDENT_CODE 1)
+  add_library(spaceBasis_static STATIC  $<TARGET_OBJECTS:spaceBasis>)
+  target_link_libraries(spaceBasis_static ${BLAS_LIBRARIES})
+  target_link_libraries(spaceBasis_static ${LAPACK_LIBRARIES})
+  list (APPEND _targets spaceBasis_static)
+endif ()
 
 set (_targets "")
 
-list (APPEND _targets spaceBasis)
 #list (APPEND _targets BasesNodales)
 
 install(TARGETS ${_targets}

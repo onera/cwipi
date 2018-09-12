@@ -1,3 +1,4 @@
+
 module baseSimplex2D
   use baseSimplexTools
   implicit none 
@@ -13,8 +14,31 @@ module baseSimplex2D
   interface lagrange2Dv  ; module procedure lagrange2Dv_2  ; end interface
   
   contains
-  
-  subroutine nodes2D(ord, uvw,display)
+    
+  subroutine nodes2D_c(ord, uvw,display)  BIND(C, name="nodes2D") 
+    use, intrinsic :: ISO_C_BINDING 
+    implicit none 
+    integer (C_INT), value :: ord 
+    type (C_PTR) :: uvw
+    integer (C_INT), value :: display
+
+    real(8), pointer :: uvw_f(:,:)
+    integer          :: ord_f
+    logical          :: display_f
+    integer          :: n
+
+    ord_f = ord
+    display_f = display
+
+    n=(ord+1)*(ord+2)/2
+
+    call c_f_pointer (uvw,uvw_f, (/3,n/) )
+    
+    call nodes2D (ord_f, uvw_f, display_f)
+    
+  end subroutine nodes2D_c
+
+  Subroutine nodes2D(ord, uvw,display)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     ! input: ord=polynomial order of interpolant
     ! output: uvw(:,:) node coordinates in unity triangle

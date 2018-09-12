@@ -12,7 +12,11 @@
 
 unset(LINK_LIBRARIES)
 
-list(APPEND LINK_LIBRARIES spaceBasis)
+if (SNB_ENABLE_SHARED)
+  list(APPEND LINK_LIBRARIES spaceBasis_shared)
+else()
+  list(APPEND LINK_LIBRARIES spaceBasis_static)
+endif()
 list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
 
 

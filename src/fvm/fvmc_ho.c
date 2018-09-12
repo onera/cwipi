@@ -44,6 +44,7 @@
 #include "bftc_mem.h"
 #include "bftc_printf.h"
 #include "fvmc_point_location.h"
+#include "cwipi_config.h"
 
 /*----------------------------------------------------------------------------
  *  Local headers
@@ -61,6 +62,7 @@
  *----------------------------------------------------------------------------*/
 
 #include "fvmc_ho.h"
+#include "spacebasis.h"
 
 /*----------------------------------------------------------------------------*/
 
@@ -322,9 +324,38 @@ _base_tria_pn
 
   else {
 
+#if defined (HAVE_SPACE_BASIS) 
+
+  nodes2D(1, weights, 1);
+    
+#else
+    bftc_error(__FILE__, __LINE__, 0,
+               _("_base_tria_pn not yet implemented for order > 2 without space basis \n"));
+#endif
+    /* call nodes2D    : * calcul les uv des points d'interpolations
+     *                         (position des noeuds geometriques)
+ 
+     * call nodes2Dopt : * opt si emplacement optimise des points (pas fourni
+     *                       par les mailleurs pour l'instant), génération de grilles
+     *                       regulieres uniquement
+     *
+     * call lagrange2Dv : * v pour vectorise
+     *                    * entrees
+     
     bftc_error(__FILE__, __LINE__, 0,
                _("_base_tria_pn not yet implemented for order > 2\n"));
 
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    call nodes2D   (ord=iOrd,uvw=uvw,display=.false.)
+   !call nodes2Dopt(ord=iOrd,uvw=uvw,display=.false.)
+    call nodes2Duv2rs(uv=uvw,rs=rs  ,display=.false.) !> rs(1:2,:)=2d0*uv(1:2,:)-1d0
+    call nodes2Drs2ab(rs=rs,a=a,b=b ,display=.false.) !> a=2 (1+r)/(1-s)-1 && b=s
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    call vandermonde2D(ord=iOrd,a=a,b=b,vand=vand)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  allocate(lxOut(1:(order+1)*(order+2)/2,1:nVert))
+  call lagrange2Dv(ord=order,vand=vand,a=a,b=b,lx=lxOut,transpose=.true.) !> true pour aff */
   }
 }
 
