@@ -37,7 +37,7 @@ if (CWP_ENABLE_SHARED)
    endif()
    list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
 
-   if (ENABLE_SPACE_NODAL_BASES)
+   if (CWP_ENABLE_SPACE_NODAL_BASES)
     list(APPEND LINK_LIBRARIES spaceBasis_shared)
    endif()
 
@@ -73,7 +73,7 @@ else ()
    endif()
    list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
 
-   if (ENABLE_SPACE_NODAL_BASES)
+   if (CWP_ENABLE_SPACE_NODAL_BASES)
     list(APPEND LINK_LIBRARIES spaceBasis_static)
    endif()
 
@@ -138,7 +138,7 @@ if (CWP_ENABLE_Fortran)
   test_fortran_create (fortran_surf_P1P1            ${MPIEXEC_MAX_NUMPROCS})
   test_fortran_create (fortran_surf_P1P1_savememory ${MPIEXEC_MAX_NUMPROCS})
 
-  if (ENABLE_SPACE_NODAL_BASES)
+  if (CWP_ENABLE_SPACE_NODAL_BASES)
 #    list(APPEND LINK_LIBRARIES spaceBasis)
     test_fortran_create  (fortran_surf_TriaP1_PiPj   ${MPIEXEC_MAX_NUMPROCS})
 #    target_link_libraries(fortran_surf_TriaP1_PiPj   spaceBasis)

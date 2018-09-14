@@ -53,6 +53,11 @@ if (CWP_ENABLE_Fortran)
   target_link_libraries(cwipi cwpf_shared)
 endif()
 
+if (CWP_ENABLE_SPACE_NODAL_BASES)
+  target_link_libraries(cwipi spaceBasis_shared)
+endif()
+
+
 if ((NOT MPI_C_COMPILER) AND MPI_C_COMPILE_FLAGS)
    set_target_properties(cwipi PROPERTIES
                               COMPILE_FLAGS ${MPI_C_COMPILE_FLAGS})

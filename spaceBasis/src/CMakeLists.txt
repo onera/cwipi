@@ -85,9 +85,13 @@ target_include_directories(spaceBasis PRIVATE ${BLAS_INCLUDE_DIRS})
 
 target_include_directories(spaceBasis PRIVATE ${LAPACK_INCLUDE_DIRS})
 
+set (_targets "")
+
 if (SNB_ENABLE_SHARED)
   set_property(TARGET ${spaceBasis} PROPERTY POSITION_INDEPENDENT_CODE 1)
   add_library(spaceBasis_shared SHARED  $<TARGET_OBJECTS:spaceBasis>)
+  set_target_properties(spaceBasis_shared PROPERTIES OUTPUT_NAME "spaceBasis")
+  set_target_properties(spaceBasis_shared PROPERTIES VERSION ${BASESNODALES_VERSION})
   target_link_libraries(spaceBasis_shared ${BLAS_LIBRARIES})
   target_link_libraries(spaceBasis_shared ${LAPACK_LIBRARIES})
   list (APPEND _targets spaceBasis_shared)
@@ -96,12 +100,12 @@ endif ()
 if (SNB_ENABLE_STATIC)
   set_property(TARGET ${spaceBasis} PROPERTY POSITION_INDEPENDENT_CODE 1)
   add_library(spaceBasis_static STATIC  $<TARGET_OBJECTS:spaceBasis>)
+  set_target_properties(spaceBasis_static PROPERTIES OUTPUT_NAME "spaceBasis")
+  set_target_properties(spaceBasis_static PROPERTIES VERSION ${BASESNODALES_VERSION})
   target_link_libraries(spaceBasis_static ${BLAS_LIBRARIES})
   target_link_libraries(spaceBasis_static ${LAPACK_LIBRARIES})
   list (APPEND _targets spaceBasis_static)
 endif ()
-
-set (_targets "")
 
 #list (APPEND _targets BasesNodales)
 

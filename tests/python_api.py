@@ -80,7 +80,7 @@ def runTest():
     fname = ["proc0","proc1"]
 
     try:
-        import cwipi
+        from cwipi import cwipi
     except:
         if rank == 0:
             print "      Error : CWIPI module not found (update PYTHONPATH variable)"
