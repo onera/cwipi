@@ -132,7 +132,10 @@ typedef struct {
 
 static fvmc_ho_user_fcts_t *_user_fcts = NULL;
 
-static int idebug = 0;
+static int                  _idebug = 0;
+
+static int                  _n_vand_space = 0;
+static double **            _vand_space = NULL;
 
 /*============================================================================
  * Private function definitions
@@ -326,8 +329,67 @@ _base_tria_pn
 
 #if defined (HAVE_SPACE_BASIS) 
 
-  nodes2D(1, weights, 1);
+    if (_vand_space == NULL) {
+      _n_vand_space = FVMC_MAX (order-1, 10);
+      _vand_space = malloc (sizeof(double *) * _n_vand_space);
+      for (int i = 0; i < _n_vand_space; i++) {
+        _vand_space[i] = NULL;
+      }
+    }
+
+    if (order > _n_vand_space) {
+      _vand_space = realloc (_vand_space, sizeof(double *) * _n_vand_space);
+      for (int i = _n_vand_space; i < order; i++) {
+        _vand_space[i] = NULL;
+      }
+    }
     
+    double *__vand_space = _vand_space[order-1];
+
+    if (__vand_space == NULL) {
+      
+      const int n_nodes = (order+1)*(order+2)/2;
+      double *uvw_nodes_space = malloc (sizeof(double) * 3 * n_nodes); 
+
+      SNB_nodes2D (order, uvw_nodes_space, 0);
+      
+      double *uv_nodes_space = malloc (sizeof(double) * 2 * n_nodes);
+
+      for (int i = 0; i < n_nodes; i++) {
+        for (int j = 0; j < 2; j++) {
+          uv_nodes_space[2*i+j] = uvw_nodes_space[3*i+j];
+        }
+      }
+      
+      free (uvw_nodes_space);
+
+      double *a_space = NULL; 
+      double *b_space = NULL; 
+
+      SNB_nodes2Duv2ab (n_nodes, uv_nodes_space, &a_space, &b_space, 0);
+
+      free (uv_nodes_space);
+    
+      SNB_vandermonde2D (order, a_space, b_space, &__vand_space);
+
+      free (a_space);
+      free (b_space);
+      
+    }
+
+    double _uv[2] = {u, v};
+    double *_a;
+    double *_b;
+    
+    SNB_nodes2Duv2ab (1, _uv, &_a, &_b, 0);
+
+    int nVtx = 1;
+    
+    SNB_lagrange2Dv (order, nVtx, __vand_space, _a, _b, weights);
+
+    free (_a);
+    free (_b);
+      
 #else
     bftc_error(__FILE__, __LINE__, 0,
                _("_base_tria_pn not yet implemented for order > 2 without space basis \n"));
@@ -1261,7 +1323,7 @@ _compute_dist2_from_uniform_tria_subdivision
   double dist2 = HUGE_VAL;
 
   double dist2_min_min = HUGE_VAL;
-  double dist2_pre = HUGE_VAL;
+  // double dist2_pre = HUGE_VAL;
 
   _heap_t *heap      = heap1;
   _heap_t *next_heap = heap2;
@@ -1294,7 +1356,7 @@ _compute_dist2_from_uniform_tria_subdivision
     }
 
     dist2_min_min = FVMC_MIN (dist2_min_min, _dist2_current);
-    dist2_pre = _dist2_current;
+    // dist2_pre = _dist2_current;
 
     /* Compute projected from current P1 triangle */
     
@@ -1416,7 +1478,7 @@ _compute_dist2_from_uniform_tria_subdivision
     
     double _closest_pt_current2[3];
     double _closest_pt_uvP1_current2[2];
-    double _closest_pt_uvPn_current2[2];
+    //double _closest_pt_uvPn_current2[2];
     double _dist2_current2;
     int _child_current2;
     
@@ -1537,7 +1599,7 @@ _default_location_on_tria_2d
   double err_proj = HUGE_VAL;
   int uncertain_result = 0;;
 
-  if (idebug == 1) {
+  if (_idebug == 1) {
     printf ("=====================debut=========================\n");
   }
   
@@ -1602,10 +1664,9 @@ _default_location_on_tria_2d
         printf("  project point_coords : %22.15e %22.15e %22.15e - %22.15e\n", projected_coords[0], projected_coords[1], projected_coords[2], dist2);
         printf("  iteration number, error^2 : %d %22.15e\n", n_it, err_proj);
       }
-
       
     }
-      if (idebug == 1) {
+      if (_idebug == 1) {
 
         printf ("====================fin============================\n\n\n");
       }
@@ -2762,3 +2823,35 @@ fvmc_ho_interp_on_cell_1d
 
   }
 }
+
+
+/*----------------------------------------------------------------------------
+ * 
+ * Free static variables
+ * 
+ *----------------------------------------------------------------------------*/
+
+void
+fvmc_ho_free
+(
+ void
+)
+{
+  if (_vand_space != NULL) {
+
+    for (int i = 0; i < _n_vand_space; i++) {
+      if (_vand_space[i] != NULL) {
+        free (_vand_space[i]);
+        _vand_space[i] = NULL;
+      }
+    }
+    
+  }
+
+  free (_vand_space);
+  _vand_space = NULL;
+  
+}
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */

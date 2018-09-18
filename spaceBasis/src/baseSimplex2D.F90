@@ -15,11 +15,11 @@ module baseSimplex2D
   
   contains
     
-  subroutine nodes2D_c(ord, uvw,display)  BIND(C, name="nodes2D") 
+  subroutine nodes2D_c(ord, uvw, display)  BIND(C, name="SNB_nodes2D") 
     use, intrinsic :: ISO_C_BINDING 
     implicit none 
     integer (C_INT), value :: ord 
-    type (C_PTR) :: uvw
+    type (C_PTR),    value :: uvw
     integer (C_INT), value :: display
 
     real(8), pointer :: uvw_f(:,:)
@@ -32,7 +32,7 @@ module baseSimplex2D
 
     n=(ord+1)*(ord+2)/2
 
-    call c_f_pointer (uvw,uvw_f, (/3,n/) )
+    call c_f_pointer (uvw, uvw_f, (/3,n/) )
     
     call nodes2D (ord_f, uvw_f, display_f)
     
@@ -306,6 +306,31 @@ module baseSimplex2D
     return
   end subroutine nodes2Duv2rs_1
   
+
+  subroutine nodes2Duv2ab_c(nVtx, uv, a, b, display)  BIND(C, name="SNB_nodes2Duv2ab") 
+    use, intrinsic :: ISO_C_BINDING 
+    implicit none 
+
+    integer (C_INT), value :: nVtx 
+    type (C_PTR),    value :: uv
+    type (C_PTR)           :: a
+    type (C_PTR)           :: b
+    integer (C_INT), value :: display
+
+    real(8), pointer   :: uv_f(:,:)
+    real(8), pointer   :: a_f(:),b_f(:)
+    logical            :: display_f
+
+    integer          :: n
+
+    call c_f_pointer (uv, uv_f, (/2,nVtx/) )
+    
+    call nodes2Duv2ab (uv_f, a_f, b_f, display_f)
+
+    a = c_loc (a_f)
+    b = c_loc (b_f)
+    
+  end subroutine nodes2Duv2ab_c
   
   subroutine nodes2Duv2ab(u,v,a,b,display)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -655,6 +680,35 @@ module baseSimplex2D
     
     return
   end subroutine gradSimplex2D
+
+
+  subroutine vandermonde2D_c(order, a, b, vand)  BIND(C, name="SNB_vandermonde2D") 
+    use, intrinsic :: ISO_C_BINDING 
+    implicit none 
+
+    integer (C_INT), value :: order ! int en C
+    type (C_PTR),    value :: a     ! void * en C
+    type (C_PTR),    value :: b     ! void * en C
+    type (C_PTR)           :: vand  ! void ** en C
+
+    real(8), pointer       :: a_f(:), b_f(:), vand_f(:,:)
+    logical                :: display_f
+
+    integer                :: ord_f
+    integer                :: n
+
+    n=(order+1)*(order+2)/2
+
+    ord_f = order
+    
+    call c_f_pointer (a, a_f, (/n/))
+    call c_f_pointer (b, b_f, (/n/))
+    
+    call vandermonde2D(ord_f, a_f, b_f, vand_f)
+
+    vand = c_loc (vand_f)
+    
+  end subroutine vandermonde2D_c
   
   subroutine vandermonde2D(ord,a,b,vand)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -722,6 +776,47 @@ module baseSimplex2D
     
     return
   end subroutine gradVandermonde2D
+
+  subroutine lagrange2Dv_1_c (order, nVtx, vand, a, b, lx, transpose)  BIND(C, name="SNB_lagrange2Dv") 
+    use, intrinsic :: ISO_C_BINDING 
+    implicit none 
+
+    integer (C_INT), value :: order 
+    integer (C_INT), value :: nVtx 
+    type (C_PTR),    value :: vand
+    type (C_PTR),    value :: a
+    type (C_PTR),    value :: b
+    type (C_PTR),    value :: lx
+    integer (C_INT), value :: transpose
+
+    integer            :: order_f
+    integer            :: nVtx_f
+    real(8), pointer   :: vand_f(:,:)
+    real(8), pointer   :: lx_f(:,:)
+    real(8), pointer   :: a_f(:),b_f(:)
+    logical            :: transpose_f
+
+    integer          :: n
+
+    n=(order+1)*(order+2)/2
+
+    order_f = order
+    nVtx_f = nVtx
+    
+    call c_f_pointer (vand, vand_f, (/n,n/))
+    call c_f_pointer (a, a_f, (/nVtx_f/))
+    call c_f_pointer (b, b_f, (/nVtx_f/))
+    
+    if (transpose_f) then
+      call c_f_pointer (lx, lx_f, (/n, nVtx_f/))
+    else
+      call c_f_pointer (lx, lx_f, (/nVtx_f, n/))
+    endif
+
+    call lagrange2Dv_1(order_f, vand_f, a_f, b_f, lx_f, transpose_f)
+    
+  end subroutine lagrange2Dv_1_c
+
   
   subroutine lagrange2Dv_1(ord,vand,a,b,lx,transpose)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

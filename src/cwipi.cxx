@@ -1675,6 +1675,8 @@ void cwipi_finalize(void)
     MPI_Barrier(globalComm);
   }
 
+  fvmc_ho_free ();
+  
 }
 
 /*----------------------------------------------------------------------------
