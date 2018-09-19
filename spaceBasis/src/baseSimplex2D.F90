@@ -14,28 +14,43 @@ module baseSimplex2D
   interface lagrange2Dv  ; module procedure lagrange2Dv_2  ; end interface
   
   contains
+
+  subroutine free_double_c(array, s_array)  BIND(C, name="SNB_free_double")
+    use, intrinsic :: ISO_C_BINDING 
+    implicit none 
+    type (C_PTR), value    :: array
+    integer (C_INT), value :: s_array
+
+    real(8), pointer       :: array_f
+
+    integer                :: s_array_f
+
+    s_array_f = s_array
+    
+    call c_f_pointer (array, array_f, (/s_array_f/) )
+    
+    deallocate(array_f)
+    
+  end subroutine free_double_c
     
   subroutine nodes2D_c(ord, uvw, display)  BIND(C, name="SNB_nodes2D") 
     use, intrinsic :: ISO_C_BINDING 
     implicit none 
     integer (C_INT), value :: ord 
-    type (C_PTR),    value :: uvw
+    type (C_PTR)           :: uvw
     integer (C_INT), value :: display
 
     real(8), pointer :: uvw_f(:,:)
     integer          :: ord_f
     logical          :: display_f
-    integer          :: n
 
     ord_f = ord
     display_f = display
 
-    n=(ord+1)*(ord+2)/2
-
-    call c_f_pointer (uvw, uvw_f, (/3,n/) )
-    
     call nodes2D (ord_f, uvw_f, display_f)
-    
+
+    uvw = c_loc (uvw_f)
+
   end subroutine nodes2D_c
 
   Subroutine nodes2D(ord, uvw,display)
@@ -47,7 +62,7 @@ module baseSimplex2D
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)           :: ord
     logical, intent(in)           :: display
-    real(8), intent(out), pointer :: uvw(:,:)
+    real(8), pointer :: uvw(:,:)
     !---
     integer                       :: iu,iv,iw,ad
     integer                       :: m,n
@@ -802,6 +817,8 @@ module baseSimplex2D
 
     order_f = order
     nVtx_f = nVtx
+
+    transpose_f = transpose
     
     call c_f_pointer (vand, vand_f, (/n,n/))
     call c_f_pointer (a, a_f, (/nVtx_f/))

@@ -312,26 +312,28 @@ _base_tria_pn
 
   }
 
-  else if (order == 2) {
+  /* else if (order == 2) { */
 
-    double w  = 1. - u - v; 
-    double u2 = 2. * u;
-    double v2 = 2. * v;
-    double w2 = 2. * w;
+  /*   double w  = 1. - u - v;  */
+  /*   double u2 = 2. * u; */
+  /*   double v2 = 2. * v; */
+  /*   double w2 = 2. * w; */
     
-    weights[0] = w * (-1. + w2);  /* (i,j,k)=(0,0,2) */
-    weights[1] = u2 * w2;         /* (i,j,k)=(1,0,1) */
-    weights[2] = u * (-1. + u2);  /* (i,j,k)=(2,0,0) */
-    weights[3] = v2 * w2;         /* (i,j,k)=(0,1,1) */
-    weights[4] = u2 * v2;         /* (i,j,k)=(1,1,0) */
-    weights[5] = v * (-1. + v2);  /* (i,j,k)=(0,2,0) */
+  /*   weights[0] = w * (-1. + w2);  /\* (i,j,k)=(0,0,2) *\/ */
+  /*   weights[1] = u2 * w2;         /\* (i,j,k)=(1,0,1) *\/ */
+  /*   weights[2] = u * (-1. + u2);  /\* (i,j,k)=(2,0,0) *\/ */
+  /*   weights[3] = v2 * w2;         /\* (i,j,k)=(0,1,1) *\/ */
+  /*   weights[4] = u2 * v2;         /\* (i,j,k)=(1,1,0) *\/ */
+  /*   weights[5] = v * (-1. + v2);  /\* (i,j,k)=(0,2,0) *\/ */
   
-  }
+  /* } */
 
   else {
 
-#if defined (HAVE_SPACE_BASIS) 
-
+#if defined (HAVE_SPACE_BASIS)
+    
+    printf("\nspacebasis\n");
+    
     if (_vand_space == NULL) {
       _n_vand_space = FVMC_MAX (order-1, 10);
       _vand_space = malloc (sizeof(double *) * _n_vand_space);
@@ -352,11 +354,20 @@ _base_tria_pn
     if (__vand_space == NULL) {
       
       const int n_nodes = (order+1)*(order+2)/2;
-      double *uvw_nodes_space = malloc (sizeof(double) * 3 * n_nodes); 
+      double *uvw_nodes_space = NULL; 
 
-      SNB_nodes2D (order, uvw_nodes_space, 0);
+      SNB_nodes2D (order, &uvw_nodes_space, 1);
       
       double *uv_nodes_space = malloc (sizeof(double) * 2 * n_nodes);
+
+      printf("uvw :");
+      for (int i = 0; i < n_nodes; i++) {
+        for (int j = 0; j < 3; j++) {
+          printf(" %12.5e", uvw_nodes_space[3*i+j]);
+        }
+        printf("\n");
+      }
+      printf("\n");
 
       for (int i = 0; i < n_nodes; i++) {
         for (int j = 0; j < 2; j++) {
@@ -364,7 +375,16 @@ _base_tria_pn
         }
       }
       
-      free (uvw_nodes_space);
+      SNB_free_double (uvw_nodes_space, 3*n_nodes);
+
+      printf("uv :");
+      for (int i = 0; i < n_nodes; i++) {
+        for (int j = 0; j < 2; j++) {
+          printf(" %12.5e", uv_nodes_space[2*i+j]);
+        }
+        printf("\n");
+      }
+      printf("\n");
 
       double *a_space = NULL; 
       double *b_space = NULL; 
@@ -375,8 +395,17 @@ _base_tria_pn
     
       SNB_vandermonde2D (order, a_space, b_space, &__vand_space);
 
-      free (a_space);
-      free (b_space);
+      printf("vand :");
+      for (int i = 0; i < n_nodes; i++) {
+        for (int j = 0; j < n_nodes; j++) {
+          printf(" %12.5e", __vand_space[n_nodes*i+j]);
+        }
+        printf("\n");
+      }
+      printf("\n");
+
+      SNB_free_double (a_space, n_nodes);
+      SNB_free_double (b_space, n_nodes);
       
     }
 
@@ -390,37 +419,14 @@ _base_tria_pn
     
     SNB_lagrange2Dv (order, nVtx, __vand_space, _a, _b, weights);
 
-    free (_a);
-    free (_b);
+    SNB_free_double (_a, 1);
+    SNB_free_double (_b, 1);
       
 #else
     bftc_error(__FILE__, __LINE__, 0,
                _("_base_tria_pn not yet implemented for order > 2 without space basis \n"));
 #endif
-    /* call nodes2D    : * calcul les uv des points d'interpolations
-     *                         (position des noeuds geometriques)
- 
-     * call nodes2Dopt : * opt si emplacement optimise des points (pas fourni
-     *                       par les mailleurs pour l'instant), génération de grilles
-     *                       regulieres uniquement
-     *
-     * call lagrange2Dv : * v pour vectorise
-     *                    * entrees
-     
-    bftc_error(__FILE__, __LINE__, 0,
-               _("_base_tria_pn not yet implemented for order > 2\n"));
 
-    
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    call nodes2D   (ord=iOrd,uvw=uvw,display=.false.)
-   !call nodes2Dopt(ord=iOrd,uvw=uvw,display=.false.)
-    call nodes2Duv2rs(uv=uvw,rs=rs  ,display=.false.) !> rs(1:2,:)=2d0*uv(1:2,:)-1d0
-    call nodes2Drs2ab(rs=rs,a=a,b=b ,display=.false.) !> a=2 (1+r)/(1-s)-1 && b=s
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    call vandermonde2D(ord=iOrd,a=a,b=b,vand=vand)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  allocate(lxOut(1:(order+1)*(order+2)/2,1:nVert))
-  call lagrange2Dv(ord=order,vand=vand,a=a,b=b,lx=lxOut,transpose=.true.) !> true pour aff */
   }
 }
 
@@ -2844,7 +2850,7 @@ fvmc_ho_free
 
     for (int i = 0; i < _n_vand_space; i++) {
       if (_vand_space[i] != NULL) {
-        free (_vand_space[i]);
+        SNB_free_double (_vand_space[i], (i+1)*(i+1));
         _vand_space[i] = NULL;
       }
     }

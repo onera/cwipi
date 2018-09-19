@@ -86,7 +86,9 @@ include(${CMAKE_MODULE_PATH}/default_flags.cmake)
 
 add_definitions (-DF77API)
 
-
+if (CMAKE_C_COMPILER_ID STREQUAL "Intel")
+   set (BLA_VENDOR "Intel10_64lp")
+endif()
 
 find_package(BLAS   REQUIRED)
 find_package(LAPACK REQUIRED)
