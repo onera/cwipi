@@ -75,8 +75,13 @@ option(CWP_ENABLE_Fortran  "Build Shared Fortran Interface" OFF)
 # High order (Nodal bases from SPACE)
 # -----------------
 
+if (CMAKE_C_COMPILER_ID STREQUAL "Intel")
+   set (BLA_VENDOR "Intel10_64lp")
+endif()
+
 find_package(BLAS)
 find_package(LAPACK)
+
 if (${BLAS_FOUND} AND ${LAPACK_FOUND})
   set (ENABLE_SPACE_NODAL_BASES ON)
 else()

@@ -1224,6 +1224,7 @@ namespace cwipi {
       MPI_Win_unlock (_rootRankInGlobalComm, _winIntParamValue);
       MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
     }
+    MPI_Barrier (_intraComm);
   }
 
   /**
@@ -1281,6 +1282,7 @@ namespace cwipi {
       MPI_Win_unlock (_rootRankInGlobalComm, _winDoubleParamValue);
       MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
     }
+    MPI_Barrier (_intraComm);
   }
 
   /**
@@ -1361,6 +1363,7 @@ namespace cwipi {
       MPI_Win_unlock (_rootRankInGlobalComm, _winStrParamValue);
       MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
     }
+    MPI_Barrier (_intraComm);
   }
 
   /**
@@ -1450,6 +1453,7 @@ namespace cwipi {
       MPI_Win_unlock (_rootRankInGlobalComm, _winIntParamName);
       MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
     }
+    MPI_Barrier (_intraComm);
   }
 
 
@@ -1539,6 +1543,7 @@ namespace cwipi {
       MPI_Win_unlock (_rootRankInGlobalComm, _winDoubleParamName);
       MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
     }
+    MPI_Barrier (_intraComm);
   }
 
   /**
@@ -1643,6 +1648,9 @@ namespace cwipi {
       _winGlobData[3] = nStrParam;
 
     }
+
+    MPI_Barrier (_intraComm);
+
   }
 
   /**

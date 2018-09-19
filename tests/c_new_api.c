@@ -163,6 +163,7 @@ int main
     is_coupled_rank[1] = CWP_STATUS_ON;
   }
 
+   
   char* fileName = NULL;
   if (rank == 0) 
     fileName="c_new_api_0000.txt";
@@ -189,7 +190,7 @@ int main
 
   times_init = malloc(sizeof(double) * n_code_name);
 
-  CWP_Output_file_set (outputFile);
+  //CWP_Output_file_set (outputFile);
 
   for (int i = 0; i < n_code_name; i++) {
     times_init[i] = 0; 
@@ -202,6 +203,7 @@ int main
            is_coupled_rank,
            times_init,
            localComm);
+
 
   /* Output redirection
    * ------------------ */
@@ -220,17 +222,18 @@ int main
   if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) {
     int toto = 111;
     CWP_Param_lock ("code1");    
-    MPI_Barrier (MPI_COMM_WORLD);
+    //  MPI_Barrier (MPI_COMM_WORLD);
     CWP_Param_add ("code1", "toto", CWP_INT, &toto);
     char *A = "Bonjour !";
     CWP_Param_add ("code1", "toto2", CWP_CHAR, &A);
     CWP_Param_unlock ("code1");    
   }
-  else {
-    MPI_Barrier (MPI_COMM_WORLD);
+  //  else {
+ 
+  MPI_Barrier (MPI_COMM_WORLD);
     
-  }
-  
+  // }
+
   int titi;
   CWP_Param_get ("code1", "toto", CWP_INT, &titi);
   
@@ -255,8 +258,11 @@ int main
     CWP_Cpl_create ("code1", cpl_id1, "code2", CWP_COMM_PAR_WITH_PART,
                     CWP_GEOM_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
+
+
   }
    
+
   if (rank == 1 || rank == 2 || rank == 6 || rank == 7 || rank == 9) {
     CWP_Cpl_create ("code2", cpl_id1, "code1", CWP_COMM_PAR_WITHOUT_PART,
                     CWP_GEOM_LOCATION, 1,
@@ -304,7 +310,10 @@ int main
                     CWP_GEOM_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   }
-  
+
+  printf("pass3\n");
+  fflush(stdout);
+
   // cpl5
   
   if (rank == 0 || rank == 1 || rank == 2 || rank == 5 || rank == 7) {
@@ -332,6 +341,9 @@ int main
                     CWP_GEOM_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   }
+
+  printf("pass4\n");
+  fflush(stdout);
 
   CWP_Finalize();
 
