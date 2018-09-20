@@ -395,6 +395,7 @@ if (CWP_ENABLE_PYTHON_BINDINGS)
 endif()
 
 if (CWP_ENABLE_SPACE_NODAL_BASES)
+ set(SNB_IN_CWP 1)
  add_subdirectory(spaceBasis)
 endif ()
 add_subdirectory(tests)

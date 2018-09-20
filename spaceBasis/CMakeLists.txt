@@ -42,6 +42,33 @@ set(CMAKE_MODULE_PATH "${BASESNODALES_CMAKE_DIR}/modules")
 enable_language(Fortran)
 enable_language(C)
 
+
+# Shared libraries
+# ----------------
+
+if(PDM_IN_CWP)
+
+ option(SNB_ENABLE_SHARED "Build Shared Libraries" ${CWP_ENABLE_SHARED})
+
+else()
+
+ option(SNB_ENABLE_SHARED "Build Shared Libraries" ON)
+
+endif()
+
+# Static libraries
+# ----------------
+
+if(PDM_IN_CWP)
+
+ option(SNB_ENABLE_STATIC "Build Static Libraries" ${CWP_ENABLE_STATIC})
+
+else()
+
+ option(SNB_ENABLE_STATIC "Build Static Libraries" OFF)
+
+endif()
+
 #------------------------------------------------------------------------------
 # Construction par defaut : mode release
 #------------------------------------------------------------------------------
