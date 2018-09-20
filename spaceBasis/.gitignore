@@ -2,7 +2,6 @@ compil_date.h
 toto
 *.o
 *.mod
-space*
 basesNodales
 #*.mesh
 #*.meshb
