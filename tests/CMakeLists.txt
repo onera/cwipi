@@ -137,7 +137,11 @@ if (CWP_ENABLE_Fortran)
 
   test_fortran_create  (fortran_surf_TriaP2_PiPj   ${MPIEXEC_MAX_NUMPROCS})
   target_link_libraries(fortran_surf_TriaP2_PiPj   spaceBasis)
+
+  test_fortran_create  (fortran_surf_TriaPi_PiPj   ${MPIEXEC_MAX_NUMPROCS})
+  target_link_libraries(fortran_surf_TriaPi_PiPj   spaceBasis)
 endif()
+
 
 if (CWP_ENABLE_PYTHON_BINDINGS)
   test_python_create (python_api ${MPIEXEC_MAX_NUMPROCS})
