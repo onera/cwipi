@@ -129,6 +129,51 @@ typedef struct {
 } _heap_t;
 
 
+/*----------------------------------------------------------------------------
+ * Function pointer to define a initial tesselation and push it in the heap
+ *
+ * parameters:
+ *   heap              <-> Heap
+ *   order             <-- element order
+ *   n_node            <-- number of nodes
+ *   ho_vertex_num     <-- high order vertex num (internal ordering)
+ *   local_to_user     <-- local to user ordering (for type)
+ *   vertex_coords     <-- vertex coordinates
+ *   point_coords      <-- point coordinates 
+ *
+ *----------------------------------------------------------------------------*/
+
+typedef void (*_heap_fill_init_sub_tria_t)
+(
+ _heap_t  *heap,
+ const int order,
+ const int n_node,
+ const int *ho_vertex_num,
+ const double *vertex_coords,
+ const double *point_coords
+);
+
+
+/*----------------------------------------------------------------------------
+ * Function pointer to define a basis for a 2D element
+ *
+ * parameters:
+ *   order           <-- order
+ *   u               <-- u
+ *   v               <-- v
+ *   weights         --> weights (size = n_nodes)
+ *
+ *----------------------------------------------------------------------------*/
+
+typedef void (*_basis_generic_2D_t)
+(
+ const int order,
+ const double u,
+ const double v,
+ double *weights
+);
+
+
 /*============================================================================
  * Static global variables
  *============================================================================*/
@@ -137,8 +182,11 @@ static fvmc_ho_user_fcts_t *_user_fcts = NULL;
 
 static int                  _idebug = 0;
 
-static int                  _n_vand_space = 0;
-static double **            _vand_space = NULL;
+static int                  _n_vand_tria_space = 0;
+static double **            _vand_tria_space = NULL;
+
+static int                  _n_vand_1D_space = 0;
+static double **            _vand_1D_space = NULL;
 
 /*============================================================================
  * Private function definitions
@@ -295,7 +343,7 @@ _default_uv_ho_quad_nodes
  *----------------------------------------------------------------------------*/
 
 static void
-_base_tria_pn
+_basis_tria_pn
 (
  const int order,
  const double u,
@@ -312,46 +360,44 @@ _base_tria_pn
 
   }
 
-  /* else if (order == 2) { */
+  else if (order == 2) {
 
-  /*   double w  = 1. - u - v;  */
-  /*   double u2 = 2. * u; */
-  /*   double v2 = 2. * v; */
-  /*   double w2 = 2. * w; */
+    double w  = 1. - u - v;
+    double u2 = 2. * u;
+    double v2 = 2. * v;
+    double w2 = 2. * w;
     
-  /*   weights[0] = w * (-1. + w2);  /\* (i,j,k)=(0,0,2) *\/ */
-  /*   weights[1] = u2 * w2;         /\* (i,j,k)=(1,0,1) *\/ */
-  /*   weights[2] = u * (-1. + u2);  /\* (i,j,k)=(2,0,0) *\/ */
-  /*   weights[3] = v2 * w2;         /\* (i,j,k)=(0,1,1) *\/ */
-  /*   weights[4] = u2 * v2;         /\* (i,j,k)=(1,1,0) *\/ */
-  /*   weights[5] = v * (-1. + v2);  /\* (i,j,k)=(0,2,0) *\/ */
+    weights[0] = w * (-1. + w2);  /* (i,j,k)=(0,0,2) */
+    weights[1] = u2 * w2;         /* (i,j,k)=(1,0,1) */
+    weights[2] = u * (-1. + u2);  /* (i,j,k)=(2,0,0) */
+    weights[3] = v2 * w2;         /* (i,j,k)=(0,1,1) */
+    weights[4] = u2 * v2;         /* (i,j,k)=(1,1,0) */
+    weights[5] = v * (-1. + v2);  /* (i,j,k)=(0,2,0) */
   
-  /* } */
+  }
 
   else {
 
 #if defined (HAVE_SPACE_BASIS)
     
-    printf("\nspacebasis\n");
-    
-    if (_vand_space == NULL) {
-      _n_vand_space = FVMC_MAX (order-1, 10);
-      _vand_space = malloc (sizeof(double *) * _n_vand_space);
-      for (int i = 0; i < _n_vand_space; i++) {
-        _vand_space[i] = NULL;
+    if (_vand_tria_space == NULL) {
+      _n_vand_tria_space = FVMC_MAX (order-1, 10);
+      _vand_tria_space = malloc (sizeof(double *) * _n_vand_tria_space);
+      for (int i = 0; i < _n_vand_tria_space; i++) {
+        _vand_tria_space[i] = NULL;
       }
     }
 
-    if (order > _n_vand_space) {
-      _vand_space = realloc (_vand_space, sizeof(double *) * _n_vand_space);
-      for (int i = _n_vand_space; i < order; i++) {
-        _vand_space[i] = NULL;
+    if (order > _n_vand_tria_space) {
+      _vand_tria_space = realloc (_vand_tria_space, sizeof(double *) * _n_vand_tria_space);
+      for (int i = _n_vand_tria_space; i < order; i++) {
+        _vand_tria_space[i] = NULL;
       }
     }
     
-    double *__vand_space = _vand_space[order-1];
+    double *__vand_tria_space = _vand_tria_space[order-1];
 
-    if (__vand_space == NULL) {
+    if (__vand_tria_space == NULL) {
       
       const int n_nodes = (order+1)*(order+2)/2;
       double *uvw_nodes_space = NULL; 
@@ -360,14 +406,16 @@ _base_tria_pn
       
       double *uv_nodes_space = malloc (sizeof(double) * 2 * n_nodes);
 
-      printf("uvw :");
-      for (int i = 0; i < n_nodes; i++) {
-        for (int j = 0; j < 3; j++) {
-          printf(" %12.5e", uvw_nodes_space[3*i+j]);
+      if (_idebug) {      
+        printf("uvw :");
+        for (int i = 0; i < n_nodes; i++) {
+          for (int j = 0; j < 3; j++) {
+            printf(" %12.5e", uvw_nodes_space[3*i+j]);
+          }
+          printf("\n");
         }
         printf("\n");
       }
-      printf("\n");
 
       for (int i = 0; i < n_nodes; i++) {
         for (int j = 0; j < 2; j++) {
@@ -377,15 +425,17 @@ _base_tria_pn
       
       SNB_free_double (uvw_nodes_space, 3*n_nodes);
 
-      printf("uv :");
-      for (int i = 0; i < n_nodes; i++) {
-        for (int j = 0; j < 2; j++) {
-          printf(" %12.5e", uv_nodes_space[2*i+j]);
+      if (_idebug) {      
+        printf("uv :");
+        for (int i = 0; i < n_nodes; i++) {
+          for (int j = 0; j < 2; j++) {
+            printf(" %12.5e", uv_nodes_space[2*i+j]);
+          }
+          printf("\n");
         }
         printf("\n");
       }
-      printf("\n");
-
+        
       double *a_space = NULL; 
       double *b_space = NULL; 
 
@@ -393,17 +443,19 @@ _base_tria_pn
 
       free (uv_nodes_space);
     
-      SNB_vandermonde2D (order, a_space, b_space, &__vand_space);
+      SNB_vandermonde2D (order, a_space, b_space, &__vand_tria_space);
 
-      printf("vand :");
-      for (int i = 0; i < n_nodes; i++) {
-        for (int j = 0; j < n_nodes; j++) {
-          printf(" %12.5e", __vand_space[n_nodes*i+j]);
+      if (_idebug) {      
+        printf("vand :");
+        for (int i = 0; i < n_nodes; i++) {
+          for (int j = 0; j < n_nodes; j++) {
+            printf(" %12.5e", __vand_tria_space[n_nodes*i+j]);
+          }
+          printf("\n");
         }
         printf("\n");
       }
-      printf("\n");
-
+        
       SNB_free_double (a_space, n_nodes);
       SNB_free_double (b_space, n_nodes);
       
@@ -417,19 +469,72 @@ _base_tria_pn
 
     int nVtx = 1;
     
-    SNB_lagrange2Dv (order, nVtx, __vand_space, _a, _b, weights);
+    SNB_lagrange2Dv (order, nVtx, __vand_tria_space, _a, _b, weights);
 
     SNB_free_double (_a, 1);
     SNB_free_double (_b, 1);
       
 #else
     bftc_error(__FILE__, __LINE__, 0,
-               _("_base_tria_pn not yet implemented for order > 2 without space basis \n"));
+               _("_basis_tria_pn not yet implemented for order > 2 without space basis \n"));
 #endif
 
   }
 }
 
+
+/*----------------------------------------------------------------------------
+ * 
+ * Quadrangle Pn basis
+ * 
+ * parameters:
+ *   order           <-- order
+ *   u               <-- u
+ *   v               <-- v
+ *   weights         --> weights (size = n_nodes)
+ *
+ *
+ *----------------------------------------------------------------------------*/
+
+static void
+_basis_quad_qn
+(
+ const int order,
+ const double u,
+ const double v,
+ double *weights
+)
+{
+  if (order == 1) {
+
+    double u1 = (1 - u);
+    double v1 = (1 - v);
+
+    weights[0] = u1 * v1;
+    weights[1] = u * v1;
+    weights[2] = u * v;
+    weights[3] = u1 * v;
+
+  }
+
+  /* else if (order == 2) { */
+
+  /*   //TODO */
+  
+  /* } */
+
+  else {
+
+#if defined (HAVE_SPACE_BASIS)
+
+    
+#else
+    bftc_error(__FILE__, __LINE__, 0,
+               _("_basis_quad_pn not yet implemented for order > 2 without space basis \n"));
+#endif
+  }
+}
+  
 /*----------------------------------------------------------------------------
  * 
  * Init heap
@@ -921,6 +1026,256 @@ _heap_fill_pn_sub_tria
   free (uvNodes);
 }
 
+/*----------------------------------------------------------------------------
+ * 
+ * Add sub-triangles of a qn-quadrangle in the heap
+ * 
+ * parameters:
+ *   heap             <-- heap to initialize
+ *   order            <-- element order
+ *   n_node           <-- number of nodes
+ *   ho_vertex_num    <-- high order vertex num (internal ordering)
+ *   vertex_coords    <-- vertex coordinates
+ *   point_coords     <-- point to locate coordinates
+ *
+ *----------------------------------------------------------------------------*/
+
+static void
+_heap_fill_qn_sub_tria 
+(
+ _heap_t *heap,
+ const int order,
+ const int n_node,
+ const int *ho_vertex_num,
+ const double *vertex_coords,
+ const double *point_coords
+)
+{
+  /* int ibeg = 0; */
+  /* int iend = order; */
+
+  /* double *uvNodes   = malloc (sizeof(double) * 2 * n_node); */
+
+  /* _uv_ho_tria_nodes (order, 0., 1., 0, 1., uvNodes); */
+  
+  /* int child = 0; */
+  /* for (int j = 0; j < order; j++) { */
+  /*   int k1 = 0; */
+  /*   for (int i = ibeg; i < iend - 1; i++) { */
+
+  /*     int idx1 = i; */
+  /*     int idx2 = i+1; */
+  /*     int idx3 = iend + 1 + k1; */
+  /*     int idx4 = iend + 2 + k1; */
+      
+  /*     int _vtx1 = ho_vertex_num[idx1] - 1; */
+  /*     int _vtx2 = ho_vertex_num[idx2] - 1; */
+  /*     int _vtx3 = ho_vertex_num[idx3] - 1; */
+  /*     int _vtx4 = ho_vertex_num[idx4] - 1; */
+
+  /*     double x1 = vertex_coords[3*_vtx1]; */
+  /*     double y1 = vertex_coords[3*_vtx1 + 1]; */
+  /*     double z1 = vertex_coords[3*_vtx1 + 2]; */
+
+  /*     double x2 = vertex_coords[3*_vtx2]; */
+  /*     double y2 = vertex_coords[3*_vtx2 + 1]; */
+  /*     double z2 = vertex_coords[3*_vtx2 + 2]; */
+
+  /*     double x3 = vertex_coords[3*_vtx3]; */
+  /*     double y3 = vertex_coords[3*_vtx3 + 1]; */
+  /*     double z3 = vertex_coords[3*_vtx3 + 2]; */
+
+  /*     double x4 = vertex_coords[3*_vtx4]; */
+  /*     double y4 = vertex_coords[3*_vtx4 + 1]; */
+  /*     double z4 = vertex_coords[3*_vtx4 + 2]; */
+        
+  /*     double __vertex_coords[9] = {x1, y1, z1, */
+  /*                                  x2, y2, z2, */
+  /*                                  x3, y3, z3}; */
+  /*     double _closest_pointP1[3]; */
+  /*     double _uvClosestPointP1[2]; */
+  /*     double _uvClosestPointPn[2]; */
+  /*     double _weightsClosestPointP1[3]; */
+  /*     double _dist2; */
+
+  /*     int isDegenerated = fvmc_triangle_evaluate_Position ((double *)point_coords, */
+  /*                                                          __vertex_coords, */
+  /*                                                          _closest_pointP1, */
+  /*                                                          _uvClosestPointP1, */
+  /*                                                          &_dist2, */
+  /*                                                          _weightsClosestPointP1); */
+
+  /*     double _uvPn_sub_tria[6]; */
+      
+  /*     _uvPn_sub_tria[0] = uvNodes[2*idx1]; */
+  /*     _uvPn_sub_tria[1] = uvNodes[2*idx1+1]; */
+  /*     _uvPn_sub_tria[2] = uvNodes[2*idx2]; */
+  /*     _uvPn_sub_tria[3] = uvNodes[2*idx2+1]; */
+  /*     _uvPn_sub_tria[4] = uvNodes[2*idx3]; */
+  /*     _uvPn_sub_tria[5] = uvNodes[2*idx3+1]; */
+      
+  /*     if (isDegenerated != -1) { */
+        
+  /*       for (int j1 = 0; j1 < 2; j1++) { */
+  /*         _uvClosestPointPn[j1] = 0; */
+  /*       } */
+  /*       for (int j1 = 0; j1 < 2; j1++) { */
+  /*         for (int k = 0; k < 3; k++) { */
+  /*           _uvClosestPointPn[j1] += _weightsClosestPointP1[k] * _uvPn_sub_tria[2*k + j1]; */
+  /*         } */
+  /*       } */
+        
+  /*       if (1 == 0) { */
+  /*         printf("_uvClosestPointP1 : %12.5e %12.5e\n", _uvClosestPointP1[0], _uvClosestPointP1[1]); */
+  /*         printf("__vertex_coords + uvpn 1 : %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[0], __vertex_coords[1], __vertex_coords[2], _uvPn_sub_tria[0], _uvPn_sub_tria[1]); */
+  /*         printf("__vertex_coords + uvpn 2 : %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[3], __vertex_coords[4], __vertex_coords[5], _uvPn_sub_tria[2], _uvPn_sub_tria[3]); */
+  /*         printf("__vertex_coords + uvpn 3 : %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[6], __vertex_coords[7], __vertex_coords[8], _uvPn_sub_tria[4], _uvPn_sub_tria[5]); */
+  /*       } */
+        
+  /*       _heap_insert (heap, */
+  /*                     __vertex_coords, */
+  /*                     _uvPn_sub_tria, */
+  /*                     _closest_pointP1, */
+  /*                     _uvClosestPointP1, */
+  /*                     _uvClosestPointPn, */
+  /*                     _dist2, child++); */
+  /*     } */
+      
+  /*     __vertex_coords[0] = x2; */
+  /*     __vertex_coords[1] = y2; */
+  /*     __vertex_coords[2] = z2; */
+  /*     __vertex_coords[3] = x4; */
+  /*     __vertex_coords[4] = y4; */
+  /*     __vertex_coords[5] = z4; */
+  /*     __vertex_coords[6] = x3; */
+  /*     __vertex_coords[7] = y3; */
+  /*     __vertex_coords[8] = z3; */
+
+  /*     isDegenerated = fvmc_triangle_evaluate_Position ((double *) point_coords, */
+  /*                                                      __vertex_coords, */
+  /*                                                      _closest_pointP1, */
+  /*                                                      _uvClosestPointP1, */
+  /*                                                      &_dist2, */
+  /*                                                      _weightsClosestPointP1); */
+
+  /*     _uvPn_sub_tria[0] = uvNodes[2*idx2]; */
+  /*     _uvPn_sub_tria[1] = uvNodes[2*idx2+1]; */
+  /*     _uvPn_sub_tria[2] = uvNodes[2*idx4]; */
+  /*     _uvPn_sub_tria[3] = uvNodes[2*idx4+1]; */
+  /*     _uvPn_sub_tria[4] = uvNodes[2*idx3]; */
+  /*     _uvPn_sub_tria[5] = uvNodes[2*idx3+1]; */
+
+  /*     if (isDegenerated != -1) { */
+      
+  /*       for (int j1 = 0; j1 < 2; j1++) { */
+  /*         _uvClosestPointPn[j1] = 0; */
+  /*       } */
+  /*       for (int j1 = 0; j1 < 2; j1++) { */
+  /*         for (int k = 0; k < 3; k++) { */
+  /*           _uvClosestPointPn[j1] += _weightsClosestPointP1[k] * _uvPn_sub_tria[2*k + j1]; */
+  /*         } */
+  /*       } */
+      
+  /*       if (1 == 0) { */
+  /*         printf("_uvClosestPointP1 : %12.5e %12.5e\n", _uvClosestPointP1[0], _uvClosestPointP1[1]); */
+  /*         printf("__vertex_coords 1 + uvpn  : %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[0], __vertex_coords[1], __vertex_coords[2], _uvPn_sub_tria[0], _uvPn_sub_tria[1]); */
+  /*         printf("__vertex_coords 2 + uvpn : %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[3], __vertex_coords[4], __vertex_coords[5], _uvPn_sub_tria[2], _uvPn_sub_tria[3]); */
+  /*         printf("__vertex_coords 3 + uvpn: %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[6], __vertex_coords[7], __vertex_coords[8], _uvPn_sub_tria[4], _uvPn_sub_tria[5]); */
+  /*       } */
+      
+  /*       _heap_insert (heap, */
+  /*                     __vertex_coords, */
+  /*                     _uvPn_sub_tria, */
+  /*                     _closest_pointP1, */
+  /*                     _uvClosestPointP1, */
+  /*                     _uvClosestPointPn, */
+  /*                     _dist2, child++); */
+  /*     } */
+
+  /*     k1++; */
+  /*   } */
+
+  /*   int idx1 = iend - 1; */
+  /*   int idx2 = iend - 1 + 1; */
+  /*   int idx3 = iend + 1 + k1; */
+
+  /*   int _vtx1 = ho_vertex_num[idx1] - 1; */
+  /*   int _vtx2 = ho_vertex_num[idx2] - 1; */
+  /*   int _vtx3 = ho_vertex_num[idx3] - 1; */
+      
+  /*   double x1 = vertex_coords[3*_vtx1]; */
+  /*   double y1 = vertex_coords[3*_vtx1 + 1]; */
+  /*   double z1 = vertex_coords[3*_vtx1 + 2]; */
+      
+  /*   double x2 = vertex_coords[3*_vtx2]; */
+  /*   double y2 = vertex_coords[3*_vtx2 + 1]; */
+  /*   double z2 = vertex_coords[3*_vtx2 + 2]; */
+      
+  /*   double x3 = vertex_coords[3*_vtx3]; */
+  /*   double y3 = vertex_coords[3*_vtx3 + 1]; */
+  /*   double z3 = vertex_coords[3*_vtx3 + 2]; */
+      
+  /*   double __vertex_coords[9] = {x1, y1, z1, */
+  /*                                x2, y2, z2, */
+  /*                                x3, y3, z3}; */
+      
+  /*   double _closest_pointP1[3]; */
+  /*   double _uvClosestPointP1[2]; */
+  /*   double _uvClosestPointPn[2]; */
+    
+  /*   double _weightsClosestPointP1[3]; */
+   
+  /*   double _dist2; */
+    
+  /*   int isDegenerated = fvmc_triangle_evaluate_Position ((double *)point_coords, */
+  /*                                                        __vertex_coords, */
+  /*                                                        _closest_pointP1, */
+  /*                                                        _uvClosestPointP1, */
+  /*                                                        &_dist2, */
+  /*                                                        _weightsClosestPointP1); */
+      
+  /*   double _uvPn_sub_tria[6]; */
+    
+  /*   _uvPn_sub_tria[0] = uvNodes[2*idx1]; */
+  /*   _uvPn_sub_tria[1] = uvNodes[2*idx1+1]; */
+  /*   _uvPn_sub_tria[2] = uvNodes[2*idx2]; */
+  /*   _uvPn_sub_tria[3] = uvNodes[2*idx2+1]; */
+  /*   _uvPn_sub_tria[4] = uvNodes[2*idx3]; */
+  /*   _uvPn_sub_tria[5] = uvNodes[2*idx3+1]; */
+
+  /*   if (isDegenerated != -1) { */
+    
+  /*     for (int j1 = 0; j1 < 2; j1++) { */
+  /*       _uvClosestPointPn[j1] = 0; */
+  /*     } */
+  /*     for (int j1 = 0; j1 < 2; j1++) { */
+  /*       for (int k = 0; k < 3; k++) { */
+  /*         _uvClosestPointPn[j1] += _weightsClosestPointP1[k] * _uvPn_sub_tria[2*k + j1]; */
+  /*       } */
+  /*     } */
+      
+  /*     if (1 == 0) { */
+  /*       printf("_uvClosestPointP1 : %12.5e %12.5e\n", _uvClosestPointP1[0], _uvClosestPointP1[1]); */
+  /*       printf("__vertex_coords 1 + uvpn: %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[0], __vertex_coords[1], __vertex_coords[2], _uvPn_sub_tria[0], _uvPn_sub_tria[1]); */
+  /*       printf("__vertex_coords 2 + uvpn: %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[3], __vertex_coords[4], __vertex_coords[5], _uvPn_sub_tria[2], _uvPn_sub_tria[3]); */
+  /*       printf("__vertex_coords 3 + uvpn: %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[6], __vertex_coords[7], __vertex_coords[8], _uvPn_sub_tria[4], _uvPn_sub_tria[5]); */
+  /*     } */
+    
+  /*     _heap_insert (heap, */
+  /*                   __vertex_coords, */
+  /*                   _uvPn_sub_tria, */
+  /*                   _closest_pointP1, */
+  /*                   _uvClosestPointP1, */
+  /*                   _uvClosestPointPn, */
+  /*                   _dist2, child++); */
+  /*   } */
+      
+  /*   ibeg = iend + 1; */
+  /*   iend += order - j; */
+  /* } */
+
+  /* free (uvNodes); */
+}
 
 /*-----------------------------------------------------------------------------
  * 
@@ -936,6 +1291,7 @@ _heap_fill_pn_sub_tria
  *   weightsPn        <-> work array
  *   vtx_tria_current <-- current triangle
  *   uvPn_tria_current<-- uv of current triangle vertices in the on element
+ *   _basis_generic   <-- generic basis
  * 
  *----------------------------------------------------------------------------*/
 
@@ -950,7 +1306,8 @@ _insert_subtria
  const double point_coords[],
  double weightsPn[],
  double vtx_tria_current[],
- double uvPn_tria_current[]
+ double uvPn_tria_current[],
+ _basis_generic_2D_t _basis_generic
  )
 {
   double _vtx_tria_children[18];
@@ -977,7 +1334,15 @@ _insert_subtria
         (uvPn_tria_current[2*i+j] + uvPn_tria_current[2*((i+1)%3)+j])/2;
     }
     
-    _base_tria_pn (order   , _uvPn_tria_children[6+2*i], _uvPn_tria_children[6+2*i+1], weightsPn);
+    (_basis_generic) (order   ,
+                      _uvPn_tria_children[6+2*i],
+                      _uvPn_tria_children[6+2*i+1],
+                      weightsPn);
+    
+    /* _basis_tria_pn (order   , */
+    /*                 _uvPn_tria_children[6+2*i], */
+    /*                 _uvPn_tria_children[6+2*i+1], */
+    /*                 weightsPn); */
     
     for (int j = 0; j < 3; j++) {
       _vtx_tria_children[9+3*i+j] = 0;
@@ -1084,6 +1449,7 @@ _insert_subtria
  *   n_it             --> number of iterations
  *   err_proj         --> error of the projected point
  *   uncertain_result --> 1 if the result is uncertain
+ *   _basis_generic   <-- generic basis
  * 
  *----------------------------------------------------------------------------*/
 
@@ -1103,7 +1469,8 @@ _compute_dist2_from_closest_tria_subdivision
  double uvw[],
  int    *n_it,
  double *err_proj,
- int *uncertain_result
+ int *uncertain_result,
+ _basis_generic_2D_t _basis_generic
  )
 {
   *uncertain_result = 0;
@@ -1165,7 +1532,10 @@ _compute_dist2_from_closest_tria_subdivision
 
     double weightsP1[3];
     
-    _base_tria_pn (1, _closest_pt_uvP1_current[0], _closest_pt_uvP1_current[1], weightsP1);
+    _basis_tria_pn (1,
+                    _closest_pt_uvP1_current[0],
+                    _closest_pt_uvP1_current[1],
+                    weightsP1);
 
     if (0 == 1) {
       printf("\n\n ========= get heap =========\n");
@@ -1215,7 +1585,16 @@ _compute_dist2_from_closest_tria_subdivision
       _projected_coords_from_pn[j] = 0;
     }
 
-    _base_tria_pn (order, _closest_pt_uvPn_current[0], _closest_pt_uvPn_current[1], weightsPn);
+
+    (_basis_generic) (order,
+                    _closest_pt_uvPn_current[0],
+                    _closest_pt_uvPn_current[1],
+                    weightsPn);
+
+    /* _basis_tria_pn (order, */
+    /*                 _closest_pt_uvPn_current[0], */
+    /*                 _closest_pt_uvPn_current[1], */
+    /*                 weightsPn); */
 
     for (int j = 0; j < n_node; j++) {
       const double *node_coords = vertex_coords + 3 * (ho_vertex_num[j] - 1);
@@ -1265,7 +1644,8 @@ _compute_dist2_from_closest_tria_subdivision
                      point_coords,
                      weightsPn,
                      _vtx_tria_current,
-                     _uvPn_tria_current);
+                     _uvPn_tria_current,
+                     _basis_generic);
     
   }
 
@@ -1305,6 +1685,7 @@ _compute_dist2_from_closest_tria_subdivision
  *   uvw              --> uvw
  *   n_it             --> number of iterations
  *   err_proj         --> error of the projected point
+ *   _basis_generic   <-- generic basis
  * 
  *----------------------------------------------------------------------------*/
 
@@ -1324,7 +1705,8 @@ _compute_dist2_from_uniform_tria_subdivision
  double projected_coords[],
  double uvw[],
  int    *n_it,
- double *err_proj
+ double *err_proj,
+ _basis_generic_2D_t _basis_generic
  )
 {
   *n_it = 0;
@@ -1377,7 +1759,10 @@ _compute_dist2_from_uniform_tria_subdivision
 
     double weightsP1[3];
     
-    _base_tria_pn (1, _closest_pt_uvP1_current[0], _closest_pt_uvP1_current[1], weightsP1);
+    _basis_tria_pn (1,
+                    _closest_pt_uvP1_current[0],
+                    _closest_pt_uvP1_current[1],
+                    weightsP1);
 
     if (0 == 1) {
       printf("\n\n ========= get heap =========\n");
@@ -1428,7 +1813,15 @@ _compute_dist2_from_uniform_tria_subdivision
       _projected_coords_from_pn[j] = 0;
     }
 
-    _base_tria_pn (order, _closest_pt_uvPn_current[0], _closest_pt_uvPn_current[1], weightsPn);
+    (_basis_generic) (order,
+                     _closest_pt_uvPn_current[0],
+                    _closest_pt_uvPn_current[1],
+                     weightsPn);
+    
+    /* _basis_tria_pn (order, */
+    /*                 _closest_pt_uvPn_current[0], */
+    /*                 _closest_pt_uvPn_current[1], */
+    /*                 weightsPn); */
 
     for (int j = 0; j < n_node; j++) {
       const double *node_coords = vertex_coords + 3 * (ho_vertex_num[j] - 1);
@@ -1480,7 +1873,8 @@ _compute_dist2_from_uniform_tria_subdivision
                      point_coords,
                      weightsPn,
                      _vtx_tria_current,
-                     _uvPn_tria_current);
+                     _uvPn_tria_current,
+                     _basis_generic);
 
     double _vtx_tria_current2[9];
     double _uvPn_tria_current2[6];
@@ -1508,7 +1902,8 @@ _compute_dist2_from_uniform_tria_subdivision
                        point_coords,
                        weightsPn,
                        _vtx_tria_current2,
-                       _uvPn_tria_current2);
+                       _uvPn_tria_current2,
+                       _basis_generic);
 
     }
 
@@ -1548,7 +1943,7 @@ _compute_dist2_from_uniform_tria_subdivision
  *----------------------------------------------------------------------------*/
 
 static double
-_default_location_on_tria_2d
+_default_location_generic_2d
 (
  const int order,
  const int n_node,
@@ -1556,7 +1951,9 @@ _default_location_on_tria_2d
  const double *vertex_coords,
  const double *point_coords,
  double *projected_coords,
- double *uvw
+ double *uvw,
+ _heap_fill_init_sub_tria_t fill_init_fct,
+ _basis_generic_2D_t basis_generic
 )
 {
 
@@ -1586,13 +1983,20 @@ _default_location_on_tria_2d
   _heap_init (&heap);
   
   /* Build initial sub-triangles and store them in the heap */
-  
-  _heap_fill_pn_sub_tria (&heap,
-                          order,
-                          n_node,
-                          ho_vertex_num,
-                          vertex_coords,
-                          point_coords);
+
+  (fill_init_fct) (&heap,
+                   order,
+                   n_node,
+                   ho_vertex_num,
+                   vertex_coords,
+                   point_coords);
+
+  /* _heap_fill_pn_sub_tria (&heap, */
+  /*                         order, */
+  /*                         n_node, */
+  /*                         ho_vertex_num, */
+  /*                         vertex_coords, */
+  /*                         point_coords); */
 
   /* 
    *  While error > error_max
@@ -1626,7 +2030,8 @@ _default_location_on_tria_2d
                                                           uvw,
                                                           &n_it,
                                                           &err_proj,
-                                                          &uncertain_result);
+                                                          &uncertain_result,
+                                                          basis_generic);
 
     if (1 == 1) {
       printf("\nCalcul distance triangle premier essai :\n");
@@ -1644,12 +2049,19 @@ _default_location_on_tria_2d
   
       /* Build initial sub-triangles and store them in the heap */
   
-      _heap_fill_pn_sub_tria (&heap,
-                              order,
-                              n_node,
-                              ho_vertex_num,
-                              vertex_coords,
-                              point_coords);
+      (fill_init_fct) (&heap,
+                       order,
+                       n_node,
+                       ho_vertex_num,
+                       vertex_coords,
+                       point_coords);
+
+      /* _heap_fill_pn_sub_tria (&heap, */
+      /*                         order, */
+      /*                         n_node, */
+      /*                         ho_vertex_num, */
+      /*                         vertex_coords, */
+      /*                         point_coords); */
 
 
       dist2 = _compute_dist2_from_uniform_tria_subdivision (&heap,
@@ -1665,7 +2077,8 @@ _default_location_on_tria_2d
                                                             projected_coords,
                                                             uvw,
                                                             &n_it,
-                                                            &err_proj);
+                                                            &err_proj,
+                                                            basis_generic);
 
       if (1 == 1) {
         printf("\nCalcul distance triangle deuxieme essai :\n");
@@ -1697,7 +2110,8 @@ _default_location_on_tria_2d
                                                           projected_coords,
                                                           uvw,
                                                           &n_it,
-                                                          &err_proj);
+                                                          &err_proj,
+                                                          basis_generic);
 
   }
 
@@ -1711,160 +2125,6 @@ _default_location_on_tria_2d
   return dist2;
   
 }
-
-
-/*----------------------------------------------------------------------------
- * 
- * Default point location on a high order quadrangle
- * 
- * parameters:
- *   order            <-- element order
- *   n_node           <-- number of nodes
- *   ho_vertex_num    <-- high order vertex num (internal ordering)
- *   vertex_coords    <-- vertex coordinates
- *   point_coords     <-- point to locate coordinates
- *   projected_coords --> projected point coordinates (or NULL)
- *   uvw              --> parametric coordinates in the element
- * 
- * return: 
- *   distance to the cell
- *
- *----------------------------------------------------------------------------*/
-
-static double 
-_default_location_on_quad_2d
-(
- const int order,
- const int n_node,
- const int *ho_vertex_num,
- const double *vertex_coords,
- const double *point_coords,
- double *projected_coords,
- double* weights
-)
-{
-
-  n_node;
-  
-  bftc_error(__FILE__, __LINE__, 0,
-             _("_default_location_on_quad_2d : Not implemented yet\n"));
-
-  int _order = order;
-
-  double dist2 = HUGE_VAL;
-
-  /* Build sub-triangles */
-
-  double uvP1[3];
-  double weightsP1[3];
-  double closest_pointP1[3];
-
-  int selected_triaP1[3];
-  
-  double min_dist2 = HUGE_VAL;
-
-  int ibeg = 0;
-  int iend = _order;
-
-  for (int j = 0; j < _order; j++) {
-    int k1 = 0;
-      
-    for (int i = ibeg; i < iend; i++) {
-
-      int _vtx1 = ho_vertex_num[i] - 1;
-      int _vtx2 = ho_vertex_num[i + 1] - 1;
-      int _vtx3 = ho_vertex_num[iend + 1 + k1] - 1;
-      int _vtx4 = ho_vertex_num[iend + 2 + k1] - 1;
-
-      double x1 = vertex_coords[3*_vtx1];
-      double y1 = vertex_coords[3*_vtx1 + 1];
-      double z1 = vertex_coords[3*_vtx1 + 2];
-
-      double x2 = vertex_coords[3*_vtx2];
-      double y2 = vertex_coords[3*_vtx2 + 1];
-      double z2 = vertex_coords[3*_vtx2 + 2];
-
-      double x3 = vertex_coords[3*_vtx3];
-      double y3 = vertex_coords[3*_vtx3 + 1];
-      double z3 = vertex_coords[3*_vtx3 + 2];
-
-      double x4 = vertex_coords[3*_vtx4];
-      double y4 = vertex_coords[3*_vtx4 + 1];
-      double z4 = vertex_coords[3*_vtx4 + 2];
-        
-      double _vertex_coords[9] = {x1, y1, z1,
-                                  x2, y2, z2,
-                                  x3, y3, z3};
-      double _closest_pointP1[3];
-      double _uvClosestPointP1[3];
-      double _weightsClosestPointP1[3];
-      double _dist2;
-
-      int isDegenerated = fvmc_triangle_evaluate_Position ((double *) point_coords,
-                                                           _vertex_coords,
-                                                           _closest_pointP1,
-                                                           _uvClosestPointP1,
-                                                           &_dist2,
-                                                           _weightsClosestPointP1);
-
-      if (isDegenerated != -1) {
-        if (_dist2 <= min_dist2) {
-          min_dist2 = _dist2;
-          for (int i1 = 0; i1 < 3; i1++) {
-            uvP1[i1] = _uvClosestPointP1[i1];
-            weightsP1[i1] = _weightsClosestPointP1[i1];
-            closest_pointP1[i1] = _closest_pointP1[i1];
-          }
-          selected_triaP1[0] = _vtx1;
-          selected_triaP1[1] = _vtx2;
-          selected_triaP1[2] = _vtx3;
-        }
-      }
-
-      _vertex_coords[0] = x2;
-      _vertex_coords[1] = y2;
-      _vertex_coords[2] = z2;
-      _vertex_coords[3] = x4;
-      _vertex_coords[4] = y4;
-      _vertex_coords[5] = z4;
-      _vertex_coords[6] = x3;
-      _vertex_coords[7] = y3;
-      _vertex_coords[8] = z3;
-
-      isDegenerated = fvmc_triangle_evaluate_Position ((double *) point_coords,
-                                                       _vertex_coords,
-                                                       _closest_pointP1,
-                                                       _uvClosestPointP1,
-                                                       &_dist2,
-                                                       _weightsClosestPointP1);
-
-      if (isDegenerated != -1) {
-        if (_dist2 <= min_dist2) {
-          min_dist2 = _dist2;
-          for (int i1 = 0; i1 < 3; i1++) {
-            uvP1[i1] = _uvClosestPointP1[i1];
-            weightsP1[i1] = _weightsClosestPointP1[i1];
-            closest_pointP1[i1] = _closest_pointP1[i1];
-          }
-          selected_triaP1[0] = _vtx1;
-          selected_triaP1[1] = _vtx2;
-          selected_triaP1[2] = _vtx3;
-        }
-      }
-        
-      k1++;
-    }
-
-    ibeg = iend + 1;
-    iend = ibeg + _order ;
-
-  }
-
-  return dist2;
-  
-}
-
-
 
 /*----------------------------------------------------------------------------
  * 
@@ -1905,25 +2165,29 @@ _default_location_on_cell_2d
 
   case FVMC_FACE_TRIA:
 
-    dist2 = _default_location_on_tria_2d (order,
+    dist2 = _default_location_generic_2d (order,
                                           n_node,
                                           ho_vertex_num,
                                           vertex_coords,
                                           point_coords,
                                           projected_coords,
-                                          uvw);
+                                          uvw,
+                                          _heap_fill_pn_sub_tria,
+                                          _basis_tria_pn);
 
     break;
 
   case FVMC_FACE_QUAD: 
 
-    dist2 = _default_location_on_quad_2d (order,
+    dist2 = _default_location_generic_2d (order,
                                           n_node,
                                           ho_vertex_num,
                                           vertex_coords,
                                           point_coords,
                                           projected_coords,
-                                          uvw);
+                                          uvw,
+                                          _heap_fill_qn_sub_tria,
+                                          _basis_quad_qn);
     break;
 
   }
@@ -2171,7 +2435,7 @@ const double *uvw,
   switch (type) {
 
   case FVMC_FACE_TRIA:
-    _base_tria_pn (order, uvw[0], uvw[1], weights);
+    _basis_tria_pn (order, uvw[0], uvw[1], weights);
     break;
 
   case FVMC_FACE_QUAD:
@@ -2846,19 +3110,33 @@ fvmc_ho_free
  void
 )
 {
-  if (_vand_space != NULL) {
+  if (_vand_tria_space != NULL) {
 
-    for (int i = 0; i < _n_vand_space; i++) {
-      if (_vand_space[i] != NULL) {
-        SNB_free_double (_vand_space[i], (i+1)*(i+1));
-        _vand_space[i] = NULL;
+    for (int i = 0; i < _n_vand_tria_space; i++) {
+      if (_vand_tria_space[i] != NULL) {
+        SNB_free_double (_vand_tria_space[i], (i+1)*(i+1));
+        _vand_tria_space[i] = NULL;
       }
     }
     
   }
 
-  free (_vand_space);
-  _vand_space = NULL;
+  free (_vand_tria_space);
+  _vand_tria_space = NULL;
+
+  if (_vand_1D_space != NULL) {
+
+    for (int i = 0; i < _n_vand_1D_space; i++) {
+      if (_vand_1D_space[i] != NULL) {
+        SNB_free_double (_vand_1D_space[i], (i+1)*(i+1));
+        _vand_1D_space[i] = NULL;
+      }
+    }
+    
+  }
+
+  free (_vand_1D_space);
+  _vand_1D_space = NULL;
   
 }
 #ifdef __cplusplus

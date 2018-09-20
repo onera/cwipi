@@ -107,7 +107,7 @@ typedef void (*fvmc_ho_interp_fct_t)
  const double *point_coords,
  const float *distance,
  const double *point_proj_coords,
-const double *weight,
+ const double *weight,
  const int stride_field,
  const double *src_field,
  double *target_field);
