@@ -15,25 +15,25 @@ enable_testing()
 #------------------------------------------------------------------------------
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-project(BASESNODALES VERSION 2017.1.1 LANGUAGES C Fortran)
+project(BASISNODALES VERSION 2017.1.1 LANGUAGES C Fortran)
 
-message("Source du projet:      ${BASESNODALES_SOURCE_DIR}")
-message("Compilation du projet: ${BASESNODALES_BINARY_DIR}")
+message("Source du projet:      ${BASISNODALES_SOURCE_DIR}")
+message("Compilation du projet: ${BASISNODALES_BINARY_DIR}")
 
 #------------------------------------------------------------------------------
-# Definition de la version BASESNODALES
+# Definition de la version BASISNODALES
 #------------------------------------------------------------------------------
 
 set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY TRUE)
 
-set(BASESNODALES_VERSION "${BASESNODALES_VERSION_MAJOR}.${BASESNODALES_VERSION_MINOR}.${BASESNODALES_VERSION_MICRO}")
+set(BASISNODALES_VERSION "${BASISNODALES_VERSION_MAJOR}.${BASISNODALES_VERSION_MINOR}.${BASISNODALES_VERSION_MICRO}")
 
 #------------------------------------------------------------------------------
 # Localisation des fonctions cmake du projet
 #------------------------------------------------------------------------------
 
-set(BASESNODALES_CMAKE_DIR "${BASESNODALES_SOURCE_DIR}/cmake" CACHE INTERNAL "")
-set(CMAKE_MODULE_PATH "${BASESNODALES_CMAKE_DIR}/modules")
+set(BASISNODALES_CMAKE_DIR "${BASISNODALES_SOURCE_DIR}/cmake" CACHE INTERNAL "")
+set(CMAKE_MODULE_PATH "${BASISNODALES_CMAKE_DIR}/modules")
 
 #------------------------------------------------------------------------------
 # Activation des langages Fortran C

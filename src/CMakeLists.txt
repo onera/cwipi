@@ -80,7 +80,7 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new")
                              PRIVATE ${PDM_INC}) 
 endif ()
 
-if (CWP_ENABLE_SPACE_NODAL_BASES) 
+if (CWP_ENABLE_SPACE_NODAL_BASIS) 
   add_dependencies(cwp spaceBasis)
   target_include_directories(cwp PRIVATE ${CMAKE_SOURCE_DIR}/spaceBasis/src)
   target_include_directories(cwp PRIVATE ${CMAKE_SOURCE_DIR}/spaceBasis)
@@ -101,7 +101,7 @@ if (CWP_ENABLE_Fortran)
 
   add_dependencies(cwpf cwp)        
 
-if (CWP_ENABLE_SPACE_NODAL_BASES)
+if (CWP_ENABLE_SPACE_NODAL_BASIS)
   add_dependencies(cwpf spaceBasis)        
 endif()
 
@@ -159,7 +159,7 @@ if (CWP_ENABLE_SHARED)
 
   get_target_property(CWP_INC cwp INCLUDE_DIRECTORIES)                          
   target_include_directories(cwp_shared PUBLIC ${CWP_INC})
-  if (CWP_ENABLE_SPACE_NODAL_BASES)
+  if (CWP_ENABLE_SPACE_NODAL_BASIS)
      add_dependencies(cwp_shared spaceBasis_shared)        
   endif()
 
@@ -174,7 +174,7 @@ if (CWP_ENABLE_SHARED)
 
     get_target_property(CWP_INC cwpf INCLUDE_DIRECTORIES)
     target_include_directories(cwpf_shared PUBLIC ${CWP_INC})
-    if (CWP_ENABLE_SPACE_NODAL_BASES)
+    if (CWP_ENABLE_SPACE_NODAL_BASIS)
      add_dependencies(cwpf_shared spaceBasis_shared)        
     endif()
 
@@ -194,7 +194,7 @@ if (CWP_ENABLE_STATIC)
                              PUBLIC_HEADER "${LIST_HEADER}")
   get_target_property(CWP_INC cwp INCLUDE_DIRECTORIES)
   target_include_directories(cwp_static PUBLIC ${CWP_INC})
-  if (CWP_ENABLE_SPACE_NODAL_BASES)
+  if (CWP_ENABLE_SPACE_NODAL_BASIS)
      add_dependencies(cwp_static spaceBasis_static)        
   endif()
 
@@ -210,7 +210,7 @@ if (CWP_ENABLE_STATIC)
 
     get_target_property(CWP_INC cwpf INCLUDE_DIRECTORIES)
     target_include_directories(cwpf_static PUBLIC ${CWP_INC})
-    if (CWP_ENABLE_SPACE_NODAL_BASES)
+    if (CWP_ENABLE_SPACE_NODAL_BASIS)
       add_dependencies(cwp_static spaceBasis_static)        
     endif()
 
