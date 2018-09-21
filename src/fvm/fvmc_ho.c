@@ -3110,6 +3110,7 @@ fvmc_ho_free
  void
 )
 {
+#if defined (HAVE_SPACE_BASIS) 
   if (_vand_tria_space != NULL) {
 
     for (int i = 0; i < _n_vand_tria_space; i++) {
@@ -3137,7 +3138,7 @@ fvmc_ho_free
 
   free (_vand_1D_space);
   _vand_1D_space = NULL;
-  
+#endif  
 }
 #ifdef __cplusplus
 }

@@ -89,6 +89,11 @@ else()
 endif()
 option(CWP_ENABLE_SPACE_NODAL_BASES  "Enable nodal bases from SPACE" ${ENABLE_SPACE_NODAL_BASES})
 
+if (CWP_ENABLE_SPACE_NODAL_BASES)
+ set(SNB_IN_CWP 1)
+ set(HAVE_SPACE_BASIS 1)
+endif ()
+
 # Allow Fortran call from C
 # --------------------------
 
@@ -400,7 +405,6 @@ if (CWP_ENABLE_PYTHON_BINDINGS)
 endif()
 
 if (CWP_ENABLE_SPACE_NODAL_BASES)
- set(SNB_IN_CWP 1)
  add_subdirectory(spaceBasis)
 endif ()
 add_subdirectory(tests)
