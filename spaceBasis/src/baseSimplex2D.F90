@@ -21,7 +21,7 @@ module baseSimplex2D
     type (C_PTR), value    :: array
     integer (C_INT), value :: s_array
 
-    real(8), pointer       :: array_f
+    real(8), pointer       :: array_f(:)
 
     integer                :: s_array_f
 
@@ -45,7 +45,7 @@ module baseSimplex2D
     logical          :: display_f
 
     ord_f = ord
-    display_f = display
+    display_f = (display == 1)
 
     call nodes2D (ord_f, uvw_f, display_f)
 
@@ -338,6 +338,7 @@ module baseSimplex2D
 
     integer          :: n
 
+    display_f = (display == 1)
     call c_f_pointer (uv, uv_f, (/2,nVtx/) )
     
     call nodes2Duv2ab (uv_f, a_f, b_f, display_f)
