@@ -53,7 +53,7 @@ if (CWP_ENABLE_Fortran)
   target_link_libraries(cwipi cwpf_shared)
 endif()
 
-if (CWP_ENABLE_SPACE_NODAL_BASES)
+if (CWP_ENABLE_SPACE_NODAL_BASIS)
   target_link_libraries(cwipi spaceBasis_shared)
 endif()
 
