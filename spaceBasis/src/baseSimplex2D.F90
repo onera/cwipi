@@ -21,13 +21,14 @@ module baseSimplex2D
     type (C_PTR), value    :: array
     integer (C_INT), value :: s_array
 
-    real(8), pointer       :: array_f(:)
+    real(8), pointer       :: array_f  !(:)
 
     integer                :: s_array_f
 
     s_array_f = s_array
     
-    call c_f_pointer (array, array_f, (/s_array_f/) )
+   !call c_f_pointer (array, array_f, (/s_array_f/) )
+    call c_f_pointer (array, array_f)
     
     deallocate(array_f)
     
@@ -45,7 +46,7 @@ module baseSimplex2D
     logical          :: display_f
 
     ord_f = ord
-    display_f = (display == 1)
+    display_f = (display == 0)
 
     call nodes2D (ord_f, uvw_f, display_f)
 
