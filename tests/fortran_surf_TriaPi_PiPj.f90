@@ -414,7 +414,7 @@ program fortran_surf_TriaPi_PiPj
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  meshOrder=2
+  meshOrder=1
   
   select case(rankWorld)
   case(0)
@@ -770,6 +770,7 @@ program fortran_surf_TriaPi_PiPj
   if( rankWorld==0 )print '(/"Controling Coupling Results")'
   call mpi_barrier(commWorld,iErr)
   
+  sumDelta= 0d0
   deltaMax=-1d50
   deltaMin= 1d50
   j=0
@@ -782,10 +783,6 @@ program fortran_surf_TriaPi_PiPj
         sumDelta=sumDelta+delta
         if( deltaMax<delta )deltaMax=delta
         if( delta<deltaMin )deltaMin=delta
-        !if( 1d-08<=delta )then
-        !  print'(6x,"iVert=",i6,1x,"linkVert=",3(e22.15,1x),"linkValues=",3(e12.5,1x),"Delta=",e12.5)',&
-        !  & ivert,linkVert(j+1:j+3),linkValues(k+1:k+3),delta
-        !endif
         j=j+3
         k=k+4
       enddo
