@@ -44,7 +44,6 @@ contains
       ai(2,iNod)=    uv(1,iNod)
       ai(3,iNod)=               uv(2,iNod)
     enddo
-   !write(*,'("u,v=",2(f12.5,1x),"li=",3(f12.5,1x))')u,v,ai(1:3)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return
   end subroutine setT3MeshBasis_P1
@@ -81,13 +80,13 @@ contains
       ai(4,iNod)=u2*w2          !> (i,j,k)=(1,0,1)
       ai(5,iNod)=u2*v2          !> (i,j,k)=(1,1,0)
       ai(6,iNod)=v2*w2          !> (i,j,k)=(0,1,1)
-     !write(*,'("u,v=",2(f12.5,1x),"li=",6(f12.5,1x))')u,v,ai(1:6)
       !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     enddo
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return
   end subroutine setT3MeshBasis_P2
-
+    
+  
 end module additionnal_Functions
 
 
@@ -173,7 +172,7 @@ subroutine  userInterpolation                        ( &
   integer          :: iTrian,iVert,iBary
   real(8), pointer :: uv(:,:),uvwOut(:,:),lagrange(:,:)
   real(8), pointer :: lagrangeMesh(:,:)
-  integer          :: nod(1:6)
+  integer          :: nod(1:10)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -201,14 +200,12 @@ subroutine  userInterpolation                        ( &
   case default ; stop "stop @ userInterpolation"
   end select
   
-  
   j=0
   do iDistantPoint=1,nDistantPoint
     iCell=disPtsLocation(iDistantPoint)
     nMod=localConnectivityIndex(iCell+1)-localConnectivityIndex(iCell)
     nod(1:nMod)=localConnectivity(localConnectivityIndex(iCell)+1:localConnectivityIndex(iCell+1))
     
-    k=0
     distantField(j+1:j+stride)=0d0
     do iMod=1,nMod
       i=stride*(nod(iMod)-1)
@@ -404,8 +401,8 @@ program fortran_surf_TriaPi_PiPj
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   select case(rankWorld)
-  case(0) ; compOrder=10 !07 !07
-  case(1) ; compOrder=10 !07 !10
+  case(0) ; compOrder=17 !07 !07
+  case(1) ; compOrder=13 !07 !10
   end select
   
   call mpi_barrier(commWorld,iErr)
@@ -414,7 +411,8 @@ program fortran_surf_TriaPi_PiPj
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  meshOrder=1
+  !> Création des maillages avec gmsh
+  meshOrder=3
   
   select case(rankWorld)
   case(0)
@@ -595,7 +593,6 @@ program fortran_surf_TriaPi_PiPj
   &   nNodes       = nMod               ,&
   &   IJK          = ijk                 )
   
-  
   if( meshOrder>2 )then
     allocate(xi(1:2,1:nMod))
     j=0
@@ -616,7 +613,7 @@ program fortran_surf_TriaPi_PiPj
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Initialisation of myValues
+  !> Initialisation of myValues(:)
   
   call mpi_barrier(commWorld,iErr)
   if( rankWorld==0 ) print'(/"Initialisation de myValues (x,y,z,rkw)")'
@@ -637,10 +634,10 @@ program fortran_surf_TriaPi_PiPj
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Points de couplage (on utilise compOrder>meshOrder pour ajouter des points)
+  !> Points de couplage linkVertSize,linkVert(:)
   
   call mpi_barrier(commWorld,iErr)
-  if( rankWorld==0 ) print'(/"Calcul des coordonnees de linkVert")'
+  if( rankWorld==0 ) print'(/"Calcul des coordonnees de couplage : linkVert(:)")'
   call mpi_barrier(commWorld,iErr)
   
   !> calcul lagrangeMesh
@@ -781,30 +778,37 @@ program fortran_surf_TriaPi_PiPj
       do iVert=1,linkVertSize
         delta=norm2(linkVert(j+1:j+3)-linkValues(k+1:k+3)) !+( real(rankWorld,kind=8)-linkValues(k+4) )**2
         sumDelta=sumDelta+delta
-        if( deltaMax<delta )deltaMax=delta
+        
+       !if( deltaMax<delta )deltaMax=delta
+        
+        if( deltaMax<delta )then
+          deltaMax=delta
+          if( iRank==1 )then
+            print '("deltaMax=",e22.15," iVert=",i10,t130,"@rkw",i3)',deltaMax,iVert,rankWorld
+            print '(3x,"linkVert  (j+1:j+3)=",3(e22.15,1x))',linkVert  (j+1:j+3)
+            print '(3x,"linkValues(k+1:k+3)=",3(e22.15,1x))',linkValues(k+1:k+3)
+          endif
+        endif
         if( delta<deltaMin )deltaMin=delta
         j=j+3
         k=k+4
-      enddo
-      print '("deltaMin=min( |linkVert-linkValues|^2 )",e22.15             ,t130,"@rkw",i3/)',deltaMin                          ,rankWorld
-      print '("sumDelta=sum( |linkVert-linkValues|^2 )/linkVertSize",e22.15,t130,"@rkw",i3/)',sumDelta/real(linkVertSize,kind=8),rankWorld
-      print '("deltaMax=max( |linkVert-linkValues|^2 )",e22.15             ,t130,"@rkw",i3/)',deltaMax                          ,rankWorld
-     !delta=deltaMax
+      enddo      
     endif
     call mpi_barrier(commWorld,iErr)
   enddo
   
- !call mpi_allreduce(delta,deltaMax,1,mpi_real8,mpi_max,commWorld,iErr)
+  sumDelta=sqrt(sumDelta)/real(linkVertSize,kind=8)  
   
-!  do iRank=0,sizeWorld-1
-!    if( iRank==rankWorld )then
-!      print '("deltaMin=min( |linkVert-linkValues|^2 )",e22.15             ,t130,"@rkw",i3/)',deltaMin                          ,rankWorld
-!      print '("sumDelta=sum( |linkVert-linkValues|^2 )/linkVertSize",e22.15,t130,"@rkw",i3/)',sumDelta/real(linkVertSize,kind=8),rankWorld
-!      print '("deltaMax=max( |linkVert-linkValues|^2 )",e22.15             ,t130,"@rkw",i3/)',deltaMax                          ,rankWorld
-!    endif
-!    call mpi_barrier(commWorld,iErr)
-!  enddo
+  do iRank=0,sizeWorld-1
+    if( iRank==rankWorld )then
+      print '(/"deltaMin=min( |linkVert-linkValues|^2 )             =",e22.15,t130,"@rkw",i3)',deltaMin,rankWorld
+      print '( "sumDelta=sum( |linkVert-linkValues|   )/linkVertSize=",e22.15,t130,"@rkw",i3)',sumDelta,rankWorld
+      print '( "deltaMax=max( |linkVert-linkValues|^2 )             =",e22.15,t130,"@rkw",i3)',deltaMax,rankWorld
+    endif
+    call mpi_barrier(commWorld,iErr)
+  enddo
   
+  call mpi_allreduce(sumDelta,deltaMax,1,mpi_real8,mpi_max,commWorld,iErr)
   if( sumDelta<1d-08 )then
     if( rankWorld==0 )print '(/"SUCCESS: fortran_surf_TriaPi_PiPj"/)'
   else
