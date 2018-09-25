@@ -934,6 +934,70 @@ module baseSimplex2D
     return
   end subroutine gradVandermonde2D
 
+  subroutine inv_vandermonde2D_c(order, vand, inv_vand)  BIND(C, name="SNB_inv_vandermonde2D") 
+    use, intrinsic :: ISO_C_BINDING 
+    implicit none 
+
+    integer (C_INT), value :: order 
+    type (C_PTR), value    :: vand  ! void * en C
+    type (C_PTR), value    :: inv_vand  ! void * en C
+
+    real(8), pointer       :: vand_f(:,:), inv_vand_f(:,:)
+    logical                :: display_f
+
+    integer                :: ord_f
+    integer                :: n
+
+    n=(order+1)*(order+2)/2
+
+    ord_f = order
+    
+    call c_f_pointer (vand, vand_f, (/n, n/))
+    call c_f_pointer (inv_vand, inv_vand_f, (/n, n/))
+    
+    call inv_vandermonde2D(vand_f, inv_vand_f)
+
+  end subroutine inv_vandermonde2D_c
+  
+  subroutine inv_vandermonde2D(vand, inv_vand)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !>     [Phi_0(xi_1) ... Phi_{n-1}(xi_1)]
+    !> V = [                               ] 
+    !>     [Phi_0(xi_n) ... Phi_{n-1}(xi_n)]
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    real(8), intent(inout), pointer :: vand(:,:)
+    real(8), intent(inout), pointer :: inv_vand(:,:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+    integer :: i,j, nMod, lWork
+    integer, pointer                 :: ipiv(:)
+    real(8), pointer                 :: work(:)
+    integer                          :: iErr
+
+    nMod = size(vand, 1)
+    
+    if( .not.associated(vand) .or. .not.associated(inv_vand) )then
+      print '("2D Nodes vand or/and inv_vand not associated")'
+      stop "@inv_vandermonde2D"
+    endif
+
+    do i=1,nMod
+      do j=1,nMod
+        inv_vand(i,j)=vand(j,i)
+      enddo
+    enddo
+    
+    lWork=64*(nMod) ; allocate(work(1:lWork),ipiv(1:nMod))
+    call dgetrf(nMod,nMod,inv_vand(1,1),nMod,ipiv(1),iErr)
+    call dgetri(nMod,inv_vand(1,1),nMod,ipiv(1),work(1),lWork,iErr)
+    deallocate(ipiv,work)
+
+    return
+  end subroutine inv_vandermonde2D
+
+  
   subroutine lagrange2Dv_1_c (order, nVtx, vand, a, b, lx, transpose)  BIND(C, name="SNB_lagrange2Dv") 
     use, intrinsic :: ISO_C_BINDING 
     implicit none 
