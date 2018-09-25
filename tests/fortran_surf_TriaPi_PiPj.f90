@@ -16,10 +16,160 @@
 ! You should have received a copy of the GNU Lesser General Public
 ! License along with this library. If not, see <http://www.gnu.org/licenses/>.
 !-----------------------------------------------------------------------------
-
+ 
 
 !  mpirun -n 1 ./fortran_surf_TriaPi_PiPj : -n 1 ./fortran_surf_TriaPi_PiPj
 !  mpirun -n 1 tests/fortran_surf_TriaPi_PiPj : -n 1 tests/fortran_surf_TriaPi_PiPj
+
+
+
+module variablesCommunes
+ !logical :: visu=.true.
+  logical :: visu=.false.
+  integer :: commWorld,rankWorld,sizeWorld
+  integer :: commLocal,rankLocal,sizeLocal
+  integer :: compOrder
+  integer :: meshOrder
+  
+  real(8), pointer :: vand(:,:)
+end module variablesCommunes
+
+
+module spaceMessages
+
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  use iso_fortran_env
+  use mpi
+  use variablesCommunes
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+
+  implicit none
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  
+ !include 'mpif.h'
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+contains
+
+  subroutine msg0(msg)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    character(*)                :: msg
+    !>
+    integer                     :: iRank,iErr
+    real(8), allocatable        :: dTab0(:)
+    integer, allocatable        :: iTab0(:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    allocate(iTab0(0:sizeWorld-1))
+    
+    call mpi_gather(               &
+    &    rankWorld, 1, mpi_integer,&
+    &    iTab0(0) , 1, mpi_integer,&
+    &    0                        ,&
+    &    commWorld                ,&
+    &    iErr                      )
+    
+    if( rankWorld==0 )then
+     if( sizeWorld>1 )write(*,'()')
+      do iRank=0,sizeWorld-1
+       !write(*,'("Trace: ",a,t130,"@rkw",i3)')trim(msg),iTab0(iRank)
+        write(*,'(a,t130,"@rkw",i3)')trim(msg),iTab0(iRank)
+      enddo
+    endif
+    
+    deallocate(iTab0)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine msg0
+  
+  subroutine msg1(buffer)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    character(*)                   :: buffer
+    !>
+    integer                        :: length
+    integer                        :: iRank,iErr
+    character(len=:), allocatable  :: cTab0(:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    length=len(buffer)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    
+    allocate( character(len=length) :: cTab0(1:sizeWorld) )
+    
+    call mpi_gather(                      &
+    &    buffer   , length, mpi_character,&
+    &    cTab0(1) , length, mpi_character,&
+    &    0                               ,&
+    &    commWorld                       ,&
+    &    iErr                             )
+    
+    if( rankWorld==0 )then
+      !if( sizeWorld>1 )write(*,'()')
+      do iRank=1,sizeWorld
+        if( .not.len(trim(cTab0(iRank)))==0 )then   !> on retire le cas d'une chaine vide (utilitse par plotInit => micro)
+          write(*,'(a)')trim(cTab0(iRank))
+        endif
+      enddo
+    endif
+    
+    deallocate(cTab0)
+    
+    call mpi_barrier(commWorld,iErr)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#undef msg1
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine msg1
+  
+
+  subroutine msg2(buffer)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    character(*)                   :: buffer
+    !>
+    integer                        :: length
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+   !length=len(buffer)
+   !print '(">>> msg2 length=",i6,t130,"@rkw",i3)',length,rankWorld
+    
+    if( rankWorld==0 )then
+     !if( sizeWorld>1 )write(*,'()')
+      write(*,'(a)')trim(buffer)
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+   !print '("<<< msg2",t130,"@rkw",i3)',rankWorld
+    
+    return
+  end subroutine msg2
+  
+  subroutine stopAlert(msg)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    character(*) :: msg
+    !>
+    integer      :: iErr,iErrCode
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    write(output_unit ,'(/"SPACE ALERT: ",a,"  rkw",i3," called mpi_abort")')trim(msg),rankWorld
+    call mpi_abort(commWorld,iErr,iErrCode)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end subroutine stopAlert
+
+end module spaceMessages
+
+  
+
+
+
+
 
 module additionnal_Functions
 
@@ -90,17 +240,6 @@ contains
 end module additionnal_Functions
 
 
-module variablesCommunes
- !logical :: visu=.true.
-  logical :: visu=.false.
-  integer :: commWorld,rankWorld,sizeWorld
-  integer :: commLocal,rankLocal,sizeLocal
-  integer :: compOrder
-  integer :: meshOrder
-  
-  real(8), pointer :: vand(:,:)
-end module variablesCommunes
-
 
 subroutine  userInterpolation                        ( &
   &           entitiesDim                             ,&
@@ -135,9 +274,9 @@ subroutine  userInterpolation                        ( &
   use cwipi
   use baseSimplex2D
   
-  use additionnal_Functions
-  
   use variablesCommunes
+  use additionnal_Functions
+  use spaceMessages
   !---
   implicit none
   !---
@@ -173,12 +312,12 @@ subroutine  userInterpolation                        ( &
   integer          :: iVert
   real(8), pointer :: lagrangeMesh(:,:)
   integer          :: nod(1:16)
+  real(8)          :: delta(1:3)
+  character(1024)  :: buffer
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  call mpi_barrier(commWorld,iErr)
-  if( rankWorld==0 )print'(3x,">>> userInterpolation")'  
-  call mpi_barrier(commWorld,iErr)
+  write(buffer,'(a,">>> userInterpolation (callback)")')char(10) ; call msg2(buffer)  
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -218,15 +357,75 @@ subroutine  userInterpolation                        ( &
     do iMod=1,nMod
       i=stride*(nod(iMod)-1)
       distantField(j+1:j+stride)=distantField(j+1:j+stride)+lagrangeMesh(iMod,iDistantPoint)*localField(i+1:i+stride)
+      
+      !> Controling localField
+      k=3     *(nod(iMod)-1)
+      delta(1:3)=localField(i+1:i+3)-localCoordinates(k+1:k+3)
+      if( .not.(delta(1)==0d0.and.delta(2)==0d0.and.delta(3)==0d0) )then
+        print '("iCell=",i6," Delta=",3(e22.15,1x),t130,"@rkw",i3)',iCell,delta(1:3),rankWorld
+      endif
     enddo
+    
     j=j+stride
+    k=k+3
   enddo
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  call mpi_barrier(commWorld,iErr)
-  if( rankWorld==0 )print'(3x,"<<< userInterpolation")'
-  call mpi_barrier(commWorld,iErr)
+  !> Visu
+  if( nDistantPoint== 1)then
+    iDistantPoint=1
+    j=stride*(iDistantPoint-1)
+    iCell=disPtsLocation(iDistantPoint)
+    nMod=localConnectivityIndex(iCell+1)-localConnectivityIndex(iCell)
+    nod(1:nMod)=localConnectivity(localConnectivityIndex(iCell)+1:localConnectivityIndex(iCell+1))    
+        
+    i=stride*(iDistantPoint-1)
+    j=     3*(iDistantPoint-1)
+    delta(1:3)=distantField(i+1:i+3)-disPtsCoordinates(k+1:k+3)
+    
+!    write(buffer,'(3x,"disPtsCoordinates=",3(e22.15,1x),t130,"@rkw",i3)')disPtsCoordinates(j+1:j+3),rankWorld ; call msg1(buffer)
+!    write(buffer,'(3x,"distantField=     ",3(e22.15,1x),t130,"@rkw",i3)')distantField     (i+1:i+3),rankWorld ; call msg1(buffer)
+!    write(buffer,'(3x,"delta=            ",3(e22.15,1x),t130,"@rkw",i3)')disPtsCoordinates(j+1:j+3)-distantField(i+1:i+3),rankWorld ; call msg1(buffer)
+    
+    write(buffer,'(                                                   &
+    &                                                              a, &
+    &              3x,"iCell=",i6," nod: ",6(i6,1x),t130,"@rkw",i3,a, &
+    &              6x,"xyz1=",3(e22.15,1x)                        ,a, &
+    &              6x,"xyz2=",3(e22.15,1x)                        ,a, &
+    &              6x,"xyz3=",3(e22.15,1x)                        ,a, &
+    &              6x,"xyz4=",3(e22.15,1x)                        ,a, &
+    &              6x,"xyz5=",3(e22.15,1x)                        ,a, &
+    &              6x,"xyz6=",3(e22.15,1x)                        ,a, &
+    &                                                              a, &
+    &              6x,"uv  =",2(e22.15,1x)                        ,a, &
+    &              6x,"disPtsCoordinates=",3(e22.15,1x)           ,a, &
+    &              6x,"distantField=     ",3(e22.15,1x)           ,a, &
+    &              6x,"delta=            ",3(e22.15,1x)               &
+    &                                                              )')&
+    &                                                  char(10),&
+    &  iCell,nod(1:nMod),rankWorld                    ,char(10),&
+    &  localCoordinates(3*(nod(1)-1)+1:3*(nod(1)-1)+3),char(10),&
+    &  localCoordinates(3*(nod(2)-1)+1:3*(nod(2)-1)+3),char(10),&
+    &  localCoordinates(3*(nod(3)-1)+1:3*(nod(3)-1)+3),char(10),&
+    &  localCoordinates(3*(nod(4)-1)+1:3*(nod(4)-1)+3),char(10),&
+    &  localCoordinates(3*(nod(5)-1)+1:3*(nod(5)-1)+3),char(10),&
+    &  localCoordinates(3*(nod(6)-1)+1:3*(nod(6)-1)+3),char(10),&
+    &                                                  char(10),&
+    &  uv(1:2,iDistantPoint)                          ,char(10),&
+    & disPtsCoordinates(j+1:j+3)                      ,char(10),&
+    & distantField     (i+1:i+3)                      ,char(10),&
+    & disPtsCoordinates(j+1:j+3)-distantField(i+1:i+3)
+    
+    call msg1(buffer)    
+  endif
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  !call mpi_barrier(commWorld,iErr)
+  !if( rankWorld==0 )print'(3x,"<<< userInterpolation")'
+  !call mpi_barrier(commWorld,iErr)
+  
+  write(buffer,'(a,"<<< userInterpolation (callback)")')char(10) ; call msg2(buffer)  
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   return
@@ -241,9 +440,9 @@ program fortran_surf_TriaPi_PiPj
   use cwipi  
   use baseSimplex2D
   
-  use additionnal_Functions
-  
   use variablesCommunes
+  use additionnal_Functions
+  use spaceMessages
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
@@ -345,6 +544,7 @@ program fortran_surf_TriaPi_PiPj
   
   integer          :: iVertMax
   real(8)          :: delta,deltaMin,deltaMax,sumDelta
+  character(1024)  :: buffer
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -356,7 +556,8 @@ program fortran_surf_TriaPi_PiPj
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  if( rankWorld==0) print '(/"START: fortran_surf_TriaPi_PiPj")'
+ !if( rankWorld==0) print '(/"START: fortran_surf_TriaPi_PiPj")'
+  write(buffer,'("START: fortran_surf_TriaPi_PiPj")') ; call msg2(buffer)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -382,10 +583,13 @@ program fortran_surf_TriaPi_PiPj
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Create coupling
-  call mpi_barrier(commWorld,iErr)
-  if( rankWorld==0 )print '(/"Creation du couplage testPiPj")'
-  call mpi_barrier(commWorld,iErr)
+!  call mpi_barrier(commWorld,iErr)
+!  if( rankWorld==0 )print '(/"Creation du couplage testPiPj")'  
+!  call mpi_barrier(commWorld,iErr)
   
+  write(buffer,'("")')                                         ; call msg2(buffer)
+  write(buffer,'("Create coupling",t130,"@rkw",i3)')rankWorld  ; call msg1(buffer)
+    
   call cwipi_create_coupling_f(                  &
   &    couplingName="testPiPj"                  ,&
   &    couplingType=cwipi_cpl_parallel_with_part,&
@@ -396,11 +600,7 @@ program fortran_surf_TriaPi_PiPj
   &    solvert=cwipi_solver_cell_vertex         ,&
   &    outputfreq=-1                            ,& !> Frequence du post-traitement
   &    outputfmt="Ensight Gold"                 ,&
-  &    outputfmtopt="binary"                     )
-  
-  call mpi_barrier(commWorld,iErr)
-  if( rankWorld==0 )print '("Creation du couplage testPiPj",t130,"Fait")'
-  call mpi_barrier(commWorld,iErr)
+  &    outputfmtopt="binary"                     )  
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -409,9 +609,8 @@ program fortran_surf_TriaPi_PiPj
   case(1) ; compOrder=10 !07 !10
   end select
   
-  call mpi_barrier(commWorld,iErr)
-  if( rankWorld==0 )print '("fortran_surf_TriaPi_PiPj")'
-  call mpi_barrier(commWorld,iErr)
+  write(buffer,'("")')                                                   ; call msg2(buffer)
+  write(buffer,'(3x,"compOrder=",i3,t130,"@rkw",i3)')compOrder,rankWorld ; call msg1(buffer)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -420,6 +619,9 @@ program fortran_surf_TriaPi_PiPj
   case(0) ; meshOrder=2 !07 !07
   case(1) ; meshOrder=2 !07 !10
   end select
+  
+  write(buffer,'("")')                                                   ; call msg2(buffer)
+  write(buffer,'(3x,"meshOrder=",i3,t130,"@rkw",i3)')meshOrder,rankWorld ; call msg1(buffer)
   
   select case(rankWorld)
   case(0)
@@ -438,15 +640,13 @@ program fortran_surf_TriaPi_PiPj
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Reading Geometric Mesh
   
-  call mpi_barrier(commWorld,iErr)
-  if( rankWorld==0 )print '(/"Lecture des maillages géométriques (inria mesh format)")'
-  call mpi_barrier(commWorld,iErr)
-  
+  write(buffer,'("")')                                                                               ; call msg2(buffer)
+  write(buffer,'("Reading Geometric Mesh",t130,"@rkw",i3)')rankWorld ; call msg1(buffer)
   select case(rankWorld)
   case(0) ; meshName="./spaceBasis/tests/Mesh2D/sphere01.mesh"
   case(1) ; meshName="./spaceBasis/tests/Mesh2D/sphere02.mesh"
   end select
-  
+    
   open(unit=iFile,file=trim(meshName),status='old',action='read')  
   lecture: do
     read(unit=iFile,fmt=*)key ! print '("key: ",a,t130,"@rkw",i3)',trim(key),rankWorld
@@ -484,31 +684,29 @@ program fortran_surf_TriaPi_PiPj
     case("End","end") ; exit lecture
     end select
   enddo lecture
-  
   close(unit=iFile)
   
-  do iRank=0,sizeWorld-1
-    if( iRank==rankWorld )then
-      print '(/3x,"mesh: ",a     ,t130,"@rkw",i3)',trim(meshName),rankWorld    
-      print '( 3x,"meshOrder=",i2,t130,"@rkw",i3)',meshOrder     ,rankWorld
-      print '( 3x,"nVert=",i6    ,t130,"@rkw",i3)',nVert         ,rankWorld
-      print '( 3x,"nCell=",i6    ,t130,"@rkw",i3)',nCell         ,rankWorld
-    endif
-    call mpi_barrier(commWorld,iErr)
-  enddo
+  write(buffer,'(                                &
+  &                                           a, &
+  &              3x,"mesh=",a,t130,"@rkw",i3 ,a, &
+  &              6x,"meshOrder=",i1          ,a, &
+  &              6x,"nVert=",i6              ,a, &
+  &              6x,"nCell=",i6                  &
+  &                                           )')&
+  &                          char(10),&
+  & trim(meshName),rankWorld,char(10),&
+  & meshOrder               ,char(10),&
+  & nVert                   ,char(10),&
+  & nCell
   
-  call mpi_barrier(commWorld,iErr)
-  call mpi_barrier(commWorld,iErr)
-  if( rankWorld==0 )print '("Lecture des maillages géométriques",t130,"Fait")'
-  call mpi_barrier(commWorld,iErr)
+  call msg1(buffer)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> On se couple sur les sphères maillées
   
-  call mpi_barrier(commWorld,iErr)
-  if( rankWorld==0 )print '(/"Transmission du maillage à cwipi")'
-  call mpi_barrier(commWorld,iErr)
+  write(buffer,'("")')                                                         ; call msg2(buffer)
+  write(buffer,'("Sending Mesh to Cwipi",t130,"@rkw",i3)')rankWorld ; call msg1(buffer)
   
   !> Transmission des maillages à cwipi
   call cwipi_ho_define_mesh_f(  & !> NEW Cwipi
@@ -518,20 +716,15 @@ program fortran_surf_TriaPi_PiPj
   &   order       =meshOrder   ,&  
   &   coords      =vertx       ,&
   &   connecIndex =cellsIdx    ,&
-  &   connec      =cells        )
-  
-  call mpi_barrier(commWorld,iErr)
-  if( rankWorld==0 )print '("Transmission du maillage à cwipi",t130,"Fait")'
-  call mpi_barrier(commWorld,iErr)  
+  &   connec      =cells        )  
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Definition du Triangle géométrique Pi
   
-  call mpi_barrier(commWorld,iErr)
-  if( rankWorld==0 )print '(/"Definition du Triangle géométrique P",i1,t130,"")',meshOrder
-  call mpi_barrier(commWorld,iErr)
-  
+  write(buffer,'("")')                                                             ; call msg2(buffer)
+  write(buffer,'("Geometric HO Triangle P",i1,t130,"@rkw",i3)')meshOrder,rankWorld ; call msg1(buffer)
+    
   nMod=(meshOrder+1)*(meshOrder+2)/2
   allocate(ijk(1:2*nMod))
   
@@ -620,19 +813,14 @@ program fortran_surf_TriaPi_PiPj
     deallocate(a,b,xi)
   endif
   
-  deallocate(ijk)
-  
-  call mpi_barrier(commWorld,iErr)
-  if( rankWorld==0 )print '("Definition du Triangle géométrique P",i1,t130,"Fait")',meshOrder
-  call mpi_barrier(commWorld,iErr)
+  deallocate(ijk)  
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Initialisation of myValues(:)
   
-  call mpi_barrier(commWorld,iErr)
-  if( rankWorld==0 ) print'(/"Initialisation de myValues (x,y,z,rkw)")'
-  call mpi_barrier(commWorld,iErr)
+  write(buffer,'("")')                                                  ; call msg2(buffer)
+  write(buffer,'("Init myValues (x,y,z,rkw)",t130,"@rkw",i3)')rankWorld ; call msg1(buffer)  
   
   stride=4 !> x,y,z,real(rankWorld,kind=8)
   allocate(myValues(1:nVert*stride))
@@ -642,20 +830,15 @@ program fortran_surf_TriaPi_PiPj
     i=i+3
     j=j+4
   enddo
-  
-  call mpi_barrier(commWorld,iErr)
-  if( rankWorld==0 )print '("Initialisation de myValues (x,y,z,rkw)",t130,"Fait")'
-  call mpi_barrier(commWorld,iErr)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Points de couplage linkVertSize,linkVert(:)
   
-  call mpi_barrier(commWorld,iErr)
-  if( rankWorld==0 ) print'(/"Calcul des coordonnees de couplage : linkVert(:)")'
-  call mpi_barrier(commWorld,iErr)
+  write(buffer,'("")')                                        ; call msg2(buffer)
+  write(buffer,'("Set linkVert(:)",t130,"@rkw",i3)')rankWorld ; call msg1(buffer)
   
-#if 0==0
+#if 0==1
   
   !> calcul lagrangeMesh
   nMod=(meshOrder+1)*(meshOrder+2)/2   !> Triangle meshOrder (entree)
@@ -703,63 +886,47 @@ program fortran_surf_TriaPi_PiPj
   allocate(linkVert(1:3*linkVertSize)) !> 3 coordonnées par point de couplage
   
   select case(rankWorld)
-  case(0) ; linkVert(1:3)=[ 0.626373174098104E+00, 0.423192012577810E+00, 0.654608563665547E+00]  
-  case(1) ; linkVert(1:3)=[-0.588938454884187E+00, 0.527899066612313E+00,-0.586369354294663E+00]
+  case(0) ; linkVert(1:3)=[-0.151188007905265E+00, 0.353840776353232E-01, 0.987777264278830E+00]  
+  case(1) ; linkVert(1:3)=[-0.151188007905265E+00, 0.353840776353232E-01, 0.987777264278830E+00]
   end select
   
-#endif
+  write(buffer,'(6x,"linkVert(1:3)=    ",3(e22.15,1x),t130,"@rkw",i3)')linkVert(1:3),rankWorld ; call msg1(buffer)
   
-  call mpi_barrier(commWorld,iErr)
-  if( rankWorld==0 ) print'("Calcul des coordonnees de linkVert",t130,"Fait")'
-  call mpi_barrier(commWorld,iErr)
+#endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  call mpi_barrier(commWorld,iErr)
-  if( rankWorld==0 )print '(/"Allocation de linkValues")'
-  call mpi_barrier(commWorld,iErr)
+  write(buffer,'("")')                                                                              ; call msg2(buffer)
+  write(buffer,'("Allocation of linkValues size=",i6,t130,"@rkw",i3)')stride*linkVertSize,rankWorld ; call msg1(buffer)
   
   allocate(linkValues(1:stride*linkVertSize))
-  
-  call mpi_barrier(commWorld,iErr)
-  if( rankWorld==0 )print '("Allocation de linkValues",t130,"Fait")'
-  call mpi_barrier(commWorld,iErr)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Transmission à cwipi des coordonnees de couplage
   
-  call mpi_barrier(commWorld,iErr)
-  if( rankWorld==0 )print '(/"Transmission de linkVert a cwipi")'
-  call mpi_barrier(commWorld,iErr)
-  
+  write(buffer,'("")')                                                               ; call msg2(buffer)
+  write(buffer,'("Transmission de linkVert a cwipi",t130,"@rkw",i3)')rankWorld ; call msg1(buffer)  
+    
   call cwipi_set_points_to_locate_f( &
   &    couplingName="testPiPj"      ,&
   &    nPts  =linkVertSize          ,&
   &    coords=linkVert               )
-  
-  call mpi_barrier(commWorld,iErr)
-  if( rankWorld==0 )print '("Transmission de linkVert a cwipi",t130,"Fait")'
-  call mpi_barrier(commWorld,iErr)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Localisation par cwipi des coordonnees de couplage
-  call mpi_barrier(commWorld,iErr)
-  if( rankWorld==0 )print '(/"Localisation de linkVert par cwipi")'
-  call mpi_barrier(commWorld,iErr)
+  
+  write(buffer,'("")')                                                               ; call msg2(buffer)
+  write(buffer,'("Localisation by Cwipi",t130,"@rkw",i3)')rankWorld ; call msg1(buffer)  
   
   call cwipi_locate_f(couplingName="testPiPj")
-  
-  call mpi_barrier(commWorld,iErr)
-  if( rankWorld==0 )print '("Localisation de linkVert par cwipi",t130,"Fait")'
-  call mpi_barrier(commWorld,iErr)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  call mpi_barrier(commWorld,iErr)
-  if( rankWorld==0 )print '(/"Echange cwipi_exchange_f")'
-  call mpi_barrier(commWorld,iErr)
+  
+  write(buffer,'("")')                                                 ; call msg2(buffer)
+  write(buffer,'("Echange cwipi_exchange_f",t130,"@rkw",i3)')rankWorld ; call msg1(buffer)  
   
   call cwipi_exchange_f(                       &
   &    couplingName=          "testPiPj"      ,&
@@ -777,24 +944,19 @@ program fortran_surf_TriaPi_PiPj
   &    nStep=1                                ,&  !> pas utilisee juste pour visu cwipi
   &    timeValue=0d0                          ,&  !> pas utilisee juste pour visu cwipi
   &    nNotLocatedPoints=notLocatedPoints     ,&
-  &    status=iErr                             )
-  
-  call mpi_barrier(commWorld,iErr)
-  if( rankWorld==0 )print '("Echange cwipi_exchange_f",t130,"Fait")'
-  call mpi_barrier(commWorld,iErr)  
+  &    status=iErr                             )  
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  call mpi_barrier(commWorld,iErr)
-  if( rankWorld==0 )print '(/"Delete coupling")'
-  call mpi_barrier(commWorld,iErr)
+  write(buffer,'("")')                                        ; call msg2(buffer)
+  write(buffer,'("Delete coupling",t130,"@rkw",i3)')rankWorld ; call msg1(buffer)  
+  
   call cwipi_delete_coupling_f("testPiPj")
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  call mpi_barrier(commWorld,iErr)
-  if( rankWorld==0 )print '(/"Controling Coupling Results")'
-  call mpi_barrier(commWorld,iErr)
+  write(buffer,'("")')                                           ; call msg2(buffer)
+  write(buffer,'("Controling Results",t130,"@rkw",i3)')rankWorld ; call msg1(buffer)
   
   iVertMax=1
   sumDelta= 0d0
@@ -830,23 +992,38 @@ program fortran_surf_TriaPi_PiPj
   
   sumDelta=sumDelta/real(linkVertSize,kind=8)  
   
+  j=(iVertMax-1)*3
+  k=(iVertMax-1)*stride
+  write(buffer,'(                                  &
+  &                                             a, &
+  &              3x,"Control",t130,"@rkw",i3   ,a, &
+  &              6x,"meshOrder=",i1            ,a, &
+  &              6x,"linkVertSize=",i6         ,a, &
+  &                                             a, &
+  &              6x,"deltaMin  =",e22.15       ,a, &
+  &              6x,"sumDelta  =",e22.15       ,a, &
+  &              6x,"deltaMax  =",e22.15       ,a, &
+  &                                             a, &
+  &              6x,"linkVert  =",3(e22.15,1x) ,a, &
+  &              6x,"linkValues=",3(e22.15,1x) ,a, &
+  &              6x,"Delta     =",3(e22.15,1x)     &
+  &                                             )')&
+  &                          char(10),&
+  & rankWorld               ,char(10),&
+  & meshOrder               ,char(10),&
+  & linkVertSize            ,char(10),&
+  &                          char(10),&
+  & deltaMin                ,char(10),&
+  & sumDelta                ,char(10),&
+  & deltaMax                ,char(10),&
+  &                          char(10),&
+  & linkVert  (j+1:j+3)     ,char(10),&
+  & linkValues(k+1:k+3)     ,char(10),&
+  & linkVert  (j+1:j+3)-linkValues(k+1:k+3)
   
-  do iRank=0,sizeWorld-1
-    if( iRank==rankWorld )then
-      print '(/3x,"meshOrder =",i2," controling linkValues - linkVertSize=",i6,t130,"@rkw",i3)',meshOrder,linkVertSize,rankWorld
-      j=(iVertMax-1)*3
-      k=(iVertMax-1)*4
-      print '(/3x,"deltaMin=min( |linkVert-linkValues|^2 )             =",e22.15,t130,"@rkw",i3)',deltaMin,rankWorld
-      print '( 3x,"sumDelta=sum( |linkVert-linkValues|^2 )/linkVertSize=",e22.15,t130,"@rkw",i3)',sumDelta,rankWorld
-      print '( 3x,"deltaMax=max( |linkVert-linkValues|^2 )             =",e22.15,t130,"@rkw",i3)',deltaMax,rankWorld
-      print '( 3x,"linkVert  (j+1:j+3)=",3(e22.15,1x),t130,"@rkw",i3)',linkVert  (j+1:j+3),rankWorld
-      print '( 3x,"linkValues(k+1:k+3)=",3(e22.15,1x),t130,"@rkw",i3)',linkValues(k+1:k+3),rankWorld
-    endif
-    call mpi_barrier(commWorld,iErr)
-  enddo
-  call mpi_barrier(commWorld,iErr)
+  call msg1(buffer)
   
-  
+    
   !call mpi_barrier(commWorld,iErr)  
   !do iRank=0,sizeWorld-1
   !  if( iRank==rankWorld )then
@@ -859,13 +1036,13 @@ program fortran_surf_TriaPi_PiPj
   
   
   
-  call mpi_allreduce(sumDelta,deltaMax,1,mpi_real8,mpi_max,commWorld,iErr)
-  if( sumDelta<1d-08 )then
-    if( rankWorld==0 )print '(/"SUCCESS: fortran_surf_TriaPi_PiPj"/)'
-  else
-    if( rankWorld==0 )print '(/"FAILED: fortran_surf_TriaPi_PiPj"/)'
-    stop
-  endif
+ !call mpi_allreduce(sumDelta,deltaMax,1,mpi_real8,mpi_max,commWorld,iErr)
+ !if( sumDelta<1d-08 )then
+ !  if( rankWorld==0 )print '(/"SUCCESS: fortran_surf_TriaPi_PiPj"/)'
+ !else
+ !  if( rankWorld==0 )print '(/"FAILED: fortran_surf_TriaPi_PiPj"/)'
+ !  stop
+ !endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
