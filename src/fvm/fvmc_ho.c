@@ -1969,7 +1969,7 @@ _default_location_generic_2d
   }
  
   const int n_it_max = 100;
-  const double err_max = 1e-20;
+  const double err_max = 1e-12;
 
   double dist2 = HUGE_VAL;
 
@@ -2033,7 +2033,7 @@ _default_location_generic_2d
                                                           &uncertain_result,
                                                           basis_generic);
 
-    if (1 == 1) {
+    if (1 == 0) {
       printf("\nCalcul distance triangle premier essai :\n");
       printf("          point_coords : %22.15e %22.15e %22.15e         \n", point_coords[0]    , point_coords[1]    , point_coords[2]);
       printf("  project point_coords : %22.15e %22.15e %22.15e - %22.15e\n", projected_coords[0], projected_coords[1], projected_coords[2], dist2);
@@ -2080,7 +2080,7 @@ _default_location_generic_2d
                                                             &err_proj,
                                                             basis_generic);
 
-      if (1 == 1) {
+      if (1 == 0) {
         printf("\nCalcul distance triangle deuxieme essai :\n");
         printf("          point_coords : %22.15e %22.15e %22.15e         \n", point_coords[0]    , point_coords[1]    , point_coords[2]);
         printf("  project point_coords : %22.15e %22.15e %22.15e - %22.15e\n", projected_coords[0], projected_coords[1], projected_coords[2], dist2);
