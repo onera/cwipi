@@ -57,56 +57,56 @@
 extern "C" {
   void PROCF(callfortinterpfct, CALLFORTINTERPFCT)
   ( int *entities_dim,
-      int *n_local_vertex,
-      int *n_local_element,
-      int *n_local_polhyedra,
-      int *n_distant_point,
-      double *local_coordinates,
-      int *local_connectivity_index,
-      int *local_connectivity,
-      int *local_polyhedra_face_index,
-      int *local_polyhedra_cell_to_face_connectivity,
-      int *local_polyhedra_face_connectivity_index,
-      int *local_polyhedra_face_connectivity,
-      double *distant_points_coordinates,
-      int *distant_points_location,
-      float *distant_points_distance,
-      int *distant_points_barycentric_coordinates_index,
-      double *distant_points_barycentric_coordinates,
-      int *data_dimension,
-      int *solver_type,
-      double *local_field,
-      double *distant_field,
-      void *ptFortranInterpolationFct
+    int *n_local_vertex,
+    int *n_local_element,
+    int *n_local_polhyedra,
+    int *n_distant_point,
+    double *local_coordinates,
+    int *local_connectivity_index,
+    int *local_connectivity,
+    int *local_polyhedra_face_index,
+    int *local_polyhedra_cell_to_face_connectivity,
+    int *local_polyhedra_face_connectivity_index,
+    int *local_polyhedra_face_connectivity,
+    double *distant_points_coordinates,
+    int *distant_points_location,
+    float *distant_points_distance,
+    int *distant_points_barycentric_coordinates_index,
+    double *distant_points_barycentric_coordinates,
+    int *data_dimension,
+    int *solver_type,
+    double *local_field,
+    double *distant_field,
+    void *ptFortranInterpolationFct
   );
 }
 
 extern "C" {
   void PROCF(callforthointerpfct, CALLFORTHOINTERPFCT)
   ( int *entities_dim,
-      int *n_local_vertex,
-      int *n_local_element,
-      int *n_local_polhyedra,
-      int *n_distant_point,
-      double *local_coordinates,
-      int *local_connectivity_index,
-      int *local_connectivity,
-      int *local_polyhedra_face_index,
-      int *local_polyhedra_cell_to_face_connectivity,
-      int *local_polyhedra_face_connectivity_index,
-      int *local_polyhedra_face_connectivity,
-      double *distant_points_coordinates,
-      int *distant_points_location,
-      float *distant_points_distance,
-      int *distant_points_weights_index,
-      double *distant_points_weights,
-      int *uvw_size,
-      double *distant_points_uvw,
-      int *data_dimension,
-      int *solver_type,
-      double *local_field,
-      double *distant_field,
-      void *ptFortranInterpolationFct
+    int *order,
+    int *n_local_vertex,
+    int *n_local_element,
+    int *n_local_polhyedra,
+    int *n_distant_point,
+    double *local_coordinates,
+    int *local_connectivity_index,
+    int *local_connectivity,
+    int *local_polyhedra_face_index,
+    int *local_polyhedra_cell_to_face_connectivity,
+    int *local_polyhedra_face_connectivity_index,
+    int *local_polyhedra_face_connectivity,
+    double *distant_points_coordinates,
+    int *distant_points_location,
+    float *distant_points_distance,
+    int *distant_points_weights_index,
+    double *distant_points_weights,
+    double *distant_points_uvw,
+    int *data_dimension,
+    int *solver_type,
+    double *local_field,
+    double *distant_field,
+    void *ptFortranInterpolationFct
   );
 }
 #endif
@@ -1364,7 +1364,6 @@ namespace cwipi {
                          stride);
         }
         else {
-          const int uvw_size = fvmc_nodal_get_max_entity_dim(&(_supportMesh->getFvmNodal()));
           const double *dist_uvw = fvmc_locator_get_dist_uvw(_locationToLocalMesh->getFVMLocator());
 
           if (ptFortranInterpolationFct != NULL) {
@@ -1372,6 +1371,7 @@ namespace cwipi {
             
             PROCF(callforthointerpfct, CALLFORTHOINTERPFCT) (
                                                          const_cast <int *> (&_entitiesDim),
+                                                         const_cast <int *> (&order),
                                                          const_cast <int *> (&nVertex),
                                                          const_cast <int *> (&nElts),
                                                          const_cast <int *> (&nPoly),
@@ -1388,7 +1388,6 @@ namespace cwipi {
                                                          const_cast <float *> (distantDistance),
                                                          const_cast <int *> (barycentricCoordinatesIndex),
                                                          const_cast <double *> (barycentricCoordinates),
-                                                         const_cast <int *> (&uvw_size),
                                                          const_cast <double *> (dist_uvw),
                                                          const_cast <int *> (&stride),
                                                          const_cast <int *> ((const int *) &_solverType),
@@ -1407,6 +1406,7 @@ namespace cwipi {
 
           else if (_interpolationFct != NULL)
             _ho_interpolationFct(_entitiesDim,
+                                 order,
                                  nVertex,
                                  nElts,
                                  nPoly,
@@ -1423,7 +1423,6 @@ namespace cwipi {
                                  distantDistance,
                                  barycentricCoordinatesIndex,
                                  barycentricCoordinates,
-                                 uvw_size,
                                  dist_uvw,
                                  stride,
                                  _solverType,
@@ -1437,6 +1436,7 @@ namespace cwipi {
 #ifndef CWP_HAVE_NOT_FORTRAN_IN_C            
             PROCF(callforthointerpfct, CALLFORTHOINTERPFCT) (
                                                          const_cast <int *> (&_entitiesDim),
+                                                         const_cast <int *> (&order),
                                                          const_cast <int *> (&nVertex),
                                                          const_cast <int *> (&nElts),
                                                          const_cast <int *> (&nPoly),
@@ -1453,7 +1453,6 @@ namespace cwipi {
                                                          const_cast <float *> (distantDistance),
                                                          const_cast <int *> (barycentricCoordinatesIndex),
                                                          const_cast <double *> (barycentricCoordinates),
-                                                         const_cast <int *> (&uvw_size),
                                                          const_cast <double *> (dist_uvw),
                                                          const_cast <int *> (&stride),
                                                          const_cast <int *> ((const int *) &_solverType),
@@ -1742,7 +1741,6 @@ namespace cwipi {
                          stride);
         }
         else {
-          const int uvw_size = fvmc_nodal_get_max_entity_dim(&(_supportMesh->getFvmNodal()));
           const double *dist_uvw = fvmc_locator_get_dist_uvw(_locationToLocalMesh->getFVMLocator());
 
           if (ptFortranInterpolationFct != NULL) {
@@ -1750,6 +1748,7 @@ namespace cwipi {
             
             PROCF(callforthointerpfct, CALLFORTHOINTERPFCT) (
                                                          const_cast <int *> (&_entitiesDim),
+                                                         const_cast <int *> (&order),
                                                          const_cast <int *> (&nVertex),
                                                          const_cast <int *> (&nElts),
                                                          const_cast <int *> (&nPoly),
@@ -1766,7 +1765,6 @@ namespace cwipi {
                                                          const_cast <float *> (distantDistance),
                                                          const_cast <int *> (barycentricCoordinatesIndex),
                                                          const_cast <double *> (barycentricCoordinates),
-                                                         const_cast <int *> (&uvw_size),
                                                          const_cast <double *> (dist_uvw),
                                                          const_cast <int *> (&stride),
                                                          const_cast <int *> ((const int *) &_solverType),
@@ -1785,6 +1783,7 @@ namespace cwipi {
 
           else if (_interpolationFct != NULL)
             _ho_interpolationFct(_entitiesDim,
+                                 order,
                                  nVertex,
                                  nElts,
                                  nPoly,
@@ -1801,7 +1800,6 @@ namespace cwipi {
                                  distantDistance,
                                  barycentricCoordinatesIndex,
                                  barycentricCoordinates,
-                                 uvw_size,
                                  dist_uvw,
                                  stride,
                                  _solverType,
@@ -1815,6 +1813,7 @@ namespace cwipi {
 #ifndef CWP_HAVE_NOT_FORTRAN_IN_C            
             PROCF(callforthointerpfct, CALLFORTHOINTERPFCT) (
                                                          const_cast <int *> (&_entitiesDim),
+                                                         const_cast <int *> (&order),
                                                          const_cast <int *> (&nVertex),
                                                          const_cast <int *> (&nElts),
                                                          const_cast <int *> (&nPoly),
@@ -1831,7 +1830,6 @@ namespace cwipi {
                                                          const_cast <float *> (distantDistance),
                                                          const_cast <int *> (barycentricCoordinatesIndex),
                                                          const_cast <double *> (barycentricCoordinates),
-                                                         const_cast <int *> (&uvw_size),
                                                          const_cast <double *> (dist_uvw),
                                                          const_cast <int *> (&stride),
                                                          const_cast <int *> ((const int *) &_solverType),

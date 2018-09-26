@@ -230,6 +230,7 @@ end module additionnal_Functions
 
 subroutine  userInterpolation                        ( &
   &           entitiesDim                             ,&
+  &           order                                   ,&
   &           nLocalVertex                            ,&
   &           nLocalElement                           ,&
   &           nLocalPolhyedra                         ,&
@@ -249,7 +250,6 @@ subroutine  userInterpolation                        ( &
   &           disPtsDistance                          ,&
   &           disPtsBaryCoordIdx                      ,&
   &           distantPointsBarycentricCoordinates     ,&
-  &           uvw_size                                ,& !> new cwipi (va disparaitre)
   &           dist_uvw                                ,& !> new cwipi
   &                                                    &
   &           stride                                  ,& ! =ker(calc)
@@ -268,6 +268,7 @@ subroutine  userInterpolation                        ( &
   implicit none
   !---
   integer :: entitiesDim
+  integer :: order
   integer :: nLocalVertex
   integer :: nLocalElement
   integer :: nLocalPolhyedra
@@ -284,7 +285,6 @@ subroutine  userInterpolation                        ( &
   real(4) :: disPtsDistance                          (*)
   integer :: disPtsBaryCoordIdx                      (*)
   real(8) :: distantPointsBarycentricCoordinates     (*)
-  integer :: uvw_size
   real(8) :: dist_uvw                                (*)
   integer :: stride
   integer :: solverType
@@ -437,6 +437,7 @@ program fortran_surf_TriaPi_PiPj
   interface
     subroutine  userInterpolation                      ( &
     &           entitiesDim                             ,&
+    &           order                                   ,&
     &           nLocalVertex                            ,&
     &           nLocalElement                           ,&
     &           nLocalPolhyedra                         ,&
@@ -456,7 +457,6 @@ program fortran_surf_TriaPi_PiPj
     &           disPtsDistance                          ,&
     &           disPtsBaryCoordIdx                      ,&
     &           distantPointsBarycentricCoordinates     ,&
-    &           uvw_size                                ,&
     &           dist_uvw                                ,&
     &                                                    &
     &           stride                                  ,&  ! =ker(calc)
@@ -465,6 +465,7 @@ program fortran_surf_TriaPi_PiPj
     &           distantField                             )  ! linkSolu
     !---
     integer :: entitiesDim
+    integer :: order
     integer :: nLocalVertex
     integer :: nLocalElement
     integer :: nLocalPolhyedra
@@ -481,7 +482,6 @@ program fortran_surf_TriaPi_PiPj
     real(4) :: disPtsDistance                          (*)
     integer :: disPtsBaryCoordIdx                      (*)
     real(8) :: distantPointsBarycentricCoordinates     (*)
-    integer :: uvw_size
     real(8) :: dist_uvw(*)
     integer :: stride
     integer :: solverType

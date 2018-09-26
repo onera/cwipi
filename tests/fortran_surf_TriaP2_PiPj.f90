@@ -213,6 +213,7 @@ end module variablesCommunes
 
 subroutine  userInterpolation                        ( &
   &           entitiesDim                             ,&
+  &           order                                   ,&
   &           nLocalVertex                            ,&
   &           nLocalElement                           ,&
   &           nLocalPolhyedra                         ,&
@@ -232,7 +233,6 @@ subroutine  userInterpolation                        ( &
   &           disPtsDistance                          ,&
   &           disPtsBaryCoordIdx                      ,&
   &           distantPointsBarycentricCoordinates     ,&
-  &           uvw_size                                ,& !> new cwipi
   &           dist_uvw                                ,& !> new cwipi
   &                                                    &
   &           stride                                  ,&  ! =ker(calc)
@@ -252,6 +252,7 @@ subroutine  userInterpolation                        ( &
   implicit none
   !---
   integer :: entitiesDim
+  integer :: order
   integer :: nLocalVertex
   integer :: nLocalElement
   integer :: nLocalPolhyedra
@@ -268,7 +269,6 @@ subroutine  userInterpolation                        ( &
   real(4) :: disPtsDistance                          (*)
   integer :: disPtsBaryCoordIdx                      (*)
   real(8) :: distantPointsBarycentricCoordinates     (*)
-  integer :: uvw_size
   real(8) :: dist_uvw                                (*)
   integer :: stride
   integer :: solverType
@@ -389,13 +389,13 @@ subroutine  userInterpolation                        ( &
   if( visu )then
     do iRank=0,sizeWorld-1
       if( iRank==rankWorld )then    
-        print '(/3x,"meshOrder=",i1," compOrder=",i2," stride_uvw=",i2,t120,"@rkw",i3)',meshOrder,compOrder,uvw_size,rankWorld
+        print '(/3x,"meshOrder=",i1," compOrder=",i2," stride_uvw=",i2,t120,"@rkw",i3)',meshOrder,compOrder,entitiesDim,rankWorld
         call mpi_barrier(commWorld,iErr)
         iVert=0
         do iDistantPoint=1,nDistantPoint
-         !print '(6x,"dist_uvw(",i3,")=",*(e22.15,1x))',iDistantPoint,dist_uvw(iVert+1:iVert+uvw_size)
+         !print '(6x,"dist_uvw(",i3,")=",*(e22.15,1x))',iDistantPoint,dist_uvw(iVert+1:iVert+entitiesDim)
           if( iRank==1 .and. iDistantPoint==29 )print '(6x,"uv (1:2,",i3,")=",2(e22.15,1x))',iDistantPoint,uv(1:2,iDistantPoint)
-          iVert=iVert+uvw_size
+          iVert=iVert+entitiesDim
         enddo
       endif
       call mpi_barrier(commWorld,iErr)
@@ -553,6 +553,7 @@ program fortran_surf_TriaP2_PiPj
   interface
     subroutine  userInterpolation                      ( &
     &           entitiesDim                             ,&
+    &           order                                   ,&
     &           nLocalVertex                            ,&
     &           nLocalElement                           ,&
     &           nLocalPolhyedra                         ,&
@@ -572,7 +573,6 @@ program fortran_surf_TriaP2_PiPj
     &           disPtsDistance                          ,&
     &           disPtsBaryCoordIdx                      ,&
     &           distantPointsBarycentricCoordinates     ,&
-    &           uvw_size                                ,&
     &           dist_uvw                                ,&
     &                                                    &
     &           stride                                  ,&  ! =ker(calc)
@@ -581,6 +581,7 @@ program fortran_surf_TriaP2_PiPj
     &           distantField                             )  ! linkSolu
     !---
     integer :: entitiesDim
+    integer :: order
     integer :: nLocalVertex
     integer :: nLocalElement
     integer :: nLocalPolhyedra
@@ -597,7 +598,6 @@ program fortran_surf_TriaP2_PiPj
     real(4) :: disPtsDistance                          (*)
     integer :: disPtsBaryCoordIdx                      (*)
     real(8) :: distantPointsBarycentricCoordinates     (*)
-    integer :: uvw_size
     real(8) :: dist_uvw(*)
     integer :: stride
     integer :: solverType

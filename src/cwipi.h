@@ -224,6 +224,7 @@ typedef void (*cwipi_interpolation_fct_t)
  *
  * entities_dim                              <-- entities dimension of
  *                                               the local mesh (1, 2 or 3)
+ * order                                     <-- Mesh order
  * n_local_vertex                            <-- local mesh vertices number
  * n_local_element                           <-- local mesh elements number
  *                                               (without polyhedra)
@@ -252,7 +253,6 @@ typedef void (*cwipi_interpolation_fct_t)
  *                                               size: n_distant_point + 1
  * distant_points_weights                    <-- distant point weights
  *                                             size: distant_points_barycentric_coordinates_index[n_distant_point]
- * uvw_size                                  <-- size of uvw (1, 2 or 3)
  * distant_points_uvw                        <-- parametric coordinates of distant points (size = uvw_size * n_distant_point)
  * stride                                    <-- interlaced field number
  * local_field                               <-- local field
@@ -262,6 +262,7 @@ typedef void (*cwipi_interpolation_fct_t)
 
 typedef void (*cwipi_user_interp_ho_fct_t)
   (const int entities_dim,
+   const int order,
    const int n_local_vertex,
    const int n_local_element,
    const int n_local_polhyedra,
@@ -278,10 +279,9 @@ typedef void (*cwipi_user_interp_ho_fct_t)
    const float distant_points_distance[],
    const int distant_points_weights_index[],
    const double distant_points_weights[],
-   const int uvw_size,
    const double distant_points_uvw[],
    const int stride,
-   const cwipi_solver_type_t  solver_type,
+   const cwipi_solver_type_t solver_type,
    const void *local_field,
    void *distant_field
    );
