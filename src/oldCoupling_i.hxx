@@ -30,7 +30,17 @@ namespace cwipi {
     return &(_distance[0]);
   }
 
+  
+  void oldCoupling::set_data_user(void *data)
+  {
+    _data_user = data;
+  }
 
+  void* oldCoupling::get_data_user(void)
+  {
+    return _data_user;
+  }
+  
   void  oldCoupling::set_interpolation_function(cwipi_interpolation_fct_t fct)
   {
     _interpolationFct = fct;

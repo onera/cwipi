@@ -159,6 +159,7 @@ namespace cwipi {
     _toLocate = true;
     _isCoupledRank = false;
     _locationsFile_position = 0;
+    _data_user = NULL;
   
 
     //

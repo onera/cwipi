@@ -830,6 +830,39 @@ void cwipi_create_coupling
 /*   int   isCoupled (TRUE/FALSE), */
 /*   ...); */
 
+/*----------------------------------------------------------------------------
+ *
+ * Set data user (optional)
+ *
+ * parameters:
+ *   coupling_name           <-- Coupling identifier
+ *   data                    <-- data user        
+ *----------------------------------------------------------------------------*/
+
+void
+cwipi_set_data_user
+(
+ const char  *coupling_name,
+       void  *data
+);
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Get data user (optional)
+ *
+ * parameters:
+ *   coupling_name           <-- Coupling identifier
+ *
+ * return :
+ *   data 
+ *----------------------------------------------------------------------------*/
+
+void *
+cwipi_get_data_user
+(
+ const char  *coupling_name
+);
 
 /*----------------------------------------------------------------------------
  *
