@@ -3,6 +3,87 @@ module baseSimplex1D
   implicit none
   contains
   
+  
+  subroutine setL2MeshIJK(meshOrder,ijk)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer, intent(in)    :: meshOrder
+    integer, intent(inout) :: ijk(:)
+    !>
+    integer                :: iMod,nMod
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> 01 03 03 05 02
+    nMod=(meshOrder+1)
+    
+    ij(1)=0
+    ij(2)=meshOrder
+    do iMod=3,nMod
+      ijk(iMod)=iMod-2
+    enddo
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+    
+    return
+  end subroutine setL2MeshIJK
+  
+  subroutine setL2BasisEqui(ord,ijk,uvw,ai)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    ! Calcul des base d'ordere ord pour des triangles dont les points
+    ! d'interpolation sont equidistants.
+    ! Numerotation des sommets suivant ijk
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    use baseSimplexTools, only: monomialProduct
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer, intent(in)    :: ord 
+    integer, intent(in)    :: ijk(:)       !> ijk(1:nMod)
+    real(8), intent(in)    :: uvw(:)       !> uvw(1:nNod)
+    real(8), intent(inout) :: ai(:,:)      !> ai(1:nMod,1:nNod)
+    !>
+    real(8), pointer       :: u(:),v(:)
+    integer                :: iMod,nMod    !> nMod=(ord+1)*(ord+2)/2
+    integer                :: iNod,nNod    !> nNod=size(u) 
+    integer                :: iu,iv,iw
+    integer                :: i
+    real(8), pointer       :: fu(:),fv(:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> bases de Lagrange
+    !print '(/"calcul des bases Triangle P",i1)',ord
+    
+    nNod=size(uvw)
+    allocate( u(1:nNod), v(1:nNod))
+    allocate(fu(1:nNod),fv(1:nNod))
+    do iNod=1,nNod
+      u(iNod)=(uvw(iNod)-1d0)*5d-1 !> u \in [-1,+1] => u \in [0,1]
+      v(iNod)=1d0-u(iNod)
+    enddo
+    
+    !print '("size(ai)=",i2,"x",i2)',size(ai,1),size(ai,2)
+    nMod=(ord+1)
+    do iMod=1,nMod
+      iu=ijk(iMod)
+      iv=1d0-iu
+      
+      call monomialProduct(ord=ord,n=iu,u=u, fn=fu)
+      call monomialProduct(ord=ord,n=iv,u=v, fn=fv)
+      
+      !print '(3x,"iMod=",i3,3x,"iu=",i3," iv=",i3)',iMod,iu,iv
+      do iNod=1,nNod
+        ai(iMod,iNod)=fu(iNod)*fv(iNod)
+      enddo
+      
+    enddo
+    
+    deallocate(u,v,fu,fv)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine setL2BasisEqui  
+  
+  
   subroutine nodes1D(ord, uvw, display)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     ! input: ord=polynomial order of interpolant
