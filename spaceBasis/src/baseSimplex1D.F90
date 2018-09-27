@@ -3,7 +3,6 @@ module baseSimplex1D
   implicit none
   contains
   
-  
   subroutine setL2MeshIJK(meshOrder,ijk)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)    :: meshOrder
@@ -16,8 +15,8 @@ module baseSimplex1D
     !> 01 03 03 05 02
     nMod=(meshOrder+1)
     
-    ij(1)=0
-    ij(2)=meshOrder
+    ijk(1)=0
+    ijk(2)=meshOrder
     do iMod=3,nMod
       ijk(iMod)=iMod-2
     enddo
