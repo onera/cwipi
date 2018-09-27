@@ -164,85 +164,7 @@ end module spaceMessages
 module additionnal_Functions
 
 contains
-  
-  subroutine TriangleIJ(meshOrder,ij)
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    integer, intent(in)    :: meshOrder
-    integer, intent(inout) :: ij(:,:)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
     
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    if    ( meshOrder==1 )then !> TriangleP1
-    
-      ! 03
-      ! 01 02
-      
-      ij(1:2,01)=[0,0] !> 1
-      ij(1:2,02)=[1,0] !> 2
-      ij(1:2,03)=[0,1] !> 3
-      
-    elseif( meshOrder==2 )then !> TriangleP2
-      
-      ! 03
-      ! 06 05
-      ! 01 04 02
-      
-      ij(1:2,01)=[0,0] !> 1
-      ij(1:2,02)=[2,0] !> 2
-      ij(1:2,03)=[0,2] !> 3
-      ij(1:2,04)=[1,0] !> 4
-      ij(1:2,05)=[1,1] !> 5
-      ij(1:2,06)=[0,1] !> 6
-      
-    elseif(meshOrder==3 )then !> TriangleP3
-      
-      ! 03
-      ! 08 07
-      ! 09 10 06
-      ! 01 04 05 02
-      
-      ij(1:2,01)=[0,0] !> 01
-      ij(1:2,02)=[3,0] !> 02
-      ij(1:2,03)=[0,3] !> 03
-      ij(1:2,04)=[1,0] !> 04
-      ij(1:2,05)=[2,0] !> 05
-      ij(1:2,06)=[2,1] !> 06
-      ij(1:2,07)=[1,2] !> 07
-      ij(1:2,08)=[0,2] !> 08
-      ij(1:2,09)=[0,1] !> 09
-      ij(1:2,10)=[1,1] !> 10
-      
-    elseif(meshOrder==4 )then !> TriangleP4
-    
-      !> 03
-      !> 10 09
-      !> 11 15 08
-      !> 12 13 14 07
-      !> 01 04 05 06 02
-      
-      ij(1:2,01)=[0,0] !> 01
-      ij(1:2,02)=[4,0] !> 02
-      ij(1:2,03)=[0,4] !> 03
-      ij(1:2,04)=[1,0] !> 04
-      ij(1:2,05)=[2,0] !> 05
-      ij(1:2,06)=[3,0] !> 06
-      ij(1:2,07)=[3,1] !> 07
-      ij(1:2,08)=[2,2] !> 08
-      ij(1:2,09)=[1,3] !> 09
-      ij(1:2,10)=[0,3] !> 10
-      ij(1:2,11)=[0,2] !> 11
-      ij(1:2,12)=[0,1] !> 12
-      ij(1:2,13)=[1,1] !> 13
-      ij(1:2,14)=[2,1] !> 14
-      ij(1:2,15)=[1,2] !> 15
-      
-    else ; stop "TriangleIJ meshOrder>4 not implemented"
-    endif
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
-    
-    return
-  end subroutine TriangleIJ
-  
   subroutine setT3MeshBasis_P1(uv,ai)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Numerotation des sommets
@@ -306,8 +228,6 @@ contains
     
 end module additionnal_Functions
 
-
-
 subroutine  userInterpolation                        ( &
   &           entitiesDim                             ,&
   &           nLocalVertex                            ,&
@@ -339,7 +259,7 @@ subroutine  userInterpolation                        ( &
   !---
   use iso_c_binding, only: c_loc,c_f_pointer
   use cwipi
-  use baseSimplex2D, only: setT3BasisEqui
+  use baseSimplex2D, only: setT3BasisEqui,setT3MeshIJK
   
   use variablesCommunes
   use additionnal_Functions
@@ -407,8 +327,8 @@ subroutine  userInterpolation                        ( &
   case default
     
     allocate(ij(1:2,1:nMod))
-    call TriangleIJ(meshOrder=meshOrder,ij=ij)
-    call setT3BasisEqui(ord=meshOrder,ij=ij,uv=uv,ai=lagrangeMesh)
+    call setT3MeshIJK(meshOrder=meshOrder,ij=ij)
+    call setT3BasisEqui(ord=meshOrder,ijk=ij,uvw=uv,ai=lagrangeMesh)
     deallocate(ij)
   end select
   
@@ -504,7 +424,7 @@ program fortran_surf_TriaPi_PiPj
   
   use mpi
   use cwipi  
-  use baseSimplex2D, only: nodes2D,setT3BasisEqui
+  use baseSimplex2D, only: nodes2D,setT3BasisEqui,setT3MeshIJK
   
   use variablesCommunes
   use additionnal_Functions
@@ -804,7 +724,7 @@ do meshOrder=1,3
   nMod=(meshOrder+1)*(meshOrder+2)/2
   allocate(ij(1:2,nMod))
   
-  call TriangleIJ(meshOrder=meshOrder,ij=ij)
+  call setT3MeshIJK(meshOrder=meshOrder,ij=ij)
   
   call c_f_pointer(cptr=c_loc(ij), fptr=ijCwipi, shape=[2*nMod])  
   
@@ -852,8 +772,8 @@ do meshOrder=1,3
   case default
     
     allocate(ij(1:2,1:nMod))
-    call TriangleIJ(meshOrder=meshOrder,ij=ij)
-    call setT3BasisEqui(ord=meshOrder,ij=ij,uv=uv,ai=lagrangeMesh)
+    call setT3MeshIJK(meshOrder=meshOrder,ij=ij)
+    call setT3BasisEqui(ord=meshOrder,ijk=ij,uvw=uv,ai=lagrangeMesh)
     deallocate(ij)
     
   end select
