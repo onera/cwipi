@@ -14,7 +14,68 @@ module baseSimplex2D
   interface lagrange2Dv  ; module procedure lagrange2Dv_2  ; end interface
   
   contains
-
+  
+  subroutine setT3BasisEqui(ord,ij,uv,ai)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    ! Calcul des base d'ordere ord pour des triangles dont les points
+    ! d'interpolation sont equidistants.
+    ! Numerotation des sommets suivant ij
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    use baseSimplexTools, only: monomialProduct
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer, intent(in)    :: ord 
+    integer, intent(in)    :: ij(:,:)      !> ij(1:2,1:nMod)
+    real(8), intent(in)    :: uv(:,:)      !> uv(1:2,1:nNod)
+    real(8), intent(inout) :: ai(:,:)      !> ai(1:nMod,1:nNod)
+    !>
+    real(8), pointer       :: u(:),v(:),w(:)
+    integer                :: iMod,nMod    !> nMod=(ord+1)*(ord+2)/2
+    integer                :: iNod,nNod    !> nNod=size(uv,2) 
+    integer                :: iu,iv,iw
+    integer                :: i
+    real(8), pointer       :: fu(:),fv(:),fw(:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> bases de Lagrange
+    !print '(/"calcul des bases Triangle P",i1)',ord
+    
+    nNod=size(uv,2)    
+    allocate( u(1:nNod), v(1:nNod), w(1:nNod))
+    allocate(fu(1:nNod),fv(1:nNod),fw(1:nNod) )
+    do iNod=1,nNod
+      u(iNod)=uv(1,iNod)
+      v(iNod)=uv(2,iNod)
+      w(iNod)=1d0-u(iNod)-v(iNod)
+    enddo
+    
+    !print '("size(ai)=",i2,"x",i2)',size(ai,1),size(ai,2)
+    nMod=(ord+1)*(ord+2)/2
+    do iMod=1,nMod
+      iu=ij(1,iMod)
+      iv=ij(2,iMod)
+      iw=ord-iu-iv
+      
+      call monomialProduct(ord=ord,n=iu,u=u, fn=fu)
+      call monomialProduct(ord=ord,n=iv,u=v, fn=fv)
+      call monomialProduct(ord=ord,n=iw,u=w, fn=fw)
+      
+      !print '(3x,"iMod=",i3,3x,"iu=",i3," iv=",i3," iw=",i3)',iMod,iu,iv,iw
+      do iNod=1,nNod
+        ai(iMod,iNod)=fu(iNod)*fv(iNod)*fw(iNod)
+      enddo
+      
+    enddo
+    
+    deallocate(u,v,w,fu,fv,fw)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine setT3BasisEqui
+    
+  
   subroutine free_double_c(array, s_array)  BIND(C, name="SNB_free_double")
     use, intrinsic :: ISO_C_BINDING 
     implicit none 

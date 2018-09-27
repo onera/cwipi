@@ -242,7 +242,7 @@ contains
     
     return
   end subroutine TriangleIJ
-    
+  
   subroutine setT3MeshBasis_P1(uv,ai)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Numerotation des sommets
@@ -303,86 +303,7 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return
   end subroutine setT3MeshBasis_P2
-  
-  subroutine setT3Basis_Pi(ord,ij,uv,ai)
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Numerotation des sommets suivant ij
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> delcaration des variables passees en argument
-    integer, intent(in)    :: ord
-    integer, intent(in)    :: ij(:,:)
-    real(8), intent(in)    :: uv(:,:)
-    real(8), intent(inout) :: ai(:,:)
-    !>
-    real(8), pointer       :: u(:),v(:),w(:)
-    integer                :: iMod,nMod
-    integer                :: iNod,nNod
-    integer                :: iu,iv,iw
-    integer                :: i
-    real(8), pointer       :: fu(:),fv(:),fw(:)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> bases de Lagrange
-    !print '(/"calcul des bases Triangle P",i1)',ord
     
-    nNod=size(uv,2)    
-    allocate( u(1:nNod), v(1:nNod), w(1:nNod))
-    allocate(fu(1:nNod),fv(1:nNod),fw(1:nNod) )
-    do iNod=1,nNod
-      u(iNod)=uv(1,iNod)
-      v(iNod)=uv(2,iNod)
-      w(iNod)=1d0-u(iNod)-v(iNod)
-    enddo
-    
-    !print '("size(ai)=",i2,"x",i2)',size(ai,1),size(ai,2)
-    
-    nMod=(ord+1)*(ord+2)/2
-    do iMod=1,nMod
-      iu=ij(1,iMod)
-      iv=ij(2,iMod)
-      iw=ord-iu-iv
-      
-      call prodMonome(ord=ord,n=iu,u=u, fn=fu)
-      call prodMonome(ord=ord,n=iv,u=v, fn=fv)
-      call prodMonome(ord=ord,n=iw,u=w, fn=fw)
-      
-      !print '(3x,"iMod=",i3,3x,"iu=",i3," iv=",i3," iw=",i3)',iMod,iu,iv,iw
-      do iNod=1,nNod
-        ai(iMod,iNod)=fu(iNod)*fv(iNod)*fw(iNod)
-      enddo
-      
-    enddo
-    
-    deallocate(u,v,w,fu,fv,fw)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    return
-  end subroutine setT3Basis_Pi
-  
-  
-subroutine prodMonome(ord,n,u, fn)
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  integer, intent(in)    :: ord,n
-  real(8), intent(in)    :: u (:)
-  real(8), intent(inout) :: fn(:)
-  !>
-  integer                :: i,iNod
-  real(8)                :: constant
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>  
-  fn(:)=1d0
-  do i=0,n-1
-    constant=1d0/real(i-n,kind=8)
-    do iNod=1,size(u)
-      fn(iNod)=fn(iNod)*(real(i,kind=8)-real(ord,kind=8)*u(iNod))*constant
-    enddo
-  enddo
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  return
-end subroutine prodMonome
-  
-  
-  
 end module additionnal_Functions
 
 
@@ -418,7 +339,7 @@ subroutine  userInterpolation                        ( &
   !---
   use iso_c_binding, only: c_loc,c_f_pointer
   use cwipi
-  use baseSimplex2D
+  use baseSimplex2D, only: setT3BasisEqui
   
   use variablesCommunes
   use additionnal_Functions
@@ -487,16 +408,8 @@ subroutine  userInterpolation                        ( &
     
     allocate(ij(1:2,1:nMod))
     call TriangleIJ(meshOrder=meshOrder,ij=ij)
-    call setT3Basis_Pi(ord=meshOrder,ij=ij,uv=uv,ai=lagrangeMesh)
+    call setT3BasisEqui(ord=meshOrder,ij=ij,uv=uv,ai=lagrangeMesh)
     deallocate(ij)
-    !call nodes2Duv2ab(uv=uv,a=a,b=b ,display=.false.) !> rs(1:2,:)=2d0*uv(1:2,:)-1d0 && a=2 (1+r)/(1-s)-1 && b=s
-    !call lagrange2Dv(      &
-    !&    ord=meshOrder    ,&
-    !&    vand=vand        ,&
-    !&    a=a,b=b          ,&
-    !&    lx=lagrangeMesh  ,&
-    !&    transpose=.true.  ) !> lagrangeMesh(1:nMod,1:nNod) nNod=size(u)
-    !deallocate(a,b)    
   end select
   
   j=0
@@ -591,7 +504,7 @@ program fortran_surf_TriaPi_PiPj
   
   use mpi
   use cwipi  
-  use baseSimplex2D
+  use baseSimplex2D, only: nodes2D,setT3BasisEqui
   
   use variablesCommunes
   use additionnal_Functions
@@ -658,29 +571,26 @@ program fortran_surf_TriaPi_PiPj
   end interface
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  character(5)     :: codeName,codeCoupledName  
-  character(128)   :: meshName
+  character(5)       :: codeName,codeCoupledName  
+  character(128)     :: meshName
   
-  integer          :: iVert,nVert
-  real(8), pointer :: vertx(:)
-  integer, pointer :: cells(:),cellsIdx(:)
-  integer, pointer :: nod(:)  !> ensemble des noeuds pour iCell : cel=>cells(cellsIdx(iCell)+1:cellsIdx(iCell+1))
+  integer            :: iVert,nVert
+  real(8), pointer   :: vertx(:)
+  integer, pointer   :: cells(:),cellsIdx(:)
+  integer, pointer   :: nod(:)  !> ensemble des noeuds pour iCell : cel=>cells(cellsIdx(iCell)+1:cellsIdx(iCell+1))
 
   
-  character(80)      :: key
+  character(256)     :: key
   integer, parameter :: iFile=100
   logical            :: test
   
-  
-  integer          :: i,j,k
-  integer          :: iMod,nMod
-  integer          :: iNod,nNod
-  integer          :: iCell,nCell
+  integer            :: i,j,k
+  integer            :: iMod,nMod
+  integer            :: iNod,nNod
+  integer            :: iCell,nCell
   
   integer, pointer :: ij(:,:),ijCwipi(:)
   real(8), pointer :: lagrangeMesh(:,:)
-!  real(8), pointer :: xi(:,:)
-!  real(8), pointer :: a(:),b(:)
   
   real(8)          :: tol
   real(8)          :: xyz(1:3)
@@ -699,7 +609,9 @@ program fortran_surf_TriaPi_PiPj
   integer          :: iVertMax
   real(8)          :: delta,deltaMin,deltaMax,sumDelta
   character(1024)  :: buffer
+  real(8)          :: t0,t1
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   call mpi_init(iErr)
@@ -714,6 +626,10 @@ program fortran_surf_TriaPi_PiPj
   write(buffer,'("START: fortran_surf_TriaPi_PiPj")') ; call msg2(buffer)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
+do meshOrder=1,3
+  
+  call cpu_time(t0)
+
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Initialisation de l'interface de couplage
   select case(rankWorld)
@@ -742,7 +658,7 @@ program fortran_surf_TriaPi_PiPj
 !  call mpi_barrier(commWorld,iErr)
 
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  tol=1d-2
+  tol=1d-1 
   
   write(buffer,'("")')                                                         ; call msg2(buffer)
   write(buffer,'("Create coupling tol=",e22.15,t130,"@rkw",i3)')tol,rankWorld  ; call msg1(buffer)
@@ -772,22 +688,25 @@ program fortran_surf_TriaPi_PiPj
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Création des maillages avec gmsh
-  select case(rankWorld)
-  case(0) ; meshOrder=3 !07 !07
-  case(1) ; meshOrder=3 !07 !10
-  end select
+  !select case(rankWorld)
+  !case(0) ; meshOrder=2
+  !case(1) ; meshOrder=2
+  !end select
+  
+ !meshOrder=2
   
   write(buffer,'("")')                                                   ; call msg2(buffer)
   write(buffer,'(3x,"meshOrder=",i3,t130,"@rkw",i3)')meshOrder,rankWorld ; call msg1(buffer)
   
   select case(rankWorld)
   case(0)
-    write(key,'("gmsh spaceBasis/tests/Mesh2D/sphere01.geo -2 -format msh -order ",i1," > sphere01.log")')meshOrder
+    write(key,'("gmsh spaceBasis/tests/Mesh2D/sphere01.geo -2 -tol ",f5.3," -format msh -order ",i1," > sphere01.log")')tol,meshOrder
+    print '(a)',trim(key)
     call execute_command_line (key, exitstat=iErr)
     write(key,'("~/Maillages/mshTomesh spaceBasis/tests/Mesh2D/sphere01.msh >> sphere01.log")')
     call execute_command_line (key, exitstat=iErr)
   case(1)
-    write(key,'("gmsh spaceBasis/tests/Mesh2D/sphere02.geo -2 -format msh -order ",i1," > sphere02.log")')meshOrder
+    write(key,'("gmsh spaceBasis/tests/Mesh2D/sphere02.geo -2 -tol ",f5.3," -format msh -order ",i1," > sphere02.log")')tol,meshOrder
     call execute_command_line (key, exitstat=iErr)
     write(key,'("~/Maillages/mshTomesh spaceBasis/tests/Mesh2D/sphere02.msh >> sphere02.log")')
     call execute_command_line (key, exitstat=iErr)
@@ -821,12 +740,12 @@ program fortran_surf_TriaPi_PiPj
     case("Quadrilaterals","QuadrilateralsQ2","QuadrilateralsQ3","Triangles","TrianglesP2","TrianglesP3")
       
       select case(trim(key))
-      case("Quadrilaterals"  ) ; meshOrder=1 ; nMod=(meshOrder+1)*(meshOrder+1)
-      case("QuadrilateralsQ2") ; meshOrder=2 ; nMod=(meshOrder+1)*(meshOrder+1)
-      case("QuadrilateralsQ3") ; meshOrder=3 ; nMod=(meshOrder+1)*(meshOrder+1)
-      case("Triangles"       ) ; meshOrder=1 ; nMod=(meshOrder+1)*(meshOrder+2)/2
-      case("TrianglesP2"     ) ; meshOrder=2 ; nMod=(meshOrder+1)*(meshOrder+2)/2
-      case("TrianglesP3"     ) ; meshOrder=3 ; nMod=(meshOrder+1)*(meshOrder+2)/2
+      case("Quadrilaterals"  ) ; nMod=(meshOrder+1)*(meshOrder+1)
+      case("QuadrilateralsQ2") ; nMod=(meshOrder+1)*(meshOrder+1)
+      case("QuadrilateralsQ3") ; nMod=(meshOrder+1)*(meshOrder+1)
+      case("Triangles"       ) ; nMod=(meshOrder+1)*(meshOrder+2)/2
+      case("TrianglesP2"     ) ; nMod=(meshOrder+1)*(meshOrder+2)/2
+      case("TrianglesP3"     ) ; nMod=(meshOrder+1)*(meshOrder+2)/2
       end select
       
       read(iFile,*)nCell
@@ -934,9 +853,9 @@ program fortran_surf_TriaPi_PiPj
     
     allocate(ij(1:2,1:nMod))
     call TriangleIJ(meshOrder=meshOrder,ij=ij)
-    call setT3Basis_Pi(ord=meshOrder,ij=ij,uv=uv,ai=lagrangeMesh)
+    call setT3BasisEqui(ord=meshOrder,ij=ij,uv=uv,ai=lagrangeMesh)
     deallocate(ij)
-        
+    
   end select
   deallocate(uv)
   
@@ -1132,7 +1051,14 @@ program fortran_surf_TriaPi_PiPj
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   call cwipi_finalize_f()
+  
+  call cpu_time(t1)
+  write(buffer,'("")')                                                         ; call msg2(buffer)
+  write(buffer,'(3x,"cpu_time=",f12.5," s",t130,"@rkw",i3)')t1-t0,rankWorld  ; call msg1(trim(buffer))
+  
+enddo
   call mpi_finalize(iErr)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
   
 end program fortran_surf_TriaPi_PiPj
