@@ -4,7 +4,7 @@
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
 #Bring the headers, such as Student.h into the project
-include_directories(include)
+#include_directories(include)
 
 
 file(GLOB_RECURSE SOURCES
@@ -90,6 +90,7 @@ set (_targets "")
 if (SNB_ENABLE_SHARED)
   set_property(TARGET ${spaceBasis} PROPERTY POSITION_INDEPENDENT_CODE 1)
   add_library(spaceBasis_shared SHARED  $<TARGET_OBJECTS:spaceBasis>)
+  add_dependencies(spaceBasis_shared spaceBasis)
   set_target_properties(spaceBasis_shared PROPERTIES OUTPUT_NAME "spaceBasis")
   set_target_properties(spaceBasis_shared PROPERTIES VERSION ${BASISNODALES_VERSION})
   target_link_libraries(spaceBasis_shared ${BLAS_LIBRARIES})
@@ -100,6 +101,7 @@ endif ()
 if (SNB_ENABLE_STATIC)
   set_property(TARGET ${spaceBasis} PROPERTY POSITION_INDEPENDENT_CODE 1)
   add_library(spaceBasis_static STATIC  $<TARGET_OBJECTS:spaceBasis>)
+  add_dependencies(spaceBasis_static spaceBasis)
   set_target_properties(spaceBasis_static PROPERTIES OUTPUT_NAME "spaceBasis")
   set_target_properties(spaceBasis_static PROPERTIES VERSION ${BASISNODALES_VERSION})
   target_link_libraries(spaceBasis_static ${BLAS_LIBRARIES})
