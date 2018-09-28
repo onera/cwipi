@@ -462,6 +462,7 @@ _update_extents(int               dim,
 
 static void
 _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
+                       int                         order,
                        int                         dim,
                        const fvmc_lnum_t           *parent_vertex_num,
                        const fvmc_coord_t           vertex_coords[],
@@ -550,7 +551,7 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
     for (i = 0; i < this_section->n_elements; i++) {
 
       _Bool elt_initialized = false;
-
+      
       for (j = 0; j < this_section->stride; j++) {
 
         vertex_id = this_section->vertex_num[i*this_section->stride + j] - 1;
@@ -563,6 +564,95 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
                             &elt_initialized);
 
       }
+
+      // TODO : if order > 1 add points to compute bounding box
+
+      if (order > 1) {
+
+        assert (dim == 3);
+
+        if (this_section->type == FVMC_FACE_TRIA) {
+          const int n_step = 20;
+          const double step = 1./(n_step - 1);
+          const int n_nodes = this_section->stride;
+
+          const int n_vtx = (n_step + 2) * (n_step + 1) /2;
+          double *uv = malloc (sizeof(double) * 2 * n_vtx); 
+          double *ai = malloc (sizeof(double) * n_nodes * n_vtx); 
+          int    *ijk = malloc (sizeof(int) * 2 * n_nodes);
+
+          int i1 = 0;
+          for (int jj = 0; jj < n_nodes; jj++) {
+             for (int ii = 0; ii < n_nodes - jj; ii++) {
+               ijk[i1++] = ii;
+               ijk[i1++] = jj;
+             }
+          }
+          
+          for (int ielt = 0; ielt < this_section->n_elements; ielt++) {
+
+            i1 = 0;
+            for (int jj = 0; jj < n_step; jj++) {
+              double v = jj*step;
+              for (int ii = 0; ii < n_step - jj; ii++) {
+                double u = ii*step;
+                uv[i1++] = u;
+                uv[i1++] = v;
+              }
+            }
+
+            // appeler space basis
+
+            double xyz[3];
+            
+            for (int ii = 0; ii < n_vtx; ii++) {
+
+              for (int kk = 0; kk < 3; kk++) {
+                xyz[kk] = 0.;
+              }
+              
+              for (int jj = 0; jj < n_nodes; jj++) {
+
+                vertex_id = this_section->vertex_num[ielt*n_nodes + j] - 1;
+
+                int coord_idx;
+                if (parent_vertex_num == NULL) {
+                  coord_idx = vertex_id;
+                }
+                else {
+                  coord_idx = parent_vertex_num[vertex_id] - 1;
+                }
+                
+                for (int kk = 0; kk < 3; kk++) {
+                  xyz[kk] += ai[jj] * vertex_coords[(coord_idx * dim) + kk];
+                }
+              }
+              
+              _update_elt_extents(dim,
+                                  0,
+                                  NULL,
+                                  xyz,
+                                  elt_extents,
+                                  &elt_initialized);
+            
+            }
+            
+          }
+
+          free (uv);
+          free (ai);
+          free (ijk);
+          
+        }
+
+        if (this_section->type == FVMC_FACE_QUAD) {
+
+
+        }
+        
+
+      }
+      
 
       _elt_extents_finalize(dim,
                             this_section->entity_dim,
@@ -611,6 +701,7 @@ _nodal_extents(const fvmc_nodal_t  *this_nodal,
   for (i = 0; i < this_nodal->n_sections; i++) {
 
     _nodal_section_extents(this_nodal->sections[i],
+                           this_nodal->order,
                            this_nodal->dim,
                            this_nodal->parent_vertex_num,
                            this_nodal->vertex_coords,
