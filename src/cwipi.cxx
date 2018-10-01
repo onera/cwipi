@@ -1201,6 +1201,51 @@ void cwipi_ho_ordering_from_ref_elt_set (const char   *coupling_id,
  *----------------------------------------------------------------------------*/
 
 void
+cwipi_ho_user_elt_set (cwipi_element_t elt_type,
+                       cwipi_ho_basis_fct_t element_basis,
+                       cwipi_ho_xsi_fct_t xsi_coordinates,
+                       cwipi_ho_location_fct_t location_in_element)
+{
+  fvmc_element_t _elt_type;
+
+  switch (elt_type) {
+    
+  case CWIPI_EDGEHO:
+    _elt_type = FVMC_EDGE;
+    break;
+  case CWIPI_FACE_TRIAHO:
+    _elt_type = FVMC_FACE_TRIA;
+    break;
+  case CWIPI_FACE_QUADHO:
+    _elt_type = FVMC_FACE_QUAD;
+    break;
+  case CWIPI_CELL_TETRAHO:
+    _elt_type = FVMC_CELL_TETRA;
+    break;
+  case CWIPI_CELL_HEXAHO:
+    _elt_type = FVMC_CELL_HEXA;
+    break;
+  case CWIPI_CELL_PRISMHO:
+    _elt_type = FVMC_CELL_PRISM;
+    break;
+  case CWIPI_CELL_PYRAMHO:
+    _elt_type = FVMC_CELL_PYRAM;
+    break;
+  default:
+    bftc_error(__FILE__, __LINE__, 0,
+               "_cwipi_ho_user_elt_set : unvailable element type\n");
+               
+               
+  }
+  
+  fvmc_ho_user_elt_set (_elt_type,
+                        (fvmc_ho_basis_fct_t) element_basis,
+                        (fvmc_ho_xsi_fct_t) xsi_coordinates,
+                        (fvmc_ho_location_fct_t) location_in_element);
+}
+
+
+void
 cwipi_ho_user_elementary_functions_set (cwipi_ho_location_fct_t location_tetra,
                                         cwipi_ho_location_fct_t location_prism,
                                         cwipi_ho_location_fct_t location_pyramid,

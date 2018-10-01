@@ -61,7 +61,7 @@ extern "C" {
  *   nodes_coords     <-- nodes coordinates
  *   point_coords     <-- point to locate coordinates
  *   projected_coords --> projected point coordinates (if point is outside) 
- *   weights          --> interpolation weights in the element
+ *   uvw              --> parametric coordinates of the projected points in the element 
  * 
  * return: 
  *   distance to the cell (distance <= 0 if point is inside)
@@ -74,7 +74,19 @@ typedef double (*fvmc_ho_location_fct_t)
  const double *nodes_coords,
  const double *point_coords,
  double *projected_coords,
+ double *uvw);
+
+
+typedef void (*fvmc_ho_basis_fct_t)
+(const int order,
+ const int n_nodes,
+ const double *uvw,
  double *weights);
+
+typedef void (*fvmc_ho_xsi_fct_t)
+(const int order,
+ const int n_nodes,
+ double *xsi_coords);
 
 /*----------------------------------------------------------------------------
  * Function pointer to define an high order interpolation
@@ -162,6 +174,12 @@ const double *uvw,
  *
  *----------------------------------------------------------------------------*/
 
+void
+fvmc_ho_user_elt_set (fvmc_element_t elt_type,
+                      fvmc_ho_basis_fct_t elt_basis,
+                      fvmc_ho_xsi_fct_t xsi_coords,
+                      fvmc_ho_location_fct_t location_in_elt);
+
 void  
 fvmc_ho_user_elementary_functions_set (fvmc_ho_location_fct_t location_tetra,
                                        fvmc_ho_location_fct_t location_prism,
@@ -184,6 +202,9 @@ fvmc_ho_user_elementary_functions_set (fvmc_ho_location_fct_t location_tetra,
  * Unset elementary functions
  * 
  *----------------------------------------------------------------------------*/
+
+void
+fvmc_ho_user_elt_unset (fvmc_element_t elt_type);
 
 void
 fvmc_ho_user_elementary_functions_unset (void);

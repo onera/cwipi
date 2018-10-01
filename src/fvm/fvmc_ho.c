@@ -86,6 +86,14 @@ extern "C" {
  * Type definitions
  *============================================================================*/
 
+
+typedef struct _fvmc_ho_user_elt_t {
+  fvmc_ho_basis_fct_t elt_basis;
+  fvmc_ho_xsi_fct_t   xsi_coords;
+  fvmc_ho_location_fct_t location_in_elt;
+} fvmc_ho_user_elt_t;
+
+
 typedef struct _fvmc_ho_user_fcts_t {
   fvmc_ho_location_fct_t location_tetra;
   fvmc_ho_location_fct_t location_prism;
@@ -177,6 +185,16 @@ typedef void (*_basis_generic_2D_t)
  *============================================================================*/
 
 static fvmc_ho_user_fcts_t *_user_fcts = NULL;
+
+static fvmc_ho_user_elt_t *_user_edge = NULL;
+
+static fvmc_ho_user_elt_t *_user_tria = NULL;
+static fvmc_ho_user_elt_t *_user_quad = NULL;
+
+static fvmc_ho_user_elt_t *_user_tetra = NULL;
+static fvmc_ho_user_elt_t *_user_hexa = NULL;
+static fvmc_ho_user_elt_t *_user_prism = NULL;
+static fvmc_ho_user_elt_t *_user_pyra = NULL;
 
 static int                  _idebug = 0;
 
@@ -2323,9 +2341,87 @@ const double *uvw,
 
 /*----------------------------------------------------------------------------
  * 
- * Unset elementary functions
+ * Unset a user element
  * 
  *----------------------------------------------------------------------------*/
+
+
+void
+fvmc_ho_user_elt_unset (fvmc_element_t elt_type)
+{
+  switch(elt_type) {
+
+  case FVMC_EDGE:
+    
+    if (_user_edge != NULL) {
+      free (_user_edge);
+      _user_edge = NULL;
+    }
+    
+    break;
+    
+  case FVMC_FACE_TRIA:
+    
+    if (_user_tria != NULL) {
+      free (_user_tria);
+      _user_tria = NULL;
+    }
+    
+    break;
+    
+  case FVMC_FACE_QUAD:
+    
+    if (_user_quad != NULL) {
+      free (_user_quad);
+      _user_quad = NULL;
+    }
+    
+    break;
+    
+  case FVMC_CELL_TETRA:
+    
+    if (_user_tetra != NULL) {
+      free (_user_tetra);
+      _user_tetra = NULL;
+    }
+    
+    break;
+    
+  case FVMC_CELL_PYRAM:
+    
+    if (_user_pyra != NULL) {
+      free (_user_pyra);
+      _user_pyra = NULL;
+    }
+    
+    break;
+    
+  case FVMC_CELL_PRISM:
+    
+    if (_user_prism != NULL) {
+      free (_user_prism);
+      _user_prism = NULL;
+    }
+    
+    break;
+    
+  case FVMC_CELL_HEXA:
+    
+    if (_user_hexa != NULL) {
+      free (_user_hexa);
+      _user_hexa = NULL;
+    }
+    
+    break;
+
+  default:
+    bftc_error(__FILE__, __LINE__, 0,
+               _("fvmc_ho_user_elt_unset : Unvailable element type\n"));
+  
+    
+  }
+}
+
 
 void
 fvmc_ho_user_elementary_functions_unset (void)
@@ -2358,6 +2454,116 @@ fvmc_ho_user_elementary_functions_unset (void)
  *   interp_edge        <-- Interpolation on a edge
  *
  *----------------------------------------------------------------------------*/
+
+
+
+/*----------------------------------------------------------------------------
+ * 
+ * Unset a user element
+ * 
+ *----------------------------------------------------------------------------*/
+
+
+void
+fvmc_ho_user_elt_set (fvmc_element_t elt_type,
+                      fvmc_ho_basis_fct_t elt_basis,
+                      fvmc_ho_xsi_fct_t xsi_coords,
+                      fvmc_ho_location_fct_t location_in_elt)
+{
+  switch(elt_type) {
+
+  case FVMC_EDGE:
+    
+    if (_user_edge == NULL) {
+      _user_edge = (fvmc_ho_user_elt_t *) malloc (sizeof(fvmc_ho_user_elt_t));
+    }
+
+    _user_edge->elt_basis = elt_basis;
+    _user_edge->xsi_coords = xsi_coords;
+    _user_edge->location_in_elt = location_in_elt;
+    
+    break;
+    
+  case FVMC_FACE_TRIA:
+    
+    if (_user_tria == NULL) {
+    _user_tria = (fvmc_ho_user_elt_t *) malloc (sizeof(fvmc_ho_user_elt_t));
+    }
+
+    _user_tria->elt_basis = elt_basis;
+    _user_tria->xsi_coords = xsi_coords;
+    _user_tria->location_in_elt = location_in_elt;
+
+    break;
+    
+  case FVMC_FACE_QUAD:
+    
+    if (_user_quad == NULL) {
+    _user_quad = (fvmc_ho_user_elt_t *) malloc (sizeof(fvmc_ho_user_elt_t));
+    }
+
+    _user_quad->elt_basis = elt_basis;
+    _user_quad->xsi_coords = xsi_coords;
+    _user_quad->location_in_elt = location_in_elt;
+    
+    break;
+    
+  case FVMC_CELL_TETRA:
+    
+    if (_user_tetra == NULL) {
+    _user_tetra = (fvmc_ho_user_elt_t *) malloc (sizeof(fvmc_ho_user_elt_t));
+    }
+
+    _user_tetra->elt_basis = elt_basis;
+    _user_tetra->xsi_coords = xsi_coords;
+    _user_tetra->location_in_elt = location_in_elt;
+    
+    break;
+    
+  case FVMC_CELL_PYRAM:
+    
+    if (_user_pyra == NULL) {
+    _user_pyra = (fvmc_ho_user_elt_t *) malloc (sizeof(fvmc_ho_user_elt_t));
+    }
+
+    _user_pyra->elt_basis = elt_basis;
+    _user_pyra->xsi_coords = xsi_coords;
+    _user_pyra->location_in_elt = location_in_elt;
+    
+    break;
+    
+  case FVMC_CELL_PRISM:
+    
+    if (_user_prism == NULL) {
+    _user_prism = (fvmc_ho_user_elt_t *) malloc (sizeof(fvmc_ho_user_elt_t));
+    }
+
+    _user_prism->elt_basis = elt_basis;
+    _user_prism->xsi_coords = xsi_coords;
+    _user_prism->location_in_elt = location_in_elt;
+    
+    break;
+    
+  case FVMC_CELL_HEXA:
+    
+    if (_user_hexa == NULL) {
+    _user_hexa = (fvmc_ho_user_elt_t *) malloc (sizeof(fvmc_ho_user_elt_t));
+    }
+
+    _user_hexa->elt_basis = elt_basis;
+    _user_hexa->xsi_coords = xsi_coords;
+    _user_hexa->location_in_elt = location_in_elt;
+    
+    break;
+
+  default:
+    bftc_error(__FILE__, __LINE__, 0,
+               _("fvmc_ho_user_elt_unset : Unvailable element type\n"));
+  
+    
+  }
+}
+
 
 void
 fvmc_ho_user_elementary_functions_set (fvmc_ho_location_fct_t location_tetra,
@@ -2431,56 +2637,56 @@ fvmc_ho_location_in_cell_3d
 )
 {
 
-  if (_user_fcts != NULL) {
-
-    switch (type) {
+  fvmc_ho_user_elt_t *user_elt;
+  double dist2 = HUGE_VAL;
+  
+  switch (type) {
+    
+  case FVMC_CELL_TETRA:
+    user_elt = _user_tetra;
+    break;
+    
+  case FVMC_CELL_PRISM:
+    user_elt = _user_prism;
+    break;
       
-    case FVMC_CELL_TETRA:
-      return (_user_fcts->location_tetra) (order,
+  case FVMC_CELL_PYRAM:
+    user_elt = _user_pyra;
+    break;
+
+  case FVMC_CELL_HEXA:
+    user_elt = _user_hexa;
+    break;
+  default:
+    
+    bftc_error(__FILE__, __LINE__, 0,
+               _("fvmc_ho_location_in_cell_3d : Not a high order 3D element type\n"));
+  } 
+
+  if (user_elt != NULL) {
+    if (user_elt->location_in_elt != NULL) {
+      dist2 = user_elt->location_in_elt (order,
+                                         n_nodes,
+                                         nodes_coords,
+                                         point_coords,
+                                         projected_coords,
+                                         uvw);
+    }
+
+    else {
+      dist2 = _default_location_in_cell_3d (type,
+                                           order,
                                            n_nodes,
                                            nodes_coords,
                                            point_coords,
                                            projected_coords,
                                            uvw);
-      break;
-      
-    case FVMC_CELL_PRISM:
-      return (_user_fcts->location_prism) (order,
-                                           n_nodes,
-                                           nodes_coords,
-                                           point_coords,
-                                           projected_coords,
-                                           uvw);
-      break;
-      
-    case FVMC_CELL_PYRAM:
-      return (_user_fcts->location_pyramid) (order,
-                                             n_nodes,
-                                             nodes_coords,
-                                             point_coords,
-                                             projected_coords,
-                                             uvw);
-      break;
-
-    case FVMC_CELL_HEXA:
-      return (_user_fcts->location_hexa) (order,
-                                          n_nodes,
-                                          nodes_coords,
-                                          point_coords,
-                                          projected_coords,
-                                          uvw);
-      break;
-
-    default:
-
-      bftc_error(__FILE__, __LINE__, 0,
-                 _("fvmc_ho_location_in_cell_3d : Not a high order 3D element type\n"));
-    } 
+    }
   }
-
+  
   else {
 
-    return _default_location_in_cell_3d (type,
+    dist2 = _default_location_in_cell_3d (type,
                                          order,
                                          n_nodes,
                                          nodes_coords,
@@ -2490,7 +2696,7 @@ fvmc_ho_location_in_cell_3d
     
   }
 
-  return HUGE_VAL;
+  return dist2;
 }
 
 
@@ -2525,48 +2731,60 @@ fvmc_ho_location_on_cell_2d
 )
 {
 
+  fvmc_ho_user_elt_t *user_elt;
   double dist2 = HUGE_VAL;
   
-  if (_user_fcts != NULL) {
-    switch (type) {
+  switch (type) {
+    
+  case FVMC_FACE_TRIA:
+    user_elt = _user_tria;
+    break;
+    
+  case FVMC_FACE_QUAD:
+    user_elt = _user_quad;
+    break;
       
-    case FVMC_FACE_TRIA:
-      dist2 = (_user_fcts->location_tria) (order,
+  default:
+    
+    bftc_error(__FILE__, __LINE__, 0,
+               _("fvmc_ho_location_on_cell_2d : Not a high order 2D element type\n"));
+  } 
+
+  if (user_elt != NULL) {
+    if (user_elt->location_in_elt != NULL) {
+      dist2 = user_elt->location_in_elt (order,
+                                         n_nodes,
+                                         nodes_coords,
+                                         point_coords,
+                                         projected_coords,
+                                         uvw);
+    }
+
+    else {
+      dist2 = _default_location_on_cell_2d (type,
+                                           order,
                                            n_nodes,
                                            nodes_coords,
                                            point_coords,
                                            projected_coords,
                                            uvw);
-      break;
-      
-    case FVMC_FACE_QUAD:
-      dist2 =  (_user_fcts->location_quad) (order,
-                                            n_nodes,
-                                            nodes_coords,
-                                            point_coords,
-                                            projected_coords,
-                                            uvw);
-      break;
-      
-    default:
-
-      bftc_error(__FILE__, __LINE__, 0,
-                 _("fvmc_ho_location_on_cell_2d : Not a high order 2D element type\n"));
     }
   }
-
+  
   else {
 
     dist2 = _default_location_on_cell_2d (type,
-                                          order,
-                                          n_nodes,
-                                          nodes_coords,
-                                          point_coords,
-                                          projected_coords,
-                                          uvw);
+                                         order,
+                                         n_nodes,
+                                         nodes_coords,
+                                         point_coords,
+                                         projected_coords,
+                                         uvw);
     
   }
+
   return dist2;
+
 }
 
 
