@@ -14,7 +14,147 @@ module baseSimplex2D
   interface lagrange2Dv  ; module procedure lagrange2Dv_2  ; end interface
   
   contains
-
+  
+  subroutine setT3MeshIJK(meshOrder,ij)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer, intent(in)    :: meshOrder
+    integer, intent(inout) :: ij(:,:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if    ( meshOrder==1 )then !> TriangleP1
+    
+      ! 03
+      ! 01 02
+      
+      ij(1:2,01)=[0,0] !> 1
+      ij(1:2,02)=[1,0] !> 2
+      ij(1:2,03)=[0,1] !> 3
+      
+    elseif( meshOrder==2 )then !> TriangleP2
+      
+      ! 03
+      ! 06 05
+      ! 01 04 02
+      
+      ij(1:2,01)=[0,0] !> 1
+      ij(1:2,02)=[2,0] !> 2
+      ij(1:2,03)=[0,2] !> 3
+      ij(1:2,04)=[1,0] !> 4
+      ij(1:2,05)=[1,1] !> 5
+      ij(1:2,06)=[0,1] !> 6
+      
+    elseif(meshOrder==3 )then !> TriangleP3
+      
+      ! 03
+      ! 08 07
+      ! 09 10 06
+      ! 01 04 05 02
+      
+      ij(1:2,01)=[0,0] !> 01
+      ij(1:2,02)=[3,0] !> 02
+      ij(1:2,03)=[0,3] !> 03
+      ij(1:2,04)=[1,0] !> 04
+      ij(1:2,05)=[2,0] !> 05
+      ij(1:2,06)=[2,1] !> 06
+      ij(1:2,07)=[1,2] !> 07
+      ij(1:2,08)=[0,2] !> 08
+      ij(1:2,09)=[0,1] !> 09
+      ij(1:2,10)=[1,1] !> 10
+      
+    elseif(meshOrder==4 )then !> TriangleP4
+    
+      !> 03
+      !> 10 09
+      !> 11 15 08
+      !> 12 13 14 07
+      !> 01 04 05 06 02
+      
+      ij(1:2,01)=[0,0] !> 01
+      ij(1:2,02)=[4,0] !> 02
+      ij(1:2,03)=[0,4] !> 03
+      ij(1:2,04)=[1,0] !> 04
+      ij(1:2,05)=[2,0] !> 05
+      ij(1:2,06)=[3,0] !> 06
+      ij(1:2,07)=[3,1] !> 07
+      ij(1:2,08)=[2,2] !> 08
+      ij(1:2,09)=[1,3] !> 09
+      ij(1:2,10)=[0,3] !> 10
+      ij(1:2,11)=[0,2] !> 11
+      ij(1:2,12)=[0,1] !> 12
+      ij(1:2,13)=[1,1] !> 13
+      ij(1:2,14)=[2,1] !> 14
+      ij(1:2,15)=[1,2] !> 15
+      
+    else ; stop "setT3MeshIJK meshOrder>4 not implemented"
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+    
+    return
+  end subroutine setT3MeshIJK
+  
+  
+  subroutine setT3BasisEqui(ord,ijk,uvw,ai)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    ! Calcul des base d'ordere ord pour des triangles dont les points
+    ! d'interpolation sont equidistants.
+    ! Numerotation des sommets suivant ijk
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    use baseSimplexTools, only: monomialProduct
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer, intent(in)    :: ord 
+    integer, intent(in)    :: ijk(:,:)     !> ijk(1:2,1:nMod)
+    real(8), intent(in)    :: uvw(:,:)     !> uv(1:2,1:nNod)
+    real(8), intent(inout) :: ai (:,:)     !> ai(1:nMod,1:nNod)
+    !>
+    real(8), pointer       :: u(:),v(:),w(:)
+    integer                :: iMod,nMod    !> nMod=(ord+1)*(ord+2)/2
+    integer                :: iNod,nNod    !> nNod=size(uvw,2) 
+    integer                :: iu,iv,iw
+    integer                :: i
+    real(8), pointer       :: fu(:),fv(:),fw(:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> bases de Lagrange
+    !print '(/"calcul des bases Triangle P",i1)',ord
+    
+    nNod=size(uvw,2)    
+    allocate( u(1:nNod), v(1:nNod), w(1:nNod))
+    allocate(fu(1:nNod),fv(1:nNod),fw(1:nNod) )
+    do iNod=1,nNod
+      u(iNod)=uvw(1,iNod)
+      v(iNod)=uvw(2,iNod)
+      w(iNod)=1d0-u(iNod)-v(iNod)
+    enddo
+    
+    !print '("size(ai)=",i2,"x",i2)',size(ai,1),size(ai,2)
+    nMod=(ord+1)*(ord+2)/2
+    do iMod=1,nMod
+      iu=ijk(1,iMod)
+      iv=ijk(2,iMod)
+      iw=ord-iu-iv
+      
+      call monomialProduct(ord=ord,n=iu,u=u, fn=fu)
+      call monomialProduct(ord=ord,n=iv,u=v, fn=fv)
+      call monomialProduct(ord=ord,n=iw,u=w, fn=fw)
+      
+      !print '(3x,"iMod=",i3,3x,"iu=",i3," iv=",i3," iw=",i3)',iMod,iu,iv,iw
+      do iNod=1,nNod
+        ai(iMod,iNod)=fu(iNod)*fv(iNod)*fw(iNod)
+      enddo
+      
+    enddo
+    
+    deallocate(u,v,w,fu,fv,fw)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine setT3BasisEqui
+    
+  
   subroutine free_double_c(array, s_array)  BIND(C, name="SNB_free_double")
     use, intrinsic :: ISO_C_BINDING 
     implicit none 
@@ -794,6 +934,70 @@ module baseSimplex2D
     return
   end subroutine gradVandermonde2D
 
+  subroutine inv_vandermonde2D_c(order, vand, inv_vand)  BIND(C, name="SNB_inv_vandermonde2D") 
+    use, intrinsic :: ISO_C_BINDING 
+    implicit none 
+
+    integer (C_INT), value :: order 
+    type (C_PTR), value    :: vand  ! void * en C
+    type (C_PTR), value    :: inv_vand  ! void * en C
+
+    real(8), pointer       :: vand_f(:,:), inv_vand_f(:,:)
+    logical                :: display_f
+
+    integer                :: ord_f
+    integer                :: n
+
+    n=(order+1)*(order+2)/2
+
+    ord_f = order
+    
+    call c_f_pointer (vand, vand_f, (/n, n/))
+    call c_f_pointer (inv_vand, inv_vand_f, (/n, n/))
+    
+    call inv_vandermonde2D(vand_f, inv_vand_f)
+
+  end subroutine inv_vandermonde2D_c
+  
+  subroutine inv_vandermonde2D(vand, inv_vand)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !>     [Phi_0(xi_1) ... Phi_{n-1}(xi_1)]
+    !> V = [                               ] 
+    !>     [Phi_0(xi_n) ... Phi_{n-1}(xi_n)]
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    real(8), intent(inout), pointer :: vand(:,:)
+    real(8), intent(inout), pointer :: inv_vand(:,:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+    integer :: i,j, nMod, lWork
+    integer, pointer                 :: ipiv(:)
+    real(8), pointer                 :: work(:)
+    integer                          :: iErr
+
+    nMod = size(vand, 1)
+    
+    if( .not.associated(vand) .or. .not.associated(inv_vand) )then
+      print '("2D Nodes vand or/and inv_vand not associated")'
+      stop "@inv_vandermonde2D"
+    endif
+
+    do i=1,nMod
+      do j=1,nMod
+        inv_vand(i,j)=vand(j,i)
+      enddo
+    enddo
+    
+    lWork=64*(nMod) ; allocate(work(1:lWork),ipiv(1:nMod))
+    call dgetrf(nMod,nMod,inv_vand(1,1),nMod,ipiv(1),iErr)
+    call dgetri(nMod,inv_vand(1,1),nMod,ipiv(1),work(1),lWork,iErr)
+    deallocate(ipiv,work)
+
+    return
+  end subroutine inv_vandermonde2D
+
+  
   subroutine lagrange2Dv_1_c (order, nVtx, vand, a, b, lx, transpose)  BIND(C, name="SNB_lagrange2Dv") 
     use, intrinsic :: ISO_C_BINDING 
     implicit none 

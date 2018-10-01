@@ -185,6 +185,9 @@ static int                  _idebug = 0;
 static int                  _n_vand_tria_space = 0;
 static double **            _vand_tria_space = NULL;
 
+static int                  _n_vand_quad_space = 0;
+static double **            _vand_quad_space = NULL;
+
 static int                  _n_vand_1D_space = 0;
 static double **            _vand_1D_space = NULL;
 
@@ -300,7 +303,7 @@ _uv_ho_tria_nodes
  *----------------------------------------------------------------------------*/
 
 static void
-_default_uv_ho_quad_nodes
+_uv_ho_quad_nodes
 (
  const int order,
  const double umin,
@@ -505,6 +508,7 @@ _basis_quad_qn
  double *weights
 )
 {
+  
   if (order == 1) {
 
     double u1 = (1 - u);
@@ -512,16 +516,40 @@ _basis_quad_qn
 
     weights[0] = u1 * v1;
     weights[1] = u * v1;
-    weights[2] = u * v;
-    weights[3] = u1 * v;
+    weights[2] = u1 * v;
+    weights[3] = u * v;
 
   }
 
-  /* else if (order == 2) { */
+  else if (order == 2) {
+    
+    double uM = 2*(1-u);
+    double uP = 2*u;
+    double u0 = u-0.5;
 
-  /*   //TODO */
-  
-  /* } */
+    double au1 = -uM * u0; 
+    double au2 =  uM * uP;
+    double au3 =  u0 * uP;
+    
+    double vM = 2*(1-v);
+    double vP = 2*v;
+    double v0 = v-0.5;
+
+    double av1 = -vM * v0; 
+    double av2 =  vM * vP;
+    double av3 =  v0 * vP;
+
+    weights[0]=au1*av1;
+    weights[1]=au2*av1;
+    weights[2]=au3*av1;
+    weights[3]=au1*av2;
+    weights[4]=au2*av2;
+    weights[5]=au3*av2;
+    weights[6]=au1*av3;
+    weights[7]=au2*av3;
+    weights[8]=au3*av3;
+
+  }
 
   else {
 
@@ -1051,230 +1079,187 @@ _heap_fill_qn_sub_tria
  const double *point_coords
 )
 {
-  /* int ibeg = 0; */
-  /* int iend = order; */
+  double *uvNodes   = malloc (sizeof(double) * 2 * n_node);
 
-  /* double *uvNodes   = malloc (sizeof(double) * 2 * n_node); */
-
-  /* _uv_ho_tria_nodes (order, 0., 1., 0, 1., uvNodes); */
+  _uv_ho_quad_nodes (order, 0., 1., 0, 1., uvNodes);
   
-  /* int child = 0; */
-  /* for (int j = 0; j < order; j++) { */
-  /*   int k1 = 0; */
-  /*   for (int i = ibeg; i < iend - 1; i++) { */
+  int child = 0;
+  int step = order + 1;
+  
+  for (int j = 0; j < order; j++) {
+    int j1 = j+1;
+    
+    for (int i = 0; i < order; i++) {
 
-  /*     int idx1 = i; */
-  /*     int idx2 = i+1; */
-  /*     int idx3 = iend + 1 + k1; */
-  /*     int idx4 = iend + 2 + k1; */
+      int i1 = i+1;
       
-  /*     int _vtx1 = ho_vertex_num[idx1] - 1; */
-  /*     int _vtx2 = ho_vertex_num[idx2] - 1; */
-  /*     int _vtx3 = ho_vertex_num[idx3] - 1; */
-  /*     int _vtx4 = ho_vertex_num[idx4] - 1; */
+      int idx1 = j*step  + i;
+      int idx2 = j*step  + i1;
+      int idx3 = j1*step + i;
+      int idx4 = j1*step + i1;
+      
+      int _vtx1 = ho_vertex_num[idx1] - 1;
+      int _vtx2 = ho_vertex_num[idx2] - 1;
+      int _vtx3 = ho_vertex_num[idx3] - 1;
+      int _vtx4 = ho_vertex_num[idx4] - 1;
 
-  /*     double x1 = vertex_coords[3*_vtx1]; */
-  /*     double y1 = vertex_coords[3*_vtx1 + 1]; */
-  /*     double z1 = vertex_coords[3*_vtx1 + 2]; */
+      double x1 = vertex_coords[3*_vtx1];
+      double y1 = vertex_coords[3*_vtx1 + 1];
+      double z1 = vertex_coords[3*_vtx1 + 2];
 
-  /*     double x2 = vertex_coords[3*_vtx2]; */
-  /*     double y2 = vertex_coords[3*_vtx2 + 1]; */
-  /*     double z2 = vertex_coords[3*_vtx2 + 2]; */
+      double x2 = vertex_coords[3*_vtx2];
+      double y2 = vertex_coords[3*_vtx2 + 1];
+      double z2 = vertex_coords[3*_vtx2 + 2];
 
-  /*     double x3 = vertex_coords[3*_vtx3]; */
-  /*     double y3 = vertex_coords[3*_vtx3 + 1]; */
-  /*     double z3 = vertex_coords[3*_vtx3 + 2]; */
+      double x3 = vertex_coords[3*_vtx3];
+      double y3 = vertex_coords[3*_vtx3 + 1];
+      double z3 = vertex_coords[3*_vtx3 + 2];
 
-  /*     double x4 = vertex_coords[3*_vtx4]; */
-  /*     double y4 = vertex_coords[3*_vtx4 + 1]; */
-  /*     double z4 = vertex_coords[3*_vtx4 + 2]; */
+      double x4 = vertex_coords[3*_vtx4];
+      double y4 = vertex_coords[3*_vtx4 + 1];
+      double z4 = vertex_coords[3*_vtx4 + 2];
         
-  /*     double __vertex_coords[9] = {x1, y1, z1, */
-  /*                                  x2, y2, z2, */
-  /*                                  x3, y3, z3}; */
-  /*     double _closest_pointP1[3]; */
-  /*     double _uvClosestPointP1[2]; */
-  /*     double _uvClosestPointPn[2]; */
-  /*     double _weightsClosestPointP1[3]; */
-  /*     double _dist2; */
+      double __vertex_coords[9] = {x1, y1, z1,
+                                   x2, y2, z2,
+                                   x3, y3, z3};
+      double _closest_pointP1[3];
+      double _uvClosestPointP1[2];
+      double _uvClosestPointPn[2];
+      double _weightsClosestPointP1[3];
+      double _dist2;
 
-  /*     int isDegenerated = fvmc_triangle_evaluate_Position ((double *)point_coords, */
-  /*                                                          __vertex_coords, */
-  /*                                                          _closest_pointP1, */
-  /*                                                          _uvClosestPointP1, */
-  /*                                                          &_dist2, */
-  /*                                                          _weightsClosestPointP1); */
+      int isDegenerated = fvmc_triangle_evaluate_Position ((double *)point_coords,
+                                                           __vertex_coords,
+                                                           _closest_pointP1,
+                                                           _uvClosestPointP1,
+                                                           &_dist2,
+                                                           _weightsClosestPointP1);
 
-  /*     double _uvPn_sub_tria[6]; */
+      double _uvPn_sub_tria[6];
       
-  /*     _uvPn_sub_tria[0] = uvNodes[2*idx1]; */
-  /*     _uvPn_sub_tria[1] = uvNodes[2*idx1+1]; */
-  /*     _uvPn_sub_tria[2] = uvNodes[2*idx2]; */
-  /*     _uvPn_sub_tria[3] = uvNodes[2*idx2+1]; */
-  /*     _uvPn_sub_tria[4] = uvNodes[2*idx3]; */
-  /*     _uvPn_sub_tria[5] = uvNodes[2*idx3+1]; */
+      _uvPn_sub_tria[0] = uvNodes[2*idx1];
+      _uvPn_sub_tria[1] = uvNodes[2*idx1+1];
+      _uvPn_sub_tria[2] = uvNodes[2*idx2];
+      _uvPn_sub_tria[3] = uvNodes[2*idx2+1];
+      _uvPn_sub_tria[4] = uvNodes[2*idx3];
+      _uvPn_sub_tria[5] = uvNodes[2*idx3+1];
       
-  /*     if (isDegenerated != -1) { */
+      if (isDegenerated != -1) {
         
-  /*       for (int j1 = 0; j1 < 2; j1++) { */
-  /*         _uvClosestPointPn[j1] = 0; */
-  /*       } */
-  /*       for (int j1 = 0; j1 < 2; j1++) { */
-  /*         for (int k = 0; k < 3; k++) { */
-  /*           _uvClosestPointPn[j1] += _weightsClosestPointP1[k] * _uvPn_sub_tria[2*k + j1]; */
-  /*         } */
-  /*       } */
+        for (int j2 = 0; j2 < 2; j2++) {
+          _uvClosestPointPn[j2] = 0;
+        }
+        for (int j2 = 0; j2 < 2; j2++) {
+          for (int k = 0; k < 3; k++) {
+            _uvClosestPointPn[j2] += _weightsClosestPointP1[k] * _uvPn_sub_tria[2*k + j2];
+          }
+        }
         
-  /*       if (1 == 0) { */
-  /*         printf("_uvClosestPointP1 : %12.5e %12.5e\n", _uvClosestPointP1[0], _uvClosestPointP1[1]); */
-  /*         printf("__vertex_coords + uvpn 1 : %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[0], __vertex_coords[1], __vertex_coords[2], _uvPn_sub_tria[0], _uvPn_sub_tria[1]); */
-  /*         printf("__vertex_coords + uvpn 2 : %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[3], __vertex_coords[4], __vertex_coords[5], _uvPn_sub_tria[2], _uvPn_sub_tria[3]); */
-  /*         printf("__vertex_coords + uvpn 3 : %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[6], __vertex_coords[7], __vertex_coords[8], _uvPn_sub_tria[4], _uvPn_sub_tria[5]); */
-  /*       } */
+        if (1 == 0) {
+          printf("_uvClosestPointP1 : %12.5e %12.5e\n",
+                 _uvClosestPointP1[0],
+                 _uvClosestPointP1[1]);
+          printf("__vertex_coords + uvpn 1 : %12.5e %12.5e %12.5e // %12.5e %12.5e\n",
+                 __vertex_coords[0],
+                 __vertex_coords[1],
+                 __vertex_coords[2],
+                 _uvPn_sub_tria[0],
+                 _uvPn_sub_tria[1]);
+          printf("__vertex_coords + uvpn 2 : %12.5e %12.5e %12.5e // %12.5e %12.5e\n",
+                 __vertex_coords[3],
+                 __vertex_coords[4],
+                 __vertex_coords[5],
+                 _uvPn_sub_tria[2],
+                 _uvPn_sub_tria[3]);
+          printf("__vertex_coords + uvpn 3 : %12.5e %12.5e %12.5e // %12.5e %12.5e\n",
+                 __vertex_coords[6],
+                 __vertex_coords[7],
+                 __vertex_coords[8],
+                 _uvPn_sub_tria[4],
+                 _uvPn_sub_tria[5]);
+        }
         
-  /*       _heap_insert (heap, */
-  /*                     __vertex_coords, */
-  /*                     _uvPn_sub_tria, */
-  /*                     _closest_pointP1, */
-  /*                     _uvClosestPointP1, */
-  /*                     _uvClosestPointPn, */
-  /*                     _dist2, child++); */
-  /*     } */
+        _heap_insert (heap,
+                      __vertex_coords,
+                      _uvPn_sub_tria,
+                      _closest_pointP1,
+                      _uvClosestPointP1,
+                      _uvClosestPointPn,
+                      _dist2, child++);
+      }
       
-  /*     __vertex_coords[0] = x2; */
-  /*     __vertex_coords[1] = y2; */
-  /*     __vertex_coords[2] = z2; */
-  /*     __vertex_coords[3] = x4; */
-  /*     __vertex_coords[4] = y4; */
-  /*     __vertex_coords[5] = z4; */
-  /*     __vertex_coords[6] = x3; */
-  /*     __vertex_coords[7] = y3; */
-  /*     __vertex_coords[8] = z3; */
+      __vertex_coords[0] = x2;
+      __vertex_coords[1] = y2;
+      __vertex_coords[2] = z2;
+      __vertex_coords[3] = x4;
+      __vertex_coords[4] = y4;
+      __vertex_coords[5] = z4;
+      __vertex_coords[6] = x3;
+      __vertex_coords[7] = y3;
+      __vertex_coords[8] = z3;
 
-  /*     isDegenerated = fvmc_triangle_evaluate_Position ((double *) point_coords, */
-  /*                                                      __vertex_coords, */
-  /*                                                      _closest_pointP1, */
-  /*                                                      _uvClosestPointP1, */
-  /*                                                      &_dist2, */
-  /*                                                      _weightsClosestPointP1); */
+      isDegenerated = fvmc_triangle_evaluate_Position ((double *) point_coords,
+                                                       __vertex_coords,
+                                                       _closest_pointP1,
+                                                       _uvClosestPointP1,
+                                                       &_dist2,
+                                                       _weightsClosestPointP1);
 
-  /*     _uvPn_sub_tria[0] = uvNodes[2*idx2]; */
-  /*     _uvPn_sub_tria[1] = uvNodes[2*idx2+1]; */
-  /*     _uvPn_sub_tria[2] = uvNodes[2*idx4]; */
-  /*     _uvPn_sub_tria[3] = uvNodes[2*idx4+1]; */
-  /*     _uvPn_sub_tria[4] = uvNodes[2*idx3]; */
-  /*     _uvPn_sub_tria[5] = uvNodes[2*idx3+1]; */
+      _uvPn_sub_tria[0] = uvNodes[2*idx2];
+      _uvPn_sub_tria[1] = uvNodes[2*idx2+1];
+      _uvPn_sub_tria[2] = uvNodes[2*idx4];
+      _uvPn_sub_tria[3] = uvNodes[2*idx4+1];
+      _uvPn_sub_tria[4] = uvNodes[2*idx3];
+      _uvPn_sub_tria[5] = uvNodes[2*idx3+1];
 
-  /*     if (isDegenerated != -1) { */
+      if (isDegenerated != -1) {
       
-  /*       for (int j1 = 0; j1 < 2; j1++) { */
-  /*         _uvClosestPointPn[j1] = 0; */
-  /*       } */
-  /*       for (int j1 = 0; j1 < 2; j1++) { */
-  /*         for (int k = 0; k < 3; k++) { */
-  /*           _uvClosestPointPn[j1] += _weightsClosestPointP1[k] * _uvPn_sub_tria[2*k + j1]; */
-  /*         } */
-  /*       } */
+        for (int j2 = 0; j2 < 2; j2++) {
+          _uvClosestPointPn[j2] = 0;
+        }
+        for (int j2 = 0; j2 < 2; j2++) {
+          for (int k = 0; k < 3; k++) {
+            _uvClosestPointPn[j2] +=
+              _weightsClosestPointP1[k] * _uvPn_sub_tria[2*k + j2];
+          }
+        }
       
-  /*       if (1 == 0) { */
-  /*         printf("_uvClosestPointP1 : %12.5e %12.5e\n", _uvClosestPointP1[0], _uvClosestPointP1[1]); */
-  /*         printf("__vertex_coords 1 + uvpn  : %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[0], __vertex_coords[1], __vertex_coords[2], _uvPn_sub_tria[0], _uvPn_sub_tria[1]); */
-  /*         printf("__vertex_coords 2 + uvpn : %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[3], __vertex_coords[4], __vertex_coords[5], _uvPn_sub_tria[2], _uvPn_sub_tria[3]); */
-  /*         printf("__vertex_coords 3 + uvpn: %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[6], __vertex_coords[7], __vertex_coords[8], _uvPn_sub_tria[4], _uvPn_sub_tria[5]); */
-  /*       } */
+        if (1 == 0) {
+          printf("_uvClosestPointP1 : %12.5e %12.5e\n",
+                 _uvClosestPointP1[0],
+                 _uvClosestPointP1[1]);
+          printf("__vertex_coords 1 + uvpn  : %12.5e %12.5e %12.5e // %12.5e %12.5e\n",
+                 __vertex_coords[0],
+                 __vertex_coords[1],
+                 __vertex_coords[2],
+                 _uvPn_sub_tria[0],
+                 _uvPn_sub_tria[1]);
+          printf("__vertex_coords 2 + uvpn : %12.5e %12.5e %12.5e // %12.5e %12.5e\n",
+                 __vertex_coords[3],
+                 __vertex_coords[4],
+                 __vertex_coords[5],
+                 _uvPn_sub_tria[2],
+                 _uvPn_sub_tria[3]);
+          printf("__vertex_coords 3 + uvpn: %12.5e %12.5e %12.5e // %12.5e %12.5e\n",
+                 __vertex_coords[6],
+                 __vertex_coords[7],
+                 __vertex_coords[8],
+                 _uvPn_sub_tria[4],
+                 _uvPn_sub_tria[5]);
+        }
       
-  /*       _heap_insert (heap, */
-  /*                     __vertex_coords, */
-  /*                     _uvPn_sub_tria, */
-  /*                     _closest_pointP1, */
-  /*                     _uvClosestPointP1, */
-  /*                     _uvClosestPointPn, */
-  /*                     _dist2, child++); */
-  /*     } */
+        _heap_insert (heap,
+                      __vertex_coords,
+                      _uvPn_sub_tria,
+                      _closest_pointP1,
+                      _uvClosestPointP1,
+                      _uvClosestPointPn,
+                      _dist2, child++);
+      }
+    }
+  }
 
-  /*     k1++; */
-  /*   } */
-
-  /*   int idx1 = iend - 1; */
-  /*   int idx2 = iend - 1 + 1; */
-  /*   int idx3 = iend + 1 + k1; */
-
-  /*   int _vtx1 = ho_vertex_num[idx1] - 1; */
-  /*   int _vtx2 = ho_vertex_num[idx2] - 1; */
-  /*   int _vtx3 = ho_vertex_num[idx3] - 1; */
-      
-  /*   double x1 = vertex_coords[3*_vtx1]; */
-  /*   double y1 = vertex_coords[3*_vtx1 + 1]; */
-  /*   double z1 = vertex_coords[3*_vtx1 + 2]; */
-      
-  /*   double x2 = vertex_coords[3*_vtx2]; */
-  /*   double y2 = vertex_coords[3*_vtx2 + 1]; */
-  /*   double z2 = vertex_coords[3*_vtx2 + 2]; */
-      
-  /*   double x3 = vertex_coords[3*_vtx3]; */
-  /*   double y3 = vertex_coords[3*_vtx3 + 1]; */
-  /*   double z3 = vertex_coords[3*_vtx3 + 2]; */
-      
-  /*   double __vertex_coords[9] = {x1, y1, z1, */
-  /*                                x2, y2, z2, */
-  /*                                x3, y3, z3}; */
-      
-  /*   double _closest_pointP1[3]; */
-  /*   double _uvClosestPointP1[2]; */
-  /*   double _uvClosestPointPn[2]; */
-    
-  /*   double _weightsClosestPointP1[3]; */
-   
-  /*   double _dist2; */
-    
-  /*   int isDegenerated = fvmc_triangle_evaluate_Position ((double *)point_coords, */
-  /*                                                        __vertex_coords, */
-  /*                                                        _closest_pointP1, */
-  /*                                                        _uvClosestPointP1, */
-  /*                                                        &_dist2, */
-  /*                                                        _weightsClosestPointP1); */
-      
-  /*   double _uvPn_sub_tria[6]; */
-    
-  /*   _uvPn_sub_tria[0] = uvNodes[2*idx1]; */
-  /*   _uvPn_sub_tria[1] = uvNodes[2*idx1+1]; */
-  /*   _uvPn_sub_tria[2] = uvNodes[2*idx2]; */
-  /*   _uvPn_sub_tria[3] = uvNodes[2*idx2+1]; */
-  /*   _uvPn_sub_tria[4] = uvNodes[2*idx3]; */
-  /*   _uvPn_sub_tria[5] = uvNodes[2*idx3+1]; */
-
-  /*   if (isDegenerated != -1) { */
-    
-  /*     for (int j1 = 0; j1 < 2; j1++) { */
-  /*       _uvClosestPointPn[j1] = 0; */
-  /*     } */
-  /*     for (int j1 = 0; j1 < 2; j1++) { */
-  /*       for (int k = 0; k < 3; k++) { */
-  /*         _uvClosestPointPn[j1] += _weightsClosestPointP1[k] * _uvPn_sub_tria[2*k + j1]; */
-  /*       } */
-  /*     } */
-      
-  /*     if (1 == 0) { */
-  /*       printf("_uvClosestPointP1 : %12.5e %12.5e\n", _uvClosestPointP1[0], _uvClosestPointP1[1]); */
-  /*       printf("__vertex_coords 1 + uvpn: %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[0], __vertex_coords[1], __vertex_coords[2], _uvPn_sub_tria[0], _uvPn_sub_tria[1]); */
-  /*       printf("__vertex_coords 2 + uvpn: %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[3], __vertex_coords[4], __vertex_coords[5], _uvPn_sub_tria[2], _uvPn_sub_tria[3]); */
-  /*       printf("__vertex_coords 3 + uvpn: %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[6], __vertex_coords[7], __vertex_coords[8], _uvPn_sub_tria[4], _uvPn_sub_tria[5]); */
-  /*     } */
-    
-  /*     _heap_insert (heap, */
-  /*                   __vertex_coords, */
-  /*                   _uvPn_sub_tria, */
-  /*                   _closest_pointP1, */
-  /*                   _uvClosestPointP1, */
-  /*                   _uvClosestPointPn, */
-  /*                   _dist2, child++); */
-  /*   } */
-      
-  /*   ibeg = iend + 1; */
-  /*   iend += order - j; */
-  /* } */
-
-  /* free (uvNodes); */
+  free (uvNodes);
 }
 
 /*-----------------------------------------------------------------------------
@@ -1426,6 +1411,7 @@ _insert_subtria
                   _dist2_child, child++);
     
   }
+
 }  
 
 
@@ -1493,6 +1479,7 @@ _compute_dist2_from_closest_tria_subdivision
     double _dist2_current;
     
     /* Get closest triangle stored in the heap */
+
     int _child;
     int isEmpty = _heap_top_get (heap,
                                  _vtx_tria_current,
@@ -1545,32 +1532,14 @@ _compute_dist2_from_closest_tria_subdivision
       printf ("_dist2 child : %22.15e %d\n", _dist2_current, _child);
     
       printf("Weights : %12.5e %12.5e %12.5e\n", weightsP1[0], weightsP1[1], weightsP1[2]);
-      printf("vtx_tria_current 1 : %12.5e %12.5e %12.5e\n", _vtx_tria_current[0], _vtx_tria_current[1], _vtx_tria_current[2]);
-      printf("vtx_tria_current 2 : %12.5e %12.5e %12.5e\n", _vtx_tria_current[3], _vtx_tria_current[4], _vtx_tria_current[5]);
-      printf("vtx_tria_current 3 : %12.5e %12.5e %12.5e\n", _vtx_tria_current[6], _vtx_tria_current[7], _vtx_tria_current[8]);
+      printf("vtx_tria_current 1 : %12.5e %12.5e %12.5e\n",
+             _vtx_tria_current[0], _vtx_tria_current[1], _vtx_tria_current[2]);
+      printf("vtx_tria_current 2 : %12.5e %12.5e %12.5e\n",
+             _vtx_tria_current[3], _vtx_tria_current[4], _vtx_tria_current[5]);
+      printf("vtx_tria_current 3 : %12.5e %12.5e %12.5e\n",
+             _vtx_tria_current[6], _vtx_tria_current[7], _vtx_tria_current[8]);
     }
 
-    double dist2_pt1 = (_vtx_tria_current[0] - vertex_coords[0]) * (_vtx_tria_current[0] - vertex_coords[0]) +
-                       (_vtx_tria_current[1] - vertex_coords[1]) * (_vtx_tria_current[1] - vertex_coords[1]) +
-                       (_vtx_tria_current[2] - vertex_coords[2]) * (_vtx_tria_current[2] - vertex_coords[2]);
-    
-    double dist2_pt2 = (_vtx_tria_current[3] - vertex_coords[0]) * (_vtx_tria_current[3] - vertex_coords[0]) +
-                       (_vtx_tria_current[4] - vertex_coords[1]) * (_vtx_tria_current[4] - vertex_coords[1]) +
-                       (_vtx_tria_current[5] - vertex_coords[2]) * (_vtx_tria_current[5] - vertex_coords[2]);
-
-    double dist2_pt3 = (_vtx_tria_current[6] - vertex_coords[0]) * (_vtx_tria_current[6] - vertex_coords[0]) +
-                       (_vtx_tria_current[7] - vertex_coords[1]) * (_vtx_tria_current[7] - vertex_coords[1]) +
-                       (_vtx_tria_current[8] - vertex_coords[2]) * (_vtx_tria_current[8] - vertex_coords[2]);
-
-
-    double dist2_pt = FVMC_MIN (dist2_pt1, dist2_pt2);
-
-    dist2_pt = FVMC_MIN (dist2_pt, dist2_pt3);
-    
-    if (dist2_pt <_dist2_current) {
-      printf ("Probleme calcul distance triangle %12.5e %12.5e\n", dist2_pt, _dist2_current);
-    }
-    
     for (int j = 0; j < 3; j++) {
       for (int k = 0; k < 3; k++) {
         _projected_coords_from_p1[k] += weightsP1[j] * _vtx_tria_current[3*j+k]; 
@@ -1591,11 +1560,6 @@ _compute_dist2_from_closest_tria_subdivision
                     _closest_pt_uvPn_current[1],
                     weightsPn);
 
-    /* _basis_tria_pn (order, */
-    /*                 _closest_pt_uvPn_current[0], */
-    /*                 _closest_pt_uvPn_current[1], */
-    /*                 weightsPn); */
-
     for (int j = 0; j < n_node; j++) {
       const double *node_coords = vertex_coords + 3 * (ho_vertex_num[j] - 1);
       for (int k = 0; k < 3; k++) {
@@ -1614,7 +1578,6 @@ _compute_dist2_from_closest_tria_subdivision
     /* Break if error is ok */
 
     if (*err_proj <= err_max || (*n_it)++ >= n_it_max) {
-    //    if ((*n_it)++ >= n_it_max) {
        
       for (int j = 0; j < 3; j++) {
         projected_coords[j] = _projected_coords_from_pn[j];
@@ -1714,7 +1677,6 @@ _compute_dist2_from_uniform_tria_subdivision
   double dist2 = HUGE_VAL;
 
   double dist2_min_min = HUGE_VAL;
-  // double dist2_pre = HUGE_VAL;
 
   _heap_t *heap      = heap1;
   _heap_t *next_heap = heap2;
@@ -1730,6 +1692,7 @@ _compute_dist2_from_uniform_tria_subdivision
     double _dist2_current;
     
     /* Get closest triangle stored in the heap */
+
     int _child;
     int isEmpty = _heap_top_get (heap,
                                  _vtx_tria_current,
@@ -1747,7 +1710,6 @@ _compute_dist2_from_uniform_tria_subdivision
     }
 
     dist2_min_min = FVMC_MIN (dist2_min_min, _dist2_current);
-    // dist2_pre = _dist2_current;
 
     /* Compute projected from current P1 triangle */
     
@@ -1771,33 +1733,15 @@ _compute_dist2_from_uniform_tria_subdivision
       printf ("uv P1 : %22.15e %22.15e\n", _closest_pt_uvP1_current[0], _closest_pt_uvP1_current[1]);
       printf ("_dist2 child : %22.15e %d\n", _dist2_current, _child);
     
-      printf("Weights : %12.5e %12.5e %12.5e\n", weightsP1[0], weightsP1[1], weightsP1[2]);
-      printf("vtx_tria_current 1 : %12.5e %12.5e %12.5e\n", _vtx_tria_current[0], _vtx_tria_current[1], _vtx_tria_current[2]);
-      printf("vtx_tria_current 2 : %12.5e %12.5e %12.5e\n", _vtx_tria_current[3], _vtx_tria_current[4], _vtx_tria_current[5]);
-      printf("vtx_tria_current 3 : %12.5e %12.5e %12.5e\n", _vtx_tria_current[6], _vtx_tria_current[7], _vtx_tria_current[8]);
+      printf("Weights : %12.5e %12.5e %12.5e\n",
+             weightsP1[0], weightsP1[1], weightsP1[2]);
+      printf("vtx_tria_current 1 : %12.5e %12.5e %12.5e\n",
+             _vtx_tria_current[0], _vtx_tria_current[1], _vtx_tria_current[2]);
+      printf("vtx_tria_current 2 : %12.5e %12.5e %12.5e\n",
+             _vtx_tria_current[3], _vtx_tria_current[4], _vtx_tria_current[5]);
+      printf("vtx_tria_current 3 : %12.5e %12.5e %12.5e\n",
+             _vtx_tria_current[6], _vtx_tria_current[7], _vtx_tria_current[8]);
     }
-
-    double dist2_pt1 = (_vtx_tria_current[0] - vertex_coords[0]) * (_vtx_tria_current[0] - vertex_coords[0]) +
-                       (_vtx_tria_current[1] - vertex_coords[1]) * (_vtx_tria_current[1] - vertex_coords[1]) +
-                       (_vtx_tria_current[2] - vertex_coords[2]) * (_vtx_tria_current[2] - vertex_coords[2]);
-    
-    double dist2_pt2 = (_vtx_tria_current[3] - vertex_coords[0]) * (_vtx_tria_current[3] - vertex_coords[0]) +
-                       (_vtx_tria_current[4] - vertex_coords[1]) * (_vtx_tria_current[4] - vertex_coords[1]) +
-                       (_vtx_tria_current[5] - vertex_coords[2]) * (_vtx_tria_current[5] - vertex_coords[2]);
-
-    double dist2_pt3 = (_vtx_tria_current[6] - vertex_coords[0]) * (_vtx_tria_current[6] - vertex_coords[0]) +
-                       (_vtx_tria_current[7] - vertex_coords[1]) * (_vtx_tria_current[7] - vertex_coords[1]) +
-                       (_vtx_tria_current[8] - vertex_coords[2]) * (_vtx_tria_current[8] - vertex_coords[2]);
-
-
-    double dist2_pt = FVMC_MIN (dist2_pt1, dist2_pt2);
-
-    dist2_pt = FVMC_MIN (dist2_pt, dist2_pt3);
-    
-    if (dist2_pt <_dist2_current) {
-      printf ("Probleme calcul distance triangle %12.5e %12.5e\n", dist2_pt, _dist2_current);
-    }
-    
 
     for (int j = 0; j < 3; j++) {
       for (int k = 0; k < 3; k++) {
@@ -1818,11 +1762,6 @@ _compute_dist2_from_uniform_tria_subdivision
                     _closest_pt_uvPn_current[1],
                      weightsPn);
     
-    /* _basis_tria_pn (order, */
-    /*                 _closest_pt_uvPn_current[0], */
-    /*                 _closest_pt_uvPn_current[1], */
-    /*                 weightsPn); */
-
     for (int j = 0; j < n_node; j++) {
       const double *node_coords = vertex_coords + 3 * (ho_vertex_num[j] - 1);
       for (int k = 0; k < 3; k++) {
@@ -1841,7 +1780,6 @@ _compute_dist2_from_uniform_tria_subdivision
     /* Break if error is ok */
 
     if (*err_proj <= err_max || (*n_it)++ >= n_it_max) {
-    //if ((*n_it)++ >= n_it_max) {
        
       for (int j = 0; j < 3; j++) {
         projected_coords[j] = _projected_coords_from_pn[j];
@@ -1881,7 +1819,6 @@ _compute_dist2_from_uniform_tria_subdivision
     
     double _closest_pt_current2[3];
     double _closest_pt_uvP1_current2[2];
-    //double _closest_pt_uvPn_current2[2];
     double _dist2_current2;
     int _child_current2;
     
@@ -1969,7 +1906,7 @@ _default_location_generic_2d
   }
  
   const int n_it_max = 100;
-  const double err_max = 1e-20;
+  const double err_max = 1e-12;
 
   double dist2 = HUGE_VAL;
 
@@ -2033,7 +1970,7 @@ _default_location_generic_2d
                                                           &uncertain_result,
                                                           basis_generic);
 
-    if (1 == 1) {
+    if (1 == 0) {
       printf("\nCalcul distance triangle premier essai :\n");
       printf("          point_coords : %22.15e %22.15e %22.15e         \n", point_coords[0]    , point_coords[1]    , point_coords[2]);
       printf("  project point_coords : %22.15e %22.15e %22.15e - %22.15e\n", projected_coords[0], projected_coords[1], projected_coords[2], dist2);
@@ -2080,7 +2017,7 @@ _default_location_generic_2d
                                                             &err_proj,
                                                             basis_generic);
 
-      if (1 == 1) {
+      if (1 == 0) {
         printf("\nCalcul distance triangle deuxieme essai :\n");
         printf("          point_coords : %22.15e %22.15e %22.15e         \n", point_coords[0]    , point_coords[1]    , point_coords[2]);
         printf("  project point_coords : %22.15e %22.15e %22.15e - %22.15e\n", projected_coords[0], projected_coords[1], projected_coords[2], dist2);
@@ -3119,12 +3056,24 @@ fvmc_ho_free
         _vand_tria_space[i] = NULL;
       }
     }
-    
+    free (_vand_tria_space);
+    _vand_tria_space = NULL;
+  
   }
 
-  free (_vand_tria_space);
-  _vand_tria_space = NULL;
+  if (_vand_quad_space != NULL) {
 
+    for (int i = 0; i < _n_vand_quad_space; i++) {
+      if (_vand_quad_space[i] != NULL) {
+        SNB_free_double (_vand_quad_space[i], (i+1)*(i+1));
+        _vand_quad_space[i] = NULL;
+      }
+    }
+    free (_vand_quad_space);
+    _vand_quad_space = NULL;
+    
+  }
+  
   if (_vand_1D_space != NULL) {
 
     for (int i = 0; i < _n_vand_1D_space; i++) {
@@ -3134,10 +3083,10 @@ fvmc_ho_free
       }
     }
     
+    free (_vand_1D_space);
+    _vand_1D_space = NULL;
   }
 
-  free (_vand_1D_space);
-  _vand_1D_space = NULL;
 #endif  
 }
 #ifdef __cplusplus

@@ -2284,7 +2284,8 @@ contains
     implicit none
 
     interface
-       subroutine  ptHoInterpolationFct(entitiesDim, &
+      subroutine  ptHoInterpolationFct(entitiesDim, &
+                                      order, &
                                       nLocalVertex, &
                                       nLocalElement, &
                                       nLocalPolyhedra, &
@@ -2301,13 +2302,13 @@ contains
                                       disPtsDistance, &
                                       disPtsBaryCoordIdx, &
                                       disPtsBaryCoord, &
-                                      uvw_size, &
                                       dist_uvw, &
                                       stride, &
                                       solverType, &
                                       localField, &
                                       distantField)
          integer (kind = 4) :: entitiesDim
+         integer (kind = 4) :: order
          integer (kind = 4) :: nLocalVertex
          integer (kind = 4) :: nLocalElement
          integer (kind = 4) :: nLocalPolyhedra
@@ -2324,7 +2325,6 @@ contains
          real(kind=4), dimension(*) :: disPtsDistance
          integer (kind = 4), dimension(*) :: disPtsBaryCoordIdx
          double precision, dimension(*) :: disPtsBaryCoord
-         integer (kind = 4) :: uvw_size
          double precision, dimension(*) :: dist_uvw
          integer (kind = 4) :: stride
          integer (kind = 4) :: solverType
@@ -2541,7 +2541,8 @@ contains
     implicit none
 
     interface
-       subroutine  ptHoInterpolationFct(entitiesDim, &
+      subroutine  ptHoInterpolationFct(entitiesDim, &
+                                      order, &
                                       nLocalVertex, &
                                       nLocalElement, &
                                       nLocalPolyhedra, &
@@ -2558,13 +2559,13 @@ contains
                                       disPtsDistance, &
                                       disPtsBaryCoordIdx, &
                                       disPtsBaryCoord, &
-                                      uvw_size, &
                                       dist_uvw, &
                                       stride, &
                                       solverType, &
                                       localField, &
                                       distantField)
          integer (kind = 4) :: entitiesDim
+         integer (kind = 4) :: order
          integer (kind = 4) :: nLocalVertex
          integer (kind = 4) :: nLocalElement
          integer (kind = 4) :: nLocalPolyhedra
@@ -2581,7 +2582,6 @@ contains
          real(kind=4), dimension(*) :: disPtsDistance
          integer (kind = 4), dimension(*) :: disPtsBaryCoordIdx
          double precision, dimension(*) :: disPtsBaryCoord
-         integer (kind = 4) :: uvw_size
          double precision, dimension(*) :: dist_uvw
          integer (kind = 4) :: stride
          integer (kind = 4) :: solverType
@@ -2941,7 +2941,8 @@ contains
     implicit none
 
     interface
-       subroutine  ptHoInterpolationFct(entitiesDim, &
+      subroutine  ptHoInterpolationFct(entitiesDim, &
+                                      order, &
                                       nLocalVertex, &
                                       nLocalElement, &
                                       nLocalPolyhedra, &
@@ -2958,13 +2959,13 @@ contains
                                       disPtsDistance, &
                                       disPtsBaryCoordIdx, &
                                       disPtsBaryCoord, &
-                                      uvw_size, &
                                       dist_uvw, &
                                       stride, &
                                       solverType, &
                                       localField, &
                                       distantField)
          integer (kind = 4) :: entitiesDim
+         integer (kind = 4) :: order
          integer (kind = 4) :: nLocalVertex
          integer (kind = 4) :: nLocalElement
          integer (kind = 4) :: nLocalPolyhedra

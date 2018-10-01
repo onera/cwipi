@@ -80,15 +80,15 @@ namespace cwipi {
                                 int face_connectivity_index[],
                                 int face_connectivity[]);
 
-    cwipi_exchange_status_t exchange(const char                          *exchange_name,
-                                     const int                            stride,
-                                     const int                            time_step,
-                                     const double                         time_value,
-                                     const char                          *sending_field_name,
-                                     const double                        *sending_field,
-                                     char                                *receiving_field_name,
-                                     double                              *receiving_field,
-                                     void                                *ptFortranInterpolationFct);
+    cwipi_exchange_status_t exchange(const char    *exchange_name,
+                                     const int      stride,
+                                     const int      time_step,
+                                     const double   time_value,
+                                     const char    *sending_field_name,
+                                     const double  *sending_field,
+                                     char          *receiving_field_name,
+                                     double        *receiving_field,
+                                     void          *ptFortranInterpolationFct);
 
     void issend(const char    *exchangeName,
                 const int     tag,
@@ -125,6 +125,10 @@ namespace cwipi {
                            double coordinate[]);
 
     inline void set_interpolation_function(cwipi_interpolation_fct_t fct);
+
+    inline void set_data_user(void *);
+
+    inline void* get_data_user(void);
 
     inline void set_interpolation_function_f(void* fct);
 
@@ -308,6 +312,9 @@ namespace cwipi {
     std::map<int, double > &_tmpTimeValueIrecv;
     std::map<int, std::string > &_tmpFieldNameIrecv;
     std::vector<float> _distance;
+
+    void *_data_user;
+    
   };
 
 }

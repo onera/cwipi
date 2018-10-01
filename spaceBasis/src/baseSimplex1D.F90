@@ -3,6 +3,106 @@ module baseSimplex1D
   implicit none
   contains
   
+  subroutine setL2MeshIJK(meshOrder,ijk)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer, intent(in)    :: meshOrder
+    integer, intent(inout) :: ijk(:)
+    !>
+    integer                :: iMod,nMod
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> 01 03 03 05 02
+    nMod=(meshOrder+1)
+    
+    ijk(1)=0
+    ijk(2)=meshOrder
+    do iMod=3,nMod
+      ijk(iMod)=iMod-2
+    enddo
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+    
+    return
+  end subroutine setL2MeshIJK
+  
+  subroutine setL2BasisEqui(ord,ijk,uvw,ai)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    ! Calcul des base d'ordere ord pour des triangles dont les points
+    ! d'interpolation sont equidistants.
+    ! Numerotation des sommets suivant ijk
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    use baseSimplexTools, only: monomialProduct
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer, intent(in)    :: ord 
+    integer, intent(in)    :: ijk(:)       !> ijk(1:nMod)
+    real(8), intent(in)    :: uvw(:)       !> uvw(1:nNod)
+    real(8), intent(inout) :: ai(:,:)      !> ai(1:nMod,1:nNod)
+    !>
+    real(8), pointer       :: u(:),v(:)
+    integer                :: iMod,nMod    !> nMod=(ord+1)*(ord+2)/2
+    integer                :: iNod,nNod    !> nNod=size(u) 
+    integer                :: iu,iv,iw
+    integer                :: i
+    real(8), pointer       :: fu(:),fv(:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> bases de Lagrange
+    !print '(/"calcul des bases Triangle P",i1)',ord
+    
+    nNod=size(uvw)
+    allocate( u(1:nNod), v(1:nNod))
+    allocate(fu(1:nNod),fv(1:nNod))
+    do iNod=1,nNod
+      u(iNod)=(uvw(iNod)-1d0)*5d-1 !> u \in [-1,+1] => u \in [0,1]
+      v(iNod)=1d0-u(iNod)
+    enddo
+    
+    !print '("size(ai)=",i2,"x",i2)',size(ai,1),size(ai,2)
+    nMod=(ord+1)
+    do iMod=1,nMod
+      iu=ijk(iMod)
+      iv=1d0-iu
+      
+      call monomialProduct(ord=ord,n=iu,u=u, fn=fu)
+      call monomialProduct(ord=ord,n=iv,u=v, fn=fv)
+      
+      !print '(3x,"iMod=",i3,3x,"iu=",i3," iv=",i3)',iMod,iu,iv
+      do iNod=1,nNod
+        ai(iMod,iNod)=fu(iNod)*fv(iNod)
+      enddo
+      
+    enddo
+    
+    deallocate(u,v,fu,fv)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine setL2BasisEqui  
+    
+  subroutine nodes1D_c(ord, uvw, display)  BIND(C, name="SNB_nodes1D") 
+    use, intrinsic :: ISO_C_BINDING 
+    implicit none 
+    integer (C_INT), value :: ord 
+    type (C_PTR)           :: uvw
+    integer (C_INT), value :: display
+
+    real(8), pointer :: uvw_f(:)
+    integer          :: ord_f
+    logical          :: display_f
+
+    ord_f = ord
+    display_f = (display == 1)
+
+    call nodes1D (ord_f, uvw_f, display_f)
+
+    uvw = c_loc (uvw_f)
+
+  end subroutine nodes1D_c
+
+    
   subroutine nodes1D(ord, uvw, display)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     ! input: ord=polynomial order of interpolant
@@ -148,6 +248,32 @@ module baseSimplex1D
     return
   end subroutine gradSimplex1D
   
+  subroutine vandermonde1D_c(order, a, vand)  BIND(C, name="SNB_vandermonde1D") 
+    use, intrinsic :: ISO_C_BINDING 
+    implicit none 
+
+    integer (C_INT), value :: order ! int en C
+    type (C_PTR),    value :: a     ! void * en C
+    type (C_PTR)           :: vand  ! void ** en C
+
+    real(8), pointer       :: a_f(:), vand_f(:,:)
+    logical                :: display_f
+
+    integer                :: ord_f
+    integer                :: n
+
+    n=(order+1)
+
+    ord_f = order
+    
+    call c_f_pointer (a, a_f, (/n/))
+    
+    call vandermonde1D(ord_f, a_f, vand_f)
+
+    vand = c_loc (vand_f)
+    
+  end subroutine vandermonde1D_c
+
   subroutine vandermonde1D(ord,a,vand)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)           :: ord
@@ -227,6 +353,49 @@ module baseSimplex1D
     
     return
   end subroutine lagrange1D
+
+
+  subroutine lagrange1Dv_c (order, nVtx, vand, x, lx, transpose)  BIND(C, name="SNB_lagrange1Dv") 
+    use, intrinsic :: ISO_C_BINDING 
+    implicit none 
+
+    integer (C_INT), value :: order 
+    integer (C_INT), value :: nVtx 
+    type (C_PTR),    value :: vand
+    type (C_PTR),    value :: x
+    type (C_PTR),    value :: lx
+    integer (C_INT), value :: transpose
+
+    integer            :: order_f
+    integer            :: nVtx_f
+    real(8), pointer   :: vand_f(:,:)
+    real(8), pointer   :: lx_f(:,:)
+    real(8), pointer   :: x_f(:)
+    logical            :: transpose_f
+
+    integer          :: n
+
+    n = order+1
+
+    order_f = order
+    nVtx_f = nVtx
+
+    transpose_f = transpose
+    
+    call c_f_pointer (vand, vand_f, (/n,n/))
+    call c_f_pointer (x, x_f, (/nVtx_f/))
+    
+    if (transpose_f) then
+      call c_f_pointer (lx, lx_f, (/n, nVtx_f/))
+    else
+      call c_f_pointer (lx, lx_f, (/nVtx_f, n/))
+    endif
+
+    call lagrange1Dv(order_f, vand_f, x_f, lx_f, transpose_f)
+    
+  end subroutine lagrange1Dv_c
+
+
   
   subroutine lagrange1Dv(ord,vand,x,lx,transpose)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

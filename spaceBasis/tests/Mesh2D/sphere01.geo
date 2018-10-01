@@ -1,7 +1,7 @@
 // Localisation cwipi
 
 DefineConstant[ R1 = {1.0, Min 0.5, Max 2.0, Step 1.0, Name "Parameters/R1"} ];
-DefineConstant[  h = {0.5, Min 0.5, Max 5.0, Step 0.5, Name "Parameters/h"} ];
+DefineConstant[  h = {0.500, Min 0.1, Max 5.0, Step 0.5, Name "Parameters/h"} ];
 
 
 Printf("Parametres du maillage");

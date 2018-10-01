@@ -749,6 +749,63 @@ void cwipi_create_coupling
                                   output_format_option,
 				  nb_locations);
 }
+
+/*----------------------------------------------------------------------------
+ *
+ * Set data user (optional)
+ *
+ * parameters:
+ *   coupling_name           <-- Coupling identifier
+ *   data                    <-- data user        
+ *----------------------------------------------------------------------------*/
+
+void
+cwipi_set_data_user
+(
+ const char  *coupling_name,
+       void  *data
+)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+ coupling.set_data_user(data);
+ 
+}
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Get data user (optional)
+ *
+ * parameters:
+ *   coupling_name           <-- Coupling identifier
+ *
+ * return :
+ *   data 
+ *----------------------------------------------------------------------------*/
+
+void *
+cwipi_get_data_user
+(
+ const char  *coupling_name
+)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  return coupling.get_data_user();
+}
+
+
 /*----------------------------------------------------------------------------
  *
  * cwipi_set_location_index

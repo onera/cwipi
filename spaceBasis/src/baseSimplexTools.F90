@@ -19,6 +19,33 @@ module baseSimplexTools
   
   contains
   
+  
+  subroutine monomialProduct(ord,n,u, fn)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>  
+    ! Procedure utilisee pour calculer (rapidement) les fonctions de base des simplex
+    ! dont les noeuds d'interpolation sont equidistants.
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>  
+    integer, intent(in)    :: ord,n
+    real(8), intent(in)    :: u (:)
+    real(8), intent(inout) :: fn(:)
+    !>
+    integer                :: i,iNod
+    real(8)                :: constant
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>  
+    fn(:)=1d0
+    do i=0,n-1
+      constant=1d0/real(i-n,kind=8)
+      do iNod=1,size(u)
+        fn(iNod)=fn(iNod)*(real(i,kind=8)-real(ord,kind=8)*u(iNod))*constant
+      enddo
+    enddo
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end subroutine monomialProduct
+  
+  
   subroutine gaussLegendreQuadratures(ord,xGL,wGL)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! Cas particulier de jacobiGQ pour a=0 et b=0

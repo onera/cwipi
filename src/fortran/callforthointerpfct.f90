@@ -18,6 +18,7 @@
 !-----------------------------------------------------------------------------
 
 subroutine callforthointerpfct(entities_dim, &
+                               order, &
                                n_local_vertex, &
                                n_local_element, &
                                n_local_polhyedra, &
@@ -34,7 +35,6 @@ subroutine callforthointerpfct(entities_dim, &
                                dist_pts_distance, &
                                dist_pts_barycentric_coord_idx, &
                                dist_pts_barycentric_coord, &
-                               uvw_size, &
                                dist_uvw, &
                                stride, &
                                solver_type, &
@@ -45,7 +45,8 @@ subroutine callforthointerpfct(entities_dim, &
   implicit none
 
   interface
-     subroutine  ptInterpolationFct(entities_dim, &
+    subroutine  ptInterpolationFct(entities_dim, &
+                                   order, &
                                     n_local_vertex, &
                                     n_local_element, &
                                     n_local_polhyedra, &
@@ -62,13 +63,13 @@ subroutine callforthointerpfct(entities_dim, &
                                     dist_pts_distance, &
                                     dist_pts_barycentric_coord_idx, &
                                     dist_pts_barycentric_coord, &
-                                    uvw_size, &
                                     dist_uvw, &
                                     stride, &
                                     solver_type, &
                                     local_field, &
                                     distant_field)
        integer :: entities_dim
+       integer :: order
        integer :: n_local_vertex
        integer :: n_local_element
        integer :: n_local_polhyedra
@@ -85,7 +86,6 @@ subroutine callforthointerpfct(entities_dim, &
        real(kind=4), dimension(*)  :: dist_pts_distance
        integer, dimension(*) :: dist_pts_barycentric_coord_idx
        double precision, dimension(*) :: dist_pts_barycentric_coord
-       integer :: uvw_size
        double precision, dimension(*) :: dist_uvw
        integer :: stride
        integer :: solver_type
@@ -95,6 +95,7 @@ subroutine callforthointerpfct(entities_dim, &
   end interface
 
   integer :: entities_dim
+  integer :: order
   integer :: n_local_vertex
   integer :: n_local_element
   integer :: n_local_polhyedra
@@ -111,7 +112,6 @@ subroutine callforthointerpfct(entities_dim, &
   real(kind=4), dimension(*) :: dist_pts_distance
   integer, dimension(*) :: dist_pts_barycentric_coord_idx
   double precision, dimension(*) :: dist_pts_barycentric_coord
-  integer :: uvw_size
   double precision, dimension(*) :: dist_uvw
   integer :: stride
   integer :: solver_type
@@ -120,6 +120,7 @@ subroutine callforthointerpfct(entities_dim, &
 
 
   call ptInterpolationFct (entities_dim, &
+                           order, &
                            n_local_vertex, &
                            n_local_element, &
                            n_local_polhyedra, &
@@ -136,7 +137,6 @@ subroutine callforthointerpfct(entities_dim, &
                            dist_pts_distance, &
                            dist_pts_barycentric_coord_idx, &
                            dist_pts_barycentric_coord, &
-                           uvw_size, &
                            dist_uvw, &
                            stride, &
                            solver_type, &
