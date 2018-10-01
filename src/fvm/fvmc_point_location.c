@@ -3385,6 +3385,8 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
 
         else {
 
+          double *_elt_coords = malloc(sizeof(double) *  this_section->stride * 3);
+          
           for (int k = 0; k < n_points_in_extents; k++) {
 
             int point_in_extents = points_in_extents[k];
@@ -3392,20 +3394,26 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
 
             double tmp_projected_coords[3];
             double tmp_uvw[3];
+
+            int *_ho_vertex_num = this_section->_ho_vertex_num + i*this_section->stride;
+            
+            for (int k1 = 0; k1 < this_section->stride; k1++) {
+              const double *_vertex_coords = vertex_coords + 3 * (_ho_vertex_num[k1] - 1);
+              for (int k2 = 0; k2 < 3; k2++) {
+                _elt_coords[3*k1+k2] = _vertex_coords[k2]; 
+              }
+            }
             
             double _distance = fvmc_ho_location_in_cell_3d (this_section->type,
                                                             this_section->order,
                                                             this_section->stride,
-                                                            this_section->_ho_vertex_num + i*this_section->stride,
-                                                            vertex_coords,
+                                                            _elt_coords,
                                                             _point_coords,
                                                             tmp_projected_coords,
                                                             tmp_uvw);
 
             if ((_distance < distance[point_in_extents]) || (location[point_in_extents] == -1)) {
 
-              // TODO: Ajouter un test faisant intervenir la tolerance pour restreindre la localisation 
-              
               location[point_in_extents] = elt_num;
               distance[point_in_extents] = (float) _distance;
 
@@ -3425,6 +3433,9 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
             }
 
           }
+          
+          free (_elt_coords);
+          
         }
       } 
       
@@ -3469,6 +3480,8 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
 
         else {
 
+          double *_elt_coords = malloc(sizeof(double) *  this_section->stride * 3);
+
           for (int k = 0; k < n_points_in_extents; k++) {
 
             int point_in_extents = points_in_extents[k];
@@ -3477,11 +3490,19 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
             double tmp_projected_coords[3];
             double tmp_uvw[2];
             
+            int *_ho_vertex_num = this_section->_ho_vertex_num + i*this_section->stride;
+            
+            for (int k1 = 0; k1 < this_section->stride; k1++) {
+              const double *_vertex_coords = vertex_coords + 3 * (_ho_vertex_num[k1] - 1);
+              for (int k2 = 0; k2 < 3; k2++) {
+                _elt_coords[3*k1+k2] = _vertex_coords[k2]; 
+              }
+            }
+
             double _distance = fvmc_ho_location_on_cell_2d (this_section->type,
                                                             this_section->order,
                                                             this_section->stride,
-                                                            this_section->_ho_vertex_num + i*this_section->stride,
-                                                            vertex_coords,
+                                                            _elt_coords,
                                                             _point_coords,
                                                             tmp_projected_coords,
                                                             tmp_uvw);
@@ -3511,6 +3532,8 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
             }
 
           }
+
+          free (_elt_coords);
           
         }
         
@@ -3536,6 +3559,8 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
 
         else {
           
+          double *_elt_coords = malloc(sizeof(double) *  this_section->stride * 3);
+
           for (int k = 0; k < n_points_in_extents; k++) {
 
             int point_in_extents = points_in_extents[k];
@@ -3544,11 +3569,19 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
             double tmp_projected_coords[3];
             double tmp_uvw[1];
             
+            int *_ho_vertex_num = this_section->_ho_vertex_num + i*this_section->stride;
+            
+            for (int k1 = 0; k1 < this_section->stride; k1++) {
+              const double *_vertex_coords = vertex_coords + 3 * (_ho_vertex_num[k1] - 1);
+              for (int k2 = 0; k2 < 3; k2++) {
+                _elt_coords[3*k1+k2] = _vertex_coords[k2]; 
+              }
+            }
+
             double _distance = fvmc_ho_location_on_cell_1d (this_section->type,
                                                             this_section->order,
                                                             this_section->stride,
-                                                            this_section->_ho_vertex_num + i*this_section->stride,
-                                                            vertex_coords,
+                                                            _elt_coords,
                                                             _point_coords,
                                                             tmp_projected_coords,
                                                             tmp_uvw);
@@ -3574,6 +3607,8 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
             }
 
           }
+
+          free (_elt_coords);
 
         }
 

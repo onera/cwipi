@@ -567,7 +567,7 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
 
       // TODO : if order > 1 add points to compute bounding box
 
-      if (order > 1) {
+      if (order > 1 && 1 == 0) {
 
         assert (dim == 3);
 

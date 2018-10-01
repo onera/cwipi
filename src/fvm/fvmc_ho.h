@@ -57,9 +57,8 @@ extern "C" {
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
- *   n_node           <-- number of nodes
- *   ho_vertex_num    <-- high order vertex num (internal ordering)
- *   vertex_coords    <-- vertex coordinates
+ *   n_nodes          <-- number of nodes
+ *   nodes_coords     <-- nodes coordinates
  *   point_coords     <-- point to locate coordinates
  *   projected_coords --> projected point coordinates (if point is outside) 
  *   weights          --> interpolation weights in the element
@@ -71,9 +70,8 @@ extern "C" {
 
 typedef double (*fvmc_ho_location_fct_t)
 (const int order,
- const int n_node,
- const int *ho_vertex_num,
- const double *vertex_coords,
+ const int n_nodes,
+ const double *nodes_coords,
  const double *point_coords,
  double *projected_coords,
  double *weights);
@@ -84,10 +82,9 @@ typedef double (*fvmc_ho_location_fct_t)
  * parameters:
  *   type              <-- element type
  *   order             <-- element order
- *   n_node           <-- number of nodes
- *   ho_vertex_num     <-- high order vertex num (internal ordering)
+ *   n_nodes           <-- number of nodes
  *   local_to_user     <-- local to user ordering (for type)
- *   vertex_coords     <-- vertex coordinates
+ *   nodes_coords      <-- nodes coordinates
  *   point_coords      <-- point coordinates 
  *   distance          <-- distance to the element
  *   point_proj_coords  <-- projected point coordinates
@@ -100,10 +97,10 @@ typedef double (*fvmc_ho_location_fct_t)
 
 typedef void (*fvmc_ho_interp_fct_t)
 (const int order,
- const int n_node,
+ const int n_nodes,
  const int *ho_vertex_num,
  const int *local_to_user,
- const double *vertex_coords,
+ const double *nodes_coords,
  const double *point_coords,
  const float *distance,
  const double *point_proj_coords,
@@ -198,9 +195,8 @@ fvmc_ho_user_elementary_functions_unset (void);
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
- *   n_node           <-- number of nodes
- *   ho_vertex_num    <-- high order vertex num (internal ordering) (size = n_node)
- *   vertex_coords    <-- vertex coordinates (size = 3 * n_node)
+ *   n_nodes          <-- number of nodes
+ *   nodes_coords     <-- nodes coordinates (size = 3 * n_nodes)
  *   point_coords     <-- point to locate coordinates (size = 3)
  *   projected_coords --> projected point coordinates if outside (size = 3)
  *   uvw              --> parametric coordinates (point if inside the element
@@ -214,9 +210,8 @@ fvmc_ho_user_elementary_functions_unset (void);
 double 
 fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
                              const int order,
-                             const int n_node,
-                             const int *ho_vertex_num,
-                             const double *vertex_coords,
+                             const int n_nodes,
+                             const double *nodes_coords,
                              const double *point_coords,
                              double *projected_coords,
                              double* uvw);
@@ -229,9 +224,8 @@ fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
- *   n_node            <-- number of nodes
- *   ho_vertex_num    <-- high order vertex num (internal ordering) (size = n_node)
- *   vertex_coords    <-- vertex coordinates (size = 3 * n_node)
+ *   n_nodes          <-- number of nodes
+ *   nodes_coords     <-- nodes coordinates (size = 3 * n_nodes)
  *   point_coords     <-- point to locate coordinates (size = 3)
  *   projected_coords --> projected point coordinates (size = 3)
  *   uvw              --> parametric coordinates of the projected point on the element
@@ -244,9 +238,8 @@ fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
 double 
 fvmc_ho_location_on_cell_2d (const fvmc_element_t type,
                              const int order,
-                             const int n_node,
-                             const int *ho_vertex_num,
-                             const double *vertex_coords,
+                             const int n_nodes,
+                             const double *nodes_coords,
                              const double *point_coords,
                              double *projected_coords,
                              double *uvw);
@@ -259,9 +252,8 @@ fvmc_ho_location_on_cell_2d (const fvmc_element_t type,
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
- *   n_node            <-- number of nodes
- *   ho_vertex_num    <-- high order vertex num (internal ordering) (size = n_node)
- *   vertex_coords    <-- vertex coordinates (size = 3 * n_node)
+ *   n_nodes          <-- number of nodes
+ *   nodes_coords     <-- nodes coordinates (size = 3 * n_nodes)
  *   point_coords     <-- point to locate coordinates (size = 3)
  *   projected_coords --> projected point coordinates (size = 3)
  *   uvw              --> parametric coordinates of the projected point on the element
@@ -274,9 +266,8 @@ fvmc_ho_location_on_cell_2d (const fvmc_element_t type,
 double 
 fvmc_ho_location_on_cell_1d (const fvmc_element_t type,
                              const int order,
-                             const int n_node,
-                             const int *ho_vertex_num,
-                             const double *vertex_coords,
+                             const int n_nodes,
+                             const double *nodes_coords,
                              const double *point_coords,
                              double *projected_coords,
                              double *uvw);
