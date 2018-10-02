@@ -3404,13 +3404,13 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
               }
             }
             
-            double _distance = fvmc_ho_location_in_cell_3d (this_section->type,
-                                                            this_section->order,
-                                                            this_section->stride,
-                                                            _elt_coords,
-                                                            _point_coords,
-                                                            tmp_projected_coords,
-                                                            tmp_uvw);
+            double _distance = fvmc_ho_location (this_section->type,
+                                                 this_section->order,
+                                                 this_section->stride,
+                                                 _elt_coords,
+                                                 _point_coords,
+                                                 tmp_projected_coords,
+                                                 tmp_uvw);
 
             if ((_distance < distance[point_in_extents]) || (location[point_in_extents] == -1)) {
 
@@ -3499,13 +3499,13 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
               }
             }
 
-            double _distance = fvmc_ho_location_on_cell_2d (this_section->type,
-                                                            this_section->order,
-                                                            this_section->stride,
-                                                            _elt_coords,
-                                                            _point_coords,
-                                                            tmp_projected_coords,
-                                                            tmp_uvw);
+            double _distance = fvmc_ho_location (this_section->type,
+                                                 this_section->order,
+                                                 this_section->stride,
+                                                 _elt_coords,
+                                                 _point_coords,
+                                                 tmp_projected_coords,
+                                                 tmp_uvw);
 
     if (idebug == 1)            printf("fvmc_point_location _distance :%12.5e\n", _distance);
 
@@ -3578,13 +3578,13 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
               }
             }
 
-            double _distance = fvmc_ho_location_on_cell_1d (this_section->type,
-                                                            this_section->order,
-                                                            this_section->stride,
-                                                            _elt_coords,
-                                                            _point_coords,
-                                                            tmp_projected_coords,
-                                                            tmp_uvw);
+            double _distance = fvmc_ho_location (this_section->type,
+                                                 this_section->order,
+                                                 this_section->stride,
+                                                 _elt_coords,
+                                                 _point_coords,
+                                                 tmp_projected_coords,
+                                                 tmp_uvw);
 
             if ((_distance < distance[point_in_extents]) || (location[point_in_extents] == -1)) {
 

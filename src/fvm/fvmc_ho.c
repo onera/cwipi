@@ -93,26 +93,6 @@ typedef struct _fvmc_ho_user_elt_t {
   fvmc_ho_location_fct_t location_in_elt;
 } fvmc_ho_user_elt_t;
 
-
-typedef struct _fvmc_ho_user_fcts_t {
-  fvmc_ho_location_fct_t location_tetra;
-  fvmc_ho_location_fct_t location_prism;
-  fvmc_ho_location_fct_t location_pyramid;
-  fvmc_ho_location_fct_t location_hexa;
-  fvmc_ho_location_fct_t location_tria;
-  fvmc_ho_location_fct_t location_quad;
-  fvmc_ho_location_fct_t location_edge;
-
-  fvmc_ho_interp_fct_t interp_tetra;
-  fvmc_ho_interp_fct_t interp_prism;
-  fvmc_ho_interp_fct_t interp_pyramid;
-  fvmc_ho_interp_fct_t interp_hexa;
-  fvmc_ho_interp_fct_t interp_tria;
-  fvmc_ho_interp_fct_t interp_quad;
-  fvmc_ho_interp_fct_t interp_edge;
-
-} fvmc_ho_user_fcts_t;
-
 /*----------------------------------------------------------------------------
  * Sorted heap for sub-triangle storage
  *----------------------------------------------------------------------------*/
@@ -184,8 +164,6 @@ typedef void (*_basis_generic_2D_t)
  * Static global variables
  *============================================================================*/
 
-static fvmc_ho_user_fcts_t *_user_fcts = NULL;
-
 static fvmc_ho_user_elt_t *_user_edge = NULL;
 
 static fvmc_ho_user_elt_t *_user_tria = NULL;
@@ -210,52 +188,6 @@ static double **            _vand_1D_space = NULL;
 /*============================================================================
  * Private function definitions
  *============================================================================*/
-
-/*----------------------------------------------------------------------------
- * 
- * Default point location in a high order cell 3d
- * 
- * parameters:
- *   type             <-- element type
- *   order            <-- element order
- *   n_nodes          <-- number of nodes
- *   nodes_coor ds    <-- nodes coordinates
- *   point_coords     <-- point to locate coordinates
- *   projected_coords --> projected point coordinates if outside (or NULL)
- *   uvw              --> parametric coordinates (point if inside the element
- *                                                projected point if outside)
- * 
- * return: 
- *   distance to the cell (distance <= 0 if point is inside)
- *
- *----------------------------------------------------------------------------*/
-
-static double 
-_default_location_in_cell_3d
-(
- const fvmc_element_t type,
- const int order,
- const int n_nodes,
- const double *nodes_coords,
- const double *point_coords,
- double *projected_coords,
- double* uvw
-)
-{
-  type;
-  order;
-  n_nodes;
-  nodes_coords;
-  point_coords;
-  projected_coords;
-  uvw;
-  
-  double dist = 0.;
-  bftc_error(__FILE__, __LINE__, 0,
-             _("_default_location_in_cell_3d : Not implemented yet\n"));
-  return dist;
-}
-
 
 /*----------------------------------------------------------------------------
  * 
@@ -2040,7 +1972,7 @@ _default_location_generic_2d
  *----------------------------------------------------------------------------*/
 
 static double 
-_default_location_on_cell_2d
+_default_location
 (
  const fvmc_element_t type,
  const int order,
@@ -2052,7 +1984,7 @@ _default_location_on_cell_2d
 )
 {
   fvmc_element_t _type = type;
-  double dist2;
+  double dist2 = HUGE_VAL;
   
   switch (_type) {
 
@@ -2081,55 +2013,16 @@ _default_location_on_cell_2d
                                           _basis_quad_qn);
     break;
 
+  default:
+    bftc_error(__FILE__, __LINE__, 0,
+               _("_default_location : Element not implemented yet\n"));
+
   }
- 
+  
   return dist2;
 
 }
 
-/*----------------------------------------------------------------------------
- * 
- * Default point location on a high order cell 1d
- * 
- * parameters:
- *   type             <-- element type
- *   order            <-- element order
- *   n_nodes          <-- number of nodes
- *   nodes_coord      <-- nodes coordinates
- *   point_coords     <-- point to locate coordinates
- *   projected_coords --> projected point coordinates (or NULL)
- *   uvw              --> parametric coordinates of the projected poin on the element
- * 
- * return: 
- *   distance to the cell
- *
- *----------------------------------------------------------------------------*/
-
-static double 
-_default_location_on_cell_1d
-(
- const fvmc_element_t type,
- const int order,
- const int n_nodes,
- const double *nodes_coords,
- const double *point_coords,
- double *projected_coords,
- double* uvw
-)
-{
-
-  type;
-  order;
-  n_nodes;
-  nodes_coords;
-  point_coords;
-  projected_coords;
-    
-  double dist = 0.;
-  bftc_error(__FILE__, __LINE__, 0,
-             _("_default_location_on_cell_1d : Not implemented yet\n"));
-  return dist;
-}
 
 /*----------------------------------------------------------------------------
  * 
@@ -2292,16 +2185,64 @@ _default_interp_on_cell_1d
     }
   }
 }
-
-/*============================================================================
- * Public function definitions
- *============================================================================*/
-
-
-
 /*----------------------------------------------------------------------------
  * 
  * high order basis
+ * 
+ * parameters:
+ *   type            <-- element type
+ *
+ * return:
+ *
+ *----------------------------------------------------------------------------*/
+
+static fvmc_ho_user_elt_t *
+_get_user_elt (fvmc_element_t elt_type)
+{
+
+  fvmc_ho_user_elt_t *user_elt = NULL;
+  
+  switch(elt_type) {
+
+  case FVMC_EDGE:
+    user_elt = _user_edge;
+    break;
+    
+  case FVMC_FACE_TRIA:
+    user_elt = _user_tria;
+    break;
+    
+  case FVMC_FACE_QUAD:
+    user_elt = _user_quad;
+    break;
+    
+  case FVMC_CELL_TETRA:
+    user_elt = _user_tetra;
+    break;
+    
+  case FVMC_CELL_PYRAM:
+    user_elt = _user_pyra;
+    break;
+    
+  case FVMC_CELL_PRISM:
+    user_elt = _user_prism;
+    break;
+    
+  case FVMC_CELL_HEXA:
+    user_elt = _user_hexa;
+    break;
+
+  default:
+    bftc_error(__FILE__, __LINE__, 0,
+               _("fvmc_ho_user_elt_unset : Unvailable element type\n"));
+  }
+
+  return user_elt;
+}
+
+/*----------------------------------------------------------------------------
+ * 
+ * default high order basis
  * 
  * parameters:
  *   type            <-- element type
@@ -2311,8 +2252,8 @@ _default_interp_on_cell_1d
  *
  *----------------------------------------------------------------------------*/
 
-void
-fvmc_ho_basis_pn
+static void
+_default_elt_basis
 (
 const fvmc_element_t type,
 const int order,
@@ -2327,6 +2268,9 @@ const double *uvw,
     break;
 
   case FVMC_FACE_QUAD:
+    _basis_quad_qn (order, uvw[0], uvw[1], weights);
+    break;
+
   case FVMC_EDGE:
   case FVMC_CELL_TETRA:
   case FVMC_CELL_PRISM:
@@ -2334,9 +2278,14 @@ const double *uvw,
   case FVMC_CELL_HEXA:
   default: 
     bftc_error(__FILE__, __LINE__, 0,
-               _("fvmc_ho_basis_pn : '%d' element type not yet implemented\n"), type);
+               _("_default_elts_basis : '%d' element type not yet implemented\n"),
+               type);
   }
 }
+
+/*============================================================================
+ * Public function definitions
+ *============================================================================*/
 
 
 /*----------------------------------------------------------------------------
@@ -2345,117 +2294,31 @@ const double *uvw,
  * 
  *----------------------------------------------------------------------------*/
 
-
 void
 fvmc_ho_user_elt_unset (fvmc_element_t elt_type)
 {
-  switch(elt_type) {
 
-  case FVMC_EDGE:
-    
-    if (_user_edge != NULL) {
-      free (_user_edge);
-      _user_edge = NULL;
-    }
-    
-    break;
-    
-  case FVMC_FACE_TRIA:
-    
-    if (_user_tria != NULL) {
-      free (_user_tria);
-      _user_tria = NULL;
-    }
-    
-    break;
-    
-  case FVMC_FACE_QUAD:
-    
-    if (_user_quad != NULL) {
-      free (_user_quad);
-      _user_quad = NULL;
-    }
-    
-    break;
-    
-  case FVMC_CELL_TETRA:
-    
-    if (_user_tetra != NULL) {
-      free (_user_tetra);
-      _user_tetra = NULL;
-    }
-    
-    break;
-    
-  case FVMC_CELL_PYRAM:
-    
-    if (_user_pyra != NULL) {
-      free (_user_pyra);
-      _user_pyra = NULL;
-    }
-    
-    break;
-    
-  case FVMC_CELL_PRISM:
-    
-    if (_user_prism != NULL) {
-      free (_user_prism);
-      _user_prism = NULL;
-    }
-    
-    break;
-    
-  case FVMC_CELL_HEXA:
-    
-    if (_user_hexa != NULL) {
-      free (_user_hexa);
-      _user_hexa = NULL;
-    }
-    
-    break;
-
-  default:
-    bftc_error(__FILE__, __LINE__, 0,
-               _("fvmc_ho_user_elt_unset : Unvailable element type\n"));
+  fvmc_ho_user_elt_t *_user_elt = _get_user_elt (elt_type);
   
-    
+  if (_user_elt != NULL) {
+    free (_user_elt);
+    _user_elt = NULL;
   }
+  
 }
 
 
 void
-fvmc_ho_user_elementary_functions_unset (void)
+fvmc_ho_user_elts_unset (void)
 {
-  if (_user_fcts != NULL) {
-    free (_user_fcts);
-    _user_fcts = NULL;
-  }
+  fvmc_ho_user_elt_unset (FVMC_EDGE);
+  fvmc_ho_user_elt_unset (FVMC_FACE_TRIA);
+  fvmc_ho_user_elt_unset (FVMC_FACE_QUAD);
+  fvmc_ho_user_elt_unset (FVMC_CELL_TETRA);
+  fvmc_ho_user_elt_unset (FVMC_CELL_HEXA);
+  fvmc_ho_user_elt_unset (FVMC_CELL_PRISM);
+  fvmc_ho_user_elt_unset (FVMC_CELL_PYRAM);
 }
-
-
-/*----------------------------------------------------------------------------
- * 
- * Set elementary functions
- * 
- * parameters:
- *   location_tetra    <-- Location in a tetrahedron
- *   location_prism    <-- Location in a prism
- *   location_pyramid  <-- Location in a pyramid
- *   location_hexa     <-- Location in a hexaedron
- *   location_tria     <-- Location on a triangle
- *   location_quad     <-- Location on a quandragle
- *   location_edge     <-- Location on a edge
- *   interp_tetra       <-- Interpolation in a tetrahedron
- *   interp_prism       <-- Interpolation in a prism
- *   interp_pyramid     <-- Interpolation in a pyramid
- *   interp_hexa        <-- Interpolation in a hexaedron
- *   interp_tria        <-- Interpolation on a triangle
- *   interp_quad        <-- Interpolation on a quandragle
- *   interp_edge        <-- Interpolation on a edge
- *
- *----------------------------------------------------------------------------*/
-
-
 
 /*----------------------------------------------------------------------------
  * 
@@ -2470,239 +2333,71 @@ fvmc_ho_user_elt_set (fvmc_element_t elt_type,
                       fvmc_ho_xsi_fct_t xsi_coords,
                       fvmc_ho_location_fct_t location_in_elt)
 {
-  switch(elt_type) {
-
-  case FVMC_EDGE:
-    
-    if (_user_edge == NULL) {
-      _user_edge = (fvmc_ho_user_elt_t *) malloc (sizeof(fvmc_ho_user_elt_t));
-    }
-
-    _user_edge->elt_basis = elt_basis;
-    _user_edge->xsi_coords = xsi_coords;
-    _user_edge->location_in_elt = location_in_elt;
-    
-    break;
-    
-  case FVMC_FACE_TRIA:
-    
-    if (_user_tria == NULL) {
-    _user_tria = (fvmc_ho_user_elt_t *) malloc (sizeof(fvmc_ho_user_elt_t));
-    }
-
-    _user_tria->elt_basis = elt_basis;
-    _user_tria->xsi_coords = xsi_coords;
-    _user_tria->location_in_elt = location_in_elt;
-
-    break;
-    
-  case FVMC_FACE_QUAD:
-    
-    if (_user_quad == NULL) {
-    _user_quad = (fvmc_ho_user_elt_t *) malloc (sizeof(fvmc_ho_user_elt_t));
-    }
-
-    _user_quad->elt_basis = elt_basis;
-    _user_quad->xsi_coords = xsi_coords;
-    _user_quad->location_in_elt = location_in_elt;
-    
-    break;
-    
-  case FVMC_CELL_TETRA:
-    
-    if (_user_tetra == NULL) {
-    _user_tetra = (fvmc_ho_user_elt_t *) malloc (sizeof(fvmc_ho_user_elt_t));
-    }
-
-    _user_tetra->elt_basis = elt_basis;
-    _user_tetra->xsi_coords = xsi_coords;
-    _user_tetra->location_in_elt = location_in_elt;
-    
-    break;
-    
-  case FVMC_CELL_PYRAM:
-    
-    if (_user_pyra == NULL) {
-    _user_pyra = (fvmc_ho_user_elt_t *) malloc (sizeof(fvmc_ho_user_elt_t));
-    }
-
-    _user_pyra->elt_basis = elt_basis;
-    _user_pyra->xsi_coords = xsi_coords;
-    _user_pyra->location_in_elt = location_in_elt;
-    
-    break;
-    
-  case FVMC_CELL_PRISM:
-    
-    if (_user_prism == NULL) {
-    _user_prism = (fvmc_ho_user_elt_t *) malloc (sizeof(fvmc_ho_user_elt_t));
-    }
-
-    _user_prism->elt_basis = elt_basis;
-    _user_prism->xsi_coords = xsi_coords;
-    _user_prism->location_in_elt = location_in_elt;
-    
-    break;
-    
-  case FVMC_CELL_HEXA:
-    
-    if (_user_hexa == NULL) {
-    _user_hexa = (fvmc_ho_user_elt_t *) malloc (sizeof(fvmc_ho_user_elt_t));
-    }
-
-    _user_hexa->elt_basis = elt_basis;
-    _user_hexa->xsi_coords = xsi_coords;
-    _user_hexa->location_in_elt = location_in_elt;
-    
-    break;
-
-  default:
-    bftc_error(__FILE__, __LINE__, 0,
-               _("fvmc_ho_user_elt_unset : Unvailable element type\n"));
+  fvmc_ho_user_elt_t *user_elt = _get_user_elt (elt_type);
   
-    
+  if (user_elt == NULL) {
+    user_elt = (fvmc_ho_user_elt_t *) malloc (sizeof(fvmc_ho_user_elt_t));
   }
+
+  user_elt->elt_basis = elt_basis;
+  user_elt->xsi_coords = xsi_coords;
+  user_elt->location_in_elt = location_in_elt;
+
 }
 
+/*----------------------------------------------------------------------------
+ * 
+ * high order basis
+ * 
+ * parameters:
+ *   type            <-- element type
+ *   order           <-- order
+ *   n_nodes         <-- number of nodes
+ *   uvw             <-- uvw
+ *   weights         --> weights (size = n_nodes)
+ *
+ *----------------------------------------------------------------------------*/
 
 void
-fvmc_ho_user_elementary_functions_set (fvmc_ho_location_fct_t location_tetra,
-                                       fvmc_ho_location_fct_t location_prism,
-                                       fvmc_ho_location_fct_t location_pyramid,
-                                       fvmc_ho_location_fct_t location_hexa,
-                                       fvmc_ho_location_fct_t location_tria,
-                                       fvmc_ho_location_fct_t location_quad,
-                                       fvmc_ho_location_fct_t location_edge,
-                                       fvmc_ho_interp_fct_t interp_tetra,
-                                       fvmc_ho_interp_fct_t interp_prism,
-                                       fvmc_ho_interp_fct_t interp_pyramid,
-                                       fvmc_ho_interp_fct_t interp_hexa,
-                                       fvmc_ho_interp_fct_t interp_tria,
-                                       fvmc_ho_interp_fct_t interp_quad,
-                                       fvmc_ho_interp_fct_t interp_edge)
-{
-
-  if (_user_fcts == NULL) {
-    _user_fcts = (fvmc_ho_user_fcts_t *) malloc (sizeof(fvmc_ho_user_fcts_t));
-  }
-  
-  _user_fcts->location_tetra   = location_tetra;
-  _user_fcts->location_prism   = location_prism;
-  _user_fcts->location_pyramid = location_pyramid;
-  _user_fcts->location_hexa    = location_hexa;
-  _user_fcts->location_tria    = location_tria;
-  _user_fcts->location_quad    = location_quad;
-  _user_fcts->location_edge    = location_edge;
-
-  _user_fcts->interp_tetra   = interp_tetra;
-  _user_fcts->interp_prism   = interp_prism;
-  _user_fcts->interp_pyramid = interp_pyramid;
-  _user_fcts->interp_hexa    = interp_hexa;
-  _user_fcts->interp_tria    = interp_tria;
-  _user_fcts->interp_quad    = interp_quad;
-  _user_fcts->interp_edge    = interp_edge;
-}
-
-
-
-/*----------------------------------------------------------------------------
- * 
- * Point location in a high order cell 3d
- * 
- * parameters:
- *   type             <-- element type
- *   order            <-- element order
- *   n_nodes          <-- number of nodes
- *   nodes_coords     <-- nodes coordinates (size = 3 * n_nodes)
- *   point_coords     <-- point to locate coordinates (size = 3)
- *   projected_coords --> projected point coordinates if outside (size = 3)
- *   uvw              --> parametric coordinates (point if inside the element
- *                                                projected point if outside)
- *
- * return: 
- *   distance to the cell (distance <= 0 if point is inside)
- *
- *----------------------------------------------------------------------------*/
-
-double 
-fvmc_ho_location_in_cell_3d
+fvmc_ho_basis
 (
- const fvmc_element_t type,
- const int order,
- const int n_nodes,
- const double *nodes_coords,
- const double *point_coords,
- double *projected_coords,
- double *uvw
+const fvmc_element_t type,
+const int order,
+const int n_nodes,
+const double *uvw,
+      double *weights 
 )
 {
-
-  fvmc_ho_user_elt_t *user_elt;
-  double dist2 = HUGE_VAL;
+  fvmc_ho_user_elt_t *user_elt = _get_user_elt (type);
   
-  switch (type) {
-    
-  case FVMC_CELL_TETRA:
-    user_elt = _user_tetra;
-    break;
-    
-  case FVMC_CELL_PRISM:
-    user_elt = _user_prism;
-    break;
-      
-  case FVMC_CELL_PYRAM:
-    user_elt = _user_pyra;
-    break;
-
-  case FVMC_CELL_HEXA:
-    user_elt = _user_hexa;
-    break;
-  default:
-    
-    bftc_error(__FILE__, __LINE__, 0,
-               _("fvmc_ho_location_in_cell_3d : Not a high order 3D element type\n"));
-  } 
-
   if (user_elt != NULL) {
-    if (user_elt->location_in_elt != NULL) {
-      dist2 = user_elt->location_in_elt (order,
-                                         n_nodes,
-                                         nodes_coords,
-                                         point_coords,
-                                         projected_coords,
-                                         uvw);
+    if (user_elt->elt_basis != NULL) {
+      (user_elt->elt_basis) (order,
+                             n_nodes,
+                             uvw,
+                             weights);
     }
-
     else {
-      dist2 = _default_location_in_cell_3d (type,
-                                           order,
-                                           n_nodes,
-                                           nodes_coords,
-                                           point_coords,
-                                           projected_coords,
-                                           uvw);
+      _default_elt_basis (type,
+                          order,
+                          uvw,
+                          weights);
     }
   }
-  
+
   else {
+    _default_elt_basis (type,
+                        order,
+                        uvw,
+                        weights);
 
-    dist2 = _default_location_in_cell_3d (type,
-                                         order,
-                                         n_nodes,
-                                         nodes_coords,
-                                         point_coords,
-                                         projected_coords,
-                                         uvw);
-    
   }
-
-  return dist2;
 }
 
 
 /*----------------------------------------------------------------------------
  * 
- * Point location on a high order cell 2d
+ * Point location in a high order cell
  * 
  * parameters:
  *   type             <-- element type
@@ -2719,7 +2414,7 @@ fvmc_ho_location_in_cell_3d
  *----------------------------------------------------------------------------*/
 
 double 
-fvmc_ho_location_on_cell_2d
+fvmc_ho_location
 (
  const fvmc_element_t type,
  const int order,
@@ -2730,124 +2425,38 @@ fvmc_ho_location_on_cell_2d
  double *uvw
 )
 {
-
-  fvmc_ho_user_elt_t *user_elt;
-  double dist2 = HUGE_VAL;
   
-  switch (type) {
-    
-  case FVMC_FACE_TRIA:
-    user_elt = _user_tria;
-    break;
-    
-  case FVMC_FACE_QUAD:
-    user_elt = _user_quad;
-    break;
-      
-  default:
-    
-    bftc_error(__FILE__, __LINE__, 0,
-               _("fvmc_ho_location_on_cell_2d : Not a high order 2D element type\n"));
-  } 
-
+  fvmc_ho_user_elt_t *user_elt = _get_user_elt (type);
+  
   if (user_elt != NULL) {
     if (user_elt->location_in_elt != NULL) {
-      dist2 = user_elt->location_in_elt (order,
-                                         n_nodes,
-                                         nodes_coords,
-                                         point_coords,
-                                         projected_coords,
-                                         uvw);
-    }
-
-    else {
-      dist2 = _default_location_on_cell_2d (type,
-                                           order,
+      return (user_elt->location_in_elt ) (order,
                                            n_nodes,
                                            nodes_coords,
                                            point_coords,
                                            projected_coords,
                                            uvw);
     }
-  }
-  
-  else {
-
-    dist2 = _default_location_on_cell_2d (type,
-                                         order,
-                                         n_nodes,
-                                         nodes_coords,
-                                         point_coords,
-                                         projected_coords,
-                                         uvw);
-    
-  }
-
-  return dist2;
-
-}
-
-
-/*----------------------------------------------------------------------------
- * 
- * Point location on a high order cell 1d
- * 
- * parameters:
- *   type             <-- element type
- *   order            <-- element order
- *   n_nodes          <-- number of nodes
- *   nodes_coords     <-- nodes coordinates (size = 3 * n_nodes)
- *   point_coords     <-- point to locate coordinates (size = 3)
- *   projected_coords --> projected point coordinates (size = 3)
- *   uvw              --> parametric coordinates of the projected point on the element
- * 
- * return: 
- *   distance to the cell
- *
- *----------------------------------------------------------------------------*/
-
-double 
-fvmc_ho_location_on_cell_1d
-(
- const fvmc_element_t type,
- const int order,
- const int n_nodes,
- const double *nodes_coords,
- const double *point_coords,
- double *projected_coords,
- double *uvw
-)
-{
-
-  if (_user_fcts != NULL) {
-    switch (type) {
-      
-    case FVMC_EDGE:
-      return (_user_fcts->location_edge) (order,
-                                          n_nodes,
-                                          nodes_coords,
-                                          point_coords,
-                                          projected_coords,
-                                          uvw);
-      break;
-      
-    default:
-
-      bftc_error(__FILE__, __LINE__, 0,
-                 _("fvmc_ho_location_on_cell_1d : Not a high order 1D element type\n"));
+    else {
+      return _default_location (type,
+                                order,
+                                n_nodes,
+                                nodes_coords,
+                                point_coords,
+                                projected_coords,
+                                uvw);
     }
   }
 
   else {
 
-    return _default_location_on_cell_1d (type,
-                                         order,
-                                         n_nodes,
-                                         nodes_coords,
-                                         point_coords,
-                                         projected_coords,
-                                         uvw);
-
+    return _default_location (type,
+                              order,
+                              n_nodes,
+                              nodes_coords,
+                              point_coords,
+                              projected_coords,
+                              uvw);
   }
 
   return HUGE_VAL;
@@ -2856,328 +2465,10 @@ fvmc_ho_location_on_cell_1d
 
 /*----------------------------------------------------------------------------
  * 
- * Interpolate field to the target point_coords in a 3D cell
- * 
- * parameters:
- *   type              <-- element type
- *   order             <-- element order
- *   n_node            <-- number of nodes
- *   ho_vertex_num     <-- high order vertex num (internal ordering)
- *   local_to_user     <-- local to user ordering (for type)
- *   vertex_coords     <-- vertex coordinates
- *   point_coords      <-- point coordinates 
- *   distance          <-- distance to the element
- *   point_proj_coords  <-- projected point coordinates
- *   weight             <-- weights (internal ordering)
- *   stride_field      <-- field stride
- *   source_field      <-- source field (user ordering) 
- *   target_field      --> target field (defined to point_coords)
- *
- *----------------------------------------------------------------------------*/
-
-void 
-fvmc_ho_interp_in_cell_3d
-(
- const fvmc_element_t type,
- const int order,
- const int n_nodes,
- const int *ho_vertex_num,
- const int *local_to_user,
- const double *nodes_coords,
- const double *point_coords,
- const float *distance,
- const double *point_proj_coords,
- const double *weight,
- const int stride_field,
- const double *src_field, 
- double *target_field
- )                          
-{
-  if (_user_fcts != NULL) {
-
-    switch (type) {
-      
-    case FVMC_CELL_TETRA:
-      (_user_fcts->interp_tetra) (order,
-                                  n_nodes,
-                                  ho_vertex_num,
-                                  local_to_user, 
-                                  nodes_coords,
-                                  point_coords,
-                                  distance,
-                                  point_proj_coords,
-                                  weight,
-                                  stride_field,
-                                  src_field,
-                                  target_field);
-
-      break;
-      
-    case FVMC_CELL_PRISM:
-
-      (_user_fcts->interp_prism) (order,
-                                  n_nodes,
-                                  ho_vertex_num,
-                                  local_to_user, 
-                                  nodes_coords,
-                                  point_coords,
-                                  distance,
-                                  point_proj_coords,
-                                  weight,
-                                  stride_field,
-                                  src_field,
-                                  target_field);
-
-      break;
-      
-    case FVMC_CELL_PYRAM:
-      (_user_fcts->interp_pyramid ) (order,
-                                     n_nodes,
-                                     ho_vertex_num,
-                                     local_to_user, 
-                                     nodes_coords,
-                                     point_coords,
-                                     distance,
-                                     point_proj_coords,
-                                     weight,
-                                     stride_field,
-                                     src_field,
-                                     target_field);
-
-      break;
-
-    case FVMC_CELL_HEXA:
-      (_user_fcts->interp_hexa) (order,
-                                 n_nodes,
-                                 ho_vertex_num,
-                                 local_to_user, 
-                                 nodes_coords,
-                                 point_coords,
-                                 distance,
-                                 point_proj_coords,
-                                 weight,
-                                 stride_field,
-                                 src_field,
-                                 target_field);
-      break;
-
-    default:
-
-      bftc_error(__FILE__, __LINE__, 0,
-                 _("fvmc_ho_interp_in_cell_3d : Not a high order 3D element type\n"));
-    } 
-
-  }
-
-  else {
-
-    _default_interp_in_cell_3d (type,
-                                order,
-                                n_nodes,
-                                ho_vertex_num,
-                                local_to_user,
-                                nodes_coords,
-                                point_coords,
-                                distance,
-                                point_proj_coords,
-                                weight,
-                                stride_field,
-                                src_field,
-                                target_field);
-
-  }
-}
-
-
-/*----------------------------------------------------------------------------
- * 
- * Interpolate field to the target point_coords on a 2D cell
- * 
- * parameters:
- *   type              <-- element type
- *   order             <-- element order
- *   n_node            <-- number of nodes
- *   ho_vertex_num     <-- high order vertex num (internal ordering)
- *   local_to_user     <-- local to user ordering (for type)
- *   vertex_coords     <-- vertex coordinates
- *   point_coords      <-- point coordinates 
- *   distance          <-- distance to the element
- *   point_proj_coords  <-- projected point coordinates
- *   weight             <-- weights (internal ordering)
- *   stride_field      <-- field stride
- *   source_field      <-- source field (user ordering) 
- *   target_field      --> target field (defined to point_coords)
- *
- *----------------------------------------------------------------------------*/
-
-void 
-fvmc_ho_interp_on_cell_2d
-(
- const fvmc_element_t type,
- const int order,
- const int n_node,
- const int *ho_vertex_num,
- const int *local_to_user,
- const double *vertex_coords,
- const double *point_coords,
- const float *distance,
- const double *point_proj_coords,
- const double *weight,
- const int stride_field,
- const double *src_field,
- double *target_field
-)
-{
-  if (_user_fcts != NULL) {
-    switch (type) {
-      
-    case FVMC_FACE_TRIA:
-      (_user_fcts->interp_tria) (order,
-                                 n_node,
-                                 ho_vertex_num,
-                                 local_to_user, 
-                                 vertex_coords,
-                                 point_coords,
-                                 distance,
-                                 point_proj_coords,
-                                 weight,
-                                 stride_field,
-                                 src_field,
-                                 target_field);
-      break;
-      
-    case FVMC_FACE_QUAD:
-      (_user_fcts->interp_quad) (order,
-                                 n_node,
-                                 ho_vertex_num,
-                                 local_to_user, 
-                                 vertex_coords,
-                                 point_coords,
-                                 distance,
-                                 point_proj_coords,
-                                 weight,
-                                 stride_field,
-                                 src_field,
-                                 target_field);
-      break;
-      
-    default:
-
-      bftc_error(__FILE__, __LINE__, 0,
-                 _("fvmc_ho_interp_on_cell_2d : Not a high order 2D element type\n"));
-    }
-
-  }
-
-  else {
-
-    _default_interp_on_cell_2d (type,
-                                order,
-                                n_node,
-                                ho_vertex_num,
-                                local_to_user,
-                                vertex_coords,
-                                point_coords,
-                                distance,
-                                point_proj_coords,
-                                weight,
-                                stride_field,
-                                src_field,
-                                target_field);
-  }
-}
-
-
-/*----------------------------------------------------------------------------
- * 
- * Interpolate field to the target point_coords on a 2D cell
- * 
- * parameters:
- *   type              <-- element type
- *   order             <-- element order
- *   n_node            <-- number of nodes
- *   ho_vertex_num     <-- high order vertex num (internal ordering)
- *   local_to_user     <-- local to user ordering (for type)
- *   vertex_coords     <-- vertex coordinates
- *   point_coords      <-- point coordinates 
- *   distance          <-- distance to the element
- *   point_proj_coords  <-- projected point coordinates
- *   weight             <-- weights (internal ordering)
- *   stride_field      <-- field stride
- *   source_field      <-- source field (user ordering) 
- *   target_field      --> target field (defined to point_coords)
- *
- *----------------------------------------------------------------------------*/
-
-void 
-fvmc_ho_interp_on_cell_1d
-(
- const fvmc_element_t type,
- const int order,
- const int n_node,
- const int *ho_vertex_num,
- const int *local_to_user,
- const double *vertex_coords,
- const double *point_coords,
- const float *distance,
- const double *point_proj_coords,
- const double *weight,
- const int stride_field,
- const double *src_field,
- double *target_field
- )
-{
-  if (_user_fcts != NULL) {
-    switch (type) {
-      
-    case FVMC_EDGE:
-      (_user_fcts->interp_edge) (order,
-                                 n_node,
-                                 ho_vertex_num,
-                                 local_to_user, 
-                                 vertex_coords,
-                                 point_coords,
-                                 distance,
-                                 point_proj_coords,
-                                 weight,
-                                 stride_field,
-                                 src_field,
-                                 target_field);
-      break;
-      
-    default:
-
-      bftc_error(__FILE__, __LINE__, 0,
-                 _("fvmc_ho_interp_on_cell_1d : Not a high order 1D element type\n"));
-    }
-
-  }
-
-  else {
-
-    _default_interp_on_cell_1d (type,
-                                order,
-                                n_node,
-                                ho_vertex_num,
-                                local_to_user,
-                                vertex_coords,
-                                point_coords,
-                                distance,
-                                point_proj_coords,
-                                weight,
-                                stride_field,
-                                src_field,
-                                target_field);
-
-  }
-}
-
-
-/*----------------------------------------------------------------------------
- * 
  * Free static variables
  * 
  *----------------------------------------------------------------------------*/
+
 
 void
 fvmc_ho_free

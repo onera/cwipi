@@ -429,7 +429,7 @@ namespace cwipi {
 
     const int order = _supportMesh->getOrder();
  
-    if (order == -1) {
+    // if (order == -1) {
       for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
         int iel = distantLocation[ipoint] - 1;
         double coef1 = barycentricCoordinates[barycentricCoordinatesIndex[ipoint]];
@@ -442,47 +442,47 @@ namespace cwipi {
           interpolatedField[stride*ipoint+k] = coef1 * referenceVertexField[stride*pt1+k] +
             coef2 * referenceVertexField[stride*pt2+k];
       }
-    }
+    // }
 
-    else {
-      const double *meshVertexCoords = _supportMesh->getVertexCoords();
+    // else {
+    //   const double *meshVertexCoords = _supportMesh->getVertexCoords();
 
-      const fvmc_coord_t *proj_coords =
-        fvmc_locator_get_dist_projected_coords(_locationToLocalMesh->getFVMLocator());
+    //   const fvmc_coord_t *proj_coords =
+    //     fvmc_locator_get_dist_projected_coords(_locationToLocalMesh->getFVMLocator());
 
-      const fvmc_coord_t *dist_coords =
-        fvmc_locator_get_dist_coords(_locationToLocalMesh->getFVMLocator());
+    //   const fvmc_coord_t *dist_coords =
+    //     fvmc_locator_get_dist_coords(_locationToLocalMesh->getFVMLocator());
 
-      const float *distances = fvmc_locator_get_dist_distances(_locationToLocalMesh->getFVMLocator());
+    //   const float *distances = fvmc_locator_get_dist_distances(_locationToLocalMesh->getFVMLocator());
 
-      for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
-        int iel = distantLocation[ipoint] - 1;
+    //   for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
+    //     int iel = distantLocation[ipoint] - 1;
 
-        const int *intern_connec =
-          fvmc_nodal_get_internal_connec_elt (&(_supportMesh->getFvmNodal()), iel+1);
+    //     const int *intern_connec =
+    //       fvmc_nodal_get_internal_connec_elt (&(_supportMesh->getFvmNodal()), iel+1);
 
-        const fvmc_element_t elt_t = fvmc_nodal_get_type_elt (&(_supportMesh->getFvmNodal()), iel + 1);
+    //     const fvmc_element_t elt_t = fvmc_nodal_get_type_elt (&(_supportMesh->getFvmNodal()), iel + 1);
 
-        const int *local_to_user_numbering =
-          fvmc_nodal_get_local_to_user_numbering_elt (&(_supportMesh->getFvmNodal()), elt_t);
+    //     const int *local_to_user_numbering =
+    //       fvmc_nodal_get_local_to_user_numbering_elt (&(_supportMesh->getFvmNodal()), elt_t);
 
-        const int n_node =  eltsConnecPointer[iel+1] - eltsConnecPointer[iel];
+    //     const int n_node =  eltsConnecPointer[iel+1] - eltsConnecPointer[iel];
 
-        fvmc_ho_interp_on_cell_1d (elt_t,
-                                   order,
-                                   n_node,
-                                   intern_connec,
-                                   local_to_user_numbering,
-                                   meshVertexCoords,
-                                   dist_coords + 3 * ipoint,
-                                   distances + ipoint,
-                                   proj_coords + 3 * ipoint,
-                                   barycentricCoordinates + barycentricCoordinatesIndex[ipoint],
-                                   stride,
-                                   referenceVertexField,
-                                   &(interpolatedField[0]) + stride * ipoint);
-      }
-    }
+    //     fvmc_ho_interp_on_cell_1d (elt_t,
+    //                                order,
+    //                                n_node,
+    //                                intern_connec,
+    //                                local_to_user_numbering,
+    //                                meshVertexCoords,
+    //                                dist_coords + 3 * ipoint,
+    //                                distances + ipoint,
+    //                                proj_coords + 3 * ipoint,
+    //                                barycentricCoordinates + barycentricCoordinatesIndex[ipoint],
+    //                                stride,
+    //                                referenceVertexField,
+    //                                &(interpolatedField[0]) + stride * ipoint);
+    //   }
+    // }
     
   }
 
@@ -502,7 +502,7 @@ namespace cwipi {
 
     const int order = _supportMesh->getOrder();
  
-    if (order == -1) {
+    // if (order == -1) {
 
       for (int ipoint = 0; ipoint <nDistantPoint; ipoint++) {
 
@@ -521,47 +521,47 @@ namespace cwipi {
           }
         }
       }
-    }
+    // }
 
-    else {
-      const double *meshVertexCoords = _supportMesh->getVertexCoords();
+    // else {
+    //   const double *meshVertexCoords = _supportMesh->getVertexCoords();
 
-      const fvmc_coord_t *proj_coords =
-        fvmc_locator_get_dist_projected_coords(_locationToLocalMesh->getFVMLocator());
+    //   const fvmc_coord_t *proj_coords =
+    //     fvmc_locator_get_dist_projected_coords(_locationToLocalMesh->getFVMLocator());
 
-      const fvmc_coord_t *dist_coords =
-        fvmc_locator_get_dist_coords(_locationToLocalMesh->getFVMLocator());
+    //   const fvmc_coord_t *dist_coords =
+    //     fvmc_locator_get_dist_coords(_locationToLocalMesh->getFVMLocator());
 
-      const float *distances = fvmc_locator_get_dist_distances(_locationToLocalMesh->getFVMLocator());
+    //   const float *distances = fvmc_locator_get_dist_distances(_locationToLocalMesh->getFVMLocator());
 
-      for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
-        int iel = distantLocation[ipoint] - 1;
+    //   for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
+    //     int iel = distantLocation[ipoint] - 1;
 
-        const int *intern_connec =
-          fvmc_nodal_get_internal_connec_elt (&(_supportMesh->getFvmNodal()), iel+1);
+    //     const int *intern_connec =
+    //       fvmc_nodal_get_internal_connec_elt (&(_supportMesh->getFvmNodal()), iel+1);
 
-        const fvmc_element_t elt_t = fvmc_nodal_get_type_elt (&(_supportMesh->getFvmNodal()), iel + 1);
+    //     const fvmc_element_t elt_t = fvmc_nodal_get_type_elt (&(_supportMesh->getFvmNodal()), iel + 1);
 
-        const int *local_to_user_numbering =
-          fvmc_nodal_get_local_to_user_numbering_elt (&(_supportMesh->getFvmNodal()), elt_t);
+    //     const int *local_to_user_numbering =
+    //       fvmc_nodal_get_local_to_user_numbering_elt (&(_supportMesh->getFvmNodal()), elt_t);
 
-        const int n_node =  eltsConnecPointer[iel+1] - eltsConnecPointer[iel];
+    //     const int n_node =  eltsConnecPointer[iel+1] - eltsConnecPointer[iel];
 
-        fvmc_ho_interp_on_cell_2d (elt_t,
-                                   order,
-                                   n_node,
-                                   intern_connec,
-                                   local_to_user_numbering,
-                                   meshVertexCoords,
-                                   dist_coords + 3 * ipoint,
-                                   distances + ipoint,
-                                   proj_coords + 3 * ipoint,
-                                   barycentricCoordinates + barycentricCoordinatesIndex[ipoint],
-                                   stride,
-                                   vertexField,
-                                   &(interpolatedField[0]) + stride * ipoint);
-      }
-    }
+    //     fvmc_ho_interp_on_cell_2d (elt_t,
+    //                                order,
+    //                                n_node,
+    //                                intern_connec,
+    //                                local_to_user_numbering,
+    //                                meshVertexCoords,
+    //                                dist_coords + 3 * ipoint,
+    //                                distances + ipoint,
+    //                                proj_coords + 3 * ipoint,
+    //                                barycentricCoordinates + barycentricCoordinatesIndex[ipoint],
+    //                                stride,
+    //                                vertexField,
+    //                                &(interpolatedField[0]) + stride * ipoint);
+    //   }
+    // }
     
   }
 
@@ -594,7 +594,7 @@ namespace cwipi {
 
       const int order = _supportMesh->getOrder();
  
-      if (order == -1) {
+      // if (order == -1) {
 
         for (int ipoint = 0; ipoint <nDistantPoint; ipoint++) {
           int iel = distantLocation[ipoint] - 1;
@@ -620,48 +620,48 @@ namespace cwipi {
           }
         }
 
-      }
+      // }
 
-      else {
+      // else {
 
-        const double *meshVertexCoords = _supportMesh->getVertexCoords();
+      //   const double *meshVertexCoords = _supportMesh->getVertexCoords();
         
-        const fvmc_coord_t *proj_coords =
-          fvmc_locator_get_dist_projected_coords(_locationToLocalMesh->getFVMLocator());
+      //   const fvmc_coord_t *proj_coords =
+      //     fvmc_locator_get_dist_projected_coords(_locationToLocalMesh->getFVMLocator());
         
-        const fvmc_coord_t *dist_coords =
-          fvmc_locator_get_dist_coords(_locationToLocalMesh->getFVMLocator());
+      //   const fvmc_coord_t *dist_coords =
+      //     fvmc_locator_get_dist_coords(_locationToLocalMesh->getFVMLocator());
         
-        const float *distances = fvmc_locator_get_dist_distances(_locationToLocalMesh->getFVMLocator());
+      //   const float *distances = fvmc_locator_get_dist_distances(_locationToLocalMesh->getFVMLocator());
         
-        for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
-          int iel = distantLocation[ipoint] - 1;
+      //   for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
+      //     int iel = distantLocation[ipoint] - 1;
           
-          const int *intern_connec =
-            fvmc_nodal_get_internal_connec_elt (&(_supportMesh->getFvmNodal()), iel+1);
+      //     const int *intern_connec =
+      //       fvmc_nodal_get_internal_connec_elt (&(_supportMesh->getFvmNodal()), iel+1);
           
-          const fvmc_element_t elt_t = fvmc_nodal_get_type_elt (&(_supportMesh->getFvmNodal()), iel + 1);
+      //     const fvmc_element_t elt_t = fvmc_nodal_get_type_elt (&(_supportMesh->getFvmNodal()), iel + 1);
           
-          const int *local_to_user_numbering =
-            fvmc_nodal_get_local_to_user_numbering_elt (&(_supportMesh->getFvmNodal()), elt_t);
+      //     const int *local_to_user_numbering =
+      //       fvmc_nodal_get_local_to_user_numbering_elt (&(_supportMesh->getFvmNodal()), elt_t);
           
-          const int n_node =  eltsConnecPointer[iel+1] - eltsConnecPointer[iel];
+      //     const int n_node =  eltsConnecPointer[iel+1] - eltsConnecPointer[iel];
           
-          fvmc_ho_interp_in_cell_3d (elt_t,
-                                     order,
-                                     n_node,
-                                     intern_connec,
-                                     local_to_user_numbering,
-                                     meshVertexCoords,
-                                     dist_coords + 3 * ipoint,
-                                     distances + ipoint,
-                                     proj_coords + 3 * ipoint,
-                                     barycentricCoordinates + barycentricCoordinatesIndex[ipoint],
-                                     stride,
-                                     vertexField,
-                                     &(interpolatedField[0]) + stride * ipoint);
-        }
-      }
+      //     fvmc_ho_interp_in_cell_3d (elt_t,
+      //                                order,
+      //                                n_node,
+      //                                intern_connec,
+      //                                local_to_user_numbering,
+      //                                meshVertexCoords,
+      //                                dist_coords + 3 * ipoint,
+      //                                distances + ipoint,
+      //                                proj_coords + 3 * ipoint,
+      //                                barycentricCoordinates + barycentricCoordinatesIndex[ipoint],
+      //                                stride,
+      //                                vertexField,
+      //                                &(interpolatedField[0]) + stride * ipoint);
+      //   }
+      // }
     }
 
     else {

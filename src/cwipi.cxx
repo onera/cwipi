@@ -1245,39 +1245,6 @@ cwipi_ho_user_elt_set (cwipi_element_t elt_type,
 }
 
 
-void
-cwipi_ho_user_elementary_functions_set (cwipi_ho_location_fct_t location_tetra,
-                                        cwipi_ho_location_fct_t location_prism,
-                                        cwipi_ho_location_fct_t location_pyramid,
-                                        cwipi_ho_location_fct_t location_hexa,
-                                        cwipi_ho_location_fct_t location_tria,
-                                        cwipi_ho_location_fct_t location_quad,
-                                        cwipi_ho_location_fct_t location_edge,
-                                        cwipi_ho_interp_fct_t interp_tetra,
-                                        cwipi_ho_interp_fct_t interp_prism,
-                                        cwipi_ho_interp_fct_t interp_pyramid,
-                                        cwipi_ho_interp_fct_t interp_hexa,
-                                        cwipi_ho_interp_fct_t interp_tria,
-                                        cwipi_ho_interp_fct_t interp_quad,
-                                        cwipi_ho_interp_fct_t interp_edge)
-{
-
-  fvmc_ho_user_elementary_functions_set ((fvmc_ho_location_fct_t) location_tetra,
-                                         (fvmc_ho_location_fct_t) location_prism,
-                                         (fvmc_ho_location_fct_t) location_pyramid,
-                                         (fvmc_ho_location_fct_t) location_hexa,
-                                         (fvmc_ho_location_fct_t) location_tria,
-                                         (fvmc_ho_location_fct_t) location_quad,
-                                         (fvmc_ho_location_fct_t) location_edge,
-                                         (fvmc_ho_interp_fct_t) interp_tetra,
-                                         (fvmc_ho_interp_fct_t) interp_prism,
-                                         (fvmc_ho_interp_fct_t) interp_pyramid,
-                                         (fvmc_ho_interp_fct_t) interp_hexa,
-                                         (fvmc_ho_interp_fct_t) interp_tria,
-                                         (fvmc_ho_interp_fct_t) interp_quad,
-                                         (fvmc_ho_interp_fct_t) interp_edge);
-}
-
 /*----------------------------------------------------------------------------
  *
  * Location completion.
@@ -1763,8 +1730,8 @@ void cwipi_finalize(void)
 
   const MPI_Comm globalComm = properties.getGlobalComm();
 
-  fvmc_ho_user_elementary_functions_unset();
-  
+  fvmc_ho_user_elts_unset ();
+    
   bftc_printf("Finalize cwipi\n");
   couplingDataBase.kill();
   properties.kill();
