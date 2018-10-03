@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.26                               */
+/*                               LIBMESH V 7.35                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  mar 14 2017                                          */
+/*   Last modification:  mar 06 2018                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -21,23 +21,23 @@
 
 // Add a final underscore to Fortran procedure names
 #ifdef F77_NO_UNDER_SCORE
-#define NAMF77(c,f) f
-#define APIF77(x) x
+#define NAMF77(c,f)  f
+#define APIF77(x)    x
 #else
-#define NAMF77(c,f) f ## _
-#define APIF77(x) x ## _
+#define NAMF77(c,f)  f ## _
+#define APIF77(x)    x ## _
 #endif
 
 // Pass parameters as pointers in Fortran
-#define VALF77(v) *v
-#define TYPF77(t) t*
+#define VALF77(v)    *v
+#define TYPF77(t)    t*
 
 #else
 
 // Pass parameters as values in C
-#define NAMF77(c,f) c
-#define VALF77(v) v
-#define TYPF77(t) t
+#define NAMF77(c,f)  c
+#define VALF77(v)    v
+#define TYPF77(t)    t
 
 #endif
 
@@ -73,7 +73,7 @@
 #include <unistd.h>
 
 #define OPEN_READ_FLAGS   O_RDONLY
-#define OPEN_WRITE_FLAGS   O_CREAT | O_WRONLY | O_TRUNC
+#define OPEN_WRITE_FLAGS  O_CREAT | O_WRONLY | O_TRUNC
 #define OPEN_READ_MODE    0666
 #define OPEN_WRITE_MODE   0666   
    
@@ -87,10 +87,10 @@
 #include <sys/types.h>
 #include <wchar.h>
 
-#define OPEN_READ_FLAGS   O_RDONLY | _O_BINARY
-#define OPEN_WRITE_FLAGS  O_CREAT | O_WRONLY | O_TRUNC | _O_BINARY
-#define OPEN_READ_MODE   _S_IREAD
-#define OPEN_WRITE_MODE   _S_IREAD | S_IWRITE 
+#define OPEN_READ_FLAGS    O_RDONLY | _O_BINARY
+#define OPEN_WRITE_FLAGS   O_CREAT | O_WRONLY | O_TRUNC | _O_BINARY
+#define OPEN_READ_MODE     _S_IREAD
+#define OPEN_WRITE_MODE    _S_IREAD | S_IWRITE 
 
 #endif
 
@@ -123,7 +123,7 @@ struct aiocb
    off_t  aio_offset;          // File offset
    void   *aio_buf;            // Location of buffer
    size_t aio_nbytes;          // Length of transfer
-   int   aio_lio_opcode;       // Operation to be performed
+   int    aio_lio_opcode;      // Operation to be performed
 };
 
 int aio_error( const struct aiocb * aiocbp )
@@ -134,8 +134,8 @@ int aio_error( const struct aiocb * aiocbp )
 // Set the file position and read a block of data
 int aio_read( struct aiocb * aiocbp )
 {
-   if( (fseek(aiocbp->aio_fildes, (off_t)aiocbp->aio_offset, SEEK_SET) == 0) \
-   &&  (fread(aiocbp->aio_buf, 1, aiocbp->aio_nbytes, aiocbp->aio_fildes) \
+   if( (fseek(aiocbp->aio_fildes, (off_t)aiocbp->aio_offset, SEEK_SET) == 0)
+   &&  (fread(aiocbp->aio_buf, 1, aiocbp->aio_nbytes, aiocbp->aio_fildes)
        == aiocbp->aio_nbytes) )
    {
       aiocbp->aio_lio_opcode = 0;
@@ -156,8 +156,8 @@ size_t aio_return( struct aiocb * aiocbp )
 // Set the file position and write a block of data
 int aio_write( struct aiocb * aiocbp )
 {
-   if( (fseek(aiocbp->aio_fildes, (off_t)aiocbp->aio_offset, SEEK_SET) == 0) \
-   &&  (fwrite(aiocbp->aio_buf, 1, aiocbp->aio_nbytes, aiocbp->aio_fildes) \
+   if( (fseek(aiocbp->aio_fildes, (off_t)aiocbp->aio_offset, SEEK_SET) == 0)
+   &&  (fwrite(aiocbp->aio_buf, 1, aiocbp->aio_nbytes, aiocbp->aio_fildes)
        == aiocbp->aio_nbytes) )
    {
       aiocbp->aio_lio_opcode = 0;
@@ -178,18 +178,18 @@ int aio_write( struct aiocb * aiocbp )
 /* Defines                                                                    */
 /*----------------------------------------------------------------------------*/
 
-#define Asc 1
-#define Bin 2
-#define MshFil 4
-#define SolFil 8
-#define InfKwd 1
-#define RegKwd 2
-#define SolKwd 3
-#define CmtKwd 4
-#define WrdSiz 4
+#define Asc       1
+#define Bin       2
+#define MshFil    4
+#define SolFil    8
+#define InfKwd    1
+#define RegKwd    2
+#define SolKwd    3
+#define CmtKwd    4
+#define WrdSiz    4
 #define FilStrSiz 64
-#define BufSiz 10000
-#define MaxArg 20
+#define BufSiz    10000
+#define MaxArg    20
 
 
 /*----------------------------------------------------------------------------*/
@@ -198,23 +198,26 @@ int aio_write( struct aiocb * aiocbp )
 
 typedef struct
 {
-   int typ, SolSiz, NmbWrd, NmbTyp, TypTab[ GmfMaxTyp ];
-   int64_t NmbLin, pos;
-   char fmt[ GmfMaxTyp*9 ];
+   int      typ, deg, NmbNod, SolSiz, NmbWrd, NmbTyp, TypTab[ GmfMaxTyp ];
+   int      *OrdTab;
+   int64_t  NmbLin;
+   size_t   pos;
+   char     fmt[ GmfMaxTyp*9 ];
 }KwdSct;
 
 typedef struct
 {
-   int dim, ver, mod, typ, cod, FilDes;
-   int64_t NexKwdPos, siz, pos;
-   jmp_buf err;
-   KwdSct KwdTab[ GmfMaxKwd + 1 ];
-   FILE *hdl;
-   int *IntBuf;
-   float *FltBuf;
-   char *buf;
-   char FilNam[ GmfStrSiz ];
-   double DblBuf[1000/8];
+   int      dim, ver, mod, typ, cod, FilDes;
+   int64_t  NexKwdPos, siz;
+   size_t   pos;
+   jmp_buf  err;
+   KwdSct   KwdTab[ GmfMaxKwd + 1 ];
+   FILE     *hdl;
+   int      *IntBuf;
+   float    *FltBuf;
+   char     *buf;
+   char     FilNam[ GmfStrSiz ];
+   double   DblBuf[1000/8];
    unsigned char blk[ BufSiz + 1000 ];
 }GmfMshSct;
 
@@ -223,112 +226,163 @@ typedef struct
 /* Global variables                                                           */
 /*----------------------------------------------------------------------------*/
 
-const char *GmfKwdFmt[ GmfMaxKwd + 1 ][4] = 
+const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] = 
 {
-   {"Reserved", "", "", ""},
-   {"MeshVersionFormatted", "", "", "i"},
-   {"Reserved", "", "", ""},
-   {"Dimension", "", "", "i"},
-   {"Vertices", "Vertex", "i", "dri"},
-   {"Edges", "Edge", "i", "iii"},
-   {"Triangles", "Triangle", "i", "iiii"},
-   {"Quadrilaterals", "Quadrilateral", "i", "iiiii"},
-   {"Tetrahedra", "Tetrahedron", "i", "iiiii"},
-   {"Prisms", "Prism", "i", "iiiiiii"},
-   {"Hexahedra", "Hexahedron", "i", "iiiiiiiii"},
-   {"Reserved", "", "", ""},
-   {"Reserved", "", "", ""},
-   {"Corners", "Corner", "i", "i"},
-   {"Ridges", "Ridge", "i", "i"},
-   {"RequiredVertices", "RequiredVertex", "i", "i"},
-   {"RequiredEdges", "RequiredEdge", "i", "i"},
-   {"RequiredTriangles", "RequiredTriangle", "i", "i"},
-   {"RequiredQuadrilaterals", "RequiredQuadrilateral", "i", "i"},
-   {"TangentAtEdgeVertices", "TangentAtEdgeVertex", "i", "iii"},
-   {"NormalAtVertices", "NormalAtVertex", "i", "ii"},
-   {"NormalAtTriangleVertices", "NormalAtTriangleVertex", "i", "iii"},
-   {"NormalAtQuadrilateralVertices", "NormalAtQuadrilateralVertex", "i", "iiii"},
-   {"AngleOfCornerBound", "", "", "r"},
-   {"TrianglesP2", "TriangleP2", "i", "iiiiiii"},
-   {"EdgesP2", "EdgeP2", "i", "iiii"},
-   {"SolAtPyramids", "SolAtPyramid", "i", "sr"},
-   {"QuadrilateralsQ2", "QuadrilateralQ2", "i", "iiiiiiiiii"},
-   {"ISolAtPyramids", "ISolAtPyramid", "i", "iiiii"},
-   {"SubDomainFromGeom", "SubDomainFromGeom", "i", "iii"},
-   {"TetrahedraP2", "TetrahedronP2", "i", "iiiiiiiiiii"},
-   {"Fault_NearTri", "Fault_NearTri", "i", "i"},
-   {"Fault_Inter", "Fault_Inter", "i", "i"},
-   {"HexahedraQ2", "HexahedronQ2", "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiii"},
-   {"ExtraVerticesAtEdges", "ExtraVerticesAtEdge", "i", "in"},
-   {"ExtraVerticesAtTriangles", "ExtraVerticesAtTriangle", "i", "in"},
-   {"ExtraVerticesAtQuadrilaterals", "ExtraVerticesAtQuadrilateral", "i", "in"},
-   {"ExtraVerticesAtTetrahedra", "ExtraVerticesAtTetrahedron", "i", "in"},
-   {"ExtraVerticesAtPrisms", "ExtraVerticesAtPrism", "i", "in"},
-   {"ExtraVerticesAtHexahedra", "ExtraVerticesAtHexahedron", "i", "in"},
-   {"VerticesOnGeometricVertices", "VertexOnGeometricVertex", "i", "ii"},
-   {"VerticesOnGeometricEdges", "VertexOnGeometricEdge", "i", "iirr"},
-   {"VerticesOnGeometricTriangles", "VertexOnGeometricTriangle", "i", "iirrr"},
-   {"VerticesOnGeometricQuadrilaterals", "VertexOnGeometricQuadrilateral", "i", "iirrr"},
-   {"EdgesOnGeometricEdges", "EdgeOnGeometricEdge", "i", "ii"},
-   {"Fault_FreeEdge", "Fault_FreeEdge", "i", "i"},
-   {"Polyhedra", "Polyhedron", "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
-   {"Polygons", "Polygon", "", "iiiiiiiii"},
-   {"Fault_Overlap", "Fault_Overlap", "i", "i"},
-   {"Pyramids", "Pyramid", "i", "iiiiii"},
-   {"BoundingBox", "", "", "drdr"},
-   {"Reserved", "", "", ""},
-   {"PrivateTable", "PrivateTable", "i", "i"},
-   {"Fault_BadShape", "Fault_BadShape", "i", "i"},
-   {"End", "", "", ""},
-   {"TrianglesOnGeometricTriangles", "TriangleOnGeometricTriangle", "i", "ii"},
-   {"TrianglesOnGeometricQuadrilaterals", "TriangleOnGeometricQuadrilateral", "i", "ii"},
-   {"QuadrilateralsOnGeometricTriangles", "QuadrilateralOnGeometricTriangle", "i", "ii"},
-   {"QuadrilateralsOnGeometricQuadrilaterals", "QuadrilateralOnGeometricQuadrilateral", "i", "ii"},
-   {"Tangents", "Tangent", "i", "dr"},
-   {"Normals", "Normal", "i", "dr"},
-   {"TangentAtVertices", "TangentAtVertex", "i", "ii"},
-   {"SolAtVertices", "SolAtVertex", "i", "sr"},
-   {"SolAtEdges", "SolAtEdge", "i", "sr"},
-   {"SolAtTriangles", "SolAtTriangle", "i", "sr"},
-   {"SolAtQuadrilaterals", "SolAtQuadrilateral", "i", "sr"},
-   {"SolAtTetrahedra", "SolAtTetrahedron", "i", "sr"},
-   {"SolAtPrisms", "SolAtPrism", "i", "sr"},
-   {"SolAtHexahedra", "SolAtHexahedron", "i", "sr"},
-   {"DSolAtVertices", "DSolAtVertex", "i", "sr"},
-   {"ISolAtVertices", "ISolAtVertex", "i", "i"},
-   {"ISolAtEdges", "ISolAtEdge", "i", "ii"},
-   {"ISolAtTriangles", "ISolAtTriangle", "i", "iii"},
-   {"ISolAtQuadrilaterals", "ISolAtQuadrilateral", "i", "iiii"},
-   {"ISolAtTetrahedra", "ISolAtTetrahedron", "i", "iiii"},
-   {"ISolAtPrisms", "ISolAtPrism", "i", "iiiiii"},
-   {"ISolAtHexahedra", "ISolAtHexahedron", "i", "iiiiiiii"},
-   {"Iterations", "","","i"},
-   {"Time", "","","r"},
-   {"Fault_SmallTri", "Fault_SmallTri","i","i"},
-   {"CoarseHexahedra", "CoarseHexahedron", "i", "i"},
-   {"Comments", "Comment", "i", "c"},
-   {"PeriodicVertices", "PeriodicVertex", "i", "ii"},
-   {"PeriodicEdges", "PeriodicEdge", "i", "ii"},
-   {"PeriodicTriangles", "PeriodicTriangle", "i", "ii"},
-   {"PeriodicQuadrilaterals", "PeriodicQuadrilateral", "i", "ii"},
-   {"PrismsP2", "PrismP2", "i", "iiiiiiiiiiiiiiiiiii"},
-   {"PyramidsP2", "PyramidP2", "i", "iiiiiiiiiiiiiii"},
-   {"QuadrilateralsQ3", "QuadrilateralQ3", "i", "iiiiiiiiiiiiiiiii"},
-   {"QuadrilateralsQ4", "QuadrilateralQ4", "i", "iiiiiiiiiiiiiiiiiiiiiiiiii"},
-   {"TrianglesP3", "TriangleP3", "i", "iiiiiiiiiii"},
-   {"TrianglesP4", "TriangleP4", "i", "iiiiiiiiiiiiiiii"},
-   {"EdgesP3", "EdgeP3", "i", "iiiii"},
-   {"EdgesP4", "EdgeP4", "i", "iiiiii"},
-   {"IRefGroups", "IRefGroup", "i", "ciii"},
-   {"DRefGroups", "DRefGroup", "i", "iii"},
-   {"TetrahedraP3", "TetrahedronP3", "i", "iiiiiiiiiiiiiiiiiiiii"},
-   {"TetrahedraP4", "TetrahedronP4", "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
-   {"HexahedraQ3", "HexahedronQ3", "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
-   {"HexahedraQ4", "HexahedronQ4", "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
-   {"PyramidsP3", "PyramidP3", "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
-   {"PyramidsP4", "PyramidP4", "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
-   {"PrismsP3", "PrismP3", "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
-   {"PrismsP4", "PrismP4", "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"}
+   {"Reserved",                                 "", ""},
+   {"MeshVersionFormatted",                     "", "i"},
+   {"Reserved",                                 "", ""},
+   {"Dimension",                                "", "i"},
+   {"Vertices",                                 "i", "dri"},
+   {"Edges",                                    "i", "iii"},
+   {"Triangles",                                "i", "iiii"},
+   {"Quadrilaterals",                           "i", "iiiii"},
+   {"Tetrahedra",                               "i", "iiiii"},
+   {"Prisms",                                   "i", "iiiiiii"},
+   {"Hexahedra",                                "i", "iiiiiiiii"},
+   {"Reserved",                                 "",  ""},
+   {"Reserved",                                 "",  ""},
+   {"Corners",                                  "i", "i"},
+   {"Ridges",                                   "i", "i"},
+   {"RequiredVertices",                         "i", "i"},
+   {"RequiredEdges",                            "i", "i"},
+   {"RequiredTriangles",                        "i", "i"},
+   {"RequiredQuadrilaterals",                   "i", "i"},
+   {"TangentAtEdgeVertices",                    "i", "iii"},
+   {"NormalAtVertices",                         "i", "ii"},
+   {"NormalAtTriangleVertices",                 "i", "iii"},
+   {"NormalAtQuadrilateralVertices",            "i", "iiii"},
+   {"AngleOfCornerBound",                       "",  "r"},
+   {"TrianglesP2",                              "i", "iiiiiii"},
+   {"EdgesP2",                                  "i", "iiii"},
+   {"SolAtPyramids",                            "i", "sr"},
+   {"QuadrilateralsQ2",                         "i", "iiiiiiiiii"},
+   {"ISolAtPyramids",                           "i", "iiiii"},
+   {"SubDomainFromGeom",                        "i", "iii"},
+   {"TetrahedraP2",                             "i", "iiiiiiiiiii"},
+   {"Fault_NearTri",                            "i", "i"},
+   {"Fault_Inter",                              "i", "i"},
+   {"HexahedraQ2",                              "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiii"},
+   {"ExtraVerticesAtEdges",                     "i", "in"},
+   {"ExtraVerticesAtTriangles",                 "i", "in"},
+   {"ExtraVerticesAtQuadrilaterals",            "i", "in"},
+   {"ExtraVerticesAtTetrahedra",                "i", "in"},
+   {"ExtraVerticesAtPrisms",                    "i", "in"},
+   {"ExtraVerticesAtHexahedra",                 "i", "in"},
+   {"VerticesOnGeometricVertices",              "i", "ii"},
+   {"VerticesOnGeometricEdges",                 "i", "iirr"},
+   {"VerticesOnGeometricTriangles",             "i", "iirrr"},
+   {"VerticesOnGeometricQuadrilaterals",        "i", "iirrr"},
+   {"EdgesOnGeometricEdges",                    "i", "ii"},
+   {"Fault_FreeEdge",                           "i", "i"},
+   {"Polyhedra",                                "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
+   {"Polygons",                                 "",  "iiiiiiiii"},
+   {"Fault_Overlap",                            "i", "i"},
+   {"Pyramids",                                 "i", "iiiiii"},
+   {"BoundingBox",                              "",  "drdr"},
+   {"Reserved",                                 "",  ""},
+   {"PrivateTable",                             "i", "i"},
+   {"Fault_BadShape",                           "i", "i"},
+   {"End",                                      "",  ""},
+   {"TrianglesOnGeometricTriangles",            "i", "ii"},
+   {"TrianglesOnGeometricQuadrilaterals",       "i", "ii"},
+   {"QuadrilateralsOnGeometricTriangles",       "i", "ii"},
+   {"QuadrilateralsOnGeometricQuadrilaterals",  "i", "ii"},
+   {"Tangents",                                 "i", "dr"},
+   {"Normals",                                  "i", "dr"},
+   {"TangentAtVertices",                        "i", "ii"},
+   {"SolAtVertices",                            "i", "sr"},
+   {"SolAtEdges",                               "i", "sr"},
+   {"SolAtTriangles",                           "i", "sr"},
+   {"SolAtQuadrilaterals",                      "i", "sr"},
+   {"SolAtTetrahedra",                          "i", "sr"},
+   {"SolAtPrisms",                              "i", "sr"},
+   {"SolAtHexahedra",                           "i", "sr"},
+   {"DSolAtVertices",                           "i", "sr"},
+   {"ISolAtVertices",                           "i", "i"},
+   {"ISolAtEdges",                              "i", "ii"},
+   {"ISolAtTriangles",                          "i", "iii"},
+   {"ISolAtQuadrilaterals",                     "i", "iiii"},
+   {"ISolAtTetrahedra",                         "i", "iiii"},
+   {"ISolAtPrisms",                             "i", "iiiiii"},
+   {"ISolAtHexahedra",                          "i", "iiiiiiii"},
+   {"Iterations",                               "",  "i"},
+   {"Time",                                     "",  "r"},
+   {"Fault_SmallTri",                           "i", "i"},
+   {"CoarseHexahedra",                          "i", "i"},
+   {"Comments",                                 "i", "c"},
+   {"PeriodicVertices",                         "i", "ii"},
+   {"PeriodicEdges",                            "i", "ii"},
+   {"PeriodicTriangles",                        "i", "ii"},
+   {"PeriodicQuadrilaterals",                   "i", "ii"},
+   {"PrismsP2",                                 "i", "iiiiiiiiiiiiiiiiiii"},
+   {"PyramidsP2",                               "i", "iiiiiiiiiiiiiii"},
+   {"QuadrilateralsQ3",                         "i", "iiiiiiiiiiiiiiiii"},
+   {"QuadrilateralsQ4",                         "i", "iiiiiiiiiiiiiiiiiiiiiiiiii"},
+   {"TrianglesP3",                              "i", "iiiiiiiiiii"},
+   {"TrianglesP4",                              "i", "iiiiiiiiiiiiiiii"},
+   {"EdgesP3",                                  "i", "iiiii"},
+   {"EdgesP4",                                  "i", "iiiiii"},
+   {"IRefGroups",                               "i", "ciii"},
+   {"DRefGroups",                               "i", "iii"},
+   {"TetrahedraP3",                             "i", "iiiiiiiiiiiiiiiiiiiii"},
+   {"TetrahedraP4",                             "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
+   {"HexahedraQ3",                              "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
+   {"HexahedraQ4",                              "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
+   {"PyramidsP3",                               "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
+   {"PyramidsP4",                               "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
+   {"PrismsP3",                                 "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
+   {"PrismsP4",                                 "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
+   {"HOSolAtEdgesP1",                           "i", "hr"},
+   {"HOSolAtEdgesP2",                           "i", "hr"},
+   {"HOSolAtEdgesP3",                           "i", "hr"},
+   {"HOSolAtTrianglesP1",                       "i", "hr"},
+   {"HOSolAtTrianglesP2",                       "i", "hr"},
+   {"HOSolAtTrianglesP3",                       "i", "hr"},
+   {"HOSolAtQuadrilateralsQ1",                  "i", "hr"},
+   {"HOSolAtQuadrilateralsQ2",                  "i", "hr"},
+   {"HOSolAtQuadrilateralsQ3",                  "i", "hr"},
+   {"HOSolAtTetrahedraP1",                      "i", "hr"},
+   {"HOSolAtTetrahedraP2",                      "i", "hr"},
+   {"HOSolAtTetrahedraP3",                      "i", "hr"},
+   {"HOSolAtPyramidsP1",                        "i", "hr"},
+   {"HOSolAtPyramidsP2",                        "i", "hr"},
+   {"HOSolAtPyramidsP3",                        "i", "hr"},
+   {"HOSolAtPrismsP1",                          "i", "hr"},
+   {"HOSolAtPrismsP2",                          "i", "hr"},
+   {"HOSolAtPrismsP3",                          "i", "hr"},
+   {"HOSolAtHexahedraQ1",                       "i", "hr"},
+   {"HOSolAtHexahedraQ2",                       "i", "hr"},
+   {"HOSolAtHexahedraQ3",                       "i", "hr"},
+   {"BezierMode",                               "",  "i"},
+   {"ByteFlow",                                 "i", "i"},
+   {"EdgesP2Ordering",                          "i",  "i"},
+   {"EdgesP3Ordering",                          "i",  "i"},
+   {"TrianglesP2Ordering",                      "i",  "iii"},
+   {"TrianglesP3Ordering",                      "i",  "iii"},
+   {"QuadrilateralsQ2Ordering",                 "i",  "ii"},
+   {"QuadrilateralsQ3Ordering",                 "i",  "ii"},
+   {"TetrahedraP2Ordering",                     "i",  "iiii"},
+   {"TetrahedraP3Ordering",                     "i",  "iiii"},
+   {"PyramidsP2Ordering",                       "i",  "iii"},
+   {"PyramidsP3Ordering",                       "i",  "iii"},
+   {"PrismsP2Ordering",                         "i",  "iiii"},
+   {"PrismsP3Ordering",                         "i",  "iiii"},
+   {"HexahedraQ2Ordering",                      "i",  "iii"},
+   {"HexahedraQ3Ordering",                      "i",  "iii"},
+   {"EdgesP1Ordering",                          "i",  "i"},
+   {"EdgesP4Ordering",                          "i",  "i"},
+   {"TrianglesP1Ordering",                      "i",  "iii"},
+   {"TrianglesP4Ordering",                      "i",  "iii"},
+   {"QuadrilateralsQ1Ordering",                 "i",  "ii"},
+   {"QuadrilateralsQ4Ordering",                 "i",  "ii"},
+   {"TetrahedraP1Ordering",                     "i",  "iiii"},
+   {"TetrahedraP4Ordering",                     "i",  "iiii"},
+   {"PyramidsP1Ordering",                       "i",  "iii"},
+   {"PyramidsP4Ordering",                       "i",  "iii"},
+   {"PrismsP1Ordering",                         "i",  "iiii"},
+   {"PrismsP4Ordering",                         "i",  "iiii"},
+   {"HexahedraQ1Ordering",                      "i",  "iii"},
+   {"HexahedraQ4Ordering",                      "i",  "iii"}
 };
 
 #ifdef TRANSMESH
@@ -390,10 +444,10 @@ static void    CalF77Prc(int64_t, int64_t, void *, int, void **);
 
 int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
 {
-   int KwdCod, res, *PtrVer, *PtrDim;
-   int64_t MshIdx;
-   char str[ GmfStrSiz ];
-   va_list VarArg;
+   int      KwdCod, res, *PtrVer, *PtrDim;
+   int64_t  MshIdx;
+   char     str[ GmfStrSiz ];
+   va_list  VarArg;
    GmfMshSct *msh;
 
    /*---------------------*/
@@ -424,9 +478,8 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
 
    strcpy(msh->FilNam, FilNam);
 
-   /* Store the opening mod (read or write) and guess the filetype 
-      (binary or ascii) depending on the extension */
-
+   // Store the opening mod (read or write) and guess
+   // the filetype (binary or ascii) depending on the extension
    msh->mod = mod;
    msh->buf = (void *)msh->DblBuf;
    msh->FltBuf = (void *)msh->DblBuf;
@@ -456,9 +509,8 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
       PtrDim = va_arg(VarArg, int *);
       va_end(VarArg);
 
-      /* Read the endian coding tag, the mesh version
-         and the mesh dimension (mandatory kwd) */
-
+      // Read the endian coding tag, the mesh version
+      // and the mesh dimension (mandatory kwd)
       if(msh->typ & Bin)
       {
          // Create the name string and open the file
@@ -557,7 +609,6 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
       msh->cod = 1;
 
       // Check if the user provided a valid version number and dimension
-
       va_start(VarArg, mod);
       msh->ver = va_arg(VarArg, int);
       msh->dim = va_arg(VarArg, int);
@@ -601,9 +652,9 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
       // Write the mesh version and dimension
       if(msh->typ & Asc)
       {
-         fprintf(msh->hdl, "%s %d\n\n", \
+         fprintf(msh->hdl, "%s %d\n\n",
                GmfKwdFmt[ GmfVersionFormatted ][0], msh->ver);
-         fprintf(msh->hdl, "%s %d\n", \
+         fprintf(msh->hdl, "%s %d\n",
                GmfKwdFmt[ GmfDimension ][0], msh->dim);
       }
       else
@@ -666,10 +717,10 @@ int GmfCloseMesh(int64_t MshIdx)
 
 int64_t GmfStatKwd(int64_t MshIdx, int KwdCod, ...)
 {
-   int i, *PtrNmbTyp, *PtrSolSiz, *TypTab;
-   GmfMshSct *msh = (GmfMshSct *)MshIdx;
-   KwdSct *kwd;
-   va_list VarArg;
+   int         i, *PtrNmbTyp, *PtrSolSiz, *TypTab, *PtrDeg, *PtrNmbNod;
+   GmfMshSct   *msh = (GmfMshSct *)MshIdx;
+   KwdSct      *kwd;
+   va_list     VarArg;
 
    if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) )
       return(0);
@@ -695,6 +746,16 @@ int64_t GmfStatKwd(int64_t MshIdx, int KwdCod, ...)
       for(i=0;i<kwd->NmbTyp;i++)
          TypTab[i] = kwd->TypTab[i];
 
+      // Add two extra paramaters for HO elements: degree and nmb nodes
+      if(!strcmp("hr", GmfKwdFmt[ KwdCod ][2]) )
+      {
+         PtrDeg = va_arg(VarArg, int *);
+         *PtrDeg = kwd->deg;
+         
+         PtrNmbNod = va_arg(VarArg, int *);
+         *PtrNmbNod = kwd->NmbNod;
+      }
+
       va_end(VarArg);
    }
 
@@ -708,8 +769,8 @@ int64_t GmfStatKwd(int64_t MshIdx, int KwdCod, ...)
 
 int GmfGotoKwd(int64_t MshIdx, int KwdCod)
 {
-   GmfMshSct *msh = (GmfMshSct *)MshIdx;
-   KwdSct *kwd = &msh->KwdTab[ KwdCod ];
+   GmfMshSct   *msh = (GmfMshSct *)MshIdx;
+   KwdSct      *kwd = &msh->KwdTab[ KwdCod ];
 
    if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) || !kwd->NmbLin )
       return(0);
@@ -722,13 +783,13 @@ int GmfGotoKwd(int64_t MshIdx, int KwdCod)
 /* Write the kwd and set the number of lines                                  */
 /*----------------------------------------------------------------------------*/
 
-int GmfSetKwd(int64_t MshIdx, int KwdCod, ...)
+int GmfSetKwd(int64_t MshIdx, int KwdCod, int64_t NmbLin, ...)
 {
-   int i, *TypTab;
-   int64_t NmbLin=0, CurPos;
-   va_list VarArg;
-   GmfMshSct *msh = (GmfMshSct *)MshIdx;
-   KwdSct *kwd;
+   int         i, *TypTab;
+   int64_t     CurPos;
+   va_list     VarArg;
+   GmfMshSct   *msh = (GmfMshSct *)MshIdx;
+   KwdSct      *kwd;
 
    RecBlk(msh, msh->buf, 0);
 
@@ -737,23 +798,23 @@ int GmfSetKwd(int64_t MshIdx, int KwdCod, ...)
 
    kwd = &msh->KwdTab[ KwdCod ];
 
-   // Read further arguments if this kw has a header
-   if(strlen(GmfKwdFmt[ KwdCod ][2]))
+   // Read further arguments if this kw is a solution
+   if(!strcmp(GmfKwdFmt[ KwdCod ][2], "sr")
+   || !strcmp(GmfKwdFmt[ KwdCod ][2], "hr"))
    {
-      va_start(VarArg, KwdCod);
+      va_start(VarArg, NmbLin);
 
-      if(msh->ver < 4)
-         NmbLin = va_arg(VarArg, int);
-      else
-         NmbLin = va_arg(VarArg, int64_t);
+      kwd->NmbTyp = va_arg(VarArg, int);
+      TypTab = va_arg(VarArg, int *);
 
-      if(!strcmp(GmfKwdFmt[ KwdCod ][3], "sr"))
+      for(i=0;i<kwd->NmbTyp;i++)
+         kwd->TypTab[i] = TypTab[i];
+
+      // Add two extra paramaters for HO elements: degree and nmb nodes
+      if(!strcmp("hr", GmfKwdFmt[ KwdCod ][2]))
       {
-         kwd->NmbTyp = va_arg(VarArg, int);
-         TypTab = va_arg(VarArg, int *);
-
-         for(i=0;i<kwd->NmbTyp;i++)
-            kwd->TypTab[i] = TypTab[i];
+         kwd->deg = va_arg(VarArg, int);
+         kwd->NmbNod = va_arg(VarArg, int);
       }
 
       va_end(VarArg);
@@ -799,8 +860,11 @@ int GmfSetKwd(int64_t MshIdx, int KwdCod, ...)
          for(i=0;i<kwd->NmbTyp;i++)
             fprintf(msh->hdl, "%d ", kwd->TypTab[i]);
 
-         fprintf(msh->hdl, "\n\n");
+         fprintf(msh->hdl, "\n");
       }
+
+      if(!strcmp("hr", GmfKwdFmt[ KwdCod ][2]))
+         fprintf(msh->hdl, "%d %d\n", kwd->deg, kwd->NmbNod);
    }
    else
    {
@@ -826,6 +890,12 @@ int GmfSetKwd(int64_t MshIdx, int KwdCod, ...)
 
          for(i=0;i<kwd->NmbTyp;i++)
             RecWrd(msh, (unsigned char *)&kwd->TypTab[i]);
+
+         if(!strcmp("hr", GmfKwdFmt[ KwdCod ][2]))
+         {
+            RecWrd(msh, (unsigned char *)&kwd->deg);
+            RecWrd(msh, (unsigned char *)&kwd->NmbNod);
+         }
       }
    }
 
@@ -845,12 +915,12 @@ int GmfSetKwd(int64_t MshIdx, int KwdCod, ...)
 
 int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
 {
-   int i, j;
-   float *FltSolTab, FltVal, *PtrFlt;
-   double *DblSolTab, *PtrDbl;
-   va_list VarArg;
-   GmfMshSct *msh = (GmfMshSct *) VALF77(MshIdx);
-   KwdSct *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
+   int         i;
+   float       *FltSolTab, FltVal, *PtrFlt;
+   double      *DblSolTab, *PtrDbl;
+   va_list     VarArg;
+   GmfMshSct   *msh = (GmfMshSct *) VALF77(MshIdx);
+   KwdSct      *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
 
    if( (VALF77(KwdCod) < 1) || (VALF77(KwdCod) > GmfMaxKwd) )
       return(0);
@@ -881,7 +951,7 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
                   }                     
                   else
                   {
-                     safe_fscanf(msh->hdl, "%lf", \
+                     safe_fscanf(msh->hdl, "%lf",
                               va_arg(VarArg, double *), msh->err);
                   }
                }
@@ -889,19 +959,19 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
                {
                   if(msh->ver <= 3)
                   {
-                     safe_fscanf(msh->hdl, "%d", \
+                     safe_fscanf(msh->hdl, "%d",
                         va_arg(VarArg, int *), msh->err);
                   }
                   else
                   {
                      // [Bruno] %ld -> INT64_T_FMT
-                     safe_fscanf(msh->hdl, INT64_T_FMT, \
+                     safe_fscanf(msh->hdl, INT64_T_FMT,
                               va_arg(VarArg, int64_t *), msh->err);
                   }
                }
                else if(kwd->fmt[i] == 'c')
                {
-                  safe_fgets( va_arg(VarArg, char *), \
+                  safe_fgets( va_arg(VarArg, char *),
                               WrdSiz * FilStrSiz, msh->hdl, msh->err);
                }
             }
@@ -932,22 +1002,22 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
             FltSolTab = va_arg(VarArg, float *);
 
             if(msh->typ & Asc)
-               for(j=0;j<kwd->SolSiz;j++)
-                  safe_fscanf(msh->hdl, "%f", &FltSolTab[j], msh->err);
+               for(i=0; i<kwd->SolSiz; i++)
+                  safe_fscanf(msh->hdl, "%f", &FltSolTab[i], msh->err);
             else
-               for(j=0;j<kwd->SolSiz;j++)
-                  ScaWrd(msh, (unsigned char *)&FltSolTab[j]);
+               for(i=0; i<kwd->SolSiz; i++)
+                  ScaWrd(msh, (unsigned char *)&FltSolTab[i]);
          }
          else
          {
             DblSolTab = va_arg(VarArg, double *);
 
             if(msh->typ & Asc)
-               for(j=0;j<kwd->SolSiz;j++)
-                  safe_fscanf(msh->hdl, "%lf", &DblSolTab[j], msh->err);
+               for(i=0; i<kwd->SolSiz; i++)
+                  safe_fscanf(msh->hdl, "%lf", &DblSolTab[i], msh->err);
             else
-               for(j=0;j<kwd->SolSiz;j++)
-                  ScaDblWrd(msh, (unsigned char *)&DblSolTab[j]);
+               for(i=0; i<kwd->SolSiz; i++)
+                  ScaDblWrd(msh, (unsigned char *)&DblSolTab[i]);
          }
       }break;
    }
@@ -964,13 +1034,13 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
 
 int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...)
 {
-   int i, j, pos, *IntBuf;
-   int64_t *LngBuf;
-   float *FltSolTab, *FltBuf;
-   double *DblSolTab, *DblBuf;
-   va_list VarArg;
-   GmfMshSct *msh = (GmfMshSct *) VALF77(MshIdx);
-   KwdSct *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
+   int         i, pos, *IntBuf;
+   int64_t     *LngBuf;
+   float       *FltSolTab, *FltBuf;
+   double      *DblSolTab, *DblBuf;
+   va_list     VarArg;
+   GmfMshSct   *msh = (GmfMshSct *) VALF77(MshIdx);
+   KwdSct      *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
 
    if( ( VALF77(KwdCod) < 1) || ( VALF77(KwdCod) > GmfMaxKwd) )
       return(0);
@@ -1002,7 +1072,7 @@ int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...
                else
                {
                   // [Bruno] %ld -> INT64_T_FMT
-                  fprintf( msh->hdl, INT64_T_FMT " ", \
+                  fprintf( msh->hdl, INT64_T_FMT " ",
                            VALF77(va_arg(VarArg, TYPF77(int64_t))));
                }
             }
@@ -1068,8 +1138,8 @@ int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...
          FltSolTab = va_arg(VarArg, float *);
 
          if(msh->typ & Asc)
-            for(j=0;j<kwd->SolSiz;j++)
-               fprintf(msh->hdl, "%g ", (double)FltSolTab[j]);
+            for(i=0; i<kwd->SolSiz; i++)
+               fprintf(msh->hdl, "%g ", (double)FltSolTab[i]);
          else
             RecBlk(msh, (unsigned char *)FltSolTab, kwd->NmbWrd);
       }
@@ -1078,8 +1148,8 @@ int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...
          DblSolTab = va_arg(VarArg, double *);
 
          if(msh->typ & Asc)
-            for(j=0;j<kwd->SolSiz;j++)
-               fprintf(msh->hdl, "%.15g ", DblSolTab[j]);
+            for(i=0; i<kwd->SolSiz; i++)
+               fprintf(msh->hdl, "%.15g ", DblSolTab[i]);
          else
             RecBlk(msh, (unsigned char *)DblSolTab, kwd->NmbWrd);
       }
@@ -1102,13 +1172,13 @@ int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...
 
 int GmfCpyLin(int64_t InpIdx, int64_t OutIdx, int KwdCod)
 {
-   char s[ WrdSiz * FilStrSiz ];
-   double d;
-   float f;
-   int i, a;
-   int64_t l;
-   GmfMshSct *InpMsh = (GmfMshSct *)InpIdx, *OutMsh = (GmfMshSct *)OutIdx;
-   KwdSct *kwd = &InpMsh->KwdTab[ KwdCod ];
+   char        s[ WrdSiz * FilStrSiz ];
+   double      d;
+   float       f;
+   int         i, a;
+   int64_t     l;
+   GmfMshSct   *InpMsh = (GmfMshSct *)InpIdx, *OutMsh = (GmfMshSct *)OutIdx;
+   KwdSct      *kwd = &InpMsh->KwdTab[ KwdCod ];
 
    // Save the current stack environment for longjmp
    if(setjmp(InpMsh->err) != 0)
@@ -1225,34 +1295,36 @@ int GmfCpyLin(int64_t InpIdx, int64_t OutIdx, int KwdCod)
 /* Bufferized asynchronous reading of all keyword's lines                     */
 /*----------------------------------------------------------------------------*/
 
-int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
-                                       TYPF77(int)     KwdCod, \
-                                       TYPF77(int64_t) BegIdx, \
-                                       TYPF77(int64_t) EndIdx, \
-                                       void *prc, ... )
+int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
+                                       TYPF77(int)     KwdCod,
+                                       TYPF77(int64_t) BegIdx,
+                                       TYPF77(int64_t) EndIdx,
+                                       TYPF77(int)     MapTyp,
+                                       void           *MapTab,
+                                       void           *prc, ... )
 {
-   char *UsrDat[ GmfMaxTyp ], *FilBuf=NULL, *FrtBuf=NULL, *BckBuf=NULL;
-   char *FilPos, **SolTab1=NULL, **SolTab2=NULL, *EndUsrDat;
-   // [Bruno] "%lld" -> INT64_T_FMT
-   char *StrTab[5] = { "", "%f", "%lf", "%d", INT64_T_FMT };
-   int b, i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
-   int UsrTyp[ GmfMaxTyp ], NmbBlk, SizTab[5] = {0,4,8,4,8}, err, ret, typ;
-   int SolTabTyp = 0;
-   int64_t BlkNmbLin, *FilPtrI64, *UsrPtrI64, BlkBegIdx, BlkEndIdx=0;
-   float *FilPtrR32, *UsrPtrR32;
-   double *FilPtrR64, *UsrPtrR64;
-   void (*UsrPrc)(int64_t, int64_t, void *) = NULL;
-   size_t UsrLen[ GmfMaxTyp ];
-   va_list VarArg;
-   GmfMshSct *msh = (GmfMshSct *) VALF77(MshIdx);
-   KwdSct *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
-   int64_t FilBegIdx = VALF77(BegIdx), FilEndIdx = VALF77(EndIdx), UsrNmbLin;
-   struct aiocb aio;
+   char        *UsrDat[ GmfMaxTyp ], *UsrBas[ GmfMaxTyp ], *FilPos, *EndUsrDat;
+   char        *FilBuf = NULL, *FrtBuf = NULL, *BckBuf = NULL;
+   char        *StrTab[5] = { "", "%f", "%lf", "%d", INT64_T_FMT };
+   int         b, i, j, k, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
+   int         UsrTyp[ GmfMaxTyp ], NmbBlk, SizTab[5] = {0,4,8,4,8};
+   int         *IntMapTab = NULL, err;
+   float       *FilPtrR32, *UsrPtrR32;
+   double      *FilPtrR64, *UsrPtrR64;
+   int64_t     BlkNmbLin, *FilPtrI64, *UsrPtrI64, BlkBegIdx, BlkEndIdx = 0;
+   int64_t     *LngMapTab = NULL, OldIdx = 0, RepCnt, UsrNmbLin;
+   int64_t     FilBegIdx = VALF77(BegIdx), FilEndIdx = VALF77(EndIdx);
+   void        (*UsrPrc)(int64_t, int64_t, void *) = NULL;
+   size_t      UsrLen[ GmfMaxTyp ], ret;
+   va_list     VarArg;
+   GmfMshSct   *msh = (GmfMshSct *) VALF77(MshIdx);
+   KwdSct      *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
+   struct      aiocb aio;
 #ifdef F77API
-   int NmbArg = 0;
-   void *ArgTab[ MaxArg ];
+   int         NmbArg = 0;
+   void        *ArgTab[ MaxArg ];
 #else
-   char *UsrArg = NULL;
+   char        *UsrArg = NULL;
 #endif
 
    // Save the current stack environment for longjmp
@@ -1282,6 +1354,12 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
    // Compute the number of lines to be read
    UsrNmbLin = FilEndIdx - FilBegIdx + 1;
 
+   // Get the renumbering map if any
+   if(VALF77(MapTyp) == GmfInt)
+      IntMapTab = (int *)MapTab;
+   else if(VALF77(MapTyp) == GmfLong)
+      LngMapTab = (int64_t *)MapTab;
+
    // Start decoding the arguments
    va_start(VarArg, prc);
    LinSiz = 0;
@@ -1306,49 +1384,79 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
 
    // Get the user's data type and pointers to first
    // and last adresses in order to compute the stride
-   for(i=0;i<kwd->SolSiz;i++)
+   if(kwd->typ == RegKwd)
    {
-      // The user stored the pointers in a table instea
-      // of giving them explicitely as separate arguments
-      if(!SolTabTyp)
+      for(i=0;i<kwd->SolSiz;i++)
       {
-         // All fields belong to the same type
-         typ = VALF77(va_arg(VarArg, TYPF77(int)));
+         // Get the type from the variable arguments
+         UsrTyp[i] = VALF77(va_arg(VarArg, TYPF77(int)));;
 
-         // But each field has its own pointers to the beggining and end
-         if( (typ == GmfFloatTable) || (typ == GmfDoubleTable) )
+         // If a table is given, read its size in the next argument
+         // and automatically fill the pointer table by incrementing
+         // as many times the base user address
+         if(UsrTyp[i] == GmfIntTab)
          {
-            if(typ == GmfFloatTable)
-               SolTabTyp = GmfFloat;
-            else
-               SolTabTyp = GmfDouble;
+            RepCnt = VALF77(va_arg(VarArg, TYPF77(int)));
+            UsrTyp[i] = GmfInt;
+         }
+         else if(UsrTyp[i] == GmfLongTab)
+         {
+            RepCnt = VALF77(va_arg(VarArg, TYPF77(int)));
+            UsrTyp[i] = GmfLong;
+         }
+         else
+            RepCnt = 0;
 
-            SolTab1 = va_arg(VarArg, char **);
-            SolTab2 = va_arg(VarArg, char **);
+         // Get the begin and end pointers from the variable arguments
+         UsrDat[i] = UsrBas[i] = va_arg(VarArg, char *);
+         EndUsrDat = va_arg(VarArg, char *);
+
+         if(UsrNmbLin > 1)
+            UsrLen[i] = (size_t)(EndUsrDat - UsrDat[i]) / (UsrNmbLin - 1);
+         else
+            UsrLen[i] = 0;
+
+         // Replicate the table data type and increment the base address
+         if(RepCnt >= 2)
+         {
+            for(j=i+1; j<i+RepCnt; j++)
+            {
+               UsrTyp[j] = UsrTyp[i];
+               UsrDat[j] = UsrBas[j] = UsrDat[ j-1 ] + SizTab[ UsrTyp[i] ];
+               UsrLen[j] = UsrLen[i];
+            }
+
+            i += RepCnt - 1;
          }
       }
+   }
+   else if(kwd->typ == SolKwd)
+   {
+      // Get the type, begin and end pointers from the variable arguments
+      UsrTyp[0] = VALF77(va_arg(VarArg, TYPF77(int)));;
+      UsrDat[0] = UsrBas[0] = va_arg(VarArg, char *);
+      EndUsrDat = va_arg(VarArg, char *);
 
-      if(SolTabTyp)
-      {
-         // In case of a table of pointers,
-         // extract the tables base pointers and stride
-         UsrTyp[i] = SolTabTyp;
-         UsrDat[i] = *(SolTab1 + i);
-         UsrLen[i] = (UsrNmbLin > 1) ? \
-                     (size_t)(SolTab2[i] - SolTab1[i]) / (UsrNmbLin - 1) : 0;
-      }
+      if(UsrNmbLin > 1)
+         UsrLen[0] = (size_t)(EndUsrDat - UsrDat[0]) / (UsrNmbLin - 1);
       else
-      {
-         // Otherwise, get the type, beggin and end pointers
-         // from the variable arguments
-         UsrTyp[i] = typ;
-         UsrDat[i] = va_arg(VarArg, char *);
-         EndUsrDat = va_arg(VarArg, char *);
-         UsrLen[i] = (UsrNmbLin > 1) ? \
-                     (size_t)(EndUsrDat - UsrDat[i]) / (UsrNmbLin - 1) : 0;
-      }
+         UsrLen[0] = 0;
 
-      // Get the file's data type
+      // Solutions use only on set of type/begin/end pointers
+      // and the base adress is incremented for each entry
+      for(i=1;i<kwd->SolSiz;i++)
+      {
+         UsrTyp[i] = UsrTyp[0];
+         UsrDat[i] = UsrBas[i] = UsrDat[ i-1 ] + SizTab[ UsrTyp[0] ];
+         UsrLen[i] = UsrLen[0];
+      }
+   }
+   else
+      return(0);
+
+   // Get the file's data type
+   for(i=0;i<kwd->SolSiz;i++)
+   {
       if(kwd->fmt[i] == 'r')
          if(msh->ver <= 1)
             FilTyp[i] = GmfFloat;
@@ -1375,13 +1483,19 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
       for(i=1;i<=FilEndIdx;i++)
          for(j=0;j<kwd->SolSiz;j++)
          {
-            safe_fscanf(msh->hdl, StrTab[ UsrTyp[j] ], UsrDat[j], msh->err);
+            // Reorder HO nodes on the fly
+            if(kwd->OrdTab && (j != kwd->SolSiz-1))
+               k = kwd->OrdTab[j];
+            else
+               k = j;
+
+            safe_fscanf(msh->hdl, StrTab[ UsrTyp[k] ], UsrDat[k], msh->err);
 
             // Move to the next user's data line only when the desired
             // begining position in the ascii file has been reached since
             // we cannot move directly to an arbitrary position
             if(i >= FilBegIdx)
-               UsrDat[j] += UsrLen[j];
+               UsrDat[k] += UsrLen[k];
          }
 
       // Call the user's preprocessing procedure
@@ -1496,10 +1610,25 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
 
             for(i=0;i<BlkNmbLin;i++)
             {
+               OldIdx++;
+
                for(j=0;j<kwd->SolSiz;j++)
                {
                   if(msh->cod != 1)
                      SwpWrd(FilPos, SizTab[ FilTyp[j] ]);
+
+                  // Reorder HO nodes on the fly
+                  if(kwd->OrdTab && (j != kwd->SolSiz-1))
+                     k = kwd->OrdTab[j];
+                  else
+                     k = j;
+
+                  if(IntMapTab)
+                     UsrDat[j] = UsrBas[k] + (IntMapTab[ OldIdx ] - 1) * UsrLen[k];
+                  else if(LngMapTab)
+                     UsrDat[j] = UsrBas[k] + (LngMapTab[ OldIdx ] - 1) * UsrLen[k];
+                  else
+                     UsrDat[j] = UsrBas[k] + (OldIdx - 1) * UsrLen[k];
 
                   if(FilTyp[j] == GmfInt)
                   {
@@ -1563,7 +1692,6 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
                   }
 
                   FilPos += SizTab[ FilTyp[j] ];
-                  UsrDat[j] += UsrLen[j];
                }
             }
 
@@ -1589,36 +1717,36 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
 /* Bufferized writing of all keyword's lines                                  */
 /*----------------------------------------------------------------------------*/
 
-int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx, \
-                                       TYPF77(int)     KwdCod, \
-                                       TYPF77(int64_t) BegIdx, \
-                                       TYPF77(int64_t) EndIdx, \
-                                       TYPF77(int)     MapTyp, \
-                                       void           *MapTab, \
-                                       void *prc, ... )
+int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
+                                       TYPF77(int)     KwdCod,
+                                       TYPF77(int64_t) BegIdx,
+                                       TYPF77(int64_t) EndIdx,
+                                       TYPF77(int)     MapTyp,
+                                       void           *MapTab,
+                                       void           *prc, ... )
 {
-   char *UsrDat[ GmfMaxTyp ], *FilBuf=NULL, *FrtBuf=NULL, *BckBuf=NULL;
-   char *StrTab[5] = { "", "%g", "%.15g", "%d", "%lld" }, *FilPos;
-   char *UsrBas[ GmfMaxTyp ], **SolTab1=NULL, **SolTab2=NULL, *EndUsrDat;
-   int i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
-   int UsrTyp[ GmfMaxTyp ], NmbBlk, b, SizTab[5] = {0,4,8,4,8};
-   int err, ret, typ, SolTabTyp=0, *IntMapTab=NULL;
-   int64_t *FilPtrI64, *UsrPtrI64, BlkNmbLin=0, BlkBegIdx, BlkEndIdx=0, *LngMapTab=NULL;
-   float *FilPtrR32, *UsrPtrR32;
-   double *FilPtrR64, *UsrPtrR64;
-   void (*UsrPrc)(int64_t, int64_t, void *) = NULL;
-   size_t UsrLen[ GmfMaxTyp ];
-   va_list VarArg;
-   GmfMshSct *msh = (GmfMshSct *) VALF77(MshIdx);
-   KwdSct *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
-   //int64_t FilBegIdx = VALF77(BegIdx), FilEndIdx = VALF77(EndIdx), UsrNmbLin;
-   int64_t FilBegIdx = 1, FilEndIdx = kwd->NmbLin, UsrNmbLin, OldIdx=0;
-   struct aiocb aio;
+   char        *UsrDat[ GmfMaxTyp ], *UsrBas[ GmfMaxTyp ], *EndUsrDat;
+   char        *StrTab[5] = { "", "%g", "%.15g", "%d", "%lld" }, *FilPos;
+   char        *FilBuf = NULL, *FrtBuf = NULL, *BckBuf = NULL;
+   int         i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
+   int         UsrTyp[ GmfMaxTyp ], NmbBlk, b, SizTab[5] = {0,4,8,4,8};
+   int         err, *IntMapTab = NULL, RepCnt;
+   float       *FilPtrR32, *UsrPtrR32;
+   double      *FilPtrR64, *UsrPtrR64;
+   int64_t     UsrNmbLin, BlkNmbLin = 0, BlkBegIdx, BlkEndIdx = 0;
+   int64_t     *FilPtrI64, *UsrPtrI64, *LngMapTab = NULL, OldIdx = 0;
+   int64_t     FilBegIdx = VALF77(BegIdx), FilEndIdx = VALF77(EndIdx);
+   void        (*UsrPrc)(int64_t, int64_t, void *) = NULL;
+   size_t      UsrLen[ GmfMaxTyp ], ret;
+   va_list     VarArg;
+   GmfMshSct   *msh = (GmfMshSct *) VALF77(MshIdx);
+   KwdSct      *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
+   struct      aiocb aio;
 #ifdef F77API
-   int NmbArg = 0;
-   void *ArgTab[ MaxArg ];
+   int         NmbArg = 0;
+   void        *ArgTab[ MaxArg ];
 #else
-   char *UsrArg = NULL;
+   char        *UsrArg = NULL;
 #endif
 
    // Save the current stack environment for longjmp
@@ -1638,16 +1766,22 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx, \
    if( (kwd->typ != RegKwd) && (kwd->typ != SolKwd) )
       return(0);
 
+   // Temporarily overwright the given begin and end values
+   // as arbitrary position block write is not yet implemented
+   FilBegIdx = 1;
+   FilEndIdx = kwd->NmbLin;
+
    // Check user's bounds
    if( (FilBegIdx < 1) || (FilBegIdx > FilEndIdx) || (FilEndIdx > kwd->NmbLin) )
       return(0);
 
-   // Compute the number of lines to be read
+   // Compute the number of lines to be written
    UsrNmbLin = FilEndIdx - FilBegIdx + 1;
 
-   if(VALF77(MapTyp == GmfInt))
+   // Get the renumbering map if any
+   if(VALF77(MapTyp) == GmfInt)
       IntMapTab = (int *)MapTab;
-   else if(VALF77(MapTyp == GmfLong))
+   else if(VALF77(MapTyp) == GmfLong)
       LngMapTab = (int64_t *)MapTab;
 
    // Start decoding the arguments
@@ -1671,49 +1805,82 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx, \
       UsrArg = va_arg(VarArg, void *);
    }
 #endif
-   for(i=0;i<kwd->SolSiz;i++)
+
+   // Get the user's data type and pointers to first
+   // and last adresses in order to compute the stride
+   if(kwd->typ == RegKwd)
    {
-      // The user stored the pointers in a table instea
-      // of giving them explicitely as separate arguments
-      if(!SolTabTyp)
+      for(i=0;i<kwd->SolSiz;i++)
       {
-         // All fields belong to the same type
-         typ = VALF77(va_arg(VarArg, TYPF77(int)));
+         // Get the type from the variable arguments
+         UsrTyp[i] = VALF77(va_arg(VarArg, TYPF77(int)));
 
-         // But each field has its own pointers to the beggining and end
-         if( (typ == GmfFloatTable) || (typ == GmfDoubleTable) )
+         // If a table is given, read its size in the next argument
+         // and automatically fill the pointer table by incrementing
+         // as many times the base user address
+         if(UsrTyp[i] == GmfIntTab)
          {
-            if(typ == GmfFloatTable)
-               SolTabTyp = GmfFloat;
-            else
-               SolTabTyp = GmfDouble;
-
-            SolTab1 = va_arg(VarArg, char **);
-            SolTab2 = va_arg(VarArg, char **);
+            RepCnt = VALF77(va_arg(VarArg, TYPF77(int)));
+            UsrTyp[i] = GmfInt;
          }
-      }
+         else if(UsrTyp[i] == GmfLongTab)
+         {
+            RepCnt = VALF77(va_arg(VarArg, TYPF77(int)));
+            UsrTyp[i] = GmfLong;
+         }
+         else
+            RepCnt = 0;
 
-      if(SolTabTyp)
-      {
-         // In case of a table of pointers,
-         // extract the tables base pointers and stride
-         UsrTyp[i] = SolTabTyp;
-         UsrDat[i] = UsrBas[i] = *(SolTab1 + i);
-         UsrLen[i] = (UsrNmbLin > 1) ? \
-                     (size_t)(SolTab2[i] - SolTab1[i]) / (UsrNmbLin - 1) : 0;
-      }
-      else
-      {
-         // Otherwise, get the type, beggin and end pointers
-         // from the variable arguments
-         UsrTyp[i] = typ;
+         // Get the begin and end pointers from the variable arguments
          UsrDat[i] = UsrBas[i] = va_arg(VarArg, char *);
          EndUsrDat = va_arg(VarArg, char *);
-         UsrLen[i] = (UsrNmbLin > 1) ? \
-                     (size_t)(EndUsrDat - UsrDat[i]) / (UsrNmbLin - 1) : 0;
-      }
 
-      // Get the file's data type
+         if(UsrNmbLin > 1)
+            UsrLen[i] = (size_t)(EndUsrDat - UsrDat[i]) / (UsrNmbLin - 1);
+         else
+            UsrLen[i] = 0;
+
+         // Replicate the table data type and increment the base address
+         if(RepCnt >= 2)
+         {
+            for(j=i+1; j<i+RepCnt; j++)
+            {
+               UsrTyp[j] = UsrTyp[i];
+               UsrDat[j] = UsrBas[j] = UsrDat[ j-1 ] + SizTab[ UsrTyp[i] ];
+               UsrLen[j] = UsrLen[i];
+            }
+
+            i += RepCnt - 1;
+         }
+      }
+   }
+   else if(kwd->typ == SolKwd)
+   {
+         // Get the type, begin and end pointers from the variable arguments
+      UsrTyp[0] = VALF77(va_arg(VarArg, TYPF77(int)));;
+      UsrDat[0] = UsrBas[0] = va_arg(VarArg, char *);
+      EndUsrDat = va_arg(VarArg, char *);
+
+      if(UsrNmbLin > 1)
+         UsrLen[0] = (size_t)(EndUsrDat - UsrDat[0]) / (UsrNmbLin - 1);
+      else
+         UsrLen[0] = 0;
+
+      // Solutions use only on set of type/begin/end pointers
+      // and the base adress is incremented for each entry
+      for(i=1;i<kwd->SolSiz;i++)
+      {
+         UsrTyp[i] = UsrTyp[0];
+         UsrDat[i] = UsrBas[i] = UsrDat[ i-1 ] + SizTab[ UsrTyp[0] ];
+         UsrLen[i] = UsrLen[0];
+      }
+   }
+   else
+      return(0);
+
+   // Get the file's data type
+   for(i=0;i<kwd->SolSiz;i++)
+   {
       if(kwd->fmt[i] == 'r')
          if(msh->ver <= 1)
             FilTyp[i] = GmfFloat;
@@ -1962,7 +2129,130 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx, \
    return(1);
 }
 
+
+/*----------------------------------------------------------------------------*/
+/* Map two HO element's nodes numbering orders                                */
+/*----------------------------------------------------------------------------*/
+
+int GmfSetHONodesOrdering(int64_t MshIdx, int KwdCod, int *BasTab, int *OrdTab)
+{
+   int i, j, k, flg, NmbNod, NmbCrd;
+   GmfMshSct   *msh = (GmfMshSct *)MshIdx;
+   KwdSct      *kwd;
+
+   if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) )
+      return(0);
+
+   kwd = &msh->KwdTab[ KwdCod ];
+
+   // Find the Bezier indices dimension according to the element's kind
+   switch(KwdCod)
+   {
+      case GmfEdgesP2 :          NmbNod =  3; NmbCrd = 1; break;
+      case GmfEdgesP3 :          NmbNod =  4; NmbCrd = 1; break;
+      case GmfTrianglesP2 :      NmbNod =  6; NmbCrd = 3; break;
+      case GmfTrianglesP3 :      NmbNod = 10; NmbCrd = 3; break;
+      case GmfQuadrilateralsQ2 : NmbNod =  9; NmbCrd = 2; break;
+      case GmfQuadrilateralsQ3 : NmbNod = 16; NmbCrd = 2; break;
+      case GmfTetrahedraP2 :     NmbNod = 10; NmbCrd = 4; break;
+      case GmfTetrahedraP3 :     NmbNod = 20; NmbCrd = 4; break;
+      case GmfPyramidsP2 :       NmbNod = 14; NmbCrd = 3; break;
+      case GmfPyramidsP3 :       NmbNod = 30; NmbCrd = 3; break;
+      case GmfPrismsP2 :         NmbNod = 18; NmbCrd = 4; break;
+      case GmfPrismsP3 :         NmbNod = 40; NmbCrd = 4; break;
+      case GmfHexahedraQ2 :      NmbNod = 27; NmbCrd = 3; break;
+      case GmfHexahedraQ3 :      NmbNod = 64; NmbCrd = 3; break;
+      default : return(0);
+   }
+
+   // Free and rebuild the mapping table it there were already one
+   if(kwd->OrdTab)
+      free(kwd->OrdTab);
+
+   if(!(kwd->OrdTab = malloc(NmbNod * sizeof(int))))
+      return(0);
+
+   // Find the corresponding Bezier coordinates from the source table
+   for(i=0;i<NmbNod;i++)
+   {
+      for(j=0;j<NmbNod;j++)
+      {
+         flg = 1;
+
+         for(k=0;k<NmbCrd;k++)
+            if(BasTab[ i * NmbCrd + k ] != OrdTab[ j * NmbCrd + k ])
+            {
+               flg = 0;
+               break;
+            }
+
+         if(flg)
+            kwd->OrdTab[j] = i;
+      }
+   }
+
+   for(i=0;i<NmbNod;i++)
+      printf("%d : %d\n",i,kwd->OrdTab[i]);
+
+   return(1);
+}
+
 #endif
+
+
+#ifndef F77API
+
+
+/*----------------------------------------------------------------------------*/
+/* Read an EGADS binary CAD and return the byte flow and its exact byte size  */
+/*----------------------------------------------------------------------------*/
+
+char *GmfReadByteFlow(int64_t MshIdx, int *NmbByt)
+{
+   int         i, cod, *WrdTab, NmbWrd;
+   GmfMshSct   *msh = (GmfMshSct *)MshIdx;
+
+   if(!(NmbWrd = GmfStatKwd(MshIdx, GmfByteFlow)))
+      return(NULL);
+
+   if(!(WrdTab = malloc(NmbWrd * WrdSiz)))
+      return(NULL);
+
+   cod = msh->cod;
+   msh->cod = 1;
+
+   GmfGotoKwd(MshIdx, GmfByteFlow);
+   GmfGetLin(MshIdx, GmfByteFlow, NmbByt);
+
+   for(i=0;i<NmbWrd;i++)
+      GmfGetLin(MshIdx, GmfByteFlow, &WrdTab[i]);
+
+   msh->cod = cod;
+
+   return((char *)WrdTab);
+}
+
+
+/*----------------------------------------------------------------------------*/
+/* Write an EGADS binary CAD as an integer table whose first entry is the size*/
+/*----------------------------------------------------------------------------*/
+
+int GmfWriteByteFlow(int64_t MshIdx, char *BytTab, int NmbByt)
+{
+   int i, *WrdTab = (int *)BytTab, NmbWrd = NmbByt / WrdSiz + 1;
+
+   if(!GmfSetKwd(MshIdx, GmfByteFlow, NmbWrd + 1))
+      return(0);
+
+   GmfSetLin(MshIdx, GmfByteFlow, NmbByt);
+
+   for(i=0;i<NmbWrd;i++)
+      GmfSetLin(MshIdx, GmfByteFlow, WrdTab[i]);
+
+   return(1);
+}
+#endif
+
 
 /*----------------------------------------------------------------------------*/
 /* Find every kw present in a meshfile                                        */
@@ -1970,9 +2260,9 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx, \
 
 static int ScaKwdTab(GmfMshSct *msh)
 {
-   int KwdCod, c;
+   int      KwdCod, c;
    int64_t  NexPos, EndPos;
-   char str[ GmfStrSiz ];
+   char     str[ GmfStrSiz ];
 
    if(msh->typ & Asc)
    {
@@ -1982,10 +2272,8 @@ static int ScaKwdTab(GmfMshSct *msh)
          // Fast test in order to reject quickly the numeric values
          if(isalpha(str[0]))
          {
-            /* Search which kwd code this string is associated with, 
-               then get its header and save the curent position in file
-               (just before the data) */
-
+            // Search which kwd code this string is associated with, then get its
+            // header and save the curent position in file (just before the data)
             for(KwdCod=1; KwdCod<= GmfMaxKwd; KwdCod++)
                if(!strcmp(str, GmfKwdFmt[ KwdCod ][0]))
                {
@@ -2032,10 +2320,10 @@ static int ScaKwdTab(GmfMshSct *msh)
 
 static void ScaKwdHdr(GmfMshSct *msh, int KwdCod)
 {
-   int i;
-   KwdSct *kwd = &msh->KwdTab[ KwdCod ];
+   int      i;
+   KwdSct   *kwd = &msh->KwdTab[ KwdCod ];
 
-   if(!strcmp("i", GmfKwdFmt[ KwdCod ][2]))
+   if(!strcmp("i", GmfKwdFmt[ KwdCod ][1]))
       if(msh->typ & Asc)
          safe_fscanf(msh->hdl, INT64_T_FMT, &kwd->NmbLin, msh->err);
       else
@@ -2049,7 +2337,8 @@ static void ScaKwdHdr(GmfMshSct *msh, int KwdCod)
    else
       kwd->NmbLin = 1;
 
-   if(!strcmp("sr", GmfKwdFmt[ KwdCod ][3]))
+   if(!strcmp("sr", GmfKwdFmt[ KwdCod ][2])
+   || !strcmp("hr", GmfKwdFmt[ KwdCod ][2]) )
    {
       if(msh->typ & Asc)
       {
@@ -2057,6 +2346,19 @@ static void ScaKwdHdr(GmfMshSct *msh, int KwdCod)
 
          for(i=0;i<kwd->NmbTyp;i++)
             safe_fscanf(msh->hdl, "%d", &kwd->TypTab[i], msh->err);
+
+         // Scan two extra fields for HO solutions: deg and nmb Nodes
+         if(!strcmp("hr", GmfKwdFmt[ KwdCod ][2]))
+         {
+            safe_fscanf(msh->hdl, "%d", &kwd->deg, msh->err);
+            safe_fscanf(msh->hdl, "%d", &kwd->NmbNod, msh->err);
+         }
+         else
+         {
+            kwd->deg = 0;
+            kwd->NmbNod = 1;
+         }
+
       }
       else
       {
@@ -2064,6 +2366,18 @@ static void ScaKwdHdr(GmfMshSct *msh, int KwdCod)
 
          for(i=0;i<kwd->NmbTyp;i++)
             ScaWrd(msh, (unsigned char *)&kwd->TypTab[i]);
+
+         // Scan two extra fields for HO solutions: deg and nmb Nodes
+         if(!strcmp("hr", GmfKwdFmt[ KwdCod ][2]))
+         {
+            ScaWrd(msh, (unsigned char *)&kwd->deg);
+            ScaWrd(msh, (unsigned char *)&kwd->NmbNod);
+         }
+         else
+         {
+            kwd->deg = 0;
+            kwd->NmbNod = 1;
+         }
       }
    }
 
@@ -2078,15 +2392,15 @@ static void ScaKwdHdr(GmfMshSct *msh, int KwdCod)
 
 static void ExpFmt(GmfMshSct *msh, int KwdCod)
 {
-   int i, j, TmpSiz=0, IntWrd, FltWrd;
-   char chr;
-   const char *InpFmt = GmfKwdFmt[ KwdCod ][3];
-   KwdSct *kwd = &msh->KwdTab[ KwdCod ];
+   int         i, j, TmpSiz=0, IntWrd, FltWrd;
+   char        chr;
+   const char  *InpFmt = GmfKwdFmt[ KwdCod ][2];
+   KwdSct      *kwd = &msh->KwdTab[ KwdCod ];
 
    // Set the kwd's type
-   if(!strlen(GmfKwdFmt[ KwdCod ][2]))
+   if(!strlen(GmfKwdFmt[ KwdCod ][1]))
       kwd->typ = InfKwd;
-   else if(!strcmp(InpFmt, "sr"))
+   else if( !strcmp(InpFmt, "sr") || !strcmp(InpFmt, "hr") )
       kwd->typ = SolKwd;
    else
       kwd->typ = RegKwd;
@@ -2116,7 +2430,7 @@ static void ExpFmt(GmfMshSct *msh, int KwdCod)
          for(j=0;j<msh->dim;j++)
             kwd->fmt[ kwd->SolSiz++ ] = chr;
       }
-      else if(chr == 's')
+      else if((chr == 's')||(chr == 'h'))
       {
          chr = InpFmt[i++];
 
@@ -2144,6 +2458,17 @@ static void ExpFmt(GmfMshSct *msh, int KwdCod)
          case 'c' : kwd->NmbWrd += FilStrSiz; break;
          case 'r' : kwd->NmbWrd += FltWrd;break;
       }
+
+   // HO solution: duplicate the format as many times as the number of nodes
+   if( !strcmp(InpFmt, "hr") && (kwd->NmbNod > 1) )
+   {
+      for(i=1;i<=kwd->NmbNod;i++)
+         for(j=0;j<kwd->SolSiz;j++)
+            kwd->fmt[ i * kwd->SolSiz + j ] = kwd->fmt[j];
+
+      kwd->SolSiz *= kwd->NmbNod;
+      kwd->NmbWrd *= kwd->NmbNod;
+   }
 }
 
 
@@ -2189,8 +2514,8 @@ static void ScaDblWrd(GmfMshSct *msh, void *ptr)
 
 static int64_t GetPos(GmfMshSct *msh)
 {
-   int IntVal;
-   int64_t pos;
+   int      IntVal;
+   int64_t  pos;
 
    if(msh->ver >= 3)
       ScaDblWrd(msh, (unsigned char*)&pos);
@@ -2249,8 +2574,8 @@ static void RecBlk(GmfMshSct *msh, const void *blk, int siz)
       msh->pos += siz * WrdSiz;
    }
 
-   /* When the buffer is full or this procedure is APIF77ed with a 0 size,
-      flush the cache on disk */
+   // When the buffer is full or this procedure is APIF77ed with a 0 size,
+   // flush the cache on disk
 
    if( (msh->pos > BufSiz) || (!siz && msh->pos) )
    {
@@ -2270,14 +2595,14 @@ static void RecBlk(GmfMshSct *msh, const void *blk, int siz)
 #else      
       if(fwrite(msh->blk, 1, (size_t)msh->pos, msh->hdl) != msh->pos)
 #endif      
-         longjmp(msh->err,-1);
+         longjmp(msh->err, -1);
 #else      
 #ifdef WITH_AIO
       if(write(msh->FilDes, msh->blk, msh->pos) != msh->pos)
 #else      
-      if(fwrite(msh->blk, 1, (size_t)msh->pos, msh->hdl) != msh->pos)
+      if(fwrite(msh->blk, 1, msh->pos, msh->hdl) != msh->pos)
 #endif      
-         longjmp(msh->err,-1);
+         longjmp(msh->err, -1);
 #endif      
       msh->pos = 0;
    }
@@ -2308,8 +2633,8 @@ static void SetPos(GmfMshSct *msh, int64_t pos)
 
 static void SwpWrd(char *wrd, int siz)
 {
-   char swp;
-   int i;
+   char  swp;
+   int   i;
 
    for(i=0;i<siz/2;i++)
    {
@@ -2403,11 +2728,18 @@ static int64_t GetFilSiz(GmfMshSct *msh)
 
 #ifdef F77API
 
-int64_t APIF77(gmfopenmesh)(char *FilNam, int *mod, \
-                              int *ver, int *dim, int StrSiz)
+int64_t APIF77(gmfopenmesh)(  char *FilNam, int *mod,
+                              int *ver, int *dim, int StrSiz )
 {
-   int i;
-   char TmpNam[ GmfStrSiz ];
+   int   i = 0;
+   char  TmpNam[ GmfStrSiz ];
+
+   if(StrSiz <= 0)
+      return(0);
+
+   // Trim trailing spaces from the fortran string
+   while(isspace(FilNam[ StrSiz-1 ]))
+      StrSiz--;
 
    for(i=0;i<StrSiz;i++)
       TmpNam[i] = FilNam[i];
@@ -2430,24 +2762,22 @@ int APIF77(gmfgotokwd)(int64_t *MshIdx, int *KwdIdx)
    return(GmfGotoKwd(*MshIdx, *KwdIdx));
 }
 
-int APIF77(gmfstatkwd)( int64_t *MshIdx, int *KwdIdx, int *NmbTyp, \
+int APIF77(gmfstatkwd)( int64_t *MshIdx, int *KwdIdx, int *NmbTyp,
                         int *SolSiz, int *TypTab)
 {
-   if(!strcmp(GmfKwdFmt[ *KwdIdx ][3], "sr"))
+   if(!strcmp(GmfKwdFmt[ *KwdIdx ][2], "sr"))
       return(GmfStatKwd(*MshIdx, *KwdIdx, NmbTyp, SolSiz, TypTab));
    else
       return(GmfStatKwd(*MshIdx, *KwdIdx));
 }
 
-int APIF77(gmfsetkwd)(  int64_t *MshIdx, int *KwdIdx, int *NmbLin, \
+int APIF77(gmfsetkwd)(  int64_t *MshIdx, int *KwdIdx, int *NmbLin,
                         int *NmbTyp, int *TypTab)
 {
-   if(!strcmp(GmfKwdFmt[ *KwdIdx ][3], "sr"))
+   if(!strcmp(GmfKwdFmt[ *KwdIdx ][2], "sr"))
       return(GmfSetKwd(*MshIdx, *KwdIdx, *NmbLin, *NmbTyp, TypTab));
-   else if(strlen(GmfKwdFmt[ *KwdIdx ][2]))
-      return(GmfSetKwd(*MshIdx, *KwdIdx, *NmbLin));
    else
-      return(GmfSetKwd(*MshIdx, *KwdIdx));
+      return(GmfSetKwd(*MshIdx, *KwdIdx, *NmbLin));
 }
 
 
@@ -2505,147 +2835,147 @@ int APIF77(gmfsetkwd)(  int64_t *MshIdx, int *KwdIdx, int *NmbLin, \
 /* Call a fortran thread with 1 to 20 arguments                               */
 /*----------------------------------------------------------------------------*/
 
-static void CalF77Prc(  int64_t BegIdx, int64_t EndIdx, \
+static void CalF77Prc(  int64_t BegIdx, int64_t EndIdx,
                         void *prc, int NmbArg, void **ArgTab )
 {
    switch(NmbArg)
    {
       case 1 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 1)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 1)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 1)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 1));
       }break;
 
       case 2 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 2)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 2)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 2)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 2));
       }break;
 
       case 3 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 3)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 3)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 3)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 3));
       }break;
 
       case 4 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 4)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 4)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 4)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 4));
       }break;
 
       case 5 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 5)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 5)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 5)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 5));
       }break;
 
       case 6 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 6)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 6)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 6)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 6));
       }break;
 
       case 7 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 7)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 7)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 7)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 7));
       }break;
 
       case 8 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 8)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 8)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 8)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 8));
       }break;
 
       case 9 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 9)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 9)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 9)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 9));
       }break;
 
       case 10 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 10)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 10)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 10)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 10));
       }break;
 
       case 11 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 11)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 11)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 11)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 11));
       }break;
 
       case 12 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 12)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 12)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 12)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 12));
       }break;
 
       case 13 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 13)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 13)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 13)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 13));
       }break;
 
       case 14 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 14)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 14)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 14)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 14));
       }break;
 
       case 15 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 15)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 15)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 15)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 15));
       }break;
 
       case 16 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 16)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 16)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 16)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 16));
       }break;
 
       case 17 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 17)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 17)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 17)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 17));
       }break;
 
       case 18 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 18)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 18)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 18)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 18));
       }break;
 
       case 19 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 19)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 19)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 19)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 19));
       }break;
 
       case 20 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 20)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 20)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 20)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 20));
       }break;
