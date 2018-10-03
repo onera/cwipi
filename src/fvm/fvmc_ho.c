@@ -86,7 +86,6 @@ extern "C" {
  * Type definitions
  *============================================================================*/
 
-
 typedef struct _fvmc_ho_user_elt_t {
   fvmc_ho_basis_fct_t elt_basis;
   fvmc_ho_xsi_fct_t   xsi_coords;
@@ -174,16 +173,16 @@ static fvmc_ho_user_elt_t *_user_hexa = NULL;
 static fvmc_ho_user_elt_t *_user_prism = NULL;
 static fvmc_ho_user_elt_t *_user_pyra = NULL;
 
-static int                  _idebug = 0;
+static int                 _idebug = 0;
 
-static int                  _n_vand_tria_space = 0;
-static double **            _vand_tria_space = NULL;
+static int                 _n_ijk_tria_space = 0;
+static int               **_ijk_tria_space = NULL;
 
-static int                  _n_vand_quad_space = 0;
-static double **            _vand_quad_space = NULL;
+static int                 _n_ijk_quad_space = 0;
+static int               **_ijk_quad_space = NULL;
 
-static int                  _n_vand_1D_space = 0;
-static double **            _vand_1D_space = NULL;
+static int                 _n_ijk_1D_space = 0;
+static int               **_ijk_1D_space = NULL;
 
 /*============================================================================
  * Private function definitions
@@ -328,99 +327,40 @@ _basis_tria_pn
 
 #if defined (HAVE_SPACE_BASIS)
     
-    if (_vand_tria_space == NULL) {
-      _n_vand_tria_space = FVMC_MAX (order-1, 10);
-      _vand_tria_space = malloc (sizeof(double *) * _n_vand_tria_space);
-      for (int i = 0; i < _n_vand_tria_space; i++) {
-        _vand_tria_space[i] = NULL;
+    if (_ijk_tria_space == NULL) {
+      _n_ijk_tria_space = FVMC_MAX (order-1, 10);
+      _ijk_tria_space = malloc (sizeof(int *) * _n_ijk_tria_space);
+      for (int i = 0; i < _n_ijk_tria_space; i++) {
+        _ijk_tria_space[i] = NULL;
       }
     }
 
-    if (order > _n_vand_tria_space) {
-      _vand_tria_space = realloc (_vand_tria_space, sizeof(double *) * _n_vand_tria_space);
-      for (int i = _n_vand_tria_space; i < order; i++) {
-        _vand_tria_space[i] = NULL;
+    if (order > _n_ijk_tria_space) {
+      _ijk_tria_space = realloc (_ijk_tria_space, sizeof(int *) * _n_ijk_tria_space);
+      for (int i = _n_ijk_tria_space; i < order; i++) {
+        _ijk_tria_space[i] = NULL;
       }
     }
     
-    double *__vand_tria_space = _vand_tria_space[order-1];
+    int *__ijk_tria_space = _ijk_tria_space[order-1];
 
-    if (__vand_tria_space == NULL) {
-      
+    if (__ijk_tria_space == NULL) {
       const int n_nodes = (order+1)*(order+2)/2;
-      double *uvw_nodes_space = NULL; 
-
-      SNB_nodes2D (order, &uvw_nodes_space, 1);
-      
-      double *uv_nodes_space = malloc (sizeof(double) * 2 * n_nodes);
-
-      if (_idebug) {      
-        printf("uvw :");
-        for (int i = 0; i < n_nodes; i++) {
-          for (int j = 0; j < 3; j++) {
-            printf(" %12.5e", uvw_nodes_space[3*i+j]);
-          }
-          printf("\n");
-        }
-        printf("\n");
-      }
-
-      for (int i = 0; i < n_nodes; i++) {
-        for (int j = 0; j < 2; j++) {
-          uv_nodes_space[2*i+j] = uvw_nodes_space[3*i+j];
+      __ijk_tria_space = malloc (sizeof(int) * 2 * n_nodes);
+      int k = 0;
+      for (int j = 0; j < order+1; j++) {
+        for (int i = 0; i < order+1-j; i++) {
+          __ijk_tria_space[2*k]   = i;
+          __ijk_tria_space[2*k+1] = j;
+          k += 1;
         }
       }
-      
-      SNB_free_double (uvw_nodes_space, 3*n_nodes);
-
-      if (_idebug) {      
-        printf("uv :");
-        for (int i = 0; i < n_nodes; i++) {
-          for (int j = 0; j < 2; j++) {
-            printf(" %12.5e", uv_nodes_space[2*i+j]);
-          }
-          printf("\n");
-        }
-        printf("\n");
-      }
-        
-      double *a_space = NULL; 
-      double *b_space = NULL; 
-
-      SNB_nodes2Duv2ab (n_nodes, uv_nodes_space, &a_space, &b_space, 0);
-
-      free (uv_nodes_space);
-    
-      SNB_vandermonde2D (order, a_space, b_space, &__vand_tria_space);
-
-      if (_idebug) {      
-        printf("vand :");
-        for (int i = 0; i < n_nodes; i++) {
-          for (int j = 0; j < n_nodes; j++) {
-            printf(" %12.5e", __vand_tria_space[n_nodes*i+j]);
-          }
-          printf("\n");
-        }
-        printf("\n");
-      }
-        
-      SNB_free_double (a_space, n_nodes);
-      SNB_free_double (b_space, n_nodes);
-      
     }
 
+    const int nVtx = 1;
     double _uv[2] = {u, v};
-    double *_a;
-    double *_b;
     
-    SNB_nodes2Duv2ab (1, _uv, &_a, &_b, 0);
-
-    int nVtx = 1;
-    
-    SNB_lagrange2Dv (order, nVtx, __vand_tria_space, _a, _b, weights);
-
-    SNB_free_double (_a, 1);
-    SNB_free_double (_b, 1);
+    SNB_setT3BasisEqui (order, nVtx, __ijk_tria_space, _uv, weights);
       
 #else
     bftc_error(__FILE__, __LINE__, 0,
@@ -433,7 +373,7 @@ _basis_tria_pn
 
 /*----------------------------------------------------------------------------
  * 
- * Quadrangle Pn basis
+ * Quadrangle Qn basis
  * 
  * parameters:
  *   order           <-- order
@@ -842,10 +782,17 @@ _heap_fill_pn_sub_tria
         }
         
         if (1 == 0) {
-          printf("_uvClosestPointP1 : %12.5e %12.5e\n", _uvClosestPointP1[0], _uvClosestPointP1[1]);
-          printf("__vertex_coords + uvpn 1 : %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[0], __vertex_coords[1], __vertex_coords[2], _uvPn_sub_tria[0], _uvPn_sub_tria[1]);
-          printf("__vertex_coords + uvpn 2 : %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[3], __vertex_coords[4], __vertex_coords[5], _uvPn_sub_tria[2], _uvPn_sub_tria[3]);
-          printf("__vertex_coords + uvpn 3 : %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[6], __vertex_coords[7], __vertex_coords[8], _uvPn_sub_tria[4], _uvPn_sub_tria[5]);
+          printf("_uvClosestPointP1 : %12.5e %12.5e\n",
+                 _uvClosestPointP1[0], _uvClosestPointP1[1]);
+          printf("__vertex_coords + uvpn 1 : %12.5e %12.5e %12.5e // %12.5e %12.5e\n",
+                 __vertex_coords[0], __vertex_coords[1], __vertex_coords[2],
+                 _uvPn_sub_tria[0], _uvPn_sub_tria[1]);
+          printf("__vertex_coords + uvpn 2 : %12.5e %12.5e %12.5e // %12.5e %12.5e\n",
+                 __vertex_coords[3], __vertex_coords[4], __vertex_coords[5],
+                 _uvPn_sub_tria[2], _uvPn_sub_tria[3]);
+          printf("__vertex_coords + uvpn 3 : %12.5e %12.5e %12.5e // %12.5e %12.5e\n",
+                 __vertex_coords[6], __vertex_coords[7], __vertex_coords[8],
+                 _uvPn_sub_tria[4], _uvPn_sub_tria[5]);
         }
         
         _heap_insert (heap,
@@ -893,10 +840,17 @@ _heap_fill_pn_sub_tria
         }
       
         if (1 == 0) {
-          printf("_uvClosestPointP1 : %12.5e %12.5e\n", _uvClosestPointP1[0], _uvClosestPointP1[1]);
-          printf("__vertex_coords 1 + uvpn  : %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[0], __vertex_coords[1], __vertex_coords[2], _uvPn_sub_tria[0], _uvPn_sub_tria[1]);
-          printf("__vertex_coords 2 + uvpn : %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[3], __vertex_coords[4], __vertex_coords[5], _uvPn_sub_tria[2], _uvPn_sub_tria[3]);
-          printf("__vertex_coords 3 + uvpn: %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[6], __vertex_coords[7], __vertex_coords[8], _uvPn_sub_tria[4], _uvPn_sub_tria[5]);
+          printf("_uvClosestPointP1 : %12.5e %12.5e\n",
+                 _uvClosestPointP1[0], _uvClosestPointP1[1]);
+          printf("__vertex_coords 1 + uvpn  : %12.5e %12.5e %12.5e // %12.5e %12.5e\n",
+                 __vertex_coords[0], __vertex_coords[1], __vertex_coords[2],
+                 _uvPn_sub_tria[0], _uvPn_sub_tria[1]);
+          printf("__vertex_coords 2 + uvpn : %12.5e %12.5e %12.5e // %12.5e %12.5e\n",
+                 __vertex_coords[3], __vertex_coords[4], __vertex_coords[5],
+                 _uvPn_sub_tria[2], _uvPn_sub_tria[3]);
+          printf("__vertex_coords 3 + uvpn: %12.5e %12.5e %12.5e // %12.5e %12.5e\n",
+                 __vertex_coords[6], __vertex_coords[7], __vertex_coords[8],
+                 _uvPn_sub_tria[4], _uvPn_sub_tria[5]);
         }
       
         _heap_insert (heap,
@@ -967,10 +921,17 @@ _heap_fill_pn_sub_tria
       }
       
       if (1 == 0) {
-        printf("_uvClosestPointP1 : %12.5e %12.5e\n", _uvClosestPointP1[0], _uvClosestPointP1[1]);
-        printf("__vertex_coords 1 + uvpn: %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[0], __vertex_coords[1], __vertex_coords[2], _uvPn_sub_tria[0], _uvPn_sub_tria[1]);
-        printf("__vertex_coords 2 + uvpn: %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[3], __vertex_coords[4], __vertex_coords[5], _uvPn_sub_tria[2], _uvPn_sub_tria[3]);
-        printf("__vertex_coords 3 + uvpn: %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[6], __vertex_coords[7], __vertex_coords[8], _uvPn_sub_tria[4], _uvPn_sub_tria[5]);
+        printf("_uvClosestPointP1 : %12.5e %12.5e\n",
+               _uvClosestPointP1[0], _uvClosestPointP1[1]);
+        printf("__vertex_coords 1 + uvpn: %12.5e %12.5e %12.5e // %12.5e %12.5e\n",
+               __vertex_coords[0], __vertex_coords[1], __vertex_coords[2],
+               _uvPn_sub_tria[0], _uvPn_sub_tria[1]);
+        printf("__vertex_coords 2 + uvpn: %12.5e %12.5e %12.5e // %12.5e %12.5e\n",
+               __vertex_coords[3], __vertex_coords[4], __vertex_coords[5],
+               _uvPn_sub_tria[2], _uvPn_sub_tria[3]);
+        printf("__vertex_coords 3 + uvpn: %12.5e %12.5e %12.5e // %12.5e %12.5e\n",
+               __vertex_coords[6], __vertex_coords[7], __vertex_coords[8],
+               _uvPn_sub_tria[4], _uvPn_sub_tria[5]);
       }
     
       _heap_insert (heap,
@@ -988,6 +949,7 @@ _heap_fill_pn_sub_tria
 
   free (uvNodes);
 }
+
 
 /*----------------------------------------------------------------------------
  * 
@@ -1301,7 +1263,8 @@ _insert_subtria
     }
     for (int j = 0; j < 2; j++) {
       for (int k = 0; k < 3; k++) {
-        _closest_pt_uvPn_child[j] += _closest_pt_weights_child[k] * _uvPn_tria_child[2*k + j];
+        _closest_pt_uvPn_child[j] +=
+          _closest_pt_weights_child[k] * _uvPn_tria_child[2*k + j];
       }
     }
     
@@ -1447,11 +1410,14 @@ _compute_dist2_from_closest_tria_subdivision
     if (0 == 1) {
       printf("\n\n ========= get heap =========\n");
     
-      printf ("uv Pn : %22.15e %22.15e\n", _closest_pt_uvPn_current[0], _closest_pt_uvPn_current[1]);
-      printf ("uv P1 : %22.15e %22.15e\n", _closest_pt_uvP1_current[0], _closest_pt_uvP1_current[1]);
+      printf ("uv Pn : %22.15e %22.15e\n",
+              _closest_pt_uvPn_current[0], _closest_pt_uvPn_current[1]);
+      printf ("uv P1 : %22.15e %22.15e\n",
+              _closest_pt_uvP1_current[0], _closest_pt_uvP1_current[1]);
       printf ("_dist2 child : %22.15e %d\n", _dist2_current, _child);
     
-      printf("Weights : %12.5e %12.5e %12.5e\n", weightsP1[0], weightsP1[1], weightsP1[2]);
+      printf("Weights : %12.5e %12.5e %12.5e\n",
+             weightsP1[0], weightsP1[1], weightsP1[2]);
       printf("vtx_tria_current 1 : %12.5e %12.5e %12.5e\n",
              _vtx_tria_current[0], _vtx_tria_current[1], _vtx_tria_current[2]);
       printf("vtx_tria_current 2 : %12.5e %12.5e %12.5e\n",
@@ -1474,11 +1440,10 @@ _compute_dist2_from_closest_tria_subdivision
       _projected_coords_from_pn[j] = 0;
     }
 
-
     (_basis_generic) (order,
-                    _closest_pt_uvPn_current[0],
-                    _closest_pt_uvPn_current[1],
-                    weightsPn);
+                      _closest_pt_uvPn_current[0],
+                      _closest_pt_uvPn_current[1],
+                      weightsPn);
 
     for (int j = 0; j < n_nodes; j++) {
       const double *_node_coords = nodes_coords + 3 * j;
@@ -1647,8 +1612,10 @@ _compute_dist2_from_uniform_tria_subdivision
     if (0 == 1) {
       printf("\n\n ========= get heap =========\n");
     
-      printf ("uv Pn : %22.15e %22.15e\n", _closest_pt_uvPn_current[0], _closest_pt_uvPn_current[1]);
-      printf ("uv P1 : %22.15e %22.15e\n", _closest_pt_uvP1_current[0], _closest_pt_uvP1_current[1]);
+      printf ("uv Pn : %22.15e %22.15e\n", _closest_pt_uvPn_current[0],
+              _closest_pt_uvPn_current[1]);
+      printf ("uv P1 : %22.15e %22.15e\n", _closest_pt_uvP1_current[0],
+              _closest_pt_uvP1_current[1]);
       printf ("_dist2 child : %22.15e %d\n", _dist2_current, _child);
     
       printf("Weights : %12.5e %12.5e %12.5e\n",
@@ -2026,167 +1993,6 @@ _default_location
 
 /*----------------------------------------------------------------------------
  * 
- * Default field interpolation field to the target point_coords in a 3D cell
- * 
- * parameters:
- *   type              <-- element type
- *   order             <-- element order
- *   n_nodes           <-- number of nodes
- *   ho_vertex_num     <-- high order vertex num (internal ordering)
- *   local_to_user     <-- local to user ordering (for type)
- *   nodes_coords      <-- nodes coordinates
- *   point_coords      <-- point coordinates
- *   distance          <-- distance to the element
- *   point_proj_coords  <-- projected point coordinates
- *   weight             <-- weights
- *   stride_field      <-- field stride
- *   source_field      <-- source field (user ordering) 
- *   target_field      --> target field (defined to point_coords)
- *
- *----------------------------------------------------------------------------*/
-
-static void 
-_default_interp_in_cell_3d
-(
- const fvmc_element_t type,
- const int order,
- const int n_nodes,
- const int *ho_vertex_num,
- const int *local_to_user,
- const double *nodes_coords,
- const double *point_coords,
- const float *distance,
- const double *point_proj_coords,
- const double *weight,
- const int stride_field,
- const double *src_field,
- double *target_field
- )                          
-{
-  for (int j = 0; j < stride_field; j++) {
-    target_field[j] += 0.;
-  }
-
-  for (int i = 0; i < n_nodes; i++) {
-
-    int i_node = ho_vertex_num[i] - 1;
-    
-    for (int j = 0; j < stride_field; j++) {
-      target_field[j] += weight[i] * src_field[stride_field * i_node + j];
-    }
-  }
-}
-
-
-/*----------------------------------------------------------------------------
- * 
- * Default field interpolation field to the target point_coords on a 2D cell
- * 
- * parameters:
- *   type              <-- element type
- *   order             <-- element order
- *   n_node            <-- number of nodes
- *   ho_vertex_num     <-- high order vertex num (internal ordering)
- *   local_to_user     <-- local to user ordering (for type)
- *   vertex_coords     <-- vertex coordinates
- *   point_coords      <-- point coordinates
- *   distance          <-- distance to the element
- *   point_proj_coords  <-- projected point coordinates
- *   weight             <-- weights
- *   stride_field      <-- field stride
- *   source_field      <-- source field (user ordering) 
- *   target_field      --> target field (defined to point_coords)
- *
- *----------------------------------------------------------------------------*/
-
-static void 
-_default_interp_on_cell_2d
-(
- const fvmc_element_t type,
- const int order,
- const int n_node,
- const int *ho_vertex_num,
- const int *local_to_user,
- const double *vertex_coords,
- const double *point_coords,
- const float *distance,
- const double *point_proj_coords,
- const double *weight,
- const int stride_field,
- const double *src_field,
- double *target_field
-)
-{
-  for (int j = 0; j < stride_field; j++) {
-    target_field[j] += 0.;
-  }
-
-  for (int i = 0; i < n_node; i++) {
-
-    int i_node = ho_vertex_num[i] - 1;
-
-    for (int j = 0; j < stride_field; j++) {
-      target_field[j] += weight[i] * src_field[stride_field * i_node + j];
-    }
-  }
-
-}
-
-
-/*----------------------------------------------------------------------------
- * 
- * Default field interpolation field to the target point_coords on a 1D cell
- * 
- * parameters:
- *   type              <-- element type
- *   order             <-- element order
- *   n_node            <-- number of nodes
- *   ho_vertex_num     <-- high order vertex num (internal ordering)
- *   local_to_user     <-- local to user ordering (for type)
- *   vertex_coords     <-- vertex coordinates
- *   point_coords      <-- point coordinates
- *   distance          <-- distance to the element
- *   point_proj_coords  <-- projected point coordinates
- *   weight             <-- weights
- *   stride_field      <-- field stride
- *   source_field      <-- source field (user ordering) 
- *   target_field      --> target field (defined to point_coords)
- *
- *----------------------------------------------------------------------------*/
-
-static void 
-_default_interp_on_cell_1d
-(
- const fvmc_element_t type,
- const int order,
- const int n_node,
- const int *ho_vertex_num,
- const int *local_to_user,
- const double *vertex_coords,
- const double *point_coords,
- const float *distance,
- const double *point_proj_coords,
- const double *weight,
- const int stride_field,
- const double *src_field,
- double *target_field
-)
-{
-  for (int j = 0; j < stride_field; j++) {
-    target_field[j] += 0.;
-  }
-
-  for (int i = 0; i < n_node; i++) {
-
-    int i_node = ho_vertex_num[i] - 1;
-    
-    for (int j = 0; j < stride_field; j++) {
-      target_field[j] += weight[i] * src_field[stride_field * i_node + j];
-    }
-  }
-}
-/*----------------------------------------------------------------------------
- * 
  * high order basis
  * 
  * parameters:
@@ -2477,43 +2283,43 @@ fvmc_ho_free
 )
 {
 #if defined (HAVE_SPACE_BASIS) 
-  if (_vand_tria_space != NULL) {
+  if (_ijk_tria_space != NULL) {
 
-    for (int i = 0; i < _n_vand_tria_space; i++) {
-      if (_vand_tria_space[i] != NULL) {
-        SNB_free_double (_vand_tria_space[i], (i+1)*(i+1));
-        _vand_tria_space[i] = NULL;
+    for (int i = 0; i < _n_ijk_tria_space; i++) {
+      if (_ijk_tria_space[i] != NULL) {
+        free(_ijk_tria_space[i]);
+        _ijk_tria_space[i] = NULL;
       }
     }
-    free (_vand_tria_space);
-    _vand_tria_space = NULL;
+    free (_ijk_tria_space);
+    _ijk_tria_space = NULL;
   
   }
 
-  if (_vand_quad_space != NULL) {
+  if (_ijk_quad_space != NULL) {
 
-    for (int i = 0; i < _n_vand_quad_space; i++) {
-      if (_vand_quad_space[i] != NULL) {
-        SNB_free_double (_vand_quad_space[i], (i+1)*(i+1));
-        _vand_quad_space[i] = NULL;
+    for (int i = 0; i < _n_ijk_quad_space; i++) {
+      if (_ijk_quad_space[i] != NULL) {
+        free(_ijk_quad_space[i]);
+        _ijk_quad_space[i] = NULL;
       }
     }
-    free (_vand_quad_space);
-    _vand_quad_space = NULL;
+    free (_ijk_quad_space);
+    _ijk_quad_space = NULL;
     
   }
   
-  if (_vand_1D_space != NULL) {
+  if (_ijk_1D_space != NULL) {
 
-    for (int i = 0; i < _n_vand_1D_space; i++) {
-      if (_vand_1D_space[i] != NULL) {
-        SNB_free_double (_vand_1D_space[i], (i+1)*(i+1));
-        _vand_1D_space[i] = NULL;
+    for (int i = 0; i < _n_ijk_1D_space; i++) {
+      if (_ijk_1D_space[i] != NULL) {
+        free(_ijk_1D_space[i]);
+        _ijk_1D_space[i] = NULL;
       }
     }
     
-    free (_vand_1D_space);
-    _vand_1D_space = NULL;
+    free (_ijk_1D_space);
+    _ijk_1D_space = NULL;
   }
 
 #endif  
