@@ -24,8 +24,28 @@ extern "C" {
 void
 SNB_free_double
 (
- double  *array,
- const int     s_array
+ double    *array,
+ const int  s_array
+);
+
+/**
+ *
+ * \brief Compute uvw of nodes for the current order
+ *
+ * \param [in]     order    Order 
+ * \param [inout]  uvw      uvw coordinates
+ * \param [in]     display  Flag to dispay results
+ * 
+ */
+
+void
+SNB_setT3BasisEqui
+(
+ const int     order,
+ const int     nVtx,
+       int    *ijk,
+       double *uvw,
+       double *weights
 );
 
 /**

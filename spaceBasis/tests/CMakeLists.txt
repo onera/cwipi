@@ -42,25 +42,50 @@ SET (CTEST_ENVIRONMENT
 include(TestCreate)
 #test_fortran_create (basesNodales)
 test_fortran_create (test_QuadraturesGauss)
+add_dependencies(test_QuadraturesGauss spaceBasis)
+
 test_fortran_create (test_ConnectivitiesOfSides)
+add_dependencies(test_ConnectivitiesOfSides spaceBasis)
+
 test_fortran_create (test_Jacobi)
+add_dependencies(test_Jacobi spaceBasis)
 
 test_fortran_create (test_Edges00)
+add_dependencies(test_Edges00 spaceBasis)
+
 test_fortran_create (test_Edges01)
+add_dependencies(test_Edges01 spaceBasis)
+
 test_fortran_create (test_Edges02)
+add_dependencies(test_Edges02 spaceBasis)
 
 test_fortran_create (test_Triangles00)
+add_dependencies(test_Triangles00 spaceBasis)
+
 test_fortran_create (test_Triangles01)
+add_dependencies(test_Triangles01 spaceBasis)
+
 test_fortran_create (test_Triangles02)
+add_dependencies(test_Triangles02 spaceBasis)
 
 test_fortran_create (test_Quad00)
+add_dependencies(test_Quad00 spaceBasis)
 
 test_fortran_create (test_Tetra00)
+add_dependencies(test_Tetra00 spaceBasis)
+
 test_fortran_create (test_Tetra01)
+add_dependencies(test_Tetra01 spaceBasis)
 
 test_fortran_create (test_Pyramid00)
+add_dependencies(test_Pyramid00 spaceBasis)
+
 test_fortran_create (test_Pyramid01)
+add_dependencies(test_Pyramid01 spaceBasis)
+
 #test_fortran_create (test_Pyramid02)
 test_fortran_create (test_Pyramid03)
+add_dependencies(test_Pyramid03 spaceBasis)
+
 
 

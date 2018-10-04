@@ -2982,7 +2982,6 @@ contains
          real(kind=4), dimension(*) :: disPtsDistance
          integer (kind = 4), dimension(*) :: disPtsBaryCoordIdx
          double precision, dimension(*) :: disPtsBaryCoord
-         integer (kind = 4) :: uvw_size
          double precision, dimension(*) :: dist_uvw
          integer (kind = 4) :: stride
          integer (kind = 4) :: solverType

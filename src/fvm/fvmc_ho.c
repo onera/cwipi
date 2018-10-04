@@ -86,24 +86,11 @@ extern "C" {
  * Type definitions
  *============================================================================*/
 
-typedef struct _fvmc_ho_user_fcts_t {
-  fvmc_ho_location_fct_t location_tetra;
-  fvmc_ho_location_fct_t location_prism;
-  fvmc_ho_location_fct_t location_pyramid;
-  fvmc_ho_location_fct_t location_hexa;
-  fvmc_ho_location_fct_t location_tria;
-  fvmc_ho_location_fct_t location_quad;
-  fvmc_ho_location_fct_t location_edge;
-
-  fvmc_ho_interp_fct_t interp_tetra;
-  fvmc_ho_interp_fct_t interp_prism;
-  fvmc_ho_interp_fct_t interp_pyramid;
-  fvmc_ho_interp_fct_t interp_hexa;
-  fvmc_ho_interp_fct_t interp_tria;
-  fvmc_ho_interp_fct_t interp_quad;
-  fvmc_ho_interp_fct_t interp_edge;
-
-} fvmc_ho_user_fcts_t;
+typedef struct _fvmc_ho_user_elt_t {
+  fvmc_ho_basis_fct_t elt_basis;
+  fvmc_ho_xsi_fct_t   xsi_coords;
+  fvmc_ho_location_fct_t location_in_elt;
+} fvmc_ho_user_elt_t;
 
 /*----------------------------------------------------------------------------
  * Sorted heap for sub-triangle storage
@@ -135,10 +122,9 @@ typedef struct {
  * parameters:
  *   heap              <-> Heap
  *   order             <-- element order
- *   n_node            <-- number of nodes
- *   ho_vertex_num     <-- high order vertex num (internal ordering)
+ *   n_nodes           <-- number of nodes
  *   local_to_user     <-- local to user ordering (for type)
- *   vertex_coords     <-- vertex coordinates
+ *   nodes_coords      <-- nodes coordinates
  *   point_coords      <-- point coordinates 
  *
  *----------------------------------------------------------------------------*/
@@ -147,9 +133,8 @@ typedef void (*_heap_fill_init_sub_tria_t)
 (
  _heap_t  *heap,
  const int order,
- const int n_node,
- const int *ho_vertex_num,
- const double *vertex_coords,
+ const int n_nodes,
+ const double *nodes_coords,
  const double *point_coords
 );
 
@@ -178,71 +163,30 @@ typedef void (*_basis_generic_2D_t)
  * Static global variables
  *============================================================================*/
 
-static fvmc_ho_user_fcts_t *_user_fcts = NULL;
+static fvmc_ho_user_elt_t *_user_edge = NULL;
 
-static int                  _idebug = 0;
+static fvmc_ho_user_elt_t *_user_tria = NULL;
+static fvmc_ho_user_elt_t *_user_quad = NULL;
 
-static int                  _n_vand_tria_space = 0;
-static double **            _vand_tria_space = NULL;
+static fvmc_ho_user_elt_t *_user_tetra = NULL;
+static fvmc_ho_user_elt_t *_user_hexa = NULL;
+static fvmc_ho_user_elt_t *_user_prism = NULL;
+static fvmc_ho_user_elt_t *_user_pyra = NULL;
 
-static int                  _n_vand_quad_space = 0;
-static double **            _vand_quad_space = NULL;
+static int                 _idebug = 0;
 
-static int                  _n_vand_1D_space = 0;
-static double **            _vand_1D_space = NULL;
+static int                 _n_ijk_tria_space = 0;
+static int               **_ijk_tria_space = NULL;
+
+static int                 _n_ijk_quad_space = 0;
+static int               **_ijk_quad_space = NULL;
+
+static int                 _n_ijk_1D_space = 0;
+static int               **_ijk_1D_space = NULL;
 
 /*============================================================================
  * Private function definitions
  *============================================================================*/
-
-/*----------------------------------------------------------------------------
- * 
- * Default point location in a high order cell 3d
- * 
- * parameters:
- *   type             <-- element type
- *   order            <-- element order
- *   n_node           <-- number of nodes
- *   ho_vertex_num    <-- high order vertex num (internal ordering)
- *   vertex_coords    <-- vertex coordinates
- *   point_coords     <-- point to locate coordinates
- *   projected_coords --> projected point coordinates if outside (or NULL)
- *   uvw              --> parametric coordinates (point if inside the element
- *                                                projected point if outside)
- * 
- * return: 
- *   distance to the cell (distance <= 0 if point is inside)
- *
- *----------------------------------------------------------------------------*/
-
-static double 
-_default_location_in_cell_3d
-(
- const fvmc_element_t type,
- const int order,
- const int n_node,
- const int *ho_vertex_num,
- const double *vertex_coords,
- const double *point_coords,
- double *projected_coords,
- double* uvw
-)
-{
-  type;
-  order;
-  n_node;
-  ho_vertex_num;
-  vertex_coords;
-  point_coords;
-  projected_coords;
-  uvw;
-  
-  double dist = 0.;
-  bftc_error(__FILE__, __LINE__, 0,
-             _("_default_location_in_cell_3d : Not implemented yet\n"));
-  return dist;
-}
-
 
 /*----------------------------------------------------------------------------
  * 
@@ -383,99 +327,40 @@ _basis_tria_pn
 
 #if defined (HAVE_SPACE_BASIS)
     
-    if (_vand_tria_space == NULL) {
-      _n_vand_tria_space = FVMC_MAX (order-1, 10);
-      _vand_tria_space = malloc (sizeof(double *) * _n_vand_tria_space);
-      for (int i = 0; i < _n_vand_tria_space; i++) {
-        _vand_tria_space[i] = NULL;
+    if (_ijk_tria_space == NULL) {
+      _n_ijk_tria_space = FVMC_MAX (order-1, 10);
+      _ijk_tria_space = malloc (sizeof(int *) * _n_ijk_tria_space);
+      for (int i = 0; i < _n_ijk_tria_space; i++) {
+        _ijk_tria_space[i] = NULL;
       }
     }
 
-    if (order > _n_vand_tria_space) {
-      _vand_tria_space = realloc (_vand_tria_space, sizeof(double *) * _n_vand_tria_space);
-      for (int i = _n_vand_tria_space; i < order; i++) {
-        _vand_tria_space[i] = NULL;
+    if (order > _n_ijk_tria_space) {
+      _ijk_tria_space = realloc (_ijk_tria_space, sizeof(int *) * _n_ijk_tria_space);
+      for (int i = _n_ijk_tria_space; i < order; i++) {
+        _ijk_tria_space[i] = NULL;
       }
     }
     
-    double *__vand_tria_space = _vand_tria_space[order-1];
+    int *__ijk_tria_space = _ijk_tria_space[order-1];
 
-    if (__vand_tria_space == NULL) {
-      
+    if (__ijk_tria_space == NULL) {
       const int n_nodes = (order+1)*(order+2)/2;
-      double *uvw_nodes_space = NULL; 
-
-      SNB_nodes2D (order, &uvw_nodes_space, 1);
-      
-      double *uv_nodes_space = malloc (sizeof(double) * 2 * n_nodes);
-
-      if (_idebug) {      
-        printf("uvw :");
-        for (int i = 0; i < n_nodes; i++) {
-          for (int j = 0; j < 3; j++) {
-            printf(" %12.5e", uvw_nodes_space[3*i+j]);
-          }
-          printf("\n");
-        }
-        printf("\n");
-      }
-
-      for (int i = 0; i < n_nodes; i++) {
-        for (int j = 0; j < 2; j++) {
-          uv_nodes_space[2*i+j] = uvw_nodes_space[3*i+j];
+      __ijk_tria_space = malloc (sizeof(int) * 2 * n_nodes);
+      int k = 0;
+      for (int j = 0; j < order+1; j++) {
+        for (int i = 0; i < order+1-j; i++) {
+          __ijk_tria_space[2*k]   = i;
+          __ijk_tria_space[2*k+1] = j;
+          k += 1;
         }
       }
-      
-      SNB_free_double (uvw_nodes_space, 3*n_nodes);
-
-      if (_idebug) {      
-        printf("uv :");
-        for (int i = 0; i < n_nodes; i++) {
-          for (int j = 0; j < 2; j++) {
-            printf(" %12.5e", uv_nodes_space[2*i+j]);
-          }
-          printf("\n");
-        }
-        printf("\n");
-      }
-        
-      double *a_space = NULL; 
-      double *b_space = NULL; 
-
-      SNB_nodes2Duv2ab (n_nodes, uv_nodes_space, &a_space, &b_space, 0);
-
-      free (uv_nodes_space);
-    
-      SNB_vandermonde2D (order, a_space, b_space, &__vand_tria_space);
-
-      if (_idebug) {      
-        printf("vand :");
-        for (int i = 0; i < n_nodes; i++) {
-          for (int j = 0; j < n_nodes; j++) {
-            printf(" %12.5e", __vand_tria_space[n_nodes*i+j]);
-          }
-          printf("\n");
-        }
-        printf("\n");
-      }
-        
-      SNB_free_double (a_space, n_nodes);
-      SNB_free_double (b_space, n_nodes);
-      
     }
 
+    const int nVtx = 1;
     double _uv[2] = {u, v};
-    double *_a;
-    double *_b;
     
-    SNB_nodes2Duv2ab (1, _uv, &_a, &_b, 0);
-
-    int nVtx = 1;
-    
-    SNB_lagrange2Dv (order, nVtx, __vand_tria_space, _a, _b, weights);
-
-    SNB_free_double (_a, 1);
-    SNB_free_double (_b, 1);
+    SNB_setT3BasisEqui (order, nVtx, __ijk_tria_space, _uv, weights);
       
 #else
     bftc_error(__FILE__, __LINE__, 0,
@@ -488,7 +373,7 @@ _basis_tria_pn
 
 /*----------------------------------------------------------------------------
  * 
- * Quadrangle Pn basis
+ * Quadrangle Qn basis
  * 
  * parameters:
  *   order           <-- order
@@ -822,16 +707,15 @@ _heap_fill_pn_sub_tria
 (
  _heap_t *heap,
  const int order,
- const int n_node,
- const int *ho_vertex_num,
- const double *vertex_coords,
+ const int n_nodes,
+ const double *nodes_coords,
  const double *point_coords
 )
 {
   int ibeg = 0;
   int iend = order;
 
-  double *uvNodes   = malloc (sizeof(double) * 2 * n_node);
+  double *uvNodes   = malloc (sizeof(double) * 2 * n_nodes);
 
   _uv_ho_tria_nodes (order, 0., 1., 0, 1., uvNodes);
   
@@ -845,26 +729,21 @@ _heap_fill_pn_sub_tria
       int idx3 = iend + 1 + k1;
       int idx4 = iend + 2 + k1;
       
-      int _vtx1 = ho_vertex_num[idx1] - 1;
-      int _vtx2 = ho_vertex_num[idx2] - 1;
-      int _vtx3 = ho_vertex_num[idx3] - 1;
-      int _vtx4 = ho_vertex_num[idx4] - 1;
+      double x1 = nodes_coords[3*idx1];
+      double y1 = nodes_coords[3*idx1 + 1];
+      double z1 = nodes_coords[3*idx1 + 2];
 
-      double x1 = vertex_coords[3*_vtx1];
-      double y1 = vertex_coords[3*_vtx1 + 1];
-      double z1 = vertex_coords[3*_vtx1 + 2];
+      double x2 = nodes_coords[3*idx2];
+      double y2 = nodes_coords[3*idx2 + 1];
+      double z2 = nodes_coords[3*idx2 + 2];
 
-      double x2 = vertex_coords[3*_vtx2];
-      double y2 = vertex_coords[3*_vtx2 + 1];
-      double z2 = vertex_coords[3*_vtx2 + 2];
+      double x3 = nodes_coords[3*idx3];
+      double y3 = nodes_coords[3*idx3 + 1];
+      double z3 = nodes_coords[3*idx3 + 2];
 
-      double x3 = vertex_coords[3*_vtx3];
-      double y3 = vertex_coords[3*_vtx3 + 1];
-      double z3 = vertex_coords[3*_vtx3 + 2];
-
-      double x4 = vertex_coords[3*_vtx4];
-      double y4 = vertex_coords[3*_vtx4 + 1];
-      double z4 = vertex_coords[3*_vtx4 + 2];
+      double x4 = nodes_coords[3*idx4];
+      double y4 = nodes_coords[3*idx4 + 1];
+      double z4 = nodes_coords[3*idx4 + 2];
         
       double __vertex_coords[9] = {x1, y1, z1,
                                    x2, y2, z2,
@@ -903,10 +782,17 @@ _heap_fill_pn_sub_tria
         }
         
         if (1 == 0) {
-          printf("_uvClosestPointP1 : %12.5e %12.5e\n", _uvClosestPointP1[0], _uvClosestPointP1[1]);
-          printf("__vertex_coords + uvpn 1 : %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[0], __vertex_coords[1], __vertex_coords[2], _uvPn_sub_tria[0], _uvPn_sub_tria[1]);
-          printf("__vertex_coords + uvpn 2 : %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[3], __vertex_coords[4], __vertex_coords[5], _uvPn_sub_tria[2], _uvPn_sub_tria[3]);
-          printf("__vertex_coords + uvpn 3 : %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[6], __vertex_coords[7], __vertex_coords[8], _uvPn_sub_tria[4], _uvPn_sub_tria[5]);
+          printf("_uvClosestPointP1 : %12.5e %12.5e\n",
+                 _uvClosestPointP1[0], _uvClosestPointP1[1]);
+          printf("__vertex_coords + uvpn 1 : %12.5e %12.5e %12.5e // %12.5e %12.5e\n",
+                 __vertex_coords[0], __vertex_coords[1], __vertex_coords[2],
+                 _uvPn_sub_tria[0], _uvPn_sub_tria[1]);
+          printf("__vertex_coords + uvpn 2 : %12.5e %12.5e %12.5e // %12.5e %12.5e\n",
+                 __vertex_coords[3], __vertex_coords[4], __vertex_coords[5],
+                 _uvPn_sub_tria[2], _uvPn_sub_tria[3]);
+          printf("__vertex_coords + uvpn 3 : %12.5e %12.5e %12.5e // %12.5e %12.5e\n",
+                 __vertex_coords[6], __vertex_coords[7], __vertex_coords[8],
+                 _uvPn_sub_tria[4], _uvPn_sub_tria[5]);
         }
         
         _heap_insert (heap,
@@ -954,10 +840,17 @@ _heap_fill_pn_sub_tria
         }
       
         if (1 == 0) {
-          printf("_uvClosestPointP1 : %12.5e %12.5e\n", _uvClosestPointP1[0], _uvClosestPointP1[1]);
-          printf("__vertex_coords 1 + uvpn  : %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[0], __vertex_coords[1], __vertex_coords[2], _uvPn_sub_tria[0], _uvPn_sub_tria[1]);
-          printf("__vertex_coords 2 + uvpn : %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[3], __vertex_coords[4], __vertex_coords[5], _uvPn_sub_tria[2], _uvPn_sub_tria[3]);
-          printf("__vertex_coords 3 + uvpn: %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[6], __vertex_coords[7], __vertex_coords[8], _uvPn_sub_tria[4], _uvPn_sub_tria[5]);
+          printf("_uvClosestPointP1 : %12.5e %12.5e\n",
+                 _uvClosestPointP1[0], _uvClosestPointP1[1]);
+          printf("__vertex_coords 1 + uvpn  : %12.5e %12.5e %12.5e // %12.5e %12.5e\n",
+                 __vertex_coords[0], __vertex_coords[1], __vertex_coords[2],
+                 _uvPn_sub_tria[0], _uvPn_sub_tria[1]);
+          printf("__vertex_coords 2 + uvpn : %12.5e %12.5e %12.5e // %12.5e %12.5e\n",
+                 __vertex_coords[3], __vertex_coords[4], __vertex_coords[5],
+                 _uvPn_sub_tria[2], _uvPn_sub_tria[3]);
+          printf("__vertex_coords 3 + uvpn: %12.5e %12.5e %12.5e // %12.5e %12.5e\n",
+                 __vertex_coords[6], __vertex_coords[7], __vertex_coords[8],
+                 _uvPn_sub_tria[4], _uvPn_sub_tria[5]);
         }
       
         _heap_insert (heap,
@@ -976,21 +869,17 @@ _heap_fill_pn_sub_tria
     int idx2 = iend - 1 + 1;
     int idx3 = iend + 1 + k1;
 
-    int _vtx1 = ho_vertex_num[idx1] - 1;
-    int _vtx2 = ho_vertex_num[idx2] - 1;
-    int _vtx3 = ho_vertex_num[idx3] - 1;
+    double x1 = nodes_coords[3*idx1];
+    double y1 = nodes_coords[3*idx1 + 1];
+    double z1 = nodes_coords[3*idx1 + 2];
       
-    double x1 = vertex_coords[3*_vtx1];
-    double y1 = vertex_coords[3*_vtx1 + 1];
-    double z1 = vertex_coords[3*_vtx1 + 2];
+    double x2 = nodes_coords[3*idx2];
+    double y2 = nodes_coords[3*idx2 + 1];
+    double z2 = nodes_coords[3*idx2 + 2];
       
-    double x2 = vertex_coords[3*_vtx2];
-    double y2 = vertex_coords[3*_vtx2 + 1];
-    double z2 = vertex_coords[3*_vtx2 + 2];
-      
-    double x3 = vertex_coords[3*_vtx3];
-    double y3 = vertex_coords[3*_vtx3 + 1];
-    double z3 = vertex_coords[3*_vtx3 + 2];
+    double x3 = nodes_coords[3*idx3];
+    double y3 = nodes_coords[3*idx3 + 1];
+    double z3 = nodes_coords[3*idx3 + 2];
       
     double __vertex_coords[9] = {x1, y1, z1,
                                  x2, y2, z2,
@@ -1032,10 +921,17 @@ _heap_fill_pn_sub_tria
       }
       
       if (1 == 0) {
-        printf("_uvClosestPointP1 : %12.5e %12.5e\n", _uvClosestPointP1[0], _uvClosestPointP1[1]);
-        printf("__vertex_coords 1 + uvpn: %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[0], __vertex_coords[1], __vertex_coords[2], _uvPn_sub_tria[0], _uvPn_sub_tria[1]);
-        printf("__vertex_coords 2 + uvpn: %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[3], __vertex_coords[4], __vertex_coords[5], _uvPn_sub_tria[2], _uvPn_sub_tria[3]);
-        printf("__vertex_coords 3 + uvpn: %12.5e %12.5e %12.5e // %12.5e %12.5e\n", __vertex_coords[6], __vertex_coords[7], __vertex_coords[8], _uvPn_sub_tria[4], _uvPn_sub_tria[5]);
+        printf("_uvClosestPointP1 : %12.5e %12.5e\n",
+               _uvClosestPointP1[0], _uvClosestPointP1[1]);
+        printf("__vertex_coords 1 + uvpn: %12.5e %12.5e %12.5e // %12.5e %12.5e\n",
+               __vertex_coords[0], __vertex_coords[1], __vertex_coords[2],
+               _uvPn_sub_tria[0], _uvPn_sub_tria[1]);
+        printf("__vertex_coords 2 + uvpn: %12.5e %12.5e %12.5e // %12.5e %12.5e\n",
+               __vertex_coords[3], __vertex_coords[4], __vertex_coords[5],
+               _uvPn_sub_tria[2], _uvPn_sub_tria[3]);
+        printf("__vertex_coords 3 + uvpn: %12.5e %12.5e %12.5e // %12.5e %12.5e\n",
+               __vertex_coords[6], __vertex_coords[7], __vertex_coords[8],
+               _uvPn_sub_tria[4], _uvPn_sub_tria[5]);
       }
     
       _heap_insert (heap,
@@ -1053,6 +949,7 @@ _heap_fill_pn_sub_tria
 
   free (uvNodes);
 }
+
 
 /*----------------------------------------------------------------------------
  * 
@@ -1073,13 +970,12 @@ _heap_fill_qn_sub_tria
 (
  _heap_t *heap,
  const int order,
- const int n_node,
- const int *ho_vertex_num,
- const double *vertex_coords,
+ const int n_nodes,
+ const double *nodes_coords,
  const double *point_coords
 )
 {
-  double *uvNodes   = malloc (sizeof(double) * 2 * n_node);
+  double *uvNodes   = malloc (sizeof(double) * 2 * n_nodes);
 
   _uv_ho_quad_nodes (order, 0., 1., 0, 1., uvNodes);
   
@@ -1098,26 +994,21 @@ _heap_fill_qn_sub_tria
       int idx3 = j1*step + i;
       int idx4 = j1*step + i1;
       
-      int _vtx1 = ho_vertex_num[idx1] - 1;
-      int _vtx2 = ho_vertex_num[idx2] - 1;
-      int _vtx3 = ho_vertex_num[idx3] - 1;
-      int _vtx4 = ho_vertex_num[idx4] - 1;
+      double x1 = nodes_coords[3*idx1];
+      double y1 = nodes_coords[3*idx1 + 1];
+      double z1 = nodes_coords[3*idx1 + 2];
 
-      double x1 = vertex_coords[3*_vtx1];
-      double y1 = vertex_coords[3*_vtx1 + 1];
-      double z1 = vertex_coords[3*_vtx1 + 2];
+      double x2 = nodes_coords[3*idx2];
+      double y2 = nodes_coords[3*idx2 + 1];
+      double z2 = nodes_coords[3*idx2 + 2];
 
-      double x2 = vertex_coords[3*_vtx2];
-      double y2 = vertex_coords[3*_vtx2 + 1];
-      double z2 = vertex_coords[3*_vtx2 + 2];
+      double x3 = nodes_coords[3*idx3];
+      double y3 = nodes_coords[3*idx3 + 1];
+      double z3 = nodes_coords[3*idx3 + 2];
 
-      double x3 = vertex_coords[3*_vtx3];
-      double y3 = vertex_coords[3*_vtx3 + 1];
-      double z3 = vertex_coords[3*_vtx3 + 2];
-
-      double x4 = vertex_coords[3*_vtx4];
-      double y4 = vertex_coords[3*_vtx4 + 1];
-      double z4 = vertex_coords[3*_vtx4 + 2];
+      double x4 = nodes_coords[3*idx4];
+      double y4 = nodes_coords[3*idx4 + 1];
+      double z4 = nodes_coords[3*idx4 + 2];
         
       double __vertex_coords[9] = {x1, y1, z1,
                                    x2, y2, z2,
@@ -1269,9 +1160,8 @@ _heap_fill_qn_sub_tria
  * parameters:
  *   heap             <-> heap
  *   order            <-- element order
- *   n_node           <-- number of nodes
- *   ho_vertex_num    <-- high order vertex num (internal ordering)
- *   vertex_coords    <-- vertex coordinates
+ *   n_nodes          <-- number of nodes
+ *   nodes_coords     <-- nodes coordinates
  *   point_coords     <-- point to locate coordinates
  *   weightsPn        <-> work array
  *   vtx_tria_current <-- current triangle
@@ -1285,9 +1175,8 @@ _insert_subtria
 (
  _heap_t *heap,
  const int order,
- const int n_node,
- const int ho_vertex_num[],
- const double vertex_coords[],
+ const int n_nodes,
+ const double nodes_coords[],
  const double point_coords[],
  double weightsPn[],
  double vtx_tria_current[],
@@ -1324,18 +1213,13 @@ _insert_subtria
                       _uvPn_tria_children[6+2*i+1],
                       weightsPn);
     
-    /* _basis_tria_pn (order   , */
-    /*                 _uvPn_tria_children[6+2*i], */
-    /*                 _uvPn_tria_children[6+2*i+1], */
-    /*                 weightsPn); */
-    
     for (int j = 0; j < 3; j++) {
       _vtx_tria_children[9+3*i+j] = 0;
     }
-    for (int k = 0; k < n_node; k++) {
-      const double *node_coords = vertex_coords + 3 * (ho_vertex_num[k] - 1);
+    for (int k = 0; k < n_nodes; k++) {
+      const double *_node_coords = nodes_coords + 3 * k;
       for (int j = 0; j < 3; j++) {
-        _vtx_tria_children[9+3*i+j] += weightsPn[k] * node_coords[j];
+        _vtx_tria_children[9+3*i+j] += weightsPn[k] * _node_coords[j];
       }
     }
   }
@@ -1379,7 +1263,8 @@ _insert_subtria
     }
     for (int j = 0; j < 2; j++) {
       for (int k = 0; k < 3; k++) {
-        _closest_pt_uvPn_child[j] += _closest_pt_weights_child[k] * _uvPn_tria_child[2*k + j];
+        _closest_pt_uvPn_child[j] +=
+          _closest_pt_weights_child[k] * _uvPn_tria_child[2*k + j];
       }
     }
     
@@ -1422,12 +1307,11 @@ _insert_subtria
  * parameters:
  *   heap             <-> heap
  *   order            <-- element order
- *   n_node           <-- number of nodes
+ *   n_nodes           <-- number of nodes
  *   n_it_max         <-- maximum of iteration to compute distance
  *   err_max          <-- maximum error of the projected point
  *   err_proj         --> projected error 
- *   ho_vertex_num    <-- high order vertex num (internal ordering)
- *   vertex_coords    <-- vertex coordinates
+ *   nodes_coords     <-- nodes coordinates
  *   point_coords     <-- point to locate coordinates
  *   weightsPn        <-> work array
  *   projected_coords --> current triangle
@@ -1444,11 +1328,10 @@ _compute_dist2_from_closest_tria_subdivision
 (
  _heap_t *heap,
  const int order,
- const int n_node,
+ const int n_nodes,
  const int n_it_max,
  const double err_max,
- const int ho_vertex_num[],
- const double vertex_coords[],
+ const double nodes_coords[],
  const double point_coords[],
  double weightsPn[],
  double projected_coords[],
@@ -1527,11 +1410,14 @@ _compute_dist2_from_closest_tria_subdivision
     if (0 == 1) {
       printf("\n\n ========= get heap =========\n");
     
-      printf ("uv Pn : %22.15e %22.15e\n", _closest_pt_uvPn_current[0], _closest_pt_uvPn_current[1]);
-      printf ("uv P1 : %22.15e %22.15e\n", _closest_pt_uvP1_current[0], _closest_pt_uvP1_current[1]);
+      printf ("uv Pn : %22.15e %22.15e\n",
+              _closest_pt_uvPn_current[0], _closest_pt_uvPn_current[1]);
+      printf ("uv P1 : %22.15e %22.15e\n",
+              _closest_pt_uvP1_current[0], _closest_pt_uvP1_current[1]);
       printf ("_dist2 child : %22.15e %d\n", _dist2_current, _child);
     
-      printf("Weights : %12.5e %12.5e %12.5e\n", weightsP1[0], weightsP1[1], weightsP1[2]);
+      printf("Weights : %12.5e %12.5e %12.5e\n",
+             weightsP1[0], weightsP1[1], weightsP1[2]);
       printf("vtx_tria_current 1 : %12.5e %12.5e %12.5e\n",
              _vtx_tria_current[0], _vtx_tria_current[1], _vtx_tria_current[2]);
       printf("vtx_tria_current 2 : %12.5e %12.5e %12.5e\n",
@@ -1554,16 +1440,15 @@ _compute_dist2_from_closest_tria_subdivision
       _projected_coords_from_pn[j] = 0;
     }
 
-
     (_basis_generic) (order,
-                    _closest_pt_uvPn_current[0],
-                    _closest_pt_uvPn_current[1],
-                    weightsPn);
+                      _closest_pt_uvPn_current[0],
+                      _closest_pt_uvPn_current[1],
+                      weightsPn);
 
-    for (int j = 0; j < n_node; j++) {
-      const double *node_coords = vertex_coords + 3 * (ho_vertex_num[j] - 1);
+    for (int j = 0; j < n_nodes; j++) {
+      const double *_node_coords = nodes_coords + 3 * j;
       for (int k = 0; k < 3; k++) {
-        _projected_coords_from_pn[k] += weightsPn[j] * node_coords[k]; 
+        _projected_coords_from_pn[k] += weightsPn[j] * _node_coords[k]; 
       }
     }
 
@@ -1601,9 +1486,8 @@ _compute_dist2_from_closest_tria_subdivision
 
     _insert_subtria (heap,
                      order,
-                     n_node,
-                     ho_vertex_num,
-                     vertex_coords,
+                     n_nodes,
+                     nodes_coords,
                      point_coords,
                      weightsPn,
                      _vtx_tria_current,
@@ -1636,12 +1520,12 @@ _compute_dist2_from_closest_tria_subdivision
  *   heap1            <-> heap
  *   heap2            <-> work heap
  *   order            <-- element order
- *   n_node           <-- number of nodes
+ *   n_nodes           <-- number of nodes
  *   n_it_max         <-- maximum of iteration to compute distance
  *   err_max          <-- maximum error of the projected point
  *   err_proj         --> projected error 
  *   ho_vertex_num    <-- high order vertex num (internal ordering)
- *   vertex_coords    <-- vertex coordinates
+ *   nodes_coords     <-- nodes coordinates
  *   point_coords     <-- point to locate coordinates
  *   weightsPn        <-> work array
  *   projected_coords --> current triangle
@@ -1658,11 +1542,10 @@ _compute_dist2_from_uniform_tria_subdivision
  _heap_t *heap1,
  _heap_t *heap2,
  const int order,
- const int n_node,
+ const int n_nodes,
  const int n_it_max,
  const double err_max,
- const int ho_vertex_num[],
- const double vertex_coords[],
+ const double nodes_coords[],
  const double point_coords[],
  double weightsPn[],
  double projected_coords[],
@@ -1729,8 +1612,10 @@ _compute_dist2_from_uniform_tria_subdivision
     if (0 == 1) {
       printf("\n\n ========= get heap =========\n");
     
-      printf ("uv Pn : %22.15e %22.15e\n", _closest_pt_uvPn_current[0], _closest_pt_uvPn_current[1]);
-      printf ("uv P1 : %22.15e %22.15e\n", _closest_pt_uvP1_current[0], _closest_pt_uvP1_current[1]);
+      printf ("uv Pn : %22.15e %22.15e\n", _closest_pt_uvPn_current[0],
+              _closest_pt_uvPn_current[1]);
+      printf ("uv P1 : %22.15e %22.15e\n", _closest_pt_uvP1_current[0],
+              _closest_pt_uvP1_current[1]);
       printf ("_dist2 child : %22.15e %d\n", _dist2_current, _child);
     
       printf("Weights : %12.5e %12.5e %12.5e\n",
@@ -1762,10 +1647,10 @@ _compute_dist2_from_uniform_tria_subdivision
                     _closest_pt_uvPn_current[1],
                      weightsPn);
     
-    for (int j = 0; j < n_node; j++) {
-      const double *node_coords = vertex_coords + 3 * (ho_vertex_num[j] - 1);
+    for (int j = 0; j < n_nodes; j++) {
+      const double *_node_coords = nodes_coords + 3 * j;
       for (int k = 0; k < 3; k++) {
-        _projected_coords_from_pn[k] += weightsPn[j] * node_coords[k]; 
+        _projected_coords_from_pn[k] += weightsPn[j] * _node_coords[k]; 
       }
     }
 
@@ -1805,9 +1690,8 @@ _compute_dist2_from_uniform_tria_subdivision
 
     _insert_subtria (next_heap,
                      order,
-                     n_node,
-                     ho_vertex_num,
-                     vertex_coords,
+                     n_nodes,
+                     nodes_coords,
                      point_coords,
                      weightsPn,
                      _vtx_tria_current,
@@ -1833,9 +1717,8 @@ _compute_dist2_from_uniform_tria_subdivision
 
       _insert_subtria (next_heap,
                        order,
-                       n_node,
-                       ho_vertex_num,
-                       vertex_coords,
+                       n_nodes,
+                       nodes_coords,
                        point_coords,
                        weightsPn,
                        _vtx_tria_current2,
@@ -1867,9 +1750,8 @@ _compute_dist2_from_uniform_tria_subdivision
  * 
  * parameters:
  *   order            <-- element order
- *   n_node           <-- number of nodes
- *   ho_vertex_num    <-- high order vertex num (internal ordering)
- *   vertex_coords    <-- vertex coordinates
+ *   n_nodes          <-- number of nodes
+ *   nodes_coords     <-- nodes coordinates
  *   point_coords     <-- point to locate coordinates
  *   projected_coords --> projected point coordinates (or NULL)
  *   uvw              --> parametric coordinates in the element
@@ -1883,9 +1765,8 @@ static double
 _default_location_generic_2d
 (
  const int order,
- const int n_node,
- const int *ho_vertex_num,
- const double *vertex_coords,
+ const int n_nodes,
+ const double *nodes_coords,
  const double *point_coords,
  double *projected_coords,
  double *uvw,
@@ -1897,12 +1778,7 @@ _default_location_generic_2d
   if (1 == 0) {
     printf ("\n\n***********\n");
   
-    printf ("n_node %d\n", n_node);
-    printf ("ho_vertex_num :" );
-    for (int j = 0; j < n_node; j++) {
-      printf (" %d\n", ho_vertex_num[j]);
-    }
-    printf("\n");
+    printf ("n_node %d\n", n_nodes);
   }
  
   const int n_it_max = 100;
@@ -1913,7 +1789,7 @@ _default_location_generic_2d
   _heap_t heap;
   _heap_t heap2;
 
-  double *weightsPn = malloc(sizeof(double) * n_node);
+  double *weightsPn = malloc(sizeof(double) * n_nodes);
 
   /* Initialize heap */
   
@@ -1923,17 +1799,9 @@ _default_location_generic_2d
 
   (fill_init_fct) (&heap,
                    order,
-                   n_node,
-                   ho_vertex_num,
-                   vertex_coords,
+                   n_nodes,
+                   nodes_coords,
                    point_coords);
-
-  /* _heap_fill_pn_sub_tria (&heap, */
-  /*                         order, */
-  /*                         n_node, */
-  /*                         ho_vertex_num, */
-  /*                         vertex_coords, */
-  /*                         point_coords); */
 
   /* 
    *  While error > error_max
@@ -1956,11 +1824,10 @@ _default_location_generic_2d
   if (method == 0) {
     dist2 = _compute_dist2_from_closest_tria_subdivision (&heap,
                                                           order,
-                                                          n_node,
+                                                          n_nodes,
                                                           n_it_max,
                                                           err_max,
-                                                          ho_vertex_num,
-                                                          vertex_coords,
+                                                          nodes_coords,
                                                           point_coords,
                                                           weightsPn,
                                                           projected_coords,
@@ -1988,27 +1855,18 @@ _default_location_generic_2d
   
       (fill_init_fct) (&heap,
                        order,
-                       n_node,
-                       ho_vertex_num,
-                       vertex_coords,
+                       n_nodes,
+                       nodes_coords,
                        point_coords);
-
-      /* _heap_fill_pn_sub_tria (&heap, */
-      /*                         order, */
-      /*                         n_node, */
-      /*                         ho_vertex_num, */
-      /*                         vertex_coords, */
-      /*                         point_coords); */
 
 
       dist2 = _compute_dist2_from_uniform_tria_subdivision (&heap,
                                                             &heap2,
                                                             order,
-                                                            n_node,
+                                                            n_nodes,
                                                             n_it_max,
                                                             err_max,
-                                                            ho_vertex_num,
-                                                            vertex_coords,
+                                                            nodes_coords,
                                                             point_coords,
                                                             weightsPn,
                                                             projected_coords,
@@ -2037,11 +1895,10 @@ _default_location_generic_2d
     dist2 = _compute_dist2_from_uniform_tria_subdivision (&heap,
                                                           &heap2,
                                                           order,
-                                                          n_node,
+                                                          n_nodes,
                                                           n_it_max,
                                                           err_max,
-                                                          ho_vertex_num,
-                                                          vertex_coords,
+                                                          nodes_coords,
                                                           point_coords,
                                                           weightsPn,
                                                           projected_coords,
@@ -2065,17 +1922,16 @@ _default_location_generic_2d
 
 /*----------------------------------------------------------------------------
  * 
- * Default point location on a high order cell 2d
+ * Point location on a high order cell 2d
  * 
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
- *   n_node           <-- number of nodes
- *   ho_vertex_num    <-- high order vertex num (internal ordering)
- *   vertex_coords    <-- vertex coordinates
- *   point_coords     <-- point to locate coordinates
- *   projected_coords --> projected point coordinates (or NULL)
- *   uvw              --> parametric coordinates of the projected poin on the element
+ *   n_nodes          <-- number of nodes
+ *   nodes_coords     <-- nodes coordinates (size = 3 * n_nodes)
+ *   point_coords     <-- point to locate coordinates (size = 3)
+ *   projected_coords --> projected point coordinates (size = 3)
+ *   uvw              --> parametric coordinates of the projected point on the element
  * 
  * return: 
  *   distance to the cell
@@ -2083,29 +1939,27 @@ _default_location_generic_2d
  *----------------------------------------------------------------------------*/
 
 static double 
-_default_location_on_cell_2d
+_default_location
 (
  const fvmc_element_t type,
  const int order,
- const int n_node,
- const int *ho_vertex_num,
- const double *vertex_coords,
+ const int n_nodes,
+ const double *nodes_coords,
  const double *point_coords,
  double *projected_coords,
  double* uvw
 )
 {
   fvmc_element_t _type = type;
-  double dist2;
+  double dist2 = HUGE_VAL;
   
   switch (_type) {
 
   case FVMC_FACE_TRIA:
 
     dist2 = _default_location_generic_2d (order,
-                                          n_node,
-                                          ho_vertex_num,
-                                          vertex_coords,
+                                          n_nodes,
+                                          nodes_coords,
                                           point_coords,
                                           projected_coords,
                                           uvw,
@@ -2117,9 +1971,8 @@ _default_location_on_cell_2d
   case FVMC_FACE_QUAD: 
 
     dist2 = _default_location_generic_2d (order,
-                                          n_node,
-                                          ho_vertex_num,
-                                          vertex_coords,
+                                          n_nodes,
+                                          nodes_coords,
                                           point_coords,
                                           projected_coords,
                                           uvw,
@@ -2127,230 +1980,75 @@ _default_location_on_cell_2d
                                           _basis_quad_qn);
     break;
 
+  default:
+    bftc_error(__FILE__, __LINE__, 0,
+               _("_default_location : Element not implemented yet\n"));
+
   }
- 
+  
   return dist2;
 
 }
-
-/*----------------------------------------------------------------------------
- * 
- * Default point location on a high order cell 1d
- * 
- * parameters:
- *   type             <-- element type
- *   order            <-- element order
- *   n_node           <-- number of nodes
- *   ho_vertex_num    <-- high order vertex num (internal ordering)
- *   vertex_coords    <-- vertex coordinates
- *   point_coords     <-- point to locate coordinates
- *   projected_coords --> projected point coordinates (or NULL)
- *   uvw              --> parametric coordinates of the projected poin on the element
- * 
- * return: 
- *   distance to the cell
- *
- *----------------------------------------------------------------------------*/
-
-static double 
-_default_location_on_cell_1d
-(
- const fvmc_element_t type,
- const int order,
- const int n_node,
- const int *ho_vertex_num,
- const double *vertex_coords,
- const double *point_coords,
- double *projected_coords,
- double* uvw
-)
-{
-
-  type;
-  order;
-  n_node;
-  ho_vertex_num;
-  vertex_coords;
-  point_coords;
-  projected_coords;
-    
-  double dist = 0.;
-  bftc_error(__FILE__, __LINE__, 0,
-             _("_default_location_on_cell_1d : Not implemented yet\n"));
-  return dist;
-}
-
-/*----------------------------------------------------------------------------
- * 
- * Default field interpolation field to the target point_coords in a 3D cell
- * 
- * parameters:
- *   type              <-- element type
- *   order             <-- element order
- *   n_node            <-- number of nodes
- *   ho_vertex_num     <-- high order vertex num (internal ordering)
- *   local_to_user     <-- local to user ordering (for type)
- *   vertex_coords     <-- vertex coordinates
- *   point_coords      <-- point coordinates
- *   distance          <-- distance to the element
- *   point_proj_coords  <-- projected point coordinates
- *   weight             <-- weights
- *   stride_field      <-- field stride
- *   source_field      <-- source field (user ordering) 
- *   target_field      --> target field (defined to point_coords)
- *
- *----------------------------------------------------------------------------*/
-
-static void 
-_default_interp_in_cell_3d
-(
- const fvmc_element_t type,
- const int order,
- const int n_node,
- const int *ho_vertex_num,
- const int *local_to_user,
- const double *vertex_coords,
- const double *point_coords,
- const float *distance,
- const double *point_proj_coords,
- const double *weight,
- const int stride_field,
- const double *src_field,
- double *target_field
- )                          
-{
-  for (int j = 0; j < stride_field; j++) {
-    target_field[j] += 0.;
-  }
-
-  for (int i = 0; i < n_node; i++) {
-
-    int i_node = ho_vertex_num[i] - 1;
-    
-    for (int j = 0; j < stride_field; j++) {
-      target_field[j] += weight[i] * src_field[stride_field * i_node + j];
-    }
-  }
-}
-
-
-/*----------------------------------------------------------------------------
- * 
- * Default field interpolation field to the target point_coords on a 2D cell
- * 
- * parameters:
- *   type              <-- element type
- *   order             <-- element order
- *   n_node            <-- number of nodes
- *   ho_vertex_num     <-- high order vertex num (internal ordering)
- *   local_to_user     <-- local to user ordering (for type)
- *   vertex_coords     <-- vertex coordinates
- *   point_coords      <-- point coordinates
- *   distance          <-- distance to the element
- *   point_proj_coords  <-- projected point coordinates
- *   weight             <-- weights
- *   stride_field      <-- field stride
- *   source_field      <-- source field (user ordering) 
- *   target_field      --> target field (defined to point_coords)
- *
- *----------------------------------------------------------------------------*/
-
-static void 
-_default_interp_on_cell_2d
-(
- const fvmc_element_t type,
- const int order,
- const int n_node,
- const int *ho_vertex_num,
- const int *local_to_user,
- const double *vertex_coords,
- const double *point_coords,
- const float *distance,
- const double *point_proj_coords,
- const double *weight,
- const int stride_field,
- const double *src_field,
- double *target_field
-)
-{
-  for (int j = 0; j < stride_field; j++) {
-    target_field[j] += 0.;
-  }
-
-  for (int i = 0; i < n_node; i++) {
-
-    int i_node = ho_vertex_num[i] - 1;
-
-    for (int j = 0; j < stride_field; j++) {
-      target_field[j] += weight[i] * src_field[stride_field * i_node + j];
-    }
-  }
-
-}
-
-
-/*----------------------------------------------------------------------------
- * 
- * Default field interpolation field to the target point_coords on a 1D cell
- * 
- * parameters:
- *   type              <-- element type
- *   order             <-- element order
- *   n_node            <-- number of nodes
- *   ho_vertex_num     <-- high order vertex num (internal ordering)
- *   local_to_user     <-- local to user ordering (for type)
- *   vertex_coords     <-- vertex coordinates
- *   point_coords      <-- point coordinates
- *   distance          <-- distance to the element
- *   point_proj_coords  <-- projected point coordinates
- *   weight             <-- weights
- *   stride_field      <-- field stride
- *   source_field      <-- source field (user ordering) 
- *   target_field      --> target field (defined to point_coords)
- *
- *----------------------------------------------------------------------------*/
-
-static void 
-_default_interp_on_cell_1d
-(
- const fvmc_element_t type,
- const int order,
- const int n_node,
- const int *ho_vertex_num,
- const int *local_to_user,
- const double *vertex_coords,
- const double *point_coords,
- const float *distance,
- const double *point_proj_coords,
- const double *weight,
- const int stride_field,
- const double *src_field,
- double *target_field
-)
-{
-  for (int j = 0; j < stride_field; j++) {
-    target_field[j] += 0.;
-  }
-
-  for (int i = 0; i < n_node; i++) {
-
-    int i_node = ho_vertex_num[i] - 1;
-    
-    for (int j = 0; j < stride_field; j++) {
-      target_field[j] += weight[i] * src_field[stride_field * i_node + j];
-    }
-  }
-}
-
-/*============================================================================
- * Public function definitions
- *============================================================================*/
-
 
 
 /*----------------------------------------------------------------------------
  * 
  * high order basis
+ * 
+ * parameters:
+ *   type            <-- element type
+ *
+ * return:
+ *
+ *----------------------------------------------------------------------------*/
+
+static fvmc_ho_user_elt_t *
+_get_user_elt (fvmc_element_t elt_type)
+{
+
+  fvmc_ho_user_elt_t *user_elt = NULL;
+  
+  switch(elt_type) {
+
+  case FVMC_EDGE:
+    user_elt = _user_edge;
+    break;
+    
+  case FVMC_FACE_TRIA:
+    user_elt = _user_tria;
+    break;
+    
+  case FVMC_FACE_QUAD:
+    user_elt = _user_quad;
+    break;
+    
+  case FVMC_CELL_TETRA:
+    user_elt = _user_tetra;
+    break;
+    
+  case FVMC_CELL_PYRAM:
+    user_elt = _user_pyra;
+    break;
+    
+  case FVMC_CELL_PRISM:
+    user_elt = _user_prism;
+    break;
+    
+  case FVMC_CELL_HEXA:
+    user_elt = _user_hexa;
+    break;
+
+  default:
+    bftc_error(__FILE__, __LINE__, 0,
+               _("fvmc_ho_user_elt_unset : Unvailable element type\n"));
+  }
+
+  return user_elt;
+}
+
+/*----------------------------------------------------------------------------
+ * 
+ * default high order basis
  * 
  * parameters:
  *   type            <-- element type
@@ -2360,8 +2058,8 @@ _default_interp_on_cell_1d
  *
  *----------------------------------------------------------------------------*/
 
-void
-fvmc_ho_basis_pn
+static void
+_default_elt_basis
 (
 const fvmc_element_t type,
 const int order,
@@ -2376,6 +2074,9 @@ const double *uvw,
     break;
 
   case FVMC_FACE_QUAD:
+    _basis_quad_qn (order, uvw[0], uvw[1], weights);
+    break;
+
   case FVMC_EDGE:
   case FVMC_CELL_TETRA:
   case FVMC_CELL_PRISM:
@@ -2383,199 +2084,132 @@ const double *uvw,
   case FVMC_CELL_HEXA:
   default: 
     bftc_error(__FILE__, __LINE__, 0,
-               _("fvmc_ho_basis_pn : '%d' element type not yet implemented\n"), type);
+               _("_default_elts_basis : '%d' element type not yet implemented\n"),
+               type);
   }
 }
+
+/*============================================================================
+ * Public function definitions
+ *============================================================================*/
 
 
 /*----------------------------------------------------------------------------
  * 
- * Unset elementary functions
+ * Unset a user element
  * 
  *----------------------------------------------------------------------------*/
 
 void
-fvmc_ho_user_elementary_functions_unset (void)
-{
-  if (_user_fcts != NULL) {
-    free (_user_fcts);
-    _user_fcts = NULL;
-  }
-}
-
-
-/*----------------------------------------------------------------------------
- * 
- * Set elementary functions
- * 
- * parameters:
- *   location_tetra    <-- Location in a tetrahedron
- *   location_prism    <-- Location in a prism
- *   location_pyramid  <-- Location in a pyramid
- *   location_hexa     <-- Location in a hexaedron
- *   location_tria     <-- Location on a triangle
- *   location_quad     <-- Location on a quandragle
- *   location_edge     <-- Location on a edge
- *   interp_tetra       <-- Interpolation in a tetrahedron
- *   interp_prism       <-- Interpolation in a prism
- *   interp_pyramid     <-- Interpolation in a pyramid
- *   interp_hexa        <-- Interpolation in a hexaedron
- *   interp_tria        <-- Interpolation on a triangle
- *   interp_quad        <-- Interpolation on a quandragle
- *   interp_edge        <-- Interpolation on a edge
- *
- *----------------------------------------------------------------------------*/
-
-void
-fvmc_ho_user_elementary_functions_set (fvmc_ho_location_fct_t location_tetra,
-                                       fvmc_ho_location_fct_t location_prism,
-                                       fvmc_ho_location_fct_t location_pyramid,
-                                       fvmc_ho_location_fct_t location_hexa,
-                                       fvmc_ho_location_fct_t location_tria,
-                                       fvmc_ho_location_fct_t location_quad,
-                                       fvmc_ho_location_fct_t location_edge,
-                                       fvmc_ho_interp_fct_t interp_tetra,
-                                       fvmc_ho_interp_fct_t interp_prism,
-                                       fvmc_ho_interp_fct_t interp_pyramid,
-                                       fvmc_ho_interp_fct_t interp_hexa,
-                                       fvmc_ho_interp_fct_t interp_tria,
-                                       fvmc_ho_interp_fct_t interp_quad,
-                                       fvmc_ho_interp_fct_t interp_edge)
+fvmc_ho_user_elt_unset (fvmc_element_t elt_type)
 {
 
-  if (_user_fcts == NULL) {
-    _user_fcts = (fvmc_ho_user_fcts_t *) malloc (sizeof(fvmc_ho_user_fcts_t));
+  fvmc_ho_user_elt_t *_user_elt = _get_user_elt (elt_type);
+  
+  if (_user_elt != NULL) {
+    free (_user_elt);
+    _user_elt = NULL;
   }
   
-  _user_fcts->location_tetra   = location_tetra;
-  _user_fcts->location_prism   = location_prism;
-  _user_fcts->location_pyramid = location_pyramid;
-  _user_fcts->location_hexa    = location_hexa;
-  _user_fcts->location_tria    = location_tria;
-  _user_fcts->location_quad    = location_quad;
-  _user_fcts->location_edge    = location_edge;
-
-  _user_fcts->interp_tetra   = interp_tetra;
-  _user_fcts->interp_prism   = interp_prism;
-  _user_fcts->interp_pyramid = interp_pyramid;
-  _user_fcts->interp_hexa    = interp_hexa;
-  _user_fcts->interp_tria    = interp_tria;
-  _user_fcts->interp_quad    = interp_quad;
-  _user_fcts->interp_edge    = interp_edge;
 }
 
 
+void
+fvmc_ho_user_elts_unset (void)
+{
+  fvmc_ho_user_elt_unset (FVMC_EDGE);
+  fvmc_ho_user_elt_unset (FVMC_FACE_TRIA);
+  fvmc_ho_user_elt_unset (FVMC_FACE_QUAD);
+  fvmc_ho_user_elt_unset (FVMC_CELL_TETRA);
+  fvmc_ho_user_elt_unset (FVMC_CELL_HEXA);
+  fvmc_ho_user_elt_unset (FVMC_CELL_PRISM);
+  fvmc_ho_user_elt_unset (FVMC_CELL_PYRAM);
+}
+
 /*----------------------------------------------------------------------------
  * 
- * Point location in a high order cell 3d
+ * Unset a user element
+ * 
+ *----------------------------------------------------------------------------*/
+
+
+void
+fvmc_ho_user_elt_set (fvmc_element_t elt_type,
+                      fvmc_ho_basis_fct_t elt_basis,
+                      fvmc_ho_xsi_fct_t xsi_coords,
+                      fvmc_ho_location_fct_t location_in_elt)
+{
+  fvmc_ho_user_elt_t *user_elt = _get_user_elt (elt_type);
+  
+  if (user_elt == NULL) {
+    user_elt = (fvmc_ho_user_elt_t *) malloc (sizeof(fvmc_ho_user_elt_t));
+  }
+
+  user_elt->elt_basis = elt_basis;
+  user_elt->xsi_coords = xsi_coords;
+  user_elt->location_in_elt = location_in_elt;
+
+}
+
+/*----------------------------------------------------------------------------
+ * 
+ * high order basis
  * 
  * parameters:
- *   type             <-- element type
- *   order            <-- element order
- *   n_node           <-- number of nodes
- *   ho_vertex_num    <-- high order vertex num (internal ordering) (size = n_node)
- *   vertex_coords    <-- vertex coordinates (size = 3 * n_node)
- *   point_coords     <-- point to locate coordinates (size = 3)
- *   projected_coords --> projected point coordinates if outside (size = 3)
- *   uvw              --> parametric coordinates (point if inside the element
- *                                                projected point if outside)
- * 
- * return: 
- *   distance to the cell (distance <= 0 if point is inside)
+ *   type            <-- element type
+ *   order           <-- order
+ *   n_nodes         <-- number of nodes
+ *   uvw             <-- uvw
+ *   weights         --> weights (size = n_nodes)
  *
  *----------------------------------------------------------------------------*/
 
-double 
-fvmc_ho_location_in_cell_3d
+void
+fvmc_ho_basis
 (
- const fvmc_element_t type,
- const int order,
- const int n_node,
- const int *ho_vertex_num,
- const double *vertex_coords,
- const double *point_coords,
- double *projected_coords,
- double *uvw
+const fvmc_element_t type,
+const int order,
+const int n_nodes,
+const double *uvw,
+      double *weights 
 )
 {
-
-  if (_user_fcts != NULL) {
-
-    switch (type) {
-      
-    case FVMC_CELL_TETRA:
-      return (_user_fcts->location_tetra) (order,
-                                           n_node,
-                                           ho_vertex_num,
-                                           vertex_coords,
-                                           point_coords,
-                                           projected_coords,
-                                           uvw);
-      break;
-      
-    case FVMC_CELL_PRISM:
-      return (_user_fcts->location_prism) (order,
-                                           n_node,
-                                           ho_vertex_num,
-                                           vertex_coords,
-                                           point_coords,
-                                           projected_coords,
-                                           uvw);
-      break;
-      
-    case FVMC_CELL_PYRAM:
-      return (_user_fcts->location_pyramid) (order,
-                                             n_node,
-                                             ho_vertex_num,
-                                             vertex_coords,
-                                             point_coords,
-                                             projected_coords,
-                                             uvw);
-      break;
-
-    case FVMC_CELL_HEXA:
-      return (_user_fcts->location_hexa) (order,
-                                          n_node,
-                                          ho_vertex_num,
-                                          vertex_coords,
-                                          point_coords,
-                                          projected_coords,
-                                          uvw);
-      break;
-
-    default:
-
-      bftc_error(__FILE__, __LINE__, 0,
-                 _("fvmc_ho_location_in_cell_3d : Not a high order 3D element type\n"));
-    } 
+  fvmc_ho_user_elt_t *user_elt = _get_user_elt (type);
+  
+  if (user_elt != NULL) {
+    if (user_elt->elt_basis != NULL) {
+      (user_elt->elt_basis) (order,
+                             n_nodes,
+                             uvw,
+                             weights);
+    }
+    else {
+      _default_elt_basis (type,
+                          order,
+                          uvw,
+                          weights);
+    }
   }
 
   else {
+    _default_elt_basis (type,
+                        order,
+                        uvw,
+                        weights);
 
-    return _default_location_in_cell_3d (type,
-                                         order,
-                                         n_node,
-                                         ho_vertex_num,
-                                         vertex_coords,
-                                         point_coords,
-                                         projected_coords,
-                                         uvw);
-    
   }
-
-  return HUGE_VAL;
 }
+
 
 /*----------------------------------------------------------------------------
  * 
- * Point location on a high order cell 2d
+ * Point location in a high order cell
  * 
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
- *   n_node            <-- number of nodes
- *   ho_vertex_num    <-- high order vertex num (internal ordering) (size = n_node)
- *   vertex_coords    <-- vertex coordinates (size = 3 * n_node)
+ *   n_nodes          <-- number of nodes
+ *   nodes_coords     <-- nodes coordinates (size = 3 * n_nodes)
  *   point_coords     <-- point to locate coordinates (size = 3)
  *   projected_coords --> projected point coordinates (size = 3)
  *   uvw              --> parametric coordinates of the projected point on the element
@@ -2586,452 +2220,52 @@ fvmc_ho_location_in_cell_3d
  *----------------------------------------------------------------------------*/
 
 double 
-fvmc_ho_location_on_cell_2d
+fvmc_ho_location
 (
  const fvmc_element_t type,
  const int order,
- const int n_node,
- const int *ho_vertex_num,
- const double *vertex_coords,
+ const int n_nodes,
+ const double *nodes_coords,
  const double *point_coords,
  double *projected_coords,
  double *uvw
 )
 {
-
-  double dist2 = HUGE_VAL;
   
-  if (_user_fcts != NULL) {
-    switch (type) {
-      
-    case FVMC_FACE_TRIA:
-      dist2 = (_user_fcts->location_tria) (order,
-                                           n_node,
-                                           ho_vertex_num,
-                                           vertex_coords,
+  fvmc_ho_user_elt_t *user_elt = _get_user_elt (type);
+  
+  if (user_elt != NULL) {
+    if (user_elt->location_in_elt != NULL) {
+      return (user_elt->location_in_elt ) (order,
+                                           n_nodes,
+                                           nodes_coords,
                                            point_coords,
                                            projected_coords,
                                            uvw);
-      break;
-      
-    case FVMC_FACE_QUAD:
-      dist2 =  (_user_fcts->location_quad) (order,
-                                            n_node,
-                                            ho_vertex_num,
-                                            vertex_coords,
-                                            point_coords,
-                                            projected_coords,
-                                            uvw);
-      break;
-      
-    default:
-
-      bftc_error(__FILE__, __LINE__, 0,
-                 _("fvmc_ho_location_on_cell_2d : Not a high order 2D element type\n"));
+    }
+    else {
+      return _default_location (type,
+                                order,
+                                n_nodes,
+                                nodes_coords,
+                                point_coords,
+                                projected_coords,
+                                uvw);
     }
   }
 
   else {
 
-    dist2 = _default_location_on_cell_2d (type,
-                                          order,
-                                          n_node,
-                                          ho_vertex_num,
-                                          vertex_coords,
-                                          point_coords,
-                                          projected_coords,
-                                          uvw);
-    
-  }
-  return dist2;
-}
-
-/*----------------------------------------------------------------------------
- * 
- * Point location on a high order cell 1d
- * 
- * parameters:
- *   type             <-- element type
- *   order            <-- element order
- *   n_node            <-- number of nodes
- *   ho_vertex_num    <-- high order vertex num (internal ordering) (size = n_node)
- *   vertex_coords    <-- vertex coordinates (size = 3 * n_node)
- *   point_coords     <-- point to locate coordinates (size = 3)
- *   projected_coords --> projected point coordinates (size = 3)
- *   uvw              --> parametric coordinates of the projected poin on the element
- * 
- * return: 
- *   distance to the cell
- *
- *----------------------------------------------------------------------------*/
-
-double 
-fvmc_ho_location_on_cell_1d
-(
- const fvmc_element_t type,
- const int order,
- const int n_node,
- const int *ho_vertex_num,
- const double *vertex_coords,
- const double *point_coords,
- double *projected_coords,
- double *uvw
-)
-{
-
-  if (_user_fcts != NULL) {
-    switch (type) {
-      
-    case FVMC_EDGE:
-      return (_user_fcts->location_edge) (order,
-                                          n_node,
-                                          ho_vertex_num,
-                                          vertex_coords,
-                                          point_coords,
-                                          projected_coords,
-                                          uvw);
-      break;
-      
-    default:
-
-      bftc_error(__FILE__, __LINE__, 0,
-                 _("fvmc_ho_location_on_cell_1d : Not a high order 1D element type\n"));
-    }
-  }
-
-  else {
-
-    return _default_location_on_cell_1d (type,
-                                         order,
-                                         n_node,
-                                         ho_vertex_num,
-                                         vertex_coords,
-                                         point_coords,
-                                         projected_coords,
-                                         uvw);
-
+    return _default_location (type,
+                              order,
+                              n_nodes,
+                              nodes_coords,
+                              point_coords,
+                              projected_coords,
+                              uvw);
   }
 
   return HUGE_VAL;
-}
-
-
-/*----------------------------------------------------------------------------
- * 
- * Interpolate field to the target point_coords in a 3D cell
- * 
- * parameters:
- *   type              <-- element type
- *   order             <-- element order
- *   n_node            <-- number of nodes
- *   ho_vertex_num     <-- high order vertex num (internal ordering)
- *   local_to_user     <-- local to user ordering (for type)
- *   vertex_coords     <-- vertex coordinates
- *   point_coords      <-- point coordinates 
- *   distance          <-- distance to the element
- *   point_proj_coords  <-- projected point coordinates
- *   weight             <-- weights (internal ordering)
- *   stride_field      <-- field stride
- *   source_field      <-- source field (user ordering) 
- *   target_field      --> target field (defined to point_coords)
- *
- *----------------------------------------------------------------------------*/
-
-void 
-fvmc_ho_interp_in_cell_3d
-(
- const fvmc_element_t type,
- const int order,
- const int n_node,
- const int *ho_vertex_num,
- const int *local_to_user,
- const double *vertex_coords,
- const double *point_coords,
- const float *distance,
- const double *point_proj_coords,
- const double *weight,
- const int stride_field,
- const double *src_field,
- double *target_field
- )                          
-{
-  if (_user_fcts != NULL) {
-
-    switch (type) {
-      
-    case FVMC_CELL_TETRA:
-      (_user_fcts->interp_tetra) (order,
-                                  n_node,
-                                  ho_vertex_num,
-                                  local_to_user, 
-                                  vertex_coords,
-                                  point_coords,
-                                  distance,
-                                  point_proj_coords,
-                                  weight,
-                                  stride_field,
-                                  src_field,
-                                  target_field);
-
-      break;
-      
-    case FVMC_CELL_PRISM:
-
-      (_user_fcts->interp_prism) (order,
-                                  n_node,
-                                  ho_vertex_num,
-                                  local_to_user, 
-                                  vertex_coords,
-                                  point_coords,
-                                  distance,
-                                  point_proj_coords,
-                                  weight,
-                                  stride_field,
-                                  src_field,
-                                  target_field);
-
-      break;
-      
-    case FVMC_CELL_PYRAM:
-      (_user_fcts->interp_pyramid ) (order,
-                                     n_node,
-                                     ho_vertex_num,
-                                     local_to_user, 
-                                     vertex_coords,
-                                     point_coords,
-                                     distance,
-                                     point_proj_coords,
-                                     weight,
-                                     stride_field,
-                                     src_field,
-                                     target_field);
-
-      break;
-
-    case FVMC_CELL_HEXA:
-      (_user_fcts->interp_hexa) (order,
-                                 n_node,
-                                 ho_vertex_num,
-                                 local_to_user, 
-                                 vertex_coords,
-                                 point_coords,
-                                 distance,
-                                 point_proj_coords,
-                                 weight,
-                                 stride_field,
-                                 src_field,
-                                 target_field);
-      break;
-
-    default:
-
-      bftc_error(__FILE__, __LINE__, 0,
-                 _("fvmc_ho_interp_in_cell_3d : Not a high order 3D element type\n"));
-    } 
-
-  }
-
-  else {
-
-    _default_interp_in_cell_3d (type,
-                                order,
-                                n_node,
-                                ho_vertex_num,
-                                local_to_user,
-                                vertex_coords,
-                                point_coords,
-                                distance,
-                                point_proj_coords,
-                                weight,
-                                stride_field,
-                                src_field,
-                                target_field);
-
-  }
-}
-
-
-/*----------------------------------------------------------------------------
- * 
- * Interpolate field to the target point_coords on a 2D cell
- * 
- * parameters:
- *   type              <-- element type
- *   order             <-- element order
- *   n_node            <-- number of nodes
- *   ho_vertex_num     <-- high order vertex num (internal ordering)
- *   local_to_user     <-- local to user ordering (for type)
- *   vertex_coords     <-- vertex coordinates
- *   point_coords      <-- point coordinates 
- *   distance          <-- distance to the element
- *   point_proj_coords  <-- projected point coordinates
- *   weight             <-- weights (internal ordering)
- *   stride_field      <-- field stride
- *   source_field      <-- source field (user ordering) 
- *   target_field      --> target field (defined to point_coords)
- *
- *----------------------------------------------------------------------------*/
-
-void 
-fvmc_ho_interp_on_cell_2d
-(
- const fvmc_element_t type,
- const int order,
- const int n_node,
- const int *ho_vertex_num,
- const int *local_to_user,
- const double *vertex_coords,
- const double *point_coords,
- const float *distance,
- const double *point_proj_coords,
- const double *weight,
- const int stride_field,
- const double *src_field,
- double *target_field
-)
-{
-  if (_user_fcts != NULL) {
-    switch (type) {
-      
-    case FVMC_FACE_TRIA:
-      (_user_fcts->interp_tria) (order,
-                                 n_node,
-                                 ho_vertex_num,
-                                 local_to_user, 
-                                 vertex_coords,
-                                 point_coords,
-                                 distance,
-                                 point_proj_coords,
-                                 weight,
-                                 stride_field,
-                                 src_field,
-                                 target_field);
-      break;
-      
-    case FVMC_FACE_QUAD:
-      (_user_fcts->interp_quad) (order,
-                                 n_node,
-                                 ho_vertex_num,
-                                 local_to_user, 
-                                 vertex_coords,
-                                 point_coords,
-                                 distance,
-                                 point_proj_coords,
-                                 weight,
-                                 stride_field,
-                                 src_field,
-                                 target_field);
-      break;
-      
-    default:
-
-      bftc_error(__FILE__, __LINE__, 0,
-                 _("fvmc_ho_interp_on_cell_2d : Not a high order 2D element type\n"));
-    }
-
-  }
-
-  else {
-
-    _default_interp_on_cell_2d (type,
-                                order,
-                                n_node,
-                                ho_vertex_num,
-                                local_to_user,
-                                vertex_coords,
-                                point_coords,
-                                distance,
-                                point_proj_coords,
-                                weight,
-                                stride_field,
-                                src_field,
-                                target_field);
-  }
-}
-
-
-/*----------------------------------------------------------------------------
- * 
- * Interpolate field to the target point_coords on a 2D cell
- * 
- * parameters:
- *   type              <-- element type
- *   order             <-- element order
- *   n_node            <-- number of nodes
- *   ho_vertex_num     <-- high order vertex num (internal ordering)
- *   local_to_user     <-- local to user ordering (for type)
- *   vertex_coords     <-- vertex coordinates
- *   point_coords      <-- point coordinates 
- *   distance          <-- distance to the element
- *   point_proj_coords  <-- projected point coordinates
- *   weight             <-- weights (internal ordering)
- *   stride_field      <-- field stride
- *   source_field      <-- source field (user ordering) 
- *   target_field      --> target field (defined to point_coords)
- *
- *----------------------------------------------------------------------------*/
-
-void 
-fvmc_ho_interp_on_cell_1d
-(
- const fvmc_element_t type,
- const int order,
- const int n_node,
- const int *ho_vertex_num,
- const int *local_to_user,
- const double *vertex_coords,
- const double *point_coords,
- const float *distance,
- const double *point_proj_coords,
- const double *weight,
- const int stride_field,
- const double *src_field,
- double *target_field
- )
-{
-  if (_user_fcts != NULL) {
-    switch (type) {
-      
-    case FVMC_EDGE:
-      (_user_fcts->interp_edge) (order,
-                                 n_node,
-                                 ho_vertex_num,
-                                 local_to_user, 
-                                 vertex_coords,
-                                 point_coords,
-                                 distance,
-                                 point_proj_coords,
-                                 weight,
-                                 stride_field,
-                                 src_field,
-                                 target_field);
-      break;
-      
-    default:
-
-      bftc_error(__FILE__, __LINE__, 0,
-                 _("fvmc_ho_interp_on_cell_1d : Not a high order 1D element type\n"));
-    }
-
-  }
-
-  else {
-
-    _default_interp_on_cell_1d (type,
-                                order,
-                                n_node,
-                                ho_vertex_num,
-                                local_to_user,
-                                vertex_coords,
-                                point_coords,
-                                distance,
-                                point_proj_coords,
-                                weight,
-                                stride_field,
-                                src_field,
-                                target_field);
-
-  }
 }
 
 
@@ -3041,6 +2275,7 @@ fvmc_ho_interp_on_cell_1d
  * 
  *----------------------------------------------------------------------------*/
 
+
 void
 fvmc_ho_free
 (
@@ -3048,47 +2283,49 @@ fvmc_ho_free
 )
 {
 #if defined (HAVE_SPACE_BASIS) 
-  if (_vand_tria_space != NULL) {
+  if (_ijk_tria_space != NULL) {
 
-    for (int i = 0; i < _n_vand_tria_space; i++) {
-      if (_vand_tria_space[i] != NULL) {
-        SNB_free_double (_vand_tria_space[i], (i+1)*(i+1));
-        _vand_tria_space[i] = NULL;
+    for (int i = 0; i < _n_ijk_tria_space; i++) {
+      if (_ijk_tria_space[i] != NULL) {
+        free(_ijk_tria_space[i]);
+        _ijk_tria_space[i] = NULL;
       }
     }
-    free (_vand_tria_space);
-    _vand_tria_space = NULL;
+    free (_ijk_tria_space);
+    _ijk_tria_space = NULL;
   
   }
 
-  if (_vand_quad_space != NULL) {
+  if (_ijk_quad_space != NULL) {
 
-    for (int i = 0; i < _n_vand_quad_space; i++) {
-      if (_vand_quad_space[i] != NULL) {
-        SNB_free_double (_vand_quad_space[i], (i+1)*(i+1));
-        _vand_quad_space[i] = NULL;
+    for (int i = 0; i < _n_ijk_quad_space; i++) {
+      if (_ijk_quad_space[i] != NULL) {
+        free(_ijk_quad_space[i]);
+        _ijk_quad_space[i] = NULL;
       }
     }
-    free (_vand_quad_space);
-    _vand_quad_space = NULL;
+    free (_ijk_quad_space);
+    _ijk_quad_space = NULL;
     
   }
   
-  if (_vand_1D_space != NULL) {
+  if (_ijk_1D_space != NULL) {
 
-    for (int i = 0; i < _n_vand_1D_space; i++) {
-      if (_vand_1D_space[i] != NULL) {
-        SNB_free_double (_vand_1D_space[i], (i+1)*(i+1));
-        _vand_1D_space[i] = NULL;
+    for (int i = 0; i < _n_ijk_1D_space; i++) {
+      if (_ijk_1D_space[i] != NULL) {
+        free(_ijk_1D_space[i]);
+        _ijk_1D_space[i] = NULL;
       }
     }
     
-    free (_vand_1D_space);
-    _vand_1D_space = NULL;
+    free (_ijk_1D_space);
+    _ijk_1D_space = NULL;
   }
 
-#endif  
+#endif
+  
 }
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

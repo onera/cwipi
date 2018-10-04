@@ -52,17 +52,15 @@ extern "C" {
 
 /*----------------------------------------------------------------------------
  * 
- * Function pointer to locate in a high order cell 3d
+ * Callback to define location in a high order element
  * 
  * parameters:
- *   type             <-- element type
- *   order            <-- element order
- *   n_node           <-- number of nodes
- *   ho_vertex_num    <-- high order vertex num (internal ordering)
- *   vertex_coords    <-- vertex coordinates
- *   point_coords     <-- point to locate coordinates
- *   projected_coords --> projected point coordinates (if point is outside) 
- *   weights          --> interpolation weights in the element
+ *   order             <-- element order
+ *   n_nodes           <-- number of nodes of the element
+ *   nodes_coords      <-- nodes coordinates
+ *   point_coords      <-- point to locate coordinates
+ *   projected_coords  --> projected point coordinates (if point is outside) 
+ *   projected_uvw     --> parametric coordinates of the projected point
  * 
  * return: 
  *   distance to the cell (distance <= 0 if point is inside)
@@ -71,12 +69,47 @@ extern "C" {
 
 typedef double (*fvmc_ho_location_fct_t)
 (const int order,
- const int n_node,
- const int *ho_vertex_num,
- const double *vertex_coords,
+ const int n_nodes,
+ const double *nodes_coords,
  const double *point_coords,
  double *projected_coords,
+ double *uvw);
+
+/*----------------------------------------------------------------------------
+ * 
+ * Callback to define location the basis functions of an high order 
+ * element
+ * 
+ * parameters:
+ *   order             <-- element order
+ *   n_nodes           <-- number of nodes of the element
+ *   uvv               <-- Parametric coordinates of a point
+ *   projected_uvw     --> Interpolation weights associated to uvw coordinates
+ * 
+ *----------------------------------------------------------------------------*/
+
+typedef void (*fvmc_ho_basis_fct_t)
+(const int order,
+ const int n_nodes,
+ const double *uvw,
  double *weights);
+
+/*----------------------------------------------------------------------------
+ * 
+ * Callback to define parametric coordinates of the element nodes
+ * 
+ * parameters:
+ *   order             <-- element order
+ *   n_nodes           <-- number of nodes of the element
+ *   xsi_uvv           --> Parametric coordinates of a the element nodes
+ *                         (size = dim of element * n_nodes)
+ * 
+ *----------------------------------------------------------------------------*/
+
+typedef void (*fvmc_ho_xsi_fct_t)
+(const int order,
+ const int n_nodes,
+ double *xsi_coords);
 
 /*----------------------------------------------------------------------------
  * Function pointer to define an high order interpolation
@@ -84,10 +117,9 @@ typedef double (*fvmc_ho_location_fct_t)
  * parameters:
  *   type              <-- element type
  *   order             <-- element order
- *   n_node           <-- number of nodes
- *   ho_vertex_num     <-- high order vertex num (internal ordering)
+ *   n_nodes           <-- number of nodes
  *   local_to_user     <-- local to user ordering (for type)
- *   vertex_coords     <-- vertex coordinates
+ *   nodes_coords      <-- nodes coordinates
  *   point_coords      <-- point coordinates 
  *   distance          <-- distance to the element
  *   point_proj_coords  <-- projected point coordinates
@@ -100,10 +132,10 @@ typedef double (*fvmc_ho_location_fct_t)
 
 typedef void (*fvmc_ho_interp_fct_t)
 (const int order,
- const int n_node,
+ const int n_nodes,
  const int *ho_vertex_num,
  const int *local_to_user,
- const double *vertex_coords,
+ const double *nodes_coords,
  const double *point_coords,
  const float *distance,
  const double *point_proj_coords,
@@ -119,29 +151,6 @@ typedef void (*fvmc_ho_interp_fct_t)
 /*=============================================================================
  * Public function prototypes
  *============================================================================*/
-
-
-/*----------------------------------------------------------------------------
- * 
- * high order basis
- * 
- * parameters:
- *   type            <-- element type
- *   order           <-- order
- *   uvw             <-- uvw
- *   weights         --> weights (size = n_nodes)
- *
- *----------------------------------------------------------------------------*/
-
-void
-fvmc_ho_basis_pn
-(
-const fvmc_element_t type,
-const int order,
-const double *uvw,
-      double *weights 
-);
-
 
 /*----------------------------------------------------------------------------
  * 
@@ -165,21 +174,11 @@ const double *uvw,
  *
  *----------------------------------------------------------------------------*/
 
-void  
-fvmc_ho_user_elementary_functions_set (fvmc_ho_location_fct_t location_tetra,
-                                       fvmc_ho_location_fct_t location_prism,
-                                       fvmc_ho_location_fct_t location_pyramid,
-                                       fvmc_ho_location_fct_t location_hexa,
-                                       fvmc_ho_location_fct_t location_tria,
-                                       fvmc_ho_location_fct_t location_quad,
-                                       fvmc_ho_location_fct_t location_edge,
-                                       fvmc_ho_interp_fct_t interp_tetra,
-                                       fvmc_ho_interp_fct_t interp_prism,
-                                       fvmc_ho_interp_fct_t interp_pyramid,
-                                       fvmc_ho_interp_fct_t interp_hexa,
-                                       fvmc_ho_interp_fct_t interp_tria,
-                                       fvmc_ho_interp_fct_t interp_quad,
-                                       fvmc_ho_interp_fct_t interp_edge);
+void
+fvmc_ho_user_elt_set (fvmc_element_t elt_type,
+                      fvmc_ho_basis_fct_t elt_basis,
+                      fvmc_ho_xsi_fct_t xsi_coords,
+                      fvmc_ho_location_fct_t location_in_elt);
 
 
 /*----------------------------------------------------------------------------
@@ -189,49 +188,44 @@ fvmc_ho_user_elementary_functions_set (fvmc_ho_location_fct_t location_tetra,
  *----------------------------------------------------------------------------*/
 
 void
-fvmc_ho_user_elementary_functions_unset (void);
+fvmc_ho_user_elt_unset (fvmc_element_t elt_type);
+
+void
+fvmc_ho_user_elts_unset (void);
 
 /*----------------------------------------------------------------------------
  * 
- * Point location in a high order cell 3d
+ * high order basis
  * 
  * parameters:
- *   type             <-- element type
- *   order            <-- element order
- *   n_node           <-- number of nodes
- *   ho_vertex_num    <-- high order vertex num (internal ordering) (size = n_node)
- *   vertex_coords    <-- vertex coordinates (size = 3 * n_node)
- *   point_coords     <-- point to locate coordinates (size = 3)
- *   projected_coords --> projected point coordinates if outside (size = 3)
- *   uvw              --> parametric coordinates (point if inside the element
- *                                                projected point if outside)
- *
- * return: 
- *   distance to the cell (distance <= 0 if point is inside)
+ *   type            <-- element type
+ *   order           <-- order
+ *   order           <-- number of nodes
+ *   uvw             <-- uvw
+ *   weights         --> weights (size = n_nodes)
  *
  *----------------------------------------------------------------------------*/
 
-double 
-fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
-                             const int order,
-                             const int n_node,
-                             const int *ho_vertex_num,
-                             const double *vertex_coords,
-                             const double *point_coords,
-                             double *projected_coords,
-                             double* uvw);
+void
+fvmc_ho_basis
+(
+const fvmc_element_t type,
+const int order,
+const int n_nodes,
+const double *uvw,
+      double *weights 
+);
 
 
 /*----------------------------------------------------------------------------
  * 
- * Point location on a high order cell 2d
+ * Point location in a high order cell
  * 
  * parameters:
  *   type             <-- element type
  *   order            <-- element order
- *   n_node            <-- number of nodes
- *   ho_vertex_num    <-- high order vertex num (internal ordering) (size = n_node)
- *   vertex_coords    <-- vertex coordinates (size = 3 * n_node)
+ *   n_nodes          <-- number of nodes
+ *   nodes_coords     <-- nodes coordinates (size = 3 * n_nodes)
  *   point_coords     <-- point to locate coordinates (size = 3)
  *   projected_coords --> projected point coordinates (size = 3)
  *   uvw              --> parametric coordinates of the projected point on the element
@@ -242,101 +236,31 @@ fvmc_ho_location_in_cell_3d (const fvmc_element_t type,
  *----------------------------------------------------------------------------*/
 
 double 
-fvmc_ho_location_on_cell_2d (const fvmc_element_t type,
-                             const int order,
-                             const int n_node,
-                             const int *ho_vertex_num,
-                             const double *vertex_coords,
-                             const double *point_coords,
-                             double *projected_coords,
-                             double *uvw);
-
-
-/*----------------------------------------------------------------------------
- * 
- * Point location on a high order cell 1d
- * 
- * parameters:
- *   type             <-- element type
- *   order            <-- element order
- *   n_node            <-- number of nodes
- *   ho_vertex_num    <-- high order vertex num (internal ordering) (size = n_node)
- *   vertex_coords    <-- vertex coordinates (size = 3 * n_node)
- *   point_coords     <-- point to locate coordinates (size = 3)
- *   projected_coords --> projected point coordinates (size = 3)
- *   uvw              --> parametric coordinates of the projected point on the element
- * 
- * return: 
- *   distance to the cell
- *
- *----------------------------------------------------------------------------*/
-
-double 
-fvmc_ho_location_on_cell_1d (const fvmc_element_t type,
-                             const int order,
-                             const int n_node,
-                             const int *ho_vertex_num,
-                             const double *vertex_coords,
-                             const double *point_coords,
-                             double *projected_coords,
-                             double *uvw);
+fvmc_ho_location
+(
+ const fvmc_element_t type,
+ const int order,
+ const int n_nodes,
+ const double *nodes_coords,
+ const double *point_coords,
+ double *projected_coords,
+ double *uvw
+ );
 
 /*----------------------------------------------------------------------------
  * 
- * Interpolate field to the target point_coords in a 3D cell
+ * Free static variables
  * 
- * parameters:
- *   type              <-- element type
- *   order             <-- element order
- *   n_node            <-- number of nodes
- *   ho_vertex_num     <-- high order vertex num (internal ordering)
- *   local_to_user     <-- local to user ordering (for type)
- *   vertex_coords     <-- vertex coordinates
- *   point_coords      <-- point inside cell (or on boundary) 
- *   distance          <-- distance to the element
- *   point_proj_coords  <-- projected point coordinates
- *   weight             <-- weights
- *   stride_field      <-- field stride
- *   source_field      <-- source field (user ordering) 
- *   target_field      --> target field (defined to point_coords)
- *
  *----------------------------------------------------------------------------*/
 
-void 
-fvmc_ho_interp_in_cell_3d (const fvmc_element_t type,
-                           const int order,
-                           const int n_node,
-                           const int *ho_vertex_num,
-                           const int *local_to_user,
-                           const double *vertex_coords,
-                           const double *point_coords,
-                           const float *distance,
-                           const double *point_proj_coords,
-                           const double *weight,
-                           const int stride_field,
-                           const double *src_field,
-                           double *target_field);
+void
+fvmc_ho_free
+(
+ void
+ );
 
-/*----------------------------------------------------------------------------
- * 
- * Interpolate field to the target point_coords on a 2D cell
- * 
- * parameters:
- *   type              <-- element type
- *   order             <-- element order
- *   n_node            <-- number of nodes
- *   ho_vertex_num     <-- high order vertex num (internal ordering)
- *   local_to_user     <-- local to user ordering (for type)
- *   vertex_coords     <-- vertex coordinates
- *   point_coords      <-- point inside cell (or on boundary) 
- *   distance          <-- distance to the element
- *   point_proj_coords  <-- projected point coordinates
- *   weight             <-- weights
- *   stride_field      <-- field stride
- *   source_field      <-- source field (user ordering) 
- *   target_field      --> target field (defined to point_coords)
- *
- *----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+
 
 void 
 fvmc_ho_interp_on_cell_2d (const fvmc_element_t type,
@@ -354,58 +278,7 @@ fvmc_ho_interp_on_cell_2d (const fvmc_element_t type,
                            double *target_field);
 
 
-/*----------------------------------------------------------------------------
- * 
- * Interpolate field to the target point_coords on a 2D cell
- * 
- * parameters:
- *   type              <-- element type
- *   order             <-- element order
- *   n_node            <-- number of nodes
- *   ho_vertex_num     <-- high order vertex num (internal ordering)
- *   local_to_user     <-- local to user ordering (for type)
- *   vertex_coords     <-- vertex coordinates
- *   point_coords      <-- point inside cell (or on boundary)
- *   distance          <-- distance to the element
- *   point_proj_coords  <-- projected point coordinates
- *   weight             <-- barycenter's coordinates
- *   stride_field      <-- field stride
- *   source_field      <-- source field (user ordering) 
- *   target_field      --> target field (defined to point_coords)
- *
- *----------------------------------------------------------------------------*/
 
-void 
-fvmc_ho_interp_on_cell_1d (const fvmc_element_t type,
-                           const int order,
-                           const int n_node,
-                           const int *ho_vertex_num,
-                           const int *local_to_user,
-                           const double *vertex_coords,
-                           const double *point_coords,
-                           const float *distance,
-                           const double *point_proj_coords,
-                           const double *weight,
-                           const int stride_field,
-                           const double *src_field,
-                           double *target_field);
-
-
-/*----------------------------------------------------------------------------*/
-
-
-
-/*----------------------------------------------------------------------------
- * 
- * Free static variables
- * 
- *----------------------------------------------------------------------------*/
-
-void
-fvmc_ho_free
-(
- void
- );
 
 #ifdef __cplusplus
 }

@@ -571,14 +571,14 @@ void LocationToLocalMesh::locate()
               
               const double *_uvw_point_fvm = uvw + ipoint * max_entity_dim;
 
-              fvmc_ho_basis_pn (FVMC_EDGE, order, _uvw_point_fvm, _weights);
+              fvmc_ho_basis (FVMC_EDGE, order, n_node, _uvw_point_fvm, _weights);
               
             }
           }
         }
         
         else if (_entitiesDim == 2) {
-        compute2DMeanValues();
+          compute2DMeanValues();
         }
         
         else if (_entitiesDim == 3) {
@@ -1267,7 +1267,7 @@ void LocationToLocalMesh::compute2DMeanValues()
         type = FVMC_FACE_QUAD;
       }
       
-      fvmc_ho_basis_pn (type, order, _uvw_point_fvm, _weights);
+      fvmc_ho_basis (type, order, n_node, _uvw_point_fvm, _weights);
 
     }
   }
@@ -2156,7 +2156,7 @@ void LocationToLocalMesh::compute3DMeanValues()
         type = FVMC_CELL_PRISM;
       }
       
-      fvmc_ho_basis_pn (type, order, _uvw_point_fvm, _weights);
+      fvmc_ho_basis (type, order, n_node, _uvw_point_fvm, _weights);
       
     }
   }

@@ -288,13 +288,12 @@ typedef void (*cwipi_user_interp_ho_fct_t)
 
 /*----------------------------------------------------------------------------
  * 
- * Function pointer to locate in a high order cell 3d
+ * Callback to define location in a high order element
  * 
  * parameters:
- *   type              <-- element type
  *   order             <-- element order
- *   ho_vertex_num     <-- high order vertex num (internal ordering)
- *   vertex_coords     <-- vertex coordinates
+ *   n_nodes           <-- number of nodes of the element
+ *   nodes_coords      <-- nodes coordinates
  *   point_coords      <-- point to locate coordinates
  *   projected_coords  --> projected point coordinates (if point is outside) 
  *   projected_uvw     --> parametric coordinates of the projected point
@@ -305,44 +304,51 @@ typedef void (*cwipi_user_interp_ho_fct_t)
  *----------------------------------------------------------------------------*/
 
 typedef double (*cwipi_ho_location_fct_t)
-(const cwipi_element_t type,
- const int order,
- const int n_node,
- const int *ho_vertex_num,
- const double *vertex_coords,
+(const int order,
+ const int n_nodes,
+ const double *nodes_coords,
  const double *point_coords,
  double *projected_coords,
  double *projected_uvw);
 
+
 /*----------------------------------------------------------------------------
- * Function pointer to define an high order interpolation
- *
+ * 
+ * Callback to define location the basis functions of an high order 
+ * element
+ * 
  * parameters:
- *   type              <-- element type
  *   order             <-- element order
- *   ho_vertex_num     <-- high order vertex num (internal ordering)
- *   local_to_user     <-- local to user ordering (for type)
- *   vertex_coords     <-- vertex coordinates
- *   point_coords      <-- point inside cell (or on boundary) 
- *   weight            <-- weights
- *   stride_field      <-- field stride
- *   source_field      <-- source field (user ordering) 
- *   target_field      --> target field (defined to point_coords)
- *
+ *   n_nodes           <-- number of nodes of the element
+ *   uvv               <-- Parametric coordinates of a point
+ *   projected_uvw     --> Interpolation weights associated to uvw coordinates
+ * 
  *----------------------------------------------------------------------------*/
 
-typedef void (*cwipi_ho_interp_fct_t)
-(const cwipi_element_t type,
- const int order,
- const int n_node,
- const int *ho_vertex_num,
- const int *local_to_user,
- const double *vertex_coords,
- const double *point_coords,
- const double *weight,
- const int stride_field,
- const double *src_field,
- double *target_field);
+typedef void (*cwipi_ho_basis_fct_t)
+(const int order,
+ const int n_nodes,
+ const double *uvw,
+ double *weights);
+
+
+/*----------------------------------------------------------------------------
+ * 
+ * Callback to define parametric coordinates of the element nodes
+ * 
+ * parameters:
+ *   order             <-- element order
+ *   n_nodes           <-- number of nodes of the element
+ *   xsi_uvv           --> Parametric coordinates of a the element nodes
+ *                         (size = dim of element * n_nodes)
+ * 
+ *----------------------------------------------------------------------------*/
+
+typedef void (*cwipi_ho_xsi_fct_t)
+(const int order,
+ const int n_nodes,
+ double *xsi_uvw);
+
 
 /*=============================================================================
  * Static global variables
@@ -1083,57 +1089,21 @@ void cwipi_ho_ordering_from_ref_elt_set (const char   *coupling_id,
 
 /*----------------------------------------------------------------------------
  * 
- * Set elementary functions
+ * Set a user element
  * 
  * parameters:
- *   location_tetra    <-- Location in a tetrahedron
- *   location_prism    <-- Location in a prism
- *   location_pyramid  <-- Location in a pyramid
- *   location_hexa     <-- Location in a hexaedron
- *   location_tria     <-- Location on a triangle
- *   location_quad     <-- Location on a quandragle
- *   location_edge     <-- Location on a edge
- *   weight_tetra       <-- Weight computation in a tetrahedron
- *   weight_prism       <-- Weight computation in a prism
- *   weight_pyramid     <-- Weight computation in a pyramid
- *   weight_hexa        <-- Weight computation in a hexaedron
- *   weight_tria        <-- Weight computation on a triangle
- *   weight_quad        <-- Weight computation on a quandragle
- *   weight_edge        <-- Weight computation on a edge
- *   interp_tetra      <-- Interpolation in a tetrahedron
- *   interp_prism      <-- Interpolation in a prism
- *   interp_pyramid    <-- Interpolation in a pyramid
- *   interp_hexa       <-- Interpolation in a hexaedron
- *   interp_tria       <-- Interpolation on a triangle
- *   interp_quad       <-- Interpolation on a quandragle
- *   interp_edge       <-- Interpolation on a edge
+ *   elt_type            <-- Element type
+ *   element_basis       <-- Element basis function
+ *   xsi_coordinates     <-- Parametric coordinates of nodes function
+ *   location_in_element <-- Element location in element function
  *
  *----------------------------------------------------------------------------*/
 
 void
-cwipi_ho_user_elementary_functions_set (cwipi_ho_location_fct_t location_tetra,
-                                        cwipi_ho_location_fct_t location_prism,
-                                        cwipi_ho_location_fct_t location_pyramid,
-                                        cwipi_ho_location_fct_t location_hexa,
-                                        cwipi_ho_location_fct_t location_tria,
-                                        cwipi_ho_location_fct_t location_quad,
-                                        cwipi_ho_location_fct_t location_edge,
-                                        cwipi_ho_interp_fct_t interp_tetra,
-                                        cwipi_ho_interp_fct_t interp_prism,
-                                        cwipi_ho_interp_fct_t interp_pyramid,
-                                        cwipi_ho_interp_fct_t interp_hexa,
-                                        cwipi_ho_interp_fct_t interp_tria,
-                                        cwipi_ho_interp_fct_t interp_quad,
-                                        cwipi_ho_interp_fct_t interp_edge);
-
-/*----------------------------------------------------------------------------
- * 
- * Unset elementary functions
- * 
- *----------------------------------------------------------------------------*/
-
-void
-cwipi_ho_user_elementary_functions_unset (void);
+cwipi_ho_user_elt_set (cwipi_element_t elt_type,
+                       cwipi_ho_basis_fct_t element_basis,
+                       cwipi_ho_xsi_fct_t xsi_coordinates,
+                       cwipi_ho_location_fct_t location_in_element);
 
 /*----------------------------------------------------------------------------
  *
@@ -1155,12 +1125,12 @@ cwipi_ho_user_elementary_functions_unset (void);
  *----------------------------------------------------------------------------*/
 
 void cwipi_add_polyhedra(const char *coupling_id,
-                             const int n_element,
-                             int face_index[],
-                             int cell_to_face_connectivity[],
-                             const int n_faces,
-                             int face_connectivity_index[],
-                             int face_connectivity[]);
+                         const int n_element,
+                         int face_index[],
+                         int cell_to_face_connectivity[],
+                         const int n_faces,
+                         int face_connectivity_index[],
+                         int face_connectivity[]);
 
 /*----------------------------------------------------------------------------
  *
