@@ -6,24 +6,146 @@ module baseSimplex1D
   subroutine setL2MeshIJK(meshOrder,ijk)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)    :: meshOrder
-    integer, intent(inout) :: ijk(:)
+    integer, intent(inout) :: ijk(:,:)
     !>
     integer                :: iMod,nMod
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> 01 03 03 05 02
+    !> 01 03 04 05 02
     nMod=(meshOrder+1)
     
-    ijk(1)=0
-    ijk(2)=meshOrder
+    ijk(1,1)=0
+    ijk(1,2)=meshOrder
     do iMod=3,nMod
-      ijk(iMod)=iMod-2
+      ijk(1,iMod)=iMod-2
     enddo
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
     
     return
   end subroutine setL2MeshIJK
+  
+  subroutine setQ4MeshIJK(meshOrder,ij)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer, intent(in)    :: meshOrder
+    integer, intent(inout) :: ij(:,:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Quad (2D/3D)
+    !>
+    !>   04 03
+    !>   01 02
+    !> 2D
+    !>   f1 : 01 02
+    !>   f2 : 02 03
+    !>   f3 : 03 04
+    !>   f4 : 04 01
+    !> 3D
+    !>   f1 : 01 02 03 04
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Quad2 (2D/3D)
+    !>
+    !>   04 07 03
+    !>   08 09 06
+    !>   01 05 02
+    !> 2D
+    !>   f1 : 01 02 05
+    !>   f2 : 02 03 06
+    !>   f3 : 03 04 07
+    !>   f4 : 04 01 08
+    !> 3D
+    !>   f1 : 01 02 03 04 05 06 07 08 09
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Quad3 (2D)
+    !>
+    !>   04 10 09 03
+    !>   11 16 15 08
+    !>   12 13 14 07
+    !>   01 05 06 02
+    !> 2D
+    !>   f1 : 01 02 05 06
+    !>   f2 : 02 03 07 08
+    !>   f3 : 03 04 09 10
+    !>   f4 : 04 01 11 12
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Quad4 (2D)
+    !>
+    !>   04 13 12 11 03
+    !>   14 20 23 19 10
+    !>   15 24 25 22 09
+    !>   16 17 21 18 08
+    !>   01 05 06 07 02
+    !> 2D
+    !>   f1 : 01 02 05 06 07
+    !>   f2 : 02 03 08 09 10
+    !>   f3 : 03 04 11 12 13
+    !>   f4 : 04 01 14 15 16
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<    
+    
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if    ( meshOrder==1 )then !> QuadQ1
+      
+      !>   04 03
+      !>   01 02
+      
+      ij(1:2,01)=[0,0] !> 1
+      ij(1:2,02)=[1,0] !> 2
+      ij(1:2,03)=[1,1] !> 3
+      ij(1:2,04)=[0,1] !> 4
+      
+    elseif( meshOrder==2 )then !> QuadQ2
+      
+      !>   04 07 03
+      !>   08 09 06
+      !>   01 05 02
+      
+      ij(1:2,01)=[0,0] !> 1
+      ij(1:2,02)=[2,0] !> 2
+      ij(1:2,03)=[2,2] !> 3
+      ij(1:2,04)=[0,2] !> 4
+      ij(1:2,05)=[1,0] !> 5
+      ij(1:2,06)=[2,1] !> 6
+      ij(1:2,07)=[1,2] !> 7
+      ij(1:2,08)=[0,1] !> 8
+      ij(1:2,09)=[1,1] !> 9
+      
+    elseif(meshOrder==3 )then !> QuadQ3
+      
+      !>   04 10 09 03
+      !>   11 16 15 08
+      !>   12 13 14 07
+      !>   01 05 06 02
+      
+      ij(1:2,01)=[0,0] !> 01
+      ij(1:2,02)=[3,0] !> 02
+      ij(1:2,03)=[3,3] !> 03
+      ij(1:2,03)=[0,3] !> 04
+      
+      ij(1:2,05)=[1,0] !> 05
+      ij(1:2,06)=[2,0] !> 06
+      ij(1:2,07)=[3,1] !> 07
+      ij(1:2,08)=[3,2] !> 08
+      ij(1:2,09)=[2,3] !> 09
+      ij(1:2,10)=[1,3] !> 10
+      ij(1:2,11)=[0,2] !> 11
+      ij(1:2,12)=[0,1] !> 12
+      ij(1:2,13)=[1,1] !> 13
+      ij(1:2,14)=[2,1] !> 14
+      ij(1:2,15)=[2,2] !> 15
+      ij(1:2,16)=[1,2] !> 16
+      
+    else ; stop "setQ4MeshIJK meshOrder>3 not implemented"
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+    
+    return
+  end subroutine setQ4MeshIJK
+    
+  
   
   subroutine setL2BasisEqui(ord,ijk,uvw,ai)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -36,49 +158,48 @@ module baseSimplex1D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)    :: ord 
-    integer, intent(in)    :: ijk(:)       !> ijk(1:nMod)
-    real(8), intent(in)    :: uvw(:)       !> uvw(1:nNod)
+    integer, intent(in)    :: ijk(:,:)     !> ijk(1:1,1:nMod)
+    real(8), intent(in)    :: uvw(:)       !> uvw(1:nNod)        \in [-1,1]
     real(8), intent(inout) :: ai(:,:)      !> ai(1:nMod,1:nNod)
     !>
-    real(8), pointer       :: u(:),v(:)
     integer                :: iMod,nMod    !> nMod=(ord+1)*(ord+2)/2
     integer                :: iNod,nNod    !> nNod=size(u) 
-    integer                :: iu,iv,iw
-    integer                :: i
-    real(8), pointer       :: fu(:),fv(:)
+    integer                :: i,j
+    real(8), pointer       :: xi(:)
+    real(8) :: var
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    call nodes1D(ord=ord, uvw=xi, display=.false.)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> bases de Lagrange
-    !print '(/"calcul des bases Triangle P",i1)',ord
-    
+    !> ai(1:nMod,1:nNod)=1d0
+    nMod=ord+1
     nNod=size(uvw)
-    allocate( u(1:nNod), v(1:nNod))
-    allocate(fu(1:nNod),fv(1:nNod))
-    do iNod=1,nNod
-      u(iNod)=(uvw(iNod)-1d0)*5d-1 !> u \in [-1,+1] => u \in [0,1]
-      v(iNod)=1d0-u(iNod)
-    enddo
-    
-    !print '("size(ai)=",i2,"x",i2)',size(ai,1),size(ai,2)
-    nMod=(ord+1)
-    do iMod=1,nMod
-      iu=ijk(iMod)
-      iv=1d0-iu
-      
-      call monomialProduct(ord=ord,n=iu,u=u, fn=fu)
-      call monomialProduct(ord=ord,n=iv,u=v, fn=fv)
-      
-      !print '(3x,"iMod=",i3,3x,"iu=",i3," iv=",i3)',iMod,iu,iv
-      do iNod=1,nNod
-        ai(iMod,iNod)=fu(iNod)*fv(iNod)
+    ai(:,:)=1d0
+    do i=1,nMod
+      do j=1,nMod
+        if( .not.i==j )then
+          var=(xi(i)-xi(j))
+          var=1d0/var
+          
+          iMod=ijk(1,i)+1
+          do iNod=1,nNod
+            ai(iMod,iNod)= ai(iMod,iNod)      &
+            &              *(uvw(iNod)-xi(j)) &
+            &              *var
+          enddo
+        endif
       enddo
-      
     enddo
-    
-    deallocate(u,v,fu,fv)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    deallocate(xi)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        
     return
   end subroutine setL2BasisEqui  
     
@@ -101,12 +222,12 @@ module baseSimplex1D
     uvw = c_loc (uvw_f)
 
   end subroutine nodes1D_c
-
-    
+  
+  
   subroutine nodes1D(ord, uvw, display)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     ! input: ord=polynomial order of interpolant
-    ! output: uvw(:,:) node coordinates in unity triangle
+    ! output: uvw(:,:) node coordinates in unity edge
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -323,9 +444,9 @@ module baseSimplex1D
   subroutine lagrange1D(ord,uvw,xout,li)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)           :: ord
-    real(8), intent(in) , pointer :: xout  (  :)
     real(8), intent(in) , pointer :: uvw   (  :)
     real(8), intent(out), pointer :: li    (:,:)
+    real(8), intent(in) , pointer :: xout  (  :)
     !--
     integer :: i,j,nVert
     real(8) :: var
@@ -336,7 +457,8 @@ module baseSimplex1D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-   !allocate(li(1:nVert,1:ord)) ; li(1:nVert,1:ord)=1d0
+    ! nMod=(ord+1)
+   !allocate(li(1:nVert,1:nMod)) ; li(1:nVert,1:nMod)=1d0
     li(:,:)=1d0
     do i=1,ord+1
       do j=1,ord+1

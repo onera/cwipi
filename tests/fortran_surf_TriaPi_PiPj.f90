@@ -35,6 +35,104 @@ module variablesCommunes
 end module variablesCommunes
 
 
+!> numerotation des types de cellules
+!> compatible vtk
+module spaceCellTypes
+  integer, parameter :: none         =  0
+  integer, parameter :: line         =  3  !> bar2      (VTK_LINE                )
+  integer, parameter :: triangle     =  5  !> tria3     (VTK_TRIANGLE            )
+  integer, parameter :: quad         =  9  !> quad4     (VTK_QUAD                )
+  integer, parameter :: tetra        = 10  !> tetra4    (VTK_TETRA               )
+  integer, parameter :: hexahedron   = 12  !> hexa8     (VTK_HEXAHEDRON          )
+  integer, parameter :: wedge        = 13  !> penta6    (VTK_WEDGE               ) 06 nodes pentahedron
+  integer, parameter :: pyramid      = 14  !> pyramid5  (VTK_PYRAMID             )  
+  integer, parameter :: line2        = 21  !> bar3      (VTK_QUADRATIC_EDGE      )
+  integer, parameter :: triangle2    = 22  !> tria6     (VTK_QUADRATIC_TRIANGLE  )
+  integer, parameter :: quad2        = 23  !> quad8     (VTK_QUADRATIC_QUAD      )
+  integer, parameter :: tetra2       = 24  !> tetra10   (VTK_QUADRATIC_TETRA     )
+  integer, parameter :: hexahedron2  = 25  !> hexa20    (VTK_QUADRATIC_HEXAHEDRON) 
+  integer, parameter :: wedge2       = 26  !> penta15   (VTK_QUADRATIC_WEDGE     ) 15 nodes pentahedron
+  integer, parameter :: pyramid2     = 27  !> pyramid13 (VTK_QUADRATIC_PYRAMID   ) 13 nodes pyramides
+
+  integer, parameter :: hexahedron3  =101
+  integer, parameter :: wedge3       =102
+  integer, parameter :: pyramid3     =103
+  integer, parameter :: tetra3       =104
+  integer, parameter :: quad3        =105
+  integer, parameter :: triangle3    =106
+  integer, parameter :: line3        =107 
+  
+  integer, parameter :: hexahedron4  =201
+  integer, parameter :: wedge4       =202
+  integer, parameter :: pyramid4     =203
+  integer, parameter :: tetra4       =204
+  integer, parameter :: quad4        =205
+  integer, parameter :: triangle4    =206
+  integer, parameter :: line4        =207 
+  
+  integer, parameter :: hexahedron5  =301
+  integer, parameter :: wedge5       =302
+  integer, parameter :: pyramid5     =303
+  integer, parameter :: tetra5       =304
+  integer, parameter :: quad5        =305
+  integer, parameter :: triangle5    =306
+  integer, parameter :: line5        =307 
+  
+  contains
+  
+  function cellTypeChar(iCell) result(char)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    implicit none
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer       :: iCell
+    character(32) :: char
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    select case(iCell)
+    case( 12)    ; char="hexahedron"
+    case( 25)    ; char="hexahedron2"
+    case(101)    ; char="hexahedron3"
+    case(201)    ; char="hexahedron4"
+    case(301)    ; char="hexahedron5"
+    case( 13)    ; char="wedge"
+    case( 26)    ; char="wedge2"
+    case(102)    ; char="wedge3"
+    case(202)    ; char="wedge4"
+    case(302)    ; char="wedge5"
+    case( 14)    ; char="pyramid"
+    case( 27)    ; char="pyramid2"
+    case(103)    ; char="pyramid3"
+    case(203)    ; char="pyramid4"
+    case(303)    ; char="pyramid5"
+    case( 10)    ; char="tetra"
+    case( 24)    ; char="tetra2"
+    case(104)    ; char="tetra3"
+    case(204)    ; char="tetra4"
+    case(304)    ; char="tetra5"
+    case(  9)    ; char="quad"
+    case( 23)    ; char="quad2"
+    case(105)    ; char="quad3"
+    case(205)    ; char="quad4"
+    case(305)    ; char="quad5"
+    case(  5)    ; char="triangle"
+    case( 22)    ; char="triangle2"
+    case(106)    ; char="triangle3"
+    case(206)    ; char="triangle4"
+    case(306)    ; char="triangle5"
+    case(  3)    ; char="line"
+    case( 21)    ; char="line2"
+    case(107)    ; char="line3"
+    case(207)    ; char="line4"
+    case(307)    ; char="line5"
+    case default ; char="unknown"
+    end select
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end function cellTypeChar
+    
+end module spaceCellTypes
+
 module spaceMessages
 
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -486,12 +584,14 @@ program fortran_surf_TriaPi_PiPj
   use iso_c_binding, only: c_loc,c_f_pointer
   
   use mpi
-  use cwipi  
-  use baseSimplex2D, only: nodes2D,setT3BasisEqui,setT3MeshIJK
+  use cwipi
   
   use variablesCommunes
   use additionnal_Functions
+  use spaceCellTypes
   use spaceMessages
+  use baseSimplex1D, only: nodes1D,setL2BasisEqui,setQ4MeshIJK
+  use baseSimplex2D, only: nodes2D,setT3BasisEqui,setT3MeshIJK
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
@@ -562,7 +662,7 @@ program fortran_surf_TriaPi_PiPj
   integer            :: iVert,nVert
   real(8), pointer   :: vertx(:)
   integer, pointer   :: vertM(:)
-  integer, pointer   :: cells(:),cellsIdx(:),mark(:)
+  integer, pointer   :: cells(:),cellsIdx(:),mark(:),types(:)
   integer, pointer   :: nod(:)  !> ensemble des noeuds pour iCell : nod=>cells(cellsIdx(iCell)+1:cellsIdx(iCell+1))
 
   
@@ -577,14 +677,16 @@ program fortran_surf_TriaPi_PiPj
   integer            :: iCell0
   
   
-  integer            :: i,j,k
+  integer            :: i,j,k,l,iu,iv
   integer            :: iMod,nMod
   integer            :: iNod,nNod
   integer            :: iCell,nCell
   integer            :: nQ4,nT3
   
   integer, pointer :: ij(:,:),ijCwipi(:)
-  real(8), pointer :: lagrangeMesh(:,:)
+  real(8), pointer :: lagrangeMeshQ4(:,:)
+  real(8), pointer :: lagrangeMeshT3(:,:)
+  real(8), pointer :: lagrangeL2    (:,:)
   
   real(8)          :: tol
   real(8)          :: xyz(1:3)
@@ -596,7 +698,8 @@ program fortran_surf_TriaPi_PiPj
   real(8), pointer ::   myValues(:)
   real(8), pointer :: linkValues(:)
   
-  real(8), pointer :: uv(:,:)
+  real(8), pointer :: u (  :)  !> pour les quad (segments tensorisés)
+  real(8), pointer :: uv(:,:)  !> pour les triangles
   integer          :: numberOfUnlocatedPoints,numberOfUnlocatedPointsGlob
   
   integer          :: iRank,iErr
@@ -621,7 +724,7 @@ program fortran_surf_TriaPi_PiPj
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  do meshOrder=1,3
+  do meshOrder=1,1
     
     call cpu_time(t0)
     
@@ -671,8 +774,8 @@ program fortran_surf_TriaPi_PiPj
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     select case(rankWorld)
-    case(0) ; compOrder=10 !07 !07
-    case(1) ; compOrder=10 !07 !10
+    case(0) ; compOrder=1 !10 !07 !07
+    case(1) ; compOrder=1 !10 !07 !10
     end select
     
     write(buffer,'("")')                                                   ; call msg2(trim(buffer))
@@ -681,31 +784,31 @@ program fortran_surf_TriaPi_PiPj
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Création des maillages avec gmsh
-    !select case(rankWorld)
-    !case(0) ; meshOrder=2
-    !case(1) ; meshOrder=2
-    !end select
     
     write(buffer,'("")')                                                   ; call msg2(trim(buffer))
     write(buffer,'(3x,"meshOrder=",i3,t130,"@rkw",i3)')meshOrder,rankWorld ; call msg1(trim(buffer))
-    
+        
     select case(rankWorld)
     case(0)
-      write(key,'("gmsh spaceBasis/tests/Mesh2D/sphere01.geo -2  -format msh -order ",i1," > sphere01.log")')meshOrder
-      print '(a)',trim(key)
+      write(key,'(6x,"gmsh spaceBasis/tests/Mesh2D/sphere01.geo -2 -format msh -order ",i1," > sphere01.log")')meshOrder      
+      call msg1(trim(key))
       call execute_command_line (key, exitstat=iErr)
-      write(key,'("~/Maillages/mshTomesh spaceBasis/tests/Mesh2D/sphere01.msh >> sphere01.log")')
+      write(key,'(6x,"~/Maillages/mshTomesh spaceBasis/tests/Mesh2D/sphere01.msh >> sphere01.log")')
+      call msg1(trim(key))
       call execute_command_line (key, exitstat=iErr)
     case(1)
-      write(key,'("gmsh spaceBasis/tests/Mesh2D/sphere02.geo -2 -format msh -order ",i1," > sphere02.log")')meshOrder
+      write(key,'(6x,"gmsh spaceBasis/tests/Mesh2D/sphere02.geo -2 -format msh -order ",i1," > sphere02.log")')meshOrder
+      call msg1(trim(key))
       call execute_command_line (key, exitstat=iErr)
-      write(key,'("~/Maillages/mshTomesh spaceBasis/tests/Mesh2D/sphere02.msh >> sphere02.log")')
+      write(key,'(6x,"~/Maillages/mshTomesh spaceBasis/tests/Mesh2D/sphere02.msh >> sphere02.log")')
+      call msg1(trim(key))
       call execute_command_line (key, exitstat=iErr)
     end select
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Reading Geometric Mesh
+    !> Reading Geometric Mesh with INRIA libMesh7
+    !> attention avec gmfGetBlock certains entiers sont integer(8)
     
     write(buffer,'("")')                                               ; call msg2(trim(buffer))
     write(buffer,'("Reading Geometric Mesh",t130,"@rkw",i3)')rankWorld ; call msg1(trim(buffer))
@@ -743,8 +846,6 @@ program fortran_surf_TriaPi_PiPj
     end select
     nCell=nCell+nT3
     dim  =dim  +nT3*(meshOrder+1)*(meshOrder+2)/2
-    
-   !write(buffer,'(3x,"dim=",i6,t130,"@rkw",i3)')dim,rankWorld ; call msg1(trim(buffer))  
     
     write(buffer,'(3x,"meshOrder=",i2,"  nVert=",i6," nQ4=",i6," nT3=",i6,t130,"@rkw",i3)')meshOrder,nVert,nQ4,nT3,rankWorld ; call msg1(trim(buffer))  
     !<<<<<<<
@@ -784,7 +885,7 @@ program fortran_surf_TriaPi_PiPj
     !> Setting cellsIdx and Reading cells,cellsRef
     
     !> allocation cellsIdx,cells,mark
-    allocate(cellsIdx(1:nCell+1),cells(1:dim),mark(1:nCell))
+    allocate(cellsIdx(1:nCell+1),cells(1:dim),mark(1:nCell),types(1:nCell))
     
     !> Initialization (iCell0,cellsIdx(1))
     iCell0=0 ; cellsIdx(1)=0
@@ -797,12 +898,23 @@ program fortran_surf_TriaPi_PiPj
       do i=1,nCell
         cellsIdx(iCell0+1+i)=cellsIdx(iCell0+1)+nNod*i
       enddo
+      
+      !> types
+      select case(meshOrder)
+      case(1) ; types(iCell0+1:iCell0+nCell)=quad       ! <=
+      case(2) ; types(iCell0+1:iCell0+nCell)=quad2      ! <=
+      case(3) ; types(iCell0+1:iCell0+nCell)=quad3      ! <=
+      case(4) ; types(iCell0+1:iCell0+nCell)=quad4      ! <=
+      case default ; call stopAlert("meshOrder>4")
+      end select
+      
       !> Adr  Block
+      ad0=1_8                    !> debut
       ad1=cellsIdx(iCell0    +1) !> iCell0+1
       ad2=cellsIdx(iCell0+nCell) !> iCell0+nCell
       !print '("Quad: ad1:ad2=",i6,":",i6)',ad1,ad2
+      
       !> Read Block
-      ad0=1_8
       select case(meshOrder)
       case(1)
         res=gmfGetBlock(                               &
@@ -850,12 +962,23 @@ program fortran_surf_TriaPi_PiPj
       do i=1,nCell
         cellsIdx(iCell0+1+i)=cellsIdx(iCell0+1)+nNod*i
       enddo
+      
+      !> types
+      select case(meshOrder)                            
+      case(1) ; types(iCell0+1:iCell0+nCell)=triangle   ! <=
+      case(2) ; types(iCell0+1:iCell0+nCell)=triangle2  ! <=
+      case(3) ; types(iCell0+1:iCell0+nCell)=triangle3  ! <=
+      case(4) ; types(iCell0+1:iCell0+nCell)=triangle4  ! <=
+      case default ; call stopAlert("meshOrder>4")
+      end select
+      
       !> Adr  Block
+      ad0=1_8                    !> debut
       ad1=cellsIdx(iCell0    +1) !> iCell0+1
       ad2=cellsIdx(iCell0+nCell) !> iCell0+nCell
-      !write(buffer,'(3x,"Tria: ad1:ad2=",i6,":",i6,t130,"@rkw",i3)')ad1,ad2,rankWorld ; call msg1(trim(buffer))  
+      !write(buffer,'(3x,"Tria: ad1:ad2=",i6,":",i6,t130,"@rkw",i3)')ad1,ad2,rankWorld ; call msg1(trim(buffer))
+      
       !> Read Block
-      ad0=1_8
       select case(meshOrder)
       case(1)    
         res=GmfGetBlock(                               &
@@ -961,25 +1084,42 @@ program fortran_surf_TriaPi_PiPj
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Definition du Triangle géométrique Pi
+    !> Definition du Quad Qi (ijk)
+    if( .not.nQ4==0 )then
+      nMod=(meshOrder+1)*(meshOrder+1)
+      allocate(ij(1:2,nMod))
+      
+      call setQ4MeshIJK(meshOrder=meshOrder,ij=ij)
+      call c_f_pointer(cptr=c_loc(ij), fptr=ijCwipi, shape=[2*nMod])  
+      
+      call cwipi_ho_ordering_from_IJK_set_f( & !> NEW Cwipi
+      &   couplingName ="testPiPj"          ,&
+      &   tElt         = CWIPI_FACE_QUADHO  ,&
+      &   nNodes       = nMod               ,&
+      &   IJK          = ijCwipi             )
+      
+      deallocate(ij)
+    endif
+    
+    !> Definition du Triangle géométrique Pi (ijk)
+    if( .not.nT3==0 )then
+      nMod=(meshOrder+1)*(meshOrder+2)/2
+      allocate(ij(1:2,nMod))
+      
+      call setT3MeshIJK(meshOrder=meshOrder,ij=ij)
+      call c_f_pointer(cptr=c_loc(ij), fptr=ijCwipi, shape=[2*nMod])  
+      
+      call cwipi_ho_ordering_from_IJK_set_f( & !> NEW Cwipi
+      &   couplingName ="testPiPj"          ,&
+      &   tElt         = CWIPI_FACE_TRIAHO  ,&
+      &   nNodes       = nMod               ,&
+      &   IJK          = ijCwipi             )
+      
+      deallocate(ij)
+    endif
     
     write(buffer,'("")')                                                             ; call msg2(trim(buffer))
-    write(buffer,'("Geometric HO Triangle P",i1,t130,"@rkw",i3)')meshOrder,rankWorld ; call msg1(trim(buffer))
-    
-    nMod=(meshOrder+1)*(meshOrder+2)/2
-    allocate(ij(1:2,nMod))
-    
-    call setT3MeshIJK(meshOrder=meshOrder,ij=ij)
-    
-    call c_f_pointer(cptr=c_loc(ij), fptr=ijCwipi, shape=[2*nMod])  
-    
-    call cwipi_ho_ordering_from_IJK_set_f( & !> NEW Cwipi
-    &   couplingName ="testPiPj"          ,&
-    &   tElt         = CWIPI_FACE_TRIAHO  ,&
-    &   nNodes       = nMod               ,&
-    &   IJK          = ijCwipi             )
-      
-    deallocate(ij)
+    write(buffer,'("Geometric HO Cell ij P",i1,t130,"@rkw",i3)')meshOrder,rankWorld  ; call msg1(trim(buffer))
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1006,43 +1146,180 @@ program fortran_surf_TriaPi_PiPj
     
 #if 0==0
     
-    !> calcul lagrangeMesh
-    nMod=(meshOrder+1)*(meshOrder+2)/2   !> Triangle meshOrder (entree)
-    call nodes2D(ord=compOrder,uvw=uv,display=.false.) !> ordre du calcul  
-    nNod=size(uv,2)
-    allocate(lagrangeMesh(1:nMod,1:nNod))
-    select case(meshOrder)
-    case(01) ; call setT3MeshBasis_P1(uv=uv,ai=lagrangeMesh)
-   !case(02) ; call setT3MeshBasis_P2(uv=uv,ai=lagrangeMesh)
-    case default
+    if( .not.nQ4==0 )then
+      !> calcul lagrangeMesh
       
-      allocate(ij(1:2,1:nMod))
-      call setT3MeshIJK(meshOrder=meshOrder,ij=ij)
-      call setT3BasisEqui(ord=meshOrder,ijk=ij,uvw=uv,ai=lagrangeMesh)
+      nMod=(meshOrder+1)                                 !> Edge meshOrder (entree)
+      nNod=(compOrder+1)                                 !> Edge compOrder (sortie)
+      call nodes1D(ord=compOrder,uvw=u,display=.false.)  !> ordre du calcul
+      
+      allocate(ij(1:1,1:nMod)) 
+      do iMod=1,meshOrder+1              !> 01 02  ... meshOrder meshOrder+1 (rangement regulier)
+        ij(1,iMod)=(iMod-1)
+      enddo
+      
+      allocate(lagrangeL2(1:nMod,1:nNod))
+      call setL2BasisEqui(ord=meshOrder,ijk=ij,uvw=u,ai=lagrangeL2)
+      
+      block
+      real(8) :: toto(11)
+      print '(/"u=",*(e12.5,1x))',u(:)
+      print '(/"lagrangeL2")'
+      do iMod=1,nMod
+        toto(1:nMod)=lagrangeL2(iMod,1:nNod)
+        print '(3x,"ai(",i2,",1:nNod)=",*(e12.5,1x) )',iMod,toto(1:nMod)
+      enddo
+      print '("")'
+      end block
+      
       deallocate(ij)
       
-    end select
-    deallocate(uv)
+      allocate(ij(1:2,1:nMod*nNod))      
+      call setQ4MeshIJK(meshOrder=meshOrder,ij=ij)
+      
+      allocate(lagrangeMeshQ4(1:nMod*nMod,1:nNod*nNod))
+      
+      iMod=0
+      do j=1,nMod ; do i=1,nMod
+          iMod=iMod+1 ! print '(3x,"iMod=",i3,3x,"i,j=",2(i3,1x))',iMod,ij(1:2,iMod)
+          iu=ij(1,iMod)+1
+          iv=ij(2,iMod)+1
+          !>
+          print '(3x,"iMod=",i3,3x,"(i,j)=",2(i3,1x))',iMod,iu,iv          
+          iNod=0
+          do l=1,nNod ; do k=1,nNod
+            iNod=iNod+1
+            print '(6x,"iNod=",i3,3x,"(u,v)=",2(e12.5,1x),3x,"aiL2=",2(e12.5,1x))',iNod,u(k),u(l),lagrangeL2(iu,k),lagrangeL2(iv,l)
+            
+            lagrangeMeshQ4(iMod,iNod)= lagrangeL2(iu,k) &
+            &                         *lagrangeL2(iv,l)
+          enddo ; enddo
+      enddo ; enddo
+      
+      deallocate(u)
+      deallocate(lagrangeL2)
+      
+      
+      block
+      real(8) :: toto(11)
+      print '(/"lagrangeMeshQ4")'
+      do iMod=1,nMod*nMod
+        toto(1:nMod*nMod)=lagrangeMeshQ4(iMod,1:nMod*nMod)
+        print '(3x,"ai(",i2,",1:nNod)=",*(e12.5,1x) )',iMod,toto(1:nMod*nMod)
+      enddo
+      print '("")'
+      end block
+      
+      
+               
+    endif
+    
+    if( .not.nT3==0 )then
+      !> calcul lagrangeMesh
+      nMod=(meshOrder+1)*(meshOrder+2)/2   !> Triangle meshOrder (entree)
+      call nodes2D(ord=compOrder,uvw=uv,display=.false.) !> ordre du calcul  
+      nNod=size(uv,2)
+      allocate(lagrangeMeshT3(1:nMod,1:nNod))
+      select case(meshOrder)
+      case(01) ; call setT3MeshBasis_P1(uv=uv,ai=lagrangeMeshT3)
+     !case(02) ; call setT3MeshBasis_P2(uv=uv,ai=lagrangeMeshT3)
+      case default
+        allocate(ij(1:2,1:nMod))
+        call setT3MeshIJK(meshOrder=meshOrder,ij=ij)
+        call setT3BasisEqui(ord=meshOrder,ijk=ij,uvw=uv,ai=lagrangeMeshT3)
+        deallocate(ij)
+      end select
+      deallocate(uv)
+    endif
+    
     
     !> calcul linkVert
-    linkVertSize=nCell*nNod              !> nombre total de point de couplages
-    allocate(linkVert(1:3*linkVertSize)) !> 3 coordonnées par point de couplage
+    linkVertSize=0
+    if( .not.nQ4==0 )then
+      nNod=(compOrder+1)*(compOrder+1)                   !> Quad meshOrder (entree)
+      linkVertSize=linkVertSize+nQ4*nNod                 !> nombre total de point de couplages
+    endif
+    if( .not.nT3==0 )then
+      nNod=(compOrder+1)*(compOrder+2)/2                 !> Triangle meshOrder (entree)
+      linkVertSize=linkVertSize+nT3*nNod                 !> nombre total de point de couplages
+    endif    
+    allocate(linkVert(1:3*linkVertSize))                 !> 3 coordonnées par point de couplage
     
-    j=0
-    do iCell=1,nCell
-      nod=>cells(cellsIdx(iCell)+1:cellsIdx(iCell+1))
-      do iNod=1,nNod
-        !> linkVert
-        linkVert(j+1:j+3)=0d0
-        do iMod=1,nMod
-          i=3*(nod(iMod)-1)
-          linkVert(j+1:j+3)=linkVert(j+1:j+3)+lagrangeMesh(iMod,iNod)*vertx(i+1:i+3)
+    
+    !> Initialization
+    iCell0=0 ; j=0
+    
+    !> Quadrilaterals
+    if( .not.nQ4==0 )then
+      nMod=(meshOrder+1)*(meshOrder+1)                   !> Quad meshOrder (entree)
+      nNod=(compOrder+1)*(compOrder+1)                   !> Quad compOrder (sortie)
+      do i=1,nQ4
+        iCell=iCell0+i
+        nod=>cells(cellsIdx(iCell)+1:cellsIdx(iCell+1))  !> nMod=size(node)
+        
+        if( iCell==1 )then
+          do iMod=1,nMod
+            k=3*(nod(iMod)-1)
+            xyz(1:3)=vertx(k+1:k+3)
+            print '(3x"nod(",i8,")=",3(e22.15,1x))',nod(iMod),xyz(1:3)
+          enddo
+        endif
+        
+        do iNod=1,nNod
+          !> linkVert
+          linkVert(j+1:j+3)=0d0
+          do iMod=1,nMod
+            k=3*(nod(iMod)-1)
+            linkVert(j+1:j+3)=linkVert(j+1:j+3)+lagrangeMeshQ4(iMod,iNod)*vertx(k+1:k+3)            
+          enddo
+          
+          if( iCell==1 )then
+            xyz(1:3)=linkVert(j+1:j+3)
+            print '(3x"linkVert(",i3,")=",3(e22.15,1x))',iNod,xyz(1:3)
+          endif
+          
+          j=j+3      
         enddo
-        j=j+3      
       enddo
-    enddo
+      !>
+      deallocate(lagrangeMeshQ4)
+      iCell0=iCell0+nQ4
+    endif
     
-    deallocate(lagrangeMesh)
+    !> Triangles
+    if( .not.nT3==0 )then
+      nMod=(meshOrder+1)*(meshOrder+2)/2                 !> Triangle meshOrder (entree)
+      nNod=(compOrder+1)*(compOrder+2)/2                 !> Triangle compOrder (sortie)
+      do i=1,nT3
+        iCell=iCell0+i
+        nod=>cells(cellsIdx(iCell)+1:cellsIdx(iCell+1))        
+        do iNod=1,nNod
+          !> linkVert
+          linkVert(j+1:j+3)=0d0
+          do iMod=1,nMod
+            k=3*(nod(iMod)-1)
+            linkVert(j+1:j+3)=linkVert(j+1:j+3)+lagrangeMeshT3(iMod,iNod)*vertx(k+1:k+3)
+          enddo
+          j=j+3      
+        enddo
+      enddo
+      !>
+      deallocate(lagrangeMeshT3)
+      iCell0=iCell0+nT3
+    endif
+    
+    
+    !if( rankWorld==0 )then
+    !  print '(/"linkVert")'
+    !  j=0
+    !  do iVert=1,11 !linkVertSize
+    !    xyz(1:3)=linkVert(j+1:j+3)
+    !    print '(3x"linkVert(",i2,")=",3(e22.15,1x))',iVert,xyz(1:3)
+    !    j=j+3
+    !  enddo
+    !endif
+    
+    
     
 #else
     
@@ -1185,7 +1462,7 @@ program fortran_surf_TriaPi_PiPj
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     deallocate(vertx,vertM)
-    deallocate(cellsIdx,cells,mark)
+    deallocate(cellsIdx,cells,mark,types)
     deallocate(myValues,linkVert,linkValues)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
