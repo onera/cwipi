@@ -2322,8 +2322,10 @@ fvmc_ho_free
     _ijk_1D_space = NULL;
   }
 
-#endif  
+#endif
+  
 }
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

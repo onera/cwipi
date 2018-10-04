@@ -247,10 +247,6 @@ fvmc_ho_location
  double *uvw
  );
 
-/*----------------------------------------------------------------------------*/
-
-
-
 /*----------------------------------------------------------------------------
  * 
  * Free static variables
@@ -262,6 +258,27 @@ fvmc_ho_free
 (
  void
  );
+
+/*----------------------------------------------------------------------------*/
+
+
+void 
+fvmc_ho_interp_on_cell_2d (const fvmc_element_t type,
+                           const int order,
+                           const int n_node,
+                           const int *ho_vertex_num,
+                           const int *local_to_user,
+                           const double *vertex_coords,
+                           const double *point_coords,
+                           const float *distance,
+                           const double *point_proj_coords,
+                           const double *weight,
+                           const int stride_field,
+                           const double *src_field,
+                           double *target_field);
+
+
+
 
 #ifdef __cplusplus
 }
