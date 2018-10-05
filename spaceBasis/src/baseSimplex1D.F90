@@ -144,22 +144,20 @@ module baseSimplex1D
     
     return
   end subroutine setQ4MeshIJK
-    
   
-  
-  subroutine setL2BasisEqui(ord,ijk,uvw,ai)
+  subroutine setL2BasisEqui(ord,ijk,u,ai)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! Calcul des base d'ordere ord pour des triangles dont les points
     ! d'interpolation sont equidistants.
     ! Numerotation des sommets suivant ijk
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    use baseSimplexTools, only: monomialProduct
+    !use baseSimplexTools, only: monomialProduct
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)    :: ord 
     integer, intent(in)    :: ijk(:,:)     !> ijk(1:1,1:nMod)
-    real(8), intent(in)    :: uvw(:)       !> uvw(1:nNod)        \in [-1,1]
+    real(8), intent(in)    :: u(:)         !> u(1:nNod)        \in [-1,1]
     real(8), intent(inout) :: ai(:,:)      !> ai(1:nMod,1:nNod)
     !>
     integer                :: iMod,nMod    !> nMod=(ord+1)*(ord+2)/2
@@ -177,7 +175,7 @@ module baseSimplex1D
     !> bases de Lagrange
     !> ai(1:nMod,1:nNod)=1d0
     nMod=ord+1
-    nNod=size(uvw)
+    nNod=size(u)
     ai(:,:)=1d0
     do i=1,nMod
       do j=1,nMod
@@ -187,8 +185,8 @@ module baseSimplex1D
           
           iMod=ijk(1,i)+1
           do iNod=1,nNod
-            ai(iMod,iNod)= ai(iMod,iNod)      &
-            &              *(uvw(iNod)-xi(j)) &
+            ai(iMod,iNod)= ai(iMod,iNod)    &
+            &              *(u(iNod)-xi(j)) &
             &              *var
           enddo
         endif
@@ -199,10 +197,142 @@ module baseSimplex1D
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     deallocate(xi)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        
-    return
-  end subroutine setL2BasisEqui  
     
+    return
+  end subroutine setL2BasisEqui
+  
+  subroutine setQ4BasisEqui_u(ord,ijk,u,ai)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    ! Calcul des base d'ordere ord pour des triangles dont les points
+    ! d'interpolation sont equidistants.
+    ! Numerotation des sommets suivant ijk
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer, intent(in)    :: ord 
+    integer, intent(in)    :: ijk(:,:)     !> ijk(1:2,1:(ord+1)*(ord+1))
+    real(8), intent(in)    :: u(:)         !> u(1:nNod)                 \in [-1,1]
+    real(8), intent(inout) :: ai(:,:)      !> ai(1:nMod,1:nNod)
+    !>
+    integer                :: iMod,nMod    !> nMod=(ord+1)
+    integer                :: iNod,nNod    !> nNod=size(u) 
+    integer, pointer       :: ij(:,:)      !> ij(1:1,1:ord+1)
+    integer                :: i,j,k,l
+    integer                :: iu,iv
+    real(8), pointer       :: xi(:)
+    real(8), pointer       :: lagrangeL2    (:,:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    nMod=(ord+1)                                       !> Edge meshOrder (entree) = ord
+    nNod=size(u)                                       !> Edge compOrder (sortie)
+    
+    allocate(ij(1:1,1:nMod)) 
+    do iMod=1,ord+1                                    !> 01 02  ... meshOrder meshOrder+1 (rangement regulier)
+      ij(1,iMod)=(iMod-1)
+    enddo
+    
+    allocate(lagrangeL2(1:nMod,1:nNod))
+    call setL2BasisEqui(ord=ord,ijk=ij,u=u,ai=lagrangeL2)
+    
+    !block
+    !real(8) :: toto(11)
+    !print '(/"setQ4BasisEqui")'
+    ! print '(/"u=",*(e12.5,1x))',u(:)
+    !print '(/"lagrangeL2")'
+    !do iMod=1,nMod
+    !  toto(1:nMod)=lagrangeL2(iMod,1:nNod)
+    !  print '(3x,"ai(",i2,",1:nNod)=",*(e12.5,1x) )',iMod,toto(1:nMod)
+    !enddo
+    !print '("")'
+    !end block
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    iMod=0
+    do j=1,nMod ; do i=1,nMod
+      iMod=iMod+1 ! print '(3x,"iMod=",i3,3x,"i,j=",2(i3,1x))',iMod,ij(1:2,iMod)
+      iu=ijk(1,iMod)+1
+      iv=ijk(2,iMod)+1
+      !>
+      !print '(3x,"iMod=",i3,3x,"(i,j)=",2(i3,1x))',iMod,iu,iv          
+      iNod=0
+      do l=1,nNod ; do k=1,nNod
+        iNod=iNod+1
+        !print '(6x,"iNod=",i3,3x,"(u,v)=",2(e12.5,1x),3x,"aiL2=",2(e12.5,1x))',iNod,u(k),u(l),lagrangeL2(iu,k),lagrangeL2(iv,l)
+        
+        ai(iMod,iNod)= lagrangeL2(iu,k)*lagrangeL2(iv,l)
+      enddo ; enddo
+    enddo ; enddo
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    deallocate(ij)
+    deallocate(lagrangeL2)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+          
+    return
+  end subroutine setQ4BasisEqui_u
+  
+  subroutine setQ4BasisEqui_uv(ord,ijk,u,v,ai)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    ! Calcul des base d'ordere ord pour des triangles dont les points
+    ! d'interpolation sont equidistants.
+    ! Numerotation des sommets suivant ijk
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer, intent(in)    :: ord 
+    integer, intent(in)    :: ijk(:,:)     !> ijk(1:2,1:(ord+1)*(ord+1))
+    real(8), intent(in)    :: u(:)         !> u(1:nNod)                 \in [-1,1]
+    real(8), intent(in)    :: v(:)         !> v(1:nNod)                 \in [-1,1]
+    real(8), intent(inout) :: ai(:,:)      !> ai(1:nMod,1:nNod)
+    !>
+    integer                :: iMod,nMod    !> nMod=(ord+1)
+    integer                :: iNod,nNod    !> nNod=size(u) 
+    integer, pointer       :: ij(:,:)      !> ij(1:1,1:ord+1)
+    integer                :: i,j,k,l
+    integer                :: iu,iv
+    real(8), pointer       :: xi(:)
+    real(8), pointer       :: lagrangeL2_u(:,:)
+    real(8), pointer       :: lagrangeL2_v(:,:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    nMod=(ord+1)                                       !> Edge meshOrder (entree) = ord
+    nNod=size(u) !=size(v)                             !> Edge compOrder (sortie)
+    
+    allocate(ij(1:1,1:nMod)) 
+    do iMod=1,ord+1                                    !> 01 02  ... meshOrder meshOrder+1 (rangement regulier)
+      ij(1,iMod)=(iMod-1)
+    enddo
+    
+    allocate(lagrangeL2_u(1:nMod,1:nNod)) ; call setL2BasisEqui(ord=ord,ijk=ij,u=u,ai=lagrangeL2_u)
+    allocate(lagrangeL2_v(1:nMod,1:nNod)) ; call setL2BasisEqui(ord=ord,ijk=ij,u=v,ai=lagrangeL2_v)    
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    iMod=0
+    do j=1,nMod ; do i=1,nMod
+      iMod=iMod+1 ! print '(3x,"iMod=",i3,3x,"i,j=",2(i3,1x))',iMod,ij(1:2,iMod)
+      iu=ijk(1,iMod)+1
+      iv=ijk(2,iMod)+1
+      !>
+      !print '(3x,"iMod=",i3,3x,"(i,j)=",2(i3,1x))',iMod,iu,iv          
+      do iNod=1,nNod
+        !print '(6x,"iNod=",i3,3x,"(u,v)=",2(e12.5,1x),3x,"aiL2=",2(e12.5,1x))',iNod,u(iNod),v(iNod),lagrangeL2_u(iu,iNod),lagrangeL2_v(iv,iNod)        
+        ai(iMod,iNod)= lagrangeL2_u(iu,iNod)*lagrangeL2_v(iv,iNod)
+      enddo
+    enddo ; enddo
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    deallocate(ij)
+    deallocate(lagrangeL2_u)
+    deallocate(lagrangeL2_v)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+          
+    return
+  end subroutine setQ4BasisEqui_uv
+  
   subroutine nodes1D_c(ord, uvw, display)  BIND(C, name="SNB_nodes1D") 
     use, intrinsic :: ISO_C_BINDING 
     implicit none 

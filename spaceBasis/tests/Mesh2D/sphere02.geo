@@ -1,7 +1,8 @@
 // Localisation cwipi
 
-DefineConstant[ R1 = {1.0, Min 0.5, Max 2.0, Step 1.0, Name "Parameters/R1"} ];
-DefineConstant[  h = {0.525, Min 0.1, Max 5.0, Step 0.5, Name "Parameters/h"} ];
+DefineConstant[ R1 =   {1.0, Min 0.5, Max 2.0, Step 1.0, Name "Parameters/R1"} ];
+DefineConstant[  h =   {0.7, Min 0.1, Max 5.0, Step 0.5, Name "Parameters/h"} ];
+DefineConstant[ quad = {00 , Min 0  , Max 1  , Step 1  , Name "Parameters/quad"} ];
 
 
 Printf("Paramètres du maillage");
@@ -53,7 +54,10 @@ Transfinite Surface {1};
 Transfinite Surface {2};
 Transfinite Surface {3};
 Transfinite Surface {4};
-Recombine Surface {4, 3, 2, 1};
 */
+
+If( quad==1 )
+  Recombine Surface {4, 3, 2, 1};
+EndIf
 
 Coherence;
