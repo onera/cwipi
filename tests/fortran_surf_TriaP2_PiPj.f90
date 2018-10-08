@@ -32,16 +32,20 @@ contains
     !> sortie uvw(1,3,;) tetraP2
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    use baseSimplex2D, only: setT3MeshBasis_P2
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer         , intent(in)  :: iTrian
     real(8), pointer, intent(in)  :: uv (:,:)
     real(8), pointer, intent(out) :: uvw(:,:)
     !>
-    integer                       :: iVert
-    integer                       :: iNod,jNod
+    integer                       :: iMod,jMod,nMod
+    integer                       :: iNod     ,nNod
     integer                       :: nodes(1:6)
     real(8)                       :: TetraP2(1:3,1:10)
     real(8)                       :: TrianP2(1:3,1:06)
-    real(8)                       :: ai(1:6),u,v
+    real(8)                       :: u,v
+    real(8), pointer              :: ai(:,:)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> uvw du TetraP2
@@ -71,79 +75,91 @@ contains
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> uvw du TriangleP2 face iTrian
-    do iNod=1,6
-      jNod=nodes(iNod)
-      TrianP2(1:3,iNod)=TetraP2(1:3,jNod)
+    do iMod=1,6
+      jMod=nodes(iMod)
+      TrianP2(1:3,iMod)=TetraP2(1:3,jMod)
     enddo
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Calcul de uvw dans le TetraP2 correspond a uv dans le TriangleP2
-    allocate(uvw(1:3,size(uv,2)))
-    do iVert=1,size(uv,2)
-      u=uv(1,iVert)
-      v=uv(2,iVert)
-      call setT3MeshBasis_P2(u=u,v=v,ai=ai)
-      uvw(1:3,iVert)=0d0
-      do iNod=1,6
-        uvw(1:3,iVert)=uvw(1:3,iVert)+ai(iNod)*TrianP2(1:3,iNod)
-      enddo
-    enddo
+    nNod=size(uv,2)
+    nMod=6
+    
+    allocate(ai(1:nMod,1:nNod))
+    call setT3MeshBasis_P2(uv=uv,ai=ai)    
+    
+    allocate(uvw(1:3,1:nNod))
+    
+    uvw(1:3,1:nNod)=matmul(TrianP2(1:3,1:nMod),ai(1:nMod,1:nNod))
+    
+    !do iNod=1,size(uv,2)
+    !  !u=uv(1,iNod)
+    !  !v=uv(2,iNod)
+    !  !call setT3MeshBasis_P2(uv=uv(1;2,iVert),ai=ai)
+    !  uvw(1:3,iNod)=0d0
+    !  do iMod=1,6
+    !    uvw(1:3,iNod)=uvw(1:3,iNod)+ai(iMod,iNod)*TrianP2(1:3,iMod)
+    !  enddo
+    !enddo
+    
+    
+    deallocate(ai)    
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
   end subroutine triangleP2UV_to_TetraP2UVW
 
-  subroutine setT3MeshBasis_P1(u,v,ai)
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Numerotation des sommets
-    !>   3
-    !>   1 2
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    ! delcaration des variables passees en argument
-    real(8), intent(in)    :: u,v
-    real(8), intent(inout) :: ai(:)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    ai(1)=1d0-u-v
-    ai(2)=    u
-    ai(3)=      v
-   !write(*,'("u,v=",2(f12.5,1x),"li=",3(f12.5,1x))')u,v,ai(1:3)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    return
-  end subroutine setT3MeshBasis_P1
-  
-  subroutine setT3MeshBasis_P2(u,v,ai)
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Numerotation des sommets
-    !>   3
-    !>   6 5
-    !>   1 4 2
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    ! delcaration des variables passees en argument
-    real(8), intent(in)    :: u,v
-    real(8), intent(inout) :: ai(:)
-    !>
-    real(8)                :: w
-    real(8)                :: u2,v2,w2
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    w=1d0-u-v
-    u2=2d0*u ; v2=2d0*v ; w2=2d0*w
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    ai(1)=w*(-1d0+w2)    !> (i,j,k)=(0,0,2)
-    ai(2)=u*(-1d0+u2)    !> (i,j,k)=(2,0,0)
-    ai(3)=v*(-1d0+v2)    !> (i,j,k)=(0,2,0)
-    ai(4)=u2*w2          !> (i,j,k)=(1,0,1)
-    ai(5)=u2*v2          !> (i,j,k)=(1,1,0)
-    ai(6)=v2*w2          !> (i,j,k)=(0,1,1)
-   !write(*,'("u,v=",2(f12.5,1x),"li=",6(f12.5,1x))')u,v,ai(1:6)
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    return
-  end subroutine setT3MeshBasis_P2
+!   subroutine setT3MeshBasis_P1(u,v,ai)
+!     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!     !> Numerotation des sommets
+!     !>   3
+!     !>   1 2
+!     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+!     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!     ! delcaration des variables passees en argument
+!     real(8), intent(in)    :: u,v
+!     real(8), intent(inout) :: ai(:)
+!     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+!     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!     ai(1)=1d0-u-v
+!     ai(2)=    u
+!     ai(3)=      v
+!    !write(*,'("u,v=",2(f12.5,1x),"li=",3(f12.5,1x))')u,v,ai(1:3)
+!     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+!     return
+!   end subroutine setT3MeshBasis_P1
+!   
+!   subroutine setT3MeshBasis_P2(u,v,ai)
+!     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!     !> Numerotation des sommets
+!     !>   3
+!     !>   6 5
+!     !>   1 4 2
+!     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+!     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!     ! delcaration des variables passees en argument
+!     real(8), intent(in)    :: u,v
+!     real(8), intent(inout) :: ai(:)
+!     !>
+!     real(8)                :: w
+!     real(8)                :: u2,v2,w2
+!     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+!     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!     w=1d0-u-v
+!     u2=2d0*u ; v2=2d0*v ; w2=2d0*w
+!     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+!     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!     ai(1)=w*(-1d0+w2)    !> (i,j,k)=(0,0,2)
+!     ai(2)=u*(-1d0+u2)    !> (i,j,k)=(2,0,0)
+!     ai(3)=v*(-1d0+v2)    !> (i,j,k)=(0,2,0)
+!     ai(4)=u2*w2          !> (i,j,k)=(1,0,1)
+!     ai(5)=u2*v2          !> (i,j,k)=(1,1,0)
+!     ai(6)=v2*w2          !> (i,j,k)=(0,1,1)
+!    !write(*,'("u,v=",2(f12.5,1x),"li=",6(f12.5,1x))')u,v,ai(1:6)
+!     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+!     return
+!   end subroutine setT3MeshBasis_P2
 
   subroutine setT4MeshBasisP1(u,v,w,ai)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1079,16 +1095,25 @@ program fortran_surf_TriaP2_PiPj
   nNod=size(uvw,2)                    !> Triangle compOrder
   
   
+  
+  allocate(lagrange(1:nMod,1:linkVertSize))
+  call setT3MeshBasis_P2(uv=uvw,ai=lagrange)    
+  
+  
+  
   j=0
   do iVert=1,linkVertSize
     !> Fonction
-    call setT3MeshBasis_P2(u=uvw(1,iVert),v=uvw(2,iVert),ai=lagrangeMesh)
+    !call setT3MeshBasis_P2(u=uvw(1,iVert),v=uvw(2,iVert),ai=lagrangeMesh)
     linkVert(j+1:j+3)=0d0
     do iMod=1,nMod
-      linkVert(j+1:j+3)=linkVert(j+1:j+3)+lagrangeMesh(iMod)*vertx(1:3,trian(iMod,iTrian))
+     !linkVert(j+1:j+3)=linkVert(j+1:j+3)+lagrangeMesh(iMod)*vertx(1:3,trian(iMod,iTrian))
+      linkVert(j+1:j+3)=linkVert(j+1:j+3)+lagrange(iMod,iVert)*vertx(1:3,trian(iMod,iTrian))
     enddo
     j=j+3
   enddo
+  
+  deallocate(lagrange)
   deallocate(uvw)
   
   

@@ -1063,10 +1063,9 @@ subroutine  userInterpolation                        ( &
   use iso_c_binding, only: c_loc,c_f_pointer
   use cwipi
   use baseSimplex1D, only: setQ4BasisEqui_uv,setQ4MeshIJK
-  use baseSimplex2D, only: setT3BasisEqui   ,setT3MeshIJK,setT3MeshBasis_P1,setT3MeshBasis_P2,setT3MeshBasis_P3
+  use baseSimplex2D, only: setT3BasisEqui_uv,setT3MeshIJK,setT3MeshBasis_P1,setT3MeshBasis_P2,setT3MeshBasis_P3
   
   use variablesCommunes
-  use additionnal_Functions
   use spaceMessages
   !---
   implicit none
@@ -1177,7 +1176,7 @@ subroutine  userInterpolation                        ( &
     case default
       allocate(ij(1:2,1:nMod))
       call setT3MeshIJK(meshOrder=order,ij=ij)
-      call setT3BasisEqui(ord=order,ijk=ij,uvw=uvT3,ai=lagrangeMeshT3)
+      call setT3BasisEqui_uv(ord=order,ijk=ij,uvw=uvT3,ai=lagrangeMeshT3)
       deallocate(ij)
     end select
     deallocate(uvT3)
@@ -1372,11 +1371,11 @@ program fortran_surf_TriaPi_PiPj
   use cwipi
   
   use variablesCommunes
-  use additionnal_Functions
+  use additionnal_Functions, only: mshToMesh
   use spaceCellTypes
   use spaceMessages
-  use baseSimplex1D, only: nodes1D,setQ4BasisEqui_u,setQ4MeshIJK
-  use baseSimplex2D, only: nodes2D,setT3BasisEqui  ,setT3MeshIJK
+  use baseSimplex1D, only: nodes1D,setQ4BasisEqui_u ,setQ4MeshIJK
+  use baseSimplex2D, only: nodes2D,setT3BasisEqui_uv,setT3MeshIJK, setT3MeshBasis_P1,setT3MeshBasis_P2,setT3MeshBasis_P3
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
@@ -1978,11 +1977,12 @@ program fortran_surf_TriaPi_PiPj
       allocate(lagrangeMeshT3(1:nMod,1:nNod))
       select case(meshOrder)
       case(01) ; call setT3MeshBasis_P1(uv=uv,ai=lagrangeMeshT3)
-     !case(02) ; call setT3MeshBasis_P2(uv=uv,ai=lagrangeMeshT3)
+      case(02) ; call setT3MeshBasis_P2(uv=uv,ai=lagrangeMeshT3)
+      case(03) ; call setT3MeshBasis_P3(uv=uv,ai=lagrangeMeshT3)
       case default
         allocate(ij(1:2,1:nMod))
         call setT3MeshIJK(meshOrder=meshOrder,ij=ij)
-        call setT3BasisEqui(ord=meshOrder,ijk=ij,uvw=uv,ai=lagrangeMeshT3)
+        call setT3BasisEqui_uv(ord=meshOrder,ijk=ij,uvw=uv,ai=lagrangeMeshT3)
         deallocate(ij)
       end select
       deallocate(uv)

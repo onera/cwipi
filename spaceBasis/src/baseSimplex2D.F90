@@ -14,7 +14,120 @@ module baseSimplex2D
   interface lagrange2Dv  ; module procedure lagrange2Dv_2  ; end interface
   
   contains
+  
+  subroutine setT3MeshBasis_P1(uv,ai)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Numerotation des sommets
+    !>   nod   ijk
+    !>   3     010
+    !>   1 2   001 100
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    ! delcaration des variables passees en argument
+    real(8), intent(in)    :: uv(:,:)
+    real(8), intent(inout) :: ai(:,:)
+    !>
+    integer                :: iNod
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    do iNod=1,size(uv,2)
+      ai(1,iNod)=1d0-uv(1,iNod)-uv(2,iNod)  !> ijk=001
+      ai(2,iNod)=    uv(1,iNod)             !> ijk=100
+      ai(3,iNod)=               uv(2,iNod)  !> ijk=010
+    enddo
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end subroutine setT3MeshBasis_P1
+  
+  subroutine setT3MeshBasis_P2(uv,ai)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Numerotation des sommets
+    !>   nod     ijk
+    !>   3       020
+    !>   6 5     011 110
+    !>   1 4 2   002 101 200
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    ! delcaration des variables passees en argument
+    real(8), intent(in)    :: uv(:,:)
+    real(8), intent(inout) :: ai(:,:)
+    !>
+    integer                :: iNod
+    real(8)                :: u,v,w
+    real(8)                :: u2,v2,w2
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    do iNod=1,size(uv,2)
+      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      u=uv(1,iNod) ; u2=2d0*u
+      v=uv(2,iNod) ; v2=2d0*v
+      w=1d0-u-v    ; w2=2d0*w
+      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      ai(1,iNod)=w*(-1d0+w2)    !> (i,j,k)=(0,0,2)
+      ai(2,iNod)=u*(-1d0+u2)    !> (i,j,k)=(2,0,0)
+      ai(3,iNod)=v*(-1d0+v2)    !> (i,j,k)=(0,2,0)
+      ai(4,iNod)=u2*w2          !> (i,j,k)=(1,0,1)
+      ai(5,iNod)=u2*v2          !> (i,j,k)=(1,1,0)
+      ai(6,iNod)=v2*w2          !> (i,j,k)=(0,1,1)
+      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    enddo
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end subroutine setT3MeshBasis_P2
+  
+  subroutine setT3MeshBasis_P3(uv,ai)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Numerotation des sommets
+    !> nod           ijk
+    !> 03            030
+    !> 08 07         021 120
+    !> 09 10 06      012 111 210
+    !> 01 04 05 02   003 102 201 300
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    real(8), intent(in)    :: uv(:,:)
+    real(8), intent(inout) :: ai(:,:)
+    !>
+    integer                :: iNod
+    real(8)                :: u,u3,u3m1
+    real(8)                :: v,v3,v3m1
+    real(8)                :: w,w3,w3m1
+    real(8)                :: coef
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    do iNod=1,size(uv,2)
+      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      u=uv(1,iNod) ; u3=3d0*u ; u3m1=(u3-1d0)*5d-1
+      v=uv(2,iNod) ; v3=3d0*v ; v3m1=(v3-1d0)*5d-1
+      w=1d0-u-v    ; w3=3d0*w ; w3m1=(w3-1d0)*5d-1
+      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      ai(01,iNod)= w*w3m1*(w3-2d0)    !> (i,j,k)=(003)
+      ai(02,iNod)= u*u3m1*(u3-2d0)    !> (i,j,k)=(300)
+      ai(03,iNod)= v*v3m1*(v3-2d0)    !> (i,j,k)=(030)
+      ai(04,iNod)= u3*w3*w3m1         !> (i,j,k)=(102)
+      
+      coef=u3*u3m1
+      ai(05,iNod)= coef*w3            !> (i,j,k)=(201)
+      ai(06,iNod)= coef*v3            !> (i,j,k)=(210)
+      
+      coef=v3*v3m1
+      ai(07,iNod)= coef*u3            !> (i,j,k)=(120)
+      ai(08,iNod)= coef*w3            !> (i,j,k)=(021)
 
+      coef=v3*w3
+      ai(09,iNod)= coef*w3m1          !> (i,j,k)=(012)      
+      ai(10,iNod)= coef*u3            !> (i,j,k)=(111)      
+      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<      
+    enddo
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end subroutine setT3MeshBasis_P3
+    
+  
   subroutine setT3MeshIJK(meshOrder,ij)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer, intent(in)    :: meshOrder
@@ -111,7 +224,7 @@ module baseSimplex2D
     integer          :: ord_f, n_vtx_f, n_mode
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    ord_f = ord
+    ord_f   = ord
     n_vtx_f = n_vtx
     n_mode = (ord_f+2)*(ord_f+1)/2
     
@@ -119,12 +232,12 @@ module baseSimplex2D
     call c_f_pointer (uvw, uvw_f, [2     , n_vtx_f])
     call c_f_pointer (ai , ai_f , [n_mode, n_vtx_f])
     
-    call setT3BasisEqui (ord_f, ijk_f, uvw_f, ai_f)
+    call setT3BasisEqui_uv(ord_f, ijk_f, uvw_f, ai_f)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return
   end subroutine setT3BasisEqui_c
   
-  subroutine setT3BasisEqui(ord,ijk,uvw,ai)
+  subroutine setT3BasisEqui_uv(ord,ijk,uvw,ai)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! Calcul des base d'ordere ord pour des triangles dont les points
     ! d'interpolation sont equidistants.
@@ -182,7 +295,7 @@ module baseSimplex2D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return
-  end subroutine setT3BasisEqui
+  end subroutine setT3BasisEqui_uv
     
   
   subroutine free_double_c(array, s_array)  BIND(C, name="SNB_free_double")
