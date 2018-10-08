@@ -95,6 +95,8 @@ module baseSimplex2D
   
   
   subroutine setT3BasisEqui_c(ord, n_vtx, ijk, uvw, ai)  BIND(C, name="SNB_setT3BasisEqui") 
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     use, intrinsic :: ISO_C_BINDING 
     implicit none 
     integer (C_INT), value :: ord 
@@ -102,24 +104,24 @@ module baseSimplex2D
     type (C_PTR),    value  :: ijk
     type (C_PTR),    value  :: uvw
     type (C_PTR),    value  :: ai
-
+    !>
     integer, pointer :: ijk_f(:,:)
     real(8), pointer :: uvw_f(:,:)
     real(8), pointer :: ai_f(:,:)
     integer          :: ord_f, n_vtx_f, n_mode
-
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ord_f = ord
     n_vtx_f = n_vtx
     n_mode = (ord_f+2)*(ord_f+1)/2
     
-    call c_f_pointer (ijk, ijk_f, (/2, n_mode/))
-
-    call c_f_pointer (uvw, uvw_f, (/2, n_vtx_f/))
-
-    call c_f_pointer (ai, ai_f, (/n_mode, n_vtx_f/))
+    call c_f_pointer (ijk, ijk_f, [2     , n_mode ])
+    call c_f_pointer (uvw, uvw_f, [2     , n_vtx_f])
+    call c_f_pointer (ai , ai_f , [n_mode, n_vtx_f])
     
     call setT3BasisEqui (ord_f, ijk_f, uvw_f, ai_f)
-
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
   end subroutine setT3BasisEqui_c
   
   subroutine setT3BasisEqui(ord,ijk,uvw,ai)

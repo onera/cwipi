@@ -260,69 +260,7 @@ end module spaceMessages
 module additionnal_Functions
 
 contains
-  
-  subroutine setT3MeshBasis_P1(uv,ai)
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Numerotation des sommets
-    !>   3
-    !>   1 2
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    ! delcaration des variables passees en argument
-    real(8), intent(in)    :: uv(:,:)
-    real(8), intent(inout) :: ai(:,:)
-    !>
-    integer                :: iNod
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    do iNod=1,size(uv,2)
-      ai(1,iNod)=1d0-uv(1,iNod)-uv(2,iNod)
-      ai(2,iNod)=    uv(1,iNod)
-      ai(3,iNod)=               uv(2,iNod)
-    enddo
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    return
-  end subroutine setT3MeshBasis_P1
-  
-  subroutine setT3MeshBasis_P2(uv,ai)
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Numerotation des sommets
-    !>   3
-    !>   6 5
-    !>   1 4 2
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    ! delcaration des variables passees en argument
-    real(8), intent(in)    :: uv(:,:)
-    real(8), intent(inout) :: ai(:,:)
-    !>
-    integer                :: iNod
-    real(8)                :: u,v,w
-    real(8)                :: u2,v2,w2
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    do iNod=1,size(uv,2)
-      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-      u=uv(1,iNod)
-      v=uv(2,iNod)
-      w=1d0-u-v
-      u2=2d0*u ; v2=2d0*v ; w2=2d0*w
-      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-      ai(1,iNod)=w*(-1d0+w2)    !> (i,j,k)=(0,0,2)
-      ai(2,iNod)=u*(-1d0+u2)    !> (i,j,k)=(2,0,0)
-      ai(3,iNod)=v*(-1d0+v2)    !> (i,j,k)=(0,2,0)
-      ai(4,iNod)=u2*w2          !> (i,j,k)=(1,0,1)
-      ai(5,iNod)=u2*v2          !> (i,j,k)=(1,1,0)
-      ai(6,iNod)=v2*w2          !> (i,j,k)=(0,1,1)
-      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    enddo
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    return
-  end subroutine setT3MeshBasis_P2
-  
-
   subroutine mshToMesh(mshName)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> http://geuz.org/gmsh/doc/texinfo/#MSH-ASCII-file-format
@@ -1125,7 +1063,7 @@ subroutine  userInterpolation                        ( &
   use iso_c_binding, only: c_loc,c_f_pointer
   use cwipi
   use baseSimplex1D, only: setQ4BasisEqui_uv,setQ4MeshIJK
-  use baseSimplex2D, only: setT3BasisEqui   ,setT3MeshIJK
+  use baseSimplex2D, only: setT3BasisEqui   ,setT3MeshIJK,setT3MeshBasis_P1,setT3MeshBasis_P2,setT3MeshBasis_P3
   
   use variablesCommunes
   use additionnal_Functions
@@ -1233,8 +1171,9 @@ subroutine  userInterpolation                        ( &
     allocate(lagrangeMeshT3(1:nMod,1:nT3))
     
     select case(order)
-    case(1) ; call setT3MeshBasis_P1(uv=uvT3,ai=lagrangeMeshT3) !> base Triangle Geometrique P2
-   !case(2) ; call setT3MeshBasis_P2(uv=uvT3,ai=lagrangeMeshT3) !> base Triangle Geometrique P2
+    case(1) ; call setT3MeshBasis_P1(uv=uvT3,ai=lagrangeMeshT3) !> base Triangle Geometrique P1
+    case(2) ; call setT3MeshBasis_P2(uv=uvT3,ai=lagrangeMeshT3) !> base Triangle Geometrique P2
+    case(3) ; call setT3MeshBasis_P3(uv=uvT3,ai=lagrangeMeshT3) !> base Triangle Geometrique P3
     case default
       allocate(ij(1:2,1:nMod))
       call setT3MeshIJK(meshOrder=order,ij=ij)
@@ -1576,7 +1515,7 @@ program fortran_surf_TriaPi_PiPj
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  do meshOrder=1,2
+  do meshOrder=1,3
     
     call cpu_time(t0)
     
