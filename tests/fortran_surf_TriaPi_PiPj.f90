@@ -1514,7 +1514,7 @@ program fortran_surf_TriaPi_PiPj
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  do meshOrder=1,3
+  do meshOrder=1,2
     
     call cpu_time(t0)
     
@@ -1585,19 +1585,19 @@ program fortran_surf_TriaPi_PiPj
         
     select case(rankWorld)
     case(0)
-      write(key,'(6x,"gmsh spaceBasis/tests/Mesh2D/sphere01.geo -2 -format msh -order ",i1," > sphere01.log")')meshOrder      
+      write(key,'(6x,"gmsh ../spaceBasis/tests/Mesh2D/sphere01.geo -2 -format msh -order ",i1," > sphere01.log")')meshOrder      
      !call msg1(trim(key))
       call execute_command_line (key, exitstat=iErr)      
-      call mshToMesh(" spaceBasis/tests/Mesh2D/sphere01.msh")
+      call mshToMesh(" ../spaceBasis/tests/Mesh2D/sphere01.msh")
       
       !write(key,'(6x,"~/Maillages/mshTomesh spaceBasis/tests/Mesh2D/sphere01.msh >> sphere01.log")')
       !call msg1(trim(key))
       !call execute_command_line (key, exitstat=iErr)     
     case(1)
-      write(key,'(6x,"gmsh spaceBasis/tests/Mesh2D/sphere02.geo -2 -format msh -order ",i1," > sphere02.log")')meshOrder
+      write(key,'(6x,"gmsh ../spaceBasis/tests/Mesh2D/sphere02.geo -2 -format msh -order ",i1," > sphere02.log")')meshOrder
      !call msg1(trim(key))
       call execute_command_line (key, exitstat=iErr)       
-      call mshToMesh(" spaceBasis/tests/Mesh2D/sphere02.msh")
+      call mshToMesh(" ../spaceBasis/tests/Mesh2D/sphere02.msh")
      
       !write(key,'(6x,"~/Maillages/mshTomesh spaceBasis/tests/Mesh2D/sphere02.msh >> sphere01.log")')
       !call msg1(trim(key))
@@ -1612,8 +1612,8 @@ program fortran_surf_TriaPi_PiPj
     write(buffer,'("")')                                               ; call msg2(trim(buffer))
     write(buffer,'("Reading Geometric Mesh",t130,"@rkw",i3)')rankWorld ; call msg1(trim(buffer))
     select case(rankWorld)
-    case(0) ; meshName="./spaceBasis/tests/Mesh2D/sphere01.mesh"
-    case(1) ; meshName="./spaceBasis/tests/Mesh2D/sphere02.mesh"
+    case(0) ; meshName="../spaceBasis/tests/Mesh2D/sphere01.mesh"
+    case(1) ; meshName="../spaceBasis/tests/Mesh2D/sphere02.mesh"
     end select
     
     !>>>>>>>
@@ -1747,7 +1747,7 @@ program fortran_surf_TriaPi_PiPj
         &                                              &
         &   GmfInt, mark(iCell0+1), mark(iCell0+nCell) )
       
-      case default ; call stopAlert("meshOrder>4")
+      case default ; call stopAlert("meshOrder>3")
       end select
       
       iCell0=iCell0+nCell
