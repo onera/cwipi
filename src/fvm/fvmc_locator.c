@@ -59,6 +59,7 @@
 
 #include "fvmc_config_defs.h"
 #include "fvmc_defs.h"
+#include "fvmc_ho.h"
 #include "fvmc_nodal.h"
 #include "fvmc_nodal_priv.h"
 #include "fvmc_parall.h"
@@ -567,7 +568,7 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
 
       // TODO : if order > 1 add points to compute bounding box
 
-      if (order > 1 && 1 == 0) {
+      if (order > 1 && 1 == 1) {
 
         assert (dim == 3);
 
@@ -579,19 +580,10 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
           const int n_vtx = (n_step + 2) * (n_step + 1) /2;
           double *uv = malloc (sizeof(double) * 2 * n_vtx); 
           double *ai = malloc (sizeof(double) * n_nodes * n_vtx); 
-          int    *ijk = malloc (sizeof(int) * 2 * n_nodes);
-
-          int i1 = 0;
-          for (int jj = 0; jj < n_nodes; jj++) {
-             for (int ii = 0; ii < n_nodes - jj; ii++) {
-               ijk[i1++] = ii;
-               ijk[i1++] = jj;
-             }
-          }
           
           for (int ielt = 0; ielt < this_section->n_elements; ielt++) {
 
-            i1 = 0;
+            int i1 = 0;
             for (int jj = 0; jj < n_step; jj++) {
               double v = jj*step;
               for (int ii = 0; ii < n_step - jj; ii++) {
@@ -601,7 +593,7 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
               }
             }
 
-            // appeler space basis
+            fvmc_ho_basis (FVMC_FACE_TRIA, order, n_nodes, uv, ai);
 
             double xyz[3];
             
@@ -641,11 +633,10 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
 
           free (uv);
           free (ai);
-          free (ijk);
           
         }
 
-        if (this_section->type == FVMC_FACE_QUAD) {
+        else if (this_section->type == FVMC_FACE_QUAD) {
 
 
         }

@@ -25,6 +25,8 @@
 
 #include <mpi.h>
 
+#include "pdm.h"
+#include "pdm_timer.h"
 #include "cwipi.h"
 #include "grid_mesh.h"
 
@@ -43,11 +45,11 @@ static void _dumpNotLocatedPoints(FILE* outputFile,
                                   const int nNotLocatedPoints)
 {
   if ( nNotLocatedPoints > 0) {
-    fprintf(outputFile, "Not located points :\n");
+    //fprintf(outputFile, "Not located points :\n");
     const int* notLocatedPoints = cwipi_get_not_located_points(coupling_id);
-    for(int i = 0; i < nNotLocatedPoints; i++)
-     fprintf(outputFile, "%i ", notLocatedPoints[i]);
-    fprintf(outputFile, "\n");
+    // for(int i = 0; i < nNotLocatedPoints; i++)
+     //fprintf(outputFile, "%i ", notLocatedPoints[i]);
+    //fprintf(outputFile, "\n");
   }
 }
 
@@ -163,7 +165,7 @@ int main
 
   if (n2 != commWorldSize) {
     if (rank == 0)
-      printf("      Not executed : only available if the number of processus in the form of '2 * n^2' \n");
+      printf("      Not executed : only available if the number of processus in the form of '2 * n^2' %d %d\n", n2, commWorldSize);
     MPI_Finalize();
     return EXIT_SUCCESS;
   }
@@ -197,11 +199,12 @@ int main
   char* fileName = (char *) malloc(sizeof(char) * 42);
   sprintf(fileName,"c_surf_coupling_P1P1_asynchronous%4.4d.txt",rank);
 
-  outputFile = fopen(fileName,"w");
-
+  //outputFile = fopen(fileName,"w");
+  outputFile = stdout;
+  
   free(fileName);
 
-  cwipi_set_output_listing(outputFile);
+  //cwipi_set_output_listing(outputFile);
 
   MPI_Comm localComm;
   cwipi_init(MPI_COMM_WORLD,
@@ -217,12 +220,12 @@ int main
   MPI_Comm_rank(localComm, &currentRank);
   MPI_Comm_size(localComm, &localCommSize);
 
-  fprintf(outputFile, "  Surface coupling test : P1P1 with polygon\n");
-  fprintf(outputFile, "\n");
+  //fprintf(outputFile, "  Surface coupling test : P1P1 with polygon\n");
+  //fprintf(outputFile, "\n");
 
-  fprintf(outputFile, "\nDump after initialization\n");
-  fprintf(outputFile, "-------------------------\n");
-  cwipi_dump_application_properties();
+  //fprintf(outputFile, "\nDump after initialization\n");
+  //fprintf(outputFile, "-------------------------\n");
+  //cwipi_dump_application_properties();
 
   if (rank == 0)
     printf("        Create coupling\n");
@@ -238,10 +241,10 @@ int main
                         CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING, // Coupling type
                         codeCoupledName,                           // Coupled application id
                         2,                                         // Geometric entities dimension
-                        0.1,                                       // Geometric tolerance
+                        1e-5,                                       // Geometric tolerance
                         CWIPI_STATIC_MESH,                         // Mesh type
                         solver_type,                               // Solver type
-                        1,                                         // Postprocessing frequency
+                        -1,                                         // Postprocessing frequency
                         "EnSight Gold",                            // Postprocessing format
                         "text");                                   // Postprocessing option
   
@@ -264,8 +267,15 @@ int main
   const double ymin = -10;
   const double ymax =  10;
 
+  // nVertexSeg = floor(sqrt(1.e8 / localCommSize));
+  
   nVertex = nVertexSeg * nVertexSeg;
   nElts = (nVertexSeg - 1) * (nVertexSeg - 1);
+
+  if (currentRank == 0) {
+    printf ("nVertex nElt : %s %d %d %d\n", codeName,
+            localCommSize, nVertex, nElts);
+  }
 
   coords = (double *) malloc(sizeof(double) * 3 * nVertex );
   eltsConnecPointer = (int *) malloc(sizeof(int) * (nElts + 1));
@@ -284,8 +294,8 @@ int main
             localComm); 
 
 
-  fprintf(outputFile, "   Number of vertex   : %i\n", nVertex);
-  fprintf(outputFile, "   Number of elements : %i\n", nElts);
+  ////fprintf(outputFile, "   Number of vertex   : %i\n", nVertex);
+  ////fprintf(outputFile, "   Number of elements : %i\n", nElts);
 
   cwipi_define_mesh("c_surf_cpl_P1P1_async",
                     nVertex,
@@ -336,9 +346,31 @@ int main
   int sRequest, rRequest;
   int tag = 1;
 
+  PDM_timer_t *t1 = PDM_timer_create();
+  PDM_timer_init(t1);
+  PDM_timer_resume(t1);
   cwipi_locate("c_surf_cpl_P1P1_async");
+  PDM_timer_hang_on(t1);
 
+  double elaps1 = PDM_timer_elapsed(t1);
+  double elaps1_abs;
+  MPI_Allreduce(&elaps1, &elaps1_abs, 1, MPI_DOUBLE, MPI_MAX, localComm);
+
+  if (currentRank == 0) {
+    printf ("Temps de localisation : %s %d %12.5e\n", codeName,
+            localCommSize, elaps1_abs);
+  }
+  
   nNotLocatedPoints = cwipi_get_n_not_located_points("c_surf_cpl_P1P1_async");
+
+  if (nNotLocatedPoints != 0) {
+    printf("nNotLocatedPoints : %d\n", nNotLocatedPoints);
+    exit(1);
+  }
+  
+  PDM_timer_t *t2 = PDM_timer_create();
+  PDM_timer_init(t2);
+  PDM_timer_resume(t2);
 
   cwipi_irecv("c_surf_cpl_P1P1_async",
               "ech",
@@ -355,7 +387,7 @@ int main
                "ech",
                tag,
                1,
-               1,
+               1, 
                0.1,
                sendValuesName,
                sendValues,
@@ -363,9 +395,19 @@ int main
 
   cwipi_wait_irecv("c_surf_cpl_P1P1_async", rRequest);
   cwipi_wait_issend("c_surf_cpl_P1P1_async", sRequest);
+  PDM_timer_hang_on(t2);
+
+  double elaps2 = PDM_timer_elapsed(t2);
+  double elaps2_abs;
+  MPI_Allreduce(&elaps2, &elaps2_abs, 1, MPI_DOUBLE, MPI_MAX, localComm);
+
+  if (currentRank == 0) {
+    printf ("Temps d'echange : %s %d %12.5e\n", codeName,
+            localCommSize, elaps2_abs);
+  }
 
   //  _dumpStatus(outputFile, status);
-  _dumpNotLocatedPoints(outputFile, "c_surf_cpl_P1P1_async", nNotLocatedPoints);
+  //_dumpNotLocatedPoints(outputFile, "c_surf_cpl_P1P1_async", nNotLocatedPoints);
 
   /* Coupling deletion
    * ----------------- */

@@ -412,6 +412,7 @@ void LocationToLocalMesh::locate()
 
   if (_toLocate || _locationToDistantMesh.getToLocateStatus()) {
 
+
     _locationToDistantMesh.clear();
 
     if (_isCoupledRank) {
@@ -917,6 +918,7 @@ void LocationToLocalMesh::locate()
       
     }
 
+    
     _locationToDistantMesh.synchronize();
     _toLocate = false;
       
