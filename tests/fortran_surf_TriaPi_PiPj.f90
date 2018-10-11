@@ -1514,7 +1514,7 @@ program fortran_surf_TriaPi_PiPj
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  do meshOrder=1,2
+  do meshOrder=1,3
     
     call cpu_time(t0)
     
@@ -1746,7 +1746,31 @@ program fortran_surf_TriaPi_PiPj
         &   GmfInt, cells(ad1+ 9) , cells(ad2+ 9)     ,&
         &                                              &
         &   GmfInt, mark(iCell0+1), mark(iCell0+nCell) )
-      
+      case(3)
+        res=GmfGetBlock(                               &
+        &   InpMsh                                    ,&
+        &   GmfQuadrilateralsQ3                       ,&  ! <=
+        &   ad0                                       ,&
+        &   int(nCell,kind=8)                         ,&
+        &   0, %val(0), %val(0)                       ,&
+        &   GmfInt, cells(ad1+ 1) , cells(ad2+ 1)     ,&
+        &   GmfInt, cells(ad1+ 2) , cells(ad2+ 2)     ,&
+        &   GmfInt, cells(ad1+ 3) , cells(ad2+ 3)     ,&
+        &   GmfInt, cells(ad1+ 4) , cells(ad2+ 4)     ,&
+        &   GmfInt, cells(ad1+ 5) , cells(ad2+ 5)     ,&
+        &   GmfInt, cells(ad1+ 6) , cells(ad2+ 6)     ,&
+        &   GmfInt, cells(ad1+ 7) , cells(ad2+ 7)     ,&
+        &   GmfInt, cells(ad1+ 8) , cells(ad2+ 8)     ,&
+        &   GmfInt, cells(ad1+ 9) , cells(ad2+ 9)     ,&
+        &   GmfInt, cells(ad1+10) , cells(ad2+10)     ,&
+        &   GmfInt, cells(ad1+11) , cells(ad2+11)     ,&
+        &   GmfInt, cells(ad1+12) , cells(ad2+12)     ,&
+        &   GmfInt, cells(ad1+13) , cells(ad2+13)     ,&
+        &   GmfInt, cells(ad1+14) , cells(ad2+14)     ,&
+        &   GmfInt, cells(ad1+15) , cells(ad2+15)     ,&
+        &   GmfInt, cells(ad1+16) , cells(ad2+16)     ,&
+        &                                              &
+        &   GmfInt, mark(iCell0+1), mark(iCell0+nCell) )
       case default ; call stopAlert("meshOrder>3")
       end select
       
@@ -2185,23 +2209,27 @@ program fortran_surf_TriaPi_PiPj
     
     j=(iVertMax-1)*3
     k=(iVertMax-1)*stride
-    write(buffer,'(                                  &
-    &                                             a, &
-    &              3x,"Control",t130,"@rkw",i3   ,a, &
-    &              6x,"meshOrder=",i1            ,a, &
-    &              6x,"linkVertSize=",i6         ,a, &
-    &                                             a, &
-    &              6x,"deltaMin  =",e22.15       ,a, &
-    &              6x,"sumDelta  =",e22.15       ,a, &
-    &              6x,"deltaMax  =",e22.15       ,a, &
-    &                                             a, &
-    &              6x,"linkVert  =",3(e22.15,1x) ,a, &
-    &              6x,"linkValues=",3(e22.15,1x) ,a, &
-    &              6x,"Delta     =",3(e22.15,1x)     &
-    &                                             )')&
+    write(buffer,'(                                     a, &
+    &              3x,"Control",t130,"@rkw",i3         ,a, &
+    &              6x,"mesh: ",a," meshOrder=",i1      ,a, &
+    &              6x,"nVert=",i6," nQ4=",i6," nT3=",i6,a, &
+    &                                                   a, &
+    &              6x,"linkVertSize=",i6               ,a, &
+    &                                                   a, &
+    &              6x,"deltaMin  =",e22.15             ,a, &
+    &              6x,"sumDelta  =",e22.15             ,a, &
+    &              6x,"deltaMax  =",e22.15             ,a, &
+    &                                                   a, &
+    &              6x,"linkVert  =",3(e22.15,1x)       ,a, &
+    &              6x,"linkValues=",3(e22.15,1x)       ,a, &
+    &              6x,"Delta     =",3(e22.15,1x)           &
+    &                                                   )')&
     &                          char(10),&
     & rankWorld               ,char(10),&
+    & trim(meshName)                   ,&    
     & meshOrder               ,char(10),&
+    & nVert,nQ4,nT3           ,char(10),&
+    &                          char(10),&
     & linkVertSize            ,char(10),&
     &                          char(10),&
     & deltaMin                ,char(10),&
