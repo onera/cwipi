@@ -50,6 +50,28 @@ SNB_setT3BasisEqui
 
 /**
  *
+ * \brief Compute weights from u and v
+ *
+ * \param [in]     order    Order 
+ * \param [in]     nVtx     Number of vertices 
+ * \param [in]     uvw      uvw coordinates
+ * \param [in]     display  Flag to dispay results
+ * 
+ */
+
+void
+SNB_setQ4BasisEqui_uv
+(
+ const int     order,
+ const int     nVtx,
+       int    *ijk,
+       double *u,
+       double *v,
+       double *weights
+);
+
+/**
+ *
  * \brief Compute uvw of nodes for the current order
  *
  * \param [in]     order    Order 

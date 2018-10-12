@@ -439,7 +439,39 @@ _basis_quad_qn
   else {
 
 #if defined (HAVE_SPACE_BASIS)
+    
+    if (_ijk_quad_space == NULL) {
+      _n_ijk_quad_space = FVMC_MAX (order-1, 10);
+      _ijk_quad_space = malloc (sizeof(int *) * _n_ijk_quad_space);
+      for (int i = 0; i < _n_ijk_quad_space; i++) {
+        _ijk_quad_space[i] = NULL;
+      }
+    }
 
+    if (order > _n_ijk_quad_space) {
+      _ijk_quad_space = realloc (_ijk_quad_space, sizeof(int *) * _n_ijk_quad_space);
+      for (int i = _n_ijk_quad_space; i < order; i++) {
+        _ijk_quad_space[i] = NULL;
+      }
+    }
+    
+    int *__ijk_quad_space = _ijk_quad_space[order-1];
+
+    if (__ijk_quad_space == NULL) {
+      const int n_nodes = (order+1)*(order+2)/2;
+      __ijk_quad_space = malloc (sizeof(int) * 2 * n_nodes);
+      int k = 0;
+      for (int j = 0; j < order+1; j++) {
+        for (int i = 0; i < order+1; i++) {
+          __ijk_quad_space[k++] = i;
+          __ijk_quad_space[k++] = j;
+        }
+      }
+    }
+
+    const int nVtx = 1;
+    
+    SNB_setQ4BasisEqui_uv (order, nVtx, __ijk_quad_space, &u, &v, weights);
     
 #else
     bftc_error(__FILE__, __LINE__, 0,
