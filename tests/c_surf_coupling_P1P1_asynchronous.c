@@ -244,7 +244,7 @@ int main
                         1e-5,                                       // Geometric tolerance
                         CWIPI_STATIC_MESH,                         // Mesh type
                         solver_type,                               // Solver type
-                        -1,                                         // Postprocessing frequency
+                        1,                                         // Postprocessing frequency
                         "EnSight Gold",                            // Postprocessing format
                         "text");                                   // Postprocessing option
   

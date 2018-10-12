@@ -1547,9 +1547,9 @@ program fortran_surf_TriaPi_PiPj
 !    end select
     
     select case(meshOrder)
-    case(1) ; tol=5d-1
+    case(1) ; tol=7.8d-2
    !case(2) ; tol=1d-2
-    case(2) ; tol=2d-2
+    case(2) ; tol=1.75d-3
     case(3) ; tol=2d-2
     end select
     

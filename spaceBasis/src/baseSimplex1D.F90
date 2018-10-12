@@ -272,6 +272,41 @@ module baseSimplex1D
           
     return
   end subroutine setQ4BasisEqui_u
+
+
+  subroutine setQ4BasisEqui_uv_c(ord, n_vtx, ijk, u, v, ai)  BIND(C, name="SNB_setQ4BasisEqui_uv") 
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    use, intrinsic :: ISO_C_BINDING 
+    implicit none 
+    integer (C_INT), value :: ord 
+    integer (C_INT), value :: n_vtx 
+    type (C_PTR),    value  :: ijk
+    type (C_PTR),    value  :: u
+    type (C_PTR),    value  :: v
+    type (C_PTR),    value  :: ai
+    !>
+    integer, pointer :: ijk_f(:,:)
+    real(8), pointer :: u_f(:)
+    real(8), pointer :: v_f(:)
+    real(8), pointer :: ai_f(:,:)
+    integer          :: ord_f, n_vtx_f, n_mode
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    ord_f   = ord
+    n_vtx_f = n_vtx
+    n_mode = (ord_f+1)*(ord_f+1)
+    
+    call c_f_pointer (ijk, ijk_f, [2     , n_mode ])
+    call c_f_pointer (u, u_f, [n_vtx_f])
+    call c_f_pointer (v, v_f, [n_vtx_f])
+    call c_f_pointer (ai , ai_f , [n_mode, n_vtx_f])
+    
+    call setQ4BasisEqui_uv(ord_f, ijk_f, u_f, v_f, ai_f)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end subroutine setQ4BasisEqui_uv_c
+
   
   subroutine setQ4BasisEqui_uv(ord,ijk,u,v,ai)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
