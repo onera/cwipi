@@ -1513,7 +1513,7 @@ program fortran_surf_TriaPi_PiPj
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  do meshOrder=1,3
+  do meshOrder=1,4
     
     call cpu_time(t0)
     
@@ -1546,11 +1546,12 @@ program fortran_surf_TriaPi_PiPj
 !    end select
     
     select case(meshOrder)
-    case(1) ; tol=7.8d-2
+    case(1) ; tol=2d-1 !7.8d-2
    !case(2) ; tol=1d-2
    ! case(2) ; tol=1.75d-3
-    case(2) ; tol=1.d-2
-    case(3) ; tol=0.1d0
+    case(2) ; tol=1d-2
+    case(3) ; tol=1d-1
+    case(4) ; tol=1d-1
     end select
     
     write(buffer,'("")')                                                                                        ; call msg2(trim(buffer))
@@ -1646,7 +1647,7 @@ program fortran_surf_TriaPi_PiPj
     nCell=nCell+nT3
     dim  =dim  +nT3*(meshOrder+1)*(meshOrder+2)/2
     
-    write(buffer,'(3x,"meshOrder=",i2,"  nVert=",i6," nQ4=",i6," nT3=",i6,t130,"@rkw",i3)')meshOrder,nVert,nQ4,nT3,rankWorld ; call msg1(trim(buffer))  
+   !write(buffer,'(3x,"meshOrder=",i2,"  nVert=",i6," nQ4=",i6," nT3=",i6,t130,"@rkw",i3)')meshOrder,nVert,nQ4,nT3,rankWorld ; call msg1(trim(buffer))  
     !<<<<<<<
     
     !>>>>>>>
@@ -1771,7 +1772,41 @@ program fortran_surf_TriaPi_PiPj
         &   GmfInt, cells(ad1+16) , cells(ad2+16)     ,&
         &                                              &
         &   GmfInt, mark(iCell0+1), mark(iCell0+nCell) )
-      case default ; call stopAlert("meshOrder>3")
+      case(4)
+        res=GmfGetBlock(                               &
+        &   InpMsh                                    ,&
+        &   GmfQuadrilateralsQ4                       ,&  ! <=
+        &   ad0                                       ,&
+        &   int(nCell,kind=8)                         ,&
+        &   0, %val(0), %val(0)                       ,&
+        &   GmfInt, cells(ad1+ 1) , cells(ad2+ 1)     ,&
+        &   GmfInt, cells(ad1+ 2) , cells(ad2+ 2)     ,&
+        &   GmfInt, cells(ad1+ 3) , cells(ad2+ 3)     ,&
+        &   GmfInt, cells(ad1+ 4) , cells(ad2+ 4)     ,&
+        &   GmfInt, cells(ad1+ 5) , cells(ad2+ 5)     ,&
+        &   GmfInt, cells(ad1+ 6) , cells(ad2+ 6)     ,&
+        &   GmfInt, cells(ad1+ 7) , cells(ad2+ 7)     ,&
+        &   GmfInt, cells(ad1+ 8) , cells(ad2+ 8)     ,&
+        &   GmfInt, cells(ad1+ 9) , cells(ad2+ 9)     ,&
+        &   GmfInt, cells(ad1+10) , cells(ad2+10)     ,&
+        &   GmfInt, cells(ad1+11) , cells(ad2+11)     ,&
+        &   GmfInt, cells(ad1+12) , cells(ad2+12)     ,&
+        &   GmfInt, cells(ad1+13) , cells(ad2+13)     ,&
+        &   GmfInt, cells(ad1+14) , cells(ad2+14)     ,&
+        &   GmfInt, cells(ad1+15) , cells(ad2+15)     ,&
+        &   GmfInt, cells(ad1+16) , cells(ad2+16)     ,&
+        &   GmfInt, cells(ad1+17) , cells(ad2+17)     ,&
+        &   GmfInt, cells(ad1+18) , cells(ad2+18)     ,&
+        &   GmfInt, cells(ad1+19) , cells(ad2+19)     ,&
+        &   GmfInt, cells(ad1+20) , cells(ad2+20)     ,&
+        &   GmfInt, cells(ad1+21) , cells(ad2+21)     ,&
+        &   GmfInt, cells(ad1+22) , cells(ad2+22)     ,&
+        &   GmfInt, cells(ad1+23) , cells(ad2+23)     ,&
+        &   GmfInt, cells(ad1+24) , cells(ad2+24)     ,&
+        &   GmfInt, cells(ad1+25) , cells(ad2+25)     ,&
+        &                                              &
+        &   GmfInt, mark(iCell0+1), mark(iCell0+nCell) )
+      case default ; call stopAlert("meshOrder>4")
       end select
       
       iCell0=iCell0+nCell
@@ -1849,8 +1884,32 @@ program fortran_surf_TriaPi_PiPj
         &   GmfInt, cells(ad1+10) , cells(ad2+10)     ,&
         &                                              &
         &   GmfInt, mark(iCell0+1), mark(iCell0+nCell) )
+      case(4)
+        res=GmfGetBlock(                               &
+        &   InpMsh                                    ,&
+        &   GmfTrianglesP4                            ,&  ! <=
+        &   ad0                                       ,&
+        &   int(nCell,kind=8)                         ,&
+        &   0, %val(0), %val(0)                       ,&
+        &   GmfInt, cells(ad1+ 1) , cells(ad2+ 1)     ,&
+        &   GmfInt, cells(ad1+ 2) , cells(ad2+ 2)     ,&
+        &   GmfInt, cells(ad1+ 3) , cells(ad2+ 3)     ,&
+        &   GmfInt, cells(ad1+ 4) , cells(ad2+ 4)     ,&
+        &   GmfInt, cells(ad1+ 5) , cells(ad2+ 5)     ,&
+        &   GmfInt, cells(ad1+ 6) , cells(ad2+ 6)     ,&
+        &   GmfInt, cells(ad1+ 7) , cells(ad2+ 7)     ,&
+        &   GmfInt, cells(ad1+ 8) , cells(ad2+ 8)     ,&
+        &   GmfInt, cells(ad1+ 9) , cells(ad2+ 9)     ,&
+        &   GmfInt, cells(ad1+10) , cells(ad2+10)     ,&
+        &   GmfInt, cells(ad1+11) , cells(ad2+11)     ,&
+        &   GmfInt, cells(ad1+12) , cells(ad2+12)     ,&
+        &   GmfInt, cells(ad1+13) , cells(ad2+13)     ,&
+        &   GmfInt, cells(ad1+14) , cells(ad2+14)     ,&
+        &   GmfInt, cells(ad1+15) , cells(ad2+15)     ,&
+        &                                              &
+        &   GmfInt, mark(iCell0+1), mark(iCell0+nCell) )
         
-      case default ; call stopAlert("reading Triangles meshOrder>3")
+      case default ; call stopAlert("reading Triangles meshOrder>4")
       end select
       
       iCell0=iCell0+nCell
@@ -1964,9 +2023,6 @@ program fortran_surf_TriaPi_PiPj
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Points de couplage linkVertSize,linkVert(:)
     
-    write(buffer,'("")')                                                        ; call msg2(trim(buffer))
-    write(buffer,'("linkVert compOrder",i3,t130,"@rkw",i3)')compOrder,rankWorld ; call msg1(trim(buffer))
-        
     
 #if 0==0
     
@@ -2099,6 +2155,8 @@ program fortran_surf_TriaPi_PiPj
     !  enddo
     !endif
     
+    write(buffer,'("")') ; call msg2(trim(buffer))
+    write(buffer,'("linkVert compOrder=",i3," -> linkVertSize=",i6,t130,"@rkw",i3)')compOrder,linkVertSize,rankWorld ; call msg1(trim(buffer))
     
 #else
     
