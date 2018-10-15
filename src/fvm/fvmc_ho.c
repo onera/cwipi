@@ -184,6 +184,9 @@ static int               **_ijk_quad_space = NULL;
 static int                 _n_ijk_1D_space = 0;
 static int               **_ijk_1D_space = NULL;
 
+static int isWarningPrinted1 = 0;
+static int isWarningPrinted2 = 0;
+
 /*============================================================================
  * Private function definitions
  *============================================================================*/
@@ -359,9 +362,18 @@ _basis_tria_pn
 
     const int nVtx = 1;
     double _uv[2] = {u, v};
+
+    // printf ("SNB_setT3BasisEqui uv : %12.5e %12.5e\n", u, v);
     
     SNB_setT3BasisEqui (order, nVtx, __ijk_tria_space, _uv, weights);
-      
+
+    /* const int n_nodes2 = (order+1)*(order+2)/2; */
+    /* printf ("SNB_setT3BasisEqui ai : "); */
+    /* for (int j = 0; j < n_nodes2; j++) { */
+    /*   printf (" %12.5e", weights[j]); */
+    /* } */
+    /* printf ("\n"); */
+
 #else
     bftc_error(__FILE__, __LINE__, 0,
                _("_basis_tria_pn not yet implemented for order > 2 without space basis \n"));
@@ -458,7 +470,7 @@ _basis_quad_qn
     int *__ijk_quad_space = _ijk_quad_space[order-1];
 
     if (__ijk_quad_space == NULL) {
-      const int n_nodes = (order+1)*(order+2)/2;
+      const int n_nodes = (order+1)*(order+1);
       __ijk_quad_space = malloc (sizeof(int) * 2 * n_nodes);
       int k = 0;
       for (int j = 0; j < order+1; j++) {
@@ -471,7 +483,9 @@ _basis_quad_qn
 
     const int nVtx = 1;
     
-    SNB_setQ4BasisEqui_uv (order, nVtx, __ijk_quad_space, &u, &v, weights);
+    SNB_setQ4BasisEqui_uv (order, nVtx, __ijk_quad_space,
+                           (double *) &u, (double *) &v,
+                           weights);
     
 #else
     bftc_error(__FILE__, __LINE__, 0,
@@ -1530,9 +1544,13 @@ _compute_dist2_from_closest_tria_subdivision
 
   if (*n_it >= n_it_max) {
 
-    bftc_printf("warning _default_location_on_tria_2d_v2 : "
-                "compute of projected point has not converged (error = %12.5e > error max %17.10\n",
-                err_proj, err_max);
+    if (isWarningPrinted2 == 0) {
+      isWarningPrinted2 = 1;
+
+      bftc_printf("warning _compute_dist2_from_closest_tria_subdivision : "
+                  "compute of projected point is not converged (error = %17.10e > error max %17.10e\n",
+                *err_proj, err_max);
+    }
   }
 
   if (distance_extension) {
@@ -1767,9 +1785,13 @@ _compute_dist2_from_uniform_tria_subdivision
 
   if (*n_it >= n_it_max) {
 
-    bftc_printf("warning _default_location_on_tria_2d_v2 : "
-                "compute of projected point has not converged (error = %12.5e > error max %17.10\n",
-                err_proj, err_max);
+    if (isWarningPrinted1 == 0) {
+          isWarningPrinted1 = 1;
+
+      bftc_printf("warning _compute_dist2_from_uniform_tria_subdivision : "
+                  "compute of projected point is not converged (error = %17.10e > error max %17.10e\n",
+                  *err_proj, err_max);
+    }
   }
 
   return dist2;
@@ -1813,6 +1835,7 @@ _default_location_generic_2d
     printf ("n_node %d\n", n_nodes);
   }
  
+  //  const int n_it_max = 100;
   const int n_it_max = 100;
   const double err_max = 1e-12;
 

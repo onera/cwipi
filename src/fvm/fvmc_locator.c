@@ -568,7 +568,7 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
 
       // TODO : if order > 1 add points to compute bounding box
 
-      if (order > 1 && 1 == 1) {
+      if (order > 1 && 1 == 0) {
 
         assert (dim == 3);
 
@@ -578,30 +578,32 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
           const int n_nodes = this_section->stride;
 
           const int n_vtx = (n_step + 2) * (n_step + 1) /2;
-          double *uv = malloc (sizeof(double) * 2 * n_vtx); 
-          double *ai = malloc (sizeof(double) * n_nodes * n_vtx); 
+          double *uv = malloc (sizeof(double) * 2 * n_vtx);
+          double *ai = malloc (sizeof(double) * n_nodes);
+          
+          int i1 = 0;
+          for (int jj = 0; jj < n_step + 1; jj++) {
+            double v = jj*step;
+            for (int ii = 0; ii < n_step + 1 - jj; ii++) {
+              double u = ii*step;
+              uv[i1++] = u;
+              uv[i1++] = v;
+            }
+          }
           
           for (int ielt = 0; ielt < this_section->n_elements; ielt++) {
-
-            int i1 = 0;
-            for (int jj = 0; jj < n_step; jj++) {
-              double v = jj*step;
-              for (int ii = 0; ii < n_step - jj; ii++) {
-                double u = ii*step;
-                uv[i1++] = u;
-                uv[i1++] = v;
-              }
-            }
-
-            fvmc_ho_basis (FVMC_FACE_TRIA, order, n_nodes, uv, ai);
-
-            double xyz[3];
             
             for (int ii = 0; ii < n_vtx; ii++) {
+
+              double xyz[3];
 
               for (int kk = 0; kk < 3; kk++) {
                 xyz[kk] = 0.;
               }
+
+              double *_uv = uv + 2 *ii;
+              
+              fvmc_ho_basis (FVMC_FACE_TRIA, order, n_nodes, _uv, ai);
               
               for (int jj = 0; jj < n_nodes; jj++) {
 
@@ -638,6 +640,68 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
 
         else if (this_section->type == FVMC_FACE_QUAD) {
 
+          const int n_step = 20;
+          const double step = 1./(n_step - 1);
+          const int n_nodes = this_section->stride;
+
+          const int n_vtx = (n_step + 1) * (n_step + 1);
+          double *uv = malloc (sizeof(double) * 2 * n_vtx);
+          double *ai = malloc (sizeof(double) * n_nodes);
+          
+          int i1 = 0;
+          for (int jj = 0; jj < n_step + 1; jj++) {
+            double v = jj*step;
+            for (int ii = 0; ii < n_step + 1; ii++) {
+              double u = ii*step;
+              uv[i1++] = u;
+              uv[i1++] = v;
+            }
+          }
+          
+          for (int ielt = 0; ielt < this_section->n_elements; ielt++) {
+            
+            for (int ii = 0; ii < n_vtx; ii++) {
+
+              double xyz[3];
+
+              for (int kk = 0; kk < 3; kk++) {
+                xyz[kk] = 0.;
+              }
+
+              double *_uv = uv + 2 *ii;
+              
+              fvmc_ho_basis (FVMC_FACE_QUAD, order, n_nodes, _uv, ai);
+              
+              for (int jj = 0; jj < n_nodes; jj++) {
+
+                vertex_id = this_section->vertex_num[ielt*n_nodes + j] - 1;
+
+                int coord_idx;
+                if (parent_vertex_num == NULL) {
+                  coord_idx = vertex_id;
+                }
+                else {
+                  coord_idx = parent_vertex_num[vertex_id] - 1;
+                }
+                
+                for (int kk = 0; kk < 3; kk++) {
+                  xyz[kk] += ai[jj] * vertex_coords[(coord_idx * dim) + kk];
+                }
+              }
+              
+              _update_elt_extents(dim,
+                                  0,
+                                  NULL,
+                                  xyz,
+                                  elt_extents,
+                                  &elt_initialized);
+            
+            }
+            
+          }
+
+          free (uv);
+          free (ai);
 
         }
         
