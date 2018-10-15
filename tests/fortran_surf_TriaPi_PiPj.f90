@@ -1513,7 +1513,7 @@ program fortran_surf_TriaPi_PiPj
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  do meshOrder=3,3
+  do meshOrder=1,3
     
     call cpu_time(t0)
     
@@ -1915,8 +1915,6 @@ program fortran_surf_TriaPi_PiPj
       call setQ4MeshIJK(meshOrder=meshOrder,ij=ij)
       call c_f_pointer(cptr=c_loc(ij), fptr=ijCwipi, shape=[2*nMod])  
 
-      print *,"ij = ", ij
-      
       call cwipi_ho_ordering_from_IJK_set_f( & !> NEW Cwipi
       &   couplingName =trim(couplingName)  ,&
       &   tElt         = CWIPI_FACE_QUADHO  ,&
@@ -1970,7 +1968,7 @@ program fortran_surf_TriaPi_PiPj
     write(buffer,'("linkVert compOrder",i3,t130,"@rkw",i3)')compOrder,rankWorld ; call msg1(trim(buffer))
         
     
-#if 1==0
+#if 0==0
     
     !> calcul lagrangeMeshQ4
     if( .not.nQ4==0 )then      

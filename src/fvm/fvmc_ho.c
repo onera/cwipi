@@ -482,9 +482,12 @@ _basis_quad_qn
     }
 
     const int nVtx = 1;
+
+    double _u = 2 * u - 1; 
+    double _v = 2 * v - 1; 
     
     SNB_setQ4BasisEqui_uv (order, nVtx, __ijk_quad_space,
-                           (double *) &u, (double *) &v,
+                           (double *) &_u, (double *) &_v,
                            weights);
     
 #else
