@@ -1840,7 +1840,7 @@ _default_location_generic_2d
  
   //  const int n_it_max = 100;
   const int n_it_max = 100;
-  const double err_max = 1e-12;
+  const double err_max = 1e-8;
 
   double dist2 = HUGE_VAL;
 
