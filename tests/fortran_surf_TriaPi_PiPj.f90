@@ -1513,7 +1513,7 @@ program fortran_surf_TriaPi_PiPj
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  do meshOrder=1,4
+  do meshOrder=4,4
     
     call cpu_time(t0)
     
@@ -2164,10 +2164,10 @@ program fortran_surf_TriaPi_PiPj
     allocate(linkVert(1:3*linkVertSize)) !> 3 coordonnées par point de couplage
     
     select case(rankWorld)
-!    case(0) ; linkVert(1:3)=[-0.919633675189875E+00,-0.250163898379974E-01, 0.392131352367653E+00]  
- !   case(1) ; linkVert(1:3)=[-0.848807623678876E+00,-0.213274154008489E-01, 0.424121411593377E+00]
+   !case(0) ; linkVert(1:3)=[-0.919633675189875E+00,-0.250163898379974E-01, 0.392131352367653E+00]  
+   !case(1) ; linkVert(1:3)=[-0.848807623678876E+00,-0.213274154008489E-01, 0.424121411593377E+00]
     case(0) ; linkVert(1:3)=[-0.962125889866290E+00, -0.353822407491257E-01, -0.270719711354757E+00]  
-    case(1) ; linkVert(1:3)=[0.690377557847734E+00,  0.515357183278473E+00, -0.519234683615825E+00]
+    case(1) ; linkVert(1:3)=[ 0.690377557847734E+00,  0.515357183278473E+00, -0.519234683615825E+00]
     end select
     
     write(buffer,'(6x,"linkVert(1:3)=    ",3(e22.15,1x),t130,"@rkw",i3)')linkVert(1:3),rankWorld     ; call msg1(trim(buffer))
@@ -2269,29 +2269,30 @@ program fortran_surf_TriaPi_PiPj
     
     j=(iVertMax-1)*3
     k=(iVertMax-1)*stride
-    write(buffer,'(                                     a, &
-    &              3x,"Control",t130,"@rkw",i3         ,a, &
-    &              6x,"mesh: ",a," meshOrder=",i1      ,a, &
-    &              6x,"nVert=",i6," nQ4=",i6," nT3=",i6,a, &
-    &                                                   a, &
-    &              6x,"linkVertSize=",i6               ,a, &
-    &                                                   a, &
-    &              6x,"deltaMin  =",e22.15             ,a, &
-    &              6x,"sumDelta  =",e22.15             ,a, &
-    &              6x,"deltaMax  =",e22.15             ,a, &
-    &                                                   a, &
-    &              6x,"linkVert  =",3(e22.15,1x)       ,a, &
-    &              6x,"linkValues=",3(e22.15,1x)       ,a, &
-    &              6x,"Delta     =",3(e22.15,1x)           &
-    &                                                   )')&
+    write(buffer,'(                                                      a, &
+    &              3x,"Control",t130,"@rkw",i3                          ,a, &
+    &              6x,"mesh: ",a                                        ,a, &
+    &              6x,"meshOrder=",i1," nVert=",i6," nQ4=",i6," nT3=",i6,a, &
+    &                                                                    a, &
+    &              6x,"linkVertSize=",i6                                ,a, &
+    &                                                                    a, &
+    &              6x,"Computed by: ",a                                 ,a, &
+    &              6x,"deltaMin  =",e22.15                              ,a, &
+    &              6x,"sumDelta  =",e22.15                              ,a, &
+    &              6x,"deltaMax  =",e22.15                              ,a, &
+    &                                                                    a, &
+    &              6x,"linkVert  =",3(e22.15,1x)                        ,a, &
+    &              6x,"linkValues=",3(e22.15,1x)                        ,a, &
+    &              6x,"Delta     =",3(e22.15,1x)                            &
+    &                                                                    )')&
     &                          char(10),&
     & rankWorld               ,char(10),&
-    & trim(meshName)                   ,&    
-    & meshOrder               ,char(10),&
-    & nVert,nQ4,nT3           ,char(10),&
+    & trim(meshName)          ,char(10),&    
+    & meshOrder,nVert,nQ4,nT3 ,char(10),&
     &                          char(10),&
     & linkVertSize            ,char(10),&
     &                          char(10),&
+    & trim(codeCoupledName)   ,char(10),&
     & deltaMin                ,char(10),&
     & sumDelta                ,char(10),&
     & deltaMax                ,char(10),&
