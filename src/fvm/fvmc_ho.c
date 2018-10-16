@@ -1822,6 +1822,7 @@ static double
 _default_location_generic_2d
 (
  const int order,
+ const double char_size,
  const int n_nodes,
  const double *nodes_coords,
  const double *point_coords,
@@ -1840,7 +1841,7 @@ _default_location_generic_2d
  
   //  const int n_it_max = 100;
   const int n_it_max = 100;
-  const double err_max = 1e-8;
+  double err_max = FVMC_MAX (char_size * 1e-6, 1e-15);
 
   double dist2 = HUGE_VAL;
 
@@ -1978,6 +1979,44 @@ _default_location_generic_2d
   
 }
 
+
+/*----------------------------------------------------------------------------
+ * 
+ * Compute the radius of a triangle inscribed circle
+ * 
+ * parameters:
+ *   coords           <-- coordinates of vertices
+ * 
+ * return: 
+ *   radius
+ *
+ *----------------------------------------------------------------------------*/
+
+static double 
+_radius_inscribed_circle
+(
+ const double *coords
+)
+{
+  double a = sqrt ((coords[3*1    ] - coords[3*0    ]) * (coords[3*1    ] - coords[3*0    ]) +
+                   (coords[3*1 + 1] - coords[3*0 + 1]) * (coords[3*1 + 1] - coords[3*0 + 1]) +
+                   (coords[3*1 + 2] - coords[3*0 + 2]) * (coords[3*1 + 2] - coords[3*0 + 2]));
+
+  double b = sqrt ((coords[3*2    ] - coords[3*1    ]) * (coords[3*2    ] - coords[3*1    ]) +
+                   (coords[3*2 + 1] - coords[3*1 + 1]) * (coords[3*2 + 1] - coords[3*1 + 1]) +
+                   (coords[3*2 + 2] - coords[3*1 + 2]) * (coords[3*2 + 2] - coords[3*1 + 2]));
+
+  double c = sqrt ((coords[3*0    ] - coords[3*2    ]) * (coords[3*0    ] - coords[3*2    ]) +
+                   (coords[3*0 + 1] - coords[3*2 + 1]) * (coords[3*0 + 1] - coords[3*2 + 1]) +
+                   (coords[3*0 + 2] - coords[3*2 + 2]) * (coords[3*0 + 2] - coords[3*2 + 2]));
+
+  double p = a + b + c;
+  double S = sqrt (p*(p-a)*(p-b)*(p-c));
+  
+  return S/p;
+}
+
+
 /*----------------------------------------------------------------------------
  * 
  * Point location on a high order cell 2d
@@ -2010,12 +2049,24 @@ _default_location
 {
   fvmc_element_t _type = type;
   double dist2 = HUGE_VAL;
+
   
   switch (_type) {
 
-  case FVMC_FACE_TRIA:
+  case FVMC_FACE_TRIA: {
 
+    int v1 = 0;
+    int v2 = order;
+    int v3 = (order + 2) * (order + 1) / 2 - 1;
+      
+    double p1_coords[9] = {nodes_coords[3*v1], nodes_coords[3*v1+1], nodes_coords[3*v1+2],
+                           nodes_coords[3*v2], nodes_coords[3*v2+1], nodes_coords[3*v2+2],
+                           nodes_coords[3*v3], nodes_coords[3*v3+1], nodes_coords[3*v3+2]};
+    
+    double char_size = _radius_inscribed_circle (p1_coords);
+    
     dist2 = _default_location_generic_2d (order,
+                                          char_size,
                                           n_nodes,
                                           nodes_coords,
                                           point_coords,
@@ -2026,9 +2077,44 @@ _default_location
 
     break;
 
-  case FVMC_FACE_QUAD: 
+  }
 
+  case FVMC_FACE_QUAD: {
+
+    const int order1 = order + 1;
+    
+    const int quadrangle_vertices[4] = {1,
+                                        order1,
+                                        order1 * order + 1,
+                                        order1 * order1};
+    int triangle_vertices[6];
+    
+    int n_sub_tria =  fvmc_triangulate_quadrangle(3,
+                                                  nodes_coords,
+                                                  NULL,
+                                                  quadrangle_vertices,
+                                                  triangle_vertices);
+
+    double char_size = HUGE_VAL;
+    
+    for (int i = 0; i < n_sub_tria; i++) {
+
+      int v1 = triangle_vertices[3*i    ] - 1;
+      int v2 = triangle_vertices[3*i + 1] - 1;
+      int v3 = triangle_vertices[3*i + 2] - 1;
+
+      double p1_coords[9] = {nodes_coords[3*v1], nodes_coords[3*v1+1], nodes_coords[3*v1+2],
+                             nodes_coords[3*v2], nodes_coords[3*v2+1], nodes_coords[3*v2+2],
+                             nodes_coords[3*v3], nodes_coords[3*v3+1], nodes_coords[3*v3+2]};
+    
+      double _char_size = _radius_inscribed_circle (p1_coords);
+     
+      char_size = FVMC_MAX (char_size, _char_size);
+      
+    }
+    
     dist2 = _default_location_generic_2d (order,
+                                          char_size,
                                           n_nodes,
                                           nodes_coords,
                                           point_coords,
@@ -2037,7 +2123,8 @@ _default_location
                                           _heap_fill_qn_sub_tria,
                                           _basis_quad_qn);
     break;
-
+  }
+    
   default:
     bftc_error(__FILE__, __LINE__, 0,
                _("_default_location : Element not implemented yet\n"));
