@@ -1549,9 +1549,9 @@ program fortran_surf_TriaPi_PiPj
     case(1) ; tol=2d-1 !7.8d-2
    !case(2) ; tol=1d-2
    ! case(2) ; tol=1.75d-3
-    case(2) ; tol=1d-2
-    case(3) ; tol=1d-1
-    case(4) ; tol=1d-1
+    case(2) ; tol=1.d-2
+    case(3) ; tol=1.d-2
+    case(4) ; tol=1.d-1
     end select
     
     write(buffer,'("")')                                                                                        ; call msg2(trim(buffer))
