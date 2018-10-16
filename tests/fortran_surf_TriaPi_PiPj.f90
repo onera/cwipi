@@ -1600,8 +1600,8 @@ program fortran_surf_TriaPi_PiPj
    !write(buffer,'("")')                                                   ; call msg2(trim(buffer))
    !write(buffer,'(3x,"meshOrder=",i3,t130,"@rkw",i3)')meshOrder,rankWorld ; call msg1(trim(buffer))
     
-   !maillage="sphere"
-    maillage="carre"
+    maillage="sphere"
+    !maillage="carre"
     
     
     write(key,'(6x,"gmsh ./meshes/",a,"0",i1,".geo -2 -format msh -order ",i1," > sphere0",i1,".log")')trim(maillage),rankWorld+1,meshOrder,rankWorld+1    
@@ -2014,11 +2014,7 @@ program fortran_surf_TriaPi_PiPj
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Initialisation of myValues(:)
     
-    stride=4 !> x,y,z,real(rankWorld,kind=8)
-    
-    write(buffer,'("")')                                                                    ; call msg2(trim(buffer))
-    write(buffer,'("Allocate   myValues(1:",i10,")",t130,"@rkw",i3)')stride*nVert,rankWorld ; call msg1(trim(buffer))
-    
+    stride=4 !> x,y,z,real(rankWorld,kind=8)    
     allocate(myValues(1:nVert*stride))
     i=0 ; j=0
     do iVert=1,nVert
@@ -2026,6 +2022,9 @@ program fortran_surf_TriaPi_PiPj
       i=i+3
       j=j+4
     enddo
+    
+   !write(buffer,'("")')                                                                    ; call msg2(trim(buffer))
+   !write(buffer,'("Allocate   myValues(1:",i10,")",t130,"@rkw",i3)')stride*nVert,rankWorld ; call msg1(trim(buffer))
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -2033,6 +2032,7 @@ program fortran_surf_TriaPi_PiPj
     
     
 #if 0==0
+
 ! 0==0 plusieurs points
 ! else un seul point (mise au point)
     
@@ -2188,10 +2188,10 @@ program fortran_surf_TriaPi_PiPj
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    write(buffer,'("")')                                                                           ; call msg2(trim(buffer))
-    write(buffer,'("Allocate linkValues(1:",i10,")",t130,"@rkw",i3)')stride*linkVertSize,rankWorld ; call msg1(trim(buffer))
-    
     allocate(linkValues(1:stride*linkVertSize))
+    
+   !write(buffer,'("")')                                                                           ; call msg2(trim(buffer))
+   !write(buffer,'("Allocate linkValues(1:",i10,")",t130,"@rkw",i3)')stride*linkVertSize,rankWorld ; call msg1(trim(buffer))
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
