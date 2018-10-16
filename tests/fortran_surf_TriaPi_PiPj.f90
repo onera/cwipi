@@ -1104,7 +1104,7 @@ subroutine  userInterpolation                        ( &
   integer, pointer :: ij(:,:)
   real(8), pointer :: lagrangeMeshQ4(:,:)
   real(8), pointer :: lagrangeMeshT3(:,:)
-  integer          :: nod(1:16)
+  integer, pointer :: nod(:)
   real(8)          :: delta(1:3)
   character(2048)  :: buffer
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -1148,6 +1148,12 @@ subroutine  userInterpolation                        ( &
     elseif( nMod==(order+1)*(order+2)/2 )then ; nT3=nT3+1 ; uvT3(1:2,nT3)=uv0(1:2,iDistantPoint)
     endif
   enddo    
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  if( .not.nQ4==0 )then ; allocate(nod((order+1)*(order+1)  ))
+  else                  ; allocate(nod((order+1)*(order+2)/2))
+  endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1198,13 +1204,18 @@ subroutine  userInterpolation                        ( &
       
       do iMod=1,nMod
         i=stride*(nod(iMod)-1)
+        
+        !do k=1,stride
+        !  distantField(j+k)=distantField(j+k)+lagrangeMeshQ4(iMod,nQ4)*localField(i+k)
+        !enddo
         distantField(j+1:j+stride)=distantField(j+1:j+stride)+lagrangeMeshQ4(iMod,nQ4)*localField(i+1:i+stride)
+       !print '("nQ4=",i6," iMod=",i2,"/",i2," nod=",i6," i+stride=",i6," j+stride=",i6)',nQ4,iMod,nMod,nod(iMod),i+stride,j+stride          
         
         !> Controling localField
         k=3*(nod(iMod)-1)
         delta(1:3)=localField(i+1:i+3)-localCoordinates(k+1:k+3)
         if( .not.(delta(1)==0d0.and.delta(2)==0d0.and.delta(3)==0d0) )then
-          print '("iCell=",i6," Delta=",3(e22.15,1x),t130,"@rkw",i3)',iCell,delta(1:3),rankWorld
+          print '("ERROR: iCell=",i6," Delta=",3(e22.15,1x),t130,"@rkw",i3)',iCell,delta(1:3),rankWorld
         endif
       enddo
       
@@ -1218,7 +1229,7 @@ subroutine  userInterpolation                        ( &
         k=3*(nod(iMod)-1)
         delta(1:3)=localField(i+1:i+3)-localCoordinates(k+1:k+3)
         if( .not.(delta(1)==0d0.and.delta(2)==0d0.and.delta(3)==0d0) )then
-          print '("iCell=",i6," Delta=",3(e22.15,1x),t130,"@rkw",i3)',iCell,delta(1:3),rankWorld
+          print '("ERROR: iCell=",i6," Delta=",3(e22.15,1x),t130,"@rkw",i3)',iCell,delta(1:3),rankWorld
         endif
       enddo
       
@@ -1249,7 +1260,7 @@ subroutine  userInterpolation                        ( &
     delta(1:3)=disPtsCoordinates(j+1:j+3)-distantField(i+1:i+3)
     
     if( order==1 )then
-      
+            
       write(buffer,'(                                                   &
       &                                                              a, &
       &              3x,"iCell=",i6," nod: ",3(i3,1x),t130,"@rkw",i3,a, &
@@ -1268,7 +1279,7 @@ subroutine  userInterpolation                        ( &
       &  localCoordinates(3*(nod(2)-1)+1:3*(nod(2)-1)+3),char(10),&
       &  localCoordinates(3*(nod(3)-1)+1:3*(nod(3)-1)+3),char(10),&
       &                                                  char(10),&
-      &  uv(1:2,iDistantPoint)                          ,char(10),&
+      &  uv0(1:2,iDistantPoint)                         ,char(10),&
       & disPtsCoordinates(j+1:j+3)                      ,char(10),&
       & distantField     (i+1:i+3)                      ,char(10),&
       & disPtsCoordinates(j+1:j+3)-distantField(i+1:i+3)
@@ -1348,6 +1359,10 @@ subroutine  userInterpolation                        ( &
   endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 #endif
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  deallocate(nod)
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !call mpi_barrier(commWorld,iErr)
@@ -1455,6 +1470,7 @@ program fortran_surf_TriaPi_PiPj
   character(256)     :: key
   integer, parameter :: iFile=100
   logical            :: test
+  character(10)      :: maillage
   
   integer(8)         :: InpMsh
   integer(8)         :: ad0
@@ -1513,7 +1529,7 @@ program fortran_surf_TriaPi_PiPj
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  do meshOrder=4,4
+  do meshOrder=1,4
     
     call cpu_time(t0)
     
@@ -1549,9 +1565,9 @@ program fortran_surf_TriaPi_PiPj
     case(1) ; tol=2d-1 !7.8d-2
    !case(2) ; tol=1d-2
    ! case(2) ; tol=1.75d-3
-    case(2) ; tol=1.d-2
-    case(3) ; tol=1.d-2
-    case(4) ; tol=1.d-1
+    case(2) ; tol=1d-2
+    case(3) ; tol=1d-1
+    case(4) ; tol=1d-1
     end select
     
     write(buffer,'("")')                                                                                        ; call msg2(trim(buffer))
@@ -1583,40 +1599,31 @@ program fortran_surf_TriaPi_PiPj
     
    !write(buffer,'("")')                                                   ; call msg2(trim(buffer))
    !write(buffer,'(3x,"meshOrder=",i3,t130,"@rkw",i3)')meshOrder,rankWorld ; call msg1(trim(buffer))
-        
-    select case(rankWorld)
-    case(0)
-      write(key,'(6x,"gmsh ../spaceBasis/tests/Mesh2D/sphere01.geo -2 -format msh -order ",i1," > sphere01.log")')meshOrder      
-     !call msg1(trim(key))
-      call execute_command_line (key, exitstat=iErr)      
-      call mshToMesh(" ../spaceBasis/tests/Mesh2D/sphere01.msh")
-      
-      !write(key,'(6x,"~/Maillages/mshTomesh spaceBasis/tests/Mesh2D/sphere01.msh >> sphere01.log")')
-      !call msg1(trim(key))
-      !call execute_command_line (key, exitstat=iErr)     
-    case(1)
-      write(key,'(6x,"gmsh ../spaceBasis/tests/Mesh2D/sphere02.geo -2 -format msh -order ",i1," > sphere02.log")')meshOrder
-     !call msg1(trim(key))
-      call execute_command_line (key, exitstat=iErr)       
-      call mshToMesh(" ../spaceBasis/tests/Mesh2D/sphere02.msh")
-     
-      !write(key,'(6x,"~/Maillages/mshTomesh spaceBasis/tests/Mesh2D/sphere02.msh >> sphere01.log")')
-      !call msg1(trim(key))
-      !call execute_command_line (key, exitstat=iErr)
-    end select
+    
+   !maillage="sphere"
+    maillage="carre"
+    
+    
+    write(key,'(6x,"gmsh ./meshes/",a,"0",i1,".geo -2 -format msh -order ",i1," > sphere0",i1,".log")')trim(maillage),rankWorld+1,meshOrder,rankWorld+1    
+   !call msg1(trim(key))
+    call execute_command_line (key, exitstat=iErr)      
+    
+    write(buffer,'(" ./meshes/",a,"0",i1,".msh")')trim(maillage),rankWorld+1
+   !call msg1(trim(buffer))
+    call mshToMesh(trim(buffer))
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-     
+         
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Reading Geometric Mesh with INRIA libMesh7
     !> attention avec gmfGetBlock certains entiers sont integer(8)
     
     write(buffer,'("")')                                               ; call msg2(trim(buffer))
     write(buffer,'("Reading Geometric Mesh",t130,"@rkw",i3)')rankWorld ; call msg1(trim(buffer))
-    select case(rankWorld)
-    case(0) ; meshName="../spaceBasis/tests/Mesh2D/sphere01.mesh"
-    case(1) ; meshName="../spaceBasis/tests/Mesh2D/sphere02.mesh"
-    end select
     
+    !>>>>>>>
+    write(meshName,'("./meshes/",a,"0",i1,".mesh")')trim(maillage),rankWorld+1 ! call msg1(trim(meshName))
+    !<<<<<<<
+        
     !>>>>>>>
     !> Opening File
     InpMsh = gmfOpenMesh(trim(meshName),GmfRead,ver,dim)
@@ -2007,10 +2014,11 @@ program fortran_surf_TriaPi_PiPj
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Initialisation of myValues(:)
     
-    !write(buffer,'("")')                                                  ; call msg2(trim(buffer))
-    !write(buffer,'("Init myValues (x,y,z,rkw)",t130,"@rkw",i3)')rankWorld ; call msg1(trim(buffer))  
-    
     stride=4 !> x,y,z,real(rankWorld,kind=8)
+    
+    write(buffer,'("")')                                                                    ; call msg2(trim(buffer))
+    write(buffer,'("Allocate   myValues(1:",i10,")",t130,"@rkw",i3)')stride*nVert,rankWorld ; call msg1(trim(buffer))
+    
     allocate(myValues(1:nVert*stride))
     i=0 ; j=0
     do iVert=1,nVert
@@ -2025,6 +2033,8 @@ program fortran_surf_TriaPi_PiPj
     
     
 #if 0==0
+! 0==0 plusieurs points
+! else un seul point (mise au point)
     
     !> calcul lagrangeMeshQ4
     if( .not.nQ4==0 )then      
@@ -2164,10 +2174,12 @@ program fortran_surf_TriaPi_PiPj
     allocate(linkVert(1:3*linkVertSize)) !> 3 coordonnées par point de couplage
     
     select case(rankWorld)
-   !case(0) ; linkVert(1:3)=[-0.919633675189875E+00,-0.250163898379974E-01, 0.392131352367653E+00]  
-   !case(1) ; linkVert(1:3)=[-0.848807623678876E+00,-0.213274154008489E-01, 0.424121411593377E+00]
-    case(0) ; linkVert(1:3)=[-0.962125889866290E+00, -0.353822407491257E-01, -0.270719711354757E+00]  
-    case(1) ; linkVert(1:3)=[ 0.690377557847734E+00,  0.515357183278473E+00, -0.519234683615825E+00]
+    !case(0) ; linkVert(1:3)=[-0.919633675189875E+00,-0.250163898379974E-01, 0.392131352367653E+00]  
+    !case(1) ; linkVert(1:3)=[-0.848807623678876E+00,-0.213274154008489E-01, 0.424121411593377E+00]
+    !case(0) ; linkVert(1:3)=[-0.962125889866290E+00, -0.353822407491257E-01, -0.270719711354757E+00]  
+    !case(1) ; linkVert(1:3)=[ 0.690377557847734E+00,  0.515357183278473E+00, -0.519234683615825E+00]
+    case(0) ; linkVert(1:3)=[-0.882008625194510E+00,-0.651604678905975E-03, 0.471232809228976E+00] 
+    case(1) ; linkVert(1:3)=[-0.558966419849888E+00, 0.785077751154716E+00, 0.267347624405070E+00]
     end select
     
     write(buffer,'(6x,"linkVert(1:3)=    ",3(e22.15,1x),t130,"@rkw",i3)')linkVert(1:3),rankWorld     ; call msg1(trim(buffer))
@@ -2176,8 +2188,8 @@ program fortran_surf_TriaPi_PiPj
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !write(buffer,'("")')                                                                              ; call msg2(trim(buffer))
-    !write(buffer,'("Allocation of linkValues size=",i6,t130,"@rkw",i3)')stride*linkVertSize,rankWorld ; call msg1(trim(buffer))
+    write(buffer,'("")')                                                                           ; call msg2(trim(buffer))
+    write(buffer,'("Allocate linkValues(1:",i10,")",t130,"@rkw",i3)')stride*linkVertSize,rankWorld ; call msg1(trim(buffer))
     
     allocate(linkValues(1:stride*linkVertSize))
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -2205,7 +2217,6 @@ program fortran_surf_TriaPi_PiPj
     call cwipi_get_n_not_located_pts_f(couplingName=trim(couplingName), nNotLocatedPoints=numberOfUnlocatedPoints)
     
     call mpi_allreduce(numberOfUnlocatedPoints,numberOfUnlocatedPointsGlob,1,mpi_integer,mpi_sum,commWorld,iErr)
-    
     if( .not.numberOfUnlocatedPointsGlob==0 )then
       write(buffer,'(3x,"nNotLocatedPoints=",i10,t130,"@rkw",i3)')numberOfUnlocatedPoints,rankWorld ; call msg1(trim(buffer))  
       write(buffer,'("fortran_surf_TriaPi_PiPj stop line: ",i6,t130,"@rkw",i3)')__LINE__+1,rankWorld
@@ -2276,7 +2287,7 @@ program fortran_surf_TriaPi_PiPj
     &                                                                    a, &
     &              6x,"linkVertSize=",i6                                ,a, &
     &                                                                    a, &
-    &              6x,"Computed by: ",a                                 ,a, &
+    &              6x,"linkSolu (computed by: ",a,")"                   ,a, &
     &              6x,"deltaMin  =",e22.15                              ,a, &
     &              6x,"sumDelta  =",e22.15                              ,a, &
     &              6x,"deltaMax  =",e22.15                              ,a, &
