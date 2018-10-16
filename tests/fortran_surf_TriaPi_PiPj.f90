@@ -1529,6 +1529,11 @@ program fortran_surf_TriaPi_PiPj
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  maillage="sphere"
+ !maillage="carre"
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   do meshOrder=1,4
     
     call cpu_time(t0)
@@ -1599,11 +1604,7 @@ program fortran_surf_TriaPi_PiPj
     
    !write(buffer,'("")')                                                   ; call msg2(trim(buffer))
    !write(buffer,'(3x,"meshOrder=",i3,t130,"@rkw",i3)')meshOrder,rankWorld ; call msg1(trim(buffer))
-    
-    maillage="sphere"
-    !maillage="carre"
-    
-    
+        
     write(key,'(6x,"gmsh ./meshes/",a,"0",i1,".geo -2 -format msh -order ",i1," > sphere0",i1,".log")')trim(maillage),rankWorld+1,meshOrder,rankWorld+1    
    !call msg1(trim(key))
     call execute_command_line (key, exitstat=iErr)      

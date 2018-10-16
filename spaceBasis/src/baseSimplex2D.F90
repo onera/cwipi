@@ -39,6 +39,31 @@ module baseSimplex2D
     return
   end subroutine setT3MeshBasis_P1
   
+  subroutine setT3MeshBasis_u_v_P1(u,v,ai)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Numerotation des sommets
+    !>   nod   ijk
+    !>   3     010
+    !>   1 2   001 100
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    ! delcaration des variables passees en argument
+    real(8), intent(in)    ::  u(  :)
+    real(8), intent(in)    ::  v(  :)
+    real(8), intent(inout) :: ai(:,:)
+    !>
+    integer                :: iNod
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    do iNod=1,size(u)
+      ai(1,iNod)=1d0-u(iNod)-v(iNod)  !> ijk=001
+      ai(2,iNod)=    u(iNod)          !> ijk=100
+      ai(3,iNod)=            v(iNod)  !> ijk=010
+    enddo
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end subroutine setT3MeshBasis_u_v_P1
+  
   subroutine setT3MeshBasis_P2(uv,ai)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Numerotation des sommets
@@ -56,7 +81,6 @@ module baseSimplex2D
     real(8)                :: u,v,w
     real(8)                :: u2,v2,w2
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     do iNod=1,size(uv,2)
       !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -76,6 +100,44 @@ module baseSimplex2D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return
   end subroutine setT3MeshBasis_P2
+  
+  subroutine setT3MeshBasis_u_v_P2(u,v,ai)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Numerotation des sommets
+    !>   nod     ijk
+    !>   3       020
+    !>   6 5     011 110
+    !>   1 4 2   002 101 200
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    ! delcaration des variables passees en argument
+    real(8), intent(in)    :: u (  :)
+    real(8), intent(in)    :: v (  :)
+    real(8), intent(inout) :: ai(:,:)
+    !>
+    integer                :: iNod
+    real(8)                :: u1,v1,w1
+    real(8)                :: u2,v2,w2
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    do iNod=1,size(u)
+      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      u1=u(iNod)   ; u2=2d0*u1
+      v1=v(iNod)   ; v2=2d0*v1
+      w1=1d0-u1-v1 ; w2=2d0*w1
+      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      ai(1,iNod)=w1*(-1d0+w2)    !> (i,j,k)=(0,0,2)
+      ai(2,iNod)=u1*(-1d0+u2)    !> (i,j,k)=(2,0,0)
+      ai(3,iNod)=v1*(-1d0+v2)    !> (i,j,k)=(0,2,0)
+      ai(4,iNod)=u2*w2           !> (i,j,k)=(1,0,1)
+      ai(5,iNod)=u2*v2           !> (i,j,k)=(1,1,0)
+      ai(6,iNod)=v2*w2           !> (i,j,k)=(0,1,1)
+      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    enddo
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end subroutine setT3MeshBasis_u_v_P2
   
   subroutine setT3MeshBasis_P3(uv,ai)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -126,7 +188,57 @@ module baseSimplex2D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return
   end subroutine setT3MeshBasis_P3
+  
+  subroutine setT3MeshBasis_u_v_P3(u,v,ai)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Numerotation des sommets
+    !> nod           ijk
+    !> 03            030
+    !> 08 07         021 120
+    !> 09 10 06      012 111 210
+    !> 01 04 05 02   003 102 201 300
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    real(8), intent(in)    :: u (  :)
+    real(8), intent(in)    :: v (  :)
+    real(8), intent(inout) :: ai(:,:)
+    !>
+    integer                :: iNod
+    real(8)                :: u1,u3,u3m1
+    real(8)                :: v1,v3,v3m1
+    real(8)                :: w1,w3,w3m1
+    real(8)                :: coef
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    do iNod=1,size(u)
+      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      u1=u(iNod)   ; u3=3d0*u1 ; u3m1=(u3-1d0)*5d-1
+      v1=v(iNod)   ; v3=3d0*v1 ; v3m1=(v3-1d0)*5d-1
+      w1=1d0-u1-v1 ; w3=3d0*w1 ; w3m1=(w3-1d0)*5d-1
+      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      ai(01,iNod)= w1*w3m1*(w3-2d0)   !> (i,j,k)=(003)
+      ai(02,iNod)= u1*u3m1*(u3-2d0)   !> (i,j,k)=(300)
+      ai(03,iNod)= v1*v3m1*(v3-2d0)   !> (i,j,k)=(030)
+      ai(04,iNod)= u3*w3*w3m1         !> (i,j,k)=(102)
+      
+      coef=u3*u3m1
+      ai(05,iNod)= coef*w3            !> (i,j,k)=(201)
+      ai(06,iNod)= coef*v3            !> (i,j,k)=(210)
+      
+      coef=v3*v3m1
+      ai(07,iNod)= coef*u3            !> (i,j,k)=(120)
+      ai(08,iNod)= coef*w3            !> (i,j,k)=(021)
+      
+      coef=v3*w3
+      ai(09,iNod)= coef*w3m1          !> (i,j,k)=(012)      
+      ai(10,iNod)= coef*u3            !> (i,j,k)=(111)      
+      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<      
+    enddo
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end subroutine setT3MeshBasis_u_v_P3
   
   subroutine setT3MeshIJK(meshOrder,ij)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -296,8 +408,66 @@ module baseSimplex2D
     
     return
   end subroutine setT3BasisEqui_uv
-    
   
+  subroutine setT3BasisEqui_u_v(ord,ijk,u,v,w,ai)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    ! Calcul des base d'ordere ord pour des triangles dont les points
+    ! d'interpolation sont equidistants.
+    ! Numerotation des sommets suivant ijk
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    use baseSimplexTools, only: monomialProduct
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer, intent(in)    :: ord 
+    integer, intent(in)    :: ijk(:,:)     !> ijk(1:2   ,1:nMod)
+    real(8), intent(in)    :: u  (  :)     !> u  (       1:nNod)
+    real(8), intent(in)    :: v  (  :)     !> v  (       1:nNod)
+    real(8), intent(inout) :: ai (:,:)     !> ai (1:nMod,1:nNod)
+    !>
+    real(8), pointer       :: w(:)
+    integer                :: iMod,nMod    !> nMod=(ord+1)*(ord+2)/2
+    integer                :: iNod,nNod    !> nNod=size(uvw,2) 
+    integer                :: iu,iv,iw
+    integer                :: i
+    real(8), pointer       :: fu(:),fv(:),fw(:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> bases de Lagrange
+    !print '(/"calcul des bases Triangle P",i1)',ord
+    
+    nNod=size(u)
+    allocate(                       w(1:nNod))
+    allocate(fu(1:nNod),fv(1:nNod),fw(1:nNod) )
+    do iNod=1,nNod
+      w(iNod)=1d0-u(iNod)-v(iNod)
+    enddo
+    
+    !print '("size(ai)=",i2,"x",i2)',size(ai,1),size(ai,2)
+    nMod=(ord+1)*(ord+2)/2
+    do iMod=1,nMod
+      iu=ijk(1,iMod)
+      iv=ijk(2,iMod)
+      iw=ord-iu-iv
+      
+      call monomialProduct(ord=ord,n=iu,u=u, fn=fu)
+      call monomialProduct(ord=ord,n=iv,u=v, fn=fv)
+      call monomialProduct(ord=ord,n=iw,u=w, fn=fw)
+      
+      !print '(3x,"iMod=",i3,3x,"iu=",i3," iv=",i3," iw=",i3)',iMod,iu,iv,iw
+      do iNod=1,nNod
+        ai(iMod,iNod)=fu(iNod)*fv(iNod)*fw(iNod)
+      enddo
+      
+    enddo
+    
+    deallocate(w,fu,fv,fw)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine setT3BasisEqui_u_v
+    
   subroutine free_double_c(array, s_array)  BIND(C, name="SNB_free_double")
     use, intrinsic :: ISO_C_BINDING 
     implicit none 
