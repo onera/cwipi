@@ -1593,7 +1593,7 @@ program fortran_surf_TriaPi_PiPj
     
    !write(buffer,'("")')                                                   ; call msg2(trim(buffer))
    !write(buffer,'(3x,"meshOrder=",i3,t130,"@rkw",i3)')meshOrder,rankWorld ; call msg1(trim(buffer))
-        
+    
     write(key,'(6x,"gmsh ./meshes/",a,"0",i1,".geo -2 -format msh -order ",i1," > sphere0",i1,".log")')trim(maillage),rankWorld+1,meshOrder,rankWorld+1    
    !call msg1(trim(key))
     call execute_command_line (key, exitstat=iErr)      
@@ -1652,7 +1652,7 @@ program fortran_surf_TriaPi_PiPj
     
     !> allocation vertx,vertM
     allocate( vertx(1:3,1:nVert),vertM(1:nVert) )
-    call c_f_pointer(cptr=c_loc(vertx), fptr=vertxCwipi, shape=[3*nMod])  
+    call c_f_pointer(cptr=c_loc(vertx), fptr=vertxCwipi, shape=[3*nVert])  
     
     !> read block
     ad0=int(1,kind=8)
