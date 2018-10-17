@@ -28,25 +28,94 @@ SNB_free_double
  const int  s_array
 );
 
+
 /**
  *
- * \brief Compute uvw of nodes for the current order
+ * \brief Compute interpolation weights for nVtx (u,v) coordinates in a high order triangle
  *
  * \param [in]     order    Order 
- * \param [inout]  uvw      uvw coordinates
- * \param [in]     display  Flag to dispay results
+ * \param [in]     nVtx     Number of vertices
+ * \param [in]     ijk      Node location in ijk grid (size = 2 * nMod)
+ * \param [in]     uv       uv coordinates (size = 2 * nVtx)
+ * \param [in]     weights  Interpolation weights (size = nMod * nVtx)
  * 
  */
 
 void
-SNB_setT3BasisEqui
+SNB_setT3BasisEqui_uv
 (
  const int     order,
  const int     nVtx,
-       int    *ijk,
-       double *uvw,
+ const int    *ijk,
+ const double *uv,
        double *weights
 );
+
+
+/**
+ *
+ * \brief Compute interpolation weights for nVtx (u,v) coordinates in a high order triangle
+ *
+ * \param [in]     order    Order 
+ * \param [in]     nVtx     Number of vertices
+ * \param [in]     ijk      Node location in ijk grid (size = 2 * nMod)
+ * \param [in]     uv       u coordinates (size = nVtx)
+ * \param [in]     v        v coordinates (size = nVtx)
+ * \param [in]     ai       Interpolation weights (size = nMod * nVtx)
+ * 
+ */
+
+void
+SNB_setT3BasisEqui_u_v
+(
+ const int     order,
+ const int     nVtx,
+ const int    *ijk,
+ const double *u,
+ const double *v,
+       double *weights
+);
+
+
+/**
+ *
+ * \brief Compute interpolation weights for nVtx (u,v) coordinates in a P3 triangle
+ *
+ * \param [in]     nVtx     Number of vertices
+ * \param [in]     u        u coordinates (size = nVtx)
+ * \param [in]     v        v coordinates (size = nVtx)
+ * \param [in]     ai       Interpolation weights (size = nMod * nVtx)
+ * 
+ */
+
+void
+SNB_setT3Basis_u_v_P3
+(
+ const int    nVtx,
+ const double *u,
+ const double *v,
+       double *weights
+);
+
+
+/**
+ *
+ * \brief Compute interpolation weights for nVtx (u,v) coordinates in a P3 triangle
+ *
+ * \param [in]     n_pts    Number of points
+ * \param [in]     uv       uv coordinates (size = 2 * n_pts)
+ * \param [in]     ai       Interpolation weights (size = nMod * nVtx)
+ * 
+ */
+
+void
+SNB_setT3Basis_P3
+(
+ const int    n_pts,
+ const double *uv,
+       double *weights
+);
+
 
 /**
  *
@@ -64,11 +133,12 @@ SNB_setQ4BasisEqui_uv
 (
  const int     order,
  const int     nVtx,
-       int    *ijk,
-       double *u,
-       double *v,
+ const int    *ijk,
+ const double *u,
+ const double *v,
        double *weights
 );
+
 
 /**
  *

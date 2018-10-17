@@ -568,7 +568,7 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
 
       // TODO : if order > 1 add points to compute bounding box
 
-      if (order > 1 && 1 == 0) {
+      if (order > 1 && 1 == 1) {
 
         assert (dim == 3);
 
@@ -579,7 +579,7 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
 
           const int n_vtx = (n_step + 2) * (n_step + 1) /2;
           double *uv = malloc (sizeof(double) * 2 * n_vtx);
-          double *ai = malloc (sizeof(double) * n_nodes);
+          double *ai = malloc (sizeof(double) * n_nodes * n_vtx);
           
           int i1 = 0;
           for (int jj = 0; jj < n_step + 1; jj++) {
@@ -590,6 +590,8 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
               uv[i1++] = v;
             }
           }
+              
+          fvmc_ho_basis (FVMC_FACE_TRIA, order, n_nodes, n_vtx, uv, ai);
           
           for (int ielt = 0; ielt < this_section->n_elements; ielt++) {
             
@@ -601,10 +603,6 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
                 xyz[kk] = 0.;
               }
 
-              double *_uv = uv + 2 *ii;
-              
-              fvmc_ho_basis (FVMC_FACE_TRIA, order, n_nodes, _uv, ai);
-              
               for (int jj = 0; jj < n_nodes; jj++) {
 
                 vertex_id = this_section->vertex_num[ielt*n_nodes + j] - 1;
@@ -618,7 +616,7 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
                 }
                 
                 for (int kk = 0; kk < 3; kk++) {
-                  xyz[kk] += ai[jj] * vertex_coords[(coord_idx * dim) + kk];
+                  xyz[kk] += ai[ii*n_nodes+jj] * vertex_coords[(coord_idx * dim) + kk];
                 }
               }
               
@@ -646,7 +644,7 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
 
           const int n_vtx = (n_step + 1) * (n_step + 1);
           double *uv = malloc (sizeof(double) * 2 * n_vtx);
-          double *ai = malloc (sizeof(double) * n_nodes);
+          double *ai = malloc (sizeof(double) * n_nodes * n_vtx);
           
           int i1 = 0;
           for (int jj = 0; jj < n_step + 1; jj++) {
@@ -658,6 +656,8 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
             }
           }
           
+          fvmc_ho_basis (FVMC_FACE_QUAD, order, n_nodes, n_vtx, uv, ai);
+
           for (int ielt = 0; ielt < this_section->n_elements; ielt++) {
             
             for (int ii = 0; ii < n_vtx; ii++) {
@@ -668,10 +668,6 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
                 xyz[kk] = 0.;
               }
 
-              double *_uv = uv + 2 *ii;
-              
-              fvmc_ho_basis (FVMC_FACE_QUAD, order, n_nodes, _uv, ai);
-              
               for (int jj = 0; jj < n_nodes; jj++) {
 
                 vertex_id = this_section->vertex_num[ielt*n_nodes + j] - 1;
@@ -685,7 +681,7 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
                 }
                 
                 for (int kk = 0; kk < 3; kk++) {
-                  xyz[kk] += ai[jj] * vertex_coords[(coord_idx * dim) + kk];
+                  xyz[kk] += ai[ii*n_nodes+jj] * vertex_coords[(coord_idx * dim) + kk];
                 }
               }
               

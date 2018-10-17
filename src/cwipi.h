@@ -328,6 +328,7 @@ typedef double (*cwipi_ho_location_fct_t)
 typedef void (*cwipi_ho_basis_fct_t)
 (const int order,
  const int n_nodes,
+ const int n_vtx,
  const double *uvw,
  double *weights);
 

@@ -144,8 +144,8 @@ typedef void (*_heap_fill_init_sub_tria_t)
  *
  * parameters:
  *   order           <-- order
- *   u               <-- u
- *   v               <-- v
+ *   n_pts           <-- number of points
+ *   uv              <-- uv coordinates of points
  *   weights         --> weights (size = n_nodes)
  *
  *----------------------------------------------------------------------------*/
@@ -153,8 +153,8 @@ typedef void (*_heap_fill_init_sub_tria_t)
 typedef void (*_basis_generic_2D_t)
 (
  const int order,
- const double u,
- const double v,
+ const int n_pts,
+ const double *uv,
  double *weights
 );
 
@@ -285,9 +285,9 @@ _uv_ho_quad_nodes
  * 
  * parameters:
  *   order           <-- order
- *   u               <-- u
- *   v               <-- v
- *   weights         --> weights (size = n_nodes)
+ *   n_pts           <-- number of points
+ *   uv              <-- u (size = 2 * n_pts)
+ *   weights         --> weights (size = n_nodes * n_pts)
  *
  *
  *----------------------------------------------------------------------------*/
@@ -296,36 +296,109 @@ static void
 _basis_tria_pn
 (
  const int order,
- const double u,
- const double v,
+ const int n_pts,
+ const double *uv,
  double *weights
 )
 {
 
   if (order == 1) {
 
-    weights[0] = 1. - u - v;
-    weights[1] = u;
-    weights[2] = v;
+    if (n_pts != 1) {
 
+      double *u  = malloc (sizeof(double) *n_pts);
+      double *v  = malloc (sizeof(double) *n_pts);
+      
+      for (int i = 0; i < n_pts; i++) {
+        u[i]  = uv[2*i];
+        v[i]  = uv[2*i+1];
+      }
+      
+      for (int i = 0; i < n_pts; i++) {
+        weights[3*i]   = 1. - u[i] - v[i];
+        weights[3*i+1] = u[i];
+        weights[3*i+2] = v[i];
+      }
+      
+      free (u);
+      free (v);
+    }
+
+    else {
+
+      double u = uv[0];
+      double v = uv[1];
+      
+      weights[0] = 1. - u - v;
+      weights[1] = u;
+      weights[2] = v;
+
+    }
   }
-
+  
   else if (order == 2) {
 
-    double w  = 1. - u - v;
-    double u2 = 2. * u;
-    double v2 = 2. * v;
-    double w2 = 2. * w;
+    if (n_pts != 1) {
+      double *u  = malloc (sizeof(double) *n_pts);
+      double *v  = malloc (sizeof(double) *n_pts);
+      double *w  = malloc (sizeof(double) *n_pts);
+      double *u2 = malloc (sizeof(double) *n_pts);
+      double *v2 = malloc (sizeof(double) *n_pts);
+      double *w2 = malloc (sizeof(double) *n_pts);
     
-    weights[0] = w * (-1. + w2);  /* (i,j,k)=(0,0,2) */
-    weights[1] = u2 * w2;         /* (i,j,k)=(1,0,1) */
-    weights[2] = u * (-1. + u2);  /* (i,j,k)=(2,0,0) */
-    weights[3] = v2 * w2;         /* (i,j,k)=(0,1,1) */
-    weights[4] = u2 * v2;         /* (i,j,k)=(1,1,0) */
-    weights[5] = v * (-1. + v2);  /* (i,j,k)=(0,2,0) */
-  
+
+      for (int i = 0; i < n_pts; i++) {
+        u[i]  = uv[2*i];
+        v[i]  = uv[2*i+1];
+        w[i]  = 1. - u[i] - v[i];
+        u2[i] = 2. * u[i];
+        v2[i] = 2. * v[i];
+        w2[i] = 2. * w[i];
+      }
+      
+      for (int i = 0; i < n_pts; i++) {
+        
+        weights[6*i+0] = w[i] * (-1. + w2[i]);  /* (i,j,k)=(0,0,2) */
+        weights[6*i+1] = u2[i] * w2[i];         /* (i,j,k)=(1,0,1) */
+        weights[6*i+2] = u[i] * (-1. + u2[i]);  /* (i,j,k)=(2,0,0) */
+        weights[6*i+3] = v2[i] * w2[i];         /* (i,j,k)=(0,1,1) */
+        weights[6*i+4] = u2[i] * v2[i];         /* (i,j,k)=(1,1,0) */
+        weights[6*i+5] = v[i] * (-1. + v2[i]);  /* (i,j,k)=(0,2,0) */
+      }
+    
+      free (u);
+      free (v);
+      free (w);
+      free (u2);
+      free (v2);
+      free (w2);
+    }
+    else {
+
+      double u = uv[0];
+      double v = uv[1];
+      
+      double w  = 1. - u - v;
+      double u2 = 2. * u;
+      double v2 = 2. * v;
+      double w2 = 2. * w;
+      
+      weights[0] = w * (-1. + w2);  /* (i,j,k)=(0,0,2) */
+      weights[1] = u2 * w2;         /* (i,j,k)=(1,0,1) */
+      weights[2] = u * (-1. + u2);  /* (i,j,k)=(2,0,0) */
+      weights[3] = v2 * w2;         /* (i,j,k)=(0,1,1) */
+      weights[4] = u2 * v2;         /* (i,j,k)=(1,1,0) */
+      weights[5] = v * (-1. + v2);  /* (i,j,k)=(0,2,0) */
+
+    }
   }
 
+  /* else if (order == 3) { */
+
+  /*   SNB_setT3Basis_P3 (n_pts, uv, weights); */
+
+  /* } */
+  
   else {
 
 #if defined (HAVE_SPACE_BASIS)
@@ -360,19 +433,7 @@ _basis_tria_pn
       }
     }
 
-    const int nVtx = 1;
-    double _uv[2] = {u, v};
-
-    // printf ("SNB_setT3BasisEqui uv : %12.5e %12.5e\n", u, v);
-    
-    SNB_setT3BasisEqui (order, nVtx, __ijk_tria_space, _uv, weights);
-
-    /* const int n_nodes2 = (order+1)*(order+2)/2; */
-    /* printf ("SNB_setT3BasisEqui ai : "); */
-    /* for (int j = 0; j < n_nodes2; j++) { */
-    /*   printf (" %12.5e", weights[j]); */
-    /* } */
-    /* printf ("\n"); */
+    SNB_setT3BasisEqui_uv (order, n_pts, __ijk_tria_space, uv, weights);
 
 #else
     bftc_error(__FILE__, __LINE__, 0,
@@ -383,68 +444,133 @@ _basis_tria_pn
 }
 
 
+
+
 /*----------------------------------------------------------------------------
  * 
  * Quadrangle Qn basis
  * 
  * parameters:
  *   order           <-- order
- *   u               <-- u
- *   v               <-- v
- *   weights         --> weights (size = n_nodes)
+ *   n_pts           <-- number of points
+ *   uv              <-- u (size = 2 * n_pts)
+ *   weights         --> weights (size = n_nodes * n_pts)
  *
  *
  *----------------------------------------------------------------------------*/
+
 
 static void
 _basis_quad_qn
 (
  const int order,
- const double u,
- const double v,
+ const int n_pts,
+ const double *uv,
  double *weights
 )
 {
   
   if (order == 1) {
 
-    double u1 = (1 - u);
-    double v1 = (1 - v);
+    double *u = malloc (sizeof(double) *n_pts);
+    double *v = malloc (sizeof(double) *n_pts);
+    double *u1 = malloc (sizeof(double) *n_pts);
+    double *v1 = malloc (sizeof(double) *n_pts);
 
-    weights[0] = u1 * v1;
-    weights[1] = u * v1;
-    weights[2] = u1 * v;
-    weights[3] = u * v;
+    for (int i = 0; i < n_pts; i++) {
+      u[i] = uv[2*i];
+      v[i] = uv[2*i+1];
+      u1[i] = (1 - u[i]);
+      v1[i] = (1 - v[i]);
+    }
+    
+    for (int i = 0; i < n_pts; i++) {
+      weights[4*i+0] = u1[i] * v1[i];
+      weights[4*i+1] = u[i] * v1[i];
+      weights[4*i+2] = u1[i] * v[i];
+      weights[4*i+3] = u[i] * v[i];
+    }
+
+    free(u1);
+    free(v1);
+    free(u);
+    free(v);
 
   }
 
   else if (order == 2) {
     
-    double uM = 2*(1-u);
-    double uP = 2*u;
-    double u0 = u-0.5;
+    double *u = malloc (sizeof(double) *n_pts);
+    double *v = malloc (sizeof(double) *n_pts);
 
-    double au1 = -uM * u0; 
-    double au2 =  uM * uP;
-    double au3 =  u0 * uP;
+    double *uM = malloc (sizeof(double) *n_pts);
+    double *uP = malloc (sizeof(double) *n_pts);
+    double *u0 = malloc (sizeof(double) *n_pts);
+
+    double *au1 = malloc (sizeof(double) *n_pts);
+    double *au2 = malloc (sizeof(double) *n_pts);
+    double *au3 = malloc (sizeof(double) *n_pts);
     
-    double vM = 2*(1-v);
-    double vP = 2*v;
-    double v0 = v-0.5;
+    double *vM = malloc (sizeof(double) *n_pts);
+    double *vP = malloc (sizeof(double) *n_pts);
+    double *v0 = malloc (sizeof(double) *n_pts);
 
-    double av1 = -vM * v0; 
-    double av2 =  vM * vP;
-    double av3 =  v0 * vP;
+    double *av1 = malloc (sizeof(double) *n_pts);
+    double *av2 = malloc (sizeof(double) *n_pts);
+    double *av3 = malloc (sizeof(double) *n_pts);
 
-    weights[0]=au1*av1;
-    weights[1]=au2*av1;
-    weights[2]=au3*av1;
-    weights[3]=au1*av2;
-    weights[4]=au2*av2;
-    weights[5]=au3*av2;
-    weights[6]=au1*av3;
-    weights[7]=au2*av3;
-    weights[8]=au3*av3;
+    
+    for (int i = 0; i < n_pts; i++) {
+      u[i] = uv[2*i];
+      v[i] = uv[2*i+1];
+
+      uM[i] = 2*(1-u[i]);
+      uP[i] = 2*u[i];
+      u0[i] = u[i]-0.5;
+      
+      au1[i] = -uM[i] * u0[i]; 
+      au2[i] =  uM[i] * uP[i];
+      au3[i] =  u0[i] * uP[i];
+    
+      vM[i] = 2*(1-v[i]);
+      vP[i] = 2*v[i];
+      v0[i] = v[i]-0.5;
+
+      av1[i] = -vM[i] * v0[i]; 
+      av2[i] =  vM[i] * vP[i];
+      av3[i] =  v0[i] * vP[i];
+    }
+    
+    for (int i = 0; i < n_pts; i++) {
+      weights[9*i+0]=au1[i]*av1[i];
+      weights[9*i+1]=au2[i]*av1[i];
+      weights[9*i+2]=au3[i]*av1[i];
+      weights[9*i+3]=au1[i]*av2[i];
+      weights[9*i+4]=au2[i]*av2[i];
+      weights[9*i+5]=au3[i]*av2[i];
+      weights[9*i+6]=au1[i]*av3[i];
+      weights[9*i+7]=au2[i]*av3[i];
+      weights[9*i+8]=au3[i]*av3[i];
+    }
+    
+    free(u);
+    free(v);
+
+    free(uM);
+    free(uP);
+    free(u0);
+
+    free(au1);
+    free(au2);
+    free(au3);
+    
+    free(vM);
+    free(vP);
+    free(v0);
+
+    free(av1);
+    free(av2);
+    free(av3);
 
   }
 
@@ -481,14 +607,20 @@ _basis_quad_qn
       }
     }
 
-    const int nVtx = 1;
+    double *u = malloc (sizeof(double) *n_pts);
+    double *v = malloc (sizeof(double) *n_pts);
 
-    double _u = 2 * u - 1; 
-    double _v = 2 * v - 1; 
+    for (int i = 0; i < n_pts; i++) {
+      u[i] = 2 * uv[2*i]   - 1;
+      v[i] = 2 * uv[2*i+1] - 1;
+    }
     
-    SNB_setQ4BasisEqui_uv (order, nVtx, __ijk_quad_space,
-                           (double *) &_u, (double *) &_v,
+    SNB_setQ4BasisEqui_uv (order, n_pts, __ijk_quad_space,
+                           u, v,
                            weights);
+
+    free (u);
+    free (v);
     
 #else
     bftc_error(__FILE__, __LINE__, 0,
@@ -1258,8 +1390,8 @@ _insert_subtria
     }
     
     (_basis_generic) (order   ,
-                      _uvPn_tria_children[6+2*i],
-                      _uvPn_tria_children[6+2*i+1],
+                      1,
+                      _uvPn_tria_children + 6 + 2*i,
                       weightsPn);
     
     for (int j = 0; j < 3; j++) {
@@ -1452,8 +1584,8 @@ _compute_dist2_from_closest_tria_subdivision
     double weightsP1[3];
     
     _basis_tria_pn (1,
-                    _closest_pt_uvP1_current[0],
-                    _closest_pt_uvP1_current[1],
+                    1,
+                    _closest_pt_uvP1_current,
                     weightsP1);
 
     if (0 == 1) {
@@ -1490,8 +1622,8 @@ _compute_dist2_from_closest_tria_subdivision
     }
 
     (_basis_generic) (order,
-                      _closest_pt_uvPn_current[0],
-                      _closest_pt_uvPn_current[1],
+                      1,
+                      _closest_pt_uvPn_current,
                       weightsPn);
 
     for (int j = 0; j < n_nodes; j++) {
@@ -1658,8 +1790,8 @@ _compute_dist2_from_uniform_tria_subdivision
     double weightsP1[3];
     
     _basis_tria_pn (1,
-                    _closest_pt_uvP1_current[0],
-                    _closest_pt_uvP1_current[1],
+                    1,
+                    _closest_pt_uvP1_current,
                     weightsP1);
 
     if (0 == 1) {
@@ -1696,8 +1828,8 @@ _compute_dist2_from_uniform_tria_subdivision
     }
 
     (_basis_generic) (order,
-                     _closest_pt_uvPn_current[0],
-                    _closest_pt_uvPn_current[1],
+                      1,
+                     _closest_pt_uvPn_current,
                      weightsPn);
     
     for (int j = 0; j < n_nodes; j++) {
@@ -1842,7 +1974,7 @@ _default_location_generic_2d
   //  const int n_it_max = 100;
   const int n_it_max = 100;
   double err_max = FVMC_MAX (char_size * 1e-6, 1e-15);
-
+  
   double dist2 = HUGE_VAL;
 
   _heap_t heap;
@@ -2198,8 +2330,9 @@ _get_user_elt (fvmc_element_t elt_type)
  * parameters:
  *   type            <-- element type
  *   order           <-- order
- *   uvw             <-- uvw
- *   weights         --> weights (size = n_nodes)
+ *   n_pts           <-- number of points 
+ *   uvw             <-- uvw (size = elt_dim * n_pts)
+ *   weights         --> weights (size = n_nodes * n_pts)
  *
  *----------------------------------------------------------------------------*/
 
@@ -2208,6 +2341,7 @@ _default_elt_basis
 (
 const fvmc_element_t type,
 const int order,
+const int n_pts,
 const double *uvw,
       double *weights 
 )
@@ -2215,11 +2349,11 @@ const double *uvw,
   switch (type) {
 
   case FVMC_FACE_TRIA:
-    _basis_tria_pn (order, uvw[0], uvw[1], weights);
+    _basis_tria_pn (order, n_pts, uvw, weights);
     break;
 
   case FVMC_FACE_QUAD:
-    _basis_quad_qn (order, uvw[0], uvw[1], weights);
+    _basis_quad_qn (order, n_pts, uvw, weights);
     break;
 
   case FVMC_EDGE:
@@ -2304,8 +2438,10 @@ fvmc_ho_user_elt_set (fvmc_element_t elt_type,
  *   type            <-- element type
  *   order           <-- order
  *   n_nodes         <-- number of nodes
+ *   n_pts           <-- number of points 
  *   uvw             <-- uvw
- *   weights         --> weights (size = n_nodes)
+ *   uvw             <-- uvw (size = n_pts)
+ *   weights         --> weights (size = n_nodes * n_pts)
  *
  *----------------------------------------------------------------------------*/
 
@@ -2315,6 +2451,7 @@ fvmc_ho_basis
 const fvmc_element_t type,
 const int order,
 const int n_nodes,
+const int n_pts,
 const double *uvw,
       double *weights 
 )
@@ -2325,12 +2462,14 @@ const double *uvw,
     if (user_elt->elt_basis != NULL) {
       (user_elt->elt_basis) (order,
                              n_nodes,
+                             n_pts,
                              uvw,
                              weights);
     }
     else {
       _default_elt_basis (type,
                           order,
+                          n_pts,
                           uvw,
                           weights);
     }
@@ -2339,6 +2478,7 @@ const double *uvw,
   else {
     _default_elt_basis (type,
                         order,
+                        n_pts,
                         uvw,
                         weights);
 

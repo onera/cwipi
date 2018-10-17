@@ -138,6 +138,31 @@ module baseSimplex2D
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return
   end subroutine setT3MeshBasis_u_v_P2
+
+  subroutine setT3Basis_P3_c(n_vtx, uv, ai)  BIND(C, name="SNB_setT3Basis_P3") 
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    use, intrinsic :: ISO_C_BINDING 
+    implicit none 
+    integer (C_INT), value :: n_vtx 
+    type (C_PTR),    value  :: uv
+    type (C_PTR),    value  :: ai
+    !>
+    real(8), pointer :: uv_f(:,:)
+    real(8), pointer :: ai_f(:,:)
+    integer          :: n_vtx_f, n_mode
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    n_vtx_f = n_vtx
+    n_mode = 10
+    
+    call c_f_pointer (uv, uv_f, [2, n_vtx_f])
+    call c_f_pointer (ai , ai_f , [n_mode, n_vtx_f])
+    
+    call setT3MeshBasis_P3(uv_f, ai_f)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end subroutine setT3Basis_P3_c
   
   subroutine setT3MeshBasis_P3(uv,ai)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -189,6 +214,34 @@ module baseSimplex2D
     return
   end subroutine setT3MeshBasis_P3
   
+  subroutine setT3Basis_u_v_P3_c(n_vtx, u, v, ai)  BIND(C, name="SNB_setT3Basis_u_v_P3") 
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    use, intrinsic :: ISO_C_BINDING 
+    implicit none 
+    integer (C_INT), value :: n_vtx 
+    type (C_PTR),    value  :: u
+    type (C_PTR),    value  :: v
+    type (C_PTR),    value  :: ai
+    !>
+    real(8), pointer :: u_f(:)
+    real(8), pointer :: v_f(:)
+    real(8), pointer :: ai_f(:,:)
+    integer          :: n_vtx_f, n_mode
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    n_vtx_f = n_vtx
+    n_mode = 10
+    
+    call c_f_pointer (u, u_f, [n_vtx_f])
+    call c_f_pointer (v, v_f, [n_vtx_f])
+    call c_f_pointer (ai , ai_f , [n_mode, n_vtx_f])
+    
+    call setT3MeshBasis_u_v_P3(u_f, v_f, ai_f)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end subroutine setT3Basis_u_v_P3_c
+
   subroutine setT3MeshBasis_u_v_P3(u,v,ai)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Numerotation des sommets
@@ -319,7 +372,7 @@ module baseSimplex2D
   end subroutine setT3MeshIJK
   
   
-  subroutine setT3BasisEqui_c(ord, n_vtx, ijk, uvw, ai)  BIND(C, name="SNB_setT3BasisEqui") 
+  subroutine setT3BasisEqui_uv_c(ord, n_vtx, ijk, uvw, ai)  BIND(C, name="SNB_setT3BasisEqui_uv") 
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     use, intrinsic :: ISO_C_BINDING 
@@ -347,7 +400,7 @@ module baseSimplex2D
     call setT3BasisEqui_uv(ord_f, ijk_f, uvw_f, ai_f)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return
-  end subroutine setT3BasisEqui_c
+  end subroutine setT3BasisEqui_uv_c
   
   subroutine setT3BasisEqui_uv(ord,ijk,uvw,ai)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -409,7 +462,40 @@ module baseSimplex2D
     return
   end subroutine setT3BasisEqui_uv
   
-  subroutine setT3BasisEqui_u_v(ord,ijk,u,v,w,ai)
+  subroutine setT3BasisEqui_u_v_c(ord, n_vtx, ijk, u, v, ai)  BIND(C, name="SNB_setT3BasisEqui_u_v") 
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    use, intrinsic :: ISO_C_BINDING 
+    implicit none 
+    integer (C_INT), value :: ord 
+    integer (C_INT), value :: n_vtx 
+    type (C_PTR),    value  :: ijk
+    type (C_PTR),    value  :: u
+    type (C_PTR),    value  :: v
+    type (C_PTR),    value  :: ai
+    !>
+    integer, pointer :: ijk_f(:,:)
+    real(8), pointer :: u_f(:)
+    real(8), pointer :: v_f(:)
+    real(8), pointer :: ai_f(:,:)
+    integer          :: ord_f, n_vtx_f, n_mode
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    ord_f   = ord
+    n_vtx_f = n_vtx
+    n_mode = (ord_f+2)*(ord_f+1)/2
+    
+    call c_f_pointer (ijk, ijk_f, [2     , n_mode ])
+    call c_f_pointer (u, u_f, [n_vtx_f])
+    call c_f_pointer (v, v_f, [n_vtx_f])
+    call c_f_pointer (ai , ai_f , [n_mode, n_vtx_f])
+    
+    call setT3BasisEqui_u_v(ord_f, ijk_f, u_f, v_f, ai_f)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end subroutine setT3BasisEqui_u_v_c
+
+  subroutine setT3BasisEqui_u_v(ord,ijk,u,v,ai)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! Calcul des base d'ordere ord pour des triangles dont les points
     ! d'interpolation sont equidistants.
