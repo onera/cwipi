@@ -77,13 +77,14 @@ typedef double (*fvmc_ho_location_fct_t)
 
 /*----------------------------------------------------------------------------
  * 
- * Callback to define location the basis functions of an high order 
+ * Callback to define the basis functions of an high order 
  * element
  * 
  * parameters:
  *   order             <-- element order
  *   n_nodes           <-- number of nodes of the element
- *   uvv               <-- Parametric coordinates of a point
+ *   n_pts             <-- number of points 
+ *   uvw               <-- Parametric coordinates of points
  *   projected_uvw     --> Interpolation weights associated to uvw coordinates
  * 
  *----------------------------------------------------------------------------*/
@@ -91,6 +92,7 @@ typedef double (*fvmc_ho_location_fct_t)
 typedef void (*fvmc_ho_basis_fct_t)
 (const int order,
  const int n_nodes,
+ const int n_pts,
  const double *uvw,
  double *weights);
 
@@ -200,9 +202,10 @@ fvmc_ho_user_elts_unset (void);
  * parameters:
  *   type            <-- element type
  *   order           <-- order
- *   order           <-- number of nodes
- *   uvw             <-- uvw
- *   weights         --> weights (size = n_nodes)
+ *   n_nodes         <-- number of nodes
+ *   n_pts           <-- number of points 
+ *   uvw             <-- uvw (size = elt_dim * n_pts)
+ *   weights         --> weights (size = n_nodes * n_pts)
  *
  *----------------------------------------------------------------------------*/
 
@@ -212,6 +215,7 @@ fvmc_ho_basis
 const fvmc_element_t type,
 const int order,
 const int n_nodes,
+const int n_pts,
 const double *uvw,
       double *weights 
 );
