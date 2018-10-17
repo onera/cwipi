@@ -1099,14 +1099,19 @@ subroutine  userInterpolation                        ( &
   integer          :: nQ4,nT3
   integer          :: iCell
   real(8), pointer :: uv0(:,:),uQ4(:),vQ4(:),uvT3(:,:)
-  integer          :: iDistantPoint
-  integer          :: iVert
+  integer          :: iVert,jVert,nVert
   integer, pointer :: ij(:,:)
   real(8), pointer :: lagrangeMeshQ4(:,:)
   real(8), pointer :: lagrangeMeshT3(:,:)
   integer, pointer :: nod(:)
   real(8)          :: delta(1:3)
   character(2048)  :: buffer
+  !>
+  integer          :: linkVertSize
+  real(8), pointer ::   myVert  (:,:)
+  real(8), pointer ::   myValues(:,:)
+  real(8), pointer :: linkVert  (:,:)
+  real(8), pointer :: linkValues(:,:)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1114,16 +1119,23 @@ subroutine  userInterpolation                        ( &
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> dist_uvw(:) -> uv0(1:2,:) (sans dupliquer le bloc mémoire)
-  !> la commmande c_f_pointer a besoin du use iso_c_binding, only: c_loc,c_f_pointer
-  call c_f_pointer(cptr=c_loc(dist_uvw), fptr=uv0, shape=[2,nDistantPoint])  
+  !> Broker (interfaçage façon fortran)
+  
+  linkVertSize=nDistantPoint
+  nVert=nLocalVertex
+  
+  call c_f_pointer(cptr=c_loc(localCoordinates ), fptr=  myVert  , shape=[     3,nVert       ])  
+  call c_f_pointer(cptr=c_loc(localField       ), fptr=  myValues, shape=[stride,nVert       ])  
+  call c_f_pointer(cptr=c_loc(disPtsCoordinates), fptr=linkVert  , shape=[     3,linkVertSize])  
+  call c_f_pointer(cptr=c_loc(distantField     ), fptr=linkValues, shape=[stride,linkVertSize])  
+  call c_f_pointer(cptr=c_loc(dist_uvw         ), fptr=uv0       , shape=[     2,linkVertSize])  
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Setting nQ4 nT3
   nQ4=0 ; nT3=0
-  do iDistantPoint=1,nDistantPoint
-    iCell=disPtsLocation(iDistantPoint)
+  do iVert=1,linkVertSize
+    iCell=disPtsLocation(iVert)
     nMod=localConnectivityIndex(iCell+1)-localConnectivityIndex(iCell)
     if    ( nMod==(order+1)*(order+1)   )then ; nQ4=nQ4+1
     elseif( nMod==(order+1)*(order+2)/2 )then ; nT3=nT3+1
@@ -1141,11 +1153,11 @@ subroutine  userInterpolation                        ( &
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Setting uvQ4 uvT3
   nQ4=0 ; nT3=0
-  do iDistantPoint=1,nDistantPoint
-    iCell=disPtsLocation(iDistantPoint)
+  do iVert=1,linkVertSize
+    iCell=disPtsLocation(iVert)
     nMod=localConnectivityIndex(iCell+1)-localConnectivityIndex(iCell)
-    if    ( nMod==(order+1)*(order+1)   )then ; nQ4=nQ4+1 ; uQ4(nQ4)=2d0*uv0(1,iDistantPoint)-1d0 ; vQ4(nQ4)=2d0*uv0(2,iDistantPoint)-1d0
-    elseif( nMod==(order+1)*(order+2)/2 )then ; nT3=nT3+1 ; uvT3(1:2,nT3)=uv0(1:2,iDistantPoint)
+    if    ( nMod==(order+1)*(order+1)   )then ; nQ4=nQ4+1 ; uQ4(nQ4)=2d0*uv0(1,iVert)-1d0 ; vQ4(nQ4)=2d0*uv0(2,iVert)-1d0
+    elseif( nMod==(order+1)*(order+2)/2 )then ; nT3=nT3+1 ; uvT3(1:2,nT3)=uv0(1:2,iVert)
     endif
   enddo    
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -1190,52 +1202,28 @@ subroutine  userInterpolation                        ( &
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !> Computing distantField
+  !> Computing linkValues (distantField)
   
-  nQ4=0 ; nT3=0 ; j=0
-  do iDistantPoint=1,nDistantPoint
-    distantField(j+1:j+stride)=0d0
+  nQ4=0 ; nT3=0 ! j=0
+  do iVert=1,linkVertSize
+    linkValues(1:stride,iVert)=0d0
     
-    iCell=disPtsLocation(iDistantPoint)
+    iCell=disPtsLocation(iVert)
     nMod=localConnectivityIndex(iCell+1)-localConnectivityIndex(iCell)
     nod(1:nMod)=localConnectivity(localConnectivityIndex(iCell)+1:localConnectivityIndex(iCell+1))
     
     if    ( nMod==(order+1)*(order+1)   )then ; nQ4=nQ4+1
-      
+      !> linkValues(1:stride,iVert)=  myValuesTab(1:stride,1:nMod) lagrangeMeshQ4(1:nMod,nQ4)
       do iMod=1,nMod
-        i=stride*(nod(iMod)-1)
-        
-        !do k=1,stride
-        !  distantField(j+k)=distantField(j+k)+lagrangeMeshQ4(iMod,nQ4)*localField(i+k)
-        !enddo
-        distantField(j+1:j+stride)=distantField(j+1:j+stride)+lagrangeMeshQ4(iMod,nQ4)*localField(i+1:i+stride)
-       !print '("nQ4=",i6," iMod=",i2,"/",i2," nod=",i6," i+stride=",i6," j+stride=",i6)',nQ4,iMod,nMod,nod(iMod),i+stride,j+stride          
-        
-        !> Controling localField
-        k=3*(nod(iMod)-1)
-        delta(1:3)=localField(i+1:i+3)-localCoordinates(k+1:k+3)
-        if( .not.(delta(1)==0d0.and.delta(2)==0d0.and.delta(3)==0d0) )then
-          print '("ERROR: iCell=",i6," Delta=",3(e22.15,1x),t130,"@rkw",i3)',iCell,delta(1:3),rankWorld
-        endif
+        jVert=nod(iMod)
+        linkValues(1:stride,iVert)=linkValues(1:stride,iVert)+lagrangeMeshQ4(iMod,nQ4)*myValues(1:stride,jVert)        
       enddo
-      
     elseif( nMod==(order+1)*(order+2)/2 )then ; nT3=nT3+1
-      
       do iMod=1,nMod
-        i=stride*(nod(iMod)-1)
-        distantField(j+1:j+stride)=distantField(j+1:j+stride)+lagrangeMeshT3(iMod,nT3)*localField(i+1:i+stride)
-        
-        !> Controling localField
-        k=3*(nod(iMod)-1)
-        delta(1:3)=localField(i+1:i+3)-localCoordinates(k+1:k+3)
-        if( .not.(delta(1)==0d0.and.delta(2)==0d0.and.delta(3)==0d0) )then
-          print '("ERROR: iCell=",i6," Delta=",3(e22.15,1x),t130,"@rkw",i3)',iCell,delta(1:3),rankWorld
-        endif
+        jVert=nod(iMod)
+        linkValues(1:stride,iVert)=linkValues(1:stride,iVert)+lagrangeMeshT3(iMod,nT3)*myValues(1:stride,jVert)
       enddo
-      
     endif
-    j=j+stride
-    k=k+3
   enddo
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
@@ -1248,15 +1236,15 @@ subroutine  userInterpolation                        ( &
 #if 0==1
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Visu focusing on one specific point
-  if( nDistantPoint== 1)then
-    iDistantPoint=1
-    j=stride*(iDistantPoint-1)
-    iCell=disPtsLocation(iDistantPoint)
+  if( linkVertSize== 1)then
+    iVert=1
+    j=stride*(iVert-1)
+    iCell=disPtsLocation(iVert)
     nMod=localConnectivityIndex(iCell+1)-localConnectivityIndex(iCell)
     nod(1:nMod)=localConnectivity(localConnectivityIndex(iCell)+1:localConnectivityIndex(iCell+1))    
     
-    i=stride*(iDistantPoint-1)
-    j=     3*(iDistantPoint-1)
+    i=stride*(iVert-1)
+    j=     3*(iVert-1)
     delta(1:3)=disPtsCoordinates(j+1:j+3)-distantField(i+1:i+3)
     
     if( order==1 )then
@@ -1279,7 +1267,7 @@ subroutine  userInterpolation                        ( &
       &  localCoordinates(3*(nod(2)-1)+1:3*(nod(2)-1)+3),char(10),&
       &  localCoordinates(3*(nod(3)-1)+1:3*(nod(3)-1)+3),char(10),&
       &                                                  char(10),&
-      &  uv0(1:2,iDistantPoint)                         ,char(10),&
+      &  uv0(1:2,iVert)                                 ,char(10),&
       & disPtsCoordinates(j+1:j+3)                      ,char(10),&
       & distantField     (i+1:i+3)                      ,char(10),&
       & disPtsCoordinates(j+1:j+3)-distantField(i+1:i+3)
@@ -1310,7 +1298,7 @@ subroutine  userInterpolation                        ( &
       &  localCoordinates(3*(nod(5)-1)+1:3*(nod(5)-1)+3),char(10),&
       &  localCoordinates(3*(nod(6)-1)+1:3*(nod(6)-1)+3),char(10),&
       &                                                  char(10),&
-      &  uv(1:2,iDistantPoint)                          ,char(10),&
+      &  uv(1:2,iVert)                                  ,char(10),&
       & disPtsCoordinates(j+1:j+3)                      ,char(10),&
       & distantField     (i+1:i+3)                      ,char(10),&
       & disPtsCoordinates(j+1:j+3)-distantField(i+1:i+3)
@@ -1349,7 +1337,7 @@ subroutine  userInterpolation                        ( &
       &  localCoordinates(3*(nod(09)-1)+1:3*(nod(09)-1)+3),char(10),&
       &  localCoordinates(3*(nod(10)-1)+1:3*(nod(10)-1)+3),char(10),&
       &                                                   char(10),&
-      &  uv(1:2,iDistantPoint)                           ,char(10),&
+      &  uv(1:2,iVert)                                   ,char(10),&
       & disPtsCoordinates(j+1:j+3)                       ,char(10),&
       & distantField     (i+1:i+3)                       ,char(10),&
       & disPtsCoordinates(j+1:j+3)-distantField(i+1:i+3)
@@ -1461,8 +1449,8 @@ program fortran_surf_TriaPi_PiPj
   integer             :: compOrder
   integer             :: meshOrder
   
-  integer            :: iVert,nVert
-  real(8), pointer   :: vertx(:)
+  integer            :: iVert,jVert,nVert
+  real(8), pointer   :: vertx(:,:),vertxCwipi(:)
   integer, pointer   :: vertM(:)
   integer, pointer   :: cells(:),cellsIdx(:),mark(:),types(:)
   integer, pointer   :: nod(:)  !> ensemble des noeuds pour iCell : nod=>cells(cellsIdx(iCell)+1:cellsIdx(iCell+1))
@@ -1491,13 +1479,14 @@ program fortran_surf_TriaPi_PiPj
   
   real(8)          :: tol
   real(8)          :: xyz(1:3)
+  real(8), pointer :: xyzTab(:,:)
   integer          :: linkVertSize
-  real(8), pointer :: linkVert(:)
+  real(8), pointer :: linkVert(:,:),linkVertCwipi(:)
   integer          :: notLocatedPoints
   
   integer          :: stride
-  real(8), pointer ::   myValues(:)
-  real(8), pointer :: linkValues(:)
+  real(8), pointer ::   myValues(:,:),  myValuesCwipi(:)
+  real(8), pointer :: linkValues(:,:),linkValuesCwipi(:)
   
   real(8), pointer :: u (  :)  !> pour les quad (segments tensorisés)
   real(8), pointer :: uv(:,:)  !> pour les triangles
@@ -1662,12 +1651,13 @@ program fortran_surf_TriaPi_PiPj
     !> Reading Vertices
     
     !> allocation vertx,vertM
-    allocate( vertx(1:3*nVert),vertM(1:nVert) )
+    allocate( vertx(1:3,1:nVert),vertM(1:nVert) )
+    call c_f_pointer(cptr=c_loc(vertx), fptr=vertxCwipi, shape=[3*nMod])  
     
     !> read block
     ad0=int(1,kind=8)
-    ad1=0
-    ad2=3*(nVert-1)
+    ad1=1
+    ad2=nVert
     !write(buffer,'(3x,"Vert: ad1:ad2=",i6,":",i6,t130,"@rkw",i3)')ad1,ad2,rankWorld ; call msg1(trim(buffer))  
     res = gmfGetBlock(                         &
     &     InpMsh                              ,&
@@ -1675,18 +1665,11 @@ program fortran_surf_TriaPi_PiPj
     &     ad0                                 ,&
     &     int(nVert,kind=8)                   ,&
     &     0, %val(0), %val(0)                 ,&
-    &     GmfDouble,vertx(ad1+1),vertx(ad2+1) ,&
-    &     GmfDouble,vertx(ad1+2),vertx(ad2+2) ,&
-    &     GmfDouble,vertx(ad1+3),vertx(ad2+3) ,&
+    &     GmfDouble,vertx(1,ad1),vertx(1,ad2) ,&
+    &     GmfDouble,vertx(2,ad1),vertx(2,ad2) ,&
+    &     GmfDouble,vertx(3,ad1),vertx(3,ad2) ,&
     &                                          &
-    &     GmfInt   ,vertM(1)    ,vertM(nVert)  )  
-    
-  !  if( rankWorld==0 )then
-  !    do iVert=1,10
-  !      xyz(1:3)=vertx(3*(iVert-1)+1:3*iVert)
-  !      print '("iVert=",i6," xyz=",3(e22.15,1x)," mark=",i12)',iVert,xyz(1:3),vertM(iVert)
-  !    enddo
-  !  endif
+    &     GmfInt   ,vertM(  ad1),vertM(  ad2)  )  
     !<<<<<<<
     
     !>>>>>>>
@@ -1922,13 +1905,6 @@ program fortran_surf_TriaPi_PiPj
       
       iCell0=iCell0+nCell
     endif ReadingTriangle
-    
-    !if( rankWorld==0 )then
-    !  do iCell=1,10
-    !    nod=>cells(cellsIdx(iCell)+1:cellsIdx(iCell+1))
-    !    print '("iCell=",i6," nod=",*(i6,1x))',iCell,nod(:)
-    !  enddo
-    !endif
     !<<<<<<<
     
     !>>>>>>>
@@ -1955,6 +1931,13 @@ program fortran_surf_TriaPi_PiPj
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Allocate xyzTab
+    if( nQ4==0 )then ; allocate(xyzTab(1:3,(meshOrder+1)*(meshOrder+2)/2))
+    else             ; allocate(xyzTab(1:3,(meshOrder+1)*(meshOrder+1)  ))
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> On se couple sur les sphères maillées
     
    !write(buffer,'("")')                                              ; call msg2(trim(buffer))
@@ -1968,7 +1951,7 @@ program fortran_surf_TriaPi_PiPj
     &   nVertex     =nVert              ,&
     &   nElts       =nQ4+nT3            ,&
     &   order       =meshOrder          ,&  
-    &   coords      =vertx              ,&
+    &   coords      =vertxCwipi         ,&
     &   connecIndex =cellsIdx           ,&
     &   connec      =cells               )  
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
@@ -1978,9 +1961,9 @@ program fortran_surf_TriaPi_PiPj
     if( .not.nQ4==0 )then
       nMod=(meshOrder+1)*(meshOrder+1)
       allocate(ij(1:2,nMod))
+      call c_f_pointer(cptr=c_loc(ij), fptr=ijCwipi, shape=[2*nMod])  
       
       call setQ4MeshIJK(meshOrder=meshOrder,ij=ij)
-      call c_f_pointer(cptr=c_loc(ij), fptr=ijCwipi, shape=[2*nMod])  
 
       call cwipi_ho_ordering_from_IJK_set_f( & !> NEW Cwipi
       &   couplingName =trim(couplingName)  ,&
@@ -1995,10 +1978,10 @@ program fortran_surf_TriaPi_PiPj
     if( .not.nT3==0 )then
       nMod=(meshOrder+1)*(meshOrder+2)/2
       allocate(ij(1:2,nMod))
+      call c_f_pointer(cptr=c_loc(ij), fptr=ijCwipi, shape=[2*nMod])
       
       call setT3MeshIJK(meshOrder=meshOrder,ij=ij)
-      call c_f_pointer(cptr=c_loc(ij), fptr=ijCwipi, shape=[2*nMod])
-
+      
       call cwipi_ho_ordering_from_IJK_set_f( & !> NEW Cwipi
       &   couplingName =trim(couplingName)  ,&
       &   tElt         = CWIPI_FACE_TRIAHO  ,&
@@ -2013,15 +1996,16 @@ program fortran_surf_TriaPi_PiPj
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Initialisation of myValues(:)
+    !> Initialisation of myValues(:,:)
     
     stride=4 !> x,y,z,real(rankWorld,kind=8)    
-    allocate(myValues(1:nVert*stride))
-    i=0 ; j=0
+    allocate(myValues(1:stride,1:nVert))
+    call c_f_pointer(cptr=c_loc(myValues), fptr=myValuesCwipi, shape=[stride*nVert])
+    
+    i=0
     do iVert=1,nVert
-      myValues(j+1:j+stride)=[vertx(i+1),vertx(i+2),vertx(i+3),real(rankWorld,kind=8)]
+      myValues(1:stride,iVert)=[vertx(1,iVert),vertx(2,iVert),vertx(3,iVert),real(rankWorld,kind=8)]
       i=i+3
-      j=j+4
     enddo
     
    !write(buffer,'("")')                                                                    ; call msg2(trim(buffer))
@@ -2029,11 +2013,10 @@ program fortran_surf_TriaPi_PiPj
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Points de couplage linkVertSize,linkVert(:)
-    
+    !> Points de couplage linkVertSize,linkVert(:,:),linkVertCwipi(:)
     
 #if 0==0
-
+    
 ! 0==0 plusieurs points
 ! else un seul point (mise au point)
     
@@ -2046,18 +2029,7 @@ program fortran_surf_TriaPi_PiPj
       allocate(ij(1:2,1:nMod))
       call setQ4MeshIJK(meshOrder=meshOrder,ij=ij)
       call setQ4BasisEqui_u(ord=meshOrder,ijk=ij,u=u,ai=lagrangeMeshQ4)
-      deallocate(ij,u)
-      
-!      block
-!      real(8) :: toto(11)
-!      print '(/"lagrangeMeshQ4")'
-!      do iMod=1,nMod
-!        toto(1:nNod)=lagrangeMeshQ4(iMod,1:nNod)
-!        print '(3x,"ai(",i2,",1:nNod)=",*(e12.5,1x) )',iMod,toto(1:nNod)
-!      enddo
-!      print '("")'
-!      end block
-      
+      deallocate(ij,u)      
     endif
     
     !> calcul lagrangeMeshT3
@@ -2089,12 +2061,12 @@ program fortran_surf_TriaPi_PiPj
     if( .not.nT3==0 )then
       nNod=(compOrder+1)*(compOrder+2)/2                 !> Triangle meshOrder (entree)
       linkVertSize=linkVertSize+nT3*nNod                 !> nombre total de point de couplages
-    endif    
-    allocate(linkVert(1:3*linkVertSize))                 !> 3 coordonnées par point de couplage
-    
+    endif
+    allocate(linkVert(1:3,1:linkVertSize))               !> 3 coordonnées par point de couplage
+    call c_f_pointer(cptr=c_loc(linkVert), fptr=linkVertCwipi, shape=[3*linkVertSize])
     
     !> Initialization
-    iCell0=0 ; j=0
+    iCell0=0 ; iVert=0
     
     !> Quadrilaterals
     if( .not.nQ4==0 )then
@@ -2104,29 +2076,24 @@ program fortran_surf_TriaPi_PiPj
         iCell=iCell0+i
         nod=>cells(cellsIdx(iCell)+1:cellsIdx(iCell+1))  !> nMod=size(node)
         
-        !if( iCell==1 )then
-        !  do iMod=1,nMod
-        !    k=3*(nod(iMod)-1)
-        !    xyz(1:3)=vertx(k+1:k+3)
-        !    print '(3x"nod(",i8,")=",3(e22.15,1x))',nod(iMod),xyz(1:3)
-        !  enddo
-        !endif
-        
-        do iNod=1,nNod
-          !> linkVert
-          linkVert(j+1:j+3)=0d0
-          do iMod=1,nMod
-            k=3*(nod(iMod)-1)
-            linkVert(j+1:j+3)=linkVert(j+1:j+3)+lagrangeMeshQ4(iMod,iNod)*vertx(k+1:k+3)            
-          enddo
-          
-          !if( iCell==1 )then
-          !  xyz(1:3)=linkVert(j+1:j+3)
-          !  print '(3x"linkVert(",i3,")=",3(e22.15,1x))',iNod,xyz(1:3)
-          !endif
-          
-          j=j+3      
+        !> xyzTab(1:3,1:nMod)
+        do iMod=1,nMod
+          xyzTab(1:3,iMod)=vertx(1:3,nod(iMod))
         enddo
+        
+        !> linkVert(1:3,iVert+1:iVert+nNod)= xyzTab(1:3,1:nMod) x lagrangeMeshQ4(1:nMod,1:nNod)
+#if 0==1
+        linkVert(1:3,iVert+1:iVert+nNod)=matmul( xyzTab(1:3,1:nMod),lagrangeMeshQ4(1:nMod,1:nNod) )
+#else        
+        call dgemm('n','n', 3, nNod, nMod          ,&
+        &          1d0                             ,&
+        &          xyzTab(1,1)        ,3           ,& !> A = xyzTab        (1:3   ,1:nMod)
+        &          lagrangeMeshQ4(1,1),nMod        ,& !> B = lagrangeMeshQ4(1:nMod,1:nNod)
+        &          0d0                             ,&
+        &          linkVert(1,iVert+1),3            ) !> C(1:3,1:nNod   ) = A(1:3,1:nMod) x B(1:nMod,1:nNod)
+#endif          
+        iVert=iVert+nNod
+        
       enddo
       !>
       deallocate(lagrangeMeshQ4)
@@ -2140,59 +2107,73 @@ program fortran_surf_TriaPi_PiPj
       do i=1,nT3
         iCell=iCell0+i
         nod=>cells(cellsIdx(iCell)+1:cellsIdx(iCell+1))        
-        do iNod=1,nNod
-          !> linkVert
-          linkVert(j+1:j+3)=0d0
-          do iMod=1,nMod
-            k=3*(nod(iMod)-1)
-            linkVert(j+1:j+3)=linkVert(j+1:j+3)+lagrangeMeshT3(iMod,iNod)*vertx(k+1:k+3)
-          enddo
-          j=j+3      
+        
+        !> xyzTab(1:3,1:nMod)
+        do iMod=1,nMod
+          xyzTab(1:3,iMod)=vertx(1:3,nod(iMod))
         enddo
+        
+        !> linkVert(1:3,iVert+1:iVert+nNod)= xyzTab(1:3,1:nMod) x lagrangeMeshT3(1:nMod,1:nNod)
+#if 0==1
+        linkVert(1:3,iVert+1:iVert+nNod)=matmul( xyzTab(1:3,1:nMod),lagrangeMeshT3(1:nMod,1:nNod) )
+#else        
+        call dgemm('n','n', 3, nNod, nMod          ,&
+        &          1d0                             ,&
+        &          xyzTab(1,1)        ,3           ,& !> A = xyzTab        (1:3   ,1:nMod)
+        &          lagrangeMeshT3(1,1),nMod        ,& !> B = lagrangeMeshQ4(1:nMod,1:nNod)
+        &          0d0                             ,&
+        &          linkVert(1,iVert+1),3            ) !> C(1:3,1:nNod   ) = A(1:3,1:nMod) x B(1:nMod,1:nNod)
+#endif          
+        iVert=iVert+nNod
+        
+!        do iNod=1,nNod
+!          !> linkVert
+!          iVert=iVert+1
+!          linkVert(1:3,iVert)=0d0
+!          do iMod=1,nMod
+!            jVert=nod(iMod)
+!           !k=3*(nod(iMod)-1)
+!            linkVert(1:3,iVert)=linkVert(1:3,iVert)+lagrangeMeshT3(iMod,iNod)*vertx(1:3,jVert)            
+!          enddo
+!        enddo
+        
       enddo
       !>
       deallocate(lagrangeMeshT3)
       iCell0=iCell0+nT3
     endif
     
-    
-    !if( rankWorld==0 )then
-    !  print '(/"linkVert")'
-    !  j=0
-    !  do iVert=1,11 !linkVertSize
-    !    xyz(1:3)=linkVert(j+1:j+3)
-    !    print '(3x"linkVert(",i2,")=",3(e22.15,1x))',iVert,xyz(1:3)
-    !    j=j+3
-    !  enddo
-    !endif
-    
     write(buffer,'("")') ; call msg2(trim(buffer))
     write(buffer,'("linkVert compOrder=",i3," -> linkVertSize=",i6,t130,"@rkw",i3)')compOrder,linkVertSize,rankWorld ; call msg1(trim(buffer))
     
 #else
     
-    linkVertSize=1                       !> nombre total de point de couplages
-    allocate(linkVert(1:3*linkVertSize)) !> 3 coordonnées par point de couplage
+    linkVertSize=1                         !> nombre total de point de couplages
+    allocate(linkVert(1:3,1:linkVertSize)) !> 3 coordonnées par point de couplage
     
     select case(rankWorld)
-    !case(0) ; linkVert(1:3)=[-0.919633675189875E+00,-0.250163898379974E-01, 0.392131352367653E+00]  
-    !case(1) ; linkVert(1:3)=[-0.848807623678876E+00,-0.213274154008489E-01, 0.424121411593377E+00]
-    !case(0) ; linkVert(1:3)=[-0.962125889866290E+00, -0.353822407491257E-01, -0.270719711354757E+00]  
-    !case(1) ; linkVert(1:3)=[ 0.690377557847734E+00,  0.515357183278473E+00, -0.519234683615825E+00]
-    case(0) ; linkVert(1:3)=[-0.882008625194510E+00,-0.651604678905975E-03, 0.471232809228976E+00] 
-    case(1) ; linkVert(1:3)=[-0.558966419849888E+00, 0.785077751154716E+00, 0.267347624405070E+00]
+    case(0) ; linkVert(1:3,1)=[-0.882008625194510E+00,-0.651604678905975E-03, 0.471232809228976E+00] 
+    case(1) ; linkVert(1:3,1)=[-0.558966419849888E+00, 0.785077751154716E+00, 0.267347624405070E+00]
     end select
     
-    write(buffer,'(6x,"linkVert(1:3)=    ",3(e22.15,1x),t130,"@rkw",i3)')linkVert(1:3),rankWorld     ; call msg1(trim(buffer))
+    write(buffer,'(6x,"linkVert(1:3)=    ",3(e22.15,1x),t130,"@rkw",i3)')linkVert(1:3,1),rankWorld     ; call msg1(trim(buffer))
     
 #endif
+    
+    
+    if( rankWorld==0 )then
+      print '("linkVert     =",3(f12.5,1x))',linkVert     (1:3,1)
+      print '("linkVertCwipi=",3(f12.5,1x))',linkVertCwipi(1:3)
+    endif
+    
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    allocate(linkValues(1:stride*linkVertSize))
+    allocate(linkValues(1:stride,1:linkVertSize))
+    call c_f_pointer(cptr=c_loc(linkValues), fptr=linkValuesCwipi, shape=[stride*linkVertSize])
     
-   !write(buffer,'("")')                                                                           ; call msg2(trim(buffer))
-   !write(buffer,'("Allocate linkValues(1:",i10,")",t130,"@rkw",i3)')stride*linkVertSize,rankWorld ; call msg1(trim(buffer))
+   !write(buffer,'("")')                                                                                    ; call msg2(trim(buffer))
+   !write(buffer,'("Allocate linkValues(1:",i1,",1:",i10,")",t130,"@rkw",i3)')stride,linkVertSize,rankWorld ; call msg1(trim(buffer))
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -2200,11 +2181,11 @@ program fortran_surf_TriaPi_PiPj
     
     !write(buffer,'("")')                                                         ; call msg2(trim(buffer))
     !write(buffer,'("Transmission de linkVert a cwipi",t130,"@rkw",i3)')rankWorld ; call msg1(trim(buffer))  
-      
+    
     call cwipi_set_points_to_locate_f(    &
     &    couplingName=trim(couplingName) ,&
-    &    nPts  =  linkVertSize           ,&
-    &    coords=linkVert                  )
+    &    nPts  =linkVertSize             ,&
+    &    coords=linkVertCwipi             )
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -2237,10 +2218,10 @@ program fortran_surf_TriaPi_PiPj
     &    ptHoInterpolationFct=userInterpolation    ,&  !> utilisation de la procedure plug
     &                                               &
     &    sendingFieldName="mySolu"                 ,&  !> solution calculee localement
-    &    sendingField=myValues                     ,&
+    &    sendingField=myValuesCwipi                ,&
     &                                               &
     &    receivingFieldName="linkSolu"             ,&
-    &    receivingField=linkValues                 ,&  !> solution de raccord
+    &    receivingField=linkValuesCwipi            ,&  !> solution de raccord
     &                                               &
     &    nStep=1                                   ,&  !> pas utilisee juste pour visu cwipi
     &    timeValue=0d0                             ,&  !> pas utilisee juste pour visu cwipi
@@ -2263,17 +2244,15 @@ program fortran_surf_TriaPi_PiPj
     sumDelta= 0d0
     deltaMax=-1d50
     deltaMin= 1d50
-    j=0
     k=0
     do iVert=1,linkVertSize
-      delta=norm2(linkVert(j+1:j+3)-linkValues(k+1:k+3))
+      delta=norm2(linkVert(1:3,iVert)-linkValues(1:3,iVert))
       sumDelta=sumDelta+delta
       if( deltaMax<delta )then
         iVertMax=iVert
         deltaMax=delta
       endif
       if( delta<deltaMin )deltaMin=delta
-      j=j+3
       k=k+4
     enddo
     
@@ -2309,14 +2288,20 @@ program fortran_surf_TriaPi_PiPj
     & sumDelta                ,char(10),&
     & deltaMax                ,char(10),&
     &                          char(10),&
-    & linkVert  (j+1:j+3)     ,char(10),&
-    & linkValues(k+1:k+3)     ,char(10),&
-    & linkVert  (j+1:j+3)-linkValues(k+1:k+3)
+    & linkVert  (1:3,iVertMax),char(10),&
+    & linkValues(1:3,iVertMax),char(10),&
+    & linkVert  (1:3,iVertMax)-linkValues(1:3,iVertMax)
     
     call msg1(trim(buffer))      
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    vertxCwipi     =>null()
+    myValuesCwipi  =>null()
+    linkVertCwipi  =>null()
+    linkValuesCwipi=>null()
+    
+    deallocate(xyzTab)
     deallocate(vertx,vertM)
     deallocate(cellsIdx,cells,mark,types)
     deallocate(myValues,linkVert,linkValues)
