@@ -1652,7 +1652,7 @@ program fortran_surf_TriaPi_PiPj
     
     !> allocation vertx,vertM
     allocate( vertx(1:3,1:nVert),vertM(1:nVert) )
-    call c_f_pointer(cptr=c_loc(vertx), fptr=vertxCwipi, shape=[3*nMod])  
+    call c_f_pointer(cptr=c_loc(vertx), fptr=vertxCwipi, shape=[3*nVert])  
     
     !> read block
     ad0=int(1,kind=8)
