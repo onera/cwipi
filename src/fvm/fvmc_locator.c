@@ -65,7 +65,8 @@
 #include "fvmc_parall.h"
 #include "fvmc_point_location.h"
 
-
+#include "mkl.h"
+//#include "cblas.h"
 /*----------------------------------------------------------------------------
  *  Header for the current file
  *----------------------------------------------------------------------------*/
@@ -571,16 +572,25 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
       if (order > 1 && 1 == 1) {
 
         assert (dim == 3);
+        const int n_step = 40;
+        const double step = 1./(n_step - 1);
+        const int n_nodes = this_section->stride;
+
+        int n_vtx = 0;
 
         if (this_section->type == FVMC_FACE_TRIA) {
-          const int n_step = 20;
-          const double step = 1./(n_step - 1);
-          const int n_nodes = this_section->stride;
+          n_vtx = (n_step + 2) * (n_step + 1) /2;
+        }
+        else if (this_section->type == FVMC_FACE_QUAD) {
+          n_vtx = (n_step + 1) * (n_step + 1);
+        }
 
-          const int n_vtx = (n_step + 2) * (n_step + 1) /2;
-          double *uv = malloc (sizeof(double) * 2 * n_vtx);
-          double *ai = malloc (sizeof(double) * n_nodes * n_vtx);
+        double *uv = malloc (sizeof(double) * 2 * n_vtx);
+        double *ai = malloc (sizeof(double) * n_nodes * n_vtx);
+        double *xyz = malloc (sizeof(double) * 3 * n_vtx);
+        double *coords =  malloc (sizeof(double) * 3 * n_nodes);
           
+        if (this_section->type == FVMC_FACE_TRIA) {
           int i1 = 0;
           for (int jj = 0; jj < n_step + 1; jj++) {
             double v = jj*step;
@@ -590,62 +600,9 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
               uv[i1++] = v;
             }
           }
-              
           fvmc_ho_basis (FVMC_FACE_TRIA, order, n_nodes, n_vtx, uv, ai);
-          
-          for (int ielt = 0; ielt < this_section->n_elements; ielt++) {
-            
-            for (int ii = 0; ii < n_vtx; ii++) {
-
-              double xyz[3];
-
-              for (int kk = 0; kk < 3; kk++) {
-                xyz[kk] = 0.;
-              }
-
-              for (int jj = 0; jj < n_nodes; jj++) {
-
-                vertex_id = this_section->vertex_num[ielt*n_nodes + j] - 1;
-
-                int coord_idx;
-                if (parent_vertex_num == NULL) {
-                  coord_idx = vertex_id;
-                }
-                else {
-                  coord_idx = parent_vertex_num[vertex_id] - 1;
-                }
-                
-                for (int kk = 0; kk < 3; kk++) {
-                  xyz[kk] += ai[ii*n_nodes+jj] * vertex_coords[(coord_idx * dim) + kk];
-                }
-              }
-              
-              _update_elt_extents(dim,
-                                  0,
-                                  NULL,
-                                  xyz,
-                                  elt_extents,
-                                  &elt_initialized);
-            
-            }
-            
-          }
-
-          free (uv);
-          free (ai);
-          
         }
-
         else if (this_section->type == FVMC_FACE_QUAD) {
-
-          const int n_step = 20;
-          const double step = 1./(n_step - 1);
-          const int n_nodes = this_section->stride;
-
-          const int n_vtx = (n_step + 1) * (n_step + 1);
-          double *uv = malloc (sizeof(double) * 2 * n_vtx);
-          double *ai = malloc (sizeof(double) * n_nodes * n_vtx);
-          
           int i1 = 0;
           for (int jj = 0; jj < n_step + 1; jj++) {
             double v = jj*step;
@@ -655,55 +612,82 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
               uv[i1++] = v;
             }
           }
-          
           fvmc_ho_basis (FVMC_FACE_QUAD, order, n_nodes, n_vtx, uv, ai);
-
-          for (int ielt = 0; ielt < this_section->n_elements; ielt++) {
+        }
+          
+        for (int ielt = 0; ielt < this_section->n_elements; ielt++) {
             
+          for (int jj = 0; jj < n_nodes; jj++) {
+            vertex_id = this_section->vertex_num[ielt*n_nodes + j] - 1;
+            int coord_idx;
+            if (parent_vertex_num == NULL) {
+              coord_idx = vertex_id;
+            }
+            else {
+              coord_idx = parent_vertex_num[vertex_id] - 1;
+            }
+            for (int kk = 0; kk < 3; kk++) {
+              coords[3*jj+kk] = vertex_coords[(coord_idx * dim) + kk];
+            }
+          }
+
+          if (1 == 1) {
             for (int ii = 0; ii < n_vtx; ii++) {
-
-              double xyz[3];
-
+              
               for (int kk = 0; kk < 3; kk++) {
-                xyz[kk] = 0.;
+                xyz[3*ii + kk] = 0.;
               }
-
+              
               for (int jj = 0; jj < n_nodes; jj++) {
-
-                vertex_id = this_section->vertex_num[ielt*n_nodes + j] - 1;
-
-                int coord_idx;
-                if (parent_vertex_num == NULL) {
-                  coord_idx = vertex_id;
-                }
-                else {
-                  coord_idx = parent_vertex_num[vertex_id] - 1;
-                }
                 
                 for (int kk = 0; kk < 3; kk++) {
-                  xyz[kk] += ai[ii*n_nodes+jj] * vertex_coords[(coord_idx * dim) + kk];
+                  xyz[3*ii +kk] += ai[ii*n_nodes+jj] * coords[3 * jj + kk];
                 }
               }
               
-              _update_elt_extents(dim,
-                                  0,
-                                  NULL,
-                                  xyz,
-                                  elt_extents,
-                                  &elt_initialized);
-            
             }
+          }
+          
+          else {
+            
+            double alpha = 1.;
+            double beta = 0.;
+            
+            cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                        n_vtx, 3, n_nodes,
+                        alpha,
+                        ai, n_nodes,
+                        coords, 3,
+                        beta,
+                        xyz, 3);
             
           }
-
-          free (uv);
-          free (ai);
-
+          
+          /* if (i == 0) { */
+          /*   for (int ii = 0; ii < n_vtx; ii++) { */
+          /*     printf ("%12.5e %12.5e %12.5e\n", xyz[3*ii], xyz[3*ii+1], xyz[3*ii+2]); */
+          /*   } */
+          /* } */
+          
+          for (int ii = 0; ii < n_vtx; ii++) {
+            
+            _update_elt_extents(dim,
+                                0,
+                                NULL,
+                                xyz + 3 *ii,
+                                elt_extents,
+                                &elt_initialized);
+            
+          }
+          
         }
-        
 
+        free (uv);
+        free (ai);
+        free (xyz);
+        free (coords);
+          
       }
-      
 
       _elt_extents_finalize(dim,
                             this_section->entity_dim,
