@@ -625,7 +625,7 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
         for (int ielt = 0; ielt < this_section->n_elements; ielt++) {
             
           for (int jj = 0; jj < n_nodes; jj++) {
-            vertex_id = this_section->vertex_num[ielt*n_nodes + j] - 1;
+            vertex_id = this_section->vertex_num[ielt*n_nodes + jj] - 1;
             int coord_idx;
             if (parent_vertex_num == NULL) {
               coord_idx = vertex_id;
@@ -634,22 +634,23 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
               coord_idx = parent_vertex_num[vertex_id] - 1;
             }
             for (int kk = 0; kk < 3; kk++) {
-              coords[3*jj+kk] = vertex_coords[(coord_idx * dim) + kk];
+              coords[3*jj+kk] = vertex_coords[(coord_idx * 3) + kk];
             }
           }
 
-#ifdef CWP_HAVE_BLAS
-          double alpha = 1.;
-          double beta = 0.;
-          
-          cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
-                      n_vtx, 3, n_nodes,
-                      alpha,
-                      ai, n_nodes,
-                      coords, 3,
-                      beta,
-                      xyz, 3);
-#else
+/* #ifdef CWP_HAVE_BLAS */
+/*           double alpha = 1.; */
+/*           double beta = 0.; */
+/*           printf ("blas - oui\n"); */
+/*           cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, */
+/*                       n_vtx, 3, n_nodes, */
+/*                       alpha, */
+/*                       ai, n_nodes, */
+/*                       coords, 3, */
+/*                       beta, */
+/*                       xyz, 3); */
+/* #else */
+          printf ("blas - non\n");
           for (int ii = 0; ii < n_vtx; ii++) {
             
             for (int kk = 0; kk < 3; kk++) {
@@ -664,7 +665,7 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
             }
             
           }
-#endif  
+/* #endif   */
         
           for (int ii = 0; ii < n_vtx; ii++) {
             
