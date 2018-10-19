@@ -395,6 +395,38 @@ _basis_tria_pn
 
   /* else if (order == 3) { */
 
+  /* for (int i = 0;  i < n_pts; i++) { */
+
+  /*   double u = uv[2*i]; */
+  /*   double u3 = 3.*u; */
+  /*   double u3m1 = (u3-1.)*5e-1; */
+    
+  /*   double v = uv[2*i+1]; */
+  /*   double v3 = 3.*v; */
+  /*   double v3m1 = (v3-1.)*5e-1; */
+    
+  /*   double w = 1. - u - v; */
+  /*   double w3 = 3.*w; */
+  /*   double w3m1 = (w3-1.)*5e-1; */
+
+  /*   ai[2*i+0] = w*w3m1*(w3-2.);   // (i,j,k)=(003) */
+  /*   ai[2*i+3] = u*u3m1*(u3-2.);   // (i,j,k)=(300) */
+  /*   ai[2*i+9] = v*v3m1*(v3-2.);   // (i,j,k)=(030) */
+  /*   ai[2*i+1] = u3*w3*w3m1;       // (i,j,k)=(102) */
+      
+  /*   double coef = u3*u3m1; */
+  /*   ai[2*i+2] = coef*w3;           //(i,j,k)=(201) */
+  /*   ai[2*i+6] = coef*v3;           // (i,j,k)=(210) */
+      
+  /*   coef=v3*v3m1; */
+  /*   ai[2*i+8] = coef*u3;           // (i,j,k)=(120) */
+  /*   ai[2*i+7] = coef*w3;           // (i,j,k)=(021) */
+
+  /*   coef=v3*w3; */
+  /*   ai[2*i+4] = coef*w3m1;         // (i,j,k)=(012)       */
+  /*   ai[2*i+5] = coef*u3;           // (i,j,k)=(111)       */
+
+  
   /*   SNB_setT3Basis_P3 (n_pts, uv, weights); */
 
   /* } */

@@ -72,22 +72,43 @@ option(CWP_ENABLE_PYTHON_BINDINGS "Build Python module" OFF)
 
 option(CWP_ENABLE_Fortran  "Build Shared Fortran Interface" OFF)
 
-# High order (Nodal bases from SPACE)
+# MKL, BLAS, LAPACK
 # -----------------
 
 if (CMAKE_C_COMPILER_ID STREQUAL "Intel")
-   set (BLA_VENDOR "Intel10_64lp")
+   set (BLA_VENDOR "Intel10_64lp_seq")
+   find_package(BLAS)
+   find_package(LAPACK)
+   if (BLAS_FOUND AND LAPACK_FOUND)
+     set(CWP_HAVE_MKL 1)
+   endif()
+   unset (BLA_VENDOR)
 endif()
 
-find_package(BLAS)
-find_package(LAPACK)
+if (NOT BLAS_FOUND)
+   find_package(BLAS)
+endif()
 
-if (${BLAS_FOUND} AND ${LAPACK_FOUND})
+if (NOT LAPACK_FOUND)
+   find_package(LAPACK)
+endif()
+
+if (BLAS_FOUND)
+   set(CWP_HAVE_BLAS 1)
+endif()
+if (LAPACK_FOUND)
+   set(CWP_HAVE_LAPACK 1)
+endif()
+
+# High order (Nodal bases from SPACE)
+# -----------------
+
+if (BLAS_FOUND AND LAPACK_FOUND)
   set (ENABLE_SPACE_NODAL_BASIS ON)
 else()
   set (ENABLE_SPACE_NODAL_BASIS OFF)
 endif()
-option(CWP_ENABLE_SPACE_NODAL_BASIS  "Enable nodal bases from SPACE" ${ENABLE_SPACE_NODAL_BASIS})
+option(CWP_ENABLE_SPACE_NODAL_BASIS  "Enable nodal basis from SPACE" ${ENABLE_SPACE_NODAL_BASIS})
 
 if (CWP_ENABLE_SPACE_NODAL_BASIS)
  set(SNB_IN_CWP 1)

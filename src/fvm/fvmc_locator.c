@@ -64,9 +64,16 @@
 #include "fvmc_nodal_priv.h"
 #include "fvmc_parall.h"
 #include "fvmc_point_location.h"
+#include "cwipi_config.h"
 
+#ifdef CWP_HAVE_MKL
 #include "mkl.h"
-//#include "cblas.h"
+#else
+#ifdef CWP_HAVE_BLAS
+#include "cblas.h"
+#endif
+#endif
+
 /*----------------------------------------------------------------------------
  *  Header for the current file
  *----------------------------------------------------------------------------*/
@@ -631,44 +638,34 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
             }
           }
 
-          if (1 == 1) {
-            for (int ii = 0; ii < n_vtx; ii++) {
+#ifdef CWP_HAVE_BLAS
+          double alpha = 1.;
+          double beta = 0.;
+          
+          cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                      n_vtx, 3, n_nodes,
+                      alpha,
+                      ai, n_nodes,
+                      coords, 3,
+                      beta,
+                      xyz, 3);
+#else
+          for (int ii = 0; ii < n_vtx; ii++) {
+            
+            for (int kk = 0; kk < 3; kk++) {
+              xyz[3*ii + kk] = 0.;
+            }
+            
+            for (int jj = 0; jj < n_nodes; jj++) {
               
               for (int kk = 0; kk < 3; kk++) {
-                xyz[3*ii + kk] = 0.;
+                xyz[3*ii +kk] += ai[ii*n_nodes+jj] * coords[3 * jj + kk];
               }
-              
-              for (int jj = 0; jj < n_nodes; jj++) {
-                
-                for (int kk = 0; kk < 3; kk++) {
-                  xyz[3*ii +kk] += ai[ii*n_nodes+jj] * coords[3 * jj + kk];
-                }
-              }
-              
             }
-          }
-          
-          else {
-            
-            double alpha = 1.;
-            double beta = 0.;
-            
-            cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
-                        n_vtx, 3, n_nodes,
-                        alpha,
-                        ai, n_nodes,
-                        coords, 3,
-                        beta,
-                        xyz, 3);
             
           }
-          
-          /* if (i == 0) { */
-          /*   for (int ii = 0; ii < n_vtx; ii++) { */
-          /*     printf ("%12.5e %12.5e %12.5e\n", xyz[3*ii], xyz[3*ii+1], xyz[3*ii+2]); */
-          /*   } */
-          /* } */
-          
+#endif  
+        
           for (int ii = 0; ii < n_vtx; ii++) {
             
             _update_elt_extents(dim,

@@ -26,6 +26,12 @@
 
 #cmakedefine HAVE_SPACE_BASIS
 
+#cmakedefine CWP_HAVE_BLAS
+
+#cmakedefine CWP_HAVE_LAPACK
+
+#cmakedefine CWP_HAVE_MKL
+
 #cmakedefine CWP_HAVE_NOT_FORTRAN_IN_C @CWP_HAVE_NOT_FORTRAN_IN_C@
 
 #endif /* __CWP_CONFIG_H__ */

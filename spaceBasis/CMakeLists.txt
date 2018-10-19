@@ -17,9 +17,6 @@ enable_testing()
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 project(BASISNODALES VERSION 2017.1.1 LANGUAGES C Fortran)
 
-message("Source du projet:      ${BASISNODALES_SOURCE_DIR}")
-message("Compilation du projet: ${BASISNODALES_BINARY_DIR}")
-
 #------------------------------------------------------------------------------
 # Definition de la version BASISNODALES
 #------------------------------------------------------------------------------
@@ -86,12 +83,14 @@ include(${CMAKE_MODULE_PATH}/default_flags.cmake)
 
 add_definitions (-DF77API)
 
-if (CMAKE_C_COMPILER_ID STREQUAL "Intel")
-   set (BLA_VENDOR "Intel10_64lp")
-endif()
+if(NOT PDM_IN_CWP)
+  if (CMAKE_C_COMPILER_ID STREQUAL "Intel")
+     set (BLA_VENDOR "Intel10_64lp")
+  endif()
 
-find_package(BLAS   REQUIRED)
-find_package(LAPACK REQUIRED)
+  find_package(BLAS   REQUIRED)
+  find_package(LAPACK REQUIRED)
+endif()
 
 #------------------------------------------------------------------------------
 # Ajout des sources de tous les elements du projet
@@ -106,6 +105,7 @@ add_subdirectory(tests)
 # Print summary of found and not found optional packages
 #------------------------------------------------------------------------------
 
-include(FeatureSummary)
-FEATURE_SUMMARY(WHAT ALL)
-
+if(NOT PDM_IN_CWP)
+  include(FeatureSummary)
+  FEATURE_SUMMARY(WHAT ALL)
+endif()
