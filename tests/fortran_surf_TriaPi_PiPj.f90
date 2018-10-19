@@ -1466,6 +1466,8 @@ program fortran_surf_TriaPi_PiPj
   integer            :: dim,res,ver
   integer            :: iCell0
   
+  integer            :: meshUnit
+  
   integer            :: i,j,k,l,iu,iv
   integer            :: iMod,nMod
   integer            :: iNod,nNod
@@ -1561,13 +1563,13 @@ program fortran_surf_TriaPi_PiPj
    ! case(2) ; tol=1.75d-3
     case(2) ; tol=1d-2
     case(3) ; tol=3d-3
-    case(4) ; tol=1d-3
+    case(4) ; tol=5d-3
     end select
     
     write(buffer,'("")')                                                                                        ; call msg2(trim(buffer))
     write(buffer,'("Code: ",a," creates coupling: ",a," with code: ",a," and tol=",e22.15,t130,"@rkw",i3)') &
     &  trim(codeName),trim(couplingName),trim(codeCoupledName),tol,rankWorld  ; call msg1(trim(buffer))
-      
+    
     call cwipi_create_coupling_f(                  &
     &    couplingName=trim(couplingName)          ,&
     &    couplingType=cwipi_cpl_parallel_with_part,&
@@ -1613,7 +1615,102 @@ program fortran_surf_TriaPi_PiPj
     !>>>>>>>
     write(meshName,'("./meshes/",a,"0",i1,".mesh")')trim(maillage),rankWorld+1 ! call msg1(trim(meshName))
     !<<<<<<<
+    
+    
+#if 0==0
+    
+    !>>>>>>>
+    !> Initialisation
+    nVert=0 ; nQ4=0 ; nT3=0
+    open(newunit=meshUnit,file=trim(meshName),action='read',status='old')
+    lecture1: do
+      read(meshUnit,*)key
+      select case(trim(key))
+      case("Vertices")                                                                ; read(meshUnit,*)nVert
+      case("Quadrilaterals","QuadrilateralsQ2","QuadrilateralsQ3","QuadrilateralsQ4") ; read(meshUnit,*)nQ4
+      case("Triangles"     ,"TrianglesP2"     ,"TrianglesP3"     ,"TrianglesP4"     ) ; read(meshUnit,*)nT3
+      case("End") ; exit lecture1
+    end select
+    enddo lecture1
+    close(meshUnit)
+    
+    nCell=nT3+nQ4
+    dim  = nT3*(meshOrder+1)*(meshOrder+2)/2 &
+    &     +nQ4*(meshOrder+1)*(meshOrder+1)
+    
+    write(buffer,'(3x,"meshOrder=",i2,"  nVert=",i6," nQ4=",i6," nT3=",i6,t130,"@rkw",i3)')meshOrder,nVert,nQ4,nT3,rankWorld ; call msg1(trim(buffer))  
+    !<<<<<<<
+    
+    !>>>>>>>
+    allocate( vertx(1:3,1:nVert),vertM(1:nVert) )
+    call c_f_pointer(cptr=c_loc(vertx), fptr=vertxCwipi, shape=[3*nVert])  
+
+    allocate(cellsIdx(1:nCell+1),cells(1:dim),mark(1:nCell),types(1:nCell))
+    !<<<<<<<
+    
+    !>>>>>>>
+    !> Initialization (iCell0,cellsIdx(1))
+    iCell0=0 ; cellsIdx(1)=0
+    
+    open(newunit=meshUnit,file=trim(meshName),action='read',status='old')
+    lecture2: do
+      read(meshUnit,'(a)')key
+      select case(trim(key))
+      case("Vertices")
         
+        read(meshUnit,*)nVert
+        do iVert=1,nVert
+          read(meshUnit,*)vertx(1:3,iVert),vertM(iVert)
+        enddo
+        
+      case("Quadrilaterals","QuadrilateralsQ2","QuadrilateralsQ3","QuadrilateralsQ4")
+        
+        nNod=(meshOrder+1)*(meshOrder+1)                 ! <=
+        read(meshUnit,*)nQ4
+        do i=1,nQ4
+          iCell=iCell0+i
+          cellsIdx(iCell+1)=cellsIdx(iCell)+nNod
+          read(meshUnit,*)cells(cellsIdx(iCell)+1:cellsIdx(iCell+1)),mark(iCell)
+        enddo
+        !> types
+        select case(meshOrder)
+        case(1) ; types(iCell0+1:iCell0+nQ4)=quad       ! <=
+        case(2) ; types(iCell0+1:iCell0+nQ4)=quad2      ! <=
+        case(3) ; types(iCell0+1:iCell0+nQ4)=quad3      ! <=
+        case(4) ; types(iCell0+1:iCell0+nQ4)=quad4      ! <=
+        case default ; call stopAlert("meshOrder>4")
+        end select
+        !>
+        iCell0=iCell0+nQ4
+        
+      case("Triangles"     ,"TrianglesP2"     ,"TrianglesP3"     ,"TrianglesP4"     )
+        
+        nNod=(meshOrder+1)*(meshOrder+2)/2               ! <=
+        read(meshUnit,*)nT3
+        do i=1,nT3
+          iCell=iCell0+i
+          cellsIdx(iCell+1)=cellsIdx(iCell)+nNod
+          read(meshUnit,*)cells(cellsIdx(iCell)+1:cellsIdx(iCell+1)),mark(iCell)
+        enddo
+        !> types
+        select case(meshOrder)
+        case(1) ; types(iCell0+1:iCell0+nT3)=triangle   ! <=
+        case(2) ; types(iCell0+1:iCell0+nT3)=triangle2  ! <=
+        case(3) ; types(iCell0+1:iCell0+nT3)=triangle3  ! <=
+        case(4) ; types(iCell0+1:iCell0+nT3)=triangle4  ! <=
+        case default ; call stopAlert("meshOrder>4")
+        end select        
+        !>
+        iCell0=iCell0+nT3
+        
+      case("End") ; exit lecture2
+      end select
+    enddo lecture2
+    close(meshUnit)
+    !<<<<<<<
+        
+#else
+    
     !>>>>>>>
     !> Opening File
     InpMsh = gmfOpenMesh(trim(meshName),GmfRead,ver,dim)
@@ -1910,7 +2007,9 @@ program fortran_surf_TriaPi_PiPj
     !>>>>>>>
     !> Closing File
     res = gmfclosemesh(InpMsh)
-    !<<<<<<<  
+    !<<<<<<<
+    
+#endif
     
     write(buffer,'(                                &
     &                                           a, &
@@ -2042,6 +2141,22 @@ program fortran_surf_TriaPi_PiPj
       case(01) ; call setT3MeshBasis_P1(uv=uv,ai=lagrangeMeshT3)
       case(02) ; call setT3MeshBasis_P2(uv=uv,ai=lagrangeMeshT3)
       case(03) ; call setT3MeshBasis_P3(uv=uv,ai=lagrangeMeshT3)
+        
+        block
+        real(8), pointer ::test(:,:)
+        allocate(test(1:nMod,1:nNod))
+        allocate(ij(1:2,1:nMod))
+        call setT3MeshIJK(meshOrder=meshOrder,ij=ij)
+        call setT3BasisEqui_uv(ord=meshOrder,ijk=ij,uvw=uv,ai=test)
+        deallocate(ij)
+        do iMod=1,nMod ; do iNod=1,nNod
+          if( abs(test(iMod,iNod)-lagrangeMeshT3(iMod,iNod))>1d-14 )then
+            print '("iMod=",i3," iNod=",i3," Delta=",e22.15,t130,"@rkw",i3)',iMod,iNod,test(iMod,iNod)-lagrangeMeshT3(iMod,iNod),rankWorld
+          endif
+        enddo ; enddo
+        deallocate(test)
+        end block
+        
       case default
         allocate(ij(1:2,1:nMod))
         call setT3MeshIJK(meshOrder=meshOrder,ij=ij)
@@ -2084,14 +2199,14 @@ program fortran_surf_TriaPi_PiPj
         !> linkVert(1:3,iVert+1:iVert+nNod)= xyzTab(1:3,1:nMod) x lagrangeMeshQ4(1:nMod,1:nNod)
 #if 0==1
         linkVert(1:3,iVert+1:iVert+nNod)=matmul( xyzTab(1:3,1:nMod),lagrangeMeshQ4(1:nMod,1:nNod) )
-#else        
+#else
         call dgemm('n','n', 3, nNod, nMod          ,&
         &          1d0                             ,&
         &          xyzTab(1,1)        ,3           ,& !> A = xyzTab        (1:3   ,1:nMod)
         &          lagrangeMeshQ4(1,1),nMod        ,& !> B = lagrangeMeshQ4(1:nMod,1:nNod)
         &          0d0                             ,&
-        &          linkVert(1,iVert+1),3            ) !> C(1:3,1:nNod   ) = A(1:3,1:nMod) x B(1:nMod,1:nNod)
-#endif          
+        &          linkVert(1,iVert+1),3            ) !> C(1:3,1:nNod) = A(1:3,1:nMod) x B(1:nMod,1:nNod)
+#endif
         iVert=iVert+nNod
         
       enddo
@@ -2158,14 +2273,7 @@ program fortran_surf_TriaPi_PiPj
     
     write(buffer,'(6x,"linkVert(1:3)=    ",3(e22.15,1x),t130,"@rkw",i3)')linkVert(1:3,1),rankWorld     ; call msg1(trim(buffer))
     
-#endif
-    
-    
-    if( rankWorld==0 )then
-      print '("linkVert     =",3(f12.5,1x))',linkVert     (1:3,1)
-      print '("linkVertCwipi=",3(f12.5,1x))',linkVertCwipi(1:3)
-    endif
-    
+#endif    
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -2237,8 +2345,8 @@ program fortran_surf_TriaPi_PiPj
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    write(buffer,'("")')                                           ; call msg2(trim(buffer))
-    write(buffer,'("Controling Results",t130,"@rkw",i3)')rankWorld ; call msg1(trim(buffer))
+   !write(buffer,'("")')                                           ; call msg2(trim(buffer))
+   !write(buffer,'("Controling Results",t130,"@rkw",i3)')rankWorld ; call msg1(trim(buffer))
     
     iVertMax=1
     sumDelta= 0d0
@@ -2261,20 +2369,20 @@ program fortran_surf_TriaPi_PiPj
     j=(iVertMax-1)*3
     k=(iVertMax-1)*stride
     write(buffer,'(                                                      a, &
-    &              3x,"Control",t130,"@rkw",i3                          ,a, &
-    &              6x,"mesh: ",a                                        ,a, &
-    &              6x,"meshOrder=",i1," nVert=",i6," nQ4=",i6," nT3=",i6,a, &
+    &                 "Controling Results",t130,"@rkw",i3               ,a, &
+    &              3x,"mesh: ",a                                        ,a, &
+    &              3x,"meshOrder=",i1," nVert=",i6," nQ4=",i6," nT3=",i6,a, &
     &                                                                    a, &
-    &              6x,"linkVertSize=",i6                                ,a, &
+    &              3x,"linkVertSize=",i6                                ,a, &
     &                                                                    a, &
-    &              6x,"linkSolu (computed by: ",a,")"                   ,a, &
-    &              6x,"deltaMin  =",e22.15                              ,a, &
-    &              6x,"sumDelta  =",e22.15                              ,a, &
-    &              6x,"deltaMax  =",e22.15                              ,a, &
+    &              3x,"linkSolu (computed by: ",a,")"                   ,a, &
+    &              3x,"deltaMin  =",e22.15                              ,a, &
+    &              3x,"sumDelta  =",e22.15                              ,a, &
+    &              3x,"deltaMax  =",e22.15                              ,a, &
     &                                                                    a, &
-    &              6x,"linkVert  =",3(e22.15,1x)                        ,a, &
-    &              6x,"linkValues=",3(e22.15,1x)                        ,a, &
-    &              6x,"Delta     =",3(e22.15,1x)                            &
+    &              3x,"linkVert  =",3(e22.15,1x)                        ,a, &
+    &              3x,"linkValues=",3(e22.15,1x)                        ,a, &
+    &              3x,"Delta     =",3(e22.15,1x)                            &
     &                                                                    )')&
     &                          char(10),&
     & rankWorld               ,char(10),&

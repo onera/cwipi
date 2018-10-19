@@ -140,7 +140,6 @@ module baseSimplex2D
   end subroutine setT3MeshBasis_u_v_P2
 
   subroutine setT3Basis_P3_c(n_vtx, uv, ai)  BIND(C, name="SNB_setT3Basis_P3") 
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     use, intrinsic :: ISO_C_BINDING 
     implicit none 
@@ -215,7 +214,6 @@ module baseSimplex2D
   end subroutine setT3MeshBasis_P3
   
   subroutine setT3Basis_u_v_P3_c(n_vtx, u, v, ai)  BIND(C, name="SNB_setT3Basis_u_v_P3") 
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     use, intrinsic :: ISO_C_BINDING 
     implicit none 
