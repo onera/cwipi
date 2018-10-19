@@ -1103,7 +1103,6 @@ void cwipi_ho_ordering_from_ref_elt_set (const char   *coupling_id,
 void
 cwipi_ho_user_elt_set (cwipi_element_t elt_type,
                        cwipi_ho_basis_fct_t element_basis,
-                       cwipi_ho_xsi_fct_t xsi_coordinates,
                        cwipi_ho_location_fct_t location_in_element);
 
 /*----------------------------------------------------------------------------

@@ -53,7 +53,7 @@
 #include "fvmc_config_defs.h"
 #include "fvmc_defs.h"
 #include "fvmc_nodal.h"
-#include "fvmc_ho.h"
+#include "fvmc_ho_basis.h"
 #include "fvmc_nodal_priv.h"
 #include "fvmc_triangulate.h"
 
@@ -61,7 +61,7 @@
  *  Header for the current file
  *----------------------------------------------------------------------------*/
 
-#include "fvmc_ho.h"
+#include "fvmc_ho_location.h"
 
 #if defined (HAVE_SPACE_BASIS) 
 #include "spacebasis.h"
@@ -86,11 +86,9 @@ extern "C" {
  * Type definitions
  *============================================================================*/
 
-typedef struct _fvmc_ho_user_elt_t {
-  fvmc_ho_basis_fct_t elt_basis;
-  fvmc_ho_xsi_fct_t   xsi_coords;
+typedef struct _fvmc_ho_location_user_elt_t {
   fvmc_ho_location_fct_t location_in_elt;
-} fvmc_ho_user_elt_t;
+} fvmc_ho_location_user_elt_t;
 
 /*----------------------------------------------------------------------------
  * Sorted heap for sub-triangle storage
@@ -139,50 +137,21 @@ typedef void (*_heap_fill_init_sub_tria_t)
 );
 
 
-/*----------------------------------------------------------------------------
- * Function pointer to define a basis for a 2D element
- *
- * parameters:
- *   order           <-- order
- *   n_pts           <-- number of points
- *   uv              <-- uv coordinates of points
- *   weights         --> weights (size = n_nodes)
- *
- *----------------------------------------------------------------------------*/
-
-typedef void (*_basis_generic_2D_t)
-(
- const int order,
- const int n_pts,
- const double *uv,
- double *weights
-);
-
-
 /*============================================================================
  * Static global variables
  *============================================================================*/
 
-static fvmc_ho_user_elt_t *_user_edge = NULL;
+static fvmc_ho_location_user_elt_t *_user_edge = NULL;
 
-static fvmc_ho_user_elt_t *_user_tria = NULL;
-static fvmc_ho_user_elt_t *_user_quad = NULL;
+static fvmc_ho_location_user_elt_t *_user_tria = NULL;
+static fvmc_ho_location_user_elt_t *_user_quad = NULL;
 
-static fvmc_ho_user_elt_t *_user_tetra = NULL;
-static fvmc_ho_user_elt_t *_user_hexa = NULL;
-static fvmc_ho_user_elt_t *_user_prism = NULL;
-static fvmc_ho_user_elt_t *_user_pyra = NULL;
+static fvmc_ho_location_user_elt_t *_user_tetra = NULL;
+static fvmc_ho_location_user_elt_t *_user_hexa = NULL;
+static fvmc_ho_location_user_elt_t *_user_prism = NULL;
+static fvmc_ho_location_user_elt_t *_user_pyra = NULL;
 
-static int                 _idebug = 0;
-
-static int                 _n_ijk_tria_space = 0;
-static int               **_ijk_tria_space = NULL;
-
-static int                 _n_ijk_quad_space = 0;
-static int               **_ijk_quad_space = NULL;
-
-static int                 _n_ijk_1D_space = 0;
-static int               **_ijk_1D_space = NULL;
+static int _idebug = 0;
 
 static int isWarningPrinted1 = 0;
 static int isWarningPrinted2 = 0;
@@ -275,389 +244,6 @@ _uv_ho_quad_nodes
       uv[k++] = v;
       
     }
-  }
-}
-
-
-/*----------------------------------------------------------------------------
- * 
- * Triangle Pn basis
- * 
- * parameters:
- *   order           <-- order
- *   n_pts           <-- number of points
- *   uv              <-- u (size = 2 * n_pts)
- *   weights         --> weights (size = n_nodes * n_pts)
- *
- *
- *----------------------------------------------------------------------------*/
-
-static void
-_basis_tria_pn
-(
- const int order,
- const int n_pts,
- const double *uv,
- double *weights
-)
-{
-
-  if (order == 1) {
-
-    if (n_pts != 1) {
-
-      double *u  = malloc (sizeof(double) *n_pts);
-      double *v  = malloc (sizeof(double) *n_pts);
-      
-      for (int i = 0; i < n_pts; i++) {
-        u[i]  = uv[2*i];
-        v[i]  = uv[2*i+1];
-      }
-      
-      for (int i = 0; i < n_pts; i++) {
-        weights[3*i]   = 1. - u[i] - v[i];
-        weights[3*i+1] = u[i];
-        weights[3*i+2] = v[i];
-      }
-      
-      free (u);
-      free (v);
-    }
-
-    else {
-
-      double u = uv[0];
-      double v = uv[1];
-      
-      weights[0] = 1. - u - v;
-      weights[1] = u;
-      weights[2] = v;
-
-    }
-  }
-  
-  else if (order == 2) {
-
-    if (n_pts != 1) {
-      double *u  = malloc (sizeof(double) *n_pts);
-      double *v  = malloc (sizeof(double) *n_pts);
-      double *w  = malloc (sizeof(double) *n_pts);
-      double *u2 = malloc (sizeof(double) *n_pts);
-      double *v2 = malloc (sizeof(double) *n_pts);
-      double *w2 = malloc (sizeof(double) *n_pts);
-    
-
-      for (int i = 0; i < n_pts; i++) {
-        u[i]  = uv[2*i];
-        v[i]  = uv[2*i+1];
-        w[i]  = 1. - u[i] - v[i];
-        u2[i] = 2. * u[i];
-        v2[i] = 2. * v[i];
-        w2[i] = 2. * w[i];
-      }
-      
-      for (int i = 0; i < n_pts; i++) {
-        
-        weights[6*i+0] = w[i] * (-1. + w2[i]);  /* (i,j,k)=(0,0,2) */
-        weights[6*i+1] = u2[i] * w2[i];         /* (i,j,k)=(1,0,1) */
-        weights[6*i+2] = u[i] * (-1. + u2[i]);  /* (i,j,k)=(2,0,0) */
-        weights[6*i+3] = v2[i] * w2[i];         /* (i,j,k)=(0,1,1) */
-        weights[6*i+4] = u2[i] * v2[i];         /* (i,j,k)=(1,1,0) */
-        weights[6*i+5] = v[i] * (-1. + v2[i]);  /* (i,j,k)=(0,2,0) */
-      }
-    
-      free (u);
-      free (v);
-      free (w);
-      free (u2);
-      free (v2);
-      free (w2);
-    }
-    else {
-
-      double u = uv[0];
-      double v = uv[1];
-      
-      double w  = 1. - u - v;
-      double u2 = 2. * u;
-      double v2 = 2. * v;
-      double w2 = 2. * w;
-      
-      weights[0] = w * (-1. + w2);  /* (i,j,k)=(0,0,2) */
-      weights[1] = u2 * w2;         /* (i,j,k)=(1,0,1) */
-      weights[2] = u * (-1. + u2);  /* (i,j,k)=(2,0,0) */
-      weights[3] = v2 * w2;         /* (i,j,k)=(0,1,1) */
-      weights[4] = u2 * v2;         /* (i,j,k)=(1,1,0) */
-      weights[5] = v * (-1. + v2);  /* (i,j,k)=(0,2,0) */
-
-    }
-  }
-
-  /* else if (order == 3) { */
-
-  /* for (int i = 0;  i < n_pts; i++) { */
-
-  /*   double u = uv[2*i]; */
-  /*   double u3 = 3.*u; */
-  /*   double u3m1 = (u3-1.)*5e-1; */
-    
-  /*   double v = uv[2*i+1]; */
-  /*   double v3 = 3.*v; */
-  /*   double v3m1 = (v3-1.)*5e-1; */
-    
-  /*   double w = 1. - u - v; */
-  /*   double w3 = 3.*w; */
-  /*   double w3m1 = (w3-1.)*5e-1; */
-
-  /*   ai[2*i+0] = w*w3m1*(w3-2.);   // (i,j,k)=(003) */
-  /*   ai[2*i+3] = u*u3m1*(u3-2.);   // (i,j,k)=(300) */
-  /*   ai[2*i+9] = v*v3m1*(v3-2.);   // (i,j,k)=(030) */
-  /*   ai[2*i+1] = u3*w3*w3m1;       // (i,j,k)=(102) */
-      
-  /*   double coef = u3*u3m1; */
-  /*   ai[2*i+2] = coef*w3;           //(i,j,k)=(201) */
-  /*   ai[2*i+6] = coef*v3;           // (i,j,k)=(210) */
-      
-  /*   coef=v3*v3m1; */
-  /*   ai[2*i+8] = coef*u3;           // (i,j,k)=(120) */
-  /*   ai[2*i+7] = coef*w3;           // (i,j,k)=(021) */
-
-  /*   coef=v3*w3; */
-  /*   ai[2*i+4] = coef*w3m1;         // (i,j,k)=(012)       */
-  /*   ai[2*i+5] = coef*u3;           // (i,j,k)=(111)       */
-
-  
-  /*   SNB_setT3Basis_P3 (n_pts, uv, weights); */
-
-  /* } */
-  
-  else {
-
-#if defined (HAVE_SPACE_BASIS)
-    
-    if (_ijk_tria_space == NULL) {
-      _n_ijk_tria_space = FVMC_MAX (order-1, 10);
-      _ijk_tria_space = malloc (sizeof(int *) * _n_ijk_tria_space);
-      for (int i = 0; i < _n_ijk_tria_space; i++) {
-        _ijk_tria_space[i] = NULL;
-      }
-    }
-
-    if (order > _n_ijk_tria_space) {
-      _ijk_tria_space = realloc (_ijk_tria_space, sizeof(int *) * _n_ijk_tria_space);
-      for (int i = _n_ijk_tria_space; i < order; i++) {
-        _ijk_tria_space[i] = NULL;
-      }
-    }
-    
-    int *__ijk_tria_space = _ijk_tria_space[order-1];
-
-    if (__ijk_tria_space == NULL) {
-      const int n_nodes = (order+1)*(order+2)/2;
-      __ijk_tria_space = malloc (sizeof(int) * 2 * n_nodes);
-      int k = 0;
-      for (int j = 0; j < order+1; j++) {
-        for (int i = 0; i < order+1-j; i++) {
-          __ijk_tria_space[2*k]   = i;
-          __ijk_tria_space[2*k+1] = j;
-          k += 1;
-        }
-      }
-    }
-
-    SNB_setT3BasisEqui_uv (order, n_pts, __ijk_tria_space, uv, weights);
-
-#else
-    bftc_error(__FILE__, __LINE__, 0,
-               _("_basis_tria_pn not yet implemented for order > 2 without space basis \n"));
-#endif
-
-  }
-}
-
-
-
-
-/*----------------------------------------------------------------------------
- * 
- * Quadrangle Qn basis
- * 
- * parameters:
- *   order           <-- order
- *   n_pts           <-- number of points
- *   uv              <-- u (size = 2 * n_pts)
- *   weights         --> weights (size = n_nodes * n_pts)
- *
- *
- *----------------------------------------------------------------------------*/
-
-
-static void
-_basis_quad_qn
-(
- const int order,
- const int n_pts,
- const double *uv,
- double *weights
-)
-{
-  
-  if (order == 1) {
-
-    double *u = malloc (sizeof(double) *n_pts);
-    double *v = malloc (sizeof(double) *n_pts);
-    double *u1 = malloc (sizeof(double) *n_pts);
-    double *v1 = malloc (sizeof(double) *n_pts);
-
-    for (int i = 0; i < n_pts; i++) {
-      u[i] = uv[2*i];
-      v[i] = uv[2*i+1];
-      u1[i] = (1 - u[i]);
-      v1[i] = (1 - v[i]);
-    }
-    
-    for (int i = 0; i < n_pts; i++) {
-      weights[4*i+0] = u1[i] * v1[i];
-      weights[4*i+1] = u[i] * v1[i];
-      weights[4*i+2] = u1[i] * v[i];
-      weights[4*i+3] = u[i] * v[i];
-    }
-
-    free(u1);
-    free(v1);
-    free(u);
-    free(v);
-
-  }
-
-  else if (order == 2) {
-    
-    double *u = malloc (sizeof(double) *n_pts);
-    double *v = malloc (sizeof(double) *n_pts);
-
-    double *uM = malloc (sizeof(double) *n_pts);
-    double *uP = malloc (sizeof(double) *n_pts);
-    double *u0 = malloc (sizeof(double) *n_pts);
-
-    double *au1 = malloc (sizeof(double) *n_pts);
-    double *au2 = malloc (sizeof(double) *n_pts);
-    double *au3 = malloc (sizeof(double) *n_pts);
-    
-    double *vM = malloc (sizeof(double) *n_pts);
-    double *vP = malloc (sizeof(double) *n_pts);
-    double *v0 = malloc (sizeof(double) *n_pts);
-
-    double *av1 = malloc (sizeof(double) *n_pts);
-    double *av2 = malloc (sizeof(double) *n_pts);
-    double *av3 = malloc (sizeof(double) *n_pts);
-
-    
-    for (int i = 0; i < n_pts; i++) {
-      u[i] = uv[2*i];
-      v[i] = uv[2*i+1];
-
-      uM[i] = 2*(1-u[i]);
-      uP[i] = 2*u[i];
-      u0[i] = u[i]-0.5;
-      
-      au1[i] = -uM[i] * u0[i]; 
-      au2[i] =  uM[i] * uP[i];
-      au3[i] =  u0[i] * uP[i];
-    
-      vM[i] = 2*(1-v[i]);
-      vP[i] = 2*v[i];
-      v0[i] = v[i]-0.5;
-
-      av1[i] = -vM[i] * v0[i]; 
-      av2[i] =  vM[i] * vP[i];
-      av3[i] =  v0[i] * vP[i];
-    }
-    
-    for (int i = 0; i < n_pts; i++) {
-      weights[9*i+0]=au1[i]*av1[i];
-      weights[9*i+1]=au2[i]*av1[i];
-      weights[9*i+2]=au3[i]*av1[i];
-      weights[9*i+3]=au1[i]*av2[i];
-      weights[9*i+4]=au2[i]*av2[i];
-      weights[9*i+5]=au3[i]*av2[i];
-      weights[9*i+6]=au1[i]*av3[i];
-      weights[9*i+7]=au2[i]*av3[i];
-      weights[9*i+8]=au3[i]*av3[i];
-    }
-    
-    free(u);
-    free(v);
-
-    free(uM);
-    free(uP);
-    free(u0);
-
-    free(au1);
-    free(au2);
-    free(au3);
-    
-    free(vM);
-    free(vP);
-    free(v0);
-
-    free(av1);
-    free(av2);
-    free(av3);
-
-  }
-
-  else {
-
-#if defined (HAVE_SPACE_BASIS)
-    
-    if (_ijk_quad_space == NULL) {
-      _n_ijk_quad_space = FVMC_MAX (order-1, 10);
-      _ijk_quad_space = malloc (sizeof(int *) * _n_ijk_quad_space);
-      for (int i = 0; i < _n_ijk_quad_space; i++) {
-        _ijk_quad_space[i] = NULL;
-      }
-    }
-
-    if (order > _n_ijk_quad_space) {
-      _ijk_quad_space = realloc (_ijk_quad_space, sizeof(int *) * _n_ijk_quad_space);
-      for (int i = _n_ijk_quad_space; i < order; i++) {
-        _ijk_quad_space[i] = NULL;
-      }
-    }
-    
-    int *__ijk_quad_space = _ijk_quad_space[order-1];
-
-    if (__ijk_quad_space == NULL) {
-      const int n_nodes = (order+1)*(order+1);
-      __ijk_quad_space = malloc (sizeof(int) * 2 * n_nodes);
-      int k = 0;
-      for (int j = 0; j < order+1; j++) {
-        for (int i = 0; i < order+1; i++) {
-          __ijk_quad_space[k++] = i;
-          __ijk_quad_space[k++] = j;
-        }
-      }
-    }
-
-    double *u = malloc (sizeof(double) *n_pts);
-    double *v = malloc (sizeof(double) *n_pts);
-
-    for (int i = 0; i < n_pts; i++) {
-      u[i] = 2 * uv[2*i]   - 1;
-      v[i] = 2 * uv[2*i+1] - 1;
-    }
-    
-    SNB_setQ4BasisEqui_uv (order, n_pts, __ijk_quad_space,
-                           u, v,
-                           weights);
-
-    free (u);
-    free (v);
-    
-#else
-    bftc_error(__FILE__, __LINE__, 0,
-               _("_basis_quad_pn not yet implemented for order > 2 without space basis \n"));
-#endif
   }
 }
   
@@ -1388,13 +974,13 @@ _insert_subtria
 (
  _heap_t *heap,
  const int order,
+ const int type,
  const int n_nodes,
  const double nodes_coords[],
  const double point_coords[],
  double weightsPn[],
  double vtx_tria_current[],
- double uvPn_tria_current[],
- _basis_generic_2D_t _basis_generic
+ double uvPn_tria_current[]
  )
 {
   double _vtx_tria_children[18];
@@ -1421,10 +1007,12 @@ _insert_subtria
         (uvPn_tria_current[2*i+j] + uvPn_tria_current[2*((i+1)%3)+j])/2;
     }
     
-    (_basis_generic) (order   ,
-                      1,
-                      _uvPn_tria_children + 6 + 2*i,
-                      weightsPn);
+    fvmc_ho_basis (type,
+                   order,
+                   n_nodes,
+                   1,
+                   _uvPn_tria_children + 6 + 2*i,
+                   weightsPn);
     
     for (int j = 0; j < 3; j++) {
       _vtx_tria_children[9+3*i+j] = 0;
@@ -1541,6 +1129,7 @@ _compute_dist2_from_closest_tria_subdivision
 (
  _heap_t *heap,
  const int order,
+ const fvmc_element_t type,
  const int n_nodes,
  const int n_it_max,
  const double err_max,
@@ -1551,8 +1140,7 @@ _compute_dist2_from_closest_tria_subdivision
  double uvw[],
  int    *n_it,
  double *err_proj,
- int *uncertain_result,
- _basis_generic_2D_t _basis_generic
+ int *uncertain_result
  )
 {
   *uncertain_result = 0;
@@ -1615,10 +1203,12 @@ _compute_dist2_from_closest_tria_subdivision
 
     double weightsP1[3];
     
-    _basis_tria_pn (1,
-                    1,
-                    _closest_pt_uvP1_current,
-                    weightsP1);
+    fvmc_ho_basis (FVMC_FACE_TRIA,
+                   1,
+                   3,
+                   1,
+                   _closest_pt_uvP1_current,
+                   weightsP1);
 
     if (0 == 1) {
       printf("\n\n ========= get heap =========\n");
@@ -1653,10 +1243,12 @@ _compute_dist2_from_closest_tria_subdivision
       _projected_coords_from_pn[j] = 0;
     }
 
-    (_basis_generic) (order,
-                      1,
-                      _closest_pt_uvPn_current,
-                      weightsPn);
+    fvmc_ho_basis (type,
+                   order,
+                   n_nodes,
+                   1,
+                   _closest_pt_uvPn_current,
+                   weightsPn);
 
     for (int j = 0; j < n_nodes; j++) {
       const double *_node_coords = nodes_coords + 3 * j;
@@ -1699,13 +1291,13 @@ _compute_dist2_from_closest_tria_subdivision
 
     _insert_subtria (heap,
                      order,
+                     type,
                      n_nodes,
                      nodes_coords,
                      point_coords,
                      weightsPn,
                      _vtx_tria_current,
-                     _uvPn_tria_current,
-                     _basis_generic);
+                     _uvPn_tria_current);
     
   }
 
@@ -1759,6 +1351,7 @@ _compute_dist2_from_uniform_tria_subdivision
  _heap_t *heap1,
  _heap_t *heap2,
  const int order,
+ const fvmc_element_t type,
  const int n_nodes,
  const int n_it_max,
  const double err_max,
@@ -1768,8 +1361,7 @@ _compute_dist2_from_uniform_tria_subdivision
  double projected_coords[],
  double uvw[],
  int    *n_it,
- double *err_proj,
- _basis_generic_2D_t _basis_generic
+ double *err_proj
  )
 {
   *n_it = 0;
@@ -1821,10 +1413,12 @@ _compute_dist2_from_uniform_tria_subdivision
 
     double weightsP1[3];
     
-    _basis_tria_pn (1,
-                    1,
-                    _closest_pt_uvP1_current,
-                    weightsP1);
+    fvmc_ho_basis (FVMC_FACE_TRIA,
+                   1,
+                   3,
+                   1,
+                   _closest_pt_uvP1_current,
+                   weightsP1);
 
     if (0 == 1) {
       printf("\n\n ========= get heap =========\n");
@@ -1859,10 +1453,12 @@ _compute_dist2_from_uniform_tria_subdivision
       _projected_coords_from_pn[j] = 0;
     }
 
-    (_basis_generic) (order,
-                      1,
-                     _closest_pt_uvPn_current,
-                     weightsPn);
+    fvmc_ho_basis (type,
+                   order,
+                   n_nodes,
+                   1,
+                   _closest_pt_uvPn_current,
+                   weightsPn);
     
     for (int j = 0; j < n_nodes; j++) {
       const double *_node_coords = nodes_coords + 3 * j;
@@ -1907,13 +1503,13 @@ _compute_dist2_from_uniform_tria_subdivision
 
     _insert_subtria (next_heap,
                      order,
+                     type,
                      n_nodes,
                      nodes_coords,
                      point_coords,
                      weightsPn,
                      _vtx_tria_current,
-                     _uvPn_tria_current,
-                     _basis_generic);
+                     _uvPn_tria_current);
 
     double _vtx_tria_current2[9];
     double _uvPn_tria_current2[6];
@@ -1934,13 +1530,13 @@ _compute_dist2_from_uniform_tria_subdivision
 
       _insert_subtria (next_heap,
                        order,
+                       type,
                        n_nodes,
                        nodes_coords,
                        point_coords,
                        weightsPn,
                        _vtx_tria_current2,
-                       _uvPn_tria_current2,
-                       _basis_generic);
+                       _uvPn_tria_current2);
 
     }
 
@@ -1985,6 +1581,7 @@ _compute_dist2_from_uniform_tria_subdivision
 static double
 _default_location_generic_2d
 (
+ const fvmc_element_t type,
  const int order,
  const double char_size,
  const int n_nodes,
@@ -1992,8 +1589,7 @@ _default_location_generic_2d
  const double *point_coords,
  double *projected_coords,
  double *uvw,
- _heap_fill_init_sub_tria_t fill_init_fct,
- _basis_generic_2D_t basis_generic
+ _heap_fill_init_sub_tria_t fill_init_fct
 )
 {
 
@@ -2047,6 +1643,7 @@ _default_location_generic_2d
   if (method == 0) {
     dist2 = _compute_dist2_from_closest_tria_subdivision (&heap,
                                                           order,
+                                                          type,
                                                           n_nodes,
                                                           n_it_max,
                                                           err_max,
@@ -2057,8 +1654,7 @@ _default_location_generic_2d
                                                           uvw,
                                                           &n_it,
                                                           &err_proj,
-                                                          &uncertain_result,
-                                                          basis_generic);
+                                                          &uncertain_result);
 
     if (1 == 0) {
       printf("\nCalcul distance triangle premier essai :\n");
@@ -2086,6 +1682,7 @@ _default_location_generic_2d
       dist2 = _compute_dist2_from_uniform_tria_subdivision (&heap,
                                                             &heap2,
                                                             order,
+                                                            type,
                                                             n_nodes,
                                                             n_it_max,
                                                             err_max,
@@ -2095,8 +1692,7 @@ _default_location_generic_2d
                                                             projected_coords,
                                                             uvw,
                                                             &n_it,
-                                                            &err_proj,
-                                                            basis_generic);
+                                                            &err_proj);
 
       if (1 == 0) {
         printf("\nCalcul distance triangle deuxieme essai :\n");
@@ -2118,6 +1714,7 @@ _default_location_generic_2d
     dist2 = _compute_dist2_from_uniform_tria_subdivision (&heap,
                                                           &heap2,
                                                           order,
+                                                          type,
                                                           n_nodes,
                                                           n_it_max,
                                                           err_max,
@@ -2127,8 +1724,7 @@ _default_location_generic_2d
                                                           projected_coords,
                                                           uvw,
                                                           &n_it,
-                                                          &err_proj,
-                                                          basis_generic);
+                                                          &err_proj);
 
   }
 
@@ -2162,17 +1758,20 @@ _radius_inscribed_circle
  const double *coords
 )
 {
-  double a = sqrt ((coords[3*1    ] - coords[3*0    ]) * (coords[3*1    ] - coords[3*0    ]) +
-                   (coords[3*1 + 1] - coords[3*0 + 1]) * (coords[3*1 + 1] - coords[3*0 + 1]) +
-                   (coords[3*1 + 2] - coords[3*0 + 2]) * (coords[3*1 + 2] - coords[3*0 + 2]));
+  double a =
+    sqrt ((coords[3*1    ] - coords[3*0    ]) * (coords[3*1    ] - coords[3*0    ]) +
+          (coords[3*1 + 1] - coords[3*0 + 1]) * (coords[3*1 + 1] - coords[3*0 + 1]) +
+          (coords[3*1 + 2] - coords[3*0 + 2]) * (coords[3*1 + 2] - coords[3*0 + 2]));
+  
+  double b =
+    sqrt ((coords[3*2    ] - coords[3*1    ]) * (coords[3*2    ] - coords[3*1    ]) +
+          (coords[3*2 + 1] - coords[3*1 + 1]) * (coords[3*2 + 1] - coords[3*1 + 1]) +
+          (coords[3*2 + 2] - coords[3*1 + 2]) * (coords[3*2 + 2] - coords[3*1 + 2]));
 
-  double b = sqrt ((coords[3*2    ] - coords[3*1    ]) * (coords[3*2    ] - coords[3*1    ]) +
-                   (coords[3*2 + 1] - coords[3*1 + 1]) * (coords[3*2 + 1] - coords[3*1 + 1]) +
-                   (coords[3*2 + 2] - coords[3*1 + 2]) * (coords[3*2 + 2] - coords[3*1 + 2]));
-
-  double c = sqrt ((coords[3*0    ] - coords[3*2    ]) * (coords[3*0    ] - coords[3*2    ]) +
-                   (coords[3*0 + 1] - coords[3*2 + 1]) * (coords[3*0 + 1] - coords[3*2 + 1]) +
-                   (coords[3*0 + 2] - coords[3*2 + 2]) * (coords[3*0 + 2] - coords[3*2 + 2]));
+  double c =
+    sqrt ((coords[3*0    ] - coords[3*2    ]) * (coords[3*0    ] - coords[3*2    ]) +
+          (coords[3*0 + 1] - coords[3*2 + 1]) * (coords[3*0 + 1] - coords[3*2 + 1]) +
+          (coords[3*0 + 2] - coords[3*2 + 2]) * (coords[3*0 + 2] - coords[3*2 + 2]));
 
   double p = a + b + c;
   double S = sqrt (p*(p-a)*(p-b)*(p-c));
@@ -2223,21 +1822,22 @@ _default_location
     int v2 = order;
     int v3 = (order + 2) * (order + 1) / 2 - 1;
       
-    double p1_coords[9] = {nodes_coords[3*v1], nodes_coords[3*v1+1], nodes_coords[3*v1+2],
-                           nodes_coords[3*v2], nodes_coords[3*v2+1], nodes_coords[3*v2+2],
-                           nodes_coords[3*v3], nodes_coords[3*v3+1], nodes_coords[3*v3+2]};
+    double p1_coords[9] =
+      {nodes_coords[3*v1], nodes_coords[3*v1+1], nodes_coords[3*v1+2],
+       nodes_coords[3*v2], nodes_coords[3*v2+1], nodes_coords[3*v2+2],
+       nodes_coords[3*v3], nodes_coords[3*v3+1], nodes_coords[3*v3+2]};
     
     double char_size = _radius_inscribed_circle (p1_coords);
     
-    dist2 = _default_location_generic_2d (order,
+    dist2 = _default_location_generic_2d (type,
+                                          order,
                                           char_size,
                                           n_nodes,
                                           nodes_coords,
                                           point_coords,
                                           projected_coords,
                                           uvw,
-                                          _heap_fill_pn_sub_tria,
-                                          _basis_tria_pn);
+                                          _heap_fill_pn_sub_tria);
 
     break;
 
@@ -2253,11 +1853,11 @@ _default_location
                                         order1 * order1};
     int triangle_vertices[6];
     
-    int n_sub_tria =  fvmc_triangulate_quadrangle(3,
-                                                  nodes_coords,
-                                                  NULL,
-                                                  quadrangle_vertices,
-                                                  triangle_vertices);
+    int n_sub_tria = fvmc_triangulate_quadrangle(3,
+                                                 nodes_coords,
+                                                 NULL,
+                                                 quadrangle_vertices,
+                                                 triangle_vertices);
 
     double char_size = HUGE_VAL;
     
@@ -2267,25 +1867,26 @@ _default_location
       int v2 = triangle_vertices[3*i + 1] - 1;
       int v3 = triangle_vertices[3*i + 2] - 1;
 
-      double p1_coords[9] = {nodes_coords[3*v1], nodes_coords[3*v1+1], nodes_coords[3*v1+2],
-                             nodes_coords[3*v2], nodes_coords[3*v2+1], nodes_coords[3*v2+2],
-                             nodes_coords[3*v3], nodes_coords[3*v3+1], nodes_coords[3*v3+2]};
-    
+      double p1_coords[9] =
+        {nodes_coords[3*v1], nodes_coords[3*v1+1], nodes_coords[3*v1+2],
+         nodes_coords[3*v2], nodes_coords[3*v2+1], nodes_coords[3*v2+2],
+         nodes_coords[3*v3], nodes_coords[3*v3+1], nodes_coords[3*v3+2]};
+      
       double _char_size = _radius_inscribed_circle (p1_coords);
      
       char_size = FVMC_MAX (char_size, _char_size);
       
     }
     
-    dist2 = _default_location_generic_2d (order,
+    dist2 = _default_location_generic_2d (type,
+                                          order,
                                           char_size,
                                           n_nodes,
                                           nodes_coords,
                                           point_coords,
                                           projected_coords,
                                           uvw,
-                                          _heap_fill_qn_sub_tria,
-                                          _basis_quad_qn);
+                                          _heap_fill_qn_sub_tria);
     break;
   }
     
@@ -2311,11 +1912,11 @@ _default_location
  *
  *----------------------------------------------------------------------------*/
 
-static fvmc_ho_user_elt_t *
+static fvmc_ho_location_user_elt_t *
 _get_user_elt (fvmc_element_t elt_type)
 {
 
-  fvmc_ho_user_elt_t *user_elt = NULL;
+  fvmc_ho_location_user_elt_t *user_elt = NULL;
   
   switch(elt_type) {
 
@@ -2355,50 +1956,6 @@ _get_user_elt (fvmc_element_t elt_type)
   return user_elt;
 }
 
-/*----------------------------------------------------------------------------
- * 
- * default high order basis
- * 
- * parameters:
- *   type            <-- element type
- *   order           <-- order
- *   n_pts           <-- number of points 
- *   uvw             <-- uvw (size = elt_dim * n_pts)
- *   weights         --> weights (size = n_nodes * n_pts)
- *
- *----------------------------------------------------------------------------*/
-
-static void
-_default_elt_basis
-(
-const fvmc_element_t type,
-const int order,
-const int n_pts,
-const double *uvw,
-      double *weights 
-)
-{
-  switch (type) {
-
-  case FVMC_FACE_TRIA:
-    _basis_tria_pn (order, n_pts, uvw, weights);
-    break;
-
-  case FVMC_FACE_QUAD:
-    _basis_quad_qn (order, n_pts, uvw, weights);
-    break;
-
-  case FVMC_EDGE:
-  case FVMC_CELL_TETRA:
-  case FVMC_CELL_PRISM:
-  case FVMC_CELL_PYRAM:
-  case FVMC_CELL_HEXA:
-  default: 
-    bftc_error(__FILE__, __LINE__, 0,
-               _("_default_elts_basis : '%d' element type not yet implemented\n"),
-               type);
-  }
-}
 
 /*============================================================================
  * Public function definitions
@@ -2412,10 +1969,10 @@ const double *uvw,
  *----------------------------------------------------------------------------*/
 
 void
-fvmc_ho_user_elt_unset (fvmc_element_t elt_type)
+fvmc_ho_location_user_elt_unset (fvmc_element_t elt_type)
 {
 
-  fvmc_ho_user_elt_t *_user_elt = _get_user_elt (elt_type);
+  fvmc_ho_location_user_elt_t *_user_elt = _get_user_elt (elt_type);
   
   if (_user_elt != NULL) {
     free (_user_elt);
@@ -2426,15 +1983,15 @@ fvmc_ho_user_elt_unset (fvmc_element_t elt_type)
 
 
 void
-fvmc_ho_user_elts_unset (void)
+fvmc_ho_location_user_elts_unset (void)
 {
-  fvmc_ho_user_elt_unset (FVMC_EDGE);
-  fvmc_ho_user_elt_unset (FVMC_FACE_TRIA);
-  fvmc_ho_user_elt_unset (FVMC_FACE_QUAD);
-  fvmc_ho_user_elt_unset (FVMC_CELL_TETRA);
-  fvmc_ho_user_elt_unset (FVMC_CELL_HEXA);
-  fvmc_ho_user_elt_unset (FVMC_CELL_PRISM);
-  fvmc_ho_user_elt_unset (FVMC_CELL_PYRAM);
+  fvmc_ho_location_user_elt_unset (FVMC_EDGE);
+  fvmc_ho_location_user_elt_unset (FVMC_FACE_TRIA);
+  fvmc_ho_location_user_elt_unset (FVMC_FACE_QUAD);
+  fvmc_ho_location_user_elt_unset (FVMC_CELL_TETRA);
+  fvmc_ho_location_user_elt_unset (FVMC_CELL_HEXA);
+  fvmc_ho_location_user_elt_unset (FVMC_CELL_PRISM);
+  fvmc_ho_location_user_elt_unset (FVMC_CELL_PYRAM);
 }
 
 /*----------------------------------------------------------------------------
@@ -2445,77 +2002,19 @@ fvmc_ho_user_elts_unset (void)
 
 
 void
-fvmc_ho_user_elt_set (fvmc_element_t elt_type,
-                      fvmc_ho_basis_fct_t elt_basis,
-                      fvmc_ho_xsi_fct_t xsi_coords,
-                      fvmc_ho_location_fct_t location_in_elt)
+fvmc_ho_location_user_elt_set (fvmc_element_t elt_type,
+                               fvmc_ho_location_fct_t location_in_elt)
 {
-  fvmc_ho_user_elt_t *user_elt = _get_user_elt (elt_type);
+  fvmc_ho_location_user_elt_t *user_elt = _get_user_elt (elt_type);
   
   if (user_elt == NULL) {
-    user_elt = (fvmc_ho_user_elt_t *) malloc (sizeof(fvmc_ho_user_elt_t));
+    user_elt =
+      (fvmc_ho_location_user_elt_t *) malloc (sizeof(fvmc_ho_location_user_elt_t));
   }
 
-  user_elt->elt_basis = elt_basis;
-  user_elt->xsi_coords = xsi_coords;
   user_elt->location_in_elt = location_in_elt;
-
 }
 
-/*----------------------------------------------------------------------------
- * 
- * high order basis
- * 
- * parameters:
- *   type            <-- element type
- *   order           <-- order
- *   n_nodes         <-- number of nodes
- *   n_pts           <-- number of points 
- *   uvw             <-- uvw
- *   uvw             <-- uvw (size = n_pts)
- *   weights         --> weights (size = n_nodes * n_pts)
- *
- *----------------------------------------------------------------------------*/
-
-void
-fvmc_ho_basis
-(
-const fvmc_element_t type,
-const int order,
-const int n_nodes,
-const int n_pts,
-const double *uvw,
-      double *weights 
-)
-{
-  fvmc_ho_user_elt_t *user_elt = _get_user_elt (type);
-  
-  if (user_elt != NULL) {
-    if (user_elt->elt_basis != NULL) {
-      (user_elt->elt_basis) (order,
-                             n_nodes,
-                             n_pts,
-                             uvw,
-                             weights);
-    }
-    else {
-      _default_elt_basis (type,
-                          order,
-                          n_pts,
-                          uvw,
-                          weights);
-    }
-  }
-
-  else {
-    _default_elt_basis (type,
-                        order,
-                        n_pts,
-                        uvw,
-                        weights);
-
-  }
-}
 
 
 /*----------------------------------------------------------------------------
@@ -2549,7 +2048,7 @@ fvmc_ho_location
 )
 {
   
-  fvmc_ho_user_elt_t *user_elt = _get_user_elt (type);
+  fvmc_ho_location_user_elt_t *user_elt = _get_user_elt (type);
   
   if (user_elt != NULL) {
     if (user_elt->location_in_elt != NULL) {
@@ -2586,62 +2085,6 @@ fvmc_ho_location
 }
 
 
-/*----------------------------------------------------------------------------
- * 
- * Free static variables
- * 
- *----------------------------------------------------------------------------*/
-
-
-void
-fvmc_ho_free
-(
- void
-)
-{
-#if defined (HAVE_SPACE_BASIS) 
-  if (_ijk_tria_space != NULL) {
-
-    for (int i = 0; i < _n_ijk_tria_space; i++) {
-      if (_ijk_tria_space[i] != NULL) {
-        free(_ijk_tria_space[i]);
-        _ijk_tria_space[i] = NULL;
-      }
-    }
-    free (_ijk_tria_space);
-    _ijk_tria_space = NULL;
-  
-  }
-
-  if (_ijk_quad_space != NULL) {
-
-    for (int i = 0; i < _n_ijk_quad_space; i++) {
-      if (_ijk_quad_space[i] != NULL) {
-        free(_ijk_quad_space[i]);
-        _ijk_quad_space[i] = NULL;
-      }
-    }
-    free (_ijk_quad_space);
-    _ijk_quad_space = NULL;
-    
-  }
-  
-  if (_ijk_1D_space != NULL) {
-
-    for (int i = 0; i < _n_ijk_1D_space; i++) {
-      if (_ijk_1D_space[i] != NULL) {
-        free(_ijk_1D_space[i]);
-        _ijk_1D_space[i] = NULL;
-      }
-    }
-    
-    free (_ijk_1D_space);
-    _ijk_1D_space = NULL;
-  }
-
-#endif
-  
-}
 
 #ifdef __cplusplus
 }

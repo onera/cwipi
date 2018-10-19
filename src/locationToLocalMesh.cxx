@@ -27,7 +27,7 @@
 
 #include <bftc_printf.h>
 #include "fvmc_point_location.h"
-#include "fvmc_ho.h"
+#include "fvmc_ho_basis.h"
 
 #include "locationToLocalMesh.hxx"
 #include "locationToDistantMesh.hxx"

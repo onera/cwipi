@@ -29,7 +29,6 @@
 #include <bftc_mem.h>
 
 #include "fvmc_parall.h"
-#include "fvmc_ho.h"
 
 #include "oldCoupling.hxx"
 #include "oldCoupling_i.hxx"

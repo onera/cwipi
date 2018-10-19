@@ -34,7 +34,8 @@
  *----------------------------------------------------------------------------*/
 
 #include "fvmc_parall.h"
-#include "fvmc_ho.h"
+#include "fvmc_ho_basis.h"
+#include "fvmc_ho_location.h"
 
 /*----------------------------------------------------------------------------
  *  Local headers
@@ -1203,7 +1204,6 @@ void cwipi_ho_ordering_from_ref_elt_set (const char   *coupling_id,
 void
 cwipi_ho_user_elt_set (cwipi_element_t elt_type,
                        cwipi_ho_basis_fct_t element_basis,
-                       cwipi_ho_xsi_fct_t xsi_coordinates,
                        cwipi_ho_location_fct_t location_in_element)
 {
   fvmc_element_t _elt_type;
@@ -1238,10 +1238,11 @@ cwipi_ho_user_elt_set (cwipi_element_t elt_type,
                
   }
   
-  fvmc_ho_user_elt_set (_elt_type,
-                        (fvmc_ho_basis_fct_t) element_basis,
-                        (fvmc_ho_xsi_fct_t) xsi_coordinates,
-                        (fvmc_ho_location_fct_t) location_in_element);
+  fvmc_ho_basis_user_elt_set (_elt_type,
+                              (fvmc_ho_basis_fct_t) element_basis);
+  
+  fvmc_ho_location_user_elt_set (_elt_type,
+                                 (fvmc_ho_location_fct_t) location_in_element);
 }
 
 
@@ -1730,7 +1731,8 @@ void cwipi_finalize(void)
 
   const MPI_Comm globalComm = properties.getGlobalComm();
 
-  fvmc_ho_user_elts_unset ();
+  fvmc_ho_location_user_elts_unset ();
+  fvmc_ho_basis_user_elts_unset ();
     
   bftc_printf("Finalize cwipi\n");
   couplingDataBase.kill();
@@ -1744,7 +1746,7 @@ void cwipi_finalize(void)
     MPI_Barrier(globalComm);
   }
 
-  fvmc_ho_free ();
+  fvmc_ho_basis_free ();
   
 }
 

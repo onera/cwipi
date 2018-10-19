@@ -59,7 +59,7 @@
 
 #include "fvmc_config_defs.h"
 #include "fvmc_defs.h"
-#include "fvmc_ho.h"
+#include "fvmc_ho_basis.h"
 #include "fvmc_nodal.h"
 #include "fvmc_nodal_priv.h"
 #include "fvmc_parall.h"
@@ -638,19 +638,18 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
             }
           }
 
-/* #ifdef CWP_HAVE_BLAS */
-/*           double alpha = 1.; */
-/*           double beta = 0.; */
-/*           printf ("blas - oui\n"); */
-/*           cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, */
-/*                       n_vtx, 3, n_nodes, */
-/*                       alpha, */
-/*                       ai, n_nodes, */
-/*                       coords, 3, */
-/*                       beta, */
-/*                       xyz, 3); */
-/* #else */
-          printf ("blas - non\n");
+#ifdef CWP_HAVE_BLAS
+          double alpha = 1.;
+          double beta = 0.;
+          
+          cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                      n_vtx, 3, n_nodes,
+                      alpha,
+                      ai, n_nodes,
+                      coords, 3,
+                      beta,
+                      xyz, 3);
+#else
           for (int ii = 0; ii < n_vtx; ii++) {
             
             for (int kk = 0; kk < 3; kk++) {
@@ -665,7 +664,7 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
             }
             
           }
-/* #endif   */
+#endif
         
           for (int ii = 0; ii < n_vtx; ii++) {
             

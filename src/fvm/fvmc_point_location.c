@@ -55,7 +55,8 @@
 #include "fvmc_config_defs.h"
 #include "fvmc_defs.h"
 #include "fvmc_nodal.h"
-#include "fvmc_ho.h"
+#include "fvmc_ho_basis.h"
+#include "fvmc_ho_location.h"
 #include "fvmc_nodal_priv.h"
 #include "fvmc_triangulate.h"
 
