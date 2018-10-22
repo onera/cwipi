@@ -1644,7 +1644,7 @@ program fortran_surf_TriaPi_PiPj
     !>>>>>>>
     allocate( vertx(1:3,1:nVert),vertM(1:nVert) )
     call c_f_pointer(cptr=c_loc(vertx), fptr=vertxCwipi, shape=[3*nVert])  
-
+    
     allocate(cellsIdx(1:nCell+1),cells(1:dim),mark(1:nCell),types(1:nCell))
     !<<<<<<<
     
@@ -1718,24 +1718,24 @@ program fortran_surf_TriaPi_PiPj
     
     !>>>>>>>
     !> Mesh Sizes
-    nVert = gmfstatkwd(InpMsh, GmfVertices)
+    nVert = gmfStatKwd(InpMsh, GmfVertices)
     
     nCell=0 ; dim=0
     select case(meshOrder)
-    case(1) ; nQ4=gmfstatkwd(InpMsh, GmfQuadrilaterals  )
-    case(2) ; nQ4=gmfstatkwd(InpMsh, GmfQuadrilateralsQ2)
-    case(3) ; nQ4=gmfstatkwd(InpMsh, GmfQuadrilateralsQ3)
-    case(4) ; nQ4=gmfstatkwd(InpMsh, GmfQuadrilateralsQ4)
+    case(1) ; nQ4=gmfStatKwd(InpMsh, GmfQuadrilaterals  )
+    case(2) ; nQ4=gmfStatKwd(InpMsh, GmfQuadrilateralsQ2)
+    case(3) ; nQ4=gmfStatKwd(InpMsh, GmfQuadrilateralsQ3)
+    case(4) ; nQ4=gmfStatKwd(InpMsh, GmfQuadrilateralsQ4)
     case default ; call stopAlert("meshOrder>4")
     end select
     nCell=nCell+nQ4
     dim=dim    +nQ4*(meshOrder+1)*(meshOrder+1)
     
     select case(meshOrder)
-    case(1) ; nT3=gmfstatkwd(InpMsh, GmfTriangles  )
-    case(2) ; nT3=gmfstatkwd(InpMsh, GmfTrianglesP2)
-    case(3) ; nT3=gmfstatkwd(InpMsh, GmfTrianglesP3)
-    case(4) ; nT3=gmfstatkwd(InpMsh, GmfTrianglesP4)
+    case(1) ; nT3=gmfStatKwd(InpMsh, GmfTriangles  )
+    case(2) ; nT3=gmfStatKwd(InpMsh, GmfTrianglesP2)
+    case(3) ; nT3=gmfStatKwd(InpMsh, GmfTrianglesP3)
+    case(4) ; nT3=gmfStatKwd(InpMsh, GmfTrianglesP4)
     case default ; call stopAlert("meshOrder>4")
     end select
     nCell=nCell+nT3
@@ -2368,26 +2368,26 @@ program fortran_surf_TriaPi_PiPj
     
     j=(iVertMax-1)*3
     k=(iVertMax-1)*stride
-    write(buffer,'(                                                      a, &
-    &                 "Controling Results",t130,"@rkw",i3               ,a, &
-    &              3x,"mesh: ",a                                        ,a, &
-    &              3x,"meshOrder=",i1," nVert=",i6," nQ4=",i6," nT3=",i6,a, &
-    &                                                                    a, &
-    &              3x,"linkVertSize=",i6                                ,a, &
-    &                                                                    a, &
-    &              3x,"linkSolu (computed by: ",a,")"                   ,a, &
-    &              3x,"deltaMin  =",e22.15                              ,a, &
-    &              3x,"sumDelta  =",e22.15                              ,a, &
-    &              3x,"deltaMax  =",e22.15                              ,a, &
-    &                                                                    a, &
-    &              3x,"linkVert  =",3(e22.15,1x)                        ,a, &
-    &              3x,"linkValues=",3(e22.15,1x)                        ,a, &
-    &              3x,"Delta     =",3(e22.15,1x)                            &
-    &                                                                    )')&
+    write(buffer,'(                                                         a, &
+    &                 "Controling Results -> meshOrder=",i1,t130,"@rkw",i3 ,a, &
+    &              3x,"mesh: ",a                                           ,a, &
+    &              3x,"nVert=",i6," nQ4=",i6," nT3=",i6                    ,a, &
+    &                                                                       a, &
+    &              3x,"linkVertSize=",i6                                   ,a, &
+    &                                                                       a, &
+    &              3x,"linkSolu (computed by: ",a,")"                      ,a, &
+    &              3x,"deltaMin  =",e22.15                                 ,a, &
+    &              3x,"sumDelta  =",e22.15                                 ,a, &
+    &              3x,"deltaMax  =",e22.15                                 ,a, &
+    &                                                                       a, &
+    &              3x,"linkVert  =",3(e22.15,1x)                           ,a, &
+    &              3x,"linkValues=",3(e22.15,1x)                           ,a, &
+    &              3x,"Delta     =",3(e22.15,1x)                               &
+    &                                                                       )')&
     &                          char(10),&
-    & rankWorld               ,char(10),&
+    & meshOrder,rankWorld     ,char(10),&
     & trim(meshName)          ,char(10),&    
-    & meshOrder,nVert,nQ4,nT3 ,char(10),&
+    & nVert,nQ4,nT3 ,char(10),&
     &                          char(10),&
     & linkVertSize            ,char(10),&
     &                          char(10),&
