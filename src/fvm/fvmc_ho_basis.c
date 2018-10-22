@@ -62,10 +62,6 @@
 
 #include "fvmc_ho_basis.h"
 
-#if defined (HAVE_SPACE_BASIS) 
-#include "spacebasis.h"
-#endif
-
 /*----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus
@@ -90,15 +86,6 @@ typedef struct _fvmc_ho_basis_user_elt_t {
 /*============================================================================
  * Static global variables
  *============================================================================*/
-
-static int                 _n_ijk_tria_space = 0;
-static int               **_ijk_tria_space = NULL;
-
-static int                 _n_ijk_quad_space = 0;
-static int               **_ijk_quad_space = NULL;
-
-static int                 _n_ijk_1D_space = 0;
-static int               **_ijk_1D_space = NULL;
 
 static fvmc_ho_basis_user_elt_t *_user_edge = NULL;
 
@@ -169,7 +156,7 @@ _monomialProduct
  *
  *----------------------------------------------------------------------------*/
 
-static void
+static void 
 _basis_tria_pn
 (
  const int order,
@@ -309,7 +296,6 @@ _basis_tria_pn
   
   else {
 
-    if (1 == 1) {
     double *u  = malloc (sizeof(double) *n_pts);
     double *v  = malloc (sizeof(double) *n_pts);
     double *w  = malloc (sizeof(double) *n_pts);
@@ -345,48 +331,7 @@ _basis_tria_pn
     free (fu);
     free (fv);
     free (fw);
-    }
 
-    else {
-#if defined (HAVE_SPACE_BASIS)
-    
-    if (_ijk_tria_space == NULL) {
-      _n_ijk_tria_space = FVMC_MAX (order-1, 10);
-      _ijk_tria_space = malloc (sizeof(int *) * _n_ijk_tria_space);
-      for (int i = 0; i < _n_ijk_tria_space; i++) {
-        _ijk_tria_space[i] = NULL;
-      }
-    }
-
-    if (order > _n_ijk_tria_space) {
-      _ijk_tria_space = realloc (_ijk_tria_space, sizeof(int *) * _n_ijk_tria_space);
-      for (int i = _n_ijk_tria_space; i < order; i++) {
-        _ijk_tria_space[i] = NULL;
-      }
-    }
-    
-    int *__ijk_tria_space = _ijk_tria_space[order-1];
-
-    if (__ijk_tria_space == NULL) {
-      const int n_nodes = (order+1)*(order+2)/2;
-      __ijk_tria_space = malloc (sizeof(int) * 2 * n_nodes);
-      int k = 0;
-      for (int j = 0; j < order+1; j++) {
-        for (int i = 0; i < order+1-j; i++) {
-          __ijk_tria_space[2*k]   = i;
-          __ijk_tria_space[2*k+1] = j;
-          k += 1;
-        }
-      }
-    }
-
-    SNB_setT3BasisEqui_uv (order, n_pts, __ijk_tria_space, uv, weights);
-
-#else
-    bftc_error(__FILE__, __LINE__, 0,
-               _("_basis_tria_pn not yet implemented for order > 2 without space basis \n"));
-#endif
-    }
   }
 }
 
@@ -599,101 +544,43 @@ _basis_quad_qn
 
   else {
 
-    if (1 == 1) {
-      const int nMod = order + 1;
-      const int n_nodes = nMod * nMod;
-      
-      double *u = malloc (sizeof(double) *n_pts);
-      double *v = malloc (sizeof(double) *n_pts);
-      
-      for (int i = 0; i < n_pts; i++) {
-        u[i] = 2 * uv[2*i]   - 1;
-        v[i] = 2 * uv[2*i+1] - 1;
-        /* u[i] = uv[2*i]; */
-        /* v[i] = uv[2*i+1]; */
-      }
+    const int nMod = order + 1;
+    const int n_nodes = nMod * nMod;
     
-      double *lagrangeL2_u = malloc (sizeof(double) * nMod * n_pts); 
-      double *lagrangeL2_v = malloc (sizeof(double) * nMod * n_pts); 
-      
-      _setL2BasisEqui (order, n_pts, u, lagrangeL2_u);
-      _setL2BasisEqui (order, n_pts, v, lagrangeL2_v);
-      
-      int i_node = 0;
-      for (int iv = 0; iv < nMod; iv++) {
-        for (int iu = 0; iu < nMod; iu++) {
-          for (int i_pts = 0; i_pts < n_pts; i_pts++) {
-            weights[i_pts * n_nodes + i_node] =
-              lagrangeL2_u[i_pts * nMod + iu] *
-              lagrangeL2_v[i_pts * nMod + iv];
-          }
-          i_node++;
-        }
-      }
-      
-      free (lagrangeL2_u);
-      free (lagrangeL2_v);
-      free (u);
-      free (v);
+    double *u = malloc (sizeof(double) *n_pts);
+    double *v = malloc (sizeof(double) *n_pts);
+    
+    for (int i = 0; i < n_pts; i++) {
+      u[i] = 2 * uv[2*i]   - 1;
+      v[i] = 2 * uv[2*i+1] - 1;
+      /* u[i] = uv[2*i]; */
+      /* v[i] = uv[2*i+1]; */
     }
-
-    else {
-
-#if defined (HAVE_SPACE_BASIS)
-      const int n_nodes = (order + 1) * (order + 1);
     
-      if (_ijk_quad_space == NULL) {
-        _n_ijk_quad_space = FVMC_MAX (order-1, 10);
-        _ijk_quad_space = malloc (sizeof(int *) * _n_ijk_quad_space);
-        for (int i = 0; i < _n_ijk_quad_space; i++) {
-          _ijk_quad_space[i] = NULL;
-      }
-      }
-      
-      if (order > _n_ijk_quad_space) {
-        _ijk_quad_space = realloc (_ijk_quad_space, sizeof(int *) * _n_ijk_quad_space);
-        for (int i = _n_ijk_quad_space; i < order; i++) {
-          _ijk_quad_space[i] = NULL;
-        }
-      }
-      
-      int *__ijk_quad_space = _ijk_quad_space[order-1];
-      
-      if (__ijk_quad_space == NULL) {
-        __ijk_quad_space = malloc (sizeof(int) * 2 * n_nodes);
-        int k = 0;
-        for (int j = 0; j < order+1; j++) {
-          for (int i = 0; i < order+1; i++) {
-            __ijk_quad_space[k++] = i;
-            __ijk_quad_space[k++] = j;
-          }
-        }
-      }
-      
-      double *u = malloc (sizeof(double) *n_pts);
-      double *v = malloc (sizeof(double) *n_pts);
-      
-      for (int i = 0; i < n_pts; i++) {
-        u[i] = 2 * uv[2*i]   - 1;
-        v[i] = 2 * uv[2*i+1] - 1;
-      }
-      
-      SNB_setQ4BasisEqui_uv (order, n_pts, __ijk_quad_space,
-                             u, v,
-                             weights);
-      
-      free (u);
-      free (v);
+    double *lagrangeL2_u = malloc (sizeof(double) * nMod * n_pts); 
+    double *lagrangeL2_v = malloc (sizeof(double) * nMod * n_pts); 
     
-#else
-      bftc_error(__FILE__, __LINE__, 0,
-                 _("_basis_quad_pn not yet implemented for order > 2 without space basis \n"));
-#endif
+    _setL2BasisEqui (order, n_pts, u, lagrangeL2_u);
+    _setL2BasisEqui (order, n_pts, v, lagrangeL2_v);
+    
+    int i_node = 0;
+    for (int iv = 0; iv < nMod; iv++) {
+      for (int iu = 0; iu < nMod; iu++) {
+        for (int i_pts = 0; i_pts < n_pts; i_pts++) {
+          weights[i_pts * n_nodes + i_node] =
+            lagrangeL2_u[i_pts * nMod + iu] *
+            lagrangeL2_v[i_pts * nMod + iv];
+        }
+        i_node++;
+      }
     }
+      
+    free (lagrangeL2_u);
+    free (lagrangeL2_v);
+    free (u);
+    free (v);
   }
 }
-  
-
 
 
 /*----------------------------------------------------------------------------
@@ -807,7 +694,7 @@ const double *uvw,
  *----------------------------------------------------------------------------*/
 
 void
-fvmc_ho_basis_user_elt_unset (fvmc_element_t elt_type)
+FVMC_ho_basis_user_elt_unset (fvmc_element_t elt_type)
 {
 
   fvmc_ho_basis_user_elt_t *_user_elt = _get_user_elt (elt_type);
@@ -821,15 +708,15 @@ fvmc_ho_basis_user_elt_unset (fvmc_element_t elt_type)
 
 
 void
-fvmc_ho_basis_user_elts_unset (void)
+FVMC_ho_basis_user_elts_unset (void)
 {
-  fvmc_ho_basis_user_elt_unset (FVMC_EDGE);
-  fvmc_ho_basis_user_elt_unset (FVMC_FACE_TRIA);
-  fvmc_ho_basis_user_elt_unset (FVMC_FACE_QUAD);
-  fvmc_ho_basis_user_elt_unset (FVMC_CELL_TETRA);
-  fvmc_ho_basis_user_elt_unset (FVMC_CELL_HEXA);
-  fvmc_ho_basis_user_elt_unset (FVMC_CELL_PRISM);
-  fvmc_ho_basis_user_elt_unset (FVMC_CELL_PYRAM);
+  FVMC_ho_basis_user_elt_unset (FVMC_EDGE);
+  FVMC_ho_basis_user_elt_unset (FVMC_FACE_TRIA);
+  FVMC_ho_basis_user_elt_unset (FVMC_FACE_QUAD);
+  FVMC_ho_basis_user_elt_unset (FVMC_CELL_TETRA);
+  FVMC_ho_basis_user_elt_unset (FVMC_CELL_HEXA);
+  FVMC_ho_basis_user_elt_unset (FVMC_CELL_PRISM);
+  FVMC_ho_basis_user_elt_unset (FVMC_CELL_PYRAM);
 }
 
 /*----------------------------------------------------------------------------
@@ -840,7 +727,7 @@ fvmc_ho_basis_user_elts_unset (void)
 
 
 void
-fvmc_ho_basis_user_elt_set (fvmc_element_t elt_type,
+FVMC_ho_basis_user_elt_set (fvmc_element_t elt_type,
                             fvmc_ho_basis_fct_t elt_basis)
 {
   fvmc_ho_basis_user_elt_t *user_elt = _get_user_elt (elt_type);
@@ -870,7 +757,7 @@ fvmc_ho_basis_user_elt_set (fvmc_element_t elt_type,
  *----------------------------------------------------------------------------*/
 
 void
-fvmc_ho_basis
+FVMC_ho_basis
 (
 const fvmc_element_t type,
 const int order,
@@ -917,53 +804,11 @@ const double *uvw,
 
 
 void
-fvmc_ho_basis_free
+FVMC_ho_basis_free
 (
  void
 )
 {
-#if defined (HAVE_SPACE_BASIS) 
-  if (_ijk_tria_space != NULL) {
-
-    for (int i = 0; i < _n_ijk_tria_space; i++) {
-      if (_ijk_tria_space[i] != NULL) {
-        free(_ijk_tria_space[i]);
-        _ijk_tria_space[i] = NULL;
-      }
-    }
-    free (_ijk_tria_space);
-    _ijk_tria_space = NULL;
-  
-  }
-
-  if (_ijk_quad_space != NULL) {
-
-    for (int i = 0; i < _n_ijk_quad_space; i++) {
-      if (_ijk_quad_space[i] != NULL) {
-        free(_ijk_quad_space[i]);
-        _ijk_quad_space[i] = NULL;
-      }
-    }
-    free (_ijk_quad_space);
-    _ijk_quad_space = NULL;
-    
-  }
-  
-  if (_ijk_1D_space != NULL) {
-
-    for (int i = 0; i < _n_ijk_1D_space; i++) {
-      if (_ijk_1D_space[i] != NULL) {
-        free(_ijk_1D_space[i]);
-        _ijk_1D_space[i] = NULL;
-      }
-    }
-    
-    free (_ijk_1D_space);
-    _ijk_1D_space = NULL;
-  }
-
-#endif
-  
 }
 
 #ifdef __cplusplus

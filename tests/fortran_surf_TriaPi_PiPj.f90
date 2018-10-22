@@ -1064,6 +1064,8 @@ subroutine  userInterpolation                        ( &
   use cwipi
   use baseSimplex1D, only: setQ4BasisEqui_uv,setQ4MeshIJK
   use baseSimplex2D, only: setT3BasisEqui_uv,setT3MeshIJK,setT3MeshBasis_P1,setT3MeshBasis_P2,setT3MeshBasis_P3
+
+  use  mod_fvmc_ho_basis, only: fvmc_ho_basis
   
   use variablesCommunes
   use spaceMessages

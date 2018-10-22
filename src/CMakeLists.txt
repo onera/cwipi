@@ -60,7 +60,8 @@ file(GLOB SOURCESF
     fortran/cwipi_set_output_logical_unit.f90
     fortran/cwp_output_fortran_unit_set.f90
     fortran/cwp_printfort_cf.cxx
-    fortran/printfort.f90)
+    fortran/printfort.f90
+    fortran/mod_fvmc_ho_basis.f90)
 
 add_library(cwp OBJECT ${SOURCES})
 

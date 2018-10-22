@@ -1238,7 +1238,7 @@ cwipi_ho_user_elt_set (cwipi_element_t elt_type,
                
   }
   
-  fvmc_ho_basis_user_elt_set (_elt_type,
+  FVMC_ho_basis_user_elt_set (_elt_type,
                               (fvmc_ho_basis_fct_t) element_basis);
   
   fvmc_ho_location_user_elt_set (_elt_type,
@@ -1732,7 +1732,7 @@ void cwipi_finalize(void)
   const MPI_Comm globalComm = properties.getGlobalComm();
 
   fvmc_ho_location_user_elts_unset ();
-  fvmc_ho_basis_user_elts_unset ();
+  FVMC_ho_basis_user_elts_unset ();
     
   bftc_printf("Finalize cwipi\n");
   couplingDataBase.kill();
@@ -1746,7 +1746,7 @@ void cwipi_finalize(void)
     MPI_Barrier(globalComm);
   }
 
-  fvmc_ho_basis_free ();
+  FVMC_ho_basis_free ();
   
 }
 

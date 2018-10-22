@@ -102,7 +102,7 @@ typedef void (*fvmc_ho_basis_fct_t)
  *----------------------------------------------------------------------------*/
 
 void
-fvmc_ho_basis_user_elt_set (fvmc_element_t elt_type,
+FVMC_ho_basis_user_elt_set (fvmc_element_t elt_type,
                             fvmc_ho_basis_fct_t location_in_elt);
 
 
@@ -113,10 +113,10 @@ fvmc_ho_basis_user_elt_set (fvmc_element_t elt_type,
  *----------------------------------------------------------------------------*/
 
 void
-fvmc_ho_basis_user_elt_unset (fvmc_element_t elt_type);
+FVMC_ho_basis_user_elt_unset (fvmc_element_t elt_type);
 
 void
-fvmc_ho_basis_user_elts_unset (void);
+FVMC_ho_basis_user_elts_unset (void);
 
 
 /*----------------------------------------------------------------------------
@@ -134,7 +134,7 @@ fvmc_ho_basis_user_elts_unset (void);
  *----------------------------------------------------------------------------*/
 
 void
-fvmc_ho_basis
+FVMC_ho_basis
 (
 const fvmc_element_t type,
 const int order,
@@ -152,7 +152,7 @@ const double *uvw,
 
 
 void
-fvmc_ho_basis_free
+FVMC_ho_basis_free
 (
  void
  );

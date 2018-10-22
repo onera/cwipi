@@ -607,7 +607,7 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
               uv[i1++] = v;
             }
           }
-          fvmc_ho_basis (FVMC_FACE_TRIA, order, n_nodes, n_vtx, uv, ai);
+          FVMC_ho_basis (FVMC_FACE_TRIA, order, n_nodes, n_vtx, uv, ai);
         }
         else if (this_section->type == FVMC_FACE_QUAD) {
           int i1 = 0;
@@ -619,7 +619,7 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
               uv[i1++] = v;
             }
           }
-          fvmc_ho_basis (FVMC_FACE_QUAD, order, n_nodes, n_vtx, uv, ai);
+          FVMC_ho_basis (FVMC_FACE_QUAD, order, n_nodes, n_vtx, uv, ai);
         }
           
         for (int ielt = 0; ielt < this_section->n_elements; ielt++) {

@@ -63,10 +63,6 @@
 
 #include "fvmc_ho_location.h"
 
-#if defined (HAVE_SPACE_BASIS) 
-#include "spacebasis.h"
-#endif
-
 /*----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus
@@ -1007,7 +1003,7 @@ _insert_subtria
         (uvPn_tria_current[2*i+j] + uvPn_tria_current[2*((i+1)%3)+j])/2;
     }
     
-    fvmc_ho_basis (type,
+    FVMC_ho_basis (type,
                    order,
                    n_nodes,
                    1,
@@ -1203,7 +1199,7 @@ _compute_dist2_from_closest_tria_subdivision
 
     double weightsP1[3];
     
-    fvmc_ho_basis (FVMC_FACE_TRIA,
+    FVMC_ho_basis (FVMC_FACE_TRIA,
                    1,
                    3,
                    1,
@@ -1243,7 +1239,7 @@ _compute_dist2_from_closest_tria_subdivision
       _projected_coords_from_pn[j] = 0;
     }
 
-    fvmc_ho_basis (type,
+    FVMC_ho_basis (type,
                    order,
                    n_nodes,
                    1,
@@ -1413,7 +1409,7 @@ _compute_dist2_from_uniform_tria_subdivision
 
     double weightsP1[3];
     
-    fvmc_ho_basis (FVMC_FACE_TRIA,
+    FVMC_ho_basis (FVMC_FACE_TRIA,
                    1,
                    3,
                    1,
@@ -1453,7 +1449,7 @@ _compute_dist2_from_uniform_tria_subdivision
       _projected_coords_from_pn[j] = 0;
     }
 
-    fvmc_ho_basis (type,
+    FVMC_ho_basis (type,
                    order,
                    n_nodes,
                    1,
