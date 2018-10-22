@@ -134,8 +134,9 @@ _monomialProduct
 (
  const int order,
  const int n_pts,
- const double *u,
-       double *fn
+ const int i_pts,
+ const double *restrict u,
+       double *restrict fn
 )
 {  
 
@@ -145,11 +146,11 @@ _monomialProduct
     fn[i]= 1.;
   }
 
-  for (int i = 0; i < n_pts; i++) {
+  for (int i = 0; i < i_pts; i++) {
 
-    constant = 1. / (double) (i - n_pts);
+    constant = 1. / (double) (i - i_pts);
     
-    for (int j = 0; i < n_pts; i++) {
+    for (int j = 0; j < n_pts; j++) {
       fn[j] *= ((double) i - (double) order * u[j]) * constant;
     }
   }
@@ -173,10 +174,11 @@ _basis_tria_pn
 (
  const int order,
  const int n_pts,
- const double *uv,
- double *weights
+ const double *restrict uv,
+ double *restrict weights
 )
 {
+  const int n_nodes = (order + 2) * (order + 1) / 2;
 
   if (order == 1) {
 
@@ -285,28 +287,29 @@ _basis_tria_pn
       double w3 = 3.*w;
       double w3m1 = (w3-1.)*5e-1;
       
-      weights[2*i+0] = w*w3m1*(w3-2.);   // (i,j,k)=(003)
-      weights[2*i+3] = u*u3m1*(u3-2.);   // (i,j,k)=(300)
-      weights[2*i+9] = v*v3m1*(v3-2.);   // (i,j,k)=(030)
-      weights[2*i+1] = u3*w3*w3m1;       // (i,j,k)=(102)
+      weights[10*i+0] = w*w3m1*(w3-2.);   // (i,j,k)=(003)
+      weights[10*i+3] = u*u3m1*(u3-2.);   // (i,j,k)=(300)
+      weights[10*i+9] = v*v3m1*(v3-2.);   // (i,j,k)=(030)
+      weights[10*i+1] = u3*w3*w3m1;       // (i,j,k)=(102)
       
       double coef = u3*u3m1;
-      weights[2*i+2] = coef*w3;           //(i,j,k)=(201)
-      weights[2*i+6] = coef*v3;           // (i,j,k)=(210)
+      weights[10*i+2] = coef*w3;           //(i,j,k)=(201)
+      weights[10*i+6] = coef*v3;           // (i,j,k)=(210)
       
       coef=v3*v3m1;
-      weights[2*i+8] = coef*u3;           // (i,j,k)=(120)
-      weights[2*i+7] = coef*w3;           // (i,j,k)=(021)
+      weights[10*i+8] = coef*u3;           // (i,j,k)=(120)
+      weights[10*i+7] = coef*w3;           // (i,j,k)=(021)
       
       coef=v3*w3;
-      weights[2*i+4] = coef*w3m1;         // (i,j,k)=(012)
-      weights[2*i+5] = coef*u3;           // (i,j,k)=(111)
+      weights[10*i+4] = coef*w3m1;         // (i,j,k)=(012)
+      weights[10*i+5] = coef*u3;           // (i,j,k)=(111)
       
     }
   }
   
   else {
 
+    if (1 == 1) {
     double *u  = malloc (sizeof(double) *n_pts);
     double *v  = malloc (sizeof(double) *n_pts);
     double *w  = malloc (sizeof(double) *n_pts);
@@ -320,36 +323,31 @@ _basis_tria_pn
       w[i] = 1. - u[i] - v[i];
     }
     
-    //print '("size(ai)=",i2,"x",i2)',size(ai,1),size(ai,2)
+    int i_node = 0;
+    for (int iv = 0; iv < order + 1; iv++) {
+      for (int iu = 0; iu < order + 1 - iv; iu++) {
+        int iw = order - iu - iv;
 
-    /* for (int j = 0; j < n_nodes; j++) { */
-
-
-    /*   // Attention monomonial product a revoir */
-
-    /*   do iMod=1,nMod */
-    /*   iu=ijk(1,iMod) */
-    /*   iv=ijk(2,iMod) */
-    /*   iw=ord-iu-iv */
+        _monomialProduct(order, n_pts, iu, u, fu);
+        _monomialProduct(order, n_pts, iv, v, fv);
+        _monomialProduct(order, n_pts, iw, w, fw);
       
-    /*   call monomialProduct(ord=ord,n=iu,u=u, fn=fu) */
-    /*   call monomialProduct(ord=ord,n=iv,u=v, fn=fv) */
-    /*   call monomialProduct(ord=ord,n=iw,u=w, fn=fw) */
-      
-    /*   !print '(3x,"iMod=",i3,3x,"iu=",i3," iv=",i3," iw=",i3)',iMod,iu,iv,iw */
-    /*   do iNod=1,nNod */
-    /*     ai(iMod,iNod)=fu(iNod)*fv(iNod)*fw(iNod) */
-    /*   enddo */
-      
-    /* enddo */
-    
-    /* deallocate(u,v,w,fu,fv,fw) */
-    /* !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
-    
+        for (int i = 0; i < n_pts; i++) {
+          weights[i * n_nodes + i_node] = fu[i] * fv[i] * fw[i];
+        }
+        i_node++;
+      }
+    }
 
+    free (u);
+    free (v);
+    free (w);
+    free (fu);
+    free (fv);
+    free (fw);
+    }
 
-
-    
+    else {
 #if defined (HAVE_SPACE_BASIS)
     
     if (_ijk_tria_space == NULL) {
@@ -388,11 +386,88 @@ _basis_tria_pn
     bftc_error(__FILE__, __LINE__, 0,
                _("_basis_tria_pn not yet implemented for order > 2 without space basis \n"));
 #endif
-
+    }
   }
 }
 
 
+/*----------------------------------------------------------------------------
+ * 
+ * Compte uv of edge nodes
+ * 
+ * parameters:
+ *   order           <-- order
+ *   n_pts           <-- number of points
+ *   u               <-- u (size = n_pts)
+ *   weights         --> weights (size = (order + 1) * n_pts)
+ *
+ *
+ *----------------------------------------------------------------------------*/
+
+static void
+_uNodesEdges
+(
+ const int order,
+ double *restrict xi
+)
+{
+  const int n_nodes = order + 1;
+
+  for (int i = 0; i < n_nodes; i++) {
+    xi[i] = -1. + 2. * (double) i / (double) order;
+  }
+}
+
+/*----------------------------------------------------------------------------
+ * 
+ * Edge basis
+ * 
+ * parameters:
+ *   order           <-- order
+ *   n_pts           <-- number of points
+ *   u               <-- u (size = n_pts)
+ *   weights         --> weights (size = (order + 1) * n_pts)
+ *
+ *
+ *----------------------------------------------------------------------------*/
+
+static void
+_setL2BasisEqui
+(
+ const int order,
+ const int n_pts,
+ const double *restrict u,
+       double *restrict weights
+ )
+{
+
+  const int nMod = order + 1;
+  
+  double *xi = malloc (sizeof(double) * nMod);
+
+  _uNodesEdges (order, xi);
+
+  const int sWeights = n_pts * nMod;
+  for (int i = 0; i < sWeights; i++) {
+    weights[i] = 1.;
+  }
+
+  for (int i = 0; i < nMod; i++) {
+    for (int j = 0; j < nMod; j++) {
+    
+      if (i != j) {
+        double var = 1. / (xi[i] - xi[j]);
+
+        for (int i_pts = 0; i_pts < n_pts; i_pts++) {
+          weights[nMod * i_pts + i] *=
+            (u[i_pts] - xi[j]) * var;
+        }
+      }
+    }
+  }
+
+  free (xi);
+}    
 
 
 /*----------------------------------------------------------------------------
@@ -414,8 +489,8 @@ _basis_quad_qn
 (
  const int order,
  const int n_pts,
- const double *uv,
- double *weights
+ const double *restrict uv,
+ double *restrict weights
 )
 {
   
@@ -467,7 +542,6 @@ _basis_quad_qn
     double *av1 = malloc (sizeof(double) *n_pts);
     double *av2 = malloc (sizeof(double) *n_pts);
     double *av3 = malloc (sizeof(double) *n_pts);
-
     
     for (int i = 0; i < n_pts; i++) {
       u[i] = uv[2*i];
@@ -525,56 +599,97 @@ _basis_quad_qn
 
   else {
 
-#if defined (HAVE_SPACE_BASIS)
-    
-    if (_ijk_quad_space == NULL) {
-      _n_ijk_quad_space = FVMC_MAX (order-1, 10);
-      _ijk_quad_space = malloc (sizeof(int *) * _n_ijk_quad_space);
-      for (int i = 0; i < _n_ijk_quad_space; i++) {
-        _ijk_quad_space[i] = NULL;
+    if (1 == 1) {
+      const int nMod = order + 1;
+      const int n_nodes = nMod * nMod;
+      
+      double *u = malloc (sizeof(double) *n_pts);
+      double *v = malloc (sizeof(double) *n_pts);
+      
+      for (int i = 0; i < n_pts; i++) {
+        u[i] = 2 * uv[2*i]   - 1;
+        v[i] = 2 * uv[2*i+1] - 1;
+        /* u[i] = uv[2*i]; */
+        /* v[i] = uv[2*i+1]; */
       }
-    }
-
-    if (order > _n_ijk_quad_space) {
-      _ijk_quad_space = realloc (_ijk_quad_space, sizeof(int *) * _n_ijk_quad_space);
-      for (int i = _n_ijk_quad_space; i < order; i++) {
-        _ijk_quad_space[i] = NULL;
-      }
-    }
     
-    int *__ijk_quad_space = _ijk_quad_space[order-1];
-
-    if (__ijk_quad_space == NULL) {
-      const int n_nodes = (order+1)*(order+1);
-      __ijk_quad_space = malloc (sizeof(int) * 2 * n_nodes);
-      int k = 0;
-      for (int j = 0; j < order+1; j++) {
-        for (int i = 0; i < order+1; i++) {
-          __ijk_quad_space[k++] = i;
-          __ijk_quad_space[k++] = j;
+      double *lagrangeL2_u = malloc (sizeof(double) * nMod * n_pts); 
+      double *lagrangeL2_v = malloc (sizeof(double) * nMod * n_pts); 
+      
+      _setL2BasisEqui (order, n_pts, u, lagrangeL2_u);
+      _setL2BasisEqui (order, n_pts, v, lagrangeL2_v);
+      
+      int i_node = 0;
+      for (int iv = 0; iv < nMod; iv++) {
+        for (int iu = 0; iu < nMod; iu++) {
+          for (int i_pts = 0; i_pts < n_pts; i_pts++) {
+            weights[i_pts * n_nodes + i_node] =
+              lagrangeL2_u[i_pts * nMod + iu] *
+              lagrangeL2_v[i_pts * nMod + iv];
+          }
+          i_node++;
         }
       }
+      
+      free (lagrangeL2_u);
+      free (lagrangeL2_v);
+      free (u);
+      free (v);
     }
 
-    double *u = malloc (sizeof(double) *n_pts);
-    double *v = malloc (sizeof(double) *n_pts);
+    else {
 
-    for (int i = 0; i < n_pts; i++) {
-      u[i] = 2 * uv[2*i]   - 1;
-      v[i] = 2 * uv[2*i+1] - 1;
-    }
+#if defined (HAVE_SPACE_BASIS)
+      const int n_nodes = (order + 1) * (order + 1);
     
-    SNB_setQ4BasisEqui_uv (order, n_pts, __ijk_quad_space,
-                           u, v,
-                           weights);
-
-    free (u);
-    free (v);
+      if (_ijk_quad_space == NULL) {
+        _n_ijk_quad_space = FVMC_MAX (order-1, 10);
+        _ijk_quad_space = malloc (sizeof(int *) * _n_ijk_quad_space);
+        for (int i = 0; i < _n_ijk_quad_space; i++) {
+          _ijk_quad_space[i] = NULL;
+      }
+      }
+      
+      if (order > _n_ijk_quad_space) {
+        _ijk_quad_space = realloc (_ijk_quad_space, sizeof(int *) * _n_ijk_quad_space);
+        for (int i = _n_ijk_quad_space; i < order; i++) {
+          _ijk_quad_space[i] = NULL;
+        }
+      }
+      
+      int *__ijk_quad_space = _ijk_quad_space[order-1];
+      
+      if (__ijk_quad_space == NULL) {
+        __ijk_quad_space = malloc (sizeof(int) * 2 * n_nodes);
+        int k = 0;
+        for (int j = 0; j < order+1; j++) {
+          for (int i = 0; i < order+1; i++) {
+            __ijk_quad_space[k++] = i;
+            __ijk_quad_space[k++] = j;
+          }
+        }
+      }
+      
+      double *u = malloc (sizeof(double) *n_pts);
+      double *v = malloc (sizeof(double) *n_pts);
+      
+      for (int i = 0; i < n_pts; i++) {
+        u[i] = 2 * uv[2*i]   - 1;
+        v[i] = 2 * uv[2*i+1] - 1;
+      }
+      
+      SNB_setQ4BasisEqui_uv (order, n_pts, __ijk_quad_space,
+                             u, v,
+                             weights);
+      
+      free (u);
+      free (v);
     
 #else
-    bftc_error(__FILE__, __LINE__, 0,
-               _("_basis_quad_pn not yet implemented for order > 2 without space basis \n"));
+      bftc_error(__FILE__, __LINE__, 0,
+                 _("_basis_quad_pn not yet implemented for order > 2 without space basis \n"));
 #endif
+    }
   }
 }
   

@@ -384,17 +384,19 @@ module baseSimplex1D
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     iMod=0
-    do j=1,nMod ; do i=1,nMod
-      iMod=iMod+1 ! print '(3x,"iMod=",i3,3x,"i,j=",2(i3,1x))',iMod,ij(1:2,iMod)
-      iu=ijk(1,iMod)+1
-      iv=ijk(2,iMod)+1
-      !>
-      !print '(3x,"iMod=",i3,3x,"(i,j)=",2(i3,1x))',iMod,iu,iv          
-      do iNod=1,nNod
-        !print '(6x,"iNod=",i3,3x,"(u,v)=",2(e12.5,1x),3x,"aiL2=",2(e12.5,1x))',iNod,u(iNod),v(iNod),lagrangeL2_u(iu,iNod),lagrangeL2_v(iv,iNod)        
-        ai(iMod,iNod)= lagrangeL2_u(iu,iNod)*lagrangeL2_v(iv,iNod)
+    do j=1,nMod 
+      do i=1,nMod
+        iMod=iMod+1 ! print '(3x,"iMod=",i3,3x,"i,j=",2(i3,1x))',iMod,ij(1:2,iMod)
+        iu=ijk(1,iMod)+1
+        iv=ijk(2,iMod)+1
+        !>
+        !print '(3x,"iMod=",i3,3x,"(i,j)=",2(i3,1x))',iMod,iu,iv          
+        do iNod=1,nNod
+          !print '(6x,"iNod=",i3,3x,"(u,v)=",2(e12.5,1x),3x,"aiL2=",2(e12.5,1x))',iNod,u(iNod),v(iNod),lagrangeL2_u(iu,iNod),lagrangeL2_v(iv,iNod)        
+          ai(iMod,iNod)= lagrangeL2_u(iu,iNod)*lagrangeL2_v(iv,iNod)
+        enddo
       enddo
-    enddo ; enddo
+    enddo
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

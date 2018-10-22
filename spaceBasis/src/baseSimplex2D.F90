@@ -439,6 +439,7 @@ module baseSimplex2D
     enddo
     
     !print '("size(ai)=",i2,"x",i2)',size(ai,1),size(ai,2)
+
     nMod=(ord+1)*(ord+2)/2
     do iMod=1,nMod
       iu=ijk(1,iMod)
