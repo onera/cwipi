@@ -1258,7 +1258,6 @@ void LocationToLocalMesh::compute2DMeanValues()
       const double *_uvw_point_fvm = uvw + ipoint * max_entity_dim;
 
       const int n_node_tria = (order+1)*(order+2)/2; 
-      const int n_node_quad = (order+1)*(order+1); 
 
       fvmc_element_t type;
 
@@ -2142,7 +2141,7 @@ void LocationToLocalMesh::compute3DMeanValues()
     
       const int n_node_tetra = (order+1)*(order+2)*(order+3)/6; 
       const int n_node_hexa = (order+1)*(order+1)*(order+1); 
-      const int n_node_prism = (order+1)*(order+1)*(order+2)/2; 
+      //const int n_node_prism = (order+1)*(order+1)*(order+2)/2; 
       const int n_node_pyramid = (order+1)*(order+2)*(2*order+3)/6;
 
       if (n_node == n_node_tetra) {

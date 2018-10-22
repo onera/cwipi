@@ -1028,7 +1028,242 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
   end subroutine mshToMesh  
+
+  subroutine setT3MeshIJK(meshOrder,ij)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer, intent(in)    :: meshOrder
+    integer, intent(inout) :: ij(:,:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if    ( meshOrder==1 )then !> TriangleP1
+    
+      ! 03
+      ! 01 02
+      
+      ij(1:2,01)=[0,0] !> 1
+      ij(1:2,02)=[1,0] !> 2
+      ij(1:2,03)=[0,1] !> 3
+      
+    elseif( meshOrder==2 )then !> TriangleP2
+      
+      ! 03
+      ! 06 05
+      ! 01 04 02
+      
+      ij(1:2,01)=[0,0] !> 1
+      ij(1:2,02)=[2,0] !> 2
+      ij(1:2,03)=[0,2] !> 3
+      ij(1:2,04)=[1,0] !> 4
+      ij(1:2,05)=[1,1] !> 5
+      ij(1:2,06)=[0,1] !> 6
+      
+    elseif(meshOrder==3 )then !> TriangleP3
+      
+      ! 03
+      ! 08 07
+      ! 09 10 06
+      ! 01 04 05 02
+      
+      ij(1:2,01)=[0,0] !> 01
+      ij(1:2,02)=[3,0] !> 02
+      ij(1:2,03)=[0,3] !> 03
+      ij(1:2,04)=[1,0] !> 04
+      ij(1:2,05)=[2,0] !> 05
+      ij(1:2,06)=[2,1] !> 06
+      ij(1:2,07)=[1,2] !> 07
+      ij(1:2,08)=[0,2] !> 08
+      ij(1:2,09)=[0,1] !> 09
+      ij(1:2,10)=[1,1] !> 10
+      
+    elseif(meshOrder==4 )then !> TriangleP4
+      
+      !> 03
+      !> 10 09
+      !> 11 15 08
+      !> 12 13 14 07
+      !> 01 04 05 06 02
+      
+      ij(1:2,01)=[0,0] !> 01
+      ij(1:2,02)=[4,0] !> 02
+      ij(1:2,03)=[0,4] !> 03
+      ij(1:2,04)=[1,0] !> 04
+      ij(1:2,05)=[2,0] !> 05
+      ij(1:2,06)=[3,0] !> 06
+      ij(1:2,07)=[3,1] !> 07
+      ij(1:2,08)=[2,2] !> 08
+      ij(1:2,09)=[1,3] !> 09
+      ij(1:2,10)=[0,3] !> 10
+      ij(1:2,11)=[0,2] !> 11
+      ij(1:2,12)=[0,1] !> 12
+      ij(1:2,13)=[1,1] !> 13
+      ij(1:2,14)=[2,1] !> 14
+      ij(1:2,15)=[1,2] !> 15
+      
+    else ; stop "setT3MeshIJK meshOrder>4 not implemented"
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+    
+    return
+  end subroutine setT3MeshIJK
   
+  subroutine setQ4MeshIJK(meshOrder,ij)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer, intent(in)    :: meshOrder
+    integer, intent(inout) :: ij(:,:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Quad (2D/3D)
+    !>
+    !>   04 03
+    !>   01 02
+    !> 2D
+    !>   f1 : 01 02
+    !>   f2 : 02 03
+    !>   f3 : 03 04
+    !>   f4 : 04 01
+    !> 3D
+    !>   f1 : 01 02 03 04
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Quad2 (2D/3D)
+    !>
+    !>   04 07 03
+    !>   08 09 06
+    !>   01 05 02
+    !> 2D
+    !>   f1 : 01 02 05
+    !>   f2 : 02 03 06
+    !>   f3 : 03 04 07
+    !>   f4 : 04 01 08
+    !> 3D
+    !>   f1 : 01 02 03 04 05 06 07 08 09
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Quad3 (2D)
+    !>
+    !>   04 10 09 03
+    !>   11 16 15 08
+    !>   12 13 14 07
+    !>   01 05 06 02
+    !> 2D
+    !>   f1 : 01 02 05 06
+    !>   f2 : 02 03 07 08
+    !>   f3 : 03 04 09 10
+    !>   f4 : 04 01 11 12
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Quad4 (2D)
+    !>
+    !>   04 13 12 11 03
+    !>   14 20 23 19 10
+    !>   15 24 25 22 09
+    !>   16 17 21 18 08
+    !>   01 05 06 07 02
+    !> 2D
+    !>   f1 : 01 02 05 06 07
+    !>   f2 : 02 03 08 09 10
+    !>   f3 : 03 04 11 12 13
+    !>   f4 : 04 01 14 15 16
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<    
+    
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if    ( meshOrder==1 )then !> QuadQ1
+      
+      !>   04 03
+      !>   01 02
+      
+      ij(1:2,01)=[0,0] !> 1
+      ij(1:2,02)=[1,0] !> 2
+      ij(1:2,03)=[1,1] !> 3
+      ij(1:2,04)=[0,1] !> 4
+      
+    elseif( meshOrder==2 )then !> QuadQ2
+      
+      !>   04 07 03
+      !>   08 09 06
+      !>   01 05 02
+      
+      ij(1:2,01)=[0,0] !> 1
+      ij(1:2,02)=[2,0] !> 2
+      ij(1:2,03)=[2,2] !> 3
+      ij(1:2,04)=[0,2] !> 4
+      ij(1:2,05)=[1,0] !> 5
+      ij(1:2,06)=[2,1] !> 6
+      ij(1:2,07)=[1,2] !> 7
+      ij(1:2,08)=[0,1] !> 8
+      ij(1:2,09)=[1,1] !> 9
+      
+    elseif(meshOrder==3 )then !> QuadQ3
+      
+      !>   04 10 09 03
+      !>   11 16 15 08
+      !>   12 13 14 07
+      !>   01 05 06 02
+      
+      ij(1:2,01)=[0,0] !> 01
+      ij(1:2,02)=[3,0] !> 02
+      ij(1:2,03)=[3,3] !> 03
+      ij(1:2,04)=[0,3] !> 04
+      
+      ij(1:2,05)=[1,0] !> 05
+      ij(1:2,06)=[2,0] !> 06
+      ij(1:2,07)=[3,1] !> 07
+      ij(1:2,08)=[3,2] !> 08
+      ij(1:2,09)=[2,3] !> 09
+      ij(1:2,10)=[1,3] !> 10
+      ij(1:2,11)=[0,2] !> 11
+      ij(1:2,12)=[0,1] !> 12
+      ij(1:2,13)=[1,1] !> 13
+      ij(1:2,14)=[2,1] !> 14
+      ij(1:2,15)=[2,2] !> 15
+      ij(1:2,16)=[1,2] !> 16
+      
+    elseif(meshOrder==4 )then !> QuadQ4
+      
+      !>   04 13 12 11 03
+      !>   14 20 23 19 10
+      !>   15 24 25 22 09
+      !>   16 17 21 18 08
+      !>   01 05 06 07 02
+      
+      ij(1:2,01)=[0,0] !> 01
+      ij(1:2,02)=[4,0] !> 02
+      ij(1:2,03)=[4,4] !> 03
+      ij(1:2,04)=[0,4] !> 04
+      
+      ij(1:2,05)=[1,0] !> 05
+      ij(1:2,06)=[2,0] !> 06
+      ij(1:2,07)=[3,0] !> 07      
+      ij(1:2,08)=[4,1] !> 08
+      ij(1:2,09)=[4,2] !> 09
+      ij(1:2,10)=[4,3] !> 10
+      ij(1:2,11)=[3,4] !> 11
+      ij(1:2,12)=[2,4] !> 12
+      ij(1:2,13)=[1,4] !> 13
+      ij(1:2,14)=[0,3] !> 14
+      ij(1:2,15)=[0,2] !> 15
+      ij(1:2,16)=[0,1] !> 16
+      
+      ij(1:2,17)=[1,1] !> 17
+      ij(1:2,18)=[3,1] !> 18
+      ij(1:2,19)=[3,3] !> 19
+      ij(1:2,20)=[1,3] !> 20
+      
+      ij(1:2,21)=[2,1] !> 21
+      ij(1:2,22)=[3,2] !> 22
+      ij(1:2,23)=[2,3] !> 23
+      ij(1:2,24)=[1,2] !> 24
+      
+      ij(1:2,25)=[2,2] !> 25
+      
+    else ; stop "setQ4MeshIJK meshOrder>4 not implemented"
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+    
+    return
+  end subroutine setQ4MeshIJK
 end module additionnal_Functions
 
 subroutine  userInterpolation                        ( &
@@ -1062,8 +1297,9 @@ subroutine  userInterpolation                        ( &
   !---
   use iso_c_binding, only: c_loc,c_f_pointer
   use cwipi
-  use baseSimplex1D, only: setQ4BasisEqui_uv,setQ4MeshIJK
-  use baseSimplex2D, only: setT3BasisEqui_uv,setT3MeshIJK,setT3MeshBasis_P1,setT3MeshBasis_P2,setT3MeshBasis_P3
+  use additionnal_Functions, only: setT3MeshIJK, setQ4MeshIJK
+  use baseSimplex1D, only: setQ4BasisEqui_uv
+  use baseSimplex2D, only: setT3BasisEqui_uv,setT3MeshBasis_P1,setT3MeshBasis_P2,setT3MeshBasis_P3
 
   use  mod_fvmc_ho_basis, only: fvmc_ho_basis
   
@@ -1100,7 +1336,7 @@ subroutine  userInterpolation                        ( &
   integer          :: iNod,nNod,iMod,nMod
   integer          :: nQ4,nT3
   integer          :: iCell
-  real(8), pointer :: uv0(:,:),uQ4(:),vQ4(:),uvT3(:,:)
+  real(8), pointer :: uv0(:,:),uQ4(:),vQ4(:),uvT3(:,:), uvQ4(:,:)
   integer          :: iVert,jVert,nVert
   integer, pointer :: ij(:,:)
   real(8), pointer :: lagrangeMeshQ4(:,:)
@@ -1148,7 +1384,7 @@ subroutine  userInterpolation                        ( &
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Allocating uvQ4,uvT3
-  if( .not.nQ4==0 )allocate(uQ4(1:nQ4),vQ4(1:nQ4))
+  if( .not.nQ4==0 )allocate(uQ4(1:nQ4),vQ4(1:nQ4), uvQ4(1:2,1:nQ4))
   if( .not.nT3==0 )allocate(uvT3(1:2,1:nT3))
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
@@ -1158,7 +1394,7 @@ subroutine  userInterpolation                        ( &
   do iVert=1,linkVertSize
     iCell=disPtsLocation(iVert)
     nMod=localConnectivityIndex(iCell+1)-localConnectivityIndex(iCell)
-    if    ( nMod==(order+1)*(order+1)   )then ; nQ4=nQ4+1 ; uQ4(nQ4)=2d0*uv0(1,iVert)-1d0 ; vQ4(nQ4)=2d0*uv0(2,iVert)-1d0
+    if    ( nMod==(order+1)*(order+1)   )then ; nQ4=nQ4+1 ; uQ4(nQ4)=2d0*uv0(1,iVert)-1d0 ; vQ4(nQ4)=2d0*uv0(2,iVert)-1d0; uvQ4(1:2,nQ4)=uv0(1:2,iVert)
     elseif( nMod==(order+1)*(order+2)/2 )then ; nT3=nT3+1 ; uvT3(1:2,nT3)=uv0(1:2,iVert)
     endif
   enddo    
@@ -1178,8 +1414,9 @@ subroutine  userInterpolation                        ( &
     call setQ4MeshIJK(meshOrder=order,ij=ij)
     allocate(lagrangeMeshQ4(1:nMod,1:nQ4))
     call setQ4BasisEqui_uv(ord=order,ijk=ij,u=uQ4,v=vQ4,ai=lagrangeMeshQ4)
+   !CWP call fvmc_ho_basis(type=fvmc_face_quad, order=order, n_nodes=nMod, n_pts=nQ4, uvw=uvQ4, weights=lagrangeMeshQ4)
     deallocate(ij)
-    deallocate(uQ4,vQ4)    
+    deallocate(uQ4,vQ4,uvQ4)    
   endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
@@ -1199,6 +1436,7 @@ subroutine  userInterpolation                        ( &
       call setT3BasisEqui_uv(ord=order,ijk=ij,uvw=uvT3,ai=lagrangeMeshT3)
       deallocate(ij)
     end select
+   !CWP call fvmc_ho_basis(type=fvmc_face_tria, order=order, n_nodes=nMod, n_pts=nT3, uvw=uvT3, weights=lagrangeMeshT3)
     deallocate(uvT3)
   endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -1213,9 +1451,16 @@ subroutine  userInterpolation                        ( &
     iCell=disPtsLocation(iVert)
     nMod=localConnectivityIndex(iCell+1)-localConnectivityIndex(iCell)
     nod(1:nMod)=localConnectivity(localConnectivityIndex(iCell)+1:localConnectivityIndex(iCell+1))
+
+    !CWP ! nod a renumeroter
     
     if    ( nMod==(order+1)*(order+1)   )then ; nQ4=nQ4+1
       !> linkValues(1:stride,iVert)=  myValuesTab(1:stride,1:nMod) lagrangeMeshQ4(1:nMod,nQ4)
+
+
+      !CWP faire 2 boucles imbriquees do j, do i
+
+      
       do iMod=1,nMod
         jVert=nod(iMod)
         linkValues(1:stride,iVert)=linkValues(1:stride,iVert)+lagrangeMeshQ4(iMod,nQ4)*myValues(1:stride,jVert)        
