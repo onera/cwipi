@@ -1264,6 +1264,97 @@ contains
     
     return
   end subroutine setQ4MeshIJK
+
+
+  Subroutine nodes2D(ord, uvw,display)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    ! input: ord=polynomial order of interpolant
+    ! output: uvw(:,:) node coordinates in unity triangle
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer, intent(in)           :: ord
+    logical, intent(in)           :: display
+    real(8), pointer :: uvw(:,:)
+    !---
+    integer                       :: iu,iv,iw,ad
+    integer                       :: m,n
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Total number of nodes
+    n=(ord+1)*(ord+2)/2
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Create equidistributed nodes on unity triangle
+    allocate(uvw(1:2,1:n))
+    if( ord==0 )then
+      uvw(1:2,1)=[1d0/3d0,1d0/3d0]
+    elseif( ord==1 )then
+      uvw(1:2,1)=[0d0,0d0]
+      uvw(1:2,2)=[1d0,0d0]
+      uvw(1:2,3)=[0d0,1d0]
+    elseif( ord==2 )then
+      uvw(1:2,1)=[0.0d0, 0.0d0]
+      uvw(1:2,2)=[0.5d0, 0.0d0]
+      uvw(1:2,3)=[1.0d0, 0.0d0]
+      uvw(1:2,4)=[0.0d0, 0.5d0]
+      uvw(1:2,5)=[0.5d0, 0.5d0]
+      uvw(1:2,6)=[0.0d0, 1.0d0]
+    else
+      do iu=0,ord
+        do iv=0,ord-iu
+          do iw=0,ord-iu-iv
+            ad=iu+iv*(ord+1)-(iv*(iv-1))/2 +1 !> Rangement façon space            
+            uvw(1:2,ad)=[real(iu,kind=8)/real(ord,kind=8),& !> u
+            &            real(iv,kind=8)/real(ord,kind=8) ]
+          enddo
+        enddo
+      enddo
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( display )then
+      write(*,'(/"Triangle unité initial:")')
+      print '("ad=",i5,2x,"u=",f19.16,2x,"v=",f19.16)',(ad,uvw(1:2,ad),ad=1,n)
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine nodes2D
+
+  subroutine nodes1D(ord, uvw, display)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    ! input: ord=polynomial order of interpolant
+    ! output: uvw(:,:) node coordinates in unity edge
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer, intent(in)           :: ord
+    real(8), intent(out), pointer :: uvw(:)
+    logical, intent(in)           :: display
+    !---
+    integer                       :: i
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Setting uvw
+    allocate(uvw(1:ord+1))
+    uvw(1:ord+1)=[( (-1d0+2d0*real(i-1,kind=8)/real(ord,kind=8)), i=1,ord+1)]
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( display )then
+      write(*,'(/"Points d''interpolation")')
+      print '("uvw(",i2,")=",f22.15)',(i,uvw(i),i=1,ord+1)
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine nodes1D
+  
 end module additionnal_Functions
 
 subroutine  userInterpolation                        ( &
@@ -1295,13 +1386,13 @@ subroutine  userInterpolation                        ( &
   &           localField                              ,& !   mySolu
   &           distantField                             ) ! linkSolu
   !---
-  use iso_c_binding, only: c_loc,c_f_pointer
+  use iso_c_binding, only: c_loc,c_f_pointer, c_ptr
   use cwipi
   use additionnal_Functions, only: setT3MeshIJK, setQ4MeshIJK
-  use baseSimplex1D, only: setQ4BasisEqui_uv
-  use baseSimplex2D, only: setT3BasisEqui_uv,setT3MeshBasis_P1,setT3MeshBasis_P2,setT3MeshBasis_P3
+  !use baseSimplex1D, only: setQ4BasisEqui_uv
+  !use baseSimplex2D, only: setT3BasisEqui_uv,setT3MeshBasis_P1,setT3MeshBasis_P2,setT3MeshBasis_P3
 
-  use  mod_fvmc_ho_basis, only: fvmc_ho_basis
+  use  mod_fvmc_ho_basis
   
   use variablesCommunes
   use spaceMessages
@@ -1333,10 +1424,11 @@ subroutine  userInterpolation                        ( &
   real(8) :: distantField                            (*)
   !>
   integer          :: i,j,k,iRank,iErr
-  integer          :: iNod,nNod,iMod,nMod
+  integer          :: iNod,nNod,iMod,nMod, iMod2
   integer          :: nQ4,nT3
   integer          :: iCell
   real(8), pointer :: uv0(:,:),uQ4(:),vQ4(:),uvT3(:,:), uvQ4(:,:)
+  type (C_PTR)     :: uvQ4_c, uvT3_c, lagrangeMeshQ4_c, lagrangeMeshT3_c 
   integer          :: iVert,jVert,nVert
   integer, pointer :: ij(:,:)
   real(8), pointer :: lagrangeMeshQ4(:,:)
@@ -1410,12 +1502,16 @@ subroutine  userInterpolation                        ( &
   !> Computing lagrangeMeshQ4
   if( .not.nQ4==0 )then
     nMod=(order+1)*(order+1)
-    allocate(ij(1:2,1:nMod))
-    call setQ4MeshIJK(meshOrder=order,ij=ij)
     allocate(lagrangeMeshQ4(1:nMod,1:nQ4))
-    call setQ4BasisEqui_uv(ord=order,ijk=ij,u=uQ4,v=vQ4,ai=lagrangeMeshQ4)
-   !CWP call fvmc_ho_basis(type=fvmc_face_quad, order=order, n_nodes=nMod, n_pts=nQ4, uvw=uvQ4, weights=lagrangeMeshQ4)
-    deallocate(ij)
+    ! allocate(ij(1:2,1:nMod))
+    ! call setQ4MeshIJK(meshOrder=order,ij=ij)
+    ! call setQ4BasisEqui_uv(ord=order,ijk=ij,u=uQ4,v=vQ4,ai=lagrangeMeshQ4)
+    uvQ4_c = c_loc (uvQ4)
+    lagrangeMeshQ4_c = c_loc (lagrangeMeshQ4)
+    call fvmc_ho_basis(type=fvmc_face_quad, order=order, &
+                       n_nodes=nMod, n_pts=nQ4, &
+                       uvw=uvQ4_c, weights=lagrangeMeshQ4_c)
+    ! deallocate(ij)              
     deallocate(uQ4,vQ4,uvQ4)    
   endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -1426,17 +1522,21 @@ subroutine  userInterpolation                        ( &
     nMod=(order+1)*(order+2)/2
     allocate(lagrangeMeshT3(1:nMod,1:nT3))
     
-    select case(order)
-    case(1) ; call setT3MeshBasis_P1(uv=uvT3,ai=lagrangeMeshT3) !> base Triangle Geometrique P1
-    case(2) ; call setT3MeshBasis_P2(uv=uvT3,ai=lagrangeMeshT3) !> base Triangle Geometrique P2
-    case(3) ; call setT3MeshBasis_P3(uv=uvT3,ai=lagrangeMeshT3) !> base Triangle Geometrique P3
-    case default
-      allocate(ij(1:2,1:nMod))
-      call setT3MeshIJK(meshOrder=order,ij=ij)
-      call setT3BasisEqui_uv(ord=order,ijk=ij,uvw=uvT3,ai=lagrangeMeshT3)
-      deallocate(ij)
-    end select
-   !CWP call fvmc_ho_basis(type=fvmc_face_tria, order=order, n_nodes=nMod, n_pts=nT3, uvw=uvT3, weights=lagrangeMeshT3)
+    ! select case(order)
+    ! case(1) ; call setT3MeshBasis_P1(uv=uvT3,ai=lagrangeMeshT3) !> base Triangle Geometrique P1
+    ! case(2) ; call setT3MeshBasis_P2(uv=uvT3,ai=lagrangeMeshT3) !> base Triangle Geometrique P2
+    ! case(3) ; call setT3MeshBasis_P3(uv=uvT3,ai=lagrangeMeshT3) !> base Triangle Geometrique P3
+    ! case default
+    !   allocate(ij(1:2,1:nMod))
+    !   call setT3MeshIJK(meshOrder=order,ij=ij)
+    !   call setT3BasisEqui_uv(ord=order,ijk=ij,uvw=uvT3,ai=lagrangeMeshT3)
+    !   deallocate(ij)
+    ! end select
+    uvT3_c = c_loc (uvT3)
+    lagrangeMeshT3_c = c_loc (lagrangeMeshT3)
+    call fvmc_ho_basis(type=fvmc_face_tria, order=order, &
+                       n_nodes=nMod, n_pts=nT3, &
+                       uvw=uvT3_c, weights=lagrangeMeshT3_c)
     deallocate(uvT3)
   endif
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -1445,6 +1545,15 @@ subroutine  userInterpolation                        ( &
   !> Computing linkValues (distantField)
   
   nQ4=0 ; nT3=0 ! j=0
+
+  allocate(ij(1:2,1:nMod))
+  
+  if    ( nMod==(order+1)*(order+1)   )then
+    call setQ4MeshIJK(meshOrder=order,ij=ij)
+  elseif( nMod==(order+1)*(order+2)/2 )then
+    call setT3MeshIJK(meshOrder=order,ij=ij)
+  endif
+  
   do iVert=1,linkVertSize
     linkValues(1:stride,iVert)=0d0
     
@@ -1452,26 +1561,35 @@ subroutine  userInterpolation                        ( &
     nMod=localConnectivityIndex(iCell+1)-localConnectivityIndex(iCell)
     nod(1:nMod)=localConnectivity(localConnectivityIndex(iCell)+1:localConnectivityIndex(iCell+1))
 
-    !CWP ! nod a renumeroter
-    
     if    ( nMod==(order+1)*(order+1)   )then ; nQ4=nQ4+1
       !> linkValues(1:stride,iVert)=  myValuesTab(1:stride,1:nMod) lagrangeMeshQ4(1:nMod,nQ4)
-
-
-      !CWP faire 2 boucles imbriquees do j, do i
-
-      
       do iMod=1,nMod
-        jVert=nod(iMod)
-        linkValues(1:stride,iVert)=linkValues(1:stride,iVert)+lagrangeMeshQ4(iMod,nQ4)*myValues(1:stride,jVert)        
-      enddo
+        jVert = nod(iMod)
+        i = ij(1,iMod)
+        j = ij(2,iMod)
+        iMod2 = j * (order+1) + i + 1 
+        linkValues(1:stride,iVert)=linkValues(1:stride,iVert)+lagrangeMeshQ4(iMod2,nQ4)*myValues(1:stride,jVert)
+      end do
+      ! do iMod=1,nMod
+      !   jVert=nod(iMod)
+      !   linkValues(1:stride,iVert)=linkValues(1:stride,iVert)+lagrangeMeshQ4(iMod,nQ4)*myValues(1:stride,jVert)   
+      ! enddo
     elseif( nMod==(order+1)*(order+2)/2 )then ; nT3=nT3+1
       do iMod=1,nMod
-        jVert=nod(iMod)
-        linkValues(1:stride,iVert)=linkValues(1:stride,iVert)+lagrangeMeshT3(iMod,nT3)*myValues(1:stride,jVert)
-      enddo
+        jVert = nod(iMod)
+        i = ij(1,iMod)
+        j = ij(2,iMod)
+        iMod2 = nMod - (order+1-j)*(order+2-j)/2   + i + 1
+        linkValues(1:stride,iVert)=linkValues(1:stride,iVert)+lagrangeMeshT3(iMod2,nT3)*myValues(1:stride,jVert)
+      end do
+      ! do iMod=1,nMod
+      !   jVert=nod(iMod)
+      !   linkValues(1:stride,iVert)=linkValues(1:stride,iVert)+lagrangeMeshT3(iMod,nT3)*myValues(1:stride,jVert)
+      ! enddo
     endif
   enddo
+  deallocate(ij)
+
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1614,17 +1732,18 @@ end subroutine userInterpolation
 program fortran_surf_TriaPi_PiPj
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use iso_fortran_env
-  use iso_c_binding, only: c_loc,c_f_pointer
+  use iso_c_binding, only: c_loc,c_f_pointer,c_ptr
   
   use mpi
   use cwipi
   
   use variablesCommunes
-  use additionnal_Functions, only: mshToMesh
+  use additionnal_Functions, only: mshToMesh ,setQ4MeshIJK,setT3MeshIJK, nodes1D, nodes2D
   use spaceCellTypes
   use spaceMessages
-  use baseSimplex1D, only: nodes1D,setQ4BasisEqui_u ,setQ4MeshIJK
-  use baseSimplex2D, only: nodes2D,setT3BasisEqui_uv,setT3MeshIJK, setT3MeshBasis_P1,setT3MeshBasis_P2,setT3MeshBasis_P3
+  use mod_fvmc_ho_basis
+  use baseSimplex1D, only: setQ4BasisEqui_u
+  use baseSimplex2D, only: setT3BasisEqui_uv, setT3MeshBasis_P1,setT3MeshBasis_P2,setT3MeshBasis_P3
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
@@ -1715,9 +1834,9 @@ program fortran_surf_TriaPi_PiPj
   
   integer            :: meshUnit
   
-  integer            :: i,j,k,l,iu,iv
-  integer            :: iMod,nMod
-  integer            :: iNod,nNod
+  integer            :: i,j,k,l,iu,iv, i1, j1
+  integer            :: iMod,nMod, iMod2
+  integer            :: iNod,nNod, nNod2
   integer            :: iCell,nCell
   integer            :: nQ4,nT3
   
@@ -1739,6 +1858,9 @@ program fortran_surf_TriaPi_PiPj
   
   real(8), pointer :: u (  :)  !> pour les quad (segments tensorisés)
   real(8), pointer :: uv(:,:)  !> pour les triangles
+
+  type (C_PTR)     :: uv_c, lagrangeMeshQ4_c, lagrangeMeshT3_c 
+
   integer          :: numberOfUnlocatedPoints,numberOfUnlocatedPointsGlob
   
   integer          :: iRank,iErr
@@ -2370,12 +2492,33 @@ program fortran_surf_TriaPi_PiPj
     if( .not.nQ4==0 )then      
       nMod=(meshOrder+1)*(meshOrder+1)                  !> Quad meshOrder (entree)
       call nodes1D(ord=compOrder,uvw=u,display=.false.) !> ordre du calcul  
-      nNod=size(u) ; nNod=nNod*nNod                     !> tensorise
+      nNod=size(u) ;
+
+      !> tensorise
+      allocate(uv(1:2,1:nNod*nNod))
+      nNod2 = 0
+      do j = 1, nNod
+        do i = 1, nNod
+          nNod2 = nNod2 + 1
+          uv(1,nNod2) = (u(i)+1.d0) / 2.d0
+          uv(2,nNod2) = (u(j)+1.d0) / 2.d0
+        enddo
+      enddo
+      nNod = nNod2
+      
       allocate(lagrangeMeshQ4(1:nMod,1:nNod))
-      allocate(ij(1:2,1:nMod))
-      call setQ4MeshIJK(meshOrder=meshOrder,ij=ij)
-      call setQ4BasisEqui_u(ord=meshOrder,ijk=ij,u=u,ai=lagrangeMeshQ4)
-      deallocate(ij,u)      
+      ! allocate(ij(1:2,1:nMod))
+      ! call setQ4MeshIJK(meshOrder=meshOrder,ij=ij)
+      ! call setQ4BasisEqui_u(ord=meshOrder,ijk=ij,u=u,ai=lagrangeMeshQ4)
+      ! deallocate(ij,u)
+
+      uv_c = c_loc (uv)
+      lagrangeMeshQ4_c = c_loc (lagrangeMeshQ4)
+      call fvmc_ho_basis(type=fvmc_face_quad, order=meshOrder, &
+                         n_nodes=nMod, n_pts=nNod, &
+                         uvw=uv_c, weights=lagrangeMeshQ4_c)
+      deallocate(u, uv)
+      
     endif
     
     !> calcul lagrangeMeshT3
@@ -2384,32 +2527,44 @@ program fortran_surf_TriaPi_PiPj
       call nodes2D(ord=compOrder,uvw=uv,display=.false.) !> ordre du calcul  
       nNod=size(uv,2)
       allocate(lagrangeMeshT3(1:nMod,1:nNod))
-      select case(meshOrder)
-      case(01) ; call setT3MeshBasis_P1(uv=uv,ai=lagrangeMeshT3)
-      case(02) ; call setT3MeshBasis_P2(uv=uv,ai=lagrangeMeshT3)
-      case(03) ; call setT3MeshBasis_P3(uv=uv,ai=lagrangeMeshT3)
+
+      ! select case(meshOrder)
+      ! case(01) ; call setT3MeshBasis_P1(uv=uv,ai=lagrangeMeshT3)
+      ! case(02) ; call setT3MeshBasis_P2(uv=uv,ai=lagrangeMeshT3)
+      ! case(03) ; call setT3MeshBasis_P3(uv=uv,ai=lagrangeMeshT3)
         
-        block
-        real(8), pointer ::test(:,:)
-        allocate(test(1:nMod,1:nNod))
-        allocate(ij(1:2,1:nMod))
-        call setT3MeshIJK(meshOrder=meshOrder,ij=ij)
-        call setT3BasisEqui_uv(ord=meshOrder,ijk=ij,uvw=uv,ai=test)
-        deallocate(ij)
-        do iMod=1,nMod ; do iNod=1,nNod
-          if( abs(test(iMod,iNod)-lagrangeMeshT3(iMod,iNod))>1d-14 )then
-            print '("iMod=",i3," iNod=",i3," Delta=",e22.15,t130,"@rkw",i3)',iMod,iNod,test(iMod,iNod)-lagrangeMeshT3(iMod,iNod),rankWorld
-          endif
-        enddo ; enddo
-        deallocate(test)
-        end block
+      !   block
+      !   real(8), pointer ::test(:,:)
+      !   allocate(test(1:nMod,1:nNod))
+      !   allocate(ij(1:2,1:nMod))
+      !   call setT3MeshIJK(meshOrder=meshOrder,ij=ij)
+      !   call setT3BasisEqui_uv(ord=meshOrder,ijk=ij,uvw=uv,ai=test)
+      !   deallocate(ij)
+      !   do iMod=1,nMod ; do iNod=1,nNod
+      !     if( abs(test(iMod,iNod)-lagrangeMeshT3(iMod,iNod))>1d-14 )then
+      !       print '("iMod=",i3," iNod=",i3," Delta=",e22.15,t130,"@rkw",i3)',iMod,iNod,test(iMod,iNod)-lagrangeMeshT3(iMod,iNod),rankWorld
+      !     endif
+      !   enddo ; enddo
+      !   deallocate(test)
+      !   end block
         
-      case default
-        allocate(ij(1:2,1:nMod))
-        call setT3MeshIJK(meshOrder=meshOrder,ij=ij)
-        call setT3BasisEqui_uv(ord=meshOrder,ijk=ij,uvw=uv,ai=lagrangeMeshT3)
-        deallocate(ij)
-      end select
+      ! case default
+      !   allocate(ij(1:2,1:nMod))
+      !   call setT3MeshIJK(meshOrder=meshOrder,ij=ij)
+      !   call setT3BasisEqui_uv(ord=meshOrder,ijk=ij,uvw=uv,ai=lagrangeMeshT3)
+      !   deallocate(ij)
+      ! end select
+
+      uv_c = c_loc (uv)
+      lagrangeMeshT3_c = c_loc (lagrangeMeshT3)
+      call fvmc_ho_basis(type=fvmc_face_tria, order=meshOrder, &
+                         n_nodes=nMod, n_pts=nNod, &
+                         uvw=uv_c, weights=lagrangeMeshT3_c)
+
+      do iNod=1,nNod
+        print '("lagrangeMeshT3=",*(e12.5,1x))',lagrangeMeshT3(:,iNod)
+      enddo
+      
       deallocate(uv)
     endif
     
@@ -2434,13 +2589,18 @@ program fortran_surf_TriaPi_PiPj
     if( .not.nQ4==0 )then
       nMod=(meshOrder+1)*(meshOrder+1)                   !> Quad meshOrder (entree)
       nNod=(compOrder+1)*(compOrder+1)                   !> Quad compOrder (sortie)
+      allocate(ij(1:2,1:nMod))
+      call setQ4MeshIJK(meshOrder=meshOrder,ij=ij)
       do i=1,nQ4
         iCell=iCell0+i
         nod=>cells(cellsIdx(iCell)+1:cellsIdx(iCell+1))  !> nMod=size(node)
         
         !> xyzTab(1:3,1:nMod)
         do iMod=1,nMod
-          xyzTab(1:3,iMod)=vertx(1:3,nod(iMod))
+          i1 = ij(1,iMod)
+          j1 = ij(2,iMod)
+          iMod2 = j1 * (meshOrder+1) + i1 + 1 
+          xyzTab(1:3,iMod2)=vertx(1:3,nod(iMod))
         enddo
         
         !> linkVert(1:3,iVert+1:iVert+nNod)= xyzTab(1:3,1:nMod) x lagrangeMeshQ4(1:nMod,1:nNod)
@@ -2458,6 +2618,7 @@ program fortran_surf_TriaPi_PiPj
         
       enddo
       !>
+      deallocate(ij)
       deallocate(lagrangeMeshQ4)
       iCell0=iCell0+nQ4
     endif
@@ -2466,14 +2627,30 @@ program fortran_surf_TriaPi_PiPj
     if( .not.nT3==0 )then
       nMod=(meshOrder+1)*(meshOrder+2)/2                 !> Triangle meshOrder (entree)
       nNod=(compOrder+1)*(compOrder+2)/2                 !> Triangle compOrder (sortie)
+      allocate(ij(1:2,1:nMod))
+      call setT3MeshIJK(meshOrder=meshOrder,ij=ij)
       do i=1,nT3
         iCell=iCell0+i
         nod=>cells(cellsIdx(iCell)+1:cellsIdx(iCell+1))        
         
         !> xyzTab(1:3,1:nMod)
         do iMod=1,nMod
-          xyzTab(1:3,iMod)=vertx(1:3,nod(iMod))
+          i1 = ij(1,iMod)
+          j1 = ij(2,iMod)
+          iMod2 = nMod - (meshOrder+1-j1)*(meshOrder+2-j1)/2  + i1 + 1
+          xyzTab(1:3,iMod2)=vertx(1:3,nod(iMod))
         enddo
+        ! if (rankWorld == 1 .and. i==1) then
+        !   do iMod=1,9
+        !     print '("xytab(",i2,")=",3(e22.15,1x),t130,"@rkw",i3)',iMod,xyzTab(1:3,iMod),rankWorld
+        !   enddo
+        !   do iMod=1,3
+        !     print '("lagrange(",i2,") =",3(e22.15,1x),t130,"@rkw",i3)',iMod, lagrangeMeshT3(1:3,iMod),rankWorld
+        !   enddo
+        ! endif
+        ! do iMod=1,nMod
+        !   xyzTab(1:3,iMod)=vertx(1:3,nod(iMod))
+        ! enddo
         
         !> linkVert(1:3,iVert+1:iVert+nNod)= xyzTab(1:3,1:nMod) x lagrangeMeshT3(1:nMod,1:nNod)
 #if 0==1
@@ -2501,8 +2678,10 @@ program fortran_surf_TriaPi_PiPj
         
       enddo
       !>
+      deallocate(ij)
       deallocate(lagrangeMeshT3)
       iCell0=iCell0+nT3
+      !print *,linkVert
     endif
     
     write(buffer,'("")') ; call msg2(trim(buffer))
@@ -2521,6 +2700,7 @@ program fortran_surf_TriaPi_PiPj
     write(buffer,'(6x,"linkVert(1:3)=    ",3(e22.15,1x),t130,"@rkw",i3)')linkVert(1:3,1),rankWorld     ; call msg1(trim(buffer))
     
 #endif    
+
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
