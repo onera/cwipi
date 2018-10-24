@@ -26,7 +26,11 @@ function(test_c_create name n_proc)
 endfunction()
 
 function(test_fortran_create name n_proc)
-   add_executable(${name} "${name}.f90")
+   if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${name}.f90")
+     add_executable(${name} "${name}.f90")
+   else ()
+     add_executable(${name} "${name}.F90")
+   endif()
    if ((NOT MPI_Fortran_COMPILER) AND MPI_C_COMPILE_FLAGS)
      set_target_properties(${name}
                            PROPERTIES

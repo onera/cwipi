@@ -140,17 +140,15 @@ if (CWP_ENABLE_Fortran)
 
   if (CWP_ENABLE_SPACE_NODAL_BASIS)
 #    list(APPEND LINK_LIBRARIES spaceBasis)
-    test_fortran_create  (fortran_surf_TriaP1_PiPj   ${MPIEXEC_MAX_NUMPROCS})
+#    test_fortran_create  (fortran_surf_TriaP1_PiPj   ${MPIEXEC_MAX_NUMPROCS})
 #    target_link_libraries(fortran_surf_TriaP1_PiPj   spaceBasis)
-    add_dependencies(fortran_surf_TriaP1_PiPj   spaceBasis)
+#    add_dependencies(fortran_surf_TriaP1_PiPj   spaceBasis)
 
-    test_fortran_create  (fortran_surf_TriaP2_PiPj   ${MPIEXEC_MAX_NUMPROCS})
+#    test_fortran_create  (fortran_surf_TriaP2_PiPj   ${MPIEXEC_MAX_NUMPROCS})
 #    target_link_libraries(fortran_surf_TriaP2_PiPj   spaceBasis)
-    add_dependencies(fortran_surf_TriaP2_PiPj   spaceBasis)
+#    add_dependencies(fortran_surf_TriaP2_PiPj   spaceBasis)
 
     test_fortran_create  (fortran_surf_TriaPi_PiPj   ${MPIEXEC_MAX_NUMPROCS})
-    add_dependencies(fortran_surf_TriaPi_PiPj   spaceBasis)
-#    target_link_libraries(fortran_surf_TriaPi_PiPj   spaceBasis)
   endif()
 endif()
 

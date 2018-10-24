@@ -169,92 +169,32 @@ _basis_tria_pn
 
   if (order == 1) {
 
-    if (n_pts != 1) {
-
-      double *u  = malloc (sizeof(double) *n_pts);
-      double *v  = malloc (sizeof(double) *n_pts);
-      
-      for (int i = 0; i < n_pts; i++) {
-        u[i]  = uv[2*i];
-        v[i]  = uv[2*i+1];
-      }
-      
-      for (int i = 0; i < n_pts; i++) {
-        weights[3*i]   = 1. - u[i] - v[i];
-        weights[3*i+1] = u[i];
-        weights[3*i+2] = v[i];
-      }
-      
-      free (u);
-      free (v);
-    }
-
-    else {
-
-      double u = uv[0];
-      double v = uv[1];
-      
-      weights[0] = 1. - u - v;
-      weights[1] = u;
-      weights[2] = v;
-
+    for (int i = 0; i < n_pts; i++) {
+      double u =  uv[2*i];
+      double v =  uv[2*i+1];
+      weights[3*i]   = 1. - u - v;
+      weights[3*i+1] = u;
+      weights[3*i+2] = v;
     }
   }
   
   else if (order == 2) {
 
-    if (n_pts != 1) {
-      double *u  = malloc (sizeof(double) *n_pts);
-      double *v  = malloc (sizeof(double) *n_pts);
-      double *w  = malloc (sizeof(double) *n_pts);
-      double *u2 = malloc (sizeof(double) *n_pts);
-      double *v2 = malloc (sizeof(double) *n_pts);
-      double *w2 = malloc (sizeof(double) *n_pts);
-    
-
-      for (int i = 0; i < n_pts; i++) {
-        u[i]  = uv[2*i];
-        v[i]  = uv[2*i+1];
-        w[i]  = 1. - u[i] - v[i];
-        u2[i] = 2. * u[i];
-        v2[i] = 2. * v[i];
-        w2[i] = 2. * w[i];
-      }
-      
-      for (int i = 0; i < n_pts; i++) {
+    for (int i = 0; i < n_pts; i++) {
         
-        weights[6*i+0] = w[i] * (-1. + w2[i]);  /* (i,j,k)=(0,0,2) */
-        weights[6*i+1] = u2[i] * w2[i];         /* (i,j,k)=(1,0,1) */
-        weights[6*i+2] = u[i] * (-1. + u2[i]);  /* (i,j,k)=(2,0,0) */
-        weights[6*i+3] = v2[i] * w2[i];         /* (i,j,k)=(0,1,1) */
-        weights[6*i+4] = u2[i] * v2[i];         /* (i,j,k)=(1,1,0) */
-        weights[6*i+5] = v[i] * (-1. + v2[i]);  /* (i,j,k)=(0,2,0) */
-      }
-    
-      free (u);
-      free (v);
-      free (w);
-      free (u2);
-      free (v2);
-      free (w2);
-    }
-    else {
-
-      double u = uv[0];
-      double v = uv[1];
-      
-      double w  = 1. - u - v;
-      double u2 = 2. * u;
-      double v2 = 2. * v;
-      double w2 = 2. * w;
-      
-      weights[0] = w * (-1. + w2);  /* (i,j,k)=(0,0,2) */
-      weights[1] = u2 * w2;         /* (i,j,k)=(1,0,1) */
-      weights[2] = u * (-1. + u2);  /* (i,j,k)=(2,0,0) */
-      weights[3] = v2 * w2;         /* (i,j,k)=(0,1,1) */
-      weights[4] = u2 * v2;         /* (i,j,k)=(1,1,0) */
-      weights[5] = v * (-1. + v2);  /* (i,j,k)=(0,2,0) */
-
+     double u  = uv[2*i];
+     double v  = uv[2*i+1];
+     double w  = 1. - u - v;
+     double u2 = 2. * u;
+     double v2 = 2. * v;
+     double w2 = 2. * w;
+     
+     weights[6*i+0] = w * (-1. + w2);  /* (i,j,k)=(0,0,2) */
+     weights[6*i+1] = u2 * w2;         /* (i,j,k)=(1,0,1) */
+     weights[6*i+2] = u * (-1. + u2);  /* (i,j,k)=(2,0,0) */
+     weights[6*i+3] = v2 * w2;         /* (i,j,k)=(0,1,1) */
+     weights[6*i+4] = u2 * v2;         /* (i,j,k)=(1,1,0) */
+     weights[6*i+5] = v * (-1. + v2);  /* (i,j,k)=(0,2,0) */
     }
   }
 
@@ -441,105 +381,53 @@ _basis_quad_qn
   
   if (order == 1) {
 
-    double *u = malloc (sizeof(double) *n_pts);
-    double *v = malloc (sizeof(double) *n_pts);
-    double *u1 = malloc (sizeof(double) *n_pts);
-    double *v1 = malloc (sizeof(double) *n_pts);
-
     for (int i = 0; i < n_pts; i++) {
-      u[i] = uv[2*i];
-      v[i] = uv[2*i+1];
-      u1[i] = (1 - u[i]);
-      v1[i] = (1 - v[i]);
-    }
-    
-    for (int i = 0; i < n_pts; i++) {
-      weights[4*i+0] = u1[i] * v1[i];
-      weights[4*i+1] = u[i] * v1[i];
-      weights[4*i+2] = u1[i] * v[i];
-      weights[4*i+3] = u[i] * v[i];
-    }
+      double u = uv[2*i];
+      double v = uv[2*i+1];
+      double u1 = (1 - u);
+      double v1 = (1 - v);
 
-    free(u1);
-    free(v1);
-    free(u);
-    free(v);
+      weights[4*i+0] = u1 * v1;
+      weights[4*i+1] = u * v1;
+      weights[4*i+2] = u1 * v;
+      weights[4*i+3] = u * v;
+    }
 
   }
 
   else if (order == 2) {
     
-    double *u = malloc (sizeof(double) *n_pts);
-    double *v = malloc (sizeof(double) *n_pts);
-
-    double *uM = malloc (sizeof(double) *n_pts);
-    double *uP = malloc (sizeof(double) *n_pts);
-    double *u0 = malloc (sizeof(double) *n_pts);
-
-    double *au1 = malloc (sizeof(double) *n_pts);
-    double *au2 = malloc (sizeof(double) *n_pts);
-    double *au3 = malloc (sizeof(double) *n_pts);
-    
-    double *vM = malloc (sizeof(double) *n_pts);
-    double *vP = malloc (sizeof(double) *n_pts);
-    double *v0 = malloc (sizeof(double) *n_pts);
-
-    double *av1 = malloc (sizeof(double) *n_pts);
-    double *av2 = malloc (sizeof(double) *n_pts);
-    double *av3 = malloc (sizeof(double) *n_pts);
-    
     for (int i = 0; i < n_pts; i++) {
-      u[i] = uv[2*i];
-      v[i] = uv[2*i+1];
+      double u = uv[2*i];
+      double v = uv[2*i+1];
 
-      uM[i] = 2*(1-u[i]);
-      uP[i] = 2*u[i];
-      u0[i] = u[i]-0.5;
+      double uM = 2*(1-u);
+      double uP = 2*u;
+      double u0 = u-0.5;
       
-      au1[i] = -uM[i] * u0[i]; 
-      au2[i] =  uM[i] * uP[i];
-      au3[i] =  u0[i] * uP[i];
+      double au1 = -uM * u0; 
+      double au2 =  uM * uP;
+      double au3 =  u0 * uP;
     
-      vM[i] = 2*(1-v[i]);
-      vP[i] = 2*v[i];
-      v0[i] = v[i]-0.5;
+      double vM = 2*(1-v);
+      double vP = 2*v;
+      double v0 = v-0.5;
 
-      av1[i] = -vM[i] * v0[i]; 
-      av2[i] =  vM[i] * vP[i];
-      av3[i] =  v0[i] * vP[i];
+      double av1 = -vM * v0; 
+      double av2 =  vM * vP;
+      double av3 =  v0 * vP;
+    
+      weights[9*i+0]=au1*av1;
+      weights[9*i+1]=au2*av1;
+      weights[9*i+2]=au3*av1;
+      weights[9*i+3]=au1*av2;
+      weights[9*i+4]=au2*av2;
+      weights[9*i+5]=au3*av2;
+      weights[9*i+6]=au1*av3;
+      weights[9*i+7]=au2*av3;
+      weights[9*i+8]=au3*av3;
     }
     
-    for (int i = 0; i < n_pts; i++) {
-      weights[9*i+0]=au1[i]*av1[i];
-      weights[9*i+1]=au2[i]*av1[i];
-      weights[9*i+2]=au3[i]*av1[i];
-      weights[9*i+3]=au1[i]*av2[i];
-      weights[9*i+4]=au2[i]*av2[i];
-      weights[9*i+5]=au3[i]*av2[i];
-      weights[9*i+6]=au1[i]*av3[i];
-      weights[9*i+7]=au2[i]*av3[i];
-      weights[9*i+8]=au3[i]*av3[i];
-    }
-    
-    free(u);
-    free(v);
-
-    free(uM);
-    free(uP);
-    free(u0);
-
-    free(au1);
-    free(au2);
-    free(au3);
-    
-    free(vM);
-    free(vP);
-    free(v0);
-
-    free(av1);
-    free(av2);
-    free(av3);
-
   }
 
   else {
@@ -553,8 +441,6 @@ _basis_quad_qn
     for (int i = 0; i < n_pts; i++) {
       u[i] = 2 * uv[2*i]   - 1;
       v[i] = 2 * uv[2*i+1] - 1;
-      /* u[i] = uv[2*i]; */
-      /* v[i] = uv[2*i+1]; */
     }
     
     double *lagrangeL2_u = malloc (sizeof(double) * nMod * n_pts); 

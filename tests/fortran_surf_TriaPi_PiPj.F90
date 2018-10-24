@@ -17,6 +17,7 @@
 ! License along with this library. If not, see <http://www.gnu.org/licenses/>.
 !-----------------------------------------------------------------------------
  
+#include "cwipi_configf.h"
 
 !  mpirun -n 1 ./fortran_surf_TriaPi_PiPj : -n 1 ./fortran_surf_TriaPi_PiPj
 !  mpirun -n 1 tests/fortran_surf_TriaPi_PiPj : -n 1 tests/fortran_surf_TriaPi_PiPj
@@ -2604,15 +2605,16 @@ program fortran_surf_TriaPi_PiPj
         enddo
         
         !> linkVert(1:3,iVert+1:iVert+nNod)= xyzTab(1:3,1:nMod) x lagrangeMeshQ4(1:nMod,1:nNod)
-#if 0==1
-        linkVert(1:3,iVert+1:iVert+nNod)=matmul( xyzTab(1:3,1:nMod),lagrangeMeshQ4(1:nMod,1:nNod) )
-#else
+
+#ifdef CWP_HAVE_BLAS
         call dgemm('n','n', 3, nNod, nMod          ,&
         &          1d0                             ,&
         &          xyzTab(1,1)        ,3           ,& !> A = xyzTab        (1:3   ,1:nMod)
         &          lagrangeMeshQ4(1,1),nMod        ,& !> B = lagrangeMeshQ4(1:nMod,1:nNod)
         &          0d0                             ,&
         &          linkVert(1,iVert+1),3            ) !> C(1:3,1:nNod) = A(1:3,1:nMod) x B(1:nMod,1:nNod)
+#else
+        linkVert(1:3,iVert+1:iVert+nNod)=matmul( xyzTab(1:3,1:nMod),lagrangeMeshQ4(1:nMod,1:nNod) )
 #endif
         iVert=iVert+nNod
         
@@ -2653,15 +2655,15 @@ program fortran_surf_TriaPi_PiPj
         ! enddo
         
         !> linkVert(1:3,iVert+1:iVert+nNod)= xyzTab(1:3,1:nMod) x lagrangeMeshT3(1:nMod,1:nNod)
-#if 0==1
-        linkVert(1:3,iVert+1:iVert+nNod)=matmul( xyzTab(1:3,1:nMod),lagrangeMeshT3(1:nMod,1:nNod) )
-#else        
+#ifdef CWP_HAVE_BLAS
         call dgemm('n','n', 3, nNod, nMod          ,&
         &          1d0                             ,&
         &          xyzTab(1,1)        ,3           ,& !> A = xyzTab        (1:3   ,1:nMod)
         &          lagrangeMeshT3(1,1),nMod        ,& !> B = lagrangeMeshQ4(1:nMod,1:nNod)
         &          0d0                             ,&
         &          linkVert(1,iVert+1),3            ) !> C(1:3,1:nNod   ) = A(1:3,1:nMod) x B(1:nMod,1:nNod)
+#else        
+        linkVert(1:3,iVert+1:iVert+nNod)=matmul( xyzTab(1:3,1:nMod),lagrangeMeshT3(1:nMod,1:nNod) )
 #endif          
         iVert=iVert+nNod
         
