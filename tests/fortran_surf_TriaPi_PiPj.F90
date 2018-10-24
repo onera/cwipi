@@ -1743,8 +1743,8 @@ program fortran_surf_TriaPi_PiPj
   use spaceCellTypes
   use spaceMessages
   use mod_fvmc_ho_basis
-  use baseSimplex1D, only: setQ4BasisEqui_u
-  use baseSimplex2D, only: setT3BasisEqui_uv, setT3MeshBasis_P1,setT3MeshBasis_P2,setT3MeshBasis_P3
+  !use baseSimplex1D, only: setQ4BasisEqui_u
+  !use baseSimplex2D, only: setT3BasisEqui_uv, setT3MeshBasis_P1,setT3MeshBasis_P2,setT3MeshBasis_P3
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
@@ -1807,7 +1807,7 @@ program fortran_surf_TriaPi_PiPj
   end interface
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  include 'libmeshb7.ins'
+  !include 'libmeshb7.ins'
   
   character(16)      :: couplingName
   character(5)       :: codeName,codeCoupledName  
@@ -2562,10 +2562,6 @@ program fortran_surf_TriaPi_PiPj
                          n_nodes=nMod, n_pts=nNod, &
                          uvw=uv_c, weights=lagrangeMeshT3_c)
 
-      do iNod=1,nNod
-        print '("lagrangeMeshT3=",*(e12.5,1x))',lagrangeMeshT3(:,iNod)
-      enddo
-      
       deallocate(uv)
     endif
     

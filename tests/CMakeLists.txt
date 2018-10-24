@@ -137,8 +137,8 @@ test_c_create (c_vol_coupling_polyhedra_P1P1_with_external_points ${MPIEXEC_MAX_
 if (CWP_ENABLE_Fortran)
   test_fortran_create (fortran_surf_P1P1            ${MPIEXEC_MAX_NUMPROCS})
   test_fortran_create (fortran_surf_P1P1_savememory ${MPIEXEC_MAX_NUMPROCS})
+  test_fortran_create (fortran_surf_TriaPi_PiPj   ${MPIEXEC_MAX_NUMPROCS})
 
-  if (CWP_ENABLE_SPACE_NODAL_BASIS)
 #    list(APPEND LINK_LIBRARIES spaceBasis)
 #    test_fortran_create  (fortran_surf_TriaP1_PiPj   ${MPIEXEC_MAX_NUMPROCS})
 #    target_link_libraries(fortran_surf_TriaP1_PiPj   spaceBasis)
@@ -148,8 +148,6 @@ if (CWP_ENABLE_Fortran)
 #    target_link_libraries(fortran_surf_TriaP2_PiPj   spaceBasis)
 #    add_dependencies(fortran_surf_TriaP2_PiPj   spaceBasis)
 
-    test_fortran_create  (fortran_surf_TriaPi_PiPj   ${MPIEXEC_MAX_NUMPROCS})
-  endif()
 endif()
 
 
