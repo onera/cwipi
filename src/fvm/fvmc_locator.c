@@ -128,7 +128,7 @@ struct _fvmc_locator_t {
 
   /* Basic information */
   /*-------------------*/
-
+  int  opt_bbox_step;        /* Associated step */
   double    tolerance;         /* Associated tolerance */
 
   _Bool     locate_on_parents; /* Locate relative to parent element numbers
@@ -463,6 +463,7 @@ _update_extents(int               dim,
  *   dim               <-- spatial (coordinates) dimension
  *   parent_vertex_num <-- pointer to parent vertex numbers (or NULL)
  *   vertex_coords     <-- pointer to vertex coordinates
+ *   opt_bbox_step     <-- step to compute high order element extents
  *   tolerance         <-- addition to local extents of each element:
  *                         extent = base_extent * (1 + tolerance)
  *   extents           <-> extents associated with section:
@@ -475,6 +476,7 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
                        int                         dim,
                        const fvmc_lnum_t           *parent_vertex_num,
                        const fvmc_coord_t           vertex_coords[],
+                       int                         opt_bbox_step,
                        double                      tolerance,
                        double                      extents[])
 {
@@ -576,10 +578,11 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
 
       // TODO : if order > 1 add points to compute bounding box
 
-      if (order > 1 && 1 == 1) {
+      if (order > 1 && FVMC_ABS (opt_bbox_step) != 1) {
 
         assert (dim == 3);
-        const int n_step = 40;
+        
+        const int n_step = opt_bbox_step;
         const double step = 1./(n_step - 1);
         const int n_nodes = this_section->stride;
 
@@ -710,6 +713,7 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
 
 static void
 _nodal_extents(const fvmc_nodal_t  *this_nodal,
+               int                  opt_bbox_step,
                double              tolerance,
                double              extents[])
 {
@@ -737,6 +741,7 @@ _nodal_extents(const fvmc_nodal_t  *this_nodal,
                            this_nodal->dim,
                            this_nodal->parent_vertex_num,
                            this_nodal->vertex_coords,
+                           opt_bbox_step,
                            tolerance,
                            section_extents);
 
@@ -2285,7 +2290,6 @@ _get_times(const fvmc_locator_t  *this_locator,
 /*============================================================================
  * Public function definitions
  *============================================================================*/
-
 /*----------------------------------------------------------------------------
  * Creation of a locator structure.
  *
@@ -2295,6 +2299,9 @@ _get_times(const fvmc_locator_t  *this_locator,
  * will work only locally.
  *
  * parameters:
+ *   opt_bbox_step <-- Discretization for the computation of the 
+ *                     ho element extents
+ *                  extent = base_extent * (1 + tolerance)
  *   tolerance  <-- addition to local extents of each element:
  *                  extent = base_extent * (1 + tolerance)
  *   comm       <-- associated MPI communicator
@@ -2306,11 +2313,13 @@ _get_times(const fvmc_locator_t  *this_locator,
  *----------------------------------------------------------------------------*/
 
 #if defined(FVMC_HAVE_MPI)
+
 fvmc_locator_t *
-fvmc_locator_create(double    tolerance,
-                   MPI_Comm  comm,
-                   int       n_ranks,
-                   int       start_rank)
+fvmc_locator_create(int       opt_bbox_step,
+                    double    tolerance,
+                    MPI_Comm  comm,
+                    int       n_ranks,
+                    int       start_rank)
 #else
 fvmc_locator_t *
 fvmc_locator_create(double  tolerance)
@@ -2326,6 +2335,7 @@ fvmc_locator_create(double  tolerance)
 
 #if defined(FVMC_HAVE_MPI)
   this_locator->comm = comm;
+  this_locator->opt_bbox_step = opt_bbox_step;
   this_locator->n_ranks = n_ranks;
   this_locator->start_rank = start_rank;
   this_locator->nblockings_send = NULL;
@@ -2717,6 +2727,7 @@ fvmc_locator_set_nodal(fvmc_locator_t       *this_locator,
   tolerance = FVMC_MAX(this_locator->tolerance, 0.1);
 
   _nodal_extents(this_nodal,
+                 this_locator->opt_bbox_step,
                  tolerance,
                  extents);
 

@@ -92,6 +92,9 @@ typedef struct _fvmc_locator_t fvmc_locator_t;
  * will work only locally.
  *
  * parameters:
+ *   opt_bbox_step <-- Discretization for the computation of the 
+ *                     ho element extents
+ *                  extent = base_extent * (1 + tolerance)
  *   tolerance  <-- addition to local extents of each element:
  *                  extent = base_extent * (1 + tolerance)
  *   comm       <-- associated MPI communicator
@@ -105,10 +108,11 @@ typedef struct _fvmc_locator_t fvmc_locator_t;
 #if defined(FVMC_HAVE_MPI)
 
 fvmc_locator_t *
-fvmc_locator_create(double    tolerance,
-                   MPI_Comm  comm,
-                   int       n_ranks,
-                   int       start_rank);
+fvmc_locator_create(int       opt_bbox_step,
+                    double    tolerance,
+                    MPI_Comm  comm,
+                    int       n_ranks,
+                    int       start_rank);
 
 #else
 

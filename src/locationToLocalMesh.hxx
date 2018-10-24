@@ -52,6 +52,7 @@ public:
   ///
   ///   @param supportMesh                                 Mesh where distant points are localized
   ///   @param solverType                                  Solver type of current application
+  ///   @param optBboxStep                                 Discritization step for high order element bounding boxes
   ///   @param tolerance                                   Geometric tolerance for localization
   ///   @param couplingComm                                Coupling MPI communicator
   ///   @param coupledApplicationNRankCouplingComm         Rank number of coupled application
@@ -64,6 +65,7 @@ public:
 
   LocationToLocalMesh(
                       const cwipi_solver_type_t  &solverType,
+                      const int optBboxStep,
                       const double &tolerance,
                       const MPI_Comm& couplingComm,
                       const int &coupledApplicationNRankCouplingComm,
@@ -193,6 +195,16 @@ public:
 
   inline void setSupportMesh(oldMesh *supportMesh, bool lb_tolocate);
 
+
+  ///
+  /// \brief Set the step for the computaion of the ho optimized element bounding box 
+  ///
+  ///   @param [in]  step
+  ///
+
+  inline void optBboxStep(const int step);
+
+  
 private :
 
 
@@ -306,6 +318,8 @@ private :
 
   oldMesh                       *_supportMesh;                                 ///< Mesh where distant points are localized
   const cwipi_solver_type_t  &_solverType;                                  ///< Solver type of current application
+  int                      _optBboxStep;                                 ///< Discitization step for the computation
+                                                                            //   of the optimized high order element bounding box 
   const double               &_tolerance;                                   ///< Geometric tolerance for localization
   const MPI_Comm             &_couplingComm;                                ///< Coupling MPI communicator
   const int                  &_coupledApplicationNRankCouplingComm;         ///< Rank number of coupled application
@@ -481,6 +495,16 @@ void LocationToLocalMesh::setSupportMesh(oldMesh *supportMesh, bool lb_tolocate 
   _supportMesh = supportMesh;
 }
 
+///
+/// \brief Set the step for the computaion of the ho optimized element bounding box 
+///
+///   @param [in]  step
+///
+
+void LocationToLocalMesh::optBboxStep(const int step)
+{
+  _optBboxStep = step;
+}
 
 } // Namespace cwipi
 

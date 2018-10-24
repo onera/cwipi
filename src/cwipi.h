@@ -1056,6 +1056,27 @@ void cwipi_shared_fvmc_nodal(const char *coupling_name,
 
 /*----------------------------------------------------------------------------
  *
+ * Define specific options for ho elements 
+ *
+ * parameters:
+ *   coupling_id     <-- coupling name
+ *   option          <-- option name, Choice between :
+ *                          - "opt_bbox_step" 
+ *                              * Description : step of discretization used 
+ *                                              to compute the optimized element 
+ *                                              bounding boxes
+ *                                              -1 to deactivate this computation
+ *                              * Default     : 10 
+ *   value           <-- option value
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_ho_options_set (const char *coupling_id,
+                           const char *option,
+                           const char *value);
+
+/*----------------------------------------------------------------------------
+ *
  * Define ho element ordering from the location in the (u, v, w) grid
  *
  * parameters:

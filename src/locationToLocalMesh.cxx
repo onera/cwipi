@@ -133,6 +133,7 @@ void LocationToLocalMesh::_computeNormal (int numPts, double *pts, double n[3])
 
 LocationToLocalMesh::LocationToLocalMesh(
                                          const cwipi_solver_type_t  &solverType,
+                                         const int  optBboxStep,
                                          const double &tolerance,
                                          const MPI_Comm& couplingComm,
                                          const int &coupledApplicationNRankCouplingComm,
@@ -142,7 +143,7 @@ LocationToLocalMesh::LocationToLocalMesh(
                                          const ApplicationProperties& localApplicationProperties,
                                          LocationToDistantMesh &locationToDistantMesh)
 
-: _supportMesh(NULL), _solverType(solverType),  _tolerance(tolerance),
+: _supportMesh(NULL), _solverType(solverType), _optBboxStep(optBboxStep), _tolerance(tolerance),
   _couplingComm(couplingComm),
   _coupledApplicationNRankCouplingComm(coupledApplicationNRankCouplingComm),
   _coupledApplicationBeginningRankCouplingComm(coupledApplicationBeginningRankCouplingComm),
@@ -160,6 +161,7 @@ LocationToLocalMesh::LocationToLocalMesh(
   _maxElementContainingNVertex = -1;
   _nVertex = NULL; 
   _supportMesh = NULL;
+
 }
 
 LocationToLocalMesh::~LocationToLocalMesh()
@@ -329,10 +331,11 @@ void LocationToLocalMesh::unpackLocation(unsigned char *buff)
     // read the locator 
     cur_pos += fvmc_locator_unpack_elem((void *)&buff[cur_pos],(void *)&s, sizeof(int));      
     if (s == 1) {
-      _fvmLocator = fvmc_locator_create(_tolerance,
-					_couplingComm,
-					_coupledApplicationNRankCouplingComm,
-					_coupledApplicationBeginningRankCouplingComm);
+      _fvmLocator = fvmc_locator_create(_optBboxStep,
+                                        _tolerance,
+                                        _couplingComm,
+                                        _coupledApplicationNRankCouplingComm,
+                                        _coupledApplicationBeginningRankCouplingComm);
       cur_pos += fvmc_locator_unpack(&buff[cur_pos],_fvmLocator);
       
       // mise à jour de l'objet locationToLocalMesh
@@ -422,7 +425,8 @@ void LocationToLocalMesh::locate()
         bftc_error(__FILE__, __LINE__, 0, "undefined support mesh\n");
 
       if (_fvmLocator == NULL)
-        _fvmLocator = fvmc_locator_create(_tolerance,
+        _fvmLocator = fvmc_locator_create(_optBboxStep,
+                                          _tolerance,
                                           _couplingComm,
                                           _coupledApplicationNRankCouplingComm,
                                           _coupledApplicationBeginningRankCouplingComm);

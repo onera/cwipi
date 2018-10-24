@@ -162,6 +162,7 @@ namespace cwipi {
     _isCoupledRank = false;
     _locationsFile_position = 0;
     _data_user = NULL;
+    _optBboxStep = 10;
   
 
     //
@@ -177,6 +178,7 @@ namespace cwipi {
                                                                  _couplingType,
                                                                  _localApplicationProperties);
       _tablelocationToLocalMesh[i] = new LocationToLocalMesh(_solverType,
+                                                             _optBboxStep,
                                                              _tolerance,
                                                              _couplingComm,
                                                              _coupledApplicationNRankCouplingComm,

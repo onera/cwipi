@@ -1122,6 +1122,36 @@ void cwipi_add_polyhedra(const char *coupling_name,
                                   face_connectivity);
 }
 
+/*----------------------------------------------------------------------------
+ *
+ * Define specific options for ho elements 
+ *
+ * parameters:
+ *   coupling_id     <-- coupling name
+ *   option          <-- option name, Choice between :
+ *                          - "opt_bbox_step" 
+ *                              * Description : step of discretization used 
+ *                                              to compute the optimized element 
+ *                                              bounding boxes
+ *                                              -1 to deactivate this computation
+ *                              * Default     : 10 
+ *   value           <-- option value
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_ho_options_set (const char *coupling_id,
+                           const char *option,
+                           const char *value)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_id;
+
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.hoOptionsSet (option, value);
+}
 
 /*----------------------------------------------------------------------------
  *

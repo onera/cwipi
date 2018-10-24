@@ -19,8 +19,12 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <cstring>
+
 #include "locationToLocalMesh.hxx"
 #include "locationToDistantMesh.hxx"
+#include "bftc_error.h"
+
 
 namespace cwipi {
 
@@ -46,6 +50,22 @@ namespace cwipi {
     _interpolationFct = fct;
   }
 
+
+  void  oldCoupling::hoOptionsSet(const char* option, const char* value)
+  {
+    if (!strcmp(option, "opt_bbox_step")) {
+      sscanf(value, "%d", &_optBboxStep);
+      for (int i = 0; i<_tablelocationToLocalMesh.size(); i++) {
+        _tablelocationToLocalMesh[i]->optBboxStep(_optBboxStep);
+      }
+    }
+    else {
+      bftc_error(__FILE__, __LINE__, 0, "'%s' is not a high order option\n",
+                 option);
+    }
+  }
+
+  
   void  oldCoupling::set_interpolation_function_f(void * fct)
   {
     _interpolationFct_f = fct;

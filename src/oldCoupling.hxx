@@ -126,6 +126,8 @@ namespace cwipi {
 
     inline void set_interpolation_function(cwipi_interpolation_fct_t fct);
 
+    inline void hoOptionsSet(const char* option, const char* value);
+
     inline void set_data_user(void *);
 
     inline void* get_data_user(void);
@@ -314,7 +316,8 @@ namespace cwipi {
     std::vector<float> _distance;
 
     void *_data_user;
-    
+
+    int _optBboxStep; 
   };
 
 }
