@@ -68,7 +68,8 @@ extern "C" {
  *----------------------------------------------------------------------------*/
 
 typedef double (*fvmc_ho_location_fct_t)
-(const int order,
+(const int entities_dim,
+ const int order,
  const int n_nodes,
  const double *nodes_coords,
  const double *point_coords,

@@ -65,7 +65,8 @@ extern "C" {
  *----------------------------------------------------------------------------*/
 
 typedef void (*fvmc_ho_basis_fct_t)
-(const int order,
+(const int entities_dim,
+ const int order,
  const int n_nodes,
  const int n_pts,
  const double *uvw,

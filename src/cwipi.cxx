@@ -1161,14 +1161,14 @@ void cwipi_ho_options_set (const char *coupling_id,
  *   coupling_id     <-- coupling name
  *   t_elt           <-- element type
  *   n_nodes         <-- number of nodes
- *   uvw_grid        <-- user ordering to (u, v, w) grid (size = elt_dim * n_nodes)
+ *   ijk_grid        <-- user ordering to (u, v, w) grid (size = elt_dim * n_nodes)
  *
  *----------------------------------------------------------------------------*/
 
 void cwipi_ho_ordering_from_IJK_set (const char *coupling_id,
                                      const cwipi_element_t t_elt,
                                      const int n_nodes,
-                                     const int *uvw_ordering)
+                                     const int *ijk_grid)
 {
   cwipi::CouplingDataBase & couplingDataBase =
     cwipi::CouplingDataBase::getInstance();
@@ -1177,7 +1177,7 @@ void cwipi_ho_ordering_from_IJK_set (const char *coupling_id,
 
   cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
-  coupling.hoOrderingSet (t_elt, n_nodes, uvw_ordering);
+  coupling.hoOrderingSet (t_elt, n_nodes, ijk_grid);
 
 }
 

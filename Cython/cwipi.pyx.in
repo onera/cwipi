@@ -28,6 +28,8 @@ from mpi4py.@mpi4pylibmpi@ cimport *
 from libc.stdlib cimport malloc, free
 
 interp_f={}
+interp_ho_loc_f={}
+interp_ho_bas_f={}
 current_cpl = "" 
 
 cdef extern from "Python.h":
@@ -62,6 +64,26 @@ cdef extern from "cwipi.h":
         CWIPI_EXCHANGE_OK
         CWIPI_EXCHANGE_BAD_RECEIVING
 
+    ctypedef enum cwipi_element_t:
+        CWIPI_NODE
+        CWIPI_EDGE2
+        CWIPI_EDGEHO
+        CWIPI_FACE_TRIA3
+        CWIPI_FACE_TRIAHO
+        CWIPI_FACE_QUAD4
+        CWIPI_FACE_QUADHO  
+        CWIPI_FACE_POLY
+        CWIPI_CELL_TETRA4
+        CWIPI_CELL_TETRAHO
+        CWIPI_CELL_HEXA8
+        CWIPI_CELL_HEXAHO
+        CWIPI_CELL_PRISM6
+        CWIPI_CELL_PRISMHO
+        CWIPI_CELL_PYRAM5
+        CWIPI_CELL_PYRAMHO
+        CWIPI_CELL_POLY
+
+
     ctypedef void (*cwipi_interpolation_fct_t) (int entities_dim,
                                                int n_local_vertex,
                                                int n_local_element,
@@ -83,6 +105,48 @@ cdef extern from "cwipi.h":
                                                cwipi_solver_type_t  solver_type,
                                                void *local_field,
                                                void *distant_field)
+
+
+    ctypedef void (*cwipi_user_interp_ho_fct_t) (int entities_dim,
+                                                 int order,                             
+                                                 int n_local_vertex,                    
+                                                 int n_local_element,                         
+                                                 int n_local_polhyedra,                       
+                                                 int n_distant_point,
+                                                 double local_coordinates[],
+                                                 int local_connectivity_index[],
+                                                 int local_connectivity[],
+                                                 int local_polyhedra_face_index[],
+                                                 int local_polyhedra_cell_to_face_connectivity[],
+                                                 int local_polyhedra_face_connectivity_index[],
+                                                 int local_polyhedra_face_connectivity[],
+                                                 double distant_points_coordinates[],
+                                                 int distant_points_location[],
+                                                 float distant_points_distance[],
+                                                 int distant_points_weights_index[],
+                                                 double distant_points_weights[],
+                                                 double distant_points_uvw[],
+                                                 int stride,
+                                                 cwipi_solver_type_t solver_type,
+                                                 void *local_field,
+                                                 void *distant_field)
+
+
+    ctypedef double (*cwipi_ho_location_fct_t) (int entities_dim,
+                                                int order,
+                                                int n_nodes,
+                                                double *nodes_coords,
+                                                double *point_coords,
+                                                double *projected_coords,
+                                                double *projected_uvw)
+
+
+    ctypedef void (*cwipi_ho_basis_fct_t) (int entities_dim,
+                                           int order,
+                                           int n_nodes,
+                                           int n_vtx,
+                                           double *uvw,
+                                           double *weights)
 
 
 #
@@ -122,6 +186,12 @@ cdef extern from "cwipi.h":
     void cwipi_delete_coupling(char* coupling_id)
     void cwipi_set_points_to_locate(char* coupling_id, int n_points, double coordinate[])
     void cwipi_define_mesh(char* coupling_id, int n_vertex, int n_element, double* coordinates, int* connectivity_index, int* connectivity)
+    void cwipi_ho_define_mesh(char *coupling_id, int n_vertex, int n_element, int order, double *coordinates, int *connectivity_index, int *connectivity)
+    void cwipi_ho_options_set (char *coupling_id, char *option, char *value)
+    void cwipi_ho_ordering_from_IJK_set (char *coupling_id, cwipi_element_t t_elt, int n_nodes, int *uvw_grid)
+    void cwipi_ho_user_elt_set (cwipi_element_t elt_type, cwipi_ho_basis_fct_t element_basis, cwipi_ho_location_fct_t location_in_element)
+    void cwipi_ho_set_interpolation_function (char *coupling_id, cwipi_user_interp_ho_fct_t fct)
+ 
 #    void cwipi_shared_fvm_nodal(char* coupling_name,
 #                                fvm_nodal_t* fvm_nodal)
     void cwipi_add_polyhedra(char* coupling_id, int n_element, int face_index[], int cell_to_face_connectivity[], int n_face, int face_connectivity_index[],
@@ -597,7 +667,60 @@ cdef class Coupling (object):
                           <int *> connectivity.data)
         current_cpl = ""
 
- 
+
+    def ho_define_mesh(self, 
+                       int n_vertex, 
+                       int n_element, 
+                       int order, 
+                       np.ndarray[np.double_t] coordinates not None, 
+                       np.ndarray[np.int32_t] connectivity_index not None, 
+                       np.ndarray[np.int32_t] connectivity not None):
+        """
+        Define high order mesh
+        """
+        global current_cpl
+        current_cpl = self.name
+        assert (3 * n_vertex) <= coordinates.size
+        assert (n_element + 1) <= connectivity_index.size
+        cwipi_ho_define_mesh(self.name,
+                             n_vertex, 
+                             n_element, 
+                             order, 
+                             <double *> coordinates.data, 
+                             <int *> connectivity_index.data, 
+                             <int *> connectivity.data)
+        current_cpl = ""
+
+
+    def ho_options_set(self, 
+                       char *option, 
+                       char *value): 
+        """
+        Set option for high order meshes
+        """
+        global current_cpl
+        current_cpl = self.name
+        cwipi_ho_options_set(self.name,
+                             option, 
+                             value) 
+        current_cpl = ""
+
+
+    def ho_ordering_from_IJK_set(self, 
+                                 cwipi_element_t t_elt,
+                                 int n_nodes,
+                                 np.ndarray[np.int32_t] ijk_grid not None):
+        """
+        Define ho element ordering from the location in the (I, J, K) grid
+        """
+        global current_cpl
+        current_cpl = self.name
+        cwipi_ho_ordering_from_IJK_set(self.name,
+                                       <cwipi_element_t> t_elt,
+                                       n_nodes,
+                                        <int *> ijk_grid.data)
+        current_cpl = ""
+
 
     def set_points_to_locate(self,
                              int n_points, 
@@ -1056,10 +1179,34 @@ cdef class Coupling (object):
         current_cpl = ""
 
 
+    def set_ho_interpolation_function(self, f):
+        """
+        """
+        global current_cpl
+        global interp_ho_f
+        current_cpl = self.name
+        interp_ho_f[self.name]=f
+        cwipi_ho_set_interpolation_function(self.name, ho_callback)
+        current_cpl = ""
+
+
     def getName(self):
         """
         """
         return self.name
+
+
+def ho_user_elt_set(elt_type, f_basis, f_loc):
+    """
+    """
+    global interp_ho_loc_f
+    global interp_ho_bas_f
+    interp_ho_bas_f[0]=f_basis
+    interp_ho_loc_f[0]=f_loc
+    cwipi_ho_user_elt_set (<cwipi_element_t> elt_type,
+                           ho_bas_callback,
+                           ho_loc_callback)
+
 
 #
 # Class coupling : additional functions (activated by set_info function)
@@ -1101,7 +1248,7 @@ cdef void callback(int entities_dim,
     """
     """
     global current_cpl
-    global inter_f
+    global interp_f
     np.import_array()
 
     cdef np.npy_intp dims = 0
@@ -1252,4 +1399,302 @@ cdef void callback(int entities_dim,
                                     solver_type,
                                     local_field_a,
                                     distant_field_a)
+
+
+
+cdef void ho_callback(int entities_dim,
+                      int order,
+                      int n_local_vertex,
+                      int n_local_element,
+                      int n_local_polhyedra,
+                      int n_distant_point,
+                      double local_coordinates[],
+                      int local_connectivity_index[],
+                      int local_connectivity[],
+                      int local_polyhedra_face_index[],
+                      int local_polyhedra_cell_to_face_connectivity[],
+                      int local_polyhedra_face_connectivity_index[],
+                      int local_polyhedra_face_connectivity[],
+                      double distant_points_coordinates[],
+                      int distant_points_location[],
+                      float distant_points_distance[],
+                      int distant_points_weights_index[],
+                      double distant_points_weights[],
+                      double distant_points_uvw[],
+                      int stride,
+                      cwipi_solver_type_t  solver_type,
+                      void *local_field,
+                      void *distant_field):
+    """
+    """
+    global current_cpl
+    global interp_ho_f
+    np.import_array()
+
+    cdef np.npy_intp dims = 0
+
+    if (local_coordinates == NULL or n_local_vertex == 0):
+        local_coordinates_a = None
+    else:   
+        dims = <np.npy_intp>(3 * n_local_vertex)
+        local_coordinates_a = np.PyArray_SimpleNewFromData(1, 
+                                                       &dims, 
+                                                       np.NPY_DOUBLE,
+                                                       <void *> local_coordinates) 
+
+    if (local_connectivity_index == NULL or n_local_element == 0):
+        local_connectivity_index_a = None 
+        local_connectivity_a = None
+    else:
+        dims = <np.npy_intp>(n_local_element + 1)    
+        local_connectivity_index_a = np.PyArray_SimpleNewFromData(1, 
+                                                                  &dims, 
+                                                                  np.NPY_INT32,
+                                                                  <void *> local_connectivity_index) 
+        dims = <np.npy_intp>(local_connectivity_index[n_local_element])    
+        local_connectivity_a = np.PyArray_SimpleNewFromData(1, 
+                                                            &dims, 
+                                                            np.NPY_INT32,
+                                                            <void *> local_connectivity) 
+
+    if (local_polyhedra_face_index == NULL or n_local_polhyedra == 0):
+        local_polyhedra_face_index_a = None
+        local_polyhedra_cell_to_face_a = None
+        local_polyhedra_face_connectivity_index_a = None
+        local_polyhedra_face_connectivity_a = None
+    else:
+        dims = <np.npy_intp>(n_local_polhyedra+1)    
+        local_polyhedra_face_index_a = np.PyArray_SimpleNewFromData(1, 
+                                                                    &dims, 
+                                                                    np.NPY_INT32,
+                                                                    <void *> local_polyhedra_face_index) 
+
+        dims = <np.npy_intp>(local_polyhedra_face_index[n_local_polhyedra])    
+        local_polyhedra_cell_to_face_a = np.PyArray_SimpleNewFromData(1, 
+                                                          &dims, 
+                                                          np.NPY_INT32,
+                                                          <void *> local_polyhedra_cell_to_face_connectivity) 
+
+        dims = <np.npy_intp> (0)
+        for i in local_polyhedra_cell_to_face_a:
+            dims = <np.npy_intp> max(dims, i)
+        dims = dims + 1
+        local_polyhedra_face_connectivity_index_a = np.PyArray_SimpleNewFromData(1, 
+                                                                                 &dims, 
+                                                                                 np.NPY_INT32,
+                                                                                 <void *> local_polyhedra_face_connectivity_index) 
+    
+        dims = <np.npy_intp> (local_polyhedra_cell_to_face_connectivity[<int>dims -1])
+        local_polyhedra_face_connectivity_a = np.PyArray_SimpleNewFromData(1, 
+                                                                          &dims, 
+                                                                          np.NPY_INT32,
+                                                                         <void *> local_polyhedra_face_connectivity) 
+
+    if (distant_points_location == NULL or n_distant_point == 0):
+        distant_points_location_a = None
+        distant_points_coordinates_a = None
+        distant_points_distance_a = None
+        distant_points_barycentric_coordinates_index_a = None
+        distant_points_barycentric_coordinates_a = None
+        distant_points_weights_index_a = None
+        distant_points_weights_a = None
+        distant_points_uvw_a = None
+
+    else:
+
+        dims = <np.npy_intp>(n_distant_point)    
+        distant_points_location_a = np.PyArray_SimpleNewFromData(1, 
+                                                                 &dims, 
+                                                                 np.NPY_INT,
+                                                                 <void *> distant_points_location) 
+
+        distant_points_distance_a = np.PyArray_SimpleNewFromData(1, 
+                                                                 &dims, 
+                                                                 np.NPY_FLOAT,
+                                                                 <void *> distant_points_distance) 
+        dims = <np.npy_intp>(3 * n_distant_point)    
+        distant_points_coordinates_a = np.PyArray_SimpleNewFromData(1, 
+                                                                    &dims, 
+                                                                    np.NPY_DOUBLE,
+                                                                    <void *> distant_points_coordinates) 
+        if (distant_points_weights_index == NULL or distant_points_weights == NULL):
+            distant_points_weights_index_a = None
+            distant_points_weights_a = None
+        else:
+            dims = <np.npy_intp>(n_distant_point + 1)    
+            distant_points_weights_index_a = np.PyArray_SimpleNewFromData(1, 
+                                                                          &dims, 
+                                                                          np.NPY_INT32,
+                                                                          <void *>distant_points_weights_index) 
+
+            dims = <np.npy_intp>(distant_points_weights_index[n_distant_point])    
+            distant_points_weights_a = np.PyArray_SimpleNewFromData(1, 
+                                                                    &dims, 
+                                                                    np.NPY_DOUBLE,
+                                                                    <void *>distant_points_weights) 
+
+        if (distant_points_uvw == NULL):
+            distant_points_uvw_a = None
+        else:
+            dims = <np.npy_intp>(n_distant_point * entities_dim)    
+            distant_points_uvw_a = np.PyArray_SimpleNewFromData(1, 
+                                                                &dims, 
+                                                                np.NPY_DOUBLE,
+                                                                <void *>distant_points_uvw) 
+
+
+    dims = <np.npy_intp>(0)
+    if (solver_type == SOLVER_CELL_CENTER):
+        dims = <np.npy_intp> (n_local_element * stride)
+    elif (solver_type == SOLVER_CELL_VERTEX):
+        dims = <np.npy_intp> (n_local_vertex * stride)
+
+    if (dims == 0 or local_field == NULL):
+        local_field_a = None
+    else:
+        local_field_a = np.PyArray_SimpleNewFromData(1, 
+                                                     &dims, 
+                                                     np.NPY_DOUBLE,
+                                                     <void *> local_field) 
+
+    dims = <np.npy_intp>(0)
+    if (solver_type == SOLVER_CELL_CENTER):
+        dims = <np.npy_intp> (n_distant_point * stride)
+    elif (solver_type == SOLVER_CELL_VERTEX):
+        dims = <np.npy_intp> (n_distant_point * stride)
+
+    if (dims == 0 or distant_field == NULL):
+        distant_field_a = None
+    else:
+        distant_field_a = np.PyArray_SimpleNewFromData(1, 
+                                                       &dims, 
+                                                       np.NPY_DOUBLE,
+                                                       <void *> distant_field) 
+
+    (<object>interp_ho_f[current_cpl])(entities_dim,
+                                       order,
+                                       n_local_vertex,
+                                       n_local_element,
+                                       n_local_polhyedra,
+                                       n_distant_point,
+                                       local_coordinates_a,
+                                       local_connectivity_index_a,
+                                       local_connectivity_a,
+                                       local_polyhedra_face_index_a,
+                                       local_polyhedra_cell_to_face_a,
+                                       local_polyhedra_face_connectivity_index_a,
+                                       local_polyhedra_face_connectivity_a,
+                                       distant_points_coordinates_a,
+                                       distant_points_location_a,
+                                       distant_points_distance_a,
+                                       distant_points_weights_index_a,
+                                       distant_points_weights_a,
+                                       distant_points_uvw_a,
+                                       stride,
+                                       solver_type,
+                                       local_field_a,
+                                       distant_field_a)
+
+
+
+cdef void ho_bas_callback(int entities_dim,
+                          int order,
+                          int n_nodes,
+                          int n_pts,
+                          double *uvw,
+                          double *weights):
+    """
+    """
+    global interp_ho_bas_f
+    np.import_array()
+
+    cdef np.npy_intp dims = 0
+
+    if (uvw == NULL):
+        uvw_a = None
+    else:   
+        dims = <np.npy_intp>(n_pts * entities_dim)
+        uvw_a = np.PyArray_SimpleNewFromData(1, 
+                                             &dims, 
+                                             np.NPY_DOUBLE,
+                                              <void *> uvw) 
+
+    if (weights == NULL):
+        weights_a = None
+    else:   
+        dims = <np.npy_intp>(n_pts * n_nodes)
+        weights_a = np.PyArray_SimpleNewFromData(1, 
+                                                 &dims, 
+                                                 np.NPY_DOUBLE,
+                                                 <void *> weights) 
+
+    (<object>interp_ho_bas_f[0])(entities_dim,
+                                 order,
+                                 n_nodes,
+                                 n_pts,
+                                 uvw_a,
+                                 weights_a)
+
+
+
+cdef double ho_loc_callback(int entities_dim,
+                            int order,
+                            int n_nodes,
+                            double *nodes_coords,
+                            double *point_coords,
+                            double *projected_coords,
+                            double *projected_uvw):
+    """
+    """
+    global interp_ho_loc_f
+    np.import_array()
+
+    cdef np.npy_intp dims = 0
+
+    if (nodes_coords == NULL):
+        nodes_coords_a = None
+    else:   
+        dims = <np.npy_intp>(n_nodes * 3)
+        nodes_coords_a = np.PyArray_SimpleNewFromData(1, 
+                                                      &dims, 
+                                                      np.NPY_DOUBLE,
+                                                      <void *> nodes_coords) 
+
+    if (point_coords == NULL):
+        point_coords_a = None
+    else:   
+        dims = <np.npy_intp>(3)
+        point_coords_a = np.PyArray_SimpleNewFromData(1, 
+                                                      &dims, 
+                                                      np.NPY_DOUBLE,
+                                                      <void *> point_coords)
+
+
+    if (projected_coords == NULL):
+        projected_coords_a = None
+    else:   
+        dims = <np.npy_intp>(3)
+        projected_coords_a = np.PyArray_SimpleNewFromData(1, 
+                                                          &dims, 
+                                                          np.NPY_DOUBLE,
+                                                          <void *> projected_coords) 
+
+
+
+    if (projected_uvw == NULL):
+        projected_uvw_a = None
+    else:   
+        dims = <np.npy_intp>(entities_dim)
+        projected_uvw_a = np.PyArray_SimpleNewFromData(1, 
+                                                          &dims, 
+                                                          np.NPY_DOUBLE,
+                                                          <void *> projected_uvw) 
+
+    return (<object>interp_ho_loc_f[0])(entities_dim,
+                                        order,
+                                        n_nodes,
+                                        nodes_coords_a,
+                                        point_coords_a,
+                                        projected_coords_a,
+                                        projected_uvw_a)
 

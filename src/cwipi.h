@@ -304,7 +304,8 @@ typedef void (*cwipi_user_interp_ho_fct_t)
  *----------------------------------------------------------------------------*/
 
 typedef double (*cwipi_ho_location_fct_t)
-(const int order,
+(const int entities_dim,
+ const int order,
  const int n_nodes,
  const double *nodes_coords,
  const double *point_coords,
@@ -320,15 +321,17 @@ typedef double (*cwipi_ho_location_fct_t)
  * parameters:
  *   order             <-- element order
  *   n_nodes           <-- number of nodes of the element
- *   uvv               <-- Parametric coordinates of a point
- *   projected_uvw     --> Interpolation weights associated to uvw coordinates
+ *   n_pts             <-- number of points
+ *   uvv               <-- Parametric coordinates of points
+ *   weights           --> Interpolation weights (size = n_nodes * n_pts)
  * 
  *----------------------------------------------------------------------------*/
 
 typedef void (*cwipi_ho_basis_fct_t)
-(const int order,
+(const int entities_dim,
+ const int order,
  const int n_nodes,
- const int n_vtx,
+ const int n_pts,
  const double *uvw,
  double *weights);
 
@@ -346,7 +349,8 @@ typedef void (*cwipi_ho_basis_fct_t)
  *----------------------------------------------------------------------------*/
 
 typedef void (*cwipi_ho_xsi_fct_t)
-(const int order,
+(const int entities_dim,
+ const int order,
  const int n_nodes,
  double *xsi_uvw);
 
@@ -1083,14 +1087,14 @@ void cwipi_ho_options_set (const char *coupling_id,
  *   coupling_id     <-- coupling name
  *   t_elt           <-- element type
  *   n_nodes         <-- number of nodes
- *   uvw_grid        <-- user ordering to (u, v, w) grid (size = elt_dim * n_nodes)
+ *   ijk_grid        <-- user ordering to (u, v, w) grid (size = elt_dim * n_nodes)
  *
  *----------------------------------------------------------------------------*/
 
 void cwipi_ho_ordering_from_IJK_set (const char *coupling_id,
                                      const cwipi_element_t t_elt,
                                      const int n_nodes,
-                                     const int *uvw_grid);
+                                     const int *ijk_grid);
 
 /*----------------------------------------------------------------------------
  *

@@ -2045,10 +2045,32 @@ fvmc_ho_location
 {
   
   fvmc_ho_location_user_elt_t *user_elt = _get_user_elt (type);
+
+  int entities_dim = 0;
+  switch(type) {
+  case FVMC_EDGE:
+    entities_dim = 1;
+    break;
+  case FVMC_FACE_TRIA:          /* Triangle */
+  case FVMC_FACE_QUAD:          /* Quadrangle */
+    entities_dim = 2;
+    break;
+  case FVMC_CELL_TETRA:         /* Tetrahedron */
+  case FVMC_CELL_PYRAM:         /* Pyramid */
+  case FVMC_CELL_PRISM:         /* Prism (pentahedron) */
+  case FVMC_CELL_HEXA:          /* Hexahedron (brick) */
+    entities_dim = 3;
+    break;
+  default:
+    bftc_error(__FILE__, __LINE__, 0,
+               "%d is not high order element type\n", type);
+
+  }
   
   if (user_elt != NULL) {
     if (user_elt->location_in_elt != NULL) {
-      return (user_elt->location_in_elt ) (order,
+      return (user_elt->location_in_elt ) (entities_dim,
+                                           order,
                                            n_nodes,
                                            nodes_coords,
                                            point_coords,
