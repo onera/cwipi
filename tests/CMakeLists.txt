@@ -37,23 +37,9 @@ if (CWP_ENABLE_SHARED)
    endif()
    list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
 
-   if (CWP_ENABLE_SPACE_NODAL_BASIS)
-    list(APPEND LINK_LIBRARIES spaceBasis_shared)
-   endif()
-
-# list(APPEND LINK_LIBRARIES
-#       cwp_shared)
-#  if (EXISTS ${CWP_SOURCE_DIR}/paradigm)
-#      list (APPEND LINK_LIBRARIES 
-#            pdm_shared
-#            pdm_mpi_shared)
-#  endif()
-#  list(APPEND LINK_LIBRARIES
-#       ${COMMON_LIBRARIES})
-#
-# if (CWP_ENABLE_Fortran)
-#   list(APPEND LINK_LIBRARIES cwpf_shared)
-# endif()
+#   if (CWP_ENABLE_SPACE_NODAL_BASIS)
+#    list(APPEND LINK_LIBRARIES spaceBasis_shared)
+#   endif()
 
 else ()
    if (CWP_ENABLE_Fortran)
@@ -73,12 +59,24 @@ else ()
    endif()
    list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
 
-   if (CWP_ENABLE_SPACE_NODAL_BASIS)
-    list(APPEND LINK_LIBRARIES spaceBasis_static)
-   endif()
+#   if (CWP_ENABLE_SPACE_NODAL_BASIS)
+#    list(APPEND LINK_LIBRARIES spaceBasis_static)
+#   endif()
 
 endif()
 
+if (CWP_ENABLE_Fortran)
+  file(GLOB SOURCESF
+       fortran_surf_PiQj_common.F90)
+
+  add_library(cwp_checkf ${SOURCESF})
+   target_include_directories(cwp_checkf PRIVATE ${CMAKE_SOURCE_DIR}
+                                         PRIVATE ${CMAKE_BINARY_DIR}
+                                         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+   target_include_directories(cwp_checkf PRIVATE ${TEST_INC})
+   target_link_libraries(cwp_checkf ${LINK_LIBRARIES})
+   set_target_properties(cwp_checkf PROPERTIES LINKER_LANGUAGE "Fortran")
+endif()
 
 get_target_property(TEST_INC cwp INCLUDE_DIRECTORIES)                          
 
@@ -137,7 +135,12 @@ test_c_create (c_vol_coupling_polyhedra_P1P1_with_external_points ${MPIEXEC_MAX_
 if (CWP_ENABLE_Fortran)
   test_fortran_create (fortran_surf_P1P1            ${MPIEXEC_MAX_NUMPROCS})
   test_fortran_create (fortran_surf_P1P1_savememory ${MPIEXEC_MAX_NUMPROCS})
-  test_fortran_create (fortran_surf_TriaPi_PiPj   ${MPIEXEC_MAX_NUMPROCS})
+  test_fortran_create (fortran_surf_PiQj 2)
+  target_link_libraries(fortran_surf_PiQj cwp_checkf)
+  add_dependencies(fortran_surf_PiQj  cwp_checkf)
+  test_fortran_create (fortran_plane_PiQj 2)
+  target_link_libraries(fortran_plane_PiQj cwp_checkf)
+  add_dependencies(fortran_plane_PiQj  cwp_checkf)
 
 #    list(APPEND LINK_LIBRARIES spaceBasis)
 #    test_fortran_create  (fortran_surf_TriaP1_PiPj   ${MPIEXEC_MAX_NUMPROCS})

@@ -1006,7 +1006,7 @@ void PROCF(cwipi_define_mesh_cf,
 }
 
 void PROCF(cwipi_ho_define_mesh_cf,
-           CWIPI_ho_DEFINE_MESH_CF)
+           CWIPI_HO_DEFINE_MESH_CF)
   (const char *coupling_name,
    const int  *l_coupling_name,
    const int *n_vertex,
@@ -1028,6 +1028,32 @@ void PROCF(cwipi_ho_define_mesh_cf,
                        connectivity_index,
                        connectivity);
   delete[] coupling_nameC;
+}
+
+void PROCF(cwipi_ho_options_set_cf,
+           CWIPI_HO_OPTIONS_SET_CF)
+  (const char *coupling_name,
+   const int  *l_coupling_name,
+   const char *option,
+   const int  *l_option,
+   const char *value,
+   const int  *l_value
+   ARGF_SUPP_CHAINE)
+{
+  char *coupling_nameC =
+    _cwipi_fortran_to_c_string(coupling_name, *l_coupling_name);
+  char *optionC =
+    _cwipi_fortran_to_c_string(option, *l_option);
+  char *valueC =
+    _cwipi_fortran_to_c_string(value, *l_value);
+
+  cwipi_ho_options_set(coupling_nameC,
+                       optionC,
+                       valueC);
+
+  delete[] coupling_nameC;
+  delete[] optionC;
+  delete[] valueC;
 }
 
 void PROCF(cwipi_add_polyhedra_cf,

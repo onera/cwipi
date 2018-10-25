@@ -1390,8 +1390,6 @@ subroutine  userInterpolation                        ( &
   use iso_c_binding, only: c_loc,c_f_pointer, c_ptr
   use cwipi
   use additionnal_Functions, only: setT3MeshIJK, setQ4MeshIJK
-  !use baseSimplex1D, only: setQ4BasisEqui_uv
-  !use baseSimplex2D, only: setT3BasisEqui_uv,setT3MeshBasis_P1,setT3MeshBasis_P2,setT3MeshBasis_P3
 
   use  mod_fvmc_ho_basis
   
@@ -1730,7 +1728,7 @@ subroutine  userInterpolation                        ( &
 end subroutine userInterpolation
 
 
-program fortran_surf_TriaPi_PiPj
+subroutine fortran_surf_PiQj_common (tmaillage)
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use iso_fortran_env
   use iso_c_binding, only: c_loc,c_f_pointer,c_ptr
@@ -1743,8 +1741,6 @@ program fortran_surf_TriaPi_PiPj
   use spaceCellTypes
   use spaceMessages
   use mod_fvmc_ho_basis
-  !use baseSimplex1D, only: setQ4BasisEqui_u
-  !use baseSimplex2D, only: setT3BasisEqui_uv, setT3MeshBasis_P1,setT3MeshBasis_P2,setT3MeshBasis_P3
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
@@ -1808,6 +1804,8 @@ program fortran_surf_TriaPi_PiPj
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !include 'libmeshb7.ins'
+
+  integer, intent(in) :: tmaillage
   
   character(16)      :: couplingName
   character(5)       :: codeName,codeCoupledName  
@@ -1890,8 +1888,13 @@ program fortran_surf_TriaPi_PiPj
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  maillage="sphere"
- !maillage="carre"
+
+  if (tmaillage == 1) then
+    maillage="sphere"
+  else
+    maillage="carre"
+  endif
+  
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1926,15 +1929,21 @@ program fortran_surf_TriaPi_PiPj
 !    case(2) ; tol=1d-1
 !    case(3) ; tol=1d-1
 !    end select
-    
-    select case(meshOrder)
-    case(1) ; tol=2d-1 !7.8d-2
+
+    if (maillage == "carre") then
+      tol=1d-4
+    else
+      select case(meshOrder)
+      case(1) ; tol=2d-1 !7.8d-2
    !case(2) ; tol=1d-2
    ! case(2) ; tol=1.75d-3
-    case(2) ; tol=1d-2
-    case(3) ; tol=3d-3
-    case(4) ; tol=5d-3
-    end select
+      case(2) ; tol=1d-2
+      case(3) ; tol=5d-3
+      case(4) ; tol=5d-3
+      end select
+    endif
+
+    print *, "tol =", tol
     
     write(buffer,'("")')                                                                                        ; call msg2(trim(buffer))
     write(buffer,'("Code: ",a," creates coupling: ",a," with code: ",a," and tol=",e22.15,t130,"@rkw",i3)') &
@@ -2424,6 +2433,11 @@ program fortran_surf_TriaPi_PiPj
     &   connecIndex =cellsIdx           ,&
     &   connec      =cells               )  
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+
+    !> Desactivation de la bounding box optimisee
+    if (maillage == "carre") then
+      call cwipi_ho_options_set_f(couplingName, "opt_bbox_step", "-1")
+    endif
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Definition du Quad Qi (ijk)
@@ -2854,4 +2868,4 @@ program fortran_surf_TriaPi_PiPj
   call mpi_finalize(iErr)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
-end program fortran_surf_TriaPi_PiPj
+end subroutine fortran_surf_PiQj_common

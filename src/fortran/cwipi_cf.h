@@ -661,6 +661,16 @@ void PROCF(cwipi_ho_define_mesh_cf,
    int *connectivity
    ARGF_SUPP_CHAINE);
 
+void PROCF(cwipi_ho_options_set_cf,
+           CWIPI_HO_OPTIONS_SET_CF)
+  (const char *coupling_name,
+   const int  *l_coupling_name,
+   const char *option,
+   const int  *l_option,
+   const char *value,
+   const int  *l_value
+   ARGF_SUPP_CHAINE);
+
 void PROCF(cwipi_add_polyhedra_cf,
            CWIPI_ADD_POLYHEDRA_CF)
   (const char *coupling_name,

@@ -192,6 +192,10 @@ module cwipi
    cwipi_ho_define_mesh_f_
   end interface
 
+  interface  cwipi_ho_options_set_f ; module procedure &
+    cwipi_ho_options_set_f_
+  end interface
+  
   interface cwipi_ho_ordering_from_IJK_set_f ; module procedure &
    cwipi_ho_ordering_from_IJK_set_f_
   end interface
@@ -376,6 +380,7 @@ module cwipi
              cwipi_create_coupling_f_,        &
              cwipi_set_points_to_locate_f_,   &
              cwipi_ho_define_mesh_f_,          &
+             cwipi_ho_options_set_f_,       &
              cwipi_ho_ordering_from_IJK_set_f_,&
              cwipi_ho_ordering_from_ref_elt_set_f_,&
              cwipi_add_polyhedra_f_,          &
@@ -1561,6 +1566,52 @@ contains
                                   connec)
 
   end subroutine cwipi_ho_define_mesh_f_
+
+
+ !********************************************************************************
+ !
+ ! Define specific options for ho elements
+ !
+ ! parameters:
+ !   coupling_id     <-- coupling name
+ !   option          <--  option name, Choice between :
+ !                          - "opt_bbox_step" 
+ !                              * Description : step of discretization used 
+ !                                              to compute the optimized element 
+ !                                              bounding boxes
+ !                                              -1 to deactivate this computation
+ !                              * Default     : 10 
+ !   opt_value       <-- option value
+ !
+ !********************************************************************************
+
+  subroutine cwipi_ho_options_set_f_ (couplingName, &
+                                      option, &
+                                      opt_value)
+
+    implicit none
+
+    character (len = *) :: couplingName
+    integer (kind = cwipi_int_l) :: lCouplingName
+
+    character (len = *) :: option
+    integer (kind = cwipi_int_l) :: loption
+
+    character (len = *) :: opt_value
+    integer (kind = cwipi_int_l) :: lopt_value
+
+    lCouplingName = len(couplingName)
+    loption       = len(option)
+    lopt_value    = len(opt_value)
+
+    call cwipi_ho_options_set_cf (couplingName, &
+                                  lCouplingName, &
+                                  option,&
+                                  loption,&
+                                  opt_value, &
+                                  lopt_value)
+
+  end subroutine cwipi_ho_options_set_f_
   
 
  !********************************************************************************
