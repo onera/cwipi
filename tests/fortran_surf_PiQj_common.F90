@@ -1975,13 +1975,13 @@ subroutine fortran_surf_PiQj_common (tmaillage)
    !write(buffer,'("")')                                                   ; call msg2(trim(buffer))
    !write(buffer,'(3x,"meshOrder=",i3,t130,"@rkw",i3)')meshOrder,rankWorld ; call msg1(trim(buffer))
     
-    write(key,'(6x,"gmsh ./meshes/",a,"0",i1,".geo -2 -format msh -order ",i1," > sphere0",i1,".log")')trim(maillage),rankWorld+1,meshOrder,rankWorld+1    
+    !write(key,'(6x,"gmsh ./meshes/",a,"0",i1,".geo -2 -format msh -order ",i1," -o meshes/",a,"0",i1,"_order0",i1,".msh > sphere0",i1,".log")')trim(maillage),rankWorld+1,meshOrder,trim(maillage),rankWorld+1,meshOrder,rankWorld+1
    !call msg1(trim(key))
-    call execute_command_line (key, exitstat=iErr)      
+    !call execute_command_line (key, exitstat=iErr)      
     
-    write(buffer,'(" ./meshes/",a,"0",i1,".msh")')trim(maillage),rankWorld+1
+    !write(buffer,'(" ./meshes/",a,"0",i1,"_order0",i1,".msh")')trim(maillage),rankWorld+1,meshOrder
    !call msg1(trim(buffer))
-    call mshToMesh(trim(buffer))
+    !call mshToMesh(trim(buffer))
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
          
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1992,7 +1992,7 @@ subroutine fortran_surf_PiQj_common (tmaillage)
     write(buffer,'("Reading Geometric Mesh",t130,"@rkw",i3)')rankWorld ; call msg1(trim(buffer))
     
     !>>>>>>>
-    write(meshName,'("./meshes/",a,"0",i1,".mesh")')trim(maillage),rankWorld+1 ! call msg1(trim(meshName))
+    write(meshName,'("./meshes/",a,"0",i1,"_order0",i1,".mesh")')trim(maillage),rankWorld+1,meshOrder ! call msg1(trim(meshName))
     !<<<<<<<
     
     
