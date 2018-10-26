@@ -22,6 +22,51 @@
 !  mpirun -n 1 ./fortran_surf_TriaPi_PiPj : -n 1 ./fortran_surf_TriaPi_PiPj
 !  mpirun -n 1 tests/fortran_surf_TriaPi_PiPj : -n 1 tests/fortran_surf_TriaPi_PiPj
 
+subroutine test_loc (entities_dim, &
+     order, &
+     n_nodes, &
+     nodes_coords, &
+     point_coords, &
+     projected_coords,&
+     projected_uvw) bind(c)
+  use, intrinsic :: ISO_C_BINDING 
+  implicit none
+  integer (C_INT), value :: entities_dim
+  integer (C_INT), value :: order
+  integer (C_INT), value :: n_nodes
+
+  type (C_PTR),    value  :: nodes_coords
+  type (C_PTR),    value  :: point_coords
+  type (C_PTR),    value  :: projected_coords
+  type (C_PTR),    value  :: projected_uvw
+
+  print *, "test_loc entitiies_dim", entities_dim
+  print *, "test_loc order", order
+  print *, "test_loc n_nodes", n_nodes
+  
+end subroutine test_loc
+
+subroutine  test_basis (entities_dim, &
+                        order, &
+                        n_nodes, &
+                        n_pts, &
+                        uvw, &
+                        weights) bind(c)
+  use, intrinsic :: ISO_C_BINDING 
+  implicit none
+  integer (C_INT), value :: entities_dim
+  integer (C_INT), value :: order
+  integer (C_INT), value :: n_nodes
+  integer (C_INT), value :: n_pts
+
+  type (C_PTR),    value :: uvw
+  type (C_PTR),    value :: weights
+
+  print *, "test_basis entitiies_dim", entities_dim
+  print *, "test_basis order", order
+  print *, "test_basis n_nodes", n_nodes
+  
+end subroutine test_basis
 
 
 module variablesCommunes
@@ -1747,6 +1792,46 @@ subroutine fortran_surf_PiQj_common (tmaillage)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   interface
+
+    subroutine test_loc (entities_dim, &
+         order, &
+         n_nodes, &
+         nodes_coords, &
+         point_coords, &
+         projected_coords,&
+         projected_uvw) bind(c)
+      use, intrinsic :: ISO_C_BINDING 
+      implicit none
+      integer (C_INT), value :: entities_dim
+      integer (C_INT), value :: order
+      integer (C_INT), value :: n_nodes
+      
+      type (C_PTR),    value  :: nodes_coords
+      type (C_PTR),    value  :: point_coords
+      type (C_PTR),    value  :: projected_coords
+      type (C_PTR),    value  :: projected_uvw
+      
+    end subroutine test_loc
+
+    subroutine  test_basis (entities_dim, &
+                            order, &
+                            n_nodes, &
+                            n_pts, &
+                            uvw, &
+                            weights) bind(c)
+      use, intrinsic :: ISO_C_BINDING 
+      implicit none
+      integer (C_INT), value :: entities_dim
+      integer (C_INT), value :: order
+      integer (C_INT), value :: n_nodes
+      integer (C_INT), value :: n_pts
+      
+      type (C_PTR),    value :: uvw
+      type (C_PTR),    value :: weights
+
+  
+    end subroutine test_basis
+    
     subroutine  userInterpolation                      ( &
     &           entitiesDim                             ,&
     &           order                                   ,&
@@ -2422,6 +2507,9 @@ subroutine fortran_surf_PiQj_common (tmaillage)
    !write(buffer,'("Sending Mesh to Cwipi",t130,"@rkw",i3)')rankWorld ; call msg1(trim(buffer))
     
     nCell=nQ4+nT3
+
+    !> Test des user functions
+    !call  cwipi_ho_user_elt_set_f (CWIPI_FACE_TRIAHO, test_basis, test_loc)
     
     !> Transmission des maillages à cwipi
     call cwipi_ho_define_mesh_f(         & !> NEW Cwipi

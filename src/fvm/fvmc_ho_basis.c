@@ -480,40 +480,38 @@ _basis_quad_qn
  *
  *----------------------------------------------------------------------------*/
 
-static fvmc_ho_basis_user_elt_t *
+static fvmc_ho_basis_user_elt_t **
 _get_user_elt (fvmc_element_t elt_type)
 {
 
-  fvmc_ho_basis_user_elt_t *user_elt = NULL;
-  
   switch(elt_type) {
 
   case FVMC_EDGE:
-    user_elt = _user_edge;
+    return &_user_edge;
     break;
     
   case FVMC_FACE_TRIA:
-    user_elt = _user_tria;
+    return &_user_tria;
     break;
     
   case FVMC_FACE_QUAD:
-    user_elt = _user_quad;
+    return &_user_quad;
     break;
     
   case FVMC_CELL_TETRA:
-    user_elt = _user_tetra;
+    return &_user_tetra;
     break;
     
   case FVMC_CELL_PYRAM:
-    user_elt = _user_pyra;
+    return &_user_pyra;
     break;
     
   case FVMC_CELL_PRISM:
-    user_elt = _user_prism;
+    return &_user_prism;
     break;
     
   case FVMC_CELL_HEXA:
-    user_elt = _user_hexa;
+    return &_user_hexa;
     break;
 
   default:
@@ -521,7 +519,8 @@ _get_user_elt (fvmc_element_t elt_type)
                _("fvmc_ho_user_elt_unset : Unvailable element type\n"));
   }
 
-  return user_elt;
+  return NULL;
+
 }
 
 /*----------------------------------------------------------------------------
@@ -564,7 +563,7 @@ const double *uvw,
   case FVMC_CELL_HEXA:
   default: 
     bftc_error(__FILE__, __LINE__, 0,
-               _("_default_elts_basis : '%d' element type not yet implemented\n"),
+               _("FVMC_ho_basis : '%d' element type not yet implemented\n"),
                type);
   }
 }
@@ -583,11 +582,11 @@ void
 FVMC_ho_basis_user_elt_unset (fvmc_element_t elt_type)
 {
 
-  fvmc_ho_basis_user_elt_t *_user_elt = _get_user_elt (elt_type);
+  fvmc_ho_basis_user_elt_t **_user_elt = _get_user_elt (elt_type);
   
-  if (_user_elt != NULL) {
-    free (_user_elt);
-    _user_elt = NULL;
+  if (*_user_elt != NULL) {
+    free (*_user_elt);
+    *_user_elt = NULL;
   }
   
 }
@@ -616,13 +615,16 @@ void
 FVMC_ho_basis_user_elt_set (fvmc_element_t elt_type,
                             fvmc_ho_basis_fct_t elt_basis)
 {
-  fvmc_ho_basis_user_elt_t *user_elt = _get_user_elt (elt_type);
-  
-  if (user_elt == NULL) {
-    user_elt = (fvmc_ho_basis_user_elt_t *) malloc (sizeof(fvmc_ho_basis_user_elt_t));
+  fvmc_ho_basis_user_elt_t **user_elt = _get_user_elt (elt_type);
+
+  printf("FVMC_ho_basis_user_elt_set\n");
+
+  if (*user_elt == NULL) {
+    *user_elt = (fvmc_ho_basis_user_elt_t *) malloc (sizeof(fvmc_ho_basis_user_elt_t));
   }
 
-  user_elt->elt_basis = elt_basis;
+  printf("FVMC_ho_basis_user_elt_set 2 %ld\n", user_elt);
+  (*user_elt)->elt_basis = elt_basis;
 
 }
 
@@ -653,7 +655,7 @@ const double *uvw,
       double *weights 
 )
 {
-  fvmc_ho_basis_user_elt_t *user_elt = _get_user_elt (type);
+  fvmc_ho_basis_user_elt_t *user_elt = *(_get_user_elt (type));
 
   int entities_dim = 0;
   switch(type) {
@@ -672,11 +674,14 @@ const double *uvw,
     break;
   default:
     bftc_error(__FILE__, __LINE__, 0,
-               "%d is not hiegh order element type\n", type);
+               "%d is not high order element type\n", type);
 
   }
+
+  // printf("FVMC_ho_basis %ld\n",user_elt );
   
   if (user_elt != NULL) {
+    //printf("FVMC_ho_basis 2 %ld\n",user_elt->elt_basis );
     if (user_elt->elt_basis != NULL) {
       (user_elt->elt_basis) (entities_dim,
                              order,

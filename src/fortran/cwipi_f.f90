@@ -341,8 +341,52 @@ module cwipi
   end interface cwipi_get_list_dbl_ctrl_param_f
 
   interface cwipi_get_list_str_ctrl_param_f; module procedure &
-    cwipi_get_list_str_ctrl_param_f_
+       cwipi_get_list_str_ctrl_param_f_
   end interface cwipi_get_list_str_ctrl_param_f
+  
+  abstract interface
+		subroutine cwipi_ho_location_fct_t (entities_dim, &
+                                        order, &
+                                        n_nodes, &
+                                        nodes_coords, &
+                                        point_coords, &
+                                        projected_coords,&
+                                        projected_uvw) bind(c)
+      use, intrinsic :: ISO_C_BINDING 
+      implicit none
+      integer (C_INT), value :: entities_dim
+      integer (C_INT), value :: order
+      integer (C_INT), value :: n_nodes
+
+      type (C_PTR),    value  :: nodes_coords
+      type (C_PTR),    value  :: point_coords
+      type (C_PTR),    value  :: projected_coords
+      type (C_PTR),    value  :: projected_uvw
+
+    end subroutine cwipi_ho_location_fct_t
+
+    subroutine  cwipi_ho_basis_fct_t (entities_dim, &
+                                      order, &
+                                      n_nodes, &
+                                      n_pts, &
+                                      uvw, &
+                                      weights) bind(c)
+      use, intrinsic :: ISO_C_BINDING 
+      implicit none
+      integer (C_INT), value :: entities_dim
+      integer (C_INT), value :: order
+      integer (C_INT), value :: n_nodes
+      integer (C_INT), value :: n_pts
+
+      type (C_PTR),    value :: uvw
+      type (C_PTR),    value :: weights
+
+    end subroutine cwipi_ho_basis_fct_t
+  end interface
+
+  interface cwipi_ho_user_elt_set_f; module procedure &
+       cwipi_ho_user_elt_set_f_
+  end interface cwipi_ho_user_elt_set_f
 
   !
   ! Private
@@ -383,6 +427,7 @@ module cwipi
              cwipi_ho_options_set_f_,       &
              cwipi_ho_ordering_from_IJK_set_f_,&
              cwipi_ho_ordering_from_ref_elt_set_f_,&
+             cwipi_ho_user_elt_set_f_, &
              cwipi_add_polyhedra_f_,          &
              cwipi_locate_f_,                 &
              cwipi_update_location_f_,        &
@@ -1644,8 +1689,56 @@ contains
     call cwipi_ho_ordering_from_IJK_set_cf (couplingName, lCouplingName, tElt, nNodes, IJK)
 
   end subroutine cwipi_ho_ordering_from_IJK_set_f_
+  
 
+ !********************************************************************************
+ !
+ ! Define a user ho element 
+ !
+ ! parameters:
+ !   t_elt               <-- element type
+ !   element_basis       <-- element basis function
+ !   location_in_element <-- location in element function
+ !
+ !********************************************************************************
 
+  subroutine cwipi_ho_user_elt_set_f_ (elt_type, &
+                                       element_basis, &
+                                       location_in_element)
+
+    use, intrinsic :: ISO_C_BINDING 
+
+    implicit none
+
+    interface
+      subroutine cwipi_ho_user_elt_set_c (elt_type, &
+                                          element_basis,&
+                                          location_in_element) bind (c, name = "cwipi_ho_user_elt_set")
+        use, intrinsic :: ISO_C_BINDING 
+        implicit none
+        
+        integer (C_INT), value :: elt_type
+        type (c_funptr), value :: element_basis
+        type (c_funptr), value :: location_in_element
+
+      end subroutine cwipi_ho_user_elt_set_c
+    end interface
+    integer (kind = cwipi_int_l) :: elt_type
+    procedure (cwipi_ho_basis_fct_t) :: element_basis
+    procedure (cwipi_ho_location_fct_t) :: location_in_element
+
+    integer (C_INT) :: elt_type_
+    type (c_funptr) :: element_basis_c
+    type (c_funptr) :: location_in_element_c
+
+    elt_type_ = elt_type
+    element_basis_c = c_funloc(element_basis)
+    location_in_element_c = c_funloc(location_in_element)
+    
+    call cwipi_ho_user_elt_set_c (elt_type_, element_basis_c, location_in_element_c)
+
+  end subroutine cwipi_ho_user_elt_set_f_
+  
 !********************************************************************************
 !
 ! Define ho element ordering from reference element (definition between 0 - 1)

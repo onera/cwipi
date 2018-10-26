@@ -1888,7 +1888,7 @@ _default_location
     
   default:
     bftc_error(__FILE__, __LINE__, 0,
-               _("_default_location : Element not implemented yet\n"));
+               _("FVMC_ho_location : %d Element type not implemented yet\n"), _type);
 
   }
   
@@ -1908,40 +1908,38 @@ _default_location
  *
  *----------------------------------------------------------------------------*/
 
-static fvmc_ho_location_user_elt_t *
+static fvmc_ho_location_user_elt_t **
 _get_user_elt (fvmc_element_t elt_type)
 {
 
-  fvmc_ho_location_user_elt_t *user_elt = NULL;
-  
   switch(elt_type) {
 
   case FVMC_EDGE:
-    user_elt = _user_edge;
+    return &_user_edge;
     break;
     
   case FVMC_FACE_TRIA:
-    user_elt = _user_tria;
+    return &_user_tria;
     break;
     
   case FVMC_FACE_QUAD:
-    user_elt = _user_quad;
+    return &_user_quad;
     break;
     
   case FVMC_CELL_TETRA:
-    user_elt = _user_tetra;
+    return &_user_tetra;
     break;
     
   case FVMC_CELL_PYRAM:
-    user_elt = _user_pyra;
+    return &_user_pyra;
     break;
     
   case FVMC_CELL_PRISM:
-    user_elt = _user_prism;
+    return &_user_prism;
     break;
     
   case FVMC_CELL_HEXA:
-    user_elt = _user_hexa;
+    return &_user_hexa;
     break;
 
   default:
@@ -1949,7 +1947,7 @@ _get_user_elt (fvmc_element_t elt_type)
                _("fvmc_ho_user_elt_unset : Unvailable element type\n"));
   }
 
-  return user_elt;
+  return NULL;
 }
 
 
@@ -1968,11 +1966,11 @@ void
 fvmc_ho_location_user_elt_unset (fvmc_element_t elt_type)
 {
 
-  fvmc_ho_location_user_elt_t *_user_elt = _get_user_elt (elt_type);
+  fvmc_ho_location_user_elt_t **_user_elt = _get_user_elt (elt_type);
   
-  if (_user_elt != NULL) {
-    free (_user_elt);
-    _user_elt = NULL;
+  if (*_user_elt != NULL) {
+    free (*_user_elt);
+    *_user_elt = NULL;
   }
   
 }
@@ -2001,14 +1999,14 @@ void
 fvmc_ho_location_user_elt_set (fvmc_element_t elt_type,
                                fvmc_ho_location_fct_t location_in_elt)
 {
-  fvmc_ho_location_user_elt_t *user_elt = _get_user_elt (elt_type);
+  fvmc_ho_location_user_elt_t **user_elt = _get_user_elt (elt_type);
   
-  if (user_elt == NULL) {
-    user_elt =
+  if (*user_elt == NULL) {
+    *user_elt =
       (fvmc_ho_location_user_elt_t *) malloc (sizeof(fvmc_ho_location_user_elt_t));
   }
 
-  user_elt->location_in_elt = location_in_elt;
+  (*user_elt)->location_in_elt = location_in_elt;
 }
 
 
@@ -2044,7 +2042,7 @@ fvmc_ho_location
 )
 {
   
-  fvmc_ho_location_user_elt_t *user_elt = _get_user_elt (type);
+  fvmc_ho_location_user_elt_t **user_elt = _get_user_elt (type);
 
   int entities_dim = 0;
   switch(type) {
@@ -2067,9 +2065,9 @@ fvmc_ho_location
 
   }
   
-  if (user_elt != NULL) {
-    if (user_elt->location_in_elt != NULL) {
-      return (user_elt->location_in_elt ) (entities_dim,
+  if (*user_elt != NULL) {
+    if ((*user_elt)->location_in_elt != NULL) {
+      return ((*user_elt)->location_in_elt ) (entities_dim,
                                            order,
                                            n_nodes,
                                            nodes_coords,

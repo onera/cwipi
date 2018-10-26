@@ -81,10 +81,14 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new")
                              PRIVATE ${PDM_INC}) 
 endif ()
 
-if (CWP_ENABLE_SPACE_NODAL_BASIS) 
-  add_dependencies(cwp spaceBasis)
-  target_include_directories(cwp PRIVATE ${CMAKE_SOURCE_DIR}/spaceBasis/src)
-  target_include_directories(cwp PRIVATE ${CMAKE_SOURCE_DIR}/spaceBasis)
+#if (CWP_ENABLE_SPACE_NODAL_BASIS) 
+#  add_dependencies(cwp spaceBasis)
+#  target_include_directories(cwp PRIVATE ${CMAKE_SOURCE_DIR}/spaceBasis/src)
+#  target_include_directories(cwp PRIVATE ${CMAKE_SOURCE_DIR}/spaceBasis)
+#endif()
+
+if (BLAS_FOUND)
+  target_include_directories(cwp PRIVATE ${BLAS_INCDIR})
 endif()
 
 if (CWP_ENABLE_Fortran)
