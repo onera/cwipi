@@ -87,8 +87,11 @@ endif ()
 #  target_include_directories(cwp PRIVATE ${CMAKE_SOURCE_DIR}/spaceBasis)
 #endif()
 
+message("BLAS_INCLUDE :" ${BLAS_COMPILER_FLAGS})
+
 if (BLAS_FOUND)
-  target_include_directories(cwp PRIVATE ${BLAS_INCDIR})
+  target_compile_options (cwp PRIVATE ${BLAS_COMPILER_FLAGS})
+#  target_include_directories(cwp PRIVATE ${BLAS_INCDIR})
 endif()
 
 if (CWP_ENABLE_Fortran)

@@ -580,7 +580,7 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
 
       if (order > 1 && FVMC_ABS (opt_bbox_step) != 1) {
 
-        if ((this_section->type != FVMC_FACE_TRIA) ||
+        if ((this_section->type != FVMC_FACE_TRIA) &&
             (this_section->type != FVMC_FACE_QUAD)) {
           printf ("fvmc_locator_set_nodal warning : optimized bounding box is not implemented "
                   "for this element type %d\n", this_section->type);
