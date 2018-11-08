@@ -371,9 +371,14 @@ contains
     integer, allocatable :: trian(:,:),trian2(:,:),trian3(:,:),trian4(:,:)
     integer, allocatable :: edges(:,:),edges2(:,:),edges3(:,:),edges4(:,:)
     integer              :: tab(1:27)
-    integer, parameter   :: hexaQ2Gmsh2Inria (1:27)=[01,02,03,04,05,06,07,08,09,12,14,10,11,13,15,16,17,19,20,18,21,23,22,26,24,25,27] ! <=
-    integer, parameter   :: hexaQ2Inria2Medit(1:27)=[01,02,03,04,05,06,07,08,09,10,11,12,17,18,19,20,13,14,15,16,21,24,23,25,26,22,27]
-   !integer, parameter   :: hexaQ2test (1:27)=[01,02,03,04,05,06,07,08,09,12,14,10,17,19,20,18,11,13,15,16,21,26,22,24,25,23,27]
+    integer, parameter   :: hexaQ2Gmsh2Inria (1:27)=[01,02,03,04,05,06,07,08,09,&
+                                                     12,14,10,11,13,15,16,17,19,20,&
+                                                     18,21,23,22,26,24,25,27] ! <=
+    integer, parameter   :: hexaQ2Inria2Medit(1:27)=[01,02,03,04,05,06,07,08,09,&
+                                                     10,11,12,17,18,19,20,13,14,&
+                                                     15,16,21,24,23,25,26,22,27]
+    !integer, parameter   :: hexaQ2test (1:27)=&
+    ![01,02,03,04,05,06,07,08,09,12,14,10,17,19,20,18,11,13,15,16,21,26,22,24,25,23,27]
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -622,7 +627,10 @@ contains
           case( 8) ; nL2P2=nL2P2+1 ; read(ligne,*)i,cellType,NbParam,edges2(04,nL2P2),entite,edges2(1:03,nL2P2)
           case( 9) ; nT3P2=nT3P2+1 ; read(ligne,*)i,cellType,NbParam,trian2(07,nT3P2),entite,trian2(1:06,nT3P2)
           case(10) ; nQ4P2=nQ4P2+1 ; read(ligne,*)i,cellType,NbParam,quadr2(10,nQ4P2),entite,quadr2(1:09,nQ4P2)
-          case(11) ; nT4P2=nT4P2+1 ; read(ligne,*)i,cellType,NbParam,tetra2(11,nT4P2),entite,tetra2(1:08,nT4P2),tetra2(10,nT4P2),tetra2(9,nT4P2) !> Retournement 9-10
+          case(11) ; nT4P2=nT4P2+1 ; read(ligne,*)i,cellType,&
+                                                  NbParam,tetra2(11,nT4P2),&
+                                                  entite,tetra2(1:08,nT4P2),&
+                                                  tetra2(10,nT4P2),tetra2(9,nT4P2) !> Retournement 9-10
           case(12) ; nH6P2=nH6P2+1 ; read(ligne,*)i,cellType,NbParam,hexas2(28,nH6P2),entite,hexas2(1:27,nH6P2)
           !>
           case(21) ; nT3P3=nT3P3+1 ; read(ligne,*)i,cellType,NbParam,trian3(11,nT3P3),entite,trian3(1:10,nT3P3)
@@ -1449,23 +1457,23 @@ subroutine  userInterpolation                        ( &
   integer :: nLocalElement
   integer :: nLocalPolhyedra
   integer :: nDistantPoint
-  real(8) :: localCoordinates                        (*)
-  integer :: localConnectivityIndex                  (*)
-  integer :: localConnectivity                       (*)
-  integer :: localPolyFaceIndex                      (*)
-  integer :: localPolyCellToFaceConnec               (*)
-  integer :: localPolyFaceConnecIdx                  (*)
-  integer :: localPolyFaceConnec                     (*)
-  real(8) :: disPtsCoordinates                       (*)
-  integer :: disPtsLocation                          (*)
-  real(4) :: disPtsDistance                          (*)
-  integer :: disPtsBaryCoordIdx                      (*)
-  real(8) :: distantPointsBarycentricCoordinates     (*)
-  real(8) :: dist_uvw                                (*)
+  real(8), target :: localCoordinates                        (*)
+  integer, target :: localConnectivityIndex                  (*)
+  integer, target :: localConnectivity                       (*)
+  integer, target :: localPolyFaceIndex                      (*)
+  integer, target :: localPolyCellToFaceConnec               (*)
+  integer, target :: localPolyFaceConnecIdx                  (*)
+  integer, target :: localPolyFaceConnec                     (*)
+  real(8), target :: disPtsCoordinates                       (*)
+  integer, target :: disPtsLocation                          (*)
+  real(4), target :: disPtsDistance                          (*)
+  integer, target :: disPtsBaryCoordIdx                      (*)
+  real(8), target :: distantPointsBarycentricCoordinates     (*)
+  real(8), target :: dist_uvw                                (*)
   integer :: stride
   integer :: solverType
-  real(8) ::   localField                            (*)
-  real(8) :: distantField                            (*)
+  real(8), target ::   localField                            (*)
+  real(8), target :: distantField                            (*)
   !>
   integer          :: i,j,k,iRank,iErr
   integer          :: iNod,nNod,iMod,nMod, iMod2
@@ -1486,6 +1494,8 @@ subroutine  userInterpolation                        ( &
   real(8), pointer ::   myValues(:,:)
   real(8), pointer :: linkVert  (:,:)
   real(8), pointer :: linkValues(:,:)
+
+  type (C_PTR)     :: localCoordinates_ptr
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1497,8 +1507,8 @@ subroutine  userInterpolation                        ( &
   
   linkVertSize=nDistantPoint
   nVert=nLocalVertex
-  
-  call c_f_pointer(cptr=c_loc(localCoordinates ), fptr=  myVert  , shape=[     3,nVert       ])  
+ 
+  call c_f_pointer(cptr=c_loc(localCoordinates), fptr=  myVert  , shape=[     3,nVert       ])  
   call c_f_pointer(cptr=c_loc(localField       ), fptr=  myValues, shape=[stride,nVert       ])  
   call c_f_pointer(cptr=c_loc(disPtsCoordinates), fptr=linkVert  , shape=[     3,linkVertSize])  
   call c_f_pointer(cptr=c_loc(distantField     ), fptr=linkValues, shape=[stride,linkVertSize])  
@@ -1530,8 +1540,14 @@ subroutine  userInterpolation                        ( &
   do iVert=1,linkVertSize
     iCell=disPtsLocation(iVert)
     nMod=localConnectivityIndex(iCell+1)-localConnectivityIndex(iCell)
-    if    ( nMod==(order+1)*(order+1)   )then ; nQ4=nQ4+1 ; uQ4(nQ4)=2d0*uv0(1,iVert)-1d0 ; vQ4(nQ4)=2d0*uv0(2,iVert)-1d0; uvQ4(1:2,nQ4)=uv0(1:2,iVert)
-    elseif( nMod==(order+1)*(order+2)/2 )then ; nT3=nT3+1 ; uvT3(1:2,nT3)=uv0(1:2,iVert)
+    if    ( nMod==(order+1)*(order+1)   )then
+      nQ4=nQ4+1
+      uQ4(nQ4)=2d0*uv0(1,iVert)-1d0
+      vQ4(nQ4)=2d0*uv0(2,iVert)-1d0
+      uvQ4(1:2,nQ4)=uv0(1:2,iVert)
+    elseif( nMod==(order+1)*(order+2)/2 )then
+      nT3=nT3+1
+      uvT3(1:2,nT3)=uv0(1:2,iVert)
     endif
   enddo    
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -2030,7 +2046,8 @@ subroutine fortran_surf_PiQj_common (tmaillage)
 
     print *, "tol =", tol
     
-    write(buffer,'("")')                                                                                        ; call msg2(trim(buffer))
+    write(buffer,'("")')
+    call msg2(trim(buffer))
     write(buffer,'("Code: ",a," creates coupling: ",a," with code: ",a," and tol=",e22.15,t130,"@rkw",i3)') &
     &  trim(codeName),trim(couplingName),trim(codeCoupledName),tol,rankWorld  ; call msg1(trim(buffer))
     
@@ -2102,7 +2119,8 @@ subroutine fortran_surf_PiQj_common (tmaillage)
     dim  = nT3*(meshOrder+1)*(meshOrder+2)/2 &
     &     +nQ4*(meshOrder+1)*(meshOrder+1)
     
-    write(buffer,'(3x,"meshOrder=",i2,"  nVert=",i6," nQ4=",i6," nT3=",i6,t130,"@rkw",i3)')meshOrder,nVert,nQ4,nT3,rankWorld ; call msg1(trim(buffer))  
+    write(buffer,'(3x,"meshOrder=",i2,"  nVert=",i6," nQ4=",i6," nT3=",i6,t130,"@rkw",i3)')meshOrder,nVert,nQ4,nT3,rankWorld
+    call msg1(trim(buffer))  
     !<<<<<<<
     
     !>>>>>>>
@@ -2785,7 +2803,8 @@ subroutine fortran_surf_PiQj_common (tmaillage)
     endif
     
     write(buffer,'("")') ; call msg2(trim(buffer))
-    write(buffer,'("linkVert compOrder=",i3," -> linkVertSize=",i6,t130,"@rkw",i3)')compOrder,linkVertSize,rankWorld ; call msg1(trim(buffer))
+    write(buffer,'("linkVert compOrder=",i3," -> linkVertSize=",i6,t130,"@rkw",i3)')compOrder,linkVertSize,rankWorld
+    call msg1(trim(buffer))
     
 #else
     
