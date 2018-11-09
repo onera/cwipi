@@ -729,9 +729,11 @@ _geom_close(PDM_writer_t *cs)
     double t_elapsed;
     PDM_io_get_timer_total(PDM_writer_ensight->f_unit_geom, &t_cpu, &t_elapsed);
     const char * nom_fichier = PDM_io_get_nom_fichier(PDM_writer_ensight->f_unit_geom);
-    if (rank == 0) {
-      PDM_printf("Temps elapsed d'ecriture du fichier '%s' : %12.5e s\n", nom_fichier, t_elapsed);
-      PDM_printf("Temps cpu d'ecriture du fichier '%s' : %12.5e s\n", nom_fichier, t_cpu);
+    if (1 == 0) {
+      if (rank == 0) {
+        PDM_printf("Temps elapsed d'ecriture du fichier '%s' : %12.5e s\n", nom_fichier, t_elapsed);
+        PDM_printf("Temps cpu d'ecriture du fichier '%s' : %12.5e s\n", nom_fichier, t_cpu);
+      }
     }
     PDM_io_detruit(PDM_writer_ensight->f_unit_geom);
   }
@@ -755,9 +757,11 @@ _var_close(PDM_writer_var_ensight_t *var, const int rank)
     double t_elapsed;
     PDM_io_get_timer_total(var->f_unit, &t_cpu, &t_elapsed);
     const char * nom_fichier = PDM_io_get_nom_fichier(var->f_unit);
-    if (rank == 0) {
-      PDM_printf("Temps elapsed d'ecriture du fichier '%s' : %12.5e s\n", nom_fichier, t_elapsed);
-      PDM_printf("Temps cpu d'ecriture du fichier '%s' : %12.5e s\n", nom_fichier, t_cpu);
+    if (1 == 0) {
+      if (rank == 0) {
+        PDM_printf("Temps elapsed d'ecriture du fichier '%s' : %12.5e s\n", nom_fichier, t_elapsed);
+        PDM_printf("Temps cpu d'ecriture du fichier '%s' : %12.5e s\n", nom_fichier, t_cpu);
+      }
     }
     PDM_io_detruit(var->f_unit);
     var->f_unit = -1;
@@ -1688,9 +1692,8 @@ PDM_writer_ensight_var_write
 
           for (int i = 0; i < n_part; i++) {
             const int n_vertices = PDM_Mesh_nodal_n_vertices_get (geom->idx_mesh, i);
-            const double *vertices = PDM_Mesh_nodal_vertices_get (geom->idx_mesh, i);
             for (int j = 0; j < n_vertices; j++) {
-              buff[n_som_proc++] = (float) vertices[j*var->dim + comp_a_ecrire];
+              buff[n_som_proc++] = (float) var->_val[igeom][i][j*var->dim + comp_a_ecrire];
             }
           }
 

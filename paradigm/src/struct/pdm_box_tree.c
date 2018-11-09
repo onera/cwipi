@@ -235,6 +235,10 @@ int             stack[]
   int sort_child[bt->n_children];
   double dist_child[bt->n_children];
 
+  for (int i = 0; i < bt->n_children; i++) {
+    dist_child[i] = HUGE_VAL;
+  }
+
   /* Sort children and store them into the stack */
 
   const int *_child_ids = bt->child_ids + id_curr_node*bt->n_children;
@@ -1171,7 +1175,7 @@ _copy_tree(PDM_box_tree_t        *dest,
 
   dest->nodes = (_node_t *) malloc(dest->n_max_nodes * sizeof(_node_t));
   dest->child_ids = (int *) malloc(dest->n_max_nodes*dest->n_children * sizeof(int));
-  dest->extents = (double *) malloc(dest->n_max_nodes*dest->boxes->dim  * sizeof(double));
+  dest->extents = (double *) malloc(2 * dest->n_max_nodes*dest->boxes->dim  * sizeof(double));
   dest->box_ids = (int *) malloc((dest->stats).n_linked_boxes * sizeof(int));
 
   memcpy(dest->nodes, src->nodes, dest->n_nodes * sizeof(_node_t));
@@ -1181,7 +1185,7 @@ _copy_tree(PDM_box_tree_t        *dest,
 
   memcpy(dest->extents,
          src->extents,
-         dest->n_nodes * dest->boxes->dim  * sizeof(double));
+         2 * dest->n_nodes * dest->boxes->dim  * sizeof(double));
 
   memcpy(dest->box_ids,
          src->box_ids,

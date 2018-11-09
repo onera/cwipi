@@ -22,6 +22,7 @@ else ()
 endif ()
 
 configure_file(Pypdm.pyx.in Pypdm.pyx)
+configure_file(pdm_part_coarse.pxi.in pdm_part_coarse.pxi)
 
 file ( COPY . DESTINATION "${CMAKE_CURRENT_BINARY_DIR}" FILES_MATCHING PATTERN "*.pxi")
 file ( COPY . DESTINATION "${CMAKE_CURRENT_BINARY_DIR}" FILES_MATCHING PATTERN "*.py")

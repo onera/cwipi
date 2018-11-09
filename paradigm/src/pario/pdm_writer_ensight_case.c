@@ -1092,7 +1092,7 @@ PDM_writer_ensight_case_write(PDM_writer_ensight_case_t  *const this_case,
     fprintf(f, "time values:\n");
     
     for (j = 0 ; j < ts->n_time_values ; j++)
-      fprintf(f, "            %g\n", ts->time_value[j]);
+      fprintf(f, "            %15.8e\n", ts->time_value[j]);
   }
 
   /* Close case file */

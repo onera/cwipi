@@ -1100,6 +1100,30 @@ PDM_writer_fmt_free
 );
 
 
+/*----------------------------------------------------------------------------
+ * Réinitialisation des donnees decrivant le maillage courant
+ *
+ * parameters :
+ *   id_cs           <-- Identificateur de l'objet cs
+ *   id_geom         <-- Identificateur de l'objet geometrique
+ *
+ *----------------------------------------------------------------------------*/
+
+void
+PROCF (pdm_writer_geom_data_reset, PDM_WRITER_GEOM_DATA_RESET)
+(
+int           *id_cs,
+int           *id_geom
+ ); 
+
+
+void
+PDM_writer_geom_data_reset
+(
+const int      id_cs,
+const int      id_geom
+ ); 
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

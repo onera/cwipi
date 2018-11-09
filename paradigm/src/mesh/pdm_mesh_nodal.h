@@ -883,6 +883,20 @@ PDM_Mesh_nodal_vertices_g_num_parent_get
  const int          id_part 
 );
 
+/**
+ * \brief Reset a nodal mesh structure
+ *
+ * \param [in]  idx   Nodal mesh handle
+ *
+ * \return      NULL
+ *
+ */
+
+void
+PDM_Mesh_nodal_reset
+(
+const int idx
+ );
 
 #ifdef __cplusplus
 }

@@ -1258,11 +1258,11 @@ void
     face_methods = PDM_Handles_create (n_default_methods);
 
     PDM_part_renum_method_face_add ("PDM_PART_RENUM_FACE_NONE",
-                             NULL);
+                                    NULL);
     PDM_part_renum_method_face_add ("PDM_PART_RENUM_FACE_RANDOM",
-                             _renum_faces_random);
+                                    _renum_faces_random);
     PDM_part_renum_method_face_add ("PDM_PART_RENUM_FACE_LEXICOGRAPHIC",
-                             _renum_faces_lexicographic);
+                                    _renum_faces_lexicographic);
   }
   
 }

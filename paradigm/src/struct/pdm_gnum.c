@@ -1071,8 +1071,9 @@ _gnum_from_parent_compute
   /* Stockage du resultat et determination de la nouvelle numerotation absolue
      independante du parallelisme */
     
-  for (int j = 0; j < l_numabs_tmp; j++) 
+  for (int j = 0; j < l_numabs_tmp; j++) { 
     numabs_tmp[j] = 0;
+  }
 
   for (int j = 0; j < n_procs; j++) {
     
@@ -1089,11 +1090,33 @@ _gnum_from_parent_compute
     }
   }
 
-  int cpt_elt_proc = 0;
+  PDM_g_num_t cpt_elt_proc = 0;
   for (int j = 0; j < l_numabs_tmp; j++) {
     if (numabs_tmp[j] == 1) {
+      cpt_elt_proc += 1;
+    }
+  }
 
-      /* On fournit une numerotation independante du parallelisme */
+  /* Mise a jour de n_elt_stocke_procs */
+  
+  PDM_MPI_Allgather((void *) &cpt_elt_proc,
+                    1,
+                    PDM__PDM_MPI_G_NUM,
+                    (void *) (n_elt_stocke_procs + 1), 
+                    1,
+                    PDM__PDM_MPI_G_NUM,
+                    _gnum->comm);
+
+  n_elt_stocke_procs[0] = 1;
+  for (int j = 1; j < n_procs + 1; j++) {
+    n_elt_stocke_procs[j] += n_elt_stocke_procs[j-1];
+  }    
+
+  /* On fournit une numerotation independante du parallelisme */
+
+  cpt_elt_proc = 0;
+  for (int j = 0; j < l_numabs_tmp; j++) {
+    if (numabs_tmp[j] == 1) {
       
       numabs_tmp[j] = n_elt_stocke_procs[i_proc] + cpt_elt_proc;
       cpt_elt_proc += 1;

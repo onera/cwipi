@@ -1045,6 +1045,10 @@ double          *closest_octree_pt_dist2
   int sort_child[n_children];
   double dist_child[n_children];
 
+  for (int i = 0; i < n_children; i++) {
+    dist_child[i] = HUGE_VAL;
+  }
+
   int *stack = malloc ((sizeof(int)) * s_pt_stack);
   int pos_stack = 0;
 

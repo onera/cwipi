@@ -162,11 +162,13 @@ PDM_mesh_dist_process
 {
 
   /* 
-   * Construction octree distribue avec les sommets de la surface (ou centre face a voir) 
+   * Construction octree distribue avec les sommets de la surface 
+   * (ou centre face a voir) 
    */
 
   /*
-   *  Pour chaque point recherche du sommet le plus proche (initialisation du bbtree) 
+   *  Pour chaque point recherche du sommet le plus proche 
+   *  (initialisation du bbtree) 
    */
 
   /*
@@ -174,14 +176,17 @@ PDM_mesh_dist_process
    */
   
   /* 
-   * Pour chaque point determination des boites situee a une plus courte distance que le maxima produit par l'octree 
+   * Pour chaque point determination des boites situee 
+   * a une plus courte distance que le maxima produit par l'octree 
    */
 
   /* 
-   * Repartition des sommets suivant la numerotation absolue en fonction (poids sur le nombre de candidats)
+   * Repartition des sommets suivant la numerotation absolue en fonction 
+   * (poids sur le nombre de candidats)
    *  Necessite de faire une block_to_part avec poids
    * 
-   * Il faut envoyer les coordonnees des sommets de chaque triangle ou quadrangle ou polygone
+   * Il faut envoyer les coordonnees des sommets de chaque triangle ou 
+   * quadrangle ou polygone
    *
    */
 
@@ -192,11 +197,6 @@ PDM_mesh_dist_process
   /* 
    * Envoi du resultat selon la repartition initiale des points  
    */
-  
-  
-  
-
-
   
 }
 

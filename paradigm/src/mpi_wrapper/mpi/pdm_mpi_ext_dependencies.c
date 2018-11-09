@@ -366,7 +366,7 @@ int *part
     
     _veloloctab = (SCOTCH_Num *) cellWeight; 
     _edloloctab = (SCOTCH_Num *) edgeWeight;
-    _part = part;
+    _part = (SCOTCH_Num *) part;
     
     __veloloctab = NULL; 
     __edloloctab = NULL;
@@ -375,17 +375,24 @@ int *part
   }
   
   else {
-          
-    __veloloctab = (SCOTCH_Num *) malloc (sizeof(SCOTCH_Num) * _vertlocnbr);
-    __part       = (SCOTCH_Num *) malloc (sizeof(SCOTCH_Num) * _vertlocnbr);
-    __edloloctab = (SCOTCH_Num *) malloc (sizeof(SCOTCH_Num) * _edgelocsiz);
-      
-    for (int i = 0; i < _vertlocnbr; i++) {
-      __veloloctab[i] = cellWeight[i]; 
+
+    __veloloctab = NULL; 
+    __edloloctab = NULL;
+
+    if (cellWeight != NULL) {
+      __veloloctab = (SCOTCH_Num *) malloc (sizeof(SCOTCH_Num) * _vertlocnbr);
+      for (int i = 0; i < _vertlocnbr; i++) {
+        __veloloctab[i] = cellWeight[i]; 
+      }
     }
 
-    for (int i = 0; i < _edgelocsiz; i++) {
-      __edloloctab[i] = edgeWeight[i]; 
+    __part       = (SCOTCH_Num *) malloc (sizeof(SCOTCH_Num) * _vertlocnbr);
+
+    if (edgeWeight != NULL) {
+      __edloloctab = (SCOTCH_Num *) malloc (sizeof(SCOTCH_Num) * _edgelocsiz);
+      for (int i = 0; i < _edgelocsiz; i++) {
+        __edloloctab[i] = edgeWeight[i]; 
+      }
     }
 
     _veloloctab = __veloloctab; 
@@ -449,6 +456,7 @@ int *part
   if (__vertloctab != NULL) {
     free (__vertloctab);
   }
+
     
   if (__edgeloctab != NULL) {
     free (__edgeloctab);

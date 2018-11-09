@@ -506,9 +506,7 @@ int *part
     __verttab = (SCOTCH_Num *) malloc (sizeof(SCOTCH_Num) * (_vertnbr + 1));
     __vendtab = __verttab + 1; 
     __edgetab = (SCOTCH_Num *) malloc (sizeof(SCOTCH_Num) * _edgesiz);
-    __velotab = (SCOTCH_Num *) malloc (sizeof(SCOTCH_Num) * _vertnbr);
     __part    = (SCOTCH_Num *) malloc (sizeof(SCOTCH_Num) * _vertnbr);
-    __edlotab = (SCOTCH_Num *) malloc (sizeof(SCOTCH_Num) * _edgesiz);
 
     for (int i = 0; i < _vertnbr + 1; i++) {
       __verttab[i] = dualGraphIdx[i]; 
@@ -517,13 +515,22 @@ int *part
     for (int i = 0; i < _edgesiz; i++) {
       __edgetab[i] = dualGraph[i]; 
     }
-      
-    for (int i = 0; i < _vertnbr; i++) {
-      __velotab[i] = cellWeight[i]; 
+
+    __velotab = NULL; 
+    __edlotab = NULL;
+
+    if (cellWeight != NULL) {
+      __velotab = (SCOTCH_Num *) malloc (sizeof(SCOTCH_Num) * _vertnbr);
+      for (int i = 0; i < _vertnbr; i++) {
+        __velotab[i] = cellWeight[i]; 
+      }
     }
 
-    for (int i = 0; i < _edgesiz; i++) {
-      __edlotab[i] = edgeWeight[i]; 
+    if (edgeWeight != NULL) {
+      __edlotab = (SCOTCH_Num *) malloc (sizeof(SCOTCH_Num) * _edgesiz);
+      for (int i = 0; i < _edgesiz; i++) {
+        __edlotab[i] = edgeWeight[i]; 
+      }
     }
 
     _velotab = __velotab; 

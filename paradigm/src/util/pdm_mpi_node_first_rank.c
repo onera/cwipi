@@ -241,7 +241,7 @@ PDM_MPI_Comm comm
 
   // Affichage
 
-  if (1 == 1) {
+  if (0 == 1) {
 
     int masterNodeRank = 0;
     int nbIORank = 0;
