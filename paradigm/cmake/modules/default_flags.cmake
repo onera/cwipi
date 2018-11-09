@@ -151,7 +151,7 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
 
 elseif (CMAKE_C_COMPILER_ID STREQUAL "Intel")
 
-  set (CMAKE_C_FLAGS "-std=gnu99 -restrict -fpic -funsigned-char -Wall -Wcheck -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused -wd869")
+  set (CMAKE_C_FLAGS "-std=gnu99 -restrict -fpic -funsigned-char -Wall -Wcheck -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused -wd869,3656")
 
   set (CMAKE_C_FLAGS_RELEASE "-O3")
 
