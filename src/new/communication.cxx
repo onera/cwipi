@@ -120,12 +120,10 @@ namespace cwipi {
         //
         // Build the union communicator between the two coupled codes
 
-        int sorting = 0;
         if (localCodeProperties.idGet() < cplCodeProperties.idGet()) {
           MPI_Group_union (localCodeProperties.connectableGroupGet(),
                            cplCodeProperties.connectableGroupGet(),
                            &_unionGroup);
-          sorting = 1;
         }
         else {
           MPI_Group_union (cplCodeProperties.connectableGroupGet(),

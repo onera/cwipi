@@ -87,8 +87,6 @@ endif ()
 #  target_include_directories(cwp PRIVATE ${CMAKE_SOURCE_DIR}/spaceBasis)
 #endif()
 
-message("BLAS_COMPILER_FLAGS :" ${BLAS_COMPILER_FLAGS})
-message("BLAS_INCLUDE_DIRS :" ${BLAS_INCLUDE_DIRS})
 if (BLAS_FOUND)
   target_compile_options (cwp PRIVATE ${BLAS_COMPILER_FLAGS})
   if (BLAS_INCLUDE_DIRS) 

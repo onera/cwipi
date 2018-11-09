@@ -14,20 +14,18 @@ if (NOT PASS_DEFAULT_FLAGS)
 
 if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
 
-  set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fPIC -Wall -pedantic -std=gnu")
+  set (CMAKE_Fortran_FLAGS "-fPIC -Wall -pedantic -std=gnu -Wno-unused-dummy-argument -Wno-maybe-uninitialized")
 
   set (CMAKE_Fortran_FLAGS_RELEASE         "-O3")
   set (CMAKE_Fortran_FLAGS_DEBUG           "-O0 -g -fcheck=bounds -fbacktrace")
   set (CMAKE_Fortran_FLAGS_PROFILING       "-O3 -pg")
   set (CMAKE_Fortran_FLAGS_RELWITHDEBINFO  "-O3 -g")
   set (CMAKE_Fortran_FLAGS_MINSIZEREL      "-O2 -g")
-
+    
   set (FORTRAN_LIBRARIES                   )
   set (FORTRAN_LIBRARIES_FLAG              )
 
 elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
- 
-  if (NOT CMAKE_Fortran_FLAGS)
 
   set (CMAKE_Fortran_FLAGS "-cpp -fpic -warn -diag-disable 7712")
 
@@ -39,8 +37,6 @@ elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
   set (CMAKE_Fortran_FLAGS_PROFILING      "${CMAKE_Fortran_FLAGS_RELEASE} -pg")
   set (CMAKE_Fortran_FLAGS_RELWITHDEBINFO "${CMAKE_Fortran_FLAGS_RELEASE} -g")
   set (CMAKE_Fortran_FLAGS_MINSIZEREL     "-O2 -g")
-
-  endif()
 
   find_library(FORTRAN_LIBRARIES ifcore)
   mark_as_advanced (FORTRAN_LIBRARIES)
@@ -95,7 +91,6 @@ elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "Cray")
   set (FORTRAN_LIBRARIES         )
   set (FORTRAN_LIBRARIES_FLAG    )
 
-
 elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "PathScale")
 
   set (CMAKE_Fortran_FLAGS "-Wall -Wno-unused -cpp")
@@ -146,7 +141,7 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
 
   link_libraries ("m")
 
-  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -fPIC -funsigned-char -pedantic -W -Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wunused -Wfloat-equal")
+  set (CMAKE_C_FLAGS "-std=gnu99 -fPIC -funsigned-char -pedantic -W -Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wunused -Wfloat-equal  -Wno-unused-dummy-argument")
 
   set (CMAKE_C_FLAGS_RELEASE         "-O3")
   set (CMAKE_C_FLAGS_DEBUG           "-O0 -g")
@@ -156,7 +151,7 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
 
 elseif (CMAKE_C_COMPILER_ID STREQUAL "Intel")
 
-  set (CMAKE_C_FLAGS "-std=gnu99 -restrict -fpic -funsigned-char -Wall -Wcheck -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused")
+  set (CMAKE_C_FLAGS "-std=gnu99 -restrict -fpic -funsigned-char -Wall -Wcheck -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused -wd869")
 
   set (CMAKE_C_FLAGS_RELEASE "-O3")
 
@@ -166,7 +161,7 @@ elseif (CMAKE_C_COMPILER_ID STREQUAL "Intel")
   set (CMAKE_C_FLAGS_MINSIZEREL      "-O2 -g")
 
 elseif (CMAKE_C_COMPILER_ID STREQUAL "AppleClang")
-  set (CMAKE_C_FLAGS " ${CMAKE_C_FLAGS} -std=c99 -fPIC -funsigned-char -Wall -pedantic -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused -Wno-empty-translation-unit -Wno-unused-function")
+  set (CMAKE_C_FLAGS "-std=c99 -fPIC -funsigned-char -Wall -pedantic -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused -Wno-empty-translation-unit -Wno-unused-function")
 
   set (CMAKE_C_FLAGS_RELEASE "-O3")
   set (CMAKE_C_FLAGS_DEBUG "-g -O0")
@@ -176,7 +171,7 @@ elseif (CMAKE_C_COMPILER_ID STREQUAL "AppleClang")
 
 elseif (CMAKE_C_COMPILER_ID MATCHES "XL")
 
-  set (CMAKE_C_FLAGS " ${CMAKE_C_FLAGS} -qlanglvl=stdc99 -q64")
+  set (CMAKE_C_FLAGS "-qlanglvl=stdc99 -q64")
   set (CMAKE_C_FLAGS_RELEASE "-O3 -qhot")
   set (CMAKE_C_FLAGS_DEBUG "-g -qfullpath")
   set (CMAKE_C_FLAGS_PROFILING       "${CMAKE_C_FLAGS_RELEASE} -pg -qfullpath")
@@ -242,7 +237,7 @@ mark_as_advanced (CMAKE_C_FLAGS_PROFILING)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC -funsigned-char -W -Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wunused -Wno-long-long -Wfloat-equal")
+  set (CMAKE_CXX_FLAGS "-std=c++11 -fPIC -funsigned-char -W -Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wunused -Wno-long-long -Wfloat-equal -Wno-unused-dummy-argument")
 
   set (CMAKE_CXX_FLAGS_RELEASE         "-O3")
   set (CMAKE_CXX_FLAGS_DEBUG           "-O0 -g")
@@ -255,7 +250,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
 
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fpic -funsigned-char -Wall -Wcheck -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused")
+  set (CMAKE_CXX_FLAGS "-std=c++11 -fpic -funsigned-char -Wall -Wcheck -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused")
 
   set (CMAKE_CXX_FLAGS_RELEASE "-O3")
 
@@ -268,7 +263,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
   set (CXX_LIBRARIES_FLAG        )
 
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-  set (CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} -std=c++11 -Wall -pedantic -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused -Wempty-translation-unit -Wno-unused-function")
+  set (CMAKE_CXX_FLAGS "-std=c++11 -Wall -pedantic -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused -Wempty-translation-unit -Wno-unused-function")
   set (CMAKE_CXX_FLAGS_RELEASE "-O3")
   set (CMAKE_CXX_FLAGS_DEBUG "-g -O0")
   set (CMAKE_CXX_FLAGS_PROFILING       "${CMAKE_CXX_FLAGS_RELEASE} -p")
@@ -280,7 +275,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
 
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "XL")
 
-  set (CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} -q64 -qlanglvl=extended0x")
+  set (CMAKE_CXX_FLAGS " -q64 -qlanglvl=extended0x")
   set (CMAKE_CXX_FLAGS_RELEASE "-O3 -qhot")
   set (CMAKE_CXX_FLAGS_DEBUG "-g -qfullpath")
   set (CMAKE_CXX_FLAGS_PROFILING       "${CMAKE_CXX_FLAGS_RELEASE} -pg -qfullpath")
