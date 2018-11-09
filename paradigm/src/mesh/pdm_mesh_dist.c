@@ -8,6 +8,7 @@
 
 #include "pdm.h"
 #include "pdm_mpi.h"
+#include "pdm_mesh_dist.h"
 
 /*----------------------------------------------------------------------------*/
 
@@ -46,6 +47,7 @@ PDM_mesh_dist_create
  const PDM_MPI_Comm comm
 )
 {
+  return 0;
 }
 
 
@@ -241,6 +243,7 @@ PDM_mesh_dist_free
  const int id
 )
 {
+  return 0;
 }
 
   

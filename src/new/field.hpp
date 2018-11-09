@@ -188,7 +188,7 @@ namespace cwipi {
     const CWP_Field_value_t   _nature;       /*!< Nature */
     const CWP_Field_exch_t     _exchangeType; /*!< Exchange type */
     const CWP_Status_t         _visuStatus;   /*!< Visualization status */
-    DataType                     _data[];       /*!< Pointer to data array */
+    DataType                     *_data;       /*!< Pointer to data array */
 
     Field &operator=(const Field &other);       /*!< Assigment operator not available */
     Field (const Field& other);                 /*!< Copy constructor not available */

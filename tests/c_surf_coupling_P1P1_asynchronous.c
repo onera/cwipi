@@ -40,18 +40,18 @@
  *   nNotLocatedPoints   <-- Number of not located points
  *---------------------------------------------------------------------*/
 
-static void _dumpNotLocatedPoints(FILE* outputFile,
-                                  const char *coupling_id,
-                                  const int nNotLocatedPoints)
-{
-  if ( nNotLocatedPoints > 0) {
-    //fprintf(outputFile, "Not located points :\n");
-    const int* notLocatedPoints = cwipi_get_not_located_points(coupling_id);
-    // for(int i = 0; i < nNotLocatedPoints; i++)
-     //fprintf(outputFile, "%i ", notLocatedPoints[i]);
-    //fprintf(outputFile, "\n");
-  }
-}
+/* static void _dumpNotLocatedPoints(FILE* outputFile, */
+/*                                   const char *coupling_id, */
+/*                                   const int nNotLocatedPoints) */
+/* { */
+/*   if ( nNotLocatedPoints > 0) { */
+/*     //fprintf(outputFile, "Not located points :\n"); */
+/*     //const int* notLocatedPoints = cwipi_get_not_located_points(coupling_id); */
+/*     // for(int i = 0; i < nNotLocatedPoints; i++) */
+/*      //fprintf(outputFile, "%i ", notLocatedPoints[i]); */
+/*     //fprintf(outputFile, "\n"); */
+/*   } */
+/* } */
 
 /*----------------------------------------------------------------------
  *                                                                     

@@ -35,13 +35,13 @@ namespace cwipi {
     :_localCodeProperties(NULL),
      _cplCodeProperties(NULL),
      _tag(-1),
-     _isCplRank(false),
      _unionGroup(MPI_GROUP_NULL), 
      _unionComm(MPI_COMM_NULL), 
 //     _fvmComm(MPI_COMM_NULL), 
      _cplComm(MPI_COMM_NULL), 
      _locCodeRootRankCplComm(-1),
-     _cplCodeRootRankCplComm(-1)
+     _cplCodeRootRankCplComm(-1),
+     _isCplRank(false)
   {
   }
 

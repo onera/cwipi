@@ -171,7 +171,7 @@ PDM_mesh_dist_get
        double  **dist,
        double  **proj,
        int     **closest_part,
-       int     **closest_elt,
+       int     **closest_elt
 );
 
 

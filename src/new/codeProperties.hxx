@@ -1854,7 +1854,7 @@ namespace cwipi {
 
     MPI_Win_unlock (_rootRankInGlobalComm, _winGlob);
 
-    int nParam;
+    int nParam = 0;
     if (typeid(T) == typeid(string)) { 
       nParam = nStrParam;
     }
@@ -1933,7 +1933,7 @@ namespace cwipi {
     MPI_Win  *winTypeParamIdxName = NULL;
     MPI_Win  *winTypeParamName = NULL;
 
-    int nTypeParam;
+    int nTypeParam = 0;
     int  *winTypeParamIdxNameData = NULL;
     char *winTypeParamNameData = NULL;
 
@@ -2056,7 +2056,7 @@ namespace cwipi {
     int  *winTypeParamIdxNameData = NULL;
     char *winTypeParamNameData = NULL;
     
-    int nTypeParam;
+    int nTypeParam = 0;
 
     if (typeid(T) == typeid(string)) {
       nTypeParam = nStrParam;

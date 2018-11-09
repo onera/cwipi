@@ -1085,7 +1085,7 @@ namespace cwipi {
                                const int *ordering)
   {
 
-    fvmc_element_t _t_elt;
+    fvmc_element_t _t_elt = (fvmc_element_t) 0;
     
     switch(t_elt) {
     case CWIPI_NODE:
@@ -1125,6 +1125,10 @@ namespace cwipi {
     case CWIPI_CELL_POLY:
       _t_elt = FVMC_CELL_POLY;
       break;
+    default:
+      bftc_error(__FILE__, __LINE__, 0,
+                "'%s' Element not taking into account by fvm \n");
+      
     }
     
     fvmc_nodal_ho_ordering_set (_fvmNodal, _t_elt, n_nodes, ordering);
@@ -1136,7 +1140,7 @@ namespace cwipi {
                                          const double *coords)
   {
 
-    fvmc_element_t _t_elt;
+    fvmc_element_t _t_elt = (fvmc_element_t) 0;
     
     switch(t_elt) {
     case CWIPI_NODE:
@@ -1176,6 +1180,11 @@ namespace cwipi {
     case CWIPI_CELL_POLY:
       _t_elt = FVMC_CELL_POLY;
       break;
+    default:
+      bftc_error(__FILE__, __LINE__, 0,
+                "'%s' Element not taking into account by fvm \n");
+
+
     }
 
     fvmc_nodal_ho_ordering_from_ref_elt_set (_fvmNodal, _t_elt, n_nodes, coords);

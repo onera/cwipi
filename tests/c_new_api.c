@@ -69,10 +69,10 @@ int main
   /* Initialization
    * -------------- */
 
-  int n_code_name;
-  char **codeNames;
-  double *times_init;
-  CWP_Status_t *is_coupled_rank;
+  int n_code_name = 0;
+  char **codeNames = NULL;
+  double *times_init = NULL;
+  CWP_Status_t *is_coupled_rank = NULL;
 
   if (rank == 0) {
     n_code_name = 1;

@@ -194,7 +194,6 @@ contains
     character(*)                :: msg
     !>
     integer                     :: iRank,iErr
-    real(8), allocatable        :: dTab0(:)
     integer, allocatable        :: iTab0(:)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -237,7 +236,7 @@ contains
         
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    
     allocate( character(len=length) :: cTab0(1:sizeWorld) )
-    
+
     call mpi_gather(                      &
     &    buffer   , length, mpi_character,&
     &    cTab0(1) , length, mpi_character,&
@@ -270,7 +269,7 @@ contains
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     character(*)                   :: buffer
     !>
-    integer                        :: length
+    !integer                        :: length
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -349,14 +348,15 @@ contains
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     character(*)    , intent(in)  :: mshName
     character(len=:), allocatable :: meshName
-    integer                       :: iArg,nArg,length,l
+    !integer                       :: iArg
+    integer                       :: length
     
-    integer              :: i,j,cellType,nbParam,entite,numPhysicalNames,dimEntity,mark
+    integer              :: i,cellType,nbParam,entite,numPhysicalNames,dimEntity,mark
     integer              :: iVert,nVert,iCell,nCell,iNod
     integer              :: nL2  ,nT3  ,nQ4  ,nT4  ,nP5  ,nW5  ,nH6
     integer              :: nL2P2,nT3P2,nQ4P2,nT4P2,nP5P2,nW5P2,nH6P2
-    integer              :: nL2P3,nT3P3,nQ4P3,nT4P3,nP5P3,nW5P3,nH6P3
-    integer              :: nL2P4,nT3P4,nQ4P4,nT4P4,nP5P4,nW5P4,nH6P4
+    integer              :: nL2P3,nT3P3,nQ4P3
+    integer              :: nL2P4,nT3P4,nQ4P4
     integer              :: iVert1,nVert1
     real(8), allocatable :: vert(:,:),vert1(:,:)
     logical, allocatable :: connected(:)
@@ -370,7 +370,6 @@ contains
     integer, allocatable :: quadr(:,:),quadr2(:,:),quadr3(:,:),quadr4(:,:)
     integer, allocatable :: trian(:,:),trian2(:,:),trian3(:,:),trian4(:,:)
     integer, allocatable :: edges(:,:),edges2(:,:),edges3(:,:),edges4(:,:)
-    integer              :: tab(1:27)
     integer, parameter   :: hexaQ2Gmsh2Inria (1:27)=[01,02,03,04,05,06,07,08,09,&
                                                      12,14,10,11,13,15,16,17,19,20,&
                                                      18,21,23,22,26,24,25,27] ! <=
@@ -1332,7 +1331,8 @@ contains
     real(8), pointer :: uvw(:,:)
     !---
     integer                       :: iu,iv,iw,ad
-    integer                       :: m,n
+    !integer                       :: m
+    integer                       :: n
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1475,8 +1475,8 @@ subroutine  userInterpolation                        ( &
   real(8), target ::   localField                            (*)
   real(8), target :: distantField                            (*)
   !>
-  integer          :: i,j,k,iRank,iErr
-  integer          :: iNod,nNod,iMod,nMod, iMod2
+  integer          :: i,j
+  integer          :: iMod,nMod, iMod2
   integer          :: nQ4,nT3
   integer          :: iCell
   real(8), pointer :: uv0(:,:),uQ4(:),vQ4(:),uvT3(:,:), uvQ4(:,:)
@@ -1486,8 +1486,8 @@ subroutine  userInterpolation                        ( &
   real(8), pointer :: lagrangeMeshQ4(:,:)
   real(8), pointer :: lagrangeMeshT3(:,:)
   integer, pointer :: nod(:)
-  real(8)          :: delta(1:3)
-  character(2048)  :: buffer
+  !real(8)          :: delta(1:3)
+  !character(2048)  :: buffer
   !>
   integer          :: linkVertSize
   real(8), pointer ::   myVert  (:,:)
@@ -1495,7 +1495,6 @@ subroutine  userInterpolation                        ( &
   real(8), pointer :: linkVert  (:,:)
   real(8), pointer :: linkValues(:,:)
 
-  type (C_PTR)     :: localCoordinates_ptr
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1915,7 +1914,7 @@ subroutine fortran_surf_PiQj_common (tmaillage)
   integer             :: compOrder
   integer             :: meshOrder
   
-  integer            :: iVert,jVert,nVert
+  integer            :: iVert,nVert
   real(8), pointer   :: vertx(:,:),vertxCwipi(:)
   integer, pointer   :: vertM(:)
   integer, pointer   :: cells(:),cellsIdx(:),mark(:),types(:)
@@ -1923,30 +1922,24 @@ subroutine fortran_surf_PiQj_common (tmaillage)
   
   character(256)     :: key
   integer, parameter :: iFile=100
-  logical            :: test
   character(10)      :: maillage
   
-  integer(8)         :: InpMsh
-  integer(8)         :: ad0
-  integer            :: ad1,ad2
-  integer            :: dim,res,ver
+  integer            :: dim
   integer            :: iCell0
   
   integer            :: meshUnit
   
-  integer            :: i,j,k,l,iu,iv, i1, j1
+  integer            :: i,j,k, i1, j1
   integer            :: iMod,nMod, iMod2
-  integer            :: iNod,nNod, nNod2
+  integer            :: nNod2, nNod
   integer            :: iCell,nCell
   integer            :: nQ4,nT3
   
   integer, pointer :: ij(:,:),ijCwipi(:)
   real(8), pointer :: lagrangeMeshQ4(:,:)
   real(8), pointer :: lagrangeMeshT3(:,:)
-  real(8), pointer :: lagrangeL2    (:,:)
   
   real(8)          :: tol
-  real(8)          :: xyz(1:3)
   real(8), pointer :: xyzTab(:,:)
   integer          :: linkVertSize
   real(8), pointer :: linkVert(:,:),linkVertCwipi(:)
@@ -1963,7 +1956,7 @@ subroutine fortran_surf_PiQj_common (tmaillage)
 
   integer          :: numberOfUnlocatedPoints,numberOfUnlocatedPointsGlob
   
-  integer          :: iRank,iErr
+  integer          :: iErr
   
   integer          :: iVertMax
   real(8)          :: delta,deltaMin,deltaMax,sumDelta

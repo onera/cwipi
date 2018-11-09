@@ -617,13 +617,10 @@ FVMC_ho_basis_user_elt_set (fvmc_element_t elt_type,
 {
   fvmc_ho_basis_user_elt_t **user_elt = _get_user_elt (elt_type);
 
-  printf("FVMC_ho_basis_user_elt_set\n");
-
   if (*user_elt == NULL) {
     *user_elt = (fvmc_ho_basis_user_elt_t *) malloc (sizeof(fvmc_ho_basis_user_elt_t));
   }
 
-  printf("FVMC_ho_basis_user_elt_set 2 %ld\n", user_elt);
   (*user_elt)->elt_basis = elt_basis;
 
 }

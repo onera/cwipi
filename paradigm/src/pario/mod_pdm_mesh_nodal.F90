@@ -136,6 +136,7 @@ MODULE mod_pdm_mesh_nodal
 
         real (c_double)         :: coords(*)
         integer (kind=pdm_g_num_s)   :: numabs(*)
+        !integer (pdm_g_num_s)   :: numabs(*)
       end subroutine pdm_mesh_nodal_coord_set_c
     end interface
     

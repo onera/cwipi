@@ -166,8 +166,8 @@ elseif (CMAKE_C_COMPILER_ID STREQUAL "Intel")
   set (CMAKE_C_FLAGS_MINSIZEREL      "-O2 -g")
 
 elseif (CMAKE_C_COMPILER_ID STREQUAL "AppleClang")
+  set (CMAKE_C_FLAGS " ${CMAKE_C_FLAGS} -std=c99 -fPIC -funsigned-char -Wall -pedantic -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused -Wno-empty-translation-unit -Wno-unused-function")
 
-  set (CMAKE_C_FLAGS " ${CMAKE_C_FLAGS} -std=c99 -fPIC -funsigned-char -Wall -pedantic -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused")
   set (CMAKE_C_FLAGS_RELEASE "-O3")
   set (CMAKE_C_FLAGS_DEBUG "-g -O0")
   set (CMAKE_C_FLAGS_PROFILING       "${CMAKE_C_FLAGS_RELEASE} -p")
@@ -268,7 +268,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
   set (CXX_LIBRARIES_FLAG        )
 
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-  set (CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} -std=c++11 -Wall -pedantic -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused")
+  set (CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} -std=c++11 -Wall -pedantic -Wshadow -Wpointer-arith -Wmissing-prototypes -Wuninitialized -Wunused -Wempty-translation-unit -Wno-unused-function")
   set (CMAKE_CXX_FLAGS_RELEASE "-O3")
   set (CMAKE_CXX_FLAGS_DEBUG "-g -O0")
   set (CMAKE_CXX_FLAGS_PROFILING       "${CMAKE_CXX_FLAGS_RELEASE} -p")

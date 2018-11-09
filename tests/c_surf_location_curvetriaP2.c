@@ -37,20 +37,20 @@
  *   status              <-- Exchange status           
  *---------------------------------------------------------------------*/
 
-static void _dumpStatus(FILE* outputFile, cwipi_exchange_status_t status)
-{
-  switch(status) {
-  case CWIPI_EXCHANGE_OK :
-    fprintf(outputFile, "Exchange Ok\n");
-    break;
-  case CWIPI_EXCHANGE_BAD_RECEIVING :
-    fprintf(outputFile, "Bad receiving\n");
-    break;
-  default :
-    printf("Error : bad exchange status\n");
-    exit(1);
-  }
-}
+/* static void _dumpStatus(FILE* outputFile, cwipi_exchange_status_t status) */
+/* { */
+/*   switch(status) { */
+/*   case CWIPI_EXCHANGE_OK : */
+/*     fprintf(outputFile, "Exchange Ok\n"); */
+/*     break; */
+/*   case CWIPI_EXCHANGE_BAD_RECEIVING : */
+/*     fprintf(outputFile, "Bad receiving\n"); */
+/*     break; */
+/*   default : */
+/*     printf("Error : bad exchange status\n"); */
+/*     exit(1); */
+/*   } */
+/* } */
 
 /*----------------------------------------------------------------------
  *                                                                     
@@ -74,21 +74,21 @@ static double _f(double x, double y, double z)
  *   exit code           <-- Exit code
  *---------------------------------------------------------------------*/
 
-static void
-_usage(int exit_code)
-{
-  printf
-    ("\n"
-     "  Usage: \n\n"
-     "  -n     <level>  Number of vertices in band width.\n\n"
-     "  -rand  <level>  Random level ( > 0 and < 0.4) \n\n"
-     "  -visu           Ensight outputs \n\n"
-     "  -a              Unlocking communication \n\n"
-     "  -stdout         Standard output \n\n"
-     "  -h             this message.\n\n");
+/* static void */
+/* _usage(int exit_code) */
+/* { */
+/*   printf */
+/*     ("\n" */
+/*      "  Usage: \n\n" */
+/*      "  -n     <level>  Number of vertices in band width.\n\n" */
+/*      "  -rand  <level>  Random level ( > 0 and < 0.4) \n\n" */
+/*      "  -visu           Ensight outputs \n\n" */
+/*      "  -a              Unlocking communication \n\n" */
+/*      "  -stdout         Standard output \n\n" */
+/*      "  -h             this message.\n\n"); */
 
-  exit(exit_code);
-}
+/*   exit(exit_code); */
+/* } */
 
 /*----------------------------------------------------------------------
  *                                                                     
@@ -99,57 +99,57 @@ _usage(int exit_code)
  *   randLevel           <-- Random level
  *---------------------------------------------------------------------*/
 
-static void
-_read_args(int            argc,
-           char         **argv,
-           int          *nVertex,
-           double       *randLevel,
-	   int          *randFromClock,
-	   int          *postFreq,
-	   int          *t_com,
-	   int          *tostdout)
+/* static void */
+/* _read_args(int            argc, */
+/*            char         **argv, */
+/*            int          *nVertex, */
+/*            double       *randLevel, */
+/* 	   int          *randFromClock, */
+/* 	   int          *postFreq, */
+/* 	   int          *t_com, */
+/* 	   int          *tostdout) */
 
-{
-  int i = 1;
+/* { */
+/*   int i = 1; */
 
-  /* Parse and check command line */
+/*   /\* Parse and check command line *\/ */
 
-  while (i < argc) {
+/*   while (i < argc) { */
 
-    if (strcmp(argv[i], "-h") == 0)
-      _usage(EXIT_SUCCESS);
+/*     if (strcmp(argv[i], "-h") == 0) */
+/*       _usage(EXIT_SUCCESS); */
 
-    else if (strcmp(argv[i], "-n") == 0) {
-      i++;
-      if (i >= argc)
-        _usage(EXIT_FAILURE);
-      else
-        *nVertex = atoi(argv[i]);
-    }
-    else if (strcmp(argv[i], "-rand") == 0) {
-      i++;
-      if (i >= argc)
-        _usage(EXIT_FAILURE);
-      else
-        *randLevel = atof(argv[i]);
-    }
-    else if (strcmp(argv[i], "-randFromClock") == 0) {
-      *randFromClock = 1;
-    }
-    else if (strcmp(argv[i], "-a") == 0) {
-      *t_com = 1;
-    }
-    else if (strcmp(argv[i], "-visu") == 0) {
-      *postFreq = 1;
-    }
-    else if (strcmp(argv[i], "-stdout") == 0) {
-      *tostdout = 1;
-    }
-    else
-      _usage(EXIT_FAILURE);
-    i++;
-  }
-}
+/*     else if (strcmp(argv[i], "-n") == 0) { */
+/*       i++; */
+/*       if (i >= argc) */
+/*         _usage(EXIT_FAILURE); */
+/*       else */
+/*         *nVertex = atoi(argv[i]); */
+/*     } */
+/*     else if (strcmp(argv[i], "-rand") == 0) { */
+/*       i++; */
+/*       if (i >= argc) */
+/*         _usage(EXIT_FAILURE); */
+/*       else */
+/*         *randLevel = atof(argv[i]); */
+/*     } */
+/*     else if (strcmp(argv[i], "-randFromClock") == 0) { */
+/*       *randFromClock = 1; */
+/*     } */
+/*     else if (strcmp(argv[i], "-a") == 0) { */
+/*       *t_com = 1; */
+/*     } */
+/*     else if (strcmp(argv[i], "-visu") == 0) { */
+/*       *postFreq = 1; */
+/*     } */
+/*     else if (strcmp(argv[i], "-stdout") == 0) { */
+/*       *tostdout = 1; */
+/*     } */
+/*     else */
+/*       _usage(EXIT_FAILURE); */
+/*     i++; */
+/*   } */
+/* } */
 
 
 /*----------------------------------------------------------------------
@@ -196,8 +196,6 @@ int main
   int n_partition = 0;
   const int two = 2;
   while(two * pow(n_partition, two) < commWorldSize) n_partition++;
-
-  int n2 = (int) (two * pow(n_partition, two));
 
   if (two != commWorldSize) {
     if (rank == 0)
@@ -293,8 +291,6 @@ int main
 
   const double xmin = -0.1;
   const double xmax =  0.1;
-  const double ymin =  0.;
-  const double ymax =  0.;
   const double zmin = -0.1;
   const double zmax =  0.1;
 

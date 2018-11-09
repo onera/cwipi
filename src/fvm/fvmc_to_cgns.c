@@ -3198,6 +3198,8 @@ fvmc_to_cgns_export_field(void                   *this_writer_p,
 }
 
 /*----------------------------------------------------------------------------*/
+#else
+
 
 #endif /* defined(HAVE_CGNS) */
 

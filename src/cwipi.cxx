@@ -1236,7 +1236,7 @@ cwipi_ho_user_elt_set (cwipi_element_t elt_type,
                        cwipi_ho_basis_fct_t element_basis,
                        cwipi_ho_location_fct_t location_in_element)
 {
-  fvmc_element_t _elt_type;
+  fvmc_element_t _elt_type = (fvmc_element_t) 0;
 
   switch (elt_type) {
     

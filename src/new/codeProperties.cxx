@@ -56,8 +56,6 @@ namespace cwipi
      _rootRankInGlobalComm(rootRank),  
      _globalComm(globalComm),
      _isCoupledRank(false),
-     _n_param_max(n_param_max),
-     _str_size_max(str_size_max), 
      _winIntParamIdxName(MPI_WIN_NULL),
      _winIntParamName(MPI_WIN_NULL),
      _winIntParamValue(MPI_WIN_NULL),
@@ -77,7 +75,9 @@ namespace cwipi
      _winStrParamIdxNameData(NULL),
      _winStrParamNameData(NULL),
      _winStrParamIdxValueData(NULL),
-     _winStrParamValueData(NULL)
+     _winStrParamValueData(NULL),
+     _n_param_max(n_param_max),
+     _str_size_max(str_size_max)
   {
     _intraComm = MPI_COMM_NULL;
     _intraConnectableGroup = MPI_GROUP_NULL;
@@ -108,12 +108,10 @@ namespace cwipi
      _globalComm(other._globalComm), 
      _intraComm(other._intraComm),
      _isCoupledRank(other._isCoupledRank), 
-     _n_param_max(other._n_param_max),
-     _str_size_max(other._str_size_max), 
-     _intraConnectableGroup(other._intraConnectableGroup),
-     _intraConnectableComm(other._intraConnectableComm),
      _intraGroup(other._intraGroup),
      _intraRanks(other._intraRanks), 
+     _intraConnectableGroup(other._intraConnectableGroup),
+     _intraConnectableComm(other._intraConnectableComm),
      _connectableRanks(other._connectableRanks), 
      _winIntParamIdxName(other._winIntParamIdxName),
      _winIntParamName(other._winIntParamName),
@@ -134,7 +132,9 @@ namespace cwipi
      _winStrParamIdxNameData(other._winStrParamIdxNameData),
      _winStrParamNameData(other._winStrParamNameData),
      _winStrParamIdxValueData(other._winStrParamIdxValueData),
-     _winStrParamValueData(other._winStrParamValueData)
+     _winStrParamValueData(other._winStrParamValueData),
+     _n_param_max(other._n_param_max),
+     _str_size_max(other._str_size_max) 
 
   {
     

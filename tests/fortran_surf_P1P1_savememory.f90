@@ -81,7 +81,7 @@ subroutine  userInterpolation(entitiesDim, &
   integer, dimension(*) :: localPolyFaceConnec
   double precision, dimension(*) :: disPtsCoordinates
   integer, dimension(*) :: disPtsLocation
-  real*4, dimension(*) :: disPtsDistance
+  real (kind=4), dimension(*) :: disPtsDistance
   integer, dimension(*) :: disPtsBaryCoordIdx
   double precision, dimension(*) :: disPtsBaryCoord
   integer :: stride
@@ -152,7 +152,7 @@ program testf
          integer, dimension(*) :: localPolyFaceConnec
          double precision, dimension(*) :: disPtsCoordinates
          integer, dimension(*) :: disPtsLocation
-         real*4, dimension(*) :: disPtsDistance
+         real (kind=4), dimension(*) :: disPtsDistance
          integer, dimension(*) :: disPtsBaryCoordIdx
          double precision, dimension(*) :: disPtsBaryCoord
          integer :: stride
@@ -166,28 +166,21 @@ program testf
 !  integer, allocatable, dimension(:) :: baryCooIdx
 !  double precision, allocatable, dimension(:) :: baryCoo
 !  double precision, allocatable, dimension(:) :: tmpDbl
-  integer :: nLocatedPoints
   integer :: nNotLocatedPoints
-  integer :: nDistantPoints
 
-  integer :: localcom, localGroup, p1Group, p1Comm
+  integer :: localcom
   integer :: irank, currentRank, localcommsize
   character (len = 4) :: proc
   character (len = 5) :: codeName, codeCoupledName
   integer :: code
   integer :: iiunit
-  integer :: ivalue
-  double precision :: dvalue
 
   double precision :: xmin = -100.d0
   double precision :: xmax =  100.d0
   double precision :: ymin = -100.d0
   double precision :: ymax =  100.d0
-  integer :: nx   = 24
-  integer  :: ny   = 28
-  integer  :: initrandom = 2
 
-  integer nvertex, nelts, lconnecindex
+  integer nvertex, nelts
 
   integer, parameter :: nvertexm = 4000
   integer, parameter :: neltsm = 4000
@@ -203,19 +196,13 @@ program testf
   double precision, allocatable, dimension(:) :: values
   double precision, allocatable, dimension(:) :: localvalues
 
-  real*4, allocatable, dimension(:) :: distLocPts
+  real (kind=4), allocatable, dimension(:) :: distLocPts
 
   integer status
 
-  integer i, order, k
-
-  integer :: vpar = 10
-  character (len = 6) :: cpar = "niterf"
-  character (len = 30) :: disstr = ""
+  integer i
 
   integer :: stride = 1
-  integer, dimension(1) :: rl
-  integer :: dislocalcommsize
   integer :: commWorldSize
 
   integer :: n_partition, n2, codeId

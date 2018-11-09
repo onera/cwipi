@@ -2914,7 +2914,7 @@ fvmc_nodal_ho_ordering_set (fvmc_nodal_t  *this_nodal,
 
   if (this_nodal->ho_user_to_uvw[t_elt] == NULL) {
     
-    int stride;
+    int stride = 0;
 
     switch(t_elt) {
     case FVMC_EDGE:               /* Edge */
