@@ -25,6 +25,7 @@
 
 /*-----------------------------------------------------------------------------*/
 
+#include "config_priv.h"
 #include "bftc_config_defs.h"
 
 /* On Solaris, procfs may not be compiled in a largefile environment,
@@ -84,7 +85,7 @@
 #include <unistd.h>
 #endif
 
-#if defined(HAVE_UNISTD_H) && defined(HAVE_SBRK)
+#if defined(HAVE_UNISTD_H) && defined(HAVE_SBRK) 
 #if defined(__blrts__) || defined(__bgp_)
 #define USE_SBRK 1
 #elif defined (bftc_OS_Linux)

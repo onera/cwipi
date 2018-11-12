@@ -3,7 +3,7 @@
 /*
   This file is part of the CWIPI library. 
 
-  Copyright (C) 2011  ONERA
+  Copyright (C) 2011-2017  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -22,8 +22,6 @@
 #include <mpi.h>
 
 #include <stdio.h>
-
-//#include <fvmc_nodal.h> // 
 
 /*=============================================================================
  * Macro definitions
@@ -54,7 +52,7 @@ typedef enum {
 
   CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING,
   CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING,
-  CWIPI_COUPLING_SEQUENTIAL,
+  CWIPI_COUPLING_SEQUENTIAL
 
 } cwipi_coupling_type_t;
 
@@ -65,7 +63,7 @@ typedef enum {
 typedef enum {
 
   CWIPI_BASIC_INFO,
-  CWIPI_DISTANT_MESH_INFO,
+  CWIPI_DISTANT_MESH_INFO
 
 } cwipi_located_point_info_t;
 
@@ -77,7 +75,7 @@ typedef enum {
 
   CWIPI_STATIC_MESH,
   CWIPI_MOBILE_MESH,
-  CWIPI_CYCLIC_MESH,
+  CWIPI_CYCLIC_MESH
 
 } cwipi_mesh_type_t;
 
@@ -88,7 +86,7 @@ typedef enum {
 typedef enum {
 
   CWIPI_SOLVER_CELL_CENTER,
-  CWIPI_SOLVER_CELL_VERTEX,
+  CWIPI_SOLVER_CELL_VERTEX
 
 } cwipi_solver_type_t;
 
@@ -99,7 +97,7 @@ typedef enum {
 typedef enum {
 
   CWIPI_FIELD_TYPE_FLOAT,
-  CWIPI_FIELD_TYPE_DOUBLE,
+  CWIPI_FIELD_TYPE_DOUBLE
 
 } cwipi_field_type_t;
 
@@ -110,7 +108,7 @@ typedef enum {
 typedef enum {
 
   CWIPI_INTERPOLATION_DEFAULT,
-  CWIPI_INTERPOLATION_USER,
+  CWIPI_INTERPOLATION_USER
 
 } cwipi_interpolation_t;
 
@@ -121,7 +119,7 @@ typedef enum {
 typedef enum {
 
   CWIPI_EXCHANGE_OK,
-  CWIPI_EXCHANGE_BAD_RECEIVING,
+  CWIPI_EXCHANGE_BAD_RECEIVING
 
 } cwipi_exchange_status_t;
 
@@ -133,15 +131,21 @@ typedef enum {
 
   CWIPI_NODE,
   CWIPI_EDGE2,
+  CWIPI_EDGEHO,
   CWIPI_FACE_TRIA3,
-  CWIPI_FACE_TRIA6,
+  CWIPI_FACE_TRIAHO,
   CWIPI_FACE_QUAD4,
+  CWIPI_FACE_QUADHO,  
   CWIPI_FACE_POLY,
   CWIPI_CELL_TETRA4,
+  CWIPI_CELL_TETRAHO,
   CWIPI_CELL_HEXA8,
+  CWIPI_CELL_HEXAHO,
   CWIPI_CELL_PRISM6,
+  CWIPI_CELL_PRISMHO,
   CWIPI_CELL_PYRAM5,
-  CWIPI_CELL_POLY,
+  CWIPI_CELL_PYRAMHO,
+  CWIPI_CELL_POLY
 
 } cwipi_element_t;
 
@@ -210,6 +214,146 @@ typedef void (*cwipi_interpolation_fct_t)
    const void *local_field,
    void *distant_field
    );
+
+
+/*----------------------------------------------------------------------------
+ * Function pointer to define an user interpolation method (callback)
+ *
+ * parameters:
+ * ----------
+ *
+ * entities_dim                              <-- entities dimension of
+ *                                               the local mesh (1, 2 or 3)
+ * order                                     <-- Mesh order
+ * n_local_vertex                            <-- local mesh vertices number
+ * n_local_element                           <-- local mesh elements number
+ *                                               (without polyhedra)
+ * n_local_polyhedra                         <-- local mesh elements number
+ * n_distant_point                           <-- located distant point number
+ * local_coordinates                         <-- local mesh vertex coordinates
+ * local_parent_elt_num                      <-- pointer to parent element
+ *                                               (or NULL if sorted elements)
+ * local_connectivity_index                  <-- element -> vertices index
+ *                                               (O to n-1)
+ *                                               size:n_local_elements + 1
+ * local_connectivity                        <-- element -> vertex connectivity
+ *                                                       of the local mesh
+ *                               size:local_connectivity_index[n_local_elements]
+ * local_polyhedra_face_index                <-- polyhedra volume -> faces index
+ * local_polyhedra_cell_to_face_connectivity <-- polyhedra -> face connectivity
+ * local_polyhedra_face_connectivity_index   <-- polyhedra faces
+ *                                               face -> vertices index
+ * local_polyhedra_face_connectivity         <-- polyhedra
+ *                                               face -> vertex connectivity
+ * distant_points_coordinates                <-- distant point coordinates
+ * distant_points_location                   <-- distant point location
+ * distant_points_weights_index
+ *                                           <-- element -> weights
+ *                                                (0 to n-1)
+ *                                               size: n_distant_point + 1
+ * distant_points_weights                    <-- distant point weights
+ *                                             size: distant_points_barycentric_coordinates_index[n_distant_point]
+ * distant_points_uvw                        <-- parametric coordinates of distant points (size = uvw_size * n_distant_point)
+ * stride                                    <-- interlaced field number
+ * local_field                               <-- local field
+ * distant_field                             --> distant field
+ *
+ *----------------------------------------------------------------------------*/
+
+typedef void (*cwipi_user_interp_ho_fct_t)
+  (const int entities_dim,
+   const int order,
+   const int n_local_vertex,
+   const int n_local_element,
+   const int n_local_polhyedra,
+   const int n_distant_point,
+   const double local_coordinates[],
+   const int local_connectivity_index[],
+   const int local_connectivity[],
+   const int local_polyhedra_face_index[],
+   const int local_polyhedra_cell_to_face_connectivity[],
+   const int local_polyhedra_face_connectivity_index[],
+   const int local_polyhedra_face_connectivity[],
+   const double distant_points_coordinates[],
+   const int distant_points_location[],
+   const float distant_points_distance[],
+   const int distant_points_weights_index[],
+   const double distant_points_weights[],
+   const double distant_points_uvw[],
+   const int stride,
+   const cwipi_solver_type_t solver_type,
+   const void *local_field,
+   void *distant_field
+   );
+
+/*----------------------------------------------------------------------------
+ * 
+ * Callback to define location in a high order element
+ * 
+ * parameters:
+ *   order             <-- element order
+ *   n_nodes           <-- number of nodes of the element
+ *   nodes_coords      <-- nodes coordinates
+ *   point_coords      <-- point to locate coordinates
+ *   projected_coords  --> projected point coordinates (if point is outside) 
+ *   projected_uvw     --> parametric coordinates of the projected point
+ * 
+ * return: 
+ *   distance to the cell (distance <= 0 if point is inside)
+ *
+ *----------------------------------------------------------------------------*/
+
+typedef double (*cwipi_ho_location_fct_t)
+(const int entities_dim,
+ const int order,
+ const int n_nodes,
+ const double *nodes_coords,
+ const double *point_coords,
+ double *projected_coords,
+ double *projected_uvw);
+
+
+/*----------------------------------------------------------------------------
+ * 
+ * Callback to define location the basis functions of an high order 
+ * element
+ * 
+ * parameters:
+ *   order             <-- element order
+ *   n_nodes           <-- number of nodes of the element
+ *   n_pts             <-- number of points
+ *   uvv               <-- Parametric coordinates of points
+ *   weights           --> Interpolation weights (size = n_nodes * n_pts)
+ * 
+ *----------------------------------------------------------------------------*/
+
+typedef void (*cwipi_ho_basis_fct_t)
+(const int entities_dim,
+ const int order,
+ const int n_nodes,
+ const int n_pts,
+ const double *uvw,
+ double *weights);
+
+
+/*----------------------------------------------------------------------------
+ * 
+ * Callback to define parametric coordinates of the element nodes
+ * 
+ * parameters:
+ *   order             <-- element order
+ *   n_nodes           <-- number of nodes of the element
+ *   xsi_uvv           --> Parametric coordinates of a the element nodes
+ *                         (size = dim of element * n_nodes)
+ * 
+ *----------------------------------------------------------------------------*/
+
+typedef void (*cwipi_ho_xsi_fct_t)
+(const int entities_dim,
+ const int order,
+ const int n_nodes,
+ double *xsi_uvw);
+
 
 /*=============================================================================
  * Static global variables
@@ -697,6 +841,39 @@ void cwipi_create_coupling
 /*   int   isCoupled (TRUE/FALSE), */
 /*   ...); */
 
+/*----------------------------------------------------------------------------
+ *
+ * Set data user (optional)
+ *
+ * parameters:
+ *   coupling_name           <-- Coupling identifier
+ *   data                    <-- data user        
+ *----------------------------------------------------------------------------*/
+
+void
+cwipi_set_data_user
+(
+ const char  *coupling_name,
+       void  *data
+);
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Get data user (optional)
+ *
+ * parameters:
+ *   coupling_name           <-- Coupling identifier
+ *
+ * return :
+ *   data 
+ *----------------------------------------------------------------------------*/
+
+void *
+cwipi_get_data_user
+(
+ const char  *coupling_name
+);
 
 /*----------------------------------------------------------------------------
  *
@@ -870,9 +1047,88 @@ void cwipi_define_mesh(const char *coupling_id,
                        int connectivity_index[],
                        int connectivity[]);
 
+void cwipi_ho_define_mesh(const char *coupling_id,
+                          const int n_vertex,
+                          const int n_element,
+                          const int order,
+                          double coordinates[],
+                          int connectivity_index[],
+                          int connectivity[]);
+
 void cwipi_shared_fvmc_nodal(const char *coupling_name,
                             void * fvmc_nodal);
 
+/*----------------------------------------------------------------------------
+ *
+ * Define specific options for ho elements 
+ *
+ * parameters:
+ *   coupling_id     <-- coupling name
+ *   option          <-- option name, Choice between :
+ *                          - "opt_bbox_step" 
+ *                              * Description : step of discretization used 
+ *                                              to compute the optimized element 
+ *                                              bounding boxes
+ *                                              -1 to deactivate this computation
+ *                              * Default     : 10 
+ *   value           <-- option value
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_ho_options_set (const char *coupling_id,
+                           const char *option,
+                           const char *value);
+
+/*----------------------------------------------------------------------------
+ *
+ * Define ho element ordering from the location in the (u, v, w) grid
+ *
+ * parameters:
+ *   coupling_id     <-- coupling name
+ *   t_elt           <-- element type
+ *   n_nodes         <-- number of nodes
+ *   ijk_grid        <-- user ordering to (u, v, w) grid (size = elt_dim * n_nodes)
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_ho_ordering_from_IJK_set (const char *coupling_id,
+                                     const cwipi_element_t t_elt,
+                                     const int n_nodes,
+                                     const int *ijk_grid);
+
+/*----------------------------------------------------------------------------
+ *
+ * Define ho element ordering from reference element (definition between 0 - 1)
+ *
+ *   coupling_id        <-- coupling name
+ *   t_elt              <-- element type
+ *   n_nodes            <-- number of nodes
+ *   coords             <-- node coordinates of reference element
+ *                                TODO: decrire ici les elements de reference
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_ho_ordering_from_ref_elt_set (const char   *coupling_id,
+                                         const cwipi_element_t t_elt,
+                                         const int n_nodes,
+                                         const double *coords);
+
+/*----------------------------------------------------------------------------
+ * 
+ * Set a user element
+ * 
+ * parameters:
+ *   elt_type            <-- Element type
+ *   element_basis       <-- Element basis function
+ *   xsi_coordinates     <-- Parametric coordinates of nodes function
+ *   location_in_element <-- Element location in element function
+ *
+ *----------------------------------------------------------------------------*/
+
+void
+cwipi_ho_user_elt_set (cwipi_element_t elt_type,
+                       cwipi_ho_basis_fct_t element_basis,
+                       cwipi_ho_location_fct_t location_in_element);
 
 /*----------------------------------------------------------------------------
  *
@@ -894,12 +1150,12 @@ void cwipi_shared_fvmc_nodal(const char *coupling_name,
  *----------------------------------------------------------------------------*/
 
 void cwipi_add_polyhedra(const char *coupling_id,
-                             const int n_element,
-                             int face_index[],
-                             int cell_to_face_connectivity[],
-                             const int n_faces,
-                             int face_connectivity_index[],
-                             int face_connectivity[]);
+                         const int n_element,
+                         int face_index[],
+                         int cell_to_face_connectivity[],
+                         const int n_faces,
+                         int face_connectivity_index[],
+                         int face_connectivity[]);
 
 /*----------------------------------------------------------------------------
  *
@@ -1124,6 +1380,20 @@ const float *cwipi_distance_located_pts_get(const char  *coupling_name);
 void cwipi_set_interpolation_function
 (const char *coupling_id,
  cwipi_interpolation_fct_t fct);
+
+/*----------------------------------------------------------------------------
+ *
+ * Define the interpolation function for high order
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   fct                  <-- Interpolation function
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_ho_set_interpolation_function
+(const char *coupling_id,
+ cwipi_user_interp_ho_fct_t fct);
 
 /*----------------------------------------------------------------------------
  *

@@ -380,7 +380,7 @@ _convert_array_double_to_float(const int                     src_dim,
       for (i = 0, j = src_idx_start ; j < src_idx_end ; i++, j++) {
         for (k = 0, l = src_dim_shift ; k < min_dim ; k++, l++)
           dest_data[i*dest_dim + k]
-            = src_data[0][j*src_dim + l];
+            = (float) src_data[0][j*src_dim + l];
       }
     }
     else if (parent_num != NULL) {
@@ -392,7 +392,7 @@ _convert_array_double_to_float(const int                     src_dim,
         parent_id -= parent_num_shift[pl];
         for (k = 0, l = src_dim_shift ; k < min_dim ; k++, l++)
           dest_data[i*dest_dim + k]
-            = src_data[pl][parent_id*src_dim + l];
+            = (float) src_data[pl][parent_id*src_dim + l];
       }
     }
     else { /* parent_num == NULL: implicit parent numbering */
@@ -404,7 +404,7 @@ _convert_array_double_to_float(const int                     src_dim,
         parent_id -= parent_num_shift[pl];
         for (k = 0, l = src_dim_shift ; k < min_dim ; k++, l++)
           dest_data[i*dest_dim + k]
-            = src_data[pl][parent_id*src_dim + l];
+            = (float) src_data[pl][parent_id*src_dim + l];
       }
     }
 
@@ -417,7 +417,7 @@ _convert_array_double_to_float(const int                     src_dim,
     if (n_parent_lists == 0) {
       for (i = 0, j = src_idx_start ; j < src_idx_end ; i++, j++) {
         for (k = 0, l = src_dim_shift ; k < min_dim ; k++, l++)
-          dest_data[i*dest_dim + k] = src_data[l][j];
+          dest_data[i*dest_dim + k] = (float) src_data[l][j];
       }
     }
     else if (parent_num != NULL) {
@@ -429,7 +429,7 @@ _convert_array_double_to_float(const int                     src_dim,
         parent_id -= parent_num_shift[pl];
         for (k = 0, l = src_dim_shift ; k < min_dim ; k++, l++)
           dest_data[i*dest_dim + k]
-            = src_data[src_dim*pl + l][parent_id];
+            = (float) src_data[src_dim*pl + l][parent_id];
       }
     }
     else { /* parent_num == NULL: implicit parent numbering */
@@ -441,7 +441,7 @@ _convert_array_double_to_float(const int                     src_dim,
         parent_id -= parent_num_shift[pl];
         for (k = 0, l = src_dim_shift ; k < min_dim ; k++, l++)
           dest_data[i*dest_dim + k]
-            = src_data[src_dim*pl + l][parent_id];
+            = (float) src_data[src_dim*pl + l][parent_id];
       }
     }
 
@@ -621,7 +621,7 @@ _convert_array_int32_to_float(const fvmc_lnum_t              src_idx_start,
 
   if (n_parent_lists == 0) {
     for (i = 0, j = src_idx_start ; j < src_idx_end ; i++, j++)
-      dest_data[i] = src_data[0][j];
+      dest_data[i] = (float) src_data[0][j];
   }
   else if (parent_num != NULL) {
     for (i = 0, j = src_idx_start ; j < src_idx_end ; i++, j++) {
@@ -630,7 +630,7 @@ _convert_array_int32_to_float(const fvmc_lnum_t              src_idx_start,
            pl--);
       assert(pl > -1);
       parent_id -= parent_num_shift[pl];
-      dest_data[i] = src_data[pl][parent_id];
+      dest_data[i] = (float) src_data[pl][parent_id];
     }
   }
   else { /* parent_num == NULL: implicit parent numbering */
@@ -640,7 +640,7 @@ _convert_array_int32_to_float(const fvmc_lnum_t              src_idx_start,
            pl--);
       assert(pl > -1);
       parent_id -= parent_num_shift[pl];
-      dest_data[i] = src_data[pl][parent_id];
+      dest_data[i] = (float) src_data[pl][parent_id];
     }
   }
 
@@ -963,7 +963,7 @@ _convert_array_int64_to_float(const fvmc_lnum_t              src_idx_start,
 
   if (n_parent_lists == 0) {
     for (i = 0, j = src_idx_start ; j < src_idx_end ; i++, j++)
-      dest_data[i] = src_data[0][j];
+      dest_data[i] = (float) src_data[0][j];
   }
   else if (parent_num != NULL) {
     for (i = 0, j = src_idx_start ; j < src_idx_end ; i++, j++) {
@@ -972,7 +972,7 @@ _convert_array_int64_to_float(const fvmc_lnum_t              src_idx_start,
            pl--);
       assert(pl > -1);
       parent_id -= parent_num_shift[pl];
-      dest_data[i] = src_data[pl][parent_id];
+      dest_data[i] = (float) src_data[pl][parent_id];
     }
   }
   else { /* parent_num == NULL: implicit parent numbering */
@@ -982,7 +982,7 @@ _convert_array_int64_to_float(const fvmc_lnum_t              src_idx_start,
            pl--);
       assert(pl > -1);
       parent_id -= parent_num_shift[pl];
-      dest_data[i] = src_data[pl][parent_id];
+      dest_data[i] = (float) src_data[pl][parent_id];
     }
   }
 
@@ -1020,7 +1020,7 @@ _convert_array_int64_to_double(const fvmc_lnum_t              src_idx_start,
 
   if (n_parent_lists == 0) {
     for (i = 0, j = src_idx_start ; j < src_idx_end ; i++, j++)
-      dest_data[i] = src_data[0][j];
+      dest_data[i] = (double) src_data[0][j];
   }
   else if (parent_num != NULL) {
     for (i = 0, j = src_idx_start ; j < src_idx_end ; i++, j++) {
@@ -1029,7 +1029,7 @@ _convert_array_int64_to_double(const fvmc_lnum_t              src_idx_start,
            pl--);
       assert(pl > -1);
       parent_id -= parent_num_shift[pl];
-      dest_data[i] = src_data[pl][parent_id];
+      dest_data[i] = (double) src_data[pl][parent_id];
     }
   }
   else { /* parent_num == NULL: implicit parent numbering */
@@ -1039,7 +1039,7 @@ _convert_array_int64_to_double(const fvmc_lnum_t              src_idx_start,
            pl--);
       assert(pl > -1);
       parent_id -= parent_num_shift[pl];
-      dest_data[i] = src_data[pl][parent_id];
+      dest_data[i] = (double) src_data[pl][parent_id];
     }
   }
 
@@ -1305,7 +1305,7 @@ _convert_array_uint32_to_float(const fvmc_lnum_t              src_idx_start,
 
   if (n_parent_lists == 0) {
     for (i = 0, j = src_idx_start ; j < src_idx_end ; i++, j++)
-      dest_data[i] = src_data[0][j];
+      dest_data[i] = (float) src_data[0][j];
   }
   else if (parent_num != NULL) {
     for (i = 0, j = src_idx_start ; j < src_idx_end ; i++, j++) {
@@ -1314,7 +1314,7 @@ _convert_array_uint32_to_float(const fvmc_lnum_t              src_idx_start,
            pl--);
       assert(pl > -1);
       parent_id -= parent_num_shift[pl];
-      dest_data[i] = src_data[pl][parent_id];
+      dest_data[i] = (float) src_data[pl][parent_id];
     }
   }
   else { /* parent_num == NULL: implicit parent numbering */
@@ -1324,7 +1324,7 @@ _convert_array_uint32_to_float(const fvmc_lnum_t              src_idx_start,
            pl--);
       assert(pl > -1);
       parent_id -= parent_num_shift[pl];
-      dest_data[i] = src_data[pl][parent_id];
+      dest_data[i] = (float) src_data[pl][parent_id];
     }
   }
 
@@ -1647,7 +1647,7 @@ _convert_array_uint64_to_float(const fvmc_lnum_t              src_idx_start,
 
   if (n_parent_lists == 0) {
     for (i = 0, j = src_idx_start ; j < src_idx_end ; i++, j++)
-      dest_data[i] = src_data[0][j];
+      dest_data[i] = (float) src_data[0][j];
   }
   else if (parent_num != NULL) {
     for (i = 0, j = src_idx_start ; j < src_idx_end ; i++, j++) {
@@ -1656,7 +1656,7 @@ _convert_array_uint64_to_float(const fvmc_lnum_t              src_idx_start,
            pl--);
       assert(pl > -1);
       parent_id -= parent_num_shift[pl];
-      dest_data[i] = src_data[pl][parent_id];
+      dest_data[i] = (float) src_data[pl][parent_id];
     }
   }
   else { /* parent_num == NULL: implicit parent numbering */
@@ -1666,7 +1666,7 @@ _convert_array_uint64_to_float(const fvmc_lnum_t              src_idx_start,
            pl--);
       assert(pl > -1);
       parent_id -= parent_num_shift[pl];
-      dest_data[i] = src_data[pl][parent_id];
+      dest_data[i] = (float) src_data[pl][parent_id];
     }
   }
 
@@ -1704,7 +1704,7 @@ _convert_array_uint64_to_double(const fvmc_lnum_t              src_idx_start,
 
   if (n_parent_lists == 0) {
     for (i = 0, j = src_idx_start ; j < src_idx_end ; i++, j++)
-      dest_data[i] = src_data[0][j];
+      dest_data[i] = (double) src_data[0][j];
   }
   else if (parent_num != NULL) {
     for (i = 0, j = src_idx_start ; j < src_idx_end ; i++, j++) {
@@ -1713,7 +1713,7 @@ _convert_array_uint64_to_double(const fvmc_lnum_t              src_idx_start,
            pl--);
       assert(pl > -1);
       parent_id -= parent_num_shift[pl];
-      dest_data[i] = src_data[pl][parent_id];
+      dest_data[i] = (double) src_data[pl][parent_id];
     }
   }
   else { /* parent_num == NULL: implicit parent numbering */
@@ -1723,7 +1723,7 @@ _convert_array_uint64_to_double(const fvmc_lnum_t              src_idx_start,
            pl--);
       assert(pl > -1);
       parent_id -= parent_num_shift[pl];
-      dest_data[i] = src_data[pl][parent_id];
+      dest_data[i] = (double) src_data[pl][parent_id];
     }
   }
 
@@ -2029,8 +2029,8 @@ fvmc_convert_array(const int                     src_dim,
                                     n_parent_lists,
                                     parent_num_shift,
                                     parent_num,
-                                    (const float *const *const)src_data,
-                                    (float *const) dest_data);
+                                    (const float **)src_data,
+                                    (float *) dest_data);
       break;
 
     case FVMC_DOUBLE:
@@ -2043,10 +2043,12 @@ fvmc_convert_array(const int                     src_dim,
                                      n_parent_lists,
                                      parent_num_shift,
                                      parent_num,
-                                     (const float *const *const)src_data,
-                                     (double *const) dest_data);
+                                     (const float **)src_data,
+                                     (double *) dest_data);
       break;
 
+    case FVMC_INT16:
+    case FVMC_UINT16:
     case FVMC_INT32:
     case FVMC_INT64:
     case FVMC_UINT32:
@@ -2057,6 +2059,7 @@ fvmc_convert_array(const int                     src_dim,
       break;
 
     case FVMC_CHAR:
+    case FVMC_UCHAR:
     case FVMC_DATATYPE_NULL:
       break;
 
@@ -2077,8 +2080,8 @@ fvmc_convert_array(const int                     src_dim,
                                      n_parent_lists,
                                      parent_num_shift,
                                      parent_num,
-                                     (const double *const *const)src_data,
-                                     (float *const) dest_data);
+                                     (const double **)src_data,
+                                     (float *) dest_data);
       break;
 
     case FVMC_DOUBLE:
@@ -2091,10 +2094,12 @@ fvmc_convert_array(const int                     src_dim,
                                       n_parent_lists,
                                       parent_num_shift,
                                       parent_num,
-                                      (const double *const *const)src_data,
-                                      (double *const) dest_data);
+                                      (const double **)src_data,
+                                      (double *) dest_data);
       break;
 
+    case FVMC_INT16:
+    case FVMC_UINT16:
     case FVMC_INT32:
     case FVMC_INT64:
     case FVMC_UINT32:
@@ -2105,6 +2110,7 @@ fvmc_convert_array(const int                     src_dim,
       break;
 
     case FVMC_CHAR:
+    case FVMC_UCHAR:
     case FVMC_DATATYPE_NULL:
       break;
 
@@ -2128,8 +2134,8 @@ fvmc_convert_array(const int                     src_dim,
                                     n_parent_lists,
                                     parent_num_shift,
                                     parent_num,
-                                    (const int32_t *const *const)src_data,
-                                    (float *const) dest_data);
+                                    (const int32_t **)src_data,
+                                    (float *) dest_data);
       break;
 
     case FVMC_DOUBLE:
@@ -2138,8 +2144,8 @@ fvmc_convert_array(const int                     src_dim,
                                      n_parent_lists,
                                      parent_num_shift,
                                      parent_num,
-                                     (const int32_t *const *const)src_data,
-                                     (double *const) dest_data);
+                                     (const int32_t **)src_data,
+                                     (double *) dest_data);
       break;
 
     case FVMC_INT32:
@@ -2148,8 +2154,8 @@ fvmc_convert_array(const int                     src_dim,
                                     n_parent_lists,
                                     parent_num_shift,
                                     parent_num,
-                                    (const int32_t *const *const) src_data,
-                                    (int32_t *const) dest_data);
+                                    (const int32_t **) src_data,
+                                    (int32_t *) dest_data);
       break;
 
     case FVMC_INT64:
@@ -2158,8 +2164,8 @@ fvmc_convert_array(const int                     src_dim,
                                     n_parent_lists,
                                     parent_num_shift,
                                     parent_num,
-                                    (const int32_t *const *const)src_data,
-                                    (int64_t *const) dest_data);
+                                    (const int32_t **)src_data,
+                                    (int64_t *) dest_data);
       break;
 
     case FVMC_UINT32:
@@ -2168,8 +2174,8 @@ fvmc_convert_array(const int                     src_dim,
                                      n_parent_lists,
                                      parent_num_shift,
                                      parent_num,
-                                     (const int32_t *const *const)src_data,
-                                     (uint32_t *const) dest_data);
+                                     (const int32_t **)src_data,
+                                     (uint32_t *) dest_data);
       break;
 
     case FVMC_UINT64:
@@ -2178,13 +2184,19 @@ fvmc_convert_array(const int                     src_dim,
                                      n_parent_lists,
                                      parent_num_shift,
                                      parent_num,
-                                     (const int32_t *const *const)src_data,
-                                     (uint64_t *const) dest_data);
+                                     (const int32_t **)src_data,
+                                     (uint64_t *) dest_data);
       break;
 
     case FVMC_CHAR:
+    case FVMC_UCHAR:
     case FVMC_DATATYPE_NULL:
       break;
+		case FVMC_INT16:
+    case FVMC_UINT16:
+      bftc_error(__FILE__, __LINE__, 0,
+                _("fvmc_writer_convert_array() may not be used to convert "
+                  "from int16 or uint16"));
 
     }
     break;
@@ -2206,8 +2218,8 @@ fvmc_convert_array(const int                     src_dim,
                                     n_parent_lists,
                                     parent_num_shift,
                                     parent_num,
-                                    (const int64_t *const *const)src_data,
-                                    (float *const) dest_data);
+                                    (const int64_t **)src_data,
+                                    (float *) dest_data);
       break;
 
     case FVMC_DOUBLE:
@@ -2216,8 +2228,8 @@ fvmc_convert_array(const int                     src_dim,
                                      n_parent_lists,
                                      parent_num_shift,
                                      parent_num,
-                                     (const int64_t *const *const)src_data,
-                                     (double *const) dest_data);
+                                     (const int64_t **)src_data,
+                                     (double *) dest_data);
       break;
 
     case FVMC_INT32:
@@ -2226,8 +2238,8 @@ fvmc_convert_array(const int                     src_dim,
                                     n_parent_lists,
                                     parent_num_shift,
                                     parent_num,
-                                    (const int64_t *const *const)src_data,
-                                    (int32_t *const) dest_data);
+                                    (const int64_t **)src_data,
+                                    (int32_t *) dest_data);
       break;
 
     case FVMC_INT64:
@@ -2236,8 +2248,8 @@ fvmc_convert_array(const int                     src_dim,
                                     n_parent_lists,
                                     parent_num_shift,
                                     parent_num,
-                                    (const int64_t *const *const)src_data,
-                                    (int64_t *const) dest_data);
+                                    (const int64_t **)src_data,
+                                    (int64_t *) dest_data);
       break;
 
     case FVMC_UINT32:
@@ -2246,8 +2258,8 @@ fvmc_convert_array(const int                     src_dim,
                                      n_parent_lists,
                                      parent_num_shift,
                                      parent_num,
-                                     (const int64_t *const *const)src_data,
-                                     (uint32_t *const) dest_data);
+                                     (const int64_t **)src_data,
+                                     (uint32_t *) dest_data);
       break;
 
     case FVMC_UINT64:
@@ -2256,11 +2268,19 @@ fvmc_convert_array(const int                     src_dim,
                                      n_parent_lists,
                                      parent_num_shift,
                                      parent_num,
-                                     (const int64_t *const *const)src_data,
-                                     (uint64_t *const)dest_data);
+                                     (const int64_t **)src_data,
+                                     (uint64_t *)dest_data);
       break;
 
+		case FVMC_INT16:
+    case FVMC_UINT16:
+      bftc_error(__FILE__, __LINE__, 0,
+                _("fvmc_writer_convert_array() may not be used to convert "
+                  "to int16 or uint16"));
+      break;
+	
     case FVMC_CHAR:
+    case FVMC_UCHAR:
     case FVMC_DATATYPE_NULL:
       break;
 
@@ -2284,8 +2304,8 @@ fvmc_convert_array(const int                     src_dim,
                                      n_parent_lists,
                                      parent_num_shift,
                                      parent_num,
-                                     (const uint32_t *const *const)src_data,
-                                     (float *const) dest_data);
+                                     (const uint32_t **)src_data,
+                                     (float *) dest_data);
       break;
 
     case FVMC_DOUBLE:
@@ -2294,8 +2314,8 @@ fvmc_convert_array(const int                     src_dim,
                                       n_parent_lists,
                                       parent_num_shift,
                                       parent_num,
-                                      (const uint32_t *const *const)src_data,
-                                      (double *const) dest_data);
+                                      (const uint32_t **)src_data,
+                                      (double *) dest_data);
       break;
 
     case FVMC_INT32:
@@ -2304,8 +2324,8 @@ fvmc_convert_array(const int                     src_dim,
                                      n_parent_lists,
                                      parent_num_shift,
                                      parent_num,
-                                     (const uint32_t *const *const)src_data,
-                                     (int32_t *const) dest_data);
+                                     (const uint32_t **)src_data,
+                                     (int32_t *) dest_data);
       break;
 
     case FVMC_INT64:
@@ -2314,8 +2334,8 @@ fvmc_convert_array(const int                     src_dim,
                                      n_parent_lists,
                                      parent_num_shift,
                                      parent_num,
-                                     (const uint32_t *const *const)src_data,
-                                     (int64_t *const) dest_data);
+                                     (const uint32_t **)src_data,
+                                     (int64_t *) dest_data);
       break;
 
     case FVMC_UINT32:
@@ -2324,8 +2344,8 @@ fvmc_convert_array(const int                     src_dim,
                                       n_parent_lists,
                                       parent_num_shift,
                                       parent_num,
-                                      (const uint32_t *const *const)src_data,
-                                      (uint32_t *const) dest_data);
+                                      (const uint32_t **)src_data,
+                                      (uint32_t *) dest_data);
       break;
 
     case FVMC_UINT64:
@@ -2334,13 +2354,19 @@ fvmc_convert_array(const int                     src_dim,
                                       n_parent_lists,
                                       parent_num_shift,
                                       parent_num,
-                                      (const uint32_t *const *const)src_data,
-                                      (uint64_t *const) dest_data);
+                                      (const uint32_t **)src_data,
+                                      (uint64_t *) dest_data);
       break;
 
     case FVMC_CHAR:
+    case FVMC_UCHAR:
     case FVMC_DATATYPE_NULL:
       break;
+		case FVMC_INT16:
+    case FVMC_UINT16:
+      bftc_error(__FILE__, __LINE__, 0,
+                _("fvmc_writer_convert_array() may not be used to convert "
+                  "to int16 or uint16"));
 
     }
     break;
@@ -2362,8 +2388,8 @@ fvmc_convert_array(const int                     src_dim,
                                      n_parent_lists,
                                      parent_num_shift,
                                      parent_num,
-                                     (const uint64_t *const *const)src_data,
-                                     (float *const) dest_data);
+                                     (const uint64_t **)src_data,
+                                     (float *) dest_data);
       break;
 
     case FVMC_DOUBLE:
@@ -2372,8 +2398,8 @@ fvmc_convert_array(const int                     src_dim,
                                       n_parent_lists,
                                       parent_num_shift,
                                       parent_num,
-                                      (const uint64_t *const *const)src_data,
-                                      (double *const) dest_data);
+                                      (const uint64_t **)src_data,
+                                      (double *) dest_data);
       break;
 
     case FVMC_INT32:
@@ -2382,8 +2408,8 @@ fvmc_convert_array(const int                     src_dim,
                                      n_parent_lists,
                                      parent_num_shift,
                                      parent_num,
-                                     (const uint64_t *const *const)src_data,
-                                     (int32_t *const) dest_data);
+                                     (const uint64_t **)src_data,
+                                     (int32_t *) dest_data);
       break;
 
     case FVMC_INT64:
@@ -2392,8 +2418,8 @@ fvmc_convert_array(const int                     src_dim,
                                      n_parent_lists,
                                      parent_num_shift,
                                      parent_num,
-                                     (const uint64_t *const *const)src_data,
-                                     (int64_t *const) dest_data);
+                                     (const uint64_t **)src_data,
+                                     (int64_t *) dest_data);
       break;
 
     case FVMC_UINT32:
@@ -2402,8 +2428,8 @@ fvmc_convert_array(const int                     src_dim,
                                       n_parent_lists,
                                       parent_num_shift,
                                       parent_num,
-                                      (const uint64_t *const *const)src_data,
-                                      (uint32_t *const) dest_data);
+                                      (const uint64_t **)src_data,
+                                      (uint32_t *) dest_data);
       break;
 
     case FVMC_UINT64:
@@ -2412,20 +2438,32 @@ fvmc_convert_array(const int                     src_dim,
                                       n_parent_lists,
                                       parent_num_shift,
                                       parent_num,
-                                      (const uint64_t *const *const)src_data,
-                                      (uint64_t *const) dest_data);
+                                      (const uint64_t **)src_data,
+                                      (uint64_t *) dest_data);
       break;
 
     case FVMC_CHAR:
+    case FVMC_UCHAR:
     case FVMC_DATATYPE_NULL:
       break;
+		case FVMC_INT16:
+    case FVMC_UINT16:
+      bftc_error(__FILE__, __LINE__, 0,
+                _("fvmc_writer_convert_array() may not be used to convert "
+                  "to int16 or uint16"));
 
     }
     break;
 
   case FVMC_CHAR:
+  case FVMC_UCHAR:
   case FVMC_DATATYPE_NULL:
     break;
+	case FVMC_INT16:
+	case FVMC_UINT16:
+		bftc_error(__FILE__, __LINE__, 0,
+							_("fvmc_writer_convert_array() may not be used to convert "
+								"from int16 or uint16"));
   }
 }
 

@@ -1321,7 +1321,7 @@ _write_tesselated_connect_g(const fvmc_io_num_t  *global_vertex_num,
   fvmc_gather_slice_t   *elements_slice = NULL;
 
   const fvmc_lnum_t n_elements = fvmc_tesselation_n_elements(tesselation);
-  const int stride = fvmc_nodal_n_vertices_element[type];
+  const int stride = fvmc_nodal_n_vertices_element(type, 1 );
 
   /* Get info on the current MPI communicator */
 
@@ -1357,7 +1357,7 @@ _write_tesselated_connect_g(const fvmc_io_num_t  *global_vertex_num,
     end_id
       = fvmc_tesselation_range_index_g(tesselation,
                                       type,
-                                      fvmc_nodal_n_vertices_element[type],
+                                      fvmc_nodal_n_vertices_element (type, 1),
                                       start_id,
                                       local_connect_size,
                                       &global_num_end,
@@ -2302,7 +2302,7 @@ _export_nodal_tesselated_l(const fvmc_writer_section_t  *export_section,
 
     BFTC_MALLOC(vertex_num,
                (  n_buffer_elements_max
-                * fvmc_nodal_n_vertices_element[export_section->type]),
+                * fvmc_nodal_n_vertices_element(export_section->type, 1)),
                fvmc_lnum_t);
 
     for (start_id = 0;
@@ -2317,7 +2317,7 @@ _export_nodal_tesselated_l(const fvmc_writer_section_t  *export_section,
                                  export_section->extra_vertex_base,
                                  vertex_num);
 
-      _write_connect_l(fvmc_nodal_n_vertices_element[export_section->type],
+      _write_connect_l(fvmc_nodal_n_vertices_element(export_section->type, 1),
                        (  sub_element_idx[end_id]
                         - sub_element_idx[start_id]),
                        vertex_num,

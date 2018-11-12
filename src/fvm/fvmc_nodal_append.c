@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 /*----------------------------------------------------------------------------
  * BFT library headers
@@ -98,7 +99,10 @@ extern "C" {
 
 static fvmc_nodal_section_t *
 _transfer_to_section(fvmc_lnum_t      n_elements,
-                     fvmc_element_t   type,
+                     fvmc_element_t   t_elt,
+                     int              order,
+                     int             *ho_uvw_to_local_ordering, 
+                     int             *ho_local_to_uvw, 
                      fvmc_lnum_t      face_index[],
                      fvmc_lnum_t      face_num[],
                      fvmc_lnum_t      vertex_index[],
@@ -107,18 +111,19 @@ _transfer_to_section(fvmc_lnum_t      n_elements,
 {
   fvmc_nodal_section_t  *this_section = NULL;
 
-  this_section = fvmc_nodal_section_create(type);
+  this_section = fvmc_nodal_section_create(t_elt, order);
 
   this_section->n_elements = n_elements;
 
+
   /* Connectivity */
 
-  if (type == FVMC_CELL_POLY) {
+  if (t_elt == FVMC_CELL_POLY) {
     this_section->_face_index = face_index;
     this_section->_face_num = face_num;
   }
 
-  if (type == FVMC_FACE_POLY || type == FVMC_CELL_POLY)
+  if (t_elt == FVMC_FACE_POLY || t_elt == FVMC_CELL_POLY)
     this_section->_vertex_index = vertex_index;
 
   this_section->_vertex_num = vertex_num;
@@ -163,6 +168,35 @@ _transfer_to_section(fvmc_lnum_t      n_elements,
       this_section->connectivity_size = 0;      
   }
 
+  if (ho_uvw_to_local_ordering != NULL) {
+
+    const int n_nodes = fvmc_nodal_n_vertices_element (t_elt, order);
+
+    this_section->_ho_vertex_num = malloc (sizeof(int) * n_nodes * this_section->n_elements);
+
+    this_section->ho_local_to_user_ordering = malloc (sizeof(int) * n_nodes);
+      
+    int stride = this_section->entity_dim;
+
+    for (int k = 0; k < n_nodes; k++) {
+      const int *_uvw = ho_local_to_uvw + k * stride;
+      int idx = 0; 
+      for (int l = 0; l < stride; l++) {
+        idx += (int) pow((order+1),l) * _uvw[l];
+      }
+      int local_num = ho_uvw_to_local_ordering[idx];
+      this_section->ho_local_to_user_ordering[local_num] = k;
+    }
+
+    for (int j = 0; j < this_section->n_elements; j++) {
+      int *_ho_vertex_num = this_section->_ho_vertex_num + j * n_nodes;
+      const int *_vertex_num = this_section->vertex_num + j * n_nodes;
+      for (int k = 0; k < n_nodes; k++) {
+        _ho_vertex_num[k] = _vertex_num[this_section->ho_local_to_user_ordering[k]];
+      }
+    }
+  }
+  
   return this_section;
 }
 
@@ -190,6 +224,9 @@ _transfer_to_section(fvmc_lnum_t      n_elements,
 static fvmc_nodal_section_t *
 _map_to_section(fvmc_lnum_t      n_elements,
                 fvmc_element_t   type,
+                int              order, 
+                int             *ho_uvw_to_local_ordering, 
+                int             *ho_local_to_uvw, 
                 fvmc_lnum_t      face_index[],
                 fvmc_lnum_t      face_num[],
                 fvmc_lnum_t      vertex_index[],
@@ -198,7 +235,7 @@ _map_to_section(fvmc_lnum_t      n_elements,
 {
   fvmc_nodal_section_t  *this_section = NULL;
 
-  this_section = fvmc_nodal_section_create(type);
+  this_section = fvmc_nodal_section_create(type, order);
 
   this_section->n_elements = n_elements;
 
@@ -244,6 +281,35 @@ _map_to_section(fvmc_lnum_t      n_elements,
     }
     else
       this_section->connectivity_size = 0;
+  }
+
+  if (ho_uvw_to_local_ordering != NULL) {
+
+    const int n_nodes = fvmc_nodal_n_vertices_element (type, order);
+
+    this_section->_ho_vertex_num = malloc (sizeof(int) * n_nodes * this_section->n_elements);
+
+    this_section->ho_local_to_user_ordering = malloc (sizeof(int) * n_nodes);
+      
+    int stride = this_section->entity_dim;
+
+    for (int k = 0; k < n_nodes; k++) {
+      const int *_uvw = ho_local_to_uvw + k * stride;
+      int idx = 0; 
+      for (int l = 0; l < stride; l++) {
+        idx += (int) pow((order+1),l) * _uvw[l];
+      }
+      int local_num = ho_uvw_to_local_ordering[idx];
+      this_section->ho_local_to_user_ordering[local_num] = k;
+    }
+
+    for (int j = 0; j < this_section->n_elements; j++) {
+      int *_ho_vertex_num = this_section->_ho_vertex_num + j * n_nodes;
+      const int *_vertex_num = this_section->vertex_num + j * n_nodes;
+      for (int k = 0; k < n_nodes; k++) {
+        _ho_vertex_num[k] = _vertex_num[this_section->ho_local_to_user_ordering[k]];
+      }
+    }
   }
 
   return this_section;
@@ -296,9 +362,26 @@ fvmc_nodal_append_by_transfer(fvmc_nodal_t    *this_nodal,
   /* Create new section */
 
   BFTC_REALLOC(this_nodal->sections, n_sections + 1, fvmc_nodal_section_t *);
+  BFTC_REALLOC(this_nodal->sections_idx, n_sections + 2, int);
+  if (n_sections == 0) {
+    this_nodal->sections_idx[0] = 0;
+  }
+  this_nodal->sections_idx[n_sections+1] = this_nodal->sections_idx[n_sections] + n_elements; 
+
+  int  *ho_uvw_to_local_ordering = NULL;
+  
+  int  *ho_user_to_uvw = NULL;
+  
+  if (this_nodal->ho_uvw_to_local_ordering != NULL) {
+    ho_uvw_to_local_ordering = this_nodal->ho_uvw_to_local_ordering[type];
+    ho_user_to_uvw = this_nodal->ho_user_to_uvw[type];
+  }
 
   new_section = _transfer_to_section(n_elements,
                                      type,
+                                     this_nodal->order,
+                                     ho_uvw_to_local_ordering,
+                                     ho_user_to_uvw,
                                      face_index,
                                      face_num,
                                      vertex_index,
@@ -371,9 +454,26 @@ fvmc_nodal_append_shared(fvmc_nodal_t    *this_nodal,
   /* Create new section */
 
   BFTC_REALLOC(this_nodal->sections, n_sections + 1, fvmc_nodal_section_t *);
+  BFTC_REALLOC(this_nodal->sections_idx, n_sections + 2, int);
+  if (n_sections == 0) {
+    this_nodal->sections_idx[0] = 0;
+  }
+  this_nodal->sections_idx[n_sections+1] = this_nodal->sections_idx[n_sections] + n_elements; 
 
+  int  *ho_uvw_to_local_ordering = NULL;
+  
+  int  *ho_user_to_uvw = NULL;
+  
+  if (this_nodal->ho_uvw_to_local_ordering != NULL) {
+    ho_uvw_to_local_ordering = this_nodal->ho_uvw_to_local_ordering[type];
+    ho_user_to_uvw = this_nodal->ho_user_to_uvw[type];
+  }
+  
   new_section = _map_to_section(n_elements,
                                 type,
+                                this_nodal->order,
+                                ho_uvw_to_local_ordering,
+                                ho_user_to_uvw, 
                                 face_index,
                                 face_num,
                                 vertex_index,

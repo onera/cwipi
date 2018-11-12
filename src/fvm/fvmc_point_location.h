@@ -9,7 +9,7 @@
   This file is part of the "Finite Volume Mesh" library, intended to provide
   finite volume mesh and associated fields I/O and manipulation services.
 
-  Copyright (C) 2011       ONERA
+  Copyright (C) 2011-2018  ONERA
 
   Copyright (C) 2007-2009  EDF
 
@@ -85,6 +85,10 @@ extern "C" {
  *                         of same element dimension if false
  *   n_points          <-- number of points to locate
  *   point_coords      <-- point coordinates
+ *   projected_coords  <-> coordinates of projected points in location elements
+ *                         point (size: n_points * dim)
+ *   uvw               <-> parametric coordinates of the point if inside the element 
+ *                         parametric coordinates of the projected point if outside the element
  *   location          <-> number of element containing or closest to each
  *                         point (size: n_points)
  *   distance          <-> distance from point to element indicated by
@@ -99,6 +103,8 @@ fvmc_point_location_nodal(const fvmc_nodal_t  *this_nodal,
                           _Bool                 locate_on_parents,
                           fvmc_lnum_t           n_points,
                           const fvmc_coord_t    point_coords[],
+                          fvmc_coord_t         *projected_coords,
+                          double               *uvw,
                           fvmc_lnum_t           location[],
                           float                 distance[]);
 
@@ -133,37 +139,6 @@ fvmc_point_location_closest_nodal(const fvmc_nodal_t  *this_nodal,
                                  fvmc_lnum_t          location[],
                                  float               distance[]);
 
-
-/*----------------------------------------------------------------------------
- * Find elements in a given nodal mesh containing points: updates the
- * location[] and distance[] arrays associated with a set of points
- * for points that are in an element of this mesh, or closer to one
- * than to previously encountered elements.
- *
- * parameters:
- *   this_nodal        <-- pointer to nodal mesh representation structure
- *   tolerance         <-- associated tolerance
- *   locate_on_parents <-- location relative to parent element numbers if
- *                         true, id of element + 1 in concatenated sections
- *                         of same element dimension if false
- *   n_points          <-- number of points to locate
- *   point_coords      <-- point coordinates
- *   location          <-> number of element containing or closest to each
- *                         point (size: n_points)
- *   distance          <-> distance from point to element indicated by
- *                         location[]: < 0 if unlocated, 0 - 1 if inside,
- *                         and > 1 if outside a volume element, or absolute
- *                         distance to a surface element (size: n_points)
- *----------------------------------------------------------------------------*/
-
-void
-fvmc_point_location_nodal(const fvmc_nodal_t  *this_nodal,
-                          double                tolerance,
-                          _Bool                 locate_on_parents,
-                          fvmc_lnum_t           n_points,
-                          const fvmc_coord_t    point_coords[],
-                          fvmc_lnum_t           location[],
-                          float                 distance[]);
 
 /*----------------------------------------------------------------------------
  * Compute distance to polygons
@@ -213,8 +188,9 @@ int fvmc_parameterize_polygon(int numPts, double *pts, double *p0, double *p10, 
                               double *p20,double *l20, double *n);
 
 int  fvmc_triangle_evaluate_Position (double x[3], double *pts, double* closestPoint,
-                                      double pcoords[3],
-                                      double *dist2, double *weights);
+                                      double closestPointpcoords[3],
+                                      double *dist2,
+                                      double closestPointweights[3]);
 
 int fvmc_polygon_evaluate_Position(double x[3], int numPts, double *pts, double* closestPoint,
                                    double pcoords[3], double* minDist2);

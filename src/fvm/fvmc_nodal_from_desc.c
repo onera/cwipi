@@ -1373,7 +1373,8 @@ fvmc_nodal_from_desc_add_cells(fvmc_nodal_t        *this_nodal,
        cell_type_i <= cell_type_i_f;
        cell_type_i++) {
     if (n_g_elements_type[cell_type_i] > 0) {
-      sections[cell_type_i] = fvmc_nodal_section_create((fvmc_element_t) cell_type_i);
+      int order = 1;
+      sections[cell_type_i] = fvmc_nodal_section_create((fvmc_element_t) cell_type_i, order);
       sections[cell_type_i]->n_elements = n_elements_type[cell_type_i];
       this_nodal->n_cells += n_elements_type[cell_type_i];
     }
@@ -1387,7 +1388,7 @@ fvmc_nodal_from_desc_add_cells(fvmc_nodal_t        *this_nodal,
     if (section != NULL) {
       if (   section->type != FVMC_FACE_POLY
           && section->type != FVMC_CELL_POLY) {
-        section->stride = fvmc_nodal_n_vertices_element[type_id];
+        section->stride = fvmc_nodal_n_vertices_element((fvmc_element_t) type_id, section->order);
         section->connectivity_size = section->stride * section->n_elements;
         BFTC_MALLOC(section->_vertex_num, section->connectivity_size, fvmc_lnum_t);
         section->vertex_num = section->_vertex_num;
@@ -1427,7 +1428,7 @@ fvmc_nodal_from_desc_add_cells(fvmc_nodal_t        *this_nodal,
 
     p_cell_vertex =   section->_vertex_num
                     + (  n_elements_type[cell_type]
-                       * fvmc_nodal_n_vertices_element[cell_type]);
+                       * fvmc_nodal_n_vertices_element(cell_type, section->order));
 
     switch (cell_type) {
     case FVMC_CELL_TETRA:
@@ -1627,7 +1628,8 @@ fvmc_nodal_from_desc_add_faces(fvmc_nodal_t        *this_nodal,
        face_type_i <= face_type_i_f;
        face_type_i++) {
     if (n_g_elements_type[face_type_i] > 0) {
-      sections[face_type_i] = fvmc_nodal_section_create((fvmc_element_t) face_type_i);
+      int order = 1;
+      sections[face_type_i] = fvmc_nodal_section_create((fvmc_element_t) face_type_i, order);
       sections[face_type_i]->n_elements = n_elements_type[face_type_i];
       this_nodal->n_faces += n_elements_type[face_type_i];
     }
@@ -1640,13 +1642,13 @@ fvmc_nodal_from_desc_add_faces(fvmc_nodal_t        *this_nodal,
     section = sections[type_id];
     if (section != NULL) {
       if (section->type != FVMC_FACE_POLY) {
-        section->stride = fvmc_nodal_n_vertices_element[type_id];
+        section->stride = fvmc_nodal_n_vertices_element((fvmc_element_t)type_id, section->order);
         section->connectivity_size = section->stride * section->n_elements;
         BFTC_MALLOC(section->_vertex_num, section->connectivity_size, fvmc_lnum_t);
         section->vertex_num = section->_vertex_num;
       }
       else {
-        section->stride = fvmc_nodal_n_vertices_element[type_id];
+        section->stride = fvmc_nodal_n_vertices_element((fvmc_element_t)type_id, section->order);
         section->connectivity_size = poly_connect_size;
         BFTC_MALLOC(section->_vertex_index, section->n_elements + 1, fvmc_lnum_t);
         BFTC_MALLOC(section->_vertex_num, section->connectivity_size, fvmc_lnum_t);

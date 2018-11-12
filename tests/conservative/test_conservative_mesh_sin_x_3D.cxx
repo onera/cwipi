@@ -26,7 +26,7 @@
 
 
 #include "cwipi.h"
-#include "mesh.hxx"
+#include "oldMesh.hxx"
 #include "conservativeMesh.hxx"
 
 
@@ -281,7 +281,7 @@ int main(
   MPI_Comm fvmComm = MPI_COMM_WORLD;
 
     
-  cwipi::Mesh* sourceMesh = new cwipi::Mesh(MPI_COMM_WORLD,
+  cwipi::oldMesh* sourceMesh = new cwipi::oldMesh(MPI_COMM_WORLD,
                                              2 ,
                                              nVertexSM,
                                              nEltsSM,
@@ -338,7 +338,7 @@ int main(
   }
 
     
-  cwipi::Mesh* targetMesh = new cwipi::Mesh(MPI_COMM_WORLD,
+  cwipi::oldMesh* targetMesh = new cwipi::oldMesh(MPI_COMM_WORLD,
                                              2 ,
                                              nVertexTM,
                                              nEltsTM,

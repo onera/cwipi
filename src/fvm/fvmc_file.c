@@ -644,7 +644,7 @@ _mpi_file_read_block_ip(fvmc_file_t  *f,
   lengths[0] = (global_num_end - global_num_start) * size;
   disps[0] = (global_num_start - 1) * size;
 
-  MPI_Type_hindexed(1, lengths, disps, MPI_BYTE, &file_type);
+  MPI_Type_create_hindexed(1, lengths, disps, MPI_BYTE, &file_type);
   MPI_Type_commit(&file_type);
 
   MPI_File_set_view(f->fh, f->offset, MPI_BYTE, file_type, datarep, f->info);
@@ -745,7 +745,7 @@ _mpi_file_write_block_ip(fvmc_file_t  *f,
   lengths[0] = (global_num_end - global_num_start) * size;
   disps[0] = (global_num_start - 1) * size;
 
-  MPI_Type_hindexed(1, lengths, disps, MPI_BYTE, &file_type);
+  MPI_Type_create_hindexed(1, lengths, disps, MPI_BYTE, &file_type);
   MPI_Type_commit(&file_type);
 
   MPI_File_set_view(f->fh, f->offset, MPI_BYTE, file_type, datarep, f->info);
@@ -901,14 +901,13 @@ fvmc_file_t *
 fvmc_file_free(fvmc_file_t  *f)
 {
   fvmc_file_t  *_f = f;
-  int errcode = 0;
 
   if (_f->sh != NULL)
-    errcode = _file_close(_f);
+    _file_close(_f);
 
 #if defined(FVMC_HAVE_MPI_IO)
   else if (_f->fh != MPI_FILE_NULL)
-    errcode = _mpi_file_close(_f);
+     _mpi_file_close(_f);
 #endif
 
 #if defined(FVMC_HAVE_MPI)
@@ -1073,7 +1072,7 @@ fvmc_file_read_global(fvmc_file_t  *f,
         char datarep[] = "native";
         lengths[0] = ni * size;
         disps[0] = 0;
-        MPI_Type_hindexed(1, lengths, disps, MPI_BYTE, &file_type);
+        MPI_Type_create_hindexed(1, lengths, disps, MPI_BYTE, &file_type);
         MPI_Type_commit(&file_type);
         MPI_File_set_view(f->fh, f->offset, MPI_BYTE, file_type,
                           datarep, f->info);
@@ -1183,7 +1182,7 @@ fvmc_file_write_global(fvmc_file_t  *f,
       char datarep[] = "native";
       lengths[0] = ni * size;
       disps[0] = 0;
-      MPI_Type_hindexed(1, lengths, disps, MPI_BYTE, &file_type);
+      MPI_Type_create_hindexed(1, lengths, disps, MPI_BYTE, &file_type);
       MPI_Type_commit(&file_type);
       MPI_File_set_view(f->fh, f->offset, MPI_BYTE, file_type,
                         datarep, f->info);

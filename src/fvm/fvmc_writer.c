@@ -222,7 +222,7 @@ _fvmc_writer_format_closest_name(const char  *const format_name)
   strncpy(tmp_name, format_name, 32);
   tmp_name[31] = '\0';
   for (i = 0 ; i < l ; i++) {
-    tmp_name[i] = tolower(tmp_name[i]);
+    tmp_name[i] = (char) tolower(tmp_name[i]);
     if (tmp_name[i] == ' ' || tmp_name[i] == '\t')
       tmp_name[i] = '_';
   }
@@ -277,7 +277,7 @@ _fvmc_writer_option_list(const char  *const option_list)
   /* Transform format name to lowercase, single whitespace separated */
 
   for (i = 0, j = 0 ; i < l ; i++) {
-    ret_list[j] = tolower(option_list[i]);
+    ret_list[j] = (char) tolower(option_list[i]);
     if (ret_list[j] == ',' || ret_list[j] == ';' || ret_list[j] == '\t')
       ret_list[j] = ' ';
     if (ret_list[j] != ' ' || (j > 0 && ret_list[j-1] != ' '))
@@ -444,7 +444,7 @@ fvmc_writer_def_nodal_buf_size(const fvmc_nodal_t  *this_nodal,
                                           NULL,
                                           &n_sub_elements_max);
 
-          stride = fvmc_nodal_n_vertices_element[sub_type];
+          stride = fvmc_nodal_n_vertices_element(sub_type, 1);
 
 
           connect_size = FVMC_MAX(connect_size,

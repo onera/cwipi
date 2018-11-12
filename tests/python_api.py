@@ -53,9 +53,8 @@ def userInterp(entities_dim,
     f.write('user interpolation')
 
     if (distant_field != None):
-        for i in distant_field:
-            i = 1.234
-
+        distant_field = 1.234
+            
 
 def runTest():
     """
@@ -80,7 +79,7 @@ def runTest():
     fname = ["proc0","proc1"]
 
     try:
-        import cwipi
+        from cwipi import cwipi
     except:
         if rank == 0:
             print "      Error : CWIPI module not found (update PYTHONPATH variable)"

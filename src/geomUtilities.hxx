@@ -238,22 +238,10 @@ namespace cwipi {
            coords[3*i4 + 1] - coords[3*i1 + 1],
            coords[3*i4 + 2] - coords[3*i1 + 2]};
 
-        double vectV2V4[3] =
-          {coords[3*i4    ] - coords[3*i2    ],
-           coords[3*i4 + 1] - coords[3*i2 + 1],
-           coords[3*i4 + 2] - coords[3*i2 + 2]};
-
-        double vectV3V4[3] =
-          {coords[3*i4    ] - coords[3*i3    ],
-           coords[3*i4 + 1] - coords[3*i3 + 1],
-           coords[3*i4 + 2] - coords[3*i3 + 2]};
-
         double normV1V2 = norm(vectV1V2);
         double normV1V3 = norm(vectV1V3);
         double normV2V3 = norm(vectV2V3);
         double normV1V4 = norm(vectV1V4);
-        double normV2V4 = norm(vectV2V4);
-        double normV3V4 = norm(vectV3V4);
 
         characteristicLength[itet] = std::min(normV1V2,                    normV1V3);
         characteristicLength[itet] = std::min(characteristicLength[itet],  normV2V3);
@@ -654,6 +642,14 @@ namespace cwipi {
   }
 
 
+#if defined(__INTEL_COMPILER)
+#pragma warning(push)
+#pragma warning(disable:869)
+#elif defined(__clang__)	
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-value" 	
+#endif
+
   ///
   /// \brief Edges properties 
   /// 
@@ -707,8 +703,7 @@ namespace cwipi {
       }
     }    
   }
-
-
+  
   ///
   /// \brief Triangle properties
   /// 
@@ -732,7 +727,7 @@ namespace cwipi {
                                   int         *isDegenerated)
 
   {
-  
+      
     triangleSurfaceVector (nTriangle,
                            connectivity,
                            coords,
@@ -747,6 +742,11 @@ namespace cwipi {
 
   }
 
+#if defined(__INTEL_COMPILER)
+#pragma warning(pop)
+#elif defined(__clang__)	
+#pragma clang diagnostic pop
+#endif
 
   ///
   /// \brief Quadrangle properties
@@ -800,6 +800,15 @@ namespace cwipi {
                           int         *isDegenerated);
 
 
+
+#if defined(__INTEL_COMPILER)
+#pragma warning(push)
+#pragma warning(disable:869)
+#elif defined(__clang__)	
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-value" 	
+#endif
+
   ///
   /// \brief Tetrahedra properties
   /// 
@@ -813,6 +822,7 @@ namespace cwipi {
   /// @param [out] isDegenerated         Degenerated edge indicator (active if != NULL)             
   ///
 
+
   inline void tetrahedraProperties (const int     nTetrahedra,
                                     const int    *connectivity,
                                     const int     nVertices,
@@ -823,6 +833,7 @@ namespace cwipi {
                                     int         *isDegenerated)
 
   {
+
     tetrahedraOrientedVolume (nTetrahedra,
                               connectivity,
                               coords,
@@ -836,6 +847,11 @@ namespace cwipi {
                       center);
   }
   
+#if defined(__INTEL_COMPILER)
+#pragma warning(pop)
+#elif defined(__clang__)	
+#pragma clang diagnostic pop
+#endif
   
   ///
   /// \brief Hexahedra properties

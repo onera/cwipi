@@ -753,10 +753,10 @@ _vertex_field_of_real_values(const fvmc_tesselation_t  *this_tesselation,
 
         switch(src_datatype) {
         case FVMC_FLOAT:
-          v_f = ((const float *const *const)src_data)[pl][src_id];
+          v_f = ((const float **)src_data)[pl][src_id];
           break;
         case FVMC_DOUBLE:
-          v_f = ((const double *const *const)src_data)[pl][src_id];
+          v_f = ((const double **)src_data)[pl][src_id];
           break;
         default:
           assert(0);
@@ -810,10 +810,10 @@ _vertex_field_of_real_values(const fvmc_tesselation_t  *this_tesselation,
 
       switch(dest_datatype) {
       case FVMC_FLOAT:
-        ((float *const)dest_data)[i] = interpolated_value;
+        ((float *)dest_data)[i] = (float) interpolated_value;
         break;
       case FVMC_DOUBLE:
-        ((double *const)dest_data)[i] = interpolated_value;
+        ((double *)dest_data)[i] = (double) interpolated_value;
         break;
       default:
         assert(0);

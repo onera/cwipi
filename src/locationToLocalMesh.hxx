@@ -28,7 +28,7 @@
 #include <bftc_error.h>
 #include <fvmc_triangulate.h>
 
-#include "mesh.hxx"
+#include "oldMesh.hxx"
 #include "cwipi.h"
 
 namespace cwipi
@@ -52,6 +52,7 @@ public:
   ///
   ///   @param supportMesh                                 Mesh where distant points are localized
   ///   @param solverType                                  Solver type of current application
+  ///   @param optBboxStep                                 Discritization step for high order element bounding boxes
   ///   @param tolerance                                   Geometric tolerance for localization
   ///   @param couplingComm                                Coupling MPI communicator
   ///   @param coupledApplicationNRankCouplingComm         Rank number of coupled application
@@ -64,6 +65,7 @@ public:
 
   LocationToLocalMesh(
                       const cwipi_solver_type_t  &solverType,
+                      const int optBboxStep,
                       const double &tolerance,
                       const MPI_Comm& couplingComm,
                       const int &coupledApplicationNRankCouplingComm,
@@ -103,6 +105,13 @@ public:
 
   //inline const std::vector <double> & getBarycentricCoordinates() const;
   inline const double *getBarycentricCoordinates() const;
+
+  ///
+  /// \brief Get uvw (size = 3 * nDistantPoint])
+  ///
+
+  //inline const std::vector <double> & getBarycentricCoordinates() const;
+  inline const double *getUvw() const;
 
   ///
   /// \brief Return location result (size = nDistantpoint)
@@ -184,8 +193,18 @@ public:
   ///   @param [in]      supportMesh location support mesh
   ///
 
-  inline void setSupportMesh(Mesh *supportMesh, bool lb_tolocate);
+  inline void setSupportMesh(oldMesh *supportMesh, bool lb_tolocate);
 
+
+  ///
+  /// \brief Set the step for the computaion of the ho optimized element bounding box 
+  ///
+  ///   @param [in]  step
+  ///
+
+  inline void optBboxStep(const int step);
+
+  
 private :
 
 
@@ -297,8 +316,10 @@ private :
 
 private :
 
-  Mesh                       *_supportMesh;                                 ///< Mesh where distant points are localized
+  oldMesh                       *_supportMesh;                                 ///< Mesh where distant points are localized
   const cwipi_solver_type_t  &_solverType;                                  ///< Solver type of current application
+  int                      _optBboxStep;                                 ///< Discitization step for the computation
+                                                                            //   of the optimized high order element bounding box 
   const double               &_tolerance;                                   ///< Geometric tolerance for localization
   const MPI_Comm             &_couplingComm;                                ///< Coupling MPI communicator
   const int                  &_coupledApplicationNRankCouplingComm;         ///< Rank number of coupled application
@@ -308,9 +329,10 @@ private :
   const ApplicationProperties&_localApplicationProperties;                  ///< Application properties
   LocationToDistantMesh      &_locationToDistantMesh;                       ///< Information about local points location in the distant mesh
 
-  fvmc_locator_t         *_fvmLocator;                                  ///< fvm structure that build the location
+  fvmc_locator_t             *_fvmLocator;                                  ///< fvm structure that build the location
   std::vector <int>          *_barycentricCoordinatesIndex;                 ///< Barycentric coordinates for each
-  std::vector <double>       *_barycentricCoordinates;                      ///< Barycentric coordinates associated to the element that contains each located distant point
+  std::vector <double>       *_barycentricCoordinates;                      ///< Barycentric coordinates associated to the eleme
+  std::vector <double>        *_uvw;                                         ///< uvw coordinates in the element (only for ho elements)
   int                         _nDistantPoint;                               ///< Number of distant points located in the local mesh
   int                        *_location;                                    ///< Local elements that contain distant points
   int                        *_locatedPointsDistribution;                   ///< Located points distribution on distant ranks
@@ -361,6 +383,16 @@ private :
       return NULL;
     else
       return &(*_barycentricCoordinates)[0];
+  }
+
+  const double *LocationToLocalMesh::getUvw() const
+  {
+    if (_toLocate)
+      bftc_error(__FILE__, __LINE__, 0,"Call 'locate' before this call !\n");
+    if (_uvw == NULL)
+      return NULL;
+    else
+      return &(*_uvw)[0];
   }
 
 ///
@@ -457,12 +489,22 @@ fvmc_locator_t *LocationToLocalMesh::getFVMLocator() const
 ///   @param [in]      supportMesh  location support mesh
 ///
 
-void LocationToLocalMesh::setSupportMesh(Mesh *supportMesh, bool lb_tolocate = true)
+void LocationToLocalMesh::setSupportMesh(oldMesh *supportMesh, bool lb_tolocate = true)
 {
   _toLocate = lb_tolocate;
   _supportMesh = supportMesh;
 }
 
+///
+/// \brief Set the step for the computaion of the ho optimized element bounding box 
+///
+///   @param [in]  step
+///
+
+void LocationToLocalMesh::optBboxStep(const int step)
+{
+  _optBboxStep = step;
+}
 
 } // Namespace cwipi
 

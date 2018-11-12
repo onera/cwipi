@@ -142,7 +142,10 @@ _read_args(int            argc,
  * Main : Exemple of user interpolation
  *
  *---------------------------------------------------------------------*/
- 
+#ifdef __INTEL_COMPILER
+#pragma warning(push)
+#pragma warning(disable:869)
+#endif
 static void _userInterpolation(const int entities_dim,
                                const int n_local_vertex,
                                const int n_local_element,
@@ -179,159 +182,9 @@ static void _userInterpolation(const int entities_dim,
     exit(EXIT_FAILURE);
   }
 }
-
-
-double *shapef = NULL;
-
-static void _userInterpolation2(const int entities_dim,
-                               const int n_local_vertex,
-                               const int n_local_element,
-                               const int n_local_polhyedra,
-                               const int n_distant_point,
-                               const double local_coordinates[],
-                               const int local_connectivity_index[],
-                               const int local_connectivity[],
-                               const int local_polyhedra_face_index[],
-                               const int local_polyhedra_cell_to_face_connectivity[],
-                               const int local_polyhedra_face_connectivity_index[],
-                               const int local_polyhedra_face_connectivity[],
-                               const double distant_points_coordinates[],
-                               const int distant_points_location[],
-                               const double distant_points_distance[],
-                               const int distant_points_barycentric_coordinates_index[],
-                               const double distant_points_barycentric_coordinates[],
-                               const int stride,
-                               const cwipi_solver_type_t  solver_type,
-                               const void *local_field,
-                               void *distant_field)
-{
-  printf("In user interpolation \n");
-
-  // Compute shapef
-
-  int compute_shape_f = 0;
-
-  if (solver_type == CWIPI_SOLVER_CELL_VERTEX) {
-    for (int i = 0; i < n_distant_point; i++) {
-
-      int ielt = distant_points_location[i] - 1;
-      int ivertex[4];
-
-      ivertex[0] = local_connectivity[local_connectivity_index[ielt]  ] - 1;
-      ivertex[1] = local_connectivity[local_connectivity_index[ielt]+1] - 1;
-      ivertex[2] = local_connectivity[local_connectivity_index[ielt]+2] - 1;
-      ivertex[3] = local_connectivity[local_connectivity_index[ielt]+3] - 1;
-
-      if (shapef == NULL) {
-        shapef = (double *) malloc(4 * n_local_element * sizeof(double));
-        compute_shape_f = 1;
-      }
-
-      double *shapef_elt = shapef + 4 * ielt;
-
-      //
-      // Compute shape function
-      //
-
-      if (compute_shape_f == 1) {
-        double deriv[4][2];
-        double uv[2];
-        double a[2][2];
-        double b[2];
-        double det_a;
-        double x[2];
-        double inv_a[2][2];
-
-        for (int k = 0; k < 2; k++)
-          uv[k] = 0.5;
-
-
-        const int it_max = 100;
-        for (int it = 0; i < it_max; it++) {
-
-          shapef_elt[0] = (1 - uv[0]) * (1 - uv[1]);
-          shapef_elt[1] = uv[0] * (1 - uv[1]);
-          shapef_elt[2] = uv[0] * uv[1];
-          shapef_elt[3] = (1 - uv[0]) * uv[1];
-        
-          deriv[0][0] = - (1 - uv[1]);
-          deriv[0][1] = - (1 - uv[0]);
-          deriv[1][0] =   (1 - uv[1]);
-          deriv[1][1] = - uv[0];
-          deriv[2][0] =   uv[1];
-          deriv[2][1] =   uv[0];
-          deriv[3][0] = - uv[1];
-          deriv[3][1] =   (1 - uv[0]);
-
-          for (int k = 0; k < 2; k++) {
-            for (int l = 0; l < 2; l++)
-              a[k][l] = 0.0;
-          }
-        
-          b[0] = - distant_points_coordinates[3 * i    ];
-          b[1] = - distant_points_coordinates[3 * i + 1];
-        
-          for (int k = 0; k < 4; k++) {
-            
-            b[0] += (shapef_elt[k] * local_coordinates[3 * ivertex[k]   ]); 
-            b[1] += (shapef_elt[k] * local_coordinates[3 * ivertex[k] +1]); 
-            
-            for (int l = 0; l < 2; l++) { 
-              a[0][l]  -=  (deriv[k][l] * local_coordinates[3 * ivertex[k]    ]);
-              a[1][l]  -=  (deriv[k][l] * local_coordinates[3 * ivertex[k] + 1]);
-            }
-          }
-
-          det_a = a[0][0] * a[1][1] - a[0][1] * a[1][0];  
-          if (det_a < 1e-12) {
-            printf("matrice non inversible\n");
-            exit(1);
-          }
-
-          double det_inv = 1./det_a;
-
-          inv_a[0][0] =   det_inv * a[1][1];
-          inv_a[0][1] = - det_inv * a[0][1];
-          inv_a[1][0] =   det_inv * a[1][0];
-          inv_a[1][1] =   det_inv * a[0][0];
-
-          x[0] = inv_a[0][0] * b[0] + inv_a[0][1] * b[1]; 
-          x[1] = inv_a[1][0] * b[0] + inv_a[1][1] * b[1]; 
-
-          double dist = 0.0;
-
-          for (int k = 0; k < 2; k++) {
-            dist += x[k] * x[k];
-            uv[k] += x[k];
-          }
-
-          if (dist <= 1e-5)
-            break;
-        }
-
-        shapef_elt[0] = (1 - uv[0]) * (1 - uv[1]);
-        shapef_elt[1] = uv[0] * (1 - uv[1]);
-        shapef_elt[2] = uv[0] * uv[1];
-        shapef_elt[3] = (1 - uv[0]) * uv[1];
-
-      }
-
-      //
-      // Insterpolation
-      //
-
-      ((double *) distant_field)[i] = 0;
-      
-      for (int k = 0; k < 4; k++) {
-        ((double *) distant_field)[i] += shapef_elt[k] * ((double *) local_field)[ivertex[k]];
-      }
-    }
-  }
-  else {
-    printf("Error in _userInterpolation : bad solver_type\n");
-    exit(EXIT_FAILURE);
-  }
-}
+#ifdef __INTEL_COMPILER
+#pragma warning(pop)
+#endif
 
 /*----------------------------------------------------------------------
  *                                                                     

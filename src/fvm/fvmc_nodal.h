@@ -62,20 +62,20 @@ typedef struct _fvmc_nodal_t fvmc_nodal_t;
  * Static global variables
  *============================================================================*/
 
-/* Number of vertices associated with each "nodal" element type */
-
-extern const int  fvmc_nodal_n_vertices_element[];
 
 /*=============================================================================
  * Public function prototypes
  *============================================================================*/
+int
+fvmc_nodal_n_vertices_element (fvmc_element_t type, int order);
 
 /*----------------------------------------------------------------------------
  * Creation of a nodal mesh representation structure.
  *
  * parameters:
- *   name <-- name that should be assigned to the nodal mesh
- *   dim  <-- spatial dimension
+ *   name  <-- name that should be assigned to the nodal mesh
+ *   dim   <-- spatial dimension
+ *   order <-- order
  *
  * returns:
  *  pointer to created nodal mesh representation structure
@@ -83,7 +83,8 @@ extern const int  fvmc_nodal_n_vertices_element[];
 
 fvmc_nodal_t *
 fvmc_nodal_create(const char  *name,
-                 int          dim);
+                  int          dim,
+                  int          order);
 
 /*----------------------------------------------------------------------------
  * Destruction of a nodal mesh representation structure.
@@ -419,6 +420,7 @@ fvmc_nodal_get_vertex(const fvmc_nodal_t  *this_nodal,
                      fvmc_lnum_t *n_elts,
                      fvmc_lnum_t **vertices_index, 
                      fvmc_lnum_t **vertices);
+
 void
 fvmc_nodal_get_coords(const fvmc_nodal_t  *this_nodal,
                      fvmc_lnum_t *n_vertex,
@@ -430,6 +432,140 @@ fvmc_nodal_get_poly_vertex(const fvmc_nodal_t  *this_nodal,
                           fvmc_lnum_t **faces_index, 
                           fvmc_lnum_t **vertices, 
                           fvmc_lnum_t **vertices_index);
+
+/*----------------------------------------------------------------------------
+ * Set high order ordering
+ *
+ * parameters:
+ *   this_nodal <-- pointer to structure that should be dumped
+ *   t_elt      <-- type of element
+ *   n_nodes    <-- number of nodes
+ *   ordering   <-- ordering
+ *
+ *----------------------------------------------------------------------------*/
+
+void
+fvmc_nodal_ho_ordering_set (fvmc_nodal_t  *this_nodal,
+                            const fvmc_element_t t_elt,
+                            const int n_nodes,
+                            const int *uvw_grid);
+
+/*----------------------------------------------------------------------------
+ * Set high order ordering from the coordinates of the nodes of the reference element
+ *
+ * parameters:
+ *   this_nodal <-- pointer to structure that should be dumped
+ *   t_elt      <-- type of element
+ *   n_nodes    <-- number of nodes
+ *   coords     <-- coordinates of the nodes of the reference element
+ *
+ *----------------------------------------------------------------------------*/
+
+void
+fvmc_nodal_ho_ordering_from_ref_elt_set (fvmc_nodal_t  *this_nodal,
+                                         const fvmc_element_t t_elt,
+                                         const int n_nodes,
+                                         const double *coords);
+
+/*----------------------------------------------------------------------------
+ * Return order
+ *
+ * parameters:
+ *   this_nodal <-- pointer to structure that should be dumped
+ *
+ * return:
+ *   order
+ *
+ *----------------------------------------------------------------------------*/
+
+int
+fvmc_nodal_order_get (const fvmc_nodal_t  *this_nodal);
+
+/*----------------------------------------------------------------------------
+ * return the number of nodes of an element
+ *
+ * parameters:
+ *   this_nodal           <-- pointer to nodal mesh structure
+ *   element              <-- element (1 to n numbering).
+ *
+ * returns:
+ *   number of nodes
+ *----------------------------------------------------------------------------*/
+
+int
+fvmc_nodal_get_n_node_elt(const fvmc_nodal_t  *this_nodal, const int elt);
+
+/*----------------------------------------------------------------------------
+ * return type of an element
+ *
+ * parameters:
+ *   this_nodal           <-- pointer to nodal mesh structure
+ *   element              <-- element (1 to n numbering).
+ *
+ * returns:
+ *   type
+ *----------------------------------------------------------------------------*/
+
+fvmc_element_t
+fvmc_nodal_get_type_elt(const fvmc_nodal_t  *this_nodal, const int elt);
+
+/*----------------------------------------------------------------------------
+ * return local to user numbering
+ *
+ * parameters:
+ *   this_nodal           <-- pointer to nodal mesh structure
+ *   element              <-- element (1 to n numbering).
+ *
+ * returns:
+ *   local to user numbering
+ *----------------------------------------------------------------------------*/
+
+const int*
+fvmc_nodal_get_local_to_user_numbering_elt (const fvmc_nodal_t  *this_nodal, const int elt);
+
+/*----------------------------------------------------------------------------
+ * return internal connectivity
+ *
+ * parameters:
+ *   this_nodal           <-- pointer to nodal mesh structure
+ *   element              <-- element (1 to n numbering).
+ *
+ * returns:
+ *   type
+ *----------------------------------------------------------------------------*/
+
+const int *
+fvmc_nodal_get_internal_connec_elt(const fvmc_nodal_t  *this_nodal, const int elt);
+
+/*----------------------------------------------------------------------------
+ * return connectivity
+ *
+ * parameters:
+ *   this_nodal           <-- pointer to nodal mesh structure
+ *   element              <-- element (1 to n numbering).
+ *
+ * returns:
+ *   type
+ *----------------------------------------------------------------------------*/
+
+const int *
+fvmc_nodal_get_connec_elt(const fvmc_nodal_t  *this_nodal, const int elt);
+
+
+
+/*----------------------------------------------------------------------------
+ * Return maximum number of nodes in an element
+ *
+ * parameters:
+ *   this_nodal <-- pointer to structure that should be dumped
+ *
+ * return:
+ *   max_stride
+ *
+ *----------------------------------------------------------------------------*/
+
+int 
+fvmc_nodal_max_n_node_elt (const fvmc_nodal_t  *this_nodal);
 
 /*----------------------------------------------------------------------------*/
 

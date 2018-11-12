@@ -119,6 +119,11 @@ _triangulate_section(int                         dim,
 
   n_elements = base_section->n_elements;
 
+  if (base_section-> order > 1) {
+      bftc_error(__FILE__, __LINE__, 0,
+                _("fvmc_nodal_copy_edges : element order > 1 is not taking into account"));
+  }
+
   if (base_section->global_element_num != NULL)
     BFTC_MALLOC(n_sub_elements, n_elements, fvmc_lnum_t);
 
@@ -154,7 +159,8 @@ _triangulate_section(int                         dim,
   /* Create new section */
   /*--------------------*/
 
-  ret_section = fvmc_nodal_section_create(FVMC_FACE_TRIA);
+  int order = 1;
+  ret_section = fvmc_nodal_section_create(FVMC_FACE_TRIA, order);
 
   ret_section->n_elements = n_triangles_tot;
   ret_section->stride = 3;
@@ -322,6 +328,10 @@ _triangulate_section_polygons(int                         dim,
   new_sections[0] = NULL, new_sections[1] = NULL;
 
   n_elements = base_section->n_elements;
+  if (base_section-> order > 1) {
+      bftc_error(__FILE__, __LINE__, 0,
+                _("_triangulate_section_polygons : element order > 1 is not taking into account"));
+  }
 
   /* Count expected total and local numbers of triangles */
 
@@ -359,9 +369,10 @@ _triangulate_section_polygons(int                         dim,
 
     if (n_elements_tot[type_id] > 0) {
       fvmc_nodal_section_t  *_section;
-      _section = fvmc_nodal_section_create(element_type[type_id]);
+      int order = 1;
+      _section = fvmc_nodal_section_create(element_type[type_id], order);
       _section->n_elements = n_elements_tot[type_id];
-      _section->stride = fvmc_nodal_n_vertices_element[element_type[type_id]];
+      _section->stride = fvmc_nodal_n_vertices_element((fvmc_element_t)element_type[type_id], _section->order);
       _section->connectivity_size =   _section->stride
                                     * _section->n_elements;
       BFTC_MALLOC(_section->_vertex_num,

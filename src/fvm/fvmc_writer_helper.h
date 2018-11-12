@@ -81,6 +81,7 @@ typedef struct _fvmc_writer_section_t {
   fvmc_element_t  type;                  /* Corresponding element type (may
                                            differ from  section->type when
                                            using tesselations) */
+  int order;
 
   _Bool   continues_previous;           /* Indicates if the corresponding FVM
                                            nodal section should be appended

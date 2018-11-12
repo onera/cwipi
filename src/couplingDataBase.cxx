@@ -1,7 +1,7 @@
 /*
   This file is part of the CWIPI library. 
 
-  Copyright (C) 2011  ONERA
+  Copyright (C) 2011-2017  ONERA
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -24,19 +24,19 @@
 #include "couplingDataBase.hxx"
 #include "couplingDataBase_i.hxx"
 #include "applicationProperties.hxx"
-#include "coupling.hxx"
+#include "oldCoupling.hxx"
 
 namespace cwipi {
 
   CouplingDataBase::CouplingDataBase()
-    : _couplingDataBase(*new std::map <std::string, Coupling * > ())
+    : _couplingDataBase(*new std::map <std::string, oldCoupling * > ())
   {
     _fvmComm = MPI_COMM_NULL;
   }
 
   CouplingDataBase::~CouplingDataBase()
   {
-    typedef std::map <std::string, Coupling * >::iterator Iterator;
+    typedef std::map <std::string, oldCoupling * >::iterator Iterator;
     for (Iterator p = _couplingDataBase.begin();
          p != _couplingDataBase.end(); p++) {
       if (p->second != NULL)
@@ -123,7 +123,7 @@ namespace cwipi {
     //
     // Create the new coupling
 
-    Coupling *newCoupling = new Coupling(name,
+    oldCoupling *newCoupling = new oldCoupling(name,
                                          couplingType,
                                          localApplicationProperties,
                                          coupledApplicationProperties,
@@ -135,10 +135,10 @@ namespace cwipi {
                                          outputFormatOption,
 					 nbLocations);
 
-    std::pair<std::string, Coupling* >
+    std::pair<std::string, oldCoupling* >
       newPair(std::string(name), newCoupling);
 
-    std::pair<std::map<std::string, Coupling* >::iterator, bool>
+    std::pair<std::map<std::string, oldCoupling* >::iterator, bool>
       p = _couplingDataBase.insert(newPair);
 
     if (!p.second)
@@ -149,7 +149,7 @@ namespace cwipi {
 
   void  CouplingDataBase::deleteCoupling(const std::string &name)
   {
-    const std::map <std::string, Coupling * >::iterator p = _couplingDataBase.find(name);
+    const std::map <std::string, oldCoupling * >::iterator p = _couplingDataBase.find(name);
     if (p == _couplingDataBase.end())
       bftc_error(__FILE__, __LINE__, 0,
                 "'%s' coupling not found \n", name.c_str());

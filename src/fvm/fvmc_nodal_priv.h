@@ -67,7 +67,9 @@ typedef struct _fvmc_nodal_section_t {
   fvmc_lnum_t  n_elements;          /* Number of elements */
 
   fvmc_element_t  type;             /* Element types */
-
+  int             order;            /* Element order */
+  int             *ho_local_to_user_ordering;     /* Local element ordering (local to user ordering) */
+  
   /* Connectivity */
   /*--------------*/
 
@@ -105,6 +107,8 @@ typedef struct _fvmc_nodal_section_t {
   fvmc_lnum_t  *_face_num;          /* face_num if owner, NULL if shared */
   fvmc_lnum_t  *_vertex_index;      /* vertex_index if owner, NULL if shared */
   fvmc_lnum_t  *_vertex_num;        /* vertex numbers if owner, NULL if shared */
+
+  fvmc_lnum_t  *_ho_vertex_num;     /* vertex numbers odered from _ho_ordering */
 
   /* Auxiliary structure used to define subdivision of elements into
      simpler element types (usually polygons to triangles and
@@ -157,15 +161,23 @@ struct _fvmc_nodal_t {
   int    n_doms;               /* Global number of domains */
   int    n_sections;           /* Number of sections */
 
+  int    order;                /* order */
+  int   **ho_uvw_to_local_ordering;  /* (U, V, W) ordering to local element ordering 
+                                        for each reference element type */
+  int   **ho_user_to_uvw;            /* user ordering to (U, V, W) */
+
   /* Local dimensions */
   /*------------------*/
 
   /* Total number of cells, faces, edges, and vertices */
+  
   fvmc_lnum_t  n_cells;
   fvmc_lnum_t  n_faces;
   fvmc_lnum_t  n_edges;
   fvmc_lnum_t  n_vertices;
 
+  fvmc_lnum_t *sections_idx;
+  
   /* Vertex definitions; */
   /*---------------------*/
 
@@ -217,7 +229,7 @@ struct _fvmc_nodal_t {
  *----------------------------------------------------------------------------*/
 
 fvmc_nodal_section_t *
-fvmc_nodal_section_create(const fvmc_element_t  type);
+fvmc_nodal_section_create(const fvmc_element_t  type, int order);
 
 /*----------------------------------------------------------------------------
  * Destruction of a nodal mesh section representation structure.

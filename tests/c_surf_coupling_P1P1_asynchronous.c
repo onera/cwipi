@@ -31,29 +31,6 @@
 
 /*----------------------------------------------------------------------
  *                                                                     
- * Dump status exchange                                                
- *                                                                     
- * parameters:
- *   status              <-- Exchange status           
- *---------------------------------------------------------------------*/
-
-static void _dumpStatus(FILE* outputFile, cwipi_exchange_status_t status)
-{
-  switch(status) {
-  case CWIPI_EXCHANGE_OK :
-    fprintf(outputFile, "Exchange Ok\n");
-    break;
-  case CWIPI_EXCHANGE_BAD_RECEIVING :
-    fprintf(outputFile, "Bad receiving\n");
-    break;
-  default :
-    printf("Error : bad exchange status\n");
-    exit(1);
-  }
-}
-
-/*----------------------------------------------------------------------
- *                                                                     
  * Dump not located points                                             
  *                                                                     
  * parameters:
@@ -61,18 +38,18 @@ static void _dumpStatus(FILE* outputFile, cwipi_exchange_status_t status)
  *   nNotLocatedPoints   <-- Number of not located points
  *---------------------------------------------------------------------*/
 
-static void _dumpNotLocatedPoints(FILE* outputFile,
-                                  const char *coupling_id,
-                                  const int nNotLocatedPoints)
-{
-  if ( nNotLocatedPoints > 0) {
-    fprintf(outputFile, "Not located points :\n");
-    const int* notLocatedPoints = cwipi_get_not_located_points(coupling_id);
-    for(int i = 0; i < nNotLocatedPoints; i++)
-     fprintf(outputFile, "%i ", notLocatedPoints[i]);
-    fprintf(outputFile, "\n");
-  }
-}
+/* static void _dumpNotLocatedPoints(FILE* outputFile, */
+/*                                   const char *coupling_id, */
+/*                                   const int nNotLocatedPoints) */
+/* { */
+/*   if ( nNotLocatedPoints > 0) { */
+/*     //fprintf(outputFile, "Not located points :\n"); */
+/*     //const int* notLocatedPoints = cwipi_get_not_located_points(coupling_id); */
+/*     // for(int i = 0; i < nNotLocatedPoints; i++) */
+/*      //fprintf(outputFile, "%i ", notLocatedPoints[i]); */
+/*     //fprintf(outputFile, "\n"); */
+/*   } */
+/* } */
 
 /*----------------------------------------------------------------------
  *                                                                     
@@ -186,7 +163,7 @@ int main
 
   if (n2 != commWorldSize) {
     if (rank == 0)
-      printf("      Not executed : only available if the number of processus in the form of '2 * n^2' \n");
+      printf("      Not executed : only available if the number of processus in the form of '2 * n^2' %d %d\n", n2, commWorldSize);
     MPI_Finalize();
     return EXIT_SUCCESS;
   }
@@ -220,11 +197,12 @@ int main
   char* fileName = (char *) malloc(sizeof(char) * 42);
   sprintf(fileName,"c_surf_coupling_P1P1_asynchronous%4.4d.txt",rank);
 
-  outputFile = fopen(fileName,"w");
-
+  //outputFile = fopen(fileName,"w");
+  outputFile = stdout;
+  
   free(fileName);
 
-  cwipi_set_output_listing(outputFile);
+  //cwipi_set_output_listing(outputFile);
 
   MPI_Comm localComm;
   cwipi_init(MPI_COMM_WORLD,
@@ -240,12 +218,12 @@ int main
   MPI_Comm_rank(localComm, &currentRank);
   MPI_Comm_size(localComm, &localCommSize);
 
-  fprintf(outputFile, "  Surface coupling test : P1P1 with polygon\n");
-  fprintf(outputFile, "\n");
+  //fprintf(outputFile, "  Surface coupling test : P1P1 with polygon\n");
+  //fprintf(outputFile, "\n");
 
-  fprintf(outputFile, "\nDump after initialization\n");
-  fprintf(outputFile, "-------------------------\n");
-  cwipi_dump_application_properties();
+  //fprintf(outputFile, "\nDump after initialization\n");
+  //fprintf(outputFile, "-------------------------\n");
+  //cwipi_dump_application_properties();
 
   if (rank == 0)
     printf("        Create coupling\n");
@@ -261,7 +239,7 @@ int main
                         CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING, // Coupling type
                         codeCoupledName,                           // Coupled application id
                         2,                                         // Geometric entities dimension
-                        0.1,                                       // Geometric tolerance
+                        1e-5,                                       // Geometric tolerance
                         CWIPI_STATIC_MESH,                         // Mesh type
                         solver_type,                               // Solver type
                         1,                                         // Postprocessing frequency
@@ -287,8 +265,15 @@ int main
   const double ymin = -10;
   const double ymax =  10;
 
+  // nVertexSeg = floor(sqrt(1.e8 / localCommSize));
+  
   nVertex = nVertexSeg * nVertexSeg;
   nElts = (nVertexSeg - 1) * (nVertexSeg - 1);
+
+  if (currentRank == 0) {
+    printf ("nVertex nElt : %s %d %d %d\n", codeName,
+            localCommSize, nVertex, nElts);
+  }
 
   coords = (double *) malloc(sizeof(double) * 3 * nVertex );
   eltsConnecPointer = (int *) malloc(sizeof(int) * (nElts + 1));
@@ -307,8 +292,8 @@ int main
             localComm); 
 
 
-  fprintf(outputFile, "   Number of vertex   : %i\n", nVertex);
-  fprintf(outputFile, "   Number of elements : %i\n", nElts);
+  ////fprintf(outputFile, "   Number of vertex   : %i\n", nVertex);
+  ////fprintf(outputFile, "   Number of elements : %i\n", nElts);
 
   cwipi_define_mesh("c_surf_cpl_P1P1_async",
                     nVertex,
@@ -363,6 +348,11 @@ int main
 
   nNotLocatedPoints = cwipi_get_n_not_located_points("c_surf_cpl_P1P1_async");
 
+  if (nNotLocatedPoints != 0) {
+    printf("nNotLocatedPoints : %d\n", nNotLocatedPoints);
+    exit(1);
+  }
+  
   cwipi_irecv("c_surf_cpl_P1P1_async",
               "ech",
               tag,
@@ -378,7 +368,7 @@ int main
                "ech",
                tag,
                1,
-               1,
+               1, 
                0.1,
                sendValuesName,
                sendValues,
@@ -388,7 +378,7 @@ int main
   cwipi_wait_issend("c_surf_cpl_P1P1_async", sRequest);
 
   //  _dumpStatus(outputFile, status);
-  _dumpNotLocatedPoints(outputFile, "c_surf_cpl_P1P1_async", nNotLocatedPoints);
+  //_dumpNotLocatedPoints(outputFile, "c_surf_cpl_P1P1_async", nNotLocatedPoints);
 
   /* Coupling deletion
    * ----------------- */

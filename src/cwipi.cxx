@@ -26,13 +26,16 @@
  * BFT library headers
  *----------------------------------------------------------------------------*/
 
-#include <bftc_mem.h>
-#include <bftc_printf.h>
+#include "bftc_mem.h"
+#include "bftc_printf.h"
 
 /*----------------------------------------------------------------------------
  * FVM library headers
  *----------------------------------------------------------------------------*/
-#include <fvmc_parall.h>
+
+#include "fvmc_parall.h"
+#include "fvmc_ho_basis.h"
+#include "fvmc_ho_location.h"
 
 /*----------------------------------------------------------------------------
  *  Local headers
@@ -48,8 +51,8 @@
 #include "applicationPropertiesDataBase_i.hxx"
 #include "couplingDataBase.hxx"
 #include "couplingDataBase_i.hxx"
-#include "coupling.hxx"
-#include "coupling_i.hxx"
+#include "oldCoupling.hxx"
+#include "oldCoupling_i.hxx"
 //#include "conservativeMesh.hxx"
 
 
@@ -134,7 +137,7 @@ void cwipi_init
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
-  bftc_printf("\ncwipi "CWIPI_VERSION" initializing\n");
+  bftc_printf("\ncwipi " CWIPI_VERSION " initializing\n");
   bftc_printf("------------------------\n\n");
 
   *application_comm = properties.init(application_name,
@@ -733,7 +736,6 @@ void cwipi_create_coupling
   cwipi::ApplicationPropertiesDataBase & properties =
     cwipi::ApplicationPropertiesDataBase::getInstance();
 
-  const std::string &coupling_name_str = coupling_name;
   const std::string &coupled_application_str = coupled_application;
 
   couplingDataBase.createCoupling(coupling_name,
@@ -748,6 +750,63 @@ void cwipi_create_coupling
                                   output_format_option,
 				  nb_locations);
 }
+
+/*----------------------------------------------------------------------------
+ *
+ * Set data user (optional)
+ *
+ * parameters:
+ *   coupling_name           <-- Coupling identifier
+ *   data                    <-- data user        
+ *----------------------------------------------------------------------------*/
+
+void
+cwipi_set_data_user
+(
+ const char  *coupling_name,
+       void  *data
+)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+ coupling.set_data_user(data);
+ 
+}
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Get data user (optional)
+ *
+ * parameters:
+ *   coupling_name           <-- Coupling identifier
+ *
+ * return :
+ *   data 
+ *----------------------------------------------------------------------------*/
+
+void *
+cwipi_get_data_user
+(
+ const char  *coupling_name
+)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  return coupling.get_data_user();
+}
+
+
 /*----------------------------------------------------------------------------
  *
  * cwipi_set_location_index
@@ -765,7 +824,7 @@ void cwipi_set_location_index (const char *coupling_name,
 
   const std::string &coupling_name_str = coupling_name;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.setLocationIndex(index);
 }
@@ -784,7 +843,7 @@ void cwipi_save_location(const char *coupling_name)
 
   const std::string &coupling_name_str = coupling_name;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.saveLocation();
 }
@@ -805,7 +864,7 @@ void cwipi_load_location(const char *coupling_name)
 
   const std::string &coupling_name_str = coupling_name;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.loadLocation();
 }
@@ -830,7 +889,7 @@ void cwipi_open_location_file (const char *coupling_name,
 
   const std::string &coupling_name_str = coupling_name;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.openLocationFile(filename,mode);
 }
@@ -849,7 +908,7 @@ void cwipi_close_location_file (const char *coupling_name)
 
   const std::string &coupling_name_str = coupling_name;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.closeLocationFile();
 }
@@ -878,7 +937,7 @@ void cwipi_set_points_to_locate
 
   const std::string &coupling_name_str = coupling_name;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.setPointsToLocate(n_points, coordinate);
 }
@@ -990,20 +1049,38 @@ void cwipi_define_mesh(const char *coupling_name,
   cwipi::CouplingDataBase & couplingDataBase =
     cwipi::CouplingDataBase::getInstance();
 
-  cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::getInstance();
-
-  const MPI_Comm &localComm = properties.getLocalApplicationProperties().getLocalComm();
-
   const std::string &coupling_name_str = coupling_name;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.defineMesh(n_vertex,
                       n_element,
                       coordinates,
                       connectivity_index,
                       connectivity);
+}
+
+void cwipi_ho_define_mesh(const char *coupling_name,
+                          const int n_vertex,
+                          const int n_element,
+                          const int order,
+                          double coordinates[],
+                          int connectivity_index[],
+                          int connectivity[])
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.defineMesh(n_vertex,
+                      n_element,
+                      coordinates,
+                      connectivity_index,
+                      connectivity,
+                      order);
 }
 
 
@@ -1014,14 +1091,9 @@ void cwipi_shared_fvmc_nodal(const char *coupling_name,
   cwipi::CouplingDataBase & couplingDataBase =
     cwipi::CouplingDataBase::getInstance();
 
-  cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::getInstance();
-
-  const MPI_Comm &localComm = properties.getLocalApplicationProperties().getLocalComm();
-
   const std::string &coupling_name_str = coupling_name;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.defineMesh((fvmc_nodal_t *) fvmc_nodal);
 
@@ -1038,12 +1110,9 @@ void cwipi_add_polyhedra(const char *coupling_name,
   cwipi::CouplingDataBase & couplingDataBase =
     cwipi::CouplingDataBase::getInstance();
 
-  cwipi::ApplicationPropertiesDataBase & properties =
-    cwipi::ApplicationPropertiesDataBase::getInstance();
-
   const std::string &coupling_name_str = coupling_name;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.defineMeshAddPolyhedra(n_element,
                                   face_index,
@@ -1052,6 +1121,160 @@ void cwipi_add_polyhedra(const char *coupling_name,
                                   face_connectivity_index,
                                   face_connectivity);
 }
+
+/*----------------------------------------------------------------------------
+ *
+ * Define specific options for ho elements 
+ *
+ * parameters:
+ *   coupling_id     <-- coupling name
+ *   option          <-- option name, Choice between :
+ *                          - "opt_bbox_step" 
+ *                              * Description : step of discretization used 
+ *                                              to compute the optimized element 
+ *                                              bounding boxes
+ *                                              -1 to deactivate this computation
+ *                              * Default     : 10 
+ *   value           <-- option value
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_ho_options_set (const char *coupling_id,
+                           const char *option,
+                           const char *value)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_id;
+
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.hoOptionsSet (option, value);
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Define ho element ordering from the location in the (u, v, w) grid
+ *
+ * parameters:
+ *   coupling_id     <-- coupling name
+ *   t_elt           <-- element type
+ *   n_nodes         <-- number of nodes
+ *   ijk_grid        <-- user ordering to (u, v, w) grid (size = elt_dim * n_nodes)
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_ho_ordering_from_IJK_set (const char *coupling_id,
+                                     const cwipi_element_t t_elt,
+                                     const int n_nodes,
+                                     const int *ijk_grid)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_id;
+
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.hoOrderingSet (t_elt, n_nodes, ijk_grid);
+
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Define ho element ordering from reference element (definition between 0 - 1)
+ *
+ *   coupling_id        <-- coupling name
+ *   t_elt              <-- element type
+ *   n_nodes            <-- number of nodes
+ *   coords             <-- node coordinates of reference element
+ *                                TODO: decrire ici les elements de reference
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_ho_ordering_from_ref_elt_set (const char   *coupling_id,
+                                         const cwipi_element_t t_elt,
+                                         const int n_nodes,
+                                         const double *coords)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_id;
+
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.hoOrderingFromRefEltSet (t_elt, n_nodes, coords);
+
+}
+
+/*----------------------------------------------------------------------------
+ * 
+ * Set elementary functions
+ * 
+ * parameters:
+ *   location_tetra    <-- Location in a tetrahedron
+ *   location_prism    <-- Location in a prism
+ *   location_pyramid  <-- Location in a pyramid
+ *   location_hexa     <-- Location in a hexaedron
+ *   location_tria     <-- Location on a triangle
+ *   location_quad     <-- Location on a quandragle
+ *   location_edge     <-- Location on a edge
+ *   interp_tetra      <-- Interpolation in a tetrahedron
+ *   interp_prism      <-- Interpolation in a prism
+ *   interp_pyramid    <-- Interpolation in a pyramid
+ *   interp_hexa       <-- Interpolation in a hexaedron
+ *   interp_tria       <-- Interpolation on a triangle
+ *   interp_quad       <-- Interpolation on a quandragle
+ *   interp_edge       <-- Interpolation on a edge
+ *
+ *----------------------------------------------------------------------------*/
+
+void
+cwipi_ho_user_elt_set (cwipi_element_t elt_type,
+                       cwipi_ho_basis_fct_t element_basis,
+                       cwipi_ho_location_fct_t location_in_element)
+{
+  fvmc_element_t _elt_type = (fvmc_element_t) 0;
+
+  switch (elt_type) {
+    
+  case CWIPI_EDGEHO:
+    _elt_type = FVMC_EDGE;
+    break;
+  case CWIPI_FACE_TRIAHO:
+    _elt_type = FVMC_FACE_TRIA;
+    break;
+  case CWIPI_FACE_QUADHO:
+    _elt_type = FVMC_FACE_QUAD;
+    break;
+  case CWIPI_CELL_TETRAHO:
+    _elt_type = FVMC_CELL_TETRA;
+    break;
+  case CWIPI_CELL_HEXAHO:
+    _elt_type = FVMC_CELL_HEXA;
+    break;
+  case CWIPI_CELL_PRISMHO:
+    _elt_type = FVMC_CELL_PRISM;
+    break;
+  case CWIPI_CELL_PYRAMHO:
+    _elt_type = FVMC_CELL_PYRAM;
+    break;
+  default:
+    bftc_error(__FILE__, __LINE__, 0,
+               "_cwipi_ho_user_elt_set : unvailable element type\n");
+               
+               
+  }
+  
+  FVMC_ho_basis_user_elt_set (_elt_type,
+                              (fvmc_ho_basis_fct_t) element_basis);
+  
+  fvmc_ho_location_user_elt_set (_elt_type,
+                                 (fvmc_ho_location_fct_t) location_in_element);
+}
+
 
 /*----------------------------------------------------------------------------
  *
@@ -1069,7 +1292,7 @@ void cwipi_locate (const char *coupling_name)
 
   const std::string &coupling_name_str = coupling_name;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.locate();
 }
@@ -1089,7 +1312,7 @@ void cwipi_update_location (const char *coupling_name)
 
   const std::string &coupling_name_str = coupling_name;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.updateLocation();
 }
@@ -1111,7 +1334,7 @@ const int *cwipi_get_distant_location (const char *coupling_id)
 
   const std::string &coupling_name_str = coupling_id;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   return coupling.getDistantLocation();
 }
@@ -1133,7 +1356,7 @@ const int *cwipi_get_distant_barycentric_coordinates_index (const char *coupling
 
   const std::string &coupling_name_str = coupling_id;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   return coupling.getDistantBarycentricCoordinatesIndex();
 }
@@ -1155,7 +1378,7 @@ const double *cwipi_get_distant_barycentric_coordinates (const char *coupling_id
 
   const std::string &coupling_name_str = coupling_id;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   return coupling.getDistantBarycentricCoordinates();
 }
@@ -1179,7 +1402,7 @@ int cwipi_get_n_located_points(const char *coupling_id)
 
   const std::string &coupling_name_str = coupling_id;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   return coupling.getNLocatedPoint();
 }
@@ -1203,7 +1426,7 @@ int cwipi_get_n_not_located_points(const char *coupling_id)
 
   const std::string &coupling_name_str = coupling_id;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   return coupling.getNNotlocatedPoint();
 }
@@ -1249,7 +1472,7 @@ cwipi_exchange_status_t cwipi_exchange
 
   const std::string &coupling_name_str = coupling_name;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   cwipi_exchange_status_t status;
 
@@ -1301,7 +1524,7 @@ void cwipi_issend
 
   const std::string &coupling_name_str = coupling_name;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.issend(exchange_name,
                   tag,
@@ -1349,7 +1572,7 @@ void cwipi_irecv
 
   const std::string &coupling_name_str = coupling_name;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.irecv(exchange_name,
                  tag,
@@ -1377,7 +1600,7 @@ const float *cwipi_distance_located_pts_get(const char  *coupling_name)
 
   const std::string &coupling_name_str = coupling_name;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   return coupling.distance();
 }
@@ -1401,7 +1624,7 @@ void cwipi_wait_issend(const char  *coupling_name,
 
   const std::string &coupling_name_str = coupling_name;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.waitIssend(request);
 }
@@ -1424,7 +1647,7 @@ void cwipi_wait_irecv(const char  *coupling_name,
 
   const std::string &coupling_name_str = coupling_name;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.waitIrecv(request);
 }
@@ -1448,9 +1671,33 @@ void cwipi_set_interpolation_function
 
   const std::string &coupling_name_str = coupling_name;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.set_interpolation_function(fct);
+}
+
+/*----------------------------------------------------------------------------
+ *
+ * Define the interpolation function for high order
+ *
+ * parameters
+ *   coupling_id          <-- Coupling identifier
+ *   fct                  <-- Interpolation function
+ *
+ *----------------------------------------------------------------------------*/
+
+void cwipi_ho_set_interpolation_function
+(const char *coupling_name,
+ cwipi_user_interp_ho_fct_t fct)
+{
+  cwipi::CouplingDataBase & couplingDataBase =
+    cwipi::CouplingDataBase::getInstance();
+
+  const std::string &coupling_name_str = coupling_name;
+
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+
+  coupling.set_ho_interpolation_function(fct);
 }
 
 
@@ -1473,7 +1720,7 @@ void cwipi_set_interpolation_function_f
 
   const std::string &coupling_name_str = coupling_name;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   coupling.set_interpolation_function_f(fct);
 }
@@ -1514,6 +1761,9 @@ void cwipi_finalize(void)
 
   const MPI_Comm globalComm = properties.getGlobalComm();
 
+  fvmc_ho_location_user_elts_unset ();
+  FVMC_ho_basis_user_elts_unset ();
+    
   bftc_printf("Finalize cwipi\n");
   couplingDataBase.kill();
   properties.kill();
@@ -1524,9 +1774,10 @@ void cwipi_finalize(void)
   if (flag != 0) {
     bftc_printf_flush();
     MPI_Barrier(globalComm);
-    MPI_Comm oldFVMComm = fvmc_parall_get_mpi_comm();
   }
 
+  FVMC_ho_basis_free ();
+  
 }
 
 /*----------------------------------------------------------------------------
@@ -1561,7 +1812,7 @@ const int * cwipi_get_not_located_points(const char *coupling_id)
 
   const std::string &coupling_name_str = coupling_id;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   return coupling.getNotlocatedPoint();
 }
@@ -1585,7 +1836,7 @@ const int * cwipi_get_located_points(const char *coupling_id)
 
   const std::string &coupling_name_str = coupling_id;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   return coupling.getLocatedPoint();
 }
@@ -1609,7 +1860,7 @@ int cwipi_get_n_distant_points(const char *coupling_id)
 
   const std::string &coupling_name_str = coupling_id;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   return coupling.getNDistantPoint();
 }
@@ -1634,7 +1885,7 @@ int cwipi_get_n_distant_ranks(const char *coupling_id)
 
   const std::string &coupling_name_str = coupling_id;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   return coupling.getNDistantRank();
 }
@@ -1659,7 +1910,7 @@ const int *cwipi_get_distant_distribution(const char *coupling_id)
 
   const std::string &coupling_name_str = coupling_id;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   return coupling.getDistantDistribution();
 }
@@ -1684,7 +1935,7 @@ const int *cwipi_get_located_points_distribution(const char *coupling_id)
 
   const std::string &coupling_name_str = coupling_id;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   return coupling.getLocatedPointsDistribution();
 }
@@ -1707,7 +1958,7 @@ const double *cwipi_get_distant_coordinates (const char *coupling_id)
 
   const std::string &coupling_name_str = coupling_id;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   return coupling.getDistantPointCoordinates();
 }
@@ -1729,7 +1980,7 @@ const float *cwipi_get_distant_distance (const char *coupling_id)
 
   const std::string &coupling_name_str = coupling_id;
 
-  cwipi::Coupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
+  cwipi::oldCoupling& coupling = couplingDataBase.getCoupling(coupling_name_str);
 
   return coupling.distance();
 }

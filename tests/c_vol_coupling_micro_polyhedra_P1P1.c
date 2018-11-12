@@ -316,7 +316,6 @@ int main( int argc, char* argv[] ) {
     int lCellConnec = 0;
 
     double* coords = NULL;         // Coordinates of the points
-    int nConnecVertex = 0;         // Number of cell vertices
     double* values = NULL;         // Received field
     double* localValues = NULL;    // Sent field
     int nNotLocatedPoints;         // Number of points out of the mesh

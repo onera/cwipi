@@ -295,8 +295,7 @@ _double_to_code(int     dim,
                 double  input,
                 int     level)
 {
-  int  i, l, child_id;
-  fvmc_morton_int_t  sub_code;
+  int l, child_id;
   fvmc_morton_code_t  code;
   double coords[3] = {0.0, 0.0, 0.0};
   double l_mult = 1.0;
@@ -976,7 +975,7 @@ fvmc_morton_encode(int                dim,
   morton_code.X[2] = 0;
 
   for (i = 0; i < dim; i++)
-    morton_code.X[i] = FVMC_MIN(floor(coords[i]*refinement), refinement - 1);
+    morton_code.X[i] = (fvmc_morton_int_t) FVMC_MIN(floor(coords[i]*refinement), refinement - 1);
 
   return morton_code;
 }
@@ -1028,7 +1027,7 @@ fvmc_morton_encode_coords(int                dim,
       m_code[i].L = level;
       for (j = 0; j < 3; j++) {
         n[j] = (coords[i*dim + j] - s[j]) / d[j];
-        m_code[i].X[j] = FVMC_MIN(floor(n[j]*refinement), refinement - 1);
+        m_code[i].X[j] = (fvmc_morton_int_t) FVMC_MIN(floor(n[j]*refinement), refinement - 1);
       }
     }
     break;
@@ -1038,7 +1037,7 @@ fvmc_morton_encode_coords(int                dim,
       m_code[i].L = level;
       for (j = 0; j < 2; j++) {
         n[j] = (coords[i*dim + j] - s[j]) / d[j];
-        m_code[i].X[j] = FVMC_MIN(floor(n[j]*refinement), refinement - 1);
+        m_code[i].X[j] = (fvmc_morton_int_t) FVMC_MIN(floor(n[j]*refinement), refinement - 1);
       }
       m_code[i].X[2] = 0;
     }
@@ -1048,7 +1047,7 @@ fvmc_morton_encode_coords(int                dim,
     for (i = 0; i < n_coords; i++) {
       m_code[i].L = level;
       n[0] = (coords[i] - s[0]) / d[0];
-      m_code[i].X[0] = FVMC_MIN(floor(n[0]*refinement), refinement - 1);
+      m_code[i].X[0] = (fvmc_morton_int_t) FVMC_MIN(floor(n[0]*refinement), refinement - 1);
       m_code[i].X[1] = 0;
       m_code[i].X[2] = 0;
     }
