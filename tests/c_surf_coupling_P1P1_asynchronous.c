@@ -25,8 +25,6 @@
 
 #include <mpi.h>
 
-#include "pdm.h"
-#include "pdm_timer.h"
 #include "cwipi.h"
 #include "grid_mesh.h"
 
@@ -346,21 +344,8 @@ int main
   int sRequest, rRequest;
   int tag = 1;
 
-  PDM_timer_t *t1 = PDM_timer_create();
-  PDM_timer_init(t1);
-  PDM_timer_resume(t1);
   cwipi_locate("c_surf_cpl_P1P1_async");
-  PDM_timer_hang_on(t1);
 
-  double elaps1 = PDM_timer_elapsed(t1);
-  double elaps1_abs;
-  MPI_Allreduce(&elaps1, &elaps1_abs, 1, MPI_DOUBLE, MPI_MAX, localComm);
-
-  if (currentRank == 0) {
-    printf ("Temps de localisation : %s %d %12.5e\n", codeName,
-            localCommSize, elaps1_abs);
-  }
-  
   nNotLocatedPoints = cwipi_get_n_not_located_points("c_surf_cpl_P1P1_async");
 
   if (nNotLocatedPoints != 0) {
@@ -368,10 +353,6 @@ int main
     exit(1);
   }
   
-  PDM_timer_t *t2 = PDM_timer_create();
-  PDM_timer_init(t2);
-  PDM_timer_resume(t2);
-
   cwipi_irecv("c_surf_cpl_P1P1_async",
               "ech",
               tag,
@@ -395,16 +376,6 @@ int main
 
   cwipi_wait_irecv("c_surf_cpl_P1P1_async", rRequest);
   cwipi_wait_issend("c_surf_cpl_P1P1_async", sRequest);
-  PDM_timer_hang_on(t2);
-
-  double elaps2 = PDM_timer_elapsed(t2);
-  double elaps2_abs;
-  MPI_Allreduce(&elaps2, &elaps2_abs, 1, MPI_DOUBLE, MPI_MAX, localComm);
-
-  if (currentRank == 0) {
-    printf ("Temps d'echange : %s %d %12.5e\n", codeName,
-            localCommSize, elaps2_abs);
-  }
 
   //  _dumpStatus(outputFile, status);
   //_dumpNotLocatedPoints(outputFile, "c_surf_cpl_P1P1_async", nNotLocatedPoints);

@@ -41,9 +41,6 @@
 #include "cwipi.h"
 #include "cwipi_config.h"
 
-#include "pdm.h"
-#include "pdm_timer.h"
-
 /*----------------------------------------------------------------------------
  * Macro for handling of different symbol names (underscored or not,
  * lowercase or uppercase) between C and Fortran, for link resolution.
@@ -2257,10 +2254,6 @@ namespace cwipi {
 
     MPI_Comm oldFVMComm = fvmc_parall_get_mpi_comm();
 
-    PDM_timer_t *t1 = PDM_timer_create();
-    PDM_timer_init(t1);
-    PDM_timer_resume(t1);
-
     if (_isCoupledRank) {
 
       if (oldFVMComm != _fvmComm) {
@@ -2311,19 +2304,6 @@ namespace cwipi {
 
     _toLocate = false;
 
-    PDM_timer_hang_on(t1);
-
-    double elaps1 = PDM_timer_elapsed(t1);
-    double elaps1_abs;
-    MPI_Allreduce(&elaps1, &elaps1_abs, 1, MPI_DOUBLE, MPI_MAX, localComm);
-
-    int currentRank;
-    MPI_Comm_rank (localComm, &currentRank);
- 
-    if (currentRank == 0) {
-      printf ("Temps de localisation coupling::locate : %12.5e\n", elaps1_abs);
-    }
-    
   }
 
 

@@ -18,8 +18,7 @@ enable_testing()
 set(CWP_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(CMAKE_MODULE_PATH "${CWP_CMAKE_DIR}/modules")
 
-include(${CMAKE_MODULE_PATH}/version.cmake)
-project(CWP VERSION 0.0.0 LANGUAGES C CXX Fortran)
+project(CWP VERSION 0.10.0 LANGUAGES C CXX Fortran)
 
 #------------------------------------------------------------------------------
 # Enable languages
@@ -75,21 +74,25 @@ option(CWP_ENABLE_Fortran  "Build Shared Fortran Interface" OFF)
 # MKL, BLAS, LAPACK
 # -----------------
 
-if (CMAKE_C_COMPILER_ID STREQUAL "Intel")
-   set (BLA_VENDOR "Intel10_64lp_seq")
-   find_package(BLAS)
-   if (BLAS_FOUND)
-     set(CWP_HAVE_MKL 1)
-   endif()
-   unset (BLA_VENDOR)
-endif()
+option(CWP_ENABLE_BLAS  "Enable the use of the library blas" ON)
 
-if (NOT BLAS_FOUND)
-   find_package(BLAS)
+if (CWP_ENABLE_BLAS)
+  if (CMAKE_C_COMPILER_ID STREQUAL "Intel")
+    set (BLA_VENDOR "Intel10_64lp_seq")
+    find_package(BLAS)
+    if (BLAS_FOUND)
+      set(CWP_HAVE_MKL 1)
+    endif()
+    unset (BLA_VENDOR)
+  endif()
+
+  if (NOT BLAS_FOUND)
+    find_package(BLAS)
+  endif()
 endif()
 
 if (BLAS_FOUND)
-   set(CWP_HAVE_BLAS 1)
+  set(CWP_HAVE_BLAS 1)
 endif()
 
 # High order (Nodal bases from SPACE)
@@ -382,7 +385,7 @@ configure_file(fvmc_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/fvmc_config.h")
 configure_file(cwp_config.h.in "${CMAKE_CURRENT_BINARY_DIR}/cwipi_config.h")
 
 if (CWP_ENABLE_Fortran)
-  if ("${CMAKE_CURRENT_BINARY_DIR}/pdm_config.h" IS_NEWER_THAN  "${CMAKE_CURRENT_BINARY_DIR}/pdm_configf.h")
+  if ("${CMAKE_CURRENT_BINARY_DIR}/cwipi_config.h" IS_NEWER_THAN  "${CMAKE_CURRENT_BINARY_DIR}/cwipi_configf.h")
     include (FortranizeFile)
     fortranize(${CMAKE_CURRENT_BINARY_DIR}/cwipi_config.h)
   endif ()
@@ -435,8 +438,3 @@ FEATURE_SUMMARY(WHAT ALL)
 #------------------------------------------------------------------------------
 
 add_subdirectory(${CWP_CMAKE_DIR}/post-install)
-
-
-
-
-
