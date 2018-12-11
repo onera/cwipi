@@ -1,3 +1,4 @@
+# cython: c_string_type=str, c_string_encoding=ascii
 #-----------------------------------------------------------------------------
 # This file is part of the CWIPI library. 
 #
@@ -36,9 +37,10 @@ cdef extern from "Python.h":
     ctypedef struct FILE
     FILE* PyFile_AsFile(object)
 
-cdef extern from "fileobject.h":
-    ctypedef class __builtin__.file [object PyFileObject]:
-        pass
+## doesn't compile in python3: 
+# cdef extern from "fileobject.h":
+#     ctypedef class __builtin__.file [object PyFileObject]:
+#         pass
 
 cdef extern from "cwipi.h":
 
@@ -287,16 +289,16 @@ def  init(MPI.Comm common_comm, char* application_name):
 
     return  application_comm
 
+## PY3: PyFile_AsFile doesn't compile in python3
+# def set_output_listing(file output_listing):
+#     """
+#     Set up the file used for the output listing
 
-def set_output_listing(file output_listing):
-    """
-    Set up the file used for the output listing
-
-    parameters:
-      output_listing      <-- Output listing file (C function)
-    """
-    cdef FILE* c_file = PyFile_AsFile(output_listing)
-    cwipi_set_output_listing(c_file)     
+#     parameters:
+#       output_listing      <-- Output listing file (C function)
+#     """
+#     cdef FILE* c_file = PyFile_AsFile(output_listing)
+#     cwipi_set_output_listing(c_file)     
 
 
 def dump_application_properties():
@@ -599,7 +601,7 @@ def synchronize_control_parameter(char* application_name):
 cdef class Coupling (object):
 
     """
-    Coupling
+    Create a CWIPI coupling object.
     """
     cdef char* name
 
@@ -615,8 +617,7 @@ cdef class Coupling (object):
                  char *output_format,
                  char *output_format_option,
                  nb_locations = None):
-        """
-        Init
+        """__init__(char* coupling_name, cwipi_coupling_type_t coupling_type, char *coupled_application, int entitiesDim, double tolerance, cwipi_mesh_type_t mesh_type, cwipi_solver_type_t solver_type, int output_frequency, char *output_format, char *output_format_option, nb_locations=None)
         """
         global current_cpl
         self.name = coupling_name
@@ -653,12 +654,12 @@ cdef class Coupling (object):
                     np.ndarray[np.int32_t] connectivity_index not None, 
                     np.ndarray[np.int32_t] connectivity not None):
         """
-        Define mesh
+        define_mesh(int n_vertex, int n_element, np.ndarray[np.double_t] coordinates not None, np.ndarray[np.int32_t] connectivity_index not None, np.ndarray[np.int32_t] connectivity not None)
         """
         global current_cpl
         current_cpl = self.name
         assert (3 * n_vertex) <= coordinates.size
-        assert (n_element + 1) <= connectivity_index.size
+        assert (n_element + 1) <= connectivity_index.size, "(%d) <= (%d)"%((n_element + 1), connectivity_index.size)
         cwipi_define_mesh(self.name,
                           n_vertex, 
                           n_element, 
@@ -762,7 +763,7 @@ cdef class Coupling (object):
 
     def locate(self):
         """
-        Locate
+        locate()
         """
         global current_cpl
         current_cpl = self.name
@@ -906,7 +907,10 @@ cdef class Coupling (object):
                char* sending_field_name, 
                np.ndarray[np.double_t] sending_field): 
         """
-        Issend
+        issend(char* exchange_name, int tag, int stride, int time_step, double time_value,  char* sending_field_name, np.ndarray[np.double_t] sending_field)
+
+        Non blocking send. 
+        Return the request (that you may later pass to wait_issend).
         """
         cdef int request
 
@@ -936,7 +940,7 @@ cdef class Coupling (object):
 
 
         current_cpl = ""
-        return {'request':request}
+        return request
 
 
     def irecv(self, 
@@ -948,7 +952,7 @@ cdef class Coupling (object):
               char* receiving_field_name, 
               np.ndarray[np.double_t] receiving_field): 
         """
-        Irecv
+        irecv(char* exchange_name, int tag, int stride, int time_step, double time_value, char* receiving_field_name, np.ndarray[np.double_t] receiving_field)
         """
         cdef int request
 
@@ -978,13 +982,13 @@ cdef class Coupling (object):
 
 
         current_cpl = ""
-        return {'request':request}
+        return request
 
 
     def wait_issend(self,
                     int request):
         """
-        Wait issend
+        wait_issend(request)
         """
         global current_cpl
         current_cpl = self.name
@@ -996,7 +1000,7 @@ cdef class Coupling (object):
     def wait_irecv(self,
                     int request):
         """
-        Wait irecv
+        wait_irecv(request)
         """
         global current_cpl
         current_cpl = self.name
@@ -1036,7 +1040,7 @@ cdef class Coupling (object):
 
     def get_located_points(self):
         """
-        Get not located points
+        Get located points
         """
         np.import_array()
         cdef np.npy_intp dims = <np.npy_intp> cwipi_get_n_located_points(self.name)
