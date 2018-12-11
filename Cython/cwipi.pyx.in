@@ -18,6 +18,17 @@
 # License along with this library. If not, see <http://www.gnu.org/licenses/>.
 #-----------------------------------------------------------------------------
 
+
+# 2018-06-15: python3 modifications:
+#   - FILE* no longer available
+#   - str vs. bytes (1st line of this file)
+#   - tiny API modifications (irecv, isend return request directly)
+#   - const in callback (otherwise needs -fpermissive)
+#   -  __dealloc__ -> __del__
+#   - some safety checks (contiguity, orphan nodes)
+#   - add __version__
+#   - docstring
+
 cimport cython
 
 import numpy as np
@@ -28,6 +39,7 @@ from mpi4py.@mpi4pylibmpi@ cimport *
 
 from libc.stdlib cimport malloc, free
 
+# fixme: internal global variables: shoud _prefix them, or even remove them?
 interp_f={}
 interp_ho_loc_f={}
 interp_ho_bas_f={}
@@ -317,6 +329,61 @@ def finalize():
 #
 # Control parameters
 # ------------------
+
+## Pythonic function:
+def add_local_parameter(name, value):
+    """add_local_parameter(name, value)
+    Add an integer, double or string parameter to the coupling.
+
+    Parameters:
+      name (str) : parameter's name
+      value (int, float, str): its initial value
+
+    Note: 
+      The parameter's type is guessed from type(value). So the following are different:
+
+        >>> add_local_parameter('time', 10)
+        >>> add_local_parameter('time', 10.0)
+    """
+    if isinstance(value, int):
+        add_local_int_control_parameter(name, value)
+    elif isinstance(value, float):
+        add_local_double_control_parameter(name, value)
+    elif isinstance(value, str) or isinstance(value, bytes):  # fixme: bytes ou str ? ou les deux ?
+        add_local_string_control_parameter(name, value)
+    else:
+        raise TypeError("Argument 'value' should be a string, an integer or a float, not '%s'"%type(value))
+
+def set_local_parameter(name, value):
+    """set_local_parameter(name, value)
+    Set a parameter's value.
+
+    Parameters:
+      name (str) : an (existing) parameter's name
+      value (int, float, str): its new value
+    """
+    if isinstance(value, int):
+        set_local_int_control_parameter(name, value)
+    elif isinstance(value, float):
+        set_local_double_control_parameter(name, value)
+    elif isinstance(value, str) or isinstance(value, bytes):  # fixme: bytes ou str ? ou les deux ?
+        set_local_string_control_parameter(name, value)
+    else:
+        raise TypeError("Argument 'value' should be a string, an integer or a float, not '%s'"%type(value))
+
+# Even more pythonic access would be with a dictionary(?). So we could retrieve the current value of a parameter?
+# For example:
+# print (cwipi.control_parameters)  # --> {}
+# cpl.control_parameters['time'] = 2.0
+# cpl.control_parameters['iteration'] = 200
+# cpl.control_parameters['quantity'] = 'pressure'
+# cpl.synchronize_control_parameter()
+# cpl.control_parameters['iteration'] = 300
+# print (cwipi.control_parameters)  # {'time':20, 'iteration': 300, 'quantity': 'pressure'}
+# print (cwipi.control_parameters.modified_since_sync)  # True, because 'iteration' has been modified since last sync (fixme: is it useful ? if yes, find a better name for this var?)
+    
+    
+## Low-level accesses
 
 def add_local_int_control_parameter(char* name, int initial_value):
     """
@@ -640,8 +707,14 @@ cdef class Coupling (object):
                               _nb_locations)
         current_cpl = ""
 
-    def __dealloc__(self):
+    # Need a __del__, not __dealloc__ , because it requires self.name, that is defined in __init__
+    #      (and in fact __dealloc__ is the counterpart of __cinit__)
+    # def __dealloc__(self):
+    #     cwipi_delete_coupling(self.name) 
+    def __del__(self):
         cwipi_delete_coupling(self.name) 
+    # Anyways, wouldn't it be better for this .pyx file to handle the C++ pointer, without going through the C-API?
+
 
 #
 # Class coupling : basic functions
@@ -660,6 +733,17 @@ cdef class Coupling (object):
         current_cpl = self.name
         assert (3 * n_vertex) <= coordinates.size
         assert (n_element + 1) <= connectivity_index.size, "(%d) <= (%d)"%((n_element + 1), connectivity_index.size)
+
+        ## safety verifications:
+        # Contiguity
+        assert coordinates.flags['C_CONTIGUOUS'], "coordinates must be C-contiguous" 
+        assert connectivity_index.flags['C_CONTIGUOUS'], "connectivity_index must be C-contiguous" 
+        assert connectivity.flags['C_CONTIGUOUS'], "connectivity must be C-contiguous" 
+        # Check for orphan nodes, which currently (0.9.5) segfaults in cpl.locate
+        assert (np.min(connectivity) == 1), "connectivity values must start at 1"
+        assert (np.max(connectivity) == n_vertex), "connectivity values must be <= n_vertex"
+        assert (len(np.unique(connectivity)) == n_vertex), "Cannot have orphan vertex (current limitation)"
+
         cwipi_define_mesh(self.name,
                           n_vertex, 
                           n_element, 
@@ -731,6 +815,7 @@ cdef class Coupling (object):
         """ 
         global current_cpl
         current_cpl = self.name
+        assert (3 * n_points) <= coordinates.size
         cwipi_set_points_to_locate(self.name,
                                    n_points,
                                    <double *> coordinates.data)
@@ -1233,21 +1318,21 @@ cdef void callback(int entities_dim,
                    int n_local_element,
                    int n_local_polhyedra,
                    int n_distant_point,
-                   double local_coordinates[],
-                   int local_connectivity_index[],
-                   int local_connectivity[],
-                   int local_polyhedra_face_index[],
-                   int local_polyhedra_cell_to_face_connectivity[],
-                   int local_polyhedra_face_connectivity_index[],
-                   int local_polyhedra_face_connectivity[],
-                   double distant_points_coordinates[],
-                   int distant_points_location[],
-                   float distant_points_distance[],
-                   int distant_points_barycentric_coordinates_index[],
-                   double distant_points_barycentric_coordinates[],
+                   const double local_coordinates[],
+                   const int local_connectivity_index[],
+                   const int local_connectivity[],
+                   const int local_polyhedra_face_index[],
+                   const int local_polyhedra_cell_to_face_connectivity[],
+                   const int local_polyhedra_face_connectivity_index[],
+                   const int local_polyhedra_face_connectivity[],
+                   const double distant_points_coordinates[],
+                   const int distant_points_location[],
+                   const float distant_points_distance[],
+                   const int distant_points_barycentric_coordinates_index[],
+                   const double distant_points_barycentric_coordinates[],
                    int stride,
                    cwipi_solver_type_t  solver_type,
-                   void *local_field,
+                   const void *local_field,
                    void *distant_field):
     """
     """
@@ -1702,3 +1787,17 @@ cdef double ho_loc_callback(int entities_dim,
                                         projected_coords_a,
                                         projected_uvw_a)
 
+
+
+cdef extern from "cwipi_config.h":
+    # trick from: https://stackoverflow.com/questions/5697479/how-can-a-defined-c-value-be-exposed-to-python-in-a-cython-module
+    cdef int _CWIPI_MAJOR_VERSION "CWIPI_MAJOR_VERSION"
+    cdef int _CWIPI_MINOR_VERSION "CWIPI_MINOR_VERSION"
+    cdef int _CWIPI_RELEASE_VERSION "CWIPI_RELEASE_VERSION"
+    cdef char* _CWIPI_VERSION "CWIPI_VERSION"
+
+# CWIPI_VERSION = _CWIPI_VERSION
+# CWIPI_MAJOR_VERSION = _CWIPI_MAJOR_VERSION
+# CWIPI_MINOR_VERSION = _CWIPI_MINOR_VERSION
+# CWIPI_RELEASE_VERSION = _CWIPI_RELEASE_VERSION
+__version__ = _CWIPI_VERSION
