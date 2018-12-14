@@ -74,7 +74,7 @@ option(CWP_ENABLE_Fortran  "Build Shared Fortran Interface" OFF)
 # MKL, BLAS, LAPACK
 # -----------------
 
-option(CWP_ENABLE_BLAS  "Enable the use of the library blas" ON)
+option(CWP_ENABLE_BLAS  "Enable the use of the library blas" OFF)
 
 if (CWP_ENABLE_BLAS)
   if (CMAKE_C_COMPILER_ID STREQUAL "Intel")
