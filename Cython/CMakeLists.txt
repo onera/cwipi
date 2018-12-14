@@ -49,6 +49,7 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new")
  target_link_libraries(cwipi ${LINK_LIBRARIES} pdm_shared pdm_mpi_shared)
 endif()
 
+target_link_libraries(cwipi cwp_shared)
 if (CWP_ENABLE_Fortran)
   target_link_libraries(cwipi cwpf_shared)
 endif()
