@@ -438,7 +438,4 @@ FEATURE_SUMMARY(WHAT ALL)
 #------------------------------------------------------------------------------
 
 add_subdirectory(${CWP_CMAKE_DIR}/post-install)
-<<<<<<< 1597f1edecccfc97b75f7f9e869cd41fda3bbbe8
-=======
 
->>>>>>> Add option enable_blas
