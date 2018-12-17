@@ -687,7 +687,7 @@ void cwipi_synchronize_control_parameter(const char *application_name)
  *   output_format           <-- Output format to visualize exchanged fields
  *                               on the coupled mesh. Choice between :
  *                                 - "EnSight Gold"
- *                                 - "MED_ficher"
+ *                                 - "MED_fichier"
  *                                 - "CGNS"
  *   output_format_option    <-- Output options
  *                             text                output text files

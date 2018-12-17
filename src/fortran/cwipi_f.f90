@@ -1335,7 +1335,7 @@ contains
 !   outputFmt               <-- Output format to visualize exchanged fields
 !                               on the coupled mesh. Choice between :
 !                                 - "EnSight Gold"
-!                                 - "MED_ficher"
+!                                 - "MED_fichier"
 !                                 - "CGNS"
 !   outputFmtOpt            <-- Output options
 !                             text                output text files

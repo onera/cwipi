@@ -878,18 +878,30 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
   BFTC_MALLOC(location_rank_id, n_points, fvmc_lnum_t);
   BFTC_MALLOC(distance, n_points, float);
 
-  fvmc_coord_t *projected_coords = NULL;
-  if (fvmc_nodal_order_get (this_nodal) != -1) {
-    BFTC_MALLOC(projected_coords, n_points*dim, fvmc_coord_t); 
-  }
+  int local_nodal_order = fvmc_nodal_order_get (this_nodal);
+  int distant_nodal_order = -1;
+  
+  /* Pas terrible de faire une boucle  */
 
+  for (i = 0; i < this_locator->n_intersects; i++) {
+    
+    dist_index = i; /* Ordering (communication schema) not yet optimized */
+    dist_rank  = this_locator->intersect_rank[dist_index];
+    
+    MPI_Sendrecv(&local_nodal_order, 1, FVMC_MPI_LNUM, dist_rank, FVMC_MPI_TAG,
+                 &distant_nodal_order, 1, FVMC_MPI_LNUM, dist_rank,
+                 FVMC_MPI_TAG, this_locator->comm, &status);
+  }
+  
+  fvmc_coord_t *projected_coords = NULL;
   double *uvw = NULL;
 
-  //  int max_entity_dim = fvmc_nodal_3 (this_nodal);
-
-  if (fvmc_nodal_order_get (this_nodal) != -1) {
+  if (distant_nodal_order != -1) {
+    BFTC_MALLOC(projected_coords, n_points*dim, fvmc_coord_t); 
     BFTC_MALLOC(uvw, n_points*max_entity_dim, double); 
   }
+
+  //  int max_entity_dim = fvmc_nodal_3 (this_nodal);
   
   for (j = 0; j < n_points; j++) {
     location[j] = -1;
@@ -1007,13 +1019,9 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
     }
     
     fvmc_coord_t *projected_coords_dist = NULL;
-    if (fvmc_nodal_order_get (this_nodal) != -1) {
-      BFTC_MALLOC(projected_coords_dist, n_coords_dist*dim, fvmc_coord_t);
-    }
-
     double *uvw_dist = NULL;
-    
-    if (fvmc_nodal_order_get (this_nodal) != -1) {
+    if (local_nodal_order != -1) {
+      BFTC_MALLOC(projected_coords_dist, n_coords_dist*dim, fvmc_coord_t);
       BFTC_MALLOC(uvw_dist, n_coords_dist * max_entity_dim, double);
     }
 
@@ -1051,7 +1059,7 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
     fvmc_coord_t *projected_coords_loc = NULL;
     double *uvw_loc = NULL;
     
-    if (fvmc_nodal_order_get (this_nodal) != -1) {
+    if ((local_nodal_order != -1) && (distant_nodal_order != -1)) {
       BFTC_MALLOC(projected_coords_loc, n_coords_loc * dim, fvmc_coord_t);
       MPI_Sendrecv(projected_coords_dist, (int)n_coords_dist * dim,
                    FVMC_MPI_COORD, dist_rank, FVMC_MPI_TAG,
@@ -1065,8 +1073,28 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
                    uvw_loc, (int)n_coords_loc * max_entity_dim,
                    MPI_DOUBLE, dist_rank, FVMC_MPI_TAG,
                    this_locator->comm, &status);
+    }
 
-      
+    else if (local_nodal_order != -1) {
+      MPI_Send(projected_coords_dist, (int)n_coords_dist * dim,
+               FVMC_MPI_COORD, dist_rank, FVMC_MPI_TAG,
+               this_locator->comm);
+
+      MPI_Send(uvw_dist, (int)n_coords_dist * max_entity_dim,
+               MPI_DOUBLE, dist_rank, FVMC_MPI_TAG,
+               this_locator->comm);
+    }
+
+    else if (distant_nodal_order != -1) {
+      BFTC_MALLOC(projected_coords_loc, n_coords_loc * dim, fvmc_coord_t);
+      MPI_Recv(projected_coords_loc, (int)n_coords_loc * dim,
+               FVMC_MPI_COORD, dist_rank, FVMC_MPI_TAG,
+               this_locator->comm, &status);
+
+      BFTC_MALLOC(uvw_loc, n_coords_loc * max_entity_dim, double);
+      MPI_Recv(uvw_loc, (int)n_coords_loc * max_entity_dim,
+               MPI_DOUBLE, dist_rank, FVMC_MPI_TAG,
+               this_locator->comm, &status);
     }
 
     _locator_trace_end_comm(_fvmc_locator_log_end_p_comm, comm_timing);
@@ -1161,12 +1189,12 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
   BFTC_MALLOC(send_distance, n_points, float);
 
   fvmc_coord_t *send_projected_coords = NULL;
-  if (fvmc_nodal_order_get (this_nodal) != -1) {
+  if (distant_nodal_order != -1) {
     BFTC_MALLOC(send_projected_coords, n_points * dim, fvmc_coord_t);
   }
   
   fvmc_coord_t *send_uvw = NULL;
-  if (fvmc_nodal_order_get (this_nodal) != -1) {
+  if (distant_nodal_order != -1) {
     BFTC_MALLOC(send_uvw, n_points * max_entity_dim , double);
   }
 
@@ -1271,7 +1299,7 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
 
   this_locator->distant_point_projected_coords = NULL;
 
-  if (fvmc_nodal_order_get (this_nodal) != -1) {
+  if (local_nodal_order != -1) {
 
     BFTC_MALLOC(this_locator->distant_point_projected_coords,
                 this_locator->distant_points_idx[this_locator->n_intersects] * dim,
@@ -1280,7 +1308,7 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
 
   this_locator->distant_point_uvw = NULL;
 
-  if (fvmc_nodal_order_get (this_nodal) != -1) {
+  if (local_nodal_order != -1) {
 
     BFTC_MALLOC(this_locator->distant_point_uvw,
                 this_locator->distant_points_idx[this_locator->n_intersects] * max_entity_dim,
@@ -1353,7 +1381,7 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
                  FVMC_MPI_COORD, dist_rank, FVMC_MPI_TAG,
                  this_locator->comm, &status);
 
-    if (send_projected_coords != NULL) {
+    if ((local_nodal_order != -1) && (distant_nodal_order != -1)) {
       MPI_Sendrecv(send_projected_coords, (int)(n_coords_loc*dim),
                    FVMC_MPI_COORD, dist_rank, FVMC_MPI_TAG,
                    (this_locator->distant_point_projected_coords
@@ -1361,9 +1389,7 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
                    (int)(n_coords_dist*dim),
                    FVMC_MPI_COORD, dist_rank, FVMC_MPI_TAG,
                    this_locator->comm, &status);
-    }
 
-    if (send_uvw != NULL) {
       MPI_Sendrecv(send_uvw, (int)(n_coords_loc*max_entity_dim),
                    MPI_DOUBLE, dist_rank, FVMC_MPI_TAG,
                    (this_locator->distant_point_uvw
@@ -1372,7 +1398,31 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
                    MPI_DOUBLE, dist_rank, FVMC_MPI_TAG,
                    this_locator->comm, &status);
     }
-    
+
+    else if (distant_nodal_order != -1) {
+      MPI_Send(send_projected_coords, (int)(n_coords_loc*dim),
+               FVMC_MPI_COORD, dist_rank, FVMC_MPI_TAG,
+               this_locator->comm);
+
+      MPI_Send(send_uvw, (int)(n_coords_loc*max_entity_dim),
+               MPI_DOUBLE, dist_rank, FVMC_MPI_TAG,
+               this_locator->comm);
+    }
+
+    else if (local_nodal_order != -1) {
+      MPI_Recv((this_locator->distant_point_projected_coords
+                + (this_locator->distant_points_idx[i]*dim)),
+               (int)(n_coords_dist*dim),
+               FVMC_MPI_COORD, dist_rank, FVMC_MPI_TAG,
+               this_locator->comm, &status);
+
+      MPI_Recv((this_locator->distant_point_uvw
+                + (this_locator->distant_points_idx[i]*max_entity_dim)),
+               (int)(n_coords_dist*max_entity_dim),
+               MPI_DOUBLE, dist_rank, FVMC_MPI_TAG,
+               this_locator->comm, &status);
+    }
+
     _locator_trace_end_comm(_fvmc_locator_log_end_p_comm, comm_timing);
 
   }
