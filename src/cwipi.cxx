@@ -144,6 +144,7 @@ void cwipi_init
 
   bftc_printf("\ncwipi " CWIPI_VERSION " initializing\n");
   bftc_printf("------------------------\n\n");
+  bftc_printf_flush();
 
   *application_comm = properties.init(application_name,
                                       common_comm);
