@@ -18,7 +18,31 @@ if (NOT MPI_C_COMPILER)
   endif()
 endif ()
 
-if (CWP_ENABLE_SHARED)
+unset(LINK_LIBRARIES)
+
+if (CWP_ENABLE_STATIC)
+   if (CWP_ENABLE_Fortran)
+     if (EXISTS ${CWP_SOURCE_DIR}/paradigm)
+       list(APPEND LINK_LIBRARIES pdmf_static)
+     endif()  
+     list(APPEND LINK_LIBRARIES cwpf_static)
+   endif()
+   if (EXISTS ${CWP_SOURCE_DIR}/paradigm)
+     list(APPEND LINK_LIBRARIES
+          pdm_mpi_static
+          pdm_static)
+   endif()          
+   list(APPEND LINK_LIBRARIES cwp_static)
+   if (CWP_ENABLE_Fortran)
+    list(APPEND LINK_LIBRARIES cwpf_static)
+   endif()
+   list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
+
+#   if (CWP_ENABLE_SPACE_NODAL_BASIS)
+#    list(APPEND LINK_LIBRARIES spaceBasis_static)
+#   endif()
+
+else ()
 
    if (CWP_ENABLE_Fortran)
      if (EXISTS ${CWP_SOURCE_DIR}/paradigm)
@@ -41,27 +65,6 @@ if (CWP_ENABLE_SHARED)
 #    list(APPEND LINK_LIBRARIES spaceBasis_shared)
 #   endif()
 
-else ()
-   if (CWP_ENABLE_Fortran)
-     if (EXISTS ${CWP_SOURCE_DIR}/paradigm)
-       list(APPEND LINK_LIBRARIES pdmf_static)
-     endif()  
-     list(APPEND LINK_LIBRARIES cwpf_static)
-   endif()
-   if (EXISTS ${CWP_SOURCE_DIR}/paradigm)
-     list(APPEND LINK_LIBRARIES
-          pdm_mpi_static
-          pdm_static)
-   endif()          
-   list(APPEND LINK_LIBRARIES cwp_static)
-   if (CWP_ENABLE_Fortran)
-    list(APPEND LINK_LIBRARIES cwpf_static)
-   endif()
-   list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
-
-#   if (CWP_ENABLE_SPACE_NODAL_BASIS)
-#    list(APPEND LINK_LIBRARIES spaceBasis_static)
-#   endif()
 
 endif()
 

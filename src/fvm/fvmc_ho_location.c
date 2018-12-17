@@ -357,7 +357,7 @@ _heap_insert
 {
   /* Look for index (dicothomy) */
 
-  if (0 == 1) {
+  if (1 == 0) {
     printf ("distances in heap deb :");
     for (int i = 0; i < heap->idx + 1; i++) {
       int _idx2 = heap->sorted_idx[i];
@@ -462,12 +462,16 @@ _heap_insert
 
   heap->dist2[_idx] = dist2;
   heap->child[_idx] = child;
-  
 
-  if (0 == 1) {
+  if (1 == 0) {
     printf ("distances in heap fin :");
+    int idx_pre = -1;
     for (int i = 0; i < heap->idx + 1; i++) {
       int _idx2 = sorted_idx[i];
+      if (idx_pre != -1) {
+        assert ( heap->dist2[_idx2] <= heap->dist2[idx_pre]);
+      }
+      idx_pre = _idx2;
       printf (" %12.5e", heap->dist2[_idx2]);
     }
     printf ("\n");
@@ -479,7 +483,6 @@ _heap_insert
     printf ("\n\n");
 
   }
-  
 }
 
 
