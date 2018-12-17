@@ -51,15 +51,6 @@ interp_ho_loc_f={}
 interp_ho_bas_f={}
 current_cpl = "" 
 
-# # capital IF is cython's equiv of #if 
-# IF PY_MAJOR_VERSION < 3:
-#     # python2
-#     cdef extern from "fileobject.h":
-#       FILE* PyFile_AsFile(object)
-# ELSE:
-#     # python3 is good with PyObject_AsFileDescriptor
-#     pass
-
 
 cdef extern from "cwipi.h":
 
@@ -311,27 +302,6 @@ def init(MPI.Comm common_comm, char* application_name):
     return  application_comm
 
 
-# IF PY_MAJOR_VERSION < 3:
-#   def set_output_listing(output_listing):
-#     """
-#     Set up the file used for the output listing.
-
-#     Parameters:
-#         output_listing(file or str):  Output listing file
-#     """
-#     cdef FILE* c_file
-#     if (isinstance(output_listing, str)):
-#         output_listing = open(output_listing, 'w')
-#     if (isinstance(output_listing, file)):
-#         # should test if writable?
-#         c_file = PyFile_AsFile(output_listing)
-#         cwipi_set_output_listing(c_file)
-#     else:
-#         raise TypeError("output_listing must be a str or a file object")
-
-## FIXME : marche toujours pas : les fichiers python_api_000x.txt sont tous melanges
-
-# ELSE:
 def set_output_listing(output_listing):
     """
     Set up the file used for the output listing.
