@@ -146,6 +146,7 @@ def runTest():
     f.write("  - list string param proc0 : {param}\n".format(param=cwipi.get_list_string_parameter("proc0")))
     f.write("  - list string param proc1 : {param}\n".format(param=cwipi.get_list_string_parameter("proc1")))
 
+    f.flush()  # make sure f is flushed before cwipi writes its properties
     cwipi.dump_application_properties()
 
 #    param_1 = cwipi.get_local_int_control_parameter("param_1")
@@ -232,8 +233,8 @@ def runTest():
                           "field_s2", sendField, 
                           "field_r2", recvField)
 
-    f.write("  - status : {param_1}".format(param_1=result["status"]))
-    f.write("  - number of not located points : {param}".format(param=result["n_not_located_points"]))
+    f.write("  - status : {param_1}\n".format(param_1=result["status"]))
+    f.write("  - number of not located points : {param}\n".format(param=result["n_not_located_points"]))
 
     # Delete coupling object
 
@@ -241,6 +242,8 @@ def runTest():
         print "        Delete coupling"
 
     #del cpl
+
+    f.write("\nThe end!\n")
 
 if __name__ == '__main__':
     runTest()

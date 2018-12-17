@@ -19,7 +19,7 @@
 #-----------------------------------------------------------------------------
 
 """
-cwipi - Coupling library.
+cwipi - Coupling With Interpolation Parallel Interface library.
 """
 
 
@@ -338,13 +338,18 @@ def set_output_listing(output_listing):
 
     Parameters:
         output_listing(file or str):  Output listing file
+
+    Note:
+        If this file is written by both cwipi and python, I/O buffering may mix up the output. 
+        In this case, calling output_listing.flush() before any cwipi call may help.
     """
     cdef int fd
     cdef FILE* c_file
     cdef str mode
     if (isinstance(output_listing, str)):
         output_listing = open(output_listing, 'w')
-    # next line will most likely fail is output_listing is not an io.TextIOWrapper
+    # next line will most likely fail if output_listing is not
+    # an io.TextIOWrapper(in py3) or a file(in py2)
     mode = output_listing.mode
     # should test if writable?
 
