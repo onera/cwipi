@@ -106,6 +106,11 @@ static int _cwipi_print_with_c
   return vfprintf(_cwipi_output_listing, format, arg_ptr);
 }
 
+static int _cwipi_flush_output_listing(void)
+{
+  return fflush(_cwipi_output_listing);
+}
+
 
 /*============================================================================
  * Public function definitions
@@ -139,6 +144,7 @@ void cwipi_init
 
   bftc_printf("\ncwipi " CWIPI_VERSION " initializing\n");
   bftc_printf("------------------------\n\n");
+  bftc_printf_flush();
 
   *application_comm = properties.init(application_name,
                                       common_comm);
@@ -157,6 +163,7 @@ void cwipi_set_output_listing
 {
   _cwipi_output_listing = output_listing;
   bftc_printf_proxy_set(_cwipi_print_with_c);
+  bftc_printf_flush_proxy_set(_cwipi_flush_output_listing);
 }
 
 /*----------------------------------------------------------------------------
