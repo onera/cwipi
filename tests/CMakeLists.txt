@@ -18,8 +18,10 @@ if (NOT MPI_C_COMPILER)
   endif()
 endif ()
 
-unset(LINK_LIBRARIES)
-
+if (MPI_CXX_LIBRARIES)
+  list(APPEND LINK_LIBRARIES ${MPI_CXX_LIBRARIES})  
+endif()
+  
 if (CWP_ENABLE_STATIC)
    if (CWP_ENABLE_Fortran)
      if (EXISTS ${CWP_SOURCE_DIR}/paradigm)
