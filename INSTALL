@@ -42,6 +42,9 @@ Enable the use of the library BLAS :
         BLAS_INCDIR=<path>   Where to find the header files
         BLAS_LIBDIR=<path>   Where to find the library files
 
+      To force the use of a list of libraries, use :
+        DBLAS_LIBRARIES="<lib_1> ... <lib_n>"
+
 CMake compiler options
 ======================
 
