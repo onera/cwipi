@@ -74,7 +74,7 @@ option(CWP_ENABLE_Fortran  "Build Shared Fortran Interface" OFF)
 # MKL, BLAS, LAPACK
 # -----------------
 
-option(CWP_ENABLE_BLAS  "Enable the use of the library blas" OFF)
+option(CWP_ENABLE_BLAS  "Enable the use of the library blas" ON)
 
 if (CWP_ENABLE_BLAS)
   if (CMAKE_C_COMPILER_ID STREQUAL "Intel")
@@ -89,10 +89,19 @@ if (CWP_ENABLE_BLAS)
   if (NOT BLAS_FOUND)
     find_package(BLAS)
   endif()
+
+  if (NOT CBLAS_FOUND)
+    find_package(CBLAS)
+  endif()
+
 endif()
 
 if (BLAS_FOUND)
   set(CWP_HAVE_BLAS 1)
+endif()
+
+if (CBLAS_FOUND)
+  set(CWP_HAVE_CBLAS 1)
 endif()
 
 # High order (Nodal bases from SPACE)
