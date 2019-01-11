@@ -279,11 +279,7 @@ macro(Check_Fortran_Libraries LIBRARIES _prefix _name _flags _list _thread)
       list(APPEND ${LIBRARIES} "-Wl,--end-group")
     endif()
     set(CMAKE_REQUIRED_LIBRARIES "${_flags};${${LIBRARIES}};${_thread}")
-    set(CMAKE_REQUIRED_FLAGS "")    
-    foreach(FLAG IN LISTS BLAS_COMPILER_FLAGS)
-      set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} ${FLAG}")    
-    endforeach()
-#    set(CMAKE_REQUIRED_FLAGS "${BLAS_COMPILER_FLAGS}")
+    set(CMAKE_REQUIRED_FLAGS ${BLAS_COMPILER_FLAGS})
     if (BLAS_VERBOSE)
       message("${Cyan}BLAS libs found for BLA_VENDOR ${BLA_VENDOR}."
 	"Try to compile symbol ${_name} with following libraries:"
@@ -503,6 +499,8 @@ if (BLA_VENDOR MATCHES "Intel*" OR BLA_VENDOR STREQUAL "All")
 	  list(APPEND BLAS_COMPILER_FLAGS "-I${ENV_MKLROOT}/include")
 	endif()
       endif()
+
+      string(REPLACE ";" " " BLAS_COMPILER_FLAGS "${BLAS_COMPILER_FLAGS}")
 
       set(additional_flags "")
       if (CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
