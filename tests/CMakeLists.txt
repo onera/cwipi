@@ -18,33 +18,7 @@ if (NOT MPI_C_COMPILER)
   endif()
 endif ()
 
-if (MPI_CXX_LIBRARIES)
-  list(APPEND LINK_LIBRARIES ${MPI_CXX_LIBRARIES})  
-endif()
-  
-if (CWP_ENABLE_STATIC)
-   if (CWP_ENABLE_Fortran)
-     if (EXISTS ${CWP_SOURCE_DIR}/paradigm)
-       list(APPEND LINK_LIBRARIES pdmf_static)
-     endif()  
-     list(APPEND LINK_LIBRARIES cwpf_static)
-   endif()
-   if (EXISTS ${CWP_SOURCE_DIR}/paradigm)
-     list(APPEND LINK_LIBRARIES
-          pdm_mpi_static
-          pdm_static)
-   endif()          
-   list(APPEND LINK_LIBRARIES cwp_static)
-   if (CWP_ENABLE_Fortran)
-    list(APPEND LINK_LIBRARIES cwpf_static)
-   endif()
-   list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
-
-#   if (CWP_ENABLE_SPACE_NODAL_BASIS)
-#    list(APPEND LINK_LIBRARIES spaceBasis_static)
-#   endif()
-
-else ()
+if (CWP_ENABLE_SHARED)
 
    if (CWP_ENABLE_Fortran)
      if (EXISTS ${CWP_SOURCE_DIR}/paradigm)
@@ -67,6 +41,27 @@ else ()
 #    list(APPEND LINK_LIBRARIES spaceBasis_shared)
 #   endif()
 
+else ()
+   if (CWP_ENABLE_Fortran)
+     if (EXISTS ${CWP_SOURCE_DIR}/paradigm)
+       list(APPEND LINK_LIBRARIES pdmf_static)
+     endif()  
+     list(APPEND LINK_LIBRARIES cwpf_static)
+   endif()
+   if (EXISTS ${CWP_SOURCE_DIR}/paradigm)
+     list(APPEND LINK_LIBRARIES
+          pdm_mpi_static
+          pdm_static)
+   endif()          
+   list(APPEND LINK_LIBRARIES cwp_static)
+   if (CWP_ENABLE_Fortran)
+    list(APPEND LINK_LIBRARIES cwpf_static)
+   endif()
+   list(APPEND LINK_LIBRARIES ${COMMON_LIBRARIES})
+
+#   if (CWP_ENABLE_SPACE_NODAL_BASIS)
+#    list(APPEND LINK_LIBRARIES spaceBasis_static)
+#   endif()
 
 endif()
 
@@ -78,6 +73,9 @@ if (CWP_ENABLE_Fortran)
    target_include_directories(cwp_checkf PRIVATE ${CMAKE_SOURCE_DIR}
                                          PRIVATE ${CMAKE_BINARY_DIR}
                                          PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+   if (MPI_Fortran_ADDITIONAL_INCLUDE_DIRS)
+      target_include_directories(cwp_checkf PRIVATE ${MPI_Fortran_ADDITIONAL_INCLUDE_DIRS})
+   endif()
    target_include_directories(cwp_checkf PRIVATE ${TEST_INC})
    target_link_libraries(cwp_checkf ${LINK_LIBRARIES})
    set_target_properties(cwp_checkf PROPERTIES LINKER_LANGUAGE "Fortran")
@@ -109,7 +107,8 @@ include(TestCreate)
 
 if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api.c")
   test_c_create (c_new_api 10)
-endif ()  
+endif () 
+
 test_c_create (c_linear_coupling 2)
 test_c_create (c_surf_location_triaP2 2)
 test_c_create (c_surf_location_curvetriaP2 2)
@@ -137,6 +136,8 @@ test_c_create (c_vol_coupling_micro_polyhedra_P1P1 2)
 test_c_create (c_vol_coupling_polyhedra_P1P1 2)
 test_c_create (c_vol_coupling_polyhedra_P1P1_with_external_points 2)
 
+
+
 if (CWP_ENABLE_Fortran)
   test_fortran_create (fortran_surf_P1P1            ${MPIEXEC_MAX_NUMPROCS})
   test_fortran_create (fortran_surf_P1P1_savememory ${MPIEXEC_MAX_NUMPROCS})
@@ -146,6 +147,10 @@ if (CWP_ENABLE_Fortran)
   test_fortran_create (fortran_plane_PiQj 2)
   target_link_libraries(fortran_plane_PiQj cwp_checkf)
   add_dependencies(fortran_plane_PiQj  cwp_checkf)
+
+  add_library (Meshbf.7 STATIC IMPORTED)
+  set_target_properties(Meshbf.7 PROPERTIES IMPORTED_LOCATION /home/globc2/casta/libMeshb/install/lib/libMeshbf.7.a)
+  target_link_libraries(fortran_surf_PiQj Meshbf.7 gfortran)
 
 #    list(APPEND LINK_LIBRARIES spaceBasis)
 #    test_fortran_create  (fortran_surf_TriaP1_PiPj   ${MPIEXEC_MAX_NUMPROCS})
