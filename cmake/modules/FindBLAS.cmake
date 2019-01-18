@@ -806,7 +806,7 @@ if (BLA_VENDOR STREQUAL "ATLAS" OR BLA_VENDOR STREQUAL "All")
       BLAS
       dgemm
       ""
-      "f77blas;atlas"
+      "f77blas;atlas;cblas"
       ""
       )
     if(NOT BLAS_FIND_QUIETLY)
