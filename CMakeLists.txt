@@ -90,9 +90,6 @@ if (CWP_ENABLE_BLAS)
     find_package(BLAS)
   endif()
 
-  if (NOT CBLAS_FOUND)
-    find_package(CBLAS)
-  endif()
 
 endif()
 
@@ -100,9 +97,6 @@ if (BLAS_FOUND)
   set(CWP_HAVE_BLAS 1)
 endif()
 
-if (CBLAS_FOUND)
-  set(CWP_HAVE_CBLAS 1)
-endif()
 
 # High order (Nodal bases from SPACE)
 # -----------------
