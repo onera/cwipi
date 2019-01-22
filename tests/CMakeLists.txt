@@ -109,6 +109,11 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api.c")
   test_c_create (c_new_api 10)
 endif () 
 
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_field.c")
+  test_c_create (c_new_api_field 4)
+endif () 
+
+
 test_c_create (c_linear_coupling 2)
 test_c_create (c_surf_location_triaP2 2)
 test_c_create (c_surf_location_curvetriaP2 2)
