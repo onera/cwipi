@@ -616,7 +616,7 @@ CWP_Cpl_create
  *
  * \brief Removing a coupling object
  *
- * This function delete a coupling abject
+ * This function delete a coupling object
  * 
  * \param [in] local_code_name   Local code name
  * \param [in] cpl_id            Coupling identifier
@@ -657,7 +657,7 @@ const char *cpl_id
 // )
 // {
 //   //TODO: Voir comment enchainer les appels, voir comment prendre en compte l'interpolation temporelle 
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 //   cpl.exchange();
 // }
 
@@ -676,7 +676,7 @@ const char *cpl_id
 //  const char *cpl_id
 // )
 // {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 
 //   return cpl.nUncomputedTargetsGet();
 // }
@@ -696,7 +696,7 @@ const char *cpl_id
 //  const char *cpl_id
 // )
 // {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 //   return cpl.uncomputedTargetsGet();
 // }
 
@@ -715,7 +715,7 @@ const char *cpl_id
 //  const char *cpl_id
 // )
 // {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 //   return cpl.nComputedTargetsGet();
 // }
 
@@ -734,7 +734,7 @@ const char *cpl_id
 //  const char *cpl_id
 // )
 // {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 //   return cpl.getLocatedPoint();
 // }
 
@@ -779,7 +779,7 @@ const char *cpl_id
 //  const int                   n_step
 // )
 // {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 //   cpl.recvFreqSet(n_step);
 // }
 
@@ -801,7 +801,7 @@ const char *cpl_id
 //  const double                next_time
 // )
 // {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 //   cpl.recvNextTimeSet(next_time);
 // }
 
@@ -830,7 +830,7 @@ const char *cpl_id
 // int            *storage_id
 //)
 // {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 //
 //   cpl.geomCompute(n_uncomputed_tgt);
 // }
@@ -872,7 +872,7 @@ const char *cpl_id
 //                   ...
 // )
 // {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 
 //   va_list pa;
 //   va_start(pa, fmt);
@@ -925,7 +925,7 @@ const char *cpl_id
 //  const char                 *format_option
 // )
 // {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 //   cpl.visuSet(freq, format, format_option);
 // }
 
@@ -953,7 +953,7 @@ const char *cpl_id
 //  double                      coord[]
 // )
 // {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 //   cpl.userTgtPtsSet(n_pts, coord);
 // }
 
@@ -984,7 +984,7 @@ const char *cpl_id
 //  const CWP_long_t          parent_num[]
 // )
 // {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 //   cpl.supportVtcsSet(i_part,
 //                      n_pts,
 //                      coord[],
@@ -1006,7 +1006,7 @@ const char *cpl_id
 //  const char                 *cpl_id
 // )
 // {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 //   cpl.supportEndSet();
 // }
 
@@ -1113,7 +1113,7 @@ const char *cpl_id
 //  const int                   connec[],
 //  const CWP_long_t          parent_num[])
 // {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 //   cpl.supportBlockAdd(i_part,
 //                       block_type,
 //                       n_elts,
@@ -1148,7 +1148,7 @@ const char *cpl_id
 //  const CWP_long_t          parent_num[]
 // )
 // {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 //   cpl.supportFPolyBlockAdd(i_part,
 //                            block_type,
 //                            n_elts,
@@ -1194,7 +1194,7 @@ const char *cpl_id
 //  const CWP_long_t    parent_num[]
 // )
 // {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 //   cpl.supportCPolyBlockAdd(i_part,
 //                            n_elts,
 //                            cell_face_idx,
@@ -1220,7 +1220,7 @@ const char *cpl_id
 //  const char *cpl_id
 // )
 // {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 //   cpl.supportDel();
 // }
 
@@ -1243,7 +1243,7 @@ const char *cpl_id
 //  void          *fvmc_nodal
 // )
 // {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 //   cpl.fvmcNodalShared(i_part,
 //                       fvmc_nodal);
 // }
@@ -1267,156 +1267,172 @@ const char *cpl_id
  * 
  */
 
-// void
-// CWP_field_create
-// (
-//  const char                  *cpl_id,
-//  const char                  *field_id,
-//  const CWP_type_t     data_type,
-//  const CWP_field_storage_t  storage,
-//  const int                    n_component,
-//  const CWP_Field_location_t   nature,
-//  const CWP_field_exch_t     exchange_type,
-//  const CWP_status_t         visu_status)
-// {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
-//   cpl.fieldCreate(field_id,
-//                   data_type,
-//                   storage,
-//                   n_component,
-//                   nature,
-//                   exchange_type, 
-//                   visu_status);
-// }
+ void
+ CWP_Field_create
+ (
+  const char                  *cpl_id,
+  const char                  *codeName,
+  const char                  *field_id,
+  const CWP_Type_t     data_type,
+  const CWP_Field_storage_t  storage,
+  const int                    n_component,
+  const CWP_Field_value_t   nature,
+  const CWP_Field_exch_t     exchange_type,
+  const CWP_Status_t         visu_status)
+ {
+   cwipi::Coupling& cpl = _cpl_get(codeName,cpl_id);
+   
+   cpl.fieldCreate(field_id,
+                   data_type,
+                   storage,
+                   n_component,
+                   nature,
+                   exchange_type, 
+                   visu_status);
+ }
 
 /**
  *
  * \brief Set data mapping
  * 
- * \param [in]  cpl_id         Coupling identifier
- * \param [in]  field_id       Field identifier
- * \param [in]  data           Storage array (Mapping)
+ * \param [in] local_code_name   Local code name
+ * \param [in] cpl_id            Coupling identifier
+ * \param [in] field_id          Field identifier
+ * \param [in] i_part            Current partition
+ * \param [in] data              Storage array (Mapping)
  * 
  */
 
-// void
-// CWP_field_mapping_set
-// (
-//  const char                  *cpl_id,
-//  const char                  *field_id,
-//  double                       data[]   
-//  )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
-//   cpl.fieldMappingSet(field_id,
-//                       data);   
-// }
+ void
+ CWP_Field_mapping_set
+ (
+   const char      *local_code_name,
+   const char      *cpl_id,
+   const char      *field_id,
+   const int        i_part,
+   double           data[]
+ )
+ {
+   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+   cpl.fieldMappingSet(field_id,
+                       data);   
+ }
 
 /**
  *
  * \brief Get nunmber of field components
  * 
- * \param [in]   cpl_id         Coupling identifier
- * \param [in]   field_id       Field identifier
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] field_id         Field identifier
  *
  * \return                      number of field components
  * 
  */
 
-// int
-// CWP_field_n_component_get
-// (
-//  const char                  *cpl_id,
-//  const char                  *field_id
-// )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
-//   return cpl.fieldNComponentGet(field_id);
-// }
+ int
+ CWP_Field_n_component_get
+ (
+  const char                  *local_code_name,
+  const char                  *cpl_id,
+  const char                  *field_id
+ )
+ {
+   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+   return cpl.fieldNComponentGet(field_id);
+ }
 
 /**
  *
  * \brief Get field nature
  * 
- * \param [in]   cpl_id         Coupling identifier
- * \param [in]   field_id       Field identifier
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] field_id         Field identifier
  *
  * \return                      Field nature
  * 
  */
 
-// CWP_Field_location_t
-// CWP_Field_location_get
-// (
-//  const char                  *cpl_id,
-//  const char                  *field_id
-// )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
-//   return cpl.fieldNatureGet(field_id);
-// }
+ CWP_Field_value_t
+ CWP_Field_location_get
+ (
+  const char                  *local_code_name,
+  const char                  *cpl_id,
+  const char                  *field_id
+ )
+ {
+   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+   return cpl.fieldNatureGet(field_id);
+ }
 
 /**
  *
  * \brief Get field data type
  * 
- * \param [in]   cpl_id         Coupling identifier
- * \param [in]   field_id       Field identifier
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] field_id         Field identifier
  *
  * \return                      Field data type
  * 
  */
 
-// CWP_type_t
-// CWP_field_type_get
-// (
-//  const char                  *cpl_id,
-//  const char                  *field_id
-// )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
-//   return cpl.fieldTypeGet(field_id);
-// }
+ CWP_Type_t
+ CWP_Field_type_get
+ (
+  const char                  *local_code_name,
+  const char                  *cpl_id,
+  const char                  *field_id
+ )
+ {
+   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+   return cpl.fieldTypeGet(field_id);
+ }
 
 /**
  *
  * \brief Get field storage type
  * 
- * \param [in]   cpl_id         Coupling identifier
- * \param [in]   field_id       Field identifier
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] field_id         Field identifier
  * 
  */
 
-// CWP_field_storage_t
-// CWP_field_storage_get
-// (
-//  const char                  *cpl_id,
-//  const char                  *field_id
-//  )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
-//   return cpl.fieldStorageGet(field_id);
-// }
+ CWP_Field_storage_t
+ CWP_Field_storage_get
+ (
+  const char                  *local_code_name,
+  const char                  *cpl_id,
+  const char                  *field_id
+  )
+ {
+   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+   return cpl.fieldStorageGet(field_id);
+ }
 
 /**
  *
  * \brief Removing a field
  * 
- * \param [in]  cpl_id         Coupling identifier
- * \param [in]  field_id       Field identifier
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] field_id         Field identifier
  * 
  */
 
-// void
-// CWP_field_del
-// (
-//  const char *cpl_id,
-//  const char *field_id
-// )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
-//   cpl.fieldDelete();
-// }
+ void
+ CWP_Field_del
+ (
+  const char                  *local_code_name,
+  const char                  *cpl_id,
+  const char                  *field_id
+ )
+ {
+   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+   cpl.fieldDel(field_id);
+ }
 
 /*----------------------------------------------------------------------------*
  * Functions about exchange                                                   *
@@ -1451,7 +1467,7 @@ const char *cpl_id
 //  int          *n_uncomputed_tgt
 // )
 // {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 //   const string &src_field_id_str = src_field_id;
 //   const string &tgt_field_id_str = tgt_field_id;
 
@@ -1482,7 +1498,7 @@ const char *cpl_id
 //  const char     *src_field_id,
 //  int            *request)
 // {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 //   const string &src_field_id_str = src_field_id;
 
 //   cpl.issend(src_field_id_str,
@@ -1511,7 +1527,7 @@ const char *cpl_id
 //  const char   *tgt_field_id,
 //  int          *request)
 // {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 //   const string &tgt_field_id_str = tgt_field_id;
 
 //   cpl.irecv(tgt_field_id_str,
@@ -1535,7 +1551,7 @@ const char *cpl_id
 // (const char  *cpl_id,
 //  int          request)
 // {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 //   cpl.waitIssend(request);
 // }
 
@@ -1556,7 +1572,7 @@ const char *cpl_id
 // (const char  *cpl_id,
 //  int          request)
 // {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 //   cpl.waitIrecv(request);
 // }
 
@@ -1584,7 +1600,7 @@ const char *cpl_id
 //  CWP_interp_from_location_t fct
 // )
 // {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 //   cpl.interpFromLocSet(fct);
 // }
 
@@ -1607,7 +1623,7 @@ const char *cpl_id
 //  void       *fct
 // )
 // {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 //   cpl.interpFromLocSetF(fct);
 // }
 
@@ -1630,7 +1646,7 @@ const char *cpl_id
 //  CWP_interp_from_intersec_t fct
 // )
 // {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 //   cpl.interpFromInterSet(fct);
 // }
 
@@ -1653,7 +1669,7 @@ const char *cpl_id
 //  void       *fct
 // )
 // {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 //   cpl.interpFromInterSetF(fct);
 // }
 
@@ -1676,7 +1692,7 @@ const char *cpl_id
 //  CWP_interp_from_closest_pts_t fct
 // )
 // {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 //   cpl.interpFromClosestSet(fct);
 // }
 
@@ -1699,7 +1715,7 @@ const char *cpl_id
 //  void       *fct
 // )
 // {
-//   cwipi::Coupling& cpl = _cpl_get(cpl_id);
+//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 //   cpl.interpFromClosestSetF(fct);
 // }
 
