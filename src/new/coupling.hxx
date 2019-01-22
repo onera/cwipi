@@ -34,7 +34,7 @@
 //#include "geometry.hxx"
 //#include "visualization.hxx"
 //#include "support.hxx"
-//#include "field.hpp"
+#include "field.hpp"
 
 using namespace std;
 
@@ -541,20 +541,39 @@ namespace cwipi {
      * \param [in]  storage        Storage type          
      * \param [in]  n_component    Number of componenent
      * \param [in]  nature         Nature
+     * \param [in]  exch_type      Exchange type
      * \param [in]  visu_status    Visualization status
      * 
      */
 
-    inline void
+    void
     fieldCreate
     (
-     const string                &field_id,
-     const CWP_Type_t     data_type,
+     const string               &field_id,
+     const CWP_Type_t           data_type,
      const CWP_Field_storage_t  storage,
-     const int                    n_component,
-     const CWP_Field_value_t   nature,
+     const int                  n_component,
+     const CWP_Field_value_t    nature,
+     const CWP_Field_exch_t     exch_type,
      const CWP_Status_t         visu_status
     );
+    
+    
+     /**
+     * \brief Return if a field identifier exists  
+     *
+     * \param [in]  field_id         Field identifier
+     *
+     * \return status
+     */
+
+    bool 
+    fieldIs
+    (
+     const string &field_id
+    );
+    
+    
 
     /**
      *
@@ -565,8 +584,8 @@ namespace cwipi {
      * 
      */
 
-    inline void
-    fieldMappingset
+    void
+    fieldMappingSet
     (
      const string &field_id,
            double data[]   
@@ -582,7 +601,7 @@ namespace cwipi {
      * 
      */
 
-    inline int
+    int
     fieldNComponentGet
     (
      const string &field_id
@@ -598,7 +617,7 @@ namespace cwipi {
      * 
      */
 
-    inline CWP_Field_value_t
+    CWP_Field_value_t
     fieldNatureGet
     (
      const string &field_id
@@ -614,7 +633,7 @@ namespace cwipi {
      * 
      */
 
-    inline CWP_Type_t
+    CWP_Type_t
     fieldTypeGet
     (
      const string &field_id
@@ -628,7 +647,7 @@ namespace cwipi {
      * 
      */
 
-    inline CWP_Field_storage_t
+    CWP_Field_storage_t
     fieldStorageGet
     (
      const string &field_id
@@ -642,7 +661,7 @@ namespace cwipi {
      * 
      */
 
-    inline void
+    void
     fieldDel
     (
      const string &field_id
@@ -899,7 +918,7 @@ namespace cwipi {
     //        Visualization              *_visu;                  /*!< Visualization */
           double                      _recvFreq;              /*!< Receiving frequency */
           double                      _recvNextTime;          /*!< Next receiving time */
-    //map < string, Field<double> * >  &_fields;                /*!< Fields storage */
+    map < string, Field<double> * >  &_fields;                /*!< Fields storage */
           CouplingDB                 &_cplDB;                  /*!< Coupling Data base */
   }; 
 

@@ -40,6 +40,7 @@
 #include "cwp.h"
 
 #include "factory.hpp"
+#include "field.hpp"
 #include "geometry.hxx"
 #include "communication.hxx"
 
@@ -81,7 +82,9 @@ namespace cwipi {
    _localCodeProperties(localCodeProperties),
    _coupledCodeProperties(coupledCodeProperties),
    _recvFreqType (recvFreqType),
-   _cplDB(cplDB)   
+   _cplDB(cplDB),
+   _fields(*(new map < string, Field<double> * >()))   
+   
 //   _geometry(*(FG::getInstance().CreateObject(geomAlgo))),
 {
   
@@ -100,13 +103,228 @@ namespace cwipi {
 }
 
 
-Coupling::~Coupling()
-{
-#if defined(DEBUG) && 0
-  cout << "destroying '" << _name << "' coupling : TODO" << endl;
-#endif
+  Coupling::~Coupling()
+  {
+    #if defined(DEBUG) && 0
+    cout << "destroying '" << _name << "' coupling : TODO" << endl;
+    #endif
+  }
 
-}
+
+  int
+  Coupling::fieldNComponentGet
+  (
+   const string &field_id
+  )
+  {
+  
+    map<string,Field<double>*>::iterator It = _fields.find(field_id.c_str());  
+    if (It == _fields.end())
+      {
+         bftc_error(__FILE__, __LINE__, 0,
+               "'%s' not existing field\n", field_id.c_str());
+      }
+    else 
+      {
+        return It->second->nComponentGet();
+      }         
+    
+  }
+
+
+
+  bool 
+  Coupling::fieldIs
+  (
+   const string &field_id
+  )
+  {
+    map<string,Field<double>*>::iterator It = _fields.find(field_id.c_str());
+    return (It != _fields.end());
+  }
+
+
+
+
+  void
+  Coupling::fieldCreate
+  (
+   const string               &field_id,
+   const CWP_Type_t           data_type,
+   const CWP_Field_storage_t  storage,
+   const int                  n_component,
+   const CWP_Field_value_t    nature,
+   const CWP_Field_exch_t     exch_type,
+   const CWP_Status_t         visu_status
+  )
+  {
+
+    if (fieldIs(field_id)) {
+      bftc_error(__FILE__, __LINE__, 0,
+                "'%s' existing field\n", field_id.c_str());
+    }
+    
+    //
+    // Create the new field
+
+    cwipi::Field<double> *newField = new cwipi::Field<double>(data_type,
+                                           storage,
+                                           n_component,
+                                           nature,
+                                           exch_type,
+                                           visu_status);  
+
+    pair<string, Field<double>* > newPair(string(field_id), newField);
+
+    _fields.insert(newPair);
+    bftc_printf("champ '%s' a été créé\n", field_id.c_str());
+  }
+
+
+  /**
+   *
+   * \brief Get field data type
+   * 
+   * \param [in]   field_id       Field identifier
+   *
+   * \return                      Field data type
+   * 
+   */
+   CWP_Type_t
+   Coupling::fieldTypeGet
+   (
+     const string &field_id
+   )
+   {
+    map<string,Field<double>*>::iterator It = _fields.find(field_id.c_str());  
+    if (It == _fields.end())
+      {
+         bftc_error(__FILE__, __LINE__, 0,
+               "'%s' not existing field\n", field_id.c_str());
+      }
+    else 
+      {
+        return It->second->dataTypeGet();
+      }         
+    
+   }
+   
+   
+  /**
+   *
+   * \brief Get field storage type
+   * 
+   * \param [in]   field_id       Field identifier
+   * 
+   */
+
+   CWP_Field_storage_t
+   Coupling::fieldStorageGet
+   (
+     const string &field_id
+   )
+   {
+    map<string,Field<double>*>::iterator It = _fields.find(field_id.c_str());  
+    if (It == _fields.end())
+      {
+         bftc_error(__FILE__, __LINE__, 0,
+               "'%s' not existing field\n", field_id.c_str());
+      }
+    else 
+      {
+        return It->second->storageTypeGet();
+      }         
+    
+   }
+
+
+  /**
+   *
+   * \brief Get field nature
+   * 
+   * \param [in]   field_id       Field identifier
+   * 
+   */
+
+  CWP_Field_value_t
+  Coupling::fieldNatureGet
+  (
+    const string &field_id
+  )
+  {
+    map<string,Field<double>*>::iterator It = _fields.find(field_id.c_str());  
+    if (It == _fields.end())
+      {
+         bftc_error(__FILE__, __LINE__, 0,
+               "'%s' not existing field\n", field_id.c_str());
+      }
+    else 
+      {
+        return It->second->natureGet();
+      }         
+    
+  }
+
+
+ /**
+  *
+  * \brief Set data mapping
+  * 
+  * \param [in]  field_id       Field identifier
+  * \param [in]  data           Storage array (Mapping)
+  * 
+  */
+  void
+  Coupling::fieldMappingSet
+  (
+    const string &field_id,
+    double data[]   
+  )
+  {
+    map<string,Field<double>*>::iterator It = _fields.find(field_id.c_str());  
+    if (It == _fields.end())
+      {
+         bftc_error(__FILE__, __LINE__, 0,
+               "'%s' not existing field\n", field_id.c_str());
+      }
+    else 
+      {
+        It->second->mappingSet(data);
+      }   
+    
+  }
+
+
+
+
+  /**
+   *
+   * \brief Removing a field
+   * 
+   * \param [in]   field_id       Field identifier
+   * 
+   */
+  void
+  Coupling::fieldDel
+  (
+    const string &field_id
+  )
+  {
+    map<string,Field<double>*>::iterator It = _fields.find(field_id.c_str());  
+    if (It == _fields.end())
+      {
+         bftc_error(__FILE__, __LINE__, 0,
+               "'%s' not existing field\n", field_id.c_str());
+      }
+    else 
+      {
+        delete It->second;
+      }       
+   
+  }
+
+
+
 
 
 } // namespace cwipi
