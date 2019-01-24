@@ -1092,7 +1092,7 @@ CWP_User_tgt_pts_set
 );
 
 /*----------------------------------------------------------------------------*
- * Functions about Support                                                    *
+ * Functions about Mesh                                                    *
  *----------------------------------------------------------------------------*/
 
 /**
@@ -1113,12 +1113,12 @@ void
 CWP_Mesh_interf_vtx_set
 (
  const char           *local_code_name,
- const char             *cpl_id,
- const int               i_part,
- const int               n_pts,
- const double            coord[],
- const CWP_g_num_t        global_num[]
-);
+ const char           *cpl_id,
+ const int             i_part,
+ const int             n_pts,
+ double                coord[],
+ CWP_g_num_t           global_num[]
+);  
 
 /**
  * \brief End setting support
@@ -1239,8 +1239,8 @@ CWP_Mesh_interf_std_block_add
  const int          i_part,
  const CWP_Block_t  block_type,
  const int          n_elts,
- const int          connec[],
- const CWP_g_num_t  global_num[]
+ int          connec[],
+ CWP_g_num_t  global_num[]
 );
 
 

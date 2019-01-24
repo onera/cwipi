@@ -970,29 +970,30 @@ const char *cpl_id
  * \param [in]  i_part      Current partition
  * \param [in]  n_pts       Number of points
  * \param [in]  coord       Coordinates (size = 3 * \ref n_pts)          
- * \param [in]  parent_num  Pointer to parent element number (or NULL)
+ * \param [in]  global_num  Pointer to parent element number (or NULL)
  *
  */
 
-// void 
-// CWP_support_vtcs_set
-// (
-//  const char                 *cpl_id,
-//  const int                   i_part,
-//  const int                   n_pts,
-//  const double                coord[],
-//  const CWP_long_t          parent_num[]
-// )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//   cpl.supportVtcsSet(i_part,
-//                      n_pts,
-//                      coord[],
-//                      parent_num[]);
-// }
+ void 
+ CWP_Mesh_vtcs_set
+ (const char                 *local_code_name,
+  const char                 *cpl_id,
+  const int                   i_part,
+  const int                   n_pts,
+  double                      coord[],
+  CWP_g_num_t                 global_num[]
+ )
+ {
+   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+   cpl.meshVtcsSet(i_part,
+                   n_pts,
+                   coord,
+                   global_num);
+ }
+
 
 /**
- * \brief End setting support
+ * \brief End setting mesh
  *
  * This function finalizes the support building
  *
@@ -1000,15 +1001,15 @@ const char *cpl_id
  *
  */
 
-// void 
-// CWP_support_end_set
-// (
-//  const char                 *cpl_id
-// )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//   cpl.supportEndSet();
-// }
+ void 
+ CWP_Mesh_interf_end_set
+ (const char                 *local_code_name,
+  const char                 *cpl_id
+ )
+ {
+   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+   cpl.meshEndSet();
+ }
 
 /**
  * \brief Adding a connectivity block to the geometric support
@@ -1103,23 +1104,27 @@ const char *cpl_id
  *
  */
 
-// void 
-// CWP_support_block_add
-// (
-//  const char                 *cpl_id,
-//  const int                   i_part,
-//  const CWP_block_t         block_type,
-//  const int                   n_elts,
-//  const int                   connec[],
-//  const CWP_long_t          parent_num[])
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//   cpl.supportBlockAdd(i_part,
-//                       block_type,
-//                       n_elts,
-//                       connec,
-//                       parent_num);
-// }
+void 
+CWP_Mesh_interf_std_block_add
+ (
+  const char        *local_code_name,
+  const char        *cpl_id,
+  const int          i_part,
+  const CWP_Block_t  block_type,
+  const int          n_elts,
+  int          connec[],
+  CWP_g_num_t  global_num[]
+ )
+ {
+   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+   cpl.meshBlockAdd(i_part,
+                    block_type,
+                    n_elts,
+                    connec,
+                    global_num,
+                    NULL);
+ }
+
 
 /**
  * \brief Adding a polygon connectivity block to the geometric support
@@ -1214,15 +1219,16 @@ const char *cpl_id
  *
  */
 
-// void 
-// CWP_support_del
-// (
-//  const char *cpl_id
-// )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//   cpl.supportDel();
-// }
+void 
+CWP_Mesh_interf_del
+(
+ const char *local_code_name,
+ const char *cpl_id
+)
+{
+   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+   cpl.meshDel();
+}
 
 /**
  * \brief Map a fvm nodal as support mesh                                  
@@ -1389,6 +1395,7 @@ const char *cpl_id
    cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
    return cpl.fieldTypeGet(field_id);
  }
+
 
 /**
  *
