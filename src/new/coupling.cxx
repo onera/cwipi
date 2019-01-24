@@ -32,7 +32,7 @@
 #include "coupling.hxx"
 #include "coupling_i.hxx"
 
-#include "oldMesh.hxx"
+#include "mesh.hxx"
 #include "codeProperties.hxx"
 
 #include "solve_ax_b_4.h"
@@ -66,13 +66,13 @@ namespace cwipi {
   
   Coupling::Coupling
   (
-   const string                &cplId,
+   const string               &cplId,
    const CWP_Comm_t           cplType,
-   const CodeProperties        &localCodeProperties,
-   const CodeProperties        &coupledCodeProperties,
-   const CWP_Geom_algo_t           geomAlgo,
-   const int                    nPart,
-   const CWP_Displacement_t  movingStatus,
+   const CodeProperties       &localCodeProperties,
+   const CodeProperties       &coupledCodeProperties,
+   const CWP_Geom_algo_t      geomAlgo,
+   const int                  nPart,
+   const CWP_Displacement_t   movingStatus,
    const CWP_Freq_t           recvFreqType,
    CouplingDB                 &cplDB          
    )
@@ -84,23 +84,26 @@ namespace cwipi {
    _recvFreqType (recvFreqType),
    _cplDB(cplDB),
    _fields(*(new map < string, Field<double> * >()))   
-   
+   _mesh(*new Mesh(localCodeProperties.intraCommGet(),nPart))
+
 //   _geometry(*(FG::getInstance().CreateObject(geomAlgo))),
-{
+  {
   
-  if (coupledCodeProperties.localCodeIs()) {
-    if (cplDB.couplingIs(coupledCodeProperties, cplId)) {
-      _communication.init(_localCodeProperties, _coupledCodeProperties, cplId, cplDB);
-      Coupling &distCpl = cplDB.couplingGet(coupledCodeProperties, cplId);
-      distCpl._communication.init(_communication);
+    if (coupledCodeProperties.localCodeIs()) {
+      if (cplDB.couplingIs(coupledCodeProperties, cplId)) {
+        _communication.init(_localCodeProperties, _coupledCodeProperties, cplId, cplDB);
+        Coupling &distCpl = cplDB.couplingGet(coupledCodeProperties, cplId);
+        distCpl._communication.init(_communication);
+      }
     }
-  }
   
-  else {
-    _communication.init(_localCodeProperties, _coupledCodeProperties, cplId, cplDB);
-  }
+    else {
+      _communication.init(_localCodeProperties, _coupledCodeProperties, cplId, cplDB);
+    }
     
-}
+    
+    
+  }
 
 
   Coupling::~Coupling()
@@ -310,9 +313,51 @@ namespace cwipi {
    
   }
 
+  
+  void Coupling::meshVtcsSet
+    (
+     const int          i_part,
+     const int          n_pts,
+     double             coords[],
+     CWP_g_num_t        global_num[]
+    )
+    {
+      _mesh.nodal_coord_set(i_part,
+                            n_pts,
+                            coords,
+                            global_num); 
+    }
+    
+  void Coupling::meshEndSet()
+  {_mesh.endSet();
+  } 
+    
+    
+    
+  void Coupling::meshDel()
+  {_mesh.meshDel();
+  }
 
+  
+  
 
-
+  void Coupling::meshBlockAdd
+  (
+    const int           i_part,
+    const CWP_Block_t   block_type,
+    const int           n_elts,
+    int                 connec[],
+    CWP_g_num_t         global_num[],
+    int                 parent_num[]
+  )
+  {
+     _mesh.blockAdd(i_part,
+                    block_type,
+                    n_elts,
+                    connec,
+                    global_num,
+                    parent_num);
+  }
 
 } // namespace cwipi
 

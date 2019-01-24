@@ -30,10 +30,10 @@
 #include "communication.hxx"
 #include "couplingDB.hxx"
 #include "couplingDB_i.hxx"
+#include "mesh.hxx"
 
 //#include "geometry.hxx"
 //#include "visualization.hxx"
-//#include "support.hxx"
 #include "field.hpp"
 
 using namespace std;
@@ -72,7 +72,7 @@ namespace cwipi {
      * \param [in]  coupledCodeProperties        Coupled code properties
      * \param [in]  geom_algo                    Geometric algorithm
      * \param [in]  n_part                       Number of interface partitions 
-     * \param [in]  moving_status                Support moving status
+     * \param [in]  moving_status                mesh moving status
      * \param [in]  recv_freq_type               Type of receiving frequency
      * \param [in]  cplDB                        Coupling data base where it coupling is stored
      *
@@ -300,7 +300,7 @@ namespace cwipi {
     );
 
     /*----------------------------------------------------------------------------*
-     * Methods  about Support                                                     *
+     * Methods  about mesh                                                     *
      *----------------------------------------------------------------------------*/
 
     /**
@@ -315,32 +315,34 @@ namespace cwipi {
      *
      */
 
-    inline void 
-    supportVtcsSet
+    void 
+    meshVtcsSet
     (
      const int          i_part,
      const int          n_pts,
-     const double       coord[],
-     const CWP_g_num_t parent_num[]
+     double             coord[],
+     CWP_g_num_t        global_num[]
     );
 
+
+
     /**
-     * \brief End setting support
+     * \brief End setting mesh
      *
-     * This function finalizes the support building
+     * This function finalizes the mesh building
      *
      */
 
-    inline void 
-    supportEndSet
+    void 
+    meshEndSet
     (
     );
 
     /**
-     * \brief Adding a connectivity block to the geometric support
+     * \brief Adding a connectivity block to the geometric mesh
      *
-     * This function adds a connectivity block to the geometric support for
-     * \ref CWP_SUPPORT_MESH support type. Definition of element connectivity is :
+     * This function adds a connectivity block to the geometric mesh for
+     * \ref CWP_mesh_MESH mesh type. Definition of element connectivity is :
      *
      *  - edge (\ref CWP_BLOCK_EDGE2) :
      *
@@ -428,21 +430,22 @@ namespace cwipi {
      *
      */
 
-    inline void 
-    supportBlockAdd
+    void 
+    meshBlockAdd
     (
      const int           i_part,
      const CWP_Block_t block_type,
      const int           n_elts,
-     const int           connec[],
-     const CWP_g_num_t  parent_num[]
+     int           connec[],
+     CWP_g_num_t     global_num[],
+     int           parent_num[]
     );
 
     /**
-     * \brief Adding a polygon connectivity block to the geometric support
+     * \brief Adding a polygon connectivity block to the geometric mesh
      *
-     * This function adds a polygon connectivity block to the geometric support for
-     * \ref CWP_SUPPORT_MESH support type.
+     * This function adds a polygon connectivity block to the geometric mesh for
+     * \ref CWP_mesh_MESH mesh type.
      *
      * \param [in]  i_part      Current partition
      * \param [in]  n_elts      Number of elements
@@ -454,7 +457,7 @@ namespace cwipi {
      */
 
     inline void 
-    supportFPolyBlockAdd
+    meshFPolyBlockAdd
     (
      const int            i_part,
      const CWP_Block_t  block_type,
@@ -464,10 +467,10 @@ namespace cwipi {
     );
 
     /**
-     * \brief Adding a polyhedron connectivity block to the geometric support
+     * \brief Adding a polyhedron connectivity block to the geometric mesh
      *
-     * This function add a connectivity block to the geometric support if support
-     * type is only \ref CWP_SUPPORT_MESH. Definition of element connectivity is :
+     * This function add a connectivity block to the geometric mesh if mesh
+     * type is only \ref CWP_mesh_MESH. Definition of element connectivity is :
      *
      * \param [in]  i_part            Current partition
      * \param [in]  n_elts            Number of elements
@@ -487,7 +490,7 @@ namespace cwipi {
      */
 
     inline void 
-    supportCPolyBlockAdd
+    meshCPolyBlockAdd
     (
      const int           i_part,
      const int           n_elts,
@@ -500,21 +503,21 @@ namespace cwipi {
     );
 
     /**
-     * \brief Geometric support removal                                  
+     * \brief Geometric mesh removal                                  
      *
-     * This function delete the geometric support  
+     * This function delete the geometric mesh  
      *
      */
 
-    inline void 
-    supportDel
+    void 
+    meshDel
     (
     );
 
     /**
-     * \brief Map a fvm nodal as support mesh                                  
+     * \brief Map a fvm nodal as mesh mesh                                  
      *
-     * This function  map a fvm nodal as support mesh
+     * This function  map a fvm nodal as mesh mesh
      *
      * \param [in]  i_part            Current partition
      * \param [in]  fvmc_nodal        fvm nodal mes     
@@ -913,8 +916,8 @@ namespace cwipi {
     const CodeProperties             &_localCodeProperties;   /*!< Local code properties */
     const CodeProperties             &_coupledCodeProperties; /*!< Coupled code properties */
     //    Geometry                   &_geometry;              /*!< Geometric algorithm */
-    //    Support                    &_support;               /*!< Geometric support */
-    const CWP_Freq_t                _recvFreqType;          /*!< Receiving frequency type */
+         Mesh                        &_mesh;                  /*!< Geometric mesh */
+    const CWP_Freq_t                _recvFreqType  ;          /*!< Receiving frequency type */
     //        Visualization              *_visu;                  /*!< Visualization */
           double                      _recvFreq;              /*!< Receiving frequency */
           double                      _recvNextTime;          /*!< Next receiving time */
