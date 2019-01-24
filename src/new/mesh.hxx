@@ -19,13 +19,79 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <vector>
+#include <map>
+
+#include <mpi.h>
+
+#include <pdm_mesh_nodal.h>
+#include <bftc_error.h>
+
+#include "cwp.h"
+
+class id_part_block{
+
+  public:
+    inline id_part_block(int id_part,int id_block):_id_part(id_part),_id_block(id_block)
+      {
+      }
+      
+    inline ~id_part_block()
+      {
+      }
+      
+    inline int get_id_part()
+      {return _id_part;
+      }
+      
+    inline int get_id_block()
+      {return _id_block;
+      }
+
+      
+    inline bool operator < (id_part_block const &a) const
+      {if(_id_part<a._id_part) return true;
+       else
+         {if(_id_part>a._id_part) return false;
+          else
+            {if(_id_block>a._id_block) return false;
+             else return true;
+            }
+         }
+      }
+      
+    inline bool operator > (id_part_block const &a) const
+      {if(_id_part>a._id_part) return true;
+       else
+         {if(_id_part<a._id_part) return false;
+          else
+            {if(_id_block<a._id_block) return false;
+             else return true;
+            }
+         }
+      }
+      
+    inline bool operator == (id_part_block const &a)
+      {if(_id_part==a._id_part and _id_block==a._id_block) return true;
+       else return false;
+      }
+        
+    int _id_part;
+    int _id_block;
+  private:
+} ;
+
+
+
+
+
 namespace cwipi {
 
   /** 
-   * \class Support support.hxx "support.hxx"
-   * \brief Geometry support
+   * \class Mesh Mesh.hxx "Mesh.hxx"
+   * \brief Geometry Mesh
    *
-   *  This class computes defines th geometry support (mesh)
+   *  This class computes defines th geometry Mesh (mesh)
    * 
    */
 
@@ -37,21 +103,90 @@ namespace cwipi {
      * \brief Constructor
      *
      */
+ 
+    Mesh(const MPI_Comm &localComm,
+         int npart);
 
-    Mesh ();
 
     /**
      * \brief Destructor
      *
      */
 
-    virtual ~Mesh();
+     virtual ~Mesh();
+     
+     /**
+     * \brief Set the mesh coordinates
+     *
+     * \param [in] ipart       Index of the mesh partition
+     * \param [in] n_vtx       Number of partition vertices
+     * \param [in] coords      Array containing the verticies coordinates
+     * \param [in] global_num  Global numbering of the vertices
+     *
+     */
+   
+     void nodal_coord_set(const int   i_part,
+                          const int   n_pts,
+                          double      coords[],
+                          CWP_g_num_t global_num[]); 
+                          
+     /**
+     * \brief Finalize the mesh setting after blocks and coordinates additions
+     *
+     */
+                          
+                       
+     void endSet();
+   
+    /**
+     * \brief Mesh deletion and free memory
+     *
+     */
+   
+     void meshDel();
 
-
+     /**
+     * \brief Addition of a block (set of cells) to the mesh partition
+     *
+     * \param [in] ipart       Index of the mesh partition
+     * \param [in] block_type  Block type i.e. Type of the block elements
+     * \param [in] n_elts      Number of block elements
+     * \param [in] connec      Vertices to elements connectivity 
+     * \param [in] global_num  Global numbering of the vertices in the block
+     * \param [in] global_num  Parent numbering in the block
+     */
+   
+     void blockAdd(const int           i_part,
+                   const CWP_Block_t   block_type,
+                   const int           n_elts,
+                   int                 connec[],
+                   CWP_g_num_t         global_num[],
+                   int                 parent_num[]);
+         
+         
+        
   private:
     
-  //   Support &operator=(const Support &other);  /*!< Assigment operator not available */
-  //   Support (const Support& other);            /*!< Copy constructor not available */
+    // TODO: renommer _nDim par entitesDim
+    const MPI_Comm                         &_localComm;
+    int                                     _nDim;
+    int                                     _order;
+    std::vector<int>                        _nVertex;
+    std::vector<int>                        _nElts;
+    std::vector<double*>                    _coords;
+    std::map< int, CWP_g_num_t*>            _global_num;
+    std::map< id_part_block, CWP_g_num_t*>  _global_num_block;
+    std::map< int, int*>                    _parent_num;
+    std::map< id_part_block, int*>          _parent_num_block;
+    int                                     _npart;
+    int                                     _pdmNodal_handle_index;
+    bool                                    _isNodalFinalized;
+    PDM_Mesh_nodal_t                       *_pdmNodal;
+    std::map< id_part_block, int* >         _connect;
+    
+    
+  //   Mesh &operator=(const Mesh &other);  /*!< Assigment operator not available */
+  //   Mesh (const Mesh& other);            /*!< Copy constructor not available */
 
   // private:
   //   std::vector<double>         *_tmpVertexField;  // Evite une allocation a chaque extrapolation
@@ -65,9 +200,9 @@ namespace cwipi {
   //   std::map<int, int >                   &_tmpTimeStepIrecv;
   //   std::map<int, double >                &_tmpTimeValueIrecv;
   //   std::map<int, const char * >          &_tmpFieldNameIrecv;
-  //   Support                                *support;
+  //   Mesh                                *Mesh;
   };
 
 }
 
-#endif //__SUPPORT_H__
+#endif //__Mesh_H__
