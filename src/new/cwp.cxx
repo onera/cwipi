@@ -32,7 +32,8 @@
 /*----------------------------------------------------------------------------
  * FVM library headers
  *----------------------------------------------------------------------------*/
-//#include <fvmc_parall.h>
+#include <fvmc_parall.h>
+#include <fvmc_nodal.h>
 
 /*----------------------------------------------------------------------------
  *  Local headers
@@ -1321,22 +1322,23 @@ CWP_Mesh_interf_del
  *
  * \param [in]  cpl_id            Coupling identifier
  * \param [in]  i_part            Current partition
- * \param [in]  fvmc_nodal        fvm nodal mes     
+ * \param [in]  fvmc_nodal        fvm nodal mesh    
  *
  */
 
-// void 
-// CWP_support_shared_fvm_nodal
-// (
-//  const char    *cpl_id,
-//  const int      i_part,
-//  void          *fvmc_nodal
-// )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//   cpl.fvmcNodalShared(i_part,
-//                       fvmc_nodal);
-// }
+void 
+CWP_Mesh_interf_shared_fvm_nodal
+(
+ const char   *local_code_name,
+ const char   *cpl_id,
+ const int     i_part,
+ fvmc_nodal_t *fvmc_nodal
+)
+{
+   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+   cpl.fvmcNodalShared(i_part,
+                       fvmc_nodal);
+}
 
 /*----------------------------------------------------------------------------*
  * Functions about field                                                      *

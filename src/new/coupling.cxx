@@ -420,6 +420,13 @@ namespace cwipi {
                     parent_num);
   }
   
+  
+  void Coupling::fvmcNodalShared(const int           i_part,
+                      fvmc_nodal_t        *fvmc_nodal)
+  {
+    
+  }
+  
   void Coupling::meshFromCellFaceSet(const int   i_part,
                         const int   n_cells,
                         int         cell_face_idx[],

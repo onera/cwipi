@@ -573,15 +573,15 @@ namespace cwipi {
      * This function  map a fvm nodal as mesh mesh
      *
      * \param [in]  i_part            Current partition
-     * \param [in]  fvmc_nodal        fvm nodal mes     
+     * \param [in]  fvmc_nodal        fvm nodal mesh 
      *
      */
 
-    inline void 
+    void 
     fvmcNodalShared
     (
      const int           i_part,
-           fvmc_nodal_t *fvmc_nodal
+     fvmc_nodal_t       *fvmc_nodal
     );
 
     /*----------------------------------------------------------------------------*

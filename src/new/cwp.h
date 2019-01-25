@@ -20,8 +20,15 @@
 */
 
 #include <mpi.h>
-
 #include <stdio.h>
+
+/*----------------------------------------------------------------------------
+ * FVM library headers
+ *----------------------------------------------------------------------------*/
+#include <fvmc_parall.h>
+#include <fvmc_nodal.h>
+
+
 
 /*=============================================================================
  * Macro definitions
@@ -1366,10 +1373,10 @@ CWP_Mesh_interf_del
 void 
 CWP_Mesh_interf_shared_fvm_nodal
 (
- const char  *local_code_name,
- const char  *cpl_id,
- const int   i_part,
- void        *fvmc_nodal
+ const char   *local_code_name,
+ const char   *cpl_id,
+ const int     i_part,
+ fvmc_nodal_t *fvmc_nodal
 );
 
 
