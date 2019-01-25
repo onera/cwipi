@@ -434,12 +434,39 @@ namespace cwipi {
     meshBlockAdd
     (
      const int           i_part,
-     const CWP_Block_t block_type,
+     const CWP_Block_t   block_type,
      const int           n_elts,
-     int           connec[],
-     CWP_g_num_t     global_num[],
-     int           parent_num[]
+     int                 connec[],
+     CWP_g_num_t         global_num[],
+     CWP_g_num_t         parent_num[]
     );
+
+
+    /**
+     * \brief Adding a high order connectivity block to the geometric mesh
+     *
+     * This function adds a connectivity block to the geometric mesh for
+     * \ref CWP_mesh_MESH mesh type. Definition of element connectivity is :
+     *
+     * \param [in]  i_part      Current partition
+     * \param [in]  block_type  Block type
+     * \param [in]  n_elts      Number of elements
+     * \param [in]  connec      Connectivity (size = n_vertex_elt * \ref n_elts)          
+     * \param [in]  parent_num  Pointer to parent element number (or NULL)
+     *
+     */
+    
+    
+    void 
+    meshHighOrderBlockAdd
+    (
+     const int           i_part,
+     const CWP_Block_t   block_type,
+     const int           n_elts,
+     const int           order,
+     int                 connec[],
+     CWP_g_num_t         global_num[]);
+
 
     /**
      * \brief Adding a polygon connectivity block to the geometric mesh
@@ -448,6 +475,7 @@ namespace cwipi {
      * \ref CWP_mesh_MESH mesh type.
      *
      * \param [in]  i_part      Current partition
+     * \param [in]  block_type  Block type
      * \param [in]  n_elts      Number of elements
      * \param [in]  connec_idx  Connectivity index (connec_id[0] = 0 and 
      *                          size = \ref n_elts + 1)          
@@ -455,15 +483,16 @@ namespace cwipi {
      * \param [in]  parent_num  Pointer to parent element number (or NULL)
      *
      */
-
-    inline void 
+     
+    void 
     meshFPolyBlockAdd
     (
      const int            i_part,
-     const CWP_Block_t  block_type,
+     const CWP_Block_t    block_type,
      const int            n_elts,
-     const int            connec[],
-     const CWP_g_num_t   parent_num[]
+     int                  connec_idx[],
+     int                  connec[],
+     CWP_g_num_t          parent_num[]
     );
 
     /**

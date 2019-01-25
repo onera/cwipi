@@ -29,6 +29,16 @@
 
 #include "cwp.h"
 
+typedef enum {
+
+  std_block_add,          /*!< Standard monotype element addition - no connectivity index */ 
+  ho_block_add,           /*!< Standard high order element type addition */ 
+  polygon_block_add,      /*!< 2D multitype element addition */ 
+  polyhedron_block_add    /*!< 3D multitype element addition */ 
+
+} Block_Addition_t;
+
+
 class id_part_block{
 
   public:
@@ -100,7 +110,11 @@ namespace cwipi {
   public:
 
     /**
-     * \brief Constructor
+     * \brief Mesh constructor
+     * 
+     * Construct the CWIPI mesh by using paradigm nodal methods.
+     * 
+     * \param [in] npart Number of mesh partitions.
      *
      */
  
@@ -109,7 +123,7 @@ namespace cwipi {
 
 
     /**
-     * \brief Destructor
+     * \brief Mesh destructor
      *
      */
 
@@ -149,22 +163,27 @@ namespace cwipi {
      * \brief Addition of a block (set of cells) to the mesh partition
      *
      * \param [in] ipart       Index of the mesh partition
+     * \param [in] block_type  Type of the block addition     
      * \param [in] block_type  Block type i.e. Type of the block elements
      * \param [in] n_elts      Number of block elements
+     * \param [in] connec_idx  Vertices to elements connectivity index
      * \param [in] connec      Vertices to elements connectivity 
      * \param [in] global_num  Global numbering of the vertices in the block
-     * \param [in] global_num  Parent numbering in the block
+     * \param [in] parent_num  Parent numbering in the block
      */
    
-     void blockAdd(const int           i_part,
-                   const CWP_Block_t   block_type,
-                   const int           n_elts,
-                   int                 connec[],
-                   CWP_g_num_t         global_num[],
-                   int                 parent_num[]);
+     void blockAdd(const int                  i_part,
+                       const Block_Addition_t add_type,
+                       const CWP_Block_t      block_type,
+                       const int              n_elts,
+                       int                    connec_idx[],
+                       int                    connec[],
+                       CWP_g_num_t            global_num[],
+                       CWP_g_num_t            parent_num[]);
+                   
          
-         
-        
+
+    
   private:
     
     // TODO: renommer _nDim par entitesDim
@@ -176,13 +195,15 @@ namespace cwipi {
     std::vector<double*>                    _coords;
     std::map< int, CWP_g_num_t*>            _global_num;
     std::map< id_part_block, CWP_g_num_t*>  _global_num_block;
-    std::map< int, int*>                    _parent_num;
-    std::map< id_part_block, int*>          _parent_num_block;
+    std::map< int, CWP_g_num_t*>            _parent_num;
+    std::map< id_part_block, CWP_g_num_t*>  _parent_num_block;
     int                                     _npart;
     int                                     _pdmNodal_handle_index;
     bool                                    _isNodalFinalized;
     PDM_Mesh_nodal_t                       *_pdmNodal;
     std::map< id_part_block, int* >         _connect;
+    std::map< id_part_block, int* >         _connect_idx;
+    std::map< id_part_block, Block_Addition_t > _add_type;
     
     
   //   Mesh &operator=(const Mesh &other);  /*!< Assigment operator not available */

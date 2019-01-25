@@ -60,6 +60,7 @@ using namespace std;
 
 namespace cwipi {
 
+
   typedef Factory<Communication, CWP_Comm_t> FC;
   typedef Factory<Geometry, CWP_Geom_algo_t> FG;
 
@@ -314,6 +315,7 @@ namespace cwipi {
   }
 
   
+  
   void Coupling::meshVtcsSet
     (
      const int          i_part,
@@ -333,14 +335,6 @@ namespace cwipi {
   } 
     
     
-    
-  void Coupling::meshDel()
-  {_mesh.meshDel();
-  }
-
-  
-  
-
   void Coupling::meshBlockAdd
   (
     const int           i_part,
@@ -348,16 +342,62 @@ namespace cwipi {
     const int           n_elts,
     int                 connec[],
     CWP_g_num_t         global_num[],
-    int                 parent_num[]
+    CWP_g_num_t         parent_num[]
   )
   {
+  
      _mesh.blockAdd(i_part,
+                    std_block_add,
                     block_type,
                     n_elts,
+                    NULL,
                     connec,
                     global_num,
                     parent_num);
+                    
+                    
+                    
   }
+  
+  void Coupling::meshHighOrderBlockAdd
+    (
+     const int           i_part,
+     const CWP_Block_t   block_type,
+     const int           n_elts,
+     const int           order,
+     int                 connec[],
+     CWP_g_num_t         global_num[]
+    )
+    {
+    
+    }
+  
+  
+  void Coupling::meshFPolyBlockAdd
+  (
+    const int            i_part,
+    const CWP_Block_t    block_type,
+    const int            n_elts,
+    int                  connec_idx[],
+    int                  connec[],
+    CWP_g_num_t          parent_num[]
+  )
+  {
+     _mesh.blockAdd(i_part,
+                    polygon_block_add,
+                    block_type,
+                    n_elts,
+                    connec_idx,
+                    connec,
+                    NULL,
+                    parent_num);
+  }
+
+
+  void Coupling::meshDel()
+  {_mesh.meshDel();
+  }
+
 
 } // namespace cwipi
 

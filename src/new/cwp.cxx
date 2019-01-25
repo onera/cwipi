@@ -1112,8 +1112,8 @@ CWP_Mesh_interf_std_block_add
   const int          i_part,
   const CWP_Block_t  block_type,
   const int          n_elts,
-  int          connec[],
-  CWP_g_num_t  global_num[]
+  int                connec[],
+  CWP_g_num_t        global_num[]
  )
  {
    cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
@@ -1124,6 +1124,29 @@ CWP_Mesh_interf_std_block_add
                     global_num,
                     NULL);
  }
+
+
+void 
+CWP_Mesh_interf_h_order_block_add
+(
+ const char        *local_code_name,
+ const char        *cpl_id,
+ const int          i_part,
+ const CWP_Block_t  block_type,
+ const int          n_elts,
+ const int          order, 
+ int                connec[],
+ CWP_g_num_t        global_num[]
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  cpl.meshHighOrderBlockAdd(i_part,
+                            block_type,
+                            n_elts,
+                            order,
+                            connec,
+                            global_num);
+}
 
 
 /**
@@ -1142,24 +1165,29 @@ CWP_Mesh_interf_std_block_add
  *
  */
 
-// void 
-// CWP_support_f_poly_block_add
-// (
-//  const char                 *cpl_id,
-//  const int                   i_part,
-//  const CWP_block_t         block_type,
-//  const int                   n_elts,
-//  const int                   connec[],
-//  const CWP_long_t          parent_num[]
-// )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//   cpl.supportFPolyBlockAdd(i_part,
-//                            block_type,
-//                            n_elts,
-//                            connec,
-//                            parent_num);
-// }
+
+void 
+CWP_Mesh_interf_f_poly_block_add
+(
+ const char             *local_code_name,
+ const char             *cpl_id,
+ const int               i_part,
+ const CWP_Block_t       block_type,
+ const int               n_elts,
+ int                     connec_idx[],
+ int                     connec[],
+ CWP_g_num_t             parent_num[]
+)
+{
+   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+   cpl.meshFPolyBlockAdd(i_part,
+                         block_type,
+                         n_elts,
+                         connec_idx,
+                         connec,
+                         parent_num);
+}
+
 
 /**
  * \brief Adding a polyhedron connectivity block to the geometric support

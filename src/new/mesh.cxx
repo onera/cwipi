@@ -150,13 +150,15 @@ namespace cwipi {
    }
    
   
-   void Mesh::blockAdd(const int i_part,
-         const CWP_Block_t   block_type,
-         const int           n_elts,
-         int                 connec[],
-         CWP_g_num_t         global_num[],
-         int                 parent_num[]
-         )
+   void Mesh::blockAdd(const int              i_part,
+                       const Block_Addition_t add_type,
+                       const CWP_Block_t      block_type,
+                       const int              n_elts,
+                       int                    connec_idx[],
+                       int                    connec[],
+                       CWP_g_num_t            global_num[],
+                       CWP_g_num_t            parent_num[]
+                       )
    {
       int id_block=-1;
       switch (block_type) {
@@ -219,12 +221,15 @@ namespace cwipi {
           
       id_part_block id(i_part,id_block);
       _connect.insert          ( std::pair < id_part_block, int* > (id,connec) );
+      _connect_idx.insert      ( std::pair < id_part_block, int* > (id,connec_idx) );
+      _add_type.insert         ( std::pair < id_part_block, Block_Addition_t > (id,add_type) );
       _global_num_block.insert ( std::pair < id_part_block, CWP_g_num_t* > (id,global_num) );
-      _parent_num_block.insert ( std::pair < id_part_block, int* > (id,parent_num) );
+      _parent_num_block.insert ( std::pair < id_part_block, CWP_g_num_t* > (id,parent_num) );
       _nElts[i_part]=PDM_Mesh_nodal_n_cell_get(_pdmNodal_handle_index,i_part);     
    
                    
    }
+
 
 
 

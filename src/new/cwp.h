@@ -1121,9 +1121,9 @@ CWP_Mesh_interf_vtx_set
 );  
 
 /**
- * \brief End setting support
+ * \brief End setting of the mesh
  *
- * This function finalizes the support building
+ * This function finalizes the mesh building after addition of block and coordinates setting.
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
@@ -1268,8 +1268,8 @@ CWP_Mesh_interf_h_order_block_add
  const CWP_Block_t  block_type,
  const int          n_elts,
  const int          order, 
- const int          connec[],
- const CWP_g_num_t  global_num[]
+ int                connec[],
+ CWP_g_num_t        global_num[]
 );
 
 
@@ -1295,9 +1295,9 @@ CWP_Mesh_interf_f_poly_block_add
  const int               i_part,
  const CWP_Block_t       block_type,
  const int               n_elts,
- const int               connec_idx[],
- const int               connec[],
- const CWP_g_num_t       parent_num[]
+ int                     connec_idx[],
+ int                     connec[],
+ CWP_g_num_t             parent_num[]
 );
 
 /**
