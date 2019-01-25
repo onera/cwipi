@@ -488,7 +488,6 @@ namespace cwipi {
     meshFPolyBlockAdd
     (
      const int            i_part,
-     const CWP_Block_t    block_type,
      const int            n_elts,
      int                  connec_idx[],
      int                  connec[],
@@ -518,26 +517,51 @@ namespace cwipi {
      *
      */
 
-    inline void 
+    void 
     meshCPolyBlockAdd
     (
      const int           i_part,
      const int           n_elts,
-     const int           cell_face_idx[],
-     const int           cell_face[],
+     int                 cell_face_idx[],
+     int                 cell_face[],
      const int           n_faces,
-     const int           face_vtx_idx[],
-     const int           face_vtx[],
-     const CWP_g_num_t  parent_num[]
+     int                 face_vtx_idx[],
+     int                 face_vtx[],
+     CWP_g_num_t         parent_num[]
     );
 
+
+    void
+    meshFromCellFaceSet(const int   i_part,
+                        const int   n_cells,
+                        int         cell_face_idx[],
+                        int         cell_face[],
+                        int         n_faces,
+                        int         face_vtx_idx[],
+                        int         face_vtx[],
+                        CWP_g_num_t parent_num[]); 
+
+
+
+     
+    void
+    meshFromFacesEdgeSet(const int   i_part,
+                         const int   n_faces,
+                         int         face_edge_idx[],
+                         int         face_edge[],
+                         const int   n_edges,
+                         int         edge_vtx_idx[],
+                         int         edge_vtx[],
+                         CWP_g_num_t parent_num[]); 
+     
+     
     /**
      * \brief Geometric mesh removal                                  
      *
      * This function delete the geometric mesh  
      *
      */
-
+     
     void 
     meshDel
     (

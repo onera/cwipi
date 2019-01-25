@@ -347,14 +347,15 @@ namespace cwipi {
   {
   
      _mesh.blockAdd(i_part,
-                    std_block_add,
                     block_type,
                     n_elts,
                     NULL,
                     connec,
-                    global_num,
+                    -1,
+                    NULL,
+                    NULL,                            
+                    NULL,
                     parent_num);
-                    
                     
                     
   }
@@ -376,7 +377,6 @@ namespace cwipi {
   void Coupling::meshFPolyBlockAdd
   (
     const int            i_part,
-    const CWP_Block_t    block_type,
     const int            n_elts,
     int                  connec_idx[],
     int                  connec[],
@@ -384,13 +384,82 @@ namespace cwipi {
   )
   {
      _mesh.blockAdd(i_part,
-                    polygon_block_add,
-                    block_type,
+                    CWP_BLOCK_FACE_POLY,
                     n_elts,
                     connec_idx,
                     connec,
+                    -1,
+                    NULL,
+                    NULL,                            
                     NULL,
                     parent_num);
+  }
+  
+
+  void Coupling::meshCPolyBlockAdd
+  (
+    const int           i_part,
+    const int           n_elts,
+    int                 cell_face_idx[],
+    int                 cell_face[],
+    const int           n_faces,
+    int                 face_vtx_idx[],
+    int                 face_vtx[],
+    CWP_g_num_t         parent_num[]
+  )
+  {
+     _mesh.blockAdd(i_part,
+                    CWP_BLOCK_CELL_POLY,
+                    n_elts,
+                    cell_face_idx,
+                    cell_face,
+                    n_faces,
+                    face_vtx_idx,
+                    face_vtx,                            
+                    NULL,
+                    parent_num);
+  }
+  
+  void Coupling::meshFromCellFaceSet(const int   i_part,
+                        const int   n_cells,
+                        int         cell_face_idx[],
+                        int         cell_face[],
+                        int         n_faces,
+                        int         face_vtx_idx[],
+                        int         face_vtx[],
+                        CWP_g_num_t parent_num[])
+  {
+     _mesh.fromCellFaceSet(i_part,
+                               n_cells,
+                               cell_face_idx,
+                               cell_face,
+                               n_faces,
+                               face_vtx_idx,
+                               face_vtx,
+                               parent_num);
+  } 
+  
+  
+  
+  
+  
+  void Coupling::meshFromFacesEdgeSet(const int   i_part,
+                         const int   n_faces,
+                         int         face_edge_idx[],
+                         int         face_edge[],
+                         const int   n_edges,
+                         int         edge_vtx_idx[],
+                         int         edge_vtx[],
+                         CWP_g_num_t parent_num[])
+  {
+     _mesh.fromFacesEdgeSet(i_part,
+                            n_faces,
+                            face_edge_idx,
+                            face_edge,
+                            n_edges,
+                            edge_vtx_idx,
+                            edge_vtx,
+                            parent_num); 
   }
 
 

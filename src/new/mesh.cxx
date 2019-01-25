@@ -49,6 +49,7 @@ namespace cwipi {
     _nVertex.resize(npart);
     _coords.resize(npart);
     _nElts.resize(npart);
+    _nFaces.resize(npart);
     _npart=PDM_Mesh_nodal_n_part_get(_pdmNodal_handle_index);
   }
 
@@ -64,9 +65,9 @@ namespace cwipi {
   
   
    void Mesh::nodal_coord_set(const int   i_part,
-                        const int   n_vtx,
-                        double      coords[],
-                        CWP_g_num_t global_num[])
+                              const int   n_vtx,
+                              double      coords[],
+                              CWP_g_num_t global_num[])
    {
       PDM_Mesh_nodal_coord_set(_pdmNodal_handle_index,
                                i_part,    
@@ -86,6 +87,50 @@ namespace cwipi {
    }
   
   
+   CWP_Block_t Mesh::Mesh_nodal_block_type_get(const int id_block
+                                        )
+   {
+     PDM_Mesh_nodal_elt_t PDM_block_type = PDM_Mesh_nodal_block_type_get(_pdmNodal_handle_index,
+                                                                   id_block);
+                                                                   
+     switch (PDM_block_type) {
+
+       case PDM_MESH_NODAL_POINT: return CWP_BLOCK_NODE;
+       break;
+       
+       case PDM_MESH_NODAL_BAR2: return CWP_BLOCK_EDGE2;
+       break;
+                        
+       case PDM_MESH_NODAL_TRIA3: return CWP_BLOCK_FACE_TRIA3;
+       break;
+
+       case PDM_MESH_NODAL_QUAD4: return CWP_BLOCK_FACE_QUAD4;
+       break;
+                       
+       case PDM_MESH_NODAL_TETRA4: return CWP_BLOCK_CELL_TETRA4;
+       break;
+
+       case PDM_MESH_NODAL_POLY_2D: return CWP_BLOCK_FACE_POLY;
+       break;
+       
+       case PDM_MESH_NODAL_HEXA8: return CWP_BLOCK_CELL_HEXA8;
+       break;
+
+       case PDM_MESH_NODAL_PYRAMID5: return CWP_BLOCK_CELL_PYRAM5;
+       break;
+       
+       case PDM_MESH_NODAL_PRISM6: return CWP_BLOCK_CELL_PRISM6;
+       break;
+       
+       case PDM_MESH_NODAL_POLY_3D: return CWP_BLOCK_CELL_POLY;
+       break;
+       
+      }
+      
+            
+   }
+  
+  
    void Mesh::endSet()
    { 
      if(_coords.size()==0) bftc_error(__FILE__, __LINE__, 0, "Set coordinates vertices before finalizing.\n");
@@ -93,35 +138,72 @@ namespace cwipi {
        {if(_coords[i_part]==NULL) bftc_error(__FILE__, __LINE__, 0, "Set all the paritions coordinates vertices before finalizing.\n");
        }
      
-     std::map< id_part_block, int* >::iterator connec_it = _connect.begin();
-     while (connec_it != _connect.end())
+     std::map< id_part_block, int* >::iterator connec_it = _connec.begin();
+     while (connec_it != _connec.end())
         {
            id_part_block id = connec_it->first;
           
            int id_part=id.get_id_part();
            int id_block=id.get_id_block();
            
+           PDM_Mesh_nodal_elt_t pdm_block_type=PDM_Mesh_nodal_block_type_get(_pdmNodal_handle_index,
+                                                                id_block);
+           int* connec_idx       = _connec_idx      [id];
+           int* connec_faces     = _connec_faces    [id];
+           int* connec_faces_idx = _connec_faces_idx[id];
+           
            const CWP_g_num_t *g_num;
            
            if(_global_num_block[id]==NULL)
              {  
                PDM_Mesh_nodal_g_num_in_block_compute(_pdmNodal_handle_index,
-                                                 id_block);  
+                                                     id_block);  
            
                g_num = PDM_Mesh_nodal_block_g_num_get(_pdmNodal_handle_index,
-                                                                     id_block,
-                                                                     id_part);
-                                                   
+                                                      id_block,
+                                                      id_part);          
              }
-             
-           PDM_Mesh_nodal_block_std_set(_pdmNodal_handle_index,
-                                        id_block,
-                                        id_part,    
-                                        _nElts[id_part],    
-                                        connec_it->second,   
-                                        const_cast <CWP_g_num_t *> (g_num),
-                                        NULL);
-           
+
+           switch (pdm_block_type) {
+                                           
+           case PDM_MESH_NODAL_POLY_2D :
+              
+              PDM_Mesh_nodal_block_poly2d_set (_pdmNodal_handle_index,
+                                               id_block,
+                                               id_part,    
+                                               _nElts[id_part],
+                                               connec_idx, 
+                                               connec_it->second,   
+                                               const_cast <CWP_g_num_t *> (g_num),
+                                               NULL);
+              break;
+                                               
+           case PDM_MESH_NODAL_POLY_3D :
+
+              PDM_Mesh_nodal_block_poly3d_set (_pdmNodal_handle_index,
+                                               id_block,
+                                               id_part,    
+                                               _nElts [id_part],
+                                               _nFaces[id_part],
+                                               connec_faces_idx, 
+                                               connec_faces,   
+                                               connec_idx, 
+                                               connec_it->second,   
+                                               const_cast <CWP_g_num_t *> (g_num),
+                                               NULL);
+              break;
+                                               
+           default :
+              
+              PDM_Mesh_nodal_block_std_set(_pdmNodal_handle_index,
+                                           id_block,
+                                           id_part,    
+                                           _nElts[id_part],    
+                                           connec_it->second,   
+                                           const_cast <CWP_g_num_t *> (g_num),
+                                           NULL);
+              break;
+           } 
            
            if(_global_num.find(id_part)==_global_num.end()) 
               _global_num.insert( std::pair < int, CWP_g_num_t* > (id_part,NULL) ); 
@@ -151,14 +233,15 @@ namespace cwipi {
    
   
    void Mesh::blockAdd(const int              i_part,
-                       const Block_Addition_t add_type,
                        const CWP_Block_t      block_type,
                        const int              n_elts,
                        int                    connec_idx[],
                        int                    connec[],
+                       const int              n_faces,
+                       int                    face_vtx_idx[],
+                       int                    face_vtx[],    
                        CWP_g_num_t            global_num[],
-                       CWP_g_num_t            parent_num[]
-                       )
+                       CWP_g_num_t            parent_num[])
    {
       int id_block=-1;
       switch (block_type) {
@@ -220,17 +303,90 @@ namespace cwipi {
       }                                        
           
       id_part_block id(i_part,id_block);
-      _connect.insert          ( std::pair < id_part_block, int* > (id,connec) );
-      _connect_idx.insert      ( std::pair < id_part_block, int* > (id,connec_idx) );
-      _add_type.insert         ( std::pair < id_part_block, Block_Addition_t > (id,add_type) );
-      _global_num_block.insert ( std::pair < id_part_block, CWP_g_num_t* > (id,global_num) );
-      _parent_num_block.insert ( std::pair < id_part_block, CWP_g_num_t* > (id,parent_num) );
-      _nElts[i_part]=PDM_Mesh_nodal_n_cell_get(_pdmNodal_handle_index,i_part);     
-   
-                   
+      
+      _connec.insert           ( std::pair < id_part_block, int* >             (id,connec)      );
+      _connec_idx.insert       ( std::pair < id_part_block, int* >             (id,connec_idx)  );
+      _connec_faces.insert     ( std::pair < id_part_block, int* >             (id,face_vtx)    );
+      _connec_faces_idx.insert ( std::pair < id_part_block, int* >             (id,face_vtx_idx));
+      _global_num_block.insert ( std::pair < id_part_block, CWP_g_num_t* >     (id,global_num)  );
+      _parent_num_block.insert ( std::pair < id_part_block, CWP_g_num_t* >     (id,parent_num)  );
+      
+      _nElts[i_part]  = PDM_Mesh_nodal_n_cell_get(_pdmNodal_handle_index,i_part);     
+      _nFaces[i_part] = n_faces;    
+                  
    }
+   
+   
+                               
+     void Mesh::fromCellFaceSet(const int   i_part,
+                        const int   n_cells,
+                        int         cell_face_idx[],
+                        int         cell_face[],
+                        int         n_faces,
+                        int         face_vtx_idx[],
+                        int         face_vtx[],
+                        CWP_g_num_t parent_num[])
+     {
+       int face_vtx_nb[n_faces];
+       for (int i=0;i<n_faces;i++)
+         {
+           face_vtx_nb[i] = face_vtx_idx[i+1] - face_vtx_idx[i] ;
+         }
+      
+       int cell_face_nb[n_cells];
+       for (int i=0;i<n_cells;i++)
+         {
+           cell_face_nb[i] = cell_face_idx[i+1] - cell_face_idx[i] ;
+         }
+        
+       PDM_Mesh_nodal_cell3d_cellface_add(_pdmNodal_handle_index,
+                                          i_part,
+                                          n_cells,
+                                          n_faces,
+                                          face_vtx_idx,
+                                          face_vtx_nb, 
+                                          face_vtx,
+                                          cell_face_idx,
+                                          cell_face_nb, 
+                                          cell_face,
+                                          parent_num);        
+     }
+   
 
+     void Mesh::fromFacesEdgeSet(const int   i_part,
+                                 const int   n_faces,
+                                 int         face_edge_idx[],
+                                 int         face_edge[],
+                                 const int   n_edges,
+                                 int         edge_vtx_idx[],
+                                 int         edge_vtx[],
+                                 CWP_g_num_t parent_num[])
+     {
+       int edge_vtx_nb[n_edges];
+       for (int i=0;i<n_edges;i++)
+         {
+           edge_vtx_nb[i] = edge_vtx_idx[i+1] - edge_vtx_idx[i] ;
+         }
+      
+       int face_edge_nb[n_faces];
+       for (int i=0;i<n_faces;i++)
+         {
+           face_edge_nb[i] = face_edge_idx[i+1] - face_edge_idx[i] ;
+         }
+       
+       PDM_Mesh_nodal_cell2d_celledge_add(_pdmNodal_handle_index,
+                                          i_part,
+                                          n_faces,
+                                          n_edges,
+                                          edge_vtx_idx,
+                                          edge_vtx_nb, //Number of vertices for each edge
+                                          edge_vtx,
+                                          face_edge_idx,
+                                          face_edge_nb, //Number of edges for each faces
+                                          face_edge,
+                                          parent_num); 
 
+     }
 
 
 }

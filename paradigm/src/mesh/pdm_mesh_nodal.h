@@ -313,7 +313,6 @@ const int   id_block
  * \param [in]  idx            Nodal mesh handle
  * \param [in]  st_free_data   Status of Release of the memory 
  *                             when the block is destroyed
- * \param [in]  id_block       Block identifier
  *
  * \return Block identifier     
  *

@@ -1172,7 +1172,6 @@ CWP_Mesh_interf_f_poly_block_add
  const char             *local_code_name,
  const char             *cpl_id,
  const int               i_part,
- const CWP_Block_t       block_type,
  const int               n_elts,
  int                     connec_idx[],
  int                     connec[],
@@ -1181,7 +1180,6 @@ CWP_Mesh_interf_f_poly_block_add
 {
    cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
    cpl.meshFPolyBlockAdd(i_part,
-                         block_type,
                          n_elts,
                          connec_idx,
                          connec,
@@ -1213,30 +1211,88 @@ CWP_Mesh_interf_f_poly_block_add
  *
  */
 
-// void 
-// CWP_support_c_poly_block_add
-// (
-//  const char           *cpl_id,
-//  const int             i_part,
-//  const int             n_elts,
-//  const int             cell_face_idx[],
-//  const int             cell_face[],
-//  const int             n_faces,
-//  const int             face_vtx_idx[],
-//  const int             face_vtx[],
-//  const CWP_long_t    parent_num[]
-// )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//   cpl.supportCPolyBlockAdd(i_part,
-//                            n_elts,
-//                            cell_face_idx,
-//                            cell_face,
-//                            n_faces,
-//                            face_vtx_idx,
-//                            face_vtx,
-//                            parent_num);
-// }
+void 
+CWP_Mesh_interf_c_poly_block_add
+(
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const int             i_part,
+ const int             n_elts,
+ int                   cell_face_idx[],
+ int                   cell_face[],
+ const int             n_faces,
+ int                   face_vtx_idx[],
+ int                   face_vtx[],
+ CWP_g_num_t           parent_num[]
+)
+{
+   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+   cpl.meshCPolyBlockAdd(i_part,
+                            n_elts,
+                            cell_face_idx,
+                            cell_face,
+                            n_faces,
+                            face_vtx_idx,
+                            face_vtx,
+                            parent_num);
+}
+
+
+void 
+CWP_Mesh_interf_from_cellface_set
+(
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const int             i_part,
+ const int             n_cells,
+ int             cell_face_idx[],
+ int             cell_face[],
+ const int             n_faces,
+ int             face_vtx_idx[],
+ int             face_vtx[],
+ CWP_g_num_t     parent_num[]
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  cpl.meshFromCellFaceSet(i_part,
+                          n_cells,
+                          cell_face_idx,
+                          cell_face,
+                          n_faces,
+                          face_vtx_idx,
+                          face_vtx,
+                          parent_num); 
+}
+
+
+
+
+void 
+CWP_Mesh_interf_from_faceedge_set
+(
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const int             i_part,
+ const int             n_faces,
+ int             face_edge_idx[],
+ int             face_edge[],
+ const int             n_edges,
+ int             edge_vtx_idx[],
+ int             edge_vtx[],
+ CWP_g_num_t     parent_num[]
+)
+{
+  cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  cpl.meshFromFacesEdgeSet(i_part,
+                        n_faces,
+                        face_edge_idx,
+                        face_edge,
+                        n_edges,
+                        edge_vtx_idx,
+                        edge_vtx,
+                        parent_num); 
+}
+
 
 /**
  * \brief Geometric support removal                                  

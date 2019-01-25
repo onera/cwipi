@@ -29,15 +29,6 @@
 
 #include "cwp.h"
 
-typedef enum {
-
-  std_block_add,          /*!< Standard monotype element addition - no connectivity index */ 
-  ho_block_add,           /*!< Standard high order element type addition */ 
-  polygon_block_add,      /*!< 2D multitype element addition */ 
-  polyhedron_block_add    /*!< 3D multitype element addition */ 
-
-} Block_Addition_t;
-
 
 class id_part_block{
 
@@ -166,24 +157,47 @@ namespace cwipi {
      * \param [in] block_type  Type of the block addition     
      * \param [in] block_type  Block type i.e. Type of the block elements
      * \param [in] n_elts      Number of block elements
-     * \param [in] connec_idx  Vertices to elements connectivity index
-     * \param [in] connec      Vertices to elements connectivity 
+     * \param [in] connec_idx  Vertices to elements connecivity index
+     * \param [in] connec      Vertices to elements connecivity 
      * \param [in] global_num  Global numbering of the vertices in the block
      * \param [in] parent_num  Parent numbering in the block
      */
    
      void blockAdd(const int                  i_part,
-                       const Block_Addition_t add_type,
                        const CWP_Block_t      block_type,
                        const int              n_elts,
                        int                    connec_idx[],
                        int                    connec[],
+                       const int              n_faces,
+                       int                    face_vtx_idx[],
+                       int                    face_vtx[],    
                        CWP_g_num_t            global_num[],
                        CWP_g_num_t            parent_num[]);
-                   
-         
 
-    
+     CWP_Block_t Mesh_nodal_block_type_get(const int   id_block
+                                          );
+                                          
+                                          
+     void fromFacesEdgeSet(const int   i_part,
+                               const int   n_faces,
+                               int         face_edge_idx[],
+                               int         face_edge[],
+                               const int   n_edges,
+                               int         edge_vtx_idx[],
+                               int         edge_vtx[],
+                               CWP_g_num_t parent_num[]);
+                               
+     void fromCellFaceSet(const int   i_part,
+                        const int   n_cells,
+                        int         cell_face_idx[],
+                        int         cell_face[],
+                        int         n_faces,
+                        int         face_vtx_idx[],
+                        int         face_vtx[],
+                        CWP_g_num_t parent_num[]); 
+
+                               
+             
   private:
     
     // TODO: renommer _nDim par entitesDim
@@ -191,6 +205,7 @@ namespace cwipi {
     int                                     _nDim;
     int                                     _order;
     std::vector<int>                        _nVertex;
+    std::vector<int>                        _nFaces;
     std::vector<int>                        _nElts;
     std::vector<double*>                    _coords;
     std::map< int, CWP_g_num_t*>            _global_num;
@@ -201,9 +216,11 @@ namespace cwipi {
     int                                     _pdmNodal_handle_index;
     bool                                    _isNodalFinalized;
     PDM_Mesh_nodal_t                       *_pdmNodal;
-    std::map< id_part_block, int* >         _connect;
-    std::map< id_part_block, int* >         _connect_idx;
-    std::map< id_part_block, Block_Addition_t > _add_type;
+    std::map< id_part_block, int* >         _connec;
+    std::map< id_part_block, int* >         _connec_idx;
+    std::map< id_part_block, int* >         _connec_faces;
+    std::map< id_part_block, int* >         _connec_faces_idx;
+    
     
     
   //   Mesh &operator=(const Mesh &other);  /*!< Assigment operator not available */

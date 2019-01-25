@@ -1293,7 +1293,6 @@ CWP_Mesh_interf_f_poly_block_add
  const char             *local_code_name,
  const char             *cpl_id,
  const int               i_part,
- const CWP_Block_t       block_type,
  const int               n_elts,
  int                     connec_idx[],
  int                     connec[],
@@ -1325,16 +1324,16 @@ CWP_Mesh_interf_f_poly_block_add
 void 
 CWP_Mesh_interf_c_poly_block_add
 (
- const char         *local_code_name,
+ const char           *local_code_name,
  const char           *cpl_id,
  const int             i_part,
  const int             n_elts,
- const int             cell_face_idx[],
- const int             cell_face[],
+ int                   cell_face_idx[],
+ int                   cell_face[],
  const int             n_faces,
- const int             face_vtx_idx[],
- const int             face_vtx[],
- const CWP_g_num_t    parent_num[]
+ int                   face_vtx_idx[],
+ int                   face_vtx[],
+ CWP_g_num_t           parent_num[]
 );
 
 /**
@@ -1403,12 +1402,12 @@ CWP_Mesh_interf_from_cellface_set
  const char           *cpl_id,
  const int             i_part,
  const int             n_cells,
- const int             cell_face_idx[],
- const int             cell_face[],
+ int             cell_face_idx[],
+ int             cell_face[],
  const int             n_faces,
- const int             face_vtx_idx[],
- const int             face_vtx[],
- const CWP_g_num_t     parent_num[]
+ int             face_vtx_idx[],
+ int             face_vtx[],
+ CWP_g_num_t     parent_num[]
 );
 
 
@@ -1441,12 +1440,12 @@ CWP_Mesh_interf_from_faceedge_set
  const char           *cpl_id,
  const int             i_part,
  const int             n_faces,
- const int             face_edge_idx[],
- const int             face_edge[],
+ int             face_edge_idx[],
+ int             face_edge[],
  const int             n_edges,
- const int             edge_vtx_idx[],
- const int             edge_vtx[],
- const CWP_g_num_t     parent_num[]
+ int             edge_vtx_idx[],
+ int             edge_vtx[],
+ CWP_g_num_t     parent_num[]
 );
 
 /*----------------------------------------------------------------------------*
