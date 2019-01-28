@@ -62,6 +62,8 @@
 
 // #include "geometry.hxx"
 // #include "location.hxx"
+ #include "mesh.hxx"
+
 
 /*----------------------------------------------------------------------------*/
 
@@ -976,7 +978,7 @@ const char *cpl_id
  */
 
  void 
- CWP_Mesh_vtcs_set
+ CWP_Mesh_interf_vtx_set
  (const char                 *local_code_name,
   const char                 *cpl_id,
   const int                   i_part,
