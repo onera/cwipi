@@ -24,6 +24,7 @@
 #include <mpi.h>
 
 #include <pdm_mesh_nodal.h>
+#include <pdm_gnum.h>
 #include <bftc_error.h>
 #include <bftc_printf.h>
 #include "cwp.h"
@@ -43,15 +44,15 @@ namespace cwipi {
       //_hoOrdering (NULL),
       _isNodalFinalized(false),
       _pdmNodal(NULL)
-  { PDM_MPI_Comm pdm_localComm=MPI_2_pdm_mpi_comm(localComm);
+  { PDM_MPI_Comm pdm_localComm = MPI_2_pdm_mpi_comm(localComm);
     // pdm_nodal building
-    _pdmNodal_handle_index = PDM_Mesh_nodal_create(npart,pdm_localComm);
+    _pdmNodal_handle_index = PDM_Mesh_nodal_create     (npart,pdm_localComm);
+    _pdmGNum_handle_index  = PDM_gnum_create           (3, npart, PDM_FALSE, 1e-3, pdm_localComm);
+    _npart                 = PDM_Mesh_nodal_n_part_get (_pdmNodal_handle_index); 
     _nVertex.resize(npart);
-    _coords.resize(npart);
-    _nElts.resize(npart);
-    _nFaces.resize(npart);
-    _npart=PDM_Mesh_nodal_n_part_get(_pdmNodal_handle_index); 
-    
+    _coords .resize(npart);
+    _nElts  .resize(npart);
+    _nFaces .resize(npart);
   }
 
 
@@ -62,14 +63,22 @@ namespace cwipi {
 #endif
 
   }
-  
-  
-  
+
    void Mesh::nodal_coord_set(const int   i_part,
                               const int   n_vtx,
                               double      coords[],
                               CWP_g_num_t global_num[])
    {
+      if(global_num==NULL)
+        {
+         bftc_printf("Partition %i global numbering must be computed.\n",i_part);
+         PDM_gnum_set_from_coords (_pdmGNum_handle_index, i_part, n_vtx, coords, NULL);
+         PDM_gnum_compute (_pdmGNum_handle_index);
+         global_num =const_cast<CWP_g_num_t*>(PDM_gnum_get (_pdmGNum_handle_index, i_part));
+
+         for(int i=0;i<n_vtx;i++) bftc_printf("g_num_coords %i %i \n",i,global_num[i]);
+        }
+        
       PDM_Mesh_nodal_coord_set(_pdmNodal_handle_index,
                                i_part,    
                                n_vtx,    
@@ -82,8 +91,6 @@ namespace cwipi {
                                                         i_part);
       
       _global_num.insert( std::pair < int, CWP_g_num_t* > (i_part,global_num) );
-
-      if(global_num==NULL) bftc_printf("Partition %i global numbering must be computed.\n",i_part);
 
    }
   
@@ -127,8 +134,7 @@ namespace cwipi {
        break;
        
       }
-      
-            
+  
    }
   
   
@@ -143,25 +149,19 @@ namespace cwipi {
         {
            id_part_block id = connec_it->first;
           
-           int id_part=id.get_id_part();
-           int id_block=id.get_id_block();
+           int id_part  = id.get_id_part();
+           int id_block = id.get_id_block();
            
            PDM_Mesh_nodal_elt_t pdm_block_type=PDM_Mesh_nodal_block_type_get(_pdmNodal_handle_index,
                                                                 id_block);
            int* connec_idx       = _connec_idx      [id];
            int* connec_faces     = _connec_faces    [id];
            int* connec_faces_idx = _connec_faces_idx[id];
+           CWP_g_num_t* global_num=_global_num[id_part];
+           CWP_g_num_t* global_num_block=_global_num_block[id];
            
            const CWP_g_num_t *g_num;
            
-           if(_global_num_block[id]==NULL)
-             { PDM_Mesh_nodal_g_num_in_block_compute(_pdmNodal_handle_index,
-                                                     id_block);  
-               g_num = PDM_Mesh_nodal_block_g_num_get(_pdmNodal_handle_index,
-                                                      id_block,
-                                                      id_part);          
-             }
-
            switch (pdm_block_type) {
                                            
            case PDM_MESH_NODAL_POLY_2D :
@@ -172,7 +172,7 @@ namespace cwipi {
                                                _nElts[id_part],
                                                connec_idx, 
                                                connec_it->second,   
-                                               const_cast <CWP_g_num_t *> (g_num),
+                                               global_num,
                                                NULL);
               break;
                                                
@@ -187,7 +187,7 @@ namespace cwipi {
                                                connec_faces,   
                                                connec_idx, 
                                                connec_it->second,   
-                                               const_cast <CWP_g_num_t *> (g_num),
+                                               global_num,
                                                NULL);
               break;
                                                
@@ -197,10 +197,21 @@ namespace cwipi {
                                            id_part,    
                                            _nElts[id_part],    
                                            connec_it->second,   
-                                           const_cast <CWP_g_num_t *> (g_num),
+                                           global_num,
                                            NULL);
               break;
            } 
+
+           if(global_num_block==NULL)
+             { PDM_Mesh_nodal_g_num_in_block_compute(_pdmNodal_handle_index,
+                                                     id_block);                                  
+               global_num_block = PDM_Mesh_nodal_block_g_num_get(_pdmNodal_handle_index,
+                                                      id_block,
+                                                      id_part);       
+               bftc_printf("id_block %i id_part %i size of g_num after compute: %i\n"
+                            ,id_block,id_part, sizeof(global_num_block)/sizeof(CWP_g_num_t) );
+               for(int i=0;i<3;i++) bftc_printf("gnum block %i %i \n",i,global_num_block[i]); 
+             }
            
            if(_global_num.find(id_part)==_global_num.end()) 
               _global_num.insert( std::pair < int, CWP_g_num_t* > (id_part,NULL) ); 
@@ -208,14 +219,6 @@ namespace cwipi {
            connec_it++;
         }
            
-        
-     for(int i_part=0; i_part<_npart;i_part++)
-        {  bftc_printf("In lopp %i\n",i_part);
-           const CWP_g_num_t *g_num = PDM_Mesh_nodal_vertices_g_num_get(_pdmNodal_handle_index,
-                                                                        i_part);               
-           _global_num[i_part]=const_cast <CWP_g_num_t *>(g_num);
-        }
-
      _isNodalFinalized=true;
    }
    
@@ -305,7 +308,7 @@ namespace cwipi {
       _connec_faces_idx.insert ( std::pair < id_part_block, int* >             (id,face_vtx_idx));
       _global_num_block.insert ( std::pair < id_part_block, CWP_g_num_t* >     (id,global_num)  );
       _parent_num_block.insert ( std::pair < id_part_block, CWP_g_num_t* >     (id,parent_num)  );
-      _nElts[i_part]  = PDM_Mesh_nodal_n_cell_get(_pdmNodal_handle_index,i_part);     
+      _nElts [i_part] = n_elts;     
       _nFaces[i_part] = n_faces;    
                   
    }

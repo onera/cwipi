@@ -351,9 +351,9 @@ CWP_Finalize
     MPI_Barrier(globalComm);
 //    MPI_Comm oldFVMComm = fvmc_parall_get_mpi_comm();
   }
-
+  PDM_printf("Before properties.kill()\n");
   properties.kill();
-
+  PDM_printf("After properties.kill()\n");
 }
 
 /*----------------------------------------------------------------------------*

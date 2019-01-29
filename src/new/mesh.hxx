@@ -214,6 +214,7 @@ namespace cwipi {
     std::map< id_part_block, CWP_g_num_t*>  _parent_num_block;
     int                                     _npart;
     int                                     _pdmNodal_handle_index;
+    int                                     _pdmGNum_handle_index;
     bool                                    _isNodalFinalized;
     PDM_Mesh_nodal_t                       *_pdmNodal;
     std::map< id_part_block, int* >         _connec;
