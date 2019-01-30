@@ -505,7 +505,7 @@ PDM_Mesh_nodal_block_std_get
 const int            idx,
 const int            id_block,     
 const int            id_part, 
-      PDM_l_num_t  **connec   
+      PDM_l_num_t  *connec   
 ); 
 
 
@@ -638,8 +638,8 @@ PDM_Mesh_nodal_block_poly2d_get
  const int          idx,
  const int          id_block, 
  const int          id_part, 
-       PDM_l_num_t  **connec_idx,   
-       PDM_l_num_t  **connec
+       PDM_l_num_t  *connec_idx,   
+       PDM_l_num_t  *connec
 ); 
 
 
@@ -702,10 +702,10 @@ const int            idx,
 const int            id_block, 
 const int            id_part, 
       PDM_l_num_t   *n_face,   
-      PDM_l_num_t  **facvtx_idx,   
-      PDM_l_num_t  **facvtx,
-      PDM_l_num_t  **cellfac_idx,   
-      PDM_l_num_t  **cellfac
+      PDM_l_num_t  *facvtx_idx,   
+      PDM_l_num_t  *facvtx,
+      PDM_l_num_t  *cellfac_idx,   
+      PDM_l_num_t  *cellfac
 ); 
 
 /**
