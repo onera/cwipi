@@ -1409,12 +1409,12 @@ CWP_Mesh_interf_from_cellface_set
  const char           *cpl_id,
  const int             i_part,
  const int             n_cells,
- int             cell_face_idx[],
- int             cell_face[],
+ int                   cell_face_idx[],
+ int                   cell_face[],
  const int             n_faces,
- int             face_vtx_idx[],
- int             face_vtx[],
- CWP_g_num_t     parent_num[]
+ int                   face_vtx_idx[],
+ int                   face_vtx[],
+ CWP_g_num_t           parent_num[]
 );
 
 
