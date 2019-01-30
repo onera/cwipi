@@ -30,61 +30,20 @@
 #include "cwp.h"
 
 
-class id_part_block{
-
-  public:
-    inline id_part_block(int id_part,int id_block):_id_part(id_part),_id_block(id_block)
-      {
-      }
-      
-    inline ~id_part_block()
-      {
-      }
-      
-    inline int get_id_part()
-      {return _id_part;
-      }
-      
-    inline int get_id_block()
-      {return _id_block;
-      }
-
-      
-    inline bool operator < (id_part_block const &a) const
-      {if(_id_part<a._id_part) return true;
-       else
-         {if(_id_part>a._id_part) return false;
-          else
-            {if(_id_block>a._id_block) return false;
-             else return true;
-            }
-         }
-      }
-      
-    inline bool operator > (id_part_block const &a) const
-      {if(_id_part>a._id_part) return true;
-       else
-         {if(_id_part<a._id_part) return false;
-          else
-            {if(_id_block<a._id_block) return false;
-             else return true;
-            }
-         }
-      }
-      
-    inline bool operator == (id_part_block const &a)
-      {if(_id_part==a._id_part and _id_block==a._id_block) return true;
-       else return false;
-      }
-        
-    int _id_part;
-    int _id_block;
-  private:
-} ;
-
-
-
-
+typedef struct {
+    int              _id_part;
+    int              _id_block;
+    CWP_Block_t      _blockType; 
+    int              _nElts;
+    int*             _connec_idx;
+    int*             _connec;
+    int              _nFaces;
+    int*             _n_faces;
+    int*             _connec_faces_idx;  
+    int*             _connec_faces;
+    CWP_g_num_t*     _global_num_block;
+    CWP_g_num_t*     _parent_num_block;
+} _block;
 
 namespace cwipi {
 
@@ -139,8 +98,7 @@ namespace cwipi {
      * \brief Finalize the mesh setting after blocks and coordinates additions
      *
      */
-                          
-                       
+       
      void endSet();
    
     /**
@@ -163,7 +121,7 @@ namespace cwipi {
      * \param [in] parent_num  Parent numbering in the block
      */
    
-     void blockAdd(const int                  i_part,
+     int blockAdd(const int                  i_part,
                        const CWP_Block_t      block_type,
                        const int              n_elts,
                        int                    connec_idx[],
@@ -188,39 +146,64 @@ namespace cwipi {
                                CWP_g_num_t parent_num[]);
                                
      void fromCellFaceSet(const int   i_part,
-                        const int   n_cells,
-                        int         cell_face_idx[],
-                        int         cell_face[],
-                        int         n_faces,
-                        int         face_vtx_idx[],
-                        int         face_vtx[],
-                        CWP_g_num_t parent_num[]); 
+                          const int   n_cells,
+                          int         cell_face_idx[],
+                          int         cell_face[],
+                          int         n_faces,
+                          int         face_vtx_idx[],
+                          int         face_vtx[],
+                          CWP_g_num_t parent_num[]); 
 
-                               
-             
+
+    void updateBlockDB(int id_part);
+
+    inline const std::vector<int>& getNVertex(int i_part) const;
+
+    inline const std::vector<double*> getVertexCoords() const;
+
+    inline PDM_Mesh_nodal_t& getPdmNodal() const;
+
+    inline int getBlockNElts(int id_block);
+
+    inline const int getPartNElts(int id_part) const;
+
+    inline const std::vector<int>& getNPolyhedra(int i_part) const;
+
+    inline int* getEltConnectivityIndex(int id_block);
+
+    inline int* getEltConnectivity     (int i_block);
+    
+    inline int* getFaceConnectivityIndex(int id_block);
+
+    inline int* getFaceConnectivity     (int i_block);
+    
+
+   // inline const std::vector<double>& getVolume();
+
+   // inline const std::vector<double>& getCellCenterCoords();
+
+
   private:
     
     // TODO: renommer _nDim par entitesDim
     const MPI_Comm                         &_localComm;
     int                                     _nDim;
+    int                                     _nBlocks;
+    int*                                    _blocks_id;
+    std::vector<int*>                       _blocks_id_part;
     int                                     _order;
     std::vector<int>                        _nVertex;
-    std::vector<int>                        _nFaces;
-    std::vector<int>                        _nElts;
+    std::vector<int>                        _nElts;    
     std::vector<double*>                    _coords;
     std::map< int, CWP_g_num_t*>            _global_num;
-    std::map< id_part_block, CWP_g_num_t*>  _global_num_block;
     std::map< int, CWP_g_num_t*>            _parent_num;
-    std::map< id_part_block, CWP_g_num_t*>  _parent_num_block;
     int                                     _npart;
     int                                     _pdmNodal_handle_index;
     int                                     _pdmGNum_handle_index;
     bool                                    _isNodalFinalized;
     PDM_Mesh_nodal_t                       *_pdmNodal;
-    std::map< id_part_block, int* >         _connec;
-    std::map< id_part_block, int* >         _connec_idx;
-    std::map< id_part_block, int* >         _connec_faces;
-    std::map< id_part_block, int* >         _connec_faces_idx;
+    std::map<int,_block>                    _blocks;
+
     
     
     
@@ -239,8 +222,63 @@ namespace cwipi {
   //   std::map<int, int >                   &_tmpTimeStepIrecv;
   //   std::map<int, double >                &_tmpTimeValueIrecv;
   //   std::map<int, const char * >          &_tmpFieldNameIrecv;
-  //   Mesh                                *Mesh;
   };
+
+  const std::vector<int>& Mesh::getNVertex(int i_part) const
+  {
+    return _nVertex;
+  }
+
+  const std::vector<double*> Mesh::getVertexCoords()  const
+  {
+    return _coords;
+  }
+
+  PDM_Mesh_nodal_t& Mesh::getPdmNodal() const
+  {
+    return *_pdmNodal;
+  }
+
+
+  int Mesh::getBlockNElts(int id_block)
+  {
+    return _blocks[id_block]._nElts;
+  }
+
+  const int Mesh::getPartNElts(int id_part) const
+  {
+    return _nElts[id_part];
+  }
+
+  const std::vector<int>& Mesh::getNPolyhedra(int i_part) const
+  {
+   // return _nPolyhedra[i_part];
+  }
+
+  inline int* Mesh::getEltConnectivityIndex(int id_block)
+  {
+    return _blocks[id_block]._connec_idx;
+  }
+
+  inline int* Mesh::getEltConnectivity(int id_block)
+  { 
+    return _blocks[id_block]._connec;
+  }
+  
+  
+  inline int* Mesh::getFaceConnectivity(int id_block)
+  { 
+    return _blocks[id_block]._connec_faces;
+  }
+
+  inline int* Mesh::getFaceConnectivityIndex(int id_block)
+  { 
+    return _blocks[id_block]._connec_faces_idx;
+  }
+
+
+
+
 
 }
 
