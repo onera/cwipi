@@ -440,26 +440,13 @@ static MPI_Comm _pdm_mpi_2_mpi_comm(PDM_MPI_Comm pdm_mpi_comm)
   }
 }
 
-
 /*----------------------------------------------------------------------------
  * _mpi_2_pdm_mpi_comm
  *
  * MPI_Comm -> PDM_MPI_Comm
  *----------------------------------------------------------------------------*/
 
-PDM_MPI_Comm MPI_2_pdm_mpi_comm(int comm)
-{
- return _mpi_2_pdm_mpi_comm(comm);
-}
-
-
-/*----------------------------------------------------------------------------
- * _mpi_2_pdm_mpi_comm
- *
- * MPI_Comm -> PDM_MPI_Comm
- *----------------------------------------------------------------------------*/
-
-PDM_MPI_Comm _mpi_2_pdm_mpi_comm(MPI_Comm comm)
+static PDM_MPI_Comm _mpi_2_pdm_mpi_comm(MPI_Comm comm)
 {
 
   /* Traitement des communicateurs predefinis */
