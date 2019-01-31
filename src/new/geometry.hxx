@@ -60,13 +60,13 @@ namespace cwipi {
      * This function defines the geometry meshInterf geometry.
      */
 
-    inline void 
+    void 
     meshInterfSet
-    (const char            *cpl_id,
-     const int              i_part,
-     const int              n_pts,
-     const double           coord[],
-     const CWP_g_num_t     parent_num[]);
+    (const char       *cpl_id,
+     const int        i_part,
+     const int        n_pts,
+     double           coords[],
+     CWP_g_num_t      parent_num[]);
 
     /**
      * \brief Adding a connectivity block to the geometric meshInterf
@@ -160,13 +160,13 @@ namespace cwipi {
      *
      */
 
-    inline void 
+    void 
     meshInterfBlockAdd
-    (const int                   i_part,
-     const CWP_Block_t         block_type,
-     const int                   n_elts,
-     const int                   connec[],
-     const CWP_g_num_t          parent_num[]);
+    (const int            i_part,
+     const CWP_Block_t    block_type,
+     const int            n_elts,
+     int                  connec[],
+     CWP_g_num_t          parent_num[]);
 
     /**
      * \brief Adding a polygon connectivity block to the geometric meshInterf
@@ -183,13 +183,14 @@ namespace cwipi {
      *
      */
 
-    inline void 
+    void 
     meshInterfFPolyBlockAdd
-    (const int            i_part,
+    (const int          i_part,
      const CWP_Block_t  block_type,
-     const int            n_elts,
-     const int            connec[],
-     const CWP_g_num_t   parent_num[]);
+     const int          n_elts,
+     int                connec_idx[],
+     int                connec[],
+     CWP_g_num_t        parent_num[]);
 
     /**
      *
@@ -215,16 +216,16 @@ namespace cwipi {
      *
      */
 
-    inline void 
+    void 
     meshInterfCPolyBlockAdd
-    (const int           i_part,
-     const int           n_elts,
-     const int           cell_face_idx[],
-     const int           cell_face[],
-     const int           n_faces,
-     const int           face_vtx_idx[],
-     const int           face_vtx[],
-     const CWP_g_num_t  parent_num[]);
+    (const int     i_part,
+     const int     n_elts,
+     int           cell_face_idx[],
+     int           cell_face[],
+     const int     n_faces,
+     int           face_vtx_idx[],
+     int           face_vtx[],
+     CWP_g_num_t   parent_num[]);
 
     /**
      *
@@ -237,7 +238,7 @@ namespace cwipi {
      *
      */
 
-    inline void 
+    void 
     fvmcNodalShared
     (const int      i_part,
      fvmc_nodal_t  *fvmc_nodal);
@@ -354,7 +355,7 @@ namespace cwipi {
     void 
     userTgtPtsSet
     (const int            n_pts,
-     double               coord[]);
+     double               coords[]);
 
     /**
      *
@@ -425,15 +426,15 @@ namespace cwipi {
     std::vector<double>         *_tmpVertexField;  // Evite une allocation a chaque extrapolation
     std::vector<double>         *_tmpDistantField; //TODO: Fusionner _tmpDistantField utiliser pour exchange
                                            // et les comm asynchrones
-    std::map<int, std::vector<double> * > &_tmpDistantFieldsIssend; //TODO: temporaire : A revoir lors
+   // std::map<int, std::vector<double> * > &_tmpDistantFieldsIssend; //TODO: temporaire : A revoir lors
                                                                     // de la restructuration
-    std::map<int, const double * >        &_tmpLocalFieldsIrecv;
-    std::map<int, const char * >          &_tmpExchangeNameIrecv;
-    std::map<int, int >                   &_tmpStrideIrecv;
-    std::map<int, int >                   &_tmpTimeStepIrecv;
-    std::map<int, double >                &_tmpTimeValueIrecv;
-    std::map<int, const char * >          &_tmpFieldNameIrecv;
-    Mesh                                 *meshInterf;
+ //   std::map<int, const double * >        &_tmpLocalFieldsIrecv;
+ //   std::map<int, const char * >          &_tmpExchangeNameIrecv;
+ //   std::map<int, int >                   &_tmpStrideIrecv;
+//    std::map<int, int >                   &_tmpTimeStepIrecv;
+ //   std::map<int, double >                &_tmpTimeValueIrecv;
+ //   std::map<int, const char * >          &_tmpFieldNameIrecv;
+    Mesh                                 *_meshInterf;
   };
 
 }
