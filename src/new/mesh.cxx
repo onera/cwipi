@@ -28,13 +28,7 @@
 #include <bftc_printf.h>
 #include "cwp.h"
 
-
-
-
-
 namespace cwipi {
-
-
 
   Mesh::Mesh(const MPI_Comm &localComm,
          const int npart)
@@ -43,7 +37,7 @@ namespace cwipi {
       //_hoOrdering (NULL),
       _isNodalFinalized(false),
       _pdmNodal(NULL)
-  { PDM_MPI_Comm pdm_localComm = MPI_2_pdm_mpi_comm(localComm);
+  { PDM_MPI_Comm pdm_localComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&localComm));
     // pdm_nodal building
     _pdmNodal_handle_index = PDM_Mesh_nodal_create     (npart,pdm_localComm);
     _pdmGNum_handle_index  = PDM_gnum_create           (3, npart, PDM_FALSE, 1e-3, pdm_localComm);
@@ -456,8 +450,7 @@ namespace cwipi {
                                           face_edge_idx,
                                           face_edge_nb, //Number of edges for each faces
                                           face_edge,
-                                          parent_num); 
-                                          
+                                          parent_num);              
        updateBlockDB(i_part);
 
      }
