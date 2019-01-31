@@ -32,7 +32,7 @@
 #include "couplingDB_i.hxx"
 #include "mesh.hxx"
 
-//#include "geometry.hxx"
+#include "geometry.hxx"
 //#include "visualization.hxx"
 #include "field.hpp"
 
@@ -968,7 +968,7 @@ namespace cwipi {
           Communication              &_communication;         /*!< Communication */ 
     const CodeProperties             &_localCodeProperties;   /*!< Local code properties */
     const CodeProperties             &_coupledCodeProperties; /*!< Coupled code properties */
-    //    Geometry                   &_geometry;              /*!< Geometric algorithm */
+         Geometry                    &_geometry;              /*!< Geometric algorithm */
          Mesh                        &_mesh;                  /*!< Geometric mesh */
     const CWP_Freq_t                _recvFreqType  ;          /*!< Receiving frequency type */
     //        Visualization              *_visu;                  /*!< Visualization */

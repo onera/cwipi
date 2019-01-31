@@ -84,10 +84,9 @@ namespace cwipi {
    _coupledCodeProperties(coupledCodeProperties),
    _recvFreqType (recvFreqType),
    _cplDB(cplDB),
-   _fields(*(new map < string, Field<double> * >()))   
-   _mesh(*new Mesh(localCodeProperties.intraCommGet(),nPart))
-
-//   _geometry(*(FG::getInstance().CreateObject(geomAlgo))),
+   _fields(*(new map < string, Field<double> * >())),   
+   _mesh(*new Mesh(localCodeProperties.intraCommGet(),nPart)),
+   _geometry(*(FG::getInstance().CreateObject(geomAlgo)))
   {
   
     if (coupledCodeProperties.localCodeIs()) {
@@ -345,7 +344,6 @@ namespace cwipi {
     CWP_g_num_t         parent_num[]
   )
   {
-  
      _mesh.blockAdd(i_part,
                     block_type,
                     n_elts,
@@ -356,8 +354,6 @@ namespace cwipi {
                     NULL,                            
                     NULL,
                     parent_num);
-                    
-                    
   }
   
   void Coupling::meshHighOrderBlockAdd
