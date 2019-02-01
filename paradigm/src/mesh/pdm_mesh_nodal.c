@@ -2218,7 +2218,7 @@ PDM_Mesh_nodal_block_std_get
 const int            idx,
 const int            id_block,     
 const int            id_part, 
-      PDM_l_num_t  *connec   
+      PDM_l_num_t  **connec   
 )
 {
   PDM_Mesh_nodal_t *mesh = (PDM_Mesh_nodal_t *) PDM_Handles_get (mesh_handles, idx);
@@ -2239,7 +2239,7 @@ const int            id_part,
   if (id_part >= block->n_part) {
     PDM_error(__FILE__, __LINE__, 0, "Partition identifier too big\n");
   }
-  connec = block->_connec[id_part];
+  *connec = block->_connec[id_part];
   
 }
 
@@ -2684,8 +2684,8 @@ PDM_Mesh_nodal_block_poly2d_get
  const int          idx,
  const int          id_block, 
  const int          id_part, 
-       PDM_l_num_t  *connec_idx,   
-       PDM_l_num_t  *connec
+       PDM_l_num_t  **connec_idx,   
+       PDM_l_num_t  **connec
 )
 {
   PDM_Mesh_nodal_t *mesh = (PDM_Mesh_nodal_t *) PDM_Handles_get (mesh_handles, idx);
@@ -2707,8 +2707,8 @@ PDM_Mesh_nodal_block_poly2d_get
     PDM_error(__FILE__, __LINE__, 0, "Partition identifier too big\n");
   }
 
-  connec_idx = block->_connec_idx[id_part];
-  connec     = block->_connec[id_part];
+  *connec_idx = block->_connec_idx[id_part];
+  *connec     = block->_connec[id_part];
  
 }
 
@@ -2813,10 +2813,10 @@ const int            idx,
 const int            id_block, 
 const int            id_part, 
       PDM_l_num_t   *n_face,   
-      PDM_l_num_t  *facvtx_idx,   
-      PDM_l_num_t  *facvtx,
-      PDM_l_num_t  *cellfac_idx,   
-      PDM_l_num_t  *cellfac
+      PDM_l_num_t  **facvtx_idx,   
+      PDM_l_num_t  **facvtx,
+      PDM_l_num_t  **cellfac_idx,   
+      PDM_l_num_t  **cellfac
 )
 {
   PDM_Mesh_nodal_t *mesh = (PDM_Mesh_nodal_t *) PDM_Handles_get (mesh_handles, idx);
@@ -2838,11 +2838,11 @@ const int            id_part,
     PDM_error(__FILE__, __LINE__, 0, "Partition identifier too big\n");
   }
 
-  n_face     = block->n_face[id_part];
-  facvtx_idx  = block->_facvtx_idx[id_part];
-  facvtx      = block->_facvtx[id_part];
-  cellfac_idx = block->_cellfac_idx[id_part];
-  cellfac     = block->_cellfac[id_part];
+  *n_face     = block->n_face[id_part];
+  *facvtx_idx  = block->_facvtx_idx[id_part];
+  *facvtx      = block->_facvtx[id_part];
+  *cellfac_idx = block->_cellfac_idx[id_part];
+  *cellfac     = block->_cellfac[id_part];
 
 }
 
@@ -3279,7 +3279,7 @@ PDM_g_num_t      *numabs
           {
             PDM_l_num_t *cell_face_cell = cell_face_courant + cell_face_idx_courant[i] - adjust;
             for (int j = 0; j < cell_face_nb_courant[i]; j++) {
-              tag_face_poly3d[cell_face_cell[j] - 1] = 0;
+           //   tag_face_poly3d[cell_face_cell[j] - 1] = 0;
             }
             *numabs_poly3d_courant = numabs_courant[i];
             numabs_poly3d_courant += 1;
