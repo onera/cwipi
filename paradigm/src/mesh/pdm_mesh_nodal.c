@@ -2075,9 +2075,9 @@ const int            idx,
 const int            id_block,     
 const int            id_part, 
 const int            n_elt,    
-      PDM_l_num_t   *connec,   
-      PDM_g_num_t   *numabs,
-      PDM_l_num_t   *parent_num   
+const PDM_l_num_t   *connec,   
+const PDM_g_num_t   *numabs,
+const PDM_l_num_t   *parent_num   
 )
 {
   PDM_Mesh_nodal_t *mesh = (PDM_Mesh_nodal_t *) PDM_Handles_get (mesh_handles, idx);
@@ -2612,10 +2612,10 @@ const int            idx,
 const int            id_block, 
 const int            id_part, 
 const PDM_l_num_t    n_elt,    
-      PDM_l_num_t   *connec_idx,   
-      PDM_l_num_t   *connec,
-      PDM_g_num_t   *numabs,
-      PDM_l_num_t   *parent_num
+const PDM_l_num_t   *connec_idx,   
+const PDM_l_num_t   *connec,
+const PDM_g_num_t   *numabs,
+const PDM_l_num_t   *parent_num
 )
 {
   PDM_Mesh_nodal_t *mesh = (PDM_Mesh_nodal_t *) PDM_Handles_get (mesh_handles, idx);
@@ -2735,12 +2735,12 @@ const int            id_block,
 const int            id_part, 
 const PDM_l_num_t    n_elt,    
 const PDM_l_num_t    n_face,   
-      PDM_l_num_t   *facvtx_idx,   
-      PDM_l_num_t   *facvtx,
-      PDM_l_num_t   *cellfac_idx,   
-      PDM_l_num_t   *cellfac,
-      PDM_g_num_t   *numabs,
-      PDM_l_num_t   *parent_num
+const PDM_l_num_t   *facvtx_idx,   
+const PDM_l_num_t   *facvtx,
+const PDM_l_num_t   *cellfac_idx,   
+const PDM_l_num_t   *cellfac,
+const PDM_g_num_t   *numabs,
+const PDM_l_num_t   *parent_num
 )
 {
   PDM_Mesh_nodal_t *mesh = (PDM_Mesh_nodal_t *) PDM_Handles_get (mesh_handles, idx);
@@ -2873,13 +2873,13 @@ const int         idx,
 const int         id_part, 
 const int         n_cell,
 const int         n_face,
-PDM_l_num_t      *face_vtx_idx,
-PDM_l_num_t      *face_vtx_nb,
-PDM_l_num_t      *face_vtx,
-PDM_l_num_t      *cell_face_idx,
-PDM_l_num_t      *cell_face_nb,
-PDM_l_num_t      *cell_face,
-PDM_g_num_t      *numabs
+const PDM_l_num_t      *face_vtx_idx,
+const PDM_l_num_t      *face_vtx_nb,
+const PDM_l_num_t      *face_vtx,
+const PDM_l_num_t      *cell_face_idx,
+const PDM_l_num_t      *cell_face_nb,
+const PDM_l_num_t      *cell_face,
+const PDM_g_num_t      *numabs
 )
 {
   int adjust = 0;
@@ -3276,7 +3276,7 @@ PDM_g_num_t      *numabs
           {
             PDM_l_num_t *cell_face_cell = cell_face_courant + cell_face_idx_courant[i] - adjust;
             for (int j = 0; j < cell_face_nb_courant[i]; j++) {
-             // tag_face_poly3d[cell_face_cell[j] - 1] = 0;
+              tag_face_poly3d[cell_face_cell[j] - 1] = 0;
             }
             *numabs_poly3d_courant = numabs_courant[i];
             numabs_poly3d_courant += 1;
@@ -3457,13 +3457,13 @@ const int          idx,
 const int          id_part, 
 const int          n_cell,
 const int          n_edge,
-PDM_l_num_t       *edge_vtx_idx,
-PDM_l_num_t       *edge_vtx_nb,
-PDM_l_num_t       *edge_vtx,
-PDM_l_num_t       *cell_edge_idx,
-PDM_l_num_t       *cell_edge_nb,
-PDM_l_num_t       *cell_edge,
-PDM_g_num_t       *numabs
+const PDM_l_num_t  *edge_vtx_idx,
+const PDM_l_num_t  *edge_vtx_nb,
+const PDM_l_num_t  *edge_vtx,
+const PDM_l_num_t  *cell_edge_idx,
+const PDM_l_num_t  *cell_edge_nb,
+const PDM_l_num_t  *cell_edge,
+const PDM_g_num_t  *numabs
 ) 
 {
   int adjust = 0;
@@ -3847,10 +3847,10 @@ PDM_Mesh_nodal_faces_facevtx_add
 const int         idx,
 const int         id_part, 
 const int         n_face,
-PDM_l_num_t      *face_vtx_idx,
-PDM_l_num_t      *face_vtx_nb,
-PDM_l_num_t      *face_vtx,
-PDM_g_num_t      *numabs
+const PDM_l_num_t *face_vtx_idx,
+const PDM_l_num_t *face_vtx_nb,
+const PDM_l_num_t *face_vtx,
+const PDM_g_num_t *numabs
 )
 {
   int adjust = 0;
