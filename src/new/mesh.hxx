@@ -42,7 +42,8 @@ typedef struct {
     int*             _connec_faces_idx;  
     int*             _connec_faces;
     CWP_g_num_t*     _global_num_block;
-    CWP_g_num_t*     _parent_num_block;
+    int*             _parent_num;
+    bool             _isBlockFinalized;
 } _block;
 
 namespace cwipi {
@@ -130,7 +131,7 @@ namespace cwipi {
                        int                    face_vtx_idx[],
                        int                    face_vtx[],    
                        CWP_g_num_t            global_num[],
-                       CWP_g_num_t            parent_num[]);
+                       int                    parent_num[]);
 
      CWP_Block_t Mesh_nodal_block_type_get(const int   id_block
                                           );

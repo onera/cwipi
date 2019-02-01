@@ -353,7 +353,7 @@ namespace cwipi {
                     NULL,
                     NULL,                            
                     NULL,
-                    parent_num);
+                    (int*) parent_num);
   }
   
   void Coupling::meshHighOrderBlockAdd
@@ -388,7 +388,7 @@ namespace cwipi {
                     NULL,
                     NULL,                            
                     NULL,
-                    parent_num);
+                    (int*)parent_num);
   }
   
 
@@ -413,7 +413,7 @@ namespace cwipi {
                     face_vtx_idx,
                     face_vtx,                            
                     NULL,
-                    parent_num);
+                    (int*)parent_num);
   }
   
   

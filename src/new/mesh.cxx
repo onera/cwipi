@@ -68,52 +68,75 @@ namespace cwipi {
        
          std::map<int,_block>::iterator It = _blocks.find(id_block);
          if (It != _blocks.end())
-           if(It->second._id_part != id_part) continue;
-           
+            if(It->second._id_part != id_part) continue;
+         bftc_printf("WP_Block_t   block_type = Mesh_nodal_bl %i\n",i);  
          CWP_Block_t   block_type = Mesh_nodal_block_type_get     (id_block ); 
          int           nElts      = PDM_Mesh_nodal_block_n_elt_get(_pdmNodal_handle_index,
                                                                    id_block,
                                                                    id_part );
-         CWP_g_num_t*  global_num_block
-                      = PDM_Mesh_nodal_block_g_num_get (_pdmNodal_handle_index,
-                                                        id_block,
-                                                        id_part );
-                                                                
-         CWP_g_num_t*  parent_num_block
-                    = (CWP_g_num_t*) PDM_Mesh_nodal_block_parent_num_get (_pdmNodal_handle_index,
-                                                             id_block,
-                                                             id_part );
+
+         bftc_printf("int*  connec_idx        = NULL; %i\n",i);  
          int*  connec_idx        = NULL;
          int*  connec            = NULL;
          int    nFaces           = 0   ;
          int*   n_faces          = NULL;
          int*   connec_faces_idx = NULL;  
          int*   connec_faces     = NULL;
+         bool   isBlockFinalized = false;
+         CWP_g_num_t*  global_num_block = NULL;
+         int*  parent_num = NULL;
 
          switch(block_type) {
              case PDM_MESH_NODAL_POLY_2D: 
                        PDM_Mesh_nodal_block_poly2d_get(_pdmNodal_handle_index,
                                                                         id_block,
                                                                         id_part,
-                                                                        connec_idx,
-                                                                        connec); 
+                                                                        &connec_idx,
+                                                                        &connec); 
              break;
              case PDM_MESH_NODAL_POLY_3D: 
                        PDM_Mesh_nodal_block_poly3d_get(_pdmNodal_handle_index,
                                                                         id_block,
                                                                         id_part,
-                                                                        n_faces,
-                                                                        connec_faces_idx,
-                                                                        connec_faces,
-                                                                        connec_idx,
-                                                                        connec); 
+                                                                        &nFaces,
+                                                                        &connec_faces_idx,
+                                                                        &connec_faces,
+                                                                        &connec_idx,
+                                                                        &connec); 
              break;    
              default: PDM_Mesh_nodal_block_std_get (_pdmNodal_handle_index,
                                                     id_block,
                                                     id_part,
-                                                    connec); 
+                                                    &connec); 
              }
-
+             
+         if(connec!=NULL) isBlockFinalized = true;
+         bftc_printf("if (isBlockFinalized) %i %i\n",i,isBlockFinalized);  
+         if (isBlockFinalized)
+         { 
+           bftc_printf("CWP_g_num_t*  parent_num\n");                                                          
+           parent_num
+                    = PDM_Mesh_nodal_block_parent_num_get (_pdmNodal_handle_index,
+                                                             id_block,
+                                                             id_part );
+                                                           
+          if(parent_num!=NULL)
+             {bftc_printf("PDM_Mesh_nodal_g_num_in_block_compute %i block_type %i\n",i,block_type);  
+              PDM_Mesh_nodal_g_num_in_block_compute(_pdmNodal_handle_index,
+                                                    id_block);
+                                                     
+              bftc_printf("CWP_g_num_t*  global_num_block\n");       
+              global_num_block
+                      = PDM_Mesh_nodal_block_g_num_get (_pdmNodal_handle_index,
+                                                        id_block,
+                                                        id_part );
+                                                     
+             }
+           else
+             {bftc_printf("parent_num==NULL %i %i\n",i,_nBlocks);
+             }                                                                           
+         }         
+           bftc_printf("block myBloc %i %i\n",i,_nBlocks); 
          _block myBlock = {id_part,
                            id_block,
                            block_type,
@@ -125,7 +148,8 @@ namespace cwipi {
                            connec_faces_idx,
                            connec_faces,
                            global_num_block,
-                           parent_num_block};
+                           parent_num,
+                           isBlockFinalized};
              
          It = _blocks.find(id_block);
          if (It != _blocks.end())
@@ -133,7 +157,7 @@ namespace cwipi {
          else
              _blocks.insert( std::pair < int, _block > (id_block,myBlock) );  
      }
-     
+           bftc_printf("_nElts[i]=PDM_Mesh_nodal_n_\n"); 
      for(int i=0;i<_npart;i++)
        {
          _nElts[i]=PDM_Mesh_nodal_n_cell_get(_pdmNodal_handle_index,i);
@@ -213,10 +237,13 @@ namespace cwipi {
   
   
    void Mesh::endSet()
-   { if(_coords.size()==0) bftc_error(__FILE__, __LINE__, 0, "Set coordinates vertices before finalizing.\n");
+   { if(_coords.size()==0) bftc_error(__FILE__, __LINE__, 0, 
+              "Set coordinates vertices before finalizing.\n");
+              
      for(int i_part=0;i_part<_npart;i_part++)
-       {if(_coords[i_part]==NULL) bftc_error(__FILE__, __LINE__, 0, "Set all the partitions coordinates vertices before finalizing.\n");
-       }
+        if(_coords[i_part]==NULL) bftc_error(__FILE__, __LINE__, 0, 
+              "Set all the partitions coordinates vertices before finalizing.\n");
+
      
      std::map< int,_block >::iterator block_it = _blocks.begin();
      while (block_it != _blocks.end())
@@ -227,14 +254,15 @@ namespace cwipi {
            int id_block = myblock._id_block;
            
            PDM_Mesh_nodal_elt_t pdm_block_type
-           =PDM_Mesh_nodal_block_type_get(_pdmNodal_handle_index,
-                                          id_block);
+              =PDM_Mesh_nodal_block_type_get(_pdmNodal_handle_index,
+                                             id_block);
                                           
            int* connec_idx       = myblock._connec_idx;
            int* connec           = myblock._connec;
            int* connec_faces     = myblock._connec_faces;
            int* connec_faces_idx = myblock._connec_faces_idx;
            CWP_g_num_t* global_num = _global_num[id_part];
+           int* parent_num = myblock._parent_num;
            CWP_g_num_t* global_num_block = myblock._global_num_block;
            
            const CWP_g_num_t *g_num;
@@ -242,7 +270,7 @@ namespace cwipi {
            switch (pdm_block_type) {
                                            
            case PDM_MESH_NODAL_POLY_2D :
-              
+              bftc_printf("block_poly2d_set\n");
               PDM_Mesh_nodal_block_poly2d_set (_pdmNodal_handle_index,
                                                id_block,
                                                id_part,    
@@ -250,11 +278,12 @@ namespace cwipi {
                                                connec_idx, 
                                                connec,   
                                                global_num,
-                                               NULL);
+                                               parent_num);
+              bftc_printf("After block_poly2d_set\n");
               break;
                                                
            case PDM_MESH_NODAL_POLY_3D :
-
+              bftc_printf("block_poly3d_set\n");
               PDM_Mesh_nodal_block_poly3d_set (_pdmNodal_handle_index,
                                                id_block,
                                                id_part,    
@@ -265,7 +294,7 @@ namespace cwipi {
                                                connec_idx, 
                                                connec,   
                                                global_num,
-                                               NULL);
+                                               parent_num);
               break;
                                                
            default :
@@ -275,25 +304,15 @@ namespace cwipi {
                                            myblock._nElts,    
                                            connec,   
                                            global_num,
-                                           NULL);
+                                           parent_num);
               break;
            } 
-
-           if(global_num_block==NULL)
-             { PDM_Mesh_nodal_g_num_in_block_compute(_pdmNodal_handle_index,
-                                                     id_block);                                  
-               global_num_block = PDM_Mesh_nodal_block_g_num_get(_pdmNodal_handle_index,
-                                                      id_block,
-                                                      id_part);       
-             }
-           
-           if(_global_num.find(id_part)==_global_num.end()) 
-              _global_num.insert( std::pair < int, CWP_g_num_t* > (id_part,NULL) ); 
-           
+           bftc_printf("updateBlockDB(id_part);\n");
+           updateBlockDB(id_part);
            block_it++;
         }
         
-     _isNodalFinalized=true;
+     
    }
    
    
@@ -312,9 +331,11 @@ namespace cwipi {
                        int                    face_vtx_idx[],
                        int                    face_vtx[],    
                        CWP_g_num_t            global_num[],
-                       CWP_g_num_t            parent_num[])
+                       int                    parent_num[])
    {
       int id_block=-1;
+      
+      
       switch (block_type) {
 
       case CWP_BLOCK_NODE :
@@ -373,9 +394,22 @@ namespace cwipi {
         bftc_error(__FILE__, __LINE__, 0, "%s is not a valid CWIPI Block Type\n"
                    , block_type);
         break;
-      }                                        
-
-      updateBlockDB(i_part);       
+      }
+      
+      _block myBlock = {i_part,
+                        id_block,
+                        block_type,
+                        n_elts,
+                        connec_idx,
+                        connec,
+                        n_faces,
+                        NULL,
+                        face_vtx_idx,
+                        face_vtx,
+                        global_num,
+                        parent_num,
+                        false};   
+      _blocks.insert( std::pair < int, _block > (id_block,myBlock));                                                         
       return id_block;   
                   
    }
@@ -388,7 +422,7 @@ namespace cwipi {
                         int         n_faces,
                         int         face_vtx_idx[],
                         int         face_vtx[],
-                        CWP_g_num_t parent_num[])
+                        CWP_g_num_t global_num[])
      {
        int face_vtx_nb[n_faces];
        for (int i=0;i<n_faces;i++)
@@ -401,9 +435,7 @@ namespace cwipi {
          {
            cell_face_nb[i] = cell_face_idx[i+1] - cell_face_idx[i] ;
          }
-         
-       if(parent_num==NULL) parent_num = _global_num[i_part];
-
+      
        PDM_Mesh_nodal_cell3d_cellface_add(_pdmNodal_handle_index,
                                           i_part,
                                           n_cells,
@@ -414,7 +446,9 @@ namespace cwipi {
                                           cell_face_idx,
                                           cell_face_nb, 
                                           cell_face,
-                                          parent_num);                                           
+                                          _global_num[i_part]);    
+                                          
+        updateBlockDB(i_part);                                       
                                
      }
    

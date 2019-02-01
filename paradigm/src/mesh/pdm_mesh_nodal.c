@@ -313,7 +313,7 @@ PDM_Mesh_nodal_block_std_t *_block_std
     if (_block_std->st_free_data == PDM_TRUE) {
       for (int i = 0; i < _block_std->n_part; i++) {
         if (_block_std->_parent_num[i] != NULL)
-          //free(_block_std->_parent_num[i]);
+          free(_block_std->_parent_num[i]);
         _block_std->_parent_num[i] = NULL;
       }
     }
@@ -431,7 +431,7 @@ PDM_Mesh_nodal_block_poly2d_t *_block_poly2d
     if (_block_poly2d->st_free_data == PDM_TRUE) {
       for (int i = 0; i < _block_poly2d->n_part; i++) {
         if (_block_poly2d->_parent_num[i] != NULL)
-          //free(_block_poly2d->_parent_num[i]);
+          free(_block_poly2d->_parent_num[i]);
         _block_poly2d->_parent_num[i] = NULL;
       }
     }
@@ -566,7 +566,7 @@ PDM_Mesh_nodal_block_poly3d_t *_block_poly3d
     if (_block_poly3d->st_free_data == PDM_TRUE) {
       for (int i = 0; i < _block_poly3d->n_part; i++) {
         if (_block_poly3d->_parent_num[i] != NULL)
-          //free(_block_poly3d->_parent_num[i]);
+          free(_block_poly3d->_parent_num[i]);
         _block_poly3d->_parent_num[i] = NULL;
       }
     }
@@ -3276,7 +3276,7 @@ PDM_g_num_t      *numabs
           {
             PDM_l_num_t *cell_face_cell = cell_face_courant + cell_face_idx_courant[i] - adjust;
             for (int j = 0; j < cell_face_nb_courant[i]; j++) {
-             // tag_face_poly3d[cell_face_cell[j] - 1] = 0;
+              tag_face_poly3d[cell_face_cell[j] - 1] = 0;
             }
             *numabs_poly3d_courant = numabs_courant[i];
             numabs_poly3d_courant += 1;
