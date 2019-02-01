@@ -154,7 +154,7 @@ int main
   int comm_world_size;
   
   FILE* meshFile;
-  meshFile = fopen("tests/meshes/meshes/mesh_poly_d1", "r");
+  meshFile = fopen("tests/meshes/mesh_poly_d1", "r");
 
 
 
@@ -312,7 +312,6 @@ int main
     CWP_Mesh_interf_vtx_set("code1", cpl_id1,0,nVertex,coords,NULL);
  
     printf("3D Cell Polyhedra Block Add\n");
-
     CWP_Mesh_interf_c_poly_block_add("code1",
                                      cpl_id1,
                                      0,
@@ -323,12 +322,14 @@ int main
                                      faceVertexIdx,
                                      faceVertex,
                                      NULL);
+      
 
     printf("Finalize Interface Mesh (end_set)\n");
     CWP_Mesh_interf_end_set("code1", cpl_id1);
     
     printf("Interface Mesh deletion\n");
     CWP_Mesh_interf_del("code1", cpl_id1);
+        printf("Interface Mesh deleted\n");
   }
    
 
