@@ -124,6 +124,14 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_c_poly_block.c")
   test_c_create (c_new_api_c_poly_block 2)
 endif () 
 
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_cellface_set_block.c")
+  test_c_create (c_new_api_cellface_set_block 2)
+endif () 
+
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_std_block.c")
+  test_c_create (c_new_api_std_block 2)
+endif () 
+
 test_c_create (c_linear_coupling 2)
 test_c_create (c_surf_location_triaP2 2)
 test_c_create (c_surf_location_curvetriaP2 2)
