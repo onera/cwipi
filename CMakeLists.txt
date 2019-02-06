@@ -415,6 +415,7 @@ set(CWP_ETC_DIR "etc")
 
 if (IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/paradigm") 
   add_subdirectory(paradigm)
+  add_subdirectory(paradigm/doc)
 endif()
 
 add_subdirectory(src)
@@ -428,6 +429,7 @@ if (CWP_ENABLE_SPACE_NODAL_BASIS)
 endif ()
 add_subdirectory(tests)
 add_subdirectory(doc)
+
 
 #------------------------------------------------------------------------------
 # Print summary of found and not found optional packages
