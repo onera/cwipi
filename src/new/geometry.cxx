@@ -43,8 +43,7 @@ namespace cwipi {
   {
   }
   
-  void Geometry::meshInterfSet (const char            *cpl_id,
-                                const int              i_part,
+  void Geometry::meshInterfSet (const int              i_part,
                                 const int              n_pts,
                                 double           coords[],
                                 CWP_g_num_t      parent_num[])
@@ -53,6 +52,11 @@ namespace cwipi {
                                   n_pts,
                                   coords,
                                   parent_num);
+  }
+
+  void Geometry::meshInterfEndSet()
+  {
+     _meshInterf->endSet();
   }
   
   

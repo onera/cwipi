@@ -62,11 +62,18 @@ namespace cwipi {
 
     void 
     meshInterfSet
-    (const char       *cpl_id,
-     const int        i_part,
+    (const int        i_part,
      const int        n_pts,
      double           coords[],
      CWP_g_num_t      parent_num[]);
+     
+     
+    void 
+    meshInterfEndSet
+    (
+    );
+     
+     
 
     /**
      * \brief Adding a connectivity block to the geometric meshInterf
@@ -434,7 +441,7 @@ namespace cwipi {
 //    std::map<int, int >                   &_tmpTimeStepIrecv;
  //   std::map<int, double >                &_tmpTimeValueIrecv;
  //   std::map<int, const char * >          &_tmpFieldNameIrecv;
-    Mesh                                 *_meshInterf;
+    Mesh                                    *_meshInterf;
   };
 
 }
