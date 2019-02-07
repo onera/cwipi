@@ -170,7 +170,7 @@ namespace cwipi {
      * \brief Setting receiving frequency.
      *
      * This function set receiving frequency. It must be used when
-     * the type of receiving frequency is \ref FREQ_RELATED_N_TIME_STEP
+     * the type of receiving frequency is \ref CWP_FREQ_RELATED_N_TIME_STEP
      *
      * \param [in]  n_step     Frequency in steps number
      *
@@ -186,7 +186,7 @@ namespace cwipi {
      * \brief Setting the next receiving time.
      *
      * This function set the next receiving time. It must be used when
-     * the type of receiving frequency is \ref FREQ_ASYNCHRONOUS
+     * the type of receiving frequency is \ref CWP_FREQ_ASYNCHRONOUS
      *
      * \param [in]  next_time     Next receiving time
      *
@@ -285,10 +285,10 @@ namespace cwipi {
      * \brief Setting user target points
      *
      * This function must be called if the nature of receiving fields 
-     * is \ref CWP_FIELD_LOCATION_USER
+     * is \ref CWP_FIELD_VALUE_USER
      *
      * \param [in]  n_pts   Number of points
-     * \param [in]  coord   Coordinates (size = 3 * \ref n_pts)          
+     * \param [in]  coord   Coordinates (size = 3 * n_pts)          
      *
      */
 
@@ -310,8 +310,8 @@ namespace cwipi {
      *
      * \param [in]  i_part      Current partition
      * \param [in]  n_pts       Number of points
-     * \param [in]  coord       Coordinates (size = 3 * \ref n_pts)          
-     * \param [in]  parent_num  Pointer to parent element number (or NULL)
+     * \param [in]  coord       Coordinates (size = 3 * n_pts)          
+     * \param [in]  global_num  Pointer to global element number (or NULL)
      *
      */
 
@@ -339,10 +339,10 @@ namespace cwipi {
     );
 
     /**
-     * \brief Adding a connectivity block to the geometric mesh
+     * \brief Adding a connectivity block to the geometric support
      *
-     * This function adds a connectivity block to the geometric mesh for
-     * \ref CWP_mesh_MESH mesh type. Definition of element connectivity is :
+     * This function adds a connectivity block to the geometric support for
+     * \ref CWP_SUPPORT_MESH support type. Definition of element connectivity is :
      *
      *  - edge (\ref CWP_BLOCK_EDGE2) :
      *
@@ -425,7 +425,7 @@ namespace cwipi {
      * \param [in]  i_part      Current partition
      * \param [in]  block_type  Block type
      * \param [in]  n_elts      Number of elements
-     * \param [in]  connec      Connectivity (size = n_vertex_elt * \ref n_elts) 
+     * \param [in]  connec      Connectivity (size = n_vertex_elt * n_elts) 
      * \param [in]  global_num  Pointer to Global element numbering (or NULL)         
      * \param [in]  parent_num  Pointer to parent element number (or NULL)
      *
@@ -447,12 +447,13 @@ namespace cwipi {
      * \brief Adding a high order connectivity block to the geometric mesh
      *
      * This function adds a connectivity block to the geometric mesh for
-     * \ref CWP_mesh_MESH mesh type. Definition of element connectivity is :
+     * \ref CWP_SUPPORT_MESH mesh type. Definition of element connectivity is :
      *
      * \param [in]  i_part      Current partition
      * \param [in]  block_type  Block type
      * \param [in]  n_elts      Number of elements
-     * \param [in]  connec      Connectivity (size = n_vertex_elt * \ref n_elts)          
+     * \param [in]  order       Geometric order
+     * \param [in]  connec      Connectivity (size = n_vertex_elt * n_elts)          
      * \param [in]  global_num  Pointer to global element number (or NULL)
      *
      */
@@ -473,14 +474,13 @@ namespace cwipi {
      * \brief Adding a polygon connectivity block to the geometric mesh
      *
      * This function adds a polygon connectivity block to the geometric mesh for
-     * \ref CWP_mesh_MESH mesh type.
+     * \ref CWP_SUPPORT_MESH mesh type.
      *
      * \param [in]  i_part      Current partition
-     * \param [in]  block_type  Block type
      * \param [in]  n_elts      Number of elements
      * \param [in]  connec_idx  Connectivity index (connec_id[0] = 0 and 
-     *                          size = \ref n_elts + 1)          
-     * \param [in]  connec      Connectivity (size = connec_id[n_elts] * \ref n_elts)          
+     *                          size = n_elts + 1)          
+     * \param [in]  connec      Connectivity (size = connec_id[n_elts] * n_elts)          
      * \param [in]  parent_num  Pointer to parent element number (or NULL)
      *
      */
@@ -499,20 +499,20 @@ namespace cwipi {
      * \brief Adding a polyhedron connectivity block to the geometric mesh
      *
      * This function add a connectivity block to the geometric mesh if mesh
-     * type is only \ref CWP_mesh_MESH. Definition of element connectivity is :
+     * type is only \ref CWP_SUPPORT_MESH. Definition of element connectivity is :
      *
      * \param [in]  i_part            Current partition
      * \param [in]  n_elts            Number of elements
      * \param [in]  cell_face_idx     Polyhedron to face index 
      *                                (src_poly_cell_face_idx[0] = 0 and
      *                                 size = n_elts + 1)
-     * \param [in]  cell_face_connec  Polyhedron to face connectivity 
+     * \param [in]  cell_face         Polyhedron to face connectivity 
      *                                (size = cell_face_idx[n_elts])
      * \param [in]  n_faces           Number of faces      
      * \param [in]  face_vtx_idx      Polyhedron face to vertex index 
      *                                (face_vertex_idx[0] = 0 and
      *                                 size_idx = max(cell_face_connec) + 1)
-     * \param [in]  face_vtx_connec   Polyhedron face to vertex connectivity
+     * \param [in]  face_vtx          Polyhedron face to vertex connectivity
      *                                (size = face_vertex_idx[size_idx - 1])
      * \param [in]  parent_num        Pointer to parent element number (or NULL)
      *
@@ -782,12 +782,12 @@ namespace cwipi {
      *
      * This function exchanges interpolated fields between coupled codes. 
      * 
-     * \warning  The size of \ref tgt_field_id size is n_computed_tgt. 
+     * \warning  The size of tgt_field_id size is n_computed_tgt. 
      *           If \f$ n\_uncomputed\_tgt \ne n\_tgt\_pts \f$,
      *           user himself must set values for uncomputed target points.
      *
-     * \param [in]  src_id                    Source field (NULL -> no sending)
-     * \param [in]  tgt_id                    Target field (NULL -> no receiving)
+     * \param [in]  src_field_id                    Source field (NULL -> no sending)
+     * \param [in]  tgt_field_id                    Target field (NULL -> no receiving)
      * \param [in]  ptFortranInterpolationFct Fortran user interpolation (or NULL)
      * \param [out] n_uncomputed_tgt          Number of uncomputed target
      *
@@ -868,9 +868,9 @@ namespace cwipi {
 
     /**
      *
-     * \brief Waiting of the end of exchange related to \ref request.
+     * \brief Waiting of the end of exchange related to request.
      *
-     * This function waits the end of exchange related to \ref request 
+     * This function waits the end of exchange related to request 
      * from \ref CWP_Irecv
      * 
      * \param [in] request    Request to wait the end of exchange
