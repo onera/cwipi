@@ -256,19 +256,19 @@ typedef enum {
 } CWP_Block_t;
 
 /**
- * \enum CWP_Support_t
- * \brief Geometric support.
- *
- * CWP_Support_t gives different geometric supports on which source fields 
- * are defined  
- */
+  * \enum CWP_Support_t
+  * \brief Geometric support.
+  *
+  * CWP_Support_t gives different geometric supports on which source fields 
+  * are defined  
+  */
 
-//typedef enum {
-//
-//  CWP_SUPPORT_MESH,         /*!< Mesh */
-////  CWP_SUPPORT_CAD_MESH      /*!< CAD + MESH */
-//
-//} CWP_Support_t;
+typedef enum {
+
+  CWP_SUPPORT_MESH,         /*!< Mesh */
+  CWP_SUPPORT_CAD_MESH      /*!< CAD + MESH */
+
+} CWP_Support_t;
 
 /**
  * \enum CWP_Displacement_t
@@ -1132,7 +1132,7 @@ CWP_User_tgt_pts_set
  * \param [in]  cpl_id           Coupling identifier
  * \param [in]  i_part           Current partition
  * \param [in]  n_pts            Number of points
- * \param [in]  coord            Coordinates (size = 3 * \ref n_pts)          
+ * \param [in]  coord            Coordinates (size = 3 * n_pts)          
  * \param [in]  global_num       Pointer to parent element number (or NULL)
  *
  */
@@ -1254,7 +1254,7 @@ CWP_Mesh_interf_end_set
  * \param [in]  i_part           Current partition
  * \param [in]  block_type       Block type
  * \param [in]  n_elts           Number of elements
- * \param [in]  connec           Connectivity (size = n_vertex_elt * \ref n_elts)          
+ * \param [in]  connec           Connectivity (size = n_vertex_elt * n_elts)          
  * \param [in]  global_num       Pointer to parent element number (or NULL)
  *
  */
@@ -1281,7 +1281,7 @@ CWP_Mesh_interf_std_block_add
  * \param [in]  block_type       Block type
  * \param [in]  n_elts           Number of elements
  * \param [in]  order            Element order
- * \param [in]  connec           Connectivity (size = n_vertex_elt * \ref n_elts)          
+ * \param [in]  connec           Connectivity (size = n_vertex_elt * n_elts)          
  * \param [in]  global_num       Pointer to parent element number (or NULL)
  *
  */
@@ -1336,14 +1336,14 @@ CWP_Mesh_interf_f_poly_block_add
  * \param [in]  n_elts            Number of elements
  * \param [in]  cell_face_idx     Polyhedron to face index 
  *                                (cell_face_idx[0] = 0 and
- *                                 size = n_elts + 1)
- * \param [in]  cell_face_connec  Polyhedron to face connectivity 
+ *                                size = n_elts + 1)
+ * \param [in]  cell_face         Polyhedron to face connectivity 
  *                                (size = cell_face_idx[n_elts])
  * \param [in]  n_faces           Number of faces      
  * \param [in]  face_vtx_idx      Polyhedron face to vertex index 
  *                                (face_vtx_idx[0] = 0 and
  *                                 size = n_faces + 1
- * \param [in]  face_vtx_connec   Polyhedron face to vertex connectivity
+ * \param [in]  face_vtx          Polyhedron face to vertex connectivity
  *                                (size = face_vtx_idx[n_faces])
  * \param [in]  parent_num        Pointer to parent element number (or NULL)
  *
