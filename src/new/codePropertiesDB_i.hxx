@@ -338,10 +338,10 @@ namespace cwipi {
   CodePropertiesDB::ctrlParamReduce
   (
    const CWP_Op_t  op, 
-   const string     &name,
-   T                *res,
-   const int         nCode,
-   va_list          *pa
+   const string    &name,
+   T               *res,
+   const int        nCode,
+   va_list         *pa
   )
   {
     string codeName1 = string((char*)va_arg(*pa, char *));

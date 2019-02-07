@@ -67,11 +67,11 @@ namespace cwipi {
      * \param [in]  globalComm      MPI communicator containing all processes 
      *                              of all codes
      * \param [in]  n_codes         Number of codes on the current rank
-     * \param [in]  code_names      Codes names on the current rank  (\ref n_codes)
-     * \param [in]  is_coupled_rank Current rank is it a coupled rank (\ref n_codes)
+     * \param [in]  code_names      Codes names on the current rank 
+     * \param [in]  is_coupled_rank Current rank is it a coupled rank 
      * \param [in]  n_param_max     Maximum number of parameters
      * \param [in]  str_size_max    Maximum size for a string
-     * \param [out] intra_coms      Current codes intra-communicators  (\ref n_codes)
+     * \param [out] intra_comms     Current codes intra-communicators 
      *
      */
 
@@ -103,7 +103,7 @@ namespace cwipi {
     /**
       * \brief Return local code MPI intra communicator.
       *
-      * \parm[in]   localCodeName  Local code name
+      * \param[in]   localCodeName  Local code name
       * 
       * \return  MPI Intra communicator
       *

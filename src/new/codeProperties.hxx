@@ -202,7 +202,7 @@ namespace cwipi {
     /**
      * \brief Set MPI intra-communicator
      *
-     * \param[in] localComm    MPI intra-communicator
+     * \param[in] group    MPI intra-communicator group
      *
      */
 
@@ -380,7 +380,6 @@ namespace cwipi {
      * \brief Cancel a control parameter value
      *
      * \param[in] name    Control parameter name  
-     * \param[in] value   Value  
      *
      */
 
@@ -406,12 +405,13 @@ namespace cwipi {
     );
 
 
-    /**
-     * \brief Return list of parameters
-     *
-     * \return Number of parameters
-     *
-     */
+  /**
+   * \brief Return list of parameters
+   *
+   * \param [in]  nParam Pointer to the number of parameter
+   * \param [in]  names  Pointer to an array containing the parameter names.
+   *
+   */
 
     template<typename T>
     void 
@@ -758,7 +758,7 @@ namespace cwipi {
   /**
    * \brief Set MPI intra-communicator
    *
-   * \param[in] localComm    MPI intra-communicator
+   * \param[in] intraComm    MPI intra-communicator
    *
    */
 
@@ -830,7 +830,6 @@ namespace cwipi {
   /**
    * \brief Update integer parameter values
    *
-   * \param[in] name   Control parameter name  
    *
    */
 
@@ -893,10 +892,11 @@ namespace cwipi {
 
   
   /**
-   * \brief Get a integer control parameter value
+   * \brief Get an integer control parameter value
    *
-   * \param[in] name   Control parameter name  
-   *
+   * \param[in]  name    Control parameter name  
+   * \param[out] value   Control parameter value
+   *  
    */
 
   void
@@ -940,8 +940,6 @@ namespace cwipi {
   
   /**
    * \brief Update double parameter values
-   *
-   * \param[in] name   Control parameter name  
    *
    */
 
@@ -1006,8 +1004,9 @@ namespace cwipi {
   /**
    * \brief Get a double control parameter value
    *
-   * \param[in] name   Control parameter name  
-   *
+   * \param[in]  name    Control parameter name 
+   * \param[out] value   Pointer to the control parameter value
+   *  
    */
 
   void
@@ -1051,8 +1050,6 @@ namespace cwipi {
   
   /**
    * \brief Update string parameter values
-   *
-   * \param[in] name   Control parameter name  
    *
    */
 
@@ -1122,8 +1119,9 @@ namespace cwipi {
   /**
    * \brief Get a string control parameter value
    *
-   * \param[in] name   Control parameter name  
-   *
+   * \param[in]  name   Control parameter name  
+   * \param[out] value  Pointer to the control parameter value
+   *  
    */
 
   void
@@ -1657,7 +1655,6 @@ namespace cwipi {
    * \brief Cancel a control parameter value
    *
    * \param[in] name    Control parameter name  
-   * \param[in] value   Value  
    *
    */
 
@@ -1876,7 +1873,8 @@ namespace cwipi {
   /**
    * \brief Return list of parameters
    *
-   * \return Number of parameters
+   * \param [in]  nParam Pointer to the number of parameter
+   * \param [in]  names  Pointer to an array containing the parameter names.
    *
    */
   
