@@ -66,14 +66,14 @@ namespace cwipi {
      *
      * This function creates a coupling object and defines its properties.
      *
-     * \param [in]  cplId                       Coupling identifier
-     * \param [in]  comm_type                    Communication type
+     * \param [in]  cplId                        Coupling identifier
+     * \param [in]  commType                     Communication type
      * \param [in]  localCodeProperties          Local code properties
      * \param [in]  coupledCodeProperties        Coupled code properties
-     * \param [in]  geom_algo                    Geometric algorithm
-     * \param [in]  n_part                       Number of interface partitions 
-     * \param [in]  moving_status                mesh moving status
-     * \param [in]  recv_freq_type               Type of receiving frequency
+     * \param [in]  geomAlgo                     Geometric algorithm
+     * \param [in]  nPart                        Number of interface partitions 
+     * \param [in]  movingStatus                 Mesh moving status
+     * \param [in]  recvFreqType                 Type of receiving frequency
      * \param [in]  cplDB                        Coupling data base where it coupling is stored
      *
      */
@@ -81,14 +81,14 @@ namespace cwipi {
     Coupling
     (
      const string                &cplId,
-     const CWP_Comm_t           commType,
+     const CWP_Comm_t             commType,
      const CodeProperties        &localCodeProperties,
      const CodeProperties        &coupledCodeProperties,
-     const CWP_Geom_algo_t           geomAlgo,
+     const CWP_Geom_algo_t        geomAlgo,
      const int                    nPart,
-     const CWP_Displacement_t  movingStatus,
-     const CWP_Freq_t           recvFreqType,
-     CouplingDB                 &cplDB 
+     const CWP_Displacement_t     movingStatus,
+     const CWP_Freq_t             recvFreqType,
+     CouplingDB                  &cplDB 
     );
 
     /**
@@ -781,9 +781,9 @@ namespace cwipi {
 
     /**
      *
-     * \brief Waiting of the end of exchange related to \ref request.
+     * \brief Waiting of the end of exchange related to request.
      *
-     * This function waits the end of exchange related to \ref request
+     * This function waits the end of exchange related to request
      * from \ref CWP_Issend
      * 
      * \param [in] request    Request to wait the end of exchange
@@ -843,7 +843,7 @@ namespace cwipi {
      * \brief Setting of an user interpolation from location.
      *
      * This function takes into account an user interpolation function written with
-     * \ref void (*CWP_Interp_from_location_t) interface.
+     *  void (* \ref CWP_Interp_from_location_t) interface.
      * 
      * \param [in] fct        Function
      *
@@ -877,7 +877,7 @@ namespace cwipi {
      * \brief Setting of an user interpolation from intersection.
      *
      * This function takes into account an user interpolation function written with
-     * \ref void (*CWP_Interp_from_intersec_t) interface.
+     *  void (* \ref CWP_Interp_from_intersec_t) interface.
      * 
      * \param [in] fct        Function
      *
@@ -911,7 +911,7 @@ namespace cwipi {
      * \brief Setting of an user interpolation from closest points
      *
      * This function takes into account an user interpolation function written with
-     * \ref void (*CWP_Interp_from_closest_pts_t) interface.
+     *  void (* \ref CWP_Interp_from_closest_pts_t) interface.
      * 
      * \param [in] fct        Function
      *
@@ -945,8 +945,7 @@ namespace cwipi {
      *
      * \brief Return communication type
      *
-     * 
-     * \param [in] fct        Function
+     * \return CWP_Comm_t Communication Type
      *
      */
 
@@ -978,17 +977,14 @@ namespace cwipi {
           CouplingDB                 &_cplDB;                  /*!< Coupling Data base */
   }; 
 
-  
-  
 
-  /**
-   *
-   * \brief Return communication type
-   *
-   * 
-   * \param [in] fct        Function
-   *
-   */
+    /**
+     *
+     * \brief Return communication type
+     *
+     * \return CWP_Comm_t Communication Type
+     *
+     */
 
   CWP_Comm_t 
   Coupling::commTypeGet      

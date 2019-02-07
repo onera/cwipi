@@ -813,7 +813,7 @@ namespace cwipi {
   /**
    * \brief Set MPI intra-communicator
    *
-   * \param[in] localComm    MPI intra-communicator
+   * \param[in] group    MPI intra-communicator group
    *
    */
 

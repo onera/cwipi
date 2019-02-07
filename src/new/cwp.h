@@ -19,6 +19,13 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+
+/** \file cwp.h
+  * \brief CWIPI new API header file 
+  * 
+  */
+
+
 #include <mpi.h>
 #include <stdio.h>
 
@@ -52,7 +59,7 @@ extern "C" {
  *============================================================================*/
 
 /**
- * \enum CWP_g_num_t
+ * \typedef CWP_g_num_t
  * \brief Long int in cwipi 
  *
  */
@@ -266,7 +273,7 @@ typedef enum {
 } CWP_Displacement_t;
 
 /**
- * \enum CWP_Geom_t
+ * \enum CWP_Geom_algo_t
  * \brief Geomtric algorithms
  *
  * CWP_Geom_t gives different geometric algorithm on which interpolation 
@@ -415,7 +422,7 @@ typedef void (*CWP_Interp_from_location_t)
 );
 
 /**
- * \typedef void (*CWP_interp_from_intersec_t)
+ * \typedef void (*CWP_Interp_from_intersec_t)
  * \brief User interpolation function from intersection between meshes <b>(Not implemented yet)</b>  
  *
  * void (*CWP_interp_from_intersec_t) defines the user interpolation 
@@ -432,7 +439,7 @@ typedef void (*CWP_Interp_from_intersec_t)
 );
 
 /**
- * \typedef void (*CWP_interp_from_closest_pts_t)
+ * \typedef void (*CWP_Interp_from_closest_pts_t)
  * \brief User interpolation function from closest points <b>(Not implemented yet)</b>
  *
  * void (*CWP_interp_from_closest_pts_t) defines the user interpolation 
@@ -472,9 +479,9 @@ typedef void (*CWP_Interp_from_closest_pts_t)
  *
  * \param [in]  global_comm       MPI global communicator
  * \param [in]  n_code            Number of codes on the current rank
- * \param [in]  is_coupled_rank   Is current rank used for coupling (size = \ref n_code)
- * \param [in]  code_name         Names of codes on the current rank (size = \ref n_code)
- * \param [in]  time_init         Time init (size = \ref n_code)
+ * \param [in]  code_name         Names of codes on the current rank (size = n_code)
+ * \param [in]  is_coupled_rank   Is current rank used for coupling (size = n_code)
+ * \param [in]  time_init         Time init (size = n_code)
  * \param [out] intra_comm        MPI intra communicators of each code
  *
  */
@@ -482,7 +489,7 @@ typedef void (*CWP_Interp_from_closest_pts_t)
 void 
 CWP_Init
 (
- const MPI_Comm           inter_comm,
+ const MPI_Comm           global_comm,
  const int                n_code,
  const char             **code_name, 
  const CWP_Status_t      *is_coupled_rank,
@@ -675,7 +682,7 @@ CWP_Properties_dump
  * \param [in]  comm_type           Communication type
  * \param [in]  geom_algo           Geometric algorithm
  * \param [in]  n_part              Number of interface partition 
- * \param [in]  moving_status       Support moving status
+ * \param [in]  displacement        Mesh moving status
  * \param [in]  recv_freq_type      Type of receiving frequency
  *
  */
@@ -783,7 +790,7 @@ CWP_Cpl_rotation_update
 (
  const char      *local_code_name,
  const char      *cpl_id,
- const double     dist
+ const double     angle
 );
 
 
@@ -915,15 +922,15 @@ CWP_Computed_tgts_dist_to_geom_get
  const char *cpl_id
 );
 
-/*----------------------------------------------------------------------------*
- * Functions about exchange frequency                                         *
- *----------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
+// Functions about exchange frequency                                        
+//----------------------------------------------------------------------------
 
 /**
  * \brief Setting receiving frequency.
  *
  * This function set receiving frequency. It must be used when
- * the type of receiving frequency is \ref FREQ_RELATED_N_TIME_STEP
+ * the type of receiving frequency is \ref CWP_FREQ_RELATED_N_TIME_STEP
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
@@ -943,7 +950,7 @@ CWP_Recv_freq_set
  * \brief Setting the next receiving time.
  *
  * This function set the next receiving time. It must be used when
- * the type of receiving frequency is \ref FREQ_ASYNCHRONOUS
+ * the type of receiving frequency is \ref CWP_FREQ_ASYNCHRONOUS
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
@@ -964,7 +971,7 @@ CWP_Next_recv_time_set
  * \brief Setting the coupling time step.
  *
  * This function set the coupling time step. It must be used when
- * the type of receiving frequency is \ref FREQ_CPL_TIME_STEP
+ * the type of receiving frequency is \ref CWP_FREQ_CPL_TIME_STEP
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
@@ -1288,7 +1295,7 @@ CWP_Mesh_interf_h_order_block_add
  * \param [in]  i_part           Current partition
  * \param [in]  n_elts           Number of elements
  * \param [in]  connec_idx       Connectivity index (connec_id[0] = 0 and 
- *                               size = \ref n_elts + 1)          
+ *                               size = n_elts + 1)          
  * \param [in]  connec           Connectivity (size = connec_idx[n_elts])          
  * \param [in]  parent_num       Pointer to parent element number (or NULL)
  *
@@ -1427,15 +1434,15 @@ CWP_Mesh_interf_from_cellface_set
  * \param [in]  n_faces           Number of cells
  * \param [in]  face_edge_idx     Polygon to edge index 
  *                                (face_edge_idx[0] = 0 and
- *                                 size = \ref n_faces + 1)
+ *                                 size =  n_faces + 1)
  * \param [in]  face_edge         Face to edge connectivity 
- *                                (size = \ref face_edge_idx[\ref n_faces])
+ *                                (size = face_edge_idx[n_faces])
  * \param [in]  n_edges           Number of faces      
  * \param [in]  edge_vtx_idx      Polyhedron face to vertex index 
  *                                (edge_vtx_idx[0] = 0 and
  *                                 size_idx = max(edge__connec) + 1)
  * \param [in]  edge_vtx          Face to vertex connectivity
- *                                (size = \ref edge_vtx_idx[\ref n_edges])
+ *                                (size = edge_vtx_idx[n_edges])
  * \param [in]  parent_num        Pointer to parent element number (or NULL)
  *
  */
@@ -1517,7 +1524,7 @@ CWP_Field_mapping_set
  *
  * \brief Set data mapping
  * 
- * \TODO Define gradient storage
+ * TODO Define gradient storage
  * 
  * \param [in] local_code_name Local code name
  * \param [in] cpl_id          Coupling identifier
@@ -1722,7 +1729,7 @@ CWP_Sendrecv
  * \param [in]  cpl_id          Coupling identifier
  * \param [in]  src_field_id    Source field id
  *
- * \param [out] request         Request to call by \ref CWP_wait_issend 
+ * \param [out] request         Request to call by \ref CWP_Wait_issend 
  *                              to wait the end of exchange
  *
  */
@@ -1747,7 +1754,7 @@ CWP_Issend
  * \param [in]  cpl_id          Coupling identifier
  * \param [in]  tgt_field_id    Target field id
  *
- * \param [out] request         Request to call by \ref CWP_wait_irecv  
+ * \param [out] request         Request to call by \ref CWP_Wait_irecv  
  *                              to wait the end of exchange
  *
  */
@@ -1763,9 +1770,9 @@ CWP_Irecv
 
 /**
  *
- * \brief Waiting of the end of exchange related to \ref request.
+ * \brief Waiting of the end of exchange related to request.
  *
- * This function waits the end of exchange related to \ref request
+ * This function waits the end of exchange related to request
  * from \ref CWP_issend
  * 
  * \param [in] local_code_name  Local code name
@@ -1784,9 +1791,9 @@ CWP_Wait_issend
 
 /**
  *
- * \brief Waiting of the end of exchange related to \ref request.
+ * \brief Waiting of the end of exchange related to request.
  *
- * This function waits the end of exchange related to \ref request 
+ * This function waits the end of exchange related to request 
  * from \ref CWP_irecv
  * 
  * \param [in] local_code_name  Local code name
@@ -1898,7 +1905,7 @@ CWP_Interp_from_inter_set_f
  * \brief Setting of an user interpolation from closest points
  *
  * This function takes into account an user interpolation function written with
- * \ref void (*CWP_interp_from_closest_pts_t) interface.
+ *   \ref void (*CWP_Interp_from_intersec_t) interface.
  * 
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
@@ -1909,9 +1916,9 @@ CWP_Interp_from_inter_set_f
 void 
 CWP_interp_from_closest_set
 (
- const char                    *local_code_name,
+ const char                     *local_code_name,
  const char                     *cpl_id,
- CWP_Interp_from_closest_pts_t fct
+ CWP_Interp_from_closest_pts_t   fct
 );
 
 /**
@@ -1943,10 +1950,12 @@ CWP_Interp_from_closest_set_f
  *
  * \brief Add a control parameter
  * 
+ * Addition of a control parameter in the code properties.
+ *
  * \param [in] local_code_name  Local code name
  * \param [in] param_name       Parameter name
  * \param [in] data_type        Parameter type
- * \param [in] init_value       Initial value
+ * \param [in] initial_value    Initial value
  *
  */
 
@@ -1955,7 +1964,7 @@ CWP_Param_add
 (
  const char             *local_code_name,
  const char             *param_name,
- const CWP_Type_t       data_type,
+ const CWP_Type_t        data_type,
  void                   *initial_value
 );
 
@@ -1967,7 +1976,7 @@ CWP_Param_add
  * \param [in] local_code_name  Local code name
  * \param [in] param_name       Parameter name
  * \param [in] data_type        Parameter type
- * \param [in] value          Value
+ * \param [in] value            Value
  *
  */
 

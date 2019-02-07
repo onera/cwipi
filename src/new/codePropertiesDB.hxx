@@ -267,11 +267,11 @@ namespace cwipi {
 
 
     /**
-     * \brief Return of the list of parameters
+     * \brief Return of the control parameter list
      *
-     * \param [in]  codeName  Code name
-     *
-     * \return  List of parameters
+     * \param [in]  codeName    Code name
+     * \param [in]  nParam      Number of control parameters
+     * \param [in]  parmNames   Pointer to the list of parameters names
      *
      */
 
