@@ -42,8 +42,22 @@
  *============================================================================*/
 
 #if !defined (__hpux) && !defined (_AIX) 
+/**
+  *  \def PROCF(x, y)
+  *  \brief Macro to rename function for Fortran.
+  *  \param x input value.
+  *  \param y input value.
+  *  \returns ?? 
+  */
 #define PROCF(x, y) x##_
 #else
+/**
+  *  \def PROCF(x, y)
+  *  \brief Macro to rename function for Fortran.
+  *  \param x input value.
+  *  \param y input value.
+  *  \returns ?? 
+  */
 #define PROCF(x, y) x
 #endif
 
@@ -479,10 +493,10 @@ typedef void (*CWP_Interp_from_closest_pts_t)
  *
  * \param [in]  global_comm       MPI global communicator
  * \param [in]  n_code            Number of codes on the current rank
- * \param [in]  code_name         Names of codes on the current rank (size = n_code)
+ * \param [in]  code_names         Names of codes on the current rank (size = n_code)
  * \param [in]  is_coupled_rank   Is current rank used for coupling (size = n_code)
  * \param [in]  time_init         Time init (size = n_code)
- * \param [out] intra_comm        MPI intra communicators of each code
+ * \param [out] intra_comms        MPI intra communicators of each code
  *
  */
 
@@ -491,10 +505,10 @@ CWP_Init
 (
  const MPI_Comm           global_comm,
  const int                n_code,
- const char             **code_name, 
+ const char             **code_names,
  const CWP_Status_t      *is_coupled_rank,
  const double            *time_init,
- MPI_Comm                *intra_comm
+ MPI_Comm                *intra_comms
 );
 
 /**
@@ -975,7 +989,7 @@ CWP_Next_recv_time_set
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
- * \param [in]  time step        Coupling time step
+ * \param [in]  next_time_step        Coupling time step
  *
  */
 
@@ -1087,12 +1101,12 @@ CWP_Visu_set
  * \brief Setting user target points
  *
  * This function must be called if the nature of receiving fields 
- * is \ref CWP_FIELD_LOCATION_USER
+ * is \ref CWP_FIELD_VALUE_USER
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
  * \param [in]  n_pts            Number of points
- * \param [in]  coord            Coordinates (size = 3 * \ref n_pts)          
+ * \param [in]  coord            Coordinates (size = 3 * n_pts)          
  *
  */
 
@@ -1694,7 +1708,7 @@ CWP_Exch
  *
  * This function exchanges interpolated fields between coupled codes. 
  * 
- * \warning  The size of \ref tgt_field_id size is n_computed_tgt. 
+ * \warning  The size of tgt_field_id size is n_computed_tgt. 
  *           If \f$ n\_uncomputed\_tgt \ne n\_tgt\_pts \f$,
  *           user himself must set values for uncomputed target points.
  *
@@ -1773,7 +1787,7 @@ CWP_Irecv
  * \brief Waiting of the end of exchange related to request.
  *
  * This function waits the end of exchange related to request
- * from \ref CWP_issend
+ * from \ref CWP_Issend
  * 
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
@@ -1962,10 +1976,10 @@ CWP_Interp_from_closest_set_f
 void 
 CWP_Param_add
 (
- const char             *local_code_name,
- const char             *param_name,
- const CWP_Type_t        data_type,
- void                   *initial_value
+ const char        *local_code_name, 
+ const char        *param_name, 
+ const CWP_Type_t   data_type,
+ void              *initial_value
 );
 
 

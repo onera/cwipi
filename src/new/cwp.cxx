@@ -191,10 +191,10 @@ _cpl_get
  *
  * \param [in]  global_comm       MPI global communicator
  * \param [in]  n_code            Number of codes on the current rank
- * \param [in]  is_coupled_rank   Is current rank used for coupling (size = \ref n_code)
- * \param [in]  code_name         Names of codes on the current rank (size = \ref n_code)
- * \param [in]  time_init         Time init (size = \ref n_code)
- * \param [out] intra_comm        MPI intra communicators of each code
+ * \param [in]  code_names         Names of codes on the current rank (size = n_code)
+ * \param [in]  is_coupled_rank   Is current rank used for coupling (size = n_code)
+ * \param [in]  time_init         Time init (size = n_code)
+ * \param [out] intra_comms        MPI intra communicators of each code
  *
  */
 
@@ -645,13 +645,7 @@ const char *cpl_id
                          cpl_id_str);
 }
 
-/**
- * \brief data exchange  <b>(Not implemented yet)</b> 
- *
- * This function exchanges for each coupling depending on exchange frequency
- * 
- * \param [in] cpl_id     Coupling identifier
- */
+
 
 // void
 // CWP_Exch
@@ -664,14 +658,7 @@ const char *cpl_id
 //   cpl.exchange();
 // }
 
-/**
- *
- * \brief Return the number of uncomputed targets
- * 
- * \param [in] cpl_id     Coupling identifier
- *
- * \return                Number of uncomputed targets
- */
+
 
 // int 
 // CWP_n_uncomputed_tgts_get
@@ -684,14 +671,7 @@ const char *cpl_id
 //   return cpl.nUncomputedTargetsGet();
 // }
 
-/**
- *
- * \brief Return uncomputed targets
- * 
- * \param [in] cpl_id     Coupling identifier
- *
- * \return                Uncomputed targets
- */
+
 
 // const int *
 // CWP_uncomputed_tgts_get
@@ -703,14 +683,6 @@ const char *cpl_id
 //   return cpl.uncomputedTargetsGet();
 // }
 
-/**
- *
- * \brief Return the number of computed targets
- * 
- * \param [in] cpl_id     Coupling identifier
- *
- * \return                Number of computed targets
- */
 
 // int 
 // CWP_n_computed_tgts_get
@@ -722,14 +694,7 @@ const char *cpl_id
 //   return cpl.nComputedTargetsGet();
 // }
 
-/**
- *
- * \brief Return computed targets
- * 
- * \param [in] cpl_id     Coupling identifier
- *
- * \return                Computed targets
- */
+
 
 // const int *
 // CWP_computed_tgts_get
@@ -741,14 +706,7 @@ const char *cpl_id
 //   return cpl.getLocatedPoint();
 // }
 
-/**
- * \brief Return distance from each target to the geometric interface                 
- *
- * \param [in]  cpl_id   Coupling identifier
- *
- * \return               Distance
- *
- */
+
 
 // const double *
 // CWP_computed_tgts_dist_to_geom_get
@@ -764,16 +722,7 @@ const char *cpl_id
  * Functions about exchange frequency                                         *
  *----------------------------------------------------------------------------*/
 
-/**
- * \brief Setting receiving frequency.
- *
- * This function set receiving frequency. It must be used when
- * the type of receiving frequency is \ref FREQ_RELATED_N_TIME_STEP
- *
- * \param [in]  cpl_id     Coupling identifier
- * \param [in]  n_step     Frequency in steps number
- *
- */
+
 
 // void 
 // CWP_recv_freq_set
@@ -786,16 +735,6 @@ const char *cpl_id
 //   cpl.recvFreqSet(n_step);
 // }
 
-/**
- * \brief Setting the next receiving time.
- *
- * This function set the next receiving time. It must be used when
- * the type of receiving frequency is \ref FREQ_ASYNCHRONOUS
- *
- * \param [in]  cpl_id        Coupling identifier
- * \param [in]  next_time     Next receiving time
- *
- */
 
 // void 
 // CWP_next_recv_time_set
@@ -812,17 +751,6 @@ const char *cpl_id
  * Functions about geometry                                                   *
  *----------------------------------------------------------------------------*/
 
-/**
- * \brief Computation geometry                                  
- *
- * This function compute geometry 
- *
- * \param [in]  cpl_id              Coupling identifier
- * \param [in]  storage_activation  Storage activation of geometric results
- * \param [out] n_uncomputed_tgt    Number of uncomputed target
- * \param [out] storage_id          Storage identifier              
- *
- */
 
 //void 
 //CWP_geom_compute
@@ -838,13 +766,7 @@ const char *cpl_id
 //   cpl.geomCompute(n_uncomputed_tgt);
 // }
 
-/**
- * \brief Stored geometric results activation                 
- *
- * \param [in]  cpl_id      Coupling identifier
- * \param [in] storage_id   Storage identifier              
- *
- */
+
 
 // void 
 // CWP_geom_update
@@ -856,16 +778,6 @@ const char *cpl_id
 // TODO
 // }
 
-/**
- * \brief Setting geometry properties
- *
- * This function set the geometric algorithm properties.
- *
- * \param [in]  cpl_id        Coupling identifier
- * \param [in]  fmt           Format with the syntax : "prop1, prop2, ..."
- * \param       ...           Values of each properties
- *
- */
 
 // void 
 // CWP_geom_properties_set
@@ -887,37 +799,6 @@ const char *cpl_id
  * Functions about visualization                                              *
  *----------------------------------------------------------------------------*/
 
-/**
- * \brief Enable visualization output
- *
- * This function enable visualization output.
- *
- * \param [in]  cpl_id           Coupling identifier
- * \param [in]  freq             Output frequency
- * \param [in]  format           Output format to visualize exchanged fields
- *                               on the coupled mesh. Choice between :
- *                               - "EnSight Gold"
- *                               - "MED_ficher"
- *                               - "CGNS"
- *                               .
- * \param [in]  format_option   Output options "opt1, opt2, ..."
- *                               - text               output text files
- *                               - binary             output binary files (default)
- *                               - big_endian         force binary files
- *                                                    to big-endian
- *                               - discard_polygons   do not output polygons
- *                                                    or related values
- *                               - discard_polyhedra  do not output polyhedra
- *                                                    or related values
- *                               - divide_polygons    tesselate polygons
- *                                                    with triangles
- *                               - divide_polyhedra   tesselate polyhedra
- *                                                    with tetrahedra and pyramids
- *                                                    (adding a vertex near
- *                                                    each polyhedron's center)
- *                               .
- *
- */
 
 // void 
 // CWP_visu_set
@@ -936,17 +817,6 @@ const char *cpl_id
  * Functions about User target points                                         *
  *----------------------------------------------------------------------------*/
 
-/**
- * \brief Setting user target points
- *
- * This function must be called if the nature of receiving fields 
- * is \ref CWP_FIELD_NATURE_USER
- *
- * \param [in]  cpl_id  Coupling identifier
- * \param [in]  n_pts   Number of points
- * \param [in]  coord   Coordinates (size = 3 * \ref n_pts)          
- *
- */
 
 // void 
 // CWP_user_tgt_pts_set
@@ -963,19 +833,6 @@ const char *cpl_id
 /*----------------------------------------------------------------------------*
  * Functions about Mesh                                                    *
  *----------------------------------------------------------------------------*/
-
-/**
- * \brief Setting vertices
- *
- * This function set partition vertices
- *
- * \param [in]  cpl_id      Coupling identifier
- * \param [in]  i_part      Current partition
- * \param [in]  n_pts       Number of points
- * \param [in]  coord       Coordinates (size = 3 * \ref n_pts)          
- * \param [in]  global_num  Pointer to parent element number (or NULL)
- *
- */
 
  void 
  CWP_Mesh_interf_vtx_set
@@ -995,15 +852,6 @@ const char *cpl_id
  }
 
 
-/**
- * \brief End setting mesh
- *
- * This function finalizes the support building
- *
- * \param [in]  cpl_id      Coupling identifier
- *
- */
-
  void 
  CWP_Mesh_interf_end_set
  (const char                 *local_code_name,
@@ -1014,98 +862,6 @@ const char *cpl_id
    cpl.meshEndSet();
  }
 
-/**
- * \brief Adding a connectivity block to the geometric support
- *
- * This function adds a connectivity block to the geometric support for
- * \ref CWP_SUPPORT_MESH support type. Definition of element connectivity is :
- *
- *  - edge (\ref CWP_BLOCK_EDGE2) :
- *
- *   \code
- *       1 x-------x 2
- *   \endcode
- *
- *  - triangle (\ref CWP_BLOCK_FACE_TRIA3):
- *
- *   \code 
- *       1 x-------x 3
- *          \     /
- *           \   /
- *            \ /
- *             x 2
- *   \endcode
- *
- *  - quadrangle (\ref CWP_BLOCK_FACE_QUAD4) :
- *
- *   \code
- *          4 x-------x 3
- *           /       /
- *          /       /
- *       1 x-------x2
- *   \endcode
- *
- *   - tetrahedron (\ref CWP_BLOCK_CELL_TETRA4) : 
- *
- *   \code
- *             x 4
- *            /|\
- *           / | \
- *          /  |  \
- *       1 x- -|- -x 3
- *          \  |  /
- *           \ | /
- *            \|/
- *             x 2
- *   \endcode
- *
- *   - pyramid (\ref CWP_BLOCK_CELL_PYRAM5) :
- *
- *   \code
- *              5 x
- *               /|\
- *              //| \
- *             // |  \
- *          4 x/--|---x 3
- *           //   |  /
- *          //    | /
- *       1 x-------x 2
- *   \endcode
- *
- *  - prism (\ref CWP_BLOCK_CELL_PRISM6) :
- *
- *   \code
- *       4 x-------x 6
- *         |\     /|
- *         | \   / |
- *       1 x- \-/ -x 3
- *          \ 5x  /
- *           \ | /
- *            \|/
- *             x 2
- *   \endcode
- *
- *  -  hexaedron (\ref CWP_BLOCK_CELL_HEXA8) :
- *
- *   \code
- *          8 x-------x 7
- *           /|      /|
- *          / |     / |
- *       5 x-------x6 |
- *         | 4x----|--x 3
- *         | /     | /
- *         |/      |/
- *       1 x-------x 2
- *   \endcode
- *
- * \param [in]  cpl_id      Coupling identifier
- * \param [in]  i_part      Current partition
- * \param [in]  block_type  Block type
- * \param [in]  n_elts      Number of elements
- * \param [in]  connec      Connectivity (size = n_vertex_elt * \ref n_elts)          
- * \param [in]  parent_num  Pointer to parent element number (or NULL)
- *
- */
 
 void 
 CWP_Mesh_interf_std_block_add
@@ -1152,21 +908,6 @@ CWP_Mesh_interf_h_order_block_add
 }
 
 
-/**
- * \brief Adding a polygon connectivity block to the geometric support
- *
- * This function adds a polygon connectivity block to the geometric support for
- * \ref CWP_SUPPORT_MESH support type.
- *
- * \param [in]  cpl_id      Coupling identifier
- * \param [in]  i_part      Current partition
- * \param [in]  n_elts      Number of elements
- * \param [in]  connec_idx  Connectivity index (connec_id[0] = 0 and 
- *                          size = \ref n_elts + 1)          
- * \param [in]  connec      Connectivity (size = connec_id[n_elts] * \ref n_elts)
- * \param [in]  parent_num  Pointer to parent element number (or NULL)
- *
- */
 
 
 void 
@@ -1190,29 +931,6 @@ CWP_Mesh_interf_f_poly_block_add
 }
 
 
-/**
- * \brief Adding a polyhedron connectivity block to the geometric support
- *
- * This function add a connectivity block to the geometric support if support
- * type is only \ref CWP_SUPPORT_MESH. Definition of element connectivity is :
- *
- * \param [in]  cpl_id            Coupling identifier
- * \param [in]  i_part            Current partition
- * \param [in]  n_elts            Number of elements
- * \param [in]  cell_face_idx     Polyhedron to face index 
- *                                (src_poly_cell_face_idx[0] = 0 and
- *                                 size = n_elts + 1)
- * \param [in]  cell_face_connec  Polyhedron to face connectivity 
- *                                (size = cell_face_idx[n_elts])
- * \param [in]  n_faces           Number of faces      
- * \param [in]  face_vtx_idx      Polyhedron face to vertex index 
- *                                (face_vertex_idx[0] = 0 and
- *                                 size_idx = max(cell_face_connec) + 1)
- * \param [in]  face_vtx_connec   Polyhedron face to vertex connectivity
- *                                (size = face_vertex_idx[size_idx - 1])
- * \param [in]  parent_num        Pointer to parent element number (or NULL)
- *
- */
 
 void 
 CWP_Mesh_interf_c_poly_block_add
@@ -1297,14 +1015,7 @@ CWP_Mesh_interf_from_faceedge_set
 }
 
 
-/**
- * \brief Geometric support removal                                  
- *
- * This function delete the geometric support  
- *
- * \param [in]  cpl_id    Coupling identifier
- *
- */
+
 
 void 
 CWP_Mesh_interf_del
@@ -1317,16 +1028,7 @@ CWP_Mesh_interf_del
    cpl.meshDel();
 }
 
-/**
- * \brief Map a fvm nodal as support mesh                                  
- *
- * This function  map a fvm nodal as support mesh
- *
- * \param [in]  cpl_id            Coupling identifier
- * \param [in]  i_part            Current partition
- * \param [in]  fvmc_nodal        fvm nodal mesh    
- *
- */
+
 
 void 
 CWP_Mesh_interf_shared_fvm_nodal
@@ -1346,20 +1048,6 @@ CWP_Mesh_interf_shared_fvm_nodal
  * Functions about field                                                      *
  *----------------------------------------------------------------------------*/
 
-/**
- *
- * \brief Creating a new field
- * 
- * \param [in]  cpl_id         Coupling identifier
- * \param [in]  field_id       Field id
- * \param [in]  data_type      Data type          
- * \param [in]  storage        Storage type          
- * \param [in]  n_component    Number of componenent
- * \param [in]  nature         Nature
- * \param [in]  exch_type      Exchange type
- * \param [in]  visu_status    Visualization status
- * 
- */
 
  void
  CWP_Field_create
@@ -1385,17 +1073,6 @@ CWP_Mesh_interf_shared_fvm_nodal
                    visu_status);
  }
 
-/**
- *
- * \brief Set data mapping
- * 
- * \param [in] local_code_name   Local code name
- * \param [in] cpl_id            Coupling identifier
- * \param [in] field_id          Field identifier
- * \param [in] i_part            Current partition
- * \param [in] data              Storage array (Mapping)
- * 
- */
 
  void
  CWP_Field_mapping_set
@@ -1412,17 +1089,6 @@ CWP_Mesh_interf_shared_fvm_nodal
                        data);   
  }
 
-/**
- *
- * \brief Get nunmber of field components
- * 
- * \param [in] local_code_name  Local code name
- * \param [in] cpl_id           Coupling identifier
- * \param [in] field_id         Field identifier
- *
- * \return                      number of field components
- * 
- */
 
  int
  CWP_Field_n_component_get
@@ -1436,17 +1102,6 @@ CWP_Mesh_interf_shared_fvm_nodal
    return cpl.fieldNComponentGet(field_id);
  }
 
-/**
- *
- * \brief Get field nature
- * 
- * \param [in] local_code_name  Local code name
- * \param [in] cpl_id           Coupling identifier
- * \param [in] field_id         Field identifier
- *
- * \return                      Field nature
- * 
- */
 
  CWP_Field_value_t
  CWP_Field_location_get
@@ -1460,17 +1115,6 @@ CWP_Mesh_interf_shared_fvm_nodal
    return cpl.fieldNatureGet(field_id);
  }
 
-/**
- *
- * \brief Get field data type
- * 
- * \param [in] local_code_name  Local code name
- * \param [in] cpl_id           Coupling identifier
- * \param [in] field_id         Field identifier
- *
- * \return                      Field data type
- * 
- */
 
  CWP_Type_t
  CWP_Field_type_get
@@ -1485,16 +1129,6 @@ CWP_Mesh_interf_shared_fvm_nodal
  }
 
 
-/**
- *
- * \brief Get field storage type
- * 
- * \param [in] local_code_name  Local code name
- * \param [in] cpl_id           Coupling identifier
- * \param [in] field_id         Field identifier
- * 
- */
-
  CWP_Field_storage_t
  CWP_Field_storage_get
  (
@@ -1507,15 +1141,6 @@ CWP_Mesh_interf_shared_fvm_nodal
    return cpl.fieldStorageGet(field_id);
  }
 
-/**
- *
- * \brief Removing a field
- * 
- * \param [in] local_code_name  Local code name
- * \param [in] cpl_id           Coupling identifier
- * \param [in] field_id         Field identifier
- * 
- */
 
  void
  CWP_Field_del
@@ -1533,25 +1158,6 @@ CWP_Mesh_interf_shared_fvm_nodal
  * Functions about exchange                                                   *
  *----------------------------------------------------------------------------*/
 
-/**
- *
- * \brief Exchange data field with the coupled application with blocking 
- *        communications.
- *
- * This function exchanges interpolated fields between coupled codes. 
- * 
- * \warning  The size of \ref tgt_field_id size is n_computed_tgt. 
- *           If \f$ n\_uncomputed\_tgt \ne n\_tgt\_pts \f$,
- *           user himself must set values for uncomputed target points.
- *
- * \param [in]  cpl_id              Coupling identifier
- * \param [in]  src_field_id        Source field id (0 -> no sending)
- * \param [in]  tgt_field_id        Target field id (0 -> no receiving)
- * \param [out] n_uncomputed_tgt    Number of uncomputed target
- *
- * \return                          Exchange status
- *
- */
 
 // CWP_error_t 
 // CWP_sendrecv
@@ -1572,20 +1178,7 @@ CWP_Mesh_interf_shared_fvm_nodal
 //                       n_uncomputed_tgt);
 // }
 
-/**
- *
- * \brief Sending of data field to the coupled application with nonblocking 
- *        communications.
- *
- * This function sends interpolated field to the coupled code. 
- * 
- * \param [in]  cpl_id          Coupling identifier
- * \param [in]  src_field_id    Source field id
- *
- * \param [out] request         Request to call by \ref CWP_wait_issend 
- *                              to wait the end of exchange
- *
- */
+
 
 // void 
 // CWP_issend
@@ -1601,20 +1194,6 @@ CWP_Mesh_interf_shared_fvm_nodal
 //              request);
 // }
 
-/**
- *
- * \brief Receiving of Data field from the coupled application with nonblocking 
- *        communications.
- *
- * This function receives interpolated field from the coupled code 
- * 
- * \param [in]  cpl_id          Coupling identifier
- * \param [in]  tgt_field_id    Target field id
- *
- * \param [out] request         Request to call by \ref CWP_wait_irecv  
- *                              to wait the end of exchange
- *
- */
 
 // void 
 // CWP_irecv
@@ -1629,17 +1208,6 @@ CWP_Mesh_interf_shared_fvm_nodal
 //             request);
 // }
 
-/**
- *
- * \brief Waiting of the end of exchange related to \ref request.
- *
- * This function waits the end of exchange related to \ref request
- * from \ref CWP_issend
- * 
- * \param [in] cpl_id     Coupling identifier
- * \param [in] request    Request to wait the end of exchange
- *
- */
 
 // void 
 // CWP_wait_issend
@@ -1650,17 +1218,6 @@ CWP_Mesh_interf_shared_fvm_nodal
 //   cpl.waitIssend(request);
 // }
 
-/**
- *
- * \brief Waiting of the end of exchange related to \ref request.
- *
- * This function waits the end of exchange related to \ref request 
- * from \ref CWP_irecv
- * 
- * \param [in] cpl_id     Coupling identifier
- * \param [in] request    Request to wait the end of exchange
- *
- */
 
 // void 
 // CWP_wait_irecv
@@ -1676,17 +1233,6 @@ CWP_Mesh_interf_shared_fvm_nodal
  * Functions about user interpolation                                         *
  *----------------------------------------------------------------------------*/
 
-/**
- *
- * \brief Setting of an user interpolation from location.
- *
- * This function takes into account an user interpolation function written with
- * \ref void (*CWP_interp_from_location_t) interface.
- * 
- * \param [in] cpl_id     Coupling identifier
- * \param [in] fct        Function
- *
- */
 
 // void 
 // CWP_interp_from_loc_set
@@ -1699,17 +1245,6 @@ CWP_Mesh_interf_shared_fvm_nodal
 //   cpl.interpFromLocSet(fct);
 // }
 
-/**
- *
- * \brief Setting of a FORTRAN user interpolation from location.
- *
- * This function takes into account an user interpolation function written
- * in FORTRAN .
- * 
- * \param [in] cpl_id     Coupling identifier
- * \param [in] fct        Function
- *
- */
 
 // void 
 // CWP_interp_from_loc_set_f
@@ -1722,17 +1257,6 @@ CWP_Mesh_interf_shared_fvm_nodal
 //   cpl.interpFromLocSetF(fct);
 // }
 
-/**
- *
- * \brief Setting of an user interpolation from intersection.
- *
- * This function takes into account an user interpolation function written with
- * \ref void (*CWP_interp_from_intersec_t) interface.
- * 
- * \param [in] cpl_id     Coupling identifier
- * \param [in] fct        Function
- *
- */
 
 // void 
 // CWP_interp_from_inter_set
@@ -1745,17 +1269,6 @@ CWP_Mesh_interf_shared_fvm_nodal
 //   cpl.interpFromInterSet(fct);
 // }
 
-/**
- *
- * \brief Setting of a FORTRAN user interpolation from intersection.
- *
- * This function takes into account an user interpolation function written
- * in FORTRAN .
- * 
- * \param [in] cpl_id     Coupling identifier
- * \param [in] fct        Function
- *
- */
 
 // void 
 // CWP_interp_from_inter_set_f
@@ -1768,17 +1281,6 @@ CWP_Mesh_interf_shared_fvm_nodal
 //   cpl.interpFromInterSetF(fct);
 // }
 
-/**
- *
- * \brief Setting of an user interpolation from closest points
- *
- * This function takes into account an user interpolation function written with
- * \ref void (*CWP_interp_from_closest_pts_t) interface.
- * 
- * \param [in] cpl_id     Coupling identifier
- * \param [in] fct        Function
- *
- */
 
 // void 
 // CWP_interp_from_closest_set
@@ -1791,17 +1293,6 @@ CWP_Mesh_interf_shared_fvm_nodal
 //   cpl.interpFromClosestSet(fct);
 // }
 
-/**
- *
- * \brief Setting of a FORTRAN user interpolation from closest points
- *
- * This function takes into account an user interpolation function written
- * in FORTRAN .
- * 
- * \param [in] cpl_id     Coupling identifier
- * \param [in] fct        Function
- *
- */
 
 // void 
 // CWP_interp_from_closest_set_f
@@ -1822,10 +1313,12 @@ CWP_Mesh_interf_shared_fvm_nodal
  *
  * \brief Add a control parameter
  * 
+ * Addition of a control parameter in the code properties.
+ *
  * \param [in] local_code_name  Local code name
  * \param [in] param_name       Parameter name
  * \param [in] data_type        Parameter type
- * \param [in] init_value       Initial value
+ * \param [in] initial_value    Initial value
  *
  */
 
