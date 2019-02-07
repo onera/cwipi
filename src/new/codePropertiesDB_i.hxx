@@ -52,7 +52,7 @@ namespace cwipi {
   /**
    * \brief Return local code MPI intra communicator.
    *
-   * \parm[in]   localCodeName  Local code name
+   * \param[in]   localCodeName  Local code name
    * 
    * \return  MPI Intra communicator
    *
