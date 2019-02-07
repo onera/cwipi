@@ -271,7 +271,7 @@ namespace cwipi {
      *
      * \param [in]  codeName    Code name
      * \param [in]  nParam      Number of control parameters
-     * \param [in]  parmNames   Pointer to the list of parameters names
+     * \param [in]  paramNames   Pointer to the list of parameters names
      *
      */
 
@@ -328,7 +328,7 @@ namespace cwipi {
      * \param [in]  op     Operator from \ref CWP_Op_t
      * \param [in]  name   Parameter name
      * \param [in]  nCode  Number of code
-     * \param       ...    Code names
+     * \param       pa     Code names
      *
      * \return             Operation result
      *
