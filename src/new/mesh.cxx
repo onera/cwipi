@@ -30,6 +30,17 @@
 
 namespace cwipi {
 
+
+
+  /**
+    * \brief Mesh constructor
+    * 
+    * Construct the CWIPI mesh by using paradigm nodal methods.
+    * 
+    * \param [in] npart Number of mesh partitions.
+    *
+    */
+     
   Mesh::Mesh(const MPI_Comm &localComm,
          const int npart)
     : _localComm(localComm),

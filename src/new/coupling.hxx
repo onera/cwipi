@@ -425,7 +425,8 @@ namespace cwipi {
      * \param [in]  i_part      Current partition
      * \param [in]  block_type  Block type
      * \param [in]  n_elts      Number of elements
-     * \param [in]  connec      Connectivity (size = n_vertex_elt * \ref n_elts)          
+     * \param [in]  connec      Connectivity (size = n_vertex_elt * \ref n_elts) 
+     * \param [in]  global_num  Pointer to Global element numbering (or NULL)         
      * \param [in]  parent_num  Pointer to parent element number (or NULL)
      *
      */
@@ -452,7 +453,7 @@ namespace cwipi {
      * \param [in]  block_type  Block type
      * \param [in]  n_elts      Number of elements
      * \param [in]  connec      Connectivity (size = n_vertex_elt * \ref n_elts)          
-     * \param [in]  parent_num  Pointer to parent element number (or NULL)
+     * \param [in]  global_num  Pointer to global element number (or NULL)
      *
      */
     
@@ -530,6 +531,29 @@ namespace cwipi {
      CWP_g_num_t         parent_num[]
     );
 
+    /**
+     * \brief Adding a polyhedron block to the geometric mesh from
+     * a face-to-cell connectivity and a vertices-to-faces connectivity.
+     *
+     * This function add a polyhedron 3D block to the geometric mesh from
+     * a face-to-cell connectivity and a vertices-to-faces connectivity.
+     *
+     * \param [in]  i_part            Current partition
+     * \param [in]  n_cells           Number of elements
+     * \param [in]  cell_face_idx     Polyhedron to face index 
+     *                                (src_poly_cell_face_idx[0] = 0 and
+     *                                 size = n_elts + 1)
+     * \param [in]  cell_face         Polyhedron to face connectivity 
+     *                                (size = cell_face_idx[n_elts])
+     * \param [in]  n_faces           Number of faces      
+     * \param [in]  face_vtx_idx      Polyhedron vertices to faces index 
+     *                                (face_vtx_idx[0] = 0 and
+     *                                 size_idx = max(face_vtx) + 1)
+     * \param [in]  face_vtx          Polyhedron vertices to faces connectivity
+     *                                (size = face_vtx_idx[size_idx - 1])
+     * \param [in]  parent_num        Pointer to parent element number (or NULL)
+     *
+     */
 
     void
     meshFromCellFaceSet(const int   i_part,
@@ -543,6 +567,31 @@ namespace cwipi {
 
 
 
+
+    /**
+     * \brief Adding a polygon 2D block to the geometric mesh from
+     * a vertices-to-faces connectivity and a edge-to-face connectivity.
+     *
+     * This function add a polygon 2D block to the geometric mesh from
+     * a vertices-to-faces connectivity and a edge-to-face connectivity.
+     *
+     * \param [in]  i_part            Current partition
+     * \param [in]  n_faces           Number of faces      
+     * \param [in]  face_edge_idx     Polygon vertices to faces index 
+     *                                (face_edge_idx[0] = 0 and
+     *                                size_idx = max(face_edge) + 1)
+     * \param [in]  face_edge         Polyhegon vertices to face connectivity
+     *                                (size = face_edge_idx[size_idx - 1])
+     * \param [in]  parent_num        Pointer to parent element number (or NULL)
+     * \param [in]  n_edges           Number of edges      
+     * \param [in]  edge_vtx_idx      Vertices to edges connectivity index 
+     *                                (edge_vtx_idx[0] = 0 and
+     *                                size_idx = max(edge_vtx) + 1)
+     * \param [in]  edge_vtx          Polygon vertices to edges connectivity
+     *                                (size = edge_vtx_idx[size_idx - 1])
+     * \param [in]  parent_num        Pointer to parent element number (or NULL)     
+     *
+     */
      
     void
     meshFromFacesEdgeSet(const int   i_part,

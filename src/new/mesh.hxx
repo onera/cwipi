@@ -30,6 +30,11 @@
 #include "cwp.h"
 
 
+
+
+namespace cwipi {
+
+
 typedef struct {
     int              _id_part;
     int              _id_block;
@@ -46,10 +51,13 @@ typedef struct {
     bool             _isBlockFinalized;
 } _block;
 
-namespace cwipi {
+
 
   /** 
-   * \class Mesh Mesh.hxx "Mesh.hxx"
+   * \class Mesh 
+   *        Mesh.hxx 
+   *        "Mesh.hxx"
+   *
    * \brief Geometry Mesh
    *
    *  This class computes defines th geometry Mesh (mesh)
@@ -65,7 +73,8 @@ namespace cwipi {
      * 
      * Construct the CWIPI mesh by using paradigm nodal methods.
      * 
-     * \param [in] npart Number of mesh partitions.
+     * \param [in] localComm Coupling Communicator.
+     * \param [in] npart     Number of mesh partitions.
      *
      */
  
@@ -75,6 +84,8 @@ namespace cwipi {
 
     /**
      * \brief Mesh destructor
+     *
+     * Destroy the Mesh object.
      *
      */
 
@@ -108,20 +119,25 @@ namespace cwipi {
      */
    
      void meshDel();
-
+     
      /**
      * \brief Addition of a block (set of cells) to the mesh partition
      *
-     * \param [in] ipart       Index of the mesh partition
+     * This function add a block to the geometric mesh.
+     *
+     * \param [in] i_part       Index of the mesh partition
      * \param [in] block_type  Type of the block addition     
-     * \param [in] block_type  Block type i.e. Type of the block elements
      * \param [in] n_elts      Number of block elements
-     * \param [in] connec_idx  Vertices to elements connecivity index
-     * \param [in] connec      Vertices to elements connecivity 
-     * \param [in] global_num  Global numbering of the vertices in the block
-     * \param [in] parent_num  Parent numbering in the block
+     * \param [in] connec_idx  Vertices to elements connectivity index
+     * \param [in] connec      Vertices to elements connectivity 
+     * \param [in] n_faces     Number of faces elements (or NULL)
+     * \param [in] face_vtx_idx Vertices to faces connectivity index (or NULL)
+     * \param [in] face_vtx      Vertices to faces connectivity (or NULL)
+     * \param [in] global_num  Global numbering of the vertices in the block (or NULL)
+     * \param [in] parent_num  Parent numbering in the block (or NULL)
+     *
      */
-   
+
      int blockAdd(const int                  i_part,
                        const CWP_Block_t      block_type,
                        const int              n_elts,
