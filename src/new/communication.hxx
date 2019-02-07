@@ -60,6 +60,7 @@ namespace cwipi {
      * \param [in]  localCodeProperties   Local code properties
      * \param [in]  cplCodeProperties     Coupled code properties
      * \param [in]  cplId                 Coupling identifier
+     * \param [in]  cplDB                 Coupling DataBase
      *
      */
 
