@@ -908,8 +908,6 @@ CWP_Mesh_interf_h_order_block_add
 }
 
 
-
-
 void 
 CWP_Mesh_interf_f_poly_block_add
 (
@@ -929,7 +927,6 @@ CWP_Mesh_interf_f_poly_block_add
                          connec,
                          parent_num);
 }
-
 
 
 void 
@@ -987,7 +984,6 @@ CWP_Mesh_interf_from_cellface_set
 
 
 
-
 void 
 CWP_Mesh_interf_from_faceedge_set
 (
@@ -1015,8 +1011,6 @@ CWP_Mesh_interf_from_faceedge_set
 }
 
 
-
-
 void 
 CWP_Mesh_interf_del
 (
@@ -1027,7 +1021,6 @@ CWP_Mesh_interf_del
    cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
    cpl.meshDel();
 }
-
 
 
 void 
@@ -1047,7 +1040,6 @@ CWP_Mesh_interf_shared_fvm_nodal
 /*----------------------------------------------------------------------------*
  * Functions about field                                                      *
  *----------------------------------------------------------------------------*/
-
 
  void
  CWP_Field_create
