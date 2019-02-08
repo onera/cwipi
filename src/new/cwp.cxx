@@ -1181,7 +1181,7 @@ CWP_Mesh_interf_shared_fvm_nodal
 
 
 // void 
-// CWP_issend
+// CWP_Issend
 // (const char     *cpl_id,
 //  const char     *src_field_id,
 //  int            *request)
@@ -1196,7 +1196,7 @@ CWP_Mesh_interf_shared_fvm_nodal
 
 
 // void 
-// CWP_irecv
+// CWP_Irecv
 // (const char   *cpl_id,
 //  const char   *tgt_field_id,
 //  int          *request)
@@ -1235,10 +1235,10 @@ CWP_Mesh_interf_shared_fvm_nodal
 
 
 // void 
-// CWP_interp_from_loc_set
+// CWP_Interp_from_loc_set
 // (
 //  const char                  *cpl_id,
-//  CWP_interp_from_location_t fct
+//  CWP_Interp_from_location_t fct
 // )
 // {
 //   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
@@ -1247,7 +1247,7 @@ CWP_Mesh_interf_shared_fvm_nodal
 
 
 // void 
-// CWP_interp_from_loc_set_f
+// CWP_Interp_from_loc_set_f
 // (
 //  const char *cpl_id,
 //  void       *fct
@@ -1259,10 +1259,10 @@ CWP_Mesh_interf_shared_fvm_nodal
 
 
 // void 
-// CWP_interp_from_inter_set
+// CWP_Interp_from_inter_set
 // (
 //  const char                  *cpl_id,
-//  CWP_interp_from_intersec_t fct
+//  CWP_Interp_from_intersec_t fct
 // )
 // {
 //   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
@@ -1271,7 +1271,7 @@ CWP_Mesh_interf_shared_fvm_nodal
 
 
 // void 
-// CWP_interp_from_inter_set_f
+// CWP_Interp_from_inter_set_f
 // (
 //  const char *cpl_id,
 //  void       *fct
@@ -1283,10 +1283,10 @@ CWP_Mesh_interf_shared_fvm_nodal
 
 
 // void 
-// CWP_interp_from_closest_set
+// CWP_Interp_from_closest_set
 // (
 //  const char                     *cpl_id,
-//  CWP_interp_from_closest_pts_t fct
+//  CWP_Interp_from_closest_pts_t fct
 // )
 // {
 //   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
@@ -1295,7 +1295,7 @@ CWP_Mesh_interf_shared_fvm_nodal
 
 
 // void 
-// CWP_interp_from_closest_set_f
+// CWP_Interp_from_closest_set_f
 // (
 //  const char *cpl_id,
 //  void       *fct

@@ -356,7 +356,7 @@ typedef enum {
  * \typedef void (*CWP_Interp_from_location_t)
  * \brief User interpolation function from location into a mesh.
  *
- * void (*CWP_interp_from_location_t) defines the user interpolation 
+ * void (*CWP_Interp_from_location_t) defines the user interpolation 
  * interface to take into account an user interpolation from location of target 
  * points into the source mesh.
  *
@@ -439,7 +439,7 @@ typedef void (*CWP_Interp_from_location_t)
  * \typedef void (*CWP_Interp_from_intersec_t)
  * \brief User interpolation function from intersection between meshes <b>(Not implemented yet)</b>  
  *
- * void (*CWP_interp_from_intersec_t) defines the user interpolation 
+ * void (*CWP_Interp_from_intersec_t) defines the user interpolation 
  * interface to take into account an user interpolation from intersection 
  * between source and target meshes 
  *
@@ -456,7 +456,7 @@ typedef void (*CWP_Interp_from_intersec_t)
  * \typedef void (*CWP_Interp_from_closest_pts_t)
  * \brief User interpolation function from closest points <b>(Not implemented yet)</b>
  *
- * void (*CWP_interp_from_closest_pts_t) defines the user interpolation 
+ * void (*CWP_Interp_from_closest_pts_t) defines the user interpolation 
  * interface to take into account an user interpolation from <i>n</i> closest
  * point 
  *
@@ -1835,7 +1835,7 @@ CWP_Wait_irecv
  * \brief Setting of an user interpolation from location.
  *
  * This function takes into account an user interpolation function written with
- * void (*\ref CWP_interp_from_location_t) interface.
+ * void (*\ref CWP_Interp_from_location_t) interface.
  * 
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
@@ -1877,7 +1877,7 @@ CWP_Interp_from_loc_set_f
  * \brief Setting of an user interpolation from intersection.
  *
  * This function takes into account an user interpolation function written with
- * void (*\ref CWP_interp_from_intersec_t) interface.
+ * void (*\ref CWP_Interp_from_intersec_t) interface.
  * 
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
@@ -1928,7 +1928,7 @@ CWP_Interp_from_inter_set_f
  */
 
 void 
-CWP_interp_from_closest_set
+CWP_Interp_from_closest_set
 (
  const char                     *local_code_name,
  const char                     *cpl_id,
