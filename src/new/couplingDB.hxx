@@ -33,7 +33,7 @@ namespace cwipi {
   class CodeProperties;
   
   /** 
-   * \class Coupling couplingDB.hxx "couplingDB.hxx"
+   * \class CouplingDB couplingDB.hxx "couplingDB.hxx"
    * \brief Coupling instances storage
    *
    *  This class stores coupling instances

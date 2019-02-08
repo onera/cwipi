@@ -19,6 +19,15 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+
+/** \file codeProperties.hxx
+ *  
+ *  \brief Header file of codeProperties class
+ * 
+ *   This file is the header file of codeProperties class.
+ *
+ */
+
 #include <mpi.h>
 #include <cassert>
 #include <cstring>
@@ -34,10 +43,21 @@
 
 using namespace std;
 
+
+
+  /** 
+   * \namespace cwipi
+   *
+   * \brief CWIPI namespace
+   *
+   * CWIPI namespace 
+   * 
+   */
+
 namespace cwipi {
 
   /** 
-   * \class codeProperties
+   * \class CodeProperties
    *        codeProperties.hxx 
    *        "codeProperties.hxx"
    *

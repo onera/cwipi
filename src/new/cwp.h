@@ -255,13 +255,13 @@ typedef enum {
 
 } CWP_Block_t;
 
-/**
-  * \enum CWP_Support_t
-  * \brief Geometric support.
-  *
-  * CWP_Support_t gives different geometric supports on which source fields 
-  * are defined  
-  */
+//**
+// * \enum CWP_Support_t
+// * \brief Geometric support.
+// *
+// * CWP_Support_t gives different geometric supports on which source fields 
+// * are defined  
+// */
 
 typedef enum {
 

@@ -29,7 +29,9 @@ namespace cwipi {
  * \defgroup	FactoryErrorPoliciesGroup Factory Error Policies
  * \ingroup		FactoryGroup
  * \brief		Manages the "Unknown Type" error in an object factory
- * 
+ * /
+ 
+/**
  * \class DefaultFactoryError
  * \ingroup		FactoryErrorPoliciesGroup
  * \brief		Default policy that throws an exception		
@@ -38,11 +40,23 @@ namespace cwipi {
 
   template <typename IdentifierType, class AbstractProduct>
   struct DefaultFactoryError {
+  
+ /**
+ * \struct Exception
+ * \ingroup		FactoryErrorPoliciesGroup
+ * \brief		Throws an exception		
+ * 
+ */ 
     struct Exception : public std::exception
     {
       const char* what() const throw() { return "Unknown Type"; }
     };
-    
+
+ /**
+ *  \brief	Throws an exception		
+ * 
+ *  \return     AbstractProduct*
+ */     
     static AbstractProduct* OnUnknownType(IdentifierType)
     {
       throw Exception();

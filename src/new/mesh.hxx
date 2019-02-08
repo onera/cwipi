@@ -61,13 +61,10 @@ typedef struct {
 
 
   /** 
-   * \class Mesh 
-   *        Mesh.hxx 
-   *        "Mesh.hxx"
+   * \class Mesh mesh.hxx "mesh.hxx"
+   * \brief Geometry mesh
    *
-   * \brief Geometry Mesh
-   *
-   *  This class computes defines the geometry Mesh (mesh)
+   *  This class computes defines th geometry mesh
    * 
    */
 

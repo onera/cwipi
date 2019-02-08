@@ -24,7 +24,7 @@ using namespace std;
 namespace cwipi {
   
   /** 
-   * \class Field field.hxx "location.hxx"
+   * \class Field field.hpp "field.hpp"
    * \brief Abstract field
    *
    *  This class is field abstract interface 

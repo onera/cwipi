@@ -25,7 +25,7 @@
 namespace cwipi {
 
   /** 
-   * \class CommWithPart commwithpart.hxx "commwithpart.hxx"
+   * \class CommWithPart commWithPart.hxx "commWithPart.hxx"
    * \brief Communication with support partitionning
    *
    *  This class manages communication when the support is partitionned
