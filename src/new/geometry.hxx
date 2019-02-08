@@ -66,8 +66,13 @@ namespace cwipi {
      const int        n_pts,
      double           coords[],
      CWP_g_num_t      parent_num[]);
-     
-     
+
+   
+    /**
+     * \brief Finalize the mesh setting after blocks and coordinates additions
+     *
+     */    
+
     void 
     meshInterfEndSet
     (
@@ -79,15 +84,15 @@ namespace cwipi {
      * \brief Adding a connectivity block to the geometric meshInterf
      *
      * This function adds a connectivity block to the geometric meshInterf for
-     * \ref CWIPI_meshInterf_mesh meshInterf type. Definition of element connectivity is :
+     * \ref CWP_SUPPORT_MESH mesh type. Definition of element connectivity is :
      *
-     *  - edge (\ref CWIPI_BLOCK_EDGE2) :
+     *  - edge (\ref CWP_BLOCK_EDGE2) :
      *
      *   \code
      *       1 x-------x 2
      *   \endcode
      *
-     *  - triangle (\ref CWIPI_BLOCK_FACE_TRIA3):
+     *  - triangle (\ref CWP_BLOCK_FACE_TRIA3):
      *
      *   \code 
      *       1 x-------x 3
@@ -97,7 +102,7 @@ namespace cwipi {
      *             x 2
      *   \endcode
      *
-     *  - quadrangle (\ref CWIPI_BLOCK_FACE_QUAD4) :
+     *  - quadrangle (\ref CWP_BLOCK_FACE_QUAD4) :
      *
      *   \code
      *          4 x-------x 3
@@ -106,7 +111,7 @@ namespace cwipi {
      *       1 x-------x2
      *   \endcode
      *
-     *   - tetrahedron (\ref CWIPI_BLOCK_CELL_TETRA4) : 
+     *   - tetrahedron (\ref CWP_BLOCK_CELL_TETRA4) : 
      *
      *   \code
      *             x 4
@@ -120,7 +125,7 @@ namespace cwipi {
      *             x 2
      *   \endcode
      *
-     *   - pyramid (\ref CWIPI_BLOCK_CELL_PYRAM5) :
+     *   - pyramid (\ref CWP_BLOCK_CELL_PYRAM5) :
      *
      *   \code
      *              5 x
@@ -133,7 +138,7 @@ namespace cwipi {
      *       1 x-------x 2
      *   \endcode
      *
-     *  - prism (\ref CWIPI_BLOCK_CELL_PRISM6) :
+     *  - prism (\ref CWP_BLOCK_CELL_PRISM6) :
      *
      *   \code
      *       4 x-------x 6
@@ -146,7 +151,7 @@ namespace cwipi {
      *             x 2
      *   \endcode
      *
-     *  -  hexaedron (\ref CWIPI_BLOCK_CELL_HEXA8) :
+     *  -  hexaedron (\ref CWP_BLOCK_CELL_HEXA8) :
      *
      *   \code
      *          8 x-------x 7
@@ -162,7 +167,7 @@ namespace cwipi {
      * \param [in]  i_part      Current partition
      * \param [in]  block_type  Block type
      * \param [in]  n_elts      Number of elements
-     * \param [in]  connec      Connectivity (size = n_vertex_elt * \ref n_elts)          
+     * \param [in]  connec      Connectivity (size = n_vertex_elt *n_elts)          
      * \param [in]  parent_num  Pointer to parent element number (or NULL)
      *
      */
@@ -179,13 +184,14 @@ namespace cwipi {
      * \brief Adding a polygon connectivity block to the geometric meshInterf
      *
      * This function adds a polygon connectivity block to the geometric meshInterf for
-     * \ref CWIPI_SUPPORT_MESH meshInterf type.
+     * \ref CWP_SUPPORT_MESH meshInterf type.
      *
      * \param [in]  i_part      Current partition
+     * \param [in]  block_type  Type of the block elements
      * \param [in]  n_elts      Number of elements
      * \param [in]  connec_idx  Connectivity index (connec_id[0] = 0 and 
-     *                          size = \ref n_elts + 1)          
-     * \param [in]  connec      Connectivity (size = connec_id[n_elts] * \ref n_elts)        
+     *                          size =n_elts + 1)          
+     * \param [in]  connec      Connectivity (size = connec_id[n_elts] *n_elts)        
      * \param [in]  parent_num  Pointer to parent element number (or NULL)
      *
      */
@@ -204,20 +210,20 @@ namespace cwipi {
      * \brief Adding a polyhedron connectivity block to the geometric meshInterf
      *
      * This function add a connectivity block to the geometric meshInterf if meshInterf
-     * type is only \ref CWIPI_SUPPORT_MESH. Definition of element connectivity is :
+     * type is only \ref CWP_SUPPORT_MESH. Definition of element connectivity is :
      *
      * \param [in]  i_part            Current partition
      * \param [in]  n_elts            Number of elements
      * \param [in]  cell_face_idx     Polyhedron to face index 
      *                                (src_poly_cell_face_idx[0] = 0 and
      *                                 size = n_elts + 1)
-     * \param [in]  cell_face_connec  Polyhedron to face connectivity 
+     * \param [in]  cell_face          Polyhedron to face connectivity 
      *                                (size = cell_face_idx[n_elts])
      * \param [in]  n_faces           Number of faces      
      * \param [in]  face_vtx_idx      Polyhedron face to vertex index 
      *                                (face_vertex_idx[0] = 0 and
      *                                 size_idx = max(cell_face_connec) + 1)
-     * \param [in]  face_vtx_connec   Polyhedron face to vertex connectivity
+     * \param [in]  face_vtx           Polyhedron face to vertex connectivity
      *                                (size = face_vertex_idx[size_idx - 1])
      * \param [in]  parent_num        Pointer to parent element number (or NULL)
      *
@@ -257,7 +263,7 @@ namespace cwipi {
      *
      * This function exchanges interpolated fields between coupled codes. 
      * 
-     * \warning  The size of \ref tgt_field_id size is n_computed_tgt. 
+     * \warning  The size of tgt_field_id size is n_computed_tgt. 
      *           If \f$ n\_uncomputed\_tgt \ne n\_tgt\_pts \f$,
      *           user himself must set values for uncomputed target points.
      *
@@ -288,7 +294,7 @@ namespace cwipi {
      * \param [in]  ptFortranInterpolationFct Fortran user interpolation (or NULL)
      *
      * \param [out] request                   Request to call by 
-     *                                        \ref CWIPI_wait_issend to wait 
+     *                                        \ref CWP_Wait_issend to wait 
      *                                        the end of exchange
      *
      */
@@ -301,10 +307,10 @@ namespace cwipi {
 
     /**
      *
-     * \brief Waiting of the end of exchange related to \ref request.
+     * \brief Waiting of the end of exchange related to request.
      *
-     * This function waits the end of exchange related to \ref request
-     * from \ref CWIPI_issend
+     * This function waits the end of exchange related to request
+     * from \ref CWP_Issend
      * 
      * \param [in] request    Request to wait the end of exchange
      *
@@ -323,7 +329,7 @@ namespace cwipi {
      * 
      * \param [in]  tgt       Target field   
      *
-     * \param [out] request   Request to call by \ref CWIPI_wait_irecv  
+     * \param [out] request   Request to call by \ref CWP_Wait_irecv  
      *                        to wait the end of exchange
      *
      */
@@ -335,10 +341,10 @@ namespace cwipi {
 
     /**
      *
-     * \brief Waiting of the end of exchange related to \ref request.
+     * \brief Waiting of the end of exchange related to request.
      *
-     * This function waits the end of exchange related to \ref request 
-     * from \ref CWIPI_irecv
+     * This function waits the end of exchange related to request 
+     * from \ref CWP_Irecv
      * 
      * \param [in] request    Request to wait the end of exchange
      *
@@ -352,10 +358,10 @@ namespace cwipi {
      * \brief Setting user target points
      *
      * This function must be called if the nature of receiving fields 
-     * is \ref CWIPI_FIELD_NATURE_USER
+     * is \ref CWP_FIELD_VALUE_USER
      *
      * \param [in]  n_pts   Number of points
-     * \param [in]  coord   Coordinates (size = 3 * \ref n_pts)          
+     * \param [in]  coords   Coordinates (size = 3 * n_pts)          
      *
      */
 
@@ -369,7 +375,7 @@ namespace cwipi {
      * \brief Setting of an user interpolation from location.
      *
      * This function takes into account an user interpolation function written with
-     * \ref void (*CWIPI_interp_from_location_t) interface.
+     * \ref void (*CWP_interp_from_location_t) interface.
      * 
      * \param [in] fct        Function
      *
@@ -377,7 +383,7 @@ namespace cwipi {
 
     void 
     InterpUser
-    (CWP_Interp_from_location_t);
+    (CWP_Interp_from_location_t fct);
 
     /**
      *
@@ -415,7 +421,6 @@ namespace cwipi {
      *
      * \brief Return computed targets
      * 
-     * \param [in] cpl_id     Coupling identifier
      *
      * \return                Computed targets
      *
@@ -430,9 +435,10 @@ namespace cwipi {
     Geometry (const Geometry& other);            /*!< Copy constructor not available */
 
   private:
-    std::vector<double>         *_tmpVertexField;  // Evite une allocation a chaque extrapolation
-    std::vector<double>         *_tmpDistantField; //TODO: Fusionner _tmpDistantField utiliser pour exchange
-                                           // et les comm asynchrones
+    std::vector<double>         *_tmpVertexField;  /*!< Evite une allocation a chaque extrapolation */
+    std::vector<double>         *_tmpDistantField; /*!< TODO: Fusionner _tmpDistantField utiliser pour exchange
+                                                        et les comm asynchrones */
+    Mesh                        *_meshInterf;      /*!< Interface Mesh */
    // std::map<int, std::vector<double> * > &_tmpDistantFieldsIssend; //TODO: temporaire : A revoir lors
                                                                     // de la restructuration
  //   std::map<int, const double * >        &_tmpLocalFieldsIrecv;
@@ -441,7 +447,7 @@ namespace cwipi {
 //    std::map<int, int >                   &_tmpTimeStepIrecv;
  //   std::map<int, double >                &_tmpTimeValueIrecv;
  //   std::map<int, const char * >          &_tmpFieldNameIrecv;
-    Mesh                                    *_meshInterf;
+
   };
 
 }
