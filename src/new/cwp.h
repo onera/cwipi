@@ -1835,7 +1835,7 @@ CWP_Wait_irecv
  * \brief Setting of an user interpolation from location.
  *
  * This function takes into account an user interpolation function written with
- * \ref void (*CWP_interp_from_location_t) interface.
+ * void (*\ref CWP_interp_from_location_t) interface.
  * 
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
@@ -1877,7 +1877,7 @@ CWP_Interp_from_loc_set_f
  * \brief Setting of an user interpolation from intersection.
  *
  * This function takes into account an user interpolation function written with
- * \ref void (*CWP_interp_from_intersec_t) interface.
+ * void (*\ref CWP_interp_from_intersec_t) interface.
  * 
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
@@ -1919,7 +1919,7 @@ CWP_Interp_from_inter_set_f
  * \brief Setting of an user interpolation from closest points
  *
  * This function takes into account an user interpolation function written with
- *   \ref void (*CWP_Interp_from_intersec_t) interface.
+ *  void (*\ref CWP_Interp_from_intersec_t) interface.
  * 
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
