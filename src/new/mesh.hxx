@@ -255,7 +255,7 @@ typedef struct {
     *
     */
 
-    inline int& getPartNVertex(int i_part) const;
+    inline const int getPartNVertex(int i_part) const;
 
     /**
     * \brief Get the vertices coordinates of the i_part partition
@@ -267,7 +267,7 @@ typedef struct {
     *
     */
 
-    inline const std::vector<double*> getVertexCoords(int i_part) const;
+    inline const double* getVertexCoords(int i_part) const;
 
 
     /**
@@ -399,12 +399,12 @@ typedef struct {
 
   };
 
-  const std::vector<int>& Mesh::getPartNVertex(int i_part) const
+  const int Mesh::getPartNVertex(int i_part) const
   {
     return _nVertex[i_part];
   }
 
-  const std::vector<double*> Mesh::getVertexCoords(int i_part)  const
+  const double* Mesh::getVertexCoords(int i_part)  const
   {
     return _coords[i_part];
   }
