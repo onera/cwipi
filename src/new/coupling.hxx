@@ -786,8 +786,8 @@ namespace cwipi {
      *           If \f$ n\_uncomputed\_tgt \ne n\_tgt\_pts \f$,
      *           user himself must set values for uncomputed target points.
      *
-     * \param [in]  src_field_id                    Source field (NULL -> no sending)
-     * \param [in]  tgt_field_id                    Target field (NULL -> no receiving)
+     * \param [in]  src_field_id              Source field (NULL -> no sending)
+     * \param [in]  tgt_field_id              Target field (NULL -> no receiving)
      * \param [in]  ptFortranInterpolationFct Fortran user interpolation (or NULL)
      * \param [out] n_uncomputed_tgt          Number of uncomputed target
      *
