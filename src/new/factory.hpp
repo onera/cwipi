@@ -49,6 +49,12 @@ namespace cwipi {
  */ 
     struct Exception : public std::exception
     {
+    
+     /**
+      *  \brief	what function		
+      * 
+      *  \return     "Unknown Type"
+      */ 
       const char* what() const throw() { return "Unknown Type"; }
     };
 

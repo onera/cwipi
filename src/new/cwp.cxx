@@ -577,7 +577,7 @@ CWP_Properties_dump
  * \param [in]  comm_type           Communication type
  * \param [in]  geom_algo           Geometric algorithm
  * \param [in]  n_part              Number of interface partition 
- * \param [in]  moving_status       Support moving status
+ * \param [in]  displacement        Mesh displacement
  * \param [in]  recv_freq_type      Type of receiving frequency
  *
  */

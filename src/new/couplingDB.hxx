@@ -54,7 +54,7 @@ namespace cwipi {
      *
      * \param [in]  localCodeProperties  Source code
      * \param [in]  cplId                Coupling identifier
-     * \param [in]  cplCodeProperties    Coupled code properties
+     * \param [in]  coupledCodeProperties    Coupled code properties
      * \param [in]  commType             Communication type
      * \param [in]  geomAlgo             Geometric algorithm
      * \param [in]  nPart                Number of interface partition 

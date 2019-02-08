@@ -578,20 +578,20 @@ FILE *output_file
 );
 
 
-/**
- * \brief Writing output to fortran file.
- *
- * This function set the file fortran logical unit for writing output.
- *
- * \param [in]  iunit        File fortan logical unit
- *
- */
+//**
+// * \brief Writing output to fortran file.
+// *
+// * This function set the file fortran logical unit for writing output.
+// *
+// * \param [in]  iunit        File fortan logical unit
+// *
+// */
 
-void 
-PROCF (cwp_output_fortran_unit_set, CWP_OUTPUT_FORTRAN_UNIT_SET)
-(
- int *iunit
-);
+//void 
+//PROCF (cwp_output_fortran_unit_set, CWP_OUTPUT_FORTRAN_UNIT_SET)
+//(
+// int *iunit
+//);
 
 /*----------------------------------------------------------------------------*
  * Functions about other code properties                               *
@@ -1808,7 +1808,7 @@ CWP_Wait_issend
  * \brief Waiting of the end of exchange related to request.
  *
  * This function waits the end of exchange related to request 
- * from \ref CWP_irecv
+ * from \ref CWP_Irecv
  * 
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier

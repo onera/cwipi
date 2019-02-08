@@ -60,8 +60,31 @@ using namespace std;
 
 namespace cwipi {
 
-
+  /**
+   * \typedef FC
+   * 
+   * \brief Communication Factory
+   *
+   *  A communication \ref Factory wich makes \ref Communication 
+   *  class objects.
+   *  The type of communication objects build depends on the
+   *  communication type \ref CWP_Comm_t .
+   *
+   */
+   
   typedef Factory<Communication, CWP_Comm_t> FC;
+  
+   /**
+   * \typedef FG
+   * 
+   * \brief Geometry Factory
+   *
+   *  A geometry \ref Factory wich makes \ref Geometry class objects.
+   *  The type of \ref Geometry objects build depends on the
+   *  geometry algorithm type \ref CWP_Geom_algo_t; .
+   *
+   */
+  
   typedef Factory<Geometry, CWP_Geom_algo_t> FG;
 
   
