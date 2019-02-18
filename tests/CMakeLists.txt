@@ -153,10 +153,6 @@ if (CWP_ENABLE_Fortran)
   target_link_libraries(fortran_plane_PiQj cwp_checkf)
   add_dependencies(fortran_plane_PiQj  cwp_checkf)
 
-  add_library (Meshbf.7 STATIC IMPORTED)
-  set_target_properties(Meshbf.7 PROPERTIES IMPORTED_LOCATION /home/globc2/casta/libMeshb/install/lib/libMeshbf.7.a)
-  target_link_libraries(fortran_surf_PiQj Meshbf.7 gfortran)
-
 #    list(APPEND LINK_LIBRARIES spaceBasis)
 #    test_fortran_create  (fortran_surf_TriaP1_PiPj   ${MPIEXEC_MAX_NUMPROCS})
 #    target_link_libraries(fortran_surf_TriaP1_PiPj   spaceBasis)
