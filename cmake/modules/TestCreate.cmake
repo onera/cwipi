@@ -36,15 +36,12 @@ function(test_fortran_create name n_proc)
      set_target_properties(${name}
                            PROPERTIES
                            COMPILE_FLAGS ${MPI_Fortran_COMPILE_FLAGS})
+     target_include_directories(${name} PRIVATE ${MPI_Fortran_INCLUDE_PATH})                      
    endif()
    target_include_directories(${name} PRIVATE ${CMAKE_SOURCE_DIR}
                                       PRIVATE ${CMAKE_BINARY_DIR}
                                       PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
    target_include_directories(${name} PRIVATE ${TEST_INC})
-
-   if (MPI_Fortran_ADDITIONAL_INCLUDE_DIRS)
-      target_include_directories(${name} PRIVATE ${MPI_Fortran_ADDITIONAL_INCLUDE_DIRS})
-   endif()
    target_link_libraries(${name} ${LINK_LIBRARIES})
    set_target_properties(${name} PROPERTIES LINKER_LANGUAGE "Fortran")
    install(TARGETS ${name} RUNTIME DESTINATION bin)
