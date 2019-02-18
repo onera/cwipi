@@ -504,6 +504,8 @@ if (BLA_VENDOR MATCHES "Intel*" OR BLA_VENDOR STREQUAL "All")
 	endif()
       endif()
 
+      string(REPLACE ";" " " BLAS_COMPILER_FLAGS "${BLAS_COMPILER_FLAGS}")
+
       set(additional_flags "")
       if (CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
 	set(additional_flags "-Wl,--no-as-needed")

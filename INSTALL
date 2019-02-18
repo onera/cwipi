@@ -10,6 +10,10 @@ cmake ..
 make
 make install
 
+If the installation fails, use the following CMake options.
+
+
+
 CMake general options
 =====================
 
@@ -45,12 +49,12 @@ Enable the use of the library BLAS :
       To force the use of a list of libraries, use :
         DBLAS_LIBRARIES="<lib_1> ... <lib_n>"
 
-CMake compiler options
-======================
+Compiler choice
+===============
 
 CC=<C compiler> CXX=<CXX compiler> FC=<Fortran compiler> cmake ...
 
-or use the following cmake options
+or use the following CMake options
     CMAKE_C_COMPILER=<C compiler>
     CMAKE_CXX_COMPILER=<CXX compiler>
     CMAKE_Fortran_COMPILER=<Fortran compiler>

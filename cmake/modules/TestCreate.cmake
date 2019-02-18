@@ -35,6 +35,7 @@ function(test_fortran_create name n_proc)
      set_target_properties(${name}
                            PROPERTIES
                            COMPILE_FLAGS ${MPI_Fortran_COMPILE_FLAGS})
+     target_include_directories(${name} PRIVATE ${MPI_Fortran_INCLUDE_PATH})                      
    endif()
    target_include_directories(${name} PRIVATE ${CMAKE_SOURCE_DIR}
                                       PRIVATE ${CMAKE_BINARY_DIR}
