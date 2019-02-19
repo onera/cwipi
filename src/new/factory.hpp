@@ -29,7 +29,7 @@ namespace cwipi {
  * \defgroup	FactoryErrorPoliciesGroup Factory Error Policies
  * \ingroup		FactoryGroup
  * \brief		Manages the "Unknown Type" error in an object factory
- * /
+ */
  
 /**
  * \class DefaultFactoryError

@@ -300,7 +300,7 @@ typedef enum {
   CWP_GEOM_INTERSECTION,  /*!< Meshes intersection */
   CWP_GEOM_LOCATION       /*!< Location into a mesh */
 
-} CWP_Geom_algo_t;
+} CWP_Geom_t;
 
 /**
  * \enum CWP_Interface_t
@@ -708,7 +708,7 @@ CWP_Cpl_create
  const char               *cpl_id,
  const char               *coupled_code_name,
  const CWP_Comm_t          comm_type, 
- const CWP_Geom_algo_t     geom_algo,
+ const CWP_Geom_t          geom_algo,
  const int                 n_part,
  const CWP_Displacement_t  displacement,   
  const CWP_Freq_t          recv_freq_type 

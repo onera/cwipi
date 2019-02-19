@@ -84,7 +84,7 @@ namespace cwipi {
      const CWP_Comm_t             commType,
      const CodeProperties        &localCodeProperties,
      const CodeProperties        &coupledCodeProperties,
-     const CWP_Geom_algo_t        geomAlgo,
+     const CWP_Geom_t            geomAlgo,
      const int                    nPart,
      const CWP_Displacement_t     movingStatus,
      const CWP_Freq_t             recvFreqType,
@@ -1016,7 +1016,7 @@ namespace cwipi {
           Communication              &_communication;         /*!< Communication */ 
     const CodeProperties             &_localCodeProperties;   /*!< Local code properties */
     const CodeProperties             &_coupledCodeProperties; /*!< Coupled code properties */
-//         Geometry                    &_geometry;              /*!< Geometric algorithm */
+    //         Geometry                    &_geometry;              /*!< Geometric algorithm */
          Mesh                        &_mesh;                  /*!< Geometric mesh */
     const CWP_Freq_t                _recvFreqType  ;          /*!< Receiving frequency type */
     //        Visualization              *_visu;                  /*!< Visualization */

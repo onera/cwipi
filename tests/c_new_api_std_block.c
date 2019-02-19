@@ -21,6 +21,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <assert.h>
+#include <math.h>
 #include "grid_mesh.h"
 #include <mpi.h>
 

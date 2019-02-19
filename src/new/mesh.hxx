@@ -255,7 +255,7 @@ typedef struct {
     *
     */
 
-    inline const int getPartNVertex(int i_part) const;
+    inline int getPartNVertex(int i_part) const;
 
     /**
     * \brief Get the vertices coordinates of the i_part partition
@@ -303,7 +303,7 @@ typedef struct {
     *
     */
 
-    inline const int getPartNElts(int id_part) const;
+    inline int getPartNElts(int id_part) const;
 
     /**
     * \brief Get the number of polyhedra in a partition
@@ -315,7 +315,7 @@ typedef struct {
     *
     */
 
-    inline const int getPartNPolyhedra(int i_part) const;
+    inline int getPartNPolyhedra(int i_part) const;
 
     /**
     * \brief Get a block element connectivity index
@@ -399,7 +399,7 @@ typedef struct {
 
   };
 
-  const int Mesh::getPartNVertex(int i_part) const
+  int Mesh::getPartNVertex(int i_part) const
   {
     return _nVertex[i_part];
   }
@@ -420,12 +420,12 @@ typedef struct {
     return _blocks[id_block]._nElts;
   }
 
-  const int Mesh::getPartNElts(int id_part) const
+  int Mesh::getPartNElts(int id_part) const
   {
     return _nElts[id_part];
   }
 
-  const int Mesh::getPartNPolyhedra(int i_part) const
+  int Mesh::getPartNPolyhedra(int i_part) const
   {
    // return _nPolyhedra[i_part];
   }

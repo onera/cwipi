@@ -3276,7 +3276,7 @@ const PDM_g_num_t      *numabs
           {
             PDM_l_num_t *cell_face_cell = cell_face_courant + cell_face_idx_courant[i] - adjust;
             for (int j = 0; j < cell_face_nb_courant[i]; j++) {
-              tag_face_poly3d[cell_face_cell[j] - 1] = 0;
+              tag_face_poly3d[PDM_ABS(cell_face_cell[j]) - 1] = 0;
             }
             *numabs_poly3d_courant = numabs_courant[i];
             numabs_poly3d_courant += 1;
@@ -3343,7 +3343,7 @@ const PDM_g_num_t      *numabs
             {
               PDM_l_num_t *cell_face_cell = cell_face_courant + cell_face_idx_courant[i] - adjust;
               for (int j = 0; j < cell_face_nb_courant[i]; j++) {
-                cellfac_poly[l_cellfac_poly++] = tag_face_poly3d[cell_face_cell[j] - 1] + 1;
+                cellfac_poly[l_cellfac_poly++] = tag_face_poly3d[PDM_ABS(cell_face_cell[j]) - 1] + 1;
               }
               break;
             }

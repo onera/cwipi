@@ -21,6 +21,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <assert.h>
+#include <math.h>
 #include "grid_mesh.h"
 #include <mpi.h>
 
@@ -154,7 +155,7 @@ int main
   int comm_world_size;
   
   FILE* meshFile;
-  meshFile = fopen("tests/meshes/mesh_poly_d1", "r");
+  meshFile = fopen("meshes/mesh_poly_d1", "r");
 
 
 
@@ -345,6 +346,7 @@ int main
   free (is_coupled_rank);
   free (times_init);
   fclose (outputFile);
-
+  printf("fin test\n");
+  fflush(stdout);
   return 0;
 }

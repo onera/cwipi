@@ -85,7 +85,7 @@ namespace cwipi {
    *
    */
   
-  typedef Factory<Geometry, CWP_Geom_algo_t> FG;
+  typedef Factory<Geometry, CWP_Geom_t> FG;
 
   
   Coupling::Coupling
@@ -94,7 +94,7 @@ namespace cwipi {
    const CWP_Comm_t           cplType,
    const CodeProperties       &localCodeProperties,
    const CodeProperties       &coupledCodeProperties,
-   const CWP_Geom_algo_t      geomAlgo,
+   const CWP_Geom_t           geomAlgo,
    const int                  nPart,
    const CWP_Displacement_t   movingStatus,
    const CWP_Freq_t           recvFreqType,
@@ -108,8 +108,8 @@ namespace cwipi {
    _recvFreqType (recvFreqType),
    _cplDB(cplDB),
    _fields(*(new map < string, Field<double> * >())),   
-   _mesh(*new Mesh(localCodeProperties.intraCommGet(),nPart)),
-   _geometry(*(FG::getInstance().CreateObject(geomAlgo)))
+   _mesh(*new Mesh(localCodeProperties.intraCommGet(),nPart))
+   //_geometry(*(FG::getInstance().CreateObject(geomAlgo)))
   {
   
     if (coupledCodeProperties.localCodeIs()) {

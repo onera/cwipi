@@ -207,7 +207,7 @@ int main
   printf("pass4\n");
   fflush(stdout);
   
-  CWP_Status_t visu_status;
+  CWP_Status_t visu_status = CWP_STATUS_OFF;
   
   if (rank == 0 || rank == 1 || rank == 2 || rank == 3  ) {
   CWP_Field_create (cpl_id1,"code1","unchamp",CWP_DOUBLE,CWP_FIELD_STORAGE_BLOCK,3,

@@ -60,7 +60,7 @@
 #include "pdm_printf.h"
 #include "pdm_error.h"
 
-// #include "geometry.hxx"
+#include "geometry.hxx"
 // #include "location.hxx"
  #include "mesh.hxx"
 
@@ -285,8 +285,8 @@ CWP_Init
    * Create geometry abstract factory 
    */
 
-  // Factory<Geometry, CWP_geom_t> &factoryGeom = 
-  //   cwipi::Factory<Geometry, CWP_geom_t>::getInstance();
+  //cwipi::Factory<cwipi::Geometry, CWP_Geom_t> &factoryGeom = 
+  //  cwipi::Factory<cwipi::Geometry, CWP_Geom_t>::getInstance();
 
   // factoryGeom.Register<Location>(CWP_GEOM_LOCATION);
   // factoryGeom.Register<Intersection>(CWP_GEOM_INTERSECTION);
@@ -589,7 +589,7 @@ CWP_Cpl_create
  const char               *cpl_id,
  const char               *coupled_code_name,
  const CWP_Comm_t          comm_type, 
- const CWP_Geom_algo_t     geom_algo,
+ const CWP_Geom_t          geom_algo,
  const int                 n_part,
  const CWP_Displacement_t  displacement,   
  const CWP_Freq_t          recv_freq_type 
