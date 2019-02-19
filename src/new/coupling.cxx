@@ -119,16 +119,13 @@ namespace cwipi {
   {
   
     map<string,Field<double>*>::iterator It = _fields.find(field_id.c_str());  
-    if (It == _fields.end())
-      {
-         bftc_error(__FILE__, __LINE__, 0,
-               "'%s' not existing field\n", field_id.c_str());
-      }
-    else 
-      {
-        return It->second->nComponentGet();
-      }         
-    
+    if (It == _fields.end()) {
+      bftc_error(__FILE__, __LINE__, 0,
+                 "'%s' not existing field\n", field_id.c_str());
+    }
+
+    return It->second->nComponentGet();
+
   }
 
 
@@ -197,15 +194,12 @@ namespace cwipi {
    )
    {
     map<string,Field<double>*>::iterator It = _fields.find(field_id.c_str());  
-    if (It == _fields.end())
-      {
+    if (It == _fields.end()) {
          bftc_error(__FILE__, __LINE__, 0,
                "'%s' not existing field\n", field_id.c_str());
-      }
-    else 
-      {
-        return It->second->dataTypeGet();
-      }         
+    }
+    
+    return It->second->dataTypeGet();
     
    }
    
@@ -225,15 +219,12 @@ namespace cwipi {
    )
    {
     map<string,Field<double>*>::iterator It = _fields.find(field_id.c_str());  
-    if (It == _fields.end())
-      {
-         bftc_error(__FILE__, __LINE__, 0,
-               "'%s' not existing field\n", field_id.c_str());
-      }
-    else 
-      {
-        return It->second->storageTypeGet();
-      }         
+    if (It == _fields.end()) {
+      bftc_error(__FILE__, __LINE__, 0,
+                 "'%s' not existing field\n", field_id.c_str());
+    }
+
+    return It->second->storageTypeGet();
     
    }
 
@@ -253,15 +244,11 @@ namespace cwipi {
   )
   {
     map<string,Field<double>*>::iterator It = _fields.find(field_id.c_str());  
-    if (It == _fields.end())
-      {
-         bftc_error(__FILE__, __LINE__, 0,
-               "'%s' not existing field\n", field_id.c_str());
-      }
-    else 
-      {
-        return It->second->natureGet();
-      }         
+    if (It == _fields.end()) {
+      bftc_error(__FILE__, __LINE__, 0,
+                 "'%s' not existing field\n", field_id.c_str());
+    }
+    return It->second->natureGet();
     
   }
 

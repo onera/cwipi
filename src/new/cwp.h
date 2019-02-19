@@ -1573,6 +1573,28 @@ CWP_Field_location_get
  const char      *field_id
 );
 
+
+/**
+ *
+ * \brief Get field data type
+ * 
+ * \param [in] local_code_name  Local code name
+ * \param [in] cpl_id           Coupling identifier
+ * \param [in] field_id         Field identifier
+ *
+ * \return                      Field data type
+ * 
+ */
+
+ CWP_Type_t
+ CWP_Field_type_get
+ (
+  const char                  *local_code_name,
+  const char                  *cpl_id,
+  const char                  *field_id
+  );
+
+
 /**
  *
  * \brief Get field data type
