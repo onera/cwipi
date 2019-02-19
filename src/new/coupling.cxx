@@ -81,7 +81,7 @@ namespace cwipi {
    *
    *  A geometry \ref Factory wich makes \ref Geometry class objects.
    *  The type of \ref Geometry objects build depends on the
-   *  geometry algorithm type \ref CWP_Geom_algo_t; .
+   *  geometry algorithm type \ref CWP_Geom_t; .
    *
    */
   

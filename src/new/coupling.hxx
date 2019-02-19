@@ -341,8 +341,9 @@ namespace cwipi {
     /**
      * \brief Adding a connectivity block to the geometric support
      *
-     * This function adds a connectivity block to the geometric support for
-     * \ref CWP_SUPPORT_MESH support type. Definition of element connectivity is :
+     * This function adds a connectivity block to the geometric support.
+     * 
+     *  Definition of element connectivity is :
      *
      *  - edge (\ref CWP_BLOCK_EDGE2) :
      *
@@ -446,8 +447,8 @@ namespace cwipi {
     /**
      * \brief Adding a high order connectivity block to the geometric mesh
      *
-     * This function adds a connectivity block to the geometric mesh for
-     * \ref CWP_SUPPORT_MESH mesh type. Definition of element connectivity is :
+     * This function adds a connectivity block to the geometric mesh.
+     * Definition of element connectivity is :
      *
      * \param [in]  i_part      Current partition
      * \param [in]  block_type  Block type
@@ -473,8 +474,7 @@ namespace cwipi {
     /**
      * \brief Adding a polygon connectivity block to the geometric mesh
      *
-     * This function adds a polygon connectivity block to the geometric mesh for
-     * \ref CWP_SUPPORT_MESH mesh type.
+     * This function adds a polygon connectivity block to the geometric mesh.
      *
      * \param [in]  i_part      Current partition
      * \param [in]  n_elts      Number of elements
@@ -498,8 +498,9 @@ namespace cwipi {
     /**
      * \brief Adding a polyhedron connectivity block to the geometric mesh
      *
-     * This function add a connectivity block to the geometric mesh if mesh
-     * type is only \ref CWP_SUPPORT_MESH. Definition of element connectivity is :
+     * This function add a connectivity block to the geometric mesh.
+     * 
+     * Definition of element connectivity is :
      *
      * \param [in]  i_part            Current partition
      * \param [in]  n_elts            Number of elements

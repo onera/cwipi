@@ -273,7 +273,7 @@ typedef enum {
 } CWP_Displacement_t;
 
 /**
- * \enum CWP_Geom_algo_t
+ * \enum CWP_Geom_t
  * \brief Geomtric algorithms
  *
  * CWP_Geom_t gives different geometric algorithm on which interpolation 
@@ -1154,8 +1154,8 @@ CWP_Mesh_interf_end_set
 /**
  * \brief Adding a connectivity block to the geometric support
  *
- * This function adds a connectivity block to the geometric support for
- * \ref CWP_SUPPORT_MESH support type. Definition of element connectivity is :
+ * This function adds a connectivity block to the geometric support.
+ * Definition of element connectivity is :
  *
  *  - edge (\ref CWP_BLOCK_EDGE2) :
  *

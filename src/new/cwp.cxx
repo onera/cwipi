@@ -525,7 +525,7 @@ CWP_Output_file_set
 }
 
 //
-///**
+//**
 // * \brief Writing output to fortran file.
 // *
 // * This function set the file fortran logical unit for writing output.
@@ -554,7 +554,6 @@ CWP_Output_file_set
 void 
 CWP_Properties_dump
 (
- void
 )
 {
   cwipi::CodePropertiesDB & properties =

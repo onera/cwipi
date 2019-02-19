@@ -83,8 +83,8 @@ namespace cwipi {
     /**
      * \brief Adding a connectivity block to the geometric meshInterf
      *
-     * This function adds a connectivity block to the geometric meshInterf for
-     * \ref CWP_SUPPORT_MESH mesh type. Definition of element connectivity is :
+     * This function adds a connectivity block to the geometric meshInterf.
+     *   Definition of element connectivity is :
      *
      *  - edge (\ref CWP_BLOCK_EDGE2) :
      *
@@ -183,8 +183,7 @@ namespace cwipi {
     /**
      * \brief Adding a polygon connectivity block to the geometric meshInterf
      *
-     * This function adds a polygon connectivity block to the geometric meshInterf for
-     * \ref CWP_SUPPORT_MESH meshInterf type.
+     * This function adds a polygon connectivity block to the geometric meshInterf.
      *
      * \param [in]  i_part      Current partition
      * \param [in]  block_type  Type of the block elements
@@ -209,8 +208,9 @@ namespace cwipi {
      *
      * \brief Adding a polyhedron connectivity block to the geometric meshInterf
      *
-     * This function add a connectivity block to the geometric meshInterf if meshInterf
-     * type is only \ref CWP_SUPPORT_MESH. Definition of element connectivity is :
+     * This function add a connectivity block to the geometric meshInterf.
+     *
+     * Definition of element connectivity is :
      *
      * \param [in]  i_part            Current partition
      * \param [in]  n_elts            Number of elements
