@@ -9,9 +9,10 @@ cd build
 cmake ..
 make
 make install
+ctest (if you want to run the test cases)
+
 
 If the installation fails, use the following CMake options.
-
 
 
 CMake general options
