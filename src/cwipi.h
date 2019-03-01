@@ -216,6 +216,7 @@ typedef void (*cwipi_interpolation_fct_t)
    );
 
 
+
 /*----------------------------------------------------------------------------
  * Function pointer to define an user interpolation method (callback)
  *
@@ -226,7 +227,7 @@ typedef void (*cwipi_interpolation_fct_t)
  *                                               the local mesh (1, 2 or 3)
  * order                                     <-- Mesh order
  * n_local_vertex                            <-- local mesh vertices number
- * n_local_element                           <-- local mesh elements number
+ * n_local_element                           <-- local mesh elements number 
  *                                               (without polyhedra)
  * n_local_polyhedra                         <-- local mesh elements number
  * n_distant_point                           <-- located distant point number
@@ -238,7 +239,7 @@ typedef void (*cwipi_interpolation_fct_t)
  *                                               size:n_local_elements + 1
  * local_connectivity                        <-- element -> vertex connectivity
  *                                                       of the local mesh
- *                               size:local_connectivity_index[n_local_elements]
+ *                                               size:local_connectivity_index[n_local_elements]
  * local_polyhedra_face_index                <-- polyhedra volume -> faces index
  * local_polyhedra_cell_to_face_connectivity <-- polyhedra -> face connectivity
  * local_polyhedra_face_connectivity_index   <-- polyhedra faces
@@ -315,7 +316,7 @@ typedef double (*cwipi_ho_location_fct_t)
 
 /*----------------------------------------------------------------------------
  * 
- * Callback to define location the basis functions of an high order 
+ * Callback to define the basis functions of an high order 
  * element
  * 
  * parameters:
