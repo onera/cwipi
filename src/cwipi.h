@@ -1048,6 +1048,32 @@ void cwipi_define_mesh(const char *coupling_id,
                        int connectivity_index[],
                        int connectivity[]);
 
+void cwipi_shared_fvmc_nodal(const char *coupling_name,
+                            void * fvmc_nodal);
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Define a high order mesh interface for the current coupling. 
+ *
+ *    1D : edges (not implemented yet)
+ *    2D : triangles, quadrangles
+ *    3D : tetrahedra, pyramids, prism, hexaedra (not implemented yet)
+ *
+ *
+ * parameters:
+ *   coupling_id        <-- coupling name
+ *   n_vertex           <-- number of vertices
+ *   n_elements         <-- number of elements
+ *   coordinates        <-- vertex interlaced coordinates
+ *   connectivity_index <-> element -> vertices index (O to n-1)
+ *                          size: n_elements + 1
+ *                          (out : ordered connectivity_index)
+ *   connectivity       <-> element -> vertex connectivity (1 to n)
+ *                          size: connectivity_index[n_elements]
+ *
+ *----------------------------------------------------------------------------*/
+
 void cwipi_ho_define_mesh(const char *coupling_id,
                           const int n_vertex,
                           const int n_element,
@@ -1056,8 +1082,7 @@ void cwipi_ho_define_mesh(const char *coupling_id,
                           int connectivity_index[],
                           int connectivity[]);
 
-void cwipi_shared_fvmc_nodal(const char *coupling_name,
-                            void * fvmc_nodal);
+
 
 /*----------------------------------------------------------------------------
  *

@@ -1962,6 +1962,9 @@ subroutine fortran_surf_PiQj_common (tmaillage)
   real(8)          :: delta,deltaMin,deltaMax,sumDelta
   character(1024)  :: buffer
   real(8)          :: t0,t1
+  real(8), pointer :: funct  (:,:)
+
+  
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -2587,6 +2590,18 @@ subroutine fortran_surf_PiQj_common (tmaillage)
     i=0
     do iVert=1,nVert
       myValues(1:stride,iVert)=[vertx(1,iVert),vertx(2,iVert),vertx(3,iVert),real(rankWorld,kind=8)]
+      ! myValues(1:stride,iVert)=[vertx(1,iVert)**4-vertx(1,iVert)**3+vertx(1,iVert)**2-vertx(1,iVert), &
+      !                           vertx(2,iVert)**4-vertx(2,iVert)**3+vertx(2,iVert)**2-vertx(2,iVert), &
+      !                           vertx(3,iVert)**4-vertx(3,iVert)**3+vertx(3,iVert)**2-vertx(3,iVert), &
+      !                           real(rankWorld,kind=8)]
+      ! myValues(1:stride,iVert)=[vertx(1,iVert)**3-vertx(1,iVert)**2+vertx(1,iVert), &
+      !                           vertx(2,iVert)**3-vertx(2,iVert)**2+vertx(2,iVert), &
+      !                           vertx(3,iVert)**3-vertx(3,iVert)**2+vertx(3,iVert), &
+      !                           real(rankWorld,kind=8)]
+      ! myValues(1:stride,iVert)=[vertx(1,iVert)**2-vertx(1,iVert), &
+      !                           vertx(2,iVert)**2-vertx(2,iVert), &
+      !                           vertx(3,iVert)**2-vertx(3,iVert), &
+      !                           real(rankWorld,kind=8)]
       i=i+3
     enddo
     
@@ -2690,6 +2705,7 @@ subroutine fortran_surf_PiQj_common (tmaillage)
       linkVertSize=linkVertSize+nT3*nNod                 !> nombre total de point de couplages
     endif
     allocate(linkVert(1:3,1:linkVertSize))               !> 3 coordonnées par point de couplage
+    allocate(funct(1:3,1:linkVertSize))               !> 3 coordonnées par point de couplage
     call c_f_pointer(cptr=c_loc(linkVert), fptr=linkVertCwipi, shape=[3*linkVertSize])
     
     !> Initialization
@@ -2724,6 +2740,7 @@ subroutine fortran_surf_PiQj_common (tmaillage)
         &          linkVert(1,iVert+1),3            ) !> C(1:3,1:nNod) = A(1:3,1:nMod) x B(1:nMod,1:nNod)
 #else
         linkVert(1:3,iVert+1:iVert+nNod)=matmul( xyzTab(1:3,1:nMod),lagrangeMeshQ4(1:nMod,1:nNod) )
+        
 #endif
         iVert=iVert+nNod
         
@@ -2814,6 +2831,19 @@ subroutine fortran_surf_PiQj_common (tmaillage)
 #endif    
 
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    ! do iVert=1,linkVertSize
+    !   ! funct(1:3,iVert)=[linkVert(1,iVert)**4-linkVert(1,iVert)**3+linkVert(1,iVert)**2-linkVert(1,iVert), &
+    !   !                   linkVert(2,iVert)**4-linkVert(2,iVert)**3+linkVert(2,iVert)**2-linkVert(2,iVert), &
+    !   !                   linkVert(3,iVert)**4-linkVert(3,iVert)**3+linkVert(3,iVert)**2-linkVert(3,iVert)]
+    !   ! funct(1:3,iVert)=[linkVert(1,iVert)**3-linkVert(1,iVert)**2+linkVert(1,iVert), &
+    !   !                   linkVert(2,iVert)**3-linkVert(2,iVert)**2+linkVert(2,iVert), &
+    !   !                   linkVert(3,iVert)**3-linkVert(3,iVert)**2+linkVert(3,iVert)]
+    !   funct(1:3,iVert)=[linkVert(1,iVert)**2-linkVert(1,iVert), &
+    !                     linkVert(2,iVert)**2-linkVert(2,iVert), &
+    !                     linkVert(3,iVert)**2-linkVert(3,iVert)]
+    ! enddo
+
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     allocate(linkValues(1:stride,1:linkVertSize))
@@ -2894,6 +2924,7 @@ subroutine fortran_surf_PiQj_common (tmaillage)
     k=0
     do iVert=1,linkVertSize
       delta=norm2(linkVert(1:3,iVert)-linkValues(1:3,iVert))
+!      delta=norm2(funct(1:3,iVert)-linkValues(1:3,iVert))
       sumDelta=sumDelta+delta
       if( deltaMax<delta )then
         iVertMax=iVert
