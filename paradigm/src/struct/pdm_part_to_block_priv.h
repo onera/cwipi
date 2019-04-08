@@ -49,7 +49,7 @@ typedef struct {
   int                         s_comm;           /*!< Communicator size */
   int                         myRank;           /*!< Current rank in comm */
   int                         isMyRankActive;   /*!< Is active current rank */
-  float                       partActiveNode;   /*!< Part of active nodes */
+  double                       partActiveNode;   /*!< Part of active nodes */
 
   /*
    * General exchange data
@@ -58,7 +58,7 @@ typedef struct {
   int                         n_part;            /*!< Number of parts */
   int                        *n_elt;             /*!< Number of elements for any part */
   int                         n_eltProc;         /*!< Number of elements on the current processus */
-  float                       **weight;          /*!< Weight of elements */
+  double                       **weight;          /*!< Weight of elements */
   PDM_g_num_t                 **gnum_elt;        /*!< Global numbering of elements for any part */
   int                        *destProc;          /*!< Destination process for any element (size = n_eltProc) */
   int                        *idxInSendData;     /*!< Index in send data for any element (size = n_eltProc) */

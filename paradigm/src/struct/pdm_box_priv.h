@@ -97,6 +97,12 @@ struct _PDM_box_set_t {
   double      gmin[3];        /* Global minima of the coordinates */
   double      gmax[3];        /* Global maxima of the coordinates */
 
+
+  int         normalized;     /* 1 if normalized, 0 otherwise */
+  double      s[3];           /* Translation for the normalisation */
+  double      d[3];           /* Dilatation for the normalisation */
+  
+  
   PDM_MPI_Comm    comm;           /* Associated MPI communicator */
 
 };

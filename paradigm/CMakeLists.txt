@@ -72,7 +72,7 @@ if (NOT (PDM_IN_PDMA OR PDM_IN_CWP))
    # Python Bindings
    # ---------------
 
-   option(PDM_ENABLE_PYTHON_BINDINGS "Build Python module" ON)
+   option(PDM_ENABLE_PYTHON_BINDINGS "Build Python module" OFF)
 
    # Fortran interface
    # -----------------

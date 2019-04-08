@@ -217,9 +217,12 @@ PDM_part_graph_split
       }
         
       if (flag_weights != 0) {
+        if(ubvec!= NULL)
           free(ubvec);
+        if(tpwgts!= NULL)
           free(tpwgts);
-          free(adjwgt);
+        // if(adjwgt!= NULL)
+        //   free(adjwgt);
       }          
 
 #else

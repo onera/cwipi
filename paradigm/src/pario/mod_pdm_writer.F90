@@ -254,8 +254,8 @@ contains
 
     integer (kind = pdm_l_num_s), intent(in)    :: id_cs     
     character (len = *),       intent(in)    :: nom_geom   
-    integer (kind = pdm_l_num_s), intent(inout) :: st_decoup_poly2d
-    integer (kind = pdm_l_num_s), intent(inout) :: st_decoup_poly3d
+    integer (kind = pdm_l_num_s), intent(in) :: st_decoup_poly2d
+    integer (kind = pdm_l_num_s), intent(in) :: st_decoup_poly3d
     integer (kind = pdm_l_num_s), intent(inout) :: n_part   
     integer (kind = pdm_l_num_s), intent(inout) :: id_geom   
 

@@ -99,7 +99,7 @@ if (PTSCOTCH_INCLUDE_DIRS AND PTSCOTCH_LIBRARIES)
 #include <ptscotch.h>
 
 int main() {
-  printf(\"%i.%i.%i\\n\", SCOTCH_VERSION,
+  printf(\"%i.%i.%i\", SCOTCH_VERSION,
 	                  SCOTCH_RELEASE,
 	                  SCOTCH_PATCHLEVEL);
   return 0;

@@ -100,7 +100,7 @@ typedef struct  {
 
 static PDM_Handles_t *_octrees   = NULL;
 
-static const double _eps_default = 1.e-25;
+static const double _eps_default = 1.e-12;
 
 /*=============================================================================
  * Private function definitions
@@ -125,36 +125,48 @@ inline static int
 _box_dist2
 (
 const int              dim,
-const double          *extents,
-const double           *coords,
-double                *min_dist2,
-double                *max_dist2
+const double          *restrict extents,
+const double          *restrict coords,
+double                *restrict min_dist2
+//double                *restrict max_dist2
 )
 {
 
   int inbox = 0;
-  *min_dist2 = 0.;
-  *max_dist2 = 0.;
 
+  double _min_dist2 = 0.;
+  //  double _max_dist2 = 0.;
   for (int i = 0; i < dim; i++) {
-    if (coords[i] > extents[i+dim]) {
-      *min_dist2 += (coords[i] - extents[dim+i]) * (coords[i] - extents[dim+i]);
-      *max_dist2 += (coords[i] - extents[i]) * (coords[i] - extents[i]);
+    double x = coords[i];
+    double xmin = extents[i];
+    double xmax = extents[i+dim];
+    
+    if (x > xmax) {
+      double diff_max = x - xmax;
+      //double diff_min = x - xmin;
+      _min_dist2 += diff_max * diff_max;
+      //      _max_dist2 += diff_min * diff_min;
     }
 
-    else if (coords[i] < extents[i]) {
-      *min_dist2 += (coords[i] - extents[i]) * (coords[i] - extents[i]);
-      *max_dist2 += (coords[i] - extents[dim+i]) * (coords[i] - extents[dim+i]);
+    else if (x < xmin) {
+      //double diff_max = x - xmax;
+      double diff_min = x - xmin;
+      _min_dist2 += diff_min * diff_min;
+      //      _max_dist2 += diff_max * diff_max;
     }
 
     else {
+      //double diff_max = x - xmax;
+      //double diff_min = x - xmin;
       inbox += 1;
-      *max_dist2 += PDM_MAX ((coords[i] - extents[i]) * (coords[i] - extents[i]),
-                             (coords[i] - extents[dim+i]) * (coords[i] - extents[dim+i]));
+      // _max_dist2 += PDM_MAX (diff_min * diff_min,
+      //                       diff_max * diff_max);
     }
 
   }
 
+  *min_dist2 = _min_dist2;
+//  *max_dist2 = _max_dist2;
   return inbox == dim;
 
 }
@@ -1044,19 +1056,27 @@ double          *closest_octree_pt_dist2
   int s_pt_stack = ((n_children - 1) * (octree->depth_max - 1) + n_children);
   int sort_child[n_children];
   double dist_child[n_children];
-
-  for (int i = 0; i < n_children; i++) {
-    dist_child[i] = HUGE_VAL;
-  }
+  int inbox_child[n_children];
 
   int *stack = malloc ((sizeof(int)) * s_pt_stack);
-  int pos_stack = 0;
+  int *inbox_stack = malloc ((sizeof(int)) * s_pt_stack);
+  double *min_dist2_stack = malloc ((sizeof(double)) * s_pt_stack);
 
   int dim = 3;
+  /* double ptprintc[3] = {5.83333e-01,  6.25000e-01,  5.00000e-01}; */
+  /* double ptprintc2[3] = {5.83333e-01,  1.,  5.00000e-01}; */
 
   for (int i = 0; i < n_pts; i++) {
 
-    const double *_pt = pts + dim * n_pts;
+    int pos_stack = 0;
+    const double *_pt = pts + dim * i;
+
+      /* double t1 = (_pt[0] - ptprintc[0]) * (_pt[0] - ptprintc[0]); */
+      /* double t2 = (_pt[1] - ptprintc[1]) * (_pt[1] - ptprintc[1]); */
+      /* double t3 = (_pt[2] - ptprintc[2]) * (_pt[2] - ptprintc[2]); */
+      /* t1=1; */
+      /* if ((t1+t2+t3) < 1e-6) */
+      /* printf ("\n ******** pt %d : %12.5e, %12.5e, %12.5e\n", i, _pt[0], _pt[1], _pt[2]); */
 
     /* Init stack */
 
@@ -1064,90 +1084,93 @@ double          *closest_octree_pt_dist2
     closest_octree_pt_id[2*i+1] = -1;
     closest_octree_pt_dist2[i] = HUGE_VAL;
 
-    stack[pos_stack++] = 0; /* push root in th stack */
+    stack[pos_stack] = 0; /* push root in th stack */
 
+    double _min_dist2;
+    _octant_t *root_node = &(octree->nodes[0]);
+    int inbox1 =  _box_dist2 (dim,
+                              root_node->extents,
+                              _pt,
+                              &_min_dist2);
+    
+    inbox_stack[pos_stack] = inbox1;
+    min_dist2_stack[pos_stack] = _min_dist2;
+    pos_stack++;
+    
     while (pos_stack > 0) {
 
       int id_curr_node = stack[--pos_stack];
-
-      const double *extents = octree->extents + dim * 2 * id_curr_node;
-
       _octant_t *curr_node = &(octree->nodes[id_curr_node]);
 
-      double min_dist2;
-      double max_dist2;
-
-      int inbox =  _box_dist2 (dim,
-                              extents,
-                              _pt,
-                              &min_dist2,
-                              &max_dist2);
+      double min_dist2 = min_dist2_stack[pos_stack];
+      int inbox =  inbox_stack[pos_stack];
+      
+      /* int inbox =  _box_dist2 (dim, */
+      /*                          curr_node->extents, */
+      /*                          _pt, */
+      /*                          &min_dist2); */
 
       if ((min_dist2 <= closest_octree_pt_dist2[i]) || (inbox == 1)) {
 
-        if (curr_node->is_leaf) {
+        if (!curr_node->is_leaf) {
 
           /* Sort children and store them into the stack */
 
           const int *_child_ids = curr_node->children_id;
 
           for (int j = 0; j < n_children; j++) {
-            int imin = 0;
-            int imax = j-1;
+            dist_child[j] = HUGE_VAL;
+          }
 
-            double child_min_dist2;
-            double child_max_dist2;
+          int n_selec = 0;
+          for (int j = 0; j < n_children; j++) {
+
 
             int child_id = _child_ids[j];
 
-            _octant_t *child_node = &(octree->nodes[child_id]);
-            const double *child_extents = child_node->extents;
 
-            _box_dist2 (dim,
-                        child_extents,
-                        _pt,
-                        &child_min_dist2,
-                        &child_max_dist2);
+            int child_inbox = 0;
+            
+            if (child_id != -1) {
 
-            while (imin < imax) {
-              int pivot = j / 2;
+              _octant_t *child_node = &(octree->nodes[child_id]);
+              double child_min_dist2;
+              
+              child_inbox = _box_dist2 (dim,
+                                        child_node->extents,
+                                        _pt,
+                                        &child_min_dist2);
 
-              if (child_min_dist2 <= dist_child[imin]) {
-                imax = imin;
+              int i1 = 0;
+              for (i1 = n_selec;
+                   (i1 > 0) && (dist_child[i1-1] > child_min_dist2) ; i1--) {
+                dist_child[i1] = dist_child[i1-1];
+                sort_child[i1] = sort_child[i1-1]; 
+                inbox_child[i1] = inbox_child[i1-1];
               }
+              
+              sort_child[i1] = child_id;
+              dist_child[i1] = child_min_dist2;
+              inbox_child[i1] = child_inbox;
 
-              else if (child_min_dist2 >= dist_child[imax]) {
-                imin = imax;
-              }
-
-              else if (child_min_dist2 >= dist_child[pivot]) {
-                imin = pivot;
-              }
-
-              else {
-                imax = pivot;
-              }
-
+              n_selec += 1;
+              
             }
-
-            int k = j;
-            while (k > imin) {
-              sort_child[k] = sort_child[k-1];
-              dist_child[k] = dist_child[k-1];
-              k += -1;
-            }
-
-            sort_child[imin] = _child_ids[j];
-            dist_child[imin] = child_min_dist2;
-
           }
 
-          for (int j = 0; j < n_children; j++) {
-            int child_id = sort_child[n_children - 1 - j];
-            _octant_t *child_node = &(octree->nodes[child_id]);
+          for (int j = 0; j < n_selec; j++) {
+            int j1 = n_selec- 1 - j;
+            int child_id = sort_child[j1];
+            if (child_id != -1) {
+              _octant_t *child_node = &(octree->nodes[child_id]);
+              if ((dist_child[j1] < closest_octree_pt_dist2[i]) &&
+                  (child_node->n_points > 0)) {
+                
+                min_dist2_stack[pos_stack] = dist_child[j1];
+                inbox_stack[pos_stack] = inbox_child[j1];
 
-            if ((dist_child[j] < closest_octree_pt_dist2[i]) && (child_node->n_points > 0)) {
-              stack[pos_stack++] = child_id; /* push root in th stack */
+                stack[pos_stack++] = child_id; /* push root in th stack */
+              }
             }
           }
         }
@@ -1160,10 +1183,12 @@ double          *closest_octree_pt_dist2
           for (int j = 0; j < curr_node->n_points; j++) {
 
             double point_dist2 = 0;
-            const double *_coords = octree->point_clouds[point_clouds_id[j]] + dim * point_indexes[j];
+            const double *_coords = octree->point_clouds[point_clouds_id[j]]
+                                    + dim * point_indexes[j];
             
             for (int k = 0; k < dim; k++) {        
-              point_dist2 += (_coords[dim*i+k] - _pt[dim*i+k]) * (_coords[dim*i+k] - _pt[dim*i+k]);
+              point_dist2 += (_coords[k] - _pt[k]) *
+                             (_coords[k] - _pt[k]);
             }
 
             if (point_dist2 < closest_octree_pt_dist2[i]) {
@@ -1175,6 +1200,9 @@ double          *closest_octree_pt_dist2
         }
       }
     }
+      /*     if ((t1+t2+t3) < 1e-6) */
+      /* printf ("\n ******** fin point ******************\n"); */
+
   }
 
   free (stack);

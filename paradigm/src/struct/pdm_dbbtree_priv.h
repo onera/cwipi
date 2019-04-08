@@ -59,10 +59,10 @@ typedef struct {
 } _box_tree_stats_t;
 
 /**
- * \struct PDM_ol_t
- * \brief  Overlay type
+ * \struct PDM_dbbtree_t
+ * \brief  
  * 
- * PDM_ol_t defines a overlaying structure 
+ * PDM_dbbtree_t defines a bounding box tree structure 
  *
  */
 

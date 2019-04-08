@@ -284,7 +284,7 @@ double          *box_max_dist
  *   bt                <-- pointer to box tree structure
  *   n_pts             <-- Number of points
  *   pts               <-- Point coordinates (size = 3 * n_pts)
- *   upper_bound_dist  <-- Upper bound distance (size = n_pts)
+ *   upper_bound_dist2 <-- Upper bound of the square of the distance (size = n_pts)
  *   i_boxes           --> Index of boxes (size = n_pts + 1)
  *   boxes             --> Boxes (size = i_boxes[n_pts])
  *----------------------------------------------------------------------------*/
@@ -295,7 +295,7 @@ PDM_box_tree_closest_upper_bound_dist_boxes_get
 PDM_box_tree_t  *bt,
 const int        n_pts,        
 double           pts[],
-double           upper_bound_dist[],
+double           upper_bound_dist2[],
 int             *i_boxes[],  
 int             *boxes[]
 );

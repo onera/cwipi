@@ -130,6 +130,20 @@ typedef enum {
 } PDM_mesh_entities_t;
 
 
+/**
+ * \enum PDM_mesh_nature_t
+ * \brief Mesh natures
+ *
+ */
+
+typedef enum {
+
+  PDM_MESH_NATURE_NODAL          = 0,  /*!< PDM_mesh_nodal  */
+  PDM_MESH_NATURE_SURFACE_MESH   = 1,  /*!< PDm_surface_mesh  */
+
+} PDM_mesh_nature_t;
+
+
 /*=============================================================================
  * Public function prototypes 
  *============================================================================*/

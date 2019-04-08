@@ -1279,7 +1279,7 @@ void PDM_io_ecriture_globale
           sprintf(s_tmp, fichier->fmt, *((float *) t_buffer));
           break;
         case PDM_IO_T_CHAR :
-          sprintf(s_tmp, fichier->fmt, *((char* *) t_buffer));
+          sprintf(s_tmp, fichier->fmt, *((char *) t_buffer));
           break;
         }
         t_buffer += taille_donnee;
@@ -2862,7 +2862,7 @@ void PDM_io_ecr_par_entrelacee
                 sprintf(s_tmp, fichier->fmt, *((float *) t_buffer));
                 break;
               case PDM_IO_T_CHAR :
-                sprintf(s_tmp, fichier->fmt, *((char* *) t_buffer));
+                sprintf(s_tmp, fichier->fmt, *((char *) t_buffer));
                 break;
               }
               t_buffer += taille_donnee;
@@ -2894,7 +2894,7 @@ void PDM_io_ecr_par_entrelacee
                 sprintf(s_tmp, fichier->fmt, *((float *) t_buffer));
                 break;
               case PDM_IO_T_CHAR :
-                sprintf(s_tmp, fichier->fmt, *((char* *) t_buffer));
+                sprintf(s_tmp, fichier->fmt, *((char *) t_buffer));
                 break;
               }
               t_buffer += taille_donnee;
@@ -3433,7 +3433,7 @@ void PDM_io_ecr_par_entrelacee
                 sprintf(s_tmp, fichier->fmt, *((float *) t_buffer));
                 break;
               case PDM_IO_T_CHAR :
-                sprintf(s_tmp, fichier->fmt, *((char* *) t_buffer));
+                sprintf(s_tmp, fichier->fmt, *((char *) t_buffer));
                 break;
               }
               t_buffer += taille_donnee;
@@ -3512,7 +3512,7 @@ void PDM_io_ecr_par_entrelacee
                 sprintf(s_tmp, fichier->fmt, *((float *) t_buffer));
                 break;
               case PDM_IO_T_CHAR :
-                sprintf(s_tmp, fichier->fmt, *((char* *) t_buffer));
+                sprintf(s_tmp, fichier->fmt, *((char *) t_buffer));
                 break;
               }
               t_buffer += taille_donnee;

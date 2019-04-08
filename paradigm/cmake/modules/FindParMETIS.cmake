@@ -32,12 +32,11 @@ find_library(PARMETIS_LIBRARY   parmetis
 find_library(METIS_LIBRARY   metis 
      HINTS ${PARMETIS_DIR}/lib $ENV{PARMETIS_DIR}/lib
      NO_DEFAULT_PATH
-     DOC "The ParMETIS library"
+     DOC "The METIS library"
      ) 
 find_library(METIS_LIBRARY   metis 
-     DOC "The ParMETIS library"
+     DOC "The METIS library"
      ) 
-
 
 set(PARMETIS_LIBRARIES ${PARMETIS_LIBRARY} ${METIS_LIBRARY} CACHE STRING "ParMETIS libraries")
 mark_as_advanced(PARMETIS_LIBRARIES)
@@ -63,7 +62,7 @@ if (PARMETIS_LIBRARIES AND PARMETIS_INCLUDE_DIRS)
 
 int main() {
 #ifdef PARMETIS_SUBMINOR_VERSION
-  printf(\"%i.%i.%i\\n\", 
+  printf(\"%i.%i.%i\", 
          PARMETIS_MAJOR_VERSION,
 	 PARMETIS_MINOR_VERSION,  
          PARMETIS_SUBMINOR_VERSION);
@@ -125,4 +124,3 @@ mark_as_advanced(PARMETIS_LIBRARIES
 
 unset(PARMETIS_LIBRARY CACHE)
 unset(METIS_LIBRARY CACHE)
-

@@ -230,8 +230,8 @@ PDM_block_to_part_exch
   unsigned char *sendBuffer = NULL;
   unsigned char *recvBuffer = NULL;
   
-  int s_sendBuffer = 0;
-  int s_recvBuffer = 0;
+  size_t s_sendBuffer = 0;
+  size_t s_recvBuffer = 0;
   
   int s_comm1 = _btp->s_comm - 1;
   
@@ -247,7 +247,7 @@ PDM_block_to_part_exch
     int s_sendStride = _btp->distributed_data_idx[_btp->s_comm];
     
     int s_recvStride = _btp->requested_data_idx[_btp->s_comm];
-
+    
     int *sendStride = (int *) malloc (sizeof(int) * s_sendStride);
     recvStride = (int *) malloc (sizeof(int) * s_recvStride);
     
@@ -317,7 +317,7 @@ PDM_block_to_part_exch
       }
 
     }
-
+    
     s_sendBuffer = i_sendBuffer[s_comm1] + n_sendBuffer[s_comm1];
     s_recvBuffer = i_recvBuffer[s_comm1] + n_recvBuffer[s_comm1];
 
@@ -331,12 +331,21 @@ PDM_block_to_part_exch
     }
     
     int idx1 = 0;
+
+    int n_elt_block = _btp->blockDistribIdx[_btp->myRank+1] - _btp->blockDistribIdx[_btp->myRank];
+    int *block_stride_idx = (int *) malloc(sizeof(int)  * (n_elt_block + 1));
+    block_stride_idx[0] = 0;
+    
+    for (int i = 0; i < n_elt_block; i++) {
+      block_stride_idx[i+1] = block_stride[i] + block_stride_idx[i];
+    }
+
     for (int i = 0; i < s_distributed_data; i++) {
+
+      int ind =  block_stride_idx[_btp->distributed_data[i]] * (int) s_data;
       
-      int ind = sendStride_idx[_btp->distributed_data[i]] * (int) s_data;
-      
-      int s_block_unit = sendStride[_btp->distributed_data[i]] * (int) s_data;
-      
+      int s_block_unit =  block_stride[_btp->distributed_data[i]] * (int) s_data;
+
       unsigned char *_block_data_deb = _block_data + ind;  
       
       for (int k = 0; k < s_block_unit; k++) {
@@ -344,6 +353,9 @@ PDM_block_to_part_exch
       }
     }
     free(sendStride);
+    free(sendStride_idx);
+    free(block_stride_idx);
+    
   }
       
   else if (t_stride == PDM_STRIDE_CST) {

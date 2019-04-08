@@ -53,7 +53,7 @@ typedef enum {
 typedef enum {
 
   PDM_PART_TO_BLOCK_POST_NOTHING       = 0,  /*!< No post processing     */
-  PDM_PART_TO_BLOCk_POST_CLEANUP       = 1,  /*!< Cleanup multi-elements */
+  PDM_PART_TO_BLOCK_POST_CLEANUP       = 1,  /*!< Cleanup multi-elements */
   PDM_PART_TO_BLOCK_POST_MERGE         = 2,  /*!< Merge multi-elements   */
 
 } PDM_part_to_block_post_t;
@@ -111,9 +111,9 @@ PDM_part_to_block_create
 (
  PDM_part_to_block_distrib_t   t_distrib,
  PDM_part_to_block_post_t      t_post,
- float                         partActiveNode,
+ double                         partActiveNode,
  PDM_g_num_t                 **gnum_elt,
- float                       **weight,
+ double                       **weight,
  int                          *n_elt,
  int                           n_part,
  PDM_MPI_Comm                  comm

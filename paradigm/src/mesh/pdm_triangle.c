@@ -74,6 +74,12 @@ PDM_triangle_evaluate_position
   
   pcoords[2] = 0.0;
 
+  double weights_local[3];
+  double *_weights = weights_local;
+  if (weights != NULL) {
+    _weights = weights;
+  }
+  
   /*
    * Get normal for triangle, only the normal direction is needed, i.e. the
    * normal need not be normalized (unit length)
@@ -141,13 +147,13 @@ PDM_triangle_evaluate_position
    * Okay, now find closest point to element
    */
   
-  weights[0] = 1 - (pcoords[0] + pcoords[1]);
-  weights[1] = pcoords[0];
-  weights[2] = pcoords[1];
+  _weights[0] = 1 - (pcoords[0] + pcoords[1]);
+  _weights[1] = pcoords[0];
+  _weights[2] = pcoords[1];
 
-  if ( weights[0] >= 0.0 && weights[0] <= 1.0 &&
-       weights[1] >= 0.0 && weights[1] <= 1.0 &&
-       weights[2] >= 0.0 && weights[2] <= 1.0 ) {
+  if ( _weights[0] >= 0.0 && _weights[0] <= 1.0 &&
+       _weights[1] >= 0.0 && _weights[1] <= 1.0 &&
+       _weights[2] >= 0.0 && _weights[2] <= 1.0 ) {
 
     /*
      * Projection distance
@@ -170,7 +176,7 @@ PDM_triangle_evaluate_position
   else {
     double t;
     if (closestPoint) {
-      if (weights[1] < 0.0 && weights[2] < 0.0) {
+      if (_weights[1] < 0.0 && _weights[2] < 0.0) {
         double v_pt3_x[3];
         for (int i = 0; i < 3; i++) {
           v_pt3_x[i] = pt3[i] - x[i];
@@ -195,7 +201,7 @@ PDM_triangle_evaluate_position
         }
 
       }
-      else if (weights[2] < 0.0 && weights[0] < 0.0) {
+      else if (_weights[2] < 0.0 && _weights[0] < 0.0) {
         double v_pt1_x[3];
         for (int i = 0; i < 3; i++) {
           v_pt1_x[i] = pt1[i] - x[i];
@@ -220,7 +226,7 @@ PDM_triangle_evaluate_position
         }
 
       }
-      else if ( weights[1] < 0.0 && weights[0] < 0.0 ) {
+      else if ( _weights[1] < 0.0 && _weights[0] < 0.0 ) {
         double v_pt2_x[3];
         for (int i = 0; i < 3; i++) {
           v_pt2_x[i] = pt2[i] - x[i];
@@ -245,15 +251,15 @@ PDM_triangle_evaluate_position
         }
 
       }
-      else if (weights[0] < 0.0) {
+      else if (_weights[0] < 0.0) {
         *minDist2 = PDM_line_distance (x, pt1, pt2, &t, closestPoint);
 
       }
-      else if (weights[1] < 0.0) {
+      else if (_weights[1] < 0.0) {
         *minDist2 = PDM_line_distance (x, pt2, pt3, &t, closestPoint);
 
       }
-      else if (weights[2] < 0.0) {
+      else if (_weights[2] < 0.0) {
         *minDist2 = PDM_line_distance (x, pt1, pt3, &t, closestPoint);
 
       }

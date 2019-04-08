@@ -46,9 +46,294 @@ extern "C" {
  * Static global variables
  *============================================================================*/
 
+static const double  pdm_part_to_block_distrib_tol = 0.10;
+
+/* Max. number of sub-iterations to get a well-balanced distribution */
+static const int pdm_part_to_block_distrib_n_iter_max = 5;
+
+static const int _sampling_factors[4] = {1, /* OD */
+                                         2, /* 1D */
+                                         2, /* 2D */
+                                         4, /* 3D */};
+
 /*=============================================================================
  * Static function definitions
  *============================================================================*/
+
+
+/**
+ * \brief   Evaluate a distribution array.
+ *
+ * \param [in]  n_ranges     Number of ranges in the distribution
+ * \param [in]  distribution Number of elements associated to each range of the distribution
+ * \param [in]  optim        Optimal count in each range
+ *
+ * \return  a fit associated to the distribution. If fit = 0, distribution is perfect.
+ *
+ */
+
+static double
+_evaluate_distribution(int          n_ranges,
+                       double      *distribution,
+                       double       optim)
+{
+  int  i;
+  double  d_low = 0, d_up = 0, fit = 0;
+
+  /*
+     d_low is the max gap between the distribution count and the optimum when
+     distribution is lower than optimum.
+     d_up is the max gap between the distribution count and the optimum when
+     distribution is greater than optimum.
+  */
+
+  for (i = 0; i < n_ranges; i++) {
+
+    if (distribution[i] > optim)
+      d_up = _MAX(d_up, distribution[i] - optim);
+    else
+      d_low = _MAX(d_low, optim - distribution[i]);
+
+  }
+
+  fit = (d_up + d_low) / optim;
+
+#if 0 && defined(DEBUG) && !defined(NDEBUG)
+  if (cs_glob_rank_id <= 0)
+    PDM_printf( "<DISTRIBUTION EVALUATION> optim: %g, fit: %g\n",
+               optim, fit);
+#endif
+
+  return  fit;
+}
+
+
+/**
+ * \brief Define a global distribution associated to a sampling array i.e. count
+ * the number of elements in each range.
+ *
+ *   \param [in]    dim           2D or 3D
+ *   \param [in]    n_ranks       number of ranks (= number of ranges)
+ *   \param [in]    gsum_weight   global sum of all weightings
+ *   \param [in]    n_codes       local number of Hilbert codes
+ *   \param [in]    hilbert_codes local list of Hilbert codes to distribute
+ *   \param [in]    weight        weighting related to each code
+ *   \param [in]    order         ordering array
+ *   \param [in]    sampling      sampling array
+ *   \param [inout] c_freq        pointer to the cumulative frequency array
+ *   \param [inout] g_distrib     pointer to a distribution array
+ *   \param [in]    comm          mpi communicator
+ */
+
+static void
+_define_rank_distrib( _cs_part_to_block_t *ptb,
+                      int                 dim,
+                      int                 n_ranks,
+                      double              gsum_weight,
+                      const PDM_g_num_t   sampling[],
+                      double              cfreq[],
+                      double              g_distrib[],
+                      PDM_MPI_Comm        comm)
+{
+  int  id, rank_id;
+
+  const int  sampling_factor = _sampling_factors[dim];
+  const int  n_samples = sampling_factor * n_ranks;
+
+  /* Initialization */
+
+  double   *l_distrib = (double  *) malloc (n_samples * sizeof(double));
+
+  for (id = 0; id < n_samples; id++) {
+    l_distrib[id] = 0;
+    g_distrib[id] = 0;
+  }
+
+  /* gnum are supposed to be ordered */
+  /* TODO: Refaire cette partie : les nombres ne sont pas tries */
+
+  for (int i = 0; i < ptb->n_part; i++) {
+
+    for (int j = 0; j < ptb->n_elt[i]; j++) {
+   
+      PDM_g_num_t _gnum_elt = ptb->gnum_elt[i][j] - 1;
+      
+      int iSample = PDM_binary_search_gap_long (_gnum_elt,
+                                                sampling,
+                                                n_samples + 1);
+      l_distrib[iSample] += ptb->weight[i][j];
+    }
+  }
+
+  /* Define the global distribution */
+
+  PDM_MPI_Allreduce(l_distrib, g_distrib, n_samples,
+                    PDM_MPI_DOUBLE, PDM_MPI_SUM, comm);
+
+  free(l_distrib);
+
+  /* Define the cumulative frequency related to g_distribution */
+
+  cfreq[0] = 0.;
+  for (id = 0; id < n_samples; id++) {
+#ifdef __INTEL_COMPILER
+#pragma warning(push)
+#pragma warning(disable:2259)
+#endif  
+    double _g_distrib  = (double)g_distrib[id];
+    double _gsum_weight = (double)gsum_weight;
+#ifdef __INTEL_COMPILER
+#pragma warning(pop)
+#endif
+    cfreq[id+1] = cfreq[id] + _g_distrib/_gsum_weight;
+  }
+  cfreq[n_samples] = 1.0;
+
+#if 0 && defined(DEBUG) && !defined(DEBUG) /* For debugging purpose only */
+
+  if (cs_glob_rank_id <= 0) {
+
+    FILE  *dbg_file = NULL;
+    int  len;
+    static int  loop_id1 = 0;
+
+    len = strlen("DistribOutput_l.dat")+1+2;
+    char  *rfilename = (char *) malloc (len * sizeof(char));
+    sprintf(rfilename, "DistribOutput_l%02d.dat", loop_id1);
+
+    loop_id1++;
+
+    dbg_file = fopen(rfilename, "w");
+
+    fprintf(dbg_file,
+            "# Sample_id  |  OptCfreq  |  Cfreq  |  Sampling  |"
+            "Global Distrib\n");
+    for (i = 0; i < n_samples; i++)
+      fprintf(dbg_file, "%8d %15.5f %15.10f %15.10f %10u\n",
+              i, (double)i/(double)n_samples, cfreq[i],
+              (double)(sampling[i]), distrib[i]);
+    fprintf(dbg_file, "%8d %15.5f %15.10f %15.10f %10u\n",
+            i, 1.0, 1.0, 1.0, 0);
+
+    fclose(dbg_file);
+    free(rfilename);
+
+  }
+
+#endif /* debugging output */
+
+  /* Convert global distribution from n_samples to n_ranks */
+
+  for (rank_id = 0; rank_id < n_ranks; rank_id++) {
+
+    double   sum = 0.;
+    int   shift = rank_id * sampling_factor;
+
+    for (id = 0; id < sampling_factor; id++)
+      sum += g_distrib[shift + id];
+    g_distrib[rank_id] = sum;
+
+  } /* End of loop on ranks */
+
+#if 0 && defined(DEBUG) && !defined(NDEBUG) /* Sanity check in debug */
+  {
+    PDM_g_num_t   sum = 0;
+    for (rank_id = 0; rank_id < n_ranks; rank_id++)
+      sum += g_distrib[rank_id];
+
+    if (sum != gsum_weight)
+      PDM_error(__FILE__, __LINE__, 0,
+                "Error while computing global distribution.\n"
+                "sum = %u and gsum_weight = %u\n",
+                sum, gsum_weight);
+    exit(1);
+  }
+#endif /* sanity check */
+
+}
+
+/**
+ * \brief Update a distribution associated to sampling to assume a well-balanced
+ * distribution of the leaves of the tree.
+ *
+ *   \param [in]    dim      1D, 2D or 3D
+ *   \param [in]    n_ranks  number of ranks (= number of ranges)
+ *   \param [inout] c_freq   cumulative frequency array
+ *   \param [inout] sampling pointer to pointer to a sampling array
+ *   \param [in]    comm     mpi communicator
+ */
+
+static void
+_update_sampling(int            dim,
+                 int            n_ranks,
+                 double         c_freq[],
+                 PDM_g_num_t  *sampling[])
+{
+  int  i, j, next_id;
+  double  target_freq, f_high, f_low, delta;
+  PDM_g_num_t  s_low, s_high;
+
+  PDM_g_num_t  *new_sampling = NULL, *_sampling = *sampling;
+
+  const int  sampling_factor = _sampling_factors[dim];
+  const int  n_samples = sampling_factor * n_ranks;
+  const double  unit = 1/(double)n_samples;
+
+  /* Compute new_sampling */
+
+  new_sampling = ( PDM_g_num_t  *) malloc (sizeof(PDM_g_num_t) * (n_samples + 1));
+   
+  new_sampling[0] = _sampling[0];
+
+  next_id = 1;
+
+  for (i = 0; i < n_samples; i++) {
+
+    target_freq = (i+1)*unit;
+
+    /* Find the next id such as c_freq[next_id] >= target_freq */
+
+    for (j = next_id; j < n_samples + 1; j++) {
+      if (c_freq[j] >= target_freq) {
+        next_id = j;
+        break;
+      }
+    }
+
+    /* Find new s such as new_s is equal to target_freq by
+       a linear interpolation */
+
+    f_low = c_freq[next_id-1];
+    f_high = c_freq[next_id];
+
+    s_low = _sampling[next_id-1];
+    s_high = _sampling[next_id];
+
+    if (f_high - f_low > 0) {
+      delta = (target_freq - f_low) * (s_high - s_low) / (f_high - f_low);
+      new_sampling[i+1] = s_low + delta;
+    }
+    else /* f_high = f_low */
+      new_sampling[i+1] = s_low + 0.5 * (s_low + s_high);
+
+#if 0 && defined(DEBUG) && !defined(NDEBUG)
+    PDM_printf( " <_update_distrib> (rank: %d) delta: %g, target: %g,"
+               " next_id: %d, f_low: %g, f_high: %g, s_low: %g, s_high: %g\n"
+               "\t => new_sampling: %g\n",
+               cs_glob_rank_id, delta, target_freq, next_id,
+               f_low, f_high, s_low, s_high, new_sampling[i+1]);
+#endif
+
+  } /* End of loop on samples */
+
+  new_sampling[n_samples] = _sampling[n_samples];
+
+  free(_sampling);
+
+  /* Return pointers */
+
+  *sampling = new_sampling;
+}
 
 
 /**
@@ -125,7 +410,7 @@ _active_ranks
       }
       
       int n_node = ptb->n_activeRanks;
-      float partActiveNode = _MIN (1, ptb->partActiveNode);
+      double partActiveNode = _MIN (1, ptb->partActiveNode);
       partActiveNode = _MAX (0, partActiveNode);
       ptb->n_activeRanks = (int) floor (n_node * partActiveNode);
       ptb->n_activeRanks = _MAX (1, ptb->n_activeRanks);
@@ -201,43 +486,186 @@ _distrib_data
                  PDM_MPI_MAX, 
                  ptb->comm);
 
-  PDM_g_num_t _n_rankData = _id_max_max / ptb->n_activeRanks;
-  PDM_g_num_t _rest = _id_max_max % ptb->n_activeRanks;
+
+  if (ptb->weight == NULL) { 
+    PDM_g_num_t _n_rankData = _id_max_max / ptb->n_activeRanks;
+    PDM_g_num_t _rest = _id_max_max % ptb->n_activeRanks;
   
-  int n_rankData = (int) (_n_rankData);
-  int rest       = (int) (_rest);
+    int n_rankData = (int) (_n_rankData);
+    int rest       = (int) (_rest);
                      
-  ptb->s_blockMax = n_rankData;
-  ptb->s_blockMin = n_rankData;
-  
-  if (rest != 0)
-    ptb->s_blockMax += 1;
-
-  for (int i = 0; i < ptb->s_comm + 1; i++) 
-    ptb->dataDistribIndex[i] = 0;
-
-  int k = 0;
-  int idx = 0;
-  for (int i = 0; i < ptb->s_comm; i++) {
-    ptb->dataDistribIndex[i+1] +=  ptb->dataDistribIndex[i];
-    if (idx < ptb->n_activeRanks) {
-      if (ptb->activeRanks[idx] == i) {
-        ptb->dataDistribIndex[i+1] += n_rankData;
-        if (k < rest)
-          ptb->dataDistribIndex[i+1] += 1;
-        k += 1;
-        idx++;
+    ptb->s_blockMax = n_rankData;
+    ptb->s_blockMin = n_rankData;
+    
+    if (rest != 0) {
+      ptb->s_blockMax += 1;
+    }
+    
+    for (int i = 0; i < ptb->s_comm + 1; i++) { 
+      ptb->dataDistribIndex[i] = 0;
+    }
+    
+    int k = 0;
+    int idx = 0;
+    for (int i = 0; i < ptb->s_comm; i++) {
+      ptb->dataDistribIndex[i+1] +=  ptb->dataDistribIndex[i];
+      if (idx < ptb->n_activeRanks) {
+        if (ptb->activeRanks[idx] == i) {
+          ptb->dataDistribIndex[i+1] += n_rankData;
+          if (k < rest)
+            ptb->dataDistribIndex[i+1] += 1;
+          k += 1;
+          idx++;
+        }
       }
     }
   }
 
+  else {
+    const int dim = 2;
+    const int  n_activeRanks = ptb->n_activeRanks;
+    const int  sampling_factor = _sampling_factors[dim];
+    const int  n_samples = sampling_factor * n_activeRanks;
+
+    double **weight = ptb->weight;
+    PDM_MPI_Comm comm = ptb->comm;      
+
+    PDM_g_num_t *sampling = malloc(sizeof(PDM_g_num_t) * (n_samples + 1));
+    
+    double  lsum_weight = 0.;
+    for (int i = 0; i < ptb->n_part; i++) {
+      for (int j = 0; j < ptb->n_elt[i]; j++) {
+        lsum_weight += weight[i][j];
+      }
+    }
+
+    double  gsum_weight = 0.;
+    PDM_MPI_Allreduce(&lsum_weight, &gsum_weight, 1,
+                      PDM_MPI_DOUBLE, PDM_MPI_SUM, comm);
+
+    double optim = gsum_weight / n_activeRanks;
+
+    /* Define a naive sampling (uniform distribution) */
+
+    PDM_g_num_t _n_sampleData = _id_max_max / n_samples;
+    PDM_g_num_t _samplerest = _id_max_max % n_samples;
+
+    sampling[0] = 0;
+    int k = 0;
+    for (int i = 0; i < n_samples; i++) {
+      sampling[i+1] = sampling[i];
+      sampling[i+1] += _n_sampleData;
+      if (k < _samplerest) {
+        sampling[i+1] += 1;
+        k += 1;
+      }
+    }
+
+    /* Define the distribution associated to the current sampling array */
+
+    double *distrib = (double *) malloc (sizeof(double) * n_samples);
+    double  *cfreq = (double *) malloc (sizeof(double) * (n_samples + 1));
+
+    _define_rank_distrib(ptb,
+                         dim,
+                         n_activeRanks,
+                         gsum_weight,
+                         sampling,
+                         cfreq,
+                         distrib,
+                         comm);
+
+    /* Initialize best choice */
+
+    double fit = _evaluate_distribution(n_activeRanks, distrib, optim);
+    double best_fit = fit;
+
+    PDM_g_num_t  *best_sampling =
+      (PDM_g_num_t  *) malloc (sizeof(PDM_g_num_t) * (n_samples + 1));
+
+    for (int i = 0; i < (n_samples + 1); i++) {
+      best_sampling[i] = sampling[i];
+    }
+
+    /* Loop to get a better sampling array */
+
+    for (int n_iters = 0;
+         (   n_iters < pdm_part_to_block_distrib_n_iter_max
+             && fit > pdm_part_to_block_distrib_tol);
+         n_iters++)  {
+      
+      _update_sampling(dim, n_activeRanks, cfreq, &sampling);
+
+      /* Compute the new distribution associated to the new sampling */
+
+      _define_rank_distrib(ptb,
+                           dim,
+                           n_activeRanks,
+                           gsum_weight,
+                           sampling,
+                           cfreq,
+                           distrib,
+                           comm);
+
+      fit = _evaluate_distribution(n_activeRanks, distrib, optim);
+      
+      /* Save the best sampling array and its fit */
+      
+      if (fit < best_fit) {
+        
+        best_fit = fit;
+        for (int i = 0; i < (n_samples + 1); i++) {
+          best_sampling[i] = sampling[i];
+        }
+      }
+
+    } /* End of while */
+
+    free (distrib);
+    free (cfreq);
+    free (sampling);
+
+    sampling = best_sampling;
+    
+    int *_active_ranks = ptb->activeRanks;
+
+    PDM_g_num_t *rank_index = malloc (sizeof(PDM_g_num_t) * (n_activeRanks + 1));
+    
+    for (int i = 0; i < n_activeRanks + 1; i++) {
+      int id = i * sampling_factor;
+      rank_index[i] = sampling[id];
+    }
+    
+    free (sampling);
+
+    ptb->dataDistribIndex[0] = 0;
+
+    k = 0;
+    for (int i = 0; i < n_activeRanks; i++) {
+      int i_activeRank = _active_ranks[i];
+      while (k < i_activeRank) {
+        ptb->dataDistribIndex[k+1] = ptb->dataDistribIndex[k];
+        k++;
+      }
+      ptb->dataDistribIndex[k+1] = rank_index[i+1];
+      k++;
+    }
+    while (k < ptb->s_comm) {
+      ptb->dataDistribIndex[k+1] = ptb->dataDistribIndex[k];
+      k++;
+    }
+
+    free (rank_index);
+
+  }
+  
   /* Affichage */
 
-  if (0 == 1) {
+  if (1 == 0) {
     if (ptb->myRank == 0) {
       PDM_printf("dataDistribIndex : ");
       for(int i = 0; i < ptb->s_comm + 1; i++)
-        PDM_printf(PDM_FMT_G_NUM" ", ptb->dataDistribIndex[i]);
+        PDM_printf(PDM_FMT_G_NUM" ", ptb->dataDistribIndex[i]); 
       PDM_printf("\n");
     }
   }
@@ -255,7 +683,7 @@ _distrib_data
     ptb->n_sendData[i] = 0;
   }
         
-  idx = -1;
+  int idx = -1;
   for (int i = 0; i < ptb->n_part; i++) {
 
     for (int j = 0; j < ptb->n_elt[i]; j++) {
@@ -292,7 +720,8 @@ _distrib_data
   ptb->tn_sendData = ptb->i_sendData[ptb->s_comm - 1] +
                      ptb->n_sendData[ptb->s_comm - 1];
 
-  PDM_g_num_t *send_gnum = (PDM_g_num_t *) malloc (sizeof(PDM_g_num_t) * ptb->tn_sendData) ;
+  PDM_g_num_t *send_gnum =
+    (PDM_g_num_t *) malloc (sizeof(PDM_g_num_t) * ptb->tn_sendData) ;
   
   for (int i = 0; i < ptb->s_comm; i++)
     ptb->n_sendData[i] = 0;
@@ -308,7 +737,8 @@ _distrib_data
     }
   }
   
-  ptb->sorted_recvGnum = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * ptb->tn_recvData);
+  ptb->sorted_recvGnum =
+    (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * ptb->tn_recvData);
   
   PDM_MPI_Alltoallv(send_gnum, 
                 ptb->n_sendData,
@@ -396,9 +826,9 @@ PDM_part_to_block_create
 (
  PDM_part_to_block_distrib_t   t_distrib,
  PDM_part_to_block_post_t      t_post,
- float                        partActiveNode,
+ double                        partActiveNode,
  PDM_g_num_t                  **gnum_elt,
- float                       **weight,
+ double                       **weight,
  int                         *n_elt,
  int                          n_part,
  PDM_MPI_Comm                     comm
@@ -408,7 +838,10 @@ PDM_part_to_block_create
   _cs_part_to_block_t *ptb = 
     (_cs_part_to_block_t *) malloc (sizeof(_cs_part_to_block_t));
 
-
+  if ((t_post != PDM_PART_TO_BLOCK_POST_MERGE) && (weight != NULL)) {
+    PDM_error(__FILE__, __LINE__, 0,"PDM_part_to_block_create : weights are available only if PDM_PART_TO_BLOCK_POST_MERGE is selected\n");
+  }
+  
   ptb->t_distrib        = t_distrib;    /*!< Distribution type */
   ptb->t_post           = t_post;       /*!< Post processing type */
   ptb->n_activeRanks    = 0;            /*!< Number of active ranks */
@@ -832,7 +1265,7 @@ PDM_part_to_block_exch
         if (_ptb->block_gnum[idx1] != _ptb->sorted_recvGnum[i]) {
           idx1 += 1;
           _block_stride[idx1] = _block_stride[i];
-          if (_ptb->t_post == PDM_PART_TO_BLOCk_POST_CLEANUP) {
+          if (_ptb->t_post == PDM_PART_TO_BLOCK_POST_CLEANUP) {
             for (int k = i_block_stride[i]; k < i_block_stride[i+1]; k++) {
               _block_data[idx2++] = _block_data[k];
             }
@@ -847,7 +1280,7 @@ PDM_part_to_block_exch
       
       /* Cleanup */
 
-      if (_ptb->t_post == PDM_PART_TO_BLOCk_POST_CLEANUP) {
+      if (_ptb->t_post == PDM_PART_TO_BLOCK_POST_CLEANUP) {
         _block_data = realloc (_block_data, sizeof(unsigned char) * idx2);
         *block_data = _block_data;
 
@@ -901,7 +1334,7 @@ PDM_part_to_block_exch
         }
         if (_ptb->block_gnum[idx1] != _ptb->sorted_recvGnum[i]) {
           idx1 += 1;
-          if (_ptb->t_post == PDM_PART_TO_BLOCk_POST_CLEANUP) {
+          if (_ptb->t_post == PDM_PART_TO_BLOCK_POST_CLEANUP) {
             int idx3 = i * cst_stride * (int) s_data;
             for (int k = 0; k < n_octet; k++) {
               _block_data[idx2++] = _block_data[idx3++];
@@ -910,7 +1343,7 @@ PDM_part_to_block_exch
         }
       }
 
-      if (_ptb->t_post == PDM_PART_TO_BLOCk_POST_CLEANUP) {
+      if (_ptb->t_post == PDM_PART_TO_BLOCK_POST_CLEANUP) {
         _block_data = realloc (_block_data, sizeof(unsigned char) * idx2);
         *block_data = _block_data;
         s_block_data = idx2 / (int) s_data;

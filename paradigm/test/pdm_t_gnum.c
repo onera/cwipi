@@ -497,24 +497,24 @@ char *argv[]
   int nTPart;
   int nEdgeGroup;
   
- _create_split_mesh (imesh,
-                     PDM_MPI_COMM_WORLD,
-                     nVtxSeg,
-                     length,
-                     nPart,
-                     method,
-                     haveRandom,
-                     &nGFace,
-                     &nGVtx,
-                     &nGEdge,
-                     &nTPart,
-                     &nEdgeGroup);
+  _create_split_mesh (imesh,
+                      PDM_MPI_COMM_WORLD,
+                      nVtxSeg,
+                      length,
+                      nPart,
+                      method,
+                      haveRandom,
+                      &nGFace,
+                      &nGVtx,
+                      &nGEdge,
+                      &nTPart,
+                      &nEdgeGroup);
   
- PDM_MPI_Finalize ();
+  PDM_MPI_Finalize ();
+  
+  PDM_printf ("\nfin Test\n");
  
- PDM_printf ("\nfin Test\n");
- 
- return 0;
+  return 0;
 
 }
 

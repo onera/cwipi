@@ -333,14 +333,13 @@ PDM_box_set_create(int                dim,
 
   /* Define the normalized min/max coordinates of the box */
 
+  boxes->normalized = normalize;
   if (normalize) {
-
-    double  d[3], s[3];
 
     for (j = 0; j < boxes->dim; j++) {
       k = boxes->dimensions[j];
-      s[j] = g_min[k];
-      d[j] = g_max[k] - g_min[k];
+      boxes->s[j] = g_min[k];
+      boxes->d[j] = g_max[k] - g_min[k];
     }
 
     for (i = 0; i < n_boxes; i++) {
@@ -348,10 +347,9 @@ PDM_box_set_create(int                dim,
       double *_min = boxes->extents + (boxes->dim*2*i);
       double *_max = _min + boxes->dim;
 
-      for (j = 0; j < boxes->dim; j++) {
-        _min[j] = (_min[j] - s[j]) / d[j];
-        _max[j] = (_max[j] - s[j]) / d[j];
-      }
+      PDM_box_set_normalize (boxes, _min, _min);
+      PDM_box_set_normalize (boxes, _max, _max);
+      
     }
 
   }
@@ -360,6 +358,36 @@ PDM_box_set_create(int                dim,
 
   return boxes;
 }
+
+
+void
+PDM_box_set_normalize
+(
+ PDM_box_set_t  *boxes,
+ const double *pt_origin,
+ double *pt_nomalized
+ )
+{
+  for (int j = 0; j < boxes->dim; j++) {
+    pt_nomalized[j] = (pt_origin[j] - boxes->s[j]) / boxes->d[j];
+  }
+}
+
+
+
+void
+PDM_box_set_normalize_inv
+(
+ PDM_box_set_t  *boxes,
+ const double *pt_nomalized,
+ double *pt_origin
+ )
+{
+  for (int j = 0; j < boxes->dim; j++) {
+    pt_origin[j] = pt_nomalized[j] * boxes->d[j] + boxes->s[j];
+  }
+}
+
 
 /*----------------------------------------------------------------------------
  * Delete a PDM_box_set_t structure.

@@ -42,6 +42,26 @@ typedef struct _PDM_box_distrib_t PDM_box_distrib_t;
  * Public function definitions
  *============================================================================*/
 
+
+void
+PDM_box_set_normalize
+(
+ PDM_box_set_t  *boxes,
+ const double *pt_origin,
+ double *pt_nomalized
+ );
+
+
+
+void
+PDM_box_set_normalize_inv
+(
+ PDM_box_set_t  *boxes,
+ const double *pt_nomalized,
+ double *pt_origin
+ );
+
+
 /*----------------------------------------------------------------------------
  * Create a set of boxes and initialize it.
  *

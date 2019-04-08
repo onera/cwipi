@@ -17,9 +17,9 @@ cdef extern from "pdm_part_to_block.h":
     # > Wrapping of function 
     PDM_part_to_block_t *PDM_part_to_block_create(PDM_part_to_block_distrib_t   t_distrib,
                                                   PDM_part_to_block_post_t      t_post,
-                                                  float                         partActiveNode,
+                                                  double                         partActiveNode,
                                                   PDM_g_num_t                 **gnum_elt,
-                                                  float                       **weight,
+                                                  double                       **weight,
                                                   int                          *n_elt,
                                                   int                           n_part,
                                                   PDM_MPI_Comm                  comm)
@@ -65,7 +65,7 @@ cdef class PartToBlock:
 
     cdef int                 *NbElmts
     cdef PDM_g_num_t        **LNToGN
-    cdef float              **weight
+    cdef double              **weight
 
     cdef PDM_part_to_block_distrib_t t_distrib
     cdef PDM_part_to_block_post_t    t_post
@@ -77,7 +77,7 @@ cdef class PartToBlock:
                         PDM_part_to_block_distrib_t t_distrib = <PDM_part_to_block_distrib_t> (0),
                         PDM_part_to_block_post_t    t_post    = <PDM_part_to_block_post_t   > (0),
                         PDM_stride_t                t_stride  = <PDM_stride_t   > (0),
-                        float partActiveNode = 1.):
+                        double partActiveNode = 1.):
         """
         TODOUX
         """
@@ -87,7 +87,7 @@ cdef class PartToBlock:
         cdef int      idx
         # > Numpy array
         cdef NPY.ndarray[npy_pdm_gnum_t, ndim=1, mode='fortran'] partLNToGN
-        cdef NPY.ndarray[float, ndim=1, mode='fortran'] partWeight
+        cdef NPY.ndarray[double, ndim=1, mode='fortran'] partWeight
         # ************************************************************************
         
         # ::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -121,7 +121,7 @@ cdef class PartToBlock:
         self.weight   = NULL
 
         if (pWeight is not None):
-          self.weight   = <float **> malloc(sizeof(float *) * self.partN )
+          self.weight   = <double **> malloc(sizeof(double *) * self.partN )
           
 
         self.NbElmts  = <int * > malloc(sizeof(int  ) * self.partN )
@@ -146,7 +146,7 @@ cdef class PartToBlock:
         idx = 0
         if (pWeight is not None):
           for idx, partWeight in enumerate(pWeight):
-            self.weight[idx] = <float *> partWeight.data
+            self.weight[idx] = <double *> partWeight.data
 
 
         # ::::::::::::::::::::::::::::::::::::::::::::::::::

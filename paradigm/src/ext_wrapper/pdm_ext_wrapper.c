@@ -409,7 +409,6 @@ int    *part
     for (int i = 0; i < _nvtxs; i++) {
       part[i] = __part[i]; 
     }
-    free (__part);
   }
   
   if (__xadj != NULL) {
@@ -431,7 +430,6 @@ int    *part
   if (__adjwgt != NULL) {
     free (__adjwgt);
   }
-
   
   if (__tpwgts != NULL) {
     free (__tpwgts);

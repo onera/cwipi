@@ -384,6 +384,8 @@ const int     *faceVtx
         }
       }
 
+      /* FIXME Check edges connexion (ignore edges connected with more 2 faces) */
+      
       int nStackFace = -1;    
 
       /* Look for a neighbour of this face */

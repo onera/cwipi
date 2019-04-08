@@ -1144,19 +1144,20 @@ _gnum_from_parent_compute
   }
 
   PDM_MPI_Alltoallv((void *) recvBuffNumabs, 
-                recvBuffN, 
-                recvBuffIdx, 
-                PDM__PDM_MPI_G_NUM,
-                (void *) sendBuffNumabs, 
-                sendBuffN, 
-                sendBuffIdx,
-                PDM__PDM_MPI_G_NUM, 
-                _gnum->comm);
+                    recvBuffN, 
+                    recvBuffIdx, 
+                    PDM__PDM_MPI_G_NUM,
+                    (void *) sendBuffNumabs, 
+                    sendBuffN, 
+                    sendBuffIdx,
+                    PDM__PDM_MPI_G_NUM, 
+                    _gnum->comm);
 
   /* On Stocke l'information recue */
 
-  for (int j = 0; j < n_procs; j++)
+  for (int j = 0; j < n_procs; j++) {
     sendBuffN[j] = 0;
+  }
 
   for (int j = 0; j < _gnum->n_part; j++) {
     

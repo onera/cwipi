@@ -26,7 +26,7 @@
 
 
 /*============================================================================
- * Type definitions
+ * Type definition
  *============================================================================*/
 
 /*============================================================================
@@ -538,7 +538,7 @@ PDM_part_split_t           method,
   }
   
   PDM_part_to_block_t *ptb1 = PDM_part_to_block_create (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
-                                                        PDM_PART_TO_BLOCk_POST_CLEANUP, 1.,
+                                                        PDM_PART_TO_BLOCK_POST_CLEANUP, 1.,
                                                         &numabs_init,
                                                         NULL,  
                                                         &dNVtx,
@@ -547,7 +547,7 @@ PDM_part_split_t           method,
 
                                         
   PDM_part_to_block_t *ptb2 = PDM_part_to_block_create (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
-                                                        PDM_PART_TO_BLOCk_POST_CLEANUP, 1.,
+                                                        PDM_PART_TO_BLOCK_POST_CLEANUP, 1.,
                                                         vtxLNToGNs,
                                                         NULL,
                                                         nVtxs,

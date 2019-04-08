@@ -11,6 +11,7 @@
  *----------------------------------------------------------------------------*/
 
 #include "pdm.h"
+#include "pdm_priv.h"
 #include "pdm_hash_tab.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
@@ -96,7 +97,7 @@ void                     *keyMax
     abort();
   }
   
-  ht->l_key_info = ht->keyMax/10;
+  ht->l_key_info = PDM_MAX (ht->keyMax/10, 2);
   ht->key_info = malloc (sizeof(PDM_g_num_t)*ht->l_key_info);
   ht->n_key_info = 0;
 
@@ -333,7 +334,7 @@ PDM_bool_t remove_data
 )
 {
   _hash_tab_t *_ht = (_hash_tab_t *) ht;
-  
+
   if (remove_data) {
     
     for (int i = 0; i < _ht->n_key_info; i++) {
