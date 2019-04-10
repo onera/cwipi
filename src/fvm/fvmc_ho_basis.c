@@ -143,6 +143,88 @@ _monomialProduct
   }
 }
 
+
+
+/*----------------------------------------------------------------------------
+ * 
+ * Edge Pn basis
+ * 
+ * parameters:
+ *   order           <-- order
+ *   n_pts           <-- number of points
+ *   u              <-- u (size = n_pts)
+ *   weights         --> weights (size = n_nodes * n_pts)
+ *
+ *
+ *----------------------------------------------------------------------------*/
+
+static void 
+_basis_edge_pn
+(
+ const int order,
+ const int n_pts,
+ const double *restrict u,
+ double *restrict weights
+)
+{
+
+  const int n_nodes = order + 1;
+
+  if (order == 1) {
+
+    for (int i = 0; i < n_pts; i++) {
+      double _u =  u[i];
+      weights[2*i]   = 1. - _u;
+      weights[2*i+1] = _u;
+    }
+  }
+  
+  else if (order == 2) {
+
+    for (int i = 0; i < n_pts; i++) {
+        
+     double _u = u[i];
+     
+     weights[3*i+0] = 0.5 * (_u - 1.) * (_u - 2.); 
+     weights[3*i+1] = _u * (2. - _u);              
+     weights[3*i+2] = 0.5 * _u * (_u - 1.);        
+    }
+  }
+
+  else if (order == 3) {
+
+    for (int i = 0;  i < n_pts; i++) {
+      
+      double _u = u[i];
+      
+      weights[4*i+0] = -(double) 1 / (double) 6 *      (_u - 1.) * (_u - 2.) * (_u - 3.);
+      weights[4*i+1] =  (double) 1 / (double) 2 * _u *             (_u - 2.) * (_u - 3.);
+      weights[4*i+2] = -(double) 1 / (double) 2 * _u * (_u - 1.) *             (_u - 3.);
+      weights[4*i+3] =  (double) 1 / (double) 6 * _u * (_u - 1.) * (_u - 2.)            ;    
+      
+    }
+  }
+  
+  else {
+    
+    for (int i = 0; i < n_pts; i++) {
+      
+      for (int i_node = 0; i_node < n_nodes; i_node++) {
+        
+        for (int n = 0; n < n_nodes; n++) {
+
+          if (n != i_node) {
+            
+            double coef = 1. / (double) (i_node - n);
+            weights[n_nodes * i + i_node] *= u[i] - n;
+            weights[n_nodes * i + i_node] /= coef;
+          }
+        }
+      }
+    }
+  }
+
+}  
 /*----------------------------------------------------------------------------
  * 
  * Triangle Pn basis
@@ -557,6 +639,9 @@ const double *uvw,
     break;
 
   case FVMC_EDGE:
+    _basis_edge_pn (order, n_pts, uvw, weights);
+    break;
+    
   case FVMC_CELL_TETRA:
   case FVMC_CELL_PRISM:
   case FVMC_CELL_PYRAM:

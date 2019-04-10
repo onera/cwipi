@@ -5356,6 +5356,69 @@ int fvmc_polygon_evaluate_Position(double x[3], int numPts, double *pts, double*
 }
 
 
+int fvmc_edge_evaluate_Position (double x[3],
+                                 double *pts,
+                                 double* closestPoint,
+                                 double closestPointpcoords[1],
+                                 double* dist2,
+                                 double closestPointweights[2])
+{
+
+  double *pt1, *pt2;
+  double proj, norm_edge, norm_edge2;
+  double xp1[3], p2p1[3];
+
+  pt1 = pts;
+  pt2 = pts +3;
+
+  xp1[0] = -pt1[0] + x[0];
+  xp1[1] = -pt1[1] + x[1];
+  xp1[2] = -pt1[2] + x[2];
+  
+  p2p1[0] = -pt1[0] + pt2[0];
+  p2p1[1] = -pt1[1] + pt2[1];
+  p2p1[2] = -pt1[2] + pt2[2];
+
+  norm_edge2 = _DOT_PRDUCT(p2p1, p2p1);
+  norm_edge = sqrt(norm_edge2);
+
+  if (norm_edge2 == 0.0) {
+    return -1;
+  }
+  
+  
+  proj = _DOT_PRODUCT(xp1, p2p1);
+
+  if (proj < 0.0){
+      closestPoint[0] = pt1[0];
+      closestPoint[1] = pt1[1];
+      closestPoint[2] = pt1[2];
+      proj = 0;
+  }
+  else if (proj > norm_edge){
+      closestPoint[0] = pt2[0];
+      closestPoint[1] = pt2[1];
+      closestPoint[2] = pt2[2];
+      proj = norm_edge;
+  }
+  else {
+    closestPoint[0] = pt1[0] + proj * p2p1[0];
+    closestPoint[1] = pt1[1] + proj * p2p1[1];
+    closestPoint[2] = pt1[2] + proj * p2p1[2];
+  }
+
+  closestPointpcoords[0] = proj / norm_edge;
+
+  *dist2 = _DOT_PRODUCT(xp1,xp1) - (proj*proj) * norm_edge2;
+
+  closestPointweights[0] = 1 - closestPointpcoords[0];
+  closestPointweights[1] = closestPointpcoords[0];
+  
+  return 0;
+  
+}
+
+
 #undef _DOT_PRODUCT
 #undef _MODULE
 #undef _CROSS_PRODUCT

@@ -195,6 +195,10 @@ int  fvmc_triangle_evaluate_Position (double x[3], double *pts, double* closestP
 int fvmc_polygon_evaluate_Position(double x[3], int numPts, double *pts, double* closestPoint,
                                    double pcoords[3], double* minDist2);
 
+int fvmc_edge_evaluate_Position (double x[3], double *pts, double* closestPoint,
+                                 double closestPointpcoords[1], double* dist2,
+                                 double closestPointweights[2]);
+
 
 /*----------------------------------------------------------------------------*/
 
