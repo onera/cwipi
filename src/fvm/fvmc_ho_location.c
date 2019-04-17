@@ -36,6 +36,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+
 /*----------------------------------------------------------------------------
  * BFT library headers
  *----------------------------------------------------------------------------*/
@@ -93,24 +94,24 @@ typedef struct _fvmc_ho_location_user_elt_t {
  * Sorted heap for sub-edge storage
  *----------------------------------------------------------------------------*/
 
-typedef struct {                                                              //
-                                                                              //
-  int idx;                                                                    //
-                                                                              //
-  double vtx_edge[3*2*S_HEAP];                                                //
-  double uInPn_edge[1*2*S_HEAP];                                              //
-                                                                              //
-  double closest_pt[3*S_HEAP];                                                //
-  double closest_pt_uP1[1*S_HEAP];                                            //
-  double closest_pt_uInPn[1*S_HEAP];                                          //
-  double dist2[S_HEAP];                                                       //
-                                                                              //
-  int child[S_HEAP];                                                          //
-                                                                              //
-  int free_idx[S_HEAP];                                                       //
-  int sorted_idx[S_HEAP];                                                     //
-                                                                              //
-} _heap_e;                                                                    //
+typedef struct {
+
+  int idx;
+
+  double vtx_edge[3*2*S_HEAP];
+  double uInPn_edge[1*2*S_HEAP];
+
+  double closest_pt[3*S_HEAP];
+  double closest_pt_uP1[1*S_HEAP];
+  double closest_pt_uInPn[1*S_HEAP];
+  double dist2[S_HEAP];
+
+  int child[S_HEAP];
+
+  int free_idx[S_HEAP];
+  int sorted_idx[S_HEAP];
+
+} _heap_e;
 
 
 /*----------------------------------------------------------------------------
@@ -152,14 +153,14 @@ typedef struct {
  *----------------------------------------------------------------------------*/
 
 
-typedef void (*_heap_fill_init_sub_edge_e)                                    //
-(                                                                             //
- _heap_e  *heap,                                                              //
- const int order,                                                             //
- const int n_nodes,                                                           //
- const double *nodes_coords,                                                  //
- const double *point_coords                                                   //
-);                                                                            //
+typedef void (*_heap_fill_init_sub_edge_e)
+(
+ _heap_e  *heap,
+ const int order,
+ const int n_nodes,
+ const double *nodes_coords,
+ const double *point_coords
+);
 
 
 
@@ -223,25 +224,25 @@ static int isWarningPrinted2 = 0;
  *
  *----------------------------------------------------------------------------*/
 
-static void                                                                   //
-_u_ho_edge_nodes                                                              //
-(                                                                             //
- const int order,                                                             //
- const double umin,                                                           //
- const double umax,                                                           //
- double *u                                                                    //
-)                                                                             //
-{                                                                             //
-  int k = 0;                                                                  //
-  int _order = order+1;                                                       //
-                                                                              //
-  double ustep = (umax - umin) / order;                                       //
-                                                                              //
-  for (int i = 0; i < _order; i++) {                                          //
-    double _u = umin + i * ustep;                                              //
-    u[k++] = _u;                                                               //
-  }                                                                           //
-}                                                                             //
+static void
+_u_ho_edge_nodes
+(
+ const int order,
+ const double umin,
+ const double umax,
+ double *u
+)
+{
+  int k = 0;
+  int _order = order+1;
+
+  double ustep = (umax - umin) / order;
+
+  for (int i = 0; i < _order; i++) {
+    double _u = umin + i * ustep;
+    u[k++] = _u;
+  }
+}
 
 
 
@@ -346,18 +347,18 @@ _uv_ho_quad_nodes
 
 
 
-static void                                                                   //
-_heap_init_e                                                                  //
-(                                                                             //
-_heap_e *heap                                                                 //
-)                                                                             //
-{                                                                             //
-  heap->idx = -1;                                                             //
-                                                                              //
-  for (int i = 0; i < S_HEAP; i++) {                                          //
-    heap->free_idx[i] = i;                                                    //
-  }                                                                           //
-}                                                                             //
+static void
+_heap_init_e
+(
+_heap_e *heap
+)
+{
+  heap->idx = -1;
+
+  for (int i = 0; i < S_HEAP; i++) {
+    heap->free_idx[i] = i;
+  }
+}
 
 
 /*----------------------------------------------------------------------------
@@ -399,52 +400,53 @@ _heap_t *heap
 
 
 
-static int                                                                    //
-_heap_top_get_e                                                               //
-(                                                                             //
- _heap_e *heap,                                                               //
- double *vtx_edge_current,                                                    //
- double *uInPn_edge_current,                                                  //
- double *closest_pt_current,                                                  //
- double *closest_pt_uP1_current,                                              //
- double *closest_pt_uInPn_current,                                            //
- double *dist2_current,                                                       //
- int *child                                                                   //
-)                                                                             //
-{                                                                             //
-  if (heap->idx < 0) {                                                        //
-    return 1;                                                                 //
-  }                                                                           //
-                                                                              //
-  int idx = heap->sorted_idx[heap->idx];                                      //
-  heap->free_idx[heap->idx--]= idx;                                           //
-                                                                              //
-  double *_vtx_edge_current = heap->vtx_edge + 6 * idx;                       //
-  for (int i = 0; i < 6; i++) {                                               //
-    vtx_edge_current[i] = _vtx_edge_current[i];                               //
-  }                                                                           //
-                                                                              //
-  double *_uInPn_edge_current = heap->uInPn_edge + 2 *idx;                    //
-  for (int i = 0; i < 2; i++) {                                               //
-    uInPn_edge_current[i] = _uInPn_edge_current[i];                           //
-  }                                                                           //
-                                                                              //
-  double *_closest_pt_current = heap->closest_pt + 3 *idx;                    //
-  for (int i = 0; i < 3; i++) {                                               //
-    closest_pt_current[i] = _closest_pt_current[i];                           //
-  }                                                                           //
-                                                                              //
-  double *_closest_pt_uP1_current = heap->closest_pt_uP1 + idx;               //
-  double *_closest_pt_uInPn_current = heap->closest_pt_uInPn + idx;           //
-  closest_pt_uP1_current[0] = _closest_pt_uP1_current[0];                     //
-  closest_pt_uInPn_current[0] = _closest_pt_uInPn_current[0];                 //
-                                                                              //
-                                                                              //
-  *child = heap->child[idx];                                                  //
-  *dist2_current = heap->dist2[idx];                                          //
-                                                                              //
-  return 0;                                                                   //
-}                                                                             //
+static int
+_heap_top_get_e
+(
+ _heap_e *heap,
+ double *vtx_edge_current,
+ double *uInPn_edge_current,
+ double *closest_pt_current,
+ double *closest_pt_uP1_current,
+ double *closest_pt_uInPn_current,
+ double *dist2_current,
+ int *child
+)
+{
+
+  if (heap->idx < 0) {
+    return 1;
+  }
+
+  int idx = heap->sorted_idx[heap->idx];
+  heap->free_idx[heap->idx--]= idx;
+
+  double *_vtx_edge_current = heap->vtx_edge + 6 * idx;
+  for (int i = 0; i < 6; i++) {
+    vtx_edge_current[i] = _vtx_edge_current[i];
+  }
+
+  double *_uInPn_edge_current = heap->uInPn_edge + 2 *idx;
+  for (int i = 0; i < 2; i++) {
+    uInPn_edge_current[i] = _uInPn_edge_current[i];
+  }
+
+  double *_closest_pt_current = heap->closest_pt + 3 *idx;
+  for (int i = 0; i < 3; i++) {
+    closest_pt_current[i] = _closest_pt_current[i];
+  }
+
+  double *_closest_pt_uP1_current = heap->closest_pt_uP1 + idx;
+  double *_closest_pt_uInPn_current = heap->closest_pt_uInPn + idx;
+  closest_pt_uP1_current[0] = _closest_pt_uP1_current[0];
+  closest_pt_uInPn_current[0] = _closest_pt_uInPn_current[0];
+
+
+  *child = heap->child[idx];
+  *dist2_current = heap->dist2[idx];
+
+  return 0;
+}
 
 
 
@@ -862,18 +864,20 @@ _heap_fill_pn_sub_edge
 )
 {
 
-  double *uNodes   = malloc (sizeof(double) * n_nodes);
+
+  double *uNodes = malloc (sizeof(double) * n_nodes);
 
   _u_ho_edge_nodes (order, 0., 1., uNodes);
 
   int child = 0;
-  for (int i = 0; i < order; i++) {
+  for (int i = 0; i < n_nodes-1; i++) {
     int idx1 = i;
     int idx2 = i+1;
 
     double x1 = nodes_coords[3*idx1    ];
     double y1 = nodes_coords[3*idx1 + 1];
     double z1 = nodes_coords[3*idx1 + 2];
+
 
     double x2 = nodes_coords[3*idx2    ];
     double y2 = nodes_coords[3*idx2 + 1];
@@ -887,6 +891,7 @@ _heap_fill_pn_sub_edge
     double _weightsClosestPointP1[2];
     double _dist2;
 
+
     int isDegenerated = fvmc_edge_evaluate_Position ((double *)point_coords,
                                                      __vertex_coords,
                                                      _closest_pointP1,
@@ -898,6 +903,7 @@ _heap_fill_pn_sub_edge
 
     _uPn_sub_edge[0] = uNodes[idx1];
     _uPn_sub_edge[1] = uNodes[idx2];
+
 
     if (isDegenerated != -1) {
 
@@ -917,7 +923,7 @@ _heap_fill_pn_sub_edge
 
 
     free (uNodes);
-
+  }
 }
 
 
@@ -1407,85 +1413,82 @@ _heap_fill_qn_sub_tria
  *
  *----------------------------------------------------------------------------*/
 
-static void                                                                   //
-_insert_subedge                                                               //
-(                                                                             //
- _heap_e *heap,                                                               //
- const int order,                                                             //
- const int type,                                                              //
- const int n_nodes,                                                           //
- const double nodes_coords[],                                                 //
- const double point_coords[],                                                 //
- double weightsPn[],                                                          //
- double vtx_edge_current[],                                                   //
- double uPn_edge_current[]                                                    //
- )                                                                            //
-{                                                                             //
-  double _vtx_edge_children[9];                                               //
-  double _uPn_edge_children[3];                                               //
-                                                                              //
-  const int idx_sub_edge[4] = {0, 2,                                          //
-                               2, 1};                                         //
-                                                                              //
-  /* Compute middle vertices */                                               //
-                                                                              //
-  for (int i = 0; i < 6; i++) {                                               //
-    _vtx_edge_children[i] = vtx_edge_current[i];                              //
-  }                                                                           //
-                                                                              //
-  for (int i = 0; i < 2; i++) {                                               //
-    _uPn_edge_children[i] = uPn_edge_current[i];                              //
-  }                                                                           //
-                                                                              //
-                                                                              //
-  for (int i = 0; i < 1; i++) {                                               //
-    for (int j = 0; j < 1; j++) {                                             //
-      _uPn_edge_children[2+2*i+j] =                                           //
-        (uPn_edge_current[2*i+j] + uPn_edge_current[2*((i+1)%2)+j])/2;        //
-    }                                                                         //
-                                                                              //
-    FVMC_ho_basis (type,                                                      //
-                   order,                                                     //
-                   n_nodes,                                                   //
-                   1,                                                         //
-                   _uPn_edge_children + 2 + 2*i,                              //
-                   weightsPn);                                                //
-                                                                              //
-    for (int j = 0; j < 3; j++) {                                             //
-      _vtx_edge_children[6+3*i+j] = 0;                                        //
-    }                                                                         //
-    for (int k = 0; k < n_nodes; k++) {                                       //
-      const double *_node_coords = nodes_coords + 3 * k;                      //
-      for (int j = 0; j < 3; j++) {                                           //
-        _vtx_edge_children[6+3*i+j] += weightsPn[k] * _node_coords[j];        //
-      }                                                                       //
-    }                                                                         //
-  }                                                                           //
-                                                                              //
-                                                                              //
-                                                                              //
-  int child = 0;                                                              //
-  for (int i = 0; i < 2; i++) {                                               //
-                                                                              //
-    double _vtx_edge_child[6];                                                //
-    double _uPn_edge_child[2];                                                //
-                                                                              //
-    for (int j = 0; j < 2; j++) {                                             //
-      int _j = idx_sub_edge[2 * i + j];                                       //
-      for (int k = 0; k < 3; k++) {                                           //
-        _vtx_edge_child[3*j + k] = _vtx_edge_children[3*_j + k];              //
-      }                                                                       //
-      for (int k = 0; k < 1; k++) {                                           //
-        _uPn_edge_child[2*j + k] = _uPn_edge_children[2*_j + k];              //
-      }                                                                       //
-    }                                                                         //
-                                                                              //
-    double _closest_pt_child[3];                                              //
-    double _closest_pt_uP1_child[1];                                          //
-    double _closest_pt_uPn_child[1];                                          //
-    double _dist2_child = 0;                                                  //
-    double _closest_pt_weights_child[2];                                      //
-                                                                              //
+static void
+_insert_subedge
+(
+ _heap_e *heap,
+ const int order,
+ const int type,
+ const int n_nodes,
+ const double nodes_coords[],
+ const double point_coords[],
+ double weightsPn[],
+ double vtx_edge_current[],
+ double uPn_edge_current[]
+ )
+{
+
+
+  double _vtx_edge_children[9];
+  double _uPn_edge_children[3];
+
+
+  const int idx_sub_edge[4] = {0, 2,
+                               2, 1};
+
+  /* Compute middle vertices */
+
+  for (int i = 0; i < 6; i++) {
+    _vtx_edge_children[i] = vtx_edge_current[i];
+  }
+
+  for (int i = 0; i < 2; i++) {
+    _uPn_edge_children[i] = uPn_edge_current[i];
+  }
+
+  _uPn_edge_children[2] =
+        (uPn_edge_current[0] + uPn_edge_current[1])/2;
+
+
+    FVMC_ho_basis (type,
+                   order,
+                   n_nodes,
+                   1,
+                   _uPn_edge_children + 2,
+                   weightsPn);
+
+
+    for (int j = 0; j < 3; j++) {
+      _vtx_edge_children[6+j] = 0;
+    }
+    for (int k = 0; k < 3; k++) {
+      for (int j = 0; j < n_nodes; j++) {
+        _vtx_edge_children[6 + k] += weightsPn[j] * nodes_coords[k + 3*j];
+      }
+    }
+
+  int child = 0;
+  for (int i = 0; i < 2; i++) {
+
+    double _vtx_edge_child[6];
+    double _uPn_edge_child[2];
+
+    for (int j = 0; j < 2; j++) {
+      int _j = idx_sub_edge[2 * i + j];
+      for (int k = 0; k < 3; k++) {
+        _vtx_edge_child[3*j + k] = _vtx_edge_children[3*_j + k];
+      }
+        _uPn_edge_child[j] = _uPn_edge_children[_j];
+
+    }
+
+
+    double _closest_pt_child[3];
+    double _closest_pt_uP1_child[1];
+    double _closest_pt_uPn_child[1];
+    double _dist2_child = 0;
+    double _closest_pt_weights_child[2];
+
     int isDegenerated = fvmc_edge_evaluate_Position ((double *)point_coords,
                                                      _vtx_edge_child,
                                                      _closest_pt_child,
@@ -1493,36 +1496,32 @@ _insert_subedge                                                               //
                                                      &_dist2_child,
                                                      _closest_pt_weights_child);
 
-    
+
     if (isDegenerated == -1) {
       continue;
     }
 
-    for (int j = 0; j < 1; j++) {
-      _closest_pt_uPn_child[j] = 0;
+    _closest_pt_uPn_child[0] = 0;
+
+    for (int k = 0; k < 2; k++) {
+      _closest_pt_uPn_child[0] +=
+        _closest_pt_weights_child[k] * _uPn_edge_child[k];
     }
-    for (int j = 0; j < 1; j++) {
-      for (int k = 0; k < 2; k++) {
-        _closest_pt_uPn_child[j] +=
-          _closest_pt_weights_child[k] * _uPn_edge_child[2*k + j];
-      }
-    }
+
 
     if (1 == 0) {
       printf("isDegenrated : %d\n", isDegenerated);
-      printf("_closest_pt_weights_child : %12.5e %12.5e %12.5e\n"
+      printf("_closest_pt_weights_child : %12.5e %12.5e\n"
              ,_closest_pt_weights_child[0]
-             ,_closest_pt_weights_child[1]
-             ,_closest_pt_weights_child[2]);
+             ,_closest_pt_weights_child[1]);
 
       printf("_closest_pt_child : %12.5e %12.5e %12.5e\n"
              ,_closest_pt_child[0]
              ,_closest_pt_child[1]
              ,_closest_pt_child[2]);
 
-      printf("_closest_pt_uvP1_child : %12.5e %12.5e\n"
-             ,_closest_pt_uvP1_child[0]
-             ,_closest_pt_uvP1_child[1]);
+      printf("_closest_pt_uvP1_child : %12.5e\n"
+             ,_closest_pt_uP1_child[0]);
 
 
     }
@@ -1535,8 +1534,9 @@ _insert_subedge                                                               //
                     _closest_pt_uPn_child,
                     _dist2_child, child++);
 
-  }
 
+
+  }
 }
 
 
@@ -1731,6 +1731,7 @@ _compute_dist2_from_closest_edge_subdivision
  int *uncertain_result
  )
 {
+
   *uncertain_result = 0;
   *n_it = 0;
   *err_proj = HUGE_VAL;
@@ -1761,7 +1762,6 @@ _compute_dist2_from_closest_edge_subdivision
                                    _closest_pt_uPn_current,
                                    &_dist2_current, &_child);
 
-
     if (isEmpty) {
       bftc_error(__FILE__, __LINE__, 0,
                  _("Heap is empty %s\n"));
@@ -1791,24 +1791,26 @@ _compute_dist2_from_closest_edge_subdivision
 
     double weightsP1[2];
 
+
     FVMC_ho_basis (FVMC_EDGE,
                    1,
-                   3,
+                   2,
                    1,
                    _closest_pt_uP1_current,
                    weightsP1);
 
+
     if (0 == 1) {
       printf("\n\n ========= get heap =========\n");
 
-      printf ("uv Pn : %22.15e\n",
+      printf ("u Pn : %22.15e\n",
               _closest_pt_uPn_current[0]);
-      printf ("uv P1 : %22.15e\n",
+      printf ("u P1 : %22.15e\n",
               _closest_pt_uP1_current[0]);
       printf ("_dist2 child : %22.15e %d\n", _dist2_current, _child);
 
-      printf("Weights : %12.5e %12.5e\n",
-             weightsP1[0], weightsP1[1]);
+      printf("Weights : %12.5e %12.5e %12.5e\n",
+             weightsP1[0], weightsP1[1], weightsP1[2]);
       printf("vtx_edge_current 1 : %12.5e %12.5e %12.5e\n",
              _vtx_edge_current[0], _vtx_edge_current[1], _vtx_edge_current[2]);
       printf("vtx_edge_current 2 : %12.5e %12.5e %12.5e\n",
@@ -1836,12 +1838,15 @@ _compute_dist2_from_closest_edge_subdivision
                    _closest_pt_uPn_current,
                    weightsPn);
 
+
     for (int j = 0; j < n_nodes; j++) {
       const double *_node_coords = nodes_coords + 3 * j;
       for (int k = 0; k < 3; k++) {
         _projected_coords_from_pn[k] += weightsPn[j] * _node_coords[k];
       }
     }
+
+
 
     /* Compute distance between two projected */
 
@@ -2168,6 +2173,7 @@ _compute_dist2_from_uniform_edge_subdivision
  double *err_proj
  )
 {
+
   *n_it = 0;
   *err_proj = HUGE_VAL;
   double dist2 = HUGE_VAL;
@@ -2219,7 +2225,7 @@ _compute_dist2_from_uniform_edge_subdivision
 
     FVMC_ho_basis (FVMC_EDGE,
                    1,
-                   3,
+                   2,
                    1,
                    _closest_pt_uP1_current,
                    weightsP1);
@@ -2635,6 +2641,7 @@ _default_location_generic_1d
 )
 {
 
+
   if (1 == 0) {
     printf ("\n\n***********\n");
 
@@ -2642,7 +2649,7 @@ _default_location_generic_1d
   }
 
   //  const int n_it_max = 100;
-  const int n_it_max = 100;
+  const int n_it_max = 100000;
   double err_max = FVMC_MAX (char_size * 1e-6, 1e-15);
 
   double dist2 = HUGE_VAL;
@@ -3063,6 +3070,9 @@ _default_location
                                          uvw,
                                          _heap_fill_pn_sub_edge);
 
+    printf("\nLa distance au carre du point de coordonnees ( %22.15e ; %22.15e ; %22.15e ) au segment = %22.15e\n", point_coords[0], point_coords[1], point_coords[2], dist2);
+    printf("COORDONEES DE LA PROJECTION : ( %22.15e ; %22.15e ; %22.15e )\n", projected_coords[0], projected_coords[1], projected_coords[2]);
+
     break;
 
   }
@@ -3356,7 +3366,7 @@ fvmc_ho_location
 }
 
 
-}
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

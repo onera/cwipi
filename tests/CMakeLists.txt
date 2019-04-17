@@ -133,6 +133,7 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_std_block.c")
 endif () 
 
 test_c_create (c_linear_coupling 2)
+test_c_create (c_linear_location_edgeP2 2)
 test_c_create (c_surf_location_triaP2 2)
 test_c_create (c_surf_location_curvetriaP2 2)
 test_c_create (c_surf_coupling_P1P1_micron_polygon ${_MPIEXEC_MAX_NUMPROCS})

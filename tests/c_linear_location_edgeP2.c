@@ -1,5 +1,5 @@
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2011  ONERA
 
@@ -30,11 +30,11 @@
 
 
 /*----------------------------------------------------------------------
- *                                                                     
- * Dump status exchange                                                
- *                                                                     
+ *
+ * Dump status exchange
+ *
  * parameters:
- *   status              <-- Exchange status           
+ *   status              <-- Exchange status
  *---------------------------------------------------------------------*/
 
 /* static void _dumpStatus(FILE* outputFile, cwipi_exchange_status_t status) */
@@ -53,23 +53,23 @@
 /* } */
 
 /*----------------------------------------------------------------------
- *                                                                     
- *                                             
- *                                                                     
+ *
+ *
+ *
  * parameters:
- *   status              <-- Exchange status           
+ *   status              <-- Exchange status
  *---------------------------------------------------------------------*/
 
 static double _f(double x, double y, double z)
 {
-  return 7*x*x + z*z - x*z + z - x + 2. + 3*z; 
+  return 2*x*x + z*z - 3*x*z + z - x + 2. + 3*z;
 }
 
 
 /*----------------------------------------------------------------------
- *                                                                     
- * Display usage                                             
- *                                                                     
+ *
+ * Display usage
+ *
  * parameters:
  *   exit code           <-- Exit code
  *---------------------------------------------------------------------*/
@@ -91,11 +91,11 @@ static double _f(double x, double y, double z)
 /* } */
 
 /*----------------------------------------------------------------------
- *                                                                     
- * Read args from the command line                           
- *                                                                     
+ *
+ * Read args from the command line
+ *
  * parameters:
- *   nVertex             <-- Number of vertices in bandwidth                         
+ *   nVertex             <-- Number of vertices in bandwidth
  *   randLevel           <-- Random level
  *---------------------------------------------------------------------*/
 
@@ -153,11 +153,11 @@ static double _f(double x, double y, double z)
 
 
 /*----------------------------------------------------------------------
- *                                                                     
- * Main : surface coupling test : P1P1 
+ *
+ * Main : surface coupling test : P1P1
  *
  *---------------------------------------------------------------------*/
- 
+
 int main
 (
  int    argc,    /* Nombre d'arguments dans la ligne de commandes */
@@ -223,7 +223,7 @@ int main
   }
 
   char* fileName = (char *) malloc(sizeof(char) * 37);
-  sprintf(fileName,"c_surf_location_curvetriaP2_%4.4d.txt",rank);
+  sprintf(fileName,"c_linear_location_edgeP2_%4.4d.txt",rank);
 
   outputFile = fopen(fileName,"w");
 
@@ -254,27 +254,27 @@ int main
 
   if (rank == 0)
     printf("        Create coupling\n");
-  
+
   cwipi_solver_type_t solver_type;
-  
+
   solver_type = CWIPI_SOLVER_CELL_VERTEX;
-  
+
   /* Coupling creation
    * ----------------- */
 
   const int postFreq = -1;
-  
-  cwipi_create_coupling("c_linear_cpl_location_edgeP2",                                // Coupling id
+
+  cwipi_create_coupling("c_linear_cpl_location_edgeP2",            // Coupling id
                         CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING, // Coupling type
                         codeCoupledName,                           // Coupled application id
-                        2,                                         // Geometric entities dimension
-                        1e-1,                                       // Geometric tolerance
+                        1,                                         // Geometric entities dimension
+                        0.1,                                       // Geometric tolerance
                         CWIPI_STATIC_MESH,                         // Mesh type
                         solver_type,                               // Solver type
-                        postFreq,                                         // Postprocessing frequency
+                        postFreq,                                  // Postprocessing frequency
                         "EnSight Gold",                            // Postprocessing format
                         "text");                                   // Postprocessing option
-  
+
   /* Mesh definition
    * --------------- */
 
@@ -286,7 +286,7 @@ int main
   int nElts = 0;                 // Number of elements
   int *eltsConnecPointer = NULL; // Connectivity index
   int *eltsConnec = NULL;        // Connectivity
-  
+
   /* Domain bounds */
 
   const double xmin = -0.1;
@@ -294,7 +294,7 @@ int main
   const double zmin = -0.1;
   const double zmax =  0.1;
 
-  nVertex = 6;
+  nVertex = 3;
   nElts = 1;
 
   coords = (double *) malloc(sizeof(double) * 3 * nVertex );
@@ -303,29 +303,30 @@ int main
 
   eltsConnecPointer[0] = 0;
   eltsConnecPointer[1] = 3;
-  
+
   eltsConnec[0] = 1;
   eltsConnec[1] = 2;
   eltsConnec[2] = 3;
-  
+
   coords[0] = xmin;
-  coords[1] = _f(xmin, 0., zmin);
+  coords[1] = 0;
   coords[2] = zmin;
 
   coords[3] = xmax;
-  coords[4] = _f(xmax, 0., 0);
-  coords[5] = 0.;
-  
-  coords[6] = (xmin + xmax) / 2.;
-  coords[7] = _f((xmin + xmax) / 2., 0., zmin/2.);
-  coords[8] = zmin/2.;
+  coords[4] = 0;
+  coords[5] = zmax;
 
-  
+  coords[6] = (xmin + xmax) / 2.;
+  coords[7] = 0;
+  coords[8] = (zmin + zmax) / 2.;
+
+
+
   fprintf(outputFile, "   Number of vertex   : %i\n", nVertex);
   fprintf(outputFile, "   Number of elements : %i\n", nElts);
 
   const int order = 2;
-  
+
   cwipi_ho_define_mesh("c_linear_cpl_location_edgeP2",
                        nVertex,
                        nElts,
@@ -334,49 +335,70 @@ int main
                        eltsConnecPointer,
                        eltsConnec);
 
-  const int n_node = 6;
-  
-  int *ijk = malloc(sizeof(int)*n_node);
+
+
+  const int n_node = 3;
+
+  int *ijk = malloc(sizeof(int)*1*n_node);
 
   ijk[0] = 0;
-  
+
   ijk[1] = 2;
 
   ijk[2] = 1;
-  
+
   cwipi_ho_ordering_from_IJK_set ("c_linear_cpl_location_edgeP2",
-                                  CWIPI_EDGE,
+                                  CWIPI_EDGEHO,
                                   n_node,
                                   ijk);
-  
-  int n_pts_to_locate = 6;
+
+
+  int n_pts_to_locate = 10;
 
   double *pts_to_locate = (double *) malloc(sizeof(double) * 3 * n_pts_to_locate);
 
   for (int i = 0; i < 9; i++) {
     pts_to_locate[i] = coords[i];
   }
-  
-  pts_to_locate[9] = 0.;
-  pts_to_locate[10] = _f(0., 0, 0);
-  pts_to_locate[11] = 0.;
 
-  pts_to_locate[12] = xmin - 0.005;
-  pts_to_locate[13] = _f(xmin - 0.005, 0., zmin - 0.005);
-  pts_to_locate[14] = zmin - 0.005;
+  pts_to_locate[9]  = xmin - 0.005;
+  pts_to_locate[10] = 0;
+  pts_to_locate[11] = zmin - 0.005;
 
-  pts_to_locate[15] = xmin/2.;
-  pts_to_locate[16] = _f(xmin/2. , 0, zmax);
-  pts_to_locate[17] = zmax;
+  pts_to_locate[12] = xmax + 0.005;
+  pts_to_locate[13] = 0;
+  pts_to_locate[14] = zmax + 0.005;
+
+  pts_to_locate[15] = xmax + 0.005;
+  pts_to_locate[16] = 0;
+  pts_to_locate[17] = zmax - 0.005;
+
+  pts_to_locate[18] = (xmin + xmax) / 2. - 0.005;
+  pts_to_locate[19] = 0;
+  pts_to_locate[20] = (zmin + zmax) / 2. - 0.005;
+
+  pts_to_locate[21] = (xmin + xmax) / 2.;
+  pts_to_locate[22] = 0;
+  pts_to_locate[23] = (zmin + zmax) / 2. + 0.005;
+
+  pts_to_locate[24] = (xmin + xmax) / 2.;
+  pts_to_locate[25] = 0.005;
+  pts_to_locate[26] = (zmin + zmax) / 2.;
+
+  pts_to_locate[27] = xmin + 0.00005;
+  pts_to_locate[28] = 0;
+  pts_to_locate[29] = zmin + 0.00005;
+
+
 
   for (int i = 0; i < n_pts_to_locate; i++) {
-    printf("%12.5e %12.5e %12.5e\n",  pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2]); 
+    printf("%12.5e %12.5e %12.5e\n",  pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2]);
   }
-  
+
   cwipi_set_points_to_locate ("c_linear_cpl_location_edgeP2",
                               n_pts_to_locate,
                               pts_to_locate);
-  
+
   /* Fields exchange
    *     - Proc 0 : Send X coordinates
    *                Recv Y coordinates
@@ -389,7 +411,7 @@ int main
 
   double *sendValues = NULL;
   double *recvValues = NULL;
-  
+
   sendValues = (double *) malloc(sizeof(double) * nVertex);
   recvValues = (double *) malloc(sizeof(double) * n_pts_to_locate);
 
@@ -408,7 +430,10 @@ int main
   sendValuesName = "_fs";
   recvValuesName = "_fr";
 
+
   cwipi_locate("c_linear_cpl_location_edgeP2");
+
+
 
   nNotLocatedPoints = cwipi_get_n_not_located_points("c_linear_cpl_location_edgeP2");
   if (nNotLocatedPoints > 0) {
@@ -418,7 +443,7 @@ int main
 
   int sRequest, rRequest;
   int tag = 1;
-  
+
   cwipi_irecv("c_linear_cpl_location_edgeP2",
               "ech",
               tag,
@@ -428,7 +453,7 @@ int main
               recvValuesName,
               recvValues,
               &rRequest);
-  
+
 
   cwipi_issend("c_linear_cpl_location_edgeP2",
                "ech",
@@ -439,9 +464,10 @@ int main
                sendValuesName,
                sendValues,
                &sRequest);
-  
+
   cwipi_wait_irecv("c_linear_cpl_location_edgeP2", rRequest);
   cwipi_wait_issend("c_linear_cpl_location_edgeP2", sRequest);
+
 
 
   /* Coupling deletion
@@ -456,19 +482,21 @@ int main
   /* Check barycentric coordinates */
 
   if (rank == 0)
-    printf("        Check results\n");    
+    printf("        Check results\n");
 
   double *res = (double *) malloc(sizeof(double) *  n_pts_to_locate);
 
   for (int i = 0; i < nVertex; i++) {
     res[i] = sendValues[i];
   }
-  
-  res[nVertex    ] = _f(0.           , 0.             , 0.             );
-  res[nVertex + 1] = _f(-2.7881836406e-04          , 0.             , 1.1104162324e-03         );
-  res[nVertex + 2] = res[0];  
-  res[nVertex + 3] = _f(7.0503312057e-02, 0., 2.9496687943e-02);
-  res[nVertex + 4] = _f( xmax/4., 0., zmax/4.);
+
+  res[nVertex    ] = _f( xmin - 0.005           , 0.   , zmin - 0.005           );
+  res[nVertex + 1] = _f( xmax + 0.005           , 0.   , zmax + 0.005           );
+  res[nVertex + 2] = _f( xmax + 0.005           , 0.   , zmax - 0.005           );
+  res[nVertex + 3] = _f((xmin + xmax)/2. - 0.005, 0.   , (zmin+zmax)/2. - 0.005 );
+  res[nVertex + 4] = _f((xmin + xmax)/2.        , 0.   , (zmin+zmax)/2. + 0.005 );
+  res[nVertex + 5] = _f((xmin + xmax)/2.        , 0.005, (zmin+zmax)/2.         );
+  res[nVertex + 6] = _f( xmin + 0.00005         , 0.   , zmin + 0.00005         );
 
   double err;
 
@@ -492,7 +520,7 @@ int main
 
   double err_max;
   MPI_Allreduce(&err, &err_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-  
+
   if (err_max >= 1e-3) {
     if (rank == 0) {
       printf("        !!! Error = %12.5e\n", err_max);
@@ -500,25 +528,25 @@ int main
     MPI_Finalize();
     return EXIT_FAILURE;
   }
-  
+
   /* Free
    * ---- */
-  
+
   free(coords);
   free(eltsConnecPointer);
   free(eltsConnec);
   free(sendValues);
   free(recvValues);
   free(srcName);
-  
+
   /* Finalize
    * -------- */
-  
+
   cwipi_finalize();
-  
+
   MPI_Finalize();
 
   fclose(outputFile);
-  
+
   return EXIT_SUCCESS;
 }

@@ -62,6 +62,8 @@ namespace cwipi {
 
   {
 
+    
+
     int n_vtx_tria = 3; 
     int n_vtx_quad = 4; 
     int n_vtx_tetra = 4; 
@@ -70,7 +72,7 @@ namespace cwipi {
     int n_vtx_pyramid = 5;
 
     if (order >= 1) { 
-    
+
       n_vtx_tria = (order+1)*(order+2)/2; 
       n_vtx_quad = (order+1)*(order+1); 
       n_vtx_tetra = (order+1)*(order+2)*(order+3)/6; 
@@ -1092,6 +1094,7 @@ namespace cwipi {
       bftc_error(__FILE__, __LINE__, 0,
                 "'%s' Element not taking into account by fvm \n");
       break;
+    case CWIPI_EDGEHO:  
     case CWIPI_EDGE2:         
       _t_elt = FVMC_EDGE;
       break;
@@ -1147,6 +1150,7 @@ namespace cwipi {
       bftc_error(__FILE__, __LINE__, 0,
                 "'%s' Element not taking into account by fvm \n");
       break;
+    case CWIPI_EDGEHO:
     case CWIPI_EDGE2:         
       _t_elt = FVMC_EDGE;
       break;
