@@ -560,6 +560,84 @@ _basis_quad_qn
 }
 
 
+static void
+_basis_tetra_pn
+(
+  const int order,
+  const int n_pts,
+  const double *restrict uvw,
+  double *restrict weights
+)
+{
+
+  if (order == 1) {
+    for (int i = 0; i < n_pts; i++) {
+
+      double u = uvw[3*i  ];
+      double v = uvw[3*i+1];
+      double w = uvw[3*i+2];
+      double t = 1 - u - v - w;
+
+      weights[4*i  ] = t;  /* (0, 0, 0)*/
+      weights[4*i+1] = u;  /* (1, 0, 0)*/
+      weights[4*i+2] = v;  /* (0, 1, 0)*/
+      weights[4*i+3] = w;  /* (0, 0, 1)*/
+    }
+  }
+
+  if (order == 2) {
+
+    for (int i = 0; i < n_pts; i++) {
+
+     double u  = uvw[3*i  ];
+     double v  = uvw[3*i+1];
+     double w  = uvw[3*i+2];
+     double t = 1 - u - v - w;
+
+     double u2 = 2. * u;
+     double v2 = 2. * v;
+     double w2 = 2. * w;
+     double t2 = 2. * t;
+
+     weights[10*i+0] = t * (t2 - 1);    /* (0  , 0  , 0  ) */
+     weights[10*i+1] = u2 * t2;         /* (0.5, 0  , 0  ) */
+     weights[10*i+2] = u * (-1. + u2);  /* (1  , 0  , 0  ) */
+     weights[10*i+3] = v2 * t2;         /* (0  , 0.5, 0  ) */
+     weights[10*i+4] = u2 * v2;         /* (0.5, 0.5, 0  ) */
+     weights[10*i+5] = v * (-1. + v2);  /* (0  , 1  , 0  ) */
+     weights[10*i+6] = w2 * t2;         /* (0  , 0  , 0.5) */
+     weights[10*i+7] = u2 * w2;         /* (0.5, 0  , 0.5) */
+     weights[10*i+8] = v2 * w2;         /* (0  , 0.5, 0.5) */
+     weights[10*i+9] = w * (-1. + w2);  /* (0  , 0  , 1  ) */
+    }
+  }
+
+  if (order == 3) {
+
+    for (int i = 0; i < n_pts; i++) {
+
+      double u = uvw[3*i  ];
+      double v = uvw[3*i+1];
+      double w = uvw[3*i+2];
+      double t = 1 - u - v - w;
+
+      double u3 = 3. * u;
+      double v3 = 3. * v;
+      double w3 = 3. * w;
+      double t3 = 3. * t;
+
+      double u3m1 = (u3-1.)*0.5;
+      double v3m1 = (v3-1.)*0.5;
+      double w3m1 = (w3-1.)*0.5;
+      double t3m1 = (t3-1.)*0.5;
+
+
+    }
+  }
+
+}
+
+
 /*----------------------------------------------------------------------------
  *
  * high order basis

@@ -1,5 +1,5 @@
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2017  ONERA
 
@@ -28,31 +28,31 @@
 #include "cwp.h"
 
 /*----------------------------------------------------------------------
- *                                                                     
- * Read mesh dimension                                             
- *                                                                     
+ *
+ * Read mesh dimension
+ *
  * parameters:
- *   f                   <-- Mesh file                 
- *   dimension           --> Dimension                   
+ *   f                   <-- Mesh file
+ *   dimension           --> Dimension
  *   nvertex             --> number of vertices
  *   nElements           --> number of elements
  *   nConnecVertex       --> size of connectivity
  *---------------------------------------------------------------------*/
 
-static int _read_mesh_dim(FILE *f, 
-                          int *dimension, 
-                          int *nVertex, 
-                          int *nFace, 
+static int _read_mesh_dim(FILE *f,
+                          int *dimension,
+                          int *nVertex,
+                          int *nFace,
                           int *nElt,
                           int *lFaceConnec,
                           int *lCellConnec)
- 
+
 {
   int r;
   r = fscanf(f, "%d %d %d %d %d %d", 
-             dimension, 
-             nVertex, 
-             nFace, 
+             dimension,
+             nVertex,
+             nFace,
              nElt,
              lFaceConnec,
              lCellConnec);
@@ -63,32 +63,32 @@ static int _read_mesh_dim(FILE *f,
 
 
 /*----------------------------------------------------------------------
- *                                                                     
- * Read mesh                                             
- *                                                                     
+ *
+ * Read mesh
+ *
  * parameters:
- *   f                   <-- Mesh file                 
- *   dimension           --> Dimension                   
+ *   f                   <-- Mesh file
+ *   dimension           --> Dimension
  *   nvertex             <-- number of vertices
  *   nElements           <-- number of elements
  *   nConnecVertex       <-- size of connectivity
  *   coords              --> vertices coordinates
- *   connecPointer       --> connectivity index  
+ *   connecPointer       --> connectivity index
  *   connec              --> connectivity
  *---------------------------------------------------------------------*/
 
-static int _read_mesh(FILE *f, 
-                      int dimension, 
-                      int nVertex, 
+static int _read_mesh(FILE *f,
+                      int dimension,
+                      int nVertex,
                       int nFace,
                       int nElt,
                       int lFaceConnec,
                       int lCellConnec,
-                      double *coords, 
-                      int *faceVertexIdx, 
-                      int *faceVertex, 
-                      int *cellFaceIdx, 
-                      int *cellFace) 
+                      double *coords,
+                      int *faceVertexIdx,
+                      int *faceVertex,
+                      int *cellFaceIdx,
+                      int *cellFace)
 {
   int i, j, r;
 
@@ -96,7 +96,7 @@ static int _read_mesh(FILE *f,
   for (i = 0; i < nVertex; i++) {
     for (j = 0; j < dimension; j++) {
       r = fscanf(f, "%lf", coords + i * dimension + j);
-      if (r == EOF) 
+      if (r == EOF)
         return EXIT_FAILURE;
     }
   }
@@ -104,21 +104,21 @@ static int _read_mesh(FILE *f,
   // Read face -> vertex connectivity index
   for (i = 0; i < nFace + 1; i++ ) {
     r = fscanf(f, "%d", faceVertexIdx + i);
-    if (r == EOF) 
+    if (r == EOF)
       return EXIT_FAILURE;
   }
 
   // Read face -> vertex connectivity
   for (i = 0; i < lFaceConnec; i++ ) {
     r = fscanf(f, "%d", faceVertex + i);
-    if (r == EOF) 
+    if (r == EOF)
       return EXIT_FAILURE;
   }
 
   // Read cell -> face connectivity index
   for (i = 0; i < nElt + 1; i++ ) {
     r = fscanf(f, "%d", cellFaceIdx + i);
-    if (r == EOF) 
+    if (r == EOF)
       return EXIT_FAILURE;
   }
 
@@ -126,7 +126,7 @@ static int _read_mesh(FILE *f,
   for (i = 0; i < lCellConnec; i++ ) {
     r = fscanf(f, "%d", cellFace + i);
     //if(cellFace[i]<0) printf("cellFace[%i] %i\n",i,cellFace[i]);
-    if (r == EOF) 
+    if (r == EOF)
       return EXIT_FAILURE;
   }
 
@@ -136,11 +136,11 @@ static int _read_mesh(FILE *f,
 
 
 /*----------------------------------------------------------------------
- *                                                                     
- * Main : linear coupling test                                         
+ *
+ * Main : linear coupling test
  *
  *---------------------------------------------------------------------*/
- 
+
 int main
 (
  int    argc,    /* Nombre d'arguments dans la ligne de commandes */
@@ -154,7 +154,7 @@ int main
 
   int rank;
   int comm_world_size;
-  
+
   FILE* meshFile;
   meshFile = fopen("meshes/mesh_poly_d1", "r");
 
@@ -163,7 +163,7 @@ int main
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_world_size);
 
-  
+
   int n_partition = 0;
   const int two = 2;
   while(two * pow(n_partition, two) < comm_world_size) n_partition++;
@@ -193,7 +193,7 @@ int main
   else
     srcBaseName = srcName;
 
-  if (rank == 0) 
+  if (rank == 0)
     printf("\nSTART: %s\n", srcBaseName);
 
 
@@ -214,9 +214,9 @@ int main
     is_coupled_rank[0] = CWP_STATUS_ON;
     is_coupled_rank[1] = CWP_STATUS_ON;
   }
-   
+
   char* fileName = NULL;
-  if (rank == 0) 
+  if (rank == 0)
     fileName="c_new_api_0000.txt";
   else if (rank == 1)
     fileName="c_new_api_0001.txt";
@@ -232,9 +232,9 @@ int main
   //CWP_Output_file_set (outputFile);
 
   for (int i = 0; i < n_code_name; i++) {
-    times_init[i] = 0; 
+    times_init[i] = 0;
   }
-  
+
   MPI_Comm *localComm = malloc(sizeof(MPI_Comm)*n_code_name);
   CWP_Init(MPI_COMM_WORLD,
            n_code_name,
@@ -258,7 +258,7 @@ int main
 
   /* Finalize
    * -------- */
- 
+
   char cpl_id1[] = "cpl_code1_code2";
 
   printf("Coupling creation\n");
@@ -267,9 +267,9 @@ int main
                     CWP_GEOM_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   printf("Coupling created\n");
-              
+
     /* Building of the local mesh */
-    
+
     int dimension = 0;             // Dimension of the space
     int nVertex = 0;               // Number of points in the mesh
     int nFace = 0;                 // Number of face
@@ -286,7 +286,7 @@ int main
     if  (rank == 0)
       printf("        Read mesh\n");
 
-    
+
     _read_mesh_dim (meshFile, &dimension, &nVertex, &nFace, &nElements, &lFaceConnec, &lCellConnec);
 
     coords        = (double *) malloc(dimension * nVertex * sizeof(double));
@@ -312,8 +312,8 @@ int main
 
     printf("vtx_set\n");
     CWP_Mesh_interf_vtx_set("code1", cpl_id1,0,nVertex,coords,NULL);
-                                
-    printf("CellFace Add and Setting\n");                                    
+
+    printf("CellFace Add and Setting\n");
     CWP_Mesh_interf_from_cellface_set("code1",
                                      cpl_id1,
                                      0,
@@ -325,12 +325,12 @@ int main
                                      faceVertex,
                                      NULL);
 
-            
+
     printf("Interface Mesh deletion\n");
     CWP_Mesh_interf_del("code1", cpl_id1);
         printf("Interface Mesh deleted\n");
   }
-   
+
 
   fflush(stdout);
 

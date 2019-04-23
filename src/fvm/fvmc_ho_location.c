@@ -2779,8 +2779,8 @@ _default_location_generic_1d
 
   free (weightsPn);
 
-  //  printf("\nCalcul distance triangle :\n");
-  // printf("          point_coords : %22.15e %22.15e %22.15e         \n", point_coords[0]    , point_coords[1]    , point_coords[2]);
+  //printf("\nCalcul distance triangle :\n");
+  //printf("          point_coords : %22.15e %22.15e %22.15e         \n", point_coords[0]    , point_coords[1]    , point_coords[2]);
   //printf("  project point_coords : %22.15e %22.15e %22.15e - %22.15e\n", projected_coords[0], projected_coords[1], projected_coords[2], dist2);
   //printf("  iteration number, error^2 : %d %22.15e\n", n_it, err_proj);
 
@@ -3069,9 +3069,6 @@ _default_location
                                          projected_coords,
                                          uvw,
                                          _heap_fill_pn_sub_edge);
-
-    printf("\nLa distance au carre du point de coordonnees ( %22.15e ; %22.15e ; %22.15e ) au segment = %22.15e\n", point_coords[0], point_coords[1], point_coords[2], dist2);
-    printf("COORDONEES DE LA PROJECTION : ( %22.15e ; %22.15e ; %22.15e )\n", projected_coords[0], projected_coords[1], projected_coords[2]);
 
     break;
 
