@@ -411,44 +411,16 @@ PDM_mesh_dist_surf_mesh_part_set
                             vtx_ln_to_gn);
 }
 
-  
 /**
  *
- * \brief Set a point cloud with initial distance
- *
- * \param [in]   id              Identifier
- * \param [in]   i_point_cloud   Index of point cloud
- * \param [in]   i_part          Index of partition
- * \param [in]   n_points        Number of points
- * \param [in]   initial_dist    Initial distance  
- * \param [in]   coords          Point coordinates
- *
- */
-
-/* void */
-/* PDM_mesh_dist_cloud_with_initial_set */
-/* ( */
-/*  const int          id, */
-/*  const int          i_point_cloud, */
-/*  const int          i_part, */
-/*  const int          n_points, */
-/*  const double      *initial_dist, */
-/*  const double      *coords */
-/* ) */
-/* { */
-/* } */
-
-
-/**
- *
- * \brief Process merge points
+ * \brief Compute distance
  *
  * \param [in]   id  Identifier
  *
  */
 
 void
-PDM_mesh_dist_process
+PDM_mesh_dist_compute
 (
  const int id
 )
@@ -1501,7 +1473,7 @@ PDM_mesh_dist_free
  */
 
 void
-PDM_mesh_dump_times
+PDM_mesh_dist_dump_times
 (
  const int id
 )

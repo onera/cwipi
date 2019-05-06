@@ -485,6 +485,327 @@ PDM_block_to_part_exch
 }
 
 
+
+/**
+ *
+ * \brief Initialize an exchange 
+ * (part_stride and part_data are allocated in function)
+ *
+ * \param [in]   btp          Block to part structure
+ * \param [in]   s_data       Data size
+ * \param [in]   t_stride     Stride type
+ * \param [in]   block_stride Stride for each block element for \ref PDM_STRIDE_VAR
+ *                            Constant stride for \ref PDM_STRIDE_VAR  
+ * \param [in]   block_data   Block data
+ * \param [out]  part_stride  Partition stride or NULL
+ * \param [out]  part_data    Partition data 
+ *
+ */
+
+void 
+PDM_block_to_part_exch2
+(
+ PDM_block_to_part_t *btp,
+ size_t               s_data,
+ PDM_stride_t         t_stride,
+ int                 *block_stride,
+ void                *block_data,
+ int               ***part_stride,
+ void              ***part_data
+)
+{
+  _pdm_block_to_part_t *_btp = (_pdm_block_to_part_t *) btp;
+ 
+  unsigned char *_block_data = (unsigned char *) block_data; 
+  unsigned char **_part_data;
+  
+  int *i_sendBuffer = (int *) malloc (sizeof(int) * _btp->s_comm);
+  int *i_recvBuffer = (int *) malloc (sizeof(int) * _btp->s_comm);
+  int *n_sendBuffer = (int *) malloc (sizeof(int) * _btp->s_comm);
+  int *n_recvBuffer = (int *) malloc (sizeof(int) * _btp->s_comm);
+
+  for (int i = 0; i < _btp->s_comm; i++) {
+    n_sendBuffer[i] = 0;
+    n_recvBuffer[i] = 0;
+    i_sendBuffer[i] = 0;
+    i_recvBuffer[i] = 0;
+  }
+
+  unsigned char *sendBuffer = NULL;
+  unsigned char *recvBuffer = NULL;
+  
+  size_t s_sendBuffer = 0;
+  size_t s_recvBuffer = 0;
+  
+  int s_comm1 = _btp->s_comm - 1;
+  
+  int s_distributed_data = _btp->distributed_data_idx[_btp->s_comm];
+
+  /*
+   * Exchange Stride and build buffer properties
+   */
+
+  int *recvStride = NULL;
+  int **_part_stride = NULL;
+  
+  if (t_stride == PDM_STRIDE_VAR) {
+    
+    int s_sendStride = _btp->distributed_data_idx[_btp->s_comm];
+    
+    int s_recvStride = _btp->requested_data_idx[_btp->s_comm];
+    
+    int *sendStride = (int *) malloc (sizeof(int) * s_sendStride);
+    recvStride = (int *) malloc (sizeof(int) * s_recvStride);
+    
+    for (int i = 0; i < s_sendStride; i++) {
+      sendStride[i] = block_stride[_btp->distributed_data[i]];
+    }
+
+    PDM_MPI_Alltoallv (sendStride,
+                       _btp->distributed_data_n,
+                       _btp->distributed_data_idx,
+                       PDM_MPI_INT, 
+                       recvStride,
+                       _btp->requested_data_n,
+                       _btp->requested_data_idx,
+                       PDM_MPI_INT, 
+                       _btp->comm);
+
+    *part_stride = (int **) malloc(sizeof(int *) * _btp->n_part);
+    _part_stride = *part_stride;
+    
+    for (int i = 0; i < _btp->n_part; i++) {
+      
+      _part_stride[i] = malloc (sizeof(int) * _btp->n_elt[i]);
+      
+      for (int j = 0; j < _btp->n_elt[i]; j++) {
+
+        int ielt = _btp->ind[i][j];
+        _part_stride[i][j] = recvStride[ielt];
+
+      }
+    }
+   
+    /*
+     * Build buffers
+     */
+    
+    for (int i = 0; i < _btp->s_comm; i++) {
+      int iBeg = _btp->distributed_data_idx[i];
+      int iEnd = _btp->distributed_data_idx[i] +
+                 _btp->distributed_data_n[i];
+      
+      n_sendBuffer[i] = 0;
+      for (int k = iBeg; k < iEnd; k++)  {
+        n_sendBuffer[i] += sendStride[k];
+      }
+            
+      n_sendBuffer[i] *= (int) s_data;
+            
+      if (i > 0) {
+        i_sendBuffer[i] = i_sendBuffer[i-1] + n_sendBuffer[i-1];
+      }
+      else {
+        i_sendBuffer[i] = 0;
+      }         
+
+      iBeg = _btp->requested_data_idx[i];
+      iEnd = _btp->requested_data_idx[i] + 
+             _btp->requested_data_n[i];
+            
+      n_recvBuffer[i] = 0;
+      for (int k = iBeg; k < iEnd; k++) {
+        n_recvBuffer[i] += recvStride[k];
+      }
+            
+      n_recvBuffer[i] *= (int) s_data;
+            
+      if (i > 0) {
+        i_recvBuffer[i] = i_recvBuffer[i-1] + n_recvBuffer[i-1];
+      }
+      else {
+        i_recvBuffer[i] = 0;
+      }
+
+    }
+    
+    s_sendBuffer = i_sendBuffer[s_comm1] + n_sendBuffer[s_comm1];
+    s_recvBuffer = i_recvBuffer[s_comm1] + n_recvBuffer[s_comm1];
+
+    sendBuffer = (unsigned char *) malloc(sizeof(unsigned char) * s_sendBuffer);
+    recvBuffer = (unsigned char *) malloc(sizeof(unsigned char) * s_recvBuffer);
+
+    int *sendStride_idx = (int *) malloc(sizeof(int) * (s_distributed_data+1));
+    sendStride_idx[0] = 0;
+    for (int i = 0; i < s_distributed_data; i++) {
+      sendStride_idx[i+1] = sendStride_idx[i] + sendStride[i]; 
+    }
+    
+    int idx1 = 0;
+
+    int n_elt_block = _btp->blockDistribIdx[_btp->myRank+1] - _btp->blockDistribIdx[_btp->myRank];
+    int *block_stride_idx = (int *) malloc(sizeof(int)  * (n_elt_block + 1));
+    block_stride_idx[0] = 0;
+    
+    for (int i = 0; i < n_elt_block; i++) {
+      block_stride_idx[i+1] = block_stride[i] + block_stride_idx[i];
+    }
+
+    for (int i = 0; i < s_distributed_data; i++) {
+
+      int ind =  block_stride_idx[_btp->distributed_data[i]] * (int) s_data;
+      
+      int s_block_unit =  block_stride[_btp->distributed_data[i]] * (int) s_data;
+
+      unsigned char *_block_data_deb = _block_data + ind;  
+      
+      for (int k = 0; k < s_block_unit; k++) {
+        sendBuffer[idx1++] = _block_data_deb[k];
+      }
+    }
+    free(sendStride);
+    free(sendStride_idx);
+    free(block_stride_idx);
+    
+  }
+      
+  else if (t_stride == PDM_STRIDE_CST) {
+  
+    int cst_stride = *block_stride;
+    int s_block_unit = cst_stride * (int) s_data;
+    
+    for (int i = 0; i < _btp->s_comm; i++) {
+      
+      i_sendBuffer[i] = _btp->distributed_data_idx[i] * cst_stride * (int) s_data;
+      i_recvBuffer[i] = _btp->requested_data_idx[i] * cst_stride * (int) s_data;
+
+      n_sendBuffer[i] = _btp->distributed_data_n[i] * cst_stride * (int) s_data;
+      n_recvBuffer[i] = _btp->requested_data_n[i] * cst_stride * (int) s_data;
+ 
+    }
+
+    s_sendBuffer = i_sendBuffer[s_comm1] + n_sendBuffer[s_comm1];
+    s_recvBuffer = i_recvBuffer[s_comm1] + n_recvBuffer[s_comm1];
+
+    sendBuffer = (unsigned char *) malloc(sizeof(unsigned char) * s_sendBuffer);
+    recvBuffer = (unsigned char *) malloc(sizeof(unsigned char) * s_recvBuffer);
+    
+    int idx1 = 0;
+    for (int i = 0; i < s_distributed_data; i++) {
+      int ind = _btp->distributed_data[i];
+      unsigned char *_block_data_deb = _block_data + ind * cst_stride * (int) s_data;  
+      for (int k = 0; k < s_block_unit; k++) {
+        sendBuffer[idx1++] = _block_data_deb[k];
+      }
+    }  
+  }
+
+  /*
+   * Data exchange
+   */
+  
+  PDM_MPI_Alltoallv(sendBuffer,
+                    n_sendBuffer,
+                    i_sendBuffer,
+                    PDM_MPI_BYTE, 
+                    recvBuffer,
+                    n_recvBuffer,
+                    i_recvBuffer,
+                    PDM_MPI_BYTE, 
+                    _btp->comm);
+    
+  free(sendBuffer);
+  free(n_sendBuffer);
+  free(i_sendBuffer);
+  free(n_recvBuffer);
+  free(i_recvBuffer);
+  
+  /*
+   * Partitions filling
+   */
+
+  *part_data = malloc(sizeof(unsigned char *) * _btp->n_part);
+  _part_data = (*(unsigned char ***) part_data);
+  
+  if (t_stride == PDM_STRIDE_VAR) {
+    
+    int s_recvElt = _btp->requested_data_idx[s_comm1] +
+      _btp->requested_data_n[s_comm1];
+
+    int **part_idx = malloc (sizeof(int *) * _btp->n_part);
+    int *recv_idx = malloc (sizeof(int) * (s_recvElt + 1));
+    
+    recv_idx[0] = 0;
+    for (int i = 0; i < s_recvElt; i++) {
+      recv_idx[i+1] = recv_idx[i] + recvStride[i];
+    }
+
+    for (int i = 0; i < _btp->n_part; i++) {
+
+      part_idx[i] = malloc (sizeof(int) * (_btp->n_elt[i]+ 1));
+      part_idx[i][0] = 0;
+
+      for (int j = 0; j < _btp->n_elt[i]; j++) {
+        part_idx[i][j+1] = part_idx[i][j] + _part_stride[i][j]; 
+      }
+
+    }
+
+    
+    for (int i = 0; i < _btp->n_part; i++) {
+
+      int s_part =  part_idx[i][_btp->n_elt[i]] * (int) s_data;
+
+      _part_data[i] = malloc(sizeof(unsigned char) * s_part);
+
+      for (int j = 0; j < _btp->n_elt[i]; j++) {
+
+        int idx1  = part_idx[i][j] * (int) s_data;
+        int n_elt = _part_stride[i][j] * (int) s_data;
+
+        int idx2 = recv_idx[_btp->ind[i][j]] * (int) s_data;
+
+        for (int k = 0; k < n_elt; k++) {
+           _part_data[i][idx1+k] = recvBuffer[idx2+k];
+        }
+      }
+    }
+
+    for (int i = 0; i < _btp->n_part; i++) {
+      free (part_idx[i]);
+    }
+
+    free(recv_idx);
+    free(part_idx);
+    free (recvStride);
+  }
+  
+  else if (t_stride == PDM_STRIDE_CST) {
+
+    const int cst_stride = *block_stride;
+    const int s_block_unit = cst_stride * (int) s_data;
+
+    for (int i = 0; i < _btp->n_part; i++) {
+
+      _part_data[i] = malloc(sizeof(unsigned char) * s_block_unit * _btp->n_elt[i]);
+
+      for (int j = 0; j < _btp->n_elt[i]; j++) {
+
+        int idx1  = j * s_block_unit;
+        int idx2 = _btp->ind[i][j] * s_block_unit;
+
+        for (int k = 0; k < s_block_unit; k++) {
+           _part_data[i][idx1+k] = recvBuffer[idx2+k];
+        }
+      }
+    }    
+  }
+
+  free(recvBuffer);
+
+}
+
+
 /**
  *
  * \brief Free a block to part structure                       

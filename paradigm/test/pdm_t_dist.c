@@ -628,7 +628,7 @@ int main(int argc, char *argv[])
     fflush(stdout);
   }
 
-  PDM_mesh_dist_process (id_dist);
+  PDM_mesh_dist_compute (id_dist);
 
   if (myRank == 0) {
     printf("-- Dist check\n");
@@ -744,7 +744,7 @@ int main(int argc, char *argv[])
   PDM_part_free(ppartId);
 
   PDM_dcube_gen_free(id);
-  PDM_mesh_dump_times(id_dist);
+  PDM_mesh_dist_dump_times(id_dist);
   int partial = 0;
   PDM_mesh_dist_free (id_dist, partial);
 

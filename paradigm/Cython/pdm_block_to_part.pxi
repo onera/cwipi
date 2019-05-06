@@ -22,6 +22,14 @@ cdef extern from "pdm_block_to_part.h":
                                 int                 **part_stride,
                                 void                **part_data)
 
+    void PDM_block_to_part_exch2(PDM_block_to_part_t  *btp,
+                                size_t                s_data,
+                                PDM_stride_t          t_stride,
+                                int                  *block_stride,
+                                void                 *block_data,
+                                int                 ***part_stride,
+                                void                ***part_data)
+
     PDM_block_to_part_t *PDM_block_to_part_free(PDM_block_to_part_t *btp)
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
