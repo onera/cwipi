@@ -5004,12 +5004,11 @@ int  fvmc_triangle_evaluate_Position (double x[3], double *pts,
    pt3 = pts + 6;
 
    if (idebug == 1) {
-     printf("x : %22.15e %22.15e %22.15e\n", x[0], x[1], x[2]);
+     printf("x   : %22.15e %22.15e %22.15e\n", x[0]  , x[1]  , x[2]  );
      printf("pt1 : %22.15e %22.15e %22.15e\n", pt1[0], pt1[1], pt1[2]);
      printf("pt2 : %22.15e %22.15e %22.15e\n", pt2[0], pt2[1], pt2[2]);
      printf("pt3 : %22.15e %22.15e %22.15e\n", pt3[0], pt3[1], pt3[2]);
-
-     printf("n : %22.15e %22.15e %22.15e\n", n[0], n[1], n[2]);
+     printf("n   : %22.15e %22.15e %22.15e\n", n[0]  , n[1]  , n[2]  );
    }
 
    // Project point to plane
@@ -5425,6 +5424,513 @@ int fvmc_edge_evaluate_Position (double x[3],
   closestPointweights[0] = 1 - closestPointpcoords[0];
   closestPointweights[1] = closestPointpcoords[0];
 
+  return 0;
+
+}
+
+
+
+
+
+
+
+
+
+
+int  fvmc_tetrahedron_evaluate_Position (double x[3], double *pts,
+                                         double* closestPoint,
+                                         double closestPointpcoords[3],
+                                         double *dist2,
+                                         double closestPointweights[4])
+{
+
+  double *pt0, *pt1, *pt2, *pt3;
+  double p0p1[3]   , p0p2[3]   , p0p3[3]   , p1p2[3]   , p1p3[3]   , p2p3[3]   ;
+  double norm2_p0p1, norm2_p0p2, norm2_p0p3, norm2_p1p2, norm2_p1p3, norm2_p2p3;
+  double xp0[3], xp1[3], xp2[3], xp3[3];
+  double u, v, w;
+
+  pt0 = pts;
+  pt1 = pts + 3;
+  pt2 = pts + 6;
+  pt3 = pts + 9;
+
+  for (int i = 0; i < 3; i++) {
+    p0p1[i] = pt1[i] - pt0[i];
+    p0p2[i] = pt2[i] - pt0[i];
+    p0p3[i] = pt3[i] - pt0[i];
+
+    p1p2[i] = pt2[i] - pt1[i];
+    p1p3[i] = pt3[i] - pt1[i];
+    p2p3[i] = pt3[i] - pt2[i];
+
+    xp0[i] = pt0[i] - x[i];
+    xp1[i] = pt1[i] - x[i];
+    xp2[i] = pt2[i] - x[i];
+    xp3[i] = pt3[i] - x[i];
+  }
+
+  norm2_p0p1 = _DOT_PRODUCT(p0p1,p0p1);
+  norm2_p0p2 = _DOT_PRODUCT(p0p2,p0p2);
+  norm2_p0p3 = _DOT_PRODUCT(p0p3,p0p3);
+  norm2_p1p2 = _DOT_PRODUCT(p1p2,p1p2);
+  norm2_p1p3 = _DOT_PRODUCT(p1p3,p1p3);
+  norm2_p2p3 = _DOT_PRODUCT(p2p3,p2p3);
+
+  if (norm2_p0p1 == 0.0 ||
+      norm2_p0p2 == 0.0 ||
+      norm2_p0p3 == 0.0 ||
+      norm2_p1p2 == 0.0 ||
+      norm2_p1p3 == 0.0 ||
+      norm2_p2p3 == 0.0) {
+    return -1;
+  }
+
+  // volume du tetraedre
+  double vol6 =   p0p1[0] * (p0p2[1]*p0p3[2] * p0p2[2]*p0p3[1])
+                - p0p1[1] * (p0p2[0]*p0p3[2] * p0p2[2]*p0p3[0])
+                + p0p1[2] * (p0p2[0]*p0p3[1] * p0p2[1]*p0p3[0]);
+
+  if (vol6 == 0) {
+    return -1;
+  }
+
+ // calcul des coordonnees barycentriques
+
+  u =   xp3[0] * (xp2[1]*xp1[2] * xp2[2]*xp1[1])
+      - xp3[1] * (xp2[0]*xp1[2] * xp2[2]*xp1[0])
+      + xp3[2] * (xp2[0]*xp1[1] * xp2[1]*xp1[0]);
+  u /= vol6;
+
+  v =   xp3[0] * (xp1[1]*xp0[2] * xp1[2]*xp0[1])
+      - xp3[1] * (xp1[0]*xp0[2] * xp1[2]*xp0[0])
+      + xp3[2] * (xp1[0]*xp0[1] * xp1[1]*xp0[0]);
+  v /= vol6;
+
+  w =   xp0[0] * (xp1[1]*xp2[2] * xp1[2]*xp2[1])
+      - xp0[1] * (xp1[0]*xp2[2] * xp1[2]*xp2[0])
+      + xp0[2] * (xp1[0]*xp2[1] * xp1[1]*xp2[0]);
+  w /= vol6;
+
+
+  if (u < 0 && v < 0 && w < 0){
+    // le point projeté est P0
+    for (int i = 0; i < 3; i++) {
+      closestPoint[i] = pt0[i];
+    }
+    closestPointpcoords[0] = 0;
+    closestPointpcoords[1] = 0;
+    closestPointpcoords[2] = 0;
+    *dist2 = _DOT_PRODUCT(xp0,xp0);
+    closestPointweights[0] = 1;
+    closestPointweights[1] = 0;
+    closestPointweights[2] = 0;
+    closestPointweights[3] = 0;
+
+  }
+  if (u < 0 && v < 0 && w > 0){
+    if (w > 1){
+      // le point projeté est P3
+      for (int i = 0; i < 3; i++) {
+        closestPoint[i] = pt3[i];
+      }
+      closestPointpcoords[0] = 0;
+      closestPointpcoords[1] = 0;
+      closestPointpcoords[2] = 1;
+      *dist2 = _DOT_PRODUCT(xp3,xp3);
+      closestPointweights[0] = 0;
+      closestPointweights[1] = 0;
+      closestPointweights[2] = 0;
+      closestPointweights[3] = 1;
+    }
+    // le point projeté est sur [P0,P3]
+    double proj = - _DOT_PRODUCT(xp0,p0p3);
+    for (int i = 0; i < 3; i++) {
+      closestPoint[i] = pt0[i] + proj * p0p3[i] / norm2_p0p3;
+    }
+    closestPointpcoords[0] = 0;
+    closestPointpcoords[1] = 0;
+    closestPointpcoords[2] = proj / norm2_p0p3;
+    *dist2 = _DOT_PRODUCT(xp0,xp0) - (proj*proj) / norm2_p0p3;
+    closestPointweights[0] = 1 - closestPointpcoords[0] - closestPointpcoords[1] - closestPointpcoords[2];
+    closestPointweights[1] = closestPointpcoords[0];
+    closestPointweights[2] = closestPointpcoords[1];
+    closestPointweights[3] = closestPointpcoords[2];
+
+  }
+  if (u < 0 && v > 0 && w < 0){
+    if (v > 1){
+      // le point projeté est P2
+      for (int i = 0; i < 3; i++) {
+        closestPoint[i] = pt2[i];
+      }
+      closestPointpcoords[0] = 0;
+      closestPointpcoords[1] = 1;
+      closestPointpcoords[2] = 0;
+      *dist2 = _DOT_PRODUCT(xp2,xp2);
+      closestPointweights[0] = 0;
+      closestPointweights[1] = 0;
+      closestPointweights[2] = 1;
+      closestPointweights[3] = 0;
+    }
+    // le point projeté est sur [P0,P2]
+    double proj = - _DOT_PRODUCT(xp0,p0p2);
+    for (int i = 0; i < 3; i++) {
+      closestPoint[i] = pt0[i] + proj * p0p2[i] / norm2_p0p2;
+    }
+    closestPointpcoords[0] = 0;
+    closestPointpcoords[1] = 0;
+    closestPointpcoords[2] = proj / norm2_p0p2;
+    *dist2 = _DOT_PRODUCT(xp0,xp0) - (proj*proj) / norm2_p0p2;
+    closestPointweights[0] = 1 - closestPointpcoords[0] - closestPointpcoords[1] - closestPointpcoords[2];
+    closestPointweights[1] = closestPointpcoords[0];
+    closestPointweights[2] = closestPointpcoords[1];
+    closestPointweights[3] = closestPointpcoords[2];
+
+  }
+  if (u < 0 && v > 0 && w > 0){
+    if (v + w > 1) {
+      // le point projeté est sur [P2,P3]
+      double proj = - _DOT_PRODUCT(xp2,p2p3);
+      for (int i = 0; i < 3; i++) {
+        closestPoint[i] = pt2[i] + proj * p2p3[i] / norm2_p2p3;
+      }
+      closestPointpcoords[0] = 0;
+      closestPointpcoords[1] = 0;
+      closestPointpcoords[2] = proj / norm2_p2p3;
+      *dist2 = _DOT_PRODUCT(xp2,xp2) - (proj*proj) / norm2_p2p3;
+      closestPointweights[0] = 1 - closestPointpcoords[0] - closestPointpcoords[1] - closestPointpcoords[2];
+      closestPointweights[1] = closestPointpcoords[0];
+      closestPointweights[2] = closestPointpcoords[1];
+      closestPointweights[3] = closestPointpcoords[2];
+    }
+    // le point projeté est sur [P0,P2,P3]
+    closestPointpcoords[0] = 0;
+    double n[3], cp[3], plan[9];
+    for (int i = 0; i < 3; i++) {
+      plan[i]     = pt0[i];
+      plan[i + 3] = pt3[i];
+      plan[i + 6] = pt2[i];
+    }
+    _computeNormal (3, plan, n);
+    int error = _project_point2 (x, pt0, n, cp);
+    if (error == 1){
+      return -1;
+    }
+    double maxComponent = 0.0;
+    double fabsn;
+    int idx, indices[2];
+    for (int i=0; i<3; i++) {
+      if (n[i] < 0) {
+        fabsn = -n[i];
+      }
+      else {
+        fabsn = n[i];
+      }
+      if (fabsn > maxComponent) {
+        maxComponent = fabsn;
+        idx = i;
+      }
+    }
+
+    for (int j=0, i=0; i<3; i++) {
+      if ( i != idx ) {
+        indices[j++] = i;
+      }
+    }
+    double rhs[2], c1[2], c2[2];
+    for (int i=0; i<2; i++) {
+      rhs[i] = cp[indices[i]] - pt0[indices[i]];
+      c1[i] = pt2[indices[i]] - pt0[indices[i]];
+      c2[i] = pt3[indices[i]] - pt0[indices[i]];
+    }
+
+    double det;
+    if ( (det = _DETERMINANT2X2(c1,c2)) == 0.0 ) {
+      closestPointpcoords[1] = closestPointpcoords[2] = 0.0;
+      return -1;
+    }
+
+    closestPointpcoords[1] = _DETERMINANT2X2(rhs,c2) / det; // v pt proj
+    closestPointpcoords[2] = _DETERMINANT2X2(c1,rhs) / det; // w pt proj
+
+    double xcp[3];
+    for (int i = 0; i < 3; i++) {
+      xcp[i] = cp[i] - x[i];
+    }
+    *dist2 = _DOT_PRODUCT(xcp,xcp);
+
+    closestPointweights[0] = 1 - closestPointpcoords[0] - closestPointpcoords[1] - closestPointpcoords[2];
+    closestPointweights[1] = closestPointpcoords[0];
+    closestPointweights[2] = closestPointpcoords[1];
+    closestPointweights[3] = closestPointpcoords[2];
+
+  }
+  if (u > 0 && v < 0 && w < 0){
+    if (u > 1){
+      // le point projeté est P1
+      for (int i = 0; i < 3; i++) {
+        closestPoint[i] = pt1[i];
+      }
+      closestPointpcoords[0] = 1;
+      closestPointpcoords[1] = 0;
+      closestPointpcoords[2] = 0;
+      *dist2 = _DOT_PRODUCT(xp1,xp1);
+      closestPointweights[0] = 0;
+      closestPointweights[1] = 1;
+      closestPointweights[2] = 0;
+      closestPointweights[3] = 0;
+    }
+    // le point projeté est sur [P0,P1]
+    double proj = - _DOT_PRODUCT(xp0,p0p1);
+    for (int i = 0; i < 3; i++) {
+      closestPoint[i] = pt0[i] + proj * p0p1[i] / norm2_p0p1;
+    }
+    closestPointpcoords[0] = 0;
+    closestPointpcoords[1] = 0;
+    closestPointpcoords[2] = proj / norm2_p0p1;
+    *dist2 = _DOT_PRODUCT(xp0,xp0) - (proj*proj) / norm2_p0p1;
+    closestPointweights[0] = 1 - closestPointpcoords[0] - closestPointpcoords[1] - closestPointpcoords[2];
+    closestPointweights[1] = closestPointpcoords[0];
+    closestPointweights[2] = closestPointpcoords[1];
+    closestPointweights[3] = closestPointpcoords[2];
+
+  }
+  if (u > 0 && v < 0 && w > 0){
+    if (u + w > 1){
+      // le point projeté est sur [P1,P3]
+      double proj = - _DOT_PRODUCT(xp1,p0p3);
+      for (int i = 0; i < 3; i++) {
+        closestPoint[i] = pt1[i] + proj * p1p3[i] / norm2_p1p3;
+      }
+      closestPointpcoords[0] = 0;
+      closestPointpcoords[1] = 0;
+      closestPointpcoords[2] = proj / norm2_p0p3;
+      *dist2 = _DOT_PRODUCT(xp1,xp1) - (proj*proj) / norm2_p1p3;
+      closestPointweights[0] = 1 - closestPointpcoords[0] - closestPointpcoords[1] - closestPointpcoords[2];
+      closestPointweights[1] = closestPointpcoords[0];
+      closestPointweights[2] = closestPointpcoords[1];
+      closestPointweights[3] = closestPointpcoords[2];
+    }
+    // le point projeté est sur [P0,P1,P3]
+    closestPointpcoords[1] = 0;
+    double n[3], cp[3], plan[9];
+    for (int i = 0; i < 3; i++) {
+      plan[i]     = pt0[i];
+      plan[i + 3] = pt1[i];
+      plan[i + 6] = pt3[i];
+    }
+    _computeNormal (3, plan, n);
+    int error = _project_point2 (x, pt0, n, cp);
+    if (error == 1){
+      return -1;
+    }
+    double maxComponent = 0.0;
+    double fabsn;
+    int idx, indices[2];
+    for (int i=0; i<3; i++) {
+      if (n[i] < 0) {
+        fabsn = -n[i];
+      }
+      else {
+        fabsn = n[i];
+      }
+      if (fabsn > maxComponent) {
+        maxComponent = fabsn;
+        idx = i;
+      }
+    }
+
+    for (int j=0, i=0; i<3; i++) {
+      if ( i != idx ) {
+        indices[j++] = i;
+      }
+    }
+    double rhs[2], c1[2], c2[2];
+    for (int i=0; i<2; i++) {
+      rhs[i] = cp[indices[i]] - pt0[indices[i]];
+      c1[i] = pt1[indices[i]] - pt0[indices[i]];
+      c2[i] = pt3[indices[i]] - pt0[indices[i]];
+    }
+
+    double det;
+    if ( (det = _DETERMINANT2X2(c1,c2)) == 0.0 ) {
+      closestPointpcoords[0] = closestPointpcoords[2] = 0.0;
+      return -1;
+    }
+
+    closestPointpcoords[0] = _DETERMINANT2X2(rhs,c2) / det; // u pt proj
+    closestPointpcoords[2] = _DETERMINANT2X2(c1,rhs) / det; // w pt proj
+
+    double xcp[3];
+    for (int i = 0; i < 3; i++) {
+      xcp[i] = cp[i] - x[i];
+    }
+    *dist2 = _DOT_PRODUCT(xcp,xcp);
+
+    closestPointweights[0] = 1 - closestPointpcoords[0] - closestPointpcoords[1] - closestPointpcoords[2];
+    closestPointweights[1] = closestPointpcoords[0];
+    closestPointweights[2] = closestPointpcoords[1];
+    closestPointweights[3] = closestPointpcoords[2];
+
+
+  }
+  if (u > 0 && v > 0 && w < 0){
+    if (u + v > 1) {
+      // le point projeté est sur [P1,P2]
+      double proj = - _DOT_PRODUCT(xp1,p1p2);
+      for (int i = 0; i < 3; i++) {
+        closestPoint[i] = pt1[i] + proj * p1p2[i] / norm2_p1p2;
+      }
+      closestPointpcoords[0] = 0;
+      closestPointpcoords[1] = 0;
+      closestPointpcoords[2] = proj / norm2_p1p2;
+      *dist2 = _DOT_PRODUCT(xp1,xp1) - (proj*proj) / norm2_p1p2;
+      closestPointweights[0] = 1 - closestPointpcoords[0] - closestPointpcoords[1] - closestPointpcoords[2];
+      closestPointweights[1] = closestPointpcoords[0];
+      closestPointweights[2] = closestPointpcoords[1];
+      closestPointweights[3] = closestPointpcoords[2];
+    }
+    // le point projeté est sur [P0,P1,P2]
+    closestPointpcoords[2] = 0;
+    double n[3], cp[3], plan[9];
+    for (int i = 0; i < 3; i++) {
+      plan[i]     = pt0[i];
+      plan[i + 3] = pt1[i];
+      plan[i + 6] = pt2[i];
+    }
+    _computeNormal (3, plan, n);
+    int error = _project_point2 (x, pt0, n, cp);
+    if (error == 1){
+      return -1;
+    }
+    double maxComponent = 0.0;
+    double fabsn;
+    int idx, indices[2];
+    for (int i=0; i<3; i++) {
+      if (n[i] < 0) {
+        fabsn = -n[i];
+      }
+      else {
+        fabsn = n[i];
+      }
+      if (fabsn > maxComponent) {
+        maxComponent = fabsn;
+        idx = i;
+      }
+    }
+
+    for (int j=0, i=0; i<3; i++) {
+      if ( i != idx ) {
+        indices[j++] = i;
+      }
+    }
+    double rhs[2], c1[2], c2[2];
+    for (int i=0; i<2; i++) {
+      rhs[i] = cp[indices[i]] - pt0[indices[i]];
+      c1[i] = pt1[indices[i]] - pt0[indices[i]];
+      c2[i] = pt2[indices[i]] - pt0[indices[i]];
+    }
+
+    double det;
+    if ( (det = _DETERMINANT2X2(c1,c2)) == 0.0 ) {
+      closestPointpcoords[0] = closestPointpcoords[1] = 0.0;
+      return -1;
+    }
+
+    closestPointpcoords[0] = _DETERMINANT2X2(rhs,c2) / det; // u pt proj
+    closestPointpcoords[1] = _DETERMINANT2X2(c1,rhs) / det; // v pt proj
+
+    double xcp[3];
+    for (int i = 0; i < 3; i++) {
+      xcp[i] = cp[i] - x[i];
+    }
+    *dist2 = _DOT_PRODUCT(xcp,xcp);
+
+    closestPointweights[0] = 1 - closestPointpcoords[0] - closestPointpcoords[1] - closestPointpcoords[2];
+    closestPointweights[1] = closestPointpcoords[0];
+    closestPointweights[2] = closestPointpcoords[1];
+    closestPointweights[3] = closestPointpcoords[2];
+
+  }
+  if (u > 0 && v > 0 && w > 0){
+    if (u + v + w > 1) {
+      // le point projeté est sur [P1,P2,P3]
+      double n[3], cp[3], plan[9];
+      for (int i = 0; i < 3; i++) {
+        plan[i]     = pt1[i];
+        plan[i + 3] = pt2[i];
+        plan[i + 6] = pt3[i];
+      }
+      _computeNormal (3, plan, n);
+      int error = _project_point2 (x, pt1, n, cp);
+      if (error == 1){
+        return -1;
+      }
+      double maxComponent = 0.0;
+      double fabsn;
+      int idx, indices[2];
+      for (int i=0; i<3; i++) {
+        if (n[i] < 0) {
+          fabsn = -n[i];
+        }
+        else {
+          fabsn = n[i];
+        }
+        if (fabsn > maxComponent) {
+          maxComponent = fabsn;
+          idx = i;
+        }
+      }
+
+      for (int j=0, i=0; i<3; i++) {
+        if ( i != idx ) {
+          indices[j++] = i;
+        }
+      }
+      double rhs[2], c1[2], c2[2];
+      for (int i=0; i<2; i++) {
+        rhs[i] = cp[indices[i]] - pt1[indices[i]];
+        c1[i] = pt2[indices[i]] - pt1[indices[i]];
+        c2[i] = pt3[indices[i]] - pt1[indices[i]];
+      }
+
+      double det;
+      if ( (det = _DETERMINANT2X2(c1,c2)) == 0.0 ) {
+        closestPointpcoords[1] = closestPointpcoords[2] = 0.0;
+        return -1;
+      }
+
+      closestPointpcoords[1] = _DETERMINANT2X2(rhs,c2) / det; // v pt proj
+      closestPointpcoords[2] = _DETERMINANT2X2(c1,rhs) / det; // w pt proj
+      closestPointpcoords[0] = 1 - closestPointpcoords[1] - closestPointpcoords[2]; // u pt proj
+
+      double xcp[3];
+      for (int i = 0; i < 3; i++) {
+        xcp[i] = cp[i] - x[i];
+      }
+      *dist2 = _DOT_PRODUCT(xcp,xcp);
+
+      closestPointweights[0] = 1 - closestPointpcoords[0] - closestPointpcoords[1] - closestPointpcoords[2];
+      closestPointweights[1] = closestPointpcoords[0];
+      closestPointweights[2] = closestPointpcoords[1];
+      closestPointweights[3] = closestPointpcoords[2];
+
+    }
+    // le point est à l'intérieur du tétra
+    for (int i = 0; i < 3; i++) {
+      closestPoint[i] = x[i];
+    }
+    closestPointpcoords[0] = u;
+    closestPointpcoords[1] = v;
+    closestPointpcoords[2] = w;
+    *dist2 = 0.0;
+    closestPointweights[0] = 1 - u - v - w;
+    closestPointweights[1] = u;
+    closestPointweights[2] = v;
+    closestPointweights[3] = w;
+
+  }
   return 0;
 
 }

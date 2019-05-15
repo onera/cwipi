@@ -560,6 +560,20 @@ _basis_quad_qn
 }
 
 
+
+/*----------------------------------------------------------------------------
+ *
+ * Tetrahedron Pn basis
+ *
+ * parameters:
+ *   order           <-- order
+ *   n_pts           <-- number of points
+ *   uvw             <-- u (size = 3 * n_pts)
+ *   weights         --> weights (size = n_nodes * n_pts)
+ *
+ *
+ *----------------------------------------------------------------------------*/
+
 static void
 _basis_tetra_pn
 (
@@ -569,6 +583,8 @@ _basis_tetra_pn
   double *restrict weights
 )
 {
+
+  int n_nodes = ( (order*(order+1)*(2*order+1)/6) + 3*order*(order+1)/2 + 3*order ) / 2;
 
   if (order == 1) {
     for (int i = 0; i < n_pts; i++) {
@@ -585,7 +601,7 @@ _basis_tetra_pn
     }
   }
 
-  if (order == 2) {
+  else if (order == 2) {
 
     for (int i = 0; i < n_pts; i++) {
 
@@ -600,42 +616,455 @@ _basis_tetra_pn
      double t2 = 2. * t;
 
      weights[10*i+0] = t * (t2 - 1);    /* (0  , 0  , 0  ) */
-     weights[10*i+1] = u2 * t2;         /* (0.5, 0  , 0  ) */
      weights[10*i+2] = u * (-1. + u2);  /* (1  , 0  , 0  ) */
-     weights[10*i+3] = v2 * t2;         /* (0  , 0.5, 0  ) */
-     weights[10*i+4] = u2 * v2;         /* (0.5, 0.5, 0  ) */
      weights[10*i+5] = v * (-1. + v2);  /* (0  , 1  , 0  ) */
+     weights[10*i+9] = w * (-1. + w2);  /* (0  , 0  , 1  ) */
+     weights[10*i+1] = u2 * t2;         /* (0.5, 0  , 0  ) */
+     weights[10*i+4] = u2 * v2;         /* (0.5, 0.5, 0  ) */
+     weights[10*i+3] = v2 * t2;         /* (0  , 0.5, 0  ) */
      weights[10*i+6] = w2 * t2;         /* (0  , 0  , 0.5) */
      weights[10*i+7] = u2 * w2;         /* (0.5, 0  , 0.5) */
      weights[10*i+8] = v2 * w2;         /* (0  , 0.5, 0.5) */
-     weights[10*i+9] = w * (-1. + w2);  /* (0  , 0  , 1  ) */
     }
   }
+  else {
 
-  if (order == 3) {
+    double *u  = malloc (sizeof(double) *n_pts);
+    double *v  = malloc (sizeof(double) *n_pts);
+    double *w  = malloc (sizeof(double) *n_pts);
+    double *t  = malloc (sizeof(double) *n_pts);
+    double *fu = malloc (sizeof(double) *n_pts);
+    double *fv = malloc (sizeof(double) *n_pts);
+    double *fw = malloc (sizeof(double) *n_pts);
+    double *ft = malloc (sizeof(double) *n_pts);
 
     for (int i = 0; i < n_pts; i++) {
-
-      double u = uvw[3*i  ];
-      double v = uvw[3*i+1];
-      double w = uvw[3*i+2];
-      double t = 1 - u - v - w;
-
-      double u3 = 3. * u;
-      double v3 = 3. * v;
-      double w3 = 3. * w;
-      double t3 = 3. * t;
-
-      double u3m1 = (u3-1.)*0.5;
-      double v3m1 = (v3-1.)*0.5;
-      double w3m1 = (w3-1.)*0.5;
-      double t3m1 = (t3-1.)*0.5;
-
-
+      u[i] = uvw[3*i];
+      v[i] = uvw[3*i+1];
+      w[i] = uvw[3*i+2];
+      t[i] = 1. - u[i] - v[i] - w[i];
     }
+
+    int i_node = 0;
+    for (int iw = 0; iw < order + 1; iw++) {
+      for (int iv = 0; iv < order + 1 - iw; iv++) {
+        for (int iu = 0; iu < order + 1 - iv - iw; iu++) {
+          int it = order - iu - iv - iw;
+
+          _monomialProduct(order, n_pts, iu, u, fu);
+          _monomialProduct(order, n_pts, iv, v, fv);
+          _monomialProduct(order, n_pts, iw, w, fw);
+          _monomialProduct(order, n_pts, it, t, ft);
+
+          for (int i = 0; i < n_pts; i++) {
+            weights[i * n_nodes + i_node] = fu[i] * fv[i] * fw[i] * ft[i];
+          }
+          i_node++;
+        }
+      }
+    }
+    free (u);
+    free (v);
+    free (w);
+    free (t);
+    free (fu);
+    free (fv);
+    free (fw);
+    free (ft);
   }
 
 }
+
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Hexahedron Pn basis
+ *
+ * parameters:
+ *   order           <-- order
+ *   n_pts           <-- number of points
+ *   uvw             <-- u (size = 3 * n_pts)
+ *   weights         --> weights (size = n_nodes * n_pts)
+ *
+ *
+ *----------------------------------------------------------------------------*/
+
+static void
+_basis_hexa_pn
+(
+  const int order,
+  const int n_pts,
+  const double *restrict uvw,
+  double *restrict weights
+)
+{
+
+  int n_nodes = (order+1)*(order+1)*(order+1);
+
+  if (order == 1) {
+    for (int i = 0; i < n_pts; i++) {
+
+      double u = uvw[3*i];
+      double v = uvw[3*i+1];
+      double w = uvw[3*i+2];
+      double u1 = (1 - u);
+      double v1 = (1 - v);
+      double w1 = (1 - w);
+
+      weights[8*i+0] = u1 * v1 * w1;
+      weights[8*i+1] = u  * v1 * w1;
+      weights[8*i+2] = u1 * v  * w1;
+      weights[8*i+3] = u  * v  * w1;
+      weights[8*i+4] = u1 * v1 * w;
+      weights[8*i+5] = u  * v1 * w;
+      weights[8*i+6] = u1 * v  * w;
+      weights[8*i+7] = u  * v  * w;
+    }
+  }
+
+  if (order == 2) {
+
+    for (int i = 0; i < n_pts; i++) {
+      double u = uvw[3*i];
+      double v = uvw[3*i+1];
+      double w = uvw[3*i+2];
+
+      double uM = 2*(1-u);
+      double uP = 2*u;
+      double u0 = u-0.5;
+
+      double au1 = -uM * u0;
+      double au2 =  uM * uP;
+      double au3 =  u0 * uP;
+
+      double vM = 2*(1-v);
+      double vP = 2*v;
+      double v0 = v-0.5;
+
+      double av1 = -vM * v0;
+      double av2 =  vM * vP;
+      double av3 =  v0 * vP;
+
+      double wM = 2*(1-w);
+      double wP = 2*w;
+      double w0 = w-0.5;
+
+      double aw1 = -wM * w0;
+      double aw2 =  wM * wP;
+      double aw3 =  w0 * wP;
+
+      weights[27*i+ 0]=au1*av1*aw1;
+      weights[27*i+ 1]=au2*av1*aw1;
+      weights[27*i+ 2]=au3*av1*aw1;
+      weights[27*i+ 3]=au1*av2*aw1;
+      weights[27*i+ 4]=au2*av2*aw1;
+      weights[27*i+ 5]=au3*av2*aw1;
+      weights[27*i+ 6]=au1*av3*aw1;
+      weights[27*i+ 7]=au2*av3*aw1;
+      weights[27*i+ 8]=au3*av3*aw1;
+      weights[27*i+ 9]=au1*av1*aw2;
+      weights[27*i+10]=au2*av1*aw2;
+      weights[27*i+11]=au3*av1*aw2;
+      weights[27*i+12]=au1*av2*aw2;
+      weights[27*i+13]=au2*av2*aw2;
+      weights[27*i+14]=au3*av2*aw2;
+      weights[27*i+15]=au1*av3*aw2;
+      weights[27*i+16]=au2*av3*aw2;
+      weights[27*i+17]=au3*av3*aw2;
+      weights[27*i+18]=au1*av1*aw3;
+      weights[27*i+19]=au2*av1*aw3;
+      weights[27*i+20]=au3*av1*aw3;
+      weights[27*i+21]=au1*av2*aw3;
+      weights[27*i+22]=au2*av2*aw3;
+      weights[27*i+23]=au3*av2*aw3;
+      weights[27*i+24]=au1*av3*aw3;
+      weights[27*i+25]=au2*av3*aw3;
+      weights[27*i+26]=au3*av3*aw3;
+    }
+  }
+  else {
+
+    int nMod = order + 1;
+
+    double *u  = malloc (sizeof(double) *n_pts);
+    double *v  = malloc (sizeof(double) *n_pts);
+    double *w  = malloc (sizeof(double) *n_pts);
+
+    for (int i = 0; i < n_pts; i++) {
+      u[i] = 2 * uvw[3*i]   - 1;
+      v[i] = 2 * uvw[3*i+1] - 1;
+      w[i] = 2 * uvw[3*i+2] - 1;
+    }
+
+    double *lagrangeL2_u = malloc (sizeof(double) * nMod * n_pts);
+    double *lagrangeL2_v = malloc (sizeof(double) * nMod * n_pts);
+    double *lagrangeL2_w = malloc (sizeof(double) * nMod * n_pts);
+
+    _setL2BasisEqui (order, n_pts, u, lagrangeL2_u);
+    _setL2BasisEqui (order, n_pts, v, lagrangeL2_v);
+    _setL2BasisEqui (order, n_pts, w, lagrangeL2_w);
+
+    int i_node = 0;
+    for (int iw = 0; iw < nMod; iw++) {
+      for (int iv = 0; iv < nMod; iv++) {
+        for (int iu = 0; iu < nMod; iu++) {
+          for (int i_pts = 0; i_pts < n_pts; i_pts++) {
+            weights[i_pts * n_nodes + i_node] =
+              lagrangeL2_u[i_pts * nMod + iu] *
+              lagrangeL2_v[i_pts * nMod + iv] *
+              lagrangeL2_w[i_pts * nMod + iw];
+          }
+          i_node++;
+        }
+      }
+    }
+    free(u);
+    free(v);
+    free(w);
+    free(lagrangeL2_u);
+    free(lagrangeL2_v);
+    free(lagrangeL2_w);
+  }
+}
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Prism Pn basis
+ *
+ * parameters:
+ *   order           <-- order
+ *   n_pts           <-- number of points
+ *   uvw             <-- u (size = 3 * n_pts)
+ *   weights         --> weights (size = n_nodes * n_pts)
+ *
+ *
+ *----------------------------------------------------------------------------*/
+
+static void
+_basis_prism_pn
+(
+  const int order,
+  const int n_pts,
+  const double *restrict uvw,
+  double *restrict weights
+)
+{
+
+  int n_nodes = (order+1)*(order+1)*(order+2)/2;
+
+  if (order == 1) {
+
+    for (int i = 0; i < n_pts; i++) {
+      double u =  uvw[3*i];
+      double v =  uvw[3*i+1];
+      double w =  uvw[3*i+2];
+
+      double w1 = 1 - w;
+
+      weights[6*i]   = (1. - u - v) * w1;
+      weights[6*i+1] = u * w1;
+      weights[6*i+2] = v * w1;
+      weights[6*i+3] = (1. - u - v) * w;
+      weights[6*i+4] = u * w;
+      weights[6*i+5] = v * w;
+    }
+  }
+
+  else if (order == 2) {
+
+    for (int i = 0; i < n_pts; i++) {
+
+     double u  = uvw[3*i];
+     double v  = uvw[3*i+1];
+     double w  = uvw[3*i+2];
+
+     double t  = 1. - u - v;
+     double u2 = 2. * u;
+     double v2 = 2. * v;
+     double t2 = 2. * w;
+
+     double wM = 2*(1-w);
+     double wP = 2*w;
+     double w0 = w-0.5;
+     double aw1 = -wM * w0;
+     double aw2 =  wM * wP;
+     double aw3 =  w0 * wP;
+
+     weights[18*i+ 0] = (t * (-1. + t2)) * aw1;
+     weights[18*i+ 1] = (u2 * t2)        * aw1;
+     weights[18*i+ 2] = (u * (-1. + u2)) * aw1;
+     weights[18*i+ 3] = (v2 * t2)        * aw1;
+     weights[18*i+ 4] = (u2 * v2)        * aw1;
+     weights[18*i+ 5] = (v * (-1. + v2)) * aw1;
+     weights[18*i+ 6] = (t * (-1. + t2)) * aw2;
+     weights[18*i+ 7] = (u2 * t2)        * aw2;
+     weights[18*i+ 8] = (u * (-1. + u2)) * aw2;
+     weights[18*i+ 9] = (v2 * t2)        * aw2;
+     weights[18*i+10] = (u2 * v2)        * aw2;
+     weights[18*i+11] = (v * (-1. + v2)) * aw2;
+     weights[18*i+12] = (t * (-1. + t2)) * aw3;
+     weights[18*i+13] = (u2 * t2)        * aw3;
+     weights[18*i+14] = (u * (-1. + u2)) * aw3;
+     weights[18*i+15] = (v2 * t2)        * aw3;
+     weights[18*i+16] = (u2 * v2)        * aw3;
+     weights[18*i+17] = (v * (-1. + v2)) * aw3;
+    }
+  }
+  else {
+    // base dans le triangle * base segment
+
+    int nMod = order + 1;
+
+    double *u   = malloc (sizeof(double) *n_pts);
+    double *v   = malloc (sizeof(double) *n_pts);
+    double *w   = malloc (sizeof(double) *n_pts);
+    double *t   = malloc (sizeof(double) *n_pts);
+    double *fu  = malloc (sizeof(double) *n_pts);
+    double *fv  = malloc (sizeof(double) *n_pts);
+    double *ft  = malloc (sizeof(double) *n_pts);
+
+    for (int i = 0; i < n_pts; i++) {
+      u[i] = uvw[3*i];
+      v[i] = uvw[3*i+1];
+      w[i] = 2*uvw[3*i+2]-1;
+      t[i] = 1 - u[i] - v[i];
+    }
+
+    double *lagrangeL2_w = malloc (sizeof(double) * nMod * n_pts);
+
+    _setL2BasisEqui (order, n_pts, w, lagrangeL2_w);
+
+    int i_node = 0;
+    for (int iw = 0; iw < nMod; iw++) {
+      for (int iv = 0; iv < nMod; iv++) {
+        for (int iu = 0; iu < nMod - iv; iu++) {
+          int it = order - iu - iv;
+
+          _monomialProduct(order, n_pts, iu, u, fu);
+          _monomialProduct(order, n_pts, iv, v, fv);
+          _monomialProduct(order, n_pts, it, t, ft);
+
+
+          for (int i_pts = 0; i_pts < n_pts; i_pts++) {
+            weights[i_pts * n_nodes + i_node] = fu[i_pts] * fv[i_pts] * ft[i_pts] * lagrangeL2_w[i_pts * nMod + iw];
+          }
+          i_node++;
+        }
+      }
+    }
+    free(u);
+    free(v);
+    free(w);
+    free(t);
+    free(fu);
+    free(fv);
+    free(ft);
+    free(lagrangeL2_w);
+  }
+}
+
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Pyramid Pn basis
+ *
+ * parameters:
+ *   order           <-- order
+ *   n_pts           <-- number of points
+ *   uvw             <-- u (size = 3 * n_pts)
+ *   weights         --> weights (size = n_nodes * n_pts)
+ *
+ *
+ *----------------------------------------------------------------------------*/
+
+static void
+_basis_pyra_pn
+(
+  const int order,
+  const int n_pts,
+  const double *restrict uvw,
+  double *restrict weights
+)
+{
+
+  if (order == 1) {
+    for (int i = 0; i < n_pts; i++) {
+
+      double u = uvw[3*i];
+      double v = uvw[3*i+1];
+      double w = uvw[3*i+2];
+      double u1 = (1 - u);
+      double v1 = (1 - v);
+      double w1 = (1 - w);
+
+      weights[5*i+0] = u1 * v1 * w1;
+      weights[5*i+1] = u  * v1 * w1;
+      weights[5*i+2] = u1 * v  * w1;
+      weights[5*i+3] = u  * v  * w1;
+      weights[5*i+4] = u1 * v1 * w;
+    }
+  }
+
+  if (order == 2) {
+
+    for (int i = 0; i < n_pts; i++) {
+      double u = uvw[3*i];
+      double v = uvw[3*i+1];
+      double w = uvw[3*i+2];
+
+      double uM = 2*(1-u);
+      double uP = 2*u;
+      double u0 = u-0.5;
+
+      double au1 = -uM * u0;
+      double au2 =  uM * uP;
+      double au3 =  u0 * uP;
+
+      double vM = 2*(1-v);
+      double vP = 2*v;
+      double v0 = v-0.5;
+
+      double av1 = -vM * v0;
+      double av2 =  vM * vP;
+      double av3 =  v0 * vP;
+
+      double wM = 2*(1-w);
+      double wP = 2*w;
+      double w0 = w-0.5;
+
+      double aw1 = -wM * w0;
+      double aw2 =  wM * wP;
+      double aw3 =  w0 * wP;
+
+      weights[14*i+ 0] = au1*av1*aw1;
+      weights[14*i+ 1] = au2*av1*aw1;
+      weights[14*i+ 2] = au3*av1*aw1;
+      weights[14*i+ 3] = au1*av2*aw1;
+      weights[14*i+ 4] = au2*av2*aw1;
+      weights[14*i+ 5] = au3*av2*aw1;
+      weights[14*i+ 6] = au1*av3*aw1;
+      weights[14*i+ 7] = au2*av3*aw1;
+      weights[14*i+ 8] = au3*av3*aw1;
+
+      weights[14*i+ 9] =  u0    * 2*v0  *aw2;
+      weights[14*i+10] =  uP    * 2*v0  *aw2;
+      weights[14*i+11] =  2*u0  * vP  *aw2;
+      weights[14*i+12] =  uP    * vP    *aw2;
+
+      weights[14*i+13] = aw3;
+    }
+  }
+  else {
+    bftc_error(__FILE__, __LINE__, 0,
+               _("Ordre de la pyramide non implémenté\n"));
+  }
+
+}
+
+
 
 
 /*----------------------------------------------------------------------------

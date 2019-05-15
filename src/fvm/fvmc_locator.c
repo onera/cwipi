@@ -668,7 +668,9 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
           free(coords);
 
         }
-        else {
+        else if ((this_section->type == FVMC_FACE_TRIA) ||
+                 (this_section->type == FVMC_FACE_QUAD)){
+
           assert (dim == 3);
 
           const int n_step = opt_bbox_step;
@@ -775,6 +777,183 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
           free (ai);
           free (xyz);
           free (coords);
+
+        }
+        else {
+          assert (dim == 3);
+
+          const int n_step = opt_bbox_step;
+          const double step = 1./(n_step - 1);
+          const int n_nodes = this_section->stride;
+
+          int n_vtx = 0;
+
+          if (this_section->type == FVMC_CELL_TETRA) {
+            n_vtx =  ( (n_step*(n_step+1)*(2*n_step+1)/6) + 3*n_step*(n_step+1)/2 + 3*n_step ) / 2;
+          }
+          else if (this_section->type == FVMC_CELL_HEXA) {
+            n_vtx = (n_step + 1) * (n_step + 1) * (n_step + 1);
+          }
+          else if (this_section->type == FVMC_CELL_PRISM) {
+            n_vtx = (n_step + 1) * (n_step + 2) * (n_step + 1) /2;
+          }
+          else if (this_section->type == FVMC_CELL_PYRAM) {
+            n_vtx = (n_step*n_step*(n_step+1)*(n_step+1)/12) * (n_step*(n_step+1)*(2*n_step+1)/9) * (n_step*(n_step+1)/12);
+          }
+
+          double *uvw = malloc (sizeof(double) * 3 * n_vtx);
+          double *ai  = malloc (sizeof(double) * n_nodes * n_vtx);
+          double *xyz = malloc (sizeof(double) * 3 * n_vtx);
+          double *coords =  malloc (sizeof(double) * 3 * n_nodes);
+
+          if (this_section->type == FVMC_CELL_TETRA) {
+            int i1 = 0;
+            for (int kk = 0; kk < n_step + 1; kk++){
+              double w = kk*step;
+              for (int jj = 0; jj < n_step + 1 - kk; jj++) {
+                double v = jj*step;
+                for (int ii = 0; ii < n_step + 1 - jj - kk; ii++) {
+                  double u = ii*step;
+                  uvw[i1++] = u;
+                  uvw[i1++] = v;
+                  uvw[i1++] = w;
+                }
+              }
+            }
+            FVMC_ho_basis (FVMC_CELL_TETRA, order, n_nodes, n_vtx, uvw, ai);
+          }
+
+
+          if (this_section->type == FVMC_CELL_HEXA) {
+            int i1 = 0;
+            for (int kk = 0; kk < n_step + 1; kk++){
+              double w = kk*step;
+              for (int jj = 0; jj < n_step + 1; jj++) {
+                double v = jj*step;
+                for (int ii = 0; ii < n_step + 1; ii++) {
+                  double u = ii*step;
+                  uvw[i1++] = u;
+                  uvw[i1++] = v;
+                  uvw[i1++] = w;
+                }
+              }
+            }
+            FVMC_ho_basis (FVMC_CELL_HEXA, order, n_nodes, n_vtx, uvw, ai);
+          }
+
+
+          if (this_section->type == FVMC_CELL_PRISM) {
+            int i1 = 0;
+            for (int kk = 0; kk < n_step + 1; kk++){
+              double w = kk*step;
+              for (int jj = 0; jj < n_step + 1; jj++) {
+                double v = jj*step;
+                for (int ii = 0; ii < n_step + 1 - jj; ii++) {
+                  double u = ii*step;
+                  uvw[i1++] = u;
+                  uvw[i1++] = v;
+                  uvw[i1++] = w;
+                }
+              }
+            }
+            FVMC_ho_basis (FVMC_CELL_PRISM, order, n_nodes, n_vtx, uvw, ai);
+          }
+
+
+          if (this_section->type == FVMC_CELL_PYRAM) {
+            int i1 = 0;
+            for (int kk = 0; kk < n_step + 1; kk++){
+              double w = kk*step;
+              for (int jj = 0; jj < n_step + 1 - kk; jj++) {
+                double v = jj*step;
+                for (int ii = 0; ii < n_step + 1 - kk; ii++) {
+                  double u = ii*step;
+                  uvw[i1++] = u;
+                  uvw[i1++] = v;
+                  uvw[i1++] = w;
+                }
+              }
+            }
+            FVMC_ho_basis (FVMC_CELL_PYRAM, order, n_nodes, n_vtx, uvw, ai);
+          }
+
+
+          for (int ielt = 0; ielt < this_section->n_elements; ielt++) {
+
+            for (int jj = 0; jj < n_nodes; jj++) {
+              vertex_id = this_section->vertex_num[ielt*n_nodes + jj] - 1;
+              int coord_idx;
+              if (parent_vertex_num == NULL) {
+                coord_idx = vertex_id;
+              }
+              else {
+                coord_idx = parent_vertex_num[vertex_id] - 1;
+              }
+              for (int kk = 0; kk < 3; kk++) {
+                coords[3*jj+kk] = vertex_coords[(coord_idx * 3) + kk];
+              }
+            }
+
+#ifdef CWP_HAVE_BLAS
+            double alpha = 1.;
+            double beta = 0.;
+
+            cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                        n_vtx, 3, n_nodes,
+                        alpha,
+                        ai, n_nodes,
+                        coords, 3,
+                        beta,
+                        xyz, 3);
+#else
+            for (int ii = 0; ii < n_vtx; ii++) {
+
+              for (int kk = 0; kk < 3; kk++) {
+                xyz[3*ii + kk] = 0.;
+              }
+
+              for (int jj = 0; jj < n_nodes; jj++) {
+
+                for (int kk = 0; kk < 3; kk++) {
+                  xyz[3*ii +kk] += ai[ii*n_nodes+jj] * coords[3 * jj + kk];
+                }
+              }
+            }
+
+#endif
+
+            for (int ii = 0; ii < n_vtx; ii++) {
+
+              _update_elt_extents(dim,
+                                  0,
+                                  NULL,
+                                  xyz + 3 *ii,
+                                  elt_extents,
+                                  &elt_initialized);
+            }
+
+          }
+
+
+          free (uvw);
+          free (ai);
+          free (xyz);
+          free (coords);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         }
       }

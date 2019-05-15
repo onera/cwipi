@@ -66,6 +66,41 @@ static double _f(double x, double y, double z)
   return 2*x*x + z*z - 3*x*z + z - x + 2. + 3*z;
 }
 
+static double _z(double x)
+{
+  return x*x + 2;
+}
+/*
+static double _racine(double a, double b, double c, double d)
+{
+  if (a == 0){
+    printf("Polynome de degre deux\n");
+    return 0;
+  }
+  printf("Polynome a resoudre : %12.5e x^3 + %12.5e x^2 + %12.5e x + %12.5e\n", a, b, c, d);
+  //a x^3 + b x^2 + c x +d
+  //changement de variable X = x - b/3a
+  double bs3a = b / (3*a); printf("b/3a = %12.5e\n", bs3a);
+  double p = c/a - ((b*b)/(3*a*a)); printf("p = %12.5e\n", p);
+  double q = ((2*b*b*b)/(27*a*a*a)) + d/a - ((b*c)/(3*a*a)); printf("q = %12.5e\n", q);
+
+  //nouveau polynome X^3 + pX + q = 0 => méthodes de cardan
+  double D = (p*p*p/27 + q*q/4);
+  printf("Discriminant D = %22.15e\n", D);
+  if (D <= 0){
+    printf("Methode pas encore implementee\n");
+    return 0;
+  }
+  double u = sqrt(D);
+         u = u - q; printf("u^3 = %22.15e\n", u);
+  double _u = pow(u, 1.0/3.0); printf("u = %22.15e\n", _u);
+  double v = sqrt(D);
+         v = v + q; printf("v^3 = %22.15e\n", v);
+  double _v = pow(v, 1.0/3.0); printf("v = %22.15e\n", _v);
+
+  return (_u-_v - bs3a);
+}
+*/
 /*----------------------------------------------------------------------
  *
  * Read mesh
@@ -80,7 +115,7 @@ static double _f(double x, double y, double z)
  *   connecPointer       --> connectivity index
  *   connec              --> connectivity
  *---------------------------------------------------------------------*/
-/*
+
 static int _read_mesh(FILE *f,
                       int *format,
                       int *dimension,
@@ -90,52 +125,69 @@ static int _read_mesh(FILE *f,
                       int *eltsConnecPointer,
                       int *eltsConnec)
 {
+
+
   int r;
   int nConnecVertex;
   int _format;
   int _dimension;
   int _nVertex;
   int _nElt;
+  int *un, loop = 0;
   char key[256];
 
-  fscanf(f, "%s",key);
-  //_format = *format;
-
-  return 1;
-/*
-  if (r == EOF)
-    return 0;
-
-  r = fscanf(f, "%d",dimension);
-  _dimension = *dimension;
-  if (r == EOF)
-    return 0;
-
-  r = fscanf(f, "%d",nVertex);
-  _nVertex = *nVertex;
-  if (r == EOF)
-    return 0;
-
-  coords = (double *) malloc(sizeof(double) * 3 * _nVertex );
 
 
-  for (int i = 0; i < _nVertex; i++) {
+  while (loop == 0){
+    r = fscanf(f, "%s",key);
+    printf("key = %s\n", key);
+  switch (key[0]) {
+    case 'M':
+      r = fscanf(f, "%d",format);
+      _format = *format;
+      printf("format = %d, r = %i\n", _format, r);
+      break;
 
-    for (int j = 0; j < 3; j++) {
-    r = fscanf(f, "%lf",coords + i * 3 + j);
-    if (r == EOF)
-      return 0;
-    }
+    case 'D':
+      r = fscanf(f, "%d",dimension);
+      _dimension = *dimension;
+      printf("dimension = %d, r = %i\n", _dimension, r);
+      break;
 
-  }
+    case 'V':
+      r = fscanf(f, "%d",nVertex);
+      _nVertex = *nVertex;
+      printf("nVertex = %d, r = %i\n", _nVertex, r);
+      coords = (double *) malloc(sizeof(double) * 3 * _nVertex );
+      for (int i = 0; i < _nVertex; i++) {
 
-  r = fscanf(f, "%d",nElt);
-  _nElt = *nElt;
-  if (r == EOF)
-    return 0;
+        for (int j = 0; j < 3; j++) {
+        r = fscanf(f, "%lf",coords + i * 3 + j);
+        }
+      }
+      break;
 
-  nConnecVertex = _nElt * 3;
-  eltsConnec = (int *) malloc(sizeof(int) * nConnecVertex);
+      case 'E':
+        r = fscanf(f, "%d",nElt);
+        _nElt = *nElt;
+        printf("nElt = %d, r = %i\n", _nElt, r);
+        nConnecVertex = _nElt * 3;
+        eltsConnec = (int *) malloc(sizeof(int) * nConnecVertex);
+        for (int i = 0; i < nConnecVertex; i++) {
+
+          for (int j = 0; j < 3; j++) {
+          r = fscanf(f, "%d",eltsConnec + i * 3 + j);
+          }
+          r = fscanf(f, "%d",un);
+        }
+        break;
+
+      case 'F':
+        loop = 1;
+        break;
+  };
+}
+
   eltsConnecPointer = (int *) malloc(sizeof(int) * (_nElt + 1));
 
   for (int i = 0; i < _nElt; i++) {
@@ -143,17 +195,8 @@ static int _read_mesh(FILE *f,
   }
   eltsConnecPointer[_nElt] = nConnecVertex;
 
-  for (int i = 0; i < eltsConnecPointer[_nElt]; i++) {
-
-    for (int j = 0; j < 3; j++) {
-    r = fscanf(f, "%d",eltsConnec + i * 3 + j);
-    if (r == EOF)
-      return 0;
-    }
-  }
   return 1;
 }
-*/
 /*----------------------------------------------------------------------
  *
  * Display usage
@@ -384,28 +427,88 @@ int main
   const double xmax =  0.1;
   const double zmin = -0.1;
   const double zmax =  0.1;
-/*
+
   nVertex = 3;
   nElts = 1;
-*/
-  meshFile = fopen("mesh/parabole.mesh", "r");
-
-  if (rank == 0)
-    printf("Lecture du maillage\n");
-
-    char str [80];
-    assert (meshFile != NULL);
-    fscanf (meshFile, "%s", str);
-      fclose(meshFile);
-      printf ("I have read:  %s \n",str);
-      return 0;
-
-
-
-  if (rank == 0)
-    printf("Fin lecture du maillage\n");
 
 /*
+ meshFile = fopen("meshes/parabole.mesh", "r");
+
+  assert (meshFile != NULL);
+//  _read_mesh(meshFile, &format, &dimension, &nVertex, &nElts, coords, eltsConnecPointer, eltsConnec);
+int r;
+int nConnecVertex;
+int _format;
+int _dimension;
+int _nVertex;
+int _nElts;
+int *un, loop = 0;
+char key[40];
+
+
+
+while (loop == 0){
+  r = fscanf(meshFile, "%s",key);
+  printf("key = %s\n", key);
+switch (key[0]) {
+  case 'M':
+    r = fscanf(meshFile, "%d",&format);
+    _format = format;
+    printf("format = %d, r = %i\n", _format, r);
+    break;
+
+  case 'D':
+    r = fscanf(meshFile, "%d",&dimension);
+    _dimension = dimension;
+    printf("dimension = %d, r = %i\n", _dimension, r);
+    break;
+
+  case 'V':
+    r = fscanf(meshFile, "%d",&nVertex);
+    _nVertex = nVertex;
+    printf("nVertex = %d, r = %i\n", _nVertex, r);
+    coords = (double *) malloc(sizeof(double) * 3 * _nVertex );
+    for (int i = 0; i < _nVertex; i++) {
+
+      for (int j = 0; j < 3; j++) {
+      r = fscanf(meshFile, "%lf",coords + i * 3 + j);
+      }
+    }
+    break;
+
+    case 'E':
+      switch (key[1]) {
+        case 'd':
+          r = fscanf(meshFile, "%d",&nElts);
+          _nElts = nElts;
+          printf("nElts = %d, r = %i\n", _nElts, r);
+          nConnecVertex = _nElts * 3;
+          eltsConnec = (int *) malloc(sizeof(int) * nConnecVertex);
+          for (int i = 0; i < nConnecVertex; i++) {
+
+            for (int j = 0; j < 3; j++) {
+              r = fscanf(meshFile, "%d",eltsConnec + i * 3 + j);
+            }
+            r = fscanf(meshFile, "%d",un);
+          }
+          break;
+        case 'n':
+          loop = 1;
+          break;
+      }
+      break;
+    }
+}
+
+eltsConnecPointer = (int *) malloc(sizeof(int) * (_nElts + 1));
+
+for (int i = 0; i < _nElts; i++) {
+  eltsConnecPointer[i] = 3*i;
+}
+eltsConnecPointer[_nElts] = nConnecVertex;
+*/
+
+
   coords = (double *) malloc(sizeof(double) * 3 * nVertex );
   eltsConnecPointer = (int *) malloc(sizeof(int) * (nElts + 1));
   eltsConnec = (int *) malloc(sizeof(int) * nVertex);
@@ -419,18 +522,18 @@ int main
 
   coords[0] = xmin;
   coords[1] = 0;
-  coords[2] = zmin;
+  coords[2] = _z(xmin);
 
   coords[3] = xmax;
   coords[4] = 0;
-  coords[5] = zmax;
+  coords[5] = _z(xmax);
 
   coords[6] = (xmin + xmax) / 2.;
   coords[7] = 0;
-  coords[8] = (zmin + zmax) / 2.;
+  coords[8] = _z((xmin + xmax) / 2.);
 
 
-*/
+
   fprintf(outputFile, "   Number of vertex   : %i\n", nVertex);
   fprintf(outputFile, "   Number of elements : %i\n", nElts);
 
@@ -462,43 +565,55 @@ int main
                                   ijk);
 
 
-  int n_pts_to_locate = 23;
+
+  int n_pts_to_locate = 5;
 
   double *pts_to_locate = (double *) malloc(sizeof(double) * 3 * n_pts_to_locate);
-
+/*
   for (int i = 0; i < 69; i++) {
     pts_to_locate[i] = coords[i];
   }
-/*
-  pts_to_locate[69]  = xmin - 0.005;
-  pts_to_locate[70] = 0;
-  pts_to_locate[71] = zmin - 0.005;
 
-  pts_to_locate[72] = xmax + 0.005;
-  pts_to_locate[73] = 0;
-  pts_to_locate[74] = zmax + 0.005;
+  pts_to_locate[0] = -1.0 - 0.005;
+  pts_to_locate[1] = 3.0 - 0.005;
+  pts_to_locate[2] = 0.0;
 
-  pts_to_locate[75] = xmax + 0.005;
-  pts_to_locate[76] = 0;
-  pts_to_locate[77] = zmax - 0.005;
+  pts_to_locate[3] = 1.0 + 0.005;
+  pts_to_locate[4] = 3.0 + 0.005;
+  pts_to_locate[5] = 0.0;
 
-  pts_to_locate[78] = (xmin + xmax) / 2. - 0.005;
-  pts_to_locate[79] = 0;
-  pts_to_locate[80] = (zmin + zmax) / 2. - 0.005;
+  pts_to_locate[6] = 0.0;
+  pts_to_locate[7] = 2.0 + 0.02;
+  pts_to_locate[8] = 0.0;
 
-  pts_to_locate[81] = (xmin + xmax) / 2.;
-  pts_to_locate[82] = 0;
-  pts_to_locate[83] = (zmin + zmax) / 2. + 0.005;
+  pts_to_locate[9] = 0.0 + 0.01;
+  pts_to_locate[10] = 2.0 - 0.003;
+  pts_to_locate[11] = 0.0;
 
-  pts_to_locate[84] = (xmin + xmax) / 2.;
-  pts_to_locate[85] = 0.005;
-  pts_to_locate[86] = (zmin + zmax) / 2.;
-
-  pts_to_locate[87] = xmin + 0.00005;
-  pts_to_locate[88] = 0;
-  pts_to_locate[89] = zmin + 0.00005;
-
+  pts_to_locate[12] = -0.18;
+  pts_to_locate[13] = 2.03;
+  pts_to_locate[14] = 0.0;
 */
+pts_to_locate[0] = xmin - 0.005;
+pts_to_locate[1] = 0.0;
+pts_to_locate[2] = _z(xmin) - 0.005;
+
+pts_to_locate[3] = xmax + 0.005;
+pts_to_locate[4] = 0.0;
+pts_to_locate[5] = _z(xmax) + 0.003;
+
+pts_to_locate[6] = (xmin + xmax) / 2.;
+pts_to_locate[7] = 0.0;
+pts_to_locate[8] = _z((xmin + xmax) / 2.) + 0.02;
+
+pts_to_locate[9] = (xmin + xmax) / 2. + 0.01;
+pts_to_locate[10] = 0.0;
+pts_to_locate[11] = _z((xmin + xmax) / 2.) - 0.003;
+
+pts_to_locate[12] = -0.018;
+pts_to_locate[13] = 0.0;
+pts_to_locate[14] = _z(-0.018) + 0.01;
+
 
   for (int i = 0; i < n_pts_to_locate; i++) {
     printf("%12.5e %12.5e %12.5e\n",  pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2]);
@@ -588,55 +703,17 @@ int main
   cwipi_delete_coupling("c_linear_cpl_location_edgeP2");
 
 
-  /* Check barycentric coordinates */
+  /* Check results */
 
-  if (rank == 0)
-    printf("        Check results\n");
-
-  double *res = (double *) malloc(sizeof(double) *  n_pts_to_locate);
-
-  for (int i = 0; i < nVertex; i++) {
-    res[i] = sendValues[i];
-  }
-
-  res[nVertex    ] = _f( xmin - 0.005           , 0.   , zmin - 0.005           );
-  res[nVertex + 1] = _f( xmax + 0.005           , 0.   , zmax + 0.005           );
-  res[nVertex + 2] = _f( xmax + 0.005           , 0.   , zmax - 0.005           );
-  res[nVertex + 3] = _f((xmin + xmax)/2. - 0.005, 0.   , (zmin+zmax)/2. - 0.005 );
-  res[nVertex + 4] = _f((xmin + xmax)/2.        , 0.   , (zmin+zmax)/2. + 0.005 );
-  res[nVertex + 5] = _f((xmin + xmax)/2.        , 0.005, (zmin+zmax)/2.         );
-  res[nVertex + 6] = _f( xmin + 0.00005         , 0.   , zmin + 0.00005         );
-
-  double err;
-
-  for (int i = 0; i < n_pts_to_locate; i++) {
-    printf (" %12.5e ", res[i]);
-
-  }
-  printf ("\n");
-  for (int i = 0; i < n_pts_to_locate; i++) {
-    printf (" %12.5e ", recvValues[i]);
-
-  }
-  printf ("\n");
-
-  for (int i = 0; i < n_pts_to_locate; i++) {
-    err = fabs(recvValues[i] - res[i]);
-    //    if (err > 1e-6) {
-    printf ("[%d] err %d : %12.5e %12.5e %12.5e\n", codeId, i, err, recvValues[i], res[i]);
-      // }
-  }
-
-  double err_max;
-  MPI_Allreduce(&err, &err_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-
-  if (err_max >= 1e-3) {
-    if (rank == 0) {
-      printf("        !!! Error = %12.5e\n", err_max);
-    }
-    MPI_Finalize();
-    return EXIT_FAILURE;
-  }
+// Polynome : z = x*x + 2
+// recherche des racines de 2x^3 + (5-2za)x - xa = 0     (xa,ya) point to locate
+/*
+double racine;
+for (int i = 0; i < n_pts_to_locate; i++){
+    racine = _racine(2.0, 0.0, 5-2*pts_to_locate[3*i+2], -1.0*pts_to_locate[3*i]);
+    printf("solution exacte x = %22.15e pour le point ( %22.15e, %22.15e, %22.15e )\n", racine, pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2]);
+}
+*/
 
   /* Free
    * ---- */
@@ -655,7 +732,11 @@ int main
 
   MPI_Finalize();
 
+
+
+
   fclose(outputFile);
+//fclose(meshFile);
 
   return EXIT_SUCCESS;
 }
