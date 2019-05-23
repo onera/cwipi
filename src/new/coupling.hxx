@@ -32,7 +32,7 @@
 #include "couplingDB_i.hxx"
 #include "mesh.hxx"
 
-//#include "geometry.hxx"
+#include "geometry.hxx"
 #include "visualization.hxx"
 #include "field.hpp"
 
@@ -41,7 +41,7 @@ using namespace std;
 namespace cwipi {
 
   class CodeProperties;
- // class Geometry;
+  class Geometry;
   class Mesh;
 
   /** 
@@ -1009,12 +1009,12 @@ namespace cwipi {
     inline Mesh* meshGet();
     
     inline std::map < string, Field<double> * >* fieldsGet();
-   // inline std::map <CWP_Field_value_t,Geometry*>* geometryGet();
+    inline std::map <CWP_Field_value_t,Geometry*>* geometryGet();
     inline CodeProperties* localCodePropertiesGet();
 
     inline CodeProperties* coupledCodePropertiesGet();
 
-   // inline Geometry*    geometryGet(CWP_Field_value_t field_value_t) ;
+    inline Geometry*    geometryGet(CWP_Field_value_t field_value_t) ;
     inline CouplingDB*  couplingDBGet();
     inline string       IdGet();
     
@@ -1032,7 +1032,7 @@ namespace cwipi {
           Communication                    &_communication;         /*!< Communication */ 
     const CodeProperties                   &_localCodeProperties;   /*!< Local code properties */
     const CodeProperties                   &_coupledCodeProperties; /*!< Coupled code properties */
-   // std::map <CWP_Field_value_t,Geometry*> &_geometry;              /*!< Geometric algorithm */
+    std::map <CWP_Field_value_t,Geometry*> &_geometry;              /*!< Geometric algorithm */
           Mesh                             &_mesh;                  /*!< Geometric mesh */
     const CWP_Freq_t                        _recvFreqType  ;        /*!< Receiving frequency type */
           Visu                             &_visu;                  /*!< Visualization */
@@ -1053,15 +1053,15 @@ namespace cwipi {
     return const_cast<CodeProperties*>(&_localCodeProperties);
   }
 
- /* Geometry* Coupling::geometryGet(CWP_Field_value_t field_value_t) {
+  Geometry* Coupling::geometryGet(CWP_Field_value_t field_value_t) {
   
- /*   std::map <CWP_Field_value_t,Geometry*> ::iterator p;
+    std::map <CWP_Field_value_t,Geometry*> ::iterator p;
     p = _geometry.find(field_value_t);
     if (p != _geometry.end()) {
       return p->second;
-    } */
+    } 
 
- // }
+  }
   
   CouplingDB* Coupling::couplingDBGet() {
     return &_cplDB;
@@ -1080,9 +1080,9 @@ namespace cwipi {
      return &_mesh;
   }    
 
-//  std::map <CWP_Field_value_t,Geometry*>* Coupling::geometryGet() {
-  //   return &_geometry;
-//  }    
+  std::map <CWP_Field_value_t,Geometry*>* Coupling::geometryGet() {
+     return &_geometry;
+  }    
 
   std::map < string, Field<double> * >* Coupling::fieldsGet() {
      return &_fields;

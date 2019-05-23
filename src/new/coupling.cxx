@@ -85,7 +85,7 @@ namespace cwipi {
    *
    */
   
-  //typedef Factory<Geometry, CWP_Geom_t> FG;
+  typedef Factory<Geometry, CWP_Geom_t> FG;
 
   Coupling::Coupling
   (
@@ -109,7 +109,7 @@ namespace cwipi {
    _fields(*(new map < string, Field<double> * >())),  
    _visu(*new Visu(localCodeProperties.intraCommGet())), 
    _mesh(*new Mesh(localCodeProperties.intraCommGet(),NULL,nPart)),
- //  _geometry(*new std::map <CWP_Field_value_t, Geometry*>()),
+   _geometry(*new std::map <CWP_Field_value_t, Geometry*>()),
    _iteration(new int)
   {
 
@@ -131,10 +131,10 @@ namespace cwipi {
         mesh_cpl->setVisu(visu_cpl);  
 
 
-   //     std::map <CWP_Field_value_t, Geometry*>* _geometry_cpl = distCpl.geometryGet();
+        std::map <CWP_Field_value_t, Geometry*>* _geometry_cpl = distCpl.geometryGet();
 
         //Geometry initialization
-   /*     _geometry[CWP_FIELD_VALUE_CELL_MEAN] = FG::getInstance().CreateObject(geomAlgo);
+        _geometry[CWP_FIELD_VALUE_CELL_MEAN] = FG::getInstance().CreateObject(geomAlgo);
         _geometry[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(geomAlgo);
         _geometry[CWP_FIELD_VALUE_NODE] = FG::getInstance().CreateObject(geomAlgo);
         _geometry[CWP_FIELD_VALUE_USER] = FG::getInstance().CreateObject(geomAlgo);
@@ -155,7 +155,7 @@ namespace cwipi {
         while (it != _geometry_cpl->end()) {    
          (it -> second) -> init(&distCpl,it->first);
           it++;
-        }*/
+        }
 
  
       }   
@@ -166,7 +166,7 @@ namespace cwipi {
 
       _mesh.setVisu(&_visu);      
       //Geometry creation
-   /*   _geometry[CWP_FIELD_VALUE_CELL_MEAN] = FG::getInstance().CreateObject(geomAlgo);
+      _geometry[CWP_FIELD_VALUE_CELL_MEAN] = FG::getInstance().CreateObject(geomAlgo);
       _geometry[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(geomAlgo);
       _geometry[CWP_FIELD_VALUE_NODE] = FG::getInstance().CreateObject(geomAlgo);
       _geometry[CWP_FIELD_VALUE_USER] = FG::getInstance().CreateObject(geomAlgo);
@@ -177,7 +177,7 @@ namespace cwipi {
         (it -> second) -> init(this,it->first);
         it++;
       }
-    */
+    
            
     } // end else
         
@@ -207,7 +207,7 @@ namespace cwipi {
 
      if (it != _fields.end()) {
        Field <double>* sendingField = it -> second;   
-   //   _geometry[sendingField -> typeGet()] -> issend(sendingField);
+      _geometry[sendingField -> typeGet()] -> issend(sendingField);
      }
   }
 
@@ -220,7 +220,7 @@ namespace cwipi {
 
      if (it != _fields.end()) {
        Field <double>* recevingField = it -> second;   
-    //   _geometry[recevingField -> typeGet()] ->irecv(recevingField);
+       _geometry[recevingField -> typeGet()] ->irecv(recevingField);
      }
   }
 
@@ -276,7 +276,7 @@ namespace cwipi {
     double physTime=0.0;
     *_iteration = 0;
     
- /*   cwipi::Field<double> *newField = new cwipi::Field<double>(field_id,
+    cwipi::Field<double> *newField = new cwipi::Field<double>(field_id,
                                                               &_mesh,
                                                                fieldType,
                                                                storage,
@@ -291,14 +291,14 @@ namespace cwipi {
     _fields.insert(newPair);
     
     if (_visu.isCreated())
-      _visu.WriterFieldCreate(newField);*/
+      _visu.WriterFieldCreate(newField);
   }
   
 
    void 
    Coupling::geomCompute (CWP_Field_value_t geometryLocation, int *n_uncomputed_tgt)
    {  
-  //   _geometry[geometryLocation] -> compute(n_uncomputed_tgt);
+     _geometry[geometryLocation] -> compute(n_uncomputed_tgt);
    }
 
 
@@ -315,7 +315,7 @@ namespace cwipi {
 
      if (it != _fields.end()) {
        Field <double>* sendingField = it -> second;   
- //     _geometry[sendingField -> typeGet()] -> waitIssend(sendingField);
+      _geometry[sendingField -> typeGet()] -> waitIssend(sendingField);
      }
    }
 
@@ -331,7 +331,7 @@ namespace cwipi {
 
      if (it != _fields.end()) {
        Field <double>* recevingField = it -> second;   
-  //     _geometry[recevingField -> typeGet()] -> waitIrecv(recevingField);
+       _geometry[recevingField -> typeGet()] -> waitIrecv(recevingField);
      }
    }
 
@@ -381,7 +381,7 @@ namespace cwipi {
       bftc_error(__FILE__, __LINE__, 0,
                  "'%s' not existing field\n", field_id.c_str());
     }
-   // return It->second->typeGet();
+    return It->second->typeGet();
     
   }
 
@@ -411,11 +411,11 @@ namespace cwipi {
       }
     else 
       {
-  /*      It->second->dataSet(i_part,data);
+        It->second->dataSet(i_part,data);
         if(_visu.isCreated()) {
           printf("_visu.fieldDataSet(It->second,i_part); \n");
           _visu.fieldDataSet(It->second,i_part);
-        } */     
+        }      
       }   
   }
 

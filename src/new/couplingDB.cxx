@@ -96,7 +96,7 @@ namespace cwipi {
       bftc_error(__FILE__, __LINE__, 0,
                 "'%s' existing coupling\n", cplId.c_str());
     }
-    
+
     //
     // Create the new coupling
 

@@ -21,8 +21,33 @@
 
 #include "mesh.hxx"
 #include "field.hpp"
+#include "codeProperties.hxx"
+#include "coupling.hxx"
 
 namespace cwipi {
+
+
+  typedef struct target_data_elt {
+    int          lnum    ;
+    int          inc     ;
+    CWP_g_num_t  closest_elt_gnum;
+    int          origin_proc     ;
+    int          closest_elt_part;
+    int          l_num_origin    ;
+  };
+
+  typedef struct target_data_vtx {
+    int          lnum    ;
+    int          inc     ;
+    CWP_g_num_t  closest_elt_gnum;
+    int          origin_proc     ;
+    int          closest_elt_part;
+    int          l_num_origin    ;
+    double       projectedX       ;     
+    double       projectedY       ;
+    double       projectedZ       ;      
+  };
+
 
   class Mesh;
 
@@ -54,207 +79,39 @@ namespace cwipi {
 
     virtual ~Geometry();
 
-    /**
-     * \brief Set meshInterf
-     *
-     * This function defines the geometry meshInterf geometry.
-     */
 
-    void 
-    meshInterfSet
-    (const int        i_part,
-     const int        n_pts,
-     double           coords[],
-     CWP_g_num_t      parent_num[]);
-
-   
-    /**
-     * \brief Finalize the mesh setting after blocks and coordinates additions
-     *
-     */    
-
-    void 
-    meshInterfEndSet
-    (
-    );
+     //Depends on the Geometry type
+     // Ca sera dans les classes concrètes
+     virtual void locate_cell_point_setting_request(int id_dist) =0;
+     virtual void locate_cell_point_setting_surface(int id_dist) =0;    
+     virtual void locate_cell_point_compute(int id_dist)             =0;
+     virtual void locate_cell_point_get(int id_dist)      =0;
+     virtual void locate_cell_point_get_cpl(int id_dist)      =0;     
      
      
+      virtual void redistribution_cell_point_request(int id_gnum_location)  =0;
+      virtual void redistribution_cell_point_set    (int id_gnum_location)  =0;
+      virtual void location_compute                 (int id_gnum_location)  =0;
+     
+     virtual void location_get(int id_gnum_location)      =0;
+     virtual void location_get_cpl(int id_gnum_location)      =0;
+     virtual void redistribution_cell_point_filling_of_redistribution_array() =0;
+     virtual void redistribution_index_communication(int tag) =0;
+     
+     virtual void redistribution_communication() =0;
+     virtual void redistribution_communication2() =0;
+     virtual void redistribution_wait_and_targets_array_filling() =0;
+     
+     //Depends on the Geometry type
+     // Ca sera dans les classes concrètes
+     virtual double* interpolate(Field <double>* referenceField) =0;  
 
-    /**
-     * \brief Adding a connectivity block to the geometric meshInterf
-     *
-     * This function adds a connectivity block to the geometric meshInterf.
-     *   Definition of element connectivity is :
-     *
-     *  - edge (\ref CWP_BLOCK_EDGE2) :
-     *
-     *   \code
-     *       1 x-------x 2
-     *   \endcode
-     *
-     *  - triangle (\ref CWP_BLOCK_FACE_TRIA3):
-     *
-     *   \code 
-     *       1 x-------x 3
-     *          \     /
-     *           \   /
-     *            \ /
-     *             x 2
-     *   \endcode
-     *
-     *  - quadrangle (\ref CWP_BLOCK_FACE_QUAD4) :
-     *
-     *   \code
-     *          4 x-------x 3
-     *           /       /
-     *          /       /
-     *       1 x-------x2
-     *   \endcode
-     *
-     *   - tetrahedron (\ref CWP_BLOCK_CELL_TETRA4) : 
-     *
-     *   \code
-     *             x 4
-     *            /|\
-     *           / | \
-     *          /  |  \
-     *       1 x- -|- -x 3
-     *          \  |  /
-     *           \ | /
-     *            \|/
-     *             x 2
-     *   \endcode
-     *
-     *   - pyramid (\ref CWP_BLOCK_CELL_PYRAM5) :
-     *
-     *   \code
-     *              5 x
-     *               /|\
-     *              //| \
-     *             // |  \
-     *          4 x/--|---x 3
-     *           //   |  /
-     *          //    | /
-     *       1 x-------x 2
-     *   \endcode
-     *
-     *  - prism (\ref CWP_BLOCK_CELL_PRISM6) :
-     *
-     *   \code
-     *       4 x-------x 6
-     *         |\     /|
-     *         | \   / |
-     *       1 x- \-/ -x 3
-     *          \ 5x  /
-     *           \ | /
-     *            \|/
-     *             x 2
-     *   \endcode
-     *
-     *  -  hexaedron (\ref CWP_BLOCK_CELL_HEXA8) :
-     *
-     *   \code
-     *          8 x-------x 7
-     *           /|      /|
-     *          / |     / |
-     *       5 x-------x6 |
-     *         | 4x----|--x 3
-     *         | /     | /
-     *         |/      |/
-     *       1 x-------x 2
-     *   \endcode
-     *
-     * \param [in]  i_part      Current partition
-     * \param [in]  block_type  Block type
-     * \param [in]  n_elts      Number of elements
-     * \param [in]  connec      Connectivity (size = n_vertex_elt *n_elts)          
-     * \param [in]  parent_num  Pointer to parent element number (or NULL)
-     *
-     */
-
-    void 
-    meshInterfBlockAdd
-    (const int            i_part,
-     const CWP_Block_t    block_type,
-     const int            n_elts,
-     int                  connec[],
-     CWP_g_num_t          parent_num[]);
-
-    /**
-     * \brief Adding a polygon connectivity block to the geometric meshInterf
-     *
-     * This function adds a polygon connectivity block to the geometric meshInterf.
-     *
-     * \param [in]  i_part      Current partition
-     * \param [in]  block_type  Type of the block elements
-     * \param [in]  n_elts      Number of elements
-     * \param [in]  connec_idx  Connectivity index (connec_id[0] = 0 and 
-     *                          size =n_elts + 1)          
-     * \param [in]  connec      Connectivity (size = connec_id[n_elts] *n_elts)        
-     * \param [in]  parent_num  Pointer to parent element number (or NULL)
-     *
-     */
-
-    void 
-    meshInterfFPolyBlockAdd
-    (const int          i_part,
-     const CWP_Block_t  block_type,
-     const int          n_elts,
-     int                connec_idx[],
-     int                connec[],
-     CWP_g_num_t        parent_num[]);
-
-    /**
-     *
-     * \brief Adding a polyhedron connectivity block to the geometric meshInterf
-     *
-     * This function add a connectivity block to the geometric meshInterf.
-     *
-     * Definition of element connectivity is :
-     *
-     * \param [in]  i_part            Current partition
-     * \param [in]  n_elts            Number of elements
-     * \param [in]  cell_face_idx     Polyhedron to face index 
-     *                                (src_poly_cell_face_idx[0] = 0 and
-     *                                 size = n_elts + 1)
-     * \param [in]  cell_face          Polyhedron to face connectivity 
-     *                                (size = cell_face_idx[n_elts])
-     * \param [in]  n_faces           Number of faces      
-     * \param [in]  face_vtx_idx      Polyhedron face to vertex index 
-     *                                (face_vertex_idx[0] = 0 and
-     *                                 size_idx = max(cell_face_connec) + 1)
-     * \param [in]  face_vtx           Polyhedron face to vertex connectivity
-     *                                (size = face_vertex_idx[size_idx - 1])
-     * \param [in]  parent_num        Pointer to parent element number (or NULL)
-     *
-     */
-
-    void 
-    meshInterfCPolyBlockAdd
-    (const int     i_part,
-     const int     n_elts,
-     int           cell_face_idx[],
-     int           cell_face[],
-     const int     n_faces,
-     int           face_vtx_idx[],
-     int           face_vtx[],
-     CWP_g_num_t   parent_num[]);
-
-    /**
-     *
-     * \brief Map a fvm nodal as meshInterf mesh                                  
-     *
-     * This function  map a fvm nodal as meshInterf mesh
-     *
-     * \param [in]  i_part            Current partition
-     * \param [in]  fvmc_nodal        fvm nodal mes     
-     *
-     */
-
-    void 
-    fvmcNodalShared
-    (const int      i_part,
-     fvmc_nodal_t  *fvmc_nodal);
+     void init(Coupling *coupling, CWP_Field_value_t geometryLocation);
+     void mesh_info_get();
+     void mesh_cpl_info_get();
+     void mesh_cpl_info_get2();
+     void compute(int *n_uncomputed_tgt);
+     inline Geometry* getCoupledGeometry();
 
     /**
      *
@@ -290,20 +147,15 @@ namespace cwipi {
      *
      * This function sends interpolated field to the coupled code. 
      * 
-     * \param [in]  src                       Source field    
-     * \param [in]  ptFortranInterpolationFct Fortran user interpolation (or NULL)
+     * \param [in]  sendingField                      Sending field    
      *
-     * \param [out] request                   Request to call by 
-     *                                        \ref CWP_Wait_issend to wait 
-     *                                        the end of exchange
      *
      */
 
-    void 
+    virtual void  
     issend
-    (Field <double> &src,
-     void           *ptFortranInterpolationFct,
-     int            *request);
+    (Field <double>* sendingField
+    ) = 0;
 
     /**
      *
@@ -312,13 +164,11 @@ namespace cwipi {
      * This function waits the end of exchange related to request
      * from \ref CWP_Issend
      * 
-     * \param [in] request    Request to wait the end of exchange
-     *
      */
 
     void 
     waitIssend
-    (int request);
+    (Field <double>* sendingField);
 
     /**
      *
@@ -327,17 +177,16 @@ namespace cwipi {
      *
      * This function receives interpolated field from the coupled code 
      * 
-     * \param [in]  tgt       Target field   
+     * \param [in]  recevingField       Receving field   
      *
-     * \param [out] request   Request to call by \ref CWP_Wait_irecv  
-     *                        to wait the end of exchange
      *
      */
 
+
     void 
     irecv
-    (Field <double>  &tgt,
-     int             *request);
+    (Field <double>* recevingField
+    );
 
     /**
      *
@@ -352,7 +201,8 @@ namespace cwipi {
 
     void 
     waitIrecv
-    (int request);    
+    (Field <double>* recevingField);    
+   
 
     /**
      * \brief Setting user target points
@@ -429,26 +279,234 @@ namespace cwipi {
     inline const int *
     computedTargetsGet() const;
 
-  private:
+    Mesh*
+    meshGet() {
+      return _mesh;
+    }
+
+    CWP_g_num_t*
+    closestEltGnumGet(int i_part) {
+      return _closest_elt_gnum[i_part];
+    }    
+    
+    void
+    closestEltGnumSet(CWP_g_num_t* closest_elt_gnum, int i_part) {
+      _closest_elt_gnum[i_part]=closest_elt_gnum;
+    }    
+
+ void _IAlltoallIndex(void* send_buffer,
+                int* send_count,
+                int* send_disp,
+                void* recv_buffer,
+                int* recv_count,
+                int* recv_disp,
+                MPI_Datatype type, 
+                MPI_Comm comm,
+                std::vector<int> connectableRanks
+                );
+
+
+  void _IAlltoall2(int** send_buffer,
+                int* send_size,
+                int send_stride,
+                int** recv_buffer,
+                int* recv_size,
+                int recv_stride,
+                MPI_Datatype type, 
+                MPI_Comm comm,
+                std::vector<int> connectableRanks
+                );
+
+
+    void _Wait();      
+
+    double      **_distance         ; 
+    double      **_projected        ; 
+    CWP_g_num_t **_closest_elt_gnum ;  
+
+
+  int** _location_count_comm_proc ;
+  int** _location_idx_proc_recv   ; 
+
+  int** _location_idx ;
+  int** _location     ;
+
+
+  int* _location_count_recv;         
+  int* _location_count_send ;
+  int* _location_disp_recv ;         
+  int* _location_disp_send ; 
+
+
+  protected:
     
     Geometry &operator=(const Geometry &other);  /*!< Assigment operator not available */
     Geometry (const Geometry& other);            /*!< Copy constructor not available */
 
-  private:
-    std::vector<double>         *_tmpVertexField;  /*!< Evite une allocation a chaque extrapolation */
-    std::vector<double>         *_tmpDistantField; /*!< TODO: Fusionner _tmpDistantField utiliser pour exchange
-                                                        et les comm asynchrones */
-    Mesh                        *_meshInterf;      /*!< Interface Mesh */
-   // std::map<int, std::vector<double> * > &_tmpDistantFieldsIssend; //TODO: temporaire : A revoir lors
-                                                                    // de la restructuration
- //   std::map<int, const double * >        &_tmpLocalFieldsIrecv;
- //   std::map<int, const char * >          &_tmpExchangeNameIrecv;
- //   std::map<int, int >                   &_tmpStrideIrecv;
-//    std::map<int, int >                   &_tmpTimeStepIrecv;
- //   std::map<int, double >                &_tmpTimeValueIrecv;
- //   std::map<int, const char * >          &_tmpFieldNameIrecv;
+  protected:
+  
+    // Informations about locations (from the local proc send to a distant proc)
+    // Local Targets
 
+    std::vector<int>                      _idx_elt        ;    
+
+
+void _IBcast(void* send_buffer,
+                     int send_size,
+                     int send_stride,
+                     void* recv_buffer,
+                int recv_size,
+                int recv_stride,
+                MPI_Datatype type, 
+                MPI_Comm comm,
+                std::vector<int> connectableRanks_cpl,
+                int _n_ranks_cpl,
+                int rootRank);
+ 
+  void _IAlltoall(void* send_buffer,
+                int* send_size,
+                int send_stride,
+                void* recv_buffer,
+                int* recv_size,
+                int recv_stride,
+                MPI_Datatype type, 
+                MPI_Comm comm,
+                std::vector<int> connectableRanks_cpl,
+                int _n_ranks_cpl);
+
+    
+    //Distant Targets (from a distant proc send to the local proc)
+
+
+
+    Mesh                                *_mesh;      /*!< Interface Mesh */
+    Visu                                *_visu;
+    CodeProperties                      *_localCodeProperties;
+    CodeProperties                      *_coupledCodeProperties;
+    std::map <std::string,Field<double>*>    *_referenceFieldsDB;
+    std::map <int,Field<double>*>        _requestFieldsDB;
+    CWP_Field_value_t                    _geometryLocation;
+    Coupling                            *_cpl;
+    
+    int** _targets_cpl_idx;
+    target_data_elt* _targets_cpl;
+    target_data_vtx* _targets_vtx_cpl;
+    int** _targets_cpl_idx_cpl;
+    target_data_elt* _targets_cpl_cpl;
+    target_data_vtx* _targets_vtx_cpl_cpl;       
+    
+    int  _option;
+    int  _n_tot_target;
+    int  _n_tot_target_cpl;
+
+    int* _n_targets_dist_proc; 
+
+
+    const std::vector<int>* _connectableRanks_cpl;
+    const std::vector<int>* _connectableRanks    ;  
+    int  _n_ranks    ;
+    int  _n_ranks_cpl;
+    int  _n_ranks_g    ;
+
+    
+    int _nb_part;
+    int _nb_part_cpl;
+
+
+    int* _n_vtx;   
+    int* _n_vtx_cpl;   
+    int* _n_elt;
+    int* _n_elt_cpl;
+    int _n_tot_elt;
+    int _n_tot_vtx;
+    
+    int _n_g_elt_over_part;
+    int _n_g_vtx_over_part;
+    int _n_g_elt_cpl_over_part;
+    int _n_g_vtx_cpl_over_part;  
+    
+    int**                          _n_targets_dist_proc_dist_part;
+    
+    int**                          _n_targets_recv_dist_proc_loc_part    ;
+    int**                          _idx_targets_recv_dist_proc_loc_part  ;
+    
+    int* _n_recv_targets_loc_from_dist_proc;
+ 
+    int* _n_elt_exch_recv_by_proc_by_part;
+    int* _n_vtx_exch_recv_by_proc_by_part;
+        
+    int* _n_elt_exch_recv_tot_per_part;
+    int* _n_vtx_exch_recv_tot_per_part; 
+
+   int _n_tot_elt_exch_cpl;
+   int _n_tot_vtx_exch_cpl;
+
+
+   int* _n_g_elt;
+   int* _n_g_vtx;
+ 
+   double* _centers_conc ;
+   double* _coords_conc ;
+   CWP_g_num_t* _gnum_elt_conc ;
+   CWP_g_num_t* _gnum_vtx_conc ;
+   int* _lnum_elt_conc ;
+   int* _lnum_vtx_conc ;
+
+
+  double* _centers_conc_cpl       ;
+  double* _coords_conc_cpl        ;
+  CWP_g_num_t* _gnum_elt_conc_cpl ;
+  int* _lnum_elt_conc_cpl         ; 
+  CWP_g_num_t* _gnum_vtx_conc_cpl ;
+  int* _lnum_vtx_conc_cpl         ; 
+
+ 
+    
+
+    double      **_distance_cpl          ; 
+    double      **_projected_cpl         ; 
+    CWP_g_num_t **_closest_elt_gnum_cpl ;  
+
+  int _id_dist1 ;
+  int _id_dist2 ;
+
+  int _id_gnum_location1;
+  int _id_gnum_location2;
+
+
+  int** _location_idx_comm_proc   ;
+  target_data_elt* _location_comm_proc;
+  target_data_elt* _location_recv;
+
+
+
+   MPI_Comm _globalComm ;
+   MPI_Comm _localComm  ;
+   PDM_MPI_Comm  _pdm_localComm ;
+   PDM_MPI_Comm  _pdm_globalComm ;
+
+   Geometry* _geometry_cpl_cell_point;
+
+   int _both_codes_are_local; 
+   int* _both_codes_are_local__array;
+   
+   int _rank;
+   int _localRank;   
+   vector<string> _codeVector;
+   string coupledName;
+   string localName; 
+   
+   std::vector<int> _send_requests;
+   std::vector<int> _recv_requests;   
+   
+   
   };
+
+  Geometry* Geometry::getCoupledGeometry() {
+  
+  }
+
+
 
 }
 

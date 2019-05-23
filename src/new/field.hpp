@@ -19,7 +19,10 @@
   License along with this library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-using namespace std;
+#include <sstream>
+#include <mesh.hxx>
+#include <map>
+
 
 namespace cwipi {
   
@@ -30,8 +33,9 @@ namespace cwipi {
    *  This class is field abstract interface 
    * 
    */
-  
-  template <typename DataType> 
+  class Mesh;
+  class Visu;
+  template <typename dataType> 
   class Field {
     
   public:
@@ -40,23 +44,33 @@ namespace cwipi {
      * \brief Constructor
      *
      */
+    Field() {}
 
-    Field
-    (
-     CWP_Type_t     dataType,
-     CWP_Field_storage_t  storage,
-     int                    nComponent,
-     CWP_Field_value_t   nature,
-     CWP_Field_exch_t     exchangeType,
-     CWP_Status_t         visuStatus
-     ): _dataType(dataType),
-        _storage(storage),
-        _nComponent(nComponent),
-        _nature(nature),
-        _exchangeType(exchangeType),
-        _visuStatus(visuStatus)
+    Field (std::string            field_id    ,
+           Mesh*                  mesh        ,
+           CWP_Field_value_t      fieldType   ,
+           CWP_Field_storage_t    storage     ,
+           int                    nComponent  ,
+           CWP_Field_exch_t       exchangeType,
+           CWP_Status_t           visuStatus  ,
+           int*                   iteration   ,
+           double*                physTime    ): 
+           
+           _fieldID        (field_id)    ,
+           _mesh           (mesh)        ,
+           _storage        (storage)     ,
+           _nComponent     (nComponent)  ,
+           _fieldLocation  (fieldType)   ,
+           _exchangeType   (exchangeType),
+           _visuStatus     (visuStatus)  ,
+           _iteration      (iteration)   ,
+           _physTime       (physTime)
     {
-      _data = NULL;
+       _n_part = _mesh -> getNPart(); 
+       _data.resize(_n_part,NULL);
+       _sendBuffer = NULL;
+       _recvBuffer = NULL;  
+       _last_request.resize(300,0);
     }
 
     /**
@@ -64,7 +78,10 @@ namespace cwipi {
      *
      */
 
-    virtual ~Field(){}
+    ~Field(){
+       if (_sendBuffer != NULL) free(_sendBuffer);
+       if (_recvBuffer != NULL) free(_recvBuffer);           
+     }
 
     /**
      * \brief set data array
@@ -73,13 +90,13 @@ namespace cwipi {
      *
      */
 
-    inline void 
-    mappingSet
-    (
-     DataType        data[]
-    )
+    void dataSet ( int i_part, double data[])
     {
-      _data = data;
+      int size = _mesh->getPartNElts(i_part);
+      _data[i_part] = &(data[0]);
+  /*    _data[i_part] = new double[size];
+      for (int i =0;i<size;i++)
+        _data[i_part][i] = data[i]; */
     }
 
     /**
@@ -110,18 +127,10 @@ namespace cwipi {
       return _nComponent;
     }
 
-    /**
-     *
-     * \brief Get data type
-     * 
-     * \return            Field storage type
-     * 
-     */
-
-    inline CWP_Type_t
-    dataTypeGet() const
+    inline std::string
+    fieldIDGet() const
     {
-      return _dataType;
+      return _fieldID;
     }
 
     /**
@@ -133,9 +142,9 @@ namespace cwipi {
      */
 
     inline CWP_Field_value_t
-    natureGet() const
+    typeGet() const
     {
-      return _nature;
+      return _fieldLocation;
     }
 
     /**
@@ -174,25 +183,117 @@ namespace cwipi {
      * 
      */
 
-    inline DataType *
-    dataGet() const
+    dataType* dataGet(int i_part) const
+    { 
+      return _data[i_part];
+    }
+
+    void visuIdSet(int visu_id)
+    { 
+      _visu_id = visu_id;
+    }
+
+
+
+    int visuIdGet() const
+    { 
+      return _visu_id;
+    }
+
+
+
+    std::vector<dataType*> dataGetAll() const
     {
       return _data;
     }
 
+
+    int* iterationGet() const
+    {
+      return _iteration;
+    }
+    
+    double* physicalTimeGet() const
+    {
+      return _physTime;
+    }
+    
+
+    void ReceptionBufferCreation(std::vector<int> nLocatedTargets,int TotLocatedTargets) {
+        std::ostringstream strs;
+        
+        strs <<"interp"<<_fieldID<<"_"<<_iteration;
+        std::string fieldID = strs.str();
+        int* iteration = new int (*_iteration);
+        double* physTime = new double (*_physTime); 
+                                                  
+        //On alloue l'espace pour la réception si pas déjà fait                                               
+        if(_recvBuffer == NULL) {
+          _recvBuffer = (double*)malloc(sizeof(double)*_nComponent*TotLocatedTargets);
+        }
+
+        std::vector<double*> v_interpolatedData;
+        v_interpolatedData.resize(_n_part);
+        int loc_ind=-1;
+          
+        for(int i_part=0;i_part<_n_part;i_part++) {
+          loc_ind = _nComponent * nLocatedTargets[i_part];
+          v_interpolatedData[i_part] = &(_recvBuffer[loc_ind]);
+        }
+
+    }
+
+
+  void lastRequestAdd (int i_proc, MPI_Request request) {
+    _last_request[i_proc] = request;
+  }
+
+  
+  MPI_Request lastRequestGet (int i_proc) {
+    return _last_request[i_proc];
+  }
+
+
+  
+  double* recvBufferGet () {
+    return _recvBuffer;
+  }
+
+  double* sendBufferGet () {
+    return _sendBuffer;
+  }
+
+  void sendBufferSet (double* sendBuffer) {
+    _sendBuffer = sendBuffer;
+  }
+   
+
   private:
 
-    const CWP_Field_storage_t  _storage;      /*!< Storage type */ 
-    const int                    _nComponent;   /*!< Number of component */
-    const CWP_Type_t     _dataType;    /*!< Data type */
-    const CWP_Field_value_t   _nature;       /*!< Nature */
-    const CWP_Field_exch_t     _exchangeType; /*!< Exchange type */
-    const CWP_Status_t         _visuStatus;   /*!< Visualization status */
-    DataType                     *_data;       /*!< Pointer to data array */
+    const CWP_Field_storage_t                _storage;      /*!< Storage type */ 
+    const int                                _nComponent;   /*!< Number of component */
+    const CWP_Field_value_t                  _fieldLocation;    /*!< Value location */
+    const CWP_Field_exch_t                   _exchangeType; /*!< Exchange type */
+    const CWP_Status_t                       _visuStatus;   /*!< Visualization status */
+    std::vector<dataType* >                  _data;         /*!< Pointer to data array */
+    std::string                              _fieldID;
+    double                                  *_sendBuffer;
+    double                                  *_recvBuffer;
+    double*                                  _physTime;
+    int*                                     _iteration;
+    Mesh                                    *_mesh;
+    int                                      _n_part;
+    int                                      _visu_id;
+    std::vector <MPI_Request>                _last_request;
 
     Field &operator=(const Field &other);       /*!< Assigment operator not available */
     Field (const Field& other);                 /*!< Copy constructor not available */
   };
+  
+  
+  
+  
+  
 
 }
 
