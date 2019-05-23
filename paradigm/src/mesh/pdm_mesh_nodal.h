@@ -163,6 +163,16 @@ PDM_Mesh_nodal_vertices_get
 );
 
 
+const double *
+PDM_Mesh_cell_centers_get
+(
+ const int          idx,
+ const int          id_block, 
+ const int          id_part 
+) ;
+
+
+
 /**
  * \brief  Return parent num of vertices
  *
@@ -550,6 +560,17 @@ const int            id_part
 );
 
 
+PDM_g_num_t *
+PDM_Mesh_nodal_block_g_num_mesh_set 
+(   
+const int            idx,
+const int            id_block,     
+const int            id_part,
+const PDM_g_num_t   *numabs
+); 
+
+
+
 /**
  * \brief Get global inside numbering of block elements
  *
@@ -812,6 +833,34 @@ const PDM_l_num_t      *face_vtx_idx,
 const PDM_l_num_t      *face_vtx_nb,
 const PDM_l_num_t      *face_vtx,
 const PDM_g_num_t      *numabs
+);
+
+
+/**
+ * \brief  Compute the mesh global numbering of a block
+ *
+ * \param [in]  idx            Nodal mesh handle
+ *
+ */
+
+void
+PDM_Mesh_nodal_g_num_in_mesh_compute
+(
+const int         idx
+); 
+
+
+
+/**
+ * \brief  Compute the block global inside numbering of a block from the global numbering inside the mesh
+ *
+ * \param [in]  idx            Nodal mesh handle
+ */
+
+void
+PDM_Mesh_g_num_in_block_from_computed_g_num_in_mesh_compute
+(
+const int         idx
 );
 
 
