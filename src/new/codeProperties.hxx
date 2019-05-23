@@ -252,6 +252,9 @@ namespace cwipi {
 
     inline const vector <int> *
     connectableRanksGet() const;
+
+    inline const vector <int> *
+    intraRanksGet() const;
     
     /**
      * \brief Get connectable MPI Communicator
@@ -731,6 +734,13 @@ namespace cwipi {
   {
     return _connectableRanks;
   }
+
+  const vector <int> *
+  CodeProperties::intraRanksGet() const
+  {
+    return _intraRanks;
+  }
+
 
   /**
    * \brief Get identifier

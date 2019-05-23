@@ -61,7 +61,7 @@
 #include "pdm_error.h"
 
 #include "geometry.hxx"
-//#include "geomLocation.hxx"
+#include "geomLocation.hxx"
 
  #include "mesh.hxx"
  #include "block.hxx"
@@ -290,10 +290,10 @@ CWP_Init
    * Create geometry abstract factory 
    */
 
- // cwipi::Factory<cwipi::Geometry, CWP_Geom_t> &factoryGeom = 
- //   cwipi::Factory<cwipi::Geometry, CWP_Geom_t>::getInstance();
+  cwipi::Factory<cwipi::Geometry, CWP_Geom_t> &factoryGeom = 
+    cwipi::Factory<cwipi::Geometry, CWP_Geom_t>::getInstance();
 
- // factoryGeom.Register<cwipi::GeomLocation>(CWP_GEOM_LOCATION);
+  factoryGeom.Register<cwipi::GeomLocation>(CWP_GEOM_LOCATION);
   // factoryGeom.Register<GeomIntersection>(CWP_GEOM_INTERSECTION);
   // factoryGeom.Register<GeomClosestPoint>(CWP_GEOM_CLOSEST_POINT);
 
