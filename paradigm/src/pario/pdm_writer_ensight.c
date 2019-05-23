@@ -372,6 +372,7 @@ _ecr_entrelace_int2(PDM_writer_t                           *cs,
                               n_valeur,
                               indirection,
                               (void *) valeurs); 
+ // while(1==1){}
 }
 
 
@@ -1019,7 +1020,7 @@ PDM_writer_ensight_geom_write
   PDM_writer_t* _cs = (PDM_writer_t*) geom->_cs;
   PDM_writer_ensight_t *PDM_writer_ensight = (PDM_writer_ensight_t *) _cs->sortie_fmt;
   PDM_l_num_t f_unit_geom = PDM_writer_ensight->f_unit_geom;
-
+     printf("Premier passage : Ouverture du fichier + Ecriture entête \n"); 
   /* Premier passage : Ouverture du fichier + Ecriture entête */
   if (f_unit_geom < 0) {
 
@@ -1062,6 +1063,7 @@ PDM_writer_ensight_geom_write
   /* Ecriture de la part associee a la structure geom courante */
 
   /* Ecriture de l'entete de la part */
+     printf("DM_writer_ensight->n_part_ecr += 1;"); 
   PDM_writer_ensight->n_part_ecr += 1;
   _ecr_string(_cs, f_unit_geom, "part");
   int32_t _n_part = PDM_writer_ensight->n_part_ecr;
@@ -1070,7 +1072,7 @@ PDM_writer_ensight_geom_write
     _ecr_string(_cs, f_unit_geom, geom->nom_geom);
   else
     _ecr_string(_cs, f_unit_geom, "unnamed");
-
+  printf("Calcul du nombre total de sommets */");
   /* Calcul du nombre total de sommets */
 
   int n_som_proc = 0;
@@ -1082,6 +1084,7 @@ PDM_writer_ensight_geom_write
     n_som_proc += n_vtx;
   }
 
+  printf("Concatenation des coordonnees et ecriture */\n");
   /* Concatenation des coordonnees et ecriture */
 
   _ecr_string(_cs, f_unit_geom, "coordinates");
@@ -1106,6 +1109,7 @@ PDM_writer_ensight_geom_write
 
       for (int i = 0; i < n_vtx; i++) {
         coord_tmp[n_som_proc+i] = (float) vtx[3*i+idim];
+        printf("IInumabs[%i] %i\n",i,numabs[i]);
         numabs_tmp[n_som_proc+i] = (PDM_g_num_t) numabs[i];
       }
       n_som_proc += n_vtx;
@@ -1126,7 +1130,7 @@ PDM_writer_ensight_geom_write
 
   free(coord_tmp);
   free(numabs_tmp);
-
+printf("Ecriture des blocs standard\n");
   /* Ecriture des blocs standard */
 
   const int n_blocks = PDM_Mesh_nodal_n_blocks_get (geom->idx_mesh);
@@ -1158,6 +1162,7 @@ PDM_writer_ensight_geom_write
         PDM_g_num_t *numabs_block = PDM_Mesh_nodal_block_inside_g_num_get (geom->idx_mesh,
                                                                      blocks_id[ibloc],     
                                                                      i);
+     //  while(1==1){}
         n_elt_proc += n_elt;
         for (int j = 0; j < n_elt; j++) {
           max_loc = _max((PDM_g_num_t) numabs_block[j], max_loc);
@@ -1206,6 +1211,7 @@ PDM_writer_ensight_geom_write
 
       numabs_tmp = (PDM_g_num_t *) malloc(n_elt_proc * sizeof(PDM_g_num_t));
       int32_t *connec_tmp = (int32_t *) malloc(n_elt_proc * n_comp * sizeof(int32_t));
+      printf("BLURP n_elt_proc %i\n",n_elt_proc);
       n_elt_proc = 0;
       for (int i = 0; i < n_part; i++) {
         int n_elt = PDM_Mesh_nodal_block_n_elt_get (geom->idx_mesh, blocks_id[ibloc], i);
@@ -1222,20 +1228,27 @@ PDM_writer_ensight_geom_write
 
         const PDM_g_num_t *g_num_vtx = PDM_Mesh_nodal_vertices_g_num_get (geom->idx_mesh,
                                                                         i);
-
+       // if(ibloc==3) while(1==1) {} 
+        //while(1==1){}
         for (int j = 0; j < n_elt; j++) {
           numabs_tmp[n_elt_proc] = numabs_block[j];
+          if(numabs_tmp[n_elt_proc]==NULL) printf("Alerte numabs_tmp[n_elt_proc]==NULL)\n");
+          printf("numabs_tmp[%i] %i  numabs_block[j] %i %i\n",n_elt_proc,numabs_tmp[n_elt_proc],numabs_block[j],blocks_id[ibloc]);
           for (int k = 0; k < n_comp; k++) {
             int isom = connec[j * n_comp + k] - 1;
             int32_t isom_g = (int32_t) g_num_vtx[isom];
             connec_tmp[n_elt_proc * n_comp + k] = isom_g;
+            printf("ibloc %i n_elt %i n_elt_proc %i n_comp %i connec_tmp[%i] %i g_num_vtx[%i] %i\n"
+            ,ibloc,n_elt,n_elt_proc,n_comp,n_elt_proc * n_comp + k,connec_tmp[n_elt_proc * n_comp + k],isom,g_num_vtx[isom]);
           }
           n_elt_proc += 1;
         }
-
+       // if(ibloc==3) while(1==1) {}
       }
-
+      
+      
       /* Ecriture */
+      if(ibloc==2) {
 
       _ecr_entrelace_int(_cs,
                          PDM_WRITER_ON,
@@ -1260,6 +1273,7 @@ PDM_writer_ensight_geom_write
      
       free(numabs_tmp);
       free(connec_tmp);
+     // if(ibloc==2) while(1==1) {}
     }
 
     else if (t_elt == PDM_MESH_NODAL_POLY_2D) {
@@ -1385,9 +1399,9 @@ PDM_writer_ensight_geom_write
     }
 
     else {
-
+       printf("Nombre total d'éléments du bloc\n");
       /* Nombre total d'éléments du bloc */
-
+         //  while(1==1){}
       PDM_g_num_t max_loc = 0;
       PDM_g_num_t max_abs = 0;
 
@@ -1605,7 +1619,7 @@ PDM_writer_ensight_geom_write
     }
 
   }
-
+// while(1==1){}
 }
 
 
@@ -1679,7 +1693,7 @@ PDM_writer_ensight_var_write
               &ierr);
 
   _var_ensight->f_unit = unite;
-
+ printf("Ecriture de l'entête\n");
   /* Ecriture de l'entête */
 
   char buff_entete[81];
@@ -1699,7 +1713,7 @@ PDM_writer_ensight_var_write
   _ecr_string(cs,
               unite,
               buff_entete);
-
+ printf("Boucle sur les géométries\n");
   /* Boucle sur les géométries */
 
   const int *ind = PDM_Handles_idx_get (cs->geom_tab);
@@ -1806,7 +1820,7 @@ PDM_writer_ensight_var_write
 
         float       *buff = (float *) malloc(sizeof(float) * n_elt_max_bloc);
         PDM_g_num_t *numabs = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * n_elt_max_bloc);
-
+   //     printf("Boucle sur les blocs standard\n");
         /* Boucle sur les blocs standard */
 
         int *ideb = (int *) malloc(sizeof(int) * n_part);
@@ -1832,7 +1846,10 @@ PDM_writer_ensight_var_write
           }     
         }
                 
-
+/*
+Boucle sur les blocks je récupère numabs et la taille des blocks
+*/
+       //while(1==1){}
         for(int it_el=0; it_el < nb_t_elt; it_el++) {
           int type_is_written = 0;
           for (int i = 0; i < n_part; i++) {
@@ -1850,7 +1867,7 @@ PDM_writer_ensight_var_write
                             _ensight_type_name[t_elt]);
                type_is_written = 1;
               }
-
+              printf("Construction de l'indirection\n");
               /* Construction de l'indirection */
        
               int n_val_buff = 0;
@@ -1858,6 +1875,7 @@ PDM_writer_ensight_var_write
                 int           n_elt = PDM_Mesh_nodal_block_n_elt_get (geom->idx_mesh,    
                                                                       blocks_id[iblock],     
                                                                       i);  
+                printf("n_elt Block dans ENSIGHT writer %i\n",n_elt);
                 PDM_g_num_t  *numabs_block = 
                     PDM_Mesh_nodal_block_inside_g_num_get (geom->idx_mesh,    
                                                            blocks_id[iblock],     
@@ -1869,6 +1887,8 @@ PDM_writer_ensight_var_write
               } // BOucle sur les partitions
 
               PDM_writer_statut_t s_ecr_n_val = PDM_WRITER_OFF;
+
+              printf("for (int k = 0; k < var->dim; k++) \n");
 
               for (int k = 0; k < var->dim; k++) {
                 n_val_buff = 0;
@@ -1887,7 +1907,7 @@ PDM_writer_ensight_var_write
                 }
 
                 PDM_l_num_t un = 1;
-
+                printf("_ecr_entrelace_float %i t_elt %i it_el %i\n",k,t_elt,it_el);
                 _ecr_entrelace_float(cs,
                                      s_ecr_n_val,
                                      unite,
@@ -1896,6 +1916,7 @@ PDM_writer_ensight_var_write
                                      n_val_buff,
                                      numabs,
                                      buff);
+                printf("After _ecr_entrelace_float %i t_elt %i it_el %i\n",k,t_elt,it_el);
               }
 
             } //if t_elt==t_elt_list
