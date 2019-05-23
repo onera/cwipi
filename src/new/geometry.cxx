@@ -118,16 +118,49 @@ namespace cwipi {
     
     _n_vtx    =(int*)malloc(sizeof(int)*_nb_part);  
     _n_elt    =(int*)malloc(sizeof(int)*_nb_part);     
-
+    _n_target =(int*)malloc(sizeof(int)*_nb_part);
+    _gnum_target =(CWP_g_num_t**)malloc(sizeof(CWP_g_num_t*)*_nb_part);
+    _coords_target =(double**)malloc(sizeof(double*)*_nb_part);
+    
     _n_tot_elt=0;
     _n_tot_vtx=0;   
     for(int i_part =0;i_part<_nb_part;i_part++) {   
+    
+      if (_geometryLocation == CWP_FIELD_VALUE_CELL_POINT) {
+        _n_target   [i_part]     = _mesh -> getPartNElts(i_part);
+        _gnum_target[i_part]     = _mesh -> GNumEltsGet(i_part);   
+        _coords_target [i_part]  = _mesh -> eltCentersGet(i_part);
+             
+      }
+      
+      if (_geometryLocation == CWP_FIELD_VALUE_NODE) {
+        _n_target [i_part]   = _mesh -> getPartNVertex(i_part);
+        _gnum_target[i_part] = _mesh -> getVertexGNum(i_part);
+        _coords_target [i_part]  = _mesh -> getVertexCoords(i_part);
+      }      
+      
+    
       _n_elt[i_part]  = _mesh -> getPartNElts(i_part);
+  
+      
       _n_tot_elt+=_n_elt[i_part];
+      
+      
       _n_vtx[i_part]  = _mesh -> getPartNVertex(i_part);
       _n_tot_vtx+=_n_vtx[i_part];
           printf("HHH5 TEST %i %i\n",i_part,_mesh -> getPartNElts(i_part));
     } 
+
+
+    if (_geometryLocation == CWP_FIELD_VALUE_CELL_POINT) {
+      _n_tot_target = _n_tot_elt;
+      
+    }
+      
+    if (_geometryLocation == CWP_FIELD_VALUE_NODE) {
+      _n_tot_target = _n_tot_vtx;
+    }   
+
 
     _n_g_elt    =(int*)malloc(sizeof(int)*_nb_part);  
 
@@ -629,14 +662,14 @@ namespace cwipi {
 
         if(type == MPI_BYTE){
         
-            target_data_elt* sendptr = (target_data_elt*)send_buffer;
-            MPI_Issend(&(  sendptr [ send_disp[distant_rank] / sizeof(target_data_elt) ] ), send_count[distant_rank] * 1, type, distant_rank, tagsend,
+            target_data* sendptr = (target_data*)send_buffer;
+            MPI_Issend(&(  sendptr [ send_disp[distant_rank] / sizeof(target_data) ] ), send_count[distant_rank] * 1, type, distant_rank, tagsend,
                    comm,
                    &(_send_requests[i_rank]));        
  
-           target_data_elt* recvptr = (target_data_elt*)recv_buffer;
+           target_data* recvptr = (target_data*)recv_buffer;
            
-           MPI_Irecv(&(  recvptr [ recv_disp[distant_rank] / sizeof(target_data_elt) ] ), recv_count[distant_rank] * 1,type, distant_rank, tagrecv,
+           MPI_Irecv(&(  recvptr [ recv_disp[distant_rank] / sizeof(target_data) ] ), recv_count[distant_rank] * 1,type, distant_rank, tagrecv,
                   comm,
                   &(_recv_requests[i_rank])); 
         }   
@@ -853,14 +886,14 @@ void Geometry::_IBcast(void* send_buffer,
 
   void Geometry::irecv(Field<double> *recevingField) {
 
-    _idx_elt  .resize   (_nb_part + 1);
-    _idx_elt[0] = 0;
+    _idx_target  .resize   (_nb_part + 1);
+    _idx_target[0] = 0;
     for (int i_part = 0; i_part < _nb_part; i_part++) {
-      _idx_elt[i_part+1] = _idx_elt[i_part] + _n_elt[i_part];   
+      _idx_target[i_part+1] = _idx_target[i_part] + _n_target[i_part];   
     }
 
       //Crée un buffer de réception et le stocke (alloue)
-      recevingField -> ReceptionBufferCreation(_idx_elt,_n_tot_elt);
+      recevingField -> ReceptionBufferCreation(_idx_target,_n_tot_elt);
       /* Loop on possibly intersecting distant ranks */
       /*---------------------------------------------*/
 
@@ -937,7 +970,7 @@ void Geometry::_IBcast(void* send_buffer,
              
          //Index of the corresponding local reference Data.
          int iel = _targets_cpl_cpl[itarget].l_num_origin ;
-         int lpart = _targets_cpl_cpl[itarget].inc ;
+         int lpart = _targets_cpl_cpl[itarget].origin_part ;
          
          for (int k = 0; k < nComponent; k++) {
               userDataMem[lpart][ nComponent * iel + k ] = recvData[ nComponent * interpInd + k  ];

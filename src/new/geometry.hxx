@@ -27,9 +27,9 @@
 namespace cwipi {
 
 
-  typedef struct target_data_elt {
+  typedef struct target_data {
     int          lnum    ;
-    int          inc     ;
+    int          origin_part     ;
     CWP_g_num_t  closest_elt_gnum;
     int          origin_proc     ;
     int          closest_elt_part;
@@ -112,6 +112,11 @@ namespace cwipi {
      void mesh_cpl_info_get2();
      void compute(int *n_uncomputed_tgt);
      inline Geometry* getCoupledGeometry();
+
+
+     int nTargetGet(int i_part) {
+       return _n_target[i_part];
+     }
 
     /**
      *
@@ -348,7 +353,7 @@ namespace cwipi {
     // Informations about locations (from the local proc send to a distant proc)
     // Local Targets
 
-    std::vector<int>                      _idx_elt        ;    
+    std::vector<int>                      _idx_target        ;    
 
 
 void _IBcast(void* send_buffer,
@@ -389,10 +394,10 @@ void _IBcast(void* send_buffer,
     Coupling                            *_cpl;
     
     int** _targets_cpl_idx;
-    target_data_elt* _targets_cpl;
+    target_data* _targets_cpl;
     target_data_vtx* _targets_vtx_cpl;
     int** _targets_cpl_idx_cpl;
-    target_data_elt* _targets_cpl_cpl;
+    target_data* _targets_cpl_cpl;
     target_data_vtx* _targets_vtx_cpl_cpl;       
     
     int  _option;
@@ -417,6 +422,12 @@ void _IBcast(void* send_buffer,
     int* _n_vtx_cpl;   
     int* _n_elt;
     int* _n_elt_cpl;
+    
+    int* _n_target;
+    CWP_g_num_t** _gnum_target;
+    double** _coords_target; 
+
+    
     int _n_tot_elt;
     int _n_tot_vtx;
     
@@ -426,6 +437,8 @@ void _IBcast(void* send_buffer,
     int _n_g_vtx_cpl_over_part;  
     
     int**                          _n_targets_dist_proc_dist_part;
+ 
+ 
     
     int**                          _n_targets_recv_dist_proc_loc_part    ;
     int**                          _idx_targets_recv_dist_proc_loc_part  ;
@@ -475,8 +488,8 @@ void _IBcast(void* send_buffer,
 
 
   int** _location_idx_comm_proc   ;
-  target_data_elt* _location_comm_proc;
-  target_data_elt* _location_recv;
+  target_data* _location_comm_proc;
+  target_data* _location_recv;
 
 
 
