@@ -116,30 +116,6 @@ endif ()
 #set (_MPIEXEC_MAX_NUMPROCS ${MPIEXEC_MAX_NUMPROCS})
 set (_MPIEXEC_MAX_NUMPROCS 2)
 
-if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_f_poly_block.c")
-  test_c_create (c_new_api_f_poly_block 2)
-endif () 
-
-if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_c_poly_block.c")
-  test_c_create (c_new_api_c_poly_block 2)
-endif () 
-
-if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_cellface_set_block.c")
-  test_c_create (c_new_api_cellface_set_block 2)
-endif () 
-
-if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_std_block.c")
-  test_c_create (c_new_api_std_block 2)
-endif () 
-
-
-if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_visu.c")
-  test_c_create (c_new_api_visu 2)
-endif () 
-
-if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_points.c")
-  test_c_create (c_new_api_points 2)
-endif () 
 
 if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_multiblock.c")
   test_c_create (c_new_api_multiblock 2)
