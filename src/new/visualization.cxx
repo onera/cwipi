@@ -225,19 +225,19 @@ namespace cwipi {
 
   void Visu::WriterFieldCreate(Field<double>* field) {
 
-      CWP_Field_value_t CWPfielType = field -> typeGet();
+     // CWP_Field_value_t CWPfielType = field -> typeGet();
       PDM_writer_var_loc_t PDMfieldType;
       
-      if(CWPfielType == CWP_FIELD_VALUE_CELL_POINT) PDMfieldType = PDM_WRITER_VAR_ELEMENTS;
+      //if(CWPfielType == CWP_FIELD_VALUE_CELL_POINT) PDMfieldType = PDM_WRITER_VAR_ELEMENTS;
       
-      if(CWPfielType == CWP_FIELD_VALUE_NODE) PDMfieldType = PDM_WRITER_VAR_SOMMETS;      
+      /*if(CWPfielType == CWP_FIELD_VALUE_NODE) */PDMfieldType = PDM_WRITER_VAR_SOMMETS;      
 
       int id_var = PDM_writer_var_create(_visu_id, 
                                      PDM_WRITER_ON,
                                      PDM_WRITER_VAR_SCALAIRE, 
                                      PDMfieldType, 
-                                     (field ->fieldIDGet()).c_str());
-      field -> visuIdSet(id_var);
+                                     ""/*(field ->fieldIDGet()).c_str()*/);
+   //   field -> visuIdSet(id_var);
   }
 
 
@@ -247,8 +247,8 @@ namespace cwipi {
     
     int id_var = -1;
  
-    id_var = field -> visuIdGet();
-    double* data = field -> dataGet(i_part);
+   // id_var = field -> visuIdGet();
+    double* data = NULL;// field -> dataGet(i_part);
    
     for(int i=0;i<20;i++) {
    //   printf("data [%i] %f\n",i,(double) data[i]);
@@ -265,7 +265,7 @@ namespace cwipi {
   void Visu::WriterField(Field<double>* field) {
     int id_var = -1;
 
-    id_var = field -> visuIdGet();
+  //  id_var = field -> visuIdGet();
     
        
     for (int i_part =0;i_part<_n_part;i_part++)

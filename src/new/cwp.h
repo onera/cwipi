@@ -99,13 +99,19 @@ typedef enum {
 
 } CWP_Type_t;
 
-
+/**
+ * \enum CWP_Visu_format_t
+ * \brief  Type of Visualization format  
+ *
+ * CWP_Visu_format_t gives the available Visualization format           
+ */
 
 typedef enum {
 
   Ensight      /*!< Ensight visualization format */
 
 } CWP_Visu_format_t;
+
 
 
 /**
@@ -1013,9 +1019,10 @@ CWP_Cpl_time_step_set
 void 
 CWP_Geom_compute
 (
- const char     *local_code_name,
- const char     *cpl_id,
- int            *n_uncomputed_tgt
+ const char        *local_code_name,
+ const char        *cpl_id,
+ CWP_Field_value_t  geometryLocation,
+ int               *n_uncomputed_tgt
 );
 
 /**
@@ -1078,14 +1085,13 @@ CWP_Geom_properties_set
  */
 
 void 
-CWP_Visu_set
-(
- const char    *local_code_name,
- const char    *cpl_id,
- const int      freq,
- const char    *format,
- const char    *format_option
-);
+ CWP_Visu_set
+ (const char                 *local_code_name,
+  const char                 *cpl_id,
+  const int                   freq,
+  const CWP_Visu_format_t     format,
+  const char                 *format_option
+ );
 
 /*----------------------------------------------------------------------------*
  * Functions about User target points                                         *
@@ -1117,6 +1123,15 @@ CWP_User_tgt_pts_set
  * Functions about Mesh                                                    *
  *----------------------------------------------------------------------------*/
 
+
+
+void 
+CWP_Mesh_interf_finalize 
+(
+ const char           *local_code_name,
+ const char           *cpl_id
+);
+
 /**
  * \brief Setting vertices
  *
@@ -1143,26 +1158,29 @@ CWP_Mesh_interf_vtx_set
 );  
 
 /**
- * \brief End setting of the mesh
+ * \brief Add a block to the interface mesh.
  *
- * This function finalizes the mesh building after addition of block and coordinates setting.
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
+ * \param [in]  block_type       Block type
  *
+ * \return block identifier
  */
-
-void 
-CWP_Mesh_interf_end_set
+ 
+int 
+CWP_Mesh_interf_block_add
 (
- const char        *local_code_name,
- const char        *cpl_id
-);
+ const char           *local_code_name,
+ const char           *cpl_id,
+ const CWP_Block_t     block_type
+);  
+
 
 /**
- * \brief Adding a connectivity block to the geometric support
+ * \brief Set a standard block to the interface mesh
  *
- * This function adds a connectivity block to the geometric support.
+ * This function adds a connectivity block to the interface mesh.
  * Definition of element connectivity is :
  *
  *  - edge (\ref CWP_BLOCK_EDGE2) :
@@ -1245,49 +1263,49 @@ CWP_Mesh_interf_end_set
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
- * \param [in]  i_part           Current partition
- * \param [in]  block_type       Block type
+ * \param [in]  i_part           Partition identifier
+ * \param [in]  block_id         Block identifier 
  * \param [in]  n_elts           Number of elements
  * \param [in]  connec           Connectivity (size = n_vertex_elt * n_elts)          
- * \param [in]  global_num       Pointer to parent element number (or NULL)
+ * \param [in]  global_num       Pointer to global element number (or NULL)
  *
  */
 
 void 
-CWP_Mesh_interf_std_block_add
+CWP_Mesh_interf_block_std_set
 (
  const char        *local_code_name,
  const char        *cpl_id,
  const int          i_part,
- const CWP_Block_t  block_type,
+ const int          block_id,
  const int          n_elts,
- int          connec[],
- CWP_g_num_t  global_num[]
+ int                connec[],
+ CWP_g_num_t        global_num[]
 );
 
 
 /**
- * \brief Add a generic high order elements block
+ * \brief Set a generic high order block to the interface mesh
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
- * \param [in]  i_part           Current partition
- * \param [in]  block_type       Block type
+ * \param [in]  i_part           Partition identifier
+ * \param [in]  block_id         Block identifier  
  * \param [in]  n_elts           Number of elements
  * \param [in]  order            Element order
  * \param [in]  connec           Connectivity (size = n_vertex_elt * n_elts)          
- * \param [in]  global_num       Pointer to parent element number (or NULL)
+ * \param [in]  global_num       Pointer to global element number (or NULL)
  *
  */
 
 
 void 
-CWP_Mesh_interf_h_order_block_add
+CWP_Mesh_interf_h_order_block_set
 (
  const char        *local_code_name,
  const char        *cpl_id,
  const int          i_part,
- const CWP_Block_t  block_type,
+ const int          block_id,
  const int          n_elts,
  const int          order, 
  int                connec[],
@@ -1296,29 +1314,31 @@ CWP_Mesh_interf_h_order_block_add
 
 
 /**
- * \brief Adding a polygon connectivity block to the mesh interface
+ * \brief Set the connectivity of a polygon block in a mesh interface partition.
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
  * \param [in]  i_part           Current partition
+ * \param [in]  block_id         Block identifier  
  * \param [in]  n_elts           Number of elements
  * \param [in]  connec_idx       Connectivity index (connec_id[0] = 0 and 
  *                               size = n_elts + 1)          
  * \param [in]  connec           Connectivity (size = connec_idx[n_elts])          
- * \param [in]  parent_num       Pointer to parent element number (or NULL)
+ * \param [in]  global_num       Pointer to global element number (or NULL)
  *
  */
 
 void 
-CWP_Mesh_interf_f_poly_block_add
+CWP_Mesh_interf_f_poly_block_set
 (
  const char             *local_code_name,
  const char             *cpl_id,
  const int               i_part,
+ const int               block_id,
  const int               n_elts,
  int                     connec_idx[],
  int                     connec[],
- CWP_g_num_t             parent_num[]
+ CWP_g_num_t             global_num[]
 );
 
 /**
@@ -1327,35 +1347,37 @@ CWP_Mesh_interf_f_poly_block_add
  * \param [in]  local_code_name   Local code name
  * \param [in]  cpl_id            Coupling identifier
  * \param [in]  i_part            Current partition
+ * \param [in]  block_id          Block identifier 
  * \param [in]  n_elts            Number of elements
- * \param [in]  cell_face_idx     Polyhedron to face index 
- *                                (cell_face_idx[0] = 0 and
- *                                size = n_elts + 1)
- * \param [in]  cell_face         Polyhedron to face connectivity 
+ * \param [in]  connec_cells_idx  Polyhedron to face index 
+ *                                (src_poly_cell_face_idx[0] = 0 and
+ *                                 size = n_elts + 1)
+ * \param [in]  connec_cells      Polyhedron to face connectivity 
  *                                (size = cell_face_idx[n_elts])
  * \param [in]  n_faces           Number of faces      
- * \param [in]  face_vtx_idx      Polyhedron face to vertex index 
- *                                (face_vtx_idx[0] = 0 and
- *                                 size = n_faces + 1
- * \param [in]  face_vtx          Polyhedron face to vertex connectivity
- *                                (size = face_vtx_idx[n_faces])
- * \param [in]  parent_num        Pointer to parent element number (or NULL)
+ * \param [in]  connec_faces_idx  Polyhedron face to vertex index 
+ *                                (face_vertex_idx[0] = 0 and
+ *                                size_idx = max(cell_face_connec) + 1)
+ * \param [in]  connec_faces      Polyhedron face to vertex connectivity
+ *                                (size = face_vertex_idx[size_idx - 1])
+ * \param [in]  global_num        Pointer to global element number (or NULL)
  *
  */
 
 void 
-CWP_Mesh_interf_c_poly_block_add
+CWP_Mesh_interf_c_poly_block_set
 (
  const char           *local_code_name,
  const char           *cpl_id,
  const int             i_part,
+ const int             block_id,
  const int             n_elts,
- int                   cell_face_idx[],
- int                   cell_face[],
  const int             n_faces,
- int                   face_vtx_idx[],
- int                   face_vtx[],
- CWP_g_num_t           parent_num[]
+ int                   connec_faces_idx[],
+ int                   connec_faces[],
+ int                   connec_cells_idx[],
+ int                   connec_cells[],
+ CWP_g_num_t           global_num[]
 );
 
 /**
@@ -1484,7 +1506,7 @@ CWP_Mesh_interf_from_faceedge_set
  * \param [in]  data_type      Data type          
  * \param [in]  storage        Storage type          
  * \param [in]  n_component    Number of componenent
- * \param [in]  nature         Nature
+ * \param [in]  nature         Value location
  * \param [in]  exch_type      Exchange type
  * \param [in]  visu_status    Visualization status
  * 
@@ -1499,7 +1521,7 @@ CWP_Field_create
  const CWP_Type_t             data_type,
  const CWP_Field_storage_t    storage,
  const int                    n_component,
- const CWP_Field_value_t      nature,
+ const CWP_Field_value_t      value_location,
  const CWP_Field_exch_t       exch_type,
  const CWP_Status_t           visu_status
 );
@@ -1513,18 +1535,18 @@ CWP_Field_create
  * \param [in] cpl_id            Coupling identifier
  * \param [in] field_id          Field identifier
  * \param [in] i_part            Current partition
- * \param [in] data              Storage array (Mapping)
+ * \param [in] data              Storage array 
  * 
  */
 
 void
-CWP_Field_mapping_set
+CWP_Field_data_set
 (
- const char      *local_code_name,
- const char      *cpl_id,
- const char      *field_id,
- const int        i_part,
- double           data[]
+ const char         *local_code_name,
+ const char         *cpl_id,
+ const char         *field_id,
+ const int           i_part,
+ double              data[]
 );
 
 
@@ -1607,29 +1629,8 @@ CWP_Field_location_get
  * 
  */
 
- CWP_Type_t
- CWP_Field_type_get
- (
-  const char                  *local_code_name,
-  const char                  *cpl_id,
-  const char                  *field_id
-  );
-
-
-/**
- *
- * \brief Get field data type
- * 
- * \param [in] local_code_name  Local code name
- * \param [in] cpl_id           Coupling identifier
- * \param [in] field_id         Field identifier
- *
- * \return                      Field data type
- * 
- */
-
 CWP_Type_t
-CWP_Field_value_type_get
+CWP_Field_data_type_get
 (
  const char      *local_code_name,
  const char      *cpl_id,
@@ -1737,8 +1738,6 @@ CWP_Sendrecv
  * \param [in]  cpl_id          Coupling identifier
  * \param [in]  src_field_id    Source field id
  *
- * \param [out] request         Request to call by \ref CWP_Wait_issend 
- *                              to wait the end of exchange
  *
  */
 
@@ -1747,8 +1746,7 @@ CWP_Issend
 (
  const char     *local_code_name,
  const char     *cpl_id,
- const char     *src_field_id,
- int            *request
+ const char     *src_field_id
 );
 
 /**
@@ -1762,18 +1760,15 @@ CWP_Issend
  * \param [in]  cpl_id          Coupling identifier
  * \param [in]  tgt_field_id    Target field id
  *
- * \param [out] request         Request to call by \ref CWP_Wait_irecv  
- *                              to wait the end of exchange
  *
  */
 
 void 
 CWP_Irecv
 (
- const char   *local_code_name,
- const char   *cpl_id,
- const char   *tgt_field_id,
- int          *request
+ const char        *local_code_name,
+ const char        *cpl_id,
+ const char        *targetFieldID
 );
 
 /**
@@ -1785,7 +1780,6 @@ CWP_Irecv
  * 
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] request          Request to wait the end of exchange
  *
  */
 
@@ -1794,7 +1788,7 @@ CWP_Wait_issend
 (
  const char  *local_code_name,
  const char  *cpl_id,
- int          request
+ const char  *src_field_id
 );
 
 /**
@@ -1806,7 +1800,6 @@ CWP_Wait_issend
  * 
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
- * \param [in] request          Request to wait the end of exchange
  *
  */
 
@@ -1815,8 +1808,19 @@ CWP_Wait_irecv
 (
  const char  *local_code_name,
  const char  *cpl_id,
- int          request
+ const char  *distant_field_id
 );
+
+
+ CWP_g_num_t* 
+ CWP_GlobalNumGet
+ (
+  const char  *local_code_name,
+  const char  *cpl_id,
+  const int    id_block,
+  const int    i_part
+ );
+
 
 /*----------------------------------------------------------------------------*
  * Functions about user interpolation                                         *

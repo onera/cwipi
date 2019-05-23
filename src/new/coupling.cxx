@@ -41,9 +41,9 @@
 
 #include "factory.hpp"
 #include "field.hpp"
-#include "geometry.hxx"
+//#include "geometry.hxx"
 #include "communication.hxx"
-
+#include "visualization.hxx"
 
 /*----------------------------------------------------------------------------
  * Macro for handling of different symbol names (underscored or not,
@@ -85,9 +85,8 @@ namespace cwipi {
    *
    */
   
-  typedef Factory<Geometry, CWP_Geom_t> FG;
+  //typedef Factory<Geometry, CWP_Geom_t> FG;
 
-  
   Coupling::Coupling
   (
    const string               &cplId,
@@ -107,33 +106,122 @@ namespace cwipi {
    _coupledCodeProperties(coupledCodeProperties),
    _recvFreqType (recvFreqType),
    _cplDB(cplDB),
-   _fields(*(new map < string, Field<double> * >()))   
-   /*_mesh(*new Mesh(localCodeProperties.intraCommGet(),,nPart))*/
-   //_geometry(*(FG::getInstance().CreateObject(geomAlgo)))
+   _fields(*(new map < string, Field<double> * >())),  
+   _visu(*new Visu(localCodeProperties.intraCommGet())), 
+   _mesh(*new Mesh(localCodeProperties.intraCommGet(),NULL,nPart)),
+ //  _geometry(*new std::map <CWP_Field_value_t, Geometry*>()),
+   _iteration(new int)
   {
-  
+
+    //In case where the both codes are on the same MPI process.
     if (coupledCodeProperties.localCodeIs()) {
       if (cplDB.couplingIs(coupledCodeProperties, cplId)) {
-        _communication.init(_localCodeProperties, _coupledCodeProperties, cplId, cplDB);
-        Coupling &distCpl = cplDB.couplingGet(coupledCodeProperties, cplId);
+
+
+        //Communication initialization, MPI communicator creation ... 
+        _communication.init(_localCodeProperties, _coupledCodeProperties, cplId, cplDB); 
+        
+        //Get distant coupling object
+        Coupling &distCpl = cplDB.couplingGet(coupledCodeProperties, cplId);        
         distCpl._communication.init(_communication);
-      }
-    }
-  
+        Visu* visu_cpl = distCpl.visuGet();
+        Mesh* mesh_cpl = distCpl.meshGet(); 
+
+        _mesh.setVisu(&_visu); 
+        mesh_cpl->setVisu(visu_cpl);  
+
+
+   //     std::map <CWP_Field_value_t, Geometry*>* _geometry_cpl = distCpl.geometryGet();
+
+        //Geometry initialization
+   /*     _geometry[CWP_FIELD_VALUE_CELL_MEAN] = FG::getInstance().CreateObject(geomAlgo);
+        _geometry[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(geomAlgo);
+        _geometry[CWP_FIELD_VALUE_NODE] = FG::getInstance().CreateObject(geomAlgo);
+        _geometry[CWP_FIELD_VALUE_USER] = FG::getInstance().CreateObject(geomAlgo);
+        
+        (*_geometry_cpl)[CWP_FIELD_VALUE_CELL_MEAN]  = FG::getInstance().CreateObject(geomAlgo);
+        (*_geometry_cpl)[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(geomAlgo);
+        (*_geometry_cpl)[CWP_FIELD_VALUE_NODE]       = FG::getInstance().CreateObject(geomAlgo);
+        (*_geometry_cpl)[CWP_FIELD_VALUE_USER]       = FG::getInstance().CreateObject(geomAlgo);
+
+        //Geometry initialization 
+        std::map <CWP_Field_value_t, Geometry*>::iterator it = _geometry.begin();
+        while (it != _geometry.end()) {    
+         (it -> second) -> init(this,it->first);
+         it++;
+        }           
+        
+        it = _geometry_cpl->begin();
+        while (it != _geometry_cpl->end()) {    
+         (it -> second) -> init(&distCpl,it->first);
+          it++;
+        }*/
+
+ 
+      }   
+    } // if (coupledCodeProperties.localCodeIs())     
     else {
+      //Communication initialization, MPI communicator creation ... 
       _communication.init(_localCodeProperties, _coupledCodeProperties, cplId, cplDB);
-    }
+
+      _mesh.setVisu(&_visu);      
+      //Geometry creation
+   /*   _geometry[CWP_FIELD_VALUE_CELL_MEAN] = FG::getInstance().CreateObject(geomAlgo);
+      _geometry[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(geomAlgo);
+      _geometry[CWP_FIELD_VALUE_NODE] = FG::getInstance().CreateObject(geomAlgo);
+      _geometry[CWP_FIELD_VALUE_USER] = FG::getInstance().CreateObject(geomAlgo);
     
-    
+      //Geometry initialization
+      std::map <CWP_Field_value_t, Geometry*>::iterator it = _geometry.begin();
+      while (it != _geometry.end()) {    
+        (it -> second) -> init(this,it->first);
+        it++;
+      }
+    */
+           
+    } // end else
+        
     
   }
 
 
   Coupling::~Coupling()
   {
+  
+    if(_visu.isCreated()) {
+       _visu.WriterStepEnd();
+    }
+       
     #if defined(DEBUG) && 0
     cout << "destroying '" << _name << "' coupling : TODO" << endl;
     #endif
+  }
+
+ //TODO: Virer ptFortranInterpolationFct
+  void 
+  Coupling::issend
+  (string &sendingFieldID) {
+
+     std:map <std::string, Field<double> *>::iterator it;
+     it = _fields.find(sendingFieldID);
+
+     if (it != _fields.end()) {
+       Field <double>* sendingField = it -> second;   
+   //   _geometry[sendingField -> typeGet()] -> issend(sendingField);
+     }
+  }
+
+  void 
+  Coupling::irecv
+  (string &recevingFieldID) {
+
+     std:map <std::string, Field<double> *>::iterator it;
+     it = _fields.find(recevingFieldID);
+
+     if (it != _fields.end()) {
+       Field <double>* recevingField = it -> second;   
+    //   _geometry[recevingField -> typeGet()] ->irecv(recevingField);
+     }
   }
 
 
@@ -151,10 +239,7 @@ namespace cwipi {
     }
 
     return It->second->nComponentGet();
-
   }
-
-
 
   bool 
   Coupling::fieldIs
@@ -166,9 +251,6 @@ namespace cwipi {
     return (It != _fields.end());
   }
 
-
-
-
   void
   Coupling::fieldCreate
   (
@@ -176,7 +258,7 @@ namespace cwipi {
    const CWP_Type_t           data_type,
    const CWP_Field_storage_t  storage,
    const int                  n_component,
-   const CWP_Field_value_t    nature,
+   const CWP_Field_value_t    fieldType,
    const CWP_Field_exch_t     exch_type,
    const CWP_Status_t         visu_status
   )
@@ -189,46 +271,71 @@ namespace cwipi {
     
     //
     // Create the new field
-
-    cwipi::Field<double> *newField = new cwipi::Field<double>(data_type,
-                                           storage,
-                                           n_component,
-                                           nature,
-                                           exch_type,
-                                           visu_status);  
+    
+    
+    double physTime=0.0;
+    *_iteration = 0;
+    
+ /*   cwipi::Field<double> *newField = new cwipi::Field<double>(field_id,
+                                                              &_mesh,
+                                                               fieldType,
+                                                               storage,
+                                                               n_component,
+                                                               exch_type,
+                                                               visu_status,
+                                                               _iteration, //iteration
+                                                               &physTime);  //physTime
 
     pair<string, Field<double>* > newPair(string(field_id), newField);
 
     _fields.insert(newPair);
-    bftc_printf("champ '%s' a été créé\n", field_id.c_str());
+    
+    if (_visu.isCreated())
+      _visu.WriterFieldCreate(newField);*/
   }
+  
+
+   void 
+   Coupling::geomCompute (CWP_Field_value_t geometryLocation, int *n_uncomputed_tgt)
+   {  
+  //   _geometry[geometryLocation] -> compute(n_uncomputed_tgt);
+   }
 
 
-  /**
-   *
-   * \brief Get field data type
-   * 
-   * \param [in]   field_id       Field identifier
-   *
-   * \return                      Field data type
-   * 
-   */
-   CWP_Type_t
-   Coupling::fieldTypeGet
+
+   void 
+   Coupling::waitIssend
    (
-     const string &field_id
+    string &sendingFieldID
    )
    {
-    map<string,Field<double>*>::iterator It = _fields.find(field_id.c_str());  
-    if (It == _fields.end()) {
-         bftc_error(__FILE__, __LINE__, 0,
-               "'%s' not existing field\n", field_id.c_str());
-    }
-    
-    return It->second->dataTypeGet();
-    
+     std:map <std::string, Field<double> *>::iterator it;
+
+     it = _fields.find(sendingFieldID);
+
+     if (it != _fields.end()) {
+       Field <double>* sendingField = it -> second;   
+ //     _geometry[sendingField -> typeGet()] -> waitIssend(sendingField);
+     }
    }
-   
+
+
+   void 
+   Coupling::waitIrecv
+   (
+    string &recevingFieldID
+   )
+   {
+     std:map <std::string, Field<double> *>::iterator it;
+     it = _fields.find(recevingFieldID);
+
+     if (it != _fields.end()) {
+       Field <double>* recevingField = it -> second;   
+  //     _geometry[recevingField -> typeGet()] -> waitIrecv(recevingField);
+     }
+   }
+
+
    
   /**
    *
@@ -257,14 +364,14 @@ namespace cwipi {
 
   /**
    *
-   * \brief Get field nature
+   * \brief Get field fieldType
    * 
    * \param [in]   field_id       Field identifier
    * 
    */
 
   CWP_Field_value_t
-  Coupling::fieldNatureGet
+  Coupling::fieldTypeGet
   (
     const string &field_id
   )
@@ -274,7 +381,7 @@ namespace cwipi {
       bftc_error(__FILE__, __LINE__, 0,
                  "'%s' not existing field\n", field_id.c_str());
     }
-    return It->second->natureGet();
+   // return It->second->typeGet();
     
   }
 
@@ -287,13 +394,15 @@ namespace cwipi {
   * \param [in]  data           Storage array (Mapping)
   * 
   */
+  //TODO:Change to dataSet
   void
-  Coupling::fieldMappingSet
+  Coupling::fieldDataSet
   (
     const string &field_id,
-    double data[]   
+    int i_part,
+    double data[]
   )
-  {
+  { 
     map<string,Field<double>*>::iterator It = _fields.find(field_id.c_str());  
     if (It == _fields.end())
       {
@@ -302,11 +411,13 @@ namespace cwipi {
       }
     else 
       {
-        It->second->mappingSet(data);
+  /*      It->second->dataSet(i_part,data);
+        if(_visu.isCreated()) {
+          printf("_visu.fieldDataSet(It->second,i_part); \n");
+          _visu.fieldDataSet(It->second,i_part);
+        } */     
       }   
-    
   }
-
 
 
 
@@ -352,64 +463,86 @@ namespace cwipi {
                             global_num); 
     }
     
-  void Coupling::meshEndSet()
-  {
-  } 
+  int Coupling::meshBlockAdd
+    (const CWP_Block_t     block_type){
+      _mesh.blockAdd(block_type);
+    }
     
     
-  void Coupling::meshBlockAdd
-  (
-    const int           i_part,
-    const CWP_Block_t   block_type,
-    const int           n_elts,
-    int                 connec[],
-    CWP_g_num_t         global_num[],
-    CWP_g_num_t         parent_num[]
-  )
-  {
-  }
-  
-  void Coupling::meshHighOrderBlockAdd
+  void Coupling::meshStdBlockSet
     (
      const int           i_part,
-     const CWP_Block_t   block_type,
+     const int           block_id,
+     const int           n_elts,
+     int                 connec[],
+     CWP_g_num_t        global_num[]
+    )
+  {
+       _mesh.stdBlockSet( i_part,
+                          block_id,
+                          n_elts,
+                          connec, 
+                          global_num
+                        );
+  }
+  
+  void Coupling::meshHighOrderBlockSet
+    (
+     const int           i_part,
+     const int           block_id,
      const int           n_elts,
      const int           order,
      int                 connec[],
-     CWP_g_num_t         global_num[]
-    )
+     CWP_g_num_t         global_num[])
     {
     
     }
   
+  void Coupling::meshFPolyBlockSet
+    (
+     const int            i_part,
+     const int            block_id,
+     const int            n_elts,
+     int                  connec_idx[],
+     int                  connec[],
+     CWP_g_num_t          global_num[]
+    )
+    {
+     _mesh.poly2DBlockSet(i_part,
+                          block_id,
+                          n_elts,
+                          connec_idx,
+                          connec, 
+                          global_num
+                         );
+   }
   
-  void Coupling::meshFPolyBlockAdd
-  (
-    const int            i_part,
-    const int            n_elts,
-    int                  connec_idx[],
-    int                  connec[],
-    CWP_g_num_t          parent_num[]
-  )
-  {
 
-  }
-  
+  void Coupling::meshCPolyBlockSet
+    (
+     const int           i_part,
+     const int           block_id,
+     const int           n_elts,
+     const int           n_faces,
+     int                 connec_faces_idx[],
+     int                 connec_faces[],
+     int                 connec_cells_idx[],
+     int                 connec_cells[],
+     CWP_g_num_t         global_num[]
+    )
+    {
+       _mesh.poly3DBlockSet(i_part,
+                            block_id,
+                            n_elts,
+                            n_faces,
+                            connec_faces_idx,
+                            connec_faces    ,
+                            connec_cells_idx,
+                            connec_cells    , 
+                            global_num      
+                        );               
 
-  void Coupling::meshCPolyBlockAdd
-  (
-    const int           i_part,
-    const int           n_elts,
-    int                 cell_face_idx[],
-    int                 cell_face[],
-    const int           n_faces,
-    int                 face_vtx_idx[],
-    int                 face_vtx[],
-    CWP_g_num_t         parent_num[]
-  )
-  {
-
-  }
+   }
   
   
   void Coupling::fvmcNodalShared(const int           i_part,
@@ -463,6 +596,35 @@ namespace cwipi {
 
   void Coupling::meshDel()
   {_mesh.meshDel();
+  }
+
+
+  void Coupling::visuSet(const int               freq,
+                         const CWP_Visu_format_t format,
+                         const char             *format_option
+                         ) {
+      int max_codename_length = 150;
+      printf("_localCodeProperties.nameGet();\n");
+      string name = _localCodeProperties.nameGet();
+      int local_rank = -1;
+      printf("_localCodeProperties.intraCommGet(),\n");
+     // MPI_Comm_rank(_localCodeProperties.intraCommGet(),&local_rank);
+      
+
+      char output_name [name.length()];
+        printf("sprintf(output_name,,name.c_str());\n");
+      sprintf(output_name,"%s",name.c_str());
+
+      printf("_visu.VisuCreate(fI%sI\n",output_name);
+      _visu.VisuCreate(freq,
+                       format,
+                       format_option,
+                       "cwipi",
+                       output_name);   
+        printf("_visu.GeomCreate(_mesh.getNPar) %i\n",_mesh.getNPart());  
+                                   
+      _visu.GeomCreate(_mesh.getNPart());
+          
   }
 
 
