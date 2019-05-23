@@ -63,5 +63,9 @@ if (PDM_HAVE_PARMETIS OR PDM_HAVE_PTSCOTCH)
   test_c_create (pdm_t_dist ${MPIEXEC_MAX_NUMPROCS})
   test_c_create (pdm_t_dist_strip ${MPIEXEC_MAX_NUMPROCS})
 endif()
-test_c_create (pdm_t_cellface_orient_poly 1)
-test_c_create (pdm_t_ptb ${MPIEXEC_MAX_NUMPROCS})
+#test_c_create (pdm_t_cellface_orient_poly 1)
+#test_c_create (pdm_t_ptb ${MPIEXEC_MAX_NUMPROCS})
+
+
+
+
