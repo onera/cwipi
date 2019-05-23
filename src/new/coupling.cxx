@@ -107,8 +107,8 @@ namespace cwipi {
    _coupledCodeProperties(coupledCodeProperties),
    _recvFreqType (recvFreqType),
    _cplDB(cplDB),
-   _fields(*(new map < string, Field<double> * >())),   
-   _mesh(*new Mesh(localCodeProperties.intraCommGet(),nPart))
+   _fields(*(new map < string, Field<double> * >()))   
+   /*_mesh(*new Mesh(localCodeProperties.intraCommGet(),,nPart))*/
    //_geometry(*(FG::getInstance().CreateObject(geomAlgo)))
   {
   
@@ -353,7 +353,7 @@ namespace cwipi {
     }
     
   void Coupling::meshEndSet()
-  {_mesh.endSet();
+  {
   } 
     
     
@@ -367,16 +367,6 @@ namespace cwipi {
     CWP_g_num_t         parent_num[]
   )
   {
-     _mesh.blockAdd(i_part,
-                    block_type,
-                    n_elts,
-                    NULL,
-                    connec,
-                    -1,
-                    NULL,
-                    NULL,                            
-                    NULL,
-                    (int*) parent_num);
   }
   
   void Coupling::meshHighOrderBlockAdd
@@ -402,16 +392,7 @@ namespace cwipi {
     CWP_g_num_t          parent_num[]
   )
   {
-     _mesh.blockAdd(i_part,
-                    CWP_BLOCK_FACE_POLY,
-                    n_elts,
-                    connec_idx,
-                    connec,
-                    -1,
-                    NULL,
-                    NULL,                            
-                    NULL,
-                    (int*)parent_num);
+
   }
   
 
@@ -427,16 +408,7 @@ namespace cwipi {
     CWP_g_num_t         parent_num[]
   )
   {
-     _mesh.blockAdd(i_part,
-                    CWP_BLOCK_CELL_POLY,
-                    n_elts,
-                    cell_face_idx,
-                    cell_face,
-                    n_faces,
-                    face_vtx_idx,
-                    face_vtx,                            
-                    NULL,
-                    (int*)parent_num);
+
   }
   
   

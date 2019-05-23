@@ -100,6 +100,14 @@ typedef enum {
 } CWP_Type_t;
 
 
+
+typedef enum {
+
+  Ensight      /*!< Ensight visualization format */
+
+} CWP_Visu_format_t;
+
+
 /**
  * \enum CWP_Comm_t
  * \brief Communication mode
