@@ -299,6 +299,21 @@ namespace cwipi {
       _closest_elt_gnum[i_part]=closest_elt_gnum;
     }    
 
+
+    CWP_g_num_t*
+    gnumTargetGet(int i_part) {
+      return _gnum_target[i_part];
+    }  
+    
+    
+    double*
+    coordsTargetGet(int i_part) {
+      return _coords_target[i_part];
+    }  
+          
+
+    
+
  void _IAlltoallIndex(void* send_buffer,
                 int* send_count,
                 int* send_disp,
@@ -437,9 +452,6 @@ void _IBcast(void* send_buffer,
     int _n_g_vtx_cpl_over_part;  
     
     int**                          _n_targets_dist_proc_dist_part;
- 
- 
-    
     int**                          _n_targets_recv_dist_proc_loc_part    ;
     int**                          _idx_targets_recv_dist_proc_loc_part  ;
     

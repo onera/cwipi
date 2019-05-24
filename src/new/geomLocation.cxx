@@ -65,223 +65,15 @@ namespace cwipi {
 
   void _transform_to_index(int* array,int l1) {
   
-  int sav = array[0];
-  array[0]=0;
-  array [l1]=0;
-  for (int i_part = 1; i_part < l1+1; i_part++) {
-    int sav2 = array[i_part];
-    array[i_part] = sav + array[i_part-1];   
-    sav = sav2;
+    int sav = array[0];
+    array[0]=0;
+    array [l1]=0;
+    for (int i_part = 1; i_part < l1+1; i_part++) {
+      int sav2 = array[i_part];
+      array[i_part] = sav + array[i_part-1];   
+      sav = sav2;
+    }
   }
-  }
-
-  void _IAlltoallIndex2vtx(target_data_vtx* send_buffer,
-                int** send_idx,
-                int send_stride,
-                target_data_vtx* recv_buffer,
-                int** recv_idx,
-                int recv_stride,
-                MPI_Comm comm,
-                std::vector<int> connectableRanks_cpl,
-                int _n_ranks_cpl,
-                int _nb_part_cpl){
-      MPI_Status status;
-      int tag = 0;
-            
-      std::vector<int> send_requests(_n_ranks_cpl,0);
-      std::vector<int> recv_requests(_n_ranks_cpl,0);
-
-      for(int i_rank=0;i_rank<_n_ranks_cpl;i_rank++) {
-        int distant_rank = connectableRanks_cpl[i_rank];
-        
-        printf("distant_rank %i\n",distant_rank);
-
-        int ind_proc      = recv_idx[i_rank][0];
-        int ind_proc_send = send_idx[i_rank][0];
-        
-          target_data_vtx* ptr_send = ( target_data_vtx*)send_buffer;
-          int send_size = (send_idx[i_rank][_nb_part_cpl] - send_idx[i_rank][0])*sizeof(target_data_vtx);
-          MPI_Issend(&(  ptr_send [ind_proc_send] ), send_stride * send_size, MPI_BYTE, distant_rank, tag,
-                   comm,
-                   &(send_requests[i_rank]));        
-   
-          int recv_size = (recv_idx[i_rank][_nb_part_cpl] - recv_idx[i_rank][0])*sizeof(target_data_vtx);
-          target_data_vtx* ptr = (target_data_vtx*)recv_buffer;
-         printf("IND_PROC %i %i\n",send_size,recv_size);
-          MPI_Irecv(&(  ptr [ind_proc] ), recv_stride * recv_size,MPI_BYTE, distant_rank, tag,
-                  comm,
-                  &(recv_requests[i_rank]));  
-
-       
-       
-       
-      }//end for on i_rank
-
-      for(int i_rank=0;i_rank<_n_ranks_cpl;i_rank++) {
-        MPI_Wait(&(send_requests[i_rank]), &status);
-        MPI_Wait(&(recv_requests[i_rank]), &status);
-      }//end for on i_rank 
-  }
-
-
-
-  void _IAlltoallIndex2(target_data* send_buffer,
-                int** send_idx,
-                int send_stride,
-                target_data* recv_buffer,
-                int** recv_idx,
-                int recv_stride,
-                MPI_Comm comm,
-                std::vector<int> connectableRanks_cpl,
-                int _n_ranks_cpl,
-                int _nb_part_cpl){
-      MPI_Status status;
-      int tag = 0;
-            
-      std::vector<int> send_requests(_n_ranks_cpl,0);
-      std::vector<int> recv_requests(_n_ranks_cpl,0);
-
-      for(int i_rank=0;i_rank<_n_ranks_cpl;i_rank++) {
-        int distant_rank = connectableRanks_cpl[i_rank];
-        
-        printf("distant_rank %i\n",distant_rank);
-
-        int ind_proc      = recv_idx[i_rank][0];
-        int ind_proc_send = send_idx[i_rank][0];
-        
-          target_data* ptr_send = ( target_data*)send_buffer;
-          int send_size = (send_idx[i_rank][_nb_part_cpl] - send_idx[i_rank][0])*sizeof(target_data);
-          MPI_Issend(&(  ptr_send [ind_proc_send] ), send_stride * send_size, MPI_BYTE, distant_rank, tag,
-                   comm,
-                   &(send_requests[i_rank]));        
-   
-          int recv_size = (recv_idx[i_rank][_nb_part_cpl] - recv_idx[i_rank][0])*sizeof(target_data);
-          target_data* ptr = (target_data*)recv_buffer;
-         printf("IND_PROC %i %i\n",send_size,recv_size);
-          MPI_Irecv(&(  ptr [ind_proc] ), recv_stride * recv_size,MPI_BYTE, distant_rank, tag,
-                  comm,
-                  &(recv_requests[i_rank]));  
-
-       
-       
-       
-      }//end for on i_rank
-
-      for(int i_rank=0;i_rank<_n_ranks_cpl;i_rank++) {
-        MPI_Wait(&(send_requests[i_rank]), &status);
-        MPI_Wait(&(recv_requests[i_rank]), &status);
-      }//end for on i_rank 
-  }
-
-
- void _IAlltoallIndex1vtx(target_data_vtx** send_buffer,
-                int** send_idx,
-                int send_stride,
-                target_data_vtx* recv_buffer,
-                int** recv_idx,
-                int recv_stride,
-                MPI_Comm comm,
-                std::vector<int> connectableRanks_cpl,
-                int _n_ranks_cpl,
-                int _nb_part){
-      MPI_Status status;
-      int tag = 0;
-      int ind_proc = 0;
-      int ind_proc_send = 0;
-            
-      std::vector<int> send_requests(_n_ranks_cpl,0);
-      std::vector<int> recv_requests(_n_ranks_cpl,0);
-
-      for(int i_rank=0;i_rank<_n_ranks_cpl;i_rank++) {
-        int distant_rank = connectableRanks_cpl[i_rank];
-        
-        printf("distant_rank %i\n",distant_rank);
-
-
-        
-
-          target_data_vtx** ptr_send = ( target_data_vtx**)send_buffer;
-          int send_size = (send_idx[i_rank][_nb_part] - send_idx[i_rank][0])*sizeof(target_data_vtx);
-          MPI_Issend(&(  ptr_send [i_rank] [0] ), send_stride * send_size, MPI_BYTE, distant_rank, tag,
-                   comm,
-                   &(send_requests[i_rank]));        
-   
-          int recv_size = (recv_idx[i_rank][_nb_part] - recv_idx[i_rank][0])*sizeof(target_data_vtx);
-          ind_proc = recv_idx[i_rank][0];
-          
-          target_data_vtx* ptr = (target_data_vtx*)recv_buffer;
-          printf("IND_PROC %i %i\n",send_size,recv_size);
-          MPI_Irecv(&(  ptr [ind_proc] ), recv_stride * recv_size,MPI_BYTE, distant_rank, tag,
-                  comm,
-                  &(recv_requests[i_rank]));  
-
-       ind_proc_send = send_stride * send_idx[i_rank][0];
-      }//end for on i_rank
-
-      for(int i_rank=0;i_rank<_n_ranks_cpl;i_rank++) {
-        MPI_Wait(&(send_requests[i_rank]), &status);
-        MPI_Wait(&(recv_requests[i_rank]), &status);
-      }//end for on i_rank 
-  }
-
-
-
-  void _IAlltoallIndex1(target_data** send_buffer,
-                int** send_idx,
-                int send_stride,
-                target_data* recv_buffer,
-                int** recv_idx,
-                int recv_stride,
-                MPI_Comm comm,
-                std::vector<int> connectableRanks_cpl,
-                int _n_ranks_cpl,
-                int _nb_part){
-      MPI_Status status;
-      int tag = 0;
-      int ind_proc = 0;
-      int ind_proc_send = 0;
-            
-      std::vector<int> send_requests(_n_ranks_cpl,0);
-      std::vector<int> recv_requests(_n_ranks_cpl,0);
-
-      for(int i_rank=0;i_rank<_n_ranks_cpl;i_rank++) {
-        int distant_rank = connectableRanks_cpl[i_rank];
-        
-        printf("distant_rank %i\n",distant_rank);
-
-
-        
-
-          target_data** ptr_send = ( target_data**)send_buffer;
-          int send_size = (send_idx[distant_rank][_nb_part] - send_idx[distant_rank][0])*sizeof(target_data);
-          MPI_Issend(&(  ptr_send [distant_rank] [0] ), send_stride * send_size, MPI_BYTE, distant_rank, tag,
-                   comm,
-                   &(send_requests[i_rank]));        
-   
-          int recv_size = (recv_idx[distant_rank][_nb_part] - recv_idx[distant_rank][0])*sizeof(target_data);
-          ind_proc = recv_idx[distant_rank][0];
-          
-          target_data* ptr = (target_data*)recv_buffer;
-          printf("IND_PROC %i %i\n",send_size,recv_size);
-          MPI_Irecv(&(  ptr [ind_proc] ), recv_stride * recv_size,MPI_BYTE, distant_rank, tag,
-                  comm,
-                  &(recv_requests[i_rank]));  
-
-       ind_proc_send = send_stride * send_idx[distant_rank][0];
-      }//end for on i_rank
-
-      for(int i_rank=0;i_rank<_n_ranks_cpl;i_rank++) {
-        MPI_Wait(&(send_requests[i_rank]), &status);
-        MPI_Wait(&(recv_requests[i_rank]), &status);
-      }//end for on i_rank 
-  }
-  
- 
-
-
-
-  
-
 
   double* GeomLocation::interpolate(Field <double>* referenceField) {
 
@@ -500,15 +292,15 @@ void GeomLocation::issend(Field <double>* referenceField) {
       else {
         Mesh* mesh_cpl = _geometry_cpl_cell_point -> meshGet();
         int          n_target_cpl      = _geometry_cpl_cell_point -> nTargetGet(i_part);
-        CWP_g_num_t* gnum_elt_cpl      = mesh_cpl -> GNumEltsGet(i_part);     
-        double*      centers_cpl       = mesh_cpl -> eltCentersGet(i_part);
+        CWP_g_num_t* gnum_target_cpl   = _geometry_cpl_cell_point -> gnumTargetGet(i_part);
+        double*      coords_target_cpl = _geometry_cpl_cell_point -> coordsTargetGet(i_part);
 
         PDM_mesh_dist_cloud_set (id_dist,
                               0,
                               i_part,
                               n_target_cpl,
-                              centers_cpl,
-                              gnum_elt_cpl
+                              coords_target_cpl,
+                              gnum_target_cpl
                              );   
      }   
    }
@@ -524,7 +316,6 @@ void GeomLocation::issend(Field <double>* referenceField) {
    */
 
     /* Paradigm mesh localisation _distance creation */
-    // Envoyeur _codeVector[1] Surface _codeVector[0]
     id_dist   = PDM_mesh_dist_create( PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_globalComm );
 
     PDM_mesh_dist_n_part_cloud_set(id_dist,   0, _nb_part);  
@@ -536,15 +327,15 @@ void GeomLocation::issend(Field <double>* referenceField) {
 
     for(int i_part =0;i_part<_nb_part;i_part++) {   
 
-      CWP_g_num_t* gnum_elt = _mesh -> GNumEltsGet(i_part);
-      double* centers       = _mesh -> eltCentersGet(i_part);
+      CWP_g_num_t* gnum_target          = gnumTargetGet  (i_part);
+      double*      coords_target        = coordsTargetGet(i_part);
 
       PDM_mesh_dist_cloud_set (id_dist,
                               0,
                               i_part,
                               _n_target[i_part],
-                              centers,
-                              gnum_elt
+                              coords_target,
+                              gnum_target
                              );
     }
  
@@ -552,14 +343,6 @@ void GeomLocation::issend(Field <double>* referenceField) {
     for(int i_part =0; i_part<_nb_part_cpl; i_part++) {     
     
       if(_both_codes_are_local == 0) {
- /*       int* tmp1 = (int*) malloc(sizeof(int)*1000);
-        int* tmp2 = (int*) malloc(sizeof(int)*1000);
-         
-        CWP_g_num_t* tmp3 = (CWP_g_num_t*) malloc(sizeof(CWP_g_num_t)*1000);
-        CWP_g_num_t* tmp4 = (CWP_g_num_t*) malloc(sizeof(CWP_g_num_t)*1000);
-        double* tmp6 = (double*) malloc(sizeof(double)*1000);
-*/
-
         int*         connecIdx = _mesh -> connecIdxGet(i_part);
         int*         connec    = _mesh -> connecGet(i_part);
         
@@ -614,7 +397,6 @@ void GeomLocation::issend(Field <double>* referenceField) {
   id_gnum_location = PDM_gnum_location_create(_nb_part,_nb_part_cpl, _pdm_globalComm);
 
   for(int i_part =0;i_part<_nb_part;i_part++) {    
-    CWP_g_num_t* gnum_elt = _mesh -> GNumEltsGet(i_part);
     PDM_gnum_location_requested_elements_set(id_gnum_location,i_part, _n_target[i_part],_closest_elt_gnum[i_part]);
   }
 
@@ -622,15 +404,14 @@ void GeomLocation::issend(Field <double>* referenceField) {
   for(int i_part =0; i_part<_nb_part_cpl; i_part++) {     
     
       if(_both_codes_are_local == 0) {
-        CWP_g_num_t* gnum_elt = _mesh -> GNumEltsGet(i_part);
-        PDM_gnum_location_elements_set(id_gnum_location,i_part, 0,gnum_elt);    
+        CWP_g_num_t* gnum_target = gnumTargetGet(i_part);
+        PDM_gnum_location_elements_set(id_gnum_location,i_part, 0,gnum_target);    
       }     
-     else {
-       Mesh* mesh_cpl = _geometry_cpl_cell_point -> meshGet();     
-       CWP_g_num_t* gnum_elt_cpl = mesh_cpl -> GNumEltsGet(i_part);
-       int          n_elts_cpl    = mesh_cpl -> getPartNElts(i_part);
+     else {  
+       CWP_g_num_t* gnum_target_cpl = _geometry_cpl_cell_point -> gnumTargetGet(i_part);
+       int          n_target_cpl    = _geometry_cpl_cell_point -> nTargetGet   (i_part);
        
-       PDM_gnum_location_elements_set(id_gnum_location,i_part, n_elts_cpl,gnum_elt_cpl);    
+       PDM_gnum_location_elements_set(id_gnum_location,i_part, n_target_cpl,gnum_target_cpl);    
      }
   }
  }
@@ -642,24 +423,21 @@ void GeomLocation::issend(Field <double>* referenceField) {
 
   for(int i_part =0;i_part<_nb_part_cpl;i_part++) {    
 
-    CWP_g_num_t* gnum_elt = _mesh -> GNumEltsGet(i_part);
+    CWP_g_num_t* gnum_target = gnumTargetGet(i_part);
     
-    PDM_gnum_location_elements_set(id_gnum_location,i_part, _n_target[i_part],gnum_elt);      
+    PDM_gnum_location_elements_set(id_gnum_location,i_part, _n_target[i_part],gnum_target);      
   }
 
   for(int i_part =0; i_part<_nb_part_cpl; i_part++) {     
     
       if(_both_codes_are_local == 0) {
       
-        CWP_g_num_t* gnum_elt = _mesh -> GNumEltsGet(i_part);
-        PDM_gnum_location_requested_elements_set(id_gnum_location,i_part, 0,gnum_elt);
+        CWP_g_num_t* gnum_target = gnumTargetGet(i_part);
+        PDM_gnum_location_requested_elements_set(id_gnum_location,i_part, 0,gnum_target);
       }     
      else {
-       Mesh* mesh_cpl = _geometry_cpl_cell_point -> meshGet();     
-       
-       int          n_elts_cpl    = mesh_cpl -> getPartNElts(i_part);
-
-       PDM_gnum_location_requested_elements_set(id_gnum_location,i_part, n_elts_cpl, (_geometry_cpl_cell_point -> _closest_elt_gnum)[i_part]);
+       int          n_target_cpl    = _geometry_cpl_cell_point -> nTargetGet(i_part);
+       PDM_gnum_location_requested_elements_set(id_gnum_location,i_part, n_target_cpl, (_geometry_cpl_cell_point -> _closest_elt_gnum)[i_part]);
      }
   }
  }
@@ -703,9 +481,9 @@ void GeomLocation::issend(Field <double>* referenceField) {
 
   void GeomLocation::locate_cell_point_get(int id_dist) {
   
-  _distance           = (double**)malloc(sizeof(double*) * _nb_part);
-  _projected          = (double**)malloc(sizeof(double*) * _nb_part);
-  _closest_elt_gnum   = (CWP_g_num_t**)malloc(sizeof(CWP_g_num_t*) * _nb_part);
+    _distance           = (double**)malloc(sizeof(double*) * _nb_part);
+    _projected          = (double**)malloc(sizeof(double*) * _nb_part);
+    _closest_elt_gnum   = (CWP_g_num_t**)malloc(sizeof(CWP_g_num_t*) * _nb_part);
 
     for(int i_part =0;i_part<_nb_part;i_part++) {     
     
@@ -725,7 +503,6 @@ void GeomLocation::issend(Field <double>* referenceField) {
        
        memcpy(_distance        [i_part],tmp2, 3 * sizeof(double)      * _n_target[i_part] );
        memcpy(_projected       [i_part],tmp3, 3 * sizeof(double)      * _n_target[i_part] );
-       memcpy(_closest_elt_gnum[i_part],tmp,      sizeof(CWP_g_num_t) * _n_target[i_part] );
        memcpy(_closest_elt_gnum[i_part],tmp,      sizeof(CWP_g_num_t) * _n_target[i_part] );
     }
 
@@ -753,8 +530,7 @@ void GeomLocation::issend(Field <double>* referenceField) {
 
     int* tmp;
     int* tmp2;
-    int   n_elts    = _mesh -> getPartNElts(i_part);
-    
+
     PDM_gnum_location_get(id_gnum_location,
                             i_part,
                             &tmp,
@@ -762,11 +538,11 @@ void GeomLocation::issend(Field <double>* referenceField) {
                             );  
  
 
-    _location_idx[i_part] = (int*) malloc(sizeof(int) * (1+n_elts));
-    _location[i_part]     = (int*) malloc(3* sizeof(int) * (n_elts));
+    _location_idx[i_part] = (int*) malloc(sizeof(int) * (1+_n_target[i_part]));
+    _location[i_part]     = (int*) malloc(3* sizeof(int) * _n_target[i_part]);
     
-    memcpy(_location_idx[i_part],tmp,(1+n_elts)*sizeof(int));
-    memcpy(_location[i_part],tmp2,3*(n_elts)*sizeof(int));
+    memcpy(_location_idx[i_part],tmp ,(1+_n_target[i_part]) * sizeof(int));
+    memcpy(_location    [i_part],tmp2,3* _n_target[i_part] * sizeof(int));
   
    } 
  } 
@@ -777,13 +553,12 @@ void GeomLocation::issend(Field <double>* referenceField) {
    
     _geometry_cpl_cell_point -> _location_idx =(int**)malloc(sizeof(int*)*_nb_part);
     _geometry_cpl_cell_point -> _location     =(int**)malloc(sizeof(int*)*_nb_part);
-    Mesh* mesh_cpl = _geometry_cpl_cell_point -> meshGet();
     
     for(int i_part =0;i_part<_nb_part;i_part++) {     
        int* tmp;
        int* tmp2;
             
-       int          n_elts_cpl    = mesh_cpl -> getPartNElts(i_part);
+       int          n_target_cpl    =  _geometry_cpl_cell_point -> nTargetGet(i_part);
     
     
       _geometry_cpl_cell_point -> _location_idx[i_part]=NULL;
@@ -794,11 +569,11 @@ void GeomLocation::issend(Field <double>* referenceField) {
                             &tmp2
                             );  
  
-    _geometry_cpl_cell_point ->_location_idx[i_part] = (int*) malloc(sizeof(int) * (1+n_elts_cpl));
-    _geometry_cpl_cell_point -> _location[i_part] = (int*) malloc(3* sizeof(int) * n_elts_cpl);
+    _geometry_cpl_cell_point -> _location_idx[i_part] = (int*) malloc(   sizeof(int) * (1+n_target_cpl));
+    _geometry_cpl_cell_point -> _location    [i_part] = (int*) malloc(3* sizeof(int) * n_target_cpl    );
     
-    memcpy(_geometry_cpl_cell_point -> _location_idx[i_part], tmp,   (1+n_elts_cpl)*sizeof(int) );
-    memcpy(_geometry_cpl_cell_point -> _location    [i_part], tmp2,3*n_elts_cpl*sizeof(int) );
+    memcpy(_geometry_cpl_cell_point -> _location_idx[i_part], tmp,   (1+n_target_cpl)*sizeof(int) );
+    memcpy(_geometry_cpl_cell_point -> _location    [i_part], tmp2, 3*n_target_cpl   *sizeof(int) );
       
     }
 
@@ -821,8 +596,7 @@ void GeomLocation::issend(Field <double>* referenceField) {
 
 
   for (int i_part = 0; i_part < _nb_part_cpl; i_part++) {
-    int   n_elts    = _mesh -> getPartNElts(i_part);
-    for(int k=0;k<n_elts;k++){
+    for(int k=0;k<_n_target[i_part];k++){
        
       // printf("_location_idx[i_part][%i] rank %i %i\n",k,_rank,_location_idx[i_part][k]);
       // printf("_location[i_part][%i] rank %i %i\n",k,_rank,_location[i_part][ _location_idx[i_part][k] ]);
