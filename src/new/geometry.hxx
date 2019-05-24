@@ -34,6 +34,9 @@ namespace cwipi {
     int          origin_proc     ;
     int          closest_elt_part;
     int          l_num_origin    ;
+    double       projectedX       ;     
+    double       projectedY       ;
+    double       projectedZ       ;      
   };
 
   typedef struct target_data_vtx {

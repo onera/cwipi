@@ -404,14 +404,18 @@ void GeomLocation::issend(Field <double>* referenceField) {
   for(int i_part =0; i_part<_nb_part_cpl; i_part++) {     
     
       if(_both_codes_are_local == 0) {
-        CWP_g_num_t* gnum_target = gnumTargetGet(i_part);
-        PDM_gnum_location_elements_set(id_gnum_location,i_part, 0,gnum_target);    
+        CWP_g_num_t* gnum_elt = _mesh -> GNumEltsGet(i_part);     
+        PDM_gnum_location_elements_set(id_gnum_location,i_part, 0,gnum_elt);    
       }     
      else {  
        CWP_g_num_t* gnum_target_cpl = _geometry_cpl_cell_point -> gnumTargetGet(i_part);
        int          n_target_cpl    = _geometry_cpl_cell_point -> nTargetGet   (i_part);
+
+       Mesh* mesh_cpl = _geometry_cpl_cell_point -> meshGet();
+       CWP_g_num_t* gnum_elt_cpl = mesh_cpl -> GNumEltsGet(i_part);     
+       int          n_elt_cpl    = mesh_cpl -> getPartNElts(i_part);
        
-       PDM_gnum_location_elements_set(id_gnum_location,i_part, n_target_cpl,gnum_target_cpl);    
+       PDM_gnum_location_elements_set(id_gnum_location,i_part, n_elt_cpl,gnum_elt_cpl);    
      }
   }
  }
@@ -424,8 +428,10 @@ void GeomLocation::issend(Field <double>* referenceField) {
   for(int i_part =0;i_part<_nb_part_cpl;i_part++) {    
 
     CWP_g_num_t* gnum_target = gnumTargetGet(i_part);
+    CWP_g_num_t* gnum_elt = _mesh -> GNumEltsGet(i_part);     
     
-    PDM_gnum_location_elements_set(id_gnum_location,i_part, _n_target[i_part],gnum_target);      
+    
+    PDM_gnum_location_elements_set(id_gnum_location,i_part, _n_elt[i_part],gnum_elt);      
   }
 
   for(int i_part =0; i_part<_nb_part_cpl; i_part++) {     
@@ -433,7 +439,8 @@ void GeomLocation::issend(Field <double>* referenceField) {
       if(_both_codes_are_local == 0) {
       
         CWP_g_num_t* gnum_target = gnumTargetGet(i_part);
-        PDM_gnum_location_requested_elements_set(id_gnum_location,i_part, 0,gnum_target);
+        CWP_g_num_t* gnum_elt = _mesh -> GNumEltsGet(i_part);     
+        PDM_gnum_location_requested_elements_set(id_gnum_location,i_part, 0,gnum_elt);
       }     
      else {
        int          n_target_cpl    = _geometry_cpl_cell_point -> nTargetGet(i_part);

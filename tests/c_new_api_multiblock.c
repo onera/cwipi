@@ -88,7 +88,7 @@ struct elType {
  * parameters:
  *   f                   <-- Mesh file                 
  *   dimension           --> Dimension                   
- *   nb_Vertex             <-- number of vertices
+ *   nVtx             <-- number of vertices
  *   nElements           <-- number of elements
  *   nConnecVertex       <-- size of connectivity
  *   coords              --> vertices coordinates
@@ -96,7 +96,7 @@ struct elType {
  *   connec              --> connectivity
  *---------------------------------------------------------------------*/
  static int _read_mesh_dim(FILE *f, 
-                      int* nb_Vertex, 
+                      int* nVtx, 
                       int* nb_Elts,
                       int* nBlock,
                       int** nElBlock,
@@ -148,9 +148,9 @@ elementType[93] = (elType){125,"fourth order hexahedron (8 nodes associated with
   int nv,nEl;
   double poubd;
   r = fscanf(f, "%i",nBlock);
-  r = fscanf(f, "%i",nb_Vertex);
+  r = fscanf(f, "%i",nVtx);
   
-  printf("nb_Vertex %i\n",*nb_Vertex);
+  printf("nVtx %i\n",*nVtx);
 
   int dimension =3;
 
@@ -322,7 +322,7 @@ void tricroissant( int* a, int b) {
  * parameters:
  *   f                   <-- Mesh file                 
  *   dimension           --> Dimension                   
- *   nb_Vertex             <-- number of vertices
+ *   nVtx             <-- number of vertices
  *   nElements           <-- number of elements
  *   nConnecVertex       <-- size of connectivity
  *   coords              --> vertices coordinates
@@ -330,7 +330,7 @@ void tricroissant( int* a, int b) {
  *   connec              --> connectivity
  *---------------------------------------------------------------------*/
  static int _read_mesh(FILE *f, 
-                      int* nb_Vertex, 
+                      int* nVtx, 
                       int* nb_Elts,
                       int* nBlock,
                       int** nElBlock,
@@ -384,8 +384,8 @@ elementType[93] = (elType){125,"fourth order hexahedron (8 nodes associated with
    // _goto(f,"$EndNodes");
   int nv,nEl;
   r = fscanf(f, "%i",nBlock);
-  r = fscanf(f, "%i",nb_Vertex);
-  printf("nb_Vertex1 %i\n",*nb_Vertex);
+  r = fscanf(f, "%i",nVtx);
+  printf("nVtx1 %i\n",*nVtx);
 
   int dimension =3;
 
@@ -451,7 +451,7 @@ elementType[93] = (elType){125,"fourth order hexahedron (8 nodes associated with
       for(int jv=0;jv<size_el;jv++) { 
         r = fscanf(f, "%i",connec[block1]+size_el*i+jv);
         
-        connec[block1][size_el*i+jv] =  1+tabSearch2(connec[block1][size_el*i+jv],&gnum_coords,*nb_Vertex);
+        connec[block1][size_el*i+jv] =  1+tabSearch2(connec[block1][size_el*i+jv],&gnum_coords,*nVtx);
         if(connec[block1][size_el*i+jv]<-1 || connec[block1][size_el*i+jv] >100000)
            printf("Alerte wrong connectivity\n");
         //printf("connect %i \n",connec[block1][size_el*i+jv]);
@@ -482,7 +482,7 @@ elementType[93] = (elType){125,"fourth order hexahedron (8 nodes associated with
  * parameters:
  *   f                   <-- Mesh file                 
  *   dimension           --> Dimension                   
- *   nb_Vertex             <-- number of vertices
+ *   nVtx             <-- number of vertices
  *   nElements           <-- number of elements
  *   nConnecVertex       <-- size of connectivity
  *   coords              --> vertices coordinates
@@ -490,7 +490,7 @@ elementType[93] = (elType){125,"fourth order hexahedron (8 nodes associated with
  *   connec              --> connectivity
  *---------------------------------------------------------------------*/
  static int _read_meshBIS(FILE *f, 
-                      int* nb_Vertex, 
+                      int* nVtx, 
                       int* nb_Elts,
                       int* nBlock,
                       int** nElBlock,
@@ -544,8 +544,8 @@ elementType[93] = (elType){125,"fourth order hexahedron (8 nodes associated with
    // _goto(f,"$EndNodes");
   int nv,nEl;
   r = fscanf(f, "%i",nBlock);
-  r = fscanf(f, "%i",nb_Vertex);
-  printf("nb_Vertex1 %i\n",*nb_Vertex);
+  r = fscanf(f, "%i",nVtx);
+  printf("nVtx1 %i\n",*nVtx);
 
   int dimension =3;
 
@@ -609,7 +609,7 @@ elementType[93] = (elType){125,"fourth order hexahedron (8 nodes associated with
       for(int jv=0;jv<size_el;jv++) { 
         r = fscanf(f, "%i",connec[block1]+size_el*i+jv);
         
-        connec[block1][size_el*i+jv] =  1+tabSearch2(connec[block1][size_el*i+jv],&gnum_coords,*nb_Vertex);
+        connec[block1][size_el*i+jv] =  1+tabSearch2(connec[block1][size_el*i+jv],&gnum_coords,*nVtx);
         //printf("connect %i \n",connec[block1][size_el*i+jv]);
         //printf("%i nEl2 %i block %i nv %i connec %i %i %i size_el %i IelType %i\n",
         //*nb_Elts,nEl2,block,nv,i,jv,connec[block1][size_el*i+jv],size_el,IelType);
@@ -751,7 +751,7 @@ int main
     int* nBlock;
     int* nBlockOld;
     int** typeBlock;
-    int* nb_Vertex;
+    int** nVtx;
     int*** eltsConnec;
     double** coords;
     int**    gnum_coord;
@@ -764,10 +764,11 @@ int main
 *************************/
 
     nElts = (int**)malloc(sizeof(int*)*n_code_name);
+    nVtx  = (int**)malloc(sizeof(int*)*n_code_name);
     nBlock = (int*)malloc(sizeof(int)*nb_part);
     nBlockOld = (int*)malloc(sizeof(int)*nb_part);
     typeBlock = (int**)malloc(sizeof(int*)*nb_part);
-    nb_Vertex = (int*)malloc(sizeof(int)*nb_part);
+
     eltsConnec = (int***)malloc(sizeof(int**)*nb_part);
     coords = (double**)malloc(sizeof(double*)*nb_part);
     gnum_coord = (int**)malloc(sizeof(int*)*nb_part);
@@ -782,7 +783,7 @@ int main
    int currentRank = currentRankA[i];
 
    nElts[i] = (int*)malloc(sizeof(int)*nb_part);
-
+   nVtx [i] = (int*)malloc(sizeof(int)*nb_part);
    printf("%i rank %i localCommSize %i code_name %s\n",i,currentRank,localComm_size,code_name);
   
    if( code_name == "code1") {
@@ -903,19 +904,19 @@ int main
     typeBlock[i_part] = NULL;
 
     _read_mesh_dim(meshFile,
-              &nb_Vertex[i_part], 
+              &nVtx[i][i_part], 
               &nElts[i][i_part],
               &nBlock[i_part],
               &(nElBlock[i_part]),
               &(typeBlock[i_part]));
     
 
-    coords[i_part] = (double*) malloc(3 * nb_Vertex[i_part] * sizeof(double));
-    gnum_coord[i_part] = (int*) malloc(nb_Vertex[i_part] * sizeof(int));
+    coords[i_part] = (double*) malloc(3 * nVtx[i][i_part] * sizeof(double));
+    gnum_coord[i_part] = (int*) malloc(nVtx[i][i_part] * sizeof(int));
     eltsConnec[i_part] = (int**)malloc(nBlock[i_part]*sizeof(int*));
   
-    printf("currentRank %i nb_Vertex[i_part] %i nElts[i][i_part] %i nBlock[i_part] %i nElBlock[i_part][0] %i typeBlock[i_part][0] %i\n",
-    currentRankA[i], nb_Vertex[i_part],nElts[i][i_part],nBlock[i_part],nElBlock[i_part][0],typeBlock[i_part][0]);
+    printf("currentRank %i nVtx[i][i_part] %i nElts[i][i_part] %i nBlock[i_part] %i nElBlock[i_part][0] %i typeBlock[i_part][0] %i\n",
+    currentRankA[i], nVtx[i][i_part],nElts[i][i_part],nBlock[i_part],nElBlock[i_part][0],typeBlock[i_part][0]);
     nBlockOld[i_part] = nBlock[i_part];
     for(int b=0;b<nBlock[i_part];b++) {
       //printf("Partition %i Block %i size = %i rank %i\n",i_part,b,nElBlock[i_part][b],rank);
@@ -928,10 +929,10 @@ int main
 
     int** connec_p=eltsConnec[i_part];    
 
-    printf("filenamePP %s %i %i %i %i %i\n",filename,rank,nElts[i][i_part],nBlock[i_part],typeBlock[i_part],nb_Vertex[i_part]);
+    printf("filenamePP %s %i %i %i %i %i\n",filename,rank,nElts[i][i_part],nBlock[i_part],typeBlock[i_part],nVtx[i][i_part]);
 
     _read_mesh(meshFile,
-              &nb_Vertex[i_part], 
+              &nVtx[i][i_part], 
               &nElts[i][i_part],
               &nBlock[i_part],
               &(nElBlock[i_part]),
@@ -948,8 +949,8 @@ int main
 
 
 
-    printf("CWP_Mesh_interf_vtx_set %i\n",nb_Vertex[i_part]);           
-    CWP_Mesh_interf_vtx_set(codeNames[i], cpl_id1,i_part,nb_Vertex[i_part],coords[i_part],NULL);                
+    printf("CWP_Mesh_interf_vtx_set %i\n",nVtx[i][i_part]);           
+    CWP_Mesh_interf_vtx_set(codeNames[i], cpl_id1,i_part,nVtx[i][i_part],coords[i_part],NULL);                
     printf("After CWP_Mesh_interf_vtx_set %i %i\n",i_part,rank);  
     
 
@@ -1071,7 +1072,9 @@ int main
           Loop on Code Names
 *********************************/
 
-  double*** rank_data = (double***)malloc(sizeof(double**)*n_code_name);
+  double*** rank_data     = (double***)malloc(sizeof(double**)*n_code_name);
+  double*** rank_data_vtx = (double***)malloc(sizeof(double**)*n_code_name);
+
 
   for (int i = 0; i < n_code_name; i++ ) {
 
@@ -1093,6 +1096,12 @@ int main
                         CWP_FIELD_VALUE_CELL_POINT,
                         CWP_FIELD_EXCH_SEND,
                         visu_status);
+                        
+      CWP_Field_create (code_name,cpl_id1,"rank_vtx",CWP_DOUBLE,CWP_FIELD_STORAGE_BLOCK,1,
+                        CWP_FIELD_VALUE_NODE,
+                        CWP_FIELD_EXCH_SEND,
+                        visu_status);                        
+                        
    } //end  if(code_name == "code1")
    
   
@@ -1101,13 +1110,23 @@ int main
     CWP_Field_create (code_name,cpl_id1,"rank",CWP_DOUBLE,CWP_FIELD_STORAGE_BLOCK,1,
                       CWP_FIELD_VALUE_CELL_POINT,
                       CWP_FIELD_EXCH_RECV,
-                      visu_status);                          
+                      visu_status);       
+                      
+    CWP_Field_create (code_name,cpl_id1,"rank_vtx",CWP_DOUBLE,CWP_FIELD_STORAGE_BLOCK,1,
+                      CWP_FIELD_VALUE_NODE,
+                      CWP_FIELD_EXCH_RECV,
+                      visu_status);      
+                                         
    }
 
-   rank_data[i] = (double**)malloc(sizeof(double*)*nb_part);
+   rank_data_vtx[i] = (double**)malloc(sizeof(double*)*nb_part);
+   rank_data    [i] = (double**)malloc(sizeof(double*)*nb_part);
+   
    for(int i_part =0;i_part <nb_part;i_part++) {    
-      rank_data[i][i_part] = (double*)malloc(sizeof(double)*nElts[i][i_part]);
-      CWP_Field_data_set(code_name,cpl_id1,"rank",i_part,rank_data[i][i_part]);
+      rank_data    [i][i_part] = (double*)malloc(sizeof(double)*nElts[i][i_part]);
+      rank_data_vtx[i][i_part] = (double*)malloc(sizeof(double)*nVtx [i][i_part]);
+      CWP_Field_data_set(code_name,cpl_id1,"rank"    ,i_part,rank_data    [i][i_part]);
+      CWP_Field_data_set(code_name,cpl_id1,"rank_vtx",i_part,rank_data_vtx[i][i_part]);
    }   
 
    printf("After data set\n");
@@ -1128,8 +1147,8 @@ for (int i = 0; i < n_code_name; i++ ) {
 
   //TODO: Calcul géom piloté par la nature des champs
 //Erreur si on crée un champ après le calcul
-   code_name = codeNames[i];
-//  CWP_Geom_compute(code_name,cpl_id1, CWP_FIELD_VALUE_NODE, n_uncomputed_tgt);
+  code_name = codeNames[i];
+  CWP_Geom_compute(code_name,cpl_id1, CWP_FIELD_VALUE_NODE, n_uncomputed_tgt);
   CWP_Geom_compute(code_name,cpl_id1, CWP_FIELD_VALUE_CELL_POINT, n_uncomputed_tgt);
   //Argument tag points localisé oui/non + print 
 
@@ -1137,7 +1156,7 @@ for (int i = 0; i < n_code_name; i++ ) {
  
   }//Loop on codes
 
-    MPI_Barrier(MPI_COMM_WORLD);
+  MPI_Barrier(MPI_COMM_WORLD);
 
   double recv_time = 0.150;
 //while(1==1){}
@@ -1160,15 +1179,20 @@ for (int i = 0; i < n_code_name; i++ ) {
     
       for(int i_part =0;i_part <nb_part;i_part++) {     
         for(int j=0;j<nElts[i][i_part];j++)
-          {rank_data[i][i_part][j]= currentRank;
-          }
+          rank_data[i][i_part][j]= currentRank;
+
+        for(int j=0;j<nVtx[i][i_part];j++)
+          rank_data_vtx[i][i_part][j]= currentRank;          
       }
 
       printf("CWP_Issend at %f\n",recv_time);
-      CWP_Issend (code_name,cpl_id1,"rank");  
+      CWP_Issend (code_name,cpl_id1,"rank");    
+     // CWP_Issend (code_name,cpl_id1,"rank_vtx");   while(1==1){}
+   
     }
-    else { 
+    else {// while(1==1){}
       CWP_Irecv (code_name,cpl_id1,"rank");
+      //CWP_Irecv (code_name,cpl_id1,"rank_vtx");
     }
 
   }// end i_time loop  
@@ -1182,10 +1206,12 @@ for (int i = 0; i < n_code_name; i++ ) {
     int currentRank = currentRankA[i];  
     
     if(code_name == "code1"){
-      CWP_Wait_issend (code_name,cpl_id1,"rank");//while(1==1){}
+      CWP_Wait_issend (code_name,cpl_id1,"rank");
+    //  CWP_Wait_issend (code_name,cpl_id1,"rank_vtx");
     }
-    else { 
-      CWP_Wait_irecv (code_name,cpl_id1,"rank");//while(1==1){}
+    else { //while(1==1){}
+      CWP_Wait_irecv (code_name,cpl_id1,"rank"    );
+     // CWP_Wait_irecv (code_name,cpl_id1,"rank_vtx");
     }
 
    }//end codename loop
