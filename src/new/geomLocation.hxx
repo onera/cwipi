@@ -33,26 +33,26 @@ namespace cwipi {
       
       virtual ~GeomLocation();
      
-     void locate_cell_point_setting_request(int id_dist);
+     void locate_setting_request(int id_dist);
      
-     void locate_cell_point_setting_surface(int id_dist);     
-      void locate_cell_point_setting_code_1_local() ;
+     void locate_setting_surface(int id_dist);     
+      void locate_setting_code_1_local() ;
       
-      void locate_cell_point_compute(int id_dist)             ;
-      void locate_cell_point_get(int id_dist)      ;
-      void locate_cell_point_get_cpl(int id_dist)      ;
+      void locate_compute(int id_dist)             ;
+      void locate_get(int id_dist)      ;
+      void locate_get_cpl(int id_dist)      ;
       
-      void redistribution_cell_point_request(int id_gnum_location) ;
-      void redistribution_cell_point_set    (int id_gnum_location) ;
+      void broadcasting_request(int id_gnum_location) ;
+      void broadcasting_set    (int id_gnum_location) ;
       void location_compute                 (int id_gnum_location) ;
                   
       void location_get(int id_gnum_location)      ;
-      void location_get_cpl(int id_gnum_location)      ;
-      void redistribution_cell_point_filling_of_redistribution_array ();
-      void redistribution_index_communication(int tag)    ;
-      void redistribution_communication()          ;
-      void redistribution_communication2()          ;
-      void redistribution_wait_and_targets_array_filling();
+      void location_get_cpl(int id_gnum_location)  ;
+      void broadcasting_filling_of_broadcasting_array ();
+      void broadcasting_index_communication()    ;
+      void broadcasting_communication()          ;
+      void broadcasting_communication2()          ;
+      void broadcasting_wait_and_targets_array_filling();
 
                  
       virtual void issend(Field <double>* sendingField);

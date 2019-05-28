@@ -86,25 +86,25 @@ namespace cwipi {
 
      //Depends on the Geometry type
      // Ca sera dans les classes concrètes
-     virtual void locate_cell_point_setting_request(int id_dist) =0;
-     virtual void locate_cell_point_setting_surface(int id_dist) =0;    
-     virtual void locate_cell_point_compute(int id_dist)             =0;
-     virtual void locate_cell_point_get(int id_dist)      =0;
-     virtual void locate_cell_point_get_cpl(int id_dist)      =0;     
+     virtual void locate_setting_request(int id_dist) =0;
+     virtual void locate_setting_surface(int id_dist) =0;    
+     virtual void locate_compute(int id_dist)             =0;
+     virtual void locate_get(int id_dist)      =0;
+     virtual void locate_get_cpl(int id_dist)      =0;     
      
      
-      virtual void redistribution_cell_point_request(int id_gnum_location)  =0;
-      virtual void redistribution_cell_point_set    (int id_gnum_location)  =0;
+      virtual void broadcasting_request(int id_gnum_location)  =0;
+      virtual void broadcasting_set    (int id_gnum_location)  =0;
       virtual void location_compute                 (int id_gnum_location)  =0;
      
      virtual void location_get(int id_gnum_location)      =0;
      virtual void location_get_cpl(int id_gnum_location)      =0;
-     virtual void redistribution_cell_point_filling_of_redistribution_array() =0;
-     virtual void redistribution_index_communication(int tag) =0;
+     virtual void broadcasting_filling_of_broadcasting_array() =0;
+     virtual void broadcasting_index_communication() =0;
      
-     virtual void redistribution_communication() =0;
-     virtual void redistribution_communication2() =0;
-     virtual void redistribution_wait_and_targets_array_filling() =0;
+     virtual void broadcasting_communication() =0;
+     virtual void broadcasting_communication2() =0;
+     virtual void broadcasting_wait_and_targets_array_filling() =0;
      
      //Depends on the Geometry type
      // Ca sera dans les classes concrètes

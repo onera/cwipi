@@ -236,7 +236,7 @@ void GeomLocation::issend(Field <double>* referenceField) {
   
   
  
-  void GeomLocation::locate_cell_point_setting_surface(int id_dist) {
+  void GeomLocation::locate_setting_surface(int id_dist) {
 
     /* Paradigm mesh localisation _distance creation */
 
@@ -314,7 +314,7 @@ void GeomLocation::issend(Field <double>* referenceField) {
   
   }
 
-  void GeomLocation::locate_cell_point_setting_request(int id_dist) {
+  void GeomLocation::locate_setting_request(int id_dist) {
 
     /*
      TODO: Intéressant pour la suite
@@ -395,11 +395,11 @@ void GeomLocation::issend(Field <double>* referenceField) {
      }
  }
 
-  void GeomLocation::locate_cell_point_compute(int id_dist) {
+  void GeomLocation::locate_compute(int id_dist) {
     PDM_mesh_dist_compute(id_dist);
   }
 
- void GeomLocation::redistribution_cell_point_request(int id_gnum_location) {
+ void GeomLocation::broadcasting_request(int id_gnum_location) {
  
   id_gnum_location = PDM_gnum_location_create(_nb_part,_nb_part_cpl, _pdm_globalComm);
 
@@ -436,7 +436,7 @@ void GeomLocation::issend(Field <double>* referenceField) {
  }
 
 
- void GeomLocation::redistribution_cell_point_set(int id_gnum_location) {
+ void GeomLocation::broadcasting_set(int id_gnum_location) {
  
   id_gnum_location = PDM_gnum_location_create(_nb_part,_nb_part_cpl, _pdm_globalComm);
 
@@ -486,7 +486,7 @@ void GeomLocation::issend(Field <double>* referenceField) {
  /*************************************************************************************/
   /*************************************************************************************/
 
-  void GeomLocation::locate_cell_point_get_cpl(int id_dist) {
+  void GeomLocation::locate_get_cpl(int id_dist) {
     _geometry_cpl -> _distance           = (double**)malloc(sizeof(double*) * _nb_part);
     _geometry_cpl -> _projected          = (double**)malloc(sizeof(double*) * _nb_part);
     _geometry_cpl -> _closest_elt_gnum   = (CWP_g_num_t**)malloc(sizeof(CWP_g_num_t*) * _nb_part);
@@ -527,7 +527,7 @@ void GeomLocation::issend(Field <double>* referenceField) {
 
 
 
-  void GeomLocation::locate_cell_point_get(int id_dist) {
+  void GeomLocation::locate_get(int id_dist) {
   
     _distance           = (double**)malloc(sizeof(double*) * _nb_part);
     _projected          = (double**)malloc(sizeof(double*) * _nb_part);
@@ -607,12 +607,10 @@ void GeomLocation::issend(Field <double>* referenceField) {
 
 
   void GeomLocation::location_get_cpl(int id_gnum_location) {
-   
     for(int i_part =0;i_part<_nb_part;i_part++) {     
-       int* tmp;
-       int* tmp2;
-            
-       int          n_target_cpl    =  _geometry_cpl -> nTargetGet(i_part);
+      int* tmp;
+      int* tmp2;
+      int          n_target_cpl    =  _geometry_cpl -> nTargetGet(i_part);
     
       PDM_gnum_location_get(id_gnum_location,
                             i_part,
@@ -621,21 +619,19 @@ void GeomLocation::issend(Field <double>* referenceField) {
                             );  
     
     
-    for(int u =0;u<1+n_target_cpl;u++) {     
-      printf("YYY _rank %i u %i tmp %i\n",_rank,u,tmp[u]);
-      (_geometry_cpl -> _location_idx)[i_part][u]=tmp[u];
+      for(int u =0;u<1+n_target_cpl;u++) {     
+        (_geometry_cpl -> _location_idx)[i_part][u]=tmp[u];
+      }
       //memcpy(_geometry_cpl -> _location_idx[i_part], tmp,   (1+n_target_cpl)*sizeof(int) );
-    }
-    
-    for(int u =0;u<3*n_target_cpl;u++) { 
-    (_geometry_cpl -> _location)[i_part][u]=tmp2[u];
-    //memcpy(_geometry_cpl -> _location    [i_part], tmp2, 3*n_target_cpl   *sizeof(int) );
-    }
-    }
+      for(int u =0;u<3*n_target_cpl;u++) { 
+        (_geometry_cpl -> _location)[i_part][u]=tmp2[u];
+      }
+      //memcpy(_geometry_cpl -> _location    [i_part], tmp2, 3*n_target_cpl   *sizeof(int) );
+    }// end i_part loop
 
  }// End locate_cell_point
 
- void GeomLocation::redistribution_cell_point_filling_of_redistribution_array() {
+ void GeomLocation::broadcasting_filling_of_broadcasting_array() {
 
 
   _location_idx_comm_proc   =(int**)malloc(sizeof(int*)*_n_ranks_g);
@@ -654,8 +650,8 @@ void GeomLocation::issend(Field <double>* referenceField) {
   for (int i_part = 0; i_part < _nb_part_cpl; i_part++) {
     for(int k=0;k<_n_target[i_part];k++){
        
-       printf("_location_idx[i_part][%i] rank %i %i\n",k,_rank,_location_idx[i_part][k]);
-       printf("_location[i_part][%i] rank %i %i\n",k,_rank,_location[i_part][ _location_idx[i_part][k] ]);
+  //     printf("_location_idx[i_part][%i] rank %i %i\n",k,_rank,_location_idx[i_part][k]);
+  //     printf("_location[i_part][%i] rank %i %i\n",k,_rank,_location[i_part][ _location_idx[i_part][k] ]);
        int elt_proc = _location[i_part][ _location_idx[i_part][k] ];
        int elt_part = _location[i_part][ _location_idx[i_part][k] + 1];
       
@@ -699,15 +695,15 @@ void GeomLocation::issend(Field <double>* referenceField) {
        _location_comm_proc [idx ].closest_elt_part  = elt_part;  
        _location_comm_proc [idx ].l_num_origin      = k;  
        idx_proc[elt_proc][elt_part]++; 
-      // if(int(_location_comm_proc [idx ].closest_elt_gnum) == 1)
-         printf("_location_comm_proc rank %i [%i] lnum %i origin_part %i closest_elt_gnum %i elt_proc %i elt_part %i distance %f proj %f\n",
+ 
+ /*        printf("_location_comm_proc rank %i [%i] lnum %i origin_part %i closest_elt_gnum %i elt_proc %i elt_part %i distance %f proj %f\n",
        _rank,k,
        _location_comm_proc [idx ].lnum,
        _location_comm_proc [idx ].origin_part,
        int(_location_comm_proc [idx ].closest_elt_gnum),
        elt_proc,elt_part,
        _location_comm_proc [idx ].distance,
-       _location_comm_proc [idx ].projectedX);
+       _location_comm_proc [idx ].projectedX);*/
     }
   }//end i_part
 
@@ -722,7 +718,7 @@ void GeomLocation::issend(Field <double>* referenceField) {
  } 
 
 
- void GeomLocation::redistribution_index_communication(int tag) {
+ void GeomLocation::broadcasting_index_communication() {
     _IAlltoall2(
       _location_count_comm_proc,
       NULL, 
@@ -737,12 +733,10 @@ void GeomLocation::issend(Field <double>* referenceField) {
  } 
 
 
- void GeomLocation::redistribution_communication() {
+ void GeomLocation::broadcasting_communication() {
 
   _transform_to_index(_location_idx_proc_recv,_n_ranks_g,_nb_part);
-
-  // printf("_location_idx_proc_recv[_n_ranks_g-1][_nb_part_cpl] rank %i %i\n",_rank,_location_idx_proc_recv[_n_ranks_g-1][_nb_part_cpl]);
-
+  
   _location_recv = (target_data*)malloc(sizeof(target_data)*_location_idx_proc_recv[_n_ranks_g-1][_nb_part_cpl]);        
 
   _location_count_recv = (int*)malloc(sizeof(int)*_n_ranks_g);         
@@ -753,16 +747,14 @@ void GeomLocation::issend(Field <double>* referenceField) {
   for (int i= 0; i < _n_ranks_g; i++) { 
     _location_count_send[i] = sizeof(target_data)*(_location_idx_comm_proc[i][_nb_part_cpl] - _location_idx_comm_proc[i][0]);
     _location_count_recv[i] = sizeof(target_data)*(_location_idx_proc_recv[i][_nb_part_cpl] - _location_idx_proc_recv[i][0]);
-    
-    //printf("location_count rank %i i %i send %i recv %i size %i\n",
-    //_rank,i,_location_count_send[i]/sizeof(target_data),_location_count_recv[i]/sizeof(target_data),_location_idx_proc_recv[_n_ranks_g-1][_nb_part_cpl]);
+
     _location_disp_send [i] = sizeof(target_data)*_location_idx_comm_proc[i][0];
     _location_disp_recv [i] = sizeof(target_data)*_location_idx_proc_recv[i][0];
   }
 
  }
  
- void GeomLocation::redistribution_communication2() {
+ void GeomLocation::broadcasting_communication2() {
   
   _IAlltoallIndex((void*)_location_comm_proc, _location_count_send, _location_disp_send,
                   (void*)_location_recv, _location_count_recv, _location_disp_recv, 
@@ -771,7 +763,7 @@ void GeomLocation::issend(Field <double>* referenceField) {
   }
   
 
- void GeomLocation::redistribution_wait_and_targets_array_filling() {  
+ void GeomLocation::broadcasting_wait_and_targets_array_filling() {  
     _Wait();
   
    _targets_cpl       = _location_recv;

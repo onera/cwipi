@@ -476,163 +476,6 @@ elementType[93] = (elType){125,"fourth order hexahedron (8 nodes associated with
 }
 
 
-
-/*----------------------------------------------------------------------
- *                                                                     
- * Read mesh dimension                                             
- *                                                                     
- * parameters:
- *   f                   <-- Mesh file                 
- *   dimension           --> Dimension                   
- *   nVtx             <-- number of vertices
- *   nElements           <-- number of elements
- *   nConnecVertex       <-- size of connectivity
- *   coords              --> vertices coordinates
- *   connecPointer       --> connectivity index  
- *   connec              --> connectivity
- *---------------------------------------------------------------------*/
- static int _read_meshBIS(FILE *f, 
-                      int* nVtx, 
-                      int* nb_Elts,
-                      int* nBlock,
-                      int** nElBlock,
-                      int** typeBlock,
-                      int** connec,
-                      double *coords,
-                      int *gnum_coords) {
-
-  elType elementType [100];//= (elType*)malloc(sizeof(elType*)*100);
-  
-elementType[1] = (elType){2,"line"};
-elementType[2] = (elType){3,"triangle"};
-elementType[3] = (elType){4,"quadrangle"};
-elementType[4] = (elType){4,"tetrahedron"};
-elementType[5] = (elType){8,"hexahedron"};
-elementType[6] = (elType){6,"prism"};
-elementType[7] = (elType){5,"pyramid"};
-elementType[8] = (elType){3,"second order line (2 nodes associated with the vertices and 1 with the edge)"};
-elementType[9] = (elType){6,"second order triangle (3 nodes associated with the vertices and 3 with the edges)"};
-elementType[10] = (elType){9,"second order quadrangle (4 nodes associated with the vertices, 4 with the edges and 1 with the face)"};
-elementType[11] = (elType){10,"second order tetrahedron (4 nodes associated with the vertices and 6 with the edges)"};
-elementType[12] = (elType){27,"second order hexahedron (8 nodes associated with the vertices, 12 with the edges 6 with the faces and 1 with the volume)"};
-elementType[13] = (elType){18,"second order prism (6 nodes associated with the vertices], 9 with the edges and 3 with the quadrangular faces)"};
-elementType[14] = (elType){14,"second order pyramid (5 nodes associated with the vertices, 8 with the edges and 1 with the quadrangular face)"};
-elementType[15] = (elType){1,"point"};
-elementType[16] = (elType){8,"second order quadrangle (4 nodes associated with the vertices and 4 with the edges)"};
-elementType[17] = (elType){20,"second order hexahedron (8 nodes associated with the vertices and 12 with the edges)"};
-elementType[18] = (elType){15,"second order prism (6 nodes associated with the vertices and 9 with the edges)"};
-elementType[19] = (elType){13,"second order pyramid (5 nodes associated with the vertices and 8 with the edges)"};
-elementType[20] = (elType){9,"third order incomplete triangle (3 nodes associated with the vertices, 6 with the edges)"};
-elementType[21] = (elType){10,"third order triangle (3 nodes associated with the vertices, 6 with the edges, 1 with the face)"};
-elementType[22] = (elType){12,"fourth order incomplete triangle (3 nodes associated with the vertices, 9 with the edges)"};
-elementType[23] = (elType){15,"fourth order triangle (3 nodes associated with the vertices, 9 with the edges 3 with the face)"};
-elementType[24] = (elType){15,"fifth order incomplete triangle (3 nodes associated with the vertices, 12 with the edges)"};
-elementType[25] = (elType){21,"fifth order complete triangle (3 nodes associated with the vertices, 12 with the edges 6 with the face)"};
-elementType[26] = (elType){4,"third order edge (2 nodes associated with the vertices 2 internal to the edge)"};
-elementType[27] = (elType){5,"fourth order edge (2 nodes associated with the vertices 3 internal to the edge)"};
-elementType[28] = (elType){6,"fifth order edge (2 nodes associated with the vertices 4 internal to the edge)"};
-elementType[29] = (elType){20,"third order tetrahedron (4 nodes associated with the vertices 12 with the edges 4 with the faces)"};
-elementType[30] = (elType){35,"fourth order tetrahedron (4 nodes associated with the vertices 18 with the edges 12 with the faces 1 in the volume)"};
-elementType[31] = (elType){56,"fifth order tetrahedron (4 nodes associated with the vertices 24 with the edges 24 with the faces 4 in the volume)"};
-elementType[92] = (elType){64,"third order hexahedron (8 nodes associated with the vertices 24 with the edges 24 with the faces 8 in the volume)"};
-elementType[93] = (elType){125,"fourth order hexahedron (8 nodes associated with the vertices 36 with the edges 54 with the faces 27 in the volume)"};
-
-  int i, j, r;
-
-
-  char test[1000];
-  
-  _goto(f,"$Nodes");
-   // _goto(f,"$EndNodes");
-  int nv,nEl;
-  r = fscanf(f, "%i",nBlock);
-  r = fscanf(f, "%i",nVtx);
-  printf("nVtx1 %i\n",*nVtx);
-
-  int dimension =3;
-
-  int i_el=0;
-  for(int block = 1; block<(*nBlock)+1;block++) {
-    r = fscanf(f, "%i",&nv);  
-    r = fscanf(f, "%i",&nv);  
-    r = fscanf(f, "%i",&nv);
-    r = fscanf(f, "%i",&nv);
-
-    for (int i = 0; i < nv; i++) {
-      r = fscanf(f, "%i",gnum_coords+i_el);  
-      r = fscanf(f, "%lf",coords+3*i_el);
-      r = fscanf(f, "%lf",coords+3*i_el+1);
-      r = fscanf(f, "%lf",coords+3*i_el+2);       
-      printf("gnum_coords %i block %i nv %i x %f y %f z %f\n",gnum_coords[i_el],block,nv,coords[3*i_el],coords[3*i_el+1],coords[3*i_el+2]);
-      if (r == EOF) 
-        return EXIT_FAILURE;
-      i_el++;
-    }
-  }
-
-  int IelType,nEl2,poub;
-  
-  _goto(f,"$Elements");
-  r = fscanf(f, "%i",nBlock);
-  r = fscanf(f, "%i",nb_Elts);
-  //printf("nb_Elts %i\n",*nb_Elts);
-  //printf("nBlock %i\n",*nBlock);
-    
-  int** toto = *connec;
-  
-  int iop = *nb_Elts;
-  
-  int block1 = 0;
-
-  for( int block=0;block<(*nBlock);block++) {
-  
-
-    r = fscanf(f, "%i",&nv);  
-    r = fscanf(f, "%i",&nv);
-    r = fscanf(f, "%i",&IelType);  
-    r = fscanf(f, "%i",&nv);
-    //To use with Paraview
-    if(IelType != 2 && IelType != 3) {*nb_Elts=*nb_Elts-nv;
-       for(int s=0;s<nv*(1+elementType[IelType].nNodes);s++) {
-         r = fscanf(f, "%i",&poub);
-       }
-    }
-    else {
-    (*nElBlock)[block1] = nv;
-
-    (*typeBlock)[block1] = IelType;
-
-    int size_el;
-    if(IelType!=2 && IelType!=3) printf("IelType %i nv %i\n",IelType,nv);
-    size_el = elementType[IelType].nNodes;   
-    //  printf("IelType %i nv %i size_el %i block %i block1 %i nBlock %i\n",IelType,nv,size_el,block,block1,*nBlock); 
-    for (int i = 0; i < nv; i++) {
-      r = fscanf(f, "%i",&nEl2); 
-      for(int jv=0;jv<size_el;jv++) { 
-        r = fscanf(f, "%i",connec[block1]+size_el*i+jv);
-        
-        connec[block1][size_el*i+jv] =  1+tabSearch2(connec[block1][size_el*i+jv],&gnum_coords,*nVtx);
-        //printf("connect %i \n",connec[block1][size_el*i+jv]);
-        //printf("%i nEl2 %i block %i nv %i connec %i %i %i size_el %i IelType %i\n",
-        //*nb_Elts,nEl2,block,nv,i,jv,connec[block1][size_el*i+jv],size_el,IelType);
-      }
-      
-          
-      if (r == EOF) 
-        return EXIT_FAILURE;
-    }
-    block1++;
-    }
-   // free(connec);
-  }  
-  *nBlock = block1;
-  //printf("nb_Elts %i *nBlock %i\n",*nb_Elts,*nBlock);
-
-  return EXIT_SUCCESS;
-}
-
-
-
 int sizeForType(int type) {
   switch(type){
     case 1 : return 2;
@@ -742,7 +585,7 @@ int main
  
   char cpl_id1[] = "cpl_code1_code2";
 
-  int nb_part = 2;
+  int nb_part = 10;
 
     int** nElts;
     int** nBlock;
@@ -1192,7 +1035,7 @@ for (int i = 0; i < n_code_name; i++ ) {
           rank_data[i][i_part][j]= j;
 
         for(int j=0;j<nVtx[i][i_part];j++)
-          rank_data_vtx[i][i_part][j]= currentRank;          
+          rank_data_vtx[i][i_part][j]= coords[i][i_part][3*j];          
       }
 
       printf("CWP_Issend at %f\n",recv_time);
@@ -1216,14 +1059,13 @@ for (int i = 0; i < n_code_name; i++ ) {
     code_name = codeNames[i];
     int currentRank = currentRankA[i];  
     
-    if(code_name == "code1"){//
+    if(code_name == "code1"){
       CWP_Wait_issend (code_name,cpl_id1,"rank");
-       CWP_Wait_issend (code_name,cpl_id1,"rank_vtx");//while(1==1){}
+      CWP_Wait_issend (code_name,cpl_id1,"rank_vtx");
     }
     else { 
       CWP_Wait_irecv (code_name,cpl_id1,"rank"    );
-
-      CWP_Wait_irecv (code_name,cpl_id1,"rank_vtx");//
+      CWP_Wait_irecv (code_name,cpl_id1,"rank_vtx");
     }
 
    }//end codename loop
