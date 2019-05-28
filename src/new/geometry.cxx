@@ -29,8 +29,8 @@
 #include <bftc_error.h>
 #include <bftc_printf.h>
 #include "cwp.h"
-
-
+#include <limits>
+#include <cmath>
 
 namespace cwipi {
 
@@ -99,8 +99,8 @@ namespace cwipi {
 
       Coupling coupling_cpl = cplDB -> couplingGet(*_coupledCodeProperties,cplId);
       printf("coupling -> IdGet() %s\n",_cpl -> IdGet().c_str());
-      _geometry_cpl_cell_point = coupling_cpl.geometryGet(CWP_FIELD_VALUE_CELL_POINT);
-      _geometry_cpl_cell_point -> _geometry_cpl_cell_point = this;
+      _geometry_cpl = coupling_cpl.geometryGet(_geometryLocation );
+      _geometry_cpl -> _geometry_cpl = this;
     }
     
     _connectableRanks_cpl = _coupledCodeProperties -> connectableRanksGet();
@@ -179,6 +179,15 @@ namespace cwipi {
   for(int i_part =0;i_part<_nb_part;i_part++) { 
     _n_g_vtx_over_part+=_n_g_vtx[i_part];
   }
+
+
+  _location_idx =(int**)malloc(sizeof(int*)*_nb_part);
+  _location     =(int**)malloc(sizeof(int*)*_nb_part);
+
+  for (int i_part = 0; i_part < _nb_part; i_part++) {
+    _location_idx[i_part] = (int*) malloc(sizeof(int) * (1+_n_target[i_part]));
+    _location[i_part]     = (int*) malloc(3* sizeof(int) * _n_target[i_part]);
+  }
   
  }
 
@@ -219,11 +228,12 @@ namespace cwipi {
            redistribution_cell_point_set    (_id_gnum_location1);
          }
 
-         location_compute                   (_id_gnum_location1);    //while(1==1){}
+         location_compute                   (_id_gnum_location1);  // while(1==1){}
          
           if(localName == _codeVector[1]) location_get(_id_gnum_location1) ;
 
           PDM_gnum_location_free(_id_gnum_location1,1);
+
            
          if(localName == _codeVector[0]) {
            locate_cell_point_setting_request(_id_dist2);
@@ -268,7 +278,7 @@ namespace cwipi {
          MPI_Barrier(_globalComm); 
          
          redistribution_communication2() ;//while(1==1){}
-         printf("After redistribution_communication rank %i\n",_rank);//while(1==1){}
+         printf("After redistribution_communication rank %i\n",_rank);
          MPI_Barrier(_globalComm); 
          redistribution_wait_and_targets_array_filling();
       }
@@ -277,10 +287,10 @@ namespace cwipi {
         if(localName == _codeVector[0]) {
             printf("Before mesh_info_get()\n");  
             mesh_info_get();
-            _geometry_cpl_cell_point -> mesh_info_get();
+            _geometry_cpl -> mesh_info_get();
             printf("After mesh_info_get() %i\n",_rank);  
             mesh_cpl_info_get();
-            _geometry_cpl_cell_point -> mesh_cpl_info_get2();   
+            _geometry_cpl -> mesh_cpl_info_get2();   
             printf("After mesh_cpl_info_get() %i\n",_rank);
 
             locate_cell_point_setting_surface(_id_dist1);
@@ -291,10 +301,11 @@ namespace cwipi {
             printf("After  locate_cell_point_get_cpl 1\n");
             PDM_mesh_dist_free(_id_dist1,1);
                
-            redistribution_cell_point_set    (_id_gnum_location1);
-            location_compute                 (_id_gnum_location1);//while(1==1){}
+            redistribution_cell_point_set    (_id_gnum_location1); 
+            location_compute                 (_id_gnum_location1);// while(1==1){}
+          
             printf("After  location_compute 1\n");
-            location_get_cpl                 (_id_gnum_location1);
+            location_get_cpl (_id_gnum_location1);
             printf("After  location_get_cpl 1\n");
             PDM_gnum_location_free(_id_gnum_location1,1);
 
@@ -319,7 +330,7 @@ namespace cwipi {
             
             printf("Before redistribution_cell_point_filling_of_redistribution_arra %i\n",_rank); 
             redistribution_cell_point_filling_of_redistribution_array();  
-            _geometry_cpl_cell_point -> redistribution_cell_point_filling_of_redistribution_array(); 
+            _geometry_cpl -> redistribution_cell_point_filling_of_redistribution_array(); 
             printf("After redistribution_cell_point_filling_of_redistribution_arra %i\n",_rank); 
           
             MPI_Barrier(_globalComm);
@@ -328,26 +339,26 @@ namespace cwipi {
           redistribution_index_communication(0)    ;
 
           printf("After redistribution_index_communication %i\n",_rank);  
-          _geometry_cpl_cell_point -> redistribution_index_communication(1)    ;
+          _geometry_cpl -> redistribution_index_communication(1)    ;
           printf("After redistribution_index_communication CPL %i\n",_rank);  
 
           _Wait()    ;
           printf("After _Wait()    ; %i\n",_rank);  
-          _geometry_cpl_cell_point -> _Wait()    ;
-         printf("After _geometry_cpl_cell_point -> _Wait()    ; %i\n",_rank);  
+          _geometry_cpl -> _Wait()    ;
+         printf("After _geometry_cpl -> _Wait()    ; %i\n",_rank);  
           
           MPI_Barrier(_globalComm);
           redistribution_communication()          ;
           printf("After redistribution_communication %i\n",_rank); 
 
-          _geometry_cpl_cell_point -> redistribution_communication()          ;
-          printf("After redistribution_communication CPL %i\n",_rank); //while(1==1){}
+          _geometry_cpl -> redistribution_communication()          ;
+          printf("After redistribution_communication CPL %i\n",_rank); 
           MPI_Barrier(_globalComm); 
           redistribution_communication2();
-          _geometry_cpl_cell_point -> redistribution_communication2();
+          _geometry_cpl -> redistribution_communication2();
           MPI_Barrier(_globalComm); 
           redistribution_wait_and_targets_array_filling();
-          _geometry_cpl_cell_point -> redistribution_wait_and_targets_array_filling();
+          _geometry_cpl -> redistribution_wait_and_targets_array_filling();
 
         }
 
@@ -369,21 +380,21 @@ namespace cwipi {
  
      printf("Before_both_codes_are_local MPI_INT MPI_Allgather %i %i\n",_rank,_both_codes_are_local);     
   
-     _both_codes_are_local__array = _geometry_cpl_cell_point -> _both_codes_are_local__array;
+     _both_codes_are_local__array = _geometry_cpl -> _both_codes_are_local__array;
      printf("After MPI_INT MPI_Allgather %i \n",_rank);   
 
         
     if(_both_codes_are_local == 1) {
-      _nb_part_cpl = _geometry_cpl_cell_point->_nb_part;
+      _nb_part_cpl = _geometry_cpl->_nb_part;
     }
  
         
     if(_both_codes_are_local == 1) {
-      _n_g_elt_cpl_over_part = _geometry_cpl_cell_point->_n_g_elt_over_part;
+      _n_g_elt_cpl_over_part = _geometry_cpl->_n_g_elt_over_part;
     }
         
     if(_both_codes_are_local == 1) {
-      _n_g_vtx_cpl_over_part = _geometry_cpl_cell_point->_n_g_vtx_over_part;
+      _n_g_vtx_cpl_over_part = _geometry_cpl->_n_g_vtx_over_part;
     }
  
     printf("After info_mesh %i\n",_rank);               
@@ -413,9 +424,9 @@ namespace cwipi {
                      _globalComm);
     
      else
-       _both_codes_are_local__array = _geometry_cpl_cell_point -> _both_codes_are_local__array;
+       _both_codes_are_local__array = _geometry_cpl -> _both_codes_are_local__array;
      printf("After MPI_INT MPI_Allgather %i \n",_rank);   
-//while(1==1){}
+
      int senderRank=0;
      while( _both_codes_are_local__array[ (*_connectableRanks)[senderRank] ] == 1 && senderRank < _n_ranks) {
        senderRank++;
@@ -464,7 +475,7 @@ namespace cwipi {
     }
         
     if(_both_codes_are_local == 1) {
-      _nb_part_cpl = _geometry_cpl_cell_point->_nb_part;
+      _nb_part_cpl = _geometry_cpl->_nb_part;
     }
  
 
@@ -497,7 +508,7 @@ namespace cwipi {
     }
         
     if(_both_codes_are_local == 1) {
-      _n_g_elt_cpl_over_part = _geometry_cpl_cell_point->_n_g_elt_over_part;
+      _n_g_elt_cpl_over_part = _geometry_cpl->_n_g_elt_over_part;
     }
  
       /*   Number of elements over all processes and partitions exchange                  */
@@ -529,7 +540,7 @@ namespace cwipi {
     }
         
     if(_both_codes_are_local == 1) {
-      _n_g_vtx_cpl_over_part = _geometry_cpl_cell_point->_n_g_vtx_over_part;
+      _n_g_vtx_cpl_over_part = _geometry_cpl->_n_g_vtx_over_part;
     }
  
     printf("After info_mesh %i\n",_rank);           
@@ -867,7 +878,7 @@ void Geometry::_IBcast(void* send_buffer,
     }
 
       //Crée un buffer de réception et le stocke (alloue)
-      recevingField -> ReceptionBufferCreation(_idx_target,_n_tot_elt);
+      recevingField -> ReceptionBufferCreation(_idx_target,_n_tot_target);
       /* Loop on possibly intersecting distant ranks */
       /*---------------------------------------------*/
 
@@ -883,13 +894,10 @@ void Geometry::_IBcast(void* send_buffer,
 
         int tag =0;
 
-
         int distant_rank = (*_connectableRanks_cpl)[i_proc];
         void* loc_v_ptr = &(data[ nComponent*_targets_cpl_idx_cpl[distant_rank][0] ]);
 
         MPI_Request request;
-        
-        
 
         int longueur = nComponent * ( _targets_cpl_idx_cpl[ distant_rank ][_nb_part] - _targets_cpl_idx_cpl[distant_rank][0]  );
         printf("Recv from %i to %i start longueur %i\n",_rank,i_proc,longueur);
@@ -928,8 +936,9 @@ void Geometry::_IBcast(void* send_buffer,
     CWP_Field_value_t   recevingFieldType = recevingField -> typeGet        ();
 
     //Reorganize by partition datas which are organized by sending processp
-    
+
     double** userDataMem = (double**)malloc(sizeof(double*)*_nb_part);
+    
     for (int i_part=0;i_part<_nb_part;i_part++) {
        userDataMem[i_part] = recevingField -> dataGet(i_part);
        if(userDataMem[i_part] == NULL ) PDM_error(__FILE__, __LINE__, 0, "Reception memory has not been allocated.\n");
@@ -940,20 +949,22 @@ void Geometry::_IBcast(void* send_buffer,
        for (int itarget = _targets_cpl_idx_cpl[ distant_rank ][0]; itarget < _targets_cpl_idx_cpl[ distant_rank ][_nb_part_cpl]; itarget++) {  
          // Index in the interpolated Data array
          int interpInd = itarget;  
-             
-         //Index of the corresponding local reference Data.
          int iel = _targets_cpl_cpl[itarget].l_num_origin ;
-         int lpart = _targets_cpl_cpl[itarget].origin_part ;
-         
-         for (int k = 0; k < nComponent; k++) {
-              userDataMem[lpart][ nComponent * iel + k ] = recvData[ nComponent * interpInd + k  ];
-         }//loop on k
-       }// loop on itarget
- 
-          
-   
-  }// loop on proc
+         int lpart = _targets_cpl_cpl[itarget].origin_part ;       
+         if(_targets_cpl_cpl[itarget].distance != INFINITY) {
+           //Index of the corresponding local reference Data.
 
+      //     for (int k = 0; k < nComponent; k++) {
+              // userDataMem[lpart][ nComponent * iel + k ] = recvData[ nComponent * interpInd + k  ];
+           userDataMem[lpart][ iel ] = recvData[ interpInd  ];
+      //     }//loop on k
+      
+         }
+         else {
+           userDataMem[lpart][ iel ] = -1.0;
+         }
+       }// loop on itarget
+  }// loop on proc
 
     if(_visu -> isCreated()) {
         printf("_visu -> WriterField(recevingField);\n");

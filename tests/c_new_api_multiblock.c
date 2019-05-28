@@ -48,7 +48,8 @@ void _goto(FILE *f,char* word)
 void _generate_gmsh_mesh(char* geofile,int localCommSize,int order){
   char s[1000]; //= (char*) malloc(1000*sizeof(char));
   int len=0;
-  for(len = 0; geofile[len] != '\0'; ++len);
+  len = strlen(geofile);
+ // for(len = 0; geofile[len] != '\0'; ++len);
   
   char filename[len-4];//(char*)malloc(sizeof(char)*(len-4));
   for (int i=0;i<len-4;i++) filename[i]=geofile[i];
@@ -402,14 +403,15 @@ elementType[93] = (elType){125,"fourth order hexahedron (8 nodes associated with
       r = fscanf(f, "%lf",coords+3*i_el);
       r = fscanf(f, "%lf",coords+3*i_el+1);
       r = fscanf(f, "%lf",coords+3*i_el+2);       
-      //printf("gnum_coords %i block %i nv %i x %f y %f z %f\n",gnum_coords[i_el],block,nv,coords[3*i_el],coords[3*i_el+1],coords[3*i_el+2]);
+      printf("gnum_coords %i block %i nv %i x %f y %f z %f\n",
+      gnum_coords[i_el],block,nv,coords[3*i_el],coords[3*i_el+1],coords[3*i_el+2]);
     //  }
       if (r == EOF) 
         return EXIT_FAILURE;
       i_el++;
     }
   }
-
+//while(1==1){}
   int IelType,nEl2,poub;
   
   _goto(f,"$Elements");
@@ -673,12 +675,7 @@ int main
 
   int n2 = (int) (two * pow(n_partition, two));
 
-  if (n2 != comm_world_size) {
-    if (rank == 0)
-      printf("      Not executed : only available if the number of processus in the form of '2 * n^2' \n");
-    MPI_Finalize();
-    return EXIT_SUCCESS;
-  }
+
 
 
   /* Initialization
@@ -689,7 +686,7 @@ int main
   double *times_init = NULL;
   CWP_Status_t *is_coupled_rank = NULL;
 
-  if (rank < 3) {
+  if (rank <3 ) {
     n_code_name = 1;
     codeNames = malloc(sizeof(char *) * n_code_name);
     codeNames[0] ="code1";
@@ -697,7 +694,7 @@ int main
     is_coupled_rank[0] = CWP_STATUS_ON;
   }
    
-  if(rank > 4) {
+  if( rank > 4) {
     n_code_name = 1;
     codeNames = malloc(sizeof(char *) * n_code_name);
     codeNames[0] ="code2";
@@ -705,7 +702,7 @@ int main
     is_coupled_rank[0] = CWP_STATUS_ON;
   }
 
-  if(rank>=3 && rank<=4) {
+  if(rank>=3 || rank<=4) {
     n_code_name = 2;
     codeNames = malloc(sizeof(char *) * n_code_name);
     codeNames[0] ="code1";
@@ -748,14 +745,14 @@ int main
   int nb_part = 2;
 
     int** nElts;
-    int* nBlock;
+    int** nBlock;
     int* nBlockOld;
-    int** typeBlock;
+    int*** typeBlock;
     int** nVtx;
-    int*** eltsConnec;
-    double** coords;
+    int**** eltsConnec;
+    double*** coords;
     int**    gnum_coord;
-    int** nElBlock;
+    int*** nElBlock;
 
   char*** geofile =(char***)malloc(sizeof(char**)*n_code_name);
 
@@ -765,14 +762,15 @@ int main
 
     nElts = (int**)malloc(sizeof(int*)*n_code_name);
     nVtx  = (int**)malloc(sizeof(int*)*n_code_name);
-    nBlock = (int*)malloc(sizeof(int)*nb_part);
+    eltsConnec = (int****)malloc(sizeof(int***)*n_code_name);
+    nBlock = (int**)malloc(sizeof(int*)*n_code_name);
     nBlockOld = (int*)malloc(sizeof(int)*nb_part);
-    typeBlock = (int**)malloc(sizeof(int*)*nb_part);
+    typeBlock = (int***)malloc(sizeof(int**)*n_code_name);
 
-    eltsConnec = (int***)malloc(sizeof(int**)*nb_part);
-    coords = (double**)malloc(sizeof(double*)*nb_part);
+    
+    coords = (double***)malloc(sizeof(double**)*n_code_name);
     gnum_coord = (int**)malloc(sizeof(int*)*nb_part);
-    nElBlock = (int**)malloc(sizeof(int*)*nb_part);
+    nElBlock = (int***)malloc(sizeof(int**)*n_code_name);
 
 
   for (int i = 0; i < n_code_name; i++ ) {
@@ -784,6 +782,11 @@ int main
 
    nElts[i] = (int*)malloc(sizeof(int)*nb_part);
    nVtx [i] = (int*)malloc(sizeof(int)*nb_part);
+   eltsConnec[i] = (int***)malloc(sizeof(int**)*nb_part);
+   coords[i] = (double**)malloc(sizeof(double*)*nb_part);  
+   nElBlock[i] = (int**)malloc(sizeof(int*)*nb_part);
+   nBlock[i] = (int*)malloc(sizeof(int)*nb_part);
+   typeBlock[i] = (int**)malloc(sizeof(int*)*nb_part);   
    printf("%i rank %i localCommSize %i code_name %s\n",i,currentRank,localComm_size,code_name);
   
    if( code_name == "code1") {
@@ -845,15 +848,20 @@ int main
       geofile[i][i_part] =(char*)malloc(sizeof(char)*550); 
       sprintf(geofile[i][i_part],"%s_part%i.geo",geoModelfile,i_part);
       printf("geofile %s %i\n",geofile[i][i_part],localCommSize[i]);
-      if(currentRank==0) {
+      if(currentRank==0 /*&& code_name=="code1"*/) {
        _generate_gmsh_mesh(geofile[i][i_part],localComm_size,1);
       }
+  /*    MPI_Barrier(MPI_COMM_WORLD);
+      if(currentRank==0 && code_name=="code2") {
+       _generate_gmsh_mesh(geofile[i][i_part],localComm_size,1);
+      }
+      MPI_Barrier(MPI_COMM_WORLD);*/
     }//Loop on i_part
     printf("codename %s currentRank %i i %i rank %i\n",code_name,currentRank,i,rank);
   }//Loop on codes
 
   MPI_Barrier(MPI_COMM_WORLD);
-  
+
 /*******************************
           Loop on Code Names
 *********************************/
@@ -898,59 +906,63 @@ int main
     FILE* meshFile;
     meshFile = fopen(filename, "r");
 
-    eltsConnec[i_part] = NULL;        // Connectivity
-    coords[i_part]  = NULL; 
-    nElBlock[i_part] = NULL;
-    typeBlock[i_part] = NULL;
+    eltsConnec[i][i_part] = NULL;        // Connectivity
+    coords[i][i_part]  = NULL; 
+    nElBlock[i][i_part] = NULL;
+    typeBlock[i][i_part] = NULL;
 
     _read_mesh_dim(meshFile,
-              &nVtx[i][i_part], 
-              &nElts[i][i_part],
-              &nBlock[i_part],
-              &(nElBlock[i_part]),
-              &(typeBlock[i_part]));
-    
+              &(nVtx[i][i_part]), 
+              &(nElts[i][i_part]),
+              &(nBlock[i][i_part]),
+              &(nElBlock[i][i_part]),
+              &(typeBlock[i][i_part]));
 
-    coords[i_part] = (double*) malloc(3 * nVtx[i][i_part] * sizeof(double));
+
+    coords[i][i_part] = (double*) malloc(3 * nVtx[i][i_part] * sizeof(double));
     gnum_coord[i_part] = (int*) malloc(nVtx[i][i_part] * sizeof(int));
-    eltsConnec[i_part] = (int**)malloc(nBlock[i_part]*sizeof(int*));
+    eltsConnec[i][i_part] = (int**)malloc(nBlock[i][i_part]*sizeof(int*));
   
-    printf("currentRank %i nVtx[i][i_part] %i nElts[i][i_part] %i nBlock[i_part] %i nElBlock[i_part][0] %i typeBlock[i_part][0] %i\n",
-    currentRankA[i], nVtx[i][i_part],nElts[i][i_part],nBlock[i_part],nElBlock[i_part][0],typeBlock[i_part][0]);
-    nBlockOld[i_part] = nBlock[i_part];
-    for(int b=0;b<nBlock[i_part];b++) {
-      //printf("Partition %i Block %i size = %i rank %i\n",i_part,b,nElBlock[i_part][b],rank);
-      eltsConnec[i_part][b]=(int*)malloc(sizeForType(typeBlock[i_part][b])*nElBlock[i_part][b]*sizeof(int));
+    printf("currentRank %i nVtx[i][i_part] %i nElts[i][i_part] %i nBlock[i][i_part] %i nElBlock[i][i_part][0] %i typeBlock[i][i_part][0] %i\n",
+    currentRankA[i], nVtx[i][i_part],nElts[i][i_part],nBlock[i][i_part],nElBlock[i][i_part][0],typeBlock[i][i_part][0]);
+    nBlockOld[i_part] = nBlock[i][i_part];
+    for(int b=0;b<nBlock[i][i_part];b++) {
+      //printf("Partition %i Block %i size = %i rank %i\n",i_part,b,nElBlock[i][i_part][b],rank);
+      eltsConnec[i][i_part][b]=(int*)malloc(sizeForType(typeBlock[i][i_part][b])*nElBlock[i][i_part][b]*sizeof(int));
     }
-  
+
     fclose(meshFile);    
     meshFile = fopen(filename/*"carre01.msh"*/, "r");
 
 
-    int** connec_p=eltsConnec[i_part];    
+    int** connec_p=eltsConnec[i][i_part];    
 
-    printf("filenamePP %s %i %i %i %i %i\n",filename,rank,nElts[i][i_part],nBlock[i_part],typeBlock[i_part],nVtx[i][i_part]);
+    printf("filenamePP %s %i %i %i %i %i\n",filename,rank,nElts[i][i_part],nBlock[i][i_part],typeBlock[i][i_part][0],nVtx[i][i_part]);
 
-    _read_mesh(meshFile,
-              &nVtx[i][i_part], 
-              &nElts[i][i_part],
-              &nBlock[i_part],
-              &(nElBlock[i_part]),
-              &(typeBlock[i_part]),
-              (eltsConnec[i_part]),
-              coords[i_part],
-              gnum_coord[i_part]);
+      _read_mesh(meshFile,
+                &nVtx[i][i_part], 
+                &nElts[i][i_part],
+                &nBlock[i][i_part],
+                &(nElBlock[i][i_part]),
+                &(typeBlock[i][i_part]),
+                eltsConnec[i][i_part],
+                coords[i][i_part],
+                gnum_coord[i_part]);
 
-     
+
     fclose(meshFile);
     free(filename);
     free(filename2);
     free(root);
 
-
+    for(int b=0;b<nBlock[i][i_part];b++) {
+      for(int j=0;j<nElBlock[i][i_part][b];j++) {
+        printf("eltsConnec[%i][%i][%i][%i] rank %i %i\n",i,i_part,b,j,currentRank,eltsConnec[i][i_part][b][j]);
+      }
+    }
 
     printf("CWP_Mesh_interf_vtx_set %i\n",nVtx[i][i_part]);           
-    CWP_Mesh_interf_vtx_set(codeNames[i], cpl_id1,i_part,nVtx[i][i_part],coords[i_part],NULL);                
+    CWP_Mesh_interf_vtx_set(codeNames[i], cpl_id1,i_part,nVtx[i][i_part],coords[i][i_part],NULL);                
     printf("After CWP_Mesh_interf_vtx_set %i %i\n",i_part,rank);  
     
 
@@ -961,16 +973,14 @@ int main
 
   int** nb_block_type = (int**) malloc(nb_part*sizeof(int*));
   int** nb_block_type_max = (int**) malloc(nb_part*sizeof(int*));
-
-
    
   for(int i_part =0;i_part <nb_part;i_part++) {
     nb_block_type[i_part] = (int*) malloc(nb_elt_type*sizeof(int));
     nb_block_type_max[i_part] = (int*) malloc(nb_elt_type*sizeof(int));
     for(int l=0; l<nb_elt_type;l++) nb_block_type[i_part][l] = 0;
     
-    for(int i_block =0;i_block <nBlock[i_part];i_block++) { 
-        nb_block_type[i_part][typeBlock[i_part][i_block]]++;
+    for(int i_block =0;i_block <nBlock[i][i_part];i_block++) { 
+        nb_block_type[i_part][typeBlock[i][i_part][i_block]]++;
     }
     MPI_Allreduce(nb_block_type[i_part], nb_block_type_max[i_part], nb_elt_type, MPI_INT, MPI_MAX,
                   localComm[i]);
@@ -978,15 +988,15 @@ int main
     int nBlock_correct =0;
     for(int l=0; l<nb_elt_type;l++) nBlock_correct+=nb_block_type_max[i_part][l];
 
-    int nBlock_old = nBlock[i_part];
-    nBlock[i_part]=nBlock_correct;
+    int nBlock_old = nBlock[i][i_part];
+    nBlock[i][i_part]=nBlock_correct;
 
     printf("nBlock_old %i %i\n",nBlock_old,nBlock_correct);
     
-    int* nElBlockNew   =  (int*) malloc  ( nBlock[i_part]*sizeof(int)  );
-    int* typeBlockNew  =  (int*) malloc  ( nBlock[i_part]*sizeof(int)  );
-    int**eltsConnecNew =  (int**) malloc ( nBlock[i_part]*sizeof(int*) );
-    
+    int* nElBlockNew   =  (int*) malloc  ( nBlock[i][i_part]*sizeof(int)  );
+    int* typeBlockNew  =  (int*) malloc  ( nBlock[i][i_part]*sizeof(int)  );
+    int**eltsConnecNew =  (int**) malloc ( nBlock[i][i_part]*sizeof(int*) );
+
     int ind_block = 0;
     
     int* ibblock = (int*) malloc(nb_elt_type*sizeof(int));
@@ -999,13 +1009,13 @@ int main
         if(l2<nb_block_type[i_part][l]){
         
           
-          while(typeBlock[i_part][ ibblock[l] ] != l) {
+          while(typeBlock[i][i_part][ ibblock[l] ] != l) {
             ibblock[l]++;
           }
           
-          nElBlockNew [ind_block] = nElBlock [i_part][ ibblock[l] ];
-          typeBlockNew[ind_block] = typeBlock[i_part][ ibblock[l] ];
-          eltsConnecNew[ind_block]= eltsConnec[i_part][ ibblock[l] ];
+          nElBlockNew [ind_block] = nElBlock[i][i_part][ ibblock[l] ];
+          typeBlockNew[ind_block] = typeBlock[i][i_part][ ibblock[l] ];
+          eltsConnecNew[ind_block]= eltsConnec[i][i_part][ ibblock[l] ];
           ibblock[l]++;
         }
         else {
@@ -1017,57 +1027,57 @@ int main
         ind_block++;
       }//end l2 loop
     }//end l loop
+ 
+    realloc(nElBlock[i][i_part],0);
 
-    realloc(nElBlock[i_part],0);
+    nElBlock[i][i_part] = nElBlockNew;
 
-    nElBlock  [i_part] = nElBlockNew;
+    realloc(typeBlock[i][i_part],0);     
+    typeBlock[i][i_part] = typeBlockNew;
 
-    realloc(typeBlock [i_part],0);     
-    typeBlock [i_part] = typeBlockNew;
-
-    realloc(eltsConnec [i_part],0);     
-    eltsConnec[i_part] =eltsConnecNew;
+    realloc(eltsConnec[i] [i_part],0);     
+    eltsConnec[i][i_part] =eltsConnecNew;
 
  } // LOOP on i_part
 
 
   CWP_g_num_t*** GNUM=(CWP_g_num_t***) malloc(sizeof(CWP_g_num_t**)*nb_part);
-
+            
   
   for(int i_part =0;i_part <nb_part;i_part++) {
  
     nElts[i][i_part]=0;
-    GNUM[i_part] = (CWP_g_num_t**) malloc(sizeof(CWP_g_num_t*)*nBlock[i_part]);
+    GNUM[i_part] = (CWP_g_num_t**) malloc(sizeof(CWP_g_num_t*)*nBlock[i][i_part]);
 
-    for(int i_block =0;i_block <nBlock[i_part];i_block++) { 
-      GNUM[i_part][i_block] = (CWP_g_num_t*) malloc(sizeof(CWP_g_num_t)*nElBlock[i_part][i_block]);
+    for(int i_block =0;i_block <nBlock[i][i_part];i_block++) { 
+      GNUM[i_part][i_block] = (CWP_g_num_t*) malloc(sizeof(CWP_g_num_t)*nElBlock[i][i_part][i_block]);
       printf("Standard Block Add\n");
       CWP_Block_t cwp_block_t;
-      if(typeBlock[i_part][i_block] == 1) cwp_block_t = CWP_BLOCK_EDGE2;
-      if(typeBlock[i_part][i_block] == 2) cwp_block_t = CWP_BLOCK_FACE_TRIA3;
-      if(typeBlock[i_part][i_block] == 3) cwp_block_t = CWP_BLOCK_FACE_QUAD4;
-      if(typeBlock[i_part][i_block] == 15) cwp_block_t = CWP_BLOCK_NODE;
+      if(typeBlock[i][i_part][i_block] == 1) cwp_block_t = CWP_BLOCK_EDGE2;
+      if(typeBlock[i][i_part][i_block] == 2) cwp_block_t = CWP_BLOCK_FACE_TRIA3;
+      if(typeBlock[i][i_part][i_block] == 3) cwp_block_t = CWP_BLOCK_FACE_QUAD4;
+      if(typeBlock[i][i_part][i_block] == 15) cwp_block_t = CWP_BLOCK_NODE;
   
       int block_id = CWP_Mesh_interf_block_add(code_name, cpl_id1,cwp_block_t);
 
       printf("Standard block set %i\n",i_block);
       printf("\n");
-      for(int g=0;g<nElBlock[i_part][i_block];g++) {
-        if(eltsConnec[i_part][i_block][g]<0 || eltsConnec[i_part][i_block][g]>1000) printf("YYYY %i %i %i %i\n",i_part,i_block,g,eltsConnec[i_part][i_block][g]);
+      for(int g=0;g<nElBlock[i][i_part][i_block];g++) {
+        if(eltsConnec[i][i_part][i_block][g]<0 || eltsConnec[i][i_part][i_block][g]>1000) printf("YYYY %i %i %i %i\n",i_part,i_block,g,eltsConnec[i][i_part][i_block][g]);
         GNUM[i_part][i_block][g]=-456;
       }
-      CWP_Mesh_interf_block_std_set(code_name,cpl_id1,i_part,block_id,nElBlock[i_part][i_block],eltsConnec[i_part][i_block],NULL/*GNUM[i_part][i_block]*/);
-      nElts[i][i_part]+=nElBlock[i_part][i_block];
+      CWP_Mesh_interf_block_std_set(code_name,cpl_id1,i_part,block_id,nElBlock[i][i_part][i_block],eltsConnec[i][i_part][i_block],NULL/*GNUM[i_part][i_block]*/);
+      nElts[i][i_part]+=nElBlock[i][i_part][i_block];
 
     }//end i_block loop
     
-             
+               
   }//Loop on i_part
-   
-  }//Loop on codes
 
+  }//Loop on codes
+ 
   MPI_Barrier(MPI_COMM_WORLD);
-    
+       
 /*******************************
           Loop on Code Names
 *********************************/
@@ -1133,7 +1143,7 @@ int main
 
   }//Loop on codes
 
-  
+
   MPI_Barrier(MPI_COMM_WORLD);
   
   printf("Before CWP_Geom_compute\n");
@@ -1155,11 +1165,11 @@ for (int i = 0; i < n_code_name; i++ ) {
  // printf("After CWP_Geom_compute code %i\n",i);
  
   }//Loop on codes
-
+  //while(1==1){}
   MPI_Barrier(MPI_COMM_WORLD);
 
   double recv_time = 0.150;
-//while(1==1){}
+
   for (int i_time=0;i_time<1;i_time++) {
 
 /*******************************
@@ -1179,7 +1189,7 @@ for (int i = 0; i < n_code_name; i++ ) {
     
       for(int i_part =0;i_part <nb_part;i_part++) {     
         for(int j=0;j<nElts[i][i_part];j++)
-          rank_data[i][i_part][j]= currentRank;
+          rank_data[i][i_part][j]= j;
 
         for(int j=0;j<nVtx[i][i_part];j++)
           rank_data_vtx[i][i_part][j]= currentRank;          
@@ -1187,15 +1197,16 @@ for (int i = 0; i < n_code_name; i++ ) {
 
       printf("CWP_Issend at %f\n",recv_time);
       CWP_Issend (code_name,cpl_id1,"rank");    
-     // CWP_Issend (code_name,cpl_id1,"rank_vtx");   while(1==1){}
+      CWP_Issend (code_name,cpl_id1,"rank_vtx");    
    
     }
-    else {// while(1==1){}
-      CWP_Irecv (code_name,cpl_id1,"rank");
-      //CWP_Irecv (code_name,cpl_id1,"rank_vtx");
+    else { 
+
+     CWP_Irecv (code_name,cpl_id1,"rank");
+      CWP_Irecv (code_name,cpl_id1,"rank_vtx");
     }
 
-  }// end i_time loop  
+  }// end code loop  
 
 /*******************************
           Loop on Code Names
@@ -1205,13 +1216,14 @@ for (int i = 0; i < n_code_name; i++ ) {
     code_name = codeNames[i];
     int currentRank = currentRankA[i];  
     
-    if(code_name == "code1"){
+    if(code_name == "code1"){//
       CWP_Wait_issend (code_name,cpl_id1,"rank");
-    //  CWP_Wait_issend (code_name,cpl_id1,"rank_vtx");
+       CWP_Wait_issend (code_name,cpl_id1,"rank_vtx");//while(1==1){}
     }
-    else { //while(1==1){}
+    else { 
       CWP_Wait_irecv (code_name,cpl_id1,"rank"    );
-     // CWP_Wait_irecv (code_name,cpl_id1,"rank_vtx");
+
+      CWP_Wait_irecv (code_name,cpl_id1,"rank_vtx");//
     }
 
    }//end codename loop

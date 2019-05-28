@@ -36,7 +36,8 @@ namespace cwipi {
     int          l_num_origin    ;
     double       projectedX       ;     
     double       projectedY       ;
-    double       projectedZ       ;      
+    double       projectedZ       ;  
+    double       distance       ;    
   };
 
   typedef struct target_data_vtx {
@@ -302,12 +303,23 @@ namespace cwipi {
       _closest_elt_gnum[i_part]=closest_elt_gnum;
     }    
 
+    void
+    closestEltGnumSet(CWP_g_num_t closest_elt_gnum, int i_part,int i_el) {
+      _closest_elt_gnum[i_part][i_el]=closest_elt_gnum;
+    }    
+
 
     CWP_g_num_t*
     gnumTargetGet(int i_part) {
       return _gnum_target[i_part];
     }  
-    
+
+
+    double*
+    distanceTargetGet(int i_part) {
+      return _distance[i_part];
+    }  
+        
     
     double*
     coordsTargetGet(int i_part) {
@@ -513,7 +525,7 @@ void _IBcast(void* send_buffer,
    PDM_MPI_Comm  _pdm_localComm ;
    PDM_MPI_Comm  _pdm_globalComm ;
 
-   Geometry* _geometry_cpl_cell_point;
+   Geometry* _geometry_cpl;
 
    int _both_codes_are_local; 
    int* _both_codes_are_local__array;
