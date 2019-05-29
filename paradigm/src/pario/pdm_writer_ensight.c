@@ -1059,7 +1059,7 @@ PDM_writer_ensight_geom_write
     f_unit_geom = PDM_writer_ensight->f_unit_geom;
     PDM_writer_ensight->n_part_ecr = 0;
   }
-
+    
   /* Ecriture de la part associee a la structure geom courante */
 
   /* Ecriture de l'entete de la part */
@@ -1130,7 +1130,7 @@ PDM_writer_ensight_geom_write
 
   free(coord_tmp);
   free(numabs_tmp);
-printf("Ecriture des blocs standard\n");
+  
   /* Ecriture des blocs standard */
 
   const int n_blocks = PDM_Mesh_nodal_n_blocks_get (geom->idx_mesh);
@@ -1162,7 +1162,6 @@ printf("Ecriture des blocs standard\n");
         PDM_g_num_t *numabs_block = PDM_Mesh_nodal_block_inside_g_num_get (geom->idx_mesh,
                                                                      blocks_id[ibloc],     
                                                                      i);
-     //  while(1==1){}
         n_elt_proc += n_elt;
         for (int j = 0; j < n_elt; j++) {
           max_loc = _max((PDM_g_num_t) numabs_block[j], max_loc);
@@ -1290,16 +1289,15 @@ printf("Ecriture des blocs standard\n");
         PDM_g_num_t *numabs_block = PDM_Mesh_nodal_block_inside_g_num_get (geom->idx_mesh,
                                                                      blocks_id[ibloc],     
                                                                      i);
-
-        PDM_l_num_t  *connec_idx;
-        PDM_l_num_t  *connec;
-
+        PDM_l_num_t  *connec_idx;   
+        PDM_l_num_t  *connec;   
+        
         PDM_Mesh_nodal_block_poly2d_get (geom->idx_mesh,
-                                         blocks_id[ibloc],
-                                         i,
-                                         &connec_idx,
-                                         &connec);
-
+                                         blocks_id[ibloc],     
+                                         i, 
+                                         &connec_idx,   
+                                         &connec);   
+                                 
         if (n_elt > 0) {
           n_elt_proc += n_elt;
           l_connec += connec_idx[n_elt];
@@ -1307,7 +1305,6 @@ printf("Ecriture des blocs standard\n");
             max_loc = _max((PDM_g_num_t) numabs_block[j], max_loc);
           }
         }
-
       }
 
       PDM_MPI_Allreduce(&max_loc, &max_abs, 1,
@@ -1327,7 +1324,7 @@ printf("Ecriture des blocs standard\n");
 
       n_elt_proc = 0;
       l_connec = 0;
-
+  
       for (int i = 0; i < n_part; i++) {
 
         int n_elt = PDM_Mesh_nodal_block_n_elt_get (geom->idx_mesh, blocks_id[ibloc], i);
@@ -1358,7 +1355,7 @@ printf("Ecriture des blocs standard\n");
           n_elt_proc += 1;
         }
       }
-
+       
       /* Ecriture du nombre de sommets */
 
       int n_comp_cste = 1;

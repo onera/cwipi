@@ -1981,7 +1981,7 @@ const PDM_Mesh_nodal_elt_t   t_elt
       block_poly2d->_connec     = (PDM_l_num_t **) malloc(sizeof(PDM_l_num_t *) * block_poly2d->n_part);
       block_poly2d->_num_part   = (PDM_l_num_t **) malloc(sizeof(PDM_l_num_t *) * block_poly2d->n_part);
       block_poly2d->_numabs     = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *) * block_poly2d->n_part);
-      block_poly2d->numabs_int = NULL;
+      block_poly2d->numabs_int = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *) * block_poly2d->n_part);
       block_poly2d->_parent_num = NULL;
 
       for (int i = 0; i < block_poly2d->n_part; i++) {
@@ -1990,6 +1990,7 @@ const PDM_Mesh_nodal_elt_t   t_elt
         block_poly2d->_connec[i]     = NULL;
         block_poly2d->_num_part[i]= NULL;
         block_poly2d->_numabs[i]     = NULL;
+        block_poly2d->numabs_int[i]     = NULL;
       }
 
       id_block += PDM_BLOCK_ID_BLOCK_POLY2D;
@@ -2028,8 +2029,8 @@ const PDM_Mesh_nodal_elt_t   t_elt
       block_poly3d->_cellfac_idx = (PDM_l_num_t **)  malloc(sizeof(PDM_l_num_t *) * block_poly3d->n_part);
       block_poly3d->_cellfac     = (PDM_l_num_t **)  malloc(sizeof(PDM_l_num_t *) * block_poly3d->n_part);
       block_poly3d->_numabs      = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *) * block_poly3d->n_part);
-      block_poly3d->numabs_int = NULL;
-      block_poly3d->_parent_num = NULL;
+      block_poly3d->numabs_int   = (PDM_g_num_t **) malloc(sizeof(PDM_g_num_t *) * block_poly3d->n_part);
+      block_poly3d->_parent_num  = NULL;
 
       for (int i = 0; i < block_poly3d->n_part; i++) {
         block_poly3d->n_elt[i]        = 0;
@@ -2039,6 +2040,7 @@ const PDM_Mesh_nodal_elt_t   t_elt
         block_poly3d->_cellfac_idx[i] = NULL;
         block_poly3d->_cellfac[i]     = NULL;
         block_poly3d->_numabs[i]      = NULL;
+        block_poly3d->numabs_int[i]      = NULL;
       }
 
       id_block += PDM_BLOCK_ID_BLOCK_POLY3D;
@@ -4333,7 +4335,10 @@ const int         idx
 
       if (block == NULL) {
          PDM_error (__FILE__, __LINE__, 0, "Bad standard block identifier\n");
-      }    
+      }   
+      nb_el[i_block]=0;
+      for(int i_part=0; i_part < nb_part; i_part++)
+        nb_el[i_block]+= block->n_elt[i_part]; 
     }
     else if (id_block >= PDM_BLOCK_ID_BLOCK_POLY2D) {  
       int _id_block = id_block - PDM_BLOCK_ID_BLOCK_POLY2D;
@@ -4343,7 +4348,10 @@ const int         idx
   
       if (block == NULL) {
         PDM_error (__FILE__, __LINE__, 0, "Bad standard block identifier\n");
-      }    
+      }   
+      nb_el[i_block]=0;
+      for(int i_part=0; i_part < nb_part; i_part++)
+        nb_el[i_block]+= block->n_elt[i_part]; 
     }
     else {
   
@@ -4398,6 +4406,29 @@ const int         idx
         PDM_error (__FILE__, __LINE__, 0, "Bad standard block identifier\n");
       }    
 
+      if(block -> numabs_int[0] == NULL) {
+        _g_num_in_block_from_coords_compute(idx,id_block);
+
+        for(int i_part=0; i_part < nb_part; i_part++) {
+                
+          PDM_g_num_t* numabs_block = block -> numabs_int[i_part]; 
+          PDM_g_num_t* numabs_mesh = block -> _numabs[i_part];
+
+          int n_el = block -> n_elt[i_part];
+
+          if(block -> _numabs[i_part]==NULL) block -> _numabs[i_part] = (PDM_g_num_t*) malloc(sizeof(PDM_g_num_t)*n_el);
+
+          for(int i=0;i<n_el;i++) {
+            block -> _numabs[i_part][i] = ind_block + block -> numabs_int[i_part][i]; 
+          }  
+        
+          if(block -> _numabs[i_part] == NULL && block -> n_elt[i_part]>0) {
+            printf("Alerte numabs_mesh !!");
+            while(1==1){}
+          }
+        } //loop on part
+        ind_block+= nb_el_mesh[i_block];
+      } // end if(block -> numabs_int[0] == NULL)
     }
     else {
   
@@ -4412,45 +4443,30 @@ const int         idx
 
       if(block -> numabs_int[0] == NULL) {
         _g_num_in_block_from_coords_compute(idx,id_block);
-       /* printf("BLOCKOOP\n");*/}
-   
 
-     /* if(block -> _numabs[0]==NULL) {
-        block -> _numabs = (PDM_g_num_t**) malloc(sizeof(PDM_g_num_t*)*nb_part);
         for(int i_part=0; i_part < nb_part; i_part++) {
-           block -> _numabs[i_part]=NULL;
-        }
-      }*/
-      for(int i_part=0; i_part < nb_part; i_part++) {
                 
-        PDM_g_num_t* numabs_block = block -> numabs_int[i_part]; 
-        PDM_g_num_t* numabs_mesh = block -> _numabs[i_part];
+          PDM_g_num_t* numabs_block = block -> numabs_int[i_part]; 
+          PDM_g_num_t* numabs_mesh = block -> _numabs[i_part];
 
-        int n_el = block -> n_elt[i_part];
+          int n_el = block -> n_elt[i_part];
 
-        if(block -> _numabs[i_part]==NULL) block -> _numabs[i_part] = (PDM_g_num_t*) malloc(sizeof(PDM_g_num_t)*n_el);
+          if(block -> _numabs[i_part]==NULL) block -> _numabs[i_part] = (PDM_g_num_t*) malloc(sizeof(PDM_g_num_t)*n_el);
 
-        for(int i=0;i<n_el;i++) {
-          block -> _numabs[i_part][i] = ind_block + block -> numabs_int[i_part][i]; 
-        }  
-         //while(1==1){}   
+          for(int i=0;i<n_el;i++) {
+            block -> _numabs[i_part][i] = ind_block + block -> numabs_int[i_part][i]; 
+          }  
         
-   //   block -> _numabs[i_part] = numabs_mesh;
-      if(block -> _numabs[i_part] == NULL && block -> n_elt[i_part]>0) 
-          {printf("Alerte numabs_mesh !!");
-           while(1==1){}
+          if(block -> _numabs[i_part] == NULL && block -> n_elt[i_part]>0) {
+            printf("Alerte numabs_mesh !!");
+            while(1==1){}
           }
-   
-      }
+        } //loop on part
 
-      ind_block+= nb_el_mesh[i_block];
-
-    } // end if id_block    
-
-  }//loop on block
-
-
-
+        ind_block+= nb_el_mesh[i_block];
+      } // end if(block -> numabs_int[0] == NULL)
+    }//end if block type
+  } //end loop on block
   free(nb_el);
   free(nb_el_mesh);
 }
@@ -4777,6 +4793,9 @@ const int         idx
       if (block == NULL) {
          PDM_error (__FILE__, __LINE__, 0, "Bad standard block identifier\n");
       }    
+      nb_el[i_block]=0;
+      for(int i_part=0; i_part < nb_part; i_part++)
+        nb_el[i_block]+= block->n_elt[i_part];
     }
     else if (id_block >= PDM_BLOCK_ID_BLOCK_POLY2D) {  
       int _id_block = id_block - PDM_BLOCK_ID_BLOCK_POLY2D;
@@ -4787,6 +4806,10 @@ const int         idx
       if (block == NULL) {
         PDM_error (__FILE__, __LINE__, 0, "Bad standard block identifier\n");
       }    
+      
+      nb_el[i_block]=0;
+      for(int i_part=0; i_part < nb_part; i_part++)
+        nb_el[i_block]+= block->n_elt[i_part];
     }
     else {
   
@@ -4840,7 +4863,35 @@ const int         idx
   
       if (block == NULL) {
         PDM_error (__FILE__, __LINE__, 0, "Bad standard block identifier\n");
-      }    
+      }   
+       
+      if (block->numabs_int == NULL) {
+        block->numabs_int = (PDM_g_num_t **) malloc (sizeof(PDM_g_num_t *) * mesh->n_part);
+        for (int i = 0; i < mesh->n_part; i++) {
+          block->numabs_int[i] = NULL;
+        }
+      }  
+
+      for(int i_part=0; i_part < nb_part; i_part++) {
+
+        PDM_g_num_t* numabs_block =  PDM_Mesh_nodal_block_inside_g_num_get(idx,id_block,i_part); 
+        PDM_g_num_t* numabs_mesh = PDM_Mesh_nodal_block_g_num_get(idx,id_block,i_part); 
+        
+        int n_el = PDM_Mesh_nodal_block_n_elt_get (idx,id_block,i_part); 
+        if(block -> _numabs[i_part] == NULL && block->n_elt[i_part]>0) {
+           printf("Alerte !! %i %i %i\n",i_part,id_block,block->n_elt[i_part]);
+           while(1==1){}
+        }
+        if(block -> numabs_int[i_part]==NULL) {
+           block -> numabs_int[i_part]= (PDM_g_num_t*) malloc(sizeof(PDM_g_num_t)*n_el);
+        }
+
+        for(int i=0;i<n_el;i++) {
+          block -> numabs_int[i_part][i] = block -> _numabs[i_part][i] - ind_block; 
+        }    
+      }
+      ind_block+= nb_el_mesh[i_block];
+
 
     }
     else {
@@ -4876,7 +4927,6 @@ const int         idx
         }
 
         for(int i=0;i<n_el;i++) {
-          printf("POOO %i %i\n",block -> _numabs[i_part][i],ind_block);
           block -> numabs_int[i_part][i] = block -> _numabs[i_part][i] - ind_block; 
         }    
       }

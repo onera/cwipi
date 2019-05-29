@@ -1640,9 +1640,9 @@ const int            id_geom
 
   const int n_blocks = PDM_Mesh_nodal_n_blocks_get (geom->idx_mesh);
   const int *blocks_id = PDM_Mesh_nodal_blocks_id_get (geom->idx_mesh);
-
-  PDM_Mesh_g_num_in_block_from_computed_g_num_in_mesh_compute (geom->idx_mesh);
   
+  PDM_Mesh_g_num_in_block_from_computed_g_num_in_mesh_compute (geom->idx_mesh);
+
   /* Ecriture au format */
 
   /* Appel de la fonction complementaire propre au format */
@@ -1650,6 +1650,7 @@ const int            id_geom
   PDM_writer_fmt_t * fmt_ptr = (PDM_writer_fmt_t *) PDM_Handles_get (fmt_tab, cs->fmt_id);
 
   if (fmt_ptr->geom_write_fct != NULL) {
+
     (fmt_ptr->geom_write_fct) (geom);
   }
 
