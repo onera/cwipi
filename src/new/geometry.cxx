@@ -123,12 +123,12 @@ namespace cwipi {
     for(int i_part =0;i_part<_nb_part;i_part++) {   
     
       if (_geometryLocation == CWP_FIELD_VALUE_CELL_POINT) {
-        _n_target   [i_part]     = _mesh -> getPartNElts(i_part);
+        _n_target   [i_part]     = _mesh -> getPartNElts(i_part);      
         _gnum_target[i_part]     = _mesh -> GNumEltsGet(i_part);   
         _coords_target [i_part]  = _mesh -> eltCentersGet(i_part);
              
       }
-      
+
       if (_geometryLocation == CWP_FIELD_VALUE_NODE) {
         _n_target      [i_part]  = _mesh -> getPartNVertex (i_part);
         _gnum_target   [i_part]  = _mesh -> getVertexGNum  (i_part);
@@ -193,11 +193,11 @@ namespace cwipi {
 /***************************************************************************/
 
   void Geometry::compute(int *n_uncomputed_tgt) {
-
+     
     if(_both_codes_are_local == 0){
       mesh_info_get();
       mesh_cpl_info_get();
-        
+     
       if(localName == _codeVector[0]) locate_setting_surface(_id_dist1);
       if(localName == _codeVector[1]) locate_setting_request(_id_dist1);
          
@@ -822,7 +822,7 @@ void Geometry::_IBcast(void* send_buffer,
         MPI_Request request;
 
         int longueur = nComponent * ( _targets_cpl_idx_cpl[ distant_rank ][_nb_part] - _targets_cpl_idx_cpl[distant_rank][0]  );
-        printf("Recv from %i to %i start longueur %i\n",_rank,i_proc,longueur);
+        printf("Recv from %i to %i start %i longueur %i\n",_rank,i_proc,nComponent*_targets_cpl_idx_cpl[distant_rank][0],longueur);
 
         MPI_Irecv(loc_v_ptr, longueur, MPI_DOUBLE, distant_rank, tag,
                   _globalComm,
@@ -887,12 +887,11 @@ void Geometry::_IBcast(void* send_buffer,
          }
        }// loop on itarget
   }// loop on proc
-
+     
     if(_visu -> isCreated()) {
-        printf("_visu -> WriterField(recevingField);\n");
        _visu -> WriterField(recevingField);
     }
-     //  
+
   }
 
 
@@ -913,11 +912,8 @@ void Geometry::_IBcast(void* send_buffer,
       MPI_Wait(&request, &status);
 
     } //i_proc loop
-//while(1==1){}
     int nComponent = sendingField -> nComponentGet();
-//while(1==1){}
     if(_visu -> isCreated()) {
-       printf("_visu -> WriterField(sendingField);\n");    
        _visu -> WriterField(sendingField);
     }
 
