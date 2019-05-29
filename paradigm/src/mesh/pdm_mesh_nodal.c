@@ -2793,10 +2793,10 @@ const PDM_l_num_t   *parent_num
   block->_connec[id_part]     = connec;
   block->_numabs[id_part]     = numabs;
 
-  for (int i = 0; i < n_elt; i++) {
+/*  for (int i = 0; i < n_elt; i++) {
     mesh->n_elt_abs = PDM_MAX(mesh->n_elt_abs, numabs[i]);
   }
-
+*/
   if (parent_num != NULL) {
     if (block->_parent_num == NULL) {
       block->_parent_num = malloc (sizeof(PDM_l_num_t *) * block->n_part);
@@ -2919,10 +2919,10 @@ const PDM_l_num_t   *parent_num
   block->_cellfac[id_part]     = cellfac;
   block->_numabs[id_part]      = numabs;
 
-  for (int i = 0; i < n_elt; i++) {
+/*  for (int i = 0; i < n_elt; i++) {
     mesh->n_elt_abs = PDM_MAX (mesh->n_elt_abs, numabs[i]);
   }
-
+*/
   if (parent_num != NULL) {
     if (block->_parent_num == NULL) {
       block->_parent_num = malloc (sizeof(PDM_l_num_t *) * block->n_part);
