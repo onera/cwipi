@@ -1248,7 +1248,6 @@ PDM_writer_ensight_geom_write
       
       /* Ecriture */
       if(ibloc==2) {
-
       _ecr_entrelace_int(_cs,
                          PDM_WRITER_ON,
                          f_unit_geom,
