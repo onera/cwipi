@@ -108,8 +108,7 @@ namespace cwipi {
                                           connec_idx, 
                                           connec,   
                                           _global_num[i_part],
-                                          NULL);  
-     while(1==1){}                                     
+                                          NULL);                                  
                                           
   }
   
