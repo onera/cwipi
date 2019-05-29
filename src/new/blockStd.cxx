@@ -71,34 +71,6 @@ namespace cwipi {
 
 
   void BlockStd::blockSet(int i_part,int n_elt,int* connec,CWP_g_num_t* mesh_global_num){
-      int n_vtx = -1;
-      switch (_blockType) {
-
-       case CWP_BLOCK_NODE: n_vtx = 1;
-       break;
-       
-       case CWP_BLOCK_EDGE2: n_vtx = 2;
-       break;
-                        
-       case CWP_BLOCK_FACE_TRIA3: n_vtx = 3;
-       break;
-
-       case CWP_BLOCK_FACE_QUAD4: n_vtx = 4;
-       break;
-                       
-       case CWP_BLOCK_CELL_TETRA4: n_vtx = 4;
-       break;
-       
-       case CWP_BLOCK_CELL_HEXA8: n_vtx = 8;
-       break;
-
-       case CWP_BLOCK_CELL_PYRAM5: n_vtx = 5;
-       break;
-       
-       case CWP_BLOCK_CELL_PRISM6: n_vtx = 6;
-       break;       
-       
-      }
 
      double* _cells_center_part = (double*)malloc (sizeof(double) * 3 * n_elt);
 
@@ -108,8 +80,6 @@ namespace cwipi {
      else {
        _global_num [i_part] = _global_num_computed[i_part];
      }
- //    printf("PDM_gnum_set_from_coord {\n");
-//     PDM_gnum_set_from_coords (_pdmGNum_handle_index, i_part, n_elt, _cells_center_part, NULL);
 
      _isSet[i_part] = true;
      _n_elt[i_part] = n_elt;
@@ -128,7 +98,7 @@ namespace cwipi {
                                                            _global_num [i_part],
                                                            NULL);   
                                                            
-    printf("_block_id %i PDM_Mesh_nodal_n_cell_get %i\n",_block_id,PDM_Mesh_nodal_n_cell_get(_pdmNodal_handle_index,i_part));
+   // printf("_block_id %i PDM_Mesh_nodal_n_cell_get %i\n",_block_id,PDM_Mesh_nodal_n_cell_get(_pdmNodal_handle_index,i_part));
 
   }
 
