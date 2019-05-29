@@ -433,6 +433,44 @@ namespace cwipi {
       }  
  }
 
+
+   void Mesh::poly2DBlockSet( const int              i_part,
+                              const int              block_id,
+                              const int              n_elts,
+                              int                    connec_idx[],
+                              int                    connec[], 
+                              CWP_g_num_t            global_num[]
+                            )
+   {
+     if(_coords[i_part]==NULL) bftc_error(__FILE__, __LINE__, 0, 
+            "Set the partition coordinates vertices before finalizing.\n");
+     
+     _blockDB [block_id] -> blockSet(i_part,
+                                     n_elts,
+                                     connec_idx,
+                                     connec,
+                                     global_num);
+     
+     _nElts[i_part]  = PDM_Mesh_nodal_n_cell_get(_pdmNodal_handle_index,
+                                                   i_part);
+                                                   
+     _blocks_id = PDM_Mesh_nodal_blocks_id_get(_pdmNodal_handle_index);
+     _nBlocks   = PDM_Mesh_nodal_n_blocks_get (_pdmNodal_handle_index);     
+     
+
+     if(_visu -> isCreated()) {
+     
+        _visu -> GeomBlockPoly2D (_id_visu[block_id],
+                                  i_part,
+                                  n_elts,
+                                  connec_idx,
+                                  connec, 
+                                  global_num);                                                          
+     }
+   }
+
+
+
 /**********************************************************************/
   void Mesh::geomFinalize() {
     int g_num_computation_required = 0;
@@ -473,38 +511,7 @@ namespace cwipi {
   }
 
 /**********************************************************************/
-   void Mesh::poly2DBlockSet( const int              i_part,
-                              const int              block_id,
-                              const int              n_elts,
-                              int                    connec_idx[],
-                              int                    connec[], 
-                              CWP_g_num_t            global_num[]
-                            )
-   {
-     if(_coords[i_part]==NULL) bftc_error(__FILE__, __LINE__, 0, 
-            "Set the partition coordinates vertices before finalizing.\n");
 
-     if(_global_num[i_part]==NULL) bftc_error(__FILE__, __LINE__, 0, 
-            "_global_num is NULL.\n");
-     
-     _blockDB [block_id] -> blockSet(i_part,n_elts,connec_idx,connec,_global_num[i_part]);
-
-     if(_visu -> isCreated()) {
-     
-        _visu -> GeomBlockPoly2D (_id_visu[block_id],
-                                  i_part,
-                                  n_elts,
-                                  connec_idx,
-                                  connec, 
-                                  _global_num[i_part]);                                  
-        _visu -> GeomWrite();                          
-     }
-                     
-     for(int i=0;i<_npart;i++){
-       _nElts[i]  = PDM_Mesh_nodal_n_cell_get(_pdmNodal_handle_index,
-                                                   i_part);
-     }
-   }
 
    void Mesh::poly3DBlockSet( const int              i_part,
                               const int              block_id,
@@ -568,7 +575,6 @@ namespace cwipi {
       if(_visu -> isCreated()) {
         int id_visu = _visu -> GeomBlockAdd(block_type);
         _id_visu.insert(std::pair <int,int> (block_id,id_visu));
-       
       }
 
       return block_id;   
