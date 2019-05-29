@@ -70,7 +70,7 @@ namespace cwipi {
        virtual void blockSet(int i_part,int n_elts,
                              int* connec_idx,
                              int* connec,
-                             CWP_g_num_t* global_num);
+                             CWP_g_num_t* mesh_global_num);
                              
       /**
        * \brief Add and Set the CWIPI block from a Paradigm block 

@@ -74,63 +74,47 @@ namespace cwipi {
   }
 
 
-  void BlockFP::blockSet(int i_part,int n_elt,int* connec_idx,int* connec,CWP_g_num_t* global_num){
+  void BlockFP::blockSet(int i_part,
+                         int n_elt,
+                         int* connec_idx,
+                         int* connec,
+                         CWP_g_num_t* mesh_global_num){
 
      double* _cells_center_part = (double*)malloc (sizeof(double) * 3 * n_elt);
-     double* coords = static_cast<Mesh*>(_mesh) -> getCoordinates(i_part);
-
-     int n_vtx=-1;
-
-     for (int i_dim = 0; i_dim < 3; i_dim++) {
-       int ind_vtx=0;
-       for (int i_elt =0; i_elt < n_elt; i_elt++) {
-         _cells_center_part[3*i_elt+i_dim] = 0.0;
-         n_vtx = connec_idx[i_elt+1] - connec_idx[i_elt];
-         for (int i_vtx = 0; i_vtx < n_vtx; i_vtx++) {
-           _cells_center_part[3*i_elt+i_dim] += coords[3*connec[ ind_vtx ] + i_dim];
-           ind_vtx++; 
-         } //i_vtx
-         _cells_center_part[3*i_elt+i_dim] /= double(n_vtx);
-       } //i_elts
-     } //i_dim
-
-     PDM_gnum_set_from_coords (_pdmGNum_handle_index, i_part, n_elt, _cells_center_part, NULL);
      
+     if (mesh_global_num != NULL) {
+       _global_num [i_part] = mesh_global_num;
+     }
+     else {
+       _global_num [i_part] = _global_num_computed[i_part];
+     }
+
      _isSet[i_part] = true;
      _n_elt[i_part] = n_elt;
      _part_id.push_back(i_part);
-     _n_part_def=_n_part_def+1;
+     _n_part_def++;
      _cells_center[i_part] = _cells_center_part;
-     _connec_idx.insert( std::pair < int, int* >         (i_part,connec_idx) );  
-     _connec.insert    ( std::pair < int, int* >         (i_part,connec)     );
-                               
+     _connec     .insert    ( std::pair < int, int* > (i_part,connec));
+     _connec_idx.insert     ( std::pair < int, int* > (i_part,connec_idx));
 
-                              
-     if( isSet() ) {
-       PDM_gnum_compute (_pdmGNum_handle_index);
-       for (int i = 0;i<_n_part;i++) {
+     int* _blocks_id = PDM_Mesh_nodal_blocks_id_get(_pdmNodal_handle_index);
 
-         _global_num[i] = const_cast<CWP_g_num_t*> (PDM_gnum_get (_pdmGNum_handle_index, i));
-         if (not inPDMDB() ) PDM_Mesh_nodal_block_poly2d_set (_pdmNodal_handle_index,
+
+     if (not inPDMDB() ) 
+         PDM_Mesh_nodal_block_poly2d_set (_pdmNodal_handle_index,
                                           _block_id,
-                                          i,    
-                                          _n_elt[i],  
-                                          _connec_idx[i], 
-                                          _connec[i],   
-                                          _global_num[i],
+                                          i_part,    
+                                          n_elt,  
+                                          connec_idx, 
+                                          connec,   
+                                          _global_num[i_part],
                                           NULL);  
-       } //i
-       PDM_Mesh_nodal_g_num_in_block_compute(_pdmNodal_handle_index,_block_id);
-       
-       for (int i = 0;i<_n_part;i++) {
-          _global_num_block[i] = PDM_Mesh_nodal_block_g_num_get (_pdmNodal_handle_index,
-                                                                 _block_id,
-                                                                 i );
-       } // i
-       
-       _isGNumSet = true;
-       
-     }//isSet()
+     while(1==1){}                                     
+                                          
   }
+  
+  
 }
+
+
 
