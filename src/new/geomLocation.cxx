@@ -190,7 +190,7 @@ void GeomLocation::issend(Field <double>* referenceField) {
       int size = sizeof(double);
       int nComponent = referenceField -> nComponentGet();
 
-      int tag=0;
+      int tag =atoi((referenceField -> fieldIDGet()).c_str());
       double* dist_v_ptr = NULL;
       int dist_rank = -1;
       //On va supposer pour le moment que les données contenues dans interpolatedFieldData

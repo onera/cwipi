@@ -156,9 +156,12 @@ namespace cwipi {
 
     _n_g_elt    =(int*)malloc(sizeof(int)*_nb_part);  
 
-    printf("Before MPI_Allreduce rank %i\n",_rank);
+
+    int lsize;
+    MPI_Comm_size(_localComm,&lsize);
+    printf("Before MPI_Allreduce rank %i size %i %s\n",_rank,lsize, localName.c_str());
     MPI_Allreduce(_n_elt, _n_g_elt, _nb_part, MPI_INT,MPI_SUM,_localComm);
-    printf("After MPI_Allreduce rank %i\n",_rank);
+    printf("BeforeAfter MPI_Allreduce rank %i %s\n",_rank, localName.c_str());
 
    _n_g_elt_over_part = 0;
    for(int i_part =0;i_part<_nb_part;i_part++) { 
@@ -167,9 +170,7 @@ namespace cwipi {
 
     _n_g_vtx    =(int*)malloc(sizeof(int)*_nb_part);  
    
-    printf("Before MPI_AllreduceVtx\n");
     MPI_Allreduce(_n_vtx, _n_g_vtx, _nb_part, MPI_INT,MPI_SUM,_localComm);
-    printf("After MPI_AllreduceVtx\n");
 
   _n_g_vtx_over_part = 0;
   for(int i_part =0;i_part<_nb_part;i_part++) { 
@@ -196,14 +197,19 @@ namespace cwipi {
      
     if(_both_codes_are_local == 0){
       mesh_info_get();
+      
+      printf("ZZ After mesh_info_get() %i %s\n",_rank,localName.c_str());
       mesh_cpl_info_get();
+     
+      printf("ZZ After mesh_cpl_info_get() %i %s\n",_rank,localName.c_str());
      
       if(localName == _codeVector[0]) locate_setting_surface(_id_dist1);
       if(localName == _codeVector[1]) locate_setting_request(_id_dist1);
          
-      MPI_Barrier(_globalComm);
-      locate_compute          (_id_dist1)    ; 
-
+      MPI_Barrier(_globalComm),
+        printf("ZZ Before locate_compute %i %s\n",_rank,localName.c_str()); 
+        locate_compute        (_id_dist1);
+         printf("ZZ After locate_compute %i %s\n",_rank,localName.c_str());         
       if (localName == _codeVector[1]) locate_get(_id_dist1)  ;
          
       PDM_mesh_dist_free(_id_dist1,1);
@@ -211,9 +217,9 @@ namespace cwipi {
       if(localName == _codeVector[1]) broadcasting_request(_id_gnum_location1);
       if(localName == _codeVector[0]) broadcasting_set    (_id_gnum_location1);
          
-      MPI_Barrier(_globalComm);
+      MPI_Barrier(_globalComm),
       location_compute                   (_id_gnum_location1);  
-         
+      printf("ZZ After location_compute %i %s\n",_rank,localName.c_str());
       if(localName == _codeVector[1]) location_get(_id_gnum_location1) ;
 
       PDM_gnum_location_free(_id_gnum_location1,1);
@@ -221,7 +227,7 @@ namespace cwipi {
       if(localName == _codeVector[0]) locate_setting_request(_id_dist2);
       if(localName == _codeVector[1]) locate_setting_surface(_id_dist2);
                
-      MPI_Barrier(_globalComm);
+      MPI_Barrier(_globalComm),
       locate_compute          (_id_dist2)  ;
                      
       if (localName == _codeVector[0]) locate_get(_id_dist2)  ;    
@@ -230,7 +236,7 @@ namespace cwipi {
       if(localName == _codeVector[0])  broadcasting_request(_id_gnum_location2);     
       if(localName == _codeVector[1])  broadcasting_set    (_id_gnum_location2);
          
-      MPI_Barrier(_globalComm);    
+      MPI_Barrier(_globalComm),    
       location_compute  (_id_gnum_location2);   
       if(localName == _codeVector[0]) location_get(_id_gnum_location2);
       PDM_gnum_location_free(_id_gnum_location2,1);
@@ -245,19 +251,27 @@ namespace cwipi {
     else {
       if(localName == _codeVector[0]) {
         mesh_info_get();
+        printf("ZZ After mesh_info_get() %i %s\n",_rank,"code1");
         _geometry_cpl -> mesh_info_get();
+        
+        printf("ZZ After mesh_info_get() %i %s\n",_rank,"code2");
+        
         mesh_cpl_info_get();
+        printf("ZZ After mesh_cpl_info_get() %i %s\n",_rank,"code1");
         _geometry_cpl -> mesh_cpl_info_get2();   
-
+        
+        printf("ZZ After mesh_cpl_info_get() %i %s\n",_rank,"code2");
+        
         locate_setting_surface(_id_dist1);
-        MPI_Barrier(_globalComm);
+        MPI_Barrier(_globalComm),
+        printf("ZZ Before locate_compute %i %s\n",_rank,localName.c_str()); 
         locate_compute        (_id_dist1);
-                        
+         printf("ZZ After locate_compute %i %s\n",_rank,localName.c_str());                        
         locate_get_cpl        (_id_dist1) ;
         PDM_mesh_dist_free(_id_dist1,1);
                
         broadcasting_set    (_id_gnum_location1); 
-        MPI_Barrier(_globalComm);
+        MPI_Barrier(_globalComm),
         location_compute                 (_id_gnum_location1);          
         location_get_cpl (_id_gnum_location1);
 
@@ -265,16 +279,18 @@ namespace cwipi {
 
         locate_setting_request(_id_dist2);
 
-        MPI_Barrier(_globalComm);
-        locate_compute        (_id_dist2);   
+        MPI_Barrier(_globalComm),
+        locate_compute        (_id_dist2);  
+        
+        printf("ZZ After locate_compute %i %s\n",_rank,localName.c_str()); 
         locate_get            (_id_dist2) ;
         PDM_mesh_dist_free(_id_dist2,1);
 
         broadcasting_request (_id_gnum_location2);
             
-        MPI_Barrier(_globalComm);
+        MPI_Barrier(_globalComm),
         location_compute                  (_id_gnum_location2);
-
+        printf("ZZ After location_compute %i %s\n",_rank,localName.c_str());
         location_get                      (_id_gnum_location2);
         PDM_gnum_location_free(_id_gnum_location2,1);
 
@@ -299,7 +315,7 @@ namespace cwipi {
       }//end if localName == _codeVector[0]
       
     }//end both_are_local
-    MPI_Barrier(_globalComm); 
+   // MPI_Barrier(_globalComm), 
     
   }
 
@@ -343,13 +359,52 @@ namespace cwipi {
     int sender_cpl = (*_connectableRanks)[_n_ranks-1];
       
     _both_codes_are_local__array = (int*)malloc(sizeof(int)*_n_ranks_g);
+
+     int tsize;
+
+
+     MPI_Request srequest[_n_ranks_g];
+     MPI_Request rrequest[_n_ranks_g];
+     MPI_Request request,requests,requestr;
+     
+     MPI_Comm_size(_globalComm,&tsize);
+     printf("ZZ Allgather %i %s %i\n",_rank,localName.c_str(),tsize);
+     
+     int tag = 1545;
  
-     if(_both_codes_are_local == 0 || (_both_codes_are_local == 1 && localName == _codeVector[0]))
-       MPI_Allgather(&_both_codes_are_local,1,MPI_INT,
-                     _both_codes_are_local__array,1,MPI_INT,
-                     _globalComm);
+     if(_both_codes_are_local == 0 || (_both_codes_are_local == 1 && localName == _codeVector[0])){
+     
+       for(int i=0;i<_n_ranks_g;i++) {
+         int distant_rank = i;//(*_connectableRanks_cpl)[i];
+         if(distant_rank != _rank)
+           MPI_Issend(&_both_codes_are_local, 1, MPI_INT,
+                      distant_rank, tag,
+                      _globalComm,&srequest[i]);      
+         
+          if(distant_rank != _rank)
+            MPI_Irecv(&(_both_codes_are_local__array[i]), 1, MPI_INT,
+                     distant_rank, tag,
+                     _globalComm,&rrequest[i]);   
+     
+       }
+     }
+
+
+
+     if(_both_codes_are_local == 0 || (_both_codes_are_local == 1 && localName == _codeVector[0])){
+       for(int i=0;i<_n_ranks_cpl;i++) {
+         int distant_rank = i;//(*_connectableRanks_cpl)[i];
+         if(distant_rank != _rank)
+           MPI_Wait(&srequest[i],&status);      
+         if(distant_rank != _rank)
+           MPI_Wait(&rrequest[i],&status);  
+       }
+     }
      else
        _both_codes_are_local__array = _geometry_cpl -> _both_codes_are_local__array;
+       
+     _both_codes_are_local__array[_rank]=_both_codes_are_local;
+     printf("ZZ After Allgather %i %s\n",_rank,localName.c_str());
 
      int senderRank=0;
      while( _both_codes_are_local__array[ (*_connectableRanks)[senderRank] ] == 1 && senderRank < _n_ranks) {
@@ -365,10 +420,13 @@ namespace cwipi {
      if (senderRank_cpl == _n_ranks_cpl) senderRank_cpl--;
      senderRank_cpl = (*_connectableRanks_cpl)[senderRank_cpl] ;
             
-     MPI_Request srequest[_n_ranks_cpl];
-     MPI_Request request,requests,requestr;
+     printf("ZZ After WHILE %i %s\n",_rank,localName.c_str());
+     for(int i=0;i<_n_ranks_cpl;i++) {
+       printf("ZZ _both_codes_are_local__array[%i] rank %i %i\n",i,_rank,_both_codes_are_local__array[i]);
+     }
        
-     int tag = 1523;
+       
+     tag = 1523;
       
      if(_rank == senderRank ){
        for(int i=0;i<_n_ranks_cpl;i++) {
@@ -400,7 +458,7 @@ namespace cwipi {
       _nb_part_cpl = _geometry_cpl->_nb_part;
     }
  
-
+     printf("ZZ After WHILE2 %i %s\n",_rank,localName.c_str());
     tag++;
     /*   Number of elements over all processes and partitions exchange                  */
      if(_rank == senderRank ){
@@ -465,8 +523,15 @@ namespace cwipi {
       _n_g_vtx_cpl_over_part = _geometry_cpl->_n_g_vtx_over_part;
     }
  
-    printf("After info_mesh %i\n",_rank);           
+    printf("ZZ After info_mesh %i\n",_rank);           
   }
+
+
+
+
+
+
+
 
   void Geometry::_IAlltoall2(int** send_buffer,
                 int* send_size,
@@ -584,11 +649,6 @@ namespace cwipi {
       }//end for on i_rank
 
   }
-  
-
-  
-
-  
 
   void Geometry::_Wait(){
                 
@@ -632,7 +692,6 @@ void Geometry::_IBcast(void* send_buffer,
       for(int i_rank=0;i_rank<nranks;i_rank++) {
         if( rank == rootRank){ 
           int distant_rank = connectableranks[i_rank];
-          printf("rrrr %i\n",distant_rank);
           if(distant_rank != rootRank) {
             MPI_Issend(send_buffer, send_stride * send_size, type, distant_rank, tag,
                    comm,
@@ -668,7 +727,6 @@ void Geometry::_IBcast(void* send_buffer,
           MPI_Irecv(&(  ptr[ind_proc] ), recv_stride * recv_size,type, rootRank, tag,
                   comm,
                   &(recv_requests[0]));  
-         printf("testibcast rank %i recv distant_rank %i\n",rank,distant_rank);         
          }
       }   
        
@@ -677,7 +735,6 @@ void Geometry::_IBcast(void* send_buffer,
         for(int i_rank=0;i_rank<nranks;i_rank++) {
         
           int distant_rank = connectableranks[i_rank];
-          printf("testibcast waitsend rootRank %i rank %i i_rank %i distant_rank %i\n",rootRank,rank,i_rank,distant_rank);
       
          if(distant_rank != rootRank) 
             MPI_Wait(&(send_requests[i_rank]), &status);

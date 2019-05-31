@@ -1109,7 +1109,6 @@ PDM_writer_ensight_geom_write
 
       for (int i = 0; i < n_vtx; i++) {
         coord_tmp[n_som_proc+i] = (float) vtx[3*i+idim];
-        printf("IInumabs[%i] %i\n",i,numabs[i]);
         numabs_tmp[n_som_proc+i] = (PDM_g_num_t) numabs[i];
       }
       n_som_proc += n_vtx;
