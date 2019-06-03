@@ -86,15 +86,15 @@ namespace cwipi {
 
      //Depends on the Geometry type
      // Ca sera dans les classes concrètes
-     virtual void locate_setting_request(int id_dist) =0;
-     virtual void locate_setting_surface(int id_dist) =0;    
+     virtual void locate_setting_request(int* id_dist) =0;
+     virtual void locate_setting_surface(int* id_dist) =0;    
      virtual void locate_compute(int id_dist)             =0;
      virtual void locate_get(int id_dist)      =0;
      virtual void locate_get_cpl(int id_dist)      =0;     
      
      
-      virtual void broadcasting_request(int id_gnum_location)  =0;
-      virtual void broadcasting_set    (int id_gnum_location)  =0;
+      virtual void broadcasting_request(int* id_gnum_location)  =0;
+      virtual void broadcasting_set    (int* id_gnum_location)  =0;
       virtual void location_compute                 (int id_gnum_location)  =0;
      
      virtual void location_get(int id_gnum_location)      =0;

@@ -50,7 +50,7 @@ namespace cwipi {
     _referenceFieldsDB = coupling -> fieldsGet();
     _geometryLocation = geometryLocation; 
     _cpl = coupling;
-
+    _id_dist1 = -1;
     _localCodeProperties = _cpl -> localCodePropertiesGet();
     _coupledCodeProperties = _cpl -> coupledCodePropertiesGet();
 
@@ -197,46 +197,49 @@ namespace cwipi {
      
     if(_both_codes_are_local == 0){
       mesh_info_get();
-      
+      MPI_Barrier(_globalComm);
       printf("ZZ After mesh_info_get() %i %s\n",_rank,localName.c_str());
+      
       mesh_cpl_info_get();
      
       printf("ZZ After mesh_cpl_info_get() %i %s\n",_rank,localName.c_str());
-     
-      if(localName == _codeVector[0]) locate_setting_surface(_id_dist1);
-      if(localName == _codeVector[1]) locate_setting_request(_id_dist1);
+         MPI_Barrier(_globalComm);
+      if(localName == _codeVector[0]) locate_setting_surface(&_id_dist1);
+      if(localName == _codeVector[1]) locate_setting_request(&_id_dist1);
          
-      MPI_Barrier(_globalComm),
+     
         printf("ZZ Before locate_compute %i %s\n",_rank,localName.c_str()); 
-        locate_compute        (_id_dist1);
+       MPI_Barrier(_globalComm);
+        printf("id_dist1 %i\n",_id_dist1);
+        locate_compute        (_id_dist1); 
          printf("ZZ After locate_compute %i %s\n",_rank,localName.c_str());         
       if (localName == _codeVector[1]) locate_get(_id_dist1)  ;
          
       PDM_mesh_dist_free(_id_dist1,1);
          
-      if(localName == _codeVector[1]) broadcasting_request(_id_gnum_location1);
-      if(localName == _codeVector[0]) broadcasting_set    (_id_gnum_location1);
+      if(localName == _codeVector[1]) broadcasting_request(&_id_gnum_location1);
+      if(localName == _codeVector[0]) broadcasting_set    (&_id_gnum_location1);
          
-      MPI_Barrier(_globalComm),
+      MPI_Barrier(_globalComm);
       location_compute                   (_id_gnum_location1);  
       printf("ZZ After location_compute %i %s\n",_rank,localName.c_str());
       if(localName == _codeVector[1]) location_get(_id_gnum_location1) ;
 
       PDM_gnum_location_free(_id_gnum_location1,1);
            
-      if(localName == _codeVector[0]) locate_setting_request(_id_dist2);
-      if(localName == _codeVector[1]) locate_setting_surface(_id_dist2);
+      if(localName == _codeVector[0]) locate_setting_request(&_id_dist2);
+      if(localName == _codeVector[1]) locate_setting_surface(&_id_dist2);
                
-      MPI_Barrier(_globalComm),
+      MPI_Barrier(_globalComm);
       locate_compute          (_id_dist2)  ;
                      
       if (localName == _codeVector[0]) locate_get(_id_dist2)  ;    
       PDM_mesh_dist_free(_id_dist2,1);
 
-      if(localName == _codeVector[0])  broadcasting_request(_id_gnum_location2);     
-      if(localName == _codeVector[1])  broadcasting_set    (_id_gnum_location2);
+      if(localName == _codeVector[0])  broadcasting_request(&_id_gnum_location2);     
+      if(localName == _codeVector[1])  broadcasting_set    (&_id_gnum_location2);
          
-      MPI_Barrier(_globalComm),    
+      MPI_Barrier(_globalComm);    
       location_compute  (_id_gnum_location2);   
       if(localName == _codeVector[0]) location_get(_id_gnum_location2);
       PDM_gnum_location_free(_id_gnum_location2,1);
@@ -253,42 +256,45 @@ namespace cwipi {
         mesh_info_get();
         printf("ZZ After mesh_info_get() %i %s\n",_rank,"code1");
         _geometry_cpl -> mesh_info_get();
-        
         printf("ZZ After mesh_info_get() %i %s\n",_rank,"code2");
-        
+        MPI_Barrier(_globalComm);
         mesh_cpl_info_get();
         printf("ZZ After mesh_cpl_info_get() %i %s\n",_rank,"code1");
         _geometry_cpl -> mesh_cpl_info_get2();   
         
+        MPI_Barrier(_globalComm);
+        
         printf("ZZ After mesh_cpl_info_get() %i %s\n",_rank,"code2");
         
-        locate_setting_surface(_id_dist1);
-        MPI_Barrier(_globalComm),
+        locate_setting_surface(&_id_dist1);
+        
         printf("ZZ Before locate_compute %i %s\n",_rank,localName.c_str()); 
+        
+        MPI_Barrier(_globalComm);
         locate_compute        (_id_dist1);
          printf("ZZ After locate_compute %i %s\n",_rank,localName.c_str());                        
         locate_get_cpl        (_id_dist1) ;
         PDM_mesh_dist_free(_id_dist1,1);
                
-        broadcasting_set    (_id_gnum_location1); 
-        MPI_Barrier(_globalComm),
+        broadcasting_set    (&_id_gnum_location1); 
+        MPI_Barrier(_globalComm);
         location_compute                 (_id_gnum_location1);          
         location_get_cpl (_id_gnum_location1);
 
         PDM_gnum_location_free(_id_gnum_location1,1);
 
-        locate_setting_request(_id_dist2);
+        locate_setting_request(&_id_dist2);
 
-        MPI_Barrier(_globalComm),
+        MPI_Barrier(_globalComm);
         locate_compute        (_id_dist2);  
         
         printf("ZZ After locate_compute %i %s\n",_rank,localName.c_str()); 
         locate_get            (_id_dist2) ;
         PDM_mesh_dist_free(_id_dist2,1);
 
-        broadcasting_request (_id_gnum_location2);
+        broadcasting_request (&_id_gnum_location2);
             
-        MPI_Barrier(_globalComm),
+        MPI_Barrier(_globalComm);
         location_compute                  (_id_gnum_location2);
         printf("ZZ After location_compute %i %s\n",_rank,localName.c_str());
         location_get                      (_id_gnum_location2);
@@ -315,7 +321,7 @@ namespace cwipi {
       }//end if localName == _codeVector[0]
       
     }//end both_are_local
-   // MPI_Barrier(_globalComm), 
+   // MPI_Barrier(_globalComm); 
     
   }
 
@@ -370,20 +376,28 @@ namespace cwipi {
      MPI_Comm_size(_globalComm,&tsize);
      printf("ZZ Allgather %i %s %i\n",_rank,localName.c_str(),tsize);
      
-     int tag = 1545;
- 
+     int tag = 0;    
+     switch(_geometryLocation){
+       case CWP_FIELD_VALUE_CELL_POINT:
+         tag = 1;
+       case CWP_FIELD_VALUE_NODE:
+         tag = 2;        
+     }
+     
      if(_both_codes_are_local == 0 || (_both_codes_are_local == 1 && localName == _codeVector[0])){
      
        for(int i=0;i<_n_ranks_g;i++) {
          int distant_rank = i;//(*_connectableRanks_cpl)[i];
+         int tag2=tag*10000+distant_rank;
          if(distant_rank != _rank)
            MPI_Issend(&_both_codes_are_local, 1, MPI_INT,
-                      distant_rank, tag,
+                      distant_rank, tag2,
                       _globalComm,&srequest[i]);      
          
+          tag2=tag*10000+_rank;
           if(distant_rank != _rank)
             MPI_Irecv(&(_both_codes_are_local__array[i]), 1, MPI_INT,
-                     distant_rank, tag,
+                     distant_rank, tag2,
                      _globalComm,&rrequest[i]);   
      
        }
@@ -419,28 +433,32 @@ namespace cwipi {
      } 
      if (senderRank_cpl == _n_ranks_cpl) senderRank_cpl--;
      senderRank_cpl = (*_connectableRanks_cpl)[senderRank_cpl] ;
-            
+                
      printf("ZZ After WHILE %i %s\n",_rank,localName.c_str());
      for(int i=0;i<_n_ranks_cpl;i++) {
        printf("ZZ _both_codes_are_local__array[%i] rank %i %i\n",i,_rank,_both_codes_are_local__array[i]);
      }
+    
+    
+     MPI_Barrier(_globalComm);
        
-       
-     tag = 1523;
-      
+     tag+=100;
      if(_rank == senderRank ){
        for(int i=0;i<_n_ranks_cpl;i++) {
-         if( _both_codes_are_local__array[ (*_connectableRanks_cpl)[i] ] == 0 ) {
+         int distant_rank = (*_connectableRanks_cpl)[i];
+         int tag2=tag*10000+distant_rank;
+         if( _both_codes_are_local__array[ distant_rank ] == 0 ) {
            MPI_Issend(&_nb_part, 1, MPI_INT,
-                      (*_connectableRanks_cpl)[i], tag,
+                      distant_rank, tag2,
                       _globalComm,&srequest[i]);      
          }
        }
      }
 
     if(_both_codes_are_local == 0) {
+     int tag2=tag*10000+_rank;
      MPI_Irecv(&_nb_part_cpl, 1, MPI_INT,
-               senderRank_cpl, tag,
+               senderRank_cpl, tag2,
                _globalComm,&request);   
    }
 
@@ -454,26 +472,31 @@ namespace cwipi {
       }
     }
         
+    MPI_Barrier(_globalComm);
+        
     if(_both_codes_are_local == 1) {
       _nb_part_cpl = _geometry_cpl->_nb_part;
     }
- 
-     printf("ZZ After WHILE2 %i %s\n",_rank,localName.c_str());
-    tag++;
+
+    printf("ZZ After WHILE2 %i %s\n",_rank,localName.c_str());
+    tag+=100;
     /*   Number of elements over all processes and partitions exchange                  */
      if(_rank == senderRank ){
        for(int i=0;i<_n_ranks_cpl;i++) {
-         if( _both_codes_are_local__array[ (*_connectableRanks_cpl)[i] ] == 0 ) {
+         int distant_rank = (*_connectableRanks_cpl)[i];
+         int tag2=tag*10000+distant_rank;
+         if( _both_codes_are_local__array[distant_rank] == 0 ) {
            MPI_Issend(&_n_g_elt_over_part, 1, MPI_INT,
-                      (*_connectableRanks_cpl)[i], tag,
+                      distant_rank, tag2,
                       _globalComm,&srequest[i]);      
          }
        }
      }
 
     if(_both_codes_are_local == 0) {
+     int tag2 = tag*10000+_rank;
      MPI_Irecv(&_n_g_elt_cpl_over_part, 1, MPI_INT,
-               senderRank_cpl, tag,
+               senderRank_cpl, tag2,
                _globalComm,&request);   
    }
 
@@ -486,26 +509,32 @@ namespace cwipi {
           MPI_Wait(&srequest[i],&status);            
       }
     }
+        MPI_Barrier(_globalComm);
+   
+     printf("ZZ After WHILE3 %i %s sender %i\n",_rank,localName.c_str(),senderRank);  
         
     if(_both_codes_are_local == 1) {
       _n_g_elt_cpl_over_part = _geometry_cpl->_n_g_elt_over_part;
     }
  
       /*   Number of elements over all processes and partitions exchange                  */
-    tag++;
+     tag+=100;
       if(_rank == senderRank ){
        for(int i=0;i<_n_ranks_cpl;i++) {
-         if( _both_codes_are_local__array[ (*_connectableRanks_cpl)[i] ] == 0 ) {
+         int distant_rank = (*_connectableRanks_cpl)[i];
+         int tag2=tag*10000+distant_rank;
+         if( _both_codes_are_local__array[ distant_rank ] == 0 ) {
            MPI_Issend(&_n_g_vtx_over_part, 1, MPI_INT,
-                      (*_connectableRanks_cpl)[i], tag,
+                      distant_rank, tag2,
                       _globalComm,&srequest[i]);      
          }
        }
      }
 
     if(_both_codes_are_local == 0) {
+     int tag2=tag*10000+_rank;
      MPI_Irecv(&_n_g_vtx_cpl_over_part, 1, MPI_INT,
-               senderRank_cpl, tag,
+               senderRank_cpl, tag2,
                _globalComm,&request);   
    }
 
@@ -518,7 +547,8 @@ namespace cwipi {
           MPI_Wait(&srequest[i],&status);            
       }
     }
-        
+    
+    printf("ZZ After WHILE4 %i %s\n",_rank,localName.c_str());     
     if(_both_codes_are_local == 1) {
       _n_g_vtx_cpl_over_part = _geometry_cpl->_n_g_vtx_over_part;
     }
@@ -682,9 +712,15 @@ void Geometry::_IBcast(void* send_buffer,
  
       int rank;
       MPI_Comm_rank(comm,&rank);
-      int tag = 0;
+      int tag = 0;    
+      switch(_geometryLocation){
+        case CWP_FIELD_VALUE_CELL_POINT:
+          tag = 1;
+        case CWP_FIELD_VALUE_NODE:
+          tag = 2;        
+      }
+
       int ind_proc = 0;
- 
       
       std::vector<int> send_requests(nranks,0);
       std::vector<int> recv_requests(nranks,0);
@@ -758,6 +794,13 @@ void Geometry::_IBcast(void* send_buffer,
                 int nranks){
       MPI_Status status;
       int tag = 0;
+
+      switch(_geometryLocation){
+        case CWP_FIELD_VALUE_CELL_POINT:
+          tag = 1;
+        case CWP_FIELD_VALUE_NODE:
+          tag = 2;        
+      }
       int ind_proc = 0;
       int ind_proc_send = 0;
             
@@ -870,9 +913,8 @@ void Geometry::_IBcast(void* send_buffer,
       int nComponent = recevingField -> nComponentGet();
 
       for (int i_proc = 0; i_proc < _n_ranks_cpl; i_proc++) {
-
-        int tag =0;
-
+      
+        int tag =recevingField -> fieldIDIntGet();
         int distant_rank = (*_connectableRanks_cpl)[i_proc];
         void* loc_v_ptr = &(data[ nComponent*_targets_cpl_idx_cpl[distant_rank][0] ]);
 

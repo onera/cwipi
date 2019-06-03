@@ -71,6 +71,13 @@ namespace cwipi {
        _sendBuffer = NULL;
        _recvBuffer = NULL;  
        _last_request.resize(300,0);
+        
+       int len = _fieldID.length();
+       int id=0;
+       for(int i=0;i<len;i++) {
+         id+=(int)_fieldID[i];
+       }
+       _fieldIDInt = id;
     }
 
     /**
@@ -131,6 +138,13 @@ namespace cwipi {
     fieldIDGet() const
     {
       return _fieldID;
+    }
+
+
+    inline int
+    fieldIDIntGet() const
+    {
+      return _fieldIDInt;
     }
 
     /**
@@ -277,6 +291,7 @@ namespace cwipi {
     const CWP_Status_t                       _visuStatus;   /*!< Visualization status */
     std::vector<dataType* >                  _data;         /*!< Pointer to data array */
     std::string                              _fieldID;
+    int                                      _fieldIDInt;
     double                                  *_sendBuffer;
     double                                  *_recvBuffer;
     double*                                  _physTime;

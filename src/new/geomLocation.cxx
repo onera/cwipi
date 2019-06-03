@@ -190,7 +190,7 @@ void GeomLocation::issend(Field <double>* referenceField) {
       int size = sizeof(double);
       int nComponent = referenceField -> nComponentGet();
 
-      int tag =atoi((referenceField -> fieldIDGet()).c_str());
+      int tag =referenceField -> fieldIDIntGet();
       double* dist_v_ptr = NULL;
       int dist_rank = -1;
       //On va supposer pour le moment que les données contenues dans interpolatedFieldData
@@ -236,15 +236,15 @@ void GeomLocation::issend(Field <double>* referenceField) {
   
   
  
-  void GeomLocation::locate_setting_surface(int id_dist) {
+  void GeomLocation::locate_setting_surface(int* id_dist) {
 
     /* Paradigm mesh localisation _distance creation */
+    printf("id_dist_befor %i\n",*id_dist);
+    *id_dist   = PDM_mesh_dist_create( PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_globalComm );
+   printf("id_dist_after %i\n",*id_dist);
+    PDM_mesh_dist_n_part_cloud_set(*id_dist,   0, _nb_part_cpl);  
 
-    id_dist   = PDM_mesh_dist_create( PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_globalComm );
-
-    PDM_mesh_dist_n_part_cloud_set(id_dist,   0, _nb_part_cpl);  
-
-    PDM_mesh_dist_surf_mesh_global_data_set (id_dist,
+    PDM_mesh_dist_surf_mesh_global_data_set (*id_dist,
                                            _n_g_elt_over_part,
                                            _n_g_vtx_over_part,
                                            _nb_part);  
@@ -261,7 +261,7 @@ void GeomLocation::issend(Field <double>* referenceField) {
       CWP_g_num_t* gnum_vtx = _mesh -> getVertexGNum(i_part);
       CWP_g_num_t* gnum_elt = _mesh -> GNumEltsGet(i_part);
 
-      PDM_mesh_dist_surf_mesh_part_set (id_dist,
+      PDM_mesh_dist_surf_mesh_part_set (*id_dist,
                                       i_part,
                                       n_elts,
                                       connecIdx,
@@ -288,7 +288,7 @@ void GeomLocation::issend(Field <double>* referenceField) {
         CWP_g_num_t* gnum_target   =  gnumTargetGet(i_part);
         double*      coords_target =  coordsTargetGet(i_part); 
         
-        PDM_mesh_dist_cloud_set (id_dist,
+        PDM_mesh_dist_cloud_set (*id_dist,
                               0,
                               i_part,
                               0,
@@ -302,7 +302,7 @@ void GeomLocation::issend(Field <double>* referenceField) {
         CWP_g_num_t* gnum_target_cpl   = _geometry_cpl -> gnumTargetGet(i_part);
         double*      coords_target_cpl = _geometry_cpl -> coordsTargetGet(i_part);
 
-        PDM_mesh_dist_cloud_set (id_dist,
+        PDM_mesh_dist_cloud_set (*id_dist,
                               0,
                               i_part,
                               n_target_cpl,
@@ -314,7 +314,7 @@ void GeomLocation::issend(Field <double>* referenceField) {
   
   }
 
-  void GeomLocation::locate_setting_request(int id_dist) {
+  void GeomLocation::locate_setting_request(int* id_dist) {
 
     /*
      TODO: Intéressant pour la suite
@@ -323,11 +323,11 @@ void GeomLocation::issend(Field <double>* referenceField) {
    */
 
     /* Paradigm mesh localisation _distance creation */
-    id_dist   = PDM_mesh_dist_create( PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_globalComm );
+    *id_dist   = PDM_mesh_dist_create( PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_globalComm );
 
-    PDM_mesh_dist_n_part_cloud_set(id_dist,   0, _nb_part);  
+    PDM_mesh_dist_n_part_cloud_set(*id_dist,   0, _nb_part);  
 
-    PDM_mesh_dist_surf_mesh_global_data_set (id_dist,
+    PDM_mesh_dist_surf_mesh_global_data_set (*id_dist,
                                            _n_g_elt_cpl_over_part,
                                            _n_g_vtx_cpl_over_part,
                                            _nb_part_cpl);  
@@ -337,7 +337,7 @@ void GeomLocation::issend(Field <double>* referenceField) {
       CWP_g_num_t* gnum_target          = gnumTargetGet  (i_part);
       double*      coords_target        = coordsTargetGet(i_part);
 
-      PDM_mesh_dist_cloud_set (id_dist,
+      PDM_mesh_dist_cloud_set (*id_dist,
                               0,
                               i_part,
                               _n_target[i_part],
@@ -360,7 +360,7 @@ void GeomLocation::issend(Field <double>* referenceField) {
   /* TODO: Plante quand on met les pointeurs à NULL dans surf_mesh_part_set ou quand on utilise les tmp.
   */
         
-        PDM_mesh_dist_surf_mesh_part_set (id_dist,
+        PDM_mesh_dist_surf_mesh_part_set (*id_dist,
                                           i_part,
                                           0,
                                           connecIdx,
@@ -381,7 +381,7 @@ void GeomLocation::issend(Field <double>* referenceField) {
         CWP_g_num_t* gnum_vtx_cpl  = mesh_cpl -> getVertexGNum(i_part);
         CWP_g_num_t* gnum_elt_cpl  = mesh_cpl -> GNumEltsGet(i_part);     
   
-        PDM_mesh_dist_surf_mesh_part_set (id_dist,
+        PDM_mesh_dist_surf_mesh_part_set (*id_dist,
                                           i_part,
                                           n_elts_cpl,
                                           connecIdx_cpl,
@@ -399,9 +399,9 @@ void GeomLocation::issend(Field <double>* referenceField) {
     PDM_mesh_dist_compute(id_dist);
   }
 
- void GeomLocation::broadcasting_request(int id_gnum_location) {
+ void GeomLocation::broadcasting_request(int* id_gnum_location) {
  
-  id_gnum_location = PDM_gnum_location_create(_nb_part,_nb_part_cpl, _pdm_globalComm);
+  *id_gnum_location = PDM_gnum_location_create(_nb_part,_nb_part_cpl, _pdm_globalComm);
 
   for(int i_part =0;i_part<_nb_part;i_part++) {    
     for(int i=0; i<_n_target[i_part]; i++) {
@@ -413,14 +413,14 @@ void GeomLocation::issend(Field <double>* referenceField) {
       _n_target[i_part]);*/
      }
     } 
-    PDM_gnum_location_requested_elements_set(id_gnum_location,i_part, _n_target[i_part],_closest_elt_gnum[i_part]);   
+    PDM_gnum_location_requested_elements_set(*id_gnum_location,i_part, _n_target[i_part],_closest_elt_gnum[i_part]);   
   }
  
   for(int i_part =0; i_part<_nb_part_cpl; i_part++) {     
     
       if(_both_codes_are_local == 0) {
         CWP_g_num_t* gnum_elt = _mesh -> GNumEltsGet(i_part);     
-        PDM_gnum_location_elements_set(id_gnum_location,i_part, 0,gnum_elt);    
+        PDM_gnum_location_elements_set(*id_gnum_location,i_part, 0,gnum_elt);    
       }     
      else {  
        CWP_g_num_t* gnum_target_cpl = _geometry_cpl -> gnumTargetGet(i_part);
@@ -430,15 +430,15 @@ void GeomLocation::issend(Field <double>* referenceField) {
        CWP_g_num_t* gnum_elt_cpl = mesh_cpl -> GNumEltsGet(i_part);     
        int          n_elt_cpl    = mesh_cpl -> getPartNElts(i_part);
        
-       PDM_gnum_location_elements_set(id_gnum_location,i_part, n_elt_cpl,gnum_elt_cpl);    
+       PDM_gnum_location_elements_set(*id_gnum_location,i_part, n_elt_cpl,gnum_elt_cpl);    
      }
   }
  }
 
 
- void GeomLocation::broadcasting_set(int id_gnum_location) {
+ void GeomLocation::broadcasting_set(int* id_gnum_location) {
  
-  id_gnum_location = PDM_gnum_location_create(_nb_part,_nb_part_cpl, _pdm_globalComm);
+  *id_gnum_location = PDM_gnum_location_create(_nb_part,_nb_part_cpl, _pdm_globalComm);
 
   for(int i_part =0;i_part<_nb_part_cpl;i_part++) {    
 
@@ -446,7 +446,7 @@ void GeomLocation::issend(Field <double>* referenceField) {
     CWP_g_num_t* gnum_elt = _mesh -> GNumEltsGet(i_part);     
     
     
-    PDM_gnum_location_elements_set(id_gnum_location,i_part, _n_elt[i_part],gnum_elt);      
+    PDM_gnum_location_elements_set(*id_gnum_location,i_part, _n_elt[i_part],gnum_elt);      
   }
 
   for(int i_part =0; i_part<_nb_part_cpl; i_part++) {     
@@ -455,7 +455,7 @@ void GeomLocation::issend(Field <double>* referenceField) {
       
         CWP_g_num_t* gnum_target = gnumTargetGet(i_part);
         CWP_g_num_t* gnum_elt = _mesh -> GNumEltsGet(i_part);     
-        PDM_gnum_location_requested_elements_set(id_gnum_location,i_part, 0,gnum_elt);
+        PDM_gnum_location_requested_elements_set(*id_gnum_location,i_part, 0,gnum_elt);
       }     
      else {
        int n_target_cpl = _geometry_cpl -> nTargetGet(i_part);
@@ -478,7 +478,7 @@ void GeomLocation::issend(Field <double>* referenceField) {
            n_target_cpl);*/
        //  }
        } 
-       PDM_gnum_location_requested_elements_set(id_gnum_location,i_part, n_target_cpl, _geometry_cpl -> closestEltGnumGet  (i_part));
+       PDM_gnum_location_requested_elements_set(*id_gnum_location,i_part, n_target_cpl, _geometry_cpl -> closestEltGnumGet  (i_part));
      }
   }
  }
