@@ -529,7 +529,7 @@ int main
   double *times_init = NULL;
   CWP_Status_t *is_coupled_rank = NULL;
 
-  if (rank <3 ) {
+  if (rank < 3 ) {
     n_code_name = 1;
     codeNames = malloc(sizeof(char *) * n_code_name);
     codeNames[0] ="code1";
@@ -545,7 +545,7 @@ int main
     is_coupled_rank[0] = CWP_STATUS_ON;
   }
 
-  if(rank>=3 || rank<=4) {
+  if(rank>=3 && rank<=4) {
     n_code_name = 2;
     codeNames = malloc(sizeof(char *) * n_code_name);
     codeNames[0] ="code1";
@@ -1029,10 +1029,10 @@ for (int i = 0; i < n_code_name; i++ ) {
     printf("After CWP_next_recv_time_set\n");
 
     if(code_name == "code1"){
-    
+      printf("TEST %i %s %s\n",rank,code_name,codeNames[i]);
       for(int i_part =0;i_part <nb_part;i_part++) {     
         for(int j=0;j<nElts[i][i_part];j++)
-          rank_data[i][i_part][j]= j;
+          rank_data[i][i_part][j]= rank;
 
         for(int j=0;j<nVtx[i][i_part];j++)
           rank_data_vtx[i][i_part][j]= coords[i][i_part][3*j];          
@@ -1044,8 +1044,7 @@ for (int i = 0; i < n_code_name; i++ ) {
    
     }
     else { 
-
-     CWP_Irecv (code_name,cpl_id1,"rank");
+      CWP_Irecv (code_name,cpl_id1,"rank");
       CWP_Irecv (code_name,cpl_id1,"rank_vtx");
     }
 

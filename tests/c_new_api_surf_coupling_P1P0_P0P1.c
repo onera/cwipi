@@ -193,7 +193,7 @@ int main
   /* Read args from command line
    * --------------------------- */
 
-  int nVertexSeg = 10;
+  int nVertexSeg = 30;
   double randLevel = 0.4;
 
   _read_args(argc, argv, &nVertexSeg, &randLevel);
@@ -241,8 +241,8 @@ int main
       rankCode1[i] = 0;
       rankCode2[i] = 0;
     }
-/*    for(int i=0; i < size_code1_domain; i++){
-      int tmp = rand() % commWorldSize;   
+    for(int i=0; i < size_code1_domain; i++){
+      int tmp = i;//rand() % commWorldSize;   
       while(rankCode1[tmp] == 1){
         tmp = rand() % commWorldSize;
       }
@@ -250,14 +250,14 @@ int main
     }
 
     for(int i=0; i < size_code2_domain; i++){
-      int tmp = rand() % commWorldSize;   
+      int tmp = size_code1_domain/2 + i;//rand() % commWorldSize;   
       while(rankCode2[tmp] == 1){
         tmp = rand() % commWorldSize;
       }
       rankCode2[tmp]=1; 
     }
- */
  
+ /*
     rankCode1[0]=1; 
     rankCode1[1]=1; 
     rankCode1[2]=1;
@@ -272,7 +272,7 @@ int main
     rankCode2[4]=1; 
     rankCode2[5]=1; 
   
-    
+    */
 
     int ind=0;
     for(int i=0; i < commWorldSize; i++) {
@@ -452,11 +452,12 @@ int main
   eltsConnecPointer = (int **) malloc(sizeof(int*) * n_code_name);
   eltsConnec = (int **) malloc(sizeof(int*) * n_code_name);
 
+  srand (time(NULL));
+
   for(int i_code = 0; i_code < n_code_name; i_code++) { 
     coords           [i_code] = (double *) malloc(sizeof(double) * 3 * nVertex );
     eltsConnecPointer[i_code] = (int *)    malloc(sizeof(int) * (nElts + 1));
     eltsConnec       [i_code] = (int *)    malloc(sizeof(int) * 4 * nElts);
-
     grid_mesh(xmin, 
             xmax, 
             ymin, 
@@ -468,7 +469,13 @@ int main
             eltsConnecPointer[i_code],
             eltsConnec       [i_code],
             localComm        [i_code]); 
+
+
+
   }
+ 
+  MPI_Barrier(MPI_COMM_WORLD); 
+
 
   fprintf(outputFile, "   Number of vertex   : %i\n", nVertex);
   fprintf(outputFile, "   Number of elements : %i\n", nElts);
@@ -526,7 +533,7 @@ int main
       sendValues[i_code] = (double *) malloc(sizeof(double) * nElts);
       recvValues[i_code] = (double *) malloc(sizeof(double) * nVertex); 
       for (int i = 0; i <nElts; i++) {
-        sendValues[i_code][i] = i;//coords[3 * i];
+        sendValues[i_code][i] = rank;//i;//coords[3 * i];
       }  
     }
   
@@ -607,8 +614,6 @@ int main
     }
 
   }
-  
-
 
   MPI_Barrier(MPI_COMM_WORLD);
   int n_uncomputed_tgt;
@@ -617,7 +622,9 @@ int main
     CWP_Geom_compute(codeName[i_code],"c_surf_cpl_P1P0_P0P1", CWP_FIELD_VALUE_CELL_POINT, n_uncomputed_tgt);
     CWP_Geom_compute(codeName[i_code],"c_surf_cpl_P1P0_P0P1", CWP_FIELD_VALUE_NODE, n_uncomputed_tgt);
   }
-   printf("BeforeAfter Geometry compute %i\n",rank);
+  
+  printf("BeforeAfter Geometry compute %i\n",rank);
+   
   MPI_Barrier(MPI_COMM_WORLD);
   double recv_time = 0.150;
   
@@ -645,7 +652,6 @@ int main
       CWP_Wait_issend (codeName[i_code],"c_surf_cpl_P1P0_P0P1",fieldName2);   
     }    
   }
-
 
   /* Coupling deletion
    * ----------------- */
