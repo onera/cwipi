@@ -11,18 +11,17 @@ modelString = modelFile.read()
 modelFile.close()
 
 R1=1.0
-quad = 1
-h=0.8
+if(modelName.find("2")>-1):
+  quad = 1
+  h=0.2
+else:
+  quad = 0
+  h=0.3
 
 XCenter =0
 YCenter =0 
 for i in range(0,int(argu[1])):
-  XCenter = 4*i*R1#XCenter + 
-  
- # if(i%2==0):
- #   quad = 0
- # else:
- #   quad = 1
+  XCenter = XCenter + 4*R1; 
   
   if(i % 5 == 0):
     YCenter = YCenter + 4*R1
