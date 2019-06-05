@@ -267,7 +267,7 @@ int main
   }
 
   int* n_uncomputed_tgt;
-  CWP_Geom_compute(code_name,cpl_id1,CWP_FIELD_VALUE_CELL_POINT, n_uncomputed_tgt);
+  CWP_Geom_compute(code_name,cpl_id1,CWP_FIELD_VALUE_CELL_POINT);
   
   if(rank==0){
     CWP_Issend (code_name,cpl_id1,"unchamp");

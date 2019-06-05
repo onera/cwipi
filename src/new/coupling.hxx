@@ -117,10 +117,12 @@ namespace cwipi {
      * \return                Number of uncomputed targets
      */
 
-    inline int 
+    int 
     nUncomputedTargetsGet
     (
-    ) const;
+      const CWP_Field_value_t geometryLocation,
+      const int  i_part
+    ) ;
 
     /**
      *
@@ -210,8 +212,7 @@ namespace cwipi {
     void 
     geomCompute
     (
-     CWP_Field_value_t geometryLocation,
-     int *n_uncomputed_tgt
+     CWP_Field_value_t geometryLocation
     );
 
     /**

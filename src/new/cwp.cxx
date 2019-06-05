@@ -671,16 +671,19 @@ const char *cpl_id
 
 
 
-// int 
-// CWP_n_uncomputed_tgts_get
-// (
-//  const char *cpl_id
-// )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+int 
+CWP_N_uncomputed_tgts_get
+(
+ const char *local_code_name,
+ const char *cpl_id,
+ const CWP_Field_value_t geometryLocation,
+ const int  i_part
+)
+{
+   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 
-//   return cpl.nUncomputedTargetsGet();
-// }
+   return cpl.nUncomputedTargetsGet(geometryLocation,i_part);
+}
 
 
 
@@ -766,11 +769,10 @@ const char *cpl_id
   void 
   CWP_Geom_compute(const char        *local_code_name,
                    const char        *cpl_id,
-                   CWP_Field_value_t  geometryLocation,
-                   int               *n_uncomputed_tgt
+                   CWP_Field_value_t  geometryLocation
                   )
   { cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-    cpl.geomCompute(geometryLocation,n_uncomputed_tgt);
+    cpl.geomCompute(geometryLocation);
   }
 
 

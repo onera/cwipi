@@ -1001,8 +1001,13 @@ for (int i = 0; i < n_code_name; i++ ) {
   //TODO: Calcul géom piloté par la nature des champs
 //Erreur si on crée un champ après le calcul
   code_name = codeNames[i];
-  CWP_Geom_compute(code_name,cpl_id1, CWP_FIELD_VALUE_NODE, n_uncomputed_tgt);
-  CWP_Geom_compute(code_name,cpl_id1, CWP_FIELD_VALUE_CELL_POINT, n_uncomputed_tgt);
+  CWP_Geom_compute(code_name,cpl_id1, CWP_FIELD_VALUE_NODE);
+  CWP_Geom_compute(code_name,cpl_id1, CWP_FIELD_VALUE_CELL_POINT);
+  for(int i_part =0; i_part<nb_part;i_part++) {
+    int n_uncomputed_node = CWP_N_uncomputed_tgts_get(code_name,cpl_id1, CWP_FIELD_VALUE_NODE,i_part);
+    int n_uncomputed_cell_value = CWP_N_uncomputed_tgts_get(code_name,cpl_id1, CWP_FIELD_VALUE_CELL_POINT,i_part);
+    printf("  %i  vertices and   %i  cell centers have not been found on code %s proc %i partition %i\n",n_uncomputed_node,n_uncomputed_cell_value,code_name,rank,i_part);  
+  }
   //Argument tag points localisé oui/non + print 
 
  // printf("After CWP_Geom_compute code %i\n",i);

@@ -41,7 +41,7 @@
 
 #include "factory.hpp"
 #include "field.hpp"
-//#include "geometry.hxx"
+
 #include "communication.hxx"
 #include "visualization.hxx"
 
@@ -296,11 +296,22 @@ namespace cwipi {
   
 
    void 
-   Coupling::geomCompute (CWP_Field_value_t geometryLocation, int *n_uncomputed_tgt)
+   Coupling::geomCompute (CWP_Field_value_t geometryLocation)
    {  
-     _geometry[geometryLocation] -> compute(n_uncomputed_tgt);
+     _geometry[geometryLocation] -> compute();
+     
    }
 
+
+  int Coupling::nUncomputedTargetsGet
+  (
+    const CWP_Field_value_t geometryLocation,
+    const int  i_part
+  )
+  {
+    _geometry[geometryLocation] -> nUncomputedTargetsGet(i_part);
+  
+  }
 
 
    void 

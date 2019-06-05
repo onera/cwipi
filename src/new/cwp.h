@@ -865,7 +865,9 @@ int
 CWP_N_uncomputed_tgts_get
 (
  const char *local_code_name,
- const char *cpl_id
+ const char *cpl_id,
+ const CWP_Field_value_t geometryLocation,
+ const int  i_part
 );
 
 /**
@@ -1012,7 +1014,6 @@ CWP_Cpl_time_step_set
  *
  * \param [in]  local_code_name     Local code name
  * \param [in]  cpl_id              Coupling identifier
- * \param [out] n_uncomputed_tgt    Number of uncomputed target
  *
  */
 
@@ -1021,8 +1022,7 @@ CWP_Geom_compute
 (
  const char        *local_code_name,
  const char        *cpl_id,
- CWP_Field_value_t  geometryLocation,
- int               *n_uncomputed_tgt
+ CWP_Field_value_t  geometryLocation
 );
 
 /**
@@ -1711,7 +1711,6 @@ CWP_Exch
  * \param [in]  cpl_id              Coupling identifier
  * \param [in]  src_field_id        Source field id (0 -> no sending)
  * \param [in]  tgt_field_id        Target field id (0 -> no receiving)
- * \param [out] n_uncomputed_tgt    Number of uncomputed target for each partition (size n_part)
  *
  * \return                          Exchange status
  *
@@ -1723,8 +1722,7 @@ CWP_Sendrecv
  const char   *local_code_name,
  const char   *cpl_id,
  const char   *src_field_id,
- const char   *tgt_field_id,
- int          *n_uncomputed_tgt
+ const char   *tgt_field_id
 );
 
 /**

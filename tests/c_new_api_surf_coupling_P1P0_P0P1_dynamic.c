@@ -405,12 +405,12 @@ int main
 
   for(int i_code = 0; i_code < n_code_name; i_code++) { 
     CWP_Cpl_create (codeName[i_code],             // Code name
-                    "c_surf_cpl_P1P0_P0P1",  // Coupling id
+                    "c_new_api_surf_cpl_P1P0_P0P1_dynamic",  // Coupling id
                     codeCoupledName[i_code],         // Coupled application id
                     CWP_COMM_PAR_WITH_PART,  // Coupling type
                     CWP_GEOM_LOCATION,       // Solver type
                     nb_part,                 // Partition number
-                    CWP_DISPLACEMENT_STATIC, // Mesh type
+                    CWP_DISPLACEMENT_DEFORMABLE, // Mesh displacement type
                     CWP_FREQ_CPL_TIME_STEP); // Postprocessing frequency
   }
   
@@ -420,12 +420,12 @@ int main
 
   for(int i_code = 0; i_code < n_code_name; i_code++) {                     
     CWP_Visu_set(codeName[i_code], // Code name
-                 "c_surf_cpl_P1P0_P0P1",     // Coupling id
+                 "c_new_api_surf_cpl_P1P0_P0P1_dynamic",     // Coupling id
                  1,           // Postprocessing frequency
                  Ensight,     // Postprocessing format
                  "text");     // Postprocessing option
   }
- 
+
   /* Mesh definition
    * --------------- */
 
@@ -487,32 +487,33 @@ int main
 
   for(int i_code = 0; i_code < n_code_name; i_code++) {        
     CWP_Mesh_interf_vtx_set(codeName[i_code],             //Code name
-                            "c_surf_cpl_P1P0_P0P1",  // Coupling id
+                            "c_new_api_surf_cpl_P1P0_P0P1_dynamic",  // Coupling id
                             0,
                             nVertex,
                             coords[i_code],
                             NULL);  
 
     int block_id = CWP_Mesh_interf_block_add(codeName[i_code],             // Code name
-                                           "c_surf_cpl_P1P0_P0P1",  // Coupling id
+                                           "c_new_api_surf_cpl_P1P0_P0P1_dynamic",  // Coupling id
                                            CWP_BLOCK_FACE_POLY);
                        
     CWP_Mesh_interf_f_poly_block_set(codeName[i_code],             //Code name
-                                     "c_surf_cpl_P1P0_P0P1",  // Coupling id
+                                     "c_new_api_surf_cpl_P1P0_P0P1_dynamic",  // Coupling id
                                      0,
                                      block_id,
                                      nElts,
                                      eltsConnecPointer[i_code],
                                      eltsConnec       [i_code],
                                      NULL);
-                                   
+
+  }
+
+  
+  for(int i_code = 0; i_code < n_code_name; i_code++) {                                      
     CWP_Mesh_interf_finalize (codeName[i_code],
-                              "c_surf_cpl_P1P0_P0P1"  // Coupling id
+                              "c_new_api_surf_cpl_P1P0_P0P1_dynamic"  // Coupling id
                              );
   }
-  
-  
-
   
   /* Fields exchange
    *     - Proc 0 : Send X coordinates
@@ -528,15 +529,17 @@ int main
   double **recvValues = (double **) malloc(sizeof(double*) * n_code_name);
   for(int i_code = 0; i_code < n_code_name; i_code++) {   
     if (codeName[i_code] == "code1") {
-      sendValues[i_code] = (double *) malloc(sizeof(double) * nVertex);
+      sendValues[i_code] = (double *) malloc(sizeof(double) * 3* nVertex);
       recvValues[i_code] = (double *) malloc(sizeof(double) * nElts); 
       for (int i = 0; i <nVertex; i++) {
-        sendValues[i_code][i] = coords[i_code][3 * i];
+        sendValues[i_code][3*i] = coords[i_code][3 * i];
+        sendValues[i_code][3*i+1] = coords[i_code][3 * i+1];
+        sendValues[i_code][3*i+2] = coords[i_code][3 * i+2];
       }
     }
     else {
       sendValues[i_code] = (double *) malloc(sizeof(double) * nElts);
-      recvValues[i_code] = (double *) malloc(sizeof(double) * nVertex); 
+      recvValues[i_code] = (double *) malloc(sizeof(double) * 3*nVertex); 
       for (int i = 0; i <nElts; i++) {
         sendValues[i_code][i] = rank;//i;//coords[3 * i];
       }  
@@ -551,8 +554,8 @@ int main
   char *fieldName1;
   char *fieldName2;
   
-  fieldName1 = "cooX";
-  fieldName2 = "rank";
+  fieldName1 = "cooX_t0";
+  fieldName2 = "code2_elt_rank";
 
   CWP_Status_t visu_status = CWP_STATUS_OFF; 
   
@@ -561,17 +564,17 @@ int main
     if (codeName[i_code] == "code1") {
 
      CWP_Field_create (codeName[i_code],
-                       "c_surf_cpl_P1P0_P0P1",
+                       "c_new_api_surf_cpl_P1P0_P0P1_dynamic",
                        fieldName1,
                        CWP_DOUBLE,
                        CWP_FIELD_STORAGE_BLOCK,
-                       1,
+                       3,
                        CWP_FIELD_VALUE_NODE,
                        CWP_FIELD_EXCH_SEND,
                        visu_status);
 
      CWP_Field_create (codeName[i_code],
-                       "c_surf_cpl_P1P0_P0P1",
+                       "c_new_api_surf_cpl_P1P0_P0P1_dynamic",
                        fieldName2,
                        CWP_DOUBLE,
                        CWP_FIELD_STORAGE_BLOCK,
@@ -580,28 +583,28 @@ int main
                        CWP_FIELD_EXCH_RECV,
                        visu_status);
 
-      CWP_Field_data_set(codeName[i_code],"c_surf_cpl_P1P0_P0P1",fieldName1,0, sendValues[i_code]); 
-      CWP_Field_data_set(codeName[i_code],"c_surf_cpl_P1P0_P0P1",fieldName2,0, recvValues[i_code]);
+      CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",fieldName1,0, sendValues[i_code]); 
+      CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",fieldName2,0, recvValues[i_code]);
 //    
     
  //   _dumpStatus(outputFile, status);
-//    _dumpNotLocatedPoints(outputFile, "c_surf_cpl_P1P0_P0P1", nNotLocatedPoints);
+//    _dumpNotLocatedPoints(outputFile, "c_new_api_surf_cpl_P1P0_P0P1_dynamic", nNotLocatedPoints);
 
     }
     else {
   
      CWP_Field_create (codeName[i_code],
-                       "c_surf_cpl_P1P0_P0P1",
+                       "c_new_api_surf_cpl_P1P0_P0P1_dynamic",
                        fieldName1,
                        CWP_DOUBLE,
                        CWP_FIELD_STORAGE_BLOCK,
-                       1,
+                       3,
                        CWP_FIELD_VALUE_NODE,
                        CWP_FIELD_EXCH_RECV,
                        visu_status);
                      
       CWP_Field_create (codeName[i_code],
-                     "c_surf_cpl_P1P0_P0P1",
+                     "c_new_api_surf_cpl_P1P0_P0P1_dynamic",
                      fieldName2,
                      CWP_DOUBLE,
                      CWP_FIELD_STORAGE_BLOCK,
@@ -610,62 +613,54 @@ int main
                      CWP_FIELD_EXCH_SEND,
                      visu_status);
 
-    CWP_Field_data_set(codeName[i_code],"c_surf_cpl_P1P0_P0P1",fieldName2,0, sendValues[i_code]); 
-    CWP_Field_data_set(codeName[i_code],"c_surf_cpl_P1P0_P0P1",fieldName1,0, recvValues[i_code]);
+    CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",fieldName2,0, sendValues[i_code]); 
+    CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",fieldName1,0, recvValues[i_code]);
 
   //  _dumpStatus(outputFile, status);
-  //  _dumpNotLocatedPoints(outputFile, "c_surf_cpl_P1P0_P0P1", nNotLocatedPoints);
+  //  _dumpNotLocatedPoints(outputFile, "c_new_api_surf_cpl_P1P0_P0P1_dynamic", nNotLocatedPoints);
 
     }
 
   }
 
-  //MPI_Barrier(MPI_COMM_WORLD);
-  int n_uncomputed_tgt;
-  //printf("Before Geometry compute %i\n",rank);
-  //for(int i_code = 0; i_code < n_code_name; i_code++) {     
-  //  CWP_Geom_compute(codeName[i_code],"c_surf_cpl_P1P0_P0P1", CWP_FIELD_VALUE_CELL_POINT, n_uncomputed_tgt);
-  //  CWP_Geom_compute(codeName[i_code],"c_surf_cpl_P1P0_P0P1", CWP_FIELD_VALUE_NODE, n_uncomputed_tgt);
-  //}
-  
    
   MPI_Barrier(MPI_COMM_WORLD);
   double recv_time = 0.;
-  for (int il_nb_ite = 0; il_nb_ite < 100; il_nb_ite++) {
-    recv_time += 0.1;
+  for (int il_nb_ite = 0; il_nb_ite < 10; il_nb_ite++) {
+    recv_time += 1.0;
  
-    /* Mesh rotation and new localisation - Geom Comptute */
-    mesh_rotate(coords[0], nVertex, recv_time);
-   
-    for(int i_code = 0; i_code < n_code_name; i_code++) {   
-      CWP_next_recv_time_set(codeName[i_code],"c_surf_cpl_P1P0_P0P1",recv_time);
-      CWP_Geom_compute(codeName[i_code],"c_surf_cpl_P1P0_P0P1", CWP_FIELD_VALUE_CELL_POINT, n_uncomputed_tgt);
-      CWP_Geom_compute(codeName[i_code],"c_surf_cpl_P1P0_P0P1", CWP_FIELD_VALUE_NODE, n_uncomputed_tgt);
-      printf("After Geometry compute %i it %i  n_uncomputed_tgt %i\n ",rank,il_nb_ite, n_uncomputed_tgt);         
-    
+    /* Mesh rotation and new localisation - Geom Compute */
+
+
+    for(int i_code = 0; i_code < n_code_name; i_code++) {  
+      if(codeName[i_code]=="code2") mesh_rotate(coords[i_code], nVertex, 3*recv_time); 
+      if(codeName[i_code]=="code1") mesh_rotate(coords[i_code], nVertex, recv_time); 
+      CWP_next_recv_time_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",recv_time);
     }
     
+    CWP_Geom_compute("c_new_api_surf_cpl_P1P0_P0P1_dynamic");
+          
     MPI_Barrier(MPI_COMM_WORLD);
     for(int i_code = 0; i_code < n_code_name; i_code++) {    
       
       if (codeName[i_code] == "code1") {
-	CWP_Issend (codeName[i_code],"c_surf_cpl_P1P0_P0P1",fieldName1);   
-	CWP_Irecv  (codeName[i_code],"c_surf_cpl_P1P0_P0P1",fieldName2);  
+	CWP_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",fieldName1);   
+	CWP_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",fieldName2);  
       }
       else {
-	CWP_Irecv  (codeName[i_code],"c_surf_cpl_P1P0_P0P1",fieldName1);   
-	CWP_Issend (codeName[i_code],"c_surf_cpl_P1P0_P0P1",fieldName2);    
+	CWP_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",fieldName1);   
+	CWP_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",fieldName2);    
       }
     }
-    
+
     for(int i_code = 0; i_code < n_code_name; i_code++) {       
       if (codeName[i_code] == "code1") {
-	CWP_Wait_issend (codeName[i_code],"c_surf_cpl_P1P0_P0P1",fieldName1);  
-	CWP_Wait_irecv  (codeName[i_code],"c_surf_cpl_P1P0_P0P1",fieldName2);    
+	CWP_Wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",fieldName1);  
+	CWP_Wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",fieldName2);    
       }
       else {
-	CWP_Wait_irecv  (codeName[i_code],"c_surf_cpl_P1P0_P0P1",fieldName1);       
-	CWP_Wait_issend (codeName[i_code],"c_surf_cpl_P1P0_P0P1",fieldName2);   
+	CWP_Wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",fieldName1);       
+	CWP_Wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",fieldName2);   
       }    
     }
   }
@@ -676,13 +671,13 @@ int main
     printf("        Delete mesh\n",rank);
  
   for(int i_code = 0; i_code < n_code_name; i_code++) 
-     CWP_Mesh_interf_del(codeName[i_code],"c_surf_cpl_P1P0_P0P1");
+     CWP_Mesh_interf_del(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic");
 
   if (rank == 0)
     printf("        Delete coupling\n");
 
   for(int i_code = 0; i_code < n_code_name; i_code++)    
-    CWP_Cpl_del(codeName[i_code],"c_surf_cpl_P1P0_P0P1");
+    CWP_Cpl_del(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic");
 
   /* Freeing memory
    * -------------- */

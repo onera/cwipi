@@ -103,8 +103,8 @@ namespace cwipi {
     _connectableRanks     = _localCodeProperties   -> connectableRanksGet();
     _n_ranks_cpl = _connectableRanks_cpl->size();
     _n_ranks     = _connectableRanks->size();
-         
    
+    n_uncomputed_tgt.resize(_nb_part);
   }
   
   
@@ -193,7 +193,7 @@ namespace cwipi {
 /***************************************************************************/
 /***************************************************************************/
 
-  void Geometry::compute(int *n_uncomputed_tgt) {
+  void Geometry::compute() {
      
     if(_both_codes_are_local == 0){
       mesh_info_get();
@@ -963,6 +963,7 @@ void Geometry::_IBcast(void* send_buffer,
     for (int i_part=0;i_part<_nb_part;i_part++) {
        userDataMem[i_part] = recevingField -> dataGet(i_part);
        if(userDataMem[i_part] == NULL ) PDM_error(__FILE__, __LINE__, 0, "Reception memory has not been allocated.\n");
+       n_uncomputed_tgt[i_part]=0;
    }
 
    for(int i_proc=0; i_proc<_n_ranks_cpl;i_proc++) {
@@ -980,8 +981,9 @@ void Geometry::_IBcast(void* send_buffer,
            }//loop on k
          }
          else {
+           n_uncomputed_tgt[lpart]++;
            for (int k = 0; k < nComponent; k++) {
-               userDataMem[lpart][ nComponent * iel + k ] = -1.0;
+             userDataMem[lpart][ nComponent * iel + k ] = -1.0;
            }//loop on k
          }
        }// loop on itarget

@@ -94,6 +94,7 @@ namespace cwipi {
 */
    
     for(int i_part=0;i_part<_nb_part;i_part++){
+    
       double* referenceData = referenceField -> dataGet(i_part);
       // For a cell center field : give the value of the located cell
       
@@ -160,7 +161,7 @@ namespace cwipi {
               }
             }
             else {
-                interpolatedData[ interpInd  ] = 1000.0;
+              interpolatedData[ interpInd  ] = 1000.0;
             }
           } // loop on itarget
         } // if referenceFieldType == CWP_FIELD_VALUE_NODE

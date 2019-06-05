@@ -114,7 +114,7 @@ namespace cwipi {
      void mesh_info_get();
      void mesh_cpl_info_get();
      void mesh_cpl_info_get2();
-     void compute(int *n_uncomputed_tgt);
+     void compute();
      inline Geometry* getCoupledGeometry();
 
 
@@ -252,8 +252,10 @@ namespace cwipi {
      *
      */
 
-    inline int 
-    nUncomputedTargetsGet() const;
+    int 
+    nUncomputedTargetsGet(int i_part) {
+      return n_uncomputed_tgt[i_part];
+    }
 
     /**
      *
@@ -538,7 +540,7 @@ void _IBcast(void* send_buffer,
    
    std::vector<int> _send_requests;
    std::vector<int> _recv_requests;   
-   
+   std::vector<int> n_uncomputed_tgt;
    
   };
 
