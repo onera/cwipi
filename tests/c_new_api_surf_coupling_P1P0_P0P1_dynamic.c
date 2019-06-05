@@ -474,7 +474,7 @@ int main
 	       xmax, 
 	       ymin, 
 	       ymax,
-	       coords           [i_code], 
+	       coords[i_code], 
 	       nVertex);
 
   }
@@ -622,41 +622,31 @@ int main
 
   //MPI_Barrier(MPI_COMM_WORLD);
   int n_uncomputed_tgt;
-  printf("Before Geometry compute %i\n",rank);
-  for(int i_code = 0; i_code < n_code_name; i_code++) {     
-    CWP_Geom_compute(codeName[i_code],"c_surf_cpl_P1P0_P0P1", CWP_FIELD_VALUE_CELL_POINT, n_uncomputed_tgt);
-    CWP_Geom_compute(codeName[i_code],"c_surf_cpl_P1P0_P0P1", CWP_FIELD_VALUE_NODE, n_uncomputed_tgt);
-  }
+  //printf("Before Geometry compute %i\n",rank);
+  //for(int i_code = 0; i_code < n_code_name; i_code++) {     
+  //  CWP_Geom_compute(codeName[i_code],"c_surf_cpl_P1P0_P0P1", CWP_FIELD_VALUE_CELL_POINT, n_uncomputed_tgt);
+  //  CWP_Geom_compute(codeName[i_code],"c_surf_cpl_P1P0_P0P1", CWP_FIELD_VALUE_NODE, n_uncomputed_tgt);
+  //}
   
    
   MPI_Barrier(MPI_COMM_WORLD);
-  double recv_time = 0.150;
+  double recv_time = 0.;
   for (int il_nb_ite = 0; il_nb_ite < 100; il_nb_ite++) {
-    recv_time += 0.150;
+    recv_time += 0.1;
  
     /* Mesh rotation and new localisation - Geom Comptute */
-    
+    mesh_rotate(coords[0], nVertex, recv_time);
+   
     for(int i_code = 0; i_code < n_code_name; i_code++) {   
       CWP_next_recv_time_set(codeName[i_code],"c_surf_cpl_P1P0_P0P1",recv_time);
-      mesh_rotate(coords[i_code], nVertex, il_nb_ite);
-      printf("Before Geometry compute %i it %i\n",rank,il_nb_ite);
       CWP_Geom_compute(codeName[i_code],"c_surf_cpl_P1P0_P0P1", CWP_FIELD_VALUE_CELL_POINT, n_uncomputed_tgt);
       CWP_Geom_compute(codeName[i_code],"c_surf_cpl_P1P0_P0P1", CWP_FIELD_VALUE_NODE, n_uncomputed_tgt);
-      printf("After Geometry compute %i it %i\n",rank,il_nb_ite);         
+      printf("After Geometry compute %i it %i  n_uncomputed_tgt %i\n ",rank,il_nb_ite, n_uncomputed_tgt);         
     
     }
     
+    MPI_Barrier(MPI_COMM_WORLD);
     for(int i_code = 0; i_code < n_code_name; i_code++) {    
-      if (codeName[i_code] == "code1") {
-	for (int i = 0; i <nVertex/2; i++) {
-	  sendValues[i_code][i] += recv_time/10.;
-	}
-      } else {
-	for (int i = 0; i <nElts/2; i++) {
-	  sendValues[i_code][i] += recv_time/10.;//i;//coords[3 * i];
-	}  
-	
-      }
       
       if (codeName[i_code] == "code1") {
 	CWP_Issend (codeName[i_code],"c_surf_cpl_P1P0_P0P1",fieldName1);   
