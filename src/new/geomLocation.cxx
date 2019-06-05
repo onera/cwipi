@@ -27,6 +27,7 @@
 #include <pdm_mesh_dist.h>
 #include <pdm_gnum.h>
 #include <pdm_gnum_location.h>
+#include <pdm_geom_elem.h>
 #include <bftc_error.h>
 #include <bftc_printf.h>
 #include "cwp.h"
@@ -99,85 +100,73 @@ namespace cwipi {
       for(int i_proc=0;i_proc<_n_ranks_g;i_proc++){
 
         if (referenceFieldType == CWP_FIELD_VALUE_CELL_POINT) {
-          
           for (int itarget = _targets_cpl_idx[i_proc][i_part]; itarget < _targets_cpl_idx[i_proc][i_part+1]; itarget++) {
-
             //Index of the corresponding local reference Data.
-            
             int iel = _targets_cpl[itarget].lnum ;
             // Index in the interpolated Data array
             int interpInd = itarget;
             printf("iel %i itarget %i refData %f _n_tot_target_cpl %i\n",iel,itarget,referenceData[iel],_n_tot_target_cpl);
-            for (int k = 0; k < nComponent; k++)
-              {interpolatedData[ nComponent*interpInd + k  ] = referenceData[nComponent*iel + k ];
-               //printf("interpolatedData[ nComponent*interpInd + k  ] %f i_part %i i_proc %i nComponent*interpInd + k %i nComponent*iel + k %i referenceData[nComponent*iel + k ] %f\n",
-               //interpolatedData[ nComponent*interpInd + k  ],i_part,i_proc,nComponent*interpInd + k,nComponent*iel + k),referenceData[nComponent*iel + k ];
-              }    
-            } // loop on itarget
-         } // if referenceFieldType == CWP_FIELD_VALUE_CELL_POINT
+            for (int k = 0; k < nComponent; k++) {
+            interpolatedData[ nComponent*interpInd + k  ] = referenceData[nComponent*iel + k ];
+            //printf("interpolatedData[ nComponent*interpInd + k  ] %f i_part %i i_proc %i nComponent*interpInd + k %i nComponent*iel + k %i referenceData[nComponent*iel + k ] %f\n",
+             //interpolatedData[ nComponent*interpInd + k  ],i_part,i_proc,nComponent*interpInd + k,nComponent*iel + k),referenceData[nComponent*iel + k ];
+            }    
+          } // loop on itarget
+        } // if referenceFieldType == CWP_FIELD_VALUE_CELL_POINT
 
         if (referenceFieldType == CWP_FIELD_VALUE_NODE) {
-        
           int* connecIdx = _mesh -> connecIdxGet(i_part);
           int* connec = _mesh -> connecGet(i_part);
           
           int n_vtx  = _mesh -> getPartNVertex(i_part);
           int n_elts  = _mesh -> getPartNElts(i_part);
           double* coords = _mesh -> getVertexCoords(i_part);
-
-           printf("_targets_cpl_idx[%i][%i] rank %i %i %i\n",i_proc,i_part,_rank,_targets_cpl_idx[i_proc][i_part],_targets_cpl_idx[i_proc][i_part+1]);
-           for (int itarget = _targets_cpl_idx[i_proc][i_part]; itarget < _targets_cpl_idx[i_proc][i_part+1]; itarget++) {
-             //Index of the corresponding local reference Data.
-            
-                 
-         
-             // Index in the interpolated Data array
-             int interpInd = itarget;
-             int iel = _targets_cpl[itarget].lnum ;
+          //printf("_targets_cpl_idx[%i][%i] rank %i %i %i\n",i_proc,i_part,_rank,_targets_cpl_idx[i_proc][i_part],_targets_cpl_idx[i_proc][i_part+1]);
+          for (int itarget = _targets_cpl_idx[i_proc][i_part]; itarget < _targets_cpl_idx[i_proc][i_part+1]; itarget++) {
+            // Index in the interpolated Data array
+            int interpInd = itarget;
+            int iel = _targets_cpl[itarget].lnum ;
+            int ielP1 = iel+1;
              
-             if(_targets_cpl[itarget].distance != INFINITY ) {
-
-               double x_target = _targets_cpl[itarget].projectedX;
-               double y_target = _targets_cpl[itarget].projectedY;
-               double z_target = _targets_cpl[itarget].projectedZ;    
-                              
-              double sum_vtx = 0.0;
-             // printf("iel %i itarget %i refData %f _n_tot_target_cpl %i\n",iel,itarget,referenceData[iel],_n_tot_target_cpl);
+            if(_targets_cpl[itarget].distance != INFINITY ) {
+              double x_target = _targets_cpl[itarget].projectedX;
+              double y_target = _targets_cpl[itarget].projectedY;
+              double z_target = _targets_cpl[itarget].projectedZ;    
+               
+              double tgtCoords[3] = {x_target,y_target,z_target};
+              int *barCoordsIndex =NULL;
+              double *barCoords = NULL;
+              PDM_geom_elem_compute_polygon_barycentric_coordinates(1,
+                                                                   &ielP1,
+                                                                    tgtCoords,
+                                                                    connecIdx,
+                                                                    connec,
+                                                                    coords,
+                                                                   &barCoordsIndex,
+                                                                   &barCoords
+                                                                   );               
+              
+       /*     printf("barCoords ");
+              for (int i_vtx = barCoordsIndex[0]; i_vtx < barCoordsIndex[1];i_vtx++)
+                printf("%f ",barCoords[i_vtx]);
+                printf("barCoordsIndex %i %i\n",barCoordsIndex[0],barCoordsIndex[1]);
+         */                     
+          //  printf("iel %i itarget %i refData %f _n_tot_target_cpl %i\n",iel,itarget,referenceData[iel],_n_tot_target_cpl);
 
               interpolatedData[ interpInd  ] = 0.0;
               
               for (int i_vtx = connecIdx[iel]; i_vtx < connecIdx[iel+1]; i_vtx++) {
-
-               double x_vtx = coords[3*(connec[i_vtx]-1)  ];
-               double y_vtx = coords[3*(connec[i_vtx]-1)+1];
-               double z_vtx = coords[3*(connec[i_vtx]-1)+2];
-               
-               double bx = abs(x_target - x_vtx);
-               double by = abs(y_target - y_vtx);
-               double bz = abs(z_target - z_vtx);
-               
-               
-               double dvtx = sqrt(bx*bx +by*by + bz*bz);
-               sum_vtx += dvtx;
-                
-               //Interpolation linéaire
-               
-               interpolatedData[ interpInd  ] += dvtx * referenceData[connec[i_vtx]-1] ;
-               }
-               if(sum_vtx!=0) interpolatedData[ interpInd  ] /= sum_vtx;
-             //  interpolatedData[ interpInd  ] = coords[3*(connec[connecIdx[iel]]-1)  ];
+               interpolatedData[ interpInd  ] += barCoords[i_vtx - connecIdx[iel] ] * referenceData[connec[i_vtx]-1] ;
               }
-              else {
+            }
+            else {
                 interpolatedData[ interpInd  ] = 1000.0;
-              }
-            } // loop on itarget
-         } // if referenceFieldType == CWP_FIELD_VALUE_NODE
-         
-       } //Loop on i_proc
-
+            }
+          } // loop on itarget
+        } // if referenceFieldType == CWP_FIELD_VALUE_NODE
+      } //Loop on i_proc
     } // loop on i_part
-
-
+                
     referenceField -> sendBufferSet(interpolatedData);
     return interpolatedData;
   }
