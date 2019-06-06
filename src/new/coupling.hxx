@@ -1019,10 +1019,8 @@ namespace cwipi {
     inline CouplingDB*  couplingDBGet();
     inline string       IdGet();
     
-    void meshFinalize() {
-      _mesh.geomFinalize();
-    }
-    
+    void meshFinalize();
+        
   private:
 
     Coupling();

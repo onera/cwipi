@@ -204,6 +204,7 @@ namespace cwipi {
     CWP_g_num_t* GNumBlockGet(int i_part);
 
     const double* eltCentersGet(int i_part){
+       PDM_Mesh_nodal_cell_centers_compute(_pdmNodal_handle_index,_block_id,i_part);
       _cells_center[i_part] = PDM_Mesh_cell_centers_get(_pdmNodal_handle_index,_block_id,i_part);
       return _cells_center[i_part];    
     }

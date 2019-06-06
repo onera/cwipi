@@ -107,6 +107,7 @@ namespace cwipi {
     n_uncomputed_tgt.resize(_nb_part);
   }
   
+/*************************************************/
   
   void Geometry::mesh_info_get() {
 
@@ -122,6 +123,7 @@ namespace cwipi {
     _n_tot_vtx=0;   
     for(int i_part =0;i_part<_nb_part;i_part++) {   
     
+      printf("Before target GEt rank %i\n",_rank);
       if (_geometryLocation == CWP_FIELD_VALUE_CELL_POINT) {
         _n_target   [i_part]     = _mesh -> getPartNElts(i_part);      
         _gnum_target[i_part]     = _mesh -> GNumEltsGet(i_part);   
@@ -134,7 +136,7 @@ namespace cwipi {
         _gnum_target   [i_part]  = _mesh -> getVertexGNum  (i_part);
         _coords_target [i_part]  = _mesh -> getVertexCoords(i_part);
       }      
-      
+      printf("After target GEt rank %i\n",_rank);
     
       _n_elt[i_part]  = _mesh -> getPartNElts(i_part);
 
@@ -189,12 +191,26 @@ namespace cwipi {
  }
 
 
-
 /***************************************************************************/
 /***************************************************************************/
 
-  void Geometry::compute() {
-     
+  void Geometry::computeFree(){
+
+
+  for (int i_part = 0; i_part < _nb_part; i_part++) {
+    free(_location_idx[i_part]);
+    free(_location[i_part]);
+  }
+
+  free(_location_idx);
+  free(_location);
+  
+
+  }
+
+
+
+  void Geometry::info_mesh() {
     if(_both_codes_are_local == 0){
       mesh_info_get();
       MPI_Barrier(_globalComm);
@@ -203,16 +219,40 @@ namespace cwipi {
       mesh_cpl_info_get();
      
       printf("ZZ After mesh_cpl_info_get() %i %s\n",_rank,localName.c_str());
-         MPI_Barrier(_globalComm);
+      MPI_Barrier(_globalComm);  
+    }
+    else {
+      if(localName == _codeVector[0]) {
+        mesh_info_get();
+        printf("ZZ After mesh_info_get() %i %s\n",_rank,"code1");
+        _geometry_cpl -> mesh_info_get();
+        printf("ZZ After mesh_info_get() %i %s\n",_rank,"code2");
+        MPI_Barrier(_globalComm);
+        mesh_cpl_info_get();
+        printf("ZZ After mesh_cpl_info_get() %i %s\n",_rank,"code1");
+        _geometry_cpl -> mesh_cpl_info_get2();   
+        
+        MPI_Barrier(_globalComm);
+      }
+    }  
+  }
+
+/***************************************************************************/
+/***************************************************************************/
+
+  void Geometry::compute() {
+     
+    if(_both_codes_are_local == 0){
       if(localName == _codeVector[0]) locate_setting_surface(&_id_dist1);
       if(localName == _codeVector[1]) locate_setting_request(&_id_dist1);
-         
-     
-        printf("ZZ Before locate_compute %i %s\n",_rank,localName.c_str()); 
+    // while(1==1){}
+      printf("ZZ Before locate_compute %i %s\n",_rank,localName.c_str()); 
        MPI_Barrier(_globalComm);
         printf("id_dist1 %i\n",_id_dist1);
         locate_compute        (_id_dist1); 
-         printf("ZZ After locate_compute %i %s\n",_rank,localName.c_str());         
+         printf("ZZ After locate_compute %i %s\n",_rank,localName.c_str());  
+         
+         MPI_Barrier(_globalComm);          
       if (localName == _codeVector[1]) locate_get(_id_dist1)  ;
          
       PDM_mesh_dist_free(_id_dist1,1);
@@ -253,26 +293,15 @@ namespace cwipi {
     }
     else {
       if(localName == _codeVector[0]) {
-        mesh_info_get();
-        printf("ZZ After mesh_info_get() %i %s\n",_rank,"code1");
-        _geometry_cpl -> mesh_info_get();
-        printf("ZZ After mesh_info_get() %i %s\n",_rank,"code2");
-        MPI_Barrier(_globalComm);
-        mesh_cpl_info_get();
-        printf("ZZ After mesh_cpl_info_get() %i %s\n",_rank,"code1");
-        _geometry_cpl -> mesh_cpl_info_get2();   
-        
-        MPI_Barrier(_globalComm);
-        
-        printf("ZZ After mesh_cpl_info_get() %i %s\n",_rank,"code2");
         
         locate_setting_surface(&_id_dist1);
         
         printf("ZZ Before locate_compute %i %s\n",_rank,localName.c_str()); 
-        
+      //  while(1==1){}
         MPI_Barrier(_globalComm);
         locate_compute        (_id_dist1);
-         printf("ZZ After locate_compute %i %s\n",_rank,localName.c_str());                        
+         printf("ZZ After locate_compute %i %s\n",_rank,localName.c_str());        
+          MPI_Barrier(_globalComm);                
         locate_get_cpl        (_id_dist1) ;
         PDM_mesh_dist_free(_id_dist1,1);
                

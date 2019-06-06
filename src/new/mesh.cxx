@@ -134,7 +134,8 @@ namespace cwipi {
       int nb_part = getNPart();
       int n_elt_part = getPartNElts(i_part);
 
-      _elt_centers[i_part] = (double*)malloc(sizeof(double)*3* n_elt_part);
+      if(_elt_centers[i_part] == NULL)
+        _elt_centers[i_part] = (double*)malloc(sizeof(double)*3* n_elt_part);
 
 
       int ind_idx=0;
@@ -253,9 +254,9 @@ namespace cwipi {
 
 
  double* Mesh::eltCentersGet(int i_part){
-  if(_elt_centers[i_part]==NULL) {
+  //if(_elt_centers[i_part]==NULL) {
       eltCentersCompute(i_part);
-    }//end if NULL
+    //}//end if NULL
   
     return _elt_centers[i_part];
   }

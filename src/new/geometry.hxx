@@ -115,6 +115,8 @@ namespace cwipi {
      void mesh_cpl_info_get();
      void mesh_cpl_info_get2();
      void compute();
+     void computeFree();
+     void info_mesh();
      inline Geometry* getCoupledGeometry();
 
 

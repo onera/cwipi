@@ -561,6 +561,16 @@ namespace cwipi {
   {
     
   }
+
+
+  void Coupling::meshFinalize() {
+    _mesh.geomFinalize();
+    
+    _geometry[CWP_FIELD_VALUE_NODE] -> info_mesh();
+    _geometry[CWP_FIELD_VALUE_CELL_POINT] -> info_mesh();
+    
+  }
+        
   
   void Coupling::meshFromCellFaceSet(const int   i_part,
                         const int   n_cells,
