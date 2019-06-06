@@ -65,7 +65,8 @@ namespace cwipi {
  
     Mesh(const MPI_Comm &localComm,
               Visu* visu,
-              int npart);
+              int npart,
+              CWP_Displacement_t displacement);
 
 
     /**
@@ -317,7 +318,7 @@ namespace cwipi {
     *
     */
 
-    inline int getBlockNElts(int id_block);
+    inline int getBlockNElts(int id_block, int i_part);
 
     /**
     * \brief Get the number of elements of the id_part partition
@@ -353,7 +354,7 @@ namespace cwipi {
     *
     */
 
-    inline int* getEltConnectivityIndex(int id_block);
+    inline int* getEltConnectivityIndex(int id_block,int i_part);
 
     /**
     * \brief Get a block element connectivity
@@ -365,7 +366,7 @@ namespace cwipi {
     *
     */
     
-    inline int* getEltConnectivity     (int id_block);
+    inline int* getEltConnectivity     (int id_block,int i_part);
  
      /**
     * \brief Get a block face connectivity index
@@ -481,6 +482,28 @@ namespace cwipi {
    double* eltCentersGet(int i_part);
   void eltCentersCompute(int i_part);
    
+   int* blockDBGet() {
+     return _blocks_id;
+   }
+
+   int nBlockGet() {
+     return _nBlocks;
+   } 
+
+
+   CWP_Block_t blockTypeGet(int id_block) {
+     return _blockDB[id_block] -> blockTypeGet(); 
+   } 
+
+   CWP_g_num_t* gnumMeshBlockGet(int id_block,int i_part) {
+     return _blockDB[id_block] -> GNumMeshGet(i_part);
+   } 
+
+
+   CWP_g_num_t* gnumInsideBlockGet(int id_block,int i_part) {
+     return _blockDB[id_block] -> GNumBlockGet(i_part);
+   } 
+   
   private:
     
     const MPI_Comm                          &_localComm;              /*!< Communicator */
@@ -505,6 +528,7 @@ namespace cwipi {
     std::map<int,cwipi::Block*>             _blockDB;                /*!< Blocks database  */
     Visu                                   *_visu;                   /*!< Pointer to the Visu object */
     std::map<int,int>                       _id_visu;                /*!< Map of the PDM_Writer block identifier */  
+    CWP_Displacement_t                      _displacement;          /*!< Type of mesh displacement */  
     
   //   Mesh &operator=(const Mesh &other);  /*!< Assigment operator not available */
   //   Mesh (const Mesh& other);            /*!< Copy constructor not available */
@@ -574,9 +598,9 @@ namespace cwipi {
   }
 
 
-  int Mesh::getBlockNElts(int id_block)
+  int Mesh::getBlockNElts(int id_block,int i_part)
   {
- //   return _blocks[id_block]._nElts;
+    return _blockDB[id_block] -> NEltsGet()[i_part];
   }
 
   int Mesh::getPartNElts(int id_part) const
@@ -589,14 +613,14 @@ namespace cwipi {
    // return _nPolyhedra[i_part];
   }
 
-  inline int* Mesh::getEltConnectivityIndex(int id_block)
+  int* Mesh::getEltConnectivityIndex(int id_block,int i_part)
   {
- //  return _blocks[id_block]._connec_idx;
+    return _blockDB[id_block] -> ConnecIDXGet()[i_part];
   }
 
-  inline int* Mesh::getEltConnectivity(int id_block)
+  int* Mesh::getEltConnectivity(int id_block,int i_part)
   { 
-  //  return _blocks[id_block]._connec;
+    return _blockDB[id_block] -> ConnecGet()[i_part];
   }
   
   

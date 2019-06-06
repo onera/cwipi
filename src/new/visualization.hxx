@@ -48,7 +48,7 @@ namespace cwipi {
     * \param [in] MPIComm Coupling Communicator.
     */
   
-    Visu(const MPI_Comm &MPIComm);
+    Visu(const MPI_Comm &MPIComm, const CWP_Displacement_t topology);
 
     /**
      * \brief Visu destructor
@@ -225,7 +225,7 @@ namespace cwipi {
     *
     */
 
-    void WriterStepBegin(double physical_time);
+    void WriterStepBegin(double physical_time, Mesh* mesh);
 
    /**
     * \brief Indicate the end of the writing step
@@ -272,6 +272,7 @@ namespace cwipi {
     bool                 _visuCreated;       /*!< True if the creation has be done */
     double               _physical_time;     /*!< Physical time for visualization */
     int                  _n_part;            /*!< Number of mesh partition */
+    CWP_Displacement_t   _topology;          /*!< Mesh topology */
   };
 
   bool Visu::isCreated() {

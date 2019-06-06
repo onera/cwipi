@@ -94,12 +94,14 @@ namespace cwipi {
 
   Mesh::Mesh(const MPI_Comm &localComm,
              Visu* visu,
-             const int npart) 
+             const int npart,
+             const CWP_Displacement_t displacement) 
              : _localComm(localComm),
                _nDim(-1), _order(-1),_nBlocks(0),
                _pdmGNum_handle_index(-1),
                 //_hoOrdering (NULL),
-               _pdmNodal(NULL),_visu(visu) { 
+               _pdmNodal(NULL),_visu(visu),
+               _displacement(displacement) { 
 
     PDM_MPI_Comm _pdm_localComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&localComm));
    // _pdm_localComm=&pdm_localComm;
@@ -254,12 +256,12 @@ namespace cwipi {
 
 
  double* Mesh::eltCentersGet(int i_part){
-  //if(_elt_centers[i_part]==NULL) {
-      eltCentersCompute(i_part);
-    //}//end if NULL
+   if(_elt_centers[i_part]==NULL || _displacement != CWP_DISPLACEMENT_STATIC) {
+     eltCentersCompute(i_part);
+   }//end if NULL
   
-    return _elt_centers[i_part];
-  }
+   return _elt_centers[i_part];
+ }
 
 
 
@@ -344,11 +346,6 @@ namespace cwipi {
    
       _coords .push_back (coords);
       _nVertex[i_part]  = n_vtx;
-   /*   printf("n_vtx %i\n",n_vtx);
-      for(int i=0;i<n_vtx;i++) {
-        printf("%i coorda %f %f %f \n",i,coords[3*i],coords[3*i+1],coords[3*i+2]);
-      }*/
-     // while(1==1){}
       PDM_gnum_set_from_coords (_pdmGNum_handle_index, i_part, n_vtx, coords, NULL);
       
       if(coordsDefined() and global_num==NULL)
@@ -368,8 +365,7 @@ namespace cwipi {
          
            _global_num.insert( std::pair < int, CWP_g_num_t* > (i_part2,global_num_part) );
 
-           if(_visu -> isCreated()) {
-              printf("GeomCoordSet %i\n",i_part2);
+           if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC) {
              _visu -> GeomCoordSet(i_part2,
                                    _nVertex[i_part2],
                                    _coords[i_part2],
@@ -442,7 +438,7 @@ namespace cwipi {
      _blocks_id = PDM_Mesh_nodal_blocks_id_get(_pdmNodal_handle_index);
      _nBlocks   = PDM_Mesh_nodal_n_blocks_get (_pdmNodal_handle_index);
      
-     if(_visu -> isCreated() ) {
+     if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC) {
 
         _visu -> GeomBlockStdSet (_id_visu[block_id],
                                   i_part,
@@ -477,7 +473,7 @@ namespace cwipi {
      _nBlocks   = PDM_Mesh_nodal_n_blocks_get (_pdmNodal_handle_index);     
      
 
-     if(_visu -> isCreated()) {
+     if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC) {
      
         _visu -> GeomBlockPoly2D (_id_visu[block_id],
                                   i_part,
@@ -504,30 +500,29 @@ namespace cwipi {
      if(g_num_computation_required == 1) break;
      it++;
     }
-        
 
-    if(_visu -> isCreated()) {
-      if(g_num_computation_required == 1) {
-        PDM_Mesh_nodal_g_num_in_mesh_compute(_pdmNodal_handle_index);
-        std::map<int,cwipi::Block*>::iterator it = _blockDB.begin();
+    if(g_num_computation_required == 1) {
+      PDM_Mesh_nodal_g_num_in_mesh_compute(_pdmNodal_handle_index);
+      std::map<int,cwipi::Block*>::iterator it = _blockDB.begin();
+      
+      
         while(it != _blockDB.end()) {
           for(int i_part =0;i_part<_npart;i_part++) {
             int block_id = it -> second -> blockIDGet();
             CWP_g_num_t* global_num = it -> second -> GNumMeshGet(i_part);
-            _visu -> GeomBlockGNumMeshSet (_id_visu[block_id],
+            if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC) _visu -> GeomBlockGNumMeshSet (_id_visu[block_id],
                                            i_part,
                                            global_num);
           } //Loop on i_part
         it++;
         }//Loop on blockDB
-      } // end if g_num_computation_required
-         
-      _visu -> GeomWrite();   
       
+    } // end if g_num_computation_required
+         
+    if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC ) _visu -> GeomWrite();   
                             
-    } 
-   
-  }
+  } 
+           
 
 /**********************************************************************/
 
@@ -550,7 +545,7 @@ namespace cwipi {
                                      connec_cells_idx,connec_cells,
                                      NULL);   
                                      
-     if(_visu -> isCreated()) {
+     if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC) {
 
         _visu -> GeomBlockPoly3D   (_id_visu[block_id],
                                     i_part,
@@ -588,7 +583,7 @@ namespace cwipi {
      _blocks_id = PDM_Mesh_nodal_blocks_id_get(_pdmNodal_handle_index);
      _nBlocks   = PDM_Mesh_nodal_n_blocks_get (_pdmNodal_handle_index); 
       
-      if(_visu -> isCreated()) {
+      if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC) {
         int id_visu = _visu -> GeomBlockAdd(block_type);
         _id_visu.insert(std::pair <int,int> (block_id,id_visu));
       }

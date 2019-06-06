@@ -280,10 +280,8 @@ typedef enum {
 typedef enum {
 
   CWP_DISPLACEMENT_STATIC,       /*!< Static */ 
-  CWP_DISPLACEMENT_UNSPECIFIED,  /*!< Unspecified displacement */ 
-  CWP_DISPLACEMENT_TRANSLATION,  /*!< Translation */ 
-  CWP_DISPLACEMENT_ROTATION      /*!< Rotation */ 
-
+  CWP_DISPLACEMENT_DEFORMABLE,  /*!< Deformable topology */ 
+  CWP_DISPLACEMENT_VARIABLE     /*!< Variable topology */ 
 } CWP_Displacement_t;
 
 /**

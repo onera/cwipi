@@ -1040,6 +1040,7 @@ namespace cwipi {
     std::map < string, Field<double> * >   &_fields;           /*!< Fields Data Base */
           CouplingDB                       &_cplDB;                 /*!< Coupling Data base */
           int*                              _iteration;
+          CWP_Displacement_t                _displacement;
   }; 
 
 
@@ -1098,7 +1099,7 @@ namespace cwipi {
    _recvNextTime = next_time;
    
    if(_visu.isCreated()) {
-       _visu.WriterStepBegin(_recvNextTime);
+       _visu.WriterStepBegin(_recvNextTime,&_mesh);
    }   
    
    

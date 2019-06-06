@@ -95,20 +95,21 @@ namespace cwipi {
    const CodeProperties       &coupledCodeProperties,
    const CWP_Geom_t           geomAlgo,
    const int                  nPart,
-   const CWP_Displacement_t   movingStatus,
+   const CWP_Displacement_t   displacement,
    const CWP_Freq_t           recvFreqType,
    CouplingDB                 &cplDB          
    )
   :_cplId(cplId),
    _commType(cplType),
+   _displacement(displacement),
    _communication(*(FC::getInstance().CreateObject(cplType))),
    _localCodeProperties(localCodeProperties),
    _coupledCodeProperties(coupledCodeProperties),
    _recvFreqType (recvFreqType),
    _cplDB(cplDB),
    _fields(*(new map < string, Field<double> * >())),  
-   _visu(*new Visu(localCodeProperties.intraCommGet())), 
-   _mesh(*new Mesh(localCodeProperties.intraCommGet(),NULL,nPart)),
+   _visu(*new Visu(localCodeProperties.intraCommGet(),displacement)), 
+   _mesh(*new Mesh(localCodeProperties.intraCommGet(),NULL,nPart,displacement)),
    _geometry(*new std::map <CWP_Field_value_t, Geometry*>()),
    _iteration(new int)
   {
@@ -645,7 +646,7 @@ namespace cwipi {
         printf("_visu.GeomCreate(_mesh.getNPar) %i\n",_mesh.getNPart());  
                                    
       _visu.GeomCreate(_mesh.getNPart());
-          
+         
   }
 
 

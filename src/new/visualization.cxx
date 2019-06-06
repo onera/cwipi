@@ -30,14 +30,13 @@ namespace cwipi {
 
 
 
-  Visu::Visu(const MPI_Comm &MPIComm):_visu_id(-1),_visu_mesh_id(-1),_freq(-1),_physical_time(-1),
+  Visu::Visu(const MPI_Comm &MPIComm,const CWP_Displacement_t topology):_visu_id(-1),_visu_mesh_id(-1),_freq(-1),_physical_time(-1),
                                       _visuCreated(false), 
                                       _output_dir(NULL), 
                                       _output_name(NULL),
                                       _divide_polygons(PDM_WRITER_OFF),
-                                      _divide_polyhedra(PDM_WRITER_OFF) {
-                                      
-                                      
+                                      _divide_polyhedra(PDM_WRITER_OFF),
+                                      _topology(topology) {
                                       
      _pdmComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&MPIComm)); 
 
@@ -56,12 +55,17 @@ namespace cwipi {
    
     PDM_writer_fmt_fic_t fmt_fic      = PDM_WRITER_FMT_BIN;
     const char* fmt                   = "Ensight";
-    PDM_writer_topologie_t topologie  = PDM_WRITER_TOPO_CONSTANTE;
     PDM_writer_statut_t st_reprise    = PDM_WRITER_OFF;
     const char *options_comp          = "";
     //Proportion of working node for file acess 
     int working_node = 1;
     PDM_io_acces_t acess_type =   PDM_IO_ACCES_MPI_SIMPLE;
+
+    PDM_writer_topologie_t pdm_topology = PDM_WRITER_TOPO_CONSTANTE;
+    
+    if(_topology == CWP_DISPLACEMENT_STATIC)          pdm_topology  = PDM_WRITER_TOPO_CONSTANTE;
+    else if(_topology == CWP_DISPLACEMENT_DEFORMABLE) pdm_topology  = PDM_WRITER_TOPO_DEFORMABLE;
+    else if(_topology == CWP_DISPLACEMENT_VARIABLE  ) pdm_topology  = PDM_WRITER_TOPO_VARIABLE;   
 
     _output_dir  = output_dir; 
     _output_name = output_name;
@@ -93,7 +97,7 @@ namespace cwipi {
 
     _visu_id = PDM_writer_create(fmt,
                                  fmt_fic,   
-                                 topologie,
+                                 pdm_topology,
                                  st_reprise,
                                  _output_dir,
                                  _output_name,
@@ -136,7 +140,7 @@ namespace cwipi {
   
      int id_block = PDM_writer_geom_bloc_add(_visu_id,
                                _visu_mesh_id,
-                               PDM_WRITER_ON,  
+                               PDM_WRITER_OFF,  
                                PdmWriterBlockTypeFromCwpBlockType(blockType)
                               ); 
     return id_block;
@@ -249,15 +253,8 @@ namespace cwipi {
  
     id_var = field -> visuIdGet();
     double* data = field -> dataGet(i_part);
-   
-    for(int i=0;i<20;i++) {
-   //   printf("data [%i] %f\n",i,(double) data[i]);
-    }
-
-    printf("PDM_writer_var_set\n");
 
     PDM_writer_var_set(_visu_id, id_var, _visu_mesh_id, i_part, data);
-   // if(i_part==1)  {  while(1==1){} }
   }
 
 /********************************************************/
@@ -266,14 +263,10 @@ namespace cwipi {
     int id_var = -1;
 
     id_var = field -> visuIdGet();
-    
        
     for (int i_part =0;i_part<_n_part;i_part++)
        {   fieldDataSet(field,i_part);
-       printf("OOOOO %i\n",i_part);
-        
        }
-       
   
     PDM_writer_var_write(_visu_id, id_var);                       
    
@@ -281,15 +274,66 @@ namespace cwipi {
   
 /********************************************************/
 
-  void Visu::WriterStepBegin(double physical_time) {
-     PDM_writer_step_beg(_visu_id,physical_time);
-     _physical_time = physical_time;  
+  void Visu::WriterStepBegin(double physical_time,Mesh* mesh) {
+    PDM_writer_step_beg(_visu_id,physical_time);
+    _physical_time = physical_time;  
+    if(_topology != CWP_DISPLACEMENT_STATIC){
+      for(int i_part=0;i_part<_n_part;i_part++) {
+        int nVertex = mesh -> getPartNVertex(i_part);
+        double* coords = mesh -> getVertexCoords(i_part);
+        CWP_g_num_t* gnum = mesh -> getVertexGNum(i_part);
+           
+        GeomCoordSet(i_part,
+                        nVertex,
+                        coords,
+                        gnum);  
+      }//loop i_part
+        
+      int* blockIDs = mesh -> blockDBGet();
+      int  nBlock   = mesh -> nBlockGet();
+         
+      for(int i_block=0;i_block<nBlock;i_block++){
+        int id_block = blockIDs[i_block];
+        CWP_Block_t type = mesh -> blockTypeGet(id_block);
+        int idBlockVisu = GeomBlockAdd(type);
+          
+        for(int i_part=0;i_part<_n_part;i_part++) {
+          int n_elts = mesh -> getBlockNElts(id_block,i_part);
+          int* connec = mesh -> getEltConnectivity(id_block,i_part);
+          if(type != CWP_BLOCK_FACE_POLY && type != CWP_BLOCK_CELL_POLY) {
+            CWP_g_num_t* gnum = mesh -> gnumMeshBlockGet(id_block,i_part);
+            GeomBlockStdSet(idBlockVisu,
+                            i_part,
+                            n_elts,
+                            connec,  
+                            gnum
+                           );
+          }
+          else if (type == CWP_BLOCK_FACE_POLY){
+            CWP_g_num_t* gnum = mesh -> gnumMeshBlockGet(id_block,i_part);
+            int* connecIdx = mesh -> getEltConnectivityIndex(id_block,i_part);
+            GeomBlockPoly2D(idBlockVisu,
+                            i_part,
+                            n_elts,
+                            connecIdx,
+                            connec,
+                            gnum);
+          }
+        }//loop on i_part
+      } //end loop on block
+      GeomWrite();
+    }
   }
 
 /********************************************************/
 
   void Visu::WriterStepEnd() {
-     PDM_writer_step_end(_visu_id);  
+  
+     if(_topology != CWP_DISPLACEMENT_STATIC)
+       PDM_writer_geom_data_reset (_visu_id, _visu_mesh_id);
+       
+     PDM_writer_step_end(_visu_id); 
+     
   }
 
 
