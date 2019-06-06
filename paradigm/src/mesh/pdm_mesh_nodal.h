@@ -590,6 +590,23 @@ const int            id_block,
 const int            id_part
 );
 
+/**
+ * \brief Compute cell centers of a block
+ *
+ * \param [in]  idx            Nodal mesh handle
+ * \param [in]  id_block       Block identifier
+ * \param [in]  id_part        Partition identifier
+ *
+ */
+ 
+void
+PDM_Mesh_nodal_cell_centers_compute
+(
+const int         idx,
+const int         id_block,
+const int         i_part 
+);
+
 
 /**
  * \brief Get parent numbering of block elements
