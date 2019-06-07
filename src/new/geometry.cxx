@@ -220,24 +220,16 @@ namespace cwipi {
     if(_both_codes_are_local == 0){
       mesh_info_get();
       MPI_Barrier(_globalComm);
-      printf("ZZ After mesh_info_get() %i %s\n",_rank,localName.c_str());
-      
       mesh_cpl_info_get();
-     
-      printf("ZZ After mesh_cpl_info_get() %i %s\n",_rank,localName.c_str());
       MPI_Barrier(_globalComm);  
     }
     else {
       if(localName == _codeVector[0]) {
         mesh_info_get();
-        printf("ZZ After mesh_info_get() %i %s\n",_rank,"code1");
         _geometry_cpl -> mesh_info_get();
-        printf("ZZ After mesh_info_get() %i %s\n",_rank,"code2");
         MPI_Barrier(_globalComm);
         mesh_cpl_info_get();
-        printf("ZZ After mesh_cpl_info_get() %i %s\n",_rank,"code1");
         _geometry_cpl -> mesh_cpl_info_get2();   
-        
         MPI_Barrier(_globalComm);
       }
     }  
@@ -254,7 +246,6 @@ namespace cwipi {
       if(localName == _codeVector[1]) locate_setting_request(&_id_dist1);
       printf("ZZ Before locate_compute %i %s\n",_rank,localName.c_str()); 
       MPI_Barrier(_globalComm);
-      printf("id_dist1 %i\n",_id_dist1);
       locate_compute        (_id_dist1); 
       printf("ZZ After locate_compute %i %s\n",_rank,localName.c_str());  
         
@@ -306,8 +297,7 @@ namespace cwipi {
         printf("ZZ Before locate_compute %i %s\n",_rank,localName.c_str()); 
         MPI_Barrier(_globalComm);
         locate_compute        (_id_dist1);
-         printf("ZZ After locate_compute %i %s\n",_rank,localName.c_str());        
-          MPI_Barrier(_globalComm);                
+        MPI_Barrier(_globalComm);                
         locate_get_cpl        (_id_dist1) ;
         PDM_mesh_dist_free(_id_dist1,1);
                
@@ -404,7 +394,6 @@ namespace cwipi {
      MPI_Request request,requests,requestr;
      
      MPI_Comm_size(_globalComm,&tsize);
-     printf("ZZ Allgather %i %s %i\n",_rank,localName.c_str(),tsize);
      
      int tag = 0;    
      switch(_geometryLocation){
@@ -445,7 +434,6 @@ namespace cwipi {
        _both_codes_are_local__array = _geometry_cpl -> _both_codes_are_local__array;
        
      _both_codes_are_local__array[_rank]=_both_codes_are_local;
-     printf("ZZ After Allgather %i %s\n",_rank,localName.c_str());
 
      int senderRank=0;
      while( _both_codes_are_local__array[ (*_connectableRanks)[senderRank] ] == 1 && senderRank < _n_ranks) {
@@ -461,12 +449,6 @@ namespace cwipi {
      if (senderRank_cpl == _n_ranks_cpl) senderRank_cpl--;
      senderRank_cpl = (*_connectableRanks_cpl)[senderRank_cpl] ;
                 
-     printf("ZZ After WHILE %i %s\n",_rank,localName.c_str());
-     for(int i=0;i<_n_ranks_cpl;i++) {
-       printf("ZZ _both_codes_are_local__array[%i] rank %i %i\n",i,_rank,_both_codes_are_local__array[i]);
-     }
-    
-    
      MPI_Barrier(_globalComm);
        
      tag+=100;
@@ -505,7 +487,6 @@ namespace cwipi {
       _nb_part_cpl = _geometry_cpl->_nb_part;
     }
 
-    printf("ZZ After WHILE2 %i %s\n",_rank,localName.c_str());
     tag+=100;
     /*   Number of elements over all processes and partitions exchange                  */
      if(_rank == senderRank ){
@@ -537,9 +518,6 @@ namespace cwipi {
       }
     }
         MPI_Barrier(_globalComm);
-   
-     printf("ZZ After WHILE3 %i %s sender %i\n",_rank,localName.c_str(),senderRank);  
-        
     if(_both_codes_are_local == 1) {
       _n_g_elt_cpl_over_part = _geometry_cpl->_n_g_elt_over_part;
     }
@@ -575,12 +553,9 @@ namespace cwipi {
       }
     }
     
-    printf("ZZ After WHILE4 %i %s\n",_rank,localName.c_str());     
     if(_both_codes_are_local == 1) {
       _n_g_vtx_cpl_over_part = _geometry_cpl->_n_g_vtx_over_part;
     }
- 
-    printf("ZZ After info_mesh %i\n",_rank);           
   }
 
 
@@ -805,160 +780,47 @@ void Geometry::_IBcast(void* send_buffer,
   }
 
 
-  void Geometry::_IAlltoall(void* send_buffer,
-                int* send_size,
-                int send_stride,
-                void* recv_buffer,
-                int* recv_size,
-                int recv_stride,
-                MPI_Datatype type, 
-                MPI_Comm comm,
-                std::vector<int> connectableRanks_cpl,
-                int nranks){
-      MPI_Status status;
-      int tag = 0;
-
-      switch(_geometryLocation){
-        case CWP_FIELD_VALUE_CELL_POINT:
-          tag = 1;
-        case CWP_FIELD_VALUE_NODE:
-          tag = 2;        
-      }
-      int ind_proc = 0;
-      int ind_proc_send = 0;
-            
-      std::vector<int> send_requests(nranks,0);
-      std::vector<int> recv_requests(nranks,0);
-      
-      if(recv_size==NULL) {
-        recv_size = (int*) malloc(sizeof(int)*nranks);
-        for(int i=0;i<nranks;i++){
-          recv_size[i]=1;
-        } 
-      }
-      
-      int inc_send = 1;
-      if(send_size==NULL) {
-        inc_send=0;
-        send_size = (int*) malloc(sizeof(int)*nranks);
-        for(int i=0;i<nranks;i++){
-          send_size[i]=1;
-        } 
-      }
-      
-      for(int i_rank=0;i_rank<nranks;i_rank++) {
-        int distant_rank = connectableRanks_cpl[i_rank];
-
-        if(type == MPI_DOUBLE){
-        
-          double* ptr_send = (double*)send_buffer;
-          MPI_Issend(&( ptr_send[ind_proc_send] ), send_stride * send_size[i_rank], type, distant_rank, tag,
-                   comm,
-                   &(send_requests[i_rank]));
-        
-          double* ptr = (double*)recv_buffer;
-        
-          MPI_Irecv(&(  ptr[ind_proc] ), recv_stride * recv_size[i_rank],type, distant_rank, tag,
-                  comm,
-                  &(recv_requests[i_rank]));  
-        }   
-
-        if(type == MPI_LONG_LONG_INT){
-        
-          CWP_g_num_t* ptr_send = (CWP_g_num_t*)send_buffer;
-          MPI_Issend(&( ptr_send[ind_proc_send] ), send_stride * send_size[i_rank], type, distant_rank, tag,
-                   comm,
-                   &(send_requests[i_rank]));
-        
-        
-          CWP_g_num_t* ptr = (CWP_g_num_t*)recv_buffer;
-        
-          MPI_Irecv(&(  ptr[ind_proc] ), recv_stride * recv_size[i_rank],type, distant_rank, tag,
-                  comm,
-                  &(recv_requests[i_rank]));  
-        }   
-
-        if(type == MPI_INT){
-        
-          int* ptr_send = (int*)send_buffer;
-          MPI_Issend( &( ptr_send[ind_proc_send] ) , send_stride * send_size[i_rank], type, distant_rank, tag,
-                   comm,
-                   &(send_requests[i_rank]));
-        
-          int* ptr = (int*)recv_buffer;
-        
-          MPI_Irecv(&(  ptr[ind_proc] ), recv_stride * recv_size[i_rank],type, distant_rank, tag,
-                  comm,
-                  &(recv_requests[i_rank]));  
-        }   
-
-
-       if(inc_send!=0) {      
-         ind_proc_send += send_stride * send_size[i_rank];       
-       }
-       ind_proc += recv_stride * recv_size[i_rank];
-      }//end for on i_rank
-
-      for(int i_rank=0;i_rank<nranks;i_rank++) {
-      
-        int distant_rank = connectableRanks_cpl[i_rank];
-        if(i_rank !=distant_rank) {
-          MPI_Wait(&(send_requests[i_rank]), &status);
-          MPI_Wait(&(recv_requests[i_rank]), &status);
-        }
-      }//end for on i_rank 
-      
-    free(send_size);
-    free(recv_size);
-  }
-
-
 
 /***************************************************************************/
 /***************************************************************************/
 
   void Geometry::irecv(Field<double> *recevingField) {
-
     _idx_target  .resize   (_nb_part + 1);
     _idx_target[0] = 0;
     for (int i_part = 0; i_part < _nb_part; i_part++) {
       _idx_target[i_part+1] = _idx_target[i_part] + _n_target[i_part];   
     }
 
-      //Crée un buffer de réception et le stocke (alloue)
-      recevingField -> ReceptionBufferCreation(_idx_target,_n_tot_target);
-      /* Loop on possibly intersecting distant ranks */
-      /*---------------------------------------------*/
+    //Crée un buffer de réception et le stocke (alloue)
+    recevingField -> ReceptionBufferCreation(_idx_target,_n_tot_target);
+    /* Loop on possibly intersecting distant ranks */
+    /*---------------------------------------------*/
 
-      //Réception des données sur toutes les partitions
-      double* data = recevingField -> recvBufferGet();
+    //Réception des données sur toutes les partitions
+    double* data = recevingField -> recvBufferGet();
 
-      CWP_Type_t dataType = CWP_DOUBLE;
+    CWP_Type_t dataType = CWP_DOUBLE;
 
-      int size = sizeof(dataType);
-      int nComponent = recevingField -> nComponentGet();
+    int size = sizeof(dataType);
+    int nComponent = recevingField -> nComponentGet();
 
-      for (int i_proc = 0; i_proc < _n_ranks_cpl; i_proc++) {
-      
-        int tag =recevingField -> fieldIDIntGet();
-        int distant_rank = (*_connectableRanks_cpl)[i_proc];
-        void* loc_v_ptr = &(data[ nComponent*_targets_localization_idx[distant_rank][0] ]);
+    for (int i_proc = 0; i_proc < _n_ranks_cpl; i_proc++) {
+      int tag =recevingField -> fieldIDIntGet();
+      int distant_rank = (*_connectableRanks_cpl)[i_proc];
+      void* loc_v_ptr = &(data[ nComponent*_targets_localization_idx[distant_rank][0] ]);
 
-        MPI_Request request;
+      MPI_Request request;
 
-        int longueur = nComponent * ( _targets_localization_idx[ distant_rank ][_nb_part] - _targets_localization_idx[distant_rank][0]  );
-        printf("Recv from %i to %i start %i longueur %i\n",_rank,i_proc,nComponent*_targets_localization_idx[distant_rank][0],longueur);
+      int longueur = nComponent * ( _targets_localization_idx[ distant_rank ][_nb_part] - _targets_localization_idx[distant_rank][0]  );
+      printf("Recv from %i to %i start %i longueur %i\n",_rank,i_proc,nComponent*_targets_localization_idx[distant_rank][0],longueur);
 
-        MPI_Irecv(loc_v_ptr, longueur, MPI_DOUBLE, distant_rank, tag,
-                  _globalComm,
-                  &request);
+      MPI_Irecv(loc_v_ptr, longueur, MPI_DOUBLE, distant_rank, tag,
+                _globalComm,
+                &request);
 
-        recevingField -> lastRequestAdd (i_proc,request);
-       // printf("recv request %i\n",request);
-          
-     } //end for
-
-  }
+      recevingField -> lastRequestAdd (i_proc,request);
+   } //end for
+ }
 
 /******************************************************/
 
@@ -966,15 +828,9 @@ void Geometry::_IBcast(void* send_buffer,
 
     MPI_Status status;
 
-    //TODO: A travailler pour optimiser le temps de communication
-    // Qui communique avec qui ? Dans quel ordre ?
     for (int i_proc=0; i_proc < _n_ranks_cpl; i_proc++) {
       int request = recevingField -> lastRequestGet(i_proc);
-
-     printf("request %i %i\n",request,i_proc);
-
       MPI_Wait(&request, &status);
-      
     } //i_proc loop
 
     //Récupère un pointeur vers le bloc de données reçues
@@ -983,9 +839,7 @@ void Geometry::_IBcast(void* send_buffer,
     CWP_Field_value_t   recevingFieldType = recevingField -> typeGet        ();
 
     //Reorganize by partition datas which are organized by sending processp
-
     double** userDataMem = (double**)malloc(sizeof(double*)*_nb_part);
-    
     for (int i_part=0;i_part<_nb_part;i_part++) {
        userDataMem[i_part] = recevingField -> dataGet(i_part);
        if(userDataMem[i_part] == NULL ) PDM_error(__FILE__, __LINE__, 0, "Reception memory has not been allocated.\n");
@@ -1014,7 +868,7 @@ void Geometry::_IBcast(void* send_buffer,
          }
        }// loop on itarget
   }// loop on proc
-   
+
    free(userDataMem);  
     if(_visu -> isCreated()) {
        _visu -> WriterField(recevingField);
@@ -1033,13 +887,10 @@ void Geometry::_IBcast(void* send_buffer,
     // Qui communique avec qui ? Dans quel ordre ?
 
     for (int i_proc=0; i_proc < _n_ranks_cpl; i_proc++) {
-      
       int request = sendingField -> lastRequestGet(i_proc);
-
-      //On attend la fin de l'échange
       MPI_Wait(&request, &status);
-
     } //i_proc loop
+    
     int nComponent = sendingField -> nComponentGet();
     if(_visu -> isCreated()) {
        _visu -> WriterField(sendingField);

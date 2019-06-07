@@ -624,29 +624,29 @@ namespace cwipi {
   void Coupling::visuSet(const int               freq,
                          const CWP_Visu_format_t format,
                          const char             *format_option
-                         ) {
+                         ) 
+    {
       int max_codename_length = 150;
-      printf("_localCodeProperties.nameGet();\n");
-      string name = _localCodeProperties.nameGet();
-      int local_rank = -1;
-      printf("_localCodeProperties.intraCommGet(),\n");
-     // MPI_Comm_rank(_localCodeProperties.intraCommGet(),&local_rank);
+
+      string CodeName = _localCodeProperties.nameGet();
+      string cplCodeName = _coupledCodeProperties.nameGet();
+      string cplId = IdGet();
       
+      int local_rank = -1;
 
-      char output_name [name.length()];
-        printf("sprintf(output_name,,name.c_str());\n");
-      sprintf(output_name,"%s",name.c_str());
-
-      printf("_visu.VisuCreate(fI%sI\n",output_name);
+      string visuDir = "cwipi";
+      char output_name [CodeName.length()];
+      char output_dir   [visuDir.length() + 1 + cplId.length() + 1 + CodeName.length() + 1 + cplCodeName.length()];
+      sprintf(output_name,"%s",CodeName.c_str());
+      sprintf(output_dir,"%s/%s_%s_%s",visuDir.c_str(),cplId.c_str(),CodeName.c_str(),cplCodeName.c_str());
+      
       _visu.VisuCreate(freq,
                        format,
                        format_option,
-                       "cwipi",
-                       output_name);   
-        printf("_visu.GeomCreate(_mesh.getNPar) %i\n",_mesh.getNPart());  
+                       output_dir,
+                       "chr");   
                                    
       _visu.GeomCreate(_mesh.getNPart());
-         
   }
 
 

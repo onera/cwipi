@@ -21,7 +21,7 @@
 #include <string>
 #include <iostream>
 #include "pdm_writer.h"
-#include "bftc_error.h"
+#include "pdm_error.h"
 #include <unistd.h> 
 #include <stdio.h>
 #include "field.hpp"
@@ -230,17 +230,34 @@ namespace cwipi {
   void Visu::WriterFieldCreate(Field<double>* field) {
 
       CWP_Field_value_t CWPfielType = field -> typeGet();
+      int nComponent = field -> nComponentGet();
       PDM_writer_var_loc_t PDMfieldType;
       
       if(CWPfielType == CWP_FIELD_VALUE_CELL_POINT) PDMfieldType = PDM_WRITER_VAR_ELEMENTS;
       
       if(CWPfielType == CWP_FIELD_VALUE_NODE) PDMfieldType = PDM_WRITER_VAR_SOMMETS;      
 
+      PDM_writer_var_dim_t PDMfieldComp;
+      if( nComponent == 1) PDMfieldComp = PDM_WRITER_VAR_SCALAIRE;
+      else if( nComponent == 3) PDMfieldComp = PDM_WRITER_VAR_VECTEUR;
+      else if (nComponent !=0)
+        PDM_error(__FILE__, __LINE__, 0, "This field have a number of components which cannot be visualized.\n");
+
+      std::string prefix;
+      if(field -> exchangeTypeGet() == CWP_FIELD_EXCH_SEND)
+       prefix = "s";
+      else if(field -> exchangeTypeGet() == CWP_FIELD_EXCH_RECV)
+       prefix = "r";
+      else 
+        PDM_error(__FILE__, __LINE__, 0, "You have to choose between CWP_FIELD_EXCH_RECV or CWP_FIELD_EXCH_SEND for field writing type.\n");
+       
+      std::string fieldName = prefix + "_" + field ->fieldIDGet();
+
       int id_var = PDM_writer_var_create(_visu_id, 
-                                     PDM_WRITER_ON,
-                                     PDM_WRITER_VAR_SCALAIRE, 
-                                     PDMfieldType, 
-                                     (field ->fieldIDGet()).c_str());
+                                         PDM_WRITER_ON,
+                                         PDMfieldComp, 
+                                         PDMfieldType, 
+                                         fieldName.c_str());
       field -> visuIdSet(id_var);
   }
 

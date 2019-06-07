@@ -109,9 +109,9 @@ namespace cwipi {
             int interpInd = itarget;
             printf("iel %i itarget %i refData %f _n_tot_target_cpl %i\n",iel,itarget,referenceData[iel],_n_tot_target_cpl);
             for (int k = 0; k < nComponent; k++) {
-            interpolatedData[ nComponent*interpInd + k  ] = referenceData[nComponent*iel + k ];
-            //printf("interpolatedData[ nComponent*interpInd + k  ] %f i_part %i i_proc %i nComponent*interpInd + k %i nComponent*iel + k %i referenceData[nComponent*iel + k ] %f\n",
-             //interpolatedData[ nComponent*interpInd + k  ],i_part,i_proc,nComponent*interpInd + k,nComponent*iel + k),referenceData[nComponent*iel + k ];
+              interpolatedData[ nComponent*interpInd + k  ] = referenceData[nComponent*iel + k ];
+              //printf("interpolatedData[ nComponent*interpInd + k  ] %f i_part %i i_proc %i nComponent*interpInd + k %i nComponent*iel + k %i referenceData[nComponent*iel + k ] %f\n",
+              //interpolatedData[ nComponent*interpInd + k  ],i_part,i_proc,nComponent*interpInd + k,nComponent*iel + k),referenceData[nComponent*iel + k ];
             }    
           } // loop on itarget
         } // if referenceFieldType == CWP_FIELD_VALUE_CELL_POINT
@@ -155,14 +155,17 @@ namespace cwipi {
          */                     
           //  printf("iel %i itarget %i refData %f _n_tot_target_cpl %i\n",iel,itarget,referenceData[iel],_n_tot_target_cpl);
 
-              interpolatedData[ interpInd  ] = 0.0;
-              
-              for (int i_vtx = connecIdx[iel]; i_vtx < connecIdx[iel+1]; i_vtx++) {
-               interpolatedData[ interpInd  ] += barCoords[i_vtx - connecIdx[iel] ] * referenceData[connec[i_vtx]-1] ;
-              }
+              for (int k = 0; k < nComponent; k++) {
+                interpolatedData[ nComponent * interpInd + k ] = 0.0;
+                for (int i_vtx = connecIdx[iel]; i_vtx < connecIdx[iel+1]; i_vtx++) {
+                  interpolatedData[ nComponent * interpInd + k ] += barCoords[i_vtx - connecIdx[iel] ] * referenceData[ nComponent * (connec[i_vtx]-1) + k] ;
+                }
+              }//end k component loop
             }
             else {
-              interpolatedData[ interpInd  ] = 1000.0;
+              for (int k = 0; k < nComponent; k++) {
+                interpolatedData[ nComponent * interpInd + k ] = 1000.0;
+              }
             }
           } // loop on itarget
         } // if referenceFieldType == CWP_FIELD_VALUE_NODE
@@ -265,16 +268,7 @@ void GeomLocation::issend(Field <double>* referenceField) {
  
  
     for(int i_part =0; i_part<_nb_part_cpl; i_part++) {     
-
-    
       if(_both_codes_are_local == 0) {
-      
-        int* tmp1,*tmp2,*tmp5;  
-        CWP_g_num_t* tmp3,*tmp4;
-        double* tmp6; 
- 
- 
- 
         int          n_target      =  nTargetGet(i_part);
         CWP_g_num_t* gnum_target   =  gnumTargetGet(i_part);
         double*      coords_target =  coordsTargetGet(i_part); 
@@ -348,9 +342,6 @@ void GeomLocation::issend(Field <double>* referenceField) {
         CWP_g_num_t* gnum_vtx  = _mesh -> getVertexGNum(i_part);
         CWP_g_num_t* gnum_elt  = _mesh -> GNumEltsGet(i_part);     
 
-  /* TODO: Plante quand on met les pointeurs à NULL dans surf_mesh_part_set ou quand on utilise les tmp.
-  */
-        
         PDM_mesh_dist_surf_mesh_part_set (*id_dist,
                                           i_part,
                                           0,
@@ -396,13 +387,13 @@ void GeomLocation::issend(Field <double>* referenceField) {
 
   for(int i_part =0;i_part<_nb_part;i_part++) {    
     for(int i=0; i<_n_target[i_part]; i++) {
-     if(_distance[i_part][i] == INFINITY ) {
- /*     printf("_closest_elt_gnum[i_part][%i] rank %i %I64d coords %f %f %f _distance %f N %i\n",
+ /*    if(_distance[i_part][i] == INFINITY ) {
+      printf("_closest_elt_gnum[i_part][%i] rank %i %I64d coords %f %f %f _distance %f N %i\n",
       i,_rank,_closest_elt_gnum[i_part][i],
       _coords_target[i_part][3*i],_coords_target[i_part][3*i+1],_coords_target[i_part][3*i+2],
       _distance[i_part][i],
-      _n_target[i_part]);*/
-     }
+      _n_target[i_part]);
+     }*/
     } 
     PDM_gnum_location_requested_elements_set(*id_gnum_location,i_part, _n_target[i_part],_closest_elt_gnum[i_part]);   
   }
