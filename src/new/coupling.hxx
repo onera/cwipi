@@ -242,7 +242,7 @@ namespace cwipi {
      * This function enable visualization output.
      *
      * \param [in]  freq             Output frequency
-     * \param [in]  format           Output format to visualize exchanged fields
+     * \param [in]  format           Output format to visualize exchanged fieldsDouble
      *                               on the coupled mesh. Choice between :
      *                               - "EnSight Gold"
      *                               - "MED_ficher"
@@ -282,7 +282,7 @@ namespace cwipi {
     /**
      * \brief Setting user target points
      *
-     * This function must be called if the nature of receiving fields 
+     * This function must be called if the nature of receiving fieldsDouble 
      * is \ref CWP_FIELD_VALUE_USER
      *
      * \param [in]  n_pts   Number of points
@@ -777,7 +777,7 @@ namespace cwipi {
      * \brief Exchange data field with the coupled code with blocking 
      *        communications.
      *
-     * This function exchanges interpolated fields between coupled codes. 
+     * This function exchanges interpolated fieldsDouble between coupled codes. 
      * 
      * \warning  The size of tgt_field_id size is n_computed_tgt. 
      *           If \f$ n\_uncomputed\_tgt \ne n\_tgt\_pts \f$,
@@ -1009,7 +1009,7 @@ namespace cwipi {
     
     inline Mesh* meshGet();
     
-    inline std::map < string, Field<double> * >* fieldsGet();
+    inline std::map < string, Field<double> * >* fieldsDoubleGet();
     inline std::map <CWP_Field_value_t,Geometry*>* geometryGet();
     inline CodeProperties* localCodePropertiesGet();
 
@@ -1037,7 +1037,8 @@ namespace cwipi {
           Visu                             &_visu;                  /*!< Visualization */
           double                            _recvFreq;              /*!< Receiving frequency */
           double                            _recvNextTime;          /*!< Next receiving time */
-    std::map < string, Field<double> * >   &_fields;           /*!< Fields Data Base */
+    std::map < string, Field<double> * >   &_fieldsDouble;           /*!< Fields Data Base */
+    std::map < string, Field<int> * >      &_fieldsInt;           /*!< Fields Data Base */
           CouplingDB                       &_cplDB;                 /*!< Coupling Data base */
           int*                              _iteration;
           CWP_Displacement_t                _displacement;
@@ -1084,8 +1085,8 @@ namespace cwipi {
      return &_geometry;
   }    
 
-  std::map < string, Field<double> * >* Coupling::fieldsGet() {
-     return &_fields;
+  std::map < string, Field<double> * >* Coupling::fieldsDoubleGet() {
+     return &_fieldsDouble;
   }  
 
 

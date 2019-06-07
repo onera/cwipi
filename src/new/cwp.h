@@ -1057,7 +1057,7 @@ CWP_Geom_properties_set
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
  * \param [in]  freq             Output frequency
- * \param [in]  format           Output format to visualize exchanged fields
+ * \param [in]  format           Output format to visualize exchanged fieldsDouble
  *                               on the coupled mesh. Choice between :
  *                               - "EnSight Gold"
  *                               - "MED_ficher"
@@ -1098,7 +1098,7 @@ void
 /**
  * \brief Setting user target points
  *
- * This function must be called if the nature of receiving fields 
+ * This function must be called if the nature of receiving fieldsDouble 
  * is \ref CWP_FIELD_VALUE_USER
  *
  * \param [in]  local_code_name  Local code name
@@ -1699,7 +1699,7 @@ CWP_Exch
  * \brief Exchange data field with the coupled code with blocking 
  *        communications.
  *
- * This function exchanges interpolated fields between coupled codes. 
+ * This function exchanges interpolated fieldsDouble between coupled codes. 
  * 
  * \warning  The size of tgt_field_id size is n_computed_tgt. 
  *           If \f$ n\_uncomputed\_tgt \ne n\_tgt\_pts \f$,

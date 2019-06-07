@@ -64,7 +64,7 @@ namespace cwipi {
      * \brief Create the Visu
      *
      * \param [in]  freq             Output frequency
-     * \param [in]  format           Output format to visualize exchanged fields
+     * \param [in]  format           Output format to visualize exchanged fieldsDouble
      *                               on the coupled mesh. Choice between :
      *                               - "EnSight Gold"
      *                               - "MED_ficher"

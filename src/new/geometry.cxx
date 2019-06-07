@@ -66,7 +66,7 @@ namespace cwipi {
   void Geometry::init(Coupling *coupling, CWP_Field_value_t geometryLocation) {
     _mesh   = coupling -> meshGet();
     _visu   = coupling -> visuGet();
-    _referenceFieldsDB = coupling -> fieldsGet();
+    _referenceFieldsDB = coupling -> fieldsDoubleGet();
     _geometryLocation = geometryLocation; 
     _cpl = coupling;
     _id_dist1 = -1;

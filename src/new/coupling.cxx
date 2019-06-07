@@ -107,7 +107,8 @@ namespace cwipi {
    _coupledCodeProperties(coupledCodeProperties),
    _recvFreqType (recvFreqType),
    _cplDB(cplDB),
-   _fields(*(new map < string, Field<double> * >())),  
+   _fieldsDouble(*(new map < string, Field<double> * >())),  
+   _fieldsInt(*(new map < string, Field<int> * >())),  
    _visu(*new Visu(localCodeProperties.intraCommGet(),displacement)), 
    _mesh(*new Mesh(localCodeProperties.intraCommGet(),NULL,nPart,displacement)),
    _geometry(*new std::map <CWP_Field_value_t, Geometry*>()),
@@ -204,9 +205,9 @@ namespace cwipi {
   (string &sendingFieldID) {
 
      std:map <std::string, Field<double> *>::iterator it;
-     it = _fields.find(sendingFieldID);
+     it = _fieldsDouble.find(sendingFieldID);
 
-     if (it != _fields.end()) {
+     if (it != _fieldsDouble.end()) {
        Field <double>* sendingField = it -> second;   
       _geometry[sendingField -> typeGet()] -> issend(sendingField);
      }
@@ -217,9 +218,9 @@ namespace cwipi {
   (string &recevingFieldID) {
 
      std:map <std::string, Field<double> *>::iterator it;
-     it = _fields.find(recevingFieldID);
+     it = _fieldsDouble.find(recevingFieldID);
 
-     if (it != _fields.end()) {
+     if (it != _fieldsDouble.end()) {
        Field <double>* recevingField = it -> second;   
        _geometry[recevingField -> typeGet()] ->irecv(recevingField);
      }
@@ -233,8 +234,8 @@ namespace cwipi {
   )
   {
   
-    map<string,Field<double>*>::iterator It = _fields.find(field_id.c_str());  
-    if (It == _fields.end()) {
+    map<string,Field<double>*>::iterator It = _fieldsDouble.find(field_id.c_str());  
+    if (It == _fieldsDouble.end()) {
       bftc_error(__FILE__, __LINE__, 0,
                  "'%s' not existing field\n", field_id.c_str());
     }
@@ -248,8 +249,8 @@ namespace cwipi {
    const string &field_id
   )
   {
-    map<string,Field<double>*>::iterator It = _fields.find(field_id.c_str());
-    return (It != _fields.end());
+    map<string,Field<double>*>::iterator It = _fieldsDouble.find(field_id.c_str());
+    return (It != _fieldsDouble.end());
   }
 
   void
@@ -289,7 +290,7 @@ namespace cwipi {
 
     pair<string, Field<double>* > newPair(string(field_id), newField);
 
-    _fields.insert(newPair);
+    _fieldsDouble.insert(newPair);
     
     if (_visu.isCreated())
       _visu.WriterFieldCreate(newField);
@@ -323,9 +324,9 @@ namespace cwipi {
    {
      std:map <std::string, Field<double> *>::iterator it;
 
-     it = _fields.find(sendingFieldID);
+     it = _fieldsDouble.find(sendingFieldID);
 
-     if (it != _fields.end()) {
+     if (it != _fieldsDouble.end()) {
        Field <double>* sendingField = it -> second;   
       _geometry[sendingField -> typeGet()] -> waitIssend(sendingField);
      }
@@ -339,9 +340,9 @@ namespace cwipi {
    )
    {
      std:map <std::string, Field<double> *>::iterator it;
-     it = _fields.find(recevingFieldID);
+     it = _fieldsDouble.find(recevingFieldID);
 
-     if (it != _fields.end()) {
+     if (it != _fieldsDouble.end()) {
        Field <double>* recevingField = it -> second;   
        _geometry[recevingField -> typeGet()] -> waitIrecv(recevingField);
      }
@@ -363,8 +364,8 @@ namespace cwipi {
      const string &field_id
    )
    {
-    map<string,Field<double>*>::iterator It = _fields.find(field_id.c_str());  
-    if (It == _fields.end()) {
+    map<string,Field<double>*>::iterator It = _fieldsDouble.find(field_id.c_str());  
+    if (It == _fieldsDouble.end()) {
       bftc_error(__FILE__, __LINE__, 0,
                  "'%s' not existing field\n", field_id.c_str());
     }
@@ -388,8 +389,8 @@ namespace cwipi {
     const string &field_id
   )
   {
-    map<string,Field<double>*>::iterator It = _fields.find(field_id.c_str());  
-    if (It == _fields.end()) {
+    map<string,Field<double>*>::iterator It = _fieldsDouble.find(field_id.c_str());  
+    if (It == _fieldsDouble.end()) {
       bftc_error(__FILE__, __LINE__, 0,
                  "'%s' not existing field\n", field_id.c_str());
     }
@@ -415,8 +416,8 @@ namespace cwipi {
     double data[]
   )
   { 
-    map<string,Field<double>*>::iterator It = _fields.find(field_id.c_str());  
-    if (It == _fields.end())
+    map<string,Field<double>*>::iterator It = _fieldsDouble.find(field_id.c_str());  
+    if (It == _fieldsDouble.end())
       {
          bftc_error(__FILE__, __LINE__, 0,
                "'%s' not existing field\n", field_id.c_str());
@@ -446,8 +447,8 @@ namespace cwipi {
     const string &field_id
   )
   {
-    map<string,Field<double>*>::iterator It = _fields.find(field_id.c_str());  
-    if (It == _fields.end())
+    map<string,Field<double>*>::iterator It = _fieldsDouble.find(field_id.c_str());  
+    if (It == _fieldsDouble.end())
       {
          bftc_error(__FILE__, __LINE__, 0,
                "'%s' not existing field\n", field_id.c_str());

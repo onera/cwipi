@@ -60,8 +60,8 @@ namespace cwipi {
    * \brief Geometry algorithm
    *
    *  This class computes the geometry algotrithm of points cloud into a mesh and
-   *  builds a communication graph to transmit interpolated fields on 
-   *  points cloud from fields defined on the mesh.
+   *  builds a communication graph to transmit interpolated fieldsDouble on 
+   *  points cloud from fieldsDouble defined on the mesh.
    * 
    */
 
@@ -129,7 +129,7 @@ namespace cwipi {
      * \brief Exchange data field with the coupled application with blocking 
      *        communications.
      *
-     * This function exchanges interpolated fields between coupled codes. 
+     * This function exchanges interpolated fieldsDouble between coupled codes. 
      * 
      * \warning  The size of tgt_field_id size is n_computed_tgt. 
      *           If \f$ n\_uncomputed\_tgt \ne n\_tgt\_pts \f$,
@@ -218,7 +218,7 @@ namespace cwipi {
     /**
      * \brief Setting user target points
      *
-     * This function must be called if the nature of receiving fields 
+     * This function must be called if the nature of receiving fieldsDouble 
      * is \ref CWP_FIELD_VALUE_USER
      *
      * \param [in]  n_pts   Number of points

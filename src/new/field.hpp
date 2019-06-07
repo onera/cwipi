@@ -97,7 +97,7 @@ namespace cwipi {
      *
      */
 
-    void dataSet ( int i_part, double data[])
+    void dataSet ( int i_part, dataType data[])
     {
       int size = _mesh->getPartNElts(i_part);
       _data[i_part] = &(data[0]);
@@ -243,10 +243,10 @@ namespace cwipi {
                                                   
         //On alloue l'espace pour la réception si pas déjà fait                                               
         if(_recvBuffer == NULL) {
-          _recvBuffer = (double*)malloc(sizeof(double)*_nComponent*TotLocatedTargets);
+          _recvBuffer = (dataType*)malloc(sizeof(dataType)*_nComponent*TotLocatedTargets);
         }
 
-        std::vector<double*> v_interpolatedData;
+        std::vector<dataType*> v_interpolatedData;
         v_interpolatedData.resize(_n_part);
         int loc_ind=-1;
           
@@ -269,15 +269,15 @@ namespace cwipi {
 
 
   
-  double* recvBufferGet () {
+  dataType* recvBufferGet () {
     return _recvBuffer;
   }
 
-  double* sendBufferGet () {
+  dataType* sendBufferGet () {
     return _sendBuffer;
   }
 
-  void sendBufferSet (double* sendBuffer) {
+  void sendBufferSet (dataType* sendBuffer) {
     _sendBuffer = sendBuffer;
   }
    
@@ -292,8 +292,8 @@ namespace cwipi {
     std::vector<dataType* >                  _data;         /*!< Pointer to data array */
     std::string                              _fieldID;
     int                                      _fieldIDInt;
-    double                                  *_sendBuffer;
-    double                                  *_recvBuffer;
+    dataType                                *_sendBuffer;
+    dataType                                *_recvBuffer;
     double*                                  _physTime;
     int*                                     _iteration;
     Mesh                                    *_mesh;
