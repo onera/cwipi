@@ -146,8 +146,6 @@ namespace cwipi {
         CWP_Block_t  block_type = Mesh_nodal_block_type_get  (id_block );
         int n_elt = _blockDB[id_block] -> NEltsGet()[i_part];
 
-        //if(block_type!=CWP_BLOCK_CELL_POLY and block_type!=CWP_BLOCK_FACE_POLY){
-
           const double* elt_centers_block = _blockDB[id_block] -> eltCentersGet(i_part);
 
           for(int j=0;j<n_elt;j++){
@@ -157,13 +155,6 @@ namespace cwipi {
             ind_idx++;
           }//end loop j
           
-      //  } 
-        
-        
-  //      if(block_type == CWP_BLOCK_FACE_POLY){
-
-
-    //    }         
       }//end loop on block
 
   }

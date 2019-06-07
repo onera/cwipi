@@ -301,7 +301,7 @@ namespace cwipi {
           int n_elts = mesh -> getBlockNElts(id_block,i_part);
           int* connec = mesh -> getEltConnectivity(id_block,i_part);
           if(type != CWP_BLOCK_FACE_POLY && type != CWP_BLOCK_CELL_POLY) {
-            CWP_g_num_t* gnum = mesh -> gnumMeshBlockGet(id_block,i_part);
+            CWP_g_num_t* gnum = mesh -> gnumInsideBlockGet(id_block,i_part);
             GeomBlockStdSet(idBlockVisu,
                             i_part,
                             n_elts,
@@ -310,7 +310,7 @@ namespace cwipi {
                            );
           }
           else if (type == CWP_BLOCK_FACE_POLY){
-            CWP_g_num_t* gnum = mesh -> gnumMeshBlockGet(id_block,i_part);
+            CWP_g_num_t* gnum = mesh -> gnumInsideBlockGet(id_block,i_part);
             int* connecIdx = mesh -> getEltConnectivityIndex(id_block,i_part);
             GeomBlockPoly2D(idBlockVisu,
                             i_part,

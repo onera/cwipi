@@ -35,11 +35,30 @@
 namespace cwipi {
 
   Geometry::Geometry()
+    :_location_idx_comm_proc(NULL),
+     _location_comm_proc(NULL),
+     _location_recv(NULL),
+     _location_idx_proc_recv(NULL),
+     _n_vtx(NULL),
+     _n_elt(NULL),
+     _gnum_target(NULL),
+     _coords_target(NULL),
+     _n_g_elt(NULL),
+     _n_g_vtx(NULL),
+     _both_codes_are_local__array(NULL)
   {
   }
 
+
   Geometry::~Geometry()
   {
+    free(_n_vtx);
+    free(_n_elt);
+    free(_gnum_target);
+    free(_coords_target);
+    free(_n_g_elt);
+    free(_n_g_vtx);
+    free(_both_codes_are_local__array);
   }
   
   
@@ -105,6 +124,18 @@ namespace cwipi {
     _n_ranks     = _connectableRanks->size();
    
     n_uncomputed_tgt.resize(_nb_part);
+    
+    _n_vtx    =(int*)malloc(sizeof(int)*_nb_part);  
+    _n_elt    =(int*)malloc(sizeof(int)*_nb_part);     
+    _n_target =(int*)malloc(sizeof(int)*_nb_part);
+    _gnum_target   =(CWP_g_num_t**)malloc( sizeof(CWP_g_num_t*)*_nb_part);
+    _coords_target =(double**)     malloc( sizeof(double*)     *_nb_part);
+    
+    _n_g_elt    =(int*)malloc(sizeof(int)*_nb_part);  
+    _n_g_vtx    =(int*)malloc(sizeof(int)*_nb_part);  
+
+    _both_codes_are_local__array = (int*)malloc(sizeof(int)*_n_ranks_g);
+    
   }
   
 /*************************************************/
@@ -113,17 +144,9 @@ namespace cwipi {
 
     int tag=0;
     
-    _n_vtx    =(int*)malloc(sizeof(int)*_nb_part);  
-    _n_elt    =(int*)malloc(sizeof(int)*_nb_part);     
-    _n_target =(int*)malloc(sizeof(int)*_nb_part);
-    _gnum_target   =(CWP_g_num_t**)malloc( sizeof(CWP_g_num_t*)*_nb_part);
-    _coords_target =(double**)     malloc( sizeof(double*)     *_nb_part);
-    
     _n_tot_elt=0;
     _n_tot_vtx=0;   
     for(int i_part =0;i_part<_nb_part;i_part++) {   
-    
-      printf("Before target GEt rank %i\n",_rank);
       if (_geometryLocation == CWP_FIELD_VALUE_CELL_POINT) {
         _n_target   [i_part]     = _mesh -> getPartNElts(i_part);      
         _gnum_target[i_part]     = _mesh -> GNumEltsGet(i_part);   
@@ -136,15 +159,13 @@ namespace cwipi {
         _gnum_target   [i_part]  = _mesh -> getVertexGNum  (i_part);
         _coords_target [i_part]  = _mesh -> getVertexCoords(i_part);
       }      
-      printf("After target GEt rank %i\n",_rank);
     
       _n_elt[i_part]  = _mesh -> getPartNElts(i_part);
-
       _n_tot_elt+=_n_elt[i_part];
       
       _n_vtx[i_part]  = _mesh -> getPartNVertex(i_part);
       _n_tot_vtx+=_n_vtx[i_part];
-    } 
+    } //end loop on i_part 
 
 
     if (_geometryLocation == CWP_FIELD_VALUE_CELL_POINT) {
@@ -154,10 +175,6 @@ namespace cwipi {
     if (_geometryLocation == CWP_FIELD_VALUE_NODE) {
       _n_tot_target = _n_tot_vtx;
     }   
-
-
-    _n_g_elt    =(int*)malloc(sizeof(int)*_nb_part);  
-
 
     int lsize;
     MPI_Comm_size(_localComm,&lsize);
@@ -169,23 +186,12 @@ namespace cwipi {
    for(int i_part =0;i_part<_nb_part;i_part++) { 
      _n_g_elt_over_part+=_n_g_elt[i_part];
    }
-
-    _n_g_vtx    =(int*)malloc(sizeof(int)*_nb_part);  
    
     MPI_Allreduce(_n_vtx, _n_g_vtx, _nb_part, MPI_INT,MPI_SUM,_localComm);
 
   _n_g_vtx_over_part = 0;
   for(int i_part =0;i_part<_nb_part;i_part++) { 
     _n_g_vtx_over_part+=_n_g_vtx[i_part];
-  }
-
-
-  _location_idx =(int**)malloc(sizeof(int*)*_nb_part);
-  _location     =(int**)malloc(sizeof(int*)*_nb_part);
-
-  for (int i_part = 0; i_part < _nb_part; i_part++) {
-    _location_idx[i_part] = (int*) malloc(sizeof(int) * (1+_n_target[i_part]));
-    _location[i_part]     = (int*) malloc(3* sizeof(int) * _n_target[i_part]);
   }
   
  }
@@ -196,16 +202,16 @@ namespace cwipi {
 
   void Geometry::computeFree(){
 
-
-  for (int i_part = 0; i_part < _nb_part; i_part++) {
-    free(_location_idx[i_part]);
-    free(_location[i_part]);
-  }
-
-  free(_location_idx);
-  free(_location);
+   for (int i_proc = 0; i_proc < _n_ranks_g; i_proc++) {
+     free(_targets_cpl_idx[i_proc]);
+     free(_targets_cpl_idx_cpl[i_proc]);
+   }
+   
+   free(_targets_cpl);
+   free(_targets_cpl_idx);
+   free(_targets_cpl_cpl);
+   free(_targets_cpl_idx_cpl);
   
-
   }
 
 
@@ -241,21 +247,21 @@ namespace cwipi {
 /***************************************************************************/
 
   void Geometry::compute() {
-     
+    
+    info_mesh();
     if(_both_codes_are_local == 0){
       if(localName == _codeVector[0]) locate_setting_surface(&_id_dist1);
       if(localName == _codeVector[1]) locate_setting_request(&_id_dist1);
-    // while(1==1){}
       printf("ZZ Before locate_compute %i %s\n",_rank,localName.c_str()); 
-       MPI_Barrier(_globalComm);
-        printf("id_dist1 %i\n",_id_dist1);
-        locate_compute        (_id_dist1); 
-         printf("ZZ After locate_compute %i %s\n",_rank,localName.c_str());  
-         
-         MPI_Barrier(_globalComm);          
+      MPI_Barrier(_globalComm);
+      printf("id_dist1 %i\n",_id_dist1);
+      locate_compute        (_id_dist1); 
+      printf("ZZ After locate_compute %i %s\n",_rank,localName.c_str());  
+        
+      MPI_Barrier(_globalComm);          
       if (localName == _codeVector[1]) locate_get(_id_dist1)  ;
          
-      PDM_mesh_dist_free(_id_dist1,1);
+      PDM_mesh_dist_free(_id_dist1,0);
          
       if(localName == _codeVector[1]) broadcasting_request(&_id_gnum_location1);
       if(localName == _codeVector[0]) broadcasting_set    (&_id_gnum_location1);
@@ -265,7 +271,7 @@ namespace cwipi {
       printf("ZZ After location_compute %i %s\n",_rank,localName.c_str());
       if(localName == _codeVector[1]) location_get(_id_gnum_location1) ;
 
-      PDM_gnum_location_free(_id_gnum_location1,1);
+      PDM_gnum_location_free(_id_gnum_location1,0);
            
       if(localName == _codeVector[0]) locate_setting_request(&_id_dist2);
       if(localName == _codeVector[1]) locate_setting_surface(&_id_dist2);
@@ -274,7 +280,7 @@ namespace cwipi {
       locate_compute          (_id_dist2)  ;
                      
       if (localName == _codeVector[0]) locate_get(_id_dist2)  ;    
-      PDM_mesh_dist_free(_id_dist2,1);
+      PDM_mesh_dist_free(_id_dist2,0);
 
       if(localName == _codeVector[0])  broadcasting_request(&_id_gnum_location2);     
       if(localName == _codeVector[1])  broadcasting_set    (&_id_gnum_location2);
@@ -282,7 +288,7 @@ namespace cwipi {
       MPI_Barrier(_globalComm);    
       location_compute  (_id_gnum_location2);   
       if(localName == _codeVector[0]) location_get(_id_gnum_location2);
-      PDM_gnum_location_free(_id_gnum_location2,1);
+      PDM_gnum_location_free(_id_gnum_location2,0);
 
       broadcasting_filling_of_broadcasting_array(); 
       broadcasting_index_communication() ;
@@ -290,6 +296,7 @@ namespace cwipi {
       broadcasting_communication() ;
       broadcasting_communication2() ;
       broadcasting_wait_and_targets_array_filling();
+      
     }
     else {
       if(localName == _codeVector[0]) {
@@ -297,7 +304,6 @@ namespace cwipi {
         locate_setting_surface(&_id_dist1);
         
         printf("ZZ Before locate_compute %i %s\n",_rank,localName.c_str()); 
-      //  while(1==1){}
         MPI_Barrier(_globalComm);
         locate_compute        (_id_dist1);
          printf("ZZ After locate_compute %i %s\n",_rank,localName.c_str());        
@@ -346,7 +352,6 @@ namespace cwipi {
           
         broadcasting_wait_and_targets_array_filling();
         _geometry_cpl -> broadcasting_wait_and_targets_array_filling();
-
       }//end if localName == _codeVector[0]
       
     }//end both_are_local
@@ -364,7 +369,6 @@ namespace cwipi {
        
     MPI_Status status;
       
-    _both_codes_are_local__array = (int*)malloc(sizeof(int)*_n_ranks_g);
     _both_codes_are_local__array = _geometry_cpl -> _both_codes_are_local__array;
         
     if(_both_codes_are_local == 1) {
@@ -393,10 +397,7 @@ namespace cwipi {
     int sender = (*_connectableRanks)[_n_ranks-1];
     int sender_cpl = (*_connectableRanks)[_n_ranks-1];
       
-    _both_codes_are_local__array = (int*)malloc(sizeof(int)*_n_ranks_g);
-
      int tsize;
-
 
      MPI_Request srequest[_n_ranks_g];
      MPI_Request rrequest[_n_ranks_g];
@@ -428,11 +429,8 @@ namespace cwipi {
             MPI_Irecv(&(_both_codes_are_local__array[i]), 1, MPI_INT,
                      distant_rank, tag2,
                      _globalComm,&rrequest[i]);   
-     
        }
      }
-
-
 
      if(_both_codes_are_local == 0 || (_both_codes_are_local == 1 && localName == _codeVector[0])){
        for(int i=0;i<_n_ranks_cpl;i++) {
@@ -587,11 +585,6 @@ namespace cwipi {
 
 
 
-
-
-
-
-
   void Geometry::_IAlltoall2(int** send_buffer,
                 int* send_size,
                 int send_stride,
@@ -654,7 +647,8 @@ namespace cwipi {
         }   
 
       }//end for on i_rank
-
+    free(send_size);
+    free(recv_size);
   }
 
  void Geometry::_IAlltoallIndex(void* send_buffer,
@@ -913,6 +907,9 @@ void Geometry::_IBcast(void* send_buffer,
           MPI_Wait(&(recv_requests[i_rank]), &status);
         }
       }//end for on i_rank 
+      
+    free(send_size);
+    free(recv_size);
   }
 
 
@@ -1017,7 +1014,8 @@ void Geometry::_IBcast(void* send_buffer,
          }
        }// loop on itarget
   }// loop on proc
-     
+   
+   free(userDataMem);  
     if(_visu -> isCreated()) {
        _visu -> WriterField(recevingField);
     }
