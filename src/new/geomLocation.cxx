@@ -455,7 +455,7 @@ void GeomLocation::issend(Field <double>* referenceField) {
        double* dist_target               =  _geometry_cpl -> distanceTargetGet(i_part);
        CWP_g_num_t* toto= ((*_geometry_cpl)._closest_elt_gnum)[i_part];
        double* tata= ((*_geometry_cpl)._distance)[i_part];
-       for(int i=0; i< n_target_cpl; i++) {
+    //   for(int i=0; i< n_target_cpl; i++) {
         // if(dist_target[i] >= 1000.0 || gnum_target[i]>10000 || gnum_target[i]<0) {
            
    /*        printf("CPL_closest_elt_gnum[i_part][%i] rank %i %I64d %I64d coords %f %f %f _distance %f N %i\n",
@@ -468,7 +468,7 @@ void GeomLocation::issend(Field <double>* referenceField) {
             tata[i],
            n_target_cpl);*/
        //  }
-       } 
+        
        PDM_gnum_location_requested_elements_set(*id_gnum_location,i_part, n_target_cpl, _geometry_cpl -> closestEltGnumGet  (i_part));
      }
   }
@@ -483,37 +483,24 @@ void GeomLocation::issend(Field <double>* referenceField) {
     _geometry_cpl -> _closest_elt_gnum   = (CWP_g_num_t**)malloc(sizeof(CWP_g_num_t*) * _nb_part);
     
     for(int i_part =0;i_part<_nb_part;i_part++) {     
-        Mesh* mesh_cpl = _geometry_cpl -> meshGet();     
-        int          n_target_cpl    = _geometry_cpl -> nTargetGet(i_part);
-        CWP_g_num_t* tmp         ;//    = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t) * n_target_cpl);
-        
-        double     * tmp2        ;//    =(double*)     malloc( sizeof(double) * n_target_cpl);
-        double     * tmp3        ;//    =(double*)     malloc(3* sizeof(double) * n_target_cpl);
-        
-        PDM_mesh_dist_get (id_dist,
+      int          n_target_cpl    = _geometry_cpl -> nTargetGet(i_part);
+      PDM_mesh_dist_get (id_dist,
                          0,
                          i_part,
-                         &tmp2,
-                         &tmp3,
-                         &tmp);
-
-       for(int i=0;i<n_target_cpl;i++){
-         if(tmp[i]>CWP_g_num_t(_n_g_elt_over_part) || tmp[i]<CWP_g_num_t(1) || tmp2[i]>0.01){
-         //  printf("CPL_distance[%i] %f gnum %I64d\n",i,tmp2[i],tmp[i]);
-           tmp[i]=CWP_g_num_t(1);
-           tmp2[i]=INFINITY;
-         }       
-       }         
-       _geometry_cpl -> _distance        [i_part] = (double*)     malloc( sizeof(double) * n_target_cpl);
-       _geometry_cpl -> _projected       [i_part] = (double*)     malloc(3 * sizeof(double) * n_target_cpl);
-       _geometry_cpl -> _closest_elt_gnum[i_part] = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t) * n_target_cpl);
-       
-       memcpy((_geometry_cpl -> _distance        )[i_part],tmp2, sizeof(double)      * n_target_cpl );
-       memcpy((_geometry_cpl -> _projected       )[i_part],tmp3, 3 * sizeof(double)      * n_target_cpl );
-       memcpy((_geometry_cpl -> _closest_elt_gnum)[i_part],tmp,      sizeof(CWP_g_num_t) * n_target_cpl );
-    }
-
- }// End locate_cell_point
+                         &(_geometry_cpl -> _distance[i_part]),
+                         &(_geometry_cpl -> _projected[i_part]),
+                         &(_geometry_cpl -> _closest_elt_gnum[i_part]));
+      
+      for(int i=0;i<n_target_cpl;i++){
+        if(_geometry_cpl -> _closest_elt_gnum[i_part][i]>CWP_g_num_t(_n_g_elt_over_part) 
+           || _geometry_cpl -> _closest_elt_gnum[i_part][i]<CWP_g_num_t(1) 
+           || _geometry_cpl -> _distance[i_part][i]>0.01){
+          _geometry_cpl -> _closest_elt_gnum[i_part][i]=CWP_g_num_t(1);
+          _geometry_cpl -> _distance[i_part][i]=INFINITY;
+        }       
+      }         
+    } //end loop on i_part
+  }// End locate_cell_point
 
 
 
@@ -526,35 +513,22 @@ void GeomLocation::issend(Field <double>* referenceField) {
 
     for(int i_part =0;i_part<_nb_part;i_part++) {     
     
-        CWP_g_num_t* tmp ;
-        double     * tmp2;
-        double     * tmp3;
         PDM_mesh_dist_get (id_dist,
                          0,
                          i_part,
-                         &tmp2,
-                         &tmp3,
-                         &tmp);
+                         &(_distance [i_part]),
+                         &(_projected[i_part]),
+                         &(_closest_elt_gnum[i_part]));
                          
-       _distance [i_part] = (double*)malloc( sizeof(double) * _n_target[i_part]);
-       _projected[i_part] = (double*)malloc(3 * sizeof(double) * _n_target[i_part]);
-       _closest_elt_gnum[i_part] = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t) * _n_target[i_part]);
-
 
        for(int i=0;i<_n_target[i_part];i++){
-         if(tmp[i]>CWP_g_num_t(_n_g_elt_cpl_over_part) || tmp[i]<CWP_g_num_t(1) || tmp2[i]>0.1){
-           printf("_distance[%i] %f gnum %I64d\n",i,tmp2[i],tmp[i]);
-           tmp[i]=CWP_g_num_t(1);
-           tmp2[i]=INFINITY;
+         if(_closest_elt_gnum[i_part][i]>CWP_g_num_t(_n_g_elt_cpl_over_part) || _closest_elt_gnum[i_part][i]<CWP_g_num_t(1) || _distance [i_part][i]>0.1){
+           _closest_elt_gnum[i_part][i]=CWP_g_num_t(1);
+           _distance [i_part][i]=INFINITY;
            
          }       
        }         
-       
-       memcpy(_distance        [i_part],tmp2,  sizeof(double)      * _n_target[i_part] );
-       memcpy(_projected       [i_part],tmp3, 3 * sizeof(double)      * _n_target[i_part] );
-       memcpy(_closest_elt_gnum[i_part],tmp,      sizeof(CWP_g_num_t) * _n_target[i_part] );
     }
-
  }// End locate_cell_point
 
 
@@ -562,9 +536,9 @@ void GeomLocation::issend(Field <double>* referenceField) {
  /*************************************************************************************/
   /*************************************************************************************/
  
-   void GeomLocation::location_compute(int id_gnum_location) {
+ void GeomLocation::location_compute(int id_gnum_location) {
     PDM_gnum_location_compute(id_gnum_location);  
-  }
+ }
 
 
  void GeomLocation::location_get(int id_gnum_location) {
@@ -573,72 +547,29 @@ void GeomLocation::issend(Field <double>* referenceField) {
   _target_proc_part_num     =(int**)malloc(sizeof(int*)*_nb_part);
 
   for (int i_part = 0; i_part < _nb_part; i_part++) {
-    _target_proc_part_num_idx[i_part] = (int*) malloc(sizeof(int) * (1+_n_target[i_part]));
-    _target_proc_part_num[i_part]     = (int*) malloc(3* sizeof(int) * _n_target[i_part]);
-  }
-
-   
-  for (int i_part = 0; i_part < _nb_part; i_part++) {
-
-    int* tmp;
-    int* tmp2;
 
     PDM_gnum_location_get(id_gnum_location,
                             i_part,
-                            &tmp,
-                            &tmp2
+                            &(_target_proc_part_num_idx[i_part]),
+                            &(_target_proc_part_num    [i_part])
                             );  
-
-
-    for(int u =0;u<1+_n_target[i_part];u++) {     
-      ( _target_proc_part_num_idx)[i_part][u]=tmp[u];
-    }
-    
-    for(int u =0;u<3*_n_target[i_part];u++) { 
-    ( _target_proc_part_num)[i_part][u]=tmp2[u];
-    }
-
-   // memcpy(_target_proc_part_num_idx[i_part],tmp ,(1+_n_target[i_part]) * sizeof(int));
-   // memcpy(_target_proc_part_num    [i_part],tmp2,3* _n_target[i_part] * sizeof(int));
-  
    } 
  } 
 
 
 
   void GeomLocation::location_get_cpl(int id_gnum_location) {
+    _geometry_cpl ->_target_proc_part_num_idx =(int**)malloc(sizeof(int*)*_nb_part);
+    _geometry_cpl ->_target_proc_part_num     =(int**)malloc(sizeof(int*)*_nb_part);
 
-  _geometry_cpl ->_target_proc_part_num_idx =(int**)malloc(sizeof(int*)*_nb_part);
-  _geometry_cpl ->_target_proc_part_num     =(int**)malloc(sizeof(int*)*_nb_part);
-
-  for (int i_part = 0; i_part < _nb_part; i_part++) {
-    _geometry_cpl ->_target_proc_part_num_idx[i_part] = (int*) malloc(sizeof(int) * (1+_n_target[i_part]));
-    _geometry_cpl ->_target_proc_part_num[i_part]     = (int*) malloc(3* sizeof(int) * _n_target[i_part]);
-  }
-  
     for(int i_part =0;i_part<_nb_part;i_part++) {     
-      int* tmp;
-      int* tmp2;
-      int          n_target_cpl    =  _geometry_cpl -> nTargetGet(i_part);
-    
       PDM_gnum_location_get(id_gnum_location,
                             i_part,
-                            &tmp,
-                            &tmp2
+                            &(_geometry_cpl ->_target_proc_part_num_idx[i_part]),
+                            &(_geometry_cpl ->_target_proc_part_num[i_part])
                             );  
-    
-    
-      for(int u =0;u<1+n_target_cpl;u++) {     
-        (_geometry_cpl -> _target_proc_part_num_idx)[i_part][u]=tmp[u];
-      }
-      //memcpy(_geometry_cpl -> _target_proc_part_num_idx[i_part], tmp,   (1+n_target_cpl)*sizeof(int) );
-      for(int u =0;u<3*n_target_cpl;u++) { 
-        (_geometry_cpl -> _target_proc_part_num)[i_part][u]=tmp2[u];
-      }
-      //memcpy(_geometry_cpl -> _target_proc_part_num    [i_part], tmp2, 3*n_target_cpl   *sizeof(int) );
-    }// end i_part loop
-
- }// End locate_cell_point
+    }
+  }// End locate_cell_point
 
  void GeomLocation::broadcasting_filling_of_broadcasting_array() {
 

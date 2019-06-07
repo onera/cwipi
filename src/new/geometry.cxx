@@ -261,7 +261,7 @@ namespace cwipi {
       MPI_Barrier(_globalComm);          
       if (localName == _codeVector[1]) locate_get(_id_dist1)  ;
          
-      PDM_mesh_dist_free(_id_dist1,0);
+      PDM_mesh_dist_free(_id_dist1,1);
          
       if(localName == _codeVector[1]) broadcasting_request(&_id_gnum_location1);
       if(localName == _codeVector[0]) broadcasting_set    (&_id_gnum_location1);
@@ -271,7 +271,7 @@ namespace cwipi {
       printf("ZZ After location_compute %i %s\n",_rank,localName.c_str());
       if(localName == _codeVector[1]) location_get(_id_gnum_location1) ;
 
-      PDM_gnum_location_free(_id_gnum_location1,0);
+      PDM_gnum_location_free(_id_gnum_location1,1);
            
       if(localName == _codeVector[0]) locate_setting_request(&_id_dist2);
       if(localName == _codeVector[1]) locate_setting_surface(&_id_dist2);
@@ -280,7 +280,7 @@ namespace cwipi {
       locate_compute          (_id_dist2)  ;
                      
       if (localName == _codeVector[0]) locate_get(_id_dist2)  ;    
-      PDM_mesh_dist_free(_id_dist2,0);
+      PDM_mesh_dist_free(_id_dist2,1);
 
       if(localName == _codeVector[0])  broadcasting_request(&_id_gnum_location2);     
       if(localName == _codeVector[1])  broadcasting_set    (&_id_gnum_location2);
@@ -288,7 +288,7 @@ namespace cwipi {
       MPI_Barrier(_globalComm);    
       location_compute  (_id_gnum_location2);   
       if(localName == _codeVector[0]) location_get(_id_gnum_location2);
-      PDM_gnum_location_free(_id_gnum_location2,0);
+      PDM_gnum_location_free(_id_gnum_location2,1);
 
       broadcasting_filling_of_broadcasting_array(); 
       broadcasting_index_communication() ;
