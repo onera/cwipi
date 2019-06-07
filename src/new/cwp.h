@@ -351,10 +351,10 @@ typedef enum {
  *============================================================================*/
 
 /**
- * \typedef void (*CWP_Interp_from_location_t)
+ * \typedef void (*CWP_Interp_from_target_proc_part_num_t)
  * \brief User interpolation function from location into a mesh.
  *
- * void (*CWP_Interp_from_location_t) defines the user interpolation 
+ * void (*CWP_Interp_from_target_proc_part_num_t) defines the user interpolation 
  * interface to take into account an user interpolation from location of target 
  * points into the source mesh.
  *
@@ -385,7 +385,7 @@ typedef enum {
  *                                          (size = src_poly_face_vertex_idx[size_iudx - 1])
  * \param [in]  tgt_pts_coords              Target points coordinates
  *                                          (size = 3 * n_tgt_pts) 
- * \param [in]  tgt_pts_location            target points location
+ * \param [in]  tgt_pts_target_proc_part_num            target points location
  *                                          (size = n_tgt_pts) 
  * \param [in]  tgt_pts_dist                target points distance to location element
  *                                          (size = n_tgt_pts) 
@@ -397,15 +397,15 @@ typedef enum {
  *                                          in location element 
  *                                          (size = tgt_pts_bary_coords_idx[n_tgt_pts])
  * \param [in]  stride                      Number of field components
- * \param [in]  src_field_location          source field location
+ * \param [in]  src_field_target_proc_part_num          source field location
  * \param [in]  src_field                   source field
  *                                          (size depends on field type and stride)
- * \param [in]  src_field_location          target field location
+ * \param [in]  src_field_target_proc_part_num          target field location
  * \param [out] tgt_field                   target field
  *                                          (size = stride * n_tgt_pts)
  */
 
-typedef void (*CWP_Interp_from_location_t)
+typedef void (*CWP_Interp_from_target_proc_part_num_t)
 (
  const int                   interface_type,
  const int                   n_src_vtcs,
@@ -422,14 +422,14 @@ typedef void (*CWP_Interp_from_location_t)
  const int                   src_poly_face_vtx_idx[],
  const int                   src_poly_face_vtx_connec[],
  const double                tgt_pts_coords[],
- const int                   tgt_pts_location[],
+ const int                   tgt_pts_target_proc_part_num[],
  const float                 tgt_pts_dist[],
  const int                   tgt_pts_bary_coords_idx[],
  const double                tgt_pts_bary_coords[],
  const int                   stride,
- const CWP_Field_value_t     src_field_location,
+ const CWP_Field_value_t     src_field_target_proc_part_num,
  const void                 *src_field,
- const CWP_Field_value_t     tgt_field_location,
+ const CWP_Field_value_t     tgt_field_target_proc_part_num,
  void                       *tgt_field
 );
 
@@ -1519,7 +1519,7 @@ CWP_Field_create
  const CWP_Type_t             data_type,
  const CWP_Field_storage_t    storage,
  const int                    n_component,
- const CWP_Field_value_t      value_location,
+ const CWP_Field_value_t      value_target_proc_part_num,
  const CWP_Field_exch_t       exch_type,
  const CWP_Status_t           visu_status
 );
@@ -1607,7 +1607,7 @@ CWP_Field_n_component_get
  */
 
 CWP_Field_value_t
-CWP_Field_location_get
+CWP_Field_target_proc_part_num_get
 (
  const char      *local_code_name,
  const char      *cpl_id,
@@ -1829,7 +1829,7 @@ CWP_Wait_irecv
  * \brief Setting of an user interpolation from location.
  *
  * This function takes into account an user interpolation function written with
- * void (*\ref CWP_Interp_from_location_t) interface.
+ * void (*\ref CWP_Interp_from_target_proc_part_num_t) interface.
  * 
  * \param [in] local_code_name  Local code name
  * \param [in] cpl_id           Coupling identifier
@@ -1842,7 +1842,7 @@ CWP_Interp_from_loc_set
 (
  const char                 *local_code_name,
  const char                 *cpl_id,
- CWP_Interp_from_location_t fct
+ CWP_Interp_from_target_proc_part_num_t fct
 );
 
 /**

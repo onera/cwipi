@@ -102,9 +102,9 @@ namespace cwipi {
       for(int i_proc=0;i_proc<_n_ranks_g;i_proc++){
 
         if (referenceFieldType == CWP_FIELD_VALUE_CELL_POINT) {
-          for (int itarget = _targets_cpl_idx[i_proc][i_part]; itarget < _targets_cpl_idx[i_proc][i_part+1]; itarget++) {
+          for (int itarget = _targets_localization_idx_cpl[i_proc][i_part]; itarget < _targets_localization_idx_cpl[i_proc][i_part+1]; itarget++) {
             //Index of the corresponding local reference Data.
-            int iel = _targets_cpl[itarget].lnum ;
+            int iel = _targets_localization_data_cpl[itarget].lnum ;
             // Index in the interpolated Data array
             int interpInd = itarget;
             printf("iel %i itarget %i refData %f _n_tot_target_cpl %i\n",iel,itarget,referenceData[iel],_n_tot_target_cpl);
@@ -123,17 +123,17 @@ namespace cwipi {
           int n_vtx  = _mesh -> getPartNVertex(i_part);
           int n_elts  = _mesh -> getPartNElts(i_part);
           double* coords = _mesh -> getVertexCoords(i_part);
-          //printf("_targets_cpl_idx[%i][%i] rank %i %i %i\n",i_proc,i_part,_rank,_targets_cpl_idx[i_proc][i_part],_targets_cpl_idx[i_proc][i_part+1]);
-          for (int itarget = _targets_cpl_idx[i_proc][i_part]; itarget < _targets_cpl_idx[i_proc][i_part+1]; itarget++) {
+          //printf("_targets_localization_idx_cpl[%i][%i] rank %i %i %i\n",i_proc,i_part,_rank,_targets_localization_idx_cpl[i_proc][i_part],_targets_localization_idx_cpl[i_proc][i_part+1]);
+          for (int itarget = _targets_localization_idx_cpl[i_proc][i_part]; itarget < _targets_localization_idx_cpl[i_proc][i_part+1]; itarget++) {
             // Index in the interpolated Data array
             int interpInd = itarget;
-            int iel = _targets_cpl[itarget].lnum ;
+            int iel = _targets_localization_data_cpl[itarget].lnum ;
             int ielP1 = iel+1;
              
-            if(_targets_cpl[itarget].distance != INFINITY ) {
-              double x_target = _targets_cpl[itarget].projectedX;
-              double y_target = _targets_cpl[itarget].projectedY;
-              double z_target = _targets_cpl[itarget].projectedZ;    
+            if(_targets_localization_data_cpl[itarget].distance != INFINITY ) {
+              double x_target = _targets_localization_data_cpl[itarget].projectedX;
+              double y_target = _targets_localization_data_cpl[itarget].projectedY;
+              double z_target = _targets_localization_data_cpl[itarget].projectedZ;    
                
               double tgtCoords[3] = {x_target,y_target,z_target};
               int *barCoordsIndex =NULL;
@@ -201,15 +201,15 @@ void GeomLocation::issend(Field <double>* referenceField) {
         
         int distant_rank = (*_connectableRanks_cpl)[i_proc];
         
-        dist_v_ptr = &(interpolatedFieldData[nComponent*_targets_cpl_idx[distant_rank][0]]);
+        dist_v_ptr = &(interpolatedFieldData[nComponent*_targets_localization_idx_cpl[distant_rank][0]]);
 
         int request=-1;
 
-        printf("start _distantPartProcTargetIdx[0][%i] %i\n",i_proc,_targets_cpl_idx[distant_rank][0]);
+        printf("start _distantPartProcTargetIdx[0][%i] %i\n",i_proc,_targets_localization_idx_cpl[distant_rank][0]);
 
-        int longueur = nComponent * (_targets_cpl_idx[distant_rank][_nb_part]-_targets_cpl_idx[distant_rank][0]);//_n_targets_dist_proc[i_proc];
+        int longueur = nComponent * (_targets_localization_idx_cpl[distant_rank][_nb_part]-_targets_localization_idx_cpl[distant_rank][0]);//_n_targets_dist_proc[i_proc];
         
-        printf("Send from %i to %i start %i longueur %i\n",_rank,distant_rank,nComponent*_targets_cpl_idx[distant_rank][0],longueur);
+        printf("Send from %i to %i start %i longueur %i\n",_rank,distant_rank,nComponent*_targets_localization_idx_cpl[distant_rank][0],longueur);
 
         MPI_Issend(dist_v_ptr, longueur, MPI_DOUBLE, distant_rank, tag,
                    _globalComm,
@@ -569,12 +569,12 @@ void GeomLocation::issend(Field <double>* referenceField) {
 
  void GeomLocation::location_get(int id_gnum_location) {
 
-  _location_idx =(int**)malloc(sizeof(int*)*_nb_part);
-  _location     =(int**)malloc(sizeof(int*)*_nb_part);
+  _target_proc_part_num_idx =(int**)malloc(sizeof(int*)*_nb_part);
+  _target_proc_part_num     =(int**)malloc(sizeof(int*)*_nb_part);
 
   for (int i_part = 0; i_part < _nb_part; i_part++) {
-    _location_idx[i_part] = (int*) malloc(sizeof(int) * (1+_n_target[i_part]));
-    _location[i_part]     = (int*) malloc(3* sizeof(int) * _n_target[i_part]);
+    _target_proc_part_num_idx[i_part] = (int*) malloc(sizeof(int) * (1+_n_target[i_part]));
+    _target_proc_part_num[i_part]     = (int*) malloc(3* sizeof(int) * _n_target[i_part]);
   }
 
    
@@ -591,15 +591,15 @@ void GeomLocation::issend(Field <double>* referenceField) {
 
 
     for(int u =0;u<1+_n_target[i_part];u++) {     
-      ( _location_idx)[i_part][u]=tmp[u];
+      ( _target_proc_part_num_idx)[i_part][u]=tmp[u];
     }
     
     for(int u =0;u<3*_n_target[i_part];u++) { 
-    ( _location)[i_part][u]=tmp2[u];
+    ( _target_proc_part_num)[i_part][u]=tmp2[u];
     }
 
-   // memcpy(_location_idx[i_part],tmp ,(1+_n_target[i_part]) * sizeof(int));
-   // memcpy(_location    [i_part],tmp2,3* _n_target[i_part] * sizeof(int));
+   // memcpy(_target_proc_part_num_idx[i_part],tmp ,(1+_n_target[i_part]) * sizeof(int));
+   // memcpy(_target_proc_part_num    [i_part],tmp2,3* _n_target[i_part] * sizeof(int));
   
    } 
  } 
@@ -608,12 +608,12 @@ void GeomLocation::issend(Field <double>* referenceField) {
 
   void GeomLocation::location_get_cpl(int id_gnum_location) {
 
-  _geometry_cpl ->_location_idx =(int**)malloc(sizeof(int*)*_nb_part);
-  _geometry_cpl ->_location     =(int**)malloc(sizeof(int*)*_nb_part);
+  _geometry_cpl ->_target_proc_part_num_idx =(int**)malloc(sizeof(int*)*_nb_part);
+  _geometry_cpl ->_target_proc_part_num     =(int**)malloc(sizeof(int*)*_nb_part);
 
   for (int i_part = 0; i_part < _nb_part; i_part++) {
-    _geometry_cpl ->_location_idx[i_part] = (int*) malloc(sizeof(int) * (1+_n_target[i_part]));
-    _geometry_cpl ->_location[i_part]     = (int*) malloc(3* sizeof(int) * _n_target[i_part]);
+    _geometry_cpl ->_target_proc_part_num_idx[i_part] = (int*) malloc(sizeof(int) * (1+_n_target[i_part]));
+    _geometry_cpl ->_target_proc_part_num[i_part]     = (int*) malloc(3* sizeof(int) * _n_target[i_part]);
   }
   
     for(int i_part =0;i_part<_nb_part;i_part++) {     
@@ -629,50 +629,50 @@ void GeomLocation::issend(Field <double>* referenceField) {
     
     
       for(int u =0;u<1+n_target_cpl;u++) {     
-        (_geometry_cpl -> _location_idx)[i_part][u]=tmp[u];
+        (_geometry_cpl -> _target_proc_part_num_idx)[i_part][u]=tmp[u];
       }
-      //memcpy(_geometry_cpl -> _location_idx[i_part], tmp,   (1+n_target_cpl)*sizeof(int) );
+      //memcpy(_geometry_cpl -> _target_proc_part_num_idx[i_part], tmp,   (1+n_target_cpl)*sizeof(int) );
       for(int u =0;u<3*n_target_cpl;u++) { 
-        (_geometry_cpl -> _location)[i_part][u]=tmp2[u];
+        (_geometry_cpl -> _target_proc_part_num)[i_part][u]=tmp2[u];
       }
-      //memcpy(_geometry_cpl -> _location    [i_part], tmp2, 3*n_target_cpl   *sizeof(int) );
+      //memcpy(_geometry_cpl -> _target_proc_part_num    [i_part], tmp2, 3*n_target_cpl   *sizeof(int) );
     }// end i_part loop
 
  }// End locate_cell_point
 
  void GeomLocation::broadcasting_filling_of_broadcasting_array() {
 
-  if(_location_idx_comm_proc==NULL) {
-    _location_idx_comm_proc   =(int**)malloc(sizeof(int*)*_n_ranks_g);
+  if(_targets_localization_idx==NULL) {
+    _targets_localization_idx   =(int**)malloc(sizeof(int*)*_n_ranks_g);
     for (int i_proc = 0; i_proc < _n_ranks_g; i_proc++) 
-      _location_idx_comm_proc [i_proc] = NULL;
+      _targets_localization_idx [i_proc] = NULL;
   }
-  _location_count_comm_proc =(int**)malloc(sizeof(int*)*_n_ranks_g);
+  _localization_count_comm_proc =(int**)malloc(sizeof(int*)*_n_ranks_g);
 
   for (int i_proc = 0; i_proc < _n_ranks_g; i_proc++) {
-    if(_location_idx_comm_proc [i_proc] == NULL) 
-      _location_idx_comm_proc [i_proc]=(int*)malloc(sizeof(int)*(1+_nb_part));
-    _location_count_comm_proc [i_proc]=(int*)malloc(sizeof(int)*(1+_nb_part));
+    if(_targets_localization_idx [i_proc] == NULL) 
+      _targets_localization_idx [i_proc]=(int*)malloc(sizeof(int)*(1+_nb_part));
+    _localization_count_comm_proc [i_proc]=(int*)malloc(sizeof(int)*(1+_nb_part));
     for (int i_part = 0; i_part < _nb_part+1; i_part++) {
-      _location_idx_comm_proc [i_proc][i_part]=0;
-      _location_count_comm_proc [i_proc][i_part]=0;
+      _targets_localization_idx [i_proc][i_part]=0;
+      _localization_count_comm_proc [i_proc][i_part]=0;
     }
   }
 
 
   for (int i_part = 0; i_part < _nb_part_cpl; i_part++) {
     for(int k=0;k<_n_target[i_part];k++){
-  //     printf("_location_idx[i_part][%i] rank %i %i\n",k,_rank,_location_idx[i_part][k]);
-  //     printf("_location[i_part][%i] rank %i %i\n",k,_rank,_location[i_part][ _location_idx[i_part][k] ]);
-       int elt_proc = _location[i_part][ _location_idx[i_part][k] ];
-       int elt_part = _location[i_part][ _location_idx[i_part][k] + 1];
+  //     printf("_target_proc_part_num_idx[i_part][%i] rank %i %i\n",k,_rank,_target_proc_part_num_idx[i_part][k]);
+  //     printf("_target_proc_part_num[i_part][%i] rank %i %i\n",k,_rank,_target_proc_part_num[i_part][ _target_proc_part_num_idx[i_part][k] ]);
+       int elt_proc = _target_proc_part_num[i_part][ _target_proc_part_num_idx[i_part][k] ];
+       int elt_part = _target_proc_part_num[i_part][ _target_proc_part_num_idx[i_part][k] + 1];
       
-       _location_idx_comm_proc [elt_proc][elt_part]++;     
-       _location_count_comm_proc [elt_proc][elt_part]++;   
+       _targets_localization_idx [elt_proc][elt_part]++;     
+       _localization_count_comm_proc [elt_proc][elt_part]++;   
     }
   }//end i_part
 
-  _transform_to_index(_location_idx_comm_proc,_n_ranks_g,_nb_part);
+  _transform_to_index(_targets_localization_idx,_n_ranks_g,_nb_part);
 
   int** idx_proc = (int**)malloc(sizeof(int*)* _n_ranks_g);
   for (int i_proc = 0; i_proc < _n_ranks_g; i_proc++) {
@@ -682,55 +682,55 @@ void GeomLocation::issend(Field <double>* referenceField) {
    }
 
 
-  if(_location_comm_proc!=NULL) free(_location_comm_proc);
-  _location_comm_proc = (target_data*)malloc(sizeof(target_data)*_location_idx_comm_proc[_n_ranks_g-1][_nb_part]);  
+  if(_targets_localization_data!=NULL) free(_targets_localization_data);
+  _targets_localization_data = (target_data*)malloc(sizeof(target_data)*_targets_localization_idx[_n_ranks_g-1][_nb_part]);  
 
   for (int i_part = 0; i_part < _nb_part; i_part++) {
     for(int k=0;k<_n_target[i_part];k++){   
-       int elt_proc = _location[i_part][ _location_idx[i_part][k]    ];
-       int elt_part = _location[i_part][ _location_idx[i_part][k] + 1];
-       int num = _location[i_part][ _location_idx[elt_part][k] + 2] - 1;
+       int elt_proc = _target_proc_part_num[i_part][ _target_proc_part_num_idx[i_part][k]    ];
+       int elt_part = _target_proc_part_num[i_part][ _target_proc_part_num_idx[i_part][k] + 1];
+       int num = _target_proc_part_num[i_part][ _target_proc_part_num_idx[elt_part][k] + 2] - 1;
       
-       int idx = _location_idx_comm_proc[elt_proc][elt_part] + idx_proc[elt_proc][elt_part];
+       int idx = _targets_localization_idx[elt_proc][elt_part] + idx_proc[elt_proc][elt_part];
        //Local Numbering
-       _location_comm_proc [idx].lnum              = num;
+       _targets_localization_data [idx].lnum              = num;
        //Coupled numbering
-       _location_comm_proc [idx ].origin_part      = i_part;
-       _location_comm_proc [idx ].projectedX       = _projected [i_part][ 3*k    ];
-       _location_comm_proc [idx ].projectedY       = _projected [i_part][ 3*k +1 ];
-       _location_comm_proc [idx ].projectedZ       = _projected [i_part][ 3*k +2 ];       
-       _location_comm_proc [idx ].distance         = _distance  [i_part][   k    ];    
+       _targets_localization_data [idx ].origin_part      = i_part;
+       _targets_localization_data [idx ].projectedX       = _projected [i_part][ 3*k    ];
+       _targets_localization_data [idx ].projectedY       = _projected [i_part][ 3*k +1 ];
+       _targets_localization_data [idx ].projectedZ       = _projected [i_part][ 3*k +2 ];       
+       _targets_localization_data [idx ].distance         = _distance  [i_part][   k    ];    
        //Closest local element numbering
-       _location_comm_proc [idx ].closest_elt_gnum  = _closest_elt_gnum[i_part][ k ];
+       _targets_localization_data [idx ].closest_elt_gnum  = _closest_elt_gnum[i_part][ k ];
        //Coupled process origin
-       _location_comm_proc [idx].origin_proc       = _rank ;  
+       _targets_localization_data [idx].origin_proc       = _rank ;  
        //Coupled origin partition
-       _location_comm_proc [idx ].closest_elt_part  = elt_part;  
-       _location_comm_proc [idx ].l_num_origin      = k;  
+       _targets_localization_data [idx ].closest_elt_part  = elt_part;  
+       _targets_localization_data [idx ].l_num_origin      = k;  
        idx_proc[elt_proc][elt_part]++; 
  
- /*        printf("_location_comm_proc rank %i [%i] lnum %i origin_part %i closest_elt_gnum %i elt_proc %i elt_part %i distance %f proj %f\n",
+ /*        printf("_targets_localization_data rank %i [%i] lnum %i origin_part %i closest_elt_gnum %i elt_proc %i elt_part %i distance %f proj %f\n",
        _rank,k,
-       _location_comm_proc [idx ].lnum,
-       _location_comm_proc [idx ].origin_part,
-       int(_location_comm_proc [idx ].closest_elt_gnum),
+       _targets_localization_data [idx ].lnum,
+       _targets_localization_data [idx ].origin_part,
+       int(_targets_localization_data [idx ].closest_elt_gnum),
        elt_proc,elt_part,
-       _location_comm_proc [idx ].distance,
-       _location_comm_proc [idx ].projectedX);*/
+       _targets_localization_data [idx ].distance,
+       _targets_localization_data [idx ].projectedX);*/
     }
   }//end i_part
 
-  if(_location_idx_proc_recv == NULL){
-    _location_idx_proc_recv = (int**)malloc(  sizeof(int*) *_n_ranks_g);      
+  if(_targets_localization_idx_cpl == NULL){
+    _targets_localization_idx_cpl = (int**)malloc(  sizeof(int*) *_n_ranks_g);      
     for(int i =0; i<_n_ranks_g;i++) 
-       _location_idx_proc_recv[i] = NULL;
+       _targets_localization_idx_cpl[i] = NULL;
   }
   
   for(int i =0; i<_n_ranks_g;i++) {
-  //  if(_location_idx_proc_recv[i] == NULL) 
-      _location_idx_proc_recv[i] = (int*)malloc(sizeof(int)*(1+_nb_part)); 
+    if(_targets_localization_idx_cpl[i] == NULL) 
+      _targets_localization_idx_cpl[i] = (int*)malloc(sizeof(int)*(1+_nb_part)); 
     for (int i_part = 0; i_part < _nb_part+1; i_part++) {
-      _location_idx_proc_recv[i][i_part]=0;
+      _targets_localization_idx_cpl[i][i_part]=0;
     }
   }
   
@@ -742,12 +742,12 @@ void GeomLocation::issend(Field <double>* referenceField) {
     free(_distance [i_part]); 
     free(_projected[i_part]);
     free(_closest_elt_gnum[i_part]);  
-    free(_location_idx[i_part]);
-    free(_location[i_part]);
+    free(_target_proc_part_num_idx[i_part]);
+    free(_target_proc_part_num[i_part]);
   }
 
-  free(_location_idx      );
-  free(_location          );  
+  free(_target_proc_part_num_idx      );
+  free(_target_proc_part_num          );  
   free(idx_proc);
   free(_distance ); 
   free(_projected);
@@ -758,10 +758,10 @@ void GeomLocation::issend(Field <double>* referenceField) {
 
  void GeomLocation::broadcasting_index_communication() {
     _IAlltoall2(
-      _location_count_comm_proc,
+      _localization_count_comm_proc,
       NULL, 
       _nb_part_cpl,
-      _location_idx_proc_recv,
+      _targets_localization_idx_cpl,
       NULL,
       _nb_part,
       MPI_INT,
@@ -774,34 +774,34 @@ void GeomLocation::issend(Field <double>* referenceField) {
  void GeomLocation::broadcasting_communication() {
   
    for (int i_proc = 0; i_proc < _n_ranks_g; i_proc++) 
-     free(_location_count_comm_proc[i_proc] );
-   free(_location_count_comm_proc);
+     free(_localization_count_comm_proc[i_proc] );
+   free(_localization_count_comm_proc);
   
-   _transform_to_index(_location_idx_proc_recv,_n_ranks_g,_nb_part);
+   _transform_to_index(_targets_localization_idx_cpl,_n_ranks_g,_nb_part);
   
   
-   if(_location_recv!=NULL) free(_location_recv);
-   _location_recv = (target_data*)malloc(sizeof(target_data)*_location_idx_proc_recv[_n_ranks_g-1][_nb_part_cpl]);        
+   if(_targets_localization_data_cpl!=NULL) free(_targets_localization_data_cpl);
+   _targets_localization_data_cpl = (target_data*)malloc(sizeof(target_data)*_targets_localization_idx_cpl[_n_ranks_g-1][_nb_part_cpl]);        
 
-   _location_count_recv = (int*)malloc(sizeof(int)*_n_ranks_g);         
-   _location_count_send = (int*)malloc(sizeof(int)*_n_ranks_g);
-   _location_disp_recv  = (int*)malloc(sizeof(int)*_n_ranks_g);         
-   _location_disp_send  = (int*)malloc(sizeof(int)*_n_ranks_g); 
+   _localization_count_recv = (int*)malloc(sizeof(int)*_n_ranks_g);         
+   _localization_count_send = (int*)malloc(sizeof(int)*_n_ranks_g);
+   _localization_disp_recv  = (int*)malloc(sizeof(int)*_n_ranks_g);         
+   _localization_disp_send  = (int*)malloc(sizeof(int)*_n_ranks_g); 
  
    for (int i= 0; i < _n_ranks_g; i++) { 
-     _location_count_send[i] = sizeof(target_data)*(_location_idx_comm_proc[i][_nb_part_cpl] - _location_idx_comm_proc[i][0]);
-     _location_count_recv[i] = sizeof(target_data)*(_location_idx_proc_recv[i][_nb_part_cpl] - _location_idx_proc_recv[i][0]); 
+     _localization_count_send[i] = sizeof(target_data)*(_targets_localization_idx[i][_nb_part_cpl] - _targets_localization_idx[i][0]);
+     _localization_count_recv[i] = sizeof(target_data)*(_targets_localization_idx_cpl[i][_nb_part_cpl] - _targets_localization_idx_cpl[i][0]); 
 
-     _location_disp_send [i] = sizeof(target_data)*_location_idx_comm_proc[i][0];
-     _location_disp_recv [i] = sizeof(target_data)*_location_idx_proc_recv[i][0];
+     _localization_disp_send [i] = sizeof(target_data)*_targets_localization_idx[i][0];
+     _localization_disp_recv [i] = sizeof(target_data)*_targets_localization_idx_cpl[i][0];
    }
 
  }
  
  void GeomLocation::broadcasting_communication2() {
   
-  _IAlltoallIndex((void*)_location_comm_proc, _location_count_send, _location_disp_send,
-                  (void*)_location_recv, _location_count_recv, _location_disp_recv, 
+  _IAlltoallIndex((void*)_targets_localization_data, _localization_count_send, _localization_disp_send,
+                  (void*)_targets_localization_data_cpl, _localization_count_recv, _localization_disp_recv, 
                   MPI_BYTE,
                   _globalComm, *_connectableRanks_cpl);
   }
@@ -810,21 +810,12 @@ void GeomLocation::issend(Field <double>* referenceField) {
  void GeomLocation::broadcasting_wait_and_targets_array_filling() {  
    _Wait();
   
-   free(_location_count_send);
-   free(_location_count_recv);
-   free(_location_disp_send );
-   free(_location_disp_recv );
+   free(_localization_count_send);
+   free(_localization_count_recv);
+   free(_localization_disp_send );
+   free(_localization_disp_recv );
   
-   _targets_cpl       = _location_recv;
-   
-   //Continent l'index et donc le nombre de cible pour chaque proc et chaque partition local
-   _targets_cpl_idx     = _location_idx_proc_recv;
-      
-   _targets_cpl_cpl     = _location_comm_proc;
-   
-   _targets_cpl_idx_cpl = _location_idx_comm_proc;
-
-   _n_tot_target_cpl    = _location_idx_proc_recv[_n_ranks_g-1][_nb_part];
+   _n_tot_target_cpl    = _targets_localization_idx_cpl[_n_ranks_g-1][_nb_part];
 
  }
  

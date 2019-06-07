@@ -1077,7 +1077,7 @@ CWP_Mesh_interf_shared_fvm_nodal
   const CWP_Type_t             data_type,
   const CWP_Field_storage_t    storage,
   const int                    n_component,
-  const CWP_Field_value_t      value_location,
+  const CWP_Field_value_t      value_target_proc_part_num,
   const CWP_Field_exch_t       exchange_type,
   const CWP_Status_t           visu_status)
  {
@@ -1087,7 +1087,7 @@ CWP_Mesh_interf_shared_fvm_nodal
                    data_type,
                    storage,
                    n_component,
-                   value_location,
+                   value_target_proc_part_num,
                    exchange_type, 
                    visu_status);
  }
@@ -1123,7 +1123,7 @@ CWP_Mesh_interf_shared_fvm_nodal
 
 
  CWP_Field_value_t
- CWP_Field_location_get
+ CWP_Field_target_proc_part_num_get
  (
   const char                  *local_code_name,
   const char                  *cpl_id,
@@ -1298,7 +1298,7 @@ CWP_Mesh_interf_shared_fvm_nodal
 // CWP_Interp_from_loc_set
 // (
 //  const char                  *cpl_id,
-//  CWP_Interp_from_location_t fct
+//  CWP_Interp_from_target_proc_part_num_t fct
 // )
 // {
 //   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);

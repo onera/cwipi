@@ -236,7 +236,7 @@ namespace cwipi {
      * \brief Setting of an user interpolation from location.
      *
      * This function takes into account an user interpolation function written with
-     * void (*\ref CWP_Interp_from_location_t) interface.
+     * void (*\ref CWP_Interp_from_target_proc_part_num_t) interface.
      * 
      * \param [in] fct        Function
      *
@@ -244,7 +244,7 @@ namespace cwipi {
 
     void 
     InterpUser
-    (CWP_Interp_from_location_t fct);
+    (CWP_Interp_from_target_proc_part_num_t fct);
 
     /**
      *
@@ -364,17 +364,16 @@ namespace cwipi {
     CWP_g_num_t **_closest_elt_gnum ;  
 
 
-  int** _location_count_comm_proc ;
-  int** _location_idx_proc_recv   ; 
+  int** _localization_count_comm_proc ;
 
-  int** _location_idx ;
-  int** _location     ;
+  int** _target_proc_part_num_idx ;
+  int** _target_proc_part_num     ;
 
 
-  int* _location_count_recv;         
-  int* _location_count_send ;
-  int* _location_disp_recv ;         
-  int* _location_disp_send ; 
+  int* _localization_count_recv;         
+  int* _localization_count_send ;
+  int* _localization_disp_recv ;         
+  int* _localization_disp_send ; 
 
 
   protected:
@@ -427,12 +426,8 @@ void _IBcast(void* send_buffer,
     CWP_Field_value_t                    _geometryLocation;
     Coupling                            *_cpl;
     
-    int** _targets_cpl_idx;
-    target_data* _targets_cpl;
-    target_data_vtx* _targets_vtx_cpl;
-    int** _targets_cpl_idx_cpl;
-    target_data* _targets_cpl_cpl;
-    target_data_vtx* _targets_vtx_cpl_cpl;       
+    int** _targets_localization_idx_cpl;
+    target_data* _targets_localization_data_cpl;
     
     int  _option;
     int  _n_tot_target;
@@ -518,9 +513,8 @@ void _IBcast(void* send_buffer,
   int _id_gnum_location2;
 
 
-  int** _location_idx_comm_proc   ;
-  target_data* _location_comm_proc;
-  target_data* _location_recv;
+  int** _targets_localization_idx   ;
+  target_data* _targets_localization_data;
 
 
 

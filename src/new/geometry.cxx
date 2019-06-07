@@ -35,10 +35,10 @@
 namespace cwipi {
 
   Geometry::Geometry()
-    :_location_idx_comm_proc(NULL),
-     _location_comm_proc(NULL),
-     _location_recv(NULL),
-     _location_idx_proc_recv(NULL),
+    :_targets_localization_idx(NULL),
+     _targets_localization_data(NULL),
+     _targets_localization_data_cpl(NULL),
+     _targets_localization_idx_cpl(NULL),
      _n_vtx(NULL),
      _n_elt(NULL),
      _gnum_target(NULL),
@@ -203,14 +203,14 @@ namespace cwipi {
   void Geometry::computeFree(){
 
    for (int i_proc = 0; i_proc < _n_ranks_g; i_proc++) {
-     free(_targets_cpl_idx[i_proc]);
-     free(_targets_cpl_idx_cpl[i_proc]);
+     free(_targets_localization_idx_cpl[i_proc]);
+     free(_targets_localization_idx[i_proc]);
    }
    
-   free(_targets_cpl);
-   free(_targets_cpl_idx);
-   free(_targets_cpl_cpl);
-   free(_targets_cpl_idx_cpl);
+   free(_targets_localization_data_cpl);
+   free(_targets_localization_idx_cpl);
+   free(_targets_localization_data);
+   free(_targets_localization_idx);
   
   }
 
@@ -942,12 +942,12 @@ void Geometry::_IBcast(void* send_buffer,
       
         int tag =recevingField -> fieldIDIntGet();
         int distant_rank = (*_connectableRanks_cpl)[i_proc];
-        void* loc_v_ptr = &(data[ nComponent*_targets_cpl_idx_cpl[distant_rank][0] ]);
+        void* loc_v_ptr = &(data[ nComponent*_targets_localization_idx[distant_rank][0] ]);
 
         MPI_Request request;
 
-        int longueur = nComponent * ( _targets_cpl_idx_cpl[ distant_rank ][_nb_part] - _targets_cpl_idx_cpl[distant_rank][0]  );
-        printf("Recv from %i to %i start %i longueur %i\n",_rank,i_proc,nComponent*_targets_cpl_idx_cpl[distant_rank][0],longueur);
+        int longueur = nComponent * ( _targets_localization_idx[ distant_rank ][_nb_part] - _targets_localization_idx[distant_rank][0]  );
+        printf("Recv from %i to %i start %i longueur %i\n",_rank,i_proc,nComponent*_targets_localization_idx[distant_rank][0],longueur);
 
         MPI_Irecv(loc_v_ptr, longueur, MPI_DOUBLE, distant_rank, tag,
                   _globalComm,
@@ -994,12 +994,12 @@ void Geometry::_IBcast(void* send_buffer,
 
    for(int i_proc=0; i_proc<_n_ranks_cpl;i_proc++) {
      int distant_rank = (*_connectableRanks_cpl)[i_proc];
-       for (int itarget = _targets_cpl_idx_cpl[ distant_rank ][0]; itarget < _targets_cpl_idx_cpl[ distant_rank ][_nb_part_cpl]; itarget++) {  
+       for (int itarget = _targets_localization_idx[ distant_rank ][0]; itarget < _targets_localization_idx[ distant_rank ][_nb_part_cpl]; itarget++) {  
          // Index in the interpolated Data array
          int interpInd = itarget;  
-         int iel = _targets_cpl_cpl[itarget].l_num_origin ;
-         int lpart = _targets_cpl_cpl[itarget].origin_part ;       
-         if(_targets_cpl_cpl[itarget].distance != INFINITY) {
+         int iel = _targets_localization_data[itarget].l_num_origin ;
+         int lpart = _targets_localization_data[itarget].origin_part ;       
+         if(_targets_localization_data[itarget].distance != INFINITY) {
            //Index of the corresponding local reference Data.
 
            for (int k = 0; k < nComponent; k++) {
