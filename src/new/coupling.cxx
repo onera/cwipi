@@ -40,7 +40,7 @@
 #include "cwp.h"
 
 #include "factory.hpp"
-#include "field.hpp"
+#include "field.hxx"
 
 #include "communication.hxx"
 #include "visualization.hxx"
@@ -87,6 +87,8 @@ namespace cwipi {
   
   typedef Factory<Geometry, CWP_Geom_t> FG;
 
+
+
   Coupling::Coupling
   (
    const string               &cplId,
@@ -107,8 +109,7 @@ namespace cwipi {
    _coupledCodeProperties(coupledCodeProperties),
    _recvFreqType (recvFreqType),
    _cplDB(cplDB),
-   _fieldsDouble(*(new map < string, Field<double> * >())),  
-   _fieldsInt(*(new map < string, Field<int> * >())),  
+   _fields(*(new map < string, Field * >())),  
    _visu(*new Visu(localCodeProperties.intraCommGet(),displacement)), 
    _mesh(*new Mesh(localCodeProperties.intraCommGet(),NULL,nPart,displacement)),
    _geometry(*new std::map <CWP_Field_value_t, Geometry*>()),
@@ -204,12 +205,14 @@ namespace cwipi {
   Coupling::issend
   (string &sendingFieldID) {
 
-     std:map <std::string, Field<double> *>::iterator it;
-     it = _fieldsDouble.find(sendingFieldID);
+     
+     std:map <std::string, Field *>::iterator it;
+     it = _fields.find(sendingFieldID);
 
-     if (it != _fieldsDouble.end()) {
-       Field <double>* sendingField = it -> second;   
+     if (it != _fields.end()) {
+       Field* sendingField = it -> second;   
       _geometry[sendingField -> typeGet()] -> issend(sendingField);
+      return;
      }
   }
 
@@ -217,12 +220,13 @@ namespace cwipi {
   Coupling::irecv
   (string &recevingFieldID) {
 
-     std:map <std::string, Field<double> *>::iterator it;
-     it = _fieldsDouble.find(recevingFieldID);
+     std:map <std::string, Field *>::iterator it;
+     it = _fields.find(recevingFieldID);
 
-     if (it != _fieldsDouble.end()) {
-       Field <double>* recevingField = it -> second;   
+     if (it != _fields.end()) {
+       Field* recevingField = it -> second;   
        _geometry[recevingField -> typeGet()] ->irecv(recevingField);
+       return;
      }
   }
 
@@ -234,13 +238,15 @@ namespace cwipi {
   )
   {
   
-    map<string,Field<double>*>::iterator It = _fieldsDouble.find(field_id.c_str());  
-    if (It == _fieldsDouble.end()) {
+    map<string,Field*>::iterator It = _fields.find(field_id.c_str());  
+    if(It!=_fields.end()) 
+      return It->second->nComponentGet();
+    
+    if (It == _fields.end()) {
       bftc_error(__FILE__, __LINE__, 0,
                  "'%s' not existing field\n", field_id.c_str());
     }
-
-    return It->second->nComponentGet();
+    
   }
 
   bool 
@@ -249,8 +255,8 @@ namespace cwipi {
    const string &field_id
   )
   {
-    map<string,Field<double>*>::iterator It = _fieldsDouble.find(field_id.c_str());
-    return (It != _fieldsDouble.end());
+    map<string,Field*>::iterator It = _fields.find(field_id.c_str());
+    return (It != _fields.end());
   }
 
   void
@@ -277,20 +283,19 @@ namespace cwipi {
     
     double physTime=0.0;
     *_iteration = 0;
-    
-    cwipi::Field<double> *newField = new cwipi::Field<double>(field_id,
-                                                              &_mesh,
-                                                               fieldType,
-                                                               storage,
-                                                               n_component,
-                                                               exch_type,
-                                                               visu_status,
-                                                               _iteration, //iteration
-                                                               &physTime);  //physTime
+    cwipi::Field *newField = new cwipi::Field(field_id,
+                                              data_type,
+                                              this,
+                                              fieldType,
+                                              storage,
+                                              n_component,
+                                              exch_type,
+                                              visu_status,
+                                              _iteration, //iteration
+                                             &physTime);  //physTime
 
-    pair<string, Field<double>* > newPair(string(field_id), newField);
-
-    _fieldsDouble.insert(newPair);
+    pair<string, Field* > newPair(string(field_id), newField);
+    _fields.insert(newPair);
     
     if (_visu.isCreated())
       _visu.WriterFieldCreate(newField);
@@ -322,12 +327,10 @@ namespace cwipi {
     string &sendingFieldID
    )
    {
-     std:map <std::string, Field<double> *>::iterator it;
-
-     it = _fieldsDouble.find(sendingFieldID);
-
-     if (it != _fieldsDouble.end()) {
-       Field <double>* sendingField = it -> second;   
+     std:map <std::string, Field *>::iterator it;
+     it = _fields.find(sendingFieldID);
+     if (it != _fields.end()) {
+       Field* sendingField = it -> second;   
       _geometry[sendingField -> typeGet()] -> waitIssend(sendingField);
      }
    }
@@ -339,11 +342,11 @@ namespace cwipi {
     string &recevingFieldID
    )
    {
-     std:map <std::string, Field<double> *>::iterator it;
-     it = _fieldsDouble.find(recevingFieldID);
+     std:map <std::string, Field *>::iterator it;
+     it = _fields.find(recevingFieldID);
 
-     if (it != _fieldsDouble.end()) {
-       Field <double>* recevingField = it -> second;   
+     if (it != _fields.end()) {
+       Field* recevingField = it -> second;   
        _geometry[recevingField -> typeGet()] -> waitIrecv(recevingField);
      }
    }
@@ -364,8 +367,8 @@ namespace cwipi {
      const string &field_id
    )
    {
-    map<string,Field<double>*>::iterator It = _fieldsDouble.find(field_id.c_str());  
-    if (It == _fieldsDouble.end()) {
+    map<string,Field*>::iterator It = _fields.find(field_id.c_str());  
+    if (It == _fields.end()) {
       bftc_error(__FILE__, __LINE__, 0,
                  "'%s' not existing field\n", field_id.c_str());
     }
@@ -389,8 +392,8 @@ namespace cwipi {
     const string &field_id
   )
   {
-    map<string,Field<double>*>::iterator It = _fieldsDouble.find(field_id.c_str());  
-    if (It == _fieldsDouble.end()) {
+    map<string,Field*>::iterator It = _fields.find(field_id.c_str());  
+    if (It == _fields.end()) {
       bftc_error(__FILE__, __LINE__, 0,
                  "'%s' not existing field\n", field_id.c_str());
     }
@@ -413,11 +416,11 @@ namespace cwipi {
   (
     const string &field_id,
     int i_part,
-    double data[]
+    void* data
   )
   { 
-    map<string,Field<double>*>::iterator It = _fieldsDouble.find(field_id.c_str());  
-    if (It == _fieldsDouble.end())
+    map<string,Field*>::iterator It = _fields.find(field_id.c_str());  
+    if (It == _fields.end())
       {
          bftc_error(__FILE__, __LINE__, 0,
                "'%s' not existing field\n", field_id.c_str());
@@ -447,8 +450,8 @@ namespace cwipi {
     const string &field_id
   )
   {
-    map<string,Field<double>*>::iterator It = _fieldsDouble.find(field_id.c_str());  
-    if (It == _fieldsDouble.end())
+    map<string,Field*>::iterator It = _fields.find(field_id.c_str());  
+    if (It == _fields.end())
       {
          bftc_error(__FILE__, __LINE__, 0,
                "'%s' not existing field\n", field_id.c_str());
@@ -567,10 +570,6 @@ namespace cwipi {
 
   void Coupling::meshFinalize() {
     _mesh.geomFinalize();
-    
-  //  _geometry[CWP_FIELD_VALUE_NODE] -> info_mesh();
-  //  _geometry[CWP_FIELD_VALUE_CELL_POINT] -> info_mesh();
-    
   }
         
   
@@ -649,6 +648,27 @@ namespace cwipi {
                                    
       _visu.GeomCreate(_mesh.getNPart());
   }
+
+    CWP_g_num_t* 
+    Coupling::globalNumGet(int id_block,int i_part) {
+      return _mesh.globalNumGet(id_block,i_part);
+    }
+
+ void Coupling::recvNextTimeSet (double next_time) {
+   
+   if(_visu.isCreated() and _visu.physicalTimeGet() != -1) {
+       printf("_visu.WriterStepEnd(); %f\n",_visu.physicalTimeGet());
+       _visu.WriterStepEnd();
+   }
+   
+   _recvNextTime = next_time;
+   
+   if(_visu.isCreated()) {
+       _visu.WriterStepBegin(_recvNextTime,&_mesh);
+   }   
+   
+   
+ }
 
 
 } // namespace cwipi

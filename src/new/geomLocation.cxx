@@ -76,16 +76,16 @@ namespace cwipi {
     }
   }
 
-  double* GeomLocation::interpolate(Field <double>* referenceField) {
+  void* GeomLocation::interpolate(Field* referenceField) {
 
     int                 nComponent         = referenceField -> nComponentGet  ();
     CWP_Field_value_t   referenceFieldType = referenceField -> typeGet        ();
     CWP_Field_storage_t storage            = referenceField -> storageTypeGet ();
-    double             *interpolatedData   = referenceField -> sendBufferGet  ();
-
+    void               *interpolatedData   = referenceField -> sendBufferGet  ();
+    int                 dataTypeSize       = referenceField -> dataTypeSizeGet(); 
     
     if (interpolatedData != NULL) free(interpolatedData);
-    interpolatedData = (double*) malloc(sizeof(double)*nComponent*_n_tot_target_cpl);
+    interpolatedData = (void*) malloc( dataTypeSize * nComponent*_n_tot_target_cpl);
 
 
 /*  |               proc 1             ||             proc 2              ||
@@ -96,7 +96,7 @@ namespace cwipi {
    
     for(int i_part=0;i_part<_nb_part;i_part++){
     
-      double* referenceData = referenceField -> dataGet(i_part);
+      void* referenceData = referenceField -> dataGet(i_part);
       // For a cell center field : give the value of the located cell
       
       for(int i_proc=0;i_proc<_n_ranks_g;i_proc++){
@@ -107,9 +107,11 @@ namespace cwipi {
             int iel = _targets_localization_data_cpl[itarget].lnum ;
             // Index in the interpolated Data array
             int interpInd = itarget;
-            printf("iel %i itarget %i refData %f _n_tot_target_cpl %i\n",iel,itarget,referenceData[iel],_n_tot_target_cpl);
+          //  printf("iel %i itarget %i refData %f _n_tot_target_cpl %i\n",iel,itarget,referenceData[iel],_n_tot_target_cpl);
             for (int k = 0; k < nComponent; k++) {
-              interpolatedData[ nComponent*interpInd + k  ] = referenceData[nComponent*iel + k ];
+              memcpy( interpolatedData + dataTypeSize * ( nComponent*interpInd + k ) ,
+                      referenceData + dataTypeSize * ( nComponent*iel + k )          ,
+                      dataTypeSize);
               //printf("interpolatedData[ nComponent*interpInd + k  ] %f i_part %i i_proc %i nComponent*interpInd + k %i nComponent*iel + k %i referenceData[nComponent*iel + k ] %f\n",
               //interpolatedData[ nComponent*interpInd + k  ],i_part,i_proc,nComponent*interpInd + k,nComponent*iel + k),referenceData[nComponent*iel + k ];
             }    
@@ -118,10 +120,10 @@ namespace cwipi {
 
         if (referenceFieldType == CWP_FIELD_VALUE_NODE) {
           int* connecIdx = _mesh -> connecIdxGet(i_part);
-          int* connec = _mesh -> connecGet(i_part);
+          int* connec    = _mesh -> connecGet(i_part);
           
-          int n_vtx  = _mesh -> getPartNVertex(i_part);
-          int n_elts  = _mesh -> getPartNElts(i_part);
+          int n_vtx      = _mesh -> getPartNVertex(i_part);
+          int n_elts     = _mesh -> getPartNElts(i_part);
           double* coords = _mesh -> getVertexCoords(i_part);
           //printf("_targets_localization_idx_cpl[%i][%i] rank %i %i %i\n",i_proc,i_part,_rank,_targets_localization_idx_cpl[i_proc][i_part],_targets_localization_idx_cpl[i_proc][i_part+1]);
           for (int itarget = _targets_localization_idx_cpl[i_proc][i_part]; itarget < _targets_localization_idx_cpl[i_proc][i_part+1]; itarget++) {
@@ -130,6 +132,7 @@ namespace cwipi {
             int iel = _targets_localization_data_cpl[itarget].lnum ;
             int ielP1 = iel+1;
              
+            double value = 0.0;
             if(_targets_localization_data_cpl[itarget].distance != INFINITY ) {
               double x_target = _targets_localization_data_cpl[itarget].projectedX;
               double y_target = _targets_localization_data_cpl[itarget].projectedY;
@@ -148,23 +151,20 @@ namespace cwipi {
                                                                    &barCoords
                                                                    );               
               
-       /*     printf("barCoords ");
-              for (int i_vtx = barCoordsIndex[0]; i_vtx < barCoordsIndex[1];i_vtx++)
-                printf("%f ",barCoords[i_vtx]);
-                printf("barCoordsIndex %i %i\n",barCoordsIndex[0],barCoordsIndex[1]);
-         */                     
           //  printf("iel %i itarget %i refData %f _n_tot_target_cpl %i\n",iel,itarget,referenceData[iel],_n_tot_target_cpl);
 
               for (int k = 0; k < nComponent; k++) {
-                interpolatedData[ nComponent * interpInd + k ] = 0.0;
+                value = 0.0;
                 for (int i_vtx = connecIdx[iel]; i_vtx < connecIdx[iel+1]; i_vtx++) {
-                  interpolatedData[ nComponent * interpInd + k ] += barCoords[i_vtx - connecIdx[iel] ] * referenceData[ nComponent * (connec[i_vtx]-1) + k] ;
+                   value +=  barCoords[i_vtx - connecIdx[iel] ] * (*(double*)( referenceData + dataTypeSize * (nComponent * (connec[i_vtx]-1) + k) ) );
                 }
+                memcpy(interpolatedData + dataTypeSize * ( nComponent * interpInd + k), &value, dataTypeSize);
               }//end k component loop
             }
             else {
               for (int k = 0; k < nComponent; k++) {
-                interpolatedData[ nComponent * interpInd + k ] = 1000.0;
+                value = 1000.0;
+                memcpy(interpolatedData + dataTypeSize * ( nComponent * interpInd + k), &value, dataTypeSize);
               }
             }
           } // loop on itarget
@@ -179,20 +179,18 @@ namespace cwipi {
      
 /*****************************************************************/
 
-void GeomLocation::issend(Field <double>* referenceField) {
+void GeomLocation::issend(Field* referenceField) {
       
-      int size = sizeof(double);
+      int  dataTypeSize       = referenceField -> dataTypeSizeGet(); 
       int nComponent = referenceField -> nComponentGet();
 
       int tag =referenceField -> fieldIDIntGet();
-      double* dist_v_ptr = NULL;
+      void* dist_v_ptr = NULL;
       int dist_rank = -1;
       //On va supposer pour le moment que les données contenues dans interpolatedFieldData
       // sont contigues en mémoire 
       //printf("Avant interpolate |%s|\n",referenceFieldID.c_str());
-      double* interpolatedFieldData;
-     
-      interpolatedFieldData = interpolate(referenceField);  
+      void* interpolatedFieldData = interpolate(referenceField);  
       
       //printf("Après interpolate |%s|\n",referenceFieldID.c_str());
 
@@ -200,21 +198,20 @@ void GeomLocation::issend(Field <double>* referenceField) {
         /*---------------------------------------------*/
       for (int i_proc = 0; i_proc < _n_ranks_cpl; i_proc++) {    
         int n_points_dist = 0;
-        std::vector<double*> v_interpolatedFieldData(_nb_part,NULL);
         
         int distant_rank = (*_connectableRanks_cpl)[i_proc];
         
-        dist_v_ptr = &(interpolatedFieldData[nComponent*_targets_localization_idx_cpl[distant_rank][0]]);
+        dist_v_ptr = interpolatedFieldData + dataTypeSize * nComponent * _targets_localization_idx_cpl[distant_rank][0];
 
         int request=-1;
 
         printf("start _distantPartProcTargetIdx[0][%i] %i\n",i_proc,_targets_localization_idx_cpl[distant_rank][0]);
 
-        int longueur = nComponent * (_targets_localization_idx_cpl[distant_rank][_nb_part]-_targets_localization_idx_cpl[distant_rank][0]);//_n_targets_dist_proc[i_proc];
+        int longueur = dataTypeSize * nComponent * (_targets_localization_idx_cpl[distant_rank][_nb_part]-_targets_localization_idx_cpl[distant_rank][0]);//_n_targets_dist_proc[i_proc];
         
         printf("Send from %i to %i start %i longueur %i\n",_rank,distant_rank,nComponent*_targets_localization_idx_cpl[distant_rank][0],longueur);
 
-        MPI_Issend(dist_v_ptr, longueur, MPI_DOUBLE, distant_rank, tag,
+        MPI_Issend(dist_v_ptr, longueur, MPI_BYTE, distant_rank, tag,
                    _globalComm,
                    &request);
 

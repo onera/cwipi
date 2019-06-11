@@ -23,7 +23,7 @@
 #include "cwp.h"
 #include "pdm_mpi.h"
 #include "pdm_writer.h"
-#include "field.hpp"
+#include "field.hxx"
 #include <string>
 
 namespace cwipi {
@@ -234,14 +234,14 @@ namespace cwipi {
 
     void WriterStepEnd();
 
-    void fieldDataSet(Field<double>* field,int i_part);
+    void fieldDataSet(Field* field,int i_part);
 
-    void WriterFieldCreate(Field<double>* field);
+    void WriterFieldCreate(Field* field);
 
 
     inline double physicalTimeGet();
 
-    void WriterField(Field<double>* field);
+    void WriterField(Field* field);
 
    /**
     * \brief Convert a CWIPI block type CWP_Block_t to a PDM_writer block type 

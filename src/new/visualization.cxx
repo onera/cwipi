@@ -24,7 +24,7 @@
 #include "pdm_error.h"
 #include <unistd.h> 
 #include <stdio.h>
-#include "field.hpp"
+#include "field.hxx"
 
 namespace cwipi {
 
@@ -227,7 +227,7 @@ namespace cwipi {
   }
 
 
-  void Visu::WriterFieldCreate(Field<double>* field) {
+  void Visu::WriterFieldCreate(Field* field) {
 
       CWP_Field_value_t CWPfielType = field -> typeGet();
       int nComponent = field -> nComponentGet();
@@ -264,19 +264,19 @@ namespace cwipi {
 
 /********************************************************/
 
-  void Visu::fieldDataSet(Field<double>* field,int i_part) {
+  void Visu::fieldDataSet(Field* field,int i_part) {
     
     int id_var = -1;
  
     id_var = field -> visuIdGet();
-    double* data = field -> dataGet(i_part);
+    void* data = field -> dataGet(i_part);
 
-    PDM_writer_var_set(_visu_id, id_var, _visu_mesh_id, i_part, data);
+    PDM_writer_var_set(_visu_id, id_var, _visu_mesh_id, i_part,(double*)data);
   }
 
 /********************************************************/
 
-  void Visu::WriterField(Field<double>* field) {
+  void Visu::WriterField(Field* field) {
     int id_var = -1;
 
     id_var = field -> visuIdGet();

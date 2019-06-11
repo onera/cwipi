@@ -20,7 +20,7 @@
 */
 
 #include "mesh.hxx"
-#include "field.hpp"
+#include "field.hxx"
 #include "codeProperties.hxx"
 #include "coupling.hxx"
 
@@ -54,7 +54,8 @@ namespace cwipi {
 
 
   class Mesh;
-
+  class Field;  
+  class Visu;
   /** 
    * \class Geometry geometry.hxx "geometry.hxx"
    * \brief Geometry algorithm
@@ -108,7 +109,7 @@ namespace cwipi {
      
      //Depends on the Geometry type
      // Ca sera dans les classes concrètes
-     virtual double* interpolate(Field <double>* referenceField) =0;  
+     virtual void* interpolate(Field* referenceField) =0;  
 
      void init(Coupling *coupling, CWP_Field_value_t geometryLocation);
      void mesh_info_get();
@@ -146,8 +147,8 @@ namespace cwipi {
 
     CWP_Err_t 
     sendRecv
-    (Field <double> *src,
-     Field <double> *tgt,
+    (Field *src,
+     Field *tgt,
      void      *ptFortranInterpolationFct,
      int       *n_uncomputed_tgt);
 
@@ -165,7 +166,7 @@ namespace cwipi {
 
     virtual void  
     issend
-    (Field <double>* sendingField
+    (Field* sendingField
     ) = 0;
 
     /**
@@ -179,7 +180,7 @@ namespace cwipi {
 
     void 
     waitIssend
-    (Field <double>* sendingField);
+    (Field* sendingField);
 
     /**
      *
@@ -196,7 +197,7 @@ namespace cwipi {
 
     void 
     irecv
-    (Field <double>* recevingField
+    (Field* recevingField
     );
 
     /**
@@ -212,7 +213,7 @@ namespace cwipi {
 
     void 
     waitIrecv
-    (Field <double>* recevingField);    
+    (Field* recevingField);    
    
 
     /**
@@ -421,8 +422,8 @@ void _IBcast(void* send_buffer,
     Visu                                *_visu;
     CodeProperties                      *_localCodeProperties;
     CodeProperties                      *_coupledCodeProperties;
-    std::map <std::string,Field<double>*>    *_referenceFieldsDB;
-    std::map <int,Field<double>*>        _requestFieldsDB;
+    std::map <std::string,Field*>    *_referenceFieldsDB;
+    std::map <int,Field*>        _requestFieldsDB;
     CWP_Field_value_t                    _geometryLocation;
     Coupling                            *_cpl;
     

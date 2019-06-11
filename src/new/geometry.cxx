@@ -66,7 +66,7 @@ namespace cwipi {
   void Geometry::init(Coupling *coupling, CWP_Field_value_t geometryLocation) {
     _mesh   = coupling -> meshGet();
     _visu   = coupling -> visuGet();
-    _referenceFieldsDB = coupling -> fieldsDoubleGet();
+    _referenceFieldsDB = coupling -> fieldsGet();
     _geometryLocation = geometryLocation; 
     _cpl = coupling;
     _id_dist1 = -1;
@@ -784,37 +784,35 @@ void Geometry::_IBcast(void* send_buffer,
 /***************************************************************************/
 /***************************************************************************/
 
-  void Geometry::irecv(Field<double> *recevingField) {
+  void Geometry::irecv(Field *recevingField) {
     _idx_target  .resize   (_nb_part + 1);
     _idx_target[0] = 0;
     for (int i_part = 0; i_part < _nb_part; i_part++) {
       _idx_target[i_part+1] = _idx_target[i_part] + _n_target[i_part];   
     }
 
+    int  dataTypeSize       = recevingField -> dataTypeSizeGet(); 
     //Crée un buffer de réception et le stocke (alloue)
     recevingField -> ReceptionBufferCreation(_idx_target,_n_tot_target);
     /* Loop on possibly intersecting distant ranks */
     /*---------------------------------------------*/
 
     //Réception des données sur toutes les partitions
-    double* data = recevingField -> recvBufferGet();
+    void* data = recevingField -> recvBufferGet();
 
-    CWP_Type_t dataType = CWP_DOUBLE;
-
-    int size = sizeof(dataType);
     int nComponent = recevingField -> nComponentGet();
 
     for (int i_proc = 0; i_proc < _n_ranks_cpl; i_proc++) {
       int tag =recevingField -> fieldIDIntGet();
       int distant_rank = (*_connectableRanks_cpl)[i_proc];
-      void* loc_v_ptr = &(data[ nComponent*_targets_localization_idx[distant_rank][0] ]);
+      void* loc_v_ptr = data + dataTypeSize * nComponent * _targets_localization_idx[distant_rank][0] ;
 
       MPI_Request request;
 
-      int longueur = nComponent * ( _targets_localization_idx[ distant_rank ][_nb_part] - _targets_localization_idx[distant_rank][0]  );
+      int longueur =  dataTypeSize * nComponent * ( _targets_localization_idx[ distant_rank ][_nb_part] - _targets_localization_idx[distant_rank][0]  );
       printf("Recv from %i to %i start %i longueur %i\n",_rank,i_proc,nComponent*_targets_localization_idx[distant_rank][0],longueur);
 
-      MPI_Irecv(loc_v_ptr, longueur, MPI_DOUBLE, distant_rank, tag,
+      MPI_Irecv(loc_v_ptr, longueur, MPI_BYTE, distant_rank, tag,
                 _globalComm,
                 &request);
 
@@ -824,7 +822,7 @@ void Geometry::_IBcast(void* send_buffer,
 
 /******************************************************/
 
-  void Geometry::waitIrecv (Field<double>* recevingField) {
+  void Geometry::waitIrecv (Field* recevingField) {
 
     MPI_Status status;
 
@@ -834,14 +832,15 @@ void Geometry::_IBcast(void* send_buffer,
     } //i_proc loop
 
     //Récupère un pointeur vers le bloc de données reçues
-    double* recvData = recevingField -> recvBufferGet();
+    void* recvData = recevingField -> recvBufferGet();
     int nComponent = recevingField -> nComponentGet();
+    int  dataTypeSize       = recevingField -> dataTypeSizeGet(); 
     CWP_Field_value_t   recevingFieldType = recevingField -> typeGet        ();
 
     //Reorganize by partition datas which are organized by sending processp
-    double** userDataMem = (double**)malloc(sizeof(double*)*_nb_part);
+    std::vector<void*> userDataMem (_nb_part,NULL);
     for (int i_part=0;i_part<_nb_part;i_part++) {
-       userDataMem[i_part] = recevingField -> dataGet(i_part);
+       userDataMem [i_part] = recevingField -> dataGet(i_part);
        if(userDataMem[i_part] == NULL ) PDM_error(__FILE__, __LINE__, 0, "Reception memory has not been allocated.\n");
        n_uncomputed_tgt[i_part]=0;
    }
@@ -857,19 +856,24 @@ void Geometry::_IBcast(void* send_buffer,
            //Index of the corresponding local reference Data.
 
            for (int k = 0; k < nComponent; k++) {
-               userDataMem[lpart][ nComponent * iel + k ] = recvData[ nComponent * interpInd + k  ];
+               memcpy(userDataMem[lpart] + dataTypeSize * ( nComponent * iel + k ) ,
+                      recvData + dataTypeSize * ( nComponent * interpInd + k ),
+                      dataTypeSize);
            }//loop on k
          }
          else {
            n_uncomputed_tgt[lpart]++;
            for (int k = 0; k < nComponent; k++) {
-             userDataMem[lpart][ nComponent * iel + k ] = -1.0;
+              memcpy(userDataMem[lpart] + dataTypeSize * ( nComponent * iel + k ) ,
+                     recvData + dataTypeSize * ( nComponent * interpInd + k ),
+                     dataTypeSize);
+           
+             *( (double*) (userDataMem[lpart] + dataTypeSize * ( nComponent * iel + k ) ) ) = -1.0;
            }//loop on k
          }
        }// loop on itarget
   }// loop on proc
 
-   free(userDataMem);  
     if(_visu -> isCreated()) {
        _visu -> WriterField(recevingField);
     }
@@ -879,7 +883,7 @@ void Geometry::_IBcast(void* send_buffer,
 
 /******************************************************/
 
-  void Geometry::waitIssend (Field<double>* sendingField) {
+  void Geometry::waitIssend (Field* sendingField) {
 
     MPI_Status status;
 

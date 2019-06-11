@@ -21,7 +21,7 @@
 
 #include "mesh.hxx"
 #include "geometry.hxx"
-#include "field.hpp"
+#include "field.hxx"
 
 namespace cwipi {
 
@@ -55,9 +55,9 @@ namespace cwipi {
       void broadcasting_wait_and_targets_array_filling();
 
                  
-      virtual void issend(Field <double>* sendingField);
+      virtual void issend(Field* sendingField);
 
-      virtual double* interpolate (Field <double>* referenceField);  
+      virtual void* interpolate (Field* referenceField);  
 
     private:
 

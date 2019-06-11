@@ -34,7 +34,7 @@
 
 #include "geometry.hxx"
 #include "visualization.hxx"
-#include "field.hpp"
+#include "field.hxx"
 
 using namespace std;
 
@@ -43,7 +43,8 @@ namespace cwipi {
   class CodeProperties;
   class Geometry;
   class Mesh;
-
+  class Field;
+  class Visu;  
   /** 
    * \class Coupling coupling.hxx "coupling.hxx"
    * \brief Coupling between two codes.
@@ -190,7 +191,7 @@ namespace cwipi {
      *
      */
 
-    inline void
+    void
     recvNextTimeSet
     (
      double next_time
@@ -690,7 +691,7 @@ namespace cwipi {
   (
     const std::string &field_id,
     int i_part,
-    double data[]   
+    void *data   
   );
   
     /**
@@ -838,9 +839,7 @@ namespace cwipi {
 
 
     CWP_g_num_t* 
-    globalNumGet(int id_block,int i_part) {
-      return _mesh.globalNumGet(id_block,i_part);
-    }
+    globalNumGet(int id_block,int i_part);
 
     /**
      *
@@ -1009,7 +1008,7 @@ namespace cwipi {
     
     inline Mesh* meshGet();
     
-    inline std::map < string, Field<double> * >* fieldsDoubleGet();
+    inline std::map < string, Field * >* fieldsGet();
     inline std::map <CWP_Field_value_t,Geometry*>* geometryGet();
     inline CodeProperties* localCodePropertiesGet();
 
@@ -1037,8 +1036,7 @@ namespace cwipi {
           Visu                             &_visu;                  /*!< Visualization */
           double                            _recvFreq;              /*!< Receiving frequency */
           double                            _recvNextTime;          /*!< Next receiving time */
-    std::map < string, Field<double> * >   &_fieldsDouble;           /*!< Fields Data Base */
-    std::map < string, Field<int> * >      &_fieldsInt;           /*!< Fields Data Base */
+    std::map < string, Field * >           &_fields;          /*!< Fields Data Base */
           CouplingDB                       &_cplDB;                 /*!< Coupling Data base */
           int*                              _iteration;
           CWP_Displacement_t                _displacement;
@@ -1085,26 +1083,12 @@ namespace cwipi {
      return &_geometry;
   }    
 
-  std::map < string, Field<double> * >* Coupling::fieldsDoubleGet() {
-     return &_fieldsDouble;
+  std::map < string, Field * >* Coupling::fieldsGet() {
+     return &_fields;
   }  
 
 
- void Coupling::recvNextTimeSet (double next_time) {
-   
-   if(_visu.isCreated() and _visu.physicalTimeGet() != -1) {
-       printf("_visu.WriterStepEnd(); %f\n",_visu.physicalTimeGet());
-       _visu.WriterStepEnd();
-   }
-   
-   _recvNextTime = next_time;
-   
-   if(_visu.isCreated()) {
-       _visu.WriterStepBegin(_recvNextTime,&_mesh);
-   }   
-   
-   
- }
+
    
 
 
