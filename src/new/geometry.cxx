@@ -832,10 +832,10 @@ void Geometry::_IBcast(void* send_buffer,
     } //i_proc loop
 
     //Récupère un pointeur vers le bloc de données reçues
-    void* recvData = recevingField -> recvBufferGet();
-    int nComponent = recevingField -> nComponentGet();
-    int  dataTypeSize       = recevingField -> dataTypeSizeGet(); 
-    CWP_Field_value_t   recevingFieldType = recevingField -> typeGet        ();
+    void*              recvData          = recevingField -> recvBufferGet  ();
+    int                nComponent        = recevingField -> nComponentGet  ();
+    int                dataTypeSize      = recevingField -> dataTypeSizeGet(); 
+    CWP_Field_value_t  recevingFieldType = recevingField -> typeGet        ();
 
     //Reorganize by partition datas which are organized by sending processp
     std::vector<void*> userDataMem (_nb_part,NULL);
@@ -843,43 +843,39 @@ void Geometry::_IBcast(void* send_buffer,
        userDataMem [i_part] = recevingField -> dataGet(i_part);
        if(userDataMem[i_part] == NULL ) PDM_error(__FILE__, __LINE__, 0, "Reception memory has not been allocated.\n");
        n_uncomputed_tgt[i_part]=0;
-   }
-
-   for(int i_proc=0; i_proc<_n_ranks_cpl;i_proc++) {
-     int distant_rank = (*_connectableRanks_cpl)[i_proc];
-       for (int itarget = _targets_localization_idx[ distant_rank ][0]; itarget < _targets_localization_idx[ distant_rank ][_nb_part_cpl]; itarget++) {  
-         // Index in the interpolated Data array
-         int interpInd = itarget;  
-         int iel = _targets_localization_data[itarget].l_num_origin ;
-         int lpart = _targets_localization_data[itarget].origin_part ;       
-         if(_targets_localization_data[itarget].distance != INFINITY) {
-           //Index of the corresponding local reference Data.
-
-           for (int k = 0; k < nComponent; k++) {
-               memcpy(userDataMem[lpart] + dataTypeSize * ( nComponent * iel + k ) ,
-                      recvData + dataTypeSize * ( nComponent * interpInd + k ),
-                      dataTypeSize);
-           }//loop on k
-         }
-         else {
-           n_uncomputed_tgt[lpart]++;
-           for (int k = 0; k < nComponent; k++) {
-              memcpy(userDataMem[lpart] + dataTypeSize * ( nComponent * iel + k ) ,
-                     recvData + dataTypeSize * ( nComponent * interpInd + k ),
-                     dataTypeSize);
-           
-             *( (double*) (userDataMem[lpart] + dataTypeSize * ( nComponent * iel + k ) ) ) = -1.0;
-           }//loop on k
-         }
-       }// loop on itarget
-  }// loop on proc
-
-    if(_visu -> isCreated()) {
-       _visu -> WriterField(recevingField);
     }
 
-  }
+    for(int i_proc=0; i_proc<_n_ranks_cpl;i_proc++) {
+      int distant_rank = (*_connectableRanks_cpl)[i_proc];
+      for (int itarget = _targets_localization_idx[ distant_rank ][0]; itarget < _targets_localization_idx[ distant_rank ][_nb_part_cpl]; itarget++) {  
+        // Index in the interpolated Data array
+        int interpInd = itarget;  
+        int iel = _targets_localization_data[itarget].l_num_origin ;
+        int lpart = _targets_localization_data[itarget].origin_part ;       
+        if(_targets_localization_data[itarget].distance != INFINITY) {
+          //Index of the corresponding local reference Data.
+          for (int k = 0; k < nComponent; k++) {
+            memcpy(userDataMem[lpart] + dataTypeSize * ( nComponent * iel + k ) ,
+                    recvData + dataTypeSize * ( nComponent * interpInd + k ),
+                    dataTypeSize);
+          }//loop on k
+        }
+        else {
+          n_uncomputed_tgt[lpart]++;
+          for (int k = 0; k < nComponent; k++) {
+            memcpy(userDataMem[lpart] + dataTypeSize * ( nComponent * iel + k ) ,
+                   recvData + dataTypeSize * ( nComponent * interpInd + k ),
+                   dataTypeSize);
+           *( (double*) (userDataMem[lpart] + dataTypeSize * ( nComponent * iel + k ) ) ) = -1.0;
+          }//loop on k
+        }
+      }// loop on itarget
+    }// loop on proc
 
+    if(_visu -> isCreated()) {
+      _visu -> WriterField(recevingField);
+    }
+  }
 
 /******************************************************/
 

@@ -45,8 +45,6 @@ namespace cwipi {
   GeomLocation::~GeomLocation()
   {
   }
- 
-
 
   void _transform_to_index(int** array,int l1, int l2) {
 
@@ -230,9 +228,7 @@ void GeomLocation::issend(Field* referenceField) {
   void GeomLocation::locate_setting_surface(int* id_dist) {
 
     /* Paradigm mesh localisation _distance creation */
-    printf("id_dist_befor %i\n",*id_dist);
     *id_dist   = PDM_mesh_dist_create( PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_globalComm );
-   printf("id_dist_after %i\n",*id_dist);
     PDM_mesh_dist_n_part_cloud_set(*id_dist,   0, _nb_part_cpl);  
 
     PDM_mesh_dist_surf_mesh_global_data_set (*id_dist,
@@ -241,8 +237,6 @@ void GeomLocation::issend(Field* referenceField) {
                                            _nb_part);  
 
     for(int i_part =0;i_part<_nb_part;i_part++) {   
-
-
       int* connecIdx = _mesh -> connecIdxGet(i_part);
       int* connec = _mesh -> connecGet(i_part);
 
