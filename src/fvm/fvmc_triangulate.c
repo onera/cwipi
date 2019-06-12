@@ -373,17 +373,17 @@ _polygon_vertex_is_ear(const int          n_vertices,
 
       surf_2 = vect2[0]*vect3[1] - vect3[0]*vect2[1];
 
-      /* 
-       * FIXME : Fonction _polygon_vertex_is_ear, add a temporary constant epsilon (1e-32) 
+      /*
+       * FIXME : Fonction _polygon_vertex_is_ear, add a temporary constant epsilon (1e-32)
        *         to protect jacobian computation. It must be variable
        */
 
       const double eps_surf2 = 1e-32;
-       
+
       if (surf_2 <= eps_surf2) {
         return true;
       }
-      
+
       for (i = list_next[next]; i != previous; i = list_next[i]) {
 
         if (concave[i] == true) {
@@ -563,7 +563,7 @@ _polygon_delaunay_flip(const int          n_vertices,
                        const fvmc_coord_t  coords[])
 {
   int is_delaunay = 1;
-  
+
   int    triangle_id, edge_id, vertex_id;
   int    triangle_id_0, triangle_id_1;
 
@@ -664,7 +664,7 @@ _polygon_delaunay_flip(const int          n_vertices,
 
   int n_restart = 0;
   const int max_n_restart = 1000;
-  
+
   while(face_is_delaunay == false) {
 
     if (edge_is_delaunay[edge_id] == false) {
@@ -815,7 +815,7 @@ _polygon_delaunay_flip(const int          n_vertices,
       //FIXME: Interruption de la boucle infinie du flip delaunay en ajoutant un nb de restart max (Reecrire l'algo de triangulation)
 
       if (n_restart > max_n_restart) {
-        is_delaunay = 0; 
+        is_delaunay = 0;
         break;
       }
     }
@@ -1097,7 +1097,7 @@ fvmc_triangulate_polygon(int                             dim,
   for (int iii = 0; iii <  (state->n_vertices_max - 2) * 3; iii++) {
     _triangle_vertices[iii] =  state->triangle_vertices[iii];
   }
-  
+
   int *__triangle_vertices = state->triangle_vertices;
   if (n_triangles == n_vertices - 2) {
     int is_delaunay = _polygon_delaunay_flip(n_vertices,
@@ -1129,7 +1129,7 @@ fvmc_triangulate_polygon(int                             dim,
         }
       }
       else { /* (if parent_vertex_num == NULL) */
-        
+
         if (polygon_vertices != NULL) {
           for (i = 0; i < n_vertices; i++) {
             int vertex_id = polygon_vertices[i]-1;
@@ -1145,7 +1145,7 @@ fvmc_triangulate_polygon(int                             dim,
                    coords[3*i + 2]);
           }
         }
-        
+
       }
 
       printf("\n");
@@ -1226,7 +1226,7 @@ fvmc_triangulate_quadrangle(int                dim,
   _CROSS_PRODUCT_3D(n0, v1, v2);
   min_cos = _DOT_PRODUCT_3D(v1, v2);
   min_angle_idx = 0;
-  
+
   for (j = 1; j < 4; j++) {
     for (i = 0; i < dim; i++) {
       v1[i] = coords[vertex_id[(j+1)%4]*dim + i] - coords[vertex_id[j]*dim + i];
@@ -1239,7 +1239,7 @@ fvmc_triangulate_quadrangle(int                dim,
       min_cos = curr_cos;
       min_angle_idx = j;
     }
-    
+
     if (_DOT_PRODUCT_3D(n0, ni) < 0) {
       o_count++;
       o_id = j;
@@ -1250,7 +1250,7 @@ fvmc_triangulate_quadrangle(int                dim,
      we define it as "shorter" */
 
   if (o_count > 0) {
-    
+
     if (o_count > 1) {
       o_id = 0;
     }
@@ -1269,17 +1269,17 @@ fvmc_triangulate_quadrangle(int                dim,
   /* With no obtuse angle, we choose the largest angle */
 
   else {
-    
+
     if ((min_angle_idx == 0) || (min_angle_idx == 2)) {
       d2_02 = 0.;
-      d2_13 = 1.;      
+      d2_13 = 1.;
     }
     else {
       d2_02 = 1.;
       d2_13 = 0.;
     }
 
-  }    
+  }
 
   /* Now define first triangulation */
 
@@ -1303,27 +1303,175 @@ fvmc_triangulate_quadrangle(int                dim,
   }
   else { /* if (quadrangle_vertices == NULL) */
     if (d2_02 < d2_13) {
-      triangle_vertices[0] = 1; /* 1st triangle */
+      triangle_vertices[0] = 1; // 1st triangle
       triangle_vertices[1] = 2;
       triangle_vertices[2] = 3;
-      triangle_vertices[3] = 3; /* 2nd triangle */
+      triangle_vertices[3] = 3; // 2nd triangle
       triangle_vertices[4] = 4;
       triangle_vertices[5] = 1;
     }
     else {
-      triangle_vertices[0] = 1; /* 1st triangle */
+      triangle_vertices[0] = 1; // 1st triangle
       triangle_vertices[1] = 2;
       triangle_vertices[2] = 4;
-      triangle_vertices[3] = 3; /* 2nd triangle */
+      triangle_vertices[3] = 3; // 2nd triangle
       triangle_vertices[4] = 4;
       triangle_vertices[5] = 2;
     }
   }
-  
+
   /* Return number of triangles (for consistency with polygon triangulation) */
 
   return 2;
 }
+
+/*----------------------------------------------------------------------------
+ * Triangulate a prism.
+ *
+ * A convex prism is divided into three tetrahedron along its shortest
+ * diagonal. A non-convex prism may only be divided along the diagonal
+ * which lies inside the prism.
+ *
+ * If the prism_vertices argument is NULL, 1, 2, ...,n local numbering
+ * is implied.
+ *
+ * parameters:
+ *   dim                  <-- spatial dimension (2 or 3).
+ *   coords               <-- coordinates of the triangulation's vertices.
+ *   parent_vertex_num    <-- optional indirection to vertex coordinates
+ *   prism_vertices  <-- polygon connectivity; size: n_vertices or empty.
+ *   tetrahedron_vertices    --> triangles connectivity; size: 3 * 4.
+ *
+ * returns:
+ *   number of resulting tetrahedron.
+ *----------------------------------------------------------------------------*/
+
+int
+fvmc_triangulate_prism(int                dim,
+                       const fvmc_coord_t  coords[],
+                       const fvmc_lnum_t   parent_vertex_num[],
+                       const fvmc_lnum_t   prism_vertices[],
+                       fvmc_lnum_t         tetrahedron_vertices[])
+{
+
+  tetrahedron_vertices[ 0] = prism_vertices[0]; // 1st tetrahedron
+  tetrahedron_vertices[ 1] = prism_vertices[1];
+  tetrahedron_vertices[ 2] = prism_vertices[2];
+  tetrahedron_vertices[ 3] = prism_vertices[3];
+  tetrahedron_vertices[ 4] = prism_vertices[1]; // 2nd tetrahedron
+  tetrahedron_vertices[ 5] = prism_vertices[2];
+  tetrahedron_vertices[ 6] = prism_vertices[3];
+  tetrahedron_vertices[ 7] = prism_vertices[4];
+  tetrahedron_vertices[ 8] = prism_vertices[2]; // 3rd tetrahedron
+  tetrahedron_vertices[ 9] = prism_vertices[3];
+  tetrahedron_vertices[10] = prism_vertices[4];
+  tetrahedron_vertices[11] = prism_vertices[5];
+
+  return 3;
+
+
+}
+
+
+/*----------------------------------------------------------------------------
+ * Triangulate a hexahedron.
+ *
+ * A convex hexahedron is divided into five tetrahedron along its shortest
+ * diagonal. A non-convex hexahedron may only be divided along the diagonal
+ * which lies inside the hexahedron.
+ *
+ * If the hexahedron_vertices argument is NULL, 1, 2, ...,n local numbering
+ * is implied.
+ *
+ * parameters:
+ *   dim                  <-- spatial dimension (2 or 3).
+ *   coords               <-- coordinates of the triangulation's vertices.
+ *   parent_vertex_num    <-- optional indirection to vertex coordinates
+ *   hexahedron_vertices  <-- polygon connectivity; size: n_vertices or empty.
+ *   tetrahedron_vertices    --> triangles connectivity; size: 5 * 4.
+ *
+ * returns:
+ *   number of resulting tetrahedron.
+ *----------------------------------------------------------------------------*/
+
+int
+fvmc_triangulate_hexa(int                dim,
+                      const fvmc_coord_t  coords[],
+                      const fvmc_lnum_t   parent_vertex_num[],
+                      const fvmc_lnum_t   hexa_vertices[],
+                      fvmc_lnum_t         tetrahedron_vertices[])
+{
+
+  tetrahedron_vertices[ 0] = hexa_vertices[0]; // 1st tetrahedron
+  tetrahedron_vertices[ 1] = hexa_vertices[1];
+  tetrahedron_vertices[ 2] = hexa_vertices[2];
+  tetrahedron_vertices[ 3] = hexa_vertices[4];
+  tetrahedron_vertices[ 4] = hexa_vertices[1]; // 2nd tetrahedron
+  tetrahedron_vertices[ 5] = hexa_vertices[4];
+  tetrahedron_vertices[ 6] = hexa_vertices[5];
+  tetrahedron_vertices[ 7] = hexa_vertices[7];
+  tetrahedron_vertices[ 8] = hexa_vertices[1]; // 3rd tetrahedron
+  tetrahedron_vertices[ 9] = hexa_vertices[2];
+  tetrahedron_vertices[10] = hexa_vertices[3];
+  tetrahedron_vertices[11] = hexa_vertices[7];
+  tetrahedron_vertices[12] = hexa_vertices[2]; // 4th tetrahedron
+  tetrahedron_vertices[13] = hexa_vertices[4];
+  tetrahedron_vertices[14] = hexa_vertices[6];
+  tetrahedron_vertices[15] = hexa_vertices[7];
+  tetrahedron_vertices[16] = hexa_vertices[1]; // 5th tetrahedron
+  tetrahedron_vertices[17] = hexa_vertices[2];
+  tetrahedron_vertices[18] = hexa_vertices[4];
+  tetrahedron_vertices[19] = hexa_vertices[7];
+
+  return 5;
+
+
+}
+
+
+/*----------------------------------------------------------------------------
+ * Triangulate a pyramid.
+ *
+ * A convex pyramid is divided into two tetrahedron along its shortest
+ * diagonal. A non-convex pyramid may only be divided along the diagonal
+ * which lies inside the pyramid.
+ *
+ * If the pyramid_vertices argument is NULL, 1, 2, ...,n local numbering
+ * is implied.
+ *
+ * parameters:
+ *   dim                  <-- spatial dimension (2 or 3).
+ *   coords               <-- coordinates of the triangulation's vertices.
+ *   parent_vertex_num    <-- optional indirection to vertex coordinates
+ *   pyramid_vertices  <-- polygon connectivity; size: n_vertices or empty.
+ *   tetrahedron_vertices    --> triangles connectivity; size: 2 * 4.
+ *
+ * returns:
+ *   number of resulting tetrahedron.
+ *----------------------------------------------------------------------------*/
+
+int
+fvmc_triangulate_pyra(int                dim,
+                      const fvmc_coord_t  coords[],
+                      const fvmc_lnum_t   parent_vertex_num[],
+                      const fvmc_lnum_t   pyra_vertices[],
+                      fvmc_lnum_t         tetrahedron_vertices[])
+{
+
+  tetrahedron_vertices[0] = pyra_vertices[0]; // 1st tetrahedron
+  tetrahedron_vertices[1] = pyra_vertices[1];
+  tetrahedron_vertices[2] = pyra_vertices[2];
+  tetrahedron_vertices[3] = pyra_vertices[4];
+  tetrahedron_vertices[4] = pyra_vertices[1]; // 2nd tetrahedron
+  tetrahedron_vertices[5] = pyra_vertices[2];
+  tetrahedron_vertices[6] = pyra_vertices[3];
+  tetrahedron_vertices[7] = pyra_vertices[4];
+
+  return 2;
+
+
+}
+
 
 /*----------------------------------------------------------------------------*/
 

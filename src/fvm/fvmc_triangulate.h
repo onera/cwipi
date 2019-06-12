@@ -163,6 +163,90 @@ fvmc_triangulate_quadrangle(int                dim,
                            const fvmc_lnum_t   quadrangle_vertices[],
                            fvmc_lnum_t         triangle_vertices[]);
 
+
+/*----------------------------------------------------------------------------
+ * Triangulate a prism.
+ *
+ * A convex prism is divided into three tetrahedron along its shortest
+ * diagonal. A non-convex prism may only be divided along the diagonal
+ * which lies inside the prism.
+ *
+ * If the prism_vertices argument is NULL, 1, 2, ...,n local numbering
+ * is implied.
+ *
+ * parameters:
+ *   dim                  <-- spatial dimension (2 or 3).
+ *   coords               <-- coordinates of the triangulation's vertices.
+ *   parent_vertex_num    <-- optional indirection to vertex coordinates
+ *   prism_vertices  <-- polygon connectivity; size: n_vertices or empty.
+ *   tetrahedron_vertices    --> triangles connectivity; size: 2 * 3.
+ *
+ * returns:
+ *   number of resulting tetrahedron.
+ *----------------------------------------------------------------------------*/
+int
+fvmc_triangulate_prism(int                dim,
+                       const fvmc_coord_t  coords[],
+                       const fvmc_lnum_t   parent_vertex_num[],
+                       const fvmc_lnum_t   prism_vertices[],
+                       fvmc_lnum_t         tetrahedron_vertices[]);
+
+/*----------------------------------------------------------------------------
+ * Triangulate a hexahedron.
+ *
+ * A convex hexahedron is divided into five tetrahedron along its shortest
+ * diagonal. A non-convex hexahedron may only be divided along the diagonal
+ * which lies inside the hexahedron.
+ *
+ * If the hexahedron_vertices argument is NULL, 1, 2, ...,n local numbering
+ * is implied.
+ *
+ * parameters:
+ *   dim                  <-- spatial dimension (2 or 3).
+ *   coords               <-- coordinates of the triangulation's vertices.
+ *   parent_vertex_num    <-- optional indirection to vertex coordinates
+ *   hexahedron_vertices  <-- polygon connectivity; size: n_vertices or empty.
+ *   tetrahedron_vertices    --> triangles connectivity; size: 2 * 3.
+ *
+ * returns:
+ *   number of resulting tetrahedron.
+ *----------------------------------------------------------------------------*/
+int
+fvmc_triangulate_hexa(int dim,
+                      const fvmc_coord_t  coords[],
+                      const fvmc_lnum_t   parent_vertex_num[],
+                      const fvmc_lnum_t   hexa_vertices[],
+                      fvmc_lnum_t         tetrahedron_vertices[]);
+
+
+/*----------------------------------------------------------------------------
+ * Triangulate a pyramid.
+ *
+ * A convex pyramid is divided into two tetrahedron along its shortest
+ * diagonal. A non-convex pyramid may only be divided along the diagonal
+ * which lies inside the pyramid.
+ *
+ * If the pyramid_vertices argument is NULL, 1, 2, ...,n local numbering
+ * is implied.
+ *
+ * parameters:
+ *   dim                  <-- spatial dimension (2 or 3).
+ *   coords               <-- coordinates of the triangulation's vertices.
+ *   parent_vertex_num    <-- optional indirection to vertex coordinates
+ *   pyramid_vertices  <-- polygon connectivity; size: n_vertices or empty.
+ *   tetrahedron_vertices    --> triangles connectivity; size: 2 * 3.
+ *
+ * returns:
+ *   number of resulting tetrahedron.
+ *----------------------------------------------------------------------------*/
+int
+fvmc_triangulate_pyra(int dim,
+                      const fvmc_coord_t  coords[],
+                      const fvmc_lnum_t   parent_vertex_num[],
+                      const fvmc_lnum_t   pyra_vertices[],
+                      fvmc_lnum_t         tetrahedron_vertices[]);
+
+
 /*----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus

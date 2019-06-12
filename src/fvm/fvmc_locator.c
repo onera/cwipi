@@ -580,12 +580,6 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
 
       if (order > 1 && FVMC_ABS (opt_bbox_step) != 1) {
 
-        if ((this_section->type != FVMC_FACE_TRIA) &&
-            (this_section->type != FVMC_FACE_QUAD) &&
-            (this_section->type != FVMC_EDGE)) {
-          printf ("fvmc_locator_set_nodal warning : optimized bounding box is not implemented "
-                  "for this element type %d\n", this_section->type);
-        }
         if ((this_section->type == FVMC_EDGE)){
 
           const int n_step = opt_bbox_step;
@@ -594,6 +588,8 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
           int n_vtx = 0;
 
           n_vtx = n_step + 1;
+
+          printf("nombre de point = %i\n", n_vtx);
 
 
           double *u      = malloc(sizeof(double) * 1 * n_vtx);
@@ -743,6 +739,7 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
                         coords, 3,
                         beta,
                         xyz, 3);
+
 #else
             for (int ii = 0; ii < n_vtx; ii++) {
 
@@ -789,7 +786,7 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
           int n_vtx = 0;
 
           if (this_section->type == FVMC_CELL_TETRA) {
-            n_vtx =  ( (n_step*(n_step+1)*(2*n_step+1)/6) + 3*n_step*(n_step+1)/2 + 3*n_step ) / 2;
+            n_vtx =  (n_step+1)*(n_step+2)*(n_step+3)/6;
           }
           else if (this_section->type == FVMC_CELL_HEXA) {
             n_vtx = (n_step + 1) * (n_step + 1) * (n_step + 1);
@@ -798,7 +795,7 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
             n_vtx = (n_step + 1) * (n_step + 2) * (n_step + 1) /2;
           }
           else if (this_section->type == FVMC_CELL_PYRAM) {
-            n_vtx = (n_step*n_step*(n_step+1)*(n_step+1)/12) * (n_step*(n_step+1)*(2*n_step+1)/9) * (n_step*(n_step+1)/12);
+            n_vtx = (n_step+1)*(n_step+2)*(2*n_step+3)/6;
           }
 
           double *uvw = malloc (sizeof(double) * 3 * n_vtx);
@@ -894,7 +891,7 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
               }
             }
 
-#ifdef CWP_HAVE_BLAS
+/*#ifdef CWP_HAVE_BLAS
             double alpha = 1.;
             double beta = 0.;
 
@@ -905,7 +902,7 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
                         coords, 3,
                         beta,
                         xyz, 3);
-#else
+#else*/
             for (int ii = 0; ii < n_vtx; ii++) {
 
               for (int kk = 0; kk < 3; kk++) {
@@ -920,7 +917,7 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
               }
             }
 
-#endif
+//#endif
 
             for (int ii = 0; ii < n_vtx; ii++) {
 
@@ -939,20 +936,6 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
           free (ai);
           free (xyz);
           free (coords);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
         }

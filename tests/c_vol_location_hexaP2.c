@@ -66,41 +66,17 @@ static double _f(double x, double y, double z)
   return 2*x*x + z*z - 3*x*z + z - x + 2. + 3*z;
 }
 
+static double _y(double x)
+{
+  return x*x + 2*x -1;
+}
+
 static double _z(double x)
 {
   return x*x + 2;
 }
-/*
-static double _racine(double a, double b, double c, double d)
-{
-  if (a == 0){
-    printf("Polynome de degre deux\n");
-    return 0;
-  }
-  printf("Polynome a resoudre : %12.5e x^3 + %12.5e x^2 + %12.5e x + %12.5e\n", a, b, c, d);
-  //a x^3 + b x^2 + c x +d
-  //changement de variable X = x - b/3a
-  double bs3a = b / (3*a); printf("b/3a = %12.5e\n", bs3a);
-  double p = c/a - ((b*b)/(3*a*a)); printf("p = %12.5e\n", p);
-  double q = ((2*b*b*b)/(27*a*a*a)) + d/a - ((b*c)/(3*a*a)); printf("q = %12.5e\n", q);
 
-  //nouveau polynome X^3 + pX + q = 0 => méthodes de cardan
-  double D = (p*p*p/27 + q*q/4);
-  printf("Discriminant D = %22.15e\n", D);
-  if (D <= 0){
-    printf("Methode pas encore implementee\n");
-    return 0;
-  }
-  double u = sqrt(D);
-         u = u - q; printf("u^3 = %22.15e\n", u);
-  double _u = pow(u, 1.0/3.0); printf("u = %22.15e\n", _u);
-  double v = sqrt(D);
-         v = v + q; printf("v^3 = %22.15e\n", v);
-  double _v = pow(v, 1.0/3.0); printf("v = %22.15e\n", _v);
 
-  return (_u-_v - bs3a);
-}
-*/
 /*----------------------------------------------------------------------
  *
  * Read mesh
@@ -355,7 +331,7 @@ int main
   }
 
   char* fileName = (char *) malloc(sizeof(char) * 37);
-  sprintf(fileName,"c_linear_location_edgeP2_%4.4d.txt",rank);
+  sprintf(fileName,"c_linear_location_hexaP2_%4.4d.txt",rank);
 
   outputFile = fopen(fileName,"w");
 
@@ -377,7 +353,7 @@ int main
   MPI_Comm_rank(localComm, &currentRank);
   MPI_Comm_size(localComm, &localCommSize);
 
-  fprintf(outputFile, "  Surface coupling test : location in edge P2\n");
+  fprintf(outputFile, "  Volume coupling test : location in hexahedron P2\n");
   fprintf(outputFile, "\n");
 
   fprintf(outputFile, "\nDump after initialization\n");
@@ -396,10 +372,10 @@ int main
 
   const int postFreq = -1;
 
-  cwipi_create_coupling("c_linear_cpl_location_edgeP2",            // Coupling id
+  cwipi_create_coupling("c_volumic_cpl_location_hexaP2",            // Coupling id
                         CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING, // Coupling type
                         codeCoupledName,                           // Coupled application id
-                        1,                                         // Geometric entities dimension
+                        3,                                         // Geometric entities dimension
                         0.1,                                       // Geometric tolerance
                         CWIPI_STATIC_MESH,                         // Mesh type
                         solver_type,                               // Solver type
@@ -423,16 +399,18 @@ int main
 
   /* Domain bounds */
 
-  const double xmin = 0.0;
-  const double xmax = 1.0;
-  const double zmin = 0.0;
-  const double zmax = 1.0;
+  const double xmin =  0.0;
+  const double xmax =  1.0;
+  const double ymin =  0.0;
+  const double ymax =  1.0;
+  const double zmin =  0.0;
+  const double zmax =  1.0;
 
-  nVertex = 3;
+  nVertex = 27;
   nElts = 1;
 
 /*
- meshFile = fopen("meshes/parabole.mesh", "r");
+ meshFile = fopen("meshes/hexahedronp2.mesh", "r");
 
   assert (meshFile != NULL);
 //  _read_mesh(meshFile, &format, &dimension, &nVertex, &nElts, coords, eltsConnecPointer, eltsConnec);
@@ -470,33 +448,29 @@ switch (key[0]) {
     coords = (double *) malloc(sizeof(double) * 3 * _nVertex );
     for (int i = 0; i < _nVertex; i++) {
 
-      for (int j = 0; j < 3; j++) {
-      r = fscanf(meshFile, "%lf",coords + i * 3 + j);
-      }
+      r = fscanf(meshFile, "%lf, %lf, %lf, %d",coords + i * 3, coords + i * 3 + 1, coords + i * 3 + 2, un);
     }
     break;
 
-    case 'E':
-      switch (key[1]) {
-        case 'd':
+    case 'T':
+      //switch (key[1]) {
+        //case 'd':
           r = fscanf(meshFile, "%d",&nElts);
           _nElts = nElts;
           printf("nElts = %d, r = %i\n", _nElts, r);
           nConnecVertex = _nElts * 3;
-          eltsConnec = (int *) malloc(sizeof(int) * nConnecVertex);
-          for (int i = 0; i < nConnecVertex; i++) {
+          eltsConnec = (int *) malloc(sizeof(int) * 11);
+          for (int i = 0; i < 11; i++) {
 
-            for (int j = 0; j < 3; j++) {
-              r = fscanf(meshFile, "%d",eltsConnec + i * 3 + j);
-            }
-            r = fscanf(meshFile, "%d",un);
+              r = fscanf(meshFile, "%d",eltsConnec + i );
           }
+          r = fscanf(meshFile, "%d",un);
           break;
-        case 'n':
+        //case 'n':
+    case 'E':
           loop = 1;
           break;
-      }
-      break;
+
     }
 }
 
@@ -514,24 +488,144 @@ eltsConnecPointer[_nElts] = nConnecVertex;
   eltsConnec = (int *) malloc(sizeof(int) * nVertex);
 
   eltsConnecPointer[0] = 0;
-  eltsConnecPointer[1] = 3;
+  eltsConnecPointer[1] = 27;
 
-  eltsConnec[0] = 1;
-  eltsConnec[1] = 2;
-  eltsConnec[2] = 3;
+  eltsConnec[0]  = 1;
+  eltsConnec[1]  = 2;
+  eltsConnec[2]  = 3;
+  eltsConnec[3]  = 4;
+  eltsConnec[4]  = 5;
+  eltsConnec[5]  = 6;
+  eltsConnec[6]  = 7;
+  eltsConnec[7]  = 8;
+  eltsConnec[8]  = 9;
+  eltsConnec[9]  = 10;
+  eltsConnec[10] = 11;
+  eltsConnec[11] = 12;
+  eltsConnec[12] = 13;
+  eltsConnec[13] = 14;
+  eltsConnec[14] = 15;
+  eltsConnec[15] = 16;
+  eltsConnec[16] = 17;
+  eltsConnec[17] = 18;
+  eltsConnec[18] = 19;
+  eltsConnec[19] = 20;
+  eltsConnec[20] = 21;
+  eltsConnec[21] = 22;
+  eltsConnec[22] = 23;
+  eltsConnec[23] = 24;
+  eltsConnec[24] = 25;
+  eltsConnec[25] = 26;
+  eltsConnec[26] = 27;
 
   coords[0] = xmin;
-  coords[1] = 0;
-  coords[2] = zmin;//_z(xmin);
+  coords[1] = ymin;
+  coords[2] = zmin;
 
   coords[3] = xmax;
-  coords[4] = 0;
-  coords[5] = zmax;//_z(xmax);
+  coords[4] = ymin;
+  coords[5] = zmin;
 
-  coords[6] = (xmin + xmax) / 2.;
-  coords[7] = 0;
-  coords[8] = (zmin + zmax)/2;//_z((xmin + xmax) / 2.);
+  coords[6] = xmin;
+  coords[7] = ymax;
+  coords[8] = zmin;
 
+  coords[9]  = xmax;
+  coords[10] = ymax;
+  coords[11] = zmin;
+
+  coords[12] = xmin;
+  coords[13] = ymin;
+  coords[14] = zmax;
+
+  coords[15] = xmax;
+  coords[16] = ymin;
+  coords[17] = zmax;
+
+  coords[18] = xmin;
+  coords[19] = ymax;
+  coords[20] = zmax;
+
+  coords[21] = xmax;
+  coords[22] = ymax;
+  coords[23] = zmax;
+
+  coords[24] = (xmin + xmax) / 2;
+  coords[25] = ymin + 0.1;
+  coords[26] = zmin + 0.1;
+
+
+  coords[27] = xmin + 0.1;
+  coords[28] = (ymin + ymax) / 2;
+  coords[29] = zmin + 0.1;
+
+  coords[30] = (xmin + xmax) / 2;
+  coords[31] = (ymin + ymax) / 2;
+  coords[32] = zmin + 0.2;
+
+  coords[33] = xmax - 0.1;
+  coords[34] = (ymin + ymax) / 2;
+  coords[35] = zmin + 0.1;
+
+  coords[36] = (xmin + xmax) / 2;
+  coords[37] = ymax - 0.1;
+  coords[38] = zmin + 0.1;
+
+  coords[39] = xmin + 0.1;
+  coords[40] = ymin + 0.1;
+  coords[41] = (zmin + zmax) / 2;
+
+  coords[42] = (xmin + xmax) / 2;
+  coords[43] = ymin + 0.2;
+  coords[44] = (zmin + zmax) / 2;
+
+  coords[45] = xmax - 0.1;
+  coords[46] = ymin + 0.1;
+  coords[47] = (zmin + zmax) / 2;
+
+  coords[48] = xmin + 0.2;
+  coords[49] = (ymin + ymax) / 2;
+  coords[50] = (zmin + zmax) / 2;
+
+  coords[51] = (xmin + xmax) / 2;
+  coords[52] = (ymin + ymax) / 2;
+  coords[53] = (zmin + zmax) / 2;
+
+  coords[54] = xmax - 0.2;
+  coords[55] = (ymin + ymax) / 2;
+  coords[56] = (zmin + zmax) / 2;
+
+  coords[57] = xmin + 0.1;
+  coords[58] = ymax - 0.1;
+  coords[59] = (zmin + zmax) / 2;
+
+  coords[60] = (xmin + xmax) / 2;
+  coords[61] = ymax - 0.2;
+  coords[62] = (zmin + zmax) / 2;
+
+  coords[63] = xmax - 0.1;
+  coords[64] = ymax - 0.1;
+  coords[65] = (zmin + zmax) / 2;
+
+  coords[66] = (xmin + xmax) / 2;
+  coords[67] = ymin + 0.1;
+  coords[68] = zmax - 0.1;
+
+  coords[69] = xmin + 0.1;
+  coords[70] = (ymin + ymax) / 2;
+  coords[71] = zmax - 0.1;
+
+  coords[72] = (xmin + xmax) / 2;
+  coords[73] = (ymin + ymax) / 2;
+  coords[74] = zmax - 0.2;
+
+  coords[75] = xmax - 0.1;
+  coords[76] = (ymin + ymax) / 2;
+  coords[77] = zmax - 0.1;
+
+  coords[78] = (xmin + xmax) / 2;
+  coords[79] = ymax - 0.1;
+  coords[80] = zmax - 0.1;
 
 
   fprintf(outputFile, "   Number of vertex   : %i\n", nVertex);
@@ -539,7 +633,7 @@ eltsConnecPointer[_nElts] = nConnecVertex;
 
   const int order = 2;
 
-  cwipi_ho_define_mesh("c_linear_cpl_location_edgeP2",
+  cwipi_ho_define_mesh("c_volumic_cpl_location_hexaP2",
                        nVertex,
                        nElts,
                        order,
@@ -549,18 +643,120 @@ eltsConnecPointer[_nElts] = nConnecVertex;
 
 
 
-  const int n_node = 3;
+  const int n_node = 27;
 
-  int *ijk = malloc(sizeof(int)*1*n_node);
+  int *ijk = malloc(sizeof(int)*3*n_node);
 
-  ijk[0] = 0;
+  ijk[ 0] = 0;
+  ijk[ 1] = 0;
+  ijk[ 2] = 0;
 
-  ijk[1] = 2;
+  ijk[ 3] = 2;
+  ijk[ 4] = 0;
+  ijk[ 5] = 0;
 
-  ijk[2] = 1;
+  ijk[ 6] = 0;
+  ijk[ 7] = 2;
+  ijk[ 8] = 0;
 
-  cwipi_ho_ordering_from_IJK_set ("c_linear_cpl_location_edgeP2",
-                                  CWIPI_EDGEHO,
+  ijk[ 9] = 2;
+  ijk[10] = 2;
+  ijk[11] = 0;
+
+  ijk[12] = 0;
+  ijk[13] = 0;
+  ijk[14] = 2;
+
+  ijk[15] = 2;
+  ijk[16] = 0;
+  ijk[17] = 2;
+
+  ijk[18] = 0;
+  ijk[19] = 2;
+  ijk[20] = 2;
+
+  ijk[21] = 2;
+  ijk[22] = 2;
+  ijk[23] = 2;
+
+  ijk[24] = 1;
+  ijk[25] = 0;
+  ijk[26] = 0;
+
+  ijk[27] = 0;
+  ijk[28] = 1;
+  ijk[29] = 0;
+
+  ijk[30] = 1;
+  ijk[31] = 1;
+  ijk[32] = 0;
+
+  ijk[33] = 2;
+  ijk[34] = 1;
+  ijk[35] = 0;
+
+  ijk[36] = 1;
+  ijk[37] = 2;
+  ijk[38] = 0;
+
+  ijk[39] = 0;
+  ijk[40] = 0;
+  ijk[41] = 1;
+
+  ijk[42] = 1;
+  ijk[43] = 0;
+  ijk[44] = 1;
+
+  ijk[45] = 2;
+  ijk[46] = 0;
+  ijk[47] = 1;
+
+  ijk[48] = 0;
+  ijk[49] = 1;
+  ijk[50] = 1;
+
+  ijk[51] = 1;
+  ijk[52] = 1;
+  ijk[53] = 1;
+
+  ijk[54] = 2;
+  ijk[55] = 1;
+  ijk[56] = 1;
+
+  ijk[57] = 0;
+  ijk[58] = 2;
+  ijk[59] = 1;
+
+  ijk[60] = 1;
+  ijk[61] = 2;
+  ijk[62] = 1;
+
+  ijk[63] = 2;
+  ijk[64] = 2;
+  ijk[65] = 1;
+
+  ijk[66] = 1;
+  ijk[67] = 0;
+  ijk[68] = 2;
+
+  ijk[69] = 0;
+  ijk[70] = 1;
+  ijk[71] = 2;
+
+  ijk[72] = 1;
+  ijk[73] = 1;
+  ijk[74] = 2;
+
+  ijk[75] = 2;
+  ijk[76] = 1;
+  ijk[77] = 2;
+
+  ijk[78] = 1;
+  ijk[79] = 2;
+  ijk[80] = 2;
+
+  cwipi_ho_ordering_from_IJK_set ("c_volumic_cpl_location_hexaP2",
+                                  CWIPI_CELL_HEXAHO,
                                   n_node,
                                   ijk);
 
@@ -570,56 +766,17 @@ eltsConnecPointer[_nElts] = nConnecVertex;
 
   double *pts_to_locate = (double *) malloc(sizeof(double) * 3 * n_pts_to_locate);
 
-  pts_to_locate[0] = (xmin + xmax) / 2.;
-  pts_to_locate[1] = 0;
-  pts_to_locate[2] = (zmin + zmax)/2;//_z((xmin + xmax) / 2.);
-/*
-  pts_to_locate[0] = -1.0 - 0.005;
-  pts_to_locate[1] = 3.0 - 0.005;
-  pts_to_locate[2] = 0.0;
+  pts_to_locate[0]  = 0.5;
+  pts_to_locate[1]  = 0.5;
+  pts_to_locate[2]  = 0.1;
 
-  pts_to_locate[3] = 1.0 + 0.005;
-  pts_to_locate[4] = 3.0 + 0.005;
-  pts_to_locate[5] = 0.0;
 
-  pts_to_locate[6] = 0.0;
-  pts_to_locate[7] = 2.0 + 0.02;
-  pts_to_locate[8] = 0.0;
-
-  pts_to_locate[9] = 0.0 + 0.01;
-  pts_to_locate[10] = 2.0 - 0.003;
-  pts_to_locate[11] = 0.0;
-
-  pts_to_locate[12] = -0.18;
-  pts_to_locate[13] = 2.03;
-  pts_to_locate[14] = 0.0;
-
-pts_to_locate[0] = xmin - 0.005;
-pts_to_locate[1] = 0.0;
-pts_to_locate[2] = _z(xmin) - 0.005;
-
-pts_to_locate[3] = xmax + 0.005;
-pts_to_locate[4] = 0.0;
-pts_to_locate[5] = _z(xmax) + 0.003;
-
-pts_to_locate[6] = (xmin + xmax) / 2.;
-pts_to_locate[7] = 0.0;
-pts_to_locate[8] = _z((xmin + xmax) / 2.) + 0.02;
-
-pts_to_locate[9] = (xmin + xmax) / 2. + 0.01;
-pts_to_locate[10] = 0.0;
-pts_to_locate[11] = _z((xmin + xmax) / 2.) - 0.003;
-
-pts_to_locate[12] = -0.018;
-pts_to_locate[13] = 0.0;
-pts_to_locate[14] = _z(-0.018) + 0.01;
-*/
 
   for (int i = 0; i < n_pts_to_locate; i++) {
     printf("%12.5e %12.5e %12.5e\n",  pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2]);
   }
 
-  cwipi_set_points_to_locate ("c_linear_cpl_location_edgeP2",
+  cwipi_set_points_to_locate ("c_volumic_cpl_location_hexaP2",
                               n_pts_to_locate,
                               pts_to_locate);
 
@@ -655,11 +812,14 @@ pts_to_locate[14] = _z(-0.018) + 0.01;
   recvValuesName = "_fr";
 
 
-  cwipi_locate("c_linear_cpl_location_edgeP2");
+    printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+
+  cwipi_locate("c_volumic_cpl_location_hexaP2");
 
 
 
-  nNotLocatedPoints = cwipi_get_n_not_located_points("c_linear_cpl_location_edgeP2");
+
+  nNotLocatedPoints = cwipi_get_n_not_located_points("c_volumic_cpl_location_hexaP2");
   if (nNotLocatedPoints > 0) {
     printf("--- Error --- : %d not located points found\n", nNotLocatedPoints);
     exit(1);
@@ -668,7 +828,7 @@ pts_to_locate[14] = _z(-0.018) + 0.01;
   int sRequest, rRequest;
   int tag = 1;
 
-  cwipi_irecv("c_linear_cpl_location_edgeP2",
+  cwipi_irecv("c_volumic_cpl_location_hexaP2",
               "ech",
               tag,
               1,
@@ -679,7 +839,7 @@ pts_to_locate[14] = _z(-0.018) + 0.01;
               &rRequest);
 
 
-  cwipi_issend("c_linear_cpl_location_edgeP2",
+  cwipi_issend("c_volumic_cpl_location_hexaP2",
                "ech",
                tag,
                1,
@@ -689,8 +849,8 @@ pts_to_locate[14] = _z(-0.018) + 0.01;
                sendValues,
                &sRequest);
 
-  cwipi_wait_irecv("c_linear_cpl_location_edgeP2", rRequest);
-  cwipi_wait_issend("c_linear_cpl_location_edgeP2", sRequest);
+  cwipi_wait_irecv("c_volumic_cpl_location_hexaP2", rRequest);
+  cwipi_wait_issend("c_volumic_cpl_location_hexaP2", sRequest);
 
 
 
@@ -700,20 +860,9 @@ pts_to_locate[14] = _z(-0.018) + 0.01;
   if (rank == 0)
     printf("        Delete coupling\n");
 
-  cwipi_delete_coupling("c_linear_cpl_location_edgeP2");
+  cwipi_delete_coupling("c_volumic_cpl_location_hexaP2");
 
 
-  /* Check results */
-
-// Polynome : z = x*x + 2
-// recherche des racines de 2x^3 + (5-2za)x - xa = 0     (xa,ya) point to locate
-/*
-double racine;
-for (int i = 0; i < n_pts_to_locate; i++){
-    racine = _racine(2.0, 0.0, 5-2*pts_to_locate[3*i+2], -1.0*pts_to_locate[3*i]);
-    printf("solution exacte x = %22.15e pour le point ( %22.15e, %22.15e, %22.15e )\n", racine, pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2]);
-}
-*/
 
   /* Free
    * ---- */

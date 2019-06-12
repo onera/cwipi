@@ -423,6 +423,7 @@ _uv_ho_quad_nodes
    int p = 0;
    int _order = order+1;
 
+
    double ustep = (umax - umin) / order;
    double vstep = (vmax - vmin) / order;
    double wstep = (wmax - wmin) / order;
@@ -432,7 +433,7 @@ _uv_ho_quad_nodes
      double w = wmin + k * wstep;
      for (int j = 0; j < _order - k; j++) {
        double v = vmin + j * vstep;
-       for (int i = 0; i < _order - j; i++) {
+       for (int i = 0; i < _order - j - k; i++) {
          double u = umin + i * ustep;
 
          uvw[p++] = u;
@@ -493,6 +494,8 @@ _uv_ho_quad_nodes
           uvw[p++] = v;
           uvw[p++] = w;
 
+          printf("PCOORDS NODES : %12.5e, %12.5e, %12.5e\n", u, v, w);
+
         }
       }
     }
@@ -540,7 +543,7 @@ _uv_ho_quad_nodes
        double w = wmin + k * wstep;
        for (int j = 0; j < _order - k; j++) {
          double v = vmin + j * vstep;
-         for (int i = 0; i < _order; i++) {
+         for (int i = 0; i < _order - k; i++) {
            double u = umin + i * ustep;
 
            uvw[p++] = u;
@@ -571,7 +574,7 @@ _uv_ho_quad_nodes
    *----------------------------------------------------------------------------*/
 
   static void
-  _uv_ho_hexa_nodes
+  _uvw_ho_hexa_nodes
   (
     const int order,
     const double umin,
@@ -1159,6 +1162,8 @@ _compute_dist2_from_closest_edge_subdivision
 
     /* Get closest edge stored in the heap */
 
+    printf("point a localiser : (%12.5e, %12.5e, %12.5e)\n", point_coords[0], point_coords[1], point_coords[2]);
+
     int _child;
     int isEmpty = _heap_top_get_e (heap,
                                    _vtx_edge_current,
@@ -1167,6 +1172,9 @@ _compute_dist2_from_closest_edge_subdivision
                                    _closest_pt_uP1_current,
                                    _closest_pt_uPn_current,
                                    &_dist2_current, &_child);
+
+  printf("distance la plus courte : %12.5e\npoint le plus proche param : (%12.5e)\n", _dist2_current, _closest_pt_uP1_current[0]);
+
 
     if (isEmpty) {
       bftc_error(__FILE__, __LINE__, 0,
@@ -1205,6 +1213,9 @@ _compute_dist2_from_closest_edge_subdivision
                    _closest_pt_uP1_current,
                    weightsP1);
 
+                   printf("Poids dans P1 : \nw0 = %12.5e\nw1 = %12.5e\n", weightsP1[0], weightsP1[1]);
+
+
 
     if (0 == 1) {
       printf("\n\n ========= get heap =========\n");
@@ -1228,7 +1239,7 @@ _compute_dist2_from_closest_edge_subdivision
         _projected_coords_from_p1[k] += weightsP1[j] * _vtx_edge_current[3*j+k];
       }
     }
-
+printf("point projete P1 : %12.5e, %12.5e, %12.5e\n", _projected_coords_from_p1[0], _projected_coords_from_p1[1], _projected_coords_from_p1[2]);
     /* Compute projected from current Pn edge */
 
     double _projected_coords_from_pn[3];
@@ -1264,7 +1275,7 @@ _compute_dist2_from_closest_edge_subdivision
 
     /* Break if error is ok */
 
-    if (*err_proj <= err_max || (*n_it)++ >= n_it_max) {
+    if (sqrt(*err_proj) <= err_max || (*n_it)++ >= n_it_max) {
 
       for (int j = 0; j < 3; j++) {
         projected_coords[j] = _projected_coords_from_pn[j];
@@ -1472,7 +1483,7 @@ _compute_dist2_from_uniform_edge_subdivision
 
     /* Break if error is ok */
 
-    if (*err_proj <= err_max || (*n_it)++ >= n_it_max) {
+    if (sqrt(*err_proj) <= err_max || (*n_it)++ >= n_it_max) {
 
       for (int j = 0; j < 3; j++) {
         projected_coords[j] = _projected_coords_from_pn[j];
@@ -1589,14 +1600,16 @@ _default_location_generic_1d
 {
 
 
-  if (1 == 0) {
+  if (0 == 1) {
     printf ("\n\n***********\n");
 
     printf ("n_node %d\n", n_nodes);
+    for (int i = 0; i < 3*n_nodes; i++) {
+      printf("%12.5e\n", nodes_coords[i]);
+    }
   }
 
-  //  const int n_it_max = 100;
-  const int n_it_max = 10000000;
+  const int n_it_max = 100;
   double err_max = FVMC_MAX (char_size * 1e-6, 1e-15);
 
   double dist2 = HUGE_VAL;
@@ -2521,7 +2534,6 @@ _insert_subtria
       _uvPn_tria_children[6+2*i+j] =
         (uvPn_tria_current[2*i+j] + uvPn_tria_current[2*((i+1)%3)+j])/2;
     }
-
     FVMC_ho_basis (type,
                    order,
                    n_nodes,
@@ -2784,7 +2796,7 @@ _compute_dist2_from_closest_tria_subdivision
 
     /* Break if error is ok */
 
-    if (*err_proj <= err_max || (*n_it)++ >= n_it_max) {
+    if (sqrt(*err_proj) <= err_max || (*n_it)++ >= n_it_max) {
 
       for (int j = 0; j < 3; j++) {
         projected_coords[j] = _projected_coords_from_pn[j];
@@ -2994,7 +3006,7 @@ _compute_dist2_from_uniform_tria_subdivision
 
     /* Break if error is ok */
 
-    if (*err_proj <= err_max || (*n_it)++ >= n_it_max) {
+    if (sqrt(*err_proj) <= err_max || (*n_it)++ >= n_it_max) {
 
       for (int j = 0; j < 3; j++) {
         projected_coords[j] = _projected_coords_from_pn[j];
@@ -3115,6 +3127,9 @@ _default_location_generic_2d
     printf ("\n\n***********\n");
 
     printf ("n_node %d\n", n_nodes);
+    for (int i = 0; i < 3*n_nodes; i++) {
+      printf("%12.5e\n", nodes_coords[i]);
+    }
   }
 
   //  const int n_it_max = 100;
@@ -3313,9 +3328,9 @@ _radius_inscribed_circle
  *   heap             <-- heap to initialize
  *
  *----------------------------------------------------------------------------*/
-/* ICI
+
 static void
-_heap_init
+_heap_init_te
 (
 _heap_te *heap
 )
@@ -3327,7 +3342,7 @@ _heap_te *heap
   }
 }
 
-LAA */
+
 /*----------------------------------------------------------------------------
  *
  * Get top of the heap
@@ -3341,7 +3356,7 @@ LAA */
  *   point_coords     <-> point to locate coordinates
  *
  *----------------------------------------------------------------------------*/
-/* ICI
+
 static int
 _heap_top_get_te
 (
@@ -3364,12 +3379,12 @@ _heap_top_get_te
 
   double *_vtx_tetra_current = heap->vtx_tetra + 12 * idx;
   for (int i = 0; i < 12; i++) {
-    vtx_tria_current[i] = _vtx_tria_current[i];
+    vtx_tetra_current[i] = _vtx_tetra_current[i];
   }
 
-  double *_uvwInPn_tetra_current = heap->uvwInPn_tetra + 9 *idx;
-  for (int i = 0; i < 9; i++) {
-    uvInPn_tetra_current[i] = _uvwInPn_tetra_current[i];
+  double *_uvwInPn_tetra_current = heap->uvwInPn_tetra + 12 *idx;
+  for (int i = 0; i < 12; i++) {
+    uvwInPn_tetra_current[i] = _uvwInPn_tetra_current[i];
   }
 
   double *_closest_pt_current = heap->closest_pt + 3 *idx;
@@ -3392,7 +3407,7 @@ _heap_top_get_te
 
 
 
-LAA */
+
 
 /*----------------------------------------------------------------------------
  *
@@ -3407,9 +3422,9 @@ LAA */
  *   point_coords     <-- point to locate coordinates
  *
  *----------------------------------------------------------------------------*/
-/* ICI
+
 static void
-_heap_insert
+_heap_insert_te
 (
  _heap_te *heap,
  double *vtx_tetra,
@@ -3421,7 +3436,14 @@ _heap_insert
  int child
 )
 {
+
   // Look for index (dicothomy)
+
+  if (1 == 0) {
+    printf ("points du tetra:\nP1 ( %12.5e, %12.5e, %12.5e)\nP2 ( %12.5e, %12.5e, %12.5e)\nP3 ( %12.5e, %12.5e, %12.5e)\nP4 ( %12.5e, %12.5e, %12.5e)\n",
+  vtx_tetra[0], vtx_tetra[1], vtx_tetra[2], vtx_tetra[3], vtx_tetra[4], vtx_tetra[5], vtx_tetra[6], vtx_tetra[7], vtx_tetra[8], vtx_tetra[9], vtx_tetra[10], vtx_tetra[11]);
+
+  }
 
   if (1 == 0) {
     printf ("distances in heap deb :");
@@ -3443,15 +3465,12 @@ _heap_insert
   while (beg <= end) {
     double dist2_beg = sorted_dist2[sorted_idx[beg]];
     double dist2_end = sorted_dist2[sorted_idx[end]];
-
     if (dist2 >= dist2_beg) {
       end = beg - 1;
     }
-
     else if (dist2 <= dist2_end) {
       beg = end + 1;
     }
-
     else {
 
       const int middle = (end + beg) / 2;
@@ -3514,7 +3533,7 @@ _heap_insert
   }
 
   for (int j = 0; j < 12; j++) {
-    heap->uvwInPn_tetra[12*_idx+j] = uvwInPn_tria[j];
+    heap->uvwInPn_tetra[12*_idx+j] = uvwInPn_tetra[j];
   }
 
   for (int j = 0; j < 3; j++) {
@@ -3550,7 +3569,79 @@ _heap_insert
 
   }
 }
-LAA */
+
+
+/*----------------------------------------------------------------------------
+ *
+ *  Extract 3 tetrahedron from a prism
+ *
+ *----------------------------------------------------------------------------*/
+
+static void _prism_to_tetra
+(
+  double *vertex_prism,
+  double *vertex_tetra,
+  double *uvwPn_prism,
+  double *uvw_tetra
+)
+{
+
+  // 1st tetra
+  vertex_tetra[0]  = vertex_prism[0];  uvw_tetra[0]  = uvwPn_prism[0];
+  vertex_tetra[1]  = vertex_prism[1];  uvw_tetra[1]  = uvwPn_prism[1];
+  vertex_tetra[2]  = vertex_prism[2];  uvw_tetra[2]  = uvwPn_prism[2];
+
+  vertex_tetra[3]  = vertex_prism[3];  uvw_tetra[3]  = uvwPn_prism[3];
+  vertex_tetra[4]  = vertex_prism[4];  uvw_tetra[4]  = uvwPn_prism[4];
+  vertex_tetra[5]  = vertex_prism[5];  uvw_tetra[5]  = uvwPn_prism[5];
+
+  vertex_tetra[6]  = vertex_prism[6];  uvw_tetra[6]  = uvwPn_prism[6];
+  vertex_tetra[7]  = vertex_prism[7];  uvw_tetra[7]  = uvwPn_prism[7];
+  vertex_tetra[8]  = vertex_prism[8];  uvw_tetra[8]  = uvwPn_prism[8];
+
+  vertex_tetra[9]  = vertex_prism[9];  uvw_tetra[9]  = uvwPn_prism[9];
+  vertex_tetra[10] = vertex_prism[10]; uvw_tetra[10] = uvwPn_prism[10];
+  vertex_tetra[11] = vertex_prism[11]; uvw_tetra[11] = uvwPn_prism[11];
+
+  // 2nd tetra
+  vertex_tetra[12] = vertex_prism[3];  uvw_tetra[12] = uvwPn_prism[3];
+  vertex_tetra[13] = vertex_prism[4];  uvw_tetra[13] = uvwPn_prism[4];
+  vertex_tetra[14] = vertex_prism[5];  uvw_tetra[14] = uvwPn_prism[5];
+
+  vertex_tetra[15] = vertex_prism[6];  uvw_tetra[15] = uvwPn_prism[6];
+  vertex_tetra[16] = vertex_prism[7];  uvw_tetra[16] = uvwPn_prism[7];
+  vertex_tetra[17] = vertex_prism[8];  uvw_tetra[17] = uvwPn_prism[8];
+
+  vertex_tetra[18] = vertex_prism[9];  uvw_tetra[18] = uvwPn_prism[9];
+  vertex_tetra[19] = vertex_prism[10]; uvw_tetra[19] = uvwPn_prism[10];
+  vertex_tetra[20] = vertex_prism[11]; uvw_tetra[20] = uvwPn_prism[11];
+
+  vertex_tetra[21] = vertex_prism[12]; uvw_tetra[21] = uvwPn_prism[12];
+  vertex_tetra[22] = vertex_prism[13]; uvw_tetra[22] = uvwPn_prism[13];
+  vertex_tetra[23] = vertex_prism[14]; uvw_tetra[23] = uvwPn_prism[14];
+
+  // 3rd tetra
+  vertex_tetra[24] = vertex_prism[6];  uvw_tetra[24] = uvwPn_prism[6];
+  vertex_tetra[25] = vertex_prism[7];  uvw_tetra[25] = uvwPn_prism[7];
+  vertex_tetra[26] = vertex_prism[8];  uvw_tetra[26] = uvwPn_prism[8];
+
+  vertex_tetra[27] = vertex_prism[9];  uvw_tetra[27] = uvwPn_prism[9];
+  vertex_tetra[28] = vertex_prism[10]; uvw_tetra[28] = uvwPn_prism[10];
+  vertex_tetra[29] = vertex_prism[11]; uvw_tetra[29] = uvwPn_prism[11];
+
+  vertex_tetra[30] = vertex_prism[12]; uvw_tetra[30] = uvwPn_prism[12];
+  vertex_tetra[31] = vertex_prism[13]; uvw_tetra[31] = uvwPn_prism[13];
+  vertex_tetra[32] = vertex_prism[14]; uvw_tetra[32] = uvwPn_prism[14];
+
+  vertex_tetra[33] = vertex_prism[15]; uvw_tetra[33] = uvwPn_prism[15];
+  vertex_tetra[34] = vertex_prism[16]; uvw_tetra[34] = uvwPn_prism[16];
+  vertex_tetra[35] = vertex_prism[17]; uvw_tetra[35] = uvwPn_prism[17];
+
+
+}
+
+
+
 /*----------------------------------------------------------------------------
  *
  * Add sub-tetrahedron of a pn-prism in the heap
@@ -3564,7 +3655,7 @@ LAA */
  *   point_coords     <-- point to locate coordinates
  *
  *----------------------------------------------------------------------------*/
-/* ICI
+
 static void
 _heap_fill_pn_prism_sub_tetra
 (
@@ -3577,26 +3668,30 @@ _heap_fill_pn_prism_sub_tetra
 {
   int ibeg = 0;
   int iend = order;
+  int k1;
   int n_nodes_basis = (order + 1)*(order + 2) / 2;
 
   double *uvwNodes   = malloc (sizeof(double) * 3 * n_nodes);
+  double *_vertex_tetra = malloc(sizeof(double) * 3 * 4 * 3);
+  double *_uvw_vertex_tetra = malloc(sizeof(double) * 3 * 4 * 3);
 
-  _uvw_ho_prism_nodes (order, 0., 1., 0, 1., 0., 1., uvwNodes);
+  _uvw_ho_prism_nodes (order, 0., 1., 0., 1., 0., 1., uvwNodes);
+
 
   int child = 0;
   for (int k = 0; k < order; k++) {
     for (int j = 0; j < order; j++) {
-      int k1 = 0;
+      k1 = 0;
       for (int i = ibeg; i < iend - 1; i++) {
 
-        int idx1 = k*n_nodes_basis + i;
-        int idx2 = k*n_nodes_basis + i+1;
-        int idx3 = k*n_nodes_basis + iend + 1 + k1;
-        int idx4 = k*n_nodes_basis + iend + 2 + k1;
-        int idx5 = (k+1)*n_nodes_basis + i;
-        int idx6 = (k+1)*n_nodes_basis + i+1;
-        int idx7 = (k+1)*n_nodes_basis + iend + 1 + k1;
-        int idx8 = (k+1)*n_nodes_basis + iend + 2 + k1;
+        int idx1 = i;//k*n_nodes_basis + i;
+        int idx2 = i+1;//k*n_nodes_basis + i+1;
+        int idx3 = iend + 1 + k1;//k*n_nodes_basis + iend + 1 + k1;
+        int idx4 = iend + 2 + k1;//k*n_nodes_basis + iend + 2 + k1;
+        int idx5 = n_nodes_basis + i;//(k+1)*n_nodes_basis + i;
+        int idx6 = n_nodes_basis + i+1;//(k+1)*n_nodes_basis + i+1;
+        int idx7 = n_nodes_basis + iend + 1 + k1;//(k+1)*n_nodes_basis + iend + 1 + k1;
+        int idx8 = n_nodes_basis + iend + 2 + k1;//(k+1)*n_nodes_basis + iend + 2 + k1;
 
         double x1 = nodes_coords[3*idx1];
         double y1 = nodes_coords[3*idx1 + 1];
@@ -3637,6 +3732,15 @@ _heap_fill_pn_prism_sub_tetra
                                     x6, y6, z6,
                                     x7, y7, z7};
 
+
+      /*  printf("COORDONNEES DU SOUS PRISM : \n ~P1 : %12.5e, %12.5e, %12.5e\n ~P2 : %12.5e, %12.5e, %12.5e\n ~P3 : %12.5e, %12.5e, %12.5e\n ~P4 : %12.5e, %12.5e, %12.5e\n ~P5 : %12.5e, %12.5e, %12.5e\n ~P6 : %12.5e, %12.5e, %12.5e\n",
+                  x1, y1, z1,
+                  x2, y2, z2,
+                  x3, y3, z3,
+                  x5, y5, z5,
+                  x6, y6, z6,
+                  x7, y7, z7);*/
+
         double _uvwPn_sub_prism[18];
         _uvwPn_sub_prism[0]  = uvwNodes[3*idx1];
         _uvwPn_sub_prism[1]  = uvwNodes[3*idx1+1];
@@ -3657,19 +3761,17 @@ _heap_fill_pn_prism_sub_tetra
         _uvwPn_sub_prism[16] = uvwNodes[3*idx7+1];
         _uvwPn_sub_prism[17] = uvwNodes[3*idx7+2];
 
-        double *_vertex_tetra = malloc(sizeof(double) * 3 * 4 * 3);
-        double *_uvw_vertex_tetra = malloc(sizeof(double) * 3 * 4 * 3);
         _prism_to_tetra(_vertex_prism, _vertex_tetra, _uvwPn_sub_prism, _uvw_vertex_tetra);
 
         for (int n=0; n < 3; n++) {
 
           double __vertex_coords[12];
           double _uvwPn_sub_tetra[12];
-          for (int n1 = 0; n < 12) {
+          for (int n1 = 0; n1 < 12; n1++) {
             const double *__vertex_tetra = _vertex_tetra + 12*n + n1;
             const double *__uvw_vertex_tetra = _uvw_vertex_tetra + 12*n + n1;
-            __vertex_coords[n1] = __vertex_tetra[n1];
-            _uvwPn_sub_tetra[n1] = __uvw_vertex_tetra[n1];
+            __vertex_coords[n1] = *__vertex_tetra;
+            _uvwPn_sub_tetra[n1] = *__uvw_vertex_tetra;
           }
 
           double _closest_pointP1[3];
@@ -3678,6 +3780,9 @@ _heap_fill_pn_prism_sub_tetra
           double _weightsClosestPointP1[4];
           double _dist2;
 
+
+
+
           int isDegenerated = fvmc_tetrahedron_evaluate_Position ((double *)point_coords,
                                                                   __vertex_coords,
                                                                   _closest_pointP1,
@@ -3685,24 +3790,30 @@ _heap_fill_pn_prism_sub_tetra
                                                                   &_dist2,
                                                                   _weightsClosestPointP1);
 
+          /*printf("POIDS DU TETRA %i : \n ~W1 = %12.5e\n ~W2 = %12.5e\n ~W3 = %12.5e\n ~W4 = %12.5e\n",
+        n, _weightsClosestPointP1[0], _weightsClosestPointP1[1], _weightsClosestPointP1[2], _weightsClosestPointP1[3]);*/
+
           if (isDegenerated != -1) {
 
             for (int j1 = 0; j1 < 3; j1++) {
               _uvwClosestPointPn[j1] = 0;
             }
             for (int j1 = 0; j1 < 3; j1++) {
-              for (int k = 0; k < 4; k++) {
-                _uvwClosestPointPn[j1] += _weightsClosestPointP1[k] * _uvwPn_sub_tetra[2*k + j1];
+              for (int j2 = 0; j2 < 4; j2++) {
+                _uvwClosestPointPn[j1] += _weightsClosestPointP1[j2] * _uvwPn_sub_tetra[3*j2 + j1];
+                //printf("%i _uvwClosestPointPn[%i] = %12.5e\n", n, j1, _uvwClosestPointPn[j1]);
               }
             }
 
-            _heap_insert (heap,
+
+            _heap_insert_te (heap,
                           __vertex_coords,
                           _uvwPn_sub_tetra,
                           _closest_pointP1,
                           _uvwClosestPointP1,
                           _uvwClosestPointPn,
                           _dist2, child++);
+
           }
 
         }
@@ -3725,6 +3836,14 @@ _heap_fill_pn_prism_sub_tetra
         _vertex_prism[15] = x8;
         _vertex_prism[16] = y8;
         _vertex_prism[17] = z8;
+
+      /*  printf("COORDONNEES DU SOUS PRISM : \n ~P1 : %12.5e, %12.5e, %12.5e\n ~P2 : %12.5e, %12.5e, %12.5e\n ~P3 : %12.5e, %12.5e, %12.5e\n ~P4 : %12.5e, %12.5e, %12.5e\n ~P5 : %12.5e, %12.5e, %12.5e\n ~P6 : %12.5e, %12.5e, %12.5e\n",
+                  x2, y2, z2,
+                  x3, y3, z3,
+                  x4, y4, z4,
+                  x6, y6, z6,
+                  x7, y7, z7,
+                  x8, y8, z8);*/
 
         _uvwPn_sub_prism[0]  = uvwNodes[3*idx2];
         _uvwPn_sub_prism[1]  = uvwNodes[3*idx2+1];
@@ -3751,11 +3870,11 @@ _heap_fill_pn_prism_sub_tetra
 
           double __vertex_coords[12];
           double _uvwPn_sub_tetra[12];
-          for (int n1 = 0; n < 12) {
+          for (int n1 = 0; n1 < 12; n1++) {
             const double *__vertex_tetra = _vertex_tetra + 12*n + n1;
             const double *__uvw_vertex_tetra = _uvw_vertex_tetra + 12*n + n1;
-            __vertex_coords[n1] = __vertex_tetra[n1];
-            _uvwPn_sub_tetra[n1] = __uvw_vertex_tetra[n1];
+            __vertex_coords[n1] = *__vertex_tetra;
+            _uvwPn_sub_tetra[n1] = *__uvw_vertex_tetra;
           }
 
           double _closest_pointP1[3];
@@ -3777,12 +3896,12 @@ _heap_fill_pn_prism_sub_tetra
               _uvwClosestPointPn[j1] = 0;
             }
             for (int j1 = 0; j1 < 3; j1++) {
-              for (int k = 0; k < 4; k++) {
-                _uvwClosestPointPn[j1] += _weightsClosestPointP1[k] * _uvwPn_sub_tetra[2*k + j1];
+              for (int j2 = 0; j2 < 4; j2++) {
+                _uvwClosestPointPn[j1] += _weightsClosestPointP1[j2] * _uvwPn_sub_tetra[3*j2 + j1];
               }
             }
 
-            _heap_insert (heap,
+            _heap_insert_te (heap,
                           __vertex_coords,
                           _uvwPn_sub_tetra,
                           _closest_pointP1,
@@ -3791,18 +3910,16 @@ _heap_fill_pn_prism_sub_tetra
                           _dist2, child++);
           }
         }
-
+        k1++;
       }
 
-        k1++;
-    }
 
-    int idx1 = k * n_nodes_basis + iend - 1;
-    int idx2 = k * n_nodes_basis + iend - 1 + 1;
-    int idx3 = k * n_nodes_basis + iend + 1 + k1;
-    int idx4 = (k+1) * n_nodes_basis + iend - 1;
-    int idx5 = (k+1) * n_nodes_basis + iend - 1 + 1;
-    int idx6 = (k+1) * n_nodes_basis + iend + 1 + k1;
+    int idx1 = iend - 1; //printf("idx1 = %i noeud : %12.5e, %12.5e, %12.5e\n", idx1, nodes_coords[3*idx1], nodes_coords[3*idx1+1], nodes_coords[3*idx1+2]);
+    int idx2 = iend - 1 + 1; //printf("idx2 = %i noeud : %12.5e, %12.5e, %12.5e\n", idx2, nodes_coords[3*idx2], nodes_coords[3*idx2+1], nodes_coords[3*idx2+2]);
+    int idx3 = iend + 1 + k1; //printf("idx3 = %i noeud : %12.5e, %12.5e, %12.5e\n", idx3, nodes_coords[3*idx3], nodes_coords[3*idx3+1], nodes_coords[3*idx3+2]);
+    int idx4 = n_nodes_basis + iend - 1; //printf("idx4 = %i noeud : %12.5e, %12.5e, %12.5e\n", idx4, nodes_coords[3*idx4], nodes_coords[3*idx4+1], nodes_coords[3*idx4+2]);
+    int idx5 = n_nodes_basis + iend - 1 + 1; //printf("idx5 = %i noeud : %12.5e, %12.5e, %12.5e\n", idx5, nodes_coords[3*idx5], nodes_coords[3*idx5+1], nodes_coords[3*idx5+2]);
+    int idx6 = n_nodes_basis + iend + 1 + k1; //printf("idx6 = %i\n noeud : %12.5e, %12.5e, %12.5e\n", idx6, nodes_coords[3*idx6], nodes_coords[3*idx6+1], nodes_coords[3*idx6+2]);
 
     double x1 = nodes_coords[3*idx1];
     double y1 = nodes_coords[3*idx1 + 1];
@@ -3828,13 +3945,21 @@ _heap_fill_pn_prism_sub_tetra
     double y6 = nodes_coords[3*idx6 + 1];
     double z6 = nodes_coords[3*idx6 + 2];
 
+    /*printf("\nCOORDONNEES DU SOUS PRISM : \n °P1 : %12.5e, %12.5e, %12.5e\n °P2 : %12.5e, %12.5e, %12.5e\n °P3 : %12.5e, %12.5e, %12.5e\n °P4 : %12.5e, %12.5e, %12.5e\n °P5 : %12.5e, %12.5e, %12.5e\n °P6 : %12.5e, %12.5e, %12.5e\n",
+              x1, y1, z1,
+              x2, y2, z2,
+              x3, y3, z3,
+              x4, y4, z4,
+              x5, y5, z5,
+              x6, y6, z6);*/
 
-    double __vertex_coords[18] = {x1, y1, z1,
-                                  x2, y2, z2,
-                                  x3, y3, z3,
-                                  x4, y4, y4,
-                                  x5, y5, z5,
-                                  x6, y6, z6};
+
+    double _vertex_prism[18] = {x1, y1, z1,
+                                x2, y2, z2,
+                                x3, y3, z3,
+                                x4, y4, z4,
+                                x5, y5, z5,
+                                x6, y6, z6};
 
     double _uvwPn_sub_prism[18];
     _uvwPn_sub_prism[0]  = uvwNodes[3*idx1];
@@ -3856,18 +3981,42 @@ _heap_fill_pn_prism_sub_tetra
     _uvwPn_sub_prism[16] = uvwNodes[3*idx6+1];
     _uvwPn_sub_prism[17] = uvwNodes[3*idx6+2];
 
+    /*printf("\nCOORDONNEES DU SOUS PRISM :\n  P1 %12.5e, %12.5e, %12.5e\n  P2 %12.5e, %12.5e, %12.5e\n  P3 %12.5e, %12.5e, %12.5e\n  P4 %12.5e, %12.5e, %12.5e\n  P5 %12.5e, %12.5e, %12.5e\n  P6 %12.5e, %12.5e, %12.5e\n",
+            _vertex_prism[0], _vertex_prism[1], _vertex_prism[2],
+            _vertex_prism[3], _vertex_prism[4], _vertex_prism[5],
+            _vertex_prism[6], _vertex_prism[7], _vertex_prism[8],
+            _vertex_prism[9], _vertex_prism[10], _vertex_prism[11],
+            _vertex_prism[12], _vertex_prism[13], _vertex_prism[14],
+            _vertex_prism[15], _vertex_prism[16], _vertex_prism[17]);*/
+
     _prism_to_tetra(_vertex_prism, _vertex_tetra, _uvwPn_sub_prism, _uvw_vertex_tetra);
 
+    /*printf("COORDS PARAM SOUS TETRA : \n~~~~~~~~~ TETRA 1 ~~~~~~~~~~\n  %12.5e, %12.5e, %12.5e\n  %12.5e, %12.5e, %12.5e\n  %12.5e, %12.5e, %12.5e\n  %12.5e, %12.5e, %12.5e\n~~~~~~~~~ TETRA 2 ~~~~~~~~~~\n  %12.5e, %12.5e, %12.5e\n  %12.5e, %12.5e, %12.5e\n  %12.5e, %12.5e, %12.5e\n  %12.5e, %12.5e, %12.5e\n~~~~~~~~~ TETRA 3 ~~~~~~~~~~\n  %12.5e, %12.5e, %12.5e\n  %12.5e, %12.5e, %12.5e\n  %12.5e, %12.5e, %12.5e\n  %12.5e, %12.5e, %12.5e \n",
+  _vertex_tetra[0], _vertex_tetra[1], _vertex_tetra[2], _vertex_tetra[3], _vertex_tetra[4], _vertex_tetra[5], _vertex_tetra[6], _vertex_tetra[7], _vertex_tetra[8], _vertex_tetra[9], _vertex_tetra[10], _vertex_tetra[11],
+  _vertex_tetra[12], _vertex_tetra[13], _vertex_tetra[14], _vertex_tetra[15], _vertex_tetra[16], _vertex_tetra[17], _vertex_tetra[18], _vertex_tetra[19], _vertex_tetra[20], _vertex_tetra[21], _vertex_tetra[22], _vertex_tetra[23],
+  _vertex_tetra[24], _vertex_tetra[25], _vertex_tetra[26], _vertex_tetra[27], _vertex_tetra[28], _vertex_tetra[29], _vertex_tetra[30], _vertex_tetra[31], _vertex_tetra[32], _vertex_tetra[33], _vertex_tetra[34], _vertex_tetra[35]);
+    printf("COORDS PARAM SOUS TETRA : \n~~~~~~~~~ TETRA 1 ~~~~~~~~~~\n  %12.5e, %12.5e, %12.5e\n  %12.5e, %12.5e, %12.5e\n  %12.5e, %12.5e, %12.5e\n  %12.5e, %12.5e, %12.5e\n~~~~~~~~~ TETRA 2 ~~~~~~~~~~\n  %12.5e, %12.5e, %12.5e\n  %12.5e, %12.5e, %12.5e\n  %12.5e, %12.5e, %12.5e\n  %12.5e, %12.5e, %12.5e\n~~~~~~~~~ TETRA 3 ~~~~~~~~~~\n  %12.5e, %12.5e, %12.5e\n  %12.5e, %12.5e, %12.5e\n  %12.5e, %12.5e, %12.5e\n  %12.5e, %12.5e, %12.5e \n\n",
+  _uvw_vertex_tetra[0], _uvw_vertex_tetra[1], _uvw_vertex_tetra[2], _uvw_vertex_tetra[3], _uvw_vertex_tetra[4], _uvw_vertex_tetra[5], _uvw_vertex_tetra[6], _uvw_vertex_tetra[7], _uvw_vertex_tetra[8], _uvw_vertex_tetra[9], _uvw_vertex_tetra[10], _uvw_vertex_tetra[11],
+  _uvw_vertex_tetra[12], _uvw_vertex_tetra[13], _uvw_vertex_tetra[14], _uvw_vertex_tetra[15], _uvw_vertex_tetra[16], _uvw_vertex_tetra[17], _uvw_vertex_tetra[18], _uvw_vertex_tetra[19], _uvw_vertex_tetra[20], _uvw_vertex_tetra[21], _uvw_vertex_tetra[22], _uvw_vertex_tetra[23],
+  _uvw_vertex_tetra[24], _uvw_vertex_tetra[25], _uvw_vertex_tetra[26], _uvw_vertex_tetra[27], _uvw_vertex_tetra[28], _uvw_vertex_tetra[29], _uvw_vertex_tetra[30], _uvw_vertex_tetra[31], _uvw_vertex_tetra[32], _uvw_vertex_tetra[33], _uvw_vertex_tetra[34], _uvw_vertex_tetra[35]);
+*/
     for (int n=0; n < 3; n++) {
 
       double __vertex_coords[12];
       double _uvwPn_sub_tetra[12];
-      for (int n1 = 0; n < 12) {
+      for (int n1 = 0; n1 < 12; n1++) {
         const double *__vertex_tetra = _vertex_tetra + 12*n + n1;
         const double *__uvw_vertex_tetra = _uvw_vertex_tetra + 12*n + n1;
-        __vertex_coords[n1] = __vertex_tetra[n1];
-        _uvwPn_sub_tetra[n1] = __uvw_vertex_tetra[n1];
+        __vertex_coords[n1] = *__vertex_tetra;
+        _uvwPn_sub_tetra[n1] = *__uvw_vertex_tetra;
       }
+
+      /*printf("SOMMETS PN DU TETRAEDRE %i : \n ~P1 : %12.5e, %12.5e, %12.5e || %12.5e, %12.5e, %12.5e\n ~P2 : %12.5e, %12.5e, %12.5e || %12.5e, %12.5e, %12.5e\n ~P3 : %12.5e, %12.5e, %12.5e || %12.5e, %12.5e, %12.5e\n ~P4 : %12.5e, %12.5e, %12.5e || %12.5e, %12.5e, %12.5e\n",
+      n,
+     __vertex_coords[0], __vertex_coords[1], __vertex_coords[2], _uvwPn_sub_tetra[0], _uvwPn_sub_tetra[1], _uvwPn_sub_tetra[2],
+     __vertex_coords[3], __vertex_coords[4], __vertex_coords[5], _uvwPn_sub_tetra[3], _uvwPn_sub_tetra[4], _uvwPn_sub_tetra[5],
+     __vertex_coords[6], __vertex_coords[7], __vertex_coords[8], _uvwPn_sub_tetra[6], _uvwPn_sub_tetra[7], _uvwPn_sub_tetra[8],
+     __vertex_coords[9], __vertex_coords[10], __vertex_coords[11], _uvwPn_sub_tetra[9], _uvwPn_sub_tetra[10], _uvwPn_sub_tetra[11]);*/
 
       double _closest_pointP1[3];
       double _uvwClosestPointP1[3];
@@ -3888,241 +4037,55 @@ _heap_fill_pn_prism_sub_tetra
           _uvwClosestPointPn[j1] = 0;
         }
         for (int j1 = 0; j1 < 3; j1++) {
-          for (int k = 0; k < 4; k++) {
-            _uvwClosestPointPn[j1] += _weightsClosestPointP1[k] * _uvwPn_sub_tetra[2*k + j1];
+          for (int j2 = 0; j2 < 4; j2++) {
+            _uvwClosestPointPn[j1] += _weightsClosestPointP1[j2] * _uvwPn_sub_tetra[3*j2 + j1];
           }
         }
 
-        _heap_insert (heap,
+        _heap_insert_te (heap,
                       __vertex_coords,
                       _uvwPn_sub_tetra,
                       _closest_pointP1,
                       _uvwClosestPointP1,
                       _uvwClosestPointPn,
                       _dist2, child++);
+
+        /*printf("\nCHILD = %i || DISTANCE = %12.5e\nCOORDONNEES TETRA :\n   0 %12.5e, %12.5e, %12.5e || %12.5e, %12.5e, %12.5e\n   1 %12.5e, %12.5e, %12.5e || %12.5e, %12.5e, %12.5e\n   2 %12.5e, %12.5e, %12.5e || %12.5e, %12.5e, %12.5e\n   3 %12.5e, %12.5e, %12.5e || %12.5e, %12.5e, %12.5e\nCLOSEST POINT PARAM P1 & Pn\n   x,u  %12.5e || %12.5e\n   y,v  %12.5e || %12.5e\n   z,w  %12.5e || %12.5e\nPOIDS DES SOMMETS :\n   W0 = %12.5e\n   W1 = %12.5e\n   W2 = %12.5e\n   W3 = %12.5e\n",
+      child, _dist2,
+    __vertex_coords[0], __vertex_coords[1], __vertex_coords[2], _uvwPn_sub_tetra[0], _uvwPn_sub_tetra[1], _uvwPn_sub_tetra[2],
+    __vertex_coords[3], __vertex_coords[4], __vertex_coords[5], _uvwPn_sub_tetra[3], _uvwPn_sub_tetra[4], _uvwPn_sub_tetra[5],
+    __vertex_coords[6], __vertex_coords[7], __vertex_coords[8], _uvwPn_sub_tetra[6], _uvwPn_sub_tetra[7], _uvwPn_sub_tetra[8],
+    __vertex_coords[9], __vertex_coords[10], __vertex_coords[11], _uvwPn_sub_tetra[9], _uvwPn_sub_tetra[10], _uvwPn_sub_tetra[11],
+    _closest_pointP1[0], _uvwClosestPointPn[0], _closest_pointP1[1], _uvwClosestPointPn[1], _closest_pointP1[2], _uvwClosestPointPn[2],
+    _weightsClosestPointP1[0], _weightsClosestPointP1[1], _weightsClosestPointP1[2], _weightsClosestPointP1[3]);*/
       }
+
 
     }
 
     ibeg = iend + 1;
     iend += order - j;
   }
-  free (uvNodes);
-  free (_vertex_tetra);
-  free (_uvw_vertex_tetra);
-}
-LAA */
-/*----------------------------------------------------------------------------
- *
- *  Extract 3 tetrahedron from a prism
- *
- *----------------------------------------------------------------------------*/
- /* ICI
-void _prism_to_tetra
-(
-  double vertex_prism,
-  double *vertex_tetra,
-  double uvwPn_prism,
-  double *uvw_tetra
-)
-{
-
-  for (int i = 0; i < 3; i++) {
-    for (intj = 0; j < 12; j++) {
-      vertex_tetra[12*i + j] = vertex_prism[3*i + j];
-      uvw_tetra[12*i + j] = uvwPn_prism[3*i + j];
-    }
+  ibeg ++;
+  iend = ibeg + order;
   }
-
-}
-
-
-
-LAA */
-
-/*----------------------------------------------------------------------------
- *
- * Add sub-tetrahedron of a pn-hexahedron in the heap
- *
- * parameters:
- *   heap             <-- heap to initialize
- *   order            <-- element order
- *   n_node           <-- number of nodes
- *   ho_vertex_num    <-- high order vertex num (internal ordering)
- *   vertex_coords    <-- vertex coordinates
- *   point_coords     <-- point to locate coordinates
- *
- *----------------------------------------------------------------------------*/
-/* ICI
-static void
-_heap_fill_pn_hexa_sub_tetra
-(
- _heap_te *heap,
- const int order,
- const int n_nodes,
- const double *nodes_coords,
- const double *point_coords
-)
-{
-  int step = order + 1;
-  int n_nodes_basis = step * step;
-
-  double *uvwNodes   = malloc (sizeof(double) * 3 * n_nodes);
-
-  _uvw_ho_hexa_nodes (order, 0., 1., 0, 1., 0., 1., uvwNodes);
-
-  int child = 0;
-  for (int k = 0; k < order; k++) {
-    k1 = k+1;
-    for (int j = 0; j < order; j++) {
-      j1 = j+1;
-      for (int i = 0; i < order; i++) {
-        i1 = i+1;
-
-        int idx1 = k * n_nodes_basis + j * step + i;
-        int idx2 = k * n_nodes_basis + j * step + i1;
-        int idx3 = k * n_nodes_basis + j1 * step + i;
-        int idx4 = k * n_nodes_basis + j1 * step + i1;
-        int idx5 = k1 * n_nodes_basis + j * step + i;
-        int idx6 = k1 * n_nodes_basis + j * step + i1;
-        int idx7 = k1 * n_nodes_basis + j1 * step + i;
-        int idx8 = k1 * n_nodes_basis + j1 * step + i1;
-
-        double x1 = nodes_coords[3*idx1];
-        double y1 = nodes_coords[3*idx1 + 1];
-        double z1 = nodes_coords[3*idx1 + 2];
-
-        double x2 = nodes_coords[3*idx2];
-        double y2 = nodes_coords[3*idx2 + 1];
-        double z2 = nodes_coords[3*idx2 + 2];
-
-        double x3 = nodes_coords[3*idx3];
-        double y3 = nodes_coords[3*idx3 + 1];
-        double z3 = nodes_coords[3*idx3 + 2];
-
-        double x4 = nodes_coords[3*idx4];
-        double y4 = nodes_coords[3*idx4 + 1];
-        double z4 = nodes_coords[3*idx4 + 2];
-
-        double x5 = nodes_coords[3*idx5];
-        double y5 = nodes_coords[3*idx5 + 1];
-        double z5 = nodes_coords[3*idx5 + 2];
-
-        double x6 = nodes_coords[3*idx6];
-        double y6 = nodes_coords[3*idx6 + 1];
-        double z6 = nodes_coords[3*idx6 + 2];
-
-        double x7 = nodes_coords[3*idx7];
-        double y7 = nodes_coords[3*idx7 + 1];
-        double z7 = nodes_coords[3*idx7 + 2];
-
-        double x8 = nodes_coords[3*idx8];
-        double y8 = nodes_coords[3*idx8 + 1];
-        double z8 = nodes_coords[3*idx8 + 2];
-
-        double _vertex_hexa[24] = {x1, y1, z1,
-                                   x2, y2, z2,
-                                   x3, y3, z3,
-                                   x4, y4, z4
-                                   x5, y5, z5,
-                                   x6, y6, z6,
-                                   x7, y7, z7,
-                                   x8, y8, z8};
-
-        double _uvwPn_sub_hexa[24];
-        _uvwPn_sub_hexa[0]  = uvwNodes[3*idx1];
-        _uvwPn_sub_hexa[1]  = uvwNodes[3*idx1+1];
-        _uvwPn_sub_hexa[2]  = uvwNodes[3*idx2+2];
-        _uvwPn_sub_hexa[3]  = uvwNodes[3*idx2];
-        _uvwPn_sub_hexa[4]  = uvwNodes[3*idx2+1];
-        _uvwPn_sub_hexa[5]  = uvwNodes[3*idx2+2];
-        _uvwPn_sub_hexa[6]  = uvwNodes[3*idx3];
-        _uvwPn_sub_hexa[7]  = uvwNodes[3*idx3+1];
-        _uvwPn_sub_hexa[8]  = uvwNodes[3*idx3+2];
-        _uvwPn_sub_hexa[9]  = uvwNodes[3*idx4];
-        _uvwPn_sub_hexa[10] = uvwNodes[3*idx4+1];
-        _uvwPn_sub_hexa[11] = uvwNodes[3*idx4+2];
-        _uvwPn_sub_hexa[12] = uvwNodes[3*idx5];
-        _uvwPn_sub_hexa[13] = uvwNodes[3*idx5+1];
-        _uvwPn_sub_hexa[14] = uvwNodes[3*idx5+2];
-        _uvwPn_sub_hexa[15] = uvwNodes[3*idx6];
-        _uvwPn_sub_hexa[16] = uvwNodes[3*idx6+1];
-        _uvwPn_sub_hexa[17] = uvwNodes[3*idx6+2];
-        _uvwPn_sub_hexa[18] = uvwNodes[3*idx7];
-        _uvwPn_sub_hexa[19] = uvwNodes[3*idx7+1];
-        _uvwPn_sub_hexa[20] = uvwNodes[3*idx7+2];
-        _uvwPn_sub_hexa[21] = uvwNodes[3*idx8];
-        _uvwPn_sub_hexa[22] = uvwNodes[3*idx8+1];
-        _uvwPn_sub_hexa[23] = uvwNodes[3*idx8+2];
-
-        double *_vertex_tetra = malloc(sizeof(double) * 5 * 4 * 3);
-        double *_uvw_vertex_tetra = malloc(sizeof(double) * 5 * 4 * 3);
-        _hexa_to_tetra(_vertex_hexa, _vertex_tetra, _uvwPn_sub_hexa, _uvw_vertex_tetra);
-
-        for (int n=0; n < 5; n++) {
-
-          double __vertex_coords[12];
-          double _uvwPn_sub_tetra[12];
-          for (int n1 = 0; n < 12) {
-            const double *__vertex_tetra = _vertex_tetra + 12*n + n1;
-            const double *__uvw_vertex_tetra = _uvw_vertex_tetra + 12*n + n1;
-            __vertex_coords[n1] = __vertex_tetra[n1];
-            _uvwPn_sub_tetra[n1] = __uvw_vertex_tetra[n1];
-          }
-
-          double _closest_pointP1[3];
-          double _uvwClosestPointP1[3];
-          double _uvwClosestPointPn[3];
-          double _weightsClosestPointP1[4];
-          double _dist2;
-
-          int isDegenerated = fvmc_tetrahedron_evaluate_Position ((double *)point_coords,
-                                                                  __vertex_coords,
-                                                                  _closest_pointP1,
-                                                                  _uvwClosestPointP1,
-                                                                  &_dist2,
-                                                                  _weightsClosestPointP1);
-
-          if (isDegenerated != -1) {
-
-            for (int j1 = 0; j1 < 3; j1++) {
-              _uvwClosestPointPn[j1] = 0;
-            }
-            for (int j1 = 0; j1 < 3; j1++) {
-              for (int k = 0; k < 4; k++) {
-                _uvwClosestPointPn[j1] += _weightsClosestPointP1[k] * _uvwPn_sub_tetra[2*k + j1];
-              }
-            }
-
-            _heap_insert (heap,
-                          __vertex_coords,
-                          _uvwPn_sub_tetra,
-                          _closest_pointP1,
-                          _uvwClosestPointP1,
-                          _uvwClosestPointPn,
-                          _dist2, child++);
-          }
-        }
-      }
-    }
-  }
-  free (uvNodes);
+  free (uvwNodes);
   free (_vertex_tetra);
   free (_uvw_vertex_tetra);
 }
 
-LAA */
+
 /*----------------------------------------------------------------------------
  *
  *  Extract 5 tetrahedron from an hexahedron
  *
  *----------------------------------------------------------------------------*/
- /* ICI
-void _hexa_to_tetra
+
+static void _hexa_to_tetra
 (
-  double vertex_hexa,
+  double *vertex_hexa,
   double *vertex_tetra,
-  double uvwPn_hexa,
+  double *uvwPn_hexa,
   double *uvw_tetra
 )
 {
@@ -4218,11 +4181,12 @@ void _hexa_to_tetra
 }
 
 
-LAA */
+
+
 
 /*----------------------------------------------------------------------------
  *
- * Add sub-tetrahedron of a pn-tetrahedron in the heap
+ * Add sub-tetrahedron of a pn-hexahedron in the heap
  *
  * parameters:
  *   heap             <-- heap to initialize
@@ -4233,9 +4197,9 @@ LAA */
  *   point_coords     <-- point to locate coordinates
  *
  *----------------------------------------------------------------------------*/
-/* ICI
+
 static void
-_heap_fill_pn_tetra_sub_tetra
+_heap_fill_pn_hexa_sub_tetra
 (
  _heap_te *heap,
  const int order,
@@ -4244,26 +4208,32 @@ _heap_fill_pn_tetra_sub_tetra
  const double *point_coords
 )
 {
-
+  int step = order + 1;
+  int a = 0;
+  int n_nodes_basis = step * step;
 
   double *uvwNodes   = malloc (sizeof(double) * 3 * n_nodes);
+  double *_vertex_tetra = malloc(sizeof(double) * 5 * 4 * 3);
+  double *_uvw_vertex_tetra = malloc(sizeof(double) * 5 * 4 * 3);
 
-  _uvw_ho_tetra_nodes (order, 0., 1., 0, 1., 0., 1., uvwNodes);
+  _uvw_ho_hexa_nodes (order, 0., 1., 0, 1., 0., 1., uvwNodes);
 
-  int step = 0;
-  int ibeg = 0;
   int child = 0;
   for (int k = 0; k < order; k++) {
-    int n_nodes_basis = (order+1-k)*(order+2-k)/2;
-    for (int j = 0; j < order - k; j++) {
-      step = order - j - k + 1;
-      for (int i = ibeg; i < ibeg + step - 1; i++) {
-        i1 = i+1;
+    int k1 = k+1;
+    for (int j = 0; j < order; j++) {
+      int j1 = j+1;
+      for (int i = 0; i < order; i++) {
+        int i1 = i+1;
 
-        int idx1 = i;
-        int idx2 = i1;
-        int idx3 = i + step;
-        int idx4 = i + n_nodes_basis - j;
+        int idx1 = k * n_nodes_basis + j * step + i;
+        int idx2 = k * n_nodes_basis + j * step + i1;
+        int idx3 = k * n_nodes_basis + j1 * step + i;
+        int idx4 = k * n_nodes_basis + j1 * step + i1;
+        int idx5 = k1 * n_nodes_basis + j * step + i;
+        int idx6 = k1 * n_nodes_basis + j * step + i1;
+        int idx7 = k1 * n_nodes_basis + j1 * step + i;
+        int idx8 = k1 * n_nodes_basis + j1 * step + i1;
 
         double x1 = nodes_coords[3*idx1];
         double y1 = nodes_coords[3*idx1 + 1];
@@ -4281,194 +4251,127 @@ _heap_fill_pn_tetra_sub_tetra
         double y4 = nodes_coords[3*idx4 + 1];
         double z4 = nodes_coords[3*idx4 + 2];
 
-        double __vertex_coords[12] = {x1, y1, z1,
-                                      x2, y2, z2,
-                                      x3, y3, z3,
-                                      x4, y4, z4};
+        double x5 = nodes_coords[3*idx5];
+        double y5 = nodes_coords[3*idx5 + 1];
+        double z5 = nodes_coords[3*idx5 + 2];
 
-        double _uvwPn_sub_tetra[12];
-        _uvwPn_sub_tetra[0]  = uvwNodes[3*idx1];
-        _uvwPn_sub_tetra[1]  = uvwNodes[3*idx1+1];
-        _uvwPn_sub_tetra[2]  = uvwNodes[3*idx2+2];
-        _uvwPn_sub_tetra[3]  = uvwNodes[3*idx2];
-        _uvwPn_sub_tetra[4]  = uvwNodes[3*idx2+1];
-        _uvwPn_sub_tetra[5]  = uvwNodes[3*idx2+2];
-        _uvwPn_sub_tetra[6]  = uvwNodes[3*idx3];
-        _uvwPn_sub_tetra[7]  = uvwNodes[3*idx3+1];
-        _uvwPn_sub_tetra[8]  = uvwNodes[3*idx3+2];
-        _uvwPn_sub_tetra[9]  = uvwNodes[3*idx4];
-        _uvwPn_sub_tetra[10] = uvwNodes[3*idx4+1];
-        _uvwPn_sub_tetra[11] = uvwNodes[3*idx4+2];
+        double x6 = nodes_coords[3*idx6];
+        double y6 = nodes_coords[3*idx6 + 1];
+        double z6 = nodes_coords[3*idx6 + 2];
+
+        double x7 = nodes_coords[3*idx7];
+        double y7 = nodes_coords[3*idx7 + 1];
+        double z7 = nodes_coords[3*idx7 + 2];
+
+        double x8 = nodes_coords[3*idx8];
+        double y8 = nodes_coords[3*idx8 + 1];
+        double z8 = nodes_coords[3*idx8 + 2];
+
+        double _vertex_hexa[24] = {x1, y1, z1,
+                                   x2, y2, z2,
+                                   x3, y3, z3,
+                                   x4, y4, z4,
+                                   x5, y5, z5,
+                                   x6, y6, z6,
+                                   x7, y7, z7,
+                                   x8, y8, z8};
 
 
-        double _closest_pointP1[3];
-        double _uvwClosestPointP1[3];
-        double _uvwClosestPointPn[3];
-        double _weightsClosestPointP1[4];
-        double _dist2;
+        double _uvwPn_sub_hexa[24];
+        _uvwPn_sub_hexa[0]  = uvwNodes[3*idx1];
+        _uvwPn_sub_hexa[1]  = uvwNodes[3*idx1+1];
+        _uvwPn_sub_hexa[2]  = uvwNodes[3*idx2+2];
+        _uvwPn_sub_hexa[3]  = uvwNodes[3*idx2];
+        _uvwPn_sub_hexa[4]  = uvwNodes[3*idx2+1];
+        _uvwPn_sub_hexa[5]  = uvwNodes[3*idx2+2];
+        _uvwPn_sub_hexa[6]  = uvwNodes[3*idx3];
+        _uvwPn_sub_hexa[7]  = uvwNodes[3*idx3+1];
+        _uvwPn_sub_hexa[8]  = uvwNodes[3*idx3+2];
+        _uvwPn_sub_hexa[9]  = uvwNodes[3*idx4];
+        _uvwPn_sub_hexa[10] = uvwNodes[3*idx4+1];
+        _uvwPn_sub_hexa[11] = uvwNodes[3*idx4+2];
+        _uvwPn_sub_hexa[12] = uvwNodes[3*idx5];
+        _uvwPn_sub_hexa[13] = uvwNodes[3*idx5+1];
+        _uvwPn_sub_hexa[14] = uvwNodes[3*idx5+2];
+        _uvwPn_sub_hexa[15] = uvwNodes[3*idx6];
+        _uvwPn_sub_hexa[16] = uvwNodes[3*idx6+1];
+        _uvwPn_sub_hexa[17] = uvwNodes[3*idx6+2];
+        _uvwPn_sub_hexa[18] = uvwNodes[3*idx7];
+        _uvwPn_sub_hexa[19] = uvwNodes[3*idx7+1];
+        _uvwPn_sub_hexa[20] = uvwNodes[3*idx7+2];
+        _uvwPn_sub_hexa[21] = uvwNodes[3*idx8];
+        _uvwPn_sub_hexa[22] = uvwNodes[3*idx8+1];
+        _uvwPn_sub_hexa[23] = uvwNodes[3*idx8+2];
 
-        int isDegenerated = fvmc_tetrahedron_evaluate_Position ((double *)point_coords,
+
+        _hexa_to_tetra(_vertex_hexa, _vertex_tetra, _uvwPn_sub_hexa, _uvw_vertex_tetra);
+
+        for (int n=0; n < 5; n++) {
+
+          double __vertex_coords[12];
+          double _uvwPn_sub_tetra[12];
+          for (int n1 = 0; n1 < 12; n1++) {
+            const double *__vertex_tetra = _vertex_tetra + 12*n + n1;
+            const double *__uvw_vertex_tetra = _uvw_vertex_tetra + 12*n + n1;
+            __vertex_coords[n1] = *__vertex_tetra;
+            _uvwPn_sub_tetra[n1] = *__uvw_vertex_tetra;
+          }
+
+
+          double _closest_pointP1[3];
+          double _uvwClosestPointP1[3];
+          double _uvwClosestPointPn[3];
+          double _weightsClosestPointP1[4];
+          double _dist2;
+
+          int isDegenerated = fvmc_tetrahedron_evaluate_Position ((double *)point_coords,
                                                                   __vertex_coords,
                                                                   _closest_pointP1,
                                                                   _uvwClosestPointP1,
                                                                   &_dist2,
                                                                   _weightsClosestPointP1);
 
-        if (isDegenerated != -1) {
+          if (isDegenerated != -1) {
 
-          for (int j1 = 0; j1 < 3; j1++) {
-               _uvwClosestPointPn[j1] = 0;
-          }
-          for (int j1 = 0; j1 < 3; j1++) {
-            for (int k = 0; k < 4; k++) {
-              _uvwClosestPointPn[j1] += _weightsClosestPointP1[k] * _uvwPn_sub_tetra[2*k + j1];
+            for (int n1 = 0; n1 < 3; n1++) {
+              _uvwClosestPointPn[n1] = 0;
             }
-          }
-
-          _heap_insert (heap,
-                        __vertex_coords,
-                        _uvwPn_sub_tetra,
-                        _closest_pointP1,
-                        _uvwClosestPointP1,
-                        _uvwClosestPointPn,
-                        _dist2, child++);
-        }
-
-        if ( j != 0) {
-          int idx1 = i;
-          int idx2 = i1;
-          int idx3 = i - step;
-          int idx4 = i - step + n_nodes_basis - j;
-          int idx5 = i + n_nodes_basis - j;
-          int idx6 = i - step + n_nodes_basis - j + 1;
-
-
-          double x1 = nodes_coords[3*idx1];
-          double y1 = nodes_coords[3*idx1 + 1];
-          double z1 = nodes_coords[3*idx1 + 2];
-
-          double x2 = nodes_coords[3*idx2];
-          double y2 = nodes_coords[3*idx2 + 1];
-          double z2 = nodes_coords[3*idx2 + 2];
-
-          double x3 = nodes_coords[3*idx3];
-          double y3 = nodes_coords[3*idx3 + 1];
-          double z3 = nodes_coords[3*idx3 + 2];
-
-          double x4 = nodes_coords[3*idx4];
-          double y4 = nodes_coords[3*idx4 + 1];
-          double z4 = nodes_coords[3*idx4 + 2];
-
-          double x5 = nodes_coords[3*idx5];
-          double y5 = nodes_coords[3*idx5 + 1];
-          double z5 = nodes_coords[3*idx5 + 2];
-
-          double x6 = nodes_coords[3*idx6];
-          double y6 = nodes_coords[3*idx6 + 1];
-          double z6 = nodes_coords[3*idx6 + 2];
-
-
-          double _vertex_octa[18] = {x1, y1, z1,
-                                     x2, y2, z2,
-                                     x3, y3, z3,
-                                     x4, y4, z4
-                                     x5, y5, z5,
-                                     x6, y6, z6};
-
-          double _uvwPn_sub_octa[18];
-          _uvwPn_sub_octa[0]  = uvwNodes[3*idx1];
-          _uvwPn_sub_octa[1]  = uvwNodes[3*idx1+1];
-          _uvwPn_sub_octa[2]  = uvwNodes[3*idx2+2];
-          _uvwPn_sub_octa[3]  = uvwNodes[3*idx2];
-          _uvwPn_sub_octa[4]  = uvwNodes[3*idx2+1];
-          _uvwPn_sub_octa[5]  = uvwNodes[3*idx2+2];
-          _uvwPn_sub_octa[6]  = uvwNodes[3*idx3];
-          _uvwPn_sub_octa[7]  = uvwNodes[3*idx3+1];
-          _uvwPn_sub_octa[8]  = uvwNodes[3*idx3+2];
-          _uvwPn_sub_octa[9]  = uvwNodes[3*idx4];
-          _uvwPn_sub_octa[10] = uvwNodes[3*idx4+1];
-          _uvwPn_sub_octa[11] = uvwNodes[3*idx4+2];
-          _uvwPn_sub_octa[12] = uvwNodes[3*idx5];
-          _uvwPn_sub_octa[13] = uvwNodes[3*idx5+1];
-          _uvwPn_sub_octa[14] = uvwNodes[3*idx5+2];
-          _uvwPn_sub_octa[15] = uvwNodes[3*idx6];
-          _uvwPn_sub_octa[16] = uvwNodes[3*idx6+1];
-          _uvwPn_sub_octa[17] = uvwNodes[3*idx6+2];
-
-          double *_vertex_tetra = malloc(sizeof(double) * 4 * 4 * 3);
-          double *_uvw_vertex_tetra = malloc(sizeof(double) * 4 * 4 * 3);
-          _octa_to_tetra(_vertex_hexa, _vertex_tetra, _uvwPn_sub_hexa, _uvw_vertex_tetra);
-
-          for (int n=0; n < 4; n++) {
-
-            double __vertex_coords[12];
-            double _uvwPn_sub_tetra[12];
-            for (int n1 = 0; n < 12) {
-              const double *__vertex_tetra = _vertex_tetra + 12*n + n1;
-              const double *__uvw_vertex_tetra = _uvw_vertex_tetra + 12*n + n1;
-              __vertex_coords[n1] = __vertex_tetra[n1];
-              _uvwPn_sub_tetra[n1] = __uvw_vertex_tetra[n1];
-            }
-
-            double _closest_pointP1[3];
-            double _uvwClosestPointP1[3];
-            double _uvwClosestPointPn[3];
-            double _weightsClosestPointP1[4];
-            double _dist2;
-
-            int isDegenerated = fvmc_tetrahedron_evaluate_Position ((double *)point_coords,
-                                                                    __vertex_coords,
-                                                                    _closest_pointP1,
-                                                                    _uvwClosestPointP1,
-                                                                    &_dist2,
-                                                                    _weightsClosestPointP1);
-
-            if (isDegenerated != -1) {
-
-              for (int j1 = 0; j1 < 3; j1++) {
-                _uvwClosestPointPn[j1] = 0;
+            for (int n1 = 0; n1 < 3; n1++) {
+              for (int n2 = 0; n2 < 4; n2++) {
+                _uvwClosestPointPn[n1] += _weightsClosestPointP1[n2] * _uvwPn_sub_tetra[3*n2 + n1];
               }
-              for (int j1 = 0; j1 < 3; j1++) {
-                for (int k = 0; k < 4; k++) {
-                  _uvwClosestPointPn[j1] += _weightsClosestPointP1[k] * _uvwPn_sub_tetra[2*k + j1];
-                }
-              }
-
-              _heap_insert (heap,
-                            __vertex_coords,
-                            _uvwPn_sub_tetra,
-                            _closest_pointP1,
-                            _uvwClosestPointP1,
-                            _uvwClosestPointPn,
-                            _dist2, child++);
             }
+
+            _heap_insert_te (heap,
+                          __vertex_coords,
+                          _uvwPn_sub_tetra,
+                          _closest_pointP1,
+                          _uvwClosestPointP1,
+                          _uvwClosestPointPn,
+                          _dist2, child++);
           }
-
-
         }
-
       }
-      ibeg += step;
     }
-    ibeg ++;
   }
-  free (uvNodes);
+  free (uvwNodes);
   free (_vertex_tetra);
   free (_uvw_vertex_tetra);
 }
-LAA */
+
+
 
 /*----------------------------------------------------------------------------
  *
  *  Extract 4 tetrahedron from an octahedron
  *
  *----------------------------------------------------------------------------*/
- /* ICI
-void _octa_to_tetra
+
+static void _octa_to_tetra
 (
-  double vertex_octa,
+  double *vertex_octa,
   double *vertex_tetra,
-  double uvwPn_octa,
+  double *uvwPn_octa,
   double *uvw_tetra
 )
 {
@@ -4490,6 +4393,9 @@ void _octa_to_tetra
   vertex_tetra[10] = vertex_octa[16]; uvw_tetra[10] = uvwPn_octa[16];
   vertex_tetra[11] = vertex_octa[17]; uvw_tetra[11] = uvwPn_octa[17];
 
+  /*printf("coordonnee du premier tetra de l'octa:\n P1 (%12.5e, %12.5e, %12.5e)\n P2 (%12.5e, %12.5e, %12.5e)\n P3 (%12.5e, %12.5e, %12.5e)\n P4 (%12.5e, %12.5e, %12.5e)",
+ vertex_tetra[0], vertex_tetra[1], vertex_tetra[2], vertex_tetra[3], vertex_tetra[4], vertex_tetra[5], vertex_tetra[6], vertex_tetra[7], vertex_tetra[8], vertex_tetra[9], vertex_tetra[10],vertex_tetra[11]);
+*/
   // 2nd tetra
   vertex_tetra[12] = vertex_octa[0];  uvw_tetra[12] = uvwPn_octa[0];
   vertex_tetra[13] = vertex_octa[1];  uvw_tetra[13] = uvwPn_octa[1];
@@ -4544,7 +4450,300 @@ void _octa_to_tetra
 
 
 }
-LAA */
+
+
+
+
+
+/*----------------------------------------------------------------------------
+ *
+ * Add sub-tetrahedron of a pn-tetrahedron in the heap
+ *
+ * parameters:
+ *   heap             <-- heap to initialize
+ *   order            <-- element order
+ *   n_node           <-- number of nodes
+ *   ho_vertex_num    <-- high order vertex num (internal ordering)
+ *   vertex_coords    <-- vertex coordinates
+ *   point_coords     <-- point to locate coordinates
+ *
+ *----------------------------------------------------------------------------*/
+
+static void
+_heap_fill_pn_tetra_sub_tetra
+(
+ _heap_te *heap,
+ const int order,
+ const int n_nodes,
+ const double *nodes_coords,
+ const double *point_coords
+)
+{
+/*  printf("coord des noeuds:\n %12.5e, %12.5e, %12.5e\n%12.5e, %12.5e, %12.5e\n%12.5e, %12.5e, %12.5e\n%12.5e, %12.5e, %12.5e\n%12.5e, %12.5e, %12.5e\n%12.5e, %12.5e, %12.5e\n%12.5e, %12.5e, %12.5e\n%12.5e, %12.5e, %12.5e\n%12.5e, %12.5e, %12.5e\n%12.5e, %12.5e, %12.5e\n",
+ nodes_coords[0], nodes_coords[1], nodes_coords[2], nodes_coords[3], nodes_coords[4], nodes_coords[5], nodes_coords[6], nodes_coords[7], nodes_coords[8], nodes_coords[9],
+ nodes_coords[10], nodes_coords[11], nodes_coords[12], nodes_coords[13], nodes_coords[14], nodes_coords[15], nodes_coords[16], nodes_coords[17], nodes_coords[18], nodes_coords[19],
+ nodes_coords[20], nodes_coords[21], nodes_coords[22], nodes_coords[23], nodes_coords[24], nodes_coords[25], nodes_coords[26], nodes_coords[27], nodes_coords[28], nodes_coords[29]);
+*/
+  double *uvwNodes   = malloc (sizeof(double) * 3 * n_nodes);
+  double *_vertex_tetra = malloc(sizeof(double) * 4 * 4 * 3);
+  double *_uvw_vertex_tetra = malloc(sizeof(double) * 4 * 4 * 3);
+  _uvw_ho_tetra_nodes (order, 0., 1., 0, 1., 0., 1., uvwNodes);
+
+  int step = 0;
+  int ibeg = 0;
+  int child = 0;
+  for (int k = 0; k < order; k++) {
+    int n_nodes_basis = (order+1-k)*(order+2-k)/2;
+    for (int j = 0; j < order - k; j++) {
+      step = order - j - k + 1;
+      for (int i = ibeg; i < ibeg + step - 1; i++) {
+        int i1 = i+1;
+
+        int idx1 = i;
+        int idx2 = i1; //printf("idx2 = %i\n", idx2);
+        int idx3 = i + step; //printf("idx3 = %i\n", idx3);
+        int idx4 = i + n_nodes_basis - j; //printf("idx4 = %i\n", idx4);
+
+        double x1 = nodes_coords[3*idx1]; //printf("x1 = %12.5e\n", x1);
+        double y1 = nodes_coords[3*idx1 + 1]; //printf("y1 = %12.5e\n", y1);
+        double z1 = nodes_coords[3*idx1 + 2]; //printf("z1 = %12.5e\n", z1);
+
+        double x2 = nodes_coords[3*idx2]; //printf("x2 = %12.5e\n", x2);
+        double y2 = nodes_coords[3*idx2 + 1]; //printf("y2 = %12.5e\n", y2);
+        double z2 = nodes_coords[3*idx2 + 2]; //printf("z2 = %12.5e\n", z2);
+
+        double x3 = nodes_coords[3*idx3]; //printf("x3 = %12.5e\n", x3);
+        double y3 = nodes_coords[3*idx3 + 1]; //printf("y3 = %12.5e\n", y3);
+        double z3 = nodes_coords[3*idx3 + 2]; //printf("z3 = %12.5e\n", z3);
+
+        double x4 = nodes_coords[3*idx4]; //printf("x4 = %12.5e\n", x4);
+        double y4 = nodes_coords[3*idx4 + 1]; //printf("y4 = %12.5e\n", y4);
+        double z4 = nodes_coords[3*idx4 + 2]; //printf("z4 = %12.5e\n", z4);
+
+        double __vertex_coords[12] = {x1, y1, z1,
+                                      x2, y2, z2,
+                                      x3, y3, z3,
+                                      x4, y4, z4};
+
+        double _uvwPn_sub_tetra[12];
+        _uvwPn_sub_tetra[0]  = uvwNodes[3*idx1];
+        _uvwPn_sub_tetra[1]  = uvwNodes[3*idx1+1];
+        _uvwPn_sub_tetra[2]  = uvwNodes[3*idx2+2];
+        _uvwPn_sub_tetra[3]  = uvwNodes[3*idx2];
+        _uvwPn_sub_tetra[4]  = uvwNodes[3*idx2+1];
+        _uvwPn_sub_tetra[5]  = uvwNodes[3*idx2+2];
+        _uvwPn_sub_tetra[6]  = uvwNodes[3*idx3];
+        _uvwPn_sub_tetra[7]  = uvwNodes[3*idx3+1];
+        _uvwPn_sub_tetra[8]  = uvwNodes[3*idx3+2];
+        _uvwPn_sub_tetra[9]  = uvwNodes[3*idx4];
+        _uvwPn_sub_tetra[10] = uvwNodes[3*idx4+1];
+        _uvwPn_sub_tetra[11] = uvwNodes[3*idx4+2];
+
+
+        double _closest_pointP1[3];
+        double _uvwClosestPointP1[3];
+        double _uvwClosestPointPn[3];
+        double _weightsClosestPointP1[4];
+        double _dist2;
+
+        int isDegenerated = fvmc_tetrahedron_evaluate_Position ((double *)point_coords,
+                                                                  __vertex_coords,
+                                                                  _closest_pointP1,
+                                                                  _uvwClosestPointP1,
+                                                                  &_dist2,
+                                                                  _weightsClosestPointP1);
+
+      //  printf("COORDONNEES PARAMETRIQUES : %12.5e, %12.5e, %12.5e\n", _uvwClosestPointP1[0], _uvwClosestPointP1[1], _uvwClosestPointP1[2]);
+
+        if (isDegenerated != -1) {
+
+          for (int j1 = 0; j1 < 3; j1++) {
+               _uvwClosestPointPn[j1] = 0;
+          }
+          for (int j1 = 0; j1 < 3; j1++) {
+            for (int j2 = 0; j2 < 4; j2++) {
+              _uvwClosestPointPn[j1] += _weightsClosestPointP1[j2] * _uvwPn_sub_tetra[3*j2 + j1];
+            }
+          }
+
+
+          //printf("coords sommet = (%12.5e, %12.5e, %12.5e) (%12.5e, %12.5e, %12.5e) (%12.5e, %12.5e, %12.5e) (%12.5e, %12.5e, %12.5e) || coords parametriques = %12.5e, %12.5e, %12.5e || distance = %12.5e\n", __vertex_coords[0], __vertex_coords[1], __vertex_coords[2], __vertex_coords[3], __vertex_coords[4], __vertex_coords[5], __vertex_coords[6], __vertex_coords[7], __vertex_coords[8], __vertex_coords[9], __vertex_coords[10], __vertex_coords[11], _uvwClosestPointPn[0], _uvwClosestPointPn[1], _uvwClosestPointPn[2], _dist2);
+          _heap_insert_te (heap,
+                        __vertex_coords,
+                        _uvwPn_sub_tetra,
+                        _closest_pointP1,
+                        _uvwClosestPointP1,
+                        _uvwClosestPointPn,
+                        _dist2, child++);
+
+        }
+
+        if ( j != 0) {
+          idx1 = i;
+          idx2 = i1;
+          idx3 = i - step;
+          idx4 = i - step + n_nodes_basis - j;
+          int idx5 = i + n_nodes_basis - j;
+          int idx6 = i - step + n_nodes_basis - j + 1;
+
+
+          x1 = nodes_coords[3*idx1];
+          y1 = nodes_coords[3*idx1 + 1];
+          z1 = nodes_coords[3*idx1 + 2];
+
+          x2 = nodes_coords[3*idx2];
+          y2 = nodes_coords[3*idx2 + 1];
+          z2 = nodes_coords[3*idx2 + 2];
+
+          x3 = nodes_coords[3*idx3];
+          y3 = nodes_coords[3*idx3 + 1];
+          z3 = nodes_coords[3*idx3 + 2];
+
+          x4 = nodes_coords[3*idx4];
+          y4 = nodes_coords[3*idx4 + 1];
+          z4 = nodes_coords[3*idx4 + 2];
+
+          double x5 = nodes_coords[3*idx5];
+          double y5 = nodes_coords[3*idx5 + 1];
+          double z5 = nodes_coords[3*idx5 + 2];
+
+          double x6 = nodes_coords[3*idx6];
+          double y6 = nodes_coords[3*idx6 + 1];
+          double z6 = nodes_coords[3*idx6 + 2];
+
+
+          double _vertex_octa[18] = {x1, y1, z1,
+                                     x2, y2, z2,
+                                     x3, y3, z3,
+                                     x4, y4, z4,
+                                     x5, y5, z5,
+                                     x6, y6, z6};
+
+          double _uvwPn_sub_octa[18];
+          _uvwPn_sub_octa[0]  = uvwNodes[3*idx1];
+          _uvwPn_sub_octa[1]  = uvwNodes[3*idx1+1];
+          _uvwPn_sub_octa[2]  = uvwNodes[3*idx2+2];
+          _uvwPn_sub_octa[3]  = uvwNodes[3*idx2];
+          _uvwPn_sub_octa[4]  = uvwNodes[3*idx2+1];
+          _uvwPn_sub_octa[5]  = uvwNodes[3*idx2+2];
+          _uvwPn_sub_octa[6]  = uvwNodes[3*idx3];
+          _uvwPn_sub_octa[7]  = uvwNodes[3*idx3+1];
+          _uvwPn_sub_octa[8]  = uvwNodes[3*idx3+2];
+          _uvwPn_sub_octa[9]  = uvwNodes[3*idx4];
+          _uvwPn_sub_octa[10] = uvwNodes[3*idx4+1];
+          _uvwPn_sub_octa[11] = uvwNodes[3*idx4+2];
+          _uvwPn_sub_octa[12] = uvwNodes[3*idx5];
+          _uvwPn_sub_octa[13] = uvwNodes[3*idx5+1];
+          _uvwPn_sub_octa[14] = uvwNodes[3*idx5+2];
+          _uvwPn_sub_octa[15] = uvwNodes[3*idx6];
+          _uvwPn_sub_octa[16] = uvwNodes[3*idx6+1];
+          _uvwPn_sub_octa[17] = uvwNodes[3*idx6+2];
+
+          _octa_to_tetra(_vertex_octa, _vertex_tetra, _uvwPn_sub_octa, _uvw_vertex_tetra);
+          for (int n=0; n < 4; n++) {
+
+            for (int n1 = 0; n1 < 12; n1++) {
+              const double *__vertex_tetra = _vertex_tetra + 12*n + n1;
+              const double *__uvw_vertex_tetra = _uvw_vertex_tetra + 12*n + n1;
+              __vertex_coords[n1] = *__vertex_tetra;
+              _uvwPn_sub_tetra[n1] = *__uvw_vertex_tetra;
+            }
+
+
+            isDegenerated = fvmc_tetrahedron_evaluate_Position ((double *)point_coords,
+                                                                __vertex_coords,
+                                                                    _closest_pointP1,
+                                                                    _uvwClosestPointP1,
+                                                                    &_dist2,
+                                                                    _weightsClosestPointP1);
+
+
+            if (isDegenerated != -1) {
+
+              for (int j1 = 0; j1 < 3; j1++) {
+                _uvwClosestPointPn[j1] = 0;
+              }
+              for (int j1 = 0; j1 < 3; j1++) {
+                for (int j2 = 0; j2 < 4; j2++) {
+                  _uvwClosestPointPn[j1] += _weightsClosestPointP1[j2] * _uvwPn_sub_tetra[3*j2 + j1];
+                }
+              }
+              _heap_insert_te (heap,
+                            __vertex_coords,
+                            _uvwPn_sub_tetra,
+                            _closest_pointP1,
+                            _uvwClosestPointP1,
+                            _uvwClosestPointPn,
+                            _dist2, child++);
+            }
+          }
+
+
+        }
+
+      }
+      ibeg += step;
+    }
+    ibeg ++;
+  }
+  free (uvwNodes);
+  free (_vertex_tetra);
+  free (_uvw_vertex_tetra);
+  exit;
+}
+
+/*----------------------------------------------------------------------------
+ *
+ *  Extract 2 tetrahedron from a pyramid
+ *
+ *----------------------------------------------------------------------------*/
+
+static void _pyra_to_tetra
+(
+  double *vertex_pyra,
+  double *vertex_tetra,
+  double *uvwPn_pyra,
+  double *uvw_tetra
+)
+{
+
+  // 1st tetra
+  vertex_tetra[0]  = vertex_pyra[0];  uvw_tetra[0]  = uvwPn_pyra[0];
+  vertex_tetra[1]  = vertex_pyra[1];  uvw_tetra[1]  = uvwPn_pyra[1];
+  vertex_tetra[2]  = vertex_pyra[2];  uvw_tetra[2]  = uvwPn_pyra[2];
+
+  vertex_tetra[3]  = vertex_pyra[3];  uvw_tetra[3]  = uvwPn_pyra[3];
+  vertex_tetra[4]  = vertex_pyra[4];  uvw_tetra[4]  = uvwPn_pyra[4];
+  vertex_tetra[5]  = vertex_pyra[5];  uvw_tetra[5]  = uvwPn_pyra[5];
+
+  vertex_tetra[6]  = vertex_pyra[9];  uvw_tetra[6]  = uvwPn_pyra[9];
+  vertex_tetra[7]  = vertex_pyra[10];  uvw_tetra[7]  = uvwPn_pyra[10];
+  vertex_tetra[8]  = vertex_pyra[11];  uvw_tetra[8]  = uvwPn_pyra[11];
+
+  vertex_tetra[9]  = vertex_pyra[12]; uvw_tetra[9] = uvwPn_pyra[12];
+  vertex_tetra[10] = vertex_pyra[13]; uvw_tetra[10] = uvwPn_pyra[13];
+  vertex_tetra[11] = vertex_pyra[14]; uvw_tetra[11] = uvwPn_pyra[14];
+
+  // 2nd tetra
+  vertex_tetra[12] = vertex_pyra[3];  uvw_tetra[12] = uvwPn_pyra[3];
+  vertex_tetra[13] = vertex_pyra[4];  uvw_tetra[13] = uvwPn_pyra[4];
+  vertex_tetra[14] = vertex_pyra[5];  uvw_tetra[14] = uvwPn_pyra[5];
+
+  vertex_tetra[15] = vertex_pyra[6];  uvw_tetra[15] = uvwPn_pyra[6];
+  vertex_tetra[16] = vertex_pyra[7];  uvw_tetra[16] = uvwPn_pyra[7];
+  vertex_tetra[17] = vertex_pyra[8];  uvw_tetra[17] = uvwPn_pyra[8];
+
+  vertex_tetra[18] = vertex_pyra[9];  uvw_tetra[18] = uvwPn_pyra[9];
+  vertex_tetra[19] = vertex_pyra[10]; uvw_tetra[19] = uvwPn_pyra[10];
+  vertex_tetra[20] = vertex_pyra[11]; uvw_tetra[20] = uvwPn_pyra[11];
+
+  vertex_tetra[21] = vertex_pyra[12]; uvw_tetra[21] = uvwPn_pyra[12];
+  vertex_tetra[22] = vertex_pyra[13]; uvw_tetra[22] = uvwPn_pyra[13];
+  vertex_tetra[23] = vertex_pyra[14]; uvw_tetra[23] = uvwPn_pyra[14];
+
+}
+
+
 /*----------------------------------------------------------------------------
  *
  * Add sub-tetrahedron of a pn-pyramid in the heap
@@ -4558,7 +4757,7 @@ LAA */
  *   point_coords     <-- point to locate coordinates
  *
  *----------------------------------------------------------------------------*/
-/* ICI
+
 static void
 _heap_fill_pn_pyra_sub_tetra
 (
@@ -4572,8 +4771,11 @@ _heap_fill_pn_pyra_sub_tetra
 
 
   double *uvwNodes   = malloc (sizeof(double) * 3 * n_nodes);
+  double *_vertex_tetra = malloc(sizeof(double) * 2 * 4 * 3);
+  double *_uvw_vertex_tetra = malloc(sizeof(double) * 2 * 4 * 3);
 
   _uvw_ho_pyra_nodes (order, 0., 1., 0, 1., 0., 1., uvwNodes);
+
 
   int step = 0;
   int ibeg = 0;
@@ -4584,11 +4786,11 @@ _heap_fill_pn_pyra_sub_tetra
     for (int j = 0; j < order - k; j++) {
       for (int i = ibeg; i < ibeg + step - 1; i++) {
 
-        idx1 = i;
-        idx2 = i+1;
-        idx3 = i + step;
-        idx4 = i + 1 + step;
-        idx5 = i + n_nodes_basis - j;
+        int idx1 = i;                     //printf("idx1 = %i\n", idx1);
+        int idx2 = i+1;                   //printf("idx2 = %i\n", idx2);
+        int idx3 = i + 1 + step;          //printf("idx3 = %i\n", idx3);
+        int idx4 = i + step;              //printf("idx4 = %i\n", idx4);
+        int idx5 = i + n_nodes_basis - j; //printf("idx5 = %i\n\n", idx5);
 
         double x1 = nodes_coords[3*idx1];
         double y1 = nodes_coords[3*idx1 + 1];
@@ -4613,7 +4815,7 @@ _heap_fill_pn_pyra_sub_tetra
         double _vertex_pyra[15] = {x1, y1, z1,
                                    x2, y2, z2,
                                    x3, y3, z3,
-                                   x4, y4, z4
+                                   x4, y4, z4,
                                    x5, y5, z5};
 
         double _uvwPn_sub_pyra[15];
@@ -4633,19 +4835,17 @@ _heap_fill_pn_pyra_sub_tetra
         _uvwPn_sub_pyra[13] = uvwNodes[3*idx5+1];
         _uvwPn_sub_pyra[14] = uvwNodes[3*idx5+2];
 
-        double *_vertex_tetra = malloc(sizeof(double) * 2 * 4 * 3);
-        double *_uvw_vertex_tetra = malloc(sizeof(double) * 2 * 4 * 3);
-        _pyra_to_tetra(_vertex_hexa, _vertex_tetra, _uvwPn_sub_hexa, _uvw_vertex_tetra);
+        _pyra_to_tetra(_vertex_pyra, _vertex_tetra, _uvwPn_sub_pyra, _uvw_vertex_tetra);
 
         for (int n=0; n < 2; n++) {
 
           double __vertex_coords[12];
           double _uvwPn_sub_tetra[12];
-          for (int n1 = 0; n < 12) {
+          for (int n1 = 0; n1 < 12; n1++) {
             const double *__vertex_tetra = _vertex_tetra + 12*n + n1;
             const double *__uvw_vertex_tetra = _uvw_vertex_tetra + 12*n + n1;
-            __vertex_coords[n1] = __vertex_tetra[n1];
-            _uvwPn_sub_tetra[n1] = __uvw_vertex_tetra[n1];
+            __vertex_coords[n1] = *__vertex_tetra;
+            _uvwPn_sub_tetra[n1] = *__uvw_vertex_tetra;
           }
 
           double _closest_pointP1[3];
@@ -4667,388 +4867,389 @@ _heap_fill_pn_pyra_sub_tetra
               _uvwClosestPointPn[j1] = 0;
             }
             for (int j1 = 0; j1 < 3; j1++) {
-              for (int k = 0; k < 4; k++) {
-                _uvwClosestPointPn[j1] += _weightsClosestPointP1[k] * _uvwPn_sub_tetra[2*k + j1];
+              for (int j2 = 0; j2 < 4; j2++) {
+                _uvwClosestPointPn[j1] += _weightsClosestPointP1[j2] * _uvwPn_sub_tetra[3*j2 + j1];
               }
             }
 
-            _heap_insert (heap,
+            _heap_insert_te (heap,
                           __vertex_coords,
                           _uvwPn_sub_tetra,
                           _closest_pointP1,
                           _uvwClosestPointP1,
                           _uvwClosestPointPn,
                           _dist2, child++);
+
           }
+        }
 
           if (j != 0 && i != ibeg) { //les points qui ne sont pas sur une face triangulaire de la pyramide
             // 1st tetra
-            int idx1 = i;
-            int idx2 = i - 1;
-            int idx3 = i + n_nodes_basis - j - 1;
-            int idx4 = i + n_nodes_basis - j - step;
+            idx1 = i;
+            idx2 = i - 1;
+            idx3 = i + n_nodes_basis - j - 1;
+            idx4 = i + n_nodes_basis - j - step;
 
-            double x1 = nodes_coords[3*idx1];
-            double y1 = nodes_coords[3*idx1 + 1];
-            double z1 = nodes_coords[3*idx1 + 2];
+            x1 = nodes_coords[3*idx1];
+            y1 = nodes_coords[3*idx1 + 1];
+            z1 = nodes_coords[3*idx1 + 2];
 
-            double x2 = nodes_coords[3*idx2];
-            double y2 = nodes_coords[3*idx2 + 1];
-            double z2 = nodes_coords[3*idx2 + 2];
+            x2 = nodes_coords[3*idx2];
+            y2 = nodes_coords[3*idx2 + 1];
+            z2 = nodes_coords[3*idx2 + 2];
 
-            double x3 = nodes_coords[3*idx3];
-            double y3 = nodes_coords[3*idx3 + 1];
-            double z3 = nodes_coords[3*idx3 + 2];
+            x3 = nodes_coords[3*idx3];
+            y3 = nodes_coords[3*idx3 + 1];
+            z3 = nodes_coords[3*idx3 + 2];
 
-            double x4 = nodes_coords[3*idx4];
-            double y4 = nodes_coords[3*idx4 + 1];
-            double z4 = nodes_coords[3*idx4 + 2];
+            x4 = nodes_coords[3*idx4];
+            y4 = nodes_coords[3*idx4 + 1];
+            z4 = nodes_coords[3*idx4 + 2];
 
-            double __vertex_coords[12] = {x1, y1, z1,
+            double __vertex_tetra1[12] = {x1, y1, z1,
                                           x2, y2, z2,
                                           x3, y3, z3,
                                           x4, y4, z4};
 
-            double _uvwPn_sub_tetra[12];
-            _uvwPn_sub_tetra[0]  = uvwNodes[3*idx1];
-            _uvwPn_sub_tetra[1]  = uvwNodes[3*idx1+1];
-            _uvwPn_sub_tetra[2]  = uvwNodes[3*idx2+2];
-            _uvwPn_sub_tetra[3]  = uvwNodes[3*idx2];
-            _uvwPn_sub_tetra[4]  = uvwNodes[3*idx2+1];
-            _uvwPn_sub_tetra[5]  = uvwNodes[3*idx2+2];
-            _uvwPn_sub_tetra[6]  = uvwNodes[3*idx3];
-            _uvwPn_sub_tetra[7]  = uvwNodes[3*idx3+1];
-            _uvwPn_sub_tetra[8]  = uvwNodes[3*idx3+2];
-            _uvwPn_sub_tetra[9]  = uvwNodes[3*idx4];
-            _uvwPn_sub_tetra[10] = uvwNodes[3*idx4+1];
-            _uvwPn_sub_tetra[11] = uvwNodes[3*idx4+2];
+            double _uvwPn_sub_tetra1[12];
+            _uvwPn_sub_tetra1[0]  = uvwNodes[3*idx1];
+            _uvwPn_sub_tetra1[1]  = uvwNodes[3*idx1+1];
+            _uvwPn_sub_tetra1[2]  = uvwNodes[3*idx2+2];
+            _uvwPn_sub_tetra1[3]  = uvwNodes[3*idx2];
+            _uvwPn_sub_tetra1[4]  = uvwNodes[3*idx2+1];
+            _uvwPn_sub_tetra1[5]  = uvwNodes[3*idx2+2];
+            _uvwPn_sub_tetra1[6]  = uvwNodes[3*idx3];
+            _uvwPn_sub_tetra1[7]  = uvwNodes[3*idx3+1];
+            _uvwPn_sub_tetra1[8]  = uvwNodes[3*idx3+2];
+            _uvwPn_sub_tetra1[9]  = uvwNodes[3*idx4];
+            _uvwPn_sub_tetra1[10] = uvwNodes[3*idx4+1];
+            _uvwPn_sub_tetra1[11] = uvwNodes[3*idx4+2];
 
 
-            double _closest_pointP1[3];
-            double _uvwClosestPointP1[3];
-            double _uvwClosestPointPn[3];
-            double _weightsClosestPointP1[4];
-            double _dist2;
+            double _closest_pointP1_tetra1[3];
+            double _uvwClosestPointP1_tetra1[3];
+            double _uvwClosestPointPn_tetra1[3];
+            double _weightsClosestPointP1_tetra1[4];
+            double _dist2_tetra1;
 
-            int isDegenerated = fvmc_tetrahedron_evaluate_Position ((double *)point_coords,
-                                                                      __vertex_coords,
-                                                                      _closest_pointP1,
-                                                                      _uvwClosestPointP1,
-                                                                      &_dist2,
-                                                                      _weightsClosestPointP1);
+            int isDegenerated_tetra1 = fvmc_tetrahedron_evaluate_Position ((double *)point_coords,
+                                                                      __vertex_tetra1,
+                                                                      _closest_pointP1_tetra1,
+                                                                      _uvwClosestPointP1_tetra1,
+                                                                      &_dist2_tetra1,
+                                                                      _weightsClosestPointP1_tetra1);
 
-            if (isDegenerated != -1) {
+
+            if (isDegenerated_tetra1 != -1) {
 
               for (int j1 = 0; j1 < 3; j1++) {
-                   _uvwClosestPointPn[j1] = 0;
+                   _uvwClosestPointPn_tetra1[j1] = 0;
               }
               for (int j1 = 0; j1 < 3; j1++) {
-                for (int k = 0; k < 4; k++) {
-                  _uvwClosestPointPn[j1] += _weightsClosestPointP1[k] * _uvwPn_sub_tetra[2*k + j1];
+                for (int j2 = 0; j2 < 4; j2++) {
+                  _uvwClosestPointPn_tetra1[j1] += _weightsClosestPointP1_tetra1[j2] * _uvwPn_sub_tetra1[3*j2 + j1];
                 }
               }
 
-              _heap_insert (heap,
-                            __vertex_coords,
-                            _uvwPn_sub_tetra,
-                            _closest_pointP1,
-                            _uvwClosestPointP1,
-                            _uvwClosestPointPn,
-                            _dist2, child++);
+              _heap_insert_te (heap,
+                            __vertex_tetra1,
+                            _uvwPn_sub_tetra1,
+                            _closest_pointP1_tetra1,
+                            _uvwClosestPointP1_tetra1,
+                            _uvwClosestPointPn_tetra1,
+                            _dist2_tetra1, child++);
             }
 
 
             // 2nd tetra
-            int idx1 = i;
-            int idx2 = i - step;
-            int idx3 = i + n_nodes_basis - j - step;
-            int idx4 = i + n_nodes_basis - j - step + 1;
+            idx1 = i;
+            idx2 = i - step;
+            idx3 = i + n_nodes_basis - j - step;
+            idx4 = i + n_nodes_basis - j - step + 1;
 
-            double x1 = nodes_coords[3*idx1];
-            double y1 = nodes_coords[3*idx1 + 1];
-            double z1 = nodes_coords[3*idx1 + 2];
+            x1 = nodes_coords[3*idx1];
+            y1 = nodes_coords[3*idx1 + 1];
+            z1 = nodes_coords[3*idx1 + 2];
 
-            double x2 = nodes_coords[3*idx2];
-            double y2 = nodes_coords[3*idx2 + 1];
-            double z2 = nodes_coords[3*idx2 + 2];
+            x2 = nodes_coords[3*idx2];
+            y2 = nodes_coords[3*idx2 + 1];
+            z2 = nodes_coords[3*idx2 + 2];
 
-            double x3 = nodes_coords[3*idx3];
-            double y3 = nodes_coords[3*idx3 + 1];
-            double z3 = nodes_coords[3*idx3 + 2];
+            x3 = nodes_coords[3*idx3];
+            y3 = nodes_coords[3*idx3 + 1];
+            z3 = nodes_coords[3*idx3 + 2];
 
-            double x4 = nodes_coords[3*idx4];
-            double y4 = nodes_coords[3*idx4 + 1];
-            double z4 = nodes_coords[3*idx4 + 2];
+            x4 = nodes_coords[3*idx4];
+            y4 = nodes_coords[3*idx4 + 1];
+            z4 = nodes_coords[3*idx4 + 2];
 
-            double __vertex_coords[12] = {x1, y1, z1,
+            double __vertex_tetra2[12] = {x1, y1, z1,
                                           x2, y2, z2,
                                           x3, y3, z3,
                                           x4, y4, z4};
 
-            double _uvwPn_sub_tetra[12];
-            _uvwPn_sub_tetra[0]  = uvwNodes[3*idx1];
-            _uvwPn_sub_tetra[1]  = uvwNodes[3*idx1+1];
-            _uvwPn_sub_tetra[2]  = uvwNodes[3*idx2+2];
-            _uvwPn_sub_tetra[3]  = uvwNodes[3*idx2];
-            _uvwPn_sub_tetra[4]  = uvwNodes[3*idx2+1];
-            _uvwPn_sub_tetra[5]  = uvwNodes[3*idx2+2];
-            _uvwPn_sub_tetra[6]  = uvwNodes[3*idx3];
-            _uvwPn_sub_tetra[7]  = uvwNodes[3*idx3+1];
-            _uvwPn_sub_tetra[8]  = uvwNodes[3*idx3+2];
-            _uvwPn_sub_tetra[9]  = uvwNodes[3*idx4];
-            _uvwPn_sub_tetra[10] = uvwNodes[3*idx4+1];
-            _uvwPn_sub_tetra[11] = uvwNodes[3*idx4+2];
+            double _uvwPn_sub_tetra2[12];
+            _uvwPn_sub_tetra2[0]  = uvwNodes[3*idx1];
+            _uvwPn_sub_tetra2[1]  = uvwNodes[3*idx1+1];
+            _uvwPn_sub_tetra2[2]  = uvwNodes[3*idx2+2];
+            _uvwPn_sub_tetra2[3]  = uvwNodes[3*idx2];
+            _uvwPn_sub_tetra2[4]  = uvwNodes[3*idx2+1];
+            _uvwPn_sub_tetra2[5]  = uvwNodes[3*idx2+2];
+            _uvwPn_sub_tetra2[6]  = uvwNodes[3*idx3];
+            _uvwPn_sub_tetra2[7]  = uvwNodes[3*idx3+1];
+            _uvwPn_sub_tetra2[8]  = uvwNodes[3*idx3+2];
+            _uvwPn_sub_tetra2[9]  = uvwNodes[3*idx4];
+            _uvwPn_sub_tetra2[10] = uvwNodes[3*idx4+1];
+            _uvwPn_sub_tetra2[11] = uvwNodes[3*idx4+2];
 
 
-            double _closest_pointP1[3];
-            double _uvwClosestPointP1[3];
-            double _uvwClosestPointPn[3];
-            double _weightsClosestPointP1[4];
-            double _dist2;
+            double _closest_pointP1_tetra2[3];
+            double _uvwClosestPointP1_tetra2[3];
+            double _uvwClosestPointPn_tetra2[3];
+            double _weightsClosestPointP1_tetra2[4];
+            double _dist2_tetra2;
 
-            int isDegenerated = fvmc_tetrahedron_evaluate_Position ((double *)point_coords,
-                                                                      __vertex_coords,
-                                                                      _closest_pointP1,
-                                                                      _uvwClosestPointP1,
-                                                                      &_dist2,
-                                                                      _weightsClosestPointP1);
+            int isDegenerated_tetra2 = fvmc_tetrahedron_evaluate_Position ((double *)point_coords,
+                                                                      __vertex_tetra2,
+                                                                      _closest_pointP1_tetra2,
+                                                                      _uvwClosestPointP1_tetra2,
+                                                                      &_dist2_tetra2,
+                                                                      _weightsClosestPointP1_tetra2);
 
-            if (isDegenerated != -1) {
+            if (isDegenerated_tetra2 != -1) {
 
               for (int j1 = 0; j1 < 3; j1++) {
-                   _uvwClosestPointPn[j1] = 0;
+                   _uvwClosestPointPn_tetra2[j1] = 0;
               }
               for (int j1 = 0; j1 < 3; j1++) {
-                for (int k = 0; k < 4; k++) {
-                  _uvwClosestPointPn[j1] += _weightsClosestPointP1[k] * _uvwPn_sub_tetra[2*k + j1];
+                for (int j2 = 0; j2 < 4; j2++) {
+                  _uvwClosestPointPn_tetra2[j1] += _weightsClosestPointP1_tetra2[j2] * _uvwPn_sub_tetra2[3*j2 + j1];
                 }
               }
 
-              _heap_insert (heap,
-                            __vertex_coords,
-                            _uvwPn_sub_tetra,
-                            _closest_pointP1,
-                            _uvwClosestPointP1,
-                            _uvwClosestPointPn,
-                            _dist2, child++);
+              _heap_insert_te (heap,
+                            __vertex_tetra2,
+                            _uvwPn_sub_tetra2,
+                            _closest_pointP1_tetra2,
+                            _uvwClosestPointP1_tetra2,
+                            _uvwClosestPointPn_tetra2,
+                            _dist2_tetra2, child++);
             }
 
 
             // 3rd tetra
-            int idx1 = i;
-            int idx2 = i + 1;
-            int idx3 = i + n_nodes_basis - j - step + 1;
-            int idx4 = i + n_nodes_basis - j;
+            idx1 = i;
+            idx2 = i + 1;
+            idx3 = i + n_nodes_basis - j - step + 1;
+            idx4 = i + n_nodes_basis - j;
 
-            double x1 = nodes_coords[3*idx1];
-            double y1 = nodes_coords[3*idx1 + 1];
-            double z1 = nodes_coords[3*idx1 + 2];
+            x1 = nodes_coords[3*idx1];
+            y1 = nodes_coords[3*idx1 + 1];
+            z1 = nodes_coords[3*idx1 + 2];
 
-            double x2 = nodes_coords[3*idx2];
-            double y2 = nodes_coords[3*idx2 + 1];
-            double z2 = nodes_coords[3*idx2 + 2];
+            x2 = nodes_coords[3*idx2];
+            y2 = nodes_coords[3*idx2 + 1];
+            z2 = nodes_coords[3*idx2 + 2];
 
-            double x3 = nodes_coords[3*idx3];
-            double y3 = nodes_coords[3*idx3 + 1];
-            double z3 = nodes_coords[3*idx3 + 2];
+            x3 = nodes_coords[3*idx3];
+            y3 = nodes_coords[3*idx3 + 1];
+            z3 = nodes_coords[3*idx3 + 2];
 
-            double x4 = nodes_coords[3*idx4];
-            double y4 = nodes_coords[3*idx4 + 1];
-            double z4 = nodes_coords[3*idx4 + 2];
+            x4 = nodes_coords[3*idx4];
+            y4 = nodes_coords[3*idx4 + 1];
+            z4 = nodes_coords[3*idx4 + 2];
 
-            double __vertex_coords[12] = {x1, y1, z1,
+            double __vertex_tetra3[12] = {x1, y1, z1,
                                           x2, y2, z2,
                                           x3, y3, z3,
                                           x4, y4, z4};
 
-            double _uvwPn_sub_tetra[12];
-            _uvwPn_sub_tetra[0]  = uvwNodes[3*idx1];
-            _uvwPn_sub_tetra[1]  = uvwNodes[3*idx1+1];
-            _uvwPn_sub_tetra[2]  = uvwNodes[3*idx2+2];
-            _uvwPn_sub_tetra[3]  = uvwNodes[3*idx2];
-            _uvwPn_sub_tetra[4]  = uvwNodes[3*idx2+1];
-            _uvwPn_sub_tetra[5]  = uvwNodes[3*idx2+2];
-            _uvwPn_sub_tetra[6]  = uvwNodes[3*idx3];
-            _uvwPn_sub_tetra[7]  = uvwNodes[3*idx3+1];
-            _uvwPn_sub_tetra[8]  = uvwNodes[3*idx3+2];
-            _uvwPn_sub_tetra[9]  = uvwNodes[3*idx4];
-            _uvwPn_sub_tetra[10] = uvwNodes[3*idx4+1];
-            _uvwPn_sub_tetra[11] = uvwNodes[3*idx4+2];
+            double _uvwPn_sub_tetra3[12];
+            _uvwPn_sub_tetra3[0]  = uvwNodes[3*idx1];
+            _uvwPn_sub_tetra3[1]  = uvwNodes[3*idx1+1];
+            _uvwPn_sub_tetra3[2]  = uvwNodes[3*idx2+2];
+            _uvwPn_sub_tetra3[3]  = uvwNodes[3*idx2];
+            _uvwPn_sub_tetra3[4]  = uvwNodes[3*idx2+1];
+            _uvwPn_sub_tetra3[5]  = uvwNodes[3*idx2+2];
+            _uvwPn_sub_tetra3[6]  = uvwNodes[3*idx3];
+            _uvwPn_sub_tetra3[7]  = uvwNodes[3*idx3+1];
+            _uvwPn_sub_tetra3[8]  = uvwNodes[3*idx3+2];
+            _uvwPn_sub_tetra3[9]  = uvwNodes[3*idx4];
+            _uvwPn_sub_tetra3[10] = uvwNodes[3*idx4+1];
+            _uvwPn_sub_tetra3[11] = uvwNodes[3*idx4+2];
 
 
-            double _closest_pointP1[3];
-            double _uvwClosestPointP1[3];
-            double _uvwClosestPointPn[3];
-            double _weightsClosestPointP1[4];
-            double _dist2;
+            double _closest_pointP1_tetra3[3];
+            double _uvwClosestPointP1_tetra3[3];
+            double _uvwClosestPointPn_tetra3[3];
+            double _weightsClosestPointP1_tetra3[4];
+            double _dist2_tetra3;
 
-            int isDegenerated = fvmc_tetrahedron_evaluate_Position ((double *)point_coords,
-                                                                      __vertex_coords,
-                                                                      _closest_pointP1,
-                                                                      _uvwClosestPointP1,
-                                                                      &_dist2,
-                                                                      _weightsClosestPointP1);
+            int isDegenerated_tetra3 = fvmc_tetrahedron_evaluate_Position ((double *)point_coords,
+                                                                      __vertex_tetra3,
+                                                                      _closest_pointP1_tetra3,
+                                                                      _uvwClosestPointP1_tetra3,
+                                                                      &_dist2_tetra3,
+                                                                      _weightsClosestPointP1_tetra3);
 
-            if (isDegenerated != -1) {
+            if (isDegenerated_tetra3 != -1) {
 
               for (int j1 = 0; j1 < 3; j1++) {
-                   _uvwClosestPointPn[j1] = 0;
+                   _uvwClosestPointPn_tetra3[j1] = 0;
               }
               for (int j1 = 0; j1 < 3; j1++) {
-                for (int k = 0; k < 4; k++) {
-                  _uvwClosestPointPn[j1] += _weightsClosestPointP1[k] * _uvwPn_sub_tetra[2*k + j1];
+                for (int j2 = 0; j2 < j2; k++) {
+                  _uvwClosestPointPn_tetra3[j1] += _weightsClosestPointP1_tetra3[j2] * _uvwPn_sub_tetra3[2*j2 + j1];
                 }
               }
 
-              _heap_insert (heap,
-                            __vertex_coords,
-                            _uvwPn_sub_tetra,
-                            _closest_pointP1,
-                            _uvwClosestPointP1,
-                            _uvwClosestPointPn,
-                            _dist2, child++);
+              _heap_insert_te (heap,
+                            __vertex_tetra3,
+                            _uvwPn_sub_tetra3,
+                            _closest_pointP1_tetra3,
+                            _uvwClosestPointP1_tetra3,
+                            _uvwClosestPointPn_tetra3,
+                            _dist2_tetra3, child++);
             }
 
 
             // 4th tetra
-            int idx1 = i;
-            int idx2 = i + step;
-            int idx3 = i + n_nodes_basis - j;
-            int idx4 = i + n_nodes_basis - j - 1;
+            idx1 = i;
+            idx2 = i + step;
+            idx3 = i + n_nodes_basis - j;
+            idx4 = i + n_nodes_basis - j - 1;
 
-            double x1 = nodes_coords[3*idx1];
-            double y1 = nodes_coords[3*idx1 + 1];
-            double z1 = nodes_coords[3*idx1 + 2];
+            x1 = nodes_coords[3*idx1];
+            y1 = nodes_coords[3*idx1 + 1];
+            z1 = nodes_coords[3*idx1 + 2];
 
-            double x2 = nodes_coords[3*idx2];
-            double y2 = nodes_coords[3*idx2 + 1];
-            double z2 = nodes_coords[3*idx2 + 2];
+            x2 = nodes_coords[3*idx2];
+            y2 = nodes_coords[3*idx2 + 1];
+            z2 = nodes_coords[3*idx2 + 2];
 
-            double x3 = nodes_coords[3*idx3];
-            double y3 = nodes_coords[3*idx3 + 1];
-            double z3 = nodes_coords[3*idx3 + 2];
+            x3 = nodes_coords[3*idx3];
+            y3 = nodes_coords[3*idx3 + 1];
+            z3 = nodes_coords[3*idx3 + 2];
 
-            double x4 = nodes_coords[3*idx4];
-            double y4 = nodes_coords[3*idx4 + 1];
-            double z4 = nodes_coords[3*idx4 + 2];
+            x4 = nodes_coords[3*idx4];
+            y4 = nodes_coords[3*idx4 + 1];
+            z4 = nodes_coords[3*idx4 + 2];
 
-            double __vertex_coords[12] = {x1, y1, z1,
+            double __vertex_tetra4[12] = {x1, y1, z1,
                                           x2, y2, z2,
                                           x3, y3, z3,
                                           x4, y4, z4};
 
-            double _uvwPn_sub_tetra[12];
-            _uvwPn_sub_tetra[0]  = uvwNodes[3*idx1];
-            _uvwPn_sub_tetra[1]  = uvwNodes[3*idx1+1];
-            _uvwPn_sub_tetra[2]  = uvwNodes[3*idx2+2];
-            _uvwPn_sub_tetra[3]  = uvwNodes[3*idx2];
-            _uvwPn_sub_tetra[4]  = uvwNodes[3*idx2+1];
-            _uvwPn_sub_tetra[5]  = uvwNodes[3*idx2+2];
-            _uvwPn_sub_tetra[6]  = uvwNodes[3*idx3];
-            _uvwPn_sub_tetra[7]  = uvwNodes[3*idx3+1];
-            _uvwPn_sub_tetra[8]  = uvwNodes[3*idx3+2];
-            _uvwPn_sub_tetra[9]  = uvwNodes[3*idx4];
-            _uvwPn_sub_tetra[10] = uvwNodes[3*idx4+1];
-            _uvwPn_sub_tetra[11] = uvwNodes[3*idx4+2];
+            double _uvwPn_sub_tetra4[12];
+            _uvwPn_sub_tetra4[0]  = uvwNodes[3*idx1];
+            _uvwPn_sub_tetra4[1]  = uvwNodes[3*idx1+1];
+            _uvwPn_sub_tetra4[2]  = uvwNodes[3*idx2+2];
+            _uvwPn_sub_tetra4[3]  = uvwNodes[3*idx2];
+            _uvwPn_sub_tetra4[4]  = uvwNodes[3*idx2+1];
+            _uvwPn_sub_tetra4[5]  = uvwNodes[3*idx2+2];
+            _uvwPn_sub_tetra4[6]  = uvwNodes[3*idx3];
+            _uvwPn_sub_tetra4[7]  = uvwNodes[3*idx3+1];
+            _uvwPn_sub_tetra4[8]  = uvwNodes[3*idx3+2];
+            _uvwPn_sub_tetra4[9]  = uvwNodes[3*idx4];
+            _uvwPn_sub_tetra4[10] = uvwNodes[3*idx4+1];
+            _uvwPn_sub_tetra4[11] = uvwNodes[3*idx4+2];
 
 
-            double _closest_pointP1[3];
-            double _uvwClosestPointP1[3];
-            double _uvwClosestPointPn[3];
-            double _weightsClosestPointP1[4];
-            double _dist2;
+            double _closest_pointP1_tetra4[3];
+            double _uvwClosestPointP1_tetra4[3];
+            double _uvwClosestPointPn_tetra4[3];
+            double _weightsClosestPointP1_tetra4[4];
+            double _dist2_tetra4;
 
-            int isDegenerated = fvmc_tetrahedron_evaluate_Position ((double *)point_coords,
-                                                                      __vertex_coords,
-                                                                      _closest_pointP1,
-                                                                      _uvwClosestPointP1,
-                                                                      &_dist2,
-                                                                      _weightsClosestPointP1);
+            int isDegenerated_tetra4 = fvmc_tetrahedron_evaluate_Position ((double *)point_coords,
+                                                                      __vertex_tetra4,
+                                                                      _closest_pointP1_tetra4,
+                                                                      _uvwClosestPointP1_tetra4,
+                                                                      &_dist2_tetra4,
+                                                                      _weightsClosestPointP1_tetra4);
 
-            if (isDegenerated != -1) {
+            if (isDegenerated_tetra4 != -1) {
 
               for (int j1 = 0; j1 < 3; j1++) {
-                   _uvwClosestPointPn[j1] = 0;
+                   _uvwClosestPointPn_tetra4[j1] = 0;
               }
               for (int j1 = 0; j1 < 3; j1++) {
-                for (int k = 0; k < 4; k++) {
-                  _uvwClosestPointPn[j1] += _weightsClosestPointP1[k] * _uvwPn_sub_tetra[2*k + j1];
+                for (int j2 = 0; j2 < 4; j2++) {
+                  _uvwClosestPointPn_tetra4[j1] += _weightsClosestPointP1_tetra4[j2] * _uvwPn_sub_tetra4[3*j2 + j1];
                 }
               }
 
-              _heap_insert (heap,
-                            __vertex_coords,
-                            _uvwPn_sub_tetra,
-                            _closest_pointP1,
-                            _uvwClosestPointP1,
-                            _uvwClosestPointPn,
-                            _dist2, child++);
+              _heap_insert_te (heap,
+                            __vertex_tetra4,
+                            _uvwPn_sub_tetra4,
+                            _closest_pointP1_tetra4,
+                            _uvwClosestPointP1_tetra4,
+                            _uvwClosestPointPn_tetra4,
+                            _dist2_tetra4, child++);
             }
 
 
             // inverted pyramid
-            int idx1 = i + n_nodes_basis - j;
-            int idx2 = i + n_nodes_basis - j;
-            int idx3 = i + n_nodes_basis - j;
-            int idx4 = i + n_nodes_basis - j;
-            int idx5 = i;
+            idx1 = i + n_nodes_basis - j - step;     //printf("idx1 = %i\n", idx1);
+            idx2 = i + n_nodes_basis - j - 1;        //printf("idx2 = %i\n", idx2);
+            idx3 = i + n_nodes_basis - j;            //printf("idx3 = %i\n", idx3);
+            idx4 = i + n_nodes_basis - j - step + 1; //printf("idx4 = %i\n", idx4);
+            idx5 = i;                                //printf("idx5 = %i\n", idx5);
 
-            double x1 = nodes_coords[3*idx1];
-            double y1 = nodes_coords[3*idx1 + 1];
-            double z1 = nodes_coords[3*idx1 + 2];
+            x1 = nodes_coords[3*idx1];
+            y1 = nodes_coords[3*idx1 + 1];
+            z1 = nodes_coords[3*idx1 + 2];
 
-            double x2 = nodes_coords[3*idx2];
-            double y2 = nodes_coords[3*idx2 + 1];
-            double z2 = nodes_coords[3*idx2 + 2];
+            x2 = nodes_coords[3*idx2];
+            y2 = nodes_coords[3*idx2 + 1];
+            z2 = nodes_coords[3*idx2 + 2];
 
-            double x3 = nodes_coords[3*idx3];
-            double y3 = nodes_coords[3*idx3 + 1];
-            double z3 = nodes_coords[3*idx3 + 2];
+            x3 = nodes_coords[3*idx3];
+            y3 = nodes_coords[3*idx3 + 1];
+            z3 = nodes_coords[3*idx3 + 2];
 
-            double x4 = nodes_coords[3*idx4];
-            double y4 = nodes_coords[3*idx4 + 1];
-            double z4 = nodes_coords[3*idx4 + 2];
+            x4 = nodes_coords[3*idx4];
+            y4 = nodes_coords[3*idx4 + 1];
+            z4 = nodes_coords[3*idx4 + 2];
 
-            double x5 = nodes_coords[3*idx5];
-            double y5 = nodes_coords[3*idx5 + 1];
-            double z5 = nodes_coords[3*idx5 + 2];
+            x5 = nodes_coords[3*idx5];
+            y5 = nodes_coords[3*idx5 + 1];
+            z5 = nodes_coords[3*idx5 + 2];
 
-            double _vertex_pyra[15] = {x1, y1, z1,
-                                       x2, y2, z2,
-                                       x3, y3, z3,
-                                       x4, y4, z4
-                                       x5, y5, z5};
+            double _vertex_pyrai[15] = {x1, y1, z1,
+                                        x2, y2, z2,
+                                        x3, y3, z3,
+                                        x4, y4, z4,
+                                        x5, y5, z5};
 
-            double _uvwPn_sub_pyra[15];
-            _uvwPn_sub_pyra[0]  = uvwNodes[3*idx1];
-            _uvwPn_sub_pyra[1]  = uvwNodes[3*idx1+1];
-            _uvwPn_sub_pyra[2]  = uvwNodes[3*idx2+2];
-            _uvwPn_sub_pyra[3]  = uvwNodes[3*idx2];
-            _uvwPn_sub_pyra[4]  = uvwNodes[3*idx2+1];
-            _uvwPn_sub_pyra[5]  = uvwNodes[3*idx2+2];
-            _uvwPn_sub_pyra[6]  = uvwNodes[3*idx3];
-            _uvwPn_sub_pyra[7]  = uvwNodes[3*idx3+1];
-            _uvwPn_sub_pyra[8]  = uvwNodes[3*idx3+2];
-            _uvwPn_sub_pyra[9]  = uvwNodes[3*idx4];
-            _uvwPn_sub_pyra[10] = uvwNodes[3*idx4+1];
-            _uvwPn_sub_pyra[11] = uvwNodes[3*idx4+2];
-            _uvwPn_sub_pyra[12] = uvwNodes[3*idx5];
-            _uvwPn_sub_pyra[13] = uvwNodes[3*idx5+1];
-            _uvwPn_sub_pyra[14] = uvwNodes[3*idx5+2];
+            double _uvwPn_sub_pyrai[15];
+            _uvwPn_sub_pyrai[0]  = uvwNodes[3*idx1];
+            _uvwPn_sub_pyrai[1]  = uvwNodes[3*idx1+1];
+            _uvwPn_sub_pyrai[2]  = uvwNodes[3*idx2+2];
+            _uvwPn_sub_pyrai[3]  = uvwNodes[3*idx2];
+            _uvwPn_sub_pyrai[4]  = uvwNodes[3*idx2+1];
+            _uvwPn_sub_pyrai[5]  = uvwNodes[3*idx2+2];
+            _uvwPn_sub_pyrai[6]  = uvwNodes[3*idx3];
+            _uvwPn_sub_pyrai[7]  = uvwNodes[3*idx3+1];
+            _uvwPn_sub_pyrai[8]  = uvwNodes[3*idx3+2];
+            _uvwPn_sub_pyrai[9]  = uvwNodes[3*idx4];
+            _uvwPn_sub_pyrai[10] = uvwNodes[3*idx4+1];
+            _uvwPn_sub_pyrai[11] = uvwNodes[3*idx4+2];
+            _uvwPn_sub_pyrai[12] = uvwNodes[3*idx5];
+            _uvwPn_sub_pyrai[13] = uvwNodes[3*idx5+1];
+            _uvwPn_sub_pyrai[14] = uvwNodes[3*idx5+2];
 
-            double *_vertex_tetra = malloc(sizeof(double) * 2 * 4 * 3);
-            double *_uvw_vertex_tetra = malloc(sizeof(double) * 2 * 4 * 3);
-            _pyra_to_tetra(_vertex_hexa, _vertex_tetra, _uvwPn_sub_hexa, _uvw_vertex_tetra);
+            _pyra_to_tetra(_vertex_pyrai, _vertex_tetra, _uvwPn_sub_pyrai, _uvw_vertex_tetra);
 
             for (int n=0; n < 2; n++) {
 
               double __vertex_coords[12];
               double _uvwPn_sub_tetra[12];
-              for (int n1 = 0; n < 12) {
+              for (int n1 = 0; n1 < 12; n1++) {
                 const double *__vertex_tetra = _vertex_tetra + 12*n + n1;
                 const double *__uvw_vertex_tetra = _uvw_vertex_tetra + 12*n + n1;
-                __vertex_coords[n1] = __vertex_tetra[n1];
-                _uvwPn_sub_tetra[n1] = __uvw_vertex_tetra[n1];
+                __vertex_coords[n1] = *__vertex_tetra;
+                _uvwPn_sub_tetra[n1] = *__uvw_vertex_tetra;
               }
 
               double _closest_pointP1[3];
@@ -5057,6 +5258,9 @@ _heap_fill_pn_pyra_sub_tetra
               double _weightsClosestPointP1[4];
               double _dist2;
 
+
+
+
               int isDegenerated = fvmc_tetrahedron_evaluate_Position ((double *)point_coords,
                                                                       __vertex_coords,
                                                                       _closest_pointP1,
@@ -5064,25 +5268,35 @@ _heap_fill_pn_pyra_sub_tetra
                                                                       &_dist2,
                                                                       _weightsClosestPointP1);
 
+            /*printf("POIDS CLOSEST POINTS : \nW0 = %12.5e\nW1 = %12.5e\nW2 = %12.5e\nW3 = %12.5e\n",
+              _weightsClosestPointP1[0], _weightsClosestPointP1[1], _weightsClosestPointP1[2], _weightsClosestPointP1[3] );*/
+
               if (isDegenerated != -1) {
 
                 for (int j1 = 0; j1 < 3; j1++) {
                   _uvwClosestPointPn[j1] = 0;
                 }
                 for (int j1 = 0; j1 < 3; j1++) {
-                  for (int k = 0; k < 4; k++) {
-                    _uvwClosestPointPn[j1] += _weightsClosestPointP1[k] * _uvwPn_sub_tetra[2*k + j1];
+                  for (int j2 = 0; j2 < 4; j2++) {
+                    _uvwClosestPointPn[j1] += _weightsClosestPointP1[j2] * _uvwPn_sub_tetra[3*j2 + j1];
                   }
                 }
 
-                _heap_insert (heap,
+                _heap_insert_te (heap,
                               __vertex_coords,
                               _uvwPn_sub_tetra,
                               _closest_pointP1,
                               _uvwClosestPointP1,
                               _uvwClosestPointPn,
                               _dist2, child++);
+            /*printf("PYRA INVERSEE TETRA n°%i, CHILD = %i\n   P0 %12.5e, %12.5e, %12.5e\n   P1 %12.5e, %12.5e, %12.5e\n   P2 %12.5e, %12.5e, %12.5e\n   P3 %12.5e, %12.5e, %12.5e \n",
+                      n,child,
+                      __vertex_coords[0], __vertex_coords[1], __vertex_coords[2],
+                      __vertex_coords[3], __vertex_coords[4], __vertex_coords[5],
+                      __vertex_coords[6], __vertex_coords[7], __vertex_coords[8],
+                      __vertex_coords[9], __vertex_coords[10], __vertex_coords[11]);*/
               }
+            }
           }
 
       } //fin i
@@ -5090,62 +5304,16 @@ _heap_fill_pn_pyra_sub_tetra
     }//fin j
     ibeg = ibeg + step;
   }//fin k
-}
-LAA */
-/*----------------------------------------------------------------------------
- *
- *  Extract 2 tetrahedron from a pyramid
- *
- *----------------------------------------------------------------------------*/
- /* ICI
-void _pyra_to_tetra
-(
-  double vertex_pyra,
-  double *vertex_tetra,
-  double uvwPn_pyra,
-  double *uvw_tetra
-)
-{
 
-  // 1st tetra
-  vertex_tetra[0]  = vertex_pyra[0];  uvw_tetra[0]  = uvwPn_pyra[0];
-  vertex_tetra[1]  = vertex_pyra[1];  uvw_tetra[1]  = uvwPn_pyra[1];
-  vertex_tetra[2]  = vertex_pyra[2];  uvw_tetra[2]  = uvwPn_pyra[2];
-
-  vertex_tetra[3]  = vertex_pyra[3];  uvw_tetra[3]  = uvwPn_pyra[3];
-  vertex_tetra[4]  = vertex_pyra[4];  uvw_tetra[4]  = uvwPn_pyra[4];
-  vertex_tetra[5]  = vertex_pyra[5];  uvw_tetra[5]  = uvwPn_pyra[5];
-
-  vertex_tetra[6]  = vertex_pyra[6];  uvw_tetra[6]  = uvwPn_pyra[6];
-  vertex_tetra[7]  = vertex_pyra[7];  uvw_tetra[7]  = uvwPn_pyra[7];
-  vertex_tetra[8]  = vertex_pyra[8];  uvw_tetra[8]  = uvwPn_pyra[8];
-
-  vertex_tetra[9]  = vertex_pyra[12]; uvw_tetra[12] = uvwPn_pyra[15];
-  vertex_tetra[10] = vertex_pyra[13]; uvw_tetra[13] = uvwPn_pyra[16];
-  vertex_tetra[11] = vertex_pyra[14]; uvw_tetra[14] = uvwPn_pyra[17];
-
-  // 2nd tetra
-  vertex_tetra[12] = vertex_pyra[3];  uvw_tetra[12] = uvwPn_pyra[3];
-  vertex_tetra[13] = vertex_pyra[4];  uvw_tetra[13] = uvwPn_pyra[4];
-  vertex_tetra[14] = vertex_pyra[5];  uvw_tetra[14] = uvwPn_pyra[5];
-
-  vertex_tetra[15] = vertex_pyra[6];  uvw_tetra[15] = uvwPn_pyra[6];
-  vertex_tetra[16] = vertex_pyra[7];  uvw_tetra[16] = uvwPn_pyra[7];
-  vertex_tetra[17] = vertex_pyra[8];  uvw_tetra[17] = uvwPn_pyra[8];
-
-  vertex_tetra[18] = vertex_pyra[9];  uvw_tetra[18] = uvwPn_pyra[9];
-  vertex_tetra[19] = vertex_pyra[10]; uvw_tetra[19] = uvwPn_pyra[10];
-  vertex_tetra[20] = vertex_pyra[11]; uvw_tetra[20] = uvwPn_pyra[11];
-
-  vertex_tetra[21] = vertex_pyra[12]; uvw_tetra[21] = uvwPn_pyra[12];
-  vertex_tetra[22] = vertex_pyra[13]; uvw_tetra[22] = uvwPn_pyra[13];
-  vertex_tetra[23] = vertex_pyra[14]; uvw_tetra[23] = uvwPn_pyra[14];
-
+  free(uvwNodes);
+  free(_vertex_tetra);
+  free(_uvw_vertex_tetra);
 }
 
 
 
-LAA */
+
+
 
 /*-----------------------------------------------------------------------------
  *
@@ -5163,11 +5331,11 @@ LAA */
  *   _basis_generic   <-- generic basis
  *
  *----------------------------------------------------------------------------*/
-/* ICI
+
 static void
 _insert_subtetra
 (
- _heap_t *heap,
+ _heap_te *heap,
  const int order,
  const int type,
  const int n_nodes,
@@ -5182,15 +5350,21 @@ _insert_subtetra
   double _uvwPn_tetra_children[30];
 
   const int idx_sub_tetra[32] = {0, 4, 6, 7,
-                                4, 9, 7, 6,
-                                4, 5, 9, 6,
-                                4, 9, 7, 8,
-                                4, 5, 9, 8,
-                                4, 1, 5, 8,
-                                6, 5, 2, 9,
-                                7, 8, 9, 3};
+                                 4, 9, 7, 6,
+                                 4, 5, 9, 6,
+                                 4, 9, 7, 8,
+                                 4, 5, 9, 8,
+                                 4, 1, 5, 8,
+                                 6, 5, 2, 9,
+                                 7, 8, 9, 3};
 
   // Compute middle vertices
+
+  /*printf("\nCoordonnees du tetra : \n -0 : %12.5e, %12.5e, %12.5e\n -1 : %12.5e, %12.5e, %12.5e\n -2 : %12.5e, %12.5e, %12.5e\n -3 : %12.5e, %12.5e, %12.5e\n",
+          vtx_tetra_current[0] , vtx_tetra_current[1] , vtx_tetra_current[2] ,
+          vtx_tetra_current[3] , vtx_tetra_current[4] , vtx_tetra_current[5] ,
+          vtx_tetra_current[6] , vtx_tetra_current[7] , vtx_tetra_current[8] ,
+          vtx_tetra_current[9] , vtx_tetra_current[10], vtx_tetra_current[11]);*/
 
   for (int i = 0; i < 12; i++) {
     _vtx_tetra_children[i] = vtx_tetra_current[i];
@@ -5200,10 +5374,16 @@ _insert_subtetra
     _uvwPn_tetra_children[i] = uvwPn_tetra_current[i];
   }
 
-  for (int i = 0; i < 6; i++) {
+
+  for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) {
+
       _uvwPn_tetra_children[12+3*i+j] =
-        (uvwPn_tetra_current[3*i+j] + uvwPn_tetra_current[3*((i+1)%4)+j])/2;
+        (uvwPn_tetra_current[3*i+j] + uvwPn_tetra_current[3*((i+1)%3)+j])/2;
+
+      _uvwPn_tetra_children[21+3*i+j] =
+        (uvwPn_tetra_current[3*i+j] + uvwPn_tetra_current[9+j])/2;
+
     }
 
     FVMC_ho_basis (type,
@@ -5212,6 +5392,10 @@ _insert_subtetra
                    1,
                    _uvwPn_tetra_children + 12 + 3*i,
                    weightsPn);
+
+
+
+
 
     for (int j = 0; j < 3; j++) {
       _vtx_tetra_children[12+3*i+j] = 0;
@@ -5222,21 +5406,40 @@ _insert_subtetra
         _vtx_tetra_children[12+3*i+j] += weightsPn[k] * _node_coords[j];
       }
     }
+
+    FVMC_ho_basis (type,
+                   order,
+                   n_nodes,
+                   1,
+                   _uvwPn_tetra_children + 21 + 3*i,
+                   weightsPn);
+
+    for (int j = 0; j < 3; j++) {
+      _vtx_tetra_children[21+3*i+j] = 0;
+    }
+    for (int k = 0; k < n_nodes; k++) {
+      const double *_node_coords = nodes_coords + 3 * k;
+      for (int j = 0; j < 3; j++) {
+        _vtx_tetra_children[21+3*i+j] += weightsPn[k] * _node_coords[j];
+      }
+    }
+
   }
+
 
   int child = 0;
   for (int i = 0; i < 8; i++) {
 
-    double _vtx_tetra_child[9];
-    double _uvwPn_tetra_child[6];
+    double _vtx_tetra_child[12];
+    double _uvwPn_tetra_child[12];
 
     for (int j = 0; j < 4; j++) {
-      int _j = idx_sub_tetra[3 * i + j];
+      int _j = idx_sub_tetra[4 * i + j];
       for (int k = 0; k < 3; k++) {
         _vtx_tetra_child[3*j + k] = _vtx_tetra_children[3*_j + k];
         }
       for (int k = 0; k < 3; k++) {
-        _uvwPn_tetra_child[2*j + k] = _uvwPn_tetra_children[2*_j + k];
+        _uvwPn_tetra_child[3*j + k] = _uvwPn_tetra_children[3*_j + k];
       }
     }
 
@@ -5246,13 +5449,22 @@ _insert_subtetra
     double _dist2_child = 0;
     double _closest_pt_weights_child[4];
 
-    int isDegenerated = fvmc_triangle_evaluate_Position ((double *)point_coords,
-                                                         _vtx_tetra_child,
-                                                         _closest_pt_child,
-                                                         _closest_pt_uvwP1_child,
-                                                         &_dist2_child,
-                                                         _closest_pt_weights_child);
 
+    int isDegenerated = fvmc_tetrahedron_evaluate_Position ((double *)point_coords,
+                                                            _vtx_tetra_child,
+                                                            _closest_pt_child,
+                                                            _closest_pt_uvwP1_child,
+                                                            &_dist2_child,
+                                                            _closest_pt_weights_child);
+
+
+    /*printf("\n   ### SOUS TETRA N°%i ###\n-P0 : %12.5e, %12.5e, %12.5e\n-P1 : %12.5e, %12.5e, %12.5e\n-P2 : %12.5e, %12.5e, %12.5e\n-P3 : %12.5e, %12.5e, %12.5e\n COORDONNEES DU POINT PROJETE : %12.5e, %12.5e, %12.5e\n",
+    i,
+    _vtx_tetra_child[0], _vtx_tetra_child[1], _vtx_tetra_child[2],
+    _vtx_tetra_child[3], _vtx_tetra_child[4], _vtx_tetra_child[5],
+    _vtx_tetra_child[6], _vtx_tetra_child[7], _vtx_tetra_child[8],
+    _vtx_tetra_child[9], _vtx_tetra_child[10], _vtx_tetra_child[11],
+    _closest_pt_child[0], _closest_pt_child[1], _closest_pt_child[2]);*/
 
     if (isDegenerated == -1) {
       continue;
@@ -5264,11 +5476,11 @@ _insert_subtetra
     for (int j = 0; j < 3; j++) {
       for (int k = 0; k < 4; k++) {
         _closest_pt_uvwPn_child[j] +=
-          _closest_pt_weights_child[k] * _uvwPn_tetra_child[2*k + j];
+          _closest_pt_weights_child[k] * _uvwPn_tetra_child[3*k + j];
       }
     }
 
-    _heap_insert (heap,
+    _heap_insert_te (heap,
                   _vtx_tetra_child,
                   _uvwPn_tetra_child,
                   _closest_pt_child,
@@ -5282,7 +5494,7 @@ _insert_subtetra
 
 
 
-LAA */
+
 
 /*-----------------------------------------------------------------------------
  *
@@ -5306,11 +5518,11 @@ LAA */
  *   _basis_generic   <-- generic basis
  *
  *----------------------------------------------------------------------------*/
-/* ICI
+
 static double
 _compute_dist2_from_closest_tetra_subdivision
 (
- _heap_t *heap,
+ _heap_te *heap,
  const int order,
  const fvmc_element_t type,
  const int n_nodes,
@@ -5326,6 +5538,7 @@ _compute_dist2_from_closest_tetra_subdivision
  int *uncertain_result
  )
 {
+
   *uncertain_result = 0;
   *n_it = 0;
   *err_proj = HUGE_VAL;
@@ -5348,13 +5561,18 @@ _compute_dist2_from_closest_tetra_subdivision
     // Get closest tetrahedron stored in the heap
 
     int _child;
-    int isEmpty = _heap_top_get (heap,
+    int isEmpty = _heap_top_get_te (heap,
                                  _vtx_tetra_current,
                                  _uvwPn_tetra_current,
                                  _closest_pt_current,
                                  _closest_pt_uvwP1_current,
                                  _closest_pt_uvwPn_current,
                                  &_dist2_current, &_child);
+
+    /*printf("\nCHILD = %i\ndistance la plus courte : %12.5e\npoint le plus proche : (%12.5e, %12.5e, %12.5e)\ncoordonnees param : (%12.5e, %12.5e, %12.5e)\n",
+     _child, _dist2_current,
+     _closest_pt_current[0], _closest_pt_current[1], _closest_pt_current[2],
+    _closest_pt_uvwP1_current[0], _closest_pt_uvwP1_current[1], _closest_pt_uvwP1_current[2]);*/
 
 
     if (isEmpty) {
@@ -5386,19 +5604,24 @@ _compute_dist2_from_closest_tetra_subdivision
 
     double weightsP1[4];
 
-    FVMC_ho_basis (FVMC_FACE_TETRA,
+    FVMC_ho_basis (FVMC_CELL_TETRA,
                    1,
                    4,
                    1,
                    _closest_pt_uvwP1_current,
                    weightsP1);
 
+    //printf("Poids dans P1 : \nw0 = %12.5e\nw1 = %12.5e\nw2 = %12.5e\nw3 = %12.5e\n", weightsP1[0], weightsP1[1], weightsP1[2], weightsP1[3]);
+
 
     for (int j = 0; j < 3; j++) {
       for (int k = 0; k < 4; k++) {
-        _projected_coords_from_p1[k] += weightsP1[j] * _vtx_tetra_current[3*j+k];
+        _projected_coords_from_p1[j] += weightsP1[k] * _vtx_tetra_current[3*k+j];
       }
     }
+
+
+    //printf("point projete P1 : %12.5e, %12.5e, %12.5e\n", _projected_coords_from_p1[0], _projected_coords_from_p1[1], _projected_coords_from_p1[2]);
 
     // Compute projected from current Pn tetrahedron
 
@@ -5408,6 +5631,8 @@ _compute_dist2_from_closest_tetra_subdivision
       _projected_coords_from_pn[j] = 0;
     }
 
+    //printf("\nclosest point uvw Pn : %12.5e, %12.5e, %12.5e\n", _closest_pt_uvwPn_current[0], _closest_pt_uvwPn_current[1], _closest_pt_uvwPn_current[2]);
+
     FVMC_ho_basis (type,
                    order,
                    n_nodes,
@@ -5415,12 +5640,19 @@ _compute_dist2_from_closest_tetra_subdivision
                    _closest_pt_uvwPn_current,
                    weightsPn);
 
+
+
+  /*  printf("POIDS PN :\nW0 = %12.5e\nW1 = %12.5e\nW2 = %12.5e\nW3 = %12.5e\nW4 = %12.5e\nW5 = %12.5e\nW6 = %12.5e\nW7 = %12.5e\nW8 = %12.5e\nW9 = %12.5e\nW10 = %12.5e\nW11 = %12.5e\nW12 = %12.5e\nW13 = %12.5e\n",
+  weightsPn[0], weightsPn[1], weightsPn[2], weightsPn[3], weightsPn[4], weightsPn[5], weightsPn[6], weightsPn[7], weightsPn[8], weightsPn[9], weightsPn[10], weightsPn[11], weightsPn[12], weightsPn[13]);
+*/
     for (int j = 0; j < n_nodes; j++) {
       const double *_node_coords = nodes_coords + 3 * j;
       for (int k = 0; k < 3; k++) {
         _projected_coords_from_pn[k] += weightsPn[j] * _node_coords[k];
       }
     }
+
+    //printf("point projete Pn : %12.5e, %12.5e, %12.5e\n", _projected_coords_from_pn[0], _projected_coords_from_pn[1], _projected_coords_from_pn[2]);
 
     // Compute distance between two projected
 
@@ -5432,7 +5664,7 @@ _compute_dist2_from_closest_tetra_subdivision
 
     // Break if error is ok
 
-    if (*err_proj <= err_max || (*n_it)++ >= n_it_max) {
+    if (sqrt(*err_proj) <= err_max || (*n_it)++ >= n_it_max) {
 
       for (int j = 0; j < 3; j++) {
         projected_coords[j] = _projected_coords_from_pn[j];
@@ -5448,11 +5680,11 @@ _compute_dist2_from_closest_tetra_subdivision
       uvw[1] = _closest_pt_uvwPn_current[1];
       uvw[2] = _closest_pt_uvwPn_current[2];
 
+
       break;
     }
 
     // Insert sub-tetrahedron in the heap
-
 
     _insert_subtetra (heap,
                      order,
@@ -5462,7 +5694,8 @@ _compute_dist2_from_closest_tetra_subdivision
                      point_coords,
                      weightsPn,
                      _vtx_tetra_current,
-                     _uvPn_tetra_current);
+                     _uvwPn_tetra_current);
+
 
   }
 
@@ -5484,14 +5717,14 @@ _compute_dist2_from_closest_tetra_subdivision
   return dist2;
 }
 
-LAA */
+
 
 
 
 
 /*-----------------------------------------------------------------------------
  *
- * compute distance from closest tetrahedron subdivision
+ * compute distance from uniform tetrahedron subdivision
  *
  * parameters:
  *   heap1            <-> heap
@@ -5512,12 +5745,12 @@ LAA */
  *   _basis_generic   <-- generic basis
  *
  *----------------------------------------------------------------------------*/
-/* ICI
+
 static double
 _compute_dist2_from_uniform_tetra_subdivision
 (
- _heap_t *heap1,
- _heap_t *heap2,
+ _heap_te *heap1,
+ _heap_te *heap2,
  const int order,
  const fvmc_element_t type,
  const int n_nodes,
@@ -5538,8 +5771,8 @@ _compute_dist2_from_uniform_tetra_subdivision
 
   double dist2_min_min = HUGE_VAL;
 
-  _heap_t *heap      = heap1;
-  _heap_t *next_heap = heap2;
+  _heap_te *heap      = heap1;
+  _heap_te *next_heap = heap2;
 
   while (1) {
 
@@ -5554,7 +5787,7 @@ _compute_dist2_from_uniform_tetra_subdivision
     // Get closest triangle stored in the heap
 
     int _child;
-    int isEmpty = _heap_top_get (heap,
+    int isEmpty = _heap_top_get_te (heap,
                                  _vtx_tetra_current,
                                  _uvwPn_tetra_current,
                                  _closest_pt_current,
@@ -5581,7 +5814,7 @@ _compute_dist2_from_uniform_tetra_subdivision
 
     double weightsP1[4];
 
-    FVMC_ho_basis (FVMC_FACE_TETRA,
+    FVMC_ho_basis (FVMC_CELL_TETRA,
                    1,
                    4,
                    1,
@@ -5626,7 +5859,7 @@ _compute_dist2_from_uniform_tetra_subdivision
 
     // Break if error is ok
 
-    if (*err_proj <= err_max || (*n_it)++ >= n_it_max) {
+    if (sqrt(*err_proj) <= err_max || (*n_it)++ >= n_it_max) {
 
       for (int j = 0; j < 3; j++) {
         projected_coords[j] = _projected_coords_from_pn[j];
@@ -5648,9 +5881,9 @@ _compute_dist2_from_uniform_tetra_subdivision
     // Insert sub-triangles in the next heap
 
 
-    _heap_init (next_heap);
+    _heap_init_te (next_heap);
 
-    _insert_subtria (next_heap,
+    _insert_subtetra (next_heap,
                      order,
                      type,
                      n_nodes,
@@ -5660,15 +5893,15 @@ _compute_dist2_from_uniform_tetra_subdivision
                      _vtx_tetra_current,
                      _uvwPn_tetra_current);
 
-    double _vtx_tetra_current2[9];
-    double _uvwPn_tetra_current2[6];
+    double _vtx_tetra_current2[12];
+    double _uvwPn_tetra_current2[12];
 
     double _closest_pt_current2[3];
-    double _closest_pt_uvwP1_current2[2];
+    double _closest_pt_uvwP1_current2[3];
     double _dist2_current2;
     int _child_current2;
 
-    while ( !_heap_top_get (heap,
+    while ( !_heap_top_get_te (heap,
                             _vtx_tetra_current2,
                             _uvwPn_tetra_current2,
                             _closest_pt_current2,
@@ -5689,7 +5922,7 @@ _compute_dist2_from_uniform_tetra_subdivision
 
     }
 
-    _heap_t *heap_tmp = heap;
+    _heap_te *heap_tmp = heap;
     heap = next_heap;
     next_heap = heap_tmp;
 
@@ -5709,7 +5942,7 @@ _compute_dist2_from_uniform_tetra_subdivision
   return dist2;
 }
 
-LAA */
+
 
 /*-----------------------------------------------------------------------------
  *
@@ -5727,7 +5960,7 @@ LAA */
  *   distance to the cell
  *
  *----------------------------------------------------------------------------*/
-/* ICI
+
 static double
 _default_location_generic_3d
 (
@@ -5747,22 +5980,24 @@ _default_location_generic_3d
     printf ("\n\n***********\n");
 
     printf ("n_node %d\n", n_nodes);
+    for (int i = 0; i < 3*n_nodes; i++) {
+      printf("%12.5e\n", nodes_coords[i]);
+    }
   }
 
-  //  const int n_it_max = 100;
   const int n_it_max = 100;
   double err_max = FVMC_MAX (char_size * 1e-6, 1e-15);
 
   double dist2 = HUGE_VAL;
 
-  _heap_t heap;
-  _heap_t heap2;
+  _heap_te heap;
+  _heap_te heap2;
 
   double *weightsPn = malloc(sizeof(double) * n_nodes);
 
   // Initialize heap
 
-  _heap_init (&heap);
+  _heap_init_te (&heap);
 
   // Build initial sub-tetrahedron and store them in the heap
 
@@ -5813,8 +6048,8 @@ _default_location_generic_3d
 
       // Initialize heap
 
-      _heap_init (&heap);
-      _heap_init (&heap2);
+      _heap_init_te (&heap);
+      _heap_init_te (&heap2);
 
       // Build initial sub-triangles and store them in the heap
 
@@ -5848,6 +6083,7 @@ _default_location_generic_3d
       }
 
     }
+
       if (_idebug == 1) {
 
         printf ("====================fin============================\n\n\n");
@@ -5856,7 +6092,7 @@ _default_location_generic_3d
 
   else {
 
-    _heap_init (&heap2);
+    _heap_init_te (&heap2);
     dist2 = _compute_dist2_from_uniform_tetra_subdivision (&heap,
                                                           &heap2,
                                                           order,
@@ -5881,17 +6117,64 @@ _default_location_generic_3d
   //printf("  project point_coords : %22.15e %22.15e %22.15e - %22.15e\n", projected_coords[0], projected_coords[1], projected_coords[2], dist2);
   //printf("  iteration number, error^2 : %d %22.15e\n", n_it, err_proj);
 
+
+
   return dist2;
 
 }
 
 
 
+static double
+_reference_length
+(
+ const double *coords
+)
+{
+  double a =
+    sqrt ((coords[3*1    ] - coords[3*0    ]) * (coords[3*1    ] - coords[3*0    ]) +
+          (coords[3*1 + 1] - coords[3*0 + 1]) * (coords[3*1 + 1] - coords[3*0 + 1]) +
+          (coords[3*1 + 2] - coords[3*0 + 2]) * (coords[3*1 + 2] - coords[3*0 + 2]));
+
+  double b =
+    sqrt ((coords[3*2    ] - coords[3*1    ]) * (coords[3*2    ] - coords[3*1    ]) +
+          (coords[3*2 + 1] - coords[3*1 + 1]) * (coords[3*2 + 1] - coords[3*1 + 1]) +
+          (coords[3*2 + 2] - coords[3*1 + 2]) * (coords[3*2 + 2] - coords[3*1 + 2]));
+
+  double c =
+    sqrt ((coords[3*0    ] - coords[3*2    ]) * (coords[3*0    ] - coords[3*2    ]) +
+          (coords[3*0 + 1] - coords[3*2 + 1]) * (coords[3*0 + 1] - coords[3*2 + 1]) +
+          (coords[3*0 + 2] - coords[3*2 + 2]) * (coords[3*0 + 2] - coords[3*2 + 2]));
+
+  double d =
+    sqrt ((coords[3*3    ] - coords[3*0    ]) * (coords[3*3    ] - coords[3*0    ]) +
+          (coords[3*3 + 1] - coords[3*0 + 1]) * (coords[3*3 + 1] - coords[3*0 + 1]) +
+          (coords[3*3 + 2] - coords[3*0 + 2]) * (coords[3*3 + 2] - coords[3*0 + 2]));
+
+  double e =
+    sqrt ((coords[3*3    ] - coords[3*1    ]) * (coords[3*3    ] - coords[3*1    ]) +
+          (coords[3*3 + 1] - coords[3*1 + 1]) * (coords[3*3 + 1] - coords[3*1 + 1]) +
+          (coords[3*3 + 2] - coords[3*1 + 2]) * (coords[3*3 + 2] - coords[3*1 + 2]));
+
+  double f =
+    sqrt ((coords[3*3    ] - coords[3*2    ]) * (coords[3*3    ] - coords[3*2    ]) +
+          (coords[3*3 + 1] - coords[3*2 + 1]) * (coords[3*3 + 1] - coords[3*2 + 1]) +
+          (coords[3*3 + 2] - coords[3*2 + 2]) * (coords[3*3 + 2] - coords[3*2 + 2]));
+
+
+
+  double max_ab = FVMC_MAX(a,b);
+  double max_cd = FVMC_MAX(c,d);
+  double max_ef = FVMC_MAX(e,f);
+
+  double max_abcd = FVMC_MAX(max_ab,max_cd);
+  return FVMC_MAX(max_abcd,max_ef);
+
+}
 
 
 
 
-LAA */
 
 
 
@@ -5930,9 +6213,13 @@ _default_location
   double dist2 = HUGE_VAL;
 
 
+
+
   switch (_type) {
 
   case FVMC_EDGE: {
+
+
 
     int v1 = 0;
     int v2 = order;
@@ -6038,6 +6325,230 @@ _default_location
                                           _heap_fill_qn_sub_tria);
     break;
   }
+
+  case FVMC_CELL_TETRA: {
+
+    int v1 = 0;
+    int v2 = order;
+    int v3 = (order + 2) * (order + 1) / 2 - 1;
+    int v4 = (order+1)*(order+2)*(order+3)/6 - 1;
+
+    double p1_coords[12] =
+      {nodes_coords[3*v1], nodes_coords[3*v1+1], nodes_coords[3*v1+2],
+       nodes_coords[3*v2], nodes_coords[3*v2+1], nodes_coords[3*v2+2],
+       nodes_coords[3*v3], nodes_coords[3*v3+1], nodes_coords[3*v3+2],
+       nodes_coords[3*v4], nodes_coords[3*v4+1], nodes_coords[3*v4+2]};
+
+    double char_size = _reference_length (p1_coords);
+
+    dist2 = _default_location_generic_3d (type,
+                                          order,
+                                          char_size,
+                                          n_nodes,
+                                          nodes_coords,
+                                          point_coords,
+                                          projected_coords,
+                                          uvw,
+                                          _heap_fill_pn_tetra_sub_tetra);
+
+    if (1 == 0) {
+      printf("La distance au carre du point ( %12.5e, %12.5e, %12.5e ) a la parabole est %12.5e\n Coordonnees de la projection ( %12.5e, %12.5e, %12.5e )\n",
+              point_coords[0], point_coords[1], point_coords[2], dist2,
+              projected_coords[0], projected_coords[1], projected_coords[2]);
+    }
+
+
+
+    break;
+
+  }
+
+
+  case FVMC_CELL_PRISM: {
+
+
+        const int prism_vertices[6] = {0,
+                                       order,
+                                       (order + 2) * (order + 1) / 2 - 1,
+                                       order * (order + 2) * (order + 1) / 2,
+                                        order * (order + 2) * (order + 1) / 2 + order,
+                                        (order+1)*(order+1)*(order+2)/2  - 1};
+        int tetra_vertices[12];
+
+        int n_sub_tetra = fvmc_triangulate_prism(3,
+                                                nodes_coords,
+                                                NULL,
+                                                prism_vertices,
+                                                tetra_vertices);
+
+        double char_size = -1.0;
+
+        for (int i = 0; i < n_sub_tetra; i++) {
+
+          int v1 = tetra_vertices[4*i    ];
+          int v2 = tetra_vertices[4*i + 1];
+          int v3 = tetra_vertices[4*i + 2];
+          int v4 = tetra_vertices[4*i + 3];
+
+          double p1_coords[12] =
+            {nodes_coords[3*v1], nodes_coords[3*v1+1], nodes_coords[3*v1+2],
+             nodes_coords[3*v2], nodes_coords[3*v2+1], nodes_coords[3*v2+2],
+             nodes_coords[3*v3], nodes_coords[3*v3+1], nodes_coords[3*v3+2],
+             nodes_coords[3*v4], nodes_coords[3*v4+1], nodes_coords[3*v4+2]};
+
+          double _char_size = _reference_length (p1_coords);
+
+          char_size = FVMC_MAX (char_size, _char_size);
+
+        }
+
+        dist2 = _default_location_generic_3d (type,
+                                              order,
+                                              char_size,
+                                              n_nodes,
+                                              nodes_coords,
+                                              point_coords,
+                                              projected_coords,
+                                              uvw,
+                                              _heap_fill_pn_prism_sub_tetra);
+
+
+    if (1 == 0) {
+      printf("La distance au carre du point ( %12.5e, %12.5e, %12.5e ) a la parabole est %12.5e\n Coordonnees de la projection ( %12.5e, %12.5e, %12.5e )\n",
+              point_coords[0], point_coords[1], point_coords[2], dist2,
+              projected_coords[0], projected_coords[1], projected_coords[2]);
+    }
+
+        break;
+  }
+
+
+
+
+  case FVMC_CELL_HEXA: {
+
+
+        const int hexa_vertices[8] = {0,
+                                      order,
+                                      order * (order + 1),
+                                      (order + 1) * (order + 1) - 1,
+                                      order * (order + 1) * (order + 1),
+                                      order * ((order + 1) * (order + 1) + 1),
+                                      order * (order + 1) * (order + 2),
+                                      (order + 1) * (order + 1) * (order + 1) - 1};
+        int tetra_vertices[20];
+
+        int n_sub_tetra = fvmc_triangulate_hexa(3,
+                                                nodes_coords,
+                                                NULL,
+                                                hexa_vertices,
+                                                tetra_vertices);
+
+        double char_size = -1.0;
+
+
+
+        for (int i = 0; i < n_sub_tetra; i++) {
+
+          int v1 = tetra_vertices[4*i    ];
+          int v2 = tetra_vertices[4*i + 1];
+          int v3 = tetra_vertices[4*i + 2];
+          int v4 = tetra_vertices[4*i + 3];
+
+          double p1_coords[12] =
+            {nodes_coords[3*v1], nodes_coords[3*v1+1], nodes_coords[3*v1+2],
+             nodes_coords[3*v2], nodes_coords[3*v2+1], nodes_coords[3*v2+2],
+             nodes_coords[3*v3], nodes_coords[3*v3+1], nodes_coords[3*v3+2],
+             nodes_coords[3*v4], nodes_coords[3*v4+1], nodes_coords[3*v4+2]};
+
+          double _char_size = _reference_length (p1_coords);
+
+
+          char_size = FVMC_MAX (char_size, _char_size);
+
+        }
+
+        dist2 = _default_location_generic_3d (type,
+                                              order,
+                                              char_size,
+                                              n_nodes,
+                                              nodes_coords,
+                                              point_coords,
+                                              projected_coords,
+                                              uvw,
+                                              _heap_fill_pn_hexa_sub_tetra);
+
+    if (1 == 0) {
+      printf("La distance au carre du point ( %12.5e, %12.5e, %12.5e ) a la parabole est %12.5e\n Coordonnees de la projection ( %12.5e, %12.5e, %12.5e )\n",
+              point_coords[0], point_coords[1], point_coords[2], dist2,
+              projected_coords[0], projected_coords[1], projected_coords[2]);
+    }
+
+        break;
+  }
+
+
+
+
+  case FVMC_CELL_PYRAM: {
+
+
+        const int pyra_vertices[5] = {0,
+                                      order,
+                                      order * (order + 1),
+                                      (order + 1) * (order + 1) - 1,
+                                      (order+1)*(order+2)*(2*order+3)/6 - 1};
+        int tetra_vertices[8];
+
+        int n_sub_tetra = fvmc_triangulate_pyra(3,
+                                                nodes_coords,
+                                                NULL,
+                                                pyra_vertices,
+                                                tetra_vertices);
+
+        double char_size = -1.0;
+
+        for (int i = 0; i < n_sub_tetra; i++) {
+
+          int v1 = tetra_vertices[4*i    ];
+          int v2 = tetra_vertices[4*i + 1];
+          int v3 = tetra_vertices[4*i + 2];
+          int v4 = tetra_vertices[4*i + 3];
+
+          double p1_coords[12] =
+            {nodes_coords[3*v1], nodes_coords[3*v1+1], nodes_coords[3*v1+2],
+             nodes_coords[3*v2], nodes_coords[3*v2+1], nodes_coords[3*v2+2],
+             nodes_coords[3*v3], nodes_coords[3*v3+1], nodes_coords[3*v3+2],
+             nodes_coords[3*v4], nodes_coords[3*v4+1], nodes_coords[3*v4+2]};
+
+          double _char_size = _reference_length (p1_coords);
+
+          char_size = FVMC_MAX (char_size, _char_size);
+
+        }
+
+        dist2 = _default_location_generic_3d (type,
+                                              order,
+                                              char_size,
+                                              n_nodes,
+                                              nodes_coords,
+                                              point_coords,
+                                              projected_coords,
+                                              uvw,
+                                              _heap_fill_pn_pyra_sub_tetra);
+
+
+    if (1 == 0) {
+      printf("La distance au carre du point ( %12.5e, %12.5e, %12.5e ) a la parabole est %12.5e\n Coordonnees de la projection ( %12.5e, %12.5e, %12.5e )\n",
+              point_coords[0], point_coords[1], point_coords[2], dist2,
+              projected_coords[0], projected_coords[1], projected_coords[2]);
+    }
+
+        break;
+  }
+
+
+
 
   default:
     bftc_error(__FILE__, __LINE__, 0,

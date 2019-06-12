@@ -115,7 +115,7 @@ static fvmc_ho_basis_user_elt_t *_user_pyra = NULL;
  *
  *
  *----------------------------------------------------------------------------*/
-
+//pkmn - carapuce
 static void
 _monomialProduct
 (
@@ -584,7 +584,8 @@ _basis_tetra_pn
 )
 {
 
-  int n_nodes = ( (order*(order+1)*(2*order+1)/6) + 3*order*(order+1)/2 + 3*order ) / 2;
+  int n_nodes = (order+1)*(order+2)*(order+3)/6;
+
 
   if (order == 1) {
     for (int i = 0; i < n_pts; i++) {
@@ -593,6 +594,7 @@ _basis_tetra_pn
       double v = uvw[3*i+1];
       double w = uvw[3*i+2];
       double t = 1 - u - v - w;
+
 
       weights[4*i  ] = t;  /* (0, 0, 0)*/
       weights[4*i+1] = u;  /* (1, 0, 0)*/
@@ -605,26 +607,31 @@ _basis_tetra_pn
 
     for (int i = 0; i < n_pts; i++) {
 
+
      double u  = uvw[3*i  ];
      double v  = uvw[3*i+1];
      double w  = uvw[3*i+2];
      double t = 1 - u - v - w;
+
 
      double u2 = 2. * u;
      double v2 = 2. * v;
      double w2 = 2. * w;
      double t2 = 2. * t;
 
-     weights[10*i+0] = t * (t2 - 1);    /* (0  , 0  , 0  ) */
-     weights[10*i+2] = u * (-1. + u2);  /* (1  , 0  , 0  ) */
-     weights[10*i+5] = v * (-1. + v2);  /* (0  , 1  , 0  ) */
-     weights[10*i+9] = w * (-1. + w2);  /* (0  , 0  , 1  ) */
-     weights[10*i+1] = u2 * t2;         /* (0.5, 0  , 0  ) */
-     weights[10*i+4] = u2 * v2;         /* (0.5, 0.5, 0  ) */
-     weights[10*i+3] = v2 * t2;         /* (0  , 0.5, 0  ) */
-     weights[10*i+6] = w2 * t2;         /* (0  , 0  , 0.5) */
-     weights[10*i+7] = u2 * w2;         /* (0.5, 0  , 0.5) */
-     weights[10*i+8] = v2 * w2;         /* (0  , 0.5, 0.5) */
+     weights[10*i+0] = t * (t2 - 1);    // (0  , 0  , 0  )
+     weights[10*i+1] = u2 * t2;         // (0.5, 0  , 0  )
+     weights[10*i+2] = u * (-1. + u2);  // (1  , 0  , 0  )
+     weights[10*i+3] = v2 * t2;         // (0  , 0.5, 0  )
+     weights[10*i+4] = u2 * v2;         // (0.5, 0.5, 0  )
+     weights[10*i+5] = v * (-1. + v2);  // (0  , 1  , 0  )
+     weights[10*i+6] = w2 * t2;         // (0  , 0  , 0.5)
+     weights[10*i+7] = u2 * w2;         // (0.5, 0  , 0.5)
+     weights[10*i+8] = v2 * w2;         // (0  , 0.5, 0.5)
+     weights[10*i+9] = w * (-1. + w2);  // (0  , 0  , 1  )
+
+
+
     }
   }
   else {
@@ -880,10 +887,11 @@ _basis_prism_pn
      double v  = uvw[3*i+1];
      double w  = uvw[3*i+2];
 
+
      double t  = 1. - u - v;
      double u2 = 2. * u;
      double v2 = 2. * v;
-     double t2 = 2. * w;
+     double t2 = 2. * t;
 
      double wM = 2*(1-w);
      double wP = 2*w;
@@ -898,18 +906,21 @@ _basis_prism_pn
      weights[18*i+ 3] = (v2 * t2)        * aw1;
      weights[18*i+ 4] = (u2 * v2)        * aw1;
      weights[18*i+ 5] = (v * (-1. + v2)) * aw1;
+
      weights[18*i+ 6] = (t * (-1. + t2)) * aw2;
      weights[18*i+ 7] = (u2 * t2)        * aw2;
      weights[18*i+ 8] = (u * (-1. + u2)) * aw2;
      weights[18*i+ 9] = (v2 * t2)        * aw2;
      weights[18*i+10] = (u2 * v2)        * aw2;
      weights[18*i+11] = (v * (-1. + v2)) * aw2;
+
      weights[18*i+12] = (t * (-1. + t2)) * aw3;
      weights[18*i+13] = (u2 * t2)        * aw3;
      weights[18*i+14] = (u * (-1. + u2)) * aw3;
      weights[18*i+15] = (v2 * t2)        * aw3;
      weights[18*i+16] = (u2 * v2)        * aw3;
      weights[18*i+17] = (v * (-1. + v2)) * aw3;
+
     }
   }
   else {
@@ -935,7 +946,7 @@ _basis_prism_pn
     double *lagrangeL2_w = malloc (sizeof(double) * nMod * n_pts);
 
     _setL2BasisEqui (order, n_pts, w, lagrangeL2_w);
-
+// pkmn bulbizarre
     int i_node = 0;
     for (int iw = 0; iw < nMod; iw++) {
       for (int iv = 0; iv < nMod; iv++) {
@@ -1049,12 +1060,17 @@ _basis_pyra_pn
       weights[14*i+ 7] = au2*av3*aw1;
       weights[14*i+ 8] = au3*av3*aw1;
 
-      weights[14*i+ 9] =  u0    * 2*v0  *aw2;
-      weights[14*i+10] =  uP    * 2*v0  *aw2;
-      weights[14*i+11] =  2*u0  * vP  *aw2;
-      weights[14*i+12] =  uP    * vP    *aw2;
+      weights[14*i+ 9] =   2*u0  *  2*v0  *aw2;
+      weights[14*i+10] =   uP    * -2*v0  *aw2;
+      weights[14*i+11] =  -2*u0  *  vP    *aw2;
+      weights[14*i+12] =   uP    *  vP    *aw2;
 
       weights[14*i+13] = aw3;
+
+      /*printf("POIDS PN :\nW0 = %12.5e\nW1 = %12.5e\nW2 = %12.5e\nW3 = %12.5e\nW4 = %12.5e\nW5 = %12.5e\nW6 = %12.5e\nW7 = %12.5e\nW8 = %12.5e\nW9 = %12.5e\nW10 = %12.5e\nW11 = %12.5e\nW12 = %12.5e\nW13 = %12.5e\n",
+    weights[0], weights[1], weights[2], weights[3], weights[4], weights[5], weights[6], weights[7], weights[8], weights[9], weights[10], weights[11], weights[12], weights[13]);
+*/
+
     }
   }
   else {
@@ -1159,9 +1175,21 @@ const double *uvw,
     break;
 
   case FVMC_CELL_TETRA:
+    _basis_tetra_pn (order, n_pts, uvw, weights);
+    break;
+
   case FVMC_CELL_PRISM:
+    _basis_prism_pn (order, n_pts, uvw, weights);
+    break;
+
   case FVMC_CELL_PYRAM:
+    _basis_pyra_pn (order, n_pts, uvw, weights);
+    break;
+
   case FVMC_CELL_HEXA:
+    _basis_hexa_pn (order, n_pts, uvw, weights);
+    break;
+
   default:
     bftc_error(__FILE__, __LINE__, 0,
                _("FVMC_ho_basis : '%d' element type not yet implemented\n"),

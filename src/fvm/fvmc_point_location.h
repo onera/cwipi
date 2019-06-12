@@ -203,7 +203,7 @@ int  fvmc_tetrahedron_evaluate_Position (double x[3], double *pts,
                                          double* closestPoint,
                                          double closestPointpcoords[3],
                                          double *dist2,
-                                         double closestPointweights[4]);                                 
+                                         double closestPointweights[4]);
 
 
 /*----------------------------------------------------------------------------*/
