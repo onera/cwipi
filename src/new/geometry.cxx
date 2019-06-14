@@ -241,14 +241,16 @@ namespace cwipi {
   void Geometry::compute() {
     
     info_mesh();
+                
     if(_both_codes_are_local == 0){
       if(localName == _codeVector[0]) locate_setting_surface(&_id_dist1);
       if(localName == _codeVector[1]) locate_setting_request(&_id_dist1);
       printf("ZZ Before locate_compute %i %s\n",_rank,localName.c_str()); 
       MPI_Barrier(_globalComm);
+             
       locate_compute        (_id_dist1); 
       printf("ZZ After locate_compute %i %s\n",_rank,localName.c_str());  
-        
+
       MPI_Barrier(_globalComm);          
       if (localName == _codeVector[1]) locate_get(_id_dist1)  ;
          
@@ -256,17 +258,19 @@ namespace cwipi {
          
       if(localName == _codeVector[1]) broadcasting_request(&_id_gnum_location1);
       if(localName == _codeVector[0]) broadcasting_set    (&_id_gnum_location1);
-         
+  
       MPI_Barrier(_globalComm);
-      location_compute                   (_id_gnum_location1);  
+        
+      location_compute                   (_id_gnum_location1);   
+      // 
       printf("ZZ After location_compute %i %s\n",_rank,localName.c_str());
       if(localName == _codeVector[1]) location_get(_id_gnum_location1) ;
 
       PDM_gnum_location_free(_id_gnum_location1,1);
-           
+
       if(localName == _codeVector[0]) locate_setting_request(&_id_dist2);
       if(localName == _codeVector[1]) locate_setting_surface(&_id_dist2);
-               
+
       MPI_Barrier(_globalComm);
       locate_compute          (_id_dist2)  ;
                      
@@ -275,17 +279,22 @@ namespace cwipi {
 
       if(localName == _codeVector[0])  broadcasting_request(&_id_gnum_location2);     
       if(localName == _codeVector[1])  broadcasting_set    (&_id_gnum_location2);
-         
+
       MPI_Barrier(_globalComm);    
       location_compute  (_id_gnum_location2);   
+     
       if(localName == _codeVector[0]) location_get(_id_gnum_location2);
       PDM_gnum_location_free(_id_gnum_location2,1);
 
-      broadcasting_filling_of_broadcasting_array(); 
+      broadcasting_filling_of_broadcasting_array();        
       broadcasting_index_communication() ;
       _Wait()    ;     
-      broadcasting_communication() ;
+      
+
+      broadcasting_communication() ;    
       broadcasting_communication2() ;
+     // while(1==1){} 
+  
       broadcasting_wait_and_targets_array_filling();
       
     }
@@ -293,23 +302,28 @@ namespace cwipi {
       if(localName == _codeVector[0]) {
         
         locate_setting_surface(&_id_dist1);
-        
         printf("ZZ Before locate_compute %i %s\n",_rank,localName.c_str()); 
         MPI_Barrier(_globalComm);
-        locate_compute        (_id_dist1);
+   
+        locate_compute        (_id_dist1);       
         MPI_Barrier(_globalComm);                
+        printf("ZZ After locate_compute %i %s\n",_rank,localName.c_str()); 
+
         locate_get_cpl        (_id_dist1) ;
         PDM_mesh_dist_free(_id_dist1,1);
-               
-        broadcasting_set    (&_id_gnum_location1); 
+              
+        broadcasting_set    (&_id_gnum_location1);    
+   
         MPI_Barrier(_globalComm);
-        location_compute                 (_id_gnum_location1);          
+    
+        location_compute                 (_id_gnum_location1);     
+ //
         location_get_cpl (_id_gnum_location1);
 
         PDM_gnum_location_free(_id_gnum_location1,1);
 
         locate_setting_request(&_id_dist2);
-
+   
         MPI_Barrier(_globalComm);
         locate_compute        (_id_dist2);  
         
@@ -320,26 +334,31 @@ namespace cwipi {
         broadcasting_request (&_id_gnum_location2);
             
         MPI_Barrier(_globalComm);
+        
         location_compute                  (_id_gnum_location2);
+        
         printf("ZZ After location_compute %i %s\n",_rank,localName.c_str());
         location_get                      (_id_gnum_location2);
         PDM_gnum_location_free(_id_gnum_location2,1);
-
+        
         broadcasting_filling_of_broadcasting_array();  
         _geometry_cpl -> broadcasting_filling_of_broadcasting_array(); 
-          
+
         broadcasting_index_communication()    ;
         _geometry_cpl -> broadcasting_index_communication()    ;
 
         _Wait();
         _geometry_cpl -> _Wait();
 
+
+
         broadcasting_communication();
         _geometry_cpl -> broadcasting_communication() ;
-
+ 
         broadcasting_communication2();
         _geometry_cpl -> broadcasting_communication2();
-          
+       //    while(1==1){} 
+       
         broadcasting_wait_and_targets_array_filling();
         _geometry_cpl -> broadcasting_wait_and_targets_array_filling();
       }//end if localName == _codeVector[0]
@@ -695,7 +714,7 @@ namespace cwipi {
       _recv_requests.resize(0,0);
   }
 
-void Geometry::_IBcast(void* send_buffer,
+  void Geometry::_IBcast(void* send_buffer,
                      int send_size,
                      int send_stride,
                      void* recv_buffer,
@@ -809,7 +828,7 @@ void Geometry::_IBcast(void* send_buffer,
 
       MPI_Request request;
 
-      int longueur =  dataTypeSize * nComponent * ( _targets_localization_idx[ distant_rank ][_nb_part] - _targets_localization_idx[distant_rank][0]  );
+      int longueur =  dataTypeSize * nComponent * ( _targets_localization_idx[ distant_rank ][_nb_part_cpl] - _targets_localization_idx[distant_rank][0]  );
       printf("Recv from %i to %i start %i longueur %i\n",_rank,i_proc,nComponent*_targets_localization_idx[distant_rank][0],longueur);
 
       MPI_Irecv(loc_v_ptr, longueur, MPI_BYTE, distant_rank, tag,
@@ -890,12 +909,11 @@ void Geometry::_IBcast(void* send_buffer,
       int request = sendingField -> lastRequestGet(i_proc);
       MPI_Wait(&request, &status);
     } //i_proc loop
-    
+
     int nComponent = sendingField -> nComponentGet();
     if(_visu -> isCreated()) {
        _visu -> WriterField(sendingField);
     }
-
   }
 
 
