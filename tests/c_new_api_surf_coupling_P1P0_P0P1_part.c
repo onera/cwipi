@@ -258,7 +258,7 @@ int main
       }
     }
 
- /*  rankCode1[0] = 1;
+   rankCode1[0] = 1;
    rankCode1[1] = 1;
    rankCode1[2] = 1;
    rankCode1[3] = 1;
@@ -272,7 +272,6 @@ int main
    rankCode2[4] = 1;
    rankCode2[5] = 1;   
 
- */
     int ind=0;
     for(int i=0; i < commWorldSize; i++) {
       if(rankCode2[i] || rankCode1[i]){
@@ -711,7 +710,18 @@ int main
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
-  CWP_Geom_compute("c_new_api_surf_cpl_P1P0_P0P1_part");
+  int n_uncomputed_tgt;
+  printf("Before Geometry compute %i\n",rank);
+  for(int i_code = 0; i_code < n_code_name; i_code++) {     
+    CWP_Geom_compute(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part", CWP_FIELD_VALUE_CELL_POINT);
+    CWP_Geom_compute(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part", CWP_FIELD_VALUE_NODE);
+    int n_uncomputed_node = CWP_N_uncomputed_tgts_get(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part", CWP_FIELD_VALUE_NODE,0);
+    int n_uncomputed_cell_value = CWP_N_uncomputed_tgts_get(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part", CWP_FIELD_VALUE_CELL_POINT,0);
+    printf("  %i  vertices and   %i  cell centers have not been found on code %s for proc %i\n",n_uncomputed_node,n_uncomputed_cell_value,codeName[i_code],rank);
+  }
+  
+  printf("BeforeAfter Geometry compute %i\n",rank);
+   
   MPI_Barrier(MPI_COMM_WORLD);
   double recv_time = 0.150;
 
