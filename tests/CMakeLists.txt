@@ -129,6 +129,10 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_surf_coupling_P1P0_P0P1_dynami
   test_c_create (c_new_api_surf_coupling_P1P0_P0P1_dynamic 2)
 endif () 
 
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_surf_coupling_P1P0_P0P1_part.c")
+  test_c_create (c_new_api_surf_coupling_P1P0_P0P1_part 2)
+endif () 
+
 
 test_c_create (c_linear_coupling 2)
 test_c_create (c_surf_location_triaP2 2)
