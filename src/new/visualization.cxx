@@ -270,8 +270,11 @@ namespace cwipi {
  
     id_var = field -> visuIdGet();
     void* data = field -> dataGet(i_part);
+    //TODO: CHange double for multitype
+    
 
     PDM_writer_var_set(_visu_id, id_var, _visu_mesh_id, i_part,(double*)data);
+         
   }
 
 /********************************************************/
@@ -280,11 +283,10 @@ namespace cwipi {
     int id_var = -1;
 
     id_var = field -> visuIdGet();
-       
-    for (int i_part =0;i_part<_n_part;i_part++)
-       {   fieldDataSet(field,i_part);
-       }
-  
+
+    for (int i_part =0;i_part<_n_part;i_part++) { 
+       fieldDataSet(field,i_part);
+    }
     PDM_writer_var_write(_visu_id, id_var);                       
    
   }

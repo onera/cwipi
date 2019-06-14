@@ -462,7 +462,6 @@ namespace cwipi {
                                                    
      _blocks_id = PDM_Mesh_nodal_blocks_id_get(_pdmNodal_handle_index);
      _nBlocks   = PDM_Mesh_nodal_n_blocks_get (_pdmNodal_handle_index);     
-     
 
      if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC) {
      
@@ -496,22 +495,21 @@ namespace cwipi {
       PDM_Mesh_nodal_g_num_in_mesh_compute(_pdmNodal_handle_index);
       std::map<int,cwipi::Block*>::iterator it = _blockDB.begin();
       
-      
-        while(it != _blockDB.end()) {
-          for(int i_part =0;i_part<_npart;i_part++) {
-            int block_id = it -> second -> blockIDGet();
-            CWP_g_num_t* global_num = it -> second -> GNumMeshGet(i_part);
-            if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC) _visu -> GeomBlockGNumMeshSet (_id_visu[block_id],
-                                           i_part,
-                                           global_num);
-          } //Loop on i_part
+      while(it != _blockDB.end()) {
+        for(int i_part =0;i_part<_npart;i_part++) {
+          int block_id = it -> second -> blockIDGet();
+          CWP_g_num_t* global_num = it -> second -> GNumMeshGet(i_part);
+          if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC) 
+             _visu -> GeomBlockGNumMeshSet (_id_visu[block_id],
+                                              i_part,
+                                              global_num);
+        } //Loop on i_part
         it++;
-        }//Loop on blockDB
-      
+      }//Loop on blockDB
     } // end if g_num_computation_required
-         
-    if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC ) _visu -> GeomWrite();   
-                            
+          
+    if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC ) 
+      _visu -> GeomWrite();   
   } 
            
 
