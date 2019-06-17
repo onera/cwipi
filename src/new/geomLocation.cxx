@@ -143,15 +143,15 @@ namespace cwipi {
               double *barCoords = NULL;
               printf("iel %i itarget %i target %f %f %f _n_tot_target_cpl %i conneIDX \n",
               iel,itarget,x_target,y_target,z_target,_n_tot_target_cpl);
-              PDM_geom_elem_compute_polygon_barycentric_coordinates(1,
-                                                                   &ielP1,
-                                                                    tgtCoords,
-                                                                    connecIdx,
-                                                                    connec,
-                                                                    coords,
-                                                                   &barCoordsIndex,
-                                                                   &barCoords
-                                                                   );               
+              int conv_bar_compute = PDM_geom_elem_compute_polygon_barycentric_coordinates(1,
+                                          	    		                         &ielP1,
+                                                                			  tgtCoords,
+                                                         		                  connecIdx,
+                                                                   			  connec,
+                                                           				  coords,
+                                                  			                 &barCoordsIndex,
+                                                                  			 &barCoords
+                                                         				 );               
               for (int k = 0; k < nComponent; k++) {
                 value = 0.0;
                 for (int i_vtx = connecIdx[iel]; i_vtx < connecIdx[iel+1]; i_vtx++) {
@@ -340,22 +340,22 @@ void GeomLocation::issend(Field* referenceField) {
  
     if(_both_codes_are_local == 0) {
       for(int i_part =0; i_part<_nb_part_cpl; i_part++) {     
-        int*         connecIdx = (int*)malloc(sizeof(int)*_n_g_vtx_cpl_over_part);
-        int*         connec    = (int*)malloc(sizeof(int)*_n_g_vtx_cpl_over_part);
+        int test = 10;//_n_g_vtx_cpl_over_part;
+        int*         connecIdx = (int*)malloc(sizeof(int)*(1+test));
+        int*         connec    = (int*)malloc(sizeof(int)*test);
         
-        double*      coords    = (double*)malloc(sizeof(double)*_n_g_vtx_cpl_over_part);
-        CWP_g_num_t* gnum_vtx  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*_n_g_vtx_cpl_over_part);
-        CWP_g_num_t* gnum_elt  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*_n_g_vtx_cpl_over_part);
+        double*      coords    = (double*)malloc(sizeof(double)*test);
+        CWP_g_num_t* gnum_vtx  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*test);
+        CWP_g_num_t* gnum_elt  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*test);
         
-        printf("KKK %i\n",_n_g_vtx_cpl_over_part);
-        for(int i=0;i<_n_g_vtx_over_part;i++){
+        for(int i=0;i<test;i++){
           gnum_vtx[i]=0;
           gnum_elt[i]=0;
           connecIdx[i]=0;
           connec[i]=0;
           coords[i]=0;
         }
-
+        connecIdx[0]=1;
         PDM_mesh_dist_surf_mesh_part_set (*id_dist,
                                           i_part,
                                           0,

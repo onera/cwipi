@@ -183,7 +183,7 @@ namespace cwipi {
         }//end loop on block
         
 
-      _connec_idx[i_part] = (int*)malloc(sizeof(int)* n_elt_part+1);              
+      _connec_idx[i_part] = (int*)malloc(sizeof(int)* (n_elt_part+1));              
       _connec[i_part] = (int*)malloc(sizeof(int)* connec_size);
       _gnum_elt[i_part] = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)* n_elt_part);
 

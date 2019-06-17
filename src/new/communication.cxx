@@ -139,7 +139,7 @@ namespace cwipi {
 
         CWP_Comm_t commType = commTypeGet();
         
-        CWP_Comm_t cplCommType;
+        CWP_Comm_t cplCommType = CWP_COMM_PAR_WITH_PART;
 
         if (globalRank == localRootRank) {
           if (cplCodeProperties.localCodeIs()) {
