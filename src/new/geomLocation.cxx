@@ -560,27 +560,27 @@ void GeomLocation::issend(Field* referenceField) {
     }
   }// End locate_cell_point
 
- void GeomLocation::broadcasting_filling_of_broadcasting_array() {
+ void GeomLocation::filling_of_broadcasting_array() {
 
-  if(_targets_localization_idx==NULL) {
+   if(_targets_localization_idx==NULL) {
     _targets_localization_idx   =(int**)malloc(sizeof(int*)*_n_ranks_g);
     for (int i_proc = 0; i_proc < _n_ranks_g; i_proc++) 
       _targets_localization_idx [i_proc] = NULL;
-  }
-  _localization_count_comm_proc =(int**)malloc(sizeof(int*)*_n_ranks_g);
+   }
+   _localization_count_comm_proc =(int**)malloc(sizeof(int*)*_n_ranks_g);
 
-  for (int i_proc = 0; i_proc < _n_ranks_g; i_proc++) {
-    if(_targets_localization_idx [i_proc] == NULL) 
-      _targets_localization_idx [i_proc]=(int*)malloc(sizeof(int)*(1+_nb_part_cpl));
-    _localization_count_comm_proc [i_proc]=(int*)malloc(sizeof(int)*(1+_nb_part_cpl));
-    for (int i_part = 0; i_part < _nb_part_cpl+1; i_part++) {
-      _targets_localization_idx [i_proc][i_part]=0;
-      _localization_count_comm_proc [i_proc][i_part]=0;
-    }
-  }
+   for (int i_proc = 0; i_proc < _n_ranks_g; i_proc++) {
+     if(_targets_localization_idx [i_proc] == NULL) 
+       _targets_localization_idx [i_proc]=(int*)malloc(sizeof(int)*(1+_nb_part_cpl));
+       _localization_count_comm_proc [i_proc]=(int*)malloc(sizeof(int)*(1+_nb_part_cpl));
+     for (int i_part = 0; i_part < _nb_part_cpl+1; i_part++) {
+       _targets_localization_idx [i_proc][i_part]=0;
+       _localization_count_comm_proc [i_proc][i_part]=0;
+     }
+   }
 
-  for (int i_part = 0; i_part < _nb_part; i_part++) {
-    for(int k=0;k<_n_target[i_part];k++){
+   for (int i_part = 0; i_part < _nb_part; i_part++) {
+     for(int k=0;k<_n_target[i_part];k++){
   //     printf("_target_proc_part_num_idx[i_part][%i] rank %i %i\n",k,_rank,_target_proc_part_num_idx[i_part][k]);
   //     printf("_target_proc_part_num[i_part][%i] rank %i %i\n",k,_rank,_target_proc_part_num[i_part][ _target_proc_part_num_idx[i_part][k] ]);
        int elt_proc = _target_proc_part_num[i_part][ _target_proc_part_num_idx[i_part][k] ];
@@ -636,50 +636,60 @@ void GeomLocation::issend(Field* referenceField) {
        elt_proc,elt_part,
        _targets_localization_data [idx ].distance,
        _targets_localization_data [idx ].projectedX);*/
-    }
-  }//end i_part
+      }
+    }//end i_part
 
-  if(_targets_localization_idx_cpl == NULL){
-    _targets_localization_idx_cpl = (int**)malloc(  sizeof(int*) *_n_ranks_g);      
-    for(int i =0; i<_n_ranks_g;i++) 
+    for (int i_proc = 0; i_proc < _n_ranks_g; i_proc++) {
+      free(idx_proc[i_proc]);
+    }
+
+    for (int i_part = 0; i_part < _nb_part; i_part++) {
+      free(_distance [i_part]); 
+      free(_projected[i_part]);
+      free(_closest_elt_gnum[i_part]);  
+      free(_target_proc_part_num_idx[i_part]);
+      free(_target_proc_part_num[i_part]);
+    }
+
+    free(_target_proc_part_num_idx      );
+    free(_target_proc_part_num          );  
+    free(idx_proc);
+    free(_distance ); 
+    free(_projected);
+    free(_closest_elt_gnum);
+ }
+
+ void GeomLocation:: initialization_of_reception_array() {
+   if(_targets_localization_idx_cpl == NULL){
+     _targets_localization_idx_cpl = (int**)malloc(  sizeof(int*) *_n_ranks_g);      
+     for(int i =0; i<_n_ranks_g;i++) 
        _targets_localization_idx_cpl[i] = NULL;
-  }
+   }
   
-  for(int i =0; i<_n_ranks_g;i++) {
-    if(_targets_localization_idx_cpl[i] == NULL) 
-      _targets_localization_idx_cpl[i] = (int*)malloc(sizeof(int)*(1+_nb_part)); 
-    for (int i_part = 0; i_part < _nb_part+1; i_part++) {
-      _targets_localization_idx_cpl[i][i_part]=0;
-    }
-  }
-  
-  for (int i_proc = 0; i_proc < _n_ranks_g; i_proc++) {
-    free(idx_proc[i_proc]);
-  }
-
-  for (int i_part = 0; i_part < _nb_part; i_part++) {
-    free(_distance [i_part]); 
-    free(_projected[i_part]);
-    free(_closest_elt_gnum[i_part]);  
-    free(_target_proc_part_num_idx[i_part]);
-    free(_target_proc_part_num[i_part]);
-  }
-
-  free(_target_proc_part_num_idx      );
-  free(_target_proc_part_num          );  
-  free(idx_proc);
-  free(_distance ); 
-  free(_projected);
-  free(_closest_elt_gnum);
-
+   for(int i =0; i<_n_ranks_g;i++) {
+     if(_targets_localization_idx_cpl[i] == NULL) 
+       _targets_localization_idx_cpl[i] = (int*)malloc(sizeof(int)*(1+_nb_part)); 
+     for (int i_part = 0; i_part < _nb_part+1; i_part++) {
+       _targets_localization_idx_cpl[i][i_part]=0;
+     }
+   }
  } 
 
 
  void GeomLocation::broadcasting_index_communication() {
-    _IAlltoall2(
+    _IAlltoall2Send(
       _localization_count_comm_proc,
       NULL, 
       _nb_part_cpl,
+      MPI_INT,
+      _globalComm,
+     *_connectableRanks_cpl
+      ); 
+ } 
+
+
+ void GeomLocation::reception_index_communication() {
+    _IAlltoall2Recv(
       _targets_localization_idx_cpl,
       NULL,
       _nb_part,
@@ -690,52 +700,69 @@ void GeomLocation::issend(Field* referenceField) {
  } 
 
 
- void GeomLocation::broadcasting_communication() {
+ void GeomLocation::prepare_data_communication_send() {
   
    for (int i_proc = 0; i_proc < _n_ranks_g; i_proc++) 
      free(_localization_count_comm_proc[i_proc] );
    free(_localization_count_comm_proc);
   
-   _transform_to_index(_targets_localization_idx_cpl,_n_ranks_g,_nb_part);
+   _localization_count_send = (int*)malloc(sizeof(int)*_n_ranks_g);
+   _localization_disp_send  = (int*)malloc(sizeof(int)*_n_ranks_g); 
+ 
+   for (int i= 0; i < _n_ranks_g; i++) { 
+     _localization_count_send[i] = sizeof(target_data)*(_targets_localization_idx[i][_nb_part_cpl] - _targets_localization_idx[i][0]);
+     _localization_disp_send [i] = sizeof(target_data)*_targets_localization_idx[i][0];
+   }
+
+ }
+
+
+ void GeomLocation::prepare_data_communication_recv() {
   
+   _transform_to_index(_targets_localization_idx_cpl,_n_ranks_g,_nb_part);
   
    if(_targets_localization_data_cpl!=NULL) free(_targets_localization_data_cpl);
    _targets_localization_data_cpl = (target_data*)malloc(sizeof(target_data)*_targets_localization_idx_cpl[_n_ranks_g-1][_nb_part]);        
 
    _localization_count_recv = (int*)malloc(sizeof(int)*_n_ranks_g);         
-   _localization_count_send = (int*)malloc(sizeof(int)*_n_ranks_g);
    _localization_disp_recv  = (int*)malloc(sizeof(int)*_n_ranks_g);         
-   _localization_disp_send  = (int*)malloc(sizeof(int)*_n_ranks_g); 
  
    for (int i= 0; i < _n_ranks_g; i++) { 
-     _localization_count_send[i] = sizeof(target_data)*(_targets_localization_idx[i][_nb_part_cpl] - _targets_localization_idx[i][0]);
      _localization_count_recv[i] = sizeof(target_data)*(_targets_localization_idx_cpl[i][_nb_part] - _targets_localization_idx_cpl[i][0]); 
-
-     _localization_disp_send [i] = sizeof(target_data)*_targets_localization_idx[i][0];
      _localization_disp_recv [i] = sizeof(target_data)*_targets_localization_idx_cpl[i][0];
    }
 
  }
  
- void GeomLocation::broadcasting_communication2() {
+ void GeomLocation::data_communication_send() {
   
-  _IAlltoallIndex((void*)_targets_localization_data, _localization_count_send, _localization_disp_send,
-                  (void*)_targets_localization_data_cpl, _localization_count_recv, _localization_disp_recv, 
+  _IAlltoallIndexSend((void*)_targets_localization_data, _localization_count_send, _localization_disp_send,
+                  MPI_BYTE,
+                  _globalComm, *_connectableRanks_cpl);
+  }
+
+ void GeomLocation::data_communication_recv() {
+  
+  _IAlltoallIndexRecv((void*)_targets_localization_data_cpl, _localization_count_recv, _localization_disp_recv, 
                   MPI_BYTE,
                   _globalComm, *_connectableRanks_cpl);
   }
   
-
- void GeomLocation::broadcasting_wait_and_targets_array_filling() {  
-   _Wait();
+ void GeomLocation::data_communication_wait_send() {  
+   _WaitSend();
   
    free(_localization_count_send);
-   free(_localization_count_recv);
    free(_localization_disp_send );
+ }
+
+
+ void GeomLocation::data_communication_wait_recv() {  
+   _WaitRecv();
+  
+   free(_localization_count_recv);
    free(_localization_disp_recv );
   
    _n_tot_target_cpl    = _targets_localization_idx_cpl[_n_ranks_g-1][_nb_part];
-
  }
  
 /*******************************************************************************************************************/

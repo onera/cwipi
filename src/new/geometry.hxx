@@ -100,12 +100,19 @@ namespace cwipi {
      
      virtual void location_get(int id_gnum_location)      =0;
      virtual void location_get_cpl(int id_gnum_location)      =0;
-     virtual void broadcasting_filling_of_broadcasting_array() =0;
+     virtual void filling_of_broadcasting_array() =0;
+     virtual void initialization_of_reception_array() =0;
      virtual void broadcasting_index_communication() =0;
+     virtual void reception_index_communication() =0;
      
-     virtual void broadcasting_communication() =0;
-     virtual void broadcasting_communication2() =0;
-     virtual void broadcasting_wait_and_targets_array_filling() =0;
+     virtual void prepare_data_communication_send() =0;
+     virtual void prepare_data_communication_recv() =0;
+
+     virtual void data_communication_send() =0;
+     virtual void data_communication_recv() =0;
+
+     virtual void data_communication_wait_send() =0;
+     virtual void data_communication_wait_recv() =0;
      
      //Depends on the Geometry type
      // Ca sera dans les classes concrètes
@@ -332,7 +339,22 @@ namespace cwipi {
     }  
           
 
-    
+
+ void _IAlltoallIndexSend(void* send_buffer,
+                int* send_count,
+                int* send_disp,
+                MPI_Datatype type, 
+                MPI_Comm comm,
+                std::vector<int> connectableRanks
+                );
+
+ void _IAlltoallIndexRecv(void* recv_buffer,
+                int* recv_count,
+                int* recv_disp,
+                MPI_Datatype type, 
+                MPI_Comm comm,
+                std::vector<int> connectableRanks
+                );    
 
  void _IAlltoallIndex(void* send_buffer,
                 int* send_count,
@@ -345,6 +367,23 @@ namespace cwipi {
                 std::vector<int> connectableRanks
                 );
 
+
+  void _IAlltoall2Send(int** send_buffer,
+                int* send_size,
+                int send_stride,
+                MPI_Datatype type, 
+                MPI_Comm comm,
+                std::vector<int> connectableRanks
+                );
+
+
+  void _IAlltoall2Recv(int** recv_buffer,
+                int* recv_size,
+                int recv_stride,
+                MPI_Datatype type, 
+                MPI_Comm comm,
+                std::vector<int> connectableRanks
+                );
 
   void _IAlltoall2(int** send_buffer,
                 int* send_size,
@@ -359,6 +398,9 @@ namespace cwipi {
 
 
     void _Wait();      
+    void _WaitSend();      
+    void _WaitRecv();      
+
 
     double      **_distance         ; 
     double      **_projected        ; 
