@@ -249,6 +249,7 @@ namespace cwipi {
       MPI_Barrier(_globalComm);
              
       locate_compute        (_id_dist1); 
+       //while(1==1){}  
       printf("ZZ After locate_compute %i %s\n",_rank,localName.c_str());  
 
       MPI_Barrier(_globalComm);          
@@ -260,9 +261,9 @@ namespace cwipi {
       if(localName == _codeVector[0]) broadcasting_set    (&_id_gnum_location1);
   
       MPI_Barrier(_globalComm);
-        
+
       location_compute                   (_id_gnum_location1);   
-      // 
+       
       printf("ZZ After location_compute %i %s\n",_rank,localName.c_str());
       if(localName == _codeVector[1]) location_get(_id_gnum_location1) ;
 

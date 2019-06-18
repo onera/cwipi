@@ -261,28 +261,14 @@ void GeomLocation::issend(Field* referenceField) {
     if(_both_codes_are_local == 0) { 
       for(int i_part =0; i_part<_nb_part_cpl; i_part++) {     
 
-
-        int*         connecIdx = (int*)malloc(sizeof(int)*_n_g_vtx_cpl_over_part);
-        int*         connec    = (int*)malloc(sizeof(int)*_n_g_vtx_cpl_over_part);
-        
-        double*      coords    = (double*)malloc(sizeof(double)*_n_g_vtx_cpl_over_part);
-        CWP_g_num_t* gnum_vtx  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*_n_g_vtx_cpl_over_part);
-        CWP_g_num_t* gnum_elt  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*_n_g_vtx_cpl_over_part);
-        
-        printf("KKK %i\n",_n_g_vtx_cpl_over_part);
-        for(int i=0;i<_n_g_vtx_over_part;i++){
-          gnum_vtx[i]=0;
-          gnum_elt[i]=0;
-          connecIdx[i]=0;
-          connec[i]=0;
-          coords[i]=0;
-        }
-
+        int n_elt_null = 0;
+        double*      coords    = (double*)malloc(3*sizeof(double)*n_elt_null);
+        CWP_g_num_t* gnum_elt  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*n_elt_null);
 
         PDM_mesh_dist_cloud_set (*id_dist,
                               0,
                               i_part,
-                              0,
+                              n_elt_null,
                               coords ,
                               gnum_elt
                              );                             
@@ -340,22 +326,16 @@ void GeomLocation::issend(Field* referenceField) {
  
     if(_both_codes_are_local == 0) {
       for(int i_part =0; i_part<_nb_part_cpl; i_part++) {     
-        int test = 10;//_n_g_vtx_cpl_over_part;
-        int*         connecIdx = (int*)malloc(sizeof(int)*(1+test));
-        int*         connec    = (int*)malloc(sizeof(int)*test);
+        int n_elt_null = 0;
+        int*         connecIdx = (int*)malloc(sizeof(int)*(1+n_elt_null));
+        int*         connec    = (int*)malloc(sizeof(int)*n_elt_null);
         
-        double*      coords    = (double*)malloc(sizeof(double)*test);
-        CWP_g_num_t* gnum_vtx  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*test);
-        CWP_g_num_t* gnum_elt  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*test);
+        double*      coords    = (double*)malloc(3*sizeof(double)*n_elt_null);
+        CWP_g_num_t* gnum_vtx  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*n_elt_null);
+        CWP_g_num_t* gnum_elt  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*n_elt_null);
         
-        for(int i=0;i<test;i++){
-          gnum_vtx[i]=0;
-          gnum_elt[i]=0;
-          connecIdx[i]=0;
-          connec[i]=0;
-          coords[i]=0;
-        }
-        connecIdx[0]=1;
+        connecIdx[0]=0;
+
         PDM_mesh_dist_surf_mesh_part_set (*id_dist,
                                           i_part,
                                           0,
@@ -415,14 +395,9 @@ void GeomLocation::issend(Field* referenceField) {
   }
 
   if(_both_codes_are_local == 0) { 
-    CWP_g_num_t** gnum_elt2 = (CWP_g_num_t**)malloc(sizeof(CWP_g_num_t*)*_nb_part_cpl);
     for(int i_part =0; i_part<_nb_part_cpl; i_part++) {     
-      gnum_elt2[i_part]  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*10/*_n_g_vtx_cpl_over_part*/);
-      for(int i=0;i<10/*_n_g_vtx_over_part*/;i++){
-        gnum_elt2[i_part][i]=1;
-      }
-
-      PDM_gnum_location_elements_set(*id_gnum_location,i_part,0, gnum_elt2[i_part]);    
+      CWP_g_num_t* gnum_elt_null  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*0);
+      PDM_gnum_location_elements_set(*id_gnum_location,i_part,0, gnum_elt_null);    
     }
   }     
   else {
@@ -448,21 +423,17 @@ void GeomLocation::issend(Field* referenceField) {
 
     CWP_g_num_t* gnum_target = gnumTargetGet(i_part);
     CWP_g_num_t* gnum_elt = _mesh -> GNumEltsGet(i_part);     
-    printf("rank %i _n_elt[%i]  _nb_part %i _nb_part_cpl %i _both_codes_are_local %i %i\n",
+    /*printf("rank %i _n_elt[%i]  _nb_part %i _nb_part_cpl %i _both_codes_are_local %i %i\n",
     _rank,i_part,_nb_part,_nb_part_cpl,_both_codes_are_local,_n_g_vtx_cpl_over_part);
     printf("rank %i _n_elt[%i] %i _nb_part %i _nb_part_cpl %i\n",_rank,i_part,_n_elt[i_part],_nb_part,_nb_part_cpl);
+    */
     PDM_gnum_location_elements_set(*id_gnum_location,i_part, _n_elt[i_part],gnum_elt);      
   }
 
-
-  CWP_g_num_t** gnum_elt2 = (CWP_g_num_t**)malloc(sizeof(CWP_g_num_t*)*_nb_part_cpl);
   if(_both_codes_are_local == 0) {
     for(int i_part =0; i_part<_nb_part_cpl; i_part++) {     
-      gnum_elt2[i_part]  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*10/*_n_g_vtx_cpl_over_part*/);
-      for(int i=0;i</*_n_g_vtx_over_part*/10;i++){
-        gnum_elt2[i_part][i]=1;
-      }   
-      PDM_gnum_location_requested_elements_set(*id_gnum_location,i_part, 0,gnum_elt2[i_part]);
+      CWP_g_num_t* gnum_elt_null  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*0);
+      PDM_gnum_location_requested_elements_set(*id_gnum_location,i_part, 0,gnum_elt_null);
     }
   }     
   else {
