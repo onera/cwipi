@@ -18,7 +18,7 @@
 #   cython_add_standalone_executable( <executable_name> [MAIN_MODULE src1] <src1> <src2> ... <srcN> )
 #
 # To avoid dependence on Python, set the PYTHON_LIBRARY cache variable to point
-# to a static library.  If a MAIN_MODULE source is specified, 
+# to a static library.  If a MAIN_MODULE source is specified,
 # the "if __name__ == '__main__':" from that module is used as the C main() method
 # for the executable.  If MAIN_MODULE, the source with the same basename as
 # <executable_name> is assumed to be the MAIN_MODULE.
@@ -104,7 +104,7 @@ function( COMPILE_PYX _name generated_file)
     foreach( _include_dir ${COMPILE_PYX_INCLUDE_DIRECTORIES} )
       set( include_directory_arg ${include_directory_arg} "-I" "${_include_dir}" )
     endforeach()
-  endif()  
+  endif()
 
   set( pyx_locations "" )
   if (NOT COMPILE_PYX_PYX_SOURCES)
@@ -127,7 +127,7 @@ function( COMPILE_PYX _name generated_file)
     get_source_file_property( pyx_location ${pyx_file} LOCATION )
     list( APPEND pyx_locations "${pyx_location}" )
 
-  endforeach()  
+  endforeach()
 
   # Set additional flags.
   if( CYTHON_ANNOTATE )
@@ -185,7 +185,7 @@ function( CYTHON_ADD_MODULE _name )
   include_directories( ${PYTHON_INCLUDE_DIRS} )
   python_add_module( ${_name} ${generated_file} ${CYTHON_ADD_MODULE_OTHER_SOURCES})
   target_include_directories(${_name} PRIVATE ${CYTHON_ADD_MODULE_INCLUDE_DIRECTORIES})
-  
+
   if( APPLE )
     set_target_properties( ${_name} PROPERTIES LINK_FLAGS "-undefined dynamic_lookup" )
   else()

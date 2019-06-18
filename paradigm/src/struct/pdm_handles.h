@@ -58,7 +58,7 @@ typedef struct _PDM_Handles_t PDM_Handles_t;
  *============================================================================*/
 
 /*=============================================================================
- * Public function prototypes 
+ * Public function prototypes
  *============================================================================*/
 
 
@@ -71,9 +71,9 @@ typedef struct _PDM_Handles_t PDM_Handles_t;
  */
 
 PDM_Handles_t *
-PDM_Handles_create 
+PDM_Handles_create
 (
- const int init_size 
+ const int init_size
 );
 
 
@@ -86,7 +86,7 @@ PDM_Handles_create
  */
 
 PDM_Handles_t *
-PDM_Handles_free 
+PDM_Handles_free
 (
  PDM_Handles_t *handles
 );
@@ -101,9 +101,9 @@ PDM_Handles_free
  */
 
 int
-PDM_Handles_store 
+PDM_Handles_store
 (
- PDM_Handles_t *handles, 
+ PDM_Handles_t *handles,
  const void *handle_ptr
 );
 
@@ -118,7 +118,7 @@ PDM_Handles_store
  */
 
 const void *
-PDM_Handles_get 
+PDM_Handles_get
 (
   PDM_Handles_t *handles,
   const int handle_idx
@@ -134,7 +134,7 @@ PDM_Handles_get
  */
 
 const int *
-PDM_Handles_idx_get 
+PDM_Handles_idx_get
 (
  PDM_Handles_t *handles
  );
@@ -151,7 +151,7 @@ PDM_Handles_idx_get
  */
 
 void
-PDM_Handles_handle_free 
+PDM_Handles_handle_free
 (
  PDM_Handles_t *handles,
  const int handle_idx,
@@ -168,7 +168,7 @@ PDM_Handles_handle_free
  */
 
 int
-PDM_Handles_n_get 
+PDM_Handles_n_get
 (
  PDM_Handles_t *handles
 );

@@ -1,5 +1,5 @@
 !-----------------------------------------------------------------------------
-! This file is part of the ParaDiGM library. 
+! This file is part of the ParaDiGM library.
 !
 ! Copyright (C) 2019  ONERA
 !
@@ -19,10 +19,10 @@
 
 #include "pdm_configf.h"
 
-module mod_mesh_dist
+module pdm_dist_cloud_surf
 
-  use mod_pdm
-  
+  use pdm
+
   implicit none
 
 
@@ -35,22 +35,22 @@ module mod_mesh_dist
     !! \param [in]    comm           MPI communicator
     !! \param [inout] id             Identifier
     !!
-    
-    subroutine pdm_mesh_dist_create (mesh_nature, n_point_cloud, fComm, id) &
-         bind (c, name = 'PDM_mesh_dist_create_cf')  
+
+    subroutine pdm_dist_cloud_surf_create (mesh_nature, n_point_cloud, fComm, id) &
+         bind (c, name = 'PDM_dist_cloud_surf_create_cf')
 
       use iso_c_binding
-        
+
       implicit none
-      
+
       integer(c_int), value :: mesh_nature
       integer(c_int), value :: n_point_cloud
       integer(c_int), value :: fComm
-      
+
       integer(c_int)        :: id
-      
-    end subroutine pdm_mesh_dist_create
-    
+
+    end subroutine pdm_dist_cloud_surf_create
+
     !> \brief Set the number of partitions of a point cloud
     !!
     !! \param [in]   id              Identifier
@@ -58,18 +58,18 @@ module mod_mesh_dist
     !! \param [in]   n_part          Number of partitions
     !!
 
-    subroutine pdm_mesh_dist_n_part_cloud_set (id, i_point_cloud, n_part) &
-         bind (c, name = 'PDM_mesh_dist_n_part_cloud_set')  
+    subroutine pdm_dist_cloud_surf_n_part_cloud_set (id, i_point_cloud, n_part) &
+         bind (c, name = 'PDM_dist_cloud_surf_n_part_cloud_set')
 
       use iso_c_binding
-        
+
       implicit none
 
       integer(c_int), value        :: id
       integer(c_int), value        :: i_point_cloud
       integer(c_int), value        :: n_part
 
-    end subroutine pdm_mesh_dist_n_part_cloud_set
+    end subroutine pdm_dist_cloud_surf_n_part_cloud_set
 
     !> \brief Set a point cloud
     !!
@@ -78,14 +78,14 @@ module mod_mesh_dist
     !! \param [in]   i_part          Index of partition
     !! \param [in]   n_points        Number of points
     !! \param [in]   coords          Point coordinates
-    !! \param [in]   gnum            Point global number 
+    !! \param [in]   gnum            Point global number
     !!
 
-    subroutine pdm_mesh_dist_cloud_set (id, i_point_cloud, i_part, n_points, coords, gnum ) &
-         bind (c, name = 'PDM_mesh_dist_cloud_set')
-      
+    subroutine pdm_dist_cloud_surf_cloud_set (id, i_point_cloud, i_part, n_points, coords, gnum ) &
+         bind (c, name = 'PDM_dist_cloud_surf_cloud_set')
+
       use iso_c_binding
-        
+
       implicit none
 
       integer(c_int), value        :: id
@@ -95,8 +95,8 @@ module mod_mesh_dist
 
       type(c_ptr), value        :: coords
       type(c_ptr), value        :: gnum
-      
-    end subroutine pdm_mesh_dist_cloud_set
+
+    end subroutine pdm_dist_cloud_surf_cloud_set
 
     !> \brief Set the mesh nodal
     !!
@@ -104,18 +104,18 @@ module mod_mesh_dist
     !! \param [in]   mesh_nodal_id  Mesh nodal identifier
     !!
     !!
-    
-    subroutine pdm_mesh_dist_nodal_mesh_set (id, mesh_nodal_id) &
-         bind (c, name = 'PDM_mesh_dist_nodal_mesh_set')
-    
+
+    subroutine pdm_dist_cloud_surf_nodal_mesh_set (id, mesh_nodal_id) &
+         bind (c, name = 'pdm_dist_cloud_surf_nodal_mesh_set')
+
       use iso_c_binding
-        
+
       implicit none
 
       integer(c_int), value        :: id
       integer(c_int), value        :: mesh_nodal_id
 
-    end subroutine pdm_mesh_dist_nodal_mesh_set
+    end subroutine pdm_dist_cloud_surf_nodal_mesh_set
 
     !> \brief Set global data of a surface mesh
     !!
@@ -125,11 +125,11 @@ module mod_mesh_dist
     !! \param [in]   n_part         Number of partition
     !!
 
-    subroutine pdm_mesh_dist_surf_mesh_global_data_set (id, n_g_face, n_g_vtx, n_part) &
-         bind (c, name = 'PDM_mesh_dist_surf_mesh_global_data_set')
-    
+    subroutine pdm_dist_cloud_surf_surf_mesh_global_data_set (id, n_g_face, n_g_vtx, n_part) &
+         bind (c, name = 'PDM_dist_cloud_surf_surf_mesh_global_data_set')
+
       use iso_c_binding
-        
+
       implicit none
 
       integer(c_int), value        :: id
@@ -141,27 +141,27 @@ module mod_mesh_dist
       integer(c_int), value        :: n_g_vtx
 #endif
       integer(c_int), value        :: n_part
-    end subroutine pdm_mesh_dist_surf_mesh_global_data_set
+    end subroutine pdm_dist_cloud_surf_surf_mesh_global_data_set
 
     !> \brief Set a part of a surface mesh
     !!
     !! \param [in]   id            Identifier
-    !! \param [in]   i_part        Partition to define  
-    !! \param [in]   n_face        Number of faces                     
+    !! \param [in]   i_part        Partition to define
+    !! \param [in]   n_face        Number of faces
     !! \param [in]   face_vtx_idx  Index in the face -> vertex connectivity
     !! \param [in]   face_vtx      face -> vertex connectivity
-    !! \param [in]   face_ln_to_gn Local face numbering to global face numbering 
-    !! \param [in]   n_vtx         Number of vertices              
-    !! \param [in]   coords        Coordinates       
-    !! \param [in]   vtx_ln_to_gn  Local vertex numbering to global vertex numbering 
+    !! \param [in]   face_ln_to_gn Local face numbering to global face numbering
+    !! \param [in]   n_vtx         Number of vertices
+    !! \param [in]   coords        Coordinates
+    !! \param [in]   vtx_ln_to_gn  Local vertex numbering to global vertex numbering
     !!
 
-    subroutine pdm_mesh_dist_surf_mesh_part_set (id, i_part, n_face, face_vtx_idx, &
+    subroutine pdm_dist_cloud_surf_surf_mesh_part_set (id, i_part, n_face, face_vtx_idx, &
                                                  face_vtx, face_ln_to_gn, n_vtx, coords, &
                                                  vtx_ln_to_gn) &
-      bind (c, name = 'PDM_mesh_dist_surf_mesh_part_set')
+      bind (c, name = 'PDM_dist_cloud_surf_surf_mesh_part_set')
       use iso_c_binding
-        
+
       implicit none
 
       integer(c_int), value     :: id
@@ -173,22 +173,22 @@ module mod_mesh_dist
       integer(c_int), value     :: n_vtx
       type(c_ptr), value        :: coords
       type(c_ptr), value        :: vtx_ln_to_gn
-               
-    end subroutine pdm_mesh_dist_surf_mesh_part_set
+
+    end subroutine pdm_dist_cloud_surf_surf_mesh_part_set
 
     !> \brief Compute distance
     !!
     !! \param [in]   id  Identifier
     !!
 
-    subroutine pdm_mesh_dist_compute (id) &
-         bind (c, name = 'PDM_mesh_dist_compute')
+    subroutine pdm_dist_cloud_surf_compute (id) &
+         bind (c, name = 'PDM_dist_cloud_surf_compute')
       use iso_c_binding
-        
+
       implicit none
 
       integer(c_int), value     :: id
-    end subroutine pdm_mesh_dist_compute
+    end subroutine pdm_dist_cloud_surf_compute
 
     !> \brief Get mesh distance
     !!
@@ -200,14 +200,14 @@ module mod_mesh_dist
     !! \param [out]  closest_elt_g_num     Global number of the closest element
     !!
 
-    subroutine pdm_mesh_dist_get (id, i_point_cloud, i_part, &
+    subroutine pdm_dist_cloud_surf_get (id, i_point_cloud, i_part, &
                                   closest_elt_distance, &
                                   closest_elt_projected, &
                                   closest_elt_gnum) &
-      bind (c, name = 'PDM_mesh_dist_get')
+      bind (c, name = 'PDM_dist_cloud_surf_get')
 
       use iso_c_binding
-        
+
       implicit none
 
       integer(c_int), value     :: id
@@ -217,42 +217,42 @@ module mod_mesh_dist
       type(c_ptr)               :: closest_elt_projected
       type(c_ptr)               :: closest_elt_gnum
 
-    end subroutine pdm_mesh_dist_get
+    end subroutine pdm_dist_cloud_surf_get
 
     !> \brief Free a distance mesh structure
     !!
     !! \param [in]  id       Identifier
-    !! \param [in]  partial  if partial is equal to 0, all data are removed. 
-    !!                       Otherwise, results are kept. 
+    !! \param [in]  partial  if partial is equal to 0, all data are removed.
+    !!                       Otherwise, results are kept.
     !!
 
-    subroutine pdm_mesh_dist_free (id, partial) &
-       bind (c, name = 'PDM_mesh_dist_free')
+    subroutine pdm_dist_cloud_surf_free (id, partial) &
+       bind (c, name = 'PDM_dist_cloud_surf_free')
 
       use iso_c_binding
-        
+
       implicit none
 
       integer(c_int), value     :: id
       integer(c_int), value     :: partial
 
-    end subroutine pdm_mesh_dist_free
- 
+    end subroutine pdm_dist_cloud_surf_free
+
     !> \brief  Dump elapsed an CPU time
     !!
     !! \param [in]  id       Identifier
     !!
 
-    subroutine pdm_mesh_dist_dump_times (id) &
-         bind (c, name = 'PDM_mesh_dist_dump_times')
+    subroutine pdm_dist_cloud_surf_dump_times (id) &
+         bind (c, name = 'PDM_dist_cloud_surf_dump_times')
 
       use iso_c_binding
-        
+
       implicit none
 
       integer(c_int), value     :: id
-    end subroutine pdm_mesh_dist_dump_times
-    
+    end subroutine pdm_dist_cloud_surf_dump_times
+
   end interface
 
-end module mod_mesh_dist
+end module pdm_dist_cloud_surf

@@ -1,5 +1,5 @@
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2011  ONERA
 
@@ -82,35 +82,35 @@ PDM_g_num_t **dEdgeGroup
 
   int nRank;
   PDM_MPI_Comm_size(localComm, &nRank);
-  
+
   int localRank;
   PDM_MPI_Comm_rank(localComm, &localRank);
-  
+
   const double coefRand = 0.3;
   srand(initRandom);
-  
+
   /* Comptage des entites du maillage */
   /* -------------------------------- */
 
   /* nx et ny doivent etre pair et superieur a 4 */
-  
+
   PDM_g_num_t nx1 = nx;
   PDM_g_num_t ny1 = ny;
-  
+
   if (nx1 < 6)
     nx1 = 6;
-  
+
   if (ny1 < 6)
     ny1 = 6;
-  
+
   if (nx1 % 2 != 0)
     nx1 += 1;
-  
+
   if (ny1 % 2 != 0)
     ny1 += 1;
 
   /* cotes d un octogone */
-  
+
   double cote1;
   if (nx1 == 4)
     cote1 = (xmax - xmin) / (sqrt(2) + 1);
@@ -121,19 +121,19 @@ PDM_g_num_t **dEdgeGroup
     cote2 = (ymax - ymin) / (sqrt(2) + 1);
   else
     cote2 = (ymax - ymin) / ((ny1 - 2)/2 + ((ny1 - 2)/2 - 1) * sqrt(2) + sqrt(2));
-  
+
   /* Comptage des Sommets */
-  
+
   PDM_g_num_t dNVtxTotal = 0;
-  
+
   PDM_g_num_t cpt = 0;
   PDM_g_num_t cptMax;
-  
+
   if (ny1 > 4)
     cptMax = ny1 + (ny1-4)/2;
   else
     cptMax = ny1;
-  
+
   while(cpt < cptMax) {
     if (cpt % 3 == 1 || cpt % 3 == 2) {
       dNVtxTotal +=  nx1/2;
@@ -142,9 +142,9 @@ PDM_g_num_t **dEdgeGroup
       if ((cpt == (cptMax-1)) || (cpt == 0)) {
         dNVtxTotal++;
       }
-      
+
       dNVtxTotal++;
-      
+
       for (PDM_g_num_t ix = 2; ix < nx1-1; ix++) {
         dNVtxTotal++;
       }
@@ -154,13 +154,13 @@ PDM_g_num_t **dEdgeGroup
     }
     cpt++;
   }
-  
+
   /* Nombre de limites */
 
   *nEdgeGroup = 4;
   *dEdgeGroupIdx = (int *) malloc(sizeof(int) * (*nEdgeGroup + 1));
   (*dEdgeGroupIdx)[0] = 0;
-  
+
   PDM_g_num_t *dNEdgeLim13Rank = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * (nRank+1));
   dNEdgeLim13Rank[0] = 0;
   for (int i = 0; i < nRank; i++)
@@ -175,7 +175,7 @@ PDM_g_num_t **dEdgeGroup
     }
   }
 
-  
+
   PDM_g_num_t dNEdgeLim13 = dNEdgeLim13Rank[localRank + 1];
 
   for (int i = 0; i < nRank; i++) {
@@ -195,7 +195,7 @@ PDM_g_num_t **dEdgeGroup
       dNEdgeLim24Rank[i+1] += 1;
     }
   }
-   
+
   PDM_g_num_t dNEdgeLim24 = dNEdgeLim24Rank[localRank + 1];
 
   for (int i = 0; i < nRank; i++) {
@@ -215,24 +215,24 @@ PDM_g_num_t **dEdgeGroup
 
   /* Construction des sommets */
   /* ------------------------ */
-  
+
   PDM_g_num_t *dNVtxRank = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * (nRank+1));
-  
+
   dNVtxRank[0] = 0;
   for (int i = 0; i < nRank; i++)
     dNVtxRank[i+1] = (PDM_g_num_t) dNVtxTotal / nRank;
 
   _reste = dNVtxTotal % nRank;
   reste =  (int) (_reste);
-  
+
   for (int i = 0; i < nRank; i++) {
     if (i < reste) {
       dNVtxRank[i+1] += 1;
     }
   }
-  
+
   *dNVtx = (int) dNVtxRank[localRank + 1];
-  
+
   for (int i = 0; i < nRank; i++) {
     dNVtxRank[i+1] = dNVtxRank[i+1] + dNVtxRank[i];
   }
@@ -250,7 +250,7 @@ PDM_g_num_t **dEdgeGroup
 
   /* -- Premiere ligne */
   dNFaceTotal += nx1/2;
-  
+
   /* -- Autres triangles (un a gauche un a droite */
   PDM_g_num_t nbLi = (ny1-4)/2;
   dNFaceTotal += 2*nbLi;
@@ -267,19 +267,19 @@ PDM_g_num_t **dEdgeGroup
   PDM_g_num_t nxPoly = (nx1-2)/2;
   PDM_g_num_t nyPoly = (ny1-2)/2;
   dNFaceTotal += nxPoly * nyPoly;
-  
+
   PDM_g_num_t dNEdgeTotal = (6 * nxPoly + 1) * nyPoly + nxPoly; /* Aretes touchant un polygone */
   dNEdgeTotal += nx1 + ny1; /* Aretes des cotes ne touchant pa sun polygone */
-  
+
   PDM_g_num_t nPoly = nxPoly * nyPoly;
   PDM_g_num_t nQuad = nxQuad * nyQuad;
   PDM_g_num_t nTri  = dNFaceTotal - nQuad - nPoly;
-  
+
   /* Allocation des elts */
-  
+
   PDM_g_num_t *dNFaceRank = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * (nRank+1));
   PDM_g_num_t *dNEdgeRank = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * (nRank+1));
-  
+
   dNFaceRank[0] = 0;
   for (int i = 0; i < nRank; i++)
     dNFaceRank[i+1] = dNFaceTotal / nRank ;
@@ -291,11 +291,11 @@ PDM_g_num_t **dEdgeGroup
       dNFaceRank[i+1] += 1;
     }
   }
-  
+
   dNEdgeRank[0] = 0;
   for (int i = 0; i < nRank; i++)
     dNEdgeRank[i+1] = dNEdgeTotal / nRank ;
-  
+
   _reste = dNEdgeTotal % nRank;
   reste =  (int) _reste;
   for (int i = 0; i < nRank; i++) {
@@ -303,15 +303,15 @@ PDM_g_num_t **dEdgeGroup
       dNEdgeRank[i+1] += 1;
     }
   }
-  
+
   *dNFace = (int) dNFaceRank[localRank+1];
   *dNEdge = (int) dNEdgeRank[localRank+1];
-  
+
   for (int i = 0; i < nRank; i++) {
     dNFaceRank[i+1] = dNFaceRank[i+1] + dNFaceRank[i];
     dNEdgeRank[i+1] = dNEdgeRank[i+1] + dNEdgeRank[i];
   }
-  
+
   *dFaceVtxIdx = (int *) malloc(sizeof(int) * ((*dNFace)+1));
   *dFaceVtx    = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * 8 * (*dNFace));
   *dFaceEdge      = (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * 8 * (*dNFace));
@@ -320,9 +320,9 @@ PDM_g_num_t **dEdgeGroup
 
   /* Calcul des entites */
   /* ------------------ */
-  
+
   /* Calcul des coordonnees */
-  
+
   PDM_g_num_t dNVtxTmp = 0;
 
   cpt = 0;
@@ -330,10 +330,10 @@ PDM_g_num_t **dEdgeGroup
     cptMax = ny1 + (ny1-4)/2;
   else
     cptMax = ny1;
-  
+
   double ycourant = ymin;
   const double eps = 1e-5;
-  
+
   while (cpt < cptMax) {
     if (cpt % 3 == 1 || cpt % 3 == 2) {
       for (PDM_g_num_t ix = 0; ix < nx1/2; ix++) {
@@ -358,7 +358,7 @@ PDM_g_num_t **dEdgeGroup
         }
         dNVtxTmp++;
       }
-      
+
       if ((dNVtxRank[localRank] <= dNVtxTmp) && (dNVtxRank[localRank+1] > dNVtxTmp)) {
         PDM_g_num_t _localIdx = dNVtxTmp - dNVtxRank[localRank];
         int localIdx = (int) _localIdx;
@@ -367,7 +367,7 @@ PDM_g_num_t **dEdgeGroup
         (*dVtxCoord)[3*localIdx+2] = 0.;
       }
       dNVtxTmp++;
-      
+
       double xbase = xmin + cote1/sqrt(2);
 
       PDM_g_num_t nx11 = (nx1-2)/2;
@@ -391,7 +391,7 @@ PDM_g_num_t **dEdgeGroup
           dNVtxTmp++;
         }
       }
-      
+
       if ((cpt == (cptMax-1)) || (cpt == 0)) {
         if ((dNVtxRank[localRank] <= dNVtxTmp) && (dNVtxRank[localRank+1] > dNVtxTmp)) {
           PDM_g_num_t _localIdx = dNVtxTmp - dNVtxRank[localRank];
@@ -413,7 +413,7 @@ PDM_g_num_t **dEdgeGroup
   *nGVtx = dNVtxTmp;
 
   /* Perturbation des coordonnees + Creation d'une courbure en Z */
-  
+
   for (PDM_g_num_t ix = 0; ix <(*dNVtx) ; ix++) {
     if (ABS(xmin-(*dVtxCoord)[3*ix]) > eps &&
         ABS(xmax-(*dVtxCoord)[3*ix]) > eps &&
@@ -428,7 +428,7 @@ PDM_g_num_t **dEdgeGroup
     //dVtxCoord[3*ix+2]=20*sin(dVtxCoord[3*ix+1]/5.)*sin(dVtxCoord[3*ix]/5.);
     (*dVtxCoord)[3*ix+2] = 0.;
   }
-  
+
   /* Construction simultanée des connectivites des elements et des aretes internes */
   /* ----------------------------------------------------------------------------- */
 
@@ -436,7 +436,7 @@ PDM_g_num_t **dEdgeGroup
   int dNEdgeTmp = 0;
   int dNFaceAbs = 0;
   int dNEdgeAbs = 0;
-  
+
   PDM_g_num_t n1;
   PDM_g_num_t n2;
   PDM_g_num_t n3;
@@ -445,15 +445,15 @@ PDM_g_num_t **dEdgeGroup
   PDM_g_num_t n6;
   PDM_g_num_t n7;
   PDM_g_num_t n8;
-  
+
   /* Triangle */
-    
+
   /* -- Premiere ligne */
-  
+
   n1 = 1;
   n2 = n1+nx1;
   (*dFaceVtxIdx)[0] = 0;
-  
+
   for (PDM_g_num_t ix = 0; ix < nx1/2; ix++) {
     PDM_g_num_t ix1 = 2 * ix;
 
@@ -513,13 +513,13 @@ PDM_g_num_t **dEdgeGroup
     }
 
   }
-  
+
   /* -- Autres triangles (un a gauche un a droite */
-  
+
   n1 = 1 + nx1 + nx1/2;
   n2 = n1 + nx1/2;
   n3 = n2 + nx1-2;
-  
+
   for (PDM_g_num_t itri = 0; itri < nbLi; itri++) {
     n4 = n1 + nx1/2 - 1;
     n5 = n2 + nx1-2 - 1;
@@ -532,7 +532,7 @@ PDM_g_num_t **dEdgeGroup
       (*dFaceVtx)[ideb+2] = n3;
       (*dFaceEdge)[ideb]     = dNEdgeAbs + 1;
       (*dFaceEdge)[ideb+1]   = nTri + 4 + (6 * nxPoly + 1) * itri + 4;
-      if (itri == nbLi - 1) 
+      if (itri == nbLi - 1)
         (*dFaceEdge)[ideb+2]   = nTri + 4 + (6 * nxPoly + 1) * (itri+1) + 7;
       else
         (*dFaceEdge)[ideb+2]   = nTri + 4 + (6 * nxPoly + 1) * (itri+1) + 6;
@@ -556,7 +556,7 @@ PDM_g_num_t **dEdgeGroup
       (*dFaceVtx)[ideb+1] = n6;
       (*dFaceVtx)[ideb+2] = n5;
       (*dFaceEdge)[ideb]     = dNEdgeAbs + 1;
-      if (itri == nbLi - 1) 
+      if (itri == nbLi - 1)
         (*dFaceEdge)[ideb+1]   = nTri + 4 + (6 * nxPoly + 1) * (itri + 1) + (7 * nxPoly + 1) - 6;
       else
         (*dFaceEdge)[ideb+1]   = nTri + 4 + (6 * nxPoly + 1) * (itri+2) + 2;
@@ -579,9 +579,9 @@ PDM_g_num_t **dEdgeGroup
     n2 = n1 + nx1/2;
     n3 = n2 + nx1-2;
   }
-  
+
   /* -- Derniere ligne */
-  
+
   n2 = n1 + nx1/2;
   for (PDM_g_num_t ix = 0; ix < nx1/2; ix++) {
     PDM_g_num_t ix1 = 2 * ix;
@@ -642,9 +642,9 @@ PDM_g_num_t **dEdgeGroup
       dNEdgeAbs += 1;
     }
   }
-  
+
   /* Quadrangle */
-  
+
   for (PDM_g_num_t iy = 0; iy < nyQuad; iy++) {
     for (PDM_g_num_t ix = 0; ix < nxQuad; ix++) {
       n1 = iy*(2*nx1-2) + nx1 + nx1/2 + 1 + ix + 1;
@@ -679,12 +679,12 @@ PDM_g_num_t **dEdgeGroup
       dNFaceAbs += 1;
     }
   }
-  
+
   /* Polygones */
-  
+
   PDM_g_num_t delta = 0;
   PDM_g_num_t ipoLy = 0;
-  
+
   for (PDM_g_num_t iy = 0; iy < nyPoly; iy++) {
     if (iy == 1)
       delta += 2*nx1;
@@ -726,7 +726,7 @@ PDM_g_num_t **dEdgeGroup
         (*dFaceEdge)[ideb+1]   = dNEdgeAbs + (++id);
         if (ix == (nxPoly - 1))
           (*dFaceEdge)[ideb+2]   = dNEdgeAbs + (++id);
-        else 
+        else
           (*dFaceEdge)[ideb+2]   = dNEdgeAbs + (6 * nxPoly + 1) + 5;
         (*dFaceEdge)[ideb+3]   = dNEdgeAbs + (++id);
         if (iy == (nyPoly - 1))
@@ -740,9 +740,9 @@ PDM_g_num_t **dEdgeGroup
         (*dFaceVtxIdx)[dNFaceTmp] = ideb + 8;
       }
       dNFaceAbs += 1;
-      
+
       /* Definition de toutes les aretes internes */
-      
+
       for (int k = 0; k < 8; k++) {
         if (!((k == 2) && (ix != (nxPoly - 1))) &&
             !((k == 4) && (iy != (nyPoly - 1)))) {
@@ -813,7 +813,7 @@ PDM_g_num_t **dEdgeGroup
             dNEdgeTmp += 1;
           }
           dNEdgeAbs += 1;
-        }            
+        }
       }
     }
   }
@@ -831,14 +831,14 @@ PDM_g_num_t **dEdgeGroup
   PDM_g_num_t dNEdgeGroupAbs = 0;
   for (PDM_g_num_t ix = 0; ix < nx1/2; ix++) {
     if ((dNEdgeLim13Rank[localRank] <= dNEdgeGroupAbs) && (dNEdgeLim13Rank[localRank+1] > dNEdgeGroupAbs)) {
-      (*dEdgeGroup)[idxDEdgeGroup++]  = 2 + ix; 
+      (*dEdgeGroup)[idxDEdgeGroup++]  = 2 + ix;
     }
     ++dNEdgeGroupAbs;
   }
 
   for (PDM_g_num_t ix = 0; ix < nxPoly; ix++) {
     if ((dNEdgeLim13Rank[localRank] <= dNEdgeGroupAbs) && (dNEdgeLim13Rank[localRank+1] > dNEdgeGroupAbs)) {
-      (*dEdgeGroup)[idxDEdgeGroup++]  = nx1 + ny1 + (6 * ix) + 1; 
+      (*dEdgeGroup)[idxDEdgeGroup++]  = nx1 + ny1 + (6 * ix) + 1;
     }
     ++dNEdgeGroupAbs;
   }
@@ -851,7 +851,7 @@ PDM_g_num_t **dEdgeGroup
       if (iy == (ny1/2 - 1))
         (*dEdgeGroup)[idxDEdgeGroup++]  = nx1 + ny1;
       else
-        (*dEdgeGroup)[idxDEdgeGroup++]  = nx1/2 + 2*iy + 2; 
+        (*dEdgeGroup)[idxDEdgeGroup++]  = nx1/2 + 2*iy + 2;
     }
     ++dNEdgeGroupAbs;
   }
@@ -871,7 +871,7 @@ PDM_g_num_t **dEdgeGroup
   dNEdgeGroupAbs = 0;
   for (PDM_g_num_t ix = 0; ix < nx1/2; ix++) {
     if ((dNEdgeLim13Rank[localRank] <= dNEdgeGroupAbs) && (dNEdgeLim13Rank[localRank+1] > dNEdgeGroupAbs)) {
-      (*dEdgeGroup)[idxDEdgeGroup++]  = nx1 + ny1 - nx1/2 + ix; 
+      (*dEdgeGroup)[idxDEdgeGroup++]  = nx1 + ny1 - nx1/2 + ix;
     }
     ++dNEdgeGroupAbs;
   }
@@ -892,7 +892,7 @@ PDM_g_num_t **dEdgeGroup
   for (PDM_g_num_t iy = 0; iy < ny1/2; iy++) {
     if ((dNEdgeLim24Rank[localRank] <= dNEdgeGroupAbs) && (dNEdgeLim24Rank[localRank+1] > dNEdgeGroupAbs)) {
       if (iy == 0)
-        (*dEdgeGroup)[idxDEdgeGroup++]  = 1; 
+        (*dEdgeGroup)[idxDEdgeGroup++]  = 1;
       else
         (*dEdgeGroup)[idxDEdgeGroup++]  = 2 + nx1/2 + (2*(iy-1)) + 1;
     }
@@ -909,8 +909,8 @@ PDM_g_num_t **dEdgeGroup
     ++dNEdgeGroupAbs;
   }
 
-  free(dNEdgeLim13Rank); 
-  free(dNEdgeLim24Rank); 
+  free(dNEdgeLim13Rank);
+  free(dNEdgeLim24Rank);
   free(dNVtxRank);
   free(dNFaceRank);
   free(dNEdgeRank);

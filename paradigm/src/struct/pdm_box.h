@@ -244,7 +244,7 @@ PDM_box_set_dump(const PDM_box_set_t  *boxes,
  *   data_size              <-- Size of data
  *   origin_distrib_stride  <-- Origin stride distribution
  *   origin_distrib_data    <-- Origin data distribution
- *   current_distrib_stride <-> Current stride distribution (Allocate and compute if input is NULL, 
+ *   current_distrib_stride <-> Current stride distribution (Allocate and compute if input is NULL,
  *                              otherwise nothing)
  *   current_distrib_data   --> Current data distribution
  *
@@ -252,16 +252,16 @@ PDM_box_set_dump(const PDM_box_set_t  *boxes,
  *----------------------------------------------------------------------------*/
 
 void
-PDM_box_set_recv_data_from_origin_distrib 
+PDM_box_set_recv_data_from_origin_distrib
 (
  PDM_box_set_t  *boxes,
  PDM_stride_t   t_stride,
  int            stride_cst,
  size_t         data_size,
  int          **origin_distrib_stride,
- void         **origin_distrib_data, 
+ void         **origin_distrib_data,
  int          **current_distrib_stride,
- void         **current_distrib_data 
+ void         **current_distrib_data
  );
 
 
@@ -282,16 +282,16 @@ PDM_box_set_recv_data_from_origin_distrib
  *----------------------------------------------------------------------------*/
 
 void
-PDM_box_set_send_data_to_origin_distrib 
+PDM_box_set_send_data_to_origin_distrib
 (
  PDM_box_set_t  *boxes,
  PDM_stride_t   t_stride,
  int            stride_cst,
  size_t         data_size,
  int           *current_distrib_stride,
- void          *current_distrib_data, 
+ void          *current_distrib_data,
  int          **origin_distrib_stride,
- void         **origin_distrib_data 
+ void         **origin_distrib_data
 );
 
 /*----------------------------------------------------------------------------

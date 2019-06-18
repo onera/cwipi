@@ -79,11 +79,11 @@ if (NOT (PDM_IN_PDMA OR PDM_IN_CWP))
 
    option(PDM_ENABLE_Fortran "Build Fortran Interface" ON)
 
-   if (PDM_ENABLE_STATIC AND PDM_ENABLE_Fortran) 
+   if (PDM_ENABLE_STATIC AND PDM_ENABLE_Fortran)
       set(PDM_ENABLE_STATIC_Fortran_INTERFACE ON)
    endif ()
 
-   if (PDM_ENABLE_SHARED AND PDM_ENABLE_Fortran) 
+   if (PDM_ENABLE_SHARED AND PDM_ENABLE_Fortran)
       set(PDM_ENABLE_SHARED_Fortran_INTERFACE ON)
    endif ()
 
@@ -132,7 +132,7 @@ elseif (PDM_IN_CWP)
   # Fortran interface
   # -----------------
 
-  set(PDM_ENABLE_SHARED_Fortran ${CWP_ENABLE_Fortran})    
+  set(PDM_ENABLE_SHARED_Fortran ${CWP_ENABLE_Fortran})
 
   set(PDM_ENABLE_SHARED_Fortran_INTERFACE ${CWP_ENABLE_SHARED_Fortran_LIB})
 
@@ -165,7 +165,7 @@ if (NOT PDM_IN_PDMA)
        add_definitions (-DDEBUG_CLASSE)
     endif()
 
-    # Add "-DHAVE_GETRUSAGE" if function getrusage and gettimeofday exist    
+    # Add "-DHAVE_GETRUSAGE" if function getrusage and gettimeofday exist
     #--------------------------------------------------------------------
 
     include(CheckFunctionExists)
@@ -175,7 +175,7 @@ if (NOT PDM_IN_PDMA)
 endif ()
 
 #------------------------------------------------------------------------------
-# Default compiler flags 
+# Default compiler flags
 #------------------------------------------------------------------------------
 
 if (NOT (PDM_IN_PDMA OR PDM_IN_CWP))
@@ -185,7 +185,7 @@ if (NOT (PDM_IN_PDMA OR PDM_IN_CWP))
 endif ()
 
 #------------------------------------------------------------------------------
-# Libraries to add to link 
+# Libraries to add to link
 #------------------------------------------------------------------------------
 
 if (NOT (PDM_IN_PDMA OR PDM_IN_CWP))
@@ -222,21 +222,24 @@ if (NOT (PDM_IN_PDMA OR PDM_IN_CWP))
      find_package(ParMETIS 4.0.3)
      if (PARMETIS_FOUND)
         set(PDM_HAVE_PARMETIS 1)
-     endif() 
+     endif()
   endif()
 
   if (PDM_ENABLE_PTSCOTCH)
      find_package(PTSCOTCH 6.0.0)
      if (PTSCOTCH_FOUND)
         set(PDM_HAVE_PTSCOTCH 1)
-     endif()  
+     endif()
   endif()
 
   # Check OpenMP (TODO : check MPI wrapper function check )
   # -------------------------------------------------------
 
   if (PDM_ENABLE_OPENMP)
-     find_package(OpenMP)
+    find_package(OpenMP)
+    if (OPENMP_FOUND)
+      set(PDM_HAVE_OPENMP 1)
+    endif()
   endif()
 
   # Python bindings
@@ -246,7 +249,7 @@ if (NOT (PDM_IN_PDMA OR PDM_IN_CWP))
      find_package(PythonInterp REQUIRED)
      find_package(PythonLibs REQUIRED)
      find_package(NumPy REQUIRED)
-     find_package(Mpi4Py REQUIRED)  
+     find_package(Mpi4Py REQUIRED)
      include(UseCython)
 
      if (NOT CMAKE_PDM_INSTALL_PYTHON_DIR)
@@ -267,13 +270,13 @@ elseif (PDM_IN_CWP)
   if (PDM_ENABLE_PARMETIS)
      if (PARMETIS_FOUND)
         set(PDM_HAVE_PARMETIS 1)
-     endif() 
+     endif()
   endif()
 
   if (PDM_ENABLE_PTSCOTCH)
      if (PTSCOTCH_FOUND)
         set(PDM_HAVE_PTSCOTCH 1)
-     endif()  
+     endif()
   endif()
 
 endif ()
@@ -305,7 +308,7 @@ endif ()
 
 if (NOT (PDM_IN_PDMA OR PDM_IN_CWP))
 
-   find_package(Doxygen)       
+   find_package(Doxygen)
 
 endif ()
 
@@ -321,7 +324,7 @@ if (NOT (PDM_IN_PDMA OR PDM_IN_CWP))
 endif()
 
 #------------------------------------------------------------------------------
-# Installation de PDM 
+# Installation de PDM
 #------------------------------------------------------------------------------
 
 # Append the library version information to the library target properties
@@ -365,7 +368,3 @@ if (NOT (PDM_IN_PDMA OR PDM_IN_CWP))
 add_subdirectory(${PDM_CMAKE_DIR}/post-install)
 
 endif()
-
-
-
-

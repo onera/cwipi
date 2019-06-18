@@ -143,13 +143,13 @@ int main(int argc, char *argv[])
   double        length  = 1.;
   int           nPart   = 1;
   int           post    = 0;
-#ifdef PDM_HAVE_PARMETIS  
+#ifdef PDM_HAVE_PARMETIS
   PDM_part_split_t method  = PDM_PART_SPLIT_PARMETIS;
 #else
-#ifdef PDM_HAVE_PTSCOTCH  
+#ifdef PDM_HAVE_PTSCOTCH
   PDM_part_split_t method  = PDM_PART_SPLIT_PTSCOTCH;
 #endif
-#endif  
+#endif
   /*
    *  Read args
    */
@@ -309,7 +309,7 @@ int main(int argc, char *argv[])
 #endif
   double t_elapsed = (double) tranche_elapsed_max/1000000.;
 #if defined(__INTEL_COMPILER)
-#pragma warning(pop)  
+#pragma warning(pop)
 #endif
   PDM_printf("[%i]   - TEMPS DANS PART_CUBE  : %12.5e\n", myRank,  t_elapsed);
 
@@ -356,7 +356,7 @@ int main(int argc, char *argv[])
 
   int **faceVtxNb = (int **) malloc(sizeof(int *) * nPart);
   int **cellFaceNb = (int **) malloc(sizeof(int *) * nPart);
-  
+
   PDM_real_t **val_num_part = (PDM_real_t **) malloc(sizeof(PDM_real_t *) * nPart);
   PDM_real_t **val_coo_x    = (PDM_real_t **) malloc(sizeof(PDM_real_t *) * nPart);
   PDM_real_t **val_coo_xyz  = (PDM_real_t **) malloc(sizeof(PDM_real_t *) * nPart);
@@ -377,7 +377,7 @@ int main(int argc, char *argv[])
 
   free(nPartProcs);
 
-  /* 
+  /*
    *  Creation des variables :
    *   - numero de partition
    *   - scalaire
@@ -396,7 +396,7 @@ int main(int argc, char *argv[])
     int sFaceVtx;
     int sFaceGroup;
     int nEdgeGroup2;
-      
+
     PDM_part_part_dim_get(ppartId,
                           ipart,
                           &nCell,
@@ -414,7 +414,7 @@ int main(int argc, char *argv[])
     val_coo_x[ipart]    = (PDM_real_t *) malloc(sizeof(PDM_real_t) * nVtx);
     val_coo_xyz[ipart]  = (PDM_real_t *) malloc(sizeof(PDM_real_t) * 3 * nVtx);
   }
-  
+
   for (int nstep = 0; nstep < 10; nstep++) {
 
     double tstep = nstep * 0.01;
@@ -433,7 +433,7 @@ int main(int argc, char *argv[])
       int sFaceVtx;
       int sFaceGroup;
       int nEdgeGroup2;
-      
+
       PDM_part_part_dim_get(ppartId,
                             ipart,
                             &nCell,
@@ -470,7 +470,7 @@ int main(int argc, char *argv[])
 
       faceVtxNb[ipart] = (int *) malloc(sizeof(int) * nFace);
       cellFaceNb[ipart] = (int *) malloc(sizeof(int) * nCell);
-      
+
       PDM_part_part_val_get(ppartId,
                             ipart,
                             &cellTag,
@@ -491,17 +491,17 @@ int main(int argc, char *argv[])
                             &faceGroupIdx,
                             &faceGroup,
                             &faceGroupLNToGN);
-    
+
       for (int i = 0; i < nCell; i++) {
-        cellFaceNb[ipart][i] = cellFaceIdx[i+1] - cellFaceIdx[i]; 
+        cellFaceNb[ipart][i] = cellFaceIdx[i+1] - cellFaceIdx[i];
       }
-      
+
       for (int i = 0; i < nFace; i++) {
-        faceVtxNb[ipart][i] = faceVtxIdx[i+1] - faceVtxIdx[i]; 
+        faceVtxNb[ipart][i] = faceVtxIdx[i+1] - faceVtxIdx[i];
       }
 
       nsom_part[ipart]    = nVtx;
-      
+
       for (int i = 0; i < nCell; i++) {
         val_num_part[ipart][i] = ipart + 1 + debPartProcs[myRank];
       }
@@ -526,7 +526,7 @@ int main(int argc, char *argv[])
 
       PDM_writer_geom_cell3d_cellface_add (id_cs,
                                            id_geom,
-                                           ipart, 
+                                           ipart,
                                            nCell,
                                            nFace,
                                            faceVtxIdx,
@@ -535,7 +535,7 @@ int main(int argc, char *argv[])
                                            cellFaceIdx,
                                            cellFaceNb[ipart],
                                            cellFace,
-                                           cellLNToGN);  
+                                           cellLNToGN);
 
     }
 
@@ -543,7 +543,7 @@ int main(int argc, char *argv[])
                           id_geom);
 
     for (int ipart = 0; ipart < nPart; ipart++) {
-      
+
       free(faceVtxNb[ipart]);
       free(cellFaceNb[ipart]);
 
@@ -585,16 +585,16 @@ int main(int argc, char *argv[])
 
     PDM_writer_var_write(id_cs,
                          id_var_coo_xyz);
-    
+
     PDM_writer_var_data_free(id_cs,
                              id_var_coo_x);
-    
+
     PDM_writer_var_data_free(id_cs,
                              id_var_coo_xyz);
 
     PDM_writer_var_data_free(id_cs,
                              id_var_num_part);
-    
+
     PDM_writer_geom_data_reset (id_cs, id_geom);
 
     PDM_writer_step_end(id_cs);
@@ -609,7 +609,7 @@ int main(int argc, char *argv[])
     free(val_num_part[ipart]);
   }
   free(val_num_part);
-  
+
   for (int ipart = 0; ipart < nPart; ipart++) {
     //    free(cellFaceNb[ipart]);
     //free(faceVtxNb[ipart]);

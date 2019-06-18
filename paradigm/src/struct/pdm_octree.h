@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   pdm_octree.h
  * Author: equemera
  *
@@ -34,34 +34,34 @@ extern "C" {
 
 /**
  * \enum PDM_octree_child_t
- * \brief Names of 8 children of a node 
+ * \brief Names of 8 children of a node
  *
  */
 
 typedef enum {
-  PDM_NADIR,   
+  PDM_NADIR,
   PDM_ZENITH,
   PDM_WEST,
-  PDM_EAST,  
-  PDM_NORTH,   
-  PDM_SOUTH,   
+  PDM_EAST,
+  PDM_NORTH,
+  PDM_SOUTH,
 } PDM_octree_direction_t;
 
 /**
  * \enum PDM_octree_child_t
- * \brief Names of 8 children of a node 
+ * \brief Names of 8 children of a node
  *
  */
 
 typedef enum {
-  PDM_NORTH_WEST_NADIR,   
-  PDM_NORTH_WEST_ZENITH,   
-  PDM_NORTH_EAST_NADIR,   
-  PDM_NORTH_EAST_ZENITH,   
-  PDM_SOUTH_WEST_NADIR,   
-  PDM_SOUTH_WEST_ZENITH,   
-  PDM_SOUTH_EAST_NADIR,   
-  PDM_SOUTH_EAST_ZENITH,   
+  PDM_NORTH_WEST_NADIR,
+  PDM_NORTH_WEST_ZENITH,
+  PDM_NORTH_EAST_NADIR,
+  PDM_NORTH_EAST_ZENITH,
+  PDM_SOUTH_WEST_NADIR,
+  PDM_SOUTH_WEST_ZENITH,
+  PDM_SOUTH_EAST_NADIR,
+  PDM_SOUTH_EAST_ZENITH,
 } PDM_octree_child_t;
 
 /*============================================================================
@@ -70,36 +70,36 @@ typedef enum {
 
 /**
  *
- * \brief Create an octree structure   
+ * \brief Create an octree structure
  *
- * \param [in]   n_point_cloud      Number of point cloud 
+ * \param [in]   n_point_cloud      Number of point cloud
  * \param [in]   depth_max          Maximum depth
  * \param [in]   points_in_leaf_max Maximum points in a leaf
  * \param [in]   tolerance          Relative geometric tolerance
  * \param [in]   comm               MPI communicator
  *
- * \return     Identifier    
+ * \return     Identifier
  */
 
 int
 PDM_octree_create
 (
  const int n_point_cloud,
- const int depth_max, 
+ const int depth_max,
  const int points_in_leaf_max,
- const double tolerance, 
+ const double tolerance,
  const PDM_MPI_Comm comm
 );
 
 
 /**
  *
- * \brief Create an octree structure from a sequential octree   
+ * \brief Create an octree structure from a sequential octree
  *
  * \param [in]   octree_seq_id      Sequential octree identifier
  * \param [in]   comm               MPI communicator
  *
- * \return     Identifier    
+ * \return     Identifier
  */
 
 int
@@ -114,19 +114,19 @@ const PDM_MPI_Comm comm
 //PROCF (pdm_octree_create, PDM_OCTREE_CREATE)
 //(
 // const int *n_point_cloud,
-// const int *depth_max, 
+// const int *depth_max,
 // const int *points_in_leaf_max,
-// const double *tolerance, 
+// const double *tolerance,
 // const PDM_MPI_Fint *fcomm,
 // const int *id
 //);
 
 /**
  *
- * \brief Free an octree structure   
+ * \brief Free an octree structure
  *
- * \param [in]   id                 Identifier 
- *  
+ * \param [in]   id                 Identifier
+ *
  */
 
 void
@@ -144,14 +144,14 @@ PDM_octree_free
 
 /**
  *
- * \brief Set a point cloud  
+ * \brief Set a point cloud
  *
- * \param [in]   id                 Identifier 
- * \param [in]   i_point_cloud      Number of point cloud 
+ * \param [in]   id                 Identifier
+ * \param [in]   i_point_cloud      Number of point cloud
  * \param [in]   n_points           Maximum depth
- * \param [in]   coords             Point coordinates 
- * \param [in]   g_num              Point global number or NULL 
- * 
+ * \param [in]   coords             Point coordinates
+ * \param [in]   g_num              Point global number or NULL
+ *
  */
 
 
@@ -161,8 +161,8 @@ PDM_octree_point_cloud_set
  const int          id,
  const int          i_point_cloud,
  const int          n_points,
- const double      *coords, 
- const PDM_g_num_t *g_num  
+ const double      *coords,
+ const PDM_g_num_t *g_num
 );
 
 //void
@@ -171,15 +171,15 @@ PDM_octree_point_cloud_set
 // const int          *id
 // const int          *i_point_cloud,
 // const int          *n_points,
-// const double       *coords 
+// const double       *coords
 //);
 
 
 /**
  *
- * \brief Build octree  
+ * \brief Build octree
  *
- * \param [in]   id                 Identifier 
+ * \param [in]   id                 Identifier
  *
  */
 
@@ -194,7 +194,7 @@ PDM_octree_build
  *
  * \brief Used processes extents
  *
- * \param [in]   id                 Identifier 
+ * \param [in]   id                 Identifier
  * \param [out]  used_ranks         Used ranks
  * \param [out]  extents            Used ranks extents
  *
@@ -217,12 +217,12 @@ PDM_octree_processes_extents_get
 
 /**
  *
- * \brief Get root node id  
+ * \brief Get root node id
  *
- * \param [in]   id                 Identifier 
+ * \param [in]   id                 Identifier
  *
- * \return     Root node identifier    
- * 
+ * \return     Root node identifier
+ *
  */
 
 int
@@ -241,13 +241,13 @@ PDM_octree_root_node_id_get
 
 /**
  *
- * \brief Get ancestor node id  
+ * \brief Get ancestor node id
  *
- * \param [in]   id                 Identifier 
- * \param [in]   node_id            Node identifier 
+ * \param [in]   id                 Identifier
+ * \param [in]   node_id            Node identifier
  *
- * \return     Ancestor node identifier    
- * 
+ * \return     Ancestor node identifier
+ *
  */
 
 int
@@ -261,20 +261,20 @@ PDM_octree_ancestor_node_id_get
 //PROCF (pdm_octree_ancestor_node_id_get, PDM_OCTREE_ANCESTOR_NODE_ID_GET)
 //(
 // const int          *id,
-// const int          *node_id, 
+// const int          *node_id,
 // int                *ancestor_node_id
 //);
 
 
 /**
  *
- * \brief Get node extents  
+ * \brief Get node extents
  *
- * \param [in]   id                 Identifier 
- * \param [in]   node_id            Node identifier 
+ * \param [in]   id                 Identifier
+ * \param [in]   node_id            Node identifier
  *
- * \return     Extents    
- * 
+ * \return     Extents
+ *
  */
 
 const double *
@@ -287,14 +287,14 @@ PDM_octree_node_extents_get
 
 /**
  *
- * \brief Get children of a node 
+ * \brief Get children of a node
  *
- * \param [in]   id                 Identifier 
- * \param [in]   node_id            Node identifier 
- * \param [in]   child              Children 
+ * \param [in]   id                 Identifier
+ * \param [in]   node_id            Node identifier
+ * \param [in]   child              Children
  *
- * \return     Children node id    
- * 
+ * \return     Children node id
+ *
  */
 
 int
@@ -308,14 +308,14 @@ PDM_octree_children_get
 
 /**
  *
- * \brief Get Neighbor of node 
+ * \brief Get Neighbor of node
  *
- * \param [in]   id                 Identifier 
- * \param [in]   node_id            Node identifier 
- * \param [in]   direction          Neighbor direction 
+ * \param [in]   id                 Identifier
+ * \param [in]   node_id            Node identifier
+ * \param [in]   direction          Neighbor direction
  *
- * \return     Neighbor node id    
- * 
+ * \return     Neighbor node id
+ *
  */
 
 int
@@ -328,13 +328,13 @@ PDM_octree_neighbor_get
 
 /**
  *
- * \brief Get the number of point inside a node 
+ * \brief Get the number of point inside a node
  *
- * \param [in]   id                 Identifier 
- * \param [in]   node_id            Node identifier 
+ * \param [in]   id                 Identifier
+ * \param [in]   node_id            Node identifier
  *
- * \return   Number of points    
- * 
+ * \return   Number of points
+ *
  */
 
 int
@@ -347,14 +347,14 @@ PDM_octree_n_points_get
 
 /**
  *
- * \brief Get indexes of points inside a node 
+ * \brief Get indexes of points inside a node
  *
- * \param [in]   id                 Identifier 
- * \param [in]   node_id            Node identifier 
- * \param [out]  point_clouds_id    Point clouds number 
- *                                  (size = Number of points inside the node) 
- * \param [out]  point_indexes      Point indexes 
- *                                  (size = Number of points inside the node) 
+ * \param [in]   id                 Identifier
+ * \param [in]   node_id            Node identifier
+ * \param [out]  point_clouds_id    Point clouds number
+ *                                  (size = Number of points inside the node)
+ * \param [out]  point_indexes      Point indexes
+ *                                  (size = Number of points inside the node)
  *
  */
 
@@ -363,20 +363,20 @@ PDM_octree_points_get
 (
  const int                id,
  const int                node_id,
- int                    **point_clouds_id, 
- int                    **point_indexes 
+ int                    **point_clouds_id,
+ int                    **point_indexes
 );
 
 
 /**
  *
- * \brief Is it a leaf 
+ * \brief Is it a leaf
  *
- * \param [in]   id                 Identifier 
- * \param [in]   node_id            Node identifier 
+ * \param [in]   id                 Identifier
+ * \param [in]   node_id            Node identifier
  *
- * \return   1 or 0    
- * 
+ * \return   1 or 0
+ *
  */
 
 int
@@ -389,12 +389,12 @@ PDM_octree_leaf_is
 
 /**
  *
- * \brief Get extents  
+ * \brief Get extents
  *
- * \param [in]   id                 Identifier 
+ * \param [in]   id                 Identifier
  *
- * \return     Extents    
- * 
+ * \return     Extents
+ *
  */
 
 double *
@@ -414,7 +414,7 @@ PDM_octree_extents_get
  * \param [in]   pts_g_num              Point global numbers
  * \param [out]  closest_octree_pt_id   Closest point in octree global number
  * \param [out]  closest_octree_pt_dist Closest point in octree distance
- *  
+ *
  */
 
 void

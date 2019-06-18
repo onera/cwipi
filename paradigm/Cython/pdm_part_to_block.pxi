@@ -1,7 +1,7 @@
 
 cdef extern from "pdm_part_to_block.h":
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    # > Wrapping of Ppart Structure 
+    # > Wrapping of Ppart Structure
     ctypedef struct PDM_part_to_block_t:
         pass
 
@@ -14,7 +14,7 @@ cdef extern from "pdm_part_to_block.h":
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    # > Wrapping of function 
+    # > Wrapping of function
     PDM_part_to_block_t *PDM_part_to_block_create(PDM_part_to_block_distrib_t   t_distrib,
                                                   PDM_part_to_block_post_t      t_post,
                                                   double                         partActiveNode,
@@ -89,13 +89,13 @@ cdef class PartToBlock:
         cdef NPY.ndarray[npy_pdm_gnum_t, ndim=1, mode='fortran'] partLNToGN
         cdef NPY.ndarray[double, ndim=1, mode='fortran'] partWeight
         # ************************************************************************
-        
+
         # ::::::::::::::::::::::::::::::::::::::::::::::::::
         # > Some verification
         assert(len(pLNToGN) == partN)
         if (pWeight is not None):
           assert(len(pWeight) == partN)
-        
+
         # ::::::::::::::::::::::::::::::::::::::::::::::::::
 
         # ::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -104,7 +104,7 @@ cdef class PartToBlock:
         self.t_distrib = t_distrib
         self.t_post    = t_post
         self.t_stride  = t_stride
-        
+
         self.Rank = comm.Get_rank()
         self.Size = comm.Get_size()
         # ::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -122,7 +122,7 @@ cdef class PartToBlock:
 
         if (pWeight is not None):
           self.weight   = <double **> malloc(sizeof(double *) * self.partN )
-          
+
 
         self.NbElmts  = <int * > malloc(sizeof(int  ) * self.partN )
         # ::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -151,20 +151,20 @@ cdef class PartToBlock:
 
         # ::::::::::::::::::::::::::::::::::::::::::::::::::
         # > Create
-        self.PTB = PDM_part_to_block_create(t_distrib, 
-                                            t_post, 
+        self.PTB = PDM_part_to_block_create(t_distrib,
+                                            t_post,
                                             partActiveNode,
                                             self.LNToGN,
                                             self.weight,
-                                            self.NbElmts, 
-                                            self.partN, 
+                                            self.NbElmts,
+                                            self.partN,
                                             PDMC)
         # ::::::::::::::::::::::::::::::::::::::::::::::::::
 
     # ------------------------------------------------------------------------
     def PartToBlock_Exchange(self, dict dField, dict pField):
         """
-           TODOUX : 1) Exchange of variables types array 
+           TODOUX : 1) Exchange of variables types array
                     2) Assertion of type and accross MPI of the same field
         """
         # ************************************************************************
@@ -236,13 +236,13 @@ cdef class PartToBlock:
 
           # ::::::::::::::::::::::::::::::::::::::::::::::::::
           # > Exchange
-          c_size = PDM_part_to_block_exch(self.PTB, 
-                                          s_data, 
-                                          self.t_stride, 
+          c_size = PDM_part_to_block_exch(self.PTB,
+                                          s_data,
+                                          self.t_stride,
                                           strideOne,
-                                          &part_stride, 
+                                          &part_stride,
                                           part_data,
-                                          &block_stride, 
+                                          &block_stride,
                                           <void **> &block_data)
           # ::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -258,7 +258,7 @@ cdef class PartToBlock:
               ArrayDim[0] = <NPY.npy_intp> 1
               ArrayDim[1] = <NPY.npy_intp> c_size
 
-              # > Put in dField 
+              # > Put in dField
               dField[field] = NPY.PyArray_SimpleNewFromData(ndim, ArrayDim, dtype_data, <void *> block_data)
 
               # > Free
@@ -340,6 +340,6 @@ cdef class PartToBlock:
       # > Free allocated array
       free(self.LNToGN)
       if (self.weight != NULL):
-        free(self.weight)      
-      free(self.NbElmts)    
+        free(self.weight)
+      free(self.NbElmts)
 

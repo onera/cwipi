@@ -44,7 +44,7 @@ char *argv[]
   PDM_g_num_t *numabs = malloc(sizeof(PDM_g_num_t) * n_elt_proc);
   double *weights = malloc(sizeof(double) * n_elt_proc);
   int *stride = malloc(sizeof(stride) * n_elt_proc);
-  
+
   for (int i = 0; i < n_elt_proc; i++) {
     numabs[i] = myRank * n_elt_proc + i + 1;
     weights[i] = myRank+1;
@@ -55,9 +55,9 @@ char *argv[]
                                                        PDM_PART_TO_BLOCK_POST_MERGE,
                                                        1.,
                                                        &numabs,
-                                                       &weights,  
+                                                       &weights,
                                                        &n_elt_proc,
-                                                       1,  
+                                                       1,
                                                        PDM_MPI_COMM_WORLD);
 
 
@@ -65,7 +65,7 @@ char *argv[]
 
   double *block_weights;
   int *block_stride;
-  
+
   PDM_part_to_block_exch (ptb,
                           sizeof(double),
                           PDM_STRIDE_VAR,
@@ -74,14 +74,14 @@ char *argv[]
                           (void **) &weights,
                            &block_stride,
                           (void **) &block_weights);
-  
+
   int n_elt_block = PDM_part_to_block_n_elt_block_get (ptb);
   double weight_sum = 0.;
-  
+
   for (int i = 0; i < n_elt_block; i++) {
     weight_sum += block_weights[i];
   }
-  
+
   double *weights_sum_procs = malloc(sizeof(double) * numProcs);
 
   printf("distrib_index : ");
@@ -109,9 +109,9 @@ char *argv[]
   free (block_stride);
 
   PDM_MPI_Finalize ();
-  
+
   PDM_printf ("\nfin Test\n");
- 
+
   return 0;
 
 }

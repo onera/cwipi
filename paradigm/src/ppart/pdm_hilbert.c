@@ -79,7 +79,7 @@ static const unsigned  _cs_istate2d[]
 static const unsigned  _zhang_idata2d[]
 = {
     0,  1,  3,  2,
-    0,  2,  3,  1, 
+    0,  2,  3,  1,
     3,  2,  0,  1,
     3,  1,  0,  2};
 
@@ -99,7 +99,7 @@ static const unsigned  _zhang_istate2d[]
 static const unsigned _bader_idata2d[]
 = {
     0,  1,  3,  2,
-    0,  2,  3,  1, 
+    0,  2,  3,  1,
     3,  1,  0,  2,
     3,  2,  0,  1};
 
@@ -175,7 +175,7 @@ static const unsigned  _griebel_idata3d[]
 = {0,  7,  3,  4,  1,  6,  2,  5,
    4,  3,  7,  0,  5,  2,  6,  1,
    6,  1,  5,  2,  7,  0,  4,  3,
-   2,  5,  1,  6,  3,  4,  0,  7, 
+   2,  5,  1,  6,  3,  4,  0,  7,
    0,  1,  7,  6,  3,  2,  4,  5,
    6,  7,  1,  0,  5,  4,  2,  3,
    2,  3,  5,  4,  1,  0,  6,  7,
@@ -198,7 +198,7 @@ static const unsigned  _griebel_istate3d[]
     1,  1,  8,  5,  3,  3,  8,  6,
     11,  5,  0,  0,  11,  6,  2,  2,
     1,  1,  4,  10,  3,  3,  7,  10};
-    
+
 /**
  * Study on Pseudo-Hilbert Scan and Its Application to
  * 		HDR Tone Mapping
@@ -621,7 +621,7 @@ _define_rank_distrib(int                       dim,
   /* Initialization */
 
   PDM_g_num_t   *l_distrib = (PDM_g_num_t   *) malloc (n_samples * sizeof(PDM_g_num_t));
-  
+
   for (id = 0; id < n_samples; id++) {
     l_distrib[id] = 0;
     g_distrib[id] = 0;
@@ -665,7 +665,7 @@ _define_rank_distrib(int                       dim,
 #ifdef __INTEL_COMPILER
 #pragma warning(push)
 #pragma warning(disable:2259)
-#endif  
+#endif
     double _g_distrib  = (double)g_distrib[id];
     double _gsum_weight = (double)gsum_weight;
 #ifdef __INTEL_COMPILER
@@ -769,7 +769,7 @@ _update_sampling(int                  dim,
   /* Compute new_sampling */
 
   new_sampling = ( PDM_hilbert_code_t  *) malloc (sizeof(PDM_hilbert_code_t) * (n_samples + 1));
-   
+
   new_sampling[0] = _sampling[0];
 
   next_id = 1;
@@ -874,7 +874,7 @@ _bucket_sampling(int                       dim,
 #pragma warning(push)
 #pragma warning(disable:2259)
 #endif
-  double _gsum_weight = (double)gsum_weight; 
+  double _gsum_weight = (double)gsum_weight;
   double _n_ranks = (double)n_ranks;
   optim = _gsum_weight / _n_ranks;
 #ifdef __INTEL_COMPILER
@@ -1064,7 +1064,7 @@ PDM_hilbert_encode_coords(int                 dim,
       istate = _cs_istate3d;
     }
     break;
-    
+
   case PDM_HILBERT_GRIEBEL:
 
     if (dim == 2) {
@@ -1103,9 +1103,9 @@ PDM_hilbert_encode_coords(int                 dim,
   default:
     PDM_error(__FILE__, __LINE__, 0, "pdm_hilbert_encode_coords : Unknow encode type\n");
     exit(0);
-   
+
   }
-  
+
   int i, j, k;
   double s[3], d[3], n[3];
 
@@ -1355,7 +1355,7 @@ PDM_hilbert_build_rank_index(int                       dim,
 
   n_samples = sampling_factor * n_t_part;
 
-  PDM_hilbert_code_t  *sampling = 
+  PDM_hilbert_code_t  *sampling =
           (PDM_hilbert_code_t  *) malloc(sizeof(PDM_hilbert_code_t) * (n_samples + 1));
 
   for (i = 0; i < (n_samples + 1); i++)

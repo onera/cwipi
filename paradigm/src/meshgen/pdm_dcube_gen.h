@@ -8,7 +8,7 @@
  * Macro definitions
  *============================================================================*/
 
-#if !defined (__hpux) && !defined (_AIX) 
+#if !defined (__hpux) && !defined (_AIX)
 #define PROCF(x, y) x##_
 #else
 #define PROCF(x, y) x
@@ -36,11 +36,11 @@ extern "C" {
  */
 
 void
-PDM_dcube_gen_init 
+PDM_dcube_gen_init
 (
  int                *id,
  PDM_MPI_Comm        comm,
- const PDM_g_num_t   nVtxSeg, 
+ const PDM_g_num_t   nVtxSeg,
  const double        length,
  const double        zero_x,
  const double        zero_y,
@@ -52,7 +52,7 @@ PROCF (pdm_dcube_gen_init, PDM_DCUBE_GEN_INIT)
 (
  int                *id,
  const PDM_MPI_Fint *comm,
- const PDM_g_num_t  *nVtxSeg, 
+ const PDM_g_num_t  *nVtxSeg,
  const double       *length,
  const double       *zero_x,
  const double       *zero_y,
@@ -66,7 +66,7 @@ PROCF (pdm_dcube_gen_init, PDM_DCUBE_GEN_INIT)
  *
  * \param [in]   id          dcube identifier
  * \param [out]  NFaceGroup  Number of faces groups
- * \param [out]  dNCell      Number of cells stored in this process 
+ * \param [out]  dNCell      Number of cells stored in this process
  * \param [out]  dNFace      Number of faces stored in this process
  * \param [out]  dNVtx       Number of vertices stored in this process
  * \param [out]  dFaceVtxL   Length of dFaceVtx array
@@ -75,7 +75,7 @@ PROCF (pdm_dcube_gen_init, PDM_DCUBE_GEN_INIT)
  */
 
 void
-PDM_dcube_gen_dim_get 
+PDM_dcube_gen_dim_get
 (
  int                id,
  int                *nFaceGroup,
@@ -88,7 +88,7 @@ PDM_dcube_gen_dim_get
 
 
 void
-PROCF(pdm_dcube_gen_dim_get, PDM_DCUBE_GEN_DIM_GET) 
+PROCF(pdm_dcube_gen_dim_get, PDM_DCUBE_GEN_DIM_GET)
 (
  int                *id,
  int                *nFaceGroup,
@@ -115,29 +115,29 @@ PROCF(pdm_dcube_gen_dim_get, PDM_DCUBE_GEN_DIM_GET)
  */
 
 void
-PDM_dcube_gen_data_get 
+PDM_dcube_gen_data_get
 (
  int                 id,
  PDM_g_num_t      **dFaceCell,
- int               **dFaceVtxIdx, 
+ int               **dFaceVtxIdx,
  PDM_g_num_t      **dFaceVtx,
  double            **dVtxCoord,
  int               **dFaceGroupIdx,
- PDM_g_num_t      **dFaceGroup 
-); 
+ PDM_g_num_t      **dFaceGroup
+);
 
 
-void 
+void
 PROCF (pdm_dcube_gen_data_get, PDM_DCUBE_GEN_DATA_GET)
 (
  int               *id,
  PDM_g_num_t      *dFaceCell,
- int               *dFaceVtxIdx, 
+ int               *dFaceVtxIdx,
  PDM_g_num_t      *dFaceVtx,
  double            *dVtxCoord,
  int               *dFaceGroupIdx,
- PDM_g_num_t      *dFaceGroup 
-); 
+ PDM_g_num_t      *dFaceGroup
+);
 
 
 /**
@@ -152,9 +152,9 @@ void
 PDM_dcube_gen_free
 (
  int  id
- ); 
+ );
 
-void 
+void
 PROCF (pdm_dcube_gen_free, PDM_DCUBE_GEN_FREE)
 (
  int  *id

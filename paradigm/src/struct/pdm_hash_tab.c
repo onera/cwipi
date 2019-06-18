@@ -36,7 +36,7 @@ extern "C" {
 /**
  * \struct _hash_tab_t
  * \brief  Hash table
- * 
+ *
  * \ref _hash_tab_t defines a hash table structure
  *
  */
@@ -50,8 +50,8 @@ typedef struct {
   int                 *mDataKey;/*!< Max data for each key */
   int                  n_key_info; /*!< Number keys with information */
   int                  l_key_info; /*!< Size of \ref key_info*/
-  PDM_g_num_t         *key_info; /*!< list of Keys with info */ 
-            
+  PDM_g_num_t         *key_info; /*!< list of Keys with info */
+
 } _hash_tab_t;
 
 /*=============================================================================
@@ -59,7 +59,7 @@ typedef struct {
  *============================================================================*/
 
 /*=============================================================================
- * Public function prototypes 
+ * Public function prototypes
  *============================================================================*/
 
 /**
@@ -68,7 +68,7 @@ typedef struct {
  * This function returns an initialized \ref PDM_hash_tab_t structure
  *
  * \param [in]  tKey   \ref PDM_HASH_TAB_KEY_INT or \ref PDM_HASH_TAB_KEY_LONG
- * \param [in]  keyMax  key max 
+ * \param [in]  keyMax  key max
  *
  * \return      A new initialized \ref PDM_hash_tab_t structure
  *
@@ -83,9 +83,9 @@ void                     *keyMax
 {
   _hash_tab_t *ht = malloc (sizeof(_hash_tab_t));
   const int nDataDefault = 4;
-  
+
   ht->tKey = tKey;
-    
+
   if (tKey == PDM_HASH_TAB_KEY_INT) {
     ht->keyMax = (PDM_g_num_t) *((int *) keyMax);
   }
@@ -96,7 +96,7 @@ void                     *keyMax
     PDM_error(__FILE__, __LINE__, 0, "Error PDM_hash_tab_create : Unknown hey type");
     abort();
   }
-  
+
   ht->l_key_info = PDM_MAX (ht->keyMax/10, 2);
   ht->key_info = malloc (sizeof(PDM_g_num_t)*ht->l_key_info);
   ht->n_key_info = 0;
@@ -109,7 +109,7 @@ void                     *keyMax
     ht->mDataKey[i] = nDataDefault;
     ht->data[i] = malloc (sizeof(void *) * nDataDefault);
   }
-  
+
   return (PDM_hash_tab_t *) ht;
 }
 
@@ -120,7 +120,7 @@ void                     *keyMax
  * This function adds a new data for a key
  *
  * \param [in]  hash_table    Hash table
- * \param [in]  key           key 
+ * \param [in]  key           key
  * \param [in]  data          data
  *
  */
@@ -135,18 +135,18 @@ void           *data
 {
   _hash_tab_t *_ht = (_hash_tab_t *) ht;
   PDM_g_num_t _key = -1;;
-  
+
   if (_ht->tKey == PDM_HASH_TAB_KEY_INT) {
     _key = (PDM_g_num_t) *((int *) (key));
   }
   else if (_ht->tKey == PDM_HASH_TAB_KEY_LONG) {
     _key = *((PDM_g_num_t *) (key));
-  }  
+  }
   else {
 	  PDM_error(__FILE__, __LINE__, 0, "PDM_hash_tab_data_add error : unknown PDM_hash_tab_key_t\n");
 		abort();
 	}
-	
+
   if (_ht->nDataKey[_key] >= _ht->mDataKey[_key]) {
     _ht->mDataKey[_key] *= 2;
     _ht->data[_key] = realloc (_ht->data[_key], sizeof(void *) *
@@ -161,9 +161,9 @@ void           *data
     _ht->key_info[_ht->n_key_info] = _key;
     _ht->n_key_info += 1;
   }
-  
+
   _ht->data[_key][_ht->nDataKey[_key]++] = data;
-  
+
 }
 
 
@@ -172,7 +172,7 @@ void           *data
  *
  *
  * \param [in]  ht        Hash table
- * \param [in]  key       key 
+ * \param [in]  key       key
  * \param [in]  data      data
  *
  */
@@ -186,7 +186,7 @@ void           *key
 {
   _hash_tab_t *_ht = (_hash_tab_t *) ht;
   PDM_g_num_t _key = -1;
-  
+
   if (_ht->tKey == PDM_HASH_TAB_KEY_INT) {
     _key = (PDM_g_num_t) *((int *) (key));
   }
@@ -204,9 +204,9 @@ void           *key
     }
     _ht->data[_key][i] = NULL;
   }
-  
+
   _ht->nDataKey[_key] = 0;
-  
+
 }
 
 
@@ -216,10 +216,10 @@ void           *key
  * This function gets the number of data associated to a key
  *
  * \param [in]  hash_table    Hash table
- * \param [in]  key           key 
+ * \param [in]  key           key
  *
- * \return Number of data 
- *    
+ * \return Number of data
+ *
  */
 
 int
@@ -231,13 +231,13 @@ void           *key
 {
   _hash_tab_t *_ht = (_hash_tab_t *) ht;
   PDM_g_num_t _key = -1;
-  
+
   if (_ht->tKey == PDM_HASH_TAB_KEY_INT) {
     _key = (PDM_g_num_t) *((int *) (key));
   }
   else if (_ht->tKey == PDM_HASH_TAB_KEY_LONG) {
     _key = *((PDM_g_num_t *) (key));
-  }  
+  }
   else {
 	  PDM_error(__FILE__, __LINE__, 0, "PDM_hash_tab_data_get error : unknown PDM_hash_tab_key_t\n");
 		abort();
@@ -252,10 +252,10 @@ void           *key
  * This function gets data associated to a key
  *
  * \param [in]  hash_table    Hash table
- * \param [in]  key           key 
+ * \param [in]  key           key
  *
- * \return data 
- *    
+ * \return data
+ *
  */
 
 void **
@@ -267,13 +267,13 @@ void           *key
 {
   _hash_tab_t *_ht = (_hash_tab_t *) ht;
   PDM_g_num_t _key = -1;
-  
+
   if (_ht->tKey == PDM_HASH_TAB_KEY_INT) {
     _key = (PDM_g_num_t) *((int *) (key));
   }
   else if (_ht->tKey == PDM_HASH_TAB_KEY_LONG) {
     _key = *((PDM_g_num_t *) (key));
-  }  
+  }
   else {
 	  PDM_error(__FILE__, __LINE__, 0, "PDM_hash_tab_data_get error : unknown PDM_hash_tab_key_t\n");
 		abort();
@@ -296,11 +296,11 @@ void           *key
 PDM_hash_tab_t *
 PDM_hash_tab_free
 (
-PDM_hash_tab_t *ht        
+PDM_hash_tab_t *ht
 )
 {
   _hash_tab_t *_ht = (_hash_tab_t *) ht;
-  
+
   for (int i = 0; i < _ht->keyMax; i++) {
     free (_ht->data[i]);
   }
@@ -308,9 +308,9 @@ PDM_hash_tab_t *ht
   free (_ht->nDataKey);
   free (_ht->mDataKey);
   free (_ht->key_info);
-    
+
   free (_ht);
-  
+
   return NULL;
 }
 
@@ -336,15 +336,15 @@ PDM_bool_t remove_data
   _hash_tab_t *_ht = (_hash_tab_t *) ht;
 
   if (remove_data) {
-    
+
     for (int i = 0; i < _ht->n_key_info; i++) {
       PDM_g_num_t _key = _ht->key_info[i];
       PDM_hash_tab_data_free (ht, &_key);
     }
   }
-  
+
   int *_nDataKey = _ht->nDataKey;
-  
+
   for (int i = 0; i < _ht->n_key_info; i++) {
     PDM_g_num_t _key = _ht->key_info[i];
     _nDataKey[_key] = 0;
@@ -361,8 +361,8 @@ PDM_bool_t remove_data
  *
  * \param [in]  ht        Hash table
  *
- * \return max Key 
- *    
+ * \return max Key
+ *
  */
 
 void *
@@ -383,8 +383,8 @@ PDM_hash_tab_t *ht
  *
  * \param [in]  ht        Hash table
  *
- * \return key type 
- *    
+ * \return key type
+ *
  */
 
 PDM_hash_tab_key_t
@@ -395,7 +395,7 @@ PDM_hash_tab_t *ht
 {
   _hash_tab_t *_ht = (_hash_tab_t *) ht;
   return _ht->tKey;
-}          
+}
 
 
 #ifdef	__cplusplus

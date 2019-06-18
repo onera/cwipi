@@ -93,7 +93,7 @@ struct _PDM_box_set_t {
   int        *n_boxes_orig;   /* Number of origin bounding boxes */
   int        *origin;         /* Initial location :
                                   * iproc, ipart, local_num */
-  
+
   double      gmin[3];        /* Global minima of the coordinates */
   double      gmax[3];        /* Global maxima of the coordinates */
 
@@ -101,8 +101,8 @@ struct _PDM_box_set_t {
   int         normalized;     /* 1 if normalized, 0 otherwise */
   double      s[3];           /* Translation for the normalisation */
   double      d[3];           /* Dilatation for the normalisation */
-  
-  
+
+
   PDM_MPI_Comm    comm;           /* Associated MPI communicator */
 
 };

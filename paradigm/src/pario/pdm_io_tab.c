@@ -56,15 +56,15 @@ typedef struct {
 
 struct _PDM_io_tab_t {
 
-  PDM_l_num_t               taille_donnee;         /* Taille unitaire de 
+  PDM_l_num_t               taille_donnee;         /* Taille unitaire de
                                                          la donnée */
   PDM_io_n_composantes_t     t_n_composantes;       /* Nombre de composante
                                                          variable ou cst */
-  PDM_l_num_t               n_composantes_cst;     /* Nombre constant 
+  PDM_l_num_t               n_composantes_cst;     /* Nombre constant
                                                          de composantes */
   PDM_l_num_t               num_indirection_cedre; /* Numéro d'indirection
                                                          CEDRE */
-  PDM_io_partition_locale_t **partitions_locales;   /* Description des 
+  PDM_io_partition_locale_t **partitions_locales;   /* Description des
                                                          partitions locales */
 };
 
@@ -76,7 +76,7 @@ struct _PDM_io_tab_t {
  * Numero max de variable CEDRE
  *----------------------------------------------------------------------------*/
 
-static int _num_var_cedre_max = -1; 
+static int _num_var_cedre_max = -1;
 
 /*----------------------------------------------------------------------------
  * Unité du fichier
@@ -100,7 +100,7 @@ static PDM_l_num_t _n_partition_local;
  * Stockage des structures indirections
  *----------------------------------------------------------------------------*/
 
-static PDM_io_tab_t **PDM_io_tabs = NULL; 
+static PDM_io_tab_t **PDM_io_tabs = NULL;
 
 
 /*============================================================================
@@ -112,8 +112,8 @@ static PDM_io_tab_t **PDM_io_tabs = NULL;
  * CEDRE
  *
  * arguments :
- *   num_var_cedre         <-- Numéro de variable CEDRE 
- *   i_part                <-- indice de partition 
+ *   num_var_cedre         <-- Numéro de variable CEDRE
+ *   i_part                <-- indice de partition
  *   n_composantes         <-- Nombre de composantes pour chaque donnee
  *   n_donnees             <-- Nombre de donnees a lire
  *   indirection           <-- Indirection de redistribition des donnees
@@ -122,15 +122,15 @@ static PDM_io_tab_t **PDM_io_tabs = NULL;
  *----------------------------------------------------------------------------*/
 
 static void _ajout_donnees
-(const PDM_l_num_t           num_var_cedre,         
- const PDM_l_num_t           i_part,         
+(const PDM_l_num_t           num_var_cedre,
+ const PDM_l_num_t           i_part,
  const PDM_l_num_t          *n_composantes,
  const PDM_l_num_t           n_donnees,
  const PDM_g_num_t         *indirection,
  void                          *donnees
  )
 {
-  if (PDM_io_tabs == NULL) {   
+  if (PDM_io_tabs == NULL) {
     PDM_error(__FILE__, __LINE__, 0, "Erreur _ajout_donnees :"
             "La phase d'acces n'a pas été initialisée\n");
     exit(EXIT_FAILURE);
@@ -148,7 +148,7 @@ static void _ajout_donnees
   }
 
   int _i_part = i_part - 1;
-  
+
   if (tab->partitions_locales[_i_part] != NULL) {
     PDM_error(__FILE__, __LINE__, 0, "Erreur _ajout_donnees : "
             "partition '%i' déjà traitée\n", i_part);
@@ -161,7 +161,7 @@ static void _ajout_donnees
     malloc(sizeof(PDM_io_partition_locale_t));
 
   PDM_io_partition_locale_t *partition = tab->partitions_locales[_i_part];
-  
+
   partition->n_donnees     = n_donnees;
   if (tab->t_n_composantes == PDM_IO_N_COMPOSANTE_CONSTANT)
     partition->n_composantes = NULL;
@@ -177,12 +177,12 @@ static void _ajout_donnees
 }
 
 /*----------------------------------------------------------------------------
- * Definition d'une variable                                                                
+ * Definition d'une variable
  *
  *  arguments :
- *   num_var_cedre         <-- Numéro de variable CEDRE 
- *   num_indirection_cedre <-- Numéro d'indirection CEDRE         
- *   t_n_composantes       <-- Type de tailles composantes 
+ *   num_var_cedre         <-- Numéro de variable CEDRE
+ *   num_indirection_cedre <-- Numéro d'indirection CEDRE
+ *   t_n_composantes       <-- Type de tailles composantes
  *                             (PDM_IO_N_COMPOSANTE_CONSTANT
  *                           ou PDM_IO_N_COMPOSANTE_VARIABLE)
  *   n_composantes         <-- Nombre de composantes pour chaque donnee
@@ -190,16 +190,16 @@ static void _ajout_donnees
  *
  *----------------------------------------------------------------------------*/
 
-static void _def_var       
-(const PDM_l_num_t           num_var_cedre,         
- const PDM_l_num_t           num_indirection_cedre,         
- const PDM_io_n_composantes_t t_n_composantes,         
+static void _def_var
+(const PDM_l_num_t           num_var_cedre,
+ const PDM_l_num_t           num_indirection_cedre,
+ const PDM_io_n_composantes_t t_n_composantes,
  const PDM_l_num_t           n_composantes,
  const PDM_l_num_t           taille_donnee
  )
 {
-  if (PDM_io_tabs == NULL) {   
-    PDM_error(__FILE__, __LINE__, 0, "Erreur _def_var : "                       
+  if (PDM_io_tabs == NULL) {
+    PDM_error(__FILE__, __LINE__, 0, "Erreur _def_var : "
             "La phase d'acces n'a pas été initialisée\n");
     exit(EXIT_FAILURE);
   }
@@ -215,7 +215,7 @@ static void _def_var
     tab->taille_donnee = taille_donnee;
     tab->t_n_composantes = t_n_composantes;
     if (t_n_composantes == PDM_IO_N_COMPOSANTE_CONSTANT)
-      tab->n_composantes_cst = n_composantes;   
+      tab->n_composantes_cst = n_composantes;
     tab->t_n_composantes = t_n_composantes;
     tab->num_indirection_cedre = num_indirection_cedre;
     tab->partitions_locales = (PDM_io_partition_locale_t **)
@@ -254,9 +254,9 @@ void PROCF (pdm_io_tab_ecr_debut, PDM_IO_TAB_ECR_DEBUT)
 {
   PDM_io_rangement_t __t_rangement = PDM_IO_RANGEMENT_BLOC;
 
-  if (*t_rangement == 0) 
+  if (*t_rangement == 0)
     __t_rangement = PDM_IO_RANGEMENT_BLOC;
-  else if (*t_rangement == 1) 
+  else if (*t_rangement == 1)
     __t_rangement = PDM_IO_RANGEMENT_ENTRELACE;
 
   PDM_io_tab_ecr_debut(*unite,
@@ -277,7 +277,7 @@ void  PDM_io_tab_ecr_debut
     PDM_io_tabs = (PDM_io_tab_t **) malloc(_num_var_cedre_max *
                                               sizeof(PDM_io_tab_t *));
 
-    for (int i = 0; i < _num_var_cedre_max; i++) 
+    for (int i = 0; i < _num_var_cedre_max; i++)
       PDM_io_tabs[i] = NULL;
 
     _unite = unite;
@@ -297,8 +297,8 @@ void  PDM_io_tab_ecr_debut
  * CEDRE
  *
  * arguments :
- *   num_var_cedre         <-- Numéro de variable CEDRE 
- *   i_part                <-- indice de partition 
+ *   num_var_cedre         <-- Numéro de variable CEDRE
+ *   i_part                <-- indice de partition
  *   n_composantes         <-- Nombre de composantes pour chaque donnee
  *   n_donnees             <-- Nombre de donnees a lire
  *   indirection           <-- Indirection de redistribition des donnees
@@ -307,16 +307,16 @@ void  PDM_io_tab_ecr_debut
  *----------------------------------------------------------------------------*/
 
 void PROCF (pdm_io_tab_ecr_ajout_donnees, PDM_IO_TAB_ECR_AJOUT_DONNEES)
-(const PDM_l_num_t  *num_var_cedre,         
- const PDM_l_num_t  *i_part,         
+(const PDM_l_num_t  *num_var_cedre,
+ const PDM_l_num_t  *i_part,
  const PDM_l_num_t  *n_composantes,
  const PDM_l_num_t  *n_donnees,
  const PDM_g_num_t *indirection,
  void                  *donnees
  )
 {
-  PDM_io_tab_ecr_ajout_donnees(*num_var_cedre,         
-                                 *i_part,         
+  PDM_io_tab_ecr_ajout_donnees(*num_var_cedre,
+                                 *i_part,
                                  n_composantes,
                                  *n_donnees,
                                  indirection,
@@ -324,16 +324,16 @@ void PROCF (pdm_io_tab_ecr_ajout_donnees, PDM_IO_TAB_ECR_AJOUT_DONNEES)
 }
 
 void PDM_io_tab_ecr_ajout_donnees
-(const PDM_l_num_t            num_var_cedre,         
- const PDM_l_num_t            i_part,         
+(const PDM_l_num_t            num_var_cedre,
+ const PDM_l_num_t            i_part,
  const PDM_l_num_t           *n_composantes,
  const PDM_l_num_t            n_donnees,
  const PDM_g_num_t          *indirection,
  void                           *donnees
  )
 {
-  _ajout_donnees(num_var_cedre,         
-                 i_part,         
+  _ajout_donnees(num_var_cedre,
+                 i_part,
                  n_composantes,
                  n_donnees,
                  indirection,
@@ -341,12 +341,12 @@ void PDM_io_tab_ecr_ajout_donnees
 }
 
 /*----------------------------------------------------------------------------
- * Definition d'une variable en ecriture                                                          
+ * Definition d'une variable en ecriture
  *
  *  arguments :
- *   num_var_cedre         <-- Numéro de variable CEDRE 
- *   num_indirection_cedre <-- Numéro d'indirection CEDRE         
- *   t_n_composantes       <-- Type de tailles composantes 
+ *   num_var_cedre         <-- Numéro de variable CEDRE
+ *   num_indirection_cedre <-- Numéro d'indirection CEDRE
+ *   t_n_composantes       <-- Type de tailles composantes
  *                             (PDM_IO_N_COMPOSANTE_CONSTANT
  *                           ou PDM_IO_N_COMPOSANTE_VARIABLE)
  *   n_composantes         <-- Nombre de composantes pour chaque donnee
@@ -355,38 +355,38 @@ void PDM_io_tab_ecr_ajout_donnees
  *----------------------------------------------------------------------------*/
 
 void PROCF (pdm_io_tab_ecr_def_var, PDM_IO_TAB_ECR_DEF_VAR)
-(const PDM_l_num_t  *num_var_cedre,         
- const PDM_l_num_t  *num_indirection_cedre,         
- const int             *t_n_composantes,         
+(const PDM_l_num_t  *num_var_cedre,
+ const PDM_l_num_t  *num_indirection_cedre,
+ const int             *t_n_composantes,
  const PDM_l_num_t  *n_composantes,
  const PDM_l_num_t  *taille_donnee
  )
 {
   PDM_io_n_composantes_t _t_n_composantes = PDM_IO_N_COMPOSANTE_CONSTANT;
 
-  if (*t_n_composantes == 0) 
+  if (*t_n_composantes == 0)
     _t_n_composantes = PDM_IO_N_COMPOSANTE_CONSTANT;
-  else if (*t_n_composantes == 1) 
+  else if (*t_n_composantes == 1)
     _t_n_composantes = PDM_IO_N_COMPOSANTE_VARIABLE;
 
-  PDM_io_tab_ecr_def_var(*num_var_cedre,         
-                           *num_indirection_cedre,         
-                           _t_n_composantes,         
+  PDM_io_tab_ecr_def_var(*num_var_cedre,
+                           *num_indirection_cedre,
+                           _t_n_composantes,
                            *n_composantes,
                            *taille_donnee);
 }
 
 void PDM_io_tab_ecr_def_var
-(const PDM_l_num_t            num_var_cedre,         
- const PDM_l_num_t            num_indirection_cedre,         
- const PDM_io_n_composantes_t  t_n_composantes,         
+(const PDM_l_num_t            num_var_cedre,
+ const PDM_l_num_t            num_indirection_cedre,
+ const PDM_io_n_composantes_t  t_n_composantes,
  const PDM_l_num_t            n_composantes,
  const PDM_l_num_t            taille_donnee
  )
 {
-  _def_var(num_var_cedre,         
-           num_indirection_cedre,         
-           t_n_composantes,         
+  _def_var(num_var_cedre,
+           num_indirection_cedre,
+           t_n_composantes,
            n_composantes,
            taille_donnee);
 }
@@ -408,53 +408,53 @@ void PROCF (pdm_io_tab_ecr_fin, PDM_IO_TAB_ECR_FIN)
 void PDM_io_tab_ecr_fin
 (void)
 {
-  if (PDM_io_tabs == NULL) {   
+  if (PDM_io_tabs == NULL) {
     PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_io_tab_ecr_fin :"
             "La phase d'écriture n'a pas été initialisée\n");
     exit(EXIT_FAILURE);
   }
-  
+
   /* Definition des tableaux temporaires de concatenation */
-  
+
   PDM_l_num_t  *n_composantes_concatene     = NULL;
   int t_n_composantes_concatene = 0;
-  
+
   PDM_g_num_t *indirection_concatene       = NULL;
   int t_indirection_concatene = 0;
-  
+
   unsigned char   *donnees_concatene           = NULL;
   int t_donnees_concatene = 0;
-  
+
   /* Definition des pointeurs des tableaux utiles à l'écriture */
-  
+
   const PDM_l_num_t  *n_composantes_ecrit   = NULL;
   const PDM_g_num_t *indirection_ecrit     = NULL;
   const unsigned char   *donnees_ecrit         = NULL;
-  
+
   /* Boucle sur les variables */
-  
+
   for (int i = 0; i < _num_var_cedre_max; i++) {
-    
+
     if (PDM_io_tabs[i] != NULL) {
 
       PDM_io_tab_t *tab = PDM_io_tabs[i];
       PDM_io_partition_locale_t **partitions = tab->partitions_locales;
-      
+
       /* Concaténation */
-      
+
       int n_donnees_total = 0;
       int n_composantes_total = 0;
-      
+
       if (_n_partition_local > 1) {
-        
+
         /* Calcul des grandeurs concaténées */
 
         for (int j = 0; j < _n_partition_local; j++) {
           PDM_io_partition_locale_t *partition = partitions[j];
           if (partition != NULL) {
-            
+
             n_donnees_total += partition->n_donnees;
-            
+
             if (tab->t_n_composantes == PDM_IO_N_COMPOSANTE_CONSTANT) {
               n_composantes_total += tab->n_composantes_cst * partition->n_donnees;
             }
@@ -465,56 +465,56 @@ void PDM_io_tab_ecr_fin
             }
           }
         }
-        
+
         /* Allocation ou reallocation du tableau n_composantes_concatene */
-        
-        if (n_composantes_concatene == NULL && 
+
+        if (n_composantes_concatene == NULL &&
             tab->t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
-          
+
           t_n_composantes_concatene = n_donnees_total;
-          n_composantes_concatene = (PDM_l_num_t *) 
+          n_composantes_concatene = (PDM_l_num_t *)
             malloc(t_n_composantes_concatene * sizeof(PDM_l_num_t));
-          
+
         }
-        
-        else if (n_composantes_concatene != NULL && 
+
+        else if (n_composantes_concatene != NULL &&
                  tab->t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
-          
+
           if (n_donnees_total > t_n_composantes_concatene) {
             t_n_composantes_concatene = n_donnees_total;
-            n_composantes_concatene = (PDM_l_num_t *) 
-              realloc((void *) n_composantes_concatene, 
+            n_composantes_concatene = (PDM_l_num_t *)
+              realloc((void *) n_composantes_concatene,
                       t_n_composantes_concatene * sizeof(PDM_l_num_t));
           }
         }
-        
+
         /* Allocation ou reallocation du tabeau indirection_concatene */
-        
+
         if (indirection_concatene == NULL &&
             _t_rangement == PDM_IO_RANGEMENT_ENTRELACE) {
-          
+
           t_indirection_concatene = n_donnees_total;
-          indirection_concatene = (PDM_g_num_t *) 
+          indirection_concatene = (PDM_g_num_t *)
             malloc(t_indirection_concatene * sizeof(PDM_g_num_t));
-          
+
         }
-        
+
         else if (indirection_concatene != NULL &&
                  _t_rangement == PDM_IO_RANGEMENT_ENTRELACE) {
-          
+
           if (n_donnees_total > t_indirection_concatene) {
             t_indirection_concatene = n_donnees_total;
-            indirection_concatene = (PDM_g_num_t *) 
+            indirection_concatene = (PDM_g_num_t *)
               realloc((void *)indirection_concatene,
                       t_indirection_concatene * sizeof(PDM_g_num_t));
           }
-          
+
         }
-        
+
         /* Allocation ou reallocation du tabeau donnees_concatene */
-        
+
         if (donnees_concatene == NULL) {
-          
+
           t_donnees_concatene = n_composantes_total * tab->taille_donnee;
           donnees_concatene = (unsigned char*)
             malloc(t_donnees_concatene * sizeof(unsigned char));
@@ -526,10 +526,10 @@ void PDM_io_tab_ecr_fin
               realloc((void *) donnees_concatene,
                       t_donnees_concatene * sizeof(unsigned char));
           }
-        }           
-        
+        }
+
         /* Traitement du cas PDM_IO_RANGEMENT_BLOC */
-        
+
         if (_t_rangement == PDM_IO_RANGEMENT_BLOC) {
           for (int j = 0; j < _n_partition_local; j++) {
             if (partitions[j] != NULL) {
@@ -540,40 +540,40 @@ void PDM_io_tab_ecr_fin
         }
         else
           indirection_ecrit = indirection_concatene;
-        
+
         /* Traitement du cas PDM_IO_N_COMPOSANTE_CONSTANT */
-        
+
         if (tab->t_n_composantes == PDM_IO_N_COMPOSANTE_CONSTANT) {
           n_composantes_ecrit = &(tab->n_composantes_cst);
         }
         else
           n_composantes_ecrit = n_composantes_concatene;
-        
+
         donnees_ecrit = donnees_concatene;
-        
+
         /* Copie */
-        
+
         int k1 = 0;
         int k2 = 0;
-        
+
         for (int j = 0; j < _n_partition_local; j++) {
-          
+
           PDM_io_partition_locale_t *partition = partitions[j];
-          
+
           if (partition != NULL) {
-            
+
             int l1 = 0;
             unsigned char *_donnees = (unsigned char *) partition->donnees;
-            
+
             for (int k = 0; k < partition->n_donnees; k++) {
               if (tab->t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE)
                 n_composantes_concatene[k1] = partition->n_composantes[k];
-              
+
               if (_t_rangement == PDM_IO_RANGEMENT_ENTRELACE)
                 indirection_concatene[k1] = partition->indirection[k];
-              
+
               k1 += 1;
-              
+
               if (tab->t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
                 for (int l = 0; l < (tab->taille_donnee * partition->n_composantes[k]); l++) {
                   donnees_concatene[k2] = _donnees[l1];
@@ -589,15 +589,15 @@ void PDM_io_tab_ecr_fin
                 }
               }
             }
-            
+
             free(partition);
-            
+
           }
-          
+
         }
 
       }
-      
+
       else if (_n_partition_local == 1) {
 
         if (partitions[0] != NULL) {
@@ -610,7 +610,7 @@ void PDM_io_tab_ecr_fin
           indirection_ecrit   = partitions[0]->indirection;
           donnees_ecrit       = (unsigned char*) partitions[0]->donnees;
         }
-  
+
         else {
           n_donnees_total     = 0;
           if (tab->t_n_composantes == PDM_IO_N_COMPOSANTE_CONSTANT) {
@@ -623,7 +623,7 @@ void PDM_io_tab_ecr_fin
         }
 
       }
-    
+
       else {
 
         n_donnees_total     = 0;
@@ -639,7 +639,7 @@ void PDM_io_tab_ecr_fin
      /* Ecriture */
 
       if (_t_rangement == PDM_IO_RANGEMENT_BLOC) {
- 
+
         PDM_g_num_t pt_bloc;
         if (indirection_ecrit == NULL)
           pt_bloc = 0;
@@ -665,19 +665,19 @@ void PDM_io_tab_ecr_fin
       }
       if (_n_partition_local == 1)
         free(partitions[0]);
-                                                                  
+
       free(tab->partitions_locales);
       free(tab);
     }
   }
 
   /* Libération mémoire de la structure  */
-  
+
   free(PDM_io_tabs);
   PDM_io_tabs = NULL;
 
   /* Libération mémoire des tableaux de concatenation  */
-  
+
   if (n_composantes_concatene != NULL)
     free(n_composantes_concatene);
   if (indirection_concatene != NULL)
@@ -713,9 +713,9 @@ void PROCF (pdm_io_tab_lec_debut, PDM_IO_TAB_LEC_DEBUT)
 {
   PDM_io_rangement_t __t_rangement = PDM_IO_RANGEMENT_BLOC;
 
-  if (*t_rangement == 0) 
+  if (*t_rangement == 0)
     __t_rangement = PDM_IO_RANGEMENT_BLOC;
-  else if (*t_rangement == 1) 
+  else if (*t_rangement == 1)
     __t_rangement = PDM_IO_RANGEMENT_ENTRELACE;
 
   PDM_io_tab_lec_debut(*unite,
@@ -736,7 +736,7 @@ void PDM_io_tab_lec_debut
     PDM_io_tabs = (PDM_io_tab_t **) malloc(_num_var_cedre_max *
                                                sizeof(PDM_io_tab_t *));
 
-    for (int i = 0; i < _num_var_cedre_max; i++) 
+    for (int i = 0; i < _num_var_cedre_max; i++)
       PDM_io_tabs[i] = NULL;
 
     _unite = unite;
@@ -756,10 +756,10 @@ void PDM_io_tab_lec_debut
  * CEDRE
  *
  * arguments :
- *   num_var_cedre         <-- Numéro de variable CEDRE 
- *   num_indirection_cedre <-- Numéro d'indirection CEDRE         
- *   i_part                <-- indice de partition 
- *   t_n_composantes       <-- Type de tailles composantes 
+ *   num_var_cedre         <-- Numéro de variable CEDRE
+ *   num_indirection_cedre <-- Numéro d'indirection CEDRE
+ *   i_part                <-- indice de partition
+ *   t_n_composantes       <-- Type de tailles composantes
  *                             (PDM_IO_N_COMPOSANTE_CONSTANT
  *                           ou PDM_IO_N_COMPOSANTE_VARIABLE)
  *   n_composantes         <-- Nombre de composantes pour chaque donnee
@@ -771,8 +771,8 @@ void PDM_io_tab_lec_debut
  *----------------------------------------------------------------------------*/
 
 void PROCF (pdm_io_tab_lec_ajout_donnees, PDM_IO_TAB_LEC_AJOUT_DONNEES)
-(const PDM_l_num_t  *num_var_cedre,         
- const PDM_l_num_t  *i_part,         
+(const PDM_l_num_t  *num_var_cedre,
+ const PDM_l_num_t  *i_part,
  const PDM_l_num_t  *n_composantes,
  const PDM_l_num_t  *n_donnees,
  const PDM_g_num_t *indirection,
@@ -780,8 +780,8 @@ void PROCF (pdm_io_tab_lec_ajout_donnees, PDM_IO_TAB_LEC_AJOUT_DONNEES)
  )
 {
 
-  PDM_io_tab_lec_ajout_donnees(*num_var_cedre,         
-                                 *i_part,         
+  PDM_io_tab_lec_ajout_donnees(*num_var_cedre,
+                                 *i_part,
                                  n_composantes,
                                  *n_donnees,
                                  indirection,
@@ -789,16 +789,16 @@ void PROCF (pdm_io_tab_lec_ajout_donnees, PDM_IO_TAB_LEC_AJOUT_DONNEES)
 }
 
 void PDM_io_tab_lec_ajout_donnees
-(const PDM_l_num_t            num_var_cedre,         
- const PDM_l_num_t            i_part,         
+(const PDM_l_num_t            num_var_cedre,
+ const PDM_l_num_t            i_part,
  const PDM_l_num_t           *n_composantes,
  const PDM_l_num_t            n_donnees,
  const PDM_g_num_t          *indirection,
  void                           *donnees
  )
 {
-  _ajout_donnees(num_var_cedre,         
-                 i_part,         
+  _ajout_donnees(num_var_cedre,
+                 i_part,
                  n_composantes,
                  n_donnees,
                  indirection,
@@ -806,12 +806,12 @@ void PDM_io_tab_lec_ajout_donnees
 }
 
 /*----------------------------------------------------------------------------
- * Definition d'une variable en ecriture                                                          
+ * Definition d'une variable en ecriture
  *
  *  arguments :
- *   num_var_cedre         <-- Numéro de variable CEDRE 
- *   num_indirection_cedre <-- Numéro d'indirection CEDRE         
- *   t_n_composantes       <-- Type de tailles composantes 
+ *   num_var_cedre         <-- Numéro de variable CEDRE
+ *   num_indirection_cedre <-- Numéro d'indirection CEDRE
+ *   t_n_composantes       <-- Type de tailles composantes
  *                             (PDM_IO_N_COMPOSANTE_CONSTANT
  *                           ou PDM_IO_N_COMPOSANTE_VARIABLE)
  *   n_composantes         <-- Nombre de composantes pour chaque donnee
@@ -820,38 +820,38 @@ void PDM_io_tab_lec_ajout_donnees
  *----------------------------------------------------------------------------*/
 
 void PROCF (pdm_io_tab_lec_def_var, PDM_IO_TAB_LEC_DEF_VAR)
-(const PDM_l_num_t  *num_var_cedre,         
- const PDM_l_num_t  *num_indirection_cedre,         
- const int             *t_n_composantes,         
+(const PDM_l_num_t  *num_var_cedre,
+ const PDM_l_num_t  *num_indirection_cedre,
+ const int             *t_n_composantes,
  const PDM_l_num_t  *n_composantes,
  const PDM_l_num_t  *taille_donnee
  )
 {
   PDM_io_n_composantes_t _t_n_composantes = PDM_IO_N_COMPOSANTE_CONSTANT;
 
-  if (*t_n_composantes == 0) 
+  if (*t_n_composantes == 0)
     _t_n_composantes = PDM_IO_N_COMPOSANTE_CONSTANT;
-  else if (*t_n_composantes == 1) 
+  else if (*t_n_composantes == 1)
     _t_n_composantes = PDM_IO_N_COMPOSANTE_VARIABLE;
 
-  PDM_io_tab_lec_def_var(*num_var_cedre,         
-                           *num_indirection_cedre,         
-                           _t_n_composantes,         
+  PDM_io_tab_lec_def_var(*num_var_cedre,
+                           *num_indirection_cedre,
+                           _t_n_composantes,
                            *n_composantes,
                            *taille_donnee);
 }
 
 void PDM_io_tab_lec_def_var
-(const PDM_l_num_t            num_var_cedre,         
- const PDM_l_num_t            num_indirection_cedre,         
- const PDM_io_n_composantes_t  t_n_composantes,         
+(const PDM_l_num_t            num_var_cedre,
+ const PDM_l_num_t            num_indirection_cedre,
+ const PDM_io_n_composantes_t  t_n_composantes,
  const PDM_l_num_t            n_composantes,
  const PDM_l_num_t            taille_donnee
  )
 {
-  _def_var(num_var_cedre,         
-           num_indirection_cedre,         
-           t_n_composantes,         
+  _def_var(num_var_cedre,
+           num_indirection_cedre,
+           t_n_composantes,
            n_composantes,
            taille_donnee);
 }
@@ -872,53 +872,53 @@ void PROCF (pdm_io_tab_lec_fin, PDM_IO_TAB_LEC_FIN)
 void PDM_io_tab_lec_fin
 (void)
 {
-  if (PDM_io_tabs == NULL) {   
+  if (PDM_io_tabs == NULL) {
     PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_io_tab_lec_fin :"
             "La phase de lecture n'a pas été initialisée\n");
     exit(EXIT_FAILURE);
   }
-  
+
   /* Definition des tableaux temporaires de concatenation */
-  
+
   PDM_l_num_t  *n_composantes_concatene     = NULL;
   int t_n_composantes_concatene = 0;
-  
+
   PDM_g_num_t *indirection_concatene       = NULL;
   int t_indirection_concatene = 0;
-  
+
   unsigned char   *donnees_concatene           = NULL;
   int t_donnees_concatene = 0;
-  
+
   /* Definition des pointeurs des tableaux utiles à l'écriture */
-  
+
   const PDM_l_num_t  *n_composantes_lu   = NULL;
   const PDM_g_num_t *indirection_lu     = NULL;
   const unsigned char   *donnees_lu         = NULL;
-  
+
   /* Boucle sur les variables */
-  
+
   for (int i = 0; i < _num_var_cedre_max; i++) {
-    
+
     if (PDM_io_tabs[i] != NULL) {
-      
+
       PDM_io_tab_t *tab = PDM_io_tabs[i];
       PDM_io_partition_locale_t **partitions = tab->partitions_locales;
-      
+
       /* Concaténation */
-      
+
       int n_donnees_total = 0;
       int n_composantes_total = 0;
-      
+
       if (_n_partition_local > 1) {
-        
+
         /* Calcul des grandeurs concaténées */
-        
+
         for (int j = 0; j < _n_partition_local; j++) {
           PDM_io_partition_locale_t *partition = partitions[j];
           if (partition != NULL) {
-            
+
             n_donnees_total += partition->n_donnees;
-            
+
             if (tab->t_n_composantes == PDM_IO_N_COMPOSANTE_CONSTANT) {
               n_composantes_total += tab->n_composantes_cst * partition->n_donnees;
             }
@@ -929,56 +929,56 @@ void PDM_io_tab_lec_fin
             }
           }
         }
-        
+
         /* Allocation ou reallocation du tableau n_composantes_concatene */
-        
-        if (n_composantes_concatene == NULL && 
+
+        if (n_composantes_concatene == NULL &&
             tab->t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
-          
+
           t_n_composantes_concatene = n_donnees_total;
-          n_composantes_concatene = (PDM_l_num_t *) 
+          n_composantes_concatene = (PDM_l_num_t *)
             malloc(t_n_composantes_concatene * sizeof(PDM_l_num_t));
-          
+
         }
-        
-        else if (n_composantes_concatene != NULL && 
+
+        else if (n_composantes_concatene != NULL &&
                  tab->t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
-          
+
           if (n_donnees_total > t_n_composantes_concatene) {
             t_n_composantes_concatene = n_donnees_total;
-            n_composantes_concatene = (PDM_l_num_t *) 
-              realloc((void *) n_composantes_concatene, 
+            n_composantes_concatene = (PDM_l_num_t *)
+              realloc((void *) n_composantes_concatene,
                       t_n_composantes_concatene * sizeof(PDM_l_num_t));
           }
         }
-        
+
         /* Allocation ou reallocation du tabeau indirection_concatene */
-        
+
         if (indirection_concatene == NULL &&
             _t_rangement == PDM_IO_RANGEMENT_ENTRELACE) {
-          
+
           t_indirection_concatene = n_donnees_total;
-          indirection_concatene = (PDM_g_num_t *) 
+          indirection_concatene = (PDM_g_num_t *)
             malloc(t_indirection_concatene * sizeof(PDM_g_num_t));
-          
+
         }
-        
+
         else if (indirection_concatene != NULL &&
                  _t_rangement == PDM_IO_RANGEMENT_ENTRELACE) {
-          
+
           if (n_donnees_total > t_indirection_concatene) {
             t_indirection_concatene = n_donnees_total;
-            indirection_concatene = (PDM_g_num_t *) 
+            indirection_concatene = (PDM_g_num_t *)
               realloc((void *)indirection_concatene,
                       t_indirection_concatene * sizeof(PDM_g_num_t));
           }
-          
+
         }
-        
+
         /* Allocation ou reallocation du tabeau donnees_concatene */
-        
+
         if (donnees_concatene == NULL) {
-          
+
           t_donnees_concatene = n_composantes_total * tab->taille_donnee;
           donnees_concatene = (unsigned char*)
             malloc(t_donnees_concatene * sizeof(unsigned char));
@@ -990,10 +990,10 @@ void PDM_io_tab_lec_fin
               realloc((void *) donnees_concatene,
                       t_donnees_concatene * sizeof(unsigned char));
           }
-        }           
-        
+        }
+
         /* Traitement du cas PDM_IO_RANGEMENT_BLOC */
-        
+
         if (_t_rangement == PDM_IO_RANGEMENT_BLOC) {
           for (int j = 0; j < _n_partition_local; j++) {
             if (partitions[j] != NULL) {
@@ -1004,40 +1004,40 @@ void PDM_io_tab_lec_fin
         }
         else
           indirection_lu = indirection_concatene;
-        
+
         /* Traitement du cas PDM_IO_N_COMPOSANTE_CONSTANT */
-        
+
         if (tab->t_n_composantes == PDM_IO_N_COMPOSANTE_CONSTANT) {
           n_composantes_lu = &(tab->n_composantes_cst);
         }
         else
           n_composantes_lu = n_composantes_concatene;
-        
+
         donnees_lu = donnees_concatene;
-        
+
         /* Copie */
-        
+
         int k1 = 0;
-        
+
         for (int j = 0; j < _n_partition_local; j++) {
-          
+
           PDM_io_partition_locale_t *partition = partitions[j];
-          
+
           if (partition != NULL) {
-            
+
              for (int k = 0; k < partition->n_donnees; k++) {
               if (tab->t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE)
                 n_composantes_concatene[k1] = partition->n_composantes[k];
-              
+
               if (_t_rangement == PDM_IO_RANGEMENT_ENTRELACE)
                 indirection_concatene[k1] = partition->indirection[k];
-              
+
               k1 += 1;
             }
           }
         }
       }
-      
+
       else if (_n_partition_local == 1) {
         if (partitions[0] != NULL) {
           n_donnees_total     = partitions[0]->n_donnees;
@@ -1061,7 +1061,7 @@ void PDM_io_tab_lec_fin
           donnees_lu          = NULL;
         }
       }
-      
+
       else {
 
         n_donnees_total     = 0;
@@ -1075,21 +1075,21 @@ void PDM_io_tab_lec_fin
       }
 
       /* Lecture */
-      
+
       if (_t_rangement == PDM_IO_RANGEMENT_BLOC) {
 
         PDM_g_num_t pt_bloc;
         if (indirection_lu == NULL)
           pt_bloc = 0;
         else
-          pt_bloc = indirection_lu[0];   
+          pt_bloc = indirection_lu[0];
 
         PDM_io_lec_par_bloc(_unite,
                               tab->t_n_composantes,
                               n_composantes_lu,
                               tab->taille_donnee,
                               n_donnees_total,
-                              pt_bloc,          
+                              pt_bloc,
                               (void *) donnees_lu);
       }
       else if (_t_rangement == PDM_IO_RANGEMENT_ENTRELACE)
@@ -1100,7 +1100,7 @@ void PDM_io_tab_lec_fin
                                     n_donnees_total,
                                     indirection_lu,
                                     (void *) donnees_lu);
-      
+
      /* Copie des données si nécessaire  */
 
       if (_n_partition_local > 1) {
@@ -1108,14 +1108,14 @@ void PDM_io_tab_lec_fin
         int k1 = 0;
 
         for (int j = 0; j < _n_partition_local; j++) {
-          
+
           PDM_io_partition_locale_t *partition = partitions[j];
-          
+
           if (partition != NULL) {
-            
+
             int l1 = 0;
             unsigned char *_donnees = (unsigned char *) partition->donnees;
-            
+
             for (int k = 0; k < partition->n_donnees; k++) {
               if (tab->t_n_composantes == PDM_IO_N_COMPOSANTE_VARIABLE) {
                 for (int l = 0; l < (tab->taille_donnee * partition->n_composantes[k]); l++) {
@@ -1132,31 +1132,31 @@ void PDM_io_tab_lec_fin
                 }
               }
             }
-            
+
             free(partition);
-            
+
           }
         }
       }
 
       /* Libération mémoire du tableau  */
-      
+
       if (_n_partition_local == 1)
         free(partitions[0]);
 
       free(tab->partitions_locales);
       free(tab);
-      
+
     }
   }
-  
+
   /* Libération mémoire de la structure  */
-  
+
   free(PDM_io_tabs);
   PDM_io_tabs = NULL;
 
   /* Libération mémoire des tableaux de concatenation  */
-  
+
   if (n_composantes_concatene != NULL)
     free(n_composantes_concatene);
   if (indirection_concatene != NULL)

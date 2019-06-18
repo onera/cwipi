@@ -1,3 +1,3 @@
-module mod_pdm
+module pdm
 #include "pdmf.h"
-end module mod_pdm
+end module pdm

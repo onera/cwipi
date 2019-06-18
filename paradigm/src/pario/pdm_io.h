@@ -29,12 +29,12 @@ extern "C" {
  *============================================================================*/
 
 /*----------------------------------------------------------------------------
- * Types des données                      
+ * Types des données
  *----------------------------------------------------------------------------*/
 
 typedef enum {
 
-  PDM_IO_T_INT,     
+  PDM_IO_T_INT,
   PDM_IO_T_LONG,
   PDM_IO_T_DOUBLE,
   PDM_IO_T_FLOAT,
@@ -43,12 +43,12 @@ typedef enum {
 } PDM_io_type_t;
 
 /*----------------------------------------------------------------------------
- * Types de suffixe                      
+ * Types de suffixe
  *----------------------------------------------------------------------------*/
 
 typedef enum {
 
-  PDM_IO_SUFF_AUTO,     
+  PDM_IO_SUFF_AUTO,
   PDM_IO_SUFF_MAN
 
 } PDM_io_suff_t;
@@ -170,7 +170,7 @@ typedef struct _PDM_io_fichier_t PDM_io_fichier_t;
  *   unite           <-- Unite du fichier
  *
  * return :
- *   fichier         --> fichier 
+ *   fichier         --> fichier
  *
  *----------------------------------------------------------------------------*/
 
@@ -184,7 +184,7 @@ PDM_io_fichier_t *PDM_io_get_fichier
  *   unite           <-- Unite du fichier
  *
  * return :
- *   fichier         --> fichier 
+ *   fichier         --> fichier
  *
  *----------------------------------------------------------------------------*/
 
@@ -205,7 +205,7 @@ const char* PDM_io_get_nom_fichier
  *   mode            <-- Mode d'acces (lecture, ecriture, lecture/ecriture)
  *   pdm_mpi_comm        <-- Communicateur lie au fichier
  *   unite           --> Unite du fichier
- *   ierr            --> Indique si le fichier est de type PDM_io ou non     
+ *   ierr            --> Indique si le fichier est de type PDM_io ou non
  *                       Utiliser uniquement pour une ouverture en lecture
  *
  *----------------------------------------------------------------------------*/
@@ -224,7 +224,7 @@ void PROCF (pdm_io_open_cf, PDM_IO_OPEN_CF)
  PDM_MPI_Fint              *comm,
  double                *prop_noeuds_actifs,
  PDM_l_num_t        *unite,
- PDM_l_num_t        *ierr  
+ PDM_l_num_t        *ierr
  ARGF_SUPP_CHAINE
  );
 
@@ -240,7 +240,7 @@ void PDM_io_open
  PDM_MPI_Comm          comm,
  double                prop_noeuds_actifs,
  PDM_l_num_t          *unite,
- PDM_l_num_t          *ierr  
+ PDM_l_num_t          *ierr
  );
 
 
@@ -251,21 +251,21 @@ void PDM_io_open
  *   unite           <-- Unite du fichier
  *   offset          <-- Adresse
  *   seek            <-- Type d'origine
- *  
+ *
  *----------------------------------------------------------------------------*/
 
 void PROCF (pdm_io_seek, PDM_IO_SEEK)
 (
 const PDM_l_num_t   *unite,
 const PDM_g_num_t   *offset,
-const PDM_io_seek_t *seek 
+const PDM_io_seek_t *seek
 );
 
 void PDM_io_seek
 (
 const PDM_l_num_t   unite,
 const PDM_g_num_t   offset,
-const PDM_io_seek_t seek 
+const PDM_io_seek_t seek
 );
 
 
@@ -275,7 +275,7 @@ const PDM_io_seek_t seek
  * parameters :
  *   unite           <-- Unite du fichier
  *   offset          --> Adresse
- *  
+ *
  *----------------------------------------------------------------------------*/
 
 void PROCF (pdm_io_tell, PDM_IO_TELL)
@@ -299,7 +299,7 @@ const PDM_l_num_t     unite
  *   taille_donnee   <-- Taille unitaire de la donnnee
  *   n_donnees       <-- Nombre de donnees a lire
  *   donnees         --> Donnees lues
- *  
+ *
  *----------------------------------------------------------------------------*/
 
 void PROCF (pdm_io_lecture_globale, PDM_IO_LECTURE_GLOBALE)
@@ -324,7 +324,7 @@ void PDM_io_lecture_globale
  *   taille_donnee     <-- Taille unitaire de la donnnee
  *   n_donnees         <-- Nombre de donnees a ecrire
  *   donnees            --> Donnees lues
- *  
+ *
  *----------------------------------------------------------------------------*/
 
 void PROCF (pdm_io_ecriture_globale, PDM_IO_ECRITURE_GLOBALE)
@@ -342,22 +342,22 @@ void PDM_io_ecriture_globale
 );
 
 /*----------------------------------------------------------------------------
- * Lecture parallele de blocs de donnees suivie d'une redistribution des 
+ * Lecture parallele de blocs de donnees suivie d'une redistribution des
  * des donnees suivant l'indirection
  *
  * parameters :
  *   unite           <-- Unite du fichier
- *   n_composantes   <-- Nombre de composantes pour chaque donnee        
+ *   n_composantes   <-- Nombre de composantes pour chaque donnee
  *   taille_donnee   <-- Taille unitaire de la donnnee
  *   n_donnees       <-- Nombre de donnees a lire
  *   indirection     <-- Indirection de redistribition des donnees
  *   donnees         --> Donnees lues
- *  
+ *
  *----------------------------------------------------------------------------*/
 
 void PROCF (pdm_io_lec_par_entrelacee, PDM_IO_LEC_PAR_ENTRELACEE)
 (const PDM_l_num_t  *unite,
- const int             *t_n_composantes,         
+ const int             *t_n_composantes,
  const PDM_l_num_t  *n_composantes,
  const PDM_l_num_t  *taille_donnee,
  const PDM_l_num_t  *n_donnees,
@@ -368,7 +368,7 @@ void PROCF (pdm_io_lec_par_entrelacee, PDM_IO_LEC_PAR_ENTRELACEE)
 void PDM_io_lec_par_entrelacee
 (const PDM_l_num_t           unite,
  const PDM_io_n_composantes_t t_n_composantes,
- const PDM_l_num_t          *n_composantes,         
+ const PDM_l_num_t          *n_composantes,
  const PDM_l_num_t           taille_donnee,
  const PDM_l_num_t           n_donnees,
  const PDM_g_num_t         *indirection,
@@ -380,21 +380,21 @@ void PDM_io_lec_par_entrelacee
  *
  * parameters :
  *   unite             <-- Unite du fichier
- *   t_n_composantes   <-- Type de tailles composantes 
+ *   t_n_composantes   <-- Type de tailles composantes
  *                        (PDM_IO_N_COMPOSANTE_CONSTANT
  *                     ou PDM_IO_N_COMPOSANTE_VARIABLE)
- *   n_composantes     <-- Nombre de composantes pour chaque donnee         
+ *   n_composantes     <-- Nombre de composantes pour chaque donnee
  *   taille_donnee     <-- Taille unitaire de la donnnee
  *   debut_bloc        <-- Index du debut de bloc
  *   n_donnees         <-- Nombre de donnees a lire
  *   donnees           --> Donnees lues
- *  
+ *
  *----------------------------------------------------------------------------*/
 
 void PROCF (pdm_io_lec_par_bloc, PDM_IO_LEC_PAR_BLOC)
 (const PDM_l_num_t  *unite,
- const int             *t_n_composantes,         
- const PDM_l_num_t  *n_composantes,         
+ const int             *t_n_composantes,
+ const PDM_l_num_t  *n_composantes,
  const PDM_l_num_t  *taille_donnee,
  const PDM_l_num_t  *n_donnees,
  const PDM_g_num_t *debut_bloc,
@@ -404,7 +404,7 @@ void PROCF (pdm_io_lec_par_bloc, PDM_IO_LEC_PAR_BLOC)
 void PDM_io_lec_par_bloc
 (const PDM_l_num_t           unite,
  const PDM_io_n_composantes_t t_n_composantes,
- const PDM_l_num_t          *n_composantes,         
+ const PDM_l_num_t          *n_composantes,
  const PDM_l_num_t           taille_donnee,
  const PDM_l_num_t           n_donnees,
  const PDM_g_num_t          debut_bloc,
@@ -412,27 +412,27 @@ void PDM_io_lec_par_bloc
 );
 
 /*----------------------------------------------------------------------------
- * Tri des donnees suivant l'indirection puis ecriture parallele des blocs de 
+ * Tri des donnees suivant l'indirection puis ecriture parallele des blocs de
  * donnees
  *
  * parameters :
- *   unite             <-- Unite du fichier 
- *   t_n_composantes   <-- Type de tailles composantes 
+ *   unite             <-- Unite du fichier
+ *   t_n_composantes   <-- Type de tailles composantes
  *                        (PDM_IO_N_COMPOSANTE_CONSTANT
  *                     ou PDM_IO_N_COMPOSANTE_VARIABLE)
- *   n_composantes     <-- Nombre de composantes pour chaque donnee          
+ *   n_composantes     <-- Nombre de composantes pour chaque donnee
  *   taille_donnee     <-- Taille unitaire de la donnnee
  *   n_donnees         <-- Nombre de donnees a lire
  *   indirection       <-- Indirection de redistribition des donnees
  *                       Attention cet argument est un int64
  *   donnees           <-- Donnees a ecrire
- *  
+ *
  *----------------------------------------------------------------------------*/
 
 void PROCF (pdm_io_ecr_par_entrelacee, PDM_IO_ECR_PAR_ENTRELACEE)
 (const PDM_l_num_t  *unite,
- const int             *t_n_composantes,         
- const PDM_l_num_t  *n_composantes,         
+ const int             *t_n_composantes,
+ const PDM_l_num_t  *n_composantes,
  const PDM_l_num_t  *taille_donnee,
  const PDM_l_num_t  *n_donnees,
  const PDM_g_num_t *indirection,
@@ -442,7 +442,7 @@ void PROCF (pdm_io_ecr_par_entrelacee, PDM_IO_ECR_PAR_ENTRELACEE)
 void PDM_io_ecr_par_entrelacee
 (const PDM_l_num_t            unite,
  const PDM_io_n_composantes_t  t_n_composantes,
- const PDM_l_num_t           *n_composantes,         
+ const PDM_l_num_t           *n_composantes,
  const PDM_l_num_t            taille_donnee,
  const PDM_l_num_t            n_donnees,
  const PDM_g_num_t          *indirection,
@@ -454,21 +454,21 @@ void PDM_io_ecr_par_entrelacee
  *
  * parameters :
  *   unite             <-- Unite du fichier
- *   t_n_composantes   <-- Type de tailles composantes 
+ *   t_n_composantes   <-- Type de tailles composantes
  *                        (PDM_IO_N_COMPOSANTE_CONSTANT
  *                     ou PDM_IO_N_COMPOSANTE_VARIABLE)
- *   n_composantes     <-- Nombre de composantes pour chaque donnee         
+ *   n_composantes     <-- Nombre de composantes pour chaque donnee
  *   taille_donnee     <-- Taille unitaire de la donnnee
  *   debut_bloc        <-- Adresse relative du debut de bloc
  *   n_donnees         <-- Nombre de donnees a lire
  *   donnees           <-- Donnees a ecrire
- *  
+ *
  *----------------------------------------------------------------------------*/
 
 void PROCF (pdm_io_ecr_par_bloc, PDM_IO_ECR_PAR_BLOC)
 (const PDM_l_num_t  *unite,
- const int             *t_n_composantes,         
- const PDM_l_num_t  *n_composantes,         
+ const int             *t_n_composantes,
+ const PDM_l_num_t  *n_composantes,
  const PDM_l_num_t  *taille_donnee,
  const PDM_l_num_t  *n_donnees,
  const PDM_g_num_t *debut_bloc,
@@ -478,7 +478,7 @@ void PROCF (pdm_io_ecr_par_bloc, PDM_IO_ECR_PAR_BLOC)
 void PDM_io_ecr_par_bloc
 (const PDM_l_num_t           unite,
  const PDM_io_n_composantes_t t_n_composantes,
- const PDM_l_num_t          *n_composantes,         
+ const PDM_l_num_t          *n_composantes,
  const PDM_l_num_t           taille_donnee,
  const PDM_l_num_t           n_donnees,
  const PDM_g_num_t          debut_bloc,
@@ -622,17 +622,17 @@ void PDM_io_dump
 
 
 /*----------------------------------------------------------------------------
- * Retourne le communicateur du fichier               
+ * Retourne le communicateur du fichier
  *
  * parameters :
  *   unite   <-- Unite du fichier
- *   pdm_mpi_comm--> Communicateur mpi       
+ *   pdm_mpi_comm--> Communicateur mpi
  *
  *----------------------------------------------------------------------------*/
 
 void PROCF (pdm_io_get_comm, PDM_IO_GET_COMM)
 (PDM_l_num_t *unite,
- PDM_MPI_Fint       *pdm_mpi_comm   
+ PDM_MPI_Fint       *pdm_mpi_comm
 );
 
 void PDM_io_get_comm
@@ -694,12 +694,12 @@ const PDM_l_num_t unite
  *----------------------------------------------------------------------------*/
 
 
- void PROCF (pdm_io_swap_endian, PDM_IO_SWAP_ENDIAN) 
+ void PROCF (pdm_io_swap_endian, PDM_IO_SWAP_ENDIAN)
  (
   const int         *taille_donnee,
-  const PDM_g_num_t *n_donnees, 
-  const void        *donnees, 
-  void              *resultats 
+  const PDM_g_num_t *n_donnees,
+  const void        *donnees,
+  void              *resultats
 );
 
 void PDM_io_swap_endian
@@ -757,21 +757,21 @@ const char* path
  *
  * parameters :
  *   unite             <-- Unite du fichier
- *   t_n_composantes   <-- Type de tailles composantes 
+ *   t_n_composantes   <-- Type de tailles composantes
  *                        (PDM_IO_N_COMPOSANTE_CONSTANT
  *                     ou PDM_IO_N_COMPOSANTE_VARIABLE)
- *   n_composantes     <-- Nombre de composantes pour chaque donnee         
+ *   n_composantes     <-- Nombre de composantes pour chaque donnee
  *   n_donnees         <-- Nombre de donnees a lire
  *   indirection       <-- Indirection de redistribition des donnees
  *                       Attention cet argument est un int64
  *   t_n_donnee        --> Nombre total de donnees (Elimination des doublons)
- *  
+ *
  *----------------------------------------------------------------------------*/
 
 void PROCF (pdm_io_n_donnees_get, PDM_IO_N_DONNEES_GET)
 (const PDM_l_num_t  *unite,
- const int             *t_n_composantes,         
- const PDM_l_num_t  *n_composantes,         
+ const int             *t_n_composantes,
+ const PDM_l_num_t  *n_composantes,
  const PDM_l_num_t  *n_donnees,
  const PDM_g_num_t *indirection,
        PDM_g_num_t *t_n_donnees
@@ -780,7 +780,7 @@ void PROCF (pdm_io_n_donnees_get, PDM_IO_N_DONNEES_GET)
 PDM_g_num_t PDM_io_n_donnees_get
 (const PDM_l_num_t           unite,
  const PDM_io_n_composantes_t t_n_composantes,
- const PDM_l_num_t          *n_composantes,         
+ const PDM_l_num_t          *n_composantes,
  const PDM_l_num_t           n_donnees,
  const PDM_g_num_t         *indirection
  );

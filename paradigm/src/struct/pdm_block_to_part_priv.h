@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   pdm_block_to_part_priv.h
  * Author: equemera
  *
@@ -37,11 +37,11 @@ extern "C" {
  * \struct _PDM_block_to_part_t
  *
  * \brief  Data transfer from blocks to partitions
- * 
+ *
  */
 
 typedef struct {
-  PDM_g_num_t    *blockDistribIdx;  /*!< Block distribution 
+  PDM_g_num_t    *blockDistribIdx;  /*!< Block distribution
                                     * (size : \ref size of \ref comm + 1) */
   PDM_MPI_Comm       comm;             /*!< MSG communicator */
   int            s_comm;           /*!< Communicator size */
@@ -49,18 +49,18 @@ typedef struct {
   int            n_part;           /*!< Number of partitions */
   int           *n_elt;            /*!< Number of elements for each partition */
   int          **ind;              /*!< Ind for each element partition in distributed_data */
-  int           *requested_data_n; /*!< Numer of requested data for each process index 
+  int           *requested_data_n; /*!< Numer of requested data for each process index
                                     * (size : s_comm) */
-  int           *requested_data_idx;/*!< Requested data for each process index 
+  int           *requested_data_idx;/*!< Requested data for each process index
                                     * (size : s_comm) */
-  int           *distributed_data_n;/*!< Numer of distributed data for each process index 
+  int           *distributed_data_n;/*!< Numer of distributed data for each process index
                                     * (size : s_comm) */
-  int           *distributed_data_idx;/*!< Distributed data for each process index 
+  int           *distributed_data_idx;/*!< Distributed data for each process index
                                     * (size : s_comm) */
   int           *distributed_data;    /*!< Distributed data for each process
                                     * (size : requestd_data_idx[s_comm - 1]
                                              +requestd_data_n[s_comm - 1] ) */
- 
+
 } _pdm_block_to_part_t;
 
 /*=============================================================================

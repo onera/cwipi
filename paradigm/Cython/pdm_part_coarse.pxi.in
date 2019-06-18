@@ -1,36 +1,36 @@
 
 # cdef extern from "pdm_part_priv.h":
 #     ctypedef struct _part_t:
-#        int           nVertex              
-#        int           nCell             
-#        int           nFace             
-#        int           nFacePartBound    
+#        int           nVertex
+#        int           nCell
+#        int           nFace
+#        int           nFacePartBound
 #        int          *cellFaceIdx
-#        PDM_g_num_t  *gCellFace        
-#        int          *cellFace        
-#        PDM_g_num_t  *cellLNToGN       
-#        int          *cellTag         
-#        int          *faceCell        
-#        int          *faceVtxIdx      
-#        PDM_g_num_t  *gFaceVtx         
-#        int          *faceVtx         
-#        PDM_g_num_t  *faceLNToGN       
-#        int          *faceTag         
-#        int          *facePartBoundProcIdx  
-#        int          *facePartBoundPartIdx 
-#        int          *facePartBound     
-#        int          *faceGroupIdx      
-#        int          *faceGroup         
-#        PDM_g_num_t  *faceGroupLNToGN   
-#        double       *vtx              
-#        PDM_g_num_t  *vtxLNToGN        
-#        int          *vtxTag           
+#        PDM_g_num_t  *gCellFace
+#        int          *cellFace
+#        PDM_g_num_t  *cellLNToGN
+#        int          *cellTag
+#        int          *faceCell
+#        int          *faceVtxIdx
+#        PDM_g_num_t  *gFaceVtx
+#        int          *faceVtx
+#        PDM_g_num_t  *faceLNToGN
+#        int          *faceTag
+#        int          *facePartBoundProcIdx
+#        int          *facePartBoundPartIdx
+#        int          *facePartBound
+#        int          *faceGroupIdx
+#        int          *faceGroup
+#        PDM_g_num_t  *faceGroupLNToGN
+#        double       *vtx
+#        PDM_g_num_t  *vtxLNToGN
+#        int          *vtxTag
 
 
 # cdef extern from "PDM_part_coarse_mesh_priv.h":
 #     ctypedef struct _coarse_part_t:
 #        _part_t    *part
-#        int        *coarseCellCellIdx 
+#        int        *coarseCellCellIdx
 #        int        *coarseCellCell
 #        int        *coarseFaceGroupToFineFaceGroup
 #        int        *coarseFaceToFineFace
@@ -42,15 +42,15 @@
 
 
 cdef extern from "pdm_part_coarse_mesh.h":
-    
+
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    # > Wrapping of Ppart Structure 
+    # > Wrapping of Ppart Structure
 
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    # > Wrapping of function 
+    # > Wrapping of function
     void PDM_part_coarse_mesh_create(int           *cmId,
                                      PDM_MPI_Comm  comm,
                                      char          *method,
@@ -60,9 +60,9 @@ cdef extern from "pdm_part_coarse_mesh.h":
                                      int           *renum_properties_cell,
                                      int           nPropertyFace,
                                      int           *renum_properties_face,
-                                     int           nPart, 
+                                     int           nPart,
                                      int           nTPart,
-                                     int           nFaceGroup, 
+                                     int           nFaceGroup,
                                      int           have_cellTag,
                                      int           have_faceTag,
                                      int           have_vtxTag,
@@ -83,19 +83,19 @@ cdef extern from "pdm_part_coarse_mesh.h":
                                     int          *cellTag,
                                     int          *cellWeight,
                                     int          *faceWeight,
-                                    PDM_g_num_t  *cellLNToGN,       
+                                    PDM_g_num_t  *cellLNToGN,
                                     int          *faceCell,
                                     int          *faceVtxIdx,
                                     int          *faceVtx,
-                                    int          *faceTag,       
-                                    PDM_g_num_t  *faceLNToGN,       
+                                    int          *faceTag,
+                                    PDM_g_num_t  *faceLNToGN,
                                     double       *vtxCoord,
                                     int          *vtxTag,
-                                    PDM_g_num_t  *vtxLNToGN,       
+                                    PDM_g_num_t  *vtxLNToGN,
                                     int          *faceGroupIdx,
                                     int          *faceGroup,
                                     PDM_g_num_t  *faceGroupLNToGN,
-                                    int          *facePartBoundProcIdx,       
+                                    int          *facePartBoundProcIdx,
                                     int          *facePartBoundPartIdx,
                                     int          *facePartBound)
 
@@ -116,38 +116,41 @@ cdef extern from "pdm_part_coarse_mesh.h":
                                            int *sCoarseCellToFineCell)
 
     void PDM_part_coarse_mesh_part_get(int            cmId,
-                                       int            iPart,       
+                                       int            iPart,
                                        int          **cellFaceIdx,
                                        int          **cellFace,
                                        int          **cellTag,
                                        PDM_g_num_t  **cellLNToGN,
-                                       int          **cellInitCellIdx,                  
-                                       int          **cellInitCell,          
+                                       int          **cellInitCellIdx,
+                                       int          **cellInitCell,
                                        int          **faceCell,
                                        int          **faceVtxIdx,
                                        int          **faceVtx,
                                        int          **faceTag,
-                                       PDM_g_num_t  **faceLNToGN,  
+                                       PDM_g_num_t  **faceLNToGN,
                                        int          **faceGroupInitFaceGroup,
-                                       int          **faceInitFace,          
+                                       int          **faceInitFace,
                                        double       **vtxCoord,
                                        int          **vtxTag,
-                                       PDM_g_num_t **vtxLNToGN,        
-                                       int          **vtxInitVtx,          
+                                       PDM_g_num_t **vtxLNToGN,
+                                       int          **vtxInitVtx,
                                        int          **faceGroupIdx,
                                        int          **faceGroup,
                                        PDM_g_num_t  **faceGroupLNToGN,
                                        int          **facePartBoundProcIdx,
                                        int          **facePartBoundPartIdx,
                                        int          **facePartBound)
-    
-    
+
+
     void PDM_part_coarse_color_get(int   cmId,
                                    int   iPart,
                                    int          **cellColor,
-                                   int          **faceColor)
+                                   int          **faceColor,
+                                   int          **threadColor,
+                                   int          **hyperPlaneColor)
 
-    
+
+
     void PDM_part_coarse_mesh_free(int cmId)
 
     void PDM_part_coarse_mesh_time_get(int       cmId,
@@ -161,20 +164,20 @@ cdef extern from "pdm_part_coarse_mesh.h":
 @COMMENT_NOT_PDMA@
 @COMMENT_NOT_PDMA@cdef extern from "pdm_coarse_mesh_aniso_agglo.h":
 @COMMENT_NOT_PDMA@    void PDM_part_coarse_mesh_part_set_anisotropic_info(int   cmId,
-@COMMENT_NOT_PDMA@                                                        int   iPart,       
+@COMMENT_NOT_PDMA@                                                        int   iPart,
 @COMMENT_NOT_PDMA@                                                        int  *agglomerationLines,
 @COMMENT_NOT_PDMA@                                                        int  *agglomerationLinesIdx,
 @COMMENT_NOT_PDMA@                                                        int   agglomerationLinesIdx_size,
 @COMMENT_NOT_PDMA@                                                        int  *isOnFineBnd)
-@COMMENT_NOT_PDMA@   
+@COMMENT_NOT_PDMA@
 @COMMENT_NOT_PDMA@    void PDM_part_coarse_mesh_part_get_anisotropic_info(int   cmId,
-@COMMENT_NOT_PDMA@                                                        int   iPart,       
+@COMMENT_NOT_PDMA@                                                        int   iPart,
 @COMMENT_NOT_PDMA@                                                        int **agglomerationLines,
 @COMMENT_NOT_PDMA@                                                        int **agglomerationLinesIdx,
 @COMMENT_NOT_PDMA@                                                        int   *agglomerationLinesIdx_size,
 @COMMENT_NOT_PDMA@                                                        int **isOnFineBnd)
-@COMMENT_NOT_PDMA@    
-@COMMENT_NOT_PDMA@    void PDM_part_coarse_mesh_add_option_anisotropic(int  cmId, 
+@COMMENT_NOT_PDMA@
+@COMMENT_NOT_PDMA@    void PDM_part_coarse_mesh_add_option_anisotropic(int  cmId,
 @COMMENT_NOT_PDMA@                                                     int *anisotropicOption)
 @COMMENT_NOT_PDMA@
 
@@ -189,24 +192,24 @@ cdef class CoarseMesh:
     # ------------------------------------------------------------------
     def __cinit__(self,
                   MPI.Comm                                  comm,
-                  char                                      *method, 
+                  char                                      *method,
                   char                                      *renum_cell_method,
                   char                                      *renum_face_method,
                   int                                        nPropertyCell,
                   NPY.ndarray[NPY.int32_t, mode='c', ndim=1] renum_properties_cell,
                   int                                        nPropertyFace,
                   NPY.ndarray[NPY.int32_t, mode='c', ndim=1] renum_properties_face,
-                  int                                        nPart, 
+                  int                                        nPart,
                   int                                        nTPart,
                   int                                        nFaceGroup,
-                  int                                        have_cellTag    = 0, 
-                  int                                        have_faceTag    = 0, 
-                  int                                        have_vtxTag     = 0, 
-                  int                                        have_cellWeight = 0, 
-                  int                                        have_faceWeight = 0, 
-                  int                                        have_faceGroup  = 0): 
+                  int                                        have_cellTag    = 0,
+                  int                                        have_faceTag    = 0,
+                  int                                        have_vtxTag     = 0,
+                  int                                        have_cellWeight = 0,
+                  int                                        have_faceWeight = 0,
+                  int                                        have_faceGroup  = 0):
       """
-        Create a Coarse Ppart partition from a existing Ppart partition 
+        Create a Coarse Ppart partition from a existing Ppart partition
         with PDM Library ( Developed at ONERA by Eric Quemerais )
 
       """
@@ -223,36 +226,36 @@ cdef class CoarseMesh:
           renum_properties_cell_data = NULL
       else:
           renum_properties_cell_data = <int *> renum_properties_cell.data
-          
+
       # ~> \param [in] renum_properties_face
       cdef int * renum_properties_face_data
       if (renum_properties_face is None):
           renum_properties_face_data = NULL
       else:
           renum_properties_face_data = <int *> renum_properties_face.data
-          
-      # > Create 
-      PDM_part_coarse_mesh_create(&self._cmId, 
-                                  PDM_MPI_mpi_2_pdm_mpi_comm (<void *> &c_comm), 
-                                  method, 
+
+      # > Create
+      PDM_part_coarse_mesh_create(&self._cmId,
+                                  PDM_MPI_mpi_2_pdm_mpi_comm (<void *> &c_comm),
+                                  method,
                                   renum_cell_method,
                                   renum_face_method,
                                   nPropertyCell,
                                   renum_properties_cell_data,
                                   nPropertyFace,
                                   renum_properties_face_data,
-                                  nPart, 
-                                  nTPart, 
-                                  self._nFaceGroup, 
-                                  have_cellTag,    
-                                  have_faceTag,   
-                                  have_vtxTag,     
-                                  have_cellWeight, 
-                                  have_faceWeight, 
+                                  nPart,
+                                  nTPart,
+                                  self._nFaceGroup,
+                                  have_cellTag,
+                                  have_faceTag,
+                                  have_vtxTag,
+                                  have_cellWeight,
+                                  have_faceWeight,
                                   have_faceGroup)
-      
+
 @COMMENT_NOT_PDMA@    # ------------------------------------------------------------------
-@COMMENT_NOT_PDMA@    def add_option_anisotropic(self, 
+@COMMENT_NOT_PDMA@    def add_option_anisotropic(self,
 @COMMENT_NOT_PDMA@                               NPY.ndarray[NPY.int32_t, mode='c', ndim=1] anisotropicOption,
 @COMMENT_NOT_PDMA@                               ):
 @COMMENT_NOT_PDMA@        """
@@ -262,17 +265,17 @@ cdef class CoarseMesh:
 @COMMENT_NOT_PDMA@        # > Declaration
 @COMMENT_NOT_PDMA@        cdef int             *anisotropicOption_data
 @COMMENT_NOT_PDMA@        # ************************************************************************
-@COMMENT_NOT_PDMA@        
+@COMMENT_NOT_PDMA@
 @COMMENT_NOT_PDMA@        # assert(anisotropicOption.shape[0] == 12)
-@COMMENT_NOT_PDMA@        
+@COMMENT_NOT_PDMA@
 @COMMENT_NOT_PDMA@        anisotropicOption_data = <int *> anisotropicOption.data
-@COMMENT_NOT_PDMA@        
-@COMMENT_NOT_PDMA@        PDM_part_coarse_mesh_add_option_anisotropic(self._cmId, 
+@COMMENT_NOT_PDMA@
+@COMMENT_NOT_PDMA@        PDM_part_coarse_mesh_add_option_anisotropic(self._cmId,
 @COMMENT_NOT_PDMA@                                                    anisotropicOption_data)
-@COMMENT_NOT_PDMA@        
+@COMMENT_NOT_PDMA@
     # ------------------------------------------------------------------
-    def set_mesh_input(self, 
-                       int      iPart, 
+    def set_mesh_input(self,
+                       int      iPart,
                        int      nCoarseCell,
                        int      nCell,
                        int      nFace,
@@ -284,15 +287,15 @@ cdef class CoarseMesh:
                        NPY.ndarray[NPY.int32_t    , mode='c', ndim=1] CellTag,
                        NPY.ndarray[NPY.int32_t    , mode='c', ndim=1] CellWeight,
                        NPY.ndarray[NPY.int32_t    , mode='c', ndim=1] FaceWeight,
-                       NPY.ndarray[npy_pdm_gnum_t , mode='c', ndim=1] CellLNToGN not None,       
+                       NPY.ndarray[npy_pdm_gnum_t , mode='c', ndim=1] CellLNToGN not None,
                        NPY.ndarray[NPY.int32_t    , mode='c', ndim=1] FaceCell not None,
                        NPY.ndarray[NPY.int32_t    , mode='c', ndim=1] FaceVtxIdx not None,
                        NPY.ndarray[NPY.int32_t    , mode='c', ndim=1] FaceVtx not None,
-                       NPY.ndarray[NPY.int32_t    , mode='c', ndim=1] FaceTag ,       
-                       NPY.ndarray[npy_pdm_gnum_t , mode='c', ndim=1] FaceLNToGN not None,       
+                       NPY.ndarray[NPY.int32_t    , mode='c', ndim=1] FaceTag ,
+                       NPY.ndarray[npy_pdm_gnum_t , mode='c', ndim=1] FaceLNToGN not None,
                        NPY.ndarray[NPY.double_t   , mode='c', ndim=1] VtxCoord not None,
                        NPY.ndarray[NPY.int32_t    , mode='c', ndim=1] VtxTag,
-                       NPY.ndarray[npy_pdm_gnum_t , mode='c', ndim=1] VtxLNToGN not None,       
+                       NPY.ndarray[npy_pdm_gnum_t , mode='c', ndim=1] VtxLNToGN not None,
                        NPY.ndarray[NPY.int32_t    , mode='c', ndim=1] FaceGroupIdx,
                        NPY.ndarray[NPY.int32_t    , mode='c', ndim=1] FaceGroup,
                        NPY.ndarray[npy_pdm_gnum_t , mode='c', ndim=1] FaceGroupLNToGN,
@@ -305,9 +308,9 @@ cdef class CoarseMesh:
         """
         # ************************************************************************
         # > Declaration
-        # > Cell entity 
+        # > Cell entity
         cdef int             *CellFaceIdx_data
-        cdef int             *CellFace_data     
+        cdef int             *CellFace_data
         cdef int             *CellTag_data
         cdef int             *CellWeight_data
         cdef int             *FaceWeight_data
@@ -380,54 +383,54 @@ cdef class CoarseMesh:
           FaceGroup_data = NULL
         else:
           FaceGroup_data            = <int *>         FaceGroup.data
-          
+
         if (FaceGroupIdx is None):
           FaceGroupIdx_data = NULL
         else:
           FaceGroupIdx_data            = <int *>         FaceGroupIdx.data
-          
+
         if (FaceGroupLNToGN is None):
           FaceGroupLNToGN_data = NULL
         else:
           FaceGroupLNToGN_data            = <PDM_g_num_t *> FaceGroupLNToGN.data
-                 
+
         FacePartBoundProcIdx_data = <int *>         FacePartBoundProcIdx.data
         FacePartBoundPartIdx_data = <int *>         FacePartBoundPartIdx.data
         FacePartBound_data        = <int *>         FacePartBound.data
 
         # :::::::::::::::::::::::::::::::::::::::::::::::::::::
-        # > Fill input mesh 
-        PDM_part_coarse_mesh_input(self._cmId, 
-                                   iPart, 
-                                   nCoarseCell, 
-                                   nCell, 
-                                   nFace, 
-                                   nVertex, 
-                                   nFaceGroup, 
+        # > Fill input mesh
+        PDM_part_coarse_mesh_input(self._cmId,
+                                   iPart,
+                                   nCoarseCell,
+                                   nCell,
+                                   nFace,
+                                   nVertex,
+                                   nFaceGroup,
                                    nFacePartBound,
                                    CellFaceIdx_data,
                                    CellFace_data,
                                    CellTag_data,
                                    CellWeight_data,
                                    FaceWeight_data,
-                                   CellLNToGN_data,       
+                                   CellLNToGN_data,
                                    FaceCell_data,
                                    FaceVtxIdx_data,
                                    FaceVtx_data,
-                                   FaceTag_data,       
-                                   FaceLNToGN_data,       
+                                   FaceTag_data,
+                                   FaceLNToGN_data,
                                    VtxCoord_data,
                                    VtxTag_data,
-                                   VtxLNToGN_data,       
+                                   VtxLNToGN_data,
                                    FaceGroupIdx_data,
                                    FaceGroup_data,
                                    FaceGroupLNToGN_data,
-                                   FacePartBoundProcIdx_data,       
+                                   FacePartBoundProcIdx_data,
                                    FacePartBoundPartIdx_data,
                                    FacePartBound_data)
 
 @COMMENT_NOT_PDMA@    # ------------------------------------------------------------------
-@COMMENT_NOT_PDMA@    def set_mesh_input_anisotropic(self, 
+@COMMENT_NOT_PDMA@    def set_mesh_input_anisotropic(self,
 @COMMENT_NOT_PDMA@                                   int      iPart,
 @COMMENT_NOT_PDMA@                                   NPY.ndarray[NPY.int32_t, mode='c', ndim=1] agglomerationLinesInit,
 @COMMENT_NOT_PDMA@                                   NPY.ndarray[NPY.int32_t, mode='c', ndim=1] agglomerationLinesInitIdx,
@@ -438,53 +441,53 @@ cdef class CoarseMesh:
 @COMMENT_NOT_PDMA@        """
 @COMMENT_NOT_PDMA@        # ************************************************************************
 @COMMENT_NOT_PDMA@        # > Declaration
-@COMMENT_NOT_PDMA@        # > Cell entity 
+@COMMENT_NOT_PDMA@        # > Cell entity
 @COMMENT_NOT_PDMA@        cdef int             *agglomerationLinesInit_data
 @COMMENT_NOT_PDMA@        cdef int             *agglomerationLinesInitIdx_data
-@COMMENT_NOT_PDMA@        cdef int             agglomerationLinesInitIdx_size 
+@COMMENT_NOT_PDMA@        cdef int             agglomerationLinesInitIdx_size
 @COMMENT_NOT_PDMA@        cdef int             *isOnFineBnd_data
 @COMMENT_NOT_PDMA@        # ************************************************************************
-@COMMENT_NOT_PDMA@        
-@COMMENT_NOT_PDMA@        # \param [in]  
+@COMMENT_NOT_PDMA@
+@COMMENT_NOT_PDMA@        # \param [in]
 @COMMENT_NOT_PDMA@        if (agglomerationLinesInit is None):
 @COMMENT_NOT_PDMA@            agglomerationLinesInit_data = NULL
 @COMMENT_NOT_PDMA@        else:
 @COMMENT_NOT_PDMA@            agglomerationLinesInit_data = <int *> agglomerationLinesInit.data
-@COMMENT_NOT_PDMA@           
-@COMMENT_NOT_PDMA@        # \param [in]  
+@COMMENT_NOT_PDMA@
+@COMMENT_NOT_PDMA@        # \param [in]
 @COMMENT_NOT_PDMA@        if (agglomerationLinesInitIdx is None):
 @COMMENT_NOT_PDMA@            agglomerationLinesInitIdx_data  = NULL
 @COMMENT_NOT_PDMA@            agglomerationLinesInitIdx_size  = 0
 @COMMENT_NOT_PDMA@        else:
 @COMMENT_NOT_PDMA@            agglomerationLinesInitIdx_data = <int *> agglomerationLinesInitIdx.data
 @COMMENT_NOT_PDMA@            agglomerationLinesInitIdx_size  = agglomerationLinesInitIdx.shape[0]
-@COMMENT_NOT_PDMA@            
-@COMMENT_NOT_PDMA@        # \param [in]  
+@COMMENT_NOT_PDMA@
+@COMMENT_NOT_PDMA@        # \param [in]
 @COMMENT_NOT_PDMA@        if (isOnFineBndInit is None):
 @COMMENT_NOT_PDMA@            isOnFineBndInit_data = NULL
 @COMMENT_NOT_PDMA@        else:
 @COMMENT_NOT_PDMA@            isOnFineBndInit_data = <int *> isOnFineBndInit.data
-@COMMENT_NOT_PDMA@            
-@COMMENT_NOT_PDMA@        # > Verbose 
+@COMMENT_NOT_PDMA@
+@COMMENT_NOT_PDMA@        # > Verbose
 @COMMENT_NOT_PDMA@        # print "isOnFineBndInit           = ", isOnFineBndInit
 @COMMENT_NOT_PDMA@        # print "agglomerationLinesInit    = ", agglomerationLinesInit
 @COMMENT_NOT_PDMA@        # print "agglomerationLinesInitIdx = ", agglomerationLinesInitIdx
 @COMMENT_NOT_PDMA@        # print "set_mesh_input_anisotropic agglomerationLinesInitIdx_size=", agglomerationLinesInitIdx_size
-@COMMENT_NOT_PDMA@        
+@COMMENT_NOT_PDMA@
 @COMMENT_NOT_PDMA@        # :::::::::::::::::::::::::::::::::::::::::::::::::::::
 @COMMENT_NOT_PDMA@        # > Fill input mesh for anisotropic
 @COMMENT_NOT_PDMA@        PDM_part_coarse_mesh_part_set_anisotropic_info(self._cmId,
-@COMMENT_NOT_PDMA@                                                       iPart,       
+@COMMENT_NOT_PDMA@                                                       iPart,
 @COMMENT_NOT_PDMA@                                                       agglomerationLinesInit_data,
 @COMMENT_NOT_PDMA@                                                       agglomerationLinesInitIdx_data,
 @COMMENT_NOT_PDMA@                                                       agglomerationLinesInitIdx_size,
 @COMMENT_NOT_PDMA@                                                       isOnFineBndInit_data)
 @COMMENT_NOT_PDMA@        # :::::::::::::::::::::::::::::::::::::::::::::::::::::
-        
+
     # ------------------------------------------------------------------
     def computeCoarseMesh(self):
         """
-        Effective compute 
+        Effective compute
         """
         PDM_part_coarse_mesh_compute(self._cmId)
 
@@ -551,14 +554,14 @@ cdef class CoarseMesh:
         """
         # ************************************************************************
         # > Declaration
-        # > Cell entity 
+        # > Cell entity
         cdef int          *cellTag
         cdef int          *cellFaceIdx
         cdef int          *cellFace
         cdef PDM_g_num_t  *cellLNToGN
-        cdef int          *cellInitCellIdx                  
-        cdef int          *cellInitCell  
-        # > Face entity 
+        cdef int          *cellInitCellIdx
+        cdef int          *cellInitCell
+        # > Face entity
         cdef int          *faceTag
         cdef int          *faceCell
         cdef int          *faceVtxIdx
@@ -572,37 +575,37 @@ cdef class CoarseMesh:
         cdef int          *facePartBound
         cdef int          *facePartBoundProcIdx
         cdef int          *facePartBoundPartIdx
-        # > Vertices entity       
+        # > Vertices entity
         cdef double       *vtxCoord
         cdef int          *vtxTag
-        cdef PDM_g_num_t  *vtxLNToGN    
+        cdef PDM_g_num_t  *vtxLNToGN
         cdef int          *vtxInitVtx
         # > For numpy capsule
         cdef NPY.npy_intp dim
         # ************************************************************************
-        # > Get dim 
+        # > Get dim
         dims = self.part_coarse_dim_get(ipart)
 
         # > Get array
         PDM_part_coarse_mesh_part_get(self._cmId,
-                                      ipart,       
+                                      ipart,
                                       &cellFaceIdx,
                                       &cellFace,
                                       &cellTag,
                                       &cellLNToGN,
-                                      &cellInitCellIdx,                  
-                                      &cellInitCell,          
+                                      &cellInitCellIdx,
+                                      &cellInitCell,
                                       &faceCell,
                                       &faceVtxIdx,
                                       &faceVtx,
                                       &faceTag,
-                                      &faceLNToGN,  
+                                      &faceLNToGN,
                                       &faceGroupInitFaceGroup,
-                                      &faceInitFace,          
+                                      &faceInitFace,
                                       &vtxCoord,
                                       &vtxTag,
-                                      &vtxLNToGN,        
-                                      &vtxInitVtx,          
+                                      &vtxLNToGN,
+                                      &vtxInitVtx,
                                       &faceGroupIdx,
                                       &faceGroup,
                                       &faceGroupLNToGN,
@@ -628,7 +631,7 @@ cdef class CoarseMesh:
           npCellFaceIdx = NPY.PyArray_SimpleNewFromData(1,
                                                         &dim,
                                                         NPY.NPY_INT32,
-                                                        <void *> cellFaceIdx)        
+                                                        <void *> cellFaceIdx)
         # \param [out]  cellFace           Cell to face connectivity (size = cellFaceIdx[nCell] = lCellFace)
         if (cellFace == NULL) :
           npCellFace = None
@@ -637,7 +640,7 @@ cdef class CoarseMesh:
           npCellFace = NPY.PyArray_SimpleNewFromData(1,
                                                      &dim,
                                                      NPY.NPY_INT32,
-                                                     <void *> cellFace)    
+                                                     <void *> cellFace)
 
         # \param [out]  cellLNToGN         Cell local numbering to global numbering (size = nCell)
         if (cellLNToGN == NULL) :
@@ -657,17 +660,17 @@ cdef class CoarseMesh:
           npCellInitCellIdx = NPY.PyArray_SimpleNewFromData(1,
                                                             &dim,
                                                             NPY.NPY_INT32,
-                                                            <void *> cellInitCellIdx)    
+                                                            <void *> cellInitCellIdx)
 
         # \param [out]  cellFaceIdx        Cell to face connectivity index (size = nCell + 1)
         if (cellInitCell == NULL) :
           npCellInitCell = None
         else :
-          dim = <NPY.npy_intp> dims['sCoarseCellToFineCel'] 
+          dim = <NPY.npy_intp> dims['sCoarseCellToFineCel']
           npCellInitCell = NPY.PyArray_SimpleNewFromData(1,
                                                          &dim,
                                                          NPY.NPY_INT32,
-                                                         <void *> cellInitCell)                                                                    
+                                                         <void *> cellInitCell)
         # :::::::::::::::::::::::::::::::::::::::::::::::::::::
         # \param [out]  faceTag            Face tag (size = nFace)
         if (faceTag == NULL) :
@@ -827,7 +830,7 @@ cdef class CoarseMesh:
                                                           &dim,
                                                           PDM_G_NUM_NPY_INT,
                                                           <void *> vtxLNToGN)
-          
+
         # \param [out]  vtxLNToGN          Vertex local numbering to global numbering (size = nVertex)
         if (vtxInitVtx == NULL) :
           npVtxInitVtx = None
@@ -837,7 +840,7 @@ cdef class CoarseMesh:
                                                         &dim,
                                                         NPY.NPY_INT32,
                                                         <void *> vtxInitVtx)
-          
+
         # :::::::::::::::::::::::::::::::::::::::::::::::::::::
         return {'npCellTag'                  : npCellTag,
                 'npCellFaceIdx'              : npCellFaceIdx,
@@ -860,7 +863,7 @@ cdef class CoarseMesh:
                 'npFaceGroupIdx'             : npFaceGroupIdx,
                 'npFaceGroup'                : npFaceGroup,
                 'npfaceGroupInitFaceGroup'   : npfaceGroupInitFaceGroup,
-                'npFaceGroupLNToGN'          : npFaceGroupLNToGN, 
+                'npFaceGroupLNToGN'          : npFaceGroupLNToGN,
                 'npFaceInitFace'             : npFaceInitFace}
         # :::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -878,19 +881,19 @@ cdef class CoarseMesh:
 @COMMENT_NOT_PDMA@        # > For numpy capsule
 @COMMENT_NOT_PDMA@        cdef NPY.npy_intp dim
 @COMMENT_NOT_PDMA@        # ************************************************************************
-@COMMENT_NOT_PDMA@        # > Get dim 
+@COMMENT_NOT_PDMA@        # > Get dim
 @COMMENT_NOT_PDMA@        dims = self.part_coarse_dim_get(ipart)
 @COMMENT_NOT_PDMA@
 @COMMENT_NOT_PDMA@        # > Get array
 @COMMENT_NOT_PDMA@        PDM_part_coarse_mesh_part_get_anisotropic_info(self._cmId,
-@COMMENT_NOT_PDMA@                                                       ipart,       
+@COMMENT_NOT_PDMA@                                                       ipart,
 @COMMENT_NOT_PDMA@                                                       &agglomerationLines,
 @COMMENT_NOT_PDMA@                                                       &agglomerationLinesIdx,
 @COMMENT_NOT_PDMA@                                                       &agglomerationLinesIdx_size,
 @COMMENT_NOT_PDMA@                                                       &isOnFineBnd)
-@COMMENT_NOT_PDMA@        # Verbose 
+@COMMENT_NOT_PDMA@        # Verbose
 @COMMENT_NOT_PDMA@        # print "PDM_part_coarse_mesh_part_get_anisotropic_info : agglomerationLinesIdx_size : ", agglomerationLinesIdx_size
-@COMMENT_NOT_PDMA@        
+@COMMENT_NOT_PDMA@
 @COMMENT_NOT_PDMA@        # :::::::::::::::::::::::::::::::::::::::::::::::::::::
 @COMMENT_NOT_PDMA@        # > Translate to numpy capsule (Tout est pas fait encore )
 @COMMENT_NOT_PDMA@        if (agglomerationLines == NULL) :
@@ -909,7 +912,7 @@ cdef class CoarseMesh:
 @COMMENT_NOT_PDMA@          npAggloLinesIdx = NPY.PyArray_SimpleNewFromData(1,
 @COMMENT_NOT_PDMA@                                                          &dim,
 @COMMENT_NOT_PDMA@                                                          NPY.NPY_INT32,
-@COMMENT_NOT_PDMA@                                                          <void *> agglomerationLinesIdx)        
+@COMMENT_NOT_PDMA@                                                          <void *> agglomerationLinesIdx)
 @COMMENT_NOT_PDMA@
 @COMMENT_NOT_PDMA@        if (isOnFineBnd == NULL) :
 @COMMENT_NOT_PDMA@          npIsOnFineBnd = None
@@ -918,14 +921,14 @@ cdef class CoarseMesh:
 @COMMENT_NOT_PDMA@          npIsOnFineBnd = NPY.PyArray_SimpleNewFromData(1,
 @COMMENT_NOT_PDMA@                                                        &dim,
 @COMMENT_NOT_PDMA@                                                        NPY.NPY_INT32,
-@COMMENT_NOT_PDMA@                                                        <void *> isOnFineBnd)    
+@COMMENT_NOT_PDMA@                                                        <void *> isOnFineBnd)
 @COMMENT_NOT_PDMA@
 @COMMENT_NOT_PDMA@        # :::::::::::::::::::::::::::::::::::::::::::::::::::::
 @COMMENT_NOT_PDMA@        return {'npAggloLines'    : npAggloLines,
 @COMMENT_NOT_PDMA@                'npAggloLinesIdx' : npAggloLinesIdx,
 @COMMENT_NOT_PDMA@                'npIsOnFineBnd'   : npIsOnFineBnd,
-@COMMENT_NOT_PDMA@                } 
-    
+@COMMENT_NOT_PDMA@                }
+
     # ------------------------------------------------------------------
     def part_color_get(self, int ipart):
         """
@@ -933,8 +936,10 @@ cdef class CoarseMesh:
         """
         # ************************************************************************
         # > Declaration
-        cdef int          *cellColor,
+        cdef int          *cellColor
         cdef int          *faceColor
+        cdef int          *threadColor
+        cdef int          *hyperPlaneColor
         # ************************************************************************
 
         # dims = self.part_dim_get(self.id, ipart)
@@ -944,7 +949,9 @@ cdef class CoarseMesh:
         PDM_part_coarse_color_get(self._cmId,
                                   ipart,
                                   &cellColor,
-                                  &faceColor)
+                                  &faceColor,
+                                  &threadColor,
+                                  &hyperPlaneColor)
         # -> Begin
         cdef NPY.npy_intp dim
 
@@ -966,5 +973,27 @@ cdef class CoarseMesh:
                                                         &dim,
                                                         NPY.NPY_INT32,
                                                         <void *> faceColor)
-        return {'npCellColor'   : npCellColor,
-                'npFaceColor'   : npFaceColor}
+
+        # \param [out]  threadColor            Cell tag (size = nCell)
+        if (threadColor == NULL):
+            npThreadColor = None
+        else :
+            dim = <NPY.npy_intp> dims['nCell']
+            npThreadColor = NPY.PyArray_SimpleNewFromData(1,
+                                                          &dim,
+                                                          NPY.NPY_INT32,
+                                                          <void *> threadColor)
+
+        # \param [out]  threadColor            Cell tag (size = nCell)
+        if (hyperPlaneColor == NULL):
+            npHyperPlaneColor = None
+        else :
+            dim = <NPY.npy_intp> dims['nCell']
+            npHyperPlaneColor = NPY.PyArray_SimpleNewFromData(1,
+                                                              &dim,
+                                                              NPY.NPY_INT32,
+                                                              <void *> hyperPlaneColor)
+        return {'npCellColor'       : npCellColor,
+                'npFaceColor'       : npFaceColor,
+                'npThreadColor'     : npThreadColor,
+                'npHyperPlaneColor' : npHyperPlaneColor}

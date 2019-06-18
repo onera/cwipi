@@ -33,7 +33,7 @@ extern "C" {
 /**
  * \struct pdm_surf_mesh_t
  * \brief  Mesh type
- * 
+ *
  * \ref pdm_surf_mesh_t defines a mesh structure
  *
  */
@@ -46,11 +46,11 @@ struct _pdm_surf_mesh_t{
   PDM_g_num_t  nGEdge;  /*!< Global number of edges  */
   int         nGPart; /*!< Number of global partitions */
   int         nPart;  /*!< Number of local partitions */
-  double      gMinCarLgthVtx; /*!< Global min 
+  double      gMinCarLgthVtx; /*!< Global min
                                    of caracteristic length vertex */
-  double      gMaxCarLgthVtx; /*!< Global max 
+  double      gMaxCarLgthVtx; /*!< Global max
                                    of caracteristic length vertex */
-  PDM_surf_part_t   **part;   /*!< Mesh partition             */ 
+  PDM_surf_part_t   **part;   /*!< Mesh partition             */
 
   PDM_graph_bound_t *interPartEdgeGraph; /*!< Inter partition edges graph */
   PDM_graph_bound_t *interPartVtxGraph;  /*!< Inter partition vertices graph */
@@ -65,7 +65,7 @@ struct _pdm_surf_mesh_t{
  *============================================================================*/
 
 /*=============================================================================
- * Public function prototypes 
+ * Public function prototypes
  *============================================================================*/
 #ifdef __cplusplus
 }

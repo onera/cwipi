@@ -1,11 +1,11 @@
 
 if (MPI_C_COMPILER)
   set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
-endif() 
+endif()
 
 if (MPI_Fortran_COMPILER)
   set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER})
-endif(MPI_Fortran_COMPILER) 
+endif(MPI_Fortran_COMPILER)
 
 if (PDM_ENABLE_LONG_G_NUM)
    set(PYX_NPY_G_NUM NPY.int64_t)
@@ -41,18 +41,18 @@ endif()
 
 include(UseCython)
 if (PDM_IN_PDMA)
-cython_add_module (Pypdm 
+cython_add_module (Pypdm
                    PYX_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/Pypdm.pyx"
                    OTHER_SOURCES $<TARGET_OBJECTS:pdm> $<TARGET_OBJECTS:pdma>
                    INCLUDE_DIRECTORIES ${include_dirs})
 else ()
-cython_add_module (Pypdm 
+cython_add_module (Pypdm
                    PYX_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/Pypdm.pyx"
                    OTHER_SOURCES $<TARGET_OBJECTS:pdm>
                    INCLUDE_DIRECTORIES ${include_dirs})
 endif()
 
-get_target_property(PDM_INC pdm INCLUDE_DIRECTORIES)                          
+get_target_property(PDM_INC pdm INCLUDE_DIRECTORIES)
 target_include_directories(Pypdm PUBLIC ${PDM_INC})
 
 unset(LINK_LIBRARIES)
@@ -66,7 +66,7 @@ if (${PTSCOTCH_FOUND})
   list(APPEND LINK_LIBRARIES ${SCOTCH_LIBRARIES})
 endif ()
 if (PDM_IN_PDMA)
-  list(APPEND LINK_LIBRARIES pdma_shared)  
+  list(APPEND LINK_LIBRARIES pdma_shared)
 endif()
 
 target_link_libraries(Pypdm ${LINK_LIBRARIES} pdm_mpi_shared)

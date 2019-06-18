@@ -32,7 +32,7 @@ extern "C" {
  * \struct _cs_part_to_block_t
  *
  * \brief  Data transfer from partitions to blocks
- * 
+ *
  */
 
 typedef struct {
@@ -63,7 +63,7 @@ typedef struct {
   int                        *destProc;          /*!< Destination process for any element (size = n_eltProc) */
   int                        *idxInSendData;     /*!< Index in send data for any element (size = n_eltProc) */
 
-  PDM_g_num_t                  *dataDistribIndex;  /*!< Data distribution on ranks 
+  PDM_g_num_t                  *dataDistribIndex;  /*!< Data distribution on ranks
                                                   (size = s_comm + 1) */
   int                         s_blockMin;        /*!< Minimum block size */
   int                         s_blockMax;        /*!< Maximum block size */
@@ -77,14 +77,14 @@ typedef struct {
   int                        *n_recvData;        /*!< Number of received Data from other processes
                                                    (size = s_comm) */
 
-  int                         tn_sendData;       /*!< Total number of sended data */ 
-  int                         tn_recvData;       /*!< Total number of received data */ 
-  PDM_g_num_t                  *sorted_recvGnum;   /*!< Sorted Global number of 
+  int                         tn_sendData;       /*!< Total number of sended data */
+  int                         tn_recvData;       /*!< Total number of received data */
+  PDM_g_num_t                  *sorted_recvGnum;   /*!< Sorted Global number of
                                                       reveived data (size = tn_recvData) */
   int                        *order;             /*!< Order of sorted_recvGnum
                                                    (size = tn_recvData) */
   int                         n_eltBlock ;      /*!< Number of element in current block */
-  PDM_g_num_t                  *block_gnum;        /*!< Sorted Global number of 
+  PDM_g_num_t                  *block_gnum;        /*!< Sorted Global number of
                                                       reveived data (size = block_n_elt) */
 
 

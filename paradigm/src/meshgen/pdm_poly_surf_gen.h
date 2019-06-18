@@ -1,7 +1,7 @@
 #ifndef __PDM_POLY_SURF_GEN_H__
 #define __PDM_POLY_SURF_GEN_H__
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2011  ONERA
 

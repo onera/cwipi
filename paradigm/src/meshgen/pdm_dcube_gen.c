@@ -19,8 +19,8 @@
 /**
  * \struct _dcube_t
  * \brief  Distributed cube
- * 
- * _dcube_t define a distributed mesh of a cube 
+ *
+ * _dcube_t define a distributed mesh of a cube
  *
  */
 
@@ -67,8 +67,8 @@ _get_from_id
  int  id
 )
 {
-  _dcube_t *dcube = (_dcube_t *) PDM_Handles_get (_dcubes, id); 
-    
+  _dcube_t *dcube = (_dcube_t *) PDM_Handles_get (_dcubes, id);
+
   if (dcube == NULL) {
     PDM_error (__FILE__, __LINE__, 0, "PDM_part_dcube error : Bad dcube identifier\n");
   }
@@ -88,18 +88,18 @@ _get_from_id
  * \param [in]   comm           Communicator
  * \param [in]   nVtxSeg        Number of vertices in segments
  * \param [in]   length         Segment length
- * \param [in]   zero_x         Coordinates of the origin 
- * \param [in]   zero_y         Coordinates of the origin 
- * \param [in]   zero_z         Coordinates of the origin 
+ * \param [in]   zero_x         Coordinates of the origin
+ * \param [in]   zero_y         Coordinates of the origin
+ * \param [in]   zero_z         Coordinates of the origin
  *
  */
 
 void
-PDM_dcube_gen_init 
+PDM_dcube_gen_init
 (
  int                *id,
- PDM_MPI_Comm        comm, 
- const PDM_g_num_t  nVtxSeg, 
+ PDM_MPI_Comm        comm,
+ const PDM_g_num_t  nVtxSeg,
  const double        length,
  const double        zero_x,
  const double        zero_y,
@@ -112,7 +112,7 @@ PDM_dcube_gen_init
 
   PDM_MPI_Comm_size(comm, &nRank);
   PDM_MPI_Comm_rank(comm, &myRank);
-  
+
   /*
    * Search a dcube free id
    */
@@ -122,7 +122,7 @@ PDM_dcube_gen_init
   }
 
   _dcube_t *dcube = (_dcube_t *) malloc(sizeof(_dcube_t));
-  
+
   *id = PDM_Handles_store (_dcubes, dcube);
 
   /*
@@ -139,7 +139,7 @@ PDM_dcube_gen_init
   PDM_g_num_t nVtx      = nVtxSeg * nVtxSeg * nVtxSeg;
   PDM_g_num_t nFaceSeg  = nVtxSeg - 1;
   PDM_g_num_t nFace     = 3 * nFaceSeg * nFaceSeg * nVtxSeg;
-  PDM_g_num_t nCell     = nFaceSeg * nFaceSeg * nFaceSeg; 
+  PDM_g_num_t nCell     = nFaceSeg * nFaceSeg * nFaceSeg;
   PDM_g_num_t nFaceFace = nFaceSeg * nFaceSeg;
   PDM_g_num_t nVtxFace  = nVtxSeg * nVtxSeg;
   PDM_g_num_t nFaceLim  = 6 * nFaceFace;
@@ -150,7 +150,7 @@ PDM_dcube_gen_init
   double step = length / (double) nFaceSeg;
 #ifdef __INTEL_COMPILER
 #pragma warning(pop)
-#endif  
+#endif
   PDM_g_num_t *distribVtx     = (PDM_g_num_t *) malloc((nRank + 1) * sizeof(PDM_g_num_t));
   PDM_g_num_t *distribFace    = (PDM_g_num_t *) malloc((nRank + 1) * sizeof(PDM_g_num_t));
   PDM_g_num_t *distribCell    = (PDM_g_num_t *) malloc((nRank + 1) * sizeof(PDM_g_num_t));
@@ -217,7 +217,7 @@ PDM_dcube_gen_init
   dcube->dFaceGroup    = (PDM_g_num_t *) malloc(dNFaceLim * sizeof(PDM_g_num_t *));
 
   PDM_g_num_t  *_dFaceCell     = dcube->dFaceCell;
-  int           *_dFaceVtxIdx   = dcube->dFaceVtxIdx; 
+  int           *_dFaceVtxIdx   = dcube->dFaceVtxIdx;
   PDM_g_num_t  *_dFaceVtx      = dcube->dFaceVtx;
   double        *_dVtxCoord     = dcube->dVtxCoord;
   int           *_dFaceGroupIdx = dcube->dFaceGroupIdx;
@@ -226,30 +226,30 @@ PDM_dcube_gen_init
   _dFaceVtxIdx[0] = 0;
   for (int i = 1; i < dcube->dNFace + 1; i++) {
     _dFaceVtxIdx[i] = 4 + _dFaceVtxIdx[i-1];
-  } 
+  }
 
   //
   // Coordinates
-  
+
   const PDM_g_num_t bVtxZ = distribVtx[myRank] / nVtxFace;
   const PDM_g_num_t rVtxZ = distribVtx[myRank] % nVtxFace;
 
   const PDM_g_num_t bVtxY = rVtxZ / nVtxSeg;
   const PDM_g_num_t bVtxX = rVtxZ % nVtxSeg;
-  
+
   int iVtx = 0;
   int cpt  = 0;
 
   for(PDM_g_num_t k = bVtxZ; k < nVtxSeg; k++) {
     PDM_g_num_t _bVtxY = 0;
     if (k == bVtxZ)
-      _bVtxY = bVtxY; 
+      _bVtxY = bVtxY;
     for(PDM_g_num_t j = _bVtxY; j < nVtxSeg; j++) {
       PDM_g_num_t _bVtxX = 0;
       if ((k == bVtxZ) && (j == bVtxY))
-        _bVtxX = bVtxX; 
+        _bVtxX = bVtxX;
       for(PDM_g_num_t i = _bVtxX; i < nVtxSeg; i++) {
-        _dVtxCoord[3 * iVtx    ] = i * step + zero_x; 
+        _dVtxCoord[3 * iVtx    ] = i * step + zero_x;
         _dVtxCoord[3 * iVtx + 1] = j * step + zero_y;
         _dVtxCoord[3 * iVtx + 2] = k * step + zero_z;
         cpt += 1;
@@ -263,25 +263,25 @@ PDM_dcube_gen_init
     if (cpt == dcube->dNVtx)
       break;
   }
-  
+
   //
   // faceVtx et faceCell
-  
+
   cpt = 0;
-  
+
   PDM_g_num_t serie  = nFace / 3;
   PDM_g_num_t iSerie = distribFace[myRank] / serie;
   PDM_g_num_t rSerie = distribFace[myRank] % serie;
 
   PDM_g_num_t b1 = 0;
   PDM_g_num_t r1 = 0;
-    
+
   PDM_g_num_t b2 = 0;
   PDM_g_num_t b3 = 0;
 
   b1 = rSerie / nFaceFace;
   r1 = rSerie % nFaceFace;
-    
+
   b2 = r1 / nFaceSeg;
   b3 = r1 % nFaceSeg;
 
@@ -291,19 +291,19 @@ PDM_dcube_gen_init
 
     //
     // Faces zmin -> zmax
-  
+
     for(PDM_g_num_t k = b1; k < nVtxSeg; k++) {
       PDM_g_num_t _b2 = 0;
       if (k == b1)
-        _b2 = b2; 
+        _b2 = b2;
       for(PDM_g_num_t j = _b2; j < nFaceSeg; j++) {
         PDM_g_num_t _b3 = 0;
         if ((k == b1) && (j == b2))
-          _b3 = b3; 
+          _b3 = b3;
         for(PDM_g_num_t i = _b3; i < nFaceSeg; i++) {
           _dFaceVtx[cpt * 4    ] = k * nVtxSeg * nVtxSeg + (    j * nVtxSeg + i + 1);
           _dFaceVtx[cpt * 4 + 1] = k * nVtxSeg * nVtxSeg + ((j+1) * nVtxSeg + i + 1);
-          _dFaceVtx[cpt * 4 + 2] = k * nVtxSeg * nVtxSeg + ((j+1) * nVtxSeg + i + 2); 
+          _dFaceVtx[cpt * 4 + 2] = k * nVtxSeg * nVtxSeg + ((j+1) * nVtxSeg + i + 2);
           _dFaceVtx[cpt * 4 + 3] = k * nVtxSeg * nVtxSeg + (    j * nVtxSeg + i + 2);
           if (k == 0) {
             _dFaceCell[2*cpt + 0] = j * nFaceSeg + i + 1;
@@ -336,18 +336,18 @@ PDM_dcube_gen_init
       break;
 
   case 1 :
-  
+
     //
     // Faces xmin -> xmax
-  
+
     for(PDM_g_num_t i = b1; i < nVtxSeg; i++) {
       PDM_g_num_t _b2 = 0;
       if (i == b1)
-        _b2 = b2; 
+        _b2 = b2;
       for(PDM_g_num_t k = _b2; k < nFaceSeg; k++) {
         PDM_g_num_t _b3 = 0;
         if ((i == b1) && (k == b2))
-          _b3 = b3; 
+          _b3 = b3;
         for(PDM_g_num_t j = _b3; j < nFaceSeg; j++) {
           _dFaceVtx[cpt * 4    ] =     k * nVtxSeg * nVtxSeg +     j * nVtxSeg + i + 1;
           _dFaceVtx[cpt * 4 + 1] =     k * nVtxSeg * nVtxSeg + (j+1) * nVtxSeg + i + 1;
@@ -357,12 +357,12 @@ PDM_dcube_gen_init
             _dFaceCell[2*cpt + 0] = k * nFaceSeg * nFaceSeg + j * nFaceSeg + i + 1;
             _dFaceCell[2*cpt + 1] = 0;
           }
-          
+
           else if (i == nFaceSeg) {
             _dFaceCell[2*cpt + 0] = k * nFaceSeg * nFaceSeg + j * nFaceSeg + i;
             _dFaceCell[2*cpt + 1] = 0;
           }
-          
+
           else {
             _dFaceCell[2*cpt + 0] = k * nFaceSeg * nFaceSeg + j * nFaceSeg + i ;
             _dFaceCell[2*cpt + 1] = k * nFaceSeg * nFaceSeg + j * nFaceSeg + i + 1;
@@ -393,11 +393,11 @@ PDM_dcube_gen_init
     for(PDM_g_num_t j = b1; j < nVtxSeg; j++) {
       PDM_g_num_t _b2 = 0;
       if (j == b1)
-        _b2 = b2; 
+        _b2 = b2;
       for(PDM_g_num_t i = _b2; i < nFaceSeg; i++) {
         PDM_g_num_t _b3 = 0;
         if ((j == b1) && (i == b2))
-          _b3 = b3; 
+          _b3 = b3;
         for(PDM_g_num_t k = _b3; k < nFaceSeg; k++) {
           _dFaceVtx[cpt * 4    ] =     k * nVtxSeg * nVtxSeg + j * nVtxSeg + i + 1    ;
           _dFaceVtx[cpt * 4 + 1] =     k * nVtxSeg * nVtxSeg + j * nVtxSeg + i + 1 + 1;
@@ -407,12 +407,12 @@ PDM_dcube_gen_init
             _dFaceCell[2*cpt + 0] = k * nFaceSeg * nFaceSeg + j * nFaceSeg + i + 1;
             _dFaceCell[2*cpt + 1] = 0;
           }
-          
+
           else if (j == nFaceSeg) {
             _dFaceCell[2*cpt + 0] =  k * nFaceSeg * nFaceSeg + (j-1) * nFaceSeg + i + 1;
             _dFaceCell[2*cpt + 1] = 0;
           }
-          
+
           else {
             _dFaceCell[2*cpt + 0] = k * nFaceSeg * nFaceSeg + (j-1) * nFaceSeg + i + 1;
             _dFaceCell[2*cpt + 1] = k * nFaceSeg * nFaceSeg +     j * nFaceSeg + i + 1;
@@ -437,7 +437,7 @@ PDM_dcube_gen_init
   int cpt1 = 0;
   int cpt3 = 0;
   int firstGroup = 0;
-  
+
   serie  = nFaceLim / dcube->nFaceGroup;
   iSerie = distribFaceLim[myRank] / serie;
   rSerie = distribFaceLim[myRank] % serie;
@@ -450,11 +450,11 @@ PDM_dcube_gen_init
   case 0 :
 
     //
-    // Faces zmin 
+    // Faces zmin
 
     if (cpt == 0)
       firstGroup = 1;
-    
+
     cpt1 = cpt;
 
     bFace = 0;
@@ -473,7 +473,7 @@ PDM_dcube_gen_init
       if (cpt == dNFaceLim)
         break;
     }
-    
+
     _dFaceGroupIdx[1] = cpt - cpt1;
 
     if (cpt == dNFaceLim)
@@ -484,11 +484,11 @@ PDM_dcube_gen_init
   case 1 :
 
     //
-    // Faces zmax 
+    // Faces zmax
 
     if (cpt == 0)
       firstGroup = 1;
-    
+
     cpt1 = cpt;
 
     bFace = nFaceSeg * nFaceSeg * nFaceSeg;
@@ -514,12 +514,12 @@ PDM_dcube_gen_init
       break;
 
     firstGroup = 0;
-          
+
   case 2 :
 
     //
-    // Faces xmin 
-  
+    // Faces xmin
+
     if (cpt == 0)
       firstGroup = 1;
 
@@ -552,8 +552,8 @@ PDM_dcube_gen_init
   case 3 :
 
     //
-    // Faces xmax 
-  
+    // Faces xmax
+
     if (cpt == 0)
       firstGroup = 1;
 
@@ -586,8 +586,8 @@ PDM_dcube_gen_init
   case 4 :
 
     //
-    // Faces ymin 
-  
+    // Faces ymin
+
     if (cpt == 0)
       firstGroup = 1;
 
@@ -620,8 +620,8 @@ PDM_dcube_gen_init
   case 5 :
 
     //
-    // Faces ymax 
-  
+    // Faces ymax
+
     if (cpt == 0)
       firstGroup = 1;
 
@@ -664,11 +664,11 @@ PDM_dcube_gen_init
 }
 
 void
-PROCF (pdm_dcube_gen_init, PDM_DCUBE_GEN_INIT)  
+PROCF (pdm_dcube_gen_init, PDM_DCUBE_GEN_INIT)
 (
  int                *id,
  const PDM_MPI_Fint *comm,
- const PDM_g_num_t  *nVtxSeg, 
+ const PDM_g_num_t  *nVtxSeg,
  const double       *length,
  const double       *zero_x,
  const double       *zero_y,
@@ -682,7 +682,7 @@ PROCF (pdm_dcube_gen_init, PDM_DCUBE_GEN_INIT)
 
   PDM_dcube_gen_init (id,
                       c_comm,
-                      *nVtxSeg, 
+                      *nVtxSeg,
                       *length,
 		      *zero_x,
 		      *zero_y,
@@ -696,7 +696,7 @@ PROCF (pdm_dcube_gen_init, PDM_DCUBE_GEN_INIT)
  *
  * \param [in]   id          dcube identifier
  * \param [out]  NFaceGroup  Number of faces groups
- * \param [out]  dNCell      Number of cells stored in this process 
+ * \param [out]  dNCell      Number of cells stored in this process
  * \param [out]  dNFace      Number of faces stored in this process
  * \param [out]  dNVtx       Number of vertices stored in this process
  * \param [out]  dFaceVtxL   Length of dFaceVtx array
@@ -705,7 +705,7 @@ PROCF (pdm_dcube_gen_init, PDM_DCUBE_GEN_INIT)
  */
 
 void
-PDM_dcube_gen_dim_get 
+PDM_dcube_gen_dim_get
 (
  int                id,
  int                *nFaceGroup,
@@ -722,7 +722,7 @@ PDM_dcube_gen_dim_get
   *dNCell     = dcube->dNCell;
   *dNFace     = dcube->dNFace;
   *dNVtx      = dcube->dNVtx;
-  *dFaceVtxL  = dcube->dFaceVtxIdx[dcube->dNFace]; 
+  *dFaceVtxL  = dcube->dFaceVtxIdx[dcube->dNFace];
   *dFacegroupL= dcube->dFaceGroupIdx[dcube->nFaceGroup];
 }
 
@@ -764,15 +764,15 @@ PROCF(pdm_dcube_gen_dim_get, PDM_DCUBE_GEN_DIM_GET)
  */
 
 void
-PDM_dcube_gen_data_get 
+PDM_dcube_gen_data_get
 (
  int                 id,
  PDM_g_num_t      **dFaceCell,
- int               **dFaceVtxIdx, 
+ int               **dFaceVtxIdx,
  PDM_g_num_t      **dFaceVtx,
  double            **dVtxCoord,
  int               **dFaceGroupIdx,
- PDM_g_num_t      **dFaceGroup 
+ PDM_g_num_t      **dFaceGroup
 )
 {
   _dcube_t *dcube = _get_from_id(id);
@@ -783,19 +783,19 @@ PDM_dcube_gen_data_get
   *dVtxCoord     = dcube->dVtxCoord;
   *dFaceGroupIdx = dcube->dFaceGroupIdx;
   *dFaceGroup    = dcube->dFaceGroup;
-} 
+}
 
 
-void 
+void
 PROCF (pdm_dcube_gen_data_get, PDM_DCUBE_GEN_DATA_GET)
 (
  int               *id,
  PDM_g_num_t      *dFaceCell,
- int               *dFaceVtxIdx, 
+ int               *dFaceVtxIdx,
  PDM_g_num_t      *dFaceVtx,
  double            *dVtxCoord,
  int               *dFaceGroupIdx,
- PDM_g_num_t      *dFaceGroup 
+ PDM_g_num_t      *dFaceGroup
 )
 {
   _dcube_t *dcube = _get_from_id(*id);
@@ -804,20 +804,20 @@ PROCF (pdm_dcube_gen_data_get, PDM_DCUBE_GEN_DATA_GET)
     dFaceCell[i] = dcube->dFaceCell[i];
 
   for (int i = 0; i < dcube->dNFace + 1 ; i++)
-    dFaceVtxIdx[i] = dcube->dFaceVtxIdx[i]; 
+    dFaceVtxIdx[i] = dcube->dFaceVtxIdx[i];
 
   for (int i = 0; i < dcube->dFaceVtxIdx[dcube->dNFace] ; i++)
-    dFaceVtx[i] = dcube->dFaceVtx[i]; 
-    
+    dFaceVtx[i] = dcube->dFaceVtx[i];
+
   for (int i = 0; i < 3 * dcube->dNVtx; i++)
     dVtxCoord[i] = dcube->dVtxCoord[i];
 
   for (int i = 0; i < dcube->nFaceGroup + 1; i++)
-    dFaceGroupIdx[i] = dcube->dFaceGroupIdx[i]; 
+    dFaceGroupIdx[i] = dcube->dFaceGroupIdx[i];
 
   for (int i = 0; i < dcube->dFaceGroupIdx[dcube->nFaceGroup]; i++)
-    dFaceGroup[i] = dcube->dFaceGroup[i]; 
-} 
+    dFaceGroup[i] = dcube->dFaceGroup[i];
+}
 
 
 /**
@@ -855,23 +855,23 @@ PDM_dcube_gen_free
     free(dcube->dFaceGroup);
 
   free(dcube);
-  
+
   PDM_Handles_handle_free (_dcubes, id, PDM_FALSE);
-  
+
   const int n_dcube = PDM_Handles_n_get (_dcubes);
-  
+
   if (n_dcube == 0) {
     PDM_Handles_free (_dcubes);
-    
+
   }
 }
- 
 
-void 
+
+void
 PROCF (pdm_dcube_gen_free, PDM_DCUBE_GEN_FREE)
 (
  int *id
  )
 {
   PDM_dcube_gen_free (*id);
-} 
+}

@@ -1,9 +1,9 @@
 /*============================================================================
  * No MPI
  *============================================================================*/
-#if defined(__clang__)	
+#if defined(__clang__)
 #pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-value" 	
+#pragma clang diagnostic ignored "-Wunused-value"
 #endif
 /*----------------------------------------------------------------------------
  * Standard C library headers
@@ -29,12 +29,12 @@ extern "C" {
 #endif /* __cplusplus */
 
 /*============================================================================
- * Definition des types 
+ * Definition des types
  *============================================================================*/
 
 
 /*============================================================================
- * Definition des variables globales 
+ * Definition des variables globales
  *============================================================================*/
 
 /*============================================================================
@@ -51,7 +51,7 @@ int PDM_MPI_Init(int *argc, char ***argv)
 {
   argc;
   argv;
-  
+
   return 0;
 }
 
@@ -75,7 +75,7 @@ int PDM_MPI_Finalize (void)
 void *PDM_MPI_2_mpi_comm(PDM_MPI_Comm pdm_mpi_comm)
 {
   pdm_mpi_comm;
-  
+
   PDM_error(__FILE__, __LINE__, 0,"PDM_MPI_2_mpi_comm : Unavailable function with pdm_no_mpi library\n" );
   abort();
 }
@@ -89,7 +89,7 @@ void *PDM_MPI_2_mpi_comm(PDM_MPI_Comm pdm_mpi_comm)
 void *PDM_MPI_free_mpi_comm(void *pt_mpi_comm)
 {
   pt_mpi_comm;
-  
+
   return NULL;
 }
 
@@ -102,7 +102,7 @@ void *PDM_MPI_free_mpi_comm(void *pt_mpi_comm)
 PDM_MPI_Comm PDM_MPI_mpi_2_pdm_mpi_comm(void *pt_mpi_comm)
 {
   pt_mpi_comm;
-  
+
   return 0;
 }
 
@@ -118,7 +118,7 @@ int PDM_MPI_File_open(PDM_MPI_Comm comm, char *filename, int amode, PDM_MPI_File
   filename;
   amode;
   fh;
-  
+
   PDM_error(__FILE__, __LINE__, 0,"PDM_MPI_File_open : Unavailable function with pdm_no_mpi library\n" );
   abort();
   return 1;
@@ -132,7 +132,7 @@ int PDM_MPI_File_open(PDM_MPI_Comm comm, char *filename, int amode, PDM_MPI_File
 int PDM_MPI_File_close(PDM_MPI_File *fh)
 {
   fh;
-  
+
   return 0;
 }
 
@@ -146,7 +146,7 @@ int PDM_MPI_File_seek(PDM_MPI_File fh, PDM_MPI_Offset offset, int whence)
   fh;
   offset;
   whence;
-  
+
   PDM_error(__FILE__, __LINE__, 0,"PDM_MPI_File_seek : Unavailable function with pdm_no_mpi library\n" );
   abort();
   return 1;
@@ -161,7 +161,7 @@ int PDM_MPI_File_get_size(PDM_MPI_File fh, PDM_MPI_Offset *offset)
 {
   fh;
   offset;
-  
+
   PDM_error(__FILE__, __LINE__, 0,"PDM_MPI_get_size : Unavailable function with pdm_no_mpi library\n" );
   abort();
   return 1;
@@ -176,7 +176,7 @@ int PDM_MPI_File_get_position(PDM_MPI_File fh, PDM_MPI_Offset *offset)
 {
   fh;
   offset;
-  
+
   PDM_error(__FILE__, __LINE__, 0,"PDM_MPI_File_get_position : Unavailable function with pdm_no_mpi library\n" );
   abort();
   return 1;
@@ -184,7 +184,7 @@ int PDM_MPI_File_get_position(PDM_MPI_File fh, PDM_MPI_Offset *offset)
 
 /*----------------------------------------------------------------------------
  * PDM_MPI_File_set_view (wrapping de la fonction MPI_File_set_view)
- *                   
+ *
  *----------------------------------------------------------------------------*/
 
 int PDM_MPI_File_set_view(PDM_MPI_File fh, PDM_MPI_Offset disp, PDM_MPI_Datatype etype,
@@ -195,7 +195,7 @@ int PDM_MPI_File_set_view(PDM_MPI_File fh, PDM_MPI_Offset disp, PDM_MPI_Datatype
   etype;
   filetype;
   datarep;
-  
+
   PDM_error(__FILE__, __LINE__, 0,"PDM_MPI_File_set_view : Unavailable function with pdm_no_mpi library\n" );
   abort();
   return 1;
@@ -206,7 +206,7 @@ int PDM_MPI_File_set_view(PDM_MPI_File fh, PDM_MPI_Offset disp, PDM_MPI_Datatype
  *
  *----------------------------------------------------------------------------*/
 
-int PDM_MPI_File_get_view(PDM_MPI_File fh, PDM_MPI_Offset *disp, 
+int PDM_MPI_File_get_view(PDM_MPI_File fh, PDM_MPI_Offset *disp,
                       PDM_MPI_Datatype *etype, PDM_MPI_Datatype *filetype, char *datarep)
 {
   fh;
@@ -214,7 +214,7 @@ int PDM_MPI_File_get_view(PDM_MPI_File fh, PDM_MPI_Offset *disp,
   etype;
   filetype;
   datarep;
-  
+
   PDM_error(__FILE__, __LINE__, 0,"PDM_MPI_File_get_view : Unavailable function with pdm_no_mpi library\n" );
   abort();
   return 1;
@@ -226,7 +226,7 @@ int PDM_MPI_File_get_view(PDM_MPI_File fh, PDM_MPI_Offset *disp,
  *----------------------------------------------------------------------------*/
 
 int PDM_MPI_File_read_at(PDM_MPI_File fh, PDM_MPI_Offset offset, void *buf,
-                     int count, PDM_MPI_Datatype datatype, int *n_octet_lus) 
+                     int count, PDM_MPI_Datatype datatype, int *n_octet_lus)
 {
   fh;
   offset;
@@ -234,7 +234,7 @@ int PDM_MPI_File_read_at(PDM_MPI_File fh, PDM_MPI_Offset offset, void *buf,
   count;
   datatype;
   n_octet_lus;
-  
+
   PDM_error(__FILE__, __LINE__, 0,"PDM_MPI_File_read_at : Unavailable function with pdm_no_mpi library\n" );
   abort();
   return 1;
@@ -246,7 +246,7 @@ int PDM_MPI_File_read_at(PDM_MPI_File fh, PDM_MPI_Offset offset, void *buf,
  *----------------------------------------------------------------------------*/
 
 int PDM_MPI_File_read_at_all(PDM_MPI_File fh, PDM_MPI_Offset offset, void *buf,
-                          int count, PDM_MPI_Datatype datatype, int *n_octet_lus) 
+                          int count, PDM_MPI_Datatype datatype, int *n_octet_lus)
 {
   fh;
   offset;
@@ -254,7 +254,7 @@ int PDM_MPI_File_read_at_all(PDM_MPI_File fh, PDM_MPI_Offset offset, void *buf,
   count;
   datatype;
   n_octet_lus;
-  
+
   PDM_error(__FILE__, __LINE__, 0,"PDM_MPI_File_read_at_all : Unavailable function with pdm_no_mpi library\n" );
   abort();
   return 1;
@@ -266,7 +266,7 @@ int PDM_MPI_File_read_at_all(PDM_MPI_File fh, PDM_MPI_Offset offset, void *buf,
  *----------------------------------------------------------------------------*/
 
 int PDM_MPI_File_write_at(PDM_MPI_File fh, PDM_MPI_Offset offset, void *buf,
-                      int count, PDM_MPI_Datatype datatype, int *n_octet_lus) 
+                      int count, PDM_MPI_Datatype datatype, int *n_octet_lus)
 {
   fh;
   offset;
@@ -274,7 +274,7 @@ int PDM_MPI_File_write_at(PDM_MPI_File fh, PDM_MPI_Offset offset, void *buf,
   count;
   datatype;
   n_octet_lus;
-  
+
   PDM_error(__FILE__, __LINE__, 0,"PDM_MPI_File_write_at : Unavailable function with pdm_no_mpi library\n" );
   abort();
   return 1;
@@ -286,7 +286,7 @@ int PDM_MPI_File_write_at(PDM_MPI_File fh, PDM_MPI_Offset offset, void *buf,
  *----------------------------------------------------------------------------*/
 
 int PDM_MPI_File_write_at_all(PDM_MPI_File fh, PDM_MPI_Offset offset, void *buf,
-                          int count, PDM_MPI_Datatype datatype, int *n_octet_lus) 
+                          int count, PDM_MPI_Datatype datatype, int *n_octet_lus)
 {
   fh;
   offset;
@@ -294,7 +294,7 @@ int PDM_MPI_File_write_at_all(PDM_MPI_File fh, PDM_MPI_Offset offset, void *buf,
   count;
   datatype;
   n_octet_lus;
-  
+
   PDM_error(__FILE__, __LINE__, 0,"PDM_MPI_File_write_at_all : Unavailable function with pdm_no_mpi library\n" );
   abort();
   return 1;
@@ -313,7 +313,7 @@ int PDM_MPI_File_read(PDM_MPI_File fh, void *buf, int count,
   count;
   datatype;
   n_octet_lus;
-  
+
   PDM_error(__FILE__, __LINE__, 0,"PDM_MPI_File_write_at : Unavailable function with pdm_no_mpi library\n" );
   abort();
   return 1;
@@ -382,17 +382,17 @@ int PDM_MPI_File_write_all(PDM_MPI_File fh, void *buf, int count,
  *
  *----------------------------------------------------------------------------*/
 
-int PDM_MPI_Gather(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype, 
-               void *recvbuf, int recvcount, PDM_MPI_Datatype recvtype, 
+int PDM_MPI_Gather(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype,
+               void *recvbuf, int recvcount, PDM_MPI_Datatype recvtype,
                int root, PDM_MPI_Comm comm)
 {
-  sendbuf; 
-  sendcount; 
-  sendtype; 
-  recvbuf; 
+  sendbuf;
+  sendcount;
+  sendtype;
+  recvbuf;
   recvcount;
-  recvtype; 
-  root; 
+  recvtype;
+  root;
   comm;
 
   PDM_error(__FILE__, __LINE__, 0, "PDM_MPI_Gather : Unavailable function with pdm_no_mpi library\n" );
@@ -406,20 +406,20 @@ int PDM_MPI_Gather(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype,
  *
  *----------------------------------------------------------------------------*/
 
-int PDM_MPI_Igather(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype, 
-               void *recvbuf, int recvcount, PDM_MPI_Datatype recvtype, 
+int PDM_MPI_Igather(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype,
+               void *recvbuf, int recvcount, PDM_MPI_Datatype recvtype,
                int root, PDM_MPI_Comm comm, PDM_MPI_Request *request)
 {
-  sendbuf; 
-  sendcount; 
-  sendtype; 
-  recvbuf; 
+  sendbuf;
+  sendcount;
+  sendtype;
+  recvbuf;
   recvcount;
-  recvtype; 
-  root; 
+  recvtype;
+  root;
   comm;
   request;
-  
+
   PDM_error(__FILE__, __LINE__, 0, "PDM_MPI_Igather : Unavailable function with pdm_no_mpi library\n" );
   abort();
   return 1;
@@ -430,18 +430,18 @@ int PDM_MPI_Igather(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype,
  *
  *----------------------------------------------------------------------------*/
 
-int PDM_MPI_Gatherv(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype, 
-                void *recvbuf, int *recvcounts, int *displs, 
+int PDM_MPI_Gatherv(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype,
+                void *recvbuf, int *recvcounts, int *displs,
                 PDM_MPI_Datatype recvtype, int root, PDM_MPI_Comm comm)
 {
-  sendbuf; 
-  sendcount; 
-  sendtype; 
-  recvbuf; 
+  sendbuf;
+  sendcount;
+  sendtype;
+  recvbuf;
   recvcounts;
   displs;
-  recvtype; 
-  root; 
+  recvtype;
+  root;
   comm;
 
   PDM_error(__FILE__, __LINE__, 0, "PDM_MPI_Gatherv : Unavailable function with pdm_no_mpi library\n" );
@@ -454,7 +454,7 @@ int PDM_MPI_Gatherv(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype,
  *
  *----------------------------------------------------------------------------*/
 
-int PDM_MPI_Recv(void *buf, int count, PDM_MPI_Datatype datatype, int source, 
+int PDM_MPI_Recv(void *buf, int count, PDM_MPI_Datatype datatype, int source,
              int tag, PDM_MPI_Comm comm)
 {
   buf;
@@ -495,7 +495,7 @@ int PDM_MPI_Irecv(void *buf, int count, PDM_MPI_Datatype datatype, int source,
  *
  *----------------------------------------------------------------------------*/
 
-int PDM_MPI_Send(void *buf, int count, PDM_MPI_Datatype datatype, int dest, 
+int PDM_MPI_Send(void *buf, int count, PDM_MPI_Datatype datatype, int dest,
              int tag, PDM_MPI_Comm comm)
 {
   buf;
@@ -525,7 +525,7 @@ int PDM_MPI_Issend(const void *buf, int count, PDM_MPI_Datatype datatype, int de
   tag;
   comm;
   request;
-  
+
   PDM_error(__FILE__, __LINE__, 0, "PDM_MPI_Issend : Unavailable function with pdm_no_mpi library\n" );
   abort();
   return 1;
@@ -540,7 +540,7 @@ int PDM_MPI_Wait(PDM_MPI_Request *request)
 
 {
   request;
-  
+
   PDM_error(__FILE__, __LINE__, 0, "PDM_MPI_Wait : Unavailable function with pdm_no_mpi library\n" );
   abort();
   return 1;
@@ -591,7 +591,7 @@ int PDM_MPI_Type_commit(PDM_MPI_Datatype *datatype)
 int PDM_MPI_Type_free(PDM_MPI_Datatype *datatype)
 {
   datatype;
-  
+
   PDM_error(__FILE__, __LINE__, 0, "PDM_MPI_Type_free : Unavailable function with pdm_no_mpi library\n" );
   abort();
   return 1;
@@ -605,7 +605,7 @@ int PDM_MPI_Type_free(PDM_MPI_Datatype *datatype)
 PDM_MPI_Comm PDM_MPI_Comm_f2c(PDM_MPI_Fint comm)
 {
   comm;
-  
+
   return 0;
 }
 
@@ -617,7 +617,7 @@ PDM_MPI_Comm PDM_MPI_Comm_f2c(PDM_MPI_Fint comm)
 PDM_MPI_Fint PDM_MPI_Comm_c2f(PDM_MPI_Comm comm)
 {
   comm;
-          
+
   return 0;
 }
 
@@ -626,19 +626,19 @@ PDM_MPI_Fint PDM_MPI_Comm_c2f(PDM_MPI_Comm comm)
  *
  *----------------------------------------------------------------------------*/
 
-int PDM_MPI_Scatter(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype, 
-                void *recvbuf, int recvcount, PDM_MPI_Datatype recvtype, 
+int PDM_MPI_Scatter(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype,
+                void *recvbuf, int recvcount, PDM_MPI_Datatype recvtype,
                 int root, PDM_MPI_Comm comm)
 {
-  sendbuf; 
+  sendbuf;
   sendcount;
-  sendtype; 
-  recvbuf; 
+  sendtype;
+  recvbuf;
   recvcount;
-  recvtype; 
-  root; 
+  recvtype;
+  root;
   comm;
-  
+
   PDM_error(__FILE__, __LINE__, 0, "PDM_MPI_Scatter : Unavailable function with pdm_no_mpi library\n" );
   abort();
   return 1;
@@ -652,7 +652,7 @@ int PDM_MPI_Scatter(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype,
 int PDM_MPI_Barrier(PDM_MPI_Comm comm)
 {
   comm;
-  
+
   return 0;
 }
 
@@ -661,15 +661,15 @@ int PDM_MPI_Barrier(PDM_MPI_Comm comm)
  *
  *----------------------------------------------------------------------------*/
 
-int PDM_MPI_Bcast(void *buffer, int count, PDM_MPI_Datatype datatype, 
+int PDM_MPI_Bcast(void *buffer, int count, PDM_MPI_Datatype datatype,
               int root, PDM_MPI_Comm comm)
 {
-  buffer; 
+  buffer;
   count;
-  datatype; 
-  root; 
+  datatype;
+  root;
   comm;
-  
+
   return 0;
 }
 
@@ -678,18 +678,18 @@ int PDM_MPI_Bcast(void *buffer, int count, PDM_MPI_Datatype datatype,
  *
  *----------------------------------------------------------------------------*/
 
-int PDM_MPI_Allgather(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype, 
-                  void *recvbuf, int recvcount, 
+int PDM_MPI_Allgather(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype,
+                  void *recvbuf, int recvcount,
                   PDM_MPI_Datatype recvtype, PDM_MPI_Comm comm)
 {
-  sendbuf; 
+  sendbuf;
   sendcount;
-  sendtype; 
+  sendtype;
   recvbuf;
-  recvcount; 
+  recvcount;
   recvtype;
   comm;
-  
+
   PDM_error(__FILE__, __LINE__, 0, "PDM_MPI_Allgather : Unavailable function with pdm_no_mpi library\n" );
   abort();
   return 1;
@@ -700,13 +700,13 @@ int PDM_MPI_Allgather(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype,
  *
  *----------------------------------------------------------------------------*/
 
-int PDM_MPI_Allgatherv(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype, 
-                   void *recvbuf, int *recvcounts, 
+int PDM_MPI_Allgatherv(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype,
+                   void *recvbuf, int *recvcounts,
                    int *displs, PDM_MPI_Datatype recvtype, PDM_MPI_Comm comm)
 {
-  sendbuf; 
+  sendbuf;
   sendcount;
-  sendtype; 
+  sendtype;
   recvbuf;
   recvcounts;
   displs;
@@ -724,9 +724,9 @@ int PDM_MPI_Allgatherv(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype,
  *
  *----------------------------------------------------------------------------*/
 
-int PDM_MPI_Reduce(void *sendbuf, void *recvbuf, int count, 
+int PDM_MPI_Reduce(void *sendbuf, void *recvbuf, int count,
 		   PDM_MPI_Datatype datatype, PDM_MPI_Op op,
-		   int root, PDM_MPI_Comm comm) 
+		   int root, PDM_MPI_Comm comm)
 {
   sendbuf;
   recvbuf;
@@ -746,10 +746,10 @@ int PDM_MPI_Reduce(void *sendbuf, void *recvbuf, int count,
  *
  *----------------------------------------------------------------------------*/
 
-int PDM_MPI_Allreduce(void *sendbuf, void *recvbuf, int count, 
-                  PDM_MPI_Datatype datatype, PDM_MPI_Op op, PDM_MPI_Comm comm) 
+int PDM_MPI_Allreduce(void *sendbuf, void *recvbuf, int count,
+                  PDM_MPI_Datatype datatype, PDM_MPI_Op op, PDM_MPI_Comm comm)
 {
-  sendbuf; 
+  sendbuf;
   recvbuf;
   count;
   datatype;
@@ -769,13 +769,13 @@ int PDM_MPI_Allreduce(void *sendbuf, void *recvbuf, int count,
 int PDM_MPI_Scan(const void *sendbuf, void *recvbuf, int count,
              PDM_MPI_Datatype datatype, PDM_MPI_Op op, PDM_MPI_Comm comm)
 {
-  sendbuf; 
-  recvbuf; 
+  sendbuf;
+  recvbuf;
   count;
   datatype;
   op;
   comm;
-  
+
   PDM_error(__FILE__, __LINE__, 0, "PDM_MPI_Scan : Unavailable function with pdm_no_mpi library\n" );
   abort();
   return 1;
@@ -783,17 +783,17 @@ int PDM_MPI_Scan(const void *sendbuf, void *recvbuf, int count,
 
 
 int PDM_MPI_Iscan(const void *sendbuf, void *recvbuf, int count,
-             PDM_MPI_Datatype datatype, PDM_MPI_Op op, PDM_MPI_Comm comm, 
+             PDM_MPI_Datatype datatype, PDM_MPI_Op op, PDM_MPI_Comm comm,
              PDM_MPI_Request *request)
 {
-  sendbuf; 
-  recvbuf; 
+  sendbuf;
+  recvbuf;
   count;
   datatype;
   op;
   comm;
   request;
-  
+
   PDM_error(__FILE__, __LINE__, 0, "PDM_MPI_Iscan : Unavailable function with pdm_no_mpi library\n" );
   abort();
   return 1;
@@ -805,14 +805,14 @@ int PDM_MPI_Iscan(const void *sendbuf, void *recvbuf, int count,
  *
  *----------------------------------------------------------------------------*/
 
-int PDM_MPI_Alltoall(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype, 
-                 void *recvbuf, int recvcount, 
+int PDM_MPI_Alltoall(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype,
+                 void *recvbuf, int recvcount,
                  PDM_MPI_Datatype recvtype, PDM_MPI_Comm comm)
 {
-  sendbuf; 
+  sendbuf;
   sendcount;
   sendtype;
-  recvbuf; 
+  recvbuf;
   recvcount;
   recvtype;
   comm;
@@ -851,16 +851,16 @@ int PDM_MPI_Ialltoall(void *sendbuf, int sendcount, PDM_MPI_Datatype sendtype,
  *
  *----------------------------------------------------------------------------*/
 
-int PDM_MPI_Alltoallv(void *sendbuf, int *sendcounts, int *sdispls, 
+int PDM_MPI_Alltoallv(void *sendbuf, int *sendcounts, int *sdispls,
                   PDM_MPI_Datatype sendtype, void *recvbuf, int *recvcounts,
                   int *rdispls, PDM_MPI_Datatype recvtype, PDM_MPI_Comm comm)
 {
-  sendbuf; 
+  sendbuf;
   sendcounts;
   sdispls;
-  rdispls;  
+  rdispls;
   sendtype;
-  recvbuf; 
+  recvbuf;
   recvcounts;
   recvtype;
   comm;
@@ -906,7 +906,7 @@ int PDM_MPI_Error_string(int errorcode, char *string, int *resultlen)
   errorcode;
   string;
   resultlen;
-  
+
   PDM_error(__FILE__, __LINE__, 0, "PDM_MPI_Allgatherv : Unavailable function with pdm_no_mpi library\n" );
   abort();
   return 1;
@@ -920,7 +920,7 @@ int PDM_MPI_Error_string(int errorcode, char *string, int *resultlen)
 int PDM_MPI_Comm_rank(PDM_MPI_Comm comm, int *rank)
 {
   comm;
-  *rank=0; 
+  *rank=0;
   return 1;
 }
 
@@ -932,7 +932,7 @@ int PDM_MPI_Comm_rank(PDM_MPI_Comm comm, int *rank)
 int PDM_MPI_Comm_size(PDM_MPI_Comm comm, int *size)
 {
   comm;
-  *size=1;  
+  *size=1;
   return 1;
 }
 
@@ -957,7 +957,7 @@ int PDM_MPI_get_max_error_string(void)
 int PDM_MPI_Comm_free(PDM_MPI_Comm *comm)
 {
   comm;
-  
+
   return 0;
 }
 
@@ -981,6 +981,6 @@ int PDM_MPI_Comm_split(PDM_MPI_Comm comm, int color, int key, PDM_MPI_Comm *newc
 }
 #endif /* __cplusplus */
 
-#if defined(__clang__)	
+#if defined(__clang__)
 #pragma clang diagnostic pop
 #endif

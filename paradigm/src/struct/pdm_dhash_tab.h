@@ -30,10 +30,10 @@ extern "C" {
 
 /**
  * \enum PDM_dhash_table_key_t
- * \brief 2 Types of keys                
+ * \brief 2 Types of keys
  *
  */
- 
+
 typedef enum {
 
   PDM_DHASH_TABLE_KEY_INT  = 0,  /*!< Integer key  */
@@ -43,8 +43,8 @@ typedef enum {
 
 /**
  * \struct PDM_dhash_tab_t
- * \brief Distributed hash Table 
- * 
+ * \brief Distributed hash Table
+ *
  *  PDM_dhash_tab_t define a distributed hasn table structure
  *
  */
@@ -56,7 +56,7 @@ typedef struct _dhash_tab_t PDM_dhash_tab_t;
  *============================================================================*/
 
 /*=============================================================================
- * Public function prototypes 
+ * Public function prototypes
  *============================================================================*/
 
 
@@ -66,7 +66,7 @@ typedef struct _dhash_tab_t PDM_dhash_tab_t;
  * This function returns an initialized \ref PDM_hash_tab_t structure
  *
  * \param [in]  tKey   \ref PDM_HASH_TAB_KEY_INT or \ref PDM_HASH_TAB_KEY_LONG
- * \param [in]  keyMax key max 
+ * \param [in]  keyMax key max
  *
  * \return      A new initialized \ref PDM_hash_tab_t structure
  *
@@ -82,10 +82,10 @@ void                        *keyMax
 
 
 /**
- * \brief Store keys in continuous block  
+ * \brief Store keys in continuous block
  *
  * This function stores keys in continuous block and distributes them on their
- * associated processes. 
+ * associated processes.
  *
  * \param [in]  hash_table    Hash table
  *
@@ -99,12 +99,12 @@ PDM_hash_tab_t *hash_table
 
 
 /**
- * \brief Store keys in continuous block  
+ * \brief Store keys in continuous block
  *
- * This function returns the current block properties 
+ * This function returns the current block properties
  *
  * \param [in]  hash_table    Hash table
- * \param [out] key_min       Min key in the current block 
+ * \param [out] key_min       Min key in the current block
  * \param [out] key_max       Max key in the current block
  *
  */
@@ -124,7 +124,7 @@ void           *key_max
  * This function adds a new data for a key
  *
  * \param [in]  hash_table    Hash table
- * \param [in]  key           key 
+ * \param [in]  key           key
  * \param [in]  data          data
  *
  */
@@ -144,10 +144,10 @@ void           *data
  * This function gets the number of data associated to a key
  *
  * \param [in]  hash_table    Hash table
- * \param [in]  key           key 
+ * \param [in]  key           key
  *
- * \return Number of data 
- *    
+ * \return Number of data
+ *
  */
 
 int
@@ -164,10 +164,10 @@ void           *key
  * This function gets data associated to a key
  *
  * \param [in]  hash_table    Hash table
- * \param [in]  key           key 
+ * \param [in]  key           key
  *
- * \return data 
- *    
+ * \return data
+ *
  */
 
 void **

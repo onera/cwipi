@@ -51,38 +51,38 @@ extern "C" {
 
 #ifdef PDM_HAVE_PARMETIS
 
-int 
-PDM_ParMETIS_V3_PartKway 
+int
+PDM_ParMETIS_V3_PartKway
 (
-const PDM_g_num_t *vtxdist, 
-const PDM_g_num_t *xadj, 
-const PDM_g_num_t *adjncy, 
-const int *vwgt, 
-const int *adjwgt, 
-const int *wgtflag, 
-const int *numflag, 
-const int *ncon, 
-const int *nparts, 
-const double *tpwgts, 
-const double *ubvec, 
-const int *edgecut, 
-int *part, 
+const PDM_g_num_t *vtxdist,
+const PDM_g_num_t *xadj,
+const PDM_g_num_t *adjncy,
+const int *vwgt,
+const int *adjwgt,
+const int *wgtflag,
+const int *numflag,
+const int *ncon,
+const int *nparts,
+const double *tpwgts,
+const double *ubvec,
+const int *edgecut,
+int *part,
 const PDM_MPI_Comm comm
 )
 {
-  vtxdist; 
-  xadj; 
-  adjncy; 
-  vwgt; 
-  adjwgt; 
-  wgtflag; 
-  numflag; 
-  ncon; 
-  nparts; 
-  tpwgts; 
-  ubvec; 
-  edgecut; 
-  part; 
+  vtxdist;
+  xadj;
+  adjncy;
+  vwgt;
+  adjwgt;
+  wgtflag;
+  numflag;
+  ncon;
+  nparts;
+  tpwgts;
+  ubvec;
+  edgecut;
+  part;
   comm;
 
   PDM_error(__FILE__, __LINE__, 0,"PDM_ParMETIS_V3_PartKway : Unavailable function with pdm_no_mpi library\n" );
@@ -92,31 +92,31 @@ const PDM_MPI_Comm comm
 
 
 #endif
-    
+
 #ifdef PDM_HAVE_PTSCOTCH
 
 void
-PDM_SCOTCH_dpart   
+PDM_SCOTCH_dpart
 (
 const PDM_g_num_t dNCell,
 const PDM_g_num_t *dDualGraphIdx,
-const PDM_g_num_t *dDualGraph,        
+const PDM_g_num_t *dDualGraph,
 const int *cellWeight,
 const int *edgeWeight,
-const int check,        
+const int check,
 const PDM_MPI_Comm comm,
-const int nPart,        
+const int nPart,
 int *part
 )
 {
   dNCell;
   dDualGraphIdx;
-  dDualGraph;        
+  dDualGraph;
   cellWeight;
   edgeWeight;
-  check;        
+  check;
   comm;
-  nPart;        
+  nPart;
   part;
 
   PDM_error(__FILE__, __LINE__, 0,"PDM_SCOTCH_dpart : Unavailable function with pdm_no_mpi library\n" );

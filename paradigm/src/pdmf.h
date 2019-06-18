@@ -7,4 +7,3 @@
   integer, parameter :: pdm_l_num_s = 4
 
   integer, parameter :: pdm_max_char_length = 100
-    

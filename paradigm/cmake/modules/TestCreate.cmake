@@ -1,8 +1,8 @@
 ################################################################################
-#  
+#
 # test_c_create and test_fortran_create add a Fortran test or a C test
 #
-# They uses LINK_LIBRARIES and TEST_INC variables 
+# They uses LINK_LIBRARIES and TEST_INC variables
 #
 ################################################################################
 

@@ -32,7 +32,7 @@ extern "C" {
 /**
  * \struct _surf_part_t
  * \brief  Mesh partition type
- * 
+ *
  * _surf_part_t defines a mesh partition structure
  *
  */
@@ -53,15 +53,15 @@ struct _pdm_surf_part_t {
   int               nVtx;        /*!< Number of vertices */
   const double     *coords;      /*!< Vertex coordinates */
   int              *vtxEdgeIdx;  /*!< Index in \ref vtxEdge (NULL if not computed) */
-  int              *vtxEdge;     /*!< Vertex -> edge connectivity 
+  int              *vtxEdge;     /*!< Vertex -> edge connectivity
                                       (NULL if not computed) */
   const PDM_g_num_t *vtxLnToGn;   /*!< Local vertex numbering to global vertex numbering */
   int               nEdge;       /*!< Number of edges */
   int               nGhostEdge;  /*!< Number of ghost edges */
   int               nTotalEdge;  /*!< Total number of edges */
-  int              *edgeFace;    /*!< Edge -> face connectivity 
+  int              *edgeFace;    /*!< Edge -> face connectivity
                                       (NULL if not computed) */
-  int              *edgeVtx;     /*!< Edge -> vertex connectivity 
+  int              *edgeVtx;     /*!< Edge -> vertex connectivity
                                       (NULL if not computed) */
   PDM_g_num_t       *edgeLnToGn;  /*!< Local edge numbering to global edge numbering */
 
@@ -71,7 +71,7 @@ struct _pdm_surf_part_t {
   double           *carLgthVtx;   /*!< Caracteristic length of vertices */
   double           *extents;      /*!< xmin, ymin, zmin, xmax, ymax, zmax for each face
                                        (size = dim * nFace * 2) */
-      
+
 } ;
 
 

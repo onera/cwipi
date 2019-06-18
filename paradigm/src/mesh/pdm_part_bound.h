@@ -29,10 +29,10 @@ extern "C" {
 
 /**
  * \enum PDM_part_bound_cplx_t
- * \brief 2 complexities                
+ * \brief 2 complexities
  *
  */
- 
+
 typedef enum {
 
   PDM_PART_BOUND_SIMPLE  = 0,  /*!< Simple */
@@ -43,8 +43,8 @@ typedef enum {
 
 /**
  * \struct PDM_part_bound_t
- * \brief Partition boundary 
- * 
+ * \brief Partition boundary
+ *
  *  PDM_part_bound_t define a partition boundary structure
  *
  */
@@ -56,7 +56,7 @@ typedef struct _part_bound_t PDM_part_bound_t;
  *============================================================================*/
 
 /*=============================================================================
- * Public function prototypes 
+ * Public function prototypes
  *============================================================================*/
 
 /**
@@ -65,7 +65,7 @@ typedef struct _part_bound_t PDM_part_bound_t;
  * This function returns an initialized \ref _part_bound_t structure
  *
  * \param [in]  lComm           Size of MPI communicator
- * \param [in]  nElt            Number of elements 
+ * \param [in]  nElt            Number of elements
  * \param [in]  nEltPartBound   Number of elements in the structure
  * \param [in]  cplx            Complexity
  * \param [in]  nConnectedElt   Number of connected elements of each element
@@ -89,7 +89,7 @@ const int                    nEltPartBound,
 const PDM_part_bound_cplx_t  cplx,
 const int                   *nConnectedElt,
 const int                   *nOfferElt,
-const PDM_g_num_t            nTotalOfferElt, 
+const PDM_g_num_t            nTotalOfferElt,
 const int                   nLocalOfferElt,
 const PDM_g_num_t            *gNLocalOfferElt
 );
@@ -176,7 +176,7 @@ PDM_part_bound_local_offer_elt_ln_to_gn_get
  *
  * \param [in]  part_bound      Inter partition boundary to free
  * \param [in]  boundElt             Element in part_bound
- * \param [in]  iElt                  Vertex number 
+ * \param [in]  iElt                  Vertex number
  *
  */
 
@@ -197,8 +197,8 @@ PDM_part_bound_local_elt_set
  * \param [in]  part_bound      Inter partition boundary to free
  * \param [in]  boundElt        Element in part_bound
  * \param [in]  iOfferElt       index of offered element
- * \param [in]  iNum            local number 
- * \param [in]  gNum            global number 
+ * \param [in]  iNum            local number
+ * \param [in]  gNum            global number
  *
  */
 
@@ -221,8 +221,8 @@ PDM_part_bound_offer_elt_set
  * \param [in]  part_bound      Inter partition boundary to free
  * \param [in]  boundElt        Element in part_bound
  * \param [in]  iOfferElt       index of offered element
- * \param [out]  iNum           local number 
- * \param [out]  gNum           global number 
+ * \param [out]  iNum           local number
+ * \param [out]  gNum           global number
  *
  */
 
@@ -371,7 +371,7 @@ PDM_part_bound_local_elt_get
  * \param [out] iProc                 Connected processus
  * \param [out] iProcPart             Connected partition in the connected processus
  * \param [out] procPartElt          Connected vertex in the connected partition
- * \param [out] iDistElt              Global Index of distant connected element 
+ * \param [out] iDistElt              Global Index of distant connected element
  *
  */
 

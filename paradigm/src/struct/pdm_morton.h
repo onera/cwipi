@@ -301,7 +301,7 @@ PDM_morton_quantile_search(size_t              n_quantiles,
  *----------------------------------------------------------------------------*/
 
 double
-PDM_morton_build_rank_index(int                      dim, 
+PDM_morton_build_rank_index(int                      dim,
                             int                      gmax_level,
                             PDM_l_num_t                n_codes,
                             const PDM_morton_code_t  code[],

@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   PDM_facecell_orient.h
  * Author: equemera
  *
@@ -44,10 +44,10 @@ extern "C" {
 
 /**
  * \brief Orient cell->face connectivity
- * 
- * At the output of th function, a face number in \ref cellFace is positive 
- * if surface normal is inside the cell, negative otherwise. \ref faceCell is 
- * oriented in the same way  
+ *
+ * At the output of th function, a face number in \ref cellFace is positive
+ * if surface normal is inside the cell, negative otherwise. \ref faceCell is
+ * oriented in the same way
  *
  * \param [in]     nCell       Number of cells
  * \param [in]     nFace       Number of faces
@@ -67,14 +67,14 @@ PDM_cellface_orient
 const int      nCell,
 const int      nFace,
 const int      nVtx,
-const double  *coords,        
+const double  *coords,
 const int     *cellFaceIdx,
 int           *cellFace,
 int           *faceCell,
 const int     *faceVtxIdx,
 const int     *faceVtx
 );
-  
+
 
 #ifdef	__cplusplus
 }

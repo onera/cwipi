@@ -32,7 +32,7 @@ extern "C" {
  *============================================================================*/
 
 /*=============================================================================
- * Public function prototypes 
+ * Public function prototypes
  *============================================================================*/
 
 /**
@@ -43,7 +43,7 @@ extern "C" {
  * \param [in]   array        Array where to search
  * \param [in]   lArray       Array length
  *
- * \return       Index where element is stored    
+ * \return       Index where element is stored
  */
 
 int
@@ -63,7 +63,7 @@ PDM_binary_search_gap_long
  * \param [in]   array        Array where to search
  * \param [in]   lArray       Array length
  *
- * \return       Index where element is stored    
+ * \return       Index where element is stored
  */
 
 int
@@ -83,11 +83,11 @@ PDM_binary_search_long
  * \param [in]   array        Array where to search
  * \param [in]   lArray       Array length
  *
- * \return       Index where element is stored    
+ * \return       Index where element is stored
  */
 
 int
-PDM_binary_search_int 
+PDM_binary_search_int
 (
  const int          elt,
  const int         *array,
@@ -103,7 +103,7 @@ PDM_binary_search_int
  * \param [in]   array        Array where to search
  * \param [in]   lArray       Array length
  *
- * \return       Index where element is stored    
+ * \return       Index where element is stored
  */
 
 int
@@ -123,7 +123,7 @@ PDM_binary_search_gap_int
  * \param [in]   array        Array where to search
  * \param [in]   lArray       Array length
  *
- * \return       Index where element is stored    
+ * \return       Index where element is stored
  */
 
 int

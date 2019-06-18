@@ -51,7 +51,7 @@ int exit_code
      "  -n      <level>  Number of vertices on the cube side.\n\n"
      "  -l      <level>  Cube length.\n\n"
      "  -h               This message.\n\n");
-     
+
 
   exit (exit_code);
 }
@@ -109,7 +109,7 @@ _read_args
         *nPart = (PDM_g_num_t) _nPart;
       }
     }
-    
+
     else if (strcmp (argv[i], "-l") == 0) {
       i++;
       if (i >= argc)
@@ -203,10 +203,10 @@ PDM_part_split_t           method,
                      ymax,
                      haveRandom,
                      initRandom,
-                     nx,       
+                     nx,
                      ny,
                      nGFace,
-                     nGVtx,  
+                     nGVtx,
                      nGEdge,
                      &dNVtx,
                      &dVtxCoord,
@@ -222,21 +222,79 @@ PDM_part_split_t           method,
                      &dEdgeGroup);
 
   int id = PDM_gnum_create (3, 1, PDM_FALSE, 1e-3, pdm_mpi_comm);
-       
+
   PDM_gnum_set_from_coords (id, 0, dNVtx, dVtxCoord, NULL);
-  
+
   PDM_gnum_compute (id);
 
   const PDM_g_num_t *_numabs2 = PDM_gnum_get (id, 0);
-    
-  
+
+  /* const PDM_g_num_t *_numabs2 = NULL; */
+  /* int id; */
+
+  /* int nn = 10000; */
+
+  /* for (int i = 0; i < nn; i++) { */
+
+  /*   if (i < nn - 1) { */
+
+  /*     id = PDM_gnum_create (3, 1, PDM_TRUE, 1e-3, pdm_mpi_comm); */
+  /*   } */
+
+  /*   else { */
+  /*     id = PDM_gnum_create (3, 1, PDM_FALSE, 1e-3, pdm_mpi_comm); */
+
+  /*   } */
+
+  /*   double *dd = malloc (sizeof(double) * dNVtx); */
+
+  /*   for (int j = 0; j < dNVtx; j++) { */
+  /*     dd[j] = 1e-5; */
+  /*   } */
+
+  /*   if (i < nn - 1) { */
+  /*     PDM_gnum_set_from_coords (id, 0, dNVtx, dVtxCoord, dd); */
+  /*   } */
+  /*   else { */
+  /*     PDM_gnum_set_from_coords (id, 0, dNVtx, dVtxCoord, NULL); */
+  /*   } */
+
+  /*   PDM_gnum_compute (id); */
+
+  /*   _numabs2 = PDM_gnum_get (id, 0); */
+
+  /*   free(dd); */
+
+  /*   if (i < nn - 1) { */
+  /*     PDM_gnum_free (id, 0); */
+  /*   } */
+
+  /*   FILE *f = fopen("/proc/self/statm", "r"); */
+
+  /*   long int mvirt, mres, mshared, val1, val2, val3; */
+  /*   fscanf(f, "%ld %ld %ld %ld %ld %ld", &mvirt, &mres, &mshared, &val1, &val2, &val3); */
+
+  /*   long int m_mvirt, m_mres, m_mshared; */
+
+  /*   PDM_MPI_Allreduce (&mvirt, &m_mvirt, 1, PDM_MPI_LONG, PDM_MPI_MAX, pdm_mpi_comm); */
+  /*   PDM_MPI_Allreduce (&mres, &m_mres, 1, PDM_MPI_LONG, PDM_MPI_MAX, pdm_mpi_comm); */
+  /*   PDM_MPI_Allreduce (&mshared, &m_mshared, 1, PDM_MPI_LONG, PDM_MPI_MAX, pdm_mpi_comm); */
+
+  /*   if (myRank == 0) { */
+  /*     printf("mem %d %d : %ld Ko %ld Ko %ld Ko\n", i, dNVtx, 4*m_mvirt , 4*m_mres, 4*m_mshared); */
+  /*     //      printf("mem %d %d : %ld Mo %ld Mo %ld Mo\n", i, dNVtx, 4*m_mvirt/1024 , 4*m_mres/1024, 4*m_mshared/1024); */
+  /*   } */
+  /*   fclose(f); */
+
+  /* } */
+
 //  for (int j = 0; j < dNVtx; j++) {
-//    PDM_printf (PDM_FMT_G_NUM" %12.5e %12.5e %12.5e\n", _numabs2[j], dVtxCoord[3*j], 
-//                                                     dVtxCoord[3*j+1], 
+//    PDM_printf (PDM_FMT_G_NUM" %12.5e %12.5e %12.5e\n", _numabs2[j], dVtxCoord[3*j],
+//                                                     dVtxCoord[3*j+1],
 //                                                     dVtxCoord[3*j+2]);
 //  }
 
-  struct timeval t_elaps_fin; 
+  struct timeval t_elaps_fin;
 
   gettimeofday (&t_elaps_fin, NULL);
 
@@ -311,7 +369,7 @@ PDM_part_split_t           method,
   /*
    *  Split mesh i
    */
-  
+
   int ppartId;
 
   int nPropertyCell = 0;
@@ -337,7 +395,7 @@ PDM_part_split_t           method,
     distrib[i] +=  distrib[i-1];
   }
 
-  
+
   PDM_part_create (&ppartId,
                    pdm_mpi_comm,
                    method,
@@ -406,8 +464,8 @@ PDM_part_split_t           method,
                   &bound_part_faces_min,
                   &bound_part_faces_max,
                   &bound_part_faces_sum);
-  
-  
+
+
 
   free (dVtxCoord);
   free (dFaceVtxIdx);
@@ -425,7 +483,7 @@ PDM_part_split_t           method,
 
   int *nVtxs = malloc (sizeof(int) * nPart);
   PDM_g_num_t **vtxLNToGNs = malloc (sizeof(PDM_g_num_t *) * nPart);
-  
+
   for (int ipart = 0; ipart < nPart; ipart++) {
 
     int nFace;
@@ -437,7 +495,7 @@ PDM_part_split_t           method,
     int sEdgeVtx;
     int sEdgeGroup;
     int nEdgeGroup2;
-    
+
     PDM_part_part_dim_get (ppartId,
                            ipart,
                            &nFace,
@@ -450,7 +508,7 @@ PDM_part_split_t           method,
                            &sEdgeVtx,
                            &sEdgeGroup,
                            &nEdgeGroup2);
-    
+
     nVtxs[ipart] = nVtx;
 
     char_length[ipart] = malloc (sizeof(double) * nVtx);
@@ -498,12 +556,12 @@ PDM_part_split_t           method,
                        &faceGroupIdx,
                        &faceGroup,
                        &faceGroupLNToGN);
-    
+
     vtxLNToGNs[ipart] = vtxLNToGN;
 
     for (int j = 0; j < nEdge; j++) {
       int i1 = faceVtxIdx[j];
-      int n = faceVtxIdx[j+1] - i1; 
+      int n = faceVtxIdx[j+1] - i1;
       for (int k = 0; k < n; k++) {
         int vtx1 = faceVtx[i1+k] - 1;
         int vtx2 = faceVtx[i1+(k+1)%n] - 1;
@@ -519,42 +577,42 @@ PDM_part_split_t           method,
 
   }
 
-  PDM_timer_t *timer = PDM_timer_create();                                                                                  
-  PDM_timer_resume(timer);                                                                                     
+  PDM_timer_t *timer = PDM_timer_create();
+  PDM_timer_resume(timer);
   PDM_gnum_compute (id2);
-  PDM_timer_hang_on(timer);                                                                                    
+  PDM_timer_hang_on(timer);
   printf("Compute gnum end %12.5es\n", PDM_timer_elapsed(timer));
   fflush(stdout);
   PDM_timer_free(timer);
 
   const PDM_g_num_t **_numabs = malloc (sizeof(PDM_g_num_t *) * nPart);
- 
+
   // Check
-  
+
   PDM_g_num_t *numabs_init = malloc(sizeof(PDM_g_num_t) * dNVtx);
-  
+
   for (int i = 0; i < dNVtx; i++) {
     numabs_init[i] = distrib[myRank] + 1 + i;
   }
-  
+
   PDM_part_to_block_t *ptb1 = PDM_part_to_block_create (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
                                                         PDM_PART_TO_BLOCK_POST_CLEANUP, 1.,
                                                         &numabs_init,
-                                                        NULL,  
+                                                        NULL,
                                                         &dNVtx,
-                                                        1,  
+                                                        1,
                                                         pdm_mpi_comm);
 
-                                        
+
   PDM_part_to_block_t *ptb2 = PDM_part_to_block_create (PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC,
                                                         PDM_PART_TO_BLOCK_POST_CLEANUP, 1.,
                                                         vtxLNToGNs,
                                                         NULL,
                                                         nVtxs,
-                                                        nPart,  
+                                                        nPart,
                                                         pdm_mpi_comm);
-  
-  
+
+
   for (int ipart = 0; ipart < nPart; ipart++) {
 
     _numabs[ipart] = PDM_gnum_get (id2, ipart);
@@ -568,7 +626,7 @@ PDM_part_split_t           method,
     int sEdgeVtx;
     int sEdgeGroup;
     int nEdgeGroup2;
-    
+
     PDM_part_part_dim_get (ppartId,
                            ipart,
                            &nFace,
@@ -621,19 +679,19 @@ PDM_part_split_t           method,
                        &faceGroupIdx,
                        &faceGroup,
                        &faceGroupLNToGN);
-    
+
   }
-  
+
   int nElb1 =  PDM_part_to_block_n_elt_block_get (ptb1);
 
   int nElb2 =  PDM_part_to_block_n_elt_block_get (ptb2);
-  
+
   assert (nElb1 == nElb2);
-  
+
   PDM_g_num_t *block_numabs2;
   PDM_g_num_t *block_numabs;
-  int *block_stride;  
-  
+  int *block_stride;
+
   PDM_part_to_block_exch (ptb1,
                           sizeof(PDM_g_num_t),
                           PDM_STRIDE_CST,
@@ -642,7 +700,7 @@ PDM_part_split_t           method,
                           (void **) &_numabs2,
                           &block_stride,
                           (void **) &block_numabs2);
-  
+
   PDM_part_to_block_exch (ptb2,
                           sizeof(PDM_g_num_t),
                           PDM_STRIDE_CST,
@@ -651,24 +709,24 @@ PDM_part_split_t           method,
                           (void **) _numabs,
                           &block_stride,
                           (void **) &block_numabs);
-  
+
   for (int i = 0; i < nElb1; i++) {
     if (block_numabs[i] != block_numabs2[i]) {
-      PDM_printf("-- diff %d : "PDM_FMT_G_NUM" "PDM_FMT_G_NUM" \n", 
+      PDM_printf("-- diff %d : "PDM_FMT_G_NUM" "PDM_FMT_G_NUM" \n",
              i, block_numabs2[i], block_numabs[i]);
       PDM_error (__FILE__, __LINE__, 0, "Error in the generated numbering\n");
     }
-    
+
   }
-    
+
 //  PDM_g_num_t *n1 = PDM_part_to_block_block_gnum_get (ptb1);
 //  PDM_g_num_t *n2 = PDM_part_to_block_block_gnum_get (ptb2);
-  
+
   for (int ipart = 0; ipart < nPart; ipart++) {
     free (char_length[ipart]);
   }
   free (char_length);
-  
+
   free(_numabs);
   free(block_numabs);
   free(block_numabs2);
@@ -676,16 +734,16 @@ PDM_part_split_t           method,
   free(vtxLNToGNs);
   free(numabs_init);
   free(distrib);
-  
+
   PDM_gnum_free (id2, 0);
-  
+
   PDM_gnum_free (id, 0);
-  
+
   PDM_part_to_block_free (ptb1);
   PDM_part_to_block_free (ptb2);
-  
+
   return ppartId;
-  
+
 }
 
 /**
@@ -703,30 +761,30 @@ char *argv[]
 {
 
   PDM_MPI_Init (&argc, &argv);
-  
+
   /*
    *  Set default values
    */
-  
+
   PDM_g_num_t   nVtxSeg = 4;
   double        length  = 1.;
   int           nPart   = 1;
-#ifdef PDM_HAVE_PARMETIS  
+#ifdef PDM_HAVE_PARMETIS
   PDM_part_split_t method  = PDM_PART_SPLIT_PARMETIS;
 #else
-#ifdef PDM_HAVE_PTSCOTCH  
+#ifdef PDM_HAVE_PTSCOTCH
   PDM_part_split_t method  = PDM_PART_SPLIT_PTSCOTCH;
 #endif
-#endif  
+#endif
   int           haveRandom = 0;
 
   int           myRank;
   int           numProcs;
-  
+
   /*
    *  Read args
    */
-  
+
   _read_args (argc,
               argv,
               &nVtxSeg,
@@ -739,14 +797,14 @@ char *argv[]
   /*
    *  Create a partitioned mesh
    */
-  
+
   PDM_g_num_t nGFace;
   PDM_g_num_t nGVtx;
   PDM_g_num_t nGEdge;
   int imesh = 0;
   int nTPart;
   int nEdgeGroup;
-  
+
  _create_split_mesh (imesh,
                      PDM_MPI_COMM_WORLD,
                      nVtxSeg,
@@ -759,13 +817,11 @@ char *argv[]
                      &nGEdge,
                      &nTPart,
                      &nEdgeGroup);
-  
+
  PDM_MPI_Finalize ();
- 
+
  PDM_printf ("\nfin Test\n");
- 
+
  return 0;
 
 }
-
-

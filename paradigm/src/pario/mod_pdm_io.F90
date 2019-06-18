@@ -1,8 +1,8 @@
 
-module mod_pdm_io
-  
-  use mod_pdm
-  
+module pdm_io
+
+  use pdm
+
   implicit none
 
   !
@@ -10,18 +10,18 @@ module mod_pdm_io
   ! ----------
 
   !
-  ! Types de sufixe                          
+  ! Types de sufixe
 
-  integer (kind = pdm_l_num_s), parameter :: pdm_io_suff_auto        = 0 ! Suffixe detemine automatiquement                      
-  integer (kind = pdm_l_num_s), parameter :: pdm_io_suff_man         = 1 ! Suffixe fourni par l'utilisateur                       
+  integer (kind = pdm_l_num_s), parameter :: pdm_io_suff_auto        = 0 ! Suffixe detemine automatiquement
+  integer (kind = pdm_l_num_s), parameter :: pdm_io_suff_man         = 1 ! Suffixe fourni par l'utilisateur
 
   !
-  ! Endianness                                 
+  ! Endianness
 
   integer (kind = pdm_l_num_s), parameter :: pdm_io_bigendian        = 0 ! Contenu en bigendian
   integer (kind = pdm_l_num_s), parameter :: pdm_io_littleendian     = 1 ! Contenu en little endian
   integer (kind = pdm_l_num_s), parameter :: pdm_io_native           = 3 ! Contenu natif machine
-  
+
   !
   ! Types de données
 
@@ -50,15 +50,15 @@ module mod_pdm_io
   ! Indique si le nombre de sous-variables d'une variable est constant ou variable
   ! selon le numero de la donnee
 
-  integer (kind = pdm_l_num_s), parameter :: pdm_io_n_composante_constant = 0  
-  integer (kind = pdm_l_num_s), parameter :: pdm_io_n_composante_variable = 1  
+  integer (kind = pdm_l_num_s), parameter :: pdm_io_n_composante_constant = 0
+  integer (kind = pdm_l_num_s), parameter :: pdm_io_n_composante_variable = 1
 
   !
   ! Indique si les donnees lues ou écrites sont rangÃ©es par blocs contigus en mÃ©moire
   ! ou respectent une indirection (donnees entrelacees)
 
-  integer(kind = pdm_l_num_s), parameter :: pdm_io_donnees_bloc = 0  
-  integer(kind = pdm_l_num_s), parameter :: pdm_io_donnees_entrelacee = 1  
+  integer(kind = pdm_l_num_s), parameter :: pdm_io_donnees_bloc = 0
+  integer(kind = pdm_l_num_s), parameter :: pdm_io_donnees_entrelacee = 1
 
   !
   ! Indique si le fichier contient une entete IOCEDRE
@@ -97,7 +97,7 @@ module mod_pdm_io
   private :: pdm_io_open_
   private :: pdm_io_fmt_donnee_set_
 
-contains 
+contains
 
 !----------------------------------------------------------------------------
 ! Ouverture d'un fichier pour acces parallele
@@ -105,7 +105,7 @@ contains
 ! parameters :
 !    nom             <-- Nom du fichier
 !    fmt             <-- Fichier text ou binaire
-!    s_entete        <-- Fichier avec ou sans entete 
+!    s_entete        <-- Fichier avec ou sans entete
 !    suff_t          <-- Type de suffixe (manuel ou automatique)
 !    suff_u          <-- Suffixe (si suffixe manuel)
 !    s_backup        <-- Active le backup d'un fichier preexistant en mode ecriture
@@ -114,7 +114,7 @@ contains
 !    mode            <-- Mode d'acces (lecture, ecriture, lecture/ecriture)
 !    msg_comm        <-- Communicateur lie au fichier
 !    unite           --> Unite du fichier
-!    ierr            --> Indique si le fichier est de type pdm_io ou non     
+!    ierr            --> Indique si le fichier est de type pdm_io ou non
 !                        Utiliser uniquement pour une ouverture en lecture
 !
 !----------------------------------------------------------------------------
@@ -137,18 +137,18 @@ contains
     ! Arguments
 
     character (len = *),          intent(in)  :: nom
-    integer (kind = pdm_l_num_s), intent(in)  :: fmt       
-    integer (kind = pdm_l_num_s), intent(in)  :: suff_t  
+    integer (kind = pdm_l_num_s), intent(in)  :: fmt
+    integer (kind = pdm_l_num_s), intent(in)  :: suff_t
     character (len = *),          intent(in)  :: suff_u
     integer (kind = pdm_l_num_s), intent(in)  :: s_backup
     integer (kind = pdm_l_num_s), intent(in)  :: type_io
     integer (kind = pdm_l_num_s), intent(in)  :: mode
-    integer (kind = pdm_l_num_s), intent(in)  :: endian       
+    integer (kind = pdm_l_num_s), intent(in)  :: endian
     integer (kind = pdm_l_num_s), intent(in)  :: msg_comm
     real                        , intent(in)  :: prop_noeuds_actifs
     integer (kind = pdm_l_num_s), intent(out) :: unite
-    integer (kind = pdm_l_num_s), intent(out) :: ierr 
-    
+    integer (kind = pdm_l_num_s), intent(out) :: ierr
+
     !
     ! Variables locales
 
@@ -156,7 +156,7 @@ contains
     integer            :: l_suff_u ! Longueur de la chaine nom
 
     !
-    ! Calcul de la longueur des chaines pour la conversion en string C 
+    ! Calcul de la longueur des chaines pour la conversion en string C
 
     l_nom = len(nom)
     l_suff_u = len(suff_u)
@@ -186,7 +186,7 @@ contains
 !
 ! parameters :
 !   nom             <-- Nom du fichier
-!   suff_t          <-- Type de suffixe :             
+!   suff_t          <-- Type de suffixe :
 !                           - pdm_io_suff_auto
 !                           - pdm_io_suff_man
 !   type_io         <-- Type d'acces a choisir entre :
@@ -194,13 +194,13 @@ contains
 !                           - pdm_io_acces_mpiio_ip
 !                           - pdm_io_acces_mpi_simple
 !                           - pdm_io_acces_seq
-!   mode            <-- Mode d'acces a choisir entre : 
+!   mode            <-- Mode d'acces a choisir entre :
 !                           - pdm_io_mode_lecture
 !                           - pdm_io_mode_ecriture
 !                           - pdm_io_mode_ajout
 !   msg_comm        <-- Communicateur lie au fichier
 !   unite           --> Unite du fichier
-!   ierr            --> Indicateur d'erreur  
+!   ierr            --> Indicateur d'erreur
 !
 !----------------------------------------------------------------------------
 
@@ -210,18 +210,18 @@ contains
     !
     ! Arguments
 
-    integer (kind = pdm_l_num_s), intent(in)  :: unite  
-    integer (kind = pdm_l_num_s), intent(in)  :: n_char_fmt  
+    integer (kind = pdm_l_num_s), intent(in)  :: unite
+    integer (kind = pdm_l_num_s), intent(in)  :: n_char_fmt
     integer (kind = pdm_l_num_s), intent(in)  :: data_type
     character (len = *),          intent(in)  :: fmt
-    
+
     !
     ! Variables locales
 
     integer (kind = pdm_l_num_s) :: l_fmt ! Longueur de la chaine nom
 
     !
-    ! Calcul de la longueur des chaines pour la conversion en string C 
+    ! Calcul de la longueur des chaines pour la conversion en string C
 
     l_fmt = len(fmt)
 
@@ -247,13 +247,13 @@ contains
 ! Fonction definie en C dans pdm_io.c
 !
 !   subroutine pdm_io_lecture_globale(unite, &
-!                                       taille_donnee, & 
-!                                       n_donnees, & 
+!                                       taille_donnee, &
+!                                       n_donnees, &
 !                                       donnees)
 !
-!     ! 
+!     !
 !     ! Arguments
-! 
+!
 !     integer (kind = pdm_l_num_s),          intent(in)  :: unite
 !     integer (kind = pdm_l_num_s),          intent(in)  :: taille_donnee
 !     integer (kind = pdm_l_num_s),          intent(in)  :: n_donnees
@@ -268,19 +268,19 @@ contains
 !   taille_donnee     <-- Taille unitaire de la donnnee en octet
 !   n_donnees         <-- Nombre de donnees a ecrire
 !   donnees           <-- Donnees a ecrire
-!  
+!
 !----------------------------------------------------------------------------
 !
 ! Fonction definie en C dans pdm_io.c
 !
 !   subroutine pdm_io_ecriture_global(unite, &
-!                                       taille_donnee, & 
-!                                       n_donnees, & 
+!                                       taille_donnee, &
+!                                       n_donnees, &
 !                                       donnees)
 !
-!     ! 
+!     !
 !     ! Arguments
-! 
+!
 !     integer (kind = pdm_l_num_s),          intent(in)  :: unite
 !     integer (kind = pdm_l_num_s),          intent(in)  :: taille_donnee
 !     integer (kind = pdm_l_num_s),          intent(in)  :: n_donnees
@@ -294,7 +294,7 @@ contains
 !         - taille de donnÃ©es
 !         - nombre de donnÃ©e
 !         - indirection (numÃ©rotation absolue)
-! 
+!
 !  arguments :
 !    unite             <-- Unite du fichier
 !    rangement         <-- Type de rangement A choisir entre :
@@ -302,7 +302,7 @@ contains
 !                              - pdm_io_donnees_entrelacee
 !    num_var_pdm_max <-- NumÃ©ro max de variable CEDRE
 !    n_partition_local <-- Nombre de partitions locales
-! 
+!
 !----------------------------------------------------------------------------
 !
 ! Fonction definie en C dans pdm_io_tab.c
@@ -311,9 +311,9 @@ contains
 !                                     t_rangement, &
 !                                     num_var_pdm_max, &
 !                                     n_partition_local)
-!     ! 
+!     !
 !     ! Arguments
-! 
+!
 !     integer (kind = pdm_l_num_s),      intent(in)  :: unite
 !     integer,                              intent(in)  :: t_rangement
 !     integer (kind = pdm_l_num_s),      intent(in)  :: num_var_pdm_max
@@ -325,9 +325,9 @@ contains
 ! CEDRE
 !
 ! arguments :
-!   num_var_cedre         <-- NumÃ©ro de variable CEDRE 
-!   num_indirection_cedre <-- NumÃ©ro d'indirection CEDRE         
-!   i_part                <-- indice de partition 
+!   num_var_cedre         <-- NumÃ©ro de variable CEDRE
+!   num_indirection_cedre <-- NumÃ©ro d'indirection CEDRE
+!   i_part                <-- indice de partition
 !   t_n_composantes       <-- Type de tailles composantes A choisir entre :
 !                               - pdm_io_n_composante_constant
 !                               - pdm_io_n_composante_variable
@@ -343,16 +343,16 @@ contains
 !
 ! Fonction definie en C dans pdm_io_tab.c
 !
-!  subroutine pdm_io_tab_ecr_ajout_donnees(num_var_cedre, &         
-!                                            num_indirection_cedre, &         
-!                                            i_part, &         
-!                                            t_n_composantes, &         
+!  subroutine pdm_io_tab_ecr_ajout_donnees(num_var_cedre, &
+!                                            num_indirection_cedre, &
+!                                            i_part, &
+!                                            t_n_composantes, &
 !                                            n_composantes, &
 !                                            taille_donnee, &
 !                                            n_donnees, &
 !                                            indirection, &
 !                                            donnees)
-!     ! 
+!     !
 !     ! Arguments
 !
 !     integer (kind = pdm_l_num_s),           intent(in)  :: num_var_cedre
@@ -362,7 +362,7 @@ contains
 !     integer (kind = pdm_l_num_s),           intent(in)  :: taille_donnee
 !     integer (kind = pdm_l_num_s),           intent(in)  :: n_donnees
 !     integer (kind = pdm_g_num_s), dimension(*), intent(in)  :: indirection
-!     "Pas de type : void* en C" , dimension(*), intent(out) :: donnees 
+!     "Pas de type : void* en C" , dimension(*), intent(out) :: donnees
 
 
 !----------------------------------------------------------------------------
@@ -385,7 +385,7 @@ contains
 !         - taille de donnÃ©es
 !         - nombre de donnÃ©e
 !         - indirection (numÃ©rotation absolue)
-! 
+!
 !  arguments :
 !    unite             <-- Unite du fichier
 !    rangement         <-- Type de rangement A choisir entre :
@@ -393,7 +393,7 @@ contains
 !                              - pdm_io_donnees_entrelacee
 !    num_var_pdm_max <-- NumÃ©ro max de variable CEDRE
 !    n_partition_local <-- Nombre de partitions locales
-! 
+!
 !----------------------------------------------------------------------------
 !
 ! Fonction definie en C dans pdm_io_tab.c
@@ -402,9 +402,9 @@ contains
 !                                     t_rangement, &
 !                                     num_var_pdm_max, &
 !                                     n_partition_local)
-!     ! 
+!     !
 !     ! Arguments
-! 
+!
 !     integer (kind = pdm_l_num_s),      intent(in)  :: unite
 !     integer,                              intent(in)  :: t_rangement
 !     integer (kind = pdm_l_num_s),      intent(in)  :: num_var_pdm_max
@@ -416,9 +416,9 @@ contains
 ! CEDRE
 !
 ! arguments :
-!   num_var_cedre         <-- NumÃ©ro de variable CEDRE 
-!   num_indirection_cedre <-- NumÃ©ro d'indirection CEDRE         
-!   i_part                <-- indice de partition 
+!   num_var_cedre         <-- NumÃ©ro de variable CEDRE
+!   num_indirection_cedre <-- NumÃ©ro d'indirection CEDRE
+!   i_part                <-- indice de partition
 !   t_n_composantes       <-- Type de tailles composantes A choisir entre :
 !                               - pdm_io_n_composante_constant
 !                               - pdm_io_n_composante_variable
@@ -436,16 +436,16 @@ contains
 !
 ! Fonction definie en C dans pdm_io_tab.c
 !
-!  subroutine pdm_io_tab_lec_ajout_donnees(num_var_cedre, &         
-!                                            num_indirection_cedre, &         
-!                                            i_part, &         
-!                                            t_n_composantes, &         
+!  subroutine pdm_io_tab_lec_ajout_donnees(num_var_cedre, &
+!                                            num_indirection_cedre, &
+!                                            i_part, &
+!                                            t_n_composantes, &
 !                                            n_composantes, &
 !                                            taille_donnee, &
 !                                            n_donnees, &
 !                                            indirection, &
 !                                            donnees)
-!     ! 
+!     !
 !     ! Arguments
 !
 !     integer (kind = pdm_l_num_s),           intent(in)  :: num_var_cedre
@@ -455,7 +455,7 @@ contains
 !     integer (kind = pdm_l_num_s),           intent(in)  :: taille_donnee
 !     integer (kind = pdm_l_num_s),           intent(in)  :: n_donnees
 !     integer (kind = pdm_g_num_s), dimension(*), intent(in)  :: indirection
-!     "Pas de type : void* en C" , dimension(*), intent(out) :: donnees 
+!     "Pas de type : void* en C" , dimension(*), intent(out) :: donnees
 
 
 !----------------------------------------------------------------------------
@@ -480,13 +480,13 @@ contains
 !                       A choisir entre :
 !                             - pdm_io_n_composante_constant
 !                             - pdm_io_n_composante_variable
-!   n_composantes   <-- Nombre de composantes (tableau ou scalaire suivant 
+!   n_composantes   <-- Nombre de composantes (tableau ou scalaire suivant
 !                                              la valeur de t_n_composantes)
 !   taille_donnee   <-- Taille unitaire de la donnnee en octet
 !   n_donnees       <-- Nombre de donnees a lire
 !   indirection     <-- Indirection (Numerotation absolue)
 !   donnees         --> Donnees lues
-!  
+!
 !----------------------------------------------------------------------------
 !
 ! Fonction definie en C dans pdm_io.c
@@ -494,21 +494,21 @@ contains
 !   subroutine pdm_io_lec_par_entrelacee(unite, &
 !                                          t_n_composantes, &
 !                                          n_composantes, &
-!                                          taille_donnee, & 
-!                                          n_donnees, & 
+!                                          taille_donnee, &
+!                                          n_donnees, &
 !                                          indirection, &
 !                                          donnees)
 !
-!     ! 
+!     !
 !     ! Arguments
-! 
+!
 !     integer (kind = pdm_l_num_s),           intent(in)  :: unite
 !     integer,                                   intent(in)  :: t_n_composantes
 !     integer (kind = pdm_l_num_s),           intent(in)  :: n_composantes
 !     integer (kind = pdm_l_num_s),           intent(in)  :: taille_donnee
 !     integer (kind = pdm_l_num_s),           intent(in)  :: n_donnees
 !     integer (kind = pdm_g_num_s), dimension(*), intent(in)  :: indirection
-!     "Pas de type : void* en C" , dimension(*), intent(out) :: donnees 
+!     "Pas de type : void* en C" , dimension(*), intent(out) :: donnees
 
 
 !----------------------------------------------------------------------------
@@ -520,13 +520,13 @@ contains
 !                       A choisir entre :
 !                             - pdm_io_n_composante_constant
 !                             - pdm_io_n_composante_variable
-!   n_composantes   <-- Nombre de composantes (tableau ou scalaire suivant 
+!   n_composantes   <-- Nombre de composantes (tableau ou scalaire suivant
 !                                              la valeur de t_n_composantes)
 !   taille_donnee   <-- Taille unitaire de la donnnee en octet
 !   n_donnees       <-- Nombre de donnees a ecrire
 !   debut_bloc      <-- Index du debut du bloc
 !   donnees         --> Donnees lues
-!  
+!
 !----------------------------------------------------------------------------
 !
 ! Fonction definie en C dans pdm_io.c
@@ -534,21 +534,21 @@ contains
 !   subroutine pdm_io_lec_par_bloc(unite, &
 !                                    t_n_composantes, &
 !                                    n_composantes, &
-!                                    taille_donnee, & 
-!                                    n_donnees, & 
+!                                    taille_donnee, &
+!                                    n_donnees, &
 !                                    debut_bloc, &
 !                                    donnees)
 !
-!     ! 
+!     !
 !     ! Arguments
-! 
+!
 !     integer (kind = pdm_l_num_s),           intent(in)  :: unite
 !     integer                                    intent(in)  :: t_n_composantes
 !     integer (kind = pdm_l_num_s),           intent(in)  :: n_composantes
 !     integer (kind = pdm_l_num_s),           intent(in)  :: taille_donnee
 !     integer (kind = pdm_g_num_s),          intent(in)  :: debut_bloc
 !     integer (kind = pdm_l_num_s),           intent(in)  :: n_donnees
-!     "Pas de type : void* en C" , dimension(*), intent(out) :: donnees 
+!     "Pas de type : void* en C" , dimension(*), intent(out) :: donnees
 
 
 !----------------------------------------------------------------------------
@@ -560,13 +560,13 @@ contains
 !                       A choisir entre :
 !                             - pdm_io_n_composante_constant
 !                             - pdm_io_n_composante_variable
-!   n_composantes   <-- Nombre de composantes (tableau ou scalaire suivant 
+!   n_composantes   <-- Nombre de composantes (tableau ou scalaire suivant
 !                                              la valeur de t_n_composantes)
 !   taille_donnee   <-- Taille unitaire de la donnnee en octet
 !   n_donnees       <-- Nombre de donnees a lire
 !   indirection     <-- Indirection (Numerotation absolue)
 !   donnees         <-- Donnees a ecrire
-!  
+!
 !----------------------------------------------------------------------------
 !
 ! Fonction definie en C dans pdm_io.c
@@ -574,21 +574,21 @@ contains
 !   subroutine pdm_io_ecr_par_entrelacee(unite, &
 !                                          t_n_composantes, &
 !                                          n_composantes, &
-!                                          taille_donnee, & 
-!                                          n_donnees, & 
+!                                          taille_donnee, &
+!                                          n_donnees, &
 !                                          indirection, &
 !                                          donnees)
 !
-!     ! 
+!     !
 !     ! Arguments
-! 
+!
 !     integer (kind = pdm_l_num_s),           intent(in)  :: unite
 !     integer,                                   intent(in)  :: t_n_composantes
 !     integer (kind = pdm_l_num_s),           intent(in)  :: n_composantes
 !     integer (kind = pdm_l_num_s),           intent(in)  :: taille_donnee
 !     integer (kind = pdm_l_num_s),           intent(in)  :: n_donnees
 !     integer (kind = pdm_g_num_s), dimension(*), intent(in)  :: indirection
-!     "Pas de type : void* en C" , dimension(*), intent(out) :: donnees 
+!     "Pas de type : void* en C" , dimension(*), intent(out) :: donnees
 
 
 !----------------------------------------------------------------------------
@@ -600,13 +600,13 @@ contains
 !                       A choisir entre :
 !                             - pdm_io_n_composante_constant
 !                             - pdm_io_n_composante_variable
-!   n_composantes   <-- Nombre de composantes (tableau ou scalaire suivant 
+!   n_composantes   <-- Nombre de composantes (tableau ou scalaire suivant
 !                                              la valeur de t_n_composantes)
 !   taille_donnee   <-- Taille unitaire de la donnnee en octet
 !   debut_bloc      <-- Index du debut du bloc
 !   n_donnees       <-- Nombre de donnees a ecrire
 !   donnees         <-- Donnees a ecrire
-!  
+!
 !----------------------------------------------------------------------------
 !
 ! Fonction definie en C dans pdm_io.c
@@ -614,21 +614,21 @@ contains
 !   subroutine pdm_io_ecr_par_bloc(unite, &
 !                                    t_n_composantes, &
 !                                    n_composantes, &
-!                                    taille_donnee, & 
-!                                    n_donnees, & 
+!                                    taille_donnee, &
+!                                    n_donnees, &
 !                                    debut_bloc, &
 !                                    donnees)
 !
-!     ! 
+!     !
 !     ! Arguments
-! 
+!
 !     integer (kind = pdm_l_num_s),           intent(in)  :: unite
 !     integer                                    intent(in)  :: t_n_composantes
 !     integer (kind = pdm_l_num_s),           intent(in)  :: n_composantes
 !     integer (kind = pdm_l_num_s),           intent(in)  :: taille_donnee
 !     integer (kind = pdm_g_num_s),          intent(in)  :: debut_bloc
 !     integer (kind = pdm_l_num_s),           intent(in)  :: n_donnees
-!     "Pas de type : void* en C" , dimension(*), intent(out) :: donnees 
+!     "Pas de type : void* en C" , dimension(*), intent(out) :: donnees
 
 
 !----------------------------------------------------------------------------
@@ -643,9 +643,9 @@ contains
 !
 !   subroutine pdm_io_close(unite)
 !
-!     ! 
+!     !
 !     ! Arguments
-! 
+!
 !     integer (kind = pdm_l_num_s),           intent(in)  :: unite
 
 
@@ -661,9 +661,9 @@ contains
 !
 !   subroutine pdm_io_detruit(unite)
 !
-!     ! 
+!     !
 !     ! Arguments
-! 
+!
 !     integer (kind = pdm_l_num_s),           intent(in)  :: unite
 
 
@@ -679,9 +679,9 @@ contains
 !
 !   subroutine pdm_io_dump(unite)
 !
-!     ! 
+!     !
 !     ! Arguments
-! 
+!
 !     integer (kind = pdm_l_num_s),           intent(in)  :: unite
 
 
@@ -701,7 +701,7 @@ contains
 !                                          t_cpu, &
 !                                          t_elapsed)
 !
-!     ! 
+!     !
 !     ! Arguments
 !
 !     integer (kind = pdm_l_num_s), intent(in)  :: unite
@@ -725,7 +725,7 @@ contains
 !                                         t_cpu, &
 !                                         t_elapsed)
 !
-!     ! 
+!     !
 !     ! Arguments
 !
 !     integer (kind = pdm_l_num_s), intent(in)  :: unite
@@ -749,7 +749,7 @@ contains
 !                                        t_cpu, &
 !                                        t_elapsed)
 !
-!     ! 
+!     !
 !     ! Arguments
 !
 !     integer (kind = pdm_l_num_s), intent(in)  :: unite
@@ -773,7 +773,7 @@ contains
 !                                             t_cpu, &
 !                                             t_elapsed)
 !
-!     ! 
+!     !
 !     ! Arguments
 !
 !     integer (kind = pdm_l_num_s), intent(in)  :: unite
@@ -782,7 +782,7 @@ contains
 
 
 !----------------------------------------------------------------------------
-! Retourne le numero de version de pdm_io ayant permis 
+! Retourne le numero de version de pdm_io ayant permis
 ! de generer le fichier
 !
 ! arguments :
@@ -799,7 +799,7 @@ contains
 !                                   majeur, &
 !                                   mineur, &
 !                                   release)
-!     ! 
+!     !
 !     ! Arguments
 !
 !     integer (kind = pdm_l_num_s), intent(in)  :: unite
@@ -823,7 +823,7 @@ contains
 !   subroutine pdm_io_get_version_courante(majeur, &
 !                                            mineur, &
 !                                            release)
-!     ! 
+!     !
 !     ! Arguments
 !
 !     integer                        , intent(out) :: majeur
@@ -832,7 +832,7 @@ contains
 
 
 !----------------------------------------------------------------------------
-! Retourne le numero de version de pdm_io ayant permis 
+! Retourne le numero de version de pdm_io ayant permis
 ! de generer le fichier
 !
 ! arguments :
@@ -855,5 +855,5 @@ contains
 !                                heure, &
 !                                minute, &
 !                                seconde)
-               
-end module mod_pdm_io
+
+end module pdm_io

@@ -43,7 +43,7 @@ extern "C" {
  * This function returns an initialized \ref PDM_part_bound_t structure
  *
  * \param [in]  lComm           Size of MPI communicator
- * \param [in]  nElt            Number of elements 
+ * \param [in]  nElt            Number of elements
  * \param [in]  nEltPartBound   Number of elements in the structure
  * \param [in]  cplx            Complexity
  * \param [in]  nConnectedElt   Number of connected elements of each element
@@ -68,13 +68,13 @@ const int                    nEltPartBound,
 const PDM_part_bound_cplx_t  cplx,
 const int                   *nConnectedElt,
 const int                   *nOfferElt,
-const PDM_g_num_t            nTotalOfferElt, 
+const PDM_g_num_t            nTotalOfferElt,
 const int                   nLocalOfferElt,
 const PDM_g_num_t            *localOfferLnToGn
 )
 
 {
-  PDM_part_bound_t * part_bound = 
+  PDM_part_bound_t * part_bound =
     (PDM_part_bound_t *) malloc(sizeof(_part_bound_t));
   _part_bound_t *_part_bound = (_part_bound_t *)  part_bound;
 
@@ -85,16 +85,16 @@ const PDM_g_num_t            *localOfferLnToGn
   _part_bound->eltPartBound = NULL;
   _part_bound->cplx = cplx;
   _part_bound->eltPartBoundIdx[0] = 0;
-  _part_bound->nTotalOfferElt = nTotalOfferElt; 
-  _part_bound->nLocalOfferElt = nLocalOfferElt; 
+  _part_bound->nTotalOfferElt = nTotalOfferElt;
+  _part_bound->nLocalOfferElt = nLocalOfferElt;
   _part_bound->localOfferLnToGn = localOfferLnToGn;
-   
+
   if (cplx == PDM_PART_BOUND_SIMPLE) {
     _part_bound->nConnectedElt = (int *) malloc(sizeof(int));
     _part_bound->connectedEltIdx = (int *) malloc(sizeof(int) * (nEltPartBound + 1));
     _part_bound->nConnectedElt[0] = *nConnectedElt;
-    _part_bound->eltPartBound = (int *) malloc(sizeof(int) * 
-                                               (nDataEltPartBoundIni + 
+    _part_bound->eltPartBound = (int *) malloc(sizeof(int) *
+                                               (nDataEltPartBoundIni +
                                                 nDataEltPartBoundElt *
                                                 (*nConnectedElt)) *
                                                _part_bound->nEltPartBound);
@@ -135,17 +135,17 @@ const PDM_g_num_t            *localOfferLnToGn
 	nConnectedElt[i];
       _part_bound->offerEltIdx[i+1] = _part_bound->offerEltIdx[i] + nOfferElt[i];
       tConnectedElt += nConnectedElt[i];
-    } 
+    }
 
-    _part_bound->offerElt = (int *) malloc(sizeof(int) * 
+    _part_bound->offerElt = (int *) malloc(sizeof(int) *
                                            _part_bound->offerEltIdx[nEltPartBound]);
     _part_bound->offerLnToGn =
-      (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * 
+      (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) *
 			    _part_bound->offerEltIdx[nEltPartBound]);
 
     _part_bound->eltPartBound =
-      (int *) malloc(sizeof(int) * 
-		     (nDataEltPartBoundIni * _part_bound->nEltPartBound + 
+      (int *) malloc(sizeof(int) *
+		     (nDataEltPartBoundIni * _part_bound->nEltPartBound +
 		      nDataEltPartBoundElt * tConnectedElt));
 
     for (int i = 0; i < nEltPartBound; i++) {
@@ -168,7 +168,7 @@ const PDM_g_num_t            *localOfferLnToGn
  *
  * \param [in]  part_bound      Inter partition boundary to free
  * \param [in]  boundElt             Element in part_bound
- * \param [in]  iElt                  Vertex number 
+ * \param [in]  iElt                  Vertex number
  *
  */
 
@@ -285,7 +285,7 @@ PDM_part_bound_local_offer_elt_ln_to_gn_get
   return _part_bound->localOfferLnToGn;
 }
 
-  
+
 /**
  * \brief Set local connected element
  *
@@ -294,8 +294,8 @@ PDM_part_bound_local_offer_elt_ln_to_gn_get
  * \param [in]  part_bound      Inter partition boundary to free
  * \param [in]  boundElt        Element in part_bound
  * \param [in]  iOfferElt       index of offered element
- * \param [in]  iNum            local number 
- * \param [in]  gNum            global number 
+ * \param [in]  iNum            local number
+ * \param [in]  gNum            global number
  *
  */
 
@@ -325,8 +325,8 @@ PDM_part_bound_offer_elt_set
  * \param [in]  part_bound      Inter partition boundary to free
  * \param [in]  boundElt        Element in part_bound
  * \param [in]  iOfferElt       index of offered element
- * \param [out]  iNum           local number 
- * \param [out]  gNum           global number 
+ * \param [out]  iNum           local number
+ * \param [out]  gNum           global number
  *
  */
 
@@ -523,7 +523,7 @@ PDM_part_bound_distant_elt_set
 
   int idx = _part_bound->eltPartBoundIdx[iBoundElt] + nDataEltPartBoundIni +
     iConnectedElt * nDataEltPartBoundElt;
-    
+
   _part_bound->eltPartBound[idx++] = iProc;
   _part_bound->eltPartBound[idx++] = iProcPart;
   _part_bound->eltPartBound[idx++] = iProcPartElt;
@@ -544,7 +544,7 @@ PDM_part_bound_distant_elt_set
  * \param [out] iProc                 Connected processus
  * \param [out] iProcPart             Connected partition in the connected processus
  * \param [out] iProcPartElt          Connected vertex in the connected partition
- * \param [out] iDistElt              Global Index of distant connected element 
+ * \param [out] iDistElt              Global Index of distant connected element
  *
  */
 
@@ -567,17 +567,17 @@ PDM_part_bound_distant_elt_get
 
   if (_part_bound->cplx == PDM_PART_BOUND_CPLX)
     nConnectedElt = _part_bound->nConnectedElt[iBoundElt];
-  
+
   if (iConnectedElt >= nConnectedElt) {
     PDM_error(__FILE__, __LINE__, 0, "Error part_bound_distant_elt_get :"
 	    "iConnectedElt > nConnectedElt\n");
     abort();
   }
 
-  int idx = _part_bound->eltPartBoundIdx[iBoundElt] + 
-    nDataEltPartBoundIni + 
+  int idx = _part_bound->eltPartBoundIdx[iBoundElt] +
+    nDataEltPartBoundIni +
     iConnectedElt * nDataEltPartBoundElt;
-    
+
   *iProc        = _part_bound->eltPartBound[idx++];
   *iProcPart    = _part_bound->eltPartBound[idx++];
   *iProcPartElt = _part_bound->eltPartBound[idx++];
@@ -604,7 +604,7 @@ PDM_part_bound_adjust_size
 {
   _part_bound_t *_part_bound = (_part_bound_t *) part_bound;
   if (nEltPartBound > _part_bound->nEltPartBound) {
-    PDM_error(__FILE__, __LINE__, 0, "Error _part_bound_adjust_size : Error this function" 
+    PDM_error(__FILE__, __LINE__, 0, "Error _part_bound_adjust_size : Error this function"
                     "can't increase the size of part_bound structure\n");
     abort();
   }
@@ -621,7 +621,7 @@ PDM_part_bound_adjust_size
     (int *) realloc(_part_bound->eltPartBound,
 		    sizeof(int) *
 		    _part_bound->eltPartBoundIdx[nEltPartBound]);
-  
+
 }
 
 
@@ -686,22 +686,22 @@ PDM_part_bound_dump
  )
 {
   if (part_bound != NULL) {
-    
+
     PDM_part_bound_cplx_t cplx = PDM_part_bound_cplx_get (part_bound);
     int nEltPartBound = PDM_part_bound_n_elt_bound_get (part_bound);
     PDM_printf("PDM_part_bound :\n");
     PDM_printf("  - cplx %d\n", cplx);
     PDM_printf("  - nEltPartBound %d\n", nEltPartBound);
     for (int j = 0; j < nEltPartBound; j++) {
-    
+
       int nConnectedElt;
       int localElt;
-      
+
       PDM_part_bound_bound_elt_get (part_bound,
                                     j+1,
                                     &localElt,
                                     &nConnectedElt);
-      
+
       PDM_printf("    - localElt %d\n", localElt);
       PDM_printf("      - nConnectedElt %d\n", nConnectedElt);
       for (int k = 0; k < nConnectedElt; k++) {
@@ -717,11 +717,11 @@ PDM_part_bound_dump
                                         &iElt,
                                         &iDistElt);
         PDM_printf("        - %d %d %d %d (iproc iPart, iElt, iDistElt)\n", iProc, iPart, iElt, iDistElt);
-        
+
       }
       int nOfferElt = PDM_part_bound_n_offer_elt_get (part_bound, j+1);
       PDM_printf("      - nOfferElt %d\n", nOfferElt);
-      
+
       for (int k = 0; k < nOfferElt; k++) {
         int        lNum;
         PDM_g_num_t gNum;
@@ -731,7 +731,7 @@ PDM_part_bound_dump
                                       &lNum,
                                       &gNum);
         PDM_printf("        - %d "PDM_FMT_G_NUM" (lNum gNum)\n", lNum, gNum);
-        
+
       }
     }
 

@@ -124,10 +124,10 @@ _add_time(PDM_writer_ensight_case_time_t  *const time_set,
   /* Finally, add a new time step and value if necessary */
 
   time_set->n_time_values += 1;
-  
-  time_set->time_value = (double *) realloc (time_set->time_value, 
+
+  time_set->time_value = (double *) realloc (time_set->time_value,
                                              time_set->n_time_values * sizeof(double));
-  
+
   time_set->time_value[time_set->n_time_values - 1] = time_value;
 
   return 1;
@@ -268,7 +268,7 @@ _add_var(PDM_writer_ensight_case_t       *const this_case,
 
   size_t prefix_len =   strlen(this_case->file_name_prefix)
                - this_case->dir_name_length + 1;
-  
+
   size_t base_len = strlen(name);
 
   var->file_name_base = (char *) malloc (
@@ -322,7 +322,7 @@ _add_var(PDM_writer_ensight_case_t       *const this_case,
             this_case->case_file_name, name);
   }
 
-  this_case->var = 
+  this_case->var =
     (PDM_writer_ensight_case_var_t **) realloc (this_case->var, this_case->n_vars * sizeof(PDM_writer_ensight_case_var_t *));
 
   this_case->var[this_case->n_vars - 1] = var;
@@ -376,7 +376,7 @@ _del_vars(PDM_writer_ensight_case_t  *const this_case)
  *----------------------------------------------------------------------------*/
 
 PDM_writer_ensight_case_t *
-PDM_writer_ensight_case_cree 
+PDM_writer_ensight_case_cree
 (
 const char                   *const name,
 const int                           restart,
@@ -447,8 +447,8 @@ const PDM_writer_topologie_t                time_dependency
   this_case->geom_file_name      = NULL;
 
   char extension[5] = ".geo";
- 
-  this_case->geom_file_name_base = (char *) malloc((strlen(this_case->file_name_prefix) 
+
+  this_case->geom_file_name_base = (char *) malloc((strlen(this_case->file_name_prefix)
                                                     + strlen(extension) + 1 ) * sizeof(char));
 
   strcpy(this_case->geom_file_name_base, this_case->file_name_prefix);
@@ -463,21 +463,21 @@ const PDM_writer_topologie_t                time_dependency
     int               geom_timeset = -1;
     int               geom_fileset = -1;
     size_t            ind = -1;
-    
+
     char              ligne[_l_max_chaine_ens];
     char              nom_fic_geo_base[_l_max_chaine_ens];
 
     int              fmt_ensight      = 0;
-    
+
     char             *retval = NULL;
-    
+
     int          *time_set_num = NULL;
     int          *time_set_n_step = NULL;
 
     if (f != NULL) {
 
       /* Vérification du format */
-      
+
       do {
         retval = fgets(ligne, _l_max_chaine_ens, f);
       } while (retval != NULL && strncmp(ligne, "FORMAT", strlen("FORMAT")) != 0);
@@ -487,7 +487,7 @@ const PDM_writer_topologie_t                time_dependency
         do {
           retval = fgets(ligne, _l_max_chaine_ens, f);
         } while (retval != NULL && strncmp(ligne, "type:", strlen("type:")) != 0);
-        
+
       }
 
       if (retval != NULL) {
@@ -503,10 +503,10 @@ const PDM_writer_topologie_t                time_dependency
           ind += strlen("ensight");
           while (ligne[ind] != '\0' && (ligne[ind] == ' ' || ligne[ind] == '\t'))
             ind++;
-  
+
         }
       }
- 
+
       if (fmt_ensight == 0) {
         PDM_error(__FILE__, __LINE__, 0, "Error in %s line %d : "
                 "File \"%s\" does not seem to be a valid\n"
@@ -569,7 +569,7 @@ const PDM_writer_topologie_t                time_dependency
       while (1) {
 
         if (retval != NULL) {
-        
+
           do {
             retval = fgets(ligne, _l_max_chaine_ens, f);
           } while (retval != NULL && (strncmp(ligne, "constant", strlen("constant")) != 0 &&
@@ -585,7 +585,7 @@ const PDM_writer_topologie_t                time_dependency
 
             int index_loc;
             int var_dim;
-          
+
             if (strncmp(ligne, "constant per case file:", strlen("constant per case file:")) == 0) {
               index_loc = strlen("constant per case file:");
               var_dim = PDM_WRITER_VAR_CSTE;
@@ -608,7 +608,7 @@ const PDM_writer_topologie_t                time_dependency
             }
             else {
               PDM_error(__FILE__, __LINE__, 0, "Error in %s line %d : "
-                      "The dimension \"%s\" is not yet implemented", 
+                      "The dimension \"%s\" is not yet implemented",
                       __FILE__, __LINE__,
                       ligne);
               abort();
@@ -632,7 +632,7 @@ const PDM_writer_topologie_t                time_dependency
             }
             else {
               PDM_error(__FILE__, __LINE__, 0, "Error in %s line %d : "
-                      "The location \"%s\" is not yet implemented", 
+                      "The location \"%s\" is not yet implemented",
                       __FILE__, __LINE__,
                       ligne_ss_dim);
               abort();
@@ -640,10 +640,10 @@ const PDM_writer_topologie_t                time_dependency
 
             char nom_var[_l_max_chaine_ens];
             char *ligne_ss_loc = ligne_ss_dim + index_dim;
-          
+
             int var_file_set = -1;
             int var_time_set = -1;
-            
+
             if (sscanf(ligne_ss_loc, "%d %d %s", &var_time_set, &var_file_set, nom_var) != 3) {
               if (sscanf(ligne_ss_loc, "%d %s", &var_time_set, nom_var) != 2) {
                 if (sscanf(ligne_ss_loc, "%s", nom_var) != 1) {
@@ -653,7 +653,7 @@ const PDM_writer_topologie_t                time_dependency
                 }
               }
             }
-            
+
             PDM_writer_statut_t time_dep = PDM_WRITER_OFF;
 
             if (var_time_set == 1)
@@ -669,7 +669,7 @@ const PDM_writer_topologie_t                time_dependency
 
         else
           break;
-       
+
       }
 
       /* Recherche des infos sur les rubriques Time : il n'y a qu'u time set*/
@@ -677,7 +677,7 @@ const PDM_writer_topologie_t                time_dependency
       do {
         retval = fgets(ligne, _l_max_chaine_ens, f);
       }  while (retval != NULL && strncmp(ligne, "TIME", strlen("TIME")) != 0);
-        
+
       if (retval != NULL) {
 
         this_case->time_set = (PDM_writer_ensight_case_time_t *) malloc(sizeof(PDM_writer_ensight_case_time_t));
@@ -687,7 +687,7 @@ const PDM_writer_topologie_t                time_dependency
         do {
           retval = fgets(ligne, _l_max_chaine_ens, f);
         } while (retval != NULL && strncmp(ligne, "time set:", strlen("time set:")) != 0);
-              
+
         if (retval != NULL) {
           if (sscanf(ligne, "%*s %d", time_set_num) != 1) {
             PDM_error(__FILE__, __LINE__, 0, "Error in %s line %d\n",
@@ -695,7 +695,7 @@ const PDM_writer_topologie_t                time_dependency
             abort();
           }
         }
-            
+
         do {
           retval = fgets(ligne, _l_max_chaine_ens, f);
         } while (retval != NULL && strncmp(ligne, "number of steps:", strlen("number of steps:")) != 0);
@@ -715,35 +715,35 @@ const PDM_writer_topologie_t                time_dependency
         do {
           retval = fgets(ligne, _l_max_chaine_ens, f);
         } while (retval != NULL && strncmp(ligne, "filename increment:    1", strlen("filename increment:    1")) != 0);
-              
+
         do {
           retval = fgets(ligne, _l_max_chaine_ens, f);
         } while (retval != NULL && strncmp(ligne, "time values:", strlen("time values:")) != 0);
-        
+
         if (retval != NULL) {
-        
+
           for (int j = 0; j < *time_set_n_step; j++) {
-          
+
             retval = fgets(ligne, _l_max_chaine_ens, f);
-          
+
             if (retval == NULL) {
-            
+
               PDM_error(__FILE__, __LINE__, 0, "Error in %s line %d : "
-                      "The dimension \"%s\" is not yet implemented", 
+                      "The dimension \"%s\" is not yet implemented",
                       __FILE__, __LINE__,
                       ligne);
               abort();
             }
             else {
               double time_value = atof(ligne);
-              _add_time(this_case->time_set, time_value); 
+              _add_time(this_case->time_set, time_value);
             }
           }
           retval = fgets(ligne, _l_max_chaine_ens, f);
         }
       }
     }
-  }      
+  }
 
   /* Return new case structure */
 
@@ -840,7 +840,7 @@ PDM_writer_ensight_case_var_time_dep_get
            __FILE__, __LINE__, name);
     abort();
   }
-  
+
   return var->time_dep;
 }
 
@@ -857,7 +857,7 @@ PDM_writer_ensight_case_var_time_dep_get
 char *
 PDM_writer_ensight_case_var_file_name_get
 (
-PDM_writer_ensight_case_t  *this_case, 
+PDM_writer_ensight_case_t  *this_case,
 const char* name
 )
 {
@@ -875,7 +875,7 @@ const char* name
            __FILE__, __LINE__, name);
     abort();
   }
-  
+
   char *file_name;
   if (var->time_dep == PDM_WRITER_ON) {
     file_name = var->file_name;
@@ -910,7 +910,7 @@ PDM_writer_ensight_case_t  *this_case
   else {
     name = this_case->geom_file_name_base;
   }
-  
+
   return name;
 }
 
@@ -955,7 +955,7 @@ const PDM_writer_var_loc_t  location
 void
 PDM_writer_ensight_case_time_step_add
 (
-PDM_writer_ensight_case_t  *this_case, 
+PDM_writer_ensight_case_t  *this_case,
 const double time_value
 )
 {
@@ -968,10 +968,10 @@ const double time_value
   _add_time(this_case->time_set,
             time_value);
   if (this_case->time_dependency != PDM_WRITER_TOPO_CONSTANTE) {
-    
+
     if (this_case->geom_file_name == NULL) {
       this_case->geom_file_name = (char *) malloc(sizeof(char) * strlen(this_case->geom_file_name_base) + 7);
-    } 
+    }
 
     int geom_index = this_case->time_set->n_time_values;
     char extension[7];
@@ -986,7 +986,7 @@ const double time_value
     if (var->time_dep == PDM_WRITER_ON) {
       if (var->file_name == NULL) {
         var->file_name = (char *) malloc(sizeof(char) * strlen(var->file_name_base) + 7);
-      } 
+      }
 
       int geom_index = this_case->time_set->n_time_values;
       char extension[7];
@@ -1056,7 +1056,7 @@ PDM_writer_ensight_case_write(PDM_writer_ensight_case_t  *const this_case,
             1,
             this_case->file_name_prefix + this_case->dir_name_length);
 
-  
+
   else
     fprintf(f, "model: %d %s.geo.*****\n",
             1,
@@ -1078,19 +1078,19 @@ PDM_writer_ensight_case_write(PDM_writer_ensight_case_t  *const this_case,
   }
 
   if (this_case->time_set != NULL) {
-    
+
     fprintf(f,
             "\n"
             "TIME\n");
-    
+
     const PDM_writer_ensight_case_time_t  *ts = this_case->time_set;
-    
+
     fprintf(f, "time set:              %d\n", 1);
     fprintf(f, "number of steps:       %d\n", ts->n_time_values);
     fprintf(f, "filename start number: 1\n");
     fprintf(f, "filename increment:    1\n");
     fprintf(f, "time values:\n");
-    
+
     for (j = 0 ; j < ts->n_time_values ; j++)
       fprintf(f, "            %15.8e\n", ts->time_value[j]);
   }

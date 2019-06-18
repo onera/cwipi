@@ -36,7 +36,7 @@ extern "C" {
 /**
  * \struct _box_tree_stats_t
  * \brief  Statistic about bbtre
- * 
+ *
  *  _box_tree_stats_t defines statistics about bounding box tree
  *
  */
@@ -60,9 +60,9 @@ typedef struct {
 
 /**
  * \struct PDM_dbbtree_t
- * \brief  
- * 
- * PDM_dbbtree_t defines a bounding box tree structure 
+ * \brief
+ *
+ * PDM_dbbtree_t defines a bounding box tree structure
  *
  */
 
@@ -71,23 +71,23 @@ typedef struct {
 
   int     maxBoxesLeaf;       /*!< Max number of boxes in a leaf for local BBTree */
 
-  int     maxTreeDepth;    /*!< Max tree depth for local BBTree */ 
+  int     maxTreeDepth;    /*!< Max tree depth for local BBTree */
 
-  float   maxBoxRatio;     /*!< Max ratio for local BBTree (nConnectedBoxe < ratio * nBoxes) 
+  float   maxBoxRatio;     /*!< Max ratio for local BBTree (nConnectedBoxe < ratio * nBoxes)
                              for local BBTree */
 
   int     maxBoxesLeafShared; /*!< Max number of boxes in a leaf for local BBTree */
 
-  int     maxTreeDepthShared; /*!< Max tree depth for local BBTree */ 
+  int     maxTreeDepthShared; /*!< Max tree depth for local BBTree */
 
-  float   maxBoxRatioShared;  /*!< Max ratio for local BBTree (nConnectedBoxe < ratio * nBoxes) 
+  float   maxBoxRatioShared;  /*!< Max ratio for local BBTree (nConnectedBoxe < ratio * nBoxes)
                                for local BBTree */
 
   int     maxBoxesLeafCoarse; /*!<  Max number of boxes in a leaf for coarse shared BBTree */
 
   int     maxTreeDepthCoarse; /*!< Max tree depth for coarse shared BBTree */
 
-  float   maxBoxRatioCoarse;  /*!< Max ratio for local BBTree (nConnectedBoxe < ratio * nBoxes) 
+  float   maxBoxRatioCoarse;  /*!< Max ratio for local BBTree (nConnectedBoxe < ratio * nBoxes)
                                 for coarse shared BBTree */
 
   PDM_box_set_t  *rankBoxes;  /*!< Rank Boxes */
@@ -104,6 +104,7 @@ typedef struct {
   _box_tree_stats_t btsCoarse; /*!< Local Boundary box tree statistic */
 
   PDM_MPI_Comm   comm;             /*!< MPI communicator */
+  PDM_MPI_Comm   rankComm;        /*!< MPI ommunicator with only the current rank */
   int        dim;              /*!< Dimension */
 
 } _PDM_dbbtree_t;

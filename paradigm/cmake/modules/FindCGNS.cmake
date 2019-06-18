@@ -43,7 +43,7 @@ IF(CGNS_FIND_REQUIRED AND NOT CGNS_FOUND)
   message(SEND_ERROR "Unable to find the requested CGNS libraries.")
 ENDIF(CGNS_FIND_REQUIRED AND NOT CGNS_FOUND)
 
-# handle the QUIETLY and REQUIRED arguments and set CGNS_FOUND to TRUE if 
+# handle the QUIETLY and REQUIRED arguments and set CGNS_FOUND to TRUE if
 # all listed variables are TRUE
 INCLUDE(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(CGNS DEFAULT_MSG CGNS_LIBRARIES CGNS_INCLUDE_DIRS)

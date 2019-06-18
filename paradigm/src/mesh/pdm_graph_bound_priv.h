@@ -36,7 +36,7 @@ static const int tag = 'P' + 'T' + 'K';
 /**
  * \struct _graph_bound_t
  * \brief  Communication graph between partitions
- * 
+ *
  * _graph_bound_t defines a communication graph between partitions
  *
  */
@@ -51,16 +51,16 @@ struct _graph_bound_t {
   PDM_part_bound_t **partBound;   /*!< pat_bound for each partition */
 
   int               nComp;          /*!< Number of exchanged data */
-  int               lBuffer;        /*!< Size of buffer */        
+  int               lBuffer;        /*!< Size of buffer */
   void             *sendBuffer;     /*!< Sending Data buffer*/
   void             *recvBuffer;     /*!< Receiving Data buffer*/
-  PDM_MPI_Request      *sendRequest;    /*!< Send Request (size = lComm) */  
-  PDM_MPI_Request      *recvRequest;    /*!< Receive Request (size = lComm) */  
+  PDM_MPI_Request      *sendRequest;    /*!< Send Request (size = lComm) */
+  PDM_MPI_Request      *recvRequest;    /*!< Receive Request (size = lComm) */
   void            **field;          /*!< Send Field */
-  void            **ghostField;     /*!< Receive Field on ghost elements */  
-  
+  void            **ghostField;     /*!< Receive Field on ghost elements */
+
   int               tData;          /*!< Exchanged data type */
- 
+
   int  nSendElt;    /*!< Number of sent element for ghost elements  */
 
   int *sendEltIdx;  /*!< Send Element index to send a field on sended point
@@ -78,9 +78,9 @@ struct _graph_bound_t {
   int nGhostElt;        /* Number of ghost element */
 
 
-  int *nGhostEltPart;        /* Number of ghost element for each part 
+  int *nGhostEltPart;        /* Number of ghost element for each part
                                 (size = \ref nPart */
-  
+
   int **ghostEltPartIdx;  /*!< Elements connected to each part ghost elements Idx for each part
                             (size for each part = (nGhostEltPart + 1) */
 
@@ -90,7 +90,7 @@ struct _graph_bound_t {
   int **ghostEltPartElt;   /*!< partition number of Elements connected to each ghost element
                             (size for each part =  ghostEltPartIdx[iPart][ghostEltPartIdx[iPart][nGhostEltPart[iPart]]] */
 
-  
+
 };
 
 /*=============================================================================
@@ -99,7 +99,7 @@ struct _graph_bound_t {
 
 
 /*=============================================================================
- * Public function prototypes 
+ * Public function prototypes
  *============================================================================*/
 
 

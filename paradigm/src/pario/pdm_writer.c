@@ -57,7 +57,7 @@ extern "C" {
 
 typedef enum {
 
-  PDM_WRITER_DEB_ID_BLOC_STD    = 0,    
+  PDM_WRITER_DEB_ID_BLOC_STD    = 0,
   PDM_WRITER_DEB_ID_BLOC_POLY2D = 1000000,
   PDM_WRITER_DEB_ID_BLOC_POLY3D = 2000000
 
@@ -71,13 +71,13 @@ typedef enum {
  * Stockage des objets cs
  *----------------------------------------------------------------------------*/
 
-static PDM_Handles_t *cs_tab = NULL; 
+static PDM_Handles_t *cs_tab = NULL;
 
 /*----------------------------------------------------------------------------
  * Stockage des objets cs
  *----------------------------------------------------------------------------*/
 
-static PDM_Handles_t *fmt_tab = NULL; 
+static PDM_Handles_t *fmt_tab = NULL;
 
 /*----------------------------------------------------------------------------
  * Nombre d'objets cs stockes dans cs_tab
@@ -100,12 +100,12 @@ static const int n_intern_fmt = 1;
  *
  *----------------------------------------------------------------------------*/
 
-static void   
+static void
 _geom_init
 (
-PDM_writer_geom_t *geom,  
+PDM_writer_geom_t *geom,
 const int          n_part,
-const PDM_MPI_Comm comm        
+const PDM_MPI_Comm comm
 )
 {
   geom->nom_geom= NULL;
@@ -129,7 +129,7 @@ const PDM_MPI_Comm comm
  *
  *----------------------------------------------------------------------------*/
 
-static void   
+static void
 _var_init
 (
 PDM_writer_var_t *var
@@ -139,14 +139,14 @@ PDM_writer_var_t *var
   var->st_dep_tps = PDM_WRITER_OFF;        /* Variable en temps */
   var->dim        = PDM_WRITER_VAR_CSTE;   /* Dimension de la variable */
   var->loc        = PDM_WRITER_VAR_SOMMETS;/* Dimension de la variable */
-  var->_val       = NULL;          /* Valeurs de la variable */          
+  var->_val       = NULL;          /* Valeurs de la variable */
   var->var_fmt    = NULL;          /* Description propre au format fmt */
   var->_cs        = NULL;
 }
 
 
 /*----------------------------------------------------------------------------
- * 
+ *
  * Parse la chaine options pour construire la structure CS correspondante
  *
  * parameters :
@@ -164,19 +164,19 @@ _parse_options
  PDM_writer_option_t **options
 )
 {
-  
+
   if (options_str == NULL) {
     *n_options = 0;
     *options = NULL;
   }
-  
+
   char *_options_str  = malloc (sizeof(char) * (strlen(options_str) + 1));
   strcpy(_options_str, options_str);
-  
+
   *n_options = 0;
   char *str2 = _options_str;
   char *pch;
-  
+
   do {
     pch = strtok (str2,"=");
     str2 = NULL;
@@ -195,7 +195,7 @@ _parse_options
   str2 = _options_str;
   *options = malloc (sizeof(PDM_writer_option_t) * (*n_options));
   PDM_writer_option_t *_curr = *options;
-    
+
   do {
     pch = strtok (str2,"=");
     str2 = NULL;
@@ -214,7 +214,7 @@ _parse_options
 }
 
 /*----------------------------------------------------------------------------
- * 
+ *
  * Type d'une cellule 3D
  *
  * parameters :
@@ -254,30 +254,30 @@ _load_intern_fmt (void)
  *============================================================================*/
 
 /*----------------------------------------------------------------------------
- * Cree un objet CS (Cedre Sortie) et retoure un pointeur sur cet objet 
+ * Cree un objet CS (Cedre Sortie) et retoure un pointeur sur cet objet
  *
  * parameters :
  *   fmt             <-- Format de sortie
  *   fmt_fic         <-- Format binaire ou actif
  *   topologie       <-- Indique le maillage est mobile ou non
  *   st_reprise      <-- Complete les sorties des calcul precedents en reprise
- *   rep_sortie      <-- Repertoire de sortie                  
- *   nom_sortie      <-- Nom de la sortie                       
- *   pdm_mpi_com         <-- Communicateur MSG                      
+ *   rep_sortie      <-- Repertoire de sortie
+ *   nom_sortie      <-- Nom de la sortie
+ *   pdm_mpi_com         <-- Communicateur MSG
  *   acces           <-- Type d'acces
  *   prop_noeuds_actifs <-- Proportion des noeuds actifs dans les acces au fichier
  *                            *  -1 : tous les processus actifs
  *                            *   1 : un processus par noeud
  *                            * 0 < val < 1 : un processus par noeud actif
  *   options         <-- Options complementaires propres au format sous
- *                       la forme ("nom_1 = val_1 : ... : nom_n = val_n")                          
+ *                       la forme ("nom_1 = val_1 : ... : nom_n = val_n")
  *
  * return :
  *                   --> Identificateur de l'objet cree
  *
  *----------------------------------------------------------------------------*/
 
-void 
+void
 PROCF (pdm_writer_create_cf, PDM_WRITER_CREATE_CF)
 (
 const char          *fmt,
@@ -289,12 +289,12 @@ const char          *rep_sortie,
 const char          *nom_sortie,
 const int           *l_rep_sortie,
 const int           *l_nom_sortie,
-const PDM_MPI_Fint  *pdm_mpi_comm,   
+const PDM_MPI_Fint  *pdm_mpi_comm,
 const int           *acces,
 const double        *prop_noeuds_actifs,
 const char          *options,
 const int           *l_options,
-int                 *id_cs     
+int                 *id_cs
 ARGF_SUPP_CHAINE
 )
 {
@@ -313,7 +313,7 @@ ARGF_SUPP_CHAINE
                              (PDM_writer_statut_t)    *st_reprise,
                              rep_sortie_c,
                              nom_sortie_c,
-                             pdm_mpi_comm_c,  
+                             pdm_mpi_comm_c,
                              (PDM_io_acces_t) *acces,
                              *prop_noeuds_actifs,
                               options_c);
@@ -329,7 +329,7 @@ ARGF_SUPP_CHAINE
   if (options_c != NULL) {
     free(options_c);
   }
-  
+
   if (fmt_c != NULL) {
     free(fmt_c);
   }
@@ -339,7 +339,7 @@ int
 PDM_writer_create
 (
 const char       *fmt,
-const PDM_writer_fmt_fic_t   fmt_fic,   
+const PDM_writer_fmt_fic_t   fmt_fic,
 const PDM_writer_topologie_t topologie,
 const PDM_writer_statut_t    st_reprise,
 const char          *rep_sortie,
@@ -348,7 +348,7 @@ const PDM_MPI_Comm       pdm_mpi_comm,
 const PDM_io_acces_t acces,
 const double         prop_noeuds_actifs,
 const char          *options
-)  
+)
 {
 
   if (fmt_tab == NULL) {
@@ -360,7 +360,7 @@ const char          *options
   int fmt_id = -1;
 
   int n_fmt_tab = PDM_Handles_n_get (fmt_tab);
-  
+
   for (int i = 0; i < n_fmt_tab; i++) {
     PDM_writer_fmt_t *fmt_ptr = (PDM_writer_fmt_t *) PDM_Handles_get (fmt_tab, i);
     if (!strcmp(fmt, fmt_ptr->name)) {
@@ -373,18 +373,18 @@ const char          *options
     PDM_error(__FILE__, __LINE__, 0, "Error PDM_writer_create : unknown format '%s'", fmt);
     abort();
   }
-  
+
   /* Mise a jour du tableau de stockage */
 
   PDM_io_mkdir(rep_sortie);
 
   if (cs_tab == NULL) {
     cs_tab = PDM_Handles_create (4);
-  } 
+  }
 
   /* Creation du r�pertoire de sortie si non cr�� */
 
-  mkdir(rep_sortie, 0775); 
+  mkdir(rep_sortie, 0775);
 
   /* Allocation de la structure PDM_writer_t */
 
@@ -403,7 +403,7 @@ const char          *options
   cs->rep_sortie = (char *) malloc(sizeof(char) * (l_rep_sortie + 1));
   strcpy(cs->rep_sortie, rep_sortie);  /* Nom du repertoire de sortie */
   // Gestion des options
-  
+
   cs->n_options = 0;
   cs->options = NULL;
   if (options != NULL) {
@@ -415,7 +415,7 @@ const char          *options
   strcpy(cs->nom_sortie, nom_sortie);  /* Nom de la sortie */
 
   cs->pdm_mpi_comm    = pdm_mpi_comm;  /* Communicateur MPI */
-  cs->sortie_fmt  = NULL;      /* Pointeur sur l'objet sortie de format fmt */    
+  cs->sortie_fmt  = NULL;      /* Pointeur sur l'objet sortie de format fmt */
 
   cs->var_tab     = NULL;      /* Tableau des variables */
   cs->geom_tab    = NULL;      /* Tableau des geometries */
@@ -427,7 +427,7 @@ const char          *options
   /* Appel de la fonction complementaire propre au format */
 
   PDM_writer_fmt_t * fmt_ptr = (PDM_writer_fmt_t *) PDM_Handles_get (fmt_tab, cs->fmt_id);
-  
+
   if (fmt_ptr->create_fct != NULL) {
     (fmt_ptr->create_fct) (cs);
   }
@@ -445,7 +445,7 @@ const char          *options
  *
  *----------------------------------------------------------------------------*/
 
-void 
+void
 PROCF (pdm_writer_free, PDM_WRITER_FREE)
 (
 int        *id_cs
@@ -454,7 +454,7 @@ int        *id_cs
   PDM_writer_free(*id_cs);
 }
 
-void  
+void
 PDM_writer_free
 (
 const int   id_cs
@@ -472,7 +472,7 @@ const int   id_cs
   /* Appel de la fonction complementaire propre au format */
 
   PDM_writer_fmt_t * fmt_ptr = (PDM_writer_fmt_t *) PDM_Handles_get (fmt_tab, cs->fmt_id);
- 
+
   if (fmt_ptr->free_fct != NULL) {
     (fmt_ptr->free_fct) (cs);
   }
@@ -496,7 +496,7 @@ const int   id_cs
 
     cs->var_tab = PDM_Handles_free (cs->var_tab);
   }
-  
+
   if (cs->options != NULL) {
     for (int i = 0; i < cs->n_options; i++) {
       if ((cs->options[i]).nom != NULL) {
@@ -531,7 +531,7 @@ const int   id_cs
     const int *map_index = PDM_Handles_idx_get(cs->name_map);
 
     while (n_map_tab > 0) {
-      PDM_writer_name_map_t *map = (PDM_writer_name_map_t *) 
+      PDM_writer_name_map_t *map = (PDM_writer_name_map_t *)
               PDM_Handles_get (cs->name_map, map_index[0]);
       if (map != NULL) {
         free (map->public_name);
@@ -541,21 +541,21 @@ const int   id_cs
       PDM_Handles_handle_free (cs->name_map, map_index[0], PDM_FALSE);
       n_map_tab = PDM_Handles_n_get (cs->name_map);
     }
-    
+
     cs->name_map = PDM_Handles_free (cs->name_map);
 
   }
- 
+
   /* Liberation de la structure */
 
   free(cs);
 
   PDM_Handles_handle_free (cs_tab, id_cs, PDM_FALSE);
-  
+
   int n_cs = PDM_Handles_n_get (cs_tab);
-  
+
   if (n_cs == 0) {
-  
+
     cs_tab = PDM_Handles_free (cs_tab);
     int n_fmt_tab = PDM_Handles_n_get (fmt_tab);
     const int *fmt_index = PDM_Handles_idx_get(fmt_tab);
@@ -568,7 +568,7 @@ const int   id_cs
       fmt_tab = PDM_Handles_free (fmt_tab);
     }
   }
-  
+
 }
 
 
@@ -609,7 +609,7 @@ const double   physical_time
   cs->physical_time = physical_time;
 
   /* Appel de la fonction complementaire propre au format */
-  
+
   PDM_writer_fmt_t * fmt_ptr = (PDM_writer_fmt_t *) PDM_Handles_get (fmt_tab, cs->fmt_id);
 
   if (fmt_ptr->beg_step_fct != NULL) {
@@ -651,7 +651,7 @@ const int     id_cs
   /* Appel de la fonction complementaire propre au format */
 
   PDM_writer_fmt_t * fmt_ptr = (PDM_writer_fmt_t *) PDM_Handles_get (fmt_tab, cs->fmt_id);
-  
+
   if (fmt_ptr->end_step_fct != NULL) {
     (fmt_ptr->end_step_fct) (cs);
   }
@@ -664,11 +664,11 @@ const int     id_cs
  * parameters :
  *   id_cs            <-- Identificateur de l'objet cs
  *   nom_geom         <-- Nom de l'objet geometrique
- *   st_decoup_poly2d <-- Active le decoupage des polygones 
+ *   st_decoup_poly2d <-- Active le decoupage des polygones
  *   st_decoup_poly3d <-- Active le decoupage des polyedres
  *
  * return :
- *                   --> Identificateur de l'objet geom dans cs 
+ *                   --> Identificateur de l'objet geom dans cs
  *
  *----------------------------------------------------------------------------*/
 
@@ -686,7 +686,7 @@ ARGF_SUPP_CHAINE
 )
 {
   char *nom_geom_c = PDM_fortran_to_c_string(nom_geom, *l_nom_geom);
-  
+
   *id_geom = PDM_writer_geom_create(*id_cs,
                           nom_geom_c,
                           (PDM_writer_statut_t) *st_decoup_poly2d,
@@ -698,7 +698,7 @@ ARGF_SUPP_CHAINE
   }
 }
 
-int 
+int
 PDM_writer_geom_create
 (
 const int               id_cs,
@@ -709,7 +709,7 @@ const int               n_part
 )
 {
   /* Erreur si le d�coupage des polygones ou polyedres est choisi */
-  
+
   if (n_part <= 0) {
     PDM_error(__FILE__, __LINE__, 0, "Erreur cs_geom_create : Le nombre de partition doit etre >\n"
                     "                      Ajuster le communicateur MPI ou\n"
@@ -732,8 +732,8 @@ const int               n_part
 
   if (cs->geom_tab == NULL) {
     cs->geom_tab = PDM_Handles_create (4);
-  } 
-  
+  }
+
   /* Allocation de la structure PDM_writer_geom_t */
 
   PDM_writer_geom_t *geom = (PDM_writer_geom_t *) malloc(sizeof(PDM_writer_geom_t));
@@ -762,15 +762,15 @@ const int               n_part
 }
 
 /*----------------------------------------------------------------------------
- * Definition des coordonnees de la partition courante          
+ * Definition des coordonnees de la partition courante
  *
  * parameters :
  *   id_cs           <-- Identificateur de l'objet cs
  *   id_geom         <-- Identificateur de l'objet geometrique
  *   id_part          <-- Indice de partition
  *   n_som           <-- Nombre de sommets de la partition
- *   coords          <-- Coordonnes des sommets            
- *   numabs          <-- Numerotation absolue des sommets     
+ *   coords          <-- Coordonnes des sommets
+ *   numabs          <-- Numerotation absolue des sommets
  *
  *----------------------------------------------------------------------------*/
 
@@ -778,18 +778,18 @@ void
 PROCF (pdm_writer_geom_coord_set, PDM_WRITER_GEOM_COORD_SET)
 (
 int             *id_cs,
-int             *id_geom,  
-int             *id_part, 
-int             *n_som,  
-PDM_real_t       *coords,  
+int             *id_geom,
+int             *id_part,
+int             *n_som,
+PDM_real_t       *coords,
 PDM_g_num_t       *numabs
 )
 {
   PDM_writer_geom_coord_set(*id_cs,
-                    *id_geom,  
-                    *id_part, 
-                    *n_som,  
-                    coords,  
+                    *id_geom,
+                    *id_part,
+                    *n_som,
+                    coords,
                     numabs);
 }
 
@@ -797,10 +797,10 @@ void
 PDM_writer_geom_coord_set
 (
 const int        id_cs,
-const int        id_geom,  
-const int        id_part, 
-const int        n_som,  
-const PDM_real_t *coords,  
+const int        id_geom,
+const int        id_part,
+const int        n_som,
+const PDM_real_t *coords,
 const PDM_g_num_t *numabs
 )
 {
@@ -820,11 +820,11 @@ const PDM_g_num_t *numabs
   }
 
   PDM_Mesh_nodal_coord_set (geom->idx_mesh, id_part, n_som, coords, numabs);
-  
+
   if (0 == 1) {
     printf("nvtx : %d\n", n_som);
     for (int i = 0; i < n_som; i++) {
-      printf ("%d "PDM_FMT_G_NUM" : %12.5e %12.5e %12.5e\n", i+1, numabs[i], 
+      printf ("%d "PDM_FMT_G_NUM" : %12.5e %12.5e %12.5e\n", i+1, numabs[i],
               coords[3*i], coords[3*i+1], coords[3*i+2]);
     }
   }
@@ -834,7 +834,7 @@ const PDM_g_num_t *numabs
 
 /*----------------------------------------------------------------------------
  * Definition des coordonnees des sommets de la partition courante a partir
- *          
+ *
  *
  * parameters :
  *   id_cs           <-- Identificateur de l'objet cs
@@ -842,10 +842,10 @@ const PDM_g_num_t *numabs
  *   id_part         <-- Indice de partition
  *   n_som           <-- Nombre de sommets de la partition
  *   n_som_parent    <-- Nombre de sommets parent
- *   numabs          <-- Numerotation absolue des sommets (size = n_som)    
- *   num_parent      <-- Numerotation des sommets dans la numerotation parente (size = n_som)    
- *   coords_parent   <-- Coordonnes des sommets parents (size = 3 * n_som_parent)            
- *   numabs_parent   <-- Numerotation absolue des sommets parents (size = n_som_parent)    
+ *   numabs          <-- Numerotation absolue des sommets (size = n_som)
+ *   num_parent      <-- Numerotation des sommets dans la numerotation parente (size = n_som)
+ *   coords_parent   <-- Coordonnes des sommets parents (size = 3 * n_som_parent)
+ *   numabs_parent   <-- Numerotation absolue des sommets parents (size = n_som_parent)
  *
  *----------------------------------------------------------------------------*/
 
@@ -853,21 +853,21 @@ void
 PROCF (pdm_writer_geom_coord_from_parent_set, PDM_WRITER_GEOM_COORD_FROM_PARENT_SET)
 (
 int             *id_cs,
-int             *id_geom,  
-int             *id_part, 
-int             *n_som,  
-int             *n_som_parent,  
+int             *id_geom,
+int             *id_part,
+int             *n_som,
+int             *n_som_parent,
 PDM_g_num_t     *numabs,
 int             *num_parent,
-PDM_real_t      *coords_parent,  
+PDM_real_t      *coords_parent,
 PDM_g_num_t     *numabs_parent
 )
 {
   PDM_writer_geom_coord_from_parent_set (*id_cs,
-                                 *id_geom,  
-                                 *id_part, 
-                                 *n_som,  
-                                 *n_som_parent,  
+                                 *id_geom,
+                                 *id_part,
+                                 *n_som,
+                                 *n_som_parent,
                                  numabs,
                                  num_parent,
                                  coords_parent,
@@ -878,13 +878,13 @@ void
 PDM_writer_geom_coord_from_parent_set
 (
 const int        id_cs,
-const int        id_geom,  
-const int        id_part, 
-const int        n_som,  
-const int        n_som_parent,  
+const int        id_geom,
+const int        id_part,
+const int        n_som,
+const int        n_som_parent,
 const PDM_g_num_t *numabs,
 const int       *num_parent,
-const PDM_real_t *coords_parent,  
+const PDM_real_t *coords_parent,
 const PDM_g_num_t *numabs_parent
 )
 {
@@ -902,13 +902,13 @@ const PDM_g_num_t *numabs_parent
     PDM_error(__FILE__, __LINE__, 0, "Bad geom identifier\n");
   }
 
-  PDM_Mesh_nodal_coord_from_parent_set (geom->idx_mesh, 
-                                        id_part, 
-                                        n_som, 
-                                        n_som_parent, 
-                                        numabs, 
-                                        num_parent, 
-                                        coords_parent, 
+  PDM_Mesh_nodal_coord_from_parent_set (geom->idx_mesh,
+                                        id_part,
+                                        n_som,
+                                        n_som_parent,
+                                        numabs,
+                                        num_parent,
+                                        coords_parent,
                                         numabs_parent);
 }
 
@@ -929,11 +929,11 @@ void
 PROCF (pdm_writer_geom_bloc_add, PDM_WRITER_GEOM_BLOC_ADD)
 (
 int   *id_cs,
-int   *id_geom,  
-PDM_writer_statut_t  *st_free_data,  
+int   *id_geom,
+PDM_writer_statut_t  *st_free_data,
 int   *t_elt,
-int   *id_bloc  
-) 
+int   *id_bloc
+)
 {
   *id_bloc = PDM_writer_geom_bloc_add(*id_cs,
                               *id_geom,
@@ -941,14 +941,14 @@ int   *id_bloc
                               (PDM_writer_elt_geom_t) *t_elt);
 }
 
-int 
-PDM_writer_geom_bloc_add 
+int
+PDM_writer_geom_bloc_add
 (
 const int            id_cs,
-const int            id_geom,   
-PDM_writer_statut_t          st_free_data,  
+const int            id_geom,
+PDM_writer_statut_t          st_free_data,
 const PDM_writer_elt_geom_t  t_elt
-) 
+)
 {
   /* Acces a l'objet de geometrie courant */
 
@@ -964,27 +964,27 @@ const PDM_writer_elt_geom_t  t_elt
     abort();
   }
 
-  int id_block = PDM_Mesh_nodal_block_add (geom->idx_mesh, (PDM_bool_t) st_free_data, 
+  int id_block = PDM_Mesh_nodal_block_add (geom->idx_mesh, (PDM_bool_t) st_free_data,
                                            (PDM_Mesh_nodal_elt_t) t_elt);
-  
+
 
   return id_block;
 
 }
- 
+
 
 /*----------------------------------------------------------------------------
- * Definition d'un bloc standard d'elements 
+ * Definition d'un bloc standard d'elements
  *
  *  - PDM_WRITER_POINT :
  *
- *   1 x            
+ *   1 x
  *
  *  - PDM_WRITER_BAR2 :
  *
  *   1 x-------x 2
  *
- *  - PDM_WRITER_TRIA3 :   
+ *  - PDM_WRITER_TRIA3 :
  *
  *   1 x-------x 3
  *      \     /
@@ -992,14 +992,14 @@ const PDM_writer_elt_geom_t  t_elt
  *        \ /
  *         x 2
  *
- *  - PDM_WRITER_QUAD4 :          
+ *  - PDM_WRITER_QUAD4 :
  *
  *      4 x-------x 3
  *       /       /
  *      /       /
  *   1 x-------x2
  *
- *   - PDM_WRITER_TETRA4 :    
+ *   - PDM_WRITER_TETRA4 :
  *
  *         x 4
  *        /|\
@@ -1033,7 +1033,7 @@ const PDM_writer_elt_geom_t  t_elt
  *        \|/
  *         x 2
  *
- *  - PDM_WRITER_HEXA8 :   
+ *  - PDM_WRITER_HEXA8 :
  *
  *      8 x-------x 7
  *       /|      /|
@@ -1049,7 +1049,7 @@ const PDM_writer_elt_geom_t  t_elt
  *   id_geom         <-- Identificateur de l'objet geometrique
  *   id_bloc         <-- Identificateur du bloc
  *   id_part         <-- Indice de partition
- *   n_elt           <-- Nombre d'elements dans la partition 
+ *   n_elt           <-- Nombre d'elements dans la partition
  *   connec          <-- Table de connectivite des elements
  *   numabs          <-- Numerotation absolue des elements
  *
@@ -1059,34 +1059,34 @@ void
 PROCF (pdm_writer_geom_bloc_std_set, PDM_WRITER_GEOM_BLOC_STD_SET)
 (
 int           *id_cs,
-int           *id_geom,  
-int           *id_bloc,  
-int           *id_part, 
-int           *n_elt,    
-PDM_l_num_t      *connec,   
+int           *id_geom,
+int           *id_bloc,
+int           *id_part,
+int           *n_elt,
+PDM_l_num_t      *connec,
 PDM_g_num_t     *numabs
-) 
+)
 {
   PDM_writer_geom_bloc_std_set (*id_cs,
                         *id_geom,
                         *id_bloc,
                         *id_part,
-                        *n_elt,    
-                        connec,   
-                        numabs); 
+                        *n_elt,
+                        connec,
+                        numabs);
 }
 
 void
-PDM_writer_geom_bloc_std_set 
+PDM_writer_geom_bloc_std_set
 (
 const int            id_cs,
-const int            id_geom,  
-const int            id_bloc,     
-const int            id_part, 
-const int            n_elt,    
-      PDM_l_num_t      *connec,   
+const int            id_geom,
+const int            id_bloc,
+const int            id_part,
+const int            n_elt,
+      PDM_l_num_t      *connec,
       PDM_g_num_t     *numabs
-) 
+)
 {
   /* Acces a l'objet de geometrie courant */
 
@@ -1101,10 +1101,10 @@ const int            n_elt,
     PDM_error(__FILE__, __LINE__, 0, "Bad geom identifier\n");
     abort();
   }
-  
-  PDM_Mesh_nodal_block_std_set (geom->idx_mesh, id_bloc, id_part, 
-                                n_elt, connec, numabs, NULL); 
-  
+
+  PDM_Mesh_nodal_block_std_set (geom->idx_mesh, id_bloc, id_part,
+                                n_elt, connec, numabs, NULL);
+
 }
 
 
@@ -1115,7 +1115,7 @@ const int            n_elt,
  *   id_cs           <-- Identificateur de l'objet cs
  *   id_geom         <-- Identificateur de l'objet geometrique
  *   id_part          <-- Indice de partition
- *   n_elt           <-- Nombre d'elements dans le bloc 
+ *   n_elt           <-- Nombre d'elements dans le bloc
  *   connec_idx      <-- Index dans la table de connectivite (dim = n_elt+1)
  *   connec          <-- Table de connectivite des elements (dim = connec_idx[n_elt])
  *   numabs          <-- Numerotation absolue des elements
@@ -1126,37 +1126,37 @@ void
 PROCF (pdm_writer_geom_bloc_poly2d_set, PDM_WRITER_GEOM_BLOC_POLY2D_SET)
 (
 int           *id_cs,
-int           *id_geom,  
-int           *id_bloc, 
-int           *id_part, 
-PDM_l_num_t      *n_elt,    
-PDM_l_num_t      *connec_idx,   
+int           *id_geom,
+int           *id_bloc,
+int           *id_part,
+PDM_l_num_t      *n_elt,
+PDM_l_num_t      *connec_idx,
 PDM_l_num_t      *connec,
 PDM_g_num_t     *numabs
-) 
+)
 {
   PDM_writer_geom_bloc_poly2d_set (*id_cs,
-                           *id_geom,  
-                           *id_bloc, 
-                           *id_part, 
-                           *n_elt,    
-                           connec_idx,   
+                           *id_geom,
+                           *id_bloc,
+                           *id_part,
+                           *n_elt,
+                           connec_idx,
                            connec,
-                           numabs); 
+                           numabs);
 }
- 
+
 void
-PDM_writer_geom_bloc_poly2d_set 
+PDM_writer_geom_bloc_poly2d_set
 (
 const int            id_cs,
-const int            id_geom,  
-const int            id_bloc, 
-const int            id_part, 
-const PDM_l_num_t       n_elt,    
-      PDM_l_num_t      *connec_idx,   
+const int            id_geom,
+const int            id_bloc,
+const int            id_part,
+const PDM_l_num_t       n_elt,
+      PDM_l_num_t      *connec_idx,
       PDM_l_num_t      *connec,
       PDM_g_num_t     *numabs
-) 
+)
 {
   /* Acces a l'objet de geometrie courant */
 
@@ -1171,12 +1171,12 @@ const PDM_l_num_t       n_elt,
     PDM_error(__FILE__, __LINE__, 0, "Bad geom identifier\n");
     abort();
   }
-    
-  PDM_Mesh_nodal_block_poly2d_set (geom->idx_mesh, id_bloc, id_part, 
-                                n_elt, connec_idx, connec, numabs, NULL); 
+
+  PDM_Mesh_nodal_block_poly2d_set (geom->idx_mesh, id_bloc, id_part,
+                                n_elt, connec_idx, connec, numabs, NULL);
 
 }
- 
+
 
 /*----------------------------------------------------------------------------
  * Ajout d'un bloc de polyedres dans la partition courante
@@ -1186,7 +1186,7 @@ const PDM_l_num_t       n_elt,
  *   id_geom         <-- Identificateur de l'objet geometrique
  *   id_bloc         <-- Identificateur de bloc
  *   id_part         <-- Indice de partition
- *   n_elt           <-- Nombre d'elements dans le bloc 
+ *   n_elt           <-- Nombre d'elements dans le bloc
  *   n_face          <-- Nombre de faces de chaque element (dim = n_elt)
  *   facsom_idx      <-- Index dans la table de connectivite des faces (dim = n_face_total+1)
  *   facsom          <-- Table de connectivite des faces (dim = facsom_idx[n_face_total}
@@ -1200,46 +1200,46 @@ void
 PROCF (pdm_writer_geom_bloc_poly3d_set, PDM_WRITER_GEOM_BLOC_POLY3D_SET)
 (
 int           *id_cs,
-int           *id_geom,  
-int           *id_bloc, 
-int           *id_part, 
-PDM_l_num_t      *n_elt,    
-PDM_l_num_t      *n_face,   
-PDM_l_num_t      *facsom_idx,   
+int           *id_geom,
+int           *id_bloc,
+int           *id_part,
+PDM_l_num_t      *n_elt,
+PDM_l_num_t      *n_face,
+PDM_l_num_t      *facsom_idx,
 PDM_l_num_t      *facsom,
-PDM_l_num_t      *cellfac_idx,   
+PDM_l_num_t      *cellfac_idx,
 PDM_l_num_t      *cellfac,
 PDM_g_num_t     *numabs
-) 
+)
 {
   PDM_writer_geom_bloc_poly3d_set (*id_cs,
-                           *id_geom,  
-                           *id_bloc, 
-                           *id_part, 
-                           *n_elt,    
-                           *n_face,   
-                           facsom_idx,   
+                           *id_geom,
+                           *id_bloc,
+                           *id_part,
+                           *n_elt,
+                           *n_face,
+                           facsom_idx,
                            facsom,
-                           cellfac_idx,   
+                           cellfac_idx,
                            cellfac,
-                           numabs); 
+                           numabs);
 }
 
 void
-PDM_writer_geom_bloc_poly3d_set 
+PDM_writer_geom_bloc_poly3d_set
 (
 const int        id_cs,
-const int        id_geom,  
-const int        id_bloc, 
-const int        id_part, 
-const PDM_l_num_t   n_elt,    
-const PDM_l_num_t   n_face,   
-      PDM_l_num_t  *facsom_idx,   
+const int        id_geom,
+const int        id_bloc,
+const int        id_part,
+const PDM_l_num_t   n_elt,
+const PDM_l_num_t   n_face,
+      PDM_l_num_t  *facsom_idx,
       PDM_l_num_t  *facsom,
-      PDM_l_num_t  *cellfac_idx,   
+      PDM_l_num_t  *cellfac_idx,
       PDM_l_num_t  *cellfac,
       PDM_g_num_t *numabs
-) 
+)
 {
   /* Acces a l'objet de geometrie courant */
 
@@ -1256,13 +1256,13 @@ const PDM_l_num_t   n_face,
   }
 
   PDM_Mesh_nodal_block_poly3d_set (geom->idx_mesh,
-                                   id_bloc, 
-                                   id_part, 
-                                   n_elt,    
-                                   n_face,   
-                                   facsom_idx,   
+                                   id_bloc,
+                                   id_part,
+                                   n_elt,
+                                   n_face,
+                                   facsom_idx,
                                    facsom,
-                                   cellfac_idx,   
+                                   cellfac_idx,
                                    cellfac,
                                    numabs,
                                    NULL);
@@ -1278,14 +1278,14 @@ const PDM_l_num_t   n_face,
  * parameters :
  *   id_cs           <-- Identificateur de l'objet cs
  *   id_geom         <-- Identificateur de l'objet geometrique
- *   n_cell          <-- Nombre de cellules 3D ajout�es         
- *   n_face          <-- Nombre de faces d�crites               
+ *   n_cell          <-- Nombre de cellules 3D ajout�es
+ *   n_face          <-- Nombre de faces d�crites
  *   face_som_idx    <-- Index de connectivite faces -> sommets
- *   face_som        <-- Connectivite faces -> sommets                                       
- *   cell_face_idx   <-- Index de connectivite cellules -> faces  
+ *   face_som        <-- Connectivite faces -> sommets
+ *   cell_face_idx   <-- Index de connectivite cellules -> faces
  *   cell_face       <-- Connectivite cellules -> faces
- *   numabs          <-- Numerotatio absolue des cellules 
- *   ind_num         --> Indirection vers la nouvelle numerotation des cellules 
+ *   numabs          <-- Numerotatio absolue des cellules
+ *   ind_num         --> Indirection vers la nouvelle numerotation des cellules
  *
  *----------------------------------------------------------------------------*/
 
@@ -1304,11 +1304,11 @@ PDM_l_num_t    *cell_face_idx,
 PDM_l_num_t    *cell_face_nb,
 PDM_l_num_t    *cell_face,
 PDM_g_num_t   *numabs
-) 
+)
 {
   PDM_writer_geom_cell3d_cellface_add(*id_cs,
                               *id_geom,
-                              *id_part, 
+                              *id_part,
                               *n_cell,
                               *n_face,
                               face_som_idx,
@@ -1318,14 +1318,14 @@ PDM_g_num_t   *numabs
                               cell_face_nb,
                               cell_face,
                               numabs);
-} 
+}
 
 void
 PDM_writer_geom_cell3d_cellface_add
 (
 const int    id_cs,
 const int    id_geom,
-const int    id_part, 
+const int    id_part,
 const int    n_cell,
 const int    n_face,
 PDM_l_num_t    *face_som_idx,
@@ -1335,7 +1335,7 @@ PDM_l_num_t    *cell_face_idx,
 PDM_l_num_t    *cell_face_nb,
 PDM_l_num_t    *cell_face,
 PDM_g_num_t   *numabs
-) 
+)
 {
   /* Acces a l'objet de geometrie courant */
 
@@ -1343,7 +1343,7 @@ PDM_g_num_t   *numabs
   if (cs == NULL) {
     PDM_error (__FILE__, __LINE__, 0, "Bad writer identifier\n");
   }
-  
+
   PDM_writer_geom_t *geom = (PDM_writer_geom_t *) PDM_Handles_get (cs->geom_tab, id_geom);
 
   if (geom == NULL) {
@@ -1351,21 +1351,21 @@ PDM_g_num_t   *numabs
     abort();
   }
 
-  PDM_Mesh_nodal_cell3d_cellface_add (geom->idx_mesh, 
-                                      id_part, 
-                                      n_cell, 
-                                      n_face, 
-                                      face_som_idx, 
-                                      face_som_nb, 
-                                      face_som, 
-                                      cell_face_idx, 
-                                      cell_face_nb, 
-                                      cell_face, 
+  PDM_Mesh_nodal_cell3d_cellface_add (geom->idx_mesh,
+                                      id_part,
+                                      n_cell,
+                                      n_face,
+                                      face_som_idx,
+                                      face_som_nb,
+                                      face_som,
+                                      cell_face_idx,
+                                      cell_face_nb,
+                                      cell_face,
                                       numabs);
   if (0 == 1) {
     printf("ncell : %d\n", n_cell);
     for (int i = 0; i < n_cell; i++) {
-      printf ("%d "PDM_FMT_G_NUM" : \n", i+1, numabs[i]); 
+      printf ("%d "PDM_FMT_G_NUM" : \n", i+1, numabs[i]);
       for (int j = cell_face_idx[i]; j < cell_face_idx[i+1]; j++) {
         printf (" %d", cell_face[j]);
       }
@@ -1373,7 +1373,7 @@ PDM_g_num_t   *numabs
     }
     printf("nface : %d\n", n_face);
     for (int i = 0; i < n_face; i++) {
-      printf ("%d: \n", i+1); 
+      printf ("%d: \n", i+1);
       for (int j = face_som_idx[i]; j < face_som_idx[i+1]; j++) {
         printf (" %d", face_som[j]);
       }
@@ -1382,7 +1382,7 @@ PDM_g_num_t   *numabs
   }
 
 
-} 
+}
 
 
 /*----------------------------------------------------------------------------
@@ -1395,13 +1395,13 @@ PDM_g_num_t   *numabs
  * parameters :
  *   id_cs           <-- Identificateur de l'objet cs
  *   id_geom         <-- Identificateur de l'objet geometrique
- *   n_elt           <-- Nombre de cellules 3D ajout�es         
- *   n_face          <-- Nombre de faces d�crites               
+ *   n_elt           <-- Nombre de cellules 3D ajout�es
+ *   n_face          <-- Nombre de faces d�crites
  *   face_som_idx    <-- Index de connectivite faces -> sommets
- *   face_som        <-- Connectivite faces -> sommets                                       
- *   cell_face_idx   <-- Index de connectivite cellules -> faces  
+ *   face_som        <-- Connectivite faces -> sommets
+ *   cell_face_idx   <-- Index de connectivite cellules -> faces
  *   cell_face       <-- Connectivite cellules -> faces
- *   numabs          <-- Numerotatio absolue des cellules 
+ *   numabs          <-- Numerotatio absolue des cellules
  *
  *----------------------------------------------------------------------------*/
 
@@ -1420,11 +1420,11 @@ PDM_l_num_t    *cell_face_idx,
 PDM_l_num_t    *cell_face_nb,
 PDM_l_num_t    *cell_face,
 PDM_g_num_t   *numabs
-) 
+)
 {
   PDM_writer_geom_cell2d_cellface_add(*id_cs,
                               *id_geom,
-                              *id_part, 
+                              *id_part,
                               *n_cell,
                               *n_face,
                               face_som_idx,
@@ -1434,14 +1434,14 @@ PDM_g_num_t   *numabs
                               cell_face_nb,
                               cell_face,
                               numabs);
-} 
+}
 
 void
 PDM_writer_geom_cell2d_cellface_add
 (
 const int          id_cs,
 const int          id_geom,
-const int          id_part, 
+const int          id_part,
 const int          n_cell,
 const int          n_face,
 PDM_l_num_t    *face_som_idx,
@@ -1451,7 +1451,7 @@ PDM_l_num_t    *cell_face_idx,
 PDM_l_num_t    *cell_face_nb,
 PDM_l_num_t    *cell_face,
 PDM_g_num_t   *numabs
-) 
+)
 {
   /* Acces a l'objet de geometrie courant */
 
@@ -1467,15 +1467,15 @@ PDM_g_num_t   *numabs
     abort();
   }
 
-  PDM_Mesh_nodal_cell2d_celledge_add (geom->idx_mesh, 
-                                      id_part, n_cell, 
-                                      n_face, 
-                                      face_som_idx, 
-                                      face_som_nb, 
-                                      face_som, 
-                                      cell_face_idx, 
-                                      cell_face_nb, 
-                                      cell_face, 
+  PDM_Mesh_nodal_cell2d_celledge_add (geom->idx_mesh,
+                                      id_part, n_cell,
+                                      n_face,
+                                      face_som_idx,
+                                      face_som_nb,
+                                      face_som,
+                                      cell_face_idx,
+                                      cell_face_nb,
+                                      cell_face,
                                       numabs);
 }
 
@@ -1490,12 +1490,12 @@ PDM_g_num_t   *numabs
  * parameters :
  *   id_cs           <-- Identificateur de l'objet cs
  *   id_geom         <-- Identificateur de l'objet geometrique
- *   n_elt           <-- Nombre de cellules 3D ajout�es         
- *   n_face          <-- Nombre de faces d�crites               
+ *   n_elt           <-- Nombre de cellules 3D ajout�es
+ *   n_face          <-- Nombre de faces d�crites
  *   face_som_idx    <-- Index de connectivite faces -> sommets
- *   face_som        <-- Connectivite faces -> sommets                                       
- *   numabs          <-- Numerotation absolue des faces    
- *   ind_num         --> Indirection vers la nouvelle numerotation des faces    
+ *   face_som        <-- Connectivite faces -> sommets
+ *   numabs          <-- Numerotation absolue des faces
+ *   ind_num         --> Indirection vers la nouvelle numerotation des faces
  *
  *----------------------------------------------------------------------------*/
 
@@ -1510,24 +1510,24 @@ PDM_l_num_t    *face_som_idx,
 PDM_l_num_t    *face_som_nb,
 PDM_l_num_t    *face_som,
 PDM_g_num_t   *numabs
-) 
+)
 {
   PDM_writer_geom_faces_facesom_add(*id_cs,
                             *id_geom,
-                            *id_part, 
+                            *id_part,
                             *n_face,
                             face_som_idx,
                             face_som_nb,
                             face_som,
                             numabs);
-} 
+}
 
 void
 PDM_writer_geom_faces_facesom_add
 (
 const int          id_cs,
 const int          id_geom,
-const int          id_part, 
+const int          id_part,
 const int          n_face,
 PDM_l_num_t    *face_som_idx,
 PDM_l_num_t    *face_som_nb,
@@ -1548,7 +1548,7 @@ PDM_g_num_t   *numabs
     PDM_error(__FILE__, __LINE__, 0, "Bad geom identifier\n");
     abort();
   }
-  
+
   PDM_Mesh_nodal_faces_facevtx_add (geom->idx_mesh,
                                     id_part,
                                     n_face,
@@ -1556,10 +1556,10 @@ PDM_g_num_t   *numabs
                                     face_som_nb,
                                     face_som,
                                     numabs);
-} 
+}
 
 /*----------------------------------------------------------------------------
- * Ecriture du maillage courant                                  
+ * Ecriture du maillage courant
  *
  * parameters :
  *   id_cs           <-- Identificateur de l'objet cs
@@ -1572,10 +1572,10 @@ PROCF (pdm_writer_geom_write, PDM_WRITER_GEOM_WRITE)
 (
 int           *id_cs,
 int           *id_geom
-) 
+)
 {
   PDM_writer_geom_write (*id_cs,
-               *id_geom); 
+               *id_geom);
 }
 
 void
@@ -1583,7 +1583,7 @@ PDM_writer_geom_write
 (
 const int            id_cs,
 const int            id_geom
-) 
+)
 {
 
     /* Acces a l'objet de geometrie courant */
@@ -1605,7 +1605,7 @@ const int            id_geom
   /* Mise a jour du nombre total d'�l�ments */
 
 
-  /* D�termination de la num�rotation absolue interne des elements 
+  /* D�termination de la num�rotation absolue interne des elements
      Independante du parallelisme */
 
   const int n_blocks = PDM_Mesh_nodal_n_blocks_get (geom->idx_mesh);
@@ -1614,7 +1614,7 @@ const int            id_geom
   for (int i = 0; i < n_blocks; i++) {
     PDM_Mesh_nodal_g_num_in_block_compute (geom->idx_mesh, blocks_id[i]);
   }
-  
+
   /* Ecriture au format */
 
   /* Appel de la fonction complementaire propre au format */
@@ -1644,10 +1644,10 @@ PROCF (pdm_writer_geom_free, PDM_WRITER_GEOM_FREE)
 (
 int           *id_cs,
 int           *id_geom
-) 
+)
 {
   PDM_writer_geom_free(*id_cs,
-                       *id_geom); 
+                       *id_geom);
 
 }
 
@@ -1656,7 +1656,7 @@ PDM_writer_geom_free
 (
 const int      id_cs,
 const int      id_geom
-) 
+)
 {
   PDM_writer_geom_data_free(id_cs,
                    id_geom);
@@ -1665,11 +1665,11 @@ const int      id_geom
   if (cs == NULL) {
     PDM_error (__FILE__, __LINE__, 0, "Bad writer identifier\n");
   }
-  
+
   PDM_writer_geom_t *geom = (PDM_writer_geom_t *) PDM_Handles_get (cs->geom_tab, id_geom);
 
   if (geom != NULL) {
-    
+
     PDM_Mesh_nodal_free (geom->idx_mesh);
 
     free(geom->nom_geom);
@@ -1677,9 +1677,9 @@ const int      id_geom
     /* Lib�ration sp�cifique au format */
 
     /* Appel de la fonction complementaire propre au format */
-  
+
     PDM_writer_fmt_t * fmt_ptr = (PDM_writer_fmt_t *) PDM_Handles_get (fmt_tab, cs->fmt_id);
-  
+
     if (fmt_ptr->geom_free_fct != NULL) {
       (fmt_ptr->geom_free_fct) (geom);
     }
@@ -1687,8 +1687,8 @@ const int      id_geom
     free(geom);
 
     PDM_Handles_handle_free (cs->geom_tab, id_geom, PDM_FALSE);
-  
-    int n_geom_tab = PDM_Handles_n_get (cs->geom_tab); 
+
+    int n_geom_tab = PDM_Handles_n_get (cs->geom_tab);
 
     if (n_geom_tab == 0) {
       cs->geom_tab = PDM_Handles_free (cs->geom_tab);
@@ -1712,10 +1712,10 @@ PROCF (pdm_writer_geom_data_free, PDM_WRITER_GEOM_DATA_FREE)
 (
 int           *id_cs,
 int           *id_geom
-) 
+)
 {
   PDM_writer_geom_data_free(*id_cs,
-                   *id_geom); 
+                   *id_geom);
 }
 
 void
@@ -1723,7 +1723,7 @@ PDM_writer_geom_data_free
 (
 const int      id_cs,
 const int      id_geom
-) 
+)
 {
   /* Acces a l'objet de geometrie courant */
 
@@ -1735,14 +1735,14 @@ const int      id_geom
   PDM_writer_geom_t *geom = (PDM_writer_geom_t *) PDM_Handles_get (cs->geom_tab, id_geom);
 
   if (geom != NULL) {
-  
+
     PDM_Mesh_nodal_partial_free (geom->idx_mesh);
 
   }
 }
 
 /*----------------------------------------------------------------------------
- * Mapping des noms de variable                                                     
+ * Mapping des noms de variable
  *
  * parameters :
  *   id_cs           <-- Identificateur de l'objet cs
@@ -1750,7 +1750,7 @@ const int      id_geom
  *   pivate_name     <-- Nom privé de la variable
  *
  * return :
- *                   --> Identificateur de l'objet variable     
+ *                   --> Identificateur de l'objet variable
  *
  *----------------------------------------------------------------------------*/
 
@@ -1801,21 +1801,21 @@ const char *private_name
   if (cs->name_map == NULL) {
     cs->name_map = PDM_Handles_create(3);
   }
-        
-  PDM_writer_name_map_t *name_map = (PDM_writer_name_map_t *) malloc (sizeof(PDM_writer_name_map_t));  
-    
+
+  PDM_writer_name_map_t *name_map = (PDM_writer_name_map_t *) malloc (sizeof(PDM_writer_name_map_t));
+
   PDM_Handles_store (cs->name_map, name_map);
 
-  name_map->public_name = malloc ((strlen(public_name) + 1) * sizeof(char)); 
-  name_map->private_name = malloc ((strlen(private_name) + 1) * sizeof(char)); 
+  name_map->public_name = malloc ((strlen(public_name) + 1) * sizeof(char));
+  name_map->private_name = malloc ((strlen(private_name) + 1) * sizeof(char));
 
   strcpy(name_map->public_name, public_name);
   strcpy(name_map->private_name, private_name);
-  
+
 }
 
 /*----------------------------------------------------------------------------
- * Creation d'une variable                                                     
+ * Creation d'une variable
  *
  * parameters :
  *   id_cs           <-- Identificateur de l'objet cs
@@ -1825,7 +1825,7 @@ const char *private_name
  *   nom_var         <-- Nom de la variable
  *
  * return :
- *                   --> Identificateur de l'objet variable     
+ *                   --> Identificateur de l'objet variable
  *
  *----------------------------------------------------------------------------*/
 
@@ -1834,11 +1834,11 @@ PROCF (pdm_writer_var_create_cf, PDM_WRITER_VAR_CREATE_CF)
 (
 int         *id_cs,
 int         *st_dep_tps,
-int         *dim,  
-int         *loc,   
-char        *nom_var,   
-int         *l_nom_var,   
-int         *id_var 
+int         *dim,
+int         *loc,
+char        *nom_var,
+int         *l_nom_var,
+int         *id_var
 ARGF_SUPP_CHAINE
 )
 {
@@ -1846,8 +1846,8 @@ ARGF_SUPP_CHAINE
 
   *id_var = PDM_writer_var_create (*id_cs,
                                    (PDM_writer_statut_t) *st_dep_tps,
-                                   (PDM_writer_var_dim_t) *dim,   
-                                   (PDM_writer_var_loc_t) *loc,   
+                                   (PDM_writer_var_dim_t) *dim,
+                                   (PDM_writer_var_loc_t) *loc,
                                    nom_var_c);
 
   if (nom_var_c != NULL) {
@@ -1860,8 +1860,8 @@ PDM_writer_var_create
 (
 const int          id_cs,
 const PDM_writer_statut_t  st_dep_tps,
-const PDM_writer_var_dim_t dim,  
-const PDM_writer_var_loc_t loc,  
+const PDM_writer_var_dim_t dim,
+const PDM_writer_var_loc_t loc,
 const char        *nom_var
 )
 {
@@ -1876,7 +1876,7 @@ const char        *nom_var
 
   if (cs->var_tab == NULL) {
     cs->var_tab = PDM_Handles_create(4);
-  } 
+  }
 
   /* Allocation de la structure PDM_writer_var_t */
 
@@ -1902,18 +1902,18 @@ const char        *nom_var
     const int *ind = PDM_Handles_idx_get (cs->name_map);
 
     for (int i = 0; i < n_map; i++) {
-      PDM_writer_name_map_t *map = (PDM_writer_name_map_t *) 
+      PDM_writer_name_map_t *map = (PDM_writer_name_map_t *)
               PDM_Handles_get (cs->name_map, ind[i]);
       if (!strcmp(nom_var, map->public_name)) {
         var->private_name = map->private_name;
       }
     }
   }
-  
+
   /* Appel de la fonction complementaire propre au format */
 
   PDM_writer_fmt_t * fmt_ptr = (PDM_writer_fmt_t *) PDM_Handles_get (fmt_tab, cs->fmt_id);
-  
+
   if (fmt_ptr->var_create_fct != NULL) {
     (fmt_ptr->var_create_fct) (var);
   }
@@ -1949,7 +1949,7 @@ void
 PDM_writer_var_write
 (
 const int        id_cs,
-const int        id_var 
+const int        id_var
 )
 {
 
@@ -1961,7 +1961,7 @@ const int        id_var
   }
 
   PDM_writer_var_t *var = (PDM_writer_var_t *) PDM_Handles_get (cs->var_tab, id_var);
-  
+
   if (var == NULL) {
     PDM_error (__FILE__, __LINE__, 0, "Bad var identifier\n");
   }
@@ -1973,7 +1973,7 @@ const int        id_var
   if (fmt_ptr->var_write_fct != NULL) {
     (fmt_ptr->var_write_fct) (var);
   }
-  
+
 }
 
 
@@ -2026,7 +2026,7 @@ const PDM_real_t *val
   }
 
   PDM_writer_var_t *var = (PDM_writer_var_t *) PDM_Handles_get (cs->var_tab, id_var);
-  
+
   if (var == NULL) {
     PDM_error (__FILE__, __LINE__, 0, "Bad var identifier\n");
   }
@@ -2052,14 +2052,14 @@ const PDM_real_t *val
       var->_val[i] = NULL;
     }
   }
-  
+
   if (ind_max < id_geom) {
     PDM_error(__FILE__, __LINE__, 0, "Erreur cs_var_set    : Indice de geometrie incorrect\n");
     abort();
   }
 
   int n_part = PDM_Mesh_nodal_n_part_get (geom->idx_mesh);
-  
+
   if (var->_val[id_geom] == NULL) {
     var->_val[id_geom] = (double **) malloc(sizeof(double *) * n_part);
     for (int i = 0; i < n_part; i++)
@@ -2074,9 +2074,9 @@ const PDM_real_t *val
   }
 
   int n_cell = PDM_Mesh_nodal_n_cell_get (geom->idx_mesh, id_part);
-  int *num_cell_parent_to_local = PDM_Mesh_nodal_num_cell_parent_to_local_get (geom->idx_mesh, id_part); 
+  int *num_cell_parent_to_local = PDM_Mesh_nodal_num_cell_parent_to_local_get (geom->idx_mesh, id_part);
   int n_som = PDM_Mesh_nodal_n_vertices_get(geom->idx_mesh, id_part);
-  
+
   if (var->loc == PDM_WRITER_VAR_ELEMENTS) {
     val_geom[id_part] = (double *) malloc(sizeof(double) * var->dim * n_cell);
     if (num_cell_parent_to_local != NULL) {
@@ -2140,7 +2140,7 @@ const int    id_var
   PDM_writer_var_t *var = (PDM_writer_var_t *) PDM_Handles_get (cs->var_tab, id_var);
 
   if (var != NULL) {
-  
+
     if (var->_val != NULL) {
 
       const int *ind = PDM_Handles_idx_get (cs->geom_tab);
@@ -2211,7 +2211,7 @@ const int    id_var
     /* Acces a l'objet de geometrie courant */
 
     PDM_writer_var_t *var = (PDM_writer_var_t *) PDM_Handles_get (cs->var_tab, id_var);
-    
+
     if (var != NULL) {
 
       free(var->nom_var);
@@ -2238,7 +2238,7 @@ const int    id_var
       if (fmt_ptr->var_free_fct != NULL) {
         (fmt_ptr->var_free_fct) (var);
       }
-      
+
       free (var);
       PDM_Handles_handle_free (cs->var_tab, id_var, PDM_FALSE);
 
@@ -2255,7 +2255,7 @@ const int    id_var
  *
  * Define a new format writer
  *
- * \param [in] name            Name                                                    
+ * \param [in] name            Name
  * \param [in] create_fct      Customize \ref PDM_writer_create function for the new format  (or NULL)
  * \param [in] free_fct        Customize \ref PDM_writer_free function for the new format (or NULL)
  * \param [in] beg_step_fct    Customize \ref PDM_writer_step_beg function for the new format (or NULL)
@@ -2296,11 +2296,11 @@ PDM_writer_fmt_add
     PDM_error(__FILE__, __LINE__, 0, "Error PDM_writer_fmt_add : Undefined var write function\n");
     abort ();
   }
-  
+
   PDM_writer_fmt_t *fmt_ptr = malloc (sizeof(PDM_writer_fmt_t));
-  
+
   PDM_Handles_store  (fmt_tab, fmt_ptr);
-  
+
   fmt_ptr->name            = malloc(sizeof(char) * (strlen(name) + 1));
   strcpy (fmt_ptr->name, name);
 
@@ -2312,7 +2312,7 @@ PDM_writer_fmt_add
   fmt_ptr->geom_write_fct  = geom_write_fct;
   fmt_ptr->geom_free_fct   = geom_free_fct;
   fmt_ptr->var_create_fct  = var_create_fct;
-  fmt_ptr->var_write_fct   = var_write_fct; 
+  fmt_ptr->var_write_fct   = var_write_fct;
   fmt_ptr->var_free_fct    = var_free_fct;
 
 }
@@ -2333,7 +2333,7 @@ PDM_writer_fmt_free
 
     const int *index =  PDM_Handles_idx_get (fmt_tab);
     int n_fmt = PDM_Handles_n_get (fmt_tab);
-    
+
     while (n_fmt > 0) {
       int idx = index[0];
       PDM_writer_fmt_t *fmt_ptr = (PDM_writer_fmt_t *) PDM_Handles_get (fmt_tab, idx);
@@ -2343,7 +2343,7 @@ PDM_writer_fmt_free
     }
 
     fmt_tab = PDM_Handles_free (fmt_tab);
-    
+
   }
 }
 
@@ -2361,10 +2361,10 @@ PROCF (pdm_writer_geom_data_reset, PDM_WRITER_GEOM_DATA_RESET)
 (
 int           *id_cs,
 int           *id_geom
-) 
+)
 {
   PDM_writer_geom_data_reset(*id_cs,
-                   *id_geom); 
+                   *id_geom);
 }
 
 void
@@ -2372,7 +2372,7 @@ PDM_writer_geom_data_reset
 (
 const int      id_cs,
 const int      id_geom
-) 
+)
 {
   /* Acces a l'objet de geometrie courant */
 
@@ -2384,7 +2384,7 @@ const int      id_geom
   PDM_writer_geom_t *geom = (PDM_writer_geom_t *) PDM_Handles_get (cs->geom_tab, id_geom);
 
   if (geom != NULL) {
-  
+
     PDM_Mesh_nodal_reset (geom->idx_mesh);
 
   }

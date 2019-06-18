@@ -37,7 +37,7 @@ extern "C" {
 /**
  * \brief Compute 2x2 determinant
  *
- * \param [in]  a 
+ * \param [in]  a
  * \param [in]  b
  * \param [in]  c
  * \param [in]  d
@@ -77,40 +77,40 @@ _solve_2x2
 )
 {
   double y[2];
-  
+
   double det = _det_2x2 (A[0][0], A[0][1], A[1][0], A[1][1]);
 
   if (det == 0.0) {
     return PDM_FALSE;
   }
-  
+
   y[0] = (A[1][1]*x[0] - A[0][1]*x[1]) / det;
   y[1] = (-A[1][0]*x[0] + A[0][0]*x[1]) / det;
-  
+
   x[0] = y[0];
   x[1] = y[1];
   return PDM_TRUE;
 }
 
 /*=============================================================================
- * Public function prototypes 
+ * Public function prototypes
  *============================================================================*/
 
 
 /**
  * \brief Performs intersection of two finite 3D lines
  *
- *  An intersection is found if the projection of the two lines onto the plane 
- *  perpendicular to the cross product of the two lines intersect. 
- *  The parameters (u,v) are the parametric coordinates of the lines at the 
- *  position of closest approach 
+ *  An intersection is found if the projection of the two lines onto the plane
+ *  perpendicular to the cross product of the two lines intersect.
+ *  The parameters (u,v) are the parametric coordinates of the lines at the
+ *  position of closest approach
  *
  * \param [in]  a1 Coordinates of the first line vertex of 'a'
  * \param [in]  a2 Coordinates of the second line vertex of 'a'
  * \param [in]  b1 Coordinates of the first line vertex of 'b'
  * \param [in]  b2 Coordinates of the second line vertex of 'b'
- * \param [out] u  Parameter of the intersection in line 'a' parametric coordinates 
- * \param [out] v  Parameter of the intersection in line 'b' parametric coordinates 
+ * \param [out] u  Parameter of the intersection in line 'a' parametric coordinates
+ * \param [out] v  Parameter of the intersection in line 'b' parametric coordinates
  *
  * \return      \ref PDM_TRUE or \ref PDM_FALSE
  *
@@ -127,7 +127,7 @@ PDM_line_intersection
  double *v
  )
 {
- 
+
   double a21[3], b21[3], b1a1[3];
   double c[2];
   double A[2][2];
@@ -146,7 +146,7 @@ PDM_line_intersection
   b21[0] = b2[0] - b1[0];
   b21[1] = b2[1] - b1[1];
   b21[2] = b2[2] - b1[2];
-  
+
   b1a1[0] = b1[0] - a1[0];
   b1a1[1] = b1[1] - a1[1];
   b1a1[2] = b1[2] - a1[2];
@@ -178,7 +178,7 @@ PDM_line_intersection
     *u = c[0];
     *v = c[1];
   }
-  
+
   /*
    * Check parametric coordinates for intersection.
    */
@@ -193,12 +193,12 @@ PDM_line_intersection
 
 
 /**
- * \brief Computes point-line distance 
+ * \brief Computes point-line distance
  *
  * \param [in]  x             Point coordinates
  * \param [in]  p1            First line vertex coordinates
  * \param [in]  p2            Second line vertex coordinates
- * \param [out] t             Parameter of the intersection in line parametric coordinates 
+ * \param [out] t             Parameter of the intersection in line parametric coordinates
  * \param [out] closest_point Closest point
  *
  * \return   The square of the distance
@@ -220,11 +220,11 @@ PDM_line_distance
 
   double p21[3], denom, num;
   double *closest;
-  
+
   /*
    * Determine appropriate vectors
    */
-  
+
   p21[0] = p2[0]- p1[0];
   p21[1] = p2[1]- p1[1];
   p21[2] = p2[2]- p1[2];
@@ -232,28 +232,28 @@ PDM_line_distance
   /*
    *  Get parametric location
    */
-  
+
   num = p21[0]*(x[0]-p1[0]) + p21[1]*(x[1]-p1[1]) + p21[2]*(x[2]-p1[2]);
   denom = PDM_DOT_PRODUCT(p21,p21);
 
   double tolerance = fabs (_tol_dist * num);
   if ( fabs(denom) < tolerance ) {
-    closest = (double *) p1; 
+    closest = (double *) p1;
   }
 
-  /* 
+  /*
    *  If parametric coordinate is within 0<=p<=1, then the point is closest to
    *  the line.  Otherwise, it's closest to a point at the end of the line.
    */
-  
+
   else if ( denom <= 0.0 || (*t=num/denom) < 0.0 ) {
     closest = (double *) p1;
   }
-  
+
   else if ( *t > 1.0 ) {
     closest = (double *) p2;
   }
-  
+
   else {
     closest = p21;
     p21[0] = p1[0] + (*t)*p21[0];

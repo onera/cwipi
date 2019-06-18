@@ -30,7 +30,7 @@ extern "C" {
 
 
 /*============================================================================
- * Definition des types locaux 
+ * Definition des types locaux
  *============================================================================*/
 
 struct _PDM_file_par_t {
@@ -71,12 +71,12 @@ _pdm_mpi_io_error_message
 {
   char buffer[PDM_MPI_get_max_error_string()];
   int  buffer_len;
-  
+
   PDM_MPI_Error_string(code_erreur, buffer, &buffer_len);
-  
+
   PDM_error(__FILE__, __LINE__, 0, "Erreur MPI IO pour le fichier: %s\n"
           "Error type: %s", nom_fichier, buffer);
-  
+
   exit(EXIT_FAILURE);
 }
 
@@ -93,11 +93,11 @@ _pdm_mpi_io_error_message
  *   mode            <-- Mode d'acces (lecture, ecriture, lecture/ecriture)
  *   pdm_mpi_comm        <-- Communicateur lie au fichier
  * return :
- *   PDM_file_par         Pointeur sur le fichier         
+ *   PDM_file_par         Pointeur sur le fichier
  *
  *----------------------------------------------------------------------------*/
 
-PDM_file_par_t 
+PDM_file_par_t
 *PDM_file_par_open
 (const char                *nom,
  const PDM_file_par_acces_t  acces,
@@ -137,9 +137,9 @@ PDM_file_par_t
 
   PDM_file_par->comm = comm;
 
-  PDM_MPI_File_open(PDM_file_par->comm, 
-                PDM_file_par->nom, 
-                _mode, 
+  PDM_MPI_File_open(PDM_file_par->comm,
+                PDM_file_par->nom,
+                _mode,
                 &(PDM_file_par->fichier));
 
   PDM_file_par->offset = 0;
@@ -159,10 +159,10 @@ PDM_file_par_t
  * return
  *   n_donnees_lues      Nombre de donnees lues
  *                       Erreur de lecture si n_donnees != n_donnees_lues
- *  
+ *
  *----------------------------------------------------------------------------*/
 
-int 
+int
 PDM_file_par_lecture_globale
 (PDM_file_par_t   *PDM_file_par,
  const size_t     taille_donnee,
@@ -174,7 +174,7 @@ PDM_file_par_lecture_globale
   size_t n_donnees_lues;
   int errcode = PDM_MPI_SUCCESS;
   int n_octet_lus = 0;
-  
+
   /* Variables pour acces ip */
 
   PDM_MPI_Datatype fichier_type;
@@ -203,11 +203,11 @@ PDM_file_par_lecture_globale
     disps[0] = 0;
     PDM_MPI_Type_create_hindexed(1, lengths, disps, PDM_MPI_BYTE, &fichier_type);
     PDM_MPI_Type_commit(&fichier_type);
-    PDM_MPI_File_set_view(PDM_file_par->fichier, 
-                      PDM_file_par->offset, 
-                      PDM_MPI_BYTE, 
+    PDM_MPI_File_set_view(PDM_file_par->fichier,
+                      PDM_file_par->offset,
+                      PDM_MPI_BYTE,
                       fichier_type,
-                      "native"); 
+                      "native");
     errcode = PDM_MPI_File_read_all(PDM_file_par->fichier,
                                 donnees,
                                 _taille_donnee * n_donnees,
@@ -230,14 +230,14 @@ PDM_file_par_lecture_globale
   if (errcode != PDM_MPI_SUCCESS)
     _pdm_mpi_io_error_message(PDM_file_par->nom, errcode);
 
-  
+
   n_donnees_lues = n_octet_lus / taille_donnee;
 
   /* Mise à jour de l'offset */
-  
+
   PDM_file_par->offset += n_octet_lus;
   int _n_donnees_lues = (int) n_donnees_lues;
-  
+
   return _n_donnees_lues;
 }
 
@@ -245,17 +245,17 @@ PDM_file_par_lecture_globale
  * Ecriture globale : Le processus maitre accede seul au fichier
  *
  * parameters :
- *   PDM_file_par       <-- Pointeur sur le fichier         
+ *   PDM_file_par       <-- Pointeur sur le fichier
  *   taille_donnee     <-- Taille unitaire de la donnnee
  *   n_donnees         <-- Nombre de donnees a ecrire
  *   donnees            --> Donnees lues
  * return
  *   n_donnees_ecrites      Nombre de donnees ecrites
  *                          Erreur d'ecriture si n_donnees != n_donnees_ecrites
- *  
+ *
  *----------------------------------------------------------------------------*/
 
-int 
+int
 PDM_file_par_ecriture_globale
 (PDM_file_par_t      *PDM_file_par,
  const size_t        taille_donnee,
@@ -272,7 +272,7 @@ PDM_file_par_ecriture_globale
   PDM_MPI_Aint disps[1];
   int lengths[1];
   int _taille_donnee = (int) taille_donnee;
-  
+
   switch(PDM_file_par->acces) {
 
   case FICHIER_PAR_ACCES_EO :
@@ -285,7 +285,7 @@ PDM_file_par_ecriture_globale
                                      &(sorties[1]) );
 /*       PDM_MPI_Get_count(&status, PDM_MPI_BYTE, &(sorties[1])); */
     }
-     
+
     break;
 
   case FICHIER_PAR_ACCES_IP :
@@ -293,11 +293,11 @@ PDM_file_par_ecriture_globale
     disps[0] = 0;
     PDM_MPI_Type_create_hindexed(1, lengths, disps, PDM_MPI_BYTE, &fichier_type);
     PDM_MPI_Type_commit(&fichier_type);
-    PDM_MPI_File_set_view(PDM_file_par->fichier, 
-                      PDM_file_par->offset, 
-                      PDM_MPI_BYTE, 
+    PDM_MPI_File_set_view(PDM_file_par->fichier,
+                      PDM_file_par->offset,
+                      PDM_MPI_BYTE,
                       fichier_type,
-                      "native"); 
+                      "native");
     if (PDM_file_par->rang == 0) {
       sorties[0] = PDM_MPI_File_write(PDM_file_par->fichier,
                                   donnees,
@@ -333,10 +333,10 @@ PDM_file_par_ecriture_globale
 }
 
 /*----------------------------------------------------------------------------
- * Lecture parallele de blocs de donnees 
+ * Lecture parallele de blocs de donnees
  *
  * parameters :
- *   PDM_file_par     <-- Pointeur sur le fichier         
+ *   PDM_file_par     <-- Pointeur sur le fichier
  *   taille_donnee   <-- Taille unitaire de la donnnee
  *   n_donnees_bloc  <-- Nombre de donnees a lire dans le bloc
  *   donnees         --> Donnees lues
@@ -344,11 +344,11 @@ PDM_file_par_ecriture_globale
  * return
  *   n_donnees_lues      Nombre de donnees lues
  *                       Erreur de lecture si n_donnees != n_donnees_lues
- *  
+ *
  *----------------------------------------------------------------------------*/
 
-int  
-PDM_file_par_lecture_parallele 
+int
+PDM_file_par_lecture_parallele
 (PDM_file_par_t *PDM_file_par,
  const size_t   taille_donnee,
  const int      n_donnees_bloc,
@@ -359,11 +359,11 @@ PDM_file_par_lecture_parallele
   int n_donnees_lues = 0;
   int errcode = PDM_MPI_SUCCESS;
   int _taille_donnee = (int) taille_donnee;
-  
-  int n_octet = (int) (n_donnees_bloc * _taille_donnee); /* Passage en int 
+
+  int n_octet = (int) (n_donnees_bloc * _taille_donnee); /* Passage en int
                                                            pour appel MPI */
 
-  long debut_bloc_octet = debut_bloc * _taille_donnee; 
+  long debut_bloc_octet = debut_bloc * _taille_donnee;
 
   long n_octet_total = debut_bloc_octet + n_octet;
 
@@ -376,12 +376,12 @@ PDM_file_par_lecture_parallele
   PDM_MPI_Datatype fichier_type;
   PDM_MPI_Aint positions[1];
   int lengths[1];
-  int n_octet_lus; 
+  int n_octet_lus;
 
   /* Lecture */
 
   switch(PDM_file_par->acces) {
-    
+
   case FICHIER_PAR_ACCES_EO :
     position = PDM_file_par->offset + debut_bloc_octet;
     errcode = PDM_MPI_File_read_at_all(PDM_file_par->fichier,
@@ -391,17 +391,17 @@ PDM_file_par_lecture_parallele
                                    PDM_MPI_BYTE,
                                    &n_octet_lus);
     break;
-    
+
   case FICHIER_PAR_ACCES_IP :
     lengths[0] = n_octet;
     positions[0] = debut_bloc_octet;
     PDM_MPI_Type_create_hindexed(1, lengths, positions, PDM_MPI_BYTE, &fichier_type);
     PDM_MPI_Type_commit(&fichier_type);
-    PDM_MPI_File_set_view(PDM_file_par->fichier, 
-                      PDM_file_par->offset, 
-                      PDM_MPI_BYTE, 
+    PDM_MPI_File_set_view(PDM_file_par->fichier,
+                      PDM_file_par->offset,
+                      PDM_MPI_BYTE,
                       fichier_type,
-                      "native"); 
+                      "native");
     errcode = PDM_MPI_File_read_all(PDM_file_par->fichier,
                                 donnees,
                                 n_octet,
@@ -409,12 +409,12 @@ PDM_file_par_lecture_parallele
                                 &n_octet_lus);
     PDM_MPI_Type_free(&fichier_type);
     break;
-    
+
   default:
     PDM_error(__FILE__, __LINE__, 0,"Erreur Fichier_par_lecture_parallele : type d'acces inconnu\n");
     exit(EXIT_FAILURE);
-    
-  }  
+
+  }
 
   /* Traitement des erreurs de lecture */
 
@@ -429,14 +429,14 @@ PDM_file_par_lecture_parallele
 
   /* Mise à jour de l'offset */
 
-  PDM_MPI_Bcast(&n_octet_total, 
-            1, 
-            PDM_MPI_LONG, 
-            PDM_file_par->n_rangs - 1, 
+  PDM_MPI_Bcast(&n_octet_total,
+            1,
+            PDM_MPI_LONG,
+            PDM_file_par->n_rangs - 1,
             PDM_file_par->comm);
-  
+
   PDM_file_par->offset += n_octet_total;
-  
+
   return n_donnees_lues;
 }
 
@@ -444,7 +444,7 @@ PDM_file_par_lecture_parallele
  * Ecriture parallele de blocs de donnees tries
  *
  * parameters :
- *   PDM_file_par       <-- Pointeur sur le fichier         
+ *   PDM_file_par       <-- Pointeur sur le fichier
  *   taille_donnee     <-- Taille unitaire de la donnnee
  *   n_donnees         <-- Nombre de donnees a lire
  *   donnees           <-- Donnees a ecrire
@@ -452,7 +452,7 @@ PDM_file_par_lecture_parallele
  * return
  *   n_donnees_ecrites      Nombre de donnees ecrites
  *                          Erreur d'ecriture si n_donnees != n_donnees_ecrites
- *  
+ *
  *----------------------------------------------------------------------------*/
 
 int
@@ -468,14 +468,14 @@ PDM_file_par_ecriture_parallele
   int errcode = PDM_MPI_SUCCESS;
   int _taille_donnee = (int) taille_donnee;
 
-  int n_octet = (int) (n_donnees_bloc * _taille_donnee); /* Passage en int 
+  int n_octet = (int) (n_donnees_bloc * _taille_donnee); /* Passage en int
                                                            pour appel MPI */
-  long debut_bloc_octet = debut_bloc * _taille_donnee; 
+  long debut_bloc_octet = debut_bloc * _taille_donnee;
 
   long n_octet_total = debut_bloc_octet + n_octet;
 
   /* Variables pour acces eo */
-  
+
   PDM_MPI_Offset position;
 
   /* Variables pour acces ip */
@@ -483,12 +483,12 @@ PDM_file_par_ecriture_parallele
   PDM_MPI_Datatype fichier_type;
   PDM_MPI_Aint positions[1];
   int lengths[1];
-  int n_octet_ecrits; 
+  int n_octet_ecrits;
 
   /* Ecriture */
 
   switch(PDM_file_par->acces) {
-    
+
   case FICHIER_PAR_ACCES_EO :
     position = PDM_file_par->offset + debut_bloc_octet;
     errcode = PDM_MPI_File_write_at_all(PDM_file_par->fichier,
@@ -498,17 +498,17 @@ PDM_file_par_ecriture_parallele
                                     PDM_MPI_BYTE,
                                     &n_octet_ecrits);
     break;
-    
+
   case FICHIER_PAR_ACCES_IP :
     lengths[0] = n_octet;
     positions[0] = debut_bloc_octet;
     PDM_MPI_Type_create_hindexed(1, lengths, positions, PDM_MPI_BYTE, &fichier_type);
     PDM_MPI_Type_commit(&fichier_type);
-    PDM_MPI_File_set_view(PDM_file_par->fichier, 
-                      PDM_file_par->offset, 
-                      PDM_MPI_BYTE, 
+    PDM_MPI_File_set_view(PDM_file_par->fichier,
+                      PDM_file_par->offset,
+                      PDM_MPI_BYTE,
                       fichier_type,
-                      "native"); 
+                      "native");
     errcode = PDM_MPI_File_write_all(PDM_file_par->fichier,
                                  donnees,
                                  n_octet,
@@ -516,34 +516,34 @@ PDM_file_par_ecriture_parallele
                                  &n_octet_ecrits);
     PDM_MPI_Type_free(&fichier_type);
     break;
-    
+
   default:
     PDM_error(__FILE__, __LINE__, 0,"Erreur Fichier_par_ecriture_parallele : type d'acces inconnu\n");
     exit(EXIT_FAILURE);
-    
+
   }
-  
+
   /* Traitement des erreurs  */
 
   if (errcode != PDM_MPI_SUCCESS)
     _pdm_mpi_io_error_message(PDM_file_par->nom, errcode);
 
   /* Calcul du nombre de donnees lues */
-  
+
 /*   PDM_MPI_Get_count(&status, PDM_MPI_BYTE, &n_octet_ecrits); */
-  
+
   n_donnees_ecrites = n_octet_ecrits / _taille_donnee;
-  
+
   /* Mise à jour de l'offset */
 
-  PDM_MPI_Bcast(&n_octet_total, 
-            1, 
-            PDM_MPI_LONG, 
-            PDM_file_par->n_rangs - 1, 
+  PDM_MPI_Bcast(&n_octet_total,
+            1,
+            PDM_MPI_LONG,
+            PDM_file_par->n_rangs - 1,
             PDM_file_par->comm);
 
   PDM_file_par->offset += n_octet_total;
-  
+
   return n_donnees_ecrites;
 }
 
@@ -553,7 +553,7 @@ PDM_file_par_ecriture_parallele
  *  parameters :
  *    fichier            <-- Fichier courant
  *    offset             <-- Position
- *    whence             <-- A partir :  
+ *    whence             <-- A partir :
  *                              - du debut du fichier : FICHIER_PAR_SEEK_SET
  *                              - de la position courante : FICHIER_PAR_SEEK_CUR
  *                              - de la fin du fchier : FICHIER_PAR_SEEK_END
@@ -621,7 +621,7 @@ void PDM_file_par_seek
  *
  *  parameters :
  *    fichier            <-- Fichier courant
- *  Return 
+ *  Return
  *    offset                 Position courante du fichier
  *
  *----------------------------------------------------------------------------*/
@@ -629,13 +629,13 @@ void PDM_file_par_seek
 PDM_MPI_Offset PDM_file_par_tell(PDM_file_par_t *PDM_file_par)
 {
 
-  /* Theoriquement en mode IP, il faut recuperer la position par 
+  /* Theoriquement en mode IP, il faut recuperer la position par
      PDM_MPI_File_get_position + MPI_File_get_byte_offset + MPI_Allreduce max
      Mais la valeur est deja par PDM_file_par->offset qui est mise a jour
      a chaque acces en lecture ou ecriture  */
-  
+
   return PDM_file_par->offset;
-  
+
 }
 
 /*----------------------------------------------------------------------------
@@ -646,7 +646,7 @@ PDM_MPI_Offset PDM_file_par_tell(PDM_file_par_t *PDM_file_par)
  *
  *----------------------------------------------------------------------------*/
 
-void 
+void
 PDM_file_par_close
 (PDM_file_par_t       *PDM_file_par
 )
@@ -656,7 +656,7 @@ PDM_file_par_close
     free(PDM_file_par->nom);
 
     PDM_MPI_File_close(&(PDM_file_par->fichier));
-    
+
   }
 
 }

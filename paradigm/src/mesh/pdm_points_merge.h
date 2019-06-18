@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   pdm_points_merge.h
  * Author: equemera
  *
@@ -36,30 +36,30 @@ extern "C" {
 
 /**
  *
- * \brief Create a points merge structure   
+ * \brief Create a points merge structure
  *
- * \param [in]   n_point_cloud      Number of point cloud 
+ * \param [in]   n_point_cloud      Number of point cloud
  * \param [in]   tolerance          Relative geometric tolerance
  * \param [in]   comm               MPI communicator
  *
- * \return     Identifier    
+ * \return     Identifier
  */
 
 int
 PDM_points_merge_create
 (
  const int n_point_cloud,
- const double tolerance, 
+ const double tolerance,
  const PDM_MPI_Comm comm
 );
 
 
 /**
  *
- * \brief Free an octree structure   
+ * \brief Free an octree structure
  *
- * \param [in]   id                 Identifier 
- *  
+ * \param [in]   id                 Identifier
+ *
  */
 
 void
@@ -71,7 +71,7 @@ PDM_points_merge_free
 
 /**
  *
- * \brief Set a point cloud  
+ * \brief Set a point cloud
  *
  * \param [in]   id             Identifier
  * \param [in]   i_point_cloud  Index of point cloud
@@ -94,10 +94,10 @@ PDM_points_merge_cloud_set
 
 /**
  *
- * \brief Process merge points  
+ * \brief Process merge points
  *
- * \param [in]   id                 Identifier 
- * 
+ * \param [in]   id                 Identifier
+ *
  */
 
 void
@@ -109,14 +109,14 @@ PDM_points_merge_process
 
 /**
  *
- * \brief Get candidates to merge for each point 
+ * \brief Get candidates to merge for each point
  *
- * \param [in]   id              Identifier 
- * \param [in]   i_point_cloud   Current cloud 
- * \param [out]  candidates_idx  Indexes of candidate for each current cloud point 
- *                               (size = number of points in the current cloud + 1) 
- * \param [out]  candidates_desc Candidates description (process, 
- *                                                       cloud in the process, 
+ * \param [in]   id              Identifier
+ * \param [in]   i_point_cloud   Current cloud
+ * \param [out]  candidates_idx  Indexes of candidate for each current cloud point
+ *                               (size = number of points in the current cloud + 1)
+ * \param [out]  candidates_desc Candidates description (process,
+ *                                                       cloud in the process,
  *                                                       point in the cloud)
  *
  */
@@ -126,8 +126,8 @@ PDM_points_merge_candidates_get
 (
  const int      id,
  const int      i_point_cloud,
-       int    **candidates_idx, 
-       int    **candidates_desc 
+       int    **candidates_idx,
+       int    **candidates_desc
 );
 
 

@@ -79,8 +79,8 @@ void PDM_io_tab_ecr_debut
  * PDM
  *
  * arguments :
- *   num_var_cedre         <-- Numéro de variable PDM 
- *   i_part                <-- indice de partition 
+ *   num_var_cedre         <-- Numéro de variable PDM
+ *   i_part                <-- indice de partition
  *   n_composantes         <-- Nombre de composantes pour chaque donnee
  *   n_donnees             <-- Nombre de donnees a lire
  *   indirection           <-- Indirection de redistribition des donnees
@@ -89,8 +89,8 @@ void PDM_io_tab_ecr_debut
  *----------------------------------------------------------------------------*/
 
 void PROCF (pdm_io_tab_ecr_ajout_donnees, PDM_IO_TAB_ECR_AJOUT_DONNEES)
-(const PDM_l_num_t  *num_var_cedre,         
- const PDM_l_num_t  *i_part,         
+(const PDM_l_num_t  *num_var_cedre,
+ const PDM_l_num_t  *i_part,
  const PDM_l_num_t  *n_composantes,
  const PDM_l_num_t  *n_donnees,
  const PDM_g_num_t *indirection,
@@ -98,8 +98,8 @@ void PROCF (pdm_io_tab_ecr_ajout_donnees, PDM_IO_TAB_ECR_AJOUT_DONNEES)
  );
 
 void PDM_io_tab_ecr_ajout_donnees
-(const PDM_l_num_t            num_var_cedre,         
- const PDM_l_num_t            i_part,         
+(const PDM_l_num_t            num_var_cedre,
+ const PDM_l_num_t            i_part,
  const PDM_l_num_t           *n_composantes,
  const PDM_l_num_t            n_donnees,
  const PDM_g_num_t          *indirection,
@@ -107,12 +107,12 @@ void PDM_io_tab_ecr_ajout_donnees
  );
 
 /*----------------------------------------------------------------------------
- * Definition d'une variable en ecriture                                                          
+ * Definition d'une variable en ecriture
  *
  *  arguments :
- *   num_var_cedre         <-- Numéro de variable PDM 
- *   num_indirection_cedre <-- Numéro d'indirection PDM         
- *   t_n_composantes       <-- Type de tailles composantes 
+ *   num_var_cedre         <-- Numéro de variable PDM
+ *   num_indirection_cedre <-- Numéro d'indirection PDM
+ *   t_n_composantes       <-- Type de tailles composantes
  *                             (PDM_IO_N_COMPOSANTE_CONSTANT
  *                           ou PDM_IO_N_COMPOSANTE_VARIABLE)
  *   n_composantes         <-- Nombre de composantes pour chaque donnee
@@ -121,17 +121,17 @@ void PDM_io_tab_ecr_ajout_donnees
  *----------------------------------------------------------------------------*/
 
 void PROCF (pdm_io_tab_ecr_def_var, PDM_IO_TAB_ECR_DEF_VAR)
-(const PDM_l_num_t  *num_var_cedre,         
- const PDM_l_num_t  *num_indirection_cedre,         
- const int             *t_n_composantes,         
+(const PDM_l_num_t  *num_var_cedre,
+ const PDM_l_num_t  *num_indirection_cedre,
+ const int             *t_n_composantes,
  const PDM_l_num_t  *n_composantes,
  const PDM_l_num_t  *taille_donnee
  );
 
 void PDM_io_tab_ecr_def_var
-(const PDM_l_num_t            num_var_cedre,         
- const PDM_l_num_t            num_indirection_cedre,         
- const PDM_io_n_composantes_t  t_n_composantes,         
+(const PDM_l_num_t            num_var_cedre,
+ const PDM_l_num_t            num_indirection_cedre,
+ const PDM_io_n_composantes_t  t_n_composantes,
  const PDM_l_num_t            n_composantes,
  const PDM_l_num_t            taille_donnee
  );
@@ -186,10 +186,10 @@ void PDM_io_tab_lec_debut
  * PDM
  *
  * arguments :
- *   num_var_cedre         <-- Numéro de variable PDM 
- *   num_indirection_cedre <-- Numéro d'indirection PDM         
- *   i_part                <-- indice de partition 
- *   t_n_composantes       <-- Type de tailles composantes 
+ *   num_var_cedre         <-- Numéro de variable PDM
+ *   num_indirection_cedre <-- Numéro d'indirection PDM
+ *   i_part                <-- indice de partition
+ *   t_n_composantes       <-- Type de tailles composantes
  *                             (PDM_IO_N_COMPOSANTE_CONSTANT
  *                           ou PDM_IO_N_COMPOSANTE_VARIABLE)
  *   n_composantes         <-- Nombre de composantes pour chaque donnee
@@ -201,8 +201,8 @@ void PDM_io_tab_lec_debut
  *----------------------------------------------------------------------------*/
 
 void PROCF (pdm_io_tab_lec_ajout_donnees, PDM_IO_TAB_LEC_AJOUT_DONNEES)
-(const PDM_l_num_t  *num_var_cedre,         
- const PDM_l_num_t  *i_part,         
+(const PDM_l_num_t  *num_var_cedre,
+ const PDM_l_num_t  *i_part,
  const PDM_l_num_t  *n_composantes,
  const PDM_l_num_t  *n_donnees,
  const PDM_g_num_t *indirection,
@@ -210,8 +210,8 @@ void PROCF (pdm_io_tab_lec_ajout_donnees, PDM_IO_TAB_LEC_AJOUT_DONNEES)
  );
 
 void PDM_io_tab_lec_ajout_donnees
-(const PDM_l_num_t            num_var_cedre,         
- const PDM_l_num_t            i_part,         
+(const PDM_l_num_t            num_var_cedre,
+ const PDM_l_num_t            i_part,
  const PDM_l_num_t           *n_composantes,
  const PDM_l_num_t            n_donnees,
  const PDM_g_num_t          *indirection,
@@ -219,12 +219,12 @@ void PDM_io_tab_lec_ajout_donnees
  );
 
 /*----------------------------------------------------------------------------
- * Definition d'une variable en ecriture                                                          
+ * Definition d'une variable en ecriture
  *
  *  arguments :
- *   num_var_cedre         <-- Numéro de variable PDM 
- *   num_indirection_cedre <-- Numéro d'indirection PDM         
- *   t_n_composantes       <-- Type de tailles composantes 
+ *   num_var_cedre         <-- Numéro de variable PDM
+ *   num_indirection_cedre <-- Numéro d'indirection PDM
+ *   t_n_composantes       <-- Type de tailles composantes
  *                             (PDM_IO_N_COMPOSANTE_CONSTANT
  *                           ou PDM_IO_N_COMPOSANTE_VARIABLE)
  *   n_composantes         <-- Nombre de composantes pour chaque donnee
@@ -233,17 +233,17 @@ void PDM_io_tab_lec_ajout_donnees
  *----------------------------------------------------------------------------*/
 
 void PROCF (pdm_io_tab_lec_def_var, PDM_IO_TAB_LEC_DEF_VAR)
-(const PDM_l_num_t  *num_var_cedre,         
- const PDM_l_num_t  *num_indirection_cedre,         
- const int             *t_n_composantes,         
+(const PDM_l_num_t  *num_var_cedre,
+ const PDM_l_num_t  *num_indirection_cedre,
+ const int             *t_n_composantes,
  const PDM_l_num_t  *n_composantes,
  const PDM_l_num_t  *taille_donnee
  );
 
 void PDM_io_tab_lec_def_var
-(const PDM_l_num_t            num_var_cedre,         
- const PDM_l_num_t            num_indirection_cedre,         
- const PDM_io_n_composantes_t  t_n_composantes,         
+(const PDM_l_num_t            num_var_cedre,
+ const PDM_l_num_t            num_indirection_cedre,
+ const PDM_io_n_composantes_t  t_n_composantes,
  const PDM_l_num_t            n_composantes,
  const PDM_l_num_t            taille_donnee
  );

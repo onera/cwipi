@@ -98,23 +98,23 @@ PDM_plane_normal
   n[2] = 0.;
 
   _computeBary (numPts, pts, bary);
-  
+
   for (int ipt = 0; ipt < numPts; ipt++) {
-    
+
     const double *pt1 = pts + 3 * ipt;
     const double *pt2 = pts + 3 * ((ipt+1)%numPts);
     double vect1[3];
     double vect2[3];
-    
+
     for (int i = 0; i < 3; i++) {
       vect1[i] = pt1[i] - bary[i];
       vect2[i] = pt2[i] - bary[i];
     }
-    
+
     n[0] += vect1[1] * vect2[2] - vect1[2] * vect2[1];
     n[1] += vect1[2] * vect2[0] - vect1[0] * vect2[2];
     n[2] += vect1[0] * vect2[1] - vect1[1] * vect2[0];
-    
+
   } //over all points
 
   length = sqrt (n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
@@ -131,7 +131,7 @@ PDM_plane_normal
  * \brief Performs plane projection
  *
  * \param [in]   x       Point to project
- * \param [in]   origin  Plane origin     
+ * \param [in]   origin  Plane origin
  * \param [in]   n       Plane normal
  * \param [out]  cp      Projected point
  *
@@ -164,7 +164,7 @@ const double n[3],
  * \brief Performs plane projection
  *
  * \param [in]   x       Point to project
- * \param [in]   pt      Point inside the plane     
+ * \param [in]   pt      Point inside the plane
  * \param [in]   n       Plane normal
  * \param [out]  cp      Projected point
  *

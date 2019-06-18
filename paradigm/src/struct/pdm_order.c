@@ -42,41 +42,41 @@ extern "C" {
 
 /**
  * \brief Order an array
- * 
+ *
  * \param [in]      sizeArray       Number of elements
  * \param [in]      newToOldOrder   New order (size = \ref nElt
  * \param [in, out] Array           Array to renumber
  *
  */
 
-void 
-PDM_order_array 
+void
+PDM_order_array
 (
 const int     sizeArray,
-const size_t  elt_size,        
+const size_t  elt_size,
 const int    *newToOldOrder,
 void         *array
 )
 {
   unsigned char *oldArray = (unsigned char *) malloc (sizeArray * elt_size);
   unsigned char *_array   = (unsigned char *) array;
-  
+
   for (int i = 0; i < sizeArray; ++i) {
     for (int j = 0; j < elt_size; ++j) {
       oldArray[elt_size * i + j] = _array[elt_size * i + j];
     }
   }
-  
+
   for (int i = 0; i < sizeArray; ++i) {
     for (int j = 0; j < elt_size; ++j) {
       _array[elt_size * i + j] = oldArray[elt_size * newToOldOrder[i] +j];
     }
   }
-  
+
   free(oldArray);
 }
 
-/** 
+/**
  * This function is part of Code_Saturne, a general-purpose CFD tool.
  *  Copyright (C) 1998-2014 EDF S.A.
  *
@@ -127,7 +127,7 @@ const size_t nb_ent
 }
 
 
-/** 
+/**
  * This function is part of Code_Saturne, a general-purpose CFD tool.
  *  Copyright (C) 1998-2014 EDF S.A.
  *

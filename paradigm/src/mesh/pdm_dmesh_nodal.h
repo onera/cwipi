@@ -35,16 +35,16 @@ extern "C" {
 //
 //typedef enum {
 //
-//  PDM_MESH_NODAL_POINT,     
-//  PDM_MESH_NODAL_BAR2,     
-//  PDM_MESH_NODAL_TRIA3,     
-//  PDM_MESH_NODAL_QUAD4,     
-//  PDM_MESH_NODAL_POLY_2D,     
-//  PDM_MESH_NODAL_TETRA4,     
-//  PDM_MESH_NODAL_PYRAMID5,     
-//  PDM_MESH_NODAL_PRISM6,     
-//  PDM_MESH_NODAL_HEXA8,     
-//  PDM_MESH_NODAL_POLY_3D     
+//  PDM_MESH_NODAL_POINT,
+//  PDM_MESH_NODAL_BAR2,
+//  PDM_MESH_NODAL_TRIA3,
+//  PDM_MESH_NODAL_QUAD4,
+//  PDM_MESH_NODAL_POLY_2D,
+//  PDM_MESH_NODAL_TETRA4,
+//  PDM_MESH_NODAL_PYRAMID5,
+//  PDM_MESH_NODAL_PRISM6,
+//  PDM_MESH_NODAL_HEXA8,
+//  PDM_MESH_NODAL_POLY_3D
 //
 //} PDM_Mesh_nodal_elt_t;
 
@@ -65,8 +65,8 @@ typedef struct _PDM_DMesh_nodal_t PDM_DMesh_nodal_t;
  * Face from Hexa (CGNS/Ensight manner)
  *
  */
-static 
-void 
+static
+void
 _get_index_of_face_node_tri
 (
   const int  iface,
@@ -89,8 +89,8 @@ _get_index_of_face_node_tri
  * Face from Hexa (CGNS/Ensight manner)
  *
  */
-static 
-void 
+static
+void
 _get_index_of_face_node_quad
 (
   const int  iface,
@@ -115,8 +115,8 @@ _get_index_of_face_node_quad
  * Face from Hexa (CGNS/Ensight manner)
  *
  */
-static 
-void 
+static
+void
 _get_index_of_face_node_tetra4
 (
   const int  iface,
@@ -131,7 +131,7 @@ _get_index_of_face_node_tetra4
       idx[1] = 2+offset;
       idx[2] = 1+offset;
       break;
-  
+
     case 1:       /* F2 -> N1,N2,N4 */
       idx[0] = 0+offset;
       idx[1] = 1+offset;
@@ -150,7 +150,7 @@ _get_index_of_face_node_tetra4
       idx[2] = 3+offset;
       break;
 
-   default : 
+   default :
       exit(1);
   }
 
@@ -161,8 +161,8 @@ _get_index_of_face_node_tetra4
  * Face from Hexa (CGNS/Ensight manner)
  *
  */
-static 
-void 
+static
+void
 _get_index_of_face_node_pyra5
 (
   const int  iface,
@@ -178,7 +178,7 @@ _get_index_of_face_node_pyra5
       idx[2] = 2+offset;
       idx[3] = 1+offset;
       break;
-  
+
     case 1:       /* F2 -> N1,N2,N5 */
       idx[0] = 0+offset;
       idx[1] = 1+offset;
@@ -203,7 +203,7 @@ _get_index_of_face_node_pyra5
       idx[2] = 4+offset;
       break;
 
-   default : 
+   default :
       exit(1);
   }
 
@@ -214,8 +214,8 @@ _get_index_of_face_node_pyra5
  * Face from Hexa (CGNS/Ensight manner)
  *
  */
-static 
-void 
+static
+void
 _get_index_of_face_node_penta6
 (
   const int  iface,
@@ -231,7 +231,7 @@ _get_index_of_face_node_penta6
       idx[2] = 4+offset;
       idx[3] = 3+offset;
       break;
-  
+
     case 1:       /* F2 -> N2,N3,N6,N5 */
       idx[0] = 1+offset;
       idx[1] = 2+offset;
@@ -258,7 +258,7 @@ _get_index_of_face_node_penta6
       idx[2] = 5+offset;
       break;
 
-   default : 
+   default :
       exit(1);
   }
 
@@ -268,8 +268,8 @@ _get_index_of_face_node_penta6
  * Face from Hexa (CGNS/Ensight manner)
  *
  */
-static 
-void 
+static
+void
 _get_index_of_face_node_hexa8
 (
   const int  iface,
@@ -285,7 +285,7 @@ _get_index_of_face_node_hexa8
       idx[2] = 2+offset;
       idx[3] = 1+offset;
       break;
-  
+
     case 1:       /* F2 -> N1,N2,N6,N5 */
       idx[0] = 0+offset;
       idx[1] = 1+offset;
@@ -321,7 +321,7 @@ _get_index_of_face_node_hexa8
       idx[3] = 7+offset;
       break;
 
-   default : 
+   default :
       exit(1);
   }
 
@@ -332,8 +332,8 @@ _get_index_of_face_node_hexa8
  * Return the number of coordinnates to define elements
  *
  */
-static 
-int 
+static
+int
 _get_size_of_element
 (
   const PDM_Mesh_nodal_elt_t   t_elt
@@ -341,16 +341,16 @@ _get_size_of_element
 {
   switch(t_elt) {
     case PDM_MESH_NODAL_TRIA3:      /* Tri3   */
-      return 3;  
+      return 3;
       break;
     case PDM_MESH_NODAL_QUAD4:      /* Quad4  */
-      return 4;  
+      return 4;
       break;
-    case PDM_MESH_NODAL_TETRA4:     /* Tetra4 */     
-      return 4;  
+    case PDM_MESH_NODAL_TETRA4:     /* Tetra4 */
+      return 4;
       break;
-    case PDM_MESH_NODAL_PYRAMID5:   /* Pyra5  */   
-      return 5;  
+    case PDM_MESH_NODAL_PYRAMID5:   /* Pyra5  */
+      return 5;
       break;
     case PDM_MESH_NODAL_PRISM6:    /* Penta6 */
       return 6;
@@ -358,7 +358,7 @@ _get_size_of_element
     case PDM_MESH_NODAL_HEXA8:     /* Hexa8  */
       return 8;
       break;
-   default : 
+   default :
       exit(1);
   }
 }
@@ -368,8 +368,8 @@ _get_size_of_element
  * Return the number of face to define elements
  *
  */
-static 
-int 
+static
+int
 _get_nbface_per_element
 (
   const PDM_Mesh_nodal_elt_t t_elt
@@ -382,10 +382,10 @@ _get_nbface_per_element
     case PDM_MESH_NODAL_QUAD4:
       return 1;  /* Quad4  */
       break;
-    case PDM_MESH_NODAL_TETRA4:        
+    case PDM_MESH_NODAL_TETRA4:
       return 4;  /* Tetra4 */
       break;
-    case PDM_MESH_NODAL_PYRAMID5:        
+    case PDM_MESH_NODAL_PYRAMID5:
       return 5;  /* Pyra5  */
       break;
     case PDM_MESH_NODAL_PRISM6:     /* Penta6 */
@@ -394,7 +394,7 @@ _get_nbface_per_element
     case PDM_MESH_NODAL_HEXA8:     /* Hexa8  */
       return 6;
       break;
-   default : 
+   default :
       exit(1);
   }
 }
@@ -404,31 +404,31 @@ _get_nbface_per_element
  * Return the number of coordinnates to define elements
  *
  */
-static 
+static
 void _get_elmt_info
 (
-  const PDM_Mesh_nodal_elt_t    t_elt, 
+  const PDM_Mesh_nodal_elt_t    t_elt,
         int                  *  nVtxpFac,
         int                  ** tabFacVtx
 )
 {
   int nFacPerElmt = _get_nbface_per_element(t_elt);
   switch(t_elt) {
-    case PDM_MESH_NODAL_TRIA3:      /* Tri3   */ 
+    case PDM_MESH_NODAL_TRIA3:      /* Tri3   */
       nVtxpFac[0] = 3;
       for(int i=0; i < nFacPerElmt; i++){
           tabFacVtx[i] = (int *) malloc( sizeof(int *) * nVtxpFac[i]);
           _get_index_of_face_node_tri(i, tabFacVtx[i], 0);
       }
       break;
-    case PDM_MESH_NODAL_QUAD4:      /* Quad4  */ 
+    case PDM_MESH_NODAL_QUAD4:      /* Quad4  */
       nVtxpFac[0] = 4;
       for(int i=0; i < nFacPerElmt; i++){
           tabFacVtx[i] = (int *) malloc( sizeof(int *) * nVtxpFac[i]);
           _get_index_of_face_node_quad(i, tabFacVtx[i], 0);
       }
       break;
-    case PDM_MESH_NODAL_TETRA4:     /* Tetra4 */   
+    case PDM_MESH_NODAL_TETRA4:     /* Tetra4 */
       nVtxpFac[0] = 3;
       nVtxpFac[1] = 3;
       nVtxpFac[2] = 3;
@@ -438,7 +438,7 @@ void _get_elmt_info
           _get_index_of_face_node_tetra4(i, tabFacVtx[i], 0);
       }
       break;
-    case PDM_MESH_NODAL_PYRAMID5:    /* Pyra5  */ 
+    case PDM_MESH_NODAL_PYRAMID5:    /* Pyra5  */
       nVtxpFac[0] = 4;
       nVtxpFac[1] = 3;
       nVtxpFac[2] = 3;
@@ -472,23 +472,23 @@ void _get_elmt_info
           _get_index_of_face_node_hexa8(i, tabFacVtx[i], 0);
       }
       break;
-   default : 
+   default :
       exit(1);
   }
 }
 
 /**
  * \def _get_index_of_face_node_hexa8
- * Compute Key from idx 
+ * Compute Key from idx
  *
  */
 
-static int 
+static int
 _compute_key
 (
   PDM_g_num_t* conn,
   int* lidx,
-  int  begin, 
+  int  begin,
   int  nVtx
 )
 {
@@ -513,12 +513,12 @@ _compute_key
  *
  */
 
-int 
+int
 PDM_DMesh_nodal_create
 (
-const PDM_MPI_Comm comm,     
-      PDM_g_num_t  nVtx,     
-      PDM_g_num_t  nCel        
+const PDM_MPI_Comm comm,
+      PDM_g_num_t  nVtx,
+      PDM_g_num_t  nCel
 );
 
 
@@ -541,18 +541,18 @@ void
 PDM_DMesh_nodal_coord_set
 (
  const int          hdl,
- const int          n_vtx,  
- const PDM_real_t  *coords  
+ const int          n_vtx,
+ const PDM_real_t  *coords
 );
 
 
 /**
  * \brief  Return vertices distribution
- * 
+ *
  * \param [in]  hdl  Distributed nodal mesh handle
  *
- * \return  A array of size \ref n_procs + 1    
- * 
+ * \return  A array of size \ref n_procs + 1
+ *
  */
 
 const PDM_g_num_t *
@@ -564,19 +564,19 @@ PDM_DMesh_nodal_distrib_vtx_get
 
 /**
  * \brief  Return section distribution
- * 
+ *
  * \param [in]  hdl        Distributed nodal mesh handle
  * \param [in]  id_section   Block identifier
  *
- * \return  A array of size \ref n_procs + 1    
- * 
+ * \return  A array of size \ref n_procs + 1
+ *
  */
 
 const PDM_g_num_t *
 PDM_DMesh_nodal_distrib_section_get
 (
  const int   hdl,
- const int   id_section     
+ const int   id_section
 );
 
 
@@ -658,7 +658,7 @@ PDM_Mesh_nodal_elt_t
 PDM_DMesh_nodal_section_type_get
 (
 const int   hdl,
-const int   id_section     
+const int   id_section
 );
 
 
@@ -666,20 +666,20 @@ const int   id_section
  * \brief  Add a new section to the current mesh
  *
  * \param [in]  hdl            Distributed nodal mesh handle
- * \param [in]  st_free_data   Status of Release of the memory 
+ * \param [in]  st_free_data   Status of Release of the memory
  *                             when the section is destroyed
  * \param [in]  id_section       Block identifier
  *
- * \return Block identifier     
+ * \return Block identifier
  *
  */
 
-int 
-PDM_DMesh_nodal_section_add 
+int
+PDM_DMesh_nodal_section_add
 (
 const int                    hdl,
 const PDM_Mesh_nodal_elt_t   t_elt
-); 
+);
 
 
 /**
@@ -687,13 +687,13 @@ const PDM_Mesh_nodal_elt_t   t_elt
  *
  *  - PDM_MESH_NODAL_POINT :
  *
- *   1 x            
+ *   1 x
  *
  *  - PDM_MESH_NODAL_BAR2 :
  *
  *   1 x-------x 2
  *
- *  - PDM_MESH_NODAL_TRIA3 :   
+ *  - PDM_MESH_NODAL_TRIA3 :
  *
  *   1 x-------x 3
  *      \     /
@@ -701,14 +701,14 @@ const PDM_Mesh_nodal_elt_t   t_elt
  *        \ /
  *         x 2
  *
- *  - PDM_MESH_NODAL_QUAD4 :          
+ *  - PDM_MESH_NODAL_QUAD4 :
  *
  *      4 x-------x 3
  *       /       /
  *      /       /
  *   1 x-------x2
  *
- *   - PDM_MESH_NODAL_TETRA4 :    
+ *   - PDM_MESH_NODAL_TETRA4 :
  *
  *         x 4
  *        /|\
@@ -742,7 +742,7 @@ const PDM_Mesh_nodal_elt_t   t_elt
  *        \|/
  *         x 2
  *
- *  - PDM_MESH_NODAL_HEXA8 :   
+ *  - PDM_MESH_NODAL_HEXA8 :
  *
  *      8 x-------x 7
  *       /|      /|
@@ -761,13 +761,13 @@ const PDM_Mesh_nodal_elt_t   t_elt
  */
 
 void
-PDM_DMesh_nodal_section_std_set 
+PDM_DMesh_nodal_section_std_set
 (
 const int          hdl,
-const int          id_section,     
-const int          n_elt,    
-      PDM_g_num_t *connec   
-); 
+const int          id_section,
+const int          n_elt,
+      PDM_g_num_t *connec
+);
 
 
 /**
@@ -775,13 +775,13 @@ const int          n_elt,
  *
  *  - PDM_MESH_NODAL_POINT :
  *
- *   1 x            
+ *   1 x
  *
  *  - PDM_MESH_NODAL_BAR2 :
  *
  *   1 x-------x 2
  *
- *  - PDM_MESH_NODAL_TRIA3 :   
+ *  - PDM_MESH_NODAL_TRIA3 :
  *
  *   1 x-------x 3
  *      \     /
@@ -789,14 +789,14 @@ const int          n_elt,
  *        \ /
  *         x 2
  *
- *  - PDM_MESH_NODAL_QUAD4 :          
+ *  - PDM_MESH_NODAL_QUAD4 :
  *
  *      4 x-------x 3
  *       /       /
  *      /       /
  *   1 x-------x2
  *
- *   - PDM_MESH_NODAL_TETRA4 :    
+ *   - PDM_MESH_NODAL_TETRA4 :
  *
  *         x 4
  *        /|\
@@ -830,7 +830,7 @@ const int          n_elt,
  *        \|/
  *         x 2
  *
- *  - PDM_MESH_NODAL_HEXA8 :   
+ *  - PDM_MESH_NODAL_HEXA8 :
  *
  *      8 x-------x 7
  *       /|      /|
@@ -848,12 +848,12 @@ const int          n_elt,
  *
  */
 
-PDM_g_num_t *   
-PDM_DMesh_nodal_section_std_get 
-(   
+PDM_g_num_t *
+PDM_DMesh_nodal_section_std_get
+(
 const int            hdl,
-const int            id_section     
-); 
+const int            id_section
+);
 
 
 /**
@@ -863,15 +863,15 @@ const int            id_section
  * \param [in]  id_section       Block identifier
  *
  * \return      Number of elements
- *  
+ *
  */
 
 int
-PDM_DMesh_nodal_section_n_elt_get 
-(   
+PDM_DMesh_nodal_section_n_elt_get
+(
 const int            hdl,
-const int            id_section     
-); 
+const int            id_section
+);
 
 
 /**
@@ -884,16 +884,16 @@ const int            id_section
  * \param [in]  connect        Connectivity (size = \ref connect_idx[\ref n_elt])
  *
  */
- 
+
 void
-PDM_DMesh_nodal_section_poly2d_set 
+PDM_DMesh_nodal_section_poly2d_set
 (
 const int            hdl,
-const int            id_section, 
-const PDM_l_num_t    n_elt,    
-      PDM_l_num_t   *connec_idx,   
+const int            id_section,
+const PDM_l_num_t    n_elt,
+      PDM_l_num_t   *connec_idx,
       PDM_g_num_t   *connec
-); 
+);
 
 
 /**
@@ -905,15 +905,15 @@ const PDM_l_num_t    n_elt,
  * \param [out] connect        Connectivity (size = \ref connect_idx[\ref n_elt])
  *
  */
- 
+
 void
-PDM_DMesh_nodal_section_poly2d_get 
+PDM_DMesh_nodal_section_poly2d_get
 (
  const int          hdl,
- const int          id_section, 
-       PDM_l_num_t  **connec_idx,   
+ const int          id_section,
+       PDM_l_num_t  **connec_idx,
        PDM_g_num_t  **connec
-); 
+);
 
 
 /**
@@ -931,17 +931,17 @@ PDM_DMesh_nodal_section_poly2d_get
  */
 
 void
-PDM_DMesh_nodal_section_poly3d_set 
+PDM_DMesh_nodal_section_poly3d_set
 (
 const int            hdl,
-const int            id_section, 
-const PDM_l_num_t    n_elt,    
-const PDM_l_num_t    n_face,   
-      PDM_l_num_t   *facvtx_idx,   
+const int            id_section,
+const PDM_l_num_t    n_elt,
+const PDM_l_num_t    n_face,
+      PDM_l_num_t   *facvtx_idx,
       PDM_g_num_t   *facvtx,
-      PDM_l_num_t   *cellfac_idx,   
+      PDM_l_num_t   *cellfac_idx,
       PDM_g_num_t   *cellfac
-); 
+);
 
 
 /**
@@ -958,16 +958,16 @@ const PDM_l_num_t    n_face,
  */
 
 void
-PDM_DMesh_nodal_section_poly3d_get 
+PDM_DMesh_nodal_section_poly3d_get
 (
 const int            hdl,
-const int            id_section, 
-      PDM_l_num_t   *n_face,   
-      PDM_l_num_t  **facvtx_idx,   
+const int            id_section,
+      PDM_l_num_t   *n_face,
+      PDM_l_num_t  **facvtx_idx,
       PDM_g_num_t  **facvtx,
-      PDM_l_num_t  **cellfac_idx,   
+      PDM_l_num_t  **cellfac_idx,
       PDM_g_num_t  **cellfac
-); 
+);
 
 
 /**
@@ -976,14 +976,14 @@ const int            id_section,
  * \param [in]  hdl       Distributed nodal mesh handle
  *
  * \return  Return number elements of a partition
- * 
+ *
  */
 
 PDM_g_num_t
 PDM_DMesh_nodal_total_n_cell_get
 (
 const int  hdl
-); 
+);
 
 
 /**
@@ -992,14 +992,14 @@ const int  hdl
  * \param [in]  hdl       Distributed nodal mesh handle
  *
  * \return  Return total number of faces
- * 
+ *
  */
 
 PDM_g_num_t
 PDM_DMesh_nodal_total_n_face_get
 (
 const int  hdl
-); 
+);
 
 
 /**
@@ -1008,28 +1008,28 @@ const int  hdl
  * \param [in]  hdl       Distributed nodal mesh handle
  *
  * \return  Return total number of vertices
- * 
+ *
  */
 
 PDM_g_num_t
 PDM_DMesh_nodal_total_n_vtx_get
 (
 const int  hdl
-); 
+);
 
 
 /**
  * \brief  Compute cell->face connectivity
  *
  * \param [in]   hdl              Distributed nodal mesh handle
- * 
+ *
  */
 
 void
 PDM_DMesh_nodal_cell_face_compute
 (
 const int   hdl
-); 
+);
 
 
 /**
@@ -1040,16 +1040,16 @@ const int   hdl
  * \param [out]  dCellFace       Distributed cell->face connectivity
  *
  * \return     Number of cells on the current process
- *  
+ *
  */
 
 int
 PDM_DMesh_nodal_cell_face_get
 (
 const int   hdl,
-      int   **dCellFaceIdx,  
-PDM_g_num_t **dCellFace  
-); 
+      int   **dCellFaceIdx,
+PDM_g_num_t **dCellFace
+);
 
 /**
  * \brief  Return face->cell connectivity
@@ -1058,15 +1058,15 @@ PDM_g_num_t **dCellFace
  * \param [out]  FaceCell       Distributed face->cell connectivity
  *
  * \return     Number of cells on the current process
- *  
+ *
  */
 
 int
 PDM_DMesh_nodal_face_cell_get
 (
 const int   hdl,
-PDM_g_num_t **dFaceCell  
-); 
+PDM_g_num_t **dFaceCell
+);
 
 
 /**
@@ -1077,25 +1077,25 @@ PDM_g_num_t **dFaceCell
  * \param [out]  dcell_face       Distributed cell->face connectivity
  *
  * \return     Number of faces on the current process
- *  
+ *
  */
 
 int
 PDM_DMesh_nodal_face_vtx_get
 (
 const int   hdl,
-      int   **dFaceVtxIdx,  
-PDM_g_num_t **dFaceVtx  
+      int   **dFaceVtxIdx,
+PDM_g_num_t **dFaceVtx
 );
 
 
 /**
  * \brief  Return cell distribution
- * 
+ *
  * \param [in]  hdl  Distributed nodal mesh handle
  *
- * \return  A array of size \ref n_procs + 1    
- * 
+ * \return  A array of size \ref n_procs + 1
+ *
  */
 
 const PDM_g_num_t *
@@ -1107,11 +1107,11 @@ PDM_DMesh_nodal_distrib_cell_get
 
 /**
  * \brief  Return face distribution
- * 
+ *
  * \param [in]  hdl  Distributed nodal mesh handle
  *
- * \return  A array of size \ref n_procs + 1    
- * 
+ * \return  A array of size \ref n_procs + 1
+ *
  */
 
 const PDM_g_num_t *

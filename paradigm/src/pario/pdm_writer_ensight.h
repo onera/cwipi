@@ -46,7 +46,7 @@ extern "C" {
  *----------------------------------------------------------------------------*/
 
 void
-PDM_writer_ensight_create 
+PDM_writer_ensight_create
 (
 PDM_writer_t *cs
 );
@@ -154,10 +154,10 @@ PDM_writer_ensight_geom_free
 (
  PDM_writer_geom_t    *geom
 );
- 
+
 
 /*----------------------------------------------------------------------------
- * Particularise l'ecriture d'une variable 
+ * Particularise l'ecriture d'une variable
  *
  * parameters :
  *      cs           <-> objet Cedre Sortie
@@ -170,7 +170,7 @@ PDM_writer_ensight_var_write
 (
  PDM_writer_var_t        *var
 );
- 
+
 
 /*----------------------------------------------------------------------------
  * Particularise la libération d'une variable

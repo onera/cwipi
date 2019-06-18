@@ -270,7 +270,7 @@ void
 PDM_box_tree_min_dist_max_box
 (
 PDM_box_tree_t  *bt,
-const int        n_pts,        
+const int        n_pts,
 double          *pts,
 int             *box_id,
 double          *box_max_dist
@@ -293,10 +293,10 @@ void
 PDM_box_tree_closest_upper_bound_dist_boxes_get
 (
 PDM_box_tree_t  *bt,
-const int        n_pts,        
+const int        n_pts,
 double           pts[],
 double           upper_bound_dist2[],
-int             *i_boxes[],  
+int             *i_boxes[],
 int             *boxes[]
 );
 

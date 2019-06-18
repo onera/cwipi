@@ -45,19 +45,19 @@ extern "C" {
 /*=============================================================================
  * Public function definitions
  *============================================================================*/
- 
+
 /**
  * \brief Return an intialized \ref PDM_surf_part_t structure
  *
  * This function returns an initialized \ref PDM_surf_part_t structure
  *
- * \param [in]  nFace       Number of faces                     
+ * \param [in]  nFace       Number of faces
  * \param [in]  faceVtxIdx  Index in the face -> vertex connectivity
  * \param [in]  faceVtxIdx  face -> vertex connectivity
- * \param [in]  faceLnToGn  Local face numbering to global face numbering 
- * \param [in]  nVtx        Number of vertices              
- * \param [in]  coords      Coordinates       
- * \param [in]  vtxLnToGn   Local vertex numbering to global vertex numbering 
+ * \param [in]  faceLnToGn  Local face numbering to global face numbering
+ * \param [in]  nVtx        Number of vertices
+ * \param [in]  coords      Coordinates
+ * \param [in]  vtxLnToGn   Local vertex numbering to global vertex numbering
  *
  * \return      A new initialized \ref PDM_surf_part_t structure
  *
@@ -80,7 +80,7 @@ const PDM_g_num_t *vtxLnToGn
   _part->nFace                = nFace;
   _part->nGhostFace           = 0;
   _part->nTotalFace           = nFace;
-  _part->sFaceVtx             = faceVtxIdx[nFace];  
+  _part->sFaceVtx             = faceVtxIdx[nFace];
   _part->faceVtxIdx           = faceVtxIdx;
   _part->faceVtx              = faceVtx;
   _part->faceEdgeIdx          = NULL;
@@ -112,7 +112,7 @@ const PDM_g_num_t *vtxLnToGn
  *
  * This function deletes a  PDM_surf_part_t structure
  *
- * \param [in]  part      part to delete          
+ * \param [in]  part      part to delete
  *
  * \return     Null pointer
  */
@@ -123,31 +123,31 @@ PDM_surf_part_free
  PDM_surf_part_t * part
 )
 {
-  
+
   assert (part != NULL);
 
   if (part != NULL) {
     part->faceVtxIdx = NULL;
     part->faceVtx = NULL;
     if (part->faceEdgeIdx != NULL)
-      free(part->faceEdgeIdx);  
+      free(part->faceEdgeIdx);
     if (part->faceEdge != NULL)
-      free(part->faceEdge);  
-    
+      free(part->faceEdge);
+
     part->faceLnToGn = NULL;
     part->coords = NULL;
     if (part->vtxEdgeIdx != NULL)
       free(part->vtxEdgeIdx);
     if (part->vtxEdge != NULL)
-      free(part->vtxEdge);   
+      free(part->vtxEdge);
     part->vtxLnToGn = NULL;
-    
+
     if (part->edgeFace != NULL)
       free(part->edgeFace);
-    
+
     if (part->edgeVtx != NULL)
       free(part->edgeVtx);
-    
+
     if (part->edgeLnToGn != NULL)
       free(part->edgeLnToGn);
 
@@ -164,7 +164,7 @@ PDM_surf_part_free
 
     if (part->extents != NULL)
       free (part->extents);
-    
+
     free(part);
   }
   return NULL;
@@ -174,7 +174,7 @@ PDM_surf_part_free
 /**
  * \brief Compute partition edge entities
  *
- * This function defines edges of an initial partitiob and 
+ * This function defines edges of an initial partitiob and
  * computes edge connectivities
  *
  * \param [in]  _part      Partition to compute
@@ -187,7 +187,7 @@ PDM_surf_part_build_edges
 PDM_surf_part_t *part
 )
 {
-  
+
   assert (part != NULL);
 
   /*
@@ -215,7 +215,7 @@ PDM_surf_part_t *part
   for (int i = 0; i < part->nFace; i++) {
     int idxFace = part->faceVtxIdx[i];
     for (int j = idxFace; j < part->faceVtxIdx[i+1]; j++) {
-      int k = (j == part->faceVtxIdx[i+1] - 1) ? idxFace : (j + 1); 
+      int k = (j == part->faceVtxIdx[i+1] - 1) ? idxFace : (j + 1);
       int s_vtx = part->faceVtx[j] + part->faceVtx[k];
       hashTableIdx[s_vtx+1] += 1;
       l_edges += 2;
@@ -235,7 +235,7 @@ PDM_surf_part_t *part
     int idxFace = part->faceVtxIdx[i];
     int nVtxFace = part->faceVtxIdx[i+1] - idxFace;
     for (int j = idxFace; j < idxFace + nVtxFace; j++) {
-      int k = (j == part->faceVtxIdx[i+1] - 1) ? idxFace : (j + 1); 
+      int k = (j == part->faceVtxIdx[i+1] - 1) ? idxFace : (j + 1);
       int vtx1 = part->faceVtx[j];
       int vtx2 = part->faceVtx[k];
       int s_vtx = vtx1 + vtx2;
@@ -246,12 +246,12 @@ PDM_surf_part_t *part
       listEdges[l_edges++] = vtx2;
     }
   }
-  
+
   free(nHashTable);
 
   if (1 == 0) {
     PDM_printf("hashtable :\n");
-    
+
     for (int i = 0; i < 2 * part->nVtx; i++) {
       PDM_printf("[%d] : ", i);
       for (int k = hashTableIdx[i]; k < hashTableIdx[i+1]; k++)
@@ -260,7 +260,7 @@ PDM_surf_part_t *part
     }
   }
   /*
-   * Compress edges 
+   * Compress edges
    */
 
   int nEdgesFaces = l_edges/2;
@@ -281,7 +281,7 @@ PDM_surf_part_t *part
    */
 
   int nEdge = 0;
- 
+
   part->vtxEdgeIdx  = (int *) malloc(sizeof(int) * (part->nVtx + 1));
   for (int i = 0; i < part->nVtx + 1; i++) {
     part->vtxEdgeIdx[i] = 0;
@@ -305,8 +305,8 @@ PDM_surf_part_t *part
           if (iEdge1 != -1) {
             int vtx11 = listEdges[2*iEdge1];
             int vtx12 = listEdges[2*iEdge1+1];
-          
-            if (((vtx1 == vtx11) && (vtx2 == vtx12)) || 
+
+            if (((vtx1 == vtx11) && (vtx2 == vtx12)) ||
                 ((vtx2 == vtx11) && (vtx1 == vtx12))) {
               hashTable[k] = -1;
               edgesToCompressEdges[iEdge1] = nEdge;
@@ -347,7 +347,7 @@ PDM_surf_part_t *part
       PDM_printf ("\n");
     }
   }
-  
+
   free(hashTable);
   free(hashTableIdx);
   free(listEdges);
@@ -370,7 +370,7 @@ PDM_surf_part_t *part
     int iEdge = edgesToCompressEdges[i];
     int ifac1 = 2*iEdge;
     int ifac2 = 2*iEdge + 1;
-      
+
     if (part->edgeFace[ifac1] == 0)
       part->edgeFace[ifac1] = edgeFaceUncompress[i] + 1;
     else if (part->edgeFace[ifac2] == 0)
@@ -380,7 +380,7 @@ PDM_surf_part_t *part
       abort();
     }
   }
-   
+
   if (1 == 0) {
     PDM_printf("edgeface : \n");
     for (int i = 0; i < part->nEdge; i++) {
@@ -389,7 +389,7 @@ PDM_surf_part_t *part
   }
 
   free(edgesToCompressEdges);
-   
+
   /*
    * face -> edge connectivity
    */
@@ -401,7 +401,7 @@ PDM_surf_part_t *part
   int *n_faceEdge = (int *) malloc(sizeof(int) * part->nFace);
   for (int i = 0; i < part->nFace; i++)
     n_faceEdge[i] = 0;
-  
+
   for (int i = 0; i < nEdge; i++) {
     int face1 = PDM_ABS (part->edgeFace[2*i]);
     int face2 = PDM_ABS (part->edgeFace[2*i+1]);
@@ -417,7 +417,7 @@ PDM_surf_part_t *part
 
 
 /**
- * \brief Return faceLnToGn 
+ * \brief Return faceLnToGn
  *
  *
  * \param [in]  part      Partition to compute
@@ -439,4 +439,4 @@ PDM_surf_part_t *part
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
- 
+

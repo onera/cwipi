@@ -1,5 +1,5 @@
 !-----------------------------------------------------------------------------
-! This file is part of the ParaDiGM library. 
+! This file is part of the ParaDiGM library.
 !
 ! Copyright (C) 2019  ONERA
 !
@@ -19,10 +19,10 @@
 
 #include "pdm_configf.h"
 
-module mod_gnum_location
+module pdm_gnum_location
 
-  use mod_pdm
-  
+  use pdm
+
   implicit none
 
   interface
@@ -32,27 +32,27 @@ module mod_gnum_location
     !! \brief Build a global numbering location structure
     !!
     !! \param [in]   n_part_in      Number of local partitions for elements
-    !! \param [in]   n_part_out     Number of local partitions for requested locations 
+    !! \param [in]   n_part_out     Number of local partitions for requested locations
     !! \param [in]   comm           PDM_MPI communicator
     !! \param [out]  id             Identifier
     !!
 
     subroutine pdm_gnum_location_create (n_part_in, n_part_out, fComm, id) &
-         bind (c, name = 'PDM_gnum_location_create_cf')  
-         
+         bind (c, name = 'PDM_gnum_location_create_cf')
+
       use iso_c_binding
-        
+
       implicit none
 
       integer(c_int), value :: n_part_in
       integer(c_int), value :: n_part_out
       integer(c_int), value :: fComm
-      
+
       integer(c_int)        :: id
-      
+
     end subroutine pdm_gnum_location_create
 
-    
+
     !>
     !!
     !! \brief Set global numbering
@@ -64,10 +64,10 @@ module mod_gnum_location
     !!
 
     subroutine pdm_gnum_location_elements_set (id, i_part_in, n_elts_in, gnum_in) &
-         bind (c, name = 'PDM_gnum_location_elements_set')  
-         
+         bind (c, name = 'PDM_gnum_location_elements_set')
+
       use iso_c_binding
-        
+
       implicit none
 
       integer(c_int), value :: id
@@ -78,7 +78,7 @@ module mod_gnum_location
 
     end subroutine pdm_gnum_location_elements_set
 
-    
+
     !>
     !!
     !! \brief Set requested elements
@@ -91,10 +91,10 @@ module mod_gnum_location
     !!
 
     subroutine pdm_gnum_location_requested_elements_set (id, i_part_out, n_elts_out, gnum_out) &
-         bind (c, name = 'PDM_gnum_location_requested_elements_set')  
-         
+         bind (c, name = 'PDM_gnum_location_requested_elements_set')
+
       use iso_c_binding
-        
+
       implicit none
 
       integer(c_int), value :: id
@@ -105,7 +105,7 @@ module mod_gnum_location
 
     end subroutine pdm_gnum_location_requested_elements_set
 
-    
+
     !>
     !!
     !! \brief Compute the location (processus, partittion, local number in the partition)
@@ -116,16 +116,16 @@ module mod_gnum_location
 
     subroutine pdm_gnum_location_compute (id) &
       bind (c, name = 'PDM_gnum_location_compute')
-         
+
       use iso_c_binding
-        
+
       implicit none
 
       integer(c_int), value :: id
 
     end subroutine pdm_gnum_location_compute
 
-    
+
     !>
     !!
     !! \brief Get localtion
@@ -133,40 +133,40 @@ module mod_gnum_location
     !! \param [in]    id             Identifier
     !! \param [in]    i_part_out     Current partition
     !! \param [out]   location_idx   Index in the location arrays (size = 3 !! \ref n_elts + 1)
-    !! \param [out]   location       Locations of each element 
-    !!                                (Three informations : process, partition, element) 
+    !! \param [out]   location       Locations of each element
+    !!                                (Three informations : process, partition, element)
     !!
 
     subroutine pdm_gnum_location_get (id, i_part_out, location_idx, location) &
       bind (c, name = 'PDM_gnum_location_get')
-         
+
       use iso_c_binding
-        
+
       implicit none
 
       integer(c_int), value :: id
       integer(c_int), value :: i_part_out
-      
+
       type(c_ptr)           :: location_idx
-      type(c_ptr)           :: location    
+      type(c_ptr)           :: location
 
     end subroutine pdm_gnum_location_get
 
-    
+
     !>
     !!
     !! \brief Free
     !!
     !! \param [in]   id           Identifier
-    !! \param [in]   partial      If partial = 1, location arrays are not freed 
+    !! \param [in]   partial      If partial = 1, location arrays are not freed
     !!
     !!/
 
     subroutine pdm_gnum_location_free (id, partial) &
-      bind (c, name = 'PDM_gnum_location_get')
-         
+      bind (c, name = 'PDM_gnum_location_free')
+
       use iso_c_binding
-        
+
       implicit none
 
       integer(c_int), value :: id
@@ -175,4 +175,4 @@ module mod_gnum_location
 
   end interface
 
-end module mod_gnum_location
+end module pdm_gnum_location

@@ -1,13 +1,13 @@
 
 cdef extern from "pdm_block_to_part.h":
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    # > Wrapping of Ppart Structure 
+    # > Wrapping of Ppart Structure
     ctypedef struct PDM_block_to_part_t:
       pass
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    # > Wrapping of function 
+    # > Wrapping of function
     PDM_block_to_part_t *PDM_block_to_part_create(PDM_g_num_t   *blockDistribIdx,
                                                   PDM_g_num_t  **gnum_elt,
                                                   int           *n_elt,
@@ -50,8 +50,8 @@ cdef class BlockToPart:
     # ************************************************************************
     # ------------------------------------------------------------------------
     def __cinit__(self, NPY.ndarray[npy_pdm_gnum_t, ndim=1, mode='c'] Distrib,
-                        MPI.Comm comm, 
-                        list     pLNToGN, 
+                        MPI.Comm comm,
+                        list     pLNToGN,
                         int      partN):
         """
         Constructor of BlockToPart object : Python wrapping of PDM library (E. Quémerais)
@@ -122,19 +122,20 @@ cdef class BlockToPart:
         # ::::::::::::::::::::::::::::::::::::::::::::::::::
         # > Create
         # self.BTP = PDM_block_to_part_create(self.BlkDistribIdx, self.LNToGN,
-        self.BTP = PDM_block_to_part_create(<PDM_g_num_t *> Distrib.data, 
+        self.BTP = PDM_block_to_part_create(<PDM_g_num_t *> Distrib.data,
                                             self.LNToGN,
-                                            self.NbElmts, 
-                                            self.partN, 
+                                            self.NbElmts,
+                                            self.partN,
                                             PDMC)
         # ::::::::::::::::::::::::::::::::::::::::::::::::::
 
     # ------------------------------------------------------------------
-    def BlockToPart_Exchange(self, dict         dField, 
+    def BlockToPart_Exchange(self, dict         dField,
                                    dict         pField,
-                                   PDM_stride_t t_stride = <PDM_stride_t> 0):
+                                   PDM_stride_t t_stride = <PDM_stride_t> 0,
+                                   NPY.ndarray[NPY.int32_t, ndim=1, mode='c'] BlkStride = None):
         """
-           TODOUX : 1) Exchange of variables types array 
+           TODOUX : 1) Exchange of variables types array
                     2) Assertion of type and accross MPI of the same field
         """
         # ************************************************************************
@@ -151,12 +152,19 @@ cdef class BlockToPart:
         # ************************************************************************
 
         # > Understand how to interface
-        block_stride = <int *> malloc( 1 * sizeof(int *))
-        part_stride  = NULL
-        part_data    = <void **> malloc(self.partN * sizeof(void **))
+        if(BlkStride is None):
+          block_stride = <int *> malloc( 1 * sizeof(int *))
+          part_stride  = NULL
+          part_data    = <void **> malloc(self.partN * sizeof(void **))
 
-        # > Init
-        block_stride[0] = 1 # No entrelacing data
+          # > Init
+          block_stride[0] = 1 # No entrelacing data
+        else:
+          block_stride = <int *> BlkStride.data
+          part_stride  = <int **>  malloc(self.partN * sizeof(void **))
+          part_data    = <void **> malloc(self.partN * sizeof(void **))
+          # part_stride  = NULL
+          # part_data    = NULL
 
         # ::::::::::::::::::::::::::::::::::::::::::::::::::
         # > Loop over all field and fill buffer
@@ -174,17 +182,21 @@ cdef class BlockToPart:
           # > Get part list and Loop over all part
           partList = pField[field]
           for idx, pArray in enumerate(partList):
-            if(pArray.ndim == 2):
-              assert(pArray.shape[1] == self.NbElmts[idx])
-            else:
-              assert(pArray.shape[0] == self.NbElmts[idx])
-
+            # if(pArray.ndim == 2):
+            #   assert(pArray.shape[1] == self.NbElmts[idx])
+            # else:
+            #   assert(pArray.shape[0] == self.NbElmts[idx])
             part_data[idx] = <void *> pArray.data
+
+          if(BlkStride is not None):
+            partStrideList = pField[field+'#PDM_Stride']
+            for idx, pArray in enumerate(partStrideList):
+              part_stride[idx] = <int *> pArray.data
 
           # ::::::::::::::::::::::::::::::::::::::::::::::::::
           # > Compute
-          PDM_block_to_part_exch(self.BTP, 
-                                 s_data, 
+          PDM_block_to_part_exch(self.BTP,
+                                 s_data,
                                  t_stride,
                                  block_stride,
                                  block_data,
@@ -198,8 +210,8 @@ cdef class BlockToPart:
 
     # ------------------------------------------------------------------
     def __dealloc__(self):
-      """ 
-         Deallocate all the array 
+      """
+         Deallocate all the array
       """
       # ************************************************************************
       # > Declaration

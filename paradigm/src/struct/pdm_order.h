@@ -32,28 +32,28 @@ extern "C" {
  *============================================================================*/
 
 /*=============================================================================
- * Public function prototypes 
+ * Public function prototypes
  *============================================================================*/
 
 /**
  * \brief Order an array
- * 
+ *
  * \param [in]      sizeArray       Number of elements
  * \param [in]      newToOldOrder   New order (size = \ref nElt
  * \param [in, out] Array           Array to renumber
  *
  */
 
-void 
-PDM_order_array 
+void
+PDM_order_array
 (
 const int     sizeArray,
-const size_t  elt_size,        
+const size_t  elt_size,
 const int    *newToOldOrder,
 void         *array
 );
 
-/** 
+/**
  * This function is part of Code_Saturne, a general-purpose CFD tool.
  *  Copyright (C) 1998-2014 EDF S.A.
  *
@@ -74,7 +74,7 @@ int          order[],
 const size_t nb_ent
 );
 
-/** 
+/**
  * This function is part of Code_Saturne, a general-purpose CFD tool.
  *  Copyright (C) 1998-2014 EDF S.A.
  *

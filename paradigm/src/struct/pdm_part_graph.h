@@ -37,10 +37,10 @@ extern "C" {
  * Perform a cells renumbering with cache blocking (Synchrone)
  *
  * parameters:
- *   part       --> Mesh Partition 
+ *   part       --> Mesh Partition
  *---------------------------------------------------------------------------*/
 
-void 
+void
 PDM_part_graph_split
 (
  int         method,
@@ -57,10 +57,10 @@ PDM_part_graph_split
  * Perform a cells renumbering with cache blocking (Asynchrone)
  *
  * parameters:
- *   part       --> Mesh Partition 
+ *   part       --> Mesh Partition
  *---------------------------------------------------------------------------*/
 
-void 
+void
 PDM_part_graph_compute_from_face_cell
 (
   _part_t        *part_ini,
@@ -70,6 +70,26 @@ PDM_part_graph_compute_from_face_cell
 
 
 /*----------------------------------------------------------------------------*/
+
+/*----------------------------------------------------------------------------
+ * Perform a cells renumbering with cache blocking (Synchrone)
+ *
+ * parameters:
+ *   part       --> Mesh Partition
+ *---------------------------------------------------------------------------*/
+
+void
+PDM_part_graph_split_bis
+(
+ int         method,
+ int         nPart,
+ int         graphSize,
+ int        *cellCellIdx,
+ int        *cellCell,
+ int        *cellWeight,
+ int        *faceWeight,
+ int       **cellPart
+);
 
 #ifdef __cplusplus
 }

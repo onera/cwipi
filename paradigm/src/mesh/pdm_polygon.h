@@ -35,8 +35,8 @@ extern "C" {
 typedef enum {
 
   PDM_POLYGON_INSIDE      = 0,  /*!< Inside  */
-  PDM_POLYGON_OUTSIDE     = 1,  /*!< Outside */               
-  PDM_POLYGON_DEGENERATED = 2,  /*!< Degenerated */               
+  PDM_POLYGON_OUTSIDE     = 1,  /*!< Outside */
+  PDM_POLYGON_DEGENERATED = 2,  /*!< Degenerated */
 
 } PDM_polygon_status_t;
 
@@ -45,7 +45,7 @@ typedef enum {
  *============================================================================*/
 
 /*=============================================================================
- * Public function prototypes 
+ * Public function prototypes
  *============================================================================*/
 
 
@@ -56,7 +56,7 @@ typedef enum {
  * \param [in]  pts      Polygon vertices coordinates
  *
  * \return      Bounds
- * 
+ *
  */
 
 
@@ -77,7 +77,7 @@ PDM_bounds_get
  * \param [out] closest  Closest Point in Polygon or NULL
  * \param [out] minDist2 Square of the distance
  *
- * \return      \ref PDM_POLYGON_INSIDE or \ref PDM_POLYGON_OUTSIDE 
+ * \return      \ref PDM_POLYGON_INSIDE or \ref PDM_POLYGON_OUTSIDE
  *              if the projected is in the polygon or not
  *
  */
@@ -122,10 +122,10 @@ PDM_polygon_evaluate_position
 PDM_bool_t
 PDM_polygon_parameterize
 (
- const int     numPts, 
- const double *pts, 
- double       *p0, 
- double       *p10, 
+ const int     numPts,
+ const double *pts,
+ double       *p0,
+ double       *p10,
  double       *l10,
  double       *p20,
  double       *l20,
@@ -158,10 +158,10 @@ PDM_polygon_parameterize
 PDM_polygon_status_t
 PDM_polygon_point_in
 (
- const double  x[3], 
+ const double  x[3],
  const int     numPts,
  const double *pts,
- double       *bounds, 
+ double       *bounds,
  double       *n
 );
 

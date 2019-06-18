@@ -38,7 +38,7 @@ extern "C" {
 /**
  * \brief Return a random value in [min, max]
  *
- * \param [in]  min  Minimum  
+ * \param [in]  min  Minimum
  * \param [in]  max  Maximum
  *
  * \return      Random value
@@ -69,7 +69,7 @@ _randomVal
  * \param [in]  pts      Polygon vertices coordinates
  *
  * \return      Bounds
- * 
+ *
  */
 
 
@@ -81,14 +81,14 @@ PDM_bounds_get
 )
 {
   double *bounds = malloc (sizeof(double) * 6);
-  
+
   bounds[0] = DBL_MAX;
   bounds[1] = -DBL_MAX;
   bounds[2] = DBL_MAX;
   bounds[3] = -DBL_MAX;
   bounds[4] = DBL_MAX;
   bounds[5] = -DBL_MAX;
-  
+
   for (int isom = 0; isom < numPts; isom++) {
     for (int l = 0; l < 3; l++) {
       double coord = pts[3*isom + l];
@@ -114,7 +114,7 @@ PDM_bounds_get
  * \param [out] closest  Closest Point in Polygon or NULL
  * \param [out] minDist2 Square of the distance
  *
- * \return      \ref PDM_POLYGON_INSIDE or \ref PDM_POLYGON_OUTSIDE 
+ * \return      \ref PDM_POLYGON_INSIDE or \ref PDM_POLYGON_OUTSIDE
  *              if the projected is in the polygon or not
  */
 
@@ -158,7 +158,7 @@ PDM_polygon_evaluate_position
     double *pt_p = pts_p + 3*k;
     PDM_plane_projection2 (pt, bary, n, pt_p);
   }
-  
+
   double *_pts_p = pts_p;
 
   PDM_polygon_parameterize (numPts, _pts_p, p0, p10, &l10, p20, &l20, n);
@@ -170,7 +170,7 @@ PDM_polygon_evaluate_position
   }
 
   double pcoords[3];
-  
+
   pcoords[0] = PDM_DOT_PRODUCT(ray,p10) / (l10*l10);
   pcoords[1] = PDM_DOT_PRODUCT(ray,p20) / (l20*l20);
   pcoords[2] = 0.0;
@@ -178,7 +178,7 @@ PDM_polygon_evaluate_position
   double bounds[6] = {DBL_MAX, -DBL_MAX,
                       DBL_MAX, -DBL_MAX,
                       DBL_MAX, -DBL_MAX};
-  
+
   for (int isom = 0; isom < numPts; isom++) {
     for (int l = 0; l < 3; l++) {
       double coord = _pts_p[3*isom + l];
@@ -199,10 +199,10 @@ PDM_polygon_evaluate_position
       closestPoint[0] = cp[0];
       closestPoint[1] = cp[1];
       closestPoint[2] = cp[2];
-      double v[3] = {x[0] - closestPoint[0], 
-                     x[1] - closestPoint[1], 
+      double v[3] = {x[0] - closestPoint[0],
+                     x[1] - closestPoint[1],
                      x[2] - closestPoint[2]};
-      
+
       *minDist2 = PDM_DOT_PRODUCT (v, v);
     }
     return PDM_POLYGON_INSIDE;
@@ -216,7 +216,7 @@ PDM_polygon_evaluate_position
     double t, dist2;
     double closest[3];
     double *pt1, *pt2;
-    
+
     if (closestPoint) {
       *minDist2 = DBL_MAX;
       for (int i=0; i<numPts; i++) {
@@ -260,10 +260,10 @@ PDM_polygon_evaluate_position
 PDM_bool_t
 PDM_polygon_parameterize
 (
- const int     numPts, 
- const double *pts, 
- double       *p0, 
- double       *p10, 
+ const int     numPts,
+ const double *pts,
+ double       *p0,
+ double       *p10,
  double       *l10,
  double       *p20,
  double       *l20,
@@ -276,13 +276,13 @@ PDM_polygon_parameterize
     return PDM_FALSE;
   }
 
-  /* 
+  /*
    *  This is a two pass process: first create a p' coordinate system
    *  that is then adjusted to insure that the polygon points are all in
    *  the range 0<=s,t<=1.  The p' system is defined by the polygon normal,
    *  first vertex and the first edge.
    */
-  
+
   PDM_plane_normal (numPts, pts, n);
 
   double x1[3];
@@ -297,7 +297,7 @@ PDM_polygon_parameterize
 
   for (int i = 0; i < 3; i++) {
     p0[i] = x1[i];
-    p10[i] = x2[i] - x1[i]; 
+    p10[i] = x2[i] - x1[i];
   }
 
   PDM_CROSS_PRODUCT(p20,n,p10);
@@ -305,13 +305,13 @@ PDM_polygon_parameterize
   /*
    * Determine lengths of edges
    */
-  
+
   if ( ((*l10)= PDM_DOT_PRODUCT(p10,p10)) == 0.0
     || ((*l20)= PDM_DOT_PRODUCT(p20,p20)) == 0.0 ) {
     return PDM_FALSE;
   }
 
-  /* 
+  /*
    *  Now evalute all polygon points to determine min/max parametric
    *  coordinate values.
    *
@@ -344,7 +344,7 @@ PDM_polygon_parameterize
   /*
    * Re-evaluate coordinate system
    */
-  
+
   for (int i = 0; i < 3; i++) {
     p1[i] = p0[i] + sbounds[1]*p10[i] + tbounds[0]*p20[i];
     p2[i] = p0[i] + sbounds[0]*p10[i] + tbounds[1]*p20[i];
@@ -352,7 +352,7 @@ PDM_polygon_parameterize
     p10[i] = p1[i] - p0[i];
     p20[i] = p2[i] - p0[i];
   }
-  
+
   (*l10) = PDM_MODULE(p10);
   (*l20) = PDM_MODULE(p20);
 
@@ -397,10 +397,10 @@ PDM_polygon_parameterize
 PDM_polygon_status_t
 PDM_polygon_point_in
 (
- const double  x[3], 
+ const double  x[3],
  const int     numPts,
  const double *pts,
- double       *bounds, 
+ double       *bounds,
  double       *n
 )
 {
@@ -427,7 +427,7 @@ PDM_polygon_point_in
    *  normal of the face. The length of the ray is a function of the
    *  size of the face bounding box.
    */
-  
+
   for (int i = 0; i < 3; i++) {
     ray[i] = ( bounds[2*i+1] - bounds[2*i] )*1.1 +
           fabs((bounds[2*i+1] + bounds[2*i])/2.0 - x[i]);
@@ -438,7 +438,7 @@ PDM_polygon_point_in
   }
 
   /* Get the maximum component of the normal. */
-  
+
   if (fabs(n[0]) > fabs(n[1])) {
     if (fabs(n[0]) > fabs(n[2])) {
       maxComp  = 0;
@@ -463,14 +463,14 @@ PDM_polygon_point_in
       comps[1] = 1;
     }
   }
-  
+
   /* Check that max component is non-zero */
-  
+
   if (fabs(n[maxComp]) < 1.e-15) {
     return PDM_POLYGON_DEGENERATED;
   }
 
-  /* 
+  /*
    * Enough information has been acquired to determine the random ray.
    * Random rays are generated until one is satisfactory (i.e.,
    * produces a ray of non-zero magnitude).  Also, since more than one
@@ -484,18 +484,18 @@ PDM_polygon_point_in
    * have counted for "in" than "out".  When delta_vote < 0, more votes
    * have counted for "out" than "in".  When the delta_vote exceeds or
    * equals the defined variable _POLYGON_VOTE_THRESHOLD, than the
-   * appropriate "in" or "out" status is returned. 
+   * appropriate "in" or "out" status is returned.
    */
-  
+
   for (deltaVotes = 0, iterNumber = 1;
        (iterNumber < _POLYGON_MAX_ITER)
          && (PDM_ABS(deltaVotes) < _POLYGON_VOTE_THRESHOLD);
        iterNumber++) {
-    
-    /* 
-     * Generate ray 
+
+    /*
+     * Generate ray
      */
-    
+
     for (rayOK = PDM_FALSE; rayOK == PDM_FALSE; ) {
       ray[comps[0]] = _randomVal (-rayMag, rayMag);
       ray[comps[1]] = _randomVal (-rayMag, rayMag);
@@ -505,43 +505,43 @@ PDM_polygon_point_in
         rayOK = PDM_TRUE;
       }
     }
-    
-    /* 
-     * The ray must be appropriately sized. 
+
+    /*
+     * The ray must be appropriately sized.
      */
-    
+
     for (int i = 0; i < 3; i++) {
       xray[i] = x[i] + (rayMag/mag)*ray[i];
     }
-    
-    /* 
-     * The ray may now be fired against all the edges 
+
+    /*
+     * The ray may now be fired against all the edges
      */
-    
-    
+
+
     int testResult = _POLYGON_CERTAIN;
     int numInts = 0;
     for (int i = 0; i < numPts; i++) {
       x1 = (double *) pts + 3*i;
       x2 = (double *) pts + 3*((i+1)%numPts);
-      
-      /* 
+
+      /*
        * Fire the ray and compute the number of intersections.  Be careful
        * of degenerate cases (e.g., ray intersects at vertex).
        */
 
       if ((status = PDM_line_intersection (x,xray,x1,x2, &u,&v)) == PDM_LINE_INTERSECT_YES) {
 
-        /* 
+        /*
          * This test checks for vertex and edge intersections
-         * For example 
-         *  Vertex intersection 
+         * For example
+         *  Vertex intersection
          *    (u=0 v=0), (u=0 v=1), (u=1 v=0), (u=1 v=0)
-         *  Edge intersection 
-         *    (u=0 v!=0 v!=1), (u=1 v!=0 v!=1) 
+         *  Edge intersection
+         *    (u=0 v!=0 v!=1), (u=1 v!=0 v!=1)
          *    (u!=0 u!=1 v=0), (u!=0 u!=1 v=1)
          */
-        
+
         if ( (_POLYGON_RAY_TOL < u) && (u < 1.0 - _POLYGON_RAY_TOL) &&
              (_POLYGON_RAY_TOL < v) && (v < 1.0 - _POLYGON_RAY_TOL) ) {
           numInts++;
@@ -550,13 +550,13 @@ PDM_polygon_point_in
           testResult = _POLYGON_UNCERTAIN;
         }
       }
-      
+
       else if ( status == _POLYGON_ON_LINE ) {
         testResult = _POLYGON_UNCERTAIN;
       }
 
     }
-    
+
     if ( testResult == _POLYGON_CERTAIN ) {
       if ( numInts % 2 == 0) {
         --deltaVotes;
@@ -568,9 +568,9 @@ PDM_polygon_point_in
   } /* try another ray */
 
   /*
-   * If the number of intersections is odd, the point is in the polygon. 
+   * If the number of intersections is odd, the point is in the polygon.
    */
-  
+
   if (deltaVotes <= 0) {
     return PDM_POLYGON_OUTSIDE;
   }
@@ -612,7 +612,7 @@ double bary[3]
   bary[0] = 0.;
   bary[1] = 0.;
   bary[2] = 0.;
-  
+
   for (int i = 0; i < 3; i++) {
     for (int ipt = 0; ipt < numPts; ipt++) {
       bary[i] += pts[3*ipt+i];

@@ -1,13 +1,13 @@
 
 cdef extern from "pdm_block_to_block.h":
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    # > Wrapping of Ppart Structure 
+    # > Wrapping of Ppart Structure
     ctypedef struct PDM_block_to_block_t:
       pass
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-    # > Wrapping of function 
+    # > Wrapping of function
     PDM_block_to_block_t *PDM_block_to_block_create(PDM_g_num_t   *blockDistribIniIdx,
                                                     PDM_g_num_t   *blockDistribEndIdx,
                                                     PDM_MPI_Comm   comm)
@@ -20,7 +20,7 @@ cdef extern from "pdm_block_to_block.h":
                                 void                 *block_data_ini,
                                 int                  *block_stride_end,
                                 void                **block_data_end)
-    
+
     PDM_block_to_block_t *PDM_block_to_block_free(PDM_block_to_block_t *btb)
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -50,7 +50,7 @@ cdef class BlockToBlock:
         # ************************************************************************
         # > Declaration
         # ************************************************************************
-        
+
         # ::::::::::::::::::::::::::::::::::::::::::::::::::
         # > Some verification
         assert(DistribIni.shape[0] == DistribEnd.shape[0])
@@ -71,17 +71,17 @@ cdef class BlockToBlock:
         # ::::::::::::::::::::::::::::::::::::::::::::::::::
         # > Create
         # self.btb = PDM_block_to_block_create(self.BlkDistribIdx, self.LNToGN,
-        self.BTB = PDM_block_to_block_create(<PDM_g_num_t *> DistribIni.data, 
-                                             <PDM_g_num_t *> DistribEnd.data, 
+        self.BTB = PDM_block_to_block_create(<PDM_g_num_t *> DistribIni.data,
+                                             <PDM_g_num_t *> DistribEnd.data,
                                              PDMC)
         # ::::::::::::::::::::::::::::::::::::::::::::::::::
 
     # ------------------------------------------------------------------
-    def BlockToBlock_Exchange(self, dict         dFieldIni, 
+    def BlockToBlock_Exchange(self, dict         dFieldIni,
                                     dict         dFieldEnd,
                                     PDM_stride_t t_stride = <PDM_stride_t> 0):
         """
-           TODOUX : 1) Exchange of variables types array 
+           TODOUX : 1) Exchange of variables types array
                     2) Assertion of type and accross MPI of the same field
                     3) Stride variable !!
         """
@@ -126,22 +126,22 @@ cdef class BlockToBlock:
 
           # ::::::::::::::::::::::::::::::::::::::::::::::::::
           # > Compute
-          # PDM_block_to_block_exch(self.BTB, 
-          #                         s_data, 
+          # PDM_block_to_block_exch(self.BTB,
+          #                         s_data,
           #                         t_stride,
           #                         block_stride_ini,
           #                         block_data_ini,
           #                         block_stride_end,
           #                         block_data_end)
-          c_size = PDM_block_to_block_exch(self.BTB, 
-                                           s_data, 
+          c_size = PDM_block_to_block_exch(self.BTB,
+                                           s_data,
                                            t_stride,
                                            cst_stride,
                                            block_stride_ini,
                                            <void *> block_data_ini,
                                            block_stride_end,
                                            <void **> &block_data_end)
-          
+
           dim = <NPY.npy_intp> c_size
           # print "c_size : ", c_size
           if(c_size == 0):
@@ -153,8 +153,8 @@ cdef class BlockToBlock:
 
     # ------------------------------------------------------------------
     def __dealloc__(self):
-      """ 
-         Deallocate all the array 
+      """
+         Deallocate all the array
       """
       # ************************************************************************
       # > Declaration

@@ -31,7 +31,7 @@ extern "C" {
 /**
  * \struct PDM_surf_mesh_t
  * \brief  Surface mesh
- * 
+ *
  *  PDM_surf_mesh_t defines a surface mesh
  *
  */
@@ -43,7 +43,7 @@ typedef struct _pdm_surf_mesh_t PDM_surf_mesh_t;
  *============================================================================*/
 
 /*=============================================================================
- * Public function prototypes 
+ * Public function prototypes
  *============================================================================*/
 
 /**
@@ -54,7 +54,7 @@ typedef struct _pdm_surf_mesh_t PDM_surf_mesh_t;
  * \param [in]  nGface       Number of global faces
  * \param [in]  nGVtx        Number of global vertices
  * \param [in]  nPart        Number of partition
- * \param [in]  comm         MSG communicator of mesh   
+ * \param [in]  comm         MSG communicator of mesh
  *
  * \return      A new initialized \ref PDM_surf_mesh_t structure
  *
@@ -137,11 +137,11 @@ PDM_surf_mesh_build_ghost_element
 
 
 /**
- * \brief Build communication graph between internal partitions of any 
- * initial mesh 
+ * \brief Build communication graph between internal partitions of any
+ * initial mesh
  *
- * This function builds the communication graph between internal partitions 
- * of each initial mesh 
+ * This function builds the communication graph between internal partitions
+ * of each initial mesh
  *
  * \param [in]  mesh    mesh to compute global numbering
  *
@@ -158,7 +158,7 @@ PDM_surf_mesh_build_exchange_graph
  * \brief Build ghost faces and ghost edges
  *
  * This function builds ghost faces and ghost edges
- * of each initial mesh 
+ * of each initial mesh
  *
  * \param [in]  mesh        Mesh
  *
@@ -176,7 +176,7 @@ PDM_surf_mesh_t *mesh
  *
  * This function returns face normal after computation
  *
- * \param [in]  mesh       mesh                     
+ * \param [in]  mesh       mesh
  *
  */
 
@@ -187,15 +187,15 @@ PDM_surf_mesh_face_normal_get
  int              iPart
 );
 
-  
+
 /**
  * \brief Chek if mesh is a plane surfece
  *
- * This function cheks if the mesh is a plane surface 
+ * This function cheks if the mesh is a plane surface
  * and returns plane equation ant vertices barycenter
  *
- * \param [in]  mesh           Mesh object                     
- * \param [in]  tolerance      Tolerance to accept surface as plane   
+ * \param [in]  mesh           Mesh object
+ * \param [in]  tolerance      Tolerance to accept surface as plane
  * \param [out] planeEquation  Plane equation
  * \param [out] barycenter     Vertices barycenter
  *
@@ -253,8 +253,8 @@ PDM_surf_mesh_build_edges
  *
  */
 
-double 
-PDM_surf_mesh_gMinCarLgthVtx_get 
+double
+PDM_surf_mesh_gMinCarLgthVtx_get
 (
  PDM_surf_mesh_t *mesh
  );
@@ -270,8 +270,8 @@ PDM_surf_mesh_gMinCarLgthVtx_get
  * \return  Vertex caracteristic length
  */
 
-double * 
-PDM_surf_mesh_part_carLgthVtx_get 
+double *
+PDM_surf_mesh_part_carLgthVtx_get
 (
  PDM_surf_mesh_t *mesh,
  int              iPart
@@ -284,19 +284,19 @@ PDM_surf_mesh_part_carLgthVtx_get
  * This function inputs a partition
  *
  * \param [in]  mesh       Mesh object
- * \param [in]  iPart       Partition to define  
- * \param [in]  nFace       Number of faces                     
+ * \param [in]  iPart       Partition to define
+ * \param [in]  nFace       Number of faces
  * \param [in]  faceVtxIdx  Index in the face -> vertex connectivity
  * \param [in]  faceVtx     face -> vertex connectivity
- * \param [in]  faceLnToGn  Local face numbering to global face numbering 
- * \param [in]  nVtx        Number of vertices              
- * \param [in]  coords      Coordinates       
- * \param [in]  vtxLnToGn   Local vertex numbering to global vertex numbering 
+ * \param [in]  faceLnToGn  Local face numbering to global face numbering
+ * \param [in]  nVtx        Number of vertices
+ * \param [in]  coords      Coordinates
+ * \param [in]  vtxLnToGn   Local vertex numbering to global vertex numbering
  *
  */
 
 void
-PDM_surf_mesh_part_input 
+PDM_surf_mesh_part_input
 (
  PDM_surf_mesh_t      *mesh,
  const int            iPart,
@@ -304,7 +304,7 @@ PDM_surf_mesh_part_input
  const int           *faceVtxIdx,
  const int           *faceVtx,
  const PDM_g_num_t    *faceLnToGn,
- const int            nVtx, 
+ const int            nVtx,
  const double        *coords,
  const PDM_g_num_t    *vtxLnToGn
 );

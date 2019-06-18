@@ -30,8 +30,8 @@ extern "C" {
 
 /**
  * \struct PDM_graph_bound_t
- * \brief Graph boundary 
- * 
+ * \brief Graph boundary
+ *
  *  PDM_graph_bound_t define the inter boundary exchange graph
  *
  */
@@ -44,7 +44,7 @@ typedef struct _graph_bound_t PDM_graph_bound_t;
 
 
 /*=============================================================================
- * Public function prototypes 
+ * Public function prototypes
  *============================================================================*/
 
 
@@ -78,7 +78,7 @@ const int             nPart,
  * \param [in]  graph_bound   Boundary graph
  * \param [in]  nComp         Number of composantes
  * \param [in]  tData         Data type
- * \param [inout]  field         Data field (with ghost cell space) 
+ * \param [inout]  field         Data field (with ghost cell space)
  *
  */
 

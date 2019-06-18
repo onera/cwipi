@@ -4,8 +4,8 @@ file(GLOB_RECURSE SOURCES
      pdm_no_mpi_ext_dependencies.c
      ../pdm_mpi.h
      ../pdm_mpi_ext_dependencies.h
-     ../../pdm.h 
-     ../../pdm_priv.h) 
+     ../../pdm.h
+     ../../pdm_priv.h)
 
 add_library(pdm_no_mpi OBJECT ${SOURCES})
 
@@ -20,7 +20,7 @@ target_include_directories(pdm_no_mpi
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/..
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/../..)
-                           
+
 
 set (LIST_HEADER "")
 list(APPEND LIST_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/../pdm_mpi.h")

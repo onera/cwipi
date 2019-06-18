@@ -44,20 +44,20 @@ const char *str1
 
   if (str1 != NULL) {
     int l_str = strlen(str1);
-    
+
     int imin = 0;
     int imax = 0;
-    
+
     while ((imin < l_str) && (str1[imin] == ' '))
       imin++;
-    
+
     while ((imax < l_str) && (str1[l_str-imax-1] == ' '))
       imax++;
-    
+
     imax = l_str-imax-1;
-    
+
     assert(imax >= imin);
-    
+
     if ((imax == l_str) || (imin == l_str)) {
       str_without_blank = (char *) malloc(sizeof(char));
       str_without_blank[0] = '\0';

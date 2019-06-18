@@ -52,22 +52,22 @@ extern "C" {
 
 /**
  * \brief Finalize PDM
- * 
- * This function frees all allocated global variables 
- * 
+ *
+ * This function frees all allocated global variables
+ *
  */
 
-void 
+void
 PDM_Finalize
 (
 void
 )
 {
- 
+
  /**
-  *  Free global array inside part_renum 
-  */ 
-  
+  *  Free global array inside part_renum
+  */
+
  PDM_part_renum_purge();
  PDM_coarse_mesh_method_purge();
 

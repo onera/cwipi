@@ -155,9 +155,9 @@ _define_rank_distrib( _cs_part_to_block_t *ptb,
   for (int i = 0; i < ptb->n_part; i++) {
 
     for (int j = 0; j < ptb->n_elt[i]; j++) {
-   
+
       PDM_g_num_t _gnum_elt = ptb->gnum_elt[i][j] - 1;
-      
+
       int iSample = PDM_binary_search_gap_long (_gnum_elt,
                                                 sampling,
                                                 n_samples + 1);
@@ -179,7 +179,7 @@ _define_rank_distrib( _cs_part_to_block_t *ptb,
 #ifdef __INTEL_COMPILER
 #pragma warning(push)
 #pragma warning(disable:2259)
-#endif  
+#endif
     double _g_distrib  = (double)g_distrib[id];
     double _gsum_weight = (double)gsum_weight;
 #ifdef __INTEL_COMPILER
@@ -282,7 +282,7 @@ _update_sampling(int            dim,
   /* Compute new_sampling */
 
   new_sampling = ( PDM_g_num_t  *) malloc (sizeof(PDM_g_num_t) * (n_samples + 1));
-   
+
   new_sampling[0] = _sampling[0];
 
   next_id = 1;
@@ -311,10 +311,10 @@ _update_sampling(int            dim,
 
     if (f_high - f_low > 0) {
       delta = (target_freq - f_low) * (s_high - s_low) / (f_high - f_low);
-      new_sampling[i+1] = s_low + delta;
+      new_sampling[i+1] = (PDM_g_num_t) (s_low + delta);
     }
     else /* f_high = f_low */
-      new_sampling[i+1] = s_low + 0.5 * (s_low + s_high);
+      new_sampling[i+1] = (PDM_g_num_t) (s_low + 0.5 * (s_low + s_high));
 
 #if 0 && defined(DEBUG) && !defined(NDEBUG)
     PDM_printf( " <_update_distrib> (rank: %d) delta: %g, target: %g,"
@@ -344,7 +344,7 @@ _update_sampling(int            dim,
  *
  */
 
-static void 
+static void
 _active_ranks
 (
  _cs_part_to_block_t  *ptb
@@ -352,18 +352,18 @@ _active_ranks
 {
 
   assert (ptb->activeRanks == NULL);
-  
+
   if (ptb->s_comm == 1) {
-    ptb->isMyRankActive = 1; 
+    ptb->isMyRankActive = 1;
     ptb->n_activeRanks = 1;
     ptb->activeRanks = (int *) malloc(sizeof(int) * ptb->n_activeRanks);
     ptb->activeRanks[0] = ptb->myRank;
-  }    
- 
+  }
+
   else {
 
     switch (ptb->t_distrib) {
-    
+
     case PDM_PART_TO_BLOCK_DISTRIB_ALL_PROC : {
       ptb->isMyRankActive = 1;
       ptb->n_activeRanks = ptb->s_comm;
@@ -377,7 +377,7 @@ _active_ranks
     case PDM_PART_TO_BLOCK_DISTRIB_ONE_PROC_PER_NODE :
     case PDM_PART_TO_BLOCK_DISTRIB_PART_OF_NODE : {
 
-      ptb->isMyRankActive = 0; 
+      ptb->isMyRankActive = 0;
 
       int rankInNode = PDM_io_mpi_node_rank(ptb->comm);
       if (rankInNode == 0) {
@@ -385,11 +385,11 @@ _active_ranks
       }
 
       int *tag_activeRanks = (int *) malloc(sizeof(int) * ptb->s_comm);
-    
-      PDM_MPI_Allgather((void *) &ptb->isMyRankActive, 1, PDM_MPI_INT, 
-                    (void *) tag_activeRanks, 1, PDM_MPI_INT, 
+
+      PDM_MPI_Allgather((void *) &ptb->isMyRankActive, 1, PDM_MPI_INT,
+                    (void *) tag_activeRanks, 1, PDM_MPI_INT,
                     ptb->comm);
-    
+
       ptb->n_activeRanks = 0;
       for (int i = 0; i < ptb->s_comm; i++) {
         if (tag_activeRanks[i] == 1) {
@@ -404,11 +404,11 @@ _active_ranks
           ptb->activeRanks[n_activeRanks++] = i;
         }
       }
-      
+
       if (ptb->t_distrib == PDM_PART_TO_BLOCK_DISTRIB_ONE_PROC_PER_NODE) {
         break;
       }
-      
+
       int n_node = ptb->n_activeRanks;
       double partActiveNode = _MIN (1, ptb->partActiveNode);
       partActiveNode = _MAX (0, partActiveNode);
@@ -418,16 +418,16 @@ _active_ranks
       n_activeRanks = 0;
       int coeff = n_node / ptb->n_activeRanks;
       for (int i = 0; i < n_node; i++) {
-        if (i % coeff == 0) {  
+        if (i % coeff == 0) {
           ptb->activeRanks[n_activeRanks++] = ptb->activeRanks[i];
         }
         if (n_activeRanks == ptb->n_activeRanks) {
           break;
         }
       }
-      
+
       assert (n_activeRanks == ptb->n_activeRanks);
-      
+
       break;
     }
 
@@ -457,20 +457,21 @@ _active_ranks
  * \param [in]    n_totalData      Total number of data
  * \param [out]   dataDistribIndex Element global number
  * \param [out]   s_blockMin       Local number of elements
- * \param [out]   s_blockMax       Number of partition      
+ * \param [out]   s_blockMax       Number of partition
  *
  */
 
-static void 
+static void
 _distrib_data
 (
- _cs_part_to_block_t *ptb
+ _cs_part_to_block_t *ptb,
+ int                  userDistrib
 )
 {
-  
+
   PDM_g_num_t _id_max = 0;
   PDM_g_num_t _id_max_max = 0;
-  
+
   ptb->n_eltProc = 0;
   for (int i = 0; i < ptb->n_part; i++) {
     ptb->n_eltProc += ptb->n_elt[i];
@@ -478,125 +479,95 @@ _distrib_data
       _id_max = _MAX (_id_max, ptb->gnum_elt[i][j]);
     }
   }
-  
-  PDM_MPI_Allreduce (&_id_max,
-                 &_id_max_max, 
-                 1, 
-                 PDM__PDM_MPI_G_NUM, 
-                 PDM_MPI_MAX, 
-                 ptb->comm);
 
+  if(userDistrib == 0) {
 
-  if (ptb->weight == NULL) { 
-    PDM_g_num_t _n_rankData = _id_max_max / ptb->n_activeRanks;
-    PDM_g_num_t _rest = _id_max_max % ptb->n_activeRanks;
-  
-    int n_rankData = (int) (_n_rankData);
-    int rest       = (int) (_rest);
-                     
-    ptb->s_blockMax = n_rankData;
-    ptb->s_blockMin = n_rankData;
-    
-    if (rest != 0) {
-      ptb->s_blockMax += 1;
-    }
-    
-    for (int i = 0; i < ptb->s_comm + 1; i++) { 
-      ptb->dataDistribIndex[i] = 0;
-    }
-    
-    int k = 0;
-    int idx = 0;
-    for (int i = 0; i < ptb->s_comm; i++) {
-      ptb->dataDistribIndex[i+1] +=  ptb->dataDistribIndex[i];
-      if (idx < ptb->n_activeRanks) {
-        if (ptb->activeRanks[idx] == i) {
-          ptb->dataDistribIndex[i+1] += n_rankData;
-          if (k < rest)
-            ptb->dataDistribIndex[i+1] += 1;
-          k += 1;
-          idx++;
+    PDM_MPI_Allreduce (&_id_max,
+                       &_id_max_max,
+                       1,
+                       PDM__PDM_MPI_G_NUM,
+                       PDM_MPI_MAX,
+                       ptb->comm);
+
+    if (ptb->weight == NULL) {
+      PDM_g_num_t _n_rankData = _id_max_max / ptb->n_activeRanks;
+      PDM_g_num_t _rest = _id_max_max % ptb->n_activeRanks;
+
+      int n_rankData = (int) (_n_rankData);
+      int rest       = (int) (_rest);
+
+      ptb->s_blockMax = n_rankData;
+      ptb->s_blockMin = n_rankData;
+
+      if (rest != 0) {
+        ptb->s_blockMax += 1;
+      }
+
+      for (int i = 0; i < ptb->s_comm + 1; i++) {
+        ptb->dataDistribIndex[i] = 0;
+      }
+
+      int k = 0;
+      int idx = 0;
+      for (int i = 0; i < ptb->s_comm; i++) {
+        ptb->dataDistribIndex[i+1] +=  ptb->dataDistribIndex[i];
+        if (idx < ptb->n_activeRanks) {
+          if (ptb->activeRanks[idx] == i) {
+            ptb->dataDistribIndex[i+1] += n_rankData;
+            if (k < rest)
+              ptb->dataDistribIndex[i+1] += 1;
+            k += 1;
+            idx++;
+          }
+
         }
       }
     }
-  }
 
-  else {
-    const int dim = 2;
-    const int  n_activeRanks = ptb->n_activeRanks;
-    const int  sampling_factor = _sampling_factors[dim];
-    const int  n_samples = sampling_factor * n_activeRanks;
+    else {
+      const int dim = 2;
+      const int  n_activeRanks = ptb->n_activeRanks;
+      const int  sampling_factor = _sampling_factors[dim];
+      const int  n_samples = sampling_factor * n_activeRanks;
 
-    double **weight = ptb->weight;
-    PDM_MPI_Comm comm = ptb->comm;      
+      double **weight = ptb->weight;
+      PDM_MPI_Comm comm = ptb->comm;
 
-    PDM_g_num_t *sampling = malloc(sizeof(PDM_g_num_t) * (n_samples + 1));
-    
-    double  lsum_weight = 0.;
-    for (int i = 0; i < ptb->n_part; i++) {
-      for (int j = 0; j < ptb->n_elt[i]; j++) {
-        lsum_weight += weight[i][j];
+      PDM_g_num_t *sampling = malloc(sizeof(PDM_g_num_t) * (n_samples + 1));
+
+      double  lsum_weight = 0.;
+      for (int i = 0; i < ptb->n_part; i++) {
+        for (int j = 0; j < ptb->n_elt[i]; j++) {
+          lsum_weight += weight[i][j];
+        }
       }
-    }
 
-    double  gsum_weight = 0.;
-    PDM_MPI_Allreduce(&lsum_weight, &gsum_weight, 1,
-                      PDM_MPI_DOUBLE, PDM_MPI_SUM, comm);
+      double  gsum_weight = 0.;
+      PDM_MPI_Allreduce(&lsum_weight, &gsum_weight, 1,
+                        PDM_MPI_DOUBLE, PDM_MPI_SUM, comm);
 
-    double optim = gsum_weight / n_activeRanks;
+      double optim = gsum_weight / n_activeRanks;
 
-    /* Define a naive sampling (uniform distribution) */
+      /* Define a naive sampling (uniform distribution) */
 
-    PDM_g_num_t _n_sampleData = _id_max_max / n_samples;
-    PDM_g_num_t _samplerest = _id_max_max % n_samples;
+      PDM_g_num_t _n_sampleData = _id_max_max / n_samples;
+      PDM_g_num_t _samplerest = _id_max_max % n_samples;
 
-    sampling[0] = 0;
-    int k = 0;
-    for (int i = 0; i < n_samples; i++) {
-      sampling[i+1] = sampling[i];
-      sampling[i+1] += _n_sampleData;
-      if (k < _samplerest) {
-        sampling[i+1] += 1;
-        k += 1;
+      sampling[0] = 0;
+      int k = 0;
+      for (int i = 0; i < n_samples; i++) {
+        sampling[i+1] = sampling[i];
+        sampling[i+1] += _n_sampleData;
+        if (k < _samplerest) {
+          sampling[i+1] += 1;
+          k += 1;
+        }
       }
-    }
 
-    /* Define the distribution associated to the current sampling array */
+      /* Define the distribution associated to the current sampling array */
 
-    double *distrib = (double *) malloc (sizeof(double) * n_samples);
-    double  *cfreq = (double *) malloc (sizeof(double) * (n_samples + 1));
-
-    _define_rank_distrib(ptb,
-                         dim,
-                         n_activeRanks,
-                         gsum_weight,
-                         sampling,
-                         cfreq,
-                         distrib,
-                         comm);
-
-    /* Initialize best choice */
-
-    double fit = _evaluate_distribution(n_activeRanks, distrib, optim);
-    double best_fit = fit;
-
-    PDM_g_num_t  *best_sampling =
-      (PDM_g_num_t  *) malloc (sizeof(PDM_g_num_t) * (n_samples + 1));
-
-    for (int i = 0; i < (n_samples + 1); i++) {
-      best_sampling[i] = sampling[i];
-    }
-
-    /* Loop to get a better sampling array */
-
-    for (int n_iters = 0;
-         (   n_iters < pdm_part_to_block_distrib_n_iter_max
-             && fit > pdm_part_to_block_distrib_tol);
-         n_iters++)  {
-      
-      _update_sampling(dim, n_activeRanks, cfreq, &sampling);
-
-      /* Compute the new distribution associated to the new sampling */
+      double *distrib = (double *) malloc (sizeof(double) * n_samples);
+      double  *cfreq = (double *) malloc (sizeof(double) * (n_samples + 1));
 
       _define_rank_distrib(ptb,
                            dim,
@@ -607,89 +578,122 @@ _distrib_data
                            distrib,
                            comm);
 
-      fit = _evaluate_distribution(n_activeRanks, distrib, optim);
-      
-      /* Save the best sampling array and its fit */
-      
-      if (fit < best_fit) {
-        
-        best_fit = fit;
-        for (int i = 0; i < (n_samples + 1); i++) {
-          best_sampling[i] = sampling[i];
-        }
+      /* Initialize best choice */
+
+      double fit = _evaluate_distribution(n_activeRanks, distrib, optim);
+      double best_fit = fit;
+
+      PDM_g_num_t  *best_sampling =
+        (PDM_g_num_t  *) malloc (sizeof(PDM_g_num_t) * (n_samples + 1));
+
+      for (int i = 0; i < (n_samples + 1); i++) {
+        best_sampling[i] = sampling[i];
       }
 
-    } /* End of while */
+      /* Loop to get a better sampling array */
 
-    free (distrib);
-    free (cfreq);
-    free (sampling);
+      for (int n_iters = 0;
+           (   n_iters < pdm_part_to_block_distrib_n_iter_max
+               && fit > pdm_part_to_block_distrib_tol);
+           n_iters++)  {
 
-    sampling = best_sampling;
-    
-    int *_active_ranks = ptb->activeRanks;
+        _update_sampling(dim, n_activeRanks, cfreq, &sampling);
 
-    PDM_g_num_t *rank_index = malloc (sizeof(PDM_g_num_t) * (n_activeRanks + 1));
-    
-    for (int i = 0; i < n_activeRanks + 1; i++) {
-      int id = i * sampling_factor;
-      rank_index[i] = sampling[id];
-    }
-    
-    free (sampling);
+        /* Compute the new distribution associated to the new sampling */
 
-    ptb->dataDistribIndex[0] = 0;
+        _define_rank_distrib(ptb,
+                             dim,
+                             n_activeRanks,
+                             gsum_weight,
+                             sampling,
+                             cfreq,
+                             distrib,
+                             comm);
 
-    k = 0;
-    for (int i = 0; i < n_activeRanks; i++) {
-      int i_activeRank = _active_ranks[i];
-      while (k < i_activeRank) {
+        fit = _evaluate_distribution(n_activeRanks, distrib, optim);
+
+        /* Save the best sampling array and its fit */
+
+        if (fit < best_fit) {
+
+          best_fit = fit;
+          for (int i = 0; i < (n_samples + 1); i++) {
+            best_sampling[i] = sampling[i];
+          }
+        }
+
+      } /* End of while */
+
+      free (distrib);
+      free (cfreq);
+      free (sampling);
+
+      sampling = best_sampling;
+
+      int *_active_ranks = ptb->activeRanks;
+
+      PDM_g_num_t *rank_index = malloc (sizeof(PDM_g_num_t) * (n_activeRanks + 1));
+
+      for (int i = 0; i < n_activeRanks + 1; i++) {
+        int id = i * sampling_factor;
+        rank_index[i] = sampling[id];
+      }
+
+      free (sampling);
+
+      ptb->dataDistribIndex[0] = 0;
+
+      k = 0;
+      for (int i = 0; i < n_activeRanks; i++) {
+        int i_activeRank = _active_ranks[i];
+        while (k < i_activeRank) {
+          ptb->dataDistribIndex[k+1] = ptb->dataDistribIndex[k];
+          k++;
+        }
+        ptb->dataDistribIndex[k+1] = rank_index[i+1];
+        k++;
+      }
+      while (k < ptb->s_comm) {
         ptb->dataDistribIndex[k+1] = ptb->dataDistribIndex[k];
         k++;
       }
-      ptb->dataDistribIndex[k+1] = rank_index[i+1];
-      k++;
-    }
-    while (k < ptb->s_comm) {
-      ptb->dataDistribIndex[k+1] = ptb->dataDistribIndex[k];
-      k++;
-    }
 
-    free (rank_index);
+      free (rank_index);
 
-  }
-  
+    }
+  } // If User
+
   /* Affichage */
 
   if (1 == 0) {
     if (ptb->myRank == 0) {
       PDM_printf("dataDistribIndex : ");
       for(int i = 0; i < ptb->s_comm + 1; i++)
-        PDM_printf(PDM_FMT_G_NUM" ", ptb->dataDistribIndex[i]); 
+        PDM_printf(PDM_FMT_G_NUM" ", ptb->dataDistribIndex[i]);
       PDM_printf("\n");
     }
   }
 
   ptb->n_sendData = (int *) malloc (sizeof(int) * ptb->s_comm);
   ptb->n_recvData = (int *) malloc (sizeof(int) * ptb->s_comm);
-        
+
   /* Pour chaque donnee le proc ou elle va etre envoyee */
- 
-  ptb->destProc = (int *) malloc (sizeof(int) * ptb->n_eltProc); 
-        
+
+  ptb->destProc = (int *) malloc (sizeof(int) * ptb->n_eltProc);
+
   /* Calcul du nombre de donnees a envoyer a chaque procesus */
-        
+
   for (int i = 0; i < ptb->s_comm; i++) {
     ptb->n_sendData[i] = 0;
   }
-        
+
   int idx = -1;
   for (int i = 0; i < ptb->n_part; i++) {
 
     for (int j = 0; j < ptb->n_elt[i]; j++) {
-   
+
       PDM_g_num_t _gnum_elt = ptb->gnum_elt[i][j] - 1;
-      
+
       int iProc = PDM_binary_search_gap_long (_gnum_elt,
                                               ptb->dataDistribIndex,
                                               ptb->s_comm + 1);
@@ -700,13 +704,13 @@ _distrib_data
     }
   }
 
-  PDM_MPI_Alltoall (ptb->n_sendData, 1, PDM_MPI_INT, 
-                ptb->n_recvData, 1, PDM_MPI_INT, 
+  PDM_MPI_Alltoall (ptb->n_sendData, 1, PDM_MPI_INT,
+                ptb->n_recvData, 1, PDM_MPI_INT,
                 ptb->comm);
 
   ptb->i_sendData = (int *) malloc(sizeof(int) * ptb->s_comm);
   ptb->i_recvData = (int *) malloc(sizeof(int) * ptb->s_comm);
-        
+
   ptb->i_sendData[0] = 0;
   ptb->i_recvData[0] = 0;
   for (int i = 1; i < ptb->s_comm; i++) {
@@ -722,10 +726,10 @@ _distrib_data
 
   PDM_g_num_t *send_gnum =
     (PDM_g_num_t *) malloc (sizeof(PDM_g_num_t) * ptb->tn_sendData) ;
-  
+
   for (int i = 0; i < ptb->s_comm; i++)
     ptb->n_sendData[i] = 0;
-  
+
   idx = 0;
   for (int i = 0; i < ptb->n_part; i++) {
     for (int j = 0; j < ptb->n_elt[i]; j++) {
@@ -736,19 +740,19 @@ _distrib_data
       ptb->n_sendData[iproc] += 1;
     }
   }
-  
+
   ptb->sorted_recvGnum =
     (PDM_g_num_t *) malloc(sizeof(PDM_g_num_t) * ptb->tn_recvData);
-  
-  PDM_MPI_Alltoallv(send_gnum, 
-                ptb->n_sendData,
-                ptb->i_sendData,
-                PDM__PDM_MPI_G_NUM,
-                ptb->sorted_recvGnum,
-                ptb->n_recvData,
-                ptb->i_recvData,
-                PDM__PDM_MPI_G_NUM,
-                ptb->comm);
+
+  PDM_MPI_Alltoallv(send_gnum,
+                    ptb->n_sendData,
+                    ptb->i_sendData,
+                    PDM__PDM_MPI_G_NUM,
+                    ptb->sorted_recvGnum,
+                    ptb->n_recvData,
+                    ptb->i_recvData,
+                    PDM__PDM_MPI_G_NUM,
+                    ptb->comm);
 
   free(send_gnum);
 
@@ -774,7 +778,7 @@ _distrib_data
   if (ptb->t_post != PDM_PART_TO_BLOCK_POST_NOTHING) {
 
     int n_eltBlock = 0;
-    
+
     ptb->block_gnum = malloc (sizeof(PDM_g_num_t) * ptb->tn_recvData);
 
     for (int i = 0; i < ptb->tn_recvData; i++) {
@@ -796,7 +800,6 @@ _distrib_data
     ptb->block_gnum = ptb->sorted_recvGnum;
 
   }
-
 }
 
 /*=============================================================================
@@ -814,10 +817,10 @@ _distrib_data
  * \param [in]   gnum_elt        Element global number
  * \param [in]   weight          Weight of elements (or NULL)
  * \param [in]   n_elt           Local number of elements
- * \param [in]   n_part          Number of partition      
- * \param [in]   comm            MPI communicator         
+ * \param [in]   n_part          Number of partition
+ * \param [in]   comm            MPI communicator
  *
- * \return   Initialized cs_part_to_block         
+ * \return   Initialized cs_part_to_block
  *
  */
 
@@ -834,14 +837,14 @@ PDM_part_to_block_create
  PDM_MPI_Comm                     comm
 )
 {
-  
-  _cs_part_to_block_t *ptb = 
+
+  _cs_part_to_block_t *ptb =
     (_cs_part_to_block_t *) malloc (sizeof(_cs_part_to_block_t));
 
   if ((t_post != PDM_PART_TO_BLOCK_POST_MERGE) && (weight != NULL)) {
     PDM_error(__FILE__, __LINE__, 0,"PDM_part_to_block_create : weights are available only if PDM_PART_TO_BLOCK_POST_MERGE is selected\n");
   }
-  
+
   ptb->t_distrib        = t_distrib;    /*!< Distribution type */
   ptb->t_post           = t_post;       /*!< Post processing type */
   ptb->n_activeRanks    = 0;            /*!< Number of active ranks */
@@ -858,7 +861,7 @@ PDM_part_to_block_create
   ptb->gnum_elt         = gnum_elt;     /*!< Global numbering of elements for any part */
   ptb->weight           = weight;
   ptb->destProc         = NULL;
-  ptb->dataDistribIndex = 
+  ptb->dataDistribIndex =
     (PDM_g_num_t *) malloc (sizeof(PDM_g_num_t) * (ptb->s_comm + 1));   /*!< Data distribution on ranks */
 
   ptb->s_blockMin   = INT_MAX;
@@ -869,13 +872,13 @@ PDM_part_to_block_create
   ptb->n_sendData   = NULL;  /*!< Number of data to send to other processes (size = s_comm) */
   ptb->n_recvData   = NULL;  /*!< Number of received Data from other processes (size = s_comm) */
 
-  ptb->tn_sendData  = 0;     /*!< Total number of sended data */ 
-  ptb->tn_recvData  = 0;     /*!< Total number of received data */ 
+  ptb->tn_sendData  = 0;     /*!< Total number of sended data */
+  ptb->tn_recvData  = 0;     /*!< Total number of received data */
   ptb->sorted_recvGnum    = NULL;  /*!< Sorted recv global num */
   ptb->order        = NULL;  /*!< Order */
   ptb->n_eltBlock   = 0;
   ptb->block_gnum   = NULL;  /*!< Global number of reveived data (size = tn_recvData) */
-  
+
   /*
    * Active ranks definition
    */
@@ -886,7 +889,97 @@ PDM_part_to_block_create
    * Data distribution definition
    */
 
-  _distrib_data (ptb);
+  _distrib_data (ptb, 0);
+
+  return (PDM_part_to_block_t *) ptb;
+}
+
+
+/**
+ *
+ * \brief Create a partitioning to block redistribution
+ *
+ * \param [in]   t_distrib       Distribution type
+ * \param [in]   t_post          Post processing type
+ * \param [in]   partActiveNode  Part of active nodes (\ref PDM_writer_BLOCK_DISTRIB_PART_OF_NODE mode)
+ * \param [in]   gnum_elt        Element global number
+ * \param [in]   weight          Weight of elements (or NULL)
+ * \param [in]   n_elt           Local number of elements
+ * \param [in]   n_part          Number of partition
+ * \param [in]   comm            MPI communicator
+ *
+ * \return   Initialized cs_part_to_block
+ *
+ */
+
+PDM_part_to_block_t *
+PDM_part_to_block_create2
+(
+ PDM_part_to_block_distrib_t   t_distrib,
+ PDM_part_to_block_post_t      t_post,
+ float                         partActiveNode,
+ PDM_g_num_t                 **gnum_elt,
+ PDM_g_num_t                  *dataDistribIndex,
+ int                          *n_elt,
+ int                           n_part,
+ PDM_MPI_Comm                  comm
+)
+{
+
+  _cs_part_to_block_t *ptb =
+    (_cs_part_to_block_t *) malloc (sizeof(_cs_part_to_block_t));
+
+
+  ptb->t_distrib        = t_distrib;    /*!< Distribution type */
+  ptb->t_post           = t_post;       /*!< Post processing type */
+  ptb->n_activeRanks    = 0;            /*!< Number of active ranks */
+  ptb->activeRanks      = NULL;         /*!< List of active ranks */
+  ptb->comm             = comm;         /*!< MSG communicator */
+  PDM_MPI_Comm_size (comm, &(ptb->s_comm));
+  PDM_MPI_Comm_rank (comm, &(ptb->myRank));
+  ptb->isMyRankActive   = 0;              /*!< Is active current rank */
+  ptb->partActiveNode   = partActiveNode; /*!< Part of active nodes */
+
+  ptb->n_part           = n_part;       /*!< Number of parts */
+  ptb->n_elt            = n_elt;        /*!< Number of elements for any part */
+  ptb->n_eltProc        = 0;            /*!< Number of elements on the current rank */
+  ptb->gnum_elt         = gnum_elt;     /*!< Global numbering of elements for any part */
+  ptb->weight           = NULL;
+  ptb->destProc         = NULL;
+  ptb->dataDistribIndex =
+    (PDM_g_num_t *) malloc (sizeof(PDM_g_num_t) * (ptb->s_comm + 1));   /*!< Data distribution on ranks */
+
+  for(int iRank = 0; iRank < ptb->s_comm+1; iRank++)
+  {
+    ptb->dataDistribIndex[iRank] = dataDistribIndex[iRank];
+  }
+
+  ptb->s_blockMin   = INT_MAX;
+  ptb->s_blockMax   = 0;
+
+  ptb->i_sendData   = NULL;  /*!< Data to send to other processes index (size = s_comm) */
+  ptb->i_recvData   = NULL;  /*!< Received Data from other processes index (size = s_comm) */
+  ptb->n_sendData   = NULL;  /*!< Number of data to send to other processes (size = s_comm) */
+  ptb->n_recvData   = NULL;  /*!< Number of received Data from other processes (size = s_comm) */
+
+  ptb->tn_sendData  = 0;     /*!< Total number of sended data */
+  ptb->tn_recvData  = 0;     /*!< Total number of received data */
+  ptb->sorted_recvGnum    = NULL;  /*!< Sorted recv global num */
+  ptb->order        = NULL;  /*!< Order */
+  ptb->n_eltBlock   = 0;
+  ptb->block_gnum   = NULL;  /*!< Global number of reveived data (size = tn_recvData) */
+
+  /*
+   * Active ranks definition
+   */
+
+  _active_ranks (ptb);
+
+  /*
+   * Data distribution definition
+   */
+  // Rajouter un attribut de classe pour passer user ?
+  _distrib_data (ptb, 1);
 
   return (PDM_part_to_block_t *) ptb;
 }
@@ -902,7 +995,7 @@ PDM_part_to_block_create
  *
  */
 
-int 
+int
 PDM_part_to_block_n_active_ranks_get
 (
  PDM_part_to_block_t *ptb
@@ -965,7 +1058,7 @@ PDM_part_to_block_active_ranks_get
  *
  */
 
-int 
+int
 PDM_part_to_block_n_elt_block_get
 (
  PDM_part_to_block_t *ptb
@@ -1026,14 +1119,14 @@ PDM_part_to_block_exch
 {
   _cs_part_to_block_t *_ptb = (_cs_part_to_block_t *) ptb;
 
-  if ((_ptb->t_post == PDM_PART_TO_BLOCK_POST_MERGE) && 
+  if ((_ptb->t_post == PDM_PART_TO_BLOCK_POST_MERGE) &&
       (t_stride ==  PDM_STRIDE_CST)) {
     PDM_error(__FILE__, __LINE__, 0,"PDM_part_to_block_exch : PDM_writer_STRIDE_CST is not compatible PDM_writer_POST_MERGE post\n");
     abort ();
   }
 
-  int *i_sendBuffer = (int *) malloc (sizeof(int) * _ptb->s_comm);
-  int *i_recvBuffer = (int *) malloc (sizeof(int) * _ptb->s_comm);
+  size_t *i_sendBuffer = (size_t *) malloc (sizeof(size_t) * _ptb->s_comm);
+  size_t *i_recvBuffer = (size_t *) malloc (sizeof(size_t) * _ptb->s_comm);
   int *n_sendBuffer = (int *) malloc (sizeof(int) * _ptb->s_comm);
   int *n_recvBuffer = (int *) malloc (sizeof(int) * _ptb->s_comm);
 
@@ -1043,12 +1136,12 @@ PDM_part_to_block_exch
 
   int *recvStride = NULL;
   if (t_stride == PDM_STRIDE_VAR) {
-    
+
     for (int i = 0; i < _ptb->s_comm; i++) {
       n_sendBuffer[i] = 0;
       n_recvBuffer[i] = 0;
     }
-    
+
     int *sendStride = (int *) malloc (sizeof(int) * _ptb->tn_sendData);
 
     int idx = -1;
@@ -1061,47 +1154,47 @@ PDM_part_to_block_exch
     }
 
     recvStride = (int *) malloc (sizeof(int) * _ptb->tn_recvData);
-    
+
     PDM_MPI_Alltoallv (sendStride,
                    _ptb->n_sendData,
                    _ptb->i_sendData,
-                   PDM_MPI_INT, 
+                   PDM_MPI_INT,
                    recvStride,
                    _ptb->n_recvData,
                    _ptb->i_recvData,
-                   PDM_MPI_INT, 
+                   PDM_MPI_INT,
                    _ptb->comm);
 
     /*
      * Build buffers
      */
-    
+
     for (int i = 0; i < _ptb->s_comm; i++) {
       int iBeg = _ptb->i_sendData[i];
       int iEnd = _ptb->i_sendData[i] + _ptb->n_sendData[i];
-      
+
       n_sendBuffer[i] = 0;
       for (int k = iBeg; k < iEnd; k++)
         n_sendBuffer[i] += sendStride[k];
-            
+
       n_sendBuffer[i] *= (int) s_data;
-            
+
       if (i > 0) {
         i_sendBuffer[i] = i_sendBuffer[i-1] + n_sendBuffer[i-1];
       }
       else {
         i_sendBuffer[i] = 0;
-      }         
+      }
 
       iBeg = _ptb->i_recvData[i];
       iEnd = _ptb->i_recvData[i] + _ptb->n_recvData[i];
-            
+
       n_recvBuffer[i] = 0;
       for (int k = iBeg; k < iEnd; k++)
         n_recvBuffer[i] += recvStride[k];
-            
+
       n_recvBuffer[i] *= (int) s_data;
-            
+
       if (i > 0)
         i_recvBuffer[i] = i_recvBuffer[i-1] + n_recvBuffer[i-1];
       else
@@ -1110,19 +1203,19 @@ PDM_part_to_block_exch
     }
 
     free(sendStride);
-          
+
   }
-      
+
   else if (t_stride == PDM_STRIDE_CST) {
-  
+
     for (int i = 0; i < _ptb->s_comm; i++) {
-          
+
       i_sendBuffer[i] = _ptb->i_sendData[i] * cst_stride * (int) s_data;
       i_recvBuffer[i] = _ptb->i_recvData[i] * cst_stride * (int) s_data;
 
       n_sendBuffer[i] = _ptb->n_sendData[i] * cst_stride * (int) s_data;
       n_recvBuffer[i] = _ptb->n_recvData[i] * cst_stride * (int) s_data;
-      
+
     }
     fflush(stdout);
   }
@@ -1157,7 +1250,7 @@ PDM_part_to_block_exch
 
     for (int j = 0; j < _ptb->n_elt[i]; j++) {
       int iProc = _ptb->destProc[++idx];
-      int s_octet_elt = 0; 
+      int s_octet_elt = 0;
       int i_part_elt = 0;
 
       if (t_stride == PDM_STRIDE_CST) {
@@ -1166,30 +1259,30 @@ PDM_part_to_block_exch
       }
 
       else if (t_stride == PDM_STRIDE_VAR) {
-        s_octet_elt = i_part[j+1] - i_part[j]; 
+        s_octet_elt = i_part[j+1] - i_part[j];
         i_part_elt  = i_part[j];
       }
 
       for (int k = 0; k < s_octet_elt; k++) {
-        sendBuffer[i_sendBuffer[iProc] + n_sendBuffer[iProc]++] = 
+        sendBuffer[i_sendBuffer[iProc] + n_sendBuffer[iProc]++] =
           _part_data[i][i_part_elt + k];
       }
     }
-    
+
     if (i_part != NULL)
       free (i_part);
   }
 
-  PDM_MPI_Alltoallv(sendBuffer,
-                n_sendBuffer,
-                i_sendBuffer,
-                PDM_MPI_BYTE, 
-                recvBuffer,
-                n_recvBuffer,
-                i_recvBuffer,
-                PDM_MPI_BYTE, 
-                _ptb->comm);
-      
+  PDM_MPI_Alltoallv_l(sendBuffer,
+                      n_sendBuffer,
+                      i_sendBuffer,
+                      PDM_MPI_BYTE,
+                      recvBuffer,
+                      n_recvBuffer,
+                      i_recvBuffer,
+                      PDM_MPI_BYTE,
+                      _ptb->comm);
+
   free(sendBuffer);
   free(n_sendBuffer);
   free(i_sendBuffer);
@@ -1211,7 +1304,7 @@ PDM_part_to_block_exch
     }
 
     /*
-     * Compute index in data 
+     * Compute index in data
      */
 
     i_recvStride = malloc (sizeof(int) * (_ptb->tn_recvData + 1));
@@ -1223,16 +1316,16 @@ PDM_part_to_block_exch
       i_recvStride[i+1]   = i_recvStride[i] + recvStride[i];
       i_block_stride[i+1] = i_block_stride[i] + _block_stride[i];
     }
-    
+
     for (int i = 0; i < _ptb->tn_recvData; i++) {
       i_recvStride[i+1]   *= (int) s_data;
       i_block_stride[i+1] *= (int) s_data;
     }
 
     /*
-     * Sort Buffer 
+     * Sort Buffer
      */
-    
+
     for (int i = 0; i < _ptb->tn_recvData; i++) {
       int old = _ptb->order[i];
       int idOld = i_recvStride[old];
@@ -1253,11 +1346,11 @@ PDM_part_to_block_exch
 
       int idx1 = 0;
       int idx2 = 0;
-    
+
       if (_ptb->tn_recvData == 1) {
         idx2 = i_block_stride[1];
       }
-      
+
       for (int i = 1; i < _ptb->tn_recvData; i++) {
         if (i == 1) {
           idx2 = i_block_stride[1];
@@ -1277,7 +1370,7 @@ PDM_part_to_block_exch
           }
         }
       }
-      
+
       /* Cleanup */
 
       if (_ptb->t_post == PDM_PART_TO_BLOCK_POST_CLEANUP) {
@@ -1300,7 +1393,7 @@ PDM_part_to_block_exch
   else {
 
     /*
-     * Sort Buffer 
+     * Sort Buffer
      */
 
     for (int i = 0; i < _ptb->tn_recvData; i++) {
@@ -1322,7 +1415,7 @@ PDM_part_to_block_exch
       int idx1 = 0;
 
       assert (_ptb->t_post != PDM_PART_TO_BLOCK_POST_MERGE);
-          
+
       if (_ptb->tn_recvData == 1) {
         idx2 =  cst_stride * (int) s_data;
       }
@@ -1360,11 +1453,11 @@ PDM_part_to_block_exch
 
 /**
  *
- * \brief Free a part to block structure                       
+ * \brief Free a part to block structure
  *
  * \param [inout] ptb         Part to block structure
  *
- * \return       NULL                             
+ * \return       NULL
  */
 
 PDM_part_to_block_t *
@@ -1379,12 +1472,12 @@ PDM_part_to_block_free
     free (_ptb->activeRanks);
     _ptb->activeRanks = NULL;
   }
-  if (_ptb->destProc != NULL) { 
+  if (_ptb->destProc != NULL) {
     free (_ptb->destProc);
     _ptb->destProc = NULL;
   }
   if (_ptb->dataDistribIndex != NULL) {
-    free (_ptb->dataDistribIndex); 
+    free (_ptb->dataDistribIndex);
     _ptb->dataDistribIndex = NULL;
   }
   if (_ptb->i_sendData != NULL) {
@@ -1411,8 +1504,8 @@ PDM_part_to_block_free
     free (_ptb->order);
     _ptb->order = NULL;
   }
-  
-  if ((_ptb->t_post != PDM_PART_TO_BLOCK_POST_NOTHING) && (_ptb->block_gnum != NULL)) {  
+
+  if ((_ptb->t_post != PDM_PART_TO_BLOCK_POST_NOTHING) && (_ptb->block_gnum != NULL)) {
     free (_ptb->block_gnum);
     _ptb->block_gnum = NULL;
   }
@@ -1423,11 +1516,11 @@ PDM_part_to_block_free
 
 /**
  *
- * \brief Return block distribution index                 
+ * \brief Return block distribution index
  *
  * \param [in] ptb         Part to block structure
  *
- * \return  Distribution (size = communicator size + 1)                            
+ * \return  Distribution (size = communicator size + 1)
  */
 
 PDM_g_num_t *
@@ -1443,11 +1536,11 @@ PDM_part_to_block_distrib_index_get
 
 /**
  *
- * \brief Return processus destination                     
+ * \brief Return processus destination
  *
  * \param [in] ptb         Part to block structure
  *
- * \return  Destination (size = sum of partition elements)                            
+ * \return  Destination (size = sum of partition elements)
  */
 
 PDM_l_num_t *

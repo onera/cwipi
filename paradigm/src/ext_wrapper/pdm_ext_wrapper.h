@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   pdm_ext_wrapper.h
  * Author: equemera
  *
@@ -30,35 +30,35 @@ extern "C" {
 
 #ifdef PDM_HAVE_PARMETIS
 
-int 
+int
 PDM_METIS_PartGraphRecursive
 (
-int *nvtxs, 
-int *ncon, 
-int *xadj, 
-int *adjncy, 
-int *vwgt, 
-int *adjwgt, 
-int *nparts, 
-double *tpwgts, 
-double *ubvec, 
-int *edgecut, 
+int *nvtxs,
+int *ncon,
+int *xadj,
+int *adjncy,
+int *vwgt,
+int *adjwgt,
+int *nparts,
+double *tpwgts,
+double *ubvec,
+int *edgecut,
 int *part
 );
 
-int 
+int
 PDM_METIS_PartGraphKway
 (
-int *nvtxs, 
-int *ncon, 
-int *xadj, 
-int *adjncy, 
-int *vwgt, 
-int *adjwgt, 
-int *nparts, 
-double *tpwgts, 
-double *ubvec, 
-int *edgecut, 
+int *nvtxs,
+int *ncon,
+int *xadj,
+int *adjncy,
+int *vwgt,
+int *adjwgt,
+int *nparts,
+double *tpwgts,
+double *ubvec,
+int *edgecut,
 int *part
 );
 
@@ -66,21 +66,36 @@ int *part
 
 #ifdef PDM_HAVE_PTSCOTCH
 
-void  
-PDM_SCOTCH_part   
+void
+PDM_SCOTCH_part
 (
 const int nCell,
 int *dualGraphIdx,
-int *dualGraph,        
+int *dualGraph,
 int *cellWeight,
 int *edgeWeight,
-int check,        
-const int nPart,        
+int check,
+const int nPart,
 int *part
 );
 
 #endif
 
+void 
+PDM_kaffpa
+(
+int* n, 
+int* vwgt,
+int* xadj, 
+int* adjcwgt, 
+int* adjncy,
+int* nparts, 
+double* inbalance,  
+int seed, 
+int mode, 
+int* edgecut, 
+int* part
+);
 #ifdef	__cplusplus
 }
 #endif

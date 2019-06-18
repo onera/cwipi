@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   pdm_part_coarse_mesh.h
  * Author: jmagnene
  *
@@ -16,7 +16,7 @@
 #include "pdm_part.h"
 
 
-#if !defined (__hpux) && !defined (_AIX) 
+#if !defined (__hpux) && !defined (_AIX)
 #define PROCF(x, y) x##_
 #else
 #define PROCF(x, y) x
@@ -33,7 +33,7 @@ extern "C" {
  * \brief Return an initialized coarse mesh object
  *
  * \param [out]  cmId              Coarse mesh identifier
- * 
+ *
  * \param [in]   pt_comm           Communicator
  * \param [in]   method            Choice between (1 for ParMETIS or 2 for PT-Scotch)
  * \param [in]   nPart             Number of partitions
@@ -45,12 +45,12 @@ extern "C" {
  * \param [in]   have_faceWeight   Presence d'un tableau de poids pour les faces
  * \param [in]   have_faceGroup    Presence des tableaux de groupes de faces
  */
-    
-void 
+
+void
 PDM_part_coarse_mesh_create
 (
  int                *cmId,
- PDM_MPI_Comm        comm,        
+ PDM_MPI_Comm        comm,
  const char*         method,
  const char         *renum_cell_method,
  const char         *renum_face_method,
@@ -58,7 +58,7 @@ PDM_part_coarse_mesh_create
  const int          *renum_properties_cell,
  const int           nPropertyFace,
  const int          *renum_properties_face,
- const int           nPart, 
+ const int           nPart,
  const int           nTPart,
  const int           nFaceGroup,
  const int           have_cellTag,
@@ -73,7 +73,7 @@ void
 PROCF (pdm_part_coarse_mesh_create_cf, PDM_PART_COARSE_MESH_CREATE_CF)
 (
  int                *cmId,
- PDM_MPI_Fint       *fcomm,        
+ PDM_MPI_Fint       *fcomm,
  const char         *method,
  const int          *l_method,
  const char         *renum_cell_method,
@@ -84,13 +84,13 @@ PROCF (pdm_part_coarse_mesh_create_cf, PDM_PART_COARSE_MESH_CREATE_CF)
  const int          *renum_properties_cell,
  const int          *nPropertyFace,
  const int          *renum_properties_face,
- const int          *nPart, 
- const int          *nTPart, 
+ const int          *nPart,
+ const int          *nTPart,
  const int          *nFaceGroup,
  const int          *have_cellTag,
  const int          *have_faceTag,
  const int          *have_vtxTag,
- const int          *have_cellWeight, 
+ const int          *have_cellWeight,
  const int          *have_faceWeight,
  const int          *have_faceGroup
  );
@@ -100,14 +100,14 @@ PROCF (pdm_part_coarse_mesh_create_cf, PDM_PART_COARSE_MESH_CREATE_CF)
  *
  * \brief Build a coarse mesh
  *
- * \param [in]  cmId               Coarse mesh identifier 
+ * \param [in]  cmId               Coarse mesh identifier
  * \param [in]  iPart              Partition identifier
  * \param [in]  nCoarseCell        Number of cells in the coarse grid
  * \param [in]  nCell              Number of cells
  * \param [in]  nFace              Number of faces
  * \param [in]  nFacePartBound     Number of partitioning boundary faces
- * \param [in]  nVtx               Number of vertices 
- * \param [in]  nFaceGroup         Number of face groups             
+ * \param [in]  nVtx               Number of vertices
+ * \param [in]  nFaceGroup         Number of face groups
  * \param [in]  cellFaceIdx        Cell to face connectivity index (size = nCell + 1, numbering : 0 to n-1)
  * \param [in]  cellFace           Cell to face connectivity (size = cellFaceIdx[nCell] = lCellFace
  *                                                             numbering : 1 to n)
@@ -125,7 +125,7 @@ PROCF (pdm_part_coarse_mesh_create_cf, PDM_PART_COARSE_MESH_CREATE_CF)
  * \param [in]  vtxLNToGN          Vertex local numbering to global numbering (size = nVtx, numbering : 1 to n)
  * \param [in]  faceGroupIdx       Face group index (size = nFaceGroup + 1, numbering : 1 to n-1)
  * \param [in]  faceGroup          faces for each group (size = faceGroupIdx[nFaceGroup] = lFaceGroup, numbering : 1 to n)
- * \param [in]  faceGroupLNToGN    Faces global numbering for each group 
+ * \param [in]  faceGroupLNToGN    Faces global numbering for each group
  *                                  (size = faceGroupIdx[nFaceGroup] = lFaceGroup, numbering : 1 to n)
  * \param [in]  facePartBoundProcIdx  Partitioning boundary faces block distribution from processus (size = nProc + 1)
  * \param [in]  facePartBoundPartIdx  Partitioning boundary faces block distribution from partition (size = nTPart + 1)
@@ -135,13 +135,13 @@ PROCF (pdm_part_coarse_mesh_create_cf, PDM_PART_COARSE_MESH_CREATE_CF)
  *                                   For each face :
  *                                        - Face local number (numbering : 1 to n)
  *                                        - Connected process (numbering : 0 to n-1)
- *                                        - Connected Partition 
+ *                                        - Connected Partition
  *                                          on the connected process (numbering :1 to n)
- *                                        - Connected face local number 
+ *                                        - Connected face local number
  *                                          in the connected partition (numbering :1 to n)
  */
 
-void 
+void
 PDM_part_coarse_mesh_input
 (
  int                 cmId,
@@ -157,19 +157,19 @@ PDM_part_coarse_mesh_input
  const int          *cellTag,
  const int          *cellWeight,
  const int          *faceWeight,
- const PDM_g_num_t  *cellLNToGN,       
+ const PDM_g_num_t  *cellLNToGN,
  const int          *faceCell,
  const int          *faceVtxIdx,
  const int          *faceVtx,
- const int          *faceTag,       
- const PDM_g_num_t  *faceLNToGN,       
+ const int          *faceTag,
+ const PDM_g_num_t  *faceLNToGN,
  const double       *vtxCoord,
  const int          *vtxTag,
- const PDM_g_num_t  *vtxLNToGN,       
+ const PDM_g_num_t  *vtxLNToGN,
  const int          *faceGroupIdx,
  const int          *faceGroup,
  const PDM_g_num_t  *faceGroupLNToGN,
- const int          *facePartBoundProcIdx,       
+ const int          *facePartBoundProcIdx,
  const int          *facePartBoundPartIdx,
  const int          *facePartBound
 );
@@ -193,26 +193,26 @@ PROCF (pdm_part_coarse_mesh_input, PDM_PART_COARSE_MESH_INPUT)
  const int          *cellWeight,
  const int          *have_faceWeight,
  const int          *faceWeight,
- const PDM_g_num_t *cellLNToGN,       
+ const PDM_g_num_t *cellLNToGN,
  const int          *faceCell,
  const int          *faceVtxIdx,
  const int          *faceVtx,
  const int          *have_faceTag,
- const int          *faceTag,       
- const PDM_g_num_t *faceLNToGN,       
+ const int          *faceTag,
+ const PDM_g_num_t *faceLNToGN,
  const double       *vtxCoord,
  const int          *have_vtxTag,
  const int          *vtxTag,
- const PDM_g_num_t *vtxLNToGN,       
+ const PDM_g_num_t *vtxLNToGN,
  const int          *have_faceGroup,
  const int          *faceGroupIdx,
  const int          *faceGroup,
  const PDM_g_num_t *faceGroupLNToGN,
- const int          *facePartBoundProcIdx,       
+ const int          *facePartBoundProcIdx,
  const int          *facePartBoundPartIdx,
  const int          *facePartBound
 );
- 
+
 /**
  *
  * \brief Updates all the arrays dealing with MPI exchanges
@@ -220,7 +220,7 @@ PROCF (pdm_part_coarse_mesh_input, PDM_PART_COARSE_MESH_INPUT)
  * \param [in] cmId               Coarse mesh identifier
  */
 
-void 
+void
 PDM_part_coarse_mesh_compute
 (
   int cmId
@@ -235,25 +235,25 @@ PROCF (pdm_part_coarse_mesh_compute, PDM_PART_COARSE_MESH_COMPUTE)
 /**
  *
  * \brief Return a coarse mesh partition dimensions
- * 
+ *
  * \param [in]   cmId               Coarse mesh identifier
  * \param [in]   iPart              Current partition
- * 
+ *
  * \param [out]  nCell              Number of cells
  * \param [out]  nFace              Number of faces
  * \param [out]  nFacePartBound     Number of partitioning boundary faces
- * \param [out]  nVtx               Number of vertices 
+ * \param [out]  nVtx               Number of vertices
  * \param [out]  nProc              Number of processus
  * \param [out]  nTPart             Number of partitions
- * \param [out]  sCellFace          Size of cell-face connectivity 
+ * \param [out]  sCellFace          Size of cell-face connectivity
  * \param [out]  sFaceVtx           Size of face-vertex connectivity
  * \param [out]  sFacePartBound     Size of facePartBound array
- * \param [out]  sFaceGroup         Size of faceGroup array  
+ * \param [out]  sFaceGroup         Size of faceGroup array
  * \param [out]  sCoarseCellToFineCell  Size of coarseCellToFineCell array
  *
  */
 
-void 
+void
 PDM_part_coarse_mesh_part_dim_get
 (
  const int      cmId,
@@ -292,35 +292,35 @@ PROCF (pdm_part_coarse_mesh_part_dim_get, PDM_PART_COARSE_MESH_PART_DIM_GET)
 /**
  *
  * \brief Return a mesh partition
- * 
+ *
  * \param [in]   cmId               Coarse mesh identifier
  * \param [in]   iPart              Current partition
- * 
+ *
  * \param [out]  cellFaceIdx        Cell to face connectivity index (size = nCell + 1, numbering : 0 to n-1)
  * \param [out]  cellFace           Cell to face connectivity (size = cellFaceIdx[nCell] = lCellFace
  *                                                             numbering : 1 to n)
  * \param [out]  cellTag            Cell tag (size = nCell)
  * \param [out]  cellLNToGN         Cell local numbering to global numbering (size = nCell, numbering : 1 to n)
  * \param [out]  cellInitCellIdx    Array of indexes of the connected partitions (size : nCoarseCell + 1)
- * \param [out]  cellInitCell       Partitioning array (size : cellInitCellIdx[nCoarseCell]) 
- * 
+ * \param [out]  cellInitCell       Partitioning array (size : cellInitCellIdx[nCoarseCell])
+ *
  * \param [out]  faceCell           Face to cell connectivity  (size = 2 * nFace, numbering : 1 to n)
  * \param [out]  faceVtxIdx         Face to Vertex connectivity index (size = nFace + 1, numbering : 0 to n-1)
  * \param [out]  faceVtx            Face to Vertex connectivity (size = faceVertexIdx[nFace], numbering : 1 to n)
  * \param [out]  faceTag            Face tag (size = nFace)
  * \param [out]  faceLNToGN         Face local numbering to global numbering (size = nFace, numbering : 1 to n)
  * \param [out]  faceInitFace       Coarse face - fine face connectivity (size = nCoarseFace)
- * 
+ *
  * \param [out]  vtxCoord           Vertex coordinates (size = 3 * nVtx)
  * \param [out]  vtxTag             Vertex tag (size = nVtx)
  * \param [out]  vtxLNToGN          Vertex local numbering to global numbering (size = nVtx, numbering : 1 to n)
  * \param [out]  vtxInitVtx         Coarse vertex - fine vertex connectivity (size = nCoarseVtx)
- * 
+ *
  * \param [out]  faceGroupIdx       Face group index (size = nFaceGroup + 1, numbering : 1 to n-1)
  * \param [out]  faceGroup          faces for each group (size = faceGroupIdx[nFaceGroup] = lFaceGroup, numbering : 1 to n)
- * \param [out]  faceGroupLNToGN    Faces global numbering for each group 
+ * \param [out]  faceGroupLNToGN    Faces global numbering for each group
  *                                  (size = faceGroupIdx[nFaceGroup] = lFaceGroup, numbering : 1 to n)
- * 
+ *
  * \param [out]  facePartBoundProcIdx  Partitioning boundary faces block distribution from processus (size = nProc + 1)
  * \param [out]  facePartBoundPartIdx  Partitioning boundary faces block distribution from partition (size = nTPart + 1)
  * \param [out]  facePartBound      Partitioning boundary faces (size = 4 * nFacePartBound)
@@ -329,65 +329,65 @@ PROCF (pdm_part_coarse_mesh_part_dim_get, PDM_PART_COARSE_MESH_PART_DIM_GET)
  *                                   For each face :
  *                                        - Face local number (numbering : 1 to n)
  *                                        - Connected process (numbering : 0 to n-1)
- *                                        - Connected Partition 
+ *                                        - Connected Partition
  *                                          on the connected process (numbering :1 to n)
- *                                        - Connected face local number 
+ *                                        - Connected face local number
  *                                          in the connected partition (numbering :1 to n)
- * 
+ *
  */
 
-void 
+void
 PDM_part_coarse_mesh_part_get
 (
  const int    cmId,
- const int    iPart,       
+ const int    iPart,
  int          **cellFaceIdx,
  int          **cellFace,
  int          **cellTag,
  PDM_g_num_t **cellLNToGN,
- int          **cellInitCellIdx,                  
- int          **cellInitCell,          
+ int          **cellInitCellIdx,
+ int          **cellInitCell,
  int          **faceCell,
  int          **faceVtxIdx,
  int          **faceVtx,
  int          **faceTag,
- PDM_g_num_t **faceLNToGN,  
+ PDM_g_num_t **faceLNToGN,
  int          **faceGroupInitFaceGroup,
- int          **faceInitFace,          
+ int          **faceInitFace,
  double       **vtxCoord,
  int          **vtxTag,
- PDM_g_num_t **vtxLNToGN,        
- int          **vtxInitVtx,          
+ PDM_g_num_t **vtxLNToGN,
+ int          **vtxInitVtx,
  int          **faceGroupIdx,
  int          **faceGroup,
  PDM_g_num_t **faceGroupLNToGN,
  int          **facePartBoundProcIdx,
  int          **facePartBoundPartIdx,
- int          **facePartBound        
+ int          **facePartBound
 );
 
 void
 PROCF (pdm_part_coarse_mesh_part_get, PDM_PART_COARSE_MESH_PART_GET)
 (
  int          *cmId,
- int          *iPart,       
+ int          *iPart,
  int          *cellFaceIdx,
  int          *cellFace,
  int          *cellTag,
  PDM_g_num_t  *cellLNToGN,
- int          *cellInitCellIdx,                  
- int          *cellInitCell,          
+ int          *cellInitCellIdx,
+ int          *cellInitCell,
  int          *faceCell,
  int          *faceVtxIdx,
  int          *faceVtx,
  int          *faceTag,
- PDM_g_num_t *faceLNToGN,  
+ PDM_g_num_t *faceLNToGN,
  int          *faceGroupInitFaceGroup,
- int          *faceInitFace,          
+ int          *faceInitFace,
  double       *vtxCoord,
  int          *vtxTag,
- PDM_g_num_t *vtxLNToGN,        
- int          *vtxInitVtx,          
+ PDM_g_num_t *vtxLNToGN,
+ int          *vtxInitVtx,
  int          *faceGroupIdx,
  int          *faceGroup,
  PDM_g_num_t *faceGroupLNToGN,
@@ -399,7 +399,7 @@ PROCF (pdm_part_coarse_mesh_part_get, PDM_PART_COARSE_MESH_PART_GET)
 /**
  *
  * \brief Return a mesh partition
- * 
+ *
  * \param [in]   ppartId               ppart identifier
  * \param [in]   ipart                 Current partition
  * \param [out]  cellColor             Cell Color (size = nCell)
@@ -409,9 +409,11 @@ PROCF (pdm_part_coarse_mesh_part_get, PDM_PART_COARSE_MESH_PART_GET)
 void PDM_part_coarse_color_get
 (
  const int   cmId,
- const int   iPart,      
+ const int   iPart,
        int **cellColor,
-       int **faceColor
+       int **faceColor,
+       int **threadColor,
+       int **hyperPlaneColor
 );
 
 /**
@@ -422,7 +424,7 @@ void PDM_part_coarse_color_get
  *
  */
 
-void 
+void
 PDM_part_coarse_mesh_free
 (
  const int    cmId
@@ -437,7 +439,7 @@ PROCF (pdm_part_coarse_mesh_free, PDM_PART_COARSE_MESH_FREE)
 /**
  *
  * \brief Return times
- * 
+ *
  * \param [in]   cmId        coarse mesh identifier
  * \param [out]  elapsed     elapsed times (size = 18)
  * \param [out]  cpu         cpu times (size = 18)
@@ -455,7 +457,7 @@ void PDM_part_coarse_mesh_time_get
  double  **cpu_sys
 );
 
-void 
+void
 PROCF (pdm_part_coarse_mesh_time_get, PDM_PART_COARSE_MESH_TIME_GET)
 (
  int      *cmId,
@@ -468,23 +470,23 @@ PROCF (pdm_part_coarse_mesh_time_get, PDM_PART_COARSE_MESH_TIME_GET)
 /**
  *
  * \brief Displays all the arrays of a coarse mesh
- * 
+ *
  * \param [in]   cmId        Coarse mesh identifier
- * 
+ *
  */
 
-void 
+void
 PDM_part_coarse_mesh_display
 (
  const int    cmId
 );
 
-void  
+void
 PROCF (pdm_part_coarse_mesh_display, PDM_PART_COARSE_MESH_DISPLAY)
 (
   int *cmId
 );
-  
+
 
 #ifdef	__cplusplus
 }

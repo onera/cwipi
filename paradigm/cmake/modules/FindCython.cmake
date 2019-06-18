@@ -62,7 +62,7 @@ if (CYTHON_EXECUTABLE)
 	              "Cython version " ${Cython_VERSION}
 	              " is less than required version " ${Cython_FIND_VERSION}
 	              )
-    
+
            endif()
         endif()
 
@@ -75,9 +75,9 @@ if (CYTHON_EXECUTABLE)
               "Required Cython python module not found")
 
        endif ()
-       
+
    endif ()
-   
+
 else ()
 
   if (CYTHON_FIND_REQUIRED)

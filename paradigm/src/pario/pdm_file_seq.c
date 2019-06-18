@@ -66,22 +66,22 @@ static int _std_file_seek[3] = {SEEK_SET,
 /*----------------------------------------------------------------------------
  *  Fonction qui ouvre un fichier binaire a acces direct
  *
- *  parameters : 
- *    nom            <-- Nom du fichier  
- *    mode           <-- Mode d'acces                   
+ *  parameters :
+ *    nom            <-- Nom du fichier
+ *    mode           <-- Mode d'acces
  *
  *----------------------------------------------------------------------------*/
 
-PDM_file_seq_t *PDM_file_seq_open(const char *nom, 
+PDM_file_seq_t *PDM_file_seq_open(const char *nom,
                                 const PDM_file_seq_mode_t mode)
 {
-  
+
   PDM_file_seq_t *fichier = (PDM_file_seq_t *) malloc(sizeof(PDM_file_seq_t));
-  
+
   fichier->nom = (char *) malloc(strlen(nom) + 1);
   strcpy(fichier->nom, nom);
   fichier->mode = mode;
-  
+
   switch (mode) {
   case FICHIER_SEQ_MODE_LECTURE:
     fichier->fichier = fopen(nom, "r");
@@ -97,10 +97,10 @@ PDM_file_seq_t *PDM_file_seq_open(const char *nom,
                     "Mode de fichier inconnu\n");
     exit(EXIT_FAILURE);
   }
-  
+
   if (fichier->fichier == NULL) {
     PDM_error(__FILE__, __LINE__, 0, "Erreur PDM_file_seq_open :\n"
-            "Erreur à l'ouverture du fichier %s\n", nom); 
+            "Erreur à l'ouverture du fichier %s\n", nom);
     exit(EXIT_FAILURE);
   }
 
@@ -115,7 +115,7 @@ PDM_file_seq_t *PDM_file_seq_open(const char *nom,
  *    fichier            <-- Fichier courant
  *    taille_donnee      <-- Taille des donnees
  *    n_donnees          <-- Nombre de donnees
- *  Return 
+ *  Return
  *    n_donnees_ecrites      Nombre de donnees reellements ecrites
  *                           Erreur si n_donnees != n_donnees_ecrites
  *
@@ -126,7 +126,7 @@ PDM_g_num_t PDM_file_seq_write(PDM_file_seq_t *fichier,
                       const PDM_g_num_t n_donnees,
                       void          *donnees)
 {
-  
+
   if (fichier->mode == FICHIER_SEQ_MODE_LECTURE) {
     PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_file_seq_open :\n"
                     "Ecriture interdite pour le fichier %s "
@@ -136,7 +136,7 @@ PDM_g_num_t PDM_file_seq_write(PDM_file_seq_t *fichier,
   }
 
   size_t _n_donnees = (size_t) n_donnees ;
-  size_t _n_donnees_ecrites = fwrite(donnees, taille_donnee, 
+  size_t _n_donnees_ecrites = fwrite(donnees, taille_donnee,
                                        _n_donnees, fichier->fichier);
   PDM_g_num_t n_donnees_ecrites = (PDM_g_num_t) _n_donnees_ecrites;
 
@@ -151,7 +151,7 @@ PDM_g_num_t PDM_file_seq_write(PDM_file_seq_t *fichier,
  *    fichier            <-- Fichier courant
  *    taille_donnee      <-- Taille des donnees
  *    n_donnees          <-- Nombre de donnees
- *  Return 
+ *  Return
  *    n_donnees_lues         Nombre de donnees reellements lues
  *                           Erreur si n_donnees != n_donnees_lues
  *
@@ -163,7 +163,7 @@ PDM_g_num_t PDM_file_seq_read(PDM_file_seq_t *fichier,
                      void          *donnees)
 {
 
-  if (fichier->mode == FICHIER_SEQ_MODE_ECRITURE || 
+  if (fichier->mode == FICHIER_SEQ_MODE_ECRITURE ||
       fichier->mode == FICHIER_SEQ_MODE_AJOUT) {
     PDM_error(__FILE__, __LINE__, 0,"Erreur PDM_file_seq_open :\n"
                    "Lecture interdite pour le fichier %s "
@@ -173,10 +173,10 @@ PDM_g_num_t PDM_file_seq_read(PDM_file_seq_t *fichier,
   }
 
   size_t _n_donnees = (size_t) n_donnees ;
-  size_t _n_donnees_lues = fread(donnees, taille_donnee, 
+  size_t _n_donnees_lues = fread(donnees, taille_donnee,
                                    _n_donnees, fichier->fichier);
   PDM_g_num_t n_donnees_lues = (PDM_g_num_t) _n_donnees_lues;
-  
+
   return n_donnees_lues;
 
 }
@@ -187,7 +187,7 @@ PDM_g_num_t PDM_file_seq_read(PDM_file_seq_t *fichier,
  *  parameters :
  *    fichier            <-- Fichier courant
  *    offset             <-- Position
- *    whence             <-- A partir :  
+ *    whence             <-- A partir :
  *                              - du debut du fichier : FICHIER_SEQ_SEEK_SET
  *                              - de la position courante : FICHIER_SEQ_SEEK_CUR
  *                              - de la fin du fchier : FICHIER_SEQ_SEEK_END
@@ -207,7 +207,7 @@ void PDM_file_seq_seek
  *
  *  parameters :
  *    fichier            <-- Fichier courant
- *  Return 
+ *  Return
  *    offset                 Position courante du fichier
  *
  *----------------------------------------------------------------------------*/

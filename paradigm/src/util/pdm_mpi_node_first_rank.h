@@ -26,10 +26,10 @@ extern "C" {
  *
  *----------------------------------------------------------------------------*/
 
-int 
+int
 PDM_io_mpi_node_rank
 (
-PDM_MPI_Comm comm 
+PDM_MPI_Comm comm
 );
 
 /*----------------------------------------------------------------------------
@@ -47,7 +47,7 @@ PDM_MPI_Comm comm
 void
 PDM_io_get_hostname
 (
-char  **hostname_ptr, 
+char  **hostname_ptr,
 size_t *hostname_length
 );
 

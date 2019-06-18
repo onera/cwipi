@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   pdm_block_to_block.h
  * Author: equemera
  *
@@ -24,7 +24,7 @@
  * Macro definitions
  *============================================================================*/
 
-#if !defined (__hpux) && !defined (_AIX) 
+#if !defined (__hpux) && !defined (_AIX)
 #define PROCF(x, y) x##_
 #else
 #define PROCF(x, y) x
@@ -37,22 +37,22 @@ extern "C" {
 /*============================================================================
  * Type
  *============================================================================*/
-    
+
 /**
  * \struct PDM_block_to_block_t
  * \brief  Block to partition redistribution
- * 
+ *
  */
 
 typedef struct _pdm_block_to_block_t PDM_block_to_block_t;
 
-    
+
 /*=============================================================================
  * Static global variables
  *============================================================================*/
 
 /*=============================================================================
- * Public function prototypes 
+ * Public function prototypes
  *============================================================================*/
 
 /**
@@ -62,10 +62,10 @@ typedef struct _pdm_block_to_block_t PDM_block_to_block_t;
  * \param [in]   blockDistribIdx Block distribution (size : \ref size of \ref comm + 1)
  * \param [in]   gnum_elt        Element global number (size : \ref n_part)
  * \param [in]   n_elt           Local number of elements (size : \ref n_part)
- * \param [in]   n_part          Number of partition      
- * \param [in]   comm            MPI communicator         
+ * \param [in]   n_part          Number of partition
+ * \param [in]   comm            MPI communicator
  *
- * \return   Initialized \ref PDM_block_to_block instance         
+ * \return   Initialized \ref PDM_block_to_block instance
  *
  */
 
@@ -87,14 +87,14 @@ PDM_block_to_block_create
  * \param [in]   t_stride     Stride type
  * \param [in]   cst_stride   Constant stride
  * \param [in]   block_stride Stride for each block element for \ref PDM_STRIDE_VAR
- *                            Constant stride for \ref PDM_STRIDE_VAR  
+ *                            Constant stride for \ref PDM_STRIDE_VAR
  * \param [in]   block_data   Block data
  * \param [out]  part_stride  Partition stride
  * \param [out]  part_data    Partition data
  *
  */
 
-int 
+int
 PDM_block_to_block_exch
 (
  PDM_block_to_block_t *btb,
@@ -122,11 +122,11 @@ PDM_block_to_block_exch
 
 /**
  *
- * \brief Free a block to part structure                       
+ * \brief Free a block to part structure
  *
  * \param [inout] btb  Block to part structure
  *
- * \return       NULL                             
+ * \return       NULL
  */
 
 PDM_block_to_block_t *

@@ -25,7 +25,7 @@
 /**
  * \struct PDM_dbbtree_t
  * \brief  Distributed boundary box tree
- * 
+ *
  *  PDM_dbbtree_t defines a distributed boundary box tree
  *
  */
@@ -37,7 +37,7 @@ typedef struct _PDM_dbbtree_t PDM_dbbtree_t;
  *============================================================================*/
 
 /*=============================================================================
- * Public function prototypes 
+ * Public function prototypes
  *============================================================================*/
 
 /**
@@ -88,7 +88,7 @@ PDM_dbbtree_t     *dbbt
  * \param [in]  extents  Extents of each element of each partition
  * \param [in]  gNum     Global number of each element of each partition
  *
- * \return associated \ref PDM_box_set_t structure distributed according to 
+ * \return associated \ref PDM_box_set_t structure distributed according to
  * the tree location
  *
  */
@@ -117,7 +117,7 @@ const PDM_g_num_t **gNum
  * \param [out] box_index Pointer to the index array on associated tree bounding boxeq
  * \param [out] box_g_num Pointer to the list of intersecting bounding boxes
  *
- * \return associated \ref PDM_box_set_t structure distributed according 
+ * \return associated \ref PDM_box_set_t structure distributed according
  * to the tree intersection
  *
  */
@@ -154,11 +154,11 @@ void
 PDM_dbbtree_closest_upper_bound_dist_boxes_get
 (
 PDM_dbbtree_t    *dbbt,
-const int        n_pts,        
+const int        n_pts,
 double           pts[],
 PDM_g_num_t      pts_g_num[],
 double           upper_bound_dist2[],
-int             *box_index[],  
+int             *box_index[],
 PDM_g_num_t     *box_g_num[]
 );
 

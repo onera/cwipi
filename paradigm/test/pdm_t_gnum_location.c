@@ -51,7 +51,7 @@ int exit_code
      "  -n      <level>  Number of vertices on the cube side.\n\n"
      "  -l      <level>  Cube length.\n\n"
      "  -h               This message.\n\n");
-     
+
 
   exit (exit_code);
 }
@@ -191,10 +191,10 @@ PDM_part_split_t           method,
                      ymax,
                      haveRandom,
                      initRandom,
-                     nx,       
+                     nx,
                      ny,
                      nGFace,
-                     nGVtx,  
+                     nGVtx,
                      nGEdge,
                      &dNVtx,
                      &dVtxCoord,
@@ -208,7 +208,7 @@ PDM_part_split_t           method,
                      nEdgeGroup,
                      &dEdgeGroupIdx,
                      &dEdgeGroup);
-  
+
   // validation
   int id = PDM_gnum_create (3, 1, PDM_TRUE, 1e-3, pdm_mpi_comm);
   // fin validation
@@ -218,21 +218,21 @@ PDM_part_split_t           method,
     char_size[j] = 1e-3;
   }
   PDM_gnum_set_from_coords (id, 0, dNVtx, dVtxCoord, char_size);
-  
+
   PDM_gnum_compute (id);
 
   const PDM_g_num_t *_numabs = PDM_gnum_get (id, 0);
 
   PDM_g_num_t *_numabs2 = malloc(sizeof(PDM_g_num_t) * dNVtx);
-  
-  
+
+
   for (int j = 0; j < dNVtx; j++) {
     _numabs2[j] = _numabs[j];
-    PDM_printf (PDM_FMT_G_NUM" %12.5e %12.5e %12.5e\n", _numabs[j], dVtxCoord[3*j], 
-                                                     dVtxCoord[3*j+1], 
+    PDM_printf (PDM_FMT_G_NUM" %12.5e %12.5e %12.5e\n", _numabs[j], dVtxCoord[3*j],
+                                                     dVtxCoord[3*j+1],
                                                      dVtxCoord[3*j+2]);
   }
-  
+
   int id2 = PDM_gnum_location_create (1, 1, pdm_mpi_comm);
 
   PDM_gnum_location_elements_set (id2, 0, dNVtx, _numabs);
@@ -252,15 +252,15 @@ PDM_part_split_t           method,
       PDM_printf (" - %d %d %d\n", location[3*k], location[3*k+1], location[3*k+2]);
     }
   }
-  
+
   PDM_gnum_location_free (id, 1);
 
   free (_numabs2);
   free (char_size);
-  
+
   PDM_gnum_free (id, 0);
 
-  struct timeval t_elaps_fin; 
+  struct timeval t_elaps_fin;
 
   gettimeofday (&t_elaps_fin, NULL);
 
@@ -454,7 +454,7 @@ PDM_part_split_t           method,
     int sEdgeVtx;
     int sEdgeGroup;
     int nEdgeGroup2;
-    
+
     PDM_part_part_dim_get (ppartId,
                            ipart,
                            &nFace,
@@ -467,9 +467,9 @@ PDM_part_split_t           method,
                            &sEdgeVtx,
                            &sEdgeGroup,
                            &nEdgeGroup2);
-    
+
   }
-  
+
   return ppartId;
 }
 
@@ -488,30 +488,30 @@ char *argv[]
 {
 
   PDM_MPI_Init (&argc, &argv);
-  
+
   /*
    *  Set default values
    */
-  
+
   PDM_g_num_t   nVtxSeg = 4;
   double        length  = 1.;
   int           nPart   = 1;
-#ifdef PDM_HAVE_PARMETIS  
+#ifdef PDM_HAVE_PARMETIS
   PDM_part_split_t method  = PDM_PART_SPLIT_PARMETIS;
 #else
-#ifdef PDM_HAVE_PTSCOTCH  
+#ifdef PDM_HAVE_PTSCOTCH
   PDM_part_split_t method  = PDM_PART_SPLIT_PTSCOTCH;
 #endif
-#endif  
+#endif
   int           haveRandom = 0;
 
   int           myRank;
   int           numProcs;
-  
+
   /*
    *  Read args
    */
-  
+
   _read_args (argc,
               argv,
               &nVtxSeg,
@@ -523,14 +523,14 @@ char *argv[]
   /*
    *  Create a partitioned mesh
    */
-  
+
   PDM_g_num_t nGFace;
   PDM_g_num_t nGVtx;
   PDM_g_num_t nGEdge;
   int imesh = 0;
   int nTPart;
   int nEdgeGroup;
-  
+
   _create_split_mesh (imesh,
                       PDM_MPI_COMM_WORLD,
                       nVtxSeg,
@@ -543,11 +543,11 @@ char *argv[]
                       &nGEdge,
                       &nTPart,
                       &nEdgeGroup);
-  
+
   PDM_MPI_Finalize ();
-  
+
   PDM_printf ("\nfin Test\n");
- 
+
   return 0;
 
 }

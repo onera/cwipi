@@ -51,21 +51,21 @@ const int            *dCellFaceIdx,
 const PDM_g_num_t    *dCellFace,
 const int            *dFaceVtxIdx,
 const PDM_g_num_t    *dFaceVtx,
-const PDM_g_num_t    *dFaceProc,       
+const PDM_g_num_t    *dFaceProc,
 int                **faceVtx,
 int                **faceVtxIdx,
 int                  *sizeFaceVtxIdx,
-const PDM_g_num_t    *dVtxProc,    
-const double         *dVtxCoord,     
-      double       **lVtxCoord     
+const PDM_g_num_t    *dVtxProc,
+const double         *dVtxCoord,
+      double       **lVtxCoord
 )
 {
   int myRank;
   int nRank;
-  
+
   PDM_MPI_Comm_rank(comm, &myRank);
   PDM_MPI_Comm_size(comm, &nRank);
-  
+
   /* Offset Distribution to work with block_to_part */
   PDM_g_num_t* dFaceProcLoc = (PDM_g_num_t *) malloc( sizeof(PDM_g_num_t) * nRank + 1);
   PDM_g_num_t* dVtxProcLoc  = (PDM_g_num_t *) malloc( sizeof(PDM_g_num_t) * nRank + 1);
@@ -73,9 +73,9 @@ const double         *dVtxCoord,
     dFaceProcLoc[i] = dFaceProc[i]-1;
     dVtxProcLoc[i]  = dVtxProc[i]-1;
   }
-  
-  
-  /* Verbose */  
+
+
+  /* Verbose */
   if(0 == 1){
     PDM_printf("dFaceProc : \n");
     for (int i = 0; i < nRank+1; i++) {
@@ -90,27 +90,27 @@ const double         *dVtxCoord,
       }
     }
   }
-  
-  
+
+
   /* -------------------------------------------------------------- */
   PDM_block_to_part_t *ptb = PDM_block_to_part_create (dFaceProcLoc,
-                                                       &dCellFace,  
+                                                       &dCellFace,
                                                        &dCellFaceIdx[dNCell],
                                                         1,
                                                         comm);
-  
+
   /* Echange sur les nombre de sommet de chaque face */
   int dNFace = dFaceProc[myRank+1] - dFaceProc[myRank];
-  
+
   int* nVtxFaceLoc = (int *) malloc (sizeof(int) * dNFace              );
   int* nVtxFace    = (int *) malloc (sizeof(int) * dCellFaceIdx[dNCell]);
-  
+
   for (int i = 0; i < dNFace; i++) {
     nVtxFaceLoc[i] = dFaceVtxIdx[i+1] - dFaceVtxIdx[i];
     for (int iVtx = dFaceVtxIdx[i]; iVtx < dFaceVtxIdx[i+1]; iVtx++) {
     }
   }
-  
+
   int strideOne = 1;
 
   PDM_block_to_part_exch (ptb,
@@ -120,23 +120,23 @@ const double         *dVtxCoord,
                           (void *) nVtxFaceLoc,
                           NULL,
                           (void **) &nVtxFace);
-  
-  /* Verbose */  
+
+  /* Verbose */
   if(0 == 1){
     for (int i = 0; i < dCellFaceIdx[dNCell]; i++) {
       printf("nVtxFace :  %i \n ", nVtxFace[i]);
     }
   }
-  
+
   int ndCellFaceTot = 0;
   for (int i = 0; i < dCellFaceIdx[dNCell]; i++) {
     ndCellFaceTot += nVtxFace[i];
   }
   // printf("ndCellFaceTot : %i \n", ndCellFaceTot);
-  
+
   /* Alloc field */
   PDM_g_num_t* lFaceVtx    = (PDM_g_num_t *) malloc (sizeof(PDM_g_num_t) * ndCellFaceTot);
-  
+
   PDM_block_to_part_exch (           ptb,
                                      sizeof(PDM_g_num_t),
                                      PDM_STRIDE_VAR,
@@ -144,8 +144,8 @@ const double         *dVtxCoord,
                           (void *)   dFaceVtx,
                                     &nVtxFace,
                           (void **) &lFaceVtx);
-  
-  /* Verbose */  
+
+  /* Verbose */
   if(0 == 1){
     for (int i = 0; i < dCellFaceIdx[dNCell]; i++) {
       printf("nVtxFace :  %i \n ", nVtxFace[i]);
@@ -154,26 +154,26 @@ const double         *dVtxCoord,
       printf("lFaceVtx[%i] :  "PDM_FMT_G_NUM" \n ",i, lFaceVtx[i]);
     }
   }
-  
+
   PDM_block_to_part_free(ptb);
   /* -------------------------------------------------------------- */
-  
-  
+
+
   /* -------------------------------------------------------------- */
   ptb = PDM_block_to_part_create (dVtxProcLoc,
-                                  (const PDM_g_num_t **) &lFaceVtx,  
+                                  (const PDM_g_num_t **) &lFaceVtx,
                                   &ndCellFaceTot,
                                   1,
                                   comm);
-  
+
   int stride = 3;
-  
-  
+
+
   // int dNVtx = dVtxProc[myRank+1] - dVtxProc[myRank];
   // for (int i = 0; i < dNVtx; i++) {
   //   printf("dVtxCoord[%i] :  %12.5e \n ",i, dVtxCoord[i]);
   // }
-  
+
   *lVtxCoord = (double *) malloc (sizeof(double) * 3 * ndCellFaceTot);
   PDM_block_to_part_exch (ptb,
                           sizeof(double),
@@ -182,41 +182,41 @@ const double         *dVtxCoord,
                           (void *) dVtxCoord,
                           NULL,
                           (void **) lVtxCoord);
-  
-  /* Verbose */  
+
+  /* Verbose */
   if(0 == 1){
     for (int i = 0; i < ndCellFaceTot; i++) {
       printf("lVtxCoord[%i] :  %12.5e \n ",i, (*lVtxCoord)[i]);
     }
   }
-  
+
   PDM_block_to_part_free(ptb);
   /* -------------------------------------------------------------- */
-  
+
   *sizeFaceVtxIdx = dCellFaceIdx[dNCell] + 1 ;
-  
+
   *faceVtx    = (int *) malloc( sizeof(int *) *   ndCellFaceTot              );
   *faceVtxIdx = (int *) malloc( sizeof(int *) * ( dCellFaceIdx[dNCell] + 1 ) );
-  
+
   for (int i = 0; i < ndCellFaceTot; i++) {
     (*faceVtx)[i] = i+1;
   }
-  
+
   (*faceVtxIdx)[0] = 0;
   for (int i = 0; i < dCellFaceIdx[dNCell]; i++) {
     (*faceVtxIdx)[i+1] = (*faceVtxIdx)[i] + nVtxFace[i];
   }
-  
+
   /* Free memory */
   free(nVtxFace);
   free(nVtxFaceLoc);
   free(lFaceVtx);
-  
+
 }
 /**
  *
  * \brief Compute cell center of elements
- * 
+ *
  * \param [in]  comm         MPI Communicator
  * \param [in]  dNCell       Number of cells in the current process
  * \param [in]  dNFace       Number of faces in the current process
@@ -224,7 +224,7 @@ const double         *dVtxCoord,
  * \param [in]  dCellFaceIdx Index of cellFace
  * \param [in]  dCellFace    cell face connectivity in the current process
  * \param [in]  dFaceVtxIdx  Index of faceVtx
- * \param [in]  dFaceVtx     face vertex connectivity in the current process 
+ * \param [in]  dFaceVtx     face vertex connectivity in the current process
  * \param [in]  dFaceProc    face distribution
  * \param [in]  dVtxCoord    coordinates of vertices
  * \param [in]  dVtxProc     Vertex distribution
@@ -236,38 +236,38 @@ const double         *dVtxCoord,
 static void
 _compute_cellCenter
 (
-  const PDM_MPI_Comm  comm,       
+  const PDM_MPI_Comm  comm,
   const int           dNCell,
   const int          *dCellFaceIdx,
   const PDM_g_num_t  *dCellFace,
   const int          *dFaceVtxIdx,
   const PDM_g_num_t  *dFaceVtx,
-  const PDM_g_num_t  *dFaceProc,       
+  const PDM_g_num_t  *dFaceProc,
   const double       *dVtxCoord,
-  const PDM_g_num_t  *dVtxProc,       
+  const PDM_g_num_t  *dVtxProc,
   double             *cellCenter
 )
 {
-  
+
   int myRank;
   int nRank;
-  
+
   PDM_MPI_Comm_rank(comm, &myRank);
   PDM_MPI_Comm_size(comm, &nRank);
-  
+
   /* Local connectivity (Allocate in _prepareconnectivity */
   int sizeFaceVtxIdx = 0;
-  
+
   int *faceVtx;
   int *faceVtxIdx;
-  
+
   /* Local coordinates */
   double *lVtxCoord;
-  
+
   /*
    * Get face connectivities from other process
    */
-  _prepare_connectivity( comm, 
+  _prepare_connectivity( comm,
                          dNCell,
                          dCellFaceIdx,
                          dCellFace,
@@ -278,10 +278,10 @@ _compute_cellCenter
                         &faceVtxIdx,
                         &sizeFaceVtxIdx,
                          dVtxProc,
-                         dVtxCoord, 
+                         dVtxCoord,
                         &lVtxCoord);
-    
-        
+
+
   /* Verbose */
   if(0 == 1 ){
     PDM_printf("faceVtx : \n");
@@ -291,43 +291,43 @@ _compute_cellCenter
       PDM_printf("\n");
     }
   }
-  
+
   /*
    * Compute cell centers
    */
   int iFace = 0;
   for (int iCell = 0; iCell < dNCell; iCell++) {
-    
+
     int iBeg = dCellFaceIdx[iCell  ];
     int iEnd = dCellFaceIdx[iCell+1];
-    
+
     cellCenter[3*iCell    ] = 0.;
     cellCenter[3*iCell + 1] = 0.;
     cellCenter[3*iCell + 2] = 0.;
-    
+
     int nVtxOnCell = 0;
-    
+
     /* Loop on all faces */
     for (int iFaceG = iBeg; iFaceG < iEnd; iFaceG++) {
-      
+
       int iBegVtx = faceVtxIdx[iFace  ];
       int iEndVtx = faceVtxIdx[iFace+1];
       nVtxOnCell += iEndVtx - iBegVtx;
-      
+
       /* Loop on all Vtx of current faces */
       for (int iVtx = iBegVtx; iVtx < iEndVtx; iVtx++){
-        
+
         cellCenter[3*iCell    ] += lVtxCoord[3*iVtx    ];
         cellCenter[3*iCell + 1] += lVtxCoord[3*iVtx + 1];
         cellCenter[3*iCell + 2] += lVtxCoord[3*iVtx + 2];
-        
+
       }
-      
+
       /* Go to next face in local numerotation */
       iFace++;
-      
+
     }
-    
+
     /* Ponderate */
     cellCenter[3*iCell    ] = cellCenter[3*iCell    ]/nVtxOnCell;
     cellCenter[3*iCell + 1] = cellCenter[3*iCell + 1]/nVtxOnCell;
@@ -341,7 +341,7 @@ _compute_cellCenter
       PDM_printf(" %12.5e %12.5e %12.5e \n", cellCenter[3*iCell    ], cellCenter[3*iCell + 1], cellCenter[3*iCell + 2]);
     }
   }
-   
+
 }
 
 /*=============================================================================
@@ -364,13 +364,13 @@ _compute_cellCenter
  * \param [in]   dCellFace      Distributed cell face connectivity or NULL
  *                              (size : dFaceVtxIdx[dNCell], numbering : 1 to n)
  * \param [in]   dCellWeight    Cell weight (size : nCell) or NULL
- * \param [in]   dFaceVtxIdx    Distributed face to vertex connectivity index 
+ * \param [in]   dFaceVtxIdx    Distributed face to vertex connectivity index
  *                              (size : dNFace + 1, numbering : 0 to n-1)
- * \param [in]   dFaceVtx       Distributed face to vertex connectivity 
+ * \param [in]   dFaceVtx       Distributed face to vertex connectivity
  *                              (size : dFaceVtxIdx[dNFace], numbering : 1 to n)
- * \param [in]   dVtxCoord      Distributed vertex coordinates 
+ * \param [in]   dVtxCoord      Distributed vertex coordinates
  *                              (size : 3*dNVtx)
- * \param [inout]   dCellPart      Distributed cell partitioning 
+ * \param [inout]   dCellPart      Distributed cell partitioning
  *                              (size = dNCell)
  *
  */
@@ -379,32 +379,32 @@ void
 PDM_part_geom
 (
  PDM_part_geom_t     method,
- const int           nPart,       
- const PDM_MPI_Comm  comm,       
+ const int           nPart,
+ const PDM_MPI_Comm  comm,
  const int           dNCell,
  const int          *dCellFaceIdx,
  const PDM_g_num_t  *dCellFace,
  const int          *dCellWeight,
  const int          *dFaceVtxIdx,
  const PDM_g_num_t  *dFaceVtx,
- const PDM_g_num_t  *dFaceProc,       
+ const PDM_g_num_t  *dFaceProc,
  const double        *dVtxCoord,
- const PDM_g_num_t  *dVtxProc,       
+ const PDM_g_num_t  *dVtxProc,
  int                *dCellPart
 )
 {
-  
+
   assert (method == PDM_PART_GEOM_HILBERT);
-  
+
   const int dim = 3;
-  
+
   double *barycenterCoords = (double *) malloc (dNCell * 3 * sizeof(double ));
 
   PDM_hilbert_code_t *hilbertCodes     = (PDM_hilbert_code_t *) malloc (dNCell * sizeof(PDM_hilbert_code_t));
   PDM_hilbert_code_t *tmp_hilbertCodes = (PDM_hilbert_code_t *) malloc (dNCell * sizeof(PDM_hilbert_code_t));
-      
+
   /*
-   * cell center computation 
+   * cell center computation
    */
   _compute_cellCenter (comm,
                        dNCell,
@@ -416,42 +416,42 @@ PDM_part_geom
                        dVtxCoord,
                        dVtxProc,
                        barycenterCoords);
-  
-  
+
+
   /** TRAITEMENT HILBERT FVM **/
 
 	/** Initialisation **/
-      
+
   double extents[2*dim]; /** DIM x 2**/
-      
+
 	/** Get EXTENTS **/
   PDM_hilbert_get_coord_extents_par(dim, dNCell, barycenterCoords, extents, comm);
-      
+
 	/** Hilbert Coordinates Computation **/
   PDM_hilbert_encode_coords(dim, PDM_HILBERT_CS, extents, dNCell, barycenterCoords, hilbertCodes);
-      
+
   for (int i = 0; i < dNCell; ++i) {
     tmp_hilbertCodes [i] = hilbertCodes [i];
 	}
-      
+
   ///** Calcul des index des codes Hilbert **/
 
   int * hilbert_order = (int * ) malloc (dNCell * sizeof(int));
-      
+
   for (int i = 0; i < dNCell; ++i) {
-    hilbert_order [i] = i;  
-  } 
-	
+    hilbert_order [i] = i;
+  }
+
   assert (sizeof(double) == sizeof(PDM_hilbert_code_t));
   PDM_sort_double (tmp_hilbertCodes, hilbert_order, dNCell);
-      
+
   free(tmp_hilbertCodes);
-      
+
   int nRank;
   PDM_MPI_Comm_size (comm, &nRank);
-  
-  PDM_hilbert_code_t *hilbertCodesIdx = (PDM_hilbert_code_t *) malloc ((nRank+1)*nPart * sizeof(PDM_hilbert_code_t));   
-      
+
+  PDM_hilbert_code_t *hilbertCodesIdx = (PDM_hilbert_code_t *) malloc ((nRank+1)*nPart * sizeof(PDM_hilbert_code_t));
+
   int * weight = (int *) malloc (dNCell * sizeof(int));
   if (dCellWeight != NULL) {
     for(int i = 0; i < dNCell; ++i) {
@@ -463,10 +463,10 @@ PDM_part_geom
 		  weight [i] = 1;
     }
   }
-  
+
   int nTPart;
   PDM_MPI_Allreduce ((void *) &nPart, &nTPart, 1, PDM_MPI_INT, PDM_MPI_SUM, comm);
-  
+
   PDM_hilbert_build_rank_index (dim,
                                 nTPart,
                                 dNCell,
@@ -475,19 +475,19 @@ PDM_part_geom
                                 hilbert_order,
                                 hilbertCodesIdx,
                                 comm);
-      
+
   free(weight);
-          
+
   /** Remplissage de cellParts -> en fct des codes Hilbert **/
-  
+
   for(int i = 0; i < dNCell; ++i) {
-    size_t quantile = PDM_hilbert_quantile_search(nTPart, 
-                                                hilbertCodes[i], 
+    size_t quantile = PDM_hilbert_quantile_search(nTPart,
+                                                hilbertCodes[i],
                                                 hilbertCodesIdx);
     dCellPart [i] = (int) quantile;
- 
-  }  
-    
+
+  }
+
   free(barycenterCoords);
   free(hilbertCodesIdx);
   free(hilbert_order);
@@ -499,20 +499,20 @@ PDM_part_geom
 
 // /**
 //  * \brief Remove duplicates in a array of long
-//  * 
+//  *
 //  * \param [in,out] array  Array to clean
 //  * \param [in,out] size   Size of array to clean
 //  *
 //  */
 
-// static void 
+// static void
 // _remove_duplicate_pdm_part_long_t
 // (
 //  PDM_g_num_t *array,
 //  int          *size
 // )
 // {
-  
+
 //   PDM_g_num_t * oldArray = (PDM_g_num_t * ) malloc( (*size) * sizeof(PDM_g_num_t));
 
 //   for(int i = 0; i < *size; ++i ){
@@ -557,25 +557,25 @@ PDM_part_geom
 // *
 //  * \brief Sort and remove duplicate elements in an array of coordinates
 //  *        coordinates are sorted in the local numbering order
-//  * 
+//  *
 //  * \param [in,out] array      Array to clean
 //  * \param [in,out] size       Size of array to clean
 //  * \param [in,out] orderArray Array that indicates the original numbering
 //  *                            orderArray must be sorted and with duplicate elements
 //  * \param [in,out] initialIdx Array that indicates the original numbering
 //  *                            of orderArray after a quickSort
- 
 
-// static void 
+
+// static void
 // _remove_duplicate_coords
 // (
-// double        *array, 
-// int            size, 
-// PDM_g_num_t *orderArray, 
+// double        *array,
+// int            size,
+// PDM_g_num_t *orderArray,
 // int          *initialIdx
 // )
 // {
-  
+
 //   PDM_g_num_t * oldOrderArray = (PDM_g_num_t * ) malloc( (size) * sizeof(PDM_g_num_t));
 //   double * oldArray = (double * ) malloc( (size) * 3 * sizeof(double));
 //   for(int i = 0; i < size; ++i ){
@@ -616,7 +616,7 @@ PDM_part_geom
 //   /*
 //    * Remove duplicate elements
 //    */
-  
+
 //   int sizeTabDblIdx = k+2;
 //   int * tabDblIdx = (int *) malloc (sizeTabDblIdx * sizeof(int));
 //   tabDblIdx[0] = 0;
@@ -636,18 +636,18 @@ PDM_part_geom
 //   free(oldArray);
 //   free(oldOrderArray);
 //   free(tabDblIdx);
-    
+
 // }
 // /**
 //  *
-//  * \brief Distributes face arrays 
-//  * 
+//  * \brief Distributes face arrays
+//  *
 //  * \param [in]  comm           MPI Communicator
 //  * \param [in]  dNCell         Number of cells in the current process
 //  * \param [in]  dCellFaceIdx   Index of cellFace
 //  * \param [in]  dCellFace      cell face connectivity in the current process
 //  * \param [in]  dFaceVtxIdx    Index of faceVtx
-//  * \param [in]  dFaceVtx       face vertex connectivity in the current process 
+//  * \param [in]  dFaceVtx       face vertex connectivity in the current process
 //  * \param [in]  dFaceProc      face distribution
 //  * \param [out] faceVtx        faceVtx connectivity for all necessary faces
 //  * \param [out] faceVtxIdx     Index of faceVtx connectivity
@@ -665,7 +665,7 @@ PDM_part_geom
 // const PDM_g_num_t  *dCellFace,
 // const int          *dFaceVtxIdx,
 // const PDM_g_num_t  *dFaceVtx,
-// const PDM_g_num_t  *dFaceProc,       
+// const PDM_g_num_t  *dFaceProc,
 // PDM_g_num_t       **faceVtx,
 // int                *faceVtxIdx,
 // int                *sizeFaceVtx,
@@ -674,10 +674,10 @@ PDM_part_geom
 // {
 //   int myRank;
 //   int nRank;
-  
+
 //   PDM_MPI_Comm_rank(comm, &myRank);
 //   PDM_MPI_Comm_size(comm, &nRank);
-  
+
 //   const int nData     = 1;
 //   // int       nDataFace = 2;
 //   int       nDataFace = 1;
@@ -687,9 +687,9 @@ PDM_part_geom
 
 //   int *requestedFaceN   = (int *) malloc( nRank      * sizeof(int));
 //   int *requestedFaceIdx = (int *) malloc((nRank + 1) * sizeof(int));
-  
+
 //   int size_dCellFace = dCellFaceIdx[dNCell];
-  
+
 //   if (1 == 1) {
 //     // PDM_printf("dCellFace : \n");
 //     // for (int i = 0; i < dNCell; i++) {
@@ -701,40 +701,40 @@ PDM_part_geom
 //     for (int i = 0; i < nRank+1; i++) {
 //       PDM_printf("[%i] -> %i \n ",i,  dFaceProc[i]);
 //     }
-      
+
 //   }
-  
+
 //   int * allToallNToLN = (int *) malloc(size_dCellFace * sizeof(int));
 
 //   const PDM_g_num_t *cellFace = dCellFace;
-  
+
 //   for(int iFace = 0; iFace < size_dCellFace; iFace ++) {
 //     int irank = PDM_binary_search_gap_long(PDM_ABS (cellFace[iFace]), dFaceProc, nRank+1);
 //     // printf(" DENUG faceToSendIdx [%i] = %i - %i \n", irank, iFace, cellFace[iFace]);
-//     faceToSendIdx[irank+1] += nData; 
+//     faceToSendIdx[irank+1] += nData;
 //   }
-  
+
 //   for (int i = 0; i < nRank; i++) {
 //       faceToSendIdx[i+1] += faceToSendIdx[i];
 //   }
-  
+
 //   int sizeFaceToSend = faceToSendIdx[nRank];
 //   printf("RANK%d -- sizeFaceToSend = %d\n", myRank, sizeFaceToSend);
 //   printf("RANK%d -- size_dCellFace = %d\n", myRank, size_dCellFace);
 //   PDM_g_num_t * faceToSend = (PDM_g_num_t *) malloc(  sizeFaceToSend * sizeof(PDM_g_num_t));
-  
+
 //   for(int iFace = 0; iFace < size_dCellFace; iFace ++) {
 //     int irank = PDM_binary_search_gap_long (PDM_ABS (cellFace[iFace]), dFaceProc, nRank+1);
 //     int idx = faceToSendIdx[irank] + faceToSendN[irank];
-  
+
 //     // printf(" [%i] = %d\n", idx, iFace);
 //     allToallNToLN[idx/nData] = iFace;
-//     faceToSend[idx++]   = PDM_ABS (cellFace[iFace]);        // Face global numbering 
+//     faceToSend[idx++]   = PDM_ABS (cellFace[iFace]);        // Face global numbering
 //     faceToSendN[irank] += nData;
 //   }
-  
+
 //   PDM_g_num_t *requestedFace    = NULL;
-    
+
 //   _alltoall(            faceToSend,
 //                         faceToSendN,
 //                         faceToSendIdx,
@@ -744,10 +744,10 @@ PDM_part_geom
 //                         PDM__PDM_MPI_G_NUM,
 //                         sizeof(PDM_g_num_t),
 //                         comm);
-  
+
 //   free(faceToSend);
-  
-//   /* 
+
+//   /*
 //    *  Processes exchange information about requested faces
 //    *  For each face, information contains :
 //    *     - tag (if ppart->_dFaceTag != NULL)
@@ -755,53 +755,53 @@ PDM_part_geom
 //    *     - Vertices
 //    *
 //    */
-    
+
 //   int *sFaceInfoIdx = faceToSendIdx; for(int i = 0; i < nRank+1; ++i) sFaceInfoIdx[i] = 0;
 //   int *sFaceInfoN   = faceToSendN; for(int i = 0; i < nRank; ++i) sFaceInfoN[i] = 0;
-      
+
 //   for (int i = 0; i < nRank; i++) {
 //     for (int k = requestedFaceIdx[i]; k < requestedFaceIdx[i+1]; k+=nData) {
-      
+
 //       PDM_g_num_t gFace     = requestedFace[k];
 
-//       PDM_g_num_t _lFace = gFace - dFaceProc[myRank];      
+//       PDM_g_num_t _lFace = gFace - dFaceProc[myRank];
 //       int          lFace = (int) _lFace;
-      
-//       int          nbVtxFace = (int) (dFaceVtxIdx[lFace+1] 
+
+//       int          nbVtxFace = (int) (dFaceVtxIdx[lFace+1]
 //                                     - dFaceVtxIdx[lFace]);
 //       sFaceInfoIdx[i+1] += nDataFace + nbVtxFace;
 //     }
 //   }
- 
+
 //   for (int i = 0; i < nRank; i++) {
 //     sFaceInfoIdx[i+1] += sFaceInfoIdx[i];
 //   }
-  
+
 //   PDM_g_num_t *sFaceInfo = (PDM_g_num_t *) calloc(sFaceInfoIdx[nRank], sizeof(PDM_g_num_t));
-  
+
 //   for (int i = 0; i < nRank; i++) {
 //     for (int k = requestedFaceIdx[i]; k < requestedFaceIdx[i+1]; k+=nData) {
 //       PDM_g_num_t gFace      = requestedFace[k];
 //       PDM_g_num_t _lFace     = gFace - dFaceProc[myRank];
 //       int          lFace     = (int) _lFace;
-//       int          nbVtxFace = (int) (dFaceVtxIdx[lFace+1] 
+//       int          nbVtxFace = (int) (dFaceVtxIdx[lFace+1]
 //                              - dFaceVtxIdx[lFace]);
-//       int idx = sFaceInfoIdx[i] + sFaceInfoN[i]; 
-      
+//       int idx = sFaceInfoIdx[i] + sFaceInfoN[i];
+
 //       sFaceInfo[idx++] = nbVtxFace;                   // Number of vertices
 //       sFaceInfoN[i] += 1;
-  
+
 //       for(int j = dFaceVtxIdx[lFace]; j < dFaceVtxIdx[lFace+1]; j++) {
 //         sFaceInfo[idx++] =  dFaceVtx[j];  //numero global du sommet qui compose la face
 //         sFaceInfoN[i] += 1;
 //       }
 //     }
 //   }
-  
+
 //   free(requestedFace);
-         
+
 //   PDM_g_num_t  *rFaceInfo    = NULL;
-//   int          *rFaceInfoN   = requestedFaceN; 
+//   int          *rFaceInfoN   = requestedFaceN;
 //   int          *rFaceInfoIdx = requestedFaceIdx;
 
 //   _alltoall(           sFaceInfo,
@@ -816,27 +816,27 @@ PDM_part_geom
 
 //   free(sFaceInfo);
 //   sFaceInfo = NULL;
-    
+
 //   int k = 0;
 //   for (int i = 0; i < *sizeFaceVtxIdx - 1 ; i++) {
 //     int nVtx = (int) rFaceInfo[k++];
-    
+
 //     faceVtxIdx[allToallNToLN[i]+1] = nVtx;
 //     k += nVtx;
 //   }
-  
+
 //   faceVtxIdx[0] = 0;
 //   for (int i = 0; i < size_dCellFace; i++) {
 //     faceVtxIdx[i+1] += faceVtxIdx[i];
 //   }
-  
+
 //   *sizeFaceVtx = faceVtxIdx[*sizeFaceVtxIdx - 1];
-  
+
 //   (*faceVtx) = (PDM_g_num_t *) malloc ( *sizeFaceVtx * sizeof(PDM_g_num_t));
-  
+
 //   k = 0;
 //   for (int i = 0; i < (*sizeFaceVtxIdx) -1 ; i++) {
-   
+
 //     int nVtx = (int) rFaceInfo[k++];
 //     int idx = faceVtxIdx[allToallNToLN[i]];
 
@@ -849,22 +849,22 @@ PDM_part_geom
 //     free(rFaceInfo);
 //     rFaceInfo = NULL;
 //   }
-  
+
 //   if (allToallNToLN != NULL)
 //     free(allToallNToLN);
-  
+
 //   free(faceToSendN);
 //   free(faceToSendIdx);
 //   free(requestedFaceN);
 //   free(requestedFaceIdx);
-  
+
 // }
 
 
 // /**
 //  *
-//  * \brief Distributes vertex arrays 
-//  * 
+//  * \brief Distributes vertex arrays
+//  *
 //  * \param [in]  comm         MPI Communicator
 //  * \param [in]  dVtxCoord    coordinates of vertices
 //  * \param [in]  dVtxProc     Vertex distribution
@@ -877,8 +877,8 @@ PDM_part_geom
 // static void
 // _distrib_vtx
 // (
-// const PDM_MPI_Comm      comm,       
-// const double       *dVtxCoord,        
+// const PDM_MPI_Comm      comm,
+// const double       *dVtxCoord,
 // const PDM_g_num_t *dVtxProc,
 // const int           sizeFaceVtx,
 // PDM_g_num_t       *faceVtx,
@@ -887,11 +887,11 @@ PDM_part_geom
 // {
 
 //   const int nData    = 1;
-//   int nDataVtx = 0; 
-  
+//   int nDataVtx = 0;
+
 //   int myRank;
 //   int nRank;
-  
+
 //   PDM_MPI_Comm_rank(comm, &myRank);
 //   PDM_MPI_Comm_size(comm, &nRank);
 
@@ -911,21 +911,21 @@ PDM_part_geom
 //   for (int i = 0; i < nRank; i++) {
 //     vtxToSendIdx[i+1] += vtxToSendIdx[i] ;
 //   }
-  
+
 //   PDM_g_num_t * vtxToSend = (PDM_g_num_t *) malloc(vtxToSendIdx[nRank] * sizeof(PDM_g_num_t));
 
 //   for (int iVtx = 0; iVtx < sizeFaceVtx; iVtx++) {
 //     int irank =  PDM_binary_search_gap_long (faceVtx[iVtx], dVtxProc, nRank+1);
 //     int idx = vtxToSendIdx[irank] + vtxToSendN[irank];
-   
+
 //     allToallNToLN[idx/nData] = iVtx;
 //     vtxToSend[idx++]   = faceVtx[iVtx];        /* Vtx global numbering */
 //     vtxToSendN[irank] += nData;
 //   }
-    
+
 
 //   PDM_g_num_t *requestedVtx    = NULL;
-      
+
 //   _alltoall(vtxToSend,
 //             vtxToSendN,
 //             vtxToSendIdx,
@@ -937,7 +937,7 @@ PDM_part_geom
 //             comm);
 //   free(vtxToSend);
 
-//   /* 
+//   /*
 //    *  Processes exchange information about requested vtxs
 //    *  For each vtx, information contains :
 //    *     - Tag (if ppart->_dVtxTag != NULL)
@@ -952,13 +952,13 @@ PDM_part_geom
 //     for (int k = requestedVtxIdx[i]; k < requestedVtxIdx[i+1]; k += nData) {
 //       sVtxInfoIdx[i+1] += nDataVtx * (int) sizeof(int) + 3 * (int) sizeof(double);
 //     }
-//   } 
+//   }
 
 //   for (int i = 0; i < nRank; i++) {
 //     sVtxInfoIdx[i+1] += sVtxInfoIdx[i];
 //   }
 
-//   unsigned char *sVtxInfo = (unsigned char *) 
+//   unsigned char *sVtxInfo = (unsigned char *)
 //     malloc(sVtxInfoIdx[nRank] * sizeof(unsigned char));
 
 //   for (int i = 0; i < nRank; i++) {
@@ -967,24 +967,24 @@ PDM_part_geom
 //       PDM_g_num_t _lVtx    = gVtx - dVtxProc[myRank];
 //       int          lVtx    = (int) _lVtx;
 
-//       int idx = sVtxInfoIdx[i] + sVtxInfoN[i]; 
-  
+//       int idx = sVtxInfoIdx[i] + sVtxInfoN[i];
+
 //       double *_d_sVtxInfo = (double *) (sVtxInfo + idx);
-      
+
 //       for(int j = 0; j < 3; ++j) {
 //         _d_sVtxInfo[j] = dVtxCoord[3*lVtx + j];
 //       }
-  
+
 //       sVtxInfoN[i] += 3 * sizeof(double);
 //     }
 //   }
-    
+
 //   free(requestedVtx);
 
 //   unsigned char *rVtxInfo    = NULL;
 //   int           *rVtxInfoN   = requestedVtxN;
 //   int           *rVtxInfoIdx = requestedVtxIdx;
-  
+
 //   _alltoall(sVtxInfo,
 //       sVtxInfoN,
 //       sVtxInfoIdx,
@@ -997,11 +997,11 @@ PDM_part_geom
 
 //   if (sVtxInfo != NULL)
 //     free(sVtxInfo);
-        
-//   /* Complete vtx */ 
-    
+
+//   /* Complete vtx */
+
 //   assert(newVtx != NULL);
-  
+
 //   int k = 0;
 //   for (int i = 0; i < sizeFaceVtx; i++) {
 //     double *_d_rVtxInfo = (double *) (rVtxInfo + k);
@@ -1011,40 +1011,40 @@ PDM_part_geom
 //   }
 
 // /***********************************************/
-   
+
 //   if (allToallNToLN != NULL)
 //     free(allToallNToLN);
 
 //   if (rVtxInfo != NULL)
 //     free(rVtxInfo);
 //   rVtxInfo = NULL;
- 
+
 //   free(vtxToSendN);
 //   free(vtxToSendIdx);
 //   free(requestedVtxN);
 //   free(requestedVtxIdx);
-  
+
 // }
 
 
 /**
  *
  * \brief Call a couple MPI_Alltoall MPI_Alltoallv
- * 
+ *
  * \param [in]   sendBuff,            Sending buffer
- * \param [in]   sendBuffN,           Number of data to send to each process 
+ * \param [in]   sendBuffN,           Number of data to send to each process
  *                                    (size : communicator size)
- * \param [in]   sendBuffIdx,         Index in sendBuff for each process 
+ * \param [in]   sendBuffIdx,         Index in sendBuff for each process
  *                                    (size : communicator size)
- * \param [out]  recvBuff,            Receiving buffer 
- * \param [out]  recvBuffSize         Receiving buffer size  
+ * \param [out]  recvBuff,            Receiving buffer
+ * \param [out]  recvBuffSize         Receiving buffer size
  * \param [in]   exch_mpi_data_type   Data type to exchange
  * \param [in]   type_exch_size       Size of data type
  * \param [in]   comm                 Communicator
  *
  */
 
-// static void 
+// static void
 // _alltoall
 // (
 //  void              *sendBuff,
@@ -1062,12 +1062,12 @@ PDM_part_geom
 //   PDM_MPI_Comm_size(comm, &nRank);
 
 //   /* Get number data to receive from each process */
-//   PDM_MPI_Alltoall(sendBuffN, 
-//                    1, 
-//                    PDM_MPI_INT, 
-//                    recvBuffN, 
-//                    1, 
-//                    PDM_MPI_INT, 
+//   PDM_MPI_Alltoall(sendBuffN,
+//                    1,
+//                    PDM_MPI_INT,
+//                    recvBuffN,
+//                    1,
+//                    PDM_MPI_INT,
 //                    comm);
 
 //   recvBuffIdx[0] = 0;
@@ -1078,14 +1078,14 @@ PDM_part_geom
 //   *recvBuff = malloc(recvBuffIdx[nRank] * MPIDataTypeSize);
 
 //   /* Receive data from each process */
-//   PDM_MPI_Alltoallv(sendBuff, 
-//                     sendBuffN, 
-//                     sendBuffIdx, 
-//                     MPIDataType, 
-//                     *recvBuff, 
-//                     recvBuffN, 
+//   PDM_MPI_Alltoallv(sendBuff,
+//                     sendBuffN,
+//                     sendBuffIdx,
+//                     MPIDataType,
+//                     *recvBuff,
+//                     recvBuffN,
 //                     recvBuffIdx,
-//                     MPIDataType, 
+//                     MPIDataType,
 //                     comm);
 
 // }

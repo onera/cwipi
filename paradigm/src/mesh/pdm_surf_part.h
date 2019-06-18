@@ -31,7 +31,7 @@ extern "C" {
 /**
  * \struct PDM_surf_part_t
  * \brief  Surface partition
- * 
+ *
  *  PDM_surf_part_t defines a surface partition
  *
  */
@@ -44,22 +44,22 @@ typedef struct _pdm_surf_part_t PDM_surf_part_t;
  *============================================================================*/
 
 /*=============================================================================
- * Public function prototypes 
+ * Public function prototypes
  *============================================================================*/
 
- 
+
 /**
  * \brief Return an intialized \ref PDM_surf_part_t structure
  *
  * This function returns an initialized \ref PDM_surf_part_t structure
  *
- * \param [in]  nFace       Number of faces                     
+ * \param [in]  nFace       Number of faces
  * \param [in]  faceVtxIdx  Index in the face -> vertex connectivity
  * \param [in]  faceVtxIdx  face -> vertex connectivity
- * \param [in]  faceLnToGn  Local face numbering to global face numbering 
- * \param [in]  nVtx        Number of vertices              
- * \param [in]  coords      Coordinates       
- * \param [in]  vtxLnToGn   Local vertex numbering to global vertex numbering 
+ * \param [in]  faceLnToGn  Local face numbering to global face numbering
+ * \param [in]  nVtx        Number of vertices
+ * \param [in]  coords      Coordinates
+ * \param [in]  vtxLnToGn   Local vertex numbering to global vertex numbering
  *
  * \return      A new initialized \ref _part_t structure
  *
@@ -83,7 +83,7 @@ const PDM_g_num_t *vtxLnToGn
  *
  * This function deletes a  PDM_surf_part_t structure
  *
- * \param [in]  part      part to delete          
+ * \param [in]  part      part to delete
  *
  * \return     Null pointer
  */
@@ -98,7 +98,7 @@ PDM_surf_part_free
 /**
  * \brief Compute partition edge entities
  *
- * This function defines edges of an initial partition and 
+ * This function defines edges of an initial partition and
  * computes edge connectivities
  *
  * \param [in]  part      Partition to compute
@@ -113,7 +113,7 @@ PDM_surf_part_t *part
 
 
 /**
- * \brief Return faceLnToGn 
+ * \brief Return faceLnToGn
  *
  *
  * \param [in]  part      Partition to compute

@@ -4,20 +4,20 @@
 
 if (MPI_C_COMPILER)
   set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
-endif() 
+endif()
 
 if (MPI_Fortran_COMPILER)
   set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER})
-endif(MPI_Fortran_COMPILER) 
+endif(MPI_Fortran_COMPILER)
 
 
-file(GLOB_RECURSE SOURCES 
+file(GLOB_RECURSE SOURCES
      pdm_mpi.c
      pdm_mpi_ext_dependencies.c
      ../pdm_mpi.h
      ../pdm_mpi_ext_dependencies.h
-     ../../pdm.h 
-     ../../pdm_priv.h) 
+     ../../pdm.h
+     ../../pdm_priv.h)
 
 
 add_library(pdm_mpi OBJECT ${SOURCES})
@@ -43,12 +43,12 @@ target_include_directories(pdm_mpi
                            PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/../..)
 
 if (PTSCOTCH_FOUND)
-    target_include_directories(pdm_mpi 
+    target_include_directories(pdm_mpi
                               PRIVATE ${PTSCOTCH_INCLUDE_DIRS})
 endif (PTSCOTCH_FOUND)
 
 if (PARMETIS_FOUND)
-    target_include_directories(pdm_mpi 
+    target_include_directories(pdm_mpi
                               PRIVATE ${PARMETIS_INCLUDE_DIRS})
 endif (PARMETIS_FOUND)
 
@@ -81,7 +81,7 @@ if (PDM_ENABLE_SHARED)
   get_target_property(PDM_INC pdm_mpi INCLUDE_DIRECTORIES)
   if (NOT MPI_C_COMPILER)
     if (MPI_C_LIBRARIES)
-      target_link_libraries(pdm_mpi_shared ${MPI_C_LIBRARIES})   
+      target_link_libraries(pdm_mpi_shared ${MPI_C_LIBRARIES})
     endif()
   endif ()
   target_include_directories(pdm_mpi_shared PUBLIC ${PDM_INC})

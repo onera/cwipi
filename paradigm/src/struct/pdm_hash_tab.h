@@ -29,10 +29,10 @@ extern "C" {
 
 /**
  * \enum PDM_hash_table_key_t
- * \brief 2 Types of keys                
+ * \brief 2 Types of keys
  *
  */
- 
+
 typedef enum {
 
   PDM_HASH_TAB_KEY_INT  = 0,  /*!< Integer key  */
@@ -42,8 +42,8 @@ typedef enum {
 
 /**
  * \struct PDM_hash_tab_t
- * \brief Hash Table 
- * 
+ * \brief Hash Table
+ *
  *  PDM_hash_tab_t define a hasn table structure
  *
  */
@@ -56,7 +56,7 @@ typedef struct _hash_tab_t PDM_hash_tab_t;
  *============================================================================*/
 
 /*=============================================================================
- * Public function prototypes 
+ * Public function prototypes
  *============================================================================*/
 
 /**
@@ -65,7 +65,7 @@ typedef struct _hash_tab_t PDM_hash_tab_t;
  * This function returns an initialized \ref PDM_hash_tab_t structure
  *
  * \param [in]  tKey   \ref PDM_HASH_TAB_KEY_INT or \ref PDM_HASH_TAB_KEY_LONG
- * \param [in]  keyMax  key max 
+ * \param [in]  keyMax  key max
  *
  * \return      A new initialized \ref PDM_hash_tab_t structure
  *
@@ -85,7 +85,7 @@ void                       *keyMax
  * This function adds a new data for a key
  *
  * \param [in]  ht        Hash table
- * \param [in]  key       key 
+ * \param [in]  key       key
  * \param [in]  data      data
  *
  */
@@ -104,7 +104,7 @@ void           *data
  *
  *
  * \param [in]  ht        Hash table
- * \param [in]  key       key 
+ * \param [in]  key       key
  * \param [in]  data      data
  *
  */
@@ -123,10 +123,10 @@ void           *key
  * This function gets the number of data associated to a key
  *
  * \param [in]  ht       Hash table
- * \param [in]  key      key 
+ * \param [in]  key      key
  *
- * \return Number of data 
- *    
+ * \return Number of data
+ *
  */
 
 int
@@ -143,10 +143,10 @@ void           *key
  * This function gets data associated to a key
  *
  * \param [in]  ht       Hash table
- * \param [in]  key      key 
+ * \param [in]  key      key
  *
- * \return data 
- *    
+ * \return data
+ *
  */
 
 void **
@@ -202,8 +202,8 @@ PDM_hash_tab_t *ht
  *
  * \param [in]  ht        Hash table
  *
- * \return max Key 
- *    
+ * \return max Key
+ *
  */
 
 void *
@@ -220,8 +220,8 @@ PDM_hash_tab_t *ht
  *
  * \param [in]  ht        Hash table
  *
- * \return key type 
- *    
+ * \return key type
+ *
  */
 
 PDM_hash_tab_key_t

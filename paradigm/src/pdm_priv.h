@@ -26,32 +26,32 @@ extern "C" {
 
 enum {X, Y, Z};
 
-/** 
+/**
  * Absolute value
  */
 
 #define PDM_ABS(a)     ((a) <  0  ? -(a) : (a))
 
-/** 
+/**
  * Minimum value
  */
 
 #define PDM_MIN(a,b)   ((a) < (b) ?  (a) : (b))
 
-/** 
+/**
  * Maximum value
  */
 
 #define PDM_MAX(a,b)   ((a) > (b) ?  (a) : (b))
 
-/** 
+/**
  * Dot product
  */
 
 #define PDM_DOT_PRODUCT(vect1, vect2)                                   \
   (vect1[X] * vect2[X] + vect1[Y] * vect2[Y] + vect1[Z] * vect2[Z])
 
-/** 
+/**
  * Module
  */
 

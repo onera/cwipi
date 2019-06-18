@@ -26,10 +26,10 @@ extern "C" {
  * Macro definitions
  *============================================================================*/
 
-static const int nDataEltPartBoundIni = 1; /*!< Number of Initial data 
+static const int nDataEltPartBoundIni = 1; /*!< Number of Initial data
                                                 in \ref eltPartBound */
 
-static const int nDataEltPartBoundElt = 4; /*!< Number of data for each connected 
+static const int nDataEltPartBoundElt = 4; /*!< Number of data for each connected
                                                 element in \ref eltPartBound */
 
 /*============================================================================
@@ -39,7 +39,7 @@ static const int nDataEltPartBoundElt = 4; /*!< Number of data for each connecte
 /**
  * \struct _part_bound_t
  * \brief  inter partition boundary
- * 
+ *
  * _part_bound_t defines a mesh partition structure
  *
  */
@@ -50,36 +50,36 @@ typedef struct {
   int  nEltPartBound;     /*!< Number of partitioning boundary elts */
   int  nElt;              /*!< Number of elts */
   PDM_part_bound_cplx_t cplx;   /*!< Complexity */
-  int *eltPartBoundIdx; /*!< Partitioning boundary bloc distribution from processus 
+  int *eltPartBoundIdx; /*!< Partitioning boundary bloc distribution from processus
                           (size = \ref nEltpartBound + 1) */
   int *eltPartBound;  /*!< Partitioning boundary elts sorted by
                            proc, sorted by part in the proc, and
                            sorted by absolute face number in the part
                            For each face :
                              - Elt local number
-                             - for each connected element : 
+                             - for each connected element :
                                 - Connected process
-                                - Connected Partition 
-                                  on the connected process 
-                                - Connected elt local number 
+                                - Connected Partition
+                                  on the connected process
+                                - Connected elt local number
                                   in the connected partition
-                                  (size = \ref nDataEltPartBound * nEltPartBound) 
+                                  (size = \ref nDataEltPartBound * nEltPartBound)
                                 - local ghost number */
-  int *nConnectedElt;     /*!< Number of connected elements 
+  int *nConnectedElt;     /*!< Number of connected elements
                             (size = \ref nEltpartBound)*/
-  int *connectedEltIdx;    /*!< Number of connected elements 
+  int *connectedEltIdx;    /*!< Number of connected elements
                             (size = \ref nEltpartBound)*/
-  int *localElt2BoundElt;  /*!< Indrection from localElt to element part boundary 
+  int *localElt2BoundElt;  /*!< Indrection from localElt to element part boundary
                             (size = \ref nLocalElt)*/
-  int nTotalConnectedElt;  /*!< Total number of connected elements */ 
+  int nTotalConnectedElt;  /*!< Total number of connected elements */
 
-  int *nOfferElt;        /*!< offer element for each connected element index 
+  int *nOfferElt;        /*!< offer element for each connected element index
                             (size = \ref nEltPartBound + 1)*/
   PDM_g_num_t nTotalOfferElt;  /*!< Total number of offered element */
 
   int        nLocalOfferElt; /*!< Number of local offered element */
-  
-  int *offerEltIdx;        /*!< Offer element for each connected element index 
+
+  int *offerEltIdx;        /*!< Offer element for each connected element index
                              (size = \ref nEltPartBound + 1)*/
   int *offerElt;           /*!< oOffer element for each connected element
                              (size = \ref offerEltIdx[nEltPartBound] */
@@ -88,7 +88,7 @@ typedef struct {
 
   const PDM_g_num_t *localOfferLnToGn; /*!< Global num of local offer element
                                         (size = \ref nLocalOfferElt */
- 
+
 } _part_bound_t;
 
 /*=============================================================================
@@ -97,7 +97,7 @@ typedef struct {
 
 
 /*=============================================================================
- * Public function prototypes 
+ * Public function prototypes
  *============================================================================*/
 
 #ifdef __cplusplus

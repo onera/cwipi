@@ -1,5 +1,5 @@
-#ifndef PDM_MESH_DIST_H
-#define PDM_MESH_DIST_H
+#ifndef PDM_DIST_CLOUD_SURF_H
+#define PDM_DIST_CLOUD_SURF_H
 
 /*----------------------------------------------------------------------------
  * Local headers
@@ -7,6 +7,7 @@
 
 #include "pdm.h"
 #include "pdm_mpi.h"
+#include "pdm_surf_mesh.h"
 
 /*----------------------------------------------------------------------------*/
 
@@ -40,7 +41,7 @@ extern "C" {
  */
 
 int
-PDM_mesh_dist_create
+PDM_dist_cloud_surf_create
 (
  const PDM_mesh_nature_t mesh_nature,
  const int n_point_cloud,
@@ -48,7 +49,7 @@ PDM_mesh_dist_create
 );
 
 void
-PDM_mesh_dist_create_cf 
+PDM_dist_cloud_surf_create_cf
 (
  const PDM_mesh_nature_t mesh_nature,
  const int n_point_cloud,
@@ -68,7 +69,7 @@ PDM_mesh_dist_create_cf
  */
 
 void
-PDM_mesh_dist_n_part_cloud_set
+PDM_dist_cloud_surf_n_part_cloud_set
 (
  const int          id,
  const int          i_point_cloud,
@@ -85,12 +86,12 @@ PDM_mesh_dist_n_part_cloud_set
  * \param [in]   i_part          Index of partition
  * \param [in]   n_points        Number of points
  * \param [in]   coords          Point coordinates
- * \param [in]   gnum            Point global number 
+ * \param [in]   gnum            Point global number
  *
  */
 
 void
-PDM_mesh_dist_cloud_set
+PDM_dist_cloud_surf_cloud_set
 (
  const int          id,
  const int          i_point_cloud,
@@ -99,6 +100,7 @@ PDM_mesh_dist_cloud_set
        double      *coords,
        PDM_g_num_t *gnum
  );
+
 
 
 /**
@@ -111,10 +113,26 @@ PDM_mesh_dist_cloud_set
  */
 
 void
-PDM_mesh_dist_nodal_mesh_set
+PDM_dist_cloud_surf_nodal_mesh_set
 (
  const int  id,
  const int  mesh_nodal_id
+ );
+
+/**
+ *
+ * \brief Map a surface mesh
+ *
+ * \param [in]   id         Identifier
+ * \param [in]   surf_mesh  Surface mesh pointer
+ *
+ */
+
+void
+PDM_dist_cloud_surf_surf_mesh_map
+(
+ const int  id,
+ PDM_surf_mesh_t *surf_mesh
 );
 
 
@@ -130,7 +148,7 @@ PDM_mesh_dist_nodal_mesh_set
  */
 
 void
-PDM_mesh_dist_surf_mesh_global_data_set
+PDM_dist_cloud_surf_surf_mesh_global_data_set
 (
  const int         id,
  const PDM_g_num_t n_g_face,
@@ -144,19 +162,19 @@ PDM_mesh_dist_surf_mesh_global_data_set
  * \brief Set a part of a surface mesh
  *
  * \param [in]   id            Identifier
- * \param [in]   i_part        Partition to define  
- * \param [in]   n_face        Number of faces                     
+ * \param [in]   i_part        Partition to define
+ * \param [in]   n_face        Number of faces
  * \param [in]   face_vtx_idx  Index in the face -> vertex connectivity
  * \param [in]   face_vtx      face -> vertex connectivity
- * \param [in]   face_ln_to_gn Local face numbering to global face numbering 
- * \param [in]   n_vtx         Number of vertices              
- * \param [in]   coords        Coordinates       
- * \param [in]   vtx_ln_to_gn  Local vertex numbering to global vertex numbering 
+ * \param [in]   face_ln_to_gn Local face numbering to global face numbering
+ * \param [in]   n_vtx         Number of vertices
+ * \param [in]   coords        Coordinates
+ * \param [in]   vtx_ln_to_gn  Local vertex numbering to global vertex numbering
  *
  */
 
 void
-PDM_mesh_dist_surf_mesh_part_set
+PDM_dist_cloud_surf_surf_mesh_part_set
 (
  const int          id,
  const int          i_part,
@@ -164,7 +182,7 @@ PDM_mesh_dist_surf_mesh_part_set
  const int         *face_vtx_idx,
  const int         *face_vtx,
  const PDM_g_num_t *face_ln_to_gn,
- const int          n_vtx, 
+ const int          n_vtx,
  const double      *coords,
  const PDM_g_num_t *vtx_ln_to_gn
 );
@@ -179,7 +197,7 @@ PDM_mesh_dist_surf_mesh_part_set
  */
 
 void
-PDM_mesh_dist_compute
+PDM_dist_cloud_surf_compute
 (
  const int id
 );
@@ -199,7 +217,7 @@ PDM_mesh_dist_compute
  */
 
 void
-PDM_mesh_dist_get
+PDM_dist_cloud_surf_get
 (
  const int          id,
  const int          i_point_cloud,
@@ -215,19 +233,19 @@ PDM_mesh_dist_get
  * \brief Free a distance mesh structure
  *
  * \param [in]  id       Identifier
- * \param [in]  partial  if partial is equal to 0, all data are removed. 
- *                       Otherwise, results are kept. 
+ * \param [in]  partial  if partial is equal to 0, all data are removed.
+ *                       Otherwise, results are kept.
  *
  */
 
 void
-PDM_mesh_dist_free
+PDM_dist_cloud_surf_free
 (
  const int id,
  const int partial
  );
 
-  
+
 /**
  *
  * \brief  Dump elapsed an CPU time
@@ -237,7 +255,7 @@ PDM_mesh_dist_free
  */
 
 void
-PDM_mesh_dist_dump_times
+PDM_dist_cloud_surf_dump_times
 (
  const int id
  );

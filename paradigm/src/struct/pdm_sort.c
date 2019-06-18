@@ -46,14 +46,14 @@ extern "C" {
  */
 
 static inline void
-_swap_long 
-( 
-PDM_g_num_t *a, 
-PDM_g_num_t *b 
+_swap_long
+(
+PDM_g_num_t *a,
+PDM_g_num_t *b
 )
 {
-  PDM_g_num_t tmp = *a;   
-  *a = *b;   
+  PDM_g_num_t tmp = *a;
+  *a = *b;
   *b = tmp;
   return;
 }
@@ -68,14 +68,14 @@ PDM_g_num_t *b
  */
 
 static inline void
-_swap_int 
-( 
-int *a, 
-int *b 
+_swap_int
+(
+int *a,
+int *b
 )
 {
-  int tmp = *a;   
-  *a = *b;   
+  int tmp = *a;
+  *a = *b;
   *b = tmp;
   return;
 }
@@ -90,14 +90,14 @@ int *b
  */
 
 static inline void
-_swap_double 
-( 
-double *a, 
-double *b 
+_swap_double
+(
+double *a,
+double *b
 )
 {
-  double tmp = *a;   
-  *a = *b;   
+  double tmp = *a;
+  *a = *b;
   *b = tmp;
   return;
 }
@@ -189,25 +189,25 @@ PDM_sort_long
           do {
             --j;
           } while (array[j] > a);
-        
+
           if (j < i) {
             break;
           }
           _swap_long (&(array[i]), &(array[j]));
           _swap_int (&(order[i]), &(order[j]));
         }
-      
+
         array[l+1] = array[j];
         array[j] = a;
         order[l+1] = order[j];
         order[j] = b;
         jstack += 2;
-      
+
         if (jstack >= sizeStack) {
           sizeStack *= 2;
           istack = (int *) realloc (istack, sizeof(int) * sizeStack);
         }
-      
+
         if (ir-i+1 >= j-1) {
           istack[jstack  ] = ir;
           istack[jstack-1] = i;
@@ -262,22 +262,22 @@ PDM_sort_long
           do {
             --j;
           } while (array[j] > a);
-        
+
           if (j < i) {
             break;
           }
           _swap_long (&(array[i]), &(array[j]));
         }
-      
+
         array[l+1] = array[j];
         array[j] = a;
         jstack += 2;
-      
+
         if (jstack >= sizeStack) {
           sizeStack *= 2;
           istack = (int *) realloc (istack, sizeof(int) * sizeStack);
         }
-      
+
         if (ir-i+1 >= j-1) {
           istack[jstack  ] = ir;
           istack[jstack-1] = i;
@@ -311,7 +311,7 @@ void
 PDM_sort_int
 (
  int         *array,
- int         *order, 
+ int         *order,
  int          lArray
 )
 {
@@ -377,25 +377,25 @@ PDM_sort_int
           do {
             --j;
           } while (array[j] > a);
-        
+
           if (j < i) {
             break;
           }
           _swap_int (&(array[i]), &(array[j]));
           _swap_int (&(order[i]), &(order[j]));
         }
-      
+
         array[l+1] = array[j];
         array[j] = a;
         order[l+1] = order[j];
         order[j] = b;
         jstack += 2;
-      
+
         if (jstack >= sizeStack) {
           sizeStack *= 2;
           istack = (int *) realloc (istack, sizeof(int) * sizeStack);
         }
-      
+
         if (ir-i+1 >= j-1) {
           istack[jstack  ] = ir;
           istack[jstack-1] = i;
@@ -428,7 +428,7 @@ PDM_sort_int
         ir = istack[jstack--];
         l  = istack[jstack--];
       }
-      else { 
+      else {
         int k = (l+ir) / 2;
         _swap_int (&(array[k]), &(array[l+1]));
         if (array[l] > array[ir]){
@@ -450,22 +450,22 @@ PDM_sort_int
           do {
             --j;
           } while (array[j] > a);
-        
+
           if (j < i) {
             break;
           }
           _swap_int (&(array[i]), &(array[j]));
         }
-      
+
         array[l+1] = array[j];
         array[j] = a;
         jstack += 2;
-      
+
         if (jstack >= sizeStack) {
           sizeStack *= 2;
           istack = (int *) realloc (istack, sizeof(int) * sizeStack);
         }
-      
+
         if (ir-i+1 >= j-1) {
           istack[jstack  ] = ir;
           istack[jstack-1] = i;
@@ -499,7 +499,7 @@ void
 PDM_sort_double
 (
  double    *array,
- int       *order, 
+ int       *order,
  int        lArray
 )
 {
@@ -567,25 +567,25 @@ PDM_sort_double
           do {
             --j;
           } while (array[j] > a);
-        
+
           if (j < i) {
             break;
           }
           _swap_double (&(array[i]), &(array[j]));
           _swap_int (&(order[i]), &(order[j]));
         }
-      
+
         array[l+1] = array[j];
         array[j] = a;
         order[l+1] = order[j];
         order[j] = b;
         jstack += 2;
-      
+
         if (jstack >= sizeStack) {
           sizeStack *= 2;
           istack = (int *) realloc (istack, sizeof(int) * sizeStack);
         }
-      
+
         if (ir-i+1 >= j-1) {
           istack[jstack  ] = ir;
           istack[jstack-1] = i;
@@ -618,7 +618,7 @@ PDM_sort_double
         ir = istack[jstack--];
         l  = istack[jstack--];
       }
-      else { 
+      else {
         int k = (l+ir) / 2;
         _swap_double (&(array[k]), &(array[l+1]));
         if (array[l] > array[ir]){
@@ -640,22 +640,22 @@ PDM_sort_double
           do {
             --j;
           } while (array[j] > a);
-        
+
           if (j < i) {
             break;
           }
           _swap_double (&(array[i]), &(array[j]));
         }
-      
+
         array[l+1] = array[j];
         array[j] = a;
         jstack += 2;
-      
+
         if (jstack >= sizeStack) {
           sizeStack *= 2;
           istack = (int *) realloc (istack, sizeof(int) * sizeStack);
         }
-      
+
         if (ir-i+1 >= j-1) {
           istack[jstack  ] = ir;
           istack[jstack-1] = i;

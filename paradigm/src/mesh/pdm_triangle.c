@@ -41,7 +41,7 @@ extern "C" {
  * \param [out] minDist2 Square of the distance
  * \param [out] weights  Vertices weights or NULL
  *
- * \return      \ref PDM_TRIANGLE_INSIDE or \ref PDM_TRIANGLE_OUTSIDE 
+ * \return      \ref PDM_TRIANGLE_INSIDE or \ref PDM_TRIANGLE_OUTSIDE
  *              if the projected is in the triangle or not
  *
  */
@@ -71,7 +71,7 @@ PDM_triangle_evaluate_position
   double dist2Point, dist2Line1, dist2Line2;
   double *closest, closestPoint1[3], closestPoint2[3], cp[3];
   double pcoords[3];
-  
+
   pcoords[2] = 0.0;
 
   double weights_local[3];
@@ -79,14 +79,14 @@ PDM_triangle_evaluate_position
   if (weights != NULL) {
     _weights = weights;
   }
-  
+
   /*
    * Get normal for triangle, only the normal direction is needed, i.e. the
    * normal need not be normalized (unit length)
    */
 
   PDM_plane_normal (3, pts, n);
- 
+
   pt1 = (double *) pts;
   pt2 = (double *) pts + 3;
   pt3 = (double *) pts + 6;
@@ -109,7 +109,7 @@ PDM_triangle_evaluate_position
     /*
      * Trying to avoid an expensive call to fabs()
      */
-    
+
     if (n[i] < 0) {
       fabsn = -n[i];
     }
@@ -133,7 +133,7 @@ PDM_triangle_evaluate_position
     c1[i] = pt1[indices[i]] - pt3[indices[i]];
     c2[i] = pt2[indices[i]] - pt3[indices[i]];
   }
-  
+
   if ((det = PDM_DETERMINANT2X2(c1,c2)) == 0.0) {
     pcoords[0] = 0.0;
     pcoords[1] = 0.0;
@@ -146,7 +146,7 @@ PDM_triangle_evaluate_position
   /*
    * Okay, now find closest point to element
    */
-  
+
   _weights[0] = 1 - (pcoords[0] + pcoords[1]);
   _weights[1] = pcoords[0];
   _weights[2] = pcoords[1];
@@ -158,13 +158,13 @@ PDM_triangle_evaluate_position
     /*
      * Projection distance
      */
-    
+
     if (closestPoint) {
       double v_cp_x[3];
       for (int i = 0; i < 3; i++) {
         v_cp_x[i] = cp[i] - x[i];
       }
-      
+
       *minDist2 = PDM_DOT_PRODUCT(v_cp_x, v_cp_x);
       closestPoint[0] = cp[0];
       closestPoint[1] = cp[1];
@@ -172,7 +172,7 @@ PDM_triangle_evaluate_position
     }
     return PDM_TRIANGLE_INSIDE;
   }
-  
+
   else {
     double t;
     if (closestPoint) {
@@ -236,7 +236,7 @@ PDM_triangle_evaluate_position
         dist2Line2 = PDM_line_distance (x, pt1, pt2, &t, closestPoint2);
         if (dist2Point < dist2Line1) {
           *minDist2 = dist2Point;
-          closest = pt2; 
+          closest = pt2;
         }
         else {
           *minDist2 = dist2Line1;
@@ -289,7 +289,7 @@ PDM_triangle_compute_barycenter
   bary[0] = 0.;
   bary[1] = 0.;
   bary[2] = 0.;
-  
+
   for (int i = 0; i < 3; i++) {
     for (int ipt = 0; ipt < 3; ipt++) {
       bary[i] += pts[3*ipt+i];

@@ -27,7 +27,7 @@ extern "C" {
  *============================================================================*/
 
 /*============================================================================
- * Definition des types 
+ * Definition des types
  *============================================================================*/
 
 /*----------------------------------------------------------------------------
@@ -43,7 +43,7 @@ struct _PDM_writer_geom_t {
   PDM_writer_t             *_cs;                /* Pointeur sur la structure cs parente */
   PDM_MPI_Comm              pdm_mpi_comm;       /* Communicateur MPI */
   int                      idx_mesh;           /* Mesh handle */
-  
+
 };
 
 /*----------------------------------------------------------------------------
@@ -54,7 +54,7 @@ typedef struct PDM_writer_name_t {
 
   char *public_name;         /* Nom public */
   char *private_name;        /* Nom privé */
-  
+
 } PDM_writer_name_map_t;
 
 
@@ -66,7 +66,7 @@ typedef struct {
 
   char *nom;
   char *val;
-  
+
 } PDM_writer_option_t;
 
 /*----------------------------------------------------------------------------
@@ -79,17 +79,17 @@ struct _PDM_writer_var_t{
   PDM_writer_statut_t    st_dep_tps;     /* Variable en temps */
   PDM_writer_var_dim_t   dim;            /* Dimension de la variable */
   PDM_writer_var_loc_t   loc;            /* Localisation de la variable */
-  double              ***_val;           /* Valeurs de la variable 
-                                            (par partition) mapping mémoire */ 
+  double              ***_val;           /* Valeurs de la variable
+                                            (par partition) mapping mémoire */
   PDM_writer_t          *_cs;            /* Pointeur sur la structure cs parente */
   void                  *var_fmt;        /* Description propre au format fmt */
   char                  *private_name;   /* Nom privé de la variable (si mapping) */
- 
+
 } ;
 
 
 /*----------------------------------------------------------------------------
- * Type Cedre sortie 
+ * Type Cedre sortie
  *----------------------------------------------------------------------------*/
 
 struct _PDM_writer_t {
@@ -101,7 +101,7 @@ struct _PDM_writer_t {
   char                  *rep_sortie;         /* Nom du repertoire de sortie */
   char                  *nom_sortie;         /* Nom de la sortie */
   PDM_MPI_Comm           pdm_mpi_comm;       /* Communicateur MPI */
-  void                  *sortie_fmt;         /* Description propre au format */    
+  void                  *sortie_fmt;         /* Description propre au format */
   PDM_Handles_t         *var_tab;            /* Tableau des variables */
   PDM_Handles_t         *geom_tab;           /* Tableau des geometries */
   double                 physical_time;      /* Temps physique de la simulation */
@@ -133,7 +133,7 @@ typedef struct PDM_writer_fmt_t {
   PDM_writer_var_fct_t  var_create_fct;  /*!< Customize \ref PDM_writer_var_create function for the format   */
   PDM_writer_var_fct_t  var_write_fct;   /*!< Customize \ref PDM_writer_var_write function for the format   */
   PDM_writer_var_fct_t  var_free_fct;    /*!< Customize \ref PDM_writer_var_free function for the format   */
-  
+
 } PDM_writer_fmt_t;
 
 #ifdef __cplusplus

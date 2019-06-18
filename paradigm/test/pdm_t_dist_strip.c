@@ -15,7 +15,7 @@
 #include "pdm_priv.h"
 #include "pdm_part.h"
 #include "pdm_dcube_gen.h"
-#include "pdm_mesh_dist.h"
+#include "pdm_dist_cloud_surf.h"
 #include "pdm_gnum.h"
 
 #include "pdm_writer.h"
@@ -156,12 +156,12 @@ int main(int argc, char *argv[])
   double        length  = 1.;
   int           nPart   = 1;
   int           post    = 0;
-#ifdef PDM_HAVE_PTSCOTCH  
+#ifdef PDM_HAVE_PTSCOTCH
   PDM_part_split_t method  = PDM_PART_SPLIT_PTSCOTCH;
 #else
-#ifdef PDM_HAVE_PARMETIS  
+#ifdef PDM_HAVE_PARMETIS
   PDM_part_split_t method  = PDM_PART_SPLIT_PARMETIS;
-#endif  
+#endif
 #endif
 
   /*
@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
     printf ("Erreur nPart != 1\n");
     abort();
   }
-  
+
   struct timeval t_elaps_debut;
 
   int myRank;
@@ -227,7 +227,7 @@ int main(int argc, char *argv[])
     printf("-- Build cube\n");
     fflush(stdout);
   }
-  
+
   PDM_dcube_gen_init(&id,
                      PDM_MPI_COMM_WORLD,
                      nVtxSeg,
@@ -305,7 +305,7 @@ int main(int argc, char *argv[])
   free(dCellPart);
 
   int n_point_cloud = 1;
-  int id_dist = PDM_mesh_dist_create (PDM_MESH_NATURE_SURFACE_MESH,
+  int id_dist = PDM_dist_cloud_surf_create (PDM_MESH_NATURE_SURFACE_MESH,
                                       n_point_cloud,
                                       PDM_MPI_COMM_WORLD);
 
@@ -317,16 +317,16 @@ int main(int argc, char *argv[])
   int **surface_face_vtx_idx =  malloc (sizeof(int *) * nPart);
   int **surface_face_vtx =  malloc (sizeof(int *) * nPart);
   double **surface_coords = malloc (sizeof(double *) * nPart);
-  
+
   PDM_g_num_t **surface_face_parent_gnum = malloc (sizeof(PDM_g_num_t *) * nPart);
   PDM_g_num_t **surface_vtx_parent_gnum = malloc (sizeof(PDM_g_num_t *) * nPart);
-  
+
   const PDM_g_num_t **surface_face_gnum = malloc (sizeof(PDM_g_num_t *) * nPart);
   const PDM_g_num_t **surface_vtx_gnum = malloc (sizeof(PDM_g_num_t *) * nPart);
 
   int id_gnum_face = PDM_gnum_create (3, nPart, PDM_FALSE, 1e-3, PDM_MPI_COMM_WORLD);
   int id_gnum_vtx = PDM_gnum_create (3, nPart, PDM_FALSE, 1e-3, PDM_MPI_COMM_WORLD);
-  
+
 
   if (myRank == 0) {
     printf("-- mesh dist set\n");
@@ -334,14 +334,14 @@ int main(int argc, char *argv[])
   }
 
   double strip = 0.1;
-  
+
   double **pts_coords = malloc (sizeof(double *) * nPart);
   double **char_length = malloc (sizeof(double *) * nPart);
 
   int n_pts   = ((nVtxSeg * nVtxSeg * nVtxSeg) / numProcs) / nPart;
-  int n_pts_x = n_pts/(1.+(1.-4.*strip)+(1.-4.*strip) * (1.-4.*strip));
-  int n_pts_y = (1.-4.*strip) * n_pts;
-  int n_pts_z = (1.-4.*strip) * (1.-4.*strip) * n_pts;
+  int n_pts_x = (int) (n_pts/(1.+(1.-4.*strip)+(1.-4.*strip) * (1.-4.*strip)));
+  int n_pts_y = (int) ((1.-4.*strip) * n_pts);
+  int n_pts_z = (int) ((1.-4.*strip) * (1.-4.*strip) * n_pts);
 
   double _char_length = (xmax-xmin)/nVtxSeg;
 
@@ -365,7 +365,7 @@ int main(int argc, char *argv[])
       pts_coords[ipart][idx++] = y;
       pts_coords[ipart][idx++] = z;
     }
-    
+
     for (int i =  n_pts_x/2; i < n_pts_x; i++) {
       double x = _frand_a_b (xmax-strip, xmax);
       double y = _frand_a_b (ymin, ymax);
@@ -385,7 +385,7 @@ int main(int argc, char *argv[])
       pts_coords[ipart][idx++] = y;
       pts_coords[ipart][idx++] = z;
     }
-    
+
     for (int i =  n_pts_y/2; i < n_pts_y; i++) {
       double x = _frand_a_b (xmin+strip, xmax-strip);
       double y = _frand_a_b (ymax-strip, ymax);
@@ -405,7 +405,7 @@ int main(int argc, char *argv[])
       pts_coords[ipart][idx++] = y;
       pts_coords[ipart][idx++] = z;
     }
-    
+
     for (int i =  n_pts_z/2; i < n_pts_z; i++) {
       double x = _frand_a_b (xmin+strip, xmax-strip);
       double y = _frand_a_b (ymin+strip, ymax-strip);
@@ -419,13 +419,13 @@ int main(int argc, char *argv[])
   }
 
   int id_gnum_pts = PDM_gnum_create (3, nPart, PDM_FALSE, 1e-3, PDM_MPI_COMM_WORLD);
-  
+
   for (int ipart = 0; ipart < nPart; ipart++) {
     PDM_gnum_set_from_coords (id_gnum_pts, ipart, n_pts, pts_coords[ipart], char_length[ipart]);
   }
 
   PDM_gnum_compute(id_gnum_pts);
-  
+
   for (int ipart = 0; ipart < nPart; ipart++) {
 
     int nCell;
@@ -454,19 +454,19 @@ int main(int argc, char *argv[])
 
     n_select_face[ipart] = 0;
     n_select_vtx[ipart] = 0;
-    
+
     select_face[ipart] = malloc (sizeof(int) * nFace);
 
     for (int i = 0; i < nFace; i++) {
       select_face[ipart][i] = 0;
     }
-    
+
     select_vtx[ipart] = malloc (sizeof(int) * nVtx);
 
     for (int i = 0; i < nVtx; i++) {
       select_vtx[ipart][i] = 0;
     }
-    
+
     int          *cellTag;
     int          *cellFaceIdx;
     int          *cellFace;
@@ -485,7 +485,7 @@ int main(int argc, char *argv[])
     int          *faceGroupIdx;
     int          *faceGroup;
     PDM_g_num_t *faceGroupLNToGN;
-    
+
     PDM_part_part_val_get (ppartId,
                            ipart,
                            &cellTag,
@@ -515,22 +515,22 @@ int main(int argc, char *argv[])
         select_face[ipart][i] = 1;
       }
     }
-    
+
     for (int i = 0; i < facePartBoundProcIdx[numProcs]; i++) {
       select_face[ipart][facePartBound[4*i]-1] = 0;
     }
-      
+
     int idx = 1;
     int s_face_vtx = 0;
     for (int i = 0; i < nFace; i++) {
       if (select_face[ipart][i] == 1) {
         select_face[ipart][i] = idx;
-        s_face_vtx += (faceVtxIdx[i+1] - faceVtxIdx[i]); 
+        s_face_vtx += (faceVtxIdx[i+1] - faceVtxIdx[i]);
         idx += 1;
       }
     }
     n_select_face[ipart] = idx - 1;
-    
+
     for (int i = 0; i < nFace; i++) {
       if (select_face[ipart][i] != 0) {
         for (int j = faceVtxIdx[i]; j < faceVtxIdx[i+1]; j++) {
@@ -538,7 +538,7 @@ int main(int argc, char *argv[])
         }
       }
     }
-    
+
     idx = 1;
     for (int i = 0; i < nVtx; i++) {
       if (select_vtx[ipart][i] == 1) {
@@ -551,14 +551,14 @@ int main(int argc, char *argv[])
     surface_face_vtx_idx[ipart] = malloc (sizeof(int) * (n_select_face[ipart] + 1));
     surface_face_vtx_idx[ipart][0] = 0;
     surface_face_vtx[ipart] = malloc (sizeof(int) * s_face_vtx);
-    
+
     surface_coords[ipart] = malloc (sizeof(double) * 3 * n_select_vtx[ipart]);
-    
+
     surface_face_parent_gnum[ipart] =
       malloc (sizeof(PDM_g_num_t) * n_select_face[ipart]);
     surface_vtx_parent_gnum[ipart] =
       malloc (sizeof(PDM_g_num_t) * n_select_vtx[ipart]);
-    
+
     surface_face_gnum[ipart] = NULL;
     surface_vtx_gnum[ipart] = NULL;
 
@@ -570,7 +570,7 @@ int main(int argc, char *argv[])
           surface_face_vtx_idx[ipart][idx] + (faceVtxIdx[i+1] - faceVtxIdx[i]);
 
         surface_face_parent_gnum[ipart][idx] = faceLNToGN[i];
-        
+
         idx += 1;
 
         for (int j = faceVtxIdx[i]; j < faceVtxIdx[i+1]; j++) {
@@ -587,7 +587,7 @@ int main(int argc, char *argv[])
         surface_coords[ipart][3*idx  ] = vtx[3*i];
         surface_coords[ipart][3*idx+1] = vtx[3*i+1];
         surface_coords[ipart][3*idx+2] = vtx[3*i+2];
-          
+
         idx += 1;
 
       }
@@ -619,39 +619,39 @@ int main(int argc, char *argv[])
 
   PDM_g_num_t n_g_face = 0;
   PDM_g_num_t n_g_vtx = 0;
-  
+
   for (int ipart = 0; ipart < nPart; ipart++) {
-    surface_face_gnum[ipart] = PDM_gnum_get (id_gnum_face, ipart); 
+    surface_face_gnum[ipart] = PDM_gnum_get (id_gnum_face, ipart);
     surface_vtx_gnum[ipart] = PDM_gnum_get (id_gnum_vtx, ipart);
 
     for (int i = 0; i <  n_select_face[ipart]; i++) {
-      n_g_face_loc = PDM_MAX(n_g_face_loc, surface_face_gnum[ipart][i]); 
+      n_g_face_loc = PDM_MAX(n_g_face_loc, surface_face_gnum[ipart][i]);
     }
-    
+
     for (int i = 0; i <  n_select_vtx[ipart]; i++) {
-      n_g_vtx_loc = PDM_MAX(n_g_vtx_loc, surface_vtx_gnum[ipart][i]); 
+      n_g_vtx_loc = PDM_MAX(n_g_vtx_loc, surface_vtx_gnum[ipart][i]);
     }
-    
+
   }
 
   PDM_MPI_Allreduce (&n_g_face_loc, &n_g_face, 1,
                      PDM__PDM_MPI_G_NUM, PDM_MPI_MAX,
                      PDM_MPI_COMM_WORLD);
-  
+
   PDM_MPI_Allreduce (&n_g_vtx_loc, &n_g_vtx, 1,
                      PDM__PDM_MPI_G_NUM, PDM_MPI_MAX,
                      PDM_MPI_COMM_WORLD);
 
-  PDM_mesh_dist_surf_mesh_global_data_set (id_dist,
+  PDM_dist_cloud_surf_surf_mesh_global_data_set (id_dist,
                                            n_g_face,
                                            n_g_vtx,
                                            nPart);
-    
-  PDM_mesh_dist_n_part_cloud_set (id_dist, 0, nPart);
-  
+
+  PDM_dist_cloud_surf_n_part_cloud_set (id_dist, 0, nPart);
+
   for (int ipart = 0; ipart < nPart; ipart++) {
 
-    PDM_mesh_dist_surf_mesh_part_set (id_dist,
+    PDM_dist_cloud_surf_surf_mesh_part_set (id_dist,
                                       ipart,
                                       n_select_face[ipart],
                                       surface_face_vtx_idx[ipart],
@@ -684,7 +684,7 @@ int main(int argc, char *argv[])
                            &sFaceVtx,
                            &sFaceGroup,
                            &nEdgeGroup2);
-    
+
     int          *cellTag;
     int          *cellFaceIdx;
     int          *cellFace;
@@ -703,7 +703,7 @@ int main(int argc, char *argv[])
     int          *faceGroupIdx;
     int          *faceGroup;
     PDM_g_num_t *faceGroupLNToGN;
-    
+
     PDM_part_part_val_get (ppartId,
                            ipart,
                            &cellTag,
@@ -724,8 +724,8 @@ int main(int argc, char *argv[])
                            &faceGroupIdx,
                            &faceGroup,
                            &faceGroupLNToGN);
-  
-    /* PDM_mesh_dist_cloud_set (id_dist, */
+
+    /* PDM_dist_cloud_surf_cloud_set (id_dist, */
     /*                          0, */
     /*                          ipart, */
     /*                          nVtx, */
@@ -733,8 +733,8 @@ int main(int argc, char *argv[])
     /*                          vtxLNToGN); */
 
     PDM_g_num_t *pts_gnum =  PDM_gnum_get (id_gnum_pts, ipart);
-    
-    PDM_mesh_dist_cloud_set (id_dist,
+
+    PDM_dist_cloud_surf_cloud_set (id_dist,
                              0,
                              ipart,
                              n_pts,
@@ -742,13 +742,13 @@ int main(int argc, char *argv[])
                              pts_gnum);
 
   }
-  
+
   if (myRank == 0) {
     printf("-- Dist compute\n");
     fflush(stdout);
   }
 
-  PDM_mesh_dist_compute (id_dist);
+  PDM_dist_cloud_surf_compute (id_dist);
 
   if (myRank == 0) {
     printf("-- Dist check\n");
@@ -760,7 +760,7 @@ int main(int argc, char *argv[])
     double      *projected;
     PDM_g_num_t *closest_elt_gnum;
 
-    PDM_mesh_dist_get (id_dist,
+    PDM_dist_cloud_surf_get (id_dist,
                        0,
                        ipart,
                        &distance,
@@ -790,7 +790,7 @@ int main(int argc, char *argv[])
                            &sFaceVtx,
                            &sFaceGroup,
                            &nEdgeGroup2);
-    
+
     int          *cellTag;
     int          *cellFaceIdx;
     int          *cellFace;
@@ -809,7 +809,7 @@ int main(int argc, char *argv[])
     int          *faceGroupIdx;
     int          *faceGroup;
     PDM_g_num_t *faceGroupLNToGN;
-    
+
     PDM_part_part_val_get (ppartId,
                            ipart,
                            &cellTag,
@@ -833,8 +833,8 @@ int main(int argc, char *argv[])
 
     int ierr = 0;
     for (int i = 0; i < n_pts; i++) {
-      double d1 = PDM_MIN (PDM_ABS (pts_coords[ipart][3*i] - xmin), PDM_ABS (pts_coords[ipart][3*i] - xmax)); 
-      double d2 = PDM_MIN (PDM_ABS (pts_coords[ipart][3*i+1]- ymin), PDM_ABS (pts_coords[ipart][3*i+1] - ymax)); 
+      double d1 = PDM_MIN (PDM_ABS (pts_coords[ipart][3*i] - xmin), PDM_ABS (pts_coords[ipart][3*i] - xmax));
+      double d2 = PDM_MIN (PDM_ABS (pts_coords[ipart][3*i+1]- ymin), PDM_ABS (pts_coords[ipart][3*i+1] - ymax));
       double d3 = PDM_MIN (PDM_ABS (pts_coords[ipart][3*i+2] - zmin), PDM_ABS (pts_coords[ipart][3*i+2] - zmax));
       double d = PDM_MIN (PDM_MIN (d1,d2), d3);
       d = d * d;
@@ -853,20 +853,20 @@ int main(int argc, char *argv[])
       printf ("Erreur distance pour %d points\n", ierr);
       abort();
     }
-    
+
     if (myRank == 0) {
-      printf ("elements surfaciques : %d\n", 6*(nVtxSeg-1)*(nVtxSeg-1));
-      printf ("nombre de points     : %ld\n", n_pts*nPart*numProcs);
+      printf ("elements surfaciques : "PDM_FMT_G_NUM"\n", 6*(nVtxSeg-1)*(nVtxSeg-1));
+      printf ("nombre de points     : %d\n", n_pts*nPart*numProcs);
       fflush(stdout);
     }
   }
-  
+
   PDM_part_free(ppartId);
 
   PDM_dcube_gen_free(id);
-  PDM_mesh_dist_dump_times(id_dist);
+  PDM_dist_cloud_surf_dump_times(id_dist);
   int partial = 0;
-  PDM_mesh_dist_free (id_dist, partial);
+  PDM_dist_cloud_surf_free (id_dist, partial);
 
   for (int ipart = 0; ipart < nPart; ipart++) {
     free (select_face[ipart]);
@@ -875,14 +875,13 @@ int main(int argc, char *argv[])
     free (surface_face_vtx_idx[ipart]);
     free (surface_face_vtx[ipart]);
     free (surface_coords[ipart]);
-    
+
     free (surface_face_parent_gnum[ipart]);
     free (surface_vtx_parent_gnum[ipart]);
 
     free (char_length[ipart]);
     free (pts_coords[ipart]);
-    
-    
+
   }
 
   free (char_length);
@@ -897,24 +896,23 @@ int main(int argc, char *argv[])
   free (surface_face_vtx_idx);
   free (surface_face_vtx);
   free (surface_coords);
-  
+
   free (surface_face_parent_gnum);
   free (surface_vtx_parent_gnum);
-  
+
   free (surface_face_gnum);
   free (surface_vtx_gnum);
 
   PDM_gnum_free(id_gnum_face, 0);
   PDM_gnum_free(id_gnum_vtx, 0);
   PDM_gnum_free(id_gnum_pts, 0);
-  
+
   PDM_MPI_Finalize();
 
-   if (myRank == 0) {
+  if (myRank == 0) {
     printf("-- End\n");
     fflush(stdout);
   }
- 
+
   return 0;
 }
-

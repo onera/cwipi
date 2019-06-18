@@ -55,7 +55,7 @@ int exit_code
      "  -agglo_scocth    Call Scotch for agglo.\n\n"
      "  -cr     <level>  Coarse rate\n\n"
      "  -h               This message.\n\n");
-     
+
 
   exit (exit_code);
 }
@@ -237,10 +237,10 @@ _create_split_mesh
                      ymax,
                      haveRandom,
                      initRandom,
-                     nx,       
+                     nx,
                      ny,
                      nGFace,
-                     nGVtx,  
+                     nGVtx,
                      nGEdge,
                      &dNVtx,
                      &dVtxCoord,
@@ -254,8 +254,8 @@ _create_split_mesh
                      nEdgeGroup,
                      &dEdgeGroupIdx,
                      &dEdgeGroup);
-  
-  struct timeval t_elaps_fin; 
+
+  struct timeval t_elaps_fin;
 
   gettimeofday (&t_elaps_fin, NULL);
 
@@ -448,7 +448,7 @@ _create_split_mesh
     int sEdgeVtx;
     int sEdgeGroup;
     int nEdgeGroup2;
-    
+
     PDM_part_part_dim_get (ppartId,
                            ipart,
                            &nFace,
@@ -461,9 +461,9 @@ _create_split_mesh
                            &sEdgeVtx,
                            &sEdgeGroup,
                            &nEdgeGroup2);
-    
+
   }
-  
+
   return ppartId;
 }
 
@@ -492,7 +492,7 @@ _export_ini_mesh
 
   PDM_MPI_Comm_rank (PDM_MPI_COMM_WORLD, &myRank);
   PDM_MPI_Comm_size (PDM_MPI_COMM_WORLD, &numProcs);
-  
+
   /*
    *  Export Mesh to Ensight
    */
@@ -683,14 +683,14 @@ _export_ini_mesh
 
   PDM_writer_geom_write(id_cs,
               id_geom);
-  
+
   for (int ipart = 0; ipart < nPart; ipart++) {
     free (edgeVtxIdx1[ipart]);
     free (edgeVtxNB1[ipart]);
     free (faceEdgeIdx1[ipart]);
     free (faceEdgeNB1[ipart]);
   }
-  
+
   free (edgeVtxIdx1);
   free (edgeVtxNB1);
   free (faceEdgeIdx1);
@@ -850,7 +850,7 @@ _export_ini_mesh
 
   free (debPartProcs);
 
-  
+
 }
 
 
@@ -897,7 +897,7 @@ _export_coarse_mesh
                               PDM_IO_ACCES_MPI_SIMPLE,
                               1.,
                               NULL);
-  
+
   /*
    * Creation des variables
    */
@@ -969,7 +969,7 @@ _export_coarse_mesh
     int nFace;
     int nEdge;
     int nEdgeGroup;
-    
+
     int nEdgePartBound;
     int nVtx;
     int nProc;
@@ -991,7 +991,7 @@ _export_coarse_mesh
                                       &nEdgeGroup,
                                       &sFaceEdge,
                                       &sEdgeVtx,
-                                      &sEdgeGroup,                                      
+                                      &sEdgeGroup,
                                       &sCoarseFaceToFineFace);
 
     int          *faceTag;
@@ -1012,10 +1012,10 @@ _export_coarse_mesh
     int          *edgeGroupIdx;
     int          *edgeGroup;
     PDM_g_num_t *edgeGroupLNToGN;
-    int         *faceInitFaceIdx; 
-    int         *faceInitFace; 
-    int         *edgeInitEdge; 
-    int         *vtxInitVtx; 
+    int         *faceInitFaceIdx;
+    int         *faceInitFace;
+    int         *edgeInitEdge;
+    int         *vtxInitVtx;
     int         *edgeGroupInitEdgeGroup;
 
     assert (sizeof(PDM_g_num_t) == sizeof(PDM_g_num_t));
@@ -1026,19 +1026,19 @@ _export_coarse_mesh
                                   &faceEdge,
                                   &faceTag,
                                   &faceLNToGN,
-                                  &faceInitFaceIdx, 
-                                  &faceInitFace, 
+                                  &faceInitFaceIdx,
+                                  &faceInitFace,
                                   &edgeFace,
                                   &edgeVtxIdx,
                                   &edgeVtx,
                                   &edgeTag,
                                   &edgeLNToGN,
-                                  &edgeGroupInitEdgeGroup, 
-                                  &edgeInitEdge,          
+                                  &edgeGroupInitEdgeGroup,
+                                  &edgeInitEdge,
                                   &vtx,
                                   &vtxTag,
                                   &vtxLNToGN,
-                                  &vtxInitVtx,          
+                                  &vtxInitVtx,
                                   &edgeGroupIdx,
                                   &edgeGroup,
                                   &edgeGroupLNToGN,
@@ -1251,7 +1251,7 @@ _export_coarse_mesh
 
   free (debPartProcs);
 
-  
+
 }
 
 
@@ -1270,30 +1270,30 @@ char *argv[]
 {
 
   PDM_MPI_Init (&argc, &argv);
-  
+
   /*
    *  Set default values
    */
-  
+
   PDM_g_num_t   nVtxSeg = 4;
   double        length  = 1.;
   int           nPart   = 1;
   double         cr   = 0.5;
   int           post    = 0;
-#ifdef PDM_HAVE_PTSCOTCH  
+#ifdef PDM_HAVE_PTSCOTCH
  PDM_part_split_t  method  = PDM_PART_SPLIT_PTSCOTCH;
   char *agglo_method = "PDM_COARSE_MESH_SCOTCH";
 #else
-#ifdef PDM_HAVE_PARMETIS  
+#ifdef PDM_HAVE_PARMETIS
   PDM_part_split_t method  =  PDM_PART_SPLIT_PARMETIS;
   char *agglo_method = "PDM_COARSE_MESH_METIS";
 #endif
-#endif  
-  
+#endif
+
   int           haveRandom = 0;
   int           myRank;
   int           numProcs;
-  
+
   /*
    *  Read args
    */
@@ -1313,21 +1313,21 @@ char *argv[]
   if (_agglo_method != NULL) {
     agglo_method = _agglo_method;
   }
-  
+
   PDM_MPI_Comm_rank (PDM_MPI_COMM_WORLD, &myRank);
   PDM_MPI_Comm_size (PDM_MPI_COMM_WORLD, &numProcs);
 
   /*
    *  Create a partitioned mesh
    */
-  
+
   PDM_g_num_t nGFace;
   PDM_g_num_t nGVtx;
   PDM_g_num_t nGEdge;
   int imesh = 0;
   int nTPart;
   int nEdgeGroup;
-  
+
   int id_ppart = _create_split_mesh (imesh,
                                      PDM_MPI_COMM_WORLD,
                                      nVtxSeg,
@@ -1344,7 +1344,7 @@ char *argv[]
   _export_ini_mesh (PDM_MPI_COMM_WORLD,
                     id_ppart,
                     nPart);
-  
+
   /*
    *  Appel des fonctions d'agglo
    */
@@ -1356,7 +1356,7 @@ char *argv[]
   const int  have_cellWeight = 0;
   const int  have_faceWeight = 0;
   const int  have_faceGroup = 0;
-  
+
   int *renum_properties_cell = NULL;
   int *renum_properties_face = NULL;
   int nPropertyCell = 0;
@@ -1371,7 +1371,7 @@ char *argv[]
                                renum_properties_cell,
                                nPropertyFace,
                                renum_properties_face,
-                               nPart, 
+                               nPart,
                                nTPart,
                                nEdgeGroup,
                                have_cellTag,
@@ -1384,9 +1384,9 @@ char *argv[]
   if (_agglo_method != NULL) {
     free (_agglo_method);
   }
-  
+
   for (int ipart = 0; ipart < nPart; ipart++) {
-    
+
     int nFace;
     int nEdge;
     int nEdgePartBound;
@@ -1397,7 +1397,7 @@ char *argv[]
     int sEdgeVtx;
     int sEdgeGroup;
     int nEdgeGroup2;
-    
+
     PDM_part_part_dim_get (id_ppart,
                            ipart,
                            &nFace,
@@ -1429,7 +1429,7 @@ char *argv[]
     int          *edgeGroupIdx;
     int          *edgeGroup;
     PDM_g_num_t *edgeGroupLNToGN;
-    
+
     PDM_part_part_val_get (id_ppart,
                            ipart,
                            &faceTag,
@@ -1450,10 +1450,10 @@ char *argv[]
                            &edgeGroupIdx,
                            &edgeGroup,
                            &edgeGroupLNToGN);
-    
+
     int _nc = (int) ((1. - cr) * nFace);
-    int nc = PDM_MAX (_nc, 1); 
-        
+    int nc = PDM_MAX (_nc, 1);
+
     int _nEdgeGroup = 0;
     PDM_part_coarse_mesh_input (cmId,
                                 ipart,
@@ -1468,24 +1468,24 @@ char *argv[]
                                 faceTag,
                                 NULL,
                                 NULL,
-                                faceLNToGN,       
+                                faceLNToGN,
                                 edgeFace,
                                 edgeVtxIdx,
                                 edgeVtx,
-                                edgeTag,       
-                                edgeLNToGN,       
+                                edgeTag,
+                                edgeLNToGN,
                                 vtx,
                                 vtxTag,
-                                vtxLNToGN,       
+                                vtxLNToGN,
                                 NULL,
                                 NULL,
                                 NULL,
-                                edgePartBoundProcIdx,       
+                                edgePartBoundProcIdx,
                                 edgePartBoundPartIdx,
                                 edgePartBound);
 
   }
-  
+
   PDM_part_coarse_mesh_compute ( cmId);
 
   _export_coarse_mesh (PDM_MPI_COMM_WORLD,
@@ -1501,15 +1501,15 @@ char *argv[]
  /*     free (faceVtx[imesh][ipart]); */
  /*   } */
  /*   free (faceVtx[imesh]); */
-   
+
  /*   PDM_part_free (ppartId[imesh]); */
  /* } */
-  
+
  /* free (faceVtx); */
  PDM_MPI_Finalize ();
- 
+
  PDM_printf ("\nfin Test\n");
- 
+
  return 0;
 
 }

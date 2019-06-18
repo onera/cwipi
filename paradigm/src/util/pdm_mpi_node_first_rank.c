@@ -64,25 +64,25 @@ static const int  local_hostname_default_len = 64;
  * Fonction de hachage adler32
  *
  * parameters :
- *   buf              <-- Buffer            
+ *   buf              <-- Buffer
  *   buflength        <-- Taille du buffer
  * return
- *   Cle de hachage                                              
+ *   Cle de hachage
  *----------------------------------------------------------------------------*/
 
 static uint32_t
  _adler32
 (
-const void *buf, 
+const void *buf,
 size_t buflength
 )
 {
 
   const uint8_t * buffer = (const uint8_t *)buf;
-  
+
   uint32_t s1 = 1;
   uint32_t s2 = 0;
-    
+
   for (size_t n = 0; n < buflength; n++) {
     s1 = (s1 + buffer[n]) % 65521;
     s2 = (s2 + s1) % 65521;
@@ -98,7 +98,7 @@ size_t buflength
  * parameters :
  *   comm             <-- Communicateur MPI global
  * return
- *   Rank                                
+ *   Rank
  *----------------------------------------------------------------------------*/
 
 static int
@@ -111,7 +111,7 @@ PDM_MPI_Comm comm
   char * hostname = NULL;
   size_t hostnameLength = 0;
 
-// TODO: Use MPI_Get_processor_name instead of PDM_io_get_hostname 
+// TODO: Use MPI_Get_processor_name instead of PDM_io_get_hostname
 //  int MPI_Get_processor_name(char *name, int *resultlen)
   PDM_io_get_hostname(&hostname, &hostnameLength);
 
@@ -140,13 +140,13 @@ PDM_MPI_Comm comm
   PDM_MPI_Comm_size(nodeComm, &nodeSize);
 
   /* Vérifie si 2 noms de noeud ne rentrent pas en collision :
-     Si c'est le cas, les processus de ces 2 noeuds sont 
+     Si c'est le cas, les processus de ces 2 noeuds sont
      regroupés dans un même communicateur */
 
   int nSend = (int) hostnameLength;
 
-  PDM_MPI_Allreduce((void *) &hostnameLength, (void *) &nSend, 1, 
-                PDM_MPI_INT, PDM_MPI_MAX, nodeComm); 
+  PDM_MPI_Allreduce((void *) &hostnameLength, (void *) &nSend, 1,
+                PDM_MPI_INT, PDM_MPI_MAX, nodeComm);
 
   nSend += 1; /* \0 */
 
@@ -174,22 +174,22 @@ PDM_MPI_Comm comm
     }
     neighbor += nSend;
   }
-  
+
   int isSameNode = (nodeRank != localNodeRank);
   int isSameNodeMax;
 
-  PDM_MPI_Allreduce((void *) &isSameNode, (void *) &isSameNodeMax, 1, 
-                PDM_MPI_INT, PDM_MPI_MAX, nodeComm); 
+  PDM_MPI_Allreduce((void *) &isSameNode, (void *) &isSameNodeMax, 1,
+                PDM_MPI_INT, PDM_MPI_MAX, nodeComm);
 
   if (isSameNodeMax == 1) {
-    
+
     /* Traitement des collisions */
 
     neighbor = recv;
     char *hostInComm = (char *) malloc(sizeof(char) * nSend * nodeSize);
     strncpy(hostInComm, recv, nSend);
     int nHostInComm = 1;
-    
+
     for (int j = 1; j < nodeSize; j++) {
       char *ptHostInComm = hostInComm;
       for (int i = 0; i < nHostInComm; i++) {
@@ -215,28 +215,28 @@ PDM_MPI_Comm comm
 
     PDM_MPI_Comm nodeComm2;
     PDM_MPI_Comm_split(nodeComm, tag, nodeRank, &nodeComm2);
-      
+
     int nodeRank2;
     PDM_MPI_Comm_rank(nodeComm2, &nodeRank2);
 
     nodeRank = nodeRank2;
-   
+
     PDM_MPI_Comm_free(&nodeComm2);
     free(hostInComm);
 
   }
-  
+
   // Clean up.
 
-  free(send); 
+  free(send);
   send = NULL;
 
-  free(recv); 
+  free(recv);
   recv = NULL;
 
   PDM_MPI_Comm_free(&nodeComm);
 
-  free(hostname); 
+  free(hostname);
   hostname = NULL;
 
   // Affichage
@@ -249,8 +249,8 @@ PDM_MPI_Comm comm
       masterNodeRank = 1;
 
 
-    PDM_MPI_Allreduce((void *) &masterNodeRank, (void *) &nbIORank, 1, 
-                  PDM_MPI_INT, PDM_MPI_SUM, comm); 
+    PDM_MPI_Allreduce((void *) &masterNodeRank, (void *) &nbIORank, 1,
+                  PDM_MPI_INT, PDM_MPI_SUM, comm);
 
     int commSize;
     PDM_MPI_Comm_size(comm, &commSize);
@@ -277,10 +277,10 @@ PDM_MPI_Comm comm
  *
  *----------------------------------------------------------------------------*/
 
-int 
+int
 PDM_io_mpi_node_rank
 (
-PDM_MPI_Comm comm 
+PDM_MPI_Comm comm
 )
 {
 
@@ -290,9 +290,9 @@ PDM_MPI_Comm comm
 
   char * hostname;
   size_t hostnameLength;
-  
+
   PDM_io_get_hostname(&hostname, &hostnameLength);
-  free(hostname); 
+  free(hostname);
   hostname = NULL;
 
   return nodeRank;
@@ -313,7 +313,7 @@ PDM_MPI_Comm comm
 void
 PDM_io_get_hostname
 (
-char  **hostname_ptr, 
+char  **hostname_ptr,
 size_t *hostname_length
 )
 {

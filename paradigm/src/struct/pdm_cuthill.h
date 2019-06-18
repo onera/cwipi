@@ -30,7 +30,7 @@ extern "C" {
 
 /**
  * \enum PDM_rcm_graph_t
- * \brief Type of graph for building RCM numbering 
+ * \brief Type of graph for building RCM numbering
  *
  */
 
@@ -50,11 +50,11 @@ typedef enum {
  * Determine the reverse Cut-Hill Mac-Kee numbering
  *
  * parameters:
- *   part       --> Mesh Partition 
- *   perm       <-- Array of prmutation 
+ *   part       --> Mesh Partition
+ *   perm       <-- Array of prmutation
  *---------------------------------------------------------------------------*/
 
-void 
+void
 PDM_cuthill_generate
 (
  _part_t           *ppart,
@@ -62,12 +62,12 @@ PDM_cuthill_generate
 );
 
 /*----------------------------------------------------------------------------
- * Compute the bandwidth of the current mesh 
+ * Compute the bandwidth of the current mesh
  *
  * parameters:
- *   part       --> Mesh Partition 
+ *   part       --> Mesh Partition
  *---------------------------------------------------------------------------*/
-int 
+int
 PDM_cuthill_checkbandwidth
 (
  _part_t           *ppart

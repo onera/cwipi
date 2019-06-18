@@ -35,12 +35,12 @@ extern "C" {
 
 /**
  *
- * \brief Create a structure that compute a global mean   
+ * \brief Create a structure that compute a global mean
  *
- * \param [in]   n_part       Number of local partitions 
+ * \param [in]   n_part       Number of local partitions
  * \param [in]   comm         PDM_MPI communicator
  *
- * \return     Identifier    
+ * \return     Identifier
  */
 
 int
@@ -61,7 +61,7 @@ PROCF (pdm_global_mean_create, PDM_GLOBAL_MEAN_CREATE)
 
 /**
  *
- * \brief Set absolute number   
+ * \brief Set absolute number
  *
  * \param [in]   id           Identifier
  * \param [in]   i_part       Current partition
@@ -91,11 +91,11 @@ PROCF (pdm_global_mean_set, PDM_GLOBAL_MEAN_SET)
 
 /**
  *
- * \brief Free a global point mean structure   
+ * \brief Free a global point mean structure
  *
  * \param [in]   id           Identifier
  *
- * \return     Identifier    
+ * \return     Identifier
  */
 
 void
@@ -113,7 +113,7 @@ PROCF (pdm_global_mean_free, PDM_GLOBAL_MEAN_FREE)
 
 /**
  *
- * \brief Set local field and it associated weight    
+ * \brief Set local field and it associated weight
  *
  * \param [in]   id                    Identifier
  * \param [in]   i_part                Current partition
@@ -129,7 +129,7 @@ PDM_global_mean_field_set
 (
  const int          id,
  const int          i_part,
- const int          stride, 
+ const int          stride,
  const double      *local_field,
  const double      *local_weight,
  double            *global_mean_field_ptr
@@ -140,7 +140,7 @@ PROCF (pdm_global_mean_field_set, PDM_GLOBAL_MEAN_FIELD_SET)
 (
  const int         *id,
  const int         *i_part,
- const int         *stride, 
+ const int         *stride,
  const double      *local_field,
  const double      *local_weight,
  double            *global_mean_field_ptr
@@ -149,7 +149,7 @@ PROCF (pdm_global_mean_field_set, PDM_GLOBAL_MEAN_FIELD_SET)
 
 /**
  *
- * \brief Compute the global average field   
+ * \brief Compute the global average field
  *
  * \param [in]   id           Identifier
  *

@@ -48,7 +48,7 @@ typedef struct _PDM_writer_ensight_case_t PDM_writer_ensight_case_t;
  *----------------------------------------------------------------------------*/
 
 PDM_writer_ensight_case_t *
-PDM_writer_ensight_case_cree 
+PDM_writer_ensight_case_cree
 (
 const char                   *const name,
 const int                           restart,
@@ -118,7 +118,7 @@ const char         *name
 char *
 PDM_writer_ensight_case_var_file_name_get
 (
-PDM_writer_ensight_case_t  *this_case, 
+PDM_writer_ensight_case_t  *this_case,
 const char* name
 );
 
@@ -172,7 +172,7 @@ const PDM_writer_var_loc_t  location
 void
 PDM_writer_ensight_case_time_step_add
 (
-PDM_writer_ensight_case_t  *this_case, 
+PDM_writer_ensight_case_t  *this_case,
 const double time_value
 );
 

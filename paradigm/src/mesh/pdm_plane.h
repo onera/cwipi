@@ -32,7 +32,7 @@ extern "C" {
  *============================================================================*/
 
 /*=============================================================================
- * Public function prototypes 
+ * Public function prototypes
  *============================================================================*/
 
 
@@ -58,7 +58,7 @@ PDM_plane_normal
  * \brief Performs plane projection
  *
  * \param [in]   x       Point to project
- * \param [in]   origin  Plane origin     
+ * \param [in]   origin  Plane origin
  * \param [in]   n       Plane normal
  * \param [out]  cp      Projected point
  *
@@ -78,7 +78,7 @@ const double n[3],
  * \brief Performs plane projection
  *
  * \param [in]   x       Point to project
- * \param [in]   pt      Point inside the plane     
+ * \param [in]   pt      Point inside the plane
  * \param [in]   n       Plane normal
  * \param [out]  cp      Projected point
  *

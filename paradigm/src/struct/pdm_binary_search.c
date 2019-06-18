@@ -49,7 +49,7 @@ extern "C" {
  * \param [in]   array        Array where to search
  * \param [in]   lArray       Array length
  *
- * \return       Index where element is stored    
+ * \return       Index where element is stored
  */
 
 int
@@ -61,7 +61,7 @@ PDM_binary_search_gap_long
 )
 {
   int left  = 0;
-  int right = lArray - 1; 
+  int right = lArray - 1;
   int ind   = (left + right) / 2;
 
   while ((right - left) > 1) {
@@ -94,7 +94,7 @@ PDM_binary_search_gap_long
  * \param [in]   array        Array where to search
  * \param [in]   lArray       Array length
  *
- * \return       Index where element is stored    
+ * \return       Index where element is stored
  */
 
 int
@@ -106,7 +106,7 @@ PDM_binary_search_long
 )
 {
   int left  = 0;
-  int right = lArray - 1; 
+  int right = lArray - 1;
   int ind   = (left + right) / 2;
 
   while ((right - left) > 1) {
@@ -142,7 +142,7 @@ PDM_binary_search_long
  * \param [in]   array        Array where to search
  * \param [in]   lArray       Array length
  *
- * \return       Index where element is stored    
+ * \return       Index where element is stored
  */
 
 int
@@ -154,7 +154,7 @@ PDM_binary_search_gap_int
 )
 {
   int left  = 0;
-  int right = lArray - 1; 
+  int right = lArray - 1;
   int ind   = (left + right) / 2;
 
   while ((right - left) > 1) {
@@ -187,11 +187,11 @@ PDM_binary_search_gap_int
  * \param [in]   array        Array where to search
  * \param [in]   lArray       Array length
  *
- * \return       Index where element is stored    
+ * \return       Index where element is stored
  */
 
 int
-PDM_binary_search_int 
+PDM_binary_search_int
 (
  const int          elt,
  const int         *array,
@@ -199,7 +199,7 @@ PDM_binary_search_int
 )
 {
   int left  = 0;
-  int right = lArray - 1; 
+  int right = lArray - 1;
   int ind   = (left + right) / 2;
 
   while ((right - left) > 1) {
@@ -235,7 +235,7 @@ PDM_binary_search_int
  * \param [in]   array        Array where to search
  * \param [in]   lArray       Array length
  *
- * \return       Index where element is stored    
+ * \return       Index where element is stored
  */
 
 int
@@ -247,7 +247,7 @@ PDM_binary_search_gap_double
 )
 {
   int left  = 0;
-  int right = lArray - 1; 
+  int right = lArray - 1;
   int ind   = (left + right) / 2;
 
   while ((right - left) > 1) {

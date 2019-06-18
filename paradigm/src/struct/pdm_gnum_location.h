@@ -23,7 +23,7 @@
 
 /*============================================================================
  * Look for the location of a global numbering element. The location has three
- * propertie : process, partition, number of element in this partition. 
+ * propertie : process, partition, number of element in this partition.
  * A global numbering can be located in multiple partitions
  *============================================================================*/
 
@@ -64,10 +64,10 @@ extern "C" {
  * \brief Build a global numbering location structure
  *
  * \param [in]   n_part_in      Number of local partitions for elements
- * \param [in]   n_part_out     Number of local partitions for requested locations 
+ * \param [in]   n_part_out     Number of local partitions for requested locations
  * \param [in]   comm           PDM_MPI communicator
  *
- * \return     Identifier    
+ * \return     Identifier
  */
 
 int
@@ -152,8 +152,8 @@ PDM_gnum_location_compute
  * \param [in]    id             Identifier
  * \param [in]    i_part_out     Current partition
  * \param [out]   location_idx   Index in the location arrays (size = 3 * \ref n_elts + 1)
- * \param [out]   location       Locations of each element 
- *                                (Three informations : process, partition, element)         
+ * \param [out]   location       Locations of each element
+ *                                (Three informations : process, partition, element)
  *
  */
 

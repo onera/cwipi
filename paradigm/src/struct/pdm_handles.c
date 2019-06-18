@@ -50,14 +50,14 @@ extern "C" {
 
 /**
  * \struct _pdm_gnum_t
- * \brief  Define a global numberring 
- * 
+ * \brief  Define a global numberring
+ *
  */
 
 struct _PDM_Handles_t {
 
   int *idx;            /*!< list of Index */
-  int *idx_inv;        /*!< Index -> indice (1 to n_handles) */ 
+  int *idx_inv;        /*!< Index -> indice (1 to n_handles) */
   const void **array;  /*!< Storage array */
   int s_array;   /*!< Size of array */
   int n_handles; /*!< Number of stored handles */
@@ -87,13 +87,13 @@ struct _PDM_Handles_t {
  */
 
 PDM_Handles_t *
-PDM_Handles_create 
+PDM_Handles_create
 (
- const int init_size 
+ const int init_size
 )
 {
   PDM_Handles_t *new =  malloc (sizeof(PDM_Handles_t));
-  
+
   new->s_array = init_size;
   new->n_handles = 0;
   new->array = malloc(sizeof(void*) * init_size);
@@ -105,7 +105,7 @@ PDM_Handles_create
     new->idx[i] = -1;
     new->idx_inv[i] = -1;
   }
-  
+
   return new;
 }
 
@@ -119,7 +119,7 @@ PDM_Handles_create
  */
 
 PDM_Handles_t *
-PDM_Handles_free 
+PDM_Handles_free
 (
  PDM_Handles_t *handles
 )
@@ -143,7 +143,7 @@ PDM_Handles_free
  */
 
 int
-PDM_Handles_store 
+PDM_Handles_store
 (
  PDM_Handles_t *handles,
  const void *handle_ptr
@@ -164,7 +164,7 @@ PDM_Handles_store
   }
 
   int idx = 0;
-  while (handles->array[idx] != NULL) 
+  while (handles->array[idx] != NULL)
     idx++;
 
   handles->array[idx] = handle_ptr;
@@ -187,7 +187,7 @@ PDM_Handles_store
  */
 
 const void *
-PDM_Handles_get 
+PDM_Handles_get
 (
  PDM_Handles_t *handles,
   const int handle_idx
@@ -210,7 +210,7 @@ PDM_Handles_get
  */
 
 const int *
-PDM_Handles_idx_get 
+PDM_Handles_idx_get
 (
  PDM_Handles_t *handles
 )
@@ -230,7 +230,7 @@ PDM_Handles_idx_get
  */
 
 void
-PDM_Handles_handle_free 
+PDM_Handles_handle_free
 (
  PDM_Handles_t *handles,
  const int handle_idx,
@@ -255,7 +255,7 @@ PDM_Handles_handle_free
     handles->idx[i-1] = handles->idx[i];
     handles->idx_inv[handles->idx[i-1]] = i-1;
   }
-  
+
   handles->n_handles += -1;
 
 }
@@ -270,7 +270,7 @@ PDM_Handles_handle_free
  */
 
 int
-PDM_Handles_n_get 
+PDM_Handles_n_get
 (
  PDM_Handles_t *handles
 )

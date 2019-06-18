@@ -30,7 +30,7 @@ extern "C" {
 
 /**
  * \struct PDM_Mesh_nodal_som_t
- * \brief  Vertices of a mesh partition 
+ * \brief  Vertices of a mesh partition
  *
  */
 
@@ -48,7 +48,7 @@ struct PDM_Mesh_nodal_vtx_t {
 
 /**
  * \struct PDM_Mesh_nodal_block_std_t
- * \brief  Standard geometric block 
+ * \brief  Standard geometric block
  *
  */
 
@@ -63,13 +63,13 @@ typedef struct PDM_Mesh_nodal_block_std_t {
   PDM_g_num_t              **_numabs;       /*!< Global numbering (Memory mapping) */
   PDM_g_num_t              **numabs_int;    /*!< Global numbering inside each block */
   PDM_l_num_t              **_parent_num;       /*!< Parent numbering or NULL */
-  
+
 } PDM_Mesh_nodal_block_std_t;
 
 
 /**
  * \struct PDM_Mesh_nodal_block_poly2d_t
- * \brief  Polygon geometric block 
+ * \brief  Polygon geometric block
  *
  */
 
@@ -90,7 +90,7 @@ typedef struct PDM_Mesh_nodal_block_poly2d_t {
 
 /**
  * \struct PDM_Mesh_nodal_block_poly3d_t
- * \brief  Polyhedron geometric block 
+ * \brief  Polyhedron geometric block
  *
  */
 
@@ -102,7 +102,7 @@ typedef struct PDM_Mesh_nodal_block_poly3d_t{
   PDM_l_num_t            *n_face;       /*!< Number of face of each polyhedron of each partition */
   PDM_l_num_t           **_facvtx_idx;  /*!< Index of faces connectivity of each partition (Memory mapping) */
 
-  PDM_l_num_t           **_facvtx;      /*!< Faces connectivity of each partition (Memory mapping) */             
+  PDM_l_num_t           **_facvtx;      /*!< Faces connectivity of each partition (Memory mapping) */
   PDM_l_num_t           **_cellfac_idx; /*!< Index of cell->face connectivity (Memory mapping) */
 
   PDM_l_num_t           **_cellfac;     /*!< cell->face connectivity (Memory mapping) */
@@ -151,11 +151,11 @@ typedef struct PDM_Mesh_nodal_prepa_blocks_t {
   PDM_l_num_t  **face_vtx_nb;     /*!< Number of vertex per face */
   PDM_l_num_t  **face_vtx;        /*!< Face vertex connectivity */
   PDM_l_num_t  *n_cell;           /*!< Number of cells */
-  PDM_l_num_t  *n_face;           /*!< Number of faces */ 
+  PDM_l_num_t  *n_face;           /*!< Number of faces */
   PDM_l_num_t  **cell_face_idx;   /*!< Index of cell face connectivity */
   PDM_l_num_t  **cell_face_nb;    /*!< Number of faces per cell */
-  PDM_l_num_t  **cell_face;       /*!< Cell face connectivity */  
-  PDM_g_num_t  **numabs;          /*!< Global numbering per cell per partition */ 
+  PDM_l_num_t  **cell_face;       /*!< Cell face connectivity */
+  PDM_g_num_t  **numabs;          /*!< Global numbering per cell per partition */
 
 } PDM_Mesh_nodal_prepa_blocks_t;
 

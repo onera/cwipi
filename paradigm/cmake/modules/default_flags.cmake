@@ -21,7 +21,7 @@ if (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
   set (CMAKE_Fortran_FLAGS_PROFILING       "-O3 -pg")
   set (CMAKE_Fortran_FLAGS_RELWITHDEBINFO  "-O3 -g")
   set (CMAKE_Fortran_FLAGS_MINSIZEREL      "-O2 -g")
-    
+
   set (FORTRAN_LIBRARIES                   )
   set (FORTRAN_LIBRARIES_FLAG              )
 
@@ -53,19 +53,19 @@ elseif (CMAKE_Fortran_COMPILER_ID MATCHES "XL")
   set (CMAKE_Fortran_FLAGS_PROFILING       "${CMAKE_Fortran_FLAGS_RELEASE} -p")
   set (CMAKE_Fortran_FLAGS_RELWITHDEBINFO  "-O3 -qhot -g")
   set (CMAKE_Fortran_FLAGS_MINSIZEREL      "-O3")
-  
+
   set(FORTRAN_LIBRARIES xl xlf90_r xlsmp xlopt ${FORTRAN_LIBRARIES})
 
   if (${HOSTNAME} STREQUAL "tanit")
     link_directories(/opt/ibmcmp/xlsmp/3.1/lib64 /opt/ibmcmp/vacpp/12.1/lib64 /opt/ibmcmp/xlf/14.1/lib64)
-  endif()   
+  endif()
 
 elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "PGI")
 
   # pgi
   # ---
 
-  # Ajout des flags communs  
+  # Ajout des flags communs
 
   set (CMAKE_Fortran_FLAGS "-Mpreprocess -noswitcherror")
 

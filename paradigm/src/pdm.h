@@ -9,13 +9,13 @@
  * Macro definitions
  *============================================================================*/
 
-#if !defined (__hpux) && !defined (_AIX) 
+#if !defined (__hpux) && !defined (_AIX)
 #define PROCF(x, y) x##_
 #else
 #define PROCF(x, y) x
 #endif
 
-#if defined (__uxpv__) 
+#if defined (__uxpv__)
 #define ARGF_SUPP_CHAINE
 #else
 #define ARGF_SUPP_CHAINE , ...
@@ -45,7 +45,7 @@ extern "C" {
 
 /**
  * \enum PDM_g_num_t
- * \brief Long int in pdm 
+ * \brief Long int in pdm
  *
  */
 
@@ -65,7 +65,7 @@ typedef  double PDM_real_t;
 
 /**
  * \enum PDM_l_num_t
- * \brief Long int in pdm 
+ * \brief Long int in pdm
  *
  */
 
@@ -96,7 +96,7 @@ typedef enum {
 typedef enum {
 
   PDM_STRIDE_CST = 0,  /*!< Constant stride element */
-  PDM_STRIDE_VAR = 1   /*!< Variable stride element */               
+  PDM_STRIDE_VAR = 1   /*!< Variable stride element */
 
 } PDM_stride_t;
 
@@ -108,7 +108,7 @@ typedef enum {
 
 typedef enum {
 
-  PDM_FALSE = 0,   /*!< False */               
+  PDM_FALSE = 0,   /*!< False */
   PDM_TRUE  = 1  /*!< True  */
 
 } PDM_bool_t;
@@ -145,18 +145,18 @@ typedef enum {
 
 
 /*=============================================================================
- * Public function prototypes 
+ * Public function prototypes
  *============================================================================*/
 
 
 /**
  * \brief Finalize PDM
- * 
- * This function frees all allocated global variables 
- * 
+ *
+ * This function frees all allocated global variables
+ *
  */
 
-void 
+void
 PDM_Finalize
 (
 void

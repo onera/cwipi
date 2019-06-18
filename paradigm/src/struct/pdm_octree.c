@@ -62,7 +62,7 @@ extern "C" {
 /**
  * \struct _box_tree_stats_t
  * \brief  Statistic about bbtre
- * 
+ *
  *  _box_tree_stats_t defines statistics about bounding box tree
  *
  */
@@ -89,7 +89,7 @@ typedef struct {
 ///**
 // * \struct _octant_t
 // * \brief  Define an octant
-// * 
+// *
 // */
 //
 //typedef struct  {
@@ -101,28 +101,29 @@ typedef struct {
 //  int  idx[9];         /*!< Start index of point list for each octant */
 //  int  n_points;       /*!< Number of points in octant*/
 //  double extents[6];   /*!< Extents of the node */
-//  
+//
 //} _octant_t;
 
 
 /**
  * \struct _octree_t
  * \brief  Define an octree
- * 
+ *
  */
 
 typedef struct  {
   int    octree_seq_id;             /*!< Identifier of the associated octree seq */
-//  double  extents[6];            /*!< Extents of current process */ 
+//  double  extents[6];            /*!< Extents of current process */
 //  double *extents_proc;          /*!< Extents of processes */
 //  int    depth_max;              /*!< Maximum depth of the three */
   PDM_MPI_Comm comm;             /*!< MPI communicator */
+  PDM_MPI_Comm rankComm;             /*!< MPI communicator */
 
   int     maxBoxesLeafShared; /*!<  Max number of boxes in a leaf for coarse shared BBTree */
 
   int     maxTreeDepthShared; /*!< Max tree depth for coarse shared BBTree */
 
-  float   maxBoxRatioShared;  /*!< Max ratio for local BBTree (nConnectedBoxe < ratio * nBoxes) 
+  float   maxBoxRatioShared;  /*!< Max ratio for local BBTree (nConnectedBoxe < ratio * nBoxes)
                                 for coarse shared BBTree */
 
   PDM_box_set_t  *rankBoxes;  /*!< Rank Boxes */
@@ -136,7 +137,7 @@ typedef struct  {
   int          n_point_cloud; /*!< Number of point cloud */
   int            *n_points;   /*!< Number of points */
   PDM_g_num_t   **g_num;      /*!< Point global number */
-  
+
 //  int points_in_leaf_max;        /*!< Maximum number of points in a leaf */
 //  double tolerance;              /*!< Relative geometric tolerance */
 //  int   n_nodes;                 /*!< Current number of nodes in octree */
@@ -178,7 +179,7 @@ _get_from_id
 )
 {
   _octree_t *octree = (_octree_t *) PDM_Handles_get (_octrees, id);
-    
+
   if (octree == NULL) {
     PDM_error(__FILE__, __LINE__, 0, "PDM_octree error : Bad identifier\n");
   }
@@ -266,27 +267,27 @@ const PDM_box_tree_t  *bt
 
 /**
  *
- * \brief Create an octree structure   
+ * \brief Create an octree structure
  *
- * \param [in]   n_point_cloud      Number of point cloud 
+ * \param [in]   n_point_cloud      Number of point cloud
  * \param [in]   depth_max          Maximum depth
  * \param [in]   points_in_leaf_max Maximum points in a leaf
  * \param [in]   tolerance          Relative geometric tolerance
  * \param [in]   comm               MPI communicator
  *
- * \return     Identifier    
+ * \return     Identifier
  */
 
 int
 PDM_octree_create
 (
  const int n_point_cloud,
- const int depth_max, 
+ const int depth_max,
  const int points_in_leaf_max,
- const double tolerance, 
+ const double tolerance,
  const PDM_MPI_Comm comm
 )
-{ 
+{
   if (_octrees == NULL) {
     _octrees = PDM_Handles_create (4);
   }
@@ -294,23 +295,24 @@ PDM_octree_create
   _octree_t *octree = (_octree_t *) malloc(sizeof(_octree_t));
 
   int id = PDM_Handles_store (_octrees, octree);
-  
-  octree->octree_seq_id = PDM_octree_seq_create (n_point_cloud, depth_max, 
+
+  octree->octree_seq_id = PDM_octree_seq_create (n_point_cloud, depth_max,
                                                  points_in_leaf_max, tolerance);
   octree->comm = comm;
-  
+  octree->rankComm = PDM_MPI_COMM_NULL;
+
   //octree->extents_proc = NULL;
   octree->n_point_cloud = n_point_cloud; /*!< Number of point cloud */
 
   octree->n_points = (int *) malloc (sizeof(int) * n_point_cloud);
 
   octree->g_num = (PDM_g_num_t **) malloc (sizeof(PDM_g_num_t *) * n_point_cloud);
-  
+
   for (int i = 0; i < n_point_cloud; i++) {
     octree->n_points[i] = 0;
-    octree->g_num[i] = NULL;    
+    octree->g_num[i] = NULL;
   }
-  
+
   octree->rankBoxes = NULL;  /*!< Rank Boxes */
   octree->usedRank = NULL;  /*!< Rank Boxes */
   octree->nUsedRank = 0;  /*!< Rank Boxes */
@@ -321,7 +323,7 @@ PDM_octree_create
   octree->maxBoxRatioShared = 5;
 
   _init_bt_statistics (&(octree->btsShared));
-  
+
   return id;
 }
 
@@ -329,12 +331,12 @@ PDM_octree_create
 
 /**
  *
- * \brief Create an octree structure from a sequential octree   
+ * \brief Create an octree structure from a sequential octree
  *
  * \param [in]   octree_seq_id      Sequential octree identifier
  * \param [in]   comm               MPI communicator
  *
- * \return     Identifier    
+ * \return     Identifier
  */
 
 int
@@ -355,10 +357,10 @@ const PDM_MPI_Comm comm
   octree->octree_seq_id = octree_seq_id;
 
   octree->comm = comm;
-  
+
   //octree->extents_proc = NULL;
-  
-  return id;  
+
+  return id;
 }
 
 
@@ -366,19 +368,19 @@ const PDM_MPI_Comm comm
 //PROCF (pdm_octree_create, PDM_OCTREE_CREATE)
 //(
 // const int *n_point_cloud,
-// const int *depth_max, 
+// const int *depth_max,
 // const int *points_in_leaf_max,
-// const double *tolerance, 
+// const double *tolerance,
 // const PDM_MPI_Fint *fcomm,
 // const int *id
 //);
 
 /**
  *
- * \brief Free an octree structure   
+ * \brief Free an octree structure
  *
- * \param [in]   id                 Identifier 
- *  
+ * \param [in]   id                 Identifier
+ *
  */
 
 void
@@ -390,24 +392,28 @@ PDM_octree_free
   _octree_t *octree = _get_from_id (id);
 
   //free (octree->extents_proc);
-  
+
   free (octree->n_points);
-  free (octree->g_num); 
-  free (octree->usedRank); 
+  free (octree->g_num);
+  free (octree->usedRank);
   free (octree->usedRankExtents);
 
   PDM_box_set_destroy(&(octree->rankBoxes));
-  
+
   PDM_box_tree_destroy(&(octree->btShared));
-  
+
   PDM_octree_seq_free (octree->octree_seq_id);
-  
+
+  if (octree->rankComm != PDM_MPI_COMM_NULL) {
+    PDM_MPI_Comm_free (&(octree->rankComm));
+  }
+
   free (octree);
-  
+
   PDM_Handles_handle_free (_octrees, id, PDM_FALSE);
 
   const int n_octrees = PDM_Handles_n_get (_octrees);
-  
+
   if (n_octrees == 0) {
     _octrees = PDM_Handles_free (_octrees);
   }
@@ -423,14 +429,14 @@ PDM_octree_free
 
 /**
  *
- * \brief Set a point cloud  
+ * \brief Set a point cloud
  *
- * \param [in]   id                 Identifier 
- * \param [in]   i_point_cloud      Number of point cloud 
+ * \param [in]   id                 Identifier
+ * \param [in]   i_point_cloud      Number of point cloud
  * \param [in]   n_points           Maximum depth
- * \param [in]   coords             Point coordinates 
- * \param [in]   g_num              Point global number or NULL 
- * 
+ * \param [in]   coords             Point coordinates
+ * \param [in]   g_num              Point global number or NULL
+ *
  */
 
 
@@ -440,8 +446,8 @@ PDM_octree_point_cloud_set
  const int          id,
  const int          i_point_cloud,
  const int          n_points,
- const double      *coords, 
- const PDM_g_num_t *g_num 
+ const double      *coords,
+ const PDM_g_num_t *g_num
 )
 {
   _octree_t *octree = _get_from_id (id);
@@ -449,7 +455,7 @@ PDM_octree_point_cloud_set
   const int idebug = 0;
 
   if (idebug) {
-  
+
     printf ("*** PDM_octree_point_cloud_set d step 1  \n");
     for (int i = 0; i < n_points; i++) {
       printf ("     %d (%12.5e %12.5e %12.5e) : \n", i,
@@ -457,10 +463,10 @@ PDM_octree_point_cloud_set
     }
     printf ("*** PDM_octree_point_cloud_set f step 1 \n");
   }
-    
+
   octree->n_points[i_point_cloud] = n_points;
   octree->g_num[i_point_cloud] = (PDM_g_num_t *) g_num;
-  PDM_octree_seq_point_cloud_set (octree->octree_seq_id, i_point_cloud, 
+  PDM_octree_seq_point_cloud_set (octree->octree_seq_id, i_point_cloud,
                                   n_points, coords);
 
 }
@@ -471,15 +477,15 @@ PDM_octree_point_cloud_set
 // const int          *id
 // const int          *i_point_cloud,
 // const int          *n_points,
-// const double       *coords 
+// const double       *coords
 //);
 
 
 /**
  *
- * \brief Build octree  
+ * \brief Build octree
  *
- * \param [in]   id                 Identifier 
+ * \param [in]   id                 Identifier
  *
  */
 
@@ -489,9 +495,9 @@ PDM_octree_build
  const int          id
 )
 {
-  
+
   _octree_t *octree = _get_from_id (id);
-  
+
   const int nInfoLocation = 3;
   const int sExtents = 3 * 2;
 
@@ -499,16 +505,16 @@ PDM_octree_build
   PDM_MPI_Comm_rank (octree->comm, &myRank);
   int lComm;
   PDM_MPI_Comm_size (octree->comm, &lComm);
-  
+
   PDM_octree_seq_build (octree->octree_seq_id);
-  
-  double * extents = PDM_octree_seq_extents_get (octree->octree_seq_id); 
-  
+
+  double * extents = PDM_octree_seq_extents_get (octree->octree_seq_id);
+
   int n_proc;
   PDM_MPI_Comm_size (octree->comm, &n_proc);
-  
+
   double *extents_proc = malloc (sizeof(double) * n_proc * 6);
-  
+
   PDM_MPI_Allgather (extents, 6, PDM_MPI_DOUBLE,
                      extents_proc, 6, PDM_MPI_DOUBLE,
                      octree->comm);
@@ -516,10 +522,10 @@ PDM_octree_build
   int root_id = PDM_octree_seq_root_node_id_get (octree->octree_seq_id);
 
   int n_pts = PDM_octree_seq_n_points_get(octree->octree_seq_id, root_id);
-  
-  int *n_pts_proc = (int *) malloc (sizeof(int) * lComm); 
-  PDM_MPI_Allgather (&n_pts, 1, PDM_MPI_INT, 
-                     n_pts_proc, 1, PDM_MPI_INT, 
+
+  int *n_pts_proc = (int *) malloc (sizeof(int) * lComm);
+  PDM_MPI_Allgather (&n_pts, 1, PDM_MPI_INT,
+                     n_pts_proc, 1, PDM_MPI_INT,
                      octree->comm);
 
   int nUsedRank = 0;
@@ -542,7 +548,7 @@ PDM_octree_build
     if (n_pts_proc[i] > 0) {
       gNumProc[idx] = idx+1;
       numProc[idx] = i;
-      
+
       for (int j = 0; j < sExtents; j++) {
         extents_proc[idx*sExtents + j] = extents_proc[i*sExtents + j];
       }
@@ -551,7 +557,7 @@ PDM_octree_build
   }
 
   free (n_pts_proc);
-  
+
   extents_proc = (double *) realloc (extents_proc,
                                    sizeof(double) * sExtents * nUsedRank);
 
@@ -560,20 +566,20 @@ PDM_octree_build
     initLocationProc[i] = 0;
   }
 
-  PDM_MPI_Comm rankComm;
-  PDM_MPI_Comm_split(octree->comm, myRank, 0, &rankComm);
+  //PDM_MPI_Comm rankComm;
+  PDM_MPI_Comm_split(octree->comm, myRank, 0, &(octree->rankComm));
 
   octree->rankBoxes = PDM_box_set_create(3,
-                                         1, 
-                                         0, 
+                                         1,
+                                         0,
                                          nUsedRank,
                                          gNumProc,
                                          extents_proc,
                                          1,
                                          &nUsedRank,
                                          initLocationProc,
-                                         rankComm);
-  
+                                         octree->rankComm);
+
   octree->btShared = PDM_box_tree_create (octree->maxTreeDepthShared,
                                           octree->maxBoxesLeafShared,
                                           octree->maxBoxRatioShared);
@@ -590,7 +596,7 @@ PDM_octree_build
   free (initLocationProc);
 
   octree->usedRankExtents = extents_proc;
-  
+
 }
 
 //void
@@ -601,12 +607,12 @@ PDM_octree_build
 
 /**
  *
- * \brief Get root node id  
+ * \brief Get root node id
  *
- * \param [in]   id                 Identifier 
+ * \param [in]   id                 Identifier
  *
- * \return     Root node identifier (-1 if octree is not built)   
- * 
+ * \return     Root node identifier (-1 if octree is not built)
+ *
  */
 
 int
@@ -631,19 +637,19 @@ PDM_octree_root_node_id_get
 
 /**
  *
- * \brief Get ancestor node id  
+ * \brief Get ancestor node id
  *
- * \param [in]   id                 Identifier 
- * \param [in]   node_id            Node identifier 
+ * \param [in]   id                 Identifier
+ * \param [in]   node_id            Node identifier
  *
- * \return     Ancestor node identifier    
- * 
+ * \return     Ancestor node identifier
+ *
  */
 
 int
 PDM_octree_ancestor_node_id_get
 (
- const int          id, 
+ const int          id,
  const int          node_id
 )
 {
@@ -656,20 +662,20 @@ PDM_octree_ancestor_node_id_get
 //PROCF (pdm_octree_ancestor_node_id_get, PDM_OCTREE_ANCESTOR_NODE_ID_GET)
 //(
 // const int          *id,
-// const int          *node_id, 
+// const int          *node_id,
 // int                *ancestor_node_id
 //);
 
 
 /**
  *
- * \brief Get node extents  
+ * \brief Get node extents
  *
- * \param [in]   id                 Identifier 
- * \param [in]   node_id            Node identifier 
+ * \param [in]   id                 Identifier
+ * \param [in]   node_id            Node identifier
  *
- * \return     Extents    
- * 
+ * \return     Extents
+ *
  */
 
 const double *
@@ -680,21 +686,21 @@ PDM_octree_node_extents_get
 )
 {
   _octree_t *octree = _get_from_id (id);
-  
+
   return PDM_octree_seq_node_extents_get (octree->octree_seq_id, node_id);
 }
 
 
 /**
  *
- * \brief Get children of a node 
+ * \brief Get children of a node
  *
- * \param [in]   id                 Identifier 
- * \param [in]   node_id            Node identifier 
- * \param [in]   child              Children 
+ * \param [in]   id                 Identifier
+ * \param [in]   node_id            Node identifier
+ * \param [in]   child              Children
  *
- * \return     Children node id    
- * 
+ * \return     Children node id
+ *
  */
 
 int
@@ -714,14 +720,14 @@ PDM_octree_children_get
 
 /**
  *
- * \brief Get Neighbor of node 
+ * \brief Get Neighbor of node
  *
- * \param [in]   id                 Identifier 
- * \param [in]   node_id            Node identifier 
- * \param [in]   direction          Neighbor direction 
+ * \param [in]   id                 Identifier
+ * \param [in]   node_id            Node identifier
+ * \param [in]   direction          Neighbor direction
  *
- * \return     Neighbor node id (-1 if no neighbor)    
- * 
+ * \return     Neighbor node id (-1 if no neighbor)
+ *
  */
 
 int
@@ -731,22 +737,22 @@ PDM_octree_neighbor_get
  const int                    node_id,
  const PDM_octree_direction_t direction
 )
-{  
+{
   _octree_t *octree = _get_from_id (id);
-  
+
   return PDM_octree_seq_neighbor_get (octree->octree_seq_id, node_id,
                                       (PDM_octree_seq_direction_t) direction);
 }
 
 /**
  *
- * \brief Get the number of point inside a node 
+ * \brief Get the number of point inside a node
  *
- * \param [in]   id                 Identifier 
- * \param [in]   node_id            Node identifier 
+ * \param [in]   id                 Identifier
+ * \param [in]   node_id            Node identifier
  *
- * \return   Number of points    
- * 
+ * \return   Number of points
+ *
  */
 
 int
@@ -757,22 +763,22 @@ PDM_octree_n_points_get
 )
 {
   _octree_t *octree = _get_from_id (id);
-  
-  return PDM_octree_seq_n_points_get (octree->octree_seq_id, node_id);       
+
+  return PDM_octree_seq_n_points_get (octree->octree_seq_id, node_id);
 
 }
 
 
 /**
  *
- * \brief Get indexes of points inside a node 
+ * \brief Get indexes of points inside a node
  *
- * \param [in]   id                 Identifier 
- * \param [in]   node_id            Node identifier 
- * \param [out]  point_clouds_id    Point clouds number 
- *                                  (size = Number of points inside the node) 
- * \param [out]  point_indexes      Point indexes 
- *                                  (size = Number of points inside the node) 
+ * \param [in]   id                 Identifier
+ * \param [in]   node_id            Node identifier
+ * \param [out]  point_clouds_id    Point clouds number
+ *                                  (size = Number of points inside the node)
+ * \param [out]  point_indexes      Point indexes
+ *                                  (size = Number of points inside the node)
  *
  */
 
@@ -781,8 +787,8 @@ PDM_octree_points_get
 (
  const int                id,
  const int                node_id,
- int                    **point_clouds_id, 
- int                    **point_indexes 
+ int                    **point_clouds_id,
+ int                    **point_indexes
 )
 {
   _octree_t *octree = _get_from_id (id);
@@ -794,13 +800,13 @@ PDM_octree_points_get
 
 /**
  *
- * \brief Is it a leaf 
+ * \brief Is it a leaf
  *
- * \param [in]   id                 Identifier 
- * \param [in]   node_id            Node identifier 
+ * \param [in]   id                 Identifier
+ * \param [in]   node_id            Node identifier
  *
- * \return   1 or 0    
- * 
+ * \return   1 or 0
+ *
  */
 
 int
@@ -818,12 +824,12 @@ PDM_octree_leaf_is
 
 /**
  *
- * \brief Get extents  
+ * \brief Get extents
  *
- * \param [in]   id                 Identifier 
+ * \param [in]   id                 Identifier
  *
- * \return     Extents    
- * 
+ * \return     Extents
+ *
  */
 
 double *
@@ -833,7 +839,7 @@ PDM_octree_extents_get
 )
 {
   _octree_t *octree = _get_from_id (id);
-  
+
   return PDM_octree_seq_extents_get (octree->octree_seq_id);
 
 }
@@ -862,9 +868,9 @@ PDM_octree_processes_extents_get
 
   *extents = octree->usedRankExtents;
   *used_ranks = octree->usedRank;
-  
-  return octree->nUsedRank;          
-          
+
+  return octree->nUsedRank;
+
 }
 
 
@@ -879,7 +885,7 @@ PDM_octree_processes_extents_get
  * \param [in]   pts_g_num              Point global numbers
  * \param [out]  closest_octree_pt_id   Closest point in octree global number
  * \param [out]  closest_octree_pt_dist Closest point in octree distance
- *  
+ *
  */
 
 void
@@ -894,9 +900,9 @@ double      *closest_octree_pt_dist2
 )
 {
   const int idebug = 0;
-  
+
   _octree_t *octree = _get_from_id (id);
- 
+
   int myRank;
   PDM_MPI_Comm_rank (octree->comm, &myRank);
   int lComm;
@@ -906,18 +912,18 @@ double      *closest_octree_pt_dist2
     closest_octree_pt_g_num[i] = -1;
     closest_octree_pt_dist2[i] = HUGE_VAL;
   }
-  
+
   /*******************************
-   * 
+   *
    * Look for the closest process
-   * 
+   *
    *******************************/
 
   int *rank_id = (int *) malloc (sizeof(int) * n_pts);
   double *rank_min_max_dist = (double *) malloc (sizeof(double) * n_pts);
-  
+
   PDM_box_tree_min_dist_max_box (octree->btShared,
-                                 n_pts,        
+                                 n_pts,
                                  pts,
                                  rank_id,
                                  rank_min_max_dist);
@@ -935,55 +941,55 @@ double      *closest_octree_pt_dist2
       //      if (i == ptprint)
       printf ("     %d (%12.5e %12.5e %12.5e) : %d %12.5e\n", i,
               pts[3*i], pts[3*i+1], pts[3*i+2],
-              rank_id[i] ,rank_min_max_dist[i]); 
+              rank_id[i] ,rank_min_max_dist[i]);
     }
     printf ("*** PDM_octree_closest_point f step 1 :"
             " the closest process \n");
   }
-  
+
   /***********************************
    *
    * Send points to closest processes
    *
-   ***********************************/ 
+   ***********************************/
 
   int *n_send_pts = (int *) malloc (sizeof(int) * lComm);
-  
+
   for (int i = 0; i < lComm; i++) {
-    n_send_pts[i] = 0;  
+    n_send_pts[i] = 0;
   }
 
   for (int i = 0; i < n_pts; i++) {
-    n_send_pts[rank_id[i]]++;  
+    n_send_pts[rank_id[i]]++;
   }
-  
+
   int *n_recv_pts = (int *) malloc (sizeof(int) * lComm);
 
-  PDM_MPI_Alltoall (n_send_pts, 1, PDM_MPI_INT, 
-                    n_recv_pts, 1, PDM_MPI_INT, 
+  PDM_MPI_Alltoall (n_send_pts, 1, PDM_MPI_INT,
+                    n_recv_pts, 1, PDM_MPI_INT,
                     octree->comm);
 
   int *i_send_pts = (int *) malloc (sizeof(int) * (lComm + 1));
   i_send_pts[0] = 0;
-  
+
   int *i_recv_pts = (int *) malloc (sizeof(int) * (lComm + 1));
   i_recv_pts[0] = 0;
 
   for (int i = 0; i < lComm; i++) {
     i_send_pts[i+1] =  i_send_pts[i] + n_send_pts[i];
     n_send_pts[i] = 0;
-    
-    i_recv_pts[i+1] =  i_recv_pts[i] + n_recv_pts[i];  
+
+    i_recv_pts[i+1] =  i_recv_pts[i] + n_recv_pts[i];
   }
 
   double *send_pts = malloc(sizeof(double) * 3 * i_send_pts[lComm]);
   double *recv_pts = malloc(sizeof(double) * 3 * i_recv_pts[lComm]);
-  
+
   for (int i = 0; i < n_pts; i++) {
     int irank = rank_id[i];
     int idx = 3*(i_send_pts[irank] + n_send_pts[irank]);
     n_send_pts[irank] += 1;
-    
+
     for (int j = 0; j < 3; j++) {
       send_pts [idx + j] = pts[3*i+j];
     }
@@ -993,34 +999,34 @@ double      *closest_octree_pt_dist2
     n_send_pts[i] *= 3;
     i_send_pts[i] *= 3;
     n_recv_pts[i] *= 3;
-    i_recv_pts[i] *= 3;    
+    i_recv_pts[i] *= 3;
   }
-  
+
   PDM_MPI_Alltoallv (send_pts, n_send_pts, i_send_pts, PDM_MPI_DOUBLE,
                      recv_pts, n_recv_pts, i_recv_pts, PDM_MPI_DOUBLE,
-                     octree->comm);  
-  
+                     octree->comm);
+
   free (rank_min_max_dist);
 
   for (int i = 0; i < lComm; i++) {
     n_send_pts[i] = n_send_pts[i]/3;
     i_send_pts[i] = i_send_pts[i]/3;
     n_recv_pts[i] = n_recv_pts[i]/3;
-    i_recv_pts[i] = i_recv_pts[i]/3;    
+    i_recv_pts[i] = i_recv_pts[i]/3;
   }
 
   /***************************************************
    *
-   *  Look for the closest point in closest processes 
+   *  Look for the closest point in closest processes
    *
    ***************************************************/
 
   int *closest_pt = (int *) malloc(sizeof(int) * 2 * i_recv_pts[lComm]);
   double *closest_dist = (double *) malloc(sizeof(double) * i_recv_pts[lComm]);
-  
+
   PDM_octree_seq_closest_point (octree->octree_seq_id, i_recv_pts[lComm],
                                 recv_pts, closest_pt, closest_dist);
-  
+
   if (idebug == 1) {
     printf ("*** PDM_octree_closest_point d step 2 :"
             " closest point in the closest process \n");
@@ -1028,15 +1034,15 @@ double      *closest_octree_pt_dist2
 
       printf ("     %d (%12.5e %12.5e %12.5e) : %d %d %12.5e\n", i,
               recv_pts[3*i], recv_pts[3*i+1], recv_pts[3*i+2],
-              closest_pt[2*i] , closest_pt[2*i+1] ,closest_dist[i]); 
+              closest_pt[2*i] , closest_pt[2*i+1] ,closest_dist[i]);
     }
     printf ("*** PDM_octree_closest_point f step 2 :"
             " closest point in the closest process \n");
   }
-  
+
   free (closest_pt);
   free (recv_pts);
-  
+
   /************************************************************
    *
    * Receive distance to closest points from closest processes
@@ -1044,24 +1050,24 @@ double      *closest_octree_pt_dist2
    ************************************************************/
 
   double *recv_dist = send_pts;
-  
+
   PDM_MPI_Alltoallv (closest_dist, n_recv_pts, i_recv_pts, PDM_MPI_DOUBLE,
                      recv_dist, n_send_pts, i_send_pts, PDM_MPI_DOUBLE,
-                     octree->comm);  
-  
+                     octree->comm);
+
   free (closest_dist);
-  
+
   double *upper_bound_dist = (double *) malloc (sizeof(double) * n_pts);
-  
+
   for (int i = 0; i < lComm; i++) {
-    n_send_pts[i] = 0; 
+    n_send_pts[i] = 0;
   }
 
   for (int i = 0; i < n_pts; i++) {
     int irank = rank_id[i];
     int idx = i_send_pts[irank] + n_send_pts[irank];
     n_send_pts[irank] += 1;
-    
+
     upper_bound_dist[i] = recv_dist[idx] + 1e-6 * recv_dist[idx];
   }
   if (idebug == 1) {
@@ -1070,26 +1076,26 @@ double      *closest_octree_pt_dist2
     for (int i = 0; i < n_pts; i++) {
       //if (i == ptprint)
       printf ("     %d (%12.5e %12.5e %12.5e) : %12.5e\n", i,
-              pts[3*i], pts[3*i+1], pts[3*i+2], upper_bound_dist[i]); 
+              pts[3*i], pts[3*i+1], pts[3*i+2], upper_bound_dist[i]);
     }
     printf ("*** PDM_octree_closest_point f step 3 :"
             " exchange closest distance \n");
   }
-  
+
   free (recv_dist);
   free (rank_id);
 
   /****************************************************************************
    *
    *  Send points to processes that distance are inferior to computed distance
-   * 
-   *   Be careful with number of processes ! Make several send ! 
+   *
+   *   Be careful with number of processes ! Make several send !
    *
    ****************************************************************************/
-  
+
   int *i_boxes = NULL;
   int *boxes = NULL;
-  
+
   PDM_box_tree_closest_upper_bound_dist_boxes_get (octree->btShared,
                                                    n_pts,
                                                    pts,
@@ -1097,12 +1103,12 @@ double      *closest_octree_pt_dist2
                                                    &i_boxes,
                                                    &boxes);
 
-  
+
   for (int i = 0; i < lComm; i++) {
     n_send_pts[i] = 0;
     n_recv_pts[i] = 0;
   }
-  
+
   for (int i = 0; i < lComm+1; i++) {
     i_send_pts[i] = 0;
     i_recv_pts[i] = 0;
@@ -1131,12 +1137,12 @@ double      *closest_octree_pt_dist2
             " proc to send \n");
   }
 
-  
+
   free (upper_bound_dist);
-  PDM_MPI_Alltoall (n_send_pts, 1, PDM_MPI_INT, 
-                    n_recv_pts, 1, PDM_MPI_INT, 
+  PDM_MPI_Alltoall (n_send_pts, 1, PDM_MPI_INT,
+                    n_recv_pts, 1, PDM_MPI_INT,
                     octree->comm);
-  
+
   PDM_g_num_t n_sendrecv[2] = {0, 0};
   for (int i = 0; i < lComm; i++) {
     n_sendrecv[0] += n_send_pts[i];
@@ -1144,31 +1150,31 @@ double      *closest_octree_pt_dist2
   }
 
   PDM_g_num_t max_n_exch[2];
-  PDM_MPI_Allreduce (&n_sendrecv, &max_n_exch, 2, 
-                     PDM__PDM_MPI_G_NUM, PDM_MPI_MAX, octree->comm); 
+  PDM_MPI_Allreduce (&n_sendrecv, &max_n_exch, 2,
+                     PDM__PDM_MPI_G_NUM, PDM_MPI_MAX, octree->comm);
 
   PDM_g_num_t max_max_n_exch = PDM_MAX (max_n_exch[0], max_n_exch[1]);
-  
+
   PDM_g_num_t sum_npts;
   PDM_g_num_t _n_pts = n_pts;
-  
-  PDM_MPI_Allreduce (&_n_pts, &sum_npts, 1, 
+
+  PDM_MPI_Allreduce (&_n_pts, &sum_npts, 1,
                      PDM__PDM_MPI_G_NUM, PDM_MPI_SUM, octree->comm);
 
-  const int factor = 10;  
+  const int factor = 10;
   int n_data_exch_max = (int) (sum_npts/ (PDM_g_num_t) lComm) * factor;
 
   //FIXME: reactiver multi echanges : correction des instabilites
-  
+
   n_data_exch_max = max_max_n_exch;  /* Pour obliger a faire un echange */
 
   // Fin correction des instabilites
-  
+
   int n_exch = (int)(max_max_n_exch / n_data_exch_max);
   if ((int)(max_max_n_exch % n_data_exch_max) > 0) {
     n_exch += 1;
   }
-  
+
   double *data_send_pts1 = malloc (sizeof(double) * 3 * n_data_exch_max); // Optimiser la taille
   double *data_recv_pts1 = malloc (sizeof(double) * 3 * n_data_exch_max);
 
@@ -1177,13 +1183,13 @@ double      *closest_octree_pt_dist2
 
   PDM_g_num_t *__closest_octree_pt_g_num = NULL;
   double      *__closest_octree_pt_dist2 = NULL;
-  
+
   if (n_exch > 1) {
     __closest_octree_pt_g_num = malloc (sizeof(PDM_g_num_t) * n_pts);
     __closest_octree_pt_dist2 = malloc (sizeof(double) * n_pts);
   }
   else {
-    __closest_octree_pt_g_num = closest_octree_pt_g_num; 
+    __closest_octree_pt_g_num = closest_octree_pt_g_num;
     __closest_octree_pt_dist2 = closest_octree_pt_dist2;
   }
 
@@ -1204,7 +1210,7 @@ double      *closest_octree_pt_dist2
 
   PDM_g_num_t *data_send_gnum1 = malloc (sizeof(PDM_g_num_t) * n_data_exch_max); // Optimiser la taille
   PDM_g_num_t *data_recv_gnum1 = malloc (sizeof(PDM_g_num_t) * n_data_exch_max);
-  
+
   int *n_send_gnum1 = (int *) malloc (sizeof(int) * lComm);
   int *n_recv_gnum1 = (int *) malloc (sizeof(int) * lComm);
 
@@ -1234,7 +1240,7 @@ double      *closest_octree_pt_dist2
   int *send_bounds1 = NULL;
   int *send_bounds2 = NULL;
   int *send_counts = NULL;
-  
+
   int *stride_ptb = malloc (sizeof(int) * n_data_exch_max);
 
   // Remplissage premier buffer et envoi
@@ -1283,9 +1289,9 @@ double      *closest_octree_pt_dist2
     }
 
   }
-  
+
   if (n_exch == 1) {
-    
+
     i_send_pts1[0]  = 0;
     i_send_gnum1[0] = 0;
     for (int i = 0; i < lComm; i++) {
@@ -1363,8 +1369,8 @@ double      *closest_octree_pt_dist2
       }
     }
 
-    PDM_MPI_Alltoall (n_send_gnum1, 1, PDM_MPI_INT, 
-                      n_recv_gnum1, 1, PDM_MPI_INT, 
+    PDM_MPI_Alltoall (n_send_gnum1, 1, PDM_MPI_INT,
+                      n_recv_gnum1, 1, PDM_MPI_INT,
                       octree->comm);
 
     i_recv_pts1[0] = 0;
@@ -1375,7 +1381,7 @@ double      *closest_octree_pt_dist2
       i_recv_gnum1[i+1] = i_recv_gnum1[i] + n_recv_gnum1[i];
       n_recv_pts1[i] = 3 * n_recv_gnum1[i];
     }
-    
+
   }
 
   double      *data_send_pts  = data_send_pts1;
@@ -1393,7 +1399,7 @@ double      *closest_octree_pt_dist2
   int         *n_recv_gnum     = n_recv_gnum1;
 
   int         *send_bounds     = send_bounds1;
-  
+
   double      *data_send_pts_next  = NULL;
   double      *data_recv_pts_next  = NULL;
   int         *i_send_pts_next     = NULL;
@@ -1407,7 +1413,7 @@ double      *closest_octree_pt_dist2
   int         *n_send_gnum_next     = NULL;
   int         *i_recv_gnum_next     = NULL;
   int         *n_recv_gnum_next     = NULL;
-  
+
   int         *send_bounds_next     = NULL;
 
   PDM_MPI_Request Request_coord[2];
@@ -1475,7 +1481,7 @@ double      *closest_octree_pt_dist2
   /* } */
   /* printf ("\n"); */
 
-  
+
 
   PDM_MPI_Ialltoallv (data_send_pts, n_send_pts, i_send_pts, PDM_MPI_DOUBLE,
                       data_recv_pts, n_recv_pts, i_recv_pts, PDM_MPI_DOUBLE,
@@ -1488,13 +1494,13 @@ double      *closest_octree_pt_dist2
   int *_closest_octree_pt_id         = NULL;
   double *_closest_octree_pt_dist2   = NULL;
   PDM_g_num_t *_closest_octree_pt_g_num = NULL;
-  
+
   int s_closest_octree_pt_dist2 = 0;
 
   for (int i = 0; i < n_exch; i++) {
 
-    const int icurr = i%2; 
-    const int inext = 1 - icurr; 
+    const int icurr = i%2;
+    const int inext = 1 - icurr;
 
     if (icurr == 0) {
       n_send_pts    = n_send_pts1;
@@ -1503,7 +1509,7 @@ double      *closest_octree_pt_dist2
       i_recv_pts    = i_recv_pts1;
       data_send_pts = data_send_pts1;
       data_recv_pts = data_recv_pts1;
-      
+
       n_send_gnum    = n_send_gnum1;
       n_recv_gnum    = n_recv_gnum1;
       i_send_gnum    = i_send_gnum1;
@@ -1512,14 +1518,14 @@ double      *closest_octree_pt_dist2
       data_recv_gnum = data_recv_gnum1;
 
       send_bounds = send_bounds1;
-      
+
       n_send_pts_next    = n_send_pts2;
       n_recv_pts_next    = n_recv_pts2;
       i_send_pts_next    = i_send_pts2;
       i_recv_pts_next    = i_recv_pts2;
       data_send_pts_next = data_send_pts2;
       data_recv_pts_next = data_recv_pts2;
-      
+
       n_send_gnum_next    = n_send_gnum2;
       n_recv_gnum_next    = n_recv_gnum2;
       i_send_gnum_next    = i_send_gnum2;
@@ -1536,7 +1542,7 @@ double      *closest_octree_pt_dist2
       i_recv_pts    = i_recv_pts2;
       data_send_pts = data_send_pts2;
       data_recv_pts = data_recv_pts2;
-      
+
       n_send_gnum    = n_send_gnum2;
       n_recv_gnum    = n_recv_gnum2;
       i_send_gnum    = i_send_gnum2;
@@ -1552,7 +1558,7 @@ double      *closest_octree_pt_dist2
       i_recv_pts_next    = i_recv_pts1;
       data_send_pts_next = data_send_pts1;
       data_recv_pts_next = data_recv_pts1;
-      
+
       n_send_gnum_next    = n_send_gnum1;
       n_recv_gnum_next    = n_recv_gnum1;
       i_send_gnum_next    = i_send_gnum1;
@@ -1615,11 +1621,11 @@ double      *closest_octree_pt_dist2
           send_counts[iproc]++;
         }
       }
-   
-      PDM_MPI_Alltoall (n_send_gnum_next, 1, PDM_MPI_INT, 
-                        n_recv_gnum_next, 1, PDM_MPI_INT, 
+
+      PDM_MPI_Alltoall (n_send_gnum_next, 1, PDM_MPI_INT,
+                        n_recv_gnum_next, 1, PDM_MPI_INT,
                         octree->comm);
-      
+
       i_recv_pts_next[0] = 0;
       i_recv_gnum_next[0] = 0;
 
@@ -1695,13 +1701,13 @@ double      *closest_octree_pt_dist2
                           data_recv_pts_next, n_recv_pts_next,
                           i_recv_pts_next, PDM_MPI_DOUBLE,
                           octree->comm, &(Request_coord[inext]));
-      
+
       PDM_MPI_Ialltoallv (data_send_gnum_next, n_send_gnum_next,
                           i_send_gnum_next, PDM__PDM_MPI_G_NUM,
                           data_recv_gnum_next, n_recv_gnum_next,
                           i_recv_gnum_next, PDM__PDM_MPI_G_NUM,
                           octree->comm, &(Request_gnum[inext]));
-      
+
     }
 
     PDM_MPI_Wait (&(Request_coord[icurr]));
@@ -1716,7 +1722,7 @@ double      *closest_octree_pt_dist2
       _closest_octree_pt_id =
         realloc (_closest_octree_pt_id,
                  sizeof(int) * 2 * s_closest_octree_pt_dist2);
-      
+
       _closest_octree_pt_dist2 =
         realloc (_closest_octree_pt_dist2,
                  sizeof(double) * s_closest_octree_pt_dist2);
@@ -1737,10 +1743,10 @@ double      *closest_octree_pt_dist2
     /*     } */
     /* /\*   } *\/ */
     /* /\* } *\/ */
-    
-    PDM_octree_seq_closest_point (octree->octree_seq_id, 
+
+    PDM_octree_seq_closest_point (octree->octree_seq_id,
                                   i_recv_gnum[lComm],
-                                  data_recv_pts, 
+                                  data_recv_pts,
                                  _closest_octree_pt_id,
                                  _closest_octree_pt_dist2);
 
@@ -1748,7 +1754,7 @@ double      *closest_octree_pt_dist2
       _closest_octree_pt_g_num[j] = -1;
       if ((_closest_octree_pt_id[2*j]!= -1) &&
           (_closest_octree_pt_id[2*j + 1]!= -1)) {
-        _closest_octree_pt_g_num[j] = 
+        _closest_octree_pt_g_num[j] =
         octree->g_num[_closest_octree_pt_id[2*j]][_closest_octree_pt_id[2*j+1]];
       }
     }
@@ -1793,7 +1799,7 @@ double      *closest_octree_pt_dist2
       }
 
     }
-    
+
     else {
       for (int j = 0; j < lComm; j++) {
         n_send_gnum[j]     = 0;
@@ -1817,9 +1823,9 @@ double      *closest_octree_pt_dist2
         }
       }
     }
-    
+
   }
-  
+
   if (n_exch > 1) {
     free (__closest_octree_pt_g_num);
     free (__closest_octree_pt_dist2);
@@ -1860,15 +1866,13 @@ double      *closest_octree_pt_dist2
     free (send_bounds2);
   }
 
-  free (_closest_octree_pt_id); 
+  free (_closest_octree_pt_id);
   free (_closest_octree_pt_dist2);
   free (_closest_octree_pt_g_num);
-  
+
 }
 
 
 #ifdef	__cplusplus
 }
 #endif
-
-

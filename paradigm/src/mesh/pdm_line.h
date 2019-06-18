@@ -34,10 +34,10 @@ extern "C" {
  */
 
 typedef enum {
-    
-  PDM_LINE_INTERSECT_UNDEF   = -1,  /*!< No intersection */               
-  PDM_LINE_INTERSECT_NO      = 0,  /*!< No intersection */               
-  PDM_LINE_INTERSECT_YES     = 1,  /*!< Intersection */               
+
+  PDM_LINE_INTERSECT_UNDEF   = -1,  /*!< No intersection */
+  PDM_LINE_INTERSECT_NO      = 0,  /*!< No intersection */
+  PDM_LINE_INTERSECT_YES     = 1,  /*!< Intersection */
   PDM_LINE_INTERSECT_ON_LINE = 2,  /*!< On line  */
 
 } PDM_line_intersect_t;
@@ -48,24 +48,24 @@ typedef enum {
  *============================================================================*/
 
 /*=============================================================================
- * Public function prototypes 
+ * Public function prototypes
  *============================================================================*/
 
 
 /**
  * \brief Performs intersection of two finite 3D lines
  *
- *  An intersection is found if the projection of the two lines onto the plane 
- *  perpendicular to the cross product of the two lines intersect. 
- *  The parameters (u,v) are the parametric coordinates of the lines at the 
- *  position of closest approach 
+ *  An intersection is found if the projection of the two lines onto the plane
+ *  perpendicular to the cross product of the two lines intersect.
+ *  The parameters (u,v) are the parametric coordinates of the lines at the
+ *  position of closest approach
  *
  * \param [in]  a1 Coordinates of the first line vertex of 'a'
  * \param [in]  a2 Coordinates of the second line vertex of 'a'
  * \param [in]  b1 Coordinates of the first line vertex of 'b'
  * \param [in]  b2 Coordinates of the second line vertex of 'b'
- * \param [out] u  Parameter of the intersection in line 'a' parametric coordinates 
- * \param [out] v  Parameter of the intersection in line 'b' parametric coordinates 
+ * \param [out] u  Parameter of the intersection in line 'a' parametric coordinates
+ * \param [out] v  Parameter of the intersection in line 'b' parametric coordinates
  *
  * \return      \ref PDM_TRUE or \ref PDM_FALSE
  *
@@ -83,12 +83,12 @@ PDM_line_intersection
  );
 
 /**
- * \brief Computes point-line distance 
+ * \brief Computes point-line distance
  *
  * \param [in]  x             Point coordinates
  * \param [in]  a1            First line vertex coordinates
  * \param [in]  a2            Second line vertex coordinates
- * \param [out] t             Parameter of the intersection in line parametric coordinates 
+ * \param [out] t             Parameter of the intersection in line parametric coordinates
  * \param [out] closest_point Closest point
  *
  * \return   The square of the distance

@@ -35,8 +35,8 @@ extern "C" {
 typedef enum {
 
   PDM_TRIANGLE_INSIDE      = 0,  /*!< Inside  */
-  PDM_TRIANGLE_OUTSIDE     = 1,  /*!< Outside */               
-  PDM_TRIANGLE_DEGENERATED = 2,  /*!< Degenerated */               
+  PDM_TRIANGLE_OUTSIDE     = 1,  /*!< Outside */
+  PDM_TRIANGLE_DEGENERATED = 2,  /*!< Degenerated */
 
 } PDM_triangle_status_t;
 
@@ -46,7 +46,7 @@ typedef enum {
  *============================================================================*/
 
 /*=============================================================================
- * Public function prototypes 
+ * Public function prototypes
  *============================================================================*/
 
 
@@ -59,7 +59,7 @@ typedef enum {
  * \param [out] minDist2 Square of the distance
  * \param [out] weights  Vertices weights or NULL
  *
- * \return      \ref PDM_TRIANGLE_INSIDE or \ref PDM_TRIANGLE_OUTSIDE 
+ * \return      \ref PDM_TRIANGLE_INSIDE or \ref PDM_TRIANGLE_OUTSIDE
  *              if the projected is in the triangle or not
  *
  */

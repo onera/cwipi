@@ -138,13 +138,13 @@ int main(int argc, char *argv[])
   double             length  = 1.;
   int                nPart   = 1;
   int                post    = 0;
-#ifdef PDM_HAVE_PARMETIS  
+#ifdef PDM_HAVE_PARMETIS
   PDM_part_split_t method  = PDM_PART_SPLIT_PARMETIS;
 #else
-#ifdef PDM_HAVE_PTSCOTCH  
+#ifdef PDM_HAVE_PTSCOTCH
   PDM_part_split_t method  = PDM_PART_SPLIT_PTSCOTCH;
 #endif
-#endif  
+#endif
 
   /*
    *  Read args
@@ -270,7 +270,7 @@ int main(int argc, char *argv[])
   int nPropertyFace = 0;
 
   int gmid = PDM_global_mean_create (nPart, comm);
-  
+
   PDM_part_create(&ppartId,
                   comm,
                   method,
@@ -348,9 +348,9 @@ int main(int argc, char *argv[])
 #endif
 
   PDM_printf("[%i]   - TEMPS DANS PART_CUBE  : %12.5e\n", myRank,  t_elapsed);
-  
+
   PDM_g_num_t **cellVtxGN = malloc (sizeof(PDM_g_num_t *) * nPart);
-  
+
   for (int ipart = 0; ipart < nPart; ipart++) {
 
     int nCell;
@@ -418,17 +418,17 @@ int main(int argc, char *argv[])
                        &faceGroupLNToGN);
 
     int nCellVtx = 0;
-    for (int i = 0; i < nCell; i++) {      
+    for (int i = 0; i < nCell; i++) {
       for (int j = cellFaceIdx[i]; j < cellFaceIdx[i+1]; j++) {
         int face = cellFace[j] - 1;
-        nCellVtx += faceVtxIdx[face+1] - faceVtxIdx[face];         
-      }    
+        nCellVtx += faceVtxIdx[face+1] - faceVtxIdx[face];
+      }
     }
-  
+
     cellVtxGN[ipart] = malloc (sizeof(PDM_g_num_t) * nCellVtx);
 
   }
-  
+
   for (int ipart = 0; ipart < nPart; ipart++) {
 
     int nCell;
@@ -496,23 +496,23 @@ int main(int argc, char *argv[])
                        &faceGroupLNToGN);
 
     int nCellVtx = 0;
-    for (int i = 0; i < nCell; i++) {      
+    for (int i = 0; i < nCell; i++) {
       for (int j = cellFaceIdx[i]; j < cellFaceIdx[i+1]; j++) {
         int face = cellFace[j] - 1;
         for (int k = faceVtxIdx[face]; k < faceVtxIdx[face+1]; k++) {
           int iVtx = faceVtx[k] - 1;
           cellVtxGN[ipart][nCellVtx++] = vtxLNToGN[iVtx];
         }
-      }    
+      }
     }
-    
+
     PDM_global_mean_set (gmid, ipart, nCellVtx, cellVtxGN[ipart]);
 
   }
 
-  double **local_field = malloc (sizeof(double *) * nPart); 
-  double **local_weight = malloc (sizeof(double *) * nPart); 
-  double **global_mean_field_ptr = malloc (sizeof(double *) * nPart); 
+  double **local_field = malloc (sizeof(double *) * nPart);
+  double **local_weight = malloc (sizeof(double *) * nPart);
+  double **global_mean_field_ptr = malloc (sizeof(double *) * nPart);
 
   for (int ipart = 0; ipart < nPart; ipart++) {
 
@@ -581,19 +581,19 @@ int main(int argc, char *argv[])
                        &faceGroupLNToGN);
 
     int nCellVtx = 0;
-    for (int i = 0; i < nCell; i++) {      
+    for (int i = 0; i < nCell; i++) {
       for (int j = cellFaceIdx[i]; j < cellFaceIdx[i+1]; j++) {
         int face = cellFace[j] - 1;
-        nCellVtx += faceVtxIdx[face+1] - faceVtxIdx[face];         
-      }    
+        nCellVtx += faceVtxIdx[face+1] - faceVtxIdx[face];
+      }
     }
-    
-    local_field[ipart] = malloc (sizeof(double) * nCellVtx * 3); 
-    local_weight[ipart] = malloc (sizeof(double) * nCellVtx); 
-    global_mean_field_ptr[ipart] = malloc (sizeof(double) * nCellVtx * 3); 
-    
+
+    local_field[ipart] = malloc (sizeof(double) * nCellVtx * 3);
+    local_weight[ipart] = malloc (sizeof(double) * nCellVtx);
+    global_mean_field_ptr[ipart] = malloc (sizeof(double) * nCellVtx * 3);
+
     nCellVtx = 0;
-    for (int i = 0; i < nCell; i++) {      
+    for (int i = 0; i < nCell; i++) {
       for (int j = cellFaceIdx[i]; j < cellFaceIdx[i+1]; j++) {
         int face = cellFace[j] - 1;
         for (int k = faceVtxIdx[face]; k < faceVtxIdx[face+1]; k++) {
@@ -605,18 +605,18 @@ int main(int argc, char *argv[])
           local_weight[ipart][nCellVtx] = 1.;
           nCellVtx += 1;
         }
-      }    
+      }
     }
-    
-    PDM_global_mean_field_set (gmid, ipart, 3, 
-                               local_field[ipart], 
-                               local_weight[ipart], 
+
+    PDM_global_mean_field_set (gmid, ipart, 3,
+                               local_field[ipart],
+                               local_weight[ipart],
                                global_mean_field_ptr[ipart]);
 
   }
 
   PDM_global_mean_field_compute (gmid);
-  
+
   for (int ipart = 0; ipart < nPart; ipart++) {
 
     int nCell;
@@ -684,33 +684,33 @@ int main(int argc, char *argv[])
                        &faceGroupLNToGN);
 
     int nCellVtx = 0;
-    for (int i = 0; i < nCell; i++) {      
+    for (int i = 0; i < nCell; i++) {
       for (int j = cellFaceIdx[i]; j < cellFaceIdx[i+1]; j++) {
         int face = cellFace[j] - 1;
-        nCellVtx += faceVtxIdx[face+1] - faceVtxIdx[face];         
-      }    
+        nCellVtx += faceVtxIdx[face+1] - faceVtxIdx[face];
+      }
     }
 
     for (int i = 0; i < 3 * nCellVtx; i++) {
       if (PDM_ABS (local_field[ipart][i] - global_mean_field_ptr[ipart][i]) > 1e-5) {
         PDM_error (__FILE__, __LINE__, 0, "Error in global mean\n");
         abort();
-      }     
+      }
     }
-    
+
     free (local_field[ipart]);
     free (local_weight[ipart]);
     free (global_mean_field_ptr[ipart]);
     free (cellVtxGN[ipart]);
   }
-  
+
   free (local_field);
   free (local_weight);
   free (global_mean_field_ptr);
   free (cellVtxGN);
-  
+
   PDM_part_free(ppartId);
-  
+
   PDM_global_mean_free (gmid);
 
   PDM_dcube_gen_free(id);

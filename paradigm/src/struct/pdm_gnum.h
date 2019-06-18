@@ -57,13 +57,13 @@ extern "C" {
  *
  * \brief Build a global numbering structure
  *
- * \param [in]   dim          Spatial dimension 
- * \param [in]   n_part       Number of local partitions 
+ * \param [in]   dim          Spatial dimension
+ * \param [in]   n_part       Number of local partitions
  * \param [in]   merge        Merge double points or not
  * \param [in]   tolerance    Geometric tolerance (if merge double points is activated)
  * \param [in]   comm         PDM_MPI communicator
  *
- * \return     Identifier    
+ * \return     Identifier
  */
 
 int
@@ -72,7 +72,7 @@ PDM_gnum_create
  const int          dim,
  const int          n_part,
  const PDM_bool_t   merge,
- const double       tolerance,       
+ const double       tolerance,
  const PDM_MPI_Comm comm
 );
 
@@ -81,8 +81,8 @@ PROCF (pdm_gnum_create, PDM_GNUM_CREATE)
 (
  const int *dim,
  const int *n_part,
- const int *merge,  
- const double *tolerance,  
+ const int *merge,
+ const double *tolerance,
  const PDM_MPI_Fint *fcomm,
        int *id
 );
@@ -96,7 +96,7 @@ PROCF (pdm_gnum_create, PDM_GNUM_CREATE)
  * \param [in]   i_part       Current partition
  * \param [in]   n_elts       Number of elements
  * \param [in]   coords       Coordinates (size = 3 * \ref n_elts)
- * \param [in]   char_length  Characteristic length (or NULL) 
+ * \param [in]   char_length  Characteristic length (or NULL)
  *                            (used if merge double points is activated)
  *
  */
@@ -187,7 +187,7 @@ PROCF (pdm_gnum_compute, PDM_GNUM_COMPUTE)
  */
 
 
-const PDM_g_num_t *
+PDM_g_num_t *
 PDM_gnum_get
 (
  const int id,
