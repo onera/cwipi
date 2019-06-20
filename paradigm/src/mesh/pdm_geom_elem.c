@@ -963,8 +963,6 @@ int PDM_geom_elem_compute_polygon_barycentric_coordinates(const int           nP
     n_sommets =  connectivityIndex[ielt+1] - 
                        connectivityIndex[ielt];
    
-    printf("eps n_sommets %i\n",n_sommets);
-   
     local_pts[0] = pts_coords[3*ipoint];
     local_pts[1] = pts_coords[3*ipoint + 1];
     local_pts[2] = pts_coords[3*ipoint + 2];
@@ -1063,10 +1061,8 @@ int PDM_geom_elem_compute_polygon_barycentric_coordinates(const int           nP
       vect[1] = coords_sommets[3*inext+1] - coords_sommets[3*isom+1];
       vect[2] = coords_sommets[3*inext+2] - coords_sommets[3*isom+2];
       l_edge  = PDM_MODULE (vect);
-      printf("eps vect %f %f %f l_edge %f\n",vect[0],vect[1],vect[2],l_edge);
       min_dist = PDM_MIN(l_edge, min_dist);
     }
-    printf("eps_base %f min_dist %f\n",eps_base,min_dist);
     double eps = PDM_MAX(min_dist * eps_base, 1.e-30);
 
     for (int isom = 0; isom < n_sommets; isom++) {
