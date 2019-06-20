@@ -96,7 +96,7 @@ namespace cwipi {
      
       virtual void broadcasting_request(int* id_gnum_location)  =0;
       virtual void broadcasting_set    (int* id_gnum_location)  =0;
-      virtual void location_compute                 (int id_gnum_location)  =0;
+      virtual void location_compute    (int id_gnum_location)  =0;
      
      virtual void location_get(int id_gnum_location)      =0;
      virtual void location_get_cpl(int id_gnum_location)      =0;
@@ -120,11 +120,14 @@ namespace cwipi {
 
      void init(Coupling *coupling, CWP_Field_value_t geometryLocation);
      void mesh_info_get();
-     void mesh_cpl_info_get();
+     void mesh_info_get2();     
+     void mesh_cpl_info_get_send();
+     void mesh_cpl_info_get_recv();
+     void mesh_cpl_info_get();     
      void mesh_cpl_info_get2();
-     void compute();
+     void compute(CWP_Field_exch_t Texch_t);
      void computeFree();
-     void info_mesh();
+     void info_mesh(CWP_Field_exch_t Texch_t);
      inline Geometry* getCoupledGeometry();
 
 
@@ -373,7 +376,9 @@ namespace cwipi {
                 int send_stride,
                 MPI_Datatype type, 
                 MPI_Comm comm,
-                std::vector<int> connectableRanks
+                std::vector<int> connectableRanks,
+                std::vector<int>* send_requests,
+                int tag
                 );
 
 
@@ -382,7 +387,9 @@ namespace cwipi {
                 int recv_stride,
                 MPI_Datatype type, 
                 MPI_Comm comm,
-                std::vector<int> connectableRanks
+                std::vector<int> connectableRanks,
+                std::vector<int>* recv_requests,
+                int tag
                 );
 
   void _IAlltoall2(int** send_buffer,
@@ -398,8 +405,8 @@ namespace cwipi {
 
 
     void _Wait();      
-    void _WaitSend();      
-    void _WaitRecv();      
+    void _WaitSend(std::vector<int> Ranks,std::vector<int>* send_requests);      
+    void _WaitRecv(std::vector<int> Ranks,std::vector<int>* recv_requests);      
 
 
     double      **_distance         ; 
@@ -543,8 +550,9 @@ void _IBcast(void* send_buffer,
   int* _lnum_vtx_conc_cpl         ; 
 
  
-    
-
+  int _senderRank;  
+  int _senderRank_cpl;
+  
     double      **_distance_cpl          ; 
     double      **_projected_cpl         ; 
     CWP_g_num_t **_closest_elt_gnum_cpl ;  
@@ -577,9 +585,20 @@ void _IBcast(void* send_buffer,
    string coupledName;
    string localName; 
    
-   std::vector<int> _send_requests;
-   std::vector<int> _recv_requests;   
+   std::vector<MPI_Request> _send_requests;
+   std::vector<int> _recv_requests;  
+   std::vector<int> _send_requests2;
+   std::vector<int> _recv_requests2;    
    std::vector<int> n_uncomputed_tgt;
+
+
+   int** _n_g_elt_tmp;
+   int** _n_elt_tmp;
+   int** _n_g_vtx_tmp;
+   int** _n_vtx_tmp;
+   const vector<int>* _intraRanks;
+   CWP_Field_exch_t _Texch_t;
+   
    
   };
 

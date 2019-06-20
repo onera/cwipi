@@ -1018,9 +1018,7 @@ CWP_Cpl_time_step_set
 void 
 CWP_Geom_compute
 (
- const char        *local_code_name,
- const char        *cpl_id,
- CWP_Field_value_t  geometryLocation
+ const char        *cpl_id
 );
 
 /**

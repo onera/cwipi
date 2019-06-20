@@ -626,7 +626,7 @@ int main
    
   MPI_Barrier(MPI_COMM_WORLD);
   double recv_time = 0.;
-  for (int il_nb_ite = 0; il_nb_ite < 2; il_nb_ite++) {
+  for (int il_nb_ite = 0; il_nb_ite < 10; il_nb_ite++) {
     recv_time += 1.0;
  
     /* Mesh rotation and new localisation - Geom Compute */
@@ -636,13 +636,6 @@ int main
       if(codeName[i_code]=="code2") mesh_rotate(coords[i_code], nVertex, 3*recv_time); 
       if(codeName[i_code]=="code1") mesh_rotate(coords[i_code], nVertex, recv_time); 
       CWP_next_recv_time_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic",recv_time);
-     // if(il_nb_ite==1)while(1==1){} 
-      
-      printf("Before Geometry compute %i it %i\n",rank,il_nb_ite);
-      CWP_Geom_compute(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic", CWP_FIELD_VALUE_CELL_POINT);
-      CWP_Geom_compute(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_dynamic", CWP_FIELD_VALUE_NODE);
-      printf("After Geometry compute %i it %i\n",rank,il_nb_ite);         
-    
     }
     
     CWP_Geom_compute("c_new_api_surf_cpl_P1P0_P0P1_dynamic");

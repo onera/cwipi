@@ -213,7 +213,8 @@ namespace cwipi {
     void 
     geomCompute
     (
-     CWP_Field_value_t geometryLocation
+     CWP_Field_value_t geometryLocation,
+     CWP_Field_exch_t exchange_type
     );
 
     /**

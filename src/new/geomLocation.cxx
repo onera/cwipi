@@ -123,9 +123,9 @@ namespace cwipi {
           int n_vtx      = _mesh -> getPartNVertex(i_part);
           int n_elts     = _mesh -> getPartNElts(i_part);
           double* coords = _mesh -> getVertexCoords(i_part);
-          printf("_targets_localization_idx_cpl[%i][%i] rank %i %i %i\n",
+        /*  printf("_targets_localization_idx_cpl[%i][%i] rank %i %i %i\n",
           i_proc,i_part,_rank,_targets_localization_idx_cpl[i_proc][i_part],_targets_localization_idx_cpl[i_proc][i_part+1]);
-          
+          */
           for (int itarget = _targets_localization_idx_cpl[i_proc][i_part]; itarget < _targets_localization_idx_cpl[i_proc][i_part+1]; itarget++) {
             // Index in the interpolated Data array
             int interpInd = itarget;
@@ -186,11 +186,8 @@ void GeomLocation::issend(Field* referenceField) {
       int tag =referenceField -> fieldIDIntGet();
       void* dist_v_ptr = NULL;
       int dist_rank = -1;
-      //On va supposer pour le moment que les données contenues dans interpolatedFieldData
-      // sont contigues en mémoire 
       //printf("Avant interpolate |%s|\n",referenceFieldID.c_str());
       void* interpolatedFieldData = interpolate(referenceField);  
-      
       //printf("Après interpolate |%s|\n",referenceFieldID.c_str());
 
         /* Loop on possibly intersecting distant ranks */
@@ -204,24 +201,18 @@ void GeomLocation::issend(Field* referenceField) {
 
         int request=-1;
 
-        printf("start _distantPartProcTargetIdx[0][%i] %i\n",i_proc,_targets_localization_idx_cpl[distant_rank][0]);
+        //printf("start _distantPartProcTargetIdx[0][%i] %i\n",i_proc,_targets_localization_idx_cpl[distant_rank][0]);
 
         int longueur = dataTypeSize * nComponent * (_targets_localization_idx_cpl[distant_rank][_nb_part]-_targets_localization_idx_cpl[distant_rank][0]);//_n_targets_dist_proc[i_proc];
         
-        printf("Send from %i to %i start %i longueur %i\n",_rank,distant_rank,nComponent*_targets_localization_idx_cpl[distant_rank][0],longueur);
+        //printf("Send from %i to %i start %i longueur %i\n",_rank,distant_rank,nComponent*_targets_localization_idx_cpl[distant_rank][0],longueur);
 
         MPI_Issend(dist_v_ptr, longueur, MPI_BYTE, distant_rank, tag,
                    _globalComm,
                    &request);
 
         referenceField -> lastRequestAdd(i_proc,request);
-
-        //On met dans v_interpolatedFieldData le début de chaque bout de partition
-        //associé au proc i_proc ça correspond à l'envoie request
-        //referenceField -> localInterpFieldStorage(request,v_interpolatedFieldData);
-
-        } /* End of loop on possibly intersecting ranks */
-
+      } /* End of loop on possibly intersecting ranks */
   }  
   
   
@@ -305,6 +296,7 @@ void GeomLocation::issend(Field* referenceField) {
 
     PDM_mesh_dist_n_part_cloud_set(*id_dist,   0, _nb_part);  
 
+    printf("_n_g_elt_cpl_over_part %i\n",_n_g_elt_over_part,_n_g_elt_cpl_over_part);
     PDM_mesh_dist_surf_mesh_global_data_set (*id_dist,
                                              _n_g_elt_cpl_over_part,
                                              _n_g_vtx_cpl_over_part,
@@ -677,25 +669,43 @@ void GeomLocation::issend(Field* referenceField) {
 
 
  void GeomLocation::broadcasting_index_communication() {
+ 
+ 
+    int tag = -1;
+    if(_geometryLocation == CWP_FIELD_VALUE_CELL_POINT)
+      tag = 1520;
+    else if(_geometryLocation == CWP_FIELD_VALUE_NODE)
+      tag = 1530;
+      
     _IAlltoall2Send(
       _localization_count_comm_proc,
       NULL, 
       _nb_part_cpl,
       MPI_INT,
       _globalComm,
-     *_connectableRanks_cpl
+     *_connectableRanks_cpl,
+      &_send_requests,
+      tag
       ); 
  } 
 
 
  void GeomLocation::reception_index_communication() {
+    int tag = -1;
+    if(_geometryLocation == CWP_FIELD_VALUE_CELL_POINT)
+      tag = 1520;
+    else if(_geometryLocation == CWP_FIELD_VALUE_NODE)
+      tag = 1530;
+ 
     _IAlltoall2Recv(
       _targets_localization_idx_cpl,
       NULL,
       _nb_part,
       MPI_INT,
       _globalComm,
-     *_connectableRanks_cpl
+     *_connectableRanks_cpl,
+      &_recv_requests,
+      tag
       ); 
  } 
 
@@ -749,7 +759,7 @@ void GeomLocation::issend(Field* referenceField) {
   }
   
  void GeomLocation::data_communication_wait_send() {  
-   _WaitSend();
+   _WaitSend(*_connectableRanks_cpl,&_send_requests);
   
    free(_localization_count_send);
    free(_localization_disp_send );
@@ -757,7 +767,7 @@ void GeomLocation::issend(Field* referenceField) {
 
 
  void GeomLocation::data_communication_wait_recv() {  
-   _WaitRecv();
+   _WaitRecv(*_connectableRanks_cpl,&_recv_requests);
   
    free(_localization_count_recv);
    free(_localization_disp_recv );

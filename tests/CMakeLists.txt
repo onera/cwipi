@@ -117,9 +117,9 @@ endif ()
 set (_MPIEXEC_MAX_NUMPROCS 2)
 
 
-if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_multiblock.c")
-  test_c_create (c_new_api_multiblock 2)
-endif () 
+#if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_multiblock.c")
+#  test_c_create (c_new_api_multiblock 2)
+#endif () 
 
 if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_surf_coupling_P1P0_P0P1.c")
   test_c_create (c_new_api_surf_coupling_P1P0_P0P1 2)

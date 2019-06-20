@@ -56,6 +56,7 @@
 #include "commWithPart.hxx"
 #include "commWithoutPart.hxx"
 #include "commSeq.hxx"
+#include "field.hxx"
 #include "pdm.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
@@ -137,6 +138,25 @@ _cwipi_print_with_c
 #include <stdlib.h>
 
 
+
+static bool
+_cpl_exist
+(
+ const char *local_code_name,
+ const char *cpl_id
+ )
+{
+  cwipi::CouplingDB & couplingDB =
+    cwipi::CouplingDB::getInstance();
+  
+  cwipi::CodePropertiesDB & properties =
+    cwipi::CodePropertiesDB::getInstance();
+ 
+   const string &cpl_name_str = cpl_id;
+   return couplingDB.couplingIs(properties.codePropertiesGet(string(local_code_name)),
+                             cpl_name_str);
+}
+
 static cwipi::Coupling&
 _cpl_get
 (
@@ -151,7 +171,7 @@ _cpl_get
     cwipi::CodePropertiesDB::getInstance();
  
    const string &cpl_name_str = cpl_id;
-  return couplingDB.couplingGet (properties.codePropertiesGet(string(local_code_name)),
+   return couplingDB.couplingGet (properties.codePropertiesGet(string(local_code_name)),
                                  cpl_name_str);
 }
 
@@ -767,12 +787,87 @@ CWP_N_uncomputed_tgts_get
 
 
   void 
-  CWP_Geom_compute(const char        *local_code_name,
-                   const char        *cpl_id,
-                   CWP_Field_value_t  geometryLocation
+  CWP_Geom_compute(
+                   const char        *cpl_id
                   )
-  { cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-    cpl.geomCompute(geometryLocation);
+  { 
+    cwipi::CodePropertiesDB & properties =
+    cwipi::CodePropertiesDB::getInstance();
+
+    /* Get local codes list */
+    int nb_loc_codes = properties.localCodesNbGet();
+    const char** list_loc_codes = properties.localCodesListGet(); 
+
+    /* Find the Geometry Location and exchange type of the fields DB. Which geomlocation and field_exch_type has to be computed ? */
+    std::vector< std::map <CWP_Field_value_t, CWP_Field_exch_t> >* toComputeV = new std::vector< std::map <CWP_Field_value_t, CWP_Field_exch_t>  >(0);
+
+    for(int i_codes=0;i_codes<nb_loc_codes;i_codes++){
+      const char* loc_code_name = list_loc_codes[i_codes];
+      
+      /* Only if the coupling exists */
+      if( _cpl_exist(loc_code_name,cpl_id) ) {
+        cwipi::Coupling& cpl = _cpl_get(loc_code_name,cpl_id);
+        std:map <std::string, cwipi::Field *>* fields = cpl.fieldsGet();
+        std::map <CWP_Field_value_t, CWP_Field_exch_t> toCompute;
+
+        std::map <std::string, cwipi::Field *>::iterator it = fields -> begin();
+        while(it != fields -> end()){
+          cwipi::Field* field = it -> second;
+          CWP_Field_value_t fieldLocation = field -> typeGet();
+          CWP_Field_exch_t  exchangeType  = field -> exchangeTypeGet();
+       
+          std::map <CWP_Field_value_t, CWP_Field_exch_t>::iterator finder = toCompute.find(fieldLocation);
+          if(finder == toCompute.end()) {
+            toCompute.insert({fieldLocation,exchangeType});
+          }
+          else {
+            if(finder->second != exchangeType && finder->second != CWP_FIELD_EXCH_SENDRECV)
+              toCompute.insert({fieldLocation,CWP_FIELD_EXCH_SENDRECV});
+          }
+          it++;
+        }
+        toComputeV -> push_back(toCompute);
+      }//end if cpl_exist
+    } //end for i_codes loop
+
+
+    /*  Building of possible location vector */
+    std::vector<CWP_Field_value_t> locationV;
+    locationV.push_back(CWP_FIELD_VALUE_NODE);
+    locationV.push_back(CWP_FIELD_VALUE_CELL_POINT);
+
+    for(int i_location=0; i_location < locationV.size();i_location++){
+      CWP_Field_value_t geometryLocation = locationV[i_location];
+      for(int i_codes=0;i_codes<nb_loc_codes;i_codes++){   
+        const char* loc_code_name = list_loc_codes[i_codes];
+
+        /* Only if the coupling exists */
+        if( _cpl_exist(loc_code_name,cpl_id) ) {
+          cwipi::Coupling& cpl = _cpl_get(loc_code_name,cpl_id);
+          std::map <CWP_Field_value_t, CWP_Field_exch_t> toCompute = (*toComputeV)[i_codes];
+          std::map <CWP_Field_value_t, CWP_Field_exch_t>::iterator itToCompute = toCompute.begin();
+          while(itToCompute != toCompute.end()){
+            CWP_Field_value_t geometryLocationTest = itToCompute -> first;
+            CWP_Field_exch_t exchange_type = itToCompute -> second;
+            
+            if(geometryLocationTest == geometryLocation) {
+              /*if(geometryLocation == CWP_FIELD_VALUE_NODE) {
+              if(exchange_type == CWP_FIELD_EXCH_SENDRECV )
+                printf("localCodes %s CWP_FIELD_EXCH_SENDRECV CWP_FIELD_VALUE_NODE\n",loc_code_name);
+              else if(exchange_type == CWP_FIELD_EXCH_SEND)
+                printf("localCodes %s CWP_FIELD_EXCH_SEND CWP_FIELD_VALUE_NODE\n",loc_code_name);            
+              else if(exchange_type == CWP_FIELD_EXCH_RECV)
+                printf("localCodes %s CWP_FIELD_EXCH_RECV CWP_FIELD_VALUE_NODE\n",loc_code_name);    
+              }*/
+              
+              cpl.geomCompute(geometryLocation, exchange_type);
+            }
+            itToCompute++;
+          }
+        }//end if exist    
+      } //end on i_codes loop  
+    } //end on location loop
+    delete toComputeV;
   }
 
 

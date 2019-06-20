@@ -303,9 +303,9 @@ namespace cwipi {
   
 
    void 
-   Coupling::geomCompute (CWP_Field_value_t geometryLocation)
+   Coupling::geomCompute (CWP_Field_value_t geometryLocation, CWP_Field_exch_t exchange_type)
    {  
-     _geometry[geometryLocation] -> compute();
+     _geometry[geometryLocation] -> compute(exchange_type);
      
    }
 

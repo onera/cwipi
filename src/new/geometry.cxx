@@ -89,7 +89,10 @@ namespace cwipi {
 
     localName   = _localCodeProperties -> nameGet();
     coupledName = _coupledCodeProperties -> nameGet();
-
+    
+    _senderRank     = _localCodeProperties   -> rootRankGet();
+    _senderRank_cpl = _coupledCodeProperties -> rootRankGet();
+    
     int comp = localName.compare(coupledName);  
 
     _codeVector.resize(2);
@@ -151,7 +154,6 @@ namespace cwipi {
         _n_target   [i_part]     = _mesh -> getPartNElts(i_part);      
         _gnum_target[i_part]     = _mesh -> GNumEltsGet(i_part);   
         _coords_target [i_part]  = _mesh -> eltCentersGet(i_part);
-             
       }
 
       if (_geometryLocation == CWP_FIELD_VALUE_NODE) {
@@ -178,23 +180,104 @@ namespace cwipi {
 
     int lsize;
     MPI_Comm_size(_localComm,&lsize);
-    printf("Before MPI_Allreduce rank %i size %i %s\n",_rank,lsize, localName.c_str());
-    MPI_Allreduce(_n_elt, _n_g_elt, _nb_part, MPI_INT,MPI_SUM,_localComm);
-    printf("BeforeAfter MPI_Allreduce rank %i %s\n",_rank, localName.c_str());
+    _intraRanks =  _localCodeProperties -> intraRanksGet();
 
-   _n_g_elt_over_part = 0;
-   for(int i_part =0;i_part<_nb_part;i_part++) { 
-     _n_g_elt_over_part+=_n_g_elt[i_part];
-   }
+    _n_g_elt_tmp = (int**) malloc(sizeof(int*) * _n_ranks_g);
+    _n_elt_tmp = (int**) malloc(sizeof(int*) * _n_ranks_g);
+    for(int i=0;i<_n_ranks_g;i++){
+      _n_elt_tmp[i]=_n_elt;
+      _n_g_elt_tmp[i]=(int*) malloc(sizeof(int) * _nb_part);
+    }
    
-    MPI_Allreduce(_n_vtx, _n_g_vtx, _nb_part, MPI_INT,MPI_SUM,_localComm);
+    tag = -1;
+    if(_geometryLocation == CWP_FIELD_VALUE_CELL_POINT)
+      tag = 1500;
+    else if(_geometryLocation == CWP_FIELD_VALUE_NODE)
+      tag = 1510;
+      
+   _IAlltoall2Send(_n_elt_tmp,
+                NULL,
+                _nb_part,
+                MPI_INT, 
+                _globalComm,
+                *_connectableRanks,
+                &_send_requests,
+                tag
+                );
 
-  _n_g_vtx_over_part = 0;
-  for(int i_part =0;i_part<_nb_part;i_part++) { 
-    _n_g_vtx_over_part+=_n_g_vtx[i_part];
+
+    _IAlltoall2Recv(_n_g_elt_tmp,
+                NULL,
+                _nb_part,
+                MPI_INT, 
+                _globalComm,
+                *_connectableRanks,
+                &_recv_requests,
+                tag
+                );
+
+
+/*************VTX ***********/
+
+    _n_g_vtx_tmp = (int**) malloc(sizeof(int*) * _n_ranks_g);
+    _n_vtx_tmp = (int**) malloc(sizeof(int*) * _n_ranks_g);
+    for(int i=0;i<_n_ranks_g;i++){
+      _n_vtx_tmp[i]=_n_vtx;
+      _n_g_vtx_tmp[i]=(int*) malloc(sizeof(int) * _nb_part);
+    }
+    
+    if(_geometryLocation == CWP_FIELD_VALUE_CELL_POINT)
+      tag = 1480;
+    else if(_geometryLocation == CWP_FIELD_VALUE_NODE)
+      tag = 1490;
+    
+    _IAlltoall2Send(_n_vtx_tmp,
+                NULL,
+                _nb_part,
+                MPI_INT, 
+                _globalComm,
+                *_connectableRanks,
+                &_send_requests2,
+                tag
+                );
+
+
+    _IAlltoall2Recv(_n_g_vtx_tmp,
+                NULL,
+                _nb_part,
+                MPI_INT, 
+                _globalComm,
+                *_connectableRanks,
+                &_recv_requests2,
+                tag
+                );
   }
-  
+
+  void Geometry::mesh_info_get2() {
+    _WaitSend(*_connectableRanks,&_send_requests);
+    _WaitRecv(*_connectableRanks,&_recv_requests);
+
+    _WaitSend(*_connectableRanks,&_send_requests2);
+    _WaitRecv(*_connectableRanks,&_recv_requests2);
+    int lsize;
+    MPI_Comm_size(_localComm,&lsize);
+     
+    _n_g_elt_over_part = 0;
+    _n_g_vtx_over_part = 0;
+    for(int i_proc =0;i_proc<lsize;i_proc++) { 
+      for(int i_part =0;i_part<_nb_part;i_part++) {
+         int disRank = (*_connectableRanks)[i_proc]; 
+        _n_g_elt_over_part+=_n_g_elt_tmp[disRank][i_part];
+        _n_g_vtx_over_part+=_n_g_vtx_tmp[disRank][i_part];
+      }
+    }
+    
+    free(_n_elt_tmp);
+    free(_n_vtx_tmp);
+    free(_n_g_elt_tmp);
+    free(_n_g_vtx_tmp);
  }
+
 
 
 /***************************************************************************/
@@ -215,113 +298,117 @@ namespace cwipi {
 
 /***************************************************************************/
 /***************************************************************************/
-  void Geometry::info_mesh() {
+  void Geometry::info_mesh(CWP_Field_exch_t _Texch_t) {
+
+    if(_both_codes_are_local == 0){
+      mesh_info_get();
+      mesh_info_get2();
+      //MPI_Barrier(_globalComm);
+      mesh_cpl_info_get();
+    }
+    else if(_Texch_t == CWP_FIELD_EXCH_SEND) {
+      mesh_info_get();  
+      _geometry_cpl -> mesh_info_get();
+
+      mesh_info_get2();  
+      _geometry_cpl -> mesh_info_get2();      
+       //MPI_Barrier(_globalComm);
+
+       mesh_cpl_info_get();
+      _geometry_cpl -> mesh_cpl_info_get2();
+    }
+
+   
+   //  while(1==1){}
+    
+    
+  /*
     if(_both_codes_are_local == 0){
       mesh_info_get();
       MPI_Barrier(_globalComm);
-      mesh_cpl_info_get();
+      mesh_cpl_info_get_send();
+      mesh_cpl_info_get_recv();
       MPI_Barrier(_globalComm);  
     }
     else {
-      if(localName == _codeVector[0]) {
+      if(_Texch_t == CWP_FIELD_EXCH_SEND) {
         mesh_info_get();
         _geometry_cpl -> mesh_info_get();
         MPI_Barrier(_globalComm);
-        mesh_cpl_info_get();
+      mesh_cpl_info_get_send();
+      mesh_cpl_info_get_recv();
         _geometry_cpl -> mesh_cpl_info_get2();   
         MPI_Barrier(_globalComm);
       }
-    }  
+    }*/  
   }
 
 /***************************************************************************/
 /***************************************************************************/
 
-  void Geometry::compute() {
-    
-    info_mesh();
-                
+  void Geometry::compute(CWP_Field_exch_t Texch_t) {
+    _Texch_t = Texch_t;
+    info_mesh(_Texch_t);
+        
     if(_both_codes_are_local == 0){
-      if(localName == _codeVector[0]) locate_setting_surface(&_id_dist1);
-      if(localName == _codeVector[1]) locate_setting_request(&_id_dist1);
-      //printf("ZZ Before locate_compute %i %s\n",_rank,localName.c_str()); 
+         
+      if(_Texch_t == CWP_FIELD_EXCH_SEND) locate_setting_surface(&_id_dist1);        
+      if(_Texch_t == CWP_FIELD_EXCH_RECV) locate_setting_request(&_id_dist1);
+      
       MPI_Barrier(_globalComm);
-             
+        
       locate_compute        (_id_dist1); 
 
       PDM_mesh_dist_dump_times(_id_dist1);
 
-      //printf("ZZ After locate_compute %i %s\n",_rank,localName.c_str());  
-
       MPI_Barrier(_globalComm);          
-      if (localName == _codeVector[1]) locate_get(_id_dist1)  ;
-         
+      if(_Texch_t == CWP_FIELD_EXCH_RECV) locate_get(_id_dist1)  ;
       PDM_mesh_dist_free(_id_dist1,1);
          
-      if(localName == _codeVector[1]) broadcasting_request(&_id_gnum_location1);
-      if(localName == _codeVector[0]) broadcasting_set    (&_id_gnum_location1);
+      if(_Texch_t == CWP_FIELD_EXCH_RECV) broadcasting_request(&_id_gnum_location1);
+      if(_Texch_t == CWP_FIELD_EXCH_SEND) broadcasting_set    (&_id_gnum_location1);
   
       MPI_Barrier(_globalComm);
 
       location_compute                   (_id_gnum_location1);   
        
-      if(localName == _codeVector[1]) location_get(_id_gnum_location1) ;
+      if(_Texch_t == CWP_FIELD_EXCH_RECV) location_get(_id_gnum_location1) ;
 
       PDM_gnum_location_free(_id_gnum_location1,1);
 
-      if(localName == _codeVector[0]) locate_setting_request(&_id_dist2);
-      if(localName == _codeVector[1]) locate_setting_surface(&_id_dist2);
+      if(_Texch_t == CWP_FIELD_EXCH_RECV) filling_of_broadcasting_array();      
+      if(_Texch_t == CWP_FIELD_EXCH_SEND) initialization_of_reception_array();
 
-      MPI_Barrier(_globalComm);
-      locate_compute          (_id_dist2)  ;
-                     
-      if (localName == _codeVector[0]) locate_get(_id_dist2)  ;    
-      PDM_mesh_dist_free(_id_dist2,1);
+      if(_Texch_t == CWP_FIELD_EXCH_RECV) broadcasting_index_communication() ;
+      if(_Texch_t == CWP_FIELD_EXCH_SEND) reception_index_communication() ;
+ 
+      if(_Texch_t == CWP_FIELD_EXCH_RECV) _WaitSend(*_connectableRanks_cpl,&_send_requests)    ;     
+      if(_Texch_t == CWP_FIELD_EXCH_SEND) _WaitRecv(*_connectableRanks_cpl,&_recv_requests)    ;     
 
-      if(localName == _codeVector[0])  broadcasting_request(&_id_gnum_location2);     
-      if(localName == _codeVector[1])  broadcasting_set    (&_id_gnum_location2);
+      if(_Texch_t == CWP_FIELD_EXCH_RECV) prepare_data_communication_send();
+      if(_Texch_t == CWP_FIELD_EXCH_SEND) prepare_data_communication_recv() ; 
 
-      MPI_Barrier(_globalComm);    
-      location_compute  (_id_gnum_location2);   
-     
-      if(localName == _codeVector[0]) location_get(_id_gnum_location2);
-      PDM_gnum_location_free(_id_gnum_location2,1);
-
-      filling_of_broadcasting_array();        
-      initialization_of_reception_array();
-
-      broadcasting_index_communication() ;
-      reception_index_communication() ;
-      _WaitSend()    ;     
-      _WaitRecv()    ;     
-
-      prepare_data_communication_send();
-      prepare_data_communication_recv() ; 
-
-      data_communication_send();
-      data_communication_recv();
-  
-      data_communication_wait_send();
-      data_communication_wait_recv();
+      if(_Texch_t == CWP_FIELD_EXCH_RECV) data_communication_send();
+      if(_Texch_t == CWP_FIELD_EXCH_SEND) data_communication_recv();
+   
+      if(_Texch_t == CWP_FIELD_EXCH_RECV) data_communication_wait_send();
+      if(_Texch_t == CWP_FIELD_EXCH_SEND) data_communication_wait_recv();
     }
     else {
-      if(localName == _codeVector[0]) {
-        
-        locate_setting_surface(&_id_dist1);
-        // printf("ZZ Before locate_compute %i %s\n",_rank,localName.c_str()); 
+      if(_Texch_t == CWP_FIELD_EXCH_SEND) {
+        _geometry_cpl -> _Texch_t = CWP_FIELD_EXCH_RECV;
+        locate_setting_surface(&_id_dist1);    
         MPI_Barrier(_globalComm);
    
         locate_compute        (_id_dist1);       
 	PDM_mesh_dist_dump_times(_id_dist1);
 
         MPI_Barrier(_globalComm);                
-        //printf("ZZ After locate_compute %i %s\n",_rank,localName.c_str()); 
-
+        
         locate_get_cpl        (_id_dist1) ;
         PDM_mesh_dist_free(_id_dist1,1);
               
         broadcasting_set    (&_id_gnum_location1);    
-   
         MPI_Barrier(_globalComm);
     
         location_compute                 (_id_gnum_location1);     
@@ -329,97 +416,33 @@ namespace cwipi {
 
         PDM_gnum_location_free(_id_gnum_location1,1);
 
-        locate_setting_request(&_id_dist2);
-   
-        MPI_Barrier(_globalComm);
-        locate_compute        (_id_dist2);  
-        
-        //printf("ZZ After locate_compute %i %s\n",_rank,localName.c_str()); 
-        locate_get            (_id_dist2) ;
-        PDM_mesh_dist_free(_id_dist2,1);
-
-        broadcasting_request (&_id_gnum_location2);
-            
-        MPI_Barrier(_globalComm);
-        
-        location_compute                  (_id_gnum_location2);
-        
-        //printf("ZZ After location_compute %i %s\n",_rank,localName.c_str());
-        location_get                      (_id_gnum_location2);
-        PDM_gnum_location_free(_id_gnum_location2,1);
-        
-        filling_of_broadcasting_array(); 
-        _geometry_cpl ->filling_of_broadcasting_array();          
-
+        _geometry_cpl -> filling_of_broadcasting_array(); 
         initialization_of_reception_array();
-        _geometry_cpl ->initialization_of_reception_array();
 
-        broadcasting_index_communication()    ;
         _geometry_cpl -> broadcasting_index_communication()    ;
-
         reception_index_communication()    ;
-        _geometry_cpl -> reception_index_communication()    ;
 
-        _WaitSend();
-        _geometry_cpl -> _WaitSend();
+        _geometry_cpl -> _WaitSend( *(_geometry_cpl -> _connectableRanks_cpl), &( _geometry_cpl -> _send_requests));
+        _WaitRecv(*_connectableRanks_cpl,&_recv_requests);
 
-        _WaitRecv();
-        _geometry_cpl -> _WaitRecv();
-
-
-        prepare_data_communication_send();
-        _geometry_cpl -> prepare_data_communication_send() ;
-
-        prepare_data_communication_recv();
-        _geometry_cpl -> prepare_data_communication_recv() ;
+        _geometry_cpl ->prepare_data_communication_send();
+        prepare_data_communication_recv() ;
  
-        data_communication_send();
         _geometry_cpl -> data_communication_send();
-
         data_communication_recv();
-        _geometry_cpl -> data_communication_recv();
        
-        data_communication_wait_send();
         _geometry_cpl -> data_communication_wait_send();
-
         data_communication_wait_recv();
-        _geometry_cpl -> data_communication_wait_recv();
 
     }//end if localName == _codeVector[0]
       
     }//end both_are_local
-   // MPI_Barrier(_globalComm); 
-    
   }
 
 
 
-  void Geometry::mesh_cpl_info_get2() {
-       
-    /*      Partition Number exchange           */
 
-    _nb_part_cpl=-1;
-       
-    MPI_Status status;
-      
-    _both_codes_are_local__array = _geometry_cpl -> _both_codes_are_local__array;
-        
-    if(_both_codes_are_local == 1) {
-      _nb_part_cpl = _geometry_cpl->_nb_part;
-    }
-
-    if(_both_codes_are_local == 1) {
-      _n_g_elt_cpl_over_part = _geometry_cpl->_n_g_elt_over_part;
-    }
-        
-    if(_both_codes_are_local == 1) {
-      _n_g_vtx_cpl_over_part = _geometry_cpl->_n_g_vtx_over_part;
-    }
-  }
-  
-
-
-  void Geometry::mesh_cpl_info_get() {
+void Geometry::mesh_cpl_info_get() {
        
     /*      Partition Number exchange           */
 
@@ -446,8 +469,6 @@ namespace cwipi {
          tag = 2;        
      }
      
-     if(_both_codes_are_local == 0 || (_both_codes_are_local == 1 && localName == _codeVector[0])){
-     
        for(int i=0;i<_n_ranks_g;i++) {
          int distant_rank = i;//(*_connectableRanks_cpl)[i];
          int tag2=tag*10000+distant_rank;
@@ -462,9 +483,7 @@ namespace cwipi {
                      distant_rank, tag2,
                      _globalComm,&rrequest[i]);   
        }
-     }
-
-     if(_both_codes_are_local == 0 || (_both_codes_are_local == 1 && localName == _codeVector[0])){
+     printf("After _both_codes_are_local == 0 \n");
        for(int i=0;i<_n_ranks_cpl;i++) {
          int distant_rank = i;//(*_connectableRanks_cpl)[i];
          if(distant_rank != _rank)
@@ -472,9 +491,6 @@ namespace cwipi {
          if(distant_rank != _rank)
            MPI_Wait(&rrequest[i],&status);  
        }
-     }
-     else
-       _both_codes_are_local__array = _geometry_cpl -> _both_codes_are_local__array;
        
      _both_codes_are_local__array[_rank]=_both_codes_are_local;
 
@@ -493,7 +509,7 @@ namespace cwipi {
      senderRank_cpl = (*_connectableRanks_cpl)[senderRank_cpl] ;
                 
      MPI_Barrier(_globalComm);
-       
+       printf("After SenderRank \n");
      tag+=100;
      if(_rank == senderRank ){
        for(int i=0;i<_n_ranks_cpl;i++) {
@@ -603,12 +619,282 @@ namespace cwipi {
 
 
 
+  void Geometry::mesh_cpl_info_get2() {
+       
+    /*      Partition Number exchange           */
+
+    _nb_part_cpl=-1;
+       
+    MPI_Status status;
+      
+    _both_codes_are_local__array = _geometry_cpl -> _both_codes_are_local__array;
+        
+    if(_both_codes_are_local == 1) {
+      _nb_part_cpl = _geometry_cpl->_nb_part;
+    }
+
+    if(_both_codes_are_local == 1) {
+      _n_g_elt_cpl_over_part = _geometry_cpl->_n_g_elt_over_part;
+    }
+        
+    if(_both_codes_are_local == 1) {
+      _n_g_vtx_cpl_over_part = _geometry_cpl->_n_g_vtx_over_part;
+    }
+  }
+  
+
+  void Geometry::mesh_cpl_info_get_send() {
+       
+    /*      Partition Number exchange           */
+
+    _nb_part_cpl=-1;
+       
+    MPI_Status status;
+    
+    int sender = (*_connectableRanks)[_n_ranks-1];
+    int sender_cpl = (*_connectableRanks)[_n_ranks-1];
+      
+     int tsize;
+
+     MPI_Request srequest[_n_ranks_g];
+     MPI_Request request,requests;
+     
+     MPI_Comm_size(_globalComm,&tsize);
+     
+     int tag = 0;    
+     switch(_geometryLocation){
+       case CWP_FIELD_VALUE_CELL_POINT:
+         tag = 1;
+       case CWP_FIELD_VALUE_NODE:
+         tag = 2;        
+     }
+     
+     if(_both_codes_are_local == 0 || (_both_codes_are_local == 1 && localName == _codeVector[0])){
+     
+       for(int i=0;i<_n_ranks_g;i++) {
+         int distant_rank = i;//(*_connectableRanks_cpl)[i];
+         int tag2=tag*10000+distant_rank;
+         if(distant_rank != _rank)
+           MPI_Issend(&_both_codes_are_local, 1, MPI_INT,
+                      distant_rank, tag2,
+                      _globalComm,&srequest[i]);      
+         
+          tag2=tag*10000+_rank;
+       }
+     }
+
+     if(_both_codes_are_local == 0 || (_both_codes_are_local == 1 && localName == _codeVector[0])){
+       for(int i=0;i<_n_ranks_cpl;i++) {
+         int distant_rank = i;//(*_connectableRanks_cpl)[i];
+         if(distant_rank != _rank)
+           MPI_Wait(&srequest[i],&status);      
+       }
+     }
+     else
+       _both_codes_are_local__array = _geometry_cpl -> _both_codes_are_local__array;
+       
+     _both_codes_are_local__array[_rank]=_both_codes_are_local;
+
+     MPI_Barrier(_globalComm);
+       
+     tag+=100;
+     if(_rank == _senderRank ){
+       for(int i=0;i<_n_ranks_cpl;i++) {
+         int distant_rank = (*_connectableRanks_cpl)[i];
+         int tag2=tag*10000+distant_rank;
+         if( _both_codes_are_local__array[ distant_rank ] == 0 ) {
+           MPI_Issend(&_nb_part, 1, MPI_INT,
+                      distant_rank, tag2,
+                      _globalComm,&srequest[i]);      
+         }
+       }
+     }
+
+    if(_both_codes_are_local == 0) 
+      MPI_Wait(&request,&status); 
+
+    if(_rank == _senderRank ){
+      for(int i=0;i<_n_ranks_cpl;i++) {        
+        if( _both_codes_are_local__array[ (*_connectableRanks_cpl)[i] ] == 0 ) 
+          MPI_Wait(&srequest[i],&status);            
+      }
+    }
+        
+    MPI_Barrier(_globalComm);
+        
+    if(_both_codes_are_local == 1) {
+      _nb_part_cpl = _geometry_cpl->_nb_part;
+    }
+
+    tag+=100;
+    /*   Number of elements over all processes and partitions exchange                  */
+     if(_rank == _senderRank ){
+       for(int i=0;i<_n_ranks_cpl;i++) {
+         int distant_rank = (*_connectableRanks_cpl)[i];
+         int tag2=tag*10000+distant_rank;
+         if( _both_codes_are_local__array[distant_rank] == 0 ) {
+           MPI_Issend(&_n_g_elt_over_part, 1, MPI_INT,
+                      distant_rank, tag2,
+                      _globalComm,&srequest[i]);      
+         }
+       }
+     }
+
+    if(_rank == _senderRank ){
+      for(int i=0;i<_n_ranks_cpl;i++) {        
+        if( _both_codes_are_local__array[ (*_connectableRanks_cpl)[i] ] == 0 ) 
+          MPI_Wait(&srequest[i],&status);            
+      }
+    }
+        MPI_Barrier(_globalComm);
+    if(_both_codes_are_local == 1) {
+      _n_g_elt_cpl_over_part = _geometry_cpl->_n_g_elt_over_part;
+    }
+ 
+      /*   Number of elements over all processes and partitions exchange                  */
+     tag+=100;
+      if(_rank == _senderRank ){
+       for(int i=0;i<_n_ranks_cpl;i++) {
+         int distant_rank = (*_connectableRanks_cpl)[i];
+         int tag2=tag*10000+distant_rank;
+         if( _both_codes_are_local__array[ distant_rank ] == 0 ) {
+           MPI_Issend(&_n_g_vtx_over_part, 1, MPI_INT,
+                      distant_rank, tag2,
+                      _globalComm,&srequest[i]);      
+         }
+       }
+     }
+
+    if(_rank == _senderRank ){
+      for(int i=0;i<_n_ranks_cpl;i++) {        
+        if( _both_codes_are_local__array[ (*_connectableRanks_cpl)[i] ] == 0 ) 
+          MPI_Wait(&srequest[i],&status);            
+      }
+    }
+    
+    if(_both_codes_are_local == 1) {
+      _n_g_vtx_cpl_over_part = _geometry_cpl->_n_g_vtx_over_part;
+    }
+  }
+
+
+
+  void Geometry::mesh_cpl_info_get_recv() {
+       
+    /*      Partition Number exchange   */
+
+    _nb_part_cpl=-1;
+       
+    MPI_Status status;
+    
+    int sender = (*_connectableRanks)[_n_ranks-1];
+    int sender_cpl = (*_connectableRanks)[_n_ranks-1];
+      
+     int tsize;
+
+     MPI_Request rrequest[_n_ranks_g];
+     MPI_Request request,requests,requestr;
+     
+     MPI_Comm_size(_globalComm,&tsize);
+     
+     int tag = 0;    
+     switch(_geometryLocation){
+       case CWP_FIELD_VALUE_CELL_POINT:
+         tag = 1;
+       case CWP_FIELD_VALUE_NODE:
+         tag = 2;        
+     }
+     
+     if(_both_codes_are_local == 0 || (_both_codes_are_local == 1 && localName == _codeVector[0])){
+     
+       for(int i=0;i<_n_ranks_g;i++) {
+         int distant_rank = i;//(*_connectableRanks_cpl)[i];
+         int tag2=tag*10000+_rank;
+         if(distant_rank != _rank)
+            MPI_Irecv(&(_both_codes_are_local__array[i]), 1, MPI_INT,
+                     distant_rank, tag2,
+                     _globalComm,&rrequest[i]);   
+       }
+     }
+
+     if(_both_codes_are_local == 0 || (_both_codes_are_local == 1 && localName == _codeVector[0])){
+       for(int i=0;i<_n_ranks_cpl;i++) {
+         int distant_rank = i;//(*_connectableRanks_cpl)[i];
+         if(distant_rank != _rank)
+           MPI_Wait(&rrequest[i],&status);  
+       }
+     }
+     else
+       _both_codes_are_local__array = _geometry_cpl -> _both_codes_are_local__array;
+       
+     _both_codes_are_local__array[_rank]=_both_codes_are_local;
+
+     MPI_Barrier(_globalComm);
+       
+     tag+=100;
+
+    if(_both_codes_are_local == 0) {
+     int tag2=tag*10000+_rank;
+     MPI_Irecv(&_nb_part_cpl, 1, MPI_INT,
+               _senderRank_cpl, tag2,
+               _globalComm,&request);   
+   }
+
+    if(_both_codes_are_local == 0) 
+      MPI_Wait(&request,&status); 
+
+    MPI_Barrier(_globalComm);
+        
+    if(_both_codes_are_local == 1) {
+      _nb_part_cpl = _geometry_cpl->_nb_part;
+    }
+
+    tag+=100;
+    /*   Number of elements over all processes and partitions exchange                  */
+
+    if(_both_codes_are_local == 0) {
+      int tag2 = tag*10000+_rank;
+      MPI_Irecv(&_n_g_elt_cpl_over_part, 1, MPI_INT,
+               _senderRank_cpl, tag2,
+               _globalComm,&request);   
+    }
+
+    if(_both_codes_are_local == 0) 
+      MPI_Wait(&request,&status); 
+
+        MPI_Barrier(_globalComm);
+    if(_both_codes_are_local == 1) {
+      _n_g_elt_cpl_over_part = _geometry_cpl->_n_g_elt_over_part;
+    }
+ 
+      /*   Number of elements over all processes and partitions exchange                  */
+     tag+=100;
+
+    if(_both_codes_are_local == 0) {
+     int tag2=tag*10000+_rank;
+     MPI_Irecv(&_n_g_vtx_cpl_over_part, 1, MPI_INT,
+               _senderRank_cpl, tag2,
+               _globalComm,&request);   
+   }
+
+    if(_both_codes_are_local == 0) 
+      MPI_Wait(&request,&status); 
+
+    if(_both_codes_are_local == 1) {
+      _n_g_vtx_cpl_over_part = _geometry_cpl->_n_g_vtx_over_part;
+    }
+  }
+
+
+
  void Geometry::_IAlltoall2Send(int** send_buffer,
                 int* send_size,
                 int send_stride,
                 MPI_Datatype type, 
                 MPI_Comm comm,
-                std::vector<int> connectableRanks
+                std::vector<int> connectableRanks,
+                std::vector<int>* send_requests,
+                int tag
                 ){
 
       int rank=-1;
@@ -625,25 +911,18 @@ namespace cwipi {
         } 
       }
 
-      _send_requests.resize(nranks,0);
-
-      int tagsend = -1;
-      if(localName == _codeVector[0]) {
-        tagsend =0; 
-      }
-      else {
-       tagsend =1;
-      }
+      send_requests->resize(nranks,0);
 
       for(int i_rank=0;i_rank<nranks;i_rank++) {
         int distant_rank = connectableRanks[i_rank];
 
         if(type == MPI_INT){
           int** ptr_send = ( int**)send_buffer;
-            MPI_Issend(&(  ptr_send [distant_rank] [0] ), send_stride * 1/*send_size[distant_rank]*/, type, distant_rank, tagsend,
+            MPI_Issend(&(  ptr_send [distant_rank] [0] ), send_stride * 1/*send_size[distant_rank]*/, type, distant_rank, tag,
                    comm,
-                   &(_send_requests[i_rank]));        
-        }   
+                   &((*send_requests)[i_rank]));        
+        }
+        if(_rank==0) printf("send_requests[%i] %i\n",i_rank,(*send_requests)[i_rank]);
       }//end for on i_rank
     free(send_size);
   }
@@ -654,7 +933,9 @@ namespace cwipi {
                 int recv_stride,
                 MPI_Datatype type, 
                 MPI_Comm comm,
-                std::vector<int> connectableRanks
+                std::vector<int> connectableRanks,
+                std::vector<int>* recv_requests,
+                int tag
                 ){
 
       int rank=-1;
@@ -670,23 +951,15 @@ namespace cwipi {
         } 
       }
 
-      _recv_requests.resize(nranks,0);
-
-      int tagrecv = -1;
-      if(localName == _codeVector[0]) {
-        tagrecv = 1;
-      }
-      else {
-        tagrecv = 0;
-      }
+      recv_requests -> resize(nranks,0);
         
       for(int i_rank=0;i_rank<nranks;i_rank++) {
         int distant_rank = connectableRanks[i_rank];
         if(type == MPI_INT){
           int** ptr = (int**)recv_buffer;
-          MPI_Irecv(&(  ptr [distant_rank] [0] ), recv_stride * 1/*recv_size[distant_rank]*/,type, distant_rank, tagrecv,
+          MPI_Irecv(&(  ptr [distant_rank] [0] ), recv_stride * 1/*recv_size[distant_rank]*/,type, distant_rank, tag,
                   comm,
-                  &(_recv_requests[i_rank])); 
+                  &((*recv_requests)[i_rank])); 
         }   
       }//end for on i_rank
     free(recv_size);
@@ -895,34 +1168,35 @@ namespace cwipi {
   }
 
 
-  void Geometry::_WaitSend(){
+  void Geometry::_WaitSend(std::vector<int> ranks,
+                           std::vector<int>* send_requests){
                 
       MPI_Status status;  
-      int nranks = (*_connectableRanks_cpl).size();
-       
+      int nranks = ranks.size();
       for(int i_rank=0;i_rank<nranks;i_rank++) {
-        int distant_rank = (*_connectableRanks_cpl)[i_rank];
+        int distant_rank = ranks[i_rank];
      
         if(_rank != distant_rank ) {  
-          MPI_Wait(&(_send_requests[i_rank]), &status); 
+          MPI_Wait(&((*send_requests)[i_rank]), &status); 
         }
       }//end for on i_rank      
-      _send_requests.resize(0,0);
+      send_requests -> resize(0,0);
   }
 
-  void Geometry::_WaitRecv(){
+  void Geometry::_WaitRecv(std::vector<int> ranks,
+                           std::vector<int>* recv_requests){
                 
       MPI_Status status;  
-      int nranks = (*_connectableRanks_cpl).size();
+      int nranks = ranks.size();
        
       for(int i_rank=0;i_rank<nranks;i_rank++) {
-        int distant_rank = (*_connectableRanks_cpl)[i_rank];
+        int distant_rank = ranks[i_rank];
      
         if(_rank != distant_rank ) {  
-          MPI_Wait(&(_recv_requests[i_rank]), &status);
+          MPI_Wait(&((*recv_requests)[i_rank]), &status);
         }
       }//end for on i_rank      
-      _recv_requests.resize(0,0);
+      recv_requests -> resize(0,0);
   }
 
   void Geometry::_Wait(){
@@ -1040,6 +1314,7 @@ namespace cwipi {
 
     int  dataTypeSize       = recevingField -> dataTypeSizeGet(); 
     //Crée un buffer de réception et le stocke (alloue)
+    printf("_n_tot_target %i\n",_n_tot_target);
     recevingField -> ReceptionBufferCreation(_idx_target,_n_tot_target);
     /* Loop on possibly intersecting distant ranks */
     /*---------------------------------------------*/
