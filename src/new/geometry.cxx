@@ -23,7 +23,7 @@
 #include <mpi.h>
 
 #include <pdm_mesh_nodal.h>
-#include <pdm_mesh_dist.h>
+#include <pdm_dist_cloud_surf.h>
 #include <pdm_gnum.h>
 #include <pdm_gnum_location.h>
 #include <bftc_error.h>
@@ -359,11 +359,11 @@ namespace cwipi {
         
       locate_compute        (_id_dist1); 
 
-      PDM_mesh_dist_dump_times(_id_dist1);
+      PDM_dist_cloud_surf_dump_times(_id_dist1);
 
       MPI_Barrier(_globalComm);          
       if(_Texch_t == CWP_FIELD_EXCH_RECV) locate_get(_id_dist1)  ;
-      PDM_mesh_dist_free(_id_dist1,1);
+      PDM_dist_cloud_surf_free(_id_dist1,1);
          
       if(_Texch_t == CWP_FIELD_EXCH_RECV) broadcasting_request(&_id_gnum_location1);
       if(_Texch_t == CWP_FIELD_EXCH_SEND) broadcasting_set    (&_id_gnum_location1);
@@ -401,12 +401,12 @@ namespace cwipi {
         MPI_Barrier(_globalComm);
    
         locate_compute        (_id_dist1);       
-	PDM_mesh_dist_dump_times(_id_dist1);
+	PDM_dist_cloud_surf_dump_times(_id_dist1);
 
         MPI_Barrier(_globalComm);                
         
         locate_get_cpl        (_id_dist1) ;
-        PDM_mesh_dist_free(_id_dist1,1);
+        PDM_dist_cloud_surf_free(_id_dist1,1);
               
         broadcasting_set    (&_id_gnum_location1);    
         MPI_Barrier(_globalComm);

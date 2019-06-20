@@ -109,9 +109,6 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api.c")
   test_c_create (c_new_api 10)
 endif () 
 
-if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_field.c")
-  test_c_create (c_new_api_field 4)
-endif () 
 
 #set (_MPIEXEC_MAX_NUMPROCS ${MPIEXEC_MAX_NUMPROCS})
 set (_MPIEXEC_MAX_NUMPROCS 2)
