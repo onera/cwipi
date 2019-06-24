@@ -120,8 +120,7 @@ include "pdm_dist_cloud_surf.pxi"
 
 # PDM_dist_cloud_surf :
 # --------------------
-include "pdm_dist_cellcenter_surf.pxi"
-
+@COMMENT_NOT_PDMA@include "../../Cython/pdm_dist_cellcenter_surf.pxi"
 
 
 # TODO: PDM_writer, ...
