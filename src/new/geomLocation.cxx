@@ -141,8 +141,8 @@ namespace cwipi {
               double tgtCoords[3] = {x_target,y_target,z_target};
               int *barCoordsIndex =NULL;
               double *barCoords = NULL;
-              printf("iel %i itarget %i target %f %f %f _n_tot_target_cpl %i conneIDX \n",
-              iel,itarget,x_target,y_target,z_target,_n_tot_target_cpl);
+           /*   printf("iel %i itarget %i target %f %f %f _n_tot_target_cpl %i conneIDX \n",
+              iel,itarget,x_target,y_target,z_target,_n_tot_target_cpl);*/
               int conv_bar_compute = PDM_geom_elem_compute_polygon_barycentric_coordinates(1,
                                           	    		                         &ielP1,
                                                                 			  tgtCoords,
@@ -296,7 +296,6 @@ void GeomLocation::issend(Field* referenceField) {
 
     PDM_dist_cloud_surf_n_part_cloud_set(*id_dist,   0, _nb_part);  
 
-    printf("_n_g_elt_cpl_over_part %i\n",_n_g_elt_over_part,_n_g_elt_cpl_over_part);
     PDM_dist_cloud_surf_surf_mesh_global_data_set (*id_dist,
                                              _n_g_elt_cpl_over_part,
                                              _n_g_vtx_cpl_over_part,

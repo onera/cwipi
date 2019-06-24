@@ -59,6 +59,8 @@ namespace cwipi {
     free(_n_g_elt);
     free(_n_g_vtx);
     free(_both_codes_are_local__array);
+    
+    computeFree();
   }
   
   
@@ -483,7 +485,6 @@ void Geometry::mesh_cpl_info_get() {
                      distant_rank, tag2,
                      _globalComm,&rrequest[i]);   
        }
-     printf("After _both_codes_are_local == 0 \n");
        for(int i=0;i<_n_ranks_cpl;i++) {
          int distant_rank = i;//(*_connectableRanks_cpl)[i];
          if(distant_rank != _rank)
@@ -509,7 +510,6 @@ void Geometry::mesh_cpl_info_get() {
      senderRank_cpl = (*_connectableRanks_cpl)[senderRank_cpl] ;
                 
      MPI_Barrier(_globalComm);
-       printf("After SenderRank \n");
      tag+=100;
      if(_rank == senderRank ){
        for(int i=0;i<_n_ranks_cpl;i++) {
@@ -922,7 +922,7 @@ void Geometry::mesh_cpl_info_get() {
                    comm,
                    &((*send_requests)[i_rank]));        
         }
-        if(_rank==0) printf("send_requests[%i] %i\n",i_rank,(*send_requests)[i_rank]);
+       // if(_rank==0) printf("send_requests[%i] %i\n",i_rank,(*send_requests)[i_rank]);
       }//end for on i_rank
     free(send_size);
   }
@@ -1251,8 +1251,6 @@ void Geometry::mesh_cpl_info_get() {
             MPI_Issend(send_buffer, send_stride * send_size, type, distant_rank, tag,
                    comm,
                    &(send_requests[i_rank]));
-                   
-            printf("testibcast rank %i send i_rank %i distant_rank %i\n",rank,i_rank,distant_rank);     
           }
         }
       }//end for on i_rank
@@ -1314,7 +1312,6 @@ void Geometry::mesh_cpl_info_get() {
 
     int  dataTypeSize       = recevingField -> dataTypeSizeGet(); 
     //Crée un buffer de réception et le stocke (alloue)
-    printf("_n_tot_target %i\n",_n_tot_target);
     recevingField -> ReceptionBufferCreation(_idx_target,_n_tot_target);
     /* Loop on possibly intersecting distant ranks */
     /*---------------------------------------------*/
@@ -1332,7 +1329,7 @@ void Geometry::mesh_cpl_info_get() {
       MPI_Request request;
 
       int longueur =  dataTypeSize * nComponent * ( _targets_localization_idx[ distant_rank ][_nb_part_cpl] - _targets_localization_idx[distant_rank][0]  );
-      printf("Recv from %i to %i start %i longueur %i\n",_rank,i_proc,nComponent*_targets_localization_idx[distant_rank][0],longueur);
+      //printf("Recv from %i to %i start %i longueur %i\n",_rank,i_proc,nComponent*_targets_localization_idx[distant_rank][0],longueur);
 
       MPI_Irecv(loc_v_ptr, longueur, MPI_BYTE, distant_rank, tag,
                 _globalComm,
