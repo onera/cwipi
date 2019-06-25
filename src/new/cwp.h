@@ -543,6 +543,13 @@ CWP_State_update
 );
 
 
+
+MPI_Comm
+CWP_Connectable_comm_get
+(
+  char* local_code_name
+);
+
 /**
  * \brief Update code time
  *

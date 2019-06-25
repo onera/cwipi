@@ -457,6 +457,29 @@ CWP_Codes_nb_get
 }
 
 
+MPI_Comm  
+CWP_Connectable_comm_get
+(
+  char* local_code_name
+)
+{
+  cwipi::CodePropertiesDB & properties =
+    cwipi::CodePropertiesDB::getInstance();
+
+
+  const cwipi::CodeProperties & localCodeProperties = properties.codePropertiesGet(string(local_code_name));
+  MPI_Comm connecComm = localCodeProperties.connectableCommGet();
+  
+  MPI_Comm globalComm = localCodeProperties.globalCommGet();
+  int rank;
+  MPI_Comm_rank(globalComm, &rank);
+  
+  //printf("CCCCCCC Après rank %i localColdeProperties %i \n",rank,localCodeProperties.idGet());
+
+  return connecComm;
+}
+
+
 /**
  * \brief list of codes known to CWIPI
  *
@@ -835,6 +858,8 @@ CWP_N_uncomputed_tgts_get
     std::vector<CWP_Field_value_t> locationV;
     locationV.push_back(CWP_FIELD_VALUE_NODE);
     locationV.push_back(CWP_FIELD_VALUE_CELL_POINT);
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
     for(int i_location=0; i_location < locationV.size();i_location++){
       CWP_Field_value_t geometryLocation = locationV[i_location];
@@ -851,14 +876,23 @@ CWP_N_uncomputed_tgts_get
             CWP_Field_exch_t exchange_type = itToCompute -> second;
             
             if(geometryLocationTest == geometryLocation) {
-              /*if(geometryLocation == CWP_FIELD_VALUE_NODE) {
+              if(geometryLocation == CWP_FIELD_VALUE_NODE) {
               if(exchange_type == CWP_FIELD_EXCH_SENDRECV )
-                printf("localCodes %s CWP_FIELD_EXCH_SENDRECV CWP_FIELD_VALUE_NODE\n",loc_code_name);
+                printf("localCodes %s rank %i CWP_FIELD_EXCH_SENDRECV CWP_FIELD_VALUE_NODE\n",loc_code_name,rank);
               else if(exchange_type == CWP_FIELD_EXCH_SEND)
-                printf("localCodes %s CWP_FIELD_EXCH_SEND CWP_FIELD_VALUE_NODE\n",loc_code_name);            
+                printf("localCodes %s rank %i CWP_FIELD_EXCH_SEND CWP_FIELD_VALUE_NODE\n",loc_code_name,rank);            
               else if(exchange_type == CWP_FIELD_EXCH_RECV)
-                printf("localCodes %s CWP_FIELD_EXCH_RECV CWP_FIELD_VALUE_NODE\n",loc_code_name);    
-              }*/
+                printf("localCodes %s rank %i CWP_FIELD_EXCH_RECV CWP_FIELD_VALUE_NODE\n",loc_code_name,rank);    
+              }
+              else if(geometryLocation == CWP_FIELD_VALUE_CELL_POINT) {
+              if(exchange_type == CWP_FIELD_EXCH_SENDRECV )
+                printf("localCodes %s rank %i CWP_FIELD_EXCH_SENDRECV CWP_FIELD_VALUE_CELL_POINT\n",loc_code_name,rank);
+              else if(exchange_type == CWP_FIELD_EXCH_SEND)
+                printf("localCodes %s rank %i CWP_FIELD_EXCH_SEND CWP_FIELD_VALUE_CELL_POINT\n",loc_code_name,rank);            
+              else if(exchange_type == CWP_FIELD_EXCH_RECV)
+                printf("localCodes %s rank %i CWP_FIELD_EXCH_RECV CWP_FIELD_VALUE_CELL_POINT\n",loc_code_name,rank);    
+              }
+              
               
               cpl.geomCompute(geometryLocation, exchange_type);
             }
@@ -866,6 +900,7 @@ CWP_N_uncomputed_tgts_get
           }
         }//end if exist    
       } //end on i_codes loop  
+      printf("rank %i End compute loop\n",rank);    
     } //end on location loop
     delete toComputeV;
   }

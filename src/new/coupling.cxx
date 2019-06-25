@@ -110,8 +110,8 @@ namespace cwipi {
    _recvFreqType (recvFreqType),
    _cplDB(cplDB),
    _fields(*(new map < string, Field * >())),  
-   _visu(*new Visu(localCodeProperties.intraCommGet(),displacement)), 
-   _mesh(*new Mesh(localCodeProperties.intraCommGet(),NULL,nPart,displacement)),
+   _visu(*new Visu(localCodeProperties.connectableCommGet(),displacement)), 
+   _mesh(*new Mesh(localCodeProperties.connectableCommGet(),NULL,nPart,displacement)),
    _geometry(*new std::map <CWP_Field_value_t, Geometry*>()),
    _iteration(new int)
   {
@@ -165,9 +165,11 @@ namespace cwipi {
     } // if (coupledCodeProperties.localCodeIs())     
     else {
       //Communication initialization, MPI communicator creation ... 
-      _communication.init(_localCodeProperties, _coupledCodeProperties, cplId, cplDB);
+    //  if(_localCodeProperties.isCoupledRank()) 
+        _communication.init(_localCodeProperties, _coupledCodeProperties, cplId, cplDB);
 
-      _mesh.setVisu(&_visu);      
+     // if(_localCodeProperties.isCoupledRank()) 
+        _mesh.setVisu(&_visu);      
       //Geometry creation
       _geometry[CWP_FIELD_VALUE_CELL_MEAN] = FG::getInstance().CreateObject(geomAlgo);
       _geometry[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(geomAlgo);
@@ -184,7 +186,7 @@ namespace cwipi {
            
     } // end else
         
-    
+
   }
 
 
@@ -294,10 +296,13 @@ namespace cwipi {
                                               _iteration, //iteration
                                              &physTime);  //physTime
 
+
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
     pair<string, Field* > newPair(string(field_id), newField);
+    string localName = _localCodeProperties.nameGet();
     _fields.insert(newPair);
-    
-    if (_visu.isCreated())
+    if (_localCodeProperties.isCoupledRank() && _visu.isCreated())
       _visu.WriterFieldCreate(newField);
   }
   
@@ -386,8 +391,7 @@ namespace cwipi {
    * 
    */
 
-  CWP_Field_value_t
-  Coupling::fieldTypeGet
+  CWP_Field_value_t Coupling::fieldTypeGet
   (
     const string &field_id
   )

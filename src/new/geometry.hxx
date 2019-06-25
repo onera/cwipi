@@ -89,13 +89,15 @@ namespace cwipi {
      // Ca sera dans les classes concrètes
      virtual void locate_setting_request(int* id_dist) =0;
      virtual void locate_setting_surface(int* id_dist) =0;    
+     virtual void locate_setting_null(int* id_dist) =0;        
      virtual void locate_compute(int id_dist)             =0;
      virtual void locate_get(int id_dist)      =0;
      virtual void locate_get_cpl(int id_dist)      =0;     
      
      
-      virtual void broadcasting_request(int* id_gnum_location)  =0;
-      virtual void broadcasting_set    (int* id_gnum_location)  =0;
+      virtual void broadcasting_request (int* id_gnum_location)  =0;
+      virtual void broadcasting_set     (int* id_gnum_location)  =0;
+      virtual void broadcasting_set_null(int* id_gnum_location)  =0;      
       virtual void location_compute    (int id_gnum_location)  =0;
      
      virtual void location_get(int id_gnum_location)      =0;
@@ -488,8 +490,13 @@ void _IBcast(void* send_buffer,
 
     const std::vector<int>* _connectableRanks_cpl;
     const std::vector<int>* _connectableRanks    ;  
+    const std::vector<int>* _intraRanks_cpl;
+    const std::vector<int>* _intraRanks    ;  
+    
     int  _n_ranks    ;
     int  _n_ranks_cpl;
+    int  _n_ranks_intra    ;
+    int  _n_ranks_intra_cpl;   
     int  _n_ranks_g    ;
 
     
@@ -585,6 +592,9 @@ void _IBcast(void* send_buffer,
    string coupledName;
    string localName; 
    
+   bool _isCoupledRank;
+   bool _isCoupledRank_cpl;
+   
    std::vector<MPI_Request> _send_requests;
    std::vector<int> _recv_requests;  
    std::vector<int> _send_requests2;
@@ -596,7 +606,6 @@ void _IBcast(void* send_buffer,
    int** _n_elt_tmp;
    int** _n_g_vtx_tmp;
    int** _n_vtx_tmp;
-   const vector<int>* _intraRanks;
    CWP_Field_exch_t _Texch_t;
    
    

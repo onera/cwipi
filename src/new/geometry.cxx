@@ -82,9 +82,6 @@ namespace cwipi {
     _globalComm = _localCodeProperties -> globalCommGet();
     _localComm = _mesh -> getMPIComm();     
 
-    MPI_Comm_rank(_globalComm,&_rank);
-    MPI_Comm_rank(_mesh -> getMPIComm(),&_localRank);
-
     MPI_Comm_size(_globalComm,&_n_ranks_g);
        
     _pdm_globalComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&_globalComm));
@@ -127,6 +124,18 @@ namespace cwipi {
     _connectableRanks     = _localCodeProperties   -> connectableRanksGet();
     _n_ranks_cpl = _connectableRanks_cpl->size();
     _n_ranks     = _connectableRanks->size();
+   
+   
+    _intraRanks     =  _localCodeProperties -> intraRanksGet();
+    _intraRanks_cpl =  _coupledCodeProperties -> intraRanksGet();
+    _n_ranks_intra_cpl = _intraRanks_cpl->size();
+    _n_ranks_intra     = _intraRanks->size();
+         
+    _isCoupledRank     = _localCodeProperties   -> isCoupledRank();
+    _isCoupledRank_cpl = _coupledCodeProperties -> isCoupledRank();
+
+    MPI_Comm_rank(_globalComm,&_rank);
+    if(_isCoupledRank) MPI_Comm_rank(_mesh -> getMPIComm(),&_localRank);
    
     n_uncomputed_tgt.resize(_nb_part);
     
@@ -182,7 +191,7 @@ namespace cwipi {
 
     int lsize;
     MPI_Comm_size(_localComm,&lsize);
-    _intraRanks =  _localCodeProperties -> intraRanksGet();
+
 
     _n_g_elt_tmp = (int**) malloc(sizeof(int*) * _n_ranks_g);
     _n_elt_tmp = (int**) malloc(sizeof(int*) * _n_ranks_g);
@@ -303,8 +312,8 @@ namespace cwipi {
   void Geometry::info_mesh(CWP_Field_exch_t _Texch_t) {
 
     if(_both_codes_are_local == 0){
-      mesh_info_get();
-      mesh_info_get2();
+      if(_isCoupledRank)  mesh_info_get();
+      if(_isCoupledRank) mesh_info_get2();
       //MPI_Barrier(_globalComm);
       mesh_cpl_info_get();
     }
@@ -312,7 +321,7 @@ namespace cwipi {
       mesh_info_get();  
       _geometry_cpl -> mesh_info_get();
 
-      mesh_info_get2();  
+       mesh_info_get2();  
       _geometry_cpl -> mesh_info_get2();      
        //MPI_Barrier(_globalComm);
 
@@ -320,7 +329,7 @@ namespace cwipi {
       _geometry_cpl -> mesh_cpl_info_get2();
     }
 
-   
+   //  while(1==1){}
    //  while(1==1){}
     
     
@@ -351,50 +360,64 @@ namespace cwipi {
   void Geometry::compute(CWP_Field_exch_t Texch_t) {
     _Texch_t = Texch_t;
     info_mesh(_Texch_t);
-        
+    
     if(_both_codes_are_local == 0){
-         
-      if(_Texch_t == CWP_FIELD_EXCH_SEND) locate_setting_surface(&_id_dist1);        
-      if(_Texch_t == CWP_FIELD_EXCH_RECV) locate_setting_request(&_id_dist1);
+      if(_isCoupledRank) {   
+        if(_Texch_t == CWP_FIELD_EXCH_SEND ) locate_setting_surface(&_id_dist1);        
+        if(_Texch_t == CWP_FIELD_EXCH_RECV ) locate_setting_request(&_id_dist1);
       
-      MPI_Barrier(_globalComm);
+        MPI_Barrier(_globalComm);
         
-      locate_compute        (_id_dist1); 
+        locate_compute        (_id_dist1); 
 
-      PDM_dist_cloud_surf_dump_times(_id_dist1);
+        PDM_dist_cloud_surf_dump_times(_id_dist1);
 
-      MPI_Barrier(_globalComm);          
-      if(_Texch_t == CWP_FIELD_EXCH_RECV) locate_get(_id_dist1)  ;
-      PDM_dist_cloud_surf_free(_id_dist1,1);
+        MPI_Barrier(_globalComm);          
+        if(_Texch_t == CWP_FIELD_EXCH_RECV) locate_get(_id_dist1)  ;
+        PDM_dist_cloud_surf_free(_id_dist1,1);
          
-      if(_Texch_t == CWP_FIELD_EXCH_RECV) broadcasting_request(&_id_gnum_location1);
-      if(_Texch_t == CWP_FIELD_EXCH_SEND) broadcasting_set    (&_id_gnum_location1);
-  
-      MPI_Barrier(_globalComm);
+        if(_Texch_t == CWP_FIELD_EXCH_RECV) broadcasting_request(&_id_gnum_location1);
+        if(_Texch_t == CWP_FIELD_EXCH_SEND) broadcasting_set    (&_id_gnum_location1);
+        MPI_Barrier(_globalComm);
 
-      location_compute                   (_id_gnum_location1);   
+        location_compute                   (_id_gnum_location1);   
        
-      if(_Texch_t == CWP_FIELD_EXCH_RECV) location_get(_id_gnum_location1) ;
+        if(_Texch_t == CWP_FIELD_EXCH_RECV) location_get(_id_gnum_location1) ;
 
-      PDM_gnum_location_free(_id_gnum_location1,1);
+        PDM_gnum_location_free(_id_gnum_location1,1);
 
-      if(_Texch_t == CWP_FIELD_EXCH_RECV) filling_of_broadcasting_array();      
-      if(_Texch_t == CWP_FIELD_EXCH_SEND) initialization_of_reception_array();
-
-      if(_Texch_t == CWP_FIELD_EXCH_RECV) broadcasting_index_communication() ;
-      if(_Texch_t == CWP_FIELD_EXCH_SEND) reception_index_communication() ;
+        if(_Texch_t == CWP_FIELD_EXCH_RECV) filling_of_broadcasting_array();      
+        if(_Texch_t == CWP_FIELD_EXCH_SEND) initialization_of_reception_array();
+        if(_Texch_t == CWP_FIELD_EXCH_RECV) broadcasting_index_communication() ;
+        if(_Texch_t == CWP_FIELD_EXCH_SEND) reception_index_communication() ;
  
-      if(_Texch_t == CWP_FIELD_EXCH_RECV) _WaitSend(*_connectableRanks_cpl,&_send_requests)    ;     
-      if(_Texch_t == CWP_FIELD_EXCH_SEND) _WaitRecv(*_connectableRanks_cpl,&_recv_requests)    ;     
+ 
+        if(_Texch_t == CWP_FIELD_EXCH_RECV) _WaitSend(*_connectableRanks_cpl,&_send_requests)    ;     
+        if(_Texch_t == CWP_FIELD_EXCH_SEND) _WaitRecv(*_connectableRanks_cpl,&_recv_requests)    ;     
 
-      if(_Texch_t == CWP_FIELD_EXCH_RECV) prepare_data_communication_send();
-      if(_Texch_t == CWP_FIELD_EXCH_SEND) prepare_data_communication_recv() ; 
 
-      if(_Texch_t == CWP_FIELD_EXCH_RECV) data_communication_send();
-      if(_Texch_t == CWP_FIELD_EXCH_SEND) data_communication_recv();
+        if(_Texch_t == CWP_FIELD_EXCH_RECV) prepare_data_communication_send();
+        if(_Texch_t == CWP_FIELD_EXCH_SEND) prepare_data_communication_recv() ; 
+
+        if(_Texch_t == CWP_FIELD_EXCH_RECV) data_communication_send();
+        if(_Texch_t == CWP_FIELD_EXCH_SEND) data_communication_recv();
    
-      if(_Texch_t == CWP_FIELD_EXCH_RECV) data_communication_wait_send();
-      if(_Texch_t == CWP_FIELD_EXCH_SEND) data_communication_wait_recv();
+        if(_Texch_t == CWP_FIELD_EXCH_RECV) data_communication_wait_send();
+        if(_Texch_t == CWP_FIELD_EXCH_SEND) data_communication_wait_recv();
+        
+      }//end if isCoupledRank
+      else {
+        locate_setting_null(&_id_dist1);
+        MPI_Barrier(_globalComm);
+        locate_compute        (_id_dist1); 
+        PDM_dist_cloud_surf_dump_times(_id_dist1);
+        MPI_Barrier(_globalComm);
+        PDM_dist_cloud_surf_free(_id_dist1,1);
+        MPI_Barrier(_globalComm);
+        broadcasting_set_null(&_id_gnum_location1);
+        location_compute                   (_id_gnum_location1);   
+        PDM_gnum_location_free(_id_gnum_location1,1);
+      }
     }
     else {
       if(_Texch_t == CWP_FIELD_EXCH_SEND) {
@@ -435,7 +458,6 @@ namespace cwipi {
        
         _geometry_cpl -> data_communication_wait_send();
         data_communication_wait_recv();
-
     }//end if localName == _codeVector[0]
       
     }//end both_are_local
@@ -471,29 +493,34 @@ void Geometry::mesh_cpl_info_get() {
          tag = 2;        
      }
      
-       for(int i=0;i<_n_ranks_g;i++) {
-         int distant_rank = i;//(*_connectableRanks_cpl)[i];
-         int tag2=tag*10000+distant_rank;
-         if(distant_rank != _rank)
-           MPI_Issend(&_both_codes_are_local, 1, MPI_INT,
-                      distant_rank, tag2,
-                      _globalComm,&srequest[i]);      
+     for(int i=0;i<_n_ranks_g;i++) {
+       int distant_rank = i;//(*_connectableRanks_cpl)[i];
+       int tag2=tag*10000+distant_rank;
+       if(distant_rank != _rank)
+         MPI_Issend(&_both_codes_are_local, 1, MPI_INT,
+                    distant_rank, tag2,
+                    _globalComm,&srequest[i]);      
          
-          tag2=tag*10000+_rank;
-          if(distant_rank != _rank)
-            MPI_Irecv(&(_both_codes_are_local__array[i]), 1, MPI_INT,
-                     distant_rank, tag2,
-                     _globalComm,&rrequest[i]);   
-       }
-       for(int i=0;i<_n_ranks_cpl;i++) {
-         int distant_rank = i;//(*_connectableRanks_cpl)[i];
-         if(distant_rank != _rank)
-           MPI_Wait(&srequest[i],&status);      
-         if(distant_rank != _rank)
-           MPI_Wait(&rrequest[i],&status);  
-       }
-       
+        tag2=tag*10000+_rank;
+        if(distant_rank != _rank)
+          MPI_Irecv(&(_both_codes_are_local__array[i]), 1, MPI_INT,
+                   distant_rank, tag2,
+                   _globalComm,&rrequest[i]);   
+     }
+     for(int i=0;i<_n_ranks_g;i++) {
+       int distant_rank = i;//(*_connectableRanks_cpl)[i];
+       if(distant_rank != _rank)
+         MPI_Wait(&srequest[i],&status);      
+       if(distant_rank != _rank)
+         MPI_Wait(&rrequest[i],&status);  
+     }
+
+
+     for(int i=0;i<_n_ranks_g;i++) {
+     //  printf("rank %i _both_codes_are_local__array[%i] %i %i\n",_rank,i,_both_codes_are_local__array[i],_both_codes_are_local);
+     }
      _both_codes_are_local__array[_rank]=_both_codes_are_local;
+
 
      int senderRank=0;
      while( _both_codes_are_local__array[ (*_connectableRanks)[senderRank] ] == 1 && senderRank < _n_ranks) {
@@ -512,8 +539,8 @@ void Geometry::mesh_cpl_info_get() {
      MPI_Barrier(_globalComm);
      tag+=100;
      if(_rank == senderRank ){
-       for(int i=0;i<_n_ranks_cpl;i++) {
-         int distant_rank = (*_connectableRanks_cpl)[i];
+       for(int i=0;i<_n_ranks_intra_cpl;i++) {
+         int distant_rank = (*_intraRanks_cpl)[i];
          int tag2=tag*10000+distant_rank;
          if( _both_codes_are_local__array[ distant_rank ] == 0 ) {
            MPI_Issend(&_nb_part, 1, MPI_INT,
@@ -522,7 +549,7 @@ void Geometry::mesh_cpl_info_get() {
          }
        }
      }
-
+     
     if(_both_codes_are_local == 0) {
      int tag2=tag*10000+_rank;
      MPI_Irecv(&_nb_part_cpl, 1, MPI_INT,
@@ -534,8 +561,8 @@ void Geometry::mesh_cpl_info_get() {
       MPI_Wait(&request,&status); 
 
     if(_rank == senderRank ){
-      for(int i=0;i<_n_ranks_cpl;i++) {        
-        if( _both_codes_are_local__array[ (*_connectableRanks_cpl)[i] ] == 0 ) 
+      for(int i=0;i<_n_ranks_intra_cpl;i++) {        
+        if( _both_codes_are_local__array[ (*_intraRanks_cpl)[i] ] == 0 ) 
           MPI_Wait(&srequest[i],&status);            
       }
     }
@@ -549,8 +576,8 @@ void Geometry::mesh_cpl_info_get() {
     tag+=100;
     /*   Number of elements over all processes and partitions exchange                  */
      if(_rank == senderRank ){
-       for(int i=0;i<_n_ranks_cpl;i++) {
-         int distant_rank = (*_connectableRanks_cpl)[i];
+       for(int i=0;i<_n_ranks_intra_cpl;i++) {
+         int distant_rank = (*_intraRanks_cpl)[i];
          int tag2=tag*10000+distant_rank;
          if( _both_codes_are_local__array[distant_rank] == 0 ) {
            MPI_Issend(&_n_g_elt_over_part, 1, MPI_INT,
@@ -571,8 +598,8 @@ void Geometry::mesh_cpl_info_get() {
       MPI_Wait(&request,&status); 
 
     if(_rank == senderRank ){
-      for(int i=0;i<_n_ranks_cpl;i++) {        
-        if( _both_codes_are_local__array[ (*_connectableRanks_cpl)[i] ] == 0 ) 
+      for(int i=0;i<_n_ranks_intra_cpl;i++) {        
+        if( _both_codes_are_local__array[ (*_intraRanks_cpl)[i] ] == 0 ) 
           MPI_Wait(&srequest[i],&status);            
       }
     }
@@ -584,8 +611,8 @@ void Geometry::mesh_cpl_info_get() {
       /*   Number of elements over all processes and partitions exchange                  */
      tag+=100;
       if(_rank == senderRank ){
-       for(int i=0;i<_n_ranks_cpl;i++) {
-         int distant_rank = (*_connectableRanks_cpl)[i];
+       for(int i=0;i<_n_ranks_intra_cpl;i++) {
+         int distant_rank = (*_intraRanks_cpl)[i];
          int tag2=tag*10000+distant_rank;
          if( _both_codes_are_local__array[ distant_rank ] == 0 ) {
            MPI_Issend(&_n_g_vtx_over_part, 1, MPI_INT,
@@ -607,7 +634,7 @@ void Geometry::mesh_cpl_info_get() {
 
     if(_rank == senderRank ){
       for(int i=0;i<_n_ranks_cpl;i++) {        
-        if( _both_codes_are_local__array[ (*_connectableRanks_cpl)[i] ] == 0 ) 
+        if( _both_codes_are_local__array[ (*_intraRanks_cpl)[i] ] == 0 ) 
           MPI_Wait(&srequest[i],&status);            
       }
     }

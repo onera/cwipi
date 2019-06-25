@@ -26,8 +26,9 @@ namespace cwipi {
            _iteration      (iteration)   ,
            _physTime       (physTime)
     {
+    
        _mesh = cpl -> meshGet(); 
-       _n_part = _mesh -> getNPart(); 
+       _n_part = _mesh -> getNPart();
        _data.resize(_n_part,NULL);
        _sendBuffer = NULL;
        _recvBuffer = NULL;  

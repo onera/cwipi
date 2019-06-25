@@ -283,6 +283,71 @@ void GeomLocation::issend(Field* referenceField) {
     } //end of if
   }
 
+
+
+void GeomLocation::locate_setting_null(int* id_dist) {
+
+    /*
+     TODO: Intéressant pour la suite
+     Inclure dans mesh_dist et autre la possibilité de définir plusieurs surfaces ...
+
+   */
+
+    /* Paradigm mesh localisation _distance creation */
+    *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_globalComm );
+
+    PDM_dist_cloud_surf_n_part_cloud_set(*id_dist,   0, _nb_part);  
+
+    PDM_dist_cloud_surf_surf_mesh_global_data_set (*id_dist,
+                                             _n_g_elt_cpl_over_part,
+                                             _n_g_vtx_cpl_over_part,
+                                             _nb_part_cpl);  
+
+    for(int i_part =0;i_part<_nb_part;i_part++) {   
+      int n_elt_null = 0;    
+      double*      coords    = (double*)malloc(3*sizeof(double)*n_elt_null);
+      CWP_g_num_t* gnum_elt  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*n_elt_null);
+
+      PDM_dist_cloud_surf_cloud_set (*id_dist,
+                              0,
+                              i_part,
+                              0,
+                              coords,
+                              gnum_elt
+                             );
+    }
+ 
+      for(int i_part =0; i_part<_nb_part_cpl; i_part++) {     
+        int n_elt_null = 0;
+        int*         connecIdx = (int*)malloc(sizeof(int)*(1+n_elt_null));
+        int*         connec    = (int*)malloc(sizeof(int)*n_elt_null);
+        
+        double*      coords    = (double*)malloc(3*sizeof(double)*n_elt_null);
+        CWP_g_num_t* gnum_vtx  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*n_elt_null);
+        CWP_g_num_t* gnum_elt  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*n_elt_null);
+        
+        connecIdx[0]=0;
+
+        PDM_dist_cloud_surf_surf_mesh_part_set (*id_dist,
+                                          i_part,
+                                          0,
+                                          connecIdx,
+                                          connec,
+                                          gnum_elt,
+                                          0,
+                                          coords,
+                                          gnum_vtx);                           
+     }      
+ }
+
+
+
+
+
+
+
+
+
   void GeomLocation::locate_setting_request(int* id_dist) {
 
     /*
@@ -456,6 +521,23 @@ void GeomLocation::issend(Field* referenceField) {
  /*************************************************************************************/
  /*************************************************************************************/
   /*************************************************************************************/
+
+
+void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
+ 
+  *id_gnum_location = PDM_gnum_location_create(_nb_part,_nb_part_cpl, _pdm_globalComm);
+
+  for(int i_part =0;i_part<_nb_part;i_part++) {    
+    CWP_g_num_t* gnum_elt_null  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*0);
+    PDM_gnum_location_elements_set(*id_gnum_location,i_part, 0,gnum_elt_null);      
+  }
+
+  for(int i_part =0; i_part<_nb_part_cpl; i_part++) {     
+    CWP_g_num_t* gnum_elt_null  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*0);
+    PDM_gnum_location_requested_elements_set(*id_gnum_location,i_part, 0,gnum_elt_null);
+  }//loop on part
+ }
+
 
   void GeomLocation::locate_get_cpl(int id_dist) {
     _geometry_cpl -> _distance           = (double**)malloc(sizeof(double*) * _nb_part_cpl);
