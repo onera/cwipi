@@ -105,14 +105,21 @@ namespace cwipi {
      virtual void filling_of_broadcasting_array() =0;
      virtual void initialization_of_reception_array() =0;
      virtual void broadcasting_index_communication() =0;
+     virtual void broadcasting_index_communication_async() =0;     
+     virtual void broadcasting_index_null() =0;
+     virtual void both_index_communication() =0;     
+
      virtual void reception_index_communication() =0;
+     virtual void reception_index_communication_async() =0;
      
      virtual void prepare_data_communication_send() =0;
      virtual void prepare_data_communication_recv() =0;
 
      virtual void data_communication_send() =0;
      virtual void data_communication_recv() =0;
-
+     virtual void data_communication_null() =0;
+     virtual void both_data_communication() =0;
+     
      virtual void data_communication_wait_send() =0;
      virtual void data_communication_wait_recv() =0;
      
@@ -409,7 +416,7 @@ namespace cwipi {
     void _Wait();      
     void _WaitSend(std::vector<int> Ranks,std::vector<int>* send_requests);      
     void _WaitRecv(std::vector<int> Ranks,std::vector<int>* recv_requests);      
-
+    void _Wait(std::vector<int> Ranks,std::vector<int>* send_requests,std::vector<int>* recv_requests);      
 
     double      **_distance         ; 
     double      **_projected        ; 
@@ -427,7 +434,8 @@ namespace cwipi {
   int* _localization_disp_recv ;         
   int* _localization_disp_send ; 
 
-
+  target_data* _targets_localization_data;
+  
   protected:
     
     Geometry &operator=(const Geometry &other);  /*!< Assigment operator not available */
@@ -517,10 +525,10 @@ void _IBcast(void* send_buffer,
     int _n_tot_elt;
     int _n_tot_vtx;
     
-    int _n_g_elt_over_part;
-    int _n_g_vtx_over_part;
-    int _n_g_elt_cpl_over_part;
-    int _n_g_vtx_cpl_over_part;  
+    CWP_g_num_t _n_g_elt_over_part;
+    CWP_g_num_t _n_g_vtx_over_part;
+    CWP_g_num_t _n_g_elt_cpl_over_part;
+    CWP_g_num_t _n_g_vtx_cpl_over_part;  
     
     int**                          _n_targets_dist_proc_dist_part;
     int**                          _n_targets_recv_dist_proc_loc_part    ;
@@ -538,8 +546,8 @@ void _IBcast(void* send_buffer,
    int _n_tot_vtx_exch_cpl;
 
 
-   int* _n_g_elt;
-   int* _n_g_vtx;
+   CWP_g_num_t* _n_g_elt;
+   CWP_g_num_t* _n_g_vtx;
  
    double* _centers_conc ;
    double* _coords_conc ;
@@ -572,12 +580,12 @@ void _IBcast(void* send_buffer,
 
 
   int** _targets_localization_idx   ;
-  target_data* _targets_localization_data;
 
-
+  int _senderLocalRank;
 
    MPI_Comm _globalComm ;
    MPI_Comm _localComm  ;
+   MPI_Comm _connectableComm  ;   
    PDM_MPI_Comm  _pdm_localComm ;
    PDM_MPI_Comm  _pdm_globalComm ;
 
@@ -596,15 +604,15 @@ void _IBcast(void* send_buffer,
    bool _isCoupledRank_cpl;
    
    std::vector<MPI_Request> _send_requests;
-   std::vector<int> _recv_requests;  
-   std::vector<int> _send_requests2;
-   std::vector<int> _recv_requests2;    
+   std::vector<MPI_Request> _recv_requests;  
+   std::vector<MPI_Request> _send_requests2;
+   std::vector<MPI_Request> _recv_requests2;    
    std::vector<int> n_uncomputed_tgt;
 
 
-   int** _n_g_elt_tmp;
+   CWP_g_num_t** _n_g_elt_tmp;
    int** _n_elt_tmp;
-   int** _n_g_vtx_tmp;
+   CWP_g_num_t** _n_g_vtx_tmp;
    int** _n_vtx_tmp;
    CWP_Field_exch_t _Texch_t;
    

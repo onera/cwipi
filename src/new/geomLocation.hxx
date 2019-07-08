@@ -52,14 +52,22 @@ namespace cwipi {
       void filling_of_broadcasting_array ();
       void initialization_of_reception_array ();
       void broadcasting_index_communication()    ;
+      void broadcasting_index_communication_async()    ;      
       void reception_index_communication()    ;
+      void both_index_communication()    ;
+      void reception_index_communication_async()    ;
+      
+      void broadcasting_index_null();
+      
 
       void prepare_data_communication_send()  ;
       void prepare_data_communication_recv()  ;
 
       void data_communication_send()          ;
       void data_communication_recv()          ;
-
+      void data_communication_null()          ;
+      void both_data_communication()          ;
+      
       void data_communication_wait_send();
       void data_communication_wait_recv();
                  
