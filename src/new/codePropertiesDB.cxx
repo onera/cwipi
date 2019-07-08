@@ -24,6 +24,8 @@
 #include <cstdlib>
 #include <list>
 #include <map>
+#include <algorithm>    
+#include <vector>       
 
 #include "pdm_error.h"
 
@@ -298,14 +300,19 @@ namespace cwipi {
                        &(_codePropertiesDB[p->first]->_intraComm));
 
       int rootIdx = 0;
-      while(n_codes_rank[ _ranks[rootIdx] ] != 1 && rootIdx <_n_ranks){
+      bool isCoupledRankCode = false;
+      std::vector<int> cplRankCode = (*coupledRankCode[p->first]);
+      vector<int>::iterator it = std::find( cplRankCode.begin(), cplRankCode.end(), _ranks[rootIdx] );
+      
+      while((n_codes_rank[ _ranks[rootIdx] ] == 2 
+            || it == cplRankCode.end())
+            && rootIdx <_n_ranks){
         rootIdx++;
+        it =  std::find( cplRankCode.begin(), cplRankCode.end(), _ranks[rootIdx] );
       }
       if(rootIdx == _n_ranks) 
         PDM_error(__FILE__, __LINE__, 0, "At least one MPI process per code must be monocode.\n");
-
       _codePropertiesDB[p->first]->_rootRankInGlobalComm = _ranks[rootIdx];
-      printf("_ranks[rootIdx] %i\n",_ranks[rootIdx]);
     }
 
     rankCode.clear();
