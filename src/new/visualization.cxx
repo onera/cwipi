@@ -140,7 +140,7 @@ namespace cwipi {
   
      int id_block = PDM_writer_geom_bloc_add(_visu_id,
                                _visu_mesh_id,
-                               PDM_WRITER_OFF,  
+                               PDM_WRITER_ON,  
                                PdmWriterBlockTypeFromCwpBlockType(blockType)
                               ); 
     return id_block;
@@ -226,6 +226,11 @@ namespace cwipi {
                                       global_num);                      
   }
 
+  void Visu::GeomFree() {
+    PDM_writer_geom_data_free(_visu_id,_visu_mesh_id);       
+  //   PDM_writer_geom_free(_visu_id,_visu_mesh_id);               
+  }
+
 
   void Visu::WriterFieldCreate(Field* field) {
 
@@ -254,7 +259,7 @@ namespace cwipi {
       std::string fieldName = prefix + "_" + field ->fieldIDGet();
 
       int id_var = PDM_writer_var_create(_visu_id, 
-                                         PDM_WRITER_ON,
+                                         PDM_WRITER_OFF,
                                          PDMfieldComp, 
                                          PDMfieldType, 
                                          fieldName.c_str());
@@ -271,11 +276,20 @@ namespace cwipi {
     id_var = field -> visuIdGet();
     void* data = field -> dataGet(i_part);
     //TODO: CHange double for multitype
-    
 
     PDM_writer_var_set(_visu_id, id_var, _visu_mesh_id, i_part,(double*)data);
+  }
+
+  void Visu::fieldDataFree(Field* field) {
+    
+    int id_var = -1;
+ 
+    id_var = field -> visuIdGet();
+
+    PDM_writer_var_data_free(_visu_id, id_var);
          
   }
+
 
 /********************************************************/
 
@@ -352,7 +366,6 @@ namespace cwipi {
        PDM_writer_geom_data_reset (_visu_id, _visu_mesh_id);
        
      PDM_writer_step_end(_visu_id); 
-     
   }
 
 

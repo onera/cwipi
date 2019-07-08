@@ -236,6 +236,10 @@ namespace cwipi {
 
     void fieldDataSet(Field* field,int i_part);
 
+    void fieldDataFree(Field* field);
+
+    void GeomFree();
+
     void WriterFieldCreate(Field* field);
 
 
