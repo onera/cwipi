@@ -269,6 +269,10 @@ namespace cwipi
 
   CodeProperties::~CodeProperties()
   {
+  
+    if (_winGlob != MPI_WIN_NULL) {
+      MPI_Win_free(&_winGlob);
+    }  
     if (_winIntParamIdxName != MPI_WIN_NULL) {
       MPI_Win_free(&_winIntParamIdxName);
     }
