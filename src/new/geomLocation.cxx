@@ -786,25 +786,47 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
    int id     = _localCodeProperties -> idGet();
    int id_cpl = _coupledCodeProperties -> idGet();
 
-   int* sbuffer = (int*) malloc(sizeof(int)*_n_ranks_g*_nb_part_cpl);
-   for(int i_proc=0;i_proc<_n_ranks_g;i_proc++)
-     for(int i_part=0;i_part<_nb_part_cpl;i_part++)
-       sbuffer[ i_proc * _nb_part_cpl + i_part ] = 0;
+
 
    MPI_Barrier(_globalComm);
 
-   int* recvbuffer = (int*) malloc(sizeof(int)*_n_ranks_g*_nb_part_cpl);
+
    MPI_Request request;
+   int* sbuffer = NULL;
+   int* recvbuffer = NULL;
+   if(_Texch_t == CWP_FIELD_EXCH_SEND){
    
-   MPI_Ialltoall(sbuffer, _nb_part_cpl, MPI_INT, 
-                 recvbuffer, _nb_part_cpl, MPI_INT,
-                 _globalComm,&request);
+     int* sbuffer = (int*) malloc(sizeof(int)*_n_ranks_g*_nb_part);
+     for(int i_proc=0;i_proc<_n_ranks_g;i_proc++)
+       for(int i_part=0;i_part<_nb_part;i_part++)
+         sbuffer[ i_proc * _nb_part + i_part ] = 0;  
+          
+     int* recvbuffer = (int*) malloc(sizeof(int)*_n_ranks_g*_nb_part);
    
+     MPI_Ialltoall(sbuffer, _nb_part, MPI_INT, 
+                   recvbuffer, _nb_part, MPI_INT,
+                   _globalComm,&request);
+                   
+   }
+   else if(_Texch_t == CWP_FIELD_EXCH_RECV) {
+   
+     sbuffer = (int*) malloc(sizeof(int)*_n_ranks_g*_nb_part_cpl);
+     for(int i_proc=0;i_proc<_n_ranks_g;i_proc++)
+       for(int i_part=0;i_part<_nb_part_cpl;i_part++)
+         sbuffer[ i_proc * _nb_part_cpl + i_part ] = 0;  
+          
+     recvbuffer = (int*) malloc(sizeof(int)*_n_ranks_g*_nb_part_cpl);   
+   
+     MPI_Ialltoall(sbuffer, _nb_part_cpl, MPI_INT, 
+                   recvbuffer, _nb_part_cpl, MPI_INT,
+                   _globalComm,&request);   
+   
+   }
    MPI_Status stat;
    MPI_Wait(&request,&stat);
    
-   free(sbuffer   );
-   free(recvbuffer   );
+   if(sbuffer!=NULL) free(sbuffer   );
+   if(recvbuffer!=NULL) free(recvbuffer   );
    
  } 
 
@@ -882,7 +904,7 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
        sbuffer[ i_proc * _nb_part_cpl + i_part ] = _localization_count_comm_proc[i_proc][i_part];
      }
 
-   int* recvbuffer_trash = (int*) malloc(sizeof(int)*_n_ranks_g*_nb_part);
+   int* recvbuffer_trash = (int*) malloc(sizeof(int)*_n_ranks_g*_nb_part_cpl);
    MPI_Barrier(_globalComm);
    
    PDM_timer_t *t1 = PDM_timer_create();
@@ -892,7 +914,7 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
    MPI_Request sreq;
    
    MPI_Ialltoall(sbuffer, _nb_part_cpl, MPI_INT, 
-                 recvbuffer_trash, _nb_part, MPI_INT,
+                 recvbuffer_trash, _nb_part_cpl, MPI_INT,
                  _globalComm,&sreq);    
                    
    
@@ -933,10 +955,10 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
        recvbuffer[ i_proc * _nb_part + i_part ] = 0;   
      }
    
-   int *sendbuffer_trash = (int*) malloc(sizeof(int)*_n_ranks_g*_nb_part_cpl);
+   int *sendbuffer_trash = (int*) malloc(sizeof(int)*_n_ranks_g*_nb_part);
    for(int i_proc=0;i_proc<_n_ranks_g;i_proc++)
-     for(int i_part=0;i_part<_nb_part_cpl;i_part++) {
-       sendbuffer_trash[ i_proc * _nb_part_cpl + i_part ] = 0;   
+     for(int i_part=0;i_part<_nb_part;i_part++) {
+       sendbuffer_trash[ i_proc * _nb_part + i_part ] = 0;   
      }
      
    MPI_Barrier(_globalComm);
@@ -947,7 +969,7 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
    
    MPI_Request rreq;
    
-   MPI_Ialltoall(sendbuffer_trash, _nb_part_cpl, MPI_INT, 
+   MPI_Ialltoall(sendbuffer_trash, _nb_part, MPI_INT, 
                  recvbuffer, _nb_part, MPI_INT,
                  _globalComm,&rreq);   
 

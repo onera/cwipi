@@ -574,32 +574,24 @@ namespace cwipi {
         if(_Texch_t == CWP_FIELD_EXCH_RECV) broadcasting_index_communication() ;
         if(_Texch_t == CWP_FIELD_EXCH_SEND) reception_index_communication() ;
   
-/*        if(_Texch_t == CWP_FIELD_EXCH_RECV) broadcasting_index_communication_async() ;
-        if(_Texch_t == CWP_FIELD_EXCH_SEND) reception_index_communication_async() ;
- 
-        for(int i=0;i<2;i++){
-         // printf("request send %i recv %i\n",_send_requests[i],_recv_requests[i]);
-        }
- 
-        if(_Texch_t == CWP_FIELD_EXCH_RECV) _WaitSend(*_connectableRanks_cpl,&_send_requests)    ;     
-        if(_Texch_t == CWP_FIELD_EXCH_SEND) _WaitRecv(*_connectableRanks_cpl,&_recv_requests)    ;     
-*/
         PDM_timer_hang_on(t3); 
         elapsIndexComm = PDM_timer_elapsed(t3);
         
         PDM_timer_t *t4 = PDM_timer_create();
         PDM_timer_init(t4);
         PDM_timer_resume(t4);  
+
+
    
         if(_Texch_t == CWP_FIELD_EXCH_RECV) prepare_data_communication_send();
         if(_Texch_t == CWP_FIELD_EXCH_SEND) prepare_data_communication_recv() ; 
 
         if(_Texch_t == CWP_FIELD_EXCH_RECV) data_communication_send();
         if(_Texch_t == CWP_FIELD_EXCH_SEND) data_communication_recv();
-   
+
         if(_Texch_t == CWP_FIELD_EXCH_RECV) data_communication_wait_send();
         if(_Texch_t == CWP_FIELD_EXCH_SEND) data_communication_wait_recv();
-        
+
         PDM_timer_hang_on(t4);
         elapsDataComm = PDM_timer_elapsed(t4);
         
@@ -615,6 +607,7 @@ namespace cwipi {
         PDM_gnum_location_free(_id_gnum_location1,1);
       //  MPI_Barrier(_globalComm);
         broadcasting_index_null();
+        
         data_communication_null();
         
       }
@@ -643,7 +636,6 @@ namespace cwipi {
         initialization_of_reception_array();
 
         both_index_communication() ;
-
         _geometry_cpl ->prepare_data_communication_send();
         prepare_data_communication_recv() ;
  
@@ -672,7 +664,7 @@ namespace cwipi {
        
     }    
     
-         //while(1==1){}
+        // while(1==1){}
   }
 
 
