@@ -123,10 +123,11 @@ namespace cwipi {
 
         //Communication initialization, MPI communicator creation ... 
         _communication.init(_localCodeProperties, _coupledCodeProperties, cplId, cplDB); 
-        
+      
         //Get distant coupling object
         Coupling &distCpl = cplDB.couplingGet(coupledCodeProperties, cplId);        
         distCpl._communication.init(_communication);
+
         Visu* visu_cpl = distCpl.visuGet();
         Mesh* mesh_cpl = distCpl.meshGet(); 
 
@@ -165,10 +166,9 @@ namespace cwipi {
     } // if (coupledCodeProperties.localCodeIs())     
     else {
       //Communication initialization, MPI communicator creation ... 
-    //  if(_localCodeProperties.isCoupledRank()) 
-        _communication.init(_localCodeProperties, _coupledCodeProperties, cplId, cplDB);
+      _communication.init(_localCodeProperties, _coupledCodeProperties, cplId, cplDB);
 
-     // if(_localCodeProperties.isCoupledRank()) 
+   //   if(_localCodeProperties.isCoupledRank()) 
         _mesh.setVisu(&_visu);      
       //Geometry creation
       _geometry[CWP_FIELD_VALUE_CELL_MEAN] = FG::getInstance().CreateObject(geomAlgo);
@@ -177,12 +177,14 @@ namespace cwipi {
       _geometry[CWP_FIELD_VALUE_USER] = FG::getInstance().CreateObject(geomAlgo);
     
       //Geometry initialization
-      std::map <CWP_Field_value_t, Geometry*>::iterator it = _geometry.begin();
-      while (it != _geometry.end()) {    
-        (it -> second) -> init(this,it->first);
-        it++;
-      }
-    
+  //    if(_localCodeProperties.isCoupledRank()) {
+
+        std::map <CWP_Field_value_t, Geometry*>::iterator it = _geometry.begin();
+        while (it != _geometry.end()) {    
+          (it -> second) -> init(this,it->first);
+          it++;
+        }
+    //  }
            
     } // end else
         
@@ -197,6 +199,28 @@ namespace cwipi {
        _visu.WriterStepEnd();
     }
        
+    std::map <CWP_Field_value_t, Geometry*>::iterator it = _geometry.begin();
+    while (it != _geometry.end()) {    
+        delete it -> second;
+        it++;
+    }
+    
+
+    std::map < string, Field * >::iterator itf = _fields.begin();
+    while (itf != _fields.end()) {
+        if(_localCodeProperties.isCoupledRank() && _visu.isCreated()) 
+          _visu.fieldDataFree(itf -> second);    
+        delete itf -> second;
+        itf++;
+    }
+    
+    if(_localCodeProperties.isCoupledRank() && _visu.isCreated()) {
+      // _visu.GeomFree();
+      
+      delete _iteration;      
+    }    
+    
+    
     #if defined(DEBUG) && 0
     cout << "destroying '" << _name << "' coupling : TODO" << endl;
     #endif
@@ -297,8 +321,6 @@ namespace cwipi {
                                              &physTime);  //physTime
 
 
-    int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
     pair<string, Field* > newPair(string(field_id), newField);
     string localName = _localCodeProperties.nameGet();
     _fields.insert(newPair);
@@ -433,7 +455,6 @@ namespace cwipi {
       {
         It->second->dataSet(i_part,data);
         if(_visu.isCreated()) {
-          printf("_visu.fieldDataSet(It->second,i_part); \n");
           _visu.fieldDataSet(It->second,i_part);
         }      
       }   
@@ -661,7 +682,6 @@ namespace cwipi {
  void Coupling::recvNextTimeSet (double next_time) {
    
    if(_visu.isCreated() and _visu.physicalTimeGet() != -1) {
-       printf("_visu.WriterStepEnd(); %f\n",_visu.physicalTimeGet());
        _visu.WriterStepEnd();
    }
    
