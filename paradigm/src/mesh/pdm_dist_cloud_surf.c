@@ -502,7 +502,7 @@ PDM_dist_cloud_surf_compute
     PDM_timer_resume(dist->timer);
 
     const double tolerance = 1e-4;
-    const int depth_max = 1000;
+    const int depth_max = 31;
     const int points_in_leaf_max = 4;
 
     int n_part_mesh = 0;
