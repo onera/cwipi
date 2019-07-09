@@ -79,7 +79,6 @@
  *----------------------------------------------------------------------------*/
 
 #include "fvmc_locator.h"
-
 /*----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus
@@ -469,7 +468,6 @@ _update_extents(int               dim,
  *   extents           <-> extents associated with section:
  *                         x_min, y_min, ..., x_max, y_max, ... (size: 2*dim)
  *----------------------------------------------------------------------------*/
-
 static void
 _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
                        int                         order,
@@ -588,9 +586,6 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
           int n_vtx = 0;
 
           n_vtx = n_step + 1;
-
-          printf("nombre de point = %i\n", n_vtx);
-
 
           double *u      = malloc(sizeof(double) * 1 * n_vtx);
           double *ai     = malloc(sizeof(double) * n_nodes * n_vtx);
@@ -891,7 +886,7 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
               }
             }
 
-/*#ifdef CWP_HAVE_BLAS
+#ifdef CWP_HAVE_BLAS
             double alpha = 1.;
             double beta = 0.;
 
@@ -902,7 +897,7 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
                         coords, 3,
                         beta,
                         xyz, 3);
-#else*/
+#else
             for (int ii = 0; ii < n_vtx; ii++) {
 
               for (int kk = 0; kk < 3; kk++) {
@@ -917,7 +912,7 @@ _nodal_section_extents(const fvmc_nodal_section_t  *this_section,
               }
             }
 
-//#endif
+#endif
 
             for (int ii = 0; ii < n_vtx; ii++) {
 
@@ -1222,6 +1217,7 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
 
     }
 
+
     /* Send then receive partial buffer */
 
     dist_rank = this_locator->intersect_rank[dist_index];
@@ -1243,6 +1239,9 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
                  coords_dist, (int)(n_coords_dist*dim),
                  FVMC_MPI_COORD, dist_rank, FVMC_MPI_TAG,
                  this_locator->comm, &status);
+
+
+
 
     _locator_trace_end_comm(_fvmc_locator_log_end_p_comm, comm_timing);
 
@@ -1273,6 +1272,7 @@ _locate_all_distant(fvmc_locator_t       *this_locator,
       BFTC_MALLOC(projected_coords_dist, n_coords_dist*dim, fvmc_coord_t);
       BFTC_MALLOC(uvw_dist, n_coords_dist * max_entity_dim, double);
     }
+
 
     fvmc_point_location_nodal(this_nodal,
                               this_locator->tolerance,
@@ -1796,6 +1796,7 @@ _locate_all_local(fvmc_locator_t       *this_locator,
                             NULL,
                             location,
                             distance);
+
 
   /* Reorganize localization information */
   /*-------------------------------------*/
@@ -3042,7 +3043,6 @@ fvmc_locator_set_nodal(fvmc_locator_t       *this_locator,
                  point_list,
                  point_coords,
                  extents + 2*dim);
-
 
 
   /* Release information if previously present */

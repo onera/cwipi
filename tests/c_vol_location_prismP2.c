@@ -27,6 +27,7 @@
 #include <mpi.h>
 
 #include "cwipi.h"
+#include "fvmc_ho_location.h"
 #include "grid_mesh.h"
 
 
@@ -409,78 +410,7 @@ int main
   nVertex = 18;
   nElts = 1;
 
-/*
- meshFile = fopen("meshes/prismp2.mesh", "r");
 
-  assert (meshFile != NULL);
-//  _read_mesh(meshFile, &format, &dimension, &nVertex, &nElts, coords, eltsConnecPointer, eltsConnec);
-int r;
-int nConnecVertex;
-int _format;
-int _dimension;
-int _nVertex;
-int _nElts;
-int *un, loop = 0;
-char key[40];
-
-
-
-while (loop == 0){
-  r = fscanf(meshFile, "%s",key);
-  printf("key = %s\n", key);
-switch (key[0]) {
-  case 'M':
-    r = fscanf(meshFile, "%d",&format);
-    _format = format;
-    printf("format = %d, r = %i\n", _format, r);
-    break;
-
-  case 'D':
-    r = fscanf(meshFile, "%d",&dimension);
-    _dimension = dimension;
-    printf("dimension = %d, r = %i\n", _dimension, r);
-    break;
-
-  case 'V':
-    r = fscanf(meshFile, "%d",&nVertex);
-    _nVertex = nVertex;
-    printf("nVertex = %d, r = %i\n", _nVertex, r);
-    coords = (double *) malloc(sizeof(double) * 3 * _nVertex );
-    for (int i = 0; i < _nVertex; i++) {
-
-      r = fscanf(meshFile, "%lf, %lf, %lf, %d",coords + i * 3, coords + i * 3 + 1, coords + i * 3 + 2, un);
-    }
-    break;
-
-    case 'T':
-      //switch (key[1]) {
-        //case 'd':
-          r = fscanf(meshFile, "%d",&nElts);
-          _nElts = nElts;
-          printf("nElts = %d, r = %i\n", _nElts, r);
-          nConnecVertex = _nElts * 3;
-          eltsConnec = (int *) malloc(sizeof(int) * 11);
-          for (int i = 0; i < 11; i++) {
-
-              r = fscanf(meshFile, "%d",eltsConnec + i );
-          }
-          r = fscanf(meshFile, "%d",un);
-          break;
-        //case 'n':
-    case 'E':
-          loop = 1;
-          break;
-
-    }
-}
-
-eltsConnecPointer = (int *) malloc(sizeof(int) * (_nElts + 1));
-
-for (int i = 0; i < _nElts; i++) {
-  eltsConnecPointer[i] = 3*i;
-}
-eltsConnecPointer[_nElts] = nConnecVertex;
-*/
 
 
   coords = (double *) malloc(sizeof(double) * 3 * nVertex );
@@ -535,15 +465,15 @@ eltsConnecPointer[_nElts] = nConnecVertex;
 
 
   coords[18] = (xmin + xmax) / 2;
-  coords[19] = ymin + 0.1;
+  coords[19] = ymin;
   coords[20] = zmin;
 
-  coords[21] = xmin + 0.1;
+  coords[21] = xmin;
   coords[22] = (ymin + ymax) / 2;
   coords[23] = zmin;
 
-  coords[24] = (xmin + xmax) / 2 - 0.05;
-  coords[25] = (ymin + ymax) / 2 - 0.05;
+  coords[24] = (xmin + xmax) / 2;
+  coords[25] = (ymin + ymax) / 2;
   coords[26] = zmin;
 
 
@@ -552,19 +482,19 @@ eltsConnecPointer[_nElts] = nConnecVertex;
   coords[29] = (zmin + zmax) / 2;
 
   coords[30] = (xmin + xmax) / 2;
-  coords[31] = ymin + 0.1;
+  coords[31] = ymin;
   coords[32] = (zmin + zmax) / 2;
 
   coords[33] = xmax;
   coords[34] = ymin;
   coords[35] = (zmin + zmax) / 2;
 
-  coords[36] = xmin + 0.1;
+  coords[36] = xmin;
   coords[37] = (ymin + ymax) / 2;
   coords[38] = (zmin + zmax) / 2;
 
-  coords[39] = (xmin + xmax) / 2 - 0.05;
-  coords[40] = (ymin + ymax) / 2 - 0.05;
+  coords[39] = (xmin + xmax) / 2;
+  coords[40] = (ymin + ymax) / 2;
   coords[41] = (zmin + zmax) / 2;
 
   coords[42] = xmin;
@@ -573,15 +503,15 @@ eltsConnecPointer[_nElts] = nConnecVertex;
 
 
   coords[45] = (xmin + xmax) / 2;
-  coords[46] = ymin + 0.1;
+  coords[46] = ymin;
   coords[47] = zmax;
 
-  coords[48] = xmin + 0.1;
+  coords[48] = xmin;
   coords[49] = (ymin + ymax) / 2;
   coords[50] = zmax;
 
-  coords[51] = (xmin + xmax) / 2 - 0.05;
-  coords[52] = (ymin + ymax) / 2 - 0.05;
+  coords[51] = (xmin + xmax) / 2;
+  coords[52] = (ymin + ymax) / 2;
   coords[53] = zmax;
 
 
@@ -706,6 +636,7 @@ for (int i = 0; i < 54; i++) {
                               n_pts_to_locate,
                               pts_to_locate);
 
+
   /* Fields exchange
    *     - Proc 0 : Send X coordinates
    *                Recv Y coordinates
@@ -722,13 +653,13 @@ for (int i = 0; i < 54; i++) {
   sendValues = (double *) malloc(sizeof(double) * nVertex);
   recvValues = (double *) malloc(sizeof(double) * n_pts_to_locate);
 
-  /* Define fields to send (X coordinate or Y coordinate) */
+  // Define fields to send (X coordinate or Y coordinate)
 
   for (int i = 0; i < nVertex; i++) {
     sendValues[i] = _f(coords[3 * i], coords[3 * i+1], coords[3 * i+2]);
   }
 
-  /* Exchange */
+  // Exchange
 
   int nNotLocatedPoints = 0;
   char *sendValuesName;

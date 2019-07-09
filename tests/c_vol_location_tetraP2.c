@@ -63,116 +63,14 @@
 
 static double _f(double x, double y, double z)
 {
-  return 2*x*x + z*z - 3*x*z + z - x + 2. + 3*z;
-}
-
-static double _y(double x)
-{
-  return x*x + 2*x -1;
-}
-
-static double _z(double x)
-{
-  return x*x + 2;
+  return 2*y*x + z*z - 3*x*z + z - x + 2. + 3*z;
 }
 
 
-/*----------------------------------------------------------------------
- *
- * Read mesh
- *
- * parameters:
- *   f                   <-- Mesh file
- *   dimension           --> Dimension
- *   nvertex             <-- number of vertices
- *   nElements           <-- number of elements
- *   nConnecVertex       <-- size of connectivity
- *   coords              --> vertices coordinates
- *   connecPointer       --> connectivity index
- *   connec              --> connectivity
- *---------------------------------------------------------------------*/
-
-static int _read_mesh(FILE *f,
-                      int *format,
-                      int *dimension,
-                      int *nVertex,
-                      int *nElt,
-                      double *coords,
-                      int *eltsConnecPointer,
-                      int *eltsConnec)
-{
-
-
-  int r;
-  int nConnecVertex;
-  int _format;
-  int _dimension;
-  int _nVertex;
-  int _nElt;
-  int *un, loop = 0;
-  char key[256];
-
-
-
-  while (loop == 0){
-    r = fscanf(f, "%s",key);
-    printf("key = %s\n", key);
-  switch (key[0]) {
-    case 'M':
-      r = fscanf(f, "%d",format);
-      _format = *format;
-      printf("format = %d, r = %i\n", _format, r);
-      break;
-
-    case 'D':
-      r = fscanf(f, "%d",dimension);
-      _dimension = *dimension;
-      printf("dimension = %d, r = %i\n", _dimension, r);
-      break;
-
-    case 'V':
-      r = fscanf(f, "%d",nVertex);
-      _nVertex = *nVertex;
-      printf("nVertex = %d, r = %i\n", _nVertex, r);
-      coords = (double *) malloc(sizeof(double) * 3 * _nVertex );
-      for (int i = 0; i < _nVertex; i++) {
-
-        for (int j = 0; j < 3; j++) {
-        r = fscanf(f, "%lf",coords + i * 3 + j);
-        }
-      }
-      break;
-
-      case 'E':
-        r = fscanf(f, "%d",nElt);
-        _nElt = *nElt;
-        printf("nElt = %d, r = %i\n", _nElt, r);
-        nConnecVertex = _nElt * 3;
-        eltsConnec = (int *) malloc(sizeof(int) * nConnecVertex);
-        for (int i = 0; i < nConnecVertex; i++) {
-
-          for (int j = 0; j < 3; j++) {
-          r = fscanf(f, "%d",eltsConnec + i * 3 + j);
-          }
-          r = fscanf(f, "%d",un);
-        }
-        break;
-
-      case 'F':
-        loop = 1;
-        break;
-  };
+static double frand_a_b(double a, double b){
+    return (( rand()/(double)RAND_MAX ) * (b-a) + a);
 }
 
-  eltsConnecPointer = (int *) malloc(sizeof(int) * (_nElt + 1));
-
-  for (int i = 0; i < _nElt; i++) {
-    eltsConnecPointer[i] = 3*i;
-  }
-  eltsConnecPointer[_nElt] = nConnecVertex;
-
-  return 1;
-}
 /*----------------------------------------------------------------------
  *
  * Display usage
@@ -376,13 +274,17 @@ int main
                         CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING, // Coupling type
                         codeCoupledName,                           // Coupled application id
                         3,                                         // Geometric entities dimension
-                        0.1,                                       // Geometric tolerance
+                        2,                                       // Geometric tolerance
                         CWIPI_STATIC_MESH,                         // Mesh type
                         solver_type,                               // Solver type
                         postFreq,                                  // Postprocessing frequency
                         "EnSight Gold",                            // Postprocessing format
                         "text");                                   // Postprocessing option
 
+
+  cwipi_ho_options_set("c_volumic_cpl_location_tetraP2",
+                      "opt_bbox_step",
+                      "-1");
   /* Mesh definition
    * --------------- */
 
@@ -409,79 +311,6 @@ int main
   nVertex = 10;
   nElts = 1;
 
-/*
- meshFile = fopen("meshes/tetrahedronp2.mesh", "r");
-
-  assert (meshFile != NULL);
-//  _read_mesh(meshFile, &format, &dimension, &nVertex, &nElts, coords, eltsConnecPointer, eltsConnec);
-int r;
-int nConnecVertex;
-int _format;
-int _dimension;
-int _nVertex;
-int _nElts;
-int *un, loop = 0;
-char key[40];
-
-
-
-while (loop == 0){
-  r = fscanf(meshFile, "%s",key);
-  printf("key = %s\n", key);
-switch (key[0]) {
-  case 'M':
-    r = fscanf(meshFile, "%d",&format);
-    _format = format;
-    printf("format = %d, r = %i\n", _format, r);
-    break;
-
-  case 'D':
-    r = fscanf(meshFile, "%d",&dimension);
-    _dimension = dimension;
-    printf("dimension = %d, r = %i\n", _dimension, r);
-    break;
-
-  case 'V':
-    r = fscanf(meshFile, "%d",&nVertex);
-    _nVertex = nVertex;
-    printf("nVertex = %d, r = %i\n", _nVertex, r);
-    coords = (double *) malloc(sizeof(double) * 3 * _nVertex );
-    for (int i = 0; i < _nVertex; i++) {
-
-      r = fscanf(meshFile, "%lf, %lf, %lf, %d",coords + i * 3, coords + i * 3 + 1, coords + i * 3 + 2, un);
-    }
-    break;
-
-    case 'T':
-      //switch (key[1]) {
-        //case 'd':
-          r = fscanf(meshFile, "%d",&nElts);
-          _nElts = nElts;
-          printf("nElts = %d, r = %i\n", _nElts, r);
-          nConnecVertex = _nElts * 3;
-          eltsConnec = (int *) malloc(sizeof(int) * 11);
-          for (int i = 0; i < 11; i++) {
-
-              r = fscanf(meshFile, "%d",eltsConnec + i );
-          }
-          r = fscanf(meshFile, "%d",un);
-          break;
-        //case 'n':
-    case 'E':
-          loop = 1;
-          break;
-
-    }
-}
-
-eltsConnecPointer = (int *) malloc(sizeof(int) * (_nElts + 1));
-
-for (int i = 0; i < _nElts; i++) {
-  eltsConnecPointer[i] = 3*i;
-}
-eltsConnecPointer[_nElts] = nConnecVertex;
-*/
-
 
   coords = (double *) malloc(sizeof(double) * 3 * nVertex );
   eltsConnecPointer = (int *) malloc(sizeof(int) * (nElts + 1));
@@ -501,47 +330,89 @@ eltsConnecPointer[_nElts] = nConnecVertex;
   eltsConnec[8] = 9;
   eltsConnec[9] = 10;
 
-  coords[0] = xmin;
-  coords[1] = ymin;
-  coords[2] = zmin;
+/*
+  coords[0] = -4.903926402015830e-01;//xmin;
+  coords[1] =  9.754516100822440e-02;//ymin;
+  coords[2] =  0.000000000000000e+00;//zmin;
 
-  coords[3] = xmax;
-  coords[4] = ymin;
-  coords[5] = zmin;
+  coords[3] = -4.789922246525480e-01;//xmax;
+  coords[4] =  1.392031233369340e-01;//ymin;
+  coords[5] =  3.448099731221840e-02;//zmin;
 
-  coords[6] = xmin;
-  coords[7] = ymax;
-  coords[8] = zmin;
+  coords[6] = -4.615116344320200e-01;//xmin;
+  coords[7] =  1.797641367398650e-01;//ymax;
+  coords[8] =  6.849720013297110e-02;//zmin;
 
-  coords[9]  = xmin;
-  coords[10] = ymin;
-  coords[11] = zmax;
+  coords[9]  = -4.205148508640080e-01;//xmin;
+  coords[10] =  6.032984012355020e-02;//ymin;
+  coords[11] =  3.039338835464140e-02;//zmax;
 
-  coords[12] = (xmin + xmax) / 2;
-  coords[13] = ymin - 0.1;
-  coords[14] = zmin - 0.1;
+  coords[12] = -4.060743479792260e-01;//(xmin + xmax) / 2;
+  coords[13] =  1.014393279893710e-01;//ymin;
+  coords[14] =  6.464198842112701e-02;//zmin;
 
-  coords[15] = xmin - 0.1;
-  coords[16] = (ymin + ymax) / 2;
-  coords[17] = zmin - 0.2;
+  coords[15] = -3.506370615264330e-01;//(xmin + xmax) / 2;
+  coords[16] =  2.311451923887600e-02;//(ymin + xmax) / 2;
+  coords[17] =  6.078677670928280e-02;//zmin;
 
-  coords[18] = (xmin + xmax) / 2 + 0.05;
-  coords[19] = (ymin + ymax) / 2 + 0.05;
-  coords[20] = zmin - 0.1;
+  coords[18] = -4.174275540611020e-01;//xmin;
+  coords[19] =  1.117825698303370e-01;//(ymin + ymax) / 2;
+  coords[20] = -1.540283024855780e-02;//zmin;
 
-  coords[21] = xmin - 0.1;
-  coords[22] = ymin - 0.1;
-  coords[23] = (zmin + zmax) / 2;
+  coords[21] = -4.029870511763210e-01;//xmin;
+  coords[22] =  1.528920576961570e-01;//ymin;
+  coords[23] =  1.884576981792770e-02;//(zmin + zmax) / 2;
 
-  coords[24] = (xmin + xmax) / 2 + 0.05;
-  coords[25] = ymin - 0.1;
-  coords[26] = (zmin + zmax) / 2 + 0.05;
+  coords[24] = -3.475497647235270e-01;//(xmin + xmax) / 2;
+  coords[25] =  7.456724894566230e-02;//ymin;
+  coords[26] =  1.499055810608360e-02;//(zmin + zmax) / 2;
+
+  coords[27] = -3.444624679206210e-01;//xmin;
+  coords[28] =  1.260199786524490e-01;//(ymin + ymax) / 2;
+  coords[29] = -3.080566049711560e-02;//(zmin + zmax) / 2;
+*/
 
 
-  coords[27] = xmin - 0.1;
-  coords[28] = (ymin + ymax) / 2 + 0.05;
-  coords[29] = (zmin + zmax) / 2 + 0.05;
 
+coords[0] = 9.030342459149850e-02;
+coords[1] = 2.423433238303810e-01;
+coords[2] = 4.279193906589080e-01;
+
+coords[3] = 3.513641864412240e-02;
+coords[4] = 1.996536901834650e-01;
+coords[5] = 3.618983441488240e-01;
+
+coords[6] = -2.003058730325370e-02;
+coords[7] = 1.569640565365490e-01;
+coords[8] = 2.958772976387400e-01;
+
+coords[9] = 4.549623479940860e-02;
+coords[10] = 2.612693950859740e-01;
+coords[11] = 4.238730892737660e-01;
+
+coords[12] = -1.001529365162680e-02;
+coords[13] = 2.173745865234740e-01;
+coords[14] = 3.558060518948060e-01;
+
+coords[15] = 0.000000000000000e+00;
+coords[16] = 2.777851165103990e-01;
+coords[17] = 4.157348061508730e-01;
+
+ coords[18] = 8.776630908293880e-02;
+ coords[19] = 2.488799519208400e-01;
+ coords[20] = 3.484222722132320e-01;
+
+ coords[21] = 3.259930313556270e-02;
+ coords[22] = 2.061903182739240e-01;
+ coords[23] = 2.824012257031480e-01;
+
+ coords[24] = 4.261459678718950e-02;
+ coords[25] = 2.666008482608490e-01;
+ coords[26] = 3.423299799592140e-01;
+
+ coords[27] = 8.522919357437909e-02;
+ coords[28] = 2.554165800112990e-01;
+ coords[29] = 2.689251537675560e-01;
 
   fprintf(outputFile, "   Number of vertex   : %i\n", nVertex);
   fprintf(outputFile, "   Number of elements : %i\n", nElts);
@@ -566,41 +437,41 @@ eltsConnecPointer[_nElts] = nConnecVertex;
   ijk[ 1] = 0;
   ijk[ 2] = 0;
 
-  ijk[ 3] = 2;
+  ijk[ 3] = 1;//2;
   ijk[ 4] = 0;
   ijk[ 5] = 0;
 
-  ijk[ 6] = 0;
-  ijk[ 7] = 2;
+  ijk[ 6] = 2;//0;
+  ijk[ 7] = 0;//2;
   ijk[ 8] = 0;
 
   ijk[ 9] = 0;
-  ijk[10] = 0;
-  ijk[11] = 2;
+  ijk[10] = 1;//0;
+  ijk[11] = 0;//2;
 
   ijk[12] = 1;
-  ijk[13] = 0;
+  ijk[13] = 1;//0;
   ijk[14] = 0;
 
-  ijk[15] = 0;
-  ijk[16] = 1;
+  ijk[15] = 0;//1;
+  ijk[16] = 2;//1;
   ijk[17] = 0;
 
-  ijk[18] = 1;
-  ijk[19] = 1;
-  ijk[20] = 0;
+  ijk[18] = 0;
+  ijk[19] = 0;//1;
+  ijk[20] = 1;//0;
 
-  ijk[21] = 0;
+  ijk[21] = 1;//0;
   ijk[22] = 0;
   ijk[23] = 1;
 
-  ijk[24] = 1;
-  ijk[25] = 0;
+  ijk[24] = 0;//1;
+  ijk[25] = 1;//0;
   ijk[26] = 1;
 
   ijk[27] = 0;
-  ijk[28] = 1;
-  ijk[29] = 1;
+  ijk[28] = 0;//1;
+  ijk[29] = 2;//1;
 
   cwipi_ho_ordering_from_IJK_set ("c_volumic_cpl_location_tetraP2",
                                   CWIPI_CELL_TETRAHO,
@@ -613,14 +484,20 @@ eltsConnecPointer[_nElts] = nConnecVertex;
 
   double *pts_to_locate = (double *) malloc(sizeof(double) * 3 * n_pts_to_locate);
 
-  pts_to_locate[0]  = 0.5;
-  pts_to_locate[1]  = 0.0;
-  pts_to_locate[2]  = 0.0;
 
+  pts_to_locate[0]  = -8.407698607790286e-04;
+  pts_to_locate[1]  =  1.964277933020044e-01;
+  pts_to_locate[2]  =  3.223073602567958e-01;
+
+/*  for (int i = 0; i < n_pts_to_locate; i++){
+    pts_to_locate[3*i]    =  frand_a_b(xmin,0.3);
+    pts_to_locate[3*i+1]  =  frand_a_b(ymin,0.3);
+    pts_to_locate[3*i+2]  =  frand_a_b(zmin,0.3);
+  }*/
 
 
   for (int i = 0; i < n_pts_to_locate; i++) {
-    printf("%12.5e %12.5e %12.5e\n",  pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2]);
+    printf("point : %12.15e %12.15e %12.15e\n",  pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2]);
   }
 
   cwipi_set_points_to_locate ("c_volumic_cpl_location_tetraP2",
@@ -659,7 +536,6 @@ eltsConnecPointer[_nElts] = nConnecVertex;
   recvValuesName = "_fr";
 
 
-    printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 
   cwipi_locate("c_volumic_cpl_location_tetraP2");
 
@@ -708,6 +584,40 @@ eltsConnecPointer[_nElts] = nConnecVertex;
     printf("        Delete coupling\n");
 
   cwipi_delete_coupling("c_volumic_cpl_location_tetraP2");
+
+
+
+  /* Check barycentric coordinates */
+
+  if (rank == 0)
+    printf("        Check results\n");
+
+  double *res = (double *) malloc(sizeof(double) *  n_pts_to_locate);
+
+  for (int i = 0; i < n_pts_to_locate; i++) {
+    res[i] = _f(pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2]);
+  }
+
+  double err;
+
+  for (int i = 0; i < n_pts_to_locate; i++) {
+    err = fabs(recvValues[i] - res[i]);
+    //    if (err > 1e-6) {
+    printf ("[%d] err %d : %12.5e %12.5e %12.5e\n", codeId, i, err, recvValues[i], res[i]);
+      // }
+  }
+
+  double err_max;
+  MPI_Allreduce(&err, &err_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+
+  if (err_max >= 1e-6) {
+    if (rank == 0) {
+      printf("        !!! Error = %12.5e\n", err_max);
+    }
+    MPI_Finalize();
+    return EXIT_FAILURE;
+  }
+
 
 
 

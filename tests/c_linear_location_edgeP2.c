@@ -66,10 +66,20 @@ static double _f(double x, double y, double z)
   return 2*x*x + z*z - 3*x*z + z - x + 2. + 3*z;
 }
 
+static double _y(double x)
+{
+  return -x*x + 1.5*x + 3;
+}
+
 static double _z(double x)
 {
-  return x*x + 2;
+  return 0.3*x*x - 4*x + 0.5;
 }
+
+static double frand_a_b(double a, double b){
+    return (( rand()/(double)RAND_MAX ) * (b-a) + a);
+}
+
 /*
 static double _racine(double a, double b, double c, double d)
 {
@@ -400,7 +410,7 @@ int main
                         CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING, // Coupling type
                         codeCoupledName,                           // Coupled application id
                         1,                                         // Geometric entities dimension
-                        0.1,                                       // Geometric tolerance
+                        0.5,                                       // Geometric tolerance
                         CWIPI_STATIC_MESH,                         // Mesh type
                         solver_type,                               // Solver type
                         postFreq,                                  // Postprocessing frequency
@@ -521,17 +531,16 @@ eltsConnecPointer[_nElts] = nConnecVertex;
   eltsConnec[2] = 3;
 
   coords[0] = xmin;
-  coords[1] = 0;
-  coords[2] = zmin;//_z(xmin);
+  coords[1] = 0;//_y(xmin);
+  coords[2] = 0;//_z(xmin);
 
   coords[3] = xmax;
-  coords[4] = 0;
-  coords[5] = zmax;//_z(xmax);
+  coords[4] = 0;//_y(xmax);
+  coords[5] = 0;//_z(xmax);
 
   coords[6] = (xmin + xmax) / 2.;
-  coords[7] = 0;
-  coords[8] = (zmin + zmax)/2;//_z((xmin + xmax) / 2.);
-
+  coords[7] = 0;//_y((xmin + xmax) / 2.);
+  coords[8] = 0;//_z((xmin + xmax) / 2.);
 
 
   fprintf(outputFile, "   Number of vertex   : %i\n", nVertex);
@@ -566,13 +575,16 @@ eltsConnecPointer[_nElts] = nConnecVertex;
 
 
 
-  int n_pts_to_locate = 1;
+  int n_pts_to_locate = 100;
 
   double *pts_to_locate = (double *) malloc(sizeof(double) * 3 * n_pts_to_locate);
 
-  pts_to_locate[0] = (xmin + xmax) / 2.;
-  pts_to_locate[1] = 0;
-  pts_to_locate[2] = (zmin + zmax)/2;//_z((xmin + xmax) / 2.);
+  for (int i = 0; i < n_pts_to_locate; i++) {
+    pts_to_locate[3*i]   = frand_a_b(xmin , xmax );
+    pts_to_locate[3*i+1] = frand_a_b(-0.1, 0.1);
+    pts_to_locate[3*i+2] = frand_a_b(-0.1, 0.1);
+  }
+
 /*
   pts_to_locate[0] = -1.0 - 0.005;
   pts_to_locate[1] = 3.0 - 0.005;
@@ -619,9 +631,12 @@ pts_to_locate[14] = _z(-0.018) + 0.01;
     printf("%12.5e %12.5e %12.5e\n",  pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2]);
   }
 
+  printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+
   cwipi_set_points_to_locate ("c_linear_cpl_location_edgeP2",
                               n_pts_to_locate,
                               pts_to_locate);
+
 
   /* Fields exchange
    *     - Proc 0 : Send X coordinates
@@ -656,6 +671,9 @@ pts_to_locate[14] = _z(-0.018) + 0.01;
 
 
   cwipi_locate("c_linear_cpl_location_edgeP2");
+
+
+    printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 
 
 
@@ -705,15 +723,36 @@ pts_to_locate[14] = _z(-0.018) + 0.01;
 
   /* Check results */
 
-// Polynome : z = x*x + 2
-// recherche des racines de 2x^3 + (5-2za)x - xa = 0     (xa,ya) point to locate
-/*
-double racine;
-for (int i = 0; i < n_pts_to_locate; i++){
-    racine = _racine(2.0, 0.0, 5-2*pts_to_locate[3*i+2], -1.0*pts_to_locate[3*i]);
-    printf("solution exacte x = %22.15e pour le point ( %22.15e, %22.15e, %22.15e )\n", racine, pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2]);
+
+  if (rank == 0)
+    printf("        Check results\n");
+
+  double *res = (double *) malloc(sizeof(double) *  n_pts_to_locate);
+
+  for (int i = 0; i < n_pts_to_locate; i++) {
+    res[i] = _f(pts_to_locate[3*i], 0, 0);
+  }
+
+  double err;
+
+  for (int i = 0; i < n_pts_to_locate; i++) {
+    err = fabs(recvValues[i] - res[i]);
+    //    if (err > 1e-6) {
+    printf ("[%d] err %d : %12.5e %12.5e %12.5e\n", codeId, i, err, recvValues[i], res[i]);
+      // }
 }
-*/
+
+  double err_max;
+  MPI_Allreduce(&err, &err_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+
+  if (err_max >= 1e-6) {
+    if (rank == 0) {
+      printf("        !!! Error = %12.5e\n", err_max);
+    }
+    MPI_Finalize();
+    return EXIT_FAILURE;
+  }
+
 
   /* Free
    * ---- */

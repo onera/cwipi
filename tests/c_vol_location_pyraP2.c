@@ -521,45 +521,45 @@ eltsConnecPointer[_nElts] = nConnecVertex;
   coords[10] = ymax;
   coords[11] = zmin;
 
-  coords[12] = (xmin + xmax) / 2 + 0.3;
-  coords[13] = (ymin + ymax) / 2 + 0.4;
+  coords[12] = (xmin + xmax) / 2;
+  coords[13] = (ymin + ymax) / 2;
   coords[14] = zmax;
 
   coords[15] = (xmin + xmax) / 2;
-  coords[16] = ymin - 0.06;
-  coords[17] = zmin - 0.06;
+  coords[16] = ymin;
+  coords[17] = zmin;
 
-  coords[18] = xmin - 0.06;
+  coords[18] = xmin;
   coords[19] = (ymin + ymax) / 2;
-  coords[20] = zmin - 0.06;
+  coords[20] = zmin;
 
   coords[21] = (xmin + xmax) / 2;
   coords[22] = (ymin + ymax) / 2;
-  coords[23] = zmin - 0.12;
+  coords[23] = zmin;
 
-  coords[24] = xmax + 0.06;
+  coords[24] = xmax;
   coords[25] = (ymin + ymax) / 2;
-  coords[26] = zmin - 0.06;
+  coords[26] = zmin;
 
   coords[27] = (xmin + xmax) / 2;
-  coords[28] = ymax + 0.06;
-  coords[29] = zmin - 0.06;
+  coords[28] = ymax;
+  coords[29] = zmin;
 
-  coords[30] = 0.45;//(coords[0] + coords[12]) / 2 + 0.2;
-  coords[31] = 0.45;//(coords[1] + coords[13]) / 2 + 0.2;
-  coords[32] = 0.3;//(coords[2] + coords[14]) / 2 - 0.2;
+  coords[30] = (coords[0] + coords[12]) / 2;
+  coords[31] = (coords[1] + coords[13]) / 2;
+  coords[32] = (coords[2] + coords[14]) / 2;
 
-  coords[33] = 0.55;//(coords[3] + coords[12]) / 2 - 0.2;
-  coords[34] = 0.45;//(coords[4] + coords[13]) / 2 + 0.2;
-  coords[35] = 0.3;//(coords[5] + coords[14]) / 2 - 0.2;
+  coords[33] = (coords[3] + coords[12]) / 2;
+  coords[34] = (coords[4] + coords[13]) / 2;
+  coords[35] = (coords[5] + coords[14]) / 2;
 
-  coords[36] = 0.45;//(coords[6] + coords[12]) / 2 + 0.2;
-  coords[37] = 0.55;//(coords[7] + coords[13]) / 2 - 0.2;
-  coords[38] = 0.3;//(coords[8] + coords[14]) / 2 - 0.2;
+  coords[36] = (coords[6] + coords[12]) / 2;
+  coords[37] = (coords[7] + coords[13]) / 2;
+  coords[38] = (coords[8] + coords[14]) / 2;
 
-  coords[39] = 0.55;//(coords[9]  + coords[12]) / 2 - 0.2;
-  coords[40] = 0.55;//(coords[10] + coords[13]) / 2 - 0.2;
-  coords[41] = 0.3;//(coords[11] + coords[14]) / 2 - 0.2;
+  coords[39] = (coords[9]  + coords[12]) / 2;
+  coords[40] = (coords[10] + coords[13]) / 2;
+  coords[41] = (coords[11] + coords[14]) / 2;
 
 
   fprintf(outputFile, "   Number of vertex   : %i\n", nVertex);
@@ -650,9 +650,9 @@ eltsConnecPointer[_nElts] = nConnecVertex;
 
   double *pts_to_locate = (double *) malloc(sizeof(double) * 3 * n_pts_to_locate);
 
-  pts_to_locate[0] = 0.25;//(coords[0] + coords[12]) / 2;
-  pts_to_locate[1] = 0.25;//(coords[1] + coords[13]) / 2;
-  pts_to_locate[2] = 0.5;//(coords[2] + coords[14]) / 2;
+  pts_to_locate[0] = 0.5;//(coords[0] + coords[12]) / 2;
+  pts_to_locate[1] = 0.5;//(coords[1] + coords[13]) / 2;
+  pts_to_locate[2] = 1;//(coords[2] + coords[14]) / 2;
 /*
 for (int i = 0; i < 54; i++) {
   pts_to_locate[i] = coords[i];
