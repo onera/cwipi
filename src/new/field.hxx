@@ -230,7 +230,7 @@ namespace cwipi {
 
 
   void lastRequestAdd (int i_proc, MPI_Request request) {
-    _last_request[i_proc] = request;
+    _last_request.insert( std::pair<int,MPI_Request> (i_proc,request) );
   }
 
   
@@ -271,7 +271,7 @@ namespace cwipi {
     Mesh                                    *_mesh;
     int                                      _n_part;
     int                                      _visu_id;
-    std::vector <MPI_Request>                _last_request;
+    std::map <int,MPI_Request>               _last_request;
     int                                      _dataTypeSize;
 
     Field &operator=(const Field &other);       /*!< Assigment operator not available */

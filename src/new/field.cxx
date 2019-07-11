@@ -32,7 +32,6 @@ namespace cwipi {
        _data.resize(_n_part,NULL);
        _sendBuffer = NULL;
        _recvBuffer = NULL;  
-       _last_request.resize(300,0);
         
        int len = _fieldID.length();
        int id=0;

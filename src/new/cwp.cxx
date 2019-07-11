@@ -876,7 +876,7 @@ CWP_N_uncomputed_tgts_get
             CWP_Field_exch_t exchange_type = itToCompute -> second;
             
             if(geometryLocationTest == geometryLocation) {
-             if(geometryLocation == CWP_FIELD_VALUE_NODE && rank==0 ) {
+             if(geometryLocation == CWP_FIELD_VALUE_NODE  ) {
               if(exchange_type == CWP_FIELD_EXCH_SENDRECV)
                 printf("localCodes %s rank %i CWP_FIELD_EXCH_SENDRECV CWP_FIELD_VALUE_NODE\n",loc_code_name,rank);
               else if(exchange_type == CWP_FIELD_EXCH_SEND)
@@ -884,7 +884,7 @@ CWP_N_uncomputed_tgts_get
               else if(exchange_type == CWP_FIELD_EXCH_RECV)
                 printf("localCodes %s rank %i CWP_FIELD_EXCH_RECV CWP_FIELD_VALUE_NODE\n",loc_code_name,rank);    
               }
-              else if(geometryLocation == CWP_FIELD_VALUE_CELL_POINT && rank==0) {
+              else if(geometryLocation == CWP_FIELD_VALUE_CELL_POINT ) {
               if(exchange_type == CWP_FIELD_EXCH_SENDRECV )
                 printf("localCodes %s rank %i CWP_FIELD_EXCH_SENDRECV CWP_FIELD_VALUE_CELL_POINT\n",loc_code_name,rank);
               else if(exchange_type == CWP_FIELD_EXCH_SEND)
@@ -899,6 +899,7 @@ CWP_N_uncomputed_tgts_get
           }
         }//end if exist    
       } //end on i_codes loop  
+      MPI_Barrier(MPI_COMM_WORLD);
     } //end on location loop
     delete toComputeV;
   }

@@ -127,7 +127,7 @@ namespace cwipi {
      // Ca sera dans les classes concrètes
      virtual void* interpolate(Field* referenceField) =0;  
 
-     void init(Coupling *coupling, CWP_Field_value_t geometryLocation);
+     void init(Coupling *coupling, CWP_Field_value_t geometryLocation,int slave);
      void mesh_info_get();
      void mesh_info_get2();     
      void mesh_cpl_info_get_send();
@@ -188,6 +188,23 @@ namespace cwipi {
     (Field* sendingField
     ) = 0;
 
+    virtual void  
+    issend2
+    (Field* sendingField
+    ) = 0;
+
+
+    virtual void  
+    exchange_null
+    (
+    ) = 0;
+
+    virtual void  
+    both_exchange
+    (Field* sendingField,
+     Field* recevingField
+    ) = 0;
+
     /**
      *
      * \brief Waiting of the end of exchange related to request.
@@ -213,6 +230,10 @@ namespace cwipi {
      *
      */
 
+    void 
+    irecv2
+    (Field* recevingField
+    );
 
     void 
     irecv
@@ -435,11 +456,23 @@ namespace cwipi {
   int* _localization_disp_send ; 
 
   target_data* _targets_localization_data;
-  
+  Geometry* _geometry_cpl;
+  int** _targets_localization_idx   ;
+
+    int** _targets_localization_idx_cpl;
+   int _both_codes_are_local; 
+      int _nb_part_cpl;
+          int _nb_part;
+      int* _n_target;
+          Coupling                            *_cpl;
+    int  _n_tot_target;
+    int  _n_tot_target_cpl;      
   protected:
     
     Geometry &operator=(const Geometry &other);  /*!< Assigment operator not available */
     Geometry (const Geometry& other);            /*!< Copy constructor not available */
+
+    friend class Geometry;
 
   protected:
   
@@ -484,14 +517,10 @@ void _IBcast(void* send_buffer,
     std::map <std::string,Field*>    *_referenceFieldsDB;
     std::map <int,Field*>        _requestFieldsDB;
     CWP_Field_value_t                    _geometryLocation;
-    Coupling                            *_cpl;
-    
-    int** _targets_localization_idx_cpl;
+
     target_data* _targets_localization_data_cpl;
     
     int  _option;
-    int  _n_tot_target;
-    int  _n_tot_target_cpl;
 
     int* _n_targets_dist_proc; 
 
@@ -508,8 +537,6 @@ void _IBcast(void* send_buffer,
     int  _n_ranks_g    ;
 
     
-    int _nb_part;
-    int _nb_part_cpl;
 
 
     int* _n_vtx;   
@@ -517,7 +544,7 @@ void _IBcast(void* send_buffer,
     int* _n_elt;
     int* _n_elt_cpl;
     
-    int* _n_target;
+
     CWP_g_num_t** _gnum_target;
     double** _coords_target; 
 
@@ -579,8 +606,6 @@ void _IBcast(void* send_buffer,
   int _id_gnum_location2;
 
 
-  int** _targets_localization_idx   ;
-
   int _senderLocalRank;
 
    MPI_Comm _globalComm ;
@@ -589,9 +614,8 @@ void _IBcast(void* send_buffer,
    PDM_MPI_Comm  _pdm_localComm ;
    PDM_MPI_Comm  _pdm_globalComm ;
 
-   Geometry* _geometry_cpl;
 
-   int _both_codes_are_local; 
+
    int* _both_codes_are_local__array;
    
    int _rank;

@@ -72,7 +72,13 @@ namespace cwipi {
       void data_communication_wait_recv();
                  
       virtual void issend(Field* sendingField);
+      virtual void issend2(Field* sendingField);
 
+      virtual void exchange_null() ;
+      
+      virtual void both_exchange(Field* sendingField,
+                                 Field* recevingField
+                                 ) ;
       virtual void* interpolate (Field* referenceField);  
 
     private:

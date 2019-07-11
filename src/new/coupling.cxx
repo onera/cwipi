@@ -116,10 +116,18 @@ namespace cwipi {
    _iteration(new int)
   {
 
-    //In case where the both codes are on the same MPI process.
-    if (coupledCodeProperties.localCodeIs()) {
-      if (cplDB.couplingIs(coupledCodeProperties, cplId)) {
+    int id     = localCodeProperties.idGet();
+    int id_cpl = coupledCodeProperties.idGet();
+    
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
+    int both = coupledCodeProperties.localCodeIs() && cplDB.couplingIs(coupledCodeProperties, cplId);
+    
+    printf("both %i\n",both);
+     //In case where the both codes are on the same MPI process.
+    if (coupledCodeProperties.localCodeIs()) {
+      if (cplDB.couplingIs(coupledCodeProperties, cplId) ) {
 
         //Communication initialization, MPI communicator creation ... 
         _communication.init(_localCodeProperties, _coupledCodeProperties, cplId, cplDB); 
@@ -149,19 +157,21 @@ namespace cwipi {
         (*_geometry_cpl)[CWP_FIELD_VALUE_USER]       = FG::getInstance().CreateObject(geomAlgo);
 
         //Geometry initialization 
-        std::map <CWP_Field_value_t, Geometry*>::iterator it = _geometry.begin();
+        std::map <CWP_Field_value_t, Geometry*>::iterator it = _geometry_cpl->begin();
+    
+        while (it != _geometry_cpl->end()) {    
+         (it -> second) -> init(&distCpl,it->first,1);
+          it++;
+        }
+               
+        it = _geometry.begin();
         while (it != _geometry.end()) {    
-         (it -> second) -> init(this,it->first);
+         (it -> second) -> init(this,it->first,0);
          it++;
         }           
         
-        it = _geometry_cpl->begin();
-        while (it != _geometry_cpl->end()) {    
-         (it -> second) -> init(&distCpl,it->first);
-          it++;
-        }
-
- 
+        printf("After geom init\n");
+        
       }   
     } // if (coupledCodeProperties.localCodeIs())     
     else {
@@ -181,7 +191,7 @@ namespace cwipi {
 
         std::map <CWP_Field_value_t, Geometry*>::iterator it = _geometry.begin();
         while (it != _geometry.end()) {    
-          (it -> second) -> init(this,it->first);
+          (it -> second) -> init(this,it->first,0);
           it++;
         }
     //  }
@@ -201,7 +211,7 @@ namespace cwipi {
        
     std::map <CWP_Field_value_t, Geometry*>::iterator it = _geometry.begin();
     while (it != _geometry.end()) {    
-        delete it -> second;
+       // delete it -> second;
         it++;
     }
     
@@ -231,14 +241,29 @@ namespace cwipi {
   Coupling::issend
   (string &sendingFieldID) {
 
-     
+   
      std:map <std::string, Field *>::iterator it;
      it = _fields.find(sendingFieldID);
 
      if (it != _fields.end()) {
-       Field* sendingField = it -> second;   
-      _geometry[sendingField -> typeGet()] -> issend(sendingField);
-      return;
+       Field* sendingField = it -> second;  
+       if(_localCodeProperties.isCoupledRank()) {
+         if(_geometry[sendingField -> typeGet()] -> _both_codes_are_local == 0){
+          _geometry[sendingField -> typeGet()] -> issend2(sendingField);
+          return;
+         }
+         else {
+          Coupling &distCpl = _cplDB.couplingGet(_coupledCodeProperties, _cplId);   
+          map <std::string, Field *>::iterator it_recv = distCpl._fields.find(sendingFieldID);
+          if (it_recv != distCpl._fields.end()) {
+            Field* recevingField = it_recv -> second;   
+            _geometry[sendingField -> typeGet()] -> both_exchange(sendingField,recevingField);
+          }
+        }
+       }
+       else {
+          _geometry[sendingField -> typeGet()] -> exchange_null();
+       }
      }
   }
 
@@ -246,14 +271,20 @@ namespace cwipi {
   Coupling::irecv
   (string &recevingFieldID) {
 
-     std:map <std::string, Field *>::iterator it;
-     it = _fields.find(recevingFieldID);
+     
+       std:map <std::string, Field *>::iterator it;
+       it = _fields.find(recevingFieldID);
 
-     if (it != _fields.end()) {
-       Field* recevingField = it -> second;   
-       _geometry[recevingField -> typeGet()] ->irecv(recevingField);
-       return;
-     }
+       if (it != _fields.end()) {
+         Field* recevingField = it -> second;   
+         if(_geometry[recevingField -> typeGet()] -> _both_codes_are_local == 0 ){
+           if(_localCodeProperties.isCoupledRank())
+             _geometry[recevingField -> typeGet()] -> irecv2(recevingField);
+           else
+             _geometry[recevingField -> typeGet()] -> exchange_null();
+         }
+         return;
+       }
   }
 
 
@@ -354,11 +385,31 @@ namespace cwipi {
     string &sendingFieldID
    )
    {
+        
      std:map <std::string, Field *>::iterator it;
      it = _fields.find(sendingFieldID);
+
      if (it != _fields.end()) {
        Field* sendingField = it -> second;   
-      _geometry[sendingField -> typeGet()] -> waitIssend(sendingField);
+       if(_localCodeProperties.isCoupledRank()) {     
+         if(_geometry[sendingField -> typeGet()] -> _both_codes_are_local == 0){
+          _geometry[sendingField -> typeGet()] -> waitIssend(sendingField);
+          return;
+         }
+         else {
+          _geometry[sendingField -> typeGet()] -> waitIssend(sendingField);
+          Coupling &distCpl = _cplDB.couplingGet(_coupledCodeProperties, _cplId);   
+          map <std::string, Field *>::iterator it_recv = distCpl._fields.find(sendingFieldID);
+          if (it_recv != distCpl._fields.end()) {
+            Field* recevingField = it_recv -> second;   
+            distCpl._geometry[recevingField -> typeGet()] -> waitIrecv(recevingField);
+          }
+          return;
+         }
+       }
+       else{
+         _geometry[sendingField -> typeGet()] -> exchange_null();
+       }
      }
    }
 
@@ -373,8 +424,9 @@ namespace cwipi {
      it = _fields.find(recevingFieldID);
 
      if (it != _fields.end()) {
-       Field* recevingField = it -> second;   
-       _geometry[recevingField -> typeGet()] -> waitIrecv(recevingField);
+       Field* recevingField = it -> second;
+       if(_geometry[recevingField -> typeGet()] -> _both_codes_are_local == 0 && _localCodeProperties.isCoupledRank())   
+         _geometry[recevingField -> typeGet()] -> waitIrecv(recevingField);
      }
    }
 

@@ -68,7 +68,7 @@ namespace cwipi {
   
   
     
-  void Geometry::init(Coupling *coupling, CWP_Field_value_t geometryLocation) {
+  void Geometry::init(Coupling *coupling, CWP_Field_value_t geometryLocation, int slave) {
     _mesh   = coupling -> meshGet();
     _visu   = coupling -> visuGet();
     _referenceFieldsDB = coupling -> fieldsGet();
@@ -107,7 +107,7 @@ namespace cwipi {
     _intraRanks_cpl =  _coupledCodeProperties -> intraRanksGet();
     _n_ranks_intra_cpl = _intraRanks_cpl->size();
     _n_ranks_intra     = _intraRanks->size();
-    
+   
   
     MPI_Comm_rank(_globalComm,&_rank);
     
@@ -139,14 +139,17 @@ namespace cwipi {
        _both_codes_are_local = 1; 
  
  
+    int id     = _localCodeProperties   -> idGet();
+    int id_cpl = _coupledCodeProperties -> idGet();
+ 
     _both_codes_are_local__array = (int*)malloc(sizeof(int)*_n_ranks_g);
     
     int* _both_codes_are_local__array_tmp = (int*)malloc(sizeof(int)*_n_ranks);
     
     CouplingDB* cplDB = _cpl -> couplingDBGet();
-    string cplId = _cpl -> IdGet();
+    string cplId = coupling -> IdGet();
 
-    if(_both_codes_are_local == 0 || (_both_codes_are_local == 1 && cplDB -> couplingIs(*_coupledCodeProperties,cplId) ) ){
+    if(_both_codes_are_local == 0 || (_both_codes_are_local == 1 && slave == 0 ) ){
       MPI_Allgather(&_both_codes_are_local,1,MPI_INT,
                    _both_codes_are_local__array,1,MPI_INT,
                    _globalComm );
@@ -158,19 +161,36 @@ namespace cwipi {
         MPI_Sendrecv(&_nb_part,1,MPI_INT,_senderRank_cpl,tagsend,&_nb_part_cpl,1,MPI_INT,_senderRank_cpl,tagrecv,_globalComm,&status); 
       }
     }
-    
-    if(_both_codes_are_local == 1 && cplDB -> couplingIs(*_coupledCodeProperties,cplId)) {
+
+     
+     
+    if(_both_codes_are_local == 1 && slave == 0) {
 
       Coupling coupling_cpl = cplDB -> couplingGet(*_coupledCodeProperties,cplId);
+      
+      if (geometryLocation == CWP_FIELD_VALUE_CELL_POINT &&  _both_codes_are_local==1 && slave == 0) {
+        printf("HHHH1 %i\n",_rank);
+     }
+      
       _geometry_cpl = coupling_cpl.geometryGet(_geometryLocation );
+      
+     if (geometryLocation == CWP_FIELD_VALUE_CELL_POINT &&  _both_codes_are_local==1 && slave == 0) {
+       printf("HHHH5 %i\n",_rank);
+     }
+      
       _geometry_cpl -> _geometry_cpl = this;
     }
     
-    int id     = _localCodeProperties -> idGet();
-    int id_cpl = _coupledCodeProperties -> idGet();
 
+      if (geometryLocation == CWP_FIELD_VALUE_CELL_POINT &&  _both_codes_are_local==1 && slave == 0) {
+      printf("HHHH6 %i\n",_rank);
+      // while(1==1){}
+     
+     }
+     
     int tmp1,tmp2;
-    if(_both_codes_are_local == 0 || (_both_codes_are_local == 1 && cplDB -> couplingIs(*_coupledCodeProperties,cplId) ) ){
+   
+    if(_both_codes_are_local == 0 ){
       if(id < id_cpl) {
         MPI_Bcast(&_nb_part_cpl,1,MPI_INT,_senderRank,_globalComm);
         MPI_Bcast(&tmp1,1,MPI_INT,_senderRank_cpl,_globalComm); 
@@ -179,21 +199,29 @@ namespace cwipi {
         MPI_Bcast(&tmp1,1,MPI_INT,_senderRank_cpl,_globalComm); 
         MPI_Bcast(&_nb_part_cpl,1,MPI_INT,_senderRank,_globalComm); 
       }
-
     }
-    else {
-      _nb_part_cpl = _geometry_cpl -> _nb_part;
+    else if( slave == 0 ) {
+      printf("_senderRank %i _senderRank_cpl %i\n",_senderRank,_senderRank_cpl);
+      if(id < id_cpl) {
+        int toto;
+        MPI_Bcast(&_nb_part_cpl,1,MPI_INT,_senderRank,_globalComm);
+        MPI_Bcast(&(_geometry_cpl -> _nb_part_cpl), 1,MPI_INT,_senderRank_cpl,_globalComm); 
+      }
+      else{
+        int toto;
+        MPI_Bcast(&(_geometry_cpl -> _nb_part_cpl), 1,MPI_INT,_senderRank_cpl,_globalComm); 
+        MPI_Bcast(&_nb_part_cpl,1,MPI_INT,_senderRank,_globalComm);
+      } 
     }
-    
     for(int i=0;i<_n_ranks_g;i++) {
-   //    printf("rank %i _both_codes_are_local__array[%i] %i %i\n",_rank,i,_both_codes_are_local__array[i],_both_codes_are_local);
+     //  printf("rank %i _both_codes_are_local__array[%i] %i %i\n",_rank,i,_both_codes_are_local__array[i],_both_codes_are_local);
     }
 
     _isCoupledRank     = _localCodeProperties   -> isCoupledRank();
     _isCoupledRank_cpl = _coupledCodeProperties -> isCoupledRank();
    
     n_uncomputed_tgt.resize(_nb_part);
-    
+         
     _n_vtx    =(int*)malloc(sizeof(int)*_nb_part);  
     _n_elt    =(int*)malloc(sizeof(int)*_nb_part);     
     _n_target =(int*)malloc(sizeof(int)*_nb_part);
@@ -202,7 +230,7 @@ namespace cwipi {
     
     _n_g_elt    =(CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*_nb_part);  
     _n_g_vtx    =(CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*_nb_part);  
-
+  //  if(_both_codes_are_local == 1 && slave == 1)   while(1==1){}  
 
   }
   
@@ -469,10 +497,10 @@ namespace cwipi {
     
     if(_both_codes_are_local == 0 || (_both_codes_are_local == 1 && _Texch_t == CWP_FIELD_EXCH_SEND) ){ 
      
-     MPI_Allreduce(&elapsInfoGet, &elapsInfoGetMax, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+   /*  MPI_Allreduce(&elapsInfoGet, &elapsInfoGetMax, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
      MPI_Allreduce(&elapsInfoGet2, &elapsInfoGet2Max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);    
      MPI_Allreduce(&elapsInfoGetCpl, &elapsInfoGetCplMax, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-     
+     */
      if (_rank == 0) {
         printf ("Info Time detail : Get %12.5e Get2 %12.5e GetCpl %12.5e _n_ranks %i \n",
         elapsInfoGetMax,elapsInfoGet2Max,elapsInfoGetCplMax,_n_ranks);
@@ -570,10 +598,10 @@ namespace cwipi {
         PDM_timer_t *t3 = PDM_timer_create();
         PDM_timer_init(t3);
         PDM_timer_resume(t3);  
-        
+        printf("before index %i\n",_rank);
         if(_Texch_t == CWP_FIELD_EXCH_RECV) broadcasting_index_communication() ;
         if(_Texch_t == CWP_FIELD_EXCH_SEND) reception_index_communication() ;
-  
+        printf("after index %i\n",_rank);
         PDM_timer_hang_on(t3); 
         elapsIndexComm = PDM_timer_elapsed(t3);
         
@@ -581,8 +609,6 @@ namespace cwipi {
         PDM_timer_init(t4);
         PDM_timer_resume(t4);  
 
-
-   
         if(_Texch_t == CWP_FIELD_EXCH_RECV) prepare_data_communication_send();
         if(_Texch_t == CWP_FIELD_EXCH_SEND) prepare_data_communication_recv() ; 
 
@@ -634,14 +660,15 @@ namespace cwipi {
 
         _geometry_cpl -> filling_of_broadcasting_array(); 
         initialization_of_reception_array();
-
+        printf("before both index %i\n",_rank);
         both_index_communication() ;
+        printf("after both index %i\n",_rank);
+
         _geometry_cpl ->prepare_data_communication_send();
         prepare_data_communication_recv() ;
- 
-        _geometry_cpl -> data_communication_send();
-        data_communication_recv();
-       
+        printf("before both\n");
+        both_data_communication();
+        printf("after both\n");
         _geometry_cpl -> data_communication_wait_send();
         data_communication_wait_recv();
       }//end if localName == _codeVector[0]
@@ -651,12 +678,12 @@ namespace cwipi {
      double elapsDataCommMax,elapsIndexCommMax,elapsLocateSettingMax,elapsLocationTimeMax,elapsInfoMax;
 
     if(_both_codes_are_local == 0 || (_both_codes_are_local == 1 && _Texch_t == CWP_FIELD_EXCH_SEND) ){      
-     MPI_Allreduce(&elapsLocateSetting, &elapsLocateSettingMax, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+   /*  MPI_Allreduce(&elapsLocateSetting, &elapsLocateSettingMax, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
      MPI_Allreduce(&elapsIndexComm, &elapsIndexCommMax, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);    
      MPI_Allreduce(&elapsDataComm, &elapsDataCommMax, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
      MPI_Allreduce(&elapsLocationTime, &elapsLocationTimeMax, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
      MPI_Allreduce(&elapsInfo, &elapsInfoMax, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-     
+     */
      if (_rank == 0) {
         printf ("Geom Compute Time : LocateSetting %12.5e IndexComm %12.5e DataComm %12.5e Location Time %12.5e InfoMesh %12.5e \n",
         elapsLocateSettingMax,elapsIndexCommMax,elapsDataCommMax,elapsLocationTimeMax,elapsInfoMax);
@@ -676,8 +703,6 @@ void Geometry::mesh_cpl_info_get() {
 
      int tsize;
      MPI_Comm_size(_globalComm,&tsize);
-    // while(1==1){}
- 
  
     PDM_timer_t *t1 = PDM_timer_create();
    PDM_timer_init(t1);
@@ -726,8 +751,6 @@ void Geometry::mesh_cpl_info_get() {
       MPI_Bcast(&tmp1,1,MPI_LONG,_senderRank_cpl,_globalComm); 
       MPI_Bcast(&_n_g_vtx_cpl_over_part,1,MPI_LONG,_senderRank,_globalComm); 
     }
-      
-
  
     PDM_timer_hang_on(t2);
     double elapsbcast = PDM_timer_elapsed(t2);
@@ -1450,16 +1473,76 @@ void Geometry::mesh_cpl_info_get() {
    } //end for
  }
 
+/***************************************************************************/
+/***************************************************************************/
+
+  void Geometry::irecv2(Field *recevingField) {
+    _idx_target  .resize   (_nb_part + 1);
+    _idx_target[0] = 0;
+    for (int i_part = 0; i_part < _nb_part; i_part++) {
+      _idx_target[i_part+1] = _idx_target[i_part] + _n_target[i_part];   
+    }
+
+
+    int  dataTypeSize       = recevingField -> dataTypeSizeGet(); 
+    //Crée un buffer de réception et le stocke (alloue)
+    recevingField -> ReceptionBufferCreation(_idx_target,_n_tot_target);
+    /* Loop on possibly intersecting distant ranks */
+    /*---------------------------------------------*/
+
+    //Réception des données sur toutes les partitions
+    void* data = recevingField -> recvBufferGet();
+
+    int nComponent = recevingField -> nComponentGet();
+
+    void* loc_v_ptr = data;
+
+
+
+    MPI_Request request;
+    int* displ_recv = (int*)malloc(sizeof(int)*_n_ranks_g);
+    int* count_recv = (int*)malloc(sizeof(int)*_n_ranks_g);
+    for (int i_proc=0; i_proc < _n_ranks_g; i_proc++) {
+      count_recv[i_proc]  =  dataTypeSize * nComponent * ( _targets_localization_idx[ i_proc ][_nb_part_cpl] - _targets_localization_idx[i_proc][0]  );
+      displ_recv [i_proc]  =  dataTypeSize * nComponent * _targets_localization_idx[i_proc][0];
+    }
+    
+    int* displ_send = (int*)malloc(sizeof(int)*_n_ranks_g);
+    int* count_send = (int*)malloc(sizeof(int)*_n_ranks_g);
+    for (int i_proc=0; i_proc < _n_ranks_g; i_proc++) {
+      count_send[i_proc]= 0;
+      displ_send[i_proc]=  0;
+    }
+    
+    void* send_buffer = NULL;
+    int tag =recevingField -> fieldIDIntGet();
+    
+    MPI_Ialltoallv(send_buffer,count_send,displ_send,MPI_BYTE,
+                   loc_v_ptr,count_recv,displ_recv,MPI_BYTE,
+                   _globalComm,&request);
+    
+    free(count_recv);
+    free(displ_recv);
+    free(count_send);
+    free(displ_send);    
+    printf("EEEE %i\n",tag);
+    recevingField -> lastRequestAdd (tag,request);
+ }
+
+
 /******************************************************/
 
   void Geometry::waitIrecv (Field* recevingField) {
-
     MPI_Status status;
 
-    for (int i_proc=0; i_proc < _n_ranks_cpl; i_proc++) {
-      int request = recevingField -> lastRequestGet(i_proc);
+    //TODO: A travailler pour optimiser le temps de communication
+    // Qui communique avec qui ? Dans quel ordre ?
+
+    if(_both_codes_are_local == 0) {
+      int tag = recevingField -> fieldIDIntGet();
+      int request = recevingField -> lastRequestGet(tag);    
       MPI_Wait(&request, &status);
-    } //i_proc loop
+    }
 
     //Récupère un pointeur vers le bloc de données reçues
     void*              recvData          = recevingField -> recvBufferGet  ();
@@ -1512,14 +1595,13 @@ void Geometry::mesh_cpl_info_get() {
   void Geometry::waitIssend (Field* sendingField) {
 
     MPI_Status status;
-
-    //TODO: A travailler pour optimiser le temps de communication
-    // Qui communique avec qui ? Dans quel ordre ?
-
-    for (int i_proc=0; i_proc < _n_ranks_cpl; i_proc++) {
-      int request = sendingField -> lastRequestGet(i_proc);
-      MPI_Wait(&request, &status);
-    } //i_proc loop
+    int tag;
+    MPI_Request request;
+    
+    tag     = sendingField -> fieldIDIntGet();
+    request = sendingField -> lastRequestGet(tag);
+    
+    MPI_Wait(&request, &status);
 
     int nComponent = sendingField -> nComponentGet();
     if(_visu -> isCreated()) {
