@@ -27,6 +27,7 @@
 #include <mpi.h>
 
 #include "cwipi.h"
+#include "fvmc_ho_location.h"
 #include "grid_mesh.h"
 
 
@@ -61,9 +62,9 @@
  *   status              <-- Exchange status
  *---------------------------------------------------------------------*/
 
- static double _f(double x, double y, double z)
+static double _f(double x, double y, double z)
 {
-  return x + y + z;
+  return 2*x*x + z*z - 3*x*z + z - x + 2. + 3*z;
 }
 
 static double _y(double x)
@@ -71,9 +72,9 @@ static double _y(double x)
   return x*x + 2*x -1;
 }
 
-static double _z(double x)
+static double _z(double x, double y)
 {
-  return x*x + 2;
+  return 0.125*(x*(1-x) + y*(1-y));
 }
 
 static double frand_a_b(double a, double b){
@@ -82,102 +83,6 @@ static double frand_a_b(double a, double b){
 
 
 
-/*----------------------------------------------------------------------
- *
- * Read mesh
- *
- * parameters:
- *   f                   <-- Mesh file
- *   dimension           --> Dimension
- *   nvertex             <-- number of vertices
- *   nElements           <-- number of elements
- *   nConnecVertex       <-- size of connectivity
- *   coords              --> vertices coordinates
- *   connecPointer       --> connectivity index
- *   connec              --> connectivity
- *---------------------------------------------------------------------*/
-
-static int _read_mesh(FILE *f,
-                      int *format,
-                      int *dimension,
-                      int *nVertex,
-                      int *nElt,
-                      double *coords,
-                      int *eltsConnecPointer,
-                      int *eltsConnec)
-{
-
-
-  int r;
-  int nConnecVertex;
-  int _format;
-  int _dimension;
-  int _nVertex;
-  int _nElt;
-  int *un, loop = 0;
-  char key[256];
-
-
-
-  while (loop == 0){
-    r = fscanf(f, "%s",key);
-    printf("key = %s\n", key);
-  switch (key[0]) {
-    case 'M':
-      r = fscanf(f, "%d",format);
-      _format = *format;
-      printf("format = %d, r = %i\n", _format, r);
-      break;
-
-    case 'D':
-      r = fscanf(f, "%d",dimension);
-      _dimension = *dimension;
-      printf("dimension = %d, r = %i\n", _dimension, r);
-      break;
-
-    case 'V':
-      r = fscanf(f, "%d",nVertex);
-      _nVertex = *nVertex;
-      printf("nVertex = %d, r = %i\n", _nVertex, r);
-      coords = (double *) malloc(sizeof(double) * 3 * _nVertex );
-      for (int i = 0; i < _nVertex; i++) {
-
-        for (int j = 0; j < 3; j++) {
-        r = fscanf(f, "%lf",coords + i * 3 + j);
-        }
-      }
-      break;
-
-      case 'E':
-        r = fscanf(f, "%d",nElt);
-        _nElt = *nElt;
-        printf("nElt = %d, r = %i\n", _nElt, r);
-        nConnecVertex = _nElt * 3;
-        eltsConnec = (int *) malloc(sizeof(int) * nConnecVertex);
-        for (int i = 0; i < nConnecVertex; i++) {
-
-          for (int j = 0; j < 3; j++) {
-          r = fscanf(f, "%d",eltsConnec + i * 3 + j);
-          }
-          r = fscanf(f, "%d",un);
-        }
-        break;
-
-      case 'F':
-        loop = 1;
-        break;
-  };
-}
-
-  eltsConnecPointer = (int *) malloc(sizeof(int) * (_nElt + 1));
-
-  for (int i = 0; i < _nElt; i++) {
-    eltsConnecPointer[i] = 3*i;
-  }
-  eltsConnecPointer[_nElt] = nConnecVertex;
-
-  return 1;
-}
 /*----------------------------------------------------------------------
  *
  * Display usage
@@ -336,7 +241,7 @@ int main
   }
 
   char* fileName = (char *) malloc(sizeof(char) * 37);
-  sprintf(fileName,"c_linear_location_tetraP2_%4.4d.txt",rank);
+  sprintf(fileName,"c_linear_location_prismP2_%4.4d.txt",rank);
 
   outputFile = fopen(fileName,"w");
 
@@ -358,7 +263,7 @@ int main
   MPI_Comm_rank(localComm, &currentRank);
   MPI_Comm_size(localComm, &localCommSize);
 
-  fprintf(outputFile, "  Volume coupling test : location in tetrahedron P2\n");
+  fprintf(outputFile, "  Volume coupling test : location in prism P2\n");
   fprintf(outputFile, "\n");
 
   fprintf(outputFile, "\nDump after initialization\n");
@@ -377,7 +282,7 @@ int main
 
   const int postFreq = -1;
 
-  cwipi_create_coupling("c_volumic_cpl_location_tetraP2",            // Coupling id
+  cwipi_create_coupling("c_volumic_cpl_location_prismP2",            // Coupling id
                         CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING, // Coupling type
                         codeCoupledName,                           // Coupled application id
                         3,                                         // Geometric entities dimension
@@ -388,18 +293,14 @@ int main
                         "EnSight Gold",                            // Postprocessing format
                         "text");                                   // Postprocessing option
 
-  cwipi_ho_options_set("c_volumic_cpl_location_tetraP2",
-                      "opt_bbox_step",
-                      "-1");
-
   /* Mesh definition
    * --------------- */
 
   if (rank == 0)
     printf("        Create mesh\n");
 
-  int format;
-  int dimension;
+  int format = 0;
+  int dimension = 0;
   int nVertex = 0;               // Number of vertex
   double *coords = NULL;         // Vertex coordinates
   int nElts = 0;                 // Number of elements
@@ -407,77 +308,135 @@ int main
   int *eltsConnec = NULL;        // Connectivity
 
   /* Domain bounds */
+  srand(time(NULL));
+  double dila = 0.01;
 
   const double xmin =  0.0;
-  const double xmax =  1.0;
+  const double xmax =  1.0 * dila;
   const double ymin =  0.0;
-  const double ymax =  1.0;
+  const double ymax =  1.0 * dila;
   const double zmin =  0.0;
   const double zmax =  1.0;
 
-  nVertex = 10;
+  nVertex = 18;
   nElts = 1;
 
 
-  meshFile = fopen("meshes/sphereP2.mesh", "r");
-
-  assert (meshFile != NULL);
 
 
-  int r;
-  int nConnecVertex;
-  int buff, trash, loop = 0;
-  char key[40];
-
-  r = fscanf(meshFile, "%s",key);
-  r = fscanf(meshFile, "%d",&format);
-
-  r = fscanf(meshFile, "%s",key);
-  r = fscanf(meshFile, "%d",&dimension);
-
-  r = fscanf(meshFile, "%s",key);
-  r = fscanf(meshFile, "%d",&nVertex);
   coords = (double *) malloc(sizeof(double) * 3 * nVertex );
-  for (int i = 0; i < nVertex; i++) {
-   r = fscanf(meshFile, "%lf",coords + i * 3);
-   r = fscanf(meshFile, "%lf",coords + i * 3 + 1);
-   r = fscanf(meshFile, "%lf",coords + i * 3 + 2);
-   r = fscanf(meshFile, "%d",&buff);
-  }
-
-  r = fscanf(meshFile, "%s",key);
-  r = fscanf(meshFile, "%d",&buff);
-  for (int i = 0; i < buff; i++){
-    r = fscanf(meshFile, "%d",&trash);
-    r = fscanf(meshFile, "%d",&trash);
-    r = fscanf(meshFile, "%d",&trash);
-    r = fscanf(meshFile, "%d",&trash);
-  }
-
-  r = fscanf(meshFile, "%s",key);
-  r = fscanf(meshFile, "%d",&nElts);
-  nConnecVertex = nElts * 10;
-  eltsConnec = (int *) malloc(sizeof(int) * nConnecVertex);
-  for (int i = 0; i < nElts; i++) {
-    for (int j = 0; j < 10; j++) {
-      r = fscanf(meshFile, "%d",eltsConnec + i * 10 + j);
-    }
-    r = fscanf(meshFile, "%d",&buff);
-  }
-  fclose(meshFile);
   eltsConnecPointer = (int *) malloc(sizeof(int) * (nElts + 1));
-  for (int i = 0; i < nElts; i++) {
-    eltsConnecPointer[i] = 10*i;
-  }
-  eltsConnecPointer[nElts] = nConnecVertex;
+  eltsConnec = (int *) malloc(sizeof(int) * nVertex);
 
+  eltsConnecPointer[0] = 0;
+  eltsConnecPointer[1] = 18;
+
+  eltsConnec[0]  = 1;
+  eltsConnec[1]  = 2;
+  eltsConnec[2]  = 3;
+  eltsConnec[3]  = 4;
+  eltsConnec[4]  = 5;
+  eltsConnec[5]  = 6;
+  eltsConnec[6]  = 7;
+  eltsConnec[7]  = 8;
+  eltsConnec[8]  = 9;
+  eltsConnec[9]  = 10;
+  eltsConnec[10] = 11;
+  eltsConnec[11] = 12;
+  eltsConnec[12] = 13;
+  eltsConnec[13] = 14;
+  eltsConnec[14] = 15;
+  eltsConnec[15] = 16;
+  eltsConnec[16] = 17;
+  eltsConnec[17] = 18;
+
+  coords[0] = xmin;
+  coords[1] = ymin;
+  coords[2] = zmin + _z(coords[0],coords[1]);
+
+  coords[3] = xmax;
+  coords[4] = ymin;
+  coords[5] = zmin + _z(coords[3],coords[4]);
+
+  coords[6] = xmin;
+  coords[7] = ymax;
+  coords[8] = zmin + _z(coords[6],coords[7]);
+
+  coords[9]  = xmin;
+  coords[10] = ymin;
+  coords[11] = zmax + _z(coords[9],coords[10]);
+
+  coords[12] = xmax;
+  coords[13] = ymin;
+  coords[14] = zmax + _z(coords[12],coords[13]);
+
+  coords[15] = xmin;
+  coords[16] = ymax;
+  coords[17] = zmax + _z(coords[15],coords[16]);
+
+
+  coords[18] = (xmin + xmax) / 2;
+  coords[19] = ymin;
+  coords[20] = zmin + _z(coords[18],coords[19]);
+
+  coords[21] = (xmin + xmax) / 2;
+  coords[22] = (ymin + ymax) / 2;
+  coords[23] = zmin + _z(coords[21],coords[22]);
+
+  coords[24] = xmin;
+  coords[25] = (ymin + ymax) / 2;
+  coords[26] = zmin + _z(coords[24],coords[25]);
+
+
+  coords[27] = (xmin + xmax) / 2;
+  coords[28] = ymin;
+  coords[29] = zmax + _z(coords[27],coords[28]);
+
+  coords[30] = (xmin + xmax) / 2;
+  coords[31] = (ymin + ymax) / 2;
+  coords[32] = zmax + _z(coords[30],coords[31]);
+
+  coords[33] = xmin;
+  coords[34] = (ymin + ymax) / 2;;
+  coords[35] = zmax + _z(coords[33],coords[34]);
+
+  coords[36] = xmin;
+  coords[37] = ymin;
+  coords[38] = (zmin + zmax) / 2 + _z(coords[36],coords[37]);
+
+  coords[39] = xmax;
+  coords[40] = ymin;
+  coords[41] = (zmin + zmax) / 2 + _z(coords[39],coords[40]);
+
+  coords[42] = xmin;
+  coords[43] = ymax;
+  coords[44] = (zmin + zmax) / 2 + _z(coords[42],coords[43]);
+
+
+  coords[45] = (xmin + xmax) / 2;
+  coords[46] = ymin;
+  coords[47] = (zmin + zmax) / 2 + _z(coords[45],coords[46]);
+
+  coords[48] = (xmin + xmax) / 2;
+  coords[49] = (ymin + ymax) / 2;
+  coords[50] = (zmin + zmax) / 2 + _z(coords[48],coords[49]);
+
+  coords[51] = xmin;
+  coords[52] = (ymin + ymax) / 2;
+  coords[53] = (zmin + zmax) / 2 + _z(coords[51],coords[52]);
+
+  if (rank == 0){
+    for (int i = 0; i < nVertex; i++){
+      printf("%12.15e %12.15e %12.15e\n", coords[3*i], coords[3*i+1], coords[3*i+2]);
+    }
+  }
 
   fprintf(outputFile, "   Number of vertex   : %i\n", nVertex);
   fprintf(outputFile, "   Number of elements : %i\n", nElts);
 
   const int order = 2;
 
-  cwipi_ho_define_mesh("c_volumic_cpl_location_tetraP2",
+  cwipi_ho_define_mesh("c_volumic_cpl_location_prismP2",
                        nVertex,
                        nElts,
                        order,
@@ -487,9 +446,7 @@ int main
 
 
 
-
-
-  const int n_node = 10;
+  const int n_node = 18;
 
   int *ijk = malloc(sizeof(int)*3*n_node);
 
@@ -509,70 +466,90 @@ int main
   ijk[10] = 0;
   ijk[11] = 2;
 
-  ijk[12] = 1;
+  ijk[12] = 2;
   ijk[13] = 0;
-  ijk[14] = 0;
+  ijk[14] = 2;
 
-  ijk[15] = 1;
-  ijk[16] = 1;
-  ijk[17] = 0;
+  ijk[15] = 0;
+  ijk[16] = 2;
+  ijk[17] = 2;
 
-  ijk[18] = 0;
-  ijk[19] = 1;
+  ijk[18] = 1;
+  ijk[19] = 0;
   ijk[20] = 0;
 
-  ijk[21] = 0;
-  ijk[22] = 0;
-  ijk[23] = 1;
+  ijk[21] = 1;
+  ijk[22] = 1;
+  ijk[23] = 0;
 
-  ijk[24] = 1;
-  ijk[25] = 0;
-  ijk[26] = 1;
+  ijk[24] = 0;
+  ijk[25] = 1;
+  ijk[26] = 0;
 
-  ijk[27] = 0;
-  ijk[28] = 1;
-  ijk[29] = 1;
+  ijk[27] = 1;
+  ijk[28] = 0;
+  ijk[29] = 2;
+
+  ijk[30] = 1;
+  ijk[31] = 1;
+  ijk[32] = 2;
+
+  ijk[33] = 0;
+  ijk[34] = 1;
+  ijk[35] = 2;
+
+  ijk[36] = 0;
+  ijk[37] = 0;
+  ijk[38] = 1;
+
+  ijk[39] = 2;
+  ijk[40] = 0;
+  ijk[41] = 1;
+
+  ijk[42] = 0;
+  ijk[43] = 2;
+  ijk[44] = 1;
+
+  ijk[45] = 1;
+  ijk[46] = 0;
+  ijk[47] = 1;
+
+  ijk[48] = 1;
+  ijk[49] = 1;
+  ijk[50] = 1;
+
+  ijk[51] = 0;
+  ijk[52] = 1;
+  ijk[53] = 1;
 
 
-  cwipi_ho_ordering_from_IJK_set ("c_volumic_cpl_location_tetraP2",
-                                  CWIPI_CELL_TETRAHO,
+  cwipi_ho_ordering_from_IJK_set ("c_volumic_cpl_location_prismP2",
+                                  CWIPI_CELL_PRISMHO,
                                   n_node,
                                   ijk);
 
 
 
-
-
-  double phi, theta, rho;
-
   int n_pts_to_locate = 100;
 
   double *pts_to_locate = (double *) malloc(sizeof(double) * 3 * n_pts_to_locate);
-  double x, y, z;
 
-/*  pts_to_locate[0]  = -8.407698607790286e-04; //-6.474731939251818e-03;
-  pts_to_locate[1]  =  1.964277933020044e-01; // 1.436014878604620e-02;
-  pts_to_locate[2]  =  3.223073602567958e-01; // 7.704117218414598e-03;*/
 
-for (int i = 0; i < n_pts_to_locate; i++){
-    phi   = frand_a_b(0, M_PI);
-    theta = frand_a_b(0, 2*M_PI);
-    rho   = frand_a_b(0, 0.5);
-
-    pts_to_locate[3*i]    = rho * sin(phi) * cos(theta);
-    pts_to_locate[3*i+1]  = rho * sin(phi) * sin(theta);
-    pts_to_locate[3*i+2]  = rho * cos(phi);
+  for (int i = 0; i < n_pts_to_locate; i++) {
+    pts_to_locate[3*i] = frand_a_b(xmin, xmax);
+    pts_to_locate[3*i+1] = frand_a_b(ymin, ymax*(xmax-pts_to_locate[3*i])/(xmax-xmin));
+    pts_to_locate[3*i+2] = frand_a_b(_z(pts_to_locate[3*i], pts_to_locate[3*i+1])+zmin,_z(pts_to_locate[3*i],pts_to_locate[3*i+1])+zmax);
   }
 
 
   for (int i = 0; i < n_pts_to_locate; i++) {
-    //printf("[%i] %12.15e %12.15e %12.15e\n",  i, pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2]);
-
+    printf("%12.5e %12.5e %12.5e\n",  pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2]);
   }
 
-  cwipi_set_points_to_locate ("c_volumic_cpl_location_tetraP2",
+  cwipi_set_points_to_locate ("c_volumic_cpl_location_prismP2",
                               n_pts_to_locate,
                               pts_to_locate);
+
 
   /* Fields exchange
    *     - Proc 0 : Send X coordinates
@@ -590,13 +567,13 @@ for (int i = 0; i < n_pts_to_locate; i++){
   sendValues = (double *) malloc(sizeof(double) * nVertex);
   recvValues = (double *) malloc(sizeof(double) * n_pts_to_locate);
 
-  /* Define fields to send (X coordinate or Y coordinate) */
+  // Define fields to send (X coordinate or Y coordinate)
 
   for (int i = 0; i < nVertex; i++) {
     sendValues[i] = _f(coords[3 * i], coords[3 * i+1], coords[3 * i+2]);
   }
 
-  /* Exchange */
+  // Exchange
 
   int nNotLocatedPoints = 0;
   char *sendValuesName;
@@ -608,12 +585,12 @@ for (int i = 0; i < n_pts_to_locate; i++){
 
     printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 
-  cwipi_locate("c_volumic_cpl_location_tetraP2");
+  cwipi_locate("c_volumic_cpl_location_prismP2");
 
 
 
 
-  nNotLocatedPoints = cwipi_get_n_not_located_points("c_volumic_cpl_location_tetraP2");
+  nNotLocatedPoints = cwipi_get_n_not_located_points("c_volumic_cpl_location_prismP2");
   if (nNotLocatedPoints > 0) {
     printf("--- Error --- : %d not located points found\n", nNotLocatedPoints);
     exit(1);
@@ -622,7 +599,7 @@ for (int i = 0; i < n_pts_to_locate; i++){
   int sRequest, rRequest;
   int tag = 1;
 
-  cwipi_irecv("c_volumic_cpl_location_tetraP2",
+  cwipi_irecv("c_volumic_cpl_location_prismP2",
               "ech",
               tag,
               1,
@@ -632,7 +609,8 @@ for (int i = 0; i < n_pts_to_locate; i++){
               recvValues,
               &rRequest);
 
-  cwipi_issend("c_volumic_cpl_location_tetraP2",
+
+  cwipi_issend("c_volumic_cpl_location_prismP2",
                "ech",
                tag,
                1,
@@ -642,8 +620,9 @@ for (int i = 0; i < n_pts_to_locate; i++){
                sendValues,
                &sRequest);
 
-  cwipi_wait_irecv("c_volumic_cpl_location_tetraP2", rRequest);
-  cwipi_wait_issend("c_volumic_cpl_location_tetraP2", sRequest);
+  cwipi_wait_irecv("c_volumic_cpl_location_prismP2", rRequest);
+  cwipi_wait_issend("c_volumic_cpl_location_prismP2", sRequest);
+
 
 
   /* Coupling deletion
@@ -652,41 +631,7 @@ for (int i = 0; i < n_pts_to_locate; i++){
   if (rank == 0)
     printf("        Delete coupling\n");
 
-  cwipi_delete_coupling("c_volumic_cpl_location_tetraP2");
-
-
-  /* Check barycentric coordinates */
-
-  if (rank == 0)
-    printf("        Check results\n");
-
-  double *res = (double *) malloc(sizeof(double) *  n_pts_to_locate);
-
-  for (int i = 0; i < n_pts_to_locate; i++) {
-    res[i] = _f(pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2]);
-  }
-
-  double err;
-
-  for (int i = 0; i < n_pts_to_locate; i++) {
-    err = fabs(recvValues[i] - res[i]);
-    //    if (err > 1e-6) {
-    //printf ("[%d] err %d : %12.15e %12.15e %12.15e\n", codeId, i, err, recvValues[i], res[i]);
-    if (rank == 0) printf("%12.15e\n", err);
-      // }
-  }
-
-  double err_max;
-  MPI_Allreduce(&err, &err_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-
-  if (err_max >= 1e-6) {
-    if (rank == 0) {
-  //    printf("        !!! Error = %12.5e\n", err_max);
-    }
-  //  MPI_Finalize();
-    //return EXIT_FAILURE;
-  }
-
+  cwipi_delete_coupling("c_volumic_cpl_location_prismP2");
 
 
   /* Free

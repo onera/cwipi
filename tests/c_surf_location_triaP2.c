@@ -65,7 +65,9 @@ static double _f(double x, double y, double z)
   return x*x + z*z - x*z + z - x + 2. + 3*z;
 }
 
-
+static double frand_a_b(double a, double b){
+    return (( rand()/(double)RAND_MAX ) * (b-a) + a);
+}
 /*----------------------------------------------------------------------
  *
  * Display usage
@@ -289,10 +291,10 @@ int main
 
   /* Domain bounds */
 
-  const double xmin = -0.1;
-  const double xmax =  0.1;
-  const double zmin = -0.1;
-  const double zmax =  0.1;
+  const double xmin = 0;
+  const double xmax = 1;
+  const double zmin = 0;
+  const double zmax = 1;
 
   nVertex = 6;
   nElts = 1;
@@ -323,17 +325,17 @@ int main
   coords[7] = 0.;
   coords[8] = zmax;
 
-  coords[9] = (xmin + xmax) / 2.;
+  coords[9] = (xmin + xmax) / 2. +0.1;
   coords[10] = 0.;
-  coords[11] = zmin/2.;
+  coords[11] = zmin;
 
-  coords[12] = xmax/2.;
+  coords[12] = xmax/2. - 0.05;
   coords[13] = 0.;
-  coords[14] = zmax/2.;
+  coords[14] = zmax/2. - 0.05;
 
-  coords[15] = xmin/2.;
+  coords[15] = xmin;
   coords[16] = 0.;
-  coords[17] = (zmax+zmin)/2.;
+  coords[17] = (zmax+zmin)/2. + 0.1;
 
   fprintf(outputFile, "   Number of vertex   : %i\n", nVertex);
   fprintf(outputFile, "   Number of elements : %i\n", nElts);
@@ -375,18 +377,25 @@ int main
                                   n_node,
                                   ijk);
 
-  int n_pts_to_locate = 11;
+  int n_pts_to_locate = 1;
 
   double *pts_to_locate = (double *) malloc(sizeof(double) * 3 * n_pts_to_locate);
 
-  pts_to_locate[0] = xmin;
-  pts_to_locate[1] = 0.;
-  pts_to_locate[2] = zmin;
 
-  pts_to_locate[0] = xmax;
-  pts_to_locate[1] = 0.;
-  pts_to_locate[2] = 0.;
+/*for (int i = 0; i < n_pts_to_locate; i++){
+  pts_to_locate[3*i] = frand_a_b(xmin, xmax);
+  pts_to_locate[3*i+1] = 0.0;
+  pts_to_locate[3*i+2] = frand_a_b(zmin, 1-pts_to_locate[3*i]);
+  printf("%12.15e %12.15e %12.15e\n", pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2]);
+}*/
 
+
+
+
+  pts_to_locate[0] =  0.0001;
+  pts_to_locate[1] =  0.000000000000000e+00;
+  pts_to_locate[2] =  0.0001;
+/*
   pts_to_locate[3] = xmax;
   pts_to_locate[4] = 0.;
   pts_to_locate[5] = 0.;
@@ -427,7 +436,7 @@ int main
   pts_to_locate[31] = 0.;
   pts_to_locate[32] = zmax/4.;
 
-
+*/
   //  n_pts_to_locate = 1;
   cwipi_set_points_to_locate ("c_surf_cpl_location_triaP2",
                               n_pts_to_locate,
@@ -516,15 +525,15 @@ int main
 
   double *res = (double *) malloc(sizeof(double) *  n_pts_to_locate);
 
-  for (int i = 0; i < nVertex; i++) {
-    res[i] = sendValues[i];
+  for (int i = 0; i < n_pts_to_locate; i++) {
+    res[i] = _f(pts_to_locate[3*i], pts_to_locate[3*i+1],pts_to_locate[3*i+2]);
   }
-
+/*
   res[nVertex    ] = _f(0.           , 0.             , 0.             );
   res[nVertex + 1] = _f(0.           , 0.             , 0.             );
   res[nVertex + 2] = res[0];
   res[nVertex + 3] = _f( (xmax + xmax/2.) / 2, 0., zmax/4.);
-  res[nVertex + 4] = _f( xmax/4., 0., zmax/4.);
+  res[nVertex + 4] = _f( xmax/4., 0., zmax/4.);*/
 
   double err;
 

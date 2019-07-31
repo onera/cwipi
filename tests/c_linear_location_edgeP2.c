@@ -63,7 +63,7 @@
 
 static double _f(double x, double y, double z)
 {
-  return 2*x*x + z*z - 3*x*z + z - x + 2. + 3*z;
+  return sqrt(x*x + y*y + z*z);
 }
 
 static double _y(double x)
@@ -71,9 +71,9 @@ static double _y(double x)
   return -x*x + 1.5*x + 3;
 }
 
-static double _z(double x)
+static double _z(double x, double coef)
 {
-  return 0.3*x*x - 4*x + 0.5;
+  return coef*x*(1-x);
 }
 
 static double frand_a_b(double a, double b){
@@ -530,17 +530,24 @@ eltsConnecPointer[_nElts] = nConnecVertex;
   eltsConnec[1] = 2;
   eltsConnec[2] = 3;
 
+  double coef = 1.0;
+
   coords[0] = xmin;
   coords[1] = 0;//_y(xmin);
-  coords[2] = 0;//_z(xmin);
+  coords[2] = _z(xmin, coef);
 
   coords[3] = xmax;
   coords[4] = 0;//_y(xmax);
-  coords[5] = 0;//_z(xmax);
+  coords[5] = _z(xmax, coef);
 
   coords[6] = (xmin + xmax) / 2.;
   coords[7] = 0;//_y((xmin + xmax) / 2.);
-  coords[8] = 0;//_z((xmin + xmax) / 2.);
+  coords[8] = _z((xmin + xmax) / 2., coef);
+
+  printf("Noeuds:\n%12.15e %12.15e\n%12.15e %12.15e\n%12.15e %12.15e\n",
+        coords[0], coords[2],
+        coords[3], coords[5],
+        coords[6], coords[8]);
 
 
   fprintf(outputFile, "   Number of vertex   : %i\n", nVertex);
@@ -575,14 +582,15 @@ eltsConnecPointer[_nElts] = nConnecVertex;
 
 
 
-  int n_pts_to_locate = 100;
+  int n_pts_to_locate = 101;
+  double step = (xmax-xmin)/(n_pts_to_locate-1);
 
   double *pts_to_locate = (double *) malloc(sizeof(double) * 3 * n_pts_to_locate);
 
   for (int i = 0; i < n_pts_to_locate; i++) {
-    pts_to_locate[3*i]   = frand_a_b(xmin , xmax );
-    pts_to_locate[3*i+1] = frand_a_b(-0.1, 0.1);
-    pts_to_locate[3*i+2] = frand_a_b(-0.1, 0.1);
+    pts_to_locate[3*i]   = xmin + i*step;
+    pts_to_locate[3*i+1] = 0.0;
+    pts_to_locate[3*i+2] = _z(xmin + i*step, coef);
   }
 
 /*
@@ -730,18 +738,29 @@ pts_to_locate[14] = _z(-0.018) + 0.01;
   double *res = (double *) malloc(sizeof(double) *  n_pts_to_locate);
 
   for (int i = 0; i < n_pts_to_locate; i++) {
-    res[i] = _f(pts_to_locate[3*i], 0, 0);
+    res[i] = _f(pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2]);
   }
 
   double err;
 
+  FILE* erreur;
+  char* namae = (char *) malloc(sizeof(char) * 37);
+  sprintf(namae, "erreur_linP2_%4.4f.dat", coef);
+
+  if(rank == 0){
+  erreur = fopen(namae, "w+");
+}
   for (int i = 0; i < n_pts_to_locate; i++) {
     err = fabs(recvValues[i] - res[i]);
     //    if (err > 1e-6) {
     printf ("[%d] err %d : %12.5e %12.5e %12.5e\n", codeId, i, err, recvValues[i], res[i]);
+    if(rank == 0) fprintf(erreur, "%12.15e %12.15e\n", pts_to_locate[3*i], err);
+
+
       // }
 }
-
+if(rank == 0) {fclose(erreur);}
+  free(namae);
   double err_max;
   MPI_Allreduce(&err, &err_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
 

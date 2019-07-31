@@ -212,6 +212,22 @@ _basis_edge_pn
     }
   }
 
+  else if (order == 4) {
+
+    for (int i = 0;  i < n_pts; i++) {
+
+      double _u = u[i];
+
+      weights[5*i+0]= 10.666666666666666*(-1. + _u)*(-0.75 + _u)*(-0.5 + _u)*(-0.25 + _u);
+      weights[5*i+1]= -42.666666666666664*(-1. + _u)*(-0.75 + _u)*(-0.5 + _u)*(0. + _u);
+      weights[5*i+2]= 64.*(-1. + _u)*(-0.75 + _u)*(-0.25 + _u)*(0. + _u);
+      weights[5*i+3]= -42.666666666666664*(-1. + _u)*(-0.5 + _u)*(-0.25 + _u)*(0. + _u);
+      weights[5*i+4]= 10.666666666666666*(-0.75 + _u)*(-0.5 + _u)*(-0.25 + _u)*(0. + _u);
+
+
+    }
+  }
+
   else {
 
     for (int i = 0; i < n_pts; i++) {
@@ -946,7 +962,7 @@ _basis_prism_pn
     double *lagrangeL2_w = malloc (sizeof(double) * nMod * n_pts);
 
     _setL2BasisEqui (order, n_pts, w, lagrangeL2_w);
-// pkmn bulbizarre
+
     int i_node = 0;
     for (int iw = 0; iw < nMod; iw++) {
       for (int iv = 0; iv < nMod; iv++) {
@@ -1007,69 +1023,49 @@ _basis_pyra_pn
       double u = uvw[3*i];
       double v = uvw[3*i+1];
       double w = uvw[3*i+2];
-      double u1 = (1 - u);
-      double v1 = (1 - v);
-      double w1 = (1 - w);
+      //double u1 = (1 - u);
+      //double v1 = (1 - v);
+      //double w1 = (1 - w);
 
-      weights[5*i+0] = u1 * v1 * w1;
-      weights[5*i+1] = u  * v1 * w1;
-      weights[5*i+2] = u1 * v  * w1;
-      weights[5*i+3] = u  * v  * w1;
-      weights[5*i+4] = u1 * v1 * w;
+      weights[5*i+0] = (1-u-w)*(1-v-w)/(1-w);//((1-u)*(1-v) - w + (u*v*w)/(1-w))/4;
+      weights[5*i+1] = u*(1-v-w)/(1-w);//((1+u)*(1-v) - w + (u*v*w)/(1-w))/4;
+      weights[5*i+2] = (1-u-w)*v/(1-w);//((1-u)*(1+v) - w + (u*v*w)/(1-w))/4;
+      weights[5*i+3] = u*v/(1-w);//((1+u)*(1+v) - w + (u*v*w)/(1-w))/4;
+      weights[5*i+4] = w;
     }
   }
 
-  if (order == 2) {
+  else if (order == 2) {
 
     for (int i = 0; i < n_pts; i++) {
-      double u = uvw[3*i];
-      double v = uvw[3*i+1];
-      double w = uvw[3*i+2];
+      double e1 = uvw[3*i];
+      double e2 = uvw[3*i+1];
+      double e5 = uvw[3*i+2];
+      double e3 = 1 - e1 - e5;
+      double e4 = 1 - e2 - e5;
 
-      double uM = 2*(1-u);
-      double uP = 2*u;
-      double u0 = u-0.5;
 
-      double au1 = -uM * u0;
-      double au2 =  uM * uP;
-      double au3 =  u0 * uP;
 
-      double vM = 2*(1-v);
-      double vP = 2*v;
-      double v0 = v-0.5;
+      weights[14*i+ 8] = e1*e2*( ((2*e1/(1-e5) - 1) * (2*e2/(1-e5) - 1)) - e5/(1-e5) );//au1*av1*aw1;
+      weights[14*i+ 6] = e2*e3*( ((2*e2/(1-e5) - 1) * (2*e3/(1-e5) - 1)) - e5/(1-e5) );//au2*av1*aw1;
+      weights[14*i+ 0] = e3*e4*( ((2*e3/(1-e5) - 1) * (2*e4/(1-e5) - 1)) - e5/(1-e5) );//au3*av1*aw1;
+      weights[14*i+ 2] = e4*e1*( ((2*e4/(1-e5) - 1) * (2*e1/(1-e5) - 1)) - e5/(1-e5) );//au1*av2*aw1;
 
-      double av1 = -vM * v0;
-      double av2 =  vM * vP;
-      double av3 =  v0 * vP;
+      weights[14*i+ 5] = 4*(e2*e4/(1-e5))*e1*( (2*e1/(1-e5)) - 1 );//au2*av2*aw1;
+      weights[14*i+ 7] = 4*(e3*e1/(1-e5))*e2*( (2*e2/(1-e5)) - 1 );//au3*av2*aw1;
+      weights[14*i+ 3] = 4*(e4*e2/(1-e5))*e3*( (2*e3/(1-e5)) - 1 );//au1*av3*aw1;
+      weights[14*i+ 1] = 4*(e1*e3/(1-e5))*e4*( (2*e4/(1-e5)) - 1 );//au2*av3*aw1;
 
-      double wM = 2*(1-w);
-      double wP = 2*w;
-      double w0 = w-0.5;
+      weights[14*i+ 4] = 16*e1*e2*e3*e4/((1-e5)*(1-e5));//au3*av3*aw1;
 
-      double aw1 = -wM * w0;
-      double aw2 =  wM * wP;
-      double aw3 =  w0 * wP;
+      weights[14*i+12] = 4*e1*e2*e5/(1-e5);//2*u0  *  2*v0  *aw2;
+      weights[14*i+11] = 4*e2*e3*e5/(1-e5);//uP    * -2*v0  *aw2;
+      weights[14*i+ 9] = 4*e3*e4*e5/(1-e5);//-2*u0  *  vP    *aw2;
+      weights[14*i+10] = 4*e4*e1*e5/(1-e5);//uP    *  vP    *aw2;
 
-      weights[14*i+ 0] = au1*av1*aw1;
-      weights[14*i+ 1] = au2*av1*aw1;
-      weights[14*i+ 2] = au3*av1*aw1;
-      weights[14*i+ 3] = au1*av2*aw1;
-      weights[14*i+ 4] = au2*av2*aw1;
-      weights[14*i+ 5] = au3*av2*aw1;
-      weights[14*i+ 6] = au1*av3*aw1;
-      weights[14*i+ 7] = au2*av3*aw1;
-      weights[14*i+ 8] = au3*av3*aw1;
+      weights[14*i+13] = e5*(2*e5-1);//aw3;
 
-      weights[14*i+ 9] =   2*u0  *  2*v0  *aw2;
-      weights[14*i+10] =   uP    * -2*v0  *aw2;
-      weights[14*i+11] =  -2*u0  *  vP    *aw2;
-      weights[14*i+12] =   uP    *  vP    *aw2;
 
-      weights[14*i+13] = aw3;
-
-      /*printf("POIDS PN :\nW0 = %12.5e\nW1 = %12.5e\nW2 = %12.5e\nW3 = %12.5e\nW4 = %12.5e\nW5 = %12.5e\nW6 = %12.5e\nW7 = %12.5e\nW8 = %12.5e\nW9 = %12.5e\nW10 = %12.5e\nW11 = %12.5e\nW12 = %12.5e\nW13 = %12.5e\n",
-    weights[0], weights[1], weights[2], weights[3], weights[4], weights[5], weights[6], weights[7], weights[8], weights[9], weights[10], weights[11], weights[12], weights[13]);
-*/
 
     }
   }

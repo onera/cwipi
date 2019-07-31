@@ -2170,85 +2170,12 @@ _inverse_3x3(double  m[3][3],
 static void
 _compute_shapef_3d(fvmc_element_t  elt_type,
                    const double   uvw[3],
-                   double         shapef[10],
-                   double         deriv[10][3])
+                   double         shapef[8],
+                   double         deriv[8][3])
 
 {
 
-  double u  = uvw[0];
-  double v  = uvw[1];
-  double w  = uvw[2];
-  double t = 1 - u - v - w;
-
-
-  double u2 = 2. * u;
-  double v2 = 2. * v;
-  double w2 = 2. * w;
-  double t2 = 2. * t;
-
   switch (elt_type) {
-
-    case FVMC_CELL_TETRA:
-
-
-    shapef[0] = t * (t2 - 1);    // (0  , 0  , 0  )
-    shapef[1] = u2 * t2;         // (0.5, 0  , 0  )
-    shapef[2] = u * (-1. + u2);  // (1  , 0  , 0  )
-    shapef[3] = v2 * t2;         // (0  , 0.5, 0  )
-    shapef[4] = u2 * v2;         // (0.5, 0.5, 0  )
-    shapef[5] = v * (-1. + v2);  // (0  , 1  , 0  )
-    shapef[6] = w2 * t2;         // (0  , 0  , 0.5)
-    shapef[7] = u2 * w2;         // (0.5, 0  , 0.5)
-    shapef[8] = v2 * w2;         // (0  , 0.5, 0.5)
-    shapef[9] = w * (-1. + w2);  // (0  , 0  , 1  )
-
-
-      if (deriv != NULL) {
-        deriv[0][0] = -3.0 + 4*u + 4*v + 4*w;
-        deriv[0][1] = -3.0 + 4*u + 4*v + 4*w;
-        deriv[0][2] = -3.0 + 4*u + 4*v + 4*w;
-
-        deriv[1][0] =  4 - 8*u - 4*v - 4*w;
-        deriv[1][1] = -4*u;
-        deriv[1][2] = -4*u;
-
-        deriv[2][0] =  4*u - 1.0;
-        deriv[2][1] =  0.0;
-        deriv[2][2] =  0.0;
-
-        deriv[3][0] = -4*v;
-        deriv[3][1] =  4 - 4*u - 8*v - 4*w;
-        deriv[3][2] = -4*v;
-
-        deriv[4][0] =  4*v;
-        deriv[4][1] =  4*u;
-        deriv[4][2] =  0.0;
-
-        deriv[5][0] =  0.0;
-        deriv[5][1] =  4*v - 1.0;
-        deriv[5][2] =  0.0;
-
-        deriv[6][0] = -4*w;
-        deriv[6][1] = -4*w;
-        deriv[6][2] =  4 - 4*u - 4*v - 8*w;
-
-        deriv[7][0] =  4*w;
-        deriv[7][1] =  0.0;
-        deriv[7][2] =  4*u;
-
-        deriv[8][0] =  0.0;
-        deriv[8][1] =  4*w;
-        deriv[8][2] =  4*v;
-
-        deriv[9][0] =  0.0;
-        deriv[9][1] =  4*w - 1.0;
-        deriv[9][2] =  0.0;
-
-      }
-
-      break;
-
-
 
   case FVMC_CELL_HEXA:
 
@@ -2383,21 +2310,20 @@ _compute_uvw(fvmc_element_t       elt_type,
   int i, j, n_elt_vertices, iter;
   int max_iter = 20;
   double dist;
-  double a[3][3], b[3], x[3], shapef[10], dw[10][3];
+  double a[3][3], b[3], x[3], shapef[8], dw[8][3];
 
   const int order = 1;
 
   n_elt_vertices = fvmc_nodal_n_vertices_element(elt_type, order);
 
-  assert(   elt_type == FVMC_CELL_TETRA
-         || elt_type == FVMC_CELL_HEXA
+  assert(   elt_type == FVMC_CELL_HEXA
          || elt_type == FVMC_CELL_PRISM
          || elt_type == FVMC_CELL_PYRAM);
 
   /* Use Newton-method to determine parametric coordinates and shape function */
 
   for (i = 0; i < 3; i++)
-    uvw[i] = 0.3;
+    uvw[i] = 0.5;
 
   for (iter = 0; iter < max_iter; iter++) {
 
@@ -2483,8 +2409,8 @@ _locate_in_cell_3d(fvmc_lnum_t          elt_num,
   int i, j, k, n_vertices;
   fvmc_lnum_t coord_idx, vertex_id;
 
-  double uvw[3], dist, shapef[10],max_dist;
-  double  _vertex_coords[10][3];
+  double uvw[3], dist, shapef[8],max_dist;
+  double  _vertex_coords[8][3];
 
   const int order = 1;
 
@@ -2508,22 +2434,14 @@ _locate_in_cell_3d(fvmc_lnum_t          elt_num,
 
   if (elt_type == FVMC_CELL_TETRA)
 
-    /*_locate_in_tetra(elt_num,
+    _locate_in_tetra(elt_num,
                      _vertex_coords,
                      point_coords,
                      n_points_in_extents,
                      points_in_extents,
                      tolerance,
                      location,
-                     distance);*/
-
-{ double point[3] = {1.0, 0.0, 0.0};
-  _compute_uvw(elt_type,
-                     point,
-                     _vertex_coords,
-                     tolerance,
-                     uvw);
-    printf("UVW = %12.15e %12.15e %12.15e\n", uvw[0], uvw[1], uvw[2]);}
+                     distance);
 
   /* For cell shapes other than tetrahedra, find shape functions iteratively */
 
@@ -3451,7 +3369,8 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
 
       if (this_section->entity_dim == 3) {
 
-      //if (this_section->order == -1) {
+        if (this_section->order == -1) {
+
 
           _locate_in_cell_3d(elt_num,
                              this_section->type,
@@ -3464,9 +3383,9 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
                              tolerance,
                              location,
                              distance);
-        //}
+        }
 
-        /*else {
+        else {
 
           double *_elt_coords = malloc(sizeof(double) *  this_section->stride * 3);
 
@@ -3495,6 +3414,7 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
                                                  tmp_projected_coords,
                                                  tmp_uvw);
 
+
             if ((_distance < distance[point_in_extents]) || (location[point_in_extents] == -1)) {
 
               location[point_in_extents] = elt_num;
@@ -3519,7 +3439,7 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
 
           free (_elt_coords);
 
-        }*/
+        }
       }
 
       else if (this_section->entity_dim == 2) {
@@ -4402,10 +4322,10 @@ fvmc_point_location_nodal(const fvmc_nodal_t  *this_nodal,
                                  uvw,
                                  location,
                                  distance);
-    /*if ( rank != 0){
+    if ( rank == 0){
     for (int g=0; g<n_points; g++)
       printf("%12.15e\n", distance[g]);
-    }*/
+    }
         if (base_element_num > -1)
           base_element_num += this_section->n_elements;
 
@@ -5546,7 +5466,8 @@ int  fvmc_tetrahedron_evaluate_Position (double x[3], double *pts,
                                          double *dist2,
                                          double closestPointweights[4])
 {
-
+  int rank;
+MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   double *pt0, *pt1, *pt2, *pt3, *vtx_tria = malloc(sizeof(double) * 3 * 3);
   double p0p1[3]   , p0p2[3]   , p0p3[3]   , p1p2[3]   , p1p3[3]   , p2p3[3];
   double norm2_p0p1, norm2_p0p2, norm2_p0p3, norm2_p1p2, norm2_p1p3, norm2_p2p3;
@@ -5589,7 +5510,11 @@ int  fvmc_tetrahedron_evaluate_Position (double x[3], double *pts,
       norm2_p1p2 == 0.0 ||
       norm2_p1p3 == 0.0 ||
       norm2_p2p3 == 0.0) {
-    printf("POINTS COINCIDENTS\n");
+        printf("\nPOINT COINCIDENT \n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n",
+                pt0[0], pt0[1], pt0[2],
+                pt1[0], pt1[1], pt1[2],
+                pt2[0], pt2[1], pt2[2],
+                pt3[0], pt3[1], pt3[2]);
     return -1;
   }
 
@@ -5886,6 +5811,13 @@ int  fvmc_tetrahedron_evaluate_Position (double x[3], double *pts,
     x[0], x[1], x[2],
     closestPoint[0], closestPoint[1], closestPoint[2]);*/
 
+  /*  if ( closestPoint[0] == x[0] && rank == 0) {
+      printf("-P0 : %12.5e, %12.5e, %12.5e\n -P1 : %12.5e, %12.5e, %12.5e\n -P2 : %12.5e, %12.5e, %12.5e\n -P3 : %12.5e, %12.5e, %12.5e\n\n",
+         pt0[0], pt0[1], pt0[2],
+         pt1[0], pt1[1], pt1[2],
+         pt2[0], pt2[1], pt2[2],
+         pt3[0], pt3[1], pt3[2]);
+    }*/
 
   free(vtx_tria);
   return 0;

@@ -496,8 +496,6 @@ _uv_ho_quad_nodes
           uvw[p++] = v;
           uvw[p++] = w;
 
-          printf("PCOORDS NODES : %12.5e, %12.5e, %12.5e\n", u, v, w);
-
         }
       }
     }
@@ -4777,13 +4775,18 @@ _heap_fill_pn_pyra_sub_tetra
 )
 {
 
-
+MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   double *uvwNodes   = malloc (sizeof(double) * 3 * n_nodes);
   double *_vertex_tetra = malloc(sizeof(double) * 2 * 4 * 3);
   double *_uvw_vertex_tetra = malloc(sizeof(double) * 2 * 4 * 3);
 
   _uvw_ho_pyra_nodes (order, 0., 1., 0, 1., 0., 1., uvwNodes);
 
+/*  if (rank == 0){
+    for (int h = 0; h < n_nodes; h++){
+      printf("%12.15e %12.15e %12.15e\n", nodes_coords[3*h], nodes_coords[3*h+1], nodes_coords[3*h+2]);
+    }
+  }*/
 
   int step = 0;
   int ibeg = 0;
@@ -4794,11 +4797,11 @@ _heap_fill_pn_pyra_sub_tetra
     for (int j = 0; j < order - k; j++) {
       for (int i = ibeg; i < ibeg + step - 1; i++) {
 
-        int idx1 = i;                     //printf("idx1 = %i\n", idx1);
-        int idx2 = i+1;                   //printf("idx2 = %i\n", idx2);
-        int idx3 = i + 1 + step;          //printf("idx3 = %i\n", idx3);
-        int idx4 = i + step;              //printf("idx4 = %i\n", idx4);
-        int idx5 = i + n_nodes_basis - j; //printf("idx5 = %i\n\n", idx5);
+        int idx1 = i;
+        int idx2 = i+1;
+        int idx3 = i + 1 + step;
+        int idx4 = i + step;
+        int idx5 = i + n_nodes_basis - j;
 
         double x1 = nodes_coords[3*idx1];
         double y1 = nodes_coords[3*idx1 + 1];
@@ -4825,6 +4828,7 @@ _heap_fill_pn_pyra_sub_tetra
                                    x3, y3, z3,
                                    x4, y4, z4,
                                    x5, y5, z5};
+
 
         double _uvwPn_sub_pyra[15];
         _uvwPn_sub_pyra[0]  = uvwNodes[3*idx1];
@@ -4868,6 +4872,7 @@ _heap_fill_pn_pyra_sub_tetra
                                                                   _uvwClosestPointP1,
                                                                   &_dist2,
                                                                   _weightsClosestPointP1);
+
 
           if (isDegenerated != -1) {
 
@@ -5355,19 +5360,6 @@ _insert_subtetra
 {
 
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  if (1 == 0){
-    printf("NOEUDS\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n",
-            nodes_coords[0] , nodes_coords[1] , nodes_coords[2],
-            nodes_coords[3] , nodes_coords[4] , nodes_coords[5],
-            nodes_coords[6] , nodes_coords[7] , nodes_coords[8],
-            nodes_coords[9] , nodes_coords[10], nodes_coords[11],
-            nodes_coords[12], nodes_coords[13], nodes_coords[14],
-            nodes_coords[15], nodes_coords[16], nodes_coords[17],
-            nodes_coords[18], nodes_coords[19], nodes_coords[20],
-            nodes_coords[21], nodes_coords[22], nodes_coords[23],
-            nodes_coords[24], nodes_coords[25], nodes_coords[26],
-            nodes_coords[27], nodes_coords[28], nodes_coords[29]);
-  }
   double _vtx_tetra_children[30];
   double _uvwPn_tetra_children[30];
 
@@ -5384,20 +5376,20 @@ _insert_subtetra
 
   // Compute middle vertices
 
-  /*printf("\nCoordonnees du tetra : \n -0 : %12.5e, %12.5e, %12.5e\n -1 : %12.5e, %12.5e, %12.5e\n -2 : %12.5e, %12.5e, %12.5e\n -3 : %12.5e, %12.5e, %12.5e\n",
-          vtx_tetra_current[0] , vtx_tetra_current[1] , vtx_tetra_current[2] ,
-          vtx_tetra_current[3] , vtx_tetra_current[4] , vtx_tetra_current[5] ,
-          vtx_tetra_current[6] , vtx_tetra_current[7] , vtx_tetra_current[8] ,
-          vtx_tetra_current[9] , vtx_tetra_current[10], vtx_tetra_current[11]);*/
-
   for (int i = 0; i < 12; i++) {
     _vtx_tetra_children[i] = vtx_tetra_current[i];
   }
 
+
+
   for (int i = 0; i < 12; i++) {
     _uvwPn_tetra_children[i] = uvwPn_tetra_current[i];
   }
-
+  /*if (rank == 0) printf("%12.15e %12.15e %12.15e\n", point_coords[0], point_coords[1], point_coords[2]);
+  for (int i = 0; i < 4; i++){
+    if (rank == 0) printf("%12.15e %12.15e %12.15e\n", vtx_tetra_current[3*i], vtx_tetra_current[3*i+1], vtx_tetra_current[3*i+2]);
+  }
+  printf("\n");*/
 
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) {
@@ -5416,13 +5408,7 @@ _insert_subtetra
                    1,
                    _uvwPn_tetra_children + 12 + 3*i,
                    weightsPn);
-/*if (rank == 0)
-printf("POIDS:\n%12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e\nNOEUDS\n%12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e\n%12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e\n%12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e\n",
-        weightsPn[0], weightsPn[1], weightsPn[2], weightsPn[3],weightsPn[4], weightsPn[5],weightsPn[6], weightsPn[7], weightsPn[8], weightsPn[9],
-      nodes_coords[0], nodes_coords[3], nodes_coords[6], nodes_coords[9], nodes_coords[12], nodes_coords[15], nodes_coords[18], nodes_coords[21], nodes_coords[24], nodes_coords[27],
-      nodes_coords[1], nodes_coords[4], nodes_coords[7], nodes_coords[10], nodes_coords[13], nodes_coords[16], nodes_coords[19], nodes_coords[22], nodes_coords[25], nodes_coords[28],
-      nodes_coords[2], nodes_coords[5], nodes_coords[8], nodes_coords[11], nodes_coords[14], nodes_coords[17], nodes_coords[20], nodes_coords[23], nodes_coords[26], nodes_coords[29]);
-*/
+
 
     for (int j = 0; j < 3; j++) {
       _vtx_tetra_children[12+3*i+j] = 0;
@@ -5433,6 +5419,16 @@ printf("POIDS:\n%12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, 
         _vtx_tetra_children[12+3*i+j] += weightsPn[k] * _node_coords[j];
       }
     }
+  /*  if (rank == 0) printf("uvw = %12.15e %12.15e %12.15e\nw0 = %12.15e\nw1 = %12.15e\nw2 = %12.15e\nw3 = %12.15e\nw4 = %12.15e\npoint = %12.15e %12.15e %12.15e\n\n",
+            _uvwPn_tetra_children[12 + 3*i], _uvwPn_tetra_children[12 + 3*i+1], _uvwPn_tetra_children[12 + 3*i+2],
+            weightsPn[0], weightsPn[1], weightsPn[2], weightsPn[3], weightsPn[4],
+            _vtx_tetra_children[12+3*i], _vtx_tetra_children[12+3*i+1],_vtx_tetra_children[12+3*i+2]);*/
+
+
+
+
+
+
 
     FVMC_ho_basis (type,
                    order,
@@ -5441,14 +5437,6 @@ printf("POIDS:\n%12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, 
                    _uvwPn_tetra_children + 21 + 3*i,
                    weightsPn);
 
-/*if (rank == 0)
-    printf("POIDS:\n%12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e\nNOEUDS\n%12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e\n%12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e\n%12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e\n",
-            weightsPn[0], weightsPn[1], weightsPn[2], weightsPn[3],weightsPn[4], weightsPn[5],weightsPn[6], weightsPn[7], weightsPn[8], weightsPn[9],
-          nodes_coords[0], nodes_coords[3], nodes_coords[6], nodes_coords[9], nodes_coords[12], nodes_coords[15], nodes_coords[18], nodes_coords[21], nodes_coords[24], nodes_coords[27],
-          nodes_coords[1], nodes_coords[4], nodes_coords[7], nodes_coords[10], nodes_coords[13], nodes_coords[16], nodes_coords[19], nodes_coords[22], nodes_coords[25], nodes_coords[28],
-          nodes_coords[2], nodes_coords[5], nodes_coords[8], nodes_coords[11], nodes_coords[14], nodes_coords[17], nodes_coords[20], nodes_coords[23], nodes_coords[26], nodes_coords[29]);
-
-*/
 
     for (int j = 0; j < 3; j++) {
       _vtx_tetra_children[21+3*i+j] = 0;
@@ -5459,6 +5447,18 @@ printf("POIDS:\n%12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, 
         _vtx_tetra_children[21+3*i+j] += weightsPn[k] * _node_coords[j];
       }
     }
+
+  /*  if (rank == 0) printf("uvw = %12.15e %12.15e %12.15e\nw0 = %12.15e\nw1 = %12.15e\nw2 = %12.15e\nw3 = %12.15e\nw4 = %12.15e\npoint = %12.15e %12.15e %12.15e\n\n",
+            _uvwPn_tetra_children[21 + 3*i], _uvwPn_tetra_children[21 + 3*i+1], _uvwPn_tetra_children[21 + 3*i+2],
+            weightsPn[0], weightsPn[1], weightsPn[2], weightsPn[3], weightsPn[4],
+            _vtx_tetra_children[21+3*i], _vtx_tetra_children[21+3*i+1],_vtx_tetra_children[21+3*i+2]);*/
+
+    /*for (int l = 0; l < 3; l++){
+      if(rank == 0) printf("%12.15e %12.15e %12.15e\n", _vtx_tetra_children[21+3*l], _vtx_tetra_children[21+3*l+1], _vtx_tetra_children[21+3*l+2]);
+    }*/
+//abort();
+
+
 
 
   }
@@ -5481,12 +5481,22 @@ printf("POIDS:\n%12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, 
     }
 
 
+
+
     double _closest_pt_child[3];
     double _closest_pt_uvwP1_child[3];
     double _closest_pt_uvwPn_child[3];
     double _dist2_child = 0;
     double _closest_pt_weights_child[4];
 
+    /*if (rank == 0){
+      printf("tetra %i\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n\n",
+        i,
+        _vtx_tetra_child[0], _vtx_tetra_child[1], _vtx_tetra_child[2],
+        _vtx_tetra_child[3], _vtx_tetra_child[4], _vtx_tetra_child[5],
+        _vtx_tetra_child[6], _vtx_tetra_child[7], _vtx_tetra_child[8],
+        _vtx_tetra_child[9], _vtx_tetra_child[10], _vtx_tetra_child[11]);
+    }*/
 
     int isDegenerated = fvmc_tetrahedron_evaluate_Position ((double *)point_coords,
                                                             _vtx_tetra_child,
@@ -5494,24 +5504,6 @@ printf("POIDS:\n%12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, %12.5e, 
                                                             _closest_pt_uvwP1_child,
                                                             &_dist2_child,
                                                             _closest_pt_weights_child);
-
-
-    if (rank == 0 && isDegenerated == -1){
-      printf("\nPOINT A LOCALISER : %12.5e %12.5e %12.5e\n", point_coords[0], point_coords[1], point_coords[2]);
-      printf("TETRA CURRENT\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n",
-            vtx_tetra_current[0], vtx_tetra_current[1] , vtx_tetra_current[2],
-            vtx_tetra_current[3], vtx_tetra_current[4] , vtx_tetra_current[5],
-            vtx_tetra_current[6], vtx_tetra_current[7] , vtx_tetra_current[8],
-            vtx_tetra_current[9], vtx_tetra_current[10], vtx_tetra_current[11]);
-      printf("MILIEUX :\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n",
-            _vtx_tetra_children[12+3*0], _vtx_tetra_children[12+3*0+1], _vtx_tetra_children[12+3*0+2],
-            _vtx_tetra_children[12+3*1], _vtx_tetra_children[12+3*1+1], _vtx_tetra_children[12+3*1+2],
-            _vtx_tetra_children[12+3*2], _vtx_tetra_children[12+3*2+1], _vtx_tetra_children[12+3*2+2],
-            _vtx_tetra_children[21+3*0], _vtx_tetra_children[21+3*0+1], _vtx_tetra_children[21+3*0+2],
-            _vtx_tetra_children[21+3*1], _vtx_tetra_children[21+3*1+1], _vtx_tetra_children[21+3*1+2],
-            _vtx_tetra_children[21+3*2], _vtx_tetra_children[21+3*2+1], _vtx_tetra_children[21+3*2+2]);
-    }
-
 
 
 
@@ -5587,6 +5579,7 @@ _compute_dist2_from_closest_tetra_subdivision
  int *uncertain_result
  )
 {
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   *uncertain_result = 0;
   *n_it = 0;
   *err_proj = HUGE_VAL;
@@ -5616,6 +5609,33 @@ _compute_dist2_from_closest_tetra_subdivision
                                  _closest_pt_uvwP1_current,
                                  _closest_pt_uvwPn_current,
                                  &_dist2_current, &_child);
+
+
+
+    if(rank == 0){
+      //printf("%12.15e\n", _dist2_current);
+      FILE* tetra;
+      char* name = (char *) malloc(sizeof(char) * 37);
+      sprintf(name, "tetra_%i.vtk", *(n_it));
+      tetra = fopen(name, "w+");
+      fprintf(tetra, "# vtk DataFile Version 3.0\nvtk output\nASCII\nDATASET UNSTRUCTURED_GRID\nPOINTS 4 double\n");
+      fprintf(tetra, "%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n",
+                    _vtx_tetra_current[0], _vtx_tetra_current[1], _vtx_tetra_current[2],
+                    _vtx_tetra_current[3], _vtx_tetra_current[4], _vtx_tetra_current[5],
+                    _vtx_tetra_current[6], _vtx_tetra_current[7], _vtx_tetra_current[8],
+                    _vtx_tetra_current[9], _vtx_tetra_current[10], _vtx_tetra_current[11]);
+      fprintf(tetra, "CELLS 1 5\n4 0 1 2 3\n\nCELL_TYPES 1\n10\n\nCELL_DATA 1\nSCALARS indice int\nLOOKUP_TABLE default\n1");
+      fclose(tetra);
+      free(name);
+    }
+
+/*if (rank == 0)
+    printf("%i \n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n",
+            *(n_it),
+            _vtx_tetra_current[0], _vtx_tetra_current[1], _vtx_tetra_current[2],
+            _vtx_tetra_current[3], _vtx_tetra_current[4], _vtx_tetra_current[5],
+            _vtx_tetra_current[6], _vtx_tetra_current[7], _vtx_tetra_current[8],
+            _vtx_tetra_current[9], _vtx_tetra_current[10], _vtx_tetra_current[11]);*/
 
     /*printf("\nCHILD = %i\ndistance la plus courte : %12.5e\npoint le plus proche : (%12.5e, %12.5e, %12.5e)\ncoordonnees param : (%12.5e, %12.5e, %12.5e)\n",
      _child, _dist2_current,
@@ -5688,7 +5708,9 @@ _compute_dist2_from_closest_tetra_subdivision
                    _closest_pt_uvwPn_current,
                    weightsPn);
 
-
+/*for (int i = 0; i < 10; i++){
+  printf("w(%i) = %12.15e\n", i, weightsPn[i]);
+}*/
 
   /*  printf("POIDS PN :\nW0 = %12.5e\nW1 = %12.5e\nW2 = %12.5e\nW3 = %12.5e\nW4 = %12.5e\nW5 = %12.5e\nW6 = %12.5e\nW7 = %12.5e\nW8 = %12.5e\nW9 = %12.5e\nW10 = %12.5e\nW11 = %12.5e\nW12 = %12.5e\nW13 = %12.5e\n",
   weightsPn[0], weightsPn[1], weightsPn[2], weightsPn[3], weightsPn[4], weightsPn[5], weightsPn[6], weightsPn[7], weightsPn[8], weightsPn[9], weightsPn[10], weightsPn[11], weightsPn[12], weightsPn[13]);
@@ -5709,8 +5731,14 @@ _compute_dist2_from_closest_tetra_subdivision
       double val = _projected_coords_from_pn[i] - _projected_coords_from_p1[i];
       *err_proj += val * val;
     }
+    double errx = _projected_coords_from_pn[0] - _projected_coords_from_p1[0];
+    double erry = _projected_coords_from_pn[1] - _projected_coords_from_p1[1];
+    double errz = _projected_coords_from_pn[2] - _projected_coords_from_p1[2];
 
     // Break if error is ok
+    //printf("ERREUR = %12.15e    %12.15e    %12.15e\n", errx, erry, errz);
+
+    //if (rank == 0) printf("err = %12.15e\n", sqrt(*err_proj));
 
     if (sqrt(*err_proj) <= err_max || (*n_it)++ >= n_it_max) {
 
@@ -5747,6 +5775,7 @@ _compute_dist2_from_closest_tetra_subdivision
 
 
   }
+
 
   if (*n_it >= n_it_max) {
 
@@ -6033,8 +6062,8 @@ _default_location_generic_3d
     }
   }
 
-  const int n_it_max = 10000;
-  double err_max = 1e-12;//FVMC_MAX (char_size * 1e-6, 1e-15); printf("ERR_MAX = %12.15e\n", err_max);
+  const int n_it_max = 100000;
+  double err_max = FVMC_MAX (char_size * 1e-6, 1e-15);
 
   double dist2 = HUGE_VAL;
 
@@ -6430,26 +6459,12 @@ _default_location
                                           _heap_fill_pn_tetra_sub_tetra);
 
 
-    double w[10];
-    FVMC_ho_basis (type,
-                   order,
-                   n_nodes,
-                   1,
-                   uvw,
-                   w);
 
-    double point[3] = {0, 0, 0};
-    for (int i = 0; i < 10; i++) {
-      point[0] += w[i]*nodes_coords[3*i];
-      point[1] += w[i]*nodes_coords[3*i+1];
-      point[2] += w[i]*nodes_coords[3*i+2];
-    }
-
-    if (1 == 1) {
-      printf("POINT %12.15e %12.15e %12.15e\nDISTANCE = %12.15e\nPROJECTION %12.15e %12.15e %12.15e\nPARAM %12.15e %12.15e %12.15e\n",
-            point_coords[0], point_coords[1], point_coords[2], dist2,
-            projected_coords[0], projected_coords[1], projected_coords[2], uvw[0], uvw[1], uvw[2]);
-    }
+    /*if (rank == 1) {
+      printf("\n%12.15e %12.15e %12.15e \n%12.15e %12.15e %12.15e\n%12.15e\n",
+      point_coords[0], point_coords[1], point_coords[2],
+      projected_coords[0], projected_coords[1], projected_coords[2], dist2);
+    }*/
 
 
     break;
@@ -6506,10 +6521,8 @@ _default_location
                                               _heap_fill_pn_prism_sub_tetra);
 
 
-        if (1 == 1) {
-          printf("La distance au carre du point ( %12.5e, %12.5e, %12.5e ) a la parabole est %12.5e\n Coordonnees de la projection ( %12.5e, %12.5e, %12.5e )\n",
-                point_coords[0], point_coords[1], point_coords[2], dist2,
-                projected_coords[0], projected_coords[1], projected_coords[2]);
+        if (rank == 1) {
+          printf("%12.15e\n",dist2);
         }
 
 
@@ -6572,11 +6585,10 @@ _default_location
                                               uvw,
                                               _heap_fill_pn_hexa_sub_tetra);
 
-        if (0 == 1) {
-        /*  printf("La distance au carre du point (%12.5e, %12.5e, %12.5e ) a la parabole est %12.5e\n Coordonnees de la projection ( %12.5e, %12.5e, %12.5e )\n",
-                point_coords[0], point_coords[1], point_coords[2], dist2,
-                projected_coords[0], projected_coords[1], projected_coords[2]);*/
-          printf("%12.5e\n", dist2);
+        if (rank == 1) {
+          printf(/*"%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n*/"%12.15e\n",
+                /*point_coords[0], point_coords[1], point_coords[2],
+                projected_coords[0], projected_coords[1], projected_coords[2],*/ dist2);
         }
 
         break;
@@ -6633,10 +6645,10 @@ _default_location
                                               _heap_fill_pn_pyra_sub_tetra);
 
 
-        if (1 == 1) {
-          printf("%12.5e, %12.5e, %12.5e  \n%12.5e, %12.5e, %12.5e\n",
-                point_coords[0], point_coords[1], point_coords[2],
-                projected_coords[0], projected_coords[1], projected_coords[2]);
+        if (0 == 1) {
+          printf("\n%12.15e %12.15e %12.15e \n%12.15e %12.15e %12.15e\n%12.15e\n",
+                    point_coords[0], point_coords[1], point_coords[2],
+                    projected_coords[0], projected_coords[1], projected_coords[2], dist2);
         }
 
         break;

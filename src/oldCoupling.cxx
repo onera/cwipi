@@ -550,7 +550,6 @@ namespace cwipi {
                                    std::vector<double>& interpolatedField,
                                    const int stride)
   {
-
     const int nDistantPoint      =  _locationToLocalMesh->getNLocatedDistantPoint() ;
     const int *distantLocation   = _locationToLocalMesh->getLocation();
     const double *distantCoords  = _locationToLocalMesh->getPointCoordinates();
@@ -629,6 +628,7 @@ namespace cwipi {
             for (int j = 0; j < stride; j++) {
               target_field[j] += weight[i] * src_field[stride * i_node + j];
             }
+
           }
 
         }

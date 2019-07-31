@@ -72,10 +72,15 @@ static double _y(double x)
   return x*x + 2*x -1;
 }
 
-static double _z(double x)
+static double _z(double x, double y)
 {
-  return x*x + 2;
+  return x*(1-x) + y*(1-y);
 }
+
+static double frand_a_b(double a, double b){
+    return (( rand()/(double)RAND_MAX ) * (b-a) + a);
+}
+
 
 
 /*----------------------------------------------------------------------
@@ -441,80 +446,84 @@ int main
 
   coords[0] = xmin;
   coords[1] = ymin;
-  coords[2] = zmin;
+  coords[2] = zmin + _z(coords[0],coords[1]);
 
   coords[3] = xmax;
   coords[4] = ymin;
-  coords[5] = zmin;
+  coords[5] = zmin + _z(coords[3],coords[4]);
 
   coords[6] = xmin;
   coords[7] = ymax;
-  coords[8] = zmin;
+  coords[8] = zmin + _z(coords[6],coords[7]);
 
   coords[9]  = xmin;
   coords[10] = ymin;
-  coords[11] = zmax;
+  coords[11] = zmax + _z(coords[9],coords[10]);
 
   coords[12] = xmax;
   coords[13] = ymin;
-  coords[14] = zmax;
+  coords[14] = zmax + _z(coords[12],coords[13]);
 
   coords[15] = xmin;
   coords[16] = ymax;
-  coords[17] = zmax;
+  coords[17] = zmax + _z(coords[15],coords[16]);
 
 
   coords[18] = (xmin + xmax) / 2;
   coords[19] = ymin;
-  coords[20] = zmin;
+  coords[20] = zmin + _z(coords[18],coords[19]);
 
-  coords[21] = xmin;
+  coords[21] = (xmin + xmax) / 2;
   coords[22] = (ymin + ymax) / 2;
-  coords[23] = zmin;
+  coords[23] = zmin + _z(coords[21],coords[22]);
 
-  coords[24] = (xmin + xmax) / 2;
+  coords[24] = xmin;
   coords[25] = (ymin + ymax) / 2;
-  coords[26] = zmin;
+  coords[26] = zmin + _z(coords[24],coords[25]);
 
 
-  coords[27] = xmin;
+  coords[27] = (xmin + xmax) / 2;
   coords[28] = ymin;
-  coords[29] = (zmin + zmax) / 2;
+  coords[29] = zmax + _z(coords[27],coords[28]);
 
   coords[30] = (xmin + xmax) / 2;
-  coords[31] = ymin;
-  coords[32] = (zmin + zmax) / 2;
+  coords[31] = (ymin + ymax) / 2;
+  coords[32] = zmax + _z(coords[30],coords[31]);
 
-  coords[33] = xmax;
-  coords[34] = ymin;
-  coords[35] = (zmin + zmax) / 2;
+  coords[33] = xmin;
+  coords[34] = (ymin + ymax) / 2;;
+  coords[35] = zmax + _z(coords[33],coords[34]);
 
   coords[36] = xmin;
-  coords[37] = (ymin + ymax) / 2;
-  coords[38] = (zmin + zmax) / 2;
+  coords[37] = ymin;
+  coords[38] = (zmin + zmax) / 2 + _z(coords[36],coords[37]);
 
-  coords[39] = (xmin + xmax) / 2;
-  coords[40] = (ymin + ymax) / 2;
-  coords[41] = (zmin + zmax) / 2;
+  coords[39] = xmax;
+  coords[40] = ymin;
+  coords[41] = (zmin + zmax) / 2 + _z(coords[39],coords[40]);
 
   coords[42] = xmin;
   coords[43] = ymax;
-  coords[44] = (zmin + zmax) / 2;
+  coords[44] = (zmin + zmax) / 2 + _z(coords[42],coords[43]);
 
 
   coords[45] = (xmin + xmax) / 2;
   coords[46] = ymin;
-  coords[47] = zmax;
+  coords[47] = (zmin + zmax) / 2 + _z(coords[45],coords[46]);
 
-  coords[48] = xmin;
+  coords[48] = (xmin + xmax) / 2;
   coords[49] = (ymin + ymax) / 2;
-  coords[50] = zmax;
+  coords[50] = (zmin + zmax) / 2 + _z(coords[48],coords[49]);
 
-  coords[51] = (xmin + xmax) / 2;
+  coords[51] = xmin;
   coords[52] = (ymin + ymax) / 2;
-  coords[53] = zmax;
+  coords[53] = (zmin + zmax) / 2 + _z(coords[51],coords[52]);
 
-
+  if (rank == 0){
+    for (int i = 0; i < nVertex; i++){
+      printf("%12.15e %12.15e %12.15e\n", coords[3*i], coords[3*i+1], coords[3*i+2]);
+    }
+  }
 
   fprintf(outputFile, "   Number of vertex   : %i\n", nVertex);
   fprintf(outputFile, "   Number of elements : %i\n", nElts);
@@ -563,32 +572,32 @@ int main
   ijk[19] = 0;
   ijk[20] = 0;
 
-  ijk[21] = 0;
+  ijk[21] = 1;
   ijk[22] = 1;
   ijk[23] = 0;
 
-  ijk[24] = 1;
+  ijk[24] = 0;
   ijk[25] = 1;
   ijk[26] = 0;
 
-  ijk[27] = 0;
+  ijk[27] = 1;
   ijk[28] = 0;
-  ijk[29] = 1;
+  ijk[29] = 2;
 
   ijk[30] = 1;
-  ijk[31] = 0;
-  ijk[32] = 1;
+  ijk[31] = 1;
+  ijk[32] = 2;
 
-  ijk[33] = 2;
-  ijk[34] = 0;
-  ijk[35] = 1;
+  ijk[33] = 0;
+  ijk[34] = 1;
+  ijk[35] = 2;
 
   ijk[36] = 0;
-  ijk[37] = 1;
+  ijk[37] = 0;
   ijk[38] = 1;
 
-  ijk[39] = 1;
-  ijk[40] = 1;
+  ijk[39] = 2;
+  ijk[40] = 0;
   ijk[41] = 1;
 
   ijk[42] = 0;
@@ -597,15 +606,15 @@ int main
 
   ijk[45] = 1;
   ijk[46] = 0;
-  ijk[47] = 2;
+  ijk[47] = 1;
 
-  ijk[48] = 0;
+  ijk[48] = 1;
   ijk[49] = 1;
-  ijk[50] = 2;
+  ijk[50] = 1;
 
-  ijk[51] = 1;
+  ijk[51] = 0;
   ijk[52] = 1;
-  ijk[53] = 2;
+  ijk[53] = 1;
 
 
   cwipi_ho_ordering_from_IJK_set ("c_volumic_cpl_location_prismP2",
@@ -615,17 +624,16 @@ int main
 
 
 
-  int n_pts_to_locate = 1;
+  int n_pts_to_locate = 100;
 
   double *pts_to_locate = (double *) malloc(sizeof(double) * 3 * n_pts_to_locate);
 
-  pts_to_locate[0]  = 0.1;
-  pts_to_locate[1]  = 0.5;
-  pts_to_locate[2]  = 0.5;
-/*
-for (int i = 0; i < 54; i++) {
-  pts_to_locate[i] = coords[i];
-}*/
+
+  for (int i = 0; i < n_pts_to_locate; i++) {
+    pts_to_locate[3*i] = frand_a_b(xmin, xmax);
+    pts_to_locate[3*i+1] = frand_a_b(ymin, ymax*(1-pts_to_locate[3*i]));
+    pts_to_locate[3*i+2] = frand_a_b(_z(pts_to_locate[3*i], pts_to_locate[3*i+1])+zmin,_z(pts_to_locate[3*i],pts_to_locate[3*i+1])+zmax);
+  }
 
 
   for (int i = 0; i < n_pts_to_locate; i++) {

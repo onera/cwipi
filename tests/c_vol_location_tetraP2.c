@@ -61,10 +61,21 @@
  *   status              <-- Exchange status
  *---------------------------------------------------------------------*/
 
-static double _f(double x, double y, double z)
+static double _f(double x, double y, double z, double puis)
 {
-  return 2*y*x + z*z - 3*x*z + z - x + 2. + 3*z;
+    return x + y + z;
 }
+
+static double _z(double x, double y)
+{
+  return x*(1-x) + y*(1-y);
+}
+
+static double __z(double x, double y)
+{
+  return 1 - x*x - y*y;
+}
+
 
 
 static double frand_a_b(double a, double b){
@@ -330,48 +341,49 @@ int main
   eltsConnec[8] = 9;
   eltsConnec[9] = 10;
 
+
+coords[0] = xmin;
+coords[1] = ymin;
+coords[2] = zmin + _z(coords[0], coords[1]);
+
+coords[3] = xmax;
+coords[4] = ymin;
+coords[5] = zmin + _z(coords[3], coords[4]);
+
+coords[6] = xmin;
+coords[7] = ymax;
+coords[8] = zmin + _z(coords[6], coords[7]);
+
+coords[9]  = xmin;
+coords[10] = ymin;
+coords[11] = zmax;// + _z(coords[9], coords[10]);
+
+coords[12] = (xmin + xmax) / 2;
+coords[13] = ymin;
+coords[14] = zmin + _z(coords[12], coords[13]);
+
+coords[15] = (xmin + xmax) / 2;
+coords[16] = (ymin + ymax) / 2;
+coords[17] = zmin + _z(coords[15], coords[16]);
+
+coords[18] = xmin;
+coords[19] = (ymin + ymax) / 2;
+coords[20] = zmin + _z(coords[18], coords[19]);
+
+coords[21] = xmin;
+coords[22] = ymin;
+coords[23] = (zmin + zmax) / 2 + _z(coords[21], coords[22]);
+
+coords[24] = (xmin + xmax) / 2 + 0.1;
+coords[25] = ymin;
+coords[26] = (zmin + zmax) / 2 + _z(coords[24], coords[25]);
+
+coords[27] = xmin;
+coords[28] = (ymin + ymax) / 2 + 0.1;
+coords[29] = (zmin + zmax) / 2 + _z(coords[27], coords[28]);
+
+
 /*
-  coords[0] = -4.903926402015830e-01;//xmin;
-  coords[1] =  9.754516100822440e-02;//ymin;
-  coords[2] =  0.000000000000000e+00;//zmin;
-
-  coords[3] = -4.789922246525480e-01;//xmax;
-  coords[4] =  1.392031233369340e-01;//ymin;
-  coords[5] =  3.448099731221840e-02;//zmin;
-
-  coords[6] = -4.615116344320200e-01;//xmin;
-  coords[7] =  1.797641367398650e-01;//ymax;
-  coords[8] =  6.849720013297110e-02;//zmin;
-
-  coords[9]  = -4.205148508640080e-01;//xmin;
-  coords[10] =  6.032984012355020e-02;//ymin;
-  coords[11] =  3.039338835464140e-02;//zmax;
-
-  coords[12] = -4.060743479792260e-01;//(xmin + xmax) / 2;
-  coords[13] =  1.014393279893710e-01;//ymin;
-  coords[14] =  6.464198842112701e-02;//zmin;
-
-  coords[15] = -3.506370615264330e-01;//(xmin + xmax) / 2;
-  coords[16] =  2.311451923887600e-02;//(ymin + xmax) / 2;
-  coords[17] =  6.078677670928280e-02;//zmin;
-
-  coords[18] = -4.174275540611020e-01;//xmin;
-  coords[19] =  1.117825698303370e-01;//(ymin + ymax) / 2;
-  coords[20] = -1.540283024855780e-02;//zmin;
-
-  coords[21] = -4.029870511763210e-01;//xmin;
-  coords[22] =  1.528920576961570e-01;//ymin;
-  coords[23] =  1.884576981792770e-02;//(zmin + zmax) / 2;
-
-  coords[24] = -3.475497647235270e-01;//(xmin + xmax) / 2;
-  coords[25] =  7.456724894566230e-02;//ymin;
-  coords[26] =  1.499055810608360e-02;//(zmin + zmax) / 2;
-
-  coords[27] = -3.444624679206210e-01;//xmin;
-  coords[28] =  1.260199786524490e-01;//(ymin + ymax) / 2;
-  coords[29] = -3.080566049711560e-02;//(zmin + zmax) / 2;
-*/
-
 
 
 coords[0] = 9.030342459149850e-02;
@@ -413,6 +425,21 @@ coords[17] = 4.157348061508730e-01;
  coords[27] = 8.522919357437909e-02;
  coords[28] = 2.554165800112990e-01;
  coords[29] = 2.689251537675560e-01;
+*/
+
+
+ if (rank == 0)
+  printf("\ncoords:\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n\n",
+            coords[0], coords[1], coords[2],
+            coords[3], coords[4], coords[5],
+            coords[6], coords[7], coords[8],
+            coords[9], coords[10], coords[11],
+            coords[12], coords[13], coords[14],
+            coords[15], coords[16], coords[17],
+            coords[18], coords[19], coords[20],
+            coords[21], coords[22], coords[23],
+            coords[24], coords[25], coords[26],
+            coords[27], coords[28], coords[29]);
 
   fprintf(outputFile, "   Number of vertex   : %i\n", nVertex);
   fprintf(outputFile, "   Number of elements : %i\n", nElts);
@@ -437,41 +464,41 @@ coords[17] = 4.157348061508730e-01;
   ijk[ 1] = 0;
   ijk[ 2] = 0;
 
-  ijk[ 3] = 1;//2;
+  ijk[ 3] = 2;
   ijk[ 4] = 0;
   ijk[ 5] = 0;
 
-  ijk[ 6] = 2;//0;
-  ijk[ 7] = 0;//2;
+  ijk[ 6] = 0;
+  ijk[ 7] = 2;
   ijk[ 8] = 0;
 
   ijk[ 9] = 0;
-  ijk[10] = 1;//0;
-  ijk[11] = 0;//2;
+  ijk[10] = 0;
+  ijk[11] = 2;
 
   ijk[12] = 1;
-  ijk[13] = 1;//0;
+  ijk[13] = 0;
   ijk[14] = 0;
 
-  ijk[15] = 0;//1;
-  ijk[16] = 2;//1;
+  ijk[15] = 1;
+  ijk[16] = 1;
   ijk[17] = 0;
 
   ijk[18] = 0;
-  ijk[19] = 0;//1;
-  ijk[20] = 1;//0;
+  ijk[19] = 1;
+  ijk[20] = 0;
 
-  ijk[21] = 1;//0;
+  ijk[21] = 0;
   ijk[22] = 0;
   ijk[23] = 1;
 
-  ijk[24] = 0;//1;
-  ijk[25] = 1;//0;
+  ijk[24] = 1;
+  ijk[25] = 0;
   ijk[26] = 1;
 
   ijk[27] = 0;
-  ijk[28] = 0;//1;
-  ijk[29] = 2;//1;
+  ijk[28] = 1;
+  ijk[29] = 1;
 
   cwipi_ho_ordering_from_IJK_set ("c_volumic_cpl_location_tetraP2",
                                   CWIPI_CELL_TETRAHO,
@@ -480,24 +507,24 @@ coords[17] = 4.157348061508730e-01;
 
 
 
-  int n_pts_to_locate = 1;
+  int n_pts_to_locate = 100;
 
   double *pts_to_locate = (double *) malloc(sizeof(double) * 3 * n_pts_to_locate);
 
+  //pts_to_locate[0] = 7.525667486491459e-01;
+  //pts_to_locate[1] = 1.552923385289316e-01;
+  //pts_to_locate[2] = 4.048796649970469e-01;
 
-  pts_to_locate[0]  = -8.407698607790286e-04;
-  pts_to_locate[1]  =  1.964277933020044e-01;
-  pts_to_locate[2]  =  3.223073602567958e-01;
 
-/*  for (int i = 0; i < n_pts_to_locate; i++){
-    pts_to_locate[3*i]    =  frand_a_b(xmin,0.3);
-    pts_to_locate[3*i+1]  =  frand_a_b(ymin,0.3);
-    pts_to_locate[3*i+2]  =  frand_a_b(zmin,0.3);
-  }*/
+  for (int i = 0; i < n_pts_to_locate; i++){
+    pts_to_locate[3*i]    =  frand_a_b(xmin, xmax);
+    pts_to_locate[3*i+1]  =  frand_a_b(ymin, ymax*(1-pts_to_locate[3*i]));
+    pts_to_locate[3*i+2]  =  frand_a_b(_z(pts_to_locate[3*i], pts_to_locate[3*i+1]), __z(pts_to_locate[3*i], pts_to_locate[3*i+1]));
+  }
 
 
   for (int i = 0; i < n_pts_to_locate; i++) {
-    printf("point : %12.15e %12.15e %12.15e\n",  pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2]);
+    printf("%12.15e %12.15e %12.15e\n",  pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2]);
   }
 
   cwipi_set_points_to_locate ("c_volumic_cpl_location_tetraP2",
@@ -522,8 +549,10 @@ coords[17] = 4.157348061508730e-01;
 
   /* Define fields to send (X coordinate or Y coordinate) */
 
+  double puis = 10.0;
+
   for (int i = 0; i < nVertex; i++) {
-    sendValues[i] = _f(coords[3 * i], coords[3 * i+1], coords[3 * i+2]);
+    sendValues[i] = _f(coords[3 * i], coords[3 * i+1], coords[3 * i+2], puis);
   }
 
   /* Exchange */
@@ -595,17 +624,24 @@ coords[17] = 4.157348061508730e-01;
   double *res = (double *) malloc(sizeof(double) *  n_pts_to_locate);
 
   for (int i = 0; i < n_pts_to_locate; i++) {
-    res[i] = _f(pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2]);
+    res[i] = _f(pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2],puis);
   }
 
   double err;
 
   for (int i = 0; i < n_pts_to_locate; i++) {
     err = fabs(recvValues[i] - res[i]);
+    if (rank == 0) printf("%12.15e\n", err);
     //    if (err > 1e-6) {
-    printf ("[%d] err %d : %12.5e %12.5e %12.5e\n", codeId, i, err, recvValues[i], res[i]);
+    //printf ("[%d] err %d : %12.5e %12.5e %12.5e\n", codeId, i, err, recvValues[i], res[i]);
       // }
   }
+/*if(rank == 0){
+  FILE* erreur;
+  erreur = fopen("erreur.dat", "a");
+  fprintf(erreur, "%12.5e %12.15e\n", puis, err);
+  fclose(erreur);
+}*/
 
   double err_max;
   MPI_Allreduce(&err, &err_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
