@@ -461,12 +461,12 @@ namespace cwipi {
 
     int** _targets_localization_idx_cpl;
    int _both_codes_are_local; 
-      int _nb_part_cpl;
-          int _nb_part;
-      int* _n_target;
-          Coupling                            *_cpl;
-    int  _n_tot_target;
-    int  _n_tot_target_cpl;      
+   int _nb_part_cpl;
+   int _nb_part;
+   int* _n_target;
+   Coupling                            *_cpl;
+   int  _n_tot_target;
+   int  _n_tot_target_cpl;      
   protected:
     
     Geometry &operator=(const Geometry &other);  /*!< Assigment operator not available */
@@ -609,13 +609,13 @@ void _IBcast(void* send_buffer,
   int _senderLocalRank;
 
    MPI_Comm _globalComm ;
+   MPI_Comm _unionComm ;   
    MPI_Comm _localComm  ;
    MPI_Comm _connectableComm  ;   
    PDM_MPI_Comm  _pdm_localComm ;
    PDM_MPI_Comm  _pdm_globalComm ;
-
-
-
+   PDM_MPI_Comm  _pdm_unionComm ;
+   
    int* _both_codes_are_local__array;
    
    int _rank;

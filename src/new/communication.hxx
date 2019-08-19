@@ -87,6 +87,13 @@ namespace cwipi {
      Communication &cplCodeComm 
     );
 
+
+    MPI_Comm 
+    unionCommGet
+    (
+    );
+
+
     /**
      *
      * \brief Return the communicator type

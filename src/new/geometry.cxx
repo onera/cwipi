@@ -82,6 +82,8 @@ namespace cwipi {
     _pdm_localComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(_mesh -> getMPICommP()));
     _nb_part = _mesh -> getNPart();
 
+
+    _unionComm = _cpl -> communicationGet() -> unionCommGet();
     _globalComm = _localCodeProperties -> globalCommGet();
     _localComm = _mesh -> getMPIComm();     
     _connectableComm =_localCodeProperties -> connectableCommGet();
@@ -89,6 +91,7 @@ namespace cwipi {
     MPI_Comm_size(_globalComm,&_n_ranks_g);
        
     _pdm_globalComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&_globalComm));
+    _pdm_unionComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&_unionComm));
 
     localName   = _localCodeProperties -> nameGet();
     coupledName = _coupledCodeProperties -> nameGet();

@@ -1012,8 +1012,9 @@ namespace cwipi {
     inline std::map < string, Field * >* fieldsGet();
     inline std::map <CWP_Field_value_t,Geometry*>* geometryGet();
     inline CodeProperties* localCodePropertiesGet();
-
     inline CodeProperties* coupledCodePropertiesGet();
+
+    inline Communication* communicationGet();
 
     inline Geometry*    geometryGet(CWP_Field_value_t field_value_t) ;
     inline CouplingDB*  couplingDBGet();
@@ -1051,6 +1052,10 @@ namespace cwipi {
   
   CodeProperties* Coupling::localCodePropertiesGet() {
     return const_cast<CodeProperties*>(&_localCodeProperties);
+  }
+
+  Communication* Coupling::communicationGet() {
+    return const_cast<Communication*>(&_communication);
   }
 
   Geometry* Coupling::geometryGet(CWP_Field_value_t field_value_t) {

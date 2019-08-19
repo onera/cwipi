@@ -239,6 +239,15 @@ namespace cwipi {
     } 
     
   }
+  
+  MPI_Comm 
+  Communication::unionCommGet
+  (
+  )
+  {
+    return _unionComm;
+  }  
+  
 
 }
 
