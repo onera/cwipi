@@ -88,7 +88,7 @@ namespace cwipi {
     _localComm = _mesh -> getMPIComm();     
     _connectableComm =_localCodeProperties -> connectableCommGet();
 
-    MPI_Comm_size(_globalComm,&_n_ranks_g);
+    MPI_Comm_size(_unionComm,&_n_ranks_g);
        
     _pdm_globalComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&_globalComm));
     _pdm_unionComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&_unionComm));
@@ -96,23 +96,19 @@ namespace cwipi {
     localName   = _localCodeProperties -> nameGet();
     coupledName = _coupledCodeProperties -> nameGet();
     
-    _senderRank     = _localCodeProperties   -> rootRankGet();
-    _senderRank_cpl = _coupledCodeProperties -> rootRankGet();
-
-
-    _connectableRanks_cpl = _coupledCodeProperties -> connectableRanksGet();
-    _connectableRanks     = _localCodeProperties   -> connectableRanksGet();
+    _senderRank     = _cpl -> communicationGet() -> unionCommLocCodeRootRanksGet();
+    _senderRank_cpl = _cpl -> communicationGet() -> unionCommCplCodeRootRanksGet();
+    
+    _connectableRanks_cpl = _cpl -> communicationGet() -> unionCommCplRanksGet();
+    _connectableRanks     = _cpl -> communicationGet() -> unionCommLocRanksGet();
     _n_ranks_cpl = _connectableRanks_cpl->size();
     _n_ranks     = _connectableRanks->size();
    
+   /* for(int i=0;i<_connectableRanks_cpl->size();i++)
+      printf("_connectableRanks_cpl %i\n",(*_connectableRanks_cpl)[i]);
+   */
    
-    _intraRanks     =  _localCodeProperties -> intraRanksGet();
-    _intraRanks_cpl =  _coupledCodeProperties -> intraRanksGet();
-    _n_ranks_intra_cpl = _intraRanks_cpl->size();
-    _n_ranks_intra     = _intraRanks->size();
-   
-  
-    MPI_Comm_rank(_globalComm,&_rank);
+    MPI_Comm_rank(_unionComm,&_rank);
     
     std::vector<int> connectable = (*_connectableRanks);
     
@@ -155,13 +151,13 @@ namespace cwipi {
     if(_both_codes_are_local == 0 || (_both_codes_are_local == 1 && slave == 0 ) ){
       MPI_Allgather(&_both_codes_are_local,1,MPI_INT,
                    _both_codes_are_local__array,1,MPI_INT,
-                   _globalComm );
+                   _unionComm );
                    
       if(_rank == _senderRank) {
         int tagsend = 2;
         int tagrecv = 2;
         MPI_Status status;
-        MPI_Sendrecv(&_nb_part,1,MPI_INT,_senderRank_cpl,tagsend,&_nb_part_cpl,1,MPI_INT,_senderRank_cpl,tagrecv,_globalComm,&status); 
+        MPI_Sendrecv(&_nb_part,1,MPI_INT,_senderRank_cpl,tagsend,&_nb_part_cpl,1,MPI_INT,_senderRank_cpl,tagrecv,_unionComm,&status); 
       }
     }
 
@@ -195,25 +191,25 @@ namespace cwipi {
    
     if(_both_codes_are_local == 0 ){
       if(id < id_cpl) {
-        MPI_Bcast(&_nb_part_cpl,1,MPI_INT,_senderRank,_globalComm);
-        MPI_Bcast(&tmp1,1,MPI_INT,_senderRank_cpl,_globalComm); 
+        MPI_Bcast(&_nb_part_cpl,1,MPI_INT,_senderRank,_unionComm);
+        MPI_Bcast(&tmp1,1,MPI_INT,_senderRank_cpl,_unionComm); 
       }
       else{
-        MPI_Bcast(&tmp1,1,MPI_INT,_senderRank_cpl,_globalComm); 
-        MPI_Bcast(&_nb_part_cpl,1,MPI_INT,_senderRank,_globalComm); 
+        MPI_Bcast(&tmp1,1,MPI_INT,_senderRank_cpl,_unionComm); 
+        MPI_Bcast(&_nb_part_cpl,1,MPI_INT,_senderRank,_unionComm); 
       }
     }
     else if( slave == 0 ) {
       printf("_senderRank %i _senderRank_cpl %i\n",_senderRank,_senderRank_cpl);
       if(id < id_cpl) {
         int toto;
-        MPI_Bcast(&_nb_part_cpl,1,MPI_INT,_senderRank,_globalComm);
-        MPI_Bcast(&(_geometry_cpl -> _nb_part_cpl), 1,MPI_INT,_senderRank_cpl,_globalComm); 
+        MPI_Bcast(&_nb_part_cpl,1,MPI_INT,_senderRank,_unionComm);
+        MPI_Bcast(&(_geometry_cpl -> _nb_part_cpl), 1,MPI_INT,_senderRank_cpl,_unionComm); 
       }
       else{
         int toto;
-        MPI_Bcast(&(_geometry_cpl -> _nb_part_cpl), 1,MPI_INT,_senderRank_cpl,_globalComm); 
-        MPI_Bcast(&_nb_part_cpl,1,MPI_INT,_senderRank,_globalComm);
+        MPI_Bcast(&(_geometry_cpl -> _nb_part_cpl), 1,MPI_INT,_senderRank_cpl,_unionComm); 
+        MPI_Bcast(&_nb_part_cpl,1,MPI_INT,_senderRank,_unionComm);
       } 
     }
     for(int i=0;i<_n_ranks_g;i++) {
@@ -380,7 +376,7 @@ namespace cwipi {
                 NULL,
                 1,
                 MPI_INT, 
-                _globalComm,
+                _unionComm,
                 *_connectableRanks,
                 &_send_requests,
                 tag
@@ -390,7 +386,7 @@ namespace cwipi {
                 NULL,
                 1,
                 MPI_INT, 
-                _globalComm,
+                _unionComm,
                 *_connectableRanks,
                 &_send_requests2,
                 tag
@@ -403,7 +399,7 @@ namespace cwipi {
                 NULL,
                 1,
                 MPI_INT, 
-                _globalComm,
+                _unionComm,
                 senderRankV,
                 &_recv_requests,
                 tag
@@ -414,7 +410,7 @@ namespace cwipi {
                 NULL,
                 1,
                 MPI_INT, 
-                _globalComm,
+                _unionComm,
                 senderRankV,
                 &_recv_requests2,
                 tag
@@ -518,20 +514,20 @@ namespace cwipi {
   /*
     if(_both_codes_are_local == 0){
       mesh_info_get();
-      MPI_Barrier(_globalComm);
+      MPI_Barrier(_unionComm);
       mesh_cpl_info_get_send();
       mesh_cpl_info_get_recv();
-      MPI_Barrier(_globalComm);  
+      MPI_Barrier(_unionComm);  
     }
     else {
       if(_Texch_t == CWP_FIELD_EXCH_SEND) {
         mesh_info_get();
         _geometry_cpl -> mesh_info_get();
-        MPI_Barrier(_globalComm);
+        MPI_Barrier(_unionComm);
       mesh_cpl_info_get_send();
       mesh_cpl_info_get_recv();
         _geometry_cpl -> mesh_cpl_info_get2();   
-        MPI_Barrier(_globalComm);
+        MPI_Barrier(_unionComm);
       }
     }*/  
   }
@@ -596,7 +592,7 @@ namespace cwipi {
         if(_Texch_t == CWP_FIELD_EXCH_RECV) filling_of_broadcasting_array();      
         if(_Texch_t == CWP_FIELD_EXCH_SEND) initialization_of_reception_array();
         
-        //MPI_Barrier(_globalComm);
+        //MPI_Barrier(_unionComm);
         
         PDM_timer_t *t3 = PDM_timer_create();
         PDM_timer_init(t3);
@@ -634,7 +630,7 @@ namespace cwipi {
         broadcasting_set_null(&_id_gnum_location1);
         location_compute                   (_id_gnum_location1);   
         PDM_gnum_location_free(_id_gnum_location1,1);
-      //  MPI_Barrier(_globalComm);
+      //  MPI_Barrier(_unionComm);
         broadcasting_index_null();
         
         data_communication_null();
@@ -705,7 +701,7 @@ void Geometry::mesh_cpl_info_get() {
     /*      Partition Number exchange           */
 
      int tsize;
-     MPI_Comm_size(_globalComm,&tsize);
+     MPI_Comm_size(_unionComm,&tsize);
  
     PDM_timer_t *t1 = PDM_timer_create();
    PDM_timer_init(t1);
@@ -715,17 +711,17 @@ void Geometry::mesh_cpl_info_get() {
         int tagsend = 2;
         int tagrecv = 2;
         MPI_Status status;
-        MPI_Sendrecv(&_n_g_elt_over_part,1,MPI_LONG,_senderRank_cpl,tagsend,&_n_g_elt_cpl_over_part,1,MPI_LONG,_senderRank_cpl,tagrecv,_globalComm,&status); 
+        MPI_Sendrecv(&_n_g_elt_over_part,1,MPI_LONG,_senderRank_cpl,tagsend,&_n_g_elt_cpl_over_part,1,MPI_LONG,_senderRank_cpl,tagrecv,_unionComm,&status); 
         tagsend = 3;
         tagrecv = 3;
-        MPI_Sendrecv(&_n_g_vtx_over_part,1,MPI_LONG,_senderRank_cpl,tagsend,&_n_g_vtx_cpl_over_part,1,MPI_LONG,_senderRank_cpl,tagrecv,_globalComm,&status); 
+        MPI_Sendrecv(&_n_g_vtx_over_part,1,MPI_LONG,_senderRank_cpl,tagsend,&_n_g_vtx_cpl_over_part,1,MPI_LONG,_senderRank_cpl,tagrecv,_unionComm,&status); 
     }
     
     
     PDM_timer_hang_on(t1);
     double elapsAlltoAll = PDM_timer_elapsed(t1);
     double elapsAlltoAllMax = 0.0;   
-    MPI_Reduce(&elapsAlltoAll, &elapsAlltoAllMax, 1, MPI_DOUBLE, MPI_MAX,0,_globalComm);
+    MPI_Reduce(&elapsAlltoAll, &elapsAlltoAllMax, 1, MPI_DOUBLE, MPI_MAX,0,_unionComm);
     
     
     int id     = _localCodeProperties -> idGet();
@@ -738,27 +734,27 @@ void Geometry::mesh_cpl_info_get() {
    PDM_timer_resume(t2);  
     
     if(id < id_cpl) {
-        MPI_Bcast(&_n_g_elt_cpl_over_part,1,MPI_LONG,_senderRank,_globalComm);
-        MPI_Bcast(&tmp1,1,MPI_LONG,_senderRank_cpl,_globalComm); 
+        MPI_Bcast(&_n_g_elt_cpl_over_part,1,MPI_LONG,_senderRank,_unionComm);
+        MPI_Bcast(&tmp1,1,MPI_LONG,_senderRank_cpl,_unionComm); 
     }
     else{
-      MPI_Bcast(&tmp1,1,MPI_LONG,_senderRank_cpl,_globalComm); 
-      MPI_Bcast(&_n_g_elt_cpl_over_part,1,MPI_LONG,_senderRank,_globalComm); 
+      MPI_Bcast(&tmp1,1,MPI_LONG,_senderRank_cpl,_unionComm); 
+      MPI_Bcast(&_n_g_elt_cpl_over_part,1,MPI_LONG,_senderRank,_unionComm); 
     }
     
     if(id < id_cpl) {
-      MPI_Bcast(&_n_g_vtx_cpl_over_part,1,MPI_LONG,_senderRank,_globalComm);
-      MPI_Bcast(&tmp1,1,MPI_LONG,_senderRank_cpl,_globalComm); 
+      MPI_Bcast(&_n_g_vtx_cpl_over_part,1,MPI_LONG,_senderRank,_unionComm);
+      MPI_Bcast(&tmp1,1,MPI_LONG,_senderRank_cpl,_unionComm); 
     }
     else{
-      MPI_Bcast(&tmp1,1,MPI_LONG,_senderRank_cpl,_globalComm); 
-      MPI_Bcast(&_n_g_vtx_cpl_over_part,1,MPI_LONG,_senderRank,_globalComm); 
+      MPI_Bcast(&tmp1,1,MPI_LONG,_senderRank_cpl,_unionComm); 
+      MPI_Bcast(&_n_g_vtx_cpl_over_part,1,MPI_LONG,_senderRank,_unionComm); 
     }
  
     PDM_timer_hang_on(t2);
     double elapsbcast = PDM_timer_elapsed(t2);
     double elapsbcastMax = 0.0;   
-    MPI_Reduce(&elapsbcast, &elapsbcastMax, 1, MPI_DOUBLE, MPI_MAX,0,_globalComm);
+    MPI_Reduce(&elapsbcast, &elapsbcastMax, 1, MPI_DOUBLE, MPI_MAX,0,_unionComm);
     
     if (_rank==0) {
       printf ("get_cpl details Time : %12.5e %12.5e\n",elapsAlltoAllMax,elapsbcastMax);
@@ -799,7 +795,7 @@ void Geometry::mesh_cpl_info_get() {
      MPI_Request srequest[_n_ranks_g];
      MPI_Request request,requests;
      
-     MPI_Comm_size(_globalComm,&tsize);
+     MPI_Comm_size(_unionComm,&tsize);
      
      int tag = 0;    
      switch(_geometryLocation){
@@ -817,7 +813,7 @@ void Geometry::mesh_cpl_info_get() {
          if(distant_rank != _rank)
            MPI_Issend(&_both_codes_are_local, 1, MPI_INT,
                       distant_rank, tag2,
-                      _globalComm,&srequest[i]);      
+                      _unionComm,&srequest[i]);      
          
           tag2=tag*10000+_rank;
        }
@@ -835,7 +831,7 @@ void Geometry::mesh_cpl_info_get() {
        
      _both_codes_are_local__array[_rank]=_both_codes_are_local;
 
-     MPI_Barrier(_globalComm);
+     MPI_Barrier(_unionComm);
        
      tag+=100;
      if(_rank == _senderRank ){
@@ -845,7 +841,7 @@ void Geometry::mesh_cpl_info_get() {
          if( _both_codes_are_local__array[ distant_rank ] == 0 ) {
            MPI_Issend(&_nb_part, 1, MPI_INT,
                       distant_rank, tag2,
-                      _globalComm,&srequest[i]);      
+                      _unionComm,&srequest[i]);      
          }
        }
      }
@@ -860,7 +856,7 @@ void Geometry::mesh_cpl_info_get() {
       }
     }
         
-    MPI_Barrier(_globalComm);
+    MPI_Barrier(_unionComm);
         
     if(_both_codes_are_local == 1) {
       _nb_part_cpl = _geometry_cpl->_nb_part;
@@ -875,7 +871,7 @@ void Geometry::mesh_cpl_info_get() {
          if( _both_codes_are_local__array[distant_rank] == 0 ) {
            MPI_Issend(&_n_g_elt_over_part, 1, MPI_INT,
                       distant_rank, tag2,
-                      _globalComm,&srequest[i]);      
+                      _unionComm,&srequest[i]);      
          }
        }
      }
@@ -886,7 +882,7 @@ void Geometry::mesh_cpl_info_get() {
           MPI_Wait(&srequest[i],&status);            
       }
     }
-        MPI_Barrier(_globalComm);
+        MPI_Barrier(_unionComm);
     if(_both_codes_are_local == 1) {
       _n_g_elt_cpl_over_part = _geometry_cpl->_n_g_elt_over_part;
     }
@@ -900,7 +896,7 @@ void Geometry::mesh_cpl_info_get() {
          if( _both_codes_are_local__array[ distant_rank ] == 0 ) {
            MPI_Issend(&_n_g_vtx_over_part, 1, MPI_INT,
                       distant_rank, tag2,
-                      _globalComm,&srequest[i]);      
+                      _unionComm,&srequest[i]);      
          }
        }
      }
@@ -935,7 +931,7 @@ void Geometry::mesh_cpl_info_get() {
      MPI_Request rrequest[_n_ranks_g];
      MPI_Request request,requests,requestr;
      
-     MPI_Comm_size(_globalComm,&tsize);
+     MPI_Comm_size(_unionComm,&tsize);
      
      int tag = 0;    
      switch(_geometryLocation){
@@ -953,7 +949,7 @@ void Geometry::mesh_cpl_info_get() {
          if(distant_rank != _rank)
             MPI_Irecv(&(_both_codes_are_local__array[i]), 1, MPI_INT,
                      distant_rank, tag2,
-                     _globalComm,&rrequest[i]);   
+                     _unionComm,&rrequest[i]);   
        }
      }
 
@@ -969,7 +965,7 @@ void Geometry::mesh_cpl_info_get() {
        
      _both_codes_are_local__array[_rank]=_both_codes_are_local;
 
-     MPI_Barrier(_globalComm);
+     MPI_Barrier(_unionComm);
        
      tag+=100;
 
@@ -977,13 +973,13 @@ void Geometry::mesh_cpl_info_get() {
      int tag2=tag*10000+_rank;
      MPI_Irecv(&_nb_part_cpl, 1, MPI_INT,
                _senderRank_cpl, tag2,
-               _globalComm,&request);   
+               _unionComm,&request);   
    }
 
     if(_both_codes_are_local == 0) 
       MPI_Wait(&request,&status); 
 
-    MPI_Barrier(_globalComm);
+    MPI_Barrier(_unionComm);
         
     if(_both_codes_are_local == 1) {
       _nb_part_cpl = _geometry_cpl->_nb_part;
@@ -996,13 +992,13 @@ void Geometry::mesh_cpl_info_get() {
       int tag2 = tag*10000+_rank;
       MPI_Irecv(&_n_g_elt_cpl_over_part, 1, MPI_INT,
                _senderRank_cpl, tag2,
-               _globalComm,&request);   
+               _unionComm,&request);   
     }
 
     if(_both_codes_are_local == 0) 
       MPI_Wait(&request,&status); 
 
-        MPI_Barrier(_globalComm);
+        MPI_Barrier(_unionComm);
     if(_both_codes_are_local == 1) {
       _n_g_elt_cpl_over_part = _geometry_cpl->_n_g_elt_over_part;
     }
@@ -1014,7 +1010,7 @@ void Geometry::mesh_cpl_info_get() {
      int tag2=tag*10000+_rank;
      MPI_Irecv(&_n_g_vtx_cpl_over_part, 1, MPI_INT,
                _senderRank_cpl, tag2,
-               _globalComm,&request);   
+               _unionComm,&request);   
    }
 
     if(_both_codes_are_local == 0) 
@@ -1469,7 +1465,7 @@ void Geometry::mesh_cpl_info_get() {
       //printf("Recv from %i to %i start %i longueur %i\n",_rank,i_proc,nComponent*_targets_localization_idx[distant_rank][0],longueur);
 
       MPI_Irecv(loc_v_ptr, longueur, MPI_BYTE, distant_rank, tag,
-                _globalComm,
+                _unionComm,
                 &request);
 
       recevingField -> lastRequestAdd (i_proc,request);
@@ -1522,7 +1518,7 @@ void Geometry::mesh_cpl_info_get() {
     
     MPI_Ialltoallv(send_buffer,count_send,displ_send,MPI_BYTE,
                    loc_v_ptr,count_recv,displ_recv,MPI_BYTE,
-                   _globalComm,&request);
+                   _unionComm,&request);
     
     free(count_recv);
     free(displ_recv);

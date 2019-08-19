@@ -212,7 +212,7 @@ void GeomLocation::issend(Field* referenceField) {
         //printf("Send from %i to %i start %i longueur %i\n",_rank,distant_rank,nComponent*_targets_localization_idx_cpl[distant_rank][0],longueur);
 
         MPI_Issend(dist_v_ptr, longueur, MPI_BYTE, distant_rank, tag,
-                   _globalComm,
+                   _unionComm,
                    &request);
 
         referenceField -> lastRequestAdd(i_proc,request);
@@ -252,7 +252,7 @@ void GeomLocation::issend2(Field* referenceField) {
 
        MPI_Ialltoallv(dist_v_ptr ,count_send,displ_send,MPI_BYTE,
                       recv_buffer,count_recv,displ_recv,MPI_BYTE,
-                      _globalComm,&request);
+                      _unionComm,&request);
 
        free(count_recv);
        free(displ_recv);
@@ -284,7 +284,7 @@ void GeomLocation::exchange_null() {
       
       MPI_Ialltoallv(send_buffer, count_send, displ_send,MPI_BYTE,
                      recv_buffer, count_recv, displ_recv,MPI_BYTE,
-                     _globalComm,&request);
+                     _unionComm,&request);
 
       free(count_recv);
       free(displ_recv);
@@ -345,7 +345,7 @@ void GeomLocation::both_exchange(Field* referenceField,Field* recevingField) {
 
       MPI_Ialltoallv(dist_v_ptr ,count_send,displ_send,MPI_BYTE,
                      recv_ptr,count_recv,displ_recv,MPI_BYTE,
-                     _globalComm,&request);
+                     _unionComm,&request);
 
       free(count_recv);
       free(displ_recv);
@@ -360,7 +360,7 @@ void GeomLocation::both_exchange(Field* referenceField,Field* recevingField) {
   void GeomLocation::locate_setting_surface(int* id_dist) {
 
     /* Paradigm mesh localisation _distance creation */
-    *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_globalComm );
+    *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_unionComm );
     
     PDM_dist_cloud_surf_n_part_cloud_set(*id_dist, 0, _nb_part_cpl);  
     //printf("_n_g_elt_over_part %i _n_g_vtx_over_part %i\n",_n_g_elt_over_part,_n_g_vtx_over_part);
@@ -435,7 +435,7 @@ void GeomLocation::locate_setting_null(int* id_dist) {
    */
 
     /* Paradigm mesh localisation _distance creation */
-    *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_globalComm );
+    *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_unionComm );
 
     PDM_dist_cloud_surf_n_part_cloud_set(*id_dist,   0, _nb_part);  
 
@@ -500,7 +500,7 @@ void GeomLocation::locate_setting_null(int* id_dist) {
    */
 
     /* Paradigm mesh localisation _distance creation */
-    *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_globalComm );
+    *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_unionComm );
 
     PDM_dist_cloud_surf_n_part_cloud_set(*id_dist,   0, _nb_part);  
 
@@ -578,7 +578,7 @@ void GeomLocation::locate_setting_null(int* id_dist) {
 
  void GeomLocation::broadcasting_request(int* id_gnum_location) {
  
-  *id_gnum_location = PDM_gnum_location_create(_nb_part_cpl,_nb_part, _pdm_globalComm);
+  *id_gnum_location = PDM_gnum_location_create(_nb_part_cpl,_nb_part, _pdm_unionComm);
 
   for(int i_part =0;i_part<_nb_part;i_part++) {    
     for(int i=0; i<_n_target[i_part]; i++) {
@@ -616,7 +616,7 @@ void GeomLocation::locate_setting_null(int* id_dist) {
 
  void GeomLocation::broadcasting_set(int* id_gnum_location) {
  
-  *id_gnum_location = PDM_gnum_location_create(_nb_part,_nb_part_cpl, _pdm_globalComm);
+  *id_gnum_location = PDM_gnum_location_create(_nb_part,_nb_part_cpl, _pdm_unionComm);
 
   for(int i_part =0;i_part<_nb_part;i_part++) {    
 
@@ -668,7 +668,7 @@ void GeomLocation::locate_setting_null(int* id_dist) {
 
 void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
  
-  *id_gnum_location = PDM_gnum_location_create(_nb_part,_nb_part_cpl, _pdm_globalComm);
+  *id_gnum_location = PDM_gnum_location_create(_nb_part,_nb_part_cpl, _pdm_unionComm);
 
   for(int i_part =0;i_part<_nb_part;i_part++) {    
     CWP_g_num_t* gnum_elt_null  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*0);
@@ -924,7 +924,7 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
 
 
 
-  // MPI_Barrier(_globalComm);
+  // MPI_Barrier(_unionComm);
 
 
    MPI_Request request;
@@ -941,7 +941,7 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
    
      MPI_Ialltoall(sbuffer, _nb_part, MPI_INT, 
                    recvbuffer, _nb_part, MPI_INT,
-                   _globalComm,&request);
+                   _unionComm,&request);
                    
    }
    else if(_Texch_t == CWP_FIELD_EXCH_RECV) {
@@ -955,7 +955,7 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
    
      MPI_Ialltoall(sbuffer, _nb_part_cpl, MPI_INT, 
                    recvbuffer, _nb_part_cpl, MPI_INT,
-                   _globalComm,&request);   
+                   _unionComm,&request);   
    
    }
    MPI_Status stat;
@@ -984,7 +984,7 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
      }
 
    int* recvbuffer = (int*) malloc(sizeof(int)*_n_ranks_g*_nb_part);
-  // MPI_Barrier(_globalComm);
+  // MPI_Barrier(_unionComm);
    
    PDM_timer_t *t1 = PDM_timer_create();
    PDM_timer_init(t1);
@@ -994,7 +994,7 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
    
    MPI_Ialltoall(sbuffer, _nb_part, MPI_INT, 
                  recvbuffer, _nb_part, MPI_INT,
-                 _globalComm,&sreq);     
+                 _unionComm,&sreq);     
 
    
    MPI_Status stat;
@@ -1041,7 +1041,7 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
      }
 
    int* recvbuffer_trash = (int*) malloc(sizeof(int)*_n_ranks_g*_nb_part_cpl);
-   //MPI_Barrier(_globalComm);
+   //MPI_Barrier(_unionComm);
    
    PDM_timer_t *t1 = PDM_timer_create();
    PDM_timer_init(t1);
@@ -1051,7 +1051,7 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
    
    MPI_Ialltoall(sbuffer, _nb_part_cpl, MPI_INT, 
                  recvbuffer_trash, _nb_part_cpl, MPI_INT,
-                 _globalComm,&sreq);    
+                 _unionComm,&sreq);    
                    
    
    MPI_Status stat;
@@ -1097,7 +1097,7 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
        sendbuffer_trash[ i_proc * _nb_part + i_part ] = 0;   
      }
      
-   //MPI_Barrier(_globalComm);
+   //MPI_Barrier(_unionComm);
    
    PDM_timer_t *t1 = PDM_timer_create();
    PDM_timer_init(t1);
@@ -1107,7 +1107,7 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
    
    MPI_Ialltoall(sendbuffer_trash, _nb_part, MPI_INT, 
                  recvbuffer, _nb_part, MPI_INT,
-                 _globalComm,&rreq);   
+                 _unionComm,&rreq);   
 
    MPI_Status stat;
    MPI_Wait(&rreq,&stat);
@@ -1189,7 +1189,7 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
    MPI_Request sreq;   
    MPI_Ialltoallv((void*)_targets_localization_data, _localization_count_send, _localization_disp_send, MPI_BYTE, 
                   recv_buffer_trash, count_recv,     disp_recv, MPI_BYTE,
-                  _globalComm,&sreq);     
+                  _unionComm,&sreq);     
 
    
    MPI_Status stat;
@@ -1200,7 +1200,7 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
   /*
   _IAlltoallIndexSend((void*)_targets_localization_data, _localization_count_send, _localization_disp_send,
                   MPI_BYTE,
-                  _globalComm, *_connectableRanks_cpl);*/
+                  _unionComm, *_connectableRanks_cpl);*/
   }
 
  void GeomLocation::data_communication_recv() {
@@ -1218,7 +1218,7 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
    
    MPI_Ialltoallv(sbuffer_trash                       ,  count_send              , disp_send              , MPI_BYTE, 
                  (void*)_targets_localization_data_cpl,  _localization_count_recv, _localization_disp_recv, MPI_BYTE,
-                 _globalComm,&rreq);     
+                 _unionComm,&rreq);     
    
    MPI_Status stat;
    MPI_Wait(&rreq,&stat); 
@@ -1229,7 +1229,7 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
  /* 
   _IAlltoallIndexRecv((void*)_targets_localization_data_cpl, _localization_count_recv, _localization_disp_recv, 
                   MPI_BYTE,
-                  _globalComm, *_connectableRanks_cpl);
+                  _unionComm, *_connectableRanks_cpl);
                   
   */
                   
@@ -1242,7 +1242,7 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
    MPI_Request req;   
    MPI_Ialltoallv((void*) (_geometry_cpl -> _targets_localization_data), _geometry_cpl -> _localization_count_send, _geometry_cpl -> _localization_disp_send, MPI_BYTE,  
                   (void*)_targets_localization_data_cpl,  _localization_count_recv, _localization_disp_recv, MPI_BYTE,
-                 _globalComm,&req);     
+                 _unionComm,&req);     
    
    MPI_Status stat;
    MPI_Wait(&req,&stat); 
@@ -1274,7 +1274,7 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
    MPI_Request rreq;   
    MPI_Ialltoallv(sbuffer_trash                       ,  count_send              , disp_send              , MPI_BYTE, 
                  recv_buffer_trash, count_recv,     disp_recv, MPI_BYTE,
-                 _globalComm,&rreq);     
+                 _unionComm,&rreq);     
    
    MPI_Status stat;
    MPI_Wait(&rreq,&stat); 
@@ -1289,7 +1289,7 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
  /* 
   _IAlltoallIndexRecv((void*)_targets_localization_data_cpl, _localization_count_recv, _localization_disp_recv, 
                   MPI_BYTE,
-                  _globalComm, *_connectableRanks_cpl);
+                  _unionComm, *_connectableRanks_cpl);
                   
   */
                   
