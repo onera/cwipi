@@ -170,15 +170,12 @@ namespace cwipi {
          it++;
         }           
         
-        printf("After geom init\n");
-        
       }   
     } // if (coupledCodeProperties.localCodeIs())     
     else {
       //Communication initialization, MPI communicator creation ... 
       _communication.init(_localCodeProperties, _coupledCodeProperties, cplId, cplDB);
 
-   //   if(_localCodeProperties.isCoupledRank()) 
         _mesh.setVisu(&_visu);      
       //Geometry creation
       _geometry[CWP_FIELD_VALUE_CELL_MEAN] = FG::getInstance().CreateObject(geomAlgo);
@@ -187,17 +184,12 @@ namespace cwipi {
       _geometry[CWP_FIELD_VALUE_USER] = FG::getInstance().CreateObject(geomAlgo);
     
       //Geometry initialization
-  //    if(_localCodeProperties.isCoupledRank()) {
-
         std::map <CWP_Field_value_t, Geometry*>::iterator it = _geometry.begin();
         while (it != _geometry.end()) {    
           (it -> second) -> init(this,it->first,0);
           it++;
         }
-    //  }
-           
     } // end else
-        
 
   }
 
@@ -249,7 +241,7 @@ namespace cwipi {
        Field* sendingField = it -> second;  
        if(_localCodeProperties.isCoupledRank()) {
          if(_geometry[sendingField -> typeGet()] -> _both_codes_are_local == 0){
-          _geometry[sendingField -> typeGet()] -> issend2(sendingField);
+          _geometry[sendingField -> typeGet()] -> issend(sendingField);
           return;
          }
          else {
@@ -279,7 +271,7 @@ namespace cwipi {
          Field* recevingField = it -> second;   
          if(_geometry[recevingField -> typeGet()] -> _both_codes_are_local == 0 ){
            if(_localCodeProperties.isCoupledRank())
-             _geometry[recevingField -> typeGet()] -> irecv2(recevingField);
+             _geometry[recevingField -> typeGet()] -> irecv(recevingField);
            else
              _geometry[recevingField -> typeGet()] -> exchange_null();
          }

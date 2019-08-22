@@ -1065,8 +1065,9 @@ namespace cwipi {
     if (p != _geometry.end()) {
       return p->second;
     } 
-
   }
+
+
   
   CouplingDB* Coupling::couplingDBGet() {
     return &_cplDB;
