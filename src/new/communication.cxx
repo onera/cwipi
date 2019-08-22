@@ -218,6 +218,8 @@ namespace cwipi {
     _cplComm                = cplCodeComm._cplComm;
     _locCodeRootRankUnionComm = cplCodeComm._cplCodeRootRankUnionComm;
     _cplCodeRootRankUnionComm = cplCodeComm._locCodeRootRankUnionComm;
+    _unionCommCplRanks = new std::vector<int>(*(cplCodeComm._unionCommLocRanks));
+    _unionCommLocRanks = new std::vector<int>(*(cplCodeComm._unionCommCplRanks));    
     
     const int localRootRank = _localCodeProperties->rootRankGet();
     
