@@ -33,14 +33,14 @@ namespace cwipi {
       
       virtual ~GeomLocation();
      
-     void locate_setting_request(int* id_dist);
-     void locate_setting_null   (int* id_dist);          
-     void locate_setting_surface(int* id_dist);     
+     void localization_points_cloud_setting(int* id_dist);
+     void localization_null_setting   (int* id_dist);          
+     void localization_surface_setting(int* id_dist);     
       void locate_setting_code_1_local() ;
       
-      void locate_compute(int id_dist)             ;
-      void locate_get(int id_dist)      ;
-      void locate_get_cpl(int id_dist)      ;
+      void localization_compute(int id_dist)             ;
+      void localization_get(int id_dist)      ;
+      void localization_get_cpl(int id_dist)      ;
       
       void broadcasting_request (int* id_gnum_location) ;
       void broadcasting_set     (int* id_gnum_location) ;

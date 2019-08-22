@@ -40,19 +40,6 @@ namespace cwipi {
     double       distance       ;    
   };
 
-  typedef struct target_data_vtx {
-    int          lnum    ;
-    int          inc     ;
-    CWP_g_num_t  closest_elt_gnum;
-    int          origin_proc     ;
-    int          closest_elt_part;
-    int          l_num_origin    ;
-    double       projectedX       ;     
-    double       projectedY       ;
-    double       projectedZ       ;      
-  };
-
-
   class Mesh;
   class Field;  
   class Visu;
@@ -67,7 +54,7 @@ namespace cwipi {
    */
 
   class Geometry {
-    
+  friend class GeomLocation;
   public:
 
     /**
@@ -87,12 +74,12 @@ namespace cwipi {
 
      //Depends on the Geometry type
      // Ca sera dans les classes concrètes
-     virtual void locate_setting_request(int* id_dist) =0;
-     virtual void locate_setting_surface(int* id_dist) =0;    
-     virtual void locate_setting_null(int* id_dist) =0;        
-     virtual void locate_compute(int id_dist)             =0;
-     virtual void locate_get(int id_dist)      =0;
-     virtual void locate_get_cpl(int id_dist)      =0;     
+     virtual void localization_points_cloud_setting(int* id_dist) =0;
+     virtual void localization_surface_setting(int* id_dist) =0;    
+     virtual void localization_null_setting(int* id_dist) =0;        
+     virtual void localization_compute(int id_dist)             =0;
+     virtual void localization_get(int id_dist)      =0;
+     virtual void localization_get_cpl(int id_dist)      =0;     
      
      
       virtual void broadcasting_request (int* id_gnum_location)  =0;
@@ -129,20 +116,10 @@ namespace cwipi {
 
      void init(Coupling *coupling, CWP_Field_value_t geometryLocation,int slave);
      void mesh_info_get();
-     void mesh_info_get2();     
-     void mesh_cpl_info_get_send();
-     void mesh_cpl_info_get_recv();
      void mesh_cpl_info_get();     
-     void mesh_cpl_info_get2();
      void compute(CWP_Field_exch_t Texch_t);
      void computeFree();
      void info_mesh(CWP_Field_exch_t Texch_t);
-     inline Geometry* getCoupledGeometry();
-
-
-     int nTargetGet(int i_part) {
-       return _n_target[i_part];
-     }
 
     /**
      *
@@ -232,11 +209,6 @@ namespace cwipi {
 
     void 
     irecv2
-    (Field* recevingField
-    );
-
-    void 
-    irecv
     (Field* recevingField
     );
 
@@ -333,46 +305,6 @@ namespace cwipi {
     inline const int *
     computedTargetsGet() const;
 
-    Mesh*
-    meshGet() {
-      return _mesh;
-    }
-
-    CWP_g_num_t*
-    closestEltGnumGet(int i_part) {
-      return _closest_elt_gnum[i_part];
-    }    
-    
-    void
-    closestEltGnumSet(CWP_g_num_t* closest_elt_gnum, int i_part) {
-      _closest_elt_gnum[i_part]=closest_elt_gnum;
-    }    
-
-    void
-    closestEltGnumSet(CWP_g_num_t closest_elt_gnum, int i_part,int i_el) {
-      _closest_elt_gnum[i_part][i_el]=closest_elt_gnum;
-    }    
-
-
-    CWP_g_num_t*
-    gnumTargetGet(int i_part) {
-      return _gnum_target[i_part];
-    }  
-
-
-    double*
-    distanceTargetGet(int i_part) {
-      return _distance[i_part];
-    }  
-        
-    
-    double*
-    coordsTargetGet(int i_part) {
-      return _coords_target[i_part];
-    }  
-          
-
-
  void _IAlltoallIndexSend(void* send_buffer,
                 int* send_count,
                 int* send_disp,
@@ -389,225 +321,104 @@ namespace cwipi {
                 std::vector<int> connectableRanks
                 );    
 
- void _IAlltoallIndex(void* send_buffer,
-                int* send_count,
-                int* send_disp,
-                void* recv_buffer,
-                int* recv_count,
-                int* recv_disp,
-                MPI_Datatype type, 
-                MPI_Comm comm,
-                std::vector<int> connectableRanks
-                );
+    //TODO: Acess function
+    int _both_codes_are_local; 
 
-
-  void _IAlltoall2Send(int** send_buffer,
-                int* send_size,
-                int send_stride,
-                MPI_Datatype type, 
-                MPI_Comm comm,
-                std::vector<int> connectableRanks,
-                std::vector<int>* send_requests,
-                int tag
-                );
-
-
-  void _IAlltoall2Recv(int** recv_buffer,
-                int* recv_size,
-                int recv_stride,
-                MPI_Datatype type, 
-                MPI_Comm comm,
-                std::vector<int> connectableRanks,
-                std::vector<int>* recv_requests,
-                int tag
-                );
-
-  void _IAlltoall2(int** send_buffer,
-                int* send_size,
-                int send_stride,
-                int** recv_buffer,
-                int* recv_size,
-                int recv_stride,
-                MPI_Datatype type, 
-                MPI_Comm comm,
-                std::vector<int> connectableRanks
-                );
-
-
-    void _Wait();      
-    void _WaitSend(std::vector<int> Ranks,std::vector<int>* send_requests);      
-    void _WaitRecv(std::vector<int> Ranks,std::vector<int>* recv_requests);      
-    void _Wait(std::vector<int> Ranks,std::vector<int>* send_requests,std::vector<int>* recv_requests);      
-
-    double      **_distance         ; 
-    double      **_projected        ; 
-    CWP_g_num_t **_closest_elt_gnum ;  
-
-
-  int** _localization_count_comm_proc ;
-
-  int** _target_proc_part_num_idx ;
-  int** _target_proc_part_num     ;
-
-
-  int* _localization_count_recv;         
-  int* _localization_count_send ;
-  int* _localization_disp_recv ;         
-  int* _localization_disp_send ; 
-
-  target_data* _targets_localization_data;
-  Geometry* _geometry_cpl;
-  int** _targets_localization_idx   ;
-
-    int** _targets_localization_idx_cpl;
-   int _both_codes_are_local; 
-   int _nb_part_cpl;
-   int _nb_part;
-   int* _n_target;
-   Coupling                            *_cpl;
-   int  _n_tot_target;
-   int  _n_tot_target_cpl;      
+     
   protected:
     
     Geometry &operator=(const Geometry &other);  /*!< Assigment operator not available */
     Geometry (const Geometry& other);            /*!< Copy constructor not available */
 
-    friend class Geometry;
+  protected:
+
+
 
   protected:
-  
-    // Informations about locations (from the local proc send to a distant proc)
-    // Local Targets
-
-    std::vector<int>                      _idx_target        ;    
 
 
-void _IBcast(void* send_buffer,
-                     int send_size,
-                     int send_stride,
-                     void* recv_buffer,
-                int recv_size,
-                int recv_stride,
-                MPI_Datatype type, 
-                MPI_Comm comm,
-                std::vector<int> connectableRanks_cpl,
-                int _n_ranks_cpl,
-                int rootRank);
- 
-  void _IAlltoall(void* send_buffer,
-                int* send_size,
-                int send_stride,
-                void* recv_buffer,
-                int* recv_size,
-                int recv_stride,
-                MPI_Datatype type, 
-                MPI_Comm comm,
-                std::vector<int> connectableRanks_cpl,
-                int _n_ranks_cpl);
-
+     //Pointer to other objects
+    Mesh                                *_mesh                  ;    /*!< Interface Mesh       */
+    Visu                                *_visu                  ;    /*!< Visualization object */
+    CodeProperties                      *_localCodeProperties   ;
+    CodeProperties                      *_coupledCodeProperties ;
+    Coupling                            *_cpl                   ;
+    Geometry                            *_geometry_cpl          ;    
     
-    //Distant Targets (from a distant proc send to the local proc)
+    std::map <std::string,Field*>       *_referenceFieldsDB     ;
+    CWP_Field_value_t                    _geometryLocation      ;
+    CWP_Field_exch_t                     _Texch_t               ;
 
+    /* Localization data */
+    double      **_distance         ; 
+    double      **_projected        ; 
+    CWP_g_num_t **_closest_elt_gnum ;  
 
-
-    Mesh                                *_mesh;      /*!< Interface Mesh */
-    Visu                                *_visu;
-    CodeProperties                      *_localCodeProperties;
-    CodeProperties                      *_coupledCodeProperties;
-    std::map <std::string,Field*>    *_referenceFieldsDB;
-    std::map <int,Field*>        _requestFieldsDB;
-    CWP_Field_value_t                    _geometryLocation;
-
-    target_data* _targets_localization_data_cpl;
-    
-    int  _option;
-
-    int* _n_targets_dist_proc; 
-
-
-    const std::vector<int>* _connectableRanks_cpl;
-    const std::vector<int>* _connectableRanks    ;  
-    const std::vector<int>* _intraRanks_cpl;
-    const std::vector<int>* _intraRanks    ;  
-    
-    int  _n_ranks    ;
-    int  _n_ranks_cpl;
-    int  _n_ranks_intra    ;
-    int  _n_ranks_intra_cpl;   
-    int  _n_ranks_g    ;
-
-    
-
-
-    int* _n_vtx;   
-    int* _n_vtx_cpl;   
-    int* _n_elt;
-    int* _n_elt_cpl;
-    
-
-    CWP_g_num_t** _gnum_target;
-    double** _coords_target; 
-
-    
-    int _n_tot_elt;
-    int _n_tot_vtx;
-    
-    CWP_g_num_t _n_g_elt_over_part;
-    CWP_g_num_t _n_g_vtx_over_part;
-    CWP_g_num_t _n_g_elt_cpl_over_part;
-    CWP_g_num_t _n_g_vtx_cpl_over_part;  
-    
-    int**                          _n_targets_dist_proc_dist_part;
-    int**                          _n_targets_recv_dist_proc_loc_part    ;
-    int**                          _idx_targets_recv_dist_proc_loc_part  ;
-    
-    int* _n_recv_targets_loc_from_dist_proc;
- 
-    int* _n_elt_exch_recv_by_proc_by_part;
-    int* _n_vtx_exch_recv_by_proc_by_part;
-        
-    int* _n_elt_exch_recv_tot_per_part;
-    int* _n_vtx_exch_recv_tot_per_part; 
-
-   int _n_tot_elt_exch_cpl;
-   int _n_tot_vtx_exch_cpl;
-
-
-   CWP_g_num_t* _n_g_elt;
-   CWP_g_num_t* _n_g_vtx;
- 
-   double* _centers_conc ;
-   double* _coords_conc ;
-   CWP_g_num_t* _gnum_elt_conc ;
-   CWP_g_num_t* _gnum_vtx_conc ;
-   int* _lnum_elt_conc ;
-   int* _lnum_vtx_conc ;
-
-
-  double* _centers_conc_cpl       ;
-  double* _coords_conc_cpl        ;
-  CWP_g_num_t* _gnum_elt_conc_cpl ;
-  int* _lnum_elt_conc_cpl         ; 
-  CWP_g_num_t* _gnum_vtx_conc_cpl ;
-  int* _lnum_vtx_conc_cpl         ; 
-
- 
-  int _senderRank;  
-  int _senderRank_cpl;
-  
-    double      **_distance_cpl          ; 
-    double      **_projected_cpl         ; 
+    double      **_distance_cpl         ; 
+    double      **_projected_cpl        ; 
     CWP_g_num_t **_closest_elt_gnum_cpl ;  
 
-  int _id_dist1 ;
-  int _id_dist2 ;
+    int         **_targets_localization_idx     ;
+    int         **_targets_localization_idx_cpl ;
+    target_data  *_targets_localization_data    ;
+    target_data  *_targets_localization_data_cpl;  
+    
+    //TODO: To delete and replace by using other members    
+    std::vector<int>                      _idx_target        ;    /*!< Index of the number of target by partition */
 
-  int _id_gnum_location1;
-  int _id_gnum_location2;
+    /* Displacement and count for all_to_all MPI communication of targets_localization_data */
+    int* _targets_localization_data_count_recv;         
+    int* _targets_localization_data_count_send ;
+    int* _targets_localization_data_disp_recv ;         
+    int* _targets_localization_data_disp_send ; 
 
+    /* Triplet global numbering, MPI process, partition results */
+    int** _process_and_partition_count ; /*!< Element count by MPI process rank and partition */
 
-  int _senderLocalRank;
+    int** _target_proc_part_num_idx ; /*!< Index array of triplet process, partition, numbering for each target */
+    int** _target_proc_part_num     ; /*!< Array of triplet process, partition, numbering for each target */
 
+   /* Mesh informations */
+
+   CWP_g_num_t _n_g_elt_over_part    ; /*!< Number of element of the process (over all the partitions)              */
+   CWP_g_num_t _n_g_vtx_over_part    ; /*!< Number of vertices of the process (over all the partitions)             */
+   CWP_g_num_t _n_g_elt_cpl_over_part; /*!< Number of coupled code element of the process (over all the partitions) */
+   CWP_g_num_t _n_g_vtx_cpl_over_part; /*!< Number of coupled code vertices of the process (over all the partitions)*/
+
+   int  _n_tot_target    ; /*!< Target total number on the process                                      */
+   int  _n_tot_target_cpl; /*!< Number of coupled code target received by the process for interpolation */    
+   int *_n_target        ; /*!< Target total number on the process by partition                         */
+        
+   int *_n_vtx           ; /*!< Vertice total number on the process by partition                        */
+   int  _n_tot_vtx       ; /*!< Vertice total number on the process                                     */
+      
+   int *_n_elt           ; /*!< Element total number on the process by partition                        */
+   int  _n_tot_elt       ; /*!< Element total number on the process                                     */
+ 
+   int  _nb_part_cpl     ; /*!< Coupled code mesh partition number                                      */
+   int  _nb_part         ; /*!< Mesh partition number                                                   */
+ 
+   CWP_g_num_t  **_gnum_target  ;  /*<! Target global numbering by partition */
+   double       **_coords_target;  /*<! Target coordinates by partition */
+  
+    /* Paradigm structure identifier */
+    int _id_dist         ; /*!< Identifier for the localization object of paradigm */
+    int _id_gnum_location; /*!< Identifier for the global numbering to (process,partition,numbering) triplet object of paradigm */
+
+    /* code Properties */
+    int _id;
+    int _id_cpl;
+    string coupledName;
+    string localName; 
+
+    int _senderRank;  
+    int _senderRank_cpl;
+
+    int _senderLocalRank;
+
+   /** MPI processes informations **/
+   
+   /* MPI Communicators */
    MPI_Comm _globalComm ;
    MPI_Comm _unionComm ;   
    MPI_Comm _localComm  ;
@@ -616,36 +427,30 @@ void _IBcast(void* send_buffer,
    PDM_MPI_Comm  _pdm_globalComm ;
    PDM_MPI_Comm  _pdm_unionComm ;
    
-   int* _both_codes_are_local__array;
-   
-   int _rank;
-   int _localRank;   
    vector<string> _codeVector;
-   string coupledName;
-   string localName; 
    
+
+   int  _slave;   
+
+   const std::vector<int>* _connectableRanks_cpl;
+   const std::vector<int>* _connectableRanks    ;  
+
+   /* informations about MPI process (rank) */
    bool _isCoupledRank;
    bool _isCoupledRank_cpl;
+
+   int _rank;    
+   int  _n_ranks    ;
+   int  _n_ranks_cpl;
+   int  _n_ranks_g    ;
    
+   /* MPI Request */
    std::vector<MPI_Request> _send_requests;
    std::vector<MPI_Request> _recv_requests;  
-   std::vector<MPI_Request> _send_requests2;
-   std::vector<MPI_Request> _recv_requests2;    
-   std::vector<int> n_uncomputed_tgt;
-
-
-   CWP_g_num_t** _n_g_elt_tmp;
-   int** _n_elt_tmp;
-   CWP_g_num_t** _n_g_vtx_tmp;
-   int** _n_vtx_tmp;
-   CWP_Field_exch_t _Texch_t;
    
+   std::vector<int> n_uncomputed_tgt;
    
   };
-
-  Geometry* Geometry::getCoupledGeometry() {
-  
-  }
 
 
 
