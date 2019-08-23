@@ -622,7 +622,7 @@ namespace cwipi {
     char     *_winStrParamValueData; /*!< Data of \ref _winStrParamValue window */
     
     int      _n_param_max; /*!< Maximum number of parameters */
-    int      _str_size_max; /*!< Maximum string size */
+    size_t   _str_size_max; /*!< Maximum string size */
 
   };
 

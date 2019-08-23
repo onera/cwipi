@@ -1035,7 +1035,7 @@ CWP_Mesh_interf_block_std_set
  }
 
 
-void 
+/*void 
 CWP_Mesh_interf_h_order_block_set
 (
  const char        *local_code_name,
@@ -1049,15 +1049,15 @@ CWP_Mesh_interf_h_order_block_set
 )
 {
   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
- /* cpl.meshHighOrderBlockSet(i_part,
+  cpl.meshHighOrderBlockSet(i_part,
                             block_id,
                             block_type,
                             n_elts,
                             order,
                             connec,
-                            global_num);*/
+                            global_num);
 }
-
+*/
 
 void 
 CWP_Mesh_interf_f_poly_block_set
@@ -1178,7 +1178,7 @@ CWP_Mesh_interf_del
    cpl.meshDel();
 }
 
-
+/*
 void 
 CWP_Mesh_interf_shared_fvm_nodal
 (
@@ -1192,7 +1192,7 @@ CWP_Mesh_interf_shared_fvm_nodal
    cpl.fvmcNodalShared(i_part,
                        fvmc_nodal);
 }
-
+*/
 /*----------------------------------------------------------------------------*
  * Functions about field                                                      *
  *----------------------------------------------------------------------------*/

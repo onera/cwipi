@@ -457,7 +457,7 @@ namespace cwipi {
      *
      */
     
-    void 
+   /* void 
     meshHighOrderBlockSet
     (
      const int           i_part,
@@ -467,7 +467,7 @@ namespace cwipi {
      int                 connec[],
      CWP_g_num_t         global_num[]);
 
-
+*/
     /**
      * \brief Set the connectivity of a polygon block in a mesh interface partition.
      *
@@ -625,12 +625,12 @@ namespace cwipi {
      *
      */
 
-    void 
+   /* void 
     fvmcNodalShared
     (
      const int           i_part,
      fvmc_nodal_t       *fvmc_nodal
-    );
+    );*/
 
     /*----------------------------------------------------------------------------*
      * Methods about field                                                        *

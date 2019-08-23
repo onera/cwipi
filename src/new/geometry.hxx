@@ -27,7 +27,7 @@
 namespace cwipi {
 
 
-  typedef struct target_data {
+  struct target_data {
     int          lnum    ;
     int          origin_part     ;
     CWP_g_num_t  closest_elt_gnum;
@@ -71,15 +71,9 @@ namespace cwipi {
 
     virtual ~Geometry();
 
+    virtual void init(Coupling *coupling, CWP_Field_value_t geometryLocation,int slave) =0;
 
-     //Depends on the Geometry type
-     // Ca sera dans les classes concrètes
-     virtual void* interpolate(Field* referenceField) =0;  
-
-     virtual void init(Coupling *coupling, CWP_Field_value_t geometryLocation,int slave) =0;
-
-
-     virtual void compute(CWP_Field_exch_t Texch_t) =0;
+    virtual void compute(CWP_Field_exch_t Texch_t) =0;
 
 
     /**
@@ -121,22 +115,12 @@ namespace cwipi {
      *
      */
 
-    virtual void  
-    issend
-    (Field* sendingField
-    ) = 0;
+    virtual void issend (Field* sendingField) = 0;
 
 
-    virtual void  
-    exchange_null
-    (
-    ) = 0;
+    virtual void null_exchange_for_uncoupled_process () = 0;
 
-    virtual void  
-    both_exchange
-    (Field* sendingField,
-     Field* recevingField
-    ) = 0;
+    virtual void both_codes_on_the_same_process_exchange (Field* sendingField,Field* recevingField) = 0;
 
     /**
      *
@@ -147,9 +131,7 @@ namespace cwipi {
      * 
      */
 
-    virtual void 
-    waitIssend
-    (Field* sendingField)=0;
+    virtual void waitIssend(Field* sendingField) = 0;
 
     /**
      *
@@ -163,10 +145,7 @@ namespace cwipi {
      *
      */
 
-    virtual void 
-    irecv
-    (Field* recevingField
-    )=0;
+    virtual void irecv (Field* recevingField) = 0;
 
     /**
      *
@@ -179,9 +158,7 @@ namespace cwipi {
      *
      */
 
-    virtual void 
-    waitIrecv
-    (Field* recevingField)=0;    
+    virtual void waitIrecv(Field* recevingField) = 0;    
    
 
     /**

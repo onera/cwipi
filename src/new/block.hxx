@@ -24,6 +24,8 @@
 #include <map>
 #include <vector>
 #include <bftc_error.h>
+#include "pdm_error.h"
+#define UNUSED(x) (void)(x)
 
 namespace cwipi {
 
@@ -92,7 +94,12 @@ namespace cwipi {
      *
      */    
 
-    virtual void FromPDMBlock(int pdm_id_block, void* mesh) =0;
+    virtual void FromPDMBlock(int pdm_id_block, void* mesh)
+    {      
+      UNUSED(pdm_id_block  );
+      UNUSED(mesh );
+      PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");     
+    }
     
     /**
      * \brief Set a CWIPI block in a partition
@@ -104,10 +111,14 @@ namespace cwipi {
      *
      */    
     
-    virtual void blockSet(int i_part,int n_elts,int* connec,CWP_g_num_t* mesh_global_num) {
-       bftc_error(__FILE__, __LINE__, 0, 
-            "Unavailable for this type of Block.\n");
-      };
+    virtual void blockSet(int i_part,int n_elts,int* connec,CWP_g_num_t* mesh_global_num)
+    {
+      UNUSED(i_part          );
+      UNUSED(n_elts          );
+      UNUSED(connec          );
+      UNUSED(mesh_global_num      );
+      PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");        
+    }
 
     /**
      * \brief Set a CWIPI block in a partition
@@ -123,10 +134,15 @@ namespace cwipi {
     virtual void blockSet(int i_part,int n_elts,
                           int* connec_idx,
                           int* connec,
-                          CWP_g_num_t* global_num) {
-       bftc_error(__FILE__, __LINE__, 0, 
-            "Unavailable for this type of Block.\n");
-      };
+                          CWP_g_num_t* global_num)
+    {
+      UNUSED(i_part          );
+      UNUSED(n_elts          );
+      UNUSED(connec_idx      );
+      UNUSED(connec          );
+      UNUSED(global_num      );
+      PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");    
+    }
  
     /**
      * \brief Set a CWIPI block in a partition
@@ -147,10 +163,18 @@ namespace cwipi {
                           int* connec_faces,
                           int* connec_cells_idx,
                           int* connec_cells,
-                          CWP_g_num_t* global_num) {
-       bftc_error(__FILE__, __LINE__, 0, 
-            "Unavailable for this type of Block.\n");
-      };
+                          CWP_g_num_t* global_num)
+    {
+      UNUSED(i_part          );
+      UNUSED(n_elts          );
+      UNUSED(n_faces         );
+      UNUSED(connec_faces_idx);
+      UNUSED(connec_faces    );
+      UNUSED(connec_cells_idx);
+      UNUSED(connec_cells    );
+      UNUSED(global_num      );
+      PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
+    }
       
     /**
      *
@@ -264,7 +288,10 @@ namespace cwipi {
      *
      */
      
-     virtual std::map<int,int*>  ConnecGet() =0;
+     virtual std::map<int,int*>  ConnecGet() 
+     {
+       PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
+     }
 
 
     /**
@@ -275,11 +302,11 @@ namespace cwipi {
      *
      */
      
-     virtual std::map<int,int*>  ConnecIDXGet() {
-       bftc_error(__FILE__, __LINE__, 0, 
-            "Unavailable for this type of Block.\n");
-      };
-
+     virtual std::map<int,int*>  ConnecIDXGet() 
+     {
+       PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
+     }
+     
     /**
      *
      * \brief return the element faces connectivity (Cells_POLY_3D)
@@ -288,10 +315,10 @@ namespace cwipi {
      *
      */
      
-     virtual std::map<int,int*>  ConnecFacesGet() {
-       bftc_error(__FILE__, __LINE__, 0, 
-            "Unavailable for this type of Block.\n");
-      };
+     virtual std::map<int,int*>  ConnecFacesGet()
+     {
+       PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
+     }
       
     /**
      *
@@ -301,10 +328,12 @@ namespace cwipi {
      *
      */
      
-     virtual std::map<int,int*>  ConnecFacesIDXGet() {
-       bftc_error(__FILE__, __LINE__, 0, 
-            "Unavailable for this type of Block.\n");
-      };
+     virtual std::map<int,int*>  ConnecFacesIDXGet()
+     {
+       PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
+     }
+    
+     
       
     /**
      *
@@ -313,10 +342,11 @@ namespace cwipi {
      *
      */
      
-     virtual std::map <int,int>  NFacesGet() {
-       bftc_error(__FILE__, __LINE__, 0, 
-            "Unavailable for this type of Block.\n");
-      };
+     virtual std::map <int,int>  NFacesGet() 
+     {
+       PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
+     }
+     
       
   private :
 

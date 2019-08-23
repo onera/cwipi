@@ -65,7 +65,6 @@ namespace cwipi {
                                       &connec); 
                                       
          blockSet(id_part,nElts,connec,NULL);
-                
        }
   }
 
@@ -88,8 +87,6 @@ namespace cwipi {
      _cells_center[i_part] = _cells_center_part;
      _connec.insert    ( std::pair < int, int* > (i_part,connec));
 
-     int* _blocks_id = PDM_Mesh_nodal_blocks_id_get(_pdmNodal_handle_index);
-
      if (not inPDMDB() ) PDM_Mesh_nodal_block_std_set(_pdmNodal_handle_index,
                                                            _block_id,
                                                            i_part,    
@@ -98,8 +95,6 @@ namespace cwipi {
                                                            _global_num [i_part],
                                                            NULL);   
                                                            
-   // printf("_block_id %i PDM_Mesh_nodal_n_cell_get %i\n",_block_id,PDM_Mesh_nodal_n_cell_get(_pdmNodal_handle_index,i_part));
-
   }
 
 }

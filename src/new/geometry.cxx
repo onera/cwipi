@@ -60,8 +60,6 @@ namespace cwipi {
                                      MPI_Comm comm,
                                      std::vector<int> connectableRanks
                                     ){
-      int rank=-1;
-     
       int comm_size;
       MPI_Comm_size(comm,&comm_size);
       int nranks = connectableRanks.size();
@@ -100,8 +98,6 @@ namespace cwipi {
                 std::vector<int> connectableRanks
                 ){
 
-      int rank=-1;
-     
       int comm_size;
       MPI_Comm_size(comm,&comm_size);
       int nranks = connectableRanks.size();

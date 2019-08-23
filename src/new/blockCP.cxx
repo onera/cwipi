@@ -48,7 +48,7 @@ namespace cwipi {
      _pdmNodal_handle_index = static_cast<Mesh*>(mesh) -> getPdmNodalIndex();
      _localComm            = const_cast<MPI_Comm*>(static_cast<Mesh*>(mesh) -> getMPICommP());
     
-      PDM_Mesh_nodal_elt_t PDM_block_type = PDM_Mesh_nodal_block_type_get(_pdmNodal_handle_index,pdm_id_block);
+     PDM_Mesh_nodal_elt_t PDM_block_type = PDM_Mesh_nodal_block_type_get(_pdmNodal_handle_index,pdm_id_block);
      _blockType = CwpBlockTypeFromPdmBlockType (PDM_block_type); 
      BlockAdd(_blockType, mesh);
 
@@ -72,9 +72,6 @@ namespace cwipi {
                                           &connec_cells_idx,
                                           &connec_cells);
 
-         PDM_Mesh_nodal_elt_t PDM_block_type = PDM_Mesh_nodal_block_type_get(_pdmNodal_handle_index,
-                                                                              pdm_id_block);
-
          blockSet(id_part,nElts,n_faces, connec_faces_idx, 
                   connec_faces,connec_cells_idx,connec_cells,
                   NULL);
@@ -90,6 +87,7 @@ namespace cwipi {
                         int* connec_cells,
                         CWP_g_num_t* global_num) {
 
+     UNUSED(global_num );
      double* _cells_center_part = (double*)malloc (sizeof(double) * 3 * n_elts);
      double* faces_center_part = (double*)malloc (sizeof(double) * 3 * n_faces);
      double* coords = static_cast<Mesh*>(_mesh) -> getCoordinates(i_part);

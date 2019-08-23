@@ -1301,7 +1301,7 @@ CWP_Mesh_interf_block_std_set
  *
  */
 
-
+/*
 void 
 CWP_Mesh_interf_h_order_block_set
 (
@@ -1314,7 +1314,7 @@ CWP_Mesh_interf_h_order_block_set
  int                connec[],
  CWP_g_num_t        global_num[]
 );
-
+*/
 
 /**
  * \brief Set the connectivity of a polygon block in a mesh interface partition.
@@ -1409,7 +1409,7 @@ CWP_Mesh_interf_del
  * \param [in] fvmc_nodal        fvm nodal mes     
  *
  */
-
+/*
 void 
 CWP_Mesh_interf_shared_fvm_nodal
 (
@@ -1418,7 +1418,7 @@ CWP_Mesh_interf_shared_fvm_nodal
  const int     i_part,
  fvmc_nodal_t *fvmc_nodal
 );
-
+*/
 
 /**
  * \brief Define the volume interface mesh from a cell to face connectivity 

@@ -26,7 +26,7 @@
 
 #include <pdm_mesh_nodal.h>
 #include <bftc_error.h>
-
+#include "pdm_error.h"
 #include "block.hxx"
 #include "cwp.h"
 #include "visualization.hxx"
@@ -368,30 +368,6 @@ namespace cwipi {
     
     inline int* getEltConnectivity     (int id_block,int i_part);
  
-     /**
-    * \brief Get a block face connectivity index
-    *
-    * This function gets the face connectivity index of the id_block block.
-    *
-    * \param [in] id_block Block identifier
-    * \return              Face connectivity index of the id_block block
-    *
-    */
-    
-    inline int* getFaceConnectivityIndex(int id_block);
-
-    /**
-    * \brief Get a block face connectivity
-    *
-    * This function gets the face connectivity of the id_block block.
-    *
-    * \param [in] id_block Block identifier
-    * \return              Face connectivity of the id_block block
-    *
-    */
-
-    inline int* getFaceConnectivity     (int id_block);
-    
     /**
     * \brief True if coordinates are defined on all partitions False otherwise.
     *
@@ -428,7 +404,7 @@ namespace cwipi {
     *
     */
     
-   inline const MPI_Comm getMPIComm();
+   inline MPI_Comm getMPIComm();
    
    /**
     * \brief Return MPI communicator pointer
@@ -462,14 +438,11 @@ namespace cwipi {
    CWP_g_num_t* globalNumGet(int id_block,int i_part) {
       std::map<int,cwipi::Block*>::iterator it;
       it = _blockDB.find(id_block);
-   /*   if(it != _blockDB.end()) 
-        {Block* toto = it->second;
-         CWP_g_num_t* tata = toto -> GNumMeshGet(i_part,0);
-         
-         return tata;
-        }
-       else
-         printf("Pas trouvé\n");*/
+      if(it == _blockDB.end()) 
+        PDM_error(__FILE__, __LINE__, 0, "Block partition found.\n");
+      Block* block = it->second;
+      CWP_g_num_t* gnum = block -> GNumMeshGet(i_part);
+      return gnum;
    }
    
    void connecCompute(int i_part);   
@@ -506,6 +479,8 @@ namespace cwipi {
    
   private:
     
+    int _Mesh_nodal_block_std_type_size_get(CWP_Block_t type);
+
     const MPI_Comm                          &_localComm;              /*!< Communicator */
     PDM_MPI_Comm                             _pdm_localComm;
     int                                     _nDim;                   /*!< Entities dimensions */  
@@ -554,7 +529,7 @@ namespace cwipi {
     return _pdmNodal_handle_index;
   }
  
-  const MPI_Comm Mesh::getMPIComm() {
+  MPI_Comm Mesh::getMPIComm() {
     return _localComm;
   }
 
@@ -564,15 +539,7 @@ namespace cwipi {
 
 
   bool Mesh::coordsDefined () {
-  
-    bool ans = true;
-    /*for (int i=0;i<_npart;i++) {
-      if(_coords[i]==NULL) {
-        printf("coorde de %i is NULL\n",i);
-        ans = false;
-      }
-    }*/
-    return (_coords.size()==_npart);
+    return (_coords.size() == (size_t)_npart );
   }
 
 
@@ -608,10 +575,11 @@ namespace cwipi {
     return _nElts[id_part];
   }
 
-  int Mesh::getPartNPolyhedra(int i_part) const
+  /*int Mesh::getPartNPolyhedra(int i_part) const
   {
-   // return _nPolyhedra[i_part];
+    return _nPolyhedra[i_part];
   }
+  */
 
   int* Mesh::getEltConnectivityIndex(int id_block,int i_part)
   {
@@ -622,21 +590,6 @@ namespace cwipi {
   { 
     return _blockDB[id_block] -> ConnecGet()[i_part];
   }
-  
-  
-  inline int* Mesh::getFaceConnectivity(int id_block)
-  { 
- //   return _blocks[id_block]._connec_faces;
-  }
-
-  inline int* Mesh::getFaceConnectivityIndex(int id_block)
-  { 
-  //  return _blocks[id_block]._connec_faces_idx;
-  }
-
-
-
-
 
 }
 

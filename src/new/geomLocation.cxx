@@ -42,8 +42,8 @@ namespace cwipi {
   :Geometry::Geometry(),
    _targets_localization_idx(NULL),
    _targets_localization_data(NULL),
+   _targets_localization_idx_cpl(NULL),   
    _targets_localization_data_cpl(NULL),
-   _targets_localization_idx_cpl(NULL),
    _gnum_target(NULL),
    _coords_target(NULL),
    _n_vtx(NULL),
@@ -220,8 +220,6 @@ namespace cwipi {
 
 
   void GeomLocation::mesh_info_get() {
-
-    int tag=0;
     
     _n_tot_elt=0;
     _n_tot_vtx=0;   
@@ -280,7 +278,7 @@ void GeomLocation::mesh_cpl_info_get() {
          MPI_Sendrecv(&_n_g_vtx_over_part,1,MPI_LONG,_senderRank_cpl,tagsend,&_n_g_vtx_cpl_over_part,1,MPI_LONG,_senderRank_cpl,tagrecv,_unionComm,&status); 
       }
 
-      CWP_g_num_t tmp1,tmp2;
+      CWP_g_num_t tmp1;
       
       if(_id < _id_cpl) {
          MPI_Bcast(&_n_g_elt_cpl_over_part,1,MPI_LONG,_senderRank,_unionComm);
@@ -308,13 +306,13 @@ void GeomLocation::mesh_cpl_info_get() {
 
 
 
-  void GeomLocation::info_mesh(CWP_Field_exch_t _Texch_t) {
+  void GeomLocation::info_mesh(CWP_Field_exch_t Texch_t) {
 
     if(_both_codes_are_local == 0){
       if(_isCoupledRank)  mesh_info_get();
       mesh_cpl_info_get();
     }
-    else if(_Texch_t == CWP_FIELD_EXCH_SEND) {
+    else if(Texch_t == CWP_FIELD_EXCH_SEND) {
       mesh_info_get();  
       _geometry_cpl -> mesh_info_get();
 
@@ -412,7 +410,7 @@ void GeomLocation::mesh_cpl_info_get() {
       _geometry_cpl -> _geometry_cpl = this;
     }
     
-    int tmp1,tmp2;
+    int tmp1;
    
     if(_both_codes_are_local == 0 ){
       if(_id < _id_cpl) {
@@ -451,16 +449,10 @@ void GeomLocation::mesh_cpl_info_get() {
   }
   
 
-
-
-
-
-
   void* GeomLocation::interpolate(Field* referenceField) {
 
     int                 nComponent         = referenceField -> nComponentGet  ();
     CWP_Field_value_t   referenceFieldType = referenceField -> typeGet        ();
-    CWP_Field_storage_t storage            = referenceField -> storageTypeGet ();
     void               *interpolatedData   = referenceField -> sendBufferGet  ();
     int                 dataTypeSize       = referenceField -> dataTypeSizeGet(); 
     
@@ -489,8 +481,8 @@ void GeomLocation::mesh_cpl_info_get() {
             int interpInd = itarget;
           //  printf("iel %i itarget %i refData %f _n_tot_target_cpl %i\n",iel,itarget,referenceData[iel],_n_tot_target_cpl);
             for (int k = 0; k < nComponent; k++) {
-              memcpy( interpolatedData + dataTypeSize * ( nComponent*interpInd + k ) ,
-                      referenceData + dataTypeSize * ( nComponent*iel + k )          ,
+              memcpy( (char*)interpolatedData + dataTypeSize * ( nComponent*interpInd + k ) ,
+                      (char*)referenceData + dataTypeSize * ( nComponent*iel + k )          ,
                       dataTypeSize);
               //printf("interpolatedData[ nComponent*interpInd + k  ] %f i_part %i i_proc %i nComponent*interpInd + k %i nComponent*iel + k %i referenceData[nComponent*iel + k ] %f\n",
               //interpolatedData[ nComponent*interpInd + k  ],i_part,i_proc,nComponent*interpInd + k,nComponent*iel + k),referenceData[nComponent*iel + k ];
@@ -502,8 +494,6 @@ void GeomLocation::mesh_cpl_info_get() {
           int* connecIdx = _mesh -> connecIdxGet(i_part);
           int* connec    = _mesh -> connecGet(i_part);
           
-          int n_vtx      = _mesh -> getPartNVertex(i_part);
-          int n_elts     = _mesh -> getPartNElts(i_part);
           double* coords = _mesh -> getVertexCoords(i_part);
         /*  printf("_targets_localization_idx_cpl[%i][%i] rank %i %i %i\n",
           i_proc,i_part,_rank,_targets_localization_idx_cpl[i_proc][i_part],_targets_localization_idx_cpl[i_proc][i_part+1]);
@@ -525,21 +515,21 @@ void GeomLocation::mesh_cpl_info_get() {
               double *barCoords = NULL;
            /*   printf("iel %i itarget %i target %f %f %f _n_tot_target_cpl %i conneIDX \n",
               iel,itarget,x_target,y_target,z_target,_n_tot_target_cpl);*/
-              int conv_bar_compute = PDM_geom_elem_compute_polygon_barycentric_coordinates(1,
-                                          	    		                         &ielP1,
-                                                                			  tgtCoords,
-                                                         		                  connecIdx,
-                                                                   			  connec,
-                                                           				  coords,
-                                                  			                 &barCoordsIndex,
-                                                                  			 &barCoords
-                                                         				 );               
+              PDM_geom_elem_compute_polygon_barycentric_coordinates(1,
+                        	    		                    &ielP1,
+                                                                    tgtCoords,
+                                                         	    connecIdx,
+                                                                    connec,
+                                                           	    coords,
+                                                  		   &barCoordsIndex,
+                                                                   &barCoords
+                                                         	   );               
               for (int k = 0; k < nComponent; k++) {
                 value = 0.0;
                 for (int i_vtx = connecIdx[iel]; i_vtx < connecIdx[iel+1]; i_vtx++) {
-                   value +=  barCoords[i_vtx - connecIdx[iel] ] * (*(double*)( referenceData + dataTypeSize * (nComponent * (connec[i_vtx]-1) + k) ) );
+                   value +=  barCoords[i_vtx - connecIdx[iel] ] * (*(double*)( (char*)referenceData + dataTypeSize * (nComponent * (connec[i_vtx]-1) + k) ) );
                 }
-                memcpy(interpolatedData + dataTypeSize * ( nComponent * interpInd + k), &value, dataTypeSize);
+                memcpy((char*)interpolatedData + dataTypeSize * ( nComponent * interpInd + k), &value, dataTypeSize);
               }//end k component loop
               
               if(barCoordsIndex != NULL) free(barCoordsIndex);
@@ -548,7 +538,7 @@ void GeomLocation::mesh_cpl_info_get() {
             else {
               for (int k = 0; k < nComponent; k++) {
                 value = 1000.0;
-                memcpy(interpolatedData + dataTypeSize * ( nComponent * interpInd + k), &value, dataTypeSize);
+                memcpy((char*)interpolatedData + dataTypeSize * ( nComponent * interpInd + k), &value, dataTypeSize);
               }
             }
           } // loop on itarget
@@ -604,7 +594,7 @@ void GeomLocation::issend(Field* referenceField) {
        referenceField -> lastRequestAdd(tag,request);
   }  
   
-void GeomLocation::exchange_null() {
+void GeomLocation::null_exchange_for_uncoupled_process() {
 
      int* displ_send = (int*)malloc(sizeof(int)*_n_ranks_g);
      int* count_send = (int*)malloc(sizeof(int)*_n_ranks_g);
@@ -640,7 +630,7 @@ void GeomLocation::exchange_null() {
   }  
   
   
-void GeomLocation::both_exchange(Field* referenceField,Field* recevingField) {
+  void GeomLocation::both_codes_on_the_same_process_exchange(Field* referenceField,Field* recevingField) {
 
       /* Sending section */
       
@@ -670,7 +660,7 @@ void GeomLocation::both_exchange(Field* referenceField,Field* recevingField) {
      }
 
      int  dataTypeSize_recv = recevingField -> dataTypeSizeGet(); 
-     recevingField -> ReceptionBufferCreation(_idx_target, _geometry_cpl  -> _n_tot_target);
+     recevingField -> ReceptionBufferCreation(_geometry_cpl  -> _n_tot_target);
 
      void* recv_ptr = recevingField -> recvBufferGet();
 
@@ -751,7 +741,6 @@ void GeomLocation::both_exchange(Field* referenceField,Field* recevingField) {
     }
     else {
       for(int i_part =0; i_part<_nb_part_cpl; i_part++) {  
-        Mesh* mesh_cpl = _geometry_cpl -> _mesh;
         int          n_target_cpl      = _geometry_cpl -> _n_target     [i_part];
         CWP_g_num_t* gnum_target_cpl   = _geometry_cpl -> _gnum_target  [i_part];
         double*      coords_target_cpl = _geometry_cpl -> _coords_target[i_part];
@@ -944,9 +933,6 @@ void GeomLocation::localization_null_setting(int* id_dist) {
   }     
   else {
     for(int i_part =0; i_part<_nb_part_cpl; i_part++) {       
-      CWP_g_num_t* gnum_target_cpl = _geometry_cpl -> _gnum_target[i_part];
-      int          n_target_cpl    = _geometry_cpl -> _n_target   [i_part];
-
       Mesh* mesh_cpl = _geometry_cpl -> _mesh;
       CWP_g_num_t* gnum_elt_cpl = mesh_cpl -> GNumEltsGet(i_part);     
       int          n_elt_cpl    = mesh_cpl -> getPartNElts(i_part);
@@ -963,7 +949,6 @@ void GeomLocation::localization_null_setting(int* id_dist) {
 
   for(int i_part =0;i_part<_nb_part;i_part++) {    
 
-    CWP_g_num_t* gnum_target = _gnum_target[i_part];
     CWP_g_num_t* gnum_elt = _mesh -> GNumEltsGet(i_part);     
     /*printf("rank %i _n_elt[%i]  _nb_part %i _nb_part_cpl %i _both_codes_are_local %i %i\n",
     _rank,i_part,_nb_part,_nb_part_cpl,_both_codes_are_local,_n_g_vtx_cpl_over_part);
@@ -981,9 +966,6 @@ void GeomLocation::localization_null_setting(int* id_dist) {
   else {
     for(int i_part =0; i_part<_nb_part_cpl; i_part++) {     
       int n_target_cpl = _geometry_cpl -> _n_target[i_part];
-      double*      coords_target        =  _geometry_cpl ->  _coords_target  [i_part];
-      CWP_g_num_t* closest_elt          =  _geometry_cpl -> _closest_elt_gnum[i_part];
-      double* dist_target               =  _geometry_cpl -> _distance        [i_part];
    //   CWP_g_num_t* toto= ((*_geometry_cpl)._closest_elt_gnum)[i_part];
      // double* tata= ((*_geometry_cpl)._distance)[i_part];
     //   for(int i=0; i< n_target_cpl; i++) {
@@ -1121,11 +1103,6 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
 
  void GeomLocation::filling_of_broadcasting_array() {
 
-
-   PDM_timer_t *t1 = PDM_timer_create();
-   PDM_timer_init(t1);
-   PDM_timer_resume(t1);  
-
    if(_targets_localization_idx==NULL) {
     _targets_localization_idx   =(int**)malloc(sizeof(int*)*_n_ranks_g);
     for (int i_proc = 0; i_proc < _n_ranks_g; i_proc++) 
@@ -1136,7 +1113,7 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
    for (int i_proc = 0; i_proc < _n_ranks_g; i_proc++) {
      if(_targets_localization_idx [i_proc] == NULL) 
        _targets_localization_idx [i_proc]=(int*)malloc(sizeof(int)*(1+_nb_part_cpl));
-       _process_and_partition_count [i_proc]=(int*)malloc(sizeof(int)*(1+_nb_part_cpl));
+     _process_and_partition_count [i_proc]=(int*)malloc(sizeof(int)*(1+_nb_part_cpl));
      for (int i_part = 0; i_part < _nb_part_cpl+1; i_part++) {
        _targets_localization_idx [i_proc][i_part]=0;
        _process_and_partition_count [i_proc][i_part]=0;
@@ -1222,17 +1199,6 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
     free(_projected);
     free(_closest_elt_gnum);
     
-       PDM_timer_hang_on(t1);
-   double elapsAlltoAll = PDM_timer_elapsed(t1);
-   double elapsAlltoAllMax = 0.0;   
-   //MPI_Reduce(&elapsAlltoAll, &elapsAlltoAllMax, 1, MPI_DOUBLE, MPI_MAX,0,_connectableComm);
-   int rankconn;
-   MPI_Comm_rank(_connectableComm,&rankconn);
-   if (rankconn==0) {
-        printf ("Filling Time : %12.5e \n",elapsAlltoAllMax);
-   }
-    
-    
  }
 
  void GeomLocation:: initialization_of_reception_array() {
@@ -1255,32 +1221,19 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
 
  void GeomLocation::broadcasting_index_null() {
  
-    int tag = -1;
-    if(_geometryLocation == CWP_FIELD_VALUE_CELL_POINT)
-      tag = 1520;
-    else if(_geometryLocation == CWP_FIELD_VALUE_NODE)
-      tag = 1530;
-
    std::vector<int> connectable = *_connectableRanks_cpl;
-   int id     = _localCodeProperties -> idGet();
-   int id_cpl = _coupledCodeProperties -> idGet();
-
-
-
-  // MPI_Barrier(_unionComm);
-
 
    MPI_Request request;
    int* sbuffer = NULL;
    int* recvbuffer = NULL;
    if(_Texch_t == CWP_FIELD_EXCH_SEND){
    
-     int* sbuffer = (int*) malloc(sizeof(int)*_n_ranks_g*_nb_part);
+     sbuffer = (int*) malloc(sizeof(int)*_n_ranks_g*_nb_part);
      for(int i_proc=0;i_proc<_n_ranks_g;i_proc++)
        for(int i_part=0;i_part<_nb_part;i_part++)
          sbuffer[ i_proc * _nb_part + i_part ] = 0;  
           
-     int* recvbuffer = (int*) malloc(sizeof(int)*_n_ranks_g*_nb_part);
+     recvbuffer = (int*) malloc(sizeof(int)*_n_ranks_g*_nb_part);
    
      MPI_Ialltoall(sbuffer, _nb_part, MPI_INT, 
                    recvbuffer, _nb_part, MPI_INT,
@@ -1288,7 +1241,6 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
                    
    }
    else if(_Texch_t == CWP_FIELD_EXCH_RECV) {
-   
      sbuffer = (int*) malloc(sizeof(int)*_n_ranks_g*_nb_part_cpl);
      for(int i_proc=0;i_proc<_n_ranks_g;i_proc++)
        for(int i_part=0;i_part<_nb_part_cpl;i_part++)
@@ -1314,12 +1266,6 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
 
  void GeomLocation::both_index_communication() {
 
-    int tag = -1;
-    if(_geometryLocation == CWP_FIELD_VALUE_CELL_POINT)
-      tag = 1520;
-    else if(_geometryLocation == CWP_FIELD_VALUE_NODE)
-      tag = 1530;
-
    int* sbuffer = (int*) malloc(sizeof(int)*_n_ranks_g * _nb_part );
    for(int i_proc=0;i_proc<_n_ranks_g;i_proc++)
      for(int i_part=0;i_part< _nb_part; i_part++) {
@@ -1327,11 +1273,6 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
      }
 
    int* recvbuffer = (int*) malloc(sizeof(int)*_n_ranks_g*_nb_part);
-  // MPI_Barrier(_unionComm);
-   
-   PDM_timer_t *t1 = PDM_timer_create();
-   PDM_timer_init(t1);
-   PDM_timer_resume(t1);  
    
    MPI_Request sreq;
    
@@ -1343,21 +1284,9 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
    MPI_Status stat;
    MPI_Wait(&sreq,&stat);
 
-   PDM_timer_hang_on(t1);
-   double elapsAlltoAll = PDM_timer_elapsed(t1);
-   double elapsAlltoAllMax = 0.0;   
-   //MPI_Reduce(&elapsAlltoAll, &elapsAlltoAllMax, 1, MPI_DOUBLE, MPI_MAX,0,_connectableComm);
-   int rankconn;
-   MPI_Comm_rank(_connectableComm,&rankconn);
-   
-   
    for(int i_proc=0;i_proc<_n_ranks_g;i_proc++)
      for(int i_part=0;i_part<_nb_part;i_part++) 
        _targets_localization_idx_cpl[i_proc][i_part] = recvbuffer[ i_proc * _nb_part + i_part ];   
-   
-   if (rankconn==0) {
-        printf ("AlltoAllSend Time : %12.5e %i\n",elapsAlltoAllMax,_n_ranks_g);
-   }
    
    free(sbuffer   );
    free(recvbuffer   );
@@ -1367,16 +1296,6 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
 
  void GeomLocation::broadcasting_index_communication() {
  
- 
-    int tag = -1;
-    if(_geometryLocation == CWP_FIELD_VALUE_CELL_POINT)
-      tag = 1520;
-    else if(_geometryLocation == CWP_FIELD_VALUE_NODE)
-      tag = 1530;
-
-   int id     = _localCodeProperties -> idGet();
-   int id_cpl = _coupledCodeProperties -> idGet();
-
    int* sbuffer = (int*) malloc(sizeof(int)*_n_ranks_g*_nb_part_cpl);
    for(int i_proc=0;i_proc<_n_ranks_g;i_proc++)
      for(int i_part=0;i_part<_nb_part_cpl;i_part++) {
@@ -1384,11 +1303,6 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
      }
 
    int* recvbuffer_trash = (int*) malloc(sizeof(int)*_n_ranks_g*_nb_part_cpl);
-   //MPI_Barrier(_unionComm);
-   
-   PDM_timer_t *t1 = PDM_timer_create();
-   PDM_timer_init(t1);
-   PDM_timer_resume(t1);  
    
    MPI_Request sreq;
    
@@ -1399,18 +1313,6 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
    
    MPI_Status stat;
    MPI_Wait(&sreq,&stat);
-
-   PDM_timer_hang_on(t1);
-   double elapsAlltoAll = PDM_timer_elapsed(t1);
-   double elapsAlltoAllMax = 0.0;   
-  // MPI_Reduce(&elapsAlltoAll, &elapsAlltoAllMax, 1, MPI_DOUBLE, MPI_MAX,0,_connectableComm);
-   int rankconn;
-   MPI_Comm_rank(_connectableComm,&rankconn);
-   
-   
-   if (rankconn==0) {
-   //     printf ("AlltoAllSend Time : %12.5e %i\n",elapsAlltoAllMax,_n_ranks_g);
-   }
    
    free(sbuffer   );
    free(recvbuffer_trash   );
@@ -1418,15 +1320,8 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
 
 
  void GeomLocation::reception_index_communication() {
-    int tag = -1;
-    if(_geometryLocation == CWP_FIELD_VALUE_CELL_POINT)
-      tag = 1520;
-    else if(_geometryLocation == CWP_FIELD_VALUE_NODE)
-      tag = 1530;
 
    std::vector<int> connectable = *_connectableRanks_cpl;
-   int id     = _localCodeProperties -> idGet();
-   int id_cpl = _coupledCodeProperties -> idGet();
 
    int* recvbuffer = (int*) malloc(sizeof(int)*_n_ranks_g*_nb_part);
    for(int i_proc=0;i_proc<_n_ranks_g;i_proc++)
@@ -1439,12 +1334,6 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
      for(int i_part=0;i_part<_nb_part;i_part++) {
        sendbuffer_trash[ i_proc * _nb_part + i_part ] = 0;   
      }
-     
-   //MPI_Barrier(_unionComm);
-   
-   PDM_timer_t *t1 = PDM_timer_create();
-   PDM_timer_init(t1);
-   PDM_timer_resume(t1);  
    
    MPI_Request rreq;
    
@@ -1455,17 +1344,6 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
    MPI_Status stat;
    MPI_Wait(&rreq,&stat);
 
-   PDM_timer_hang_on(t1);
-   double elapsAlltoAll = PDM_timer_elapsed(t1);
-   double elapsAlltoAllMax = 0.0;   
-   //MPI_Reduce(&elapsAlltoAll, &elapsAlltoAllMax, 1, MPI_DOUBLE, MPI_MAX,0,_connectableComm);
-   
-   int rankconn;
-   MPI_Comm_rank(_connectableComm,&rankconn);
-   
-   if (rankconn==0) {
-        printf ("AlltoAllRecv Time : %12.5e \n",elapsAlltoAllMax);
-   }
    
    for(int i_proc=0;i_proc<_n_ranks_g;i_proc++)
      for(int i_part=0;i_part<_nb_part;i_part++) {
@@ -1670,7 +1548,7 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
 
     int  dataTypeSize       = recevingField -> dataTypeSizeGet(); 
     //Crée un buffer de réception et le stocke (alloue)
-    recevingField -> ReceptionBufferCreation(_idx_target,_n_tot_target);
+    recevingField -> ReceptionBufferCreation(_n_tot_target);
     /* Loop on possibly intersecting distant ranks */
     /*---------------------------------------------*/
 
@@ -1726,7 +1604,6 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
     void*              recvData          = recevingField -> recvBufferGet  ();
     int                nComponent        = recevingField -> nComponentGet  ();
     int                dataTypeSize      = recevingField -> dataTypeSizeGet(); 
-    CWP_Field_value_t  recevingFieldType = recevingField -> typeGet        ();
 
     //Reorganize by partition datas which are organized by sending processp
     std::vector<void*> userDataMem (_nb_part,NULL);
@@ -1746,18 +1623,18 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
         if(_targets_localization_data[itarget].distance != INFINITY) {
           //Index of the corresponding local reference Data.
           for (int k = 0; k < nComponent; k++) {
-            memcpy(userDataMem[lpart] + dataTypeSize * ( nComponent * iel + k ) ,
-                    recvData + dataTypeSize * ( nComponent * interpInd + k ),
+            memcpy((char*)userDataMem[lpart] + dataTypeSize * ( nComponent * iel + k ) ,
+                    (char*)recvData + dataTypeSize * ( nComponent * interpInd + k ),
                     dataTypeSize);
           }//loop on k
         }
         else {
           n_uncomputed_tgt[lpart]++;
           for (int k = 0; k < nComponent; k++) {
-            memcpy(userDataMem[lpart] + dataTypeSize * ( nComponent * iel + k ) ,
-                   recvData + dataTypeSize * ( nComponent * interpInd + k ),
+            memcpy((char*)userDataMem[lpart] + dataTypeSize * ( nComponent * iel + k ) ,
+                   (char*)recvData + dataTypeSize * ( nComponent * interpInd + k ),
                    dataTypeSize);
-           *( (double*) (userDataMem[lpart] + dataTypeSize * ( nComponent * iel + k ) ) ) = -1.0;
+           *( (double*) ((char*)userDataMem[lpart] + dataTypeSize * ( nComponent * iel + k ) ) ) = -1.0;
           }//loop on k
         }
       }// loop on itarget
@@ -1781,7 +1658,6 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
     
     MPI_Wait(&request, &status);
 
-    int nComponent = sendingField -> nComponentGet();
     if(_visu -> isCreated()) {
        _visu -> WriterField(sendingField);
     }

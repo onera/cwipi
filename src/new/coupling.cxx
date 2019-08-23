@@ -103,22 +103,19 @@ namespace cwipi {
    )
   :_cplId(cplId),
    _commType(cplType),
-   _displacement(displacement),
    _communication(*(FC::getInstance().CreateObject(cplType))),
    _localCodeProperties(localCodeProperties),
    _coupledCodeProperties(coupledCodeProperties),
+   _geometry(*new std::map <CWP_Field_value_t, Geometry*>()),   
+   _mesh(*new Mesh(localCodeProperties.connectableCommGet(),NULL,nPart,displacement)),   
    _recvFreqType (recvFreqType),
-   _cplDB(cplDB),
+   _visu(*new Visu(localCodeProperties.connectableCommGet(),displacement)),    
    _fields(*(new map < string, Field * >())),  
-   _visu(*new Visu(localCodeProperties.connectableCommGet(),displacement)), 
-   _mesh(*new Mesh(localCodeProperties.connectableCommGet(),NULL,nPart,displacement)),
-   _geometry(*new std::map <CWP_Field_value_t, Geometry*>()),
-   _iteration(new int)
+   _cplDB(cplDB),
+   _iteration(new int),
+   _displacement(displacement)
   {
 
-    int id     = localCodeProperties.idGet();
-    int id_cpl = coupledCodeProperties.idGet();
-    
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
@@ -234,7 +231,7 @@ namespace cwipi {
   (string &sendingFieldID) {
 
    
-     std:map <std::string, Field *>::iterator it;
+     map <string, Field *>::iterator it;
      it = _fields.find(sendingFieldID);
 
      if (it != _fields.end()) {
@@ -249,12 +246,12 @@ namespace cwipi {
           map <std::string, Field *>::iterator it_recv = distCpl._fields.find(sendingFieldID);
           if (it_recv != distCpl._fields.end()) {
             Field* recevingField = it_recv -> second;   
-            _geometry[sendingField -> typeGet()] -> both_exchange(sendingField,recevingField);
+            _geometry[sendingField -> typeGet()] -> both_codes_on_the_same_process_exchange(sendingField,recevingField);
           }
         }
        }
        else {
-          _geometry[sendingField -> typeGet()] -> exchange_null();
+          _geometry[sendingField -> typeGet()] -> null_exchange_for_uncoupled_process();
        }
      }
   }
@@ -262,18 +259,14 @@ namespace cwipi {
   void 
   Coupling::irecv
   (string &recevingFieldID) {
-
-     
-       std:map <std::string, Field *>::iterator it;
-       it = _fields.find(recevingFieldID);
-
+       map <string, Field *>::iterator it = _fields.find(recevingFieldID);
        if (it != _fields.end()) {
          Field* recevingField = it -> second;   
          if(_geometry[recevingField -> typeGet()] -> _both_codes_are_local == 0 ){
            if(_localCodeProperties.isCoupledRank())
              _geometry[recevingField -> typeGet()] -> irecv(recevingField);
            else
-             _geometry[recevingField -> typeGet()] -> exchange_null();
+             _geometry[recevingField -> typeGet()] -> null_exchange_for_uncoupled_process();
          }
          return;
        }
@@ -286,16 +279,11 @@ namespace cwipi {
    const string &field_id
   )
   {
-  
     map<string,Field*>::iterator It = _fields.find(field_id.c_str());  
-    if(It!=_fields.end()) 
-      return It->second->nComponentGet();
-    
     if (It == _fields.end()) {
-      bftc_error(__FILE__, __LINE__, 0,
-                 "'%s' not existing field\n", field_id.c_str());
+       PDM_error(__FILE__, __LINE__, 0, "'%s' not existing field\n", field_id.c_str());
     }
-    
+    return It->second->nComponentGet();
   }
 
   bool 
@@ -366,8 +354,7 @@ namespace cwipi {
     const int  i_part
   )
   {
-    _geometry[geometryLocation] -> nUncomputedTargetsGet(i_part);
-  
+    return _geometry[geometryLocation] -> nUncomputedTargetsGet(i_part);
   }
 
 
@@ -378,7 +365,7 @@ namespace cwipi {
    )
    {
         
-     std:map <std::string, Field *>::iterator it;
+     map <string, Field *>::iterator it;
      it = _fields.find(sendingFieldID);
 
      if (it != _fields.end()) {
@@ -400,7 +387,7 @@ namespace cwipi {
          }
        }
        else{
-         _geometry[sendingField -> typeGet()] -> exchange_null();
+         _geometry[sendingField -> typeGet()] -> null_exchange_for_uncoupled_process();
        }
      }
    }
@@ -412,7 +399,7 @@ namespace cwipi {
     string &recevingFieldID
    )
    {
-     std:map <std::string, Field *>::iterator it;
+     map <string, Field *>::iterator it;
      it = _fields.find(recevingFieldID);
 
      if (it != _fields.end()) {
@@ -550,7 +537,7 @@ namespace cwipi {
     
   int Coupling::meshBlockAdd
     (const CWP_Block_t     block_type){
-      _mesh.blockAdd(block_type);
+     return _mesh.blockAdd(block_type);
     }
     
     
@@ -570,7 +557,7 @@ namespace cwipi {
                           global_num
                         );
   }
-  
+/*  
   void Coupling::meshHighOrderBlockSet
     (
      const int           i_part,
@@ -582,7 +569,7 @@ namespace cwipi {
     {
     
     }
-  
+  */
   void Coupling::meshFPolyBlockSet
     (
      const int            i_part,
@@ -630,11 +617,14 @@ namespace cwipi {
    }
   
   
-  void Coupling::fvmcNodalShared(const int           i_part,
+ /* void Coupling::fvmcNodalShared(const int           i_part,
                       fvmc_nodal_t        *fvmc_nodal)
   {
     
   }
+  
+  
+*/
 
 
   void Coupling::meshFinalize() {
@@ -695,14 +685,10 @@ namespace cwipi {
                          const char             *format_option
                          ) 
     {
-      int max_codename_length = 150;
-
       string CodeName = _localCodeProperties.nameGet();
       string cplCodeName = _coupledCodeProperties.nameGet();
       string cplId = IdGet();
       
-      int local_rank = -1;
-
       string visuDir = "cwipi";
       char output_name [CodeName.length()];
       char output_dir   [visuDir.length() + 1 + cplId.length() + 1 + CodeName.length() + 1 + cplCodeName.length()];
@@ -725,7 +711,7 @@ namespace cwipi {
 
  void Coupling::recvNextTimeSet (double next_time) {
    
-   if(_visu.isCreated() and _visu.physicalTimeGet() != -1) {
+   if(_visu.isCreated() and _visu.physicalTimeGet() > -1.0) {
        _visu.WriterStepEnd();
    }
    

@@ -53,7 +53,7 @@ namespace cwipi {
       *
       */
          
-      virtual ~BlockStd();
+      ~BlockStd();
     
       /**
        * \brief Set a CWIPI block in a partition
@@ -65,7 +65,7 @@ namespace cwipi {
        *
        */    
    
-       virtual void blockSet(int i_part,int n_elts,int* connec,CWP_g_num_t* global_num);
+       void blockSet(int i_part,int n_elts,int* connec,CWP_g_num_t* global_num);
 
       /**
        * \brief Add and Set the CWIPI block from a Paradigm block 
@@ -76,7 +76,7 @@ namespace cwipi {
        *
        */      
        
-       virtual void FromPDMBlock(int pdm_id_block, void* mesh);
+       void FromPDMBlock(int pdm_id_block, void* mesh);
        
        /**
         *
@@ -86,7 +86,7 @@ namespace cwipi {
         *
         */
      
-        inline virtual std::map<int,int*>  ConnecGet();
+        inline std::map<int,int*>  ConnecGet();
        
            
     private:

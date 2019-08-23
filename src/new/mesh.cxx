@@ -32,38 +32,6 @@
 
 
 
-    int _Mesh_nodal_block_std_type_size_get(CWP_Block_t type) {
-   
-      
-      switch (type) {
-
-       case CWP_BLOCK_NODE: return 1;
-       break;
-       
-       case CWP_BLOCK_EDGE2: return 2;
-       break;
-                        
-       case CWP_BLOCK_FACE_TRIA3: return 3;
-       break;
-
-       case CWP_BLOCK_FACE_QUAD4: return 4;
-       break;
-                       
-       case CWP_BLOCK_CELL_TETRA4: return 4;
-       break;
-
-       case CWP_BLOCK_CELL_HEXA8: return 8;
-       break;
-
-       case CWP_BLOCK_CELL_PYRAM5: return 5;
-       break;
- 
-       case CWP_BLOCK_CELL_PRISM6: return 6;
-       break;
-       
-      }
-   }
-
 
 namespace cwipi {
 
@@ -89,15 +57,13 @@ namespace cwipi {
     * \param [in] npart Number of mesh partitions.
     *
     */
-     
-
 
   Mesh::Mesh(const MPI_Comm &localComm,
              Visu* visu,
              const int npart,
              const CWP_Displacement_t displacement) 
              : _localComm(localComm),
-               _nDim(-1), _order(-1),_nBlocks(0),
+               _nDim(-1),_nBlocks(0), _order(-1),
                _pdmGNum_handle_index(-1),
                 //_hoOrdering (NULL),
                _pdmNodal(NULL),_visu(visu),
@@ -130,10 +96,44 @@ namespace cwipi {
 
 
 
+    int Mesh::_Mesh_nodal_block_std_type_size_get(CWP_Block_t type) {
+      
+      switch (type) {
+
+       case CWP_BLOCK_NODE: return 1;
+       break;
+       
+       case CWP_BLOCK_EDGE2: return 2;
+       break;
+                        
+       case CWP_BLOCK_FACE_TRIA3: return 3;
+       break;
+
+       case CWP_BLOCK_FACE_QUAD4: return 4;
+       break;
+                       
+       case CWP_BLOCK_CELL_TETRA4: return 4;
+       break;
+
+       case CWP_BLOCK_CELL_HEXA8: return 8;
+       break;
+
+       case CWP_BLOCK_CELL_PYRAM5: return 5;
+       break;
+ 
+       case CWP_BLOCK_CELL_PRISM6: return 6;
+       break;
+       
+       default: return -1;
+                PDM_error(__FILE__, __LINE__, 0, "This CWP_Block_t is not available as function argument.\n");     
+       
+      }
+   }
+
+
 
   void Mesh::eltCentersCompute(int i_part){
 
-      int nb_part = getNPart();
       int n_elt_part = getPartNElts(i_part);
 
       if(_elt_centers[i_part] == NULL)
@@ -143,7 +143,6 @@ namespace cwipi {
       int ind_idx=0;
       for(int i=0;i<_nBlocks;i++){
         int id_block = _blocks_id[i];
-        CWP_Block_t  block_type = Mesh_nodal_block_type_get  (id_block );
         int n_elt = _blockDB[id_block] -> NEltsGet()[i_part];
 
           const double* elt_centers_block = _blockDB[id_block] -> eltCentersGet(i_part);
@@ -154,14 +153,10 @@ namespace cwipi {
             }
             ind_idx++;
           }//end loop j
-          
       }//end loop on block
-
   }
   
   void Mesh::connecCompute(int i_part){
-
-        int nb_part = getNPart();
         int n_elt_part = getPartNElts(i_part);
 
         int connec_size=0;
@@ -377,42 +372,44 @@ namespace cwipi {
    CWP_Block_t Mesh::Mesh_nodal_block_type_get(const int id_block) {
    
       PDM_Mesh_nodal_elt_t pdm_id_block = PDM_Mesh_nodal_block_type_get(_pdmNodal_handle_index,id_block);
+      CWP_Block_t block_type;                                                     
       switch (pdm_id_block) {
 
-       case PDM_MESH_NODAL_POINT: return CWP_BLOCK_NODE;
+       case PDM_MESH_NODAL_POINT: block_type = CWP_BLOCK_NODE;
        break;
        
-       case PDM_MESH_NODAL_BAR2: return CWP_BLOCK_EDGE2;
+       case PDM_MESH_NODAL_BAR2: block_type = CWP_BLOCK_EDGE2;
        break;
                         
-       case PDM_MESH_NODAL_TRIA3: return CWP_BLOCK_FACE_TRIA3;
+       case PDM_MESH_NODAL_TRIA3: block_type = CWP_BLOCK_FACE_TRIA3;
        break;
 
-       case PDM_MESH_NODAL_QUAD4: return CWP_BLOCK_FACE_QUAD4;
+       case PDM_MESH_NODAL_QUAD4: block_type = CWP_BLOCK_FACE_QUAD4;
        break;
                        
-       case PDM_MESH_NODAL_TETRA4: return CWP_BLOCK_CELL_TETRA4;
+       case PDM_MESH_NODAL_TETRA4: block_type = CWP_BLOCK_CELL_TETRA4;
        break;
 
-       case PDM_MESH_NODAL_POLY_2D: return CWP_BLOCK_FACE_POLY;
+       case PDM_MESH_NODAL_POLY_2D: block_type = CWP_BLOCK_FACE_POLY;
        break;
        
-       case PDM_MESH_NODAL_HEXA8: return CWP_BLOCK_CELL_HEXA8;
+       case PDM_MESH_NODAL_HEXA8: block_type = CWP_BLOCK_CELL_HEXA8;
        break;
 
-       case PDM_MESH_NODAL_PYRAMID5: return CWP_BLOCK_CELL_PYRAM5;
+       case PDM_MESH_NODAL_PYRAMID5: block_type = CWP_BLOCK_CELL_PYRAM5;
        break;
        
-       case PDM_MESH_NODAL_PRISM6: return CWP_BLOCK_CELL_PRISM6;
+       case PDM_MESH_NODAL_PRISM6: block_type = CWP_BLOCK_CELL_PRISM6;
        break;
        
-       case PDM_MESH_NODAL_POLY_3D: return CWP_BLOCK_CELL_POLY;
+       case PDM_MESH_NODAL_POLY_3D: block_type = CWP_BLOCK_CELL_POLY;
        break;
        
+       default: block_type = CWP_BLOCK_NODE;
+                PDM_error(__FILE__, __LINE__, 0, "No referenced PDM_Mesh_nodal_elt_t.\n");
       }
+      return block_type;
    }
-  
-  
   
   void Mesh::stdBlockSet( const int              i_part,
                           const int              block_id,
@@ -482,7 +479,6 @@ namespace cwipi {
     std::map<int,cwipi::Block*>::iterator it = _blockDB.begin();
     while(it != _blockDB.end()) {
       for(int i_part =0;i_part<_npart;i_part++) {    
-         int block_id = it -> second -> blockIDGet();
          CWP_g_num_t* global_num = it -> second -> GNumMeshGet(i_part);
          if(global_num == NULL) g_num_computation_required = 1;    
          if(g_num_computation_required == 1) break;
@@ -493,7 +489,7 @@ namespace cwipi {
 
     if(g_num_computation_required == 1) {
       PDM_Mesh_nodal_g_num_in_mesh_compute(_pdmNodal_handle_index);
-      std::map<int,cwipi::Block*>::iterator it = _blockDB.begin();
+      it = _blockDB.begin();
       
       while(it != _blockDB.end()) {
         for(int i_part =0;i_part<_npart;i_part++) {
@@ -526,6 +522,7 @@ namespace cwipi {
                               int                    connec_cells[], 
                               CWP_g_num_t            global_num[]
                             ) {
+     UNUSED(global_num);
      if(_coords[i_part]==NULL) bftc_error(__FILE__, __LINE__, 0, 
             "Set the partition coordinates vertices before finalizing.\n");
      
@@ -589,6 +586,7 @@ namespace cwipi {
                         int         face_vtx_idx[],
                         int         face_vtx[],
                         CWP_g_num_t global_num[]) {
+       UNUSED(global_num);
        int face_vtx_nb[n_faces];
        for (int i=0;i<n_faces;i++)
          {
@@ -623,6 +621,7 @@ namespace cwipi {
                                  int         edge_vtx_idx[],
                                  int         edge_vtx[],
                                  CWP_g_num_t global_num[]) {
+       UNUSED(global_num);
        int edge_vtx_nb[n_edges];
        for (int i=0;i<n_edges;i++)
          {

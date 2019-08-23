@@ -48,7 +48,7 @@ namespace cwipi {
      _pdmNodal_handle_index = static_cast<Mesh*>(mesh) -> getPdmNodalIndex();
      _localComm            = const_cast<MPI_Comm*>(static_cast<Mesh*>(mesh) -> getMPICommP());
      
-      PDM_Mesh_nodal_elt_t PDM_block_type = PDM_Mesh_nodal_block_type_get(_pdmNodal_handle_index,pdm_id_block);
+     PDM_Mesh_nodal_elt_t PDM_block_type = PDM_Mesh_nodal_block_type_get(_pdmNodal_handle_index,pdm_id_block);
      _blockType = CwpBlockTypeFromPdmBlockType (PDM_block_type); 
      BlockAdd(_blockType, mesh);
      
@@ -65,9 +65,6 @@ namespace cwipi {
                                           &connec_idx,
                                           &connec);
                                        
-         PDM_Mesh_nodal_elt_t PDM_block_type = PDM_Mesh_nodal_block_type_get(_pdmNodal_handle_index,
-                                                                              pdm_id_block);
-
          blockSet(id_part,nElts,connec_idx,connec,NULL);         
        }
 
@@ -96,9 +93,6 @@ namespace cwipi {
      _cells_center[i_part] = _cells_center_part;
      _connec     .insert    ( std::pair < int, int* > (i_part,connec));
      _connec_idx.insert     ( std::pair < int, int* > (i_part,connec_idx));
-
-     int* _blocks_id = PDM_Mesh_nodal_blocks_id_get(_pdmNodal_handle_index);
-
 
      if (not inPDMDB() ) 
          PDM_Mesh_nodal_block_poly2d_set (_pdmNodal_handle_index,

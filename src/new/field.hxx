@@ -214,13 +214,11 @@ namespace cwipi {
     }
     
 
-    void ReceptionBufferCreation(std::vector<int> nLocatedTargets,int TotLocatedTargets) {
+    void ReceptionBufferCreation(int TotLocatedTargets) {
         std::ostringstream strs;
         
         strs <<"interp"<<_fieldID<<"_"<<_iteration;
         std::string fieldID = strs.str();
-        int* iteration = new int (*_iteration);
-        double* physTime = new double (*_physTime); 
         
         //On alloue l'espace pour la réception si pas déjà fait                                               
         if(_recvBuffer == NULL) {
