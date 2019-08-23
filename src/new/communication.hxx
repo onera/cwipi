@@ -128,7 +128,7 @@ namespace cwipi {
      * \brief Synchronise
      *
      */
-
+/*
     virtual void
     sync
     (
@@ -136,7 +136,7 @@ namespace cwipi {
      MPI_Datatype mpiType, 
      int tabSize
     ) = 0;
-
+*/
   protected :
 
     /**

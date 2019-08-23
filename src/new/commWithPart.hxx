@@ -68,13 +68,13 @@ namespace cwipi {
      *
      */
 
-    virtual void
+  /*  virtual void
     sync
     (
      void *tab, 
      MPI_Datatype mpiType, 
      int tabSize
-    );
+    );*/
 
   private :
 

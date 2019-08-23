@@ -25,17 +25,32 @@
 #include <unistd.h> 
 #include <stdio.h>
 #include "field.hxx"
+#define UNUSED(x) (void)(x)
 
 namespace cwipi {
 
+    int                  _visu_id;      /*!< Visualization identifier */
+    int                  _visu_mesh_id; /*!< Visualization identifier */
+    int                  _freq;         /*!< Visualization frequency */
+    char                *_output_dir;   /*!< Output directory */
+    char                *_output_name;  /*!< Output Name */
+    PDM_MPI_Comm         _pdmComm;      /*!< Paradigm communicator */
+    PDM_writer_statut_t  _divide_polygons;   /*!< Option to divide polygons */
+    PDM_writer_statut_t  _divide_polyhedra;  /*!< Option to divide polyhedra */
+    bool                 _visuCreated;       /*!< True if the creation has be done */
+    double               _physical_time;     /*!< Physical time for visualization */
+    int                  _n_part;            /*!< Number of mesh partition */
+    CWP_Displacement_t   _topology;          /*!< Mesh topology */
+    
 
-
-  Visu::Visu(const MPI_Comm &MPIComm,const CWP_Displacement_t topology):_visu_id(-1),_visu_mesh_id(-1),_freq(-1),_physical_time(-1),
-                                      _visuCreated(false), 
+  Visu::Visu(const MPI_Comm &MPIComm,const CWP_Displacement_t topology):
+                                      _visu_id(-1),_visu_mesh_id(-1),_freq(-1),
                                       _output_dir(NULL), 
-                                      _output_name(NULL),
+                                      _output_name(NULL),  
                                       _divide_polygons(PDM_WRITER_OFF),
-                                      _divide_polyhedra(PDM_WRITER_OFF),
+                                      _divide_polyhedra(PDM_WRITER_OFF),                                                                      
+                                      _visuCreated(false), 
+                                      _physical_time(-1),
                                       _topology(topology) {
                                       
      _pdmComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&MPIComm)); 
@@ -52,6 +67,9 @@ namespace cwipi {
                         const char        *format_option,
                         char        *output_dir,
                         char        *output_name) {
+   
+    UNUSED(freq);
+    UNUSED(format);    
    
     PDM_writer_fmt_fic_t fmt_fic      = PDM_WRITER_FMT_BIN;
     const char* fmt                   = "Ensight";
@@ -373,41 +391,43 @@ namespace cwipi {
   
   PDM_writer_elt_geom_t Visu::PdmWriterBlockTypeFromCwpBlockType(CWP_Block_t CWP_block_type
                                                                 ) {
-                                                                   
+     PDM_writer_elt_geom_t elt_type;                                                                   
      switch (CWP_block_type) {
-
-       case CWP_BLOCK_NODE: return PDM_WRITER_POINT;
+       case CWP_BLOCK_NODE: elt_type = PDM_WRITER_POINT;
        break;
        
-       case CWP_BLOCK_EDGE2: return PDM_WRITER_BAR2;
+       case CWP_BLOCK_EDGE2: elt_type = PDM_WRITER_BAR2;
        break;
    
-       case CWP_BLOCK_FACE_TRIA3: return PDM_WRITER_TRIA3;
+       case CWP_BLOCK_FACE_TRIA3: elt_type = PDM_WRITER_TRIA3;
        break;
 
-       case CWP_BLOCK_FACE_QUAD4: return PDM_WRITER_QUAD4;
+       case CWP_BLOCK_FACE_QUAD4: elt_type = PDM_WRITER_QUAD4;
        break;
                        
-       case CWP_BLOCK_CELL_TETRA4: return PDM_WRITER_TETRA4;
+       case CWP_BLOCK_CELL_TETRA4: elt_type = PDM_WRITER_TETRA4;
        break;
 
-       case CWP_BLOCK_FACE_POLY: return PDM_WRITER_POLY_2D;
+       case CWP_BLOCK_FACE_POLY: elt_type = PDM_WRITER_POLY_2D;
        break;
        
-       case CWP_BLOCK_CELL_HEXA8: return PDM_WRITER_HEXA8;
+       case CWP_BLOCK_CELL_HEXA8: elt_type = PDM_WRITER_HEXA8;
        break;
 
-       case CWP_BLOCK_CELL_PYRAM5: return PDM_WRITER_PYRAMID5;
+       case CWP_BLOCK_CELL_PYRAM5: elt_type = PDM_WRITER_PYRAMID5;
        break;
        
-       case CWP_BLOCK_CELL_PRISM6: return PDM_WRITER_PRISM6;
+       case CWP_BLOCK_CELL_PRISM6: elt_type = PDM_WRITER_PRISM6;
        break;
        
-       case CWP_BLOCK_CELL_POLY: return PDM_WRITER_POLY_3D;
+       case CWP_BLOCK_CELL_POLY: elt_type = PDM_WRITER_POLY_3D;
        break;
        
+       default: elt_type = PDM_WRITER_POINT;
+                PDM_error(__FILE__, __LINE__, 0, "This argument does not correspond to a PDM_writer_elt_geom_t.\n");
+
       }
-      
+      return elt_type;      
   }
 
 

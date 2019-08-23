@@ -102,7 +102,7 @@ namespace cwipi {
       vector <int> exRanks(cplRanks.size()-1);
       
       int j = 0;
-      for (int i = 0; i < cplRanks.size(); i++) {
+      for (size_t i = 0; i < cplRanks.size(); i++) {
         if (cplRanks[i] != _localCodeProperties->rootRankGet()) {
           exRanks[j++] = cplRanks[i]; 
         }      
@@ -130,7 +130,7 @@ namespace cwipi {
    * \brief Synchronise
    *
    */
-
+/*
   void
   CommWithoutPart::sync
   (
@@ -145,6 +145,6 @@ namespace cwipi {
               0,
               _localCodeProperties->intraCommGet());
 
-  }
+  }*/
 
 }

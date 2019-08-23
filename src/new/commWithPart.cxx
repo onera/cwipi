@@ -109,7 +109,7 @@ namespace cwipi {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-value" 	
 #endif
-  void
+/*  void
   CommWithPart::sync
   (
    void *tab, 
@@ -117,7 +117,7 @@ namespace cwipi {
    int tabSize
   )
   {
-  }
+  }*/
 #if defined(__INTEL_COMPILER)
 #pragma warning(pop)
 #elif defined(__clang__)	

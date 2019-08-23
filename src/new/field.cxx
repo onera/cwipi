@@ -15,16 +15,16 @@ namespace cwipi {
            CWP_Status_t           visuStatus  ,
            int*                   iteration   ,
            double*                physTime    ): 
-           
-           _fieldID        (field_id)    ,
+           _storage        (storage)     ,   
+           _nComponent     (nComponent)  ,            
+           _fieldLocation  (fieldType)   ,      
+           _exchangeType   (exchangeType),       
+           _visuStatus     (visuStatus)  ,                           
            _dataType       (dataType)    ,
-           _storage        (storage)     ,
-           _nComponent     (nComponent)  ,
-           _fieldLocation  (fieldType)   ,
-           _exchangeType   (exchangeType),
-           _visuStatus     (visuStatus)  ,
-           _iteration      (iteration)   ,
-           _physTime       (physTime)
+           _fieldID        (field_id)    ,
+           _physTime       (physTime)    ,
+           _iteration      (iteration)   
+
     {
     
        _mesh = cpl -> meshGet(); 
@@ -48,6 +48,8 @@ namespace cwipi {
         case CWP_INT:
           _dataTypeSize = sizeof(int);
           break;         
+        case CWP_CHAR:
+          PDM_error(__FILE__, __LINE__, 0, "CWP_CHAR is not usable.\n");
         
       }      
     }
@@ -61,7 +63,6 @@ namespace cwipi {
 
   void Field::dataSet ( int i_part, void* data)
   {
-    int size = _mesh->getPartNElts(i_part);
     _data[i_part] = data;
   }
     

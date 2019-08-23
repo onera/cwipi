@@ -68,14 +68,14 @@ namespace cwipi {
      * \brief Synchronise
      *
      */
-
+/*
     void
     sync
     (
      void *tab, 
      MPI_Datatype mpiType, 
      int tabSize
-    );
+    );*/
 
   private :
 

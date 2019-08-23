@@ -107,7 +107,7 @@ namespace cwipi {
       
         //Build a specific tag through the cplId
         int tag = 0;
-        for (int i = 0; i < cplId.size(); i++) {
+        for (size_t i = 0; i < cplId.size(); i++) {
           tag += cplId[i];
         }
 

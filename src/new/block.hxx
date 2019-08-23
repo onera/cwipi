@@ -291,6 +291,8 @@ namespace cwipi {
      virtual std::map<int,int*>  ConnecGet() 
      {
        PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
+       std::map<int,int*> null;
+       return null;
      }
 
 
@@ -305,6 +307,8 @@ namespace cwipi {
      virtual std::map<int,int*>  ConnecIDXGet() 
      {
        PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
+       std::map<int,int*> null;
+       return null;
      }
      
     /**
@@ -318,6 +322,8 @@ namespace cwipi {
      virtual std::map<int,int*>  ConnecFacesGet()
      {
        PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
+       std::map<int,int*> null;
+       return null;
      }
       
     /**
@@ -331,6 +337,8 @@ namespace cwipi {
      virtual std::map<int,int*>  ConnecFacesIDXGet()
      {
        PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
+       std::map<int,int*> null;
+       return null;
      }
     
      
@@ -345,6 +353,8 @@ namespace cwipi {
      virtual std::map <int,int>  NFacesGet() 
      {
        PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
+       std::map<int,int> null;
+       return null;
      }
      
       

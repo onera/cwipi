@@ -1758,7 +1758,7 @@ namespace cwipi {
       int found;
       
       for (i = 0; i < nTypeParam; i++) {
-        int sParam = winTypeParamIdxNameData[i+1] - winTypeParamIdxNameData[i];
+        size_t sParam = winTypeParamIdxNameData[i+1] - winTypeParamIdxNameData[i];
         if (name.size() == sParam) {
          found = !strncmp(name.c_str(), 
                  winTypeParamNameData + winTypeParamIdxNameData[i], 

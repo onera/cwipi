@@ -300,7 +300,6 @@ namespace cwipi {
                        &(_codePropertiesDB[p->first]->_intraComm));
 
       int rootIdx = 0;
-      bool isCoupledRankCode = false;
       std::vector<int> cplRankCode = (*coupledRankCode[p->first]);
       vector<int>::iterator it = std::find( cplRankCode.begin(), cplRankCode.end(), _ranks[rootIdx] );
       
