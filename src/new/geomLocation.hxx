@@ -52,7 +52,7 @@ namespace cwipi {
         
         void mesh_info_get();
         void mesh_cpl_info_get();  
-        void info_mesh(CWP_Field_exch_t _Texch_t) ;  
+        void info_mesh() ;  
             
         void* interpolate (Field* referenceField);   
         void localization_points_cloud_setting(int* id_dist);
@@ -94,7 +94,9 @@ namespace cwipi {
         void data_communication_wait_recv();    
         
         void computeFree();
-
+        void user_target_points_set(int i_part, int n_pts, double* coord);
+        void user_targets_gnum_compute();
+        
        GeomLocation    *_geometry_cpl          ;  /*!< Coupled code geometry object (for both codes are local case) */
    
        CWP_Field_value_t    _geometryLocation  ;  /*!< Field anchored points (cell, vertices ...) */
@@ -151,6 +153,14 @@ namespace cwipi {
     int _id_dist         ; /*!< Identifier for the localization object of paradigm */
     int _id_gnum_location; /*!< Identifier for the global numbering to (process,partition,numbering) triplet object of paradigm */
 
+    /* user targets definition for CWP_FIELD_VALUE_USER_TO_NODE field type */
+     
+    int*          _n_user_targets     ;  /*!< Number of targets defined by the user for CWP_FIELD_VALUE_USER_TO_NODE field type  */
+    int           _n_tot_user_targets ;  /*!< Total number of targets defined by the user for CWP_FIELD_VALUE_USER_TO_NODE field type  */
+    double**      _coords_user_targets;  /*!< Target coordinates defined by the user for CWP_FIELD_VALUE_USER_TO_NODE field type  */
+    CWP_g_num_t** _gnum_user_targets  ;  /*!< Target global numbering defined by the user for CWP_FIELD_VALUE_USER_TO_NODE field type  */
+    
+    int _pdmGNum_handle_index;
   }; //end GeomLocation
   
 

@@ -360,7 +360,7 @@ CWP_Init
 
 void 
 CWP_Finalize
-(
+(void
 )
 {
   int flag = 0;
@@ -447,7 +447,7 @@ CWP_State_get
 
 int
 CWP_Codes_nb_get
-(
+(void
 )
 {
   cwipi::CodePropertiesDB & properties =
@@ -489,7 +489,7 @@ CWP_Connectable_comm_get
 
 const char **
 CWP_Codes_list_get
-(
+(void
 )
 {
   cwipi::CodePropertiesDB & properties =
@@ -507,7 +507,7 @@ CWP_Codes_list_get
 
 int
 CWP_Loc_codes_nb_get
-(
+(void
 )
 {
   cwipi::CodePropertiesDB & properties =
@@ -526,7 +526,7 @@ CWP_Loc_codes_nb_get
 
 const char **
 CWP_Loc_codes_list_get
-(
+(void
 )
 {
   cwipi::CodePropertiesDB & properties =
@@ -606,7 +606,7 @@ CWP_Output_file_set
 
 void 
 CWP_Properties_dump
-(
+(void
 )
 {
   cwipi::CodePropertiesDB & properties =
@@ -830,7 +830,7 @@ CWP_N_uncomputed_tgts_get
       /* Only if the coupling exists */
       if( _cpl_exist(loc_code_name,cpl_id) ) {
         cwipi::Coupling& cpl = _cpl_get(loc_code_name,cpl_id);
-        std:map <std::string, cwipi::Field *>* fields = cpl.fieldsGet();
+        map <string, cwipi::Field *>* fields = cpl.fieldsGet();
         std::map <CWP_Field_value_t, CWP_Field_exch_t> toCompute;
 
         std::map <std::string, cwipi::Field *>::iterator it = fields -> begin();
@@ -858,10 +858,11 @@ CWP_N_uncomputed_tgts_get
     std::vector<CWP_Field_value_t> locationV;
     locationV.push_back(CWP_FIELD_VALUE_NODE);
     locationV.push_back(CWP_FIELD_VALUE_CELL_POINT);
+    locationV.push_back(CWP_FIELD_VALUE_USER_TO_NODE);    
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
-    for(int i_location=0; i_location < locationV.size();i_location++){
+    for(size_t i_location=0; i_location < locationV.size();i_location++){
       CWP_Field_value_t geometryLocation = locationV[i_location];
       for(int i_codes=0;i_codes<nb_loc_codes;i_codes++){   
         const char* loc_code_name = list_loc_codes[i_codes];
@@ -892,7 +893,14 @@ CWP_N_uncomputed_tgts_get
               else if(exchange_type == CWP_FIELD_EXCH_RECV)
                 printf("localCodes %s rank %i CWP_FIELD_EXCH_RECV CWP_FIELD_VALUE_CELL_POINT\n",loc_code_name,rank);    
               }
-             
+              else if(geometryLocation == CWP_FIELD_VALUE_USER_TO_NODE ) {
+              if(exchange_type == CWP_FIELD_EXCH_SENDRECV )
+                printf("localCodes %s rank %i CWP_FIELD_EXCH_SENDRECV CWP_FIELD_VALUE_USER_TO_NODE\n",loc_code_name,rank);
+              else if(exchange_type == CWP_FIELD_EXCH_SEND)
+                printf("localCodes %s rank %i CWP_FIELD_EXCH_SEND CWP_FIELD_VALUE_USER_TO_NODE\n",loc_code_name,rank);            
+              else if(exchange_type == CWP_FIELD_EXCH_RECV)
+                printf("localCodes %s rank %i CWP_FIELD_EXCH_RECV CWP_FIELD_VALUE_USER_TO_NODE\n",loc_code_name,rank);    
+              }              
               cpl.geomCompute(geometryLocation, exchange_type);
             }
             itToCompute++;
@@ -956,17 +964,18 @@ CWP_N_uncomputed_tgts_get
  *----------------------------------------------------------------------------*/
 
 
-// void 
-// CWP_user_tgt_pts_set
-// (
-//  const char                 *cpl_id,
-//  const int                   n_pts,
-//  double                      coord[]
-// )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//   cpl.userTgtPtsSet(n_pts, coord);
-// }
+ void 
+ CWP_User_tgt_pts_set
+ (const char                 *local_code_name,
+  const char                 *cpl_id,
+  const int                   i_part,
+  const int                   n_pts,
+  double                      coord[]
+ )
+ {
+   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+   cpl.userTgtPtsSet(i_part, n_pts, coord);
+ }
 
 /*----------------------------------------------------------------------------*
  * Functions about Mesh                                                    *

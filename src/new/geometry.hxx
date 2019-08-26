@@ -75,7 +75,7 @@ namespace cwipi {
 
     virtual void compute(CWP_Field_exch_t Texch_t) =0;
 
-
+    virtual void user_target_points_set(int i_part, int n_pts, double* coord) =0;
     /**
      *
      * \brief Exchange data field with the coupled application with blocking 
@@ -165,7 +165,7 @@ namespace cwipi {
      * \brief Setting user target points
      *
      * This function must be called if the nature of receiving fieldsDouble 
-     * is \ref CWP_FIELD_VALUE_USER
+     * is \ref CWP_FIELD_VALUE_USER_TO_NODE
      *
      * \param [in]  n_pts   Number of points
      * \param [in]  coords   Coordinates (size = 3 * n_pts)          
@@ -291,6 +291,7 @@ namespace cwipi {
    MPI_Comm _unionComm ;   
    MPI_Comm _localComm  ;
    MPI_Comm _connectableComm  ;   
+   PDM_MPI_Comm  _pdm_connectableComm ;   
    PDM_MPI_Comm  _pdm_localComm ;
    PDM_MPI_Comm  _pdm_globalComm ;
    PDM_MPI_Comm  _pdm_unionComm ;

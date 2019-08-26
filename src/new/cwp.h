@@ -167,8 +167,7 @@ typedef enum {
   CWP_FIELD_VALUE_CELL_MEAN,   /*!< Cell mean value */
   CWP_FIELD_VALUE_CELL_POINT,  /*!< Field defined in cell point  */
   CWP_FIELD_VALUE_NODE,        /*!< Cell vertex field */
-  CWP_FIELD_VALUE_USER         /*!< User defined field */ 
-
+  CWP_FIELD_VALUE_USER_TO_NODE /*!< User defined field */ 
 } CWP_Field_value_t ;
 
 
@@ -519,7 +518,7 @@ CWP_Init
 
 void 
 CWP_Finalize
-(
+(void
 );
 
 /*----------------------------------------------------------------------------*
@@ -627,7 +626,7 @@ CWP_State_get
 
 int
 CWP_Codes_nb_get
-(
+(void
 );
 
 
@@ -654,7 +653,7 @@ void
 
 int
 CWP_Loc_codes_nb_get
-(
+(void
 );
 
 
@@ -667,7 +666,7 @@ CWP_Loc_codes_nb_get
 
 const char **
 CWP_Loc_codes_list_get
-(
+(void
 );
 
 /*----------------------------------------------------------------------------*
@@ -683,7 +682,7 @@ CWP_Loc_codes_list_get
 
 void 
 CWP_Properties_dump
-(
+(void
 );
 
 /*----------------------------------------------------------------------------*
@@ -1104,7 +1103,7 @@ void
  * \brief Setting user target points
  *
  * This function must be called if the nature of receiving fieldsDouble 
- * is \ref CWP_FIELD_VALUE_USER
+ * is \ref CWP_FIELD_VALUE_USER_TO_NODE
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
@@ -1118,6 +1117,7 @@ CWP_User_tgt_pts_set
 (
  const char    *local_code_name,
  const char    *cpl_id,
+ const int      i_part,
  const int      n_pts,
  double         coord[]
 );

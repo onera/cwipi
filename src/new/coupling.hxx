@@ -285,7 +285,7 @@ namespace cwipi {
      * \brief Setting user target points
      *
      * This function must be called if the nature of receiving fieldsDouble 
-     * is \ref CWP_FIELD_VALUE_USER
+     * is \ref CWP_FIELD_VALUE_USER_TO_NODE
      *
      * \param [in]  n_pts   Number of points
      * \param [in]  coord   Coordinates (size = 3 * n_pts)          
@@ -295,6 +295,7 @@ namespace cwipi {
     void 
     userTgtPtsSet
     (
+     const int i_part,
      const int n_pts,
      double    coord[]
     );
@@ -1062,9 +1063,9 @@ namespace cwipi {
   
     std::map <CWP_Field_value_t,Geometry*> ::iterator p;
     p = _geometry.find(field_value_t);
-    if (p != _geometry.end()) {
-      return p->second;
-    } 
+    if (p == _geometry.end()) 
+      PDM_error(__FILE__, __LINE__, 0, "Geometry not found.\n");
+    return p->second;
   }
 
 

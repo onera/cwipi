@@ -65,8 +65,8 @@ namespace cwipi {
   void Visu::VisuCreate(const int          freq,
                         CWP_Visu_format_t  format,
                         const char        *format_option,
-                        char        *output_dir,
-                        char        *output_name) {
+                        char              *output_dir,
+                        char              *output_name) {
    
     UNUSED(freq);
     UNUSED(format);    
@@ -112,7 +112,7 @@ namespace cwipi {
 
     } 
     while (pos != std::string::npos);
-
+    
     _visu_id = PDM_writer_create(fmt,
                                  fmt_fic,   
                                  pdm_topology,
@@ -256,9 +256,10 @@ namespace cwipi {
       int nComponent = field -> nComponentGet();
       PDM_writer_var_loc_t PDMfieldType;
       
-      if(CWPfielType == CWP_FIELD_VALUE_CELL_POINT) PDMfieldType = PDM_WRITER_VAR_ELEMENTS;
-      
-      if(CWPfielType == CWP_FIELD_VALUE_NODE) PDMfieldType = PDM_WRITER_VAR_SOMMETS;      
+      if     (CWPfielType == CWP_FIELD_VALUE_CELL_POINT)   PDMfieldType = PDM_WRITER_VAR_ELEMENTS   ;
+      else if(CWPfielType == CWP_FIELD_VALUE_NODE)         PDMfieldType = PDM_WRITER_VAR_SOMMETS    ;      
+      else if(CWPfielType == CWP_FIELD_VALUE_USER_TO_NODE) PDMfieldType = PDM_WRITER_VAR_PARTICULES ;       
+     
 
       PDM_writer_var_dim_t PDMfieldComp;
       if( nComponent == 1) PDMfieldComp = PDM_WRITER_VAR_SCALAIRE;

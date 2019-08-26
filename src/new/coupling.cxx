@@ -119,9 +119,6 @@ namespace cwipi {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
-    int both = coupledCodeProperties.localCodeIs() && cplDB.couplingIs(coupledCodeProperties, cplId);
-    
-    printf("both %i\n",both);
      //In case where the both codes are on the same MPI process.
     if (coupledCodeProperties.localCodeIs()) {
       if (cplDB.couplingIs(coupledCodeProperties, cplId) ) {
@@ -146,12 +143,12 @@ namespace cwipi {
         _geometry[CWP_FIELD_VALUE_CELL_MEAN] = FG::getInstance().CreateObject(geomAlgo);
         _geometry[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(geomAlgo);
         _geometry[CWP_FIELD_VALUE_NODE] = FG::getInstance().CreateObject(geomAlgo);
-        _geometry[CWP_FIELD_VALUE_USER] = FG::getInstance().CreateObject(geomAlgo);
+        _geometry[CWP_FIELD_VALUE_USER_TO_NODE] = FG::getInstance().CreateObject(geomAlgo);
         
         (*_geometry_cpl)[CWP_FIELD_VALUE_CELL_MEAN]  = FG::getInstance().CreateObject(geomAlgo);
         (*_geometry_cpl)[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(geomAlgo);
         (*_geometry_cpl)[CWP_FIELD_VALUE_NODE]       = FG::getInstance().CreateObject(geomAlgo);
-        (*_geometry_cpl)[CWP_FIELD_VALUE_USER]       = FG::getInstance().CreateObject(geomAlgo);
+        (*_geometry_cpl)[CWP_FIELD_VALUE_USER_TO_NODE]       = FG::getInstance().CreateObject(geomAlgo);
 
         //Geometry initialization 
         std::map <CWP_Field_value_t, Geometry*>::iterator it = _geometry_cpl->begin();
@@ -173,12 +170,12 @@ namespace cwipi {
       //Communication initialization, MPI communicator creation ... 
       _communication.init(_localCodeProperties, _coupledCodeProperties, cplId, cplDB);
 
-        _mesh.setVisu(&_visu);      
+      _mesh.setVisu(&_visu);      
       //Geometry creation
       _geometry[CWP_FIELD_VALUE_CELL_MEAN] = FG::getInstance().CreateObject(geomAlgo);
       _geometry[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(geomAlgo);
       _geometry[CWP_FIELD_VALUE_NODE] = FG::getInstance().CreateObject(geomAlgo);
-      _geometry[CWP_FIELD_VALUE_USER] = FG::getInstance().CreateObject(geomAlgo);
+      _geometry[CWP_FIELD_VALUE_USER_TO_NODE] = FG::getInstance().CreateObject(geomAlgo);
     
       //Geometry initialization
         std::map <CWP_Field_value_t, Geometry*>::iterator it = _geometry.begin();
@@ -207,7 +204,7 @@ namespace cwipi {
 
     std::map < string, Field * >::iterator itf = _fields.begin();
     while (itf != _fields.end()) {
-        if(_localCodeProperties.isCoupledRank() && _visu.isCreated()) 
+        if(_localCodeProperties.isCoupledRank() && _visu.isCreated() && itf -> second -> visuStatusGet() == CWP_STATUS_ON ) 
           _visu.fieldDataFree(itf -> second);    
         delete itf -> second;
         itf++;
@@ -317,7 +314,6 @@ namespace cwipi {
     //
     // Create the new field
     
-    
     double physTime=0.0;
     *_iteration = 0;
     cwipi::Field *newField = new cwipi::Field(field_id,
@@ -335,8 +331,10 @@ namespace cwipi {
     pair<string, Field* > newPair(string(field_id), newField);
     string localName = _localCodeProperties.nameGet();
     _fields.insert(newPair);
-    if (_localCodeProperties.isCoupledRank() && _visu.isCreated())
+    if (_localCodeProperties.isCoupledRank() && _visu.isCreated() && newField -> visuStatusGet() == CWP_STATUS_ON) {
+       printf("Create field Writer\n");
       _visu.WriterFieldCreate(newField);
+    }
   }
   
 
@@ -409,8 +407,6 @@ namespace cwipi {
      }
    }
 
-
-   
   /**
    *
    * \brief Get field storage type
@@ -485,7 +481,7 @@ namespace cwipi {
     else 
       {
         It->second->dataSet(i_part,data);
-        if(_visu.isCreated()) {
+        if(_visu.isCreated() && It -> second -> visuStatusGet() == CWP_STATUS_ON) {
           _visu.fieldDataSet(It->second,i_part);
         }      
       }   
@@ -652,7 +648,13 @@ namespace cwipi {
   } 
   
   
-  
+ 
+  void Coupling::userTgtPtsSet (const int i_part,
+                                const int n_pts,
+                                double    coord[] )
+  {
+    _geometry[CWP_FIELD_VALUE_USER_TO_NODE] -> user_target_points_set(i_part, n_pts, coord);
+  }
   
   
   void Coupling::meshFromFacesEdgeSet(const int   i_part,
