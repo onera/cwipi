@@ -188,8 +188,21 @@ namespace cwipi {
       _visu_id = visu_id;
     }
 
+    void interpFromLocationSet(CWP_Interp_from_location_t fct)
+    { 
+      _interpolationType     = CWP_INTERPOLATION_USER ;
+      _interpolationFunction = fct                    ;
+    }
 
+    
+    CWP_Interp_from_location_t interpolationFunctionGet() {
+      return _interpolationFunction;
+    }
 
+    CWP_Interpolation_t interpolationTypeGet() {
+      return _interpolationType;
+    }
+    
     int visuIdGet() const
     { 
       return _visu_id;
@@ -271,6 +284,8 @@ namespace cwipi {
     int                                      _visu_id;
     std::map <int,MPI_Request>               _last_request;
     int                                      _dataTypeSize;
+    CWP_Interp_from_location_t               _interpolationFunction;
+    CWP_Interpolation_t                      _interpolationType;
 
     Field &operator=(const Field &other);       /*!< Assigment operator not available */
     Field (const Field& other);                 /*!< Copy constructor not available */

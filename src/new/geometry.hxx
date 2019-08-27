@@ -182,7 +182,7 @@ namespace cwipi {
      * \brief Setting of an user interpolation from location.
      *
      * This function takes into account an user interpolation function written with
-     * void (*\ref CWP_Interp_from_target_proc_part_num_t) interface.
+     * void (*\ref CWP_Interp_from_location_t) interface.
      * 
      * \param [in] fct        Function
      *
@@ -190,7 +190,7 @@ namespace cwipi {
 
     void 
     InterpUser
-    (CWP_Interp_from_target_proc_part_num_t fct);
+    (CWP_Interp_from_location_t fct);
 
     /**
      *

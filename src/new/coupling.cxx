@@ -647,7 +647,23 @@ namespace cwipi {
                                parent_num);
   } 
   
-  
+
+  void Coupling::interpFromLocSet (  const string field_id,
+                                     CWP_Interp_from_location_t fct
+                                  ) 
+  {
+    map<string,Field*>::iterator It = _fields.find(field_id.c_str());  
+    if (It == _fields.end())
+      {
+         bftc_error(__FILE__, __LINE__, 0,
+               "'%s' not existing field\n", field_id.c_str());
+      }
+    else 
+      {
+        It -> second -> interpFromLocationSet(fct);
+      }       
+  }
+                                  
  
   void Coupling::userTgtPtsSet (const int i_part,
                                 const int n_pts,

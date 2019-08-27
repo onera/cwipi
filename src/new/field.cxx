@@ -52,6 +52,8 @@ namespace cwipi {
           PDM_error(__FILE__, __LINE__, 0, "CWP_CHAR is not usable.\n");
         
       }      
+      
+       _interpolationType = CWP_INTERPOLATION_DEFAULT;
     }
     
     

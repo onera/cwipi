@@ -548,10 +548,10 @@ void GeomLocation::mesh_cpl_info_get() {
     CWP_Field_value_t   referenceFieldType = referenceField -> typeGet        ();
     void               *interpolatedData   = referenceField -> sendBufferGet  ();
     int                 dataTypeSize       = referenceField -> dataTypeSizeGet(); 
+    CWP_Interpolation_t interpolationType  = referenceField -> interpolationTypeGet();    
     
     if (interpolatedData != NULL) free(interpolatedData);
     interpolatedData = (void*) malloc( dataTypeSize * nComponent*_n_tot_target_cpl);
-
 
 /*  |               proc 1             ||             proc 2              ||
     | part 1  | part 2 |  ... | part N || part 1  | part 2 |  ... | part N||
@@ -565,8 +565,92 @@ void GeomLocation::mesh_cpl_info_get() {
       // For a cell center field : give the value of the located cell
       
       for(int i_proc=0;i_proc<_n_ranks_g;i_proc++){
+        if(interpolationType == CWP_INTERPOLATION_USER) {
 
-        if (referenceFieldType == CWP_FIELD_VALUE_CELL_POINT) {
+            CWP_Interp_from_location_t interpolationFunction  = referenceField -> interpolationFunctionGet();
+
+            int n_tgt = _targets_localization_idx_cpl[i_proc][i_part+1] - _targets_localization_idx_cpl[i_proc][i_part];
+            
+            int* connecIdx = _mesh -> connecIdxGet(i_part);
+            int* connec    = _mesh -> connecGet(i_part);
+            double* coords = _mesh -> getVertexCoords(i_part);
+            
+          /*  double x_target = _targets_localization_data_cpl[itarget].projectedX;
+            double y_target = _targets_localization_data_cpl[itarget].projectedY;
+            double z_target = _targets_localization_data_cpl[itarget].projectedZ;  
+*/
+            int    *tgt_pts_location = (int*)    malloc(sizeof(int)   *n_tgt);
+            int    *tgt_pts_location_p1 = (int*)    malloc(sizeof(int)   *n_tgt);            
+            double *tgt_pts_dist     = (double*) malloc(sizeof(double)*n_tgt);
+            double *tgt_pts_projected_coords = (double*) malloc(3 * sizeof(double)*n_tgt);            
+            int    *tgt_pts_bary_coords_idx = NULL;           
+            double *tgt_pts_bary_coords     = NULL;          
+
+            int i=0;
+            for (int itarget = _targets_localization_idx_cpl[i_proc][i_part]; itarget < _targets_localization_idx_cpl[i_proc][i_part+1]; itarget++) {
+              tgt_pts_location[i] = _targets_localization_data_cpl[itarget].lnum     ;
+              tgt_pts_location_p1[i] = _targets_localization_data_cpl[itarget].lnum + 1 ;              
+              tgt_pts_dist    [i] = _targets_localization_data_cpl[itarget].distance ;
+              double x_target = _targets_localization_data_cpl[itarget].projectedX;
+              double y_target = _targets_localization_data_cpl[itarget].projectedY;
+              double z_target = _targets_localization_data_cpl[itarget].projectedZ;    
+               
+              tgt_pts_projected_coords[3*i   ] = x_target;
+              tgt_pts_projected_coords[3*i +1] = y_target;
+              tgt_pts_projected_coords[3*i +2] = z_target;
+              i++;
+            }
+
+            PDM_geom_elem_compute_polygon_barycentric_coordinates(n_tgt,
+                        	    		                  tgt_pts_location_p1,
+                                                                  tgt_pts_projected_coords,
+                                                         	  connecIdx,
+                                                                  connec,
+                                                           	  coords,
+                                                  		  &tgt_pts_bary_coords_idx,
+                                                                  &tgt_pts_bary_coords
+                                                         	 );    
+
+            printf("dataTypeSize * nComponent * _targets_localization_idx_cpl[i_proc][i_part] %i \n",dataTypeSize * nComponent * _targets_localization_idx_cpl[i_proc][i_part]);
+            void* tmpData = (char*) interpolatedData + dataTypeSize * nComponent * _targets_localization_idx_cpl[i_proc][i_part];
+
+            (*interpolationFunction)( CWP_INTERFACE_SURFACE   ,
+                                   _n_vtx[i_part]          ,
+                                   _n_elt[i_part]          ,
+                                   n_tgt                   ,
+                                   coords                  ,
+                                   connecIdx               ,
+                                   connec                  ,
+                                   _coords_target [i_part] ,
+                                   tgt_pts_location        ,
+                                   tgt_pts_dist            ,
+                                   tgt_pts_bary_coords_idx ,
+                                   tgt_pts_bary_coords     ,
+                                   nComponent              ,
+                                   referenceFieldType      ,
+                                   referenceData           ,
+                                   referenceFieldType      ,
+                                   tmpData
+                                 );
+                
+              i=0;
+              for (int itarget = _targets_localization_idx_cpl[i_proc][i_part]; itarget < _targets_localization_idx_cpl[i_proc][i_part+1]; itarget++) {
+                if( ( (double*) tmpData)[itarget] > 10000) printf("interpolatedData[%i] iproc %i i_part %i %f \n",itarget,i_proc,i_part,((double*) tmpData)[i]);
+                i++;
+              }  
+         /*   free(tgt_pts_location_p1);
+            free(tgt_pts_dist);
+            if(tgt_pts_projected_coords != NULL) free(tgt_pts_projected_coords);
+            if(tgt_pts_bary_coords_idx != NULL) free(tgt_pts_bary_coords_idx );
+            if(tgt_pts_bary_coords     != NULL) free(tgt_pts_bary_coords     );
+            if(tgt_pts_location!=NULL) free(tgt_pts_location);
+           */ 
+           
+          //  while(1==1){}                      
+        }
+        else {
+          if (referenceFieldType == CWP_FIELD_VALUE_CELL_POINT) {
+          
           for (int itarget = _targets_localization_idx_cpl[i_proc][i_part]; itarget < _targets_localization_idx_cpl[i_proc][i_part+1]; itarget++) {
             //Index of the corresponding local reference Data.
             int iel = _targets_localization_data_cpl[itarget].lnum ;
@@ -637,6 +721,7 @@ void GeomLocation::mesh_cpl_info_get() {
             }
           } // loop on itarget
         } // if referenceFieldType == CWP_FIELD_VALUE_NODE || referenceFieldType == CWP_FIELD_VALUE_USER_TO_NODE
+        }  // else if(interpolationType == CWP_INTERPOLATION_TYPE_USER) 
       } //Loop on i_proc
     } // loop on i_part
                 

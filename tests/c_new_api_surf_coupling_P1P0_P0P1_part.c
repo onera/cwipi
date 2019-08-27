@@ -137,6 +137,162 @@ _read_args(int            argc,
   }
 }
 
+//double *shapef = NULL;
+
+static void _userInterpolation(const int                   interface_type,
+                               const int                   n_src_vtcs,
+                               const int                   n_src_std_elts,
+                          //     const int                   n_src_poly,
+                               const int                   n_tgt_pts,
+                               const double                src_vtcs_coords[],
+                               const int                   src_connec_idx[],
+                               const int                   src_connec[],
+                               const double                tgt_pts_coords[],
+                               const int                   tgt_pts_target_location[],
+                               const float                 tgt_pts_dist[],
+                               const int                   tgt_pts_bary_coords_idx[],
+                               const double                tgt_pts_bary_coords[],
+                               const int                   stride,
+                               const CWP_Field_value_t     src_field_location,
+                               const void                 *src_field,
+                               const CWP_Field_value_t     tgt_field_location,
+                               void                       *tgt_field
+                              )
+{
+
+  // Compute shapef
+
+  int compute_shape_f = 0;
+
+  if ( src_field_location == CWP_FIELD_VALUE_NODE ) {
+  
+    //printf("n_tgt_pts USER_INTERP %i\n",n_tgt_pts);
+  
+    for (int i = 0; i < n_tgt_pts; i++) {
+
+      int ielt = tgt_pts_target_location[i];
+      int ivertex[4];
+
+      ivertex[0] = src_connec[src_connec_idx[ielt]  ] ;
+      ivertex[1] = src_connec[src_connec_idx[ielt]+1] ;
+      ivertex[2] = src_connec[src_connec_idx[ielt]+2] ;
+      ivertex[3] = src_connec[src_connec_idx[ielt]+3] ;
+
+     // if (shapef == NULL) {
+        double *shapef = (double *) malloc(4 * n_src_std_elts * sizeof(double));
+        compute_shape_f = 1;
+     // }
+      double *shapef_elt = shapef + 4 * ielt;
+
+      //
+      // Compute shape function
+      //
+
+      if (compute_shape_f == 1) {
+        double deriv[4][2];
+        double uv[2];
+        double a[2][2];
+        double b[2];
+        double det_a;
+        double x[2];
+        double inv_a[2][2];
+
+        for (int k = 0; k < 2; k++)
+          uv[k] = 0.5;
+
+
+        const int it_max = 100;
+        for (int it = 0; it < it_max; it++) {
+
+          shapef_elt[0] = (1 - uv[0]) * (1 - uv[1]);
+          shapef_elt[1] = uv[0] * (1 - uv[1]);
+          shapef_elt[2] = uv[0] * uv[1];
+          shapef_elt[3] = (1 - uv[0]) * uv[1];
+        
+          deriv[0][0] = - (1 - uv[1]);
+          deriv[0][1] = - (1 - uv[0]);
+          deriv[1][0] =   (1 - uv[1]);
+          deriv[1][1] = - uv[0];
+          deriv[2][0] =   uv[1];
+          deriv[2][1] =   uv[0];
+          deriv[3][0] = - uv[1];
+          deriv[3][1] =   (1 - uv[0]);
+
+          for (int k = 0; k < 2; k++) {
+            for (int l = 0; l < 2; l++)
+              a[k][l] = 0.0;
+          }
+        
+          b[0] = - tgt_pts_coords[3 * i    ];
+          b[1] = - tgt_pts_coords[3 * i + 1];
+        
+          for (int k = 0; k < 4; k++) {
+            
+            b[0] += (shapef_elt[k] * src_vtcs_coords[3 * ivertex[k]   ]); 
+            b[1] += (shapef_elt[k] * src_vtcs_coords[3 * ivertex[k] +1]); 
+            
+            for (int l = 0; l < 2; l++) { 
+              a[0][l]  -=  (deriv[k][l] * src_vtcs_coords[3 * ivertex[k]    ]);
+              a[1][l]  -=  (deriv[k][l] * src_vtcs_coords[3 * ivertex[k] + 1]);
+            }
+          }
+
+          det_a = a[0][0] * a[1][1] - a[0][1] * a[1][0];  
+          if (fabs(det_a) < 1e-12) {
+            printf("matrice non inversible\n");
+            exit(1);
+          }
+
+          double det_inv = 1./det_a;
+
+          inv_a[0][0] =   det_inv * a[1][1];
+          inv_a[0][1] = - det_inv * a[0][1];
+          inv_a[1][0] =   det_inv * a[1][0];
+          inv_a[1][1] =   det_inv * a[0][0];
+
+          x[0] = inv_a[0][0] * b[0] + inv_a[0][1] * b[1]; 
+          x[1] = inv_a[1][0] * b[0] + inv_a[1][1] * b[1]; 
+
+          double dist = 0.0;
+
+          for (int k = 0; k < 2; k++) {
+            dist += x[k] * x[k];
+            uv[k] += x[k];
+          }
+
+          if (dist <= 1e-5)
+            break;
+        }
+
+        shapef_elt[0] = (1 - uv[0]) * (1 - uv[1]);
+        shapef_elt[1] = uv[0] * (1 - uv[1]);
+        shapef_elt[2] = uv[0] * uv[1];
+        shapef_elt[3] = (1 - uv[0]) * uv[1];
+
+      }
+
+      //
+      // Insterpolation
+      //
+    //  printf("n_tgt_pts USER_INTERP %i\n",n_tgt_pts);
+      ((double *) tgt_field)[i] = 0.0;
+     //  while(1==1){}  
+      for (int k = 0; k < 4; k++) {
+       ((double *) tgt_field)[i] = ((double *) src_field)[ivertex[k]];
+      }
+      
+      free(shapef);
+      
+    }
+  }
+  else {
+    printf("Error in _userInterpolation : bad solver_type\n");
+    exit(EXIT_FAILURE);
+  }
+}
+
+
+
 /*----------------------------------------------------------------------
  *                                                                     
  * Main : surface coupling test : P1P0_P0P1 
@@ -664,13 +820,14 @@ int main
   fieldName1 = "cooX";
   fieldName2 = "rank";
   fieldName3 = "userField";
+  char *fieldName5 = "userInterpolation";
 
   CWP_Status_t visu_status = CWP_STATUS_OFF; 
   
   printf("        Field %i\n",rank);
   for(int i_code = 0; i_code < n_code_name; i_code++) {   
     if (codeName[i_code] == "code1") {
-
+/*
      CWP_Field_create (codeName[i_code],
                        "c_new_api_surf_cpl_P1P0_P0P1_part",
                        fieldName1,
@@ -700,16 +857,30 @@ int main
                        CWP_FIELD_VALUE_CELL_POINT,
                        CWP_FIELD_EXCH_RECV,
                        CWP_STATUS_ON);
+*/
+     CWP_Field_create (codeName[i_code],
+                       "c_new_api_surf_cpl_P1P0_P0P1_part",
+                       fieldName5,
+                       CWP_DOUBLE,
+                       CWP_FIELD_STORAGE_BLOCK,
+                       1,
+                       CWP_FIELD_VALUE_NODE,
+                       CWP_FIELD_EXCH_SEND,
+                       CWP_STATUS_ON);
+
                        
      for(int i_part=0;i_part<nbPart[i_code];i_part++)  {     
-       CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1,i_part, sendValues[i_code][i_part]); 
+   /*    CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1,i_part, sendValues[i_code][i_part]); 
        CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3,i_part, sendValues[i_code][i_part]);        
        CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2,i_part, recvValues[i_code][i_part]);
+     */  CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5,i_part, sendValues[i_code][i_part]);        
      }
+ 
+     CWP_Interp_from_location_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5,_userInterpolation);
          
     }
     else {
-  
+  /*
       CWP_Field_create (codeName[i_code],
                        "c_new_api_surf_cpl_P1P0_P0P1_part",
                        fieldName1,
@@ -740,18 +911,29 @@ int main
                      CWP_FIELD_VALUE_CELL_POINT,
                      CWP_FIELD_EXCH_SEND,
                      CWP_STATUS_ON);
+    */                 
+      CWP_Field_create (codeName[i_code],
+                       "c_new_api_surf_cpl_P1P0_P0P1_part",
+                       fieldName5,
+                       CWP_DOUBLE,
+                       CWP_FIELD_STORAGE_BLOCK,
+                       1,
+                       CWP_FIELD_VALUE_NODE,
+                       CWP_FIELD_EXCH_RECV,
+                       CWP_STATUS_ON);                     
 
      for(int i_part=0;i_part<nbPart[i_code];i_part++)  {     
-       CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2,i_part, sendValues[i_code][i_part]); 
-       CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1,i_part, recvValues[i_code][i_part]);
-       CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3,i_part, recvValuesUser[i_code][i_part]); 
-       
+    //   CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2,i_part, sendValues[i_code][i_part]); 
+    //   CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1,i_part, recvValues[i_code][i_part]);
+    //   CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3,i_part, recvValuesUser[i_code][i_part]); 
+       CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5,i_part, recvValues[i_code][i_part]);       
+    /*   
        CWP_User_tgt_pts_set(codeName[i_code],
                             "c_new_api_surf_cpl_P1P0_P0P1_part",
                             i_part, 
                             nbPointsUser[i_code][i_part], 
                             coordsPointsUser[i_code][i_part]);
-             
+      */       
              
      }//loop on part
     }// if
@@ -773,30 +955,37 @@ int main
     CWP_next_recv_time_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",recv_time);
 
     if (codeName[i_code] == "code1") {
-      CWP_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1);   
+    /*  CWP_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1);   
+      CWP_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2);        
       CWP_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3);         
-      CWP_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2);  
+     */ CWP_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5);      
+      
     }
     else {
     
 
-     CWP_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1);   
+/*     CWP_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1);   
+     CWP_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2);    
      CWP_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3);         
-      CWP_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2);    
+  */   CWP_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5);         
     }
   }
 
+
+//while(1==1){}
   
   for(int i_code = 0; i_code < n_code_name; i_code++) {       
     if (codeName[i_code] == "code1") {
-      CWP_Wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1);  
+  /*    CWP_Wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1);  
+      CWP_Wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2);          
       CWP_Wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3);        
-      CWP_Wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2);    
+  */    CWP_Wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5);        
     }
     else {
-      CWP_Wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1);    
+    /*  CWP_Wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1);    
+      CWP_Wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2);        
       CWP_Wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3);        
-      CWP_Wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2);   
+   */   CWP_Wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5);           
     }    
   }
   /* Coupling deletion
