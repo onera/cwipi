@@ -81,103 +81,6 @@ static double frand_a_b(double a, double b){
 }
 
 
-
-/*----------------------------------------------------------------------
- *
- * Read mesh
- *
- * parameters:
- *   f                   <-- Mesh file
- *   dimension           --> Dimension
- *   nvertex             <-- number of vertices
- *   nElements           <-- number of elements
- *   nConnecVertex       <-- size of connectivity
- *   coords              --> vertices coordinates
- *   connecPointer       --> connectivity index
- *   connec              --> connectivity
- *---------------------------------------------------------------------*/
-
-static int _read_mesh(FILE *f,
-                      int *format,
-                      int *dimension,
-                      int *nVertex,
-                      int *nElt,
-                      double *coords,
-                      int *eltsConnecPointer,
-                      int *eltsConnec)
-{
-
-
-  int r;
-  int nConnecVertex;
-  int _format;
-  int _dimension;
-  int _nVertex;
-  int _nElt;
-  int *un, loop = 0;
-  char key[256];
-
-
-
-  while (loop == 0){
-    r = fscanf(f, "%s",key);
-    printf("key = %s\n", key);
-  switch (key[0]) {
-    case 'M':
-      r = fscanf(f, "%d",format);
-      _format = *format;
-      printf("format = %d, r = %i\n", _format, r);
-      break;
-
-    case 'D':
-      r = fscanf(f, "%d",dimension);
-      _dimension = *dimension;
-      printf("dimension = %d, r = %i\n", _dimension, r);
-      break;
-
-    case 'V':
-      r = fscanf(f, "%d",nVertex);
-      _nVertex = *nVertex;
-      printf("nVertex = %d, r = %i\n", _nVertex, r);
-      coords = (double *) malloc(sizeof(double) * 3 * _nVertex );
-      for (int i = 0; i < _nVertex; i++) {
-
-        for (int j = 0; j < 3; j++) {
-        r = fscanf(f, "%lf",coords + i * 3 + j);
-        }
-      }
-      break;
-
-      case 'E':
-        r = fscanf(f, "%d",nElt);
-        _nElt = *nElt;
-        printf("nElt = %d, r = %i\n", _nElt, r);
-        nConnecVertex = _nElt * 3;
-        eltsConnec = (int *) malloc(sizeof(int) * nConnecVertex);
-        for (int i = 0; i < nConnecVertex; i++) {
-
-          for (int j = 0; j < 3; j++) {
-          r = fscanf(f, "%d",eltsConnec + i * 3 + j);
-          }
-          r = fscanf(f, "%d",un);
-        }
-        break;
-
-      case 'F':
-        loop = 1;
-        break;
-  };
-}
-
-  eltsConnecPointer = (int *) malloc(sizeof(int) * (_nElt + 1));
-
-  for (int i = 0; i < _nElt; i++) {
-    eltsConnecPointer[i] = 3*i;
-  }
-  eltsConnecPointer[_nElt] = nConnecVertex;
-
-  return 1;
-}
 /*----------------------------------------------------------------------
  *
  * Display usage
@@ -420,49 +323,44 @@ int main
 
 
   meshFile = fopen("meshes/sphereP2.mesh", "r");
-
   assert (meshFile != NULL);
 
-
-  int r;
   int nConnecVertex;
   int buff, trash, loop = 0;
   char key[40];
 
-  r = fscanf(meshFile, "%s",key);
-  r = fscanf(meshFile, "%d",&format);
+  fscanf(meshFile, "%s",key);
+  fscanf(meshFile, "%d",&format);
 
-  r = fscanf(meshFile, "%s",key);
-  r = fscanf(meshFile, "%d",&dimension);
+  fscanf(meshFile, "%s",key);
+  fscanf(meshFile, "%d",&dimension);
 
-  r = fscanf(meshFile, "%s",key);
-  r = fscanf(meshFile, "%d",&nVertex);
+  fscanf(meshFile, "%s",key);
+  fscanf(meshFile, "%d",&nVertex);
   coords = (double *) malloc(sizeof(double) * 3 * nVertex );
   for (int i = 0; i < nVertex; i++) {
-   r = fscanf(meshFile, "%lf",coords + i * 3);
-   r = fscanf(meshFile, "%lf",coords + i * 3 + 1);
-   r = fscanf(meshFile, "%lf",coords + i * 3 + 2);
-   r = fscanf(meshFile, "%d",&buff);
+   fscanf(meshFile, "%lf",coords + i * 3);
+   fscanf(meshFile, "%lf",coords + i * 3 + 1);
+   fscanf(meshFile, "%lf",coords + i * 3 + 2);
+   fscanf(meshFile, "%d",&buff);
   }
-
-  r = fscanf(meshFile, "%s",key);
-  r = fscanf(meshFile, "%d",&buff);
+  fscanf(meshFile, "%s",key);
+  fscanf(meshFile, "%d",&buff);
   for (int i = 0; i < buff; i++){
-    r = fscanf(meshFile, "%d",&trash);
-    r = fscanf(meshFile, "%d",&trash);
-    r = fscanf(meshFile, "%d",&trash);
-    r = fscanf(meshFile, "%d",&trash);
+    fscanf(meshFile, "%d",&trash);
+    fscanf(meshFile, "%d",&trash);
+    fscanf(meshFile, "%d",&trash);
+    fscanf(meshFile, "%d",&trash);
   }
-
-  r = fscanf(meshFile, "%s",key);
-  r = fscanf(meshFile, "%d",&nElts);
+  fscanf(meshFile, "%s",key);
+  fscanf(meshFile, "%d",&nElts);
   nConnecVertex = nElts * 10;
   eltsConnec = (int *) malloc(sizeof(int) * nConnecVertex);
   for (int i = 0; i < nElts; i++) {
     for (int j = 0; j < 10; j++) {
-      r = fscanf(meshFile, "%d",eltsConnec + i * 10 + j);
+      fscanf(meshFile, "%d",eltsConnec + i * 10 + j);
     }
-    r = fscanf(meshFile, "%d",&buff);
+    fscanf(meshFile, "%d",&buff);
   }
   fclose(meshFile);
   eltsConnecPointer = (int *) malloc(sizeof(int) * (nElts + 1));
@@ -541,20 +439,13 @@ int main
 
 
 
-
-
   double phi, theta, rho;
 
   int n_pts_to_locate = 100;
 
   double *pts_to_locate = (double *) malloc(sizeof(double) * 3 * n_pts_to_locate);
-  double x, y, z;
 
-/*  pts_to_locate[0]  = -8.407698607790286e-04; //-6.474731939251818e-03;
-  pts_to_locate[1]  =  1.964277933020044e-01; // 1.436014878604620e-02;
-  pts_to_locate[2]  =  3.223073602567958e-01; // 7.704117218414598e-03;*/
-
-for (int i = 0; i < n_pts_to_locate; i++){
+  for (int i = 0; i < n_pts_to_locate; i++){
     phi   = frand_a_b(0, M_PI);
     theta = frand_a_b(0, 2*M_PI);
     rho   = frand_a_b(0, 0.5);
@@ -564,11 +455,6 @@ for (int i = 0; i < n_pts_to_locate; i++){
     pts_to_locate[3*i+2]  = rho * cos(phi);
   }
 
-
-  for (int i = 0; i < n_pts_to_locate; i++) {
-    //printf("[%i] %12.15e %12.15e %12.15e\n",  i, pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2]);
-
-  }
 
   cwipi_set_points_to_locate ("c_volumic_cpl_location_tetraP2",
                               n_pts_to_locate,
@@ -605,13 +491,7 @@ for (int i = 0; i < n_pts_to_locate; i++){
   sendValuesName = "_fs";
   recvValuesName = "_fr";
 
-
-    printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-
   cwipi_locate("c_volumic_cpl_location_tetraP2");
-
-
-
 
   nNotLocatedPoints = cwipi_get_n_not_located_points("c_volumic_cpl_location_tetraP2");
   if (nNotLocatedPoints > 0) {
@@ -655,7 +535,7 @@ for (int i = 0; i < n_pts_to_locate; i++){
   cwipi_delete_coupling("c_volumic_cpl_location_tetraP2");
 
 
-  /* Check barycentric coordinates */
+  /* Check results */
 
   if (rank == 0)
     printf("        Check results\n");
@@ -666,26 +546,26 @@ for (int i = 0; i < n_pts_to_locate; i++){
     res[i] = _f(pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2]);
   }
 
-  double err;
-
+  double err = 0;
   for (int i = 0; i < n_pts_to_locate; i++) {
     err = fabs(recvValues[i] - res[i]);
     //    if (err > 1e-6) {
-    //printf ("[%d] err %d : %12.15e %12.15e %12.15e\n", codeId, i, err, recvValues[i], res[i]);
-    if (rank == 0) printf("%12.15e\n", err);
+    printf ("[%d] err %d : %12.15e %12.15e %12.15e\n", codeId, i, err, recvValues[i], res[i]);
+    //if (rank == 0) printf("%12.15e\n", err);
       // }
   }
 
   double err_max;
   MPI_Allreduce(&err, &err_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
 
-  if (err_max >= 1e-6) {
+  if (err_max >= 1e-5) {
     if (rank == 0) {
-  //    printf("        !!! Error = %12.5e\n", err_max);
+      printf("        !!! Error = %12.5e\n", err_max);
     }
-  //  MPI_Finalize();
-    //return EXIT_FAILURE;
+    MPI_Finalize();
+    return EXIT_FAILURE;
   }
+
 
 
 

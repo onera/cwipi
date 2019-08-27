@@ -65,7 +65,7 @@
 
 static double _f(double x, double y, double z)
 {
-  return 2*x*x + z*z -0.4*y*y + x*y - 3*x*z + 0.1*y*z + z - x + 2. + 3*z - 0.5*y;
+  return x+y+z;
 }
 
 static double _y(double x)
@@ -75,7 +75,7 @@ static double _y(double x)
 
 static double _z(double x, double y)
 {
-  return 3*(x*(1-x));// + y*(1-y));
+  return 5*(x*(1-x) + y*(1-y));
 }
 
 /*------------------------------------------------------------------------
@@ -302,8 +302,7 @@ int main
   if (rank == 0)
     printf("        Create mesh\n");
 
-  int format = 0;
-  int dimension = 0;
+
   int nVertex = 0;               // Number of vertex
   double *coords = NULL;         // Vertex coordinates
   int nElts = 0;                 // Number of elements
@@ -471,14 +470,9 @@ int main
   coords[79] = (ymin + ymax) / 2;
   coords[80] = _z(coords[78], coords[79]) +(zmin + zmax) / 2;
 
-
-
-  if (rank == 0) {
-    for (int g = 0; g < 27; g++) {
-      printf("%12.5e %12.5e %12.5e \n", coords[3*g], coords[3*g+1], coords[3*g+2]);
-    }
+  for (int i=0; i<nVertex; i++){
+    if (rank==0) printf("%12.15e %12.15e %12.15e \n", coords[3*i], coords[3*i+1], coords[3*i+2]);
   }
-
 
   fprintf(outputFile, "   Number of vertex   : %i\n", nVertex);
   fprintf(outputFile, "   Number of elements : %i\n", nElts);
@@ -492,8 +486,6 @@ int main
                        coords,
                        eltsConnecPointer,
                        eltsConnec);
-
-printf("\n" );
 
   const int n_node = 27;
 
@@ -618,9 +610,6 @@ printf("\n" );
 
   double *pts_to_locate = (double *) malloc(sizeof(double) * 3 * n_pts_to_locate);
 
-  //pts_to_locate[0] = 7.958505604396809e-01;
-  //pts_to_locate[1] = 8.063937652885885e-01;
-  //pts_to_locate[2] = 1.645783101267874e+00;
 
   for (int i = 0; i < n_pts_to_locate; i++){
     pts_to_locate[3*i]  = frand_a_b(xmin, xmax);
@@ -630,12 +619,6 @@ printf("\n" );
   }
 
 
-
-  if (rank == 0) {
-    for (int i = 0; i < n_pts_to_locate; i++) {
-      printf("%12.5e %12.5e %12.5e\n",  pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2]);
-    }
-  }
 
   cwipi_set_points_to_locate ("c_volumic_cpl_location_hexaP2",
                               n_pts_to_locate,
@@ -733,18 +716,18 @@ printf("\n" );
   }
 
   double err = 0;
-/*  for (int i = 0; i < n_pts_to_locate; i++) {
+  for (int i = 0; i < n_pts_to_locate; i++) {
     err = fabs(recvValues[i] - res[i]);
     //    if (err > 1e-6) {
     printf ("[%d] err %d : %12.15e %12.15e %12.15e\n", codeId, i, err, recvValues[i], res[i]);
     //if (rank == 0) printf("%12.15e\n", err);
       // }
-  }*/
+  }
 
   double err_max;
   MPI_Allreduce(&err, &err_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
 
-  if (err_max >= 1e-6) {
+  if (err_max >= 1e-5) {
     if (rank == 0) {
       printf("        !!! Error = %12.5e\n", err_max);
     }

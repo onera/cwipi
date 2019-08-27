@@ -115,7 +115,7 @@ static fvmc_ho_basis_user_elt_t *_user_pyra = NULL;
  *
  *
  *----------------------------------------------------------------------------*/
-//pkmn - carapuce
+
 static void
 _monomialProduct
 (
@@ -940,7 +940,6 @@ _basis_prism_pn
     }
   }
   else {
-    // base dans le triangle * base segment
 
     int nMod = order + 1;
 
@@ -1023,14 +1022,11 @@ _basis_pyra_pn
       double u = uvw[3*i];
       double v = uvw[3*i+1];
       double w = uvw[3*i+2];
-      //double u1 = (1 - u);
-      //double v1 = (1 - v);
-      //double w1 = (1 - w);
 
-      weights[5*i+0] = (1-u-w)*(1-v-w)/(1-w);//((1-u)*(1-v) - w + (u*v*w)/(1-w))/4;
-      weights[5*i+1] = u*(1-v-w)/(1-w);//((1+u)*(1-v) - w + (u*v*w)/(1-w))/4;
-      weights[5*i+2] = (1-u-w)*v/(1-w);//((1-u)*(1+v) - w + (u*v*w)/(1-w))/4;
-      weights[5*i+3] = u*v/(1-w);//((1+u)*(1+v) - w + (u*v*w)/(1-w))/4;
+      weights[5*i+0] = (1-u-w)*(1-v-w)/(1-w);
+      weights[5*i+1] = u*(1-v-w)/(1-w);
+      weights[5*i+2] = (1-u-w)*v/(1-w);
+      weights[5*i+3] = u*v/(1-w);
       weights[5*i+4] = w;
     }
   }
@@ -1044,26 +1040,24 @@ _basis_pyra_pn
       double e3 = 1 - e1 - e5;
       double e4 = 1 - e2 - e5;
 
+      weights[14*i+ 8] = e1*e2*( ((2*e1/(1-e5) - 1) * (2*e2/(1-e5) - 1)) - e5/(1-e5) );
+      weights[14*i+ 6] = e2*e3*( ((2*e2/(1-e5) - 1) * (2*e3/(1-e5) - 1)) - e5/(1-e5) );
+      weights[14*i+ 0] = e3*e4*( ((2*e3/(1-e5) - 1) * (2*e4/(1-e5) - 1)) - e5/(1-e5) );
+      weights[14*i+ 2] = e4*e1*( ((2*e4/(1-e5) - 1) * (2*e1/(1-e5) - 1)) - e5/(1-e5) );
 
+      weights[14*i+ 5] = 4*(e2*e4/(1-e5))*e1*( (2*e1/(1-e5)) - 1 );
+      weights[14*i+ 7] = 4*(e3*e1/(1-e5))*e2*( (2*e2/(1-e5)) - 1 );
+      weights[14*i+ 3] = 4*(e4*e2/(1-e5))*e3*( (2*e3/(1-e5)) - 1 );
+      weights[14*i+ 1] = 4*(e1*e3/(1-e5))*e4*( (2*e4/(1-e5)) - 1 );
 
-      weights[14*i+ 8] = e1*e2*( ((2*e1/(1-e5) - 1) * (2*e2/(1-e5) - 1)) - e5/(1-e5) );//au1*av1*aw1;
-      weights[14*i+ 6] = e2*e3*( ((2*e2/(1-e5) - 1) * (2*e3/(1-e5) - 1)) - e5/(1-e5) );//au2*av1*aw1;
-      weights[14*i+ 0] = e3*e4*( ((2*e3/(1-e5) - 1) * (2*e4/(1-e5) - 1)) - e5/(1-e5) );//au3*av1*aw1;
-      weights[14*i+ 2] = e4*e1*( ((2*e4/(1-e5) - 1) * (2*e1/(1-e5) - 1)) - e5/(1-e5) );//au1*av2*aw1;
+      weights[14*i+ 4] = 16*e1*e2*e3*e4/((1-e5)*(1-e5));
 
-      weights[14*i+ 5] = 4*(e2*e4/(1-e5))*e1*( (2*e1/(1-e5)) - 1 );//au2*av2*aw1;
-      weights[14*i+ 7] = 4*(e3*e1/(1-e5))*e2*( (2*e2/(1-e5)) - 1 );//au3*av2*aw1;
-      weights[14*i+ 3] = 4*(e4*e2/(1-e5))*e3*( (2*e3/(1-e5)) - 1 );//au1*av3*aw1;
-      weights[14*i+ 1] = 4*(e1*e3/(1-e5))*e4*( (2*e4/(1-e5)) - 1 );//au2*av3*aw1;
+      weights[14*i+12] = 4*e1*e2*e5/(1-e5);
+      weights[14*i+11] = 4*e2*e3*e5/(1-e5);
+      weights[14*i+ 9] = 4*e3*e4*e5/(1-e5);
+      weights[14*i+10] = 4*e4*e1*e5/(1-e5);
 
-      weights[14*i+ 4] = 16*e1*e2*e3*e4/((1-e5)*(1-e5));//au3*av3*aw1;
-
-      weights[14*i+12] = 4*e1*e2*e5/(1-e5);//2*u0  *  2*v0  *aw2;
-      weights[14*i+11] = 4*e2*e3*e5/(1-e5);//uP    * -2*v0  *aw2;
-      weights[14*i+ 9] = 4*e3*e4*e5/(1-e5);//-2*u0  *  vP    *aw2;
-      weights[14*i+10] = 4*e4*e1*e5/(1-e5);//uP    *  vP    *aw2;
-
-      weights[14*i+13] = e5*(2*e5-1);//aw3;
+      weights[14*i+13] = e5*(2*e5-1);
 
 
 

@@ -64,7 +64,7 @@
 
 static double _f(double x, double y, double z)
 {
-  return 2*x*x + z*z -0.4*y*y + x*y - 3*x*z + 0.1*y*z + z - x + 2. + 3*z;
+  return x+y+z;
 }
 
 static double _x(double y)
@@ -79,7 +79,7 @@ static double _y(double x)
 
 static double _z(double x, double y)
 {
-  return  2*(x*(1-x) + y*(1-y));
+  return  4*(x*(1-x) + y*(1-y));
 }
 
 
@@ -307,8 +307,7 @@ int main
   if (rank == 0)
     printf("        Create mesh\n");
 
-  int format = 0;
-  int dimension = 0;
+
   int nVertex = 0;               // Number of vertex
   double *coords = NULL;         // Vertex coordinates
   int nElts = 0;                 // Number of elements
@@ -325,7 +324,7 @@ int main
   const double ymin =  0.0;
   const double ymax =  1.0;// * dila;
   const double zmin =  0.0;
-  const double zmax =  1.0;// * dila;
+  const double zmax =  1.0;// dila;
 
   nVertex = 14;
   nElts = 1;
@@ -391,41 +390,24 @@ int main
 
   coords[27] = (coords[0] + coords[12]) / 2;
   coords[28] = (coords[1] + coords[13]) / 2;
-  coords[29] = (coords[2] + coords[14]) / 2 + _z(coords[27], coords[28]);
+  coords[29] = (zmin + zmax) / 2 + _z(coords[27], coords[28]);
 
   coords[30] = (coords[3] + coords[12]) / 2;
   coords[31] = (coords[4] + coords[13]) / 2;
-  coords[32] = (coords[5] + coords[14]) / 2 + _z(coords[30], coords[31]);
+  coords[32] = (zmin + zmax) / 2 + _z(coords[30], coords[31]);
 
   coords[33] = (coords[6] + coords[12]) / 2;
   coords[34] = (coords[7] + coords[13]) / 2;
-  coords[35] = (coords[8] + coords[14]) / 2 + _z(coords[33], coords[34]);
+  coords[35] = (zmin + zmax) / 2 + _z(coords[33], coords[34]);
 
   coords[36] = (coords[9]  + coords[12]) / 2;
   coords[37] = (coords[10] + coords[13]) / 2;
-  coords[38] = (coords[11] + coords[14]) / 2 + _z(coords[36], coords[37]);
+  coords[38] = (zmin + zmax) / 2 + _z(coords[36], coords[37]);
 
   coords[39] = (xmin + xmax) / 2;
   coords[40] = (xmin + xmax) / 2;
   coords[41] = zmin + _z(coords[39], coords[40]);
 
-
-  if (rank == 0)
-   printf("coords:\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n",
-              coords[0], coords[1], coords[2],
-              coords[3], coords[4], coords[5],
-              coords[6], coords[7], coords[8],
-              coords[9], coords[10], coords[11],
-              coords[12], coords[13], coords[14],
-              coords[15], coords[16], coords[17],
-              coords[18], coords[19], coords[20],
-              coords[21], coords[22], coords[23],
-              coords[24], coords[25], coords[26],
-              coords[27], coords[28], coords[29],
-              coords[30], coords[31], coords[32],
-              coords[33], coords[34], coords[35],
-              coords[36], coords[37], coords[38],
-              coords[39], coords[40], coords[41]);
 
 
   fprintf(outputFile, "   Number of vertex   : %i\n", nVertex);
@@ -516,24 +498,14 @@ int main
 
   double *pts_to_locate = (double *) malloc(sizeof(double) * 3 * n_pts_to_locate);
 
-
-  //pts_to_locate[0] = 5.40168e-01;
-  //pts_to_locate[1] = 6.18480e-01;
-  //pts_to_locate[2] = 7.36952e-01;
-
-
   for (int i = 0; i < n_pts_to_locate; i++) {
-    pts_to_locate[3*i+2] =  0;//frand_a_b(zmin, zmax);                //_z(pts_to_locate[3*i], pts_to_locate[3*i+1]);
+    pts_to_locate[3*i+2] =  frand_a_b(zmin, zmax);
 
-    pts_to_locate[3*i] =  frand_a_b(xmin, xmax);//frand_a_b(xmin, xmax);
-    pts_to_locate[3*i+1] = frand_a_b(ymin, ymax);//frand_a_b(ymin, ymax);
-    pts_to_locate[3*i+2] = pts_to_locate[3*i+2] + _z(pts_to_locate[3*i], pts_to_locate[3*i+1]);
+    pts_to_locate[3*i] = frand_a_b((xmin + xmax)/2 - 0.5*(1-pts_to_locate[3*i+2]), (xmin + xmax)/2 + 0.5*(1-pts_to_locate[3*i+2]));
+    pts_to_locate[3*i+1] = frand_a_b((ymin + ymax)/2 - 0.5*(1-pts_to_locate[3*i+2]), (ymin + ymax)/2 + 0.5*(1-pts_to_locate[3*i+2]));
+    pts_to_locate[3*i+2] = _z(pts_to_locate[3*i], pts_to_locate[3*i+1]) + pts_to_locate[3*i+2];
   }
 
-
-  for (int i = 0; i < n_pts_to_locate; i++) {
-    printf("%12.5e %12.5e %12.5e\n",  pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2]);
-  }
 
   cwipi_set_points_to_locate ("c_volumic_cpl_location_pyraP2",
                               n_pts_to_locate,
@@ -571,7 +543,6 @@ int main
   recvValuesName = "_fr";
 
 
-    printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
   cwipi_locate("c_volumic_cpl_location_pyraP2");
 
 
@@ -619,6 +590,37 @@ int main
 
   cwipi_delete_coupling("c_volumic_cpl_location_pyraP2");
 
+  /* Check results */
+
+
+  if (rank == 0)
+    printf("        Check results\n");
+
+  double *res = (double *) malloc(sizeof(double) *  n_pts_to_locate);
+
+  for (int i = 0; i < n_pts_to_locate; i++) {
+    res[i] = _f(pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2]);
+  }
+
+  double err = 0;
+  for (int i = 0; i < n_pts_to_locate; i++) {
+    err = fabs(recvValues[i] - res[i]);
+    //    if (err > 1e-6) {
+    printf ("[%d] err %d : %12.15e %12.15e %12.15e\n", codeId, i, err, recvValues[i], res[i]);
+    //if (rank == 0) printf("%12.15e\n", err);
+      // }
+  }
+
+  double err_max;
+  MPI_Allreduce(&err, &err_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+
+  if (err_max >= 1e-5) {
+    if (rank == 0) {
+      printf("        !!! Error = %12.5e\n", err_max);
+    }
+    MPI_Finalize();
+    return EXIT_FAILURE;
+  }
 
 
   /* Free

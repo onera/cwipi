@@ -4272,8 +4272,6 @@ fvmc_point_location_nodal(const fvmc_nodal_t  *this_nodal,
                           fvmc_lnum_t          location[],
                           float               distance[])
 {
-  int rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   int i;
   fvmc_lnum_t   base_element_num;
   fvmc_lnum_t  *points_in_extents = NULL;
@@ -4322,10 +4320,6 @@ fvmc_point_location_nodal(const fvmc_nodal_t  *this_nodal,
                                  uvw,
                                  location,
                                  distance);
-    if ( rank == 0){
-    for (int g=0; g<n_points; g++)
-      printf("%12.15e\n", distance[g]);
-    }
         if (base_element_num > -1)
           base_element_num += this_section->n_elements;
 
@@ -5363,20 +5357,6 @@ int fvmc_polygon_evaluate_Position(double x[3], int numPts, double *pts, double*
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 int fvmc_edge_evaluate_Position (double x[3],
                                  double *pts,
                                  double* closestPoint,
@@ -5446,28 +5426,12 @@ int fvmc_edge_evaluate_Position (double x[3],
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 int  fvmc_tetrahedron_evaluate_Position (double x[3], double *pts,
                                          double* closestPoint,
                                          double closestPointpcoords[3],
                                          double *dist2,
                                          double closestPointweights[4])
 {
-  int rank;
-MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   double *pt0, *pt1, *pt2, *pt3, *vtx_tria = malloc(sizeof(double) * 3 * 3);
   double p0p1[3]   , p0p2[3]   , p0p3[3]   , p1p2[3]   , p1p3[3]   , p2p3[3];
   double norm2_p0p1, norm2_p0p2, norm2_p0p3, norm2_p1p2, norm2_p1p3, norm2_p2p3;
@@ -5510,11 +5474,6 @@ MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       norm2_p1p2 == 0.0 ||
       norm2_p1p3 == 0.0 ||
       norm2_p2p3 == 0.0) {
-        printf("\nPOINT COINCIDENT \n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n",
-                pt0[0], pt0[1], pt0[2],
-                pt1[0], pt1[1], pt1[2],
-                pt2[0], pt2[1], pt2[2],
-                pt3[0], pt3[1], pt3[2]);
     return -1;
   }
 
@@ -5523,12 +5482,6 @@ MPI_Comm_rank(MPI_COMM_WORLD, &rank);
                 + p0p1[2] * (p0p2[0]*p0p3[1] - p0p2[1]*p0p3[0]);
 
   if (vol6 == 0) {
-    printf("\nVOLUME NUL = %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n",
-            vol6,
-            pt0[0], pt0[1], pt0[2],
-            pt1[0], pt1[1], pt1[2],
-            pt2[0], pt2[1], pt2[2],
-            pt3[0], pt3[1], pt3[2]);
     return -1;
   }
 
@@ -5547,16 +5500,8 @@ MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       + xp0[2] * (xp1[0]*xp2[1] - xp1[1]*xp2[0]);
   w /= -vol6;
 
-  /*printf("sommets du tetraedre: \n -P0 : %12.5e, %12.5e, %12.5e\n -P1 : %12.5e, %12.5e, %12.5e\n -P2 : %12.5e, %12.5e, %12.5e\n -P3 : %12.5e, %12.5e, %12.5e\ncoords param : %12.5e, %12.5e, %12.5e\n",
-     pt0[0], pt0[1], pt0[2],
-     pt1[0], pt1[1], pt1[2],
-     pt2[0], pt2[1], pt2[2],
-     pt3[0], pt3[1], pt3[2],
-     u, v, w);*/
-
 
   if (u + v + w <= 1 && u >= 0 && v >= 0 && w >= 0) { // point a l'interieur du tetra
-  //printf("Point a l'interieur\n");
     for (int i = 0; i < 3; i++) {
       closestPoint[i] = x[i];
     }
@@ -5568,13 +5513,9 @@ MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     closestPointweights[1] = u;
     closestPointweights[2] = v;
     closestPointweights[3] = w;
-
-
   }
 
-
   else if (u + v + w > 1) {// la face la plus proche est [P1,P2,P3]
-    //printf("la face la plus proche est [P1,P2,P3]\n");
     vtx_tria[0] = pt1[0];
     vtx_tria[1] = pt1[1];
     vtx_tria[2] = pt1[2];
@@ -5587,14 +5528,12 @@ MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     vtx_tria[7] = pt3[1];
     vtx_tria[8] = pt3[2];
 
-
     int isDegenerated = fvmc_triangle_evaluate_Position (x,
                                                          vtx_tria,
                                                          closestPoint,
                                                          uvw_tria,
                                                          dist2,
                                                          weights_tria);
-
     double p0cp[3], p1cp[3], p2cp[3], p3cp[3];
     for (int i = 0; i < 3; i++){
       p0cp[i] = closestPoint[i] - pt0[i];
@@ -5618,23 +5557,13 @@ MPI_Comm_rank(MPI_COMM_WORLD, &rank);
         + p0cp[2] * (p1cp[0]*p2cp[1] - p1cp[1]*p2cp[0]);
     closestPointpcoords[2] = w / vol6;
 
-
     closestPointweights[0] = 1 - closestPointpcoords[0] - closestPointpcoords[1] - closestPointpcoords[2];
     closestPointweights[1] = closestPointpcoords[0];
     closestPointweights[2] = closestPointpcoords[1];
     closestPointweights[3] = closestPointpcoords[2];
-
-    /*printf("la face la plus proche est [P1,P2,P3]\nsommet du sous-tetra:\n P0 (%12.5e, %12.5e, %12.5e)\n P1 (%12.5e, %12.5e, %12.5e)\n P2 (%12.5e, %12.5e, %12.5e)\n P3 (%12.5e, %12.5e, %12.5e)\npoint projete:\nPx = %12.5e\nPy = %12.5e\nPz = %12.5e\ncoordonnees parametriques du point:\n  u = %12.5e\n  v = %12.5e\n  w = %12.5e\n",
-      pt0[0], pt0[1], pt0[2],
-      pt1[0], pt1[1], pt1[2],
-      pt2[0], pt2[1], pt2[2],
-      pt3[0], pt3[1], pt3[2],
-      closestPoint[0], closestPoint[1], closestPoint[2],
-      u, v, w);*/
-
   }
+
   else if (u < 0) {// la face la plus proche est [P0,P3,P2]
-    //printf("la face la plus proche est [P0,P3,P2]\n");
     vtx_tria[0] = pt0[0];
     vtx_tria[1] = pt0[1];
     vtx_tria[2] = pt0[2];
@@ -5647,14 +5576,12 @@ MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     vtx_tria[7] = pt2[1];
     vtx_tria[8] = pt2[2];
 
-
     int isDegenerated = fvmc_triangle_evaluate_Position (x,
                                                          vtx_tria,
                                                          closestPoint,
                                                          uvw_tria,
                                                          dist2,
                                                          weights_tria);
-
     double p0cp[3], p1cp[3], p2cp[3], p3cp[3];
     for (int i = 0; i < 3; i++){
       p0cp[i] = closestPoint[i] - pt0[i];
@@ -5678,22 +5605,13 @@ MPI_Comm_rank(MPI_COMM_WORLD, &rank);
         + p0cp[2] * (p1cp[0]*p2cp[1] - p1cp[1]*p2cp[0]);
     closestPointpcoords[2] = w / vol6;
 
-
     closestPointweights[0] = 1 - closestPointpcoords[0] - closestPointpcoords[1] - closestPointpcoords[2];
     closestPointweights[1] = closestPointpcoords[0];
     closestPointweights[2] = closestPointpcoords[1];
     closestPointweights[3] = closestPointpcoords[2];
-
-    /*printf("la face la plus proche est [P0,P3,P2]\nsommet du sous-tetra:\n P0 (%12.5e, %12.5e, %12.5e)\n P1 (%12.5e, %12.5e, %12.5e)\n P2 (%12.5e, %12.5e, %12.5e)\n P3 (%12.5e, %12.5e, %12.5e)\npoint projete:\nPx = %12.5e\nPy = %12.5e\nPz = %12.5e\ncoordonnees parametriques du point:\n  u = %12.5e\n  v = %12.5e\n  w = %12.5e\n",
-      pt0[0], pt0[1], pt0[2],
-      pt1[0], pt1[1], pt1[2],
-      pt2[0], pt2[1], pt2[2],
-      pt3[0], pt3[1], pt3[2],
-      closestPoint[0], closestPoint[1], closestPoint[2],
-      u, v, w);*/
   }
+
   else if (v < 0) {// la face la plus proche est [P0,P3,P1]
-    //printf("la face la plus proche est [P0,P3,P1]\n");
     vtx_tria[0] = pt0[0];
     vtx_tria[1] = pt0[1];
     vtx_tria[2] = pt0[2];
@@ -5706,14 +5624,12 @@ MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     vtx_tria[7] = pt1[1];
     vtx_tria[8] = pt1[2];
 
-
     int isDegenerated = fvmc_triangle_evaluate_Position (x,
                                                          vtx_tria,
                                                          closestPoint,
                                                          uvw_tria,
                                                          dist2,
                                                          weights_tria);
-
     double p0cp[3], p1cp[3], p2cp[3], p3cp[3];
     for (int i = 0; i < 3; i++){
       p0cp[i] = closestPoint[i] - pt0[i];
@@ -5737,15 +5653,13 @@ MPI_Comm_rank(MPI_COMM_WORLD, &rank);
         + p0cp[2] * (p1cp[0]*p2cp[1] - p1cp[1]*p2cp[0]);
     closestPointpcoords[2] = w / vol6;
 
-
     closestPointweights[0] = 1 - closestPointpcoords[0] - closestPointpcoords[1] - closestPointpcoords[2];
     closestPointweights[1] = closestPointpcoords[0];
     closestPointweights[2] = closestPointpcoords[1];
     closestPointweights[3] = closestPointpcoords[2];
-
   }
+
   else if (w < 0) {// la face la plus proche est [P0,P1,P2]
-    //printf("la face la plus proche est [P0,P1,P2]\n");
     vtx_tria[0] = pt0[0];
     vtx_tria[1] = pt0[1];
     vtx_tria[2] = pt0[2];
@@ -5758,14 +5672,12 @@ MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     vtx_tria[7] = pt2[1];
     vtx_tria[8] = pt2[2];
 
-
     int isDegenerated = fvmc_triangle_evaluate_Position (x,
                                                          vtx_tria,
                                                          closestPoint,
                                                          uvw_tria,
                                                          dist2,
                                                          weights_tria);
-
     double p0cp[3], p1cp[3], p2cp[3], p3cp[3];
     for (int i = 0; i < 3; i++){
       p0cp[i] = closestPoint[i] - pt0[i];
@@ -5789,35 +5701,11 @@ MPI_Comm_rank(MPI_COMM_WORLD, &rank);
         + p0cp[2] * (p1cp[0]*p2cp[1] - p1cp[1]*p2cp[0]);
     closestPointpcoords[2] = w / vol6;
 
-
     closestPointweights[0] = 1 - closestPointpcoords[0] - closestPointpcoords[1] - closestPointpcoords[2];
     closestPointweights[1] = closestPointpcoords[0];
     closestPointweights[2] = closestPointpcoords[1];
     closestPointweights[3] = closestPointpcoords[2];
-
-    /*printf("la face la plus proche est [P0,P1,P2]\nsommet du sous-tetra:\n P0 (%12.5e, %12.5e, %12.5e)\n P1 (%12.5e, %12.5e, %12.5e)\n P2 (%12.5e, %12.5e, %12.5e)\n P3 (%12.5e, %12.5e, %12.5e)\npoint projete:\nPx = %12.5e\nPy = %12.5e\nPz = %12.5e\ncoordonnees parametriques du point:\n  u = %12.5e\n  v = %12.5e\n  w = %12.5e\n",
-      pt0[0], pt0[1], pt0[2],
-      pt1[0], pt1[1], pt1[2],
-      pt2[0], pt2[1], pt2[2],
-      pt3[0], pt3[1], pt3[2],
-      closestPoint[0], closestPoint[1], closestPoint[2],
-      u, v, w);*/
   }
- /*printf("sommets du tetraedre: \n -P0 : %12.5e, %12.5e, %12.5e\n -P1 : %12.5e, %12.5e, %12.5e\n -P2 : %12.5e, %12.5e, %12.5e\n -P3 : %12.5e, %12.5e, %12.5e\npoint a localiser : %12.5e, %12.5e, %12.5e\npoint projete : %12.5e, %12.5e, %12.5e\n",
-    pt0[0], pt0[1], pt0[2],
-    pt1[0], pt1[1], pt1[2],
-    pt2[0], pt2[1], pt2[2],
-    pt3[0], pt3[1], pt3[2],
-    x[0], x[1], x[2],
-    closestPoint[0], closestPoint[1], closestPoint[2]);*/
-
-  /*  if ( closestPoint[0] == x[0] && rank == 0) {
-      printf("-P0 : %12.5e, %12.5e, %12.5e\n -P1 : %12.5e, %12.5e, %12.5e\n -P2 : %12.5e, %12.5e, %12.5e\n -P3 : %12.5e, %12.5e, %12.5e\n\n",
-         pt0[0], pt0[1], pt0[2],
-         pt1[0], pt1[1], pt1[2],
-         pt2[0], pt2[1], pt2[2],
-         pt3[0], pt3[1], pt3[2]);
-    }*/
 
   free(vtx_tria);
   return 0;

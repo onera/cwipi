@@ -63,7 +63,7 @@
 
 static double _f(double x, double y, double z)
 {
-  return sqrt(x*x + y*y + z*z);
+  return x+y+z;
 }
 
 static double _y(double x)
@@ -82,102 +82,6 @@ static double frand_a_b(double a, double b){
 
 
 
-/*----------------------------------------------------------------------
- *
- * Read mesh
- *
- * parameters:
- *   f                   <-- Mesh file
- *   dimension           --> Dimension
- *   nvertex             <-- number of vertices
- *   nElements           <-- number of elements
- *   nConnecVertex       <-- size of connectivity
- *   coords              --> vertices coordinates
- *   connecPointer       --> connectivity index
- *   connec              --> connectivity
- *---------------------------------------------------------------------*/
-
-static int _read_mesh(FILE *f,
-                      int *format,
-                      int *dimension,
-                      int *nVertex,
-                      int *nElt,
-                      double *coords,
-                      int *eltsConnecPointer,
-                      int *eltsConnec)
-{
-
-
-  int r;
-  int nConnecVertex;
-  int _format;
-  int _dimension;
-  int _nVertex;
-  int _nElt;
-  int *un, loop = 0;
-  char key[256];
-
-
-
-  while (loop == 0){
-    r = fscanf(f, "%s",key);
-    printf("key = %s\n", key);
-  switch (key[0]) {
-    case 'M':
-      r = fscanf(f, "%d",format);
-      _format = *format;
-      printf("format = %d, r = %i\n", _format, r);
-      break;
-
-    case 'D':
-      r = fscanf(f, "%d",dimension);
-      _dimension = *dimension;
-      printf("dimension = %d, r = %i\n", _dimension, r);
-      break;
-
-    case 'V':
-      r = fscanf(f, "%d",nVertex);
-      _nVertex = *nVertex;
-      printf("nVertex = %d, r = %i\n", _nVertex, r);
-      coords = (double *) malloc(sizeof(double) * 3 * _nVertex );
-      for (int i = 0; i < _nVertex; i++) {
-
-        for (int j = 0; j < 3; j++) {
-        r = fscanf(f, "%lf",coords + i * 3 + j);
-        }
-      }
-      break;
-
-      case 'E':
-        r = fscanf(f, "%d",nElt);
-        _nElt = *nElt;
-        printf("nElt = %d, r = %i\n", _nElt, r);
-        nConnecVertex = _nElt * 3;
-        eltsConnec = (int *) malloc(sizeof(int) * nConnecVertex);
-        for (int i = 0; i < nConnecVertex; i++) {
-
-          for (int j = 0; j < 3; j++) {
-          r = fscanf(f, "%d",eltsConnec + i * 3 + j);
-          }
-          r = fscanf(f, "%d",un);
-        }
-        break;
-
-      case 'F':
-        loop = 1;
-        break;
-  };
-}
-
-  eltsConnecPointer = (int *) malloc(sizeof(int) * (_nElt + 1));
-
-  for (int i = 0; i < _nElt; i++) {
-    eltsConnecPointer[i] = 3*i;
-  }
-  eltsConnecPointer[_nElt] = nConnecVertex;
-
-  return 1;
-}
 /*----------------------------------------------------------------------
  *
  * Display usage
@@ -394,8 +298,7 @@ int main
   if (rank == 0)
     printf("        Create mesh\n");
 
-  int format = 0;
-  int dimension = 0;
+
   int nVertex = 0;               // Number of vertex
   double *coords = NULL;         // Vertex coordinates
   int nElts = 0;                 // Number of elements
@@ -701,18 +604,13 @@ int main
   double *pts_to_locate = (double *) malloc(sizeof(double) * 3 * n_pts_to_locate);
 
 
-for (int i = 0; i < n_pts_to_locate; i++){
-  pts_to_locate[3*i]  = frand_a_b(xmin, xmax);
-  pts_to_locate[3*i+1]  = frand_a_b(ymin, ymax);
-  double dz = frand_a_b(zmin, zmax);
-  pts_to_locate[3*i+2]  = _z(pts_to_locate[3*i], pts_to_locate[3*i+1]) + dz;
-}
-
-
-
-  for (int i = 0; i < nVertex; i++) {
-    if (rank == 0) printf("%12.5e %12.5e %12.5e\n", coords[3*i], coords[3*i+1], coords[3*i+2]);
+  for (int i = 0; i < n_pts_to_locate; i++){
+    pts_to_locate[3*i]  = frand_a_b(xmin, xmax);
+    pts_to_locate[3*i+1]  = frand_a_b(ymin, ymax);
+    double dz = frand_a_b(zmin, zmax);
+    pts_to_locate[3*i+2]  = _z(pts_to_locate[3*i], pts_to_locate[3*i+1]) + dz;
   }
+
 
   cwipi_set_points_to_locate ("c_volumic_cpl_location_hexaP2",
                               n_pts_to_locate,
@@ -800,6 +698,36 @@ for (int i = 0; i < n_pts_to_locate; i++){
 
   cwipi_delete_coupling("c_volumic_cpl_location_hexaP2");
 
+  /* Check results */
+
+  if (rank == 0)
+    printf("        Check results\n");
+
+  double *res = (double *) malloc(sizeof(double) *  n_pts_to_locate);
+
+  for (int i = 0; i < n_pts_to_locate; i++) {
+    res[i] = _f(pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2]);
+  }
+
+  double err = 0;
+  for (int i = 0; i < n_pts_to_locate; i++) {
+    err = fabs(recvValues[i] - res[i]);
+    //    if (err > 1e-6) {
+    printf ("[%d] err %d : %12.15e %12.15e %12.15e\n", codeId, i, err, recvValues[i], res[i]);
+    //if (rank == 0) printf("%12.15e\n", err);
+      // }
+  }
+
+  double err_max;
+  MPI_Allreduce(&err, &err_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+
+  if (err_max >= 1e-5) {
+    if (rank == 0) {
+      printf("        !!! Error = %12.5e\n", err_max);
+    }
+    MPI_Finalize();
+    return EXIT_FAILURE;
+  }
 
 
   /* Free

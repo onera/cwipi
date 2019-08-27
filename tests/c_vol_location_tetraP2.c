@@ -61,7 +61,7 @@
  *   status              <-- Exchange status
  *---------------------------------------------------------------------*/
 
-static double _f(double x, double y, double z, double puis)
+static double _f(double x, double y, double z)
 {
     return x + y + z;
 }
@@ -302,8 +302,7 @@ int main
   if (rank == 0)
     printf("        Create mesh\n");
 
-  int format = 0;
-  int dimension = 0;
+
   int nVertex = 0;               // Number of vertex
   double *coords = NULL;         // Vertex coordinates
   int nElts = 0;                 // Number of elements
@@ -356,7 +355,7 @@ coords[8] = zmin + _z(coords[6], coords[7]);
 
 coords[9]  = xmin;
 coords[10] = ymin;
-coords[11] = zmax;// + _z(coords[9], coords[10]);
+coords[11] = zmax + _z(coords[9], coords[10]);
 
 coords[12] = (xmin + xmax) / 2;
 coords[13] = ymin;
@@ -382,64 +381,6 @@ coords[27] = xmin;
 coords[28] = (ymin + ymax) / 2 + 0.1;
 coords[29] = (zmin + zmax) / 2 + _z(coords[27], coords[28]);
 
-
-/*
-
-
-coords[0] = 9.030342459149850e-02;
-coords[1] = 2.423433238303810e-01;
-coords[2] = 4.279193906589080e-01;
-
-coords[3] = 3.513641864412240e-02;
-coords[4] = 1.996536901834650e-01;
-coords[5] = 3.618983441488240e-01;
-
-coords[6] = -2.003058730325370e-02;
-coords[7] = 1.569640565365490e-01;
-coords[8] = 2.958772976387400e-01;
-
-coords[9] = 4.549623479940860e-02;
-coords[10] = 2.612693950859740e-01;
-coords[11] = 4.238730892737660e-01;
-
-coords[12] = -1.001529365162680e-02;
-coords[13] = 2.173745865234740e-01;
-coords[14] = 3.558060518948060e-01;
-
-coords[15] = 0.000000000000000e+00;
-coords[16] = 2.777851165103990e-01;
-coords[17] = 4.157348061508730e-01;
-
- coords[18] = 8.776630908293880e-02;
- coords[19] = 2.488799519208400e-01;
- coords[20] = 3.484222722132320e-01;
-
- coords[21] = 3.259930313556270e-02;
- coords[22] = 2.061903182739240e-01;
- coords[23] = 2.824012257031480e-01;
-
- coords[24] = 4.261459678718950e-02;
- coords[25] = 2.666008482608490e-01;
- coords[26] = 3.423299799592140e-01;
-
- coords[27] = 8.522919357437909e-02;
- coords[28] = 2.554165800112990e-01;
- coords[29] = 2.689251537675560e-01;
-*/
-
-
- if (rank == 0)
-  printf("\ncoords:\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n%12.15e %12.15e %12.15e\n\n",
-            coords[0], coords[1], coords[2],
-            coords[3], coords[4], coords[5],
-            coords[6], coords[7], coords[8],
-            coords[9], coords[10], coords[11],
-            coords[12], coords[13], coords[14],
-            coords[15], coords[16], coords[17],
-            coords[18], coords[19], coords[20],
-            coords[21], coords[22], coords[23],
-            coords[24], coords[25], coords[26],
-            coords[27], coords[28], coords[29]);
 
   fprintf(outputFile, "   Number of vertex   : %i\n", nVertex);
   fprintf(outputFile, "   Number of elements : %i\n", nElts);
@@ -511,21 +452,13 @@ coords[17] = 4.157348061508730e-01;
 
   double *pts_to_locate = (double *) malloc(sizeof(double) * 3 * n_pts_to_locate);
 
-  //pts_to_locate[0] = 7.525667486491459e-01;
-  //pts_to_locate[1] = 1.552923385289316e-01;
-  //pts_to_locate[2] = 4.048796649970469e-01;
-
 
   for (int i = 0; i < n_pts_to_locate; i++){
     pts_to_locate[3*i]    =  frand_a_b(xmin, xmax);
-    pts_to_locate[3*i+1]  =  frand_a_b(ymin, ymax*(1-pts_to_locate[3*i]));
+    pts_to_locate[3*i+1]  =  frand_a_b(ymin, (ymax-ymin)*(xmax-pts_to_locate[3*i])/(xmax-xmin) + ymin);
     pts_to_locate[3*i+2]  =  frand_a_b(_z(pts_to_locate[3*i], pts_to_locate[3*i+1]), __z(pts_to_locate[3*i], pts_to_locate[3*i+1]));
   }
 
-
-  for (int i = 0; i < n_pts_to_locate; i++) {
-    printf("%12.15e %12.15e %12.15e\n",  pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2]);
-  }
 
   cwipi_set_points_to_locate ("c_volumic_cpl_location_tetraP2",
                               n_pts_to_locate,
@@ -552,7 +485,7 @@ coords[17] = 4.157348061508730e-01;
   double puis = 10.0;
 
   for (int i = 0; i < nVertex; i++) {
-    sendValues[i] = _f(coords[3 * i], coords[3 * i+1], coords[3 * i+2], puis);
+    sendValues[i] = _f(coords[3 * i], coords[3 * i+1], coords[3 * i+2]);
   }
 
   /* Exchange */
@@ -564,12 +497,7 @@ coords[17] = 4.157348061508730e-01;
   sendValuesName = "_fs";
   recvValuesName = "_fr";
 
-
-
   cwipi_locate("c_volumic_cpl_location_tetraP2");
-
-
-
 
   nNotLocatedPoints = cwipi_get_n_not_located_points("c_volumic_cpl_location_tetraP2");
   if (nNotLocatedPoints > 0) {
@@ -616,7 +544,7 @@ coords[17] = 4.157348061508730e-01;
 
 
 
-  /* Check barycentric coordinates */
+  /* Check results */
 
   if (rank == 0)
     printf("        Check results\n");
@@ -624,35 +552,29 @@ coords[17] = 4.157348061508730e-01;
   double *res = (double *) malloc(sizeof(double) *  n_pts_to_locate);
 
   for (int i = 0; i < n_pts_to_locate; i++) {
-    res[i] = _f(pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2],puis);
+    res[i] = _f(pts_to_locate[3*i], pts_to_locate[3*i+1], pts_to_locate[3*i+2]);
   }
 
-  double err;
-
+  double err = 0;
   for (int i = 0; i < n_pts_to_locate; i++) {
     err = fabs(recvValues[i] - res[i]);
-    if (rank == 0) printf("%12.15e\n", err);
     //    if (err > 1e-6) {
-    //printf ("[%d] err %d : %12.5e %12.5e %12.5e\n", codeId, i, err, recvValues[i], res[i]);
+    printf ("[%d] err %d : %12.15e %12.15e %12.15e\n", codeId, i, err, recvValues[i], res[i]);
+    //if (rank == 0) printf("%12.15e\n", err);
       // }
   }
-/*if(rank == 0){
-  FILE* erreur;
-  erreur = fopen("erreur.dat", "a");
-  fprintf(erreur, "%12.5e %12.15e\n", puis, err);
-  fclose(erreur);
-}*/
 
   double err_max;
   MPI_Allreduce(&err, &err_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
 
-  if (err_max >= 1e-6) {
+  if (err_max >= 1e-5) {
     if (rank == 0) {
       printf("        !!! Error = %12.5e\n", err_max);
     }
     MPI_Finalize();
     return EXIT_FAILURE;
   }
+
 
 
 
