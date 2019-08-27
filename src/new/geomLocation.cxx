@@ -575,10 +575,6 @@ void GeomLocation::mesh_cpl_info_get() {
             int* connec    = _mesh -> connecGet(i_part);
             double* coords = _mesh -> getVertexCoords(i_part);
             
-          /*  double x_target = _targets_localization_data_cpl[itarget].projectedX;
-            double y_target = _targets_localization_data_cpl[itarget].projectedY;
-            double z_target = _targets_localization_data_cpl[itarget].projectedZ;  
-*/
             int    *tgt_pts_location = (int*)    malloc(sizeof(int)   *n_tgt);
             int    *tgt_pts_location_p1 = (int*)    malloc(sizeof(int)   *n_tgt);            
             double *tgt_pts_dist     = (double*) malloc(sizeof(double)*n_tgt);
@@ -611,7 +607,6 @@ void GeomLocation::mesh_cpl_info_get() {
                                                                   &tgt_pts_bary_coords
                                                          	 );    
 
-            printf("dataTypeSize * nComponent * _targets_localization_idx_cpl[i_proc][i_part] %i \n",dataTypeSize * nComponent * _targets_localization_idx_cpl[i_proc][i_part]);
             void* tmpData = (char*) interpolatedData + dataTypeSize * nComponent * _targets_localization_idx_cpl[i_proc][i_part];
 
             (*interpolationFunction)( CWP_INTERFACE_SURFACE   ,
@@ -633,20 +628,12 @@ void GeomLocation::mesh_cpl_info_get() {
                                    tmpData
                                  );
                 
-              i=0;
-              for (int itarget = _targets_localization_idx_cpl[i_proc][i_part]; itarget < _targets_localization_idx_cpl[i_proc][i_part+1]; itarget++) {
-                if( ( (double*) tmpData)[itarget] > 10000) printf("interpolatedData[%i] iproc %i i_part %i %f \n",itarget,i_proc,i_part,((double*) tmpData)[i]);
-                i++;
-              }  
-         /*   free(tgt_pts_location_p1);
-            free(tgt_pts_dist);
-            if(tgt_pts_projected_coords != NULL) free(tgt_pts_projected_coords);
-            if(tgt_pts_bary_coords_idx != NULL) free(tgt_pts_bary_coords_idx );
-            if(tgt_pts_bary_coords     != NULL) free(tgt_pts_bary_coords     );
-            if(tgt_pts_location!=NULL) free(tgt_pts_location);
-           */ 
-           
-          //  while(1==1){}                      
+             if(tgt_pts_location    != NULL ) free(tgt_pts_location             );
+             if(tgt_pts_location_p1 != NULL ) free(tgt_pts_location_p1          );
+             if(tgt_pts_dist        != NULL ) free(tgt_pts_dist                 );         
+             if(tgt_pts_projected_coords != NULL ) free(tgt_pts_projected_coords);       
+             if(tgt_pts_bary_coords_idx  != NULL ) free(tgt_pts_bary_coords_idx );       
+             if(tgt_pts_bary_coords      != NULL ) free(tgt_pts_bary_coords     );              
         }
         else {
           if (referenceFieldType == CWP_FIELD_VALUE_CELL_POINT) {
@@ -688,9 +675,9 @@ void GeomLocation::mesh_cpl_info_get() {
               double y_target = _targets_localization_data_cpl[itarget].projectedY;
               double z_target = _targets_localization_data_cpl[itarget].projectedZ;    
                
-              double tgtCoords[3] = {x_target,y_target,z_target};
-              int *barCoordsIndex =NULL;
-              double *barCoords = NULL;
+              double tgtCoords[3]    = {x_target,y_target,z_target};
+              int    *barCoordsIndex = NULL;
+              double *barCoords      = NULL;
            /*   printf("iel %i itarget %i target %f %f %f _n_tot_target_cpl %i conneIDX \n",
               iel,itarget,x_target,y_target,z_target,_n_tot_target_cpl);*/
               PDM_geom_elem_compute_polygon_barycentric_coordinates(1,
