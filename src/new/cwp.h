@@ -1716,17 +1716,15 @@ CWP_Exch
  * \param [in]  src_field_id        Source field id (0 -> no sending)
  * \param [in]  tgt_field_id        Target field id (0 -> no receiving)
  *
- * \return                          Exchange status
  *
  */
 
-CWP_Err_t 
+void 
 CWP_Sendrecv
 (
  const char   *local_code_name,
  const char   *cpl_id,
- const char   *src_field_id,
- const char   *tgt_field_id
+ const char   *field_id
 );
 
 /**

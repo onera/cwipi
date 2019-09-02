@@ -795,13 +795,10 @@ namespace cwipi {
      *
      */
 
-    inline CWP_Err_t 
-    sendRecv
+    void
+    sendrecv
     (
-     string &src_field_id,
-     string &tgt_field_id,
-     void   *ptFortranInterpolationFct,
-     int    *n_uncomputed_tgt
+     string &field_id
     );
 
     /**

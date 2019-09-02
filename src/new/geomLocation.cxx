@@ -318,9 +318,6 @@ namespace cwipi {
     else if (_geometryLocation == CWP_FIELD_VALUE_USER && _Texch_t == CWP_FIELD_EXCH_RECV) {
       _n_tot_target = _n_tot_user_targets;
     }   
-    else {
-      _n_tot_target = 0;
-    }
 
     MPI_Barrier(_connectableComm);
     /************* Elements ***********/
@@ -537,9 +534,9 @@ void GeomLocation::mesh_cpl_info_get() {
 
     int                 nComponent         = referenceField -> nComponentGet  ();
     CWP_Field_value_t   referenceFieldType = referenceField -> typeGet        ();
-    void               *interpolatedData   = referenceField -> sendBufferGet  ();
     int                 dataTypeSize       = referenceField -> dataTypeSizeGet(); 
     CWP_Interpolation_t interpolationType  = referenceField -> interpolationTypeGet();    
+    void               *interpolatedData   = referenceField -> sendBufferGet  ();    
     
     if (interpolatedData != NULL) free(interpolatedData);
     interpolatedData = (void*) malloc( dataTypeSize * nComponent*_n_tot_target_cpl);
@@ -722,7 +719,7 @@ void GeomLocation::issend(Field* referenceField) {
 
       void* interpolatedFieldData = interpolate(referenceField);  
         
-        dist_v_ptr = interpolatedFieldData;
+      dist_v_ptr = interpolatedFieldData;
 
         MPI_Request request;
 
@@ -1675,29 +1672,17 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
    free(disp_send );
    free(count_recv);
    free(disp_recv );
- 
-   
- 
- /* 
-  _IAlltoallIndexRecv((void*)_targets_localization_data_cpl, _targets_localization_data_count_recv, _targets_localization_data_disp_recv, 
-                  MPI_BYTE,
-                  _unionComm, *_connectableRanks_cpl);
-                  
-  */
+
                   
   }
   
  void GeomLocation::data_communication_wait_send() {  
-  // _WaitSend(*_connectableRanks_cpl,&_send_requests);
-  
    free(_targets_localization_data_count_send);
    free(_targets_localization_data_disp_send );
  }
 
 
  void GeomLocation::data_communication_wait_recv() {  
- //  _WaitRecv(*_connectableRanks_cpl,&_recv_requests);
-  
    free(_targets_localization_data_count_recv);
    free(_targets_localization_data_disp_recv );
    _n_tot_target_cpl    = _targets_localization_idx_cpl[_n_ranks_g-1][_nb_part];
@@ -1719,6 +1704,7 @@ void GeomLocation::broadcasting_set_null(int* id_gnum_location) {
     
     //Crée un buffer de réception et le stocke (alloue)
     recevingField -> ReceptionBufferCreation(_n_tot_target);
+    printf("n_tot_targer %i\n",_n_tot_target);
     /* Loop on possibly intersecting distant ranks */
     /*---------------------------------------------*/
 

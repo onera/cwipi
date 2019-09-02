@@ -222,6 +222,72 @@ namespace cwipi {
     #endif
   }
 
+
+
+  void
+  Coupling::sendrecv
+  (string &field_id) {
+
+     map <string, Field *>::iterator it;
+     it = _fields.find(field_id);
+     if (it != _fields.end()) {
+       Field* field = it -> second;  
+       if(_localCodeProperties.isCoupledRank()) {
+         if(_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
+            if(_geometry[field -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0){
+              _geometry[field -> associatedCloudPointTypeGet()] -> issend    ( field );
+              _geometry[field -> associatedCloudPointTypeGet()] -> waitIssend( field );
+
+              _geometry[field -> associatedCloudPointTypeGet()] -> irecv    ( field );
+              _geometry[field -> associatedCloudPointTypeGet()] -> waitIrecv( field );            
+            }
+            else {
+              Coupling &distCpl = _cplDB.couplingGet(_coupledCodeProperties, _cplId);   
+              map <std::string, Field *>::iterator it_recv = distCpl._fields.find(field_id);
+              if (it_recv != distCpl._fields.end()) {
+                Field* field2 = it_recv -> second;   
+                _geometry[field -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange(field,field2);
+                _geometry[field -> associatedCloudPointTypeGet()] -> waitIssend( field );
+                distCpl._geometry[field -> associatedCloudPointTypeGet()] -> waitIrecv(field2);     
+                
+                distCpl._geometry[field2 -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange(field2,field);
+                distCpl._geometry[field2 -> associatedCloudPointTypeGet()] -> waitIssend(field2);   
+                _geometry[field -> associatedCloudPointTypeGet()] -> waitIrecv( field );
+              }
+            } // end if both_codes_are_local == 0
+         }
+         else {
+           if(_geometry[field -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0){      
+             _geometry[field -> associatedCloudPointTypeGet()] -> irecv    ( field );
+             _geometry[field -> associatedCloudPointTypeGet()] -> waitIrecv( field );
+
+             _geometry[field -> associatedCloudPointTypeGet()] -> issend    ( field );
+             _geometry[field -> associatedCloudPointTypeGet()] -> waitIssend( field );           
+           }
+           else {           
+             Coupling &distCpl = _cplDB.couplingGet(_coupledCodeProperties, _cplId);   
+             map <std::string, Field *>::iterator it_recv = distCpl._fields.find(field_id);
+             if (it_recv != distCpl._fields.end()) {
+               Field* field2 = it_recv -> second;   
+               distCpl._geometry[field2 -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange(field2,field);
+               distCpl._geometry[field2 -> associatedCloudPointTypeGet()] -> waitIssend(field2);   
+               _geometry[field -> associatedCloudPointTypeGet()] -> waitIrecv( field );  
+               
+               _geometry[field -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange(field,field2);
+               _geometry[field -> associatedCloudPointTypeGet()] -> waitIssend( field );
+               distCpl._geometry[field -> associatedCloudPointTypeGet()] -> waitIrecv(field2);                
+             }            
+           } // end if both_codes_are_local == 0            
+         }// end if _localCodeProperties.idGet() < _coupledCodeProperties.idGet()) 
+       }
+       else {
+         _geometry[field -> associatedCloudPointTypeGet()] -> null_exchange_for_uncoupled_process();     
+       }  // end if _localCodeProperties.isCoupledRank()      
+     } //end if (it != _fields.end()) 
+  }
+
+
+
  //TODO: Virer ptFortranInterpolationFct
   void 
   Coupling::issend
@@ -267,6 +333,11 @@ namespace cwipi {
          return;
        }
   }
+
+
+
+
+
 
 
   int
@@ -384,9 +455,6 @@ namespace cwipi {
           }
 
          }
-       }
-       else{
-         _geometry[sendingField -> associatedCloudPointTypeGet()] -> null_exchange_for_uncoupled_process();
        }
      }
    }

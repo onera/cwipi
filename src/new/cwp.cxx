@@ -1005,13 +1005,23 @@ CWP_N_uncomputed_tgts_get
          PDM_error(__FILE__, __LINE__, 0, "Not correct exchange field value for this field.\n");
        }
        
-       if(it -> second -> exchangeTypeGet()==CWP_FIELD_EXCH_SEND)
-         exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] = 1;
-       else if(it -> second -> exchangeTypeGet()==CWP_FIELD_EXCH_RECV)
-         exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] = 2;
-       else if(it -> second -> exchangeTypeGet()==CWP_FIELD_EXCH_SENDRECV)
-         exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] = 3;      
-           
+       if(exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] == 0) {
+         if(it -> second -> exchangeTypeGet()==CWP_FIELD_EXCH_SEND )
+           exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] = 1;
+         else if(it -> second -> exchangeTypeGet()==CWP_FIELD_EXCH_RECV)
+           exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] = 2;
+         else if(it -> second -> exchangeTypeGet()==CWP_FIELD_EXCH_SENDRECV)
+           exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] = 3;      
+       }
+       else {
+         if( exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] == 1 && it -> second -> exchangeTypeGet() != CWP_FIELD_EXCH_SEND){
+            exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] = 3;        
+         }
+         else if( exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] == 2 && it -> second -> exchangeTypeGet() != CWP_FIELD_EXCH_RECV){
+            exchangeTypeByLocation[ static_cast<int>( it -> second -> associatedCloudPointTypeGet() )] = 3;        
+         }     
+       }
+         
        printf(" %s typeGet() %s associatedCloudPointTypeGet %s rank %i exchangeTypeGet %i\n",it->first.c_str(),CWP_Field_value_t_str[it -> second -> typeGet()],
        CWP_Field_value_t_str[static_cast<int>(it -> second -> associatedCloudPointTypeGet())],rank,it -> second ->  exchangeTypeGet());
        it++;
@@ -1045,8 +1055,30 @@ CWP_N_uncomputed_tgts_get
         CWP_Field_exch_t exchange_type    ;
         CWP_Field_exch_t exchange_type_cpl;
         if (geomComputeRcv == 1 && geomComputeSend == 1 ) {
-          exchange_type     = CWP_FIELD_EXCH_SENDRECV;
-          exchange_type_cpl = CWP_FIELD_EXCH_SENDRECV;   
+          if(id < id_cpl) {
+             if(both_local == 1) {
+             
+              cwipi::Coupling& cpl_cpl = _cpl_get(cpl.coupledCodePropertiesGet() ->nameGet().c_str(),cpl_id);
+             
+              cpl.geomCompute(geometryLocation, CWP_FIELD_EXCH_SEND);        
+              cpl_cpl.geomCompute(geometryLocation,CWP_FIELD_EXCH_RECV);   
+              
+              cpl.geomCompute(geometryLocation, CWP_FIELD_EXCH_RECV);        
+              cpl_cpl.geomCompute(geometryLocation,CWP_FIELD_EXCH_SEND);   
+             }               
+             else if (both_local == 0) {
+              cpl.geomCompute(geometryLocation, CWP_FIELD_EXCH_SEND); 
+              cpl.geomCompute(geometryLocation, CWP_FIELD_EXCH_RECV); 
+            }
+          }
+          else {
+            if (both_local == 0) {
+              cpl.geomCompute(geometryLocation, CWP_FIELD_EXCH_RECV); 
+              cpl.geomCompute(geometryLocation, CWP_FIELD_EXCH_SEND); 
+            }          
+          }
+          printf("geometryLocation %s rank %i %i %i id<id_cpl %i\n", CWP_Field_value_t_str[static_cast<int>( geometryLocation )],rank, geomComputeSend, geomComputeRcv,id<id_cpl );
+           
         }
         else if (geomComputeRcv == 1 && geomComputeSend == 0) {
           exchange_type     = CWP_FIELD_EXCH_RECV ;   
@@ -1061,7 +1093,7 @@ CWP_N_uncomputed_tgts_get
             printf("geometryLocation %s rank %i %i %i\n", CWP_Field_value_t_str[static_cast<int>( geometryLocation )],rank, geomComputeSend, geomComputeRcv );
           }
         }
-        else if (geomComputeSend == 1) {
+        else if (geomComputeSend == 1 && geomComputeRcv == 0) {
           exchange_type     = CWP_FIELD_EXCH_SEND ;
           exchange_type_cpl = CWP_FIELD_EXCH_RECV ;              
           if(both_local == 1 && id < id_cpl) {
@@ -1076,7 +1108,7 @@ CWP_N_uncomputed_tgts_get
         }     
        if((both_local == 1 && id < id_cpl) || both_local == 0) MPI_Barrier(unionComm);
       } //end on location loop
-//while(1==1){}
+ //while(1==1){}
   }
 
 
@@ -1500,24 +1532,19 @@ CWP_Mesh_interf_shared_fvm_nodal
  *----------------------------------------------------------------------------*/
 
 
-// CWP_error_t 
-// CWP_sendrecv
-// (
-//  const char   *cpl_id,
-//  const char   *src_field_id,
-//  const char   *tgt_field_id,
-//  int          *n_uncomputed_tgt
-// )
-// {
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//   const string &src_field_id_str = src_field_id;
-//   const string &tgt_field_id_str = tgt_field_id;
+ void
+ CWP_Sendrecv
+ (const char   *local_code_name,
+  const char   *cpl_id,
+  const char   *fieldID
+ )
+ {
+   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+   std::string fieldID_str = const_cast<char*>(fieldID);
 
-//   return cpl.sendRecv(src_field_id_str,
-//                       tgt_field_id_str,
-//                       NULL,
-//                       n_uncomputed_tgt);
-// }
+   cpl.sendrecv(fieldID_str);
+
+ }
 
 
 
