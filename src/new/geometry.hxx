@@ -165,7 +165,7 @@ namespace cwipi {
      * \brief Setting user target points
      *
      * This function must be called if the nature of receiving fieldsDouble 
-     * is \ref CWP_FIELD_VALUE_USER_TO_NODE
+     * is \ref CWP_FIELD_VALUE_USER
      *
      * \param [in]  n_pts   Number of points
      * \param [in]  coords   Coordinates (size = 3 * n_pts)          
@@ -256,7 +256,14 @@ namespace cwipi {
 
     //TODO: Acess function
     int _both_codes_are_local; 
-
+    
+    int slaveGet() {
+      return  _slave;  
+    } 
+ 
+   int bothLocalGet() {
+      return  _both_codes_are_local;   
+    } 
      
   protected:
     

@@ -262,16 +262,25 @@ namespace cwipi {
   void sendBufferSet (void* sendBuffer) {
     _sendBuffer = sendBuffer;
   }
+  
+  void associatedCloudPointTypeSet(CWP_Field_value_t associatedCloudPointType){
+    _associatedCloudPointType = associatedCloudPointType; 
+  }
+
+  CWP_Field_value_t associatedCloudPointTypeGet(){
+    return _associatedCloudPointType; 
+  }
    
 
   private:
 
-    CWP_Field_storage_t                _storage;      /*!< Storage type */ 
-    int                                _nComponent;   /*!< Number of component */
-    CWP_Field_value_t                  _fieldLocation;    /*!< Value location */
-    CWP_Field_exch_t                   _exchangeType; /*!< Exchange type */
-    CWP_Status_t                       _visuStatus;   /*!< Visualization status */
-    std::vector<void* >                      _data;         /*!< Pointer to data array */
+    CWP_Field_storage_t                      _storage;        /*!< Storage type */ 
+    int                                      _nComponent;     /*!< Number of component */
+    CWP_Field_value_t                        _fieldLocation;  /*!< Value location Interpolation methods for sender and cloud points type for receiver */
+    CWP_Field_value_t                        _associatedCloudPointType; /*!< Value location Interpolation methods for sender and cloud points type for receiver */    
+    CWP_Field_exch_t                         _exchangeType;   /*!< Exchange type */
+    CWP_Status_t                             _visuStatus;     /*!< Visualization status */
+    std::vector<void* >                      _data;           /*!< Pointer to data array */
     CWP_Type_t                               _dataType;
     std::string                              _fieldID;
     int                                      _fieldIDInt;

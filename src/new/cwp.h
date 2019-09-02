@@ -164,10 +164,10 @@ typedef enum {
 
 typedef enum {
 
-  CWP_FIELD_VALUE_CELL_MEAN,   /*!< Cell mean value */
+//  CWP_FIELD_VALUE_CELL_MEAN,   /*!< Cell mean value */
   CWP_FIELD_VALUE_CELL_POINT,  /*!< Field defined in cell point  */
   CWP_FIELD_VALUE_NODE,        /*!< Cell vertex field */
-  CWP_FIELD_VALUE_USER_TO_NODE /*!< User defined field */ 
+  CWP_FIELD_VALUE_USER /*!< User defined field */ 
 } CWP_Field_value_t ;
 
 
@@ -1024,7 +1024,7 @@ CWP_Cpl_time_step_set
 
 void 
 CWP_Geom_compute
-(
+(const char     *local_code_name,
  const char        *cpl_id
 );
 
@@ -1104,7 +1104,7 @@ void
  * \brief Setting user target points
  *
  * This function must be called if the nature of receiving fieldsDouble 
- * is \ref CWP_FIELD_VALUE_USER_TO_NODE
+ * is \ref CWP_FIELD_VALUE_USER
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier

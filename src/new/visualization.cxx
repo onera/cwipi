@@ -258,7 +258,7 @@ namespace cwipi {
       
       if     (CWPfielType == CWP_FIELD_VALUE_CELL_POINT)   PDMfieldType = PDM_WRITER_VAR_ELEMENTS   ;
       else if(CWPfielType == CWP_FIELD_VALUE_NODE)         PDMfieldType = PDM_WRITER_VAR_SOMMETS    ;      
-      else if(CWPfielType == CWP_FIELD_VALUE_USER_TO_NODE) PDMfieldType = PDM_WRITER_VAR_PARTICULES ;       
+      else if(CWPfielType == CWP_FIELD_VALUE_USER)         PDMfieldType = PDM_WRITER_VAR_PARTICULES ;       
      
 
       PDM_writer_var_dim_t PDMfieldComp;

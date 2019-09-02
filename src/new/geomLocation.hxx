@@ -99,7 +99,7 @@ namespace cwipi {
         
        GeomLocation    *_geometry_cpl          ;  /*!< Coupled code geometry object (for both codes are local case) */
    
-       CWP_Field_value_t    _geometryLocation  ;  /*!< Field anchored points (cell, vertices ...) */
+       CWP_Field_value_t    _geometryLocation  ;  /*!< Points cloud treated by this geometry instance (cell centers, vertices or user defined) */
  
         /* Localization data */
         double      **_distance         ; /*!< Distance to the closest element surface by partition */
@@ -153,12 +153,12 @@ namespace cwipi {
     int _id_dist         ; /*!< Identifier for the localization object of paradigm */
     int _id_gnum_location; /*!< Identifier for the global numbering to (process,partition,numbering) triplet object of paradigm */
 
-    /* user targets definition for CWP_FIELD_VALUE_USER_TO_NODE field type */
+    /* user targets definition for CWP_FIELD_VALUE_USER field type */
      
-    int*          _n_user_targets     ;  /*!< Number of targets defined by the user for CWP_FIELD_VALUE_USER_TO_NODE field type  */
-    int           _n_tot_user_targets ;  /*!< Total number of targets defined by the user for CWP_FIELD_VALUE_USER_TO_NODE field type  */
-    double**      _coords_user_targets;  /*!< Target coordinates defined by the user for CWP_FIELD_VALUE_USER_TO_NODE field type  */
-    CWP_g_num_t** _gnum_user_targets  ;  /*!< Target global numbering defined by the user for CWP_FIELD_VALUE_USER_TO_NODE field type  */
+    int*          _n_user_targets     ;  /*!< Number of targets defined by the user for CWP_FIELD_VALUE_USER field type  */
+    int           _n_tot_user_targets ;  /*!< Total number of targets defined by the user for CWP_FIELD_VALUE_USER field type  */
+    double**      _coords_user_targets;  /*!< Target coordinates defined by the user for CWP_FIELD_VALUE_USER field type  */
+    CWP_g_num_t** _gnum_user_targets  ;  /*!< Target global numbering defined by the user for CWP_FIELD_VALUE_USER field type  */
     
     int _pdmGNum_handle_index;
   }; //end GeomLocation
