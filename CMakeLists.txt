@@ -1,4 +1,5 @@
 
+
 #==============================================================================
 #
 #                Top level CMakeLists.txt file for CWIPI
@@ -141,7 +142,7 @@ if (NOT CMAKE_BUILD_TYPE)
 endif()
 
 #------------------------------------------------------------------------------
-# Default compiler flags 
+# Default compiler flags
 #------------------------------------------------------------------------------
 
 include(${CMAKE_MODULE_PATH}/default_flags.cmake)
@@ -285,13 +286,13 @@ CHECK_FUNCTION_EXISTS(vprintf HAVE_VPRINTF)
 CHECK_FUNCTION_EXISTS(snprintf HAVE_SNPRINTF)
 
 #------------------------------------------------------------------------------
-# Libraries to add to link 
+# Libraries to add to link
 #------------------------------------------------------------------------------
 
 set(COMMON_LIBRARIES)
 
 #------------------------------------------------------------------------------
-# Check dependecies                                                            
+# Check dependecies
 #------------------------------------------------------------------------------
 
 # Check MPI (TODO : check MPI wrapper function check )
@@ -315,14 +316,14 @@ if (CWP_ENABLE_PARMETIS)
   find_package(ParMETIS 4.0.3)
   if (PARMETIS_FOUND)
     set(CWP_HAVE_PARMETIS 1)
-  endif() 
+  endif()
 endif()
 
 if (CWP_ENABLE_PTSCOTCH)
   find_package(PTSCOTCH 6.0.0)
   if (PTSCOTCH_FOUND)
     set(CWP_HAVE_PTSCOTCH 1)
-  endif()  
+  endif()
 endif()
 
 # Check OpenMP (TODO : check MPI wrapper function check )
@@ -339,7 +340,7 @@ if (CWP_ENABLE_PYTHON_BINDINGS)
   find_package(PythonInterp REQUIRED)
   find_package(PythonLibs REQUIRED)
   find_package(NumPy REQUIRED)
-  find_package(Mpi4Py REQUIRED)  
+  find_package(Mpi4Py REQUIRED)
   include(UseCython)
   if (NOT CMAKE_CWP_INSTALL_PYTHON_DIR)
 
@@ -375,7 +376,7 @@ endif()
 #------------------------------------------------------------------------------
 
 if (NOT (CWP_ENABLE_SHARED_Fortran_LIB OR CWP_ENABLE_STATIC_Fortran_LIB))
-   set (CWP_HAVE_NOT_FORTRAN_IN_C 1)  
+   set (CWP_HAVE_NOT_FORTRAN_IN_C 1)
 endif()
 
 #------------------------------------------------------------------------------
@@ -395,7 +396,7 @@ if (CWP_ENABLE_Fortran)
 endif ()
 
 #------------------------------------------------------------------------------
-# Installation de PDM 
+# Installation de PDM
 #------------------------------------------------------------------------------
 
 # Set PDM install sub-directories
@@ -413,7 +414,7 @@ set(CWP_ETC_DIR "etc")
 # En fonction des top_targets a installer
 #------------------------------------------------------------------------------
 
-if (IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/paradigm") 
+if (IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/paradigm")
   add_subdirectory(paradigm)
   add_subdirectory(paradigm/doc)
 endif()
@@ -443,4 +444,3 @@ FEATURE_SUMMARY(WHAT ALL)
 #------------------------------------------------------------------------------
 
 add_subdirectory(${CWP_CMAKE_DIR}/post-install)
-

@@ -2162,55 +2162,6 @@ void LocationToLocalMesh::compute3DMeanValues()
       }
 
       FVMC_ho_basis (type, order, n_node, 1, _uvw_point_fvm, _weights);
-/*
-      double coords[30];
-      coords[0] = -4.903926402015830e-01;//xmin;
-      coords[1] =  9.754516100822440e-02;//ymin;
-      coords[2] =  0.000000000000000e+00;//zmin;
-
-      coords[3] = -4.789922246525480e-01;//xmax;
-      coords[4] =  1.392031233369340e-01;//ymin;
-      coords[5] =  3.448099731221840e-02;//zmin;
-
-      coords[6] = -4.615116344320200e-01;//xmin;
-      coords[7] =  1.797641367398650e-01;//ymax;
-      coords[8] =  6.849720013297110e-02;//zmin;
-
-      coords[9]  = -4.205148508640080e-01;//xmin;
-      coords[10] =  6.032984012355020e-02;//ymin;
-      coords[11] =  3.039338835464140e-02;//zmax;
-
-      coords[12] = -4.060743479792260e-01;//(xmin + xmax) / 2;
-      coords[13] =  1.014393279893710e-01;//ymin;
-      coords[14] =  6.464198842112701e-02;//zmin;
-
-      coords[15] = -3.506370615264330e-01;//(xmin + xmax) / 2;
-      coords[16] =  2.311451923887600e-02;//(ymin + xmax) / 2;
-      coords[17] =  6.078677670928280e-02;//zmin;
-
-      coords[18] = -4.174275540611020e-01;//xmin;
-      coords[19] =  1.117825698303370e-01;//(ymin + ymax) / 2;
-      coords[20] = -1.540283024855780e-02;//zmin;
-
-      coords[21] = -4.029870511763210e-01;//xmin;
-      coords[22] =  1.528920576961570e-01;//ymin;
-      coords[23] =  1.884576981792770e-02;//(zmin + zmax) / 2;
-
-      coords[24] = -3.475497647235270e-01;//(xmin + xmax) / 2;
-      coords[25] =  7.456724894566230e-02;//ymin;
-      coords[26] =  1.499055810608360e-02;//(zmin + zmax) / 2;
-
-      coords[27] = -3.444624679206210e-01;//xmin;
-      coords[28] =  1.260199786524490e-01;//(ymin + ymax) / 2;
-      coords[29] = -3.080566049711560e-02;//(zmin + zmax) / 2;
-
-      double cart[3];
-      for (int i = 0; i < 10; i++){
-        for (int j = 0; j < 3; j++){
-          cart[j] += _weights[i]*coords[3*i+j];
-        }
-      }
-      printf("location : %12.15e %12.15e %12.15e\n", cart[0], cart[1], cart[2]);*/
 
     }
   }

@@ -114,7 +114,7 @@ typedef struct {
   int free_idx[S_HEAP];
   int sorted_idx[S_HEAP];
 
-} _heap_e;
+} _heap_l_t;
 
 
 /*----------------------------------------------------------------------------
@@ -133,7 +133,7 @@ typedef struct {
 
 typedef void (*_heap_fill_init_sub_edge_e)
 (
- _heap_e  *heap,
+ _heap_l_t  *heap,
  const int order,
  const int n_nodes,
  const double *nodes_coords,
@@ -167,7 +167,7 @@ typedef struct {
   int free_idx[S_HEAP];
   int sorted_idx[S_HEAP];
 
-} _heap_t;
+} _heap_s_t;
 
 
 /*----------------------------------------------------------------------------
@@ -185,7 +185,7 @@ typedef struct {
 
 typedef void (*_heap_fill_init_sub_tria_t)
 (
- _heap_t  *heap,
+ _heap_s_t  *heap,
  const int order,
  const int n_nodes,
  const double *nodes_coords,
@@ -218,7 +218,7 @@ typedef struct {
   int free_idx[S_HEAP];
   int sorted_idx[S_HEAP];
 
-} _heap_te;
+} _heap_v_t;
 
 
 /*----------------------------------------------------------------------------
@@ -236,7 +236,7 @@ typedef struct {
 
 typedef void (*_heap_fill_init_sub_tetra_te)
 (
- _heap_te  *heap,
+ _heap_v_t  *heap,
  const int order,
  const int n_nodes,
  const double *nodes_coords,
@@ -629,7 +629,7 @@ _uv_ho_quad_nodes
 static void
 _heap_init_e
 (
-_heap_e *heap
+_heap_l_t *heap
 )
 {
   heap->idx = -1;
@@ -658,7 +658,7 @@ _heap_e *heap
 static int
 _heap_top_get_e
 (
- _heap_e *heap,
+ _heap_l_t *heap,
  double *vtx_edge_current,
  double *uInPn_edge_current,
  double *closest_pt_current,
@@ -722,7 +722,7 @@ _heap_top_get_e
 static void
 _heap_insert_e
 (
- _heap_e *heap,
+ _heap_l_t *heap,
  double *vtx_edge,
  double *uInPn_edge,
  double *closest_pt,
@@ -880,7 +880,7 @@ _heap_insert_e
 static void
 _heap_fill_pn_sub_edge
 (
- _heap_e *heap,
+ _heap_l_t *heap,
  const int order,
  const int n_nodes,
  const double *nodes_coords,
@@ -974,7 +974,7 @@ _heap_fill_pn_sub_edge
 static void
 _insert_subedge
 (
- _heap_e *heap,
+ _heap_l_t *heap,
  const int order,
  const int type,
  const int n_nodes,
@@ -1123,7 +1123,7 @@ _insert_subedge
 static double
 _compute_dist2_from_closest_edge_subdivision
 (
- _heap_e *heap,
+ _heap_l_t *heap,
  const int order,
  const fvmc_element_t type,
  const int n_nodes,
@@ -1346,8 +1346,8 @@ _compute_dist2_from_closest_edge_subdivision
 static double
 _compute_dist2_from_uniform_edge_subdivision
 (
- _heap_e *heap1,
- _heap_e *heap2,
+ _heap_l_t *heap1,
+ _heap_l_t *heap2,
  const int order,
  const fvmc_element_t type,
  const int n_nodes,
@@ -1369,8 +1369,8 @@ _compute_dist2_from_uniform_edge_subdivision
 
   double dist2_min_min = HUGE_VAL;
 
-  _heap_e *heap      = heap1;
-  _heap_e *next_heap = heap2;
+  _heap_l_t *heap      = heap1;
+  _heap_l_t *next_heap = heap2;
 
   while (1) {
 
@@ -1536,7 +1536,7 @@ _compute_dist2_from_uniform_edge_subdivision
 
     }
 
-    _heap_e *heap_tmp = heap;
+    _heap_l_t *heap_tmp = heap;
     heap = next_heap;
     next_heap = heap_tmp;
 
@@ -1600,8 +1600,8 @@ _default_location_generic_1d
 
   double dist2 = HUGE_VAL;
 
-  _heap_e heap;
-  _heap_e heap2;
+  _heap_l_t heap;
+  _heap_l_t heap2;
 
   double *weightsPn = malloc(sizeof(double) * n_nodes);
 
@@ -1758,7 +1758,7 @@ _default_location_generic_1d
 static void
 _heap_init
 (
-_heap_t *heap
+_heap_s_t *heap
 )
 {
   heap->idx = -1;
@@ -1786,7 +1786,7 @@ _heap_t *heap
 static int
 _heap_top_get
 (
- _heap_t *heap,
+ _heap_s_t *heap,
  double *vtx_tria_current,
  double *uvInPn_tria_current,
  double *closest_pt_current,
@@ -1852,7 +1852,7 @@ _heap_top_get
 static void
 _heap_insert
 (
- _heap_t *heap,
+ _heap_s_t *heap,
  double *vtx_tria,
  double *uvInPn_tria,
  double *closest_pt,
@@ -2011,7 +2011,7 @@ _heap_insert
 static void
 _heap_fill_pn_sub_tria
 (
- _heap_t *heap,
+ _heap_s_t *heap,
  const int order,
  const int n_nodes,
  const double *nodes_coords,
@@ -2275,7 +2275,7 @@ _heap_fill_pn_sub_tria
 static void
 _heap_fill_qn_sub_tria
 (
- _heap_t *heap,
+ _heap_s_t *heap,
  const int order,
  const int n_nodes,
  const double *nodes_coords,
@@ -2481,7 +2481,7 @@ _heap_fill_qn_sub_tria
 static void
 _insert_subtria
 (
- _heap_t *heap,
+ _heap_s_t *heap,
  const int order,
  const int type,
  const int n_nodes,
@@ -2637,7 +2637,7 @@ _insert_subtria
 static double
 _compute_dist2_from_closest_tria_subdivision
 (
- _heap_t *heap,
+ _heap_s_t *heap,
  const int order,
  const fvmc_element_t type,
  const int n_nodes,
@@ -2858,8 +2858,8 @@ _compute_dist2_from_closest_tria_subdivision
 static double
 _compute_dist2_from_uniform_tria_subdivision
 (
- _heap_t *heap1,
- _heap_t *heap2,
+ _heap_s_t *heap1,
+ _heap_s_t *heap2,
  const int order,
  const fvmc_element_t type,
  const int n_nodes,
@@ -2880,8 +2880,8 @@ _compute_dist2_from_uniform_tria_subdivision
 
   double dist2_min_min = HUGE_VAL;
 
-  _heap_t *heap      = heap1;
-  _heap_t *next_heap = heap2;
+  _heap_s_t *heap      = heap1;
+  _heap_s_t *next_heap = heap2;
 
   while (1) {
 
@@ -3050,7 +3050,7 @@ _compute_dist2_from_uniform_tria_subdivision
 
     }
 
-    _heap_t *heap_tmp = heap;
+    _heap_s_t *heap_tmp = heap;
     heap = next_heap;
     next_heap = heap_tmp;
 
@@ -3118,8 +3118,8 @@ _default_location_generic_2d
 
   double dist2 = HUGE_VAL;
 
-  _heap_t heap;
-  _heap_t heap2;
+  _heap_s_t heap;
+  _heap_s_t heap2;
 
   double *weightsPn = malloc(sizeof(double) * n_nodes);
 
@@ -3307,7 +3307,7 @@ _radius_inscribed_circle
 static void
 _heap_init_te
 (
-_heap_te *heap
+_heap_v_t *heap
 )
 {
   heap->idx = -1;
@@ -3335,7 +3335,7 @@ _heap_te *heap
 static int
 _heap_top_get_te
 (
- _heap_te *heap,
+ _heap_v_t *heap,
  double *vtx_tetra_current,
  double *uvwInPn_tetra_current,
  double *closest_pt_current,
@@ -3401,7 +3401,7 @@ _heap_top_get_te
 static void
 _heap_insert_te
 (
- _heap_te *heap,
+ _heap_v_t *heap,
  double *vtx_tetra,
  double *uvwInPn_tetra,
  double *closest_pt,
@@ -3628,7 +3628,7 @@ static void _prism_to_tetra
 static void
 _heap_fill_pn_prism_sub_tetra
 (
- _heap_te *heap,
+ _heap_v_t *heap,
  const int order,
  const int n_nodes,
  const double *nodes_coords,
@@ -4107,7 +4107,7 @@ static void _hexa_to_tetra
 static void
 _heap_fill_pn_hexa_sub_tetra
 (
- _heap_te *heap,
+ _heap_v_t *heap,
  const int order,
  const int n_nodes,
  const double *nodes_coords,
@@ -4375,7 +4375,7 @@ static void _octa_to_tetra
 static void
 _heap_fill_pn_tetra_sub_tetra
 (
- _heap_te *heap,
+ _heap_v_t *heap,
  const int order,
  const int n_nodes,
  const double *nodes_coords,
@@ -4657,7 +4657,7 @@ static void _pyra_to_tetra
 static void
 _heap_fill_pn_pyra_sub_tetra
 (
- _heap_te *heap,
+ _heap_v_t *heap,
  const int order,
  const int n_nodes,
  const double *nodes_coords,
@@ -5223,7 +5223,7 @@ _heap_fill_pn_pyra_sub_tetra
 static void
 _insert_subtetra
 (
- _heap_te *heap,
+ _heap_v_t *heap,
  const int order,
  const int type,
  const int n_nodes,
@@ -5406,7 +5406,7 @@ _insert_subtetra
 static double
 _compute_dist2_from_closest_tetra_subdivision
 (
- _heap_te *heap,
+ _heap_v_t *heap,
  const int order,
  const fvmc_element_t type,
  const int n_nodes,
@@ -5616,8 +5616,8 @@ _compute_dist2_from_closest_tetra_subdivision
 static double
 _compute_dist2_from_uniform_tetra_subdivision
 (
- _heap_te *heap1,
- _heap_te *heap2,
+ _heap_v_t *heap1,
+ _heap_v_t *heap2,
  const int order,
  const fvmc_element_t type,
  const int n_nodes,
@@ -5638,8 +5638,8 @@ _compute_dist2_from_uniform_tetra_subdivision
 
   double dist2_min_min = HUGE_VAL;
 
-  _heap_te *heap      = heap1;
-  _heap_te *next_heap = heap2;
+  _heap_v_t *heap      = heap1;
+  _heap_v_t *next_heap = heap2;
 
   while (1) {
 
@@ -5789,7 +5789,7 @@ _compute_dist2_from_uniform_tetra_subdivision
 
     }
 
-    _heap_te *heap_tmp = heap;
+    _heap_v_t *heap_tmp = heap;
     heap = next_heap;
     next_heap = heap_tmp;
 
@@ -5856,8 +5856,8 @@ _default_location_generic_3d
 
   double dist2 = HUGE_VAL;
 
-  _heap_te heap;
-  _heap_te heap2;
+  _heap_v_t heap;
+  _heap_v_t heap2;
 
   double *weightsPn = malloc(sizeof(double) * n_nodes);
 
@@ -6521,7 +6521,7 @@ fvmc_ho_location_user_elt_set (fvmc_element_t elt_type,
  *   distance to the cell
  *
  *----------------------------------------------------------------------------*/
-int i=0;
+
 double
 fvmc_ho_location
 (
