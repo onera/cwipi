@@ -1,5 +1,5 @@
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2011  ONERA
 
@@ -129,12 +129,12 @@ namespace cwipi {
                      const char  *outputFormat,
                      const char  *outputFormatOption,
                      const int nbLocations)
- :_name(name), _couplingType(couplingType), 
+ :_name(name), _couplingType(couplingType),
   _localApplicationProperties(localApplicationProperties),
   _coupledApplicationProperties(coupledApplicationProperties),
   _entitiesDim(entitiesDim),_tolerance(tolerance), _solverType(solverType),
   _outputFormat(outputFormat), _outputFormatOption(outputFormatOption),
-  _outputFrequency(outputFrequency), _fvmWriter(NULL),    
+  _outputFrequency(outputFrequency), _fvmWriter(NULL),
   _tablelocationToDistantMesh(*new std::vector<LocationToDistantMesh *>(nbLocations)),
   _tablelocationToLocalMesh(*new std::vector<LocationToLocalMesh *>(nbLocations)),
   _tmpDistantFieldsIssend(*new std::map<int, std::vector<double> * > ()),
@@ -163,7 +163,7 @@ namespace cwipi {
     _locationsFile_position = 0;
     _data_user = NULL;
     _optBboxStep = 10;
-  
+
 
     //
     // Create coupling comm
@@ -190,8 +190,8 @@ namespace cwipi {
     }
     _locationToDistantMesh = _tablelocationToDistantMesh[0];
     _locationToLocalMesh = _tablelocationToLocalMesh[0];
-    
-    
+
+
 #ifndef NAN
     bftc_printf("Warning : NAN macro is undefined -> receiving checking deactivation\n");
 #endif
@@ -340,15 +340,15 @@ namespace cwipi {
 
       delete _supportMesh;
 
-      for (int i = 0; i < _tablelocationToDistantMesh.size(); i++) 
+      for (int i = 0; i < _tablelocationToDistantMesh.size(); i++)
         delete _tablelocationToDistantMesh[i]; // libère chaque _tablelocationToDistantMesh
       _tablelocationToDistantMesh.clear();     // vide le vecteur
       delete &_tablelocationToDistantMesh;     // pour libère le new std::vector du constructeur
-    
-      for (int i = 0; i < _tablelocationToLocalMesh.size(); i++) 
-        delete _tablelocationToLocalMesh[i]; 
-      _tablelocationToLocalMesh.clear();   
-      delete &_tablelocationToLocalMesh; 
+
+      for (int i = 0; i < _tablelocationToLocalMesh.size(); i++)
+        delete _tablelocationToLocalMesh[i];
+      _tablelocationToLocalMesh.clear();
+      delete &_tablelocationToLocalMesh;
 
       MPI_Comm oldFVMComm = fvmc_parall_get_mpi_comm();
       if (oldFVMComm != MPI_COMM_NULL)
@@ -399,13 +399,13 @@ namespace cwipi {
     else {
 
       double *dataField = referenceField;
-    
+
       switch(_entitiesDim) {
-      
+
       case 1 :
         _interpolate1D(dataField, interpolatedField, stride);
         break;
-      
+
       case 2 :
         _interpolate2D(dataField, interpolatedField, stride);
         break;
@@ -413,7 +413,7 @@ namespace cwipi {
       case 3 :
         _interpolate3D(dataField, interpolatedField, stride);
         break;
-      
+
       default:
         bftc_error(__FILE__, __LINE__, 0, "'%i' bad entities dimension\n",_entitiesDim);
       }
@@ -432,7 +432,7 @@ namespace cwipi {
     const int *barycentricCoordinatesIndex = _locationToLocalMesh->getBarycentricCoordinatesIndex();
 
     const int order = _supportMesh->getOrder();
- 
+
     if (order == -1) {
       for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
         int iel = distantLocation[ipoint] - 1;
@@ -463,7 +463,7 @@ namespace cwipi {
         const double *weight = barycentricCoordinates + barycentricCoordinatesIndex[ipoint];
 
         const double *src_field = referenceVertexField;
-        
+
         for (int i = 0; i < n_node; i++) {
 
           int i_node = intern_connec[i] - 1;
@@ -477,7 +477,7 @@ namespace cwipi {
     }
   }
 
-  
+
   void oldCoupling::_interpolate2D (double *vertexField,
                                     std::vector<double>& interpolatedField,
                                     const int stride)
@@ -493,7 +493,7 @@ namespace cwipi {
     const int *barycentricCoordinatesIndex = _locationToLocalMesh->getBarycentricCoordinatesIndex();
 
     const int order = _supportMesh->getOrder();
- 
+
     if (order == -1) {
 
       for (int ipoint = 0; ipoint <nDistantPoint; ipoint++) {
@@ -501,10 +501,10 @@ namespace cwipi {
         int iel = distantLocation[ipoint] - 1;
         int index = barycentricCoordinatesIndex[ipoint];
         int nSom = barycentricCoordinatesIndex[ipoint+1] - index;
-        
+
         for (int k = 0; k < stride; k++)
           interpolatedField[stride*ipoint + k] = 0;
-        
+
         for (int isom = 0; isom <  nSom; isom++) {
           for (int k = 0; k < stride; k++) {
             interpolatedField[stride*ipoint+k] +=
@@ -530,7 +530,7 @@ namespace cwipi {
         const double *weight = barycentricCoordinates + barycentricCoordinatesIndex[ipoint];
 
         const double *src_field = vertexField;
-        
+
         for (int i = 0; i < n_node; i++) {
 
           int i_node = intern_connec[i] - 1;
@@ -542,7 +542,7 @@ namespace cwipi {
 
       }
     }
-    
+
   }
 
 
@@ -550,7 +550,6 @@ namespace cwipi {
                                    std::vector<double>& interpolatedField,
                                    const int stride)
   {
-
     const int nDistantPoint      =  _locationToLocalMesh->getNLocatedDistantPoint() ;
     const int *distantLocation   = _locationToLocalMesh->getLocation();
     const double *distantCoords  = _locationToLocalMesh->getPointCoordinates();
@@ -577,26 +576,26 @@ namespace cwipi {
     if (useMeanValues) {
 
       const int order = _supportMesh->getOrder();
- 
+
       if (order == -1) {
 
         for (int ipoint = 0; ipoint <nDistantPoint; ipoint++) {
           int iel = distantLocation[ipoint] - 1;
           int index = barycentricCoordinatesIndex[ipoint];
           int nSom = barycentricCoordinatesIndex[ipoint+1] - index;
-          
+
           for (int k = 0; k < stride; k++)
             interpolatedField[stride*ipoint + k] = 0;
-          
+
           for (int isom = 0; isom <  nSom; isom++) {
             for (int k = 0; k < stride; k++) {
               if (iel < nStandardElt) {
-                interpolatedField[stride*ipoint+k] += 
+                interpolatedField[stride*ipoint+k] +=
                   vertexField[stride*(eltsConnec[eltsConnecPointer[iel]+isom]-1)+k]
                   *barycentricCoordinates[index+isom];
               }
               else {
-                interpolatedField[stride*ipoint+k] += 
+                interpolatedField[stride*ipoint+k] +=
                   vertexField[stride*(polyEltsConnec[polyEltsConnecPointer[iel - nStandardElt]+isom]-1)+k]
                   *barycentricCoordinates[index+isom];
               }
@@ -610,27 +609,28 @@ namespace cwipi {
 
         for (int ipoint = 0; ipoint < nDistantPoint; ipoint++) {
           int iel = distantLocation[ipoint] - 1;
-          
+
           const int *intern_connec =
             fvmc_nodal_get_internal_connec_elt (&(_supportMesh->getFvmNodal()), iel+1);
-          
+
           const int n_node =  eltsConnecPointer[iel+1] - eltsConnecPointer[iel];
-          
+
           double *target_field =  &(interpolatedField[0]) + stride * ipoint;
-          
+
           const double *weight = barycentricCoordinates + barycentricCoordinatesIndex[ipoint];
-          
+
           const double *src_field = vertexField;
-          
+
           for (int i = 0; i < n_node; i++) {
-            
+
             int i_node = intern_connec[i] - 1;
-            
+
             for (int j = 0; j < stride; j++) {
               target_field[j] += weight[i] * src_field[stride * i_node + j];
             }
+
           }
-          
+
         }
       }
     }
@@ -659,16 +659,16 @@ namespace cwipi {
               a[0][1] += v_x * v_y;
               a[0][2] += v_x * v_z;
               a[0][3] += v_x;
-            
+
               a[1][1] += v_y * v_y;
               a[1][2] += v_y * v_z;
               a[1][3] += v_y;
-            
+
               a[2][2] += v_z * v_z;
               a[2][3] += v_z;
-            
+
               a[3][3] += 1.;
-            
+
               b[0] += v_x * v_f;
               b[1] += v_y * v_f;
               b[2] += v_z * v_f;
@@ -677,12 +677,12 @@ namespace cwipi {
             a[1][0] = a[0][1];
             a[2][0] = a[0][2];
             a[3][0] = a[0][3];
-          
+
             a[2][1] = a[1][2];
             a[3][1] = a[1][3];
-          
+
             a[3][2] = a[2][3];
-        
+
             if (solve_ax_b_4(a, b, coeff) == 0) {
               interpolatedField[stride*ipoint+k] = (coeff[0] * distantCoords[3*ipoint]
                                                     + coeff[1] * distantCoords[3*ipoint+1]
@@ -704,16 +704,16 @@ namespace cwipi {
             _supportMesh->getPolyhedraFaceConnectivityIndex() ;
           const int *polyhedraFaceConnectivity =
             _supportMesh->getPolyhedraFaceConnectivity();
-        
+
           int nFacePolyhedra = polyhedraFaceIndex[iel+1] - polyhedraFaceIndex[iel];
           int faceIndex = polyhedraCellToFaceConnectivity[iel];
           int nVertexFace = 0;
-        
+
           for (int j = 0; j < nFacePolyhedra; j++) {
             int iface = polyhedraCellToFaceConnectivity[faceIndex+j] - 1;
             nVertexFace += polyhedraFaceConnectivityIndex[iface+1] - polyhedraFaceConnectivityIndex[iface];
           }
-        
+
           std::vector<int> vertexPoly(nVertexFace);
           for (int j = 0; j < nFacePolyhedra; j++) {
             int iface = polyhedraCellToFaceConnectivity[faceIndex+j] - 1;
@@ -723,20 +723,20 @@ namespace cwipi {
               vertexPoly.push_back(polyhedraFaceConnectivity[vertexIndex+k]);
           }
           quickSort(&vertexPoly[0], 0, vertexPoly.size()-1, NULL);
-        
+
           int iVertex = -1;
           double v_x;
           double v_y;
           double v_z;
           double v_f;
-        
+
           for(int k = 0; k < stride; k++) {
             double a[4][4] = {{0., 0., 0., 0.},
                               {0., 0., 0., 0.},
                               {0., 0., 0., 0.},
                               {0., 0., 0., 0.}};
             double b[4] = {0., 0., 0., 0.};
-          
+
             for (int j = 0; j < vertexPoly.size(); j++) {
               if (iVertex < vertexPoly[j]) {
                 iVertex = vertexPoly[j];
@@ -744,21 +744,21 @@ namespace cwipi {
                 v_y = coords[3*iVertex+1];
                 v_z = coords[3*iVertex+2];
                 v_f = vertexField[stride*iVertex+k];
-              
+
                 a[0][0] += v_x * v_x;
                 a[0][1] += v_x * v_y;
                 a[0][2] += v_x * v_z;
                 a[0][3] += v_x;
-              
+
                 a[1][1] += v_y * v_y;
                 a[1][2] += v_y * v_z;
                 a[1][3] += v_y;
-              
+
                 a[2][2] += v_z * v_z;
                 a[2][3] += v_z;
-              
+
                 a[3][3] += 1.;
-              
+
                 b[0] += v_x * v_f;
                 b[1] += v_y * v_f;
                 b[2] += v_z * v_f;
@@ -767,12 +767,12 @@ namespace cwipi {
               a[1][0] = a[0][1];
               a[2][0] = a[0][2];
               a[3][0] = a[0][3];
-            
+
               a[2][1] = a[1][2];
               a[3][1] = a[1][3];
-            
+
               a[3][2] = a[2][3];
-            
+
               if (solve_ax_b_4(a, b, coeff) == 0) {
                 interpolatedField[stride*ipoint+k] = (coeff[0] * distantCoords[3*ipoint]
                                                       + coeff[1] * distantCoords[3*ipoint+1]
@@ -797,8 +797,8 @@ namespace cwipi {
                             int connectivity[],
                             int order)
   {
-    
-    
+
+
     if (_supportMesh  != NULL)
       bftc_error(__FILE__, __LINE__, 0, "coupling mesh is already created\n");
 
@@ -808,7 +808,7 @@ namespace cwipi {
                                  nVertex,
                                  nElement,
                                  coordinates,
-                                 connectivity_index, 
+                                 connectivity_index,
                                  connectivity,
                                  order);
     else
@@ -839,9 +839,9 @@ namespace cwipi {
    if (_supportMesh == NULL) {
      bftc_error(__FILE__, __LINE__, 0, "Define a mesh before setting ho ordering\n");
    }
-   
+
    _supportMesh->hoOrderingSet (t_elt, n_nodes, ordering);
-   
+
  }
 
  void oldCoupling::hoOrderingFromRefEltSet (const cwipi_element_t t_elt,
@@ -858,7 +858,7 @@ namespace cwipi {
  }
 
 
-  
+
   void oldCoupling::setPointsToLocate(const int    n_points,
                                    double coordinate[])
   {
@@ -917,23 +917,23 @@ namespace cwipi {
 
   void oldCoupling::openLocationFile(char *file, const char *moderwa)
   {
-  
+
     int mode = MPI_MODE_CREATE+MPI_MODE_WRONLY;
     _locationsFile_position = 0;
-  
-  
-    if (moderwa[0] == 'w') 
+
+
+    if (moderwa[0] == 'w')
       mode = MPI_MODE_CREATE+MPI_MODE_WRONLY;
-    else if (moderwa[0] == 'r') 
+    else if (moderwa[0] == 'r')
       mode = MPI_MODE_RDONLY;
     else if (moderwa[0] == 'a')
       mode = MPI_MODE_APPEND;
-    else 
+    else
       bftc_error(__FILE__, __LINE__, 0, "The file mode must be 'w' 'r' or 'a' for write read or append\n");
-     
+
     MPI_File_open(_couplingComm, file, mode, MPI_INFO_NULL, &_locationsFile);
-   
-  
+
+
   }
 
   void oldCoupling::closeLocationFile()
@@ -957,11 +957,11 @@ namespace cwipi {
       MPI_Status err;
       size_t locationToLocalMesh_size,  locationToDistantMesh_size;
       size_t il_position;
-    
+
       MPI_Comm_rank(_couplingComm, &currentRank);
       MPI_Comm_size(_couplingComm, &nbRank);
 
-      // calcul de la taille totale d'un enregistrement sur chaque proc 
+      // calcul de la taille totale d'un enregistrement sur chaque proc
       int nLocPts = getNLocatedPoint();
       il_size = sizeof(int) + nLocPts*sizeof(float); // pour le tableau _distance et sa taille
       //il_size = 0;
@@ -972,24 +972,24 @@ namespace cwipi {
       locationToDistantMesh_size =  _locationToDistantMesh->locationSize();
       il_size += locationToDistantMesh_size ;
 
-    
+
       // records_size de taille nbRank
       // va contenir les tailles des enregistrements sur les differents procs
       // chaque proc en a besoin pour caluler sa position relative dans le fichier
-    
+
       BFTC_MALLOC(records_size, nbRank, size_t);
       records_size[currentRank] = il_size; // taille sur le proc courant
       MPI_Allgather((void *)&il_size,sizeof(size_t),MPI_CHAR,records_size,sizeof(size_t),MPI_CHAR, _couplingComm);
-    
+
       // seul le proc 0 ecrit ce tableau records_size
       if (currentRank == 0) {
         MPI_File_write_at(_locationsFile, _locationsFile_position,
-                          (void *)records_size,  nbRank * sizeof(size_t), MPI_CHAR, &err); 
+                          (void *)records_size,  nbRank * sizeof(size_t), MPI_CHAR, &err);
       }
       // increment du pointeur global de fichier
       _locationsFile_position += nbRank * sizeof(size_t);
-    
-      // remplissage du buffer d'ecriture copybuf 
+
+      // remplissage du buffer d'ecriture copybuf
       BFTC_MALLOC(copybuf,il_size, unsigned char);
 
       il_position = 0;
@@ -1002,21 +1002,21 @@ namespace cwipi {
       _locationToLocalMesh->packLocation(&copybuf[il_position]);
       il_position += locationToLocalMesh_size;
       _locationToDistantMesh->packLocation(&copybuf[il_position]);
-    
+
       // calcul de l'adresse de chaque proc en tenant compte de ce que vont prendre les autres
       il_position = _locationsFile_position;
       for (int i = 0; i < currentRank ; i++)
         il_position +=  records_size[i];
 
-      // ecriture du tampon 
-      MPI_File_write_at_all(_locationsFile,  il_position, (void *) copybuf, il_size, MPI_CHAR, &err); 
+      // ecriture du tampon
+      MPI_File_write_at_all(_locationsFile,  il_position, (void *) copybuf, il_size, MPI_CHAR, &err);
 
 
       // mise a jour du pointeur global sur le fichier
       // en tenant compte de tous les procs
-      for (int i = 0; i<nbRank ; i++)     
+      for (int i = 0; i<nbRank ; i++)
         _locationsFile_position += records_size[i];
-    
+
       // liberation memoire
       BFTC_FREE(copybuf);
       BFTC_FREE(records_size);
@@ -1039,51 +1039,51 @@ namespace cwipi {
       size_t *records_size;
       MPI_Status err;
       size_t il_size;
-    
+
       MPI_Comm_rank(_couplingComm, &currentRank);
       MPI_Comm_size(_couplingComm, &nbRank);
       BFTC_MALLOC(records_size,nbRank, size_t);
 
-      // le premier enregistrement contient la taille de chaque location 
+      // le premier enregistrement contient la taille de chaque location
       // sur tous les procs, seul le proc 0 lit cet enregistrement et
       // fait un broacast pour le passer aux autres
       if (currentRank == 0) {
         il_position = _locationsFile_position;
-        MPI_File_read_at(_locationsFile, il_position, (void *)records_size, nbRank * sizeof(size_t), MPI_CHAR, &err); 
+        MPI_File_read_at(_locationsFile, il_position, (void *)records_size, nbRank * sizeof(size_t), MPI_CHAR, &err);
       }
       MPI_Bcast(records_size, nbRank*sizeof(size_t), MPI_CHAR, 0, _couplingComm);
       _locationsFile_position += nbRank * sizeof(size_t);
 
-      // allocation d'un buffer pour la lecture 
+      // allocation d'un buffer pour la lecture
       il_size = records_size[currentRank];
 
       printf("records_size[currentRank] %ld\n",  records_size[currentRank]);
 
       BFTC_MALLOC(copybuf,il_size, unsigned char);
 
-      // lecture du tampon 
-      il_position = _locationsFile_position; // pointeur global 
-      for (int i = 0; i < currentRank ; i++) 
+      // lecture du tampon
+      il_position = _locationsFile_position; // pointeur global
+      for (int i = 0; i < currentRank ; i++)
         il_position +=  records_size[i];     // ajout des tailles jusqu'au proc courant
-      MPI_File_read_at_all(_locationsFile,  il_position, (void *) copybuf, il_size, MPI_CHAR, &err); 
-    
+      MPI_File_read_at_all(_locationsFile,  il_position, (void *) copybuf, il_size, MPI_CHAR, &err);
+
       // unpack des donnees
-   
+
       il_position = 0;
       int nLocPts;
       il_position += fvmc_locator_unpack_elem((void *)&copybuf[il_position],(void *)&nLocPts,sizeof(int));
       if (_distance.size() != nLocPts)
         _distance.resize(nLocPts);
       il_position += fvmc_locator_unpack_elem((void *)&copybuf[il_position],(void *)&(_distance[0]),nLocPts*sizeof(float));
-    
+
       _locationToLocalMesh->unpackLocation(&copybuf[il_position]);
       size_t locationToLocalMesh_size = _locationToLocalMesh->locationSize();
       il_position += locationToLocalMesh_size;
       _locationToDistantMesh->unpackLocation(&copybuf[il_position]);
       // mise a jour du pointeur global sur le fichier
-      for (int i = 0; i<nbRank ; i++)     
+      for (int i = 0; i<nbRank ; i++)
         _locationsFile_position += records_size[i];
-    
+
       BFTC_FREE(records_size);
       BFTC_FREE(copybuf);
       _locationToLocalMesh->setSupportMesh(_supportMesh,false);
@@ -1109,7 +1109,7 @@ namespace cwipi {
 
   {
 
-    
+
     cwipi_exchange_status_t status = CWIPI_EXCHANGE_OK;
 
     const MPI_Comm& localComm = _localApplicationProperties.getLocalComm();
@@ -1190,10 +1190,10 @@ namespace cwipi {
     // Locate
 
     // TM mars 2014 : ajout du test if (_toLocate) avant le locate
-  
-    if (_toLocate) 
+
+    if (_toLocate)
       locate();
-  
+
     //
     // Prepare data (interpolate, extrapolate...)
 
@@ -1237,13 +1237,13 @@ namespace cwipi {
         //
         // Callback Fortran
 
-        
+
         const int order = _supportMesh->getOrder();
- 
+
         if (order == -1) {
-          
+
           if (ptFortranInterpolationFct != NULL) {
-#ifndef CWP_HAVE_NOT_FORTRAN_IN_C            
+#ifndef CWP_HAVE_NOT_FORTRAN_IN_C
             PROCF(callfortinterpfct, CALLFORTINTERPFCT) (
                                                          const_cast <int *> (&_entitiesDim),
                                                          const_cast <int *> (&nVertex),
@@ -1273,7 +1273,7 @@ namespace cwipi {
             abort();
 #endif
           }
-          
+
           //
           // Callback C
 
@@ -1302,9 +1302,9 @@ namespace cwipi {
 
           //
           // Callback Fortran appele en C
-          
+
           else if (_interpolationFct_f != NULL) {
-#ifndef CWP_HAVE_NOT_FORTRAN_IN_C            
+#ifndef CWP_HAVE_NOT_FORTRAN_IN_C
             PROCF(callfortinterpfct, CALLFORTINTERPFCT) (
                                                          const_cast <int *> (&_entitiesDim),
                                                          const_cast <int *> (&nVertex),
@@ -1344,7 +1344,7 @@ namespace cwipi {
 
           if (ptFortranInterpolationFct != NULL) {
 #ifndef CWP_HAVE_NOT_FORTRAN_IN_C
-            
+
             PROCF(callforthointerpfct, CALLFORTHOINTERPFCT) (
                                                          const_cast <int *> (&_entitiesDim),
                                                          const_cast <int *> (&order),
@@ -1376,7 +1376,7 @@ namespace cwipi {
             abort();
 #endif
           }
-          
+
           //
           // Callback C
 
@@ -1407,9 +1407,9 @@ namespace cwipi {
 
           //
           // Callback Fortran appele en C
-          
+
           else if (_interpolationFct_f != NULL) {
-#ifndef CWP_HAVE_NOT_FORTRAN_IN_C            
+#ifndef CWP_HAVE_NOT_FORTRAN_IN_C
             PROCF(callforthointerpfct, CALLFORTHOINTERPFCT) (
                                                          const_cast <int *> (&_entitiesDim),
                                                          const_cast <int *> (&order),
@@ -1446,9 +1446,9 @@ namespace cwipi {
                          tmpDistantField,
                          stride);
 
-        
+
         }
-        
+
       }
 
       //
@@ -1604,14 +1604,14 @@ namespace cwipi {
       // plutot mettre request comme clé du map
 
       std::vector<double>& tmpDistantField = *new std::vector<double> (lDistantField, 0);
-    
+
       //
       // Interpolation
 
       if (sendingField != NULL) {
 
         const int order = _supportMesh->getOrder();
- 
+
         if (order == -1) {
           assert(!(_interpolationFct != NULL && ptFortranInterpolationFct != NULL));
 
@@ -1619,7 +1619,7 @@ namespace cwipi {
           // Callback Fortran
 
           if (ptFortranInterpolationFct != NULL) {
-#ifndef CWP_HAVE_NOT_FORTRAN_IN_C                         
+#ifndef CWP_HAVE_NOT_FORTRAN_IN_C
             PROCF(callfortinterpfct, CALLFORTINTERPFCT) (
                                                          const_cast <int *> (&_entitiesDim),
                                                          const_cast <int *> (&nVertex),
@@ -1678,9 +1678,9 @@ namespace cwipi {
 
           //
           // Callback Fortran appele en C
-          
+
           else if (_interpolationFct_f != NULL) {
-#ifndef CWP_HAVE_NOT_FORTRAN_IN_C                        
+#ifndef CWP_HAVE_NOT_FORTRAN_IN_C
             PROCF(callfortinterpfct, CALLFORTINTERPFCT) (
                                                          const_cast <int *> (&_entitiesDim),
                                                          const_cast <int *> (&nVertex),
@@ -1721,7 +1721,7 @@ namespace cwipi {
 
           if (ptFortranInterpolationFct != NULL) {
 #ifndef CWP_HAVE_NOT_FORTRAN_IN_C
-            
+
             PROCF(callforthointerpfct, CALLFORTHOINTERPFCT) (
                                                          const_cast <int *> (&_entitiesDim),
                                                          const_cast <int *> (&order),
@@ -1753,7 +1753,7 @@ namespace cwipi {
             abort();
 #endif
           }
-          
+
           //
           // Callback C
 
@@ -1784,9 +1784,9 @@ namespace cwipi {
 
           //
           // Callback Fortran appele en C
-          
+
           else if (_interpolationFct_f != NULL) {
-#ifndef CWP_HAVE_NOT_FORTRAN_IN_C            
+#ifndef CWP_HAVE_NOT_FORTRAN_IN_C
             PROCF(callforthointerpfct, CALLFORTHOINTERPFCT) (
                                                          const_cast <int *> (&_entitiesDim),
                                                          const_cast <int *> (&order),
@@ -1823,10 +1823,10 @@ namespace cwipi {
                          tmpDistantField,
                          stride);
 
-        
+
         }
 
-        
+
       }
 
       //
@@ -1852,7 +1852,7 @@ namespace cwipi {
                                     tag,
                                     request);
 
-      _tmpDistantFieldsIssend[*request] = &tmpDistantField; 
+      _tmpDistantFieldsIssend[*request] = &tmpDistantField;
 
       if (_fvmComm != MPI_COMM_NULL)
         MPI_Barrier(_fvmComm);
@@ -1870,7 +1870,7 @@ namespace cwipi {
                            "",
                            NULL);
 
-    } 
+    }
   }
 
 
@@ -1894,12 +1894,12 @@ namespace cwipi {
                        const double  *receivingField,
                        int           *request)
   {
-  
+
     if (_isCoupledRank) {
-    
+
       //
       // irecv
-    
+
       fvmc_locator_irecv_point_var(_locationToLocalMesh->getFVMLocator(),
                                    (void*) receivingField,
                                    NULL,
@@ -1909,7 +1909,7 @@ namespace cwipi {
                                    tag,
                                    request);
 
-    
+
     }
 
     if (_couplingType == CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING) {
@@ -1934,7 +1934,7 @@ namespace cwipi {
   }
 
 
-  void oldCoupling::waitIrecv(int request)    
+  void oldCoupling::waitIrecv(int request)
   {
 
     if (_isCoupledRank) {
@@ -1944,13 +1944,13 @@ namespace cwipi {
       // Visualization
 
       _fieldsVisualization(_tmpExchangeNameIrecv[request].c_str(),
-                           _tmpStrideIrecv[request],      
-                           _tmpTimeStepIrecv[request],  
+                           _tmpStrideIrecv[request],
+                           _tmpTimeStepIrecv[request],
                            _tmpTimeValueIrecv[request],
                            "",
                            NULL,
-                           _tmpFieldNameIrecv[request].c_str(), 
-                           _tmpLocalFieldsIrecv[request]);  
+                           _tmpFieldNameIrecv[request].c_str(),
+                           _tmpLocalFieldsIrecv[request]);
     }
 
     if (_couplingType == CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING) {
@@ -2252,7 +2252,6 @@ namespace cwipi {
 
   void oldCoupling::locate()
   {
-
     const MPI_Comm& localComm = _localApplicationProperties.getLocalComm();
 
     MPI_Comm oldFVMComm = fvmc_parall_get_mpi_comm();
@@ -2299,7 +2298,7 @@ namespace cwipi {
     if (_couplingType == CWIPI_COUPLING_PARALLEL_WITHOUT_PARTITIONING) {
 
       MPI_Bcast(&(_distance[0]), nLocPts, MPI_FLOAT, 0, localComm );
-  
+
     }
 
     if (_isCoupledRank)
@@ -2319,11 +2318,11 @@ namespace cwipi {
 
     int currentRank;
     MPI_Comm_rank (localComm, &currentRank);
- 
+
     if (currentRank == 0) {
       printf ("Temps de localisation coupling::locate : %12.5e\n", elaps1_abs);
     }
-    
+
   }
 
 
@@ -2567,4 +2566,3 @@ namespace cwipi {
 
 
 } // namespace cwipi
-

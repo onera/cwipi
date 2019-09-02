@@ -1,5 +1,5 @@
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2011  ONERA
 
@@ -26,11 +26,11 @@
 #include "cwipi.h"
 
 /*----------------------------------------------------------------------
- *                                                                     
- * Dump status exchange                                                
- *                                                                     
+ *
+ * Dump status exchange
+ *
  * parameters:
- *   status              <-- Exchange status           
+ *   status              <-- Exchange status
  *---------------------------------------------------------------------*/
 
 static void _dumpStatus(FILE* outputFile, cwipi_exchange_status_t status)
@@ -49,11 +49,11 @@ static void _dumpStatus(FILE* outputFile, cwipi_exchange_status_t status)
 }
 
 /*----------------------------------------------------------------------
- *                                                                     
- * Dump not located points                                             
- *                                                                     
+ *
+ * Dump not located points
+ *
  * parameters:
- *   coupling_id         <-- Coupling id               
+ *   coupling_id         <-- Coupling id
  *   nNotLocatedPoints   <-- Number of not located points
  *---------------------------------------------------------------------*/
 
@@ -71,11 +71,11 @@ static void _dumpNotLocatedPoints(FILE* outputFile,
 }
 
 /*----------------------------------------------------------------------
- *                                                                     
- * Main : linear coupling test                                         
+ *
+ * Main : linear coupling test
  *
  *---------------------------------------------------------------------*/
- 
+
 int main
 (
  int    argc,    /* Nombre d'arguments dans la ligne de commandes */
@@ -106,7 +106,7 @@ int main
   else
     srcBaseName = srcName;
 
-  if (rank == 0) 
+  if (rank == 0)
     printf("\nSTART: %s\n", srcBaseName);
 
   if (comm_world_size != 2) {
@@ -132,7 +132,7 @@ int main
   }
 
   char* fileName = NULL;
-  if (rank == 0) 
+  if (rank == 0)
     fileName="c_linear_coupling_0000.txt";
   else
     fileName="c_linear_coupling_0001.txt";
@@ -165,14 +165,14 @@ int main
 
   if (rank == 0)
       printf("        Create coupling\n");
-  
+
   cwipi_solver_type_t solver_type;
-  
+
   if (rank == 0)
     solver_type = CWIPI_SOLVER_CELL_CENTER;
   else
     solver_type = CWIPI_SOLVER_CELL_VERTEX;
-  
+
   /* Coupling creation
    * ----------------- */
 
@@ -186,7 +186,7 @@ int main
                         1,                                         // Postprocessing frequency
                         "EnSight Gold",                            // Postprocessing format
                         "text");                                   // Postprocessing option
-  
+
   /* Mesh definition
    * --------------- */
 
@@ -195,35 +195,35 @@ int main
 
   int nVertex = 3;
   int nElts = 2;
-  
+
   double *coords = (double *) malloc(3 * nVertex * sizeof(double));
   coords[0] = 0.;
   coords[1] = 0.;
   coords[2] = 0.;
-  
+
   if (rank == 0)
     coords[3] = 1.;
   else
     coords[3] = 0.5;
   coords[4] = 0.;
   coords[5] = 0.;
-  
+
   coords[6] = 2.;
   coords[7] = 0.;
   coords[8] = 0.;
-  
-  int *connecIdx = (int *) malloc((nElts + 1) * sizeof(int));  
+
+  int *connecIdx = (int *) malloc((nElts + 1) * sizeof(int));
   connecIdx[0] = 0;
   connecIdx[1] = 2;
   connecIdx[2] = 4;
-  
+
   int *connec = (int *) malloc(connecIdx[nElts] * sizeof(int));
   connec[0] = 1;
   connec[1] = 2;
-    
+
   connec[2] = 2;
   connec[3] = 3;
-  
+
 
   cwipi_define_mesh("test2D_0",
                     nVertex,
@@ -231,21 +231,21 @@ int main
                     coords,
                     connecIdx,
                     connec);
-  
+
 
   /* Fields exchange
    * --------------- */
 
   double *values = NULL;
   double *values1 = NULL;
-  
+
   if (rank == 0) {
     values = (double *) malloc(nElts * sizeof(double));
     values1 = (double *) malloc(nElts * sizeof(double));
 
     values[0] = (coords[0]+coords[3])/2.;
     values[1] = (coords[3]+coords[6])/2.;
-    
+
     values1[0] = 0.;
     values1[1] = 0.;
   }
@@ -256,12 +256,12 @@ int main
     values[0] = coords[0];
     values[1] = coords[3];
     values[2] = coords[6];
-    
+
     values1[0] = 0.;
     values1[1] = 0.;
     values1[2] = 0.;
   }
-  
+
   if (rank == 0)
     printf("        Exchange\n");
 

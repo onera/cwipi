@@ -130,7 +130,7 @@ typedef struct {
   size_t       n_points;      /* Number of points in octree */
   size_t       n_nodes;       /* Current number of nodes in octree */
   size_t       n_nodes_max;   /* Maximum number of nodes in octree */
-  size_t       n_static_subdivision;/* Number of static subdivisions 
+  size_t       n_static_subdivision;/* Number of static subdivisions
                                        (all points in the same child node) */
 
   double       extents[6];    /* Associated extents */
@@ -159,7 +159,7 @@ typedef struct {
   size_t        n_points;     /* Number of points in quadtree */
   size_t        n_nodes;      /* Current number of nodes in quadtree */
   size_t        n_nodes_max;  /* Maximum number of nodes in quadtree */
-  size_t       n_static_subdivision; /* Number of static subdivisions 
+  size_t       n_static_subdivision; /* Number of static subdivisions
                                        (all points in the same child node) */
 
   double        extents[4];   /* Associated extents */
@@ -176,7 +176,7 @@ typedef struct {
  *============================================================================*/
 
 static double      _epsilon_denom = 1.e-30;       /* Minimum denominator */
-static double      _epsilon_multi_point = 1.e-12; /* Minimum distance between 
+static double      _epsilon_multi_point = 1.e-12; /* Minimum distance between
                                                      2 points */
 
 static fvmc_lnum_t  _octree_threshold = 4; /* Number of points in octree node
@@ -213,7 +213,7 @@ static int _project_point2(double x[3], double pt_plan[3],
   double cst   = _DOT_PRODUCT(normal, pt_plan);
   double cst1  = _DOT_PRODUCT(normal, x);
   double norm2 = _DOT_PRODUCT(normal, normal);
-  
+
   if (norm2 < 1e-15) {
     return 1;
   }
@@ -223,7 +223,7 @@ static int _project_point2(double x[3], double pt_plan[3],
   xproj[0] = x[0] + t * normal[0];
   xproj[1] = x[1] + t * normal[1];
   xproj[2] = x[2] + t * normal[2];
-  
+
   return 0;
 }
 
@@ -262,25 +262,25 @@ static void _computeNormal (int numPts, double *pts, double n[3])
   n[0] = 0.;
   n[1] = 0.;
   n[2] = 0.;
-  
+
   _computeBary (numPts, pts, bary);
-  
+
   for (int ipt = 0; ipt < numPts; ipt++) {
-    
+
     double *pt1 = pts + 3 * ipt;
     double *pt2 = pts + 3 * ((ipt+1)%numPts);
     double vect1[3];
     double vect2[3];
-    
+
     for (int i = 0; i < 3; i++) {
       vect1[i] = pt1[i] - bary[i];
       vect2[i] = pt2[i] - bary[i];
     }
-    
+
     n[0] += vect1[1] * vect2[2] - vect1[2] * vect2[1];
     n[1] += vect1[2] * vect2[0] - vect1[0] * vect2[2];
     n[2] += vect1[0] * vect2[1] - vect1[1] * vect2[0];
-    
+
   } //over all points
 
   length = sqrt (n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
@@ -305,25 +305,25 @@ static void _computeNormal (int numPts, double *pts, double n[3])
 /*   n[0] = 0.; */
 /*   n[1] = 0.; */
 /*   n[2] = 0.; */
-  
+
 /*   _computeBary (numPts, pts, bary); */
-  
+
 /*   for (int ipt = 0; ipt < numPts; ipt++) { */
-    
+
 /*     double *pt1 = pts + 3 * ipt; */
 /*     double *pt2 = pts + 3 * ((ipt+1)%numPts); */
 /*     double vect1[3]; */
 /*     double vect2[3]; */
-    
+
 /*     for (int i = 0; i < 3; i++) { */
 /*       vect1[i] = pt1[i] - bary[i]; */
 /*       vect2[i] = pt2[i] - bary[i]; */
 /*     } */
-    
+
 /*     n[0] += vect1[1] * vect2[2] - vect1[2] * vect2[1]; */
 /*     n[1] += vect1[2] * vect2[0] - vect1[0] * vect2[2]; */
 /*     n[2] += vect1[0] * vect2[1] - vect1[1] * vect2[0]; */
-    
+
 /*   } //over all points */
 
 /*   length = sqrt (n[0] * n[0] + n[1] * n[1] + n[2] * n[2]); */
@@ -536,7 +536,7 @@ _point_extents(const int            dim,
         if (extents[i + dim] < point_coords[(coord_idx * dim) + i])
           extents[i + dim] = point_coords[(coord_idx * dim) + i];
       }
-      
+
     }
   }
 
@@ -686,13 +686,13 @@ _locate_by_extents_1d(fvmc_lnum_t         elt_num,
  * Compare points coordinates to check if it is a multi point
  *
  * parameters:
- *   dim                <-- Dimesion                   
+ *   dim                <-- Dimesion
  *   n_point            <-- Number of point to compare
  *   point_coords       <-- point coordinates
  *   point_idx          <-- point indexes
  *   count              <-- Number of point to compare
  *
- * return               
+ * return
  *----------------------------------------------------------------------------*/
 
 static int
@@ -710,7 +710,7 @@ _check_multi_point(const int           dim,
       for (k = 0; k < dim; k++) {
         dist += (point_coords[point_idx[j] *dim + k] - point_coords[point_idx[i] *dim + k]) *
                 (point_coords[point_idx[j] *dim + k] - point_coords[point_idx[i] *dim + k]);
-        if (dist > _epsilon_multi_point) 
+        if (dist > _epsilon_multi_point)
           return 0;
       }
     }
@@ -808,21 +808,21 @@ _build_octree_leaves(const double        extents[],
     point_ids_tmp[idx[k] + count[k]] = octree->point_ids[i];
     count[k] += 1;
   }
-  
+
   /* Check if this subdivision is static
      and check coordinates to find multi point */
 
   for (j = 0; j < 8; j++) {
     if (count[j] == _n_points) {
-      octree->n_static_subdivision += 1;    
+      octree->n_static_subdivision += 1;
       break;
     }
   }
-   
+
   if (j == 8)
     octree->n_static_subdivision = 0;
   else {
-    if (octree->n_static_subdivision >= MAXSTATICSUBDIVISION) { 
+    if (octree->n_static_subdivision >= MAXSTATICSUBDIVISION) {
       check_multi_point = _check_multi_point(3,
                                              count[j],
                                              point_coords,
@@ -882,7 +882,7 @@ _build_octree_leaves(const double        extents[],
       assert(sub_extents[2] < sub_extents[5] + 1.0e-12);
 
       octree->n_nodes = tmp_size;
- 
+
       _build_octree_leaves(sub_extents,
                            point_coords,
                            point_ids_tmp,
@@ -1219,15 +1219,15 @@ _build_quadtree_leaves(const double        extents[],
 
   for (j = 0; j < 4; j++) {
     if (count[j] == _n_points) {
-      quadtree->n_static_subdivision += 1;    
+      quadtree->n_static_subdivision += 1;
       break;
     }
   }
-   
+
   if (j == 4)
     quadtree->n_static_subdivision = 0;
   else {
-    if (quadtree->n_static_subdivision >= MAXSTATICSUBDIVISION) { 
+    if (quadtree->n_static_subdivision >= MAXSTATICSUBDIVISION) {
       check_multi_point = _check_multi_point(2,
                                              count[j],
                                              point_coords,
@@ -1655,7 +1655,7 @@ _locate_on_edge_2d(fvmc_lnum_t           elt_num,
                    float                distance[])
 {
   fvmc_lnum_t  i, j, k, coord_idx_0, coord_idx_1;
-  
+
   double u[2], v[2];
   double uv, len2, isop_0;
   double dist2, epsilon2, vertex_dist2;
@@ -1775,8 +1775,8 @@ _locate_on_triangles_3d(fvmc_lnum_t           elt_num,
   fvmc_lnum_t  i, j, k, tria_id, coord_idx_0, coord_idx_1, coord_idx_2;
 
   const int _order = 1;
-  
-  const int n_vtx_tria = (_order+1)*(_order+2)/2; 
+
+  const int n_vtx_tria = (_order+1)*(_order+2)/2;
 
   double u[3], v[3], w[3];
   double uu, vv, ww, tmp_max;
@@ -1846,7 +1846,7 @@ _locate_on_triangles_3d(fvmc_lnum_t           elt_num,
       double closestPointpcoords[3];
 
       double closestPointweights[3];
-      
+
       int error = fvmc_triangle_evaluate_Position (x, coords, closestPoint, closestPointpcoords,
                                                    &dist2, closestPointweights);
 
@@ -2098,7 +2098,7 @@ _locate_in_tetra(fvmc_lnum_t         elt_num,
     if (   (max_dist > -0.5 && max_dist < (1. + 2.*tolerance))
         && (max_dist < distance[i] || distance[i] < 0)) {
       location[i] = elt_num;
-      distance[i] = (float) max_dist; 
+      distance[i] = (float) max_dist;
     }
 
   }
@@ -2313,7 +2313,7 @@ _compute_uvw(fvmc_element_t       elt_type,
   double a[3][3], b[3], x[3], shapef[8], dw[8][3];
 
   const int order = 1;
-  
+
   n_elt_vertices = fvmc_nodal_n_vertices_element(elt_type, order);
 
   assert(   elt_type == FVMC_CELL_HEXA
@@ -2405,7 +2405,7 @@ _locate_in_cell_3d(fvmc_lnum_t          elt_num,
                    fvmc_lnum_t          location[],
                    float               distance[])
 {
-  
+
   int i, j, k, n_vertices;
   fvmc_lnum_t coord_idx, vertex_id;
 
@@ -2413,7 +2413,7 @@ _locate_in_cell_3d(fvmc_lnum_t          elt_num,
   double  _vertex_coords[8][3];
 
   const int order = 1;
-  
+
   n_vertices = fvmc_nodal_n_vertices_element(elt_type, order);
 
   /* Initialize local element coordinates copy */
@@ -2460,7 +2460,7 @@ _locate_in_cell_3d(fvmc_lnum_t          elt_num,
         double v[3] = {_vertex_coords[k1][0] - _pt[0],
                        _vertex_coords[k1][1] - _pt[1],
                        _vertex_coords[k1][2] - _pt[2]};
-        
+
         double _dist = _MODULE(v);
 
         if (_dist < 1e-6 * tolerance) {
@@ -2472,67 +2472,67 @@ _locate_in_cell_3d(fvmc_lnum_t          elt_num,
       }
 
       if (!onVtx) {
-        
+
         if (_compute_uvw(elt_type,
                          point_coords + 3*i,
                          _vertex_coords,
                          tolerance,
                          uvw)) {
-          
+
           max_dist = -1.0;
-          
+
           /* For hexahedra, no need to compute shape functions, as
              the 3 parametric coordinates are simpler to use */
-          
+
           if (elt_type == FVMC_CELL_HEXA) {
-            
+
             for (j = 0; j < 3; j++){
-              
+
               dist = 2.*FVMC_ABS(uvw[j] - 0.5);
-            
+
               if (max_dist < dist)
                 max_dist = dist;
             }
-            
+
           }
-          
+
           /* For pyramids ands prisms, we need to compute shape functions */
-          
+
           else {
-            
+
             _compute_shapef_3d(elt_type, uvw, shapef, NULL);
-            
+
             for (j = 0; j < n_vertices; j++){
-              
+
               dist = 2.*FVMC_ABS(shapef[j] - 0.5);
-              
+
               if (max_dist < dist)
                 max_dist = dist;
             }
-            
+
           }
-          
+
           /* For all element types, update location and distance arrays */
-          
+
           if ((   (max_dist > -0.5 && max_dist < (1. + 2.*tolerance))
                   && (max_dist < distance[i] || distance[i] < 0)) || (location[i] == -1)) {
             location[i] = elt_num;
             distance[i] = (float) max_dist;
           }
-          
+
         }
-        
+
         else {
-          
+
           if (location[i] == -1) {
             location[i] = elt_num;
             distance[i] = 1.e12; // Pour les pyramides pb de convergence
           }
-          
+
         }
-        
+
       }
-      
+
     } /* End of loop on points in extents */
 
   }
@@ -2678,7 +2678,7 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
         BFTC_REALLOC(solid_angle, l_solid_angle, double);
       }
     }
-      
+
     for (j = 0; j < l_solid_angle; j++)
       solid_angle[j] = 0.;
 
@@ -2765,16 +2765,16 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
           coord_id[0] = coord_id[2];
           coord_id[2] = s1;
         }
-        
-        fvmc_coord_t ab[3]; 
-        fvmc_coord_t ac[3]; 
+
+        fvmc_coord_t ab[3];
+        fvmc_coord_t ac[3];
         fvmc_coord_t bc[3];
 
         for (l = 0; l < 3; l++) {
           ab[l] = vertex_coords[3*coord_id[1] + l] - vertex_coords[3*coord_id[0] + l];
           ac[l] = vertex_coords[3*coord_id[2] + l] - vertex_coords[3*coord_id[0] + l];
           bc[l] = vertex_coords[3*coord_id[2] + l] - vertex_coords[3*coord_id[1] + l];
-        }  
+        }
 
         double n_ab = _MODULE(ab);
         double n_ac = _MODULE(ac);
@@ -2782,7 +2782,7 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
 
         double characteristic_len = FVMC_MIN(n_ab, n_ac);
         characteristic_len =  FVMC_MIN(characteristic_len, n_bc);
-        
+
         //double eps_elt = FVMC_MAX(_eps_loc * characteristic_len, 1e-30);
         double bounds[6];
         double closest[3];
@@ -2793,7 +2793,7 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
         bounds[3] = -DBL_MAX;
         bounds[4] = DBL_MAX;
         bounds[5] = -DBL_MAX;
-        
+
         int m1 = 0;
         for (int m = 0; m < 3; m++) {
           for (l = 0; l < 3; l++) {
@@ -2808,17 +2808,17 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
 
           }
         }
-        
+
         for (int ipt = 0; ipt < n_points_in_extents; ipt++) {
 
           const int idx_pt = points_in_extents[ipt];
 
           const double *_point_coords = point_coords + 3 * idx_pt;
-          
+
           double minDist2;
           double closestPointweights[3];
           double closestPointpcoords[3];
-          
+
           int error = fvmc_triangle_evaluate_Position ((double *) _point_coords, tria_coords, closest,
                                                        closestPointpcoords, &minDist2,
                                                        closestPointweights);
@@ -2843,13 +2843,13 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
 
           if (location[idx_pt] != elt_num) {
 
-            fvmc_coord_t v_pt_to_a[3]; 
-            fvmc_coord_t v_pt_to_b[3]; 
+            fvmc_coord_t v_pt_to_a[3];
+            fvmc_coord_t v_pt_to_b[3];
             fvmc_coord_t v_pt_to_c[3];
 
             for (l = 0; l < 3; l++) {
-              v_pt_to_a[l] = vertex_coords[3*coord_id[0] + l] - point_coords[3*idx_pt + l];  
-              v_pt_to_b[l] = vertex_coords[3*coord_id[1] + l] - point_coords[3*idx_pt + l];  
+              v_pt_to_a[l] = vertex_coords[3*coord_id[0] + l] - point_coords[3*idx_pt + l];
+              v_pt_to_b[l] = vertex_coords[3*coord_id[1] + l] - point_coords[3*idx_pt + l];
               v_pt_to_c[l] = vertex_coords[3*coord_id[2] + l] - point_coords[3*idx_pt + l];
             }
 
@@ -2874,17 +2874,17 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
                            + dot_bc * n_a;
 
             double half_angle = atan2(det_abc, denom);
-            
+
             if ((half_angle < 0.) && (det_abc > 0)) {
               half_angle = 2*_PI - half_angle;
             }
             else if ((half_angle > 0.) && (det_abc < 0)){
               half_angle = -2*_PI + half_angle;
             }
-            
+
             solid_angle[ipt] += 2 * half_angle;
           }
-          
+
         } /* End of loop on points */
 
       } /* End of loop on face triangles */
@@ -2892,7 +2892,7 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
     } /* End of loop on element faces */
 
     for (int ipt = 0; ipt < n_points_in_extents; ipt++) {
-      
+
       const int idx_pt = points_in_extents[ipt];
 
       if ((location[idx_pt] == -1) || ((location[idx_pt] >= 1) && distance[idx_pt] >= 1.)) {
@@ -2917,7 +2917,7 @@ _polyhedra_section_locate(const fvmc_nodal_section_t  *this_section,
 
   BFTC_FREE(solid_angle);
   BFTC_FREE(min_dist);
-  
+
   BFTC_FREE(triangle_vertices);
   state = fvmc_triangulate_state_destroy(state);
 }
@@ -2992,9 +2992,9 @@ _polygons_section_locate_3d(const fvmc_nodal_section_t   *this_section,
   /* Main loop on elements */
 
   double *_vertex_coords =  (double *) malloc (sizeof(double) * 3 * n_vertices_max);
-  
+
   for (i = 0; i < this_section->n_elements; i++) {
-    
+
     _Bool elt_initialized = false;
     int k1 = 0;
 
@@ -3015,9 +3015,9 @@ _polygons_section_locate_3d(const fvmc_nodal_section_t   *this_section,
       }
 
     }
-    
+
     _elt_extents_finalize(3, 2, tolerance, elt_extents);
-    
+
     if (base_element_num < 0) {
       if (this_section->parent_element_num != NULL)
         elt_num = this_section->parent_element_num[i];
@@ -3026,13 +3026,13 @@ _polygons_section_locate_3d(const fvmc_nodal_section_t   *this_section,
     }
     else
       elt_num = base_element_num + i;
-    
+
     _query_octree(elt_extents,
                   point_coords,
                   octree,
                   &n_points_in_extents,
                   points_in_extents);
-  
+
     double epsilon2 = -DBL_MAX;
     if (tolerance < 0.) {
       epsilon2 = DBL_MAX;
@@ -3054,20 +3054,20 @@ _polygons_section_locate_3d(const fvmc_nodal_section_t   *this_section,
       }
       epsilon2 = tmp_max * tolerance2;
     }
-    
+
     for (int k = 0; k < n_points_in_extents; k++) {
       j =  points_in_extents[k];
       const double *x = point_coords + 3*j;
       double closestPoint[3];
       double pcoords[3];
       double minDist2;
-      double dist2 = distance[j] * distance[j]; 
+      double dist2 = distance[j] * distance[j];
 
-      int error = fvmc_polygon_evaluate_Position ((double *) x, 
-                                                n_vertices, 
-                                                (double *) _vertex_coords, 
+      int error = fvmc_polygon_evaluate_Position ((double *) x,
+                                                n_vertices,
+                                                (double *) _vertex_coords,
                                                 closestPoint,
-                                                pcoords, 
+                                                pcoords,
                                                 &minDist2);
 
       if (error == -1) {
@@ -3077,7 +3077,7 @@ _polygons_section_locate_3d(const fvmc_nodal_section_t   *this_section,
       if (minDist2 < epsilon2 && (minDist2 < dist2 || distance[j] < 0.0)) {
         distance[j] = (float) sqrt(minDist2);
         location[j] = elt_num;
-      } 
+      }
     }
   } /* End of loop on elements */
 
@@ -3170,9 +3170,9 @@ _polygons_section_closest_3d(const fvmc_nodal_section_t   *this_section,
     vertex_id = this_section->vertex_index[i];
 
     //TODO: Correction provisoire bug triangulation si que des triangles dans le bloc polygons
-    
+
     if (n_vertices > 4)  {
-    
+
       n_triangles = fvmc_triangulate_polygon(3,
                                              n_vertices,
                                              vertex_coords,
@@ -3185,8 +3185,8 @@ _polygons_section_closest_3d(const fvmc_nodal_section_t   *this_section,
     }
 
     else if (n_vertices == 4) {
-    
- 
+
+
       n_triangles = fvmc_triangulate_quadrangle(3,
                                                 vertex_coords,
                                                 parent_vertex_num,
@@ -3200,11 +3200,11 @@ _polygons_section_closest_3d(const fvmc_nodal_section_t   *this_section,
       n_triangles = 1;
 
       fvmc_lnum_t *ptCur = (fvmc_lnum_t *) this_section->vertex_num + vertex_id;
- 
+
       triangle_vertices[0] = ptCur[0];
       triangle_vertices[1] = ptCur[1];
       triangle_vertices[2] = ptCur[2];
-      
+
     }
 
     /* Locate on triangulated polygon */
@@ -3247,7 +3247,7 @@ _polygons_section_closest_3d(const fvmc_nodal_section_t   *this_section,
  *   points_in_extents <-- array for query of ids of points in extents
  *                         (size: octree->n_points, less usually needed)
  *   projected_point_coords   <-> projected point coordinates (or NULL)
- *   uvw               <-> parametric coordinates of the point if inside the element 
+ *   uvw               <-> parametric coordinates of the point if inside the element
  *                         parametric coordinates of the projected point if outside the element
  *   location          <-> number of element containing or closest to each
  *                         point (size: n_points)
@@ -3277,20 +3277,21 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
   double elt_extents[6];
 
   fvmc_lnum_t n_points_in_extents = 0;
-  
+
   if (this_section->order != -1) {
     assert (parent_vertex_num == NULL);
 
     if (this_section->_ho_vertex_num == NULL)  {
       bftc_error(__FILE__, __LINE__, 0,
                  _("fvmc_point_location : Internal connectivity is not available : call fvmc_nodal_ho_ordering_set to build it\n"));
-      
+
     }
   }
-  
+
   /* If section contains polyhedra */
 
   if (this_section->type == FVMC_CELL_POLY) {
+
 
     assert(this_section->order == -1);
 
@@ -3324,7 +3325,7 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
                                 distance);
 
   }
-  
+
   /* If section contains regular elements */
 
   else {
@@ -3370,7 +3371,7 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
 
         if (this_section->order == -1) {
 
-          
+
           _locate_in_cell_3d(elt_num,
                              this_section->type,
                              this_section->vertex_num + i*this_section->stride,
@@ -3387,7 +3388,7 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
         else {
 
           double *_elt_coords = malloc(sizeof(double) *  this_section->stride * 3);
-          
+
           for (int k = 0; k < n_points_in_extents; k++) {
 
             int point_in_extents = points_in_extents[k];
@@ -3397,14 +3398,14 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
             double tmp_uvw[3];
 
             int *_ho_vertex_num = this_section->_ho_vertex_num + i*this_section->stride;
-            
+
             for (int k1 = 0; k1 < this_section->stride; k1++) {
               const double *_vertex_coords = vertex_coords + 3 * (_ho_vertex_num[k1] - 1);
               for (int k2 = 0; k2 < 3; k2++) {
-                _elt_coords[3*k1+k2] = _vertex_coords[k2]; 
+                _elt_coords[3*k1+k2] = _vertex_coords[k2];
               }
             }
-            
+
             double _distance = fvmc_ho_location (this_section->type,
                                                  this_section->order,
                                                  this_section->stride,
@@ -3412,6 +3413,7 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
                                                  _point_coords,
                                                  tmp_projected_coords,
                                                  tmp_uvw);
+
 
             if ((_distance < distance[point_in_extents]) || (location[point_in_extents] == -1)) {
 
@@ -3434,12 +3436,12 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
             }
 
           }
-          
+
           free (_elt_coords);
-          
+
         }
-      } 
-      
+      }
+
       else if (this_section->entity_dim == 2) {
 
         if (this_section->order == -1) {
@@ -3490,13 +3492,13 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
 
             double tmp_projected_coords[3];
             double tmp_uvw[2];
-            
+
             int *_ho_vertex_num = this_section->_ho_vertex_num + i*this_section->stride;
-            
+
             for (int k1 = 0; k1 < this_section->stride; k1++) {
               const double *_vertex_coords = vertex_coords + 3 * (_ho_vertex_num[k1] - 1);
               for (int k2 = 0; k2 < 3; k2++) {
-                _elt_coords[3*k1+k2] = _vertex_coords[k2]; 
+                _elt_coords[3*k1+k2] = _vertex_coords[k2];
               }
             }
 
@@ -3535,9 +3537,9 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
           }
 
           free (_elt_coords);
-          
+
         }
-        
+
       }
 
       else if (this_section->entity_dim == 1) {
@@ -3559,23 +3561,23 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
         }
 
         else {
-          
+
           double *_elt_coords = malloc(sizeof(double) *  this_section->stride * 3);
 
           for (int k = 0; k < n_points_in_extents; k++) {
 
             int point_in_extents = points_in_extents[k];
             const double *_point_coords = point_coords + 3 * point_in_extents;
- 
+
             double tmp_projected_coords[3];
             double tmp_uvw[1];
-            
+
             int *_ho_vertex_num = this_section->_ho_vertex_num + i*this_section->stride;
-            
+
             for (int k1 = 0; k1 < this_section->stride; k1++) {
               const double *_vertex_coords = vertex_coords + 3 * (_ho_vertex_num[k1] - 1);
               for (int k2 = 0; k2 < 3; k2++) {
-                _elt_coords[3*k1+k2] = _vertex_coords[k2]; 
+                _elt_coords[3*k1+k2] = _vertex_coords[k2];
               }
             }
 
@@ -3589,8 +3591,8 @@ _nodal_section_locate_3d(const fvmc_nodal_section_t  *this_section,
 
             if ((_distance < distance[point_in_extents]) || (location[point_in_extents] == -1)) {
 
-              // TODO: Ajouter un test faisant intervenir la tolerance pour restreindre la localisation 
-              
+              // TODO: Ajouter un test faisant intervenir la tolerance pour restreindre la localisation
+
               location[point_in_extents] = elt_num;
               distance[point_in_extents] = (float) _distance;
               if (projected_coords != NULL) {
@@ -4151,9 +4153,9 @@ static int _solve_2x2 (double **A, double *x)
   //
 
   double det, y[2];
-  
+
   det = _det_2x2 (A[0][0], A[0][1], A[1][0], A[1][1]);
-  
+
   //TODO: geomtric epsilon
 
   if (det == 0.0) {
@@ -4162,10 +4164,10 @@ static int _solve_2x2 (double **A, double *x)
   /* if (fabs(det) < _epsilon_denom) { */
   /*   return 0; */
   /* } */
-  
+
   y[0] = (A[1][1]*x[0] - A[0][1]*x[1]) / det;
   y[1] = (-A[1][0]*x[0] + A[0][0]*x[1]) / det;
-  
+
   x[0] = y[0];
   x[1] = y[1];
   return 1;
@@ -4185,7 +4187,7 @@ static int _intersection_line (double a1[3], double a2[3],
                                double *u, double *v)
 {
 
- 
+
   double a21[3], b21[3], b1a1[3];
   double c[2];
   double *A[2], row1[2], row2[2];
@@ -4219,7 +4221,7 @@ static int _intersection_line (double a1[3], double a2[3],
     *u = c[0];
     *v = c[1];
   }
-  
+
   //  Check parametric coordinates for intersection.
   if ( (0.0 <= *u) && (*u <= 1.0) && (0.0 <= *v) && (*v <= 1.0) ) {
     return FVMC_YES_INTERSECTION;
@@ -4249,7 +4251,7 @@ static int _intersection_line (double a1[3], double a2[3],
  *   point_coords      <-- point coordinates
  *   projected_coords  <-> coordinates of projected points in location elements
  *                         point (size: n_points * dim)
- *   uvw               <-> parametric coordinates of the point if inside the element 
+ *   uvw               <-> parametric coordinates of the point if inside the element
  *                         parametric coordinates of the projected point if outside the element
  *   location          <-> number of element containing or closest to each
  *                         point (size: n_points)
@@ -4303,7 +4305,8 @@ fvmc_point_location_nodal(const fvmc_nodal_t  *this_nodal,
 
       if (this_section->entity_dim == max_entity_dim) {
 
-        
+
+
         _nodal_section_locate_3d(this_section,
                                  max_entity_dim,
                                  this_nodal->parent_vertex_num,
@@ -4317,7 +4320,6 @@ fvmc_point_location_nodal(const fvmc_nodal_t  *this_nodal,
                                  uvw,
                                  location,
                                  distance);
-
         if (base_element_num > -1)
           base_element_num += this_section->n_elements;
 
@@ -4523,8 +4525,8 @@ fvmc_point_location_closest_nodal(const fvmc_nodal_t  *this_nodal,
  * Compute distance to polygons
  *
  * parameters:
- *   dim               <-- dimension                                      
- *   n_poly            <-- number of polygon                              
+ *   dim               <-- dimension
+ *   n_poly            <-- number of polygon
  *   connectivity_idx  <-- polygon connectivity index
  *   connectivity      <-- polygon connectivity
  *   vertex_coords     <-- polygon connectivity
@@ -4544,7 +4546,7 @@ fvmc_point_dist_closest_polygon(const int            dim,
                                 const fvmc_lnum_t    connectivity_idx[],
                                 const fvmc_lnum_t    connectivity[],
                                 const fvmc_coord_t   vertex_coords[],
-                                const fvmc_lnum_t    n_points,       
+                                const fvmc_lnum_t    n_points,
                                 const fvmc_lnum_t    point_ids[],
                                 const fvmc_coord_t   point_coords[],
                                 fvmc_lnum_t          location[],
@@ -4623,10 +4625,10 @@ fvmc_point_dist_closest_polygon(const int            dim,
 /*  All rights reserved. */
 /*  See Copyright.txt or http://www.kitware.com/Copyright.htm for details. */
 
-int fvmc_point_in_polygon (double x[3], 
+int fvmc_point_in_polygon (double x[3],
                            int numPts,
                            double *pts,
-                           double *bounds, 
+                           double *bounds,
                            double *n)
 {
   double *x1, *x2, xray[3], u, v;
@@ -4658,7 +4660,7 @@ int fvmc_point_in_polygon (double x[3],
   }
 
    /* Get the maximum component of the normal. */
-  
+
   if ( fabs(n[0]) > fabs(n[1]) ) {
     if ( fabs(n[0]) > fabs(n[2]) ) {
       maxComp = 0;
@@ -4683,9 +4685,9 @@ int fvmc_point_in_polygon (double x[3],
       comps[1] = 1;
     }
   }
-  
+
   /* Check that max component is non-zero */
-  
+
   if ( fabs(n[maxComp]) < 1.e-15 ) {
     return FVMC_POLYGON_FAILURE;
   }
@@ -4694,24 +4696,24 @@ int fvmc_point_in_polygon (double x[3],
   /* Random rays are generated until one is satisfactory (i.e., */
   /* produces a ray of non-zero magnitude).  Also, since more than one */
   /* ray may need to be fired, the ray-firing occurs in a large loop. */
-  
+
   /* The variable iterNumber counts the number of iterations and is */
   /* limited by the defined variable FVMC_POLYGON_MAX_ITER. */
-  
+
   /* The variable deltaVotes keeps track of the number of votes for */
   /* "in" versus "out" of the face.  When delta_vote > 0, more votes */
   /* have counted for "in" than "out".  When delta_vote < 0, more votes */
   /* have counted for "out" than "in".  When the delta_vote exceeds or */
   /* equals the defined variable FVMC_POLYGON_VOTE_THRESHOLD, than the */
   /* appropriate "in" or "out" status is returned. */
-  
+
   for (deltaVotes = 0, iterNumber = 1;
        (iterNumber < FVMC_POLYGON_MAX_ITER)
          && (abs(deltaVotes) < FVMC_POLYGON_VOTE_THRESHOLD);
        iterNumber++) {
-    
+
      /* Generate ray */
-    
+
     for (rayOK = FALSE; rayOK == FALSE; ) {
       ray[comps[0]] = _randomVal (-rayMag, rayMag);
       ray[comps[1]] = _randomVal (-rayMag, rayMag);
@@ -4721,22 +4723,22 @@ int fvmc_point_in_polygon (double x[3],
         rayOK = TRUE;
       }
     }
-    
+
     /* The ray must be appropriately sized. */
-    
+
     for (i=0; i<3; i++) {
       xray[i] = x[i] + (rayMag/mag)*ray[i];
     }
-    
+
     /* The ray may now be fired against all the edges */
-    
+
     for (numInts=0, testResult=FVMC_POLYGON_CERTAIN, i=0; i<numPts; i++) {
       x1 = pts + 3*i;
       x2 = pts + 3*((i+1)%numPts);
-      
+
         /* Fire the ray and compute the number of intersections.  Be careful */
         /* of degenerate cases (e.g., ray intersects at vertex). */
-      
+
 
       if ((status= _intersection_line(x,xray,x1,x2, &u,&v)) == FVMC_POLYGON_INTERSECTION) {
         /* This test checks for vertex and edge intersections */
@@ -4746,7 +4748,7 @@ int fvmc_point_in_polygon (double x[3],
         /*  Edge intersection */
         /*    (u=0 v!=0 v!=1), (u=1 v!=0 v!=1) */
         /*    (u!=0 u!=1 v=0), (u!=0 u!=1 v=1) */
-        
+
         if ( (FVMC_POLYGON_RAY_TOL < u) && (u < 1.0-FVMC_POLYGON_RAY_TOL) &&
              (FVMC_POLYGON_RAY_TOL < v) && (v < 1.0-FVMC_POLYGON_RAY_TOL) ) {
           numInts++;
@@ -4755,13 +4757,13 @@ int fvmc_point_in_polygon (double x[3],
           testResult = FVMC_POLYGON_UNCERTAIN;
         }
       }
-      
+
       else if ( status == FVMC_POLYGON_ON_LINE ) {
         testResult = FVMC_POLYGON_UNCERTAIN;
       }
 
     }
-    
+
     if ( testResult == FVMC_POLYGON_CERTAIN ) {
       if ( numInts % 2 == 0) {
         --deltaVotes;
@@ -4773,7 +4775,7 @@ int fvmc_point_in_polygon (double x[3],
   } /* try another ray */
 
     /* If the number of intersections is odd, the point is in the polygon. */
-  
+
   if ( deltaVotes <= 0 ) {
     return FVMC_POLYGON_OUTSIDE;
   }
@@ -4887,10 +4889,10 @@ double fvmc_distant_to_polygon (double x[3], int numPts, double *pts,
 
 
 
-int fvmc_parameterize_polygon(int numPts, 
-                              double *pts, 
-                              double *p0, 
-                              double *p10, 
+int fvmc_parameterize_polygon(int numPts,
+                              double *pts,
+                              double *p0,
+                              double *p10,
                               double *l10,
                               double *p20, double *l20, double *n)
 {
@@ -4919,7 +4921,7 @@ int fvmc_parameterize_polygon(int numPts,
 
   for (i=0; i<3; i++) {
     p0[i] = x1[i];
-    p10[i] = x2[i] - x1[i]; 
+    p10[i] = x2[i] - x1[i];
   }
 
   _CROSS_PRODUCT(p20,n,p10);
@@ -4973,7 +4975,7 @@ int fvmc_parameterize_polygon(int numPts,
 }
 
 
-int  fvmc_triangle_evaluate_Position (double x[3], double *pts, 
+int  fvmc_triangle_evaluate_Position (double x[3], double *pts,
                                       double* closestPoint,
                                       double closestPointpcoords[2],
                                       double *dist2,
@@ -4988,9 +4990,9 @@ int  fvmc_triangle_evaluate_Position (double x[3], double *pts,
   int idx=0, indices[2];
   double dist2Point, dist2Line1, dist2Line2;
   double *closest, closestPoint1[3], closestPoint2[3], cp[3];
-  double pcoords[3];                                      
+  double pcoords[3];
   double weights[3];
-  
+
   pcoords[2] = 0.0;
 
   // Get normal for triangle, only the normal direction is needed, i.e. the
@@ -4998,20 +5000,19 @@ int  fvmc_triangle_evaluate_Position (double x[3], double *pts,
   //
 
   _computeNormal (3, pts, n);
-  
+
    pt1 = pts;
    pt2 = pts + 3;
    pt3 = pts + 6;
-
+idebug = 0;
    if (idebug == 1) {
-     printf("x : %22.15e %22.15e %22.15e\n", x[0], x[1], x[2]);
+     printf("x   : %22.15e %22.15e %22.15e\n", x[0]  , x[1]  , x[2]  );
      printf("pt1 : %22.15e %22.15e %22.15e\n", pt1[0], pt1[1], pt1[2]);
      printf("pt2 : %22.15e %22.15e %22.15e\n", pt2[0], pt2[1], pt2[2]);
      printf("pt3 : %22.15e %22.15e %22.15e\n", pt3[0], pt3[1], pt3[2]);
-     
-     printf("n : %22.15e %22.15e %22.15e\n", n[0], n[1], n[2]);
+     printf("n   : %22.15e %22.15e %22.15e\n", n[0]  , n[1]  , n[2]  );
    }
-   
+
    // Project point to plane
   //
 
@@ -5057,7 +5058,7 @@ int  fvmc_triangle_evaluate_Position (double x[3], double *pts,
     c1[i] = pt2[indices[i]] - pt1[indices[i]];
     c2[i] = pt3[indices[i]] - pt1[indices[i]];
   }
-  
+
   if ( (det = _DETERMINANT2X2(c1,c2)) == 0.0 ) {
     pcoords[0] = pcoords[1] = 0.0;
     return -1;
@@ -5068,7 +5069,7 @@ int  fvmc_triangle_evaluate_Position (double x[3], double *pts,
 
   // Okay, now find closest point to element
   //
-  
+
   weights[0] = 1 - (pcoords[0] + pcoords[1]);
   weights[1] = pcoords[0];
   weights[2] = pcoords[1];
@@ -5081,7 +5082,7 @@ int  fvmc_triangle_evaluate_Position (double x[3], double *pts,
     for (i = 0; i < 3; i++) {
       v_cp_x[i] = cp[i] - x[i];
     }
-    
+
     *dist2 = _DOT_PRODUCT(v_cp_x, v_cp_x);
     closestPoint[0] = cp[0];
     closestPoint[1] = cp[1];
@@ -5119,7 +5120,7 @@ int  fvmc_triangle_evaluate_Position (double x[3], double *pts,
         if (idebug == 1)        printf ("      case 3\n");
         closestPointpcoords[0] = tClosestPoint1;
         closestPointpcoords[1] = 0.;
-        
+
       }
       if (dist2Line2 < *dist2) {
         *dist2 = dist2Line2;
@@ -5132,7 +5133,7 @@ int  fvmc_triangle_evaluate_Position (double x[3], double *pts,
       for (i=0; i<3; i++) {
         closestPoint[i] = closest[i];
       }
-      
+
     }
     else if ( weights[2] < 0.0 && weights[0] < 0.0 ){
       double v_pt2_x[3];
@@ -5167,7 +5168,7 @@ int  fvmc_triangle_evaluate_Position (double x[3], double *pts,
       for (i=0; i<3; i++) {
         closestPoint[i] = closest[i];
       }
-      
+
     }
     else if ( weights[1] < 0.0 && weights[0] < 0.0 ) {
       double v_pt3_x[3];
@@ -5179,7 +5180,7 @@ int  fvmc_triangle_evaluate_Position (double x[3], double *pts,
       dist2Line2 = fvmc_distance_to_line (x, pt3, pt2, &tClosestPoint2, closestPoint2);
       if (dist2Point < dist2Line1) {
         *dist2 = dist2Point;
-        closest = pt3; 
+        closest = pt3;
         if (idebug == 1)        printf ("      case 8\n");
         closestPointpcoords[0] = 0.;
         closestPointpcoords[1] = 1.;
@@ -5202,28 +5203,28 @@ int  fvmc_triangle_evaluate_Position (double x[3], double *pts,
       for (i=0; i<3; i++) {
         closestPoint[i] = closest[i];
       }
-      
+
     }
     else if ( weights[0] < 0.0 ) {
       *dist2 = fvmc_distance_to_line (x, pt2, pt3, &tClosestPoint, closestPoint);
       if (idebug == 1)      printf ("      case 11\n");
       closestPointpcoords[0] = 1-tClosestPoint;
       closestPointpcoords[1] = tClosestPoint;
-      
+
     }
     else if ( weights[1] < 0.0 ) {
       *dist2 = fvmc_distance_to_line (x, pt1, pt3, &tClosestPoint, closestPoint);
       if (idebug == 1)      printf ("      case 12\n");
       closestPointpcoords[0] = 0.;
       closestPointpcoords[1] = tClosestPoint;
-      
+
     }
     else if ( weights[2] < 0.0 ) {
       *dist2 = fvmc_distance_to_line (x, pt1, pt2, &tClosestPoint, closestPoint);
       if (idebug == 1)      printf ("      case 13\n");
       closestPointpcoords[0] = tClosestPoint;
       closestPointpcoords[1] = 0.;
-      
+
     }
 
     else {
@@ -5235,8 +5236,8 @@ int  fvmc_triangle_evaluate_Position (double x[3], double *pts,
 
     closestPointweights[0] =  1 - closestPointpcoords[0] - closestPointpcoords[1];
     closestPointweights[1] =  closestPointpcoords[0];
-    closestPointweights[2] =  closestPointpcoords[1];  
-    
+    closestPointweights[2] =  closestPointpcoords[1];
+
     return 0;
   }
 }
@@ -5273,13 +5274,13 @@ int fvmc_polygon_evaluate_Position(double x[3], int numPts, double *pts, double*
   if (res == 0) {
     printf ("fvmc_polygon_evaluate_Position Error in fvmc_parameterize_polygon");
     printf ("polygon : ");
-    for (int k = 0; k < numPts; k++) { 
+    for (int k = 0; k < numPts; k++) {
       double *pt = pts + 3*k;
       printf ("%12.5e %12.5e %12.5e, ", pt[0], pt[1], pt[2]);
     }
     printf("\n");
     printf ("proj polygon : ");
-    for (int k = 0; k < numPts; k++) { 
+    for (int k = 0; k < numPts; k++) {
       double *pt = _pts_p + 3*k;
       printf ("%12.5e %12.5e %12.5e, ", pt[0], pt[1], pt[2]);
     }
@@ -5299,7 +5300,7 @@ int fvmc_polygon_evaluate_Position(double x[3], int numPts, double *pts, double*
   double bounds[6] = {DBL_MAX, -DBL_MAX,
                       DBL_MAX, -DBL_MAX,
                       DBL_MAX, -DBL_MAX};
-  
+
   for (int isom = 0; isom < numPts; isom++) {
     for (int l = 0; l < 3; l++) {
       double coord = _pts_p[3*isom + l];
@@ -5320,8 +5321,8 @@ int fvmc_polygon_evaluate_Position(double x[3], int numPts, double *pts, double*
       closestPoint[0] = cp[0];
       closestPoint[1] = cp[1];
       closestPoint[2] = cp[2];
-      double v[3] = {x[0] - closestPoint[0], 
-                     x[1] - closestPoint[1], 
+      double v[3] = {x[0] - closestPoint[0],
+                     x[1] - closestPoint[1],
                      x[2] - closestPoint[2]};
 
       *minDist2 = _DOT_PRODUCT (v, v);
@@ -5353,6 +5354,362 @@ int fvmc_polygon_evaluate_Position(double x[3], int numPts, double *pts, double*
     }
     return 0;
   }
+}
+
+
+int fvmc_edge_evaluate_Position (double x[3],
+                                 double *pts,
+                                 double* closestPoint,
+                                 double closestPointpcoords[1],
+                                 double* dist2,
+                                 double closestPointweights[2])
+{
+
+
+  double *pt1, *pt2;
+  double proj, norm_edge, norm_edge2;
+  double p1x[3], p1p2[3], p1p2n[3];
+
+  pt1 = pts;
+  pt2 = pts +3;
+
+
+  p1x[0] = -pt1[0] + x[0];
+  p1x[1] = -pt1[1] + x[1];
+  p1x[2] = -pt1[2] + x[2];
+
+
+  p1p2[0] = -pt1[0] + pt2[0];
+  p1p2[1] = -pt1[1] + pt2[1];
+  p1p2[2] = -pt1[2] + pt2[2];
+
+  norm_edge2 = _DOT_PRODUCT(p1p2, p1p2);
+  if (norm_edge2 == 0.0) {
+    return -1;
+  }
+  norm_edge = sqrt(norm_edge2);
+
+  p1p2n[0] = p1p2[0] / norm_edge;
+  p1p2n[1] = p1p2[1] / norm_edge;
+  p1p2n[2] = p1p2[2] / norm_edge;
+
+  proj = _DOT_PRODUCT(p1x, p1p2n);
+
+  if (proj <= 0.0){
+      closestPoint[0] = pt1[0];
+      closestPoint[1] = pt1[1];
+      closestPoint[2] = pt1[2];
+      proj = 0;
+  }
+  if (proj >= norm_edge){
+      closestPoint[0] = pt2[0];
+      closestPoint[1] = pt2[1];
+      closestPoint[2] = pt2[2];
+      proj = norm_edge;
+  }
+  else {
+    closestPoint[0] = pt1[0] + proj * p1p2[0] / norm_edge;
+    closestPoint[1] = pt1[1] + proj * p1p2[1] / norm_edge;
+    closestPoint[2] = pt1[2] + proj * p1p2[2] / norm_edge;
+
+  }
+
+  closestPointpcoords[0] = proj / norm_edge;
+
+  *dist2 = _DOT_PRODUCT(p1x,p1x) - (proj*proj);
+
+  closestPointweights[0] = 1 - closestPointpcoords[0];
+  closestPointweights[1] = closestPointpcoords[0];
+
+  return 0;
+
+}
+
+
+int  fvmc_tetrahedron_evaluate_Position (double x[3], double *pts,
+                                         double* closestPoint,
+                                         double closestPointpcoords[3],
+                                         double *dist2,
+                                         double closestPointweights[4])
+{
+  double *pt0, *pt1, *pt2, *pt3, *vtx_tria = malloc(sizeof(double) * 3 * 3);
+  double p0p1[3]   , p0p2[3]   , p0p3[3]   , p1p2[3]   , p1p3[3]   , p2p3[3];
+  double norm2_p0p1, norm2_p0p2, norm2_p0p3, norm2_p1p2, norm2_p1p3, norm2_p2p3;
+  double xp0[3], xp1[3], xp2[3], xp3[3];
+  double u, v, w;
+  double uvw_tria[2], weights_tria[3];
+
+  pt0 = pts;
+  pt1 = pts + 3;
+  pt2 = pts + 6;
+  pt3 = pts + 9;
+
+
+  for (int i = 0; i < 3; i++) {
+    p0p1[i] = pt1[i] - pt0[i];
+    p0p2[i] = pt2[i] - pt0[i];
+    p0p3[i] = pt3[i] - pt0[i];
+
+    p1p2[i] = pt2[i] - pt1[i];
+    p1p3[i] = pt3[i] - pt1[i];
+    p2p3[i] = pt3[i] - pt2[i];
+
+    xp0[i] = pt0[i] - x[i];
+    xp1[i] = pt1[i] - x[i];
+    xp2[i] = pt2[i] - x[i];
+    xp3[i] = pt3[i] - x[i];
+  }
+
+  norm2_p0p1 = _DOT_PRODUCT(p0p1,p0p1);
+  norm2_p0p2 = _DOT_PRODUCT(p0p2,p0p2);
+  norm2_p0p3 = _DOT_PRODUCT(p0p3,p0p3);
+  norm2_p1p2 = _DOT_PRODUCT(p1p2,p1p2);
+  norm2_p1p3 = _DOT_PRODUCT(p1p3,p1p3);
+  norm2_p2p3 = _DOT_PRODUCT(p2p3,p2p3);
+
+
+  if (norm2_p0p1 == 0.0 ||
+      norm2_p0p2 == 0.0 ||
+      norm2_p0p3 == 0.0 ||
+      norm2_p1p2 == 0.0 ||
+      norm2_p1p3 == 0.0 ||
+      norm2_p2p3 == 0.0) {
+    return -1;
+  }
+
+  double vol6 =   p0p1[0] * (p0p2[1]*p0p3[2] - p0p2[2]*p0p3[1])
+                - p0p1[1] * (p0p2[0]*p0p3[2] - p0p2[2]*p0p3[0])
+                + p0p1[2] * (p0p2[0]*p0p3[1] - p0p2[1]*p0p3[0]);
+
+  if (vol6 == 0) {
+    return -1;
+  }
+
+  u =   xp0[0] * (xp2[1]*xp3[2] - xp2[2]*xp3[1])
+      - xp0[1] * (xp2[0]*xp3[2] - xp2[2]*xp3[0])
+      + xp0[2] * (xp2[0]*xp3[1] - xp2[1]*xp3[0]);
+  u /= -vol6;
+
+  v =   xp0[0] * (xp3[1]*xp1[2] - xp3[2]*xp1[1])
+      - xp0[1] * (xp3[0]*xp1[2] - xp3[2]*xp1[0])
+      + xp0[2] * (xp3[0]*xp1[1] - xp3[1]*xp1[0]);
+  v /= -vol6;
+
+  w =   xp0[0] * (xp1[1]*xp2[2] - xp1[2]*xp2[1])
+      - xp0[1] * (xp1[0]*xp2[2] - xp1[2]*xp2[0])
+      + xp0[2] * (xp1[0]*xp2[1] - xp1[1]*xp2[0]);
+  w /= -vol6;
+
+
+  if (u + v + w <= 1 && u >= 0 && v >= 0 && w >= 0) { // point a l'interieur du tetra
+    for (int i = 0; i < 3; i++) {
+      closestPoint[i] = x[i];
+    }
+    closestPointpcoords[0] = u;
+    closestPointpcoords[1] = v;
+    closestPointpcoords[2] = w;
+    *dist2 = 0.0;
+    closestPointweights[0] = 1 - u - v - w;
+    closestPointweights[1] = u;
+    closestPointweights[2] = v;
+    closestPointweights[3] = w;
+  }
+
+  else if (u + v + w > 1) {// la face la plus proche est [P1,P2,P3]
+    vtx_tria[0] = pt1[0];
+    vtx_tria[1] = pt1[1];
+    vtx_tria[2] = pt1[2];
+
+    vtx_tria[3] = pt2[0];
+    vtx_tria[4] = pt2[1];
+    vtx_tria[5] = pt2[2];
+
+    vtx_tria[6] = pt3[0];
+    vtx_tria[7] = pt3[1];
+    vtx_tria[8] = pt3[2];
+
+    int isDegenerated = fvmc_triangle_evaluate_Position (x,
+                                                         vtx_tria,
+                                                         closestPoint,
+                                                         uvw_tria,
+                                                         dist2,
+                                                         weights_tria);
+    double p0cp[3], p1cp[3], p2cp[3], p3cp[3];
+    for (int i = 0; i < 3; i++){
+      p0cp[i] = closestPoint[i] - pt0[i];
+      p1cp[i] = closestPoint[i] - pt1[i];
+      p2cp[i] = closestPoint[i] - pt2[i];
+      p3cp[i] = closestPoint[i] - pt3[i];
+    }
+
+    u =   p0cp[0] * (p2cp[1]*p3cp[2] - p2cp[2]*p3cp[1])
+        - p0cp[1] * (p2cp[0]*p3cp[2] - p2cp[2]*p3cp[0])
+        + p0cp[2] * (p2cp[0]*p3cp[1] - p2cp[1]*p3cp[0]);
+    closestPointpcoords[0] = u / vol6;
+
+    v =   p0cp[0] * (p3cp[1]*p1cp[2] - p3cp[2]*p1cp[1])
+        - p0cp[1] * (p3cp[0]*p1cp[2] - p3cp[2]*p1cp[0])
+        + p0cp[2] * (p3cp[0]*p1cp[1] - p3cp[1]*p1cp[0]);
+    closestPointpcoords[1] = v / vol6;
+
+    w =   p0cp[0] * (p1cp[1]*p2cp[2] - p1cp[2]*p2cp[1])
+        - p0cp[1] * (p1cp[0]*p2cp[2] - p1cp[2]*p2cp[0])
+        + p0cp[2] * (p1cp[0]*p2cp[1] - p1cp[1]*p2cp[0]);
+    closestPointpcoords[2] = w / vol6;
+
+    closestPointweights[0] = 1 - closestPointpcoords[0] - closestPointpcoords[1] - closestPointpcoords[2];
+    closestPointweights[1] = closestPointpcoords[0];
+    closestPointweights[2] = closestPointpcoords[1];
+    closestPointweights[3] = closestPointpcoords[2];
+  }
+
+  else if (u < 0) {// la face la plus proche est [P0,P3,P2]
+    vtx_tria[0] = pt0[0];
+    vtx_tria[1] = pt0[1];
+    vtx_tria[2] = pt0[2];
+
+    vtx_tria[3] = pt3[0];
+    vtx_tria[4] = pt3[1];
+    vtx_tria[5] = pt3[2];
+
+    vtx_tria[6] = pt2[0];
+    vtx_tria[7] = pt2[1];
+    vtx_tria[8] = pt2[2];
+
+    int isDegenerated = fvmc_triangle_evaluate_Position (x,
+                                                         vtx_tria,
+                                                         closestPoint,
+                                                         uvw_tria,
+                                                         dist2,
+                                                         weights_tria);
+    double p0cp[3], p1cp[3], p2cp[3], p3cp[3];
+    for (int i = 0; i < 3; i++){
+      p0cp[i] = closestPoint[i] - pt0[i];
+      p1cp[i] = closestPoint[i] - pt1[i];
+      p2cp[i] = closestPoint[i] - pt2[i];
+      p3cp[i] = closestPoint[i] - pt3[i];
+    }
+
+    u =   p0cp[0] * (p2cp[1]*p3cp[2] - p2cp[2]*p3cp[1])
+        - p0cp[1] * (p2cp[0]*p3cp[2] - p2cp[2]*p3cp[0])
+        + p0cp[2] * (p2cp[0]*p3cp[1] - p2cp[1]*p3cp[0]);
+    closestPointpcoords[0] = u / vol6;
+
+    v =   p0cp[0] * (p3cp[1]*p1cp[2] - p3cp[2]*p1cp[1])
+        - p0cp[1] * (p3cp[0]*p1cp[2] - p3cp[2]*p1cp[0])
+        + p0cp[2] * (p3cp[0]*p1cp[1] - p3cp[1]*p1cp[0]);
+    closestPointpcoords[1] = v / vol6;
+
+    w =   p0cp[0] * (p1cp[1]*p2cp[2] - p1cp[2]*p2cp[1])
+        - p0cp[1] * (p1cp[0]*p2cp[2] - p1cp[2]*p2cp[0])
+        + p0cp[2] * (p1cp[0]*p2cp[1] - p1cp[1]*p2cp[0]);
+    closestPointpcoords[2] = w / vol6;
+
+    closestPointweights[0] = 1 - closestPointpcoords[0] - closestPointpcoords[1] - closestPointpcoords[2];
+    closestPointweights[1] = closestPointpcoords[0];
+    closestPointweights[2] = closestPointpcoords[1];
+    closestPointweights[3] = closestPointpcoords[2];
+  }
+
+  else if (v < 0) {// la face la plus proche est [P0,P3,P1]
+    vtx_tria[0] = pt0[0];
+    vtx_tria[1] = pt0[1];
+    vtx_tria[2] = pt0[2];
+
+    vtx_tria[3] = pt3[0];
+    vtx_tria[4] = pt3[1];
+    vtx_tria[5] = pt3[2];
+
+    vtx_tria[6] = pt1[0];
+    vtx_tria[7] = pt1[1];
+    vtx_tria[8] = pt1[2];
+
+    int isDegenerated = fvmc_triangle_evaluate_Position (x,
+                                                         vtx_tria,
+                                                         closestPoint,
+                                                         uvw_tria,
+                                                         dist2,
+                                                         weights_tria);
+    double p0cp[3], p1cp[3], p2cp[3], p3cp[3];
+    for (int i = 0; i < 3; i++){
+      p0cp[i] = closestPoint[i] - pt0[i];
+      p1cp[i] = closestPoint[i] - pt1[i];
+      p2cp[i] = closestPoint[i] - pt2[i];
+      p3cp[i] = closestPoint[i] - pt3[i];
+    }
+
+    u =   p0cp[0] * (p2cp[1]*p3cp[2] - p2cp[2]*p3cp[1])
+        - p0cp[1] * (p2cp[0]*p3cp[2] - p2cp[2]*p3cp[0])
+        + p0cp[2] * (p2cp[0]*p3cp[1] - p2cp[1]*p3cp[0]);
+    closestPointpcoords[0] = u / vol6;
+
+    v =   p0cp[0] * (p3cp[1]*p1cp[2] - p3cp[2]*p1cp[1])
+        - p0cp[1] * (p3cp[0]*p1cp[2] - p3cp[2]*p1cp[0])
+        + p0cp[2] * (p3cp[0]*p1cp[1] - p3cp[1]*p1cp[0]);
+    closestPointpcoords[1] = v / vol6;
+
+    w =   p0cp[0] * (p1cp[1]*p2cp[2] - p1cp[2]*p2cp[1])
+        - p0cp[1] * (p1cp[0]*p2cp[2] - p1cp[2]*p2cp[0])
+        + p0cp[2] * (p1cp[0]*p2cp[1] - p1cp[1]*p2cp[0]);
+    closestPointpcoords[2] = w / vol6;
+
+    closestPointweights[0] = 1 - closestPointpcoords[0] - closestPointpcoords[1] - closestPointpcoords[2];
+    closestPointweights[1] = closestPointpcoords[0];
+    closestPointweights[2] = closestPointpcoords[1];
+    closestPointweights[3] = closestPointpcoords[2];
+  }
+
+  else if (w < 0) {// la face la plus proche est [P0,P1,P2]
+    vtx_tria[0] = pt0[0];
+    vtx_tria[1] = pt0[1];
+    vtx_tria[2] = pt0[2];
+
+    vtx_tria[3] = pt1[0];
+    vtx_tria[4] = pt1[1];
+    vtx_tria[5] = pt1[2];
+
+    vtx_tria[6] = pt2[0];
+    vtx_tria[7] = pt2[1];
+    vtx_tria[8] = pt2[2];
+
+    int isDegenerated = fvmc_triangle_evaluate_Position (x,
+                                                         vtx_tria,
+                                                         closestPoint,
+                                                         uvw_tria,
+                                                         dist2,
+                                                         weights_tria);
+    double p0cp[3], p1cp[3], p2cp[3], p3cp[3];
+    for (int i = 0; i < 3; i++){
+      p0cp[i] = closestPoint[i] - pt0[i];
+      p1cp[i] = closestPoint[i] - pt1[i];
+      p2cp[i] = closestPoint[i] - pt2[i];
+      p3cp[i] = closestPoint[i] - pt3[i];
+    }
+
+    u =   p0cp[0] * (p2cp[1]*p3cp[2] - p2cp[2]*p3cp[1])
+        - p0cp[1] * (p2cp[0]*p3cp[2] - p2cp[2]*p3cp[0])
+        + p0cp[2] * (p2cp[0]*p3cp[1] - p2cp[1]*p3cp[0]);
+    closestPointpcoords[0] = u / vol6;
+
+    v =   p0cp[0] * (p3cp[1]*p1cp[2] - p3cp[2]*p1cp[1])
+        - p0cp[1] * (p3cp[0]*p1cp[2] - p3cp[2]*p1cp[0])
+        + p0cp[2] * (p3cp[0]*p1cp[1] - p3cp[1]*p1cp[0]);
+    closestPointpcoords[1] = v / vol6;
+
+    w =   p0cp[0] * (p1cp[1]*p2cp[2] - p1cp[2]*p2cp[1])
+        - p0cp[1] * (p1cp[0]*p2cp[2] - p1cp[2]*p2cp[0])
+        + p0cp[2] * (p1cp[0]*p2cp[1] - p1cp[1]*p2cp[0]);
+    closestPointpcoords[2] = w / vol6;
+
+    closestPointweights[0] = 1 - closestPointpcoords[0] - closestPointpcoords[1] - closestPointpcoords[2];
+    closestPointweights[1] = closestPointpcoords[0];
+    closestPointweights[2] = closestPointpcoords[1];
+    closestPointweights[3] = closestPointpcoords[2];
+  }
+
+  free(vtx_tria);
+  return 0;
+
 }
 
 

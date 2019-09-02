@@ -1,5 +1,5 @@
 /*
-  This file is part of the CWIPI library. 
+  This file is part of the CWIPI library.
 
   Copyright (C) 2011  ONERA
 
@@ -18,7 +18,7 @@
 */
 
 /**
- * Simple 3D test 
+ * Simple 3D test
  *
  */
 
@@ -41,11 +41,11 @@
 // *************************
 
 /*----------------------------------------------------------------------
- *                                                                     
- * Dump status exchange                                                
- *                                                                     
+ *
+ * Dump status exchange
+ *
  * parameters:
- *   status              <-- Exchange status           
+ *   status              <-- Exchange status
  *---------------------------------------------------------------------*/
 
 static void _dumpStatus(FILE *outputFile, cwipi_exchange_status_t status)
@@ -64,11 +64,11 @@ static void _dumpStatus(FILE *outputFile, cwipi_exchange_status_t status)
 }
 
 /*----------------------------------------------------------------------
- *                                                                     
- * Dump not located points                                             
- *                                                                     
+ *
+ * Dump not located points
+ *
  * parameters:
- *   coupling_id         <-- Coupling id               
+ *   coupling_id         <-- Coupling id
  *   nNotLocatedPoints   <-- Number of not located points
  *---------------------------------------------------------------------*/
 
@@ -86,22 +86,22 @@ static void _dumpNotLocatedPoints(FILE *outputFile,
 }
 
 /*----------------------------------------------------------------------
- *                                                                     
- * Read mesh dimension                                             
- *                                                                     
+ *
+ * Read mesh dimension
+ *
  * parameters:
- *   f                   <-- Mesh file                 
- *   dimension           --> Dimension                   
+ *   f                   <-- Mesh file
+ *   dimension           --> Dimension
  *   nvertex             --> number of vertices
  *   nElements           --> number of elements
  *   nConnecVertex       --> size of connectivity
  *---------------------------------------------------------------------*/
 
-static int _read_mesh_dim(FILE *f, 
-                          int *dimension, 
-                          int *nVertex, 
-                          int *nElements, 
-                          int *nConnecVertex) 
+static int _read_mesh_dim(FILE *f,
+                          int *dimension,
+                          int *nVertex,
+                          int *nElements,
+                          int *nConnecVertex)
 {
   int r;
   r = fscanf( f, "%d %d %d %d", dimension, nVertex, nElements, nConnecVertex );
@@ -111,27 +111,27 @@ static int _read_mesh_dim(FILE *f,
 }
 
 /*----------------------------------------------------------------------
- *                                                                     
- * Read mesh dimension                                             
- *                                                                     
+ *
+ * Read mesh dimension
+ *
  * parameters:
- *   f                   <-- Mesh file                 
- *   dimension           --> Dimension                   
+ *   f                   <-- Mesh file
+ *   dimension           --> Dimension
  *   nvertex             <-- number of vertices
  *   nElements           <-- number of elements
  *   nConnecVertex       <-- size of connectivity
  *   coords              --> vertices coordinates
- *   connecPointer       --> connectivity index  
+ *   connecPointer       --> connectivity index
  *   connec              --> connectivity
  *---------------------------------------------------------------------*/
 
-static int _read_mesh(FILE *f, 
-                      int dimension, 
-                      int nVertex, 
+static int _read_mesh(FILE *f,
+                      int dimension,
+                      int nVertex,
                       int nElements,
-                      double *coords, 
-                      int *connecPointer, 
-                      int *connec) 
+                      double *coords,
+                      int *connecPointer,
+                      int *connec)
 {
   int i, j, r;
 
@@ -139,7 +139,7 @@ static int _read_mesh(FILE *f,
   for (i = 0; i < nVertex; i++) {
     for (j = 0; j < dimension; j++) {
       r = fscanf(f, "%lf", coords + i * dimension + j);
-      if (r == EOF) 
+      if (r == EOF)
         return EXIT_FAILURE;
     }
   }
@@ -147,14 +147,14 @@ static int _read_mesh(FILE *f,
   // Read connectivity index
   for (i = 0; i <= nElements; i++ ) {
     r = fscanf(f, "%d", connecPointer + i);
-    if (r == EOF) 
+    if (r == EOF)
       return EXIT_FAILURE;
   }
 
   // Read connectivity
   for (i = 0; i < connecPointer[nElements]; i++ ) {
     r = fscanf(f, "%d", &connec[i]);
-    if (r == EOF) 
+    if (r == EOF)
       return EXIT_FAILURE;
   }
 
@@ -277,9 +277,9 @@ int main( int argc, char* argv[] ) {
                             1,                            // Post-processing frequency
                             "EnSight Gold",               // Post-processing format
                             "text");                      // Post-processing options
-    
+
     /* Building of the local mesh */
-    
+
     int dimension = 0;             // Dimension of the space
     int nVertex = 0;               // Number of points in the mesh
     double* coords = NULL;         // Coordinates of the points
@@ -296,9 +296,11 @@ int main( int argc, char* argv[] ) {
 
     assert (meshFile != NULL);
     _read_mesh_dim( meshFile, &dimension, &nVertex, &nElements, &nConnecVertex );
+
     coords = (double *) malloc(dimension * nVertex * sizeof(double));
     eltsConnecPointer = (int *) malloc((nElements + 1) * sizeof(int));
     eltsConnec = (int *) malloc(nConnecVertex * sizeof(int));
+
     _read_mesh( meshFile, dimension, nVertex, nElements, coords, eltsConnecPointer, eltsConnec );
     fclose(meshFile);
 
@@ -316,10 +318,10 @@ int main( int argc, char* argv[] ) {
        Receiving of the coordinate Y*/
 
     values = (double *) malloc(nVertex * sizeof(double));
-   
-    for (int i = 0; i < nVertex; i++) 
+
+    for (int i = 0; i < nVertex; i++)
       values[i] = coords[3*i];
-    
+
     localValues = (double *) malloc(nVertex * sizeof(double));
 
     cwipi_locate("c_vol_cpl_P1P1");
@@ -351,12 +353,12 @@ int main( int argc, char* argv[] ) {
     /* Check barycentric coordinates */
 
     if (rank == 0)
-      printf("        Check results\n");    
+      printf("        Check results\n");
 
     double err = fabs(localValues[0] - values[0]);
 
     for (int i = 1; i < nVertex; i++) {
-      err = ((fabs(localValues[i] - values[i])) < (err) ? (err) : 
+      err = ((fabs(localValues[i] - values[i])) < (err) ? (err) :
              (fabs(localValues[i] - values[i])));
 
     }
