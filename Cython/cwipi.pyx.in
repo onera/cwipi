@@ -303,7 +303,7 @@ def init(MPI.Comm common_comm, char* application_name):
 
 
 def set_output_listing(output_listing):
-    """
+    """set_output_listing(output_listing)
     Set up the file used for the output listing.
 
     Parameters:
@@ -337,7 +337,10 @@ def dump_application_properties():
 
 def finalize():
     """
-    Finalize.
+    Finalize this module.
+
+    After this call, no other function from this module can be called.
+    It is a synchronization point between all applications.
     """
     cwipi_finalize()
 
@@ -576,7 +579,7 @@ def get_list_string_parameter(char* application_name):
 
 # fixme: sould be plural : synchronize_control_parameters
 def synchronize_control_parameter(char* application_name):
-    """synchronize_control_parameter(application_name):
+    """synchronize_control_parameter(application_name)
     Synchronize local control parameters with an other application.
 
     It is a synchronization point with this second application.
@@ -606,19 +609,20 @@ cdef class Coupling (object):
                  char *output_format,
                  char *output_format_option,
                  nb_locations = None):
-        """__init__(char* coupling_name, cwipi_coupling_type_t coupling_type, char *coupled_application, int entitiesDim, double tolerance, cwipi_mesh_type_t mesh_type, cwipi_solver_type_t solver_type, int output_frequency, char *output_format, char *output_format_option, nb_locations=None)
+        """__init__(coupling_name, coupling_type, coupled_application, entitiesDim, tolerance, mesh_type, solver_type, output_frequency, output_format, output_format_option, nb_locations=None)
 
         Args:
             coupling_name(str): a name for this object
             coupling_type(cwipi_coupling_type_t): either one of: COUPLING_PARALLEL_WITH_PARTITIONING, COUPLING_PARALLEL_WITHOUT_PARTITIONING, COUPLING_SEQUENTIAL
             coupled_application(str): the identifier of the distant code
-            entitiesDim(int): dimension the declared geometry
+            entitiesDim(int): dimension of the declared geometry
             tolerance(double): geometric matching tolerance
             mesh_type(cwipi_mesh_type_t): either one of: STATIC_MESH, MOBILE_MESH, CYCLIC_MESH
             solver_type(cwipi_solver_type_t): either one of: SOLVER_CELL_CENTER, SOLVER_CELL_VERTEX
             output_frequency(int): output frequency (0 disables output)
             output_format(str): either one of "EnSight Gold", "MED_fichier", "CGNS"
             output_format_option(str): extra output options
+            nb_locations(int, optional):
         """
         global current_cpl
         self.name = coupling_name
@@ -661,7 +665,16 @@ cdef class Coupling (object):
                     np.ndarray[np.int32_t] connectivity_index not None, 
                     np.ndarray[np.int32_t] connectivity not None):
         """
-        define_mesh(int n_vertex, int n_element, np.ndarray[np.double_t] coordinates not None, np.ndarray[np.int32_t] connectivity_index not None, np.ndarray[np.int32_t] connectivity not None)
+        define_mesh(n_vertex, n_element, coordinates, connectivity_index, connectivity)
+
+        Args:
+            n_vertex(int): number of vertices/nodes
+            n_element(int): number of elements
+            coordinates(double ndarray): the nodes coordinates, an array whose shape is either (n_vertex*3) or (n_vertex, 3)
+            connectivity_index (int32 ndarray): the index of the first node of each element in `connectivity`; shape is (n_element+1), indices start at zero.
+            connectivity (int32 ndarray): the array defining elements' connectivity; indices start at 1 (i.e. 1 is the first node). 
+               For example element `iel` nodes are given by the slice connectivity[connectivity_index[iel] : connectivity_index[iel+1] ].
+               The array size is the sum over elements of el.nb_nodes.
         """
         global current_cpl
         current_cpl = self.name
@@ -694,8 +707,12 @@ cdef class Coupling (object):
                        np.ndarray[np.double_t] coordinates not None, 
                        np.ndarray[np.int32_t] connectivity_index not None, 
                        np.ndarray[np.int32_t] connectivity not None):
-        """
-        Define high order mesh
+        """ho_define_mesh(n_vertex, n_element, order, coordinates, connectivity_index, connectivity)
+        Define high order mesh.
+
+        Args:
+            order(int): the mesh's interpolation order.
+        All other arguments are the same as in :func:`define_mesh`.
         """
         global current_cpl
         current_cpl = self.name
@@ -730,7 +747,7 @@ cdef class Coupling (object):
                                  int n_nodes,
                                  np.ndarray[np.int32_t] ijk_grid not None):
         """
-        Define ho element ordering from the location in the (I, J, K) grid
+        Define ho element ordering from the location in the (I, J, K) grid.
         """
         global current_cpl
         current_cpl = self.name
@@ -744,14 +761,13 @@ cdef class Coupling (object):
     def set_points_to_locate(self,
                              int n_points, 
                              np.ndarray[np.double_t] coordinates not None):
-        """
-        set_points_to_locate(n_points, coordinates)
+        """set_points_to_locate(n_points, coordinates)
 
         Set points to locate, e.g. the receiving points.
 
         Args:
            n_points (int): number of points
-           coords (double ndarray): the coordinates, an array whose shape is (nb_nodes, dim), with C-ordering.
+           coords (double ndarray): the coordinates, an array whose shape is (n_points, dim), with C-ordering.
         """ 
         global current_cpl
         current_cpl = self.name
@@ -927,10 +943,19 @@ cdef class Coupling (object):
                char* sending_field_name, 
                np.ndarray[np.double_t] sending_field): 
         """
-        issend(char* exchange_name, int tag, int stride, int time_step, double time_value,  char* sending_field_name, np.ndarray[np.double_t] sending_field)
-
         Non blocking send. 
-        Return the request (that you should later pass to :func:`wait_issend`).
+
+        Returns:
+            the request (that you should later pass to :func:`wait_issend`).
+
+        Args:
+            exchange_name(str):
+            tag(int): an arbitraty MPI tag, that should match the corresponding recv.
+            stride(int): the stride, i.e. number of quantities received.
+            time_step(int): the time step (only used in output files).
+            time_value(double): the time (only used in output files).
+            sending_field_name(str): a name for this quantity (only used in output files).
+            sending_field(double ndarray): the data to send.
         """
         cdef int request
 
@@ -971,9 +996,20 @@ cdef class Coupling (object):
               double time_value,
               char* receiving_field_name, 
               np.ndarray[np.double_t] receiving_field): 
-        """
-        irecv(char* exchange_name, int tag, int stride, int time_step, double time_value, char* receiving_field_name, np.ndarray[np.double_t] receiving_field)
-        Non blocking receive. Return the request (that you should later pass to :func:`wait_irecv`).
+        """irecv(exchange_name, tag, stride, time_step, time_value, receiving_field_name, receiving_field)
+        Non blocking receive.
+
+        Returns:
+            the request (that you should later pass to :func:`wait_irecv`).
+
+        Args:
+            exchange_name(str):
+            tag(int): an arbitraty MPI tag, that should match the corresponding send.
+            stride(int): the stride, i.e. number of quantities received.
+            time_step(int): the time step (only used in output files).
+            time_value(double): the time (only used in output files).
+            receiving_field_name(str): a name for this quantity (only used in output files).
+            receiving_field(double ndarray): an array large enough (size should be at least n*stride, where n is the number of receiving points).
         """
         cdef int request
 
