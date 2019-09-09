@@ -56,7 +56,9 @@ namespace cwipi {
             
         void* interpolate (Field* referenceField);   
         void localization_points_cloud_setting(int* id_dist);
-        void localization_null_setting   (int* id_dist);          
+        void localization_null_setting        (int* id_dist);          
+        void localization_null_setting_send   (int* id_dist);            
+        void localization_null_setting_recv   (int* id_dist);          
         void localization_surface_setting(int* id_dist);     
       
         void localization_compute(int id_dist)             ;
@@ -65,7 +67,8 @@ namespace cwipi {
       
         void broadcasting_request (int* id_gnum_location) ;
         void broadcasting_set     (int* id_gnum_location) ;
-        void broadcasting_set_null(int* id_gnum_location) ;      
+        void broadcasting_null_send(int* id_gnum_location) ;      
+        void broadcasting_null_recv(int* id_gnum_location) ;             
         void location_compute                 (int id_gnum_location) ;
                   
         void location_get(int id_gnum_location)      ;

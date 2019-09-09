@@ -77,8 +77,20 @@ namespace cwipi {
                               unionGroup, &((*_unionCommCplRanks)[0]));
 
     MPI_Group_translate_ranks(globalGroup, locRanks.size(), &(locRanks[0]),
-                              unionGroup, &((*_unionCommLocRanks)[0]));
+                              unionGroup , &((*_unionCommLocRanks)[0]));
 
+    _cplCommCplRanks = new std::vector<int>(*_unionCommCplRanks);
+    _cplCommLocRanks = new std::vector<int>(*_unionCommLocRanks);
+
+    /*
+    Use the unionComm which the union of coupled ranks to compute geometry for partitioned and unpartitioned case.
+    Use the intraComm to broadcast computation results in withOutPart case.
+
+    _cplComm = unionComm in withPart case and contained the two code root ranks in withOutPart case.
+    the _cplComm is 
+    
+    
+    */
           
     if (cplCodeCommType != CWP_COMM_PAR_WITH_PART) {
 

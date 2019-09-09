@@ -58,7 +58,7 @@ namespace cwipi {
   }
   
   Visu::~Visu() {
-    PDM_writer_free(_visu_id);
+   // PDM_writer_free(_visu_id);
   }
 
 
@@ -168,7 +168,6 @@ namespace cwipi {
 
   void Visu::GeomWrite() {
     PDM_writer_geom_write(_visu_id,_visu_mesh_id);
-  
   }
 
 /*****************************************/

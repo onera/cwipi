@@ -137,10 +137,11 @@ typedef enum {
 
 /**
  * \enum CWP_Freq_t
- * \brief  Echange frequency 
+ * \brief  Exchange frequency (not implemented now) used by CWP_Exch function to determine when launchs interpolation/exchange.  
  *
  * CWP_Freq_t describes the different ways to define coupling data 
  */
+
 
 typedef enum {
 
@@ -148,10 +149,9 @@ typedef enum {
   CWP_FREQ_RELATED_N_TIME_STEP, /*!< Exchange frequency is related to 
                                      the number of time steps  */ 
   CWP_FREQ_CPL_TIME_STEP,       /*!< Coupling time step        */ 
-  CWP_FREQ_ASYNCHRONOUS,        /*!< Exchanges are asynchronous */ 
+  CWP_FREQ_ASYNCHRONOUS,        /*!< Exchanges are asynchronous with temporal interpolation */ 
   CWP_FREQ_SLAVE,               /*!< Give a converged state    */ 
   CWP_FREQ_MASTER               /*!< Request a converged state */ 
-
 } CWP_Freq_t;
 
 
@@ -1637,7 +1637,7 @@ CWP_Type_t
 CWP_Field_data_type_get
 (
  const char      *local_code_name,
- const char      *cpl_id,
+ const char      *cpl_id         ,       
  const char      *field_id
 );
 
@@ -1656,7 +1656,7 @@ CWP_Field_storage_t
 CWP_Field_storage_get
 (
  const char      *local_code_name,
- const char      *cpl_id,
+ const char      *cpl_id         ,
  const char      *field_id
 );
 
@@ -1674,7 +1674,7 @@ void
 CWP_Field_del
 (
  const char      *local_code_name,
- const char      *cpl_id,
+ const char      *cpl_id         ,
  const char      *field_id
 );
 
@@ -1700,32 +1700,6 @@ CWP_Exch
  const char *cpl_id
  );
 
-/**
- *
- * \brief Exchange data field with the coupled code with blocking 
- *        communications.
- *
- * This function exchanges interpolated fieldsDouble between coupled codes. 
- * 
- * \warning  The size of tgt_field_id size is n_computed_tgt. 
- *           If \f$ n\_uncomputed\_tgt \ne n\_tgt\_pts \f$,
- *           user himself must set values for uncomputed target points.
- *
- * \param [in] local_code_name      Local code name
- * \param [in]  cpl_id              Coupling identifier
- * \param [in]  src_field_id        Source field id (0 -> no sending)
- * \param [in]  tgt_field_id        Target field id (0 -> no receiving)
- *
- *
- */
-
-void 
-CWP_Sendrecv
-(
- const char   *local_code_name,
- const char   *cpl_id,
- const char   *field_id
-);
 
 /**
  *

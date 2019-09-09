@@ -107,9 +107,9 @@ namespace cwipi {
    _localCodeProperties(localCodeProperties),
    _coupledCodeProperties(coupledCodeProperties),
    _geometry(*new std::map <CWP_Field_value_t, Geometry*>()),   
-   _mesh(*new Mesh(localCodeProperties.connectableCommGet(),NULL,nPart,displacement)),   
+   _mesh(*new Mesh(localCodeProperties.connectableCommGet(),NULL,nPart,displacement,this)),   
    _recvFreqType (recvFreqType),
-   _visu(*new Visu(localCodeProperties.connectableCommGet(),displacement)),    
+   _visu(*new Visu(localCodeProperties.connectableCommGet(),displacement)), 
    _fields(*(new map < string, Field * >())),  
    _cplDB(cplDB),
    _iteration(new int),
@@ -135,7 +135,6 @@ namespace cwipi {
 
         _mesh.setVisu(&_visu); 
         mesh_cpl->setVisu(visu_cpl);  
-
 
         std::map <CWP_Field_value_t, Geometry*>* _geometry_cpl = distCpl.geometryGet();
 
@@ -169,8 +168,33 @@ namespace cwipi {
     else {
       //Communication initialization, MPI communicator creation ... 
       _communication.init(_localCodeProperties, _coupledCodeProperties, cplId, cplDB);
+   
+      //Tips to provide the correct visu Communicator in case CWP_COMM_PAR_WITHOUT_PART 
+      int unionRank;
+      MPI_Comm_rank(_communication.unionCommGet(),&unionRank);
+      MPI_Comm visuComm;
+      if(commTypeGet() == CWP_COMM_PAR_WITHOUT_PART) {
+        MPI_Group unionGroup;
+        MPI_Group intraGroup;
+        MPI_Comm_group(_localCodeProperties.connectableCommGet(), &intraGroup);      
+        MPI_Comm_group(_communication.unionCommGet(), &unionGroup); 
+        MPI_Group visuGroup;
+        int locRootRank = _communication.unionCommLocCodeRootRanksGet();
+        int locRootRankIntra;
+        MPI_Group_translate_ranks(unionGroup, 1, &locRootRank,
+                                  intraGroup , &locRootRankIntra); 
+        
+        MPI_Group_incl(intraGroup, 1, &locRootRankIntra, &visuGroup);
 
-      _mesh.setVisu(&_visu);      
+        MPI_Comm_create(_localCodeProperties.connectableCommGet(), visuGroup, &visuComm);
+
+        if(unionRank == _communication.unionCommLocCodeRootRanksGet()){
+           _visu = *new Visu(visuComm,displacement);    
+        }
+      }
+      
+       _mesh.setVisu(&_visu);
+
       //Geometry creation
      // _geometry[CWP_FIELD_VALUE_CELL_MEAN] = FG::getInstance().CreateObject(geomAlgo);
       _geometry[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(geomAlgo);
@@ -781,14 +805,19 @@ namespace cwipi {
       char output_dir   [visuDir.length() + 1 + cplId.length() + 1 + CodeName.length() + 1 + cplCodeName.length()];
       sprintf(output_name,"%s",CodeName.c_str());
       sprintf(output_dir,"%s/%s_%s_%s",visuDir.c_str(),cplId.c_str(),CodeName.c_str(),cplCodeName.c_str());
+      int rank;
+      MPI_Comm_rank(_communication.unionCommGet(),&rank);
       
-      _visu.VisuCreate(freq,
+      if(commTypeGet() == CWP_COMM_PAR_WITH_PART || (commTypeGet() == CWP_COMM_PAR_WITHOUT_PART && rank == _communication.unionCommLocCodeRootRanksGet() ) ){
+        printf("visu Create\n");
+        _visu.VisuCreate(freq,
                        format,
                        format_option,
                        output_dir,
                        "chr");   
                                    
-      _visu.GeomCreate(_mesh.getNPart());
+        _visu.GeomCreate(_mesh.getNPart());
+      }
   }
 
     CWP_g_num_t* 

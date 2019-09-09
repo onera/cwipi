@@ -703,16 +703,17 @@ const char *cpl_id
 
 
 
-// void
-// CWP_Exch
-// (
-//  const char *cpl_id
-// )
-// {
-//   //TODO: Voir comment enchainer les appels, voir comment prendre en compte l'interpolation temporelle 
-//   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-//   cpl.exchange();
-// }
+ void
+ CWP_Exch
+ (
+ const char *local_code_name,
+ const char *cpl_id
+ )
+ {
+   //TODO: Voir comment enchainer les appels, voir comment prendre en compte l'interpolation temporelle 
+   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
+  // cpl.exchange();
+ }
 
 
 
@@ -1530,22 +1531,6 @@ CWP_Mesh_interf_shared_fvm_nodal
 /*----------------------------------------------------------------------------*
  * Functions about exchange                                                   *
  *----------------------------------------------------------------------------*/
-
-
- void
- CWP_Sendrecv
- (const char   *local_code_name,
-  const char   *cpl_id,
-  const char   *fieldID
- )
- {
-   cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
-   std::string fieldID_str = const_cast<char*>(fieldID);
-
-   cpl.sendrecv(fieldID_str);
-
- }
-
 
 
  void 

@@ -61,13 +61,15 @@ namespace cwipi {
   Mesh::Mesh(const MPI_Comm &localComm,
              Visu* visu,
              const int npart,
-             const CWP_Displacement_t displacement) 
+             const CWP_Displacement_t displacement,
+             Coupling *cpl) 
              : _localComm(localComm),
                _nDim(-1),_nBlocks(0), _order(-1),
                _pdmGNum_handle_index(-1),
                 //_hoOrdering (NULL),
                _pdmNodal(NULL),_visu(visu),
-               _displacement(displacement) { 
+               _displacement(displacement),
+               _cpl(cpl) { 
 
     PDM_MPI_Comm _pdm_localComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&localComm));
    // _pdm_localComm=&pdm_localComm;
@@ -332,8 +334,17 @@ namespace cwipi {
    
       _coords .push_back (coords);
       _nVertex[i_part]  = n_vtx;
-      PDM_gnum_set_from_coords (_pdmGNum_handle_index, i_part, n_vtx, coords, NULL);
-      
+      int unionRank;
+      MPI_Comm_rank(_cpl->communicationGet() -> unionCommGet(),&unionRank);
+      if(   _cpl->commTypeGet() == CWP_COMM_PAR_WITH_PART 
+         || (_cpl -> commTypeGet() == CWP_COMM_PAR_WITHOUT_PART && unionRank == _cpl->communicationGet() -> unionCommLocCodeRootRanksGet() ) ) {
+        PDM_gnum_set_from_coords (_pdmGNum_handle_index, i_part, n_vtx, coords, NULL);
+      }
+      else {
+        double* coords_null = (double*)malloc(3*0*sizeof(double));
+        PDM_gnum_set_from_coords (_pdmGNum_handle_index, i_part, 0, coords_null, NULL);
+      }
+          
       if(coordsDefined() and global_num==NULL)
         {
          PDM_gnum_compute (_pdmGNum_handle_index);
@@ -418,6 +429,13 @@ namespace cwipi {
                           CWP_g_num_t            global_num[]
                          ) {
 
+     if(_cpl -> commTypeGet() == CWP_COMM_PAR_WITHOUT_PART && global_num == NULL) {
+        global_num=(CWP_g_num_t*) malloc(n_elts*sizeof(CWP_g_num_t));    
+        for(int i=0;i<n_elts;i++) {
+          global_num[i] = i+1;
+        }
+     }
+
      _blockDB [block_id] -> blockSet(i_part,n_elts,connec,global_num);
 
      _nElts[i_part]  = PDM_Mesh_nodal_n_cell_get(_pdmNodal_handle_index,
@@ -447,6 +465,14 @@ namespace cwipi {
    {
      if(_coords[i_part]==NULL) bftc_error(__FILE__, __LINE__, 0, 
             "Set the partition coordinates vertices before finalizing.\n");
+
+
+     if(_cpl -> commTypeGet() == CWP_COMM_PAR_WITHOUT_PART && global_num == NULL) {
+        global_num=(CWP_g_num_t*) malloc(n_elts*sizeof(CWP_g_num_t));    
+        for(int i=0;i<n_elts;i++) {
+          global_num[i] = i+1;
+        }
+     }
      
      _blockDB [block_id] -> blockSet(i_part,
                                      n_elts,
@@ -488,9 +514,10 @@ namespace cwipi {
     }
 
     if(g_num_computation_required == 1) {
-      PDM_Mesh_nodal_g_num_in_mesh_compute(_pdmNodal_handle_index);
+      if(_cpl -> commTypeGet() == CWP_COMM_PAR_WITH_PART)
+        PDM_Mesh_nodal_g_num_in_mesh_compute(_pdmNodal_handle_index);
+  
       it = _blockDB.begin();
-      
       while(it != _blockDB.end()) {
         for(int i_part =0;i_part<_npart;i_part++) {
           int block_id = it -> second -> blockIDGet();
@@ -503,9 +530,9 @@ namespace cwipi {
         it++;
       }//Loop on blockDB
     } // end if g_num_computation_required
-          
-    if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC ) 
-      _visu -> GeomWrite();   
+    if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC ) {
+      _visu -> GeomWrite();
+    }
   } 
            
 

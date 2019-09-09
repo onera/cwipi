@@ -66,7 +66,8 @@ namespace cwipi {
     Mesh(const MPI_Comm &localComm,
               Visu* visu,
               int npart,
-              CWP_Displacement_t displacement);
+              CWP_Displacement_t displacement,
+              Coupling           *cpl);
 
 
     /**
@@ -504,6 +505,7 @@ namespace cwipi {
     Visu                                   *_visu;                   /*!< Pointer to the Visu object */
     std::map<int,int>                       _id_visu;                /*!< Map of the PDM_Writer block identifier */  
     CWP_Displacement_t                      _displacement;          /*!< Type of mesh displacement */  
+    Coupling                               *_cpl;
     
   //   Mesh &operator=(const Mesh &other);  /*!< Assigment operator not available */
   //   Mesh (const Mesh& other);            /*!< Copy constructor not available */

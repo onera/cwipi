@@ -572,8 +572,8 @@ namespace cwipi {
     MPI_Comm  _globalComm;    /*!< MPI global communicator */
     MPI_Comm  _intraComm;     /*!< MPI intra communicator */
     bool      _isCoupledRank;  /*!< Is a coupled rank */
-    MPI_Group _intraGroup;     /*!< MPI group in 
-                                                    the global communicator */
+
+    MPI_Group _intraGroup;     /*!< MPI group in the global communicator */
     vector <int> *_intraRanks;  /*!< Code ranks in global communicator */
     MPI_Group _intraConnectableGroup; /*!< coupled MPI group in 
                                        the global communicator */

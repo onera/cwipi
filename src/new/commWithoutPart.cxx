@@ -64,7 +64,33 @@ namespace cwipi {
     int currentRank;
     MPI_Comm_rank(globalComm, &currentRank);
 
-    _isCplRank = localRootRank == currentRank;
+    //_isCplRank = localRootRank == currentRank;
+
+    vector <int> cplRanks = *(_cplCodeProperties->connectableRanksGet());
+    vector <int> locRanks = *(_localCodeProperties->connectableRanksGet());
+
+    _unionCommCplRanks = new std::vector<int>(cplRanks.size());
+    _unionCommLocRanks = new std::vector<int>(locRanks.size());
+
+    //Traduction de ces rangs dans _unionCommCplRanks - Contient les rangs (unionComm) correspondants
+
+    MPI_Group globalGroup;
+    MPI_Comm_group(_localCodeProperties->globalCommGet(), &globalGroup);
+      
+    MPI_Group unionGroup;
+    MPI_Comm_group(_unionComm, &unionGroup);      
+
+    MPI_Group_translate_ranks(globalGroup, cplRanks.size(), &(cplRanks[0]),
+                              unionGroup, &((*_unionCommCplRanks)[0]));
+
+    MPI_Group_translate_ranks(globalGroup, locRanks.size(), &(locRanks[0]),
+                              unionGroup , &((*_unionCommLocRanks)[0]));
+
+    _cplCommCplRanks = new std::vector<int>(*_unionCommCplRanks);
+    _cplCommLocRanks = new std::vector<int>(*_unionCommLocRanks);
+    
+    
+
     
     if (cplCodeCommType != CWP_COMM_PAR_WITH_PART) {
 
@@ -94,7 +120,6 @@ namespace cwipi {
       MPI_Comm_create (_unionComm, _cplGroup, &_cplComm);
       
     }
-    
     else {
       
       const vector <int> &cplRanks = *(_localCodeProperties->connectableRanksGet());

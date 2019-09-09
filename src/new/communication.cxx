@@ -83,6 +83,8 @@ namespace cwipi {
    CouplingDB           &cplDB
   )
   {
+  
+    _isCplRank = localCodeProperties.isCoupledRank();
     if (_cplComm == MPI_COMM_NULL) {
       _cplCodeProperties = &cplCodeProperties;
       _localCodeProperties = &localCodeProperties;
@@ -102,7 +104,6 @@ namespace cwipi {
             globalRank,
             localCodeProperties.nameGet().c_str());
       }
-
       else {
       
         //Build a specific tag through the cplId
@@ -115,7 +116,6 @@ namespace cwipi {
           tag = tag % MPI_TAG_UB;
         }
     
-        //
         // Build the union communicator between the two coupled codes
 
         if (localCodeProperties.idGet() < cplCodeProperties.idGet()) {
@@ -137,7 +137,7 @@ namespace cwipi {
 
         CWP_Comm_t commType = commTypeGet();
         
-        CWP_Comm_t cplCommType = CWP_COMM_PAR_WITH_PART;
+        CWP_Comm_t cplCommType;
 
         if (globalRank == localRootRank) {
           if (cplCodeProperties.localCodeIs()) {
@@ -181,7 +181,7 @@ namespace cwipi {
         MPI_Comm_group(globalComm, &globalGroup);
 
         if (_isCplRank) {
-        
+          printf("I am coupled\n");
           MPI_Group_translate_ranks (globalGroup, 1, &localRootRank, 
                                      _unionGroup, &_locCodeRootRankUnionComm);
 

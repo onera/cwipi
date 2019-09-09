@@ -158,6 +158,7 @@ namespace cwipi {
     info_mesh();
     if( (_both_codes_are_local == 0 && _cpl -> commTypeGet() == CWP_COMM_PAR_WITH_PART    && _isCoupledRank) 
      || (_both_codes_are_local == 0 && _cpl -> commTypeGet() == CWP_COMM_PAR_WITHOUT_PART && _isCoupledRank && _rank == _senderRank) ){
+          printf(" OK %i %i %i\n",_n_g_elt_over_part,_n_g_vtx_over_part,_Texch_t);
         /*********************************/
         /*         Localization         **/
         /*********************************/      
@@ -168,7 +169,7 @@ namespace cwipi {
         
         /* Localization compute, get and free*/
         localization_compute        (_id_dist); 
-        //while(1==1){}
+            while(1==1){}
         if(_Texch_t == CWP_FIELD_EXCH_RECV) localization_get(_id_dist)  ;
         PDM_dist_cloud_surf_free(_id_dist,1);
 
@@ -183,9 +184,12 @@ namespace cwipi {
         if(_Texch_t == CWP_FIELD_EXCH_SEND) broadcasting_set    (&_id_gnum_location);
         /* Compute, get and free*/ 
         location_compute                   (_id_gnum_location);
-    //    while(1==1){}
+                   while(1==1){}
         if(_Texch_t == CWP_FIELD_EXCH_RECV) location_get(_id_gnum_location) ;
         PDM_gnum_location_free(_id_gnum_location,1);
+
+
+
 
         /* Initialization */
         if(_Texch_t == CWP_FIELD_EXCH_RECV) filling_of_broadcasting_array();   
@@ -235,7 +239,8 @@ namespace cwipi {
           data_communication_wait_recv();      
         }
      }
-     else if(_both_codes_are_local == 0 && _cpl -> commTypeGet() == CWP_COMM_PAR_WITHOUT_PART && _isCoupledRank ) {
+     else {
+             printf("not OK %i %i %i\n",_n_g_elt_over_part,_n_g_vtx_over_part,_Texch_t);
         /*************************************************/
         /*  Localization for uncoupled ranks processes  **/
         /*************************************************/  
@@ -246,26 +251,24 @@ namespace cwipi {
           Vérif pour broadcasting_set_null aussi
         */
         
-     //   localization_null_setting(&_id_dist);   
+           
         if(_Texch_t == CWP_FIELD_EXCH_SEND) localization_null_setting_send(&_id_dist);
         if(_Texch_t == CWP_FIELD_EXCH_RECV) localization_null_setting_recv(&_id_dist);
         
         localization_compute     (_id_dist); 
-
+        while(1==1){}     
         PDM_dist_cloud_surf_free(_id_dist,1);
 
         /***************************************************************/
         /*  Communication tree building for uncoupled ranks processes **/
         /***************************************************************/ 
         
-        if(_Texch_t == CWP_FIELD_EXCH_SEND) initialization_of_reception_array();
-        
         if(_Texch_t == CWP_FIELD_EXCH_RECV) broadcasting_null_recv(&_id_gnum_location);
         if(_Texch_t == CWP_FIELD_EXCH_SEND) broadcasting_null_send(&_id_gnum_location);
 
         location_compute                   (_id_gnum_location);   
         PDM_gnum_location_free(_id_gnum_location,1);
-
+    
         /*  Communication of the communication tree index for uncoupled ranks processes*/        
         broadcasting_index_null();
         /*  Communication of the communication tree for uncoupled ranks processes*/
@@ -461,14 +464,14 @@ void GeomLocation::mesh_cpl_info_get() {
     MPI_Comm_rank(_unionComm,&_rank);
     
  
-    MPI_Group globalGroup,unionGroup;
+    MPI_Group globalGroup;
     MPI_Comm_group(_globalComm, &globalGroup);
 
     MPI_Group intraGroup = _localCodeProperties -> connectableGroupGet();
-    MPI_Comm_group(_unionComm, &unionGroup);      
+    MPI_Comm_group(_unionComm, &intraGroup);      
     
     
-    MPI_Group_translate_ranks(unionGroup, 1, &_senderRank,
+    MPI_Group_translate_ranks(globalGroup, 1, &_senderRank,
                               intraGroup ,    &_senderLocalRank);
     
     int comp = localName.compare(coupledName);  
@@ -679,9 +682,9 @@ void GeomLocation::mesh_cpl_info_get() {
           int* connec    = _mesh -> connecGet(i_part);
           
           double* coords = _mesh -> getVertexCoords(i_part);
-          //printf("_targets_localization_idx_cpl[%i][%i] rank %i %i %i\n",
-         // i_proc,i_part,_rank,_targets_localization_idx_cpl[i_proc][i_part],_targets_localization_idx_cpl[i_proc][i_part+1]);
-          
+        /*  printf("_targets_localization_idx_cpl[%i][%i] rank %i %i %i\n",
+          i_proc,i_part,_rank,_targets_localization_idx_cpl[i_proc][i_part],_targets_localization_idx_cpl[i_proc][i_part+1]);
+          */
           for (int itarget = _targets_localization_idx_cpl[i_proc][i_part]; itarget < _targets_localization_idx_cpl[i_proc][i_part+1]; itarget++) {
             // Index in the interpolated Data array
             int interpInd = itarget;
@@ -730,7 +733,7 @@ void GeomLocation::mesh_cpl_info_get() {
         }  // else if(interpolationType == CWP_INTERPOLATION_TYPE_USER) 
       } //Loop on i_proc
     } // loop on i_part
-
+                printf("After interpolation\n");  
     referenceField -> sendBufferSet(interpolatedData);
     return interpolatedData;
   }
@@ -773,8 +776,8 @@ void GeomLocation::issend(Field* referenceField) {
                       _unionComm,&request);
 
 
- //   printf("ISSEND %s referenceField -> fieldIDIntGet() %i rank %i both %i request %i\n",
-   // referenceField ->fieldIDGet().c_str(),referenceField -> fieldIDIntGet(),_rank,_both_codes_are_local,request);
+    printf("ISSEND %s referenceField -> fieldIDIntGet() %i rank %i both %i request %i\n",
+    referenceField ->fieldIDGet().c_str(),referenceField -> fieldIDIntGet(),_rank,_both_codes_are_local,request);
 
        free(count_recv);
        free(displ_recv);
@@ -869,8 +872,8 @@ void GeomLocation::null_exchange_for_uncoupled_process() {
                      recv_ptr,count_recv,displ_recv,MPI_BYTE,
                      _unionComm,&request);
 
-    //printf("BOTH %s referenceField -> fieldIDIntGet() %i rank %i request %i\n",
-    //referenceField ->fieldIDGet().c_str(),referenceField -> fieldIDIntGet(),_rank,request);
+    printf("BOTH %s referenceField -> fieldIDIntGet() %i rank %i request %i\n",
+    referenceField ->fieldIDGet().c_str(),referenceField -> fieldIDIntGet(),_rank,request);
 
 
       free(count_recv);
@@ -936,6 +939,7 @@ void GeomLocation::null_exchange_for_uncoupled_process() {
         int          n_target_cpl      = _geometry_cpl -> _n_target     [i_part];
         CWP_g_num_t* gnum_target_cpl   = _geometry_cpl -> _gnum_target  [i_part];
         double*      coords_target_cpl = _geometry_cpl -> _coords_target[i_part];
+
         PDM_dist_cloud_surf_cloud_set (*id_dist,
                               0,
                               i_part,
@@ -946,63 +950,6 @@ void GeomLocation::null_exchange_for_uncoupled_process() {
       }//loop on part   
     } //end of if
   }
-
-void GeomLocation::localization_null_setting(int* id_dist) {
-
-    /*
-     TODO: Intéressant pour la suite
-     Inclure dans mesh_dist et autre la possibilité de définir plusieurs surfaces ...
-
-   */
-
-    /* Paradigm mesh localisation _distance creation */
-    *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_unionComm );
-
-    PDM_dist_cloud_surf_n_part_cloud_set(*id_dist,   0, _nb_part);  
-
-    PDM_dist_cloud_surf_surf_mesh_global_data_set (*id_dist,
-                                             _n_g_elt_cpl_over_part,
-                                             _n_g_vtx_cpl_over_part,
-                                             _nb_part_cpl);  
-                                             
-    //printf("ENULL %I64d %I64d \n",_n_g_elt_cpl_over_part,_n_g_vtx_cpl_over_part);
-
-    for(int i_part =0;i_part<_nb_part;i_part++) {   
-      int n_elt_null = 0;    
-      double*      coords    = (double*)malloc(3*sizeof(double)*n_elt_null);
-      CWP_g_num_t* gnum_elt  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*n_elt_null);
-
-      PDM_dist_cloud_surf_cloud_set (*id_dist,
-                              0,
-                              i_part,
-                              0,
-                              coords,
-                              gnum_elt
-                             );
-    }
- 
-      for(int i_part =0; i_part<_nb_part_cpl; i_part++) {     
-        int n_elt_null = 0;
-        int*         connecIdx = (int*)malloc(sizeof(int)*(1+n_elt_null));
-        int*         connec    = (int*)malloc(sizeof(int)*n_elt_null);
-        
-        double*      coords    = (double*)malloc(3*sizeof(double)*n_elt_null);
-        CWP_g_num_t* gnum_vtx  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*n_elt_null);
-        CWP_g_num_t* gnum_elt  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*n_elt_null);
-        
-        connecIdx[0]=0;
-
-        PDM_dist_cloud_surf_surf_mesh_part_set (*id_dist,
-                                          i_part,
-                                          0,
-                                          connecIdx,
-                                          connec,
-                                          gnum_elt,
-                                          0,
-                                          coords,
-                                          gnum_vtx);                           
-     }      
- }
 
 
 
@@ -1024,7 +971,7 @@ void GeomLocation::localization_null_setting_send(int* id_dist) {
                                                    _n_g_vtx_over_part,
                                                    _nb_part          );  
                                              
-   // printf("ENULL send %I64d %I64d _nb_part %i _nb_part_cpl %i\n",_n_g_elt_cpl_over_part,_n_g_vtx_cpl_over_part,_nb_part,_nb_part_cpl);
+    printf("ENULL send %I64d %I64d _nb_part %i _nb_part_cpl %i\n",_n_g_elt_cpl_over_part,_n_g_vtx_cpl_over_part,_nb_part,_nb_part_cpl);
 
     for(int i_part =0;i_part<_nb_part_cpl;i_part++) {   
       int n_elt_null = 0;    
@@ -1086,7 +1033,7 @@ void GeomLocation::localization_null_setting_recv(int* id_dist) {
                                              _n_g_vtx_cpl_over_part,
                                              _nb_part_cpl);  
                                              
-    //printf("ENULL %I64d %I64d _nb_part %i _nb_part_cpl %i\n",_n_g_elt_cpl_over_part,_n_g_vtx_cpl_over_part,_nb_part,_nb_part_cpl);
+    printf("ENULL %I64d %I64d _nb_part %i _nb_part_cpl %i\n",_n_g_elt_cpl_over_part,_n_g_vtx_cpl_over_part,_nb_part,_nb_part_cpl);
 
     for(int i_part =0;i_part<_nb_part;i_part++) {   
       int n_elt_null = 1;    
@@ -1449,22 +1396,22 @@ void GeomLocation::broadcasting_null_recv(int* id_gnum_location) {
     }
   }//end i_part
 
- /*  for (int i_proc = 0; i_proc < _n_ranks_g; i_proc++) {
+   for (int i_proc = 0; i_proc < _n_ranks_g; i_proc++) {
      for (int i_part = 0; i_part < _nb_part_cpl+1; i_part++) {
        printf("VERIF _targets_localization_idx[%i][%i] _rank %i %i _Texch_t %i\n",i_proc,i_part,_rank,_targets_localization_idx [i_proc][i_part],_Texch_t);
      }
    }
 
-*/
+
   _transform_to_index(_targets_localization_idx,_n_ranks_g,_nb_part_cpl);
 
-/*
+
    for (int i_proc = 0; i_proc < _n_ranks_g; i_proc++) {
      for (int i_part = 0; i_part < _nb_part_cpl+1; i_part++) {
        printf("VERIFINDEX _targets_localization_idx[%i][%i] _rank %i %i _Texch_t %i\n",i_proc,i_part,_rank,_targets_localization_idx [i_proc][i_part],_Texch_t);
      }
    }
-*/
+
   int** idx_proc = (int**)malloc(sizeof(int*)* _n_ranks_g);
   for (int i_proc = 0; i_proc < _n_ranks_g; i_proc++) {
    idx_proc[i_proc] = (int*)malloc(sizeof(int)* _nb_part_cpl);
@@ -1553,7 +1500,7 @@ void GeomLocation::broadcasting_null_recv(int* id_gnum_location) {
  void GeomLocation::broadcasting_index_null() {
  
    std::vector<int> connectable = *_connectableRanks_cpl;
-   
+
    MPI_Request request;
    int* sbuffer = NULL;
    int* recvbuffer = NULL;
@@ -1572,27 +1519,6 @@ void GeomLocation::broadcasting_null_recv(int* id_gnum_location) {
                    
    }
    else if(_Texch_t == CWP_FIELD_EXCH_RECV) {
-
-  // if(_targets_localization_idx==NULL) {
-    _targets_localization_idx   =(int**)malloc(sizeof(int*)*_n_ranks_g);
-    for (int i_proc = 0; i_proc < _n_ranks_g; i_proc++) 
-      _targets_localization_idx [i_proc] = NULL;
- //  }
-   _process_and_partition_count =(int**)malloc(sizeof(int*)*_n_ranks_g);
-
-   for (int i_proc = 0; i_proc < _n_ranks_g; i_proc++) {
-    // if(_targets_localization_idx [i_proc] == NULL) 
-       _targets_localization_idx [i_proc] = (int*) malloc( sizeof(int) * (1+_nb_part_cpl) );
-     _process_and_partition_count [i_proc]=(int*)malloc(sizeof(int)*(1+_nb_part_cpl));
-     
-     for (int i_part = 0; i_part < _nb_part_cpl+1; i_part++) {
-       _targets_localization_idx    [i_proc][i_part] = 0;
-       _process_and_partition_count [i_proc][i_part] = 0;
-     }
-   }
-
-
-   
      sbuffer = (int*) malloc(sizeof(int)*_n_ranks_g*_nb_part_cpl);
      for(int i_proc=0;i_proc<_n_ranks_g;i_proc++)
        for(int i_part=0;i_part<_nb_part_cpl;i_part++)
@@ -1890,7 +1816,7 @@ void GeomLocation::broadcasting_null_recv(int* id_gnum_location) {
     
     //Crée un buffer de réception et le stocke (alloue)
     recevingField -> ReceptionBufferCreation(_n_tot_target);
-    //printf("n_tot_targer %i\n",_n_tot_target);
+    printf("n_tot_targer %i\n",_n_tot_target);
     /* Loop on possibly intersecting distant ranks */
     /*---------------------------------------------*/
 
@@ -1927,8 +1853,8 @@ void GeomLocation::broadcasting_null_recv(int* id_gnum_location) {
                    loc_v_ptr,count_recv,displ_recv,MPI_BYTE,
                    _unionComm,&request);
 
-    //printf("IRECV %s recevingField -> fieldIDIntGet() %i rank %i both %i request %i\n",
-    //recevingField ->fieldIDGet().c_str(),recevingField -> fieldIDIntGet(),_rank,_both_codes_are_local,request);
+    printf("IRECV %s recevingField -> fieldIDIntGet() %i rank %i both %i request %i\n",
+    recevingField ->fieldIDGet().c_str(),recevingField -> fieldIDIntGet(),_rank,_both_codes_are_local,request);
     
     free(count_recv);
     free(displ_recv);
@@ -1946,14 +1872,14 @@ void GeomLocation::broadcasting_null_recv(int* id_gnum_location) {
 
     int tag = recevingField -> fieldIDIntGet();
     int request = recevingField -> lastRequestGet(tag);    
-   // printf("%s recevingField -> fieldIDIntGet() %i rank %i both %i request %i\n",
-   // recevingField ->fieldIDGet().c_str(),recevingField -> fieldIDIntGet(),_rank,_both_codes_are_local,request);
+    printf("%s recevingField -> fieldIDIntGet() %i rank %i both %i request %i\n",
+    recevingField ->fieldIDGet().c_str(),recevingField -> fieldIDIntGet(),_rank,_both_codes_are_local,request);
     
     if(_both_codes_are_local == 0)
       MPI_Wait(&request, &status);
       
-  //  printf("%s After recevingField -> fieldIDIntGet() %i rank %i both %i \n",
-  //  recevingField ->fieldIDGet().c_str(),recevingField -> fieldIDIntGet(),_rank,_both_codes_are_local);
+    printf("%s After recevingField -> fieldIDIntGet() %i rank %i both %i \n",
+    recevingField ->fieldIDGet().c_str(),recevingField -> fieldIDIntGet(),_rank,_both_codes_are_local);
     //Récupère un pointeur vers le bloc de données reçues
     void*              recvData          = recevingField -> recvBufferGet  ();
     int                nComponent        = recevingField -> nComponentGet  ();
@@ -2026,12 +1952,12 @@ void GeomLocation::broadcasting_null_recv(int* id_gnum_location) {
     tag     = sendingField -> fieldIDIntGet();
     request = sendingField -> lastRequestGet(tag);
 
-   // printf("%s sendingField -> fieldIDIntGet() %i rank %i both %i request %i\n",
-   // sendingField ->fieldIDGet().c_str(),sendingField -> fieldIDIntGet(),_rank,_both_codes_are_local,request);
+    printf("%s sendingField -> fieldIDIntGet() %i rank %i both %i request %i\n",
+    sendingField ->fieldIDGet().c_str(),sendingField -> fieldIDIntGet(),_rank,_both_codes_are_local,request);
     MPI_Wait(&request, &status);
       
-   // printf("After Wait issend %s sendingField -> fieldIDIntGet() %i rank %i both %i request %i\n",
-   // sendingField ->fieldIDGet().c_str(),sendingField -> fieldIDIntGet(),_rank,_both_codes_are_local,request);
+    printf("After Wait issend %s sendingField -> fieldIDIntGet() %i rank %i both %i request %i\n",
+    sendingField ->fieldIDGet().c_str(),sendingField -> fieldIDIntGet(),_rank,_both_codes_are_local,request);
     
     if(_visu -> isCreated() && sendingField -> visuStatusGet() == CWP_STATUS_ON) {
        _visu -> WriterField(sendingField);
