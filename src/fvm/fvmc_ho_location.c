@@ -3705,7 +3705,7 @@ _heap_fill_pn_prism_sub_tetra
         double _uvwPn_sub_prism[18];
         _uvwPn_sub_prism[0]  = uvwNodes[3*idx1];
         _uvwPn_sub_prism[1]  = uvwNodes[3*idx1+1];
-        _uvwPn_sub_prism[2]  = uvwNodes[3*idx2+2];
+        _uvwPn_sub_prism[2]  = uvwNodes[3*idx1+2];
         _uvwPn_sub_prism[3]  = uvwNodes[3*idx2];
         _uvwPn_sub_prism[4]  = uvwNodes[3*idx2+1];
         _uvwPn_sub_prism[5]  = uvwNodes[3*idx2+2];
@@ -3906,7 +3906,7 @@ _heap_fill_pn_prism_sub_tetra
     double _uvwPn_sub_prism[18];
     _uvwPn_sub_prism[0]  = uvwNodes[3*idx1];
     _uvwPn_sub_prism[1]  = uvwNodes[3*idx1+1];
-    _uvwPn_sub_prism[2]  = uvwNodes[3*idx2+2];
+    _uvwPn_sub_prism[2]  = uvwNodes[3*idx1+2];
     _uvwPn_sub_prism[3]  = uvwNodes[3*idx2];
     _uvwPn_sub_prism[4]  = uvwNodes[3*idx2+1];
     _uvwPn_sub_prism[5]  = uvwNodes[3*idx2+2];
@@ -4115,7 +4115,6 @@ _heap_fill_pn_hexa_sub_tetra
 )
 {
   int step = order + 1;
-  int a = 0;
   int n_nodes_basis = step * step;
 
   double *uvwNodes   = malloc (sizeof(double) * 3 * n_nodes);
@@ -4186,7 +4185,7 @@ _heap_fill_pn_hexa_sub_tetra
         double _uvwPn_sub_hexa[24];
         _uvwPn_sub_hexa[0]  = uvwNodes[3*idx1];
         _uvwPn_sub_hexa[1]  = uvwNodes[3*idx1+1];
-        _uvwPn_sub_hexa[2]  = uvwNodes[3*idx2+2];
+        _uvwPn_sub_hexa[2]  = uvwNodes[3*idx1+2];
         _uvwPn_sub_hexa[3]  = uvwNodes[3*idx2];
         _uvwPn_sub_hexa[4]  = uvwNodes[3*idx2+1];
         _uvwPn_sub_hexa[5]  = uvwNodes[3*idx2+2];
@@ -4427,7 +4426,7 @@ _heap_fill_pn_tetra_sub_tetra
         double _uvwPn_sub_tetra[12];
         _uvwPn_sub_tetra[0]  = uvwNodes[3*idx1];
         _uvwPn_sub_tetra[1]  = uvwNodes[3*idx1+1];
-        _uvwPn_sub_tetra[2]  = uvwNodes[3*idx2+2];
+        _uvwPn_sub_tetra[2]  = uvwNodes[3*idx1+2];
         _uvwPn_sub_tetra[3]  = uvwNodes[3*idx2];
         _uvwPn_sub_tetra[4]  = uvwNodes[3*idx2+1];
         _uvwPn_sub_tetra[5]  = uvwNodes[3*idx2+2];
@@ -4519,7 +4518,7 @@ _heap_fill_pn_tetra_sub_tetra
           double _uvwPn_sub_octa[18];
           _uvwPn_sub_octa[0]  = uvwNodes[3*idx1];
           _uvwPn_sub_octa[1]  = uvwNodes[3*idx1+1];
-          _uvwPn_sub_octa[2]  = uvwNodes[3*idx2+2];
+          _uvwPn_sub_octa[2]  = uvwNodes[3*idx1+2];
           _uvwPn_sub_octa[3]  = uvwNodes[3*idx2];
           _uvwPn_sub_octa[4]  = uvwNodes[3*idx2+1];
           _uvwPn_sub_octa[5]  = uvwNodes[3*idx2+2];
@@ -4549,10 +4548,10 @@ _heap_fill_pn_tetra_sub_tetra
 
             isDegenerated = fvmc_tetrahedron_evaluate_Position ((double *)point_coords,
                                                                 __vertex_coords,
-                                                                    _closest_pointP1,
-                                                                    _uvwClosestPointP1,
-                                                                    &_dist2,
-                                                                    _weightsClosestPointP1);
+                                                                _closest_pointP1,
+                                                                _uvwClosestPointP1,
+                                                                &_dist2,
+                                                                _weightsClosestPointP1);
 
             if (isDegenerated != -1) {
 
@@ -4585,7 +4584,6 @@ _heap_fill_pn_tetra_sub_tetra
   free (uvwNodes);
   free (_vertex_tetra);
   free (_uvw_vertex_tetra);
-  exit;
 }
 
 /*----------------------------------------------------------------------------
@@ -4717,7 +4715,7 @@ _heap_fill_pn_pyra_sub_tetra
         double _uvwPn_sub_pyra[15];
         _uvwPn_sub_pyra[0]  = uvwNodes[3*idx1];
         _uvwPn_sub_pyra[1]  = uvwNodes[3*idx1+1];
-        _uvwPn_sub_pyra[2]  = uvwNodes[3*idx2+2];
+        _uvwPn_sub_pyra[2]  = uvwNodes[3*idx1+2];
         _uvwPn_sub_pyra[3]  = uvwNodes[3*idx2];
         _uvwPn_sub_pyra[4]  = uvwNodes[3*idx2+1];
         _uvwPn_sub_pyra[5]  = uvwNodes[3*idx2+2];
@@ -4811,7 +4809,7 @@ _heap_fill_pn_pyra_sub_tetra
             double _uvwPn_sub_tetra1[12];
             _uvwPn_sub_tetra1[0]  = uvwNodes[3*idx1];
             _uvwPn_sub_tetra1[1]  = uvwNodes[3*idx1+1];
-            _uvwPn_sub_tetra1[2]  = uvwNodes[3*idx2+2];
+            _uvwPn_sub_tetra1[2]  = uvwNodes[3*idx1+2];
             _uvwPn_sub_tetra1[3]  = uvwNodes[3*idx2];
             _uvwPn_sub_tetra1[4]  = uvwNodes[3*idx2+1];
             _uvwPn_sub_tetra1[5]  = uvwNodes[3*idx2+2];
@@ -4888,7 +4886,7 @@ _heap_fill_pn_pyra_sub_tetra
             double _uvwPn_sub_tetra2[12];
             _uvwPn_sub_tetra2[0]  = uvwNodes[3*idx1];
             _uvwPn_sub_tetra2[1]  = uvwNodes[3*idx1+1];
-            _uvwPn_sub_tetra2[2]  = uvwNodes[3*idx2+2];
+            _uvwPn_sub_tetra2[2]  = uvwNodes[3*idx1+2];
             _uvwPn_sub_tetra2[3]  = uvwNodes[3*idx2];
             _uvwPn_sub_tetra2[4]  = uvwNodes[3*idx2+1];
             _uvwPn_sub_tetra2[5]  = uvwNodes[3*idx2+2];
@@ -4964,7 +4962,7 @@ _heap_fill_pn_pyra_sub_tetra
             double _uvwPn_sub_tetra3[12];
             _uvwPn_sub_tetra3[0]  = uvwNodes[3*idx1];
             _uvwPn_sub_tetra3[1]  = uvwNodes[3*idx1+1];
-            _uvwPn_sub_tetra3[2]  = uvwNodes[3*idx2+2];
+            _uvwPn_sub_tetra3[2]  = uvwNodes[3*idx1+2];
             _uvwPn_sub_tetra3[3]  = uvwNodes[3*idx2];
             _uvwPn_sub_tetra3[4]  = uvwNodes[3*idx2+1];
             _uvwPn_sub_tetra3[5]  = uvwNodes[3*idx2+2];
@@ -4992,11 +4990,12 @@ _heap_fill_pn_pyra_sub_tetra
             if (isDegenerated_tetra3 != -1) {
 
               for (int j1 = 0; j1 < 3; j1++) {
-                   _uvwClosestPointPn_tetra3[j1] = 0;
+                _uvwClosestPointPn_tetra3[j1] = 0;
               }
               for (int j1 = 0; j1 < 3; j1++) {
-                for (int j2 = 0; j2 < j2; k++) {
-                  _uvwClosestPointPn_tetra3[j1] += _weightsClosestPointP1_tetra3[j2] * _uvwPn_sub_tetra3[2*j2 + j1];
+                //                for (int j2 = 0; j2 < j2; k++) {  //bug
+                for (int j2 = 0; j2 < 4; j2++) {
+                  _uvwClosestPointPn_tetra3[j1] += _weightsClosestPointP1_tetra3[j2] * _uvwPn_sub_tetra3[3*j2 + j1];
                 }
               }
 
@@ -5040,7 +5039,7 @@ _heap_fill_pn_pyra_sub_tetra
             double _uvwPn_sub_tetra4[12];
             _uvwPn_sub_tetra4[0]  = uvwNodes[3*idx1];
             _uvwPn_sub_tetra4[1]  = uvwNodes[3*idx1+1];
-            _uvwPn_sub_tetra4[2]  = uvwNodes[3*idx2+2];
+            _uvwPn_sub_tetra4[2]  = uvwNodes[3*idx1+2];
             _uvwPn_sub_tetra4[3]  = uvwNodes[3*idx2];
             _uvwPn_sub_tetra4[4]  = uvwNodes[3*idx2+1];
             _uvwPn_sub_tetra4[5]  = uvwNodes[3*idx2+2];
@@ -5122,7 +5121,7 @@ _heap_fill_pn_pyra_sub_tetra
             double _uvwPn_sub_pyrai[15];
             _uvwPn_sub_pyrai[0]  = uvwNodes[3*idx1];
             _uvwPn_sub_pyrai[1]  = uvwNodes[3*idx1+1];
-            _uvwPn_sub_pyrai[2]  = uvwNodes[3*idx2+2];
+            _uvwPn_sub_pyrai[2]  = uvwNodes[3*idx1+2];
             _uvwPn_sub_pyrai[3]  = uvwNodes[3*idx2];
             _uvwPn_sub_pyrai[4]  = uvwNodes[3*idx2+1];
             _uvwPn_sub_pyrai[5]  = uvwNodes[3*idx2+2];
