@@ -10,5 +10,5 @@ cwipi
 .. currentmodule:: cwipi
 
 
-.. automodule:: cwipi.cwipi
+.. automodule:: cwipi
    :members:

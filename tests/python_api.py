@@ -52,7 +52,7 @@ def userInterp(entities_dim,
 
     f.write('user interpolation')
 
-    if (distant_field != None):
+    if (distant_field is not None):
         distant_field = 1.234
             
 
