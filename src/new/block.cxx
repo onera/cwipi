@@ -68,15 +68,6 @@ namespace cwipi {
 
   CWP_g_num_t*
   Block::GNumMeshGet(int i_part) {
-
-    _global_num_computed[i_part] = PDM_Mesh_nodal_block_g_num_get (_pdmNodal_handle_index,
-                                                                         _block_id,
-                                                                         i_part );
-
-    if(_global_num[i_part] == NULL && _global_num_computed[i_part] != NULL) {
-      _global_num[i_part] = _global_num_computed[i_part];
-    }
-
     return _global_num[i_part];  
   }
 

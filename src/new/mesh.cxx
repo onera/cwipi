@@ -77,14 +77,15 @@ namespace cwipi {
     _pdmNodal_handle_index = PDM_Mesh_nodal_create     (npart,_pdm_localComm);
     _pdmGNum_handle_index  = PDM_gnum_create           (3, npart, PDM_FALSE, 1e-3, _pdm_localComm);
     _npart                 = PDM_Mesh_nodal_n_part_get (_pdmNodal_handle_index); 
-    _nVertex   .resize(npart);
-    _nElts     .resize(npart);
+    _nVertex   .resize(npart,0);
+    _nElts     .resize(npart,0);
     _connec_idx.resize(npart,NULL);
     _connec    .resize(npart,NULL);
     _gnum_elt  .resize(npart,NULL);
     _elt_centers  .resize(npart,NULL);
     
-  //  _coords .resize(npart,NULL);
+    _coords .resize(npart,NULL);
+    _global_num_vtx .resize(npart,NULL);
   }
 
   Mesh::~Mesh() 
@@ -220,7 +221,7 @@ namespace cwipi {
 
           for(int j=0;j<n_elt;j++){
             _connec_idx[i_part][ind_idx+1]=_connec_idx[i_part][ind_idx]+ (partconnectIdx[j+1]-partconnectIdx[j]);
-            _gnum_elt[i_part][ind_idx]=gnum_block[j];
+            _gnum_elt[i_part][ind_idx] = gnum_block[j];
             
             for(int k = _connec_idx[i_part][ind_idx] ;k<_connec_idx[i_part][ind_idx+1]; k++){
               _connec[i_part][k] = partconnect[ partconnectIdx[j] + k - _connec_idx[i_part][ind_idx] ];
@@ -326,58 +327,19 @@ namespace cwipi {
    }
 
 
-   void Mesh::nodal_coord_set(const int   i_part,
-                              const int   n_vtx,
-                              double      coords[],
-                              CWP_g_num_t global_num[])
+   void Mesh::nodal_coord_set(const int   i_part       ,
+                              const int   n_vtx        ,
+                              double      coords    [] ,
+                              CWP_g_num_t global_num[] )
    {  
-   
-      _coords .push_back (coords);
+      _coords[i_part] = coords;
       _nVertex[i_part]  = n_vtx;
-      int unionRank;
-      MPI_Comm_rank(_cpl->communicationGet() -> unionCommGet(),&unionRank);
-      if(   _cpl->commTypeGet() == CWP_COMM_PAR_WITH_PART 
-         || (_cpl -> commTypeGet() == CWP_COMM_PAR_WITHOUT_PART && unionRank == _cpl->communicationGet() -> unionCommLocCodeRootRanksGet() ) ) {
-        PDM_gnum_set_from_coords (_pdmGNum_handle_index, i_part, n_vtx, coords, NULL);
-      }
-      else {
-        double* coords_null = (double*)malloc(3*0*sizeof(double));
-        PDM_gnum_set_from_coords (_pdmGNum_handle_index, i_part, 0, coords_null, NULL);
-      }
-          
-      if(coordsDefined() and global_num==NULL)
-        {
-         PDM_gnum_compute (_pdmGNum_handle_index);
-
-         CWP_g_num_t* global_num_part = NULL;
-         
-         for(int i_part2=0;i_part2<_npart;i_part2++) {
-           global_num_part =const_cast<CWP_g_num_t*>(PDM_gnum_get (_pdmGNum_handle_index, i_part2));
-
-           PDM_Mesh_nodal_coord_set(_pdmNodal_handle_index,
-                                    i_part2,    
-                                    _nVertex[i_part2],    
-                                    _coords[i_part2],   
-                                    global_num_part);
-         
-           _global_num.insert( std::pair < int, CWP_g_num_t* > (i_part2,global_num_part) );
-
-           if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC) {
-             _visu -> GeomCoordSet(i_part2,
-                                   _nVertex[i_part2],
-                                   _coords[i_part2],
-                                   global_num_part);  
-           }
-         
-         }//loop i_part2
-       }//endif coordsDefined() and global_num==NULL
+      _global_num_vtx[i_part] = global_num;
    }
   
 
 
-
-
-
+  /****************************************************/
 
   
    CWP_Block_t Mesh::Mesh_nodal_block_type_get(const int id_block) {
@@ -422,6 +384,83 @@ namespace cwipi {
       return block_type;
    }
   
+  
+  /**************************************************************/
+
+/**********************************************************************/
+
+  void Mesh::geomFinalize() {
+  
+      int unionRank;
+      MPI_Comm_rank(_cpl->communicationGet() -> unionCommGet(),&unionRank);
+      
+      if(coordsDefined()){
+        if(gnumVtxRequired () ){
+          for(int i_part=0;i_part<_npart;i_part++) {
+            if(   _cpl->commTypeGet() == CWP_COMM_PAR_WITH_PART 
+               || (_cpl -> commTypeGet() == CWP_COMM_PAR_WITHOUT_PART && unionRank == _cpl->communicationGet() -> unionCommLocCodeRootRanksGet() ) ) {
+              PDM_gnum_set_from_coords (_pdmGNum_handle_index, i_part, _nVertex[i_part], _coords[i_part], NULL);
+            }
+            else {
+              double* coords_null = (double*)malloc(3*0*sizeof(double));
+              PDM_gnum_set_from_coords (_pdmGNum_handle_index, i_part, 0, coords_null, NULL);
+            }        
+          }          
+          
+          PDM_gnum_compute (_pdmGNum_handle_index);
+          for(int i_part=0;i_part<_npart;i_part++)
+            _global_num_vtx[i_part] =const_cast<CWP_g_num_t*>(PDM_gnum_get (_pdmGNum_handle_index, i_part));
+        }
+
+        for(int i_part=0;i_part<_npart;i_part++) {
+           
+           PDM_Mesh_nodal_coord_set(_pdmNodal_handle_index  ,
+                                    i_part                 ,    
+                                    _nVertex       [i_part],    
+                                    _coords        [i_part],   
+                                    _global_num_vtx[i_part]);
+
+           if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC) {
+             _visu -> GeomCoordSet(i_part,
+                                   _nVertex       [i_part],
+                                   _coords        [i_part],
+                                   _global_num_vtx[i_part]);  
+           }
+         
+         }//loop i_part
+       }//endif coordsDefined() and global_num==NULL
+  
+  
+       int g_num_computation_required = 0;
+       std::map<int,cwipi::Block*>::iterator it = _blockDB.begin();
+       while(it != _blockDB.end()) {
+        for(int i_part =0;i_part<_npart;i_part++) {    
+           CWP_g_num_t* global_num = it -> second -> GNumMeshGet(i_part);
+           if(global_num == NULL) g_num_computation_required = 1;    
+           if(g_num_computation_required == 1) break;
+         }
+         if(g_num_computation_required == 1) break;
+         it++;
+       }
+
+       if(g_num_computation_required == 1 ) {
+         if(_cpl -> commTypeGet() == CWP_COMM_PAR_WITH_PART)
+           PDM_Mesh_nodal_g_num_in_mesh_compute(_pdmNodal_handle_index);
+       } 
+       
+       it = _blockDB.begin();
+       while(it != _blockDB.end()) {
+         it -> second -> geomFinalize();
+         it++;
+       } //Loop on blockDB                 
+
+
+      if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC ) {
+        _visu -> GeomWrite();
+      }
+  } 
+
+  
   void Mesh::stdBlockSet( const int              i_part,
                           const int              block_id,
                           const int              n_elts,
@@ -438,22 +477,16 @@ namespace cwipi {
 
      _blockDB [block_id] -> blockSet(i_part,n_elts,connec,global_num);
 
-     _nElts[i_part]  = PDM_Mesh_nodal_n_cell_get(_pdmNodal_handle_index,
-                                                   i_part);
+     _nElts[i_part]  += n_elts;
                                                    
      _blocks_id = PDM_Mesh_nodal_blocks_id_get(_pdmNodal_handle_index);
      _nBlocks   = PDM_Mesh_nodal_n_blocks_get (_pdmNodal_handle_index);
-     
-     if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC) {
 
-        _visu -> GeomBlockStdSet (_id_visu[block_id],
-                                  i_part,
-                                  n_elts,
-                                  connec,
-                                  global_num);
-      }  
  }
 
+
+           
+  /*************************************************/
 
    void Mesh::poly2DBlockSet( const int              i_part,
                               const int              block_id,
@@ -480,61 +513,14 @@ namespace cwipi {
                                      connec,
                                      global_num);
      
-     _nElts[i_part]  = PDM_Mesh_nodal_n_cell_get(_pdmNodal_handle_index,
-                                                   i_part);
+     _nElts[i_part]  += n_elts;
                                                    
      _blocks_id = PDM_Mesh_nodal_blocks_id_get(_pdmNodal_handle_index);
      _nBlocks   = PDM_Mesh_nodal_n_blocks_get (_pdmNodal_handle_index);     
-
-     if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC) {
-     
-        _visu -> GeomBlockPoly2D (_id_visu[block_id],
-                                  i_part,
-                                  n_elts,
-                                  connec_idx,
-                                  connec, 
-                                  global_num);                                                          
-     }
    }
 
 
 
-/**********************************************************************/
-  void Mesh::geomFinalize() {
-    int g_num_computation_required = 0;
-    std::map<int,cwipi::Block*>::iterator it = _blockDB.begin();
-    while(it != _blockDB.end()) {
-      for(int i_part =0;i_part<_npart;i_part++) {    
-         CWP_g_num_t* global_num = it -> second -> GNumMeshGet(i_part);
-         if(global_num == NULL) g_num_computation_required = 1;    
-         if(g_num_computation_required == 1) break;
-       }
-     if(g_num_computation_required == 1) break;
-     it++;
-    }
-
-    if(g_num_computation_required == 1) {
-      if(_cpl -> commTypeGet() == CWP_COMM_PAR_WITH_PART)
-        PDM_Mesh_nodal_g_num_in_mesh_compute(_pdmNodal_handle_index);
-  
-      it = _blockDB.begin();
-      while(it != _blockDB.end()) {
-        for(int i_part =0;i_part<_npart;i_part++) {
-          int block_id = it -> second -> blockIDGet();
-          CWP_g_num_t* global_num = it -> second -> GNumMeshGet(i_part);
-          if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC) 
-             _visu -> GeomBlockGNumMeshSet (_id_visu[block_id],
-                                              i_part,
-                                              global_num);
-        } //Loop on i_part
-        it++;
-      }//Loop on blockDB
-    } // end if g_num_computation_required
-    if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC ) {
-      _visu -> GeomWrite();
-    }
-  } 
-           
 
 /**********************************************************************/
 
@@ -556,7 +542,7 @@ namespace cwipi {
      _blockDB [block_id] -> blockSet(i_part,n_elts,n_faces,
                                      connec_faces_idx,connec_faces,
                                      connec_cells_idx,connec_cells,
-                                     NULL);   
+                                     global_num);   
                                      
      if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC) {
 
@@ -568,13 +554,12 @@ namespace cwipi {
                                     connec_faces,
                                     connec_cells_idx,
                                     connec_cells, 
-                                    _global_num[i_part]);                        
+                                    global_num);                        
       }
                                     
                                      
      for(int i=0;i<_npart;i++){
-       _nElts[i]  = PDM_Mesh_nodal_n_cell_get(_pdmNodal_handle_index,
-                                                   i_part);
+       _nElts[i]  +=  n_elts;
      }                          
    }
    
@@ -635,7 +620,7 @@ namespace cwipi {
                                           cell_face_idx,
                                           cell_face_nb, 
                                           cell_face,
-                                          _global_num[i_part]);                              
+                                          NULL);                              
        updateBlockDB();                                                          
      }
    

@@ -87,8 +87,25 @@ namespace cwipi {
         */
      
         inline std::map<int,int*>  ConnecGet();
-       
+        
+        inline int*  ConnecGet(int i_part);       
+
+        bool  gnumRequired(){
+           for(int i_part = 0; i_part<_n_part; i_part++){
+             if(_global_num [i_part] == NULL )
+               return true;
+           }
            
+           return false;
+        }
+
+
+        void GNumBlockSet(int i_part, CWP_g_num_t* global_num){
+           _global_num [i_part] = global_num;
+        }
+  
+        void geomFinalize();         
+  
     private:
     
       std::map<int,int*>          _connec;              /*!< Connectivity for each partition */
@@ -96,6 +113,11 @@ namespace cwipi {
   };
 
 
+
+  int*  BlockStd::ConnecGet(int i_part) {
+  
+    return _connec[i_part];
+  }
 
   std::map<int,int*>  BlockStd::ConnecGet() {
   

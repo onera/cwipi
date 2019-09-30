@@ -215,6 +215,8 @@ namespace cwipi {
      
      inline std::vector <int>  NEltsGet();
 
+     inline int  NEltsGet(int i_part);
+
     /**
      *
      * \brief return the element global numbering for each partition
@@ -295,7 +297,24 @@ namespace cwipi {
        return null;
      }
 
+     virtual int*  ConnecGet(int i_part) 
+     {
+       PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
+       return NULL;
+     }
 
+
+     virtual void geomFinalize()
+     {
+       PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
+     }
+     
+     
+     virtual void GNumBlockSet(int i_part, CWP_g_num_t* global_num)
+     {
+       PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
+     }
+          
     /**
      *
      * \brief return the element connectivity index (Face_Poly_2D CWP_Block_t) or cells-faces connectivity index (Cells_POLY_3D)
@@ -407,6 +426,12 @@ namespace cwipi {
   std::vector <int>
   Block::NEltsGet() {
     return _n_elt;  
+  }
+
+
+  int
+  Block::NEltsGet(int i_part) {
+    return _n_elt[i_part];  
   }
 
   int

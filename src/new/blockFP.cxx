@@ -79,12 +79,7 @@ namespace cwipi {
 
      double* _cells_center_part = (double*)malloc (sizeof(double) * 3 * n_elt);
      
-     if (mesh_global_num != NULL) {
-       _global_num [i_part] = mesh_global_num;
-     }
-     else {
-       _global_num [i_part] = _global_num_computed[i_part];
-     }
+     _global_num [i_part] = mesh_global_num;
 
      _isSet[i_part] = true;
      _n_elt[i_part] = n_elt;
@@ -94,19 +89,44 @@ namespace cwipi {
      _connec     .insert    ( std::pair < int, int* > (i_part,connec));
      _connec_idx.insert     ( std::pair < int, int* > (i_part,connec_idx));
 
-     if (not inPDMDB() ) 
+
+      if (not inPDMDB() ) 
          PDM_Mesh_nodal_block_poly2d_set (_pdmNodal_handle_index,
                                           _block_id,
                                           i_part,    
-                                          n_elt,  
-                                          connec_idx, 
-                                          connec,   
+                                          _n_elt     [i_part],  
+                                          _connec_idx[i_part], 
+                                          _connec    [i_part],   
                                           _global_num[i_part],
-                                          NULL);                                  
-                                          
+                                          NULL);              
+
   }
-  
-  
+
+  void BlockFP::geomFinalize(){
+
+    for(int i_part = 0; i_part<_n_part; i_part++){
+
+      CWP_g_num_t* gnum = PDM_Mesh_nodal_block_g_num_get(_pdmNodal_handle_index,
+                                                         _block_id,
+                                                         i_part);
+         
+      _global_num [i_part] =  gnum ;    
+    
+      Visu* visu = ((Mesh*)_mesh) -> getVisu();
+      if(visu -> isCreated() && ((Mesh*)_mesh) -> getDisplacement() == CWP_DISPLACEMENT_STATIC) {
+        visu -> GeomBlockPoly2D ( ((Mesh*)_mesh) -> getIdVisu( _block_id ),
+                                  i_part,
+                                  _n_elt[i_part] ,
+                                  _connec_idx [i_part],
+                                  _connec     [i_part],
+                                  _global_num [i_part]);
+                                  
+                                  
+     }
+    } //end i_part
+    
+    
+  }
 }
 
 

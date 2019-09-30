@@ -425,7 +425,10 @@ namespace cwipi {
 
    void geomFinalize();
 
+   inline bool gnumVtxRequired ();
 
+   inline CWP_Displacement_t getDisplacement();
+   inline int getIdVisu(int block_id);
 
    /**
     * \brief Set the Visu pointer object
@@ -445,6 +448,8 @@ namespace cwipi {
       CWP_g_num_t* gnum = block -> GNumMeshGet(i_part);
       return gnum;
    }
+
+   inline Visu* getVisu();
    
    void connecCompute(int i_part);   
    int* connecIdxGet(int i_part);
@@ -454,7 +459,7 @@ namespace cwipi {
    int GNEltGet(int i_part);
    CWP_g_num_t* GNumEltsGet(int i_part);
    double* eltCentersGet(int i_part);
-  void eltCentersCompute(int i_part);
+   void eltCentersCompute(int i_part);
    
    int* blockDBGet() {
      return _blocks_id;
@@ -494,9 +499,9 @@ namespace cwipi {
     std::vector<int*>                       _connec_idx;
     std::vector<int*>                       _connec;
     std::vector<CWP_g_num_t*>               _gnum_elt;
-    std::vector<double*>                    _elt_centers;
+    std::vector<double*>                    _elt_centers; 
     
-    std::map< int, CWP_g_num_t*>            _global_num;             /*!< Global numbering for each partition  */
+    std::vector <CWP_g_num_t*>              _global_num_vtx;             /*!< Global numbering for each partition  */
     int                                     _npart;                  /*!< Number of partition  */
     int                                     _pdmNodal_handle_index;  /*!< Mesh (nodal) index for paradigm handler */
     int                                     _pdmGNum_handle_index;   /*!< Global number index for paradigm handler   */
@@ -515,8 +520,20 @@ namespace cwipi {
  
 
 
+  CWP_Displacement_t Mesh::getDisplacement() {
+    return _displacement;
+  }
+
   void Mesh::setVisu(Visu* visu) {
     _visu = visu;
+  }
+
+  Visu* Mesh::getVisu() {
+    return _visu;
+  }
+
+  int  Mesh::getIdVisu(int block_id) {
+    return _id_visu[block_id];
   }
 
   int Mesh::getNPart() {
@@ -541,7 +558,20 @@ namespace cwipi {
 
 
   bool Mesh::coordsDefined () {
-    return (_coords.size() == (size_t)_npart );
+    for(int i=0; i<_npart;i++){
+      if(_coords[i] == NULL)
+        return false;
+    }
+    return true;
+  }
+
+
+  bool Mesh::gnumVtxRequired () {
+    for(int i=0; i<_npart;i++){
+      if(_global_num_vtx[i] == NULL)
+        return true;
+    }
+    return false;
   }
 
 
@@ -557,7 +587,7 @@ namespace cwipi {
 
   CWP_g_num_t* Mesh::getVertexGNum(int i_part)
   {
-    return _global_num[i_part];
+    return _global_num_vtx[i_part];
   }
 
 
