@@ -142,7 +142,7 @@ _read_args(int            argc,
 static void _userInterpolation(const int                   interface_type,
                                const int                   n_src_vtcs,
                                const int                   n_src_std_elts,
-                          //     const int                   n_src_poly,
+                          //   const int                   n_src_poly,
                                const int                   n_tgt_pts,
                                const double                src_vtcs_coords[],
                                const int                   src_connec_idx[],
@@ -185,10 +185,10 @@ static void _userInterpolation(const int                   interface_type,
       double *shapef_elt = shapef + 4 * ielt;
 
       //
-      // Compute shape function
+    //  printf(" Compute shape function %i %i\n",i,n_tgt_pts);
       //
 
-      if (compute_shape_f == 1) {
+  /*    if (compute_shape_f == 1) {
         double deriv[4][2];
         double uv[2];
         double a[2][2];
@@ -270,7 +270,7 @@ static void _userInterpolation(const int                   interface_type,
         shapef_elt[3] = (1 - uv[0]) * uv[1];
 
       }
-
+*/
       //
       // Insterpolation
       //
@@ -278,7 +278,7 @@ static void _userInterpolation(const int                   interface_type,
       ((double *) tgt_field)[i] = 0.0;
      //  while(1==1){}  
       for (int k = 0; k < 4; k++) {
-       ((double *) tgt_field)[i] = ((double *) src_field)[ivertex[k]];
+       ((double *) tgt_field)[i] = ((double *) src_field)[0];//ivertex[k]];
       }
       
       free(shapef);
@@ -591,7 +591,7 @@ int main
                     CWP_GEOM_LOCATION,       // Solver type
                     nbPart[i_code],          // Partition number
                     CWP_DISPLACEMENT_STATIC, // Mesh type
-                    CWP_FREQ_CPL_TIME_STEP); // Postprocessing frequency
+                    CWP_FREQ_ASYNCHRONOUS); // frequency
     printf("   After     Create coupling %i code %i\n",rank,i_code);
   }
 
@@ -766,7 +766,12 @@ int main
     printf("        Exchange Code1 <-> Code2 %i\n",rank);
 
   double ***sendValues = (double ***) malloc(sizeof(double*) * n_code_name);
+  double ***sendValues2 = (double ***) malloc(sizeof(double*) * n_code_name);  
+  double ***sendValues3 = (double ***) malloc(sizeof(double*) * n_code_name);   
   double ***recvValues = (double ***) malloc(sizeof(double*) * n_code_name);
+  double ***recvValues2 = (double ***) malloc(sizeof(double*) * n_code_name);
+  double ***recvValues3 = (double ***) malloc(sizeof(double*) * n_code_name);    
+  double ***Values2Vertex = (double ***) malloc(sizeof(double*) * n_code_name);
   double ***recvValuesUser = (double ***) malloc(sizeof(double*) * n_code_name);  
   
   int nbPoints = 3;
@@ -776,15 +781,25 @@ int main
   
   for(int i_code = 0; i_code < n_code_name; i_code++) {   
     sendValues[i_code] = (double **) malloc(sizeof(double*) * nbPart[i_code]);
+    sendValues2[i_code] = (double **) malloc(sizeof(double*) * nbPart[i_code]);
+    sendValues3[i_code] = (double **) malloc(sizeof(double*) * nbPart[i_code]);    
+    
     nbPointsUser[i_code] = (int *) malloc(sizeof(int) * nbPart[i_code]);
     recvValues[i_code] = (double **) malloc(sizeof(double*) * nbPart[i_code]);
+    recvValues2[i_code] = (double **) malloc(sizeof(double*) * nbPart[i_code]);
+    recvValues3[i_code] = (double **) malloc(sizeof(double*) * nbPart[i_code]);        
+    Values2Vertex[i_code] = (double **) malloc(sizeof(double*) * nbPart[i_code]);    
     recvValuesUser[i_code] = (double **) malloc(sizeof(double*) * nbPart[i_code]);    
     coordsPointsUser[i_code] = (double **) malloc(sizeof(double*) * nbPart[i_code]);    
     for(int i_part=0;i_part<nbPart[i_code];i_part++)  {     
 
       if (codeName[i_code] == "code1") {
         sendValues[i_code][i_part] = (double *) malloc(sizeof(double) * nVertex[i_code][i_part]);
+        sendValues2[i_code][i_part] = (double *) malloc(sizeof(double) * nVertex[i_code][i_part]);
+        sendValues3[i_code][i_part] = (double *) malloc(sizeof(double) * nVertex[i_code][i_part]);
+                
         recvValues[i_code][i_part] = (double *) malloc(sizeof(double) * nElts[i_code][i_part]); 
+        Values2Vertex[i_code][i_part] = (double *) malloc(sizeof(double) * nVertex[i_code][i_part]);         
         nbPointsUser[i_code][i_part] = 0;
         recvValuesUser[i_code][i_part] = (double *) malloc(sizeof(double) * nbPointsUser[i_code][i_part]);       
         coordsPointsUser[i_code][i_part] = (double *) malloc(sizeof(double) * 3 * nbPointsUser[i_code][i_part]  );       
@@ -793,14 +808,27 @@ int main
         }
       }
       else {
-        sendValues[i_code][i_part] = (double *) malloc(sizeof(double) * nElts[i_code][i_part]     ); 
+        sendValues[i_code][i_part] = (double *) malloc(sizeof(double) * 3*nElts[i_code][i_part]     ); 
+        sendValues2[i_code][i_part] = (double *) malloc(sizeof(double) * 3*nElts[i_code][i_part]     );         
+        sendValues3[i_code][i_part] = (double *) malloc(sizeof(double) * 3*nElts[i_code][i_part]     );         
+        
         recvValues[i_code][i_part] = (double *) malloc(sizeof(double) * 3* nVertex[i_code][i_part]);
+        recvValues2[i_code][i_part] = (double *) malloc(sizeof(double) * 3* nVertex[i_code][i_part]);
+        recvValues3[i_code][i_part] = (double *) malloc(sizeof(double) * 3* nVertex[i_code][i_part]);                
+        Values2Vertex[i_code][i_part] = (double *) malloc(sizeof(double) * nVertex[i_code][i_part]);            
         nbPointsUser[i_code][i_part] = nbPoints;
         recvValuesUser[i_code][i_part] = (double *) malloc(sizeof(double) * nbPointsUser[i_code][i_part]);   
         coordsPointsUser[i_code][i_part] = (double *) malloc(sizeof(double) * 3 * nbPointsUser[i_code][i_part]  );      
         for (int i = 0; i <nElts[i_code][i_part]; i++) {
-          sendValues[i_code][i_part][i] = rank;//i;//coords[3 * i];
+          sendValues[i_code][i_part][3*i] = rank;
+          sendValues2[i_code][i_part][3*i] = i_part;
+          sendValues3[i_code][i_part][3*i] = i;
         }  
+        for (int i = 0; i <nVertex[i_code][i_part]; i++) {
+          Values2Vertex[i_code][i_part][i] = i;//coords[3 * i];
+        }  
+        
+        
         for (int i = 0; i <nbPointsUser[i_code][i_part]; i++) { 
           coordsPointsUser[i_code][i_part][3*i  ]= 0.0+0.01*i_part+0.001*i;
           coordsPointsUser[i_code][i_part][3*i+1]= rank*0.1+0.01*i_part+0.001*i;
@@ -813,6 +841,15 @@ int main
 
   /* Exchange */
 
+  int code1I = 1;
+  int code2I = 0;
+  int code3I = 0;
+  int code4I = 0;
+  int code5I = 0;
+  int code6I = 1;
+  int code7I = 1;
+
+
   int nNotLocatedPoints = 0;
   char *fieldName1;
   char *fieldName2;
@@ -820,15 +857,18 @@ int main
   fieldName1 = "cooX";
   fieldName2 = "rank";
   fieldName3 = "userField";
-  char *fieldName5 = "userInterpolation";
+  char *fieldName4 = "userInterpolation";
+  char *fieldName5 = "sendRecvField";
+  char *fieldName6 = "part";
+  char *fieldName7 = "num";
 
   CWP_Status_t visu_status = CWP_STATUS_OFF; 
   
   printf("        Field %i\n",rank);
   for(int i_code = 0; i_code < n_code_name; i_code++) {   
     if (codeName[i_code] == "code1") {
-/*
-     CWP_Field_create (codeName[i_code],
+
+     if(code1I==1)  CWP_Field_create (codeName[i_code],
                        "c_new_api_surf_cpl_P1P0_P0P1_part",
                        fieldName1,
                        CWP_DOUBLE,
@@ -838,17 +878,28 @@ int main
                        CWP_FIELD_EXCH_SEND,
                        CWP_STATUS_ON);
 
-     CWP_Field_create (codeName[i_code],
+
+     if(code6I==1)  CWP_Field_create (codeName[i_code],
                        "c_new_api_surf_cpl_P1P0_P0P1_part",
-                       fieldName3,
+                       fieldName6,
                        CWP_DOUBLE,
                        CWP_FIELD_STORAGE_BLOCK,
                        1,
-                       CWP_FIELD_VALUE_USER_TO_NODE,
+                       CWP_FIELD_VALUE_CELL_POINT,
                        CWP_FIELD_EXCH_SEND,
-                       CWP_STATUS_OFF);
+                       CWP_STATUS_ON);
 
-     CWP_Field_create (codeName[i_code],
+     if(code7I==1)  CWP_Field_create (codeName[i_code],
+                       "c_new_api_surf_cpl_P1P0_P0P1_part",
+                       fieldName7,
+                       CWP_DOUBLE,
+                       CWP_FIELD_STORAGE_BLOCK,
+                       1,
+                       CWP_FIELD_VALUE_NODE,
+                       CWP_FIELD_EXCH_SEND,
+                       CWP_STATUS_ON);
+
+     if(code2I==1) CWP_Field_create (codeName[i_code],
                        "c_new_api_surf_cpl_P1P0_P0P1_part",
                        fieldName2,
                        CWP_DOUBLE,
@@ -857,10 +908,22 @@ int main
                        CWP_FIELD_VALUE_CELL_POINT,
                        CWP_FIELD_EXCH_RECV,
                        CWP_STATUS_ON);
-*/
+     if(code3I==1)
      CWP_Field_create (codeName[i_code],
                        "c_new_api_surf_cpl_P1P0_P0P1_part",
-                       fieldName5,
+                       fieldName3,
+                       CWP_DOUBLE,
+                       CWP_FIELD_STORAGE_BLOCK,
+                       1,
+                       CWP_FIELD_VALUE_NODE,
+                       CWP_FIELD_EXCH_SEND,
+                       CWP_STATUS_OFF);
+                       
+                       
+    if(code4I==1)
+     CWP_Field_create (codeName[i_code],
+                       "c_new_api_surf_cpl_P1P0_P0P1_part",
+                       fieldName4,
                        CWP_DOUBLE,
                        CWP_FIELD_STORAGE_BLOCK,
                        1,
@@ -868,20 +931,34 @@ int main
                        CWP_FIELD_EXCH_SEND,
                        CWP_STATUS_ON);
 
+    if(code5I==1)
+     CWP_Field_create (codeName[i_code],
+                       "c_new_api_surf_cpl_P1P0_P0P1_part",
+                       fieldName5,
+                       CWP_DOUBLE,
+                       CWP_FIELD_STORAGE_BLOCK,
+                       1,
+                       CWP_FIELD_VALUE_NODE,
+                       CWP_FIELD_EXCH_RECV,
+                       CWP_STATUS_OFF);
+
                        
      for(int i_part=0;i_part<nbPart[i_code];i_part++)  {     
-   /*    CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1,i_part, sendValues[i_code][i_part]); 
-       CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3,i_part, sendValues[i_code][i_part]);        
-       CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2,i_part, recvValues[i_code][i_part]);
-     */  CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5,i_part, sendValues[i_code][i_part]);        
+       if(code1I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1,i_part, sendValues[i_code][i_part]); 
+       if(code6I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName6,i_part, sendValues2[i_code][i_part]); 
+       if(code7I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName7,i_part, sendValues3[i_code][i_part]);               
+       if(code2I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2,i_part, recvValues[i_code][i_part]);
+       if(code3I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3,i_part, sendValues[i_code][i_part]);        
+       if(code4I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName4,i_part, sendValues[i_code][i_part]);   
+       if(code5I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5,i_part, Values2Vertex[i_code][i_part]);             
      }
  
-     CWP_Interp_from_location_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5,_userInterpolation);
+     if(code4I==1) CWP_Interp_from_location_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName4,_userInterpolation);
          
     }
     else {
-  /*
-      CWP_Field_create (codeName[i_code],
+       if(code1I==1)
+       CWP_Field_create (codeName[i_code],
                        "c_new_api_surf_cpl_P1P0_P0P1_part",
                        fieldName1,
                        CWP_DOUBLE,
@@ -891,18 +968,32 @@ int main
                        CWP_FIELD_EXCH_RECV,
                        CWP_STATUS_ON);
 
-     CWP_Field_create (codeName[i_code],
+
+       if(code6I==1)
+       CWP_Field_create (codeName[i_code],
                        "c_new_api_surf_cpl_P1P0_P0P1_part",
-                       fieldName3,
+                       fieldName6,
                        CWP_DOUBLE,
                        CWP_FIELD_STORAGE_BLOCK,
                        1,
-                       CWP_FIELD_VALUE_USER_TO_NODE,
+                       CWP_FIELD_VALUE_NODE,
                        CWP_FIELD_EXCH_RECV,
-                       CWP_STATUS_OFF);
+                       CWP_STATUS_ON);
 
-                     
-      CWP_Field_create (codeName[i_code],
+       if(code7I==1)
+       CWP_Field_create (codeName[i_code],
+                       "c_new_api_surf_cpl_P1P0_P0P1_part",
+                       fieldName7,
+                       CWP_DOUBLE,
+                       CWP_FIELD_STORAGE_BLOCK,
+                       1,
+                       CWP_FIELD_VALUE_NODE,
+                       CWP_FIELD_EXCH_RECV,
+                       CWP_STATUS_ON);
+
+                       
+       if(code2I==1)
+       CWP_Field_create (codeName[i_code],
                      "c_new_api_surf_cpl_P1P0_P0P1_part",
                      fieldName2,
                      CWP_DOUBLE,
@@ -911,10 +1002,22 @@ int main
                      CWP_FIELD_VALUE_CELL_POINT,
                      CWP_FIELD_EXCH_SEND,
                      CWP_STATUS_ON);
-    */                 
+      
+       if(code3I==1)
+       CWP_Field_create (codeName[i_code],
+                       "c_new_api_surf_cpl_P1P0_P0P1_part",
+                       fieldName3,
+                       CWP_DOUBLE,
+                       CWP_FIELD_STORAGE_BLOCK,
+                       1,
+                       CWP_FIELD_VALUE_USER,
+                       CWP_FIELD_EXCH_RECV,
+                       CWP_STATUS_OFF);                   
+      
+      if(code4I==1)               
       CWP_Field_create (codeName[i_code],
                        "c_new_api_surf_cpl_P1P0_P0P1_part",
-                       fieldName5,
+                       fieldName4,
                        CWP_DOUBLE,
                        CWP_FIELD_STORAGE_BLOCK,
                        1,
@@ -922,19 +1025,34 @@ int main
                        CWP_FIELD_EXCH_RECV,
                        CWP_STATUS_ON);                     
 
+      if(code5I==1)               
+      CWP_Field_create (codeName[i_code],
+                       "c_new_api_surf_cpl_P1P0_P0P1_part",
+                       fieldName5,
+                       CWP_DOUBLE,
+                       CWP_FIELD_STORAGE_BLOCK,
+                       1,
+                       CWP_FIELD_VALUE_NODE,
+                       CWP_FIELD_EXCH_SEND,
+                       CWP_STATUS_ON);      
+
      for(int i_part=0;i_part<nbPart[i_code];i_part++)  {     
-    //   CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2,i_part, sendValues[i_code][i_part]); 
-    //   CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1,i_part, recvValues[i_code][i_part]);
-    //   CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3,i_part, recvValuesUser[i_code][i_part]); 
-       CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5,i_part, recvValues[i_code][i_part]);       
-    /*   
+       if(code1I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1,i_part, recvValues[i_code][i_part]); 
+       if(code6I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName6,i_part, recvValues2[i_code][i_part]); 
+       if(code7I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName7,i_part, recvValues3[i_code][i_part]);               
+       if(code2I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2,i_part, sendValues[i_code][i_part]); 
+       if(code3I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3,i_part, recvValuesUser[i_code][i_part]); 
+       if(code4I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName4,i_part, recvValues[i_code][i_part]);       
+       if(code5I==1) CWP_Field_data_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5,i_part, Values2Vertex[i_code][i_part]); 
+       
+       if(code3I==1)
        CWP_User_tgt_pts_set(codeName[i_code],
                             "c_new_api_surf_cpl_P1P0_P0P1_part",
                             i_part, 
                             nbPointsUser[i_code][i_part], 
                             coordsPointsUser[i_code][i_part]);
-      */       
              
+            
      }//loop on part
     }// if
 
@@ -942,52 +1060,107 @@ int main
 
   MPI_Barrier(MPI_COMM_WORLD);
   printf("Before compute\n");
-  CWP_Geom_compute("c_new_api_surf_cpl_P1P0_P0P1_part");
+
+  for(int i_code = 0; i_code < n_code_name; i_code++) {    
+    CWP_Geom_compute(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part");
+  }
 
   double recv_time = 0.150;
 
   printf("After compute\n");
   MPI_Barrier(MPI_COMM_WORLD);
-
   
+
   for(int i_code = 0; i_code < n_code_name; i_code++) {    
   
     CWP_next_recv_time_set(codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",recv_time);
 
     if (codeName[i_code] == "code1") {
-    /*  CWP_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1);   
-      CWP_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2);        
-      CWP_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3);         
-     */ CWP_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5);      
+      if(code1I==1) CWP_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1);   
+      if(code1I==1) CWP_Wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1);  
+
+      if(code6I==1) CWP_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName6);   
+      if(code6I==1) CWP_Wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName6);  
+
+      if(code7I==1) CWP_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName7);   
+      if(code7I==1) CWP_Wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName7);  
       
     }
     else {
-    
+     if(code1I==1) CWP_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1);   
+     if(code1I==1) CWP_Wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1);     
 
-/*     CWP_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1);   
-     CWP_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2);    
-     CWP_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3);         
-  */   CWP_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5);         
+     if(code6I==1) CWP_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part"     ,fieldName6);   
+     if(code6I==1) CWP_Wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName6); 
+
+     if(code7I==1) CWP_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part"     ,fieldName7);   
+     if(code7I==1) CWP_Wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName7); 
+        
     }
   }
-
-
-//while(1==1){}
+   MPI_Barrier(MPI_COMM_WORLD);
+   
+  for(int i_code = 0; i_code < n_code_name; i_code++) {    
   
-  for(int i_code = 0; i_code < n_code_name; i_code++) {       
     if (codeName[i_code] == "code1") {
-  /*    CWP_Wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1);  
-      CWP_Wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2);          
-      CWP_Wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3);        
-  */    CWP_Wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5);        
+      if(code2I==1) CWP_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2);        
+      if(code2I==1) CWP_Wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2);    
+      
     }
     else {
-    /*  CWP_Wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName1);    
-      CWP_Wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2);        
-      CWP_Wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3);        
-   */   CWP_Wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5);           
-    }    
+     if(code2I==1) CWP_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2);    
+     if(code2I==1) CWP_Wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName2);          
+    }
+  }   
+   
+   MPI_Barrier(MPI_COMM_WORLD);
+   
+  for(int i_code = 0; i_code < n_code_name; i_code++) {    
+  
+    if (codeName[i_code] == "code1") {
+      
+      if(code3I==1) CWP_Issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3);  
+      if(code3I==1) CWP_Wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3);       
+              
+    }
+    else {
+     if(code3I==1) CWP_Irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3);   
+     if(code3I==1) CWP_Wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName3);   
+    }
+  }   
+   
+  MPI_Barrier(MPI_COMM_WORLD);  
+  
+  for(int i_code = 0; i_code < n_code_name; i_code++) {    
+    if (codeName[i_code] == "code1") {
+      if(code4I==1) CWP_Issend      (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName4);    
+      if(code4I==1) CWP_Wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName4);               
+    }
+    else {
+     if(code4I==1) CWP_Irecv       (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName4);    
+     if(code4I==1) CWP_Wait_irecv  (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName4);          
+    }
+  }   
+
+  MPI_Barrier(MPI_COMM_WORLD);  
+
+  for(int i_code = 0; i_code < n_code_name; i_code++) {  
+    if (codeName[i_code] == "code1") {
+      if(code5I==1) CWP_Irecv      (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5);   
+      if(code5I==1) CWP_Wait_irecv (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5);  
+    }
+    else {
+     if(code5I==1) CWP_Issend      (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5);   
+     if(code5I==1) CWP_Wait_issend (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5);        
+    }
   }
+
+
+ /* for(int i_code = 0; i_code < n_code_name; i_code++) {    
+    if(code5I==1) CWP_Sendrecv (codeName[i_code],"c_new_api_surf_cpl_P1P0_P0P1_part",fieldName5);    
+  }   
+*/
+
   /* Coupling deletion
    * ----------------- */
 
@@ -1010,14 +1183,17 @@ int main
       free(coords[i_code][i_part]);
       free(sendValues[i_code][i_part]); 
       free(recvValues[i_code][i_part]);  
+      free(Values2Vertex[i_code][i_part]);        
     }
     free(coords    [i_code]);
     free(sendValues[i_code]); 
     free(recvValues[i_code]);  
+    free(Values2Vertex[i_code]);    
   }
 
   free(coords);
   free(sendValues);   
+  free(Values2Vertex);     
   free(recvValues);
   free(srcName);
 
