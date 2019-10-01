@@ -134,6 +134,10 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_surf_coupling_P1P0_P0P1_part.c
   test_c_create (c_new_api_surf_coupling_P1P0_P0P1_part 2)
 endif () 
 
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_surf_coupling_poly_P1P0_P0P1.c")
+  test_c_create (c_new_api_surf_coupling_poly_P1P0_P0P1 2)
+endif () 
+
 #if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_surf_coupling_P1P0_P0P1_curv.c")
 #  test_c_create (c_new_api_surf_coupling_P1P0_P0P1_curv 2)
 #endif () 
