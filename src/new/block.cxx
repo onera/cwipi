@@ -44,7 +44,7 @@ namespace cwipi {
      
      if (not inPDMDB())
        _block_id = PDM_Mesh_nodal_block_add(_pdmNodal_handle_index,
-                                       PDM_TRUE,
+                                       PDM_FALSE,
                                        PdmBlockTypeFromCwpBlockType(blockType));
                                        
      _blockType             = blockType;
