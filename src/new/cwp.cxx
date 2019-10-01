@@ -874,8 +874,6 @@ CWP_N_uncomputed_tgts_get
      MPI_Comm_rank(unionComm,&unionCommRank);
      
      
-     
-     
      int CWP_Field_value_size = sizeof(int);
      if(unionCommRank == unionCommLocCodeRootRank){
         MPI_Sendrecv(&(fieldNameIdx[0]),fieldNameIdx.size(),MPI_INT,unionCommCplCodeRootRank,tag,
@@ -988,7 +986,6 @@ CWP_N_uncomputed_tgts_get
  
     static const char *CWP_Field_value_t_str[] = {"CWP_FIELD_VALUE_CELL_POINT","CWP_FIELD_VALUE_NODE","CWP_FIELD_VALUE_USER"};
     static const char *CWP_Field_exch_t_str [] = {"CWP_FIELD_EXCH_SEND","CWP_FIELD_EXCH_RECV","CWP_FIELD_EXCH_SENDRECV"};     
-
     std::vector<int> exchangeTypeByLocation(3,0);
       
      it = fields -> begin();
@@ -1028,10 +1025,10 @@ CWP_N_uncomputed_tgts_get
        it++;
      }      
      
-    // while(1==1){}
+
       /*  Building of possible cloud points type vector */
       std::vector<CWP_Field_value_t> locationV = {CWP_FIELD_VALUE_CELL_POINT, CWP_FIELD_VALUE_NODE, CWP_FIELD_VALUE_USER};    
-    
+     
       // Iteration over the possilbe cloud points type
       for(size_t i_location=0; i_location < locationV.size(); i_location++){
         CWP_Field_value_t geometryLocation = locationV[i_location];
@@ -1109,7 +1106,6 @@ CWP_N_uncomputed_tgts_get
         }     
        if((both_local == 1 && id < id_cpl) || both_local == 0) MPI_Barrier(unionComm);
       } //end on location loop
- //while(1==1){}
   }
 
 
