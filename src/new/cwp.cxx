@@ -848,7 +848,6 @@ CWP_N_uncomputed_tgts_get
       field_exch_type_map.insert( std::pair<string,field_exch_type>(it -> first,field_eT) );
       fieldName += it -> first;
       fieldNameIdx .push_back(fieldNameIdx[fieldNameIdx.size()-1] + it -> first.size());
-      printf("SSSS test %s %i %i\n",fieldName.c_str(), fieldNameIdx[fieldNameIdx.size()-2],fieldNameIdx[fieldNameIdx.size()-1]);
       fieldLocationV.push_back(fieldLocation     );
       fieldExch    .push_back(exchangeType      );
             
@@ -981,7 +980,7 @@ CWP_N_uncomputed_tgts_get
        field_exch.loc  = fieldLocationV_cpl[i];
        field_exch.exch = fieldExch_cpl     [i];       
        field_cpl_map.insert( std::pair<string,field_exch_type>(field_name,field_exch) );
-       printf("field_name %s %s %i %i\n",field_name.c_str(),fieldName_cpl.c_str(),fieldNameIdx_cpl[i], fieldNameIdx_cpl[i+1]);
+       //printf("field_name %s %s %i %i\n",field_name.c_str(),fieldName_cpl.c_str(),fieldNameIdx_cpl[i], fieldNameIdx_cpl[i+1]);
      }
  
     static const char *CWP_Field_value_t_str[] = {"CWP_FIELD_VALUE_CELL_POINT","CWP_FIELD_VALUE_NODE","CWP_FIELD_VALUE_USER"};
@@ -1020,8 +1019,8 @@ CWP_N_uncomputed_tgts_get
          }     
        }
          
-       printf(" %s typeGet() %s associatedCloudPointTypeGet %s rank %i exchangeTypeGet %i\n",it->first.c_str(),CWP_Field_value_t_str[it -> second -> typeGet()],
-       CWP_Field_value_t_str[static_cast<int>(it -> second -> associatedCloudPointTypeGet())],rank,it -> second ->  exchangeTypeGet());
+       //printf(" %s typeGet() %s associatedCloudPointTypeGet %s rank %i exchangeTypeGet %i\n",it->first.c_str(),CWP_Field_value_t_str[it -> second -> typeGet()],
+       //CWP_Field_value_t_str[static_cast<int>(it -> second -> associatedCloudPointTypeGet())],rank,it -> second ->  exchangeTypeGet());
        it++;
      }      
      
@@ -1075,7 +1074,7 @@ CWP_N_uncomputed_tgts_get
               cpl.geomCompute(geometryLocation, CWP_FIELD_EXCH_SEND); 
             }          
           }
-          printf("geometryLocation %s rank %i %i %i id<id_cpl %i\n", CWP_Field_value_t_str[static_cast<int>( geometryLocation )],rank, geomComputeSend, geomComputeRcv,id<id_cpl );
+         // printf("geometryLocation %s rank %i %i %i id<id_cpl %i\n", CWP_Field_value_t_str[static_cast<int>( geometryLocation )],rank, geomComputeSend, geomComputeRcv,id<id_cpl );
            
         }
         else if (geomComputeRcv == 1 && geomComputeSend == 0) {
@@ -1088,7 +1087,7 @@ CWP_N_uncomputed_tgts_get
          }               
           else if (both_local == 0) {
             cpl.geomCompute(geometryLocation, exchange_type); 
-            printf("geometryLocation %s rank %i %i %i\n", CWP_Field_value_t_str[static_cast<int>( geometryLocation )],rank, geomComputeSend, geomComputeRcv );
+            //printf("geometryLocation %s rank %i %i %i\n", CWP_Field_value_t_str[static_cast<int>( geometryLocation )],rank, geomComputeSend, geomComputeRcv );
           }
         }
         else if (geomComputeSend == 1 && geomComputeRcv == 0) {
@@ -1101,7 +1100,7 @@ CWP_N_uncomputed_tgts_get
           }               
           else if (both_local == 0) {
             cpl.geomCompute(geometryLocation, exchange_type); 
-            printf("geometryLocation %s rank %i %i %i\n", CWP_Field_value_t_str[static_cast<int>( geometryLocation )],rank, geomComputeSend, geomComputeRcv );       
+           // printf("geometryLocation %s rank %i %i %i\n", CWP_Field_value_t_str[static_cast<int>( geometryLocation )],rank, geomComputeSend, geomComputeRcv );       
           } 
         }     
        if((both_local == 1 && id < id_cpl) || both_local == 0) MPI_Barrier(unionComm);
