@@ -30,6 +30,7 @@
 #include "cwipi.h"
 #include "cwipi_config.h"
 #include "pdm_part.h"
+#include "pdm_timer.h"
 #include "pdm.h"
 #include "pdm_config.h"
 #include "pdm_mesh_nodal.h"
@@ -147,8 +148,6 @@ _read_args
         _usage(EXIT_FAILURE);
       else
         *nx = atoi(argv[i]);
-        
-      printf("nx %i\n",*nx);
     }
     else if (strcmp(argv[i], "-part") == 0) {
       i++;
@@ -282,7 +281,7 @@ int main
   const int nb_part = 1;
 
   if (old) {
-    cwipi_set_output_listing(outputFile);
+    //cwipi_set_output_listing(outputFile);
     cwipi_init(MPI_COMM_WORLD,
                codeName ,
                &localComm);
@@ -300,10 +299,10 @@ int main
                           CWIPI_COUPLING_PARALLEL_WITH_PARTITIONING, // Coupling type
                           codeCoupledName,                           // Coupled application id
                           2,                                         // Geometric entities dimension
-                          0.1,                                       // Geometric tolerance
+                          0.001,                                     // Geometric tolerance
                           CWIPI_STATIC_MESH,                         // Mesh type
                           solver_type,                               // Solver type
-                          1,                                        // Postprocessing frequency
+                          -1,                                        // Postprocessing frequency
                           "EnSight Gold",                            // Postprocessing format
                           "text");                                   // Postprocessing option
   }
@@ -331,13 +330,13 @@ int main
                     nb_part,                         // Partition number
                     CWP_DISPLACEMENT_STATIC,         // Mesh type
                     CWP_FREQ_CPL_TIME_STEP);         // Postprocessing frequency
-
+/*
     CWP_Visu_set(codeName, // Code name
                  "new_cpl",     // Coupling id
                  1,           // Postprocessing frequency
                  Ensight,     // Postprocessing format
                  "text");     // Postprocessing option
-  }
+ */ }
 
   /* Interface communicator
    * ---------------------- */
@@ -645,7 +644,6 @@ int main
         }
         
       }
-
       else {
         PDM_l_num_t *_connec_idx;
         PDM_l_num_t *_connec;
@@ -688,7 +686,7 @@ int main
     eltsGnum = malloc(sizeof(CWP_g_num_t) * nElts);
   }
 
-
+/*
   for(int i =0; i<nElts;i++){
     for(int j = eltsConnecPointer[i]; j<eltsConnecPointer[i+1];j++){
       printf("Rank %i elt %i nElts %i gnumelt %i ivtx %i coords %3.2f %3.2f %3.2f gnum vtx %i \n",
@@ -696,16 +694,33 @@ int main
              coords[3* (eltsConnec[j]-1) ],coords[3* (eltsConnec[j]-1) +1],coords[3* (eltsConnec[j]-1) +2],(int)vtxGnum[ eltsConnec[j]-1 ]);
     }
   }
+*/
 
+
+  double Rcurv = 10.0 * s ;
   for(int i =0; i<nVtx;i++){
-      printf("Rank %i vtx %i nVtx %i coords %3.2f %3.2f %3.2f gnum vtx %i \n",
+     coords[3*i+2] = sqrt( pow(Rcurv,2) - pow(coords[3*i],2) - pow(coords[3*i+1],2) );
+  
+   /*   printf("Rank %i vtx %i nVtx %i coords %3.2f %3.2f %3.2f gnum vtx %i \n",
              localRank,i, nVtx,
              coords[3*i],coords[3*i+1],coords[3*i+2],(int)vtxGnum[i]);
-  }  
-  
-//while(1==1){}
+ */ }  
+ 
 
+
+  
+  PDM_timer_t* timer = PDM_timer_create();
+
+  PDM_timer_init(timer);
+  
+  double time[3];
+  
   if (old) {
+
+
+    PDM_timer_init(timer);
+    
+    PDM_timer_resume(timer);
 
     cwipi_define_mesh("old_cpl",
                       nVtx,
@@ -715,6 +730,11 @@ int main
                       eltsConnec);
 
     cwipi_locate("old_cpl");
+    PDM_timer_hang_on(timer);
+    
+    if(localRank==0)
+      printf("Old localization time %5.4e codeName %s \n",  PDM_timer_elapsed(timer),codeName);
+
   }
 
   else {
@@ -725,7 +745,7 @@ int main
                              nVtx,
                              coords,
                              vtxGnum);
-
+/*
     int block_id = CWP_Mesh_interf_block_add (codeName,             // Code name
                                               "new_cpl",             // Coupling id
                                               CWP_BLOCK_FACE_TRIA3);
@@ -747,22 +767,23 @@ int main
                                      0,
                                      block_id,
                                      n_quad,
-                                     eltsConnec + idx_quad,
-                                     eltsGnum + n_tri);
-
-    block_id = CWP_Mesh_interf_block_add (codeName,             // Code name
+                                     &(eltsConnec[idx_quad]),
+                                     &(eltsGnum[n_tri]));
+*/
+    int block_id = CWP_Mesh_interf_block_add (codeName,             // Code name
                                           "new_cpl",             // Coupling id
                                           CWP_BLOCK_FACE_POLY);
+
 
 
     CWP_Mesh_interf_f_poly_block_set (codeName,
                                       "new_cpl",  // Coupling id
                                       0,
                                       block_id,
-                                      n_poly2d,
+                                      nElts,
                                       eltsConnecPointer,
-                                      eltsConnec + idx_poly2d,
-                                      eltsGnum + n_tri + n_quad);
+                                      eltsConnec,
+                                      eltsGnum);
 
     CWP_Mesh_interf_finalize (codeName,
                               "new_cpl");  // Coupling id
@@ -783,7 +804,7 @@ int main
   double *sendValues;
   double *recvValues;
 
-  if (!strcmp (codeName,"code1")) {
+  if (codeId == 1 ) {
     sendValues = (double *) malloc(sizeof(double) * nVtx);
     recvValues = (double *) malloc(sizeof(double) * nElts);
     for (int i = 0; i < nVtx; i++) {
@@ -792,7 +813,7 @@ int main
   }
 
   else {
-    sendValues = (double *) malloc(sizeof(double) * nVtx);
+    sendValues = (double *) malloc(sizeof(double) * nElts);
     recvValues = (double *) malloc(sizeof(double) * nVtx);
     for (int i = 0; i < nElts; i++) {
       sendValues[i] = rank;//i;//coords[3 * i];
@@ -804,12 +825,18 @@ int main
   char *fieldName1 = "cooX";
   char *fieldName2 = "rank";
 
+  int n_int = 1;
+
   if (old) {
 
     int sRequest, rRequest;
     int tag = 1;
 
-    if (codeName == "code1") {
+
+    PDM_timer_init(timer);
+    PDM_timer_resume(timer);
+    for(int i_time =0; i_time<n_int;i_time++){
+    if (codeId == 1) {
       cwipi_issend("old_cpl",
                    "ech1",
                    tag,
@@ -821,8 +848,8 @@ int main
                    &sRequest);
 
       cwipi_wait_issend("old_cpl", sRequest);
-
-/*      cwipi_irecv("old_cpl",
+/*
+      cwipi_irecv("old_cpl",
                   "ech2",
                   tag,
                   1,
@@ -831,10 +858,10 @@ int main
                   fieldName2,
                   recvValues,
                   &rRequest);
-*/
 
-     // cwipi_wait_irecv("old_cpl", rRequest);
-    }
+
+      cwipi_wait_irecv("old_cpl", rRequest);
+  */  }
 
     else {
 
@@ -849,8 +876,8 @@ int main
                   &rRequest);
 
       cwipi_wait_irecv("old_cpl", rRequest);
-
-   /*   cwipi_issend("old_cpl",
+/*
+      cwipi_issend("old_cpl",
                    "ech2",
                    tag,
                    1,
@@ -861,14 +888,22 @@ int main
                    &sRequest);
 
       cwipi_wait_issend("old_cpl", sRequest);
-  */  }
+ */   }
+ 
+ 
+     }
+     PDM_timer_hang_on(timer);
+    
+     if(localRank==0)
+       printf("Old exchange time for %i iterations %5.4e s codeName %s \n", n_int, PDM_timer_elapsed(timer),codeName); 
+ 
   }
 
   else {
 
     int nNotLocatedPoints = 0;
 
-    CWP_Status_t visu_status = CWP_STATUS_OFF;
+    CWP_Status_t visu_status = CWP_STATUS_ON;
 
     if (codeName == "code1") {
       CWP_Field_create (codeName,
@@ -880,7 +915,7 @@ int main
                        CWP_FIELD_VALUE_NODE,
                        CWP_FIELD_EXCH_SEND,
                        visu_status);
-
+/*
       CWP_Field_create (codeName,
                         "new_cpl",
                        fieldName2,
@@ -890,18 +925,19 @@ int main
                        CWP_FIELD_VALUE_CELL_POINT,
                        CWP_FIELD_EXCH_RECV,
                        visu_status);
-
+*/
       CWP_Field_data_set(codeName,
                          "new_cpl",
                          fieldName1,
                          0,
                          sendValues);
-
+/*
       CWP_Field_data_set(codeName,
                          "new_cpl",
                          fieldName2,
                          0,
                          recvValues);
+        */
     }
     else {
 
@@ -914,7 +950,7 @@ int main
                        CWP_FIELD_VALUE_NODE,
                        CWP_FIELD_EXCH_RECV,
                        visu_status);
-
+/*
       CWP_Field_create (codeName,
                         "new_cpl",
                         fieldName2,
@@ -930,7 +966,7 @@ int main
                          fieldName2,
                          0,
                          sendValues);
-
+*/
       CWP_Field_data_set(codeName,
                          "new_cpl",
                          fieldName1,
@@ -941,24 +977,42 @@ int main
 
     }
     
-    CWP_Geom_compute(codeName,"new_cpl");
-
+    PDM_timer_init(timer);
     
+    PDM_timer_resume(timer);
+    
+    CWP_Geom_compute(codeName,"new_cpl");
+    PDM_timer_hang_on(timer);
+    
+    if(localRank==0)
+      printf("New localization time %5.4e codeName %s \n",  PDM_timer_elapsed(timer),codeName);
+
     double recv_time = 0.150;
     CWP_next_recv_time_set(codeName,"new_cpl",recv_time);
-
+    
+    PDM_timer_init(timer);
+    PDM_timer_resume(timer);
+    for(int i_time =0; i_time<n_int;i_time++){
+    
     if (codeName == "code1") {
       CWP_Issend (codeName,"new_cpl",fieldName1);
       CWP_Wait_issend (codeName,"new_cpl",fieldName1);
-    /*  CWP_Irecv  (codeName,"new_cpl",fieldName2);
+ /*     CWP_Irecv  (codeName,"new_cpl",fieldName2);
       CWP_Wait_irecv  (codeName,"new_cpl",fieldName2);
-   */ }
+ */   }
     else {
       CWP_Irecv  (codeName,"new_cpl",fieldName1);
       CWP_Wait_irecv  (codeName,"new_cpl",fieldName1);      
-   /*   CWP_Issend (codeName,"new_cpl",fieldName2);
+  /*    CWP_Issend (codeName,"new_cpl",fieldName2);
       CWP_Wait_issend (codeName,"new_cpl",fieldName2);
-   */ }
+  */  }
+     }
+     
+
+     PDM_timer_hang_on(timer);
+    
+     if(localRank==0)
+       printf("New exchange time for %i iterations %5.4e s codeName %s \n", n_int, PDM_timer_elapsed(timer),codeName); 
 
   }
   int nNotLocatedPoints = 0;
