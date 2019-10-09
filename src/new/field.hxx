@@ -241,12 +241,13 @@ namespace cwipi {
 
 
   void lastRequestAdd (int i_proc, MPI_Request request) {
-    _last_request.insert( std::pair<int,MPI_Request> (i_proc,request) );
+    _last_request[i_proc] = request;
   }
 
   
   MPI_Request lastRequestGet (int i_proc) {
     return _last_request[i_proc];
+    
   }
 
 
