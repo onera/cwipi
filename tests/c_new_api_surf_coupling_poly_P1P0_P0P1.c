@@ -343,13 +343,13 @@ int main
                     nb_part,                         // Partition number
                     CWP_DISPLACEMENT_STATIC,         // Mesh type
                     CWP_FREQ_CPL_TIME_STEP);         // Postprocessing frequency
-/*
+
     CWP_Visu_set(codeName, // Code name
                  "new_cpl",     // Coupling id
                  1,           // Postprocessing frequency
                  Ensight,     // Postprocessing format
                  "text");     // Postprocessing option
- */ }
+  }
 
   /* Interface communicator
    * ---------------------- */
@@ -383,6 +383,8 @@ int main
   int nElts = 0;
   int *eltsConnecPointer = NULL;
   int *eltsConnec = NULL;
+  int *eltsConnecPointerPoly = NULL;
+  int *eltsConnecPoly = NULL;
   CWP_g_num_t *eltsGnum = NULL;
   int n_tri = 0;
   int n_quad = 0;
@@ -663,13 +665,18 @@ int main
         PDM_l_num_t *_connec;
 
         PDM_Mesh_nodal_block_poly2d_get (id_mn, id_block, 0, &_connec_idx, &_connec);
-
+	eltsConnecPointerPoly = (int*)malloc(sizeof(int)*(n_elt_block+1));
+	eltsConnecPoly = (int*)malloc(sizeof(int)*_connec_idx[n_elt_block]);
+        eltsConnecPointerPoly[0]=0;
+        int idx3=0;
         for (int j = 0; j < n_elt_block; j++) {
+          eltsConnecPointerPoly[j+1] = _connec_idx[j+1];
           eltsConnecPointer[nElts+1] = eltsConnecPointer[nElts] +
                                        (_connec_idx[j+1] - _connec_idx[j]);
 
           for (int k = _connec_idx[j]; k < _connec_idx[j+1]; k++) {
             eltsConnec[idx1++] = _connec[k];
+            eltsConnecPoly[idx3++] = _connec[k];
           }
 
           eltsGnum[nElts] = _gnum[j];
@@ -801,7 +808,7 @@ int main
                              nVtx,
                              coords,
                              vtxGnum);
-/*
+
     int block_id = CWP_Mesh_interf_block_add (codeName,             // Code name
                                               "new_cpl",             // Coupling id
                                               CWP_BLOCK_FACE_TRIA3);
@@ -823,23 +830,23 @@ int main
                                      0,
                                      block_id,
                                      n_quad,
-                                     &(eltsConnec[idx_quad]),
-                                     &(eltsGnum[n_tri]));
-*/
-    int block_id = CWP_Mesh_interf_block_add (codeName,             // Code name
+                                     &( eltsConnec[idx_quad] ),
+                                     &( eltsGnum  [n_tri   ] )
+                                     );
+
+    block_id = CWP_Mesh_interf_block_add (codeName,             // Code name
                                           "new_cpl",             // Coupling id
                                           CWP_BLOCK_FACE_POLY);
-
-
 
     CWP_Mesh_interf_f_poly_block_set (codeName,
                                       "new_cpl",  // Coupling id
                                       0,
                                       block_id,
-                                      nElts,
-                                      eltsConnecPointer,
-                                      eltsConnec,
-                                      eltsGnum);
+                                      n_poly2d,
+                                      eltsConnecPointerPoly,
+                                      eltsConnecPoly       ,
+                                      &(eltsGnum  [n_quad+n_tri] ) );
+
 
     CWP_Mesh_interf_finalize (codeName,
                               "new_cpl");  // Coupling id
