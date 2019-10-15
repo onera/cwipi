@@ -49,7 +49,7 @@ namespace cwipi {
    _n_vtx(NULL),
    _n_elt(NULL),
    _pdmGNum_handle_index(-1)
-  {   _pdmGNum_handle_index == -1;
+  {  
   }
   
   MappingLocation::~MappingLocation()
@@ -97,18 +97,18 @@ namespace cwipi {
 
 
   void MappingLocation::user_target_points_set(int i_part, int n_pts, double* coord) {
-    if( !(_mappingLocation == CWP_FIELD_VALUE_USER ) )
+    if( !(_pointsCloudLocation == CWP_FIELD_VALUE_USER ) )
       PDM_error(__FILE__, __LINE__, 0, "You cannot use user_target_points_set for CWP_Field_value_t different of CWP_FIELD_VALUE_USER.\n");
     else {
       _n_user_targets     [i_part] = n_pts;
       _coords_user_targets[i_part] = coord;    
 
-     // printf("_n_user_targets [%i] %i _coords_user_targets[i_part][0] %f\n",i_part,_n_user_targets[i_part],_coords_user_targets[i_part][0]);
-    //  for(int i=0;i<3*_n_user_targets     [i_part];i++)
-      //  printf("coords_user_targets[%i][%i] %f\n",i_part,i,_coords_user_targets[i_part][i]);
+     /* printf("_n_user_targets [%i] %i _coords_user_targets[i_part][0] %f\n",i_part,_n_user_targets[i_part],_coords_user_targets[i_part][0]);
+        for(int i=0;i<3*_n_user_targets     [i_part];i++)
+        printf("coords_user_targets[%i][%i] %f\n",i_part,i,_coords_user_targets[i_part][i]);
+     */
     }
   }
-
 
 
  
@@ -133,7 +133,6 @@ namespace cwipi {
     }         
   } 
 
-  static const char *CWP_Field_exch_t_str [] = {"CWP_FIELD_EXCH_SEND","CWP_FIELD_EXCH_RECV","CWP_FIELD_EXCH_SENDRECV"};
 /***************************************************************************/
 /***************************************************************************/
 
@@ -144,13 +143,13 @@ namespace cwipi {
     */
     
     if(_both_codes_are_local == 0 ){
-      if(_Texch_t == CWP_FIELD_EXCH_RECV && _mappingLocation == CWP_FIELD_VALUE_USER)  
+      if(_Texch_t == CWP_FIELD_EXCH_RECV && _pointsCloudLocation == CWP_FIELD_VALUE_USER)  
         user_targets_gnum_compute();
     }
     else {
       if(_Texch_t == CWP_FIELD_EXCH_SEND) {
         _mapping_cpl -> _Texch_t =  CWP_FIELD_EXCH_RECV;
-        if(_isCoupledRank && _mappingLocation == CWP_FIELD_VALUE_USER) 
+        if(_isCoupledRank && _pointsCloudLocation == CWP_FIELD_VALUE_USER) 
           _mapping_cpl -> user_targets_gnum_compute();
       }
     }  
@@ -168,7 +167,6 @@ namespace cwipi {
         
         /* Localization compute, get and free*/
         localization_compute        (_id_dist); 
-        //while(1==1){}
         if(_Texch_t == CWP_FIELD_EXCH_RECV) localization_get(_id_dist)  ;
         PDM_dist_cloud_surf_free(_id_dist,1);
 
@@ -179,22 +177,21 @@ namespace cwipi {
         
         /* From a global number obtained the MPI rank and mesh partition of the element */
         /* Setting and request */                
-        if(_Texch_t == CWP_FIELD_EXCH_RECV) broadcasting_request(&_id_gnum_location);
-        if(_Texch_t == CWP_FIELD_EXCH_SEND) broadcasting_set    (&_id_gnum_location);
+        if(_Texch_t == CWP_FIELD_EXCH_RECV) triplet_location_request(&_id_gnum_location);
+        if(_Texch_t == CWP_FIELD_EXCH_SEND) triplet_location_set    (&_id_gnum_location);
         /* Compute, get and free*/ 
-        location_compute                   (_id_gnum_location);
-    //    while(1==1){}
-        if(_Texch_t == CWP_FIELD_EXCH_RECV) location_get(_id_gnum_location) ;
+        triplet_location_compute                   (_id_gnum_location);
+        if(_Texch_t == CWP_FIELD_EXCH_RECV) triplet_location_get(_id_gnum_location) ;
         PDM_gnum_location_free(_id_gnum_location,1);
 
         /* Initialization */
-        if(_Texch_t == CWP_FIELD_EXCH_RECV) filling_of_broadcasting_array();   
+        if(_Texch_t == CWP_FIELD_EXCH_RECV) filling_of_communication_tree_array();   
         /* targets_localization_idx_cpl allocation and init */   
         if(_Texch_t == CWP_FIELD_EXCH_SEND) initialization_of_reception_array();
         
         /*  Communication  of the communication tree index */
-        if(_Texch_t == CWP_FIELD_EXCH_RECV) broadcasting_index_communication() ;
-        if(_Texch_t == CWP_FIELD_EXCH_SEND) reception_index_communication() ;
+        if(_Texch_t == CWP_FIELD_EXCH_RECV) data_index_communication_send() ;
+        if(_Texch_t == CWP_FIELD_EXCH_SEND) data_index_communication_recv() ;
 
         /*  Communication of the communication tree */
         /* Preparation */
@@ -217,14 +214,14 @@ namespace cwipi {
           localization_get_cpl        (_id_dist) ;
           PDM_dist_cloud_surf_free(_id_dist,1);
               
-          broadcasting_set    (&_id_gnum_location);    
+          triplet_location_set    (&_id_gnum_location);    
     
-          location_compute                 (_id_gnum_location);     
-          location_get_cpl (_id_gnum_location);
+          triplet_location_compute                 (_id_gnum_location);     
+          triplet_location_get_cpl (_id_gnum_location);
 
           PDM_gnum_location_free(_id_gnum_location,1);
 
-          _mapping_cpl -> filling_of_broadcasting_array(); 
+          _mapping_cpl -> filling_of_communication_tree_array(); 
           initialization_of_reception_array();
           both_index_communication() ;
 
@@ -240,13 +237,6 @@ namespace cwipi {
         /*  Localization for uncoupled ranks processes  **/
         /*************************************************/  
         
-        /*
-          TODO: Problème dans le localization_null_setting dans la gestion du nb_part
-          Choisir nb_part ou nb_part_cpl en fonction de si le code est envoyeur ou receveur.
-          Vérif pour broadcasting_set_null aussi
-        */
-        
-     //   localization_null_setting(&_id_dist);   
         if(_Texch_t == CWP_FIELD_EXCH_SEND) localization_null_setting_send(&_id_dist);
         if(_Texch_t == CWP_FIELD_EXCH_RECV) localization_null_setting_recv(&_id_dist);
         
@@ -260,14 +250,14 @@ namespace cwipi {
         
         if(_Texch_t == CWP_FIELD_EXCH_SEND) initialization_of_reception_array();
         
-        if(_Texch_t == CWP_FIELD_EXCH_RECV) broadcasting_null_recv(&_id_gnum_location);
-        if(_Texch_t == CWP_FIELD_EXCH_SEND) broadcasting_null_send(&_id_gnum_location);
+        if(_Texch_t == CWP_FIELD_EXCH_RECV) triplet_location_null_recv(&_id_gnum_location);
+        if(_Texch_t == CWP_FIELD_EXCH_SEND) triplet_location_null_send(&_id_gnum_location);
 
-        location_compute                   (_id_gnum_location);   
+        triplet_location_compute                   (_id_gnum_location);   
         PDM_gnum_location_free(_id_gnum_location,1);
 
         /*  Communication of the communication tree index for uncoupled ranks processes*/        
-        broadcasting_index_null();
+        data_index_communication_null();
         /*  Communication of the communication tree for uncoupled ranks processes*/
         data_communication_null();
       }
@@ -296,17 +286,17 @@ namespace cwipi {
     _n_tot_vtx         =0;   
     _n_tot_user_targets=0;   
     for(int i_part =0;i_part<_nb_part;i_part++) {   
-      if (_mappingLocation == CWP_FIELD_VALUE_CELL_POINT && _Texch_t == CWP_FIELD_EXCH_RECV ) {
+      if (_pointsCloudLocation == CWP_FIELD_VALUE_CELL_POINT && _Texch_t == CWP_FIELD_EXCH_RECV ) {
         _n_target   [i_part]     = _mesh -> getPartNElts(i_part); 
         _gnum_target[i_part]     = _mesh -> GNumEltsGet(i_part);   
         _coords_target [i_part]  = _mesh -> eltCentersGet(i_part);             
       }
-      else if (_mappingLocation == CWP_FIELD_VALUE_NODE && _Texch_t == CWP_FIELD_EXCH_RECV) {
+      else if (_pointsCloudLocation == CWP_FIELD_VALUE_NODE && _Texch_t == CWP_FIELD_EXCH_RECV) {
         _n_target      [i_part]  = _mesh -> getPartNVertex (i_part);
         _gnum_target   [i_part]  = _mesh -> getVertexGNum  (i_part);
         _coords_target [i_part]  = _mesh -> getVertexCoords(i_part);        
       }      
-      else if (_mappingLocation == CWP_FIELD_VALUE_USER && _Texch_t == CWP_FIELD_EXCH_RECV ) {
+      else if (_pointsCloudLocation == CWP_FIELD_VALUE_USER && _Texch_t == CWP_FIELD_EXCH_RECV ) {
         //   printf("info_mesh _n_target [i_part] %i _n_user_targets[i_part] %i\n",_n_target[i_part],_n_user_targets[i_part]);
            _n_target      [i_part]  = _n_user_targets     [i_part];
         //   printf("info_mesh _n_target [i_part] %i _n_user_targets[i_part] %i\n",_n_target[i_part],_n_user_targets[i_part]);        
@@ -325,13 +315,13 @@ namespace cwipi {
     } //end loop on i_part 
 
 
-    if (_mappingLocation == CWP_FIELD_VALUE_CELL_POINT && _Texch_t == CWP_FIELD_EXCH_RECV) {
+    if (_pointsCloudLocation == CWP_FIELD_VALUE_CELL_POINT && _Texch_t == CWP_FIELD_EXCH_RECV) {
       _n_tot_target = _n_tot_elt;
     }
-    else if (_mappingLocation == CWP_FIELD_VALUE_NODE && _Texch_t == CWP_FIELD_EXCH_RECV) {
+    else if (_pointsCloudLocation == CWP_FIELD_VALUE_NODE && _Texch_t == CWP_FIELD_EXCH_RECV) {
       _n_tot_target = _n_tot_vtx;
     }   
-    else if (_mappingLocation == CWP_FIELD_VALUE_USER && _Texch_t == CWP_FIELD_EXCH_RECV) {
+    else if (_pointsCloudLocation == CWP_FIELD_VALUE_USER && _Texch_t == CWP_FIELD_EXCH_RECV) {
       _n_tot_target = _n_tot_user_targets;
     }   
 
@@ -417,11 +407,11 @@ void MappingLocation::mesh_cpl_info_get() {
 
 
     
-  void MappingLocation::init(Coupling *coupling, CWP_Field_value_t mappingLocation, int slave) {
+  void MappingLocation::init(Coupling *coupling, CWP_Field_value_t pointsCloudLocation, int slave) {
     _mesh   = coupling -> meshGet();
     _visu   = coupling -> visuGet();
     _referenceFieldsDB = coupling -> fieldsGet();
-    _mappingLocation = mappingLocation; 
+    _pointsCloudLocation = pointsCloudLocation; 
     _cpl = coupling;
     _id_dist = -1;
     _localCodeProperties = _cpl -> localCodePropertiesGet();
@@ -505,7 +495,7 @@ void MappingLocation::mesh_cpl_info_get() {
     string cplId = coupling -> IdGet();     
     if(_both_codes_are_local == 1 && slave == 0) {
       Coupling coupling_cpl = cplDB -> couplingGet(*_coupledCodeProperties,cplId);
-      _mapping_cpl = dynamic_cast<MappingLocation*>( coupling_cpl.mappingGet(_mappingLocation ) );
+      _mapping_cpl = dynamic_cast<MappingLocation*>( coupling_cpl.mappingGet(_pointsCloudLocation ) );
       _mapping_cpl -> _mapping_cpl = this;
     }
     
@@ -569,12 +559,6 @@ void MappingLocation::mesh_cpl_info_get() {
     
     if (interpolatedData != NULL) free(interpolatedData);
     interpolatedData = (void*) malloc( dataTypeSize * nComponent*_n_tot_target_cpl);
-
-/*  |               proc 1             ||             proc 2              ||
-    | part 1  | part 2 |  ... | part N || part 1  | part 2 |  ... | part N||
-    | 1 2 3 4   6 7 8 9   ...             123  124  125 126   ...
-
-*/
    
     for(int i_part=0;i_part<_nb_part;i_part++){
     
@@ -773,9 +757,6 @@ void MappingLocation::issend(Field* referenceField) {
                       _unionComm,&request);
 
 
- //   printf("ISSEND %s referenceField -> fieldIDIntGet() %i rank %i both %i request %i\n",
-   // referenceField ->fieldIDGet().c_str(),referenceField -> fieldIDIntGet(),_rank,_both_codes_are_local,request);
-
        free(count_recv);
        free(displ_recv);
        free(count_send);
@@ -947,72 +928,8 @@ void MappingLocation::null_exchange_for_uncoupled_process() {
     } //end of if
   }
 
-void MappingLocation::localization_null_setting(int* id_dist) {
-
-    /*
-     TODO: Intéressant pour la suite
-     Inclure dans mesh_dist et autre la possibilité de définir plusieurs surfaces ...
-
-   */
-
-    /* Paradigm mesh localisation _distance creation */
-    *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_unionComm );
-
-    PDM_dist_cloud_surf_n_part_cloud_set(*id_dist,   0, _nb_part);  
-
-    PDM_dist_cloud_surf_surf_mesh_global_data_set (*id_dist,
-                                             _n_g_elt_cpl_over_part,
-                                             _n_g_vtx_cpl_over_part,
-                                             _nb_part_cpl);  
-                                             
-    //printf("ENULL %I64d %I64d \n",_n_g_elt_cpl_over_part,_n_g_vtx_cpl_over_part);
-
-    for(int i_part =0;i_part<_nb_part;i_part++) {   
-      int n_elt_null = 0;    
-      double*      coords    = (double*)malloc(3*sizeof(double)*n_elt_null);
-      CWP_g_num_t* gnum_elt  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*n_elt_null);
-
-      PDM_dist_cloud_surf_cloud_set (*id_dist,
-                              0,
-                              i_part,
-                              0,
-                              coords,
-                              gnum_elt
-                             );
-    }
- 
-      for(int i_part =0; i_part<_nb_part_cpl; i_part++) {     
-        int n_elt_null = 0;
-        int*         connecIdx = (int*)malloc(sizeof(int)*(1+n_elt_null));
-        int*         connec    = (int*)malloc(sizeof(int)*n_elt_null);
-        
-        double*      coords    = (double*)malloc(3*sizeof(double)*n_elt_null);
-        CWP_g_num_t* gnum_vtx  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*n_elt_null);
-        CWP_g_num_t* gnum_elt  = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t)*n_elt_null);
-        
-        connecIdx[0]=0;
-
-        PDM_dist_cloud_surf_surf_mesh_part_set (*id_dist,
-                                          i_part,
-                                          0,
-                                          connecIdx,
-                                          connec,
-                                          gnum_elt,
-                                          0,
-                                          coords,
-                                          gnum_vtx);                           
-     }      
- }
-
-
 
 void MappingLocation::localization_null_setting_send(int* id_dist) {
-
-    /*
-     TODO: Intéressant pour la suite
-     Inclure dans mesh_dist et autre la possibilité de définir plusieurs surfaces ...
-
-   */
 
     /* Paradigm mesh localisation _distance creation */
     *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_unionComm );
@@ -1070,11 +987,6 @@ void MappingLocation::localization_null_setting_send(int* id_dist) {
 
 void MappingLocation::localization_null_setting_recv(int* id_dist) {
 
-    /*
-     TODO: Intéressant pour la suite
-     Inclure dans mesh_dist et autre la possibilité de définir plusieurs surfaces ...
-
-   */
 
     /* Paradigm mesh localisation _distance creation */
     *id_dist   = PDM_dist_cloud_surf_create( PDM_MESH_NATURE_SURFACE_MESH, 1, _pdm_unionComm );
@@ -1206,7 +1118,7 @@ void MappingLocation::localization_null_setting_recv(int* id_dist) {
     PDM_dist_cloud_surf_dump_times(id_dist);
   }
 
- void MappingLocation::broadcasting_request(int* id_gnum_location) {
+ void MappingLocation::triplet_location_request(int* id_gnum_location) {
  
   *id_gnum_location = PDM_gnum_location_create(_nb_part_cpl,_nb_part, _pdm_unionComm);
 
@@ -1240,7 +1152,7 @@ void MappingLocation::localization_null_setting_recv(int* id_dist) {
  }
 
 
- void MappingLocation::broadcasting_set(int* id_gnum_location) {
+ void MappingLocation::triplet_location_set(int* id_gnum_location) {
  
   *id_gnum_location = PDM_gnum_location_create(_nb_part,_nb_part_cpl, _pdm_unionComm);
 
@@ -1263,23 +1175,7 @@ void MappingLocation::localization_null_setting_recv(int* id_dist) {
   else {
     for(int i_part =0; i_part<_nb_part_cpl; i_part++) {     
       int n_target_cpl = _mapping_cpl -> _n_target[i_part];
-   //   CWP_g_num_t* toto= ((*_mapping_cpl)._closest_elt_gnum)[i_part];
-     // double* tata= ((*_mapping_cpl)._distance)[i_part];
-    //   for(int i=0; i< n_target_cpl; i++) {
-        // if(dist_target[i] >= 1000.0 || gnum_target[i]>10000 || gnum_target[i]<0) {
-           
-   /*        printf("CPL_closest_elt_gnum[i_part][%i] rank %i %I64d %I64d coords %f %f %f _distance %f N %i\n",
-           i,_rank,
-           toto[i],
-           closest_elt[i],
-            coords_target[3*i],
-            coords_target[3*i+1],
-            coords_target[3*i+2],
-            tata[i],
-           n_target_cpl);*/
-       //  }
-        
-       PDM_gnum_location_requested_elements_set(*id_gnum_location,i_part, n_target_cpl, _mapping_cpl -> _closest_elt_gnum[i_part]);
+      PDM_gnum_location_requested_elements_set(*id_gnum_location,i_part, n_target_cpl, _mapping_cpl -> _closest_elt_gnum[i_part]);
    }//loop on part
   }//end if
  }
@@ -1288,7 +1184,7 @@ void MappingLocation::localization_null_setting_recv(int* id_dist) {
   /*************************************************************************************/
 
 
-void MappingLocation::broadcasting_null_send(int* id_gnum_location) {
+void MappingLocation::triplet_location_null_send(int* id_gnum_location) {
  
   *id_gnum_location = PDM_gnum_location_create(_nb_part,_nb_part_cpl, _pdm_unionComm);
 
@@ -1304,7 +1200,7 @@ void MappingLocation::broadcasting_null_send(int* id_gnum_location) {
  }
 
 
-void MappingLocation::broadcasting_null_recv(int* id_gnum_location) {
+void MappingLocation::triplet_location_null_recv(int* id_gnum_location) {
  
   *id_gnum_location = PDM_gnum_location_create(_nb_part_cpl,_nb_part, _pdm_unionComm);
 
@@ -1382,12 +1278,12 @@ void MappingLocation::broadcasting_null_recv(int* id_gnum_location) {
  /*************************************************************************************/
   /*************************************************************************************/
  
- void MappingLocation::location_compute(int id_gnum_location) {
+ void MappingLocation::triplet_location_compute(int id_gnum_location) {
     PDM_gnum_location_compute(id_gnum_location);  
  }
 
 
- void MappingLocation::location_get(int id_gnum_location) {
+ void MappingLocation::triplet_location_get(int id_gnum_location) {
 
   _target_proc_part_num_idx =(int**)malloc(sizeof(int*)*_nb_part);
   _target_proc_part_num     =(int**)malloc(sizeof(int*)*_nb_part);
@@ -1404,7 +1300,7 @@ void MappingLocation::broadcasting_null_recv(int* id_gnum_location) {
 
 
 
-  void MappingLocation::location_get_cpl(int id_gnum_location) {
+  void MappingLocation::triplet_location_get_cpl(int id_gnum_location) {
     _mapping_cpl ->_target_proc_part_num_idx =(int**)malloc(sizeof(int*)*_nb_part_cpl);
     _mapping_cpl ->_target_proc_part_num     =(int**)malloc(sizeof(int*)*_nb_part_cpl);
 
@@ -1417,7 +1313,7 @@ void MappingLocation::broadcasting_null_recv(int* id_gnum_location) {
     }
   }// End locate_cell_point
 
- void MappingLocation::filling_of_broadcasting_array() {
+ void MappingLocation::filling_of_communication_tree_array() {
 
   // if(_targets_localization_idx==NULL) {
     _targets_localization_idx   =(int**)malloc(sizeof(int*)*_n_ranks_g);
@@ -1550,7 +1446,7 @@ void MappingLocation::broadcasting_null_recv(int* id_gnum_location) {
  } 
 
 
- void MappingLocation::broadcasting_index_null() {
+ void MappingLocation::data_index_communication_null() {
  
    std::vector<int> connectable = *_connectableRanks_cpl;
    
@@ -1613,8 +1509,6 @@ void MappingLocation::broadcasting_null_recv(int* id_gnum_location) {
    
  } 
 
- void MappingLocation::broadcasting_index_communication_async() {
- } 
 
  void MappingLocation::both_index_communication() {
 
@@ -1647,7 +1541,7 @@ void MappingLocation::broadcasting_null_recv(int* id_gnum_location) {
 
 
 
- void MappingLocation::broadcasting_index_communication() {
+ void MappingLocation::data_index_communication_send() {
  
    int* sbuffer = (int*) malloc(sizeof(int)*_n_ranks_g*_nb_part_cpl);
    for(int i_proc=0;i_proc<_n_ranks_g;i_proc++)
@@ -1672,7 +1566,7 @@ void MappingLocation::broadcasting_null_recv(int* id_gnum_location) {
  } 
 
 
- void MappingLocation::reception_index_communication() {
+ void MappingLocation::data_index_communication_recv() {
 
    std::vector<int> connectable = *_connectableRanks_cpl;
 
@@ -1708,10 +1602,6 @@ void MappingLocation::broadcasting_null_recv(int* id_gnum_location) {
  } 
 
 
-
- void MappingLocation::reception_index_communication_async() {
- }
- 
  
  void MappingLocation::prepare_data_communication_send() {
   
@@ -1799,14 +1689,6 @@ void MappingLocation::broadcasting_null_recv(int* id_gnum_location) {
    MPI_Wait(&rreq,&stat); 
    free(count_send);
    free(disp_send );
- 
- 
- /* 
-  _IAlltoallIndexRecv((void*)_targets_localization_data_cpl, _targets_localization_data_count_recv, _targets_localization_data_disp_recv, 
-                  MPI_BYTE,
-                  _unionComm, *_connectableRanks_cpl);
-                  
-  */
                   
   }
 

@@ -40,6 +40,9 @@ namespace cwipi {
     double       distance       ;    
   };
 
+
+  static const char *CWP_Field_exch_t_str [] = {"CWP_FIELD_EXCH_SEND","CWP_FIELD_EXCH_RECV","CWP_FIELD_EXCH_SENDRECV"};
+
   class Mesh;
   class Field;  
   class Visu;
@@ -71,7 +74,7 @@ namespace cwipi {
 
     virtual ~Mapping();
 
-    virtual void init(Coupling *coupling, CWP_Field_value_t mappingLocation,int slave) =0;
+    virtual void init(Coupling *coupling, CWP_Field_value_t pointsCloudLocation,int slave) =0;
 
     virtual void compute(CWP_Field_exch_t Texch_t) =0;
 

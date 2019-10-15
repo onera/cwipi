@@ -121,7 +121,7 @@ namespace cwipi {
     int 
     nUncomputedTargetsGet
     (
-      const CWP_Field_value_t mappingLocation,
+      const CWP_Field_value_t pointsCloudLocation,
       const int  i_part
     ) ;
 
@@ -213,7 +213,7 @@ namespace cwipi {
     void 
     mappingCompute
     (
-     CWP_Field_value_t mappingLocation,
+     CWP_Field_value_t pointsCloudLocation,
      CWP_Field_exch_t exchange_type
     );
 

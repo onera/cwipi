@@ -871,7 +871,7 @@ CWP_N_uncomputed_tgts_get
 (
  const char *local_code_name,
  const char *cpl_id,
- const CWP_Field_value_t mappingLocation,
+ const CWP_Field_value_t pointsCloudLocation,
  const int  i_part
 );
 

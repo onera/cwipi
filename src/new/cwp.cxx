@@ -722,13 +722,13 @@ CWP_N_uncomputed_tgts_get
 (
  const char *local_code_name,
  const char *cpl_id,
- const CWP_Field_value_t mappingLocation,
+ const CWP_Field_value_t pointsCloudLocation,
  const int  i_part
 )
 {
    cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 
-   return cpl.nUncomputedTargetsGet(mappingLocation,i_part);
+   return cpl.nUncomputedTargetsGet(pointsCloudLocation,i_part);
 }
 
 
@@ -1030,21 +1030,21 @@ CWP_N_uncomputed_tgts_get
      
       // Iteration over the possilbe cloud points type
       for(size_t i_location=0; i_location < locationV.size(); i_location++){
-        CWP_Field_value_t mappingLocation = locationV[i_location];
+        CWP_Field_value_t pointsCloudLocation = locationV[i_location];
         int mappingComputeSend  = 0;
         int mappingComputeRcv = 0;
         
-        if(exchangeTypeByLocation[ static_cast<int>( mappingLocation ) ] == 1) {
+        if(exchangeTypeByLocation[ static_cast<int>( pointsCloudLocation ) ] == 1) {
           mappingComputeSend = 1;
         }
-        else if(exchangeTypeByLocation[ static_cast<int>( mappingLocation ) ] == 2) {
+        else if(exchangeTypeByLocation[ static_cast<int>( pointsCloudLocation ) ] == 2) {
           mappingComputeRcv = 1;
         }
-        else if(exchangeTypeByLocation[ static_cast<int>( mappingLocation ) ] == 3) {
+        else if(exchangeTypeByLocation[ static_cast<int>( pointsCloudLocation ) ] == 3) {
           mappingComputeSend = 1;
           mappingComputeRcv  = 1;        
         }
-        else if(exchangeTypeByLocation[ static_cast<int>( mappingLocation ) ] == 0) {
+        else if(exchangeTypeByLocation[ static_cast<int>( pointsCloudLocation ) ] == 0) {
           mappingComputeSend = 0;
           mappingComputeRcv  = 0;        
         }        
@@ -1057,50 +1057,50 @@ CWP_N_uncomputed_tgts_get
              
               cwipi::Coupling& cpl_cpl = _cpl_get(cpl.coupledCodePropertiesGet() ->nameGet().c_str(),cpl_id);
              
-              cpl.mappingCompute(mappingLocation, CWP_FIELD_EXCH_SEND);        
-              cpl_cpl.mappingCompute(mappingLocation,CWP_FIELD_EXCH_RECV);   
+              cpl.mappingCompute(pointsCloudLocation, CWP_FIELD_EXCH_SEND);        
+              cpl_cpl.mappingCompute(pointsCloudLocation,CWP_FIELD_EXCH_RECV);   
               
-              cpl.mappingCompute(mappingLocation, CWP_FIELD_EXCH_RECV);        
-              cpl_cpl.mappingCompute(mappingLocation,CWP_FIELD_EXCH_SEND);   
+              cpl.mappingCompute(pointsCloudLocation, CWP_FIELD_EXCH_RECV);        
+              cpl_cpl.mappingCompute(pointsCloudLocation,CWP_FIELD_EXCH_SEND);   
              }               
              else if (both_local == 0) {
-              cpl.mappingCompute(mappingLocation, CWP_FIELD_EXCH_SEND); 
-              cpl.mappingCompute(mappingLocation, CWP_FIELD_EXCH_RECV); 
+              cpl.mappingCompute(pointsCloudLocation, CWP_FIELD_EXCH_SEND); 
+              cpl.mappingCompute(pointsCloudLocation, CWP_FIELD_EXCH_RECV); 
             }
           }
           else {
             if (both_local == 0) {
-              cpl.mappingCompute(mappingLocation, CWP_FIELD_EXCH_RECV); 
-              cpl.mappingCompute(mappingLocation, CWP_FIELD_EXCH_SEND); 
+              cpl.mappingCompute(pointsCloudLocation, CWP_FIELD_EXCH_RECV); 
+              cpl.mappingCompute(pointsCloudLocation, CWP_FIELD_EXCH_SEND); 
             }          
           }
-         // printf("mappingLocation %s rank %i %i %i id<id_cpl %i\n", CWP_Field_value_t_str[static_cast<int>( mappingLocation )],rank, mappingComputeSend, mappingComputeRcv,id<id_cpl );
+         // printf("pointsCloudLocation %s rank %i %i %i id<id_cpl %i\n", CWP_Field_value_t_str[static_cast<int>( pointsCloudLocation )],rank, mappingComputeSend, mappingComputeRcv,id<id_cpl );
            
         }
         else if (mappingComputeRcv == 1 && mappingComputeSend == 0) {
           exchange_type     = CWP_FIELD_EXCH_RECV ;   
           exchange_type_cpl = CWP_FIELD_EXCH_SEND ;
           if(both_local == 1 && id < id_cpl) {
-            cpl.mappingCompute(mappingLocation, exchange_type);        
+            cpl.mappingCompute(pointsCloudLocation, exchange_type);        
             cwipi::Coupling& cpl_cpl = _cpl_get(cpl.coupledCodePropertiesGet() ->nameGet().c_str(),cpl_id);
-            cpl_cpl.mappingCompute(mappingLocation, exchange_type_cpl);   
+            cpl_cpl.mappingCompute(pointsCloudLocation, exchange_type_cpl);   
          }               
           else if (both_local == 0) {
-            cpl.mappingCompute(mappingLocation, exchange_type); 
-            //printf("mappingLocation %s rank %i %i %i\n", CWP_Field_value_t_str[static_cast<int>( mappingLocation )],rank, mappingComputeSend, mappingComputeRcv );
+            cpl.mappingCompute(pointsCloudLocation, exchange_type); 
+            //printf("pointsCloudLocation %s rank %i %i %i\n", CWP_Field_value_t_str[static_cast<int>( pointsCloudLocation )],rank, mappingComputeSend, mappingComputeRcv );
           }
         }
         else if (mappingComputeSend == 1 && mappingComputeRcv == 0) {
           exchange_type     = CWP_FIELD_EXCH_SEND ;
           exchange_type_cpl = CWP_FIELD_EXCH_RECV ;              
           if(both_local == 1 && id < id_cpl) {
-            cpl.mappingCompute(mappingLocation, exchange_type); 
+            cpl.mappingCompute(pointsCloudLocation, exchange_type); 
             cwipi::Coupling& cpl_cpl = _cpl_get(cpl.coupledCodePropertiesGet() ->nameGet().c_str(),cpl_id);
-            cpl_cpl.mappingCompute(mappingLocation, exchange_type_cpl);   
+            cpl_cpl.mappingCompute(pointsCloudLocation, exchange_type_cpl);   
           }               
           else if (both_local == 0) {
-            cpl.mappingCompute(mappingLocation, exchange_type); 
-           // printf("mappingLocation %s rank %i %i %i\n", CWP_Field_value_t_str[static_cast<int>( mappingLocation )],rank, mappingComputeSend, mappingComputeRcv );       
+            cpl.mappingCompute(pointsCloudLocation, exchange_type); 
+           // printf("pointsCloudLocation %s rank %i %i %i\n", CWP_Field_value_t_str[static_cast<int>( pointsCloudLocation )],rank, mappingComputeSend, mappingComputeRcv );       
           } 
         }     
        if((both_local == 1 && id < id_cpl) || both_local == 0) MPI_Barrier(unionComm);
@@ -1473,7 +1473,7 @@ CWP_Mesh_interf_shared_fvm_nodal
 
 
  CWP_Field_value_t
- CWP_Field_location_get
+ CWP_Field_triplet_location_get
  (
   const char                  *local_code_name,
   const char                  *cpl_id,
