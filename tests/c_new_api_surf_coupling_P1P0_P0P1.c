@@ -441,7 +441,7 @@ int main
                     "c_new_api_surf_cpl_P1P0_P0P1",  // Coupling id
                     codeCoupledName[i_code],         // Coupled application id
                     CWP_COMM_PAR_WITH_PART,  // Coupling type
-                    CWP_GEOM_LOCATION,       // Solver type
+                    CWP_MAPPING_LOCATION,       // Solver type
                     nb_part,                 // Partition number
                     CWP_DISPLACEMENT_STATIC, // Mesh type
                     CWP_FREQ_CPL_TIME_STEP); // Postprocessing frequency
@@ -703,11 +703,11 @@ int main
   int n_uncomputed_tgt;
 
   
-  printf("Before Geometry compute %i\n",rank);
+  printf("Before Mapping compute %i\n",rank);
 
-  CWP_Geom_compute("c_new_api_surf_cpl_P1P0_P0P1");
+  CWP_Mapping_compute("c_new_api_surf_cpl_P1P0_P0P1");
 
-  printf("After Geometry compute %i\n",rank);
+  printf("After Mapping compute %i\n",rank);
  // while(1==1){}
 
   MPI_Barrier(MPI_COMM_WORLD);

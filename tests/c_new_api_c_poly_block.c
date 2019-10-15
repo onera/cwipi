@@ -252,13 +252,13 @@ int main
   printf("Coupling creation\n");
   if ( rank == 0 ) {
     CWP_Cpl_create ("cpoly", cpl_id1, "code2", CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_GEOM_LOCATION, 1,
+                    CWP_MAPPING_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   }
                     
   if ( rank==1 ) {                   
     CWP_Cpl_create ("code2", cpl_id1, "cpoly", CWP_COMM_PAR_WITHOUT_PART,
-                    CWP_GEOM_LOCATION, 1,
+                    CWP_MAPPING_LOCATION, 1,
                     CWP_DISPLACEMENT_STATIC, CWP_FREQ_CPL_TIME_STEP);
   }                
   printf("Coupling created %i\n",currentRank);

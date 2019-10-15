@@ -61,8 +61,8 @@
 #include "pdm_printf.h"
 #include "pdm_error.h"
 
-#include "geometry.hxx"
-#include "geomLocation.hxx"
+#include "mapping.hxx"
+#include "mappingLocation.hxx"
 
  #include "mesh.hxx"
  #include "block.hxx"
@@ -309,15 +309,15 @@ CWP_Init
   factoryComm.Register<cwipi::CommSeq>(CWP_COMM_SEQ);
 
   /*
-   * Create geometry abstract factory 
+   * Create mapping abstract factory 
    */
 
-  cwipi::Factory<cwipi::Geometry, CWP_Geom_t> &factoryGeom = 
-    cwipi::Factory<cwipi::Geometry, CWP_Geom_t>::getInstance();
+  cwipi::Factory<cwipi::Mapping, CWP_Mapping_t> &factoryMapping = 
+    cwipi::Factory<cwipi::Mapping, CWP_Mapping_t>::getInstance();
 
-  factoryGeom.Register<cwipi::GeomLocation>(CWP_GEOM_LOCATION);
-  // factoryGeom.Register<GeomIntersection>(CWP_GEOM_INTERSECTION);
-  // factoryGeom.Register<GeomClosestPoint>(CWP_GEOM_CLOSEST_POINT);
+  factoryMapping.Register<cwipi::MappingLocation>(CWP_MAPPING_LOCATION);
+  // factoryMapping.Register<MappingIntersection>(CWP_MAPPING_INTERSECTION);
+  // factoryMapping.Register<MappingClosestPoint>(CWP_MAPPING_CLOSEST_POINT);
 
   /*
    * Create block abstract factory 
@@ -629,7 +629,7 @@ CWP_Properties_dump
  * \param [in]  cpl_id              Coupling identifier
  * \param [in]  coupled_code_name   Distant or local coupled code name
  * \param [in]  comm_type           Communication type
- * \param [in]  geom_algo           Geometric algorithm
+ * \param [in]  mapping_algo           Mappingetric algorithm
  * \param [in]  n_part              Number of interface partition 
  * \param [in]  displacement        Mesh displacement
  * \param [in]  recv_freq_type      Type of receiving frequency
@@ -643,7 +643,7 @@ CWP_Cpl_create
  const char               *cpl_id,
  const char               *coupled_code_name,
  const CWP_Comm_t          comm_type, 
- const CWP_Geom_t          geom_algo,
+ const CWP_Mapping_t          mapping_algo,
  const int                 n_part,
  const CWP_Displacement_t  displacement,   
  const CWP_Freq_t          recv_freq_type 
@@ -665,7 +665,7 @@ CWP_Cpl_create
                             coupling_name_str,
                             properties.codePropertiesGet(coupled_application_str),
                             comm_type,
-                            geom_algo,
+                            mapping_algo,
                             n_part,
                             displacement,
                             recv_freq_type);
@@ -722,13 +722,13 @@ CWP_N_uncomputed_tgts_get
 (
  const char *local_code_name,
  const char *cpl_id,
- const CWP_Field_value_t geometryLocation,
+ const CWP_Field_value_t mappingLocation,
  const int  i_part
 )
 {
    cwipi::Coupling& cpl = _cpl_get(local_code_name,cpl_id);
 
-   return cpl.nUncomputedTargetsGet(geometryLocation,i_part);
+   return cpl.nUncomputedTargetsGet(mappingLocation,i_part);
 }
 
 
@@ -769,7 +769,7 @@ CWP_N_uncomputed_tgts_get
 
 
 // const double *
-// CWP_computed_tgts_dist_to_geom_get
+// CWP_computed_tgts_dist_to_mapping_get
 // (
 //  const char *cpl_id
 // )
@@ -808,14 +808,14 @@ CWP_N_uncomputed_tgts_get
  }
 
 /*----------------------------------------------------------------------------*
- * Functions about geometry                                                   *
+ * Functions about mapping                                                   *
  *----------------------------------------------------------------------------*/
 
 
 
   //TODO: Pourquoi ne pas mettre le nom du code local ?
   void 
-  CWP_Geom_compute (const char     *local_code_name,
+  CWP_Mapping_compute (const char     *local_code_name,
                     const char     *cpl_id
                    )
   { 
@@ -900,8 +900,8 @@ CWP_N_uncomputed_tgts_get
 
      int id     = cpl.localCodePropertiesGet()   -> idGet();
      int id_cpl = cpl.coupledCodePropertiesGet() -> idGet();
-     int slave  = cpl.geometryGet(CWP_FIELD_VALUE_NODE) -> slaveGet();
-     int both_local = cpl.geometryGet(CWP_FIELD_VALUE_NODE) -> bothLocalGet();
+     int slave  = cpl.mappingGet(CWP_FIELD_VALUE_NODE) -> slaveGet();
+     int both_local = cpl.mappingGet(CWP_FIELD_VALUE_NODE) -> bothLocalGet();
      if(both_local == 0 || (both_local == 1 && id < id_cpl) ){
      
       std::vector <int> tmp(3,0);
@@ -1030,77 +1030,77 @@ CWP_N_uncomputed_tgts_get
      
       // Iteration over the possilbe cloud points type
       for(size_t i_location=0; i_location < locationV.size(); i_location++){
-        CWP_Field_value_t geometryLocation = locationV[i_location];
-        int geomComputeSend  = 0;
-        int geomComputeRcv = 0;
+        CWP_Field_value_t mappingLocation = locationV[i_location];
+        int mappingComputeSend  = 0;
+        int mappingComputeRcv = 0;
         
-        if(exchangeTypeByLocation[ static_cast<int>( geometryLocation ) ] == 1) {
-          geomComputeSend = 1;
+        if(exchangeTypeByLocation[ static_cast<int>( mappingLocation ) ] == 1) {
+          mappingComputeSend = 1;
         }
-        else if(exchangeTypeByLocation[ static_cast<int>( geometryLocation ) ] == 2) {
-          geomComputeRcv = 1;
+        else if(exchangeTypeByLocation[ static_cast<int>( mappingLocation ) ] == 2) {
+          mappingComputeRcv = 1;
         }
-        else if(exchangeTypeByLocation[ static_cast<int>( geometryLocation ) ] == 3) {
-          geomComputeSend = 1;
-          geomComputeRcv  = 1;        
+        else if(exchangeTypeByLocation[ static_cast<int>( mappingLocation ) ] == 3) {
+          mappingComputeSend = 1;
+          mappingComputeRcv  = 1;        
         }
-        else if(exchangeTypeByLocation[ static_cast<int>( geometryLocation ) ] == 0) {
-          geomComputeSend = 0;
-          geomComputeRcv  = 0;        
+        else if(exchangeTypeByLocation[ static_cast<int>( mappingLocation ) ] == 0) {
+          mappingComputeSend = 0;
+          mappingComputeRcv  = 0;        
         }        
 
         CWP_Field_exch_t exchange_type    ;
         CWP_Field_exch_t exchange_type_cpl;
-        if (geomComputeRcv == 1 && geomComputeSend == 1 ) {
+        if (mappingComputeRcv == 1 && mappingComputeSend == 1 ) {
           if(id < id_cpl) {
              if(both_local == 1) {
              
               cwipi::Coupling& cpl_cpl = _cpl_get(cpl.coupledCodePropertiesGet() ->nameGet().c_str(),cpl_id);
              
-              cpl.geomCompute(geometryLocation, CWP_FIELD_EXCH_SEND);        
-              cpl_cpl.geomCompute(geometryLocation,CWP_FIELD_EXCH_RECV);   
+              cpl.mappingCompute(mappingLocation, CWP_FIELD_EXCH_SEND);        
+              cpl_cpl.mappingCompute(mappingLocation,CWP_FIELD_EXCH_RECV);   
               
-              cpl.geomCompute(geometryLocation, CWP_FIELD_EXCH_RECV);        
-              cpl_cpl.geomCompute(geometryLocation,CWP_FIELD_EXCH_SEND);   
+              cpl.mappingCompute(mappingLocation, CWP_FIELD_EXCH_RECV);        
+              cpl_cpl.mappingCompute(mappingLocation,CWP_FIELD_EXCH_SEND);   
              }               
              else if (both_local == 0) {
-              cpl.geomCompute(geometryLocation, CWP_FIELD_EXCH_SEND); 
-              cpl.geomCompute(geometryLocation, CWP_FIELD_EXCH_RECV); 
+              cpl.mappingCompute(mappingLocation, CWP_FIELD_EXCH_SEND); 
+              cpl.mappingCompute(mappingLocation, CWP_FIELD_EXCH_RECV); 
             }
           }
           else {
             if (both_local == 0) {
-              cpl.geomCompute(geometryLocation, CWP_FIELD_EXCH_RECV); 
-              cpl.geomCompute(geometryLocation, CWP_FIELD_EXCH_SEND); 
+              cpl.mappingCompute(mappingLocation, CWP_FIELD_EXCH_RECV); 
+              cpl.mappingCompute(mappingLocation, CWP_FIELD_EXCH_SEND); 
             }          
           }
-         // printf("geometryLocation %s rank %i %i %i id<id_cpl %i\n", CWP_Field_value_t_str[static_cast<int>( geometryLocation )],rank, geomComputeSend, geomComputeRcv,id<id_cpl );
+         // printf("mappingLocation %s rank %i %i %i id<id_cpl %i\n", CWP_Field_value_t_str[static_cast<int>( mappingLocation )],rank, mappingComputeSend, mappingComputeRcv,id<id_cpl );
            
         }
-        else if (geomComputeRcv == 1 && geomComputeSend == 0) {
+        else if (mappingComputeRcv == 1 && mappingComputeSend == 0) {
           exchange_type     = CWP_FIELD_EXCH_RECV ;   
           exchange_type_cpl = CWP_FIELD_EXCH_SEND ;
           if(both_local == 1 && id < id_cpl) {
-            cpl.geomCompute(geometryLocation, exchange_type);        
+            cpl.mappingCompute(mappingLocation, exchange_type);        
             cwipi::Coupling& cpl_cpl = _cpl_get(cpl.coupledCodePropertiesGet() ->nameGet().c_str(),cpl_id);
-            cpl_cpl.geomCompute(geometryLocation, exchange_type_cpl);   
+            cpl_cpl.mappingCompute(mappingLocation, exchange_type_cpl);   
          }               
           else if (both_local == 0) {
-            cpl.geomCompute(geometryLocation, exchange_type); 
-            //printf("geometryLocation %s rank %i %i %i\n", CWP_Field_value_t_str[static_cast<int>( geometryLocation )],rank, geomComputeSend, geomComputeRcv );
+            cpl.mappingCompute(mappingLocation, exchange_type); 
+            //printf("mappingLocation %s rank %i %i %i\n", CWP_Field_value_t_str[static_cast<int>( mappingLocation )],rank, mappingComputeSend, mappingComputeRcv );
           }
         }
-        else if (geomComputeSend == 1 && geomComputeRcv == 0) {
+        else if (mappingComputeSend == 1 && mappingComputeRcv == 0) {
           exchange_type     = CWP_FIELD_EXCH_SEND ;
           exchange_type_cpl = CWP_FIELD_EXCH_RECV ;              
           if(both_local == 1 && id < id_cpl) {
-            cpl.geomCompute(geometryLocation, exchange_type); 
+            cpl.mappingCompute(mappingLocation, exchange_type); 
             cwipi::Coupling& cpl_cpl = _cpl_get(cpl.coupledCodePropertiesGet() ->nameGet().c_str(),cpl_id);
-            cpl_cpl.geomCompute(geometryLocation, exchange_type_cpl);   
+            cpl_cpl.mappingCompute(mappingLocation, exchange_type_cpl);   
           }               
           else if (both_local == 0) {
-            cpl.geomCompute(geometryLocation, exchange_type); 
-           // printf("geometryLocation %s rank %i %i %i\n", CWP_Field_value_t_str[static_cast<int>( geometryLocation )],rank, geomComputeSend, geomComputeRcv );       
+            cpl.mappingCompute(mappingLocation, exchange_type); 
+           // printf("mappingLocation %s rank %i %i %i\n", CWP_Field_value_t_str[static_cast<int>( mappingLocation )],rank, mappingComputeSend, mappingComputeRcv );       
           } 
         }     
        if((both_local == 1 && id < id_cpl) || both_local == 0) MPI_Barrier(unionComm);
@@ -1110,7 +1110,7 @@ CWP_N_uncomputed_tgts_get
 
 
 // void 
-// CWP_geom_update
+// CWP_mapping_update
 // (
 //  const char     *cpl_id,
 //  const int       storage_id
@@ -1121,7 +1121,7 @@ CWP_N_uncomputed_tgts_get
 
 
 // void 
-// CWP_geom_properties_set
+// CWP_mapping_properties_set
 // (
 //  const char     *cpl_id,
 //  const char     *fmt,
@@ -1132,7 +1132,7 @@ CWP_N_uncomputed_tgts_get
 
 //   va_list pa;
 //   va_start(pa, fmt);
-//   cpl.geomPropertiesSet(fmt, &pa);
+//   cpl.mappingPropertiesSet(fmt, &pa);
 //   va_end(pa);
 // }
 

@@ -77,15 +77,15 @@ namespace cwipi {
    /**
    * \typedef FG
    * 
-   * \brief Geometry Factory
+   * \brief Mapping Factory
    *
-   *  A geometry \ref Factory wich makes \ref Geometry class objects.
-   *  The type of \ref Geometry objects build depends on the
-   *  geometry algorithm type \ref CWP_Geom_t; .
+   *  A mapping \ref Factory wich makes \ref Mapping class objects.
+   *  The type of \ref Mapping objects build depends on the
+   *  mapping algorithm type \ref CWP_Mapping_t; .
    *
    */
   
-  typedef Factory<Geometry, CWP_Geom_t> FG;
+  typedef Factory<Mapping, CWP_Mapping_t> FG;
 
 
 
@@ -95,7 +95,7 @@ namespace cwipi {
    const CWP_Comm_t           cplType,
    const CodeProperties       &localCodeProperties,
    const CodeProperties       &coupledCodeProperties,
-   const CWP_Geom_t           geomAlgo,
+   const CWP_Mapping_t           mappingAlgo,
    const int                  nPart,
    const CWP_Displacement_t   displacement,
    const CWP_Freq_t           recvFreqType,
@@ -106,7 +106,7 @@ namespace cwipi {
    _communication(*(FC::getInstance().CreateObject(cplType))),
    _localCodeProperties(localCodeProperties),
    _coupledCodeProperties(coupledCodeProperties),
-   _geometry(*new std::map <CWP_Field_value_t, Geometry*>()),   
+   _mapping(*new std::map <CWP_Field_value_t, Mapping*>()),   
    _mesh(*new Mesh(localCodeProperties.connectableCommGet(),NULL,nPart,displacement,this)),   
    _recvFreqType (recvFreqType),
    _visu(*new Visu(localCodeProperties.connectableCommGet(),displacement)), 
@@ -136,29 +136,29 @@ namespace cwipi {
         _mesh.setVisu(&_visu); 
         mesh_cpl->setVisu(visu_cpl);  
 
-        std::map <CWP_Field_value_t, Geometry*>* _geometry_cpl = distCpl.geometryGet();
+        std::map <CWP_Field_value_t, Mapping*>* _mapping_cpl = distCpl.mappingGet();
 
-        //Geometry initialization
-        //_geometry[CWP_FIELD_VALUE_CELL_MEAN] = FG::getInstance().CreateObject(geomAlgo);
-        _geometry[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(geomAlgo);
-        _geometry[CWP_FIELD_VALUE_NODE] = FG::getInstance().CreateObject(geomAlgo);
-        _geometry[CWP_FIELD_VALUE_USER] = FG::getInstance().CreateObject(geomAlgo);
+        //Mapping initialization
+        //_mapping[CWP_FIELD_VALUE_CELL_MEAN] = FG::getInstance().CreateObject(mappingAlgo);
+        _mapping[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(mappingAlgo);
+        _mapping[CWP_FIELD_VALUE_NODE] = FG::getInstance().CreateObject(mappingAlgo);
+        _mapping[CWP_FIELD_VALUE_USER] = FG::getInstance().CreateObject(mappingAlgo);
         
-        //(*_geometry_cpl)[CWP_FIELD_VALUE_CELL_MEAN]  = FG::getInstance().CreateObject(geomAlgo);
-        (*_geometry_cpl)[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(geomAlgo);
-        (*_geometry_cpl)[CWP_FIELD_VALUE_NODE]       = FG::getInstance().CreateObject(geomAlgo);
-        (*_geometry_cpl)[CWP_FIELD_VALUE_USER]       = FG::getInstance().CreateObject(geomAlgo);
+        //(*_mapping_cpl)[CWP_FIELD_VALUE_CELL_MEAN]  = FG::getInstance().CreateObject(mappingAlgo);
+        (*_mapping_cpl)[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(mappingAlgo);
+        (*_mapping_cpl)[CWP_FIELD_VALUE_NODE]       = FG::getInstance().CreateObject(mappingAlgo);
+        (*_mapping_cpl)[CWP_FIELD_VALUE_USER]       = FG::getInstance().CreateObject(mappingAlgo);
 
-        //Geometry initialization 
-        std::map <CWP_Field_value_t, Geometry*>::iterator it = _geometry_cpl->begin();
+        //Mapping initialization 
+        std::map <CWP_Field_value_t, Mapping*>::iterator it = _mapping_cpl->begin();
     
-        while (it != _geometry_cpl->end()) {    
+        while (it != _mapping_cpl->end()) {    
          (it -> second) -> init(&distCpl,it->first,1);
           it++;
         }
                
-        it = _geometry.begin();
-        while (it != _geometry.end()) {    
+        it = _mapping.begin();
+        while (it != _mapping.end()) {    
          (it -> second) -> init(this,it->first,0);
          it++;
         }           
@@ -195,15 +195,15 @@ namespace cwipi {
       
        _mesh.setVisu(&_visu);
 
-      //Geometry creation
-     // _geometry[CWP_FIELD_VALUE_CELL_MEAN] = FG::getInstance().CreateObject(geomAlgo);
-      _geometry[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(geomAlgo);
-      _geometry[CWP_FIELD_VALUE_NODE] = FG::getInstance().CreateObject(geomAlgo);
-      _geometry[CWP_FIELD_VALUE_USER] = FG::getInstance().CreateObject(geomAlgo);
+      //Mapping creation
+     // _mapping[CWP_FIELD_VALUE_CELL_MEAN] = FG::getInstance().CreateObject(mappingAlgo);
+      _mapping[CWP_FIELD_VALUE_CELL_POINT] = FG::getInstance().CreateObject(mappingAlgo);
+      _mapping[CWP_FIELD_VALUE_NODE] = FG::getInstance().CreateObject(mappingAlgo);
+      _mapping[CWP_FIELD_VALUE_USER] = FG::getInstance().CreateObject(mappingAlgo);
     
-      //Geometry initialization
-        std::map <CWP_Field_value_t, Geometry*>::iterator it = _geometry.begin();
-        while (it != _geometry.end()) {    
+      //Mapping initialization
+        std::map <CWP_Field_value_t, Mapping*>::iterator it = _mapping.begin();
+        while (it != _mapping.end()) {    
           (it -> second) -> init(this,it->first,0);
           it++;
         }
@@ -219,8 +219,8 @@ namespace cwipi {
        _visu.WriterStepEnd();
     }
        
-    std::map <CWP_Field_value_t, Geometry*>::iterator it = _geometry.begin();
-    while (it != _geometry.end()) {    
+    std::map <CWP_Field_value_t, Mapping*>::iterator it = _mapping.begin();
+    while (it != _mapping.end()) {    
        // delete it -> second;
         it++;
     }
@@ -235,7 +235,7 @@ namespace cwipi {
     }
     
     if(_localCodeProperties.isCoupledRank() && _visu.isCreated()) {
-      // _visu.GeomFree();
+      // _visu.MappingFree();
       
       delete _iteration;      
     }    
@@ -258,54 +258,54 @@ namespace cwipi {
        Field* field = it -> second;  
        if(_localCodeProperties.isCoupledRank()) {
          if(_localCodeProperties.idGet() < _coupledCodeProperties.idGet()) {
-            if(_geometry[field -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0){
-              _geometry[field -> associatedCloudPointTypeGet()] -> issend    ( field );
-              _geometry[field -> associatedCloudPointTypeGet()] -> waitIssend( field );
+            if(_mapping[field -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0){
+              _mapping[field -> associatedCloudPointTypeGet()] -> issend    ( field );
+              _mapping[field -> associatedCloudPointTypeGet()] -> waitIssend( field );
 
-              _geometry[field -> associatedCloudPointTypeGet()] -> irecv    ( field );
-              _geometry[field -> associatedCloudPointTypeGet()] -> waitIrecv( field );            
+              _mapping[field -> associatedCloudPointTypeGet()] -> irecv    ( field );
+              _mapping[field -> associatedCloudPointTypeGet()] -> waitIrecv( field );            
             }
             else {
               Coupling &distCpl = _cplDB.couplingGet(_coupledCodeProperties, _cplId);   
               map <std::string, Field *>::iterator it_recv = distCpl._fields.find(field_id);
               if (it_recv != distCpl._fields.end()) {
                 Field* field2 = it_recv -> second;   
-                _geometry[field -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange(field,field2);
-                _geometry[field -> associatedCloudPointTypeGet()] -> waitIssend( field );
-                distCpl._geometry[field -> associatedCloudPointTypeGet()] -> waitIrecv(field2);     
+                _mapping[field -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange(field,field2);
+                _mapping[field -> associatedCloudPointTypeGet()] -> waitIssend( field );
+                distCpl._mapping[field -> associatedCloudPointTypeGet()] -> waitIrecv(field2);     
                 
-                distCpl._geometry[field2 -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange(field2,field);
-                distCpl._geometry[field2 -> associatedCloudPointTypeGet()] -> waitIssend(field2);   
-                _geometry[field -> associatedCloudPointTypeGet()] -> waitIrecv( field );
+                distCpl._mapping[field2 -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange(field2,field);
+                distCpl._mapping[field2 -> associatedCloudPointTypeGet()] -> waitIssend(field2);   
+                _mapping[field -> associatedCloudPointTypeGet()] -> waitIrecv( field );
               }
             } // end if both_codes_are_local == 0
          }
          else {
-           if(_geometry[field -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0){      
-             _geometry[field -> associatedCloudPointTypeGet()] -> irecv    ( field );
-             _geometry[field -> associatedCloudPointTypeGet()] -> waitIrecv( field );
+           if(_mapping[field -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0){      
+             _mapping[field -> associatedCloudPointTypeGet()] -> irecv    ( field );
+             _mapping[field -> associatedCloudPointTypeGet()] -> waitIrecv( field );
 
-             _geometry[field -> associatedCloudPointTypeGet()] -> issend    ( field );
-             _geometry[field -> associatedCloudPointTypeGet()] -> waitIssend( field );           
+             _mapping[field -> associatedCloudPointTypeGet()] -> issend    ( field );
+             _mapping[field -> associatedCloudPointTypeGet()] -> waitIssend( field );           
            }
            else {           
              Coupling &distCpl = _cplDB.couplingGet(_coupledCodeProperties, _cplId);   
              map <std::string, Field *>::iterator it_recv = distCpl._fields.find(field_id);
              if (it_recv != distCpl._fields.end()) {
                Field* field2 = it_recv -> second;   
-               distCpl._geometry[field2 -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange(field2,field);
-               distCpl._geometry[field2 -> associatedCloudPointTypeGet()] -> waitIssend(field2);   
-               _geometry[field -> associatedCloudPointTypeGet()] -> waitIrecv( field );  
+               distCpl._mapping[field2 -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange(field2,field);
+               distCpl._mapping[field2 -> associatedCloudPointTypeGet()] -> waitIssend(field2);   
+               _mapping[field -> associatedCloudPointTypeGet()] -> waitIrecv( field );  
                
-               _geometry[field -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange(field,field2);
-               _geometry[field -> associatedCloudPointTypeGet()] -> waitIssend( field );
-               distCpl._geometry[field -> associatedCloudPointTypeGet()] -> waitIrecv(field2);                
+               _mapping[field -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange(field,field2);
+               _mapping[field -> associatedCloudPointTypeGet()] -> waitIssend( field );
+               distCpl._mapping[field -> associatedCloudPointTypeGet()] -> waitIrecv(field2);                
              }            
            } // end if both_codes_are_local == 0            
          }// end if _localCodeProperties.idGet() < _coupledCodeProperties.idGet()) 
        }
        else {
-         _geometry[field -> associatedCloudPointTypeGet()] -> null_exchange_for_uncoupled_process();     
+         _mapping[field -> associatedCloudPointTypeGet()] -> null_exchange_for_uncoupled_process();     
        }  // end if _localCodeProperties.isCoupledRank()      
      } //end if (it != _fields.end()) 
   }
@@ -323,8 +323,8 @@ namespace cwipi {
      if (it != _fields.end()) {
        Field* sendingField = it -> second;  
        if(_localCodeProperties.isCoupledRank()) {
-         if(_geometry[sendingField -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0){
-          _geometry[sendingField -> associatedCloudPointTypeGet()] -> issend(sendingField);
+         if(_mapping[sendingField -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0){
+          _mapping[sendingField -> associatedCloudPointTypeGet()] -> issend(sendingField);
           return;
          }
          else {
@@ -332,12 +332,12 @@ namespace cwipi {
           map <std::string, Field *>::iterator it_recv = distCpl._fields.find(sendingFieldID);
           if (it_recv != distCpl._fields.end()) {
             Field* recevingField = it_recv -> second;   
-            _geometry[sendingField -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange(sendingField,recevingField);
+            _mapping[sendingField -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange(sendingField,recevingField);
           }
         }
        }
        else {
-          _geometry[sendingField -> associatedCloudPointTypeGet()] -> null_exchange_for_uncoupled_process();
+          _mapping[sendingField -> associatedCloudPointTypeGet()] -> null_exchange_for_uncoupled_process();
        }
      }
   }
@@ -348,11 +348,11 @@ namespace cwipi {
        map <string, Field *>::iterator it = _fields.find(recevingFieldID);
        if (it != _fields.end()) {
          Field* recevingField = it -> second;   
-         if(_geometry[recevingField -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0 ){
+         if(_mapping[recevingField -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0 ){
            if(_localCodeProperties.isCoupledRank())
-             _geometry[recevingField -> associatedCloudPointTypeGet()] -> irecv(recevingField);
+             _mapping[recevingField -> associatedCloudPointTypeGet()] -> irecv(recevingField);
            else
-             _geometry[recevingField -> associatedCloudPointTypeGet()] -> null_exchange_for_uncoupled_process();
+             _mapping[recevingField -> associatedCloudPointTypeGet()] -> null_exchange_for_uncoupled_process();
          }
          return;
        }
@@ -433,20 +433,20 @@ namespace cwipi {
   
 
    void 
-   Coupling::geomCompute (CWP_Field_value_t geometryLocation, CWP_Field_exch_t exchange_type)
+   Coupling::mappingCompute (CWP_Field_value_t mappingLocation, CWP_Field_exch_t exchange_type)
    {  
-     _geometry[geometryLocation] -> compute(exchange_type);
+     _mapping[mappingLocation] -> compute(exchange_type);
      
    }
 
 
   int Coupling::nUncomputedTargetsGet
   (
-    const CWP_Field_value_t geometryLocation,
+    const CWP_Field_value_t mappingLocation,
     const int  i_part
   )
   {
-    return _geometry[geometryLocation] -> nUncomputedTargetsGet(i_part);
+    return _mapping[mappingLocation] -> nUncomputedTargetsGet(i_part);
   }
 
 
@@ -463,18 +463,18 @@ namespace cwipi {
      if (it != _fields.end()) {
        Field* sendingField = it -> second;   
        if(_localCodeProperties.isCoupledRank()) {     
-         if(_geometry[sendingField -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0){
-          _geometry[sendingField -> associatedCloudPointTypeGet()] -> waitIssend(sendingField);
+         if(_mapping[sendingField -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0){
+          _mapping[sendingField -> associatedCloudPointTypeGet()] -> waitIssend(sendingField);
           return;
          }
          else {
-          _geometry[sendingField -> associatedCloudPointTypeGet()] -> waitIssend(sendingField);
+          _mapping[sendingField -> associatedCloudPointTypeGet()] -> waitIssend(sendingField);
           Coupling &distCpl = _cplDB.couplingGet(_coupledCodeProperties, _cplId);   
           
           map <std::string, Field *>::iterator it_recv = distCpl.fieldsGet() -> find(sendingFieldID);
           if (it_recv != distCpl.fieldsGet() -> end() ) {
             Field* recevingField = it_recv -> second;   
-            distCpl._geometry[recevingField -> associatedCloudPointTypeGet()] -> waitIrecv(it_recv -> second);
+            distCpl._mapping[recevingField -> associatedCloudPointTypeGet()] -> waitIrecv(it_recv -> second);
             return;
           }
 
@@ -495,8 +495,8 @@ namespace cwipi {
 
      if (it != _fields.end()) {
        Field* recevingField = it -> second;
-       if(_geometry[recevingField -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0 && _localCodeProperties.isCoupledRank())   
-         _geometry[recevingField -> associatedCloudPointTypeGet()] -> waitIrecv(recevingField);
+       if(_mapping[recevingField -> associatedCloudPointTypeGet()] -> _both_codes_are_local == 0 && _localCodeProperties.isCoupledRank())   
+         _mapping[recevingField -> associatedCloudPointTypeGet()] -> waitIrecv(recevingField);
       }
    }
 
@@ -717,7 +717,7 @@ namespace cwipi {
 
 
   void Coupling::meshFinalize() {
-    _mesh.geomFinalize();
+    _mesh.mappingFinalize();
   }
         
   
@@ -762,7 +762,7 @@ namespace cwipi {
                                 const int n_pts,
                                 double    coord[] )
   {
-    _geometry[CWP_FIELD_VALUE_USER] -> user_target_points_set(i_part, n_pts, coord);
+    _mapping[CWP_FIELD_VALUE_USER] -> user_target_points_set(i_part, n_pts, coord);
   }
   
   
@@ -816,7 +816,7 @@ namespace cwipi {
                        output_dir,
                        "chr");   
                                    
-        _visu.GeomCreate(_mesh.getNPart());
+        _visu.MappingCreate(_mesh.getNPart());
       }
   }
 

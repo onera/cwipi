@@ -32,7 +32,7 @@
 #include "couplingDB_i.hxx"
 #include "mesh.hxx"
 
-#include "geometry.hxx"
+#include "mapping.hxx"
 #include "visualization.hxx"
 #include "field.hxx"
 
@@ -41,7 +41,7 @@ using namespace std;
 namespace cwipi {
 
   class CodeProperties;
-  class Geometry;
+  class Mapping;
   class Mesh;
   class Field;
   class Visu;  
@@ -67,7 +67,7 @@ namespace cwipi {
      * \param [in]  commType                     Communication type
      * \param [in]  localCodeProperties          Local code properties
      * \param [in]  coupledCodeProperties        Coupled code properties
-     * \param [in]  geomAlgo                     Geometric algorithm
+     * \param [in]  mappingAlgo                     Mapping algorithm
      * \param [in]  nPart                        Number of interface partitions 
      * \param [in]  movingStatus                 Mesh moving status
      * \param [in]  recvFreqType                 Type of receiving frequency
@@ -81,7 +81,7 @@ namespace cwipi {
      const CWP_Comm_t             commType,
      const CodeProperties        &localCodeProperties,
      const CodeProperties        &coupledCodeProperties,
-     const CWP_Geom_t            geomAlgo,
+     const CWP_Mapping_t            mappingAlgo,
      const int                    nPart,
      const CWP_Displacement_t     movingStatus,
      const CWP_Freq_t             recvFreqType,
@@ -121,7 +121,7 @@ namespace cwipi {
     int 
     nUncomputedTargetsGet
     (
-      const CWP_Field_value_t geometryLocation,
+      const CWP_Field_value_t mappingLocation,
       const int  i_part
     ) ;
 
@@ -198,29 +198,29 @@ namespace cwipi {
     );
 
     /*----------------------------------------------------------------------------*
-     * Methods about geometry                                                     *
+     * Methods about mapping                                                     *
      *----------------------------------------------------------------------------*/
 
     /**
-     * \brief Computation geometry                                  
+     * \brief Computation mapping                                  
      *
-     * This function compute geometry 
+     * This function compute mapping 
      *
      * \param [out] n_uncomputed_tgt    Number of uncomputed target
      *
      */
 
     void 
-    geomCompute
+    mappingCompute
     (
-     CWP_Field_value_t geometryLocation,
+     CWP_Field_value_t mappingLocation,
      CWP_Field_exch_t exchange_type
     );
 
     /**
-     * \brief Setting geometry properties
+     * \brief Setting mapping properties
      *
-     * This function set the geometric algorithm properties.
+     * This function set the mappingetric algorithm properties.
      *
      * \param [in]       fmt       Format with the syntax : "prop1, prop2, ..."
      * \param [in,out]   pa        List of properties values
@@ -228,7 +228,7 @@ namespace cwipi {
      */
 
     void 
-    geomPropertiesSet
+    mappingPropertiesSet
     (
      const char *fmt,
      va_list    *pa
@@ -344,7 +344,7 @@ namespace cwipi {
     /**
      * \brief Set a standard block to the interface mesh
      *
-     * This function adds a connectivity block to the geometric support.
+     * This function adds a connectivity block to the mappingetric support.
      * 
      *  Definition of element connectivity is :
      *
@@ -452,7 +452,7 @@ namespace cwipi {
      * \param [in]  i_part      Partition identifier
      * \param [in]  block_id    Block identifier  
      * \param [in]  n_elts      Number of elements
-     * \param [in]  order       Geometric order
+     * \param [in]  order       Mapping order
      * \param [in]  connec      Connectivity (size = n_vertex_elt * n_elts)          
      * \param [in]  global_num  Pointer to global element number (or NULL)
      *
@@ -532,10 +532,10 @@ namespace cwipi {
     );
 
     /**
-     * \brief Adding a polyhedron block to the geometric mesh from
+     * \brief Adding a polyhedron block to the mappingetric mesh from
      * a face-to-cell connectivity and a vertices-to-faces connectivity.
      *
-     * This function add a polyhedron 3D block to the geometric mesh from
+     * This function add a polyhedron 3D block to the mappingetric mesh from
      * a face-to-cell connectivity and a vertices-to-faces connectivity.
      *
      * \param [in]  i_part            Current partition
@@ -569,10 +569,10 @@ namespace cwipi {
 
 
     /**
-     * \brief Adding a polygon 2D block to the geometric mesh from
+     * \brief Adding a polygon 2D block to the mappingetric mesh from
      * a vertices-to-faces connectivity and a edge-to-face connectivity.
      *
-     * This function add a polygon 2D block to the geometric mesh from
+     * This function add a polygon 2D block to the mappingetric mesh from
      * a vertices-to-faces connectivity and a edge-to-face connectivity.
      *
      * \param [in]  i_part            Current partition
@@ -605,9 +605,9 @@ namespace cwipi {
      
      
     /**
-     * \brief Geometric mesh removal                                  
+     * \brief Mapping mesh removal                                  
      *
-     * This function delete the geometric mesh  
+     * This function delete the mappingetric mesh  
      *
      */
      
@@ -1008,13 +1008,13 @@ namespace cwipi {
     inline Mesh* meshGet();
     
     inline std::map < string, Field * >* fieldsGet();
-    inline std::map <CWP_Field_value_t,Geometry*>* geometryGet();
+    inline std::map <CWP_Field_value_t,Mapping*>* mappingGet();
     inline CodeProperties* localCodePropertiesGet();
     inline CodeProperties* coupledCodePropertiesGet();
 
     inline Communication* communicationGet();
 
-    inline Geometry*    geometryGet(CWP_Field_value_t field_value_t) ;
+    inline Mapping*    mappingGet(CWP_Field_value_t field_value_t) ;
     inline CouplingDB*  couplingDBGet();
     inline string       IdGet();
     
@@ -1030,8 +1030,8 @@ namespace cwipi {
           Communication                    &_communication;         /*!< Communication */ 
     const CodeProperties                   &_localCodeProperties;   /*!< Local code properties */
     const CodeProperties                   &_coupledCodeProperties; /*!< Coupled code properties */
-    std::map <CWP_Field_value_t,Geometry*> &_geometry;              /*!< Geometric algorithm */
-          Mesh                             &_mesh;                  /*!< Geometric mesh */
+    std::map <CWP_Field_value_t,Mapping*> &_mapping;              /*!< Mapping algorithm */
+          Mesh                             &_mesh;                  /*!< Mapping mesh */
     const CWP_Freq_t                        _recvFreqType  ;        /*!< Receiving frequency type */
           Visu                             &_visu;                  /*!< Visualization */
           double                            _recvFreq;              /*!< Receiving frequency */
@@ -1056,12 +1056,12 @@ namespace cwipi {
     return const_cast<Communication*>(&_communication);
   }
 
-  Geometry* Coupling::geometryGet(CWP_Field_value_t field_value_t) {
+  Mapping* Coupling::mappingGet(CWP_Field_value_t field_value_t) {
   
-    std::map <CWP_Field_value_t,Geometry*> ::iterator p;
-    p = _geometry.find(field_value_t);
-    if (p == _geometry.end()) 
-      PDM_error(__FILE__, __LINE__, 0, "Geometry not found.\n");
+    std::map <CWP_Field_value_t,Mapping*> ::iterator p;
+    p = _mapping.find(field_value_t);
+    if (p == _mapping.end()) 
+      PDM_error(__FILE__, __LINE__, 0, "Mapping not found.\n");
     return p->second;
   }
 
@@ -1084,8 +1084,8 @@ namespace cwipi {
      return &_mesh;
   }    
 
-  std::map <CWP_Field_value_t,Geometry*>* Coupling::geometryGet() {
-     return &_geometry;
+  std::map <CWP_Field_value_t,Mapping*>* Coupling::mappingGet() {
+     return &_mapping;
   }    
 
   std::map < string, Field * >* Coupling::fieldsGet() {

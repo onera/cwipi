@@ -83,7 +83,7 @@ namespace cwipi {
     _cplCommLocRanks = new std::vector<int>(*_unionCommLocRanks);
 
     /*
-    Use the unionComm which the union of coupled ranks to compute geometry for partitioned and unpartitioned case.
+    Use the unionComm which the union of coupled ranks to compute mapping for partitioned and unpartitioned case.
     Use the intraComm to broadcast computation results in withOutPart case.
 
     _cplComm = unionComm in withPart case and contained the two code root ranks in withOutPart case.

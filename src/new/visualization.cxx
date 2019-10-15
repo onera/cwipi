@@ -128,10 +128,10 @@ namespace cwipi {
 
 
 /*****************************************/
-  void Visu::GeomCreate(int n_part) {
+  void Visu::MappingCreate(int n_part) {
      _n_part = n_part;
      _visu_mesh_id = PDM_writer_geom_create(_visu_id,
-                                            "geom",
+                                            "mapping",
                                              _divide_polygons,
                                              _divide_polyhedra,
                                              n_part);
@@ -139,7 +139,7 @@ namespace cwipi {
   }
 
 /*****************************************/
-  void Visu::GeomCoordSet(int id_part,
+  void Visu::MappingCoordSet(int id_part,
                           int n_pts,
                           double *coords,
                           CWP_g_num_t *global_num) {
@@ -154,7 +154,7 @@ namespace cwipi {
 
 /*****************************************/
 
-  int Visu::GeomBlockAdd(CWP_Block_t blockType) {
+  int Visu::MappingBlockAdd(CWP_Block_t blockType) {
   
      int id_block = PDM_writer_geom_bloc_add(_visu_id,
                                _visu_mesh_id,
@@ -166,13 +166,13 @@ namespace cwipi {
 
 /*****************************************/
 
-  void Visu::GeomWrite() {
+  void Visu::MappingWrite() {
     PDM_writer_geom_write(_visu_id,_visu_mesh_id);
   }
 
 /*****************************************/
 
-  void Visu::GeomBlockStdSet (int id_block,
+  void Visu::MappingBlockStdSet (int id_block,
                               int id_part,
                               int n_elt,
                               int *connec,
@@ -188,7 +188,7 @@ namespace cwipi {
   }
 /*****************************************/
   
-  void Visu::GeomBlockGNumMeshSet (int id_block,
+  void Visu::MappingBlockGNumMeshSet (int id_block,
                                    int id_part,
                                    CWP_g_num_t *global_num) {
                                   
@@ -201,7 +201,7 @@ namespace cwipi {
                                    
 /*****************************************/
 
-  void Visu::GeomBlockPoly2D(int id_block,
+  void Visu::MappingBlockPoly2D(int id_block,
                              int id_part,
                              int n_elt,
                              int *connec_idx,
@@ -220,7 +220,7 @@ namespace cwipi {
 
 /**************************************************/
 
-  void Visu::GeomBlockPoly3D(int         id_block,
+  void Visu::MappingBlockPoly3D(int         id_block,
                              int         id_part,
                              int         n_elts,
                              int         n_faces,
@@ -243,7 +243,7 @@ namespace cwipi {
                                       global_num);                      
   }
 
-  void Visu::GeomFree() {
+  void Visu::MappingFree() {
     PDM_writer_geom_data_free(_visu_id,_visu_mesh_id);       
   //   PDM_writer_geom_free(_visu_id,_visu_mesh_id);               
   }
@@ -334,7 +334,7 @@ namespace cwipi {
         double* coords = mesh -> getVertexCoords(i_part);
         CWP_g_num_t* gnum = mesh -> getVertexGNum(i_part);
            
-        GeomCoordSet(i_part,
+        MappingCoordSet(i_part,
                         nVertex,
                         coords,
                         gnum);  
@@ -346,14 +346,14 @@ namespace cwipi {
       for(int i_block=0;i_block<nBlock;i_block++){
         int id_block = blockIDs[i_block];
         CWP_Block_t type = mesh -> blockTypeGet(id_block);
-        int idBlockVisu = GeomBlockAdd(type);
+        int idBlockVisu = MappingBlockAdd(type);
           
         for(int i_part=0;i_part<_n_part;i_part++) {
           int n_elts = mesh -> getBlockNElts(id_block,i_part);
           int* connec = mesh -> getEltConnectivity(id_block,i_part);
           if(type != CWP_BLOCK_FACE_POLY && type != CWP_BLOCK_CELL_POLY) {
             CWP_g_num_t* gnum = mesh -> gnumInsideBlockGet(id_block,i_part);
-            GeomBlockStdSet(idBlockVisu,
+            MappingBlockStdSet(idBlockVisu,
                             i_part,
                             n_elts,
                             connec,  
@@ -363,7 +363,7 @@ namespace cwipi {
           else if (type == CWP_BLOCK_FACE_POLY){
             CWP_g_num_t* gnum = mesh -> gnumInsideBlockGet(id_block,i_part);
             int* connecIdx = mesh -> getEltConnectivityIndex(id_block,i_part);
-            GeomBlockPoly2D(idBlockVisu,
+            MappingBlockPoly2D(idBlockVisu,
                             i_part,
                             n_elts,
                             connecIdx,
@@ -372,7 +372,7 @@ namespace cwipi {
           }
         }//loop on i_part
       } //end loop on block
-      GeomWrite();
+      MappingWrite();
     }
   }
 

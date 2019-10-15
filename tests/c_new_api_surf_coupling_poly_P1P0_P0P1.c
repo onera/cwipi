@@ -339,7 +339,7 @@ int main
                     "new_cpl",                       // Coupling id
                     codeCoupledName,                 // Coupled application id
                     CWP_COMM_PAR_WITH_PART,          // Coupling type
-                    CWP_GEOM_LOCATION,               // Solver type
+                    CWP_MAPPING_LOCATION,               // Solver type
                     nb_part,                         // Partition number
                     CWP_DISPLACEMENT_STATIC,         // Mesh type
                     CWP_FREQ_CPL_TIME_STEP);         // Postprocessing frequency
@@ -1090,7 +1090,7 @@ g
     for(int i=0;i<n_compute;i++){
       PDM_timer_init(timer2);
       PDM_timer_resume(timer2);
-      CWP_Geom_compute(codeName,"new_cpl");;
+      CWP_Mapping_compute(codeName,"new_cpl");;
       PDM_timer_hang_on(timer2);
       compute_time[i] = PDM_timer_elapsed(timer2);
       

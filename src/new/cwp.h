@@ -284,20 +284,20 @@ typedef enum {
 } CWP_Displacement_t;
 
 /**
- * \enum CWP_Geom_t
- * \brief Geomtric algorithms
+ * \enum CWP_Mapping_t
+ * \brief Mappingtric algorithms
  *
- * CWP_Geom_t gives different geometric algorithm on which interpolation 
+ * CWP_Mapping_t gives different mappingetric algorithm on which interpolation 
  * method is based 
  */
 
 typedef enum {
 
-  CWP_GEOM_CLOSEST_POINT, /*!< Closest points */
-  CWP_GEOM_INTERSECTION,  /*!< Meshes intersection */
-  CWP_GEOM_LOCATION       /*!< Location into a mesh */
+  CWP_MAPPING_CLOSEST_POINT, /*!< Closest points */
+  CWP_MAPPING_INTERSECTION,  /*!< Meshes intersection */
+  CWP_MAPPING_LOCATION       /*!< Location into a mesh */
 
-} CWP_Geom_t;
+} CWP_Mapping_t;
 
 /**
  * \enum CWP_Interface_t
@@ -699,7 +699,7 @@ CWP_Properties_dump
  * \param [in]  cpl_id              Coupling identifier
  * \param [in]  coupled_code_name   Distant or local coupled code name
  * \param [in]  comm_type           Communication type
- * \param [in]  geom_algo           Geometric algorithm
+ * \param [in]  mapping_algo           Mappingetric algorithm
  * \param [in]  n_part              Number of interface partition 
  * \param [in]  displacement        Mesh moving status
  * \param [in]  recv_freq_type      Type of receiving frequency
@@ -713,7 +713,7 @@ CWP_Cpl_create
  const char               *cpl_id,
  const char               *coupled_code_name,
  const CWP_Comm_t          comm_type, 
- const CWP_Geom_t          geom_algo,
+ const CWP_Mapping_t          mapping_algo,
  const int                 n_part,
  const CWP_Displacement_t  displacement,   
  const CWP_Freq_t          recv_freq_type 
@@ -747,8 +747,8 @@ CWP_Cpl_trans_init
  * \brief Define the next time step position.
  * 
  * This function compute the next time step position from a relative distance. If
- * it is a known position, Geometric algorithm is not reprocessed. Otherwise, 
- * geometric algorithm is launched from previous results. 
+ * it is a known position, Mappingetric algorithm is not reprocessed. Otherwise, 
+ * mappingetric algorithm is launched from previous results. 
  *  
  * 
  * \param [in]  local_code_name  Local code name
@@ -795,8 +795,8 @@ CWP_Cpl_rotation_init
  * \brief Define the next time step position.
  * 
  * This function compute the next time step position from a relative angle. If
- * it is a known position, Geometric algorithm is not reprocessed. Otherwise, 
- * geometric algorithm is launched from previous results. 
+ * it is a known position, Mappingetric algorithm is not reprocessed. Otherwise, 
+ * mappingetric algorithm is launched from previous results. 
  *  
  * \param [in]  cpl_id           Coupling identifier
  * \param [in]  local_code_name  Local code name
@@ -816,7 +816,7 @@ CWP_Cpl_rotation_update
 /**
  * \brief Set storage properties                 
  *
- * This functions activates the storage of geometric results in case of rotation 
+ * This functions activates the storage of mappingetric results in case of rotation 
  * or translation of the coupling interface.
  * 
  * \param [in] cpl_id              Coupling identifier
@@ -871,7 +871,7 @@ CWP_N_uncomputed_tgts_get
 (
  const char *local_code_name,
  const char *cpl_id,
- const CWP_Field_value_t geometryLocation,
+ const CWP_Field_value_t mappingLocation,
  const int  i_part
 );
 
@@ -927,7 +927,7 @@ CWP_Computed_tgts_get
 );
 
 /**
- * \brief Return distance from each target to the geometric interface                 
+ * \brief Return distance from each target to the mappingetric interface                 
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
@@ -937,7 +937,7 @@ CWP_Computed_tgts_get
  */
 
 const double *
-CWP_Computed_tgts_dist_to_geom_get
+CWP_Computed_tgts_dist_to_mapping_get
 (
  const char *local_code_name,
  const char *cpl_id
@@ -1009,13 +1009,13 @@ CWP_Cpl_time_step_set
 );
 
 /*----------------------------------------------------------------------------*
- * Functions about geometry                                                   *
+ * Functions about mapping                                                   *
  *----------------------------------------------------------------------------*/
 
 /**
- * \brief Computation geometry                                  
+ * \brief Computation mapping                                  
  *
- * This function compute geometry 
+ * This function compute mapping 
  *
  * \param [in]  local_code_name     Local code name
  * \param [in]  cpl_id              Coupling identifier
@@ -1023,16 +1023,16 @@ CWP_Cpl_time_step_set
  */
 
 void 
-CWP_Geom_compute
+CWP_Mapping_compute
 (const char     *local_code_name,
  const char        *cpl_id
 );
 
 /**
- * \brief Load geom results from it id
+ * \brief Load mapping results from it id
  *
  * This function set the location algorithm properties. It must be only used
- * when the type of geometric algorithm is \ref CWP_GEOM_LOCATION
+ * when the type of mappingetric algorithm is \ref CWP_MAPPING_LOCATION
  *
  * \param [in]  local_code_name  Local code name
  * \param [in]  cpl_id           Coupling identifier
@@ -1042,7 +1042,7 @@ CWP_Geom_compute
  */
 
 void 
-CWP_Geom_properties_set
+CWP_Mapping_properties_set
 (
  const char     *local_code_name,
  const char     *cpl_id,

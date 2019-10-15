@@ -94,7 +94,7 @@ namespace cwipi {
   }
 
 
-  void BlockStd::geomFinalize(){
+  void BlockStd::mappingFinalize(){
 
     for(int i_part = 0; i_part<_n_part; i_part++){
 
@@ -106,7 +106,7 @@ namespace cwipi {
 
       Visu* visu = ((Mesh*)_mesh) -> getVisu();
       if(visu -> isCreated() && ((Mesh*)_mesh) -> getDisplacement() == CWP_DISPLACEMENT_STATIC) {
-        visu -> GeomBlockStdSet ( ((Mesh*)_mesh) -> getIdVisu( _block_id ),
+        visu -> MappingBlockStdSet ( ((Mesh*)_mesh) -> getIdVisu( _block_id ),
                                   i_part,
                                   _n_elt[i_part] ,
                                   _connec[i_part],
