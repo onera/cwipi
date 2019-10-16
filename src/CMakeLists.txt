@@ -37,6 +37,15 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/new")
        new/*.[ch]xx
        *.[ch]
        *.[ch]xx)
+
+  if (CWP_NEW_TO_OLD_API)
+    list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/cwipi.cxx")
+    list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/cwipi.h")
+  else()
+    list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/new/cwipi_newtoold.cxx")
+    list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/new/cwipi_newtoold.h")
+  endif()
+
   get_target_property(PDM_INC pdm INCLUDE_DIRECTORIES)
 else()
   file(GLOB SOURCES 

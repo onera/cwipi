@@ -71,6 +71,11 @@ option(CWP_ENABLE_PYTHON_BINDINGS "Build Python module" OFF)
 
 option(CWP_ENABLE_Fortran  "Build Shared Fortran Interface" OFF)
 
+# New to old API
+# -----------------
+
+option(CWP_NEW_TO_OLD_API  "Build Fake Old API refering to New one" OFF)
+
 # MKL, BLAS, LAPACK
 # -----------------
 
