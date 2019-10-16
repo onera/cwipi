@@ -29,7 +29,22 @@ namespace cwipi {
     {
   
     public:
+
+
+    /**
+      *
+      * \brief Mapping location constructor.
+      *
+      */
+
       MappingLocation();
+
+
+    /**
+      *
+      * \brief Mapping location destructor.
+      *
+      */
       
       virtual ~MappingLocation();
 
@@ -107,9 +122,9 @@ namespace cwipi {
       *
       */
 
-      void both_codes_on_the_same_process_exchange(Field* sendingField,
-                                                   Field* recevingField
-                                                   ) ;
+      void both_codes_on_the_same_process_exchange (Field* sendingField,
+                                                    Field* recevingField
+                                                    ) ;
 
     private:     
 
@@ -124,7 +139,7 @@ namespace cwipi {
       *
       */
     
-      void init(Coupling *coupling, CWP_Field_value_t pointsCloudLocation,int slave) ;   
+      void init (Coupling *coupling, CWP_Field_value_t pointsCloudLocation,int slave) ;   
   
 
       /***********************************************************
@@ -176,7 +191,7 @@ namespace cwipi {
       *
       */
      
-      void localization_points_cloud_setting(int* id_dist);
+      void localization_points_cloud_setting (int* id_dist) ;
 
 
     /**
@@ -189,7 +204,7 @@ namespace cwipi {
       *
       */
 
-      void localization_null_setting_send   (int* id_dist);          
+      void localization_null_setting_send (int* id_dist) ;          
 
 
     /**
@@ -202,7 +217,7 @@ namespace cwipi {
       *
       */
   
-      void localization_null_setting_recv   (int* id_dist);     
+      void localization_null_setting_recv (int* id_dist) ;     
 
 
     /**
@@ -215,7 +230,7 @@ namespace cwipi {
       *
       */     
       
-      void localization_surface_setting    (int* id_dist);     
+      void localization_surface_setting (int* id_dist) ;     
       
 
     /**
@@ -227,7 +242,7 @@ namespace cwipi {
       *
       */   
 
-      void localization_compute(int id_dist)             ;
+      void localization_compute (int id_dist) ;
 
 
     /**
@@ -238,7 +253,7 @@ namespace cwipi {
       *
       */ 
 
-      void localization_get(int id_dist)      ;
+      void localization_get (int id_dist) ;
 
 
     /**
@@ -251,7 +266,7 @@ namespace cwipi {
       *
       */ 
 
-      void localization_get_cpl(int id_dist)      ;
+      void localization_get_cpl (int id_dist) ;
 
 
       /***********************************************************
@@ -287,7 +302,7 @@ namespace cwipi {
       *
       */
 
-      void triplet_location_set     (int* id_gnum_location) ;
+      void triplet_location_set (int* id_gnum_location) ;
 
 
     /**
@@ -301,7 +316,7 @@ namespace cwipi {
       *
       */
 
-      void triplet_location_null_send(int* id_gnum_location) ;   
+      void triplet_location_null_send (int* id_gnum_location) ;   
 
     /**
       *
@@ -314,7 +329,7 @@ namespace cwipi {
       *
       */
    
-      void triplet_location_null_recv(int* id_gnum_location) ;  
+      void triplet_location_null_recv (int* id_gnum_location) ;  
 
 
     /**
@@ -327,7 +342,7 @@ namespace cwipi {
       *
       */
            
-      void triplet_location_compute                 (int id_gnum_location) ;
+      void triplet_location_compute  (int id_gnum_location) ;
 
 
 
@@ -353,7 +368,6 @@ namespace cwipi {
       *
       * \param [in] id_gnum_location     Process, partition, num triplet location 
       *                                  from global numbering identifier.
-      *
       */ 
 
       void triplet_location_get_cpl(int id_gnum_location)  ;
@@ -366,8 +380,28 @@ namespace cwipi {
        ***********************************************************
        ***********************************************************/
 
-      void initialization_of_reception_array ();
-      void filling_of_communication_tree_array ();
+    /**
+      *
+      * \brief Initialization of the communication tree array
+      *        containing localization informations of the coupled
+      *        mesh point cloud.
+      *
+      */ 
+
+      void initialization_of_receving_communication_tree_array ();
+
+
+    /**
+      *
+      * \brief Filling of the communication tree array
+      *        containing localization informations of the 
+      *        mesh point cloud.
+      *
+      */ 
+
+      void filling_of_sending_communication_tree_array ();
+
+
 
       /***********************************************************
        ***********************************************************
@@ -376,9 +410,44 @@ namespace cwipi {
        ***********************************************************
        ***********************************************************/
 
+    /**
+      *
+      * \brief Send of the communication tree array index
+      *        containing localization informations of the 
+      *        mesh point cloud.
+      *
+      */ 
+
       void data_index_communication_send()    ;
+
+    /**
+      *
+      * \brief Reception of the communication tree array index
+      *        containing localization informations of the 
+      *        coupled mesh point cloud.
+      *
+      */ 
+
       void data_index_communication_recv()    ;
+
+
+    /**
+      *
+      * \brief Send and reception of the communication tree 
+      *        array index containing localization informations 
+      *        in a case where the both are on the same MPI process. 
+      *
+      */ 
+
       void both_index_communication()    ;
+
+
+    /**
+      *
+      * \brief Null communication the communication tree 
+      *        array index for uncoupled MPI process. 
+      *
+      */ 
 
       void data_index_communication_null();
 
@@ -397,10 +466,15 @@ namespace cwipi {
       void data_communication_null()          ;
       void both_data_communication()          ;
       
-      void data_communication_wait_send();
-      void data_communication_wait_recv();    
+      void data_communication_wait_send()     ;
+      void data_communication_wait_recv()     ;    
         
       void computeFree();
+
+      /***********************************************************
+       **         User definde cloud points functions           **
+       ***********************************************************/
+
       void user_target_points_set(int i_part, int n_pts, double* coord);
       void user_targets_gnum_compute();
 
