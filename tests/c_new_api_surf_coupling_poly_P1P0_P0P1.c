@@ -37,7 +37,6 @@
 #include "pdm_poly_surf_gen.h"
 #include "grid_mesh.h"
 
-
 /*----------------------------------------------------------------------
  *
  * Dump status exchange
@@ -315,11 +314,10 @@ int main
                           0.001,                                     // Geometric tolerance
                           CWIPI_STATIC_MESH,                         // Mesh type
                           solver_type,                               // Solver type
-                          -1,                                        // Postprocessing frequency
+                          1,                                        // Postprocessing frequency
                           "EnSight Gold",                            // Postprocessing format
                           "text");                                   // Postprocessing option
   }
-
   else {
    // CWP_Output_file_set(outputFile);
 
@@ -351,383 +349,27 @@ int main
                  "text");     // Postprocessing option
   }
 
-  /* Interface communicator
-   * ---------------------- */
 
-  int localRank;
-  int localCommSize;
-  MPI_Comm_rank(localComm, &localRank);
-  MPI_Comm_size(localComm, &localCommSize);
 
-  int color = 0;
-  if (localRank < part * localCommSize) {
-    color = 1;
-  }
-  if (localRank == 0) {
-    color = 1;
-  }
+  CWP_surf_gen_init(nx, nx, &localComm, part, s, (double)codeId);
+  CWP_surf_gen_compute();
 
-  MPI_Comm interfComm = MPI_COMM_NULL;
-  MPI_Comm_split(localComm, color, localRank, &interfComm);
-  int interfCommSize;
-  MPI_Comm_size(interfComm, &interfCommSize);
-  PDM_MPI_Comm pdminterfComm = PDM_MPI_mpi_2_pdm_mpi_comm(&interfComm);
-
-  /* Define mesh in interface communicator
-   * ------------------------------------- */
 
   int nVtx = 0;
   double * coords = NULL;
   CWP_g_num_t *vtxGnum = NULL;
 
   int nElts = 0;
-  int *eltsConnecPointer = NULL;
-  int *eltsConnec = NULL;
-  int *eltsConnecPointerPoly = NULL;
-  int *eltsConnecPoly = NULL;
-  CWP_g_num_t *eltsGnum = NULL;
-  int n_tri = 0;
-  int n_quad = 0;
-  int n_poly2d = 0;
-  int idx_quad = 0;
-  int idx_poly2d = 0;
 
-  if (color == 1) {
-
-    const double xmin = -s/2.;
-    const double xmax =  s/2.;
-    const double ymin = -s/2.;
-    const double ymax =  s/2.;
-    const int haveRandom = 1;
-    const int initRandom = time(NULL) * codeId;
-    const int ny = nx;
-
-    PDM_g_num_t  nGFace;
-    PDM_g_num_t  nGVtx;
-    PDM_g_num_t  nGEdge;
-    int         dNVtx;
-    double     *dVtxCoord;
-    int         dNFace;
-    int        *dFaceVtxIdx;
-    PDM_g_num_t *dFaceVtx;
-    PDM_g_num_t *dFaceEdge;
-    int         dNEdge;
-    PDM_g_num_t *dEdgeVtx;
-    PDM_g_num_t *dEdgeFace;
-    int         nEdgeGroup;
-    int        *dEdgeGroupIdx;
-    PDM_g_num_t *dEdgeGroup;
-
-    PDM_poly_surf_gen (pdminterfComm,
-                       xmin,
-                       xmax,
-                       ymin,
-                       ymax,
-                       haveRandom,
-                       initRandom,
-                       nx,
-                       ny,
-                       &nGFace,
-                       &nGVtx,
-                       &nGEdge,
-                       &dNVtx,
-                       &dVtxCoord,
-                       &dNFace,
-                       &dFaceVtxIdx,
-                       &dFaceVtx,
-                       &dFaceEdge,
-                       &dNEdge,
-                       &dEdgeVtx,
-                       &dEdgeFace,
-                       &nEdgeGroup,
-                       &dEdgeGroupIdx,
-                       &dEdgeGroup);
-
-    int ppartId;
-#ifdef PDM_HAVE_PARMETIS
-    PDM_part_split_t method  = PDM_PART_SPLIT_PARMETIS;
-#else
-#ifdef PDM_HAVE_PTSCOTCH
-    PDM_part_split_t method  = PDM_PART_SPLIT_PTSCOTCH;
-#endif
-#endif
-    int have_dCellPart = 0;
-
-    int *dCellPart = (int *) malloc(dNFace*sizeof(int));
-    int *renum_properties_cell = NULL;
-    int *renum_properties_face = NULL;
-    int nPropertyCell = 0;
-    int nPropertyFace = 0;
-
-    int *dEdgeVtxIdx = malloc (sizeof(int) * (dNEdge+1));
-    dEdgeVtxIdx[0] = 0;
-    for (int i = 0; i < dNEdge; i++) {
-      dEdgeVtxIdx[i+1] = dEdgeVtxIdx[i] + 2;
-    }
-
-    PDM_part_create (&ppartId,
-                     pdminterfComm,
-                     method,
-                     "PDM_PART_RENUM_CELL_NONE",
-                     "PDM_PART_RENUM_FACE_NONE",
-                     nPropertyCell,
-                     renum_properties_cell,
-                     nPropertyFace,
-                     renum_properties_face,
-                     nPart,
-                     dNFace,
-                     dNEdge,
-                     dNVtx,
-                     nEdgeGroup,
-                     NULL,
-                     NULL,
-                     NULL,
-                     NULL,
-                     have_dCellPart,
-                     dCellPart,
-                     dEdgeFace,
-                     dEdgeVtxIdx,
-                     dEdgeVtx,
-                     NULL,
-                     dVtxCoord,
-                     NULL,
-                     dEdgeGroupIdx,
-                     dEdgeGroup);
-
-    free (dCellPart);
-
-    const int ipart = 0;
-    int nFace;
-    int nEdge;
-    int nEdgePartBound;
-    int nVtx1;
-    int nProc;
-    int sFaceEdge;
-    int sEdgeVtx;
-    int sEdgeGroup;
-    int nEdgeGroup2;
-    int nTPart;
-
-    PDM_part_part_dim_get (ppartId,
-                           ipart,
-                           &nFace,
-                           &nEdge,
-                           &nEdgePartBound,
-                           &nVtx1,
-                           &nProc,
-                           &nTPart,
-                           &sFaceEdge,
-                           &sEdgeVtx,
-                           &sEdgeGroup,
-                           &nEdgeGroup2);
-
-    int          *faceTag;
-    int          *faceEdgeIdx;
-    int          *faceEdge;
-    PDM_g_num_t *faceLNToGN;
-    int          *edgeTag;
-    int          *edgeFace;
-    int          *edgeVtxIdx;
-    int          *edgeVtx;
-    PDM_g_num_t *edgeLNToGN;
-    int          *edgePartBoundProcIdx;
-    int          *edgePartBoundPartIdx;
-    int          *edgePartBound;
-    int          *vtxTag;
-    double       *vtx;
-    PDM_g_num_t *vtxLNToGN;
-    int          *edgeGroupIdx;
-    int          *edgeGroup;
-    PDM_g_num_t *edgeGroupLNToGN;
-
-    PDM_part_part_val_get (ppartId,
-                           ipart,
-                           &faceTag,
-                           &faceEdgeIdx,
-                           &faceEdge,
-                           &faceLNToGN,
-                           &edgeTag,
-                           &edgeFace,
-                           &edgeVtxIdx,
-                           &edgeVtx,
-                           &edgeLNToGN,
-                           &edgePartBoundProcIdx,
-                           &edgePartBoundPartIdx,
-                           &edgePartBound,
-                           &vtxTag,
-                           &vtx,
-                           &vtxLNToGN,
-                           &edgeGroupIdx,
-                           &edgeGroup,
-                           &edgeGroupLNToGN);
+  int localRank;
+  MPI_Comm_rank(localComm, &localRank);
 
 
-    nVtx = nVtx1;
-    coords = malloc (sizeof(double) * 3 * nVtx1);
-    for (int i = 0; i < 3 * nVtx1; i++) {
-      coords[i] = vtx[i];
-    }
-
-    vtxGnum = malloc (sizeof(CWP_g_num_t) * nVtx1);
-    for (int i = 0; i <  nVtx1; i++) {
-      vtxGnum[i] = (CWP_g_num_t) vtxLNToGN[i];
-    }
-
-    int id_mn = PDM_Mesh_nodal_create(nPart, pdminterfComm);
-
-    int *edgeVtxN = malloc(sizeof(int) * nEdge);
-    for (int i = 0; i < nEdge; i++) {
-      edgeVtxN[i] = edgeVtxIdx[i+1] - edgeVtxIdx[i];
-    }
-
-    int *faceEdgeN = malloc(sizeof(int) * nFace);
-    for (int i = 0; i < nFace; i++) {
-      faceEdgeN[i] = faceEdgeIdx[i+1] - faceEdgeIdx[i];
-    }
-
-    int i_part = 0;
-
-    PDM_Mesh_nodal_coord_set(id_mn,
-                             i_part,
-                             nVtx1,
-                             coords,
-                             vtxGnum);
-
-
-    PDM_Mesh_nodal_cell2d_celledge_add (id_mn,
-                                        i_part,
-                                        nFace,
-                                        nEdge,
-                                        edgeVtxIdx,
-                                        edgeVtxN,
-                                        edgeVtx,
-                                        faceEdgeIdx,
-                                        faceEdgeN,
-                                        faceEdge,
-                                        faceLNToGN);
-
-    int n_block = PDM_Mesh_nodal_n_blocks_get (id_mn);
-    assert (n_block == 3);
-
-    int *block_ids = PDM_Mesh_nodal_blocks_id_get (id_mn);
-
-    assert (PDM_Mesh_nodal_block_type_get (id_mn, block_ids[0]) == PDM_MESH_NODAL_TRIA3);
-    assert (PDM_Mesh_nodal_block_type_get (id_mn, block_ids[1]) == PDM_MESH_NODAL_QUAD4);
-    assert (PDM_Mesh_nodal_block_type_get (id_mn, block_ids[2]) == PDM_MESH_NODAL_POLY_2D);
-
-    nElts = nFace;
-    eltsConnecPointer = malloc(sizeof(int) * (nFace+1));
-    eltsConnecPointer[0] = 0;
-    eltsConnec = malloc(sizeof(int) * (faceEdgeIdx[nFace-1]+faceEdgeN[nFace-1]));
-    eltsGnum = malloc(sizeof(CWP_g_num_t) * nFace);
-
-    nElts = 0;
-    int idx1 = 0;
-    for (int i = 0; i < n_block; i++) {
-      int id_block = block_ids[i];
-
-      PDM_Mesh_nodal_elt_t t_block = PDM_Mesh_nodal_block_type_get (id_mn, block_ids[i]);
-
-      int n_elt_block = PDM_Mesh_nodal_block_n_elt_get (id_mn, id_block, 0);
-
-      PDM_g_num_t *_gnum = PDM_Mesh_nodal_block_g_num_get (id_mn, id_block, 0);
-
-      if ((t_block == PDM_MESH_NODAL_TRIA3) || (t_block == PDM_MESH_NODAL_QUAD4)) {
-        PDM_l_num_t *_connec;
-        int _nVtxElt;
-        PDM_Mesh_nodal_block_std_get (id_mn, id_block, 0, &_connec);
-        if (t_block ==PDM_MESH_NODAL_TRIA3) {
-          _nVtxElt = 3;
-          n_tri = n_elt_block;
-          idx_quad = 3 * n_elt_block;
-        }
-        else {
-          _nVtxElt = 4;
-          n_quad = n_elt_block;
-          idx_poly2d = idx_quad + 4 * n_elt_block;
-          n_poly2d = nFace - (n_tri + n_quad);
-        }
-
-        for (int j = 0; j < n_elt_block; j++) {
-          eltsConnecPointer[nElts+1] = eltsConnecPointer[nElts] + _nVtxElt;
-
-          for (int k = 0; k < _nVtxElt; k++) {
-            eltsConnec[idx1++] = _connec[_nVtxElt*j+k];
-          }
-
-          eltsGnum[nElts] = _gnum[j];
-          nElts +=1;
-        }
-        
-      }
-      else {
-        PDM_l_num_t *_connec_idx;
-        PDM_l_num_t *_connec;
-
-        PDM_Mesh_nodal_block_poly2d_get (id_mn, id_block, 0, &_connec_idx, &_connec);
-	eltsConnecPointerPoly = (int*)malloc(sizeof(int)*(n_elt_block+1));
-	eltsConnecPoly = (int*)malloc(sizeof(int)*_connec_idx[n_elt_block]);
-        eltsConnecPointerPoly[0]=0;
-        int idx3=0;
-        for (int j = 0; j < n_elt_block; j++) {
-          eltsConnecPointerPoly[j+1] = _connec_idx[j+1];
-          eltsConnecPointer[nElts+1] = eltsConnecPointer[nElts] +
-                                       (_connec_idx[j+1] - _connec_idx[j]);
-
-          for (int k = _connec_idx[j]; k < _connec_idx[j+1]; k++) {
-            eltsConnec[idx1++] = _connec[k];
-            eltsConnecPoly[idx3++] = _connec[k];
-          }
-
-          eltsGnum[nElts] = _gnum[j];
-          nElts +=1;
-        }
-      }
-    }
-
-    assert(nElts == nFace);
-
-    PDM_Mesh_nodal_free (id_mn);
-
-    PDM_part_free (ppartId);
-
-    free (dEdgeVtxIdx);
-    free (edgeVtxN);
-    free (faceEdgeN);
-
-    PDM_MPI_Comm_free(&pdminterfComm);
-  }
-  else {
-    coords = malloc (sizeof(double) * 3 * nVtx);
-    vtxGnum = malloc (sizeof(CWP_g_num_t) * nVtx);
-
-    eltsConnecPointer = malloc(sizeof(int) * (nElts+1));
-    eltsConnecPointer[0] = 0;
-    eltsConnec = malloc(sizeof(int) * eltsConnecPointer[nElts]);
-    eltsGnum = malloc(sizeof(CWP_g_num_t) * nElts);
-  }
-
-/*
-  for(int i =0; i<nElts;i++){
-    for(int j = eltsConnecPointer[i]; j<eltsConnecPointer[i+1];j++){
-      printf("Rank %i elt %i nElts %i gnumelt %i ivtx %i coords %3.2f %3.2f %3.2f gnum vtx %i \n",
-             localRank,i, nElts, (int)eltsGnum[i], eltsConnec[j]-1,
-             coords[3* (eltsConnec[j]-1) ],coords[3* (eltsConnec[j]-1) +1],coords[3* (eltsConnec[j]-1) +2],(int)vtxGnum[ eltsConnec[j]-1 ]);
-    }
-  }
-*/
-
-
+  /*
   double Rcurv = 10.0 * s ;
   for(int i =0; i<nVtx;i++){
      coords[3*i+2] = sqrt( pow(Rcurv,2) - pow(coords[3*i],2) - pow(coords[3*i+1],2) );
-  
-   /*   printf("Rank %i vtx %i nVtx %i coords %3.2f %3.2f %3.2f gnum vtx %i \n",
-             localRank,i, nVtx,
-             coords[3*i],coords[3*i+1],coords[3*i+2],(int)vtxGnum[i]);
- */ }  
- 
-
+  */
 
   
   PDM_timer_t* timer = PDM_timer_create();
@@ -737,22 +379,26 @@ int main
   
   double time[3];
   
-  int n_int = 0;
+  int n_int = 1;
   double compute_time[n_compute];
   double compute_exch_time[n_int];
   
   if (old) {
 
+    int *eltsConnecIndex = NULL;
+    int *eltsConnec = NULL;  
+    CWP_g_num_t *eltsGnum = NULL;
 
-  
-
+    CWP_surf_gen_one_connectivity_get (&nVtx  , &coords , &vtxGnum,
+                                       &nElts  , &eltsConnecIndex, &eltsConnec, &eltsGnum);
 
     cwipi_define_mesh("old_cpl",
                       nVtx,
                       nElts,
                       coords,
-                      eltsConnecPointer,
+                      eltsConnecIndex,
                       eltsConnec);
+                      
     MPI_Barrier(MPI_COMM_WORLD);
     
     PDM_timer_init(timer);
@@ -802,6 +448,26 @@ int main
 
   else {
 
+    int n_tri = 0;
+    int n_quad = 0;
+    int n_poly2d = 0;
+  
+    int *eltsConnecQuad = NULL;
+    CWP_g_num_t *eltsGnumQuad = NULL;  
+    
+    int *eltsConnecTri = NULL;
+    CWP_g_num_t *eltsGnumTri = NULL;  
+  
+    int *eltsConnecPolyIndex = NULL;
+    int *eltsConnecPoly = NULL;
+    CWP_g_num_t *eltsGnumPoly = NULL;  
+
+
+    CWP_surf_gen_by_block_get( &nVtx  , &coords , &vtxGnum, &nElts,
+                               &n_tri , &eltsConnecTri , &eltsGnumTri,
+                               &n_quad, &eltsConnecQuad, &eltsGnumQuad,
+                               &n_poly2d, &eltsConnecPolyIndex, &eltsConnecPoly, &eltsGnumPoly);
+
     CWP_Mesh_interf_vtx_set (codeName,             //Code name
                              "new_cpl",             // Coupling id
                              0,
@@ -818,8 +484,8 @@ int main
                                    0,
                                    block_id,
                                    n_tri,
-                                   eltsConnec,
-                                   eltsGnum);
+                                   eltsConnecTri,
+                                   eltsGnumTri);
 
     block_id = CWP_Mesh_interf_block_add (codeName,             // Code name
                                           "new_cpl",             // Coupling id
@@ -830,8 +496,8 @@ int main
                                      0,
                                      block_id,
                                      n_quad,
-                                     &( eltsConnec[idx_quad] ),
-                                     &( eltsGnum  [n_tri   ] )
+                                     eltsConnecQuad,
+                                     eltsGnumQuad
                                      );
 
     block_id = CWP_Mesh_interf_block_add (codeName,             // Code name
@@ -843,14 +509,13 @@ int main
                                       0,
                                       block_id,
                                       n_poly2d,
-                                      eltsConnecPointerPoly,
+                                      eltsConnecPolyIndex,
                                       eltsConnecPoly       ,
-                                      &(eltsGnum  [n_quad+n_tri] ) );
+                                      eltsGnumPoly);
 
 
     CWP_Mesh_interf_finalize (codeName,
                               "new_cpl");  // Coupling id
-
   }
 
 
@@ -1195,13 +860,6 @@ g
     CWP_Mesh_interf_del(codeName,"new_cpl");
     CWP_Cpl_del(codeName,"new_cpl");
   }
-
-  free(coords);
-  free(vtxGnum);
-
-  free(eltsConnecPointer);
-  free(eltsConnec);
-  free(eltsGnum);
 
   free(sendValues);
   free(recvValues);

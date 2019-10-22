@@ -2132,6 +2132,38 @@ CWP_Param_unlock
 const char *code_name
 );
 
+
+void          
+CWP_surf_gen_init
+(
+  int nx, int ny, MPI_Comm* comm, double prop, double width, double randomVar
+);
+
+void          
+CWP_surf_gen_compute
+(
+);
+
+
+
+void          
+CWP_surf_gen_by_block_get
+(
+  int* nVtx , double** coords, CWP_g_num_t** vtxGnum, int* nElts,
+  int* nTri , int** eltsConnecTri , CWP_g_num_t** eltsGnumTri,
+  int* nQuad, int** eltsConnecQuad, CWP_g_num_t** eltsGnumQuad,
+  int* nPoly, int** eltsConnecPolyIndex, int** eltsConnecPoly, CWP_g_num_t** eltsGnumPoly
+);
+
+void          
+CWP_surf_gen_one_connectivity_get
+(
+  int* nVtx , double** coords, CWP_g_num_t** vtxGnum,
+  int* nElts, int** eltsConnecIndex, int** eltsConnec, CWP_g_num_t** eltsGnum
+);
+
+
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

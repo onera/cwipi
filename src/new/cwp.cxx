@@ -60,6 +60,7 @@
 #include "pdm.h"
 #include "pdm_printf.h"
 #include "pdm_error.h"
+#include "surfMeshGenerator.hxx"
 
 #include "mapping.hxx"
 #include "mappingLocation.hxx"
@@ -2101,6 +2102,77 @@ const char *code_name
 
   properties.unLock(nameStr);
 }
+
+
+void          
+CWP_surf_gen_init
+(
+  int nx, int ny, MPI_Comm* comm, double prop, double width, double randomVar
+)
+{ cwipi::surfMeshGenerator &surfMesh =  cwipi::surfMeshGenerator::getInstance();
+  surfMesh.init(nx,ny,comm,prop,width,randomVar);
+}
+
+void          
+CWP_surf_gen_compute()
+{ cwipi::surfMeshGenerator &surfMesh =  cwipi::surfMeshGenerator::getInstance();
+  surfMesh.computeMesh();
+}
+
+
+
+void          
+CWP_surf_gen_by_block_get
+(
+  int* nVtx , double** coords, CWP_g_num_t** vtxGnum, int* nElts,
+  int* nTri , int** eltsConnecTri , CWP_g_num_t** eltsGnumTri,
+  int* nQuad, int** eltsConnecQuad, CWP_g_num_t** eltsGnumQuad,
+  int* nPoly, int** eltsConnecPolyIndex, int** eltsConnecPoly, CWP_g_num_t** eltsGnumPoly
+)
+{
+  cwipi::surfMeshGenerator &surfMesh =  cwipi::surfMeshGenerator::getInstance();
+  *nVtx = surfMesh.nVtxGet();
+  *nElts = surfMesh.nEltsGet();
+  *coords = surfMesh.coordsGet();
+  *vtxGnum = surfMesh.vtxGnumGet();
+  
+  *nTri = surfMesh.nTriGet();
+  *eltsConnecTri = surfMesh.connecTriGet();
+  *eltsGnumTri = surfMesh.eltsGnumTriGet();
+  
+  *nQuad = surfMesh.nQuadGet();
+  *eltsConnecQuad = surfMesh.connecQuadGet();
+  *eltsGnumQuad = surfMesh.eltsGnumQuadGet();
+
+  *nPoly = surfMesh.nPolyGet();
+  *eltsConnecPoly = surfMesh.connecPolyGet();  
+  *eltsConnecPolyIndex = surfMesh.connecPolyIndexGet();    
+  *eltsGnumPoly = surfMesh.eltsGnumPolyGet();  
+  
+}
+
+
+void          
+CWP_surf_gen_one_connectivity_get
+(
+  int* nVtx , double** coords, CWP_g_num_t** vtxGnum,
+  int* nElts, int** eltsConnecIndex, int** eltsConnec, CWP_g_num_t** eltsGnum
+)
+{
+  cwipi::surfMeshGenerator &surfMesh =  cwipi::surfMeshGenerator::getInstance();
+  *nVtx = surfMesh.nVtxGet();
+  *nElts = surfMesh.nEltsGet();
+  *coords = surfMesh.coordsGet();
+  *vtxGnum = surfMesh.vtxGnumGet();  
+
+  *nElts = surfMesh.nEltsGet();
+  *eltsConnec = surfMesh.connecGet();  
+  *eltsConnecIndex = surfMesh.connecIndexGet();    
+  *eltsGnum = surfMesh.eltsGnumGet();    
+
+}
+
+
 
 /*-----------------------------------------------------------------------------*/
 
