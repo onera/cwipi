@@ -389,7 +389,7 @@ namespace cwipi {
 
 /**********************************************************************/
 
-  void Mesh::mappingFinalize() {
+  void Mesh::geomFinalize() {
   
       int unionRank;
       MPI_Comm_rank(_cpl->communicationGet() -> unionCommGet(),&unionRank);
@@ -421,7 +421,7 @@ namespace cwipi {
                                     _global_num_vtx[i_part]);
 
            if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC) {
-             _visu -> MappingCoordSet(i_part,
+             _visu -> GeomCoordSet(i_part,
                                    _nVertex       [i_part],
                                    _coords        [i_part],
                                    _global_num_vtx[i_part]);  
@@ -450,13 +450,13 @@ namespace cwipi {
        
        it = _blockDB.begin();
        while(it != _blockDB.end()) {
-         it -> second -> mappingFinalize();
+         it -> second -> geomFinalize();
          it++;
        } //Loop on blockDB                 
 
 
       if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC ) {
-        _visu -> MappingWrite();
+        _visu -> GeomWrite();
       }
   } 
 
@@ -546,7 +546,7 @@ namespace cwipi {
                                      
      if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC) {
 
-        _visu -> MappingBlockPoly3D   (_id_visu[block_id],
+        _visu -> GeomBlockPoly3D   (_id_visu[block_id],
                                     i_part,
                                     n_elts,
                                     n_faces,
@@ -582,7 +582,7 @@ namespace cwipi {
      _nBlocks   = PDM_Mesh_nodal_n_blocks_get (_pdmNodal_handle_index); 
       
       if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC) {
-        int id_visu = _visu -> MappingBlockAdd(block_type);
+        int id_visu = _visu -> GeomBlockAdd(block_type);
         _id_visu.insert(std::pair <int,int> (block_id,id_visu));
       }
 

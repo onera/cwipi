@@ -104,7 +104,7 @@ namespace cwipi {
      /**
      * \brief Addition of a block (set of cells) to the mesh partition
      *
-     * This function add a block to the mappingetric mesh.
+     * This function add a block to the geometric mesh.
      *
      * \param [in] block_type  Type of the block addition     
      *
@@ -193,10 +193,10 @@ namespace cwipi {
                                           );
                                           
     /**
-     * \brief Adding a polyhedron block to the mappingetric mesh from
+     * \brief Adding a polyhedron block to the geometric mesh from
      * a face-to-cell connectivity and a vertices-to-faces connectivity.
      *
-     * This function add a polyhedron 3D block to the mappingetric mesh from
+     * This function add a polyhedron 3D block to the geometric mesh from
      * a face-to-cell connectivity and a vertices-to-faces connectivity.
      *
      * \param [in]  i_part            Current partition
@@ -226,10 +226,10 @@ namespace cwipi {
                           CWP_g_num_t parent_num[]);  
 
     /**
-     * \brief Adding a polygon 2D block to the mappingetric mesh from
+     * \brief Adding a polygon 2D block to the geometric mesh from
      * a vertices-to-faces connectivity and a edge-to-face connectivity.
      *
-     * This function add a polygon 2D block to the mappingetric mesh from
+     * This function add a polygon 2D block to the geometric mesh from
      * a vertices-to-faces connectivity and a edge-to-face connectivity.
      *
      * \param [in]  i_part            Current partition
@@ -423,7 +423,7 @@ namespace cwipi {
     
    inline int getNPart();
 
-   void mappingFinalize();
+   void geomFinalize();
 
    inline bool gnumVtxRequired ();
 

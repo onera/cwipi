@@ -104,7 +104,7 @@ namespace cwipi {
            _global_num [i_part] = global_num;
         }
   
-        void mappingFinalize();         
+        void geomFinalize();         
   
     private:
     

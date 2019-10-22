@@ -304,7 +304,7 @@ namespace cwipi {
      }
 
 
-     virtual void mappingFinalize()
+     virtual void geomFinalize()
      {
        PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
      }

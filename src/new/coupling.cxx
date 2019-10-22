@@ -717,7 +717,7 @@ namespace cwipi {
 
 
   void Coupling::meshFinalize() {
-    _mesh.mappingFinalize();
+    _mesh.geomFinalize();
   }
         
   
@@ -816,7 +816,7 @@ namespace cwipi {
                        output_dir,
                        "chr");   
                                    
-        _visu.MappingCreate(_mesh.getNPart());
+        _visu.GeomCreate(_mesh.getNPart());
       }
   }
 

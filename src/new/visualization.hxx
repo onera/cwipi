@@ -98,16 +98,16 @@ namespace cwipi {
                     char              *output_name);
 
    /**
-    * \brief Create the visu mapping
+    * \brief Create the visu geom
     *
     * \param [in] n_part       Number of mesh partition
     * 
     */
      
-    void MappingCreate(int n_part);
+    void GeomCreate(int n_part);
 
      /**
-     * \brief Set the Visu mapping coordinates
+     * \brief Set the Visu geom coordinates
      *
      * \param [in] id_part       Index of the mesh partition
      * \param [in] n_pts        Number of partition vertices
@@ -116,7 +116,7 @@ namespace cwipi {
      *
      */
 
-    void MappingCoordSet(int id_part,
+    void GeomCoordSet(int id_part,
                       int n_pts,
                       double *coords,
                       CWP_g_num_t *global_num);
@@ -124,26 +124,26 @@ namespace cwipi {
 
 
      /**
-     * \brief Addition of a block (set of cells) to a Visu mapping partition
+     * \brief Addition of a block (set of cells) to a Visu geom partition
      *
-     * This function add a block to a Visu mapping partition
+     * This function add a block to a Visu geom partition
      *
      * \param [in] blockType  Type of the block addition     
      *
      * \return block_id  Block Identifier
      */
 
-    int  MappingBlockAdd(CWP_Block_t blockType);
+    int  GeomBlockAdd(CWP_Block_t blockType);
 
    /**
-    * \brief Write the Visu mapping
+    * \brief Write the Visu geom
     *
     */
 
-    void MappingWrite();
+    void GeomWrite();
 
    /**
-    * \brief Set a standard block to a Visu mapping partition
+    * \brief Set a standard block to a Visu geom partition
     *
     * \param [in] id_part     Partition identifier
     * \param [in] id_block    Block identifier  
@@ -153,7 +153,7 @@ namespace cwipi {
     *
     */
 
-    void MappingBlockStdSet (int id_block,
+    void GeomBlockStdSet (int id_block,
                           int id_part,
                           int n_elt,
                           int *connec,
@@ -161,7 +161,7 @@ namespace cwipi {
                           
 
    /**
-    * \brief Set a standard block to a Visu mapping partition
+    * \brief Set a standard block to a Visu geom partition
     *
     * \param [in] id_part     Partition identifier
     * \param [in] id_block    Block identifier  
@@ -169,12 +169,12 @@ namespace cwipi {
     *
     */
 
-    void MappingBlockGNumMeshSet (int id_block,
+    void GeomBlockGNumMeshSet (int id_block,
                                int id_part,
                                CWP_g_num_t *global_num);
                           
      /**
-     * \brief Set a face polygon block to a Visu mapping partition
+     * \brief Set a face polygon block to a Visu geom partition
      *
      * \param [in] id_part     Partition identifier
      * \param [in] id_block    Block identifier
@@ -185,7 +185,7 @@ namespace cwipi {
      *
      */
                  
-     void MappingBlockPoly2D(int id_block,
+     void GeomBlockPoly2D(int id_block,
                           int id_part,
                           int n_elt,
                           int *connec_idx,
@@ -193,7 +193,7 @@ namespace cwipi {
                           CWP_g_num_t *global_num);
 
      /**
-     * \brief Set a face polhedron block to a Visu mapping partition
+     * \brief Set a face polhedron block to a Visu geom partition
      *
      * \param [in] id_part           Partition identifier
      * \param [in] id_block          Block identifier
@@ -207,7 +207,7 @@ namespace cwipi {
      *
      */
                  
-     void MappingBlockPoly3D(int              id_block,
+     void GeomBlockPoly3D(int              id_block,
                           int              id_part,
                           int              n_elts,
                           int              n_faces,
@@ -238,7 +238,7 @@ namespace cwipi {
 
     void fieldDataFree(Field* field);
 
-    void MappingFree();
+    void GeomFree();
 
     void WriterFieldCreate(Field* field);
 
