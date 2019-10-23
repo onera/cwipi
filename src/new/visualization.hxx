@@ -140,7 +140,7 @@ namespace cwipi {
     *
     */
 
-    void GeomWrite();
+    void GeomWrite(Mesh* mesh);
 
    /**
     * \brief Set a standard block to a Visu geom partition
@@ -277,6 +277,13 @@ namespace cwipi {
     double               _physical_time;     /*!< Physical time for visualization */
     int                  _n_part;            /*!< Number of mesh partition */
     CWP_Displacement_t   _topology;          /*!< Mesh topology */
+
+    int _id_partitioning_field  ;
+    std::vector<double*> _partitioning_field_data;
+
+    int _id_ranking_field  ;
+    std::vector<double*> _ranking_field_data;
+    
   };
 
   bool Visu::isCreated() {

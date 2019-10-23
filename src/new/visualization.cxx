@@ -44,7 +44,15 @@ namespace cwipi {
   }
   
   Visu::~Visu() {
-   // PDM_writer_free(_visu_id);
+
+    for(int i_part=0;i_part<_n_part;i_part++){
+      free(_partitioning_field_data[i_part]);
+      free(_ranking_field_data[i_part]);
+    }      
+    
+    PDM_writer_var_data_free(_visu_id, _id_partitioning_field);
+    PDM_writer_var_data_free(_visu_id, _id_ranking_field);    
+    PDM_writer_free(_visu_id);
   }
 
 
@@ -152,8 +160,45 @@ namespace cwipi {
 
 /*****************************************/
 
-  void Visu::GeomWrite() {
+  void Visu::GeomWrite(Mesh* mesh) {
     PDM_writer_geom_write(_visu_id,_visu_mesh_id);
+
+    PDM_writer_var_loc_t PDMfieldType = PDM_WRITER_VAR_ELEMENTS   ;
+
+    PDM_writer_var_dim_t PDMfieldComp = PDM_WRITER_VAR_SCALAIRE;
+
+    int _id_partitioning_field = PDM_writer_var_create(_visu_id, 
+                                                       PDM_WRITER_OFF,
+                                                       PDMfieldComp, 
+                                                       PDMfieldType, 
+                                                       "partitioning");
+
+    int _id_ranking_field = PDM_writer_var_create(_visu_id, 
+                                                  PDM_WRITER_OFF,
+                                                  PDMfieldComp, 
+                                                  PDMfieldType, 
+                                                  "ranking");
+
+    _partitioning_field_data.resize(mesh -> getNPart() );
+    _ranking_field_data.resize(mesh -> getNPart() );
+
+    int worldRank;
+    MPI_Comm_rank(MPI_COMM_WORLD,&worldRank);
+
+    for(int i_part=0;i_part<_n_part;i_part++){
+      _partitioning_field_data[i_part] = (double*) malloc( mesh -> getPartNElts(i_part) * sizeof(double) ); 
+      _ranking_field_data[i_part] = (double*) malloc( mesh -> getPartNElts(i_part) * sizeof(double) );       
+      for(int i_elt=0; i_elt<mesh -> getPartNElts(i_part); i_elt++){
+        _partitioning_field_data[i_part][i_elt] = (double)i_part;
+        _ranking_field_data[i_part][i_elt] = (double)worldRank;
+      }
+      
+      PDM_writer_var_set(_visu_id, _id_partitioning_field, _visu_mesh_id, i_part, (double*)_partitioning_field_data[i_part]);
+      PDM_writer_var_set(_visu_id, _id_ranking_field, _visu_mesh_id, i_part, (double*)_ranking_field_data[i_part]);      
+    }  
+    
+    PDM_writer_var_write(_visu_id, _id_partitioning_field);   
+    PDM_writer_var_write(_visu_id, _id_ranking_field);       
   }
 
 /*****************************************/
@@ -358,7 +403,7 @@ namespace cwipi {
           }
         }//loop on i_part
       } //end loop on block
-      GeomWrite();
+      GeomWrite(mesh);
     }
   }
 

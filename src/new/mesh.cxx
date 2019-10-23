@@ -456,7 +456,7 @@ namespace cwipi {
 
 
       if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC ) {
-        _visu -> GeomWrite();
+        _visu -> GeomWrite(this);
       }
   } 
 
