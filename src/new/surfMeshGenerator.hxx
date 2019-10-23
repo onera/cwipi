@@ -42,76 +42,76 @@ namespace cwipi {
 
       ~surfMeshGenerator();
 
-      void init(int nx, int ny, MPI_Comm* comm, double prop, double width, double randomVar);
+      void init(int nx, int ny, int nPart, MPI_Comm* comm, double prop, double width, double randomVar);
   
       void computeMesh();
       
-      int nTriGet() {
-        return _nTri;
+      int nTriGet(int i_part) {
+        return _nTri[i_part];
       }
       
-      int nQuadGet(){
-        return _nQuad;
+      int nQuadGet(int i_part){
+        return _nQuad[i_part];
       }
       
-      int nPolyGet(){
-        return _nPoly;
+      int nPolyGet(int i_part){
+        return _nPoly[i_part];
       }
 
-      int* connecTriGet (){
-        return _eltsConnecTri;
+      int* connecTriGet (int i_part){
+        return _eltsConnecTri[i_part];
       }
       
-      CWP_g_num_t* eltsGnumTriGet(){
-        return _eltsGnumTri;
+      CWP_g_num_t* eltsGnumTriGet(int i_part){
+        return _eltsGnumTri[i_part];
       }      
       
-      int* connecQuadGet(){
-        return _eltsConnecQuad;
+      int* connecQuadGet(int i_part){
+        return _eltsConnecQuad[i_part];
       }
 
-      CWP_g_num_t* eltsGnumQuadGet(){
-        return _eltsGnumQuad;
+      CWP_g_num_t* eltsGnumQuadGet(int i_part){
+        return _eltsGnumQuad[i_part];
       }
       
-      int* connecPolyGet(){
-        return _eltsConnecPoly;
+      int* connecPolyGet(int i_part){
+        return _eltsConnecPoly[i_part];
       }
       
-      int* connecPolyIndexGet(){
-        return _eltsConnecPolyIndex;
+      int* connecPolyIndexGet(int i_part){
+        return _eltsConnecPolyIndex[i_part];
       }
 
-      CWP_g_num_t* eltsGnumPolyGet(){
-        return _eltsGnumPoly;
+      CWP_g_num_t* eltsGnumPolyGet(int i_part){
+        return _eltsGnumPoly[i_part];
       }
       
-      int nVtxGet(){
-        return _nVtx;
+      int nVtxGet(int i_part){
+        return _nVtx[i_part];
       }
 
-      double* coordsGet(){
-        return _coords;
+      double* coordsGet(int i_part){
+        return _coords[i_part];
       }
 
-      CWP_g_num_t* vtxGnumGet(){
-        return _vtxGnum;
+      CWP_g_num_t* vtxGnumGet(int i_part){
+        return _vtxGnum[i_part];
       }
       
-      int nEltsGet(){
-        return _nElts;
+      int nEltsGet(int i_part){
+        return _nElts[i_part];
       }    
 
-      int* connecGet(){
-        return _eltsConnec;
+      int* connecGet(int i_part){
+        return _eltsConnec[i_part];
       }
       
-      int* connecIndexGet(){
-        return _eltsConnecIndex;
+      int* connecIndexGet(int i_part){
+        return _eltsConnecIndex[i_part];
       }
 
-      CWP_g_num_t* eltsGnumGet(){
-        return _eltsGnum;
+      CWP_g_num_t* eltsGnumGet(int i_part){
+        return _eltsGnum[i_part];
       }
 
       
@@ -127,27 +127,27 @@ namespace cwipi {
       PDM_MPI_Comm _interfComm; /*!< Interface MPI Communicator >*/
       int          _interfCommSize;
       
-      double* _coords;
-      CWP_g_num_t* _vtxGnum;
+      std::vector<double*> _coords;
+      std::vector<CWP_g_num_t*> _vtxGnum;
       
-      int _nVtx;
-      int _nElts;
-      int _nPoly;
-      int* _eltsConnecPolyIndex;
-      int* _eltsConnecPoly;
-      CWP_g_num_t* _eltsGnumPoly;
+      std::vector<int> _nVtx;
+      std::vector<int> _nElts;
+      std::vector<int> _nPoly;
+      std::vector<int*> _eltsConnecPolyIndex;
+      std::vector<int*> _eltsConnecPoly;
+      std::vector<CWP_g_num_t*> _eltsGnumPoly;
       
-      int _nTri;
-      int* _eltsConnecTri;
-      CWP_g_num_t* _eltsGnumTri;
+      std::vector<int> _nTri;
+      std::vector<int*> _eltsConnecTri;
+      std::vector<CWP_g_num_t*> _eltsGnumTri;
       
-      int _nQuad;
-      int* _eltsConnecQuad;
-      CWP_g_num_t* _eltsGnumQuad;
+      std::vector<int> _nQuad;
+      std::vector<int*> _eltsConnecQuad;
+      std::vector<CWP_g_num_t*> _eltsGnumQuad;
 
-      int* _eltsConnecIndex;
-      int* _eltsConnec;      
-      CWP_g_num_t* _eltsGnum;
+      std::vector<int*> _eltsConnecIndex;
+      std::vector<int*> _eltsConnec;      
+      std::vector<CWP_g_num_t*> _eltsGnum;
                   
       
       double _width;

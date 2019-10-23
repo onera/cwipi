@@ -2107,10 +2107,10 @@ const char *code_name
 void          
 CWP_surf_gen_init
 (
-  int nx, int ny, MPI_Comm* comm, double prop, double width, double randomVar
+  int nx, int ny, int nPart, MPI_Comm* comm, double prop, double width, double randomVar
 )
 { cwipi::surfMeshGenerator &surfMesh =  cwipi::surfMeshGenerator::getInstance();
-  surfMesh.init(nx,ny,comm,prop,width,randomVar);
+  surfMesh.init(nx,ny,nPart,comm,prop,width,randomVar);
 }
 
 void          
@@ -2123,7 +2123,7 @@ CWP_surf_gen_compute()
 
 void          
 CWP_surf_gen_by_block_get
-(
+( int i_part,
   int* nVtx , double** coords, CWP_g_num_t** vtxGnum, int* nElts,
   int* nTri , int** eltsConnecTri , CWP_g_num_t** eltsGnumTri,
   int* nQuad, int** eltsConnecQuad, CWP_g_num_t** eltsGnumQuad,
@@ -2131,44 +2131,44 @@ CWP_surf_gen_by_block_get
 )
 {
   cwipi::surfMeshGenerator &surfMesh =  cwipi::surfMeshGenerator::getInstance();
-  *nVtx = surfMesh.nVtxGet();
-  *nElts = surfMesh.nEltsGet();
-  *coords = surfMesh.coordsGet();
-  *vtxGnum = surfMesh.vtxGnumGet();
+  *nVtx = surfMesh.nVtxGet(i_part);
+  *nElts = surfMesh.nEltsGet(i_part);
+  *coords = surfMesh.coordsGet(i_part);
+  *vtxGnum = surfMesh.vtxGnumGet(i_part);
   
-  *nTri = surfMesh.nTriGet();
-  *eltsConnecTri = surfMesh.connecTriGet();
-  *eltsGnumTri = surfMesh.eltsGnumTriGet();
+  *nTri = surfMesh.nTriGet(i_part);
+  *eltsConnecTri = surfMesh.connecTriGet(i_part);
+  *eltsGnumTri = surfMesh.eltsGnumTriGet(i_part);
   
-  *nQuad = surfMesh.nQuadGet();
-  *eltsConnecQuad = surfMesh.connecQuadGet();
-  *eltsGnumQuad = surfMesh.eltsGnumQuadGet();
+  *nQuad = surfMesh.nQuadGet(i_part);
+  *eltsConnecQuad = surfMesh.connecQuadGet(i_part);
+  *eltsGnumQuad = surfMesh.eltsGnumQuadGet(i_part);
 
-  *nPoly = surfMesh.nPolyGet();
-  *eltsConnecPoly = surfMesh.connecPolyGet();  
-  *eltsConnecPolyIndex = surfMesh.connecPolyIndexGet();    
-  *eltsGnumPoly = surfMesh.eltsGnumPolyGet();  
+  *nPoly = surfMesh.nPolyGet(i_part);
+  *eltsConnecPoly = surfMesh.connecPolyGet(i_part);  
+  *eltsConnecPolyIndex = surfMesh.connecPolyIndexGet(i_part);    
+  *eltsGnumPoly = surfMesh.eltsGnumPolyGet(i_part);  
   
 }
 
 
 void          
 CWP_surf_gen_one_connectivity_get
-(
+( int i_part,
   int* nVtx , double** coords, CWP_g_num_t** vtxGnum,
   int* nElts, int** eltsConnecIndex, int** eltsConnec, CWP_g_num_t** eltsGnum
 )
 {
   cwipi::surfMeshGenerator &surfMesh =  cwipi::surfMeshGenerator::getInstance();
-  *nVtx = surfMesh.nVtxGet();
-  *nElts = surfMesh.nEltsGet();
-  *coords = surfMesh.coordsGet();
-  *vtxGnum = surfMesh.vtxGnumGet();  
+  *nVtx = surfMesh.nVtxGet(i_part);
+  *nElts = surfMesh.nEltsGet(i_part);
+  *coords = surfMesh.coordsGet(i_part);
+  *vtxGnum = surfMesh.vtxGnumGet(i_part);  
 
-  *nElts = surfMesh.nEltsGet();
-  *eltsConnec = surfMesh.connecGet();  
-  *eltsConnecIndex = surfMesh.connecIndexGet();    
-  *eltsGnum = surfMesh.eltsGnumGet();    
+  *nElts = surfMesh.nEltsGet(i_part);
+  *eltsConnec = surfMesh.connecGet(i_part);  
+  *eltsConnecIndex = surfMesh.connecIndexGet(i_part);    
+  *eltsGnum = surfMesh.eltsGnumGet(i_part);    
 
 }
 

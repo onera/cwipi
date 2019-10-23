@@ -34,17 +34,13 @@
 namespace cwipi {
 
 surfMeshGenerator::surfMeshGenerator()
-                  :_nx(0),_ny(0),_prop(1.0),_color(0),_width(0.0),_nVtx(0),_coords(NULL),_vtxGnum(NULL),
-                   _nElts(0),
-                   _nPoly(0),
-                   _nTri(0), _nQuad(0),
-                   _eltsGnum(NULL),_randomVar(1)
+                  :_nx(0),_ny(0),_prop(1.0),_color(0),_width(0.0),_randomVar(1)
 {
 
 }
       
       
-void surfMeshGenerator::init(int nx, int ny, MPI_Comm* comm, double prop, double width, double randomVar)
+void surfMeshGenerator::init(int nx, int ny, int nPart, MPI_Comm* comm, double prop, double width, double randomVar)
 {
 
   _nx = nx;
@@ -53,7 +49,29 @@ void surfMeshGenerator::init(int nx, int ny, MPI_Comm* comm, double prop, double
   _width = width;
   _comm = _interfComm = PDM_MPI_mpi_2_pdm_mpi_comm(&comm);  
   _randomVar = randomVar;
-  _nPart = 1;
+  _nPart = nPart;
+  
+  _nVtx    .resize (_nPart);
+  _coords  .resize (_nPart);
+  _vtxGnum .resize (_nPart);
+  
+  _nPoly              .resize (_nPart);
+  _eltsConnecPolyIndex.resize (_nPart);
+  _eltsConnecPoly     .resize (_nPart);
+  _eltsGnumPoly       .resize (_nPart);
+
+  _nTri         .resize (_nPart);
+  _eltsConnecTri.resize (_nPart);
+  _eltsGnumTri  .resize (_nPart);
+  
+  _nQuad         .resize (_nPart);
+  _eltsConnecQuad.resize (_nPart);
+  _eltsGnumQuad  .resize (_nPart);
+
+  _nElts   .resize (_nPart);  
+  _eltsConnecIndex.resize (_nPart);
+  _eltsConnec     .resize (_nPart);   
+  _eltsGnum       .resize (_nPart);
   
   /* Interface communicator
    * ---------------------- */
@@ -190,20 +208,24 @@ void surfMeshGenerator::computeMesh() {
 
     free (dCellPart);
 
-    const int ipart = 0;
-    int nFace;
-    int nEdge;
-    int nEdgePartBound;
-    int nVtx1;
-    int nProc;
-    int sFaceEdge;
-    int sEdgeVtx;
-    int sEdgeGroup;
-    int nEdgeGroup2;
-    int nTPart;
+    
+    int id_mn = PDM_Mesh_nodal_create(_nPart, _interfComm);
+    
+    for(int i_part =0;i_part<_nPart;i_part++){
+    
+      int nFace;
+      int nEdge;
+      int nEdgePartBound;
+      int nVtx1;
+      int nProc;
+      int sFaceEdge;
+      int sEdgeVtx;
+      int sEdgeGroup;
+      int nEdgeGroup2;
+      int nTPart;
 
-    PDM_part_part_dim_get (ppartId,
-                           ipart,
+      PDM_part_part_dim_get (ppartId,
+                           i_part,
                            &nFace,
                            &nEdge,
                            &nEdgePartBound,
@@ -214,28 +236,28 @@ void surfMeshGenerator::computeMesh() {
                            &sEdgeVtx,
                            &sEdgeGroup,
                            &nEdgeGroup2);
+      
+      int          *faceTag;
+      int          *faceEdgeIdx;
+      int          *faceEdge;
+      PDM_g_num_t *faceLNToGN;
+      int          *edgeTag;
+      int          *edgeFace;
+      int          *edgeVtxIdx;
+      int          *edgeVtx;
+      PDM_g_num_t *edgeLNToGN;
+      int          *edgePartBoundProcIdx;
+      int          *edgePartBoundPartIdx;
+      int          *edgePartBound;
+      int          *vtxTag;
+      double       *vtx;
+      PDM_g_num_t *vtxLNToGN;
+      int          *edgeGroupIdx;
+      int          *edgeGroup;
+      PDM_g_num_t *edgeGroupLNToGN;
 
-    int          *faceTag;
-    int          *faceEdgeIdx;
-    int          *faceEdge;
-    PDM_g_num_t *faceLNToGN;
-    int          *edgeTag;
-    int          *edgeFace;
-    int          *edgeVtxIdx;
-    int          *edgeVtx;
-    PDM_g_num_t *edgeLNToGN;
-    int          *edgePartBoundProcIdx;
-    int          *edgePartBoundPartIdx;
-    int          *edgePartBound;
-    int          *vtxTag;
-    double       *vtx;
-    PDM_g_num_t *vtxLNToGN;
-    int          *edgeGroupIdx;
-    int          *edgeGroup;
-    PDM_g_num_t *edgeGroupLNToGN;
-
-    PDM_part_part_val_get (ppartId,
-                           ipart,
+      PDM_part_part_val_get (ppartId,
+                           i_part,
                            &faceTag,
                            &faceEdgeIdx,
                            &faceEdge,
@@ -254,42 +276,38 @@ void surfMeshGenerator::computeMesh() {
                            &edgeGroupIdx,
                            &edgeGroup,
                            &edgeGroupLNToGN);
+                
+      _nVtx[i_part] = nVtx1;
+      _coords[i_part] = (double*)malloc (sizeof(double) * 3 * nVtx1);
+      for (int i = 0; i < 3 * nVtx1; i++) {
+        _coords[i_part][i] = vtx[i];
+      }
+
+      _vtxGnum[i_part] = (CWP_g_num_t*)malloc (sizeof(CWP_g_num_t) * nVtx1);
+      for (int i = 0; i <  nVtx1; i++) {
+        _vtxGnum[i_part][i] = (CWP_g_num_t) vtxLNToGN[i];
+      }
+
+      int *edgeVtxN = (int*)malloc(sizeof(int) * nEdge);
+      for (int i = 0; i < nEdge; i++) {
+        edgeVtxN[i] = edgeVtxIdx[i+1] - edgeVtxIdx[i];
+      }
+
+      int *faceEdgeN = (int*)malloc(sizeof(int) * nFace);
+      for (int i = 0; i < nFace; i++) {
+        faceEdgeN[i] = faceEdgeIdx[i+1] - faceEdgeIdx[i];
+      }
 
 
-    _nVtx = nVtx1;
-    _coords = (double*)malloc (sizeof(double) * 3 * nVtx1);
-    for (int i = 0; i < 3 * nVtx1; i++) {
-      _coords[i] = vtx[i];
-    }
-
-    _vtxGnum = (CWP_g_num_t*)malloc (sizeof(CWP_g_num_t) * nVtx1);
-    for (int i = 0; i <  nVtx1; i++) {
-      _vtxGnum[i] = (CWP_g_num_t) vtxLNToGN[i];
-    }
-
-    int id_mn = PDM_Mesh_nodal_create(_nPart, _interfComm);
-
-    int *edgeVtxN = (int*)malloc(sizeof(int) * nEdge);
-    for (int i = 0; i < nEdge; i++) {
-      edgeVtxN[i] = edgeVtxIdx[i+1] - edgeVtxIdx[i];
-    }
-
-    int *faceEdgeN = (int*)malloc(sizeof(int) * nFace);
-    for (int i = 0; i < nFace; i++) {
-      faceEdgeN[i] = faceEdgeIdx[i+1] - faceEdgeIdx[i];
-    }
-
-    int i_prop = 0;
-
-    PDM_Mesh_nodal_coord_set(id_mn,
-                             i_prop,
-                             nVtx1,
-                             _coords,
-                             _vtxGnum);
+      PDM_Mesh_nodal_coord_set(id_mn,
+                               i_part,
+                               nVtx1,
+                               _coords[i_part],
+                               _vtxGnum[i_part]);
 
 
-    PDM_Mesh_nodal_cell2d_celledge_add (id_mn,
-                                        i_prop,
+      PDM_Mesh_nodal_cell2d_celledge_add (id_mn,
+                                        i_part,
                                         nFace,
                                         nEdge,
                                         edgeVtxIdx,
@@ -300,6 +318,10 @@ void surfMeshGenerator::computeMesh() {
                                         faceEdge,
                                         faceLNToGN);
 
+      _nElts[i_part] = nFace;
+    }
+
+
     int n_block = PDM_Mesh_nodal_n_blocks_get (id_mn);
     assert (n_block == 3);
 
@@ -309,7 +331,6 @@ void surfMeshGenerator::computeMesh() {
     assert (PDM_Mesh_nodal_block_type_get (id_mn, block_ids[1]) == PDM_MESH_NODAL_QUAD4);
     assert (PDM_Mesh_nodal_block_type_get (id_mn, block_ids[2]) == PDM_MESH_NODAL_POLY_2D);
     
-    _nElts = nFace;
 
 
     for (int i = 0; i < n_block; i++) {
@@ -318,98 +339,111 @@ void surfMeshGenerator::computeMesh() {
       PDM_Mesh_nodal_elt_t t_block = PDM_Mesh_nodal_block_type_get (id_mn, block_ids[i]);
 
       if (t_block == PDM_MESH_NODAL_TRIA3){
-        _nTri = PDM_Mesh_nodal_block_n_elt_get (id_mn, id_block, 0);            
-        PDM_Mesh_nodal_block_std_get (id_mn, id_block, 0, &_eltsConnecTri);
-        _eltsGnumTri = PDM_Mesh_nodal_block_g_num_get (id_mn, id_block, 0);      
-        /*
-        for(int i =0; i<_nTri;i++){
-          for (int j=0;j<3;j++){
-            printf("eltsConnecTri[%i] %i rank %i nVtx %i _nTri %i color %i n_block %i\n",3*i+j,_eltsConnecTri[3*i+j],_rank,_nVtx,_nTri,_color,n_block);
-          }
-        }        
-        */
+        for(int i_part =0;i_part<_nPart;i_part++){
+          _nTri[i_part] = PDM_Mesh_nodal_block_n_elt_get (id_mn, id_block, i_part);            
+          PDM_Mesh_nodal_block_std_get (id_mn, id_block, i_part, &_eltsConnecTri[i_part]);
+          _eltsGnumTri[i_part] = PDM_Mesh_nodal_block_g_num_get (id_mn, id_block, i_part);      
+          /*
+          for(int i =0; i<_nTri;i++){
+            for (int j=0;j<3;j++){
+             printf("eltsConnecTri[%i] %i rank %i nVtx %i _nTri %i color %i n_block %i\n",3*i+j,_eltsConnecTri[3*i+j],_rank,_nVtx,_nTri,_color,n_block);
+            }
+          }        
+          */
+        }
       }
       else if(t_block == PDM_MESH_NODAL_QUAD4) {
-        _nQuad = PDM_Mesh_nodal_block_n_elt_get (id_mn, id_block, 0);
-        PDM_Mesh_nodal_block_std_get (id_mn, id_block, 0, &_eltsConnecQuad);
-        _eltsGnumQuad = PDM_Mesh_nodal_block_g_num_get (id_mn, id_block, 0);    
-        /*
-        for(int i =0; i<_nQuad;i++){
-          for (int j=0;j<4;j++){
-            printf("eltsConnecQuad[%i] %i rank %i nVtx %i _nQuad %i color %i n_block %i\n",3*i+j,_eltsConnecQuad[4*i+j],_rank,_nVtx,_nQuad,_color,n_block);
-          }
-        }
-        */             
+        for(int i_part =0;i_part<_nPart;i_part++){
+          _nQuad[i_part] = PDM_Mesh_nodal_block_n_elt_get (id_mn, id_block, i_part);            
+          PDM_Mesh_nodal_block_std_get (id_mn, id_block, i_part, &_eltsConnecQuad[i_part]);
+          _eltsGnumQuad[i_part] = PDM_Mesh_nodal_block_g_num_get (id_mn, id_block, i_part);      
+          /*
+          for(int i =0; i<_nTri;i++){
+            for (int j=0;j<3;j++){
+             printf("eltsConnecTri[%i] %i rank %i nVtx %i _nTri %i color %i n_block %i\n",3*i+j,_eltsConnecTri[3*i+j],_rank,_nVtx,_nTri,_color,n_block);
+            }
+          }        
+          */
+        }         
         
       }
       else if(t_block == PDM_MESH_NODAL_POLY_2D){
-        _nPoly = PDM_Mesh_nodal_block_n_elt_get (id_mn, id_block, 0);
-        PDM_Mesh_nodal_block_poly2d_get (id_mn, id_block, 0, &_eltsConnecPolyIndex, &_eltsConnecPoly);
-        _eltsGnumPoly = PDM_Mesh_nodal_block_g_num_get (id_mn, id_block, 0);    
-       /* for(int i =0; i<_nPoly;i++){
-          for (int j=_eltsConnecPolyIndex[i];j<_eltsConnecPolyIndex[i+1];j++){
-            printf("_eltsConnecPoly[%i] %i rank %i nVtx %i _nPoly %i color %i n_block %i\n",j,_eltsConnecPoly[j],_rank,_nVtx,_nPoly,_color,n_block);
+        for(int i_part =0;i_part<_nPart;i_part++){
+          _nPoly[i_part]  = PDM_Mesh_nodal_block_n_elt_get (id_mn, id_block, i_part);
+          PDM_Mesh_nodal_block_poly2d_get (id_mn, id_block, i_part, &_eltsConnecPolyIndex[i_part] , &_eltsConnecPoly[i_part] );
+          _eltsGnumPoly[i_part]  = PDM_Mesh_nodal_block_g_num_get (id_mn, id_block, i_part);    
+         /* for(int i =0; i<_nPoly;i++){
+            for (int j=_eltsConnecPolyIndex[i];j<_eltsConnecPolyIndex[i+1];j++){
+              printf("_eltsConnecPoly[%i] %i rank %i nVtx %i _nPoly %i color %i n_block %i\n",j,_eltsConnecPoly[j],_rank,_nVtx,_nPoly,_color,n_block);
+            }
           }
+         */             
         }
-       */             
       }
     }
+   
+    for(int i_part =0;i_part<_nPart;i_part++){
+      assert(_nElts[i_part] == _nTri[i_part] + _nQuad[i_part] + _nPoly[i_part]);
     
-    assert(_nElts == _nTri + _nQuad + _nPoly);
+      _eltsConnecIndex[i_part] = (int*) malloc( sizeof(int) * (_nElts[i_part]+1) );
+      _eltsConnecIndex[i_part][0] = 0;
+
+      int idx =0; 
+      for(int i =0; i<_nTri[i_part];i++){
+        _eltsConnecIndex[i_part][idx+1] = _eltsConnecIndex[i_part][idx] + 3;
+        idx++;
+      }
+
+      for(int i =0; i< _nQuad[i_part];i++){
+        _eltsConnecIndex[i_part][idx+1] = _eltsConnecIndex[i_part][idx] + 4;
+        idx++;
+      }
+
+      for(int i =0; i< _nPoly[i_part]; i++){
+        _eltsConnecIndex[i_part][idx+1] = _eltsConnecIndex[i_part][idx] + (_eltsConnecPolyIndex[i_part][i+1]-_eltsConnecPolyIndex[i_part][i]);
+        idx++;     
+      }
     
-    _eltsConnecIndex = (int*) malloc( sizeof(int) * (_nElts+1) );
-    _eltsConnecIndex[0] = 0;
+      _eltsConnec[i_part] = (int*) malloc(sizeof(int) * _eltsConnecIndex[i_part][_nElts[i_part]] );
+      memcpy( _eltsConnec[i_part], _eltsConnecTri[i_part], sizeof(int)*3*_nTri[i_part] );
+      memcpy( &(_eltsConnec[i_part][3*_nTri[i_part]]), _eltsConnecQuad[i_part], sizeof(int)*4*_nQuad[i_part] );    
+      memcpy( &(_eltsConnec[i_part][ 3*_nTri[i_part]+4*_nQuad[i_part]]), _eltsConnecPoly[i_part], sizeof(int)*_eltsConnecPolyIndex[i_part][ _nPoly[i_part] ] );       
 
-    int idx =0; 
-    for(int i =0; i<_nTri;i++){
-      _eltsConnecIndex[idx+1] = _eltsConnecIndex[idx] + 3;
-      idx++;
-    }
+      /* 
+      for(int i =0; i<_nElts;i++){
+        for (int j=_eltsConnecIndex[i];j<_eltsConnecIndex[i+1];j++){
+          printf("_eltsConnec[%i] %i rank %i Elts %i nVtx %i _nElts %i color %i n_block %i\n",j,_eltsConnec[j],_rank,i,_nVtx,_nElts,_color,n_block);
+        }
+      }
+     */
 
-    for(int i =0; i< _nQuad;i++){
-      _eltsConnecIndex[idx+1] = _eltsConnecIndex[idx] + 4;
-      idx++;
-    }
-
-    for(int i =0; i< _nPoly; i++){
-      _eltsConnecIndex[idx+1] = _eltsConnecIndex[idx] + (_eltsConnecPolyIndex[i+1]-_eltsConnecPolyIndex[i]);
-      idx++;     
-    }
-    
-    _eltsConnec = (int*) malloc(sizeof(int) * _eltsConnecIndex[_nElts] );
-     memcpy( _eltsConnec, _eltsConnecTri, sizeof(int)*3*_nTri );
-     memcpy( &(_eltsConnec[3*_nTri]), _eltsConnecQuad, sizeof(int)*4*_nQuad );    
-     memcpy( &(_eltsConnec[3*_nTri+4*_nQuad]), _eltsConnecPoly, sizeof(int)*_eltsConnecPolyIndex[_nPoly] );       
-
-     /* 
-     for(int i =0; i<_nElts;i++){
-       for (int j=_eltsConnecIndex[i];j<_eltsConnecIndex[i+1];j++){
-         printf("_eltsConnec[%i] %i rank %i Elts %i nVtx %i _nElts %i color %i n_block %i\n",j,_eltsConnec[j],_rank,i,_nVtx,_nElts,_color,n_block);
-       }
-     }
-    */
-    //PDM_Mesh_nodal_free (id_mn);
-
+   }//end for i_part
+   
+     //PDM_Mesh_nodal_free (id_mn);   
     //PDM_part_free (ppartId);
 
-    free (dEdgeVtxIdx);
+   /* free (dEdgeVtxIdx);
     free (edgeVtxN);
     free (faceEdgeN);
-
+*/
     //PDM_MPI_Comm_free(&_interfComm);
   }
   else {
-    _coords = (double*)malloc (sizeof(double) * 3 * _nVtx);
-    _vtxGnum = (CWP_g_num_t*)malloc (sizeof(CWP_g_num_t) * _nVtx);
+  
+    for(int i_part =0;i_part<_nPart;i_part++){  
+    _coords[i_part] = (double*)malloc (sizeof(double) * 3 * _nVtx[i_part]);
+    _vtxGnum[i_part] = (CWP_g_num_t*)malloc (sizeof(CWP_g_num_t) * _nVtx[i_part]);
 
-    _eltsConnecTri = (int*)malloc(sizeof(int) * (_nElts+1));
-    _eltsConnecQuad = (int*)malloc(sizeof(int) * (_nElts+1));
-    _eltsConnecPolyIndex = (int*)malloc(sizeof(int) * (_nElts+1));    
-    _eltsConnecPolyIndex[0] = 0;
-    _eltsConnecPoly = (int*)malloc(sizeof(int) * _eltsConnecPolyIndex[_nElts]);
-    _eltsGnumTri = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t) * _nElts);
-    _eltsGnumQuad = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t) * _nElts);
-    _eltsGnumPoly = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t) * _nElts);
+    _eltsConnecTri[i_part] = (int*)malloc(sizeof(int) * (_nElts[i_part]+1));
+    _eltsConnecQuad[i_part] = (int*)malloc(sizeof(int) * (_nElts[i_part]+1));
+    _eltsConnecPolyIndex[i_part] = (int*)malloc(sizeof(int) * (_nElts[i_part]+1));    
+    _eltsConnecPolyIndex[i_part][0] = 0;
+    _eltsConnecPoly[i_part] = (int*)malloc(sizeof(int) * _eltsConnecPolyIndex[i_part][_nElts[i_part]]);
+    _eltsGnumTri[i_part] = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t) * _nElts[i_part]);
+    _eltsGnumQuad[i_part] = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t) * _nElts[i_part]);
+    _eltsGnumPoly[i_part] = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t) * _nElts[i_part]);
+    
+    }
   }
 
 

@@ -351,7 +351,7 @@ int main
 
 
 
-  CWP_surf_gen_init(nx, nx, &localComm, part, s, (double)codeId);
+  CWP_surf_gen_init(nx, nx, nPart, &localComm, part, s, (double)codeId);
   CWP_surf_gen_compute();
 
 
@@ -389,7 +389,8 @@ int main
     int *eltsConnec = NULL;  
     CWP_g_num_t *eltsGnum = NULL;
 
-    CWP_surf_gen_one_connectivity_get (&nVtx  , &coords , &vtxGnum,
+    CWP_surf_gen_one_connectivity_get (0,
+                                       &nVtx  , &coords , &vtxGnum,
                                        &nElts  , &eltsConnecIndex, &eltsConnec, &eltsGnum);
 
     cwipi_define_mesh("old_cpl",
@@ -463,7 +464,8 @@ int main
     CWP_g_num_t *eltsGnumPoly = NULL;  
 
 
-    CWP_surf_gen_by_block_get( &nVtx  , &coords , &vtxGnum, &nElts,
+    CWP_surf_gen_by_block_get( 0,
+                               &nVtx  , &coords , &vtxGnum, &nElts,
                                &n_tri , &eltsConnecTri , &eltsGnumTri,
                                &n_quad, &eltsConnecQuad, &eltsGnumQuad,
                                &n_poly2d, &eltsConnecPolyIndex, &eltsConnecPoly, &eltsGnumPoly);
