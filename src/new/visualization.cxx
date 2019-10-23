@@ -48,10 +48,12 @@ namespace cwipi {
     for(int i_part=0;i_part<_n_part;i_part++){
       free(_partitioning_field_data[i_part]);
       free(_ranking_field_data[i_part]);
+      free(_blocking_field_data[i_part]);
     }      
-    
+        
     PDM_writer_var_data_free(_visu_id, _id_partitioning_field);
     PDM_writer_var_data_free(_visu_id, _id_ranking_field);    
+    PDM_writer_var_data_free(_visu_id, _id_blocking_field);        
     PDM_writer_free(_visu_id);
   }
 
@@ -179,26 +181,50 @@ namespace cwipi {
                                                   PDMfieldType, 
                                                   "ranking");
 
+    int _id_blocking_field = PDM_writer_var_create(_visu_id, 
+                                                  PDM_WRITER_OFF,
+                                                  PDMfieldComp, 
+                                                  PDMfieldType, 
+                                                  "blocking");
+
     _partitioning_field_data.resize(mesh -> getNPart() );
     _ranking_field_data.resize(mesh -> getNPart() );
+    _blocking_field_data.resize(mesh -> getNPart() );
 
     int worldRank;
     MPI_Comm_rank(MPI_COMM_WORLD,&worldRank);
 
+    int* blockDB = mesh -> blockDBGet();
+
+    int nBlock = mesh -> nBlockGet();
+    printf("nBlock %i\n",nBlock);
     for(int i_part=0;i_part<_n_part;i_part++){
       _partitioning_field_data[i_part] = (double*) malloc( mesh -> getPartNElts(i_part) * sizeof(double) ); 
-      _ranking_field_data[i_part] = (double*) malloc( mesh -> getPartNElts(i_part) * sizeof(double) );       
+      _ranking_field_data[i_part] = (double*) malloc( mesh -> getPartNElts(i_part) * sizeof(double) );      
+      _blocking_field_data[i_part] = (double*) malloc( mesh -> getPartNElts(i_part) * sizeof(double) );        
+      int idx=0;
+      for(int i_block=0;i_block < nBlock; i_block++){
+        int id_block = blockDB[i_block];
+        for(int i_elt=0; i_elt< mesh -> getBlockNElts(id_block,i_part); i_elt++){
+          _blocking_field_data[i_part][idx++] = (double)i_block;
+        }
+        
+      }
+      
+         
       for(int i_elt=0; i_elt<mesh -> getPartNElts(i_part); i_elt++){
         _partitioning_field_data[i_part][i_elt] = (double)i_part;
         _ranking_field_data[i_part][i_elt] = (double)worldRank;
       }
       
       PDM_writer_var_set(_visu_id, _id_partitioning_field, _visu_mesh_id, i_part, (double*)_partitioning_field_data[i_part]);
-      PDM_writer_var_set(_visu_id, _id_ranking_field, _visu_mesh_id, i_part, (double*)_ranking_field_data[i_part]);      
+      PDM_writer_var_set(_visu_id, _id_ranking_field, _visu_mesh_id, i_part, (double*)_ranking_field_data[i_part]);  
+      PDM_writer_var_set(_visu_id, _id_blocking_field, _visu_mesh_id, i_part, (double*)_blocking_field_data[i_part]);            
     }  
     
     PDM_writer_var_write(_visu_id, _id_partitioning_field);   
     PDM_writer_var_write(_visu_id, _id_ranking_field);       
+    PDM_writer_var_write(_visu_id, _id_blocking_field);         
   }
 
 /*****************************************/

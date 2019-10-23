@@ -371,6 +371,12 @@ void surfMeshGenerator::computeMesh() {
         for(int i_part =0;i_part<_nPart;i_part++){
           _nPoly[i_part]  = PDM_Mesh_nodal_block_n_elt_get (id_mn, id_block, i_part);
           PDM_Mesh_nodal_block_poly2d_get (id_mn, id_block, i_part, &_eltsConnecPolyIndex[i_part] , &_eltsConnecPoly[i_part] );
+          
+          if(_nPoly[i_part] == 0){
+            _eltsConnecPolyIndex[i_part] = (int*) malloc(sizeof(int));
+            _eltsConnecPolyIndex[i_part][0]=0;
+          }
+          
           _eltsGnumPoly[i_part]  = PDM_Mesh_nodal_block_g_num_get (id_mn, id_block, i_part);    
          /* for(int i =0; i<_nPoly;i++){
             for (int j=_eltsConnecPolyIndex[i];j<_eltsConnecPolyIndex[i+1];j++){
@@ -404,11 +410,21 @@ void surfMeshGenerator::computeMesh() {
         idx++;     
       }
     
+      _nElts[i_part] = _nPoly[i_part] + _nTri[i_part] + _nQuad[i_part];
+    
       _eltsConnec[i_part] = (int*) malloc(sizeof(int) * _eltsConnecIndex[i_part][_nElts[i_part]] );
       memcpy( _eltsConnec[i_part], _eltsConnecTri[i_part], sizeof(int)*3*_nTri[i_part] );
+      //printf("3*_nTri[%i] %i _nElts[i_part] %i _eltsConnecIndex[i_part][_nElts[i_part]] %i\n",i_part,3*_nTri[i_part],_nElts[i_part],_eltsConnecIndex[i_part][_nElts[i_part]]);
+      //printf("_eltsConnec[i_part][3*_nTri[i_part]] %i\n",_eltsConnec[i_part][3*_nTri[i_part]-1]);
       memcpy( &(_eltsConnec[i_part][3*_nTri[i_part]]), _eltsConnecQuad[i_part], sizeof(int)*4*_nQuad[i_part] );    
-      memcpy( &(_eltsConnec[i_part][ 3*_nTri[i_part]+4*_nQuad[i_part]]), _eltsConnecPoly[i_part], sizeof(int)*_eltsConnecPolyIndex[i_part][ _nPoly[i_part] ] );       
 
+      if(_nPoly[i_part]>0)
+        printf("_eltsConnecPolyIndex[i_part][ _nPoly[i_part] ] %i _eltsConnecPoly[i_part] %i\n",_eltsConnecPolyIndex[i_part][ _nPoly[i_part] ],0/*_eltsConnecPoly[i_part][0]*/);
+      
+   
+      if(_nPoly[i_part]>0)
+        memcpy( &(_eltsConnec[i_part][ 3*_nTri[i_part]+4*_nQuad[i_part] ]), _eltsConnecPoly[i_part], sizeof(int)*_eltsConnecPolyIndex[i_part][ _nPoly[i_part] ] );       
+      // while(1==1){}
       /* 
       for(int i =0; i<_nElts;i++){
         for (int j=_eltsConnecIndex[i];j<_eltsConnecIndex[i+1];j++){

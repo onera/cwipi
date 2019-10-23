@@ -283,6 +283,9 @@ namespace cwipi {
 
     int _id_ranking_field  ;
     std::vector<double*> _ranking_field_data;
+
+    int _id_blocking_field  ;
+    std::vector<double*> _blocking_field_data;
     
   };
 
