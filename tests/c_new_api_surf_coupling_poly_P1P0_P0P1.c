@@ -351,8 +351,8 @@ int main
 
 
 
-  CWP_surf_gen_init(nx, nx, nPart, &localComm, part, s, (double)codeId);
-  CWP_surf_gen_compute();
+  CWP_surf_gen_init("generator",nx, nx, nPart, &localComm, part, s, (double)codeId);
+  CWP_surf_gen_compute("generator");
 
 
   int nVtx = 0;
@@ -389,7 +389,7 @@ int main
     int *eltsConnec = NULL;  
     CWP_g_num_t *eltsGnum = NULL;
 
-    CWP_surf_gen_one_connectivity_get (0,
+    CWP_surf_gen_one_connectivity_get ("generator",0,
                                        &nVtx  , &coords , &vtxGnum,
                                        &nElts  , &eltsConnecIndex, &eltsConnec, &eltsGnum);
 
@@ -464,7 +464,7 @@ int main
     CWP_g_num_t *eltsGnumPoly = NULL;  
 
 
-    CWP_surf_gen_by_block_get( 0,
+    CWP_surf_gen_by_block_get( "generator", 0,
                                &nVtx  , &coords , &vtxGnum, &nElts,
                                &n_tri , &eltsConnecTri , &eltsGnumTri,
                                &n_quad, &eltsConnecQuad, &eltsGnumQuad,

@@ -138,6 +138,11 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_surf_coupling_poly_P1P0_P0P1.c
   test_c_create (c_new_api_surf_coupling_poly_P1P0_P0P1 2)
 endif () 
 
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_api_surf_coupling_P1P0_P0P1_part2.c" AND NOT CWP_NEW_TO_OLD_API)
+  test_c_create (c_new_api_surf_coupling_P1P0_P0P1_part2 2)
+endif () 
+
+
 if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/c_new_to_old_api.c")
   test_c_create (c_new_to_old_api 2)
 endif () 

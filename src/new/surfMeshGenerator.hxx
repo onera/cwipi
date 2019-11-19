@@ -26,16 +26,13 @@
 #include "pdm_printf.h"
 
 #include "cwp.h"
-#include "singleton.hpp"
 
 using namespace std;
 
 namespace cwipi {
 
   class surfMeshGenerator
-     : public Singleton <surfMeshGenerator>
   {
-    friend class Singleton <surfMeshGenerator>;
   
     public:
       surfMeshGenerator();

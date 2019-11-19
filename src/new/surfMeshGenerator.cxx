@@ -19,14 +19,12 @@
 
 
 
-#include "pdm_part.h"
 #include "pdm_timer.h"
 #include "pdm.h"
 #include "pdm_config.h"
 #include "time.h"
-#include "pdm_mesh_nodal.h"
-#include "pdm_poly_surf_gen.h"
 #include "surfMeshGenerator.hxx"
+#include "surfMeshGeneratorDB.hxx"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -34,7 +32,7 @@
 namespace cwipi {
 
 surfMeshGenerator::surfMeshGenerator()
-                  :_nx(0),_ny(0),_prop(1.0),_color(0),_width(0.0),_randomVar(1)
+                  :_nx(0),_ny(0),_prop(1.0),_color(0),_width(0.0),_randomVar(1.0)
 {
 
 }
@@ -113,7 +111,6 @@ void surfMeshGenerator::computeMesh() {
 
     const int haveRandom = 1;
     const int initRandom = time(NULL) * _randomVar;
-
     PDM_g_num_t  nGFace;
     PDM_g_num_t  nGVtx;
     PDM_g_num_t  nGEdge;
@@ -210,7 +207,6 @@ void surfMeshGenerator::computeMesh() {
 
     
     int id_mn = PDM_Mesh_nodal_create(_nPart, _interfComm);
-    
     for(int i_part =0;i_part<_nPart;i_part++){
     
       int nFace;
@@ -414,17 +410,10 @@ void surfMeshGenerator::computeMesh() {
     
       _eltsConnec[i_part] = (int*) malloc(sizeof(int) * _eltsConnecIndex[i_part][_nElts[i_part]] );
       memcpy( _eltsConnec[i_part], _eltsConnecTri[i_part], sizeof(int)*3*_nTri[i_part] );
-      //printf("3*_nTri[%i] %i _nElts[i_part] %i _eltsConnecIndex[i_part][_nElts[i_part]] %i\n",i_part,3*_nTri[i_part],_nElts[i_part],_eltsConnecIndex[i_part][_nElts[i_part]]);
-      //printf("_eltsConnec[i_part][3*_nTri[i_part]] %i\n",_eltsConnec[i_part][3*_nTri[i_part]-1]);
       memcpy( &(_eltsConnec[i_part][3*_nTri[i_part]]), _eltsConnecQuad[i_part], sizeof(int)*4*_nQuad[i_part] );    
-
-      if(_nPoly[i_part]>0)
-        printf("_eltsConnecPolyIndex[i_part][ _nPoly[i_part] ] %i _eltsConnecPoly[i_part] %i\n",_eltsConnecPolyIndex[i_part][ _nPoly[i_part] ],0/*_eltsConnecPoly[i_part][0]*/);
-      
    
       if(_nPoly[i_part]>0)
         memcpy( &(_eltsConnec[i_part][ 3*_nTri[i_part]+4*_nQuad[i_part] ]), _eltsConnecPoly[i_part], sizeof(int)*_eltsConnecPolyIndex[i_part][ _nPoly[i_part] ] );       
-      // while(1==1){}
       /* 
       for(int i =0; i<_nElts;i++){
         for (int j=_eltsConnecIndex[i];j<_eltsConnecIndex[i+1];j++){
@@ -447,18 +436,19 @@ void surfMeshGenerator::computeMesh() {
   else {
   
     for(int i_part =0;i_part<_nPart;i_part++){  
-    _coords[i_part] = (double*)malloc (sizeof(double) * 3 * _nVtx[i_part]);
-    _vtxGnum[i_part] = (CWP_g_num_t*)malloc (sizeof(CWP_g_num_t) * _nVtx[i_part]);
+      _nVtx[i_part] = 0;
+      _nElts[i_part] = 0;
+      _coords[i_part] = (double*)malloc (sizeof(double) * 3 * _nVtx[i_part]);
+      _vtxGnum[i_part] = (CWP_g_num_t*)malloc (sizeof(CWP_g_num_t) * _nVtx[i_part]);
 
-    _eltsConnecTri[i_part] = (int*)malloc(sizeof(int) * (_nElts[i_part]+1));
-    _eltsConnecQuad[i_part] = (int*)malloc(sizeof(int) * (_nElts[i_part]+1));
-    _eltsConnecPolyIndex[i_part] = (int*)malloc(sizeof(int) * (_nElts[i_part]+1));    
-    _eltsConnecPolyIndex[i_part][0] = 0;
-    _eltsConnecPoly[i_part] = (int*)malloc(sizeof(int) * _eltsConnecPolyIndex[i_part][_nElts[i_part]]);
-    _eltsGnumTri[i_part] = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t) * _nElts[i_part]);
-    _eltsGnumQuad[i_part] = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t) * _nElts[i_part]);
-    _eltsGnumPoly[i_part] = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t) * _nElts[i_part]);
-    
+      _eltsConnecTri[i_part] = (int*)malloc(sizeof(int) * (_nElts[i_part]));
+      _eltsConnecQuad[i_part] = (int*)malloc(sizeof(int) * (_nElts[i_part]));
+      _eltsConnecPolyIndex[i_part] = (int*)malloc(sizeof(int) * (_nElts[i_part]+1));    
+      _eltsConnecPolyIndex[i_part][0] = 0;
+      _eltsConnecPoly[i_part] = (int*)malloc(sizeof(int) * _eltsConnecPolyIndex[i_part][_nElts[i_part]]);
+      _eltsGnumTri[i_part] = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t) * _nElts[i_part]);
+      _eltsGnumQuad[i_part] = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t) * _nElts[i_part]);
+      _eltsGnumPoly[i_part] = (CWP_g_num_t*)malloc(sizeof(CWP_g_num_t) * _nElts[i_part]);
     }
   }
 
