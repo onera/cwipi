@@ -111,6 +111,7 @@ namespace cwipi {
       */ 
    
       void null_exchange_for_uncoupled_process() ;
+      void null_exchange_for_uncoupled_process_p2p() ;
 
 
     /**
@@ -126,7 +127,9 @@ namespace cwipi {
       void both_codes_on_the_same_process_exchange (Field* sendingField,
                                                     Field* recevingField
                                                     ) ;
-
+      void both_codes_on_the_same_process_exchange_p2p (Field* sendingField,
+                                                    Field* recevingField
+                                                    ) ;
     private:     
 
 

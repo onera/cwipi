@@ -331,7 +331,7 @@ namespace cwipi {
           map <std::string, Field *>::iterator it_recv = distCpl._fields.find(sendingFieldID);
           if (it_recv != distCpl._fields.end()) {
             Field* recevingField = it_recv -> second;   
-            _mapping[sendingField -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange(sendingField,recevingField);
+            _mapping[sendingField -> associatedCloudPointTypeGet()] -> both_codes_on_the_same_process_exchange_p2p(sendingField,recevingField);
           }
         }
        }

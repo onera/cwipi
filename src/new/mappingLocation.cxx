@@ -721,6 +721,46 @@ void MappingLocation::null_exchange_for_uncoupled_process() {
       MPI_Wait(&request,&status);
   }  
   
+  void MappingLocation::null_exchange_for_uncoupled_process_p2p() {
+
+     void* send_buffer=NULL;
+     void* recv_buffer=NULL;
+
+     std::vector<MPI_Request> rreq(_n_ranks);
+     std::vector<MPI_Request> sreq(_n_ranks_cpl);
+     int tagcode = 157;
+   
+     int ind = 0;
+     vector<int>::iterator it; 
+     for( it = _connectableRanks -> begin(); it!=_connectableRanks -> end(); it++,ind++){
+       MPI_Irecv(  recv_buffer, 0, MPI_BYTE,
+                   *it, tagcode ,
+                   _unionComm, &(rreq[ind]) );
+     } 
+
+     ind = 0;
+     for( it = _connectableRanks_cpl -> begin(); it!=_connectableRanks_cpl -> end(); it++,ind++){
+       MPI_Issend( send_buffer ,0, MPI_BYTE,
+                   *it, tagcode ,
+                   _unionComm, &(sreq[ind]) );
+     } 
+
+      std::vector<MPI_Status> sstatus(_n_ranks_cpl);
+      std::vector<MPI_Status> rstatus(_n_ranks);
+
+      ind = 0;
+      if(_both_codes_are_local == 0)
+        for( it = _connectableRanks -> begin(); it!=_connectableRanks -> end(); it++,ind++){
+          MPI_Wait( &(rreq[ind]), &(rstatus[ind]) );
+        }     
+
+        for( it = _connectableRanks_cpl -> begin(); it!=_connectableRanks_cpl -> end(); it++,ind++){
+          MPI_Wait( &(sreq[ind]), &(sstatus[ind]) );
+        }     
+  }  
+
+
+
 
 
 
@@ -786,6 +826,79 @@ void MappingLocation::null_exchange_for_uncoupled_process() {
       free(displ_send);    
       referenceField -> lastRequestAdd(tag,request);
   }  
+
+  void MappingLocation::both_codes_on_the_same_process_exchange_p2p(Field* referenceField,Field* recevingField) {
+
+      /* Sending section */
+      
+      int  dataTypeSize       = referenceField -> dataTypeSizeGet(); 
+      int nComponent = referenceField -> nComponentGet();
+
+      int tag =referenceField -> fieldIDIntGet();
+      void* dist_v_ptr = NULL;
+
+      void* interpolatedFieldData = interpolate(referenceField);  
+        
+      dist_v_ptr = interpolatedFieldData;
+
+     int* displ_send = (int*)malloc(sizeof(int)*_n_ranks_g);
+     int* count_send = (int*)malloc(sizeof(int)*_n_ranks_g);
+     for (int i_proc=0; i_proc < _n_ranks_g; i_proc++) {
+       count_send[i_proc]= dataTypeSize * nComponent * (_targets_localization_idx_cpl[i_proc][_nb_part]-_targets_localization_idx_cpl[i_proc][0]);
+       displ_send[i_proc]=  dataTypeSize * nComponent * _targets_localization_idx_cpl[i_proc][0];
+     }
+
+      /* Receving Section */
+
+     _idx_target  .resize   (_mapping_cpl -> _nb_part + 1);
+     _idx_target[0] = 0;
+     for (int i_part = 0; i_part < _mapping_cpl -> _nb_part; i_part++) {
+       _idx_target[i_part+1] = _idx_target[i_part] + _mapping_cpl -> _n_target[i_part];   
+     }
+
+     int  dataTypeSize_recv = recevingField -> dataTypeSizeGet(); 
+     recevingField -> ReceptionBufferCreation(_mapping_cpl  -> _n_tot_target);
+
+     void* recv_ptr = recevingField -> recvBufferGet();
+
+     int nComponent_recv = recevingField -> nComponentGet();
+
+     int* displ_recv = (int*)malloc(sizeof(int)*_n_ranks_g);
+     int* count_recv = (int*)malloc(sizeof(int)*_n_ranks_g);
+     for (int i_proc=0; i_proc < _n_ranks_g; i_proc++) {
+       count_recv[i_proc]  =  dataTypeSize_recv * nComponent_recv 
+                           * ( _mapping_cpl -> _targets_localization_idx[ i_proc ][_mapping_cpl -> _nb_part_cpl] - _mapping_cpl -> _targets_localization_idx[i_proc][0]  );
+       displ_recv [i_proc]  =  dataTypeSize_recv * nComponent_recv * _mapping_cpl -> _targets_localization_idx[i_proc][0];
+     }
+
+     std::vector<MPI_Request> rreq(_n_ranks);
+     std::vector<MPI_Request> sreq(_n_ranks_cpl);
+     int tagcode = 157;
+   
+     int ind = 0;
+     vector<int>::iterator it; 
+     for( it = _connectableRanks -> begin(); it!=_connectableRanks -> end(); it++,ind++){
+       MPI_Irecv(  &((char*) recv_ptr)[ displ_recv[*it] ] ,count_recv[*it], MPI_BYTE,
+                   *it, tagcode ,
+                   _unionComm, &(rreq[ind]) );
+     } 
+
+     ind = 0;
+     for( it = _connectableRanks_cpl -> begin(); it!=_connectableRanks_cpl -> end(); it++,ind++){
+       MPI_Issend(  &((char*) dist_v_ptr)[ displ_send[*it] ] ,count_send[*it], MPI_BYTE,
+                   *it, tagcode ,
+                   _unionComm, &(sreq[ind]) );
+     } 
+
+      free(count_recv);
+      free(displ_recv);
+      free(count_send);
+      free(displ_send);    
+      referenceField -> lastRequestAdd_p2p(tag,sreq);
+      recevingField -> lastRequestAdd_p2p(tag,rreq);
+  }  
+
+
 
 
  

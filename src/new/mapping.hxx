@@ -124,7 +124,7 @@ namespace cwipi {
     virtual void null_exchange_for_uncoupled_process () = 0;
 
     virtual void both_codes_on_the_same_process_exchange (Field* sendingField,Field* recevingField) = 0;
-
+    virtual void both_codes_on_the_same_process_exchange_p2p (Field* sendingField,Field* recevingField) = 0;
     /**
      *
      * \brief Waiting of the end of exchange related to request.
