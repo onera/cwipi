@@ -70,7 +70,7 @@ namespace cwipi {
                _pdmNodal(NULL),_visu(visu),
                _displacement(displacement),
                _cpl(cpl) { 
-
+               
     PDM_MPI_Comm _pdm_localComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&localComm));
    // _pdm_localComm=&pdm_localComm;
     // pdm_nodal building
@@ -393,6 +393,11 @@ namespace cwipi {
   
       int unionRank;
       MPI_Comm_rank(_cpl->communicationGet() -> unionCommGet(),&unionRank);
+
+      int globalRank;
+      MPI_Comm_rank(MPI_COMM_WORLD,&globalRank);
+      
+      MPI_Barrier(_localComm);
       
       if(coordsDefined()){
         if(gnumVtxRequired () ){
@@ -430,13 +435,13 @@ namespace cwipi {
          }//loop i_part
        }//endif coordsDefined() and global_num==NULL
   
-  
        int g_num_computation_required = 0;
        std::map<int,cwipi::Block*>::iterator it = _blockDB.begin();
        while(it != _blockDB.end()) {
         for(int i_part =0;i_part<_npart;i_part++) {    
            CWP_g_num_t* global_num = it -> second -> GNumMeshGet(i_part);
-           if(global_num == NULL) g_num_computation_required = 1;    
+           int nEltsBlock = it -> second -> NEltsGet(i_part);
+           if(global_num == NULL && nEltsBlock != 0) g_num_computation_required = 1;    
            if(g_num_computation_required == 1) break;
          }
          if(g_num_computation_required == 1) break;
@@ -447,13 +452,12 @@ namespace cwipi {
          if(_cpl -> commTypeGet() == CWP_COMM_PAR_WITH_PART)
            PDM_Mesh_nodal_g_num_in_mesh_compute(_pdmNodal_handle_index);
        } 
-       
+
        it = _blockDB.begin();
        while(it != _blockDB.end()) {
          it -> second -> geomFinalize();
          it++;
        } //Loop on blockDB                 
-
 
       if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC ) {
         _visu -> GeomWrite(this);
