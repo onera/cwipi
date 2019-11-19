@@ -298,13 +298,13 @@ namespace cwipi {
    
    /* MPI Communicators */
    MPI_Comm _globalComm ;
-   MPI_Comm _unionComm ;   
+   MPI_Comm _cplComm ;   
    MPI_Comm _localComm  ;
    MPI_Comm _connectableComm  ;   
    PDM_MPI_Comm  _pdm_connectableComm ;   
    PDM_MPI_Comm  _pdm_localComm ;
    PDM_MPI_Comm  _pdm_globalComm ;
-   PDM_MPI_Comm  _pdm_unionComm ;
+   PDM_MPI_Comm  _pdm_cplComm ;
    
    vector<string> _codeVector;
 

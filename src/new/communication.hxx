@@ -103,6 +103,22 @@ namespace cwipi {
     (
     );
 
+    MPI_Comm 
+    cplCommGet
+    (
+    );
+
+    std::vector<int>*
+    cplCommCplRanksGet
+    (
+    );
+
+    std::vector<int>*
+    cplCommLocRanksGet
+    (
+    );
+
+
     int
     unionCommCplCodeRootRanksGet
     (
@@ -113,6 +129,15 @@ namespace cwipi {
     (
     );
 
+    int
+    cplCommCplCodeRootRanksGet
+    (
+    );
+
+    int
+    cplCommLocCodeRootRanksGet
+    (
+    );
 
     /**
      *
@@ -184,8 +209,10 @@ namespace cwipi {
 
     MPI_Group _cplGroup;                  /*!< Coupling group (part of merger inter communicator */
     MPI_Comm _cplComm;                    /*!< Coupling communicator (part of merger inter communicator */
-    int      _locCodeRootRankUnionComm;   /*!< Root rank associated to the local code into the coupling communicator */
-    int      _cplCodeRootRankUnionComm;   /*!< Root rank associated to the coupled code into the coupling communicator */
+    int      _locCodeRootRankUnionComm;   /*!< Root rank associated to the local code into the union communicator */
+    int      _cplCodeRootRankUnionComm;   /*!< Root rank associated to the coupled code into the union communicator */
+    int      _locCodeRootRankCplComm;   /*!< Root rank associated to the local code into the coupling communicator */
+    int      _cplCodeRootRankCplComm;   /*!< Root rank associated to the coupled code into the coupling communicator */    
     bool      _isCplRank;                /*!< Is a current rank coupled */
   };
 }

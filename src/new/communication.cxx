@@ -245,6 +245,15 @@ namespace cwipi {
     return _unionComm;
   }  
 
+  MPI_Comm 
+  Communication::cplCommGet
+  (
+  )
+  {
+    return _cplComm;
+  }  
+
+
   std::vector<int>*
   Communication::unionCommCplRanksGet
   (
@@ -254,11 +263,27 @@ namespace cwipi {
   }
 
   std::vector<int>*
+  Communication::cplCommCplRanksGet
+  (
+  )
+  {
+    return _cplCommCplRanks;
+  }
+
+  std::vector<int>*
   Communication::unionCommLocRanksGet
   (
   )
   {
     return _unionCommLocRanks;
+  }
+
+  std::vector<int>*
+  Communication::cplCommLocRanksGet
+  (
+  )
+  {
+    return _cplCommLocRanks;
   }
 
   int
@@ -270,11 +295,27 @@ namespace cwipi {
   }
 
   int
+  Communication::cplCommCplCodeRootRanksGet
+  (
+  )
+  {
+     return  _cplCodeRootRankCplComm;
+  }
+
+  int
   Communication::unionCommLocCodeRootRanksGet
   (
   )
   {
     return _locCodeRootRankUnionComm;
+  }
+
+  int
+  Communication::cplCommLocCodeRootRanksGet
+  (
+  )
+  {
+    return _locCodeRootRankCplComm;
   }
   
 
