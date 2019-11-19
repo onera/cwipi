@@ -130,7 +130,7 @@ namespace cwipi {
         /*********************************/      
       
         /*Surface and cloud points localization setting */
-        if(_Texch_t == CWP_FIELD_EXCH_SEND ) localization_surface_setting     (&_id_dist);   
+        if(_Texch_t == CWP_FIELD_EXCH_SEND ) localization_surface_setting     (&_id_dist);        
         if(_Texch_t == CWP_FIELD_EXCH_RECV ) localization_points_cloud_setting(&_id_dist);
         
         /* Localization compute, get and free*/
@@ -158,37 +158,19 @@ namespace cwipi {
         if(_Texch_t == CWP_FIELD_EXCH_SEND) initialization_of_receving_communication_tree_array();
         
         /*  Communication  of the communication tree index */
-        if(_Texch_t == CWP_FIELD_EXCH_RECV) data_index_communication_send_p2p() ;
-        if(_Texch_t == CWP_FIELD_EXCH_SEND) data_index_communication_recv_p2p() ;
-
-
-        MPI_Barrier(_unionComm);
-        printf(" Communication of the communication tree\n");
+        if(_Texch_t == CWP_FIELD_EXCH_RECV) data_index_communication_send() ;
+        if(_Texch_t == CWP_FIELD_EXCH_SEND) data_index_communication_recv() ;
 
         /*  Communication of the communication tree */
         /* Preparation */
         if(_Texch_t == CWP_FIELD_EXCH_RECV) prepare_data_communication_send();
         if(_Texch_t == CWP_FIELD_EXCH_SEND) prepare_data_communication_recv() ; 
-        
-
-        MPI_Barrier(_unionComm);
-        printf("MPI asynchronous communication\n");
-        
         /* MPI asynchronous communication */
-        if(_Texch_t == CWP_FIELD_EXCH_RECV) data_communication_send_p2p();
-        if(_Texch_t == CWP_FIELD_EXCH_SEND) data_communication_recv_p2p();
-        
-        MPI_Barrier(_unionComm);
-        printf("MPI Wait asynchronous communication\n");
-        
+        if(_Texch_t == CWP_FIELD_EXCH_RECV) data_communication_send();
+        if(_Texch_t == CWP_FIELD_EXCH_SEND) data_communication_recv();
         /* MPI Wait */
         if(_Texch_t == CWP_FIELD_EXCH_RECV) data_communication_wait_send();
         if(_Texch_t == CWP_FIELD_EXCH_SEND) data_communication_wait_recv();
-        
-        
-        MPI_Barrier(_unionComm);
-        printf("MPI END\n");
-        
 
       }
       else if( _both_codes_are_local == 1 && _cpl -> commTypeGet() == CWP_COMM_PAR_WITH_PART && _isCoupledRank ) {
@@ -202,37 +184,27 @@ namespace cwipi {
               
           triplet_location_set    (&_id_gnum_location);    
     
-          triplet_location_compute  (_id_gnum_location);     
+          triplet_location_compute                 (_id_gnum_location);     
           triplet_location_get_cpl (_id_gnum_location);
 
           PDM_gnum_location_free(_id_gnum_location,1);
 
           _mapping_cpl -> filling_of_sending_communication_tree_array(); 
           initialization_of_receving_communication_tree_array();
-          both_index_communication_p2p() ;
-
-        MPI_Barrier(_unionComm);
+          both_index_communication() ;
 
           _mapping_cpl ->prepare_data_communication_send();
           prepare_data_communication_recv() ;
-
-        MPI_Barrier(_unionComm);
-
-          both_data_communication_p2p();
-
-        MPI_Barrier(_unionComm);
+          both_data_communication();
           _mapping_cpl -> data_communication_wait_send();
           data_communication_wait_recv();      
-
-        MPI_Barrier(_unionComm);
-        printf("MPI END\n");
-
         }
      }
-     else if(_both_codes_are_local == 0 && _cpl -> commTypeGet() == CWP_COMM_PAR_WITH_PART && !_isCoupledRank ) {
+     else if(_both_codes_are_local == 0 && _cpl -> commTypeGet() == CWP_COMM_PAR_WITHOUT_PART && _isCoupledRank ) {
         /*************************************************/
         /*  Localization for uncoupled ranks processes  **/
         /*************************************************/  
+        
         if(_Texch_t == CWP_FIELD_EXCH_SEND) localization_null_setting_send(&_id_dist);
         if(_Texch_t == CWP_FIELD_EXCH_RECV) localization_null_setting_recv(&_id_dist);
         
@@ -604,6 +576,12 @@ void MappingLocation::null_exchange_for_uncoupled_process() {
       referenceField -> lastRequestAdd(tag,request);
   }  
 
+  
+
+
+
+
+
 
  
   void MappingLocation::init(Coupling *coupling, CWP_Field_value_t pointsCloudLocation, int slave) {
@@ -699,7 +677,7 @@ void MappingLocation::null_exchange_for_uncoupled_process() {
     }
     
     int tmp1;
-    //printf("rank %i _senderRank %i _senderRank_cpl %i\n",_rank,_senderRank, _senderRank_cpl);
+    //printf("_senderRank %i _senderRank_cpl %i\n",_senderRank, _senderRank_cpl);
 
     if(_both_codes_are_local == 0 ){
       if(_id < _id_cpl) {
@@ -722,9 +700,6 @@ void MappingLocation::null_exchange_for_uncoupled_process() {
         MPI_Bcast(&_nb_part_cpl,1,MPI_INT,_senderRank,_unionComm);
       } 
     }
-
-
-
 
     _isCoupledRank     = _localCodeProperties   -> isCoupledRank();
     _isCoupledRank_cpl = _coupledCodeProperties -> isCoupledRank();
@@ -903,6 +878,10 @@ void MappingLocation::mesh_cpl_info_get() {
        ***********************************************************
        ***********************************************************/
  
+
+
+
+
 
   void MappingLocation::localization_points_cloud_setting(int* id_dist) {
 
@@ -1600,44 +1579,6 @@ void MappingLocation::triplet_location_null_recv(int* id_gnum_location) {
 
 
 
- void MappingLocation::data_index_communication_send_p2p() {
- 
-   int* sbuffer = (int*) malloc(sizeof(int)*_n_ranks_g*_nb_part_cpl);
-   for(int i_proc=0;i_proc<_n_ranks_g;i_proc++)
-     for(int i_part=0;i_part<_nb_part_cpl;i_part++) {
-       sbuffer[ i_proc * _nb_part_cpl + i_part ] = _process_and_partition_count[i_proc][i_part];
-     }
-
-   
-   std::vector<MPI_Request> sreq(_n_ranks_cpl);
-   std::vector<MPI_Status> sstatus(_n_ranks_cpl);   
-   
-   int tagcode = 152;
-   
-   int ind = 0;
-   vector<int>::iterator it; 
-   for( it = _connectableRanks_cpl -> begin(); it!=_connectableRanks_cpl -> end(); it++,ind++){
-      MPI_Issend(&(sbuffer[*it * _nb_part]),_nb_part,MPI_INT,
-                 *it, tagcode ,
-                 _unionComm, &(sreq[ind]) );
-      printf("Send rank %i ind %i req %i tag %i it %i\n",_rank,ind,&(sreq[ind]),tagcode + *it,*it);
-   }
-   
-   ind = 0;
-   for( it = _connectableRanks_cpl -> begin(); it!=_connectableRanks_cpl -> end(); it++,ind++){
-      MPI_Wait( &(sreq[ind]), &(sstatus[ind]) );
-      //printf("Wait rank %i ind %i req %i tag %i\n",_rank,ind,&(sreq[ind]),tagcode + *it);
-   }
-   
-   //printf("After Wait Send rank %i \n",_rank);
-   
-   free(sbuffer   );
- } 
-
-
-
-
-
  void MappingLocation::data_index_communication_recv() {
 
    std::vector<int> connectable = *_connectableRanks_cpl;
@@ -1675,113 +1616,6 @@ void MappingLocation::triplet_location_null_recv(int* id_gnum_location) {
 
 
 
-
- void MappingLocation::data_index_communication_recv_p2p() {
- 
-   int* recvbuffer = (int*) malloc(sizeof(int)*_n_ranks_g*_nb_part);
-   for(int i_proc=0;i_proc<_n_ranks_g;i_proc++)
-     for(int i_part=0;i_part<_nb_part;i_part++) {
-       recvbuffer[ i_proc * _nb_part + i_part ] = 0;   
-     }
-
-   
-   std::vector<MPI_Request> rreq(_n_ranks_cpl);
-   std::vector<MPI_Status> rstatus(_n_ranks_cpl);   
-   
-   int tagcode = 152;
-   
-   int ind = 0;
-   vector<int>::iterator it; 
-   for( it = _connectableRanks_cpl -> begin(); it!=_connectableRanks_cpl -> end(); it++,ind++){
-      MPI_Irecv(&(recvbuffer[*it * _nb_part]),_nb_part,MPI_INT,
-                 *it, tagcode,
-                 _unionComm, &(rreq[ind]) );
-   }
-   
-   ind = 0;
-   for( it = _connectableRanks_cpl -> begin(); it!=_connectableRanks_cpl -> end(); it++,ind++){
-      MPI_Wait( &(rreq[ind]), &(rstatus[ind]) );
-      printf("Wait Recv rank %i ind %i req %i tag %i it %i\n",_rank,ind,&(rreq[ind]),tagcode + *it,*it);
-   }
-
-   //printf("After Wait Recv rank %i \n",_rank);
-
-   for(int i_proc=0;i_proc<_n_ranks_g;i_proc++)
-     for(int i_part=0;i_part<_nb_part;i_part++) {
-       _targets_localization_idx_cpl[i_proc][i_part] = recvbuffer[ i_proc * _nb_part + i_part ];   
-     }
-   
-   free(recvbuffer   );
- } 
-
-
-
-
- void MappingLocation::both_index_communication_p2p() {
-
-   int* sbuffer = (int*) malloc(sizeof(int)*_n_ranks_g * _nb_part_cpl );
-   for(int i_proc=0;i_proc<_n_ranks_g;i_proc++)
-     for(int i_part=0;i_part< _nb_part_cpl; i_part++) {
-       sbuffer[ i_proc * _nb_part_cpl + i_part ] = (_mapping_cpl -> _process_and_partition_count)[i_proc][i_part];
-     }
-
-   int* recvbuffer = (int*) malloc(sizeof(int)*_n_ranks_g*_nb_part);
-   for(int i_proc=0;i_proc<_n_ranks_g;i_proc++)
-     for(int i_part=0;i_part<_nb_part;i_part++) {
-       recvbuffer[ i_proc * _nb_part + i_part ] = 0;   
-     }   
-
-   std::vector<MPI_Request> sreq(_n_ranks);
-   std::vector<MPI_Status> sstatus(_n_ranks);   
-
-   std::vector<MPI_Request> rreq(_n_ranks_cpl);
-   std::vector<MPI_Status> rstatus(_n_ranks_cpl);   
-   
-   int tagcode = 152;
-   
-
-   vector<int>::iterator it; 
-   int ind = 0;
-   for( it = _connectableRanks_cpl -> begin(); it!=_connectableRanks_cpl -> end(); it++,ind++){
-      MPI_Irecv(&(recvbuffer[*it * _nb_part]),_nb_part,MPI_INT,
-                 *it, tagcode,
-                 _unionComm, &(rreq[ind]) );
-     //       printf("After sendrecv rank %i ind %i it %i %i _n_ranks_cpl %i\n",_rank,ind,*it,rreq[ind],_n_ranks_cpl);
-   }
- 
- 
-   ind = 0;
-   for( it = _connectableRanks -> begin(); it!=_connectableRanks -> end(); it++,ind++){
-                 
-      MPI_Issend(&(sbuffer[*it * _nb_part_cpl]),_nb_part_cpl,MPI_INT,
-                 *it, tagcode ,
-                 _unionComm, &(sreq[ind]) );
-      printf("After sendrecv rank %i ind %i it %i %i _n_ranks %i\n",_rank,ind,*it,rreq[ind],_n_ranks);
-   } 
- 
- 
- 
- 
-   ind = 0;
-   for( it = _connectableRanks_cpl -> begin(); it!=_connectableRanks_cpl -> end(); it++,ind++){
-      //printf("After rank %i MPI _wait ind %i it %i totot %i %i %i _n_ranks_cpl %i\n",_rank,ind,*it,toto,titi,rreq[ind],_n_ranks_cpl);
-      MPI_Wait( &(rreq[ind]), &(rstatus[ind]) );
-   }
-
-   ind = 0;
-   for( it = _connectableRanks -> begin(); it!=_connectableRanks -> end(); it++,ind++){
-      MPI_Wait( &(sreq[ind]), &(sstatus[ind]) );
-   }
-
-
-   for(int i_proc=0;i_proc<_n_ranks_g;i_proc++)
-     for(int i_part=0;i_part<_nb_part;i_part++) {
-       _targets_localization_idx_cpl[i_proc][i_part] = recvbuffer[ i_proc * _nb_part + i_part ];   
-     }
-      
-   free(sbuffer   );
-   free(recvbuffer   );
- } 
 
 
 
@@ -1885,9 +1719,6 @@ void MappingLocation::triplet_location_null_recv(int* id_gnum_location) {
 
 
 
-
-
-
       /***********************************************************
        ***********************************************************
        **            Data communication functions               **
@@ -1943,7 +1774,8 @@ void MappingLocation::triplet_location_null_recv(int* id_gnum_location) {
  void MappingLocation::data_communication_send() {
  
    int* count_recv = (int*)malloc(sizeof(int)*_n_ranks_g);         
-   int* disp_recv  = (int*)malloc(sizeof(int)*_n_ranks_g);      
+   int* disp_recv  = (int*)malloc(sizeof(int)*_n_ranks_g);         
+ 
    for (int i= 0; i < _n_ranks_g; i++) { 
      count_recv[i] = 0; 
      disp_recv [i] = 0;
@@ -1962,34 +1794,6 @@ void MappingLocation::triplet_location_null_recv(int* id_gnum_location) {
    free(count_recv);
    free(disp_recv );
   }
-
-
-
- void MappingLocation::data_communication_send_p2p() {
- 
-   std::vector<MPI_Request> sreq(_n_ranks_cpl);
-   std::vector<MPI_Status> sstatus(_n_ranks_cpl); 
-
-   int tagcode = 155;
-   
-   int ind = 0;
-   vector<int>::iterator it; 
-   for( it = _connectableRanks_cpl -> begin(); it!=_connectableRanks_cpl -> end(); it++,ind++){
-      //printf("Send rank %i *it %i \n",_rank,*it);
-      MPI_Issend( (void*)&( ( (char*)_targets_localization_data ) [_targets_localization_data_disp_send[*it]] )    ,  _targets_localization_data_count_send[*it],  MPI_BYTE, 
-                 *it, tagcode ,
-                 _unionComm, &(sreq[ind]) );
-   } 
- 
-   ind = 0;
-   for( it = _connectableRanks_cpl -> begin(); it!=_connectableRanks_cpl -> end(); it++,ind++){
-      MPI_Wait( &(sreq[ind]), &(sstatus[ind]) );
-   }
-
-  }
-
-
-
 
  void MappingLocation::data_communication_recv() {
    int* count_send = (int*)malloc(sizeof(int)*_n_ranks_g);         
@@ -2017,35 +1821,12 @@ void MappingLocation::triplet_location_null_recv(int* id_gnum_location) {
 
 
 
- void MappingLocation::data_communication_recv_p2p() {
-   
-   std::vector<MPI_Request> rreq(_n_ranks_cpl);
-   std::vector<MPI_Status> rstatus(_n_ranks_cpl);   
-   
-   int tagcode = 155;
-   
-   int ind = 0;
-   vector<int>::iterator it; 
-   for( it = _connectableRanks_cpl -> begin(); it!=_connectableRanks_cpl -> end(); it++,ind++){
-      MPI_Irecv( (void*)&( ((char*)_targets_localization_data_cpl)[ _targets_localization_data_disp_recv[*it] ] ),  _targets_localization_data_count_recv[*it],  MPI_BYTE,
-                 *it, tagcode,
-                 _unionComm, &(rreq[ind]) );
-   }
-  
-   ind = 0;
-   for( it = _connectableRanks_cpl -> begin(); it!=_connectableRanks_cpl -> end(); it++,ind++){
-      MPI_Wait( &(rreq[ind]), &(rstatus[ind]) );
-   }
-                  
-  }
-
-
-
 
 
 
  void MappingLocation::both_data_communication() {
    
+  
    MPI_Request req;   
    MPI_Ialltoallv((void*) (_mapping_cpl -> _targets_localization_data), _mapping_cpl -> _targets_localization_data_count_send, _mapping_cpl -> _targets_localization_data_disp_send, MPI_BYTE,  
                   (void*)_targets_localization_data_cpl,  _targets_localization_data_count_recv, _targets_localization_data_disp_recv, MPI_BYTE,
@@ -2055,48 +1836,6 @@ void MappingLocation::triplet_location_null_recv(int* id_gnum_location) {
    MPI_Wait(&req,&stat); 
    
   }
-
-
- void MappingLocation::both_data_communication_p2p() {
-  
-   std::vector<MPI_Request> sreq(_n_ranks);
-   std::vector<MPI_Status> sstatus(_n_ranks);
-   std::vector<MPI_Request> rreq(_n_ranks_cpl);
-   std::vector<MPI_Status> rstatus(_n_ranks_cpl);   
-   
-   int tagcode = 155;
-   
-
-   vector<int>::iterator it; 
-   int ind = 0;
-   for( it = _connectableRanks_cpl -> begin(); it!=_connectableRanks_cpl -> end(); it++,ind++){
-      MPI_Irecv((void*)&( ((char*)_targets_localization_data_cpl)[ _targets_localization_data_disp_recv[*it] ] ),  _targets_localization_data_count_recv[*it],  MPI_BYTE,
-                 *it, tagcode,
-                 _unionComm, &(rreq[ind]) );
-   }
-
-   ind = 0; 
-   for( it = _connectableRanks -> begin(); it!=_connectableRanks -> end(); it++,ind++){
-      MPI_Issend( (void*)&( ( (char*) _mapping_cpl -> _targets_localization_data ) [_mapping_cpl -> _targets_localization_data_disp_send[*it]] )    , 
-                   _mapping_cpl -> _targets_localization_data_count_send[*it],  MPI_BYTE, 
-                 *it, tagcode ,
-                 _unionComm, &(sreq[ind]) );
-   } 
- 
- 
-   ind = 0;
-   for( it = _connectableRanks_cpl -> begin(); it!=_connectableRanks_cpl -> end(); it++,ind++){
-      MPI_Wait( &(rreq[ind]), &(rstatus[ind]) );
-   }
-
-   ind = 0;
-   for( it = _connectableRanks -> begin(); it!=_connectableRanks -> end(); it++,ind++){
-      MPI_Wait( &(sreq[ind]), &(sstatus[ind]) );
-   }
-   
-   
-  }
-
 
 
 

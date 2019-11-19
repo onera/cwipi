@@ -420,6 +420,11 @@ namespace cwipi {
 
       void data_index_communication_send()    ;
 
+
+      void data_index_communication_send_p2p()    ;
+
+
+
     /**
       *
       * \brief Reception of the communication tree array index
@@ -430,6 +435,7 @@ namespace cwipi {
 
       void data_index_communication_recv()    ;
 
+      void data_index_communication_recv_p2p()    ;
 
     /**
       *
@@ -440,6 +446,7 @@ namespace cwipi {
       */ 
 
       void both_index_communication()    ;
+      void both_index_communication_p2p()    ;
 
 
     /**
@@ -465,6 +472,10 @@ namespace cwipi {
       void data_communication_recv()          ;
       void data_communication_null()          ;
       void both_data_communication()          ;
+ 
+      void data_communication_send_p2p()      ;
+      void data_communication_recv_p2p()      ;
+      void both_data_communication_p2p()      ;
       
       void data_communication_wait_send()     ;
       void data_communication_wait_recv()     ;    
