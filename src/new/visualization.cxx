@@ -197,7 +197,6 @@ namespace cwipi {
     int* blockDB = mesh -> blockDBGet();
 
     int nBlock = mesh -> nBlockGet();
-    printf("nBlock %i\n",nBlock);
     for(int i_part=0;i_part<_n_part;i_part++){
       _partitioning_field_data[i_part] = (double*) malloc( mesh -> getPartNElts(i_part) * sizeof(double) ); 
       _ranking_field_data[i_part] = (double*) malloc( mesh -> getPartNElts(i_part) * sizeof(double) );      
