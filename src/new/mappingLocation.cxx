@@ -1913,7 +1913,7 @@ void MappingLocation::triplet_location_null_recv(int* id_gnum_location) {
    int ind = 0;
    vector<int>::iterator it; 
    for( it = _connectableRanks_cpl -> begin(); it!=_connectableRanks_cpl -> end(); it++,ind++){
-      MPI_Issend(&(sbuffer[*it * _nb_part]),_nb_part,MPI_INT,
+      MPI_Issend(&(sbuffer[*it * _nb_part_cpl]),_nb_part_cpl,MPI_INT,
                  *it, tagcode ,
                  _unionComm, &(sreq[ind]) );
       printf("Send rank %i ind %i req %i tag %i it %i\n",_rank,ind,&(sreq[ind]),tagcode + *it,*it);
