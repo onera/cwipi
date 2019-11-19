@@ -70,7 +70,7 @@ namespace cwipi {
       */
 
       void issend(Field* referenceField);
-
+      void issend_p2p(Field* referenceField);
     /**
       *
       * \brief Wait for non-blocking sending communication.
@@ -80,6 +80,7 @@ namespace cwipi {
       */
 
       void waitIssend(Field* referenceField);
+      void waitIssend_p2p(Field* referenceField);
 
 
     /**
@@ -91,7 +92,7 @@ namespace cwipi {
       */
 
       void irecv(Field* recevingField);
-
+      void irecv_p2p(Field* recevingField);
     /**
       *
       * \brief Wait for non-blocking receving communication.
@@ -101,7 +102,7 @@ namespace cwipi {
       */
 
       void waitIrecv (Field* recevingField);    
-
+      void waitIrecv_p2p (Field* recevingField);  
 
     /**
       *

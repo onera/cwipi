@@ -251,6 +251,16 @@ namespace cwipi {
   }
 
 
+  void lastRequestAdd_p2p (int i_proc, std::vector<MPI_Request> request) {
+    _last_request_p2p[i_proc] = request;
+  }
+
+  
+  std::vector<MPI_Request> lastRequestGet_p2p (int i_proc) {
+    return _last_request_p2p[i_proc];
+  }
+
+
   
   void* recvBufferGet () {
     return _recvBuffer;
@@ -293,6 +303,7 @@ namespace cwipi {
     int                                      _n_part;
     int                                      _visu_id;
     std::map <int,MPI_Request>               _last_request;
+    std::map <int,std::vector<MPI_Request>>  _last_request_p2p;    
     int                                      _dataTypeSize;
     CWP_Interp_from_location_t               _interpolationFunction;
     CWP_Interpolation_t                      _interpolationType;

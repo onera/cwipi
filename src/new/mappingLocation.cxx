@@ -308,6 +308,44 @@ void MappingLocation::issend(Field* referenceField) {
   }  
 
 
+void MappingLocation::issend_p2p(Field* referenceField) {
+      
+      int  dataTypeSize       = referenceField -> dataTypeSizeGet(); 
+      int nComponent = referenceField -> nComponentGet();
+
+      int tag =referenceField -> fieldIDIntGet();
+      void* dist_v_ptr = NULL;
+
+      void* interpolatedFieldData = interpolate(referenceField);  
+        
+      dist_v_ptr = interpolatedFieldData;
+
+      int* displ_send = (int*)malloc(sizeof(int)*_n_ranks_g);
+      int* count_send = (int*)malloc(sizeof(int)*_n_ranks_g);
+      for (int i_proc=0; i_proc < _n_ranks_g; i_proc++) {
+        count_send[i_proc]= dataTypeSize * nComponent * (_targets_localization_idx_cpl[i_proc][_nb_part]-_targets_localization_idx_cpl[i_proc][0]);
+        displ_send[i_proc]=  dataTypeSize * nComponent * _targets_localization_idx_cpl[i_proc][0];
+      }
+
+      std::vector<MPI_Request> sreq(_n_ranks_cpl);
+      int tagcode = 157;
+   
+      int ind = 0;
+      vector<int>::iterator it; 
+      for( it = _connectableRanks_cpl -> begin(); it!=_connectableRanks_cpl -> end(); it++,ind++){
+        MPI_Issend(  &( ( (char*)dist_v_ptr )[ displ_send[*it] ] ) ,  count_send[*it], MPI_BYTE,
+                    *it, tagcode ,
+                    _unionComm, &(sreq[ind]) );
+      } 
+ 
+
+       free(count_send);
+       free(displ_send);    
+       referenceField -> lastRequestAdd_p2p(tag,sreq);
+  }  
+
+
+
   void MappingLocation::user_target_points_set(int i_part, int n_pts, double* coord) {
     if( !(_pointsCloudLocation == CWP_FIELD_VALUE_USER ) )
       PDM_error(__FILE__, __LINE__, 0, "You cannot use user_target_points_set for CWP_Field_value_t different of CWP_FIELD_VALUE_USER.\n");
@@ -349,8 +387,23 @@ void MappingLocation::issend(Field* referenceField) {
     }
   }
 
+  void MappingLocation::waitIssend_p2p (Field* sendingField) {
 
+    std::vector<MPI_Status> sstatus(_n_ranks_cpl);
+    int tag;
+    tag     = sendingField -> fieldIDIntGet();
+    std::vector<MPI_Request> sreq = sendingField -> lastRequestGet_p2p(tag);
 
+    int ind = 0;
+    std::vector<int>::iterator it;
+    for( it = _connectableRanks_cpl -> begin(); it!=_connectableRanks_cpl -> end(); it++,ind++){
+       MPI_Wait( &(sreq[ind]), &(sstatus[ind]) );
+    }
+      
+    if(_visu -> isCreated() && sendingField -> visuStatusGet() == CWP_STATUS_ON) {
+       _visu -> WriterField(sendingField);
+    }
+  }
 
 
 
@@ -414,6 +467,57 @@ void MappingLocation::issend(Field* referenceField) {
  }
  
 
+ void MappingLocation::irecv_p2p(Field *recevingField) {
+    _idx_target  .resize   (_nb_part + 1);
+    _idx_target[0] = 0;
+    for (int i_part = 0; i_part < _nb_part; i_part++) {
+      _idx_target[i_part+1] = _idx_target[i_part] + _n_target[i_part];   
+    }
+
+    int  dataTypeSize       = recevingField -> dataTypeSizeGet(); 
+    
+    //Crée un buffer de réception et le stocke (alloue)
+    recevingField -> ReceptionBufferCreation(_n_tot_target);
+    //printf("n_tot_targer %i\n",_n_tot_target);
+    /* Loop on possibly intersecting distant ranks */
+    /*---------------------------------------------*/
+
+    //Réception des données sur toutes les partitions
+    void* data = recevingField -> recvBufferGet();
+
+    int nComponent = recevingField -> nComponentGet();
+
+    void* loc_v_ptr = data;
+
+    int* displ_recv = (int*)malloc(sizeof(int)*_n_ranks_g);
+    int* count_recv = (int*)malloc(sizeof(int)*_n_ranks_g);
+    
+    
+    for (int i_proc=0; i_proc < _n_ranks_g; i_proc++) {
+      count_recv [i_proc]  =  dataTypeSize * nComponent  * ( _targets_localization_idx[ i_proc ][_nb_part_cpl] - _targets_localization_idx[i_proc][0]  );
+      displ_recv [i_proc]  =  dataTypeSize * nComponent * _targets_localization_idx[i_proc][0];
+    }
+   
+    
+    int tag =recevingField -> fieldIDIntGet();
+
+    std::vector<MPI_Request> rreq(_n_ranks_cpl);
+    int tagcode = 157;
+   
+    int ind = 0;
+    vector<int>::iterator it; 
+    for( it = _connectableRanks_cpl -> begin(); it!=_connectableRanks_cpl -> end(); it++,ind++){
+      MPI_Irecv(  &((char*) loc_v_ptr)[ displ_recv[*it] ] ,count_recv[*it], MPI_BYTE,
+                   *it, tagcode ,
+                   _unionComm, &(rreq[ind]) );
+    } 
+
+    
+    free(count_recv);
+    free(displ_recv);
+    recevingField -> lastRequestAdd_p2p (tag,rreq);
+ }
+ 
 
 
 
@@ -494,6 +598,85 @@ void MappingLocation::issend(Field* referenceField) {
       _visu -> WriterField(recevingField);
     }
   }
+
+
+
+
+  void MappingLocation::waitIrecv_p2p (Field* recevingField) {
+    std::vector<MPI_Status> rstatus(_n_ranks_cpl);
+
+    int tag = recevingField -> fieldIDIntGet();
+    std::vector<MPI_Request> rreq = recevingField -> lastRequestGet_p2p(tag);    
+
+
+    int ind = 0;
+    vector<int>::iterator it; 
+    if(_both_codes_are_local == 0)
+      for( it = _connectableRanks_cpl -> begin(); it!=_connectableRanks_cpl -> end(); it++,ind++){
+        MPI_Wait( &(rreq[ind]), &(rstatus[ind]) );
+      }     
+      
+    //Récupère un pointeur vers le bloc de données reçues
+    void*              recvData          = recevingField -> recvBufferGet  ();
+    int                nComponent        = recevingField -> nComponentGet  ();
+    int                dataTypeSize      = recevingField -> dataTypeSizeGet(); 
+
+    //Reorganize by partition datas which are organized by sending processp
+    std::vector<void*> userDataMem (_nb_part,NULL);
+    for (int i_part=0;i_part<_nb_part;i_part++) {
+       userDataMem [i_part] = recevingField -> dataGet(i_part);
+       if(userDataMem[i_part] == NULL ) PDM_error(__FILE__, __LINE__, 0, "Reception memory has not been allocated.\n");
+       n_uncomputed_tgt[i_part]=0;
+    }
+
+    for(int i_proc=0; i_proc<_n_ranks_cpl;i_proc++) {
+      int distant_rank = (*_connectableRanks_cpl)[i_proc];
+ /*     printf("itarget [%i] rank %i _nb_part_cpl %i %i %i\n",i_proc,distant_rank,_nb_part_cpl,
+            _targets_localization_idx[ distant_rank ][0], 
+            _targets_localization_idx[ distant_rank ][_nb_part_cpl]); 
+  */    for (int itarget = _targets_localization_idx[ distant_rank ][0]; itarget < _targets_localization_idx[ distant_rank ][_nb_part_cpl]; itarget++) {  
+         //printf("itarget %i \n",itarget);
+        // Index in the interpolated Data array
+        int interpInd = itarget;  
+        int iel = _targets_localization_data[itarget].l_num_origin ;
+        int lpart = _targets_localization_data[itarget].origin_part ;       
+        if(_targets_localization_data[itarget].distance != INFINITY) {
+          //Index of the corresponding local reference Data.
+          for (int k = 0; k < nComponent; k++) {
+            memcpy((char*)userDataMem[lpart] + dataTypeSize * ( nComponent * iel + k ) ,
+                    (char*)recvData + dataTypeSize * ( nComponent * interpInd + k ),
+                    dataTypeSize);
+          }//loop on k
+        }
+        else {
+          n_uncomputed_tgt[lpart]++;
+          for (int k = 0; k < nComponent; k++) {
+            memcpy((char*)userDataMem[lpart] + dataTypeSize * ( nComponent * iel + k ) ,
+                   (char*)recvData + dataTypeSize * ( nComponent * interpInd + k ),
+                   dataTypeSize);
+           *( (double*) ((char*)userDataMem[lpart] + dataTypeSize * ( nComponent * iel + k ) ) ) = -1.0;
+          }//loop on k
+        }
+      }// loop on itarget
+    }// loop on proc
+
+    if(_cpl -> commTypeGet() == CWP_COMM_PAR_WITHOUT_PART){
+      int index = 0;
+      for (int i_part = 0; i_part < _nb_part; i_part++) {
+        memcpy((char*)recvData + dataTypeSize * nComponent * index ,
+               (char*)userDataMem[i_part]  ,
+               nComponent * dataTypeSize * _n_target[i_part]);
+        index += _n_target[i_part];
+      }    
+      MPI_Bcast(recvData,dataTypeSize*nComponent*_n_tot_target,MPI_BYTE, _senderLocalRank, _localCodeProperties -> connectableCommGet());
+    }      
+
+    if(_visu -> isCreated() && recevingField -> visuStatusGet() == CWP_STATUS_ON 
+        && (_cpl -> commTypeGet() == CWP_COMM_PAR_WITH_PART || (_cpl -> commTypeGet() == CWP_COMM_PAR_WITHOUT_PART && _rank == _senderRank) ) ) {
+      _visu -> WriterField(recevingField);
+    }
+  }
+
 
 
 

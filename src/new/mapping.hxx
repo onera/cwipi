@@ -119,7 +119,7 @@ namespace cwipi {
      */
 
     virtual void issend (Field* sendingField) = 0;
-
+    virtual void issend_p2p (Field* sendingField) = 0;
 
     virtual void null_exchange_for_uncoupled_process () = 0;
 
@@ -135,7 +135,7 @@ namespace cwipi {
      */
 
     virtual void waitIssend(Field* sendingField) = 0;
-
+    virtual void waitIssend_p2p(Field* sendingField) = 0;
     /**
      *
      * \brief Receiving of Data field from the coupled application with nonblocking 
@@ -149,7 +149,7 @@ namespace cwipi {
      */
 
     virtual void irecv (Field* recevingField) = 0;
-
+    virtual void irecv_p2p (Field* recevingField) = 0;
     /**
      *
      * \brief Waiting of the end of exchange related to request.
@@ -162,7 +162,7 @@ namespace cwipi {
      */
 
     virtual void waitIrecv(Field* recevingField) = 0;    
-   
+    virtual void waitIrecv_p2p(Field* recevingField) = 0;    
 
     /**
      * \brief Setting user target points
@@ -310,8 +310,8 @@ namespace cwipi {
 
    int  _slave;   
 
-   const std::vector<int>* _connectableRanks_cpl;
-   const std::vector<int>* _connectableRanks    ;  
+   std::vector<int>* _connectableRanks_cpl;
+   std::vector<int>* _connectableRanks    ;  
 
    /* informations about MPI process (rank) */
    bool _isCoupledRank;
