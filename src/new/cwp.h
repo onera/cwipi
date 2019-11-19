@@ -2135,20 +2135,20 @@ const char *code_name
 
 void          
 CWP_surf_gen_init
-(
+(char* genName,
   int nx, int ny, int nPart, MPI_Comm* comm, double prop, double width, double randomVar
 );
 
 void          
 CWP_surf_gen_compute
-(
+(char* genName
 );
 
 
 
 void          
 CWP_surf_gen_by_block_get
-( int i_part,
+( char* genName, int i_part,
   int* nVtx , double** coords, CWP_g_num_t** vtxGnum, int* nElts,
   int* nTri , int** eltsConnecTri , CWP_g_num_t** eltsGnumTri,
   int* nQuad, int** eltsConnecQuad, CWP_g_num_t** eltsGnumQuad,
@@ -2157,7 +2157,7 @@ CWP_surf_gen_by_block_get
 
 void          
 CWP_surf_gen_one_connectivity_get
-( int i_part,
+( char* genName, int i_part,
   int* nVtx , double** coords, CWP_g_num_t** vtxGnum,
   int* nElts, int** eltsConnecIndex, int** eltsConnec, CWP_g_num_t** eltsGnum
 );
