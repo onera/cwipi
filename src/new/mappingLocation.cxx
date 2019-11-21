@@ -195,7 +195,6 @@ namespace cwipi {
           initialization_of_receving_communication_tree_array();
           
           both_index_communication_p2p() ;
-          MPI_Barrier(_cplComm);
 
           _mapping_cpl ->prepare_data_communication_send();
           prepare_data_communication_recv() ;
