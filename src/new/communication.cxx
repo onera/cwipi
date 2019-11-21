@@ -41,7 +41,9 @@ namespace cwipi {
      _cplComm(MPI_COMM_NULL), 
      _locCodeRootRankUnionComm(-1),
      _cplCodeRootRankUnionComm(-1),
-     _isCplRank(false)
+     _isCplRank(false),
+     _cplCommCplRanks(NULL),
+     _cplCommLocRanks(NULL)
   {
   }
 
@@ -176,7 +178,6 @@ namespace cwipi {
         // Build the coupling communicator
 
         _cplCommCreate(cplCommType);
-
         MPI_Group globalGroup;
         MPI_Comm_group(globalComm, &globalGroup);
 
@@ -220,6 +221,9 @@ namespace cwipi {
     _cplCodeRootRankUnionComm = cplCodeComm._locCodeRootRankUnionComm;
     _unionCommCplRanks = new std::vector<int>(*(cplCodeComm._unionCommLocRanks));
     _unionCommLocRanks = new std::vector<int>(*(cplCodeComm._unionCommCplRanks));    
+    _cplCommCplRanks = new std::vector<int>(*(cplCodeComm._cplCommLocRanks));
+    _cplCommLocRanks = new std::vector<int>(*(cplCodeComm._cplCommCplRanks));   
+
     
     const int localRootRank = _localCodeProperties->rootRankGet();
     
