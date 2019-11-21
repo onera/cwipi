@@ -1994,7 +1994,6 @@ void MappingLocation::triplet_location_null_recv(int* id_gnum_location) {
    for(int i_proc=0;i_proc<_n_ranks_g;i_proc++)
      for(int i_part=0;i_part<_nb_part;i_part++) {
        _targets_localization_idx_cpl[i_proc][i_part] = recvbuffer[ i_proc * _nb_part + i_part ];   
-       _rank,i_proc,recvbuffer[ i_proc * _nb_part + i_part ],_targets_localization_idx_cpl[i_proc][i_part]);  
      }
    
    free(recvbuffer   );
@@ -2070,7 +2069,6 @@ void MappingLocation::triplet_location_null_recv(int* id_gnum_location) {
    for(int i_proc=0;i_proc<_n_ranks_g;i_proc++)
      for(int i_part=0;i_part<_nb_part;i_part++) {
        _targets_localization_idx_cpl[i_proc][i_part] = recvbuffer[ i_proc * _nb_part + i_part ];   
-       _rank,i_proc,recvbuffer[ i_proc * _nb_part + i_part ],_targets_localization_idx_cpl[i_proc][i_part]);
      }
       
    free(sbuffer   );
@@ -2595,7 +2593,8 @@ void MappingLocation::triplet_location_null_recv(int* id_gnum_location) {
              
                      
         }
-        else if (referenceFieldType == CWP_FIELD_VALUE_CELL_POINT) {
+        else{
+         if (referenceFieldType == CWP_FIELD_VALUE_CELL_POINT) {
 
           for (int itarget = _targets_localization_idx_cpl[i_proc][i_part]; itarget < _targets_localization_idx_cpl[i_proc][i_part+1]; itarget++) {
             //Index of the corresponding local reference Data.
