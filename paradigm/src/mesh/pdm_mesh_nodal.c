@@ -4699,10 +4699,6 @@ const int         i_part
       }//end switch t_elt
 
 
-      for(int i_elt = 0; i_elt< block -> n_elt[i_part]; i_elt++)
-        printf("i_elt %i block -> n_elt[i_part] %i center %3.2f\n",i_elt,block -> n_elt[i_part],block->_cell_centers[i_part][ 3*i_elt ]);
-
-
       if (block -> t_elt == 2 || block -> t_elt == 3 )
         free(surfaceVector[i_part]);
       else if (block -> t_elt == 1 )
