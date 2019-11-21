@@ -42,6 +42,11 @@ namespace cwipi {
       void init(int nx, int ny, int nPart, MPI_Comm* comm, double prop, double width, double randomVar);
   
       void computeMesh();
+
+      
+      double* specialFieldTriGet(int i_part);
+      double* specialFieldQuadGet(int i_part);
+      double* specialFieldPolyGet(int i_part);
       
       int nTriGet(int i_part) {
         return _nTri[i_part];
@@ -111,8 +116,15 @@ namespace cwipi {
         return _eltsGnum[i_part];
       }
 
+
+
       
     private:
+      double _motif(double x, double y);    
+      double _inBox(double x, double y, double x1, double y1 ,double x2, double y2);
+      double _inCircle(double x, double y, double R) ;
+      double _inBox2(double x, double y) ;
+      
       int      _nx         ; /*!< Number of segment division on the whole domain (global) >*/
       int      _ny         ; /*!< Number of segment division on the whole domain (global) >*/      
       
@@ -133,19 +145,37 @@ namespace cwipi {
       std::vector<int*> _eltsConnecPolyIndex;
       std::vector<int*> _eltsConnecPoly;
       std::vector<CWP_g_num_t*> _eltsGnumPoly;
+      std::vector <double*>  _specialFieldPoly;
+      std::vector <double*>  _surfVecPoly     ;
+      std::vector <double*>  _centerPoly      ;
+      std::vector <double*>  _charLengthPoly  ;
+      std::vector <int*   >  _isDegPoly       ;
       
       std::vector<int> _nTri;
       std::vector<int*> _eltsConnecTri;
       std::vector<CWP_g_num_t*> _eltsGnumTri;
+      std::vector <double*>  _specialFieldTri;
+      std::vector <double*>  _surfVecTri     ;
+      std::vector <double*>  _centerTri      ;
+      std::vector <double*>  _charLengthTri  ;
+      std::vector <int*   >  _isDegTri       ;
+
       
       std::vector<int> _nQuad;
       std::vector<int*> _eltsConnecQuad;
       std::vector<CWP_g_num_t*> _eltsGnumQuad;
+      std::vector <double*>  _specialFieldQuad;
+      std::vector <double*>  _surfVecQuad     ;
+      std::vector <double*>  _centerQuad      ;
+      std::vector <double*>  _charLengthQuad  ;
+      std::vector <int*   >  _isDegQuad       ;
 
       std::vector<int*> _eltsConnecIndex;
       std::vector<int*> _eltsConnec;      
       std::vector<CWP_g_num_t*> _eltsGnum;
-                  
+       
+
+                        
       
       double _width;
       double _xmin;

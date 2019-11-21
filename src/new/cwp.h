@@ -2163,6 +2163,24 @@ CWP_surf_gen_one_connectivity_get
 );
 
 
+void          
+CWP_surf_gen_tri_field_get
+( char* genName, int i_part,
+  double** field
+);
+
+void          
+CWP_surf_gen_quad_field_get
+( char* genName, int i_part,
+  double** field
+);
+
+void          
+CWP_surf_gen_poly_field_get
+( char* genName, int i_part,
+  double** field
+);
+
 
 #ifdef __cplusplus
 }

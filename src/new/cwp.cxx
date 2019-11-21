@@ -2237,6 +2237,59 @@ CWP_surf_gen_one_connectivity_get
 }
 
 
+void          
+CWP_surf_gen_tri_field_get
+( char* genName, int i_part,
+  double** field
+)
+{
+
+  if(_is_coupled(genName)){ 
+    cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
+    cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
+    *field = surfMesh -> specialFieldTriGet(i_part);    
+  }
+  else{
+    *field = NULL;
+  }
+}
+
+
+void          
+CWP_surf_gen_quad_field_get
+( char* genName, int i_part,
+  double** field
+)
+{
+
+  if(_is_coupled(genName)){ 
+    cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
+    cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
+    *field = surfMesh -> specialFieldQuadGet(i_part);    
+  }
+  else{
+    *field = NULL;
+  }
+}
+
+void          
+CWP_surf_gen_poly_field_get
+( char* genName, int i_part,
+  double** field
+)
+{
+
+  if(_is_coupled(genName)){ 
+    cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
+    cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
+    *field = surfMesh -> specialFieldPolyGet(i_part);    
+  }
+  else{
+    *field = NULL;
+  }
+}
+
+
 
 /*-----------------------------------------------------------------------------*/
 

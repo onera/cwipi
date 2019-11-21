@@ -28,8 +28,57 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <pdm_geom_elem.h>
+#include <algorithm>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+
+using namespace std;
+
+const double epsilon = numeric_limits<float>().epsilon();
+const numeric_limits<double> DOUBLE;
+const double MIN = DOUBLE.min();
+const double MAX = DOUBLE.max();
+
+struct Point { double x, y; };
+ 
+struct Edge {
+    Point a, b;
+ 
+    bool operator()(const Point& p) const
+    {
+        if (a.y > b.y) return Edge{ b, a }(p);
+        if (p.y == a.y || p.y == b.y) return operator()({ p.x, p.y + epsilon });
+        if (p.y > b.y || p.y < a.y || p.x > max(a.x, b.x)) return false;
+        if (p.x < min(a.x, b.x)) return true;
+        auto blue = abs(a.x - p.x) > MIN ? (p.y - a.y) / (p.x - a.x) : MAX;
+        auto red = abs(a.x - b.x) > MIN ? (b.y - a.y) / (b.x - a.x) : MAX;
+        return blue >= red;
+    }
+};
+ 
+struct Figure {
+    const string  name;
+    vector<Edge> edges;
+ 
+    bool contains(Point& p) 
+    {
+        auto c = 0;
+        for (auto e : edges) if (e(p)) c++;
+        return c % 2 != 0;
+    }
+ 
+};
+ 
+
+
+
 
 namespace cwipi {
+ 
+
 
 surfMeshGenerator::surfMeshGenerator()
                   :_nx(0),_ny(0),_prop(1.0),_color(0),_width(0.0),_randomVar(1.0)
@@ -57,19 +106,37 @@ void surfMeshGenerator::init(int nx, int ny, int nPart, MPI_Comm* comm, double p
   _eltsConnecPolyIndex.resize (_nPart);
   _eltsConnecPoly     .resize (_nPart);
   _eltsGnumPoly       .resize (_nPart);
+  _surfVecPoly   .resize (_nPart,NULL);
+  _centerPoly    .resize (_nPart,NULL);
+  _charLengthPoly.resize (_nPart,NULL);
+  _isDegPoly     .resize (_nPart,NULL);
 
   _nTri         .resize (_nPart);
   _eltsConnecTri.resize (_nPart);
   _eltsGnumTri  .resize (_nPart);
+  _surfVecTri   .resize (_nPart);
+  _centerTri    .resize (_nPart);
+  _charLengthTri.resize (_nPart);
+  _isDegTri     .resize (_nPart);
   
+
   _nQuad         .resize (_nPart);
   _eltsConnecQuad.resize (_nPart);
   _eltsGnumQuad  .resize (_nPart);
+  _surfVecQuad   .resize (_nPart);
+  _centerQuad    .resize (_nPart);
+  _charLengthQuad.resize (_nPart);
+  _isDegQuad     .resize (_nPart);
+  
 
   _nElts   .resize (_nPart);  
   _eltsConnecIndex.resize (_nPart);
   _eltsConnec     .resize (_nPart);   
   _eltsGnum       .resize (_nPart);
+  
+  _specialFieldTri.resize(_nPart);
+  _specialFieldQuad.resize(_nPart);
+  _specialFieldPoly.resize(_nPart);
   
   /* Interface communicator
    * ---------------------- */
@@ -101,6 +168,194 @@ surfMeshGenerator::~surfMeshGenerator() {
   
 }
   
+
+double surfMeshGenerator::_inBox(double x, double y, double x1, double y1 , double x2, double y2) {
+
+  double xr = x/_width;
+  double yr = y/_width;
+  
+  if( x1< xr && xr<x2 && yr<y2 && y1<yr)
+    return 1.;
+  else
+    return 0.5;
+}
+
+
+Point transform (Point p){
+  return { 3.0 * (p.x - 5.0)/10.0 + 0.295, 3.0 * (p.y - 5.0)/10.0 + 0.244 } ; 
+}
+
+double surfMeshGenerator::_inBox2(double x,double y) {
+
+  double xr = x/_width;
+  double yr = y/_width;
+
+  Figure square = { "Square",
+       {  {{0.0, 0.0}, {0.2, 0.0}}, {{0.2, 0.0}, {0.2, 0.2}}, {{0.2, 0.2}, {0.0, 0.2}}, {{0.0, 0.2}, {0.0, 0.0}} }
+  };
+  
+  std::vector<Point> path = {
+  {1.19,4.77},{1.45,5.46},{2.05,5.69},{2.39,5.58},{2.50,5.47},{2.64,5.66},{2.69,5.70},{2.69,4.99},{2.67,4.93},
+  {2.62,4.97},{2.52,5.31},{2.26,5.58},{1.95,5.61},{1.59,5.37},{1.43,4.86},{1.47,4.33},{1.76,3.92},{2.07,3.82},
+  {2.41,3.95},{2.59,4.20},{2.63,4.44},{2.67,4.47},{2.70,4.42},{2.50,3.96},{2.29,3.79},{2.04,3.74},{1.64,3.85},
+  {1.36,4.11},{1.21,4.39},{1.19,4.77} };
+  
+  std::vector<Edge> path2;
+  for (int i=0; i<path.size()-1; i++){
+     Point p = {0.0,0.0};
+     Edge e = { {1.19,4.77},{1.45,5.46} };
+     
+     path[0].x = 3.0 * ( (path[0].x - 5.0)/10.0 + 0.295 ) ; 
+     path[0].y = 3.0 * ( (path[0].y - 5.0)/10.0 + 0.0244 ) ; 
+     
+     if(i+1 != path.size()){
+       path[i+1].x = 3.0 * ( (path[i+1].x - 5.0)/10.0 + 0.295 ) ; 
+       path[i+1].y = 3.0 * ( (path[i+1].y - 5.0)/10.0 + 0.0244 ) ; 
+       e = {path[i],path[i+1]};
+     }
+     else {
+       e = {path[i],path[0]};
+     }
+     //printf("edge %3.2f,%3.2f  %3.2f,%3.2f\n",e.a.x,e.a.y,e.b.x,e.b.y);
+     path2.push_back(e);
+  }
+  
+  Figure cell = { "C",path2};
+  
+  Point p = {xr,yr};
+  
+  
+  if(cell.contains(p))
+    return p.y;
+  else
+    return 0.0;
+}
+
+
+double surfMeshGenerator::_inCircle(double x, double y, double R) {
+
+  double xr = x/_width;
+  double yr = y/_width;
+  
+  if(xr*xr + yr*yr < R*R)
+    return 1.;
+  else
+    return 0.;
+}
+
+
+double surfMeshGenerator::_motif(double x, double y) {
+
+   
+   std::vector<double> box_lim = {0.1,0.1, 0.4,0.4};
+   double result = 0.0;
+   int nBox = box_lim.size()/4;
+   
+   result = _inBox2(x,y);//,  x1,y1, x2,y2 );
+   
+/*   
+   for(int i=0; i<nBox; i++){
+     double x1 = box_lim[4*i];
+     double y1 = box_lim[4*i+1];     
+     double x2 = box_lim[4*i+2]; 
+     double y2 = box_lim[4*i+3];
+     result = _inBox2(x,y);//,  x1,y1, x2,y2 );
+   }
+  */ 
+   return result;
+}
+
+double* surfMeshGenerator::specialFieldTriGet(int i_part) {
+
+  _specialFieldTri[i_part] = (double*)malloc(sizeof(double) * _nTri[i_part]);
+  _surfVecTri     [i_part] = (double*)malloc(sizeof(double) * 3 * _nTri[i_part]);
+  _centerTri      [i_part] = (double*)malloc(sizeof(double) * 3 * _nTri[i_part]);  
+  _charLengthTri  [i_part] = (double*)malloc(sizeof(double) * _nTri[i_part]);
+  _isDegTri       [i_part] = (int*)   malloc(sizeof(int) * _nTri[i_part]);
+
+  PDM_geom_elem_tria_properties(_nTri[i_part], 
+                                _eltsConnecTri[i_part],
+                                _coords[i_part],
+                                _surfVecTri[i_part],
+                                _centerTri[i_part],
+                                _charLengthTri[i_part],
+                                _isDegTri[i_part]);
+
+  for(int i_tri=0; i_tri < _nTri[i_part]; i_tri++){
+    
+    double xc = _centerTri[i_part][3*i_tri]  ;
+    double yc = _centerTri[i_part][3*i_tri+1];
+    double zc = _centerTri[i_part][3*i_tri+2];
+    
+    _specialFieldTri[i_part][i_tri] = _motif(xc,yc);
+    
+  }
+  
+  return _specialFieldTri[i_part];
+}
+
+
+double* surfMeshGenerator::specialFieldQuadGet(int i_part) {
+
+  _specialFieldQuad[i_part] = (double*)malloc(sizeof(double) * _nQuad[i_part]);
+  _surfVecQuad     [i_part] = (double*)malloc(sizeof(double) * 3 * _nQuad[i_part]);
+  _centerQuad      [i_part] = (double*)malloc(sizeof(double) * 3 * _nQuad[i_part]);  
+  _charLengthQuad  [i_part] = (double*)malloc(sizeof(double) * _nQuad[i_part]);
+  _isDegQuad       [i_part] = (int*)   malloc(sizeof(int) * _nQuad[i_part]);
+
+  PDM_geom_elem_quad_properties(_nQuad[i_part], 
+                                _eltsConnecQuad[i_part],
+                                _coords[i_part],
+                                _surfVecQuad[i_part],
+                                _centerQuad[i_part],
+                                _charLengthQuad[i_part],
+                                _isDegQuad[i_part]);
+
+  for(int i_Quad=0; i_Quad < _nQuad[i_part]; i_Quad++){
+    
+    double xc = _centerQuad[i_part][3*i_Quad]  ;
+    double yc = _centerQuad[i_part][3*i_Quad+1];
+    double zc = _centerQuad[i_part][3*i_Quad+2];
+    
+    _specialFieldQuad[i_part][i_Quad] = _motif(xc,yc);
+    
+  }
+  
+  return _specialFieldQuad[i_part];
+}
+
+
+double* surfMeshGenerator::specialFieldPolyGet(int i_part) {
+
+  _specialFieldPoly[i_part] = (double*)malloc(sizeof(double) * _nPoly[i_part]);
+  _surfVecPoly     [i_part] = (double*)malloc(sizeof(double) * 3 * _nPoly[i_part]);
+  _centerPoly      [i_part] = (double*)malloc(sizeof(double) * 3 * _nPoly[i_part]);  
+  _charLengthPoly  [i_part] = (double*)malloc(sizeof(double) * _nPoly[i_part]);
+  _isDegPoly       [i_part] = (int*)   malloc(sizeof(int) * _nPoly[i_part]);
+
+  PDM_geom_elem_polygon_properties(_nPoly[i_part], 
+                                   _eltsConnecPolyIndex[i_part],  
+                                   _eltsConnecPoly[i_part],
+                                   _coords[i_part],
+                                   _surfVecPoly[i_part],
+                                   _centerPoly[i_part],
+                                   _charLengthPoly[i_part],
+                                   _isDegPoly[i_part]);
+  
+  for(int i_poly=0; i_poly < _nPoly[i_part]; i_poly++){
+    
+    double xc = _centerPoly[i_part][3*i_poly]  ;
+    double yc = _centerPoly[i_part][3*i_poly+1];
+    double zc = _centerPoly[i_part][3*i_poly+2];
+    
+    _specialFieldPoly[i_part][i_poly] = _motif(xc,yc);
+  
+  }
+  return _specialFieldPoly[i_part];
+}
+
+
+
 
 void surfMeshGenerator::computeMesh() {
 
