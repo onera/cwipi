@@ -4518,14 +4518,14 @@ const int         i_part
 
     double**  volume  = (double**)malloc(sizeof(double*)*mesh -> n_part);   
     
-      double* coords = PDM_Mesh_nodal_vertices_get(idx,i_part);   
-      volume[i_part] = (double*)malloc(sizeof(double)*block -> n_elt[i_part]);
-      if(block -> _cell_centers[i_part] == NULL)
-        block -> _cell_centers[i_part] = (double*)malloc(sizeof(double)*3*block -> n_elt[i_part]);
-      characteristicLength[i_part] = (double*)malloc(sizeof(double)*block -> n_elt[i_part]);
-      isDegenerated[i_part] = (int*)malloc(sizeof(int)*block -> n_elt[i_part]);
+    double* coords = PDM_Mesh_nodal_vertices_get(idx,i_part);   
+    volume[i_part] = (double*)malloc(sizeof(double)*block -> n_elt[i_part]);
+    if(block -> _cell_centers[i_part] == NULL)
+       block -> _cell_centers[i_part] = (double*)malloc(sizeof(double)*3*block -> n_elt[i_part]);
+    characteristicLength[i_part] = (double*)malloc(sizeof(double)*block -> n_elt[i_part]);
+    isDegenerated[i_part] = (int*)malloc(sizeof(int)*block -> n_elt[i_part]);
            
-      PDM_geom_elem_polyhedra_properties(0,
+    PDM_geom_elem_polyhedra_properties(0,
                                      block -> n_elt[i_part],
                                      block -> n_face[i_part],
                                      block -> _facvtx_idx[i_part],
@@ -4536,7 +4536,7 @@ const int         i_part
                                      coords,
                                      volume[i_part],
                                      &(block -> _cell_centers[i_part][ 0 ]),
-                                     &(characteristicLength[i_part][ 0 ]),
+                                     characteristicLength[i_part],
                                      isDegenerated[i_part] );
 
       free(volume[i_part]);
@@ -4559,20 +4559,21 @@ const int         i_part
     }    
 
     double**  surfaceVector  = (double**)malloc(sizeof(double*)*mesh -> n_part);  
-      double* coords = PDM_Mesh_nodal_vertices_get(idx,i_part);   
-      surfaceVector[i_part] = (double*)malloc(sizeof(double)*3*block -> n_elt[i_part]);
-      if(block -> _cell_centers[i_part]==NULL) 
-        block -> _cell_centers[i_part] = (double*)malloc(sizeof(double)*3*block -> n_elt[i_part]);
-      characteristicLength[i_part] = (double*)malloc(sizeof(double)*block -> n_elt[i_part]);
-      isDegenerated[i_part] = (int*)malloc(sizeof(int)*block -> n_elt[i_part]);
+    double* coords = PDM_Mesh_nodal_vertices_get(idx,i_part);   
+    surfaceVector[i_part] = (double*)malloc(sizeof(double)*3*block -> n_elt[i_part]);
+    if(block -> _cell_centers[i_part]==NULL) 
+      block -> _cell_centers[i_part] = (double*)malloc(sizeof(double)*3*block -> n_elt[i_part]);
+    
+    characteristicLength[i_part] = (double*)malloc(sizeof(double)*block -> n_elt[i_part]);
+    isDegenerated[i_part] = (int*)malloc(sizeof(int)*block -> n_elt[i_part]);
 
-      PDM_geom_elem_polygon_properties(block -> n_elt[i_part],
+    PDM_geom_elem_polygon_properties(block -> n_elt[i_part],
                                        block -> _connec_idx[i_part],
                                        block -> _connec[i_part],
                                        coords,
                                        surfaceVector[i_part],
-                                       &(block -> _cell_centers[i_part][ 0 ]),
-                                       &(characteristicLength[i_part][ 0 ]),
+                                       block -> _cell_centers[i_part],
+                                       characteristicLength[i_part],
                                        isDegenerated[i_part] );
 
       free(surfaceVector[i_part]);
@@ -4600,8 +4601,11 @@ const int         i_part
     double**  length         = (double**)malloc(sizeof(double*)*mesh -> n_part);  
 
       double* coords = PDM_Mesh_nodal_vertices_get(idx,i_part);   
-      if (block -> _cell_centers[i_part] == NULL)
+      //if (block -> _cell_centers[i_part] == NULL)
         block -> _cell_centers[i_part] = (double*)malloc(sizeof(double)*3*block -> n_elt[i_part]);
+    for(int i_elt = 0; i_elt< 3*block -> n_elt[i_part]; i_elt++)
+       block -> _cell_centers[i_part][i_elt] = -1.25;        
+        
       characteristicLength[i_part] = (double*)malloc(sizeof(double)*block -> n_elt[i_part]);
       isDegenerated[i_part] = (int*)malloc(sizeof(int)*block -> n_elt[i_part]);
 
@@ -4618,8 +4622,8 @@ const int         i_part
                                          block -> _connec[i_part],
                                          coords,
                                          length[i_part],
-                                        &(block->_cell_centers[i_part][ 0 ]),
-                                        &(characteristicLength[i_part][ 0 ]),
+                                        block->_cell_centers[i_part],
+                                        characteristicLength[i_part],
                                         isDegenerated[i_part] );
           break;
 
@@ -4629,8 +4633,8 @@ const int         i_part
                                          block -> _connec[i_part],
                                          coords,
                                          surfaceVector[i_part],
-                                         &(block->_cell_centers[i_part][ 0 ]),
-                                         &(characteristicLength[i_part][ 0 ]),
+                                         block->_cell_centers[i_part],
+                                         characteristicLength[i_part],
                                          isDegenerated[i_part] );
          
 
@@ -4642,8 +4646,8 @@ const int         i_part
                                          block -> _connec[i_part],
                                          coords,
                                          surfaceVector[i_part],
-                                         &(block->_cell_centers[i_part][ 0 ]),
-                                         &(characteristicLength[i_part][ 0 ]),
+                                         block->_cell_centers[i_part],
+                                         characteristicLength[i_part],
                                          isDegenerated[i_part] );          
           break;
 
@@ -4665,8 +4669,8 @@ const int         i_part
                                          mesh  ->  vtx[i_part] -> n_vtx,
                                          coords,
                                          volume[i_part],
-                                         &(block->_cell_centers[i_part][ 0 ]),
-                                         &(characteristicLength[i_part][ 0 ]),
+                                         block->_cell_centers[i_part],
+                                         characteristicLength[i_part],
                                          isDegenerated[i_part] );  
           break;
 
@@ -4677,8 +4681,8 @@ const int         i_part
                                          mesh  ->  vtx[i_part] -> n_vtx,
                                          coords,
                                          volume[i_part],
-                                         &(block->_cell_centers[i_part][ 0 ]),
-                                         &(characteristicLength[i_part][ 0 ]),
+                                         block->_cell_centers[i_part],
+                                         characteristicLength[i_part],
                                          isDegenerated[i_part] );  
           break;
         case 8:
@@ -4688,11 +4692,16 @@ const int         i_part
                                          mesh  ->  vtx[i_part] -> n_vtx,
                                          coords,
                                          volume[i_part],
-                                         &(block->_cell_centers[i_part][ 0 ]),
-                                         &(characteristicLength[i_part][ 0 ]),
+                                         block->_cell_centers[i_part],
+                                         characteristicLength[i_part],
                                          isDegenerated[i_part] );  
           break;
       }//end switch t_elt
+
+
+      for(int i_elt = 0; i_elt< block -> n_elt[i_part]; i_elt++)
+        printf("i_elt %i block -> n_elt[i_part] %i center %3.2f\n",i_elt,block -> n_elt[i_part],block->_cell_centers[i_part][ 3*i_elt ]);
+
 
       if (block -> t_elt == 2 || block -> t_elt == 3 )
         free(surfaceVector[i_part]);
@@ -4711,6 +4720,9 @@ const int         i_part
     free(volume);
 
   } // if id_block
+  
+
+  
   
 }
 
@@ -4782,7 +4794,7 @@ const int         id_block
                                      coords,
                                      volume[i_part],
                                      &(block -> _cell_centers[i_part][ 0 ]),
-                                     &(characteristicLength[i_part][ 0 ]),
+                                     characteristicLength[i_part],
                                      isDegenerated[i_part] );
 
       PDM_gnum_set_from_coords (id_gnum, i_part, block->n_elt[i_part], block -> _cell_centers[i_part],characteristicLength[i_part]);
@@ -4830,7 +4842,7 @@ const int         id_block
                                        coords,
                                        surfaceVector[i_part],
                                        &(block -> _cell_centers[i_part][ 0 ]),
-                                       &(characteristicLength[i_part][ 0 ]),
+                                       characteristicLength[i_part],
                                        isDegenerated[i_part] );
 
      PDM_gnum_set_from_coords (id_gnum, i_part, block->n_elt[i_part], block -> _cell_centers[i_part],characteristicLength[i_part]);
@@ -4891,8 +4903,8 @@ const int         id_block
                                          block -> _connec[i_part],
                                          coords,
                                          length[i_part],
-                                        &(block->_cell_centers[i_part][ 0 ]),
-                                        &(characteristicLength[i_part][ 0 ]),
+                                        block->_cell_centers[i_part],
+                                        characteristicLength[i_part],
                                         isDegenerated[i_part] );
           break;
 
@@ -4902,8 +4914,8 @@ const int         id_block
                                          block -> _connec[i_part],
                                          coords,
                                          surfaceVector[i_part],
-                                         &(block->_cell_centers[i_part][ 0 ]),
-                                         &(characteristicLength[i_part][ 0 ]),
+                                         block->_cell_centers[i_part],
+                                         characteristicLength[i_part],
                                          isDegenerated[i_part] );
          
 
@@ -4915,8 +4927,8 @@ const int         id_block
                                          block -> _connec[i_part],
                                          coords,
                                          surfaceVector[i_part],
-                                         &(block->_cell_centers[i_part][ 0 ]),
-                                         &(characteristicLength[i_part][ 0 ]),
+                                         block->_cell_centers[i_part],
+                                         characteristicLength[i_part],
                                          isDegenerated[i_part] );          
           break;
 
@@ -4938,8 +4950,8 @@ const int         id_block
                                          mesh  ->  vtx[i_part] -> n_vtx,
                                          coords,
                                          volume[i_part],
-                                         &(block->_cell_centers[i_part][ 0 ]),
-                                         &(characteristicLength[i_part][ 0 ]),
+                                         block->_cell_centers[i_part],
+                                         characteristicLength[i_part],
                                          isDegenerated[i_part] );  
           break;
 
@@ -4950,8 +4962,8 @@ const int         id_block
                                          mesh  ->  vtx[i_part] -> n_vtx,
                                          coords,
                                          volume[i_part],
-                                         &(block->_cell_centers[i_part][ 0 ]),
-                                         &(characteristicLength[i_part][ 0 ]),
+                                         block->_cell_centers[i_part],
+                                         characteristicLength[i_part],
                                          isDegenerated[i_part] );  
           break;
         case 8:
@@ -4961,8 +4973,8 @@ const int         id_block
                                          mesh  ->  vtx[i_part] -> n_vtx,
                                          coords,
                                          volume[i_part],
-                                         &(block->_cell_centers[i_part][ 0 ]),
-                                         &(characteristicLength[i_part][ 0 ]),
+                                         block->_cell_centers[i_part],
+                                         characteristicLength[i_part],
                                          isDegenerated[i_part] );  
           break;
       }//end switch t_elt
