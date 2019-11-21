@@ -253,10 +253,21 @@ int main
   double s = 10.;
   int n_compute = 1;
   const double dev_limit = 0.05;
-  const int nb_part = 2;
 
   _read_args (argc, argv, &nx, &part, &s, &n_compute);
   
+
+  /* Coupled MPI process fraction for each code */
+  double* cpl_frac = (double*) malloc(sizeof(double)*2);
+  cpl_frac[0] = part;
+  cpl_frac[1] = part;
+
+
+  /* Non null interface mesh fraction for each code */
+  double* non_null_mesh_frac = (double*) malloc(sizeof(double)*2);
+  non_null_mesh_frac[0] = 1.0;
+  non_null_mesh_frac[1] = 1.0;
+
 
   /* Init + create coupling
    * ---------------------- */
@@ -274,24 +285,32 @@ int main
   // CWP_Output_file_set(outputFile);
 
   int           n_code;
-  double prop1 = 1./3.;
-  double prop2 = 1./3.;
-  double prop12 = 1./3.;
+  double prop1 = 1./2.;
+  double prop2 = 1./2.;
+  double prop12 = 0./3.;
+
+  int partial_covering_mpi_domains = 1;
+  if( partial_covering_mpi_domains == 1){
+    prop1 = 1./3.;
+    prop2 = 1./3.;
+    prop12 = 1./3.;
+  }
 
   int randomGlobalInt = _randomGlobalInt();
   
   //printf("rankBis %i %i\n",rank,randomGlobalInt);
   
-  if (randomGlobalInt < (double)commWorldSize *part * prop1) {
+  if (randomGlobalInt < (double)commWorldSize * prop1) {
     n_code = 1;
   }
-  else if (randomGlobalInt < (double)commWorldSize *part * (prop1+prop12)) {
+  else if (randomGlobalInt < (double)commWorldSize * (prop1+prop12)) {
     n_code = 2;
   }
   else{
     n_code = 1;
   }
-
+  
+  
 
   CWP_g_num_t* nxCode = (CWP_g_num_t*)malloc( n_code*sizeof(CWP_g_num_t)); 
 
@@ -302,46 +321,63 @@ int main
   int* localRank = (int*)malloc(sizeof(int)*n_code); 
   CWP_Status_t*  is_coupled_rank = (CWP_Status_t*)malloc(sizeof(CWP_Status_t)*n_code); 
   double*       time_init = (double*)malloc(sizeof(double)*n_code); 
+  int* nb_part = (int*) malloc(sizeof(int)*n_code);
+
     
-    
-  if (randomGlobalInt < (double)commWorldSize *part* prop1) {
+  if (randomGlobalInt < (double)commWorldSize * prop1) {
     codeName[0] = "code1";
     codeId[0] = 1;
     codeCoupledName[0] = "code2";
-    is_coupled_rank[0] = CWP_STATUS_ON;
+    
+    if(randomGlobalInt< (double)commWorldSize * prop1 * cpl_frac[0] )
+      is_coupled_rank[0] = CWP_STATUS_ON;
+    else
+      is_coupled_rank[0] = CWP_STATUS_OFF;
+      
     time_init[0] = 0.0;
     nxCode[0] = nx;
+    nb_part[0] = 2;
   }
-  else if (randomGlobalInt < (double)commWorldSize *part* (prop1+prop12)) {
+  else if (randomGlobalInt < (double)commWorldSize * (prop1+prop12)) {
     codeName[0] = "code1";
     codeId[0] = 1;
     codeCoupledName[0] = "code2"; 
-    is_coupled_rank[0] = CWP_STATUS_ON;
+
+    if(randomGlobalInt< (double)commWorldSize * ( prop1 + cpl_frac[0]*prop12 ) )
+      is_coupled_rank[0] = CWP_STATUS_ON;
+    else
+      is_coupled_rank[0] = CWP_STATUS_OFF;
+
     time_init[0] = 0.0;
     nxCode[0] = nx;
+    nb_part[0] = 2;   
+     
         
     codeName[1] = "code2";
     codeId[1] = 2;
     codeCoupledName[1] = "code1";
-    is_coupled_rank[1] = CWP_STATUS_ON;
+    if(randomGlobalInt< (double)commWorldSize * ( prop1 + cpl_frac[1]*prop12 )  )
+      is_coupled_rank[1] = CWP_STATUS_ON;
+    else
+      is_coupled_rank[1] = CWP_STATUS_OFF;
+      
     time_init[1] = 0.0;
     nxCode[1] = (CWP_g_num_t)(2.0*(double)nx);
+    nb_part[1] = 4;
   }
-  else if (randomGlobalInt < (double)commWorldSize *part* (prop1+prop12+prop2)) {
+  else if (randomGlobalInt < (double)commWorldSize * (prop1+prop12+prop2)) {
     codeName[0] = "code2";
     codeId[0] = 2;
     codeCoupledName[0] = "code1";
-    is_coupled_rank[0] = CWP_STATUS_ON;    
+    
+    if(randomGlobalInt< (double)commWorldSize * ( prop1+prop12 + cpl_frac[1]* prop2 )  )
+      is_coupled_rank[0] = CWP_STATUS_ON;
+    else
+      is_coupled_rank[0] = CWP_STATUS_OFF;   
+      
     time_init[0] = 0.0;  
     nxCode[0] =(CWP_g_num_t)(2.0*(double)nx); 
-  }
-  else{
-    codeName[0] = "code1";
-    codeId[0] = 1;
-    codeCoupledName[0] = "code2";
-    is_coupled_rank[0] = CWP_STATUS_OFF;    
-    time_init[0] = 0.0;    
-    nxCode[0] = nx;
+    nb_part[0] = 4;
   }
   
 
@@ -353,22 +389,23 @@ int main
            localComm);
 
   for(int i_code=0; i_code<n_code; i_code++){
-    printf("Rank %i: %i codes, codeName[%i] %s coupled %i\n",rank,n_code,i_code,codeName[i_code],is_coupled_rank[i_code]);
+    printf("Rank %i: %i codes, codeName[%i] %s coupled %i prop1 %3.2f %3.2f\n",rank,n_code,i_code,codeName[i_code],is_coupled_rank[i_code],prop1,prop12);
+
 
     if(is_coupled_rank[i_code] == CWP_STATUS_ON){
       MPI_Comm_rank(localComm[i_code], &(localRank[i_code]));
       assert(localComm[i_code] != MPI_COMM_NULL);
-    }
     
-    CWP_Cpl_create (codeName[i_code],                        // Code name
-                    "multipart_testcase",                       // Coupling id
-                    codeCoupledName[i_code],                 // Coupled application id
-                    CWP_COMM_PAR_WITH_PART,          // Coupling type
-                    CWP_MAPPING_LOCATION,               // Solver type
-                    nb_part,                         // Partition number
-                    CWP_DISPLACEMENT_STATIC,         // Mesh type
-                    CWP_FREQ_CPL_TIME_STEP);         // Postprocessing frequency
+      CWP_Cpl_create (codeName[i_code],                // Code name
+                      "multipart_testcase",            // Coupling id
+                      codeCoupledName[i_code],         // Coupled application id
+                      CWP_COMM_PAR_WITH_PART,          // Coupling type
+                      CWP_MAPPING_LOCATION,            // Solver type
+                      nb_part[i_code],                 // Partition number
+                      CWP_DISPLACEMENT_STATIC,         // Mesh type
+                      CWP_FREQ_CPL_TIME_STEP);         // Postprocessing frequency
 
+    }  
   }//end i_code loop
 
   printf("After create_cpl\n");
@@ -390,151 +427,179 @@ int main
   
   
   for(int i_code = 0;i_code<n_code;i_code++){
-
-
-    CWP_Visu_set(codeName[i_code], // Code name
-                 "multipart_testcase",     // Coupling id
-                 1,           // Postprocessing frequency
-                 Ensight,     // Postprocessing format
-                 "text");     // Postprocessing option
-    MPI_Comm connectableComm = CWP_Connectable_comm_get( codeName[i_code] );
+    if(is_coupled_rank[i_code] == CWP_STATUS_ON){
+      CWP_Visu_set(codeName[i_code], // Code name
+                   "multipart_testcase",     // Coupling id
+                   1,           // Postprocessing frequency
+                   Ensight,     // Postprocessing format
+                   "text");     // Postprocessing option
+      MPI_Comm connectableComm = CWP_Connectable_comm_get( codeName[i_code] );
       
-    CWP_surf_gen_init(codeName[i_code], nxCode[i_code], nxCode[i_code], nb_part, &connectableComm, 1.0, s, (double)codeId[i_code]);
+      CWP_surf_gen_init(codeName[i_code], nxCode[i_code], nxCode[i_code], nb_part[i_code], &connectableComm, non_null_mesh_frac[i_code], s, (double)codeId[i_code]);
+    }//end if(is_coupled_rank[i_code]
   }
   
 
   printf("After gen_init\n");
 
   for(int i_code = 0;i_code<n_code;i_code++)
-    CWP_surf_gen_compute(codeName[i_code]);
+    if(is_coupled_rank[i_code] == CWP_STATUS_ON)    
+      CWP_surf_gen_compute(codeName[i_code]);
+
   printf("After gen_compute\n");
   MPI_Barrier(MPI_COMM_WORLD);
 
+  int **eltsConnecPolyIndex = NULL;
   for(int i_code = 0;i_code<n_code;i_code++){
-  
-    int block_id_tri = CWP_Mesh_interf_block_add (codeName[i_code],             // Code name
-                                                  "multipart_testcase",             // Coupling id
-                                                  CWP_BLOCK_FACE_TRIA3);
-
-    int block_id_quad = CWP_Mesh_interf_block_add (codeName[i_code],             // Code name
-                                                  "multipart_testcase",             // Coupling id
-                                                  CWP_BLOCK_FACE_QUAD4);
-
-    int block_id_poly = CWP_Mesh_interf_block_add (codeName[i_code],             // Code name
-                                                   "multipart_testcase",             // Coupling id
-                                                   CWP_BLOCK_FACE_POLY);
-  
-    sendValues[i_code] = (double**)malloc(sizeof(double*)*nb_part);
-    recvValues[i_code] = (double**)malloc(sizeof(double*)*nb_part);
-  
-    double **coords = (double**)malloc(sizeof(double*)*nb_part);
-  
-    CWP_g_num_t **vtxGnum = (CWP_g_num_t**)malloc(sizeof(CWP_g_num_t*)*nb_part);
-    int *nVtx = (int*)malloc(sizeof(int)*nb_part);
-
-    int *n_tri = (int*)malloc(sizeof(int)*nb_part);
-    int **eltsConnecTri = (int**)malloc(sizeof(int*)*nb_part);
-    CWP_g_num_t **eltsGnumTri = (CWP_g_num_t**)malloc(sizeof(CWP_g_num_t*)*nb_part);  
-  
-    int *n_quad = (int*)malloc(sizeof(int)*nb_part);
-    int **eltsConnecQuad = (int**)malloc(sizeof(int*)*nb_part);  
-    CWP_g_num_t **eltsGnumQuad = (CWP_g_num_t**)malloc(sizeof(CWP_g_num_t*)*nb_part);   
-
-    int *n_poly2d = (int*)malloc(sizeof(int)*nb_part);
-    int **eltsConnecPolyIndex = (int**)malloc(sizeof(int*)*nb_part);  
-    int **eltsConnecPoly = (int**)malloc(sizeof(int*)*nb_part);    
-    CWP_g_num_t **eltsGnumPoly = (CWP_g_num_t**)malloc(sizeof(CWP_g_num_t*)*nb_part);  
-  
-    for(int i_part=0;i_part<nb_part;i_part++){
-
-      nVtx[i_part] = 0;
-      coords[i_part] = NULL;
-      vtxGnum[i_part] = NULL;
-
-      int nElts = 0;
-
-      n_tri[i_part] = 0;  
-      eltsConnecTri[i_part] = NULL;
-      eltsGnumTri[i_part] = NULL;
-
-      n_quad[i_part] = 0;  
-      eltsConnecQuad[i_part] = NULL;
-      eltsGnumQuad[i_part] = NULL;
-
-      n_poly2d[i_part] = 0;  
-      eltsConnecPolyIndex[i_part] = NULL;
-      eltsConnecPoly[i_part] = NULL;
-      eltsGnumPoly[i_part] = NULL;  
-
-      CWP_surf_gen_by_block_get( codeName[i_code], i_part,
-                                 &nVtx[i_part]  , &coords[i_part] , &vtxGnum[i_part], &nElts,
-                                 &n_tri[i_part] , &eltsConnecTri[i_part] , &eltsGnumTri[i_part],
-                                 &n_quad[i_part], &eltsConnecQuad[i_part], &eltsGnumQuad[i_part],
-                                 &n_poly2d[i_part], &eltsConnecPolyIndex[i_part], &eltsConnecPoly[i_part], &eltsGnumPoly[i_part]);
-     // printf("rank %i nElts %i i_code %i\n",rank,nElts,i_code);
-      CWP_Mesh_interf_vtx_set (codeName[i_code],             //Code name
-                               "multipart_testcase",             // Coupling id
-                               i_part,
-                               nVtx[i_part],
-                               coords[i_part],
-                               vtxGnum[i_part]);
-
-      CWP_Mesh_interf_block_std_set (codeName[i_code],
-                                     "multipart_testcase",  // Coupling id
-                                     i_part,
-                                     block_id_tri,
-                                     n_tri[i_part],
-                                     eltsConnecTri[i_part],
-                                     eltsGnumTri[i_part]);
-  
-      CWP_Mesh_interf_block_std_set (codeName[i_code],
-                                     "multipart_testcase",  // Coupling id
-                                     i_part,
-                                     block_id_quad,
-                                     n_quad[i_part],
-                                     eltsConnecQuad[i_part],
-                                     eltsGnumQuad[i_part]
-                                     );
+     if(is_coupled_rank[i_code] == CWP_STATUS_ON){    
+        int block_id_tri = CWP_Mesh_interf_block_add (codeName[i_code],             // Code name
+                                                      "multipart_testcase",             // Coupling id
+                                                      CWP_BLOCK_FACE_TRIA3);
     
-      CWP_Mesh_interf_f_poly_block_set (codeName[i_code],
-                                        "multipart_testcase",  // Coupling id
-                                        i_part              ,
-                                        block_id_poly       ,
-                                        n_poly2d[i_part]            ,
-                                        eltsConnecPolyIndex[i_part] ,
-                                        eltsConnecPoly[i_part]      ,
-                                        eltsGnumPoly[i_part]);
-                                       
-    if (codeId[i_code] == 1 ) {
-      sendValues[i_code][i_part] = (double *) malloc(sizeof(double) * nVtx[i_part]);
-      recvValues[i_code][i_part] = (double *) malloc(sizeof(double) * nElts);
-      for (int i = 0; i < nVtx[i_part]; i++) {
-        sendValues[i_code][i_part][i] = coords[i_part][3 * i];
-      }
-    }
-    else {
-      sendValues[i_code][i_part] = (double *) malloc(sizeof(double) * nElts);
-      recvValues[i_code][i_part] = (double *) malloc(sizeof(double) * nVtx[i_part]);
-      for (int i = 0; i < nElts; i++) {
-        sendValues[i_code][i_part][i] = i;
-      }
-    }                                       
-                                       
-    }//end i_part loop
+        int block_id_quad = CWP_Mesh_interf_block_add (codeName[i_code],             // Code name
+                                                      "multipart_testcase",             // Coupling id
+                                                      CWP_BLOCK_FACE_QUAD4);
     
+        int block_id_poly = CWP_Mesh_interf_block_add (codeName[i_code],             // Code name
+                                                       "multipart_testcase",             // Coupling id
+                                                       CWP_BLOCK_FACE_POLY);
+    
+        sendValues[i_code] = (double**)malloc(sizeof(double*)*nb_part[i_code]);
+        recvValues[i_code] = (double**)malloc(sizeof(double*)*nb_part[i_code]);
+      
+        double **coords = (double**)malloc(sizeof(double*)*nb_part[i_code]);
+      
+        CWP_g_num_t **vtxGnum = (CWP_g_num_t**)malloc(sizeof(CWP_g_num_t*)*nb_part[i_code]);
+        int *nVtx = (int*)malloc(sizeof(int)*nb_part[i_code]);
+    
+        int *n_tri = (int*)malloc(sizeof(int)*nb_part[i_code]);
+        int **eltsConnecTri = (int**)malloc(sizeof(int*)*nb_part[i_code]);
+        CWP_g_num_t **eltsGnumTri = (CWP_g_num_t**)malloc(sizeof(CWP_g_num_t*)*nb_part[i_code]);  
+      
+        int *n_quad = (int*)malloc(sizeof(int)*nb_part[i_code]);
+        int **eltsConnecQuad = (int**)malloc(sizeof(int*)*nb_part[i_code]);  
+        CWP_g_num_t **eltsGnumQuad = (CWP_g_num_t**)malloc(sizeof(CWP_g_num_t*)*nb_part[i_code]);   
+    
+        int *n_poly2d = (int*)malloc(sizeof(int)*nb_part[i_code]);
+        eltsConnecPolyIndex = (int**)malloc(sizeof(int*)*nb_part[i_code]);  
+        int **eltsConnecPoly = (int**)malloc(sizeof(int*)*nb_part[i_code]);    
+        CWP_g_num_t **eltsGnumPoly = (CWP_g_num_t**)malloc(sizeof(CWP_g_num_t*)*nb_part[i_code]);  
+      
+        for(int i_part=0;i_part<nb_part[i_code];i_part++){
+    
+          nVtx[i_part] = 0;
+          coords[i_part] = NULL;
+          vtxGnum[i_part] = NULL;
+    
+          int nElts = 0;
+    
+          n_tri[i_part] = 0;  
+          eltsConnecTri[i_part] = NULL;
+          eltsGnumTri[i_part] = NULL;
+    
+          n_quad[i_part] = 0;  
+          eltsConnecQuad[i_part] = NULL;
+          eltsGnumQuad[i_part] = NULL;
+    
+          n_poly2d[i_part] = 0;  
+          eltsConnecPolyIndex[i_part] = NULL;
+          eltsConnecPoly[i_part] = NULL;
+          eltsGnumPoly[i_part] = NULL;  
+    
+          CWP_surf_gen_by_block_get( codeName[i_code], i_part,
+                                     &nVtx[i_part]  , &coords[i_part] , &vtxGnum[i_part], &nElts,
+                                     &n_tri[i_part] , &eltsConnecTri[i_part] , &eltsGnumTri[i_part],
+                                     &n_quad[i_part], &eltsConnecQuad[i_part], &eltsGnumQuad[i_part],
+                                     &n_poly2d[i_part], &eltsConnecPolyIndex[i_part], &eltsConnecPoly[i_part], &eltsGnumPoly[i_part]);
+         // printf("rank %i nElts %i i_code %i\n",rank,nElts,i_code);
+          CWP_Mesh_interf_vtx_set (codeName[i_code],             //Code name
+                                   "multipart_testcase",             // Coupling id
+                                   i_part,
+                                   nVtx[i_part],
+                                   coords[i_part],
+                                   vtxGnum[i_part]);
+    
+          CWP_Mesh_interf_block_std_set (codeName[i_code],
+                                         "multipart_testcase",  // Coupling id
+                                         i_part,
+                                         block_id_tri,
+                                         n_tri[i_part],
+                                         eltsConnecTri[i_part],
+                                         eltsGnumTri[i_part]);
+      
+          CWP_Mesh_interf_block_std_set (codeName[i_code],
+                                         "multipart_testcase",  // Coupling id
+                                         i_part,
+                                         block_id_quad,
+                                         n_quad[i_part],
+                                         eltsConnecQuad[i_part],
+                                         eltsGnumQuad[i_part]
+                                         );
+        
+          CWP_Mesh_interf_f_poly_block_set (codeName[i_code],
+                                            "multipart_testcase",  // Coupling id
+                                            i_part              ,
+                                            block_id_poly       ,
+                                            n_poly2d[i_part]            ,
+                                            eltsConnecPolyIndex[i_part] ,
+                                            eltsConnecPoly[i_part]      ,
+                                            eltsGnumPoly[i_part]);
+                                           
+          if (codeId[i_code] == 1 ) {
+            sendValues[i_code][i_part] = (double *) malloc(sizeof(double) * nVtx[i_part]);
+            recvValues[i_code][i_part] = (double *) malloc(sizeof(double) * nElts);
+            for (int i = 0; i < nVtx[i_part]; i++) {
+              sendValues[i_code][i_part][i] = coords[i_part][3 * i];
+            }
+          }
+          else {
+          
+            double* field_tri   ;
+            double* field_quad  ;
+            double* field_poly2d;            
+            CWP_surf_gen_tri_field_get( codeName[i_code], i_part,  &field_tri);
+            CWP_surf_gen_quad_field_get( codeName[i_code], i_part,  &field_quad);
+            CWP_surf_gen_poly_field_get( codeName[i_code], i_part,  &field_poly2d);         
+            sendValues[i_code][i_part] = (double *) malloc(sizeof(double) * nElts);
+            recvValues[i_code][i_part] = (double *) malloc(sizeof(double) * nVtx[i_part]);
+            
+            int ind=0;
+
+            for (int i = 0; i < n_tri[i_part]; i++) {
+              sendValues[i_code][i_part][ind] = field_tri[i];
+              ind++;
+            }
+
+            for (int i = 0; i < n_quad[i_part]; i++) {
+              sendValues[i_code][i_part][ind] = field_quad[i];
+              ind++;
+            }   
+
+            for (int i = 0; i < n_poly2d[i_part]; i++) {
+              sendValues[i_code][i_part][ind] = field_poly2d[i];
+              ind++;
+            }    
+
+          }                                       
+                                           
+        }//end i_part loop
+     }//end if(is_coupled      
   }//end i_code loop    
 
   printf("After Mesh init\n");
     MPI_Barrier(MPI_COMM_WORLD);    
 
+
+
+
   for(int i_code = 0;i_code<n_code;i_code++){      
       printf("Befor interf_finalize\n");
-      CWP_Mesh_interf_finalize (codeName[i_code],
-                              "multipart_testcase");  // Coupling id
-
+      
+      if(is_coupled_rank[i_code] == CWP_STATUS_ON){    
+        CWP_Mesh_interf_finalize (codeName[i_code],
+                                  "multipart_testcase");  // Coupling id
+      }
       printf("Just after interf_finalize\n");
-    
-    
   }//end i_code loop
 
   MPI_Barrier(MPI_COMM_WORLD);
@@ -557,8 +622,8 @@ int main
   char *fieldName2 = "rank";
 
   for(int i_code = 0;i_code<n_code;i_code++){  
-    if (codeName[i_code] == "code1") {
-      CWP_Field_create (codeName[i_code],
+    if (codeName[i_code] == "code1" && is_coupled_rank[i_code] == CWP_STATUS_ON) {
+  /*    CWP_Field_create (codeName[i_code],
                        "multipart_testcase",
                        fieldName1,
                        CWP_DOUBLE,
@@ -567,7 +632,7 @@ int main
                        CWP_FIELD_VALUE_NODE,
                        CWP_FIELD_EXCH_SEND,
                        visu_status);
-/*
+*/
       CWP_Field_create (codeName[i_code],
                         "multipart_testcase",
                        fieldName2,
@@ -577,26 +642,25 @@ int main
                        CWP_FIELD_VALUE_CELL_POINT,
                        CWP_FIELD_EXCH_RECV,
                        visu_status);
-*/      
+      
         
-        for(int i_part=0;i_part<nb_part;i_part++){
-          CWP_Field_data_set(codeName[i_code],
+      for(int i_part=0;i_part<nb_part[i_code];i_part++){
+    /*      CWP_Field_data_set(codeName[i_code],
                              "multipart_testcase",
                              fieldName1,
                              i_part,
                              sendValues[i_code][i_part]);
-        }
-/*
-      CWP_Field_data_set(codeName[i_code],
-                         "multipart_testcase",
-                         fieldName2,
-                         0,
-                         recvValues);
-        */
+*/
+          CWP_Field_data_set(codeName[i_code],
+                            "multipart_testcase",
+                            fieldName2,
+                            i_part,
+                            recvValues[i_code][i_part]);
+      }
     }
-    else {
+    else if (codeName[i_code] == "code2" && is_coupled_rank[i_code] == CWP_STATUS_ON) {
 
-      CWP_Field_create (codeName[i_code],
+   /*   CWP_Field_create (codeName[i_code],
                        "multipart_testcase",
                        fieldName1,
                        CWP_DOUBLE,
@@ -605,7 +669,7 @@ int main
                        CWP_FIELD_VALUE_NODE,
                        CWP_FIELD_EXCH_RECV,
                        visu_status);
-/*
+ */
       CWP_Field_create (codeName[i_code],
                         "multipart_testcase",
                         fieldName2,
@@ -616,20 +680,20 @@ int main
                         CWP_FIELD_EXCH_SEND,
                         visu_status);
 
-      CWP_Field_data_set(codeName[i_code],
-                         "multipart_testcase",
-                         fieldName2,
-                         0,
-                         sendValues);
-*/
 
-
-        for(int i_part=0;i_part<nb_part;i_part++){
-          CWP_Field_data_set(codeName[i_code],
+        for(int i_part=0;i_part<nb_part[i_code];i_part++){
+      /*    CWP_Field_data_set(codeName[i_code],
                              "multipart_testcase",
                              fieldName1,
                              i_part,
                              recvValues[i_code][i_part]);
+        */                     
+          CWP_Field_data_set(codeName[i_code],
+                             "multipart_testcase",
+                             fieldName2,
+                             i_part,
+                             sendValues[i_code][i_part]);
+
         }
 
      }
@@ -639,7 +703,7 @@ int main
     MPI_Barrier(MPI_COMM_WORLD);
     printf("After Fields");
     PDM_timer_init(timer);
-    
+
     PDM_timer_resume(timer);
     
     PDM_timer_init(timer);
@@ -655,11 +719,13 @@ int main
       PDM_timer_init(timer2);
       PDM_timer_resume(timer2);
       for(int i_code = 0;i_code<n_code;i_code++){  
-        CWP_Mapping_compute(codeName[i_code],"multipart_testcase");
+        if (is_coupled_rank[i_code] == CWP_STATUS_ON ) 
+          CWP_Mapping_compute(codeName[i_code],"multipart_testcase");
       }
+
       PDM_timer_hang_on(timer2);
       compute_time[i] = PDM_timer_elapsed(timer2);
-      
+
       mean +=  compute_time[i];
       MPI_Allreduce(&mean,&mean2,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
       mean2 = mean2/((double)(i+1)*(double)commWorldSize);
@@ -695,32 +761,36 @@ int main
     
     mean = 0.0;
     std_dev=0.0;    
-    
+
     MPI_Barrier(MPI_COMM_WORLD);
-    
+
+
+
     for(int i =0; i<n_int;i++){
       PDM_timer_init(timer2);
       PDM_timer_resume(timer2);
       
       for(int i_code = 0;i_code<n_code;i_code++){  
+        if(is_coupled_rank[i_code] == CWP_STATUS_ON){
+          CWP_next_recv_time_set(codeName[i_code],"multipart_testcase",recv_time);
+          recv_time *= 0.01;
       
-        CWP_next_recv_time_set(codeName[i_code],"multipart_testcase",recv_time);
-        recv_time *= 0.01;
-      
-        if (codeName[i_code] == "code1") {
-          CWP_Issend (codeName[i_code],"multipart_testcase",fieldName1);
-          CWP_Wait_issend (codeName[i_code],"multipart_testcase",fieldName1);
- /*       CWP_Irecv  (codeName[0],"multipart_testcase",fieldName2);
-          CWP_Wait_irecv  (codeName[0],"multipart_testcase",fieldName2);
- */     }
-        else {
-          CWP_Irecv  (codeName[i_code],"multipart_testcase",fieldName1);
-          CWP_Wait_irecv  (codeName[i_code],"multipart_testcase",fieldName1);      
-  /*      CWP_Issend (codeName[0],"multipart_testcase",fieldName2);
-          CWP_Wait_issend (codeName[0],"multipart_testcase",fieldName2);
-  */    }
+          if (codeName[i_code] == "code1" ) {
+           /*  CWP_Issend (codeName[i_code],"multipart_testcase",fieldName1);
+             CWP_Wait_issend (codeName[i_code],"multipart_testcase",fieldName1);
+           */  
+             CWP_Irecv  (codeName[i_code],"multipart_testcase",fieldName2);
+             CWP_Wait_irecv  (codeName[i_code],"multipart_testcase",fieldName2);
+          }
+          else if (codeName[i_code] == "code2") {
+        /*    CWP_Irecv  (codeName[i_code],"multipart_testcase",fieldName1);
+            CWP_Wait_irecv  (codeName[i_code],"multipart_testcase",fieldName1);      
+          */  
+            CWP_Issend (codeName[i_code],"multipart_testcase",fieldName2);
+            CWP_Wait_issend (codeName[i_code],"multipart_testcase",fieldName2);
+          }
+        }
       }//end i_code loop
-      
       PDM_timer_hang_on(timer2);
       compute_exch_time[i] = PDM_timer_elapsed(timer2);
       
@@ -737,8 +807,6 @@ int main
       MPI_Allreduce(&std_dev,&std2,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
       std_dev = std2/(double)commWorldSize;        
       
-      
-      
       if(i>3 && std_dev<dev_limit) {
         i=n_int+1;
       }   
@@ -747,20 +815,22 @@ int main
     }  
   
   
-     PDM_timer_hang_on(timer);
+    PDM_timer_hang_on(timer);
     
-     if(localRank[0]==0)
-       printf("New exchange time for %i iterations %5.4e s codeName[0] %s deviation %5.4e\n", n_int, mean2,codeName[0],std_dev); 
+    if(localRank[0]==0)
+      printf("New exchange time for %i iterations %5.4e s codeName[0] %s deviation %5.4e\n", n_int, mean2,codeName[0],std_dev); 
 
 
-  MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD);
 
-  for(int i_code = 0;i_code<n_code;i_code++){  
-    CWP_Mesh_interf_del(codeName[i_code],"multipart_testcase");
-    CWP_Cpl_del(codeName[i_code],"multipart_testcase");
-    free(sendValues[i_code]);
-    free(recvValues[i_code]);
-  }
+    for(int i_code = 0;i_code<n_code;i_code++){  
+      if( is_coupled_rank[i_code] == CWP_STATUS_ON ) {
+        CWP_Mesh_interf_del(codeName[i_code],"multipart_testcase");
+        CWP_Cpl_del(codeName[i_code],"multipart_testcase");
+        free(sendValues[i_code]);
+        free(recvValues[i_code]);
+      }
+    }
 
   free(sendValues);
   free(recvValues);
