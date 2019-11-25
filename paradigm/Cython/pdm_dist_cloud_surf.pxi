@@ -1,6 +1,7 @@
 
 cdef extern from "pdm_dist_cloud_surf.h":
-
+    # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    # > Wrapping of function
     int PDM_dist_cloud_surf_create(PDM_mesh_nature_t mesh_nature,
                                    int n_point_cloud,
                                    PDM_MPI_Comm comm)
@@ -51,14 +52,23 @@ cdef extern from "pdm_dist_cloud_surf.h":
     void PDM_dist_cloud_surf_dump_times(int id)
 
 
+    # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+# :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+# ------------------------------------------------------------------
 cdef class DistCloudSurf:
     """
     Define a method to compute the distance from a cloud to a surface
     """
+    # ************************************************************************
+    # > Class attributes
     cdef int  _id
     cdef int  _n_point_cloud
     cdef int  **_nbPts
-
+    cdef int  _partN
+    # ************************************************************************
+    # ------------------------------------------------------------------
     def __cinit__(self,
                   PDM_mesh_nature_t mesh_nature,
                   int n_point_cloud,
@@ -77,6 +87,7 @@ cdef class DistCloudSurf:
         self._n_point_cloud = n_point_cloud
         self._nbPts = <int **>  malloc(sizeof(int *) * n_point_cloud)
 
+    # ------------------------------------------------------------------
     def n_part_cloud_set(self,
                          int i_point_cloud,
                          int n_part):
@@ -85,8 +96,9 @@ cdef class DistCloudSurf:
         """
         PDM_dist_cloud_surf_n_part_cloud_set(self._id, i_point_cloud, n_part)
         self._nbPts[i_point_cloud] =  <int *>  malloc(sizeof(int) * n_part)
+        self._partN = n_part
 
-
+    # ------------------------------------------------------------------
     def cloud_set(self,
                   int i_point_cloud,
                   int i_part,
@@ -110,6 +122,7 @@ cdef class DistCloudSurf:
 #    def surf_mesh_map(self,
 #                                           PDM_surf_mesh_t *surf_mesh)
 
+    # ------------------------------------------------------------------
     def surf_mesh_global_data_set(self,
                                   PDM_g_num_t n_g_face,
                                   PDM_g_num_t n_g_vtx,
@@ -122,6 +135,7 @@ cdef class DistCloudSurf:
                                                       n_g_vtx,
                                                       n_part)
 
+    # ------------------------------------------------------------------
     def surf_mesh_part_set(self,
                            i_part,
                            n_face,
@@ -144,13 +158,14 @@ cdef class DistCloudSurf:
                                                 <double *> coords.data,
                                                 <PDM_g_num_t *> vtx_ln_to_gn.data)
 
+    # ------------------------------------------------------------------
     def compute(self):
         """
         Compute distance
         """
         PDM_dist_cloud_surf_compute (self._id)
 
-
+    # ------------------------------------------------------------------
     def get(self,
            int i_point_cloud,
            int i_part):
@@ -200,18 +215,18 @@ cdef class DistCloudSurf:
                 'ClosestEltProjected'   : npClosestEltProjected,
                 'ClosestEltGnum'        : npClosestEltGnum}
 
-
+    # ------------------------------------------------------------------
     def dump_times(self):
         """
         Print elapsed time
         """
         PDM_dist_cloud_surf_dump_times(self._id)
 
-
+    # ------------------------------------------------------------------
     def __dealloc__(self):
         """
         """
-        for idx in xrange(self.partN):
+        for idx in xrange(self._partN):
             free (self._nbPts[idx])
         free (self._nbPts)
         PDM_dist_cloud_surf_free(self._id, 0)

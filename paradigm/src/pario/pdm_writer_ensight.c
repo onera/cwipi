@@ -252,7 +252,6 @@ _ecr_entrelace_float(PDM_writer_t                           *cs,
                           12,
                           PDM_IO_T_FLOAT,
                           "%12.5e");
-                          
   PDM_io_ecr_par_entrelacee(f_unit_geom,
                               t_comp,
                               n_comp,
@@ -319,60 +318,8 @@ _ecr_entrelace_int(PDM_writer_t                           *cs,
                               sizeof(int32_t),
                               n_valeur,
                               indirection,
-                              (void *) valeurs); 
+                              (void *) valeurs);
 }
-
-
-
-static void
-_ecr_entrelace_int2(PDM_writer_t                           *cs,
-                   const PDM_writer_statut_t               s_ecr_n_valeur,
-                   const PDM_l_num_t            f_unit_geom,
-                   const PDM_io_n_composantes_t  t_comp,
-                   const PDM_l_num_t           *n_comp,
-                   const PDM_l_num_t            n_valeur,
-                   const PDM_g_num_t          *indirection,
-                   const int32_t                  *valeurs)
-{
-  if (s_ecr_n_valeur == PDM_WRITER_ON) {
-
-    PDM_g_num_t n_val_abs_loc = 0;
-    PDM_g_num_t n_val_abs     = 0;
-
-    for (int i = 0; i < n_valeur; i++) {
-      n_val_abs_loc = _max(n_val_abs_loc, indirection[i]);
-    }
-
-    PDM_MPI_Allreduce(&n_val_abs_loc, &n_val_abs, 1, PDM__PDM_MPI_G_NUM, PDM_MPI_MAX, cs->pdm_mpi_comm);
-
-    int32_t n_val_abs_32_t = (int32_t) n_val_abs;
-
-    if (cs->fmt_fic == PDM_WRITER_FMT_ASCII) {
-      char  buf[12];
-      int n_val = sprintf(buf, "%10d", n_val_abs_32_t);
-      PDM_io_fmt_donnee_set(f_unit_geom, 1, PDM_IO_T_CHAR, "%c");
-      PDM_io_ecriture_globale(f_unit_geom, sizeof(char), n_val, buf);
-    }
-
-    else if (cs->fmt_fic == PDM_WRITER_FMT_BIN) {
-      PDM_io_ecriture_globale(f_unit_geom, sizeof(int32_t), 1, &n_val_abs_32_t);
-    }
-  }
-
-  PDM_io_fmt_donnee_set(f_unit_geom,
-                          10,
-                          PDM_IO_T_INT,
-                          "%10d");
-
-  PDM_io_ecr_par_entrelacee(f_unit_geom,
-                              t_comp,
-                              n_comp,
-                              sizeof(int32_t),
-                              n_valeur,
-                              indirection,
-                              (void *) valeurs); 
-}
-
 
 /*----------------------------------------------------------------------------
  * Ecriture de l'entete d'un fichier geom Ensight
@@ -447,8 +394,8 @@ _calcul_numabs_face_poly3d
   for (int i = 0; i < n_part; i++) {
 
     int n_elt = PDM_Mesh_nodal_block_n_elt_get (geom->idx_mesh, iblock, i);
-    PDM_g_num_t *numabs_block = PDM_Mesh_nodal_block_inside_g_num_get (geom->idx_mesh,
-                                                                 iblock,     
+    PDM_g_num_t *numabs_block = PDM_Mesh_nodal_block_g_num_get (geom->idx_mesh,
+                                                                 iblock,
                                                                  i);
 
     n_elt_proc += n_elt;
@@ -510,8 +457,8 @@ _calcul_numabs_face_poly3d
   for (int j = 0; j < n_part; j++) {
 
     int n_elt = PDM_Mesh_nodal_block_n_elt_get (geom->idx_mesh, iblock, j);
-    PDM_g_num_t *numabs_block = PDM_Mesh_nodal_block_inside_g_num_get (geom->idx_mesh,
-                                                                 iblock,     
+    PDM_g_num_t *numabs_block = PDM_Mesh_nodal_block_g_num_get (geom->idx_mesh,
+                                                                 iblock,
                                                                  j);
 
     for (int k = 0; k < n_elt; k++) {
@@ -568,8 +515,8 @@ _calcul_numabs_face_poly3d
   unsigned char *currentData = sendBuffData;
   for (int j = 0; j < n_part; j++) {
       int n_elt = PDM_Mesh_nodal_block_n_elt_get (geom->idx_mesh, iblock, j);
-      PDM_g_num_t *numabs_block = PDM_Mesh_nodal_block_inside_g_num_get (geom->idx_mesh,
-                                                                   iblock,     
+      PDM_g_num_t *numabs_block = PDM_Mesh_nodal_block_g_num_get (geom->idx_mesh,
+                                                                   iblock,
                                                                    j);
 
       PDM_l_num_t   n_face;
@@ -723,8 +670,8 @@ _calcul_numabs_face_poly3d
   for (int j = 0; j < n_part; j++) {
 
     int n_elt = PDM_Mesh_nodal_block_n_elt_get (geom->idx_mesh, iblock, j);
-    PDM_g_num_t *numabs_block = PDM_Mesh_nodal_block_inside_g_num_get (geom->idx_mesh,
-                                                                 iblock,     
+    PDM_g_num_t *numabs_block = PDM_Mesh_nodal_block_g_num_get (geom->idx_mesh,
+                                                                 iblock,
                                                                  j);
 
 
@@ -1014,12 +961,13 @@ PDM_writer_ensight_geom_write
 (
  PDM_writer_geom_t    *geom
 )
-{  
+{
   PDM_writer_t* _cs = (PDM_writer_t*) geom->_cs;
   PDM_writer_ensight_t *PDM_writer_ensight = (PDM_writer_ensight_t *) _cs->sortie_fmt;
   PDM_l_num_t f_unit_geom = PDM_writer_ensight->f_unit_geom;
 
   /* Premier passage : Ouverture du fichier + Ecriture entête */
+
   if (f_unit_geom < 0) {
 
     const char* geom_file_name = PDM_writer_ensight_case_geo_file_name_get(PDM_writer_ensight->ensight_case);
@@ -1057,7 +1005,7 @@ PDM_writer_ensight_geom_write
     f_unit_geom = PDM_writer_ensight->f_unit_geom;
     PDM_writer_ensight->n_part_ecr = 0;
   }
-    
+
   /* Ecriture de la part associee a la structure geom courante */
 
   /* Ecriture de l'entete de la part */
@@ -1121,12 +1069,11 @@ PDM_writer_ensight_geom_write
                          n_som_proc,
                          numabs_tmp,
                          coord_tmp);
-                             
   }
 
   free(coord_tmp);
   free(numabs_tmp);
-  
+
   /* Ecriture des blocs standard */
 
   const int n_blocks = PDM_Mesh_nodal_n_blocks_get (geom->idx_mesh);
@@ -1154,9 +1101,8 @@ PDM_writer_ensight_geom_write
 
       for (int i = 0; i < n_part; i++) {
         int n_elt = PDM_Mesh_nodal_block_n_elt_get (geom->idx_mesh, blocks_id[ibloc], i);
-
-        PDM_g_num_t *numabs_block = PDM_Mesh_nodal_block_inside_g_num_get (geom->idx_mesh,
-                                                                     blocks_id[ibloc],     
+        PDM_g_num_t *numabs_block = PDM_Mesh_nodal_block_g_num_get (geom->idx_mesh,
+                                                                     blocks_id[ibloc],
                                                                      i);
         n_elt_proc += n_elt;
         for (int j = 0; j < n_elt; j++) {
@@ -1206,11 +1152,12 @@ PDM_writer_ensight_geom_write
 
       numabs_tmp = (PDM_g_num_t *) malloc(n_elt_proc * sizeof(PDM_g_num_t));
       int32_t *connec_tmp = (int32_t *) malloc(n_elt_proc * n_comp * sizeof(int32_t));
+
       n_elt_proc = 0;
       for (int i = 0; i < n_part; i++) {
         int n_elt = PDM_Mesh_nodal_block_n_elt_get (geom->idx_mesh, blocks_id[ibloc], i);
-        PDM_g_num_t *numabs_block = PDM_Mesh_nodal_block_inside_g_num_get (geom->idx_mesh,
-                                                                     blocks_id[ibloc],     
+        PDM_g_num_t *numabs_block = PDM_Mesh_nodal_block_g_num_get (geom->idx_mesh,
+                                                                     blocks_id[ibloc],
                                                                      i);
 
         PDM_l_num_t  *connec;
@@ -1221,7 +1168,7 @@ PDM_writer_ensight_geom_write
                                       &connec);
 
         const PDM_g_num_t *g_num_vtx = PDM_Mesh_nodal_vertices_g_num_get (geom->idx_mesh,
-                                                                        i);
+                                                                          i);
         for (int j = 0; j < n_elt; j++) {
           numabs_tmp[n_elt_proc] = numabs_block[j];
           for (int k = 0; k < n_comp; k++) {
@@ -1232,22 +1179,9 @@ PDM_writer_ensight_geom_write
           n_elt_proc += 1;
         }
       }
-      
-      
-      /* Ecriture */
-      if(ibloc==2) {
-      _ecr_entrelace_int(_cs,
-                         PDM_WRITER_ON,
-                         f_unit_geom,
-                         PDM_IO_N_COMPOSANTE_CONSTANT,
-                         &n_comp,
-                         n_elt_proc,
-                         numabs_tmp,
-                         connec_tmp);
-              
-      }
 
-      else
+      /* Ecriture */
+
       _ecr_entrelace_int(_cs,
                          PDM_WRITER_ON,
                          f_unit_geom,
@@ -1256,9 +1190,10 @@ PDM_writer_ensight_geom_write
                          n_elt_proc,
                          numabs_tmp,
                          connec_tmp);
-     
+
       free(numabs_tmp);
       free(connec_tmp);
+
     }
 
     else if (t_elt == PDM_MESH_NODAL_POLY_2D) {
@@ -1272,18 +1207,19 @@ PDM_writer_ensight_geom_write
       for (int i = 0; i < n_part; i++) {
 
         int n_elt = PDM_Mesh_nodal_block_n_elt_get (geom->idx_mesh, blocks_id[ibloc], i);
-        PDM_g_num_t *numabs_block = PDM_Mesh_nodal_block_inside_g_num_get (geom->idx_mesh,
-                                                                     blocks_id[ibloc],     
+        PDM_g_num_t *numabs_block = PDM_Mesh_nodal_block_g_num_get (geom->idx_mesh,
+                                                                     blocks_id[ibloc],
                                                                      i);
-        PDM_l_num_t  *connec_idx;   
-        PDM_l_num_t  *connec;   
-        
+
+        PDM_l_num_t  *connec_idx;
+        PDM_l_num_t  *connec;
+
         PDM_Mesh_nodal_block_poly2d_get (geom->idx_mesh,
-                                         blocks_id[ibloc],     
-                                         i, 
-                                         &connec_idx,   
-                                         &connec);   
-                                 
+                                         blocks_id[ibloc],
+                                         i,
+                                         &connec_idx,
+                                         &connec);
+
         if (n_elt > 0) {
           n_elt_proc += n_elt;
           l_connec += connec_idx[n_elt];
@@ -1291,6 +1227,7 @@ PDM_writer_ensight_geom_write
             max_loc = _max((PDM_g_num_t) numabs_block[j], max_loc);
           }
         }
+
       }
 
       PDM_MPI_Allreduce(&max_loc, &max_abs, 1,
@@ -1310,12 +1247,12 @@ PDM_writer_ensight_geom_write
 
       n_elt_proc = 0;
       l_connec = 0;
-  
+
       for (int i = 0; i < n_part; i++) {
 
         int n_elt = PDM_Mesh_nodal_block_n_elt_get (geom->idx_mesh, blocks_id[ibloc], i);
-        PDM_g_num_t *numabs_block = PDM_Mesh_nodal_block_inside_g_num_get (geom->idx_mesh,
-                                                                     blocks_id[ibloc],     
+        PDM_g_num_t *numabs_block = PDM_Mesh_nodal_block_g_num_get (geom->idx_mesh,
+                                                                     blocks_id[ibloc],
                                                                      i);
 
         PDM_l_num_t  *connec_idx;
@@ -1341,7 +1278,7 @@ PDM_writer_ensight_geom_write
           n_elt_proc += 1;
         }
       }
-       
+
       /* Ecriture du nombre de sommets */
 
       int n_comp_cste = 1;
@@ -1383,7 +1320,7 @@ PDM_writer_ensight_geom_write
 
     else {
       /* Nombre total d'éléments du bloc */
-      
+
       PDM_g_num_t max_loc = 0;
       PDM_g_num_t max_abs = 0;
 
@@ -1393,8 +1330,8 @@ PDM_writer_ensight_geom_write
       for (int i = 0; i < n_part; i++) {
 
         int n_elt = PDM_Mesh_nodal_block_n_elt_get (geom->idx_mesh, blocks_id[ibloc], i);
-        PDM_g_num_t *numabs_block = PDM_Mesh_nodal_block_inside_g_num_get (geom->idx_mesh,
-                                                                     blocks_id[ibloc],     
+        PDM_g_num_t *numabs_block = PDM_Mesh_nodal_block_g_num_get (geom->idx_mesh,
+                                                                     blocks_id[ibloc],
                                                                      i);
 
         PDM_l_num_t   n_face;
@@ -1443,8 +1380,8 @@ PDM_writer_ensight_geom_write
       for (int i = 0; i < n_part; i++) {
 
         int n_elt = PDM_Mesh_nodal_block_n_elt_get (geom->idx_mesh, blocks_id[ibloc], i);
-        PDM_g_num_t *numabs_block = PDM_Mesh_nodal_block_inside_g_num_get (geom->idx_mesh,
-                                                                     blocks_id[ibloc],     
+        PDM_g_num_t *numabs_block = PDM_Mesh_nodal_block_g_num_get (geom->idx_mesh,
+                                                                     blocks_id[ibloc],
                                                                      i);
 
         PDM_l_num_t   n_face;
@@ -1601,6 +1538,7 @@ PDM_writer_ensight_geom_write
     }
 
   }
+
 }
 
 
@@ -1805,106 +1743,74 @@ PDM_writer_ensight_var_write
         /* Boucle sur les blocs standard */
 
         int *ideb = (int *) malloc(sizeof(int) * n_part);
+        for (int i = 0; i < n_part; i++) {
+          ideb[i] = 0;
+        }
 
-        PDM_writer_elt_geom_t* t_elt_list = NULL;
-         
-        int nb_t_elt = 0;
         for (int iblock = 0; iblock < n_blocks; iblock++) {
 
           PDM_writer_elt_geom_t t_elt = (PDM_writer_elt_geom_t) PDM_Mesh_nodal_block_type_get (geom->idx_mesh, blocks_id[iblock]);
-          
-          int t_elt_in_list = 0;
-          for(int it_el=0; it_el < nb_t_elt; it_el++) {
-            if(t_elt_list[it_el] == t_elt ) { t_elt_in_list = 1;
-              break;
-            }
-          }
-          
-          if(t_elt_in_list == 0) {
-            nb_t_elt++;
-            t_elt_list = (PDM_writer_elt_geom_t*) realloc(t_elt_list,nb_t_elt*sizeof(PDM_writer_elt_geom_t));
-            t_elt_list[nb_t_elt-1]=t_elt;
-          }     
-        }
-                
-/*
-Boucle sur les blocks je récupère numabs et la taille des blocks
-*/
-        for(int it_el=0; it_el < nb_t_elt; it_el++) {
-          int type_is_written = 0;
+
+          /* Ecriture du Type de bloc */
+
+          _ecr_string(cs,
+                      unite,
+                      _ensight_type_name[t_elt]);
+
+         /* Construction de l'indirection */
+
+          int n_val_buff = 0;
           for (int i = 0; i < n_part; i++) {
-            ideb[i] = 0;
+            int           n_elt = PDM_Mesh_nodal_block_n_elt_get (geom->idx_mesh,
+                                                                  blocks_id[iblock],
+                                                                  i);
+
+            PDM_g_num_t  *numabs_block =
+                    PDM_Mesh_nodal_block_g_num_get (geom->idx_mesh,
+                                                    blocks_id[iblock],
+                                                    i);
+            for (int j = 0; j < n_elt; j++) {
+              numabs[n_val_buff++] = (PDM_g_num_t) numabs_block[j];
+            }
           }
-          
-          for (int iblock = 0; iblock < n_blocks; iblock++) {
-            PDM_writer_elt_geom_t t_elt = PDM_Mesh_nodal_block_type_get (geom->idx_mesh, blocks_id[iblock]);
-            if(t_elt == t_elt_list[it_el] ) {
-          
-              /* Ecriture du Type de bloc */
-              if(type_is_written == 0) {
-                _ecr_string(cs,
-                            unite,
-                            _ensight_type_name[t_elt]);
-               type_is_written = 1;
-              }
 
-              /* Construction de l'indirection */
-       
-              int n_val_buff = 0;
-              for (int i = 0; i < n_part; i++) {
-                int           n_elt = PDM_Mesh_nodal_block_n_elt_get (geom->idx_mesh,    
-                                                                      blocks_id[iblock],     
-                                                                      i);  
-                PDM_g_num_t  *numabs_block = 
-                    PDM_Mesh_nodal_block_inside_g_num_get (geom->idx_mesh,    
-                                                           blocks_id[iblock],     
-                                                           i); //_inside
-             
-                for (int j = 0; j < n_elt; j++) {
-                  numabs[n_val_buff++] = (PDM_g_num_t) numabs_block[j];
-                }
-              } // BOucle sur les partitions
+          PDM_writer_statut_t s_ecr_n_val = PDM_WRITER_OFF;
 
-              PDM_writer_statut_t s_ecr_n_val = PDM_WRITER_OFF;
-
-              for (int k = 0; k < var->dim; k++) {
-                n_val_buff = 0;
-                int comp_a_ecrire;
-                comp_a_ecrire = k;
-                if (var->dim == 9)
-                  comp_a_ecrire = 3 * (k % 3) + k / 3;
-                for (int i = 0; i < n_part; i++) {
-                  int           n_elt = PDM_Mesh_nodal_block_n_elt_get (geom->idx_mesh,    
-                                                                        blocks_id[iblock],     
-                                                                        i);    
-
-                  for (int j = 0; j < n_elt; j++) {
-                    buff[n_val_buff++] = (float) (var->_val[igeom][i][(ideb[i] + j)*var->dim + comp_a_ecrire]);
-                  }
-                }
-
-                PDM_l_num_t un = 1;
-                _ecr_entrelace_float(cs,
-                                     s_ecr_n_val,
-                                     unite,
-                                     PDM_IO_N_COMPOSANTE_CONSTANT,
-                                     &un,
-                                     n_val_buff,
-                                     numabs,
-                                     buff);
-              }
-
-            } //if t_elt==t_elt_list
-            
+          for (int k = 0; k < var->dim; k++) {
+            n_val_buff = 0;
+            int comp_a_ecrire;
+            comp_a_ecrire = k;
+            if (var->dim == 9)
+              comp_a_ecrire = 3 * (k % 3) + k / 3;
             for (int i = 0; i < n_part; i++) {
-              ideb[i] += PDM_Mesh_nodal_block_n_elt_get (geom->idx_mesh,    
-                                                         blocks_id[iblock],     
-                                                         i); 
+              int           n_elt = PDM_Mesh_nodal_block_n_elt_get (geom->idx_mesh,
+                                            blocks_id[iblock],
+                                            i);
+
+              for (int j = 0; j < n_elt; j++) {
+                buff[n_val_buff++] = (float) (var->_val[igeom][i][(ideb[i] + j)*var->dim + comp_a_ecrire]);
+              }
             }
 
-          } //Boucle sur les blocks      
-        } //Loop on block type
-        
+            PDM_l_num_t un = 1;
+
+            _ecr_entrelace_float(cs,
+                                 s_ecr_n_val,
+                                 unite,
+                                 PDM_IO_N_COMPOSANTE_CONSTANT,
+                                 &un,
+                                 n_val_buff,
+                                 numabs,
+                                 buff);
+          }
+          for (int i = 0; i < n_part; i++) {
+
+            ideb[i] += PDM_Mesh_nodal_block_n_elt_get (geom->idx_mesh,
+                                                  blocks_id[iblock],
+                                                  i);
+          }
+        }
+
         /* Libération */
 
         free(ideb);
@@ -1956,4 +1862,3 @@ PDM_writer_ensight_var_free
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-

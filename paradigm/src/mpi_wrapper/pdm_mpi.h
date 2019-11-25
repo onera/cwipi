@@ -148,7 +148,15 @@ enum {
   PDM_MPI_INTEGER          = -21,
   PDM_MPI_REAL             = -22,
   PDM_MPI_DOUBLE_PRECISION = -23,
-  PDM_MPI_DATATYPE_NULL    = -24
+  PDM_MPI_DATATYPE_NULL    = -24,
+  PDM_MPI_INT8_T           = -25,
+  PDM_MPI_INT16_T          = -26,
+  PDM_MPI_INT32_T          = -27,
+  PDM_MPI_INT64_T          = -28,
+  PDM_MPI_UINT8_T          = -29,
+  PDM_MPI_UINT16_T         = -30,
+  PDM_MPI_UINT32_T         = -31,
+  PDM_MPI_UINT64_T         = -32
 };
 
 enum {

@@ -60,6 +60,7 @@ typedef struct {
   int           *distributed_data;    /*!< Distributed data for each process
                                     * (size : requestd_data_idx[s_comm - 1]
                                              +requestd_data_n[s_comm - 1] ) */
+  int           pttopt_comm;         /*!< Use point to point communication if pttopt_comm == 1 */
 
 } _pdm_block_to_part_t;
 
@@ -75,4 +76,3 @@ typedef struct {
 #endif
 
 #endif	/* PDM_BLOCK_TO_PART_PRIV_H */
-

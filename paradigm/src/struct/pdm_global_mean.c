@@ -435,6 +435,8 @@ PDM_global_mean_field_compute
     strideIdx[i+1] = strideIdx[i] + block_field_stride[i]/_gpm->stride;
   }
 
+  free (block_field_stride);
+
   for (int i = 0; i < n_elt_block; i++) {
     for (int j = strideIdx[i]; j < strideIdx[i+1]; j++) {
       double weight = 1.;

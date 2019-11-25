@@ -542,25 +542,13 @@ void
 PDM_writer_geom_bloc_std_set
 (
 const int            id_cs,
-const int            id_geom,  
-const int            id_bloc,     
-const int            id_part, 
-const int            n_elt,    
-      PDM_l_num_t    *connec,   
-      PDM_g_num_t    *numabs
-); 
-
-
-void
-PDM_writer_geom_bloc_g_num_mesh_set 
-(
-const int            id_cs,
-const int            id_geom,  
-const int            id_bloc,     
-const int            id_part, 
-PDM_g_num_t         *numabs
-); 
- 
+const int            id_geom,
+const int            id_bloc,
+const int            id_part,
+const int            n_elt,
+      PDM_l_num_t      *connec,
+      PDM_g_num_t     *numabs
+);
 
 /*----------------------------------------------------------------------------
  * Ajout d'un bloc de polygones dans la partition courante

@@ -32,7 +32,7 @@
 #include "pdm_error.h"
 #include "pdm_handles.h"
 #include "pdm_mesh_nodal.h"
-#include "pdm_mesh_nodal_priv.h"
+
 
 /*----------------------------------------------------------------------------*/
 
@@ -1102,38 +1102,9 @@ const int            n_elt,
     abort();
   }
 
-  PDM_Mesh_nodal_block_std_set (geom->idx_mesh, id_bloc, id_part, 
-                                n_elt, connec, numabs, NULL); 
-  
-}
+  PDM_Mesh_nodal_block_std_set (geom->idx_mesh, id_bloc, id_part,
+                                n_elt, connec, numabs, NULL);
 
-
-void
-PDM_writer_geom_bloc_g_num_mesh_set 
-(
-const int            id_cs,
-const int            id_geom,  
-const int            id_bloc,     
-const int            id_part, 
-    PDM_g_num_t     *numabs
-) 
-{
-  /* Acces a l'objet de geometrie courant */
-
-  PDM_writer_t *cs = (PDM_writer_t *) PDM_Handles_get (cs_tab, id_cs);
-  if (cs == NULL) {
-    PDM_error (__FILE__, __LINE__, 0, "Bad writer identifier\n");
-  }
-
-  PDM_writer_geom_t *geom = (PDM_writer_geom_t *) PDM_Handles_get (cs->geom_tab, id_geom);
-
-  if (geom == NULL) {
-    PDM_error(__FILE__, __LINE__, 0, "Bad geom identifier\n");
-    abort();
-  }
-
-  PDM_Mesh_nodal_block_g_num_mesh_set (geom->idx_mesh, id_bloc, id_part, numabs); 
-  
 }
 
 
@@ -1637,11 +1608,12 @@ const int            id_geom
   /* D�termination de la num�rotation absolue interne des elements
      Independante du parallelisme */
 
-
   const int n_blocks = PDM_Mesh_nodal_n_blocks_get (geom->idx_mesh);
   const int *blocks_id = PDM_Mesh_nodal_blocks_id_get (geom->idx_mesh);
-  
-  PDM_Mesh_g_num_in_block_from_computed_g_num_in_mesh_compute (geom->idx_mesh);
+
+  for (int i = 0; i < n_blocks; i++) {
+    PDM_Mesh_nodal_g_num_in_block_compute (geom->idx_mesh, blocks_id[i]);
+  }
 
   /* Ecriture au format */
 
@@ -1650,7 +1622,6 @@ const int            id_geom
   PDM_writer_fmt_t * fmt_ptr = (PDM_writer_fmt_t *) PDM_Handles_get (fmt_tab, cs->fmt_id);
 
   if (fmt_ptr->geom_write_fct != NULL) {
-
     (fmt_ptr->geom_write_fct) (geom);
   }
 

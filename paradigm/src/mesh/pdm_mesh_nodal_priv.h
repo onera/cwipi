@@ -63,8 +63,8 @@ typedef struct PDM_Mesh_nodal_block_std_t {
   PDM_g_num_t              **_numabs;       /*!< Global numbering (Memory mapping) */
   PDM_g_num_t              **numabs_int;    /*!< Global numbering inside each block */
   PDM_l_num_t              **_parent_num;       /*!< Parent numbering or NULL */
-  PDM_l_num_t              **_cell_centers;       /*!< Cell center coordinates */
-  
+  double                   **cell_centers;       /*!< Cell center coordinates */
+
 } PDM_Mesh_nodal_block_std_t;
 
 
@@ -85,7 +85,7 @@ typedef struct PDM_Mesh_nodal_block_poly2d_t {
   PDM_g_num_t            **_numabs;       /*!< Global numbering  (Memory mapping) */
   PDM_g_num_t            **numabs_int;    /*!< Global numbering inside each block */
   PDM_l_num_t            **_parent_num;       /*!< Parent numbering or NULL */
-  PDM_l_num_t              **_cell_centers;       /*!< Cell center coordinates */
+  double                 **cell_centers;       /*!< Cell center coordinates */
 
 } PDM_Mesh_nodal_block_poly2d_t;
 
@@ -115,7 +115,7 @@ typedef struct PDM_Mesh_nodal_block_poly3d_t{
 
   PDM_g_num_t           **numabs_int;   /*!< Global numbering inside the block (Memory mapping) */
   PDM_l_num_t           **_parent_num;  /*!< Parent numbering or NULL */
-  PDM_l_num_t              **_cell_centers;       /*!< Cell center coordinates */
+  double                **cell_centers;       /*!< Cell center coordinates */
 
 } PDM_Mesh_nodal_block_poly3d_t;
 
@@ -172,8 +172,8 @@ typedef struct PDM_Mesh_nodal_prepa_blocks_t {
 
 struct _PDM_Mesh_nodal_t {
 
-  PDM_g_num_t                         n_som_abs;                /*!< Global number of vertices */
-  PDM_g_num_t                         n_elt_abs;                /*!< Global number of elements */
+  /* PDM_g_num_t                         n_som_abs;                /\*!< Global number of vertices *\/ */
+  /* PDM_g_num_t                         n_elt_abs;                /\*!< Global number of elements *\/ */
   int                                 n_part;                   /*!< Number of partitions */
   PDM_Mesh_nodal_vtx_t                **vtx;                    /*!< Description des sommmets de chaque partition */
   PDM_l_num_t                         *n_cell;                  /*!< Nombre de blocs d'elements standard */

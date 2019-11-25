@@ -38,6 +38,7 @@ typedef enum {
   PDM_PART_SPLIT_HILBERT  = 3
 } PDM_part_split_t;
 
+typedef struct _PDM_part_t PDM_part_t;
 
 /*=============================================================================
  * Static global variables
@@ -463,6 +464,20 @@ void
 PDM_part_partial_free
 (
 const  int                ppartId
+);
+
+/**
+ *
+ * \brief Get current meshPat struct
+ *
+ * \param [in]   ppartId        ppart identifier
+ *
+ */
+
+PDM_part_t*
+PDM_get_meshpart_from_id
+(
+ int  ppartId
 );
 
 #ifdef __cplusplus

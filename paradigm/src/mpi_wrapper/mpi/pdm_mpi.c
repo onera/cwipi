@@ -154,8 +154,15 @@ static const MPI_Datatype mpi_datatype_cste[] = {
   MPI_INTEGER,
   MPI_REAL,
   MPI_DOUBLE_PRECISION,
-  MPI_DATATYPE_NULL
-
+  MPI_DATATYPE_NULL,
+  MPI_INT8_T,
+  MPI_INT16_T,
+  MPI_INT32_T,
+  MPI_INT64_T,
+  MPI_UINT8_T,
+  MPI_UINT16_T,
+  MPI_UINT32_T,
+  MPI_UINT64_T
 };
 
 /*----------------------------------------------------------------------------
@@ -681,6 +688,22 @@ static PDM_MPI_Datatype _mpi_2_pdm_mpi_datatype(MPI_Datatype datatype)
     return PDM_MPI_DOUBLE_PRECISION;
   else if (datatype == MPI_DATATYPE_NULL)
     return PDM_MPI_DATATYPE_NULL;
+  else if (datatype == MPI_INT8_T)
+    return PDM_MPI_INT8_T;
+  else if (datatype == MPI_INT16_T)
+    return PDM_MPI_INT16_T;
+  else if (datatype == MPI_INT32_T)
+    return PDM_MPI_INT32_T;
+  else if (datatype == MPI_INT64_T)
+    return PDM_MPI_INT64_T;
+  else if (datatype == MPI_UINT8_T)
+    return PDM_MPI_UINT8_T;
+  else if (datatype == MPI_UINT16_T)
+    return PDM_MPI_UINT16_T;
+  else if (datatype == MPI_UINT32_T)
+    return PDM_MPI_UINT32_T;
+  else if (datatype == MPI_UINT64_T)
+    return PDM_MPI_UINT64_T;
 
   /* Traitement des communicateurs utilisateurs */
 

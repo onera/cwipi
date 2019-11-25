@@ -202,11 +202,107 @@ cdef class BlockToPart:
                                  block_data,
                                  part_stride,
                                  part_data)
-
           # > Verbose
           # print field
           # for idx, pArray in enumerate(partList):
           #   print pArray
+
+        # > Deallocate - On dessaloue uniquement les pointeurs de partition
+        #   Le coté pointeur de pointeur est assuré par la list python
+        if(BlkStride is None):
+          free(block_stride)
+          free(part_data)
+        else:
+          free(block_stride)
+          free(part_data)
+          free(part_stride)
+
+
+    # ------------------------------------------------------------------
+    def BlockToPart_Exchange2(self, dict         dField,
+                                    dict         pField,
+                                    PDM_stride_t t_stride = <PDM_stride_t> 0,
+                                    NPY.ndarray[NPY.int32_t, ndim=1, mode='c'] BlkStride = None):
+        """
+           TODOUX : 1) Exchange of variables types array
+                    2) Assertion of type and accross MPI of the same field
+        """
+        # ************************************************************************
+        # > Declaration
+        cdef NPY.ndarray dArray
+        cdef NPY.ndarray pArray
+
+        # > Specific to PDM
+        cdef int         ii, sizeData
+        cdef size_t      s_data
+        cdef int        *block_stride
+        cdef int       **part_stride
+        cdef void      **part_data
+        cdef void       *block_data
+        cdef NPY.ndarray tmpData
+        cdef NPY.ndarray tmpStride
+        # ************************************************************************
+
+        # ::::::::::::::::::::::::::::::::::::::::::::::::::
+        for field in dField.keys():
+          # ::::::::::::::::::::::::::::::::::::::::::::::::::
+          # > Get field and assign ptr
+          dArray     = dField[field]
+          block_data = <void *> dArray.data
+          s_data     = dArray.dtype.itemsize
+
+          # > Understand how to interface
+          if(BlkStride is None):
+            block_stride = <int *> malloc( 1 * sizeof(int *))
+            part_stride  = NULL
+            part_data    = NULL
+            # > Init
+            block_stride[0] = 1 # No entrelacing data
+          else:
+            block_stride = <int *> BlkStride.data
+            part_stride  = NULL
+            part_data    = NULL
+          # ::::::::::::::::::::::::::::::::::::::::::::::::::
+
+          # ::::::::::::::::::::::::::::::::::::::::::::::::::
+          # > Compute
+          PDM_block_to_part_exch2(self.BTP,
+                                  s_data,
+                                  t_stride,
+                                  block_stride,
+                                  block_data,
+                                  &part_stride,
+                                  &part_data)
+          # ::::::::::::::::::::::::::::::::::::::::::::::::::
+
+          # ::::::::::::::::::::::::::::::::::::::::::::::::::
+          if(BlkStride is not None):
+            pField[field] = list()
+            pField[field+"#PDM_Stride"] = list()
+            for idx in xrange(self.partN):
+              sizeData = 0
+              for ii in xrange(self.NbElmts[idx]):
+                sizeData += part_stride[idx][ii]
+
+              # print("sizeData[{0}] = {1}".format(idx, sizeData))
+              dimData = <NPY.npy_intp> sizeData
+              # Memory leak block_data will be never desalocated ...
+              tmpData = NPY.PyArray_SimpleNewFromData(1, &dimData, dArray.dtype.num, <void *> part_data[idx])
+              PyArray_ENABLEFLAGS(tmpData, NPY.NPY_OWNDATA);
+              pField[field].append(tmpData)
+
+              dimStri = <NPY.npy_intp> self.NbElmts[idx]
+              # print("dimStri : ", dimStri)
+              tmpStride = NPY.PyArray_SimpleNewFromData(1, &dimStri, NPY.NPY_INT32, <void *> part_stride[idx])
+              PyArray_ENABLEFLAGS(tmpStride, NPY.NPY_OWNDATA);
+              pField[field+"#PDM_Stride"].append(tmpStride)
+          # ::::::::::::::::::::::::::::::::::::::::::::::::::
+
+          # ::::::::::::::::::::::::::::::::::::::::::::::::::
+          free(part_data)
+          free(part_stride)
+          # ::::::::::::::::::::::::::::::::::::::::::::::::::
+          # free(part_stride) # Les tableaux en eux meme sont detenu par le python
 
     # ------------------------------------------------------------------
     def __dealloc__(self):

@@ -56,16 +56,14 @@ if (PDM_HAVE_PARMETIS OR PDM_HAVE_PTSCOTCH)
   test_c_create (pdm_t_global_mean ${MPIEXEC_MAX_NUMPROCS})
   test_c_create (pdm_t_writer_ensight_3d ${MPIEXEC_MAX_NUMPROCS})
   test_c_create (pdm_t_writer_ensight_moving_mesh_3d ${MPIEXEC_MAX_NUMPROCS})
-  test_c_create (pdm_t_plane_agglo ${MPIEXEC_MAX_NUMPROCS})
+  test_c_create (pdm_t_plane_agglo 2)
   test_c_create (pdm_t_cellface_orient ${MPIEXEC_MAX_NUMPROCS})
   test_c_create (pdm_t_gnum ${MPIEXEC_MAX_NUMPROCS})
+  test_c_create (pdm_t_gnum_location ${MPIEXEC_MAX_NUMPROCS})
   test_c_create (pdm_t_gnum_with_merge ${MPIEXEC_MAX_NUMPROCS})
   test_c_create (pdm_t_dist ${MPIEXEC_MAX_NUMPROCS})
   test_c_create (pdm_t_dist_strip ${MPIEXEC_MAX_NUMPROCS})
 endif()
-#test_c_create (pdm_t_cellface_orient_poly 1)
-#test_c_create (pdm_t_ptb ${MPIEXEC_MAX_NUMPROCS})
-
-
-
-
+test_c_create (pdm_t_cellface_orient_poly 1)
+test_c_create (pdm_t_ptb ${MPIEXEC_MAX_NUMPROCS})
+test_c_create (pdm_t_par_octree ${MPIEXEC_MAX_NUMPROCS})

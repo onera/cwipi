@@ -496,7 +496,6 @@ int level[]
     }
 
    /** Generate the rooted level structure associated with this node. **/
-
    _level_set( *root, adj_row, adj, mask, &level_num2,
                 level_row, level);
 
@@ -812,11 +811,11 @@ int node_num
   *   We now have the Cuthill-McKee ordering.
   *   Reverse it to get the Reverse Cuthill-McKee ordering.
   */
-
   _i4vec_reverse ( *iccsze, perm );
 
   /**  Free memory. **/
   free(deg);// delete [] deg;
+
 
   return;
 }
@@ -833,8 +832,8 @@ int node_num
  * \param [out]     perm                The RCM ordering
  */
 
-static void
-_genrcm
+void
+PDM_genrcm
 (
 int node_num,
 int adj_row[],
@@ -848,8 +847,8 @@ int perm[]
   int num;
   int root;
 
-  int *level_row = (int *) malloc(sizeof(int) * node_num + 1); //level_row = new int[node_num+1];
-  int *mask      = (int *) malloc(sizeof(int) * node_num    ); //mask = new int[node_num];
+  int *level_row  = (int *) malloc(sizeof(int) * node_num + 1); //level_row = new int[node_num+1];
+  int *mask       = (int *) malloc(sizeof(int) * node_num    ); //mask = new int[node_num];
 
   for ( i = 0; i < node_num; i++ )
   {
@@ -863,7 +862,7 @@ int perm[]
     /*
      * For each masked connected component...
      */
-
+    // printf(" mask[%i] = %i \n", i, mask[i]);
     if ( mask[i] != 0 )
     {
       root = i + 1;
@@ -873,7 +872,6 @@ int perm[]
        */
       _root_find(&root, adj_row, adj, mask, &level_num,
                 level_row, perm+num-1);
-
       /*
        *   RCM orders the component using ROOT as the starting node.
        */
@@ -924,12 +922,10 @@ PDM_cuthill_checkbandwidth
                         (int **) &dualGraph);
 
   /** Offset Graph and Arr **/
-  for (int i = 0; i < ppart->nCell; i++)
-  {
+  for (int i = 0; i < ppart->nCell; i++){
     dualGraphIdx[i] = dualGraphIdx[i]+1;
   }
-  for (int i = 0; i < dualGraphIdx[ppart->nCell]; i++)
-  {
+  for (int i = 0; i < dualGraphIdx[ppart->nCell]; i++){
     dualGraph[i] = dualGraph[i]+1;
   }
 
@@ -966,17 +962,15 @@ PDM_cuthill_generate
                         (int **) &dualGraph);
 
   /** Offset Graph and Arr **/
-  for (int i = 0; i < ppart->nCell; i++)
-  {
+  for (int i = 0; i < ppart->nCell; i++){
     dualGraphIdx[i] = dualGraphIdx[i]+1;
   }
-  for (int i = 0; i < dualGraphIdx[ppart->nCell]; i++)
-  {
+  for (int i = 0; i < dualGraphIdx[ppart->nCell]; i++){
     dualGraph[i] = dualGraph[i]+1;
   }
 
   /** Apply rcm to current Graph **/
-  _genrcm(ppart->nCell, dualGraphIdx, dualGraph, perm);
+  PDM_genrcm(ppart->nCell, dualGraphIdx, dualGraph, perm);
 
   /** Offset Permutation array **/
   for (int i = 0; i < ppart->nCell; i++)
@@ -997,7 +991,6 @@ PDM_cuthill_generate
   free(dualGraphIdx);
   free(dualGraph);
 }
-
 
 #ifdef  __cplusplus
 }
