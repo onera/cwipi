@@ -2237,6 +2237,62 @@ CWP_surf_gen_one_connectivity_get
 }
 
 
+
+void          
+CWP_surf_face_edge_get
+( char* genName, int i_part,
+  int* nVtx , double** coords, CWP_g_num_t** vtxGnum,
+  int* nFace, int** faceEdgeIdx, int** faceEdge, 
+  int* nEdge, int** edgeVtxIdx, int** edgeVtx, 
+  CWP_g_num_t** faceLNToGN
+)
+{
+
+  if(_is_coupled(genName)){ 
+    cwipi::surfMeshGeneratorDB &surfMeshDB =  cwipi::surfMeshGeneratorDB::getInstance();
+    cwipi::surfMeshGenerator* surfMesh = surfMeshDB.memberGet(genName);
+  
+    *nVtx = surfMesh -> nVtxGet(i_part);
+    *nFace = surfMesh -> nFaceGet(i_part);
+    *coords = surfMesh -> coordsGet(i_part);
+    *vtxGnum = surfMesh -> vtxGnumGet(i_part);  
+
+    *nEdge = surfMesh -> nEdgeGet(i_part);
+    *faceEdgeIdx = surfMesh -> faceEdgeIdxGet(i_part);
+    *faceEdge = surfMesh -> faceEdgeGet(i_part);
+
+    *edgeVtxIdx = surfMesh -> edgeVtxIdxGet(i_part);
+    *edgeVtx = surfMesh -> edgeVtxGet(i_part);
+
+    *faceLNToGN = surfMesh -> faceLNToGNGet(i_part);
+  }
+  else{
+    *nVtx = 0;
+    *coords = NULL;
+    *vtxGnum = NULL;
+
+    *faceEdgeIdx =(int*)malloc(sizeof(int));
+    (*faceEdgeIdx)[0]=0;
+
+    *faceEdge = NULL;
+
+    *edgeVtxIdx = (int*)malloc(sizeof(int));
+    (*edgeVtxIdx)[0]=0;
+
+    *edgeVtx = NULL;  
+
+    *faceLNToGN = NULL;  
+
+  }
+
+
+}
+
+
+
+
+
+
 void          
 CWP_surf_gen_tri_field_get
 ( char* genName, int i_part,

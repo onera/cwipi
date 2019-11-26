@@ -88,6 +88,19 @@ namespace cwipi {
     _coords .resize(npart,NULL);
     _global_num_vtx .resize(npart,NULL);
     _global_num_elt .resize(npart,NULL);
+
+    _nFace       .resize(npart,0)   ;               
+    _faceEdgeIdx .resize(npart,NULL);
+    _faceEdge    .resize(npart,NULL);
+    _nEdge       .resize(npart,0)   ;                
+    _edgeVtxIdx  .resize(npart,NULL);
+    _edgeVtx     .resize(npart,NULL);
+
+    _edgeVtxNb   .resize(npart,NULL);
+    _faceEdgeNb  .resize(npart,NULL);
+
+    _faceLNToGN  .resize(npart,NULL);
+
   }
 
   Mesh::~Mesh() 
@@ -490,6 +503,30 @@ namespace cwipi {
       _nBlocks     = PDM_Mesh_nodal_n_blocks_get (_pdmNodal_handle_index);
       _blocks_id   = PDM_Mesh_nodal_blocks_id_get(_pdmNodal_handle_index);
 
+
+       /*
+       PDM_Mesh_nodal_cell2d_celledge_add(_pdmNodal_handle_index,
+                                          i_part,
+                                          _nFace[i_part],
+                                          _nEdge[i_part]    ,
+                                          _edgeVtxIdx[i_part] ,
+                                          _edgeVtxNb[i_part]  , //Number of vertices for each edge
+                                          _edgeVtx[i_part]    ,
+                                          _faceEdgeIdx[i_part],
+                                          _faceEdgeNb[i_part] , //Number of edges for each faces
+                                          _faceEdge[i_part]   ,
+                                          NULL);              
+       updateBlockDB();
+*/
+
+
+
+
+
+
+
+
+
       if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC ) {
         _visu -> GeomWrite(this);
       }
@@ -663,31 +700,31 @@ namespace cwipi {
                                  int         edge_vtx_idx[],
                                  int         edge_vtx[],
                                  CWP_g_num_t global_num[]) {
-       UNUSED(global_num);
-       int edge_vtx_nb[n_edges];
+
+       _faceLNToGN[i_part] = global_num;
+
+       _edgeVtxIdx[i_part] = edge_vtx_idx;
+       _faceEdgeIdx[i_part] = face_edge_idx;
+       _edgeVtx [i_part] = edge_vtx  ;
+       _faceEdge[i_part] = face_edge ;
+
+
+       _edgeVtxNb[i_part] = (int*)malloc(sizeof(int)*n_edges);
+       _faceEdgeNb[i_part] = (int*)malloc(sizeof(int)*n_faces);
        for (int i=0;i<n_edges;i++)
          {
-           edge_vtx_nb[i] = edge_vtx_idx[i+1] - edge_vtx_idx[i] ;
+          _edgeVtxNb[i_part][i] = edge_vtx_idx[i+1] - edge_vtx_idx[i] ;
          }
       
        int face_edge_nb[n_faces];
-       for (int i=0;i<n_faces;i++)
-         {
-           face_edge_nb[i] = face_edge_idx[i+1] - face_edge_idx[i] ;
-         }
+       for (int i=0;i<n_faces;i++)  {
+         _faceEdgeNb[i_part][i] = face_edge_idx[i+1] - face_edge_idx[i] ;
+       }
+
        
-       PDM_Mesh_nodal_cell2d_celledge_add(_pdmNodal_handle_index,
-                                          i_part,
-                                          n_faces,
-                                          n_edges,
-                                          edge_vtx_idx,
-                                          edge_vtx_nb, //Number of vertices for each edge
-                                          edge_vtx,
-                                          face_edge_idx,
-                                          face_edge_nb, //Number of edges for each faces
-                                          face_edge,
-                                          NULL);              
-       updateBlockDB();
+       _nEdge[i_part] = n_edges;
+       _nFace[i_part] = n_faces;
+
 
      }
 

@@ -127,8 +127,15 @@ void surfMeshGenerator::init(int nx, int ny, int nPart, MPI_Comm* comm, double p
   _centerQuad    .resize (_nPart);
   _charLengthQuad.resize (_nPart);
   _isDegQuad     .resize (_nPart);
-  
 
+
+  _nFace      .resize (_nPart);
+  _nEdge      .resize (_nPart);
+  _faceEdgeIdx.resize (_nPart);
+  _faceEdge   .resize (_nPart);
+  _edgeVtxIdx .resize (_nPart);
+  _edgeVtx    .resize (_nPart);
+  _faceLNToGN .resize (_nPart);
   _nElts   .resize (_nPart);  
   _eltsConnecIndex.resize (_nPart);
   _eltsConnec     .resize (_nPart);   
@@ -517,8 +524,6 @@ void surfMeshGenerator::computeMesh() {
     int id_mn = PDM_Mesh_nodal_create(_nPart, _interfComm);
     for(int i_part =0;i_part<_nPart;i_part++){
     
-      int nFace;
-      int nEdge;
       int nEdgePartBound;
       int nVtx1;
       int nProc;
@@ -530,8 +535,8 @@ void surfMeshGenerator::computeMesh() {
 
       PDM_part_part_dim_get (ppartId,
                            i_part,
-                           &nFace,
-                           &nEdge,
+                           &(_nFace[i_part]),
+                           &(_nEdge[i_part]),
                            &nEdgePartBound,
                            &nVtx1,
                            &nProc,
@@ -542,13 +547,8 @@ void surfMeshGenerator::computeMesh() {
                            &nEdgeGroup2);
       
       int          *faceTag;
-      int          *faceEdgeIdx;
-      int          *faceEdge;
-      PDM_g_num_t *faceLNToGN;
       int          *edgeTag;
       int          *edgeFace;
-      int          *edgeVtxIdx;
-      int          *edgeVtx;
       PDM_g_num_t *edgeLNToGN;
       int          *edgePartBoundProcIdx;
       int          *edgePartBoundPartIdx;
@@ -563,13 +563,13 @@ void surfMeshGenerator::computeMesh() {
       PDM_part_part_val_get (ppartId,
                            i_part,
                            &faceTag,
-                           &faceEdgeIdx,
-                           &faceEdge,
-                           &faceLNToGN,
+                           &(_faceEdgeIdx[i_part]),
+                           &(_faceEdge[i_part]),
+                           &(_faceLNToGN[i_part]),
                            &edgeTag,
                            &edgeFace,
-                           &edgeVtxIdx,
-                           &edgeVtx,
+                           &(_edgeVtxIdx[i_part]),
+                           &(_edgeVtx[i_part]),
                            &edgeLNToGN,
                            &edgePartBoundProcIdx,
                            &edgePartBoundPartIdx,
@@ -592,14 +592,14 @@ void surfMeshGenerator::computeMesh() {
         _vtxGnum[i_part][i] = (CWP_g_num_t) vtxLNToGN[i];
       }
 
-      int *edgeVtxN = (int*)malloc(sizeof(int) * nEdge);
-      for (int i = 0; i < nEdge; i++) {
-        edgeVtxN[i] = edgeVtxIdx[i+1] - edgeVtxIdx[i];
+      int *edgeVtxN = (int*)malloc(sizeof(int) * _nEdge[i_part]);
+      for (int i = 0; i < _nEdge[i_part]; i++) {
+        edgeVtxN[i] = _edgeVtxIdx[i_part][i+1] - _edgeVtxIdx[i_part][i];
       }
 
-      int *faceEdgeN = (int*)malloc(sizeof(int) * nFace);
-      for (int i = 0; i < nFace; i++) {
-        faceEdgeN[i] = faceEdgeIdx[i+1] - faceEdgeIdx[i];
+      int *faceEdgeN = (int*)malloc(sizeof(int) * _nFace[i_part]);
+      for (int i = 0; i < _nFace[i_part]; i++) {
+        faceEdgeN[i] = _faceEdgeIdx[i_part][i+1] - _faceEdgeIdx[i_part][i];
       }
 
 
@@ -612,17 +612,17 @@ void surfMeshGenerator::computeMesh() {
 
       PDM_Mesh_nodal_cell2d_celledge_add (id_mn,
                                         i_part,
-                                        nFace,
-                                        nEdge,
-                                        edgeVtxIdx,
+                                        _nFace[i_part],
+                                        _nEdge[i_part],
+                                        _edgeVtxIdx[i_part],
                                         edgeVtxN,
-                                        edgeVtx,
-                                        faceEdgeIdx,
+                                        _edgeVtx[i_part],
+                                        _faceEdgeIdx[i_part],
                                         faceEdgeN,
-                                        faceEdge,
-                                        faceLNToGN);
+                                        _faceEdge[i_part],
+                                        _faceLNToGN[i_part]);
 
-      _nElts[i_part] = nFace;
+      _nElts[i_part] = _nFace[i_part];
     }
 
 

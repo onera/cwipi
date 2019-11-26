@@ -507,6 +507,18 @@ namespace cwipi {
     std::map<int,int>                       _id_visu;                /*!< Map of the PDM_Writer block identifier */  
     CWP_Displacement_t                      _displacement;          /*!< Type of mesh displacement */  
     Coupling                               *_cpl;
+
+
+    std::vector<int>                        _nFace;                 
+    std::vector<int*>                       _faceEdgeIdx;
+    std::vector<int*>                       _faceEdge;
+    std::vector<int>                        _nEdge;                 
+    std::vector<int*>                       _edgeVtxIdx;
+    std::vector<int*>                       _edgeVtx;
+    std::vector<int*>                       _edgeVtxNb;
+    std::vector<int*>                       _faceEdgeNb;
+
+    std::vector<CWP_g_num_t*>               _faceLNToGN;
     
   //   Mesh &operator=(const Mesh &other);  /*!< Assigment operator not available */
   //   Mesh (const Mesh& other);            /*!< Copy constructor not available */

@@ -2162,6 +2162,15 @@ CWP_surf_gen_one_connectivity_get
   int* nElts, int** eltsConnecIndex, int** eltsConnec, CWP_g_num_t** eltsGnum
 );
 
+void          
+CWP_surf_face_edge_get
+( char* genName, int i_part,
+  int* nVtx , double** coords, CWP_g_num_t** vtxGnum,
+  int* nFace, int** faceEdgeIdx, int** faceEdge, 
+  int* nEdge, int** edgeVtxIdx, int** edgeVtx, 
+  CWP_g_num_t** faceLNToGN
+);
+
 
 void          
 CWP_surf_gen_tri_field_get

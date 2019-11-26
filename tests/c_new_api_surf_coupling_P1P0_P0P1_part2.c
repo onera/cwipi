@@ -484,8 +484,24 @@ int main
         int *n_poly2d = (int*)malloc(sizeof(int)*nb_part[i_code]);
         eltsConnecPolyIndex = (int**)malloc(sizeof(int*)*nb_part[i_code]);  
         int **eltsConnecPoly = (int**)malloc(sizeof(int*)*nb_part[i_code]);    
+
+
+        int *n_faces = (int*)malloc(sizeof(int)*nb_part[i_code]);
+        int **faceEdgeIdx = (int**)malloc(sizeof(int*)*nb_part[i_code]);  
+        int **faceEdge = (int**)malloc(sizeof(int*)*nb_part[i_code]);    
+
+        int *n_edges = (int*)malloc(sizeof(int)*nb_part[i_code]);
+        int **edgeVtxIdx = (int**)malloc(sizeof(int*)*nb_part[i_code]);  
+        int **edgeVtx = (int**)malloc(sizeof(int*)*nb_part[i_code]);    
+
+        CWP_g_num_t **faceLNToGN = (CWP_g_num_t**)malloc(sizeof(CWP_g_num_t*)*nb_part[i_code]);  
+      
+
         CWP_g_num_t **eltsGnumPoly = (CWP_g_num_t**)malloc(sizeof(CWP_g_num_t*)*nb_part[i_code]);  
       
+        int gnum_compute = 0;
+        int face_edge = 0;
+
         for(int i_part=0;i_part<nb_part[i_code];i_part++){
     
           nVtx[i_part] = 0;
@@ -512,15 +528,45 @@ int main
                                      &n_tri[i_part] , &eltsConnecTri[i_part] , &eltsGnumTri[i_part],
                                      &n_quad[i_part], &eltsConnecQuad[i_part], &eltsGnumQuad[i_part],
                                      &n_poly2d[i_part], &eltsConnecPolyIndex[i_part], &eltsConnecPoly[i_part], &eltsGnumPoly[i_part]);
-         // printf("rank %i nElts %i i_code %i\n",rank,nElts,i_code);
-          CWP_Mesh_interf_vtx_set (codeName[i_code],             //Code name
+
+          if(face_edge == 1) {
+             CWP_surf_face_edge_get( codeName[i_code], i_part,
+                                     &nVtx[i_part]  , &coords[i_part] , &vtxGnum[i_part], &n_faces[i_part],
+                                     &faceEdgeIdx[i_part], &faceEdge[i_part], &n_edges[i_part], &edgeVtxIdx[i_part], &edgeVtx[i_part], 
+                                     & faceLNToGN[i_part]
+                                   );
+
+          }
+
+          if(gnum_compute==0){
+            vtxGnum     [i_part] = NULL;
+            eltsGnumTri [i_part] = NULL;
+            eltsGnumQuad[i_part] = NULL;
+            eltsGnumPoly[i_part] = NULL;
+          }
+
+
+          if(face_edge == 1) {
+
+            CWP_Mesh_interf_from_faceedge_set (codeName[i_code],
+                                               "multipart_testcase",  // Coupling id
+                                               i_part,
+                                               n_faces[i_part],
+                                               faceEdgeIdx[i_part],faceEdge[i_part],
+                                               n_edges[i_part],
+                                               edgeVtxIdx[i_part], edgeVtx[i_part],
+                                               faceLNToGN[i_part]
+                                             );
+          }
+          else{
+            CWP_Mesh_interf_vtx_set (codeName[i_code],             //Code name
                                    "multipart_testcase",             // Coupling id
                                    i_part,
                                    nVtx[i_part],
                                    coords[i_part],
                                    vtxGnum[i_part]);
     
-          CWP_Mesh_interf_block_std_set (codeName[i_code],
+            CWP_Mesh_interf_block_std_set (codeName[i_code],
                                          "multipart_testcase",  // Coupling id
                                          i_part,
                                          block_id_tri,
@@ -528,7 +574,7 @@ int main
                                          eltsConnecTri[i_part],
                                          eltsGnumTri[i_part]);
       
-          CWP_Mesh_interf_block_std_set (codeName[i_code],
+            CWP_Mesh_interf_block_std_set (codeName[i_code],
                                          "multipart_testcase",  // Coupling id
                                          i_part,
                                          block_id_quad,
@@ -537,7 +583,7 @@ int main
                                          eltsGnumQuad[i_part]
                                          );
         
-          CWP_Mesh_interf_f_poly_block_set (codeName[i_code],
+             CWP_Mesh_interf_f_poly_block_set (codeName[i_code],
                                             "multipart_testcase",  // Coupling id
                                             i_part              ,
                                             block_id_poly       ,
@@ -545,7 +591,8 @@ int main
                                             eltsConnecPolyIndex[i_part] ,
                                             eltsConnecPoly[i_part]      ,
                                             eltsGnumPoly[i_part]);
-                                           
+          }
+                        
           if (codeId[i_code] == 1 ) {
             sendValues[i_code][i_part] = (double *) malloc(sizeof(double) * nVtx[i_part]);
             recvValues[i_code][i_part] = (double *) malloc(sizeof(double) * nElts);

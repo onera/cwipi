@@ -116,9 +116,37 @@ namespace cwipi {
         return _eltsGnum[i_part];
       }
 
+      int* faceEdgeIdxGet(int i_part){
+        return _faceEdgeIdx[i_part];
+      }
 
+      int* faceEdgeGet(int i_part){
+        return _faceEdge[i_part];
+      }
 
-      
+      int* edgeVtxIdxGet(int i_part){
+        return _edgeVtxIdx[i_part];
+      }
+
+      int* edgeVtxGet(int i_part){
+        return _edgeVtx[i_part];
+      }
+ 
+
+      int nEdgeGet(int i_part){
+        return _nEdge[i_part];
+      }
+ 
+      int nFaceGet(int i_part){
+        return _nFace[i_part];
+      }
+ 
+
+      CWP_g_num_t* faceLNToGNGet(int i_part){
+        return (CWP_g_num_t*)_faceLNToGN[i_part];
+      }
+
+     
     private:
       double _motif(double x, double y);    
       double _inBox(double x, double y, double x1, double y1 ,double x2, double y2);
@@ -173,9 +201,14 @@ namespace cwipi {
       std::vector<int*> _eltsConnecIndex;
       std::vector<int*> _eltsConnec;      
       std::vector<CWP_g_num_t*> _eltsGnum;
-       
 
-                        
+      std::vector<int> _nFace   ;
+      std::vector<int*> _faceEdgeIdx;
+      std::vector<int*> _faceEdge   ;
+      std::vector<int> _nEdge   ;
+      std::vector<int*> _edgeVtxIdx ;
+      std::vector<int*> _edgeVtx    ;       
+      std::vector<CWP_g_num_t*> _faceLNToGN ;
       
       double _width;
       double _xmin;
