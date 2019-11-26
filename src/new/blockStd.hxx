@@ -90,6 +90,8 @@ namespace cwipi {
         
         inline int*  ConnecGet(int i_part);       
 
+        inline int*  ConnecIDXGet(int i_part);   
+
         bool  gnumRequired(){
            for(int i_part = 0; i_part<_n_part; i_part++){
              if(_global_num [i_part] == NULL )
@@ -109,6 +111,7 @@ namespace cwipi {
     private:
     
       std::map<int,int*>          _connec;              /*!< Connectivity for each partition */
+      std::map<int,int*>          _connec_idx;           /*!< Connectivity index for each partition */
      
   };
 
@@ -118,6 +121,25 @@ namespace cwipi {
   
     return _connec[i_part];
   }
+
+
+  int*  BlockStd::ConnecIDXGet(int i_part) {
+     int n_vtx_per_cell = 0;
+     if (_blockType == CWP_BLOCK_FACE_TRIA3)
+       n_vtx_per_cell = 3;
+     else if (_blockType == CWP_BLOCK_FACE_QUAD4)
+       n_vtx_per_cell = 4;
+     else{
+       while(1==1);
+     }
+    
+     _connec_idx[i_part] = (int*)malloc(sizeof(int)*(1 + _n_elt[i_part]));
+     for (int i=0; i<_n_elt[i_part]+1; i++)
+        _connec_idx[i_part][i] = n_vtx_per_cell * i;
+
+     return _connec_idx[i_part];
+  }
+
 
   std::map<int,int*>  BlockStd::ConnecGet() {
   

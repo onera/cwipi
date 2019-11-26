@@ -71,12 +71,13 @@ namespace cwipi {
                _displacement(displacement),
                _cpl(cpl) { 
                
-    PDM_MPI_Comm _pdm_localComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&localComm));
+    _pdm_localComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&localComm));
    // _pdm_localComm=&pdm_localComm;
     // pdm_nodal building
-    _pdmNodal_handle_index = PDM_Mesh_nodal_create     (npart,_pdm_localComm);
+
     _pdmGNum_handle_index  = PDM_gnum_create           (3, npart, PDM_FALSE, 1e-3, _pdm_localComm);
-    _npart                 = PDM_Mesh_nodal_n_part_get (_pdmNodal_handle_index); 
+    _pdmGNum_handle_index_elt  = PDM_gnum_create           (3, npart, PDM_FALSE, 1e-3, _pdm_localComm);
+    _npart                 = npart; 
     _nVertex   .resize(npart,0);
     _nElts     .resize(npart,0);
     _connec_idx.resize(npart,NULL);
@@ -86,6 +87,7 @@ namespace cwipi {
     
     _coords .resize(npart,NULL);
     _global_num_vtx .resize(npart,NULL);
+    _global_num_elt .resize(npart,NULL);
   }
 
   Mesh::~Mesh() 
@@ -145,17 +147,16 @@ namespace cwipi {
 
       int ind_idx=0;
       for(int i=0;i<_nBlocks;i++){
-        int id_block = _blocks_id[i];
-        int n_elt = _blockDB[id_block] -> NEltsGet()[i_part];
+        int n_elt = _blockDB[i] -> NEltsGet()[i_part];
 
-          const double* elt_centers_block = _blockDB[id_block] -> eltCentersGet(i_part);
+        const double* elt_centers_block = _blockDB[i] -> eltCentersGet(i_part);
 
-          for(int j=0;j<n_elt;j++){
-            for(int k=0;k<3;k++){
-              _elt_centers[i_part][3*ind_idx+k]=elt_centers_block[3*j+k];
-            }
-            ind_idx++;
-          }//end loop j
+        for(int j=0;j<n_elt;j++){
+          for(int k=0;k<3;k++){
+            _elt_centers[i_part][3*ind_idx+k]=elt_centers_block[3*j+k];
+          }
+          ind_idx++;
+        }//end loop j
       }//end loop on block
   }
   
@@ -164,17 +165,16 @@ namespace cwipi {
 
         int connec_size=0;
         for(int i=0;i<_nBlocks;i++){
-          int id_block = _blocks_id[i];
-          CWP_Block_t  block_type = Mesh_nodal_block_type_get  (id_block );
+          CWP_Block_t  block_type = _blockDB[i] -> blockTypeGet();
           
           if(block_type!=CWP_BLOCK_CELL_POLY and block_type!=CWP_BLOCK_FACE_POLY){
             int block_type_size = _Mesh_nodal_block_std_type_size_get(block_type);
-            int n_elt = _blockDB[id_block] -> NEltsGet()[i_part];
+            int n_elt = _blockDB[i] -> NEltsGet()[i_part];
             connec_size+=n_elt*block_type_size;   
           }
           if(block_type == CWP_BLOCK_FACE_POLY){
-            int n_elt = _blockDB[id_block] -> NEltsGet()[i_part];
-            int* connec_idx = _blockDB[id_block] -> ConnecIDXGet()[i_part];
+            int n_elt = _blockDB[i] -> NEltsGet()[i_part];
+            int* connec_idx = _blockDB[i] -> ConnecIDXGet()[i_part];
             connec_size+=connec_idx[n_elt];   
           }
           
@@ -188,17 +188,16 @@ namespace cwipi {
       int ind_idx=0;
       _connec_idx[i_part][0]=0;
       for(int i=0;i<_nBlocks;i++){
-        int id_block = _blocks_id[i];
-        CWP_Block_t  block_type = Mesh_nodal_block_type_get  (id_block );
-        int n_elt = _blockDB[id_block] -> NEltsGet()[i_part];
+        CWP_Block_t  block_type = _blockDB[i] -> blockTypeGet();
+        int n_elt = _blockDB[i] -> NEltsGet()[i_part];
         
         
         if(block_type!=CWP_BLOCK_CELL_POLY and block_type!=CWP_BLOCK_FACE_POLY){
           int block_type_size = _Mesh_nodal_block_std_type_size_get(block_type);
                    
-          std::map<int,int*> connect = _blockDB[id_block] -> ConnecGet();
+          std::map<int,int*> connect = _blockDB[i] -> ConnecGet();
           int* partconnect = connect[i_part];
-          CWP_g_num_t* gnum_block = _blockDB[id_block] -> GNumMeshGet(i_part);
+          CWP_g_num_t* gnum_block = _blockDB[i] -> GNumMeshGet(i_part);
 
           for(int j=0;j<n_elt;j++){
             _connec_idx[i_part][ind_idx+1]=_connec_idx[i_part][ind_idx]+block_type_size;
@@ -213,11 +212,11 @@ namespace cwipi {
         
         if( block_type==CWP_BLOCK_FACE_POLY){
 
-          std::map<int,int*> connectIdx = _blockDB[id_block] -> ConnecIDXGet();        
-          std::map<int,int*> connect    = _blockDB[id_block] -> ConnecGet();
+          std::map<int,int*> connectIdx = _blockDB[i] -> ConnecIDXGet();        
+          std::map<int,int*> connect    = _blockDB[i] -> ConnecGet();
           int* partconnect    = connect   [i_part];
           int* partconnectIdx = connectIdx[i_part];
-          CWP_g_num_t* gnum_block = _blockDB[id_block] -> GNumMeshGet(i_part);
+          CWP_g_num_t* gnum_block = _blockDB[i] -> GNumMeshGet(i_part);
 
           for(int j=0;j<n_elt;j++){
             _connec_idx[i_part][ind_idx+1]=_connec_idx[i_part][ind_idx]+ (partconnectIdx[j+1]-partconnectIdx[j]);
@@ -311,13 +310,12 @@ namespace cwipi {
      
      for(int i=0;i<_nBlocks;i++){
         int id_block = _blocks_id[i];
-        it = _blockDB.find(id_block);
-        if(it == _blockDB.end()) {
-           CWP_Block_t  block_type = Mesh_nodal_block_type_get  (id_block ); 
+        for (int i_block = 0; i_block<_nBlocks;i_block++ ) {
+           CWP_Block_t  block_type = _blockDB[i_block] -> blockTypeGet(); 
            Block *newBlock = FB::getInstance().CreateObject(block_type);
            newBlock -> SetinPDMDB();
            newBlock -> FromPDMBlock(id_block,this);
-           _blockDB.insert    ( std::pair < int, Block* >    (id_block,newBlock) );  
+           _blockDB.push_back( newBlock);  
         }//endif
      }//endfor
      for(int i=0;i<_npart;i++){
@@ -397,7 +395,8 @@ namespace cwipi {
       int globalRank;
       MPI_Comm_rank(MPI_COMM_WORLD,&globalRank);
       
-      MPI_Barrier(_localComm);
+      _pdmNodal_handle_index = PDM_Mesh_nodal_create     (_npart,_pdm_localComm);  
+
       
       if(coordsDefined()){
         if(gnumVtxRequired () ){
@@ -436,28 +435,62 @@ namespace cwipi {
        }//endif coordsDefined() and global_num==NULL
   
        int g_num_computation_required = 0;
-       std::map<int,cwipi::Block*>::iterator it = _blockDB.begin();
-       while(it != _blockDB.end()) {
+       for(int i_block = 0; i_block<_nBlocks;i_block++) {
         for(int i_part =0;i_part<_npart;i_part++) {    
-           CWP_g_num_t* global_num = it -> second -> GNumMeshGet(i_part);
-           int nEltsBlock = it -> second -> NEltsGet(i_part);
+           CWP_g_num_t* global_num = _blockDB[i_block] -> GNumMeshGet(i_part);
+           int nEltsBlock = _blockDB[i_block] -> NEltsGet(i_part);
            if(global_num == NULL && nEltsBlock != 0) g_num_computation_required = 1;    
            if(g_num_computation_required == 1) break;
          }
          if(g_num_computation_required == 1) break;
-         it++;
+       }
+       
+       printf("GGGGGGGG %i\n",g_num_computation_required);
+       
+       if(g_num_computation_required == 1 ) {
+         if(_cpl -> commTypeGet() == CWP_COMM_PAR_WITH_PART){
+            for(int i_block = 0; i_block<_nBlocks;i_block++) {
+              for(int i_part =0;i_part<_npart;i_part++) {
+                 const double* blockCellCenters = _blockDB[i_block] -> eltCentersGet(i_part);
+              }
+            }
+         }
+
+
+         for(int i_part=0;i_part<_npart;i_part++) {
+            if(   _cpl->commTypeGet() == CWP_COMM_PAR_WITH_PART 
+                 || (_cpl -> commTypeGet() == CWP_COMM_PAR_WITHOUT_PART && unionRank == _cpl->communicationGet() -> unionCommLocCodeRootRanksGet() ) ) {
+                PDM_gnum_set_from_coords (_pdmGNum_handle_index_elt, i_part, _nElts[i_part], eltCentersGet(i_part), NULL);
+            }
+            else {
+              double* coords_null = (double*)malloc(3*0*sizeof(double));
+              PDM_gnum_set_from_coords (_pdmGNum_handle_index_elt, i_part, 0, coords_null, NULL);
+            }        
+         }          
+         printf("GGGGGGGG");
+          PDM_gnum_compute (_pdmGNum_handle_index_elt);
+
+          for(int i_part=0;i_part<_npart;i_part++){
+            _global_num_elt[i_part] =const_cast<CWP_g_num_t*>(PDM_gnum_get (_pdmGNum_handle_index_elt, i_part));
+          }
+        
+
+         for(int i_part=0;i_part<_npart;i_part++){
+           int ind_idx=0;
+           for(int i_block=0;i_block<_nBlocks;i_block++){
+              int n_elt = _blockDB[i_block] -> NEltsGet(i_part);
+              _blockDB[i_block] -> GNumMeshSet(i_part, &(_global_num_elt[i_part][ind_idx]) );
+              ind_idx+= n_elt;
+           } //end loop on block
+         } //end loop on part
        }
 
-       if(g_num_computation_required == 1 ) {
-         if(_cpl -> commTypeGet() == CWP_COMM_PAR_WITH_PART)
-           PDM_Mesh_nodal_g_num_in_mesh_compute(_pdmNodal_handle_index);
-       } 
-
-       it = _blockDB.begin();
-       while(it != _blockDB.end()) {
-         it -> second -> geomFinalize();
-         it++;
+       for(int i_block = 0; i_block<_nBlocks;i_block++) {
+         _blockDB[i_block] -> geomFinalize();
        } //Loop on blockDB                 
+
+      _nBlocks     = PDM_Mesh_nodal_n_blocks_get (_pdmNodal_handle_index);
+      _blocks_id   = PDM_Mesh_nodal_blocks_id_get(_pdmNodal_handle_index);
 
       if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC ) {
         _visu -> GeomWrite(this);
@@ -483,9 +516,6 @@ namespace cwipi {
 
      _nElts[i_part]  += n_elts;
                                                    
-     _blocks_id = PDM_Mesh_nodal_blocks_id_get(_pdmNodal_handle_index);
-     _nBlocks   = PDM_Mesh_nodal_n_blocks_get (_pdmNodal_handle_index);
-
  }
 
 
@@ -519,8 +549,6 @@ namespace cwipi {
      
      _nElts[i_part]  += n_elts;
                                                    
-     _blocks_id = PDM_Mesh_nodal_blocks_id_get(_pdmNodal_handle_index);
-     _nBlocks   = PDM_Mesh_nodal_n_blocks_get (_pdmNodal_handle_index);     
    }
 
 
@@ -579,18 +607,18 @@ namespace cwipi {
    {      
       Block *myBlock = FB::getInstance().CreateObject(block_type);
       myBlock -> BlockAdd(block_type,this);
-      int block_id = myBlock -> blockIDGet();
-      _blockDB.insert ( std::pair <int,Block*> (block_id,myBlock) );                        
-      
-     _blocks_id = PDM_Mesh_nodal_blocks_id_get(_pdmNodal_handle_index);
-     _nBlocks   = PDM_Mesh_nodal_n_blocks_get (_pdmNodal_handle_index); 
+      int block_id_cwipi = _nBlocks;
+      _blockDB.push_back (myBlock);                        
+      myBlock -> blockIDCWIPISet(block_id_cwipi);      
+
+     _nBlocks   = _blockDB.size(); 
       
       if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC) {
         int id_visu = _visu -> GeomBlockAdd(block_type);
-        _id_visu.insert(std::pair <int,int> (block_id,id_visu));
+        _id_visu.insert(std::pair <int,int> (myBlock -> blockIDCWIPIGet(),id_visu));
       }
 
-      return block_id;   
+      return myBlock -> blockIDCWIPIGet();   
                   
    }
   

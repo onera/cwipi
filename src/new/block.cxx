@@ -39,16 +39,10 @@ namespace cwipi {
   void Block::BlockAdd(CWP_Block_t blockType,void* mesh)
   {
      _mesh     = mesh;
-     _pdmNodal_handle_index = static_cast<Mesh*>(mesh) -> getPdmNodalIndex();
      _localComm            = const_cast<MPI_Comm*>(static_cast<Mesh*>(mesh) -> getMPICommP());
      
-     if (not inPDMDB())
-       _block_id = PDM_Mesh_nodal_block_add(_pdmNodal_handle_index,
-                                       PDM_FALSE,
-                                       PdmBlockTypeFromCwpBlockType(blockType));
-                                       
      _blockType             = blockType;
-     _n_part                = PDM_Mesh_nodal_n_part_get (_pdmNodal_handle_index);
+     _n_part                = static_cast<Mesh*>(mesh) -> getNPart();
      
      _global_num         .resize(_n_part,NULL);
      _global_num_computed.resize(_n_part,NULL);
@@ -66,16 +60,43 @@ namespace cwipi {
   Block::~Block(){
   }
 
+
+  const double* Block::eltCentersGet(int i_part){
+       int* connecBlock = ConnecGet(i_part);
+       int* connecIDXBlock = ConnecIDXGet(i_part);
+       double* surfaceVectorBlock = (double*)malloc(sizeof(double)*_n_elt[i_part]*3);
+       double* characteristicLengthBlock = (double*)malloc(sizeof(double)*_n_elt[i_part]);
+       _cells_center[i_part] = (double*)malloc(sizeof(double)*_n_elt[i_part]*3); 
+       int* isDegeneratedBlock = (int*)malloc(sizeof(int)*_n_elt[i_part]);
+       PDM_geom_elem_polygon_properties(_n_elt[i_part]            ,
+                                        connecIDXBlock            ,
+                                        connecBlock               ,
+                                        static_cast<Mesh*>(_mesh) -> getCoordinates(i_part),
+                                        surfaceVectorBlock             ,
+                                        _cells_center[i_part]          ,
+                                        characteristicLengthBlock      ,
+                                        isDegeneratedBlock
+                                       );
+      return _cells_center[i_part];    
+ }
+
+
+
   CWP_g_num_t*
   Block::GNumMeshGet(int i_part) {
     return _global_num[i_part];  
+  }
+
+  void
+  Block::GNumMeshSet(int i_part,CWP_g_num_t* gnum) {
+    _global_num[i_part] = gnum;  
   }
 
   CWP_g_num_t*
   Block::GNumBlockGet(int i_part) {
 
     _global_num_block[i_part] = PDM_Mesh_nodal_block_inside_g_num_get (_pdmNodal_handle_index,
-                                                                       _block_id,
+                                                                       _block_id_pdm,
                                                                        i_part );
     return _global_num_block[i_part];  
   }

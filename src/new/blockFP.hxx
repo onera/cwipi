@@ -102,7 +102,7 @@ namespace cwipi {
         */
      
         inline virtual std::map<int,int*>  ConnecIDXGet();
-        
+        inline virtual int* ConnecIDXGet(int i_part);  
 
         inline int*  ConnecGet(int i_part);       
 
@@ -137,9 +137,13 @@ namespace cwipi {
   }
 
   std::map<int,int*>  BlockFP::ConnecIDXGet() {
-  
     return _connec_idx;
   }
+
+  int*  BlockFP::ConnecIDXGet(int i_part) {
+     return _connec_idx[i_part];
+  }
+
 
 
   int*  BlockFP::ConnecGet(int i_part) {

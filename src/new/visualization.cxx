@@ -204,7 +204,7 @@ namespace cwipi {
       int idx=0;
       for(int i_block=0;i_block < nBlock; i_block++){
         int id_block = blockDB[i_block];
-        for(int i_elt=0; i_elt< mesh -> getBlockNElts(id_block,i_part); i_elt++){
+        for(int i_elt=0; i_elt< mesh -> getBlockNElts(i_block,i_part); i_elt++){
           _blocking_field_data[i_part][idx++] = (double)i_block;
         }
         
@@ -247,12 +247,14 @@ namespace cwipi {
   void Visu::GeomBlockGNumMeshSet (int id_block,
                                    int id_part,
                                    CWP_g_num_t *global_num) {
-                                  
+                                  /*
       PDM_writer_geom_bloc_g_num_mesh_set(_visu_id,
                                           _visu_mesh_id,  
                                           id_block,     
                                           id_part,  
                                           global_num);   
+
+      */
   }
                                    
 /*****************************************/

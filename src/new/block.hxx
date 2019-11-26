@@ -21,6 +21,7 @@
 
 #include "cwp.h"
 #include "pdm_mesh_nodal.h"
+#include "pdm_geom_elem.h"
 #include <map>
 #include <vector>
 #include <bftc_error.h>
@@ -205,6 +206,11 @@ namespace cwipi {
      */
     
     inline int         blockIDGet();
+    inline int         blockIDCWIPIGet();
+
+    inline void blockIDCWIPISet(int block_id);
+  
+    inline void blockIDPDMSet(int block_id);
 
     /**
      *
@@ -226,14 +232,11 @@ namespace cwipi {
      
     CWP_g_num_t* GNumMeshGet(int i_part);
 
+    void GNumMeshSet(int i_part, CWP_g_num_t* gnum);
 
     CWP_g_num_t* GNumBlockGet(int i_part);
 
-    const double* eltCentersGet(int i_part){
-       PDM_Mesh_nodal_cell_centers_compute(_pdmNodal_handle_index,_block_id,i_part);
-      _cells_center[i_part] = PDM_Mesh_cell_centers_get(_pdmNodal_handle_index,_block_id,i_part);
-      return _cells_center[i_part];    
-    }
+    const double* eltCentersGet(int i_part);
 
     /**
      *
@@ -329,6 +332,13 @@ namespace cwipi {
        std::map<int,int*> null;
        return null;
      }
+
+     virtual int*  ConnecIDXGet(int i_part) 
+     {
+       PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
+       return NULL;
+     }
+
      
     /**
      *
@@ -405,9 +415,10 @@ namespace cwipi {
     int                        _n_part;                 /*!< Number of partitions */
     int                        _n_part_def;             /*!< Number of partitions where the block is defined */
     std::vector <int>          _n_elt;                  /*!< Number of elements for each partition */
-    std::vector <const double*>      _cells_center;            /*!< Cell centers */
+    std::vector <double*>      _cells_center;     /*!< Cell centers */
     std::vector <int>          _part_id;                /*!< Partition where the block is defined  */
-    int                        _block_id;               /*!< Block identifier */
+    int                        _block_id_pdm;           /*!< Block identifier */
+    int                        _block_id_cwipi;         /*!< Block identifier */
     int                        _pdmGNum_handle_index;   /*!< Index used by the paradigm global numbering object */
     std::vector <CWP_g_num_t*> _global_num;             /*!< Global numbering in the Mesh  */
     std::vector <CWP_g_num_t*> _global_num_computed;    /*!< Global numbering computed in the Mesh  */
@@ -467,7 +478,22 @@ namespace cwipi {
     
   int
   Block::blockIDGet(){
-    return _block_id;
+    return _block_id_pdm;
+  }
+
+  int
+  Block::blockIDCWIPIGet(){
+    return _block_id_cwipi;
+  }
+
+  void
+  Block::blockIDCWIPISet(int block_id){
+    _block_id_cwipi = block_id;
+  }
+
+  void
+  Block::blockIDPDMSet(int block_id){
+    _block_id_pdm = block_id;
   }
   
   

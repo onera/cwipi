@@ -440,12 +440,7 @@ namespace cwipi {
    inline void setVisu(Visu* visu);
 
    CWP_g_num_t* globalNumGet(int id_block,int i_part) {
-      std::map<int,cwipi::Block*>::iterator it;
-      it = _blockDB.find(id_block);
-      if(it == _blockDB.end()) 
-        PDM_error(__FILE__, __LINE__, 0, "Block partition found.\n");
-      Block* block = it->second;
-      CWP_g_num_t* gnum = block -> GNumMeshGet(i_part);
+      CWP_g_num_t* gnum = _blockDB[id_block] -> GNumMeshGet(i_part);
       return gnum;
    }
 
@@ -468,7 +463,6 @@ namespace cwipi {
    int nBlockGet() {
      return _nBlocks;
    } 
-
 
    CWP_Block_t blockTypeGet(int id_block) {
      return _blockDB[id_block] -> blockTypeGet(); 
@@ -501,12 +495,14 @@ namespace cwipi {
     std::vector<CWP_g_num_t*>               _gnum_elt;
     std::vector<double*>                    _elt_centers; 
     
-    std::vector <CWP_g_num_t*>              _global_num_vtx;             /*!< Global numbering for each partition  */
+    std::vector <CWP_g_num_t*>              _global_num_vtx;             /*!< Global vertices numbering for each partition  */
+    std::vector <CWP_g_num_t*>              _global_num_elt;             /*!< Global elements numbering for each partition  */
     int                                     _npart;                  /*!< Number of partition  */
     int                                     _pdmNodal_handle_index;  /*!< Mesh (nodal) index for paradigm handler */
     int                                     _pdmGNum_handle_index;   /*!< Global number index for paradigm handler   */
+    int                                     _pdmGNum_handle_index_elt;   /*!< Global number index for paradigm handler   */
     PDM_Mesh_nodal_t                       *_pdmNodal;               /*!< Pointer to the paradigm mesh (nodal) object   */
-    std::map<int,cwipi::Block*>             _blockDB;                /*!< Blocks database  */
+    std::vector<cwipi::Block*>               _blockDB;                /*!< Blocks database  */
     Visu                                   *_visu;                   /*!< Pointer to the Visu object */
     std::map<int,int>                       _id_visu;                /*!< Map of the PDM_Writer block identifier */  
     CWP_Displacement_t                      _displacement;          /*!< Type of mesh displacement */  

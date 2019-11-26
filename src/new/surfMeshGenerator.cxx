@@ -646,21 +646,21 @@ void surfMeshGenerator::computeMesh() {
         for(int i_part =0;i_part<_nPart;i_part++){
           _nTri[i_part] = PDM_Mesh_nodal_block_n_elt_get (id_mn, id_block, i_part);            
           PDM_Mesh_nodal_block_std_get (id_mn, id_block, i_part, &_eltsConnecTri[i_part]);
-          _eltsGnumTri[i_part] = PDM_Mesh_nodal_block_g_num_get (id_mn, id_block, i_part);      
-          /*
-          for(int i =0; i<_nTri;i++){
+          _eltsGnumTri[i_part] = PDM_Mesh_nodal_g_num_get (id_mn, id_block, i_part);      
+          
+          for(int i =0; i<_nTri[i_part]; i++){
             for (int j=0;j<3;j++){
-             printf("eltsConnecTri[%i] %i rank %i nVtx %i _nTri %i color %i n_block %i\n",3*i+j,_eltsConnecTri[3*i+j],_rank,_nVtx,_nTri,_color,n_block);
+             printf("eltsConnecTri[%i] %i rank %i nVtx %i _nTri %i color %i n_block %i\n",3*i+j,_eltsConnecTri[i_part][3*i+j],_rank,_nVtx[i_part],_nTri[i_part],_color,n_block);
             }
           }        
-          */
+          
         }
       }
       else if(t_block == PDM_MESH_NODAL_QUAD4) {
         for(int i_part =0;i_part<_nPart;i_part++){
           _nQuad[i_part] = PDM_Mesh_nodal_block_n_elt_get (id_mn, id_block, i_part);            
           PDM_Mesh_nodal_block_std_get (id_mn, id_block, i_part, &_eltsConnecQuad[i_part]);
-          _eltsGnumQuad[i_part] = PDM_Mesh_nodal_block_g_num_get (id_mn, id_block, i_part);      
+          _eltsGnumQuad[i_part] = PDM_Mesh_nodal_g_num_get (id_mn, id_block, i_part);      
           /*
           for(int i =0; i<_nTri;i++){
             for (int j=0;j<3;j++){
@@ -681,7 +681,7 @@ void surfMeshGenerator::computeMesh() {
             _eltsConnecPolyIndex[i_part][0]=0;
           }
           
-          _eltsGnumPoly[i_part]  = PDM_Mesh_nodal_block_g_num_get (id_mn, id_block, i_part);    
+          _eltsGnumPoly[i_part]  = PDM_Mesh_nodal_g_num_get (id_mn, id_block, i_part);    
          /* for(int i =0; i<_nPoly;i++){
             for (int j=_eltsConnecPolyIndex[i];j<_eltsConnecPolyIndex[i+1];j++){
               printf("_eltsConnecPoly[%i] %i rank %i nVtx %i _nPoly %i color %i n_block %i\n",j,_eltsConnecPoly[j],_rank,_nVtx,_nPoly,_color,n_block);
