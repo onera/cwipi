@@ -69,7 +69,8 @@ namespace cwipi {
                 //_hoOrdering (NULL),
                _pdmNodal(NULL),_visu(visu),
                _displacement(displacement),
-               _cpl(cpl) { 
+               _cpl(cpl),
+               _faceEdgeMethod(0) { 
                
     _pdm_localComm = PDM_MPI_mpi_2_pdm_mpi_comm(const_cast<MPI_Comm*>(&localComm));
    // _pdm_localComm=&pdm_localComm;
@@ -186,9 +187,15 @@ namespace cwipi {
             connec_size+=n_elt*block_type_size;   
           }
           if(block_type == CWP_BLOCK_FACE_POLY){
-            int n_elt = _blockDB[i] -> NEltsGet()[i_part];
+            int n_elt = _blockDB[i] -> NEltsGet(i_part);
             int* connec_idx = _blockDB[i] -> ConnecIDXGet()[i_part];
+            /*
+            for(int i=0;i<n_elt+1;i++)
+              printf("connec_idx[%i][%i] %i n_elt %i blockDB[%i]\n",i_part,i,connec_idx[i],n_elt,i);
+            while(1==1){}
+            */
             connec_size+=connec_idx[n_elt];   
+           
           }
           
         }//end loop on block
@@ -315,28 +322,6 @@ namespace cwipi {
   }
   
   
-  void Mesh::updateBlockDB()
-  {
-     _nBlocks     = PDM_Mesh_nodal_n_blocks_get (_pdmNodal_handle_index);
-     _blocks_id   = PDM_Mesh_nodal_blocks_id_get(_pdmNodal_handle_index);
-     std::map<int,Block*>::iterator it;
-     
-     for(int i=0;i<_nBlocks;i++){
-        int id_block = _blocks_id[i];
-        for (int i_block = 0; i_block<_nBlocks;i_block++ ) {
-           CWP_Block_t  block_type = _blockDB[i_block] -> blockTypeGet(); 
-           Block *newBlock = FB::getInstance().CreateObject(block_type);
-           newBlock -> SetinPDMDB();
-           newBlock -> FromPDMBlock(id_block,this);
-           _blockDB.push_back( newBlock);  
-        }//endif
-     }//endfor
-     for(int i=0;i<_npart;i++){
-       _nElts[i]  = PDM_Mesh_nodal_n_cell_get(_pdmNodal_handle_index,i);
-     }
-     
-   }
-
 
    void Mesh::nodal_coord_set(const int   i_part       ,
                               const int   n_vtx        ,
@@ -398,6 +383,71 @@ namespace cwipi {
   
   /**************************************************************/
 
+
+  void Mesh::updateBlockDB()
+  {
+     int n_block = PDM_Mesh_nodal_n_blocks_get (_pdmNodal_handle_index);
+     int *block_ids = PDM_Mesh_nodal_blocks_id_get (_pdmNodal_handle_index);
+     for (int i = 0; i < n_block; i++) {
+       PDM_Mesh_nodal_elt_t t_block = PDM_Mesh_nodal_block_type_get (_pdmNodal_handle_index, block_ids[i]);
+
+       if (t_block == PDM_MESH_NODAL_TRIA3){
+         int block_id = blockAdd(CWP_BLOCK_FACE_TRIA3);
+         for(int i_part =0;i_part<_npart;i_part++){
+           int n_tri = PDM_Mesh_nodal_block_n_elt_get (_pdmNodal_handle_index,  block_ids[i], i_part);  
+           int* connec = NULL;          
+           CWP_g_num_t* gnum = NULL;  
+           PDM_Mesh_nodal_block_std_get (_pdmNodal_handle_index, block_ids[i], i_part, &connec);
+           gnum = PDM_Mesh_nodal_g_num_get (_pdmNodal_handle_index, block_ids[i], i_part);    
+  
+           stdBlockSet( i_part  ,
+                        block_id,
+                        n_tri  ,
+                        connec ,  
+                        gnum   );
+
+         }
+       }
+       else if(t_block == PDM_MESH_NODAL_QUAD4) {
+         int block_id = blockAdd(CWP_BLOCK_FACE_QUAD4);  
+         for(int i_part =0;i_part<_npart;i_part++){
+           int n_quad = PDM_Mesh_nodal_block_n_elt_get (_pdmNodal_handle_index, block_ids[i], i_part);  
+           int* connec = NULL;          
+           CWP_g_num_t* gnum = NULL;  
+           PDM_Mesh_nodal_block_std_get (_pdmNodal_handle_index, block_ids[i], i_part, &connec);
+           gnum = PDM_Mesh_nodal_g_num_get (_pdmNodal_handle_index, block_ids[i], i_part);    
+
+           stdBlockSet( i_part  ,
+                        block_id,
+                        n_quad  ,
+                        connec ,  
+                        gnum   );
+
+         }        
+      }
+      else if(t_block == PDM_MESH_NODAL_POLY_2D){
+         int block_id = blockAdd(CWP_BLOCK_FACE_POLY);  
+         for(int i_part =0;i_part<_npart;i_part++){
+           int n_poly = PDM_Mesh_nodal_block_n_elt_get (_pdmNodal_handle_index, block_ids[i], i_part);  
+           int* connec = NULL;          
+           int* connec_idx = NULL;  
+           CWP_g_num_t* gnum = NULL;  
+           PDM_Mesh_nodal_block_poly2d_get (_pdmNodal_handle_index, block_ids[i], i_part, &connec_idx , &connec );
+           gnum = PDM_Mesh_nodal_g_num_get (_pdmNodal_handle_index, block_ids[i], i_part);    
+           poly2DBlockSet( i_part  ,
+                           block_id,
+                           n_poly  ,
+                           connec_idx,
+                           connec ,  
+                           gnum   );
+        }
+      }
+    }
+     
+   }
+
+
+
 /**********************************************************************/
 
   void Mesh::geomFinalize() {
@@ -446,7 +496,26 @@ namespace cwipi {
          
          }//loop i_part
        }//endif coordsDefined() and global_num==NULL
-  
+ 
+       if(_faceEdgeMethod == 1){
+         for(int i_part=0;i_part<_npart;i_part++){
+            PDM_Mesh_nodal_cell2d_celledge_add(_pdmNodal_handle_index,
+                                               i_part,
+                                               _nFace[i_part],
+                                               _nEdge[i_part]    ,
+                                               _edgeVtxIdx[i_part] ,
+                                               _edgeVtxNb[i_part]  , //Number of vertices for each edge
+                                               _edgeVtx[i_part]    ,
+                                               _faceEdgeIdx[i_part],
+                                               _faceEdgeNb[i_part] , //Number of edges for each faces
+                                               _faceEdge[i_part]   ,
+                                               _faceLNToGN[i_part]);    
+
+         }//end i_part loop       
+
+         updateBlockDB();
+       }
+
        int g_num_computation_required = 0;
        for(int i_block = 0; i_block<_nBlocks;i_block++) {
         for(int i_part =0;i_part<_npart;i_part++) {    
@@ -496,37 +565,15 @@ namespace cwipi {
          } //end loop on part
        }
 
+
+
        for(int i_block = 0; i_block<_nBlocks;i_block++) {
-         _blockDB[i_block] -> geomFinalize();
+         _blockDB[i_block] -> geomFinalize(_faceEdgeMethod);
        } //Loop on blockDB                 
 
       _nBlocks     = PDM_Mesh_nodal_n_blocks_get (_pdmNodal_handle_index);
       _blocks_id   = PDM_Mesh_nodal_blocks_id_get(_pdmNodal_handle_index);
-
-
-       /*
-       PDM_Mesh_nodal_cell2d_celledge_add(_pdmNodal_handle_index,
-                                          i_part,
-                                          _nFace[i_part],
-                                          _nEdge[i_part]    ,
-                                          _edgeVtxIdx[i_part] ,
-                                          _edgeVtxNb[i_part]  , //Number of vertices for each edge
-                                          _edgeVtx[i_part]    ,
-                                          _faceEdgeIdx[i_part],
-                                          _faceEdgeNb[i_part] , //Number of edges for each faces
-                                          _faceEdge[i_part]   ,
-                                          NULL);              
-       updateBlockDB();
-*/
-
-
-
-
-
-
-
-
-
+ 
       if(_visu -> isCreated() && _displacement == CWP_DISPLACEMENT_STATIC ) {
         _visu -> GeomWrite(this);
       }
@@ -701,6 +748,7 @@ namespace cwipi {
                                  int         edge_vtx[],
                                  CWP_g_num_t global_num[]) {
 
+       _faceEdgeMethod = 1;
        _faceLNToGN[i_part] = global_num;
 
        _edgeVtxIdx[i_part] = edge_vtx_idx;
@@ -710,13 +758,12 @@ namespace cwipi {
 
 
        _edgeVtxNb[i_part] = (int*)malloc(sizeof(int)*n_edges);
-       _faceEdgeNb[i_part] = (int*)malloc(sizeof(int)*n_faces);
        for (int i=0;i<n_edges;i++)
          {
           _edgeVtxNb[i_part][i] = edge_vtx_idx[i+1] - edge_vtx_idx[i] ;
          }
-      
-       int face_edge_nb[n_faces];
+
+       _faceEdgeNb[i_part] = (int*)malloc(sizeof(int)*n_faces);      
        for (int i=0;i<n_faces;i++)  {
          _faceEdgeNb[i_part][i] = face_edge_idx[i+1] - face_edge_idx[i] ;
        }

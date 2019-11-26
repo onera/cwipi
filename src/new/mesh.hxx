@@ -519,6 +519,8 @@ namespace cwipi {
     std::vector<int*>                       _faceEdgeNb;
 
     std::vector<CWP_g_num_t*>               _faceLNToGN;
+
+    int                                     _faceEdgeMethod;
     
   //   Mesh &operator=(const Mesh &other);  /*!< Assigment operator not available */
   //   Mesh (const Mesh& other);            /*!< Copy constructor not available */

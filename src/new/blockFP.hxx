@@ -120,7 +120,7 @@ namespace cwipi {
            _global_num [i_part] = global_num;
         }
   
-        void geomFinalize();         
+        void geomFinalize(int already_in_pdm);         
   
 
            

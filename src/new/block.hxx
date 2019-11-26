@@ -307,7 +307,7 @@ namespace cwipi {
      }
 
 
-     virtual void geomFinalize()
+     virtual void geomFinalize(int already_in_pdm)
      {
        PDM_error(__FILE__, __LINE__, 0, "This function is not available for this type of Block.\n");
      }

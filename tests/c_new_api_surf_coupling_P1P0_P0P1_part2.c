@@ -453,18 +453,7 @@ int main
   int **eltsConnecPolyIndex = NULL;
   for(int i_code = 0;i_code<n_code;i_code++){
      if(is_coupled_rank[i_code] == CWP_STATUS_ON){    
-        int block_id_tri = CWP_Mesh_interf_block_add (codeName[i_code],             // Code name
-                                                      "multipart_testcase",             // Coupling id
-                                                      CWP_BLOCK_FACE_TRIA3);
-    
-        int block_id_quad = CWP_Mesh_interf_block_add (codeName[i_code],             // Code name
-                                                      "multipart_testcase",             // Coupling id
-                                                      CWP_BLOCK_FACE_QUAD4);
-    
-        int block_id_poly = CWP_Mesh_interf_block_add (codeName[i_code],             // Code name
-                                                       "multipart_testcase",             // Coupling id
-                                                       CWP_BLOCK_FACE_POLY);
-    
+
         sendValues[i_code] = (double**)malloc(sizeof(double*)*nb_part[i_code]);
         recvValues[i_code] = (double**)malloc(sizeof(double*)*nb_part[i_code]);
       
@@ -500,7 +489,7 @@ int main
         CWP_g_num_t **eltsGnumPoly = (CWP_g_num_t**)malloc(sizeof(CWP_g_num_t*)*nb_part[i_code]);  
       
         int gnum_compute = 0;
-        int face_edge = 0;
+        int face_edge = 1;
 
         for(int i_part=0;i_part<nb_part[i_code];i_part++){
     
@@ -531,8 +520,10 @@ int main
 
           if(face_edge == 1) {
              CWP_surf_face_edge_get( codeName[i_code], i_part,
-                                     &nVtx[i_part]  , &coords[i_part] , &vtxGnum[i_part], &n_faces[i_part],
-                                     &faceEdgeIdx[i_part], &faceEdge[i_part], &n_edges[i_part], &edgeVtxIdx[i_part], &edgeVtx[i_part], 
+                                     &nVtx[i_part]  , &coords[i_part] , &vtxGnum[i_part], 
+                                     &n_faces[i_part],
+                                     &faceEdgeIdx[i_part], &faceEdge[i_part], 
+                                     &n_edges[i_part], &edgeVtxIdx[i_part], &edgeVtx[i_part], 
                                      & faceLNToGN[i_part]
                                    );
 
@@ -544,6 +535,14 @@ int main
             eltsGnumQuad[i_part] = NULL;
             eltsGnumPoly[i_part] = NULL;
           }
+
+
+          CWP_Mesh_interf_vtx_set (codeName[i_code],             //Code name
+                                   "multipart_testcase",             // Coupling id
+                                   i_part,
+                                   nVtx[i_part],
+                                   coords[i_part],
+                                   vtxGnum[i_part]);
 
 
           if(face_edge == 1) {
@@ -559,12 +558,10 @@ int main
                                              );
           }
           else{
-            CWP_Mesh_interf_vtx_set (codeName[i_code],             //Code name
-                                   "multipart_testcase",             // Coupling id
-                                   i_part,
-                                   nVtx[i_part],
-                                   coords[i_part],
-                                   vtxGnum[i_part]);
+
+             int block_id_tri = CWP_Mesh_interf_block_add (codeName[i_code],             // Code name
+                                                          "multipart_testcase",             // Coupling id
+                                                          CWP_BLOCK_FACE_TRIA3);
     
             CWP_Mesh_interf_block_std_set (codeName[i_code],
                                          "multipart_testcase",  // Coupling id
@@ -573,6 +570,10 @@ int main
                                          n_tri[i_part],
                                          eltsConnecTri[i_part],
                                          eltsGnumTri[i_part]);
+
+            int block_id_quad = CWP_Mesh_interf_block_add (codeName[i_code],             // Code name
+                                                           "multipart_testcase",             // Coupling id
+                                                           CWP_BLOCK_FACE_QUAD4);
       
             CWP_Mesh_interf_block_std_set (codeName[i_code],
                                          "multipart_testcase",  // Coupling id
@@ -582,6 +583,10 @@ int main
                                          eltsConnecQuad[i_part],
                                          eltsGnumQuad[i_part]
                                          );
+
+            int block_id_poly = CWP_Mesh_interf_block_add (codeName[i_code],             // Code name
+                                                           "multipart_testcase",             // Coupling id
+                                                           CWP_BLOCK_FACE_POLY);
         
              CWP_Mesh_interf_f_poly_block_set (codeName[i_code],
                                             "multipart_testcase",  // Coupling id

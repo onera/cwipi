@@ -56,7 +56,7 @@ namespace cwipi {
         int nElts = PDM_Mesh_nodal_block_n_elt_get(_pdmNodal_handle_index,
                                                    pdm_id_block,
                                                    id_part );
-        _block_id = pdm_id_block;         
+        _block_id_pdm = pdm_id_block;         
         int* connec_faces     = NULL;       
         int* connec_faces_idx = NULL;        
         int* connec_cells     = NULL;       
@@ -64,7 +64,7 @@ namespace cwipi {
         int  n_faces = 0;      
                      
         PDM_Mesh_nodal_block_poly3d_get  (_pdmNodal_handle_index,
-                                          _block_id,
+                                          _block_id_pdm,
                                           id_part,
                                           &n_faces,
                                           &connec_faces_idx,
@@ -142,7 +142,7 @@ namespace cwipi {
 
          _global_num[i] = const_cast<CWP_g_num_t*> (PDM_gnum_get (_pdmGNum_handle_index, i));
          if (not inPDMDB() ) PDM_Mesh_nodal_block_poly3d_set (_pdmNodal_handle_index,
-                                      _block_id,
+                                      _block_id_pdm,
                                       i,    
                                       _n_elt[i],
                                       _n_faces[i],
@@ -154,11 +154,11 @@ namespace cwipi {
                                       NULL);                                   
        } //i
 
-       PDM_Mesh_nodal_g_num_in_block_compute(_pdmNodal_handle_index,_block_id);
+       PDM_Mesh_nodal_g_num_in_block_compute(_pdmNodal_handle_index,_block_id_pdm);
        
        for (int i = 0;i<_n_part;i++) {
           _global_num_block[i] = PDM_Mesh_nodal_block_g_num_get (_pdmNodal_handle_index,
-                                                                 _block_id,
+                                                                 _block_id_pdm,
                                                                  i );
        } // i
        
