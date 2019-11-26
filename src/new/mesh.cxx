@@ -445,8 +445,6 @@ namespace cwipi {
          if(g_num_computation_required == 1) break;
        }
        
-       printf("GGGGGGGG %i\n",g_num_computation_required);
-       
        if(g_num_computation_required == 1 ) {
          if(_cpl -> commTypeGet() == CWP_COMM_PAR_WITH_PART){
             for(int i_block = 0; i_block<_nBlocks;i_block++) {
@@ -467,12 +465,12 @@ namespace cwipi {
               PDM_gnum_set_from_coords (_pdmGNum_handle_index_elt, i_part, 0, coords_null, NULL);
             }        
          }          
-         printf("GGGGGGGG");
-          PDM_gnum_compute (_pdmGNum_handle_index_elt);
 
-          for(int i_part=0;i_part<_npart;i_part++){
-            _global_num_elt[i_part] =const_cast<CWP_g_num_t*>(PDM_gnum_get (_pdmGNum_handle_index_elt, i_part));
-          }
+         PDM_gnum_compute (_pdmGNum_handle_index_elt);
+
+         for(int i_part=0;i_part<_npart;i_part++){
+           _global_num_elt[i_part] =const_cast<CWP_g_num_t*>(PDM_gnum_get (_pdmGNum_handle_index_elt, i_part));
+         }
         
 
          for(int i_part=0;i_part<_npart;i_part++){

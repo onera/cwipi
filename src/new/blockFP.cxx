@@ -110,8 +110,6 @@ namespace cwipi {
                                         _global_num[i_part],
                                         NULL);      
 
-      for(int i=0;i<_n_elt[i_part];i++)
-        printf("_global_num [i_part] %i\n",_global_num [i_part][i]);
       Visu* visu = ((Mesh*)_mesh) -> getVisu();
       if(visu -> isCreated() && ((Mesh*)_mesh) -> getDisplacement() == CWP_DISPLACEMENT_STATIC) {
         visu -> GeomBlockPoly2D ( ((Mesh*)_mesh) -> getIdVisu( _block_id_cwipi ),

@@ -425,7 +425,6 @@ namespace cwipi {
     string localName = _localCodeProperties.nameGet();
     _fields.insert(newPair);
     if (_localCodeProperties.isCoupledRank() && _visu.isCreated() && newField -> visuStatusGet() == CWP_STATUS_ON) {
-       printf("Create field Writer\n");
       _visu.WriterFieldCreate(newField);
     }
   }
@@ -810,7 +809,6 @@ namespace cwipi {
       if( _localCodeProperties.isCoupledRank() && 
           (commTypeGet() == CWP_COMM_PAR_WITH_PART || (commTypeGet() == CWP_COMM_PAR_WITHOUT_PART && rank == _communication.unionCommLocCodeRootRanksGet() ) ) 
         ){
-        printf("visu Create\n");
         _visu.VisuCreate(freq,
                        format,
                        format_option,

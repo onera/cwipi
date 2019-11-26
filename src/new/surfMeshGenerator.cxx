@@ -648,12 +648,13 @@ void surfMeshGenerator::computeMesh() {
           PDM_Mesh_nodal_block_std_get (id_mn, id_block, i_part, &_eltsConnecTri[i_part]);
           _eltsGnumTri[i_part] = PDM_Mesh_nodal_g_num_get (id_mn, id_block, i_part);      
           
+          /*
           for(int i =0; i<_nTri[i_part]; i++){
             for (int j=0;j<3;j++){
              printf("eltsConnecTri[%i] %i rank %i nVtx %i _nTri %i color %i n_block %i\n",3*i+j,_eltsConnecTri[i_part][3*i+j],_rank,_nVtx[i_part],_nTri[i_part],_color,n_block);
             }
           }        
-          
+          */
         }
       }
       else if(t_block == PDM_MESH_NODAL_QUAD4) {

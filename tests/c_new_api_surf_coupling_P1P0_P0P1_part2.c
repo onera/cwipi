@@ -408,7 +408,8 @@ int main
     }  
   }//end i_code loop
 
-  printf("After create_cpl\n");
+  if(rank==0)
+    printf("After create_cpl\n");
 
   PDM_timer_t* timer = PDM_timer_create();
   PDM_timer_t* timer2 = PDM_timer_create();
@@ -439,15 +440,15 @@ int main
     }//end if(is_coupled_rank[i_code]
   }
   
-
-  printf("After gen_init\n");
+  if(rank==0)
+    printf("After gen_init\n");
 
   for(int i_code = 0;i_code<n_code;i_code++)
     if(is_coupled_rank[i_code] == CWP_STATUS_ON)    
       CWP_surf_gen_compute(codeName[i_code]);
-
-  printf("After gen_compute\n");
-  MPI_Barrier(MPI_COMM_WORLD);
+  
+  if(rank==0)
+    printf("After gen_compute\n");
 
   int **eltsConnecPolyIndex = NULL;
   for(int i_code = 0;i_code<n_code;i_code++){
@@ -586,24 +587,20 @@ int main
      }//end if(is_coupled      
   }//end i_code loop    
 
-  printf("After Mesh init\n");
-    MPI_Barrier(MPI_COMM_WORLD);    
-
-
-
-
+  if(rank==0)
+    printf("After Mesh init\n");
+  
   for(int i_code = 0;i_code<n_code;i_code++){      
-      printf("Befor interf_finalize\n");
       
       if(is_coupled_rank[i_code] == CWP_STATUS_ON){    
         CWP_Mesh_interf_finalize (codeName[i_code],
                                   "multipart_testcase");  // Coupling id
       }
-      printf("Just after interf_finalize\n");
   }//end i_code loop
 
   MPI_Barrier(MPI_COMM_WORLD);
-  printf("After interf_finalize\n");
+  if(rank==0)
+    printf("After interf_finalize\n");
 
   /*************************************
    * Fields exchange
@@ -613,7 +610,8 @@ int main
    *                Recv X coordinates
    * --------------------------------- */
 
-  printf("        Exchange Code1 <-> Code2 %i\n",rank);
+  if(rank==0)
+    printf("        Exchange Code1 <-> Code2 %i\n",rank);
 
   /* Exchange */
 
@@ -701,7 +699,8 @@ int main
     }//end i_code loop     
     
     MPI_Barrier(MPI_COMM_WORLD);
-    printf("After Fields");
+    if(rank==0)
+       printf("After Fields");
     PDM_timer_init(timer);
 
     PDM_timer_resume(timer);
